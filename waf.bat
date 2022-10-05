@@ -1,4 +1,4 @@
-@echo off
+@echo off  
 
 rem try fix py2 build
 chcp 65001
