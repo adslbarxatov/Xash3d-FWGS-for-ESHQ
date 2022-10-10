@@ -1,8 +1,8 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
+*	
+*	This product contains software technology licensed from Id 
 *	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
@@ -75,7 +75,7 @@ color24 gTracerColors[] =
 #define FTENT_SPIRAL		0x00000400
 #define FTENT_SPRCYCLE		0x00000800
 #define FTENT_COLLIDEALL		0x00001000 // will collide with world and slideboxes
-#define FTENT_PERSIST		0x00002000 // tent is not removed when unable to draw
+#define FTENT_PERSIST		0x00002000 // tent is not removed when unable to draw 
 #define FTENT_COLLIDEKILL		0x00004000 // tent is removed upon collision with anything
 #define FTENT_PLYRATTACHMENT		0x00008000 // tent is attached to a player (owner)
 #define FTENT_SPRANIMATELOOP		0x00010000 // animating sprite doesn't die when last frame is displayed
@@ -84,9 +84,9 @@ color24 gTracerColors[] =
 #define FTENT_CLIENTCUSTOM		0x00080000 // Must specify callback.  Callback function is responsible for killing tempent and updating fields ( unless other flags specify how to do things )
 #define FTENT_SCALE			0x00100000 // An experiment
 
-struct pmtrace_s;
+struct pmtrace_s;	// FWGS: was: typedef struct tempent_s TEMPENTITY;
 typedef struct tempent_s
-{
+	{
 	int		flags;
 	float		die;
 	float		frameMax;
@@ -98,11 +98,11 @@ typedef struct tempent_s
 	int		hitSound;
 	void		(*hitcallback)( struct tempent_s *ent, struct pmtrace_s *ptr );
 	void		(*callback)( struct tempent_s *ent, float frametime, float currenttime );
-	struct tempent_s	*next;
+	struct tempent_s	*next;	// FWGS: was: TEMPENTITY *next;
 	int		priority;
 	short		clientIndex;	// if attached, this is the index of the client to stick to
 					// if COLLIDEALL, this is the index of the client to ignore
-					// TENTS with FTENT_PLYRATTACHMENT MUST set the clientindex!
+					// TENTS with FTENT_PLYRATTACHMENT MUST set the clientindex! 
 
 	vec3_t		tentOffset;	// if attached, client origin + tentOffset = tent origin.
 	cl_entity_t	entity;
@@ -110,7 +110,7 @@ typedef struct tempent_s
 	// baseline.origin		- velocity
 	// baseline.renderamt	- starting fadeout intensity
 	// baseline.angles		- angle velocity
-} TEMPENTITY;
+	} TEMPENTITY;
 
 typedef struct efx_api_s efx_api_t;
 
