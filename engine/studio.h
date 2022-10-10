@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+*	
+*	This product contains software technology licensed from Id 
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -12,6 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
+
 #pragma once
 #ifndef STUDIO_H
 #define STUDIO_H
@@ -31,6 +32,7 @@ Studio models are position independent, so the cache manager can move them.
 #define IDSEQGRPHEADER	(('Q'<<24)+('S'<<16)+('D'<<8)+'I') // little-endian "IDSQ"
 
 // studio limits
+//FWGS: removed: define MAXSTUDIOTRIANGLES 65536 // max triangles per model
 #define MAXSTUDIOVERTS		16384	// max vertices per submodel
 #define MAXSTUDIOSEQUENCES		256	// total animation sequences
 #define MAXSTUDIOSKINS		256	// total textures
@@ -39,28 +41,41 @@ Studio models are position independent, so the cache manager can move them.
 #define MAXSTUDIOMODELS		32	// sub-models per model
 #define MAXSTUDIOBODYPARTS		32	// body parts per submodel
 #define MAXSTUDIOGROUPS		16	// sequence groups (e.g. barney01.mdl, barney02.mdl, e.t.c)
+//FWGS: removed: define MAXSTUDIOANIMATIONS 512 // max frames per sequence
 #define MAXSTUDIOMESHES		256	// max textures per model
+
+// FWGS
 #define MAXSTUDIOCONTROLLERS		32	// max controllers per model
 #define MAXSTUDIOATTACHMENTS		64	// max attachments per model
+/*define MAXSTUDIOEVENTS		1024	// events per model
+define MAXSTUDIOPIVOTS		256	// pivot points
+define MAXSTUDIOBLENDS		16	// max anim blends*/
+
 #define MAXSTUDIOBONEWEIGHTS		4	// absolute hardware limit!
+
+// FWGS
 #define MAXSTUDIONAME		32	// a part of specs
 #define MAXSTUDIOPOSEPARAM		24
 #define MAX_STUDIO_LIGHTMAP_SIZE	256	// must match with engine const!!!
+/*define MAXSTUDIOCONTROLLERS		8	// max controllers per model
+define MAXSTUDIOATTACHMENTS		4	// max attachments per model*/
 
 // client-side model flags
 #define STUDIO_ROCKET		(1U<<0)	// leave a trail
 #define STUDIO_GRENADE		(1U<<1)	// leave a trail
-#define STUDIO_GIB		(1U<<2)	// leave a trail
+#define STUDIO_GIB			(1U<<2)	// leave a trail
 #define STUDIO_ROTATE		(1U<<3)	// rotate (bonus items)
 #define STUDIO_TRACER		(1U<<4)	// green split trail
 #define STUDIO_ZOMGIB		(1U<<5)	// small blood trail
 #define STUDIO_TRACER2		(1U<<6)	// orange split trail + rotate
 #define STUDIO_TRACER3		(1U<<7)	// purple trail
-#define STUDIO_AMBIENT_LIGHT		(1U<<8)	// force to use ambient shading
+#define STUDIO_AMBIENT_LIGHT		(1U<<8)	// force to use ambient shading 
 #define STUDIO_TRACE_HITBOX		(1U<<9)	// always use hitbox trace instead of bbox
 #define STUDIO_FORCE_SKYLIGHT		(1U<<10)	// always grab lightvalues from the sky settings (even if sky is invisible)
 
+// FWGS
 #define STUDIO_HAS_BUMP			(1U<<16)	// loadtime set
+
 #define STUDIO_STATIC_PROP		(1U<<29)	// hint for engine
 #define STUDIO_HAS_BONEINFO		(1U<<30)	// extra info about bones (pose matrix, procedural index etc)
 #define STUDIO_HAS_BONEWEIGHTS	(1U<<31)	// yes we got support of bone weighting
@@ -70,11 +85,13 @@ Studio models are position independent, so the cache manager can move them.
 #define STUDIO_NF_CHROME		0x0002
 #define STUDIO_NF_FULLBRIGHT		0x0004
 #define STUDIO_NF_NOMIPS		0x0008	// ignore mip-maps
-#define STUDIO_NF_SMOOTH		0x0010	// smooth tangent space
+#define STUDIO_NF_SMOOTH		0x0010	// FWGS: smooth tangent space
+
 #define STUDIO_NF_ADDITIVE		0x0020	// rendering with additive mode
 #define STUDIO_NF_MASKED		0x0040	// use texture with alpha channel
 #define STUDIO_NF_NORMALMAP		0x0080	// indexed normalmap
 
+// FWGS
 #define STUDIO_NF_GLOSSMAP		0x0100	// glossmap
 #define STUDIO_NF_GLOSSPOWER		0x0200
 #define STUDIO_NF_LUMA			0x0400	// self-illuminate parts
@@ -101,26 +118,26 @@ Studio models are position independent, so the cache manager can move them.
 #define STUDIO_LX			0x0040
 #define STUDIO_LY			0x0080
 #define STUDIO_LZ			0x0100
-#define STUDIO_LXR			0x0200
+#define STUDIO_LXR			0x0200	// FWGS
 #define STUDIO_LYR			0x0400
 #define STUDIO_LZR			0x0800
 #define STUDIO_LINEAR			0x1000
 #define STUDIO_QUADRATIC_MOTION		0x2000
 #define STUDIO_RESERVED			0x4000	// g-cont. reserved one bit for me
-#define STUDIO_TYPES			0x7FFF
-#define STUDIO_RLOOP			0x8000	// controller that wraps shortest distance
+#define STUDIO_TYPES		0x7FFF
+#define STUDIO_RLOOP		0x8000	// controller that wraps shortest distance
 
 // bonecontroller types
 #define STUDIO_MOUTH		4	// hardcoded
 
-// sequence flags
+// FWGS: sequence flags
 #define STUDIO_LOOPING		0x0001	// ending frame should be the same as the starting frame
 #define STUDIO_SNAP			0x0002	// do not interpolate between previous animation and this one
 #define STUDIO_DELTA		0x0004	// this sequence "adds" to the base sequences, not slerp blends
 #define STUDIO_AUTOPLAY		0x0008	// temporary flag that forces the sequence to always play
 #define STUDIO_POST			0x0010	//
 #define STUDIO_ALLZEROS		0x0020	// this animation/sequence has no real animation data
-#define STUDIO_BLENDPOSE		0x0040   	// to differentiate GoldSrc style blending from Source style blending (with pose parameters)
+#define STUDIO_BLENDPOSE		0x0040	// to differentiate GoldSrc style blending from Source style blending (with pose parameters)
 #define STUDIO_CYCLEPOSE		0x0080	// cycle index is taken from a pose parameter index
 #define STUDIO_REALTIME		0x0100	// cycle index is taken from a real-time clock, not the animations cycle index
 #define STUDIO_LOCAL		0x0200	// sequence has a local context sequence
@@ -134,14 +151,14 @@ Studio models are position independent, so the cache manager can move them.
 // autolayer flags
 #define STUDIO_AL_POST		0x0001	//
 #define STUDIO_AL_SPLINE	0x0002	// convert layer ramp in/out curve is a spline instead of linear
-#define STUDIO_AL_XFADE		0x0004	// pre-bias the ramp curve to compense for a non-1 weight,
-					// assuming a second layer is also going to accumulate
+#define STUDIO_AL_XFADE		0x0004	// pre-bias the ramp curve to compense for a non-1 weight, assuming a second layer is also going to accumulate
 #define STUDIO_AL_NOBLEND	0x0008	// animation always blends at 1.0 (ignores weight)
 #define STUDIO_AL_LOCAL		0x0010	// layer is a local context sequence
 #define STUDIO_AL_POSE		0x0020	// layer blends using a pose parameter instead of parent cycle
 
+// FWGS
 typedef struct studiohdr_s
-{
+	{
 	// the model signature
 	int32_t		ident;
 
@@ -245,11 +262,11 @@ typedef struct studiohdr_s
 
 	// offset to the first sequence transition
 	int32_t		transitionindex;
-} studiohdr_t;
+	} studiohdr_t;
 
-// extra header to hold more offsets
+// FWGS: extra header to hold more offsets
 typedef struct
-{
+	{
 	// number of pose parameters
 	int32_t		numposeparameters;
 
@@ -282,11 +299,11 @@ typedef struct
 
 	// for future expansions
 	int32_t		unused[6];
-} studiohdr2_t;
+	} studiohdr2_t;
 
-// header for demand loaded sequence group data
+// FWGS: header for demand loaded sequence group data
 typedef struct
-{
+	{
 	// the model signature
 	int32_t		id;
 
@@ -298,9 +315,9 @@ typedef struct
 
 	// the total file size in bytes
 	int32_t		length;
-} studioseqhdr_t;
+	} studioseqhdr_t;
 
-// bone flags
+// FWGS: bone flags
 #define BONE_ALWAYS_PROCEDURAL		0x0001	// bone is always procedurally animated
 #define BONE_SCREEN_ALIGN_SPHERE	0x0002	// bone aligns to the screen, not constrained in motion.
 #define BONE_SCREEN_ALIGN_CYLINDER	0x0004	// bone aligns to the screen, constrained by it's own axis.
@@ -314,9 +331,9 @@ typedef struct
 #define BONE_USED_BY_VERTEX		0x00000400	// bone (or child) is used by the toplevel model via skinned vertex
 #define BONE_USED_BY_BONE_MERGE		0x00000800
 
-// bones
+// FWGS: bones
 typedef struct mstudiobone_s
-{
+	{
 	// the bone name
 	char		name[MAXSTUDIONAME];
 
@@ -331,23 +348,23 @@ typedef struct mstudiobone_s
 	int32_t		bonecontroller[6];
 
 	/* default position and rotation values where
-	 * scale[0] = position.X
-	 * scale[1] = position.Y
-	 * scale[2] = position.Z
-	 * scale[3] = rotation.X
-	 * scale[4] = rotation.Y
-	 * scale[5] = rotation.Z
-	 */
+	scale[0] = position.X
+	scale[1] = position.Y
+	scale[2] = position.Z
+	scale[3] = rotation.X
+	scale[4] = rotation.Y
+	scale[5] = rotation.Z
+	*/
 	vec_t		value[6];
 
 	/* compressed scale values where
-	 * scale[0] = position.X scale
-	 * scale[1] = position.Y scale
-	 * scale[2] = position.Z scale
-	 * scale[3] = rotation.X scale
-	 * scale[4] = rotation.Y scale
-	 * scale[5] = rotation.Z scale
-	 */
+	scale[0] = position.X scale
+	scale[1] = position.Y scale
+	scale[2] = position.Z scale
+	scale[3] = rotation.X scale
+	scale[4] = rotation.Y scale
+	scale[5] = rotation.Z scale
+	*/
 	vec_t		scale[6];
 } mstudiobone_t;
 
@@ -357,8 +374,9 @@ typedef struct mstudiobone_s
 #define STUDIO_PROC_AIMATATTACH	4
 #define STUDIO_PROC_JIGGLE	5
 
+// FWGS
 typedef struct
-{
+	{
 	// local transformation of this bone used to calc 3 point blend
 	int32_t		control;
 
@@ -370,10 +388,10 @@ typedef struct
 
 	// X+, X-, Y+, Y-, Z+, Z-
 	vec4_t		quat[6];
-} mstudioaxisinterpbone_t;
+	} mstudioaxisinterpbone_t;
 
 typedef struct
-{
+	{
 	// 1.0f / radian angle of trigger influence
 	vec_t		inv_tolerance;
 
@@ -385,19 +403,19 @@ typedef struct
 
 	// new angle
 	vec4_t		quat;
-} mstudioquatinterpinfo_t;
+	} mstudioquatinterpinfo_t;
 
 typedef struct
-{
+	{
 	// local transformation to check
 	int32_t		control;
 	int32_t		numtriggers;
 	int32_t		triggerindex;
-} mstudioquatinterpbone_t;
+	} mstudioquatinterpbone_t;
 
-// extra info for bones
+// FWGS: extra info for bones
 typedef struct
-{
+	{
 	// boneweighting reqiures
 	vec_t		poseToBone[3][4];
 
@@ -413,7 +431,7 @@ typedef struct
 
 	// for future expansions
 	int32_t		reserved[10];
-} mstudioboneinfo_t;
+	} mstudioboneinfo_t;
 
 // JIGGLEBONES
 #define JIGGLE_IS_FLEXIBLE		0x01
@@ -425,8 +443,9 @@ typedef struct
 #define JIGGLE_HAS_BASE_SPRING		0x40
 #define JIGGLE_IS_BOING			0x80	// simple squash and stretch sinusoid "boing"
 
+// FWGS
 typedef struct
-{
+	{
 	int32_t		flags;
 
 	// general params
@@ -476,10 +495,10 @@ typedef struct
 	vec_t		boingDampingRate;
 	vec_t		boingFrequency;
 	vec_t		boingAmplitude;
-} mstudiojigglebone_t;
+	} mstudiojigglebone_t;
 
 typedef struct
-{
+	{
 	int32_t		parent;
 
 	// might be bone or attach
@@ -488,11 +507,11 @@ typedef struct
 	vec3_t		aimvector;
 	vec3_t		upvector;
 	vec3_t		basepos;
-} mstudioaimatbone_t;
+	} mstudioaimatbone_t;
 
-// bone controllers
+// FWGS: bone controllers
 typedef struct
-{
+	{
 	// bone affected by this controller
 	int32_t		bone;
 
@@ -508,11 +527,11 @@ typedef struct
 
 	// the bone controller channel
 	int32_t		index;
-} mstudiobonecontroller_t;
+	} mstudiobonecontroller_t;
 
-// intersection boxes
+// FWGS: intersection boxes
 typedef struct
-{
+	{
 	// the bone this hitbox follows
 	int32_t		bone;
 
@@ -522,18 +541,18 @@ typedef struct
 	// the hitbox minimum and maximum extents
 	vec3_t		bbmin;
 	vec3_t		bbmax;
-} mstudiobbox_t;
+	} mstudiobbox_t;
 
 typedef struct
-{
+	{
 	char		name[MAXSTUDIONAME];
 	int32_t		numhitboxes;
 	int32_t		hitboxindex;
-} mstudiohitboxset_t;
+	} mstudiohitboxset_t;
 
-// demand loaded sequence groups
+// FWGS: demand loaded sequence groups
 typedef struct
-{
+	{
 	// a textual name for this sequence group
 	char		label[MAXSTUDIONAME];
 
@@ -545,16 +564,16 @@ typedef struct
 
 	// was "data"
 	int32_t		unused2;
-} mstudioseqgroup_t;
+	} mstudioseqgroup_t;
 
-// events
+// FWGS: events
 #include "studio_event.h"
 
-#define STUDIO_ATTACHMENT_LOCAL	(1<<0)	// vectors are filled
+#define STUDIO_ATTACHMENT_LOCAL	(1<<0)	// FWGS: vectors are filled
 
-// attachment
+// FWGS: attachment
 typedef struct
-{
+	{
 	// was "name"
 	char		unused[MAXSTUDIONAME];
 
@@ -568,7 +587,7 @@ typedef struct
 
 	// the attachment vectors
 	vec3_t		vectors[3];
-} mstudioattachment_t;
+	} mstudioattachment_t;
 
 #define IK_SELF		1
 #define IK_WORLD		2
@@ -578,13 +597,14 @@ typedef struct
 #define IK_UNLATCH		6
 
 typedef struct
-{
+	{
 	vec_t		scale[6];
 	uint16_t	offset[6];
-} mstudioikerror_t;
+	} mstudioikerror_t;
 
+// FWGS
 typedef struct
-{
+	{
 	int32_t		index;
 
 	int32_t		type;
@@ -633,10 +653,11 @@ typedef struct
 
 	// for future expansions
 	int32_t		unused[4];
-} mstudioikrule_t;
+	} mstudioikrule_t;
 
+// FWGS
 typedef struct
-{
+	{
 	int32_t		chain;
 	vec_t		flPosWeight;
 	vec_t		flLocalQWeight;
@@ -644,10 +665,10 @@ typedef struct
 
 	// for future expansions
 	int32_t		unused[4];
-} mstudioiklock_t;
+	} mstudioiklock_t;
 
 typedef struct
-{
+	{
 	int32_t		endframe;
 
 	int32_t		motionflags;
@@ -666,11 +687,11 @@ typedef struct
 
 	// relative to start of animation???
 	vec3_t		position;
-} mstudiomovement_t;
+	} mstudiomovement_t;
 
-// additional info for each animation in sequence blend group or single sequence
+// FWGS: additional info for each animation in sequence blend group or single sequence
 typedef struct
-{
+	{
 	// animation label (may be matched with sequence label)
 	char		label[MAXSTUDIONAME];
 
@@ -697,11 +718,11 @@ typedef struct
 
 	// for future expansions
 	int32_t		unused[8];
-} mstudioanimdesc_t;
+	} mstudioanimdesc_t;
 
-// autoplaying sequences
+// FWGS: autoplaying sequences
 typedef struct
-{
+	{
 	int16_t		iSequence;
 	int16_t		iPose;
 	int32_t		flags;
@@ -717,11 +738,11 @@ typedef struct
 
 	// end of all influence
 	vec_t		end;
-} mstudioautolayer_t;
+	} mstudioautolayer_t;
 
-// sequence descriptions
+// FWGS: sequence descriptions
 typedef struct mstudioseqdesc_s
-{
+	{
 	// the sequence name
 	char		label[MAXSTUDIONAME];
 
@@ -820,10 +841,11 @@ typedef struct mstudioseqdesc_s
 
 	// mstudioanimdesc_t [blend]
 	int32_t		animdescindex;
-} mstudioseqdesc_t;
+	} mstudioseqdesc_t;
 
+// FWGS
 typedef struct
-{
+	{
 	// pose parameter name
 	char		name[MAXSTUDIONAME];
 
@@ -838,28 +860,28 @@ typedef struct
 
 	// looping range, 0 for no looping, 360 for rotations, etc
 	vec_t		loop;
-} mstudioposeparamdesc_t;
+	} mstudioposeparamdesc_t;
 
-// offsets to the animation frames
+// FWGS: offsets to the animation frames
 typedef struct mstudioanim_s
-{
+	{
 	uint16_t	offset[6];
-} mstudioanim_t;
+	} mstudioanim_t;
 
 // animation frames
 typedef union
-{
-	struct
 	{
+	struct
+		{
 		uint8_t	valid;
 		uint8_t	total;
-	} num;
+		} num;
 	int16_t		value;
-} mstudioanimvalue_t;
+	} mstudioanimvalue_t;
 
-// body part index
+// FWGS: body part index
 typedef struct
-{
+	{
 	// the bodypart name
 	char		name[64];
 
@@ -872,11 +894,11 @@ typedef struct
 
 	// the offset to the first model chunk
 	int32_t		modelindex;	// index into models array
-} mstudiobodyparts_t;
+	} mstudiobodyparts_t;
 
-// skin info
+// FWGS: skin info
 typedef struct mstudiotex_s
-{
+	{
 	// texture file name
 	char		name[64];
 
@@ -892,11 +914,11 @@ typedef struct mstudiotex_s
 	// offset to the image data
 	// this offset is relative to the texture file header
 	int32_t		index;
-} mstudiotexture_t;
+	} mstudiotexture_t;
 
-// ikinfo
+// FWGS: ikinfo
 typedef struct
-{
+	{
 	int32_t		bone;
 
 	// ideal bending direction (per link, if applicable)
@@ -904,28 +926,28 @@ typedef struct
 
 	// unused
 	vec3_t		unused0;
-} mstudioiklink_t;
+	} mstudioiklink_t;
 
 typedef struct
-{
+	{
 	char		name[MAXSTUDIONAME];
 	int32_t		linktype;
 	int32_t		numlinks;
 	int32_t		linkindex;
-} mstudioikchain_t;
+	} mstudioikchain_t;
 
 typedef struct
-{
+	{
 	uint8_t		weight[4];
 	int8_t		bone[4];
-} mstudioboneweight_t;
+	} mstudioboneweight_t;
 
 // skin families
-// short	index[skinfamilies][skinref]
+// short index[skinfamilies][skinref]
 
-// studio models
+// FWGS: studio models
 typedef struct
-{
+	{
 	// model name
 	char		name[64];
 
@@ -964,13 +986,13 @@ typedef struct
 
 	// offset to the boneweighted normal info
 	int32_t		blendnorminfoindex;
-} mstudiomodel_t;
+	} mstudiomodel_t;
 
 // vec3_t	boundingbox[model][bone][2];		// complex intersection info
 
-// meshes
+// FWGS: meshes
 typedef struct
-{
+	{
 	// can be interpreted as the number of triangles in the mesh
 	int32_t		numtris;
 
@@ -987,9 +1009,9 @@ typedef struct
 	int32_t		unused;
 } mstudiomesh_t;
 
-// triangles
+// FWGS: triangles
 typedef struct
-{
+	{
 	// index into vertex array
 	int16_t		vertindex;
 
@@ -997,7 +1019,7 @@ typedef struct
 	int16_t		normindex;
 
 	// texture coordinates in absolute space (unnormalized)
-	int16_t		s,t;
-} mstudiotrivert_t;
+	int16_t		s, t;
+	} mstudiotrivert_t;
 
 #endif//STUDIO_H
