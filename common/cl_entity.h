@@ -17,22 +17,22 @@
 #define CL_ENTITY_H
 
 typedef struct efrag_s
-{
-	struct mleaf_s	*leaf;
-	struct efrag_s	*leafnext;
-	struct cl_entity_s	*entity;
-	struct efrag_s	*entnext;
-} efrag_t;
+	{
+	struct mleaf_s* leaf;
+	struct efrag_s* leafnext;
+	struct cl_entity_s* entity;
+	struct efrag_s* entnext;
+	} efrag_t;
 
 typedef struct
-{
+	{
 	byte		mouthopen;	// 0 = mouth closed, 255 = mouth agape
 	byte		sndcount;		// counter for running average
 	int		sndavg;		// running average
-} mouth_t;
+	} mouth_t;
 
 typedef struct
-{
+	{
 	float		prevanimtime;
 	float		sequencetime;
 	byte		prevseqblending[2];
@@ -44,16 +44,16 @@ typedef struct
 
 	byte		prevcontroller[4];
 	byte		prevblending[2];
-} latchedvars_t;
+	} latchedvars_t;
 
 typedef struct
-{
+	{
 	// Time stamp for this movement
 	float		animtime;
 
 	vec3_t		origin;
 	vec3_t		angles;
-} position_history_t;
+	} position_history_t;
 
 typedef struct cl_entity_s cl_entity_t;
 
@@ -64,7 +64,7 @@ typedef struct cl_entity_s cl_entity_t;
 #include "event_args.h"
 
 struct cl_entity_s
-{
+	{
 	int		index;      	// Index into cl_entities ( should match actual slot, but not necessarily )
 	qboolean		player;     	// True if this entity is a "player"
 
@@ -93,13 +93,13 @@ struct cl_entity_s
 	// Other entity local information
 	int		trivial_accept;
 
-	struct model_s	*model;	// cl.model_precache[ curstate.modelindes ];  all visible entities have a model
-	struct efrag_s	*efrag;	// linked list of efrags
-	struct mnode_s	*topnode;	// for bmodels, first world node that splits bmodel, or NULL if not split
+	struct model_s* model;		// cl.model_precache[ curstate.modelindes ];  all visible entities have a model
+	struct efrag_s* efrag;		// linked list of efrags
+	struct mnode_s* topnode;	// for bmodels, first world node that splits bmodel, or NULL if not split
 
 	float		syncbase;	// for client-side animations -- used by obsolete alias animation system, remove?
 	int		visframe;	// last frame this entity was found in an active leaf
 	colorVec		cvFloorColor;
-};
+	};
 
 #endif//CL_ENTITY_H
