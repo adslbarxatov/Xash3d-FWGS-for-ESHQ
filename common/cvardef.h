@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+*	
+*	This product contains software technology licensed from Id 
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -25,25 +25,26 @@
 #define FCVAR_PRINTABLEONLY		(1<<7)	// This cvar's string cannot contain unprintable characters ( e.g., used for player name etc ).
 #define FCVAR_UNLOGGED		(1<<8)	// If this is a FCVAR_SERVER, don't log changes to the log file / console if we are creating a log
 #define FCVAR_NOEXTRAWHITEPACE	(1<<9)	// strip trailing/leading white space from this cvar
+
+// FWGS
 #define FCVAR_PRIVILEGED	(1<<10) // only available in privileged mode
 #define FCVAR_FILTERABLE	(1<<11) // filtered in unprivileged mode if cl_filterstuffcmd is 1
-
-// Xash3D extensions
 #define FCVAR_GLCONFIG		(1<<12)	// write it into <renderer>.cfg(see RefAPI)
+
 #define FCVAR_CHANGED		(1<<13)	// set each time the cvar is changed
 #define FCVAR_GAMEUIDLL		(1<<14)	// defined by the menu DLL
 #define FCVAR_CHEAT			(1<<15)	// can not be changed if cheats are disabled
 
-// a1ba: let's reuse higher bits for flags extensions from now on
+// FWGS: a1ba: let's reuse higher bits for flags extensions from now on
 #define FCVAR_LATCH			(1<<30)	// notify client what this cvar will be applied only after server restart (but don't does more nothing)
 
 typedef struct cvar_s
-{
-	char		*name;
-	char		*string;
+	{
+	char *name;
+	char *string;
 	int		flags;
 	float		value;
-	struct cvar_s	*next;
-} cvar_t;
+	struct cvar_s *next;
+	} cvar_t;
 
 #endif//CVARDEF_H
