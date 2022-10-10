@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+*	
+*	This product contains software technology licensed from Id 
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -21,9 +21,9 @@
 //
 #define K_TAB		9
 #define K_ENTER		13
-#define K_ESCAPE	27
+#define K_ESCAPE		27
 #define K_SPACE		32
-#define K_SCROLLOCK	70
+#define K_SCROLLOCK		70
 
 // normal keys should be passed as lowercased ascii
 
@@ -59,7 +59,7 @@
 #define K_KP_UPARROW	161
 #define K_KP_PGUP		162
 #define K_KP_LEFTARROW	163
-#define K_KP_5			164
+#define K_KP_5		164
 #define K_KP_RIGHTARROW	165
 #define K_KP_END		166
 #define K_KP_DOWNARROW	167
@@ -71,22 +71,23 @@
 #define K_KP_MINUS		173
 #define K_KP_PLUS		174
 #define K_CAPSLOCK		175
+
+// FWGS
 #define K_KP_MUL		176
 #define K_WIN			177
 #define K_KP_NUMLOCK	178
-
 //
 // joystick buttons
 //
-#define K_JOY1		203 // LTRIGGER (L2)
-#define K_JOY2		204 // RTRIGGER (R2)
+#define K_JOY1		203	// FWGS: LTRIGGER (L2)
+#define K_JOY2		204	// FWGS: RTRIGGER (R2)
 #define K_JOY3		205
 #define K_JOY4		206
 
-//
+// FWGS
 // aux keys are for multi-buttoned joysticks to generate so they can use
 // the normal binding process
-//
+
 #define K_AUX1		207
 #define K_A_BUTTON	K_AUX1
 
@@ -103,16 +104,16 @@
 #define K_L1_BUTTON	K_AUX5
 
 #define K_AUX6		212
-#define K_R1_BUTTON K_AUX6
+#define K_R1_BUTTON	K_AUX6
 
-#define K_AUX7		  213
-#define K_BACK_BUTTON K_AUX7
+#define K_AUX7		213
+#define K_BACK_BUTTON	K_AUX7
 
-#define K_AUX8		  214
-#define K_MODE_BUTTON K_AUX8
+#define K_AUX8		214
+#define K_MODE_BUTTON	K_AUX8
 
-#define K_AUX9		   215
-#define K_START_BUTTON K_AUX9
+#define K_AUX9		215
+#define K_START_BUTTON	K_AUX9
 
 #define K_AUX10		216
 #define K_LSTICK	K_AUX10
@@ -124,43 +125,43 @@
 #define K_L2_BUTTON	K_AUX12
 
 #define K_AUX13		219
-#define K_R2_BUTTON K_AUX13
+#define K_R2_BUTTON	K_AUX13
 
 #define K_AUX14		220
-#define K_C_BUTTON  K_AUX14
+#define K_C_BUTTON	K_AUX14
 
 #define K_AUX15		221
-#define K_Z_BUTTON  K_AUX15
+#define K_Z_BUTTON	K_AUX15
 
 #define K_AUX16		222
-#define K_DPAD_UP  K_AUX16
+#define K_DPAD_UP	K_AUX16
 
 #define K_AUX17		223
-#define K_DPAD_DOWN  K_AUX17
+#define K_DPAD_DOWN	K_AUX17
 
 #define K_AUX18		224
-#define K_DPAD_LEFT  K_AUX18
+#define K_DPAD_LEFT	K_AUX18
 
 #define K_AUX19		225
-#define K_DPAD_RIGHT  K_AUX19
+#define K_DPAD_RIGHT	K_AUX19
 
-#define K_AUX20			226
-#define K_AUX21			227
-#define K_AUX22			228
-#define K_AUX23			229
-#define K_AUX24			230
-#define K_AUX25			231
-#define K_AUX26			232
-#define K_AUX27			233
-#define K_AUX28			234
-#define K_AUX29			235
-#define K_AUX30			236
-#define K_AUX31			237
-#define K_AUX32			238
+#define K_AUX20		226
+#define K_AUX21		227
+#define K_AUX22		228
+#define K_AUX23		229
+#define K_AUX24		230
+#define K_AUX25		231
+#define K_AUX26		232
+#define K_AUX27		233
+#define K_AUX28		234
+#define K_AUX29		235
+#define K_AUX30		236
+#define K_AUX31		237
+#define K_AUX32		238
 #define K_MWHEELDOWN	239
 #define K_MWHEELUP		240
 
-#define K_PAUSE			255
+#define K_PAUSE		255
 
 //
 // mouse buttons generate virtual keys
