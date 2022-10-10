@@ -18,7 +18,7 @@ GNU General Public License for more details.
 
 #define GFL_NOMODELS	(1<<0)
 #define GFL_NOSKILLS	(1<<1)
-#define GFL_RENDER_PICBUTTON_TEXT   (1<<2)
+#define GFL_RENDER_PICBUTTON_TEXT	(1<<2)	// FWGS
 
 /*
 ========================================================================
@@ -34,6 +34,7 @@ typedef struct
 	char		gamefolder[64];	// used for change game '-game x'
 	char		startmap[64];	// map to start singleplayer game
 	char		trainmap[64];	// map to start hazard course (if specified)
+	char		creditsmap[64];	// ESHQ: map to show credits (if specified)
 	char		title[64];	// Game Main Title
 	char		version[14];	// game version (optional)
 	short		flags;		// game flags
