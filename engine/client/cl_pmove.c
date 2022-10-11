@@ -48,7 +48,9 @@ CL_PushPMStates
 */
 void GAME_EXPORT CL_PushPMStates (void)
 	{
-	if (clgame.pushed) return;
+	if (clgame.pushed)
+		return;
+
 	clgame.oldphyscount = clgame.pmove->numphysent;
 	clgame.oldviscount = clgame.pmove->numvisent;
 	clgame.pushed = true;

@@ -28,10 +28,10 @@ GNU General Public License for more details.
 ===============================================================================
 */
 
-static efrag_t	**lastlink;
-static mnode_t	*r_pefragtopnode;
+static efrag_t **lastlink;
+static mnode_t *r_pefragtopnode;
 static vec3_t	r_emins, r_emaxs;
-static cl_entity_t	*r_addent;
+static cl_entity_t *r_addent;
 
 /*
 ================
@@ -40,28 +40,28 @@ R_RemoveEfrags
 Call when removing an object from the world or moving it to another position
 ================
 */
-void R_RemoveEfrags( cl_entity_t *ent )
-{
-	efrag_t	*ef, *old, *walk, **prev;
+void R_RemoveEfrags (cl_entity_t *ent)
+	{
+	efrag_t *ef, *old, *walk, **prev;
 
 	ef = ent->efrag;
 
-	while( ef )
-	{
-		prev = &ef->leaf->efrags;
-		while( 1 )
+	while (ef)
 		{
-			walk = *prev;
-			if( !walk ) break;
-
-			if( walk == ef )
+		prev = &ef->leaf->efrags;
+		while (1)
 			{
+			walk = *prev;
+			if (!walk) break;
+
+			if (walk == ef)
+				{
 				// remove this fragment
 				*prev = ef->leafnext;
 				break;
-			}
+				}
 			else prev = &walk->leafnext;
-		}
+			}
 
 		old = ef;
 		ef = ef->entnext;
@@ -69,39 +69,39 @@ void R_RemoveEfrags( cl_entity_t *ent )
 		// put it on the free list
 		old->entnext = clgame.free_efrags;
 		clgame.free_efrags = old;
-	}
+		}
 	ent->efrag = NULL;
-}
+	}
 
 /*
 ===================
 R_SplitEntityOnNode
 ===================
 */
-static void R_SplitEntityOnNode( mnode_t *node )
-{
-	efrag_t	*ef;
-	mleaf_t	*leaf;
+static void R_SplitEntityOnNode (mnode_t *node)
+	{
+	efrag_t *ef;
+	mleaf_t *leaf;
 	int	sides;
 
-	if( node->contents == CONTENTS_SOLID )
+	if (node->contents == CONTENTS_SOLID)
 		return;
 
 	// add an efrag if the node is a leaf
-	if( node->contents < 0 )
-	{
-		if( !r_pefragtopnode )
+	if (node->contents < 0)
+		{
+		if (!r_pefragtopnode)
 			r_pefragtopnode = node;
 
 		leaf = (mleaf_t *)node;
 
 		// grab an efrag off the free list
 		ef = clgame.free_efrags;
-		if( !ef )
-		{
-			Con_Printf( S_ERROR "too many efrags!\n" );
+		if (!ef)
+			{
+			Con_Printf (S_ERROR "too many efrags!\n");
 			return; // no free fragments...
-		}
+			}
 
 		clgame.free_efrags = ef->entnext;
 		ef->entity = r_addent;
@@ -116,35 +116,35 @@ static void R_SplitEntityOnNode( mnode_t *node )
 		ef->leafnext = leaf->efrags;
 		leaf->efrags = ef;
 		return;
-	}
+		}
 
 	// NODE_MIXED
-	sides = BOX_ON_PLANE_SIDE( r_emins, r_emaxs, node->plane );
+	sides = BOX_ON_PLANE_SIDE (r_emins, r_emaxs, node->plane);
 
-	if( sides == 3 )
-	{
+	if (sides == 3)
+		{
 		// split on this plane
 		// if this is the first splitter of this bmodel, remember it
-		if( !r_pefragtopnode ) r_pefragtopnode = node;
-	}
+		if (!r_pefragtopnode) r_pefragtopnode = node;
+		}
 
 	// recurse down the contacted sides
-	if( sides & 1 ) R_SplitEntityOnNode( node->children[0] );
-	if( sides & 2 ) R_SplitEntityOnNode( node->children[1] );
-}
+	if (sides & 1) R_SplitEntityOnNode (node->children[0]);
+	if (sides & 2) R_SplitEntityOnNode (node->children[1]);
+	}
 
 /*
 ===========
 R_AddEfrags
 ===========
 */
-void R_AddEfrags( cl_entity_t *ent )
-{
+void R_AddEfrags (cl_entity_t *ent)
+	{
 	matrix3x4	transform;
 	vec3_t	outmins, outmaxs;
 	int	i;
 
-	if( !ent->model )
+	if (!ent->model)
 		return;
 
 	r_addent = ent;
@@ -152,18 +152,18 @@ void R_AddEfrags( cl_entity_t *ent )
 	r_pefragtopnode = NULL;
 
 	// handle entity rotation for right bbox expanding
-	Matrix3x4_CreateFromEntity( transform, ent->angles, vec3_origin, 1.0f );
-	Matrix3x4_TransformAABB( transform, ent->model->mins, ent->model->maxs, outmins, outmaxs );
+	Matrix3x4_CreateFromEntity (transform, ent->angles, vec3_origin, 1.0f);
+	Matrix3x4_TransformAABB (transform, ent->model->mins, ent->model->maxs, outmins, outmaxs);
 
-	for( i = 0; i < 3; i++ )
-	{
+	for (i = 0; i < 3; i++)
+		{
 		r_emins[i] = ent->origin[i] + outmins[i];
 		r_emaxs[i] = ent->origin[i] + outmaxs[i];
-	}
+		}
 
-	R_SplitEntityOnNode( cl.worldmodel->nodes );
+	R_SplitEntityOnNode (cl.worldmodel->nodes);
 	ent->topnode = r_pefragtopnode;
-}
+	}
 
 /*
 ================
@@ -171,37 +171,37 @@ R_StoreEfrags
 
 ================
 */
-void R_StoreEfrags( efrag_t **ppefrag, int framecount )
-{
-	cl_entity_t	*pent;
-	model_t		*clmodel;
-	efrag_t		*pefrag;
-
-	while(( pefrag = *ppefrag ) != NULL )
+void R_StoreEfrags (efrag_t **ppefrag, int framecount)
 	{
+	cl_entity_t *pent;
+	model_t *clmodel;
+	efrag_t *pefrag;
+
+	while ((pefrag = *ppefrag) != NULL)
+		{
 		pent = pefrag->entity;
 		clmodel = pent->model;
 
-		switch( clmodel->type )
-		{
-		case mod_alias:
-		case mod_brush:
-		case mod_studio:
-		case mod_sprite:
-			if( pent->visframe != framecount )
+		switch (clmodel->type)
 			{
-				if( CL_AddVisibleEntity( pent, ET_FRAGMENTED ))
-				{
-					// mark that we've recorded this entity for this frame
-					pent->curstate.messagenum = cl.parsecount;
-					pent->visframe = framecount;
-				}
-			}
+			case mod_alias:
+			case mod_brush:
+			case mod_studio:
+			case mod_sprite:
+				if (pent->visframe != framecount)
+					{
+					if (CL_AddVisibleEntity (pent, ET_FRAGMENTED))
+						{
+						// mark that we've recorded this entity for this frame
+						pent->curstate.messagenum = cl.parsecount;
+						pent->visframe = framecount;
+						}
+					}
 
-			ppefrag = &pefrag->leafnext;
-			break;
-		default:
-			break;
+				ppefrag = &pefrag->leafnext;
+				break;
+			default:
+				break;
+			}
 		}
 	}
-}
