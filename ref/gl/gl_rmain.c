@@ -87,7 +87,7 @@ static int R_TransEntityCompare (const void *a, const void *b)
 	rendermode1 = R_GetEntityRenderMode (ent1);
 	rendermode2 = R_GetEntityRenderMode (ent2);
 
-	// ESHQ: сортировка по дистанции без игнорирования аддитивных текстур (иначе получается странная картинка)
+	// ESHQ???: сортировка по дистанции без игнорирования аддитивных текстур (иначе получается странная картинка)
 	if ((ent1->model->type != mod_brush))//|| (rendermode1 != kRenderTransAlpha))
 		{
 		VectorAverage (ent1->model->mins, ent1->model->maxs, org);
@@ -714,7 +714,7 @@ static void R_CheckFog (void)
 
 	RI.cached_waterlevel = ENGINE_GET_PARM (PARM_WATER_LEVEL);
 
-	// ESHQ: отменено дефектное исправление, выводящее туман из строя
+	// ESHQ???: отменено дефектное исправление, выводящее туман из строя
 	/*if (!IsLiquidContents (RI.cached_contents) && IsLiquidContents (cnt))
 		{*/
 		tex = NULL;

@@ -3,9 +3,8 @@
 
 + cl_efrag.c
 + cl_efx.c
-+ cl_gameui.c
+cl_menu -> cl_gameui.c
 + cl_mobile.c
-- cl_menu.c
 + cl_render.c
 + cl_securedstub.c
 
