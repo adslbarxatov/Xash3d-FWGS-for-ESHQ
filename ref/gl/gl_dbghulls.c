@@ -26,65 +26,65 @@ GNU General Public License for more details.
 	     pos = list_entry( pos->member.next, winding_t, member ))
 
 // REFTODO: rewrite in triapi
-void R_DrawWorldHull( void )
-{
-	hull_model_t	*hull = &WORLD->hull_models[0];
-	winding_t		*poly;
+void R_DrawWorldHull (void)
+	{
+	hull_model_t *hull = &WORLD->hull_models[0];
+	winding_t *poly;
 	int		i;
 
-	if( FBitSet( r_showhull->flags, FCVAR_CHANGED ))
-	{
-		int val = bound( 0, (int)r_showhull->value, 3 );
-		if( val ) gEngfuncs.Mod_CreatePolygonsForHull( val );
-		ClearBits( r_showhull->flags, FCVAR_CHANGED );
-	}
+	if (FBitSet (r_showhull->flags, FCVAR_CHANGED))
+		{
+		int val = bound (0, (int)r_showhull->value, 3);
+		if (val) gEngfuncs.Mod_CreatePolygonsForHull (val);
+		ClearBits (r_showhull->flags, FCVAR_CHANGED);
+		}
 
-	if( !CVAR_TO_BOOL( r_showhull ))
+	if (!CVAR_TO_BOOL (r_showhull))
 		return;
-	pglDisable( GL_TEXTURE_2D );
+	pglDisable (GL_TEXTURE_2D);
 
-	list_for_each_entry( poly, &hull->polys, chain )
-	{
-		srand((unsigned int)poly);
-		pglColor3f( rand() % 256 / 255.0, rand() % 256 / 255.0, rand() % 256 / 255.0 );
-		pglBegin( GL_POLYGON );
-		for( i = 0; i < poly->numpoints; i++ )
-			pglVertex3fv( poly->p[i] );
-		pglEnd();
+	list_for_each_entry (poly, &hull->polys, chain)
+		{
+		srand ((unsigned int)poly);
+		pglColor3f (rand () % 256 / 255.0, rand () % 256 / 255.0, rand () % 256 / 255.0);
+		pglBegin (GL_POLYGON);
+		for (i = 0; i < poly->numpoints; i++)
+			pglVertex3fv (poly->p[i]);
+		pglEnd ();
+		}
+	pglEnable (GL_TEXTURE_2D);
 	}
-	pglEnable( GL_TEXTURE_2D );
-}
 
-void R_DrawModelHull( void )
-{
-	hull_model_t	*hull;
-	winding_t		*poly;
+void R_DrawModelHull (void)
+	{
+	hull_model_t *hull;
+	winding_t *poly;
 	int		i;
 
-	if( !CVAR_TO_BOOL( r_showhull ))
+	if (!CVAR_TO_BOOL (r_showhull))
 		return;
 
-	if( !RI.currentmodel || RI.currentmodel->name[0] != '*' )
+	if (!RI.currentmodel || RI.currentmodel->name[0] != '*')
 		return;
 
-	i = atoi( RI.currentmodel->name + 1 );
-	if( i < 1 || i >= WORLD->num_hull_models )
+	i = atoi (RI.currentmodel->name + 1);
+	if (i < 1 || i >= WORLD->num_hull_models)
 		return;
 
 	hull = &WORLD->hull_models[i];
 
-	pglPolygonOffset( 1.0f, 2.0 );
-	pglEnable( GL_POLYGON_OFFSET_FILL );
-	pglDisable( GL_TEXTURE_2D );
-	list_for_each_entry( poly, &hull->polys, chain )
-	{
-		srand((unsigned int)poly);
-		pglColor3f( rand() % 256 / 255.0, rand() % 256 / 255.0, rand() % 256 / 255.0 );
-		pglBegin( GL_POLYGON );
-		for( i = 0; i < poly->numpoints; i++ )
-			pglVertex3fv( poly->p[i] );
-		pglEnd();
+	pglPolygonOffset (1.0f, 2.0);
+	pglEnable (GL_POLYGON_OFFSET_FILL);
+	pglDisable (GL_TEXTURE_2D);
+	list_for_each_entry (poly, &hull->polys, chain)
+		{
+		srand ((unsigned int)poly);
+		pglColor3f (rand () % 256 / 255.0, rand () % 256 / 255.0, rand () % 256 / 255.0);
+		pglBegin (GL_POLYGON);
+		for (i = 0; i < poly->numpoints; i++)
+			pglVertex3fv (poly->p[i]);
+		pglEnd ();
+		}
+	pglEnable (GL_TEXTURE_2D);
+	pglDisable (GL_POLYGON_OFFSET_FILL);
 	}
-	pglEnable( GL_TEXTURE_2D );
-	pglDisable( GL_POLYGON_OFFSET_FILL );
-}
