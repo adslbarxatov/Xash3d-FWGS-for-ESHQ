@@ -41,13 +41,13 @@ typedef struct OpusCustomMode OpusCustomMode;
 #define VOICE_DEFAULT_CODEC VOICE_OPUS_CUSTOM_CODEC
 
 typedef struct voice_status_s
-{
+	{
 	qboolean talking_ack;
 	double talking_timeout;
-} voice_status_t;
+	} voice_status_t;
 
 typedef struct voice_state_s
-{
+	{
 	string codec;
 	int quality;
 
@@ -59,7 +59,7 @@ typedef struct voice_state_s
 	voice_status_t players_status[MAX_CLIENTS];
 
 	// opus stuff
-	OpusCustomMode    *custom_mode;
+	OpusCustomMode *custom_mode;
 	OpusCustomEncoder *encoder;
 	OpusCustomDecoder *decoder;
 
@@ -79,26 +79,27 @@ typedef struct voice_state_s
 	fs_offset_t input_file_pos; // in bytes
 
 	// automatic gain control
-	struct {
+	struct
+		{
 		int block_size;
 		float current_gain;
 		float next_gain;
 		float gain_multiplier;
-	} autogain;
-} voice_state_t;
+		} autogain;
+	} voice_state_t;
 
 extern voice_state_t voice;
 
-void CL_AddVoiceToDatagram( void );
+void CL_AddVoiceToDatagram (void);
 
-void Voice_RegisterCvars( void );
-qboolean Voice_Init( const char *pszCodecName, int quality );
-void Voice_Idle( double frametime );
-qboolean Voice_IsRecording( void );
-void Voice_RecordStop( void );
-void Voice_RecordStart( void );
-void Voice_Disconnect( void );
-void Voice_AddIncomingData( int ent, const byte *data, uint size, uint frames );
-void Voice_StatusAck( voice_status_t *status, int playerIndex );
+void Voice_RegisterCvars (void);
+qboolean Voice_Init (const char *pszCodecName, int quality);
+void Voice_Idle (double frametime);
+qboolean Voice_IsRecording (void);
+void Voice_RecordStop (void);
+void Voice_RecordStart (void);
+void Voice_Disconnect (void);
+void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames);
+void Voice_StatusAck (voice_status_t *status, int playerIndex);
 
 #endif // VOICE_H

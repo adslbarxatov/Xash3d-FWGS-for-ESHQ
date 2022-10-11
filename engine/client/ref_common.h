@@ -21,7 +21,7 @@ GNU General Public License for more details.
 #define RP_LOCALCLIENT( e )	((e) != NULL && (e)->index == ( cl.playernum + 1 ) && e->player )
 
 struct ref_state_s
-{
+	{
 	qboolean initialized;
 
 	HINSTANCE hInstance;
@@ -30,28 +30,28 @@ struct ref_state_s
 	int numRenderers;
 	string shortNames[DEFAULT_RENDERERS_LEN];
 	string readableNames[DEFAULT_RENDERERS_LEN];
-};
+	};
 
 extern struct ref_state_s ref;
 extern ref_globals_t refState;
 
 // handy API wrappers
-void R_GetTextureParms( int *w, int *h, int texnum );
+void R_GetTextureParms (int *w, int *h, int texnum);
 #define REF_GET_PARM( parm, arg ) ref.dllFuncs.RefGetParm( (parm), (arg) )
 #define GL_LoadTextureInternal( name, pic, flags ) ref.dllFuncs.GL_LoadTextureFromBuffer( (name), (pic), (flags), false )
 #define GL_UpdateTextureInternal( name, pic, flags ) ref.dllFuncs.GL_LoadTextureFromBuffer( (name), (pic), (flags), true )
 #define R_GetBuiltinTexture( name ) ref.dllFuncs.GL_LoadTexture( (name), 0, 0, 0 )
 
-void GL_RenderFrame( const struct ref_viewpass_s *rvp );
+void GL_RenderFrame (const struct ref_viewpass_s *rvp);
 
 // common engine and renderer cvars
-extern convar_t	*r_decals;
-extern convar_t	*r_adjust_fov;
+extern convar_t *r_decals;
+extern convar_t *r_adjust_fov;
 extern convar_t *gl_clear;
 
-qboolean R_Init( void );
-void R_Shutdown( void );
-void R_UpdateRefState( void );
+qboolean R_Init (void);
+void R_Shutdown (void);
+void R_UpdateRefState (void);
 
 extern triangleapi_t gTriApi;
 

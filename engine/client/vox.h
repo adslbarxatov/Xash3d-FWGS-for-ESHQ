@@ -22,7 +22,7 @@ GNU General Public License for more details.
 #define SENTENCE_INDEX		-99999	// unique sentence index
 
 typedef struct voxword_s
-{
+	{
 	int	volume;		// increase percent, ie: 125 = 125% increase
 	int	pitch;		// pitch shift up percent
 	int	start;		// offset start of wave percent
@@ -31,11 +31,11 @@ typedef struct voxword_s
 	int	fKeepCached;	// 1 if this word was already in cache before sentence referenced it
 	int	samplefrac;	// if pitch shifting, this is position into wav * 256
 	int	timecompress;	// % of wave to skip during playback (causes no pitch shift)
-	sfx_t	*sfx;		// name and cache pointer
-} voxword_t;
+	sfx_t *sfx;		// name and cache pointer
+	} voxword_t;
 
 struct channel_s;
-void VOX_LoadWord( struct channel_s *pchan );
-void VOX_FreeWord( struct channel_s *pchan );
+void VOX_LoadWord (struct channel_s *pchan);
+void VOX_FreeWord (struct channel_s *pchan);
 
 #endif
