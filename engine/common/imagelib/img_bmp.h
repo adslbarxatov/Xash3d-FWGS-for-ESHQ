@@ -30,7 +30,7 @@ GNU General Public License for more details.
 
 #pragma pack( push, 1 )
 typedef struct
-{
+	{
 	int8_t   id[2];            // bmfh.bfType
 	uint32_t fileSize;         // bmfh.bfSize
 	uint32_t reserved0;        // bmfh.bfReserved1 + bmfh.bfReserved2
@@ -46,7 +46,7 @@ typedef struct
 	uint32_t vRes;             // bmih.biYPelsPerMeter
 	uint32_t colors;           // bmih.biClrUsed
 	uint32_t importantColors;  // bmih.biClrImportant
-} bmp_t;
+	} bmp_t;
 #pragma pack( pop )
 #endif // IMG_BMP_H
 

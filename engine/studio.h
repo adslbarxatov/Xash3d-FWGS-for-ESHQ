@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*
+*	This product contains software technology licensed from Id
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -366,7 +366,7 @@ typedef struct mstudiobone_s
 	scale[5] = rotation.Z scale
 	*/
 	vec_t		scale[6];
-} mstudiobone_t;
+	} mstudiobone_t;
 
 #define STUDIO_PROC_AXISINTERP	1
 #define STUDIO_PROC_QUATINTERP	2
@@ -1007,7 +1007,7 @@ typedef struct
 
 	// was "normindex"
 	int32_t		unused;
-} mstudiomesh_t;
+	} mstudiomesh_t;
 
 // FWGS: triangles
 typedef struct

@@ -110,12 +110,12 @@ typedef unsigned short	uint16_t;
 
 // enumeration of the message and error codes and returned by libmpg123 functions.
 enum mpg123_errors
-{
-	MPG123_DONE	= -12,	/**< Message: Track ended. Stop decoding. */
-	MPG123_NEW_FORMAT	= -11,	/**< Message: Output format will be different on next call. Note that some libmpg123 versions between 1.4.3 and 1.8.0 insist on you calling mpg123_getformat() after getting this message code. Newer verisons behave like advertised: You have the chance to call mpg123_getformat(), but you can also just continue decoding and get your data. */
-	MPG123_NEED_MORE	= -10,	/**< Message: For feed reader: "Feed me more!" (call mpg123_feed() or mpg123_decode() with some new input data). */
-	MPG123_ERR	= -1,	/**< Generic Error */
-	MPG123_OK		= 0,	/**< Success */
+	{
+	MPG123_DONE = -12,	/**< Message: Track ended. Stop decoding. */
+	MPG123_NEW_FORMAT = -11,	/**< Message: Output format will be different on next call. Note that some libmpg123 versions between 1.4.3 and 1.8.0 insist on you calling mpg123_getformat() after getting this message code. Newer verisons behave like advertised: You have the chance to call mpg123_getformat(), but you can also just continue decoding and get your data. */
+	MPG123_NEED_MORE = -10,	/**< Message: For feed reader: "Feed me more!" (call mpg123_feed() or mpg123_decode() with some new input data). */
+	MPG123_ERR = -1,	/**< Generic Error */
+	MPG123_OK = 0,	/**< Success */
 	MPG123_BAD_OUTFORMAT, 	/**< Unable to set up output format! */
 	MPG123_BAD_CHANNEL,		/**< Invalid channel number specified. */
 	MPG123_BAD_RATE,		/**< Invalid sample rate specified.  */
@@ -159,11 +159,11 @@ enum mpg123_errors
 	MPG123_BAD_CUSTOM_IO,	/**< Custom I/O not prepared. */
 	MPG123_LFS_OVERFLOW,	/**< Offset value overflow during translation of large file API calls -- your client program cannot handle that large file. */
 	MPG123_INT_OVERFLOW		/**< Some integer overflow. */
-};
+	};
 
 // enumeration of the parameters types that it is possible to set/get.
 enum mpg123_parms
-{
+	{
 	MPG123_VERBOSE = 0,		/**< set verbosity value for enabling messages to stderr, >= 0 makes sense (integer) */
 	MPG123_FLAGS,		/**< set all flags, p.ex val = MPG123_GAPLESS|MPG123_MONO_MIX (integer) */
 	MPG123_ADD_FLAGS,		/**< add some flags (integer) */
@@ -182,11 +182,11 @@ enum mpg123_parms
 	MPG123_PREFRAMES,		/**< Decode/ignore that many frames in advance for layer 3. This is needed to fill bit reservoir after seeking, for example (but also at least one frame in advance is needed to have all "normal" data for layer 3). Give a positive integer value, please.*/
 	MPG123_FEEDPOOL,		/**< For feeder mode, keep that many buffers in a pool to avoid frequent malloc/free. The pool is allocated on mpg123_open_feed(). If you change this parameter afterwards, you can trigger growth and shrinkage during decoding. The default value could change any time. If you care about this, then set it. (integer) */
 	MPG123_FEEDBUFFER,		/**< Minimal size of one internal feeder buffer, again, the default value is subject to change. (integer) */
-};
+	};
 
 // flag bits for MPG123_FLAGS, use the usual binary or to combine.
 enum mpg123_param_flags
-{
+	{
 	MPG123_FORCE_MONO = 0x7,		/**<     0111 Force some mono mode: This is a test bitmask for seeing if any mono forcing is active. */
 	MPG123_MONO_LEFT = 0x1,		/**<     0001 Force playback of left channel only.  */
 	MPG123_MONO_RIGHT = 0x2,		/**<     0010 Force playback of right channel only. */
@@ -200,38 +200,38 @@ enum mpg123_param_flags
 	MPG123_IGNORE_STREAMLENGTH = 0x1000,	/**< 1000000000000 Ignore any stream length information contained in the stream, which can be contained in a 'TLEN' frame of an ID3v2 tag or a Xing tag */
 	MPG123_IGNORE_INFOFRAME = 0x4000,	/**< 100 0000 0000 0000 Do not parse the LAME/Xing info frame, treat it as normal MPEG data. */
 	MPG123_AUTO_RESAMPLE = 0x8000,	/**< 1000 0000 0000 0000 Allow automatic internal resampling of any kind (default on if supported). Especially when going lowlevel with replacing output buffer, you might want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE will override this. */
-};
+	};
 
 // choices for MPG123_RVA
 enum mpg123_param_rva
-{
-	MPG123_RVA_OFF   = 0,		/**< RVA disabled (default).   */
-	MPG123_RVA_MIX   = 1,		/**< Use mix/track/radio gain. */
+	{
+	MPG123_RVA_OFF = 0,		/**< RVA disabled (default).   */
+	MPG123_RVA_MIX = 1,		/**< Use mix/track/radio gain. */
 	MPG123_RVA_ALBUM = 2,		/**< Use album/audiophile gain */
-	MPG123_RVA_MAX   = MPG123_RVA_ALBUM,	/**< The maximum RVA code, may increase in future. */
-};
+	MPG123_RVA_MAX = MPG123_RVA_ALBUM,	/**< The maximum RVA code, may increase in future. */
+	};
 
 enum frame_state_flags
-{
+	{
 	FRAME_ACCURATE = 0x1,		/**<     0001 Positions are considered accurate. */
 	FRAME_FRANKENSTEIN = 0x2,		/**<     0010 This stream is concatenated. */
 	FRAME_FRESH_DECODER = 0x4,		/**<     0100 Decoder is fleshly initialized. */
-};
+	};
 
 // enumeration of the mode types of Variable Bitrate
 enum mpg123_vbr
-{
+	{
 	MPG123_CBR = 0,			/**< Constant Bitrate Mode (default) */
 	MPG123_VBR,			/**< Variable Bitrate Mode */
 	MPG123_ABR			/**< Average Bitrate Mode */
-};
+	};
 
 // Data structure for ID3v1 tags (the last 128 bytes of a file).
 // Don't take anything for granted (like string termination)!
 // Also note the change ID3v1.1 did: comment[28] = 0; comment[29] = track_number
 // It is your task to support ID3v1 only or ID3v1.1 ...
 typedef struct
-{
+	{
 	char	tag[3];			/**< Always the string "TAG", the classic intro. */
 	char	title[30];		/**< Title string.  */
 	char	artist[30];		/**< Artist string. */
@@ -239,28 +239,28 @@ typedef struct
 	char	year[4];			/**< Year string. */
 	char	comment[30];		/**< Comment string. */
 	byte	genre;			/**< Genre index. */
-} mpg123_id3v1;
+	} mpg123_id3v1;
 
 #define MPG123_ID3		0x3		/**< 0011 There is some ID3 info. Also matches 0010 or NEW_ID3. */
 #define MPG123_NEW_ID3	0x1		/**< 0001 There is ID3 info that changed since last call to mpg123_id3. */
 
 struct mpg123_handle_s
-{
+	{
 	int		fresh;		// to be moved into flags
 	int		new_format;
-	float		hybrid_block[2][2][SBLIMIT*SSLIMIT];
+	float		hybrid_block[2][2][SBLIMIT * SSLIMIT];
 	int		hybrid_blc[2];
 
 	// the scratch vars for the decoders, sometimes float, sometimes short... sometimes int/long
-	short		*short_buffs[2][2];
-	float		*float_buffs[2][2];
-	byte		*rawbuffs;
+	short *short_buffs[2][2];
+	float *float_buffs[2][2];
+	byte *rawbuffs;
 	int		rawbuffss;
 	int		bo;		// just have it always here.
-	byte		*rawdecwin;	// the block with all decwins
+	byte *rawdecwin;	// the block with all decwins
 
 	int		rawdecwins;	// size of rawdecwin memory
-	float		*decwin;		// _the_ decode table
+	float *decwin;		// _the_ decode table
 
 	// for halfspeed mode
 	byte		ssave[34];
@@ -269,12 +269,12 @@ struct mpg123_handle_s
 	// layer3
 	int		longLimit[9][23];
 	int		shortLimit[9][14];
-	float		gainpow2[256+118+4];// not floatly dynamic, just different for mmx
+	float		gainpow2[256 + 118 + 4];// not floatly dynamic, just different for mmx
 
 	synth_t		synths;
 	int		verbose;		// 0: nothing, 1: just print chosen decoder, 2: be verbose
 
-	const al_table_t	*alloc;
+	const al_table_t *alloc;
 
 	// the runtime-chosen decoding, based on input and output format
 	func_synth	synth;
@@ -282,7 +282,7 @@ struct mpg123_handle_s
 	func_synth_mono	synth_mono;
 
 	// yes, this function is runtime-switched, too.
-	void (*make_decode_tables)( mpg123_handle_t *fr ); // that is the volume control.
+	void (*make_decode_tables)(mpg123_handle_t *fr); // that is the volume control.
 
 	int		stereo;		// I _think_ 1 for mono and 2 for stereo
 	int		jsbound;
@@ -299,7 +299,7 @@ struct mpg123_handle_s
 	int		lay;
 	long		spf;		// cached count of samples per frame
 
-	int (*do_layer)( mpg123_handle_t* );
+	int (*do_layer)(mpg123_handle_t *);
 
 	int		error_protection;
 	int		bitrate_index;
@@ -320,13 +320,13 @@ struct mpg123_handle_s
 	mpg_off_t		audio_start;	// The byte offset in the file where audio data begins.
 	int		state_flags;
 	char		silent_resync;	// Do not complain for the next n resyncs.
-	byte		*xing_toc;	// The seek TOC from Xing header.
+	byte *xing_toc;	// The seek TOC from Xing header.
 	int		freeformat;
 	long		freeformat_framesize;
 
 	// bitstream info; bsi
 	int		bitindex;
-	byte		*wordpointer;
+	byte *wordpointer;
 
 	// temporary storage for getbits stuff
 	ulong		ultmp;
@@ -337,11 +337,11 @@ struct mpg123_handle_s
 	double		lastscale;
 
 	struct
-	{
+		{
 		int	level[2];
 		float	gain[2];
 		float	peak[2];
-	} rva;
+		} rva;
 
 	// input data
 	mpg_off_t		track_frames;
@@ -352,9 +352,9 @@ struct mpg123_handle_s
 	int		ssize;
 
 	uint		bitreservoir;
-	byte		bsspace[2][MAXFRAMESIZE+512];
-	byte		*bsbuf;
-	byte		*bsbufold;
+	byte		bsspace[2][MAXFRAMESIZE + 512];
+	byte *bsbuf;
+	byte *bsbufold;
 	int		bsnum;
 
 	// that is the header matching the last read frame body.
@@ -389,7 +389,7 @@ struct mpg123_handle_s
 
 	uint		crc;		// well, I need a safe 16bit type, actually. But wider doesn't hurt.
 
-	reader_t		*rd;		// pointer to the reading functions
+	reader_t *rd;		// pointer to the reading functions
 	reader_data_t	rdat;		// reader data and state info
 	mpg123_parm_t	p;
 
@@ -402,47 +402,47 @@ struct mpg123_handle_s
 	int		metaflags;
 	byte		id3buf[128];
 
-	float		*layerscratch;
+	float *layerscratch;
 
 	// these are significant chunks of memory already...
 	struct
-	{
-		float	(*hybrid_in)[SBLIMIT][SSLIMIT];  // ALIGNED(16) float hybridIn[2][SBLIMIT][SSLIMIT];
-		float	(*hybrid_out)[SSLIMIT][SBLIMIT]; // ALIGNED(16) float hybridOut[2][SSLIMIT][SBLIMIT];
-	} layer3;
+		{
+		float (*hybrid_in)[SBLIMIT][SSLIMIT];  // ALIGNED(16) float hybridIn[2][SBLIMIT][SSLIMIT];
+		float (*hybrid_out)[SSLIMIT][SBLIMIT]; // ALIGNED(16) float hybridOut[2][SSLIMIT][SBLIMIT];
+		} layer3;
 
 	// a place for storing additional data for the large file wrapper. this is cruft!
-	void		*wrapperdata;
+	void *wrapperdata;
 
 	// a callback used to properly destruct the wrapper data.
-	void (*wrapperclean)( void* );
-};
+	void (*wrapperclean)(void *);
+	};
 
 //
 // parse.c
 //
-void set_pointer( mpg123_handle_t *fr, long backstep );
-int get_songlen( mpg123_handle_t *fr, int no );
-double compute_bpf( mpg123_handle_t *fr );
-long frame_freq( mpg123_handle_t *fr );
-double mpg123_tpf( mpg123_handle_t *fr );
-int mpg123_spf( mpg123_handle_t *mh );
-int read_frame( mpg123_handle_t *fr );
+void set_pointer (mpg123_handle_t *fr, long backstep);
+int get_songlen (mpg123_handle_t *fr, int no);
+double compute_bpf (mpg123_handle_t *fr);
+long frame_freq (mpg123_handle_t *fr);
+double mpg123_tpf (mpg123_handle_t *fr);
+int mpg123_spf (mpg123_handle_t *mh);
+int read_frame (mpg123_handle_t *fr);
 
 //
 // format.c
 //
-void invalidate_format( audioformat_t *af );
-void postprocess_buffer( mpg123_handle_t *fr );
-int frame_output_format( mpg123_handle_t *fr );
-int mpg123_fmt_all( mpg123_parm_t *mp );
-int mpg123_format_none( mpg123_handle_t *mh );
-int mpg123_format_all( mpg123_handle_t *mh );
-int mpg123_format( mpg123_handle_t *mh, long rate, int channels, int encodings );
-mpg_off_t decoder_synth_bytes( mpg123_handle_t *fr, mpg_off_t s );
-mpg_off_t bytes_to_samples( mpg123_handle_t *fr, mpg_off_t b );
-mpg_off_t samples_to_bytes( mpg123_handle_t *fr, mpg_off_t s );
-mpg_off_t outblock_bytes( mpg123_handle_t *fr, mpg_off_t s );
+void invalidate_format (audioformat_t *af);
+void postprocess_buffer (mpg123_handle_t *fr);
+int frame_output_format (mpg123_handle_t *fr);
+int mpg123_fmt_all (mpg123_parm_t *mp);
+int mpg123_format_none (mpg123_handle_t *mh);
+int mpg123_format_all (mpg123_handle_t *mh);
+int mpg123_format (mpg123_handle_t *mh, long rate, int channels, int encodings);
+mpg_off_t decoder_synth_bytes (mpg123_handle_t *fr, mpg_off_t s);
+mpg_off_t bytes_to_samples (mpg123_handle_t *fr, mpg_off_t b);
+mpg_off_t samples_to_bytes (mpg123_handle_t *fr, mpg_off_t s);
+mpg_off_t outblock_bytes (mpg123_handle_t *fr, mpg_off_t s);
 
 //
 // layer3.c
@@ -453,44 +453,44 @@ extern float cos9[3];
 extern float cos18[3];
 extern float tfcos12[3];
 extern float tfcos36[9];
-void init_layer3( void );
-void init_layer3_stuff( mpg123_handle_t *fr );
-int do_layer3( mpg123_handle_t *fr );
+void init_layer3 (void);
+void init_layer3_stuff (mpg123_handle_t *fr);
+int do_layer3 (mpg123_handle_t *fr);
 
 //
 // dct36.c
 //
-void dct36( float *inbuf, float *o1, float *o2, float *wintab, float *tsbuf );
-void dct12( float *in, float *rawout1, float *rawout2, register float *wi, register float *ts );
+void dct36 (float *inbuf, float *o1, float *o2, float *wintab, float *tsbuf);
+void dct12 (float *in, float *rawout1, float *rawout2, register float *wi, register float *ts);
 
 //
 // dct64.c
 //
-void dct64( float *out0, float *out1, float *samples );
+void dct64 (float *out0, float *out1, float *samples);
 
 //
 // tabinit.c
 //
 extern float *pnts[];
-void prepare_decode_tables( void );
-void make_decode_tables( mpg123_handle_t *fr );
+void prepare_decode_tables (void);
+void make_decode_tables (mpg123_handle_t *fr);
 
 // begin prototypes
-mpg123_handle_t *mpg123_new( int *error );
-mpg123_handle_t *mpg123_parnew( mpg123_parm_t *mp, int *error );
-int mpg123_param( mpg123_handle_t *mh, enum mpg123_parms key, long val );
-int mpg123_open_handle( mpg123_handle_t *mh, void *iohandle );
-int mpg123_replace_reader_handle( mpg123_handle_t *mh, mpg_ssize_t (*fread)(void*, void*, size_t), mpg_off_t (*lseek)(void*, mpg_off_t, int), void(*fclose)(void*));
-int mpg123_decode( mpg123_handle_t *mh, const byte *inmemory, size_t inmemsize, byte *outmemory, size_t outmemsize, size_t *done );
-int mpg123_getformat( mpg123_handle_t *mh, int *rate, int *channels, int *encoding );
-int mpg123_read( mpg123_handle_t *mh, byte *out, size_t size, size_t *done );
-mpg_off_t mpg123_seek( mpg123_handle_t *mh, mpg_off_t sampleoff, int whence );
-int mpg123_feed( mpg123_handle_t *mh, const byte *in, size_t size );
-const char *mpg123_plain_strerror( int errcode );
-int mpg123_open_feed( mpg123_handle_t *mh );
-void mpg123_delete( mpg123_handle_t *mh );
-mpg_off_t mpg123_tell( mpg123_handle_t *mh );
-int mpg123_init( void );
-void mpg123_exit( void );
+mpg123_handle_t *mpg123_new (int *error);
+mpg123_handle_t *mpg123_parnew (mpg123_parm_t *mp, int *error);
+int mpg123_param (mpg123_handle_t *mh, enum mpg123_parms key, long val);
+int mpg123_open_handle (mpg123_handle_t *mh, void *iohandle);
+int mpg123_replace_reader_handle (mpg123_handle_t *mh, mpg_ssize_t (*fread)(void *, void *, size_t), mpg_off_t (*lseek)(void *, mpg_off_t, int), void(*fclose)(void *));
+int mpg123_decode (mpg123_handle_t *mh, const byte *inmemory, size_t inmemsize, byte *outmemory, size_t outmemsize, size_t *done);
+int mpg123_getformat (mpg123_handle_t *mh, int *rate, int *channels, int *encoding);
+int mpg123_read (mpg123_handle_t *mh, byte *out, size_t size, size_t *done);
+mpg_off_t mpg123_seek (mpg123_handle_t *mh, mpg_off_t sampleoff, int whence);
+int mpg123_feed (mpg123_handle_t *mh, const byte *in, size_t size);
+const char *mpg123_plain_strerror (int errcode);
+int mpg123_open_feed (mpg123_handle_t *mh);
+void mpg123_delete (mpg123_handle_t *mh);
+mpg_off_t mpg123_tell (mpg123_handle_t *mh);
+int mpg123_init (void);
+void mpg123_exit (void);
 
 #endif//MPG123_H

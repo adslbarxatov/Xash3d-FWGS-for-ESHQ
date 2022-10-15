@@ -16,42 +16,42 @@ GNU General Public License for more details.
 #ifndef SYNTH_H
 #define SYNTH_H
 
-typedef int (*func_synth)( float*, int, mpg123_handle_t*, int );
-typedef int (*func_synth_mono)( float*, mpg123_handle_t* );
-typedef int (*func_synth_stereo)( float*, float*, mpg123_handle_t* );
+typedef int (*func_synth)(float *, int, mpg123_handle_t *, int);
+typedef int (*func_synth_mono)(float *, mpg123_handle_t *);
+typedef int (*func_synth_stereo)(float *, float *, mpg123_handle_t *);
 
 enum synth_channel
-{
+	{
 	c_plain = 0,
 	c_stereo,
 	c_m2s,
 	c_mono,
 	c_limit
-};
+	};
 
 enum synth_resample
-{
+	{
 	r_none = -1,
 	r_1to1 = 0,
 	r_limit
-};
+	};
 
 enum synth_format
-{
+	{
 	f_none = -1,
 	f_16,
 	f_limit
-};
+	};
 
 typedef struct synth_s
-{
+	{
 	func_synth	plain[r_limit][f_limit];
 	func_synth_stereo	stereo[r_limit][f_limit];
 	func_synth_mono	mono2stereo[r_limit][f_limit];
 	func_synth_mono	mono[r_limit][f_limit];
-} synth_t;
+	} synth_t;
 
-void init_synth( mpg123_handle_t *fr );
-int set_synth_functions( mpg123_handle_t *fr );
+void init_synth (mpg123_handle_t *fr);
+int set_synth_functions (mpg123_handle_t *fr);
 
 #endif//SYNTH_H

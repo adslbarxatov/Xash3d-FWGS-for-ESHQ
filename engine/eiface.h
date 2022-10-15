@@ -229,7 +229,7 @@ typedef struct enginefuncs_s
 	void	(*pfnSetPhysicsKeyValue)(const edict_t *pClient, const char *key, const char *value);
 	const char *(*pfnGetPhysicsInfoString)(const edict_t *pClient);
 	unsigned short (*pfnPrecacheEvent)(int type, const char *psz);
-	void	(*pfnPlaybackEvent)(int flags, const edict_t *pInvoker, unsigned short eventindex, float delay, float *origin, float *angles, 
+	void	(*pfnPlaybackEvent)(int flags, const edict_t *pInvoker, unsigned short eventindex, float delay, float *origin, float *angles,
 		float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2);
 
 	unsigned char *(*pfnSetFatPVS)(const float *org);
@@ -266,8 +266,8 @@ typedef struct enginefuncs_s
 	const char *(*pfnGetPlayerAuthId)		(edict_t *e);
 
 	// FWGS
-	void	*(*pfnSequenceGet)				(const char *fileName, const char *entryName);
-	void	*(*pfnSequencePickSentence)		(const char *groupName, int pickMethod, int *picked);
+	void *(*pfnSequenceGet)				(const char *fileName, const char *entryName);
+	void *(*pfnSequencePickSentence)		(const char *groupName, int pickMethod, int *picked);
 	int		(*pfnGetFileSize)						(const char *filename);
 	unsigned int (*pfnGetApproxWavePlayLen)				(const char *filepath);
 	int		(*pfnIsCareerMatch)						(void);
@@ -284,19 +284,19 @@ typedef struct enginefuncs_s
 	int		(*pfnCheckParm)(char *parm, char **ppnext);
 
 	// FWGS: added in 8279
-	edict_t	*(*pfnPEntityOfEntIndexAllEntities)(int iEntIndex);
+	edict_t *(*pfnPEntityOfEntIndexAllEntities)(int iEntIndex);
 
-	qboolean	(*pfnWriteAchievementsScript)(int newLevel);	// ESHQ: добавление поддержки для достижений
-	char		*(*pfnTextMessageGet)(const char *pName);		// ESHQ: поддержка извлечения текста из titles.txt
+	qboolean (*pfnWriteAchievementsScript)(int newLevel);	// ESHQ: добавление поддержки для достижений
+	char *(*pfnTextMessageGet)(const char *pName);		// ESHQ: поддержка извлечения текста из titles.txt
 	} enginefuncs_t;
 // ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT. INTERFACE VERSION IS FROZEN AT 138
 
 // Passed to pfnKeyValue
 typedef struct KeyValueData_s
 	{
-	char	*szClassName;	// in: entity classname
-	char	*szKeyName;		// in: name of key
-	char	*szValue;		// in: value of key
+	char *szClassName;	// in: entity classname
+	char *szKeyName;		// in: name of key
+	char *szValue;		// in: value of key
 	int		fHandled;		// FWGS: out: DLL sets to true if key-value pair was understood
 	} KeyValueData;
 
@@ -311,7 +311,7 @@ typedef struct
 typedef struct
 	{
 	int			id;			// Ordinal ID of this entity (used for entity <--> pointer conversions)
-	edict_t		*pent;		// Pointer to the in-game entity
+	edict_t *pent;		// Pointer to the in-game entity
 
 	int			location;	// Offset from the base data of this entity
 	int			size;		// Byte size of this entity's data
@@ -329,17 +329,17 @@ typedef struct
 
 typedef struct saverestore_s
 	{
-	char	*pBaseData;		// Start of all entity save data
-	char	*pCurrentData;	// Current buffer pointer for sequential access
+	char *pBaseData;		// Start of all entity save data
+	char *pCurrentData;	// Current buffer pointer for sequential access
 	int		size;			// Current data size
 	int		bufferSize;		// Total space for data
 	int		tokenSize;		// Size of the linear list of tokens
 	int		tokenCount;		// Number of elements in the pTokens table
-	char	**pTokens;		// Hash table of entity strings (sparse)
+	char **pTokens;		// Hash table of entity strings (sparse)
 	int		currentIndex;	// Holds a global entity table ID
 	int		tableCount;		// Number of elements in the entity table
 	int		connectionCount;	// Number of elements in the levelList[]
-	ENTITYTABLE		*pTable;	// Array of ENTITYTABLE elements (1 for each entity)
+	ENTITYTABLE *pTable;	// Array of ENTITYTABLE elements (1 for each entity)
 	LEVELLIST		levelList[MAX_LEVEL_CONNECTIONS];	// List of connections from this level
 
 	// smooth transition

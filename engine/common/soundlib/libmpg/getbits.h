@@ -43,8 +43,8 @@ GNU General Public License for more details.
 	fr->wordpointer += (fr->bitindex >> 3), fr->bitindex &= 7, fr->uctmp >> 7 )
 
 
-static uint getbits( mpg123_handle_t *fr, int number_of_bits )
-{
+static uint getbits (mpg123_handle_t *fr, int number_of_bits)
+	{
 	ulong	rval;
 
 	rval = fr->wordpointer[0];
@@ -57,12 +57,12 @@ static uint getbits( mpg123_handle_t *fr, int number_of_bits )
 	rval &= 0xffffff;
 
 	fr->bitindex += number_of_bits;
-	rval >>= (24-number_of_bits);
+	rval >>= (24 - number_of_bits);
 
-	fr->wordpointer += (fr->bitindex>>3);
+	fr->wordpointer += (fr->bitindex >> 3);
 	fr->bitindex &= 7;
 
 	return rval;
-}
+	}
 
 #endif//GETBITS_H

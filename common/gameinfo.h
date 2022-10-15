@@ -29,7 +29,7 @@ internal shared gameinfo structure (readonly for engine parts)
 ========================================================================
 */
 typedef struct
-{
+	{
 	// filesystem info
 	char		gamefolder[64];	// used for change game '-game x'
 	char		startmap[64];	// map to start singleplayer game
@@ -47,6 +47,6 @@ typedef struct
 	char		size[64];		// displayed mod size
 
 	int		gamemode;
-} GAMEINFO;
+	} GAMEINFO;
 
 #endif//GAMEINFO_H

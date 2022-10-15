@@ -20,309 +20,309 @@ GNU General Public License for more details.
 ref_globals_t refState;
 
 const char *svc_strings[256] =
-{
-	"svc_bad",
-	"svc_nop",
-	"svc_disconnect",
-	"svc_changing",
-	"svc_version",
-	"svc_setview",
-	"svc_sound",
-	"svc_time",
-	"svc_print",
-	"svc_stufftext",
-	"svc_setangle",
-	"svc_serverdata",
-	"svc_lightstyle",
-	"svc_updateuserinfo",
-	"svc_deltatable",
-	"svc_clientdata",
-	"svc_stopsound",
-	"svc_updatepings",
-	"svc_particle",
-	"svc_restoresound",
-	"svc_spawnstatic",
-	"svc_event_reliable",
-	"svc_spawnbaseline",
-	"svc_temp_entity",
-	"svc_setpause",
-	"svc_signonnum",
-	"svc_centerprint",
-	"svc_event",
-	"svc_soundindex",
-	"svc_ambientsound",
-	"svc_intermission",
-	"svc_modelindex",
-	"svc_cdtrack",
-	"svc_serverinfo",
-	"svc_eventindex",
-	"svc_weaponanim",
-	"svc_bspdecal",
-	"svc_roomtype",
-	"svc_addangle",
-	"svc_usermessage",
-	"svc_packetentities",
-	"svc_deltapacketentities",
-	"svc_chokecount",
-	"svc_resourcelist",
-	"svc_deltamovevars",
-	"svc_customization",
-	"svc_unused46",
-	"svc_crosshairangle",
-	"svc_soundfade",
-	"svc_unused49",
-	"svc_unused50",
-	"svc_director",
-	"svc_studiodecal",
-	"svc_unused53",
-	"svc_unused54",
-	"svc_unused55",
-	"svc_unused56",
-	"svc_querycvarvalue",
-	"svc_querycvarvalue2",
-	"svc_exec",
-	"svc_unused60",
-	"svc_unused61",
-	"svc_unused62",
-	"svc_unused63",
-};
+	{
+		"svc_bad",
+		"svc_nop",
+		"svc_disconnect",
+		"svc_changing",
+		"svc_version",
+		"svc_setview",
+		"svc_sound",
+		"svc_time",
+		"svc_print",
+		"svc_stufftext",
+		"svc_setangle",
+		"svc_serverdata",
+		"svc_lightstyle",
+		"svc_updateuserinfo",
+		"svc_deltatable",
+		"svc_clientdata",
+		"svc_stopsound",
+		"svc_updatepings",
+		"svc_particle",
+		"svc_restoresound",
+		"svc_spawnstatic",
+		"svc_event_reliable",
+		"svc_spawnbaseline",
+		"svc_temp_entity",
+		"svc_setpause",
+		"svc_signonnum",
+		"svc_centerprint",
+		"svc_event",
+		"svc_soundindex",
+		"svc_ambientsound",
+		"svc_intermission",
+		"svc_modelindex",
+		"svc_cdtrack",
+		"svc_serverinfo",
+		"svc_eventindex",
+		"svc_weaponanim",
+		"svc_bspdecal",
+		"svc_roomtype",
+		"svc_addangle",
+		"svc_usermessage",
+		"svc_packetentities",
+		"svc_deltapacketentities",
+		"svc_chokecount",
+		"svc_resourcelist",
+		"svc_deltamovevars",
+		"svc_customization",
+		"svc_unused46",
+		"svc_crosshairangle",
+		"svc_soundfade",
+		"svc_unused49",
+		"svc_unused50",
+		"svc_director",
+		"svc_studiodecal",
+		"svc_unused53",
+		"svc_unused54",
+		"svc_unused55",
+		"svc_unused56",
+		"svc_querycvarvalue",
+		"svc_querycvarvalue2",
+		"svc_exec",
+		"svc_unused60",
+		"svc_unused61",
+		"svc_unused62",
+		"svc_unused63",
+	};
 
-void CL_ProcessFile( qboolean successfully_received, const char *filename )
-{
+void CL_ProcessFile (qboolean successfully_received, const char *filename)
+	{
 
-}
+	}
 
-int GAME_EXPORT CL_Active( void )
-{
+int GAME_EXPORT CL_Active (void)
+	{
 	return false;
-}
+	}
 
-qboolean CL_Initialized( void )
-{
+qboolean CL_Initialized (void)
+	{
 	return false;
-}
+	}
 
-qboolean CL_IsInGame( void )
-{
+qboolean CL_IsInGame (void)
+	{
 	return true;	// always active for dedicated servers
-}
+	}
 
-qboolean CL_IsInMenu( void )
-{
+qboolean CL_IsInMenu (void)
+	{
 	return false;
-}
+	}
 
-qboolean CL_IsInConsole( void )
-{
+qboolean CL_IsInConsole (void)
+	{
 	return false;
-}
+	}
 
-qboolean CL_IsIntermission( void )
-{
+qboolean CL_IsIntermission (void)
+	{
 	return false;
-}
+	}
 
-qboolean CL_IsPlaybackDemo( void )
-{
+qboolean CL_IsPlaybackDemo (void)
+	{
 	return false;
-}
+	}
 
-qboolean CL_IsRecordDemo( void )
-{
+qboolean CL_IsRecordDemo (void)
+	{
 	return false;
-}
+	}
 
 
-qboolean CL_DisableVisibility( void )
-{
+qboolean CL_DisableVisibility (void)
+	{
 	return false;
-}
+	}
 
-qboolean CL_IsBackgroundDemo( void )
-{
+qboolean CL_IsBackgroundDemo (void)
+	{
 	return false;
-}
+	}
 
-qboolean CL_IsBackgroundMap( void )
-{
+qboolean CL_IsBackgroundMap (void)
+	{
 	return false;
-}
+	}
 
-void CL_Init( void )
-{
+void CL_Init (void)
+	{
 
-}
+	}
 
-void Key_Init( void )
-{
+void Key_Init (void)
+	{
 
-}
+	}
 
-void IN_Init( void )
-{
+void IN_Init (void)
+	{
 
-}
+	}
 
-void CL_Drop( void )
-{
+void CL_Drop (void)
+	{
 
-}
+	}
 
-void CL_ClearEdicts( void )
-{
+void CL_ClearEdicts (void)
+	{
 
-}
+	}
 
-void GAME_EXPORT Key_SetKeyDest(int key_dest)
-{
+void GAME_EXPORT Key_SetKeyDest (int key_dest)
+	{
 
-}
+	}
 
-void UI_SetActiveMenu( qboolean fActive )
-{
+void UI_SetActiveMenu (qboolean fActive)
+	{
 
-}
+	}
 
-void CL_WriteMessageHistory( void )
-{
+void CL_WriteMessageHistory (void)
+	{
 
-}
+	}
 
-void Host_ClientBegin( void )
-{
-	Cbuf_Execute();
-}
+void Host_ClientBegin (void)
+	{
+	Cbuf_Execute ();
+	}
 
-void Host_ClientFrame( void )
-{
+void Host_ClientFrame (void)
+	{
 
-}
+	}
 
-void Host_InputFrame( void )
-{
-}
+void Host_InputFrame (void)
+	{
+	}
 
-void VID_InitDefaultResolution( void )
-{
+void VID_InitDefaultResolution (void)
+	{
 
-}
+	}
 
-void Con_Init( void )
-{
+void Con_Init (void)
+	{
 
-}
+	}
 
-void R_ClearAllDecals( void )
-{
+void R_ClearAllDecals (void)
+	{
 
-}
-int R_CreateDecalList( struct decallist_s *pList )
-{
+	}
+int R_CreateDecalList (struct decallist_s *pList)
+	{
 	return 0;
-}
+	}
 
-void GAME_EXPORT S_StopSound(int entnum, int channel, const char *soundname)
-{
+void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
+	{
 
-}
+	}
 
-int S_GetCurrentStaticSounds( soundlist_t *pout, int size )
-{
+int S_GetCurrentStaticSounds (soundlist_t *pout, int size)
+	{
 	return 0;
-}
+	}
 
-int GAME_EXPORT CL_GetMaxClients( void )
-{
+int GAME_EXPORT CL_GetMaxClients (void)
+	{
 	return 0;
-}
+	}
 
-void IN_TouchInitConfig( void )
-{
+void IN_TouchInitConfig (void)
+	{
 
-}
+	}
 
-void CL_Disconnect( void )
-{
+void CL_Disconnect (void)
+	{
 
-}
+	}
 
-void CL_Shutdown( void )
-{
+void CL_Shutdown (void)
+	{
 
-}
+	}
 
-void R_ClearStaticEntities( void )
-{
+void R_ClearStaticEntities (void)
+	{
 
-}
+	}
 
-void Host_Credits( void )
-{
+void Host_Credits (void)
+	{
 
-}
+	}
 
-qboolean UI_CreditsActive( void )
-{
+qboolean UI_CreditsActive (void)
+	{
 	return false;
-}
+	}
 
-void S_StopBackgroundTrack( void )
-{
+void S_StopBackgroundTrack (void)
+	{
 
-}
+	}
 
-void SCR_BeginLoadingPlaque( qboolean is_background )
-{
+void SCR_BeginLoadingPlaque (qboolean is_background)
+	{
 
-}
+	}
 
-int S_GetCurrentDynamicSounds( soundlist_t *pout, int size )
-{
+int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
+	{
 	return 0;
-}
+	}
 
-void S_StopAllSounds( qboolean ambient )
-{
+void S_StopAllSounds (qboolean ambient)
+	{
 
-}
+	}
 
-void GAME_EXPORT Con_NPrintf( int idx, const char *fmt, ... )
-{
+void GAME_EXPORT Con_NPrintf (int idx, const char *fmt, ...)
+	{
 
-}
+	}
 
-void GAME_EXPORT Con_NXPrintf( struct  con_nprint_s *info, const char *fmt, ... )
-{
+void GAME_EXPORT Con_NXPrintf (struct  con_nprint_s *info, const char *fmt, ...)
+	{
 
-}
+	}
 
-const byte *GL_TextureData( unsigned int texnum )
-{
+const byte *GL_TextureData (unsigned int texnum)
+	{
 	return NULL;
-}
+	}
 
-void SCR_CheckStartupVids( void )
-{
+void SCR_CheckStartupVids (void)
+	{
 
-}
+	}
 
-void CL_StopPlayback( void )
-{
+void CL_StopPlayback (void)
+	{
 
-}
+	}
 
-void CL_ClearStaticEntities( void )
-{
+void CL_ClearStaticEntities (void)
+	{
 
-}
+	}
 
-void UI_ShowConnectionWarning( void )
-{
+void UI_ShowConnectionWarning (void)
+	{
 
-}
+	}
 
-void CL_Crashed( void )
-{
-}
+void CL_Crashed (void)
+	{
+	}
 
 #endif // XASH_DEDICATED

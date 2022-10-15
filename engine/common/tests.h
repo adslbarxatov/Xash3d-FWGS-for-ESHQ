@@ -4,10 +4,10 @@
 #if XASH_ENGINE_TESTS
 
 struct tests_stats_s
-{
+	{
 	uint passed;
 	uint failed;
-};
+	};
 
 extern struct tests_stats_s tests_stats;
 
@@ -30,13 +30,13 @@ extern struct tests_stats_s tests_stats;
 #define TASSERT_STR( str1, str2 ) \
 	_TASSERT( Q_strcmp(( str1 ), ( str2 )), Msg( S_ERROR "assert failed at %s:%i, \"%s\" != \"%s\"\n", __FILE__, __LINE__, ( str1 ), ( str2 )))
 
-void Test_RunImagelib( void );
-void Test_RunLibCommon( void );
-void Test_RunCommon( void );
-void Test_RunCmd( void );
-void Test_RunCvar( void );
-void Test_RunCon( void );
-void Test_RunVOX( void );
+void Test_RunImagelib (void);
+void Test_RunLibCommon (void);
+void Test_RunCommon (void);
+void Test_RunCmd (void);
+void Test_RunCvar (void);
+void Test_RunCon (void);
+void Test_RunVOX (void);
 
 #endif
 

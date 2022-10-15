@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*
+*	This product contains software technology licensed from Id
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -43,26 +43,26 @@ Alias models are position independent, so the cache manager can move them.
 #ifndef SYNCTYPE_T
 #define SYNCTYPE_T
 typedef enum
-{
+	{
 	ST_SYNC = 0,
 	ST_RAND
-} synctype_t;
+	} synctype_t;
 #endif
 
 typedef enum
-{
+	{
 	ALIAS_SINGLE = 0,
 	ALIAS_GROUP
-} aliasframetype_t;
+	} aliasframetype_t;
 
 typedef enum
-{
+	{
 	ALIAS_SKIN_SINGLE = 0,
 	ALIAS_SKIN_GROUP
-} aliasskintype_t;
+	} aliasskintype_t;
 
 typedef struct
-{
+	{
 	int		ident;
 	int		version;
 	vec3_t		scale;
@@ -78,61 +78,61 @@ typedef struct
 	synctype_t	synctype;
 	int		flags;
 	float		size;
-} daliashdr_t;
+	} daliashdr_t;
 
 typedef struct
-{
+	{
 	int		onseam;
 	int		s;
 	int		t;
-} stvert_t;
+	} stvert_t;
 
 typedef struct dtriangle_s
-{
+	{
 	int		facesfront;
 	int		vertindex[3];
-} dtriangle_t;
+	} dtriangle_t;
 
 #define DT_FACES_FRONT	0x0010
 #define ALIAS_ONSEAM	0x0020
 
 typedef struct
-{
+	{
 	trivertex_t	bboxmin;	// lightnormal isn't used
 	trivertex_t	bboxmax;	// lightnormal isn't used
 	char		name[16];	// frame name from grabbing
-} daliasframe_t;
+	} daliasframe_t;
 
 typedef struct
-{
+	{
 	int		numframes;
 	trivertex_t	bboxmin;	// lightnormal isn't used
 	trivertex_t	bboxmax;	// lightnormal isn't used
-} daliasgroup_t;
+	} daliasgroup_t;
 
 typedef struct
-{
+	{
 	int		numskins;
-} daliasskingroup_t;
+	} daliasskingroup_t;
 
 typedef struct
-{
+	{
 	float		interval;
-} daliasinterval_t;
+	} daliasinterval_t;
 
 typedef struct
-{
+	{
 	float		interval;
-} daliasskininterval_t;
+	} daliasskininterval_t;
 
 typedef struct
-{
+	{
 	aliasframetype_t	type;
-} daliasframetype_t;
+	} daliasframetype_t;
 
 typedef struct
-{
+	{
 	aliasskintype_t	type;
-} daliasskintype_t;
+	} daliasskintype_t;
 
 #endif//ALIAS_H

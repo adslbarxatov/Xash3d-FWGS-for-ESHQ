@@ -59,7 +59,7 @@ struct ref_viewpass_s;	// FWGS
 typedef struct ui_enginefuncs_s
 	{
 	// image handlers
-	HIMAGE	(*pfnPIC_Load)(const char *szPicName, const byte *ucRawImage, int ulRawImageSize, int flags);
+	HIMAGE (*pfnPIC_Load)(const char *szPicName, const byte *ucRawImage, int ulRawImageSize, int flags);
 	void	(*pfnPIC_Free)(const char *szPicName);
 	int		(*pfnPIC_Width)(HIMAGE hPic);
 	int		(*pfnPIC_Height)(HIMAGE hPic);
@@ -216,9 +216,9 @@ typedef struct ui_extendedfuncs_s
 
 	double	(*pfnDoubleTime)(void);
 
-	char	*(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
+	char *(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
 
-	const char	*(*pfnAdrToString)(const struct netadr_s a);
+	const char *(*pfnAdrToString)(const struct netadr_s a);
 	} ui_extendedfuncs_t;
 
 // deprecated export from old engine

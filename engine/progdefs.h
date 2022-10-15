@@ -37,7 +37,7 @@ typedef struct
 	vec3_t		trace_endpos;
 	vec3_t		trace_plane_normal;
 	float		trace_plane_dist;
-	edict_t* trace_ent;
+	edict_t *trace_ent;
 	float		trace_inopen;
 	float		trace_inwater;
 	int		trace_hitgroup;
@@ -46,9 +46,9 @@ typedef struct
 	int		cdAudioTrack;
 	int		maxClients;
 	int		maxEntities;
-	const char* pStringBase;
+	const char *pStringBase;
 
-	void* pSaveData;	// (SAVERESTOREDATA *) pointer
+	void *pSaveData;	// (SAVERESTOREDATA *) pointer
 	vec3_t		vecLandmarkOffset;
 	} globalvars_t;
 
@@ -62,7 +62,7 @@ typedef struct entvars_s
 	vec3_t		velocity;
 	vec3_t		basevelocity;
 	vec3_t		clbasevelocity;	// Base velocity that was passed in to server physics so 
-					// client can predict conveyors correctly. Server zeroes it, so we need to store here, too.
+	// client can predict conveyors correctly. Server zeroes it, so we need to store here, too.
 	vec3_t		movedir;
 
 	vec3_t		angles;		// Model angles
@@ -133,12 +133,12 @@ typedef struct entvars_s
 	int		button;
 	int		impulse;
 
-	edict_t* chain;		// Entity pointer when linked into a linked list
-	edict_t* dmg_inflictor;
-	edict_t* enemy;
-	edict_t* aiment;		// entity pointer when MOVETYPE_FOLLOW
-	edict_t* owner;
-	edict_t* groundentity;
+	edict_t *chain;		// Entity pointer when linked into a linked list
+	edict_t *dmg_inflictor;
+	edict_t *enemy;
+	edict_t *aiment;		// entity pointer when MOVETYPE_FOLLOW
+	edict_t *owner;
+	edict_t *groundentity;
 
 	int		spawnflags;
 	int		flags;
@@ -175,7 +175,7 @@ typedef struct entvars_s
 	float		pain_finished;
 	float		radsuit_finished;
 
-	edict_t* pContainingEntity;
+	edict_t *pContainingEntity;
 
 	int		playerclass;
 	float		maxspeed;
@@ -211,10 +211,10 @@ typedef struct entvars_s
 	vec3_t		vuser2;
 	vec3_t		vuser3;
 	vec3_t		vuser4;
-	edict_t* euser1;
-	edict_t* euser2;
-	edict_t* euser3;
-	edict_t* euser4;
+	edict_t *euser1;
+	edict_t *euser2;
+	edict_t *euser3;
+	edict_t *euser4;
 	} entvars_t;
 
 #endif//PROGDEFS_H

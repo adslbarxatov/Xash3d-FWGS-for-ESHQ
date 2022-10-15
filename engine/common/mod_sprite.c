@@ -29,38 +29,38 @@ Mod_LoadSpriteModel
 load sprite model
 ====================
 */
-void Mod_LoadSpriteModel( model_t *mod, const void *buffer, qboolean *loaded, uint texFlags )
-{
-	dsprite_q1_t	*pinq1;
-	dsprite_hl_t	*pinhl;
-	dsprite_t		*pin;
-	msprite_t		*psprite;
+void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags)
+	{
+	dsprite_q1_t *pinq1;
+	dsprite_hl_t *pinhl;
+	dsprite_t *pin;
+	msprite_t *psprite;
 	int		i, size;
 
-	if( loaded ) *loaded = false;
+	if (loaded) *loaded = false;
 	pin = (dsprite_t *)buffer;
 	mod->type = mod_sprite;
 	i = pin->version;
 
-	if( pin->ident != IDSPRITEHEADER )
-	{
-		Con_DPrintf( S_ERROR "%s has wrong id (%x should be %x)\n", mod->name, pin->ident, IDSPRITEHEADER );
+	if (pin->ident != IDSPRITEHEADER)
+		{
+		Con_DPrintf (S_ERROR "%s has wrong id (%x should be %x)\n", mod->name, pin->ident, IDSPRITEHEADER);
 		return;
-	}
+		}
 
-	if( i != SPRITE_VERSION_Q1 && i != SPRITE_VERSION_HL && i != SPRITE_VERSION_32 )
-	{
-		Con_DPrintf( S_ERROR "%s has wrong version number (%i should be %i or %i)\n", mod->name, i, SPRITE_VERSION_Q1, SPRITE_VERSION_HL );
+	if (i != SPRITE_VERSION_Q1 && i != SPRITE_VERSION_HL && i != SPRITE_VERSION_32)
+		{
+		Con_DPrintf (S_ERROR "%s has wrong version number (%i should be %i or %i)\n", mod->name, i, SPRITE_VERSION_Q1, SPRITE_VERSION_HL);
 		return;
-	}
+		}
 
-	mod->mempool = Mem_AllocPool( va( "^2%s^7", mod->name ));
+	mod->mempool = Mem_AllocPool (va ("^2%s^7", mod->name));
 
-	if( i == SPRITE_VERSION_Q1 || i == SPRITE_VERSION_32 )
-	{
+	if (i == SPRITE_VERSION_Q1 || i == SPRITE_VERSION_32)
+		{
 		pinq1 = (dsprite_q1_t *)buffer;
-		size = sizeof( msprite_t ) + ( pinq1->numframes - 1 ) * sizeof( psprite->frames );
-		psprite = Mem_Calloc( mod->mempool, size );
+		size = sizeof (msprite_t) + (pinq1->numframes - 1) * sizeof (psprite->frames);
+		psprite = Mem_Calloc (mod->mempool, size);
 		mod->cache.data = psprite;	// make link to extradata
 
 		psprite->type = pinq1->type;
@@ -71,20 +71,20 @@ void Mod_LoadSpriteModel( model_t *mod, const void *buffer, qboolean *loaded, ui
 		psprite->synctype = pinq1->synctype;
 
 		// LordHavoc: hack to allow sprites to be non-fullbright
-		for( i = 0; i < MAX_QPATH && mod->name[i]; i++ )
-			if( mod->name[i] == '!' )
+		for (i = 0; i < MAX_QPATH && mod->name[i]; i++)
+			if (mod->name[i] == '!')
 				psprite->texFormat = SPR_ALPHTEST;
 
 		mod->mins[0] = mod->mins[1] = -pinq1->bounds[0] * 0.5f;
 		mod->maxs[0] = mod->maxs[1] = pinq1->bounds[0] * 0.5f;
 		mod->mins[2] = -pinq1->bounds[1] * 0.5f;
 		mod->maxs[2] = pinq1->bounds[1] * 0.5f;
-	}
+		}
 	else // if( i == SPRITE_VERSION_HL )
-	{
+		{
 		pinhl = (dsprite_hl_t *)buffer;
-		size = sizeof( msprite_t ) + ( pinhl->numframes - 1 ) * sizeof( psprite->frames );
-		psprite = Mem_Calloc( mod->mempool, size );
+		size = sizeof (msprite_t) + (pinhl->numframes - 1) * sizeof (psprite->frames);
+		psprite = Mem_Calloc (mod->mempool, size);
 		mod->cache.data = psprite;	// make link to extradata
 
 		psprite->type = pinhl->type;
@@ -98,13 +98,13 @@ void Mod_LoadSpriteModel( model_t *mod, const void *buffer, qboolean *loaded, ui
 		mod->maxs[0] = mod->maxs[1] = pinhl->bounds[0] * 0.5f;
 		mod->mins[2] = -pinhl->bounds[1] * 0.5f;
 		mod->maxs[2] = pinhl->bounds[1] * 0.5f;
-	}
-	if( loaded ) *loaded = true;	// done
+		}
+	if (loaded) *loaded = true;	// done
 
-	if( Host_IsDedicated() )
-	{
+	if (Host_IsDedicated ())
+		{
 		// skip frames loading
 		psprite->numframes = 0;
 		return;
+		}
 	}
-}

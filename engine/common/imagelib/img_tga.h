@@ -23,7 +23,7 @@ GNU General Public License for more details.
 */
 #pragma pack( push, 1 )
 typedef struct tga_s
-{
+	{
 	uint8_t  id_length;
 	uint8_t  colormap_type;
 	uint8_t  image_type;
@@ -36,7 +36,7 @@ typedef struct tga_s
 	uint16_t height;
 	uint8_t  pixel_size;
 	uint8_t  attributes;
-} tga_t;
+	} tga_t;
 #pragma pack( pop )
 #endif // IMG_TGA_H
 

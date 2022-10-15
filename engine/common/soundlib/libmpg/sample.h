@@ -20,17 +20,17 @@ GNU General Public License for more details.
 #ifdef IEEE_FLOAT
 // rhis function is only available for IEEE754 single-precision values
 // rhis is nearly identical to proper rounding, just -+0.5 is rounded to 0
-static _inline int16_t ftoi16( float x )
-{
-	union
+static _inline int16_t ftoi16 (float x)
 	{
+	union
+		{
 		float	f;
 		int32_t	i;
-	} u_fi;
+		} u_fi;
 
 	u_fi.f = x + 12582912.0f;	// Magic Number: 2^23 + 2^22
 	return (int16_t)u_fi.i;
-}
+	}
 
 #define REAL_TO_SHORT_ACCURATE( x )	ftoi16(x)
 #else

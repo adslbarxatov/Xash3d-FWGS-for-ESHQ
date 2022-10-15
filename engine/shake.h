@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*
+*	This product contains software technology licensed from Id
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -23,11 +23,11 @@ extern int gmsgShake;
 
 // This structure is sent over the net to describe a screen shake event
 typedef struct
-{
+	{
 	unsigned short	amplitude;	// FIXED 4.12 amount of shake
 	unsigned short 	duration;		// FIXED 4.12 seconds duration
 	unsigned short	frequency;	// FIXED 8.8 noise frequency (low frequency is a jerk,high frequency is a rumble)
-} ScreenShake;
+	} ScreenShake;
 
 // Fade in/out
 extern int gmsgFade;
@@ -40,11 +40,11 @@ extern int gmsgFade;
 
 // This structure is sent over the net to describe a screen fade event
 typedef struct
-{
+	{
 	unsigned short 	duration;		// FIXED 4.12 seconds duration
 	unsigned short 	holdTime;		// FIXED 4.12 seconds duration until reset (fade & hold)
 	short		fadeFlags;	// flags
 	byte		r, g, b, a;	// fade to color ( max alpha )
-} ScreenFade;
+	} ScreenFade;
 
 #endif // SHAKE_H

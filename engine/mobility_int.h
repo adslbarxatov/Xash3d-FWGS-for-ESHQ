@@ -36,62 +36,62 @@ extern "C" {
 #define TOUCH_FL_STROKE			(1U << 8)
 #define TOUCH_FL_PRECISION		(1U << 9)
 
-// flags for COM_ParseFileSafe
+	// flags for COM_ParseFileSafe
 #define PFILE_IGNOREBRACKET (1<<0)
 #define PFILE_HANDLECOLON   (1<<1)
 
-typedef struct mobile_engfuncs_s
-{
-	// indicates version of API. Should be equal to MOBILITY_API_VERSION
-	// version changes when existing functions are changes
-	int version;
+	typedef struct mobile_engfuncs_s
+		{
+		// indicates version of API. Should be equal to MOBILITY_API_VERSION
+		// version changes when existing functions are changes
+		int version;
 
-	// vibration control
-	// life -- time to vibrate in ms
-	void (*pfnVibrate)( float life, char flags );
+		// vibration control
+		// life -- time to vibrate in ms
+		void (*pfnVibrate)(float life, char flags);
 
-	// enable text input
-	void (*pfnEnableTextInput)( int enable );
+		// enable text input
+		void (*pfnEnableTextInput)(int enable);
 
-	// add temporaty button, edit will be disabled
-	void (*pfnTouchAddClientButton)( const char *name, const char *texture, const char *command, float x1, float y1, float x2, float y2, unsigned char *color, int round, float aspect, int flags );
+		// add temporaty button, edit will be disabled
+		void (*pfnTouchAddClientButton)(const char *name, const char *texture, const char *command, float x1, float y1, float x2, float y2, unsigned char *color, int round, float aspect, int flags);
 
-	// add button to defaults list. Will be loaded on config generation
-	void (*pfnTouchAddDefaultButton)( const char *name, const char *texturefile, const char *command, float x1, float y1, float x2, float y2, unsigned char *color, int round, float aspect, int flags );
+		// add button to defaults list. Will be loaded on config generation
+		void (*pfnTouchAddDefaultButton)(const char *name, const char *texturefile, const char *command, float x1, float y1, float x2, float y2, unsigned char *color, int round, float aspect, int flags);
 
-	// hide/show buttons by pattern
-	void (*pfnTouchHideButtons)( const char *name, unsigned char hide );
+		// hide/show buttons by pattern
+		void (*pfnTouchHideButtons)(const char *name, unsigned char hide);
 
-	// remove button with given name
-	void (*pfnTouchRemoveButton)( const char *name );
+		// remove button with given name
+		void (*pfnTouchRemoveButton)(const char *name);
 
-	// when enabled, only client buttons shown
-	void (*pfnTouchSetClientOnly)( unsigned char state );
+		// when enabled, only client buttons shown
+		void (*pfnTouchSetClientOnly)(unsigned char state);
 
-	// Clean defaults list
-	void (*pfnTouchResetDefaultButtons)( void );
+		// Clean defaults list
+		void (*pfnTouchResetDefaultButtons)(void);
 
-	// Draw scaled font for client
-	int (*pfnDrawScaledCharacter)( int x, int y, int number, int r, int g, int b, float scale );
+		// Draw scaled font for client
+		int (*pfnDrawScaledCharacter)(int x, int y, int number, int r, int g, int b, float scale);
 
-	void (*pfnSys_Warn)( const char *format, ... );
+		void (*pfnSys_Warn)(const char *format, ...);
 
-	// Get native object for current platform.
-	// Pass NULL to arguments to receive an array of available objects or NULL if nothing
-	void *(*pfnGetNativeObject)( const char *obj );
+		// Get native object for current platform.
+		// Pass NULL to arguments to receive an array of available objects or NULL if nothing
+		void *(*pfnGetNativeObject)(const char *obj);
 
-	void (*pfnSetCustomClientID)( const char *id );
+		void (*pfnSetCustomClientID)(const char *id);
 
-	// COM_ParseFile but with buffer size limit, len reports written size or -1 on overflow
-	char* (*pfnParseFile)( char *data, char *buf, const int size, unsigned int flags, int *len );
-	// To be continued...
-} mobile_engfuncs_t;
+		// COM_ParseFile but with buffer size limit, len reports written size or -1 on overflow
+		char *(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
+		// To be continued...
+		} mobile_engfuncs_t;
 
-// function exported from client
-// returns 0 on no error otherwise error
-typedef int (*pfnMobilityInterface)( mobile_engfuncs_t *gMobileEngfuncs );
+	// function exported from client
+	// returns 0 on no error otherwise error
+	typedef int (*pfnMobilityInterface)(mobile_engfuncs_t *gMobileEngfuncs);
 
 #ifdef __cplusplus
-}
+	}
 #endif
 #endif

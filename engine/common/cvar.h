@@ -27,18 +27,18 @@ GNU General Public License for more details.
 
 // NOTE: if this is changed, it must be changed in cvardef.h too
 typedef struct convar_s
-{
+	{
 	// this part shared with cvar_t
-	char		*name;
-	char		*string;
+	char *name;
+	char *string;
 	int		flags;
 	float		value;
-	struct convar_s	*next;
+	struct convar_s *next;
 
 	// this part unique for convar_t
-	char		*desc;		// variable descrition info
-	char		*def_string;	// keep pointer to initial value
-} convar_t;
+	char *desc;		// variable descrition info
+	char *def_string;	// keep pointer to initial value
+	} convar_t;
 
 // cvar internal flags
 #define FCVAR_RENDERINFO		(1<<16)	// save to a seperate config called video.cfg
@@ -57,26 +57,26 @@ typedef struct convar_s
 
 #define CVAR_TO_BOOL( x )		((x) && ((x)->value != 0.0f) ? true : false )
 
-cvar_t *Cvar_GetList( void );
+cvar_t *Cvar_GetList (void);
 #define Cvar_FindVar( name )	Cvar_FindVarExt( name, 0 )
-convar_t *Cvar_FindVarExt( const char *var_name, int ignore_group );
-void Cvar_RegisterVariable( convar_t *var );
-convar_t *Cvar_Get( const char *var_name, const char *value, int flags, const char *description );
-void Cvar_LookupVars( int checkbit, void *buffer, void *ptr, setpair_t callback );
-void Cvar_FullSet( const char *var_name, const char *value, int flags );
-void Cvar_DirectSet( convar_t *var, const char *value );
-void Cvar_Set( const char *var_name, const char *value );
-void Cvar_SetValue( const char *var_name, float value );
-const char *Cvar_BuildAutoDescription( int flags );
-float Cvar_VariableValue( const char *var_name );
-int Cvar_VariableInteger( const char *var_name );
-const char *Cvar_VariableString( const char *var_name );
-void Cvar_WriteVariables( file_t *f, int group );
-qboolean Cvar_Exists( const char *var_name );
-void Cvar_Reset( const char *var_name );
-void Cvar_SetCheatState( void );
-qboolean Cvar_CommandWithPrivilegeCheck( convar_t *v, qboolean isPrivileged );
-void Cvar_Init( void );
-void Cvar_Unlink( int group );
+convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group);
+void Cvar_RegisterVariable (convar_t *var);
+convar_t *Cvar_Get (const char *var_name, const char *value, int flags, const char *description);
+void Cvar_LookupVars (int checkbit, void *buffer, void *ptr, setpair_t callback);
+void Cvar_FullSet (const char *var_name, const char *value, int flags);
+void Cvar_DirectSet (convar_t *var, const char *value);
+void Cvar_Set (const char *var_name, const char *value);
+void Cvar_SetValue (const char *var_name, float value);
+const char *Cvar_BuildAutoDescription (int flags);
+float Cvar_VariableValue (const char *var_name);
+int Cvar_VariableInteger (const char *var_name);
+const char *Cvar_VariableString (const char *var_name);
+void Cvar_WriteVariables (file_t *f, int group);
+qboolean Cvar_Exists (const char *var_name);
+void Cvar_Reset (const char *var_name);
+void Cvar_SetCheatState (void);
+qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged);
+void Cvar_Init (void);
+void Cvar_Unlink (int group);
 
 #endif//CVAR_H

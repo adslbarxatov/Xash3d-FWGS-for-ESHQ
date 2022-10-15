@@ -18,7 +18,7 @@ GNU General Public License for more details.
 #define KEY_MODIFIERS_H
 
 typedef enum
-{
+	{
 	KeyModifier_None = 0,
 	KeyModifier_LeftShift = (1 << 0),
 	KeyModifier_RightShift = (1 << 1),
@@ -30,6 +30,6 @@ typedef enum
 	KeyModifier_RightSuper = (1 << 7),
 	KeyModifier_NumLock = (1 << 8),
 	KeyModifier_CapsLock = (1 << 9)
-} key_modifier_t;
+	} key_modifier_t;
 
 #endif

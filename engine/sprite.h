@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*
+*	This product contains software technology licensed from Id
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -35,51 +35,51 @@ SPRITE MODELS
 #ifndef SYNCTYPE_T
 #define SYNCTYPE_T
 typedef enum
-{
+	{
 	ST_SYNC = 0,
 	ST_RAND
-} synctype_t;
+	} synctype_t;
 #endif
 
 typedef enum
-{
+	{
 	FRAME_SINGLE = 0,
 	FRAME_GROUP,
 	FRAME_ANGLED			// Xash3D ext
-} frametype_t;
+	} frametype_t;
 
 typedef enum
-{
+	{
 	SPR_NORMAL = 0,
 	SPR_ADDITIVE,
 	SPR_INDEXALPHA,
 	SPR_ALPHTEST,
-} drawtype_t;
+	} drawtype_t;
 
 typedef enum
-{
+	{
 	SPR_FWD_PARALLEL_UPRIGHT = 0,
 	SPR_FACING_UPRIGHT,
 	SPR_FWD_PARALLEL,
 	SPR_ORIENTED,
 	SPR_FWD_PARALLEL_ORIENTED,
-} angletype_t; 
+	} angletype_t;
 
 typedef enum
-{
+	{
 	SPR_CULL_FRONT = 0,			// oriented sprite will be draw with one face
 	SPR_CULL_NONE,			// oriented sprite will be draw back face too
-} facetype_t;
+	} facetype_t;
 
 // generic helper
 typedef struct
-{
+	{
 	int		ident;		// LittleLong 'ISPR'
 	int		version;		// current version 2
-} dsprite_t;
+	} dsprite_t;
 
 typedef struct
-{
+	{
 	int		ident;		// LittleLong 'ISPR'
 	int		version;		// current version 2
 	int		type;		// camera align
@@ -88,10 +88,10 @@ typedef struct
 	int		numframes;	// including groups
 	float		beamlength;	// ???
 	synctype_t	synctype;		// animation synctype
-} dsprite_q1_t;
+	} dsprite_q1_t;
 
 typedef struct
-{
+	{
 	int		ident;		// LittleLong 'ISPR'
 	int		version;		// current version 2
 	angletype_t	type;		// camera align
@@ -101,28 +101,28 @@ typedef struct
 	int		numframes;	// including groups
 	facetype_t	facetype;		// cullface (Xash3D ext)
 	synctype_t	synctype;		// animation synctype
-} dsprite_hl_t;
+	} dsprite_hl_t;
 
 typedef struct
-{
+	{
 	int		origin[2];
 	int		width;
 	int		height;
-} dspriteframe_t;
+	} dspriteframe_t;
 
 typedef struct
-{
+	{
 	int		numframes;
-} dspritegroup_t;
+	} dspritegroup_t;
 
 typedef struct
-{
+	{
 	float		interval;
-} dspriteinterval_t;
+	} dspriteinterval_t;
 
 typedef struct
-{
+	{
 	frametype_t	type;
-} dframetype_t;
+	} dframetype_t;
 
 #endif//SPRITE_H

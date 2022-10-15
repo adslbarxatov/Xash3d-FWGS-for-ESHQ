@@ -77,7 +77,7 @@ GNU General Public License for more details.
 #define DDS_VOLUME				0x00200000L
 
 typedef enum
-{
+	{
 	DXGI_FORMAT_UNKNOWN = 0,
 	DXGI_FORMAT_R32G32B32A32_TYPELESS = 1,
 	DXGI_FORMAT_R32G32B32A32_FLOAT = 2,
@@ -200,19 +200,19 @@ typedef enum
 	DXGI_FORMAT_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE,
 	DXGI_FORMAT_SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE,
 	DXGI_FORMAT_FORCE_UINT = 0xffffffff
-} dxgi_format_t;
+	} dxgi_format_t;
 
-typedef enum 
-{
+typedef enum
+	{
 	D3D10_RESOURCE_DIMENSION_UNKNOWN = 0,
 	D3D10_RESOURCE_DIMENSION_BUFFER = 1,
 	D3D10_RESOURCE_DIMENSION_TEXTURE1D = 2,
 	D3D10_RESOURCE_DIMENSION_TEXTURE2D = 3,
 	D3D10_RESOURCE_DIMENSION_TEXTURE3D = 4
-} dds_resource_dimension_t;
+	} dds_resource_dimension_t;
 
 typedef struct dds_pf_s
-{
+	{
 	uint32_t    dwSize;
 	uint32_t    dwFlags;
 	uint32_t    dwFourCC;
@@ -221,28 +221,28 @@ typedef struct dds_pf_s
 	uint32_t    dwGBitMask;
 	uint32_t    dwBBitMask;
 	uint32_t    dwABitMask;
-} dds_pixf_t;
+	} dds_pixf_t;
 
 //  DDCAPS2
 typedef struct dds_caps_s
-{
+	{
 	uint32_t    dwCaps1;
 	uint32_t    dwCaps2;
 	uint32_t    dwCaps3;			// currently unused
 	uint32_t    dwCaps4;			// currently unused
-} dds_caps_t;
+	} dds_caps_t;
 
 typedef struct dds_header_dxt10_s
-{
+	{
 	dxgi_format_t dxgiFormat;
 	dds_resource_dimension_t resourceDimension;
 	uint32_t    miscFlag;
 	uint32_t    arraySize;
 	uint32_t    miscFlags2;
-} dds_header_dxt10_t;
+	} dds_header_dxt10_t;
 
 typedef struct dds_s
-{
+	{
 	uint32_t    dwIdent;		// must matched with DDSHEADER
 	uint32_t    dwSize;
 	uint32_t    dwFlags;		// determines what fields are valid
@@ -256,6 +256,6 @@ typedef struct dds_s
 	dds_pixf_t  dsPixelFormat;
 	dds_caps_t  dsCaps;
 	uint32_t    dwTextureStage;
-} dds_t;
+	} dds_t;
 #endif // IMG_DDS_H
 

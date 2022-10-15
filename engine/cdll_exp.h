@@ -63,14 +63,14 @@ typedef struct cldll_func_s
 	int	(*pfnGetHullBounds)(int hullnumber, float *mins, float *maxs);
 	void	(*pfnFrame)(double time);
 	int	(*pfnKey_Event)(int eventcode, int keynum, const char *pszCurrentBinding);
-	void	(*pfnTempEntUpdate)(double frametime, double client_time, double cl_gravity, struct tempent_s **ppTempEntFree, struct tempent_s **ppTempEntActive, 
+	void	(*pfnTempEntUpdate)(double frametime, double client_time, double cl_gravity, struct tempent_s **ppTempEntFree, struct tempent_s **ppTempEntActive,
 		int (*Callback_AddVisibleEntity)(cl_entity_t *pEntity), void (*Callback_TempEntPlaySound)(struct tempent_s *pTemp, float damp));
 	cl_entity_t *(*pfnGetUserEntity)(int index);
 	void	(*pfnVoiceStatus)(int entindex, qboolean bTalking);
 	void	(*pfnDirectorMessage)(int iSize, void *pbuf);
 	int	(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface, struct engine_studio_api_s *pstudio);
 	void	(*pfnChatInputPosition)(int *x, int *y);
-	
+
 	// Xash3D extension
 	int	(*pfnGetRenderInterface)(int version, render_api_t *renderfuncs, render_interface_t *callback);
 	void	(*pfnClipMoveToEntity)(struct physent_s *pe, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, struct pmtrace_s *tr);

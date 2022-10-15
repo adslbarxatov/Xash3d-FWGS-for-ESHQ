@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*
+*	This product contains software technology licensed from Id
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -25,7 +25,7 @@
 #include "progdefs.h"
 
 struct edict_s
-{
+	{
 	qboolean		free;
 	int		serialnumber;
 
@@ -39,11 +39,11 @@ struct edict_s
 	short		leafnums[MAX_ENT_LEAFS];
 #endif
 	float		freetime;		// sv.time when the object was freed
-	
-	void*		pvPrivateData;	// Alloced and freed by engine, used by DLLs
+
+	void *pvPrivateData;	// Alloced and freed by engine, used by DLLs
 	entvars_t		v;		// C exported fields from progs
 
 	// other fields from progs come immediately after
-};
+	};
 
 #endif//EDICT_H

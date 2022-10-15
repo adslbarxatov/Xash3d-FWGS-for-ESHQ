@@ -277,8 +277,8 @@ GNU General Public License for more details.
 #define SU_ARMOR		(1<<13)
 #define SU_WEAPON		(1<<14)
 
-extern const char	*svc_strings[svc_lastmsg+1];
-extern const char	*clc_strings[clc_lastmsg+1];
+extern const char *svc_strings[svc_lastmsg + 1];
+extern const char *clc_strings[clc_lastmsg + 1];
 
 // FWGS extensions
 #define NET_EXT_SPLITSIZE (1U<<0) // set splitsize by cl_dlmax

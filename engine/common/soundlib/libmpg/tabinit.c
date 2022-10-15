@@ -23,9 +23,9 @@ static float cos8[2];
 static float cos4[1];
 
 static long intwinbase[] = {
-     0,    -1,    -1,    -1,    -1,    -1,    -1,    -2,    -2,    -2,
-    -2,    -3,    -3,    -4,    -4,    -5,    -5,    -6,    -7,    -7,
-    -8,    -9,   -10,   -11,   -13,   -14,   -16,   -17,   -19,   -21,
+	 0,    -1,    -1,    -1,    -1,    -1,    -1,    -2,    -2,    -2,
+	-2,    -3,    -3,    -4,    -4,    -5,    -5,    -6,    -7,    -7,
+	-8,    -9,   -10,   -11,   -13,   -14,   -16,   -17,   -19,   -21,
    -24,   -26,   -29,   -31,   -35,   -38,   -41,   -45,   -49,   -53,
    -58,   -63,   -68,   -73,   -79,   -85,   -91,   -97,  -104,  -111,
   -117,  -125,  -132,  -139,  -147,  -154,  -161,  -169,  -176,  -183,
@@ -52,24 +52,24 @@ static long intwinbase[] = {
 
 float *pnts[] = { cos64, cos32, cos16, cos8, cos4 };
 
-void prepare_decode_tables( void )
-{
-	int	i, k, kr, divv;
-	float	*costab;
-
-	for( i = 0; i < 5; i++ )
+void prepare_decode_tables (void)
 	{
+	int	i, k, kr, divv;
+	float *costab;
+
+	for (i = 0; i < 5; i++)
+		{
 		kr = 0x10 >> i;
 		divv = 0x40 >> i;
 		costab = pnts[i];
 
-		for( k = 0; k < kr; k++)
-			costab[k] = DOUBLE_TO_REAL( 1.0 / ( 2.0 * cos( M_PI * ((double)k * 2.0 + 1.0 ) / (double)divv )));
+		for (k = 0; k < kr; k++)
+			costab[k] = DOUBLE_TO_REAL (1.0 / (2.0 * cos (M_PI * ((double)k * 2.0 + 1.0) / (double)divv)));
+		}
 	}
-}
 
-void make_decode_tables( mpg123_handle_t *fr )
-{
+void make_decode_tables (mpg123_handle_t *fr)
+	{
 	int	i, j;
 	int	idx = 0;
 	double	scaleval;
@@ -77,26 +77,26 @@ void make_decode_tables( mpg123_handle_t *fr )
 	// scale is always based on 1.0.
 	scaleval = -0.5 * (fr->lastscale < 0 ? fr->p.outscale : fr->lastscale);
 
-	for( i = 0, j = 0; i < 256; i++, j++, idx += 32 )
-	{
-		if( idx < 512 + 16 )
-			fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL( (double)intwinbase[j] * scaleval );
+	for (i = 0, j = 0; i < 256; i++, j++, idx += 32)
+		{
+		if (idx < 512 + 16)
+			fr->decwin[idx + 16] = fr->decwin[idx] = DOUBLE_TO_REAL ((double)intwinbase[j] * scaleval);
 
-		if( i % 32 == 31 )
+		if (i % 32 == 31)
 			idx -= 1023;
 
-		if( i % 64 == 63 )
+		if (i % 64 == 63)
 			scaleval = -scaleval;
-	}
+		}
 
-	for( ; i < 512; i++, j--, idx += 32 )
-	{
-		if( idx < 512 + 16 )
-			fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL( (double)intwinbase[j] * scaleval );
+	for (; i < 512; i++, j--, idx += 32)
+		{
+		if (idx < 512 + 16)
+			fr->decwin[idx + 16] = fr->decwin[idx] = DOUBLE_TO_REAL ((double)intwinbase[j] * scaleval);
 
-		if( i % 32 == 31 )
+		if (i % 32 == 31)
 			idx -= 1023;
-		if( i % 64 == 63 )
+		if (i % 64 == 63)
 			scaleval = -scaleval;
+		}
 	}
-}

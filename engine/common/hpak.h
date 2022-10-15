@@ -41,7 +41,7 @@ infotable	dlumpinfo_t[dwadinfo_t->numlumps]
 // I had to make it crossplatform version
 #pragma pack( push, 8 )
 typedef struct dresource_s
-{
+	{
 	char                       szFileName[64];       /*     0    64 */
 	/* --- cacheline 1 boundary (64 bytes) --- */
 	resourcetype_t             type;                 /*    64     4 */
@@ -61,29 +61,29 @@ typedef struct dresource_s
 	/* size: 136, cachelines: 3, members: 10 */
 	/* sum members: 134, holes: 1, sum holes: 2 */
 	/* last cacheline: 8 bytes */
-} dresource_t;
+	} dresource_t;
 #pragma pack( pop )
 
-STATIC_ASSERT( sizeof( dresource_t ) == 136, "invalid dresource_t size, HPAKs won't be compatible (no custom logo in multiplayer!)" );
+STATIC_ASSERT (sizeof (dresource_t) == 136, "invalid dresource_t size, HPAKs won't be compatible (no custom logo in multiplayer!)");
 
 typedef struct
-{
+	{
 	int             ident;          // should be equal HPAK
 	int             version;
 	int             infotableofs;
-} hpak_header_t;
+	} hpak_header_t;
 
 typedef struct
-{
+	{
 	dresource_t     resource;
 	int             filepos;
 	int             disksize;
-} hpak_lump_t;
+	} hpak_lump_t;
 
 typedef struct
-{
+	{
 	int             count;
-	hpak_lump_t     *entries;		// variable sized.
-} hpak_info_t;
+	hpak_lump_t *entries;		// variable sized.
+	} hpak_info_t;
 
 #endif // HPAK_H
