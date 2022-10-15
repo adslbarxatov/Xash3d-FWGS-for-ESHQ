@@ -28,7 +28,7 @@ WIN32 CONSOLE
 #define COMMAND_HISTORY	64	// system console keep more commands than game console
 
 typedef struct
-{
+	{
 	char		title[64];
 	HWND		hWnd;
 	HANDLE		hInput;
@@ -49,134 +49,134 @@ typedef struct
 	// log stuff
 	qboolean	log_active;
 	char		log_path[MAX_SYSPATH];
-} WinConData;
+	} WinConData;
 
 static WinConData	s_wcd;
 static WORD g_color_table[8] =
-{
-FOREGROUND_INTENSITY,									// black
-FOREGROUND_RED,											// red
-FOREGROUND_GREEN,										// green
-FOREGROUND_RED | FOREGROUND_GREEN,						// yellow
-FOREGROUND_BLUE | FOREGROUND_INTENSITY,					// blue
-FOREGROUND_GREEN | FOREGROUND_BLUE,						// cyan
-FOREGROUND_RED | FOREGROUND_BLUE,						// magenta
-FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,	// default color (white)
-};
+	{
+	FOREGROUND_INTENSITY,									// black
+	FOREGROUND_RED,											// red
+	FOREGROUND_GREEN,										// green
+	FOREGROUND_RED | FOREGROUND_GREEN,						// yellow
+	FOREGROUND_BLUE | FOREGROUND_INTENSITY,					// blue
+	FOREGROUND_GREEN | FOREGROUND_BLUE,						// cyan
+	FOREGROUND_RED | FOREGROUND_BLUE,						// magenta
+	FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,	// default color (white)
+	};
 
-static BOOL WINAPI Wcon_HandleConsole(DWORD CtrlType)
-{
+static BOOL WINAPI Wcon_HandleConsole (DWORD CtrlType)
+	{
 	return TRUE;
-}
+	}
 
-static void Wcon_PrintInternal( const char *msg, int length )
-{
+static void Wcon_PrintInternal (const char *msg, int length)
+	{
 	char *pTemp;
 	DWORD cbWritten;
 	const char *pMsgString;
 	static char tmpBuf[2048];
 	static char szOutput[2048];
 
-	Q_strncpy( szOutput, msg, length ? (length + 1) : ( sizeof( szOutput ) - 1 ));
-	if( length )
+	Q_strncpy (szOutput, msg, length ? (length + 1) : (sizeof (szOutput) - 1));
+	if (length)
 		szOutput[length + 1] = '\0';
 	else
-		szOutput[sizeof( szOutput ) - 1] = '\0';
+		szOutput[sizeof (szOutput) - 1] = '\0';
 
 	pTemp = tmpBuf;
 	pMsgString = szOutput;
-	while( pMsgString && *pMsgString )
-	{
-		if( IsColorString( pMsgString ))
+	while (pMsgString && *pMsgString)
 		{
-			if (( pTemp - tmpBuf ) > 0 )
+		if (IsColorString (pMsgString))
 			{
+			if ((pTemp - tmpBuf) > 0)
+				{
 				// dump accumulated text before change color
 				*pTemp = 0; // terminate string
-				WriteFile( s_wcd.hOutput, tmpBuf, Q_strlen(tmpBuf), &cbWritten, 0 );
+				WriteFile (s_wcd.hOutput, tmpBuf, Q_strlen (tmpBuf), &cbWritten, 0);
 				pTemp = tmpBuf;
-			}
+				}
 
 			// set new color
-			SetConsoleTextAttribute( s_wcd.hOutput, g_color_table[ColorIndex(*(pMsgString + 1))] );
+			SetConsoleTextAttribute (s_wcd.hOutput, g_color_table[ColorIndex (*(pMsgString + 1))]);
 			pMsgString += 2; // skip color info
-		}
-		else if(( pTemp - tmpBuf ) < sizeof( tmpBuf ) - 1 )
-		{
+			}
+		else if ((pTemp - tmpBuf) < sizeof (tmpBuf) - 1)
+			{
 			*pTemp++ = *pMsgString++;
-		}
+			}
 		else
-		{
+			{
 			// temp buffer is full, dump it now
 			*pTemp = 0; // terminate string
-			WriteFile( s_wcd.hOutput, tmpBuf, Q_strlen(tmpBuf), &cbWritten, 0 );
+			WriteFile (s_wcd.hOutput, tmpBuf, Q_strlen (tmpBuf), &cbWritten, 0);
 			pTemp = tmpBuf;
+			}
 		}
-	}
 
 	// check for last portion
-	if (( pTemp - tmpBuf ) > 0 )
-	{
+	if ((pTemp - tmpBuf) > 0)
+		{
 		// dump accumulated text
 		*pTemp = 0; // terminate string
-		WriteFile( s_wcd.hOutput, tmpBuf, Q_strlen(tmpBuf), &cbWritten, 0 );
+		WriteFile (s_wcd.hOutput, tmpBuf, Q_strlen (tmpBuf), &cbWritten, 0);
 		pTemp = tmpBuf;
-	}
+		}
 
 	// restore white color
-	SetConsoleTextAttribute( s_wcd.hOutput, g_color_table[7] );
-}
+	SetConsoleTextAttribute (s_wcd.hOutput, g_color_table[7]);
+	}
 
-void Wcon_ShowConsole( qboolean show )
-{
-	if( !s_wcd.hWnd || show == s_wcd.consoleVisible )
+void Wcon_ShowConsole (qboolean show)
+	{
+	if (!s_wcd.hWnd || show == s_wcd.consoleVisible)
 		return;
 
 	s_wcd.consoleVisible = show;
-	if( show )
-		ShowWindow( s_wcd.hWnd, SW_SHOW );
+	if (show)
+		ShowWindow (s_wcd.hWnd, SW_SHOW);
 	else
-		ShowWindow( s_wcd.hWnd, SW_HIDE );
-}
+		ShowWindow (s_wcd.hWnd, SW_HIDE);
+	}
 
-void Wcon_DisableInput( void )
-{
-	if( host.type != HOST_DEDICATED )
+void Wcon_DisableInput (void)
+	{
+	if (host.type != HOST_DEDICATED)
 		return;
 
 	s_wcd.inputEnabled = false;
-}
+	}
 
-static void Wcon_SetInputText( const char *inputText )
-{
-	if( host.type != HOST_DEDICATED )
+static void Wcon_SetInputText (const char *inputText)
+	{
+	if (host.type != HOST_DEDICATED)
 		return;
 
-	while( s_wcd.consoleTextLen-- )
-	{
-		Wcon_PrintInternal( "\b \b", 0 );
-	}
-	Wcon_PrintInternal( inputText, 0 );
-	Q_strncpy( s_wcd.consoleText, inputText, sizeof(s_wcd.consoleText) - 1 );
-	s_wcd.consoleTextLen = Q_strlen( inputText );
+	while (s_wcd.consoleTextLen--)
+		{
+		Wcon_PrintInternal ("\b \b", 0);
+		}
+	Wcon_PrintInternal (inputText, 0);
+	Q_strncpy (s_wcd.consoleText, inputText, sizeof (s_wcd.consoleText) - 1);
+	s_wcd.consoleTextLen = Q_strlen (inputText);
 	s_wcd.cursorPosition = s_wcd.consoleTextLen;
 	s_wcd.browseLine = s_wcd.inputLine;
-}
+	}
 
-static void Wcon_Clear_f( void )
-{
+static void Wcon_Clear_f (void)
+	{
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	SMALL_RECT scrollRect;
 	COORD scrollTarget;
 	CHAR_INFO fill;
 
-	if( host.type != HOST_DEDICATED )
+	if (host.type != HOST_DEDICATED)
 		return;
 
-	if( !GetConsoleScreenBufferInfo( s_wcd.hOutput, &csbi ))
-	{
+	if (!GetConsoleScreenBufferInfo (s_wcd.hOutput, &csbi))
+		{
 		return;
-	}
+		}
 
 	scrollRect.Left = 0;
 	scrollRect.Top = 0;
@@ -184,13 +184,13 @@ static void Wcon_Clear_f( void )
 	scrollRect.Bottom = csbi.dwSize.Y;
 	scrollTarget.X = 0;
 	scrollTarget.Y = (SHORT)(0 - csbi.dwSize.Y);
-	fill.Char.UnicodeChar = TEXT(' ');
+	fill.Char.UnicodeChar = TEXT (' ');
 	fill.Attributes = csbi.wAttributes;
-	ScrollConsoleScreenBuffer( s_wcd.hOutput, &scrollRect, NULL, scrollTarget, &fill );
+	ScrollConsoleScreenBuffer (s_wcd.hOutput, &scrollRect, NULL, scrollTarget, &fill);
 
 	csbi.dwCursorPosition.X = 0;
 	csbi.dwCursorPosition.Y = 0;
-	SetConsoleCursorPosition( s_wcd.hOutput, csbi.dwCursorPosition );
+	SetConsoleCursorPosition (s_wcd.hOutput, csbi.dwCursorPosition);
 
 	s_wcd.consoleText[0] = '\0';
 	s_wcd.consoleTextLen = 0;
@@ -198,195 +198,195 @@ static void Wcon_Clear_f( void )
 	s_wcd.inputLine = 0;
 	s_wcd.browseLine = 0;
 	s_wcd.totalLines = 0;
-	Wcon_PrintInternal( "\n", 0 );
-}
+	Wcon_PrintInternal ("\n", 0);
+	}
 
-static void Wcon_EventUpArrow()
-{
+static void Wcon_EventUpArrow ()
+	{
 	int nLastCommandInHistory = s_wcd.inputLine + 1;
-	if( nLastCommandInHistory > s_wcd.totalLines )
+	if (nLastCommandInHistory > s_wcd.totalLines)
 		nLastCommandInHistory = 0;
 
-	if( s_wcd.browseLine == nLastCommandInHistory )
+	if (s_wcd.browseLine == nLastCommandInHistory)
 		return;
 
-	if( s_wcd.browseLine == s_wcd.inputLine )
-	{
-		if( s_wcd.consoleTextLen > 0 )
+	if (s_wcd.browseLine == s_wcd.inputLine)
 		{
-			Q_strncpy( s_wcd.savedConsoleText, s_wcd.consoleText, s_wcd.consoleTextLen );
-		}
+		if (s_wcd.consoleTextLen > 0)
+			{
+			Q_strncpy (s_wcd.savedConsoleText, s_wcd.consoleText, s_wcd.consoleTextLen);
+			}
 		s_wcd.savedConsoleTextLen = s_wcd.consoleTextLen;
-	}
+		}
 
 	s_wcd.browseLine--;
-	if( s_wcd.browseLine < 0 )
-	{
+	if (s_wcd.browseLine < 0)
+		{
 		s_wcd.browseLine = s_wcd.totalLines - 1;
-	}
+		}
 
-	while( s_wcd.consoleTextLen-- )
-	{
-		Wcon_PrintInternal( "\b \b", 0 );
-	}
+	while (s_wcd.consoleTextLen--)
+		{
+		Wcon_PrintInternal ("\b \b", 0);
+		}
 
-	Wcon_PrintInternal( s_wcd.lineBuffer[s_wcd.browseLine], 0 );
-	Q_strncpy( s_wcd.consoleText, s_wcd.lineBuffer[s_wcd.browseLine], sizeof( s_wcd.consoleText ));
-	s_wcd.consoleTextLen = Q_strlen( s_wcd.lineBuffer[s_wcd.browseLine] );
+	Wcon_PrintInternal (s_wcd.lineBuffer[s_wcd.browseLine], 0);
+	Q_strncpy (s_wcd.consoleText, s_wcd.lineBuffer[s_wcd.browseLine], sizeof (s_wcd.consoleText));
+	s_wcd.consoleTextLen = Q_strlen (s_wcd.lineBuffer[s_wcd.browseLine]);
 	s_wcd.cursorPosition = s_wcd.consoleTextLen;
-}
+	}
 
-static void Wcon_EventDownArrow()
-{
-	if( s_wcd.browseLine == s_wcd.inputLine )
+static void Wcon_EventDownArrow ()
+	{
+	if (s_wcd.browseLine == s_wcd.inputLine)
 		return;
 
-	if( ++s_wcd.browseLine > s_wcd.totalLines )
+	if (++s_wcd.browseLine > s_wcd.totalLines)
 		s_wcd.browseLine = 0;
 
-	while( s_wcd.consoleTextLen-- )
-	{
-		Wcon_PrintInternal( "\b \b", 0 );
-	}
-
-	if( s_wcd.browseLine == s_wcd.inputLine )
-	{
-		if( s_wcd.savedConsoleTextLen > 0 )
+	while (s_wcd.consoleTextLen--)
 		{
-			Q_strncpy( s_wcd.consoleText, s_wcd.savedConsoleText, s_wcd.savedConsoleTextLen );
-			Wcon_PrintInternal( s_wcd.consoleText, s_wcd.savedConsoleTextLen );
+		Wcon_PrintInternal ("\b \b", 0);
 		}
+
+	if (s_wcd.browseLine == s_wcd.inputLine)
+		{
+		if (s_wcd.savedConsoleTextLen > 0)
+			{
+			Q_strncpy (s_wcd.consoleText, s_wcd.savedConsoleText, s_wcd.savedConsoleTextLen);
+			Wcon_PrintInternal (s_wcd.consoleText, s_wcd.savedConsoleTextLen);
+			}
 		s_wcd.consoleTextLen = s_wcd.savedConsoleTextLen;
-	}
+		}
 	else
-	{
-		Wcon_PrintInternal( s_wcd.lineBuffer[s_wcd.browseLine], 0 );
-		Q_strncpy( s_wcd.consoleText, s_wcd.lineBuffer[s_wcd.browseLine], sizeof( s_wcd.consoleText ));
-		s_wcd.consoleTextLen = Q_strlen( s_wcd.lineBuffer[s_wcd.browseLine] );
-	}
+		{
+		Wcon_PrintInternal (s_wcd.lineBuffer[s_wcd.browseLine], 0);
+		Q_strncpy (s_wcd.consoleText, s_wcd.lineBuffer[s_wcd.browseLine], sizeof (s_wcd.consoleText));
+		s_wcd.consoleTextLen = Q_strlen (s_wcd.lineBuffer[s_wcd.browseLine]);
+		}
 	s_wcd.cursorPosition = s_wcd.consoleTextLen;
-}
+	}
 
-static void Wcon_EventLeftArrow()
-{
-	if( s_wcd.cursorPosition == 0 )
+static void Wcon_EventLeftArrow ()
+	{
+	if (s_wcd.cursorPosition == 0)
 		return;
 
-	Wcon_PrintInternal( "\b", 0 );
+	Wcon_PrintInternal ("\b", 0);
 	s_wcd.cursorPosition--;
-}
+	}
 
-static void Wcon_EventRightArrow()
-{
-	if( s_wcd.cursorPosition == s_wcd.consoleTextLen )
+static void Wcon_EventRightArrow ()
+	{
+	if (s_wcd.cursorPosition == s_wcd.consoleTextLen)
 		return;
 
-	Wcon_PrintInternal( s_wcd.consoleText + s_wcd.cursorPosition, 1 );
+	Wcon_PrintInternal (s_wcd.consoleText + s_wcd.cursorPosition, 1);
 	s_wcd.cursorPosition++;
-}
+	}
 
-static int Wcon_EventNewline()
-{
+static int Wcon_EventNewline ()
+	{
 	int nLen;
 
 	nLen = 0;
-	Wcon_PrintInternal( "\n", 0 );
-	if( s_wcd.consoleTextLen )
-	{
+	Wcon_PrintInternal ("\n", 0);
+	if (s_wcd.consoleTextLen)
+		{
 		nLen = s_wcd.consoleTextLen;
 
 		s_wcd.consoleText[s_wcd.consoleTextLen] = '\0';
 		s_wcd.consoleTextLen = 0;
 		s_wcd.cursorPosition = 0;
 
-		if (( s_wcd.inputLine == 0 ) || ( Q_strcmp( s_wcd.lineBuffer[s_wcd.inputLine - 1], s_wcd.consoleText )))
-		{
-			Q_strncpy( s_wcd.lineBuffer[s_wcd.inputLine], s_wcd.consoleText, sizeof( s_wcd.consoleText ));
+		if ((s_wcd.inputLine == 0) || (Q_strcmp (s_wcd.lineBuffer[s_wcd.inputLine - 1], s_wcd.consoleText)))
+			{
+			Q_strncpy (s_wcd.lineBuffer[s_wcd.inputLine], s_wcd.consoleText, sizeof (s_wcd.consoleText));
 			s_wcd.inputLine++;
 
-			if( s_wcd.inputLine > s_wcd.totalLines )
+			if (s_wcd.inputLine > s_wcd.totalLines)
 				s_wcd.totalLines = s_wcd.inputLine;
 
-			if( s_wcd.inputLine >= COMMAND_HISTORY )
+			if (s_wcd.inputLine >= COMMAND_HISTORY)
 				s_wcd.inputLine = 0;
-		}
+			}
 		s_wcd.browseLine = s_wcd.inputLine;
-	}
+		}
 	return nLen;
-}
+	}
 
-static void Wcon_EventBackspace()
-{
+static void Wcon_EventBackspace ()
+	{
 	int nCount;
 
-	if( s_wcd.cursorPosition < 1 )
-	{
+	if (s_wcd.cursorPosition < 1)
+		{
 		return;
-	}
+		}
 
 	s_wcd.consoleTextLen--;
 	s_wcd.cursorPosition--;
 
-	Wcon_PrintInternal( "\b", 0 );
+	Wcon_PrintInternal ("\b", 0);
 
-	for( nCount = s_wcd.cursorPosition; nCount < s_wcd.consoleTextLen; ++nCount )
-	{
+	for (nCount = s_wcd.cursorPosition; nCount < s_wcd.consoleTextLen; ++nCount)
+		{
 		s_wcd.consoleText[nCount] = s_wcd.consoleText[nCount + 1];
-		Wcon_PrintInternal( s_wcd.consoleText + nCount, 1 );
-	}
+		Wcon_PrintInternal (s_wcd.consoleText + nCount, 1);
+		}
 
-	Wcon_PrintInternal( " ", 0 );
+	Wcon_PrintInternal (" ", 0);
 
 	nCount = s_wcd.consoleTextLen;
-	while( nCount >= s_wcd.cursorPosition )
-	{
-		Wcon_PrintInternal( "\b", 0 );
+	while (nCount >= s_wcd.cursorPosition)
+		{
+		Wcon_PrintInternal ("\b", 0);
 		nCount--;
-	}
+		}
 
 	s_wcd.browseLine = s_wcd.inputLine;
-}
+	}
 
-static void Wcon_EventTab()
-{
+static void Wcon_EventTab ()
+	{
 	s_wcd.consoleText[s_wcd.consoleTextLen] = '\0';
-	Cmd_AutoComplete( s_wcd.consoleText );
-	Wcon_SetInputText( s_wcd.consoleText );
-}
+	Cmd_AutoComplete (s_wcd.consoleText);
+	Wcon_SetInputText (s_wcd.consoleText);
+	}
 
-static void Wcon_EventCharacter(char c)
-{
+static void Wcon_EventCharacter (char c)
+	{
 	int nCount;
 
-	if( s_wcd.consoleTextLen >= ( sizeof( s_wcd.consoleText ) - 2 ))
-	{
+	if (s_wcd.consoleTextLen >= (sizeof (s_wcd.consoleText) - 2))
+		{
 		return;
-	}
+		}
 
 	nCount = s_wcd.consoleTextLen;
-	while( nCount > s_wcd.cursorPosition )
-	{
+	while (nCount > s_wcd.cursorPosition)
+		{
 		s_wcd.consoleText[nCount] = s_wcd.consoleText[nCount - 1];
 		nCount--;
-	}
+		}
 
 	s_wcd.consoleText[s_wcd.cursorPosition] = c;
-	Wcon_PrintInternal( s_wcd.consoleText + s_wcd.cursorPosition, s_wcd.consoleTextLen - s_wcd.cursorPosition + 1 );
+	Wcon_PrintInternal (s_wcd.consoleText + s_wcd.cursorPosition, s_wcd.consoleTextLen - s_wcd.cursorPosition + 1);
 	s_wcd.consoleTextLen++;
 	s_wcd.cursorPosition++;
 
 	nCount = s_wcd.consoleTextLen;
-	while( nCount > s_wcd.cursorPosition )
-	{
-		Wcon_PrintInternal( "\b", 0 );
+	while (nCount > s_wcd.cursorPosition)
+		{
+		Wcon_PrintInternal ("\b", 0);
 		nCount--;
-	}
+		}
 
 	s_wcd.browseLine = s_wcd.inputLine;
-}
+	}
 
-static void Wcon_UpdateStatusLine()
-{
+static void Wcon_UpdateStatusLine ()
+	{
 	COORD coord;
 	WORD wAttrib;
 	DWORD dwWritten;
@@ -395,58 +395,58 @@ static void Wcon_UpdateStatusLine()
 	coord.Y = 0;
 	wAttrib = g_color_table[5] | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY;
 
-	FillConsoleOutputCharacter( s_wcd.hOutput, ' ', 80, coord, &dwWritten );
-	FillConsoleOutputAttribute( s_wcd.hOutput, wAttrib, 80, coord, &dwWritten );
-	WriteConsoleOutputCharacter( s_wcd.hOutput, s_wcd.statusLine, Q_strlen(s_wcd.statusLine), coord, &dwWritten );
-}
+	FillConsoleOutputCharacter (s_wcd.hOutput, ' ', 80, coord, &dwWritten);
+	FillConsoleOutputAttribute (s_wcd.hOutput, wAttrib, 80, coord, &dwWritten);
+	WriteConsoleOutputCharacter (s_wcd.hOutput, s_wcd.statusLine, Q_strlen (s_wcd.statusLine), coord, &dwWritten);
+	}
 
-static char *Wcon_KeyEvent( int key, WCHAR character )
-{
+static char *Wcon_KeyEvent (int key, WCHAR character)
+	{
 	int nLen;
 	char inputBuffer[1024];
 
-	switch( key )
-	{
-	case VK_UP:
-		Wcon_EventUpArrow();
-		return NULL;
-	case VK_DOWN:
-		Wcon_EventDownArrow();
-		return NULL;
-	case VK_LEFT:
-		Wcon_EventLeftArrow();
-		return NULL;
-	case VK_RIGHT:
-		Wcon_EventRightArrow();
-		return NULL;
-	}
+	switch (key)
+		{
+		case VK_UP:
+			Wcon_EventUpArrow ();
+			return NULL;
+		case VK_DOWN:
+			Wcon_EventDownArrow ();
+			return NULL;
+		case VK_LEFT:
+			Wcon_EventLeftArrow ();
+			return NULL;
+		case VK_RIGHT:
+			Wcon_EventRightArrow ();
+			return NULL;
+		}
 
-	switch( character )
-	{
+	switch (character)
+		{
 		case '\r':	// Enter
-			nLen = Wcon_EventNewline();
+			nLen = Wcon_EventNewline ();
 			if (nLen)
-			{
+				{
 				return s_wcd.consoleText;
-			}
+				}
 			break;
 		case '\b':	// Backspace
-			Wcon_EventBackspace();
+			Wcon_EventBackspace ();
 			break;
 		case '\t':	// TAB
-			Wcon_EventTab();
+			Wcon_EventTab ();
 			break;
 		default:
 			// TODO implement converting wide chars to UTF-8 and properly handling it
-			if (( character >= ' ' ) && ( character <= '~' ))
-			{
-				Wcon_EventCharacter(character);
-			}
+			if ((character >= ' ') && (character <= '~'))
+				{
+				Wcon_EventCharacter (character);
+				}
 			break;
-	}
+		}
 
 	return NULL;
-}
+	}
 
 /*
 ===============================================================================
@@ -463,27 +463,27 @@ Con_WinPrint
 print into window console
 ================
 */
-void Wcon_WinPrint( const char *pMsg )
-{
-	int nLen;
-	if( s_wcd.consoleTextLen )
+void Wcon_WinPrint (const char *pMsg)
 	{
+	int nLen;
+	if (s_wcd.consoleTextLen)
+		{
 		nLen = s_wcd.consoleTextLen;
 		while (nLen--)
-		{
-			Wcon_PrintInternal( "\b \b", 0 );
+			{
+			Wcon_PrintInternal ("\b \b", 0);
+			}
 		}
+
+	Wcon_PrintInternal (pMsg, 0);
+
+	if (s_wcd.consoleTextLen)
+		{
+		Wcon_PrintInternal (s_wcd.consoleText, s_wcd.consoleTextLen);
+		}
+
+	Wcon_UpdateStatusLine ();
 	}
-
-	Wcon_PrintInternal( pMsg, 0 );
-
-	if( s_wcd.consoleTextLen )
-	{
-		Wcon_PrintInternal( s_wcd.consoleText, s_wcd.consoleTextLen );
-	}
-
-	Wcon_UpdateStatusLine();
-}
 
 /*
 ================
@@ -492,57 +492,57 @@ Con_CreateConsole
 create win32 console
 ================
 */
-void Wcon_CreateConsole( void )
-{
-	if( Sys_CheckParm( "-log" ))
+void Wcon_CreateConsole (void)
+	{
+	if (Sys_CheckParm ("-log"))
 		s_wcd.log_active = true;
 
-	if( host.type == HOST_NORMAL )
-	{
-		Q_strncpy( s_wcd.title, va( "Xash3D %s", XASH_VERSION ), sizeof( s_wcd.title ));
-		Q_strncpy( s_wcd.log_path, "engine.log", sizeof( s_wcd.log_path ));
-	}
+	if (host.type == HOST_NORMAL)
+		{
+		Q_strncpy (s_wcd.title, va ("Xash3D %s", XASH_VERSION), sizeof (s_wcd.title));
+		Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));
+		}
 	else // dedicated console
-	{
-		Q_strncpy( s_wcd.title, va( "XashDS %s", XASH_VERSION ), sizeof( s_wcd.title ));
-		Q_strncpy( s_wcd.log_path, "dedicated.log", sizeof( s_wcd.log_path ));
+		{
+		Q_strncpy (s_wcd.title, va ("XashDS %s", XASH_VERSION), sizeof (s_wcd.title));
+		Q_strncpy (s_wcd.log_path, "dedicated.log", sizeof (s_wcd.log_path));
 		s_wcd.log_active = true; // always make log
-	}
+		}
 
-	AllocConsole();
-	SetConsoleTitle( s_wcd.title );
-	SetConsoleCP( CP_UTF8 );
-	SetConsoleOutputCP( CP_UTF8 );
+	AllocConsole ();
+	SetConsoleTitle (s_wcd.title);
+	SetConsoleCP (CP_UTF8);
+	SetConsoleOutputCP (CP_UTF8);
 
-	s_wcd.hWnd = GetConsoleWindow();
-	s_wcd.hInput = GetStdHandle( STD_INPUT_HANDLE );
-	s_wcd.hOutput = GetStdHandle( STD_OUTPUT_HANDLE );
+	s_wcd.hWnd = GetConsoleWindow ();
+	s_wcd.hInput = GetStdHandle (STD_INPUT_HANDLE);
+	s_wcd.hOutput = GetStdHandle (STD_OUTPUT_HANDLE);
 	s_wcd.inputEnabled = true;
-	
-	if( !SetConsoleCtrlHandler( &Wcon_HandleConsole, TRUE ))
-	{
-		Con_Reportf( S_ERROR "Couldn't attach console handler function\n" );
-		return;
-	}
 
-	SetWindowPos( s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW );
+	if (!SetConsoleCtrlHandler (&Wcon_HandleConsole, TRUE))
+		{
+		Con_Reportf (S_ERROR "Couldn't attach console handler function\n");
+		return;
+		}
+
+	SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);
 
 	// show console if needed
-	if( host.con_showalways )
-	{
+	if (host.con_showalways)
+		{
 		// make console visible
-		ShowWindow( s_wcd.hWnd, SW_SHOWDEFAULT );
-		UpdateWindow( s_wcd.hWnd );
-		SetForegroundWindow( s_wcd.hWnd );
-		SetFocus( s_wcd.hWnd );
+		ShowWindow (s_wcd.hWnd, SW_SHOWDEFAULT);
+		UpdateWindow (s_wcd.hWnd);
+		SetForegroundWindow (s_wcd.hWnd);
+		SetFocus (s_wcd.hWnd);
 		s_wcd.consoleVisible = true;
-	}
+		}
 	else
-	{
+		{
 		s_wcd.consoleVisible = false;
-		ShowWindow( s_wcd.hWnd, SW_HIDE );
+		ShowWindow (s_wcd.hWnd, SW_HIDE);
+		}
 	}
-}
 
 /*
 ================
@@ -551,13 +551,13 @@ Con_InitConsoleCommands
 register console commands (dedicated only)
 ================
 */
-void Wcon_InitConsoleCommands( void )
-{
-	if( host.type != HOST_DEDICATED )
+void Wcon_InitConsoleCommands (void)
+	{
+	if (host.type != HOST_DEDICATED)
 		return;
 
-	Cmd_AddCommand( "clear", Wcon_Clear_f, "clear console history" );
-}
+	Cmd_AddCommand ("clear", Wcon_Clear_f, "clear console history");
+	}
 
 /*
 ================
@@ -566,25 +566,25 @@ Con_DestroyConsole
 destroy win32 console
 ================
 */
-void Wcon_DestroyConsole( void )
-{
-	// last text message into console or log
-	Con_Reportf( "Sys_FreeLibrary: Unloading xash.dll\n" );
-
-	Sys_CloseLog();
-
-	if( s_wcd.hWnd )
+void Wcon_DestroyConsole (void)
 	{
-		ShowWindow( s_wcd.hWnd, SW_HIDE );
-		s_wcd.hWnd = 0;
-	}
+	// last text message into console or log
+	Con_Reportf ("Sys_FreeLibrary: Unloading xash.dll\n");
 
-	FreeConsole();
+	Sys_CloseLog ();
+
+	if (s_wcd.hWnd)
+		{
+		ShowWindow (s_wcd.hWnd, SW_HIDE);
+		s_wcd.hWnd = 0;
+		}
+
+	FreeConsole ();
 
 	// place it here in case Sys_Crash working properly
-	if( host.hMutex )
-		CloseHandle( host.hMutex );
-}
+	if (host.hMutex)
+		CloseHandle (host.hMutex);
+	}
 
 /*
 ================
@@ -593,45 +593,45 @@ Con_Input
 returned input text
 ================
 */
-char *Wcon_Input( void )
-{
+char *Wcon_Input (void)
+	{
 	int i;
 	int eventsCount;
 	static INPUT_RECORD events[1024];
-	
-	if( !s_wcd.inputEnabled )
+
+	if (!s_wcd.inputEnabled)
 		return NULL;
 
-	while( true )
-	{
-		if( !GetNumberOfConsoleInputEvents( s_wcd.hInput, &eventsCount ))
+	while (true)
 		{
+		if (!GetNumberOfConsoleInputEvents (s_wcd.hInput, &eventsCount))
+			{
 			return NULL;
-		}
+			}
 
-		if( eventsCount <= 0 )
+		if (eventsCount <= 0)
 			break;
 
-		if( !ReadConsoleInputW( s_wcd.hInput, events, ARRAYSIZE( events ), &eventsCount ))
-		{
+		if (!ReadConsoleInputW (s_wcd.hInput, events, ARRAYSIZE (events), &eventsCount))
+			{
 			return NULL;
-		}
+			}
 
-		if( eventsCount == 0 )
+		if (eventsCount == 0)
 			return NULL;
 
-		for( i = 0; i < eventsCount; i++ )
-		{
+		for (i = 0; i < eventsCount; i++)
+			{
 			INPUT_RECORD *pRec = &events[i];
-			if( pRec->EventType != KEY_EVENT )
+			if (pRec->EventType != KEY_EVENT)
 				continue;
 
-			if( pRec->Event.KeyEvent.bKeyDown )
-				return Wcon_KeyEvent( pRec->Event.KeyEvent.wVirtualKeyCode, pRec->Event.KeyEvent.uChar.UnicodeChar );
+			if (pRec->Event.KeyEvent.bKeyDown)
+				return Wcon_KeyEvent (pRec->Event.KeyEvent.wVirtualKeyCode, pRec->Event.KeyEvent.uChar.UnicodeChar);
+			}
 		}
-	}
 	return NULL;
-}
+	}
 
 /*
 ================
@@ -640,12 +640,12 @@ Wcon_SetStatus
 set server status string in console
 ================
 */
-void Wcon_SetStatus( const char *pStatus )
-{
-	if( host.type != HOST_DEDICATED )
+void Wcon_SetStatus (const char *pStatus)
+	{
+	if (host.type != HOST_DEDICATED)
 		return;
 
-	Q_strncpy( s_wcd.statusLine, pStatus, sizeof( s_wcd.statusLine ) - 1 );
-	s_wcd.statusLine[sizeof( s_wcd.statusLine ) - 2] = '\0';
-	Wcon_UpdateStatusLine();
-}
+	Q_strncpy (s_wcd.statusLine, pStatus, sizeof (s_wcd.statusLine) - 1);
+	s_wcd.statusLine[sizeof (s_wcd.statusLine) - 2] = '\0';
+	Wcon_UpdateStatusLine ();
+	}

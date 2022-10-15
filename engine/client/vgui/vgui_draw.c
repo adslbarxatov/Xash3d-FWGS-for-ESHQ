@@ -26,91 +26,91 @@ GNU General Public License for more details.
 static enum VGUI_KeyCode s_pVirtualKeyTrans[256];
 static VGUI_DefaultCursor s_currentCursor;
 static HINSTANCE s_pVGuiSupport; // vgui_support library
-static convar_t	*vgui_utf8 = NULL;
+static convar_t *vgui_utf8 = NULL;
 
-void GAME_EXPORT *VGUI_EngineMalloc(size_t size)
-{
-	return Z_Malloc( size );
-}
+void GAME_EXPORT *VGUI_EngineMalloc (size_t size)
+	{
+	return Z_Malloc (size);
+	}
 
-qboolean GAME_EXPORT VGUI_IsInGame( void )
-{
+qboolean GAME_EXPORT VGUI_IsInGame (void)
+	{
 	return cls.state == ca_active && cls.key_dest == key_game;
-}
+	}
 
-void GAME_EXPORT VGUI_GetMousePos( int *_x, int *_y )
-{
+void GAME_EXPORT VGUI_GetMousePos (int *_x, int *_y)
+	{
 	float xscale = (float)refState.width / (float)clgame.scrInfo.iWidth;
 	float yscale = (float)refState.height / (float)clgame.scrInfo.iHeight;
 	int x, y;
 
-	Platform_GetMousePos( &x, &y );
+	Platform_GetMousePos (&x, &y);
 	*_x = x / xscale, *_y = y / yscale;
-}
+	}
 
-void GAME_EXPORT VGUI_CursorSelect( VGUI_DefaultCursor cursor )
-{
-	Platform_SetCursorType( cursor );
+void GAME_EXPORT VGUI_CursorSelect (VGUI_DefaultCursor cursor)
+	{
+	Platform_SetCursorType (cursor);
 	s_currentCursor = cursor;
-}
+	}
 
-byte GAME_EXPORT VGUI_GetColor( int i, int j)
-{
+byte GAME_EXPORT VGUI_GetColor (int i, int j)
+	{
 	return g_color_table[i][j];
-}
+	}
 
 // Define and initialize vgui API
-int GAME_EXPORT VGUI_UtfProcessChar( int in )
-{
-	if( CVAR_TO_BOOL( vgui_utf8 ))
-		return Con_UtfProcessCharForce( in );
+int GAME_EXPORT VGUI_UtfProcessChar (int in)
+	{
+	if (CVAR_TO_BOOL (vgui_utf8))
+		return Con_UtfProcessCharForce (in);
 	else
 		return in;
-}
+	}
 
 vguiapi_t vgui =
-{
-	false, // Not initialized yet
-	NULL, // VGUI_DrawInit,
-	NULL, // VGUI_DrawShutdown,
-	NULL, // VGUI_SetupDrawingText,
-	NULL, // VGUI_SetupDrawingRect,
-	NULL, // VGUI_SetupDrawingImage,
-	NULL, // VGUI_BindTexture,
-	NULL, // VGUI_EnableTexture,
-	NULL, // VGUI_CreateTexture,
-	NULL, // VGUI_UploadTexture,
-	NULL, // VGUI_UploadTextureBlock,
-	NULL, // VGUI_DrawQuad,
-	NULL, // VGUI_GetTextureSizes,
-	NULL, // VGUI_GenerateTexture,
-	VGUI_EngineMalloc,
-	VGUI_CursorSelect,
-	VGUI_GetColor,
-	VGUI_IsInGame,
-	NULL,
-	VGUI_GetMousePos,
-	VGUI_UtfProcessChar,
-	Platform_GetClipboardText,
-	Platform_SetClipboardText,
-	Platform_GetKeyModifiers,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
-};
+	{
+		false, // Not initialized yet
+		NULL, // VGUI_DrawInit,
+		NULL, // VGUI_DrawShutdown,
+		NULL, // VGUI_SetupDrawingText,
+		NULL, // VGUI_SetupDrawingRect,
+		NULL, // VGUI_SetupDrawingImage,
+		NULL, // VGUI_BindTexture,
+		NULL, // VGUI_EnableTexture,
+		NULL, // VGUI_CreateTexture,
+		NULL, // VGUI_UploadTexture,
+		NULL, // VGUI_UploadTextureBlock,
+		NULL, // VGUI_DrawQuad,
+		NULL, // VGUI_GetTextureSizes,
+		NULL, // VGUI_GenerateTexture,
+		VGUI_EngineMalloc,
+		VGUI_CursorSelect,
+		VGUI_GetColor,
+		VGUI_IsInGame,
+		NULL,
+		VGUI_GetMousePos,
+		VGUI_UtfProcessChar,
+		Platform_GetClipboardText,
+		Platform_SetClipboardText,
+		Platform_GetKeyModifiers,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	};
 
-qboolean VGui_IsActive( void )
-{
+qboolean VGui_IsActive (void)
+	{
 	return vgui.initialized;
-}
+	}
 
-void VGui_FillAPIFromRef( vguiapi_t *to, const ref_interface_t *from )
-{
+void VGui_FillAPIFromRef (vguiapi_t *to, const ref_interface_t *from)
+	{
 	to->DrawInit = from->VGUI_DrawInit;
 	to->DrawShutdown = from->VGUI_DrawShutdown;
 	to->SetupDrawingText = from->VGUI_SetupDrawingText;
@@ -124,7 +124,7 @@ void VGui_FillAPIFromRef( vguiapi_t *to, const ref_interface_t *from )
 	to->DrawQuad = from->VGUI_DrawQuad;
 	to->GetTextureSizes = from->VGUI_GetTextureSizes;
 	to->GenerateTexture = from->VGUI_GenerateTexture;
-}
+	}
 
 /*
 ================
@@ -133,131 +133,131 @@ VGui_Startup
 Load vgui_support library and call VGui_Startup
 ================
 */
-void VGui_Startup( const char *clientlib, int width, int height )
-{
+void VGui_Startup (const char *clientlib, int width, int height)
+	{
 	static qboolean failed = false;
 
-	void (*F) ( vguiapi_t * );
+	void (*F) (vguiapi_t *);
 	char vguiloader[256];
 	char vguilib[256];
 
 	vguiloader[0] = vguilib[0] = '\0';
 
-	if( failed )
+	if (failed)
 		return;
 
-	if( !vgui.initialized )
-	{
-		vgui_utf8 = Cvar_Get( "vgui_utf8", "0", FCVAR_ARCHIVE, "enable utf-8 support for vgui text" );
-
-		VGui_FillAPIFromRef( &vgui, &ref.dllFuncs );
-
-		s_pVGuiSupport = COM_LoadLibrary( clientlib, false, false );
-
-		if( s_pVGuiSupport )
+	if (!vgui.initialized)
 		{
-			F = COM_GetProcAddress( s_pVGuiSupport, "InitVGUISupportAPI" );
-			if( F )
+		vgui_utf8 = Cvar_Get ("vgui_utf8", "0", FCVAR_ARCHIVE, "enable utf-8 support for vgui text");
+
+		VGui_FillAPIFromRef (&vgui, &ref.dllFuncs);
+
+		s_pVGuiSupport = COM_LoadLibrary (clientlib, false, false);
+
+		if (s_pVGuiSupport)
 			{
-				F( &vgui );
+			F = COM_GetProcAddress (s_pVGuiSupport, "InitVGUISupportAPI");
+			if (F)
+				{
+				F (&vgui);
 				vgui.initialized = true;
-				Con_Reportf( "vgui_support: found internal client support\n" );
-			}
+				Con_Reportf ("vgui_support: found internal client support\n");
+				}
 			else
-			{
-				COM_FreeLibrary( s_pVGuiSupport );
+				{
+				COM_FreeLibrary (s_pVGuiSupport);
+				}
 			}
-		}
 
-		if( !vgui.initialized )
-		{
+		if (!vgui.initialized)
+			{
 			// HACKHACK: load vgui with correct path first if specified.
 			// it will be reused while resolving vgui support and client deps
-			if( Sys_GetParmFromCmdLine( "-vguilib", vguilib ))
-			{
-				if( Q_strstr( vguilib, ".dll" ))
-					Q_strncpy( vguiloader, "vgui_support.dll", 256 );
-				else
-					Q_strncpy( vguiloader, VGUI_SUPPORT_DLL, 256 );
-
-				if( !COM_LoadLibrary( vguilib, false, false ))
-					Con_Reportf( S_WARN "VGUI preloading failed. Default library will be used! Reason: %s\n", COM_GetLibraryError() );
-			}
-
-			if( Q_strstr( clientlib, ".dll" ))
-				Q_strncpy( vguiloader, "vgui_support.dll", 256 );
-
-			if( !vguiloader[0] && !Sys_GetParmFromCmdLine( "-vguiloader", vguiloader ))
-				Q_strncpy( vguiloader, VGUI_SUPPORT_DLL, 256 );
-
-			s_pVGuiSupport = COM_LoadLibrary( vguiloader, false, false );
-
-			if( !s_pVGuiSupport )
-			{
-				s_pVGuiSupport = COM_LoadLibrary( va( "../%s", vguiloader ), false, false );
-			}
-
-			if( !s_pVGuiSupport )
-			{
-				if( FS_FileExists( vguiloader, false ))
+			if (Sys_GetParmFromCmdLine ("-vguilib", vguilib))
 				{
-					Con_Reportf( S_ERROR "Failed to load vgui_support library: %s\n", COM_GetLibraryError() );
-				}
+				if (Q_strstr (vguilib, ".dll"))
+					Q_strncpy (vguiloader, "vgui_support.dll", 256);
 				else
-				{
-					Con_Reportf( "vgui_support: not found\n" );
+					Q_strncpy (vguiloader, VGUI_SUPPORT_DLL, 256);
+
+				if (!COM_LoadLibrary (vguilib, false, false))
+					Con_Reportf (S_WARN "VGUI preloading failed. Default library will be used! Reason: %s\n", COM_GetLibraryError ());
 				}
+
+			if (Q_strstr (clientlib, ".dll"))
+				Q_strncpy (vguiloader, "vgui_support.dll", 256);
+
+			if (!vguiloader[0] && !Sys_GetParmFromCmdLine ("-vguiloader", vguiloader))
+				Q_strncpy (vguiloader, VGUI_SUPPORT_DLL, 256);
+
+			s_pVGuiSupport = COM_LoadLibrary (vguiloader, false, false);
+
+			if (!s_pVGuiSupport)
+				{
+				s_pVGuiSupport = COM_LoadLibrary (va ("../%s", vguiloader), false, false);
+				}
+
+			if (!s_pVGuiSupport)
+				{
+				if (FS_FileExists (vguiloader, false))
+					{
+					Con_Reportf (S_ERROR "Failed to load vgui_support library: %s\n", COM_GetLibraryError ());
+					}
+				else
+					{
+					Con_Reportf ("vgui_support: not found\n");
+					}
 				failed = true;
-			}
-			else
-			{
-				F = COM_GetProcAddress( s_pVGuiSupport, "InitAPI" );
-				if( F )
-				{
-					F( &vgui );
-					vgui.initialized = true;
 				}
-				else
+			else
 				{
-					Con_Reportf( S_ERROR "Failed to find vgui_support library entry point!\n" );
+				F = COM_GetProcAddress (s_pVGuiSupport, "InitAPI");
+				if (F)
+					{
+					F (&vgui);
+					vgui.initialized = true;
+					}
+				else
+					{
+					Con_Reportf (S_ERROR "Failed to find vgui_support library entry point!\n");
 					failed = true;
-					COM_FreeLibrary( s_pVGuiSupport );
+					COM_FreeLibrary (s_pVGuiSupport);
+					}
 				}
 			}
 		}
-	}
 
-	if( height < 480 )
+	if (height < 480)
 		height = 480;
 
-	if( width <= 640 )
+	if (width <= 640)
 		width = 640;
-	else if( width <= 800 )
+	else if (width <= 800)
 		width = 800;
-	else if( width <= 1024 )
+	else if (width <= 1024)
 		width = 1024;
-	else if( width <= 1152 )
+	else if (width <= 1152)
 		width = 1152;
-	else if( width <= 1280 )
+	else if (width <= 1280)
 		width = 1280;
-	else if( width <= 1600 )
+	else if (width <= 1600)
 		width = 1600;
 #ifdef XASH_DLL_LOADER
-	else if ( Q_strstr( vguiloader, ".dll" ) )
+	else if (Q_strstr (vguiloader, ".dll"))
 		width = 1600;
 #endif
 
 
-	if( vgui.initialized )
-	{
+	if (vgui.initialized)
+		{
 		//host.mouse_visible = true;
-		vgui.Startup( width, height );
-	}
-	else if ( COM_CheckString( clientlib ) )
-	{
+		vgui.Startup (width, height);
+		}
+	else if (COM_CheckString (clientlib))
+		{
 		failed = true;
+		}
 	}
-}
 
 
 
@@ -268,29 +268,29 @@ VGui_Shutdown
 Unload vgui_support library and call VGui_Shutdown
 ================
 */
-void VGui_Shutdown( void )
-{
-	if( vgui.Shutdown )
-		vgui.Shutdown();
+void VGui_Shutdown (void)
+	{
+	if (vgui.Shutdown)
+		vgui.Shutdown ();
 
-	if( s_pVGuiSupport )
-		COM_FreeLibrary( s_pVGuiSupport );
+	if (s_pVGuiSupport)
+		COM_FreeLibrary (s_pVGuiSupport);
 	s_pVGuiSupport = NULL;
 
 	vgui.initialized = false;
-}
+	}
 
 
-void VGUI_InitKeyTranslationTable( void )
-{
+void VGUI_InitKeyTranslationTable (void)
+	{
 	static qboolean bInitted = false;
 
-	if( bInitted )
+	if (bInitted)
 		return;
 	bInitted = true;
 
 	// set virtual key translation table
-	memset( s_pVirtualKeyTrans, -1, sizeof( s_pVirtualKeyTrans ) );
+	memset (s_pVirtualKeyTrans, -1, sizeof (s_pVirtualKeyTrans));
 
 	s_pVirtualKeyTrans['0'] = KEY_0;
 	s_pVirtualKeyTrans['1'] = KEY_1;
@@ -339,11 +339,11 @@ void VGUI_InitKeyTranslationTable( void )
 	s_pVirtualKeyTrans[K_KP_5 + 2] = KEY_PAD_7;
 	s_pVirtualKeyTrans[K_KP_5 + 3] = KEY_PAD_8;
 	s_pVirtualKeyTrans[K_KP_5 + 4] = KEY_PAD_9;
-	s_pVirtualKeyTrans[K_KP_SLASH]	= KEY_PAD_DIVIDE;
+	s_pVirtualKeyTrans[K_KP_SLASH] = KEY_PAD_DIVIDE;
 	s_pVirtualKeyTrans['*'] = KEY_PAD_MULTIPLY;
 	s_pVirtualKeyTrans[K_KP_MINUS] = KEY_PAD_MINUS;
 	s_pVirtualKeyTrans[K_KP_PLUS] = KEY_PAD_PLUS;
-	s_pVirtualKeyTrans[K_KP_ENTER]	= KEY_PAD_ENTER;
+	s_pVirtualKeyTrans[K_KP_ENTER] = KEY_PAD_ENTER;
 	//s_pVirtualKeyTrans[K_KP_DECIMAL] = KEY_PAD_DECIMAL;
 	s_pVirtualKeyTrans['['] = KEY_LBRACKET;
 	s_pVirtualKeyTrans[']'] = KEY_RBRACKET;
@@ -356,16 +356,16 @@ void VGUI_InitKeyTranslationTable( void )
 	s_pVirtualKeyTrans['\\'] = KEY_BACKSLASH;
 	s_pVirtualKeyTrans['-'] = KEY_MINUS;
 	s_pVirtualKeyTrans['='] = KEY_EQUAL;
-	s_pVirtualKeyTrans[K_ENTER]	= KEY_ENTER;
+	s_pVirtualKeyTrans[K_ENTER] = KEY_ENTER;
 	s_pVirtualKeyTrans[K_SPACE] = KEY_SPACE;
 	s_pVirtualKeyTrans[K_BACKSPACE] = KEY_BACKSPACE;
 	s_pVirtualKeyTrans[K_TAB] = KEY_TAB;
 	s_pVirtualKeyTrans[K_CAPSLOCK] = KEY_CAPSLOCK;
 	s_pVirtualKeyTrans[K_KP_NUMLOCK] = KEY_NUMLOCK;
-	s_pVirtualKeyTrans[K_ESCAPE]	= KEY_ESCAPE;
+	s_pVirtualKeyTrans[K_ESCAPE] = KEY_ESCAPE;
 	//s_pVirtualKeyTrans[K_KP_SCROLLLOCK]	= KEY_SCROLLLOCK;
-	s_pVirtualKeyTrans[K_INS]	= KEY_INSERT;
-	s_pVirtualKeyTrans[K_DEL]	= KEY_DELETE;
+	s_pVirtualKeyTrans[K_INS] = KEY_INSERT;
+	s_pVirtualKeyTrans[K_DEL] = KEY_DELETE;
 	s_pVirtualKeyTrans[K_HOME] = KEY_HOME;
 	s_pVirtualKeyTrans[K_END] = KEY_END;
 	s_pVirtualKeyTrans[K_PGUP] = KEY_PAGEUP;
@@ -396,88 +396,89 @@ void VGUI_InitKeyTranslationTable( void )
 	s_pVirtualKeyTrans[K_F10] = KEY_F10;
 	s_pVirtualKeyTrans[K_F11] = KEY_F11;
 	s_pVirtualKeyTrans[K_F12] = KEY_F12;
-}
+	}
 
-enum VGUI_KeyCode VGUI_MapKey( int keyCode )
-{
-	VGUI_InitKeyTranslationTable();
-
-	if( keyCode < 0 || keyCode >= (int)sizeof( s_pVirtualKeyTrans ) / (int)sizeof( s_pVirtualKeyTrans[0] ))
+enum VGUI_KeyCode VGUI_MapKey (int keyCode)
 	{
+	VGUI_InitKeyTranslationTable ();
+
+	if (keyCode < 0 || keyCode >= (int)sizeof (s_pVirtualKeyTrans) / (int)sizeof (s_pVirtualKeyTrans[0]))
+		{
 		//Assert( false );
 		return (enum VGUI_KeyCode)-1;
-	}
-	else
-	{
-		return s_pVirtualKeyTrans[keyCode];
-	}
-}
-
-void VGui_KeyEvent( int key, int down )
-{
-	if( !vgui.initialized )
-		return;
-
-	switch( key )
-	{
-	case K_MOUSE1:
-		if( down && host.mouse_visible ) {
-			Key_EnableTextInput(true, false);
 		}
-		vgui.Mouse( down ? MA_PRESSED : MA_RELEASED, MOUSE_LEFT );
-		return;
-	case K_MOUSE2:
-		vgui.Mouse( down ? MA_PRESSED : MA_RELEASED, MOUSE_RIGHT );
-		return;
-	case K_MOUSE3:
-		vgui.Mouse( down ? MA_PRESSED : MA_RELEASED, MOUSE_MIDDLE );
-		return;
-	case K_MWHEELDOWN:
-		vgui.Mouse( MA_WHEEL, 1 );
-		return;
-	case K_MWHEELUP:
-		vgui.Mouse( MA_WHEEL, -1 );
-		return;
-	default:
-		break;
+	else
+		{
+		return s_pVirtualKeyTrans[keyCode];
+		}
 	}
 
-	if( down == 2 )
-		vgui.Key( KA_TYPED, VGUI_MapKey( key ) );
-	else
-		vgui.Key( down?KA_PRESSED:KA_RELEASED, VGUI_MapKey( key ) );
-	//Msg("VGui_KeyEvent %d %d %d\n", key, VGUI_MapKey( key ), down );
-}
+void VGui_KeyEvent (int key, int down)
+	{
+	if (!vgui.initialized)
+		return;
 
-void VGui_MouseMove( int x, int y )
-{
+	switch (key)
+		{
+		case K_MOUSE1:
+			if (down && host.mouse_visible)
+				{
+				Key_EnableTextInput (true, false);
+				}
+			vgui.Mouse (down ? MA_PRESSED : MA_RELEASED, MOUSE_LEFT);
+			return;
+		case K_MOUSE2:
+			vgui.Mouse (down ? MA_PRESSED : MA_RELEASED, MOUSE_RIGHT);
+			return;
+		case K_MOUSE3:
+			vgui.Mouse (down ? MA_PRESSED : MA_RELEASED, MOUSE_MIDDLE);
+			return;
+		case K_MWHEELDOWN:
+			vgui.Mouse (MA_WHEEL, 1);
+			return;
+		case K_MWHEELUP:
+			vgui.Mouse (MA_WHEEL, -1);
+			return;
+		default:
+			break;
+		}
+
+	if (down == 2)
+		vgui.Key (KA_TYPED, VGUI_MapKey (key));
+	else
+		vgui.Key (down ? KA_PRESSED : KA_RELEASED, VGUI_MapKey (key));
+	//Msg("VGui_KeyEvent %d %d %d\n", key, VGUI_MapKey( key ), down );
+	}
+
+void VGui_MouseMove (int x, int y)
+	{
 	float xscale = (float)refState.width / (float)clgame.scrInfo.iWidth;
 	float yscale = (float)refState.height / (float)clgame.scrInfo.iHeight;
-	if( vgui.initialized )
-		vgui.MouseMove( x / xscale, y / yscale );
-}
+	if (vgui.initialized)
+		vgui.MouseMove (x / xscale, y / yscale);
+	}
 
-void VGui_Paint( void )
-{
-	if( vgui.initialized )
-		vgui.Paint();
-}
+void VGui_Paint (void)
+	{
+	if (vgui.initialized)
+		vgui.Paint ();
+	}
 
-void VGui_RunFrame( void )
-{
+void VGui_RunFrame (void)
+	{
 	//stub
-}
+	}
 
 
-void *GAME_EXPORT VGui_GetPanel( void )
-{
-	if( vgui.initialized )
-		return vgui.GetPanel();
+void *GAME_EXPORT VGui_GetPanel (void)
+	{
+	if (vgui.initialized)
+		return vgui.GetPanel ();
 	return NULL;
-}
+	}
 
-void VGui_ReportTextInput( const char *text )
-{
-	if ( vgui.initialized )
-		vgui.TextInput( text );
-}
+void VGui_ReportTextInput (const char *text)
+	{
+	if (vgui.initialized)
+		vgui.TextInput (text);
+	}

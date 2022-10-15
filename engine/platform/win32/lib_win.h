@@ -19,6 +19,6 @@ GNU General Public License for more details.
 
 #define CALCULATE_ADDRESS( base, offset ) ( ( DWORD )( base ) + ( DWORD )( offset ) )
 
-FARPROC MemoryGetProcAddress( void *module, const char *name );
-void MemoryFreeLibrary( void *hInstance );
-void *MemoryLoadLibrary( const char *name );
+FARPROC MemoryGetProcAddress (void *module, const char *name);
+void MemoryFreeLibrary (void *hInstance);
+void *MemoryLoadLibrary (const char *name);
