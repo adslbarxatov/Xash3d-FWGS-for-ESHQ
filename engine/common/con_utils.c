@@ -368,7 +368,7 @@ qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 	string		matchbuf;
 	int		i, numsaves;
 
-	t = FS_Search (va ("%s%s*.sav", DEFAULT_SAVE_DIRECTORY, s), true, true);	// lookup only in gamedir
+	t = FS_Search (va ("%s%s*.%s", DEFAULT_SAVE_DIRECTORY, s, DEFAULT_SAVE_EXTENSION), true, true);	// lookup only in gamedir
 	if (!t) return false;
 
 	COM_FileBase (t->filenames[0], matchbuf);
@@ -378,7 +378,7 @@ qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 
 	for (i = 0, numsaves = 0; i < t->numfilenames; i++)
 		{
-		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "sav"))
+		if (Q_stricmp (COM_FileExtension (t->filenames[i]), DEFAULT_SAVE_EXTENSION))
 			continue;
 
 		COM_FileBase (t->filenames[i], matchbuf);

@@ -52,7 +52,7 @@ GNU General Public License for more details.
 #define DEFAULT_SAVE_DIRECTORY	"save/"
 
 // ESHQ: дополнительно определено в basemenu.h
-#define DEFAULT_SAVE_EXTENSION	"x3s"
+#define DEFAULT_SAVE_EXTENSION	"x3v"
 
 // fallback to this skybox
 #define DEFAULT_SKYBOX_PATH		"gfx/env/desert"

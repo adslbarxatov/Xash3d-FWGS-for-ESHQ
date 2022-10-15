@@ -486,7 +486,7 @@ struct
 	ClearSaveDir
 
 	remove all the temp files HL1-HL3
-	(it will be extracted again from another .sav file)
+	(it will be extracted again from another save file)
 	=============
 	*/
 	static void ClearSaveDir (void)
@@ -588,7 +588,7 @@ struct
 		char	newShot[MAX_OSPATH], oldShot[MAX_OSPATH];
 
 		// delete last quick/autosave (e.g. quick05.sav)
-		Q_snprintf (newName, sizeof (newName), DEFAULT_SAVE_DIRECTORY "%s%02d.sav", pName, count);
+		Q_snprintf (newName, sizeof (newName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", pName, count, DEFAULT_SAVE_EXTENSION);
 		Q_snprintf (newShot, sizeof (newShot), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count);
 
 		// only delete from game directory, basedir is read-only
@@ -605,17 +605,17 @@ struct
 			if (count == 1)
 				{
 				// quick.sav
-				Q_snprintf (oldName, sizeof (oldName), DEFAULT_SAVE_DIRECTORY "%s.sav", pName);
+				Q_snprintf (oldName, sizeof (oldName), DEFAULT_SAVE_DIRECTORY "%s.%s", pName, DEFAULT_SAVE_EXTENSION);
 				Q_snprintf (oldShot, sizeof (oldShot), DEFAULT_SAVE_DIRECTORY "%s.bmp", pName);
 				}
 			else
 				{
 				// quick04.sav, etc.
-				Q_snprintf (oldName, sizeof (oldName), DEFAULT_SAVE_DIRECTORY "%s%02d.sav", pName, count - 1);
+				Q_snprintf (oldName, sizeof (oldName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", pName, count - 1, DEFAULT_SAVE_EXTENSION);
 				Q_snprintf (oldShot, sizeof (oldShot), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count - 1);
 				}
 
-			Q_snprintf (newName, sizeof (newName), DEFAULT_SAVE_DIRECTORY "%s%02d.sav", pName, count);
+			Q_snprintf (newName, sizeof (newName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", pName, count, DEFAULT_SAVE_EXTENSION);
 			Q_snprintf (newShot, sizeof (newShot), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count);
 
 #if !XASH_DEDICATED
@@ -1723,7 +1723,7 @@ struct
 		// Write entity string token table
 		pTokenData = StoreHashTable (pSaveData);
 
-		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.sav", pSaveName);
+		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.%s", pSaveName, DEFAULT_SAVE_EXTENSION);
 		COM_FixSlashes (name);
 
 		// output to disk
@@ -1766,7 +1766,7 @@ struct
 	=============
 	SaveReadHeader
 
-	read header of .sav file
+	read header of save file
 	=============
 	*/
 	static int SaveReadHeader (file_t *pFile, GAME_HEADER *pHeader)
@@ -2190,7 +2190,7 @@ struct
 				{
 				Q_snprintf (savename, sizeof (savename), "save%03d", n);
 
-				if (!FS_FileExists (va (DEFAULT_SAVE_DIRECTORY "%s.sav", savename), true))
+				if (!FS_FileExists (va (DEFAULT_SAVE_DIRECTORY "%s.%s", savename, DEFAULT_SAVE_EXTENSION), true))
 					break;
 				}
 
@@ -2230,7 +2230,7 @@ struct
 		int		i, found = 0;
 		search_t *t;
 
-		if ((t = FS_Search (DEFAULT_SAVE_DIRECTORY "*.sav", true, true)) == NULL)
+		if ((t = FS_Search (DEFAULT_SAVE_DIRECTORY "*." DEFAULT_SAVE_EXTENSION, true, true)) == NULL)
 			return NULL;
 
 		for (i = 0; i < t->numfilenames; i++)
