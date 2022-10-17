@@ -90,10 +90,10 @@ typedef struct ui_enginefuncs_s
 	const char *(*pfnCmd_Args)(void);
 
 	// debug messages (in-menu shows only notify)	
-	void	(*Con_Printf)(const char *fmt, ...) _format (1);
-	void	(*Con_DPrintf)(const char *fmt, ...) _format (1);
-	void	(*Con_NPrintf)(int pos, const char *fmt, ...) _format (2);
-	void	(*Con_NXPrintf)(struct con_nprint_s *info, const char *fmt, ...) _format (2);
+	void	(*Con_Printf)(const char *fmt, ...);	// FWGS: _format (1);
+	void	(*Con_DPrintf)(const char *fmt, ...);	// FWGS: _format (1);
+	void	(*Con_NPrintf)(int pos, const char *fmt, ...);	// FWGS: _format(2);
+	void	(*Con_NXPrintf)(struct con_nprint_s *info, const char *fmt, ...);	// FWGS: _format(2);
 
 	// sound handlers
 	void	(*pfnPlayLocalSound)(const char *szSound);
@@ -119,7 +119,7 @@ typedef struct ui_enginefuncs_s
 	int	(*CL_CreateVisibleEntity)(int type, struct cl_entity_s *ent);
 
 	// misc handlers
-	void	(*pfnHostError)(const char *szFmt, ...) _format (1);
+	void	(*pfnHostError)(const char *szFmt, ...);	// FWGS: _format(1);
 	int	(*pfnFileExists)(const char *filename, int gamedironly);
 	void	(*pfnGetGameDir)(char *szGetGameDir);
 

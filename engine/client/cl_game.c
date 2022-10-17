@@ -1289,7 +1289,7 @@ pfnSPR_LoadExt
 
 =========
 */
-HSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags)
+HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags)
 	{
 	model_t *spr;
 
@@ -1305,7 +1305,7 @@ pfnSPR_Load
 
 =========
 */
-HSPRITE EXPORT pfnSPR_Load (const char *szPicName)
+HLSPRITE EXPORT pfnSPR_Load (const char *szPicName)
 	{
 	model_t *spr;
 
@@ -1321,12 +1321,12 @@ CL_GetSpritePointer
 
 =============
 */
-const model_t *CL_GetSpritePointer (HSPRITE hSprite)
+const model_t *CL_GetSpritePointer (HLSPRITE hSprite)
 	{
 	model_t *mod;
 	int index = hSprite - 1;
 
-	if (index < 0 || index >= MAX_CLIENT_SPRITES)
+	if ((index < 0) || (index >= MAX_CLIENT_SPRITES))
 		return NULL; // bad image
 	mod = &clgame.sprites[index];
 
@@ -1353,7 +1353,7 @@ pfnSPR_Frames
 
 =========
 */
-int EXPORT pfnSPR_Frames (HSPRITE hPic)
+int EXPORT pfnSPR_Frames (HLSPRITE hPic)
 	{
 	int	numFrames;
 
@@ -1368,7 +1368,7 @@ pfnSPR_Height
 
 =========
 */
-static int GAME_EXPORT pfnSPR_Height (HSPRITE hPic, int frame)
+static int GAME_EXPORT pfnSPR_Height (HLSPRITE hPic, int frame)
 	{
 	int	sprHeight;
 
@@ -1383,7 +1383,7 @@ pfnSPR_Width
 
 =========
 */
-static int GAME_EXPORT pfnSPR_Width (HSPRITE hPic, int frame)
+static int GAME_EXPORT pfnSPR_Width (HLSPRITE hPic, int frame)
 	{
 	int	sprWidth;
 
@@ -1398,7 +1398,7 @@ pfnSPR_Set
 
 =========
 */
-static void GAME_EXPORT pfnSPR_Set (HSPRITE hPic, int r, int g, int b)
+static void GAME_EXPORT pfnSPR_Set (HLSPRITE hPic, int r, int g, int b)
 	{
 	clgame.ds.pSprite = CL_GetSpritePointer (hPic);
 	clgame.ds.spriteColor[0] = bound (0, r, 255);
@@ -1427,21 +1427,10 @@ pfnSPR_DrawHoles
 */
 static void GAME_EXPORT pfnSPR_DrawHoles (int frame, int x, int y, const wrect_t *prc)
 	{
-#if 1 // REFTODO
 	ref.dllFuncs.GL_SetRenderMode (kRenderTransColor);
-#else
-	pglEnable (GL_ALPHA_TEST);
-	pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	pglEnable (GL_BLEND);
-#endif
 	SPR_DrawGeneric (frame, x, y, -1, -1, prc);
 
-#if 1
 	ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
-#else
-	pglDisable (GL_ALPHA_TEST);
-	pglDisable (GL_BLEND);
-#endif
 	}
 
 /*
@@ -1452,20 +1441,9 @@ pfnSPR_DrawAdditive
 */
 static void GAME_EXPORT pfnSPR_DrawAdditive (int frame, int x, int y, const wrect_t *prc)
 	{
-#if 1 // REFTODO
 	ref.dllFuncs.GL_SetRenderMode (kRenderTransAdd);
-#else
-	pglEnable (GL_BLEND);
-	pglBlendFunc (GL_ONE, GL_ONE);
-#endif
-
 	SPR_DrawGeneric (frame, x, y, -1, -1, prc);
-
-#if 1 // REFTODO
 	ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
-#else
-	pglDisable (GL_BLEND);
-#endif
 	}
 
 /*
@@ -1576,26 +1554,7 @@ void GAME_EXPORT CL_FillRGBA (int x, int y, int w, int h, int r, int g, int b, i
 
 	SPR_AdjustSize (&_x, &_y, &_w, &_h);
 
-#if 1
 	ref.dllFuncs.FillRGBA (_x, _y, _w, _h, r, g, b, a);
-#else
-	pglDisable (GL_TEXTURE_2D);
-	pglEnable (GL_BLEND);
-	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
-	pglColor4f (r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
-
-	pglBegin (GL_QUADS);
-	pglVertex2f (_x, _y);
-	pglVertex2f (_x + _w, _y);
-	pglVertex2f (_x + _w, _y + _h);
-	pglVertex2f (_x, _y + _h);
-	pglEnd ();
-
-	pglColor3f (1.0f, 1.0f, 1.0f);
-	pglEnable (GL_TEXTURE_2D);
-	pglDisable (GL_BLEND);
-#endif
 	}
 
 /*
@@ -1626,7 +1585,8 @@ int GAME_EXPORT CL_GetScreenInfo (SCREENINFO *pscrinfo)
 		clgame.scrInfo.iFlags &= ~SCRINFO_STRETCHED;
 		}
 
-	if (!pscrinfo) return 0;
+	if (!pscrinfo) 
+		return 0;
 
 	if (pscrinfo->iSize != clgame.scrInfo.iSize)
 		clgame.scrInfo.iSize = pscrinfo->iSize;
@@ -1644,7 +1604,7 @@ pfnSetCrosshair
 setup crosshair
 =============
 */
-static void GAME_EXPORT pfnSetCrosshair (HSPRITE hspr, wrect_t rc, int r, int g, int b)
+static void GAME_EXPORT pfnSetCrosshair (HLSPRITE hspr, wrect_t rc, int r, int g, int b)
 	{
 	clgame.ds.rgbaCrosshair[0] = (byte)r;
 	clgame.ds.rgbaCrosshair[1] = (byte)g;
@@ -1795,7 +1755,9 @@ pfnPlaySoundByName
 static void GAME_EXPORT pfnPlaySoundByName (const char *szSound, float volume)
 	{
 	int hSound = S_RegisterSound (szSound);
-	S_StartSound (NULL, cl.viewentity, CHAN_ITEM, hSound, volume, ATTN_NORM, PITCH_NORM, SND_STOP_LOOPING);
+
+	// ESHQ: исправление радиуса звука
+	S_StartSound (NULL, cl.viewentity, CHAN_ITEM, hSound, volume, ATTN_MEDIUM, PITCH_NORM, SND_STOP_LOOPING);
 	}
 
 /*
@@ -1811,9 +1773,11 @@ static void GAME_EXPORT pfnPlaySoundByIndex (int iSound, float volume)
 	// make sure what we in-bounds
 	iSound = bound (0, iSound, MAX_SOUNDS);
 	hSound = cl.sound_index[iSound];
-	if (!hSound) return;
+	if (!hSound) 
+		return;
 
-	S_StartSound (NULL, cl.viewentity, CHAN_ITEM, hSound, volume, ATTN_NORM, PITCH_NORM, SND_STOP_LOOPING);
+	// ESHQ: исправление радиуса звука
+	S_StartSound (NULL, cl.viewentity, CHAN_ITEM, hSound, volume, ATTN_MEDIUM, PITCH_NORM, SND_STOP_LOOPING);
 	}
 
 /*
@@ -2220,10 +2184,13 @@ static pmtrace_t *pfnTraceLine (float *start, float *end, int flags, int usehull
 	switch (flags)
 		{
 		case PM_TRACELINE_PHYSENTSONLY:
-			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numphysent, clgame.pmove->physents, ignore_pe, NULL);
+			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numphysent, clgame.pmove->physents,
+				ignore_pe, NULL);
 			break;
+
 		case PM_TRACELINE_ANYVISIBLE:
-			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numvisent, clgame.pmove->visents, ignore_pe, NULL);
+			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numvisent, clgame.pmove->visents,
+				ignore_pe, NULL);
 			break;
 		}
 
@@ -2235,7 +2202,9 @@ static pmtrace_t *pfnTraceLine (float *start, float *end, int flags, int usehull
 static void GAME_EXPORT pfnPlaySoundByNameAtLocation (char *szSound, float volume, float *origin)
 	{
 	int hSound = S_RegisterSound (szSound);
-	S_StartSound (origin, cl.viewentity, CHAN_AUTO, hSound, volume, ATTN_NORM, PITCH_NORM, 0);
+
+	// ESHQ: ипсравление радиуса звука
+	S_StartSound (origin, cl.viewentity, CHAN_AUTO, hSound, volume, ATTN_MEDIUM, PITCH_NORM, 0);
 	}
 
 /*
@@ -3891,7 +3860,8 @@ static cl_enginefunc_t gEngfuncs =
 		pfnGetAppID,
 		Cmd_AliasGetList,
 		pfnVguiWrap2_GetMouseDelta,
-		pfnFilteredClientCmd
+		pfnFilteredClientCmd,
+		pfnGetCurrentDuckState		// ESHQ: поддержка клиентской части
 	};
 
 void CL_UnloadProgs (void)

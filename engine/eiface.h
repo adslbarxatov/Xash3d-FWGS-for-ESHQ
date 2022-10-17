@@ -132,15 +132,20 @@ typedef struct enginefuncs_s
 	int	(*pfnDropToFloor)(edict_t *e);
 	int	(*pfnWalkMove)(edict_t *ent, float yaw, float dist, int iMode);
 	void	(*pfnSetOrigin)(edict_t *e, const float *rgflOrigin);
-	void	(*pfnEmitSound)(edict_t *entity, int channel, const char *sample, /*int*/float volume, float attenuation, int fFlags, int pitch);
-	void	(*pfnEmitAmbientSound)(edict_t *entity, float *pos, const char *samp, float vol, float attenuation, int fFlags, int pitch);
+	void	(*pfnEmitSound)(edict_t *entity, int channel, const char *sample, /*int*/float volume, 
+		float attenuation, int fFlags, int pitch);
+	void	(*pfnEmitAmbientSound)(edict_t *entity, float *pos, const char *samp, float vol, 
+		float attenuation, int fFlags, int pitch);
 	void	(*pfnTraceLine)(const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip, TraceResult *ptr);
 	void	(*pfnTraceToss)(edict_t *pent, edict_t *pentToIgnore, TraceResult *ptr);
-	int	(*pfnTraceMonsterHull)(edict_t *pEdict, const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip, TraceResult *ptr);
-	void	(*pfnTraceHull)(const float *v1, const float *v2, int fNoMonsters, int hullNumber, edict_t *pentToSkip, TraceResult *ptr);
+	int	(*pfnTraceMonsterHull)(edict_t *pEdict, const float *v1, const float *v2, int fNoMonsters, 
+		edict_t *pentToSkip, TraceResult *ptr);
+	void	(*pfnTraceHull)(const float *v1, const float *v2, int fNoMonsters, int hullNumber, 
+		edict_t *pentToSkip, TraceResult *ptr);
 	void	(*pfnTraceModel)(const float *v1, const float *v2, int hullNumber, edict_t *pent, TraceResult *ptr);
 	const char *(*pfnTraceTexture)(edict_t *pTextureEntity, const float *v1, const float *v2);
-	void	(*pfnTraceSphere)(const float *v1, const float *v2, int fNoMonsters, float radius, edict_t *pentToSkip, TraceResult *ptr);
+	void	(*pfnTraceSphere)(const float *v1, const float *v2, int fNoMonsters, float radius, 
+		edict_t *pentToSkip, TraceResult *ptr);
 	void	(*pfnGetAimVector)(edict_t *ent, float speed, float *rgflReturn);
 	void	(*pfnServerCommand)(const char *str);
 	void	(*pfnServerExecute)(void);
@@ -218,7 +223,8 @@ typedef struct enginefuncs_s
 	void	(*pfnStaticDecal)(const float *origin, int decalIndex, int entityIndex, int modelIndex);
 	int	(*pfnPrecacheGeneric)(const char *s);
 	int	(*pfnGetPlayerUserId)(edict_t *e); // returns the server assigned userid for this player.  useful for logging frags, etc.  returns -1 if the edict couldn't be found in the list of clients
-	void	(*pfnBuildSoundMsg)(edict_t *entity, int channel, const char *sample, /*int*/float volume, float attenuation, int fFlags, int pitch, int msg_dest, int msg_type, const float *pOrigin, edict_t *ed);
+	void	(*pfnBuildSoundMsg)(edict_t *entity, int channel, const char *sample, /*int*/float volume, 
+		float attenuation, int fFlags, int pitch, int msg_dest, int msg_type, const float *pOrigin, edict_t *ed);
 	int	(*pfnIsDedicatedServer)(void);			// is this a dedicated server?
 	cvar_t *(*pfnCVarGetPointer)(const char *szVarName);
 	unsigned int (*pfnGetPlayerWONId)(edict_t *e); // returns the server assigned WONid for this player.  useful for logging frags, etc.  returns -1 if the edict couldn't be found in the list of clients
@@ -229,7 +235,8 @@ typedef struct enginefuncs_s
 	void	(*pfnSetPhysicsKeyValue)(const edict_t *pClient, const char *key, const char *value);
 	const char *(*pfnGetPhysicsInfoString)(const edict_t *pClient);
 	unsigned short (*pfnPrecacheEvent)(int type, const char *psz);
-	void	(*pfnPlaybackEvent)(int flags, const edict_t *pInvoker, unsigned short eventindex, float delay, float *origin, float *angles,
+	void	(*pfnPlaybackEvent)(int flags, const edict_t *pInvoker, unsigned short eventindex, 
+		float delay, float *origin, float *angles,
 		float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2);
 
 	unsigned char *(*pfnSetFatPVS)(const float *org);
@@ -239,7 +246,8 @@ typedef struct enginefuncs_s
 
 	void	(*pfnDeltaSetField)	(struct delta_s *pFields, const char *fieldname);
 	void	(*pfnDeltaUnsetField)(struct delta_s *pFields, const char *fieldname);
-	void	(*pfnDeltaAddEncoder)(char *name, void (*conditionalencode)(struct delta_s *pFields, const unsigned char *from, const unsigned char *to));
+	void	(*pfnDeltaAddEncoder)(char *name, void (*conditionalencode)(struct delta_s *pFields, 
+		const unsigned char *from, const unsigned char *to));
 	int		(*pfnGetCurrentPlayer)(void);
 	int		(*pfnCanSkipPlayer)(const edict_t *player);
 	int		(*pfnDeltaFindField)(struct delta_s *pFields, const char *fieldname);
@@ -404,7 +412,8 @@ typedef struct
 	short		flags;
 	} TYPEDESCRIPTION;
 
-#define HLARRAYSIZE(p)	(sizeof(p)/sizeof(p[0]))	// ESHQ: ARRAYSIZE уже определён
+// ESHQ: ARRAYSIZE уже определён
+#define HLARRAYSIZE(p)	(sizeof(p)/sizeof(p[0]))
 
 // FWGS
 struct weapon_data_s;

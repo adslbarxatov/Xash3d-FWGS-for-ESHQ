@@ -51,7 +51,7 @@ GNU General Public License for more details.
 // path store saved games
 #define DEFAULT_SAVE_DIRECTORY	"save/"
 
-// ESHQ: ¤®―®«­¨β¥«μ­® ®―ΰ¥¤¥«¥­® Ά basemenu.h
+// ESHQ: νΰχΰλόνξε ξοπεδελενθε – β basemenu.h
 #define DEFAULT_SAVE_EXTENSION	"x3v"
 
 // fallback to this skybox

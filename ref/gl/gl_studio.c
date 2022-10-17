@@ -3420,7 +3420,8 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 			RI.currententity->curstate.body = 255;
 			}
 
-		if (!(!gpGlobals->developer && ENGINE_GET_PARM (PARM_MAX_CLIENTS) == 1) && (RI.currentmodel == RI.currententity->model))
+		if (!(!gpGlobals->developer && ENGINE_GET_PARM (PARM_MAX_CLIENTS) == 1) && 
+			(RI.currentmodel == RI.currententity->model))
 			RI.currententity->curstate.body = 1; // force helmet
 
 		lighting.plightvec = dir;

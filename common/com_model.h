@@ -58,7 +58,7 @@ typedef struct mplane_s
 	{
 	vec3_t		normal;
 	float		dist;
-	byte		type;		// for fast side tests
+	byte		type;			// for fast side tests
 	byte		signbits;		// signx + (signy<<1) + (signz<<1)
 	byte		pad[2];
 	} mplane_t;
@@ -545,4 +545,4 @@ typedef struct
 #define MAX_EFRAGS		8192	// Arcane Dimensions required
 #define MAX_REQUESTS	64
 
-#endif//COM_MODEL_H
+#endif

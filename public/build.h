@@ -78,7 +78,6 @@ For more information, please refer to <http://unlicense.org/>
 #undef XASH_WIN32
 #undef XASH_WIN64
 #undef XASH_X86
-
 //================================================================
 //
 //           OPERATING SYSTEM DEFINES
@@ -157,7 +156,8 @@ For more information, please refer to <http://unlicense.org/>
 		#define XASH_LITTLE_ENDIAN 1
 	#elif __BIG_ENDIAN__
 		#define XASH_BIG_ENDIAN 1
-	#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && defined(__ORDER_LITTLE_ENDIAN__) // some compilers define this
+	#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && defined(__ORDER_LITTLE_ENDIAN__) 
+// some compilers define this
 		#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 			#define XASH_BIG_ENDIAN 1
 		#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__

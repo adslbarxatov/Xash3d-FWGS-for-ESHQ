@@ -40,7 +40,8 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 
 	if (pResource->type == t_sound)
 		Q_snprintf (filepath, sizeof (filepath), DEFAULT_SOUNDPATH "%s", pResource->szFileName);
-	else Q_strncpy (filepath, pResource->szFileName, sizeof (filepath));
+	else 
+		Q_strncpy (filepath, pResource->szFileName, sizeof (filepath));
 
 	if (!COM_IsSafeFileToDownload (filepath))
 		{

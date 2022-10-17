@@ -9,21 +9,25 @@
 #endif // _WIN32
 
 #include <sys/types.h> // off_t
+#define STDINT_H <stdint.h>		// FWGS
 #include STDINT_H
 #include <assert.h>
 
 typedef unsigned char byte;
 typedef int		sound_t;
+
 typedef float		vec_t;
 typedef vec_t		vec2_t[2];
+#if XASH_DL || XASH_FS
 typedef vec_t		vec3_t[3];
+#endif
 typedef vec_t		vec4_t[4];
 typedef vec_t		quat_t[4];
 typedef byte		rgba_t[4];	// unsigned byte colorpack
 typedef byte		rgb_t[3];		// unsigned byte colorpack
 typedef vec_t		matrix3x4[3][4];
 typedef vec_t		matrix4x4[4][4];
-typedef uint32_t        poolhandle_t;
+typedef uint32_t	poolhandle_t;
 
 #undef true
 #undef false
@@ -67,41 +71,42 @@ typedef uint64_t longtime_t;
 #define ColorIndex( c )	((( c ) - '0' ) & 7 )
 
 #if defined(__GNUC__)
-	#ifdef __i386__
-		#define EXPORT __attribute__ ((visibility ("default"),force_align_arg_pointer))
-		#define GAME_EXPORT __attribute((force_align_arg_pointer))
-	#else
-		#define EXPORT __attribute__ ((visibility ("default")))
-		#define GAME_EXPORT
-	#endif
-	#define _format(x) __attribute__((format(printf, x, x+1)))
-	#define NORETURN __attribute__((noreturn))
-#elif defined(_MSC_VER)
-	#define EXPORT          __declspec( dllexport )
-	#define GAME_EXPORT
-	#define _format(x)
-	#define NORETURN
+#ifdef __i386__
+#define EXPORT __attribute__ ((visibility ("default"),force_align_arg_pointer))
+#define GAME_EXPORT __attribute((force_align_arg_pointer))
 #else
-	#define EXPORT
-	#define GAME_EXPORT
-	#define _format(x)
-	#define NORETURN
+#define EXPORT __attribute__ ((visibility ("default")))
+#define GAME_EXPORT
+#endif
+#define _format(x) __attribute__((format(printf, x, x+1)))
+#define NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER)
+#undef EXPORT
+#define EXPORT          __declspec( dllexport )
+#define GAME_EXPORT
+#define _format(x)
+#define NORETURN
+#else
+#define EXPORT
+#define GAME_EXPORT
+#define _format(x)
+#define NORETURN
 #endif
 
 #if ( __GNUC__ >= 3 )
-	#define unlikely(x) __builtin_expect(x, 0)
-	#define likely(x)   __builtin_expect(x, 1)
+#define unlikely(x) __builtin_expect(x, 0)
+#define likely(x)   __builtin_expect(x, 1)
 #elif defined( __has_builtin )
-	#if __has_builtin( __builtin_expect )
-		#define unlikely(x) __builtin_expect(x, 0)
-		#define likely(x)   __builtin_expect(x, 1)
-	#else
-		#define unlikely(x) (x)
-		#define likely(x)   (x)
-	#endif
+#if __has_builtin( __builtin_expect )
+#define unlikely(x) __builtin_expect(x, 0)
+#define likely(x)   __builtin_expect(x, 1)
 #else
-	#define unlikely(x) (x)
-	#define likely(x)   (x)
+#define unlikely(x) (x)
+#define likely(x)   (x)
+#endif
+#else
+#define unlikely(x) (x)
+#define likely(x)   (x)
 #endif
 
 #if defined( static_assert ) // C11 static_assert
@@ -115,13 +120,13 @@ typedef uint64_t longtime_t;
 #define LittleLongSW(x) (x = LittleLong(x) )
 #define LittleShort(x) ((short)( (((short)(x) >> 8) & 255) + (((short)(x) & 255) << 8)))
 #define LittleShortSW(x) (x = LittleShort(x) )
-_inline float LittleFloat( float f )
-{
-	union
+_inline float LittleFloat (float f)
 	{
+	union
+		{
 		float f;
 		unsigned char b[4];
-	} dat1, dat2;
+		} dat1, dat2;
 
 	dat1.f = f;
 	dat2.b[0] = dat1.b[3];
@@ -130,7 +135,7 @@ _inline float LittleFloat( float f )
 	dat2.b[3] = dat1.b[0];
 
 	return dat2.f;
-}
+	}
 #else
 #define LittleLong(x) (x)
 #define LittleLongSW(x)
@@ -153,20 +158,20 @@ typedef ssize_t fs_size_t;
 #endif /* !XASH_WIN32 */
 
 typedef struct dllfunc_s
-{
-	const char	*name;
-	void		**func;
-} dllfunc_t;
+	{
+	const char *name;
+	void **func;
+	} dllfunc_t;
 
 typedef struct dll_info_s
-{
-	const char	*name;	// name of library
-	const dllfunc_t	*fcts;	// list of dll exports
+	{
+	const char *name;	// name of library
+	const dllfunc_t *fcts;	// list of dll exports
 	qboolean		crash;	// crash if dll not found
-	void		*link;	// hinstance of loading library
-} dll_info_t;
+	void *link;	// hinstance of loading library
+	} dll_info_t;
 
-typedef void (*setpair_t)( const char *key, const void *value, const void *buffer, void *numpairs );
+typedef void (*setpair_t)(const char *key, const void *value, const void *buffer, void *numpairs);
 
 // config strings are a general means of communication from
 // the server to all connected clients.

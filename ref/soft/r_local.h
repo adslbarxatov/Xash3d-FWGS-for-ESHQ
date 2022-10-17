@@ -502,33 +502,7 @@ void Matrix4x4_CreateScale3 (matrix4x4 out, float x, float y, float z);
 void Matrix4x4_CreateProjection (matrix4x4 out, float xMax, float xMin, float yMax, float yMin, float zNear, float zFar);
 void Matrix4x4_CreateOrtho (matrix4x4 m, float xLeft, float xRight, float yBottom, float yTop, float zNear, float zFar);
 void Matrix4x4_CreateModelview (matrix4x4 out);
-#if 0
-//
-// gl_rmisc.c
-//
-void R_ClearStaticEntities (void);
 
-//
-// gl_rsurf.c
-//
-void R_MarkLeaves (void);
-void R_DrawWorld (void);
-void R_DrawWaterSurfaces (void);
-void R_DrawBrushModel (cl_entity_t *e);
-void GL_SubdivideSurface (msurface_t *fa);
-void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);
-void DrawGLPoly (glpoly_t *p, float xScale, float yScale);
-texture_t *R_TextureAnimation (msurface_t *s);
-void GL_SetupFogColorForSurfaces (void);
-void R_DrawAlphaTextureChains (void);
-void GL_RebuildLightmaps (void);
-void GL_InitRandomTable (void);
-void GL_BuildLightmaps (void);
-void GL_ResetFogColor (void);
-void R_GenerateVBO ();
-void R_ClearVBO ();
-void R_AddDecalVBO (decal_t *pdecal, msurface_t *surf);
-#endif
 //
 // gl_rpart.c
 //
@@ -564,25 +538,6 @@ void R_StudioResetPlayerModels (void);
 void CL_InitStudioAPI (void);
 void Mod_StudioLoadTextures (model_t *mod, void *data);
 void Mod_StudioUnloadTextures (void *data);
-#if 0
-//
-// gl_alias.c
-//
-void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded);
-void R_DrawAliasModel (cl_entity_t *e);
-void R_AliasInit (void);
-
-//
-// gl_warp.c
-//
-
-void R_InitSkyClouds (mip_t *mt, struct texture_s *tx, qboolean custom_palette);
-void R_AddSkyBoxSurface (msurface_t *fa);
-void R_ClearSkyBox (void);
-void R_DrawSkyBox (void);
-void R_DrawClouds (void);
-void EmitWaterPolys (msurface_t *warp, qboolean reverse);
-#endif
 
 void GAME_EXPORT R_InitSkyClouds (struct mip_s *mt, struct texture_s *tx, qboolean custom_palette);
 //
@@ -649,18 +604,7 @@ byte *Mod_GetCurrentVis (void);
 void Mod_SetOrthoBounds (const float *mins, const float *maxs);
 void R_NewMap (void);
 void CL_AddCustomBeam (cl_entity_t *pEnvBeam);
-#if 0
-//
-// gl_opengl.c
-//
-#define GL_CheckForErrors() GL_CheckForErrors_( __FILE__, __LINE__ )
-void GL_CheckForErrors_ (const char *filename, const int fileline);
-const char *GL_ErrorString (int err);
-qboolean GL_Support (int r_ext);
-int GL_MaxTextureUnits (void);
-void GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext);
-void GL_SetExtension (int r_ext, int enable);
-#endif
+
 //
 // gl_triapi.c
 //
@@ -689,13 +633,12 @@ extern ref_api_t      gEngfuncs;
 extern ref_globals_t *gpGlobals;
 extern cvar_t *r_dynamic;
 
-DECLARE_ENGINE_SHARED_CVAR_LIST ()
+DECLARE_ENGINE_SHARED_CVAR_LIST ();
 
 // todo: gl_cull.c
 #define R_CullModel(...) 0
 
 // softrender defs
-
 #define CACHE_SIZE      32
 
 /*
@@ -907,17 +850,6 @@ typedef struct
 	int                     surfwidth;      // in mipmapped texels
 	int                     surfheight;     // in mipmapped texels
 	} drawsurf_t;
-
-
-#if 0
-typedef struct
-	{
-	int                     ambientlight;
-	int                     shadelight;
-	float *plightvec;
-	} alight_t;
-
-#endif
 
 // clipped bmodel edges
 

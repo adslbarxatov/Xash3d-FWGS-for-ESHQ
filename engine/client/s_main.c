@@ -828,7 +828,7 @@ void S_StartLocalSound (const char *name, float volume, qboolean reliable)
 
 	if (!dma.initialized) return;
 	sfxHandle = S_RegisterSound (name);
-	S_StartSound (NULL, s_listener.entnum, channel, sfxHandle, volume, ATTN_NONE, PITCH_NORM, flags);
+	S_StartSound (NULL, s_listener.entnum, channel, sfxHandle, volume, ATTN_EVERYWHERE, PITCH_NORM, flags);
 	}
 
 /*
@@ -935,7 +935,7 @@ void S_InitAmbientChannels (void)
 		chan->staticsound = true;
 		chan->use_loop = true;
 		chan->entchannel = CHAN_STATIC;
-		chan->dist_mult = (ATTN_NONE / SND_CLIP_DISTANCE);
+		chan->dist_mult = (ATTN_EVERYWHERE / SND_CLIP_DISTANCE);
 		chan->basePitch = PITCH_NORM;
 		}
 	}
@@ -1149,7 +1149,7 @@ void S_RawEntSamples (int entnum, uint samples, uint rate, word width, word chan
 		return;
 
 	ch->master_vol = snd_vol;
-	ch->dist_mult = (ATTN_NONE / SND_CLIP_DISTANCE);
+	ch->dist_mult = (ATTN_EVERYWHERE / SND_CLIP_DISTANCE);
 	ch->s_rawend = S_RawSamplesStereo (ch->rawsamples, ch->s_rawend, ch->max_samples, samples, rate, width, channels, data);
 	ch->leftvol = ch->rightvol = snd_vol;
 	}

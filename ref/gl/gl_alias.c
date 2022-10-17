@@ -711,7 +711,8 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 
 		if (frametype == ALIAS_SINGLE)
 			pframetype = (daliasframetype_t *)Mod_LoadAliasFrame (pframetype + 1, &m_pAliasHeader->frames[i]);
-		else pframetype = (daliasframetype_t *)Mod_LoadAliasGroup (pframetype + 1, &m_pAliasHeader->frames[i]);
+		else 
+			pframetype = (daliasframetype_t *)Mod_LoadAliasGroup (pframetype + 1, &m_pAliasHeader->frames[i]);
 		}
 
 	m_pAliasHeader->numposes = g_posenum;

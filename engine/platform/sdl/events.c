@@ -91,20 +91,20 @@ GNU General Public License for more details.
 #define SDL_JoystickID Uint8
 #endif
 
-static qboolean SDLash_IsInstanceIDAGameController( SDL_JoystickID joyId )
-{
+static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
+	{
 #if !SDL_VERSION_ATLEAST( 2, 0, 4 )
 	// HACKHACK: if we're not initialized g_joy, then we're probably using gamecontroller api
 	// so return true
-	if( !g_joy )
+	if (!g_joy)
 		return true;
 	return false;
 #else
-	if( SDL_GameControllerFromInstanceID( joyId ) )
+	if (SDL_GameControllerFromInstanceID (joyId))
 		return true;
 	return false;
 #endif
-}
+	}
 
 /*
 =============
@@ -112,45 +112,45 @@ SDLash_KeyEvent
 
 =============
 */
-static void SDLash_KeyEvent( SDL_KeyboardEvent key )
-{
+static void SDLash_KeyEvent (SDL_KeyboardEvent key)
+	{
 	int down = key.state != SDL_RELEASED;
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	int keynum = key.keysym.scancode;
 #else
 	int keynum = key.keysym.sym;
 #endif
-	qboolean numLock = SDL_GetModState() & KMOD_NUM;
+	qboolean numLock = SDL_GetModState () & KMOD_NUM;
 
-	if( SDL_IsTextInputActive() && down && cls.key_dest != key_game )
-	{
-		if( SDL_GetModState() & KMOD_CTRL )
+	if (SDL_IsTextInputActive () && down && cls.key_dest != key_game)
 		{
-			if( keynum >= SDL_SCANCODE_A && keynum <= SDL_SCANCODE_Z )
+		if (SDL_GetModState () & KMOD_CTRL)
 			{
+			if (keynum >= SDL_SCANCODE_A && keynum <= SDL_SCANCODE_Z)
+				{
 				keynum = keynum - SDL_SCANCODE_A + 1;
-				CL_CharEvent( keynum );
-			}
+				CL_CharEvent (keynum);
+				}
 
 			return;
-		}
+			}
 
 #if !SDL_VERSION_ATLEAST( 2, 0, 0 )
-		if( keynum >= SDLK_KP0 && keynum <= SDLK_KP9 )
+		if (keynum >= SDLK_KP0 && keynum <= SDLK_KP9)
 			keynum -= SDLK_KP0 + '0';
 
-		if( isprint( keynum ) )
-		{
-			if( SDL_GetModState() & KMOD_SHIFT )
+		if (isprint (keynum))
 			{
-				keynum = Key_ToUpper( keynum );
-			}
+			if (SDL_GetModState () & KMOD_SHIFT)
+				{
+				keynum = Key_ToUpper (keynum);
+				}
 
-			CL_CharEvent( keynum );
+			CL_CharEvent (keynum);
 			return;
-		}
+			}
 #endif
-	}
+		}
 
 #define DECLARE_KEY_RANGE( min, max, repl ) \
 	if( keynum >= (min) && keynum <= (max) ) \
@@ -158,12 +158,12 @@ static void SDLash_KeyEvent( SDL_KeyboardEvent key )
 		keynum = keynum - (min) + (repl); \
 	}
 
-	DECLARE_KEY_RANGE( SDL_SCANCODE_A, SDL_SCANCODE_Z, 'a' )
-	else DECLARE_KEY_RANGE( SDL_SCANCODE_1, SDL_SCANCODE_9, '1' )
-	else DECLARE_KEY_RANGE( SDL_SCANCODE_F1, SDL_SCANCODE_F12, K_F1 )
+	DECLARE_KEY_RANGE (SDL_SCANCODE_A, SDL_SCANCODE_Z, 'a')
+	else DECLARE_KEY_RANGE (SDL_SCANCODE_1, SDL_SCANCODE_9, '1')
+	else DECLARE_KEY_RANGE (SDL_SCANCODE_F1, SDL_SCANCODE_F12, K_F1)
 	else
 	{
-		switch( keynum )
+	switch (keynum)
 		{
 		case SDL_SCANCODE_GRAVE: keynum = '`'; break;
 		case SDL_SCANCODE_0: keynum = '0'; break;
@@ -219,14 +219,14 @@ static void SDLash_KeyEvent( SDL_KeyboardEvent key )
 		case SDL_SCANCODE_APOSTROPHE: keynum = '\''; break;
 		case SDL_SCANCODE_COMMA: keynum = ','; break;
 		case SDL_SCANCODE_PRINTSCREEN:
-		{
+			{
 			host.force_draw_version = true;
 			host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 			break;
-		}
+			}
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 		case SDL_SCANCODE_APPLICATION: keynum = K_WIN; break; // (compose key) ???
-		// don't console spam on known functional buttons, but not used in engine
+			// don't console spam on known functional buttons, but not used in engine
 		case SDL_SCANCODE_MUTE:
 		case SDL_SCANCODE_VOLUMEUP:
 		case SDL_SCANCODE_VOLUMEDOWN:
@@ -235,32 +235,32 @@ static void SDLash_KeyEvent( SDL_KeyboardEvent key )
 			return;
 #endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
 		case SDL_SCANCODE_UNKNOWN:
-		{
-			if( down ) Con_Reportf( "SDLash_KeyEvent: Unknown scancode\n" );
+			{
+			if (down) Con_Reportf ("SDLash_KeyEvent: Unknown scancode\n");
 			return;
-		}
+			}
 		default:
-			if( down ) Con_Reportf( "SDLash_KeyEvent: Unknown key: %s = %i\n", SDL_GetScancodeName( keynum ), keynum );
+			if (down) Con_Reportf ("SDLash_KeyEvent: Unknown key: %s = %i\n", SDL_GetScancodeName (keynum), keynum);
 			return;
 		}
 	}
 
 #undef DECLARE_KEY_RANGE
 
-	Key_Event( keynum, down );
-}
+	Key_Event (keynum, down);
+	}
 
-static void SDLash_MouseKey( int key, int down, int istouch )
-{
-	if( CVAR_TO_BOOL( touch_emulate ) )
+static void SDLash_MouseKey (int key, int down, int istouch)
 	{
-		Touch_KeyEvent( key, down );
+	if (CVAR_TO_BOOL (touch_emulate))
+		{
+		Touch_KeyEvent (key, down);
+		}
+	else if (in_mouseinitialized && !m_ignore->value && !istouch)
+		{
+		Key_Event (key, down);
+		}
 	}
-	else if( in_mouseinitialized && !m_ignore->value && !istouch )
-	{
-		Key_Event( key, down );
-	}
-}
 
 /*
 =============
@@ -268,45 +268,45 @@ SDLash_MouseEvent
 
 =============
 */
-static void SDLash_MouseEvent( SDL_MouseButtonEvent button )
-{
+static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
+	{
 	int down = button.state != SDL_RELEASED;
 	uint mstate = 0;
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	if( button.which == SDL_TOUCH_MOUSEID )
+	if (button.which == SDL_TOUCH_MOUSEID)
 		return;
 #endif
 
-	switch( button.button )
-	{
-	case SDL_BUTTON_LEFT:
-		IN_MouseEvent( 0, down );
-		break;
-	case SDL_BUTTON_RIGHT:
-		IN_MouseEvent( 1, down );
-		break;
-	case SDL_BUTTON_MIDDLE:
-		IN_MouseEvent( 2, down );
-		break;
-	case SDL_BUTTON_X1:
-		IN_MouseEvent( 3, down );
-		break;
-	case SDL_BUTTON_X2:
-		IN_MouseEvent( 4, down );
-		break;
+	switch (button.button)
+		{
+		case SDL_BUTTON_LEFT:
+			IN_MouseEvent (0, down);
+			break;
+		case SDL_BUTTON_RIGHT:
+			IN_MouseEvent (1, down);
+			break;
+		case SDL_BUTTON_MIDDLE:
+			IN_MouseEvent (2, down);
+			break;
+		case SDL_BUTTON_X1:
+			IN_MouseEvent (3, down);
+			break;
+		case SDL_BUTTON_X2:
+			IN_MouseEvent (4, down);
+			break;
 #if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
-	case SDL_BUTTON_WHEELUP:
-		Key_Event( K_MWHEELUP, down );
-		break;
-	case SDL_BUTTON_WHEELDOWN:
-		Key_Event( K_MWHEELDOWN, down );
-		break;
+		case SDL_BUTTON_WHEELUP:
+			Key_Event (K_MWHEELUP, down);
+			break;
+		case SDL_BUTTON_WHEELDOWN:
+			Key_Event (K_MWHEELDOWN, down);
+			break;
 #endif // ! SDL_VERSION_ATLEAST( 2, 0, 0 )
-	default:
-		Con_Printf( "Unknown mouse button ID: %d\n", button.button );
+		default:
+			Con_Printf ("Unknown mouse button ID: %d\n", button.button);
+		}
 	}
-}
 
 /*
 =============
@@ -315,111 +315,110 @@ SDLash_InputEvent
 =============
 */
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-static void SDLash_InputEvent( SDL_TextInputEvent input )
-{
-	char *text;
-	VGui_ReportTextInput( input.text );
-	for( text = input.text; *text; text++ )
+static void SDLash_InputEvent (SDL_TextInputEvent input)
 	{
+	char *text;
+	VGui_ReportTextInput (input.text);
+	for (text = input.text; *text; text++)
+		{
 		int ch;
 
-		if( !Q_stricmp( cl_charset->string, "utf-8" ) )
+		if (!Q_stricmp (cl_charset->string, "utf-8"))
 			ch = (unsigned char)*text;
 		else
-			ch = Con_UtfProcessCharForce( (unsigned char)*text );
+			ch = Con_UtfProcessCharForce ((unsigned char)*text);
 
-		if( !ch )
+		if (!ch)
 			continue;
 
-		CL_CharEvent( ch );
+		CL_CharEvent (ch);
+		}
 	}
-}
 #endif // SDL_VERSION_AT_LEAST( 2, 0, 0 )
 
-static void SDLash_ActiveEvent( int gain )
-{
-	if( gain )
+static void SDLash_ActiveEvent (int gain)
 	{
+	if (gain)
+		{
 		host.status = HOST_FRAME;
-		if( cls.key_dest == key_game )
-		{
-			IN_ActivateMouse( );
-		}
+		if (cls.key_dest == key_game)
+			{
+			IN_ActivateMouse ();
+			}
 
-		if( dma.initialized && snd_mute_losefocus.value )
-		{
-			SNDDMA_Activate( true );
-		}
+		if (dma.initialized && snd_mute_losefocus.value)
+			{
+			SNDDMA_Activate (true);
+			}
 		host.force_draw_version = true;
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
-		if( vid_fullscreen->value )
-			VID_SetMode();
-	}
+		if (vid_fullscreen->value)
+			VID_SetMode ();
+		}
 	else
-	{
+		{
 #if TARGET_OS_IPHONE
-		{
-			// Keep running if ftp server enabled
-			void IOS_StartBackgroundTask( void );
-			IOS_StartBackgroundTask();
-		}
+				{
+				// Keep running if ftp server enabled
+				void IOS_StartBackgroundTask (void);
+				IOS_StartBackgroundTask ();
+				}
 #endif
-		host.status = HOST_NOFOCUS;
-		if( cls.key_dest == key_game )
-		{
-			IN_DeactivateMouse();
-		}
+				host.status = HOST_NOFOCUS;
+				if (cls.key_dest == key_game)
+					{
+					IN_DeactivateMouse ();
+					}
 
-		if( dma.initialized && snd_mute_losefocus.value )
-		{
-			SNDDMA_Activate( false );
+				if (dma.initialized && snd_mute_losefocus.value)
+					{
+					SNDDMA_Activate (false);
+					}
+				host.force_draw_version = true;
+				host.force_draw_version_time = host.realtime + 2;
+				VID_RestoreScreenResolution ();
 		}
-		host.force_draw_version = true;
-		host.force_draw_version_time = host.realtime + 2;
-		VID_RestoreScreenResolution();
 	}
-}
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 static size_t num_open_game_controllers = 0;
 
-static void SDLash_GameController_Add( int index )
-{
+static void SDLash_GameController_Add (int index)
+	{
 	extern convar_t *joy_enable; // private to input system
 	SDL_GameController *controller;
-	if( !joy_enable->value )
+	if (!joy_enable->value)
 		return;
-	controller = SDL_GameControllerOpen( index );
-	if( !controller )
-	{
-		Con_Reportf( "Failed to open SDL GameController %d: %s\n", index, SDL_GetError( ) );
-		SDL_ClearError( );
+	controller = SDL_GameControllerOpen (index);
+	if (!controller)
+		{
+		Con_Reportf ("Failed to open SDL GameController %d: %s\n", index, SDL_GetError ());
+		SDL_ClearError ();
 		return;
-	}
+		}
 #if SDL_VERSION_ATLEAST( 2, 0, 6 )
-	Con_Reportf( "Added controller: %s (%i:%i:%i)\n",
-		SDL_GameControllerName( controller ),
-		SDL_GameControllerGetVendor( controller ),
-		SDL_GameControllerGetProduct( controller ),
-		SDL_GameControllerGetProductVersion( controller ));
+	Con_Reportf ("Added controller: %s (%i:%i:%i)\n",
+		SDL_GameControllerName (controller),
+		SDL_GameControllerGetVendor (controller),
+		SDL_GameControllerGetProduct (controller),
+		SDL_GameControllerGetProductVersion (controller));
 #endif // SDL_VERSION_ATLEAST( 2, 0, 6 )
 
 	++num_open_game_controllers;
-	if( num_open_game_controllers == 1 )
-		Joy_AddEvent( );
-}
+	if (num_open_game_controllers == 1)
+		Joy_AddEvent ();
+	}
 
-
-static void SDLash_GameController_Remove( SDL_JoystickID joystick_id )
-{
-	Con_Reportf( "Removed controller %i\n", joystick_id );
+static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
+	{
+	Con_Reportf ("Removed controller %i\n", joystick_id);
 
 	// `Joy_RemoveEvent` sets `joy_found` to `0`.
 	// We only want to do this when all the game controllers have been removed.
 	--num_open_game_controllers;
-	if( num_open_game_controllers == 0 )
-		Joy_RemoveEvent( );
-}
+	if (num_open_game_controllers == 0)
+		Joy_RemoveEvent ();
+	}
 #endif
 
 /*
@@ -428,246 +427,249 @@ SDLash_EventFilter
 
 =============
 */
-static void SDLash_EventFilter( SDL_Event *event )
-{
-	switch ( event->type )
+static void SDLash_EventFilter (SDL_Event *event)
 	{
-	/* Mouse events */
-	case SDL_MOUSEMOTION:
-		if( host.mouse_visible )
+	switch (event->type)
 		{
-			SDL_GetRelativeMouseState( NULL, NULL );
-		}
-		break;
+		/* Mouse events */
+		case SDL_MOUSEMOTION:
+			if (host.mouse_visible)
+				{
+				SDL_GetRelativeMouseState (NULL, NULL);
+				}
+			break;
 
-	case SDL_MOUSEBUTTONUP:
-	case SDL_MOUSEBUTTONDOWN:
-		SDLash_MouseEvent( event->button );
-		break;
+		case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEBUTTONDOWN:
+			SDLash_MouseEvent (event->button);
+			break;
 
-	/* Keyboard events */
-	case SDL_KEYDOWN:
-	case SDL_KEYUP:
-		SDLash_KeyEvent( event->key );
-		break;
+			/* Keyboard events */
+		case SDL_KEYDOWN:
+		case SDL_KEYUP:
+			SDLash_KeyEvent (event->key);
+			break;
 
-	/* Joystick events */
-	case SDL_JOYAXISMOTION:
-		if ( !SDLash_IsInstanceIDAGameController( event->jaxis.which ))
-			Joy_AxisMotionEvent( event->jaxis.axis, event->jaxis.value );
-		break;
+			/* Joystick events */
+		case SDL_JOYAXISMOTION:
+			if (!SDLash_IsInstanceIDAGameController (event->jaxis.which))
+				Joy_AxisMotionEvent (event->jaxis.axis, event->jaxis.value);
+			break;
 
-	case SDL_JOYBALLMOTION:
-		if ( !SDLash_IsInstanceIDAGameController( event->jball.which ))
-			Joy_BallMotionEvent( event->jball.ball, event->jball.xrel, event->jball.yrel );
-		break;
+		case SDL_JOYBALLMOTION:
+			if (!SDLash_IsInstanceIDAGameController (event->jball.which))
+				Joy_BallMotionEvent (event->jball.ball, event->jball.xrel, event->jball.yrel);
+			break;
 
-	case SDL_JOYHATMOTION:
-		if ( !SDLash_IsInstanceIDAGameController( event->jhat.which ))
-			Joy_HatMotionEvent( event->jhat.hat, event->jhat.value );
-		break;
+		case SDL_JOYHATMOTION:
+			if (!SDLash_IsInstanceIDAGameController (event->jhat.which))
+				Joy_HatMotionEvent (event->jhat.hat, event->jhat.value);
+			break;
 
-	case SDL_JOYBUTTONDOWN:
-	case SDL_JOYBUTTONUP:
-		if ( !SDLash_IsInstanceIDAGameController( event->jbutton.which ))
-			Joy_ButtonEvent( event->jbutton.button, event->jbutton.state );
-		break;
+		case SDL_JOYBUTTONDOWN:
+		case SDL_JOYBUTTONUP:
+			if (!SDLash_IsInstanceIDAGameController (event->jbutton.which))
+				Joy_ButtonEvent (event->jbutton.button, event->jbutton.state);
+			break;
 
-	case SDL_QUIT:
-		Sys_Quit();
-		break;
+		case SDL_QUIT:
+			Sys_Quit ();
+			break;
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	case SDL_MOUSEWHEEL:
-	{
-		int wheelbutton = event->wheel.y < 0 ? K_MWHEELDOWN : K_MWHEELUP;
-		Key_Event( wheelbutton, true );
-		Key_Event( wheelbutton, false );
-		break;
-	}
-
-	/* Touch events */
-	case SDL_FINGERDOWN:
-	case SDL_FINGERUP:
-	case SDL_FINGERMOTION:
-	{
-		static int scale = 0;
-		touchEventType type;
-		float x, y, dx, dy;
-
-		if( event->type == SDL_FINGERDOWN )
-			type = event_down;
-		else if( event->type == SDL_FINGERUP )
-			type = event_up ;
-		else if( event->type == SDL_FINGERMOTION )
-			type = event_motion;
-		else break;
-
-		/*
-		SDL sends coordinates in [0..width],[0..height] values
-		on some devices
-		*/
-		if( !scale )
-		{
-			if( ( event->tfinger.x > 0 ) && ( event->tfinger.y > 0 ) )
+		case SDL_MOUSEWHEEL:
 			{
-				if( ( event->tfinger.x > 2 ) && ( event->tfinger.y > 2 ) )
-				{
-					scale = 2;
-					Con_Reportf( "SDL reports screen coordinates, workaround enabled!\n");
-				}
-				else
-				{
-					scale = 1;
-				}
+			int wheelbutton = event->wheel.y < 0 ? K_MWHEELDOWN : K_MWHEELUP;
+			Key_Event (wheelbutton, true);
+			Key_Event (wheelbutton, false);
+			break;
 			}
-		}
 
-		x = event->tfinger.x;
-		y = event->tfinger.y;
-		dx = event->tfinger.dx;
-		dy = event->tfinger.dy;
-
-		if( scale == 2 )
-		{
-			x /= (float)refState.width;
-			y /= (float)refState.height;
-			dx /= (float)refState.width;
-			dy /= (float)refState.height;
-		}
-
-		IN_TouchEvent( type, event->tfinger.fingerId, x, y, dx, dy );
-		break;
-	}
-
-	/* IME */
-	case SDL_TEXTINPUT:
-		SDLash_InputEvent( event->text );
-		break;
-
-	case SDL_JOYDEVICEADDED:
-		Joy_AddEvent();
-		break;
-	case SDL_JOYDEVICEREMOVED:
-		Joy_RemoveEvent();
-		break;
-
-	/* GameController API */
-	case SDL_CONTROLLERAXISMOTION:
-	{
-		// Swap axis to follow default axis binding:
-		// LeftX, LeftY, RightX, RightY, TriggerRight, TriggerLeft
-		static int sdlControllerAxisToEngine[] = {
-			JOY_AXIS_SIDE, // SDL_CONTROLLER_AXIS_LEFTX,
-			JOY_AXIS_FWD, // SDL_CONTROLLER_AXIS_LEFTY,
-			JOY_AXIS_PITCH, // SDL_CONTROLLER_AXIS_RIGHTX,
-			JOY_AXIS_YAW, // SDL_CONTROLLER_AXIS_RIGHTY,
-			JOY_AXIS_LT, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
-			JOY_AXIS_RT, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
-		};
-		if( Joy_IsActive() && event->caxis.axis != (Uint8)SDL_CONTROLLER_AXIS_INVALID )
-			Joy_KnownAxisMotionEvent( sdlControllerAxisToEngine[event->caxis.axis], event->caxis.value );
-		break;
-	}
-
-	case SDL_CONTROLLERBUTTONDOWN:
-	case SDL_CONTROLLERBUTTONUP:
-	{
-		static int sdlControllerButtonToEngine[] =
-		{
-			K_A_BUTTON, K_B_BUTTON, K_X_BUTTON,	K_Y_BUTTON,
-			K_BACK_BUTTON, K_MODE_BUTTON, K_START_BUTTON,
-			K_LSTICK, K_RSTICK,
-			K_L1_BUTTON, K_R1_BUTTON,
-			K_DPAD_UP, K_DPAD_DOWN, K_DPAD_LEFT, K_DPAD_RIGHT
-		};
-
-		// TODO: Use joyinput funcs, for future multiple gamepads support
-		if( Joy_IsActive() && event->cbutton.button != (Uint8)SDL_CONTROLLER_BUTTON_INVALID )
-			Key_Event( sdlControllerButtonToEngine[event->cbutton.button], event->cbutton.state );
-		break;
-	}
-
-	case SDL_CONTROLLERDEVICEADDED:
-		SDLash_GameController_Add( event->cdevice.which );
-		break;
-
-	case SDL_CONTROLLERDEVICEREMOVED:
-		SDLash_GameController_Remove( event->cdevice.which );
-		break;
-
-	case SDL_WINDOWEVENT:
-		if( event->window.windowID != SDL_GetWindowID( host.hWnd ) )
-			return;
-
-		if( host.status == HOST_SHUTDOWN || Host_IsDedicated() )
-			break; // no need to activate
-
-		switch( event->window.event )
-		{
-		case SDL_WINDOWEVENT_MOVED:
-			if( !vid_fullscreen->value )
+			/* Touch events */
+		case SDL_FINGERDOWN:
+		case SDL_FINGERUP:
+		case SDL_FINGERMOTION:
 			{
-				Cvar_SetValue( "_window_xpos", (float)event->window.data1 );
-				Cvar_SetValue( "_window_ypos", (float)event->window.data2 );
-			}
-			break;
-		case SDL_WINDOWEVENT_MINIMIZED:
-			host.status = HOST_SLEEP;
-			VID_RestoreScreenResolution( );
-			break;
-		case SDL_WINDOWEVENT_RESTORED:
-			host.status = HOST_FRAME;
-			host.force_draw_version = true;
-			host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
-			if( vid_fullscreen->value )
-				VID_SetMode();
-			break;
-		case SDL_WINDOWEVENT_FOCUS_GAINED:
-			SDLash_ActiveEvent( true );
-			break;
-		case SDL_WINDOWEVENT_FOCUS_LOST:
-			SDLash_ActiveEvent( false );
-			break;
-		case SDL_WINDOWEVENT_RESIZED:
-		{
-			if( vid_fullscreen->value )
-				break;
+			static int scale = 0;
+			touchEventType type;
+			float x, y, dx, dy;
 
-			VID_SaveWindowSize( event->window.data1, event->window.data2 );
+			if (event->type == SDL_FINGERDOWN)
+				type = event_down;
+			else if (event->type == SDL_FINGERUP)
+				type = event_up;
+			else if (event->type == SDL_FINGERMOTION)
+				type = event_motion;
+			else break;
+
+			/*
+			SDL sends coordinates in [0..width],[0..height] values
+			on some devices
+			*/
+			if (!scale)
+				{
+				if ((event->tfinger.x > 0) && (event->tfinger.y > 0))
+					{
+					if ((event->tfinger.x > 2) && (event->tfinger.y > 2))
+						{
+						scale = 2;
+						Con_Reportf ("SDL reports screen coordinates, workaround enabled!\n");
+						}
+					else
+						{
+						scale = 1;
+						}
+					}
+				}
+
+			x = event->tfinger.x;
+			y = event->tfinger.y;
+			dx = event->tfinger.dx;
+			dy = event->tfinger.dy;
+
+			if (scale == 2)
+				{
+				x /= (float)refState.width;
+				y /= (float)refState.height;
+				dx /= (float)refState.width;
+				dy /= (float)refState.height;
+				}
+
+			IN_TouchEvent (type, event->tfinger.fingerId, x, y, dx, dy);
 			break;
-		}
-		default:
+			}
+
+			/* IME */
+		case SDL_TEXTINPUT:
+			SDLash_InputEvent (event->text);
 			break;
-		}
+
+		case SDL_JOYDEVICEADDED:
+			Joy_AddEvent ();
+			break;
+		case SDL_JOYDEVICEREMOVED:
+			Joy_RemoveEvent ();
+			break;
+
+			/* GameController API */
+		case SDL_CONTROLLERAXISMOTION:
+			{
+			// Swap axis to follow default axis binding:
+			// LeftX, LeftY, RightX, RightY, TriggerRight, TriggerLeft
+			static int sdlControllerAxisToEngine[] = {
+				JOY_AXIS_SIDE, // SDL_CONTROLLER_AXIS_LEFTX,
+				JOY_AXIS_FWD, // SDL_CONTROLLER_AXIS_LEFTY,
+				JOY_AXIS_PITCH, // SDL_CONTROLLER_AXIS_RIGHTX,
+				JOY_AXIS_YAW, // SDL_CONTROLLER_AXIS_RIGHTY,
+				JOY_AXIS_LT, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
+				JOY_AXIS_RT, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+				};
+			if (Joy_IsActive () && event->caxis.axis != (Uint8)SDL_CONTROLLER_AXIS_INVALID)
+				Joy_KnownAxisMotionEvent (sdlControllerAxisToEngine[event->caxis.axis], event->caxis.value);
+			break;
+			}
+
+		case SDL_CONTROLLERBUTTONDOWN:
+		case SDL_CONTROLLERBUTTONUP:
+			{
+			static int sdlControllerButtonToEngine[] =
+				{
+					K_A_BUTTON, K_B_BUTTON, K_X_BUTTON,	K_Y_BUTTON,
+					K_BACK_BUTTON, K_MODE_BUTTON, K_START_BUTTON,
+					K_LSTICK, K_RSTICK,
+					K_L1_BUTTON, K_R1_BUTTON,
+					K_DPAD_UP, K_DPAD_DOWN, K_DPAD_LEFT, K_DPAD_RIGHT
+				};
+
+			// TODO: Use joyinput funcs, for future multiple gamepads support
+			if (Joy_IsActive () && event->cbutton.button != (Uint8)SDL_CONTROLLER_BUTTON_INVALID)
+				Key_Event (sdlControllerButtonToEngine[event->cbutton.button], event->cbutton.state);
+			break;
+			}
+
+		case SDL_CONTROLLERDEVICEADDED:
+			SDLash_GameController_Add (event->cdevice.which);
+			break;
+
+		case SDL_CONTROLLERDEVICEREMOVED:
+			SDLash_GameController_Remove (event->cdevice.which);
+			break;
+
+		case SDL_WINDOWEVENT:
+			if (event->window.windowID != SDL_GetWindowID (host.hWnd))
+				return;
+
+			if (host.status == HOST_SHUTDOWN || Host_IsDedicated ())
+				break; // no need to activate
+
+			switch (event->window.event)
+				{
+				case SDL_WINDOWEVENT_MOVED:
+					if (!vid_fullscreen->value)
+						{
+						Cvar_SetValue ("_window_xpos", (float)event->window.data1);
+						Cvar_SetValue ("_window_ypos", (float)event->window.data2);
+						}
+					break;
+				case SDL_WINDOWEVENT_MINIMIZED:
+					host.status = HOST_SLEEP;
+					VID_RestoreScreenResolution ();
+					break;
+				case SDL_WINDOWEVENT_RESTORED:
+					host.status = HOST_FRAME;
+					host.force_draw_version = true;
+					host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
+					if (vid_fullscreen->value)
+						VID_SetMode ();
+					break;
+				case SDL_WINDOWEVENT_FOCUS_GAINED:
+					SDLash_ActiveEvent (true);
+					break;
+				case SDL_WINDOWEVENT_FOCUS_LOST:
+					SDLash_ActiveEvent (false);
+					break;
+				case SDL_WINDOWEVENT_RESIZED:
+					{
+					if (vid_fullscreen->value)
+						break;
+
+					VID_SaveWindowSize (event->window.data1, event->window.data2);
+					break;
+					}
+				default:
+					break;
+				}
 #else
-	case SDL_VIDEORESIZE:
-		VID_SaveWindowSize( event->resize.w, event->resize.h );
-		break;
-	case SDL_ACTIVEEVENT:
-		SDLash_ActiveEvent( event->active.gain );
-		break;
+		case SDL_VIDEORESIZE:
+			VID_SaveWindowSize (event->resize.w, event->resize.h);
+			break;
+		case SDL_ACTIVEEVENT:
+			SDLash_ActiveEvent (event->active.gain);
+			break;
 #endif
+		}
 	}
-}
+#endif
 
+// ESHQ: исправляет дефект компиляции
+#if defined( XASH_SDL ) && !XASH_DEDICATED
 /*
 =============
 SDLash_RunEvents
 
 =============
 */
-void Platform_RunEvents( void )
-{
+void Platform_RunEvents (void)
+	{
 	SDL_Event event;
 
-	while( !host.crashed && !host.shutdown_issued && SDL_PollEvent( &event ) )
-		SDLash_EventFilter( &event );
-}
+	while (!host.crashed && !host.shutdown_issued && SDL_PollEvent (&event))
+		SDLash_EventFilter (&event);
+	}
 
-void* Platform_GetNativeObject( const char *name )
-{
+void *Platform_GetNativeObject (const char *name)
+	{
 	return NULL; // SDL don't have it
-}
+	}
 
 /*
 ========================
@@ -677,13 +679,13 @@ this should disable mouse look on client when m_ignore enabled
 TODO: kill mouse in win32 clients too
 ========================
 */
-void Platform_PreCreateMove( void )
-{
-	if( CVAR_TO_BOOL( m_ignore ) )
+void Platform_PreCreateMove (void)
 	{
-		SDL_GetRelativeMouseState( NULL, NULL );
-		SDL_ShowCursor( SDL_TRUE );
+	if (CVAR_TO_BOOL (m_ignore))
+		{
+		SDL_GetRelativeMouseState (NULL, NULL);
+		SDL_ShowCursor (SDL_TRUE);
+		}
 	}
-}
 
-#endif //  defined( XASH_SDL ) && !XASH_DEDICATED
+#endif

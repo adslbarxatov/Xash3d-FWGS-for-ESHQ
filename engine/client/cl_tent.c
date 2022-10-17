@@ -299,33 +299,42 @@ void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 
 	switch (pTemp->hitSound)
 		{
+		// ESHQ: исправление для количества звуков по типам
 		case BOUNCE_GLASS:
-			Q_snprintf (soundname, sizeof (soundname), "debris/glass%i.wav", COM_RandomLong (1, 4));
+			Q_snprintf (soundname, sizeof (soundname), "debris/glass%i.wav", COM_RandomLong (1, 3));
 			break;
+
 		case BOUNCE_METAL:
 			Q_snprintf (soundname, sizeof (soundname), "debris/metal%i.wav", COM_RandomLong (1, 6));
 			break;
+
 		case BOUNCE_FLESH:
-			Q_snprintf (soundname, sizeof (soundname), "debris/flesh%i.wav", COM_RandomLong (1, 7));
+			Q_snprintf (soundname, sizeof (soundname), "debris/flesh%i.wav", COM_RandomLong (2, 7));
 			break;
+
 		case BOUNCE_WOOD:
-			Q_snprintf (soundname, sizeof (soundname), "debris/wood%i.wav", COM_RandomLong (1, 4));
+			Q_snprintf (soundname, sizeof (soundname), "debris/wood%i.wav", COM_RandomLong (1, 3));
 			break;
+
 		case BOUNCE_SHRAP:
 			Q_strncpy (soundname, cl_ricochet_sounds[COM_RandomLong (0, 4)], sizeof (soundname));
 			break;
+
 		case BOUNCE_SHOTSHELL:
 			Q_strncpy (soundname, cl_weapon_shell_sounds[COM_RandomLong (0, 2)], sizeof (soundname));
 			isshellcasing = true; // shell casings have different playback parameters
 			fvol = 0.5f;
 			break;
+
 		case BOUNCE_SHELL:
 			Q_strncpy (soundname, cl_player_shell_sounds[COM_RandomLong (0, 2)], sizeof (soundname));
 			isshellcasing = true; // shell casings have different playback parameters
 			break;
+
 		case BOUNCE_CONCRETE:
 			Q_snprintf (soundname, sizeof (soundname), "debris/concrete%i.wav", COM_RandomLong (1, 3));
 			break;
+
 		default:	// null sound
 			return;
 		}
@@ -359,7 +368,10 @@ void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 		else pitch = PITCH_NORM;
 
 		handle = S_RegisterSound (soundname);
-		S_StartSound (pTemp->entity.origin, -(pTemp - cl_tempents), CHAN_BODY, handle, fvol, ATTN_NORM, pitch, SND_STOP_LOOPING);
+
+		// ESHQ: исправление радиуса звука
+		S_StartSound (pTemp->entity.origin, -(pTemp - cl_tempents), CHAN_BODY, handle, fvol, 
+			ATTN_MEDIUM, pitch, SND_STOP_LOOPING);
 		}
 	}
 

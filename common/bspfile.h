@@ -33,8 +33,10 @@ BRUSH MODELS
 #define QBSP2_VERSION	(('B' << 0) | ('S' << 8) | ('P' << 16) | ('2'<<24))
 
 #define IDEXTRAHEADER	(('H'<<24)+('S'<<16)+('A'<<8)+'X') // little-endian "XASH"
-#define EXTRA_VERSION	4	// ver. 1 was occupied by old versions of XashXT, ver. 2 was occupied by old vesrions of P2:savior
-				// ver. 3 was occupied by experimental versions of P2:savior change fmt
+#define EXTRA_VERSION	4	
+// ver. 1 was occupied by old versions of XashXT, 
+// ver. 2 was occupied by old vesrions of P2:savior
+// ver. 3 was occupied by experimental versions of P2:savior change fmt
 
 #define DELUXEMAP_VERSION	1
 #define IDDELUXEMAPHEADER	(('T'<<24)+('I'<<16)+('L'<<8)+'Q') // little-endian "QLIT"
@@ -138,15 +140,20 @@ BRUSH MODELS
 // 4529
 #define IsLiquidContents( cnt )	( cnt == CONTENTS_WATER || cnt == CONTENTS_SLIME || cnt == CONTENTS_LAVA )
 
-// ambient sound types
-enum
+// ESHQ: ambient sound types
+/*enum
 	{
-	AMBIENT_WATER = 0,		// waterfall
-	AMBIENT_SKY,		// wind
-	AMBIENT_SLIME,		// never used in quake
-	AMBIENT_LAVA,		// never used in quake
-	NUM_AMBIENTS,		// automatic ambient sounds
-	};
+	AMBIENT_WATER = 0,
+	AMBIENT_SKY,
+	AMBIENT_SLIME,
+	AMBIENT_LAVA,
+	NUM_AMBIENTS,
+	};*/
+#define AMBIENT_WATER	0	// waterfall
+#define AMBIENT_SKY		1	// wind
+#define AMBIENT_SLIME	2	// never used in quake
+#define AMBIENT_LAVA	3	// never used in quake
+#define NUM_AMBIENTS	4	// automatic ambient sounds
 
 //
 // BSP File Structures

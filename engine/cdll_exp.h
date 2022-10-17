@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #ifndef CDLL_EXP_H
 #define CDLL_EXP_H
 
-// FSGW
+// FWGS
 struct tempent_s;
 struct usercmd_s;
 struct physent_s;
@@ -53,27 +53,33 @@ typedef struct cldll_func_s
 	void	(*pfnDrawNormalTriangles)(void);
 	void	(*pfnDrawTransparentTriangles)(void);
 	void	(*pfnStudioEvent)(const struct mstudioevent_s *event, const cl_entity_t *entity);
-	void	(*pfnPostRunCmd)(struct local_state_s *from, struct local_state_s *to, usercmd_t *cmd, int runfuncs, double time, unsigned int random_seed);
+	void	(*pfnPostRunCmd)(struct local_state_s *from, struct local_state_s *to, usercmd_t *cmd, int runfuncs,
+		double time, unsigned int random_seed);
 	void	(*pfnShutdown)(void);
 	void	(*pfnTxferLocalOverrides)(entity_state_t *state, const clientdata_t *client);
 	void	(*pfnProcessPlayerState)(entity_state_t *dst, const entity_state_t *src);
-	void	(*pfnTxferPredictionData)(entity_state_t *ps, const entity_state_t *pps, clientdata_t *pcd, const clientdata_t *ppcd, weapon_data_t *wd, const weapon_data_t *pwd);
+	void	(*pfnTxferPredictionData)(entity_state_t *ps, const entity_state_t *pps, clientdata_t *pcd, 
+		const clientdata_t *ppcd, weapon_data_t *wd, const weapon_data_t *pwd);
 	void	(*pfnDemo_ReadBuffer)(int size, byte *buffer);
 	int	(*pfnConnectionlessPacket)(const struct netadr_s *net_from, const char *args, char *buffer, int *size);
 	int	(*pfnGetHullBounds)(int hullnumber, float *mins, float *maxs);
 	void	(*pfnFrame)(double time);
 	int	(*pfnKey_Event)(int eventcode, int keynum, const char *pszCurrentBinding);
-	void	(*pfnTempEntUpdate)(double frametime, double client_time, double cl_gravity, struct tempent_s **ppTempEntFree, struct tempent_s **ppTempEntActive,
-		int (*Callback_AddVisibleEntity)(cl_entity_t *pEntity), void (*Callback_TempEntPlaySound)(struct tempent_s *pTemp, float damp));
+	void	(*pfnTempEntUpdate)(double frametime, double client_time, double cl_gravity, 
+		struct tempent_s **ppTempEntFree, struct tempent_s **ppTempEntActive,
+		int (*Callback_AddVisibleEntity)(cl_entity_t *pEntity), void (*Callback_TempEntPlaySound)(struct tempent_s *pTemp,
+		float damp));
 	cl_entity_t *(*pfnGetUserEntity)(int index);
 	void	(*pfnVoiceStatus)(int entindex, qboolean bTalking);
 	void	(*pfnDirectorMessage)(int iSize, void *pbuf);
-	int	(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface, struct engine_studio_api_s *pstudio);
+	int	(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface,
+		struct engine_studio_api_s *pstudio);
 	void	(*pfnChatInputPosition)(int *x, int *y);
 
 	// Xash3D extension
 	int	(*pfnGetRenderInterface)(int version, render_api_t *renderfuncs, render_interface_t *callback);
-	void	(*pfnClipMoveToEntity)(struct physent_s *pe, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, struct pmtrace_s *tr);
+	void	(*pfnClipMoveToEntity)(struct physent_s *pe, const vec3_t start, vec3_t mins, vec3_t maxs, 
+		const vec3_t end, struct pmtrace_s *tr);
 
 	// Xash3D FWGS extension
 	int (*pfnTouchEvent)(int type, int fingerID, float x, float y, float dx, float dy);

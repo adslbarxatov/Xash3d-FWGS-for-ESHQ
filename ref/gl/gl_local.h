@@ -97,7 +97,8 @@ extern poolhandle_t r_temppool;
 #define CULL_VISFRAME	3		// culled by PVS
 #define CULL_OTHER		4		// culled by other reason
 
-#define HACKS_RELATED_HLMODS		// some HL-mods works differently under Xash and can't be fixed without some hacks at least at current time
+#define HACKS_RELATED_HLMODS		
+// some HL-mods works differently under Xash and can't be fixed without some hacks at least at current time
 
 typedef struct gltexture_s
 	{
@@ -753,7 +754,7 @@ extern cvar_t *r_vbo_dlightmode;
 //
 // engine shared convars
 //
-DECLARE_ENGINE_SHARED_CVAR_LIST ()
+DECLARE_ENGINE_SHARED_CVAR_LIST ();
 
 //
 // engine callbacks

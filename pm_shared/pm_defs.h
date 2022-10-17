@@ -33,7 +33,7 @@
 
 #include "pm_info.h"
 
-// PM_PlayerTrace results.
+// PM_PlayerTrace results
 #include "pmtrace.h"
 
 
@@ -131,7 +131,7 @@ typedef struct playermove_s
 
 	int		onground;
 	int		waterlevel;
-	int		collectedItems;		// Собираемые объекты
+	int		collectedItems;		// ESHQ: собираемые объекты
 	int		watertype;
 	int		oldwaterlevel;
 

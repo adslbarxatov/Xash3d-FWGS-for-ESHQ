@@ -15,37 +15,38 @@ GNU General Public License for more details.
 
 #include "crtlib.h"
 
-static const char *date = __DATE__ ;
+static const char *date = __DATE__;
 static const char *mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 static const char mond[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 // returns days since Apr 1 2015
-int Q_buildnum( void )
-{
+int Q_buildnum (void)
+	{
 	int m = 0, d = 0, y = 0;
 	static int b = 0;
 
-	if( b != 0 ) return b;
+	if (b != 0) 
+		return b;
 
-	for( m = 0; m < 11; m++ )
-	{
-		if( !Q_strnicmp( &date[0], mon[m], 3 ))
+	for (m = 0; m < 11; m++)
+		{
+		if (!Q_strnicmp (&date[0], mon[m], 3))
 			break;
 		d += mond[m];
-	}
+		}
 
-	d += Q_atoi( &date[4] ) - 1;
-	y = Q_atoi( &date[7] ) - 1900;
-	b = d + (int)((y - 1) * 365.25f );
+	d += Q_atoi (&date[4]) - 1;
+	y = Q_atoi (&date[7]) - 1900;
+	b = d + (int)((y - 1) * 365.25f);
 
-	if((( y % 4 ) == 0 ) && m > 1 )
-	{
+	if (((y % 4) == 0) && m > 1)
+		{
 		b += 1;
-	}
+		}
 	b -= 41728; // Apr 1 2015
 
 	return b;
-}
+	}
 
 /*
 =============
@@ -56,11 +57,11 @@ IMPORTANT: this value must be changed ONLY after updating to newer Xash3D
 IMPORTANT: this value must be acquired through "build" cvar.
 =============
 */
-int Q_buildnum_compat( void )
-{
+int Q_buildnum_compat (void)
+	{
 	// do not touch this! Only author of Xash3D can increase buildnumbers!
 	return 4529;
-}
+	}
 
 /*
 ============
@@ -69,8 +70,8 @@ Q_buildos
 Returns current name of operating system. Without any spaces.
 ============
 */
-const char *Q_buildos( void )
-{
+const char *Q_buildos (void)
+	{
 	const char *osname;
 
 #if XASH_MINGW
@@ -102,7 +103,7 @@ const char *Q_buildos( void )
 #endif
 
 	return osname;
-}
+	}
 
 /*
 ============
@@ -111,8 +112,8 @@ Q_buildarch
 Returns current name of the architecture. Without any spaces.
 ============
 */
-const char *Q_buildarch( void )
-{
+const char *Q_buildarch (void)
+	{
 	const char *archname;
 
 #if XASH_AMD64
@@ -123,46 +124,46 @@ const char *Q_buildarch( void )
 	archname = "arm64";
 #elif XASH_ARM
 	archname = "armv"
-	#if XASH_ARM == 8
+#if XASH_ARM == 8
 		"8_32" // for those who (mis)using 32-bit OS on 64-bit CPU
-	#elif XASH_ARM == 7
+#elif XASH_ARM == 7
 		"7"
-	#elif XASH_ARM == 6
+#elif XASH_ARM == 6
 		"6"
-	#elif XASH_ARM == 5
+#elif XASH_ARM == 5
 		"5"
-	#elif XASH_ARM == 4
+#elif XASH_ARM == 4
 		"4"
-	#endif
+#endif
 
-	#if XASH_ARM_HARDFP
+#if XASH_ARM_HARDFP
 		"hf"
-	#else
+#else
 		"l"
-	#endif
-	;
+#endif
+		;
 #elif XASH_MIPS && XASH_BIG_ENDIAN
 	archname = "mips"
-	#if XASH_64BIT
+#if XASH_64BIT
 		"64"
-	#endif
-	#if XASH_LITTLE_ENDIAN
+#endif
+#if XASH_LITTLE_ENDIAN
 		"el"
-	#endif
-	;
+#endif
+		;
 #elif XASH_RISCV
 	archname = "riscv"
-	#if XASH_64BIT
+#if XASH_64BIT
 		"64"
-	#else
+#else
 		"32"
-	#endif
-	#if XASH_RISCV_SINGLEFP
+#endif
+#if XASH_RISCV_SINGLEFP
 		"d"
-	#elif XASH_RISCV_DOUBLEFP
+#elif XASH_RISCV_DOUBLEFP
 		"f"
-	#endif
-	;
+#endif
+		;
 #elif XASH_JS
 	archname = "javascript";
 #elif XASH_E2K
@@ -172,7 +173,7 @@ const char *Q_buildarch( void )
 #endif
 
 	return archname;
-}
+	}
 
 /*
 =============
@@ -185,12 +186,11 @@ if XASH_BUILD_COMMIT is not defined,
 Q_buildcommit will identify this build as "notset"
 =============
 */
-const char *Q_buildcommit( void )
-{
+const char *Q_buildcommit (void)
+	{
 #ifdef XASH_BUILD_COMMIT
 	return XASH_BUILD_COMMIT;
 #else
 	return "notset";
 #endif
-}
-
+	}

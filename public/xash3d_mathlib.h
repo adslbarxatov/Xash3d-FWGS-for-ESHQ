@@ -234,5 +234,4 @@ extern const matrix3x4	matrix3x4_identity;
 extern const matrix4x4	matrix4x4_identity;
 extern const float		m_bytenormals[NUMVERTEXNORMALS][3];
 
-#endif // XASH3D_MATHLIB_H
-
+#endif 

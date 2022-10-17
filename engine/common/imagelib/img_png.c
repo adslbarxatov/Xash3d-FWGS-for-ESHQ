@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 
-#include "miniz.h"
+#include "miniz.h"	// ESHQ: отмена наложений
 #include "imagelib.h"
 #include "xash3d_mathlib.h"
 #include "img_png.h"
@@ -133,7 +133,8 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 
 	// calculate IHDR chunk CRC
 	CRC32_Init (&crc32_check);
-	CRC32_ProcessBuffer (&crc32_check, buf_p + sizeof (png_hdr.sign) + sizeof (png_hdr.ihdr_len), png_hdr.ihdr_len + sizeof (png_hdr.ihdr_sign));
+	CRC32_ProcessBuffer (&crc32_check, buf_p + sizeof (png_hdr.sign) + sizeof (png_hdr.ihdr_len), 
+		png_hdr.ihdr_len + sizeof (png_hdr.ihdr_sign));
 	crc32_check = CRC32_Final (crc32_check);
 
 	// check IHDR chunk CRC
@@ -579,8 +580,6 @@ qboolean Image_SavePNG (const char *name, rgbdata_t *pix)
 				}
 			break;
 		}
-
-
 
 	// get IHDR chunk length
 	ihdr_len = sizeof (png_ihdr_t);

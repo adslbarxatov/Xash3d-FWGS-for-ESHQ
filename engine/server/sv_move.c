@@ -149,20 +149,24 @@ void SV_WaterMove (edict_t *ent)
 		{
 		if (flags & FL_INWATER)
 			{
-			// leave the water.
+			// leave the water
 			switch (COM_RandomLong (0, 3))
 				{
+				// ESHQ: исправление радиуса звука
 				case 0:
-					SV_StartSound (ent, CHAN_BODY, "player/pl_wade1.wav", 1.0f, ATTN_NORM, 0, 100);
+					SV_StartSound (ent, CHAN_BODY, "player/pl_wade1.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
+
 				case 1:
-					SV_StartSound (ent, CHAN_BODY, "player/pl_wade2.wav", 1.0f, ATTN_NORM, 0, 100);
+					SV_StartSound (ent, CHAN_BODY, "player/pl_wade2.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
+
 				case 2:
-					SV_StartSound (ent, CHAN_BODY, "player/pl_wade3.wav", 1.0f, ATTN_NORM, 0, 100);
+					SV_StartSound (ent, CHAN_BODY, "player/pl_wade3.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
+
 				case 3:
-					SV_StartSound (ent, CHAN_BODY, "player/pl_wade4.wav", 1.0f, ATTN_NORM, 0, 100);
+					SV_StartSound (ent, CHAN_BODY, "player/pl_wade4.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
 				}
 
@@ -199,17 +203,18 @@ void SV_WaterMove (edict_t *ent)
 			// entering the water
 			switch (COM_RandomLong (0, 3))
 				{
+				// ESHQ: исправление радиуса звука
 				case 0:
-					SV_StartSound (ent, CHAN_BODY, "player/pl_wade1.wav", 1.0f, ATTN_NORM, 0, 100);
+					SV_StartSound (ent, CHAN_BODY, "player/pl_wade1.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
 				case 1:
-					SV_StartSound (ent, CHAN_BODY, "player/pl_wade2.wav", 1.0f, ATTN_NORM, 0, 100);
+					SV_StartSound (ent, CHAN_BODY, "player/pl_wade2.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
 				case 2:
-					SV_StartSound (ent, CHAN_BODY, "player/pl_wade3.wav", 1.0f, ATTN_NORM, 0, 100);
+					SV_StartSound (ent, CHAN_BODY, "player/pl_wade3.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
 				case 3:
-					SV_StartSound (ent, CHAN_BODY, "player/pl_wade4.wav", 1.0f, ATTN_NORM, 0, 100);
+					SV_StartSound (ent, CHAN_BODY, "player/pl_wade4.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
 				}
 			}
@@ -233,11 +238,12 @@ converts dir to yaw
 */
 float SV_VecToYaw (const vec3_t src)
 	{
-	float	yaw;
+	float yaw;
 
-	if (!src) return 0.0f;
+	if (!src) 
+		return 0.0f;
 
-	if (src[1] == 0.0f && src[0] == 0.0f)
+	if ((src[1] == 0.0f) && (src[0] == 0.0f))
 		{
 		yaw = 0.0f;
 		}

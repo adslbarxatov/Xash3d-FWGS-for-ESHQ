@@ -2672,15 +2672,18 @@ void CL_LegacyParseSoundPacket (sizebuf_t *msg, qboolean is_ambient)
 
 	if (FBitSet (flags, SND_VOLUME))
 		volume = (float)MSG_ReadByte (msg) / 255.0f;
-	else volume = VOL_NORM;
+	else 
+		volume = VOL_NORM;
 
 	if (FBitSet (flags, SND_ATTENUATION))
 		attn = (float)MSG_ReadByte (msg) / 64.0f;
-	else attn = ATTN_NONE;
+	else 
+		attn = ATTN_EVERYWHERE;		// ESHQ: не уверен тоже
 
 	if (FBitSet (flags, SND_PITCH))
 		pitch = MSG_ReadByte (msg);
-	else pitch = PITCH_NORM;
+	else 
+		pitch = PITCH_NORM;
 
 	// entity reletive
 	entnum = MSG_ReadWord (msg);
@@ -2690,16 +2693,14 @@ void CL_LegacyParseSoundPacket (sizebuf_t *msg, qboolean is_ambient)
 
 	if (FBitSet (flags, SND_SENTENCE))
 		{
-		char	sentenceName[32];
-
-		//if( FBitSet( flags, SND_SEQUENCE ))
-			//Q_snprintf( sentenceName, sizeof( sentenceName ), "!#%i", sound + MAX_SOUNDS );
-		//else
+		char sentenceName[32];
 		Q_snprintf (sentenceName, sizeof (sentenceName), "!%i", sound);
-
 		handle = S_RegisterSound (sentenceName);
 		}
-	else handle = cl.sound_index[sound];	// see precached sound
+	else
+		{
+		handle = cl.sound_index[sound];	// see precached sound
+		}
 
 	if (!cl.audio_prepped)
 		return; // too early

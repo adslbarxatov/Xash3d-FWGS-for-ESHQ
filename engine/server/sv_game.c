@@ -2106,9 +2106,12 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 		entityIndex = NUM_FOR_EDICT (ent);
 	else entityIndex = 0; // assume world
 
-	if (vol != 255) SetBits (flags, SND_VOLUME);
-	if (attn != ATTN_NONE) SetBits (flags, SND_ATTENUATION);
-	if (pitch != PITCH_NORM) SetBits (flags, SND_PITCH);
+	if (vol != 255) 
+		SetBits (flags, SND_VOLUME);
+	if (attn != ATTN_EVERYWHERE)
+		SetBits (flags, SND_ATTENUATION);
+	if (pitch != PITCH_NORM)
+		SetBits (flags, SND_PITCH);
 
 	// not sending (because this is out of range)
 	ClearBits (flags, SND_RESTORE_POSITION);

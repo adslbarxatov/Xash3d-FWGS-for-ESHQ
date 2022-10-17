@@ -15,7 +15,11 @@ GNU General Public License for more details.
 */
 
 #define CUSTOM_MODES 1 // required to correctly link with Opus Custom
-#include <opus_custom.h>
+
+#ifdef OPUS
+	#include <opus_custom.h>
+#endif
+
 #include "common.h"
 #include "client.h"
 #include "voice.h"
@@ -39,12 +43,15 @@ static void Voice_ApplyGainAdjust (int16_t *samples, int count);
 ===============================================================================
 */
 
+#ifdef OPUS
+
 /*
 =========================
 Voice_InitOpusDecoder
 
 =========================
 */
+
 static qboolean Voice_InitOpusDecoder (void)
 	{
 	int err;
@@ -222,6 +229,8 @@ static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
 	return size;
 	}
 
+#endif
+
 /*
 ===============================================================================
 
@@ -271,7 +280,8 @@ static void Voice_ApplyGainAdjust (int16_t *samples, int count)
 
 			voice.autogain.current_gain = voice.autogain.next_gain * voice_scale.value;
 			voice.autogain.next_gain = Q_min ((float)SHRT_MAX / modifiedMax, voice_maxgain.value) * voice_scale.value;
-			voice.autogain.gain_multiplier = (voice.autogain.next_gain - voice.autogain.current_gain) / (voice.autogain.block_size - 1);
+			voice.autogain.gain_multiplier = (voice.autogain.next_gain - voice.autogain.current_gain) / 
+				(voice.autogain.block_size - 1);
 			}
 		blockOffset += blockSize;
 		}
@@ -473,8 +483,10 @@ void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames)
 		if (ofs + compressed_size > size)
 			break;
 
+#ifdef OPUS
 		frame_samples = opus_custom_decode (voice.decoder, data + ofs, compressed_size,
 			(opus_int16 *)voice.decompress_buffer + samples, voice.frame_size);
+#endif
 
 		ofs += compressed_size;
 		samples += frame_samples;
@@ -498,9 +510,11 @@ void CL_AddVoiceToDatagram (void)
 	if (cls.state != ca_active || !Voice_IsRecording () || !voice.encoder)
 		return;
 
+#ifdef OPUS
 	size = Voice_GetOpusCompressedData (voice.output_buffer, sizeof (voice.output_buffer), &frames);
+#endif
 
-	if (size > 0 && MSG_GetNumBytesLeft (&cls.datagram) >= size + 32)
+	if ((size > 0) && (MSG_GetNumBytesLeft (&cls.datagram) >= size + 32))
 		{
 		MSG_BeginClientCmd (&cls.datagram, clc_voicedata);
 		MSG_WriteByte (&cls.datagram, voice_loopback.value != 0);
@@ -539,8 +553,12 @@ static void Voice_Shutdown (void)
 	int i;
 
 	Voice_RecordStop ();
+
+#ifdef OPUS
 	Voice_ShutdownOpusEncoder ();
 	Voice_ShutdownOpusDecoder ();
+#endif
+
 	VoiceCapture_Shutdown ();
 
 	if (voice.local.talking_ack)
@@ -603,7 +621,9 @@ qboolean Voice_Init (const char *pszCodecName, int quality)
 
 	voice.autogain.block_size = 128;
 
+#ifdef OPUS
 	if (!Voice_InitOpusDecoder ())
+#endif
 		{
 		// no reason to init encoder and open audio device
 		// if we can't hear other players
@@ -616,7 +636,9 @@ qboolean Voice_Init (const char *pszCodecName, int quality)
 	voice.initialized = true;
 	Q_strncpy (voice.codec, pszCodecName, sizeof (voice.codec));
 
+#ifdef OPUS
 	if (!Voice_InitOpusEncoder (quality))
+#endif
 		{
 		Con_Printf (S_WARN "Other players will not be able to hear you.\n");
 		return false;

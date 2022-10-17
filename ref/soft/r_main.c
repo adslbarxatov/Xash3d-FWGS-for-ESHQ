@@ -2089,8 +2089,8 @@ int CL_FxBlend (cl_entity_t *e)
 		// ESHQ: поддержка мигалок
 		case kRenderFxLeftPoliceLight:
 		case kRenderFxRightPoliceLight:
-			blend = 20 * sin (cl.time * 60);
-			blend *= ((20 * sin (cl.time * 3) >= 0) ?
+			blend = 20 * sin (gpGlobals->time * 60);
+			blend *= ((20 * sin (gpGlobals->time * 3) >= 0) ?
 				(e->curstate.renderfx == kRenderFxRightPoliceLight) :
 				(e->curstate.renderfx != kRenderFxRightPoliceLight));
 

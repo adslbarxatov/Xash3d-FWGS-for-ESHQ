@@ -28,7 +28,7 @@
 #define FL_MONSTER		(1U<<5)
 #define FL_GODMODE		(1U<<6)
 #define FL_NOTARGET		(1U<<7)
-#define FL_SKIPLOCALHOST	(U1<<8)	// Don't send entity to local host, it's predicting this entity itself
+#define FL_SKIPLOCALHOST	(1U<<8)	// Don't send entity to local host, it's predicting this entity itself
 #define FL_ONGROUND		(1U<<9)	// At rest / on the ground
 #define FL_PARTIALGROUND	(1U<<10)	// not all corners are valid
 #define FL_WATERJUMP	(1U<<11)	// player jumping out of water
@@ -469,7 +469,8 @@
 // byte (count)
 // coord (speed)
 
-#define TE_BLOODSPRITE			115	// spray of opaque sprite1's that fall, single sprite2 for 1..2 secs (this is a high-priority tent)
+#define TE_BLOODSPRITE			115	
+// spray of opaque sprite1's that fall, single sprite2 for 1..2 secs (this is a high-priority tent)
 // coord, coord, coord (position)
 // short (sprite1 index)
 // short (sprite2 index)
@@ -528,7 +529,8 @@
 // to keep network traffic low, this message has associated flags that fit into a byte:
 #define TEFIRE_FLAG_ALLFLOAT	1 // all sprites will drift upwards as they animate
 #define TEFIRE_FLAG_SOMEFLOAT	2 // some of the sprites will drift upwards. (50% chance)
-#define TEFIRE_FLAG_LOOP		4 // if set, sprite plays at 15 fps, otherwise plays at whatever rate stretches the animation over the sprite's duration.
+#define TEFIRE_FLAG_LOOP		4 
+// if set, sprite plays at 15 fps, otherwise plays at whatever rate stretches the animation over the sprite's duration.
 #define TEFIRE_FLAG_ALPHA		8 // if set, sprite is rendered alpha blended at 50% else, opaque
 #define TEFIRE_FLAG_PLANAR		16 // if set, all fire sprites have same initial Z instead of randomly filling a cube. 
 #define TEFIRE_FLAG_ADDITIVE	32 // if set, sprite is rendered as additive
@@ -580,7 +582,8 @@
 #define MSG_PAS				5	// Ents in PAS of org
 #define MSG_PVS_R			6	// Reliable to PVS
 #define MSG_PAS_R			7	// Reliable to PAS
-#define MSG_ONE_UNRELIABLE	8	// Send to one client, but don't put in reliable stream, put in unreliable datagram ( could be dropped )
+#define MSG_ONE_UNRELIABLE	8	
+// Send to one client, but don't put in reliable stream, put in unreliable datagram ( could be dropped )
 #define MSG_SPEC			9	// Sends to all spectator proxies
 
 // contents of a spot in the world
@@ -590,6 +593,7 @@
 #define CONTENTS_SLIME		-4
 #define CONTENTS_LAVA		-5
 #define CONTENTS_SKY		-6
+
 // These additional contents constants are defined in bspfile.h
 #define CONTENTS_ORIGIN		-7	// removed at csg time
 #define CONTENTS_CLIP		-8	// changed to contents_solid
@@ -607,14 +611,6 @@
 #define CONTENT_GRAVITY_FLYFIELD	-18
 #define CONTENT_FOG			-19
 
-// FWGS: отменено
-#define CONTENT_EMPTY		-1
-#define CONTENT_SOLID		-2
-#define CONTENT_WATER		-3
-#define CONTENT_SLIME		-4
-#define CONTENT_LAVA		-5
-#define CONTENT_SKY			-6
-
 // channels
 #define CHAN_AUTO			0
 #define CHAN_WEAPON			1
@@ -624,7 +620,8 @@
 #define CHAN_STREAM			5	// allocate stream channel from the static or dynamic area
 #define CHAN_STATIC			6	// allocate channel from the static area 
 #define CHAN_NETWORKVOICE_BASE	7	// voice data coming across the network
-#define CHAN_NETWORKVOICE_END	500	// network voice data reserves slots (CHAN_NETWORKVOICE_BASE through CHAN_NETWORKVOICE_END).
+#define CHAN_NETWORKVOICE_END	500	
+// network voice data reserves slots (CHAN_NETWORKVOICE_BASE through CHAN_NETWORKVOICE_END).
 
 // attenuation values
 #define ATTN_NONE0			0
@@ -747,7 +744,10 @@ typedef unsigned short	word;
 
 #include "xash3d_types.h"
 
-#define Q_isspace( ch )	(ch < 32 || ch > 255)
+// FWGS
+#if !(XASH_DL || XASH_FS)
+	#define Q_isspace(ch)	(ch < 32 || ch > 255)
+#endif
 
 // FWGS
 /*#undef true
@@ -755,7 +755,7 @@ typedef unsigned short	word;
 
 #ifndef __cplusplus
 typedef enum { false, true }	qboolean;
-#else 
+#else
 typedef int qboolean;
 #endif*/
 
@@ -771,7 +771,7 @@ typedef struct
 
 typedef struct link_s
 	{
-	struct link_s* prev, * next;
+	struct link_s *prev, *next;
 	} link_t;
 
 typedef struct edict_s edict_t;
@@ -790,7 +790,7 @@ typedef struct
 	float		fraction;		// time completed, 1.0 = didn't hit anything
 	vec3_t		endpos;		// final position
 	plane_t		plane;		// surface normal at impact
-	edict_t*	ent;		// entity the surface is on
+	edict_t *ent;		// entity the surface is on
 	int			hitgroup;		// 0 == generic, non zero is specific body part
 	} trace_t;
 

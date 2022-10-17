@@ -74,7 +74,8 @@ extern "C" {
 
 #endif
 
-#define HACKS_RELATED_HLMODS		// some HL-mods works differently under Xash and can't be fixed without some hacks at least at current time
+#define HACKS_RELATED_HLMODS		
+// some HL-mods works differently under Xash and can't be fixed without some hacks at least at current time
 
 	enum
 		{
@@ -415,7 +416,7 @@ extern "C" {
 	void FS_Init (void);
 	void FS_Shutdown (void);
 
-	// ESHQ: поддержка достижений
+	// ESHQ: яюффхЁцър ёъЁшяЄют
 	qboolean FS_WriteAchievementsScript (int NewLevel);
 	qboolean FS_UpdateAchievementsScript (void);
 

@@ -78,42 +78,6 @@ static mempool_t *Mem_FindPool (poolhandle_t poolptr)
 	return NULL;
 	}
 
-void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
-	{
-	memheader_t *mem;
-	mempool_t *pool;
-
-	if (size <= 0) return NULL;
-	if (!poolptr) Sys_Error ("Mem_Alloc: pool == NULL (alloc at %s:%i)\n", filename, fileline);
-
-	pool = Mem_FindPool (poolptr);
-
-	pool->totalsize += size;
-
-	// big allocations are not clumped
-	pool->realsize += sizeof (memheader_t) + size + sizeof (size_t);
-	mem = (memheader_t *)Q_malloc (sizeof (memheader_t) + size + sizeof (size_t));
-	if (mem == NULL) Sys_Error ("Mem_Alloc: out of memory (alloc at %s:%i)\n", filename, fileline);
-
-	mem->filename = filename;
-	mem->fileline = fileline;
-	mem->size = size;
-	mem->pool = pool;
-	mem->sentinel1 = MEMHEADER_SENTINEL1;
-	// we have to use only a single byte for this sentinel, because it may not be aligned
-	// and some platforms can't use unaligned accesses
-	*((byte *)mem + sizeof (memheader_t) + mem->size) = MEMHEADER_SENTINEL2;
-	// append to head of list
-	mem->next = pool->chain;
-	mem->prev = NULL;
-	pool->chain = mem;
-	if (mem->next) mem->next->prev = mem;
-	if (clear)
-		memset ((void *)((byte *)mem + sizeof (memheader_t)), 0, mem->size);
-
-	return (void *)((byte *)mem + sizeof (memheader_t));
-	}
-
 static const char *Mem_CheckFilename (const char *filename)
 	{
 	static const char *dummy = "<corrupted>\0";
@@ -164,6 +128,45 @@ static void Mem_FreeBlock (memheader_t *mem, const char *filename, int fileline)
 
 	pool->realsize -= sizeof (memheader_t) + mem->size + sizeof (size_t);
 	Q_free (mem);
+	}
+
+// ESHQ: накладывающиеся определения
+void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
+	{
+	memheader_t *mem;
+	mempool_t *pool;
+
+	if (size <= 0)
+		return NULL;
+	if (!poolptr)
+		Sys_Error ("Mem_Alloc: pool == NULL (alloc at %s:%i)\n", filename, fileline);
+
+	pool = Mem_FindPool (poolptr);
+
+	pool->totalsize += size;
+
+	// big allocations are not clumped
+	pool->realsize += sizeof (memheader_t) + size + sizeof (size_t);
+	mem = (memheader_t *)Q_malloc (sizeof (memheader_t) + size + sizeof (size_t));
+	if (mem == NULL) Sys_Error ("Mem_Alloc: out of memory (alloc at %s:%i)\n", filename, fileline);
+
+	mem->filename = filename;
+	mem->fileline = fileline;
+	mem->size = size;
+	mem->pool = pool;
+	mem->sentinel1 = MEMHEADER_SENTINEL1;
+	// we have to use only a single byte for this sentinel, because it may not be aligned
+	// and some platforms can't use unaligned accesses
+	*((byte *)mem + sizeof (memheader_t) + mem->size) = MEMHEADER_SENTINEL2;
+	// append to head of list
+	mem->next = pool->chain;
+	mem->prev = NULL;
+	pool->chain = mem;
+	if (mem->next) mem->next->prev = mem;
+	if (clear)
+		memset ((void *)((byte *)mem + sizeof (memheader_t)), 0, mem->size);
+
+	return (void *)((byte *)mem + sizeof (memheader_t));
 	}
 
 void _Mem_Free (void *data, const char *filename, int fileline)
@@ -235,8 +238,12 @@ void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
 		// unlink pool from chain
 		for (chainaddress = &poolchain; *chainaddress && *chainaddress != pool; chainaddress = &((*chainaddress)->next));
 		if (*chainaddress != pool) Sys_Error ("Mem_FreePool: pool already free (freepool at %s:%i)\n", filename, fileline);
-		if (pool->sentinel1 != MEMHEADER_SENTINEL1) Sys_Error ("Mem_FreePool: trashed pool sentinel 1 (allocpool at %s:%i, freepool at %s:%i)\n", pool->filename, pool->fileline, filename, fileline);
-		if (pool->sentinel2 != MEMHEADER_SENTINEL1) Sys_Error ("Mem_FreePool: trashed pool sentinel 2 (allocpool at %s:%i, freepool at %s:%i)\n", pool->filename, pool->fileline, filename, fileline);
+		if (pool->sentinel1 != MEMHEADER_SENTINEL1) 
+			Sys_Error ("Mem_FreePool: trashed pool sentinel 1 (allocpool at %s:%i, freepool at %s:%i)\n", 
+				pool->filename, pool->fileline, filename, fileline);
+		if (pool->sentinel2 != MEMHEADER_SENTINEL1) 
+			Sys_Error ("Mem_FreePool: trashed pool sentinel 2 (allocpool at %s:%i, freepool at %s:%i)\n", 
+				pool->filename, pool->fileline, filename, fileline);
 		*chainaddress = pool->next;
 
 		// free memory owned by the pool

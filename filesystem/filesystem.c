@@ -732,7 +732,7 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 		// ESHQ: добавлено для поддержки титров
 		else if (!Q_stricmp (token, "creditsmap"))
 			{
-			pfile = COM_ParseFile (pfile, GameInfo->creditsmap);
+			pfile = COM_ParseFile (pfile, GameInfo->creditsmap, sizeof (GameInfo->creditsmap));
 			COM_StripExtension (GameInfo->creditsmap);
 			}
 		// valid for both
@@ -823,7 +823,7 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 		// ESHQ: отладочная опция
 		else if (!Q_stricmp (token, "spentity"))
 			{
-			pfile = COM_ParseFile (pfile, GameInfo->sp_entity);
+			pfile = COM_ParseFile (pfile, GameInfo->sp_entity, sizeof (GameInfo->sp_entity));
 			}
 		else if (!Q_stricmp (token, isGameInfo ? "mp_filter" : "mpfilter"))
 			{
@@ -1399,7 +1399,8 @@ void _Sys_Error (const char *fmt, ...)
 FS_Init
 ================
 */
-qboolean FS_InitStdio (qboolean caseinsensitive, const char *rootdir, const char *basedir, const char *gamedir, const char *rodir)
+qboolean FS_InitStdio (qboolean caseinsensitive, const char *rootdir, const char *basedir, const char *gamedir,
+	const char *rodir)
 	{
 	stringlist_t	dirs;
 	qboolean		hasBaseDir = false;
@@ -2950,100 +2951,4 @@ int EXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_inte
 	*globals = &FI;
 
 	return FS_API_VERSION;
-	}
-
-/*
-================
-ESHQ: поддержка достижений
-================
-*/
-#define ACHI_OLD_SCRIPT_FN	"achi.cfg"
-#define ACHI_SCRIPT_FN		"achi2.cfg"
-#define ACHI_EXEC_STRING	"exec achi2.cfg\n"
-
-qboolean FS_UpdateAchievementsScript (void)
-	{
-	// Переменные
-	file_t *f;
-	unsigned int level = 0;
-	char temp[16];
-
-	// Чтение предыдущего состояния (ошибки игнорируются)
-	f = FS_Open (ACHI_OLD_SCRIPT_FN, "r", false);
-	if (f)
-		{
-		FS_Getc (f); FS_Getc (f); FS_Getc (f);
-		level = ((unsigned int)FS_Getc (f)) & 0x0F;
-		FS_Close (f);
-		}
-	else
-		{
-		return true;
-		}
-
-	if (level < 1)
-		return true;
-
-	// Запись
-	f = FS_Open (ACHI_SCRIPT_FN, "w", false);
-	if (!f)
-		return false;
-
-	Q_sprintf (temp, "//%c\\\\\n", level + 0x70);
-	FS_Print (f, temp);
-	FS_Print (f, "bind \"6\" \"impulse 211\"\n");
-
-	if (level > 0)
-		FS_Print (f, "bind \"7\" \"impulse 219\"\n");
-
-	if (level > 1)
-		FS_Print (f, "bind \"8\" \"impulse 228\"\n");
-
-	// Завершено
-	FS_Close (f);
-	FS_Delete (ACHI_OLD_SCRIPT_FN);
-	return true;
-	}
-
-qboolean FS_WriteAchievementsScript (int NewLevel)
-	{
-	// Переменные
-	file_t *f;
-	unsigned int level = 0;
-	char temp[16];
-
-	// Чтение предыдущего состояния (ошибки игнорируются)
-	f = FS_Open (ACHI_SCRIPT_FN, "r", false);
-	if (f)
-		{
-		FS_Getc (f); FS_Getc (f); //FS_Getc (f);
-		level = ((unsigned int)FS_Getc (f)) & 0x0F;
-		FS_Close (f);
-		}
-
-	if ((NewLevel <= level) || (level >= 3))
-		return true;	// Уровень уже достигнут или является максимальным
-
-	// Запись
-	f = FS_Open (ACHI_SCRIPT_FN, "w", false);
-	if (!f)
-		return false;
-
-	Q_sprintf (temp, "//%c\\\\\n", level + 1 + 0x70);	// Условие для последующего повышения
-	FS_Print (f, temp);
-	FS_Print (f, "bind \"6\" \"impulse 211\"\n");
-
-	if (level > 0)
-		FS_Print (f, "bind \"7\" \"impulse 219\"\n");
-
-	if (level > 1)
-		FS_Print (f, "bind \"8\" \"impulse 228\"\n");
-
-	// Завершено. Принудительное выполнение
-	FS_Close (f);
-
-	Cbuf_AddText (ACHI_EXEC_STRING);
-	Cbuf_Execute ();
-
-	return true;
 	}

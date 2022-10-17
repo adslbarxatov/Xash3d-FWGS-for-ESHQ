@@ -18,6 +18,7 @@ GNU General Public License for more details.
 #include "net_encode.h"
 #include "library.h"
 #include "voice.h"
+#include <shellapi.h>
 
 #if XASH_LOW_MEMORY != 2
 int SV_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
@@ -851,7 +852,8 @@ static qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean m
 			{
 			if (lumplen >= sizeof (buffer))
 				num_bytes = FS_Read (f, buffer, sizeof (buffer));
-			else num_bytes = FS_Read (f, buffer, lumplen);
+			else 
+				num_bytes = FS_Read (f, buffer, lumplen);
 
 			if (num_bytes > 0)
 				{
@@ -897,7 +899,8 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	// let's not have any servers with no name
 	if (!COM_CheckString (hostname.string))
-		Cvar_Set ("hostname", svgame.dllFuncs.pfnGetGameDescription ? svgame.dllFuncs.pfnGetGameDescription () : FS_Title ());
+		Cvar_Set ("hostname", svgame.dllFuncs.pfnGetGameDescription ? svgame.dllFuncs.pfnGetGameDescription () : 
+			FS_Title ());
 
 	if (startspot)
 		{

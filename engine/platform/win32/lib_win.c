@@ -282,8 +282,10 @@ qboolean LibraryLoadSymbols (dll_user_t *hInst)
 			}
 		}
 
-	if (p_Names) Mem_Free (p_Names);
+	if (p_Names) 
+		Mem_Free (p_Names);
 	return true;
+
 table_error:
 	// cleanup
 	if (f) FS_Close (f);
@@ -344,7 +346,8 @@ static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *dat
 		}
 
 	*peheader = peHeader;
-	importDesc = (PIMAGE_IMPORT_DESCRIPTOR)CALCULATE_ADDRESS (data, GetOffsetByRVA (importDir->VirtualAddress, peHeader));
+	importDesc = (PIMAGE_IMPORT_DESCRIPTOR)CALCULATE_ADDRESS (data, GetOffsetByRVA (importDir->VirtualAddress,
+		peHeader));
 
 	return importDesc;
 	}
@@ -358,7 +361,8 @@ static void ListMissingModules (dll_user_t *hInst)
 	if (!hInst) return;
 
 	data = FS_LoadFile (hInst->dllName, NULL, false);
-	if (!data) return;
+	if (!data) 
+		return;
 
 	importDesc = GetImportDescriptor (hInst->dllName, data, &peHeader);
 	if (!importDesc)

@@ -629,7 +629,7 @@ void CL_CreateCmd (void)
 	int		input_override;
 	int		i, ms;
 
-	if (cls.state < ca_connected || cls.state == ca_cinematic)
+	if ((cls.state < ca_connected) || (cls.state == ca_cinematic))
 		return;
 
 	// store viewangles in case it's will be freeze
@@ -743,8 +743,10 @@ void CL_WritePacket (void)
 	if (cls.state == ca_connected) numbackup = 0;
 
 	// clamp cmdrate
-	if (cl_cmdrate->value < 0.0f) Cvar_SetValue ("cl_cmdrate", 0.0f);
-	else if (cl_cmdrate->value > 100.0f) Cvar_SetValue ("cl_cmdrate", 100.0f);
+	if (cl_cmdrate->value < 0.0f) 
+		Cvar_SetValue ("cl_cmdrate", 0.0f);
+	else if (cl_cmdrate->value > 100.0f) 
+		Cvar_SetValue ("cl_cmdrate", 100.0f);
 
 	// Check to see if we can actually send this command
 
@@ -787,14 +789,18 @@ void CL_WritePacket (void)
 
 		if (cl_cmdrate->value > 0) // clamped between 10 and 100 fps
 			cls.nextcmdtime = host.realtime + bound (0.1f, (1.0f / cl_cmdrate->value), 0.01f);
-		else cls.nextcmdtime = host.realtime; // always able to send right away
+		else 
+			cls.nextcmdtime = host.realtime; // always able to send right away
 
 		if (cls.lastoutgoingcommand == -1)
 			{
 			outgoing_sequence = cls.netchan.outgoing_sequence;
 			cls.lastoutgoingcommand = cls.netchan.outgoing_sequence;
 			}
-		else outgoing_sequence = cls.lastoutgoingcommand + 1;
+		else
+			{
+			outgoing_sequence = cls.lastoutgoingcommand + 1;
+			}
 
 		// begin a client move command
 		MSG_BeginClientCmd (&buf, clc_move);
