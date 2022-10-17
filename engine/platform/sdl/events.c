@@ -421,6 +421,11 @@ static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
 	}
 #endif
 
+#endif
+
+// ESHQ: исправляет дефект компиляции
+#if defined( XASH_SDL ) && !XASH_DEDICATED
+
 /*
 =============
 SDLash_EventFilter
@@ -648,10 +653,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 #endif
 		}
 	}
-#endif
 
-// ESHQ: исправляет дефект компиляции
-#if defined( XASH_SDL ) && !XASH_DEDICATED
 /*
 =============
 SDLash_RunEvents

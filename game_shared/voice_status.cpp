@@ -46,21 +46,14 @@
 #include "vgui_helpers.h"
 #include "vgui_mousecode.h"
 
-
-
 using namespace vgui;
-
-
 extern int cam_thirdperson;
-
 
 #define VOICE_MODEL_INTERVAL		0.3
 #define SCOREBOARD_BLINK_FREQUENCY	0.3	// How often to blink the scoreboard icons.
 #define SQUELCHOSCILLATE_PER_SECOND	2.0f
 
-
 extern BitmapTGA* LoadTGA (const char* pImageName);
-
 
 
 // ---------------------------------------------------------------------- //
@@ -72,7 +65,6 @@ CVoiceStatus* GetClientVoiceMgr ()
 	{
 	return &g_VoiceStatus;
 	}
-
 
 
 // ---------------------------------------------------------------------- //
@@ -189,9 +181,7 @@ CVoiceStatus::~CVoiceStatus ()
 	}
 
 
-int CVoiceStatus::Init (
-	IVoiceStatusHelper* pHelper,
-	Panel** pParentPanel)
+int CVoiceStatus::Init (IVoiceStatusHelper* pHelper, Panel** pParentPanel)
 	{
 	// Setup the voice_modenable cvar.
 	gEngfuncs.pfnRegisterVariable ("voice_modenable", "1", FCVAR_ARCHIVE);
@@ -259,8 +249,11 @@ int CVoiceStatus::Init (
 
 int CVoiceStatus::VidInit ()
 	{
-	FreeBitmaps ();
+#if !OPUS
+	return FALSE;
+#endif
 
+	FreeBitmaps ();
 
 	if (m_pLocalBitmap = vgui_LoadTGA ("gfx/vgui/icntlk_pl.tga"))
 		{
@@ -269,7 +262,8 @@ int CVoiceStatus::VidInit ()
 
 	if (m_pAckBitmap = vgui_LoadTGA ("gfx/vgui/icntlk_sv.tga"))
 		{
-		m_pAckBitmap->setColor (Color (255, 255, 255, 135));	// Give just a tiny bit of translucency so software draws correctly.
+		m_pAckBitmap->setColor (Color (255, 255, 255, 135));	
+		// Give just a tiny bit of translucency so software draws correctly
 		}
 
 	m_pLocalLabel->setImage (m_pLocalBitmap);
@@ -277,27 +271,34 @@ int CVoiceStatus::VidInit ()
 
 
 	if (m_pSpeakerLabelIcon = vgui_LoadTGANoInvertAlpha ("gfx/vgui/speaker4.tga"))
-		m_pSpeakerLabelIcon->setColor (Color (255, 255, 255, 1));		// Give just a tiny bit of translucency so software draws correctly.
+		m_pSpeakerLabelIcon->setColor (Color (255, 255, 255, 1));		
+	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardNeverSpoken = vgui_LoadTGANoInvertAlpha ("gfx/vgui/640_speaker1.tga"))
-		m_pScoreboardNeverSpoken->setColor (Color (255, 255, 255, 1));	// Give just a tiny bit of translucency so software draws correctly.
+		m_pScoreboardNeverSpoken->setColor (Color (255, 255, 255, 1));	
+	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardNotSpeaking = vgui_LoadTGANoInvertAlpha ("gfx/vgui/640_speaker2.tga"))
-		m_pScoreboardNotSpeaking->setColor (Color (255, 255, 255, 1));	// Give just a tiny bit of translucency so software draws correctly.
+		m_pScoreboardNotSpeaking->setColor (Color (255, 255, 255, 1));	
+	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardSpeaking = vgui_LoadTGANoInvertAlpha ("gfx/vgui/640_speaker3.tga"))
-		m_pScoreboardSpeaking->setColor (Color (255, 255, 255, 1));	// Give just a tiny bit of translucency so software draws correctly.
+		m_pScoreboardSpeaking->setColor (Color (255, 255, 255, 1));	
+	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardSpeaking2 = vgui_LoadTGANoInvertAlpha ("gfx/vgui/640_speaker4.tga"))
-		m_pScoreboardSpeaking2->setColor (Color (255, 255, 255, 1));	// Give just a tiny bit of translucency so software draws correctly.
+		m_pScoreboardSpeaking2->setColor (Color (255, 255, 255, 1));	
+	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardSquelch = vgui_LoadTGA ("gfx/vgui/icntlk_squelch.tga"))
-		m_pScoreboardSquelch->setColor (Color (255, 255, 255, 1));	// Give just a tiny bit of translucency so software draws correctly.
+		m_pScoreboardSquelch->setColor (Color (255, 255, 255, 1));	
+	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardBanned = vgui_LoadTGA ("gfx/vgui/640_voiceblocked.tga"))
-		m_pScoreboardBanned->setColor (Color (255, 255, 255, 1));	// Give just a tiny bit of translucency so software draws correctly.
+		m_pScoreboardBanned->setColor (Color (255, 255, 255, 1));	
+	// Give just a tiny bit of translucency so software draws correctly
 
-	// Figure out the voice head model height.
+	// Figure out the voice head model height
 	m_VoiceHeadModelHeight = 45;
 	char* pFile = (char*)gEngfuncs.COM_LoadFile ("scripts/voicemodel.txt", 5, NULL);
 	if (pFile)
@@ -319,6 +320,10 @@ int CVoiceStatus::VidInit ()
 
 void CVoiceStatus::Frame (double frametime)
 	{
+#if !OPUS
+	return;
+#endif
+
 	// check server banned players once per second
 	if (gEngfuncs.GetClientTime () - m_LastUpdateServerState > 1)
 		{
@@ -342,7 +347,6 @@ void CVoiceStatus::Frame (double frametime)
 	for (int i = 0; i < VOICE_MAX_PLAYERS; i++)
 		UpdateBanButton (i);
 	}
-
 
 void CVoiceStatus::CreateEntities ()
 	{
@@ -399,6 +403,10 @@ void CVoiceStatus::CreateEntities ()
 
 void CVoiceStatus::UpdateSpeakerStatus (int entindex, qboolean bTalking)
 	{
+#if !OPUS
+	return;
+#endif
+
 	if (!*m_pParentPanel)
 		return;
 
@@ -669,8 +677,10 @@ void CVoiceStatus::StartSquelchMode ()
 
 void CVoiceStatus::StopSquelchMode ()
 	{
+#if OPUS
 	m_bInSquelchMode = false;
 	m_pHelper->UpdateCursorState ();
+#endif
 	}
 
 bool CVoiceStatus::IsInSquelchMode ()

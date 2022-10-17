@@ -79,7 +79,8 @@ GNU General Public License for more details.
 
 	#define OS_LIB_PREFIX ""
 	#define OS_LIB_EXT "dll"
-	#define VGUI_SUPPORT_DLL "../vgui_support." OS_LIB_EXT
+	#define VGUI_S_DLL	"vguis." OS_LIB_EXT
+	#define VGUI_SUPPORT_DLL "../" VGUI_S_DLL
 	#define HAVE_DUP
 #endif //WIN32
 

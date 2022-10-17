@@ -176,16 +176,17 @@ void VGui_Startup (const char *clientlib, int width, int height)
 			if (Sys_GetParmFromCmdLine ("-vguilib", vguilib))
 				{
 				if (Q_strstr (vguilib, ".dll"))
-					Q_strncpy (vguiloader, "vgui_support.dll", 256);
+					Q_strncpy (vguiloader, VGUI_S_DLL, 256);
 				else
 					Q_strncpy (vguiloader, VGUI_SUPPORT_DLL, 256);
 
 				if (!COM_LoadLibrary (vguilib, false, false))
-					Con_Reportf (S_WARN "VGUI preloading failed. Default library will be used! Reason: %s\n", COM_GetLibraryError ());
+					Con_Reportf (S_WARN "VGUI preloading failed. Default library will be used! Reason: %s\n",
+						COM_GetLibraryError ());
 				}
 
 			if (Q_strstr (clientlib, ".dll"))
-				Q_strncpy (vguiloader, "vgui_support.dll", 256);
+				Q_strncpy (vguiloader, VGUI_S_DLL, 256);
 
 			if (!vguiloader[0] && !Sys_GetParmFromCmdLine ("-vguiloader", vguiloader))
 				Q_strncpy (vguiloader, VGUI_SUPPORT_DLL, 256);

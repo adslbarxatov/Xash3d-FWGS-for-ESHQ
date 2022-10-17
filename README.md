@@ -1,13 +1,11 @@
-# Xash3d adaptation
-### for mods **ESHQ** v 12 (and newer) and **ES: Randomaze** v 1.0 (and newer)
+# Xash3D FWGS Engine adaptation
+### for mods **ESHQ** v 13.0 (and newer) and **ES: Randomaze** v 3.8 (and newer)
 
 #
 
-This engine modification created especially for [ESHQ mod](https://moddb.com/mods/eshq) for Half-Life part 1.
+This engine adaptation was created especially for [ESHQ mod](https://moddb.com/mods/eshq) for Half-Life part 1.
 
-Modification based on one of the newest versions of [Xash3d FWGS engine](https://github.com/FWGS/xash3d-fwgs).
-
-:warning: ***This version is under the merge process now***
+It was based on one of the newest versions of [Xash3d FWGS engine](https://github.com/FWGS/xash3d-fwgs) (`v49/0.20`)
 
 &nbsp;
 
@@ -15,9 +13,13 @@ Modification based on one of the newest versions of [Xash3d FWGS engine](https:/
 
 ## Other notes
 
-- This assembly completely adapted for building with Visual studio 2022.
+- The current build is not multiplatform as its mother project (support code has been removed).
+- The current build contains GL and Software-based renderers based on [SDL](https://libsdl.org) library.
+- The current assembly doesn’t support the voice chat because of absence of required Opus codec. It may be attached later.
+- This assembly completely adapted for building with Visual Studio 2022.
 - This assembly is enough to launch Half-Life (WON) and some compatible mods.
-- This assembly is a fork of original Xash3D FWGS engine with the same license
+- This assembly is a fork of original Xash3D FWGS engine with the same license.
+- This assembly comes with the same third-party software that is described on the engine page
 
 &nbsp;
 

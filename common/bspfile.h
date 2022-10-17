@@ -141,14 +141,6 @@ BRUSH MODELS
 #define IsLiquidContents( cnt )	( cnt == CONTENTS_WATER || cnt == CONTENTS_SLIME || cnt == CONTENTS_LAVA )
 
 // ESHQ: ambient sound types
-/*enum
-	{
-	AMBIENT_WATER = 0,
-	AMBIENT_SKY,
-	AMBIENT_SLIME,
-	AMBIENT_LAVA,
-	NUM_AMBIENTS,
-	};*/
 #define AMBIENT_WATER	0	// waterfall
 #define AMBIENT_SKY		1	// wind
 #define AMBIENT_SLIME	2	// never used in quake

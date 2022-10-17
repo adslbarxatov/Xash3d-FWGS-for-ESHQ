@@ -2195,7 +2195,8 @@ void Con_DrawSolidConsole (int lines)
 	// draw current version
 	memcpy (color, g_color_table[7], sizeof (color));
 
-	Q_snprintf (curbuild, MAX_STRING, "%s %i/%s (%s-%s build %i)", XASH_ENGINE_NAME, PROTOCOL_VERSION, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
+	Q_snprintf (curbuild, MAX_STRING, "%s %i/%s (%s-%s build %i)", XASH_ENGINE_NAME, PROTOCOL_VERSION,
+		XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
 
 	Con_DrawStringLen (curbuild, &stringLen, &charH);
 	start = refState.width - stringLen;
@@ -2552,8 +2553,8 @@ void Con_VidInit (void)
 
 	// missed console image will be replaced as gray background like X-Ray or Crysis
 	if (con.background == R_GetBuiltinTexture (REF_DEFAULT_TEXTURE) || con.background == 0)
-		// ESHQ???: gray
-		con.background = R_GetBuiltinTexture (REF_GRAY_TEXTURE);
+		// ESHQ: цвет фона консоли
+		con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);
 #endif
 	}
 

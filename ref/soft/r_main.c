@@ -42,9 +42,6 @@ float		aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
 int		r_screenwidth;
 
-
-
-
 //
 // refresh flags
 //
@@ -2086,7 +2083,7 @@ int CL_FxBlend (cl_entity_t *e)
 				}
 			break;
 
-		// ESHQ: поддержка мигалок
+			// ESHQ: поддержка мигалок
 		case kRenderFxLeftPoliceLight:
 		case kRenderFxRightPoliceLight:
 			blend = 20 * sin (gpGlobals->time * 60);

@@ -44,9 +44,7 @@ static con_autocomplete_t		con;
 
 /*
 =======================================================================
-
 			FILENAME AUTOCOMPLETION
-
 =======================================================================
 */
 /*
@@ -152,9 +150,11 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 			case Q1BSP_VERSION:
 				Q_strncpy (version_description, "Quake", sizeof (version_description));
 				break;
+
 			case QBSP2_VERSION:
 				Q_strncpy (version_description, "Darkplaces BSP2", sizeof (version_description));
 				break;
+
 			case HLBSP_VERSION:
 				switch (version)
 					{
@@ -164,7 +164,10 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 					default: Q_strncpy (version_description, "Half-Life", sizeof (version_description)); break;
 					}
 				break;
-			default:	Q_strncpy (version_description, "??", sizeof (version_description)); break;
+
+			default:	
+				Q_strncpy (version_description, "??", sizeof (version_description));
+				break;
 			}
 
 		Con_Printf ("%16s (%s) ^3%s^7 ^2%s %s^7\n", mapname, version_description, message, compiler, generator);
@@ -368,7 +371,8 @@ qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 	string		matchbuf;
 	int		i, numsaves;
 
-	t = FS_Search (va ("%s%s*.%s", DEFAULT_SAVE_DIRECTORY, s, DEFAULT_SAVE_EXTENSION), true, true);	// lookup only in gamedir
+	t = FS_Search (va ("%s%s*.%s", DEFAULT_SAVE_DIRECTORY, s, DEFAULT_SAVE_EXTENSION), true, true);	
+	// lookup only in gamedir
 	if (!t) return false;
 
 	COM_FileBase (t->filenames[0], matchbuf);
@@ -416,7 +420,8 @@ qboolean Cmd_GetConfigList (const char *s, char *completedname, int length)
 	int		i, numconfigs;
 
 	t = FS_Search (va ("%s*.cfg", s), true, false);
-	if (!t) return false;
+	if (!t) 
+		return false;
 
 	COM_FileBase (t->filenames[0], matchbuf);
 	if (completedname && length)
@@ -610,8 +615,10 @@ static void Con_AddCommandToList (const char *s, const char *unused1, const char
 	{
 	con_autocomplete_t *list = (con_autocomplete_t *)_autocompleteList;
 
-	if (*s == '@') return; // never show system cvars or cmds
-	if (list->matchCount >= CON_MAXCMDS) return; // list is full
+	if (*s == '@') 
+		return; // never show system cvars or cmds
+	if (list->matchCount >= CON_MAXCMDS)
+		return; // list is full
 
 	if (Q_strnicmp (s, list->completionString, Q_strlen (list->completionString)))
 		return; // no match
@@ -647,7 +654,7 @@ qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
 	list.completionString = s;
 
 	// skip backslash
-	while (*list.completionString && (*list.completionString == '\\' || *list.completionString == '/'))
+	while (*list.completionString && ((*list.completionString == '\\') || (*list.completionString == '/')))
 		list.completionString++;
 
 	if (!COM_CheckStringEmpty (list.completionString))
@@ -657,11 +664,14 @@ qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
 	Cmd_LookupCmds (NULL, &list, (setpair_t)Con_AddCommandToList);
 	Cvar_LookupVars (0, NULL, &list, (setpair_t)Con_AddCommandToList);
 
-	if (!list.matchCount) return false;
+	if (!list.matchCount) 
+		return false;
 	Q_strncpy (matchbuf, list.cmds[0], sizeof (matchbuf));
+
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (list.matchCount == 1) return true;
+	if (list.matchCount == 1) 
+		return true;
 
 	qsort (list.cmds, list.matchCount, sizeof (char *), Con_SortCmds);
 
@@ -1158,7 +1168,7 @@ void Con_CompleteCommand (field_t *field)
 	con.completionString = Cmd_Argv (0);
 
 	// skip backslash
-	while (*con.completionString && (*con.completionString == '\\' || *con.completionString == '/'))
+	while (*con.completionString && ((*con.completionString == '\\') || (*con.completionString == '/')))
 		con.completionString++;
 
 	if (!COM_CheckStringEmpty (con.completionString))
@@ -1191,7 +1201,7 @@ void Con_CompleteCommand (field_t *field)
 		con.completionBuffer = Cmd_Argv (Cmd_Argc () - 1);
 
 		// skip backslash
-		while (*con.completionBuffer && (*con.completionBuffer == '\\' || *con.completionBuffer == '/'))
+		while (*con.completionBuffer && ((*con.completionBuffer == '\\') || (*con.completionBuffer == '/')))
 			con.completionBuffer++;
 
 		if (!COM_CheckStringEmpty (con.completionBuffer))
@@ -1279,7 +1289,8 @@ void Cmd_AutoComplete (char *complete_string)
 	// setup output
 	if (input.buffer[0] == '\\' || input.buffer[0] == '/')
 		Q_strncpy (complete_string, input.buffer + 1, sizeof (input.buffer));
-	else Q_strncpy (complete_string, input.buffer, sizeof (input.buffer));
+	else 
+		Q_strncpy (complete_string, input.buffer, sizeof (input.buffer));
 	}
 
 /*
@@ -1398,9 +1409,9 @@ void Host_WriteConfig (void)
 		if (jlook && (jlook->state & 1))
 			FS_Printf (f, "+jlook\n");
 
-		// ESHQ: не нужен
+		// ESHQ: эх эєцхэ
 		// FS_Printf( f, "exec userconfig.cfg" );
-		// ESHQ: зато имеет смысл добавить автозагрузку последнего сохранения
+		// ESHQ: чрЄю шьххЄ ёь√ёы фюсртшЄ№ ртЄючруЁєчъє яюёыхфэхую ёюїЁрэхэш 
 		FS_Printf (f, "\nload quick\n");
 
 		Host_FinalizeConfig (f, "config.cfg");
@@ -1444,7 +1455,10 @@ void GAME_EXPORT Host_WriteServerConfig (const char *name)
 
 		Host_FinalizeConfig (f, name);
 		}
-	else Con_DPrintf (S_ERROR "Couldn't write %s.\n", name);
+	else
+		{
+		Con_DPrintf (S_ERROR "Couldn't write %s.\n", name);
+		}
 
 	SV_FreeGameProgs ();	// release progs with all variables
 	}
@@ -1480,7 +1494,10 @@ void Host_WriteOpenGLConfig (void)
 
 		Host_FinalizeConfig (f, name);
 		}
-	else Con_DPrintf (S_ERROR "can't update %s.\n", name);
+	else
+		{
+		Con_DPrintf (S_ERROR "can't update %s.\n", name);
+		}
 	}
 
 /*
@@ -1508,7 +1525,10 @@ void Host_WriteVideoConfig (void)
 		Cvar_WriteVariables (f, FCVAR_RENDERINFO);
 		Host_FinalizeConfig (f, "video.cfg");
 		}
-	else Con_DPrintf (S_ERROR "can't update video.cfg.\n");
+	else
+		{
+		Con_DPrintf (S_ERROR "can't update video.cfg.\n");
+		}
 	}
 #endif // XASH_DEDICATED
 
@@ -1540,6 +1560,10 @@ void Key_EnumCmds_f (void)
 		FS_Close (f);
 		Con_Printf ("help.txt created\n");
 		}
-	else Con_Printf (S_ERROR "couldn't write help.txt.\n");
+	else
+		{
+		Con_Printf (S_ERROR "couldn't write help.txt.\n");
+		}
+
 	FS_AllowDirectPaths (false);
 	}

@@ -25,18 +25,7 @@ GNU General Public License for more details.
 extern "C" {
 #endif
 
-// ESHQ: некорректное определение
 // timestamp modes
-/*enum
-	{
-	TIME_FULL = 0,
-	TIME_DATE_ONLY,
-	TIME_TIME_ONLY,
-	TIME_NO_SECONDS,
-	TIME_YEAR_ONLY,
-	TIME_FILENAME,
-	};*/
-
 #define	TIME_FULL		0
 #define	TIME_DATE_ONLY	1
 #define	TIME_TIME_ONLY	2

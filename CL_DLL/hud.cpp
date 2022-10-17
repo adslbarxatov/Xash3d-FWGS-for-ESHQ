@@ -345,7 +345,9 @@ void CHud::Init (void)
 	m_TextMessage.Init ();
 	m_StatusIcons.Init ();
 
+#if OPUS
 	GetClientVoiceMgr ()->Init (&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
+#endif
 
 	m_Menu.Init ();
 
