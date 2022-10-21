@@ -355,7 +355,7 @@ struct
 	=============
 	DirectoryCount
 
-	counting all the files with x3s1 - x3s3 extension
+	counting all the files with xv1 - xv3 extension
 	in save folder
 	=============
 	*/
@@ -640,7 +640,7 @@ struct
 	=============
 	DirectoryCopy
 
-	put the x3s1 - x3s3 files into save file
+	put the xv1 - xv3 files into save file
 	=============
 	*/
 	static void DirectoryCopy (const char *pPath, file_t *pFile)
@@ -674,7 +674,7 @@ struct
 	=============
 	DirectoryExtract
 
-	extract the x3s1 - x3s3 files from the save file
+	extract the xv1 - xv3 files from the save file
 	=============
 	*/
 	static void DirectoryExtract (file_t *pFile, int fileCount)
@@ -951,7 +951,7 @@ struct
 		FS_Read (pFile, &tokenSize, sizeof (int));	// total size of hash tokens
 
 		// determine highest size of seve-restore buffer
-		// because it's used twice: for x3s1 and x3s2 restore
+		// because it's used twice: for xv1 and xv2 restore
 		clientSize = GetClientDataSize (level);
 		totalSize = Q_max (clientSize, (size + tokenSize));
 

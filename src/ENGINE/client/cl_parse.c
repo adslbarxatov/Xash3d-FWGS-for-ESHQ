@@ -1279,7 +1279,7 @@ void CL_ParseRestore (sizebuf_t *msg)
 	int		i, mapCount;
 	char *pMapName;
 
-	// mapname.x3s2
+	// mapname.xv2
 	Q_strncpy (filename, MSG_ReadString (msg), sizeof (filename));
 	mapCount = MSG_ReadByte (msg);
 
