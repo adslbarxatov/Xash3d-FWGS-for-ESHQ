@@ -1279,7 +1279,7 @@ void CL_ParseRestore (sizebuf_t *msg)
 	int		i, mapCount;
 	char *pMapName;
 
-	// mapname.HL2
+	// mapname.x3s2
 	Q_strncpy (filename, MSG_ReadString (msg), sizeof (filename));
 	mapCount = MSG_ReadByte (msg);
 
@@ -1784,6 +1784,7 @@ void CL_ParseHLTV (sizebuf_t *msg)
 			cl.proxy_redirect = true;
 			cls.spectator = true;
 			break;
+
 		case HLTV_STATUS:
 			MSG_ReadLong (msg);
 			MSG_ReadShort (msg);
@@ -1792,12 +1793,13 @@ void CL_ParseHLTV (sizebuf_t *msg)
 			MSG_ReadLong (msg);
 			MSG_ReadWord (msg);
 			break;
+
 		case HLTV_LISTEN:
 			cls.signon = SIGNONS;
 			NET_StringToAdr (MSG_ReadString (msg), &cls.hltv_listen_address);
-			//		NET_JoinGroup( cls.netchan.sock, cls.hltv_listen_address );
 			SCR_EndLoadingPlaque ();
 			break;
+
 		default:
 			break;
 		}

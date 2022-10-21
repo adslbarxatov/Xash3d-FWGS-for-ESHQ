@@ -732,7 +732,7 @@ enum
 
 	// ESHQ: мигалки
 	kRenderFxLeftPoliceLight,
-	kRenderFxRightPoliceLight,
+	kRenderFxRightPoliceLight
 	};
 
 typedef int		func_t;

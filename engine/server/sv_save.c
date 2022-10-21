@@ -355,7 +355,7 @@ struct
 	=============
 	DirectoryCount
 
-	counting all the files with HL1-HL3 extension
+	counting all the files with x3s1 - x3s3 extension
 	in save folder
 	=============
 	*/
@@ -365,7 +365,8 @@ struct
 		search_t *t;
 
 		t = FS_Search (pPath, true, true);	// lookup only in gamedir
-		if (!t) return 0; // empty
+		if (!t) 
+			return 0; // empty
 
 		count = t->numfilenames;
 		Mem_Free (t);
@@ -485,7 +486,7 @@ struct
 	=============
 	ClearSaveDir
 
-	remove all the temp files HL1-HL3
+	remove all the temp files xv1 - xv3
 	(it will be extracted again from another save file)
 	=============
 	*/
@@ -494,9 +495,10 @@ struct
 		search_t *t;
 		int	i;
 
-		// just delete all HL? files
-		t = FS_Search (DEFAULT_SAVE_DIRECTORY "*.HL?", true, true);
-		if (!t) return; // already empty
+		// just delete all xv? files
+		t = FS_Search (DEFAULT_SAVE_DIRECTORY "*." EXTENDED_SAVE_EXTENSION "?", true, true);
+		if (!t) 
+			return; // already empty
 
 		for (i = 0; i < t->numfilenames; i++)
 			FS_Delete (t->filenames[i]);
@@ -587,8 +589,9 @@ struct
 		char	newName[MAX_OSPATH], oldName[MAX_OSPATH];
 		char	newShot[MAX_OSPATH], oldShot[MAX_OSPATH];
 
-		// delete last quick/autosave (e.g. quick05.sav)
-		Q_snprintf (newName, sizeof (newName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", pName, count, DEFAULT_SAVE_EXTENSION);
+		// delete last quick/autosave (e.g. quick05)
+		Q_snprintf (newName, sizeof (newName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", 
+			pName, count, DEFAULT_SAVE_EXTENSION);
 		Q_snprintf (newShot, sizeof (newShot), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count);
 
 		// only delete from game directory, basedir is read-only
@@ -605,17 +608,20 @@ struct
 			if (count == 1)
 				{
 				// quick.sav
-				Q_snprintf (oldName, sizeof (oldName), DEFAULT_SAVE_DIRECTORY "%s.%s", pName, DEFAULT_SAVE_EXTENSION);
+				Q_snprintf (oldName, sizeof (oldName), DEFAULT_SAVE_DIRECTORY "%s.%s", 
+					pName, DEFAULT_SAVE_EXTENSION);
 				Q_snprintf (oldShot, sizeof (oldShot), DEFAULT_SAVE_DIRECTORY "%s.bmp", pName);
 				}
 			else
 				{
 				// quick04.sav, etc.
-				Q_snprintf (oldName, sizeof (oldName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", pName, count - 1, DEFAULT_SAVE_EXTENSION);
+				Q_snprintf (oldName, sizeof (oldName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", 
+					pName, count - 1, DEFAULT_SAVE_EXTENSION);
 				Q_snprintf (oldShot, sizeof (oldShot), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count - 1);
 				}
 
-			Q_snprintf (newName, sizeof (newName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", pName, count, DEFAULT_SAVE_EXTENSION);
+			Q_snprintf (newName, sizeof (newName), DEFAULT_SAVE_DIRECTORY "%s%02d.%s", 
+				pName, count, DEFAULT_SAVE_EXTENSION);
 			Q_snprintf (newShot, sizeof (newShot), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count);
 
 #if !XASH_DEDICATED
@@ -634,7 +640,7 @@ struct
 	=============
 	DirectoryCopy
 
-	put the HL1-HL3 files into .sav file
+	put the x3s1 - x3s3 files into save file
 	=============
 	*/
 	static void DirectoryCopy (const char *pPath, file_t *pFile)
@@ -645,7 +651,8 @@ struct
 		search_t *t;
 
 		t = FS_Search (pPath, true, true);
-		if (!t) return; // nothing to copy ?
+		if (!t)
+			return; // nothing to copy ?
 
 		for (i = 0; i < t->numfilenames; i++)
 			{
@@ -659,6 +666,7 @@ struct
 			FS_FileCopy (pFile, pCopy, fileSize);
 			FS_Close (pCopy);
 			}
+
 		Mem_Free (t);
 		}
 
@@ -666,7 +674,7 @@ struct
 	=============
 	DirectoryExtract
 
-	extract the HL1-HL3 files from the .sav file
+	extract the x3s1 - x3s3 files from the save file
 	=============
 	*/
 	static void DirectoryExtract (file_t *pFile, int fileCount)
@@ -870,7 +878,7 @@ struct
 		char	name[MAX_QPATH];
 		file_t *pFile;
 
-		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.HL2", level);
+		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "2", level);
 
 		if ((pFile = FS_Open (name, "rb", true)) == NULL)
 			return 0;
@@ -916,7 +924,7 @@ struct
 		int		totalSize;
 		file_t *pFile;
 
-		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.HL1", level);
+		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "1", level);
 		Con_Printf ("Loading game from %s...\n", name);
 
 		if ((pFile = FS_Open (name, "rb", true)) == NULL)
@@ -930,7 +938,7 @@ struct
 		FS_Read (pFile, &version, sizeof (int));
 
 		// is this a valid save?
-		if (id != SAVEFILE_HEADER || version != SAVEGAME_VERSION)
+		if ((id != SAVEFILE_HEADER) || (version != SAVEGAME_VERSION))
 			{
 			FS_Close (pFile);
 			return NULL;
@@ -943,7 +951,7 @@ struct
 		FS_Read (pFile, &tokenSize, sizeof (int));	// total size of hash tokens
 
 		// determine highest size of seve-restore buffer
-		// because it's used twice: for HL1 and HL2 restore
+		// because it's used twice: for x3s1 and x3s2 restore
 		clientSize = GetClientDataSize (level);
 		totalSize = Q_max (clientSize, (size + tokenSize));
 
@@ -1026,7 +1034,7 @@ struct
 		int	i, size = 0;
 		file_t *pFile;
 
-		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.HL3", level);
+		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "3", level);
 
 		if ((pFile = FS_Open (name, "wb", true)) == NULL)
 			return;
@@ -1063,7 +1071,7 @@ struct
 		int	i, size, entityId;
 		file_t *pFile;
 
-		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.HL3", level);
+		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "3", level);
 
 		if ((pFile = FS_Open (name, "rb", true)) == NULL)
 			return;
@@ -1248,22 +1256,25 @@ struct
 			if (pSaveData->fUseLandmark && FBitSet (decalList[i].flags, FDECAL_USE_LANDMARK))
 				VectorSubtract (decalList[i].position, pSaveData->vecLandmarkOffset, decalList[i].position);
 
-			svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "DECALLIST", &decalList[i], gDecalEntry, ARRAYSIZE (gDecalEntry));
+			svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "DECALLIST", &decalList[i], gDecalEntry, 
+				ARRAYSIZE (gDecalEntry));
 			}
 		Z_Free (decalList);
 
 		// write client entities
 		for (i = 0; i < header.entityCount; i++)
-			svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "STATICENTITY", &svs.static_entities[i], gStaticEntry, ARRAYSIZE (gStaticEntry));
+			svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "STATICENTITY", &svs.static_entities[i], 
+				gStaticEntry, ARRAYSIZE (gStaticEntry));
 
 		// write sounds
 		for (i = 0; i < header.soundCount; i++)
-			svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "SOUNDLIST", &soundInfo[i], gSoundEntry, ARRAYSIZE (gSoundEntry));
+			svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "SOUNDLIST", &soundInfo[i], gSoundEntry, 
+				ARRAYSIZE (gSoundEntry));
 
 		// Write entity string token table
 		pTokenData = StoreHashTable (pSaveData);
 
-		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.HL2", level);
+		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "2", level);
 
 		// output to disk
 		if ((pFile = FS_Open (name, "wb", true)) == NULL)
@@ -1302,7 +1313,7 @@ struct
 		SAVE_CLIENT	header;
 		file_t *pFile;
 
-		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.HL2", level);
+		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "2", level);
 
 		if ((pFile = FS_Open (name, "rb", true)) == NULL)
 			return; // something bad is happens
@@ -1487,7 +1498,7 @@ struct
 
 		pSaveData = SaveInit (SAVE_HEAPSIZE, SAVE_HASHSTRINGS);
 
-		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.HL1", sv.name);
+		Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "1", sv.name);
 		COM_FixSlashes (name);
 
 		// initialize entity table to count moved entities
@@ -1704,15 +1715,19 @@ struct
 		file_t *pFile;
 
 		pSaveData = SaveGameState (false);
-		if (!pSaveData) return 0;
+		if (!pSaveData) 
+			return 0;
 
 		SaveFinish (pSaveData);
 		pSaveData = SaveInit (SAVE_HEAPSIZE, SAVE_HASHSTRINGS); // re-init the buffer
 
-		Q_strncpy (hlPath, DEFAULT_SAVE_DIRECTORY "*.HL?", sizeof (hlPath));
-		Q_strncpy (gameHeader.mapName, sv.name, sizeof (gameHeader.mapName)); // get the name of level where a player
+		Q_strncpy (hlPath, DEFAULT_SAVE_DIRECTORY "*." EXTENDED_SAVE_EXTENSION "?", sizeof (hlPath));
+		Q_strncpy (gameHeader.mapName, sv.name, sizeof (gameHeader.mapName)); 
+		// get the name of level where a player
+		
 		Q_strncpy (gameHeader.comment, pSaveComment, sizeof (gameHeader.comment));
-		gameHeader.mapCount = DirectoryCount (hlPath); // counting all the adjacency maps
+		gameHeader.mapCount = DirectoryCount (hlPath); 
+		// counting all the adjacency maps
 
 		// Store the game header
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "GameHeader", &gameHeader, gGameHeader, ARRAYSIZE (gGameHeader));

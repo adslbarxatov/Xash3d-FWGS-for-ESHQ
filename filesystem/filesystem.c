@@ -625,8 +625,12 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 
 	switch (GameInfo->gamemode)
 		{
-		case 1: FS_Print (f, "gamemode\t\t\"singleplayer_only\"\n"); break;
-		case 2: FS_Print (f, "gamemode\t\t\"multiplayer_only\"\n"); break;
+		case 1: 
+			FS_Print (f, "gamemode\t\t\"singleplayer_only\"\n");
+			break;
+		case 2:
+			FS_Print (f, "gamemode\t\t\"multiplayer_only\"\n"); 
+			break;
 		}
 
 	if (COM_CheckStringEmpty (GameInfo->sp_entity))
@@ -677,7 +681,10 @@ void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir)
 	Q_strncpy (GameInfo->basedir, "valve", sizeof (GameInfo->basedir));
 	GameInfo->falldir[0] = 0;
 	Q_strncpy (GameInfo->startmap, "c0a0", sizeof (GameInfo->startmap));
-	Q_strncpy (GameInfo->trainmap, "t0a0", sizeof (GameInfo->trainmap));
+	
+	// ESHQ: отменена принудительная инициализация тренировочной карты
+	//Q_strncpy (GameInfo->trainmap, "t0a0", sizeof (GameInfo->trainmap));
+
 	Q_strncpy (GameInfo->title, "New Game", sizeof (GameInfo->title));
 	GameInfo->version = 1.0f;
 
@@ -776,13 +783,10 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 
 			if (!isGameInfo && !Q_stricmp (token, "singleplayer_only"))
 				{
-				// TODO: Remove this ugly hack too.
-				// This was made because Half-Life has multiplayer,
-				// but for some reason it's marked as singleplayer_only.
-				// Old WON version is fine.
-				if (!Q_stricmp (GameInfo->gamefolder, "valve"))
+				// ESHQ: удалено ограничение на рабочую директорию
+				/*if (!Q_stricmp (GameInfo->gamefolder, "valve"))
 					GameInfo->gamemode = GAME_NORMAL;
-				else
+				else*/
 					GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
 				Q_strncpy (GameInfo->type, "Single", sizeof (GameInfo->type));
 				}
@@ -886,11 +890,8 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			else if (!Q_stricmp (token, "gamemode"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
-				// TODO: Remove this ugly hack too.
-				// This was made because Half-Life has multiplayer,
-				// but for some reason it's marked as singleplayer_only.
-				// Old WON version is fine.
-				if (!Q_stricmp (token, "singleplayer_only") && Q_stricmp (GameInfo->gamefolder, "valve"))
+				// ESHQ: удалено ограничение на рабочую директорию
+				if (!Q_stricmp (token, "singleplayer_only") /*&& Q_stricmp (GameInfo->gamefolder, "valve")*/)
 					GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
 				else if (!Q_stricmp (token, "multiplayer_only"))
 					GameInfo->gamemode = GAME_MULTIPLAYER_ONLY;

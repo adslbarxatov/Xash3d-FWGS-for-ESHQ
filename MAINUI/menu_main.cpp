@@ -192,8 +192,10 @@ static const char* UI_Main_KeyFunc (int key, int down)
 			{
 			UI_QuitDialog ();
 			}
+
 		return uiSoundNull;
 		}
+
 	return UI_DefaultKey (&uiMain.menu, key, down);
 	}
 
@@ -207,11 +209,12 @@ static void UI_Main_ActivateFunc (void)
 	if (!CL_IsActive ())
 		uiMain.resumeGame.generic.flags |= QMF_HIDDEN;
 
-	if (gpGlobals->developer)	// FWGS
+	// ESHQ: отменено
+	/*if (gpGlobals->developer)
 		{
 		uiMain.console.generic.y = CL_IsActive () ? 180 : 230;
 		UI_ScaleCoords (NULL, &uiMain.console.generic.y, NULL, NULL);
-		}
+		}*/
 	}
 
 /*
@@ -249,7 +252,7 @@ static void UI_Main_Credits (void)
 	CVAR_SET_FLOAT ("skill", 1.0f);
 	CVAR_SET_FLOAT ("deathmatch", 0.0f);
 	CVAR_SET_FLOAT ("teamplay", 0.0f);
-	CVAR_SET_FLOAT ("pausable", 1.0f); // singleplayer is always allowing pause
+	CVAR_SET_FLOAT ("pausable", 0.0f); 
 	CVAR_SET_FLOAT ("coop", 0.0f);
 
 	BACKGROUND_TRACK (NULL, NULL);
@@ -274,6 +277,7 @@ static void UI_Main_Callback (void* self, int event)
 			else 
 				((menuBitmap_s*)self)->focusPic = ART_CLOSEBTN_F;
 			break;
+
 		case ID_MINIMIZE:
 			if (event == QM_PRESSED)
 				((menuBitmap_s*)self)->focusPic = ART_MINIMIZE_D;
@@ -291,54 +295,62 @@ static void UI_Main_Callback (void* self, int event)
 			UI_SetActiveMenu (FALSE);
 			KEY_SetDest (KEY_CONSOLE);
 			break;
+
 		case ID_RESUME:
 			UI_CloseMenu ();
 			break;
+
 		case ID_NEWGAME:
 			UI_NewGame_Menu ();
 			break;
+
 		case ID_HAZARDCOURSE:
 			if (CL_IsActive ())
 				UI_PromptDialog ();
-			else UI_Main_HazardCourse ();
+			else 
+				UI_Main_HazardCourse ();
 			break;
+
 		case ID_MULTIPLAYER:
 			UI_MultiPlayer_Menu ();
 			break;
+
 		case ID_CONFIGURATION:
 			UI_Options_Menu ();
 			break;
+
 		case ID_SAVERESTORE:
 			if (CL_IsActive ())
 				UI_SaveLoad_Menu ();
 			else 
 				UI_LoadGame_Menu ();
 			break;
+
 		case ID_CUSTOMGAME:
 			UI_CustomGame_Menu ();
 			break;
+
 		// ESHQ: изменено для поддержки титров
 		case ID_CREDITS:
-			if (CL_IsActive ())
-				UI_PromptDialog ();
-			else
-				UI_Main_Credits ();
-			/*case ID_PREVIEWS:
-				SHELL_EXECUTE( MenuStrings[HINT_PREVIEWS_CMD], NULL, false );*/
-				break;
+			UI_Main_Credits ();
+			break;
+		
 		case ID_QUIT:
 		case ID_QUIT_BUTTON:
 			UI_QuitDialog ();
 			break;
+
 		case ID_MINIMIZE:
 			CLIENT_COMMAND (FALSE, "minimize\n");
 			break;
+
 		case ID_YES:
 			if (!(uiMain.quitMessage.generic.flags & QMF_HIDDEN))
 				CLIENT_COMMAND (FALSE, "quit\n");
 			else
 				UI_Main_HazardCourse ();
 			break;
+
 		case ID_NO:
 			if (!(uiMain.quitMessage.generic.flags & QMF_HIDDEN))
 				UI_QuitDialog ();
@@ -363,7 +375,8 @@ static void UI_Main_Init (void)
 	// training map is present and not equal to startmap
 	if (strlen (gMenu.m_gameinfo.trainmap) && stricmp (gMenu.m_gameinfo.trainmap, gMenu.m_gameinfo.startmap))
 		bTrainMap = true;
-	else bTrainMap = false;
+	else 
+		bTrainMap = false;
 
 	if (CVAR_GET_FLOAT ("host_allow_changegame"))
 		bCustomGame = true;
@@ -386,15 +399,6 @@ static void UI_Main_Init (void)
 	uiMain.background.generic.height = 768;
 	uiMain.background.pic = ART_BACKGROUND;
 	uiMain.background.generic.ownerdraw = UI_Background_Ownerdraw;
-
-	uiMain.console.generic.id = ID_CONSOLE;
-	uiMain.console.generic.type = QMTYPE_BM_BUTTON;
-	uiMain.console.generic.name = "Console";
-	uiMain.console.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
-	uiMain.console.generic.x = 72;
-	uiMain.console.generic.y = CL_IsActive () ? 180 : 230;
-	uiMain.console.generic.callback = UI_Main_Callback;
-	UI_UtilSetupPicButton (&uiMain.console, PC_CONSOLE);
 
 	uiMain.resumeGame.generic.id = ID_RESUME;
 	uiMain.resumeGame.generic.type = QMTYPE_BM_BUTTON;
@@ -508,9 +512,8 @@ static void UI_Main_Init (void)
 	uiMain.previews.generic.y = (bCustomGame) ? (bTrainMap ? 580 : 530) : (bTrainMap ? 530 : 480);
 	uiMain.previews.generic.callback = UI_Main_Callback;
 
-	/*// too short execute string - not a real command
-	if( strlen( MenuStrings[HINT_PREVIEWS_CMD] ) <= 3 )
-		uiMain.previews.generic.flags |= QMF_GRAYED;*/
+	if (CL_IsActive ())
+		uiMain.previews.generic.flags |= QMF_GRAYED;
 
 	UI_UtilSetupPicButton (&uiMain.previews, PC_CREDITS);
 
@@ -523,6 +526,16 @@ static void UI_Main_Init (void)
 	uiMain.quit.generic.y = (bCustomGame) ? (bTrainMap ? 630 : 580) : (bTrainMap ? 580 : 530);
 	uiMain.quit.generic.callback = UI_Main_Callback;
 	UI_UtilSetupPicButton (&uiMain.quit, PC_QUIT);
+
+	// ESHQ: перемещено вниз списка
+	uiMain.console.generic.id = ID_CONSOLE;
+	uiMain.console.generic.type = QMTYPE_BM_BUTTON;
+	uiMain.console.generic.name = "Console";
+	uiMain.console.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
+	uiMain.console.generic.x = 72;
+	uiMain.console.generic.y = (bCustomGame) ? (bTrainMap ? 700 : 650) : (bTrainMap ? 650 : 600);
+	uiMain.console.generic.callback = UI_Main_Callback;
+	UI_UtilSetupPicButton (&uiMain.console, PC_CONSOLE);
 
 	uiMain.minimizeBtn.generic.id = ID_MINIMIZE;
 	uiMain.minimizeBtn.generic.type = QMTYPE_BITMAP;

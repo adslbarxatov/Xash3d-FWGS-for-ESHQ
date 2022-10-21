@@ -430,7 +430,7 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		Image_GetPaletteLMP (pal, rendermode);
 		image.d_currentpal[255] &= 0xFFFFFF;
 		}
-	else if (image.hint != IL_HINT_HL && filesize >= (int)sizeof (mip) + ((pixels * 85) >> 6))
+	else if ((image.hint != IL_HINT_HL) && (filesize >= (int)sizeof (mip) + ((pixels * 85) >> 6)))
 		{
 		// quake1 1.01 mip version without palette
 		fin = (byte *)buffer + mip.offsets[0];

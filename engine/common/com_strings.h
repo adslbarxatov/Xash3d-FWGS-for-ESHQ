@@ -53,6 +53,7 @@ GNU General Public License for more details.
 
 // ESHQ: начальное определение Ц в basemenu.h
 #define DEFAULT_SAVE_EXTENSION	"x3v"
+#define EXTENDED_SAVE_EXTENSION	"xv"
 
 // fallback to this skybox
 #define DEFAULT_SKYBOX_PATH		"gfx/env/desert"

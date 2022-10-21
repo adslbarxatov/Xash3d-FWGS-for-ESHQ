@@ -1311,7 +1311,7 @@ void SV_GetPlayerStats (sv_client_t *cl, int *ping, int *packet_loss)
 PutClientInServer
 
 Called when a player connects to a server or respawns in
-a deathmatch.
+a deathmatch
 ============
 */
 void SV_PutClientInServer (sv_client_t *cl)
@@ -1343,7 +1343,7 @@ void SV_PutClientInServer (sv_client_t *cl)
 			svgame.dllFuncs.pfnParmsChangeLevel ();
 
 			MSG_BeginServerCmd (&msg, svc_restore);
-			Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.HL2", sv.name);
+			Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "2", sv.name);
 			COM_FixSlashes (name);
 			MSG_WriteString (&msg, name);
 			MSG_WriteByte (&msg, levelData.connectionCount);
@@ -2225,13 +2225,18 @@ void SV_TSourceEngineQuery (netadr_t from)
 
 		if (GI->gamemode == 2)
 			MSG_WriteByte (&buf, 1); // multiplayer_only
-		else MSG_WriteByte (&buf, 0);
+		else 
+			MSG_WriteByte (&buf, 0);
 
 		if (Q_strstr (GI->game_dll, "hl."))
 			MSG_WriteByte (&buf, 0); // Half-Life DLL
-		else MSG_WriteByte (&buf, 1); // Own DLL
+		else 
+			MSG_WriteByte (&buf, 1); // Own DLL
 		}
-	else MSG_WriteByte (&buf, 0); // Half-Life
+	else
+		{
+		MSG_WriteByte (&buf, 0); // Half-Life
+		}
 
 	MSG_WriteByte (&buf, GI->secure); // unsecure
 	MSG_WriteByte (&buf, bots);

@@ -453,7 +453,7 @@ class CItemSecurity: public CItem
 		textParams.channel = 6;
 
 		// Сообщение
-		int lowestMinimumToTrigger = 95 * minimumToTrigger / 100;	// 95%
+		int lowestMinimumToTrigger = 91 * minimumToTrigger / 100;	// 91%
 
 		// Значение не задано - простой сбор
 		if (minimumToTrigger == 0)

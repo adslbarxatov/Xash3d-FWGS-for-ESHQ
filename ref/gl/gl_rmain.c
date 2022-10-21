@@ -742,13 +742,14 @@ static void R_CheckFog (void)
 			if (tex) RI.cached_contents = RI.viewleaf->contents;
 			}*/
 
-		if (!tex) return;	// no valid fogs
+		if (!tex) 
+			return;	// no valid fogs
 
 		// copy fog params
 		RI.fogColor[0] = tex->fogParams[0] / 255.0f;
 		RI.fogColor[1] = tex->fogParams[1] / 255.0f;
 		RI.fogColor[2] = tex->fogParams[2] / 255.0f;
-		RI.fogDensity = tex->fogParams[3] * 0.000025f;
+		RI.fogDensity = tex->fogParams[3] * 0.000075f;	// ESHQ: коррекция насыщенности тумана
 		RI.fogStart = RI.fogEnd = 0.0f;
 		RI.fogColor[3] = 1.0f;
 		RI.fogCustom = false;
@@ -791,12 +792,15 @@ R_DrawFog
 */
 void R_DrawFog (void)
 	{
-	if (!RI.fogEnabled) return;
+	if (!RI.fogEnabled) 
+		return;
 
 	pglEnable (GL_FOG);
 	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
 		pglFogi (GL_FOG_MODE, GL_EXP2);
-	else pglFogi (GL_FOG_MODE, GL_EXP);
+	else 
+		pglFogi (GL_FOG_MODE, GL_EXP);
+
 	pglFogf (GL_FOG_DENSITY, RI.fogDensity);
 	pglFogfv (GL_FOG_COLOR, RI.fogColor);
 	pglHint (GL_FOG_HINT, GL_NICEST);
@@ -886,9 +890,11 @@ void R_DrawEntitiesOnList (void)
 		// handle studiomodels with custom rendermodes on texture
 		if (RI.currententity->curstate.rendermode != kRenderNormal)
 			tr.blend = CL_FxBlend (RI.currententity) / 255.0f;
-		else tr.blend = 1.0f; // draw as solid but sorted by distance
+		else 
+			tr.blend = 1.0f; // draw as solid but sorted by distance
 
-		if (tr.blend <= 0.0f) continue;
+		if (tr.blend <= 0.0f) 
+			continue;
 
 		Assert (RI.currententity != NULL);
 		Assert (RI.currentmodel != NULL);
@@ -1175,15 +1181,19 @@ int CL_FxBlend (cl_entity_t *e)
 		case kRenderFxPulseSlowWide:
 			blend = e->curstate.renderamt + 0x40 * sin (gpGlobals->time * 2 + offset);
 			break;
+
 		case kRenderFxPulseFastWide:
 			blend = e->curstate.renderamt + 0x40 * sin (gpGlobals->time * 8 + offset);
 			break;
+
 		case kRenderFxPulseSlow:
 			blend = e->curstate.renderamt + 0x10 * sin (gpGlobals->time * 2 + offset);
 			break;
+
 		case kRenderFxPulseFast:
 			blend = e->curstate.renderamt + 0x10 * sin (gpGlobals->time * 8 + offset);
 			break;
+
 		case kRenderFxFadeSlow:
 			if (RP_NORMALPASS ())
 				{
@@ -1193,6 +1203,7 @@ int CL_FxBlend (cl_entity_t *e)
 				}
 			blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxFadeFast:
 			if (RP_NORMALPASS ())
 				{
@@ -1202,6 +1213,7 @@ int CL_FxBlend (cl_entity_t *e)
 				}
 			blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxSolidSlow:
 			if (RP_NORMALPASS ())
 				{
@@ -1211,6 +1223,7 @@ int CL_FxBlend (cl_entity_t *e)
 				}
 			blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxSolidFast:
 			if (RP_NORMALPASS ())
 				{
@@ -1220,31 +1233,37 @@ int CL_FxBlend (cl_entity_t *e)
 				}
 			blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxStrobeSlow:
 			blend = 20 * sin (gpGlobals->time * 4 + offset);
 			if (blend < 0) blend = 0;
 			else blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxStrobeFast:
 			blend = 20 * sin (gpGlobals->time * 16 + offset);
 			if (blend < 0) blend = 0;
 			else blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxStrobeFaster:
 			blend = 20 * sin (gpGlobals->time * 36 + offset);
 			if (blend < 0) blend = 0;
 			else blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxFlickerSlow:
 			blend = 20 * (sin (gpGlobals->time * 2) + sin (gpGlobals->time * 17 + offset));
 			if (blend < 0) blend = 0;
 			else blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxFlickerFast:
 			blend = 20 * (sin (gpGlobals->time * 16) + sin (gpGlobals->time * 23 + offset));
 			if (blend < 0) blend = 0;
 			else blend = e->curstate.renderamt;
 			break;
+
 		case kRenderFxHologram:
 		case kRenderFxDistort:
 			VectorCopy (e->origin, tmp);
@@ -1267,6 +1286,21 @@ int CL_FxBlend (cl_entity_t *e)
 				blend += gEngfuncs.COM_RandomLong (-32, 31);
 				}
 			break;
+
+			// ESHQ: поддержка мигалок
+		case kRenderFxLeftPoliceLight:
+		case kRenderFxRightPoliceLight:
+			blend = 20 * sin (gpGlobals->time * 60);
+			blend *= ((20 * sin (gpGlobals->time * 3) >= 0) ?
+				(e->curstate.renderfx == kRenderFxRightPoliceLight) :
+				(e->curstate.renderfx != kRenderFxRightPoliceLight));
+
+			if (blend <= 0)
+				blend = 0;
+			else
+				blend = e->curstate.renderamt;
+			break;
+
 		default:
 			blend = e->curstate.renderamt;
 			break;

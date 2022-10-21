@@ -93,7 +93,9 @@ void CBasePlatTrain::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseToggle::KeyValue (pkvd);
+		}
 	}
 
 #define noiseMoving noise
@@ -302,6 +304,7 @@ void CFuncPlat::Setup (void)
 		m_vecPosition2.z = pev->origin.z - m_flHeight;
 	else
 		m_vecPosition2.z = pev->origin.z - pev->size.z + 8;
+
 	if (pev->speed == 0)
 		pev->speed = 150;
 
@@ -323,7 +326,7 @@ void CFuncPlat::Spawn ()
 	Precache ();
 
 	// If this platform is the target of some button, it starts at the TOP position,
-	// and is brought down by that button.  Otherwise, it starts at BOTTOM.
+	// and is brought down by that button. Otherwise, it starts at BOTTOM
 	if (!FStringNull (pev->targetname))
 		{
 		UTIL_SetOrigin (pev, m_vecPosition1);
@@ -384,7 +387,7 @@ void CPlatTrigger::Touch (CBaseEntity* pOther)
 	if (!pOther->IsAlive ())
 		return;
 
-	// Make linked platform go up/down.
+	// Make linked platform go up/down
 	if (m_pPlatform->m_toggle_state == TS_AT_BOTTOM)
 		m_pPlatform->GoUp ();
 	else if (m_pPlatform->m_toggle_state == TS_AT_TOP)
@@ -435,7 +438,7 @@ void CFuncPlat::GoDown (void)
 	}
 
 //
-// Platform has hit bottom.  Stops and waits forever.
+// Platform has hit bottom. Stops and waits forever
 //
 void CFuncPlat::HitBottom (void)
 	{
@@ -449,7 +452,6 @@ void CFuncPlat::HitBottom (void)
 	m_toggle_state = TS_AT_BOTTOM;
 	}
 
-
 //
 // Platform is at bottom, now starts moving up
 //
@@ -458,7 +460,7 @@ void CFuncPlat::GoUp (void)
 	if (pev->noiseMovement)
 		EMIT_SOUND (ENT (pev), CHAN_STATIC, (char*)STRING (pev->noiseMovement), m_volume, ATTN_MEDIUM);
 
-	ASSERT (m_toggle_state == TS_AT_BOTTOM || m_toggle_state == TS_GOING_DOWN);
+	ASSERT ((m_toggle_state == TS_AT_BOTTOM) || (m_toggle_state == TS_GOING_DOWN));
 	m_toggle_state = TS_GOING_UP;
 	SetMoveDone (&CFuncPlat::CallHitTop);
 	LinearMove (m_vecPosition1, pev->speed);
@@ -480,7 +482,7 @@ void CFuncPlat::HitTop (void)
 
 	if (!IsTogglePlat ())
 		{
-		// After a delay, the platform will automatically start going down again.
+		// After a delay, the platform will automatically start going down again
 		SetThink (&CFuncPlat::CallGoDown);
 		pev->nextthink = pev->ltime + 3;
 		}
@@ -489,14 +491,14 @@ void CFuncPlat::HitTop (void)
 void CFuncPlat::Blocked (CBaseEntity* pOther)
 	{
 	ALERT (at_aiconsole, "%s Blocked by %s\n", STRING (pev->classname), STRING (pOther->pev->classname));
+	
 	// Hurt the blocker a little
 	pOther->TakeDamage (pev, pev, 1, DMG_CRUSH);
-
 	if (pev->noiseMovement)
 		STOP_SOUND (ENT (pev), CHAN_STATIC, (char*)STRING (pev->noiseMovement));
 
 	// Send the platform back where it came from
-	ASSERT (m_toggle_state == TS_GOING_UP || m_toggle_state == TS_GOING_DOWN);
+	ASSERT ((m_toggle_state == TS_GOING_UP) || (m_toggle_state == TS_GOING_DOWN));
 	if (m_toggle_state == TS_GOING_UP)
 		GoDown ();
 	else if (m_toggle_state == TS_GOING_DOWN)
@@ -551,7 +553,6 @@ void CFuncPlatRot::SetupRotation (void)
 		}
 	}
 
-
 void CFuncPlatRot::Spawn (void)
 	{
 	CFuncPlat::Spawn ();
@@ -566,7 +567,7 @@ void CFuncPlatRot::GoDown (void)
 
 
 //
-// Platform has hit bottom.  Stops and waits forever.
+// Platform has hit bottom. Stops and waits forever
 //
 void CFuncPlatRot::HitBottom (void)
 	{
@@ -595,7 +596,7 @@ void CFuncPlatRot::RotMove (Vector& destAngle, float time)
 	// set destdelta to the vector needed to move
 	Vector vecDestDelta = destAngle - pev->angles;
 
-	// Travel time is so short, we're practically there already;  so make it so.
+	// Travel time is so short, we're practically there already; so make it so
 	if (time >= 0.1)
 		{
 		pev->avelocity = vecDestDelta / time;
@@ -611,7 +612,6 @@ void CFuncPlatRot::RotMove (Vector& destAngle, float time)
 //
 //====================== TRAIN code ==================================================
 //
-
 class CFuncTrain: public CBasePlatTrain
 	{
 	public:
@@ -627,13 +627,13 @@ class CFuncTrain: public CBasePlatTrain
 
 		void EXPORT Wait (void);
 		void EXPORT Next (void);
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int	Save (CSave& save);
+		virtual int	Restore (CRestore& restore);
 		static	TYPEDESCRIPTION m_SaveData[];
 
 		entvars_t* m_pevCurrentTarget;
-		int			m_sounds;
-		BOOL		m_activated;
+		int	m_sounds;
+		BOOL m_activated;
 
 		// ESHQ: поддержка сверхбольших расстояний для звука
 		float m_flAttenuation;		
@@ -659,12 +659,13 @@ void CFuncTrain::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBasePlatTrain::KeyValue (pkvd);
+		}
 	}
 
 
 void CFuncTrain::Blocked (CBaseEntity* pOther)
-
 	{
 	if (gpGlobals->time < m_flActivateFinished)
 		return;
@@ -673,7 +674,6 @@ void CFuncTrain::Blocked (CBaseEntity* pOther)
 
 	pOther->TakeDamage (pev, pev, pev->dmg, DMG_CRUSH);
 	}
-
 
 void CFuncTrain::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
@@ -686,9 +686,11 @@ void CFuncTrain::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE us
 	else
 		{
 		pev->spawnflags |= SF_TRAIN_WAIT_RETRIGGER;
+
 		// Pop back to last target if it's available
 		if (pev->enemy)
 			pev->target = pev->enemy->v.targetname;
+
 		pev->nextthink = 0;
 		pev->velocity = g_vecZero;
 		if (pev->noiseStopMoving)
@@ -710,19 +712,20 @@ void CFuncTrain::Wait (void)
 	if (FBitSet (m_pevCurrentTarget->spawnflags, SF_TRAIN_WAIT_RETRIGGER) || (pev->spawnflags & SF_TRAIN_WAIT_RETRIGGER))
 		{
 		pev->spawnflags |= SF_TRAIN_WAIT_RETRIGGER;
-		// clear the sound channel.
+		
+		// clear the sound channel
 		if (pev->noiseMovement)
 			STOP_SOUND (edict (), CHAN_STATIC, (char*)STRING (pev->noiseMovement));
 		if (pev->noiseStopMoving)
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, (char*)STRING (pev->noiseStopMoving), m_volume, m_flAttenuation);
+		
 		pev->nextthink = 0;
 		return;
 		}
 
-	// ALERT ( at_console, "%f\n", m_flWait );
-
 	if (m_flWait != 0)
-		{// -1 wait will wait forever!		
+		{
+		// -1 wait will wait forever!		
 		pev->nextthink = pev->ltime + m_flWait;
 		if (pev->noiseMovement)
 			STOP_SOUND (edict (), CHAN_STATIC, (char*)STRING (pev->noiseMovement));
@@ -742,7 +745,7 @@ void CFuncTrain::Wait (void)
 void CFuncTrain::Next (void)
 	{
 	CBaseEntity* pTarg;
-
+	char mute = 0;
 
 	// now find our next target
 	pTarg = GetNextTarget ();
@@ -751,9 +754,11 @@ void CFuncTrain::Next (void)
 		{
 		if (pev->noiseMovement)
 			STOP_SOUND (edict (), CHAN_STATIC, (char*)STRING (pev->noiseMovement));
+
 		// Play stop sound
 		if (pev->noiseStopMoving)
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, (char*)STRING (pev->noiseStopMoving), m_volume, m_flAttenuation);
+		
 		return;
 		}
 
@@ -763,32 +768,39 @@ void CFuncTrain::Next (void)
 	pev->target = pTarg->pev->target;
 	m_flWait = pTarg->GetDelay ();
 
-	if (m_pevCurrentTarget && m_pevCurrentTarget->speed != 0)
-		{// don't copy speed from target if it is 0 (uninitialized)
+	if (m_pevCurrentTarget && (m_pevCurrentTarget->speed != 0))
+		{
+		// don't copy speed from target if it is 0 (uninitialized)
 		pev->speed = m_pevCurrentTarget->speed;
 		ALERT (at_aiconsole, "Train %s speed to %4.2f\n", STRING (pev->targetname), pev->speed);
 		}
-	m_pevCurrentTarget = pTarg->pev;// keep track of this since path corners change our target for us.
 
-	pev->enemy = pTarg->edict ();//hack
+	mute = FBitSet (m_pevCurrentTarget->spawnflags, SF_CORNER_MUTE);	// ESHQ: поддержка тихих участков пути
+	m_pevCurrentTarget = pTarg->pev;	// keep track of this since path corners change our target for us
+
+	pev->enemy = pTarg->edict ();		// hack
 
 	if (FBitSet (m_pevCurrentTarget->spawnflags, SF_CORNER_TELEPORT))
 		{
 		// Path corner has indicated a teleport to the next corner.
 		SetBits (pev->effects, EF_NOINTERP);
 		UTIL_SetOrigin (pev, pTarg->pev->origin - (pev->mins + pev->maxs) * 0.5);
-		Wait (); // Get on with doing the next path corner.
+
+		// Get on with doing the next path corner
+		Wait ();
 		}
 	else
 		{
-		// Normal linear move.
+		// Normal linear move
 
 		// CHANGED this from CHAN_VOICE to CHAN_STATIC around OEM beta time because trains should
 		// use CHAN_STATIC for their movement sounds to prevent sound field problems.
-		// this is not a hack or temporary fix, this is how things should be. (sjb).
+		// This is not a hack or temporary fix, this is how things should be. (sjb)
 		if (pev->noiseMovement)
 			STOP_SOUND (edict (), CHAN_STATIC, (char*)STRING (pev->noiseMovement));
-		if (pev->noiseMovement)
+
+		// ESHQ: поддержка тихих участков пути
+		if (pev->noiseMovement && !mute)
 			EMIT_SOUND (ENT (pev), CHAN_STATIC, (char*)STRING (pev->noiseMovement), m_volume, m_flAttenuation);
 
 		ClearBits (pev->effects, EF_NOINTERP);
@@ -800,25 +812,26 @@ void CFuncTrain::Next (void)
 void CFuncTrain::Activate (void)
 	{
 	// Not yet active, so teleport to first target
-	if (!m_activated)
+	if (m_activated)
+		return;
+
+	m_activated = TRUE;
+	entvars_t *pevTarg = VARS (FIND_ENTITY_BY_TARGETNAME (NULL, STRING (pev->target)));
+
+	pev->target = pevTarg->target;
+	m_pevCurrentTarget = pevTarg;	// keep track of this since path corners change our target for us
+
+	UTIL_SetOrigin (pev, pevTarg->origin - (pev->mins + pev->maxs) * 0.5);
+
+	if (FStringNull (pev->targetname))
 		{
-		m_activated = TRUE;
-		entvars_t* pevTarg = VARS (FIND_ENTITY_BY_TARGETNAME (NULL, STRING (pev->target)));
-
-		pev->target = pevTarg->target;
-		m_pevCurrentTarget = pevTarg;// keep track of this since path corners change our target for us.
-
-		UTIL_SetOrigin (pev, pevTarg->origin - (pev->mins + pev->maxs) * 0.5);
-
-		if (FStringNull (pev->targetname))
-			{	// not triggered, so start immediately
-			pev->nextthink = pev->ltime + 0.1;
-			SetThink (&CFuncTrain::Next);
-			}
-		else
-			{
-			pev->spawnflags |= SF_TRAIN_WAIT_RETRIGGER;
-			}
+		// not triggered, so start immediately
+		pev->nextthink = pev->ltime + 0.1;
+		SetThink (&CFuncTrain::Next);
+		}
+	else
+		{
+		pev->spawnflags |= SF_TRAIN_WAIT_RETRIGGER;
 		}
 	}
 
@@ -868,8 +881,7 @@ void CFuncTrain::Spawn (void)
 		m_flAttenuation = ATTN_LARGE;
 	else if (FBitSet (pev->spawnflags, SF_TRAIN_MEDIUMRADIUS))
 		m_flAttenuation = ATTN_MEDIUM;
-	/*else if (FBitSet (pev->spawnflags, SF_TRAIN_SMALLRADIUS))
-		m_flAttenuation = ATTN_SMALL;*/
+	//else if (FBitSet (pev->spawnflags, SF_TRAIN_SMALLRADIUS))
 	else
 		m_flAttenuation = ATTN_SMALL;
 	}
@@ -887,6 +899,7 @@ void CFuncTrain::OverrideReset (void)
 	if (pev->velocity != g_vecZero && pev->nextthink != 0)
 		{
 		pev->target = pev->message;
+		
 		// now find our next target
 		pTarg = GetNextTarget ();
 		if (!pTarg)
@@ -894,7 +907,9 @@ void CFuncTrain::OverrideReset (void)
 			pev->nextthink = 0;
 			pev->velocity = g_vecZero;
 			}
-		else	// Keep moving for 0.1 secs, then find path_corner again and restart
+
+		// Keep moving for 0.1 secs, then find path_corner again and restart
+		else	
 			{
 			SetThink (&CFuncTrain::Next);
 			pev->nextthink = pev->ltime + 0.1;
@@ -958,9 +973,10 @@ void CFuncTrackTrain::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseEntity::KeyValue (pkvd);
+		}
 	}
-
 
 void CFuncTrackTrain::NextThink (float thinkTime, BOOL alwaysThink)
 	{
@@ -971,7 +987,6 @@ void CFuncTrackTrain::NextThink (float thinkTime, BOOL alwaysThink)
 
 	pev->nextthink = thinkTime;
 	}
-
 
 void CFuncTrackTrain::Blocked (CBaseEntity* pOther)
 	{

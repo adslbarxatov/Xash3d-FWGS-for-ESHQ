@@ -954,7 +954,8 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 		}
 
 	// force normal player collisions for single player
-	if (svs.maxclients == 1) Cvar_SetValue ("sv_clienttrace", 1);
+	if (svs.maxclients == 1) 
+		Cvar_SetValue ("sv_clienttrace", 1);
 
 	// make sure what server name doesn't contain path and extension
 	COM_FileBase (mapname, sv.name);

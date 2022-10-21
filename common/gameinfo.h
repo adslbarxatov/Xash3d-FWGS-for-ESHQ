@@ -46,7 +46,7 @@ typedef struct
 	char		date[64];
 	char		size[64];		// displayed mod size
 
-	int		gamemode;
+	int			gamemode;
 	} GAMEINFO;
 
 #endif//GAMEINFO_H

@@ -420,7 +420,6 @@ void SV_Credits_f (void)
 /*
 ==============
 SV_Load_f
-
 ==============
 */
 void SV_Load_f (void)

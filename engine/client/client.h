@@ -455,9 +455,9 @@ typedef struct
 	// movement values from server
 	movevars_t	movevars;
 	movevars_t	oldmovevars;
-	playermove_t *pmove;			// pmove state
+	playermove_t *pmove;		// pmove state
 
-	qboolean		pushed;			// used by PM_Push\Pop state
+	qboolean		pushed;		// used by PM_Push\Pop state
 	int		oldviscount;		// used by PM_Push\Pop state
 	int		oldphyscount;		// used by PM_Push\Pop state
 
@@ -469,12 +469,12 @@ typedef struct
 	model_t		sprites[MAX_CLIENT_SPRITES];	// hud&client spritetexturesz
 	int		viewport[4];		// viewport sizes
 
-	client_draw_t	ds;			// draw2d stuff (hud, weaponmenu etc)
+	client_draw_t	ds;				// draw2d stuff (hud, weaponmenu etc)
 	screenfade_t	fade;			// screen fade
 	screen_shake_t	shake;			// screen shake
-	center_print_t	centerPrint;		// centerprint variables
+	center_print_t	centerPrint;	// centerprint variables
 	SCREENINFO	scrInfo;			// actual screen info
-	ref_overview_t	overView;			// overView params
+	ref_overview_t	overView;		// overView params
 	color24		palette[256];		// palette used for particle colors
 
 	cached_spritelist_t	sprlist[MAX_CLIENT_SPRITES];	// client list sprites
@@ -486,7 +486,7 @@ typedef struct
 	net_request_t	net_requests[MAX_REQUESTS];	// no reason to keep more
 	net_request_t *master_request;		// queued master request
 
-	efrag_t *free_efrags;		// linked efrags
+	efrag_t *free_efrags;			// linked efrags
 	cl_entity_t	viewent;			// viewmodel
 
 	qboolean client_dll_uses_sdl;
@@ -494,17 +494,17 @@ typedef struct
 
 typedef struct
 	{
-	void *hInstance;		// pointer to client.dll
+	void *hInstance;					// pointer to client.dll
 	UI_FUNCTIONS	dllFuncs;			// dll exported funcs
 	UI_EXTENDED_FUNCTIONS dllFuncs2;	// fwgs extension
 	poolhandle_t      mempool;			// client edicts pool
 
-	cl_entity_t	playermodel;		// uiPlayerSetup drawing model
-	player_info_t	playerinfo;		// local playerinfo
+	cl_entity_t	playermodel;			// uiPlayerSetup drawing model
+	player_info_t	playerinfo;			// local playerinfo
 
-	gameui_draw_t	ds;			// draw2d stuff (menu images)
+	gameui_draw_t	ds;					// draw2d stuff (menu images)
 	GAMEINFO		gameInfo;			// current gameInfo
-	GAMEINFO *modsInfo[MAX_MODS];	// simplified gameInfo for MainUI
+	GAMEINFO *modsInfo[MAX_MODS];		// simplified gameInfo for MainUI
 
 	ui_globalvars_t *globals;
 

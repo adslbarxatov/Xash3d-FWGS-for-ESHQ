@@ -3876,7 +3876,7 @@ void CL_UnloadProgs (void)
 	Mod_ClearUserData ();
 
 	// NOTE: HLFX 0.5 has strange bug: hanging on exit if no map was loaded
-	if (Q_stricmp (GI->gamefolder, "hlfx") || GI->version != 0.5f)
+	if (Q_stricmp (GI->gamefolder, "hlfx") || (GI->version != 0.5f))
 		clgame.dllFuncs.pfnShutdown ();
 
 	Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
