@@ -173,7 +173,7 @@ void CFuncConveyor::Spawn (void)
 // ESHQ: создан заново для корректной передачи скорости
 void CFuncConveyor::UpdateSpeed (float speed)
 	{
-	pev->renderfx = (int)speed / 10 + kRenderFxClampMinScale;
+	pev->renderfx = (int)speed / 10 + kRenderFxEdge;
 	}
 
 void CFuncConveyor::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)

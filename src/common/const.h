@@ -732,7 +732,9 @@ enum
 
 	// ESHQ: мигалки
 	kRenderFxLeftPoliceLight,
-	kRenderFxRightPoliceLight
+	kRenderFxRightPoliceLight,
+
+	kRenderFxEdge				// ESHQ: специальное значение, определяющее границу перечисления; должно быть в конце
 	};
 
 typedef int		func_t;

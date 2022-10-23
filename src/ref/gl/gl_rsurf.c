@@ -776,24 +776,25 @@ DrawGLPoly
 */
 void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 	{
-	float *v;
-	float		sOffset, sy;
-	float		tOffset, cy;
+	float	*v;
+	float	sOffset, sy;
+	float	tOffset, cy;
 	cl_entity_t *e = RI.currententity;
 	int		i, hasScale = false;
 
-	if (!p) return;
+	if (!p) 
+		return;
 
 	if (FBitSet (p->flags, SURF_DRAWTILED))
 		GL_ResetFogColor ();
 
 	if (p->flags & SURF_CONVEYOR)
 		{
-		float		flConveyorSpeed = 0.0f;
-		float		flRate, flAngle;
+		float	flConveyorSpeed = 0.0f;
+		float	flRate, flAngle;
 		gl_texture_t *texture;
 
-		if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && RI.currententity == gEngfuncs.GetEntityByIndex (0))
+		if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && (RI.currententity == gEngfuncs.GetEntityByIndex (0)))
 			{
 			// same as doom speed
 			flConveyorSpeed = -35.0f;
@@ -803,7 +804,7 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 			// ESHQ: новый метод обработки скорости конвейера
 			/*flConveyorSpeed = (e->curstate.rendercolor.g << 8 | e->curstate.rendercolor.b) / 16.0f;
 			if (e->curstate.rendercolor.r) flConveyorSpeed = -flConveyorSpeed;*/
-			flConveyorSpeed = (float)(e->curstate.renderfx - kRenderFxClampMinScale) * 10.0f;
+			flConveyorSpeed = (float)(e->curstate.renderfx - kRenderFxEdge) * 10.0f;
 			}
 		texture = R_GetTexture (glState.currentTextures[glState.activeTMU]);
 
@@ -815,8 +816,10 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 		tOffset = gpGlobals->time * sy * flRate;
 
 		// make sure that we are positive
-		if (sOffset < 0.0f) sOffset += 1.0f + -(int)sOffset;
-		if (tOffset < 0.0f) tOffset += 1.0f + -(int)tOffset;
+		if (sOffset < 0.0f) 
+			sOffset += 1.0f + -(int)sOffset;
+		if (tOffset < 0.0f) 
+			tOffset += 1.0f + -(int)tOffset;
 
 		// make sure that we are in a [0,1] range
 		sOffset = sOffset - (int)sOffset;
@@ -827,7 +830,7 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 		sOffset = tOffset = 0.0f;
 		}
 
-	if (xScale != 0.0f && yScale != 0.0f)
+	if ((xScale != 0.0f) && (yScale != 0.0f))
 		hasScale = true;
 
 	pglBegin (GL_POLYGON);
@@ -836,7 +839,8 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 		{
 		if (hasScale)
 			pglTexCoord2f ((v[3] + sOffset) * xScale, (v[4] + tOffset) * yScale);
-		else pglTexCoord2f (v[3] + sOffset, v[4] + tOffset);
+		else 
+			pglTexCoord2f (v[3] + sOffset, v[4] + tOffset);
 
 		pglVertex3fv (v);
 		}

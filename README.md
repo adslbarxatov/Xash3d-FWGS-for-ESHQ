@@ -112,7 +112,7 @@ It was based on one of the newest versions of [Xash3d FWGS engine](https://githu
 ## Other notes
 
 - The current build is not multiplatform as its mother project (support code has been removed).
-- The current build contains GL and Software-based renderers based on [SDL](https://libsdl.org) library.
+- The current build contains GL-based renderer based on [SDL](https://libsdl.org) library.
 - The current assembly doesn’t support the voice chat because of absence of required Opus codec. It may be attached later.
 - This assembly completely adapted for building with Visual Studio 2022.
 - This assembly is enough to launch Half-Life (WON) and some compatible mods.

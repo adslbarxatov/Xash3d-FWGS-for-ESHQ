@@ -1,0 +1,12 @@
+#[submodule "opus"]
+#	path = dependencies/opus
+#	url = https://github.com/xiph/opus
+[submodule "sdl"]
+	path = dependencies/sdl
+	url = https://github.com/libsdl-org/SDL
+[submodule "vgui_support"]
+	path = dependencies/vgui_support
+	url = https://github.com/FWGS/vgui_support
+[submodule "vgui"]
+	path = dependencies/vgui
+	url = https://github.com/FWGS/vgui-dev

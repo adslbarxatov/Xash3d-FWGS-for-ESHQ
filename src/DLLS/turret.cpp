@@ -1256,7 +1256,7 @@ void CSentry::SentryDeath (void)
 		UTIL_Sparks (vecSrc);
 		}
 
-	if (m_fSequenceFinished && pev->dmgtime + 5 < gpGlobals->time)
+	if (m_fSequenceFinished && (pev->dmgtime + 5 < gpGlobals->time))
 		{
 		pev->framerate = 0;
 		SetThink (NULL);

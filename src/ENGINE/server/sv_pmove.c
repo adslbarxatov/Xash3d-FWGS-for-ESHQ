@@ -1098,7 +1098,7 @@ void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 	svgame.dllFuncs.pfnPlayerPreThink (clent);
 	SV_PlayerRunThink (clent, frametime, cl->timebase);
 
-	// If conveyor, or think, set basevelocity, then send to client asap too.
+	// If conveyor, or think, set basevelocity, then send to client asap too
 	if (!VectorIsNull (clent->v.basevelocity))
 		VectorCopy (clent->v.basevelocity, clent->v.clbasevelocity);
 
@@ -1111,7 +1111,7 @@ void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 	// copy results back to client
 	SV_FinishPMove (svgame.pmove, cl);
 
-	if (clent->v.solid != SOLID_NOT && !sv.playersonly)
+	if ((clent->v.solid != SOLID_NOT) && !sv.playersonly)
 		{
 		if (svgame.physFuncs.PM_PlayerTouch != NULL)
 			{

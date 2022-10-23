@@ -1170,7 +1170,7 @@ CL_FxBlend
 */
 int CL_FxBlend (cl_entity_t *e)
 	{
-	int	blend = 0;
+	int		blend = 0;
 	float	offset, dist;
 	vec3_t	tmp;
 
@@ -1199,7 +1199,8 @@ int CL_FxBlend (cl_entity_t *e)
 				{
 				if (e->curstate.renderamt > 0)
 					e->curstate.renderamt -= 1;
-				else e->curstate.renderamt = 0;
+				else
+					e->curstate.renderamt = 0;
 				}
 			blend = e->curstate.renderamt;
 			break;
@@ -1209,7 +1210,8 @@ int CL_FxBlend (cl_entity_t *e)
 				{
 				if (e->curstate.renderamt > 3)
 					e->curstate.renderamt -= 4;
-				else e->curstate.renderamt = 0;
+				else
+					e->curstate.renderamt = 0;
 				}
 			blend = e->curstate.renderamt;
 			break;
@@ -1219,7 +1221,8 @@ int CL_FxBlend (cl_entity_t *e)
 				{
 				if (e->curstate.renderamt < 255)
 					e->curstate.renderamt += 1;
-				else e->curstate.renderamt = 255;
+				else 
+					e->curstate.renderamt = 255;
 				}
 			blend = e->curstate.renderamt;
 			break;
@@ -1229,39 +1232,50 @@ int CL_FxBlend (cl_entity_t *e)
 				{
 				if (e->curstate.renderamt < 252)
 					e->curstate.renderamt += 4;
-				else e->curstate.renderamt = 255;
+				else 
+					e->curstate.renderamt = 255;
 				}
 			blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxStrobeSlow:
 			blend = 20 * sin (gpGlobals->time * 4 + offset);
-			if (blend < 0) blend = 0;
-			else blend = e->curstate.renderamt;
+			if (blend < 0)
+				blend = 0;
+			else 
+				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxStrobeFast:
 			blend = 20 * sin (gpGlobals->time * 16 + offset);
-			if (blend < 0) blend = 0;
-			else blend = e->curstate.renderamt;
+			if (blend < 0) 
+				blend = 0;
+			else 
+				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxStrobeFaster:
 			blend = 20 * sin (gpGlobals->time * 36 + offset);
-			if (blend < 0) blend = 0;
-			else blend = e->curstate.renderamt;
+			if (blend < 0) 
+				blend = 0;
+			else 
+				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxFlickerSlow:
 			blend = 20 * (sin (gpGlobals->time * 2) + sin (gpGlobals->time * 17 + offset));
-			if (blend < 0) blend = 0;
-			else blend = e->curstate.renderamt;
+			if (blend < 0) 
+				blend = 0;
+			else 
+				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxFlickerFast:
 			blend = 20 * (sin (gpGlobals->time * 16) + sin (gpGlobals->time * 23 + offset));
-			if (blend < 0) blend = 0;
-			else blend = e->curstate.renderamt;
+			if (blend < 0) 
+				blend = 0;
+			else 
+				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxHologram:
@@ -1281,13 +1295,15 @@ int CL_FxBlend (cl_entity_t *e)
 			else
 				{
 				e->curstate.renderamt = 180;
-				if (dist <= 100) blend = e->curstate.renderamt;
-				else blend = (int)((1.0f - (dist - 100) * (1.0f / 400.0f)) * e->curstate.renderamt);
+				if (dist <= 100) 
+					blend = e->curstate.renderamt;
+				else 
+					blend = (int)((1.0f - (dist - 100) * (1.0f / 400.0f)) * e->curstate.renderamt);
 				blend += gEngfuncs.COM_RandomLong (-32, 31);
 				}
 			break;
 
-			// ESHQ: поддержка мигалок
+		// ESHQ: поддержка мигалок
 		case kRenderFxLeftPoliceLight:
 		case kRenderFxRightPoliceLight:
 			blend = 20 * sin (gpGlobals->time * 60);
