@@ -60,6 +60,7 @@ extern "C"
 	void EV_FireGauss (struct event_args_s* args);
 	void EV_SpinGauss (struct event_args_s* args);
 	void EV_Crowbar (struct event_args_s* args);
+	void EV_Axe (struct event_args_s *args);	// ESHQ: топор
 	void EV_FireCrossbow (struct event_args_s* args);
 	void EV_FireCrossbow2 (struct event_args_s* args);
 	void EV_FireRpg (struct event_args_s* args);
@@ -1156,6 +1157,39 @@ void EV_FireGauss (event_args_t* args)
 //======================
 
 //======================
+// ESHQ: AXE START
+//======================
+enum axe_e
+	{
+	AXE_IDLE = 0,
+	AXE_ATTACK,
+	AXE_DRAW,
+	AXE_HOLSTER
+	};
+
+void EV_Axe (event_args_t *args)
+		{
+		int idx;
+		vec3_t origin;
+		vec3_t angles;
+		vec3_t velocity;
+
+		idx = args->entindex;
+		VectorCopy (args->origin, origin);
+
+		// Play Swing sound
+		gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/axe_swing.wav", 1, ATTN_MEDIUM,
+			0, PITCH_NORM);
+
+		if (EV_IsLocal (idx))
+			gEngfuncs.pEventAPI->EV_WeaponAnimation (AXE_ATTACK, 0);
+		}
+
+//======================
+// AXE END 
+//======================
+
+//======================
 //	   CROWBAR START
 //======================
 
@@ -1173,8 +1207,8 @@ enum crowbar_e {
 
 int g_iSwing;
 
-//Only predict the miss sounds, hit sounds are still played 
-//server side, so players don't get the wrong idea.
+// Only predict the miss sounds, hit sounds are still played 
+// server side, so players don't get the wrong idea.
 void EV_Crowbar (event_args_t* args)
 	{
 	int idx;
@@ -1185,8 +1219,9 @@ void EV_Crowbar (event_args_t* args)
 	idx = args->entindex;
 	VectorCopy (args->origin, origin);
 
-	//Play Swing sound
-	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/cbar_miss1.wav", 1, ATTN_MEDIUM, 0, PITCH_NORM);
+	// Play Swing sound
+	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/cbar_miss1.wav", 1, ATTN_MEDIUM, 
+		0, PITCH_NORM);
 
 	if (EV_IsLocal (idx))
 		{

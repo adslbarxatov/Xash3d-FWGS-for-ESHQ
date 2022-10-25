@@ -145,7 +145,12 @@ void SpawnBlood (Vector vecSpot, int bloodColor, float flDamage)
 int DamageDecal (CBaseEntity* pEntity, int bitsDamageType)
 	{
 	if (!pEntity)
-		return (DECAL_GUNSHOT1 + RANDOM_LONG (0, 4));
+		{
+		if (!FBitSet (bitsDamageType, DMG_CLUB))
+			return DECAL_GUNSHOT1 + RANDOM_LONG (0, 4);
+
+		return DECAL_BIGSHOT1 + RANDOM_LONG (0, 4);
+		}
 
 	return pEntity->DamageDecal (bitsDamageType);
 	}
@@ -156,15 +161,17 @@ void DecalGunshot (TraceResult* pTrace, int iBulletType)
 	if (!UTIL_IsValidEntity (pTrace->pHit))
 		return;
 
-	if (VARS (pTrace->pHit)->solid == SOLID_BSP || VARS (pTrace->pHit)->movetype == MOVETYPE_PUSHSTEP)
+	if ((VARS (pTrace->pHit)->solid == SOLID_BSP) || (VARS (pTrace->pHit)->movetype == MOVETYPE_PUSHSTEP))
 		{
 		CBaseEntity* pEntity = NULL;
+
 		// Decal the wall with a gunshot
 		if (!FNullEnt (pTrace->pHit))
 			pEntity = CBaseEntity::Instance (pTrace->pHit);
 
 		switch (iBulletType)
 			{
+			// smoke and decal
 			case BULLET_PLAYER_9MM:
 			case BULLET_MONSTER_9MM:
 			case BULLET_PLAYER_MP5:
@@ -172,15 +179,16 @@ void DecalGunshot (TraceResult* pTrace, int iBulletType)
 			case BULLET_PLAYER_BUCKSHOT:
 			case BULLET_PLAYER_357:
 			default:
-				// smoke and decal
 				UTIL_GunshotDecalTrace (pTrace, DamageDecal (pEntity, DMG_BULLET));
 				break;
+
+			// smoke and decal
 			case BULLET_MONSTER_12MM:
-				// smoke and decal
 				UTIL_GunshotDecalTrace (pTrace, DamageDecal (pEntity, DMG_BULLET));
 				break;
+
+			// wall decal
 			case BULLET_PLAYER_CROWBAR:
-				// wall decal
 				UTIL_DecalTrace (pTrace, DamageDecal (pEntity, DMG_CLUB));
 				break;
 			}
@@ -296,6 +304,7 @@ void W_Precache (void)
 
 	// crowbar
 	UTIL_PrecacheOtherWeapon ("weapon_crowbar");
+	UTIL_PrecacheOtherWeapon ("weapon_axe");	// ESHQ: топор
 
 	// glock
 	UTIL_PrecacheOtherWeapon ("weapon_9mmhandgun");
@@ -396,7 +405,7 @@ void W_Precache (void)
 	PRECACHE_SOUND ("weapons/concrete_hit3.wav");
 	PRECACHE_SOUND ("weapons/concrete_hit4.wav");
 
-	PRECACHE_SOUND ("items/weapondrop1.wav");// weapon falls to the ground
+	PRECACHE_SOUND ("items/weapondrop1.wav");	// weapon falls to the ground
 	}
 
 TYPEDESCRIPTION	CBasePlayerItem::m_SaveData[] =
@@ -442,7 +451,7 @@ void CBasePlayerItem::FallInit (void)
 	pev->solid = SOLID_BBOX;
 
 	UTIL_SetOrigin (pev, pev->origin);
-	UTIL_SetSize (pev, Vector (0, 0, 0), Vector (0, 0, 0));//pointsize until it lands on the ground.
+	UTIL_SetSize (pev, Vector (0, 0, 0), Vector (0, 0, 0));	// pointsize until it lands on the ground
 
 	SetTouch (&CBasePlayerItem::DefaultTouch);
 	SetThink (&CBasePlayerItem::FallThink);
@@ -455,7 +464,7 @@ void CBasePlayerItem::FallInit (void)
 // to catch them when they hit the ground. Once we're sure
 // that the object is grounded, we change its solid type
 // to trigger and set it in a large box that helps the
-// player get it.
+// player get it
 //=========================================================
 void CBasePlayerItem::FallThink (void)
 	{
@@ -486,7 +495,7 @@ void CBasePlayerItem::Materialize (void)
 	{
 	if (pev->effects & EF_NODRAW)
 		{
-		// changing from invisible state to visible.
+		// changing from invisible state to visible
 		EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "items/suitchargeok1.wav", 1, ATTN_MEDIUM, 0, 150);
 		pev->effects &= ~EF_NODRAW;
 		pev->effects |= EF_MUZZLEFLASH;
@@ -494,7 +503,7 @@ void CBasePlayerItem::Materialize (void)
 
 	pev->solid = SOLID_TRIGGER;
 
-	UTIL_SetOrigin (pev, pev->origin);// link into world.
+	UTIL_SetOrigin (pev, pev->origin);	// link into world
 	SetTouch (&CBasePlayerItem::DefaultTouch);
 	SetThink (NULL);
 	}
@@ -542,7 +551,8 @@ CBaseEntity* CBasePlayerItem::Respawn (void)
 	// make a copy of this weapon that is invisible and inaccessible to players 
 	// (no touch function). The weapon spawn/respawn code
 	// will decide when to make the weapon visible and touchable
-	CBaseEntity* pNewWeapon = CBaseEntity::Create ((char*)STRING (pev->classname), g_pGameRules->VecWeaponRespawnSpot (this), pev->angles, pev->owner);
+	CBaseEntity* pNewWeapon = CBaseEntity::Create ((char*)STRING (pev->classname), 
+		g_pGameRules->VecWeaponRespawnSpot (this), pev->angles, pev->owner);
 
 	if (pNewWeapon)
 		{
@@ -1331,11 +1341,9 @@ BOOL CWeaponBox::PackWeapon (CBasePlayerItem* pWeapon)
 	pWeapon->pev->modelindex = 0;
 	pWeapon->pev->model = iStringNull;
 	pWeapon->pev->owner = edict ();
-	pWeapon->SetThink (NULL);// crowbar may be trying to swing again, etc.
+	pWeapon->SetThink (NULL);	// crowbar may be trying to swing again, etc.
 	pWeapon->SetTouch (NULL);
 	pWeapon->m_pPlayer = NULL;
-
-	//ALERT ( at_console, "packed %s\n", STRING(pWeapon->pev->classname) );
 
 	return TRUE;
 	}

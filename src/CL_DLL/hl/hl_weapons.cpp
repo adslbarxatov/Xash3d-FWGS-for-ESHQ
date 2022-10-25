@@ -51,9 +51,10 @@ int   g_irunninggausspred = 0;
 
 vec3_t previousorigin;
 
-// HLDM Weapon placeholder entities.
+// HLDM Weapon placeholder entities
 CGlock g_Glock;
 CCrowbar g_Crowbar;
+CAxe g_Axe;
 CPython g_Python;
 CMP5 g_Mp5;
 CCrossbow g_Crossbow;
@@ -208,7 +209,8 @@ CBasePlayerWeapon :: DefaultDeploy
 
 =====================
 */
-BOOL CBasePlayerWeapon::DefaultDeploy (char* szViewModel, char* szWeaponModel, int iAnim, char* szAnimExt, int skiplocal, int	body)
+BOOL CBasePlayerWeapon::DefaultDeploy (char* szViewModel, char* szWeaponModel, int iAnim, char* szAnimExt, 
+	int skiplocal, int	body)
 	{
 	if (!CanDeploy ())
 		return FALSE;
@@ -623,6 +625,7 @@ void HUD_InitClientWeapons (void)
 	// Allocate slot(s) for each weapon that we are going to be predicting
 	HUD_PrepEntity (&g_Glock, &player);
 	HUD_PrepEntity (&g_Crowbar, &player);
+	HUD_PrepEntity (&g_Axe, &player);	// ESHQ: топор
 	HUD_PrepEntity (&g_Python, &player);
 	HUD_PrepEntity (&g_Mp5, &player);
 	HUD_PrepEntity (&g_Crossbow, &player);
@@ -697,11 +700,15 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 	gpGlobals->time = time;
 
 	// Fill in data based on selected weapon
-	// FIXME, make this a method in each weapon?  where you pass in an entity_state_t *?
 	switch (from->client.m_iId)
 		{
 		case WEAPON_CROWBAR:
 			pWeapon = &g_Crowbar;
+			break;
+
+		// ESHQ: топор
+		case WEAPON_AXE:
+			pWeapon = &g_Axe;
 			break;
 
 		case WEAPON_GLOCK:

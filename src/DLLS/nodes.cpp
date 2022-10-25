@@ -259,15 +259,16 @@ int	CGraph::HandleLinkEnt (int iNode, entvars_t* pevLinkEnt, int afCapMask, NODE
 				}
 			if ((afCapMask & bits_CAP_OPEN_DOORS))
 				{
-				if (!(pevLinkEnt->spawnflags & SF_DOOR_NOMONSTERS) || queryType == NODEGRAPH_STATIC)
+				if (!(pevLinkEnt->spawnflags & SF_DOOR_NOMONSTERS) || (queryType == NODEGRAPH_STATIC))
 					return TRUE;
 				}
 
 			return FALSE;
 			}
 		}
+
 	// func_breakable	
-	else if (FClassnameIs (pevLinkEnt, "func_breakable") && queryType == NODEGRAPH_STATIC)
+	else if (FClassnameIs (pevLinkEnt, "func_breakable") && (queryType == NODEGRAPH_STATIC))
 		{
 		return TRUE;
 		}
@@ -2311,9 +2312,10 @@ int CGraph::FSetGraphPointers (void)
 			char name[5];
 			// when graphs are saved, any valid pointers are will be non-zero, signifying that we should
 			// reset those pointers upon reloading. Any pointers that were NULL when the graph was saved
-			// will be NULL when reloaded, and will ignored by this function.
+			// will be NULL when reloaded, and will ignored by this function
 
-			// m_szLinkEntModelname is not necessarily NULL terminated (so we can store it in a more alignment-friendly 4 bytes)
+			// m_szLinkEntModelname is not necessarily NULL terminated (so we can store it in a more 
+			// alignment-friendly 4 bytes)
 			memcpy (name, m_pLinkPool[i].m_szLinkEntModelname, 4);
 			name[4] = 0;
 			pentLinkEnt = FIND_ENTITY_BY_STRING (NULL, "model", name);
@@ -2321,7 +2323,7 @@ int CGraph::FSetGraphPointers (void)
 			if (FNullEnt (pentLinkEnt))
 				{
 				// the ent isn't around anymore? Either there is a major problem, or it was removed from the world
-				// ( like a func_breakable that's been destroyed or something ). Make sure that LinkEnt is null.
+				// (like a func_breakable that's been destroyed or something). Make sure that LinkEnt is null
 				ALERT (at_aiconsole, "**Could not find model %s\n", name);
 				m_pLinkPool[i].m_pLinkEnt = NULL;
 				}

@@ -2994,6 +2994,10 @@
 [
 ]
 
+@PointClass base(Weapon, Targetx) studio("models/w_axe.mdl") = weapon_axe : "Axe"
+[
+]
+
 @PointClass base(Weapon, Targetx) studio("models/w_9mmhandgun.mdl") = weapon_9mmhandgun : "9mm Handgun"
 [
 ]

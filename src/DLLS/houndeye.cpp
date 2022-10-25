@@ -655,12 +655,15 @@ void CHoundeye::SonicAttack (void)
 					{
 					if (pEntity->IsPlayer ())
 						{
-						// if this entity is a client, and is not in full view, inflict half damage. We do this so that players still 
-						// take the residual damage if they don't totally leave the houndeye's effective radius. We restrict it to clients
-						// so that monsters in other parts of the level don't take the damage and get pissed.
+						// if this entity is a client, and is not in full view, inflict half damage.
+						//  We do this so that players still 
+						// take the residual damage if they don't totally leave the houndeye's effective radius. 
+						// We restrict it to clients
+						// so that monsters in other parts of the level don't take the damage and get pissed
 						flAdjustedDamage *= 0.5;
 						}
-					else if (!FClassnameIs (pEntity->pev, "func_breakable") && !FClassnameIs (pEntity->pev, "func_pushable"))
+					else if (!FClassnameIs (pEntity->pev, "func_breakable") && 
+						!FClassnameIs (pEntity->pev, "func_pushable"))
 						{
 						// do not hurt nonclients through walls, but allow damage to be done to breakables
 						flAdjustedDamage = 0;

@@ -79,6 +79,7 @@ class CGrenade: public CBaseMonster
 #define WEAPON_TRIPMINE			13
 #define	WEAPON_SATCHEL			14
 #define	WEAPON_SNARK			15
+#define WEAPON_AXE				16	// ESHQ: топор
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -88,6 +89,7 @@ class CGrenade: public CBaseMonster
 
 // weapon weight factors (for auto-switching)   (-1 = noswitch)
 #define CROWBAR_WEIGHT		0
+#define AXE_WEIGHT			CROWBAR_WEIGHT	// ESHQ: топор
 #define GLOCK_WEIGHT		10
 #define PYTHON_WEIGHT		15
 #define MP5_WEIGHT			15
@@ -306,11 +308,13 @@ class CBasePlayerWeapon: public CBasePlayerItem
 		virtual BOOL PlayEmptySound (void);
 		virtual void ResetEmptySound (void);
 
-		virtual void SendWeaponAnim (int iAnim, int skiplocal = 1, int body = 0);  // skiplocal is 1 if client is predicting weapon animations
+		virtual void SendWeaponAnim (int iAnim, int skiplocal = 1, int body = 0);  
+		// skiplocal is 1 if client is predicting weapon animations
 
 		virtual BOOL CanDeploy (void);
 		virtual BOOL IsUseable (void);
-		BOOL DefaultDeploy (char* szViewModel, char* szWeaponModel, int iAnim, char* szAnimExt, int skiplocal = 0, int body = 0);
+		BOOL DefaultDeploy (char* szViewModel, char* szWeaponModel, int iAnim, char* szAnimExt, 
+			int skiplocal = 0, int body = 0);
 		int DefaultReload (int iClipSize, int iAnim, float fDelay, int body = 0);
 
 		virtual void ItemPostFrame (void);	// called each frame by the player PostThink
@@ -319,7 +323,9 @@ class CBasePlayerWeapon: public CBasePlayerItem
 		virtual void SecondaryAttack (void) { return; }			// do "+ATTACK2"
 		virtual void Reload (void) { return; }						// do "+RELOAD"
 		virtual void WeaponIdle (void) { return; }					// called when no buttons pressed
-		virtual int UpdateClientData (CBasePlayer* pPlayer);		// sends hud info to client dll, if things have changed
+		virtual int UpdateClientData (CBasePlayer* pPlayer);		
+		// sends hud info to client dll, if things have changed
+
 		virtual void RetireWeapon (void);
 		virtual BOOL ShouldWeaponIdle (void) { return FALSE; };
 		virtual void Holster (int skiplocal = 0);
@@ -344,7 +350,9 @@ class CBasePlayerWeapon: public CBasePlayerItem
 		int		m_iSecondaryAmmoType;			// "secondary" ammo index into players m_rgAmmo[]
 		int		m_iClip;						// number of shots left in the primary weapon clip, -1 it not used
 		int		m_iClientClip;					// the last version of m_iClip sent to hud dll
-		int		m_iClientWeaponState;			// the last version of the weapon state sent to hud dll (is current weapon, is on target)
+		int		m_iClientWeaponState;			
+		// the last version of the weapon state sent to hud dll (is current weapon, is on target)
+
 		int		m_fInReload;					// Are we in the middle of a reload;
 
 		int		m_iDefaultAmmo;	// how much ammo you get when you pick up this weapon as placed by a level designer.
@@ -383,7 +391,8 @@ extern void AddMultiDamage (entvars_t* pevInflictor, CBaseEntity* pEntity, float
 extern void DecalGunshot (TraceResult* pTrace, int iBulletType);
 extern void SpawnBlood (Vector vecSpot, int bloodColor, float flDamage);
 extern int DamageDecal (CBaseEntity* pEntity, int bitsDamageType);
-extern void RadiusDamage (Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);
+extern void RadiusDamage (Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, 
+	float flRadius, int iClassIgnore, int bitsDamageType);
 
 typedef struct
 	{
@@ -491,7 +500,7 @@ class CGlock: public CBasePlayerWeapon
 		unsigned short m_usFireGlock2;
 	};
 
-
+// ESHQ: монтировка
 class CCrowbar: public CBasePlayerWeapon
 	{
 	public:
@@ -519,6 +528,35 @@ class CCrowbar: public CBasePlayerWeapon
 			}
 	private:
 		unsigned short m_usCrowbar;
+	};
+
+// ESHQ: топор
+class CAxe : public CBasePlayerWeapon
+	{
+	public:
+		void Spawn (void);
+		void Precache (void);
+		int iItemSlot (void) { return 1; }
+		void EXPORT Smack (void);
+		int GetItemInfo (ItemInfo *p);
+
+		void PrimaryAttack (void);
+		int Swing (/*int fFirst*/);
+		BOOL Deploy (void);
+		void Holster (int skiplocal = 0);
+		TraceResult m_trHit;
+
+		virtual BOOL UseDecrement (void)
+			{
+#if defined( CLIENT_WEAPONS )
+			return TRUE;
+#else
+			return FALSE;
+#endif
+			}
+
+	private:
+		unsigned short m_usAxe;
 	};
 
 class CPython: public CBasePlayerWeapon

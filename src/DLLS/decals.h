@@ -70,7 +70,8 @@ enum decal_e
 	DECAL_GBLOOD4,
 	DECAL_GBLOOD5,
 	DECAL_GBLOOD6,
-	DECAL_FDL
+
+	DECAL_FDL,
 	};
 
 typedef struct

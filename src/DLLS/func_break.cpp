@@ -60,13 +60,14 @@ const char* CBreakable::pSpawnObjects[] =
 		"weapon_hornetgun",	// 21
 
 		// ESHQ: новые создаваемые объекты
-		"weapon_crowbar",	// 22 
+		"weapon_crowbar",	// 22
 		"weapon_gauss",		// 23
 		"weapon_egon",		// 24
 		"ammo_9mmbox",		// 25
 		"monster_snark",	// 26
 		"monster_babycrab",	// 27
 		"monster_headcrab",	// 28
+		"weapon_axe",		// 29
 	};
 
 void CBreakable::KeyValue (KeyValueData* pkvd)
@@ -770,17 +771,14 @@ void CBreakable::Die (void)
 		{
 		// ESHQ: эта правка позволяет создавать объекты при разрушении в настраиваемой позиции (высоту не учитываем)
 		if ((pev->origin.x == 0) && (pev->origin.y == 0) || !FClassnameIs (pev, "func_breakable"))
-			pOnBreak = CBaseEntity::Create ((char*)STRING (m_iszSpawnObject), VecBModelOrigin (pev), pev->angles, edict ());
+			pOnBreak = CBaseEntity::Create ((char*)STRING (m_iszSpawnObject), VecBModelOrigin (pev), 
+				pev->angles, edict ());
 		else
-			pOnBreak = CBaseEntity::Create ((char*)STRING (m_iszSpawnObject), pev->origin, pev->angles, edict ());
-
-		/*if (pOnBreak && strstr (STRING (m_iszSpawnObject), "monster"))
-			{
-			pOnBreak->edict ()->v.spawnflags = 0x80000000;	// Принудительное падение на поверхность + сброс всех остальных флагов
-			}
+			pOnBreak = CBaseEntity::Create ((char*)STRING (m_iszSpawnObject), pev->origin, 
+				pev->angles, edict ());
 
 		// А эта манипуляция призвана "подбрасывать" создаваемые объекты
-		pOnBreak->pev->velocity = Vector (0, 0, RANDOM_FLOAT (30, 100));
+		/*pOnBreak->pev->velocity = Vector (0, 0, RANDOM_FLOAT (30, 100));
 		pOnBreak->pev->avelocity = Vector (0, RANDOM_FLOAT (100, 300), 0);*/
 		}
 

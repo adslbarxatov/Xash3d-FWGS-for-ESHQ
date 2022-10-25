@@ -1771,7 +1771,8 @@ float TEXTURETYPE_PlaySound (TraceResult* ptr, Vector vecSrc, Vector vecEnd, int
 		}
 
 	// ESHQ: мы ударили breakable или cycler?
-	if (pEntity && (FClassnameIs (pEntity->pev, "func_breakable") || FClassnameIs (pEntity->pev, "cycler")))
+	if (pEntity && (FClassnameIs (pEntity->pev, "func_breakable") || FClassnameIs (pEntity->pev, "func_pushable") || 
+		FClassnameIs (pEntity->pev, "cycler")))
 		{
 		// Ёти объекты выполн€ют обработку самосто€тельно
 		fvol /= 2.0;

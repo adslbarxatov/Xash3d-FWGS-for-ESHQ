@@ -736,7 +736,11 @@ int	CBaseEntity::DamageDecal (int bitsDamageType)
 	if (pev->rendermode != kRenderNormal)
 		return DECAL_BPROOF1;
 
-	return DECAL_GUNSHOT1 + RANDOM_LONG (0, 4);
+	// ESHQ: поддержка ударов ломом и топором
+	if (!FBitSet (bitsDamageType, DMG_CLUB))
+		return DECAL_GUNSHOT1 + RANDOM_LONG (0, 4);
+
+	return DECAL_BIGSHOT1 + RANDOM_LONG (0, 4);
 	}
 
 // NOTE: szName must be a pointer to constant memory, e.g. "monster_class" because the entity

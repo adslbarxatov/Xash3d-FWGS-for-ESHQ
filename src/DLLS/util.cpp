@@ -1231,7 +1231,9 @@ void UTIL_DecalTrace (TraceResult* pTrace, int decalNumber)
 		entityIndex = ENTINDEX (pTrace->pHit);
 		}
 	else
+		{
 		entityIndex = 0;
+		}
 
 	message = TE_DECAL;
 	if (entityIndex != 0)

@@ -834,7 +834,7 @@ void CBasePlayer::Killed (entvars_t* pevAttacker, int iGib)
 	// Tell Ammo Hud that the player is dead
 	MESSAGE_BEGIN (MSG_ONE, gmsgCurWeapon, NULL, pev);
 	WRITE_BYTE (0);
-	WRITE_BYTE (0XFF);
+	WRITE_BYTE (0xFF);
 	WRITE_BYTE (0xFF);
 	MESSAGE_END ();
 
@@ -845,10 +845,7 @@ void CBasePlayer::Killed (entvars_t* pevAttacker, int iGib)
 	WRITE_BYTE (0);
 	MESSAGE_END ();
 
-	// UNDONE: Put this in, but add FFADE_PERMANENT and make fade time 8.8 instead of 4.12
-	// UTIL_ScreenFade( edict(), Vector(128,0,0), 6, 15, 255, FFADE_OUT | FFADE_MODULATE );
-
-	if ((pev->health < -40 && iGib != GIB_NEVER) || iGib == GIB_ALWAYS)
+	if ((pev->health < -40) && (iGib != GIB_NEVER) || (iGib == GIB_ALWAYS))
 		{
 		pev->solid = SOLID_NOT;
 		GibMonster ();	// This clears pev->model
@@ -912,7 +909,8 @@ void CBasePlayer::SetAnimation (PLAYER_ANIM playerAnim)
 			break;
 		case PLAYER_IDLE:
 		case PLAYER_WALK:
-			if (!FBitSet (pev->flags, FL_ONGROUND) && (m_Activity == ACT_HOP || m_Activity == ACT_LEAP))	// Still jumping
+			if (!FBitSet (pev->flags, FL_ONGROUND) && (m_Activity == ACT_HOP || m_Activity == ACT_LEAP))	
+				// Still jumping
 				{
 				m_IdealActivity = m_Activity;
 				}
@@ -963,7 +961,7 @@ void CBasePlayer::SetAnimation (PLAYER_ANIM playerAnim)
 			if (animDesired == -1)
 				animDesired = 0;
 
-			if (pev->sequence != animDesired || !m_fSequenceLoops)
+			if ((pev->sequence != animDesired) || !m_fSequenceLoops)
 				{
 				pev->frame = 0;
 				}
@@ -1023,7 +1021,6 @@ void CBasePlayer::SetAnimation (PLAYER_ANIM playerAnim)
 		// pev->gaitsequence	= LookupActivity( ACT_WALK );
 		pev->gaitsequence = LookupSequence ("deep_idle");
 		}
-
 
 	// Already using the desired animation?
 	if (pev->sequence == animDesired)
@@ -3642,22 +3639,22 @@ int CBasePlayer::AddPlayerItem (CBasePlayerItem* pItem)
 	return FALSE;
 	}
 
-
-
 int CBasePlayer::RemovePlayerItem (CBasePlayerItem* pItem)
 	{
 	if (m_pActiveItem == pItem)
 		{
 		ResetAutoaim ();
 		pItem->Holster ();
-		pItem->pev->nextthink = 0;// crowbar may be trying to swing again, etc.
+		pItem->pev->nextthink = 0;	// crowbar may be trying to swing again, etc.
 		pItem->SetThink (NULL);
 		m_pActiveItem = NULL;
 		pev->viewmodel = 0;
 		pev->weaponmodel = 0;
 		}
 	else if (m_pLastItem == pItem)
+		{
 		m_pLastItem = NULL;
+		}
 
 	CBasePlayerItem* pPrev = m_rgpPlayerItems[pItem->iItemSlot ()];
 
