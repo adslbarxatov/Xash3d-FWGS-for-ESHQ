@@ -54,7 +54,7 @@ vec3_t previousorigin;
 // HLDM Weapon placeholder entities
 CGlock g_Glock;
 CCrowbar g_Crowbar;
-CAxe g_Axe;
+CAxe g_Axe;	// ESHQ: топор
 CPython g_Python;
 CMP5 g_Mp5;
 CCrossbow g_Crossbow;

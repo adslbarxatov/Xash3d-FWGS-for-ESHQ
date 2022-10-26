@@ -55,16 +55,15 @@ int CPython::GetItemInfo (ItemInfo* p)
 	return 1;
 	}
 
-int CPython::AddToPlayer (CBasePlayer* pPlayer)
+int CPython::AddToPlayer (CBasePlayer *pPlayer)
 	{
-	if (CBasePlayerWeapon::AddToPlayer (pPlayer))
-		{
-		MESSAGE_BEGIN (MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev);
-		WRITE_BYTE (m_iId);
-		MESSAGE_END ();
-		return TRUE;
-		}
-	return FALSE;
+	if (!CBasePlayerWeapon::AddToPlayer (pPlayer))
+		return FALSE;
+
+	MESSAGE_BEGIN (MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev);
+	WRITE_BYTE (m_iId);
+	MESSAGE_END ();
+	return TRUE;
 	}
 
 void CPython::Spawn ()
@@ -120,9 +119,7 @@ void CPython::Holster (int skiplocal)
 	m_fInReload = FALSE;	// cancel any reload in progress
 
 	if (m_fInZoom)
-		{
 		SecondaryAttack ();
-		}
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + 1.0;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + UTIL_SharedRandomFloat (m_pPlayer->random_seed, 10, 15);
@@ -167,7 +164,9 @@ void CPython::PrimaryAttack ()
 	if (m_iClip <= 0)
 		{
 		if (!m_fFireOnEmpty)
+			{
 			Reload ();
+			}
 		else
 			{
 			EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_cock1.wav", 0.8, ATTN_MEDIUM);
@@ -194,7 +193,8 @@ void CPython::PrimaryAttack ()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector (AUTOAIM_10DEGREES);
 
 	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer (1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+	vecDir = m_pPlayer->FireBulletsPlayer (1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES, 8192, 
+		BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
@@ -203,7 +203,8 @@ void CPython::PrimaryAttack ()
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usFirePython, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);
+	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usFirePython, 0.0, (float*)&g_vecZero, 
+		(float*)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);
 
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		// HEV suit - indicate out of ammo condition
@@ -212,7 +213,6 @@ void CPython::PrimaryAttack ()
 	m_flNextPrimaryAttack = 0.75;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + UTIL_SharedRandomFloat (m_pPlayer->random_seed, 10, 15);
 	}
-
 
 void CPython::Reload (void)
 	{
@@ -232,10 +232,10 @@ void CPython::Reload (void)
 	bUseScope = g_pGameRules->IsMultiplayer ();
 #endif
 
-	if (DefaultReload (6, PYTHON_RELOAD, 4.0, bUseScope))
-		{
-		m_flSoundDelay = 1.5;
-		}
+	// ESHQ: местная озвучка перезарядки больше не требуется
+	DefaultReload (6, PYTHON_RELOAD, 4.0, bUseScope);
+	/*if (DefaultReload (6, PYTHON_RELOAD, 4.0, bUseScope))
+		m_flSoundDelay = 1.5;*/
 	}
 
 void CPython::WeaponIdle (void)
@@ -244,12 +244,12 @@ void CPython::WeaponIdle (void)
 
 	m_pPlayer->GetAutoaimVector (AUTOAIM_10DEGREES);
 
-	// ALERT( at_console, "%.2f\n", gpGlobals->time - m_flSoundDelay );
-	if (m_flSoundDelay != 0 && m_flSoundDelay <= UTIL_WeaponTimeBase ())
+	/*if (((int)m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
 		{
-		EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
+		EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", 
+			RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
 		m_flSoundDelay = 0;
-		}
+		}*/
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase ())
 		return;
@@ -286,7 +286,6 @@ void CPython::WeaponIdle (void)
 
 	SendWeaponAnim (iAnim, UseDecrement () ? 1 : 0, bUseScope);
 	}
-
 
 
 class CPythonAmmo: public CBasePlayerAmmo

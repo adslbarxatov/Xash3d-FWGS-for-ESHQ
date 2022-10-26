@@ -499,7 +499,7 @@ void SV_CreateBaseline (void)
 		mName[0] = '\0';
 
 		sprintf (mName, "-x %s", sv.name);
-		ShellExecute (NULL, "open", "esrm\\randomaze.exe", mName, NULL, SW_SHOWNOACTIVATE);
+		ShellExecute (NULL, "open", "esrm\\randomaze.exe", mName, NULL, SW_SHOWMINNOACTIVE);
 		}
 
 	for (entnum = 0; entnum < sv.num_instanced; entnum++)

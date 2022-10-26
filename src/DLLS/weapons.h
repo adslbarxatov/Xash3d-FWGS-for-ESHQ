@@ -573,9 +573,9 @@ class CPython: public CBasePlayerWeapon
 		void Holster (int skiplocal = 0);
 		void Reload (void);
 		void WeaponIdle (void);
-		float m_flSoundDelay;
+		// float m_flSoundDelay;	// ESHQ: больше не требуется
 
-		BOOL m_fInZoom;// don't save this. 
+		BOOL m_fInZoom;	// don't save this
 
 		virtual BOOL UseDecrement (void)
 			{
