@@ -1185,7 +1185,7 @@ void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float sy
 	if (!dma.initialized || s_listener.paused || !CL_IsInGame ())
 		return;
 
-	if (entnum < 0 || entnum >= GI->max_edicts)
+	if ((entnum < 0) || (entnum >= GI->max_edicts))
 		return;
 
 	if (!(ch = S_FindRawChannel (entnum, true)))
@@ -1352,7 +1352,7 @@ static void S_SpatializeRawChannels (void)
 			}
 
 		// spatialization
-		if (!S_IsClient (ch->entnum) && ch->dist_mult && ch->entnum >= 0 && ch->entnum < GI->max_edicts)
+		if (!S_IsClient (ch->entnum) && ch->dist_mult && (ch->entnum >= 0) && (ch->entnum < GI->max_edicts))
 			{
 			if (!CL_GetMovieSpatialization (ch))
 				{

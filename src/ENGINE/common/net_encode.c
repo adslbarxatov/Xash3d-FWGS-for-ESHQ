@@ -1745,7 +1745,7 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 
 	startBit = msg->iCurBit;
 
-	if (to->number < 0 || to->number >= GI->max_edicts)
+	if ((to->number < 0) || (to->number >= GI->max_edicts))
 		Host_Error ("MSG_WriteDeltaEntity: Bad entity number: %i\n", to->number);
 
 	MSG_WriteUBitLong (msg, to->number, MAX_ENTITY_BITS);

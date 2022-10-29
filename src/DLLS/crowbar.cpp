@@ -347,7 +347,6 @@ void CAxe::Precache (void)
 	PRECACHE_MODEL ("models/v_axe.mdl");
 	PRECACHE_MODEL ("models/w_axe.mdl");
 	PRECACHE_SOUND ("weapons/axe_hit.wav");
-	/*PRECACHE_SOUND ("weapons/axe_hitbod.wav");*/
 	PRECACHE_SOUND ("weapons/axe_swing.wav");
 
 	m_usAxe = PRECACHE_EVENT (1, "events/axe.sc");

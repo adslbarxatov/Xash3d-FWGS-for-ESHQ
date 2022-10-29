@@ -340,7 +340,9 @@ void KeyUp (kbutton_t* b)
 
 	const char *c = gEngfuncs.Cmd_Argv (1);	// FWGS
 	if (c[0])
+		{
 		k = atoi (c);
+		}
 	else
 		{ // typed manually at the console, assume for unsticking, so clear all
 		b->down[0] = b->down[1] = 0;

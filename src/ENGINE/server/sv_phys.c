@@ -1529,13 +1529,13 @@ void SV_Physics_Toss (edict_t *ent)
 
 		if (ent->v.velocity[2] < sv_gravity.value * sv.frametime)
 			{
-			// we're rolling on the ground, add static friction.
+			// we're rolling on the ground, add static friction
 			ent->v.groundentity = trace.ent;
 			ent->v.flags |= FL_ONGROUND;
 			ent->v.velocity[2] = 0.0f;
 			}
 
-		if (vel < 900.0f || (ent->v.movetype != MOVETYPE_BOUNCE && ent->v.movetype != MOVETYPE_BOUNCEMISSILE))
+		if ((vel < 900.0f) || (ent->v.movetype != MOVETYPE_BOUNCE) && (ent->v.movetype != MOVETYPE_BOUNCEMISSILE))
 			{
 			ent->v.flags |= FL_ONGROUND;
 			ent->v.groundentity = trace.ent;
@@ -1547,7 +1547,8 @@ void SV_Physics_Toss (edict_t *ent)
 			VectorScale (ent->v.velocity, (1.0f - trace.fraction) * sv.frametime * 0.9f, move);
 			VectorMA (move, (1.0f - trace.fraction) * sv.frametime * 0.9f, ent->v.basevelocity, move);
 			trace = SV_PushEntity (ent, move, vec3_origin, NULL, 0.0f);
-			if (ent->free) return;
+			if (ent->free) 
+				return;
 			}
 		}
 

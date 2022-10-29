@@ -813,7 +813,6 @@ void CL_ClearSpriteTextures (void);
 void CL_FreeEntity (cl_entity_t *pEdict);
 void CL_CenterPrint (const char *text, float y);
 void CL_TextMessageParse (byte *pMemFile, int fileSize);
-//client_textmessage_t *CL_TextMessageGet( const char *pName );	// ESHQ: вынесено в pm_defs
 int pfnDecalIndexFromName (const char *szDecalName);
 int pfnIndexFromTrace (struct pmtrace_s *pTrace);
 model_t *CL_ModelHandle (int modelindex);

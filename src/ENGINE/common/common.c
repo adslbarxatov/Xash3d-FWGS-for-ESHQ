@@ -119,7 +119,8 @@ float GAME_EXPORT COM_RandomFloat (float flLow, float flHigh)
 	{
 	float	fl;
 
-	if (idum == 0) COM_SetRandomSeed (0);
+	if (idum == 0) 
+		COM_SetRandomSeed (0);
 
 	fl = fran1 (); // float in [0,1]
 	return (fl * (flHigh - flLow)) + flLow; // float in [low, high)

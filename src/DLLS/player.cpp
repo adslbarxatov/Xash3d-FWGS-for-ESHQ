@@ -498,8 +498,6 @@ int CBasePlayer::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, fl
 			{
 			if (m_lastDamageAmount > 5)
 				SetSuitUpdate ("!HEV_DMG6", FALSE, SUIT_NEXT_IN_30SEC);	// blood loss detected
-			//else
-			//	SetSuitUpdate("!HEV_DMG0", FALSE, SUIT_NEXT_IN_30SEC);	// minor laceration
 
 			bitsDamage &= ~DMG_BULLET;
 			ffound = TRUE;
@@ -611,10 +609,10 @@ void CBasePlayer::PackDeadPlayerItems (void)
 	int iWeaponRules;
 	int iAmmoRules;
 	int i;
-	CBasePlayerWeapon* rgpPackWeapons[20];// 20 hardcoded for now. How to determine exactly how many weapons we have?
+	CBasePlayerWeapon* rgpPackWeapons[20];	// 20 hardcoded for now. How to determine exactly how many weapons we have?
 	int iPackAmmo[MAX_AMMO_SLOTS + 1];
-	int iPW = 0;// index into packweapons array
-	int iPA = 0;// index into packammo array
+	int iPW = 0;	// index into packweapons array
+	int iPA = 0;	// index into packammo array
 
 	memset (rgpPackWeapons, NULL, sizeof (rgpPackWeapons));
 	memset (iPackAmmo, -1, sizeof (iPackAmmo));
@@ -623,7 +621,7 @@ void CBasePlayer::PackDeadPlayerItems (void)
 	iWeaponRules = g_pGameRules->DeadPlayerWeapons (this);
 	iAmmoRules = g_pGameRules->DeadPlayerAmmo (this);
 
-	if (iWeaponRules == GR_PLR_DROP_GUN_NO && iAmmoRules == GR_PLR_DROP_AMMO_NO)
+	if ((iWeaponRules == GR_PLR_DROP_GUN_NO) && (iAmmoRules == GR_PLR_DROP_AMMO_NO))
 		{
 		// nothing to pack. Remove the weapons and return. Don't call create on the box!
 		RemoveAllItems (TRUE);
@@ -700,7 +698,7 @@ void CBasePlayer::PackDeadPlayerItems (void)
 	// create a box to pack the stuff into.
 	CWeaponBox* pWeaponBox = (CWeaponBox*)CBaseEntity::Create ("weaponbox", pev->origin, pev->angles, edict ());
 
-	pWeaponBox->pev->angles.x = 0;// don't let weaponbox tilt.
+	pWeaponBox->pev->angles.x = 0;	// don't let weaponbox tilt
 	pWeaponBox->pev->angles.z = 0;
 
 	pWeaponBox->SetThink (&CWeaponBox::Kill);
@@ -713,7 +711,8 @@ void CBasePlayer::PackDeadPlayerItems (void)
 	// pack the ammo
 	while (iPackAmmo[iPA] != -1)
 		{
-		pWeaponBox->PackAmmo (MAKE_STRING (CBasePlayerItem::AmmoInfoArray[iPackAmmo[iPA]].pszName), m_rgAmmo[iPackAmmo[iPA]]);
+		pWeaponBox->PackAmmo (MAKE_STRING (CBasePlayerItem::AmmoInfoArray[iPackAmmo[iPA]].pszName),
+			m_rgAmmo[iPackAmmo[iPA]]);
 		iPA++;
 		}
 
@@ -726,9 +725,64 @@ void CBasePlayer::PackDeadPlayerItems (void)
 		iPW++;
 		}
 
-	pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
+	pWeaponBox->pev->velocity = pev->velocity * 1.2;	// weaponbox has player's velocity, then some
 
-	RemoveAllItems (TRUE);// now strip off everything that wasn't handled by the code above.
+	RemoveAllItems (TRUE);	// now strip off everything that wasn't handled by the code above.
+	}
+
+// ESHQ: удаление текущего оружия
+void CBasePlayer::RemoveCurrentItem ()
+	{
+	// Переменные и контроль
+	int id = -1;
+
+	if (!m_pActiveItem)
+		return;
+	id = m_pActiveItem->m_iId;
+
+	// Сброс состояния
+	ResetAutoaim ();
+	m_pActiveItem->Holster ();
+	m_pActiveItem->pev->nextthink = 0;	// crowbar may be trying to swing again, etc.
+	m_pActiveItem->SetThink (NULL);
+	pev->viewmodel = 0;
+	pev->weaponmodel = 0;
+
+	if (m_pLastItem == m_pActiveItem)
+		m_pLastItem = NULL;
+
+	CBasePlayerItem *pPrev = m_rgpPlayerItems[m_pActiveItem->iItemSlot ()];
+	if (pPrev == m_pActiveItem)
+		{
+		m_rgpPlayerItems[m_pActiveItem->iItemSlot ()] = m_pActiveItem->m_pNext;
+		}
+	else
+		{
+		while (pPrev && (pPrev->m_pNext != m_pActiveItem))
+			{
+			pPrev = pPrev->m_pNext;
+			}
+
+		if (pPrev)
+			{
+			pPrev->m_pNext = m_pActiveItem->m_pNext;
+			}
+		}
+
+	m_pActiveItem = NULL;
+	if (id >= WEAPON_CROWBAR)
+		pev->weapons &= ~(1 << id);
+
+	/*// send Selected Weapon Message to our client
+	UpdateClientData ();
+	MESSAGE_BEGIN (MSG_ONE, gmsgCurWeapon, NULL, pev);
+	WRITE_BYTE (0);
+	WRITE_BYTE (0);
+	WRITE_BYTE (0);
+	MESSAGE_END ();*/
+
+	// Звук
+	EMIT_SOUND (ENT (pev), CHAN_VOICE, "items/weapondrop1.wav", 1, ATTN_MEDIUM);
 	}
 
 void CBasePlayer::RemoveAllItems (BOOL removeSuit)
@@ -753,8 +807,10 @@ void CBasePlayer::RemoveAllItems (BOOL removeSuit)
 			m_pActiveItem->Drop ();
 			m_pActiveItem = pPendingItem;
 			}
+
 		m_rgpPlayerItems[i] = NULL;
 		}
+
 	m_pActiveItem = NULL;
 
 	pev->viewmodel = 0;
@@ -768,8 +824,8 @@ void CBasePlayer::RemoveAllItems (BOOL removeSuit)
 	for (i = 0; i < MAX_AMMO_SLOTS; i++)
 		m_rgAmmo[i] = 0;
 
-	UpdateClientData ();
 	// send Selected Weapon Message to our client
+	UpdateClientData ();
 	MESSAGE_BEGIN (MSG_ONE, gmsgCurWeapon, NULL, pev);
 	WRITE_BYTE (0);
 	WRITE_BYTE (0);
@@ -3320,12 +3376,11 @@ void CBasePlayer::ImpulseCommands ()
 				}
 			break;
 
-		case 201:	// paint decal
+		// paint decal
+		case 201:
+			// too early!
 			if (gpGlobals->time < m_flNextDecalTime)
-				{
-				// too early!
 				break;
-				}
 
 			UTIL_MakeVectors (pev->v_angle);
 			UTIL_TraceLine (pev->origin + pev->view_ofs, pev->origin + pev->view_ofs + gpGlobals->v_forward * 128,
@@ -3346,7 +3401,6 @@ void CBasePlayer::ImpulseCommands ()
 				{
 				pev->effects &= ~EF_BRIGHTLIGHT;
 				m_flFlags &= ~0x02;
-				//FlashlightTurnOn ();	// Не включать обычный фонарь
 				PassFlashlightStatus ();
 				}
 			else
@@ -3389,6 +3443,10 @@ void CBasePlayer::ImpulseCommands ()
 			PassFlashlightStatus ();
 			break;
 
+		case 233:
+			RemoveCurrentItem ();
+			break;
+
 		default:
 			// check all of the cheat impulse commands now
 			CheatImpulseCommands (iImpulse);
@@ -3427,7 +3485,6 @@ void CBasePlayer::CheatImpulseCommands (int iImpulse)
 				}
 			break;
 			}
-
 
 		case 101:
 			gEvilImpulse101 = TRUE;
@@ -3481,7 +3538,7 @@ void CBasePlayer::CheatImpulseCommands (int iImpulse)
 			gGlobalState.DumpGlobals ();
 			break;
 
-		case 105:// player makes no sound for monsters to hear.
+		case 105:	// player makes no sound for monsters to hear
 			{
 			if (m_fNoPlayerSound)
 				{
@@ -3534,28 +3591,30 @@ void CBasePlayer::CheatImpulseCommands (int iImpulse)
 				ALERT (at_console, "Texture: %s\n", pTextureName);
 			}
 			break;
-		case	195:// show shortest paths for entire level to nearest node
-			{
+
+		// show shortest paths for entire level to nearest node
+		case 195:
 			Create ("node_viewer_fly", pev->origin, pev->angles);
-			}
 			break;
-		case	196:// show shortest paths for entire level to nearest node
-			{
+
+		// show shortest paths for entire level to nearest node
+		case 196:
 			Create ("node_viewer_large", pev->origin, pev->angles);
-			}
 			break;
-		case	197:// show shortest paths for entire level to nearest node
-			{
+		
+		// show shortest paths for entire level to nearest node
+		case 197:
 			Create ("node_viewer_human", pev->origin, pev->angles);
-			}
 			break;
-		case	199:// show nearest node and all connections
-			{
+
+		// show nearest node and all connections
+		case 199:
 			ALERT (at_console, "%d\n", WorldGraph.FindNearestNode (pev->origin, bits_NODE_GROUP_REALM));
 			WorldGraph.ShowNodeConnections (WorldGraph.FindNearestNode (pev->origin, bits_NODE_GROUP_REALM));
-			}
 			break;
-		case	202:// Random blood splatter
+
+		// Random blood splatter
+		case 202:
 			UTIL_MakeVectors (pev->v_angle);
 			UTIL_TraceLine (pev->origin + pev->view_ofs, pev->origin + pev->view_ofs + gpGlobals->v_forward * 128, 
 				ignore_monsters, ENT (pev), &tr);
@@ -3566,7 +3625,9 @@ void CBasePlayer::CheatImpulseCommands (int iImpulse)
 				pBlood->Spawn (pev);
 				}
 			break;
-		case	203:	// remove creature
+
+		// remove creature
+		case 203:
 			pEntity = FindEntityForward (this);
 			if (pEntity)
 				{
@@ -3665,7 +3726,7 @@ int CBasePlayer::RemovePlayerItem (CBasePlayerItem* pItem)
 		}
 	else
 		{
-		while (pPrev && pPrev->m_pNext != pItem)
+		while (pPrev && (pPrev->m_pNext != pItem))
 			{
 			pPrev = pPrev->m_pNext;
 			}
@@ -3675,9 +3736,9 @@ int CBasePlayer::RemovePlayerItem (CBasePlayerItem* pItem)
 			return TRUE;
 			}
 		}
+
 	return FALSE;
 	}
-
 
 //
 // Returns the unique ID for the ammo, or -1 if error

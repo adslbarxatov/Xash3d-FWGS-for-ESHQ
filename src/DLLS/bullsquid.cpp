@@ -502,10 +502,22 @@ void CBullsquid::SetYawSpeed (void)
 
 	switch (m_Activity)
 		{
-		case	ACT_WALK:			ys = 90;	break;
-		case	ACT_RUN:			ys = 90;	break;
-		case	ACT_IDLE:			ys = 90;	break;
-		case	ACT_RANGE_ATTACK1:	ys = 90;	break;
+		case ACT_WALK:
+			ys = 90;
+			break;
+
+		case ACT_RUN:
+			ys = 90;
+			break;
+
+		case ACT_IDLE:
+			ys = 90;
+			break;
+
+		case ACT_RANGE_ATTACK1:
+			ys = 90;
+			break;
+
 		default:
 			ys = 90;
 			break;
@@ -543,8 +555,6 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 				}
 			else
 				{
-				//vecSpitDir.x = vecSpitDir.y = 0;
-				//vecSpitDir.z = -1000;
 				break;
 				}
 
@@ -581,8 +591,6 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 
 			if (pHurt)
 				{
-				//pHurt->pev->punchangle.z = -15;
-				//pHurt->pev->punchangle.x = -45;
 				pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_forward * 100;
 				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100;
 				}

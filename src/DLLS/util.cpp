@@ -352,7 +352,7 @@ BOOL UTIL_GetNextBestWeapon (CBasePlayer* pPlayer, CBasePlayerItem* pCurrentWeap
 	}
 
 // ripped this out of the engine
-float	UTIL_AngleMod (float a)
+float UTIL_AngleMod (float a)
 	{
 	if (a < 0)
 		{
@@ -391,12 +391,10 @@ Vector UTIL_VecToAngles (const Vector& vec)
 	return Vector (rgflVecOut);
 	}
 
-//	float UTIL_MoveToOrigin( edict_t *pent, const Vector vecGoal, float flDist, int iMoveType )
 void UTIL_MoveToOrigin (edict_t* pent, const Vector& vecGoal, float flDist, int iMoveType)
 	{
 	float rgfl[3];
 	vecGoal.CopyToArray (rgfl);
-	//		return MOVE_TO_ORIGIN ( pent, rgfl, flDist, iMoveType ); 
 	MOVE_TO_ORIGIN (pent, rgfl, flDist, iMoveType);
 	}
 
@@ -547,7 +545,6 @@ CBaseEntity* UTIL_FindEntityByTargetname (CBaseEntity* pStartEntity, const char*
 	{
 	return UTIL_FindEntityByString (pStartEntity, "targetname", szName);
 	}
-
 
 CBaseEntity* UTIL_FindEntityGeneric (const char* szWhatever, Vector& vecSrc, float flRadius)
 	{
@@ -1001,7 +998,6 @@ void UTIL_ParticleEffect (const Vector& vecOrigin, const Vector& vecDirection, U
 	PARTICLE_EFFECT (vecOrigin, vecDirection, (float)ulColor, (float)ulCount);
 	}
 
-
 float UTIL_Approach (float target, float value, float speed)
 	{
 	float delta = target - value;
@@ -1015,7 +1011,6 @@ float UTIL_Approach (float target, float value, float speed)
 
 	return value;
 	}
-
 
 float UTIL_ApproachAngle (float target, float value, float speed)
 	{
@@ -1100,7 +1095,7 @@ int UTIL_IsMasterTriggered (string_t sMaster, CBaseEntity* pActivator)
 		ALERT (at_console, "Master was null or not a master!\n");
 		}
 
-	// if this isn't a master entity, just say yes.
+	// if this isn't a master entity, just say yes
 	return 1;
 	}
 

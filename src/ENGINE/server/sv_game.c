@@ -62,7 +62,7 @@ qboolean SV_CheckEdict (const edict_t *e, const char *file, const int line)
 
 static edict_t *SV_PEntityOfEntIndex (const int iEntIndex, const qboolean allentities)
 	{
-	if (iEntIndex >= 0 && iEntIndex < GI->max_edicts)
+	if ((iEntIndex >= 0) && (iEntIndex < GI->max_edicts))
 		{
 		edict_t *pEdict = EDICT_NUM (iEntIndex);
 		qboolean player = allentities ? iEntIndex <= svs.maxclients : iEntIndex < svs.maxclients;
@@ -229,7 +229,8 @@ void SV_SetMinMaxSize (edict_t *e, const float *mins, const float *maxs, qboolea
 	VectorCopy (mins, e->v.mins);
 	VectorCopy (maxs, e->v.maxs);
 	VectorSubtract (maxs, mins, e->v.size);
-	if (relink) SV_LinkEdict (e, false);
+	if (relink) 
+		SV_LinkEdict (e, false);
 	}
 
 /*
@@ -3371,7 +3372,7 @@ int GAME_EXPORT pfnIndexOfEdict (const edict_t *pEdict)
 	if (!pEdict) return 0; // world ?
 
 	number = NUM_FOR_EDICT (pEdict);
-	if (number < 0 || number > GI->max_edicts)
+	if ((number < 0) || (number > GI->max_edicts))
 		Host_Error ("bad entity number %d\n", number);
 	return number;
 	}

@@ -167,7 +167,7 @@ void CEgon::Attack (void)
 	if (m_pPlayer->pev->waterlevel == 3)
 		{
 
-		if (m_fireState != FIRE_OFF || m_pBeam)
+		if ((m_fireState != FIRE_OFF) || m_pBeam)
 			{
 			EndAttack ();
 			}

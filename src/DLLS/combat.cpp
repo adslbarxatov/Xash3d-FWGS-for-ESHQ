@@ -300,17 +300,45 @@ void CBaseMonster::GibMonster (void)
 	TraceResult	tr;
 	BOOL		gibbed = FALSE;
 
-	// ESHQ: новый звук для расчленёнки
-	switch (RANDOM_LONG (1, 3))
+	// ESHQ: новый звук для расчленёнки, зависимый от размера объекта
+	Vector v = ENT (pev)->v.size;
+	float sizeCoeff = v.x * v.y * sqrtf (v.z);
+	float soundNumber;
+
+	// (32 * 32 * 72) = рост человека
+	sizeCoeff = sizeCoeff / 1024.0f; 
+	if (v.z > 2.0f)	// Признак живого существа
+		sizeCoeff /= 8.5f;	// sqrt (72)
+
+	// Нормализованный на единицу коэффициент подтягивается к ней корнем, после чего выводится на нормальную частоту
+	sizeCoeff = sqrtf (sqrtf (sizeCoeff)) * 100.0f;
+	if (sizeCoeff < 70.0f)
+		sizeCoeff = 70.0f;
+	if (sizeCoeff > 120.0f)
+		sizeCoeff = 120.0f;
+
+	soundNumber = RANDOM_FLOAT (0.0f, 2.0f) + (sizeCoeff - 70.0f) / 50.0f;
+
+	// Разворот частот (меньший размер = большая частота) с отражением диапазона относительно значения 100
+	sizeCoeff = 130.0f - (sizeCoeff - 70.0f);
+
+	switch ((int)soundNumber)
 		{
+		// От короткого к длинному
+		case 0:
+			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "common/bodysplat2.wav", 1.0f,
+				ATTN_MEDIUM, 0, sizeCoeff);
+			break;
+
 		case 1:
-			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_MEDIUM);
+			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "common/bodysplat.wav", 1.0f, 
+				ATTN_MEDIUM, 0, sizeCoeff);
 			break;
+
 		case 2:
-			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "common/bodysplat2.wav", 1, ATTN_MEDIUM);
-			break;
-		case 3:
-			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "common/bodysplat3.wav", 1, ATTN_MEDIUM);
+		default:	// Возможные 3.0f и чуть более
+			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "common/bodysplat3.wav", 1.0f, 
+				ATTN_MEDIUM, 0, sizeCoeff);
 			break;
 		}
 
@@ -360,23 +388,21 @@ Activity CBaseMonster::GetDeathActivity (void)
 	TraceResult	tr;
 	Vector		vecSrc;
 
+	// don't run this while dying
 	if (pev->deadflag != DEAD_NO)
-		{
-		// don't run this while dying.
 		return m_IdealActivity;
-		}
 
 	vecSrc = Center ();
 
 	fTriedDirection = FALSE;
-	deathActivity = ACT_DIESIMPLE;// in case we can't find any special deaths to do.
+	deathActivity = ACT_DIESIMPLE;	// in case we can't find any special deaths to do
 
 	UTIL_MakeVectors (pev->angles);
 	flDot = DotProduct (gpGlobals->v_forward, g_vecAttackDir * -1);
 
 	switch (m_LastHitGroup)
 		{
-		// try to pick a region-specific death.
+		// try to pick a region-specific death
 		case HITGROUP_HEAD:
 			deathActivity = ACT_DIE_HEADSHOT;
 			break;
@@ -385,8 +411,8 @@ Activity CBaseMonster::GetDeathActivity (void)
 			deathActivity = ACT_DIE_GUTSHOT;
 			break;
 
+		// try to pick a death based on attack direction
 		case HITGROUP_GENERIC:
-			// try to pick a death based on attack direction
 			fTriedDirection = TRUE;
 
 			if (flDot > 0.3)
