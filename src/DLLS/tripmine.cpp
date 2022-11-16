@@ -237,6 +237,9 @@ void CTripmineGrenade::MakeBeam (void)
 	TraceResult tr;
 
 	UTIL_TraceLine (pev->origin, m_vecEnd, dont_ignore_monsters, ENT (pev), &tr);
+	if (pev->origin.z != m_vecEnd.z)
+		return;	// ESHQ: пробуем убрать кривые лучи
+
 	m_flBeamLength = tr.flFraction;
 
 	// set to follow laser spot
