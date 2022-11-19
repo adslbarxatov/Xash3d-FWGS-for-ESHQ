@@ -20,7 +20,8 @@ GNU General Public License for more details.
 #include "library.h"
 #include "ref_common.h"
 
-typedef int (*STUDIOAPI)(int, sv_blending_interface_t **, server_studio_api_t *, float (*transform)[3][4], float (*bones)[MAXSTUDIOBONES][3][4]);
+typedef int (*STUDIOAPI)(int, sv_blending_interface_t **, server_studio_api_t *, float (*transform)[3][4], 
+	float (*bones)[MAXSTUDIOBONES][3][4]);
 
 typedef struct mstudiocache_s
 	{
@@ -116,7 +117,8 @@ void Mod_ClearStudioCache (void)
 AddToStudioCache
 ====================
 */
-void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, byte *pcontroller, byte *pblending, model_t *model, hull_t *hull, int numhitboxes)
+void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, 
+	byte *pcontroller, byte *pblending, model_t *model, hull_t *hull, int numhitboxes)
 	{
 	mstudiocache_t *pCache;
 
@@ -153,7 +155,8 @@ void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t orig
 CheckStudioCache
 ====================
 */
-mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, byte *controller, byte *blending)
+mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin,
+	vec3_t size, byte *controller, byte *blending)
 	{
 	mstudiocache_t *pCached;
 	int		i;
@@ -228,7 +231,8 @@ HullForStudio
 NOTE: pEdict may be NULL
 ====================
 */
-hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, byte *pcontroller, byte *pblending, int *numhitboxes, edict_t *pEdict)
+hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin, 
+	vec3_t size, byte *pcontroller, byte *pblending, int *numhitboxes, edict_t *pEdict)
 	{
 	vec3_t		angles2;
 	mstudiocache_t *bonecache;
@@ -246,7 +250,8 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 		if (bonecache != NULL)
 			{
 			memcpy (studio_planes, &cache_planes[bonecache->current_plane], bonecache->numhitboxes * sizeof (mplane_t) * 6);
-			memcpy (studio_hull_hitgroup, &cache_hull_hitgroup[bonecache->current_hull], bonecache->numhitboxes * sizeof (uint));
+			memcpy (studio_hull_hitgroup, &cache_hull_hitgroup[bonecache->current_hull], bonecache->numhitboxes * 
+				sizeof (uint));
 			memcpy (studio_hull, &cache_hull[bonecache->current_hull], bonecache->numhitboxes * sizeof (hull_t));
 
 			*numhitboxes = bonecache->numhitboxes;
@@ -287,7 +292,8 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 	*numhitboxes = (bSkipShield) ? (mod_studiohdr->numhitboxes - 1) : (mod_studiohdr->numhitboxes);
 
 	if (mod_studiocache->value)
-		Mod_AddToStudioCache (frame, sequence, angles, origin, size, pcontroller, pblending, model, studio_hull, *numhitboxes);
+		Mod_AddToStudioCache (frame, sequence, angles, origin, size, pcontroller, pblending, model,
+			studio_hull, *numhitboxes);
 
 	return studio_hull;
 	}
@@ -622,7 +628,8 @@ void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstud
 		COM_ExtractFilePath (m_pSubModel->name, modelpath);
 
 		// NOTE: here we build real sub-animation filename because stupid user may rename model without recompile
-		Q_snprintf (filepath, sizeof (filepath), "%s/%s%i%i.mdl", modelpath, modelname, pseqdesc->seqgroup / 10, pseqdesc->seqgroup % 10);
+		Q_snprintf (filepath, sizeof (filepath), "%s/%s%i%i.mdl", modelpath, modelname, 
+			pseqdesc->seqgroup / 10, pseqdesc->seqgroup % 10);
 
 		buf = FS_LoadFile (filepath, &filesize, false);
 		if (!buf || !filesize) Host_Error ("StudioGetAnim: can't load %s\n", filepath);
@@ -667,11 +674,12 @@ static void SV_StudioSetupBones (model_t *pModel, float frame, int sequence, con
 	static float	pos4[MAXSTUDIOBONES][3];
 	static vec4_t	q4[MAXSTUDIOBONES];
 
-	if (sequence < 0 || sequence >= mod_studiohdr->numseq)
+	if ((sequence < 0) || (sequence >= mod_studiohdr->numseq))
 		{
 		// only show warn if sequence that out of range was specified intentionally
 		if (sequence > mod_studiohdr->numseq)
-			Con_Reportf (S_WARN "SV_StudioSetupBones: sequence %i/%i out of range for model %s\n", sequence, mod_studiohdr->numseq, pModel->name);
+			Con_Reportf (S_WARN "SV_StudioSetupBones: sequence %i/%i out of range for model %s\n",
+				sequence, mod_studiohdr->numseq, pModel->name);
 		sequence = 0;
 		}
 
@@ -736,7 +744,8 @@ static void SV_StudioSetupBones (model_t *pModel, float frame, int sequence, con
 		Matrix3x4_FromOriginQuat (bonematrix, q[i], pos[i]);
 		if (pbones[i].parent == -1)
 			Matrix3x4_ConcatTransforms (studio_bones[i], studio_transform, bonematrix);
-		else Matrix3x4_ConcatTransforms (studio_bones[i], studio_bones[pbones[i].parent], bonematrix);
+		else 
+			Matrix3x4_ConcatTransforms (studio_bones[i], studio_bones[pbones[i].parent], bonematrix);
 		}
 	}
 
@@ -776,7 +785,8 @@ void Mod_StudioGetAttachment (const edict_t *e, int iAtt, float *origin, float *
 	if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
 		angles2[PITCH] = -angles2[PITCH];
 
-	pBlendAPI->SV_StudioSetupBones (mod, e->v.frame, e->v.sequence, angles2, e->v.origin, e->v.controller, e->v.blending, pAtt->bone, e);
+	pBlendAPI->SV_StudioSetupBones (mod, e->v.frame, e->v.sequence, angles2, e->v.origin, e->v.controller, 
+		e->v.blending, pAtt->bone, e);
 
 	Matrix3x4_LoadIdentity (localPose);
 	Matrix3x4_SetOrigin (localPose, pAtt->org[0], pAtt->org[1], pAtt->org[2]);
@@ -800,12 +810,16 @@ void Mod_GetBonePosition (const edict_t *e, int iBone, float *origin, float *ang
 
 	mod = SV_ModelHandle (e->v.modelindex);
 	mod_studiohdr = (studiohdr_t *)Mod_StudioExtradata (mod);
-	if (!mod_studiohdr) return;
+	if (!mod_studiohdr)
+		return;
 
-	pBlendAPI->SV_StudioSetupBones (mod, e->v.frame, e->v.sequence, e->v.angles, e->v.origin, e->v.controller, e->v.blending, iBone, e);
+	pBlendAPI->SV_StudioSetupBones (mod, e->v.frame, e->v.sequence, e->v.angles, e->v.origin, 
+		e->v.controller, e->v.blending, iBone, e);
 
-	if (origin) Matrix3x4_OriginFromMatrix (studio_bones[iBone], origin);
-	if (angles) Matrix3x4_AnglesFromMatrix (studio_bones[iBone], angles);
+	if (origin) 
+		Matrix3x4_OriginFromMatrix (studio_bones[iBone], origin);
+	if (angles) 
+		Matrix3x4_AnglesFromMatrix (studio_bones[iBone], angles);
 	}
 
 /*

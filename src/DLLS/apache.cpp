@@ -335,10 +335,10 @@ void CApache::DyingThink (void)
 
 		RadiusDamage (pev->origin, pev, pev, 300, CLASS_NONE, DMG_BLAST);
 
-		if (/*!(pev->spawnflags & SF_NOWRECKAGE) && */(pev->flags & FL_ONGROUND))
+		if (pev->flags & FL_ONGROUND)
 			{
 			CBaseEntity* pWreckage = Create ("cycler_wreckage", pev->origin, pev->angles);
-			// SET_MODEL( ENT(pWreckage->pev), STRING(pev->model) );
+
 			UTIL_SetSize (pWreckage->pev, Vector (-200, -200, -128), Vector (200, 200, -32));
 			pWreckage->pev->frame = pev->frame;
 			pWreckage->pev->sequence = pev->sequence;
@@ -838,19 +838,8 @@ int CApache::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 		return 0;
 
 	if (bitsDamageType & DMG_BLAST)
-		{
 		flDamage *= 2;
-		}
 
-	/*
-	if ( (bitsDamageType & DMG_BULLET) && flDamage > 50)
-	{
-		// clip bullet damage at 50
-		flDamage = 50;
-	}
-	*/
-
-	// ALERT( at_console, "%.0f\n", flDamage );
 	return CBaseEntity::TakeDamage (pevInflictor, pevAttacker, flDamage, bitsDamageType);
 	}
 
@@ -861,21 +850,17 @@ void CApache::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir
 		return;
 
 	// hit hard, hits cockpit, hits engines
-	if (flDamage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2)
+	if ((flDamage > 50) || (ptr->iHitgroup == 1) || (ptr->iHitgroup == 2))
 		{
-		// ALERT( at_console, "%.0f\n", flDamage );
 		AddMultiDamage (pevAttacker, this, flDamage, bitsDamageType);
 		m_iDoSmokePuff = 3 + (flDamage / 5.0);
 		}
 	else
 		{
 		// do half damage in the body
-		// AddMultiDamage( pevAttacker, this, flDamage / 2.0, bitsDamageType );
 		UTIL_Ricochet (ptr->vecEndPos, 2.0);
 		}
 	}
-
-
 
 
 
@@ -897,7 +882,6 @@ LINK_ENTITY_TO_CLASS (hvr_rocket, CApacheHVR);
 
 TYPEDESCRIPTION	CApacheHVR::m_SaveData[] =
 	{
-	//	DEFINE_FIELD( CApacheHVR, m_iTrail, FIELD_INTEGER ),	// Dont' save, precache
 		DEFINE_FIELD (CApacheHVR, m_vecForward, FIELD_VECTOR),
 	};
 
@@ -937,9 +921,6 @@ void CApacheHVR::Precache (void)
 
 void CApacheHVR::IgniteThink (void)
 	{
-	// pev->movetype = MOVETYPE_TOSS;
-
-	// pev->movetype = MOVETYPE_FLY;
 	pev->effects |= EF_LIGHT;
 
 	// make rocket sound
@@ -969,7 +950,8 @@ void CApacheHVR::IgniteThink (void)
 void CApacheHVR::AccelerateThink (void)
 	{
 	// check world boundaries
-	if (pev->origin.x < -4096 || pev->origin.x > 4096 || pev->origin.y < -4096 || pev->origin.y > 4096 || pev->origin.z < -4096 || pev->origin.z > 4096)
+	if ((pev->origin.x < -4096) || (pev->origin.x > 4096) || (pev->origin.y < -4096) || 
+		(pev->origin.y > 4096) || (pev->origin.z < -4096) || (pev->origin.z > 4096))
 		{
 		UTIL_Remove (this);
 		return;
@@ -978,9 +960,7 @@ void CApacheHVR::AccelerateThink (void)
 	// accelerate
 	float flSpeed = pev->velocity.Length ();
 	if (flSpeed < 1800)
-		{
 		pev->velocity = pev->velocity + m_vecForward * 200;
-		}
 
 	// re-aim
 	pev->angles = UTIL_VecToAngles (pev->velocity);

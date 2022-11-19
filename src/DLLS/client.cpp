@@ -77,10 +77,6 @@ called when a player connects to a server
 BOOL ClientConnect (edict_t* pEntity, const char* pszName, const char* pszAddress, char szRejectReason[128])
 	{
 	return g_pGameRules->ClientConnected (pEntity, pszName, pszAddress, szRejectReason);
-
-	// a client connecting during an intermission can cause problems
-	//	if (intermission_running)
-	//		ExitIntermission ();
 	}
 
 /*
@@ -138,7 +134,8 @@ void respawn (entvars_t* pev, BOOL fCopyCorpse)
 		GetClassPtr ((CBasePlayer*)pev)->Spawn ();
 		}
 	else
-		{       // restart the entire server
+		{
+		// restart the entire server
 		SERVER_COMMAND ("reload\n");
 		}
 	}
@@ -166,10 +163,6 @@ void ClientKill (edict_t* pEntity)
 	// have the player kill themself
 	pev->health = 0;
 	pl->Killed (pev, GIB_NEVER);
-
-	//	pev->modelindex = g_ulModelIndexPlayer;
-	//	pev->frags -= 2;		// extra penalty
-	//	respawn( pev );
 	}
 
 /*
@@ -575,12 +568,10 @@ void ServerDeactivate (void)
 
 void ServerActivate (edict_t* pEdictList, int edictCount, int clientMax)
 	{
-	int				i;
+	int	i;
 	CBaseEntity* pClass;
 
-	//	ALERT( at_console, "ServerActivate()\n" );
-
-		// Every call to ServerActivate should be matched by a call to ServerDeactivate
+	// Every call to ServerActivate should be matched by a call to ServerDeactivate
 	g_serveractive = 1;
 
 	// Clients have not been initialized yet
@@ -619,8 +610,6 @@ Called every frame before physics are run
 */
 void PlayerPreThink (edict_t* pEntity)
 	{
-	//	ALERT( at_console, "PreThink( %g, frametime %g )\n", gpGlobals->time, gpGlobals->frametime );
-
 	entvars_t* pev = &pEntity->v;
 	CBasePlayer* pPlayer = (CBasePlayer*)GET_PRIVATE (pEntity);
 
@@ -637,8 +626,6 @@ Called every frame after physics are run
 */
 void PlayerPostThink (edict_t* pEntity)
 	{
-	//	ALERT( at_console, "PostThink( %g, frametime %g )\n", gpGlobals->time, gpGlobals->frametime );
-
 	entvars_t* pev = &pEntity->v;
 	CBasePlayer* pPlayer = (CBasePlayer*)GET_PRIVATE (pEntity);
 
@@ -664,8 +651,6 @@ void ParmsChangeLevel (void)
 //
 void StartFrame (void)
 	{
-	//	ALERT( at_console, "SV_Physics( %g, frametime %g )\n", gpGlobals->time, gpGlobals->frametime );
-
 	if (g_pGameRules)
 		g_pGameRules->Think ();
 
@@ -838,8 +823,6 @@ Engine is going to shut down, allows setting a breakpoint in game .dll to catch 
 */
 void Sys_Error (const char* error_string)
 	{
-	// Default case, do nothing. 
-	// MOD AUTHORS:  Add code ( e.g., _asm { int 3 }; here to cause a breakpoint for debugging your game .dlls
 	}
 
 /*
@@ -871,12 +854,12 @@ void PlayerCustomization (edict_t* pEntity, customization_t* pCust)
 	switch (pCust->resource.type)
 		{
 		case t_decal:
-			pPlayer->SetCustomDecalFrames (pCust->nUserData2); // Second int is max # of frames.
+			pPlayer->SetCustomDecalFrames (pCust->nUserData2); // Second int is max # of frames
 			break;
 		case t_sound:
 		case t_skin:
 		case t_model:
-			// Ignore for now.
+			// Ignore for now
 			break;
 		default:
 			ALERT (at_console, "PlayerCustomization:  Unknown customization type!\n");
@@ -944,10 +927,11 @@ A client can have a separate "view entity" indicating that his/her view should d
 view entity.  If that's the case, then pViewEntity will be non-NULL and will be used.  Otherwise, the current
 entity's origin is used.  Either is offset by the view_ofs to get the eye position.
 
-From the eye position, we set up the PAS and PVS to use for filtering network messages to the client.  At this point, we could
- override the actual PAS or PVS values, or use a different origin.
+From the eye position, we set up the PAS and PVS to use for filtering network messages to the client. 
+At this point, we could override the actual PAS or PVS values, or use a different origin.
 
-NOTE:  Do not cache the values of pas and pvs, as they depend on reusable memory in the engine, they are only good for this one frame
+NOTE:  Do not cache the values of pas and pvs, as they depend on reusable memory in the engine,
+they are only good for this one frame
 ================
 */
 void SetupVisibility (edict_t* pViewEntity, edict_t* pClient, unsigned char** pvs, unsigned char** pas)
@@ -1002,16 +986,18 @@ a MOD could alter values copied into state to send the "host" a different look f
 e and ent are the entity that is being added to the update, if 1 is returned
 host is the player's edict of the player whom we are sending the update to
 player is 1 if the ent/e is a player and 0 otherwise
-pSet is either the PAS or PVS that we previous set up.  We can use it to ask the engine to filter the entity against the PAS or PVS.
-we could also use the pas/ pvs that we set in SetupVisibility, if we wanted to.  Caching the value is valid in that case, but still only for the current frame
+pSet is either the PAS or PVS that we previous set up.  We can use it to ask the engine to filter the entity
+against the PAS or PVS.
+we could also use the pas/ pvs that we set in SetupVisibility, if we wanted to.  Caching the value is valid
+in that case, but still only for the current frame
 */
-int AddToFullPack (struct entity_state_s* state, int e, edict_t* ent, edict_t* host, int hostflags, int player, unsigned char* pSet)
+int AddToFullPack (struct entity_state_s* state, int e, edict_t* ent, edict_t* host, int hostflags, 
+	int player, unsigned char* pSet)
 	{
 	int					i;
 
 	// don't send if flagged for NODRAW and it's not the host getting the message
-	if ((ent->v.effects == EF_NODRAW) &&
-		(ent != host))
+	if ((ent->v.effects == EF_NODRAW) && (ent != host))
 		return 0;
 
 	// Ignore ents without valid / visible models
@@ -1020,9 +1006,7 @@ int AddToFullPack (struct entity_state_s* state, int e, edict_t* ent, edict_t* h
 
 	// Don't send spectators to other players
 	if ((ent->v.flags & FL_SPECTATOR) && (ent != host))
-		{
 		return 0;
-		}
 
 	// Ignore if not the host and not touching a PVS/PAS leaf
 	// If pSet is NULL, then the test will always succeed and the entity will be added to the update
@@ -1202,7 +1186,8 @@ CreateBaseline
 Creates baselines used for network encoding, especially for player data since players are not spawned until connect time.
 ===================
 */
-void CreateBaseline (int player, int eindex, struct entity_state_s* baseline, struct edict_s* entity, int playermodelindex, vec3_t player_mins, vec3_t player_maxs)
+void CreateBaseline (int player, int eindex, struct entity_state_s* baseline, struct edict_s* entity, 
+	int playermodelindex, vec3_t player_mins, vec3_t player_maxs)
 	{
 	baseline->origin = entity->v.origin;
 	baseline->angles = entity->v.angles;
@@ -1239,7 +1224,7 @@ void CreateBaseline (int player, int eindex, struct entity_state_s* baseline, st
 		baseline->maxs = entity->v.maxs;
 
 		baseline->colormap = 0;
-		baseline->modelindex = entity->v.modelindex;//SV_ModelIndex(pr_strings + entity->v.model);
+		baseline->modelindex = entity->v.modelindex;	// SV_ModelIndex(pr_strings + entity->v.model);
 		baseline->movetype = entity->v.movetype;
 
 		baseline->scale = entity->v.scale;
@@ -1342,9 +1327,9 @@ void Entity_Encode (struct delta_s* pFields, const unsigned char* from, const un
 
 static entity_field_alias_t player_field_alias[] =
 	{
-		{ "origin[0]",			0 },
-		{ "origin[1]",			0 },
-		{ "origin[2]",			0 },
+		{ "origin[0]", 0 },
+		{ "origin[1]", 0 },
+		{ "origin[2]", 0 },
 	};
 
 void Player_FieldInit (struct delta_s* pFields)
@@ -1425,15 +1410,24 @@ entity_field_alias_t custom_entity_field_alias[] =
 
 void Custom_Entity_FieldInit (struct delta_s* pFields)
 	{
-	custom_entity_field_alias[CUSTOMFIELD_ORIGIN0].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_ORIGIN0].name);
-	custom_entity_field_alias[CUSTOMFIELD_ORIGIN1].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_ORIGIN1].name);
-	custom_entity_field_alias[CUSTOMFIELD_ORIGIN2].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_ORIGIN2].name);
-	custom_entity_field_alias[CUSTOMFIELD_ANGLES0].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_ANGLES0].name);
-	custom_entity_field_alias[CUSTOMFIELD_ANGLES1].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_ANGLES1].name);
-	custom_entity_field_alias[CUSTOMFIELD_ANGLES2].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_ANGLES2].name);
-	custom_entity_field_alias[CUSTOMFIELD_SKIN].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_SKIN].name);
-	custom_entity_field_alias[CUSTOMFIELD_SEQUENCE].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_SEQUENCE].name);
-	custom_entity_field_alias[CUSTOMFIELD_ANIMTIME].field = DELTA_FINDFIELD (pFields, custom_entity_field_alias[CUSTOMFIELD_ANIMTIME].name);
+	custom_entity_field_alias[CUSTOMFIELD_ORIGIN0].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_ORIGIN0].name);
+	custom_entity_field_alias[CUSTOMFIELD_ORIGIN1].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_ORIGIN1].name);
+	custom_entity_field_alias[CUSTOMFIELD_ORIGIN2].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_ORIGIN2].name);
+	custom_entity_field_alias[CUSTOMFIELD_ANGLES0].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_ANGLES0].name);
+	custom_entity_field_alias[CUSTOMFIELD_ANGLES1].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_ANGLES1].name);
+	custom_entity_field_alias[CUSTOMFIELD_ANGLES2].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_ANGLES2].name);
+	custom_entity_field_alias[CUSTOMFIELD_SKIN].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_SKIN].name);
+	custom_entity_field_alias[CUSTOMFIELD_SEQUENCE].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_SEQUENCE].name);
+	custom_entity_field_alias[CUSTOMFIELD_ANIMTIME].field = DELTA_FINDFIELD (pFields, 
+		custom_entity_field_alias[CUSTOMFIELD_ANIMTIME].name);
 	}
 
 /*
@@ -1677,9 +1671,7 @@ void CmdStart (const edict_t* player, const struct usercmd_s* cmd, unsigned int 
 		return;
 
 	if (pl->pev->groupinfo != 0)
-		{
 		UTIL_SetGroupTrace (pl->pev->groupinfo, GROUP_OP_AND);
-		}
 
 	pl->random_seed = random_seed;
 	}
@@ -1708,11 +1700,12 @@ void CmdEnd (const edict_t* player)
 ================================
 ConnectionlessPacket
 
- Return 1 if the packet is valid.  Set response_buffer_size if you want to send a response packet.  Incoming, it holds the max
-  size of the response_buffer, so you must zero it out if you choose not to respond.
+ Return 1 if the packet is valid.  Set response_buffer_size if you want to send a response packet.
+ Incoming, it holds the max size of the response_buffer, so you must zero it out if you choose not to respond
 ================================
 */
-int	ConnectionlessPacket (const struct netadr_s* net_from, const char* args, char* response_buffer, int* response_buffer_size)
+int	ConnectionlessPacket (const struct netadr_s* net_from, const char* args, char* response_buffer, 
+	int* response_buffer_size)
 	{
 	// Parse stuff from args
 	int max_buffer_size = *response_buffer_size;
@@ -1773,12 +1766,6 @@ void CreateInstancedBaselines (void)
 	entity_state_t state;
 
 	memset (&state, 0, sizeof (state));
-
-	// Create any additional baselines here for things like grendates, etc.
-	// iret = ENGINE_INSTANCE_BASELINE( pc->pev->classname, &state );
-
-	// Destroy objects.
-	//UTIL_Remove( pc );
 	}
 
 /*
@@ -1786,7 +1773,8 @@ void CreateInstancedBaselines (void)
 InconsistentFile
 
 One of the ENGINE_FORCE_UNMODIFIED files failed the consistency check for the specified player
- Return 0 to allow the client to continue, 1 to force immediate disconnection ( with an optional disconnect message of up to 256 characters )
+ Return 0 to allow the client to continue, 1 to force immediate disconnection ( with an optional
+ disconnect message of up to 256 characters )
 ================================
 */
 int	InconsistentFile (const edict_t* player, const char* filename, char* disconnect_message)

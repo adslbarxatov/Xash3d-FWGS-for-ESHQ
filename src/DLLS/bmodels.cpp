@@ -610,13 +610,13 @@ void CFuncRotating::SpinDown (void)
 
 	// if we've met or exceeded target speed, set target speed and stop thinking
 	// (note: must check for movedir > 0 or < 0)
-	if (((vecdir > 0) && (vecAVel.x <= 0 && vecAVel.y <= 0 && vecAVel.z <= 0)) ||
-		((vecdir < 0) && (vecAVel.x >= 0 && vecAVel.y >= 0 && vecAVel.z >= 0)))
+	if ((vecdir > 0) && (vecAVel.x <= 0) && (vecAVel.y <= 0) && (vecAVel.z <= 0) ||
+		(vecdir < 0) && (vecAVel.x >= 0) && (vecAVel.y >= 0) && (vecAVel.z >= 0))
 		{
-		pev->avelocity = g_vecZero;// set speed in case we overshot
+		pev->avelocity = g_vecZero;	// set speed in case we overshot
 
 		// stop sound, we're done
-		EMIT_SOUND_DYN (ENT (pev), CHAN_STATIC, (char*)STRING (pev->noiseRunning /* Stop */),
+		EMIT_SOUND_DYN (ENT (pev), CHAN_STATIC, (char*)STRING (pev->noiseRunning),
 			0, 0, SND_STOP, m_pitch);
 
 		// ESHQ
@@ -652,7 +652,7 @@ void CFuncRotating::RotatingUse (CBaseEntity* pActivator, CBaseEntity* pCaller, 
 
 			pev->nextthink = pev->ltime + 0.1;
 			}
-		else// fan is not moving, so start it
+		else	// fan is not moving, so start it
 			{
 			// ESHQ
 			isSpinningUpOrRunning = 1;
@@ -664,7 +664,7 @@ void CFuncRotating::RotatingUse (CBaseEntity* pActivator, CBaseEntity* pCaller, 
 			pev->nextthink = pev->ltime + 0.1;
 			}
 		}
-	else if (!FBitSet (pev->spawnflags, SF_BRUSH_ACCDCC))	//this is a normal start/stop brush
+	else if (!FBitSet (pev->spawnflags, SF_BRUSH_ACCDCC))	// this is a normal start/stop brush
 		{
 		if (pev->avelocity != g_vecZero)
 			{
@@ -695,7 +695,6 @@ void CFuncRotating::Blocked (CBaseEntity* pOther)
 	{
 	pOther->TakeDamage (pev, pev, pev->dmg, DMG_CRUSH);
 	}
-
 
 
 class CPendulum: public CBaseEntity
@@ -754,7 +753,9 @@ void CPendulum::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseEntity::KeyValue (pkvd);
+		}
 	}
 
 void CPendulum::Spawn (void)
@@ -856,6 +857,7 @@ void CPendulum::Swing (void)
 		pev->speed = m_maxSpeed;
 	else if (pev->speed < -m_maxSpeed)
 		pev->speed = -m_maxSpeed;
+
 	// scale the destdelta vector by the time spent traveling to get velocity
 	pev->avelocity = pev->speed * pev->movedir;
 
@@ -873,9 +875,13 @@ void CPendulum::Swing (void)
 			pev->avelocity = g_vecZero;
 			}
 		else if (pev->speed > m_dampSpeed)
+			{
 			pev->speed = m_dampSpeed;
+			}
 		else if (pev->speed < -m_dampSpeed)
+			{
 			pev->speed = -m_dampSpeed;
+			}
 		}
 	}
 
@@ -912,7 +918,8 @@ void CPendulum::RopeTouch (CBaseEntity* pOther)
 		}
 
 	if (ENT (pevOther) == pev->enemy)
-		{// this player already on the rope.
+		{
+		// this player already on the rope
 		return;
 		}
 

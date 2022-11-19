@@ -651,21 +651,12 @@ void CBaseEntity::SetObjectCollisionBox (void)
 
 int	CBaseEntity::Intersects (CBaseEntity* pOther)
 	{
-	/*
-	ESHQ: вероятно, эта манипуляция больше не потребуется
-	
-	pOther->pev->absmin = pOther->pev->origin + pOther->pev->mins;
-	pOther->pev->absmax = pOther->pev->origin + pOther->pev->maxs;
-	pev->absmin = pev->origin + pev->mins;
-	pev->absmax = pev->origin + pev->maxs;
-	*/
-
-	if (pOther->pev->absmin.x > pev->absmax.x ||
-		pOther->pev->absmin.y > pev->absmax.y ||
-		pOther->pev->absmin.z > pev->absmax.z ||
-		pOther->pev->absmax.x < pev->absmin.x ||
-		pOther->pev->absmax.y < pev->absmin.y ||
-		pOther->pev->absmax.z < pev->absmin.z)
+	if ((pOther->pev->absmin.x > pev->absmax.x) ||
+		(pOther->pev->absmin.y > pev->absmax.y) ||
+		(pOther->pev->absmin.z > pev->absmax.z) ||
+		(pOther->pev->absmax.x < pev->absmin.x) ||
+		(pOther->pev->absmax.y < pev->absmin.y) ||
+		(pOther->pev->absmax.z < pev->absmin.z))
 		return 0;
 
 	return 1;

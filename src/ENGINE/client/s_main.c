@@ -497,31 +497,38 @@ void S_StartSound (const vec3_t pos, int ent, int chan, sound_t handle, float fv
 	int	vol, ch_idx;
 	qboolean	bIgnore = false;
 
-	if (!dma.initialized) return;
+	if (!dma.initialized) 
+		return;
 	sfx = S_GetSfxByHandle (handle);
-	if (!sfx) return;
+	if (!sfx) 
+		return;
 
 	vol = bound (0, fvol * 255, 255);
-	if (pitch <= 1) pitch = PITCH_NORM; // Invasion issues
+	if (pitch <= 1)
+		pitch = PITCH_NORM; // Invasion issues
 
 	if (flags & (SND_STOP | SND_CHANGE_VOL | SND_CHANGE_PITCH))
 		{
 		if (S_AlterChannel (ent, chan, sfx, vol, pitch, flags))
 			return;
 
-		if (flags & SND_STOP) return;
+		if (flags & SND_STOP) 
+			return;
 		// fall through - if we're not trying to stop the sound,
 		// and we didn't find it (it's not playing), go ahead and start it up
 		}
 
-	if (!pos) pos = refState.vieworg;
+	if (!pos) 
+		pos = refState.vieworg;
 
 	if (chan == CHAN_STREAM)
 		SetBits (flags, SND_STOP_LOOPING);
 
 	// pick a channel to play on
-	if (chan == CHAN_STATIC) target_chan = SND_PickStaticChannel (pos, sfx);
-	else target_chan = SND_PickDynamicChannel (ent, chan, sfx, &bIgnore);
+	if (chan == CHAN_STATIC) 
+		target_chan = SND_PickStaticChannel (pos, sfx);
+	else 
+		target_chan = SND_PickDynamicChannel (ent, chan, sfx, &bIgnore);
 
 	if (!target_chan)
 		{

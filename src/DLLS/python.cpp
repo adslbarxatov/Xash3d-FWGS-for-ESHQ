@@ -97,19 +97,22 @@ void CPython::Precache (void)
 
 BOOL CPython::Deploy ()
 	{
+	// ESHQ: включение зума
+	/*
 #ifdef CLIENT_DLL
 	if (bIsMultiplayer ())
 #else
 	if (g_pGameRules->IsMultiplayer ())
 #endif
+
 		{
 		// enable laser sight geometry
 		pev->body = 1;
 		}
 	else
-		{
-		pev->body = 0;
-		}
+		{*/
+	pev->body = 0;
+	/*}*/
 
 	return DefaultDeploy ("models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python", UseDecrement (), pev->body);
 	}
@@ -128,15 +131,17 @@ void CPython::Holster (int skiplocal)
 
 void CPython::SecondaryAttack (void)
 	{
+	/*
 #ifdef CLIENT_DLL
 	if (!bIsMultiplayer ())
 #else
 	if (!g_pGameRules->IsMultiplayer ())
 #endif
-		{
-		return;
-		}
+	{
+	return;
+	}*/
 
+	// ESHQ: включение зума
 	if (m_pPlayer->pev->fov != 0)
 		{
 		m_fInZoom = FALSE;
@@ -206,7 +211,7 @@ void CPython::PrimaryAttack ()
 	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usFirePython, 0.0, (float*)&g_vecZero, 
 		(float*)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);
 
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
+	if (!m_iClip && (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0))
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate ("!HEV_AMO0", FALSE, 0);
 
@@ -225,15 +230,24 @@ void CPython::Reload (void)
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
 		}
 
+	// ESHQ: включение зума, удаление лишних определений
+	/*int bUseScope = TRUE;
+	
 	int bUseScope = FALSE;
 #ifdef CLIENT_DLL
 	bUseScope = bIsMultiplayer ();
 #else
 	bUseScope = g_pGameRules->IsMultiplayer ();
 #endif
+	*/
+
+	if (m_flSoundDelay <= UTIL_WeaponTimeBase ())
+		{
+		m_flSoundDelay = UTIL_WeaponTimeBase () + 4.0f;
+		DefaultReload (6, PYTHON_RELOAD, 4.0, FALSE);
+		}
 
 	// ESHQ: местная озвучка перезарядки больше не требуется
-	DefaultReload (6, PYTHON_RELOAD, 4.0, bUseScope);
 	/*if (DefaultReload (6, PYTHON_RELOAD, 4.0, bUseScope))
 		m_flSoundDelay = 1.5;*/
 	}
@@ -244,6 +258,7 @@ void CPython::WeaponIdle (void)
 
 	m_pPlayer->GetAutoaimVector (AUTOAIM_10DEGREES);
 
+	// ESHQ: здесь не работает
 	/*if (((int)m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
 		{
 		EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", 
@@ -277,16 +292,19 @@ void CPython::WeaponIdle (void)
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (170.0 / 30.0);
 		}
 
-	int bUseScope = FALSE;
+	// ESHQ: включение зума, удаление лишних элементов
+	/*int bUseScope = TRUE;
+
 #ifdef CLIENT_DLL
 	bUseScope = bIsMultiplayer ();
 #else
 	bUseScope = g_pGameRules->IsMultiplayer ();
 #endif
+	*/
 
-	SendWeaponAnim (iAnim, UseDecrement () ? 1 : 0, bUseScope);
+	m_flSoundDelay = 0;
+	SendWeaponAnim (iAnim, UseDecrement () ? 1 : 0, FALSE);
 	}
-
 
 class CPythonAmmo: public CBasePlayerAmmo
 	{

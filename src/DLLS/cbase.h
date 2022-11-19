@@ -54,12 +54,13 @@ CBaseEntity
 #ifdef _WIN32
 #define EXPORT	_declspec( dllexport )
 #else
-#define EXPORT	/* */
+#define EXPORT
 #endif
 
 extern "C" EXPORT int GetEntityAPI (DLL_FUNCTIONS * pFunctionTable, int interfaceVersion);
 extern "C" EXPORT int GetEntityAPI2 (DLL_FUNCTIONS * pFunctionTable, int* interfaceVersion);
-extern "C" EXPORT int Server_GetPhysicsInterface (int iVersion, server_physics_api_t * pfuncsFromEngine, physics_interface_t * pFunctionTable);
+extern "C" EXPORT int Server_GetPhysicsInterface (int iVersion, server_physics_api_t * pfuncsFromEngine, 
+	physics_interface_t * pFunctionTable);
 
 extern int DispatchSpawn (edict_t* pent);
 extern void DispatchKeyValue (edict_t* pentKeyvalue, KeyValueData* pkvd);

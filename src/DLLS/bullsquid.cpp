@@ -1266,13 +1266,13 @@ MONSTERSTATE CBullsquid::GetIdealState (void)
 	switch (m_MonsterState)
 		{
 		case MONSTERSTATE_COMBAT:
-			/*
-			COMBAT goes to ALERT upon death of enemy
-			*/
+			// COMBAT goes to ALERT upon death of enemy
 			{
-			if (m_hEnemy != NULL && (iConditions & bits_COND_LIGHT_DAMAGE || iConditions & bits_COND_HEAVY_DAMAGE) && FClassnameIs (m_hEnemy->pev, "monster_headcrab"))
+			if (m_hEnemy != NULL && (iConditions & bits_COND_LIGHT_DAMAGE || iConditions & bits_COND_HEAVY_DAMAGE) &&
+				FClassnameIs (m_hEnemy->pev, "monster_headcrab"))
 				{
-				// if the squid has a headcrab enemy and something hurts it, it's going to forget about the crab for a while.
+				// if the squid has a headcrab enemy and something hurts it, 
+				// it's going to forget about the crab for a while
 				m_hEnemy = NULL;
 				m_IdealMonsterState = MONSTERSTATE_ALERT;
 				}

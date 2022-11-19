@@ -332,6 +332,7 @@ S_RegisterSound
 sound_t S_RegisterSound (const char *name)
 	{
 	sfx_t *sfx;
+	int i;
 
 	if (!COM_CheckString (name) || !dma.initialized)
 		return -1;
@@ -343,14 +344,17 @@ sound_t S_RegisterSound (const char *name)
 		}
 
 	// some stupid mappers used leading '/' or '\' in path to models or sounds
-	if (name[0] == '/' || name[0] == '\\') name++;
-	if (name[0] == '/' || name[0] == '\\') name++;
+	for (i = 0; i < 2; i++)
+		if ((name[0] == '/') || (name[0] == '\\'))
+			name++;
 
 	sfx = S_FindName (name, NULL);
-	if (!sfx) return -1;
+	if (!sfx) 
+		return -1;
 
 	sfx->servercount = s_registration_sequence;
-	if (!s_registering) S_LoadSound (sfx);
+	if (!s_registering)
+		S_LoadSound (sfx);
 
 	return sfx - s_knownSfx;
 	}

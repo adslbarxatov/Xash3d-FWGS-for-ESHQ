@@ -138,6 +138,8 @@ void CTripmineGrenade::Spawn (void)
 	UTIL_MakeAimVectors (pev->angles);
 
 	m_vecDir = gpGlobals->v_forward;
+	if (m_vecDir.z != 0.0f)
+		m_vecDir.x = m_vecDir.y = 0;	// ESHQ: пробуем убрать кривые лучи
 	m_vecEnd = pev->origin + m_vecDir * 2048;
 	}
 
@@ -237,8 +239,6 @@ void CTripmineGrenade::MakeBeam (void)
 	TraceResult tr;
 
 	UTIL_TraceLine (pev->origin, m_vecEnd, dont_ignore_monsters, ENT (pev), &tr);
-	if (pev->origin.z != m_vecEnd.z)
-		return;	// ESHQ: пробуем убрать кривые лучи
 
 	m_flBeamLength = tr.flFraction;
 

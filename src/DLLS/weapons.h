@@ -541,7 +541,7 @@ class CAxe : public CBasePlayerWeapon
 		int GetItemInfo (ItemInfo *p);
 
 		void PrimaryAttack (void);
-		int Swing (/*int fFirst*/);
+		int Swing ();
 		BOOL Deploy (void);
 		void Holster (int skiplocal = 0);
 		TraceResult m_trHit;
@@ -573,7 +573,7 @@ class CPython: public CBasePlayerWeapon
 		void Holster (int skiplocal = 0);
 		void Reload (void);
 		void WeaponIdle (void);
-		// float m_flSoundDelay;	// ESHQ: больше не требуется
+		float m_flSoundDelay;
 
 		BOOL m_fInZoom;	// don't save this
 

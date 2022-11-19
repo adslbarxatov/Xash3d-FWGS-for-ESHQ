@@ -751,7 +751,7 @@ void CBasePlayerItem::Kill (void)
 	pev->nextthink = gpGlobals->time + .1;
 	}
 
-void CBasePlayerItem::Holster (int skiplocal /* = 0 */)
+void CBasePlayerItem::Holster (int skiplocal)
 	{
 	m_pPlayer->pev->viewmodel = 0;
 	m_pPlayer->pev->weaponmodel = 0;
@@ -862,7 +862,7 @@ void CBasePlayerWeapon::SendWeaponAnim (int iAnim, int skiplocal, int body)
 
 	MESSAGE_BEGIN (MSG_ONE, SVC_WEAPONANIM, NULL, m_pPlayer->pev);
 	WRITE_BYTE (iAnim);						// sequence number
-	WRITE_BYTE (pev->body);					// weaponmodel bodygroup.
+	WRITE_BYTE (pev->body);					// weaponmodel bodygroup
 	MESSAGE_END ();
 	}
 
@@ -955,7 +955,7 @@ BOOL CBasePlayerWeapon::CanDeploy (void)
 	}
 
 BOOL CBasePlayerWeapon::DefaultDeploy (char* szViewModel, char* szWeaponModel, int iAnim, char* szAnimExt, 
-	int skiplocal /* = 0 */, int body)
+	int skiplocal, int body)
 	{
 	if (!CanDeploy ())
 		return FALSE;
@@ -1026,9 +1026,9 @@ int CBasePlayerWeapon::SecondaryAmmoIndex (void)
 	return -1;
 	}
 
-void CBasePlayerWeapon::Holster (int skiplocal /* = 0 */)
+void CBasePlayerWeapon::Holster (int skiplocal)
 	{
-	m_fInReload = FALSE; // cancel any reload in progress.
+	m_fInReload = FALSE;	// cancel any reload in progress
 	m_pPlayer->pev->viewmodel = 0;
 	m_pPlayer->pev->weaponmodel = 0;
 	}
@@ -1377,7 +1377,7 @@ BOOL CWeaponBox::PackAmmo (int iszName, int iCount)
 //=========================================================
 // CWeaponBox - GiveAmmo
 //=========================================================
-int CWeaponBox::GiveAmmo (int iCount, char* szName, int iMax, int* pIndex/* = NULL*/)
+int CWeaponBox::GiveAmmo (int iCount, char* szName, int iMax, int* pIndex)
 	{
 	int i;
 
