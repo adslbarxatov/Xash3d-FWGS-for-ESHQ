@@ -107,6 +107,8 @@ It was based on one of the newest versions of [Xash3d FWGS engine](https://githu
 
 47. Our `trigger_gravity` now can set the coefficient for all objects on the map and save it for the next game loading. All values greater than `80` will be treated this way.
 
+48. Our adaptation is now able to save the current room type (echo effect) for the next game loading.
+
 &nbsp;
 
 
