@@ -105,6 +105,8 @@ It was based on one of the newest versions of [Xash3d FWGS engine](https://githu
 
 46. Our trains can have parts of their paths where they will not emit the sound of moving.
 
+47. Our `trigger_gravity` now can set the coefficient for all objects on the map and save it for the next game loading. All values greater than `80` will be treated this way.
+
 &nbsp;
 
 
