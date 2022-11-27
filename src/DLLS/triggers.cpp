@@ -79,7 +79,7 @@ void CFrictionModifier::Spawn (void)
 // Sets toucher's friction to m_frictionFraction (1.0 = normal friction)
 void CFrictionModifier::ChangeFriction (CBaseEntity* pOther)
 	{
-	if (pOther->pev->movetype != MOVETYPE_BOUNCEMISSILE && pOther->pev->movetype != MOVETYPE_BOUNCE)
+	if ((pOther->pev->movetype != MOVETYPE_BOUNCEMISSILE) && (pOther->pev->movetype != MOVETYPE_BOUNCE))
 		pOther->pev->friction = m_frictionFraction;
 	}
 
@@ -92,7 +92,9 @@ void CFrictionModifier::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseEntity::KeyValue (pkvd);
+		}
 	}
 
 // This trigger will fire when the level spawns (or respawns if not fire once)
@@ -1064,7 +1066,9 @@ void CTriggerSound::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseTrigger::KeyValue (pkvd);
+		}
 	}
 
 /*QUAKED trigger_once (.5 .5 .5) ? notouch
@@ -1117,7 +1121,10 @@ void CTriggerSound::MultiTouch_Sound (CBaseEntity* pOther)
 
 	// Only touch clients
 	if (pevToucher->flags & FL_CLIENT)
+		{
 		ActivateMultiTrigger (pOther, m_flRoomtype);
+		WRITE_ACHIEVEMENTS_SCRIPT (-1);	// ESHQ: запись настроек в конфигурацию игры
+		}
 	}
 
 //
@@ -2000,7 +2007,8 @@ void CTriggerEndSection::Spawn (void)
 	InitTrigger ();
 
 	SetUse (&CTriggerEndSection::EndSectionUse);
-	// If it is a "use only" trigger, then don't set the touch function.
+
+	// If it is a "use only" trigger, then don't set the touch function
 	if (!(pev->spawnflags & SF_ENDSECTION_USEONLY))
 		SetTouch (&CTriggerEndSection::EndSectionTouch);
 	}
@@ -2014,9 +2022,8 @@ void CTriggerEndSection::EndSectionTouch (CBaseEntity* pOther)
 	SetTouch (NULL);
 
 	if (pev->message)
-		{
 		g_engfuncs.pfnEndSection (STRING (pev->message));
-		}
+
 	UTIL_Remove (this);
 	}
 
@@ -2024,13 +2031,13 @@ void CTriggerEndSection::KeyValue (KeyValueData* pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "section"))
 		{
-		//		m_iszSectionName = ALLOC_STRING( pkvd->szValue );
-				// Store this in message so we don't have to write save/restore for this ent
 		pev->message = ALLOC_STRING (pkvd->szValue);
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseTrigger::KeyValue (pkvd);
+		}
 	}
 
 
@@ -2048,13 +2055,35 @@ void CTriggerGravity::Spawn (void)
 	SetTouch (&CTriggerGravity::GravityTouch);
 	}
 
+// ESHQ: возможность установки всеобщей гравитации
+static cvar_t *g_psv_gravity = NULL;
+
 void CTriggerGravity::GravityTouch (CBaseEntity* pOther)
 	{
 	// Only save on clients
 	if (!pOther->IsPlayer ())
 		return;
 
-	pOther->pev->gravity = pev->gravity;
+	// ESHQ: возможность установки всеобщей гравитации
+	if (pev->gravity < 80.0f)
+		{
+		pOther->pev->gravity = pev->gravity;
+		}
+	else
+		{
+		if (!g_psv_gravity)
+			{
+			// ќдин раз
+			g_psv_gravity = CVAR_GET_POINTER ("sv_gravity");
+
+			if (g_psv_gravity)
+				{
+				g_psv_gravity->value = pev->gravity;
+				WRITE_ACHIEVEMENTS_SCRIPT (-1);	// «апись настроек в конфигурацию игры
+				}
+			}
+		pOther->pev->gravity = 1.0f;
+		}
 	}
 
 // this is a really bad idea
@@ -2091,7 +2120,9 @@ void CTriggerChangeTarget::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseDelay::KeyValue (pkvd);
+		}
 	}
 
 void CTriggerChangeTarget::Spawn (void)

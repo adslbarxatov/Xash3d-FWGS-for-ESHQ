@@ -115,7 +115,7 @@ extern "C" {
 #include "ref_api.h"
 #include "fscallback.h"
 
-	// PERFORMANCE INFO
+// PERFORMANCE INFO
 #define MIN_FPS         20.0f		// host minimum fps value for maxfps.
 #define MAX_FPS         200.0f		// upper limit for maxfps.
 #define HOST_FPS		100.0f		// multiplayer games typical fps
@@ -418,7 +418,7 @@ extern "C" {
 
 	// ESHQ: поддержка скриптов
 	qboolean FS_WriteAchievementsScript (int NewLevel);
-	qboolean FS_UpdateAchievementsScript (void);
+	/*qboolean FS_UpdateAchievementsScript (void);*/
 
 	//
 	// cmd.c

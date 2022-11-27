@@ -214,7 +214,8 @@ void SV_UpdateMovevars (qboolean initialize)
 		return;
 
 	// check range
-	if (sv_zmax.value < 256.0f) Cvar_SetValue ("sv_zmax", 256.0f);
+	if (sv_zmax.value < 256.0f) 
+		Cvar_SetValue ("sv_zmax", 256.0f);
 
 	// clamp it right
 	if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
@@ -663,7 +664,7 @@ void Host_ServerFrame (void)
 	// if server is not active, do nothing
 	if (!svs.initialized) return;
 
-	if (sv_fps.value != 0.0f && (sv.simulating || sv.state != ss_active))
+	if ((sv_fps.value != 0.0f) && (sv.simulating || (sv.state != ss_active)))
 		sv.time_residual += host.frametime;
 
 	if (sv_fps.value == 0.0f)

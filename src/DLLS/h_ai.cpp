@@ -58,7 +58,7 @@ BOOL FBoxVisible (entvars_t* pevLooker, entvars_t* pevTarget, Vector& vecTargetO
 		vecTarget.y += RANDOM_FLOAT (pevTarget->mins.y + flSize, pevTarget->maxs.y - flSize);
 		vecTarget.z += RANDOM_FLOAT (pevTarget->mins.z + flSize, pevTarget->maxs.z - flSize);
 
-		UTIL_TraceLine (vecLookerOrigin, vecTarget, ignore_monsters, ignore_glass, ENT (pevLooker)/*pentIgnore*/, &tr);
+		UTIL_TraceLine (vecLookerOrigin, vecTarget, ignore_monsters, ignore_glass, ENT (pevLooker), &tr);
 
 		if (tr.flFraction == 1.0)
 			{
@@ -160,8 +160,7 @@ Vector VecCheckToss (entvars_t* pev, const Vector& vecSpot1, Vector vecSpot2, fl
 // 
 Vector VecCheckThrow (entvars_t* pev, const Vector& vecSpot1, Vector vecSpot2, float flSpeed, float flGravityAdj)
 	{
-	float			flGravity = g_psv_gravity->value * flGravityAdj;
-
+	float flGravity = g_psv_gravity->value * flGravityAdj;
 	Vector vecGrenadeVel = (vecSpot2 - vecSpot1);
 
 	// throw at a constant time

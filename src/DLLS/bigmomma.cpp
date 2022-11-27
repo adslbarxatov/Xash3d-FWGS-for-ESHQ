@@ -634,7 +634,8 @@ void CBigMomma::LaunchMortar (void)
 	Vector startPos = pev->origin;
 	startPos.z += 180;
 
-	EMIT_SOUND_DYN (edict (), CHAN_WEAPON, RANDOM_SOUND_ARRAY (pSackSounds), 1.0, ATTN_MEDIUM, 0, 100 + RANDOM_LONG (-5, 5));
+	EMIT_SOUND_DYN (edict (), CHAN_WEAPON, RANDOM_SOUND_ARRAY (pSackSounds), 1.0, ATTN_MEDIUM, 0, 
+		100 + RANDOM_LONG (-5, 5));
 	CBMortar* pBomb = CBMortar::Shoot (edict (), startPos, pev->movedir);
 	pBomb->pev->gravity = 1.0;
 	MortarSpray (startPos, Vector (0, 0, 1), gSpitSprite, 24);

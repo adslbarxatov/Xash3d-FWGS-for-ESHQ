@@ -15,6 +15,7 @@ GNU General Public License for more details.
 
 #include "common.h"
 #include "library.h"
+#include "server.h"
 
 fs_api_t g_fsapi;
 fs_globals_t *FI;
@@ -153,11 +154,11 @@ void FS_Shutdown (void)
 ESHQ: поддержка достижений
 ================
 */
-#define ACHI_OLD_SCRIPT_FN	"achi.cfg"
+/*#define ACHI_OLD_SCRIPT_FN	"achi.cfg"*/
 #define ACHI_SCRIPT_FN		"achi2.cfg"
-#define ACHI_EXEC_STRING	"exec achi2.cfg\n"
+#define ACHI_EXEC_STRING	"exec " ACHI_SCRIPT_FN "\n"
 
-qboolean FS_UpdateAchievementsScript (void)
+/*qboolean FS_UpdateAchievementsScript (void)
 	{
 	// Переменные
 	file_t *f;
@@ -199,41 +200,75 @@ qboolean FS_UpdateAchievementsScript (void)
 	FS_Close (f);
 	FS_Delete (ACHI_OLD_SCRIPT_FN);
 	return true;
-	}
+	}*/
 
+// ESHQ: состояние теперь хранится в памяти, чтобы постоянно не дёргать файл
+static unsigned int WAS_Level = 0, WAS_Code = 0;
 qboolean FS_WriteAchievementsScript (int NewLevel)
 	{
 	// Переменные
 	file_t *f;
-	unsigned int level = 0;
-	char temp[16];
+	char temp[32];
+
+	convar_t *rt = Cvar_FindVar ("room_type");
+	unsigned int gravity = (unsigned int)sv_gravity.value;
+	unsigned int roomtype = 0;
+	unsigned int newCode;
+
+	if (rt)
+		roomtype = (unsigned int)rt->value;
 
 	// Чтение предыдущего состояния (ошибки игнорируются)
-	f = FS_Open (ACHI_SCRIPT_FN, "r", false);
-	if (f)
+	if (!WAS_Code)
 		{
-		FS_Getc (f); FS_Getc (f); //FS_Getc (f);
-		level = ((unsigned int)FS_Getc (f)) & 0x0F;
-		FS_Close (f);
+		f = FS_Open (ACHI_SCRIPT_FN, "r", false);
+		if (f)
+			{
+			FS_Getc (f); FS_Getc (f);
+			WAS_Level = ((unsigned int)FS_Getc (f)) & 0x0F;
+			WAS_Code = ((unsigned int)FS_Getc (f) - 0x20) & 0x3F;
+			WAS_Code |= (((unsigned int)FS_Getc (f) - 0x20) & 0x3F) << 8;
+			FS_Close (f);
+			}
 		}
 
-	if ((NewLevel <= level) || (level >= 3))
+	// Проверочный код, позволяющий избежать постоянной перезаписи файла и повторного его исполнения
+	newCode = ((gravity >> 4) & 0x3F) | ((roomtype & 0x3F) << 8);
+	if (((NewLevel <= (int)WAS_Level) || (WAS_Level >= 3)) && (WAS_Code == newCode))
 		return true;	// Уровень уже достигнут или является максимальным
+	WAS_Code = newCode;
+
+	// Условие для последующего повышения
+	// int, потому что иначепри сравнении происходит приведение к uint
+	if ((NewLevel > (int)WAS_Level) && (WAS_Level < 3))
+		WAS_Level++;
 
 	// Запись
 	f = FS_Open (ACHI_SCRIPT_FN, "w", false);
 	if (!f)
 		return false;
 
-	Q_sprintf (temp, "//%c\\\\\n", level + 1 + 0x70);	// Условие для последующего повышения
+	// Код проверки скрипта
+	Q_sprintf (temp, "//%c%c%c\\\\\n", WAS_Level + 0x70, ((gravity >> 4) & 0x3F) + 0x20,
+		(roomtype & 0x3F) + 0x20);
 	FS_Print (f, temp);
-	FS_Print (f, "bind \"6\" \"impulse 211\"\n");
 
-	if (level > 0)
+	// Достижения, зависящие от уровня
+	if (WAS_Level > 0)
+		FS_Print (f, "bind \"6\" \"impulse 211\"\n");
+
+	if (WAS_Level > 1)
 		FS_Print (f, "bind \"7\" \"impulse 219\"\n");
 
-	if (level > 1)
+	if (WAS_Level > 2)
 		FS_Print (f, "bind \"8\" \"impulse 228\"\n");
+
+	// Независимые параметры
+	Q_sprintf (temp, "sv_gravity \"%u\"\n", gravity);
+	FS_Print (f, temp);
+
+	Q_sprintf (temp, "room_type \"%u\"\n", roomtype);
+	FS_Print (f, temp);
 
 	// Завершено. Принудительное выполнение
 	FS_Close (f);

@@ -965,7 +965,8 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	if (startspot)
 		Q_strncpy (sv.startspot, startspot, sizeof (sv.startspot));
-	else sv.startspot[0] = '\0';
+	else 
+		sv.startspot[0] = '\0';
 
 	Q_snprintf (sv.model_precache[WORLD_INDEX], sizeof (sv.model_precache[0]), "maps/%s.bsp", sv.name);
 	SetBits (sv.model_precache_flags[WORLD_INDEX], RES_FATALIFMISSING);
@@ -1031,7 +1032,9 @@ void SV_InitGameProgs (void)
 	{
 	string dllpath;
 
-	if (svgame.hInstance) return; // already loaded
+	// already loaded
+	if (svgame.hInstance)
+		return; 
 
 	COM_GetCommonLibraryPath (LIBRARY_SERVER, dllpath, sizeof (dllpath));
 
@@ -1041,7 +1044,9 @@ void SV_InitGameProgs (void)
 
 void SV_FreeGameProgs (void)
 	{
-	if (svs.initialized) return;	// server is active
+	// server is active
+	if (svs.initialized) 
+		return;	
 
 	// unload progs (free cvars and commands)
 	SV_UnloadProgs ();

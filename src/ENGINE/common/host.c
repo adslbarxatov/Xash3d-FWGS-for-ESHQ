@@ -602,19 +602,21 @@ double Host_CalcFPS (void)
 	else
 		{
 		fps = host_maxfps->value;
-		if (fps == 0.0) fps = MAX_FPS;
+		if (fps == 0.0) 
+			fps = MAX_FPS;
 		fps = bound (MIN_FPS, fps, MAX_FPS);
 		}
 
 	// probably left part of this condition is redundant :-)
-	if (host.type != HOST_DEDICATED && Host_IsLocalGame () && !CL_IsTimeDemo ())
+	if ((host.type != HOST_DEDICATED) && Host_IsLocalGame () && !CL_IsTimeDemo ())
 		{
-		// ajdust fps for vertical synchronization
+		// adjust fps for vertical synchronization
 		if (CVAR_TO_BOOL (gl_vsync))
 			{
 			if (vid_displayfrequency->value != 0.0f)
 				fps = vid_displayfrequency->value;
-			else fps = 60.0; // default
+			else 
+				fps = 60.0; // default
 			}
 		}
 #endif
@@ -1184,7 +1186,7 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	host.errorframe = 0;
 
 	// post initializations
-	FS_UpdateAchievementsScript ();	// ESHQ: переход на новые команды
+	/*FS_UpdateAchievementsScript ();	// ESHQ: переход на новые команды*/
 	switch (host.type)
 		{
 		case HOST_NORMAL:
@@ -1194,6 +1196,7 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 			// execute startup config and cmdline
 			Cbuf_AddText (va ("exec %s.rc\n", SI.rcName));
 			Cbuf_Execute ();
+
 			if (!host.config_executed)
 				{
 				Cbuf_AddText ("exec config.cfg\n");
@@ -1225,7 +1228,7 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 
 	oldtime = Sys_DoubleTime () - 0.1;
 
-	if (Host_IsDedicated () && GameState->nextstate == STATE_RUNFRAME)
+	if (Host_IsDedicated () && (GameState->nextstate == STATE_RUNFRAME))
 		{
 		// execute server.cfg after commandline
 		// so we have a chance to set servercfgfile

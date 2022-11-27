@@ -247,7 +247,8 @@ void SX_Init (void)
 	sxmod2cur = sxmod2 = 450 * (idsp_dma_speed / SOUND_11k);
 
 	dsp_off = Cvar_Get ("dsp_off", "0", FCVAR_ARCHIVE, "disable DSP processing");
-	dsp_coeff_table = Cvar_Get ("dsp_coeff_table", "0", FCVAR_ARCHIVE, "select DSP coefficient table: 0 for release or 1 for alpha 0.52");
+	dsp_coeff_table = Cvar_Get ("dsp_coeff_table", "0", FCVAR_ARCHIVE, 
+		"select DSP coefficient table: 0 for release or 1 for alpha 0.52");
 
 	roomwater_type = Cvar_Get ("waterroom_type", "14", 0, "water room type");
 	room_type = Cvar_Get ("room_type", "0", 0, "current room type preset");
@@ -852,7 +853,8 @@ DSP_ClearState
 */
 void DSP_ClearState (void)
 	{
-	Cvar_SetValue ("room_type", 0.0f);
+	// ESHQ: удалено, поскольку теперь выполняется скриптом ачивок
+	/*Cvar_SetValue ("room_type", 0.0f);*/
 	SX_ReloadRoomFX ();
 	}
 
@@ -891,7 +893,8 @@ void CheckNewDspPresets (void)
 
 	if (s_listener.waterlevel > 2)
 		idsp_room = roomwater_type->value;
-	else idsp_room = room_type->value;
+	else 
+		idsp_room = room_type->value;
 
 	// don't pass invalid presets
 	idsp_room = bound (0, idsp_room, MAX_ROOM_TYPES);
@@ -902,7 +905,7 @@ void CheckNewDspPresets (void)
 		ClearBits (hisound->flags, FCVAR_CHANGED);
 		}
 
-	if (idsp_room == room_typeprev && idsp_room == 0)
+	if ((idsp_room == room_typeprev) && (idsp_room == 0))
 		return;
 
 	if (idsp_room != room_typeprev)

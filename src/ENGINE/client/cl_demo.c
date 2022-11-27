@@ -184,6 +184,7 @@ double CL_GetDemoFramerate (void)
 	{
 	if (cls.timedemo)
 		return 0.0;
+
 	return bound (MIN_FPS, demo.header.host_fps, MAX_FPS);
 	}
 
@@ -477,7 +478,8 @@ void CL_StopRecord (void)
 	demo.header.host_fps = 0.0;
 
 	frames = cls.td_lastframe - cls.td_startframe;
-	Con_Printf ("Completed demo\nRecording time: %02d:%02d, frames %i\n", (int)(cls.demotime / 60.0f), (int)fmod (cls.demotime, 60.0f), frames);
+	Con_Printf ("Completed demo\nRecording time: %02d:%02d, frames %i\n", (int)(cls.demotime / 60.0f),
+		(int)fmod (cls.demotime, 60.0f), frames);
 	cls.demotime = 0.0;
 	}
 

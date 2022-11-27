@@ -916,7 +916,8 @@ void CEnvSound::Think (void)
 				goto env_sound_Think_slow;
 				}
 			}
-		else {
+		else 
+			{
 			// entity is affecting player but is out of range,
 			// wait passively for another entity to usurp it...
 			goto env_sound_Think_slow;
@@ -928,7 +929,7 @@ void CEnvSound::Think (void)
 
 	if (FEnvSoundInRange (pev, VARS (pentPlayer), &flRange))
 		{
-		if (flRange < pPlayer->m_flSndRange || pPlayer->m_flSndRange == 0)
+		if ((flRange < pPlayer->m_flSndRange) || (pPlayer->m_flSndRange == 0))
 			{
 			// new entity is closer to player, so it wins.
 			pPlayer->m_pentSndLast = ENT (pev);
@@ -939,8 +940,6 @@ void CEnvSound::Think (void)
 			// this should be a rare event - once per change of room_type
 			// only!
 
-			//CLIENT_COMMAND(pentPlayer, "room_type %f", m_flRoomtype);
-
 			MESSAGE_BEGIN (MSG_ONE, SVC_ROOMTYPE, NULL, pentPlayer);		// use the magic #1 for "one client"
 			WRITE_SHORT ((short)m_flRoomtype);					// sequence number
 			MESSAGE_END ();
@@ -948,9 +947,13 @@ void CEnvSound::Think (void)
 			// crank up nextthink rate for new active sound entity
 			// by falling through to think_fast...
 			}
+
 		// player is not closer to the contending sound entity,
 		// just fall through to think_fast. this effectively
 		// cranks up the think_rate of entities near the player.
+
+		// ESHQ: запись настроек в конфигурацию игры
+		WRITE_ACHIEVEMENTS_SCRIPT (-1);
 		}
 
 	// player is in pvs of sound entity, but either not visible or

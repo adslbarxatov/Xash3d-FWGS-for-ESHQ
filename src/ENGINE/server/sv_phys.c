@@ -707,7 +707,8 @@ void SV_AddGravity (edict_t *ent)
 
 	if (ent->v.gravity)
 		ent_gravity = ent->v.gravity;
-	else ent_gravity = 1.0f;
+	else 
+		ent_gravity = 1.0f;
 
 	// add gravity incorrectly
 	ent->v.velocity[2] -= (ent_gravity * sv_gravity.value * sv.frametime);
@@ -730,7 +731,8 @@ void SV_AddHalfGravity (edict_t *ent, float timestep)
 
 	if (ent->v.gravity)
 		ent_gravity = ent->v.gravity;
-	else ent_gravity = 1.0f;
+	else 
+		ent_gravity = 1.0f;
 
 	// Add 1/2 of the total gravitational effects over this timestep
 	ent->v.velocity[2] -= (0.5f * ent_gravity * sv_gravity.value * timestep);

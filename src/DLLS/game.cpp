@@ -20,8 +20,10 @@
 cvar_t	displaysoundlist = {"displaysoundlist","0"};
 
 // multiplayer server rules
-cvar_t	fragsleft = {"mp_fragsleft","0", FCVAR_SERVER | FCVAR_UNLOGGED};	  // Don't spam console/log files/users with this changing
-cvar_t	timeleft = {"mp_timeleft","0" , FCVAR_SERVER | FCVAR_UNLOGGED};	  // "      "
+cvar_t	fragsleft = {"mp_fragsleft","0", FCVAR_SERVER | FCVAR_UNLOGGED};
+// Don't spam console/log files/users with this changing
+cvar_t	timeleft = {"mp_timeleft","0" , FCVAR_SERVER | FCVAR_UNLOGGED};
+// "      "
 
 // multiplayer server rules
 cvar_t	teamplay = {"mp_teamplay","0", FCVAR_SERVER};
@@ -45,6 +47,8 @@ cvar_t  mp_chattime = {"mp_chattime","10", FCVAR_SERVER};
 cvar_t  saved1 = {"saved_cvar", "0", FCVAR_ARCHIVE};
 
 // Engine Cvars
+
+// ESHQ: переменная поднята на верхний уровень (util.h)
 cvar_t* g_psv_gravity = NULL;
 cvar_t* g_psv_aim = NULL;
 cvar_t* g_footsteps = NULL;

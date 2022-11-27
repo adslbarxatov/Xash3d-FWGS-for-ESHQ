@@ -468,10 +468,11 @@ void CWorld::Precache (void)
 	{
 	g_pLastSpawn = NULL;
 
-	CVAR_SET_STRING ("sv_gravity", "800"); // 67ft/sec
-	CVAR_SET_STRING ("sv_stepsize", "18");
+	// ESHQ: переопределение отключено, т.к. теперь эти переменные обрабатывает скрипт ачивок
+	/*CVAR_SET_STRING ("sv_gravity", "800");	// 67ft/sec
+	CVAR_SET_STRING ("room_type", "0");			// clear DSP*/
 
-	CVAR_SET_STRING ("room_type", "0");		// clear DSP
+	CVAR_SET_STRING ("sv_stepsize", "18");
 
 	// Set up game rules
 	if (g_pGameRules)

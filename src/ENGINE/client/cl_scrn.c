@@ -59,7 +59,7 @@ void SCR_DrawFPS (int height)
 	char		fpsstring[64];
 	int		offset;
 
-	if (cls.state != ca_active || !cl_showfps->value || cl.background)
+	if ((cls.state != ca_active) || !cl_showfps->value || cl.background)
 		return;
 
 	switch (cls.scrshot_action)
@@ -97,7 +97,8 @@ void SCR_DrawFPS (int height)
 
 		if (cl_showfps->value == 2)
 			Q_snprintf (fpsstring, sizeof (fpsstring), "fps: ^1%4i min, ^3%4i cur, ^2%4i max", minfps, curfps, maxfps);
-		else Q_snprintf (fpsstring, sizeof (fpsstring), "%4i fps", curfps);
+		else 
+			Q_snprintf (fpsstring, sizeof (fpsstring), "%4i fps", curfps);
 		MakeRGBA (color, 255, 255, 255, 255);
 		}
 

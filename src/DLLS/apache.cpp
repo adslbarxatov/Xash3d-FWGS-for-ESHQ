@@ -608,7 +608,8 @@ void CApache::Flight (void)
 
 
 	float flSpeed = pev->velocity.Length ();
-	float flDir = DotProduct (Vector (gpGlobals->v_forward.x, gpGlobals->v_forward.y, 0), Vector (pev->velocity.x, pev->velocity.y, 0));
+	float flDir = DotProduct (Vector (gpGlobals->v_forward.x, gpGlobals->v_forward.y, 0), 
+		Vector (pev->velocity.x, pev->velocity.y, 0));
 	if (flDir < 0)
 		flSpeed = -flSpeed;
 
