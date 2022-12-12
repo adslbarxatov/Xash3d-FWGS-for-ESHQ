@@ -439,6 +439,7 @@ extern DLL_GLOBAL int			g_Language;
 #define	SF_TRIGGER_NOCLIENTS		2	// players not allowed to fire this trigger
 #define SF_TRIGGER_PUSHABLES		4	// only pushables can fire this trigger
 #define SF_TELEPORT_PRESERVE_VIEW	8	// ESHQ: защита угла обзора и скорости при телепортации
+#define SF_BIDIRECTIONAL_SOUND_T	1	// ESHQ: включение двунаправленного триггера звукового окружения
 
 // func breakable
 #define SF_BREAK_TRIGGER_ONLY	1	// may only be broken by trigger

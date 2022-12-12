@@ -1029,6 +1029,7 @@ class CTriggerSound: public CBaseTrigger
 	public:
 		void Spawn (void);
 		void KeyValue (KeyValueData* pkvd);
+		
 		/// trigger_sound
 		void EXPORT MultiTouch_Sound (CBaseEntity* pOther);
 		///
@@ -1039,6 +1040,8 @@ class CTriggerSound: public CBaseTrigger
 		/// trigger_sound
 		static	TYPEDESCRIPTION m_SaveData[];
 		float m_flRoomtype;
+		float m_flRoomtype2;
+		unsigned char m_direction;
 		///
 	};
 
@@ -1046,14 +1049,27 @@ LINK_ENTITY_TO_CLASS (trigger_sound, CTriggerSound);
 TYPEDESCRIPTION	CTriggerSound::m_SaveData[] =
 	{
 		DEFINE_FIELD (CTriggerSound, m_flRoomtype, FIELD_FLOAT),
+		DEFINE_FIELD (CTriggerSound, m_flRoomtype2, FIELD_FLOAT),
+		DEFINE_FIELD (CTriggerSound, m_direction, FIELD_CHARACTER),
 	};
 IMPLEMENT_SAVERESTORE (CTriggerSound, CBaseTrigger);
 
 void CTriggerSound::Spawn (void)
 	{
+	// Общая инициализация
 	m_flWait = 1.0;
-
 	InitTrigger ();
+
+	m_direction = 0x00;
+	if (pev->spawnflags & SF_BIDIRECTIONAL_SOUND_T)
+		{
+		if ((pev->size.x <= pev->size.y) && (pev->size.x <= pev->size.z))
+			m_direction = 0x01;
+		else if ((pev->size.y <= pev->size.x) && (pev->size.y <= pev->size.z))
+			m_direction = 0x02;
+		else //if ((y <= x) && (y <= z))
+			m_direction = 0x04;
+		}
 
 	SetTouch (&CTriggerSound::MultiTouch_Sound);
 	}
@@ -1063,6 +1079,11 @@ void CTriggerSound::KeyValue (KeyValueData* pkvd)
 	if (FStrEq (pkvd->szKeyName, "roomtype"))
 		{
 		m_flRoomtype = atoi (pkvd->szValue);
+		pkvd->fHandled = TRUE;
+		}
+	else if (FStrEq (pkvd->szKeyName, "roomtype2"))
+		{
+		m_flRoomtype2 = atoi (pkvd->szValue);
 		pkvd->fHandled = TRUE;
 		}
 	else
@@ -1100,7 +1121,6 @@ void CTriggerOnce::Spawn (void)
 void CBaseTrigger::MultiTouch (CBaseEntity* pOther)
 	{
 	entvars_t* pevToucher;
-
 	pevToucher = pOther->pev;
 
 	// Only touch clients, monsters, or pushables (depending on flags)
@@ -1116,15 +1136,43 @@ void CBaseTrigger::MultiTouch (CBaseEntity* pOther)
 void CTriggerSound::MultiTouch_Sound (CBaseEntity* pOther)
 	{
 	entvars_t* pevToucher;
-
-	pevToucher = pOther->pev;
+	float rt = m_flRoomtype;
 
 	// Only touch clients
-	if (pevToucher->flags & FL_CLIENT)
+	pevToucher = pOther->pev;
+	if (!(pevToucher->flags & FL_CLIENT))
+		return;
+
+	// Определение пересечения
+	if (m_direction)
 		{
-		ActivateMultiTrigger (pOther, m_flRoomtype);
-		WRITE_ACHIEVEMENTS_SCRIPT (-1);	// ESHQ: запись настроек в конфигурацию игры
+		switch (m_direction) 
+			{
+			case 0x01:
+				if (pevToucher->origin.x > (pev->absmin.x + pev->absmax.x) / 2.0f)
+					rt = m_flRoomtype2;
+				break;
+
+			case 0x02:
+				if (pevToucher->origin.y > (pev->absmin.y + pev->absmax.y) / 2.0f)
+					rt = m_flRoomtype2;
+				break;
+
+			case 0x04:
+				if (pevToucher->origin.z > (pev->absmin.z + pev->absmax.z) / 2.0f)
+					rt = m_flRoomtype2;
+				break;
+			}
+
+		m_flWait = 0.01;	// Сверхкороткое время паузы до повтора для корректного переключения
 		}
+	else
+		{
+		m_flWait = 0.1;		// Стандартная пауза
+		}
+
+	ActivateMultiTrigger (pOther, rt);
+	WRITE_ACHIEVEMENTS_SCRIPT (-1);	// ESHQ: запись настроек в конфигурацию игры
 	}
 
 //
@@ -1143,7 +1191,7 @@ void CBaseTrigger::ActivateMultiTrigger (CBaseEntity* pActivator, int RoomType)
 
 	if (FClassnameIs (pev, "trigger_secret"))
 		{
-		if (pev->enemy == NULL || !FClassnameIs (pev->enemy, "player"))
+		if ((pev->enemy == NULL) || !FClassnameIs (pev->enemy, "player"))
 			return;
 		gpGlobals->found_secrets++;
 		}
