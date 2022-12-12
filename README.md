@@ -17,6 +17,8 @@ It was based on one of the newest versions of [Xash3d FWGS engine](https://githu
 
 2. We have added the `trigger_sound` entity that replaces the `env_sound`. It works as well as `trigger_multiple` (with hardcoded “wait” value – 1 s). We cannot understand why there were no brush entities to set sound effect. Spherical `env_sound` has very weird and unpredictable behavior, and it is difficult to apply it in cases like long narrow building entrances (f. e., partially opened gates). This situation really needs two brushes – before and after the gate – to trigger sound effects.
 
+2a. Our `trigger_sound` now can be bidirectional: it can set room types behind and after it.
+
 3. We have returned green blood to some monsters. This feature was implemented but wasn’t enabled in client library. Also it has been added to `env_blood` and `monster_generic` entities (with an ability to set it up).
 
 4. Also we have returned human-like gibs and red blood to zombie. We think that zombie is more like a scientist than a bullsquid.
