@@ -3143,5 +3143,4 @@ void CL_Shutdown (void)
 	R_Shutdown ();
 
 	Con_Shutdown ();
-
 	}

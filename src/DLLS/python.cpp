@@ -98,23 +98,9 @@ void CPython::Precache (void)
 BOOL CPython::Deploy ()
 	{
 	// ESHQ: включение зума
-	/*
-#ifdef CLIENT_DLL
-	if (bIsMultiplayer ())
-#else
-	if (g_pGameRules->IsMultiplayer ())
-#endif
-
-		{
-		// enable laser sight geometry
-		pev->body = 1;
-		}
-	else
-		{*/
 	pev->body = 0;
-	/*}*/
-
-	return DefaultDeploy ("models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python", UseDecrement (), pev->body);
+	return DefaultDeploy ("models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python",
+		UseDecrement (), pev->body);
 	}
 
 void CPython::Holster (int skiplocal)
@@ -131,16 +117,6 @@ void CPython::Holster (int skiplocal)
 
 void CPython::SecondaryAttack (void)
 	{
-	/*
-#ifdef CLIENT_DLL
-	if (!bIsMultiplayer ())
-#else
-	if (!g_pGameRules->IsMultiplayer ())
-#endif
-	{
-	return;
-	}*/
-
 	// ESHQ: включение зума
 	if (m_pPlayer->pev->fov != 0)
 		{
@@ -231,25 +207,15 @@ void CPython::Reload (void)
 		}
 
 	// ESHQ: включение зума, удаление лишних определений
-	/*int bUseScope = TRUE;
-	
-	int bUseScope = FALSE;
-#ifdef CLIENT_DLL
-	bUseScope = bIsMultiplayer ();
-#else
-	bUseScope = g_pGameRules->IsMultiplayer ();
-#endif
-	*/
-
-	if (m_flSoundDelay <= UTIL_WeaponTimeBase ())
+	/*if (m_flSoundDelay <= UTIL_WeaponTimeBase ())
 		{
 		m_flSoundDelay = UTIL_WeaponTimeBase () + 4.0f;
 		DefaultReload (6, PYTHON_RELOAD, 4.0, FALSE);
-		}
+		}*/
 
 	// ESHQ: местная озвучка перезарядки больше не требуется
-	/*if (DefaultReload (6, PYTHON_RELOAD, 4.0, bUseScope))
-		m_flSoundDelay = 1.5;*/
+	if (DefaultReload (6, PYTHON_RELOAD, 4.0, FALSE))
+		m_flSoundDelay = 1.5;
 	}
 
 void CPython::WeaponIdle (void)
@@ -259,12 +225,12 @@ void CPython::WeaponIdle (void)
 	m_pPlayer->GetAutoaimVector (AUTOAIM_10DEGREES);
 
 	// ESHQ: здесь не работает
-	/*if (((int)m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
+	if (((int)m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
 		{
-		EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", 
-			RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
+		//EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", 
+		//	RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
 		m_flSoundDelay = 0;
-		}*/
+		}
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase ())
 		return;
@@ -293,15 +259,6 @@ void CPython::WeaponIdle (void)
 		}
 
 	// ESHQ: включение зума, удаление лишних элементов
-	/*int bUseScope = TRUE;
-
-#ifdef CLIENT_DLL
-	bUseScope = bIsMultiplayer ();
-#else
-	bUseScope = g_pGameRules->IsMultiplayer ();
-#endif
-	*/
-
 	m_flSoundDelay = 0;
 	SendWeaponAnim (iAnim, UseDecrement () ? 1 : 0, FALSE);
 	}

@@ -27,7 +27,7 @@ static void Host_SetState (host_state_t newState, qboolean clearNext)
 		GameState->nextstate = newState;
 	GameState->curstate = newState;
 
-	if (clearNext && newState == STATE_RUNFRAME)
+	if (clearNext && (newState == STATE_RUNFRAME))
 		{
 		// states finished here
 		GameState->backgroundMap = false;
@@ -138,7 +138,7 @@ void Host_RunFrame (float time)
 	// at this time, we don't need to get events from OS on dedicated
 #if !XASH_DEDICATED
 	Platform_RunEvents ();
-#endif // XASH_DEDICATED
+#endif
 
 	// engine main frame
 	Host_Frame (time);

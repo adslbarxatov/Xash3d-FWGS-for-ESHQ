@@ -627,13 +627,20 @@ float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc)
 
 	if (g_studio.interpolate)
 		{
-		if (g_studio.time < e->curstate.animtime) dfdt = 0.0;
-		else dfdt = (g_studio.time - e->curstate.animtime) * e->curstate.framerate * pseqdesc->fps;
+		if (g_studio.time < e->curstate.animtime) 
+			dfdt = 0.0;
+		else 
+			dfdt = (g_studio.time - e->curstate.animtime) * e->curstate.framerate * pseqdesc->fps;
 		}
-	else dfdt = 0;
+	else
+		{
+		dfdt = 0;
+		}
 
-	if (pseqdesc->numframes <= 1) f = 0.0;
-	else f = (e->curstate.frame * (pseqdesc->numframes - 1)) / 256.0f;
+	if (pseqdesc->numframes <= 1) 
+		f = 0.0;
+	else 
+		f = (e->curstate.frame * (pseqdesc->numframes - 1)) / 256.0f;
 
 	f += dfdt;
 
@@ -641,7 +648,8 @@ float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc)
 		{
 		if (pseqdesc->numframes > 1)
 			f -= (int)(f / (pseqdesc->numframes - 1)) * (pseqdesc->numframes - 1);
-		if (f < 0) f += (pseqdesc->numframes - 1);
+		if (f < 0) 
+			f += (pseqdesc->numframes - 1);
 		}
 	else
 		{
@@ -649,6 +657,7 @@ float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc)
 			f = pseqdesc->numframes - 1.001;
 		if (f < 0.0)  f = 0.0;
 		}
+
 	return f;
 	}
 
@@ -2828,8 +2837,10 @@ static void R_StudioClientEvents (void)
 		if (pevent[i].event < EVENT_CLIENT)
 			continue;
 
-		if ((float)pevent[i].frame > start && pevent[i].frame <= end)
+		if (((float)pevent[i].frame > start) && (pevent[i].frame <= end))
+			{
 			gEngfuncs.pfnStudioEvent (&pevent[i], e);
+			}
 		}
 	}
 
