@@ -210,7 +210,6 @@ void CBaseTurret::KeyValue (KeyValueData* pkvd)
 		{
 		m_iSearchSpeed = atoi (pkvd->szValue);
 		pkvd->fHandled = TRUE;
-
 		}
 	else if (FStrEq (pkvd->szKeyName, "turnrate"))
 		{

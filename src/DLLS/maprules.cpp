@@ -661,35 +661,34 @@ LINK_ENTITY_TO_CLASS (game_player_set_health, CGamePlayerSetHealth);
 
 void CGamePlayerSetHealth::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
-	if (!CanFireForActivator (pActivator))
-		return;
+	/*if (!CanFireForActivator (pActivator))
+		return;*/
 
-	if (pActivator->IsPlayer () && (pev->dmg >= 0))
+	CBaseEntity *pl = UTIL_PlayerByIndex (1);
+	if (pl/*pActivator->IsPlayer ()*/ && (pev->dmg >= 0))
 		{
-		if (pev->dmg <= pActivator->pev->max_health)
+		if (pev->dmg <= pl/*pActivator*/->pev->max_health)
 			{
-			pActivator->pev->health = (int)pev->dmg;
-			pActivator->pev->armorvalue = 0;
+			pl/*pActivator*/->pev->health = (int)pev->dmg;
+			pl/*pActivator*/->pev->armorvalue = 0;
 			}
-		else if ((pev->dmg > pActivator->pev->max_health) &&
-			(pev->dmg <= pActivator->pev->max_health + MAX_NORMAL_BATTERY))
+		else if ((pev->dmg > pl/*pActivator*/->pev->max_health) &&
+			(pev->dmg <= pl/*pActivator*/->pev->max_health + MAX_NORMAL_BATTERY))
 			{
-			pActivator->pev->health = (int)pActivator->pev->max_health;
-			pActivator->pev->armorvalue = (int)pev->dmg - (int)pActivator->pev->max_health;
+			pl/*pActivator*/->pev->health = (int)pl/*pActivator*/->pev->max_health;
+			pl/*pActivator*/->pev->armorvalue = (int)pev->dmg - (int)pl/*pActivator*/->pev->max_health;
 			}
 		else
 			{
-			pActivator->pev->health = (int)pActivator->pev->max_health;
-			pActivator->pev->armorvalue = MAX_NORMAL_BATTERY;
+			pl/*pActivator*/->pev->health = (int)pl/*pActivator*/->pev->max_health;
+			pl/*pActivator*/->pev->armorvalue = MAX_NORMAL_BATTERY;
 			}
 		}
 
 	SUB_UseTargets (pActivator, useType, value);
 
 	if (RemoveOnFire ())
-		{
 		UTIL_Remove (this);
-		}
 	}
 
 //
