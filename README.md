@@ -103,7 +103,7 @@ It was based on one of the newest versions of [Xash3d FWGS engine](https://githu
 
 44. Pushables are now react on explosions, shooting and hitting by a crowbar.
 
-45. Implemented the “meat mode”: corpses can now be destroyed by bullets and crowbar in ome hit. Requires line `meat_mode "1"` in file `config.cfg`.
+45. Implemented the “meat mode”: corpses can now be destroyed by bullets and crowbar in one hit. Requires the line `meat_mode "1"` in file `config.cfg`.
 
 46. Our trains can have parts of their paths where they will not emit the sound of moving.
 
