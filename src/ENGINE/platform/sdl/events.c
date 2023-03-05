@@ -243,11 +243,11 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			if (down) Con_Reportf ("SDLash_KeyEvent: Unknown key: %s = %i\n", SDL_GetScancodeName (keynum), keynum);
 			return;
 		}
-	}
+		}
 
 #undef DECLARE_KEY_RANGE
 
-	Key_Event (keynum, down);
+		Key_Event (keynum, down);
 	}
 
 static void SDLash_MouseKey (int key, int down, int istouch)

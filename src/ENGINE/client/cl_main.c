@@ -743,9 +743,9 @@ void CL_WritePacket (void)
 	if (cls.state == ca_connected) numbackup = 0;
 
 	// clamp cmdrate
-	if (cl_cmdrate->value < 0.0f) 
+	if (cl_cmdrate->value < 0.0f)
 		Cvar_SetValue ("cl_cmdrate", 0.0f);
-	else if (cl_cmdrate->value > 100.0f) 
+	else if (cl_cmdrate->value > 100.0f)
 		Cvar_SetValue ("cl_cmdrate", 100.0f);
 
 	// Check to see if we can actually send this command
@@ -789,7 +789,7 @@ void CL_WritePacket (void)
 
 		if (cl_cmdrate->value > 0) // clamped between 10 and 100 fps
 			cls.nextcmdtime = host.realtime + bound (0.1f, (1.0f / cl_cmdrate->value), 0.01f);
-		else 
+		else
 			cls.nextcmdtime = host.realtime; // always able to send right away
 
 		if (cls.lastoutgoingcommand == -1)

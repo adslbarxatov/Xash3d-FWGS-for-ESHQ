@@ -2526,6 +2526,8 @@
 	delay(string) : "Задержка (-1 - пока жив предыд.)" : "5"
 	m_imaxlivechildren(integer) : "Макс. живых (-1 - беск.)" : -1
 	netname(string) : "Имена экземпляров"
+	teleport_sprite(string) : "Спрайт эффекта телепортации"
+	teleport_sound(string) : "Звук эффекта телепортации"
 	spawnflags(Flags) =
 	[
 		1 : "Сначала вкл." : 0

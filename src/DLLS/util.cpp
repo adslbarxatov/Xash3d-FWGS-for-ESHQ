@@ -1571,6 +1571,7 @@ void UTIL_PrecacheOther (const char* szClassname)
 	CBaseEntity* pEntity = CBaseEntity::Instance (VARS (pent));
 	if (pEntity)
 		pEntity->Precache ();
+
 	REMOVE_ENTITY (pent);
 	}
 

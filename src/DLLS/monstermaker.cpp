@@ -31,35 +31,40 @@
 //=========================================================
 // MonsterMaker - this ent creates monsters during the game.
 //=========================================================
-class CMonsterMaker: public CBaseMonster
+class CMonsterMaker : public CBaseMonster
 	{
 	public:
 		void Spawn (void);
 		void Precache (void);
-		void KeyValue (KeyValueData* pkvd);
-		void EXPORT ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-		void EXPORT CyclicUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void KeyValue (KeyValueData *pkvd);
+		void EXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void EXPORT CyclicUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void EXPORT MakerThink (void);
-		void DeathNotice (entvars_t* pevChild);// monster maker children use this to tell the monster maker that they have died.
+		void DeathNotice (entvars_t *pevChild);
+		// monster maker children use this to tell the monster maker that they have died
+
 		void MakeMonster (void);
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
-		string_t m_iszMonsterClassname;// classname of the monster(s) that will be created.
+		string_t m_iszMonsterClassname;	// classname of the monster(s) that will be created
+		int	 m_cNumMonsters;			// max number of monsters this ent can create
+		int  m_cLiveChildren;			// how many monsters made by this monster maker that are currently alive
+		int	 m_iMaxLiveChildren;		// max number of monsters that this maker may have out at one time
 
-		int	 m_cNumMonsters;// max number of monsters this ent can create
-
-
-		int  m_cLiveChildren;// how many monsters made by this monster maker that are currently alive
-		int	 m_iMaxLiveChildren;// max number of monsters that this maker may have out at one time.
-
-		float m_flGround; // z coord of the ground under me, used to make sure no monsters are under the maker when it drops a new child
+		float m_flGround;		// z coord of the ground under me, used to make sure 
+								// no monsters are under the maker when it drops a new child
 
 		BOOL m_fActive;
-		BOOL m_fFadeChildren;// should we make the children fadeout?
+		BOOL m_fFadeChildren;	// should we make the children fadeout?
+
+		// ESHQ: поддержка эффектов телепортации
+		string_t m_iszTeleportSprite;
+		string_t m_iszTeleportSound;
+		int iTeleportSprite;
 	};
 
 LINK_ENTITY_TO_CLASS (monstermaker, CMonsterMaker);
@@ -73,12 +78,15 @@ TYPEDESCRIPTION	CMonsterMaker::m_SaveData[] =
 		DEFINE_FIELD (CMonsterMaker, m_iMaxLiveChildren, FIELD_INTEGER),
 		DEFINE_FIELD (CMonsterMaker, m_fActive, FIELD_BOOLEAN),
 		DEFINE_FIELD (CMonsterMaker, m_fFadeChildren, FIELD_BOOLEAN),
+
+		DEFINE_FIELD (CMonsterMaker, m_iszTeleportSprite, FIELD_STRING),
+		DEFINE_FIELD (CMonsterMaker, m_iszTeleportSound, FIELD_STRING),
 	};
 
 
 IMPLEMENT_SAVERESTORE (CMonsterMaker, CBaseMonster);
 
-void CMonsterMaker::KeyValue (KeyValueData* pkvd)
+void CMonsterMaker::KeyValue (KeyValueData *pkvd)
 	{
 
 	if (FStrEq (pkvd->szKeyName, "monstercount"))
@@ -96,41 +104,55 @@ void CMonsterMaker::KeyValue (KeyValueData* pkvd)
 		m_iszMonsterClassname = ALLOC_STRING (pkvd->szValue);
 		pkvd->fHandled = TRUE;
 		}
+
+	// ESHQ: поддержка эффектов телепортации
+	else if (FStrEq (pkvd->szKeyName, "teleport_sprite"))
+		{
+		m_iszTeleportSprite = ALLOC_STRING (pkvd->szValue);
+		pkvd->fHandled = TRUE;
+		}
+	else if (FStrEq (pkvd->szKeyName, "teleport_sound"))
+		{
+		m_iszTeleportSound = ALLOC_STRING (pkvd->szValue);
+		pkvd->fHandled = TRUE;
+		}
+
 	else
+		{
 		CBaseMonster::KeyValue (pkvd);
+		}
 	}
 
 
 void CMonsterMaker::Spawn ()
 	{
 	pev->solid = SOLID_NOT;
-
 	m_cLiveChildren = 0;
 	Precache ();
+
 	if (!FStringNull (pev->targetname))
 		{
 		if (pev->spawnflags & SF_MONSTERMAKER_CYCLIC)
-			{
-			SetUse (&CMonsterMaker::CyclicUse);// drop one monster each time we fire
-			}
+			SetUse (&CMonsterMaker::CyclicUse);	// drop one monster each time we fire
 		else
-			{
-			SetUse (&CMonsterMaker::ToggleUse);// so can be turned on/off
-			}
+			SetUse (&CMonsterMaker::ToggleUse);	// so can be turned on/off
 
 		if (FBitSet (pev->spawnflags, SF_MONSTERMAKER_START_ON))
-			{// start making monsters as soon as monstermaker spawns
+			{
+			// start making monsters as soon as monstermaker spawns
 			m_fActive = TRUE;
 			SetThink (&CMonsterMaker::MakerThink);
 			}
 		else
-			{// wait to be activated.
+			{
+			// wait to be activated
 			m_fActive = FALSE;
 			SetThink (&CBaseEntity::SUB_DoNothing);
 			}
 		}
 	else
-		{// no targetname, just start.
+		{
+		// no targetname, just start
 		pev->nextthink = gpGlobals->time + m_flDelay;
 		m_fActive = TRUE;
 		SetThink (&CMonsterMaker::MakerThink);
@@ -148,6 +170,11 @@ void CMonsterMaker::Precache (void)
 	{
 	CBaseMonster::Precache ();
 
+	if (m_iszTeleportSound)
+		PRECACHE_SOUND (STRING (m_iszTeleportSound));
+	if (m_iszTeleportSprite)
+		iTeleportSprite = PRECACHE_MODEL (STRING (m_iszTeleportSprite));
+
 	UTIL_PrecacheOther (STRING (m_iszMonsterClassname));
 	}
 
@@ -156,21 +183,23 @@ void CMonsterMaker::Precache (void)
 //=========================================================
 void CMonsterMaker::MakeMonster (void)
 	{
-	edict_t* pent;
-	entvars_t* pevCreate;
+	edict_t *pent;
+	entvars_t *pevCreate;
+	float spriteCenterZ = 0.0f;
 
-	if (m_iMaxLiveChildren > 0 && m_cLiveChildren >= m_iMaxLiveChildren)
-		{// not allowed to make a new one yet. Too many live ones out right now.
+	// not allowed to make a new one yet. Too many live ones out right now
+	if ((m_iMaxLiveChildren > 0) && (m_cLiveChildren >= m_iMaxLiveChildren))
 		return;
-		}
 
 	if (!m_flGround)
 		{
-		// set altitude. Now that I'm activated, any breakables, etc should be out from under me. 
+		// set altitude. Now that I'm activated, any breakables, etc should be out from under me
 		TraceResult tr;
 
-		UTIL_TraceLine (pev->origin, pev->origin - Vector (0, 0, 2048), ignore_monsters, ENT (pev), &tr);
+		UTIL_TraceLine (pev->origin, pev->origin - Vector (0, 0, 2048), ignore_monsters, 
+			ENT (pev), &tr);
 		m_flGround = tr.vecEndPos.z;
+		spriteCenterZ = m_flGround + 34.0f;
 		}
 
 	Vector mins = pev->origin - Vector (34, 34, 0);
@@ -178,13 +207,12 @@ void CMonsterMaker::MakeMonster (void)
 	maxs.z = pev->origin.z;
 	mins.z = m_flGround;
 
-	CBaseEntity* pList[2];
+	CBaseEntity *pList[2];
+
+	// don't build a stack of monsters!
 	int count = UTIL_EntitiesInBox (pList, 2, mins, maxs, FL_CLIENT | FL_MONSTER);
 	if (count)
-		{
-		// don't build a stack of monsters!
 		return;
-		}
 
 	pent = CREATE_NAMED_ENTITY (m_iszMonsterClassname);
 
@@ -195,11 +223,9 @@ void CMonsterMaker::MakeMonster (void)
 		}
 
 	// If I have a target, fire!
+	// delay already overloaded for this entity, so can't call SUB_UseTargets()
 	if (!FStringNull (pev->target))
-		{
-		// delay already overloaded for this entity, so can't call SUB_UseTargets()
 		FireTargets (STRING (pev->target), this, this, USE_TOGGLE, 0);
-		}
 
 	pevCreate = VARS (pent);
 	pevCreate->origin = pev->origin;
@@ -213,28 +239,45 @@ void CMonsterMaker::MakeMonster (void)
 	DispatchSpawn (ENT (pevCreate));
 	pevCreate->owner = edict ();
 
+	// if I have a netname (overloaded), give the child monster that name as a targetname
 	if (!FStringNull (pev->netname))
-		{
-		// if I have a netname (overloaded), give the child monster that name as a targetname
 		pevCreate->targetname = pev->netname;
-		}
 
-	m_cLiveChildren++;// count this monster
+	// count this monster
+	m_cLiveChildren++;
 	m_cNumMonsters--;
 
 	if (m_cNumMonsters == 0)
 		{
-		// Disable this forever.  Don't kill it because it still gets death notices
+		// Disable this forever. Don't kill it because it still gets death notices
 		SetThink (NULL);
 		SetUse (NULL);
 		}
+
+	// ESHQ: поддержка эффектов телепортации
+	if (iTeleportSprite) 
+		{
+		MESSAGE_BEGIN (MSG_PVS, SVC_TEMPENTITY, pev->origin);
+		WRITE_BYTE (TE_SPRITE);
+		WRITE_COORD (pev->origin.x);
+		WRITE_COORD (pev->origin.y);
+		WRITE_COORD (spriteCenterZ);
+		WRITE_SHORT (iTeleportSprite);
+		WRITE_BYTE (10);
+		WRITE_BYTE (250);
+		MESSAGE_END ();
+		}
+
+	if (m_iszTeleportSound)
+		EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, STRING (m_iszTeleportSound), 0.8, ATTN_LARGE, 
+			0, RANDOM_LONG (90, 110));
 	}
 
 //=========================================================
 // CyclicUse - drops one monster from the monstermaker
-// each time we call this.
+// each time we call this
 //=========================================================
-void CMonsterMaker::CyclicUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CMonsterMaker::CyclicUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	MakeMonster ();
 	}
@@ -242,7 +285,7 @@ void CMonsterMaker::CyclicUse (CBaseEntity* pActivator, CBaseEntity* pCaller, US
 //=========================================================
 // ToggleUse - activates/deactivates the monster maker
 //=========================================================
-void CMonsterMaker::ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CMonsterMaker::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	if (!ShouldToggle (useType, m_fActive))
 		return;
@@ -274,13 +317,11 @@ void CMonsterMaker::MakerThink (void)
 
 //=========================================================
 //=========================================================
-void CMonsterMaker::DeathNotice (entvars_t* pevChild)
+void CMonsterMaker::DeathNotice (entvars_t *pevChild)
 	{
-	// ok, we've gotten the deathnotice from our child, now clear out its owner if we don't want it to fade.
+	// ok, we've gotten the deathnotice from our child, now clear out its owner if we don't want it to fade
 	m_cLiveChildren--;
 
 	if (!m_fFadeChildren)
-		{
 		pevChild->owner = NULL;
-		}
 	}
