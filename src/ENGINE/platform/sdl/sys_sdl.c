@@ -66,6 +66,7 @@ void Platform_Init (void)
 	Posix_Daemonize ();
 #endif
 #ifdef XASH_WIN32
+	// ESHQ: отключено из-за конфликтов с основным окном
 	Wcon_CreateConsole (); // system console used by dedicated server or show fatal errors
 #endif
 

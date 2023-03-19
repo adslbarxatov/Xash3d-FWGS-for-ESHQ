@@ -499,7 +499,8 @@ void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audi
 	Avi->quiet = quiet;
 
 	// can't load Video For Windows :-(
-	if (!avi_initialized) return;
+	if (!avi_initialized)
+		return;
 
 	// load the AVI
 	hr = pAVIFileOpen (&Avi->pfile, filename, OF_SHARE_DENY_WRITE, 0L);

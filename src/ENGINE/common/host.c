@@ -1084,17 +1084,6 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 	Image_CheckPaletteQ1 ();
 	Host_InitDecals ();	// reload decals
 
-	// DEPRECATED: by FWGS fork
-#if 0
-	if (GI->secure)
-		{
-		// clear all developer levels when game is protected
-		Cvar_DirectSet (&host_developer, "0");
-		host.allow_console_init = false;
-		host.con_showalways = false;
-		host.allow_console = false;
-		}
-#endif
 	HPAK_Init ();
 
 	IN_Init ();

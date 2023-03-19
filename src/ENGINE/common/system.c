@@ -493,7 +493,8 @@ void Sys_Print (const char *pMsg)
 	// if the message is REALLY long, use just the last portion of it
 	if (Q_strlen (pMsg) > sizeof (buffer) - 1)
 		msg = pMsg + Q_strlen (pMsg) - sizeof (buffer) + 1;
-	else msg = pMsg;
+	else 
+		msg = pMsg;
 
 	// copy into an intermediate buffer
 	while (msg[i] && ((b - buffer) < sizeof (buffer) - 1))

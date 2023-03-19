@@ -21,7 +21,8 @@
 #include "nodes.h"
 #include "player.h"
 
-enum glock_e {
+enum glock_e
+	{
 	GLOCK_IDLE1 = 0,
 	GLOCK_IDLE2,
 	GLOCK_IDLE3,
@@ -72,7 +73,7 @@ void CGlock::Precache (void)
 	m_usFireGlock2 = PRECACHE_EVENT (1, "events/glock2.sc");
 	}
 
-int CGlock::GetItemInfo (ItemInfo* p)
+int CGlock::GetItemInfo (ItemInfo *p)
 	{
 	p->pszName = STRING (pev->classname);
 	p->pszAmmo1 = "9mm";
@@ -101,7 +102,7 @@ void CGlock::SecondaryAttack (void)
 
 void CGlock::PrimaryAttack (void)
 	{
-	GlockFire (0.01, 0.3, TRUE);
+	GlockFire (0.01, RANDOM_FLOAT (0.2, 0.3), TRUE);	// ESHQ: внесение разброса
 	}
 
 void CGlock::GlockFire (float flSpread, float flCycleTime, BOOL fUseAutoAim)
@@ -158,11 +159,11 @@ void CGlock::GlockFire (float flSpread, float flCycleTime, BOOL fUseAutoAim)
 		}
 
 	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer (1, vecSrc, vecAiming, Vector (flSpread, flSpread, flSpread), 8192, 
+	vecDir = m_pPlayer->FireBulletsPlayer (1, vecSrc, vecAiming, Vector (flSpread, flSpread, flSpread), 8192,
 		BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 
-	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, 
-		(float*)&g_vecZero, (float*)&g_vecZero, vecDir.x, vecDir.y, 0, 0, (m_iClip == 0) ? 1 : 0, 0);
+	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0,
+		(float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, (m_iClip == 0) ? 1 : 0, 0);
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase () + flCycleTime;
 
@@ -225,7 +226,7 @@ void CGlock::WeaponIdle (void)
 		}
 	}
 
-class CGlockAmmo: public CBasePlayerAmmo
+class CGlockAmmo : public CBasePlayerAmmo
 	{
 	void Spawn (void)
 		{
@@ -238,7 +239,7 @@ class CGlockAmmo: public CBasePlayerAmmo
 		PRECACHE_MODEL ("models/w_9mmclip.mdl");
 		PRECACHE_SOUND ("items/9mmclip1.wav");
 		}
-	BOOL AddAmmo (CBaseEntity* pOther)
+	BOOL AddAmmo (CBaseEntity *pOther)
 		{
 		if (pOther->GiveAmmo (AMMO_GLOCKCLIP_GIVE, "9mm", _9MM_MAX_CARRY) != -1)
 			{

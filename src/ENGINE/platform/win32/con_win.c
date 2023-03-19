@@ -525,6 +525,7 @@ void Wcon_CreateConsole (void)
 		return;
 		}
 
+	// ESHQ: исправление фокуса на окнах для ESRM
 	SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);
 
 	// show console if needed
