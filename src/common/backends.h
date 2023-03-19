@@ -29,11 +29,12 @@ GNU General Public License for more details.
 #define SOUND_OPENSLES 2
 #define SOUND_ALSA     3
 
-// crash handler (XASH_CRASHHANDLER)
+// Xash3D: 20.03.23
+/* crash handler (XASH_CRASHHANDLER)
 #define CRASHHANDLER_NULL     0
 #define CRASHHANDLER_UCONTEXT 1
 #define CRASHHANDLER_DBGHELP  2
-#define CRASHHANDLER_WIN32    3
+#define CRASHHANDLER_WIN32    3*/
 
 // input (XASH_INPUT)
 #define INPUT_NULL    0
@@ -53,7 +54,8 @@ GNU General Public License for more details.
 #define MSGBOX_SDL     1
 #define MSGBOX_ANDROID 2
 #define MSGBOX_WIN32   3
-
+// Xash3D: 20.03.23
+#define MSGBOX_NSWITCH 4
 
 // library loading (XASH_LIB)
 #define LIB_NULL 0

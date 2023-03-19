@@ -629,7 +629,7 @@
 #define ATTN_IDLE0			(float)2
 #define ATTN_STATIC0		(float)1.25
 
-// Так будет понятнее
+// ESHQ: так будет понятнее
 #define ATTN_EVERYWHERE		ATTN_NONE0
 #define ATTN_LARGE			ATTN_NORM0
 #define ATTN_MEDIUM			ATTN_STATIC0
@@ -739,20 +739,16 @@ enum
 
 typedef int		func_t;
 typedef int		string_t;
-
-// FWGS
-//typedef unsigned char	byte;
 typedef unsigned short	word;
 
 #include "xash3d_types.h"
 
-// FWGS
+/* Xash3D: 20.03.23
 #if !(XASH_DL || XASH_FS)
 	#define Q_isspace(ch)	(ch < 32 || ch > 255)
 #endif
 
-// FWGS
-/*#undef true
+#undef true
 #undef false
 
 #ifndef __cplusplus

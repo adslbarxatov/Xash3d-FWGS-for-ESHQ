@@ -33,8 +33,8 @@ BRUSH MODELS
 #define QBSP2_VERSION	(('B' << 0) | ('S' << 8) | ('P' << 16) | ('2'<<24))
 
 #define IDEXTRAHEADER	(('H'<<24)+('S'<<16)+('A'<<8)+'X') // little-endian "XASH"
-#define EXTRA_VERSION	4	
-// ver. 1 was occupied by old versions of XashXT, 
+#define EXTRA_VERSION	4
+// ver. 1 was occupied by old versions of XashXT,
 // ver. 2 was occupied by old vesrions of P2:savior
 // ver. 3 was occupied by experimental versions of P2:savior change fmt
 
@@ -63,13 +63,17 @@ BRUSH MODELS
 #define LS_UNUSED			0xFE
 #define LS_NONE				0xFF
 
+// Xash3D: 20.03.23
+#define MAX_MAP_CLIPNODES_HLBSP	32767
+#define MAX_MAP_CLIPNODES_BSP2	524288
+
 // these limis not using by modelloader but only for displaying 'mapstats' correctly
 #ifdef SUPPORT_BSP2_FORMAT
 #define MAX_MAP_MODELS			2048		// embedded models
 #define MAX_MAP_ENTSTRING		0x200000		// 2 Mb should be enough
 #define MAX_MAP_PLANES			131072		// can be increased without problems
 #define MAX_MAP_NODES			262144		// can be increased without problems
-#define MAX_MAP_CLIPNODES		524288		// can be increased without problems
+#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_BSP2		// [Xash3D: 20.03.23] can be increased without problems
 #define MAX_MAP_LEAFS			131072		// CRITICAL STUFF to run ad_sepulcher!!!
 #define MAX_MAP_VERTS			524288		// can be increased without problems
 #define MAX_MAP_FACES			262144		// can be increased without problems
@@ -80,7 +84,7 @@ BRUSH MODELS
 #define MAX_MAP_ENTSTRING		0x100000	// 1 Mb should be enough
 #define MAX_MAP_PLANES			65536		// can be increased without problems
 #define MAX_MAP_NODES			32767		// because negative shorts are leafs
-#define MAX_MAP_CLIPNODES		32767		// because negative shorts are contents
+#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_HLBSP		// [Xash3D: 20.03.23] because negative shorts are contents
 #define MAX_MAP_LEAFS			32767		// signed short limit
 #define MAX_MAP_VERTS			65535		// unsigned short limit
 #define MAX_MAP_FACES			65535		// unsigned short limit
@@ -140,12 +144,15 @@ BRUSH MODELS
 // 4529
 #define IsLiquidContents( cnt )	( cnt == CONTENTS_WATER || cnt == CONTENTS_SLIME || cnt == CONTENTS_LAVA )
 
-// ESHQ: ambient sound types
-#define AMBIENT_WATER	0	// waterfall
-#define AMBIENT_SKY		1	// wind
-#define AMBIENT_SLIME	2	// never used in quake
-#define AMBIENT_LAVA	3	// never used in quake
-#define NUM_AMBIENTS	4	// automatic ambient sounds
+// FWGS: ambient sound types
+enum
+	{
+	AMBIENT_WATER = 0,		// waterfall
+	AMBIENT_SKY,		// wind
+	AMBIENT_SLIME,		// never used in quake
+	AMBIENT_LAVA,		// never used in quake
+	NUM_AMBIENTS,		// automatic ambient sounds
+	};
 
 //
 // BSP File Structures

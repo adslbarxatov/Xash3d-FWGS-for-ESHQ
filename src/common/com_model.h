@@ -16,13 +16,8 @@ GNU General Public License for more details.
 #ifndef COM_MODEL_H
 #define COM_MODEL_H
 
-#include "bspfile.h"	// we need some declarations from it
-
-// FWGS
 #include "xash3d_types.h"
-
-/*typedef vec_t		vec2_t[2];
-typedef vec_t		vec4_t[4];*/
+#include "bspfile.h"	// we need some declarations from it
 
 /*
 ==============================================================================
@@ -113,7 +108,7 @@ typedef struct
 
 	vec3_t		mins, maxs;	// terrain bounds (fill by user)
 
-	int			reserved[32];	// just for future expansions or mod-makers
+	intptr_t			reserved[32];	// [Xash3D: 20.03.23] just for future expansions or mod-makers
 	} mfaceinfo_t;
 
 // 4529
@@ -183,7 +178,7 @@ struct decal_s
 // Xash3D specific
 	vec3_t		position;		// location of the decal center in world space.
 	glpoly_t*	polys;		// precomputed decal vertices
-	int			reserved[4];	// just for future expansions or mod-makers
+	intptr_t			reserved[4];	// [Xash3D: 20.03.23] just for future expansions or mod-makers
 	};
 
 typedef struct mleaf_s
@@ -226,8 +221,6 @@ typedef struct mextrasurf_s
 	struct msurface_s*		lightmapchain;	// lightmapped polys
 	struct mextrasurf_s*	detailchain;	// for detail textures drawing
 	
-	// 4529
-	//struct mextrasurf_s*	mirrorchain;	// for gl_texsort drawing
 	mfacebevel_t*			bevel;			// for exact face traceline
 
 	struct mextrasurf_s*	lumachain;	// draw fullbrights
@@ -241,10 +234,10 @@ typedef struct mextrasurf_s
 	unsigned short	numverts;		// world->vertexes[]
 	int			firstvertex;	// fisrt look up in tr.tbn_vectors[], then acess to world->vertexes[]
 
-	int			reserved[32];	// just for future expansions or mod-makers
+	intptr_t			reserved[32];	// [Xash3D: 20.03.23] just for future expansions or mod-makers
 	} mextrasurf_t;
 
-/*FWGS typedef*/ struct msurface_s
+struct msurface_s
 	{
 	int			visframe;		// should be drawn when node is crossed
 
@@ -276,7 +269,7 @@ typedef struct mextrasurf_s
 
 	color24*	samples;		// note: this is the actual lightmap data for this surface
 	decal_t*	pdecals;
-	} /*msurface_t*/;
+	};
 
 typedef struct hull_s
 	{
@@ -304,8 +297,7 @@ typedef struct model_s
 	// shared modelinfo
 	modtype_t	type;		// model type
 	int			numframes;	// sprite's framecount
-	//byte*		mempool;
-	poolhandle_t mempool;	// FWGS: private mempool (was synctype)
+	poolhandle_t mempool;	// [Xash3D: 20.03.23] private mempool (was synctype)
 	int			flags;		// hl compatibility
 
 //
