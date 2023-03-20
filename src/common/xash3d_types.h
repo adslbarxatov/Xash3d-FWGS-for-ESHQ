@@ -4,12 +4,20 @@
 
 #include "build.h"
 
+// [Xash3D, 20.03.23]
+#if XASH_IRIX
+	#include <port.h>
+#endif
+
 #if XASH_WIN32
-#include <wchar.h> // off_t
+	#include <wchar.h> // off_t
 #endif // _WIN32
 
 #include <sys/types.h> // off_t
-#define STDINT_H <stdint.h>		// FWGS
+
+// [Xash3D, 20.03.23]
+//#define STDINT_H <stdint.h>
+
 #include STDINT_H
 #include <assert.h>
 
@@ -18,24 +26,32 @@ typedef int		sound_t;
 
 typedef float		vec_t;
 typedef vec_t		vec2_t[2];
+
 #if XASH_DL || XASH_FS
-typedef vec_t		vec3_t[3];
+	typedef vec_t		vec3_t[3];
 #endif
+
 typedef vec_t		vec4_t[4];
 typedef vec_t		quat_t[4];
 typedef byte		rgba_t[4];	// unsigned byte colorpack
 typedef byte		rgb_t[3];		// unsigned byte colorpack
 typedef vec_t		matrix3x4[3][4];
 typedef vec_t		matrix4x4[4][4];
-typedef uint32_t	poolhandle_t;
+
+// [Xash3D, 20.03.23]
+#if XASH_64BIT
+	typedef uint32_t	poolhandle_t;
+#else
+	typedef void*		poolhandle_t;
+#endif
 
 #undef true
 #undef false
 
 #ifndef __cplusplus
-typedef enum { false, true }	qboolean;
+	typedef enum { false, true }	qboolean;
 #else
-typedef int qboolean;
+	typedef int		qboolean;
 #endif
 
 typedef uint64_t longtime_t;
@@ -45,6 +61,7 @@ typedef uint64_t longtime_t;
 #define MAX_SERVERINFO_STRING	512	// server handles too many settings. expand to 1024?
 #define MAX_LOCALINFO_STRING	32768	// localinfo used on server and not sended to the clients
 #define MAX_SYSPATH		1024	// system filepath
+#define MAX_VA_STRING	1024	// [Xash3D, 20.03.23] string length returned by va()
 #define MAX_PRINT_MSG	8192	// how many symbols can handle single call of Con_Printf or Con_DPrintf
 #define MAX_TOKEN		2048	// parse token length
 #define MAX_MODS		512	// environment games that engine can keep visible
@@ -71,48 +88,51 @@ typedef uint64_t longtime_t;
 #define ColorIndex( c )	((( c ) - '0' ) & 7 )
 
 #if defined(__GNUC__)
-#ifdef __i386__
-#define EXPORT __attribute__ ((visibility ("default"),force_align_arg_pointer))
-#define GAME_EXPORT __attribute((force_align_arg_pointer))
-#else
-#define EXPORT __attribute__ ((visibility ("default")))
-#define GAME_EXPORT
-#endif
-#define _format(x) __attribute__((format(printf, x, x+1)))
-#define NORETURN __attribute__((noreturn))
+	#ifdef __i386__
+		#define EXPORT __attribute__ ((visibility ("default"),force_align_arg_pointer))
+		#define GAME_EXPORT __attribute((force_align_arg_pointer))
+	#else
+		#define EXPORT __attribute__ ((visibility ("default")))
+		#define GAME_EXPORT
+	#endif
+
+	#define _format(x) __attribute__((format(printf, x, x+1)))
+	#define NORETURN __attribute__((noreturn))
 #elif defined(_MSC_VER)
-#undef EXPORT
-#define EXPORT          __declspec( dllexport )
-#define GAME_EXPORT
-#define _format(x)
-#define NORETURN
+	// [Xash3D, 20.03.23]
+	//#undef EXPORT
+
+	#define EXPORT		__declspec( dllexport )
+	#define GAME_EXPORT
+	#define _format(x)
+	#define NORETURN
 #else
-#define EXPORT
-#define GAME_EXPORT
-#define _format(x)
-#define NORETURN
+	#define EXPORT
+	#define GAME_EXPORT
+	#define _format(x)
+	#define NORETURN
 #endif
 
 #if ( __GNUC__ >= 3 )
-#define unlikely(x) __builtin_expect(x, 0)
-#define likely(x)   __builtin_expect(x, 1)
+	#define unlikely(x) __builtin_expect(x, 0)
+	#define likely(x)   __builtin_expect(x, 1)
 #elif defined( __has_builtin )
-#if __has_builtin( __builtin_expect )
-#define unlikely(x) __builtin_expect(x, 0)
-#define likely(x)   __builtin_expect(x, 1)
+	#if __has_builtin( __builtin_expect )
+		#define unlikely(x) __builtin_expect(x, 0)
+		#define likely(x)   __builtin_expect(x, 1)
+	#else
+		#define unlikely(x) (x)
+		#define likely(x)   (x)
+	#endif
 #else
-#define unlikely(x) (x)
-#define likely(x)   (x)
-#endif
-#else
-#define unlikely(x) (x)
-#define likely(x)   (x)
+	#define unlikely(x) (x)
+	#define likely(x)   (x)
 #endif
 
 #if defined( static_assert ) // C11 static_assert
-#define STATIC_ASSERT static_assert
+	#define STATIC_ASSERT static_assert
 #else
-#define STATIC_ASSERT( x, y ) extern int _static_assert_##__LINE__[( x ) ? 1 : -1]
+	#define STATIC_ASSERT( x, y ) extern int _static_assert_##__LINE__[( x ) ? 1 : -1]
 #endif
 
 #ifdef XASH_BIG_ENDIAN
@@ -187,4 +207,4 @@ typedef void (*setpair_t)(const char *key, const void *value, const void *buffer
 #define CS_SIZE		64	// size of one config string
 #define CS_TIME		16	// size of time string
 
-#endif // XASH_TYPES_H
+#endif
