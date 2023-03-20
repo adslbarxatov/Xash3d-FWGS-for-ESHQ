@@ -47,8 +47,9 @@ SETUP BACKENDS DEFINITIONS
 			#endif // XASH_TIMER
 
 			#ifndef XASH_MESSAGEBOX
-				#define XASH_MESSAGEBOX MSGBOX_SDL
-			#endif // XASH_MESSAGEBOX
+				#if !XASH_NSWITCH // [Xash3D, 20.03.23] SDL2 messageboxes not available
+					#define XASH_MESSAGEBOX MSGBOX_SDL
+				#endif			#endif // XASH_MESSAGEBOX
 		#endif
 	#elif XASH_ANDROID
 		// we are building for Android platform, use Android APIs
@@ -105,12 +106,14 @@ SETUP BACKENDS DEFINITIONS
 #ifndef XASH_MESSAGEBOX
 	#if XASH_WIN32
 		#define XASH_MESSAGEBOX MSGBOX_WIN32
+	#elif XASH_NSWITCH	// [Xash3D, 20.03.23]
+		#define XASH_MESSAGEBOX MSGBOX_NSWITCH
 	#else // !XASH_WIN32
 		#define XASH_MESSAGEBOX MSGBOX_STDERR
 	#endif // !XASH_WIN32
 #endif // XASH_MESSAGEBOX
 
-//
+/* [Xash3D, 20.03.23]
 // select crashhandler based on defines
 //
 #ifndef XASH_CRASHHANDLER
@@ -119,7 +122,7 @@ SETUP BACKENDS DEFINITIONS
 	#elif XASH_LINUX || XASH_BSD
 		#define XASH_CRASHHANDLER CRASHHANDLER_UCONTEXT
 	#endif // !(XASH_LINUX || XASH_BSD || XASH_WIN32)
-#endif
+#endif*/
 
 //
 // no timer - no xash
@@ -157,9 +160,11 @@ SETUP BACKENDS DEFINITIONS
 	#define XASH_INPUT INPUT_NULL
 #endif // XASH_INPUT
 
+/* [Xash3D, 20.03.23]
 #ifndef XASH_CRASHHANDLER
 	#define XASH_CRASHHANDLER CRASHHANDLER_NULL
-#endif // XASH_CRASHHANDLER
+#endif // XASH_CRASHHANDLER 
+*/
 
 /*
 =========================================================================
@@ -169,13 +174,37 @@ Default build-depended cvar and constant values
 =========================================================================
 */
 
+/* [Xash3D, 20.03.23]
 #if XASH_MOBILE_PLATFORM
-	#define DEFAULT_TOUCH_ENABLE "1"
-	#define DEFAULT_M_IGNORE "1"
-#else // !XASH_MOBILE_PLATFORM
-	#define DEFAULT_TOUCH_ENABLE "0"
-	#define DEFAULT_M_IGNORE "0"
+	#define DEFAULT_TOUCH_ENABLE	"1"
+*/
+
+// Platform overrides
+#if XASH_NSWITCH
+	#define DEFAULT_TOUCH_ENABLE	"0"
+	#define DEFAULT_M_IGNORE		"1"
+
+/*
+#else // !XASH_MOBILE_PLATFORM 
+*/
+	#define DEFAULT_MODE_WIDTH		1280
+	#define DEFAULT_MODE_HEIGHT		720
+	#define DEFAULT_ALLOWCONSOLE	1
+#elif XASH_PSVITA
+	#define DEFAULT_TOUCH_ENABLE	"0"
+
+/*
+	#define DEFAULT_M_IGNORE		"0"
 #endif // !XASH_MOBILE_PLATFORM
+*/
+	#define DEFAULT_M_IGNORE		"1"
+	#define DEFAULT_MODE_WIDTH		960
+	#define DEFAULT_MODE_HEIGHT		544
+	#define DEFAULT_ALLOWCONSOLE	1
+#elif XASH_MOBILE_PLATFORM
+	#define DEFAULT_TOUCH_ENABLE	"1"
+	#define DEFAULT_M_IGNORE		"1"
+#endif // !XASH_MOBILE_PLATFORM && !XASH_NSWITCH
 
 #if XASH_ANDROID || XASH_IOS || XASH_EMSCRIPTEN
 #define XASH_INTERNAL_GAMELIBS
@@ -183,13 +212,26 @@ Default build-depended cvar and constant values
 // You need add library loading code to library.c when adding new platform
 #endif // XASH_ANDROID || XASH_IOS || XASH_EMSCRIPTEN
 
-// allow override for developer/debug builds
+// [Xash3D, 20.03.23] Defaults
+#ifndef DEFAULT_TOUCH_ENABLE
+	#define DEFAULT_TOUCH_ENABLE	"0"
+#endif // DEFAULT_TOUCH_ENABLE
+
+#ifndef DEFAULT_M_IGNORE
+	#define DEFAULT_M_IGNORE		"0"
+#endif // DEFAULT_M_IGNORE
+
 #ifndef DEFAULT_DEV
 	#define DEFAULT_DEV 0
 #endif // DEFAULT_DEV
 
+// [Xash3D, 20.03.23]
+#ifndef DEFAULT_ALLOWCONSOLE
+	#define DEFAULT_ALLOWCONSOLE	0
+#endif // DEFAULT_ALLOWCONSOLE
+
 #ifndef DEFAULT_FULLSCREEN
-	#define DEFAULT_FULLSCREEN 1
+	#define DEFAULT_FULLSCREEN		1
 #endif // DEFAULT_FULLSCREEN
 
 #endif // DEFAULTS_H
