@@ -89,7 +89,7 @@ typedef struct ui_enginefuncs_s
 	const char *(*pfnCmdArgv)(int argc);
 	const char *(*pfnCmd_Args)(void);
 
-	// debug messages (in-menu shows only notify)	
+	// [Xash3D, 20.03.23: отменено] debug messages (in-menu shows only notify)	
 	void	(*Con_Printf)(const char *fmt, ...);	// FWGS: _format (1);
 	void	(*Con_DPrintf)(const char *fmt, ...);	// FWGS: _format (1);
 	void	(*Con_NPrintf)(int pos, const char *fmt, ...);	// FWGS: _format(2);
@@ -118,7 +118,7 @@ typedef struct ui_enginefuncs_s
 	void	(*pfnRenderScene)(const struct ref_viewpass_s *rvp);
 	int	(*CL_CreateVisibleEntity)(int type, struct cl_entity_s *ent);
 
-	// misc handlers
+	// [Xash3D, 20.03.23: отменено] misc handlers
 	void	(*pfnHostError)(const char *szFmt, ...);	// FWGS: _format(1);
 	int	(*pfnFileExists)(const char *filename, int gamedironly);
 	void	(*pfnGetGameDir)(char *szGetGameDir);
@@ -216,13 +216,16 @@ typedef struct ui_extendedfuncs_s
 
 	double	(*pfnDoubleTime)(void);
 
-	char *(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
+	char	*(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
 
-	const char *(*pfnAdrToString)(const struct netadr_s a);
+	// [Xash3D, 20.03.23] network address funcs
+	const char	*(*pfnAdrToString)(const struct netadr_s a);
+	int		(*pfnCompareAdr)(const void *a, const void *b);
 	} ui_extendedfuncs_t;
 
 // deprecated export from old engine
-typedef void (*ADDTOUCHBUTTONTOLIST)(const char *name, const char *texture, const char *command, unsigned char *color, int flags);
+typedef void (*ADDTOUCHBUTTONTOLIST)(const char *name, const char *texture, const char *command, 
+	unsigned char *color, int flags);
 
 typedef struct
 	{
@@ -232,7 +235,8 @@ typedef struct
 	void (*pfnShowUpdateDialog)(int preferStore);
 	void (*pfnShowMessageBox)(const char *text);
 	void (*pfnConnectionProgress_Disconnect)(void);
-	void (*pfnConnectionProgress_Download)(const char *pszFileName, const char *pszServerName, int iCurrent, int iTotal, const char *comment);
+	void (*pfnConnectionProgress_Download)(const char *pszFileName, const char *pszServerName, 
+		int iCurrent, int iTotal, const char *comment);
 	void (*pfnConnectionProgress_DownloadEnd)(void);
 	void (*pfnConnectionProgress_Precache)(void);
 	void (*pfnConnectionProgress_Connect)(const char *server); // NULL for local server

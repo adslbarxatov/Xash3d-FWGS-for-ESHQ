@@ -180,7 +180,7 @@ typedef struct  vguiapi_s
 	void	(*CursorSelect)(VGUI_DefaultCursor cursor);
 	byte (*GetColor)(int i, int j);
 	qboolean (*IsInGame)(void);
-	void	(*Unused)(void);
+	void	(*EnableTextInput)(qboolean enable, qboolean force);	// [Xash3D, 20.03.23]
 	void	(*GetCursorPos)(int *x, int *y);
 	int		(*ProcessUtfChar)(int ch);
 	int		(*GetClipboardText)(char *buffer, size_t bufferSize);

@@ -32,15 +32,15 @@ GNU General Public License for more details.
 // RefAPI changelog:
 // 1. Initial release
 // 2. FS functions are removed, instead we have full fs_api_t
-#define REF_API_VERSION 2
-
+// 3. [Xash3D, 20.03.23] SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
+#define REF_API_VERSION 3
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP)
-#define TF_IMAGE		(TF_NOMIPMAP|TF_CLAMP)
-#define TF_DECAL		(TF_CLAMP)
+#define TF_IMAGE	(TF_NOMIPMAP|TF_CLAMP)
+#define TF_DECAL	(TF_CLAMP)
 
-#define FCONTEXT_CORE_PROFILE		BIT( 0 )
+#define FCONTEXT_CORE_PROFILE	BIT( 0 )
 #define FCONTEXT_DEBUG_ARB		BIT( 1 )
 
 #define FCVAR_READ_ONLY		(1<<17)	// cannot be set by user at all, and can't be requested by CvarGetPointer from game dlls
@@ -53,19 +53,23 @@ GNU General Public License for more details.
 #define VID_SNAPSHOT	4	// save screenshot into root dir and no gamma correction
 
 // model flags (stored in model_t->flags)
-#define MODEL_CONVEYOR		BIT( 0 )
+#define MODEL_CONVEYOR			BIT( 0 )
 #define MODEL_HAS_ORIGIN		BIT( 1 )
-#define MODEL_LIQUID		BIT( 2 )	// model has only point hull
+#define MODEL_LIQUID			BIT( 2 )	// model has only point hull
 #define MODEL_TRANSPARENT		BIT( 3 )	// have transparent surfaces
 #define MODEL_COLORED_LIGHTING	BIT( 4 )	// lightmaps stored as RGB
-#define MODEL_WORLD			BIT( 29 )	// it's a worldmodel
-#define MODEL_CLIENT		BIT( 30 )	// client sprite
+#define MODEL_WORLD				BIT( 29 )	// it's a worldmodel
+#define MODEL_CLIENT			BIT( 30 )	// client sprite
 
 // goes into world.flags
 #define FWORLD_SKYSPHERE		BIT( 0 )
-#define FWORLD_CUSTOM_SKYBOX		BIT( 1 )
+#define FWORLD_CUSTOM_SKYBOX	BIT( 1 )
 #define FWORLD_WATERALPHA		BIT( 2 )
-#define FWORLD_HAS_DELUXEMAP		BIT( 3 )
+#define FWORLD_HAS_DELUXEMAP	BIT( 3 )
+
+// [Xash3D, 20.03.23] special rendermode for screenfade modulate
+// (probably will be expanded at some point)
+#define kRenderScreenFadeModulate 0x1000
 
 typedef enum
 	{
@@ -98,10 +102,9 @@ typedef struct ref_globals_s
 
 	vec3_t vieworg;
 	vec3_t viewangles;
-	vec3_t vforward, vright, vup;
-
-	// todo: fill this without engine help
-	// move to local
+	
+	// [Xash3D, 20.03.23]
+	// vec3_t vforward, vright, vup;
 
 	// translucent sorted array
 	sortedface_t *draw_surfaces;	// used for sorting translucent surfaces
@@ -308,11 +311,15 @@ typedef struct ref_api_s
 	mleaf_t *(*Mod_PointInLeaf)(const vec3_t p, mnode_t *node);
 	void (*Mod_CreatePolygonsForHull)(int hullnum);
 
-	// studio models
+	// [Xash3D, 20.03.23]
+	/*
 	void (*R_StudioSlerpBones)(int numbones, vec4_t q1[], float pos1[][3], vec4_t q2[], float pos2[][3], float s);
 	void (*R_StudioCalcBoneQuaternion)(int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, vec4_t q);
 	void (*R_StudioCalcBonePosition)(int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, vec3_t adj, vec3_t pos);
-	void *(*R_StudioGetAnim)(studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc);
+	*/
+
+	// studio models
+	void	*(*R_StudioGetAnim)(studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc);
 	void	(*pfnStudioEvent)(const struct mstudioevent_s *event, const cl_entity_t *entity);
 
 	// efx

@@ -32,33 +32,24 @@ Studio models are position independent, so the cache manager can move them.
 #define IDSEQGRPHEADER	(('Q'<<24)+('S'<<16)+('D'<<8)+'I') // little-endian "IDSQ"
 
 // studio limits
-//FWGS: removed: define MAXSTUDIOTRIANGLES 65536 // max triangles per model
-#define MAXSTUDIOVERTS		16384	// max vertices per submodel
+#define MAXSTUDIOVERTS			16384	// max vertices per submodel
 #define MAXSTUDIOSEQUENCES		256	// total animation sequences
-#define MAXSTUDIOSKINS		256	// total textures
+#define MAXSTUDIOSKINS			256	// total textures
 #define MAXSTUDIOSRCBONES		512	// bones allowed at source movement
-#define MAXSTUDIOBONES		128	// total bones actually used
-#define MAXSTUDIOMODELS		32	// sub-models per model
+#define MAXSTUDIOBONES			128	// total bones actually used
+#define MAXSTUDIOMODELS			32	// sub-models per model
 #define MAXSTUDIOBODYPARTS		32	// body parts per submodel
-#define MAXSTUDIOGROUPS		16	// sequence groups (e.g. barney01.mdl, barney02.mdl, e.t.c)
-//FWGS: removed: define MAXSTUDIOANIMATIONS 512 // max frames per sequence
-#define MAXSTUDIOMESHES		256	// max textures per model
+#define MAXSTUDIOGROUPS			16	// sequence groups (e.g. barney01.mdl, barney02.mdl, e.t.c)
+#define MAXSTUDIOMESHES			256	// max textures per model
 
-// FWGS
-#define MAXSTUDIOCONTROLLERS		32	// max controllers per model
-#define MAXSTUDIOATTACHMENTS		64	// max attachments per model
-/*define MAXSTUDIOEVENTS		1024	// events per model
-define MAXSTUDIOPIVOTS		256	// pivot points
-define MAXSTUDIOBLENDS		16	// max anim blends*/
+#define MAXSTUDIOCONTROLLERS	32	// max controllers per model
+#define MAXSTUDIOATTACHMENTS	64	// max attachments per model
 
-#define MAXSTUDIOBONEWEIGHTS		4	// absolute hardware limit!
+#define MAXSTUDIOBONEWEIGHTS	4	// absolute hardware limit!
 
-// FWGS
-#define MAXSTUDIONAME		32	// a part of specs
+#define MAXSTUDIONAME			32	// a part of specs
 #define MAXSTUDIOPOSEPARAM		24
 #define MAX_STUDIO_LIGHTMAP_SIZE	256	// must match with engine const!!!
-/*define MAXSTUDIOCONTROLLERS		8	// max controllers per model
-define MAXSTUDIOATTACHMENTS		4	// max attachments per model*/
 
 // client-side model flags
 #define STUDIO_ROCKET		(1U<<0)	// leave a trail

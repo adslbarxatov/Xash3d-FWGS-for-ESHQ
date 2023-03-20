@@ -16,12 +16,17 @@
 #ifndef ALIAS_H
 #define ALIAS_H
 
+// [Xash3D, 20.03.23]
+#include "build.h"
+#include STDINT_H
+#include "synctype.h"
+
 /*
 ==============================================================================
 
 ALIAS MODELS
 
-Alias models are position independent, so the cache manager can move them.
+Alias models are position independent, so the cache manager can move them
 ==============================================================================
 */
 
@@ -39,6 +44,7 @@ Alias models are position independent, so the cache manager can move them.
 #define ALIAS_TRACER2		0x0040	// orange split trail + rotate
 #define ALIAS_TRACER3		0x0080	// purple trail
 
+/* [Xash3D, 20.03.23]
 // must match definition in sprite.h
 #ifndef SYNCTYPE_T
 #define SYNCTYPE_T
@@ -48,6 +54,7 @@ typedef enum
 	ST_RAND
 	} synctype_t;
 #endif
+*/
 
 typedef enum
 	{
@@ -61,41 +68,51 @@ typedef enum
 	ALIAS_SKIN_GROUP
 	} aliasskintype_t;
 
+// [Xash3D, 20.03.23]
 typedef struct
 	{
-	int		ident;
-	int		version;
+	int32_t		ident;
+	int32_t		version;
 	vec3_t		scale;
 	vec3_t		scale_origin;
 	float		boundingradius;
 	vec3_t		eyeposition;
-	int		numskins;
-	int		skinwidth;
-	int		skinheight;
-	int		numverts;
-	int		numtris;
-	int		numframes;
-	synctype_t	synctype;
-	int		flags;
+	int32_t		numskins;
+	int32_t		skinwidth;
+	int32_t		skinheight;
+	int32_t		numverts;
+	int32_t		numtris;
+	int32_t		numframes;
+	uint32_t	synctype;
+	int32_t		flags;
 	float		size;
 	} daliashdr_t;
 
+STATIC_ASSERT (sizeof (daliashdr_t) == 84, "invalid daliashdr_t size");
+
+// [Xash3D, 20.03.23]
 typedef struct
 	{
-	int		onseam;
-	int		s;
-	int		t;
+	int32_t		onseam;
+	int32_t		s;
+	int32_t		t;
 	} stvert_t;
 
+STATIC_ASSERT (sizeof (stvert_t) == 12, "invalid stvert_t size");
+
+// [Xash3D, 20.03.23]
 typedef struct dtriangle_s
 	{
-	int		facesfront;
-	int		vertindex[3];
+	int32_t		facesfront;
+	int32_t		vertindex[3];
 	} dtriangle_t;
+
+STATIC_ASSERT (sizeof (dtriangle_t) == 16, "invalid dtriangle_t size");
 
 #define DT_FACES_FRONT	0x0010
 #define ALIAS_ONSEAM	0x0020
 
+// [Xash3D, 20.03.23]
 typedef struct
 	{
 	trivertex_t	bboxmin;	// lightnormal isn't used
@@ -103,36 +120,56 @@ typedef struct
 	char		name[16];	// frame name from grabbing
 	} daliasframe_t;
 
+STATIC_ASSERT (sizeof (daliasframe_t) == 24, "invalid daliasframe_t size");
+
+// [Xash3D, 20.03.23]
 typedef struct
 	{
-	int		numframes;
+	int32_t		numframes;
 	trivertex_t	bboxmin;	// lightnormal isn't used
 	trivertex_t	bboxmax;	// lightnormal isn't used
 	} daliasgroup_t;
 
+STATIC_ASSERT (sizeof (daliasgroup_t) == 12, "invalid daliasgrou_t size");
+
+// [Xash3D, 20.03.23]
 typedef struct
 	{
-	int		numskins;
+	int32_t		numskins;
 	} daliasskingroup_t;
 
+STATIC_ASSERT (sizeof (daliasskingroup_t) == 4, "invalid daliasskingroup_t size");
+
+// [Xash3D, 20.03.23]
 typedef struct
 	{
 	float		interval;
 	} daliasinterval_t;
 
+STATIC_ASSERT (sizeof (daliasinterval_t) == 4, "invalid daliasinterval_t size");
+
+// [Xash3D, 20.03.23]
 typedef struct
 	{
 	float		interval;
 	} daliasskininterval_t;
 
+STATIC_ASSERT (sizeof (daliasskininterval_t) == 4, "invalid daliasskininterval_t size");
+
+// [Xash3D, 20.03.23]
 typedef struct
 	{
-	aliasframetype_t	type;
+	uint32_t	type;
 	} daliasframetype_t;
 
+STATIC_ASSERT (sizeof (daliasframetype_t) == 4, "invalid daliasframetype_t size");
+
+// [Xash3D, 20.03.23]
 typedef struct
 	{
-	aliasskintype_t	type;
+	uint32_t	type;
 	} daliasskintype_t;
+
+STATIC_ASSERT (sizeof (daliasskintype_t) == 4, "invalid daliasskintype_t size");
 
 #endif//ALIAS_H

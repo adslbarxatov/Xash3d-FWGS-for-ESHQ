@@ -145,12 +145,19 @@
 #define K_AUX19		225
 #define K_DPAD_RIGHT	K_AUX19
 
+// [Xash3D, 20.03.23: Xbox Series, PS5, NSPro]
 #define K_AUX20		226
+#define K_MISC_BUTTON		K_AUX20 // Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button
 #define K_AUX21		227
+#define K_PADDLE1_BUTTON	K_AUX21 // Xbox Elite paddle P1-P4
 #define K_AUX22		228
+#define K_PADDLE2_BUTTON	K_AUX22
 #define K_AUX23		229
+#define K_PADDLE3_BUTTON	K_AUX23
 #define K_AUX24		230
+#define K_PADDLE4_BUTTON	K_AUX24
 #define K_AUX25		231
+#define K_TOUCHPAD			K_AUX25 // PS4/PS5 touchpad button
 #define K_AUX26		232
 #define K_AUX27		233
 #define K_AUX28		234
