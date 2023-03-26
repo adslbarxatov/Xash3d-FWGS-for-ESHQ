@@ -25,6 +25,7 @@ GNU General Public License for more details.
 #define MSG_COUNT		32		// last 32 messages parsed
 #define MSG_MASK		(MSG_COUNT - 1)
 
+/* [Xash3D, 21.03.23]
 const char *svc_strings[svc_lastmsg + 1] =
 	{
 		"svc_bad",
@@ -88,6 +89,7 @@ const char *svc_strings[svc_lastmsg + 1] =
 		"svc_querycvarvalue2",
 		"svc_exec",
 	};
+*/
 
 typedef struct
 	{

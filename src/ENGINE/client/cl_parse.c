@@ -513,7 +513,11 @@ void CL_BatchResourceRequest (qboolean initialize)
 					if (!FBitSet (p->ucFlags, RES_REQUESTED))
 						{
 						MSG_BeginClientCmd (&msg, clc_stringcmd);
-						MSG_WriteString (&msg, va ("dlfile !MD5%s", MD5_Print (p->rgucMD5_hash)));
+						
+						// [Xash3D, 26.03.23]
+						//MSG_WriteString (&msg, va ("dlfile !MD5%s", MD5_Print (p->rgucMD5_hash)));
+						MSG_WriteStringf (&msg, "dlfile !MD5%s", MD5_Print (p->rgucMD5_hash));
+						
 						SetBits (p->ucFlags, RES_REQUESTED);
 						}
 					break;
@@ -854,16 +858,19 @@ void CL_ParseFileTransferFailed (sizebuf_t *msg)
 */
 /*
 ==================
-CL_ParseServerData
+CL_ParseServerData [Xash3D, 26.03.23]
 ==================
 */
-void CL_ParseServerData (sizebuf_t *msg)
+//void CL_ParseServerData (sizebuf_t *msg)
+void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	{
 	char	gamefolder[MAX_QPATH];
 	qboolean	background;
 	int	i;
 
-	Con_Reportf ("Serverdata packet received.\n");
+	/*Con_Reportf ("Serverdata packet received.\n");
+	cls.timestart = Sys_DoubleTime ();*/
+	Con_Reportf ("%s packet received.\n", legacy ? "Legacy serverdata" : "Serverdata");
 	cls.timestart = Sys_DoubleTime ();
 
 	cls.demowaiting = false;	// server is changed
@@ -871,39 +878,70 @@ void CL_ParseServerData (sizebuf_t *msg)
 	// wipe the client_t struct
 	if (!cls.changelevel && !cls.changedemo)
 		CL_ClearState ();
+
+	// Re-init hud video, especially if we changed game directories
+	clgame.dllFuncs.pfnVidInit ();
+
 	cls.state = ca_connected;
 
 	// parse protocol version number
 	i = MSG_ReadLong (msg);
 
-	if (i != PROTOCOL_VERSION)
-		Host_Error ("Server use invalid protocol (%i should be %i)\n", i, PROTOCOL_VERSION);
+	if (legacy)
+		{
+		if (i != PROTOCOL_LEGACY_VERSION)
+			Host_Error ("Server use invalid protocol (%i should be %i)\n", i, PROTOCOL_LEGACY_VERSION);
+		}
+	else
+		{
+		if (i != PROTOCOL_VERSION)
+			Host_Error ("Server use invalid protocol (%i should be %i)\n", i, PROTOCOL_VERSION);
+		}
 
 	cl.servercount = MSG_ReadLong (msg);
 	cl.checksum = MSG_ReadLong (msg);
 	cl.playernum = MSG_ReadByte (msg);
 	cl.maxclients = MSG_ReadByte (msg);
 	clgame.maxEntities = MSG_ReadWord (msg);
-	clgame.maxEntities = bound (MIN_EDICTS, clgame.maxEntities, MAX_EDICTS);
-	clgame.maxModels = MSG_ReadWord (msg);
-	Q_strncpy (clgame.mapname, MSG_ReadString (msg), MAX_STRING);
-	Q_strncpy (clgame.maptitle, MSG_ReadString (msg), MAX_STRING);
+
+	if (legacy)
+		{
+		clgame.maxEntities = bound (MIN_LEGACY_EDICTS, clgame.maxEntities, MAX_LEGACY_EDICTS);
+		clgame.maxModels = 512; // ???
+		}
+	else
+		{
+		clgame.maxEntities = bound (MIN_EDICTS, clgame.maxEntities, MAX_EDICTS);
+		clgame.maxModels = MSG_ReadWord (msg);
+		/*Q_strncpy (clgame.mapname, MSG_ReadString (msg), MAX_STRING);
+		Q_strncpy (clgame.maptitle, MSG_ReadString (msg), MAX_STRING);*/
+		}
+
+	Q_strncpy (clgame.mapname, MSG_ReadString (msg), sizeof (clgame.mapname));
+	Q_strncpy (clgame.maptitle, MSG_ReadString (msg), sizeof (clgame.maptitle));
+
 	background = MSG_ReadOneBit (msg);
-	Q_strncpy (gamefolder, MSG_ReadString (msg), MAX_QPATH);
+	
+	//Q_strncpy (gamefolder, MSG_ReadString (msg), MAX_QPATH);
+	Q_strncpy (gamefolder, MSG_ReadString (msg), sizeof (gamefolder));
+
 	host.features = (uint)MSG_ReadLong (msg);
 
-	// receive the player hulls
-	for (i = 0; i < MAX_MAP_HULLS * 3; i++)
+	if (!legacy)
 		{
-		host.player_mins[i / 3][i % 3] = MSG_ReadChar (msg);
-		host.player_maxs[i / 3][i % 3] = MSG_ReadChar (msg);
+		// receive the player hulls
+		for (i = 0; i < MAX_MAP_HULLS * 3; i++)
+			{
+			host.player_mins[i / 3][i % 3] = MSG_ReadChar (msg);
+			host.player_maxs[i / 3][i % 3] = MSG_ReadChar (msg);
+			}
 		}
 
 	if (clgame.maxModels > MAX_MODELS)
 		Con_Printf (S_WARN "server model limit is above client model limit %i > %i\n", clgame.maxModels, MAX_MODELS);
 
-	// Re-init hud video, especially if we changed game directories
-	clgame.dllFuncs.pfnVidInit ();
+	/* Re-init hud video, especially if we changed game directories
+	clgame.dllFuncs.pfnVidInit ();*/
 
 	if (Con_FixedFont ())
 		{
@@ -924,20 +962,27 @@ void CL_ParseServerData (sizebuf_t *msg)
 		if (r_decals->value > mp_decals.value)
 			Cvar_SetValue ("r_decals", mp_decals.value);
 		}
-	else Cvar_Reset ("r_decals");
+	else
+		{
+		Cvar_Reset ("r_decals");
+		}
 
 	// set the background state
 	if (cls.demoplayback && (cls.demonum != -1))
-		{
+		/*{
 		// re-init mouse
-		host.mouse_visible = false;
+		host.mouse_visible = false;*/
 		cl.background = true;
+		/*}*/
+	else
+		{
+		cl.background = background;
 		}
-	else cl.background = background;
 
 	if (cl.background)	// tell the game parts about background state
 		Cvar_FullSet ("cl_background", "1", FCVAR_READ_ONLY);
-	else Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
+	else 
+		Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
 
 	if (!cls.changelevel)
 		{
@@ -965,7 +1010,8 @@ void CL_ParseServerData (sizebuf_t *msg)
 	// get splash name
 	if (cls.demoplayback && (cls.demonum != -1))
 		Cvar_Set ("cl_levelshot_name", va ("levelshots/%s_%s", cls.demoname, refState.wideScreen ? "16x9" : "4x3"));
-	else Cvar_Set ("cl_levelshot_name", va ("levelshots/%s_%s", clgame.mapname, refState.wideScreen ? "16x9" : "4x3"));
+	else 
+		Cvar_Set ("cl_levelshot_name", va ("levelshots/%s_%s", clgame.mapname, refState.wideScreen ? "16x9" : "4x3"));
 	Cvar_SetValue ("scr_loading", 0.0f); // reset progress bar
 
 	if ((cl_allow_levelshots->value && !cls.changelevel) || cl.background)
@@ -979,8 +1025,11 @@ void CL_ParseServerData (sizebuf_t *msg)
 		COM_ClearCustomizationList (&cl.players[i].customdata, true);
 	CL_CreateCustomizationList ();
 
-	// request resources from server
-	CL_ServerCommand (true, "sendres %i\n", cl.servercount);
+	if (!legacy)
+		{
+		// request resources from server
+		CL_ServerCommand (true, "sendres %i\n", cl.servercount);
+		}
 
 	memset (&clgame.movevars, 0, sizeof (clgame.movevars));
 	memset (&clgame.oldmovevars, 0, sizeof (clgame.oldmovevars));
@@ -1152,10 +1201,11 @@ void CL_ParseClientData (sizebuf_t *msg)
 
 /*
 ==================
-CL_ParseBaseline
+CL_ParseBaseline [Xash3D, 26.03.23]
 ==================
 */
-void CL_ParseBaseline (sizebuf_t *msg)
+//void CL_ParseBaseline (sizebuf_t *msg)
+void CL_ParseBaseline (sizebuf_t *msg, qboolean legacy)
 	{
 	int		i, newnum;
 	entity_state_t	nullstate;
@@ -1168,8 +1218,17 @@ void CL_ParseBaseline (sizebuf_t *msg)
 
 	while (1)
 		{
-		newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
-		if (newnum == LAST_EDICT) break; // end of baselines
+		if (legacy)
+			{
+			newnum = MSG_ReadWord (msg);
+			}
+		else
+			{
+			newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
+			if (newnum == LAST_EDICT)
+				break; // end of baselines
+			}
+
 		player = CL_IsPlayerIndex (newnum);
 
 		if (newnum >= clgame.maxEntities)
@@ -1180,14 +1239,20 @@ void CL_ParseBaseline (sizebuf_t *msg)
 		ent->index = newnum;
 
 		MSG_ReadDeltaEntity (msg, &ent->prevstate, &ent->baseline, newnum, player, 1.0f);
+
+		if (legacy)
+			break; // only one baseline allowed in legacy protocol
 		}
 
-	cl.instanced_baseline_count = MSG_ReadUBitLong (msg, 6);
-
-	for (i = 0; i < cl.instanced_baseline_count; i++)
+	if (!legacy)
 		{
-		newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
-		MSG_ReadDeltaEntity (msg, &nullstate, &cl.instanced_baseline[i], newnum, false, 1.0f);
+		cl.instanced_baseline_count = MSG_ReadUBitLong (msg, 6);
+
+		for (i = 0; i < cl.instanced_baseline_count; i++)
+			{
+			newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
+			MSG_ReadDeltaEntity (msg, &nullstate, &cl.instanced_baseline[i], newnum, false, 1.0f);
+			}
 		}
 	}
 
@@ -1236,10 +1301,7 @@ void CL_ParseAddAngle (sizebuf_t *msg)
 	float		delta_yaw;
 
 	delta_yaw = MSG_ReadBitAngle (msg, 16);
-#if 0
-	cl.viewangles[YAW] += delta_yaw;
-	return;
-#endif
+
 	// update running counter
 	cl.addangletotal += delta_yaw;
 
@@ -1330,12 +1392,13 @@ void CL_RegisterUserMessage (sizebuf_t *msg)
 
 /*
 ================
-CL_UpdateUserinfo
+CL_UpdateUserinfo [Xash3D, 26.03.23]
 
 collect userinfo from all players
 ================
 */
-void CL_UpdateUserinfo (sizebuf_t *msg)
+//void CL_UpdateUserinfo (sizebuf_t *msg)
+void CL_UpdateUserinfo (sizebuf_t *msg, qboolean legacy)
 	{
 	int		slot, id;
 	qboolean		active;
@@ -1346,7 +1409,9 @@ void CL_UpdateUserinfo (sizebuf_t *msg)
 	if (slot >= MAX_CLIENTS)
 		Host_Error ("CL_ParseServerMessage: svc_updateuserinfo >= MAX_CLIENTS\n");
 
-	id = MSG_ReadLong (msg);	// unique user ID
+	if (!legacy)
+		id = MSG_ReadLong (msg);	// unique user ID
+
 	player = &cl.players[slot];
 	active = MSG_ReadOneBit (msg) ? true : false;
 
@@ -1358,9 +1423,11 @@ void CL_UpdateUserinfo (sizebuf_t *msg)
 		player->topcolor = Q_atoi (Info_ValueForKey (player->userinfo, "topcolor"));
 		player->bottomcolor = Q_atoi (Info_ValueForKey (player->userinfo, "bottomcolor"));
 		player->spectator = Q_atoi (Info_ValueForKey (player->userinfo, "*hltv"));
-		MSG_ReadBytes (msg, player->hashedcdkey, sizeof (player->hashedcdkey));
+		if (!legacy)
+			MSG_ReadBytes (msg, player->hashedcdkey, sizeof (player->hashedcdkey));
 
-		if (slot == cl.playernum) memcpy (&gameui.playerinfo, player, sizeof (player_info_t));
+		if (slot == cl.playernum)
+			memcpy (&gameui.playerinfo, player, sizeof (player_info_t));
 		}
 	else
 		{
@@ -1531,7 +1598,7 @@ void CL_RegisterResources (sizebuf_t *msg)
 	model_t *mod;
 	int	i;
 
-	if (cls.dl.custom || (cls.signon == SIGNONS && cls.state == ca_active))
+	if (cls.dl.custom || ((cls.signon == SIGNONS) && (cls.state == ca_active)))
 		{
 		cls.dl.custom = false;
 		return;
@@ -1540,10 +1607,10 @@ void CL_RegisterResources (sizebuf_t *msg)
 	if (!cls.demoplayback)
 		CL_SendConsistencyInfo (msg);
 
-	// All done precaching.
+	// All done precaching
 	cl.worldmodel = CL_ModelHandle (1); // get world pointer
 
-	if (cl.worldmodel && cl.maxclients > 0)
+	if (cl.worldmodel && (cl.maxclients > 0))
 		{
 		ASSERT (clgame.entities != NULL);
 		clgame.entities->model = cl.worldmodel;
@@ -1562,10 +1629,10 @@ void CL_RegisterResources (sizebuf_t *msg)
 
 			CL_ClearWorld ();
 
-			// update the ref state.
+			// update the ref state
 			R_UpdateRefState ();
 
-			// tell rendering system we have a new set of models.
+			// tell rendering system we have a new set of models
 			ref.dllFuncs.R_NewMap ();
 
 			CL_SetupOverviewParams ();
@@ -1585,7 +1652,10 @@ void CL_RegisterResources (sizebuf_t *msg)
 			// done with all resources, issue prespawn command.
 			// Include server count in case server disconnects and changes level during d/l
 			MSG_BeginClientCmd (msg, clc_stringcmd);
-			MSG_WriteString (msg, va ("spawn %i", cl.servercount));
+
+			// [Xash3D, 26.03.23]
+			//MSG_WriteString (msg, va ("spawn %i", cl.servercount));
+			MSG_WriteStringf (msg, "spawn %i", cl.servercount);
 			}
 		}
 	else
@@ -1725,7 +1795,7 @@ void CL_ParseVoiceData (sizebuf_t *msg)
 
 	MSG_ReadBytes (msg, received, size);
 
-	if (idx <= 0 || idx > cl.maxclients)
+	if ((idx <= 0) || (idx > cl.maxclients))
 		return;
 
 	// must notify through as both local player and normal client
@@ -1855,7 +1925,10 @@ void CL_ParseScreenFade (sizebuf_t *msg)
 	duration = (float)MSG_ReadWord (msg);
 	holdTime = (float)MSG_ReadWord (msg);
 	sf->fadeFlags = MSG_ReadShort (msg);
-	flScale = (sf->fadeFlags & FFADE_LONGFADE) ? (1.0f / 256.0f) : (1.0f / 4096.0f);
+
+	// [Xash3D, 26.03.23]
+	//flScale = (sf->fadeFlags & FFADE_LONGFADE) ? (1.0f / 256.0f) : (1.0f / 4096.0f);
+	flScale = FBitSet (sf->fadeFlags, FFADE_LONGFADE) ? (1.0f / 256.0f) : (1.0f / 4096.0f);
 
 	sf->fader = MSG_ReadByte (msg);
 	sf->fadeg = MSG_ReadByte (msg);
@@ -1868,22 +1941,21 @@ void CL_ParseScreenFade (sizebuf_t *msg)
 	// calc fade speed
 	if (duration > 0)
 		{
-		if (sf->fadeFlags & FFADE_OUT)
+		// [Xash3D, 26.03.23]
+		//if (sf->fadeFlags & FFADE_OUT)
+		if (FBitSet (sf->fadeFlags, FFADE_OUT))
 			{
 			if (sf->fadeEnd)
-				{
 				sf->fadeSpeed = -(float)sf->fadealpha / sf->fadeEnd;
-				}
 
 			sf->fadeEnd += cl.time;
+			sf->fadeTotalEnd = sf->fadeEnd;	// [Xash3D, 26.03.23]
 			sf->fadeReset += sf->fadeEnd;
 			}
 		else
 			{
 			if (sf->fadeEnd)
-				{
 				sf->fadeSpeed = (float)sf->fadealpha / sf->fadeEnd;
-				}
 
 			sf->fadeReset += cl.time;
 			sf->fadeEnd += sf->fadeReset;
@@ -1922,7 +1994,10 @@ void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext)
 		else
 			response = cvar->string;
 		}
-	else response = "Bad CVAR request";
+	else
+		{
+		response = "Bad CVAR request";
+		}
 
 	if (ext)
 		{
@@ -1979,8 +2054,10 @@ void CL_ParseExec (sizebuf_t *msg)
 
 		COM_FileBase (clgame.mapname, mapname);
 
+		// [Xash3D, 26.03.23]
 		if (COM_CheckString (mapname))
-			Cbuf_AddText (va ("exec %s.cfg\n", mapname));
+			Cbuf_AddTextf ("exec %s.cfg\n", mapname);
+		//Cbuf_AddText (va ("exec %s.cfg\n", mapname));
 		}
 	}
 
@@ -2036,7 +2113,7 @@ void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 	int	i, iSize;
 
 	// NOTE: any user message is really parse at engine, not in client.dll
-	if (svc_num <= svc_lastmsg || svc_num > (MAX_USER_MESSAGES + svc_lastmsg))
+	if ((svc_num <= svc_lastmsg) || (svc_num > (MAX_USER_MESSAGES + svc_lastmsg)))
 		{
 		// out or range
 		Host_Error ("CL_ParseUserMessage: illegible server message %d\n", svc_num);
@@ -2072,7 +2149,8 @@ void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 		{
 		if (cls.legacymode)
 			iSize = MSG_ReadByte (msg);
-		else iSize = MSG_ReadWord (msg);
+		else 
+			iSize = MSG_ReadWord (msg);
 		}
 
 	if (iSize >= MAX_USERMSG_LENGTH)
@@ -2177,17 +2255,21 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 			case svc_bad:
 				Host_Error ("svc_bad\n");
 				break;
+
 			case svc_nop:
 				// this does nothing
 				break;
+
 			case svc_disconnect:
 				CL_Drop ();
 				Host_AbortCurrentFrame ();
 				break;
+
 			case svc_event:
 				CL_ParseEvent (msg);
 				cl.frames[cl.parsecountmod].graphdata.event += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_changing:
 				old_background = cl.background;
 				if (MSG_ReadOneBit (msg))
@@ -2206,7 +2288,10 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 					CL_ClearState ();
 					CL_InitEdicts (); // re-arrange edicts
 					}
-				else Con_Printf ("Server disconnected, reconnecting\n");
+				else
+					{
+					Con_Printf ("Server disconnected, reconnecting\n");
+					}
 
 				if (cls.demoplayback)
 					{
@@ -2218,24 +2303,31 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 					// g-cont. local client skip the challenge
 					if (SV_Active ())
 						cls.state = ca_disconnected;
-					else cls.state = ca_connecting;
+					else 
+						cls.state = ca_connecting;
+
 					cl.background = old_background;
 					cls.connect_time = MAX_HEARTBEAT;
 					}
 				break;
+
 			case svc_setview:
 				CL_ParseViewEntity (msg);
 				break;
+
 			case svc_sound:
 				CL_ParseSoundPacket (msg);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_time:
 				CL_ParseServerTime (msg);
 				break;
+
 			case svc_print:
 				Con_Printf ("%s", MSG_ReadString (msg));
 				break;
+
 			case svc_stufftext:
 				s = MSG_ReadString (msg);
 #ifdef HACKS_RELATED_HLMODS
@@ -2245,68 +2337,94 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 #endif
 				Cbuf_AddFilteredText (s);
 				break;
+
 			case svc_setangle:
 				CL_ParseSetAngle (msg);
 				break;
+
 			case svc_serverdata:
 				Cbuf_Execute (); // make sure any stuffed commands are done
-				CL_ParseServerData (msg);
+
+				// [Xash3D, 26.03.23]
+				//CL_ParseServerData (msg);
+				CL_ParseServerData (msg, false);
 				break;
+
 			case svc_lightstyle:
 				CL_ParseLightStyle (msg);
 				break;
+
 			case svc_updateuserinfo:
-				CL_UpdateUserinfo (msg);
+				//CL_UpdateUserinfo (msg);
+				CL_UpdateUserinfo (msg, false);
 				break;
+
 			case svc_deltatable:
 				Delta_ParseTableField (msg);
 				break;
+
 			case svc_clientdata:
 				CL_ParseClientData (msg);
 				cl.frames[cl.parsecountmod].graphdata.client += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_resource:
 				CL_ParseResource (msg);
 				break;
+
 			case svc_pings:
 				CL_UpdateUserPings (msg);
 				break;
+
 			case svc_particle:
 				CL_ParseParticles (msg);
 				break;
+
 			case svc_restoresound:
 				CL_ParseRestoreSoundPacket (msg);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_spawnstatic:
 				CL_ParseStaticEntity (msg);
 				break;
+
 			case svc_event_reliable:
 				CL_ParseReliableEvent (msg);
 				cl.frames[cl.parsecountmod].graphdata.event += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_spawnbaseline:
-				CL_ParseBaseline (msg);
+				// [Xash3D, 26.03.23]
+				//CL_ParseBaseline (msg);
+				CL_ParseBaseline (msg, false);
 				break;
+
 			case svc_temp_entity:
 				CL_ParseTempEntity (msg);
 				cl.frames[cl.parsecountmod].graphdata.tentities += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_setpause:
 				cl.paused = (MSG_ReadOneBit (msg) != 0);
 				break;
+
 			case svc_signonnum:
 				CL_ParseSignon (msg);
 				break;
+
 			case svc_centerprint:
 				CL_CenterPrint (MSG_ReadString (msg), 0.25f);
 				break;
+
 			case svc_intermission:
 				cl.intermission = 1;
 				break;
+
 			case svc_finale:
 				CL_ParseFinaleCutscene (msg, 2);
 				break;
+
 			case svc_cdtrack:
 				param1 = MSG_ReadByte (msg);
 				param1 = bound (1, param1, MAX_CDTRACKS); // tracknum
@@ -2314,90 +2432,116 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 				param2 = bound (1, param2, MAX_CDTRACKS); // loopnum
 				S_StartBackgroundTrack (clgame.cdtracks[param1 - 1], clgame.cdtracks[param2 - 1], 0, false);
 				break;
+
 			case svc_restore:
 				CL_ParseRestore (msg);
 				break;
+
 			case svc_cutscene:
 				CL_ParseFinaleCutscene (msg, 3);
 				break;
+
 			case svc_weaponanim:
 				param1 = MSG_ReadByte (msg);	// iAnim
 				param2 = MSG_ReadByte (msg);	// body
 				CL_WeaponAnim (param1, param2);
 				break;
+
 			case svc_bspdecal:
 				CL_ParseStaticDecal (msg);
 				break;
+
 			case svc_roomtype:
 				param1 = MSG_ReadShort (msg);
 				Cvar_SetValue ("room_type", param1);
 				break;
+
 			case svc_addangle:
 				CL_ParseAddAngle (msg);
 				break;
+
 			case svc_usermessage:
 				CL_RegisterUserMessage (msg);
 				break;
+
 			case svc_packetentities:
 				playerbytes = CL_ParsePacketEntities (msg, false);
 				cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
 				cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead (msg) - bufStart - playerbytes;
 				break;
+
 			case svc_deltapacketentities:
 				playerbytes = CL_ParsePacketEntities (msg, true);
 				cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
 				cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead (msg) - bufStart - playerbytes;
 				break;
+
 			case svc_choke:
 				cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].choked = true;
 				cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].receivedtime = -2.0;
 				break;
+
 			case svc_resourcelist:
 				CL_ParseResourceList (msg);
 				break;
+
 			case svc_deltamovevars:
 				CL_ParseMovevars (msg);
 				break;
+
 			case svc_resourcerequest:
 				CL_ParseResourceRequest (msg);
 				break;
+
 			case svc_customization:
 				CL_ParseCustomization (msg);
 				break;
+
 			case svc_crosshairangle:
 				CL_ParseCrosshairAngle (msg);
 				break;
+
 			case svc_soundfade:
 				CL_ParseSoundFade (msg);
 				break;
+
 			case svc_filetxferfailed:
 				CL_ParseFileTransferFailed (msg);
 				break;
+
 			case svc_hltv:
 				CL_ParseHLTV (msg);
 				break;
+
 			case svc_director:
 				CL_ParseDirector (msg);
 				break;
+
 			case svc_voiceinit:
 				CL_ParseVoiceInit (msg);
 				break;
+
 			case svc_voicedata:
 				CL_ParseVoiceData (msg);
 				cl.frames[cl.parsecountmod].graphdata.voicebytes += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_resourcelocation:
 				CL_ParseResLocation (msg);
 				break;
+
 			case svc_querycvarvalue:
 				CL_ParseCvarValue (msg, false);
 				break;
+
 			case svc_querycvarvalue2:
 				CL_ParseCvarValue (msg, true);
 				break;
+
 			case svc_exec:
 				CL_ParseExec (msg);
 				break;
+
 			default:
 				CL_ParseUserMessage (msg, cmd);
 				cl.frames[cl.parsecountmod].graphdata.usr += MSG_GetNumBytesRead (msg) - bufStart;
@@ -2423,11 +2567,10 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 		}
 	}
 
-/*
-==================
-CL_ParseBaseline
-==================
-*/
+/* [Xash3D, 26.03.23]
+// ==================
+// CL_ParseBaseline
+// ==================
 void CL_LegacyParseBaseline (sizebuf_t *msg)
 	{
 	int		i, newnum;
@@ -2450,11 +2593,10 @@ void CL_LegacyParseBaseline (sizebuf_t *msg)
 
 	}
 
-/*
-==================
-CL_ParseServerData
-==================
-*/
+
+// ==================
+// CL_ParseServerData
+// ==================
 void CL_ParseLegacyServerData (sizebuf_t *msg)
 	{
 	string	gamefolder;
@@ -2576,6 +2718,7 @@ void CL_ParseLegacyServerData (sizebuf_t *msg)
 	cl.video_prepped = false;
 	cl.audio_prepped = false;
 	}
+	*/
 
 /*
 ==================
@@ -2730,7 +2873,7 @@ void CL_LegacyPrecacheSound (sizebuf_t *msg)
 
 	soundIndex = MSG_ReadUBitLong (msg, MAX_SOUND_BITS);
 
-	if (soundIndex < 0 || soundIndex >= MAX_SOUNDS)
+	if ((soundIndex < 0) || (soundIndex >= MAX_SOUNDS))
 		Host_Error ("CL_PrecacheSound: bad soundindex %i\n", soundIndex);
 
 	Q_strncpy (cl.sound_precache[soundIndex], MSG_ReadString (msg), sizeof (cl.sound_precache[0]));
@@ -2748,14 +2891,12 @@ void CL_LegacyPrecacheModel (sizebuf_t *msg)
 
 	modelIndex = MSG_ReadUBitLong (msg, MAX_LEGACY_MODEL_BITS);
 
-	if (modelIndex < 0 || modelIndex >= MAX_MODELS)
+	if ((modelIndex < 0) || (modelIndex >= MAX_MODELS))
 		Host_Error ("CL_PrecacheModel: bad modelindex %i\n", modelIndex);
 
 	Q_strncpy (model, MSG_ReadString (msg), MAX_STRING);
-	//Q_strncpy( cl.model_precache[modelIndex], BF_ReadString( msg ), sizeof( cl.model_precache[0] ));
 
 	// when we loading map all resources is precached sequentially
-	//if( !cl.video_prepped ) return;
 	if (modelIndex == 1 && !cl.worldmodel)
 		{
 		CL_ClearWorld ();
@@ -2764,8 +2905,6 @@ void CL_LegacyPrecacheModel (sizebuf_t *msg)
 		return;
 
 		}
-
-	//Mod_RegisterModel( cl.model_precache[modelIndex], modelIndex );
 
 	cl.models[modelIndex] = Mod_ForName (model, false, false);
 	cl.nummodels = Q_max (cl.nummodels, modelIndex);
@@ -2777,7 +2916,7 @@ void CL_LegacyPrecacheEvent (sizebuf_t *msg)
 
 	eventIndex = MSG_ReadUBitLong (msg, MAX_EVENT_BITS);
 
-	if (eventIndex < 0 || eventIndex >= MAX_EVENTS)
+	if ((eventIndex < 0) || (eventIndex >= MAX_EVENTS))
 		Host_Error ("CL_PrecacheEvent: bad eventindex %i\n", eventIndex);
 
 	Q_strncpy (cl.event_precache[eventIndex], MSG_ReadString (msg), sizeof (cl.event_precache[0]));
@@ -2786,7 +2925,7 @@ void CL_LegacyPrecacheEvent (sizebuf_t *msg)
 	CL_SetEventIndex (cl.event_precache[eventIndex], eventIndex);
 	}
 
-
+/* [Xash3D, 26.03.23]
 void CL_LegacyUpdateUserinfo (sizebuf_t *msg)
 	{
 	int		slot, id = 0;
@@ -2798,7 +2937,6 @@ void CL_LegacyUpdateUserinfo (sizebuf_t *msg)
 	if (slot >= MAX_CLIENTS)
 		Host_Error ("CL_ParseServerMessage: svc_updateuserinfo >= MAX_CLIENTS\n");
 
-	//id = MSG_ReadLong( msg );	// unique user ID
 	player = &cl.players[slot];
 	active = MSG_ReadOneBit (msg) ? true : false;
 
@@ -2810,23 +2948,23 @@ void CL_LegacyUpdateUserinfo (sizebuf_t *msg)
 		player->topcolor = Q_atoi (Info_ValueForKey (player->userinfo, "topcolor"));
 		player->bottomcolor = Q_atoi (Info_ValueForKey (player->userinfo, "bottomcolor"));
 		player->spectator = Q_atoi (Info_ValueForKey (player->userinfo, "*hltv"));
-		//MSG_ReadBytes( msg, player->hashedcdkey, sizeof( player->hashedcdkey ));
 
 		if (slot == cl.playernum) memcpy (&gameui.playerinfo, player, sizeof (player_info_t));
 		}
 	else memset (player, 0, sizeof (*player));
 	}
+*/
+
 #if XASH_LOW_MEMORY == 0
-#define MAX_LEGACY_RESOURCES 2048
+	#define MAX_LEGACY_RESOURCES 2048
 #elif XASH_LOW_MEMORY == 2
-#define MAX_LEGACY_RESOURCES 1
+	#define MAX_LEGACY_RESOURCES 1
 #elif XASH_LOW_MEMORY == 1
-#define MAX_LEGACY_RESOURCES 512
+	#define MAX_LEGACY_RESOURCES 512
 #endif
 /*
 ==============
 CL_ParseResourceList
-
 ==============
 */
 void CL_LegacyParseResourceList (sizebuf_t *msg)
@@ -2859,13 +2997,22 @@ void CL_LegacyParseResourceList (sizebuf_t *msg)
 
 	host.downloadcount = 0;
 
+	// [Xash3D, 26.03.23]
 	for (i = 0; i < reslist.rescount; i++)
 		{
 		const char *path;
+		char soundpath[MAX_VA_STRING];
 
 		if (reslist.restype[i] == t_sound)
-			path = va (DEFAULT_SOUNDPATH "%s", reslist.resnames[i]);
-		else path = reslist.resnames[i];
+			{
+			Q_snprintf (soundpath, sizeof (soundpath), DEFAULT_SOUNDPATH "%s", reslist.resnames[i]);
+			path = soundpath;
+			}
+			/*path = va (DEFAULT_SOUNDPATH "%s", reslist.resnames[i]);*/
+		else
+			{
+			path = reslist.resnames[i];
+			}
 
 		if (FS_FileExists (path, false))
 			continue;	// already exists
@@ -2939,17 +3086,21 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 			case svc_bad:
 				Host_Error ("svc_bad\n");
 				break;
+
 			case svc_nop:
 				// this does nothing
 				break;
+
 			case svc_disconnect:
 				CL_Drop ();
 				Host_AbortCurrentFrame ();
 				break;
+
 			case svc_legacy_event:
 				CL_ParseEvent (msg);
 				cl.frames[cl.parsecountmod].graphdata.event += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_legacy_changing:
 				old_background = cl.background;
 				if (MSG_ReadOneBit (msg))
@@ -2968,7 +3119,10 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 					CL_ClearState ();
 					CL_InitEdicts (); // re-arrange edicts
 					}
-				else Con_Printf ("Server disconnected, reconnecting\n");
+				else
+					{
+					Con_Printf ("Server disconnected, reconnecting\n");
+					}
 
 				if (cls.demoplayback)
 					{
@@ -2985,24 +3139,29 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 					cls.connect_time = MAX_HEARTBEAT;
 					}
 				break;
+
 			case svc_setview:
 				CL_ParseViewEntity (msg);
 				break;
+
 			case svc_sound:
 				CL_LegacyParseSoundPacket (msg, false);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_legacy_ambientsound:
 				CL_LegacyParseSoundPacket (msg, true);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
-
 				break;
+
 			case svc_time:
 				CL_ParseServerTime (msg);
 				break;
+
 			case svc_print:
 				Con_Printf ("%s", MSG_ReadString (msg));
 				break;
+
 			case svc_stufftext:
 				s = MSG_ReadString (msg);
 #ifdef HACKS_RELATED_HLMODS
@@ -3010,76 +3169,101 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 				if (!Q_strnicmp (s, "disconnect", 10) && cls.signon != SIGNONS)
 					break; // too early
 #endif
-
 				Con_Reportf ("Stufftext: %s", s);
 				Cbuf_AddFilteredText (s);
 				break;
+
 			case svc_setangle:
 				CL_ParseSetAngle (msg);
 				break;
+
 			case svc_serverdata:
 				Cbuf_Execute (); // make sure any stuffed commands are done
-				CL_ParseLegacyServerData (msg);
+				
+				// [Xash3D, 26.03.23]
+				//CL_ParseLegacyServerData (msg);
+				CL_ParseServerData (msg, true);
 				break;
+
 			case svc_lightstyle:
 				CL_ParseLightStyle (msg);
 				break;
+
 			case svc_updateuserinfo:
-				CL_LegacyUpdateUserinfo (msg);
+				//CL_LegacyUpdateUserinfo (msg);
+				CL_UpdateUserinfo (msg, true);
 				break;
+
 			case svc_deltatable:
 				Delta_ParseTableField (msg);
 				break;
+
 			case svc_clientdata:
 				CL_ParseClientData (msg);
 				cl.frames[cl.parsecountmod].graphdata.client += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_resource:
 				CL_ParseResource (msg);
 				break;
+
 			case svc_pings:
 				CL_UpdateUserPings (msg);
 				break;
+
 			case svc_particle:
 				CL_ParseParticles (msg);
 				break;
+
 			case svc_restoresound:
 				CL_ParseRestoreSoundPacket (msg);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_spawnstatic:
 				CL_ParseStaticEntity (msg);
 				break;
+
 			case svc_event_reliable:
 				CL_ParseReliableEvent (msg);
 				cl.frames[cl.parsecountmod].graphdata.event += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_spawnbaseline:
-				CL_LegacyParseBaseline (msg);
+				// [Xash3D, 26.03.23]
+				//CL_LegacyParseBaseline (msg);
+				CL_ParseBaseline (msg, true);
 				break;
+
 			case svc_temp_entity:
 				CL_ParseTempEntity (msg);
 				cl.frames[cl.parsecountmod].graphdata.tentities += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_setpause:
 				cl.paused = (MSG_ReadOneBit (msg) != 0);
 				break;
+
 			case svc_signonnum:
 				CL_ParseSignon (msg);
 				break;
+
 			case svc_centerprint:
 				CL_CenterPrint (MSG_ReadString (msg), 0.25f);
 				break;
+
 			case svc_intermission:
 				cl.intermission = 1;
 				break;
+
 			case svc_legacy_modelindex:
 				CL_LegacyPrecacheModel (msg);
-
 				break;
+
 			case svc_legacy_soundindex:
 				CL_LegacyPrecacheSound (msg);
 				break;
+
 			case svc_cdtrack:
 				param1 = MSG_ReadByte (msg);
 				param1 = bound (1, param1, MAX_CDTRACKS); // tracknum
@@ -3087,41 +3271,50 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 				param2 = bound (1, param2, MAX_CDTRACKS); // loopnum
 				S_StartBackgroundTrack (clgame.cdtracks[param1 - 1], clgame.cdtracks[param2 - 1], 0, false);
 				break;
+
 			case svc_restore:
 				CL_ParseRestore (msg);
 				break;
+
 			case svc_legacy_eventindex:
-				//CL_ParseFinaleCutscene( msg, 3 );
 				CL_LegacyPrecacheEvent (msg);
 				break;
+
 			case svc_weaponanim:
 				param1 = MSG_ReadByte (msg);	// iAnim
 				param2 = MSG_ReadByte (msg);	// body
 				CL_WeaponAnim (param1, param2);
 				break;
+
 			case svc_bspdecal:
 				CL_ParseStaticDecal (msg);
 				break;
+
 			case svc_roomtype:
 				param1 = MSG_ReadShort (msg);
 				Cvar_SetValue ("room_type", param1);
 				break;
+
 			case svc_addangle:
 				CL_ParseAddAngle (msg);
 				break;
+
 			case svc_usermessage:
 				CL_RegisterUserMessage (msg);
 				break;
+
 			case svc_packetentities:
 				playerbytes = CL_ParsePacketEntities (msg, false);
 				cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
 				cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead (msg) - bufStart - playerbytes;
 				break;
+
 			case svc_deltapacketentities:
 				playerbytes = CL_ParsePacketEntities (msg, true);
 				cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
 				cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead (msg) - bufStart - playerbytes;
 				break;
+
 			case svc_legacy_chokecount:
 				{
 				int i, j;
@@ -3138,45 +3331,56 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 					}
 				break;
 				}
-				//cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].choked = true;
-				//cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].receivedtime = -2.0;
 				break;
+
 			case svc_resourcelist:
 				CL_LegacyParseResourceList (msg);
 				break;
+
 			case svc_deltamovevars:
 				CL_ParseMovevars (msg);
 				break;
+
 			case svc_resourcerequest:
 				CL_ParseResourceRequest (msg);
 				break;
+
 			case svc_customization:
 				CL_ParseCustomization (msg);
 				break;
+
 			case svc_crosshairangle:
 				CL_ParseCrosshairAngle (msg);
 				break;
+
 			case svc_soundfade:
 				CL_ParseSoundFade (msg);
 				break;
+
 			case svc_filetxferfailed:
 				CL_ParseFileTransferFailed (msg);
 				break;
+
 			case svc_hltv:
 				CL_ParseHLTV (msg);
 				break;
+
 			case svc_director:
 				CL_ParseDirector (msg);
 				break;
+
 			case svc_resourcelocation:
 				CL_ParseResLocation (msg);
 				break;
+
 			case svc_querycvarvalue:
 				CL_ParseCvarValue (msg, false);
 				break;
+
 			case svc_querycvarvalue2:
 				CL_ParseCvarValue (msg, true);
 				break;
+
 			default:
 				CL_ParseUserMessage (msg, cmd);
 				cl.frames[cl.parsecountmod].graphdata.usr += MSG_GetNumBytesRead (msg) - bufStart;
@@ -3239,15 +3443,16 @@ void CL_LegacyPrecache_f (void)
 			Mod_FreeModel (mod);
 		}
 
-	//	Mod_FreeUnused ();
-
 	if (host_developer.value <= DEV_NONE)
 		Con_ClearNotify (); // clear any lines of console text
 
 	// done with all resources, issue prespawn command.
 	// Include server count in case server disconnects and changes level during d/l
 	MSG_BeginClientCmd (&cls.netchan.message, clc_stringcmd);
-	MSG_WriteString (&cls.netchan.message, va ("begin %i", spawncount));
+	
+	// [Xash3D, 26.03.23]
+	//MSG_WriteString (&cls.netchan.message, va ("begin %i", spawncount));
+	MSG_WriteStringf (&cls.netchan.message, "begin %i", spawncount);
 	cls.signon = SIGNONS;
 	}
 

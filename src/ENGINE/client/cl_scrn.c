@@ -120,7 +120,7 @@ void SCR_DrawPos (void)
 	cl_entity_t *ent;
 	rgba_t color;
 
-	if (cls.state != ca_active || !cl_showpos->value || cl.background)
+	if ((cls.state != ca_active) || !cl_showpos->value || cl.background)
 		return;
 
 	ent = CL_GetLocalPlayer ();
@@ -151,37 +151,46 @@ same as r_speeds but for network channel
 void SCR_NetSpeeds (void)
 	{
 	static char	msg[MAX_SYSPATH];
-	int		x, y, height;
-	char *p, *start, *end;
+	
+	// [Xash3D, 26.03.23]
+	/*int		x, y, height;
+	char *p, *start, *end;*/
+	int			x, y;
+
 	float		time = cl.mtime[0];
 	static int	min_svfps = 100;
 	static int	max_svfps = 0;
-	int		cur_svfps = 0;
+	int			cur_svfps = 0;
 	static int	min_clfps = 100;
 	static int	max_clfps = 0;
-	int		cur_clfps = 0;
+	int			cur_clfps = 0;
 	rgba_t		color;
+	cl_font_t	*font = Con_GetCurFont ();
 
 	if (!host.allow_console)
 		return;
 
-	if (!net_speeds->value || cls.state != ca_active)
+	if (!net_speeds->value || (cls.state != ca_active))
 		return;
 
 	// prevent to get too big values at max
 	if (cl_serverframetime () > 0.0001f)
 		{
 		cur_svfps = Q_rint (1.0f / cl_serverframetime ());
-		if (cur_svfps < min_svfps) min_svfps = cur_svfps;
-		if (cur_svfps > max_svfps) max_svfps = cur_svfps;
+		if (cur_svfps < min_svfps)
+			min_svfps = cur_svfps;
+		if (cur_svfps > max_svfps) 
+			max_svfps = cur_svfps;
 		}
 
 	// prevent to get too big values at max
 	if (cl_clientframetime () > 0.0001f)
 		{
 		cur_clfps = Q_rint (1.0f / cl_clientframetime ());
-		if (cur_clfps < min_clfps) min_clfps = cur_clfps;
-		if (cur_clfps > max_clfps) max_clfps = cur_clfps;
+		if (cur_clfps < min_clfps) 
+			min_clfps = cur_clfps;
+		if (cur_clfps > max_clfps) 
+			max_clfps = cur_clfps;
 		}
 
 	Q_snprintf (msg, sizeof (msg),
@@ -197,13 +206,17 @@ void SCR_NetSpeeds (void)
 		Q_memprint (cls.netchan.total_sended)
 	);
 
-	x = refState.width - 320;
+	// [Xash3D, 26.03.23]
+	//x = refState.width - 320;
+	x = refState.width - 320 * font->scale;
 	y = 384;
 
-	Con_DrawStringLen (NULL, NULL, &height);
+	//Con_DrawStringLen (NULL, NULL, &height);
 	MakeRGBA (color, 255, 255, 255, 255);
 
-	p = start = msg;
+	CL_DrawString (x, y, msg, color, font, FONT_DRAW_RESETCOLORONLF);
+
+	/*p = start = msg;
 
 	do
 		{
@@ -215,7 +228,7 @@ void SCR_NetSpeeds (void)
 
 		if (end) p = end + 1;
 		else break;
-		} while (1);
+		} while (1);*/
 	}
 
 /*
@@ -232,17 +245,22 @@ void SCR_RSpeeds (void)
 
 	if (ref.dllFuncs.R_SpeedsMessage (msg, sizeof (msg)))
 		{
-		int	x, y, height;
-		char *p, *start, *end;
+		// [Xash3D, 26.03.23]
+		/*int	x, y, height;
+		char *p, *start, *end;*/
+		int	x, y;
 		rgba_t	color;
+		cl_font_t *font = Con_GetCurFont ();
 
-		x = refState.width - 340;
+		//x = refState.width - 340;
+		x = refState.width - 340 * font->scale;
 		y = 64;
 
-		Con_DrawStringLen (NULL, NULL, &height);
+		//Con_DrawStringLen (NULL, NULL, &height);
 		MakeRGBA (color, 255, 255, 255, 255);
 
-		p = start = msg;
+		CL_DrawString (x, y, msg, color, font, FONT_DRAW_RESETCOLORONLF);
+		/*p = start = msg;
 		do
 			{
 			end = Q_strchr (p, '\n');
@@ -256,7 +274,7 @@ void SCR_RSpeeds (void)
 				y += height;
 			if (end) p = end + 1;
 			else break;
-			} while (1);
+			} while (1);*/
 		}
 	}
 
@@ -359,7 +377,10 @@ void SCR_MakeScreenShot (void)
 		if (cls.scrshot_action != scrshot_snapshot)
 			Con_Reportf ("Write %s\n", cls.shotname);
 		}
-	else Con_Printf (S_ERROR "Unable to write %s\n", cls.shotname);
+	else
+		{
+		Con_Printf (S_ERROR "Unable to write %s\n", cls.shotname);
+		}
 
 	cls.envshot_vieworg = NULL;
 	cls.scrshot_action = scrshot_inactive;
@@ -402,11 +423,12 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	if (CL_IsInMenu () && !cls.changedemo && !is_background)
 		{
 		UI_SetActiveMenu (false);
-		if (cls.state == ca_disconnected && !(GameState->curstate == STATE_RUNFRAME && GameState->nextstate != STATE_RUNFRAME))
+		if (cls.state == ca_disconnected && !((GameState->curstate == STATE_RUNFRAME) &&
+			(GameState->nextstate != STATE_RUNFRAME)))
 			SCR_UpdateScreen ();
 		}
 
-	if (cls.state == ca_disconnected || cls.disable_screen)
+	if ((cls.state == ca_disconnected) || cls.disable_screen)
 		return; // already set
 
 	if (cls.key_dest == key_console)
@@ -415,7 +437,8 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	if (!Host_IsDedicated ())
 		gl_clear->value = 0.0f;
 
-	if (is_background) IN_MouseSavePos ();
+	if (is_background) 
+		IN_MouseSavePos ();
 	cls.draw_changelevel = !is_background;
 	SCR_UpdateScreen ();
 	cls.disable_screen = host.realtime;
@@ -578,6 +601,7 @@ void SCR_UpdateScreen (void)
 	V_PostRender ();
 	}
 
+/* [Xash3D, 26.03.23]
 qboolean SCR_LoadFixedWidthFont (const char *fontname)
 	{
 	int	i, fontWidth;
@@ -648,31 +672,62 @@ qboolean SCR_LoadVariableWidthFont (const char *fontname)
 
 	return true;
 	}
+	*/
 
 /*
 ================
-SCR_LoadCreditsFont
+SCR_LoadCreditsFont [Xash3D, 26.03.23]
 
 INTERNAL RESOURCE
 ================
 */
 void SCR_LoadCreditsFont (void)
 	{
-	const char *path = "gfx/creditsfont.fnt";
-	dword crc;
+	/*const char *path = "gfx/creditsfont.fnt";
+	dword crc;*/
+	cl_font_t *const font = &cls.creditsFont;
+	qboolean success = false;
+	float scale = hud_fontscale->value;
+	dword crc = 0;
 
 	// replace default gfx.wad textures by current charset's font
-	if (!CRC32_File (&crc, "gfx.wad") || crc == 0x49eb9f16)
+	if (!CRC32_File (&crc, "gfx.wad") || (crc == 0x49eb9f16))
 		{
-		const char *path2 = va ("creditsfont_%s.fnt", Cvar_VariableString ("con_charset"));
+		/*const char *path2 = va ("creditsfont_%s.fnt", Cvar_VariableString ("con_charset"));
 		if (FS_FileExists (path2, false))
-			path = path2;
+			path = path2;*/
+		string charsetFnt;
+
+		if (Q_snprintf (charsetFnt, sizeof (charsetFnt),
+			"creditsfont_%s.fnt", Cvar_VariableString ("con_charset")) > 0)
+			{
+			if (FS_FileExists (charsetFnt, false))
+				success = Con_LoadVariableWidthFont (charsetFnt, font, scale, kRenderTransAdd, TF_FONT);
+		}
 		}
 
-	if (!SCR_LoadVariableWidthFont (path))
+	if (!success)
+		success = Con_LoadVariableWidthFont ("gfx/creditsfont.fnt", font, scale, kRenderTransAdd, TF_FONT);
+
+	if (!success)
+		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransAdd, TF_FONT);
+
+	/*if (!SCR_LoadVariableWidthFont (path))*/
+	// copy font size for client.dll
+	if (success)
 		{
-		if (!SCR_LoadFixedWidthFont ("gfx/conchars"))
-			Con_DPrintf (S_ERROR "failed to load HUD font\n");
+		/*if (!SCR_LoadFixedWidthFont ("gfx/conchars"))
+			Con_DPrintf (S_ERROR "failed to load HUD font\n");*/
+		int i;
+
+		clgame.scrInfo.iCharHeight = cls.creditsFont.charHeight;
+
+		for (i = 0; i < ARRAYSIZE (cls.creditsFont.charWidths); i++)
+			clgame.scrInfo.charWidths[i] = cls.creditsFont.charWidths[i];
+		}
+	else
+		{
+		Con_DPrintf (S_ERROR "failed to load HUD font\n");
 		}
 	}
 
@@ -737,13 +792,15 @@ void SCR_RegisterTextures (void)
 		{
 		if (cl_allow_levelshots->value)
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
-		else cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE);
+		else 
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE);
 		}
 	else if (FS_FileExists ("gfx/loading.lmp", false))
 		{
 		if (cl_allow_levelshots->value)
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
-		else cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE);
+		else 
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE);
 		}
 
 	cls.tileImage = ref.dllFuncs.GL_LoadTexture ("gfx/backtile.lmp", NULL, 0, TF_NOMIPMAP);
@@ -781,7 +838,7 @@ SCR_VidInit
 */
 void SCR_VidInit (void)
 	{
-	string libpath;
+	//string libpath;	// [Xash3D, 26.03.23]
 	if (!ref.initialized) // don't call VidInit too soon
 		return;
 
@@ -796,14 +853,21 @@ void SCR_VidInit (void)
 		gameui.globals->scrHeight = refState.height;
 		}
 
-	COM_GetCommonLibraryPath (LIBRARY_CLIENT, libpath, sizeof (libpath));
-	VGui_Startup (libpath, refState.width, refState.height);
+	// [Xash3D, 26.03.23]
+	/*COM_GetCommonLibraryPath (LIBRARY_CLIENT, libpath, sizeof (libpath));
+	VGui_Startup (libpath, refState.width, refState.height);*/
+	
+	// notify vgui about screen size change
+	if (clgame.hInstance)
+		VGui_Startup (refState.width, refState.height);
 
 	CL_ClearSpriteTextures (); // now all hud sprites are invalid
 
 	// vid_state has changed
-	if (gameui.hInstance) gameui.dllFuncs.pfnVidInit ();
-	if (clgame.hInstance) clgame.dllFuncs.pfnVidInit ();
+	if (gameui.hInstance) 
+		gameui.dllFuncs.pfnVidInit ();
+	if (clgame.hInstance) 
+		clgame.dllFuncs.pfnVidInit ();
 
 	// restart console size
 	Con_VidInit ();
@@ -820,7 +884,8 @@ void SCR_Init (void)
 
 	scr_centertime = Cvar_Get ("scr_centertime", "2.5", 0, "centerprint hold time");
 	cl_levelshot_name = Cvar_Get ("cl_levelshot_name", "*black", 0, "contains path to current levelshot");
-	cl_allow_levelshots = Cvar_Get ("allow_levelshots", "0", FCVAR_ARCHIVE, "allow engine to use indivdual levelshots instead of 'loading' image");
+	cl_allow_levelshots = Cvar_Get ("allow_levelshots", "0", FCVAR_ARCHIVE,
+		"allow engine to use indivdual levelshots instead of 'loading' image");
 	scr_loading = Cvar_Get ("scr_loading", "0", 0, "loading bar progress");
 	scr_download = Cvar_Get ("scr_download", "-1", 0, "downloading bar progress");
 	cl_testlights = Cvar_Get ("cl_testlights", "0", 0, "test dynamic lights");
@@ -828,7 +893,7 @@ void SCR_Init (void)
 	v_dark = Cvar_Get ("v_dark", "0", 0, "starts level from dark screen");
 	scr_viewsize = Cvar_Get ("viewsize", "120", FCVAR_ARCHIVE, "screen size");
 	net_speeds = Cvar_Get ("net_speeds", "0", FCVAR_ARCHIVE, "show network packets");
-	cl_showfps = Cvar_Get ("cl_showfps", "1", FCVAR_ARCHIVE, "show client fps");
+	cl_showfps = Cvar_Get ("cl_showfps", "0", FCVAR_ARCHIVE, "show client fps");
 	cl_showpos = Cvar_Get ("cl_showpos", "0", FCVAR_ARCHIVE, "show local player position and velocity");
 
 	// register our commands

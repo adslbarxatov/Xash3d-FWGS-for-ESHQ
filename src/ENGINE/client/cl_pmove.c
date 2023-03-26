@@ -26,19 +26,17 @@ GNU General Public License for more details.
 #define MIN_PREDICTION_EPSILON	0.5f	// complain if error is > this and we have cl_showerror set
 #define MAX_PREDICTION_ERROR		64.0f	// above this is assumed to be a teleport, don't smooth, etc.
 
-/*
-=============
-CL_ClearPhysEnts
-
-=============
-*/
+/* [Xash3D, 26.03.23]
+// =============
+// CL_ClearPhysEnts
+// =============
 void CL_ClearPhysEnts (void)
 	{
 	clgame.pmove->numtouch = 0;
 	clgame.pmove->numvisent = 0;
 	clgame.pmove->nummoveent = 0;
 	clgame.pmove->numphysent = 0;
-	}
+	}*/
 
 /*
 =============
@@ -204,13 +202,14 @@ void CL_SetIdealPitch (void)
 
 /*
 ==================
-CL_PlayerTeleported
+CL_PlayerTeleported [Xash3D, 26.03.23]
 
 check for instant movement in case
 we don't want interpolate this
 ==================
 */
-qboolean CL_PlayerTeleported (local_state_t *from, local_state_t *to)
+//qboolean CL_PlayerTeleported (local_state_t *from, local_state_t *to)
+static qboolean CL_PlayerTeleported (local_state_t *from, local_state_t *to)
 	{
 	int	len, maxlen;
 	vec3_t	delta;
@@ -609,15 +608,10 @@ int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 
 	oldhull = clgame.pmove->usehull;
 
-	// ESHQ???: отменено изменение из 4529, нарушающее корректный поиск текстуры
-	//for (i = 0; i < clgame.pmove->nummoveent; i++)
+	// ESHQ: отменено изменение из 4529, нарушающее корректный поиск текстуры
 	for (i = 0; i < clgame.pmove->numphysent; i++)
-	//for (i = 0; i < clgame.pmove->numvisent; i++)
 		{
-		//pe = &clgame.pmove->moveents[i];
 		pe = &clgame.pmove->physents[i];
-		//pe = &clgame.pmove->visents[i];
-
 		if (pe->solid != SOLID_NOT) // disabled ?
 			continue;
 
@@ -719,9 +713,11 @@ static int GAME_EXPORT pfnTestPlayerPosition (float *pos, pmtrace_t *ptrace)
 	return PM_TestPlayerPosition (clgame.pmove, pos, ptrace, NULL);
 	}
 
+// [Xash3D, 26.03.23]
 static void GAME_EXPORT pfnStuckTouch (int hitent, pmtrace_t *tr)
 	{
-	int	i;
+	PM_StuckTouch (clgame.pmove, hitent, tr);
+	/*int	i;
 
 	for (i = 0; i < clgame.pmove->numtouch; i++)
 		{
@@ -747,7 +743,7 @@ static int GAME_EXPORT pfnPointContents (float *p, int *truecontents)
 
 	if (cont <= CONTENTS_CURRENT_0 && cont >= CONTENTS_CURRENT_DOWN)
 		cont = CONTENTS_WATER;
-	return cont;
+	return cont;*/
 	}
 
 static int GAME_EXPORT pfnTruePointContents (float *p)
@@ -755,17 +751,19 @@ static int GAME_EXPORT pfnTruePointContents (float *p)
 	return PM_TruePointContents (clgame.pmove, p);
 	}
 
+/* [Xash3D, 26.03.23]
 static int GAME_EXPORT pfnHullPointContents (struct hull_s *hull, int num, float *p)
 	{
 	return PM_HullPointContents (hull, num, p);
-	}
+	}*/
 
 static pmtrace_t GAME_EXPORT pfnPlayerTrace (float *start, float *end, int traceFlags, int ignore_pe)
 	{
-	return PM_PlayerTraceExt (clgame.pmove, start, end, traceFlags, clgame.pmove->numphysent, clgame.pmove->physents, ignore_pe, NULL);
+	return PM_PlayerTraceExt (clgame.pmove, start, end, traceFlags, clgame.pmove->numphysent, 
+		clgame.pmove->physents, ignore_pe, NULL);
 	}
 
-pmtrace_t *PM_TraceLine (float *start, float *end, int flags, int usehull, int ignore_pe)
+/*pmtrace_t *PM_TraceLine (float *start, float *end, int flags, int usehull, int ignore_pe)
 	{
 	static pmtrace_t	tr;
 	int		old_usehull;
@@ -776,10 +774,12 @@ pmtrace_t *PM_TraceLine (float *start, float *end, int flags, int usehull, int i
 	switch (flags)
 		{
 		case PM_TRACELINE_PHYSENTSONLY:
-			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numphysent, clgame.pmove->physents, ignore_pe, NULL);
+			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numphysent, clgame.pmove->physents,
+				ignore_pe, NULL);
 			break;
 		case PM_TRACELINE_ANYVISIBLE:
-			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numvisent, clgame.pmove->visents, ignore_pe, NULL);
+			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numvisent, clgame.pmove->visents,
+				ignore_pe, NULL);
 			break;
 		}
 
@@ -788,14 +788,18 @@ pmtrace_t *PM_TraceLine (float *start, float *end, int flags, int usehull, int i
 	return &tr;
 	}
 
-static hull_t *pfnHullForBsp (physent_t *pe, float *offset)
+static hull_t *pfnHullForBsp (physent_t *pe, float *offset)*/
+
+// [Xash3D, 26.03.23]
+static void *pfnHullForBsp (physent_t *pe, float *offset)
 	{
 	return PM_HullForBsp (pe, clgame.pmove, offset);
 	}
 
+// [Xash3D, 26.03.23]
 static float GAME_EXPORT pfnTraceModel (physent_t *pe, float *start, float *end, trace_t *trace)
 	{
-	int	old_usehull;
+	/*int	old_usehull;
 	vec3_t	start_l, end_l;
 	vec3_t	offset, temp;
 	qboolean	rotated;
@@ -849,15 +853,18 @@ static const char *pfnTraceTexture (int ground, float *vstart, float *vend)
 		return NULL; // bad ground
 
 	pe = &clgame.pmove->physents[ground];
-	return PM_TraceTexture (pe, vstart, vend);
+	return PM_TraceTexture (pe, vstart, vend);*/
+	return PM_TraceModel (clgame.pmove, pe, start, end, trace);
 	}
 
-static void GAME_EXPORT pfnPlaySound (int channel, const char *sample, float volume, float attenuation, int fFlags, int pitch)
+static void GAME_EXPORT pfnPlaySound (int channel, const char *sample, float volume, float attenuation, 
+	int fFlags, int pitch)
 	{
 	if (!clgame.pmove->runfuncs)
 		return;
 
-	S_StartSound (NULL, clgame.pmove->player_index + 1, channel, S_RegisterSound (sample), volume, attenuation, pitch, fFlags);
+	S_StartSound (NULL, clgame.pmove->player_index + 1, channel, S_RegisterSound (sample), volume, 
+		attenuation, pitch, fFlags);
 	}
 
 static void GAME_EXPORT pfnPlaybackEventFull (int flags, int clientindex, word eventindex, float delay, float *origin,
@@ -868,7 +875,8 @@ static void GAME_EXPORT pfnPlaybackEventFull (int flags, int clientindex, word e
 
 static pmtrace_t GAME_EXPORT pfnPlayerTraceEx (float *start, float *end, int traceFlags, pfnIgnore pmFilter)
 	{
-	return PM_PlayerTraceExt (clgame.pmove, start, end, traceFlags, clgame.pmove->numphysent, clgame.pmove->physents, -1, pmFilter);
+	return PM_PlayerTraceExt (clgame.pmove, start, end, traceFlags, clgame.pmove->numphysent, 
+		clgame.pmove->physents, -1, pmFilter);
 	}
 
 static int GAME_EXPORT pfnTestPlayerPositionEx (float *pos, pmtrace_t *ptrace, pfnIgnore pmFilter)
@@ -876,9 +884,10 @@ static int GAME_EXPORT pfnTestPlayerPositionEx (float *pos, pmtrace_t *ptrace, p
 	return PM_TestPlayerPosition (clgame.pmove, pos, ptrace, pmFilter);
 	}
 
+// [Xash3D, 26.03.23]
 static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
 	{
-	static pmtrace_t	tr;
+	/*static pmtrace_t	tr;
 	int		old_usehull;
 
 	old_usehull = clgame.pmove->usehull;
@@ -887,22 +896,24 @@ static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehu
 	switch (flags)
 		{
 		case PM_TRACELINE_PHYSENTSONLY:
-			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numphysent, clgame.pmove->physents, -1, pmFilter);
+			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numphysent, clgame.pmove->physents,
+				-1, pmFilter);
 			break;
 		case PM_TRACELINE_ANYVISIBLE:
-			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numvisent, clgame.pmove->visents, -1, pmFilter);
+			tr = PM_PlayerTraceExt (clgame.pmove, start, end, 0, clgame.pmove->numvisent, clgame.pmove->visents,
+				-1, pmFilter);
 			break;
 		}
 
 	clgame.pmove->usehull = old_usehull;
 
-	return &tr;
+	return &tr;*/
+	return PM_TraceLineEx (clgame.pmove, start, end, flags, usehull, pmFilter);
 	}
 
 /*
 ===============
 CL_InitClientMove
-
 ===============
 */
 void CL_InitClientMove (void)
@@ -936,23 +947,39 @@ void CL_InitClientMove (void)
 	clgame.pmove->Con_Printf = Con_Printf;
 	clgame.pmove->Sys_FloatTime = Sys_DoubleTime;
 	clgame.pmove->PM_StuckTouch = pfnStuckTouch;
-	clgame.pmove->PM_PointContents = pfnPointContents;
+	
+	// [Xash3D, 26.03.23]
+	//clgame.pmove->PM_PointContents = pfnPointContents;
+	clgame.pmove->PM_PointContents = (void *)PM_CL_PointContents;
+
 	clgame.pmove->PM_TruePointContents = pfnTruePointContents;
-	clgame.pmove->PM_HullPointContents = pfnHullPointContents;
+
+	//clgame.pmove->PM_HullPointContents = pfnHullPointContents;
+	clgame.pmove->PM_HullPointContents = (void *)PM_HullPointContents;
+
 	clgame.pmove->PM_PlayerTrace = pfnPlayerTrace;
-	clgame.pmove->PM_TraceLine = PM_TraceLine;
+	
+	//clgame.pmove->PM_TraceLine = PM_TraceLine;
+	clgame.pmove->PM_TraceLine = PM_CL_TraceLine;
+
 	clgame.pmove->RandomLong = COM_RandomLong;
 	clgame.pmove->RandomFloat = COM_RandomFloat;
 	clgame.pmove->PM_GetModelType = pfnGetModelType;
 	clgame.pmove->PM_GetModelBounds = pfnGetModelBounds;
-	clgame.pmove->PM_HullForBsp = (void *)pfnHullForBsp;
+	
+	//clgame.pmove->PM_HullForBsp = (void *)pfnHullForBsp;
+	clgame.pmove->PM_HullForBsp = pfnHullForBsp;
+
 	clgame.pmove->PM_TraceModel = pfnTraceModel;
 	clgame.pmove->COM_FileSize = COM_FileSize;
 	clgame.pmove->COM_LoadFile = COM_LoadFile;
 	clgame.pmove->COM_FreeFile = COM_FreeFile;
 	clgame.pmove->memfgets = COM_MemFgets;
 	clgame.pmove->PM_PlaySound = pfnPlaySound;
-	clgame.pmove->PM_TraceTexture = pfnTraceTexture;
+	
+	//clgame.pmove->PM_TraceTexture = pfnTraceTexture;
+	clgame.pmove->PM_TraceTexture = PM_CL_TraceTexture;
+
 	clgame.pmove->PM_PlaybackEventFull = pfnPlaybackEventFull;
 	clgame.pmove->PM_PlayerTraceEx = pfnPlayerTraceEx;
 	clgame.pmove->PM_TestPlayerPositionEx = pfnTestPlayerPositionEx;
@@ -963,7 +990,7 @@ void CL_InitClientMove (void)
 	clgame.dllFuncs.pfnPlayerMoveInit (clgame.pmove);
 	}
 
-static void PM_CheckMovingGround (clientdata_t *cd, entity_state_t *state, float frametime)
+/*static void PM_CheckMovingGround (clientdata_t *cd, entity_state_t *state, float frametime)
 	{
 	if (!(cd->flags & FL_BASEVELOCITY))
 		{
@@ -974,10 +1001,14 @@ static void PM_CheckMovingGround (clientdata_t *cd, entity_state_t *state, float
 	cd->flags &= ~FL_BASEVELOCITY;
 	}
 
-void CL_SetupPMove (playermove_t *pmove, local_state_t *from, usercmd_t *ucmd, qboolean runfuncs, double time)
+void CL_SetupPMove (playermove_t *pmove, local_state_t *from, usercmd_t *ucmd, qboolean runfuncs, double time)*/
+
+// [Xash3D, 26.03.23]
+static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const usercmd_t *ucmd,
+	qboolean runfuncs, double time)
 	{
-	entity_state_t *ps;
-	clientdata_t *cd;
+	const entity_state_t *ps;
+	const clientdata_t *cd;
 
 	ps = &from->playerstate;
 	cd = &from->client;
@@ -994,13 +1025,20 @@ void CL_SetupPMove (playermove_t *pmove, local_state_t *from, usercmd_t *ucmd, q
 	VectorCopy (ps->basevelocity, pmove->basevelocity);
 	VectorCopy (cd->view_ofs, pmove->view_ofs);
 	VectorClear (pmove->movedir);
-	pmove->flDuckTime = cd->flDuckTime;
+	
+	// [Xash3D, 26.03.23]
+	//pmove->flDuckTime = cd->flDuckTime;
+	pmove->flDuckTime = (float)cd->flDuckTime;
+
 	pmove->bInDuck = cd->bInDuck;
 	pmove->usehull = ps->usehull;
 	pmove->flTimeStepSound = cd->flTimeStepSound;
 	pmove->iStepLeft = ps->iStepLeft;
 	pmove->flFallVelocity = ps->flFallVelocity;
-	pmove->flSwimTime = cd->flSwimTime;
+	
+	//pmove->flSwimTime = cd->flSwimTime;
+	pmove->flSwimTime = (float)cd->flSwimTime;
+
 	VectorCopy (cd->punchangle, pmove->punchangle);
 	pmove->flNextPrimaryAttack = 0.0f; // not used by PM_ code
 	pmove->effects = ps->effects;
@@ -1008,7 +1046,10 @@ void CL_SetupPMove (playermove_t *pmove, local_state_t *from, usercmd_t *ucmd, q
 	pmove->gravity = ps->gravity;
 	pmove->friction = ps->friction;
 	pmove->oldbuttons = ps->oldbuttons;
-	pmove->waterjumptime = cd->waterjumptime;
+	
+	//pmove->waterjumptime = cd->waterjumptime;
+	pmove->waterjumptime = (float)cd->waterjumptime;
+
 	pmove->dead = (cl.local.health <= 0);
 	pmove->deadflag = cd->deadflag;
 	pmove->spectator = (cls.spectator != 0);
@@ -1039,7 +1080,9 @@ void CL_SetupPMove (playermove_t *pmove, local_state_t *from, usercmd_t *ucmd, q
 	Q_strncpy (pmove->physinfo, cls.physinfo, MAX_INFO_STRING);
 	}
 
-void CL_FinishPMove (playermove_t *pmove, local_state_t *to)
+// [Xash3D, 26.03.23]
+//void CL_FinishPMove (playermove_t *pmove, local_state_t *to)
+const void CL_FinishPMove (const playermove_t *pmove, local_state_t *to)
 	{
 	entity_state_t *ps;
 	clientdata_t *cd;
@@ -1050,7 +1093,10 @@ void CL_FinishPMove (playermove_t *pmove, local_state_t *to)
 	cd->flags = pmove->flags;
 	cd->bInDuck = pmove->bInDuck;
 	cd->flTimeStepSound = pmove->flTimeStepSound;
-	cd->flDuckTime = pmove->flDuckTime;
+	
+	//cd->flDuckTime = pmove->flDuckTime;
+	cd->flDuckTime = (int)pmove->flDuckTime;
+	
 	cd->flSwimTime = (int)pmove->flSwimTime;
 	cd->waterjumptime = (int)pmove->waterjumptime;
 	cd->watertype = pmove->watertype;
@@ -1063,7 +1109,10 @@ void CL_FinishPMove (playermove_t *pmove, local_state_t *to)
 	VectorCopy (pmove->angles, ps->angles);
 	VectorCopy (pmove->basevelocity, ps->basevelocity);
 	VectorCopy (pmove->punchangle, cd->punchangle);
-	ps->oldbuttons = pmove->cmd.buttons;
+	
+	//ps->oldbuttons = pmove->cmd.buttons;
+	ps->oldbuttons = (uint)pmove->cmd.buttons;
+
 	ps->friction = pmove->friction;
 	ps->movetype = pmove->movetype;
 	ps->onground = pmove->onground;
@@ -1092,9 +1141,10 @@ CL_RunUsercmd
 Runs prediction code for user cmd
 =================
 */
-void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u, qboolean runfuncs, double *time, unsigned int random_seed)
+void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u, qboolean runfuncs, double *time, 
+	unsigned int random_seed)
 	{
-	usercmd_t		cmd;
+	usercmd_t cmd;
 
 	if (u->msec > 50)
 		{
@@ -1127,7 +1177,8 @@ void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u, qboole
 
 		if (clgame.pmove->onground > 0 && clgame.pmove->onground < clgame.pmove->numphysent)
 			cl.local.lastground = clgame.pmove->physents[clgame.pmove->onground].info;
-		else cl.local.lastground = clgame.pmove->onground; // world(0) or in air(-1)
+		else 
+			cl.local.lastground = clgame.pmove->onground; // world(0) or in air(-1)
 		}
 
 	clgame.dllFuncs.pfnPostRunCmd (from, to, &cmd, runfuncs, *time, random_seed);
@@ -1162,7 +1213,7 @@ void CL_MoveSpectatorCamera (void)
 
 /*
 =================
-CL_PredictMovement
+CL_PredictMovement [Xash3D, 26.03.23]
 
 Sets cl.predicted.origin and cl.predicted.angles
 =================
@@ -1171,16 +1222,16 @@ void CL_PredictMovement (qboolean repredicting)
 	{
 	runcmd_t *to_cmd = NULL, *from_cmd;
 	local_state_t *from = NULL, *to = NULL;
-	uint		current_command;
-	uint		current_command_mod;
+	/*uint		current_command;
+	uint		current_command_mod;*/
 	frame_t *frame = NULL;
 	uint		i, stoppoint;
-	qboolean		runfuncs;
+	//qboolean		runfuncs;
 	double		f = 1.0;
-	cl_entity_t *ent;
+	//cl_entity_t *ent;
 	double		time;
 
-	if (cls.state != ca_active || cls.spectator)
+	if ((cls.state != ca_active) || cls.spectator)
 		return;
 
 	if (cls.demoplayback && !repredicting)
@@ -1188,7 +1239,7 @@ void CL_PredictMovement (qboolean repredicting)
 
 	CL_SetUpPlayerPrediction (false, false);
 
-	if (cls.state != ca_active || !cl.validsequence)
+	if (/*(cls.state != ca_active) ||*/ !cl.validsequence)
 		return;
 
 	if ((cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged) >= CL_UPDATE_MASK)
@@ -1208,7 +1259,8 @@ void CL_PredictMovement (qboolean repredicting)
 
 		if (FBitSet (frame->clientdata.flags, FL_ONGROUND))
 			cl.local.onground = frame->playerstate[cl.playernum].onground;
-		else cl.local.onground = -1;
+		else 
+			cl.local.onground = -1;
 		}
 
 	from = &cl.predicted_frames[cl.parsecountmod];
@@ -1227,8 +1279,13 @@ void CL_PredictMovement (qboolean repredicting)
 	CL_PushPMStates ();
 	CL_SetSolidPlayers (cl.playernum);
 
-	for (i = 1; i < CL_UPDATE_MASK && cls.netchan.incoming_acknowledged + i < cls.netchan.outgoing_sequence + stoppoint; i++)
+	for (i = 1; (i < CL_UPDATE_MASK) && (cls.netchan.incoming_acknowledged + i < 
+		cls.netchan.outgoing_sequence + stoppoint); i++)
 		{
+		uint current_command;
+		uint current_command_mod;
+		qboolean runfuncs;
+
 		current_command = cls.netchan.incoming_acknowledged + i;
 		current_command_mod = current_command & CL_UPDATE_MASK;
 
@@ -1266,7 +1323,8 @@ void CL_PredictMovement (qboolean repredicting)
 		// keep onground actual
 		if (FBitSet (frame->clientdata.flags, FL_ONGROUND))
 			cl.local.onground = frame->playerstate[cl.playernum].onground;
-		else cl.local.onground = -1;
+		else 
+			cl.local.onground = -1;
 
 		if (!repredicting || !CVAR_TO_BOOL (cl_lw))
 			cl.local.viewmodel = to->client.viewmodel;
@@ -1278,7 +1336,8 @@ void CL_PredictMovement (qboolean repredicting)
 	// now interpolate some fraction of the final frame
 	if (to_cmd->senttime != from_cmd->senttime)
 		f = bound (0.0, (host.realtime - from_cmd->senttime) / (to_cmd->senttime - from_cmd->senttime) * 0.1, 1.0);
-	else f = 0.0;
+	else 
+		f = 0.0;
 
 	if (CL_PlayerTeleported (from, to))
 		{
@@ -1295,7 +1354,8 @@ void CL_PredictMovement (qboolean repredicting)
 
 		if (from->playerstate.usehull == to->playerstate.usehull)
 			VectorLerp (from->client.view_ofs, f, to->client.view_ofs, cl.viewheight);
-		else VectorCopy (to->client.view_ofs, cl.viewheight);
+		else
+			VectorCopy (to->client.view_ofs, cl.viewheight);
 		}
 
 	cl.local.waterlevel = to->client.waterlevel;
@@ -1305,7 +1365,9 @@ void CL_PredictMovement (qboolean repredicting)
 
 	if (FBitSet (to->client.flags, FL_ONGROUND))
 		{
+		cl_entity_t *ent = CL_GetEntityByIndex (cl.local.lastground);
 		ent = CL_GetEntityByIndex (cl.local.lastground);
+
 		cl.local.onground = cl.local.lastground;
 		cl.local.moving = false;
 
@@ -1327,10 +1389,10 @@ void CL_PredictMovement (qboolean repredicting)
 	else
 		{
 		cl.local.onground = -1;
-		cl.local.moving = 0;
+		cl.local.moving = false;
 		}
 
-	if (cls.correction_time > 0 && !cl_nosmooth->value && cl_smoothtime->value)
+	if ((cls.correction_time > 0) && !cl_nosmooth->value && cl_smoothtime->value)
 		{
 		vec3_t	delta;
 		float	frac;

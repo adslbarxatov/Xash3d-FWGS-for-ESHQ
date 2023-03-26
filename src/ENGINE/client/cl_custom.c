@@ -55,7 +55,7 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		return true;
 		}
 
-	if (cls.state == ca_active && !cl_download_ingame.value)
+	if ((cls.state == ca_active) && !cl_download_ingame.value)
 		{
 		Con_Reportf ("In-game download refused...\n");
 		return true;
@@ -79,7 +79,11 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		}
 
 	MSG_BeginClientCmd (msg, clc_stringcmd);
-	MSG_WriteString (msg, va ("dlfile %s", filepath));
+	
+	// [Xash3D, 21.03.23]
+	//MSG_WriteString (msg, va ("dlfile %s", filepath));
+	MSG_WriteStringf (msg, "dlfile %s", filepath);
+
 	host.downloadcount++;
 
 	return false;

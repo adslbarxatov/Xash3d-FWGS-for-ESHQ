@@ -43,21 +43,27 @@ typedef struct cldll_func_src_s
 	void	(*pfnDrawNormalTriangles)(void);
 	void	(*pfnDrawTransparentTriangles)(void);
 	void	(*pfnStudioEvent)(const struct mstudioevent_s *event, const cl_entity_t *entity);
-	void	(*pfnPostRunCmd)(struct local_state_s *from, struct local_state_s *to, usercmd_t *cmd, int runfuncs, double time, unsigned int random_seed);
+	void	(*pfnPostRunCmd)(struct local_state_s *from, struct local_state_s *to, usercmd_t *cmd, int runfuncs,
+		double time, unsigned int random_seed);
 	void	(*pfnShutdown)(void);
 	void	(*pfnTxferLocalOverrides)(entity_state_t *state, const clientdata_t *client);
 	void	(*pfnProcessPlayerState)(entity_state_t *dst, const entity_state_t *src);
-	void	(*pfnTxferPredictionData)(entity_state_t *ps, const entity_state_t *pps, clientdata_t *pcd, const clientdata_t *ppcd, weapon_data_t *wd, const weapon_data_t *pwd);
+	void	(*pfnTxferPredictionData)(entity_state_t *ps, const entity_state_t *pps, clientdata_t *pcd, 
+		const clientdata_t *ppcd, weapon_data_t *wd, const weapon_data_t *pwd);
 	void	(*pfnDemo_ReadBuffer)(int size, byte *buffer);
 	int	(*pfnConnectionlessPacket)(const struct netadr_s *net_from, const char *args, char *buffer, int *size);
 	int	(*pfnGetHullBounds)(int hullnumber, float *mins, float *maxs);
 	void	(*pfnFrame)(double time);
 	int	(*pfnKey_Event)(int eventcode, int keynum, const char *pszCurrentBinding);
-	void	(*pfnTempEntUpdate)(double frametime, double client_time, double cl_gravity, struct tempent_s **ppTempEntFree, struct tempent_s **ppTempEntActive, int (*Callback_AddVisibleEntity)(cl_entity_t *pEntity), void (*Callback_TempEntPlaySound)(struct tempent_s *pTemp, float damp));
+	void	(*pfnTempEntUpdate)(double frametime, double client_time, double cl_gravity, 
+		struct tempent_s **ppTempEntFree, struct tempent_s **ppTempEntActive, 
+		int (*Callback_AddVisibleEntity)(cl_entity_t *pEntity), 
+		void (*Callback_TempEntPlaySound)(struct tempent_s *pTemp, float damp));
 	cl_entity_t *(*pfnGetUserEntity)(int index);
 	void	(*pfnVoiceStatus)(int entindex, qboolean bTalking);
 	void	(*pfnDirectorMessage)(int iSize, void *pbuf);
-	int	(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface, struct engine_studio_api_s *pstudio);
+	int	(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface, 
+		struct engine_studio_api_s *pstudio);
 	void	(*pfnChatInputPosition)(int *x, int *y);
 	int	(*pfnGetPlayerTeam)(int iPlayer);
 	void *(*pfnClientFactory)(void);
@@ -90,21 +96,27 @@ typedef struct cldll_func_dst_s
 	void	(*pfnDrawNormalTriangles)(void);
 	void	(*pfnDrawTransparentTriangles)(void);
 	void	(*pfnStudioEvent)(const struct mstudioevent_s **event, const cl_entity_t **entity);
-	void	(*pfnPostRunCmd)(struct local_state_s **from, struct local_state_s **to, usercmd_t **cmd, int *runfuncs, double *time, unsigned int *random_seed);
+	void	(*pfnPostRunCmd)(struct local_state_s **from, struct local_state_s **to, usercmd_t **cmd,
+		int *runfuncs, double *time, unsigned int *random_seed);
 	void	(*pfnShutdown)(void);
 	void	(*pfnTxferLocalOverrides)(entity_state_t **state, const clientdata_t **client);
 	void	(*pfnProcessPlayerState)(entity_state_t **dst, const entity_state_t **src);
-	void	(*pfnTxferPredictionData)(entity_state_t **ps, const entity_state_t **pps, clientdata_t **pcd, const clientdata_t **ppcd, weapon_data_t **wd, const weapon_data_t **pwd);
+	void	(*pfnTxferPredictionData)(entity_state_t **ps, const entity_state_t **pps, clientdata_t **pcd,
+		const clientdata_t **ppcd, weapon_data_t **wd, const weapon_data_t **pwd);
 	void	(*pfnDemo_ReadBuffer)(int *size, byte **buffer);
 	void	(*pfnConnectionlessPacket)(const struct netadr_s **net_from, const char **args, char **buffer, int **size);
 	void	(*pfnGetHullBounds)(int *hullnumber, float **mins, float **maxs);
 	void	(*pfnFrame)(double *time);
 	void	(*pfnKey_Event)(int *eventcode, int *keynum, const char **pszCurrentBinding);
-	void	(*pfnTempEntUpdate)(double *frametime, double *client_time, double *cl_gravity, struct tempent_s ***ppTempEntFree, struct tempent_s ***ppTempEntActive, int (**Callback_AddVisibleEntity)(cl_entity_t *pEntity), void (**Callback_TempEntPlaySound)(struct tempent_s *pTemp, float damp));
+	void	(*pfnTempEntUpdate)(double *frametime, double *client_time, double *cl_gravity,
+		struct tempent_s ***ppTempEntFree, struct tempent_s ***ppTempEntActive, 
+		int (**Callback_AddVisibleEntity)(cl_entity_t *pEntity), 
+		void (**Callback_TempEntPlaySound)(struct tempent_s *pTemp, float damp));
 	void	(*pfnGetUserEntity)(int *index);
 	void	(*pfnVoiceStatus)(int *entindex, qboolean *bTalking);
 	void	(*pfnDirectorMessage)(int *iSize, void **pbuf);
-	void	(*pfnGetStudioModelInterface)(int *version, struct r_studio_interface_s ***ppinterface, struct engine_studio_api_s **pstudio);
+	void	(*pfnGetStudioModelInterface)(int *version, struct r_studio_interface_s ***ppinterface,
+		struct engine_studio_api_s **pstudio);
 	void	(*pfnChatInputPosition)(int **x, int **y);
 	void	(*pfnGetPlayerTeam)(int *iPlayer);
 	} cldll_func_dst_t;
@@ -272,7 +284,8 @@ static void DstStudioEvent (const struct mstudioevent_s **event, const cl_entity
 	// stub
 	}
 
-static void DstPostRunCmd (struct local_state_s **from, struct local_state_s **to, usercmd_t **cmd, int *runfuncs, double *time, unsigned int *random_seed)
+static void DstPostRunCmd (struct local_state_s **from, struct local_state_s **to, usercmd_t **cmd,
+	int *runfuncs, double *time, unsigned int *random_seed)
 	{
 	// stub
 	}
@@ -292,7 +305,8 @@ static void DstProcessPlayerState (entity_state_t **dst, const entity_state_t **
 	// stub
 	}
 
-static void DstTxferPredictionData (entity_state_t **ps, const entity_state_t **pps, clientdata_t **pcd, const clientdata_t **ppcd, weapon_data_t **wd, const weapon_data_t **pwd)
+static void DstTxferPredictionData (entity_state_t **ps, const entity_state_t **pps, 
+	clientdata_t **pcd, const clientdata_t **ppcd, weapon_data_t **wd, const weapon_data_t **pwd)
 	{
 	// stub
 	}
@@ -322,7 +336,10 @@ static void DstKey_Event (int *eventcode, int *keynum, const char **pszCurrentBi
 	// stub
 	}
 
-static void DstTempEntUpdate (double *frametime, double *client_time, double *cl_gravity, struct tempent_s ***ppTempEntFree, struct tempent_s ***ppTempEntActive, int (**Callback_AddVisibleEntity)(cl_entity_t *pEntity), void (**Callback_TempEntPlaySound)(struct tempent_s *pTemp, float damp))
+static void DstTempEntUpdate (double *frametime, double *client_time, double *cl_gravity,
+	struct tempent_s ***ppTempEntFree, struct tempent_s ***ppTempEntActive,
+	int (**Callback_AddVisibleEntity)(cl_entity_t *pEntity),
+	void (**Callback_TempEntPlaySound)(struct tempent_s *pTemp, float damp))
 	{
 	// stub
 	}
@@ -342,7 +359,8 @@ static void DstDirectorMessage (int *iSize, void **pbuf)
 	// stub
 	}
 
-static void DstGetStudioModelInterface (int *version, struct r_studio_interface_s ***ppinterface, struct engine_studio_api_s **pstudio)
+static void DstGetStudioModelInterface (int *version, struct r_studio_interface_s ***ppinterface, 
+	struct engine_studio_api_s **pstudio)
 	{
 	// stub
 	}
@@ -403,14 +421,21 @@ static cldll_func_dst_t cldllFuncDst =
 		DstGetPlayerTeam,
 	};
 
+// [Xash3D, 26.03.23]
 void CL_GetSecuredClientAPI (CL_EXPORT_FUNCS F)
 	{
-	cldll_func_src_t cldllFuncSrc = { 0 };
+	//cldll_func_src_t cldllFuncSrc = { 0 };
 	modfuncs_t modFuncs = { 0 };
 
 	// secured client dlls need these
-	*(cldll_func_dst_t **)&cldllFuncSrc.pfnVidInit = &cldllFuncDst;
-	*(modfuncs_t **)&cldllFuncSrc.pfnInitialize = &modFuncs;
+	/* *(cldll_func_dst_t **)&cldllFuncSrc.pfnVidInit = &cldllFuncDst;
+	*(modfuncs_t **)&cldllFuncSrc.pfnInitialize = &modFuncs;*/
+	cldll_func_src_t cldllFuncSrc =
+		{
+			(void *)&modFuncs,
+			NULL,
+			(void *)&cldllFuncDst
+		};
 
 	// trying to fill interface now
 	F (&cldllFuncSrc);

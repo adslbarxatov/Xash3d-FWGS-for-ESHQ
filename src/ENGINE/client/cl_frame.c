@@ -930,7 +930,8 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 		}
 
 	if (newframe->num_entities != count && newframe->num_entities != 0)
-		Con_Reportf (S_WARN "CL_Parse%sPacketEntities: (%i should be %i)\n", delta ? "Delta" : "", newframe->num_entities, count);
+		Con_Reportf (S_WARN "CL_Parse%sPacketEntities: (%i should be %i)\n", delta ? "Delta" : "", 
+			newframe->num_entities, count);
 
 	if (!newframe->valid)
 		return playerbytes; // frame is not valid but message was parsed
@@ -973,7 +974,7 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 	if (!ent || !ent->model)
 		return false;
 
-	// check for adding this entity
+	/* [Xash3D, 21.03.23] check for adding this entity
 	if (!clgame.dllFuncs.pfnAddEntity (entityType, ent, ent->model->name))
 		{
 		// local player was reject by game code, so ignore any effects
@@ -981,6 +982,7 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 			cl.local.apply_effects = false;
 		return false;
 		}
+	*/
 
 	// don't add the player in firstperson mode
 	if (RP_LOCALCLIENT (ent))
@@ -989,6 +991,15 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 
 		if (!CL_IsThirdPerson () && (ent->index == cl.viewentity))
 			return false;
+		}
+
+	// [Xash3D, 21.03.23] check for adding this entity
+	if (!clgame.dllFuncs.pfnAddEntity (entityType, ent, ent->model->name))
+		{
+		// local player was reject by game code, so ignore any effects
+		if (RP_LOCALCLIENT (ent))
+			cl.local.apply_effects = false;
+		return false;
 		}
 
 	if (entityType == ET_BEAM)

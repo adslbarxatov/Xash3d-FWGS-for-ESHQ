@@ -281,7 +281,12 @@ static struct packet_latency_t
 
 					for (j = start; j < h; j++)
 						{
-						NetGraph_DrawRect (&fill, netcolors[NETGRAPH_NET_COLORS + j + extrap_point]);
+						// [Xash3D, 26.03.23]
+						//NetGraph_DrawRect (&fill, netcolors[NETGRAPH_NET_COLORS + j + extrap_point]);
+						int color = NETGRAPH_NET_COLORS + j + extrap_point;
+						color = Q_min (color, ARRAYSIZE (netcolors) - 1);
+
+						NetGraph_DrawRect (&fill, netcolors[color]);
 						fill.top--;
 						}
 					}
@@ -297,7 +302,12 @@ static struct packet_latency_t
 
 					for (j = 0; j < h; j++)
 						{
-						NetGraph_DrawRect (&fill, netcolors[NETGRAPH_NET_COLORS + j + oldh]);
+						// [Xash3D, 26.03.23]
+						//NetGraph_DrawRect (&fill, netcolors[NETGRAPH_NET_COLORS + j + oldh]);
+						int color = NETGRAPH_NET_COLORS + j + oldh;
+						color = Q_min (color, ARRAYSIZE (netcolors) - 1);
+
+						NetGraph_DrawRect (&fill, netcolors[color]);
 						fill.top--;
 						}
 					}
@@ -336,7 +346,8 @@ static struct packet_latency_t
 
 			ystep = Q_max (ystep, 1);
 
-			for (starty = hatch.top; hatch.top > 0 && ((starty - hatch.top) * net_scale->value < (maxmsgbytes + 50)); hatch.top -= ystep)
+			for (starty = hatch.top; hatch.top > 0 && ((starty - hatch.top) * 
+				net_scale->value < (maxmsgbytes + 50)); hatch.top -= ystep)
 				{
 				if (!((int)((starty - hatch.top) * net_scale->value) % 50))
 					{
@@ -355,9 +366,11 @@ static struct packet_latency_t
 
 		===========
 		*/
-		static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int count, float avg, int packet_loss, int packet_choke, int graphtype)
+		static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int count, float avg, 
+			int packet_loss, int packet_choke, int graphtype)
 			{
 			static int	lastout;
+			cl_font_t *font = Con_GetFont (0);	// [Xash3D, 26.03.23]
 			rgba_t		colors = { 0.9 * 255, 0.9 * 255, 0.7 * 255, 255 };
 			int		ptx = Q_max (x + w - NETGRAPH_LERP_HEIGHT - 1, 1);
 			int		pty = Q_max (rect.top + rect.bottom - NETGRAPH_LERP_HEIGHT - 3, 1);
@@ -379,27 +392,43 @@ static struct packet_latency_t
 
 			// move rolling average
 			framerate = FRAMERATE_AVG_FRAC * host.frametime + (1.0f - FRAMERATE_AVG_FRAC) * framerate;
-			Con_SetFont (0);
+			
+			// [Xash3D, 26.03.23]
+			//Con_SetFont (0);
+			ref.dllFuncs.GL_SetRenderMode (font->rendermode);
 
 			if (framerate > 0.0f)
 				{
 				y -= net_graphheight->value;
 
-				Con_DrawString (x, y, va ("%.1f fps", 1.0f / framerate), colors);
+				// [Xash3D, 26.03.23]
+				//Con_DrawString (x, y, va ("%.1f fps", 1.0f / framerate), colors);
+				CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE, "%.1f fps", 1.0f / framerate);
 
 				if (avg > 1.0f)
-					Con_DrawString (x + 75, y, va ("%i ms", (int)avg), colors);
+					CL_DrawStringf (font, x + 75, y, colors, FONT_DRAW_NORENDERMODE, "%i ms", (int)avg);
+				//Con_DrawString (x + 75, y, va ("%i ms", (int)avg), colors);
 
 				y += 15;
 
 				out = netstat_cmdinfo[i].size;
-				if (!out) out = lastout;
-				else lastout = out;
+				if (!out)
+					out = lastout;
+				else
+					lastout = out;
 
-				Con_DrawString (x, y, va ("in :  %i %.2f kb/s", netstat_graph[j].msgbytes, cls.netchan.flow[FLOW_INCOMING].avgkbytespersec), colors);
+				// [Xash3D, 26.03.23]
+				CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE,
+					"in :  %i %.2f kb/s", netstat_graph[j].msgbytes, cls.netchan.flow[FLOW_INCOMING].avgkbytespersec);
+				/*Con_DrawString (x, y, va ("in :  %i %.2f kb/s", netstat_graph[j].msgbytes, 
+					cls.netchan.flow[FLOW_INCOMING].avgkbytespersec), colors);*/
+				
 				y += 15;
 
-				Con_DrawString (x, y, va ("out:  %i %.2f kb/s", out, cls.netchan.flow[FLOW_OUTGOING].avgkbytespersec), colors);
+				CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE,
+					"out:  %i %.2f kb/s", out, cls.netchan.flow[FLOW_OUTGOING].avgkbytespersec);
+				/*Con_DrawString (x, y, va ("out:  %i %.2f kb/s", out, cls.netchan.flow[FLOW_OUTGOING].avgkbytespersec),
+					colors);*/
 				y += 15;
 
 				if (graphtype > 2)
@@ -407,16 +436,23 @@ static struct packet_latency_t
 					int	loss = (int)((packet_loss + PACKETLOSS_AVG_FRAC) - 0.01f);
 					int	choke = (int)((packet_choke + PACKETCHOKE_AVG_FRAC) - 0.01f);
 
-					Con_DrawString (x, y, va ("loss: %i choke: %i", loss, choke), colors);
+					// [Xash3D, 26.03.23]
+					//Con_DrawString (x, y, va ("loss: %i choke: %i", loss, choke), colors);
+					CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE, "loss: %i choke: %i", loss, choke);
 					}
 				}
 
+			// [Xash3D, 26.03.23]
 			if (graphtype < 3)
-				Con_DrawString (ptx, pty, va ("%i/s", (int)cl_cmdrate->value), colors);
+				CL_DrawStringf (font, ptx, pty, colors, FONT_DRAW_NORENDERMODE, "%i/s", (int)cl_cmdrate->value);
+
+			CL_DrawStringf (font, ptx, last_y, colors, FONT_DRAW_NORENDERMODE, "%i/s", (int)cl_updaterate->value);
+
+			/*Con_DrawString (ptx, pty, va ("%i/s", (int)cl_cmdrate->value), colors);
 
 			Con_DrawString (ptx, last_y, va ("%i/s", (int)cl_updaterate->value), colors);
 
-			Con_RestoreFont ();
+			Con_RestoreFont ();*/
 			}
 
 		/*

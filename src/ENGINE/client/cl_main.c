@@ -22,13 +22,14 @@ GNU General Public License for more details.
 #include "vgui_draw.h"
 #include "library.h"
 #include "vid_common.h"
+#include "pm_local.h"	// [Xash3D, 21.03.23]
 
-#define MAX_TOTAL_CMDS		32
-#define MAX_CMD_BUFFER		8000
+#define MAX_TOTAL_CMDS			32
+#define MAX_CMD_BUFFER			8000
 #define CONNECTION_PROBLEM_TIME	15.0	// 15 seconds
 #define CL_CONNECTION_RETRIES		10
-#define CL_TEST_RETRIES_NORESPONCE	2
-#define CL_TEST_RETRIES		5
+#define CL_TEST_RETRIES_NORESPONCE	3	// [Xash3D, 21.03.23]
+#define CL_TEST_RETRIES			5
 
 CVAR_DEFINE_AUTO (mp_decals, "300", FCVAR_ARCHIVE, "decals limit in multiplayer");
 CVAR_DEFINE_AUTO (dev_overview, "0", 0, "draw level in overview-mode");
@@ -38,8 +39,12 @@ CVAR_DEFINE_AUTO (cl_allow_upload, "1", FCVAR_ARCHIVE, "allow to uploading resou
 CVAR_DEFINE_AUTO (cl_download_ingame, "1", FCVAR_ARCHIVE, "allow to downloading resources while client is active");
 CVAR_DEFINE_AUTO (cl_logofile, "lambda", FCVAR_ARCHIVE, "player logo name");
 CVAR_DEFINE_AUTO (cl_logocolor, "orange", FCVAR_ARCHIVE, "player logo color");
+
+// [Xash3D, 21.03.23]
+CVAR_DEFINE_AUTO (cl_logoext, "bmp", FCVAR_ARCHIVE, "temporary cvar to tell engine which logo must be packed");
 CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE, "test network bandwith before connection");
-convar_t *rcon_client_password;
+
+//convar_t *rcon_client_password;
 convar_t *rcon_address;
 convar_t *cl_timeout;
 convar_t *cl_nopred;
@@ -56,6 +61,7 @@ convar_t *cl_nosmooth;
 convar_t *cl_smoothtime;
 convar_t *cl_clockreset;
 convar_t *cl_fixtimerate;
+convar_t *hud_fontscale;	// [Xash3D, 21.03.23]
 convar_t *hud_scale;
 convar_t *cl_solid_players;
 convar_t *cl_draw_beams;
@@ -232,6 +238,7 @@ void CL_SignonReply (void)
 			if (host_developer.value >= DEV_EXTENDED)
 				Mem_PrintStats ();
 			break;
+
 		case 2:
 			SCR_EndLoadingPlaque ();
 			if (cl.proxy_redirect && !cls.spectator)
@@ -241,14 +248,15 @@ void CL_SignonReply (void)
 		}
 	}
 
-float CL_LerpInterval (void)
+// [Xash3D, 21.03.23]
+/*float CL_LerpInterval (void)
 	{
 	return Q_max (cl_interp->value, 1.f / cl_updaterate->value);
-	}
+	}*/
 
 /*
 ===============
-CL_LerpPoint
+CL_LerpPoint [Xash3D, 21.03.23]
 
 Determines the fraction between the last two messages that the objects
 should be put at.
@@ -256,42 +264,31 @@ should be put at.
 */
 static float CL_LerpPoint (void)
 	{
-	float frac = 1.0f;
-	float server_frametime = cl_serverframetime ();
+	/*float frac = 1.0f;
+	float server_frametime = cl_serverframetime ();*/
+	double f = cl_serverframetime ();
+	double frac;
 
-	if (server_frametime == 0.0f || cls.timedemo)
+	//if ((server_frametime == 0.0f) || cls.timedemo)
+	if ((f == 0.0) || cls.timedemo)
 		{
+		double fgap = cl_clientframetime ();
 		cl.time = cl.mtime[0];
+
+		// maybe don't need for Xash demos
+		if (cls.demoplayback)
+			cl.oldtime = cl.mtime[0] - fgap;
+
 		return 1.0f;
 		}
 
-	if (server_frametime > 0.1f)
+	/*if (server_frametime > 0.1f)
 		{
 		// dropped packet, or start of demo
 		cl.mtime[1] = cl.mtime[0] - 0.1f;
 		server_frametime = 0.1f;
 		}
-#if 0
-	/*
-	g-cont: this code more suitable for singleplayer
-	NOTE in multiplayer causes significant framerate stutter/jitter and
-	occuring frames with zero time delta and even with negative time delta.
-	game becomes more twitchy and as if without interpolation.
-	*/
-	frac = (cl.time - cl.mtime[1]) / f;
-	if (frac < 0.0f)
-		{
-		if (frac < -0.01f)
-			cl.time = cl.mtime[1];
-		frac = 0.0f;
-		}
-	else if (frac > 1.0f)
-		{
-		if (frac > 1.01f)
-			cl.time = cl.mtime[0];
-		frac = 1.0f;
-		}
-#else
+
 	// for multiplayer
 	if (cl_interp->value > 0.001f)
 		{
@@ -303,8 +300,13 @@ static float CL_LerpPoint (void)
 		{
 		// automatic lerp (classic mode)
 		frac = (cl.time - cl.mtime[1]) / server_frametime;
-		}
-#endif
+		}*/
+
+	if (cl_interp->value <= 0.001)
+		return 1.0f;
+
+	frac = (cl.time - cl.mtime[0]) / cl_interp->value;
+
 	return frac;
 	}
 
@@ -346,7 +348,7 @@ Validate interpolation cvars, calc interpolation window
 void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	{
 	const float epsilon = 0.001f; // to avoid float invalid comparision
-	float min_interp = MIN_EX_INTERP;
+	float min_interp /*= MIN_EX_INTERP*/;
 	float max_interp = MAX_EX_INTERP;
 	float interpolation_time;
 
@@ -366,7 +368,10 @@ void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 		max_interp = 0.2f;
 
 	min_interp = 1.0f / cl_updaterate->value;
-	interpolation_time = CL_LerpInterval ();
+
+	// [Xash3D, 21.03.23]
+	//interpolation_time = CL_LerpInterval ();
+	interpolation_time = cl_interp->value * 1000.0;
 
 	if ((cl_interp->value + epsilon) < min_interp)
 		{
@@ -413,8 +418,10 @@ void CL_ComputePacketLoss (void)
 		count++;
 		}
 
-	if (count <= 0) cls.packet_loss = 0.0f;
-	else cls.packet_loss = (100.0f * (float)lost) / (float)count;
+	if (count <= 0) 
+		cls.packet_loss = 0.0f;
+	else 
+		cls.packet_loss = (100.0f * (float)lost) / (float)count;
 	}
 
 /*
@@ -554,14 +561,20 @@ qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 
 	if (ov->flZoom < 0.0f) sign = -1;
 
-	if (cmd->upmove > 0.0f) ov->zNear += step;
-	else if (cmd->upmove < 0.0f) ov->zNear -= step;
+	if (cmd->upmove > 0.0f) 
+		ov->zNear += step;
+	else if (cmd->upmove < 0.0f) 
+		ov->zNear -= step;
 
-	if (cmd->buttons & IN_JUMP) ov->zFar += step;
-	else if (cmd->buttons & IN_DUCK) ov->zFar -= step;
+	if (cmd->buttons & IN_JUMP) 
+		ov->zFar += step;
+	else if (cmd->buttons & IN_DUCK)
+		ov->zFar -= step;
 
-	if (cmd->buttons & IN_FORWARD) ov->origin[ov->rotated] -= sign * step2;
-	else if (cmd->buttons & IN_BACK) ov->origin[ov->rotated] += sign * step2;
+	if (cmd->buttons & IN_FORWARD)
+		ov->origin[ov->rotated] -= sign * step2;
+	else if (cmd->buttons & IN_BACK)
+		ov->origin[ov->rotated] += sign * step2;
 
 	if (ov->rotated)
 		{
@@ -578,10 +591,13 @@ qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 			ov->origin[1] -= sign * step2;
 		}
 
-	if (cmd->buttons & IN_ATTACK) ov->flZoom += step;
-	else if (cmd->buttons & IN_ATTACK2) ov->flZoom -= step;
+	if (cmd->buttons & IN_ATTACK) 
+		ov->flZoom += step;
+	else if (cmd->buttons & IN_ATTACK2)
+		ov->flZoom -= step;
 
-	if (ov->flZoom == 0.0f) ov->flZoom = 0.0001f; // to prevent disivion by zero
+	if (ov->flZoom == 0.0f) 
+		ov->flZoom = 0.0001f; // to prevent disivion by zero
 
 	return true;
 	}
@@ -617,17 +633,18 @@ void CL_UpdateClientData (void)
 
 /*
 =================
-CL_CreateCmd
+CL_CreateCmd [Xash3D, 21.03.23]
 =================
 */
 void CL_CreateCmd (void)
 	{
-	usercmd_t		cmd;
-	runcmd_t *pcmd;
+	//usercmd_t	cmd;
+	usercmd_t	nullcmd, *cmd;
+	runcmd_t	*pcmd;
 	vec3_t		angles;
-	qboolean		active;
-	int		input_override;
-	int		i, ms;
+	qboolean	active;
+	int			input_override;
+	int			i, ms;
 
 	if ((cls.state < ca_connected) || (cls.state == ca_cinematic))
 		return;
@@ -635,7 +652,7 @@ void CL_CreateCmd (void)
 	// store viewangles in case it's will be freeze
 	VectorCopy (cl.viewangles, angles);
 	ms = bound (1, host.frametime * 1000, 255);
-	memset (&cmd, 0, sizeof (cmd));
+	memset (&cmd, 0, sizeof (cmd));		// [Xash3D, 21.03.23: ???]
 	input_override = 0;
 
 	CL_SetSolidEntities ();
@@ -654,12 +671,24 @@ void CL_CreateCmd (void)
 		pcmd->receivedtime = -1.0;
 		pcmd->heldback = false;
 		pcmd->sendsize = 0;
+
+		// [Xash3D, 21.03.23]
+		cmd = &pcmd->cmd;
+		}
+	else
+		{
+		memset (&nullcmd, 0, sizeof (nullcmd));
+		cmd = &nullcmd;
 		}
 
 	active = ((cls.signon == SIGNONS) && !cl.paused && !cls.demoplayback);
 	Platform_PreCreateMove ();
-	clgame.dllFuncs.CL_CreateMove (host.frametime, &pcmd->cmd, active);
-	IN_EngineAppendMove (host.frametime, &pcmd->cmd, active);
+	
+	// [Xash3D, 21.03.23]
+	/*clgame.dllFuncs.CL_CreateMove (host.frametime, &pcmd->cmd, active);
+	IN_EngineAppendMove (host.frametime, &pcmd->cmd, active);*/
+	clgame.dllFuncs.CL_CreateMove (host.frametime, cmd, active);
+	IN_EngineAppendMove (host.frametime, cmd, active);
 
 	CL_PopPMStates ();
 
@@ -677,7 +706,8 @@ void CL_CreateCmd (void)
 		{
 		VectorCopy (angles, pcmd->cmd.viewangles);
 		VectorCopy (angles, cl.viewangles);
-		if (!cl.background) pcmd->cmd.msec = 0;
+		if (!cl.background)
+			pcmd->cmd.msec = 0;
 		}
 
 	// demo always have commands so don't overwrite them
@@ -692,8 +722,8 @@ void CL_WriteUsercmd (sizebuf_t *msg, int from, int to)
 	usercmd_t	nullcmd;
 	usercmd_t *f, *t;
 
-	Assert (from == -1 || (from >= 0 && from < MULTIPLAYER_BACKUP));
-	Assert (to >= 0 && to < MULTIPLAYER_BACKUP);
+	Assert ((from == -1) || ((from >= 0) && (from < MULTIPLAYER_BACKUP)));
+	Assert ((to >= 0) && (to < MULTIPLAYER_BACKUP));
 
 	if (from == -1)
 		{
@@ -731,20 +761,24 @@ void CL_WritePacket (void)
 	int		cmdnumber;
 
 	// don't send anything if playing back a demo
-	if (cls.demoplayback || cls.state < ca_connected || cls.state == ca_cinematic)
+	if (cls.demoplayback || (cls.state < ca_connected) || (cls.state == ca_cinematic))
 		return;
 
 	CL_ComputePacketLoss ();
+	memset (data, 0, sizeof (data));	// [Xash3D, 21.03.23]
 
 	MSG_Init (&buf, "ClientData", data, sizeof (data));
 
-	// Determine number of backup commands to send along
-	numbackup = bound (0, cl_cmdbackup->value, MAX_BACKUP_COMMANDS);
-	if (cls.state == ca_connected) numbackup = 0;
+	// Determine number of backup commands to send along [Xash3D, 21.03.23]
+	//numbackup = bound (0, cl_cmdbackup->value, MAX_BACKUP_COMMANDS);
+	numbackup = bound (0, cl_cmdbackup->value, cls.legacymode ? MAX_LEGACY_BACKUP_CMDS : MAX_BACKUP_COMMANDS);
 
-	// clamp cmdrate
-	if (cl_cmdrate->value < 0.0f)
-		Cvar_SetValue ("cl_cmdrate", 0.0f);
+	if (cls.state == ca_connected) 
+		numbackup = 0;
+
+	// clamp cmdrate [Xash3D, 21.03.23]
+	if (cl_cmdrate->value < 10.0f)
+		Cvar_SetValue ("cl_cmdrate", 10.0f);
 	else if (cl_cmdrate->value > 100.0f)
 		Cvar_SetValue ("cl_cmdrate", 100.0f);
 
@@ -752,7 +786,7 @@ void CL_WritePacket (void)
 
 	// In single player, send commands as fast as possible
 	// Otherwise, only send when ready and when not choking bandwidth
-	if (cl.maxclients == 1 || (NET_IsLocalAddress (cls.netchan.remote_address) && !host_limitlocal->value))
+	if ((cl.maxclients == 1) || (NET_IsLocalAddress (cls.netchan.remote_address) && !host_limitlocal->value))
 		send_command = true;
 
 	if ((host.realtime >= cls.nextcmdtime) && Netchan_CanPacket (&cls.netchan, true))
@@ -776,6 +810,8 @@ void CL_WritePacket (void)
 		if ((host.realtime - cls.netchan.last_received) > CONNECTION_PROBLEM_TIME)
 			{
 			Con_NPrintf (1, "^3Warning:^1 Connection Problem^7\n");
+			Con_NPrintf (2, "^1Auto-disconnect in %.1f seconds^7", cl_timeout->value - 
+				(host.realtime - cls.netchan.last_received));	// [Xash3D, 21.03.23]
 			cl.validsequence = 0;
 			}
 		}
@@ -1033,7 +1069,8 @@ void CL_SendConnectPacket (void)
 		return;
 		}
 
-	if (adr.port == 0) adr.port = MSG_BigShort (PORT_SERVER);
+	if (adr.port == 0) 
+		adr.port = MSG_BigShort (PORT_SERVER);
 	qport = Cvar_VariableString ("net_qport");
 	key = ID_GetMD5 ();
 
@@ -1050,9 +1087,18 @@ void CL_SendConnectPacket (void)
 		input_devices = IN_CollectInputDevices ();
 		IN_LockInputDevices (true);
 
-		Info_SetValueForKey (protinfo, "d", va ("%d", input_devices), sizeof (protinfo));
+		// [Xash3D, 21.03.23]
+		//Info_SetValueForKey (protinfo, "d", va ("%d", input_devices), sizeof (protinfo));
+		Cvar_SetCheatState ();
+		Cvar_FullSet ("sv_cheats", "0", FCVAR_READ_ONLY | FCVAR_SERVER);
+
+		Info_SetValueForKeyf (protinfo, "d", sizeof (protinfo), "%d", input_devices);
+
 		Info_SetValueForKey (protinfo, "v", XASH_VERSION, sizeof (protinfo));
-		Info_SetValueForKey (protinfo, "b", va ("%d", Q_buildnum ()), sizeof (protinfo));
+		
+		//Info_SetValueForKey (protinfo, "b", va ("%d", Q_buildnum ()), sizeof (protinfo));
+		Info_SetValueForKeyf (protinfo, "b", sizeof (protinfo), "%d", Q_buildnum ());
+
 		Info_SetValueForKey (protinfo, "o", Q_buildos (), sizeof (protinfo));
 		Info_SetValueForKey (protinfo, "a", Q_buildarch (), sizeof (protinfo));
 		}
@@ -1060,7 +1106,7 @@ void CL_SendConnectPacket (void)
 	if (cls.legacymode)
 		{
 		// set related userinfo keys
-		if (cl_dlmax->value >= 40000 || cl_dlmax->value < 100)
+		if ((cl_dlmax->value >= 40000) || (cl_dlmax->value < 100))
 			Info_SetValueForKey (cls.userinfo, "cl_maxpacket", "1400", sizeof (cls.userinfo));
 		else
 			Info_SetValueForKey (cls.userinfo, "cl_maxpacket", cl_dlmax->string, sizeof (cls.userinfo));
@@ -1086,9 +1132,12 @@ void CL_SendConnectPacket (void)
 
 		Info_SetValueForKey (protinfo, "uuid", key, sizeof (protinfo));
 		Info_SetValueForKey (protinfo, "qport", qport, sizeof (protinfo));
-		Info_SetValueForKey (protinfo, "ext", va ("%d", extensions), sizeof (protinfo));
+		
+		//Info_SetValueForKey (protinfo, "ext", va ("%d", extensions), sizeof (protinfo));
+		Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", extensions);
 
-		Netchan_OutOfBandPrint (NS_CLIENT, adr, "connect %i %i \"%s\" \"%s\"\n", PROTOCOL_VERSION, cls.challenge, protinfo, cls.userinfo);
+		Netchan_OutOfBandPrint (NS_CLIENT, adr, "connect %i %i \"%s\" \"%s\"\n", PROTOCOL_VERSION, 
+			cls.challenge, protinfo, cls.userinfo);
 		Con_Printf ("Trying to connect by modern protocol\n");
 		}
 
@@ -1104,14 +1153,15 @@ Resend a connect message if the last one has timed out
 */
 void CL_CheckForResend (void)
 	{
-	netadr_t	adr;
+	netadr_t adr;
 	int res;
+	qboolean bandwidthTest;	// [Xash3D, 21.03.23]
 
 	if (cls.internetservers_wait)
 		CL_InternetServers_f ();
 
 	// if the local server is running and we aren't then connect
-	if (cls.state == ca_disconnected && SV_Active ())
+	if ((cls.state == ca_disconnected) && SV_Active ())
 		{
 		cls.signon = 0;
 		cls.state = ca_connecting;
@@ -1124,7 +1174,7 @@ void CL_CheckForResend (void)
 		}
 
 	// resend if we haven't gotten a reply yet
-	if (cls.demoplayback || cls.state != ca_connecting)
+	if (cls.demoplayback || (cls.state != ca_connecting))
 		return;
 
 	if (cl_resend.value < CL_MIN_RESEND_TIME)
@@ -1157,7 +1207,8 @@ void CL_CheckForResend (void)
 		return;
 		}
 
-	if (adr.port == 0) adr.port = MSG_BigShort (PORT_SERVER);
+	if (adr.port == 0) 
+		adr.port = MSG_BigShort (PORT_SERVER);
 
 	if (cls.connect_retry == CL_TEST_RETRIES_NORESPONCE)
 		{
@@ -1170,14 +1221,24 @@ void CL_CheckForResend (void)
 		return;
 		}
 
+	// [Xash3D, 21.03.23]
+	bandwidthTest = !cls.legacymode && cl_test_bandwidth.value;
 	cls.serveradr = adr;
-	cls.max_fragment_size = Q_max (FRAGMENT_MAX_SIZE, cls.max_fragment_size >> Q_min (1, cls.connect_retry));
-	cls.connect_time = host.realtime; // for retransmit requests
+	
+	//cls.max_fragment_size = Q_max (FRAGMENT_MAX_SIZE, cls.max_fragment_size >> Q_min (1, cls.connect_retry));
+	cls.max_fragment_size = Q_min (FRAGMENT_MAX_SIZE, cls.max_fragment_size / (cls.connect_retry + 1));
+
+	cls.connect_time = host.realtime;	// for retransmit requests
 	cls.connect_retry++;
 
-	Con_Printf ("Connecting to %s... [retry #%i]\n", cls.servername, cls.connect_retry);
+	if (bandwidthTest)
+		Con_Printf ("Connecting to %s... [retry #%i, max fragment size %i]\n", cls.servername,
+			cls.connect_retry, cls.max_fragment_size);
+	else
+		Con_Printf ("Connecting to %s... [retry #%i]\n", cls.servername, cls.connect_retry);
 
-	if (!cls.legacymode && cl_test_bandwidth.value)
+	//if (!cls.legacymode && cl_test_bandwidth.value)
+	if (bandwidthTest)
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "bandwidth %i %i\n", PROTOCOL_VERSION, cls.max_fragment_size);
 	else
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "getchallenge\n");
@@ -1204,42 +1265,51 @@ void CL_CreateResourceList (void)
 	{
 	char		szFileName[MAX_OSPATH];
 	byte		rgucMD5_hash[16];
-	resource_t *pNewResource;
-	int		nSize;
-	file_t *fp;
+	resource_t	*pNewResource;
+	int			nSize;
+	file_t		*fp;
 
 	HPAK_FlushHostQueue ();
 	cl.num_resources = 0;
 
-	Q_snprintf (szFileName, sizeof (szFileName), "logos/remapped.bmp");
+	// [Xash3D, 21.03.23]
+	//Q_snprintf (szFileName, sizeof (szFileName), "logos/remapped.bmp");
 	memset (rgucMD5_hash, 0, sizeof (rgucMD5_hash));
 
+	// sanitize cvar value
+	if (Q_strcmp (cl_logoext.string, "bmp") && Q_strcmp (cl_logoext.string, "png"))
+		Cvar_DirectSet (&cl_logoext, "bmp");
+
+	Q_snprintf (szFileName, sizeof (szFileName),
+		"logos/remapped.%s", cl_logoext.string);
 	fp = FS_Open (szFileName, "rb", true);
 
-	if (fp)
+	/*if (fp)
+		{*/
+	if (!fp)
+		return;
+
+	MD5_HashFile (rgucMD5_hash, szFileName, NULL);
+	nSize = FS_FileLength (fp);
+
+	if (nSize != 0)
 		{
-		MD5_HashFile (rgucMD5_hash, szFileName, NULL);
-		nSize = FS_FileLength (fp);
+		pNewResource = CL_AddResource (t_decal, szFileName, nSize, false, 0);
 
-		if (nSize != 0)
+		if (pNewResource)
 			{
-			pNewResource = CL_AddResource (t_decal, szFileName, nSize, false, 0);
-
-			if (pNewResource)
-				{
-				SetBits (pNewResource->ucFlags, RES_CUSTOM);
-				memcpy (pNewResource->rgucMD5_hash, rgucMD5_hash, 16);
-				HPAK_AddLump (false, CUSTOM_RES_PATH, pNewResource, NULL, fp);
-				}
+			SetBits (pNewResource->ucFlags, RES_CUSTOM);
+			memcpy (pNewResource->rgucMD5_hash, rgucMD5_hash, 16);
+			HPAK_AddLump (false, CUSTOM_RES_PATH, pNewResource, NULL, fp);
 			}
-		FS_Close (fp);
 		}
+
+	FS_Close (fp);
 	}
 
 /*
 ================
 CL_Connect_f
-
 ================
 */
 void CL_Connect_f (void)
@@ -1291,12 +1361,14 @@ an unconnected command.
 */
 void CL_Rcon_f (void)
 	{
-	char	message[1024];
+	char		message[1024];
 	netadr_t	to;
-	string command;
-	int	i;
+	string		command;
+	int			i;
 
-	if (!COM_CheckString (rcon_client_password->string))
+	// [Xash3D, 21.03.23]
+	//if (!COM_CheckString (rcon_client_password->string))
+	if (!COM_CheckString (rcon_password.string))
 		{
 		Con_Printf ("You must set 'rcon_password' before issuing an rcon command.\n");
 		return;
@@ -1311,7 +1383,8 @@ void CL_Rcon_f (void)
 	NET_Config (true, false);	// allow remote
 
 	Q_strcat (message, "rcon ");
-	Q_strcat (message, rcon_client_password->string);
+	//Q_strcat (message, rcon_client_password->string);
+	Q_strcat (message, rcon_password.string);
 	Q_strcat (message, " ");
 
 	for (i = 1; i < Cmd_Argc (); i++)
@@ -1344,7 +1417,6 @@ void CL_Rcon_f (void)
 /*
 =====================
 CL_ClearState
-
 =====================
 */
 void CL_ClearState (void)
@@ -1360,7 +1432,9 @@ void CL_ClearState (void)
 	CL_ClearEffects ();
 	CL_FreeEdicts ();
 
-	CL_ClearPhysEnts ();
+	// [Xash3D, 21.03.23]
+	//CL_ClearPhysEnts ();
+	PM_ClearPhysEnts (clgame.pmove);
 	NetAPI_CancelAllRequests ();
 
 	// wipe the entire cl structure
@@ -1368,6 +1442,9 @@ void CL_ClearState (void)
 	MSG_Clear (&cls.netchan.message);
 	memset (&clgame.fade, 0, sizeof (clgame.fade));
 	memset (&clgame.shake, 0, sizeof (clgame.shake));
+	
+	// [Xash3D, 21.03.23]
+	clgame.mapname[0] = '\0';
 	Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
 	cl.maxclients = 1; // allow to drawing player in menu
 	cl.mtime[0] = cl.mtime[1] = 1.0f; // because level starts from 1.0f second
@@ -1577,31 +1654,72 @@ void CL_LocalServers_f (void)
 	// send a broadcast packet
 	adr.type = NA_BROADCAST;
 	adr.port = MSG_BigShort (PORT_SERVER);
-
+	
+	// [Xash3D, 21.03.23]
+	Netchan_OutOfBandPrint (NS_CLIENT, adr, "info %i", PROTOCOL_VERSION);
+	
+	adr.type = NA_MULTICAST_IP6;
 	Netchan_OutOfBandPrint (NS_CLIENT, adr, "info %i", PROTOCOL_VERSION);
 	}
 
-#define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"
+// [Xash3D, 21.03.23]
+//#define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"
 
 /*
 =================
-CL_InternetServers_f
+CL_BuildMasterServerScanRequest [Xash3D, 21.03.23]
+=================
+*/
+size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat)
+	{
+	size_t remaining;
+	char *info;
+
+	if (unlikely (size < sizeof (MS_SCAN_REQUEST)))
+		return 0;
+
+	Q_strncpy (buf, MS_SCAN_REQUEST, size);
+
+	info = buf + sizeof (MS_SCAN_REQUEST) - 1;
+	remaining = size - sizeof (MS_SCAN_REQUEST);
+
+	info[0] = 0;
+
+	Info_SetValueForKey (info, "gamedir", GI->gamefolder, remaining);
+	Info_SetValueForKey (info, "clver", XASH_VERSION, remaining); // let master know about client version
+	Info_SetValueForKey (info, "nat", nat ? "1" : "0", remaining);
+
+	return sizeof (MS_SCAN_REQUEST) + Q_strlen (info);
+	}
+
+/*
+=================
+CL_InternetServers_f [Xash3D, 21.03.23]
 =================
 */
 void CL_InternetServers_f (void)
 	{
-	char	fullquery[512] = MS_SCAN_REQUEST;
+	/*char	fullquery[512] = MS_SCAN_REQUEST;
 	char *info = fullquery + sizeof (MS_SCAN_REQUEST) - 1;
-	const size_t remaining = sizeof (fullquery) - sizeof (MS_SCAN_REQUEST);
+	const size_t remaining = sizeof (fullquery) - sizeof (MS_SCAN_REQUEST);*/
+	char		fullquery[512];
+	size_t		len;
+	qboolean	nat = cl_nat->value != 0.0f;
 
-	NET_Config (true, true); // allow remote
+	//NET_Config (true, true); // allow remote
+	len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), nat);
 
 	Con_Printf ("Scanning for servers on the internet area...\n");
-	Info_SetValueForKey (info, "gamedir", GI->gamefolder, remaining);
+
+	/*Info_SetValueForKey (info, "gamedir", GI->gamefolder, remaining);
 	Info_SetValueForKey (info, "clver", XASH_VERSION, remaining); // let master know about client version
 	Info_SetValueForKey (info, "nat", cl_nat->string, remaining);
 
-	cls.internetservers_wait = NET_SendToMasters (NS_CLIENT, sizeof (MS_SCAN_REQUEST) + Q_strlen (info), fullquery);
+	cls.internetservers_wait = NET_SendToMasters (NS_CLIENT, sizeof (MS_SCAN_REQUEST) + Q_strlen (info), fullquery);*/
+	
+	NET_Config (true, true); // allow remote
+
+	cls.internetservers_wait = NET_SendToMasters (NS_CLIENT, len, fullquery); 
 	cls.internetservers_pending = true;
 
 	if (!cls.internetservers_wait)
@@ -1635,6 +1753,8 @@ void CL_Reconnect_f (void)
 
 	if (COM_CheckString (cls.servername))
 		{
+		qboolean legacy = cls.legacymode;	// [Xash3D, 21.03.23]
+
 		if (cls.state >= ca_connected)
 			CL_Disconnect ();
 
@@ -1642,6 +1762,7 @@ void CL_Reconnect_f (void)
 		cls.demonum = cls.movienum = -1;	// not in the demo loop now
 		cls.state = ca_connecting;
 		cls.signon = 0;
+		cls.legacymode = legacy;			// [Xash3D, 21.03.23] don't change protocol
 
 		Con_Printf ("reconnecting...\n");
 		}
@@ -1673,7 +1794,7 @@ void CL_FixupColorStringsForInfoString (const char *in, char *out)
 			color = ColorIndex (*(in + 1));
 
 		// color the not reset while end of key (or value) was found!
-		if (*in == '\\' && color != 7)
+		if ((*in == '\\') && (color != 7))
 			{
 			if (IsColorString (out - 2))
 				{
@@ -1726,7 +1847,7 @@ void CL_ParseStatusMessage (netadr_t from, sizebuf_t *msg)
 	const char *magic = ": wrong version\n";
 	size_t len = Q_strlen (s), magiclen = Q_strlen (magic);
 
-	if (len >= magiclen && !Q_strcmp (s + len - magiclen, magic))
+	if ((len >= magiclen) && !Q_strcmp (s + len - magiclen, magic))
 		{
 		Netchan_OutOfBandPrint (NS_CLIENT, from, "info %i", PROTOCOL_LEGACY_VERSION);
 		return;
@@ -1893,8 +2014,7 @@ Used for connectionless packets, when netchan may not be ready.
 */
 static qboolean CL_IsFromConnectingServer (netadr_t from)
 	{
-	return NET_IsLocalAddress (from) ||
-		NET_CompareAdr (cls.serveradr, from);
+	return NET_IsLocalAddress (from) || NET_CompareAdr (cls.serveradr, from);
 	}
 
 /*
@@ -1906,11 +2026,11 @@ Responses to broadcasts, etc
 */
 void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	{
-	char *args;
-	const char *c;
-	char	buf[MAX_SYSPATH];
-	int	len = sizeof (buf);
-	int	dataoffset = 0;
+	char		*args;
+	const char	*c;
+	char		buf[MAX_SYSPATH];
+	int			len = sizeof (buf);
+	int			dataoffset = 0;
 	netadr_t	servadr;
 
 	MSG_Clear (msg);
@@ -2066,7 +2186,9 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 
 		if (NET_CompareAdr (from, cls.legacyserver))
 			{
-			Cbuf_AddText (va ("connect %s legacy\n", NET_AdrToString (from)));
+			// [Xash3D, 21.03.23]
+			//Cbuf_AddText (va ("connect %s legacy\n", NET_AdrToString (from)));
+			Cbuf_AddTextf ("connect %s legacy\n", NET_AdrToString (from));
 			memset (&cls.legacyserver, 0, sizeof (cls.legacyserver));
 			}
 		}
@@ -2319,11 +2441,7 @@ void CL_ReadPackets (void)
 	CL_ReadNetMessage ();
 
 	CL_ApplyAddAngle ();
-#if 0
-	// keep cheat cvars are unchanged
-	if (cl.maxclients > 1 && cls.state == ca_active && !host_developer.value)
-		Cvar_SetCheatState ();
-#endif
+
 	// hot precache and downloading resources
 	if (cls.signon == SIGNONS && cl.lastresourcecheck < host.realtime)
 		{
@@ -2421,15 +2539,19 @@ A file has been received via the fragmentation/reassembly layer, put it in the r
 */
 void CL_ProcessFile (qboolean successfully_received, const char *filename)
 	{
-	int		sound_len = sizeof (DEFAULT_SOUNDPATH) - 1;
+	int			sound_len = sizeof (DEFAULT_SOUNDPATH) - 1;
 	byte		rgucMD5_hash[16];
-	const char *pfilename;
-	resource_t *p;
+	const char	*pfilename;
+	resource_t	*p;
 
 	if (COM_CheckString (filename) && successfully_received)
 		{
 		if (filename[0] != '!')
 			Con_Printf ("processing %s\n", filename);
+
+		// [Xash3D, 21.03.23] skip "downloaded/" part to avoid mismatch with needed resources list
+		if (!Q_strnicmp (filename, "downloaded/", 11))
+			filename += 11;
 		}
 	else if (!successfully_received)
 		{
@@ -2831,6 +2953,7 @@ void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_download_ingame);
 	Cvar_RegisterVariable (&cl_logofile);
 	Cvar_RegisterVariable (&cl_logocolor);
+	Cvar_RegisterVariable (&cl_logoext);	// [Xash3D, 21.03.23]
 	Cvar_RegisterVariable (&cl_test_bandwidth);
 
 	Voice_RegisterCvars ();
@@ -2845,7 +2968,8 @@ void CL_InitLocal (void)
 	cl_charset = Cvar_Get ("cl_charset", "utf-8", FCVAR_ARCHIVE, "1-byte charset to use (iconv style)");
 	hud_utf8 = Cvar_Get ("hud_utf8", "0", FCVAR_ARCHIVE, "Use utf-8 encoding for hud text");
 
-	rcon_client_password = Cvar_Get ("rcon_password", "", FCVAR_PRIVILEGED, "remote control client password");
+	// [Xash3D, 21.03.23]
+	//rcon_client_password = Cvar_Get ("rcon_password", "", FCVAR_PRIVILEGED, "remote control client password");
 	rcon_address = Cvar_Get ("rcon_address", "", FCVAR_PRIVILEGED, "remote control address");
 
 	cl_trace_messages = Cvar_Get ("cl_trace_messages", "0", FCVAR_ARCHIVE | FCVAR_CHEAT, "enable message names tracing (good for developers)");
@@ -2869,9 +2993,9 @@ void CL_InitLocal (void)
 
 	cl_nosmooth = Cvar_Get ("cl_nosmooth", "0", FCVAR_ARCHIVE, "disable smooth up stair climbing");
 	cl_nointerp = Cvar_Get ("cl_nointerp", "0", FCVAR_CLIENTDLL, "disable interpolation of entities and players");
-	cl_smoothtime = Cvar_Get ("cl_smoothtime", "0", FCVAR_ARCHIVE, "time to smooth up");
+	cl_smoothtime = Cvar_Get ("cl_smoothtime", "0.1", FCVAR_ARCHIVE, "time to smooth up");
 	cl_cmdbackup = Cvar_Get ("cl_cmdbackup", "10", FCVAR_ARCHIVE, "how many additional history commands are sent");
-	cl_cmdrate = Cvar_Get ("cl_cmdrate", "30", FCVAR_ARCHIVE, "Max number of command packets sent to server per second");
+	cl_cmdrate = Cvar_Get ("cl_cmdrate", "60", FCVAR_ARCHIVE, "Max number of command packets sent to server per second");
 	cl_draw_particles = Cvar_Get ("r_drawparticles", "1", FCVAR_CHEAT, "render particles");
 	cl_draw_tracers = Cvar_Get ("r_drawtracers", "1", FCVAR_CHEAT, "render tracers");
 	cl_draw_beams = Cvar_Get ("r_drawbeams", "1", FCVAR_CHEAT, "render beams");
@@ -2880,6 +3004,9 @@ void CL_InitLocal (void)
 	cl_bmodelinterp = Cvar_Get ("cl_bmodelinterp", "1", FCVAR_ARCHIVE, "enable bmodel interpolation");
 	cl_clockreset = Cvar_Get ("cl_clockreset", "0.1", FCVAR_ARCHIVE, "frametime delta maximum value before reset");
 	cl_fixtimerate = Cvar_Get ("cl_fixtimerate", "7.5", FCVAR_ARCHIVE, "time in msec to client clock adjusting");
+
+	// [Xash3D, 21.03.23]
+	hud_fontscale = Cvar_Get ("hud_fontscale", "1.0", FCVAR_ARCHIVE | FCVAR_LATCH, "scale hud font texture");
 	hud_scale = Cvar_Get ("hud_scale", "0", FCVAR_ARCHIVE | FCVAR_LATCH, "scale hud at current resolution");
 	Cvar_Get ("cl_background", "0", FCVAR_READ_ONLY, "indicate what background map is running");
 	cl_showevents = Cvar_Get ("cl_showevents", "0", FCVAR_ARCHIVE, "show events playback");
@@ -2900,6 +3027,13 @@ void CL_InitLocal (void)
 	Cmd_AddRestrictedCommand ("kill", NULL, "die instantly");
 	Cmd_AddCommand ("god", NULL, "enable godmode");
 	Cmd_AddCommand ("fov", NULL, "set client field of view");
+
+	// [Xash3D, 21.03.23]
+	Cmd_AddRestrictedCommand ("ent_list", NULL, "list entities on server");
+	Cmd_AddRestrictedCommand ("ent_fire", NULL, "fire entity command (be careful)");
+	Cmd_AddRestrictedCommand ("ent_info", NULL, "dump entity information");
+	Cmd_AddRestrictedCommand ("ent_create", NULL, "create entity with specified values (be careful)");
+	Cmd_AddRestrictedCommand ("ent_getvars", NULL, "put parameters of specified entities to client's' ent_last_* cvars");
 
 	// register our commands
 	Cmd_AddCommand ("pause", NULL, "pause the game (if the server allows pausing)");
@@ -2958,7 +3092,7 @@ to smooth lag effect
 */
 void CL_AdjustClock (void)
 	{
-	if (cl.timedelta == 0.0f || !cl_fixtimerate->value)
+	if ((cl.timedelta == 0.0f) || !cl_fixtimerate->value)
 		return;
 
 	if (cl_fixtimerate->value < 0.0f)
@@ -2967,12 +3101,17 @@ void CL_AdjustClock (void)
 	if (fabs (cl.timedelta) >= 0.001f)
 		{
 		double msec, adjust;
-		float sign;
+		double sign;
 
-		msec = (cl.timedelta * 1000.0f);
+		// [Xash3D, 21.03.23]
+		/*msec = (cl.timedelta * 1000.0f);
 		sign = (msec < 0) ? 1.0f : -1.0f;
 		msec = fabs (msec);
-		adjust = sign * (cl_fixtimerate->value / 1000.0f);
+		adjust = sign * (cl_fixtimerate->value / 1000.0f);*/
+		msec = (cl.timedelta * 1000.0);
+		sign = (msec < 0) ? 1.0 : -1.0;
+		msec = Q_min (cl_fixtimerate->value, fabs (msec));
+		adjust = sign * (msec / 1000.0);
 
 		if (fabs (adjust) < fabs (cl.timedelta))
 			{
@@ -3057,8 +3196,8 @@ void Host_ClientFrame (void)
 	// catch changes video settings
 	VID_CheckChanges ();
 
-	// process VGUI
-	VGui_RunFrame ();
+	/* [Xash3D, 21.03.23] process VGUI
+	VGui_RunFrame ();*/
 
 	// update the screen
 	SCR_UpdateScreen ();
@@ -3135,7 +3274,9 @@ void CL_Shutdown (void)
 	CL_UnloadProgs ();
 	cls.initialized = false;
 
-	VGui_Shutdown ();
+	// [Xash3D, 21.03.23] for client-side VGUI support we use other order
+	if (!GI->internal_vgui_support)
+		VGui_Shutdown ();
 
 	FS_Delete ("demoheader.tmp"); // remove tmp file
 	SCR_FreeCinematic (); // release AVI's *after* client.dll because custom renderer may use them

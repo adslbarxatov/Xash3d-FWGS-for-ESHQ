@@ -517,17 +517,29 @@ CLIENT SIDE DEMO PLAYBACK
 =================
 CL_ReadDemoCmdHeader
 
-read the demo command
+read the demo command [Xash3D, 21.03.23]
 =================
 */
-void CL_ReadDemoCmdHeader (byte *cmd, float *dt)
+qboolean CL_ReadDemoCmdHeader (byte *cmd, float *dt)
 	{
 	// read the command
-	FS_Read (cls.demofile, cmd, sizeof (byte));
-	Assert (*cmd >= 1 && *cmd <= dem_lastcmd);
+	// HACKHACK: skip NOPs
+	do
+		{
+		FS_Read (cls.demofile, cmd, sizeof (byte));
+		//Assert (*cmd >= 1 && *cmd <= dem_lastcmd);
+		} while (*cmd == dem_unknown);
+
+	if (*cmd > dem_lastcmd)
+		{
+		Con_Printf (S_ERROR "Demo cmd %d > %d, file offset = %d\n", *cmd, dem_lastcmd, (int)FS_Tell (cls.demofile));
+		CL_DemoCompleted ();
+		return false;
+		}
 
 	// read the timestamp
 	FS_Read (cls.demofile, dt, sizeof (float));
+	return true;
 	}
 
 /*
@@ -915,7 +927,10 @@ qboolean CL_DemoReadMessage (byte *buffer, size_t *length)
 		if (!cls.demofile) break;
 		curpos = FS_Tell (cls.demofile);
 
-		CL_ReadDemoCmdHeader (&cmd, &demo.timestamp);
+		// [Xash3D, 21.03.23]
+		// CL_ReadDemoCmdHeader (&cmd, &demo.timestamp);
+		if (!CL_ReadDemoCmdHeader (&cmd, &demo.timestamp))
+			return false;
 
 		fElapsedTime = CL_GetDemoPlaybackClock () - demo.starttime;
 		if (!cls.timedemo) bSkipMessage = ((demo.timestamp - cl_serverframetime ()) >= fElapsedTime) ? true : false;
@@ -1380,7 +1395,10 @@ void CL_Record_f (void)
 			return;
 			}
 		}
-	else Q_strncpy (demoname, name, sizeof (demoname));
+	else
+		{
+		Q_strncpy (demoname, name, sizeof (demoname));
+		}
 
 	// open the demo file
 	Q_sprintf (demopath, "%s.dem", demoname);
@@ -1406,18 +1424,18 @@ void CL_PlayDemo_f (void)
 	{
 	char	filename[MAX_QPATH];
 	char	demoname[MAX_QPATH];
-	int	i, ident;
+	int		i, ident;
 
 	if (Cmd_Argc () < 2)
 		{
-		Con_Printf (S_USAGE "playdemo <demoname>\n");
+		// [Xash3D, 21.03.23]
+		// Con_Printf (S_USAGE "playdemo <demoname>\n");
+		Con_Printf (S_USAGE "%s <demoname>\n", Cmd_Argv (0));
 		return;
 		}
 
 	if (cls.demoplayback)
-		{
 		CL_StopPlayback ();
-		}
 
 	if (cls.demorecording)
 		{
@@ -1490,7 +1508,8 @@ void CL_PlayDemo_f (void)
 	if (demo.header.net_protocol != PROTOCOL_VERSION &&
 		demo.header.net_protocol != PROTOCOL_LEGACY_VERSION)
 		{
-		Con_Printf (S_ERROR "playdemo: net protocol outdated (%i should be %i)\n", demo.header.net_protocol, PROTOCOL_VERSION);
+		Con_Printf (S_ERROR "playdemo: net protocol outdated (%i should be %i)\n", 
+			demo.header.net_protocol, PROTOCOL_VERSION);
 		CL_DemoAborted ();
 		return;
 		}
@@ -1537,11 +1556,13 @@ timedemo <demoname>
 */
 void CL_TimeDemo_f (void)
 	{
+	/* [Xash3D, 21.03.23]
 	if (Cmd_Argc () != 2)
 		{
 		Con_Printf (S_USAGE "timedemo <demoname>\n");
 		return;
 		}
+	*/
 
 	CL_PlayDemo_f ();
 

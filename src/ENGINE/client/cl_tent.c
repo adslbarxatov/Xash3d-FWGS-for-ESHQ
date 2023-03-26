@@ -151,7 +151,7 @@ void CL_AddClientResources (void)
 	int	i;
 
 	// don't request resources from localhost or in quake-compatibility mode
-	if (cl.maxclients <= 1 || Host_IsQuakeCompatible ())
+	if ((cl.maxclients <= 1) || Host_IsQuakeCompatible ())
 		return;
 
 	// check sprites first
@@ -553,7 +553,8 @@ CL_TempEntAlloc
 custom tempentity allocation
 ==============
 */
-TEMPENTITY *GAME_EXPORT CL_TempEntAllocCustom (const vec3_t org, model_t *model, int high, void (*pfn)(TEMPENTITY *, float, float))
+TEMPENTITY *GAME_EXPORT CL_TempEntAllocCustom (const vec3_t org, model_t *model, int high, 
+	void (*pfn)(TEMPENTITY *, float, float))
 	{
 	TEMPENTITY *pTemp;
 
@@ -1009,7 +1010,8 @@ R_BreakModel
 Create a shards
 ==============
 */
-void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t dir, float random, float life, int count, int modelIndex, char flags)
+void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t dir, float random, 
+	float life, int count, int modelIndex, char flags)
 	{
 	TEMPENTITY *pTemp;
 	model_t *pmodel;
@@ -1041,7 +1043,9 @@ void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t
 			vecSpot[1] = pos[1] + COM_RandomFloat (-0.5f, 0.5f) * size[1];
 			vecSpot[2] = pos[2] + COM_RandomFloat (-0.5f, 0.5f) * size[2];
 
-			if (CL_PointContents (vecSpot) != CONTENTS_SOLID)
+			// [Xash3D, 26.03.23]
+			//if (CL_PointContents (vecSpot) != CONTENTS_SOLID)
+			if (PM_CL_PointContents (vecSpot, NULL) != CONTENTS_SOLID)
 				break; // valid spot
 			}
 
@@ -1691,7 +1695,7 @@ void GAME_EXPORT R_Explosion (vec3_t pos, int model, float scale, float framerat
 	// ESHQ: звук взрыва теперь зависит от его мощности
 	if (!FBitSet (flags, TE_EXPLFLAG_NOSOUND))
 		{
-		hSound = S_RegisterSound (va ("%s", cl_explode_sounds[COM_RandomLong (0, 2)]));
+		hSound = S_RegisterSound (cl_explode_sounds[COM_RandomLong (0, 2)]);
 		S_StartSound (pos, 0, CHAN_STATIC, hSound, volume, 0.3f, pitch, 0);
 		}
 	}
@@ -2944,13 +2948,22 @@ void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, float *pos
 	if (playernum < MAX_CLIENTS)
 		pCust = cl.players[playernum].customdata.pNext;
 
-	if (pCust != NULL && pCust->pBuffer != NULL && pCust->pInfo != NULL)
+	if ((pCust != NULL) && (pCust->pBuffer != NULL) && (pCust->pInfo != NULL))
 		{
-		if (FBitSet (pCust->resource.ucFlags, RES_CUSTOM) && pCust->resource.type == t_decal && pCust->bTranslated)
+		if (FBitSet (pCust->resource.ucFlags, RES_CUSTOM) && (pCust->resource.type == t_decal) && pCust->bTranslated)
 			{
 			if (!pCust->nUserData1)
 				{
-				const char *decalname = va ("player%dlogo%d", playernum, customIndex);
+				// [Xash3D, 26.03.23]
+				//const char *decalname = va ("player%dlogo%d", playernum, customIndex);
+				int sprayTextureIndex;
+				char decalname[MAX_VA_STRING];
+
+				Q_snprintf (decalname, sizeof (decalname), "player%dlogo%d", playernum, customIndex);
+				sprayTextureIndex = ref.dllFuncs.GL_FindTexture (decalname);
+				if (sprayTextureIndex != 0)
+					ref.dllFuncs.GL_FreeTexture (sprayTextureIndex);
+
 				pCust->nUserData1 = GL_LoadTextureInternal (decalname, pCust->pInfo, TF_DECAL);
 				}
 			textureIndex = pCust->nUserData1;

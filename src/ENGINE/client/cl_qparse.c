@@ -237,15 +237,19 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		if (r_decals->value > mp_decals.value)
 			Cvar_SetValue ("r_decals", mp_decals.value);
 		}
-	else Cvar_Reset ("r_decals");
+	else
+		{
+		Cvar_Reset ("r_decals");
+		}
 
-	// re-init mouse
+	/* [Xash3D, 26.03.23] re-init mouse
 	if (cl.background)
-		host.mouse_visible = false;
+		host.mouse_visible = false;*/
 
 	if (cl.background)	// tell the game parts about background state
 		Cvar_FullSet ("cl_background", "1", FCVAR_READ_ONLY);
-	else Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
+	else
+		Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
 
 	S_StopBackgroundTrack ();
 
