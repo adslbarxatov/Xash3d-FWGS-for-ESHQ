@@ -38,108 +38,108 @@ enginekey_t	keys[256];
 
 keyname_t keynames[] =
 	{
-	{"TAB",		K_TAB,		""		},
-	{"ENTER",		K_ENTER,		""		},
-	{"ESCAPE",	K_ESCAPE, 	"escape"		}, // hardcoded
-	{"SPACE",		K_SPACE,		"+jump"		},
-	{"BACKSPACE",	K_BACKSPACE,	""		},
-	{"UPARROW",	K_UPARROW,	"+forward"	},
-	{"DOWNARROW",	K_DOWNARROW,	"+back"		},
-	{"LEFTARROW",	K_LEFTARROW,	"+left"		},
-	{"RIGHTARROW",	K_RIGHTARROW,	"+right"		},
-	{"ALT",		K_ALT,		"+strafe"		},
-	{"CTRL",		K_CTRL,		"+attack"		},
-	{"SHIFT",		K_SHIFT,		"+speed"		},
-	{"CAPSLOCK",	K_CAPSLOCK,	""		},
-	{"SCROLLOCK",	K_SCROLLOCK,	""		},
-	{"F1",		K_F1,		"cmd help"	},
-	{"F2",		K_F2,		"menu_savegame"	},
-	{"F3",		K_F3,		"menu_loadgame"	},
-	{"F4",		K_F4,		"menu_controls"	},
-	{"F5",		K_F5,		"menu_creategame"	},
-	{"F6",		K_F6,		"savequick"	},
-	{"F7",		K_F7,		"loadquick"	},
-	{"F8",		K_F8,		"stop"		},
-	{"F9",		K_F9,		""		},
-	{"F10",		K_F10,		"menu_main"	},
-	{"F11",		K_F11,		""		},
-	{"F12",		K_F12,		"snapshot"	},
-	{"INS",		K_INS,		""		},
-	{"DEL",		K_DEL,		"+lookdown"	},
-	{"PGDN",		K_PGDN,		"+lookup"		},
-	{"PGUP",		K_PGUP,		""		},
-	{"HOME",		K_HOME,		""		},
-	{"END",		K_END,		"centerview"	},
+	{"TAB",			K_TAB,			""},
+	{"ENTER",		K_ENTER,		""},
+	{"ESCAPE",		K_ESCAPE, 		"escape"}, // hardcoded
+	{"SPACE",		K_SPACE,		"+jump"},
+	{"BACKSPACE",	K_BACKSPACE,	""},
+	{"UPARROW",		K_UPARROW,		"+forward"},
+	{"DOWNARROW",	K_DOWNARROW,	"+back"},
+	{"LEFTARROW",	K_LEFTARROW,	"+left"},
+	{"RIGHTARROW",	K_RIGHTARROW,	"+right"},
+	{"ALT",			K_ALT,			"+strafe"},
+	{"CTRL",		K_CTRL,			"+attack"},
+	{"SHIFT",		K_SHIFT,		"+speed"},
+	{"CAPSLOCK",	K_CAPSLOCK,		""},
+	{"SCROLLOCK",	K_SCROLLOCK,	""},
+	{"F1",			K_F1,			"cmd help"},
+	{"F2",			K_F2,			"menu_savegame"},
+	{"F3",			K_F3,			"menu_loadgame"},
+	{"F4",			K_F4,			"menu_controls"},
+	{"F5",			K_F5,			"menu_creategame"},
+	{"F6",			K_F6,			"savequick"},
+	{"F7",			K_F7,			"loadquick"},
+	{"F8",			K_F8,			"stop"},
+	{"F9",			K_F9,			""},
+	{"F10",			K_F10,			"menu_main"},
+	{"F11",			K_F11,			""},
+	{"F12",			K_F12,			"snapshot"},
+	{"INS",			K_INS,			""},
+	{"DEL",			K_DEL,			"+lookdown"},
+	{"PGDN",		K_PGDN,			"+lookup"},
+	{"PGUP",		K_PGUP,			""},
+	{"HOME",		K_HOME,			""},
+	{"END",			K_END,			"centerview"},
 
 	// mouse buttouns
-	{"MOUSE1",	K_MOUSE1,		"+attack"		},
-	{"MOUSE2",	K_MOUSE2,		"+attack2"	},
-	{"MOUSE3",	K_MOUSE3,		""		},
-	{"MOUSE4",	K_MOUSE4,		""		},
-	{"MOUSE5",	K_MOUSE5,		""		},
-	{"MWHEELUP",	K_MWHEELUP,	""		},
-	{"MWHEELDOWN",	K_MWHEELDOWN,	""		},
+	{"MOUSE1",		K_MOUSE1,		"+attack"},
+	{"MOUSE2",		K_MOUSE2,		"+attack2"},
+	{"MOUSE3",		K_MOUSE3,		""},
+	{"MOUSE4",		K_MOUSE4,		""},
+	{"MOUSE5",		K_MOUSE5,		""},
+	{"MWHEELUP",	K_MWHEELUP,		""},
+	{"MWHEELDOWN",	K_MWHEELDOWN,	""},
 
 	// digital keyboard
-	{"KP_HOME",	K_KP_HOME,	""		},
-	{"KP_UPARROW",	K_KP_UPARROW,	"+forward"	},
-	{"KP_PGUP",	K_KP_PGUP,	""		},
-	{"KP_LEFTARROW",	K_KP_LEFTARROW,	"+left"		},
-	{"KP_5",		K_KP_5,		""		},
-	{"KP_RIGHTARROW",	K_KP_RIGHTARROW,	"+right"		},
-	{"KP_END",	K_KP_END,		"centerview"	},
-	{"KP_DOWNARROW",	K_KP_DOWNARROW,	"+back"		},
-	{"KP_PGDN",	K_KP_PGDN,	"+lookup" 	},
-	{"KP_ENTER",	K_KP_ENTER,	""		},
-	{"KP_INS",	K_KP_INS,		""		},
-	{"KP_DEL",	K_KP_DEL,		"+lookdown"	},
-	{"KP_SLASH",	K_KP_SLASH,	""		},
-	{"KP_MINUS",	K_KP_MINUS,	""		},
-	{"KP_PLUS",	K_KP_PLUS,	""		},
-	{"PAUSE",		K_PAUSE,		"pause"		},
+	{"KP_HOME",		K_KP_HOME,		""	},
+	{"KP_UPARROW",	K_KP_UPARROW,	"+forward"},
+	{"KP_PGUP",		K_KP_PGUP,		""},
+	{"KP_LEFTARROW",	K_KP_LEFTARROW,	"+left"},
+	{"KP_5",		K_KP_5,			""},
+	{"KP_RIGHTARROW",	K_KP_RIGHTARROW,	"+right"},
+	{"KP_END",		K_KP_END,		"centerview"},
+	{"KP_DOWNARROW",	K_KP_DOWNARROW,	"+back"},
+	{"KP_PGDN",		K_KP_PGDN,		"+lookup"},
+	{"KP_ENTER",	K_KP_ENTER,		""},
+	{"KP_INS",		K_KP_INS,		""},
+	{"KP_DEL",		K_KP_DEL,		"+lookdown"},
+	{"KP_SLASH",	K_KP_SLASH,		""},
+	{"KP_MINUS",	K_KP_MINUS,		""},
+	{"KP_PLUS",		K_KP_PLUS,		""},
+	{"PAUSE",		K_PAUSE,		"pause"},
 
 	// Gamepad
 	// A/B X/Y names match the Xbox controller layout
-	{"A_BUTTON", K_A_BUTTON, "+jump"},
-	{"B_BUTTON", K_B_BUTTON, "+use"},
-	{"X_BUTTON", K_X_BUTTON, "+reload"},
-	{"Y_BUTTON", K_Y_BUTTON, "impulse 100"}, // Flashlight
-	{"BACK",   K_BACK_BUTTON, "cancelselect"}, // Menu
-	{"MODE",   K_MODE_BUTTON, ""},
-	{"START",  K_START_BUTTON, "pause"},
-	{"STICK1", K_LSTICK, "+speed"},
-	{"STICK2", K_RSTICK, "+duck"},
-	{"L1_BUTTON",  K_L1_BUTTON, "+duck"},
-	{"R1_BUTTON",  K_R1_BUTTON, "+attack"},
-	{"DPAD_UP",	K_DPAD_UP,	"impulse 201"}, // Spray
+	{"A_BUTTON",	K_A_BUTTON,		"+jump"},
+	{"B_BUTTON",	K_B_BUTTON,		"+use"},
+	{"X_BUTTON",	K_X_BUTTON,		"+reload"},
+	{"Y_BUTTON",	K_Y_BUTTON,		"impulse 100"},	// Flashlight
+	{"BACK",		K_BACK_BUTTON,	"pause"},		// [Xash3D, 26.03.23] Menu
+	{"MODE",		K_MODE_BUTTON,	""},
+	{"START",		K_START_BUTTON,	"escape"},		// [Xash3D, 26.03.23]
+	{"STICK1",		K_LSTICK,		"+speed"},
+	{"STICK2",		K_RSTICK,		"+duck"},
+	{"L1_BUTTON",	K_L1_BUTTON,	"+duck"},
+	{"R1_BUTTON",	K_R1_BUTTON,	"+attack"},
+	{"DPAD_UP",		K_DPAD_UP,		"impulse 201"},	// Spray
 	{"DPAD_DOWN",	K_DPAD_DOWN,	"lastinv"},
 	{"DPAD_LEFT",	K_DPAD_LEFT,	"invprev"},
 	{"DPAD_RIGHT",	K_DPAD_RIGHT,	"invnext"},
-	{"L2_BUTTON", K_L2_BUTTON, "+speed"},
-	{"R2_BUTTON", K_R2_BUTTON, "+attack2"},
-	{"LTRIGGER" , K_JOY1 , "+speed"}, // L2 in SDL2
-	{"RTRIGGER" , K_JOY2 , "+attack2"}, // R2 in SDL2
-	{"JOY3" , K_JOY3 , ""},
-	{"JOY4" , K_JOY4 , ""},
-	{"C_BUTTON", K_C_BUTTON, ""},
-	{"Z_BUTTON", K_Z_BUTTON, ""},
-	{"AUX20", K_AUX20, ""}, // generic
-	{"AUX21", K_AUX21, ""},
-	{"AUX22", K_AUX22, ""},
-	{"AUX23", K_AUX23, ""},
-	{"AUX24", K_AUX24, ""},
-	{"AUX25", K_AUX25, ""},
-	{"AUX26", K_AUX26, ""},
-	{"AUX27", K_AUX27, ""},
-	{"AUX28", K_AUX28, ""},
-	{"AUX29", K_AUX29, ""},
-	{"AUX30", K_AUX30, ""},
-	{"AUX31", K_AUX31, ""},
-	{"AUX32", K_AUX32, ""},
+	{"L2_BUTTON",	K_L2_BUTTON,	"+speed"},
+	{"R2_BUTTON",	K_R2_BUTTON,	"+attack2"},
+	{"LTRIGGER" ,	K_JOY1 ,		"+speed"},		// L2 in SDL2
+	{"RTRIGGER" ,	K_JOY2 ,		"+attack2"},	// R2 in SDL2
+	{"JOY3" ,		K_JOY3 ,		""},
+	{"JOY4" ,		K_JOY4 ,		""},
+	{"C_BUTTON",	K_C_BUTTON,		""},
+	{"Z_BUTTON",	K_Z_BUTTON,		""},
+	{"MISC_BUTTON",	K_MISC_BUTTON,	""},	// [Xash3D, 26.03.23]
+	{"PADDLE1",		K_PADDLE1_BUTTON,	""},
+	{"PADDLE2",		K_PADDLE2_BUTTON,	""},
+	{"PADDLE3",		K_PADDLE3_BUTTON,	""},
+	{"PADDLE4",		K_PADDLE4_BUTTON,	""},
+	{"TOUCHPAD",	K_TOUCHPAD,		""},
+	{"AUX26",		K_AUX26,		""}, // generic
+	{"AUX27",		K_AUX27,		""},
+	{"AUX28",		K_AUX28,		""},
+	{"AUX29",		K_AUX29,		""},
+	{"AUX30",		K_AUX30,		""},
+	{"AUX31",		K_AUX31,		""},
+	{"AUX32",		K_AUX32,		""},
 
 	// raw semicolon seperates commands
-	{"SEMICOLON",	';',		""		},
-	{NULL,		0,		NULL		},
+	{"SEMICOLON",	';',			""},
+	{NULL,			0,				NULL},
 	};
 
 static void OSK_EnableTextInput (qboolean enable, qboolean force);
@@ -367,14 +367,15 @@ void Key_Unbind_f (void)
 
 /*
 ===================
-Key_Unbindall_f
+Key_Unbindall_f [Xash3D, 26.03.23]
 ===================
 */
 void Key_Unbindall_f (void)
 	{
 	int	i;
 
-	for (i = 0; i < 256; i++)
+	//for (i = 0; i < 256; i++)
+	for (i = 0; i < ARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
 			Key_SetBinding (i, "");
@@ -382,11 +383,12 @@ void Key_Unbindall_f (void)
 
 	// set some defaults
 	Key_SetBinding (K_ESCAPE, "escape");
+	Key_SetBinding (K_START_BUTTON, "escape");
 	}
 
 /*
 ===================
-Key_Reset_f
+Key_Reset_f [Xash3D, 26.03.23]
 ===================
 */
 void Key_Reset_f (void)
@@ -395,7 +397,8 @@ void Key_Reset_f (void)
 	int	i;
 
 	// clear all keys first
-	for (i = 0; i < 256; i++)
+	//for (i = 0; i < 256; i++)
+	for (i = 0; i < ARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
 			Key_SetBinding (i, "");
@@ -702,7 +705,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 			return;
 			}
 
-		if (key >= 200 && !kb)
+		if ((key >= 200) && !kb)
 			Con_Printf ("%s is unbound.\n", Key_KeynumToString (key));
 		}
 	else
@@ -712,13 +715,13 @@ void GAME_EXPORT Key_Event (int key, int down)
 		}
 
 	VGui_KeyEvent (key, down);
-	Touch_KeyEvent (key, down);
+	//Touch_KeyEvent (key, down);	// [Xash3D, 26.03.23]
 
 	// console key is hardcoded, so the user can never unbind it
-	if (key == '`' || key == '~')
+	if ((key == '`') || (key == '~'))
 		{
 		// we are in typing mode, so don't switch to console
-		if (cls.key_dest == key_message || !down)
+		if ((cls.key_dest == key_message) || !down)
 			return;
 
 		Con_ToggleConsole_f ();
@@ -726,7 +729,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 		}
 
 	// escape is always handled special
-	if (key == K_ESCAPE && down)
+	if ((key == K_ESCAPE) && down)
 		{
 		switch (cls.key_dest)
 			{
@@ -837,18 +840,23 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 			Key_EnableTextInput (false, false);
 			cls.key_dest = key_game;
 			break;
+
 		case key_menu:
 			Key_EnableTextInput (false, false);
 			cls.key_dest = key_menu;
 			break;
+
 		case key_console:
+#if !XASH_NSWITCH && !XASH_PSVITA // [Xash3D, 26.03.23] if we don't disable this, pops up the keyboard during load
 			Key_EnableTextInput (true, false);
-			cls.key_dest = key_console;
+#endif			cls.key_dest = key_console;
 			break;
+
 		case key_message:
 			Key_EnableTextInput (true, false);
 			cls.key_dest = key_message;
 			break;
+
 		default:
 			Host_Error ("Key_SetKeyDest: wrong destination (%i)\n", key_dest);
 			break;
@@ -900,7 +908,7 @@ void CL_CharEvent (int key)
 		}
 
 	// distribute the key down event to the apropriate handler
-	if (cls.key_dest == key_console || cls.key_dest == key_message)
+	if ((cls.key_dest == key_console) || (cls.key_dest == key_message))
 		{
 		Con_CharEvent (key);
 		}
@@ -1025,7 +1033,6 @@ static qboolean OSK_KeyEvent (int key, int down)
 		return false;
 		}
 
-
 	switch (key)
 		{
 		case K_ENTER:
@@ -1034,7 +1041,6 @@ static qboolean OSK_KeyEvent (int key, int down)
 				case OSK_ENTER:
 					osk.sending = true;
 					Key_Event (K_ENTER, down);
-					//osk_enable = false; // TODO: handle multiline
 					break;
 				case OSK_SHIFT:
 					if (!down)
@@ -1112,7 +1118,6 @@ static qboolean OSK_KeyEvent (int key, int down)
 
 	osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];
 	return true;
-
 	}
 
 /*
@@ -1143,14 +1148,16 @@ static void OSK_EnableTextInput (qboolean enable, qboolean force)
 
 /*
 ============
-Joy_DrawSymbolButton
+Joy_DrawSymbolButton [Xash3D, 26.03.23]
 
 Draw button with symbol on it
 ============
 */
 static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float height)
 	{
-	char str[] = { symb & 255, 0 };
+	//char str[] = { symb & 255, 0 };
+	cl_font_t *font = Con_GetCurFont ();
+
 	byte color[] = { 255, 255, 255, 255 };
 	int x1 = x * refState.width,
 		y1 = y * refState.height,
@@ -1158,19 +1165,19 @@ static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float
 		h = height * refState.height;
 
 	if (symb == osk.curbutton.val)
-		{
 		ref.dllFuncs.FillRGBABlend (x1, y1, w, h, 255, 160, 0, 100);
-		}
 
-	if (!symb || symb == ' ' || (symb >= OSK_TAB && symb < OSK_SPECKEY_LAST))
+	if (!symb || (symb == ' ') || ((symb >= OSK_TAB) && (symb < OSK_SPECKEY_LAST)))
 		return;
 
-	Con_DrawCharacter (x1 + 1, y1, symb, color);
+	//Con_DrawCharacter (x1 + 1, y1, symb, color);
+	CL_DrawCharacter (x1 + width * 0.4 * refState.width, y1 + height * 0.4 * refState.height,
+		symb, color, font, 0);
 	}
 
 /*
 =============
-Joy_DrawSpecialButton
+Joy_DrawSpecialButton [Xash3D, 26.03.23]
 
 Draw special button, like shift, enter or esc
 =============
@@ -1179,7 +1186,9 @@ static void OSK_DrawSpecialButton (const char *name, float x, float y, float wid
 	{
 	byte color[] = { 0, 255, 0, 255 };
 
-	Con_DrawString (x * refState.width, y * refState.height, name, color);
+	//Con_DrawString (x * refState.width, y * refState.height, name, color);
+	Con_DrawString (x * refState.width + width * 0.4 * refState.width,
+		y * refState.height + height * 0.4 * refState.height, name, color);
 	}
 
 

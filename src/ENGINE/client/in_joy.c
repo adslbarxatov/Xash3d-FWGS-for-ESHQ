@@ -244,7 +244,8 @@ static struct joy_axis_s
 			return;
 			}
 
-		return Joy_KnownAxisMotionEvent (joyaxesmap[axis], value);
+		//return Joy_KnownAxisMotionEvent (joyaxesmap[axis], value);
+		Joy_KnownAxisMotionEvent (joyaxesmap[axis], value);		// [Xash3D, 26.03.23]
 		}
 
 	void Joy_KnownAxisMotionEvent (engineAxis_t engineAxis, short value)

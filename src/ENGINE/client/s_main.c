@@ -35,18 +35,30 @@ int		total_channels;
 int		soundtime;	// sample PAIRS
 int   		paintedtime; 	// sample PAIRS
 
-static CVAR_DEFINE (s_volume, "volume", "0.7", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "sound volume");
-CVAR_DEFINE (s_musicvolume, "MP3Volume", "1.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "background music volume");
-static CVAR_DEFINE (s_mixahead, "_snd_mixahead", "0.12", FCVAR_FILTERABLE, "how much sound to mix ahead of time");
-static CVAR_DEFINE_AUTO (s_show, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "show playing sounds");
-CVAR_DEFINE_AUTO (s_lerping, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "apply interpolation to sound output");
-static CVAR_DEFINE (s_ambient_level, "ambient_level", "0.3", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "volume of environment noises (water and wind)");
-static CVAR_DEFINE (s_ambient_fade, "ambient_fade", "1000", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "rate of volume fading when client is moving");
-static CVAR_DEFINE_AUTO (s_combine_sounds, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "combine channels with same sounds");
-CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "silence the audio when game window loses focus");
-CVAR_DEFINE_AUTO (s_test, "0", 0, "engine developer cvar for quick testing new features");
-CVAR_DEFINE_AUTO (s_samplecount, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "sample count (0 for default value)");
-CVAR_DEFINE_AUTO (s_warn_late_precache, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "warn about late precached sounds on client-side");
+static CVAR_DEFINE (s_volume, "volume", "0.7", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"sound volume");
+CVAR_DEFINE (s_musicvolume, "MP3Volume", "1.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"background music volume");
+static CVAR_DEFINE (s_mixahead, "_snd_mixahead", "0.12", FCVAR_FILTERABLE, 
+	"how much sound to mix ahead of time");
+static CVAR_DEFINE_AUTO (s_show, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"show playing sounds");
+CVAR_DEFINE_AUTO (s_lerping, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"apply interpolation to sound output");
+static CVAR_DEFINE (s_ambient_level, "ambient_level", "0.3", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"volume of environment noises (water and wind)");
+static CVAR_DEFINE (s_ambient_fade, "ambient_fade", "1000", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"rate of volume fading when client is moving");
+static CVAR_DEFINE_AUTO (s_combine_sounds, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"combine channels with same sounds");
+CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"silence the audio when game window loses focus");
+CVAR_DEFINE_AUTO (s_test, "0", 0, 
+	"engine developer cvar for quick testing new features");
+CVAR_DEFINE_AUTO (s_samplecount, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"sample count (0 for default value)");
+CVAR_DEFINE_AUTO (s_warn_late_precache, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"warn about late precached sounds on client-side");
 
 /*
 =============================================================================
@@ -199,6 +211,66 @@ qboolean SND_FStreamIsPlaying (sfx_t *sfx)
 
 /*
 =================
+SND_GetChannelTimeLeft [Xash3D, 26.03.23]
+
+TODO: this function needs to be removed after whole sound subsystem rewrite
+=================
+*/
+static int SND_GetChannelTimeLeft (const channel_t *ch)
+	{
+	int remaining;
+
+	if (ch->pMixer.finished || !ch->sfx || !ch->sfx->cache)
+		return 0;
+
+	if (ch->isSentence) // sentences are special, count all remaining words
+		{
+		int i;
+
+		if (!ch->currentWord)
+			return 0;
+
+		// current word
+		remaining = ch->currentWord->forcedEndSample - ch->currentWord->sample;
+
+		// here we count all remaining words, stopping if no sfx or sound file is available
+		// see VOX_LoadWord
+		for (i = ch->wordIndex + 1; i < ARRAYSIZE (ch->words); i++)
+			{
+			wavdata_t *sc;
+			int end;
+
+			// don't continue with broken sentences
+			if (!ch->words[i].sfx)
+				break;
+
+			if (!(sc = S_LoadSound (ch->words[i].sfx)))
+				break;
+
+			end = ch->words[i].end;
+
+			if (end)
+				remaining += sc->samples * 0.01f * end;
+			else 
+				remaining += sc->samples;
+			}
+		}
+	else
+		{
+		int curpos;
+		int samples;
+
+		// handle position looping
+		samples = ch->sfx->cache->samples;
+		curpos = S_ConvertLoopedPosition (ch->sfx->cache, ch->pMixer.sample, ch->use_loop);
+		remaining = bound (0, samples - curpos, samples);
+		}
+
+	return remaining;
+	}
+
+/*
+=================
 SND_PickDynamicChannel
 
 Select a channel from the dynamic channel allocation area.  For the given entity,
@@ -245,12 +317,13 @@ channel_t *SND_PickDynamicChannel (int entnum, int channel, sfx_t *sfx, qboolean
 		if (ch->sfx && S_IsClient (ch->entnum) && !S_IsClient (entnum))
 			continue;
 
-		// try to pick the sound with the least amount of data left to play
-		timeleft = 0;
+		// [Xash3D, 26.03.23] try to pick the sound with the least amount of data left to play
+		timeleft = SND_GetChannelTimeLeft (ch);
+		/*timeleft = 0;
 		if (ch->sfx)
 			{
 			timeleft = 1; // ch->end - paintedtime
-			}
+			}*/
 
 		if (timeleft < life_left)
 			{
@@ -623,7 +696,8 @@ S_RestoreSound
 Restore a sound effect for the given entity on the given channel
 ====================
 */
-void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn, int pitch, int flags, double sample, double end, int wordIndex)
+void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn, 
+	int pitch, int flags, double sample, double end, int wordIndex)
 	{
 	wavdata_t *pSource;
 	sfx_t *sfx = NULL;
@@ -1685,7 +1759,8 @@ void SND_UpdateSound (void)
 		VectorSet (info.color, 1.0f, 1.0f, 1.0f);
 		info.index = 0;
 
-		Con_NXPrintf (&info, "room_type: %i (%s) ----(%i)---- painted: %i\n", idsp_room, Cvar_VariableString ("dsp_coeff_table"), total - 1, paintedtime);
+		Con_NXPrintf (&info, "room_type: %i (%s) ----(%i)---- painted: %i\n", idsp_room, 
+			Cvar_VariableString ("dsp_coeff_table"), total - 1, paintedtime);
 		}
 
 	S_StreamBackgroundTrack ();
@@ -1805,8 +1880,15 @@ void S_Music_f (void)
 
 		for (i = 0; i < 2; i++)
 			{
-			const char *intro_path = va ("media/%s.%s", intro, ext[i]);
-			const char *main_path = va ("media/%s.%s", main, ext[i]);
+			// [Xash3D, 26.03.23]
+			/*const char *intro_path = va ("media/%s.%s", intro, ext[i]);
+			const char *main_path = va ("media/%s.%s", main, ext[i]);*/
+			char intro_path[MAX_VA_STRING];
+			char main_path[MAX_VA_STRING];
+			char track_path[MAX_VA_STRING];
+
+			Q_snprintf (intro_path, sizeof (intro_path), "media/%s.%s", intro, ext[i]);
+			Q_snprintf (main_path, sizeof (main_path), "media/%s.%s", main, ext[i]);
 
 			if (FS_FileExists (intro_path, false) && FS_FileExists (main_path, false))
 				{
@@ -1814,7 +1896,12 @@ void S_Music_f (void)
 				S_StartBackgroundTrack (intro, main, 0, false);
 				break;
 				}
-			else if (FS_FileExists (va ("media/%s.%s", track, ext[i]), false))
+
+			// [Xash3D, 26.03.23]
+			/*else if (FS_FileExists (va ("media/%s.%s", track, ext[i]), false))*/
+			
+			Q_snprintf (track_path, sizeof (track_path), "media/%s.%s", track, ext[i]);
+			if (FS_FileExists (track_path, false))
 				{
 				// single non-looped theme
 				S_StartBackgroundTrack (track, NULL, 0, false);

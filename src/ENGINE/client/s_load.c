@@ -14,21 +14,22 @@ GNU General Public License for more details.
 */
 
 #include "common.h"
+#include "client.h"		// [Xash3D, 26.03.23]
 #include "sound.h"
 
 // during registration it is possible to have more sounds
 // than could actually be referenced during gameplay,
 // because we don't want to free anything until we are
 // sure we won't need it.
-#define MAX_SFX		8192
+#define MAX_SFX			8192
 #define MAX_SFX_HASH	(MAX_SFX/4)
 
-static int	s_numSfx = 0;
+static int		s_numSfx = 0;
 static sfx_t	s_knownSfx[MAX_SFX];
-static sfx_t *s_sfxHashList[MAX_SFX_HASH];
+static sfx_t	*s_sfxHashList[MAX_SFX_HASH];
 static string	s_sentenceImmediateName;	// keep dummy sentence name
 qboolean		s_registering = false;
-int		s_registration_sequence = 0;
+//int				s_registration_sequence = 0;	// [Xash3D, 26.03.23]
 
 /*
 =================
@@ -52,11 +53,18 @@ void S_SoundList_f (void)
 			{
 			totalSize += sc->size;
 
-			if (sc->loopStart >= 0) Con_Printf ("L");
-			else Con_Printf (" ");
-			if (sfx->name[0] == '*')
+			if (sc->loopStart >= 0)
+				Con_Printf ("L");
+			else 
+				Con_Printf (" ");
+
+			// [Xash3D, 26.03.23]
+			//if (sfx->name[0] == '*')
+			if ((sfx->name[0] == '*') || !Q_strncmp (sfx->name, DEFAULT_SOUNDPATH, sizeof (DEFAULT_SOUNDPATH) - 1))
 				Con_Printf (" (%2db) %s : %s\n", sc->width * 8, Q_memprint (sc->size), sfx->name);
-			else Con_Printf (" (%2db) %s : " DEFAULT_SOUNDPATH "%s\n", sc->width * 8, Q_memprint (sc->size), sfx->name);
+			else 
+				Con_Printf (" (%2db) %s : " DEFAULT_SOUNDPATH "%s\n", sc->width * 8, Q_memprint (sc->size), sfx->name);
+
 			totalSfx++;
 			}
 		}
@@ -198,8 +206,10 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 				// indicate whether or not sound is currently in the cache.
 				*pfInCache = (sfx->cache != NULL) ? true : false;
 				}
-			// prolonge registration
-			sfx->servercount = s_registration_sequence;
+
+			// [Xash3D, 26.03.23] prolonge registration
+			//sfx->servercount = s_registration_sequence;
+			sfx->servercount = cl.servercount;
 			return sfx;
 			}
 		}
@@ -219,7 +229,10 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 	memset (sfx, 0, sizeof (*sfx));
 	if (pfInCache) *pfInCache = false;
 	Q_strncpy (sfx->name, name, MAX_STRING);
-	sfx->servercount = s_registration_sequence;
+	
+	// [Xash3D, 26.03.23]
+	//sfx->servercount = s_registration_sequence;
+	sfx->servercount = cl.servercount;
 	sfx->hashValue = COM_HashKey (sfx->name, MAX_SFX_HASH);
 
 	// link it in
@@ -272,8 +285,7 @@ S_BeginRegistration
 void S_BeginRegistration (void)
 	{
 	int	i;
-
-	s_registration_sequence++;
+	//s_registration_sequence++;		// [Xash3D, 26.03.23]
 	snd_ambient = false;
 
 	// check for automatic ambient sounds
@@ -309,7 +321,9 @@ void S_EndRegistration (void)
 		if (!sfx->name[0] || !Q_stricmp (sfx->name, "*default"))
 			continue; // don't release default sound
 
-		if (sfx->servercount != s_registration_sequence)
+		// [Xash3D, 26.03.23]
+		//if (sfx->servercount != s_registration_sequence)
+		if (sfx->servercount != cl.servercount)
 			S_FreeSound (sfx); // don't need this sound
 		}
 
@@ -325,14 +339,13 @@ void S_EndRegistration (void)
 
 /*
 ==================
-S_RegisterSound
-
+S_RegisterSound [Xash3D, 26.03.23]
 ==================
 */
 sound_t S_RegisterSound (const char *name)
 	{
 	sfx_t *sfx;
-	int i;
+	//int i;
 
 	if (!COM_CheckString (name) || !dma.initialized)
 		return -1;
@@ -344,15 +357,24 @@ sound_t S_RegisterSound (const char *name)
 		}
 
 	// some stupid mappers used leading '/' or '\' in path to models or sounds
-	for (i = 0; i < 2; i++)
+	if ((name[0] == '/') || (name[0] == '\\'))
+		name++;
+	if ((name[0] == '/') || (name[0] == '\\')) 
+		name++;
+
+	/*for (i = 0; i < 2; i++)
 		if ((name[0] == '/') || (name[0] == '\\'))
-			name++;
+			name++;*/
 
 	sfx = S_FindName (name, NULL);
 	if (!sfx) 
 		return -1;
 
-	sfx->servercount = s_registration_sequence;
+	/*sfx->servercount = s_registration_sequence;
+	if (!s_registering)
+		S_LoadSound (sfx);*/
+
+	sfx->servercount = cl.servercount;
 	if (!s_registering)
 		S_LoadSound (sfx);
 

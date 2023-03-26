@@ -55,7 +55,9 @@ void GL_RenderFrame (const ref_viewpass_t *rvp)
 
 	VectorCopy (rvp->vieworigin, refState.vieworg);
 	VectorCopy (rvp->viewangles, refState.viewangles);
-	AngleVectors (refState.viewangles, refState.vforward, refState.vright, refState.vup);
+
+	// [Xash3D, 26.03.23]
+	//AngleVectors (refState.viewangles, refState.vforward, refState.vright, refState.vup);
 
 	ref.dllFuncs.GL_RenderFrame (rvp);
 	}
@@ -218,6 +220,7 @@ static qboolean R_DoResetGamma (void)
 		case scrshot_envshot:
 		case scrshot_skyshot:
 			return true;
+
 		default:
 			return false;
 		}
@@ -226,7 +229,11 @@ static qboolean R_DoResetGamma (void)
 static qboolean R_Init_Video_ (const int type)
 	{
 	host.apply_opengl_config = true;
-	Cbuf_AddText (va ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ()));
+	
+	// [Xash3D, 26.03.23]
+	//Cbuf_AddText (va ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ()));
+	Cbuf_AddTextf ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ());
+	
 	Cbuf_Execute ();
 	host.apply_opengl_config = false;
 
@@ -280,9 +287,11 @@ static ref_api_t gEngfuncs =
 		Mod_PointInLeaf,
 		Mod_CreatePolygonsForHull,
 
-		R_StudioSlerpBones,
+		// [Xash3D, 26.03.23]
+		/*R_StudioSlerpBones,
 		R_StudioCalcBoneQuaternion,
-		R_StudioCalcBonePosition,
+		R_StudioCalcBonePosition,*/
+
 		R_StudioGetAnim,
 		pfnStudioEvent,
 
@@ -360,7 +369,7 @@ static ref_api_t gEngfuncs =
 
 		pfnGetPhysent,
 		pfnTraceSurface,
-		PM_TraceLine,
+		PM_CL_TraceLine,	// [Xash3D, 26.03.23]
 		CL_VisTraceLine,
 		CL_TraceLine,
 		pfnGetMoveVars,

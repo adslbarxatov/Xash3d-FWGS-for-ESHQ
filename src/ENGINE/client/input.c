@@ -47,7 +47,7 @@ convar_t *cl_backspeed;
 convar_t *look_filter;
 convar_t *m_rawinput;
 
-static qboolean s_bRawInput, s_bMouseGrab;
+//static qboolean s_bRawInput, s_bMouseGrab;	// [Xash3D, 26.03.23]
 
 /*
 ================
@@ -63,7 +63,8 @@ uint IN_CollectInputDevices (void)
 	if (!m_ignore->value) // no way to check is mouse connected, so use cvar only
 		ret |= INPUT_DEVICE_MOUSE;
 
-	if (CVAR_TO_BOOL (touch_enable))
+	//if (CVAR_TO_BOOL (touch_enable))
+	if (touch_enable.value)		// [Xash3D, 26.03.23]
 		ret |= INPUT_DEVICE_TOUCH;
 
 	if (Joy_IsActive ()) // connected or enabled
@@ -80,7 +81,7 @@ uint IN_CollectInputDevices (void)
 
 /*
 =================
-IN_LockInputDevices
+IN_LockInputDevices [Xash3D, 26.03.23]
 
 tries to lock any possibilty to connect another input device after
 player is connected to the server
@@ -94,13 +95,15 @@ void IN_LockInputDevices (qboolean lock)
 		{
 		SetBits (m_ignore->flags, FCVAR_READ_ONLY);
 		SetBits (joy_enable->flags, FCVAR_READ_ONLY);
-		SetBits (touch_enable->flags, FCVAR_READ_ONLY);
+		//SetBits (touch_enable->flags, FCVAR_READ_ONLY);
+		SetBits (touch_enable.flags, FCVAR_READ_ONLY);
 		}
 	else
 		{
 		ClearBits (m_ignore->flags, FCVAR_READ_ONLY);
 		ClearBits (joy_enable->flags, FCVAR_READ_ONLY);
-		ClearBits (touch_enable->flags, FCVAR_READ_ONLY);
+		//ClearBits (touch_enable->flags, FCVAR_READ_ONLY);
+		ClearBits (touch_enable.flags, FCVAR_READ_ONLY);
 		}
 	}
 
@@ -166,26 +169,29 @@ void IN_MouseRestorePos (void)
 
 /*
 ===========
-IN_ToggleClientMouse
+IN_ToggleClientMouse [Xash3D, 26.03.23]
 
 Called when key_dest is changed
 ===========
 */
 void IN_ToggleClientMouse (int newstate, int oldstate)
 	{
-	if (newstate == oldstate) return;
+	if (newstate == oldstate)
+		return;
 
-	if (oldstate == key_game)
+	// since SetCursorType controls cursor visibility
+	// execute it first, and then check mouse grab state
+	if ((newstate == key_menu) || (newstate == key_console) || (newstate == key_message))
 		{
-		IN_DeactivateMouse ();
-		}
-	else if (newstate == key_game)
-		{
-		IN_ActivateMouse ();
-		}
+		Platform_SetCursorType (dc_arrow);
+		/*if (oldstate == key_game)
+			IN_DeactivateMouse ();
+		else if (newstate == key_game)
+			IN_ActivateMouse ();
 
-	if ((newstate == key_menu || newstate == key_console || newstate == key_message) && (!CL_IsBackgroundMap () || CL_IsBackgroundDemo ()))
-		{
+		if (((newstate == key_menu) || (newstate == key_console) || (newstate == key_message)) &&
+			(!CL_IsBackgroundMap () || CL_IsBackgroundDemo ()))
+			{*/
 #if XASH_ANDROID
 		Android_ShowMouse (true);
 #endif
@@ -195,6 +201,7 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		}
 	else
 		{
+		Platform_SetCursorType (dc_none);
 #if XASH_ANDROID
 		Android_ShowMouse (false);
 #endif
@@ -202,10 +209,18 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		Evdev_SetGrab (true);
 #endif
 		}
+
+	if (oldstate == key_game)
+		IN_DeactivateMouse ();
+	else if (newstate == key_game)
+		IN_ActivateMouse ();
 	}
 
+// [Xash3D, 26.03.23]
 void IN_CheckMouseState (qboolean active)
 	{
+	static qboolean s_bRawInput, s_bMouseGrab;
+
 #if XASH_WIN32
 	qboolean useRawInput = CVAR_TO_BOOL (m_rawinput) && clgame.client_dll_uses_sdl || clgame.dllFuncs.pfnLookEvent;
 #else
@@ -303,52 +318,73 @@ void IN_DeactivateMouse (void)
 
 /*
 ================
-IN_MouseMove
+IN_MouseMove [Xash3D, 26.03.23]
 ================
 */
 void IN_MouseMove (void)
 	{
-	POINT	current_pos;
+	//POINT	current_pos;
+	int x, y;
 
 	if (!in_mouseinitialized)
 		return;
 
+	/* find mouse movement
+	Platform_GetMousePos (&current_pos.x, &current_pos.y);*/
+
+	// touch emulation overrides all input
+	if (touch_emulate.value)
+		{
+		Touch_KeyEvent (0, 0);
+		return;
+		}
+
 	// find mouse movement
-	Platform_GetMousePos (&current_pos.x, &current_pos.y);
+	Platform_GetMousePos (&x, &y);
+	//VGui_MouseMove (current_pos.x, current_pos.y);
 
-	VGui_MouseMove (current_pos.x, current_pos.y);
-
-	// HACKHACK: show cursor in UI, as mainui doesn't call
+	VGui_MouseMove (x, y);
+	/* HACKHACK: show cursor in UI, as mainui doesn't call
 	// platform-dependent SetCursor anymore
 #if XASH_SDL
 	if (UI_IsVisible ())
 		SDL_ShowCursor (SDL_TRUE);
-#endif
+#endif*/
 
 	// if the menu is visible, move the menu cursor
-	UI_MouseMove (current_pos.x, current_pos.y);
+	UI_MouseMove (x, y);
+	//UI_MouseMove (current_pos.x, current_pos.y);
 	}
 
 /*
 ===========
-IN_MouseEvent
+IN_MouseEvent [Xash3D, 26.03.23]
 ===========
 */
 void IN_MouseEvent (int key, int down)
 	{
-	int	i;
+	//int	i;
 
 	if (!in_mouseinitialized)
 		return;
 
 	if (down)
 		SetBits (in_mstate, BIT (key));
-	else ClearBits (in_mstate, BIT (key));
+	else
+		ClearBits (in_mstate, BIT (key));
 
-	if (cls.key_dest == key_game)
+	//if (cls.key_dest == key_game)
+
+	// touch emulation overrides all input
+	if (touch_emulate.value)
+		{
+		Touch_KeyEvent (K_MOUSE1 + key, down);
+		}
+	else if (cls.key_dest == key_game)
 		{
 		// perform button actions
-		VGui_KeyEvent (K_MOUSE1 + key, down);
+		VGui_MouseEvent( K_MOUSE1 + key, down );
+		//VGui_KeyEvent (K_MOUSE1 + key, down);
 
 		// don't do Key_Event here
 		// client may override IN_MouseEvent
@@ -361,6 +397,23 @@ void IN_MouseEvent (int key, int down)
 		// perform button actions
 		Key_Event (K_MOUSE1 + key, down);
 		}
+	}
+
+/*
+==============
+IN_MWheelEvent [Xash3D, 26.03.23]
+
+direction is negative for wheel down, otherwise wheel up
+==============
+*/
+void IN_MWheelEvent (int y)
+	{
+	int b = y > 0 ? K_MWHEELUP : K_MWHEELDOWN;
+
+	VGui_MWheelEvent (y);
+
+	Key_Event (b, true);
+	Key_Event (b, false);
 	}
 
 /*
@@ -387,9 +440,12 @@ IN_Init
 */
 void IN_Init (void)
 	{
-	cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, "Default forward move speed");
-	cl_backspeed = Cvar_Get ("cl_backspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, "Default back move speed");
-	cl_sidespeed = Cvar_Get ("cl_sidespeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, "Default side move speed");
+	cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, 
+		"Default forward move speed");
+	cl_backspeed = Cvar_Get ("cl_backspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, 
+		"Default back move speed");
+	cl_sidespeed = Cvar_Get ("cl_sidespeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, 
+		"Default side move speed");
 
 	if (!Host_IsDedicated ())
 		{

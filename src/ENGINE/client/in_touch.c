@@ -87,7 +87,8 @@ typedef struct touchbuttonlist_s
 	touch_button_t *last;
 	} touchbuttonlist_t;
 
-struct touch_s
+// [Xash3D, 26.03.23]
+static struct touch_s	
 	{
 	qboolean initialized;
 	qboolean config_loaded;
@@ -151,7 +152,7 @@ convar_t *touch_exp_mult;
 convar_t *touch_grid_enable;
 convar_t *touch_grid_count;
 convar_t *touch_config_file;
-convar_t *touch_enable;
+//convar_t *touch_enable;		// [Xash3D, 26.03.23]
 convar_t *touch_in_menu;
 convar_t *touch_joy_radius;
 convar_t *touch_dpad_radius;
@@ -162,7 +163,10 @@ convar_t *touch_highlight_b;
 convar_t *touch_highlight_a;
 convar_t *touch_precise_amount;
 convar_t *touch_joy_texture;
-convar_t *touch_emulate;
+//convar_t *touch_emulate;		// [Xash3D, 26.03.23]
+
+CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable touch controls");
+CVAR_DEFINE_AUTO (touch_emulate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "emulate touch with mouse");
 
 // code looks smaller with it
 #define B(x) (button->x)
@@ -379,12 +383,14 @@ static void Touch_GenerateCode_f (void)
 		aspect = (B (y2) - B (y1)) / ((B (x2) - B (x1)) / (SCR_H / SCR_W));
 		if (memcmp (&c, &B (color), sizeof (rgba_t)))
 			{
-			Con_Printf ("unsigned char color[] = { %d, %d, %d, %d };\n", B (color[0]), B (color[1]), B (color[2]), B (color[3]));
+			Con_Printf ("unsigned char color[] = { %d, %d, %d, %d };\n", B (color[0]), B (color[1]), 
+				B (color[2]), B (color[3]));
 			memcpy (&c, &B (color), sizeof (rgba_t));
 			}
 		Con_Printf ("TOUCH_ADDDEFAULT( \"%s\", \"%s\", \"%s\", %f, %f, %f, %f, color, %d, %f, %d );\n",
 			B (name), B (texturefile), B (command),
-			B (x1), B (y1), B (x2), B (y2), (B (type) == touch_command) ? (fabs (aspect - 1.0f) < 0.0001) ? 2 : 1 : 0, aspect, flags);
+			B (x1), B (y1), B (x2), B (y2), (B (type) == touch_command) ? (fabs (aspect - 1.0f) < 0.0001) ? 
+			2 : 1 : 0, aspect, flags);
 		}
 	}
 
@@ -458,7 +464,8 @@ static touch_button_t *Touch_FindFirst (touchbuttonlist_t *list, const char *nam
 		if (!privileged && !FBitSet (button->flags, TOUCH_FL_UNPRIVILEGED))
 			continue;
 
-		if ((Q_strchr (name, '*') && Q_stricmpext (name, button->name)) || !Q_strncmp (name, button->name, sizeof (button->name)))
+		if ((Q_strchr (name, '*') && Q_stricmpext (name, button->name)) || !Q_strncmp (name, button->name, 
+			sizeof (button->name)))
 			{
 			return button;
 			}
@@ -469,19 +476,15 @@ static touch_button_t *Touch_FindFirst (touchbuttonlist_t *list, const char *nam
 void Touch_SetClientOnly (byte state)
 	{
 	touch.clientonly = state;
-	host.mouse_visible = state;
+	//host.mouse_visible = state;		// [Xash3D, 26.03.23]
 
 	touch.move_finger = touch.look_finger = -1;
 	touch.forward = touch.side = 0;
 
 	if (state)
-		{
 		IN_DeactivateMouse ();
-		}
 	else
-		{
 		IN_ActivateMouse ();
-		}
 	}
 
 static void Touch_SetClientOnly_f (void)
@@ -557,7 +560,8 @@ static void Touch_SetColor (touchbuttonlist_t *list, const char *name, byte *col
 
 	for (button = list->first; button; button = button->next)
 		{
-		if ((Q_strchr (name, '*') && Q_stricmpext (name, button->name)) || !Q_strncmp (name, button->name, sizeof (button->name)))
+		if ((Q_strchr (name, '*') && Q_stricmpext (name, button->name)) || 
+			!Q_strncmp (name, button->name, sizeof (button->name)))
 			MakeRGBA (button->color, color[0], color[1], color[2], color[3]);
 		}
 	}
@@ -598,7 +602,8 @@ void Touch_HideButtons (const char *name, byte hide, qboolean privileged)
 		if (!privileged && !FBitSet (button->flags, TOUCH_FL_UNPRIVILEGED))
 			continue;
 
-		if ((Q_strchr (name, '*') && Q_stricmpext (name, button->name)) || !Q_strncmp (name, button->name, sizeof (button->name)))
+		if ((Q_strchr (name, '*') && Q_stricmpext (name, button->name)) || 
+			!Q_strncmp (name, button->name, sizeof (button->name)))
 			{
 			if (hide)
 				SetBits (button->flags, TOUCH_FL_HIDE);
@@ -636,7 +641,8 @@ static void Touch_Show_f (void)
 	Touch_HideButtons (Cmd_Argv (1), false, Cmd_CurrentCommandIsPrivileged ());
 	}
 
-static void Touch_FadeButtons (touchbuttonlist_t *list, const char *name, float speed, float end, float start, qboolean privileged)
+static void Touch_FadeButtons (touchbuttonlist_t *list, const char *name, float speed, float end, 
+	float start, qboolean privileged)
 	{
 	touch_button_t *button;
 	for (button = list->first; button; button = button->next)
@@ -644,7 +650,8 @@ static void Touch_FadeButtons (touchbuttonlist_t *list, const char *name, float 
 		if (!privileged && !FBitSet (button->flags, TOUCH_FL_UNPRIVILEGED))
 			continue;
 
-		if ((Q_strchr (name, '*') && Q_stricmpext (name, button->name)) || !Q_strncmp (name, button->name, sizeof (button->name)))
+		if ((Q_strchr (name, '*') && Q_stricmpext (name, button->name)) || 
+			!Q_strncmp (name, button->name, sizeof (button->name)))
 			{
 			if (start >= 0)
 				button->fade = start;
@@ -736,7 +743,9 @@ static void Touch_ReloadConfig_f (void)
 	touch.edit = touch.selection = NULL;
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
 
-	Cbuf_AddText (va ("exec %s\n", touch_config_file->string));
+	// [Xash3D, 26.03.23]
+	//Cbuf_AddText (va ("exec %s\n", touch_config_file->string));
+	Cbuf_AddTextf ("exec %s\n", touch_config_file->string);
 	}
 
 static touch_button_t *Touch_AddButton (touchbuttonlist_t *list,
@@ -820,7 +829,8 @@ static void Touch_LoadDefaults_f (void)
 	}
 
 // Add default button from client
-void Touch_AddDefaultButton (const char *name, const char *texturefile, const char *command, float x1, float y1, float x2, float y2, byte *color, int round, float aspect, int flags)
+void Touch_AddDefaultButton (const char *name, const char *texturefile, const char *command, float x1, 
+	float y1, float x2, float y2, byte *color, int round, float aspect, int flags)
 	{
 	touchdefaultbutton_t *button;
 
@@ -965,7 +975,8 @@ static void Touch_InitEditor (void)
 
 	Touch_ClearList (&touch.list_edit);
 
-	temp = Touch_AddButton (&touch.list_edit, "close", "touch_default/edit_close", "touch_disableedit", 0, y, x, y + 0.1f, color, true);
+	temp = Touch_AddButton (&touch.list_edit, "close", "touch_default/edit_close", "touch_disableedit", 0, 
+		y, x, y + 0.1f, color, true);
 	SetBits (temp->flags, TOUCH_FL_NOEDIT);
 
 	temp = Touch_AddButton (&touch.list_edit, "close", "#Close and save", "", x, y, x + 0.2f, y + 0.1f, color, true);
@@ -973,7 +984,8 @@ static void Touch_InitEditor (void)
 
 	y += 0.2f;
 
-	temp = Touch_AddButton (&touch.list_edit, "cancel", "touch_default/edit_reset", "touch_reloadconfig", 0, y, x, y + 0.1f, color, true);
+	temp = Touch_AddButton (&touch.list_edit, "cancel", "touch_default/edit_reset", "touch_reloadconfig", 0,
+		y, x, y + 0.1f, color, true);
 	SetBits (temp->flags, TOUCH_FL_NOEDIT);
 
 	temp = Touch_AddButton (&touch.list_edit, "close", "#Cancel and reset", "", x, y, x + 0.2f, y + 0.1f, color, true);
@@ -981,7 +993,8 @@ static void Touch_InitEditor (void)
 
 	y += 0.2f;
 
-	touch.hidebutton = Touch_AddButton (&touch.list_edit, "showhide", "touch_default/edit_hide", "touch_toggleselection", 0, y, x, y + 0.1f, color, true);
+	touch.hidebutton = Touch_AddButton (&touch.list_edit, "showhide", "touch_default/edit_hide", 
+		"touch_toggleselection", 0, y, x, y + 0.1f, color, true);
 	SetBits (touch.hidebutton->flags, TOUCH_FL_HIDE | TOUCH_FL_NOEDIT);
 	}
 
@@ -991,7 +1004,7 @@ void Touch_Init (void)
 	if (touch.initialized)
 		return;
 	touch.mempool = Mem_AllocPool ("Touch");
-	//touch.first = touch.last = NULL;
+
 	Con_Printf ("IN_TouchInit()\n");
 	touch.move_finger = touch.resize_finger = touch.look_finger = touch.wheel_finger = -1;
 	touch.state = state_none;
@@ -1009,24 +1022,57 @@ void Touch_Init (void)
 	MakeRGBA (color, 255, 255, 255, 255);
 	Touch_AddDefaultButton ("look", "", "_look", 0.500000, 0.000000, 1.000000, 1, color, 0, 0, 0);
 	Touch_AddDefaultButton ("move", "", "_move", 0.000000, 0.000000, 0.500000, 1, color, 0, 0, 0);
-	Touch_AddDefaultButton ("invnext", "touch_default/next_weap", "invnext", 0.000000, 0.530200, 0.120000, 0.757428, color, 2, 1, 0);
-	Touch_AddDefaultButton ("invprev", "touch_default/prev_weap", "invprev", 0.000000, 0.075743, 0.120000, 0.302971, color, 2, 1, 0);
-	Touch_AddDefaultButton ("use", "touch_default/use", "+use", 0.880000, 0.454457, 1.000000, 0.681685, color, 2, 1, 0);
-	Touch_AddDefaultButton ("jump", "touch_default/jump", "+jump", 0.880000, 0.227228, 1.000000, 0.454457, color, 2, 1, 0);
-	Touch_AddDefaultButton ("attack", "touch_default/shoot", "+attack", 0.760000, 0.530200, 0.880000, 0.757428, color, 2, 1, 0);
-	Touch_AddDefaultButton ("attack2", "touch_default/shoot_alt", "+attack2", 0.760000, 0.302971, 0.880000, 0.530200, color, 2, 1, 0);
-	Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.760000, 0.000000, 0.840000, 0.151486, color, 2, 1, 16);
-	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.840000, 0.000000, 0.920000, 0.151486, color, 2, 1, 16);
-	Touch_AddDefaultButton ("messagemode", "touch_default/keyboard", "messagemode", 0.840000, 0.000000, 0.920000, 0.151486, color, 2, 1, 8);
-	Touch_AddDefaultButton ("reload", "touch_default/reload", "+reload", 0.000000, 0.302971, 0.120000, 0.530200, color, 2, 1, 0);
-	Touch_AddDefaultButton ("flashlight", "touch_default/flash_light_filled", "impulse 100", 0.920000, 0.000000, 1.000000, 0.151486, color, 2, 1, 0);
-	Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.760000, 0.000000, 0.840000, 0.151486, color, 2, 1, 8);
-	Touch_AddDefaultButton ("show_numbers", "touch_default/show_weapons", "exec touch_default/numbers.cfg", 0.440000, 0.833171, 0.520000, 0.984656, color, 2, 1, 0);
-	Touch_AddDefaultButton ("duck", "touch_default/crouch", "+duck", 0.880000, 0.757428, 1.000000, 0.984656, color, 2, 1, 0);
-	Touch_AddDefaultButton ("tduck", "touch_default/tduck", ";+duck", 0.560000, 0.833171, 0.620000, 0.946785, color, 2, 1, 0);
-	Touch_AddDefaultButton ("edit", "touch_default/settings", "touch_enableedit", 0.420000, 0.000000, 0.500000, 0.151486, color, 2, 1, 32);
-	Touch_AddDefaultButton ("menu", "touch_default/menu", "escape", 0.000000, 0.833171, 0.080000, 0.984656, color, 2, 1, 0);
+	Touch_AddDefaultButton ("invnext", "touch_default/next_weap", "invnext", 0.000000, 0.530200, 0.120000,
+		0.757428, color, 2, 1, 0);
+	Touch_AddDefaultButton ("invprev", "touch_default/prev_weap", "invprev", 0.000000, 0.075743, 0.120000,
+		0.302971, color, 2, 1, 0);
+	Touch_AddDefaultButton ("use", "touch_default/use", "+use", 0.880000, 0.454457, 1.000000, 0.681685, 
+		color, 2, 1, 0);
+	Touch_AddDefaultButton ("jump", "touch_default/jump", "+jump", 0.880000, 0.227228, 1.000000, 0.454457, 
+		color, 2, 1, 0);
+	Touch_AddDefaultButton ("attack", "touch_default/shoot", "+attack", 0.760000, 0.530200, 0.880000, 0.757428, 
+		color, 2, 1, 0);
+	Touch_AddDefaultButton ("attack2", "touch_default/shoot_alt", "+attack2", 0.760000, 0.302971, 0.880000,
+		0.530200, color, 2, 1, 0);
 
+	// [Xash3D, 26.03.23]
+	/*Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.760000, 0.000000, 0.840000,
+		0.151486, color, 2, 1, 16);
+	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.840000, 0.000000, 0.920000, 
+		0.151486, color, 2, 1, 16);
+	Touch_AddDefaultButton ("messagemode", "touch_default/keyboard", "messagemode", 0.840000, 0.000000, 0.920000,
+		0.151486, color, 2, 1, 8);*/
+	Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.680000, 0.000000, 0.760000, 
+		0.151486, color, 2, 1, 16);
+	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.760000, 0.000000, 0.840000,
+		0.151486, color, 2, 1, 16);
+	Touch_AddDefaultButton ("messagemode", "touch_default/keyboard", "messagemode", 0.760000, 0.000000, 0.840000,
+		0.151486, color, 2, 1, 8);
+
+	Touch_AddDefaultButton ("reload", "touch_default/reload", "+reload", 0.000000, 0.302971, 0.120000,
+		0.530200, color, 2, 1, 0);
+	Touch_AddDefaultButton ("flashlight", "touch_default/flash_light_filled", "impulse 100", 0.920000, 0.000000,
+		1.000000, 0.151486, color, 2, 1, 0);
+	
+	/*Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.760000, 0.000000, 0.840000, 0.151486,
+		color, 2, 1, 8);*/
+	Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.680000, 0.000000, 0.760000, 0.151486, 
+		color, 2, 1, 8);
+
+	Touch_AddDefaultButton ("show_numbers", "touch_default/show_weapons", "exec touch_default/numbers.cfg", 
+		0.440000, 0.833171, 0.520000, 0.984656, color, 2, 1, 0);
+	Touch_AddDefaultButton ("duck", "touch_default/crouch", "+duck", 0.880000, 0.757428, 1.000000, 0.984656, 
+		color, 2, 1, 0);
+	Touch_AddDefaultButton ("tduck", "touch_default/tduck", ";+duck", 0.560000, 0.833171, 0.620000, 0.946785, 
+		color, 2, 1, 0);
+	Touch_AddDefaultButton ("edit", "touch_default/settings", "touch_enableedit", 0.420000, 0.000000, 0.500000,
+		0.151486, color, 2, 1, 32);
+	Touch_AddDefaultButton ("menu", "touch_default/menu", "escape", 0.000000, 0.833171, 0.080000, 0.984656, 
+		color, 2, 1, 0);
+
+	// [Xash3D, 26.03.23]
+	Touch_AddDefaultButton ("spray", "touch_default/spray", "impulse 201", 0.840000, 0.000000, 0.920000, 0.151486,
+		color, 2, 1, 0);
 
 	Cmd_AddCommand ("touch_addbutton", Touch_AddButton_f, "add native touch button");
 	Cmd_AddCommand ("touch_removebutton", IN_TouchRemoveButton_f, "remove native touch button");
@@ -1068,8 +1114,10 @@ void Touch_Init (void)
 	// touch.cfg
 	touch_grid_count = Cvar_Get ("touch_grid_count", "50", FCVAR_FILTERABLE, "touch grid count");
 	touch_grid_enable = Cvar_Get ("touch_grid_enable", "1", FCVAR_FILTERABLE, "enable touch grid");
-	touch_config_file = Cvar_Get ("touch_config_file", "touch.cfg", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "current touch profile file");
-	touch_precise_amount = Cvar_Get ("touch_precise_amount", "0.5", FCVAR_FILTERABLE, "sensitivity multiplier for precise-look");
+	touch_config_file = Cvar_Get ("touch_config_file", "touch.cfg", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, 
+		"current touch profile file");
+	touch_precise_amount = Cvar_Get ("touch_precise_amount", "0.5", FCVAR_FILTERABLE, 
+		"sensitivity multiplier for precise-look");
 	touch_highlight_r = Cvar_Get ("touch_highlight_r", "1.0", 0, "highlight r color");
 	touch_highlight_g = Cvar_Get ("touch_highlight_g", "1.0", 0, "highlight g color");
 	touch_highlight_b = Cvar_Get ("touch_highlight_b", "1.0", 0, "highlight b color");
@@ -1079,17 +1127,24 @@ void Touch_Init (void)
 	touch_move_indicator = Cvar_Get ("touch_move_indicator", "0.0", FCVAR_FILTERABLE, "indicate move events (0 to disable)");
 	touch_joy_texture = Cvar_Get ("touch_joy_texture", "touch_default/joy", FCVAR_FILTERABLE, "texture for move indicator");
 
-	// input devices cvar
-	touch_enable = Cvar_Get ("touch_enable", DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable touch controls");
-	touch_emulate = Cvar_Get ("touch_emulate", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "emulate touch with mouse");
+	// [Xash3D, 26.03.23]
+	/* input devices cvar
+	touch_enable = Cvar_Get ("touch_enable", DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+		"enable touch controls");
+	touch_emulate = Cvar_Get ("touch_emulate", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "emulate touch with mouse");*/
+	Cvar_RegisterVariable (&touch_enable);
+	Cvar_RegisterVariable (&touch_emulate);
 
-	/// TODO: touch sdl platform
-	// SDL_SetHint( SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1" );
+#if SDL_VERSION_ATLEAST( 2, 0, 10 )
+	SDL_SetHint (SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+	SDL_SetHint (SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+#else
+	SDL_SetHint (SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
+#endif
 
 	touch.initialized = true;
 	}
 
-//int pfnGetScreenInfo( SCREENINFO *pscrinfo );
 static void Touch_InitConfig (void)
 	{
 	if (!touch.initialized)
@@ -1101,11 +1156,19 @@ static void Touch_InitConfig (void)
 	if (touch.config_loaded)
 		return;
 
-	/// TODO: hud font
-	//pfnGetScreenInfo( NULL ); //HACK: update hud screen parameters like iHeight
+	// [Xash3D, 26.03.23]
 	if (FS_FileExists (touch_config_file->string, true))
-		Cbuf_AddText (va ("exec \"%s\"\n", touch_config_file->string));
-	else Touch_LoadDefaults_f ();
+		{
+		Cbuf_AddTextf ("exec \"%s\"\n", touch_config_file->string);
+		Cbuf_Execute ();
+		}
+	else
+		{
+		Touch_LoadDefaults_f ();
+		}
+		/*Cbuf_AddText (va ("exec \"%s\"\n", touch_config_file->string));
+	else 
+		Touch_LoadDefaults_f ();*/
 
 	Touch_InitEditor ();
 	touch.joytexture = ref.dllFuncs.GL_LoadTexture (touch_joy_texture->string, NULL, 0, TF_NOMIPMAP);
@@ -1343,7 +1406,9 @@ void Touch_Draw (void)
 	{
 	touch_button_t *button;
 
-	if (!touch.initialized || (!CVAR_TO_BOOL (touch_enable) && !touch.clientonly))
+	// [Xash3D, 26.03.23]
+	//if (!touch.initialized || (!CVAR_TO_BOOL (touch_enable) && !touch.clientonly))
+	if (!touch.initialized || (!touch_enable.value && !touch.clientonly))
 		return;
 
 	Touch_InitConfig ();
@@ -1937,15 +2002,17 @@ static int Touch_ControlsEvent (touchEventType type, int fingerID, float x, floa
 
 int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy)
 	{
-
 	// simulate menu mouse click
 	if (cls.key_dest != key_game && !CVAR_TO_BOOL (touch_in_menu))
 		{
 		touch.move_finger = touch.resize_finger = touch.look_finger = -1;
+
 		// Hack for keyboard, hope it help
-		if (cls.key_dest == key_console || cls.key_dest == key_message)
+		if ((cls.key_dest == key_console) || (cls.key_dest == key_message))
 			{
-			Key_EnableTextInput (true, true);
+			if (type == event_down)		// [Xash3D, 26.03.23] don't pop it again on event_up
+				Key_EnableTextInput (true, true);
+
 			if (cls.key_dest == key_console)
 				{
 				static float y1 = 0;
@@ -1977,30 +2044,33 @@ int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx
 		return 0;
 		}
 
-
+	// [Xash3D, 26.03.23]
 	if (VGui_IsActive ())
 		{
 		VGui_MouseMove (TO_SCRN_X (x), TO_SCRN_Y (y));
 
-		if (type != event_motion)
+		/*if (type != event_motion)
 			VGui_KeyEvent (K_MOUSE1, type == event_down ? 1 : 0);
 
 		// allow scoreboard scroll
 		if (host.mouse_visible && type == event_motion)
-			return 0;
+			return 0;*/
+
+		switch (type)
+			{
+			case event_down:
+				VGui_MouseEvent (K_MOUSE1, 1);
+				break;
+			case event_up:
+				VGui_MouseEvent (K_MOUSE1, 0);
+				break;
+			default: break;
+			}
 		}
 
-	if (!touch.initialized || (!CVAR_TO_BOOL (touch_enable) && !touch.clientonly))
-		{
-#if 0
-		if (type == event_down)
-			Key_Event (K_MOUSE1, true);
-		if (type == event_up)
-			Key_Event (K_MOUSE1, false);
-		Android_AddMove (dx * (float)refState.width, dy * (float)refState.height);
-#endif
+	//if (!touch.initialized || (!CVAR_TO_BOOL (touch_enable) && !touch.clientonly))
+	if (!touch.initialized || (!touch_enable.value && !touch.clientonly))
 		return 0;
-		}
 
 	if (clgame.dllFuncs.pfnTouchEvent && clgame.dllFuncs.pfnTouchEvent (type, fingerID, x, y, dx, dy))
 		return true;
@@ -2017,37 +2087,83 @@ void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch)
 	touch.yaw = touch.pitch = 0;
 	}
 
+// [Xash3D, 26.03.23]
 void Touch_KeyEvent (int key, int down)
 	{
-	int xi, yi;
-	float x, y;
+	/*int xi, yi;
+	float x, y;*/
 	static float lx, ly;
+	static int kidNamedFinger = -1;
+	touchEventType event;
+	float x, y;
+	int finger, xi, yi;
 
-	if (!CVAR_TO_BOOL (touch_emulate))
+	//if (!CVAR_TO_BOOL (touch_emulate))
+	if (!touch_emulate.value)
 		{
-		if (CVAR_TO_BOOL (touch_enable))
+		//if (CVAR_TO_BOOL (touch_enable))
+		if (touch_enable.value)
 			return;
 
 		if (!touch.clientonly)
 			return;
 		}
 
+	if (!key)
+		{
+		if (kidNamedFinger < 0)
+			return;
+
+		finger = kidNamedFinger;
+		event = event_motion;
+		}
+	else
+		{
+		finger = key == K_MOUSE1 ? 0 : 1;
+		if (down)
+			{
+			event = event_down;
+			kidNamedFinger = finger;
+			}
+		else
+			{
+			event = event_up;
+			kidNamedFinger = -1;
+			}
+		}
+
+	// don't deactivate mouse in game
+	// checking a case when mouse and touchscreen
+	// can be used simultaneously
+	Platform_SetCursorType (dc_arrow);
 	Platform_GetMousePos (&xi, &yi);
 
 	x = xi / SCR_W;
 	y = yi / SCR_H;
 
-	if (cls.key_dest == key_menu && down < 2 && key == K_MOUSE1)
+	/*if ((cls.key_dest == key_menu) && (down < 2) && (key == K_MOUSE1))
 		{
 		UI_MouseMove (xi, yi);
-		UI_KeyEvent (key, down);
-		}
+		UI_KeyEvent (key, down);*/
+	Con_DPrintf ("event %d %.2f %.2f %.2f %.2f\n",
+		event, x, y, x - lx, y - ly);
 
-	if (down == 1)
+	IN_TouchEvent (event, finger, x, y, x - lx, y - ly);
+
+	lx = x;
+	ly = y;
+	}
+
+	/*if (down == 1)
 		Touch_ControlsEvent (event_down, key == K_MOUSE1 ? 0 : 1, x, y, 0, 0);
 	else
 		Touch_ControlsEvent (down ? event_motion : event_up, key == K_MOUSE1 ? 0 : 1, x, y, x - lx, y - ly);
-	lx = x, ly = y;
+	lx = x, ly = y;*/
+
+// [Xash3D, 26.03.23]
+qboolean Touch_WantVisibleCursor (void)
+	{
+	return (touch_enable.value && touch_emulate.value) || touch.clientonly;
 	}
 
 void Touch_Shutdown (void)
