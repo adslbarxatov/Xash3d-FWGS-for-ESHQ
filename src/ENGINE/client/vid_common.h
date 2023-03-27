@@ -12,7 +12,7 @@ typedef struct vidmode_s
 
 typedef struct
 	{
-	void *context; // handle to GL rendering context
+	void	*context; // handle to GL rendering context
 	int		safe;
 
 	int		desktopBitsPixel;
@@ -31,7 +31,7 @@ extern glwstate_t glw_state;
 #define VID_MIN_WIDTH 320
 
 extern convar_t *vid_fullscreen;
-extern convar_t *vid_displayfrequency;
+//extern convar_t *vid_displayfrequency;	// [Xash3D, 28.03.23]
 extern convar_t *vid_highdpi;
 extern convar_t *vid_rotate;
 extern convar_t *vid_scale;

@@ -392,7 +392,8 @@ void S_Mix16Stereo (portable_samplepair_t *pbuf, int *volume, short *pData, int 
 		}
 	}
 
-void S_MixChannel (channel_t *pChannel, void *pData, int outputOffset, int inputOffset, uint fracRate, int outCount, int timecompress)
+void S_MixChannel (channel_t *pChannel, void *pData, int outputOffset, int inputOffset, uint fracRate, 
+	int outCount, int timecompress)
 	{
 	int			pvol[CCHANVOLUMES];
 	paintbuffer_t *ppaint = MIX_GetCurrentPaintbufferPtr ();
@@ -409,13 +410,15 @@ void S_MixChannel (channel_t *pChannel, void *pData, int outputOffset, int input
 		{
 		if (pSource->width == 1)
 			S_Mix8Mono (pbuf, pvol, pData, inputOffset, fracRate, outCount, timecompress);
-		else S_Mix16Mono (pbuf, pvol, (short *)pData, inputOffset, fracRate, outCount);
+		else 
+			S_Mix16Mono (pbuf, pvol, (short *)pData, inputOffset, fracRate, outCount);
 		}
 	else
 		{
 		if (pSource->width == 1)
 			S_Mix8Stereo (pbuf, pvol, pData, inputOffset, fracRate, outCount);
-		else S_Mix16Stereo (pbuf, pvol, (short *)pData, inputOffset, fracRate, outCount);
+		else 
+			S_Mix16Stereo (pbuf, pvol, (short *)pData, inputOffset, fracRate, outCount);
 		}
 	}
 
@@ -617,22 +620,27 @@ void MIX_MixChannelsToPaintbuffer (int endtime, int rate, int outputRate)
 		// get playback pitch
 		if (ch->isSentence)
 			ch->pitch = VOX_ModifyPitch (ch, ch->basePitch * 0.01f);
-		else ch->pitch = ch->basePitch * 0.01f;
+		else
+			ch->pitch = ch->basePitch * 0.01f;
 
 		ch->pitch *= (sys_timescale.value + 1) / 2;
 
-		if (CL_GetEntityByIndex (ch->entnum) && (ch->entchannel == CHAN_VOICE))
+		// [Xash3D, 26.03.23]
+		//if (CL_GetEntityByIndex (ch->entnum) && (ch->entchannel == CHAN_VOICE))
+		if (CL_GetEntityByIndex (ch->entnum) && ((ch->entchannel == CHAN_VOICE) || (ch->entchannel == CHAN_STREAM)))
 			{
 			if (pSource->width == 1)
 				SND_MoveMouth8 (ch, pSource, sampleCount);
-			else SND_MoveMouth16 (ch, pSource, sampleCount);
+			else 
+				SND_MoveMouth16 (ch, pSource, sampleCount);
 			}
 
 		// mix channel to all active paintbuffers.
-		// NOTE: must be called once per channel only - consecutive calls retrieve additional data.
+		// NOTE: must be called once per channel only - consecutive calls retrieve additional data
 		if (ch->isSentence)
 			VOX_MixDataToDevice (ch, sampleCount, outputRate, 0);
-		else S_MixDataToDevice (ch, sampleCount, outputRate, 0, 0);
+		else 
+			S_MixDataToDevice (ch, sampleCount, outputRate, 0, 0);
 
 		if (!S_ShouldContinueMixing (ch))
 			{
@@ -782,7 +790,8 @@ void S_Interpolate2xLinear (portable_samplepair_t *pbuffer, portable_samplepair_
 // if NULL then perform no filtering.
 // cfltmem: max number of sample pairs filter can use
 // filtertype: FILTERTYPE_NONE, _LINEAR, _CUBIC etc.  Must match prevfilter.
-void S_MixBufferUpsample2x (int count, portable_samplepair_t *pbuffer, portable_samplepair_t *pfiltermem, int cfltmem, int filtertype)
+void S_MixBufferUpsample2x (int count, portable_samplepair_t *pbuffer, portable_samplepair_t *pfiltermem,
+	int cfltmem, int filtertype)
 	{
 	int	upCount = count << 1;
 	int	i, j;
@@ -897,6 +906,7 @@ void S_MixUpsample (int sampleCount, int filtertype)
 	ppaint->ifilter++;
 	}
 
+/* [Xash3D, 26.03.23]
 void MIX_MixStreamBuffer (int end)
 	{
 	portable_samplepair_t *pbuf;
@@ -927,29 +937,39 @@ void MIX_MixStreamBuffer (int end)
 			pbuf[i - paintedtime].left = pbuf[i - paintedtime].right = 0;
 		}
 	}
+*/
 
+// [Xash3D, 26.03.23]
 void MIX_MixRawSamplesBuffer (int end)
 	{
-	portable_samplepair_t *pbuf;
-	uint			i, j, stop;
+	//portable_samplepair_t *pbuf;
+	portable_samplepair_t *pbuf, *roombuf, *streambuf;
+	uint i, j, stop;
 
-	pbuf = MIX_GetCurrentPaintbufferPtr ()->pbuf;
+	//pbuf = MIX_GetCurrentPaintbufferPtr ()->pbuf;
+	roombuf = MIX_GetPFrontFromIPaint (IROOMBUFFER);
+	streambuf = MIX_GetPFrontFromIPaint (ISTREAMBUFFER);
 
-	if (s_listener.paused) return;
+	if (s_listener.paused) 
+		return;
 
 	// paint in the raw channels
 	for (i = 0; i < MAX_RAW_CHANNELS; i++)
 		{
 		// copy from the streaming sound source
 		rawchan_t *ch = raw_channels[i];
+		qboolean stream;
 
 		// background track should be mixing into another buffer
-		if (!ch || ch->entnum == S_RAW_SOUND_BACKGROUNDTRACK)
+		if (!ch /*|| (ch->entnum == S_RAW_SOUND_BACKGROUNDTRACK)*/)
 			continue;
 
 		// not audible
 		if (!ch->leftvol && !ch->rightvol)
 			continue;
+
+		stream = (ch->entnum == S_RAW_SOUND_BACKGROUNDTRACK) || CL_IsPlayerIndex (ch->entnum);
+		pbuf = stream ? streambuf : roombuf;
 
 		stop = (end < ch->s_rawend) ? end : ch->s_rawend;
 
@@ -970,8 +990,8 @@ void MIX_MixRawSamplesBuffer (int end)
 // caller also remixes all into final IPAINTBUFFER output.
 void MIX_UpsampleAllPaintbuffers (int end, int count)
 	{
-	// process stream buffer
-	MIX_MixStreamBuffer (end);
+	/* [Xash3D, 26.03.23] process stream buffer
+	MIX_MixStreamBuffer (end);*/
 
 	// 11khz sounds are mixed into 3 buffers based on distance from listener, and facing direction
 	// These buffers are facing, facingaway, room
@@ -1014,7 +1034,7 @@ void MIX_UpsampleAllPaintbuffers (int end, int count)
 #endif
 
 	// mix raw samples from the video streams
-	MIX_SetCurrentPaintbuffer (IROOMBUFFER);
+	// MIX_SetCurrentPaintbuffer (IROOMBUFFER);		// [Xash3D, 26.03.23]
 	MIX_MixRawSamplesBuffer (end);
 
 	MIX_DeactivateAllPaintbuffers ();

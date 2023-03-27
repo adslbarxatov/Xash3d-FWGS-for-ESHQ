@@ -20,10 +20,12 @@ GNU General Public License for more details.
 
 #define CAVGSAMPLES		10
 
+// [Xash3D, 26.03.23]
 void SND_InitMouth (int entnum, int entchannel)
 	{
-	if ((entchannel == CHAN_VOICE || entchannel == CHAN_STREAM) && entnum > 0)
-		{
+	if (((entchannel == CHAN_VOICE) || (entchannel == CHAN_STREAM)) && (entnum > 0))
+		SND_ForceInitMouth (entnum);
+		/*{
 		cl_entity_t *clientEntity;
 
 		// init mouth movement vars
@@ -35,13 +37,15 @@ void SND_InitMouth (int entnum, int entchannel)
 			clientEntity->mouth.sndcount = 0;
 			clientEntity->mouth.sndavg = 0;
 			}
-		}
+		}*/
 	}
 
+// [Xash3D, 26.03.23]
 void SND_CloseMouth (channel_t *ch)
 	{
-	if (ch->entchannel == CHAN_VOICE || ch->entchannel == CHAN_STREAM)
-		{
+	if ((ch->entchannel == CHAN_VOICE) || (ch->entchannel == CHAN_STREAM))
+		SND_ForceCloseMouth (ch->entnum);
+		/*{
 		cl_entity_t *clientEntity;
 
 		clientEntity = CL_GetEntityByIndex (ch->entnum);
@@ -51,7 +55,7 @@ void SND_CloseMouth (channel_t *ch)
 			// shut mouth
 			clientEntity->mouth.mouthopen = 0;
 			}
-		}
+		}*/
 	}
 
 void SND_MoveMouth8 (channel_t *ch, wavdata_t *pSource, int count)
