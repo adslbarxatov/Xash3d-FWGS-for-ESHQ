@@ -25,7 +25,7 @@ Image_LoadBMP
 qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	byte *buf_p, *pixbuf;
-	rgba_t	palette[256];
+	rgba_t	palette[256] = { 0 };	// [Xash3D, 28.03.23]
 	int	i, columns, column, rows, row, bpp = 1;
 	int	cbPalBytes = 0, padSize = 0, bps = 0;
 	int	reflectivity[3] = { 0, 0, 0 };
@@ -35,7 +35,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 	if (filesize < sizeof (bhdr))
 		{
-		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (header)\n", name, filesize, sizeof (bhdr));
+		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (header)\n", 
+			name, filesize, sizeof (bhdr));
 		return false;
 		}
 
@@ -66,11 +67,14 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		Con_Reportf (S_WARN "Image_LoadBMP: %s have incorrect file size %li should be %i\n", name, filesize, bhdr.fileSize);
 		}
 
-	// bogus compression?  Only non-compressed supported.
+	// [Xash3D, 28.03.23] Bogus compression? Only non-compressed supported
 	if (bhdr.compression != BI_RGB)
 		{
-		Con_DPrintf (S_ERROR "Image_LoadBMP: only uncompressed BMP files supported (%s)\n", name);
-		return false;
+		if ((bhdr.bitsPerPixel != 32) || (bhdr.compression != BI_BITFIELDS))
+			{
+			Con_DPrintf (S_ERROR "Image_LoadBMP: only uncompressed BMP files supported (%s)\n", name);
+			return false;
+			}
 		}
 
 	image.width = columns = bhdr.width;
@@ -105,7 +109,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	estimatedSize = (buf_p - buffer) + cbPalBytes;
 	if (filesize < estimatedSize)
 		{
-		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (palette)\n", name, filesize, estimatedSize);
+		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (palette)\n", 
+			name, filesize, estimatedSize);
 		return false;
 		}
 
@@ -119,21 +124,24 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		image.flags |= IMAGE_HAS_ALPHA;
 		}
 
-	if (Image_CheckFlag (IL_OVERVIEW) && bhdr.bitsPerPixel == 8)
+	if (Image_CheckFlag (IL_OVERVIEW) && (bhdr.bitsPerPixel == 8))
 		{
 		// convert green background into alpha-layer, make opacity for all other entries
 		for (i = 0; i < bhdr.colors; i++)
 			{
-			if (palette[i][0] == 0 && palette[i][1] == 255 && palette[i][2] == 0)
+			if ((palette[i][0] == 0) && (palette[i][1] == 255) && (palette[i][2] == 0))
 				{
 				palette[i][0] = palette[i][1] = palette[i][2] = palette[i][3] = 0;
 				image.flags |= IMAGE_HAS_ALPHA;
 				}
-			else palette[i][3] = 255;
+			else
+				{
+				palette[i][3] = 255;
+				}
 			}
 		}
 
-	if (Image_CheckFlag (IL_KEEP_8BIT) && bhdr.bitsPerPixel == 8)
+	if (Image_CheckFlag (IL_KEEP_8BIT) && (bhdr.bitsPerPixel == 8))
 		{
 		pixbuf = image.palette = Mem_Malloc (host.imagepool, 1024);
 
@@ -174,7 +182,9 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			break;
 		}
 
-	estimatedSize = (buf_p - buffer) + (image.width + padSize) * image.height * (bhdr.bitsPerPixel >> 3);
+	// [Xash3D, 28.03.23]
+	//estimatedSize = (buf_p - buffer) + (image.width + padSize) * image.height * (bhdr.bitsPerPixel >> 3);
+	estimatedSize = (buf_p - buffer) + image.width * image.height * (bhdr.bitsPerPixel >> 3);
 	if (filesize < estimatedSize)
 		{
 		if (image.palette)
@@ -183,7 +193,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			image.palette = NULL;
 			}
 
-		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (pixels)\n", name, filesize, estimatedSize);
+		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (pixels)\n", 
+			name, filesize, estimatedSize);
 		return false;
 		}
 

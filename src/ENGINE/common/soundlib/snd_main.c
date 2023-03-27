@@ -66,7 +66,9 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 	Sound_Reset (); // clear old sounddata
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	if (Q_stricmp (ext, ""))
+	// [Xash3D, 28.03.23]
+	//if (Q_stricmp (ext, ""))
+	if (COM_CheckStringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
 		// and be sure what is real extension, not a filename with dot
@@ -92,14 +94,17 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 			{
 			Q_sprintf (path, format->formatstring, loadname, "", format->ext);
 			f = FS_LoadFile (path, &filesize, false);
-			if (f && filesize > 0)
+			if (f && (filesize > 0))
 				{
 				if (format->loadfunc (path, f, filesize))
 					{
 					Mem_Free (f); // release buffer
 					return SoundPack (); // loaded
 					}
-				else Mem_Free (f); // release buffer
+				else
+					{
+					Mem_Free (f); // release buffer
+					}
 				}
 			}
 		}
@@ -109,7 +114,7 @@ load_internal:
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
-			if (buffer && size > 0)
+			if (buffer && (size > 0))
 				{
 				if (format->loadfunc (loadname, buffer, size))
 					return SoundPack (); // loaded
@@ -132,8 +137,10 @@ free WAV buffer
 */
 void FS_FreeSound (wavdata_t *pack)
 	{
-	if (!pack) return;
-	if (pack->buffer) Mem_Free (pack->buffer);
+	if (!pack)
+		return;
+	if (pack->buffer) 
+		Mem_Free (pack->buffer);
 	Mem_Free (pack);
 	}
 
@@ -155,7 +162,9 @@ stream_t *FS_OpenStream (const char *filename)
 	Sound_Reset (); // clear old streaminfo
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	if (Q_stricmp (ext, ""))
+	// [Xash3D, 28.03.23]
+	//if (Q_stricmp (ext, ""))
+	if (COM_CheckStringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
 		// and be sure what is real extension, not a filename with dot

@@ -35,10 +35,10 @@ static float	tan1_1[16];
 static float	tan2_1[16];
 static float	tan1_2[16];
 static float	tan2_2[16];
-static float	pow1_1[2][16];
-static float	pow2_1[2][16];
-static float	pow1_2[2][16];
-static float	pow2_2[2][16];
+static float	pow1_1[2][32];	// [Xash3D, 28.03.23]
+static float	pow2_1[2][32];
+static float	pow1_2[2][32];
+static float	pow2_2[2][32];
 static int	mapbuf0[9][152];
 static int	mapbuf1[9][156];
 static int	mapbuf2[9][44];
@@ -175,17 +175,21 @@ void init_layer3 (void)
 
 	for (i = 0; i < 18; i++)
 		{
-		win[0][i] = win[1][i] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 72.0 * (double)(2 * (i + 0) + 1)) / cos (M_PI * (double)(2 * (i + 0) + 19) / 72.0));
-		win[0][i + 18] = win[3][i + 18] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 72.0 * (double)(2 * (i + 18) + 1)) / cos (M_PI * (double)(2 * (i + 18) + 19) / 72.0));
+		win[0][i] = win[1][i] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 72.0 * (double)(2 * (i + 0) + 1)) / 
+			cos (M_PI * (double)(2 * (i + 0) + 19) / 72.0));
+		win[0][i + 18] = win[3][i + 18] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 72.0 * (double)(2 * (i + 18) + 1)) / 
+			cos (M_PI * (double)(2 * (i + 18) + 19) / 72.0));
 		}
 
 	for (i = 0; i < 6; i++)
 		{
 		win[1][i + 18] = DOUBLE_TO_REAL (0.5 / cos (M_PI * (double)(2 * (i + 18) + 19) / 72.0));
 		win[3][i + 12] = DOUBLE_TO_REAL (0.5 / cos (M_PI * (double)(2 * (i + 12) + 19) / 72.0));
-		win[1][i + 24] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 24.0 * (double)(2 * i + 13)) / cos (M_PI * (double)(2 * (i + 24) + 19) / 72.0));
+		win[1][i + 24] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 24.0 * (double)(2 * i + 13)) / 
+			cos (M_PI * (double)(2 * (i + 24) + 19) / 72.0));
 		win[1][i + 30] = win[3][i] = DOUBLE_TO_REAL (0.0);
-		win[3][i + 6] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 24.0 * (double)(2 * i + 1)) / cos (M_PI * (double)(2 * (i + 6) + 19) / 72.0));
+		win[3][i + 6] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 24.0 * (double)(2 * i + 1)) / 
+			cos (M_PI * (double)(2 * (i + 6) + 19) / 72.0));
 		}
 
 	for (i = 0; i < 9; i++)
@@ -208,7 +212,8 @@ void init_layer3 (void)
 	cos18[2] = DOUBLE_TO_REAL (cos (13.0 * M_PI / 18.0));
 
 	for (i = 0; i < 12; i++)
-		win[2][i] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 24.0 * (double)(2 * i + 1)) / cos (M_PI * (double)(2 * i + 7) / 24.0));
+		win[2][i] = DOUBLE_TO_REAL (0.5 * sin (M_PI / 24.0 * (double)(2 * i + 1)) / 
+			cos (M_PI * (double)(2 * i + 7) / 24.0));
 
 	for (i = 0; i < 16; i++)
 		{
@@ -217,7 +222,11 @@ void init_layer3 (void)
 		tan2_1[i] = DOUBLE_TO_REAL_15 (1.0 / (1.0 + t));
 		tan1_2[i] = DOUBLE_TO_REAL_15 (M_SQRT2 * t / (1.0 + t));
 		tan2_2[i] = DOUBLE_TO_REAL_15 (M_SQRT2 / (1.0 + t));
+		}
 
+	// [Xash3D, 28.03.23]
+	for (i = 0; i < 32; i++)
+		{
 		for (j = 0; j < 2; j++)
 			{
 			double base = pow (2.0, -0.25 * (j + 1.0));

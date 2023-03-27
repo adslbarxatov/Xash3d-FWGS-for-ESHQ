@@ -311,19 +311,27 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		int	numcolors;
 
-		for (i = 0; i < pixels; i++)
+		// [Xash3D, 28.03.23] HACKHACK: console background image shouldn't be transparent
+		if (!Q_stristr (name, "conback"))
 			{
-			if (fin[i] == 255)
+			for (i = 0; i < pixels; i++)
 				{
-				image.flags |= IMAGE_HAS_ALPHA;
-				rendermode = LUMP_MASKED;
-				break;
+				if (fin[i] == 255)
+					{
+					image.flags |= IMAGE_HAS_ALPHA;
+					rendermode = LUMP_MASKED;
+					break;
+					}
 				}
 			}
+
 		pal = fin + pixels;
 		numcolors = *(short *)pal;
-		if (numcolors != 256) pal = NULL; // corrupted lump ?
-		else pal += sizeof (short);
+		
+		if (numcolors != 256) 
+			pal = NULL; // corrupted lump?
+		else 
+			pal += sizeof (short);
 		}
 	else if (image.hint != IL_HINT_HL)
 		{

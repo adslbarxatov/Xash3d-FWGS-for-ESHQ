@@ -31,7 +31,7 @@ typedef struct mpg123_handle_s	mpg123_handle_t;
 #include <string.h>
 #include <stdlib.h>
 #include "fmt123.h"
-#define STDINT_H	<stdint.h>	// FWGS
+//#define STDINT_H	<stdint.h>	// [Xash3D, 28.03.23]
 #include STDINT_H
 
 #ifndef FALSE

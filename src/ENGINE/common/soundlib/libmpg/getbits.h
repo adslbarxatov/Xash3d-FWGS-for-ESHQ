@@ -47,6 +47,11 @@ static uint getbits (mpg123_handle_t *fr, int number_of_bits)
 	{
 	ulong	rval;
 
+	// [Xash3D, 28.03.23]
+	if ((long)(fr->wordpointer - fr->bsbuf) * 8
+		+ fr->bitindex + number_of_bits > (long)fr->framesize * 8)
+		return 0; 
+	
 	rval = fr->wordpointer[0];
 	rval <<= 8;
 	rval |= fr->wordpointer[1];
@@ -65,4 +70,4 @@ static uint getbits (mpg123_handle_t *fr, int number_of_bits)
 	return rval;
 	}
 
-#endif//GETBITS_H
+#endif

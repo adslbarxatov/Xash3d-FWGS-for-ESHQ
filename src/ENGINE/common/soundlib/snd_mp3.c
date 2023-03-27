@@ -34,7 +34,7 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 	wavinfo_t	sc;
 
 	// load the file
-	if (!buffer || filesize < FRAME_SIZE)
+	if (!buffer || (filesize < FRAME_SIZE))
 		return false;
 
 	// couldn't create decoder
@@ -107,6 +107,16 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 
 /*
 =================
+FS_SeekEx [Xash3D, 28.03.23]
+=================
+*/
+fs_offset_t FS_SeekEx (file_t *file, fs_offset_t offset, int whence)
+	{
+	return (FS_Seek (file, offset, whence) == -1) ? -1 : FS_Tell (file);
+	}
+
+/*
+=================
 Stream_OpenMPG
 =================
 */
@@ -119,7 +129,8 @@ stream_t *Stream_OpenMPG (const char *filename)
 	wavinfo_t	sc;
 
 	file = FS_Open (filename, "rb", false);
-	if (!file) return NULL;
+	if (!file) 
+		return NULL;
 
 	// at this point we have valid stream
 	stream = Mem_Calloc (host.soundpool, sizeof (stream_t));
@@ -135,10 +146,12 @@ stream_t *Stream_OpenMPG (const char *filename)
 		return NULL;
 		}
 
-	if (ret) Con_DPrintf (S_ERROR "%s\n", get_error (mpeg));
+	if (ret) 
+		Con_DPrintf (S_ERROR "%s\n", get_error (mpeg));
 
-	// trying to open stream and read header
-	if (!open_mpeg_stream (mpeg, file, (void *)FS_Read, (void *)FS_Seek, &sc))
+	// [Xash3D, 28.03.23] trying to open stream and read header
+	//if (!open_mpeg_stream (mpeg, file, (void *)FS_Read, (void *)FS_Seek, &sc))
+	if (!open_mpeg_stream (mpeg, file, (void *)FS_Read, (void *)FS_SeekEx, &sc))
 		{
 		Con_DPrintf (S_ERROR "Stream_OpenMPG: failed to load (%s): %s\n", filename, get_error (mpeg));
 		close_decoder (mpeg);
