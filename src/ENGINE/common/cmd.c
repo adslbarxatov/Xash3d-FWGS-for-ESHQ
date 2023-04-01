@@ -24,19 +24,19 @@ GNU General Public License for more details.
 
 typedef struct
 	{
-	byte *data;
+	byte	*data;
 	int		cursize;
 	int		maxsize;
 	} cmdbuf_t;
 
-qboolean			cmd_wait;
-cmdbuf_t			cmd_text, filteredcmd_text;
+qboolean		cmd_wait;
+cmdbuf_t		cmd_text, filteredcmd_text;
 byte			cmd_text_buf[MAX_CMD_BUFFER];
 byte			filteredcmd_text_buf[MAX_CMD_BUFFER];
-cmdalias_t *cmd_alias;
+cmdalias_t		*cmd_alias;
 uint			cmd_condition;
-int			cmd_condlevel;
-static qboolean cmd_currentCommandIsPrivileged;
+int				cmd_condlevel;
+static qboolean	cmd_currentCommandIsPrivileged;
 
 static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPrivileged);
 
@@ -118,6 +118,19 @@ Adds command text at the end of the buffer
 void Cbuf_AddText (const char *text)
 	{
 	Cbuf_AddTextToBuffer (&cmd_text, text);
+	}
+
+// [Xash3D, 31.03.23]
+void Cbuf_AddTextf (const char *fmt, ...)
+	{
+	va_list va;
+	char buf[MAX_VA_STRING];
+
+	va_start (va, fmt);
+	Q_vsnprintf (buf, sizeof (buf), fmt, va);
+	va_end (va);
+
+	Cbuf_AddText (buf);
 	}
 
 /*
@@ -974,40 +987,43 @@ A complete command line has been parsed, so try to execute it
 */
 static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPrivileged)
 	{
-	cmd_t *cmd = NULL;
-	cmdalias_t *a = NULL;
-	convar_t *cvar = NULL;
+	cmd_t		*cmd = NULL;
+	cmdalias_t	*a = NULL;
+	convar_t	*cvar = NULL;
 	char		command[MAX_CMD_LINE];
-	char *pcmd = command;
-	int		len = 0;
+	char		*pcmd = command;
+	int			len = 0;
 
 	cmd_condlevel = 0;
 
-	// cvar value substitution
-	if (CVAR_TO_BOOL (cmd_scripting))
+	// [Xash3D, 31.03.23] cvar value substitution
+	//if (CVAR_TO_BOOL (cmd_scripting))
+	if (CVAR_TO_BOOL (cmd_scripting) && isPrivileged)
 		{
 		while (*text)
 			{
 			// check for escape
-			if ((*text == '\\' || *text == '$') && (*(text + 1) == '$'))
+			if (((*text == '\\') || (*text == '$')) && (*(text + 1) == '$'))
 				{
 				text++;
 				}
 			else if (*text == '$')
 				{
 				char	token[MAX_CMD_LINE];
-				char *ptoken = token;
+				char	*ptoken = token;
 
 				// check for correct cvar name
 				text++;
-				while ((*text >= '0' && *text <= '9') || (*text >= 'A' && *text <= 'Z') || (*text >= 'a' && *text <= 'z') || (*text == '_'))
+				while (((*text >= '0') && (*text <= '9')) || ((*text >= 'A') && (*text <= 'Z')) ||
+					((*text >= 'a') && (*text <= 'z')) || (*text == '_'))
 					*ptoken++ = *text++;
 				*ptoken = 0;
 
 				len += Q_strncpy (pcmd, Cvar_VariableString (token), MAX_CMD_LINE - len);
 				pcmd = command + len;
 
-				if (!*text) break;
+				if (!*text) 
+					break;
 				}
 
 			*pcmd++ = *text++;
@@ -1247,6 +1263,7 @@ void Cmd_Unlink (int group)
 	Con_Reportf ("unlink %i commands\n", count);
 	}
 
+// [Xash3D, 31.03.23]
 static void Cmd_Apropos_f (void)
 	{
 	cmd_t *cmd;
@@ -1254,21 +1271,29 @@ static void Cmd_Apropos_f (void)
 	cmdalias_t *alias;
 	const char *partial;
 	int count = 0;
-	qboolean ispattern;
+	//qboolean ispattern;
+	char buf[MAX_VA_STRING];
 
-	if (Cmd_Argc () > 1)
+	/*if (Cmd_Argc () > 1)
 		{
 		partial = Cmd_Args ();
 		}
-	else
+	else*/
+	if (Cmd_Argc () < 2)
 		{
 		Msg ("apropos what?\n");
 		return;
 		}
 
-	ispattern = partial && Q_strpbrk (partial, "*?");
+	/*ispattern = partial && Q_strpbrk (partial, "*?");
 	if (!ispattern)
-		partial = va ("*%s*", partial);
+		partial = va ("*%s*", partial);*/
+	partial = Cmd_Args ();
+	if (!Q_strpbrk (partial, "*?"))
+		{
+		Q_snprintf (buf, sizeof (buf), "*%s*", partial);
+		partial = buf;
+		}
 
 	for (var = (convar_t *)Cvar_GetList (); var; var = var->next)
 		{
@@ -1313,7 +1338,8 @@ static void Cmd_Apropos_f (void)
 		{
 		// proceed a bit differently here as an alias value always got a final \n
 		if (!matchpattern_with_separator (alias->name, partial, true, "", false) &&
-			!matchpattern_with_separator (alias->value, partial, true, "\n", false)) // when \n is a separator, wildcards don't match it //-V666
+			!matchpattern_with_separator (alias->value, partial, true, "\n", false)) 
+			// when \n is a separator, wildcards don't match it //-V666
 			continue;
 
 		Msg ("alias ^5%s^7: %s", alias->name, alias->value); // do not print an extra \n
@@ -1385,22 +1411,40 @@ void Cmd_Init (void)
 	cmd_argc = 0;
 
 	// register our commands
-	Cmd_AddCommand ("echo", Cmd_Echo_f, "print a message to the console (useful in scripts)");
-	Cmd_AddCommand ("wait", Cmd_Wait_f, "make script execution wait for some rendered frames");
-	Cmd_AddCommand ("cmdlist", Cmd_List_f, "display all console commands beginning with the specified prefix");
-	Cmd_AddRestrictedCommand ("stuffcmds", Cmd_StuffCmds_f, "execute commandline parameters (must be present in .rc script)");
-	Cmd_AddCommand ("apropos", Cmd_Apropos_f, "lists all console variables/commands/aliases containing the specified string in the name or description");
+	Cmd_AddCommand ("echo", Cmd_Echo_f, 
+		"print a message to the console (useful in scripts)");
+	Cmd_AddCommand ("wait", Cmd_Wait_f, 
+		"make script execution wait for some rendered frames");
+	Cmd_AddCommand ("cmdlist", Cmd_List_f, 
+		"display all console commands beginning with the specified prefix");
+	Cmd_AddRestrictedCommand ("stuffcmds", Cmd_StuffCmds_f, 
+		"execute commandline parameters (must be present in .rc script)");
+	Cmd_AddCommand ("apropos", Cmd_Apropos_f, 
+		"lists all console variables/commands/aliases containing the specified string in the name or description");
+
 #if !XASH_DEDICATED
-	Cmd_AddCommand ("cmd", Cmd_ForwardToServer, "send a console commandline to the server");
-#endif // XASH_DEDICATED
-	Cmd_AddRestrictedCommand ("alias", Cmd_Alias_f, "create a script function. Without arguments show the list of all alias");
-	Cmd_AddRestrictedCommand ("unalias", Cmd_UnAlias_f, "remove a script function");
-	Cmd_AddCommand ("if", Cmd_If_f, "compare and set condition bits");
-	Cmd_AddCommand ("else", Cmd_Else_f, "invert condition bit");
+	Cmd_AddCommand ("cmd", Cmd_ForwardToServer,
+		"send a console commandline to the server");
+#endif
+
+	Cmd_AddRestrictedCommand ("alias", Cmd_Alias_f, 
+		"create a script function. Without arguments show the list of all alias");
+	Cmd_AddRestrictedCommand ("unalias", Cmd_UnAlias_f, 
+		"remove a script function");
+
+	// [Xash3D, 31.03.23]
+	/*Cmd_AddCommand ("if", Cmd_If_f, "compare and set condition bits");
+	Cmd_AddCommand ("else", Cmd_Else_f, "invert condition bit");*/
+	Cmd_AddRestrictedCommand ("if", Cmd_If_f, 
+		"compare and set condition bits");
+	Cmd_AddRestrictedCommand ("else", Cmd_Else_f, 
+		"invert condition bit");
 
 #if defined(XASH_HASHED_VARS)
-	Cmd_AddCommand ("basecmd_stats", BaseCmd_Stats_f, "print info about basecmd usage");
-	Cmd_AddCommand ("basecmd_test", BaseCmd_Test_f, "test basecmd");
+	Cmd_AddCommand ("basecmd_stats", BaseCmd_Stats_f, 
+		"print info about basecmd usage");
+	Cmd_AddCommand ("basecmd_test", BaseCmd_Test_f, 
+		"test basecmd");
 #endif
 	}
 

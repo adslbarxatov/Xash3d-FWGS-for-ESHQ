@@ -50,7 +50,6 @@ static con_autocomplete_t		con;
 /*
 =====================================
 Cmd_ListMaps
-
 =====================================
 */
 int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
@@ -80,6 +79,7 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 			{
 			dheader_t *header;
 			dextrahdr_t *hdrext;
+			dlump_t entities;	// [Xash3D, 31.03.23]
 
 			memset (buf, 0, sizeof (buf));
 			FS_Read (f, buf, sizeof (buf));
@@ -87,10 +87,13 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 			ver = header->version;
 
 			// check all the lumps and some other errors
-			if (Mod_TestBmodelLumps (t->filenames[i], buf, true))
+			//if (Mod_TestBmodelLumps (t->filenames[i], buf, true))
+			if (Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
 				{
-				lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
-				lumplen = header->lumps[LUMP_ENTITIES].filelen;
+				/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
+				lumplen = header->lumps[LUMP_ENTITIES].filelen;*/
+				lumpofs = entities.fileofs;
+				lumplen = entities.filelen;
 				ver = header->version;
 				}
 
@@ -914,21 +917,25 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			{
 			int	num_spawnpoints = 0;
 			dheader_t *header;
+			dlump_t entities;	// [Xash3D, 31.03.23]
 
 			memset (buf, 0, MAX_SYSPATH);
 			FS_Read (f, buf, MAX_SYSPATH);
 			header = (dheader_t *)buf;
 
 			// check all the lumps and some other errors
-			if (!Mod_TestBmodelLumps (t->filenames[i], buf, true))
+			//if (!Mod_TestBmodelLumps (t->filenames[i], buf, true))
+			if (!Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
 				{
 				FS_Close (f);
 				continue;
 				}
 
 			// after call Mod_TestBmodelLumps we gurantee what map is valid
-			lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
-			lumplen = header->lumps[LUMP_ENTITIES].filelen;
+			/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
+			lumplen = header->lumps[LUMP_ENTITIES].filelen;*/
+			lumpofs = entities.fileofs;
+			lumplen = entities.filelen;
 
 			Q_strncpy (entfilename, t->filenames[i], sizeof (entfilename));
 			COM_StripExtension (entfilename);
@@ -1042,17 +1049,22 @@ autocomplete_list_t cmd_list[] =
 
 /*
 ===============
-Cmd_CheckName
+Cmd_CheckName [Xash3D, 31.03.23]
 
 compare first argument with string
 ===============
 */
 static qboolean Cmd_CheckName (const char *name)
 	{
-	if (!Q_stricmp (Cmd_Argv (0), name))
+	//if (!Q_stricmp (Cmd_Argv (0), name))
+	const char *p = Cmd_Argv (0);
+	if (!Q_stricmp (p, name))
 		return true;
-	if (!Q_stricmp (Cmd_Argv (0), va ("\\%s", name)))
+
+	//if (!Q_stricmp (Cmd_Argv (0), va ("\\%s", name)))
+	if ((p[0] == '\\') && !Q_stricmp (&p[1], name))
 		return true;
+
 	return false;
 	}
 
@@ -1331,21 +1343,28 @@ static void Cmd_WriteOpenGLCvar (const char *name, const char *string, const cha
 	FS_Printf (f, "%s \"%s\"\n", name, string);
 	}
 
+// [Xash3D, 31.03.23]
 static void Cmd_WriteHelp (const char *name, const char *unused, const char *desc, void *f)
 	{
 	int	length;
 
-	if (!desc || !Q_strcmp (desc, ""))
+	//if (!desc || !Q_strcmp (desc, ""))
+	if (!COM_CheckString (desc))
 		return; // ignore fantom cmds
-	if (name[0] == '+' || name[0] == '-')
+
+	if ((name[0] == '+') || (name[0] == '-'))
 		return; // key bindings
 
 	length = 3 - (Q_strlen (name) / 10); // Asm_Ed default tab stop is 10
 
-	if (length == 3) FS_Printf (f, "%s\t\t\t\"%s\"\n", name, desc);
-	if (length == 2) FS_Printf (f, "%s\t\t\"%s\"\n", name, desc);
-	if (length == 1) FS_Printf (f, "%s\t\"%s\"\n", name, desc);
-	if (length == 0) FS_Printf (f, "%s \"%s\"\n", name, desc);
+	if (length == 3) 
+		FS_Printf (f, "%s\t\t\t\"%s\"\n", name, desc);
+	if (length == 2) 
+		FS_Printf (f, "%s\t\t\"%s\"\n", name, desc);
+	if (length == 1) 
+		FS_Printf (f, "%s\t\"%s\"\n", name, desc);
+	if (length == 0) 
+		FS_Printf (f, "%s \"%s\"\n", name, desc);
 	}
 
 void Cmd_WriteOpenGLVariables (file_t *f)
@@ -1365,7 +1384,7 @@ void Host_FinalizeConfig (file_t *f, const char *config)
 	FS_Close (f);
 	FS_Delete (backup);
 	FS_Rename (config, backup);
-	FS_Delete (config);
+	//FS_Delete (config);	// [Xash3D, 31.03.23]
 	FS_Rename (newcfg, config);
 	}
 

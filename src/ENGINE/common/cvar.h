@@ -29,25 +29,26 @@ GNU General Public License for more details.
 typedef struct convar_s
 	{
 	// this part shared with cvar_t
-	char *name;
-	char *string;
+	char	*name;
+	char	*string;
 	int		flags;
-	float		value;
-	struct convar_s *next;
+	float	value;
+	struct convar_s	*next;
 
 	// this part unique for convar_t
-	char *desc;		// variable descrition info
-	char *def_string;	// keep pointer to initial value
+	char	*desc;			// variable descrition info
+	char	*def_string;	// keep pointer to initial value
 	} convar_t;
 
 // cvar internal flags
-#define FCVAR_RENDERINFO		(1<<16)	// save to a seperate config called video.cfg
+#define FCVAR_RENDERINFO	(1<<16)	// save to a seperate config called video.cfg
 #define FCVAR_READ_ONLY		(1<<17)	// cannot be set by user at all, and can't be requested by CvarGetPointer from game dlls
 #define FCVAR_EXTENDED		(1<<18)	// this is convar_t (sets on registration)
 #define FCVAR_ALLOCATED		(1<<19)	// this convar_t is fully dynamic allocated (include description)
-#define FCVAR_VIDRESTART		(1<<20)	// recreate the window is cvar with this flag was changed
+#define FCVAR_VIDRESTART	(1<<20)	// recreate the window is cvar with this flag was changed
 #define FCVAR_TEMPORARY		(1<<21)	// these cvars holds their values and can be unlink in any time
 #define FCVAR_MOVEVARS		(1<<22)	// this cvar is a part of movevars_t struct that shared between client and server
+#define FCVAR_USER_CREATED	(1<<23) // [Xash3D, 31.03.23] created by a set command (dll's used)
 
 #define CVAR_DEFINE( cv, cvname, cvstr, cvflags, cvdesc ) \
 	convar_t cv = { (char*)cvname, (char*)cvstr, cvflags, 0.0f, (void *)CVAR_SENTINEL, (char*)cvdesc, NULL }
@@ -62,12 +63,14 @@ cvar_t *Cvar_GetList (void);
 convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group);
 void Cvar_RegisterVariable (convar_t *var);
 convar_t *Cvar_Get (const char *var_name, const char *value, int flags, const char *description);
+convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, const char *format, ...) _format (4);
 void Cvar_LookupVars (int checkbit, void *buffer, void *ptr, setpair_t callback);
 void Cvar_FullSet (const char *var_name, const char *value, int flags);
 void Cvar_DirectSet (convar_t *var, const char *value);
 void Cvar_Set (const char *var_name, const char *value);
 void Cvar_SetValue (const char *var_name, float value);
-const char *Cvar_BuildAutoDescription (int flags);
+//const char *Cvar_BuildAutoDescription (int flags);
+const char *Cvar_BuildAutoDescription (const char *szName, int flags);	// [Xash3D, 31.03.23]
 float Cvar_VariableValue (const char *var_name);
 int Cvar_VariableInteger (const char *var_name);
 const char *Cvar_VariableString (const char *var_name);
@@ -77,6 +80,7 @@ void Cvar_Reset (const char *var_name);
 void Cvar_SetCheatState (void);
 qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged);
 void Cvar_Init (void);
+void Cvar_PostFSInit (void);	// [Xash3D, 31.03.23]
 void Cvar_Unlink (int group);
 
-#endif//CVAR_H
+#endif

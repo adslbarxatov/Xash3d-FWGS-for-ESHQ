@@ -56,11 +56,11 @@ static int idum = 0;
 #define IM		2147483647
 #define IQ		127773
 #define IR		2836
-#define NTAB		32
+#define NTAB	32
 #define EPS		1.2e-7
-#define NDIV		(1 + (IM - 1) / NTAB)
+#define NDIV	(1 + (IM - 1) / NTAB)
 #define AM		(1.0 / IM)
-#define RNMX		(1.0 - EPS)
+#define RNMX	(1.0 - EPS)
 
 static int lran1 (void)
 	{
@@ -133,7 +133,7 @@ int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
 
 	if (idum == 0) COM_SetRandomSeed (0);
 
-	if (x <= 0 || MAX_RANDOM_RANGE < x - 1)
+	if ((x <= 0) || (MAX_RANDOM_RANGE < x - 1))
 		return lLow;
 
 	// The following maps a uniform distribution on the interval [0, MAX_RANDOM_RANGE]
@@ -150,6 +150,30 @@ int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
 		} while (n > maxAcceptable);
 
 		return lLow + (n % x);
+	}
+
+/*
+============
+va [Xash3D, 31.03.23]
+
+does a varargs printf into a temp buffer,
+so I don't need to have varargs versions
+of all text functions.
+============
+*/
+char *va (const char *format, ...)
+	{
+	va_list		argptr;
+	static char	string[16][MAX_VA_STRING], *s;
+	static int	stringindex = 0;
+
+	s = string[stringindex];
+	stringindex = (stringindex + 1) & 15;
+	va_start (argptr, format);
+	Q_vsnprintf (s, sizeof (string[0]), format, argptr);
+	va_end (argptr);
+
+	return s;
 	}
 
 /*
@@ -867,8 +891,7 @@ void GAME_EXPORT pfnCvar_RegisterEngineVariable (cvar_t *variable)
 
 /*
 =============
-pfnCvar_RegisterVariable
-
+pfnCvar_RegisterVariable [Xash3D, 31.03.23]
 =============
 */
 cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue, int flags)
@@ -877,22 +900,27 @@ cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue,
 	if (!Q_stricmp (szName, "motdfile"))
 		flags |= FCVAR_PRIVILEGED;
 
-	if (FBitSet (flags, FCVAR_GLCONFIG))
+	/*if (FBitSet (flags, FCVAR_GLCONFIG))
 		return (cvar_t *)Cvar_Get (szName, szValue, flags, va (CVAR_GLCONFIG_DESCRIPTION, szName));
-	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_CLIENTDLL, Cvar_BuildAutoDescription (flags | FCVAR_CLIENTDLL));
+	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_CLIENTDLL, Cvar_BuildAutoDescription (flags |
+		FCVAR_CLIENTDLL));*/
+	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_CLIENTDLL, Cvar_BuildAutoDescription (szName, flags |
+		FCVAR_CLIENTDLL));
 	}
 
 /*
 =============
-pfnCvar_RegisterVariable
-
+pfnCvar_RegisterVariable [Xash3D, 31.03.23]
 =============
 */
 cvar_t *pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
 	{
-	if (FBitSet (flags, FCVAR_GLCONFIG))
+	/*if (FBitSet (flags, FCVAR_GLCONFIG))
 		return (cvar_t *)Cvar_Get (szName, szValue, flags, va (CVAR_GLCONFIG_DESCRIPTION, szName));
-	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (flags | FCVAR_GAMEUIDLL));
+	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (flags |
+		FCVAR_GAMEUIDLL));*/
+	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (szName, flags |
+		FCVAR_GAMEUIDLL));
 	}
 
 /*

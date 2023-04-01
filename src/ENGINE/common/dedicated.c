@@ -19,6 +19,7 @@ GNU General Public License for more details.
 
 ref_globals_t refState;
 
+/* [Xash3D, 31.03.23]
 const char *svc_strings[256] =
 	{
 		"svc_bad",
@@ -85,11 +86,10 @@ const char *svc_strings[256] =
 		"svc_unused61",
 		"svc_unused62",
 		"svc_unused63",
-	};
+	};*/
 
 void CL_ProcessFile (qboolean successfully_received, const char *filename)
 	{
-
 	}
 
 int GAME_EXPORT CL_Active (void)
@@ -132,7 +132,6 @@ qboolean CL_IsRecordDemo (void)
 	return false;
 	}
 
-
 qboolean CL_DisableVisibility (void)
 	{
 	return false;
@@ -150,42 +149,34 @@ qboolean CL_IsBackgroundMap (void)
 
 void CL_Init (void)
 	{
-
 	}
 
 void Key_Init (void)
 	{
-
 	}
 
 void IN_Init (void)
 	{
-
 	}
 
 void CL_Drop (void)
 	{
-
 	}
 
 void CL_ClearEdicts (void)
 	{
-
 	}
 
 void GAME_EXPORT Key_SetKeyDest (int key_dest)
 	{
-
 	}
 
 void UI_SetActiveMenu (qboolean fActive)
 	{
-
 	}
 
 void CL_WriteMessageHistory (void)
 	{
-
 	}
 
 void Host_ClientBegin (void)
@@ -195,7 +186,6 @@ void Host_ClientBegin (void)
 
 void Host_ClientFrame (void)
 	{
-
 	}
 
 void Host_InputFrame (void)
@@ -204,18 +194,16 @@ void Host_InputFrame (void)
 
 void VID_InitDefaultResolution (void)
 	{
-
 	}
 
 void Con_Init (void)
 	{
-
 	}
 
 void R_ClearAllDecals (void)
 	{
-
 	}
+
 int R_CreateDecalList (struct decallist_s *pList)
 	{
 	return 0;
@@ -223,7 +211,6 @@ int R_CreateDecalList (struct decallist_s *pList)
 
 void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
 	{
-
 	}
 
 int S_GetCurrentStaticSounds (soundlist_t *pout, int size)
@@ -238,27 +225,22 @@ int GAME_EXPORT CL_GetMaxClients (void)
 
 void IN_TouchInitConfig (void)
 	{
-
 	}
 
 void CL_Disconnect (void)
 	{
-
 	}
 
 void CL_Shutdown (void)
 	{
-
 	}
 
 void R_ClearStaticEntities (void)
 	{
-
 	}
 
 void Host_Credits (void)
 	{
-
 	}
 
 qboolean UI_CreditsActive (void)
@@ -268,12 +250,10 @@ qboolean UI_CreditsActive (void)
 
 void S_StopBackgroundTrack (void)
 	{
-
 	}
 
 void SCR_BeginLoadingPlaque (qboolean is_background)
 	{
-
 	}
 
 int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
@@ -283,17 +263,14 @@ int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
 
 void S_StopAllSounds (qboolean ambient)
 	{
-
 	}
 
 void GAME_EXPORT Con_NPrintf (int idx, const char *fmt, ...)
 	{
-
 	}
 
 void GAME_EXPORT Con_NXPrintf (struct  con_nprint_s *info, const char *fmt, ...)
 	{
-
 	}
 
 const byte *GL_TextureData (unsigned int texnum)
@@ -303,26 +280,27 @@ const byte *GL_TextureData (unsigned int texnum)
 
 void SCR_CheckStartupVids (void)
 	{
-
 	}
 
 void CL_StopPlayback (void)
 	{
-
 	}
 
 void CL_ClearStaticEntities (void)
 	{
-
 	}
 
 void UI_ShowConnectionWarning (void)
 	{
-
 	}
 
 void CL_Crashed (void)
 	{
 	}
 
-#endif // XASH_DEDICATED
+// [Xash3D, 31.03.23]
+void CL_HudMessage (const char *pMessage)
+	{
+	}
+
+#endif

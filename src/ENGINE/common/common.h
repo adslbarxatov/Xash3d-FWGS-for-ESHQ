@@ -154,19 +154,21 @@ extern "C" {
 #define Assert( f )
 #endif
 
+	// [Xash3D, 31.03.23]
 	extern convar_t *gl_vsync;
 	extern convar_t *scr_loading;
 	extern convar_t *scr_download;
 	extern convar_t *cmd_scripting;
 	extern convar_t *sv_maxclients;
 	extern convar_t *cl_allow_levelshots;
-	extern convar_t *vid_displayfrequency;
+	//extern convar_t *vid_displayfrequency;
 	extern convar_t	host_developer;
 	extern convar_t *host_limitlocal;
 	extern convar_t *host_framerate;
 	extern convar_t *host_maxfps;
 	extern convar_t	sys_timescale;
 	extern convar_t	cl_filterstuffcmd;
+	extern convar_t	rcon_password;
 
 	/*
 	==============================================================
@@ -359,14 +361,14 @@ extern "C" {
 		qboolean		allow_cheats;	// this host will allow cheating
 		qboolean		con_showalways;	// show console always (developer and dedicated)
 		qboolean		change_game;	// initialize when game is changed
-		qboolean		mouse_visible;	// vgui override cursor control
+		qboolean		mouse_visible;	// vgui override cursor control (never change outside Platform_SetCursorType)
 		qboolean		shutdown_issued;	// engine is shutting down
 		qboolean		force_draw_version;	// used when fraps is loaded
 		float			force_draw_version_time;
 		qboolean		apply_game_config;	// when true apply only to game cvars and ignore all other commands
 		qboolean		apply_opengl_config;// when true apply only to opengl cvars and ignore all other commands
 		qboolean		config_executed;	// a bit who indicated was config.cfg already executed e.g. from valve.rc
-		int		sv_cvars_restored;	// count of restored server cvars
+		//int				sv_cvars_restored;	// [Xash3D, 31.03.23] count of restored server cvars
 		qboolean		crashed;		// set to true if crashed
 		qboolean		daemonized;
 		qboolean		enabledll;
@@ -395,6 +397,11 @@ extern "C" {
 		// bug compatibility level, for very "special" games
 		bugcomp_t bugcomp;
 
+		// [Xash3D, 31.03.23] measure time to first frame
+		double starttime;
+
+		// [Xash3D, 31.03.23] count of sleeps can be inserted between frames
+		double pureframetime;
 		} host_parm_t;
 
 	extern host_parm_t	host;
@@ -418,7 +425,6 @@ extern "C" {
 
 	// ESHQ: поддержка скриптов
 	qboolean FS_WriteAchievementsScript (int NewLevel);
-	/*qboolean FS_UpdateAchievementsScript (void);*/
 
 	//
 	// cmd.c
@@ -426,6 +432,7 @@ extern "C" {
 	void Cbuf_Init (void);
 	void Cbuf_Clear (void);
 	void Cbuf_AddText (const char *text);
+	void Cbuf_AddTextf (const char *text, ...) _format (1);		// [Xash3D, 31.03.23]
 	void Cbuf_AddFilteredText (const char *text);
 	void Cbuf_InsertText (const char *text);
 	void Cbuf_ExecStuffCmds (void);
@@ -698,7 +705,8 @@ extern "C" {
 	// custom.c
 	//
 	void COM_ClearCustomizationList (customization_t *pHead, qboolean bCleanDecals);
-	qboolean COM_CreateCustomization (customization_t *pHead, resource_t *pRes, int playernum, int flags, customization_t **pCust, int *nLumps);
+	qboolean COM_CreateCustomization (customization_t *pHead, resource_t *pRes, int playernum, int flags, 
+		customization_t **pCust, int *nLumps);
 	int COM_SizeofResourceList (resource_t *pList, resourceinfo_t *ri);
 
 	//
@@ -744,7 +752,7 @@ extern "C" {
 	void CL_LegacyUpdateInfo (void);
 	void CL_CharEvent (int key);
 	qboolean CL_DisableVisibility (void);
-	int CL_PointContents (const vec3_t point);
+	//int CL_PointContents (const vec3_t point);	// [Xash3D, 31.03.23]
 	byte *COM_LoadFile (const char *filename, int usehunk, int *pLength);
 	int CL_GetDemoComment (const char *demoname, char *comment);
 	void COM_AddAppDirectoryToSearchPath (const char *pszBaseDir, const char *appName);
@@ -753,10 +761,11 @@ extern "C" {
 	struct cmd_s *Cmd_GetNextFunctionHandle (struct cmd_s *cmd);
 	struct cmdalias_s *Cmd_AliasGetList (void);
 	const char *Cmd_GetName (struct cmd_s *cmd);
-	struct pmtrace_s *PM_TraceLine (float *start, float *end, int flags, int usehull, int ignore_pe);
+	//struct pmtrace_s *PM_TraceLine (float *start, float *end, int flags, int usehull, int ignore_pe);	// [Xash3D, 31.03.23]
 	void SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch);
 	void SV_StartMusic (const char *curtrack, const char *looptrack, int position);
-	void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int entityIndex, int modelIndex, int flags, float scale);
+	void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int entityIndex, int modelIndex, 
+		int flags, float scale);
 	void Log_Printf (const char *fmt, ...) _format (1);
 	void SV_BroadcastCommand (const char *fmt, ...) _format (1);
 	qboolean SV_RestoreCustomDecal (struct decallist_s *entry, edict_t *pEdict, qboolean adjacent);
@@ -787,8 +796,10 @@ extern "C" {
 	void CL_ProcessFile (qboolean successfully_received, const char *filename);
 	int SV_GetSaveComment (const char *savename, char *comment);
 	qboolean SV_NewGame (const char *mapName, qboolean loadGame);
-	void SV_ClipPMoveToEntity (struct physent_s *pe, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, struct pmtrace_s *tr);
-	void CL_ClipPMoveToEntity (struct physent_s *pe, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, struct pmtrace_s *tr);
+	void SV_ClipPMoveToEntity (struct physent_s *pe, const vec3_t start, vec3_t mins, vec3_t maxs, 
+		const vec3_t end, struct pmtrace_s *tr);
+	void CL_ClipPMoveToEntity (struct physent_s *pe, const vec3_t start, vec3_t mins, vec3_t maxs, 
+		const vec3_t end, struct pmtrace_s *tr);
 	void SV_SysError (const char *error_string);
 	void SV_ShutdownGame (void);
 	void SV_ExecLoadLevel (void);
@@ -821,6 +832,10 @@ extern "C" {
 	void Info_RemovePrefixedKeys (char *start, char prefix);
 	qboolean Info_RemoveKey (char *s, const char *key);
 	qboolean Info_SetValueForKey (char *s, const char *key, const char *value, int maxsize);
+
+	// [Xash3D, 31.03.23]
+	qboolean Info_SetValueForKeyf (char *s, const char *key, int maxsize, const char *format, ...) _format (4);
+	
 	qboolean Info_SetValueForStarKey (char *s, const char *key, const char *value, int maxsize);
 	qboolean Info_IsValid (const char *s);
 	void Info_WriteVars (file_t *f);
@@ -846,6 +861,7 @@ extern "C" {
 	int COM_FileSize (const char *filename);
 	void COM_FreeFile (void *buffer);
 	int COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare);
+	char *va (const char *format, ...) _format (1);		// [Xash3D, 31.03.23]
 
 	// soundlib shared exports
 	qboolean S_Init (void);
