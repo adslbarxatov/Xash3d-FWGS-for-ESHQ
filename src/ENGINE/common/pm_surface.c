@@ -214,14 +214,14 @@ msurface_t *PM_TraceSurface (physent_t *pe, vec3_t start, vec3_t end)
 	return PM_RecursiveSurfCheck (bmodel, &bmodel->nodes[hull->firstclipnode], start_l, end_l);
 	}
 
-/*
+/* [Xash3D, 31.03.23]
 ==================
 PM_TraceTexture
 
 find the face where the traceline hit
 assume physentity is valid
 ==================
-*/
+//
 const char *PM_TraceTexture (physent_t *pe, vec3_t start, vec3_t end)
 	{
 	msurface_t *surf = PM_TraceSurface (pe, start, end);
@@ -231,6 +231,7 @@ const char *PM_TraceTexture (physent_t *pe, vec3_t start, vec3_t end)
 
 	return surf->texinfo->texture->name;
 	}
+	*/
 
 /*
 ==================
@@ -239,7 +240,8 @@ PM_TestLine_r
 optimized trace for light gathering
 ==================
 */
-int PM_TestLine_r (model_t *mod, mnode_t *node, vec_t p1f, vec_t p2f, const vec3_t start, const vec3_t stop, linetrace_t *trace)
+int PM_TestLine_r (model_t *mod, mnode_t *node, vec_t p1f, vec_t p2f, const vec3_t start, const vec3_t stop, 
+	linetrace_t *trace)
 	{
 	float	front, back;
 	float	frac, midf;

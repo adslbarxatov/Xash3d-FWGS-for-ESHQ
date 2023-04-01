@@ -37,21 +37,32 @@ double Platform_DoubleTime (void);
 void Platform_Sleep (int msec);
 void Platform_ShellExecute (const char *path, const char *parms);
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow);
-// commented out, as this is an optional feature or maybe implemented in system API directly
-// see system.c
-// qboolean Sys_DebuggerPresent( void );
+qboolean Sys_DebuggerPresent (void);	// [Xash3D, 31.03.23] optional, see Sys_DebugBreak
 
 #if XASH_ANDROID
-const char *Android_GetAndroidID (void);
-const char *Android_LoadID (void);
-void Android_SaveID (const char *id);
+	const char *Android_GetAndroidID (void);
+	const char *Android_LoadID (void);
+	void Android_SaveID (const char *id);
 #endif
 
 #if XASH_WIN32
-void Platform_UpdateStatusLine (void);
-#else 
-static inline void Platform_UpdateStatusLine (void) {}
-#endif  
+	void Platform_UpdateStatusLine (void);
+#else
+	static inline void Platform_UpdateStatusLine (void) {}
+#endif
+
+// [Xash3D, 31.03.23]
+#if XASH_NSWITCH
+	void NSwitch_Init (void);
+	void NSwitch_Shutdown (void);
+#endif
+
+#if XASH_PSVITA
+	void PSVita_Init (void);
+	void PSVita_Shutdown (void);
+	qboolean PSVita_GetBasePath (char *buf, const size_t buflen);
+	void PSVita_InputUpdate (void);
+#endif
 
 /*
 ==============================================================================

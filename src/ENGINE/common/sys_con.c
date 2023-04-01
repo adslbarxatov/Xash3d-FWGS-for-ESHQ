@@ -17,11 +17,18 @@ GNU General Public License for more details.
 #if XASH_WIN32
 #define STDOUT_FILENO 1
 #include <io.h>
+
 #elif XASH_ANDROID
-#include <android/log.h>
+	#include <android/log.h>
 #endif
+
 #include <string.h>
 #include <errno.h>
+
+// [Xash3D, 31.03.23]
+#if XASH_IRIX
+	#include <sys/time.h>
+#endif
 
 // do not waste precious CPU cycles on mobiles or low memory devices
 #if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
@@ -256,12 +263,18 @@ static void Sys_PrintStdout (const char *logtime, const char *msg)
 	// platform-specific output
 #if XASH_ANDROID && !XASH_DEDICATED
 	__android_log_write (ANDROID_LOG_DEBUG, "Xash", buf);
-#endif // XASH_ANDROID && !XASH_DEDICATED
+#endif
 
 #if TARGET_OS_IOS
 	void IOS_Log (const char *);
 	IOS_Log (buf);
-#endif // TARGET_OS_IOS
+#endif
+
+#if (XASH_NSWITCH && NSWITCH_DEBUG) || XASH_PSVITA // [Xash3D, 31.03.23]
+	// just spew it to stderr normally in debug mode
+	fprintf (stderr, "%s %s", logtime, buf);
+#endif
+
 #elif !XASH_WIN32 // Wcon does the job
 	Sys_PrintLogfile (STDOUT_FILENO, logtime, msg, XASH_COLORIZE_CONSOLE);
 	Sys_FlushStdout ();

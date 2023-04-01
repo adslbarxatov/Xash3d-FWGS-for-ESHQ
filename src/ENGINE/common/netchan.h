@@ -182,16 +182,17 @@ typedef struct
 // generic fragment structure
 typedef struct fragbuf_s
 	{
-	struct fragbuf_s *next;				// next buffer in chain
-	int		bufferid;				// id of this buffer
-	sizebuf_t		frag_message;			// message buffer where raw data is stored
-	byte		frag_message_buf[NET_MAX_FRAGMENT];	// the actual data sits here
-	qboolean		isfile;				// is this a file buffer?
-	qboolean		isbuffer;				// is this file buffer from memory ( custom decal, etc. ).
-	qboolean		iscompressed;			// is compressed file, we should using filename.ztmp
-	char		filename[MAX_OSPATH];		// name of the file to save out on remote host
-	int		foffset;				// offset in file from which to read data
-	int		size;				// size of data to read at that offset
+	struct fragbuf_s	*next;				// next buffer in chain
+	int					bufferid;			// id of this buffer
+	sizebuf_t			frag_message;		// message buffer where raw data is stored
+	//byte				frag_message_buf[NET_MAX_FRAGMENT];	// the actual data sits here
+	byte				*frag_message_buf;	// [Xash3D, 31.03.23] the actual data sits here
+	qboolean			isfile;				// is this a file buffer?
+	qboolean			isbuffer;			// is this file buffer from memory ( custom decal, etc. ).
+	qboolean			iscompressed;		// is compressed file, we should using filename.ztmp
+	char				filename[MAX_OSPATH];		// name of the file to save out on remote host
+	int					foffset;			// offset in file from which to read data
+	int					size;				// size of data to read at that offset
 	} fragbuf_t;
 
 // Waiting list of fragbuf chains
@@ -279,15 +280,17 @@ typedef struct netchan_s
 
 extern netadr_t		net_from;
 extern netadr_t		net_local;
-extern sizebuf_t		net_message;
-extern byte		net_message_buffer[NET_MAX_MESSAGE];
+extern netadr_t		net6_local;	// [Xash3D, 31.03.23]
+extern sizebuf_t	net_message;
+extern byte			net_message_buffer[NET_MAX_MESSAGE];
 extern convar_t		sv_lan;
 extern convar_t		sv_lan_rate;
-extern int		net_drop;
+extern int			net_drop;
 
 void Netchan_Init (void);
 void Netchan_Shutdown (void);
-void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client, int (*pfnBlockSize)(void *, fragsize_t mode));
+void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client, 
+	int (*pfnBlockSize)(void *, fragsize_t mode));
 void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filename, byte *pbuf, int size);
 qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *length);
 qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg);

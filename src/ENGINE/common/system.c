@@ -26,7 +26,7 @@ GNU General Public License for more details.
 #if XASH_POSIX
 #include <unistd.h>
 #include <signal.h>
-#include <dlfcn.h>
+//#include <dlfcn.h>	// [Xash3D, 31.03.23]
 
 #if !XASH_ANDROID
 #include <pwd.h>
@@ -37,13 +37,22 @@ GNU General Public License for more details.
 #include <process.h>
 #endif
 
+// [Xash3D, 31.03.23]
+#if XASH_NSWITCH
+	#include <switch.h>
+#endif
+
+#if XASH_PSVITA
+	#include <vitasdk.h>
+#endif
+
 #include "menu_int.h" // _UPDATE_PAGE macro
 
 #include "library.h"
 #include "whereami.h"
 
 qboolean	error_on_exit = false;	// arg for exit();
-#define DEBUG_BREAK
+//#define DEBUG_BREAK	// [Xash3D, 31.03.23]
 
 /*
 ================
@@ -54,23 +63,39 @@ double GAME_EXPORT Sys_DoubleTime (void)
 	{
 	return Platform_DoubleTime ();
 	}
+
+/*
+================
+Sys_DebugBreak [Xash3D, 31.03.23]
+================
+*/
+void Sys_DebugBreak (void)
+	{
 #if XASH_LINUX || ( XASH_WIN32 && !XASH_64BIT )
-#undef DEBUG_BREAK
-qboolean Sys_DebuggerPresent (void); // see sys_linux.c
-#if XASH_MSVC
-#define DEBUG_BREAK \
-			if( Sys_DebuggerPresent() ) \
-				_asm{ int 3 }
+	/*#undef DEBUG_BREAK
+	qboolean Sys_DebuggerPresent (void); // see sys_linux.c
+	#if XASH_MSVC
+	#define DEBUG_BREAK \
+				if( Sys_DebuggerPresent() ) \*/
+#if _MSC_VER
+	if (Sys_DebuggerPresent ())
+		_asm { int 3 }
 #elif XASH_X86
-#define DEBUG_BREAK \
-			if( Sys_DebuggerPresent() ) \
-				asm volatile("int $3;")
+	/*#define DEBUG_BREAK \
+	if( Sys_DebuggerPresent() ) \
+	asm volatile("int $3;")*/
+	if (Sys_DebuggerPresent ())
+		asm volatile("int $3;");
 #else
-#define DEBUG_BREAK \
-			if( Sys_DebuggerPresent() ) \
-				raise( SIGINT )
+	/*#define DEBUG_BREAK \
+	if( Sys_DebuggerPresent() ) \
+	raise( SIGINT )*/
+	if (Sys_DebuggerPresent ())
+		raise (SIGINT);
 #endif
 #endif
+	}
+
 #if !XASH_DEDICATED
 /*
 ================
@@ -122,7 +147,16 @@ const char *Sys_GetCurrentUser (void)
 
 	if (GetUserName (s_userName, &size))
 		return s_userName;
-#elif XASH_POSIX && !XASH_ANDROID
+
+// [Xash3D, 31.03.23]
+//#elif XASH_POSIX && !XASH_ANDROID
+#elif XASH_PSVITA
+	static string username;
+	sceAppUtilSystemParamGetString (SCE_SYSTEM_PARAM_ID_USERNAME, username, sizeof (username) - 1);
+	if (COM_CheckStringEmpty (username))
+		return username;
+
+#elif XASH_POSIX && !XASH_ANDROID && !XASH_NSWITCH
 	uid_t uid = geteuid ();
 	struct passwd *pw = getpwuid (uid);
 
@@ -367,7 +401,7 @@ void Sys_WaitForQuit (void)
 
 /*
 ================
-Sys_Warn
+Sys_Warn [Xash3D, 31.03.23]
 
 Just messagebox
 ================
@@ -377,11 +411,14 @@ void Sys_Warn (const char *format, ...)
 	va_list	argptr;
 	char	text[MAX_PRINT_MSG];
 
-	DEBUG_BREAK;
+	//DEBUG_BREAK;
 
 	va_start (argptr, format);
 	Q_vsnprintf (text, MAX_PRINT_MSG, format, argptr);
 	va_end (argptr);
+
+	Sys_DebugBreak ();
+
 	Msg ("Sys_Warn: %s\n", text);
 	if (!Host_IsDedicated ()) // dedicated server should not hang on messagebox
 		MSGBOX (text);
@@ -400,13 +437,18 @@ void Sys_Error (const char *error, ...)
 	va_list	argptr;
 	char	text[MAX_PRINT_MSG];
 
-	DEBUG_BREAK;
+	// [Xash3D, 31.03.23] enable cursor before debugger call
+	//DEBUG_BREAK;
+	if (!Host_IsDedicated ())
+		Platform_SetCursorType (dc_arrow);
 
+	// don't multiple executes
 	if (host.status == HOST_ERR_FATAL)
-		return; // don't multiple executes
+		return; 
 
-	// make sure what console received last message
-	if (host.change_game) Sys_Sleep (200);
+	// make sure that console received last message
+	if (host.change_game) 
+		Sys_Sleep (200);
 
 	error_on_exit = true;
 	host.status = HOST_ERR_FATAL;
@@ -414,6 +456,7 @@ void Sys_Error (const char *error, ...)
 	Q_vsnprintf (text, MAX_PRINT_MSG, error, argptr);
 	va_end (argptr);
 
+	Sys_DebugBreak ();
 	SV_SysError (text);
 
 	if (!Host_IsDedicated ())
@@ -425,6 +468,7 @@ void Sys_Error (const char *error, ...)
 		Wcon_ShowConsole (false);
 #endif
 		MSGBOX (text);
+		Sys_Print (text);	// [Xash3D, 31.03.23]
 		}
 	else
 		{
@@ -545,7 +589,7 @@ void Sys_Print (const char *pMsg)
 
 /*
 ==================
-Sys_ChangeGame
+Sys_NewInstance [Xash3D, 31.03.23]
 
 This is a special function
 
@@ -556,6 +600,20 @@ it explicitly doesn't use internal allocation or string copy utils
 */
 qboolean Sys_NewInstance (const char *gamedir)
 	{
+#if XASH_NSWITCH
+	char newargs[4096];
+	const char *exe = host.argv[0]; // arg 0 is always the full NRO path
+
+	// TODO: carry over the old args (assuming you can even pass any)
+	Q_snprintf (newargs, sizeof (newargs), "%s -game %s", exe, gamedir);
+	// just restart the entire thing
+	printf ("envSetNextLoad exe: `%s`\n", exe);
+	printf ("envSetNextLoad argv:\n`%s`\n", newargs);
+	Host_Shutdown ();
+	envSetNextLoad (exe, newargs);
+	exit (0);
+#else
+
 	int i = 0;
 	qboolean replacedArg = false;
 	size_t exelen;
@@ -587,6 +645,13 @@ qboolean Sys_NewInstance (const char *gamedir)
 	newargs[i++] = strdup ("-changegame");
 	newargs[i] = NULL;
 
+#if XASH_PSVITA
+	// under normal circumstances it's always going to be the same path
+	exe = strdup ("app0:/eboot.bin");
+	Host_Shutdown ();
+	sceAppMgrLoadExec (exe, newargs, NULL);
+#else
+
 	exelen = wai_getExecutablePath (NULL, 0, NULL);
 	exe = malloc (exelen + 1);
 	wai_getExecutablePath (exe, exelen, NULL);
@@ -595,6 +660,7 @@ qboolean Sys_NewInstance (const char *gamedir)
 	Host_Shutdown ();
 
 	execv (exe, newargs);
+#endif
 
 	// if execv returned, it's probably an error
 	printf ("execv failed: %s", strerror (errno));
@@ -603,6 +669,7 @@ qboolean Sys_NewInstance (const char *gamedir)
 		free (newargs[i]);
 	free (newargs);
 	free (exe);
+#endif
 
 	return false;
 	}
