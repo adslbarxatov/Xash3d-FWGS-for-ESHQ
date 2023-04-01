@@ -216,8 +216,6 @@ void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, u
 	packet.part = LittleLong (part);
 	packet.count = (length - 1) / part + 1;
 
-	//Con_Reportf( S_NOTE "NetSplit_SendLong: packet to %s, count %d, length %d\n", NET_AdrToString( to ), (int)packet.count, (int)packet.length );
-
 	while (packet.index < packet.count)
 		{
 		unsigned int size = part;
@@ -228,7 +226,6 @@ void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, u
 		length -= size;
 
 		memcpy (packet.data, (const byte *)data + packet.index * part, size);
-		//Con_Reportf( S_NOTE "NetSplit_SendLong: packet to %s, id %d, index %d\n", NET_AdrToString( to ), (int)packet.id, (int)packet.index );
 
 		NET_SendPacket (sock, size + NETSPLIT_HEADER_SIZE, &packet, to);
 		packet.index++;
@@ -251,7 +248,10 @@ void Netchan_Init (void)
 	net_showpackets = Cvar_Get ("net_showpackets", "0", 0, "show network packets");
 	net_chokeloopback = Cvar_Get ("net_chokeloop", "0", 0, "apply bandwidth choke to loopback packets");
 	net_showdrop = Cvar_Get ("net_showdrop", "0", 0, "show packets that are dropped");
-	net_qport = Cvar_Get ("net_qport", va ("%i", port), FCVAR_READ_ONLY, "current quake netport");
+
+	// [Xash3D, 31.03.23]
+	//net_qport = Cvar_Get ("net_qport", va ("%i", port), FCVAR_READ_ONLY, "current quake netport");
+	net_qport = Cvar_Getf ("net_qport", FCVAR_READ_ONLY, "current quake netport", "%i", port);
 
 	net_mempool = Mem_AllocPool ("Network Pool");
 
@@ -300,7 +300,8 @@ Netchan_Setup
 called to open a channel to a remote system
 ==============
 */
-void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client, int (*pfnBlockSize)(void *, fragsize_t mode))
+void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client,
+	int (*pfnBlockSize)(void *, fragsize_t mode))
 	{
 	Netchan_Clear (chan);
 
@@ -414,6 +415,7 @@ void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 	while (buf)
 		{
 		n = buf->next;
+		Mem_Free (buf->frag_message_buf);	// [Xash3D, 31.03.23]
 		Mem_Free (buf);
 		buf = n;
 		}
@@ -531,16 +533,18 @@ void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, .
 
 /*
 ==============================
-Netchan_AllocFragbuf
-
+Netchan_AllocFragbuf [Xash3D, 31.03.23]
 ==============================
 */
-fragbuf_t *Netchan_AllocFragbuf (void)
+//fragbuf_t *Netchan_AllocFragbuf (void)
+fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	{
 	fragbuf_t *buf;
 
 	buf = (fragbuf_t *)Mem_Calloc (net_mempool, sizeof (fragbuf_t));
-	MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, sizeof (buf->frag_message_buf));
+	//MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, sizeof (buf->frag_message_buf));
+	buf->frag_message_buf = (byte *)Mem_Calloc (net_mempool, fragment_size);
+	MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, fragment_size);
 
 	return buf;
 	}
@@ -725,7 +729,8 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 			memcpy (msg->pData, pbOut, uCompressedSize);
 			MSG_SeekToBit (msg, uCompressedSize << 3, SEEK_SET);
 			}
-		if (pbOut) free (pbOut);
+		if (pbOut) 
+			free (pbOut);
 		}
 
 	remaining = MSG_GetNumBytesWritten (msg);
@@ -736,7 +741,9 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 		bytes = Q_min (remaining, chunksize);
 		remaining -= bytes;
 
-		buf = Netchan_AllocFragbuf ();
+		// [Xash3D, 31.03.23]
+		//buf = Netchan_AllocFragbuf ();
+		buf = Netchan_AllocFragbuf (bytes);
 		buf->bufferid = bufferid++;
 
 		// Copy in data
@@ -802,8 +809,9 @@ fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate
 	if (!allocate)
 		return NULL;
 
-	// create new entry
-	pnewbuf = Netchan_AllocFragbuf ();
+	// [Xash3D, 31.03.23] create new entry
+	//pnewbuf = Netchan_AllocFragbuf ();
+	pnewbuf = Netchan_AllocFragbuf (NET_MAX_FRAGMENT);
 	pnewbuf->bufferid = id;
 	Netchan_AddBufferToList (pplist, pnewbuf);
 
@@ -883,7 +891,8 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 			memcpy (pbuf, pbOut, uCompressedSize);
 			size = uCompressedSize;
 			}
-		if (pbOut) free (pbOut);
+		if (pbOut) 
+			free (pbOut);
 		}
 
 	wait = (fragbufwaiting_t *)Mem_Calloc (net_mempool, sizeof (fragbufwaiting_t));
@@ -894,7 +903,9 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 		{
 		send = Q_min (remaining, chunksize);
 
-		buf = Netchan_AllocFragbuf ();
+		// [Xash3D, 31.03.23]
+		//buf = Netchan_AllocFragbuf ();
+		buf = Netchan_AllocFragbuf (send);
 		buf->bufferid = bufferid++;
 
 		// copy in data
@@ -977,9 +988,14 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 
 	if (compressedFileTime >= fileTime)
 		{
-		// if compressed file already created and newer than source
-		if (FS_FileSize (compressedfilename, false) != -1)
+		// [Xash3D, 31.03.23] if compressed file already created and newer than source
+		//if (FS_FileSize (compressedfilename, false) != -1)
+		fs_offset_t compressedSize = FS_FileSize (compressedfilename, false);
+		if (compressedSize != -1)
+			{
 			bCompressed = true;
+			filesize = compressedSize;
+			}
 		}
 	else
 		{
@@ -1009,7 +1025,9 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 		{
 		send = Q_min (remaining, chunksize);
 
-		buf = Netchan_AllocFragbuf ();
+		// [Xash3D, 31.03.23]
+		//buf = Netchan_AllocFragbuf ();
+		buf = Netchan_AllocFragbuf (send);
 		buf->bufferid = bufferid++;
 
 		// copy in data
@@ -1188,9 +1206,17 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 		return false;
 		}
 
+	// [Xash3D, 31.03.23]
+	if (filename[0] != '!')
+		{
+		string temp_filename;
+		Q_snprintf (temp_filename, sizeof (temp_filename), "downloaded/%s", filename);
+		Q_strncpy (filename, temp_filename, sizeof (filename));
+		}
+
 	Q_strncpy (chan->incomingfilename, filename, sizeof (chan->incomingfilename));
 
-	if (filename[0] != '!' && FS_FileExists (filename, false))
+	if ((filename[0] != '!') && FS_FileExists (filename, false))
 		{
 		Con_Printf (S_ERROR "can't download %s, already exists\n", filename);
 		Netchan_FlushIncoming (chan, FRAG_FILE_STREAM);
@@ -1271,7 +1297,8 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 	return true;
 	}
 
-qboolean Netchan_Validate (netchan_t *chan, sizebuf_t *sb, qboolean *frag_message, uint *fragid, int *frag_offset, int *frag_length)
+qboolean Netchan_Validate (netchan_t *chan, sizebuf_t *sb, qboolean *frag_message, uint *fragid, 
+	int *frag_offset, int *frag_length)
 	{
 	int	i, buffer, offset;
 	int	count, length;
@@ -1420,12 +1447,15 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 	// if the remote side dropped the last reliable message, resend it
 	send_reliable = false;
 
-	if (chan->incoming_acknowledged > chan->last_reliable_sequence && chan->incoming_reliable_acknowledged != chan->reliable_sequence)
+	if ((chan->incoming_acknowledged > chan->last_reliable_sequence) && 
+		(chan->incoming_reliable_acknowledged != chan->reliable_sequence))
 		send_reliable = true;
 
 	// A packet can have "reliable payload + frag payload + unreliable payload
-	// frag payload can be a file chunk, if so, it needs to be parsed on the receiving end and reliable payload + unreliable payload need
-	// to be passed on to the message queue.  The processing routine needs to be able to handle the case where a message comes in and a file
+	// frag payload can be a file chunk, if so, it needs to be parsed on the receiving end and reliable 
+	// payload + unreliable payload need
+	// to be passed on to the message queue.  The processing routine needs to be able to handle the case
+	// where a message comes in and a file
 	// transfer completes
 
 	// if the reliable transmit buffer is empty, copy the current message out
@@ -1576,6 +1606,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 			}
 		}
 
+	memset (send_buf, 0, sizeof (send_buf));	// [Xash3D, 31.03.23]
 	MSG_Init (&send, "NetSend", send_buf, sizeof (send_buf));
 
 	// prepare the packet header

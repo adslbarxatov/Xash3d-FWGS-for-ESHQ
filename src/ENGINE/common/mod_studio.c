@@ -114,10 +114,10 @@ void Mod_ClearStudioCache (void)
 
 /*
 ====================
-AddToStudioCache
+AddToStudioCache [Xash3D, 31.03.23]
 ====================
 */
-void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, 
+static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, 
 	byte *pcontroller, byte *pblending, model_t *model, hull_t *hull, int numhitboxes)
 	{
 	mstudiocache_t *pCache;
@@ -152,10 +152,10 @@ void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t orig
 
 /*
 ====================
-CheckStudioCache
+CheckStudioCache [Xash3D, 31.03.23]
 ====================
 */
-mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin,
+static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin,
 	vec3_t size, byte *controller, byte *blending)
 	{
 	mstudiocache_t *pCached;
@@ -204,10 +204,10 @@ mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence,
 */
 /*
 ====================
-SetStudioHullPlane
+SetStudioHullPlane [Xash3D, 31.03.23]
 ====================
 */
-void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offset, const vec3_t size)
+static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offset, const vec3_t size)
 	{
 	mplane_t *pl = &studio_planes[planenum];
 
@@ -217,7 +217,8 @@ void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offset, con
 	pl->normal[1] = studio_bones[bone][1][axis];
 	pl->normal[2] = studio_bones[bone][2][axis];
 
-	pl->dist = (pl->normal[0] * studio_bones[bone][0][3]) + (pl->normal[1] * studio_bones[bone][1][3]) + (pl->normal[2] * studio_bones[bone][2][3]) + offset;
+	pl->dist = (pl->normal[0] * studio_bones[bone][0][3]) + (pl->normal[1] * studio_bones[bone][1][3]) +
+		(pl->normal[2] * studio_bones[bone][2][3]) + offset;
 
 	if (planenum & 1) pl->dist -= DotProductFabs (pl->normal, size);
 	else pl->dist += DotProductFabs (pl->normal, size);
@@ -250,7 +251,7 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 		if (bonecache != NULL)
 			{
 			memcpy (studio_planes, &cache_planes[bonecache->current_plane], bonecache->numhitboxes * sizeof (mplane_t) * 6);
-			memcpy (studio_hull_hitgroup, &cache_hull_hitgroup[bonecache->current_hull], bonecache->numhitboxes * 
+			memcpy (studio_hull_hitgroup, &cache_hull_hitgroup[bonecache->current_hull], bonecache->numhitboxes *
 				sizeof (uint));
 			memcpy (studio_hull, &cache_hull[bonecache->current_hull], bonecache->numhitboxes * sizeof (hull_t));
 
@@ -363,7 +364,8 @@ StudioCalcRotations
 
 ====================
 */
-static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *pcontroller, float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc, mstudioanim_t *panim, float f)
+static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *pcontroller, float pos[][3],
+	vec4_t *q, mstudioseqdesc_t *pseqdesc, mstudioanim_t *panim, float f)
 	{
 	int		i, j, frame;
 	mstudiobone_t *pbone;
@@ -389,6 +391,7 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 	// add in programtic controllers
 	pbone = (mstudiobone_t *)((byte *)mod_studiohdr + mod_studiohdr->boneindex);
 
+	memset (adj, 0, sizeof (adj));	// [Xash3D, 31.03.23]
 	Mod_StudioCalcBoneAdj (adj, pcontroller);
 
 	for (j = numbones - 1; j >= 0; j--)
@@ -403,12 +406,11 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 	if (pseqdesc->motiontype & STUDIO_Z) pos[pseqdesc->motionbone][2] = 0.0f;
 	}
 
-/*
+/* [Xash3D, 31.03.23]
 ====================
 StudioCalcBoneQuaternion
-
 ====================
-*/
+///
 void R_StudioCalcBoneQuaternion (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, vec4_t q)
 	{
 	vec3_t	angles1;
@@ -491,12 +493,11 @@ void R_StudioCalcBoneQuaternion (int frame, float s, mstudiobone_t *pbone, mstud
 		}
 	}
 
-/*
+//
 ====================
 StudioCalcBonePosition
-
 ====================
-*/
+//
 void R_StudioCalcBonePosition (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, vec3_t pos)
 	{
 	vec3_t	origin1;
@@ -575,12 +576,11 @@ void R_StudioCalcBonePosition (int frame, float s, mstudiobone_t *pbone, mstudio
 		}
 	}
 
-/*
+//
 ====================
 StudioSlerpBones
-
 ====================
-*/
+//
 void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], vec4_t q2[], float pos2[][3], float s)
 	{
 	int	i;
@@ -593,11 +593,11 @@ void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], vec4_t q2[]
 		VectorLerp (pos1[i], s, pos2[i], pos1[i]);
 		}
 	}
+*/
 
 /*
 ====================
 StudioGetAnim
-
 ====================
 */
 void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc)
@@ -834,10 +834,10 @@ int Mod_HitgroupForStudioHull (int index)
 
 /*
 ====================
-StudioBoundVertex
+StudioBoundVertex [Xash3D, 31.03.23]
 ====================
 */
-void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, const vec3_t vertex)
+static void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, const vec3_t vertex)
 	{
 	if ((*numverts) == 0)
 		ClearBounds (mins, maxs);
@@ -848,10 +848,11 @@ void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, const vec3_
 
 /*
 ====================
-StudioAccumulateBoneVerts
+StudioAccumulateBoneVerts [Xash3D, 31.03.23]
 ====================
 */
-void Mod_StudioAccumulateBoneVerts (vec3_t mins, vec3_t maxs, int *numverts, vec3_t bone_mins, vec3_t bone_maxs, int *numbones)
+static void Mod_StudioAccumulateBoneVerts (vec3_t mins, vec3_t maxs, int *numverts, vec3_t bone_mins, 
+	vec3_t bone_maxs, int *numbones)
 	{
 	vec3_t	delta;
 	vec3_t	point;
@@ -1020,10 +1021,10 @@ static int Mod_StudioBodyVariations (model_t *mod)
 
 /*
 =================
-R_StudioLoadHeader
+R_StudioLoadHeader [Xash3D, 31.03.23]
 =================
 */
-studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
+static studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
 	{
 	byte *pin;
 	studiohdr_t *phdr;
@@ -1046,19 +1047,25 @@ studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
 
 /*
 =================
-Mod_LoadStudioModel
+Mod_LoadStudioModel [Xash3D, 31.03.23]
 =================
 */
 void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
+	char poolname[MAX_VA_STRING];
 	studiohdr_t *phdr;
 
-	if (loaded) *loaded = false;
-	loadmodel->mempool = Mem_AllocPool (va ("^2%s^7", loadmodel->name));
+	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", loadmodel->name);
+	if (loaded) 
+		*loaded = false;
+
+	//loadmodel->mempool = Mem_AllocPool (va ("^2%s^7", loadmodel->name));
+	loadmodel->mempool = Mem_AllocPool (poolname);
 	loadmodel->type = mod_studio;
 
 	phdr = R_StudioLoadHeader (mod, buffer);
-	if (!phdr) return;	// bad model
+	if (!phdr) 
+		return;	// bad model
 
 	if (!Host_IsDedicated ())
 		{

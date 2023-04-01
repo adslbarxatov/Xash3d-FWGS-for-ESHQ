@@ -134,6 +134,7 @@ typedef struct
 	int			lightmap_samples;	// samples per lightmap (1 or 3)
 	int			version;		// model version
 	qboolean			isworld;
+	qboolean			isbsp30ext;	// [Xash3D, 31.03.23]
 	} dbspmodel_t;
 
 typedef struct
@@ -153,12 +154,14 @@ typedef struct
 	int		numwarnings;
 	} loadstat_t;
 
-#define CHECK_OVERFLOW	BIT( 0 )		// if some of lumps will be overflowed this non fatal for us. But some lumps are critical. mark them
+#define CHECK_OVERFLOW	BIT( 0 )	// if some of lumps will be overflowed this non fatal for us. 
+									// But some lumps are critical. mark them
 #define USE_EXTRAHEADER	BIT( 1 )
 
 #define LUMP_SAVESTATS	BIT( 0 )
 #define LUMP_TESTONLY	BIT( 1 )
 #define LUMP_SILENT		BIT( 2 )
+#define LUMP_BSP30EXT   BIT( 3 )	// [Xash3D, 31.03.23] extra marker for Mod_LoadLump
 
 typedef struct
 	{
@@ -251,18 +254,24 @@ static void Mod_LoadLump (const byte *in, mlumpinfo_t *info, mlumpstat_t *stat, 
 		// always use alternate entrysize for BSP2
 		real_entrysize = info->entrysize32;
 		}
-	else if (info->lumpnumber == LUMP_CLIPNODES && version != Q1BSP_VERSION)
+
+	// [Xash3D, 31.03.23]
+	//else if (info->lumpnumber == LUMP_CLIPNODES && version != Q1BSP_VERSION)
+	else if ((version == HLBSP_VERSION) && FBitSet (flags, LUMP_BSP30EXT) && (info->lumpnumber == LUMP_CLIPNODES))
 		{
-		// never run this check for BSP29 because Arguire QBSP 'broken' clipnodes!
-		if ((l->filelen % info->entrysize) || (l->filelen / info->entrysize) >= MAX_MAP_CLIPNODES)
+		/* never run this check for BSP29 because Arguire QBSP 'broken' clipnodes!
+		if ((l->filelen % info->entrysize) || ((l->filelen / info->entrysize) >= MAX_MAP_CLIPNODES))*/
+
+		// if this map is bsp30ext, try to guess extended clipnodes
+		if ((l->filelen % info->entrysize) || ((l->filelen / info->entrysize32) >= MAX_MAP_CLIPNODES_HLBSP))
 			{
 			real_entrysize = info->entrysize32;
-			SetBits (flags, LUMP_SILENT); // shut up warning
+			//SetBits (flags, LUMP_SILENT); // shut up warning
 			}
 		}
 
 	// bmodels not required the visibility
-	if (!FBitSet (flags, LUMP_TESTONLY) && !world.loading && info->lumpnumber == LUMP_VISIBILITY)
+	if (!FBitSet (flags, LUMP_TESTONLY) && !world.loading && (info->lumpnumber == LUMP_VISIBILITY))
 		SetBits (flags, LUMP_SILENT); // shut up warning
 
 	// fill the stats for world
@@ -425,7 +434,8 @@ void Mod_PrintWorldStats_f (void)
 
 		if (stat->entrysize == sizeof (byte))
 			totalmemory += Mod_GlobUsage (stat->lumpname, stat->count, stat->maxcount);
-		else totalmemory += Mod_ArrayUsage (stat->lumpname, stat->count, stat->maxcount, stat->entrysize);
+		else 
+			totalmemory += Mod_ArrayUsage (stat->lumpname, stat->count, stat->maxcount, stat->entrysize);
 		}
 
 	Con_Printf ("=== Total BSP file data space used: %s ===\n", Q_memprint (totalmemory));
@@ -434,9 +444,14 @@ void Mod_PrintWorldStats_f (void)
 	Con_Printf ("Lighting: %s\n", FBitSet (w->flags, MODEL_COLORED_LIGHTING) ? "colored" : "monochrome");
 	Con_Printf ("World total leafs: %d\n", worldmodel->numleafs + 1);
 	Con_Printf ("original name: ^1%s\n", worldmodel->name);
-	Con_Printf ("internal name: %s\n", (world.message[0]) ? va ("^2%s", world.message) : "none");
+
+	// [Xash3D, 31.03.23]
+	/*Con_Printf ("internal name: %s\n", (world.message[0]) ? va ("^2%s", world.message) : "none");
 	Con_Printf ("map compiler: %s\n", (world.compiler[0]) ? va ("^3%s", world.compiler) : "unknown");
-	Con_Printf ("map editor: %s\n", (world.generator[0]) ? va ("^2%s", world.generator) : "unknown");
+	Con_Printf ("map editor: %s\n", (world.generator[0]) ? va ("^2%s", world.generator) : "unknown");*/
+	Con_Printf ("internal name: ^2%s\n", world.message[0] ? world.message : "none");
+	Con_Printf ("map compiler: ^3%s\n", world.compiler[0] ? world.compiler : "unknown");
+	Con_Printf ("map editor: ^2%s\n", world.generator[0] ? world.generator : "unknown");
 	}
 
 /*
@@ -1516,7 +1531,12 @@ static void Mod_SetupSubmodels (dbspmodel_t *bmod)
 
 		if (i != 0)
 			{
-			Mod_FindModelOrigin (ents, va ("*%i", i), bm->origin);
+			// [Xash3D, 31.03.23]
+			//Mod_FindModelOrigin (ents, va ("*%i", i), bm->origin);
+			char temp[MAX_VA_STRING];
+
+			Q_snprintf (temp, sizeof (temp), "*%i", i);
+			Mod_FindModelOrigin (ents, temp, bm->origin);
 
 			// mark models that have origin brushes
 			if (!VectorIsNull (bm->origin))
@@ -2021,7 +2041,11 @@ static void Mod_LoadTextures (dbspmodel_t *bmod)
 				// check wads in reverse order
 				for (j = bmod->wadlist.count - 1; j >= 0; j--)
 					{
-					char *texpath = va ("%s.wad/%s", bmod->wadlist.wadnames[j], texname);
+					// [Xash3D, 31.03.23]
+					//char *texpath = va ("%s.wad/%s", bmod->wadlist.wadnames[j], texname);
+					char texpath[MAX_VA_STRING];
+
+					Q_snprintf (texpath, sizeof (texpath), "%s.wad/%s", bmod->wadlist.wadnames[j], texname);
 
 					if (FS_FileExists (texpath, false))
 						{
@@ -2077,7 +2101,11 @@ static void Mod_LoadTextures (dbspmodel_t *bmod)
 					// check wads in reverse order
 					for (j = bmod->wadlist.count - 1; j >= 0; j--)
 						{
-						char *texpath = va ("%s.wad/%s.mip", bmod->wadlist.wadnames[j], tx->name);
+						// [Xash3D, 31.03.23]
+						//char *texpath = va ("%s.wad/%s.mip", bmod->wadlist.wadnames[j], tx->name);
+						char texpath[MAX_VA_STRING];
+
+						Q_snprintf (texpath, sizeof (texpath), "%s.wad/%s.mip", bmod->wadlist.wadnames[j], tx->name);
 
 						if (FS_FileExists (texpath, false))
 							{
@@ -2539,13 +2567,19 @@ static void Mod_LoadLeafs (dbspmodel_t *bmod)
 				{
 				if (p < bmod->visdatasize)
 					out->compressed_vis = loadmodel->visdata + p;
-				else Con_Reportf (S_WARN "Mod_LoadLeafs: invalid visofs for leaf #%i\n", i);
+				else 
+					Con_Reportf (S_WARN "Mod_LoadLeafs: invalid visofs for leaf #%i\n", i);
 				}
 			}
-		else out->cluster = -1; // no visclusters on bmodels
+		else
+			{
+			out->cluster = -1; // no visclusters on bmodels
+			}
 
-		if (p == -1) out->compressed_vis = NULL;
-		else out->compressed_vis = loadmodel->visdata + p;
+		if (p == -1) 
+			out->compressed_vis = NULL;
+		else
+			out->compressed_vis = loadmodel->visdata + p;
 
 		// gl underwater warp
 		if (out->contents != CONTENTS_EMPTY)
@@ -2578,7 +2612,10 @@ static void Mod_LoadClipnodes (dbspmodel_t *bmod)
 
 	bmod->clipnodes_out = out = (dclipnode32_t *)Mem_Malloc (loadmodel->mempool, bmod->numclipnodes * sizeof (*out));
 
-	if ((bmod->version == QBSP2_VERSION) || (bmod->version == HLBSP_VERSION && bmod->numclipnodes >= MAX_MAP_CLIPNODES))
+	// [Xash3D, 31.03.23]
+	//if ((bmod->version == QBSP2_VERSION) || (bmod->version == HLBSP_VERSION && bmod->numclipnodes >= MAX_MAP_CLIPNODES))
+	if ((bmod->version == QBSP2_VERSION) || ((bmod->version == HLBSP_VERSION) &&
+		bmod->isbsp30ext && (bmod->numclipnodes >= MAX_MAP_CLIPNODES_HLBSP)))
 		{
 		dclipnode32_t *in = bmod->clipnodes32;
 
@@ -2633,8 +2670,10 @@ static void Mod_LoadLightVecs (dbspmodel_t *bmod)
 	if (bmod->deluxdatasize != bmod->lightdatasize)
 		{
 		if (bmod->deluxdatasize > 0)
-			Con_Printf (S_ERROR "Mod_LoadLightVecs: has mismatched size (%lu should be %i)\n", bmod->deluxdatasize, bmod->lightdatasize);
-		else Mod_LoadDeluxemap (bmod); // old method
+			Con_Printf (S_ERROR "Mod_LoadLightVecs: has mismatched size (%lu should be %i)\n", 
+				bmod->deluxdatasize, bmod->lightdatasize);
+		else
+			Mod_LoadDeluxemap (bmod); // old method
 		return;
 		}
 
@@ -2652,7 +2691,8 @@ static void Mod_LoadShadowmap (dbspmodel_t *bmod)
 	if (bmod->shadowdatasize != (bmod->lightdatasize / 3))
 		{
 		if (bmod->shadowdatasize > 0)
-			Con_Printf (S_ERROR "Mod_LoadShadowmap: has mismatched size (%i should be %lu)\n", bmod->shadowdatasize, bmod->lightdatasize / 3);
+			Con_Printf (S_ERROR "Mod_LoadShadowmap: has mismatched size (%i should be %lu)\n", 
+				bmod->shadowdatasize, bmod->lightdatasize / 3);
 		return;
 		}
 
@@ -2680,7 +2720,8 @@ static void Mod_LoadLighting (dbspmodel_t *bmod)
 		case 1:
 			if (!Mod_LoadColoredLighting (bmod))
 				{
-				loadmodel->lightdata = out = (color24 *)Mem_Malloc (loadmodel->mempool, bmod->lightdatasize * sizeof (color24));
+				loadmodel->lightdata = out = (color24 *)Mem_Malloc (loadmodel->mempool, 
+					bmod->lightdatasize * sizeof (color24));
 				in = bmod->lightdata;
 
 				// expand the white lighting data
@@ -2688,11 +2729,13 @@ static void Mod_LoadLighting (dbspmodel_t *bmod)
 					out->r = out->g = out->b = *in++;
 				}
 			break;
+
 		case 3:	// load colored lighting
 			loadmodel->lightdata = Mem_Malloc (loadmodel->mempool, bmod->lightdatasize);
 			memcpy (loadmodel->lightdata, bmod->lightdata, bmod->lightdatasize);
 			SetBits (loadmodel->flags, MODEL_COLORED_LIGHTING);
 			break;
+
 		default:
 			Host_Error ("Mod_LoadLighting: bad lightmap sample count %i\n", bmod->lightmap_samples);
 			break;
@@ -2715,7 +2758,8 @@ static void Mod_LoadLighting (dbspmodel_t *bmod)
 		{
 		if (bmod->version == QBSP2_VERSION)
 			lightofs = bmod->surfaces32[i].lightofs;
-		else lightofs = bmod->surfaces[i].lightofs;
+		else 
+			lightofs = bmod->surfaces[i].lightofs;
 
 		if (loadmodel->lightdata && lightofs != -1)
 			{
@@ -2738,13 +2782,15 @@ static void Mod_LoadLighting (dbspmodel_t *bmod)
 
 /*
 =================
-Mod_LumpLooksLikePlanes
-
+Mod_LumpLooksLikeEntities [Xash3D, 31.03.23]
 =================
 */
-static qboolean Mod_LumpLooksLikePlanes (const byte *in, dlump_t *lump, qboolean fast)
+//static qboolean Mod_LumpLooksLikePlanes (const byte *in, dlump_t *lump, qboolean fast)
+static int Mod_LumpLooksLikeEntities (const char *lump, const size_t lumplen)
 	{
-	int numplanes, i;
+	// look for "classname" string
+	return Q_memmem (lump, lumplen, "\"classname\"", sizeof ("\"classname\"") - 1) != NULL ? 1 : 0;
+	/*int numplanes, i;
 	const dplane_t *planes;
 
 	if (lump->filelen < sizeof (dplane_t) &&
@@ -2764,24 +2810,30 @@ static qboolean Mod_LumpLooksLikePlanes (const byte *in, dlump_t *lump, qboolean
 			return false;
 		}
 
-	return true;
+	return true;*/
 	}
 
 /*
 =================
-Mod_LoadBmodelLumps
+Mod_LoadBmodelLumps [Xash3D, 31.03.23]
 
 loading and processing bmodel
 =================
 */
 qboolean Mod_LoadBmodelLumps (const byte *mod_base, qboolean isworld)
 	{
-	dheader_t *header = (dheader_t *)mod_base;
-	dextrahdr_t *extrahdr = (dextrahdr_t *)((byte *)mod_base + sizeof (dheader_t));
-	dbspmodel_t *bmod = &srcmodel;
-	model_t *mod = loadmodel;
-	char		wadvalue[2048];
-	int		i;
+	/*dheader_t *header = (dheader_t *)mod_base;
+	dextrahdr_t *extrahdr = (dextrahdr_t *)((byte *)mod_base + sizeof (dheader_t));*/
+	const dheader_t		*header = (const dheader_t *)mod_base;
+	const dextrahdr_t	*extrahdr = (const dextrahdr_t *)(mod_base + sizeof (dheader_t));
+
+	dbspmodel_t		*bmod = &srcmodel;
+	model_t			*mod = loadmodel;
+	char			wadvalue[2048];
+
+	//int		i;
+	size_t		len = 0;
+	int			i, ret, flags = 0;
 
 	// always reset the intermediate struct
 	memset (bmod, 0, sizeof (dbspmodel_t));
@@ -2799,12 +2851,13 @@ qboolean Mod_LoadBmodelLumps (const byte *mod_base, qboolean isworld)
 #endif
 	switch (header->version)
 		{
-		case Q1BSP_VERSION:
+		//case Q1BSP_VERSION:
 		case HLBSP_VERSION:
-		case QBSP2_VERSION:
+		/*case QBSP2_VERSION:
 			break;
 		default:
-			Con_Printf (S_ERROR "%s has wrong version number (%i should be %i)\n", loadmodel->name, header->version, HLBSP_VERSION);
+			Con_Printf (S_ERROR "%s has wrong version number (%i should be %i)\n", 
+				loadmodel->name, header->version, HLBSP_VERSION);
 			loadstat.numerrors++;
 			return false;
 		}
@@ -2813,45 +2866,77 @@ qboolean Mod_LoadBmodelLumps (const byte *mod_base, qboolean isworld)
 	if (isworld) world.flags = 0;	// clear world settings
 	bmod->isworld = isworld;
 
-	if (header->version == HLBSP_VERSION)
+	if (header->version == HLBSP_VERSION)*/
+	if (extrahdr->id == IDEXTRAHEADER)
 		{
+		SetBits (flags, LUMP_BSP30EXT);
+		}
+
 		// only relevant for half-life maps
-		if (!Mod_LumpLooksLikePlanes (mod_base, &header->lumps[LUMP_PLANES], false) &&
-			Mod_LumpLooksLikePlanes (mod_base, &header->lumps[LUMP_ENTITIES], false))
+		/*if (!Mod_LumpLooksLikePlanes (mod_base, &header->lumps[LUMP_PLANES], false) &&
+			Mod_LumpLooksLikePlanes (mod_base, &header->lumps[LUMP_ENTITIES], false))*/
+	else if (!Mod_LumpLooksLikeEntities (mod_base + header->lumps[LUMP_ENTITIES].fileofs, 
+				header->lumps[LUMP_ENTITIES].filelen) &&
+				Mod_LumpLooksLikeEntities (mod_base + header->lumps[LUMP_PLANES].fileofs, 
+				header->lumps[LUMP_PLANES].filelen))
 			{
 			// blue-shift swapped lumps
 			srclumps[0].lumpnumber = LUMP_PLANES;
 			srclumps[1].lumpnumber = LUMP_ENTITIES;
+			break;
 			}
-		else
-			{
+
+		/*else
+			{*/
+		// intended fallthrough
+		case Q1BSP_VERSION:
+		case QBSP2_VERSION:
 			// everything else
 			srclumps[0].lumpnumber = LUMP_ENTITIES;
 			srclumps[1].lumpnumber = LUMP_PLANES;
+			break;
+
+		default:
+			Con_Printf (S_ERROR "%s has wrong version number (%i should be %i)\n", loadmodel->name, 
+				header->version, HLBSP_VERSION);
+			loadstat.numerrors++;
+			return false;
 			}
-		}
-	else
+		/*}
+	else*/
+	bmod->version = header->version;	// share up global
+	if (isworld)
 		{
-		// everything else
+		/* everything else
 		srclumps[0].lumpnumber = LUMP_ENTITIES;
-		srclumps[1].lumpnumber = LUMP_PLANES;
+		srclumps[1].lumpnumber = LUMP_PLANES;*/
+		world.flags = 0;	// clear world settings
+		SetBits (flags, LUMP_SAVESTATS | LUMP_SILENT);
 		}
+	bmod->isworld = isworld;
+	bmod->isbsp30ext = FBitSet (flags, LUMP_BSP30EXT);
 
 	// loading base lumps
 	for (i = 0; i < ARRAYSIZE (srclumps); i++)
-		Mod_LoadLump (mod_base, &srclumps[i], &worldstats[i], isworld ? (LUMP_SAVESTATS | LUMP_SILENT) : 0);
+		Mod_LoadLump (mod_base, &srclumps[i], &worldstats[i], flags);
+	//Mod_LoadLump (mod_base, &srclumps[i], &worldstats[i], isworld ? (LUMP_SAVESTATS | LUMP_SILENT) : 0);
 
 	// loading extralumps
 	for (i = 0; i < ARRAYSIZE (extlumps); i++)
-		Mod_LoadLump (mod_base, &extlumps[i], &worldstats[ARRAYSIZE (srclumps) + i], isworld ? (LUMP_SAVESTATS | LUMP_SILENT) : 0);
+		Mod_LoadLump (mod_base, &extlumps[i], &worldstats[ARRAYSIZE (srclumps) + i], flags);
+	/*Mod_LoadLump (mod_base, &extlumps[i], &worldstats[ARRAYSIZE (srclumps) + i], 
+		isworld ? (LUMP_SAVESTATS | LUMP_SILENT) : 0);*/
 
 	if (!bmod->isworld && loadstat.numerrors)
 		{
-		Con_DPrintf ("Mod_Load%s: %i error(s), %i warning(s)\n", isworld ? "World" : "Brush", loadstat.numerrors, loadstat.numwarnings);
+		Con_DPrintf ("Mod_Load%s: %i error(s), %i warning(s)\n", isworld ? "World" : "Brush", 
+			loadstat.numerrors, loadstat.numwarnings);
 		return false; // there were errors, we can't load this map
 		}
 	else if (!bmod->isworld && loadstat.numwarnings)
+		{
 		Con_DPrintf ("Mod_Load%s: %i warning(s)\n", isworld ? "World" : "Brush", loadstat.numwarnings);
+		}
 
 	// load into heap
 	Mod_LoadEntities (bmod);
@@ -2888,7 +2973,16 @@ qboolean Mod_LoadBmodelLumps (const byte *mod_base, qboolean isworld)
 		{
 		if (!bmod->wadlist.wadusage[i])
 			continue;
-		Q_strncat (wadvalue, va ("%s.wad; ", bmod->wadlist.wadnames[i]), sizeof (wadvalue));
+
+		// [Xash3D, 31.03.23]
+		//Q_strncat (wadvalue, va ("%s.wad; ", bmod->wadlist.wadnames[i]), sizeof (wadvalue));
+		ret = Q_snprintf (&wadvalue[len], sizeof (wadvalue), "%s.wad; ", bmod->wadlist.wadnames[i]);
+		if (ret == -1)
+			{
+			Con_DPrintf (S_WARN "Too many wad files for output!\n");
+			break;
+			}
+		len += ret;
 		}
 
 	if (COM_CheckString (wadvalue))
@@ -2900,16 +2994,48 @@ qboolean Mod_LoadBmodelLumps (const byte *mod_base, qboolean isworld)
 	return true;
 	}
 
+// [Xash3D, 31.03.23]
+static int Mod_LumpLooksLikeEntitiesFile (file_t *f, const dlump_t *l, int flags, const char *msg)
+	{
+	char *buf;
+	int ret;
+
+	if (FS_Seek (f, l->fileofs, SEEK_SET) < 0)
+		{
+		if (!FBitSet (flags, LUMP_SILENT))
+			Con_DPrintf (S_ERROR "map ^2%s^7 %s lump past end of file\n", loadstat.name, msg);
+		return -1;
+		}
+
+	buf = Z_Malloc (l->filelen + 1);
+	if (FS_Read (f, buf, l->filelen) != l->filelen)
+		{
+		if (!FBitSet (flags, LUMP_SILENT))
+			Con_DPrintf (S_ERROR "can't read %s lump of map ^2%s^7", msg, loadstat.name);
+		Z_Free (buf);
+		return -1;
+		}
+
+	ret = Mod_LumpLooksLikeEntities (buf, l->filelen);
+
+	Z_Free (buf);
+	return ret;
+	}
+
 /*
 =================
-Mod_TestBmodelLumps
+Mod_TestBmodelLumps [Xash3D, 31.03.23]
 
 check for possible errors
+return real entities lump (for bshift swapped lumps)
 =================
 */
-qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean silent)
+//qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean silent)
+qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities)
 	{
-	dheader_t *header = (dheader_t *)mod_base;
+	//dheader_t *header = (dheader_t *)mod_base;
+	const dheader_t *header = (const dheader_t *)mod_base;
+	const dextrahdr_t *extrahdr = (const dextrahdr_t *)(mod_base + sizeof (dheader_t));
 	int	i, flags = LUMP_TESTONLY;
 
 	// always reset the intermediate struct
@@ -2917,7 +3043,8 @@ qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean s
 
 	// store the name to correct show errors and warnings
 	Q_strncpy (loadstat.name, name, sizeof (loadstat.name));
-	if (silent) SetBits (flags, LUMP_SILENT);
+	if (silent)
+		SetBits (flags, LUMP_SILENT);
 
 #ifndef SUPPORT_BSP2_FORMAT
 	if (header->version == QBSP2_VERSION)
@@ -2929,40 +3056,72 @@ qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean s
 #endif
 	switch (header->version)
 		{
-		case Q1BSP_VERSION:
+		//case Q1BSP_VERSION:
 		case HLBSP_VERSION:
+			/*case QBSP2_VERSION:
+				break;
+			default:
+				// don't early out: let me analyze errors
+				if (!FBitSet (flags, LUMP_SILENT))
+					Con_Printf (S_ERROR "%s has wrong version number (%i should be %i)\n", name, header->version, HLBSP_VERSION);
+				loadstat.numerrors++;
+				break;*/
+			if (extrahdr->id == IDEXTRAHEADER)
+				{
+				SetBits (flags, LUMP_BSP30EXT);
+				}
+
+			//if (header->version == HLBSP_VERSION)
+			else
+				{
+				// only relevant for half-life maps
+				/*if (Mod_LumpLooksLikePlanes (mod_base, &header->lumps[LUMP_ENTITIES], true) &&
+					!Mod_LumpLooksLikePlanes (mod_base, &header->lumps[LUMP_PLANES], true))*/
+				int ret = Mod_LumpLooksLikeEntitiesFile (f, &header->lumps[LUMP_ENTITIES], flags, "entities");
+				if (ret < 0) 
+					return false;
+
+				if (!ret)
+					{
+					ret = Mod_LumpLooksLikeEntitiesFile (f, &header->lumps[LUMP_PLANES], flags, "planes");
+					if (ret < 0) 
+						return false;
+
+					if (ret)
+						{
+						// blue-shift swapped lumps
+						*entities = header->lumps[LUMP_PLANES];
+
+						srclumps[0].lumpnumber = LUMP_PLANES;
+						srclumps[1].lumpnumber = LUMP_ENTITIES;
+						break;
+						}
+					/*else
+						{
+						// everything else
+						srclumps[0].lumpnumber = LUMP_ENTITIES;
+						srclumps[1].lumpnumber = LUMP_PLANES;*/
+					}
+				}
+			/*else
+				{*/
+
+		// intended fallthrough
+		case Q1BSP_VERSION:
 		case QBSP2_VERSION:
+			// everything else
+			*entities = header->lumps[LUMP_ENTITIES];
+			srclumps[0].lumpnumber = LUMP_ENTITIES;
+			srclumps[1].lumpnumber = LUMP_PLANES;
 			break;
+
 		default:
 			// don't early out: let me analyze errors
 			if (!FBitSet (flags, LUMP_SILENT))
-				Con_Printf (S_ERROR "%s has wrong version number (%i should be %i)\n", name, header->version, HLBSP_VERSION);
+				Con_Printf (S_ERROR "%s has wrong version number (%i should be %i)\n", name, 
+					header->version, HLBSP_VERSION);
 			loadstat.numerrors++;
 			break;
-		}
-
-	if (header->version == HLBSP_VERSION)
-		{
-		// only relevant for half-life maps
-		if (Mod_LumpLooksLikePlanes (mod_base, &header->lumps[LUMP_ENTITIES], true) &&
-			!Mod_LumpLooksLikePlanes (mod_base, &header->lumps[LUMP_PLANES], true))
-			{
-			// blue-shift swapped lumps
-			srclumps[0].lumpnumber = LUMP_PLANES;
-			srclumps[1].lumpnumber = LUMP_ENTITIES;
-			}
-		else
-			{
-			// everything else
-			srclumps[0].lumpnumber = LUMP_ENTITIES;
-			srclumps[1].lumpnumber = LUMP_PLANES;
-			}
-		}
-	else
-		{
-		// everything else
-		srclumps[0].lumpnumber = LUMP_ENTITIES;
-		srclumps[1].lumpnumber = LUMP_PLANES;
 		}
 
 	// loading base lumps
@@ -2990,14 +3149,20 @@ qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean s
 
 /*
 =================
-Mod_LoadBrushModel
+Mod_LoadBrushModel [Xash3D, 31.03.23]
 =================
 */
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
-	if (loaded) *loaded = false;
+	char poolname[MAX_VA_STRING];
 
-	loadmodel->mempool = Mem_AllocPool (va ("^2%s^7", loadmodel->name));
+	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", loadmodel->name);
+
+	if (loaded) 
+		*loaded = false;
+
+	//loadmodel->mempool = Mem_AllocPool (va ("^2%s^7", loadmodel->name));
+	loadmodel->mempool = Mem_AllocPool (poolname);
 	loadmodel->type = mod_brush;
 
 	// loading all the lumps into heap

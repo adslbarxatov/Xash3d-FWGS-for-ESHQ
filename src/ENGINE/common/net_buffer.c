@@ -27,10 +27,75 @@ GNU General Public License for more details.
 static dword	BitWriteMasks[32][33];
 static dword	ExtraMasks[32];
 
-unsigned short MSG_BigShort (unsigned short swap)
+// [Xash3D, 31.03.23]
+/*unsigned short MSG_BigShort (unsigned short swap)
 	{
 	return (swap >> 8) | (swap << 8);
-	}
+	}*/
+
+const char *svc_strings[svc_lastmsg + 1] =
+	{
+		"svc_bad",
+		"svc_nop",
+		"svc_disconnect",
+		"svc_event",
+		"svc_changing",
+		"svc_setview",
+		"svc_sound",
+		"svc_time",
+		"svc_print",
+		"svc_stufftext",
+		"svc_setangle",
+		"svc_serverdata",
+		"svc_lightstyle",
+		"svc_updateuserinfo",
+		"svc_deltatable",
+		"svc_clientdata",
+		"svc_resource",
+		"svc_pings",
+		"svc_particle",
+		"svc_restoresound",
+		"svc_spawnstatic",
+		"svc_event_reliable",
+		"svc_spawnbaseline",
+		"svc_temp_entity",
+		"svc_setpause",
+		"svc_signonnum",
+		"svc_centerprint",
+		"svc_unused27",
+		"svc_unused28",
+		"svc_unused29",
+		"svc_intermission",
+		"svc_finale",
+		"svc_cdtrack",
+		"svc_restore",
+		"svc_cutscene",
+		"svc_weaponanim",
+		"svc_bspdecal",
+		"svc_roomtype",
+		"svc_addangle",
+		"svc_usermessage",
+		"svc_packetentities",
+		"svc_deltapacketentities",
+		"svc_choke",
+		"svc_resourcelist",
+		"svc_deltamovevars",
+		"svc_resourcerequest",
+		"svc_customization",
+		"svc_crosshairangle",
+		"svc_soundfade",
+		"svc_filetxferfailed",
+		"svc_hltv",
+		"svc_director",
+		"svc_voiceinit",
+		"svc_voicedata",
+		"svc_deltapacketbones",
+		"svc_unused55",
+		"svc_resourcelocation",
+		"svc_querycvarvalue",
+		"svc_querycvarvalue2",
+		"svc_exec",
+	};
 
 void MSG_InitMasks (void)
 	{
@@ -309,7 +374,9 @@ void MSG_WriteBitFloat (sizebuf_t *sb, float val)
 	Assert (sizeof (int) == sizeof (float));
 	Assert (sizeof (float) == 4);
 
-	intVal = *((int *)&val);
+	// [Xash3D, 31.03.23]
+	//intVal = *((int *)&val);
+	intVal = FloatAsInt (val);
 	MSG_WriteUBitLong (sb, intVal, 32);
 	}
 
@@ -390,9 +457,25 @@ qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr)
 			pStr++;
 			} while (*(pStr - 1));
 		}
-	else MSG_WriteChar (sb, 0);
+	else
+		{
+		MSG_WriteChar (sb, 0);
+		}
 
 	return !sb->bOverflow;
+	}
+
+// [Xash3D, 31.03.23]
+qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...)
+	{
+	va_list va;
+	char buf[MAX_VA_STRING];
+
+	va_start (va, format);
+	Q_vsnprintf (buf, sizeof (buf), format, va);
+	va_end (va);
+
+	return MSG_WriteString (sb, buf);
 	}
 
 int MSG_ReadOneBit (sizebuf_t *sb)
@@ -477,7 +560,9 @@ float MSG_ReadBitFloat (sizebuf_t *sb)
 		val |= ((int)sb->pData[byte + 4]) << (32 - bit);
 	sb->iCurBit += 32;
 
-	return *((float *)&val);
+	// [Xash3D, 31.03.23]
+	//return *((float *)&val);
+	return IntAsFloat (val);
 	}
 
 qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)

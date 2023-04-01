@@ -65,7 +65,10 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 
 		if (f) return f;
 		}
-#elif XASH_MSVC
+
+// [Xash3D, 31.03.23]
+//#elif XASH_MSVC
+#elif _MSC_VER
 	// TODO: COM_ConvertToLocalPlatform doesn't support MSVC yet
 	// also custom loader strips always MSVC mangling, so Win32
 	// platforms already use platform-neutral names
@@ -160,6 +163,22 @@ static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t s
 
 /*
 ==============
+COM_StripIntelSuffix [Xash3D, 31.03.23]
+
+Some modders use _i?86 suffix in game library name
+So strip it to follow library naming for non-Intel CPUs
+==============
+*/
+static void COM_StripIntelSuffix (char *out)
+	{
+	char *suffix = Q_strrchr (out, '_');
+
+	if (suffix && Q_stricmpext ("_i?86", suffix))
+		*suffix = 0;
+	}
+
+/*
+==============
 COM_GenerateServerLibraryPath
 
 Generates platform-unique and compatible name for server library
@@ -193,6 +212,7 @@ static void COM_GenerateServerLibraryPath (char *out, size_t size)
 
 	ext = COM_FileExtension (dllpath);
 	COM_StripExtension (dllpath);
+	COM_StripIntelSuffix (dllpath);	// [Xash3D, 31.03.23]
 
 	COM_GenerateCommonLibraryName (dllpath, ext, out, size);
 #endif
@@ -213,28 +233,25 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 		case LIBRARY_GAMEUI:
 			COM_GenerateClientLibraryPath ("menu", out, size);
 			break;
+
 		case LIBRARY_CLIENT:
 			if (SI.clientlib[0])
-				{
 				Q_strncpy (out, SI.clientlib, size);
-				}
 			else
-				{
 				COM_GenerateClientLibraryPath ("client", out, size);
-				}
 			break;
+
 		case LIBRARY_SERVER:
 			if (SI.gamedll[0])
-				{
 				Q_strncpy (out, SI.gamedll, size);
-				}
 			else
-				{
 				COM_GenerateServerLibraryPath (out, size);
-				}
 			break;
+
 		default:
-			ASSERT (true);
+			// [Xash3D, 31.03.23]
+			//ASSERT (true);
+			ASSERT (0);
 			out[0] = 0;
 			break;
 		}
@@ -257,7 +274,7 @@ static EFunctionMangleType COM_DetectMangleType (const char *str)
 		return MANGLE_ITANIUM;
 
 	// MSVC C++ mangling always start with ? and have
-	if (str[0] == '?' && Q_strstr (str, "@@"))
+	if ((str[0] == '?') && Q_strstr (str, "@@"))
 		return MANGLE_MSVC;
 
 	// allow offsets, we just silently ignore them on conversion
@@ -265,7 +282,7 @@ static EFunctionMangleType COM_DetectMangleType (const char *str)
 		return MANGLE_OFFSET;
 
 	// don't get confused by MSVC C mangling
-	if (str[0] != '@' && Q_strchr (str, '@'))
+	if ((str[0] != '@') && Q_strchr (str, '@'))
 		return MANGLE_VALVE;
 
 	// not technically an error
@@ -336,7 +353,7 @@ static char *COM_GetItaniumName (const char *const in_name)
 		if (*f == 'E')
 			break;
 
-		if (!isdigit (*f) || remaining <= 0)
+		if (!isdigit (*f) || (remaining <= 0))
 			goto invalid_format;
 		}
 
@@ -391,13 +408,18 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 		const char *at = Q_strchr (prev, '@');
 		uint len;
 
-		if (at) len = (uint)(at - prev);
-		else len = (uint)Q_strlen (prev);
+		if (at) 
+			len = (uint)(at - prev);
+		else 
+			len = (uint)Q_strlen (prev);
 		Q_strncpy (symbols[i], prev, Q_min (len + 1, sizeof (symbols[i])));
-		prev = at + 1;
+
+		// [Xash3D, 31.03.23]
+		//prev = at + 1;
 
 		if (!at)
 			break;
+		prev = at + 1;
 		}
 
 	if (i == MAX_NESTED_NAMESPACES)
