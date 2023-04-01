@@ -66,7 +66,7 @@ void SV_BroadcastPrintf (sv_client_t *ignore, const char *fmt, ...)
 			if (FBitSet (cl->flags, FCL_FAKECLIENT))
 				continue;
 
-			if (cl == ignore || cl->state != cs_spawned)
+			if ((cl == ignore) || (cl->state != cs_spawned))
 				continue;
 
 			MSG_BeginServerCmd (&cl->netchan.message, svc_print);
@@ -120,7 +120,7 @@ static sv_client_t *SV_SetPlayer (void)
 	if (!svs.clients || sv.background)
 		return NULL;
 
-	if (svs.maxclients == 1 || Cmd_Argc () < 2)
+	if ((svs.maxclients == 1) || (Cmd_Argc () < 2))
 		{
 		// special case for local client
 		return svs.clients;
@@ -129,11 +129,11 @@ static sv_client_t *SV_SetPlayer (void)
 	s = Cmd_Argv (1);
 
 	// numeric values are just slot numbers
-	if (Q_isdigit (s) || (s[0] == '-' && Q_isdigit (s + 1)))
+	if (Q_isdigit (s) || ((s[0] == '-') && Q_isdigit (s + 1)))
 		{
 		idnum = Q_atoi (s);
 
-		if (idnum < 0 || idnum >= svs.maxclients)
+		if ((idnum < 0) || (idnum >= svs.maxclients))
 			{
 			Con_Printf ("Bad client slot: %i\n", idnum);
 			return NULL;
@@ -236,8 +236,6 @@ void SV_Map_f (void)
 SV_Maps_f
 
 Lists maps according to given substring.
-
-TODO: Make it more convenient. (Timestamp check, temporary file, ...)
 ==================
 */
 void SV_Maps_f (void)
@@ -249,7 +247,9 @@ void SV_Maps_f (void)
 
 	if (Cmd_Argc () != 2)
 		{
-		Msg ("Usage: maps <substring>\nmaps * for full listing\n");
+		// [Xash3D, 31.03.23]
+		//Msg ("Usage: maps <substring>\nmaps * for full listing\n");
+		Msg (S_USAGE "maps <substring>\nmaps * for full listing\n");
 		return;
 		}
 
@@ -394,10 +394,15 @@ void SV_HazardCourse_f (void)
 	// special case for Gunman Chronicles: playing avi-file
 	if (FS_FileExists (va ("media/%s.avi", GI->trainmap), false))
 		{
-		Cbuf_AddText (va ("wait; movie %s\n", GI->trainmap));
+		// [Xash3D, 31.03.23]
+		//Cbuf_AddText (va ("wait; movie %s\n", GI->trainmap));
+		Cbuf_AddTextf ("wait; movie %s\n", GI->trainmap);
 		Host_EndGame (true, DEFAULT_ENDGAME_MESSAGE);
 		}
-	else COM_NewGame (GI->trainmap);
+	else
+		{
+		COM_NewGame (GI->trainmap);
+		}
 	}
 
 /*
@@ -439,7 +444,6 @@ void SV_Load_f (void)
 /*
 ==============
 SV_QuickLoad_f
-
 ==============
 */
 void SV_QuickLoad_f (void)
@@ -449,30 +453,35 @@ void SV_QuickLoad_f (void)
 
 /*
 ==============
-SV_Save_f
-
+SV_Save_f [Xash3D, 31.03.23]
 ==============
 */
 void SV_Save_f (void)
 	{
+	qboolean ret = false;
+
 	switch (Cmd_Argc ())
 		{
 		case 1:
-			SV_SaveGame ("new");
+			ret = SV_SaveGame ("new");
 			break;
+
 		case 2:
-			SV_SaveGame (Cmd_Argv (1));
+			ret = SV_SaveGame (Cmd_Argv (1));
 			break;
+
 		default:
 			Con_Printf (S_USAGE "save <savename>\n");
 			break;
 		}
+
+	if (ret && CL_Active () && !FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
+		CL_HudMessage ("GAMESAVED"); // defined in titles.txt
 	}
 
 /*
 ==============
 SV_QuickSave_f
-
 ==============
 */
 void SV_QuickSave_f (void)
@@ -483,7 +492,6 @@ void SV_QuickSave_f (void)
 /*
 ==============
 SV_DeleteSave_f
-
 ==============
 */
 void SV_DeleteSave_f (void)
@@ -502,7 +510,6 @@ void SV_DeleteSave_f (void)
 /*
 ==============
 SV_AutoSave_f
-
 ==============
 */
 void SV_AutoSave_f (void)
@@ -513,7 +520,8 @@ void SV_AutoSave_f (void)
 		return;
 		}
 
-	SV_SaveGame ("autosave");
+	if (Cvar_VariableInteger ("sv_autosave"))	// [Xash3D, 31.03.23]
+		SV_SaveGame ("autosave");
 	}
 
 /*
@@ -528,6 +536,7 @@ void SV_Restart_f (void)
 	// because restart can be multiple issued
 	if (sv.state != ss_active)
 		return;
+
 	COM_LoadLevel (sv.name, sv.background);
 	}
 

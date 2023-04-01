@@ -156,7 +156,9 @@ typedef struct server_s
 	int		num_resources;
 
 	sv_baseline_t	instanced[MAX_CUSTOM_BASELINES];	// instanced baselines
-	int		last_valid_baseline;// all the entities with number more than that was created in-game and doesn't have the baseline
+
+	// all the entities with number more than that was created in-game and doesn't have the baseline
+	int		last_valid_baseline;
 	int		num_instanced;
 
 	// unreliable data to send to clients.
@@ -328,7 +330,7 @@ typedef struct
 	qboolean	msg_trace;		// trace this message
 
 	void *hInstance;		// pointer to game.dll
-	qboolean		config_executed;		// should to execute config.cfg once time to restore FCVAR_ARCHIVE that specified in hl.dll
+	//qboolean		config_executed;		// [Xash3D, 31.03.23]
 
 	edict_t *edicts;			// solid array of server entities
 	int		numEntities;		// actual entities count
@@ -377,6 +379,7 @@ typedef struct
 
 	double		last_heartbeat;
 	challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting
+	uint		heartbeat_challenge;	// [Xash3D, 31.03.23]
 	} server_static_t;
 
 //=============================================================================
@@ -394,7 +397,7 @@ extern convar_t		sv_unlag;
 extern convar_t		sv_maxunlag;
 extern convar_t		sv_unlagpush;
 extern convar_t		sv_unlagsamples;
-extern convar_t		rcon_password;
+extern convar_t		rcon_enable;		// [Xash3D, 31.03.23]
 extern convar_t		sv_instancedbaseline;
 extern convar_t		sv_background_freeze;
 extern convar_t		sv_minupdaterate;
@@ -435,13 +438,18 @@ extern convar_t		sv_consistency;
 extern convar_t		sv_password;
 extern convar_t		sv_uploadmax;
 extern convar_t		sv_trace_messages;
+
+extern convar_t		sv_enttools_enable;		// [Xash3D, 31.03.23]
+extern convar_t		sv_enttools_maxfire;
+extern convar_t		sv_autosave;
+
 extern convar_t		deathmatch;
 extern convar_t		hostname;
 extern convar_t		skill;
 extern convar_t		coop;
 
-// ESHQ: meat mode
-extern convar_t		meat_mode;
+extern convar_t		meat_mode;		// ESHQ: meat mode
+extern convar_t		sv_cheats;		// [Xash3D, 31.03.23]
 
 extern	convar_t *sv_pausable;		// allows pause in multiplayer
 extern	convar_t *sv_check_errors;
@@ -475,13 +483,13 @@ void SV_SendResource (resource_t *pResource, sizebuf_t *msg);
 void SV_SendResourceList (sv_client_t *cl);
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg);
 qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent);
-int SV_GetConnectedClientsCount (int *bots);
+//int SV_GetConnectedClientsCount (int *bots);	// [Xash3D, 31.03.23]
 void Host_SetServerState (int state);
 qboolean SV_IsSimulating (void);
 void SV_FreeClients (void);
-void Master_Add (void);
+/*void Master_Add (void);	// [Xash3D, 31.03.23]
 void Master_Heartbeat (void);
-void Master_Packet (void);
+void Master_Packet (void);*/
 
 //
 // sv_init.c
@@ -552,6 +560,7 @@ void SV_InitClientMove (void);
 void SV_UpdateServerInfo (void);
 void SV_EndRedirect (void);
 void SV_RejectConnection (netadr_t from, const char *fmt, ...) _format (2);
+void SV_GetPlayerCount (int *clients, int *bots);	// [Xash3D, 31.03.23]
 
 //
 // sv_cmds.c
@@ -611,7 +620,8 @@ edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszField, cons
 void SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2);
 void SV_PlaybackReliableEvent (sizebuf_t *msg, word eventindex, float delay, event_args_t *args);
-int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample, int vol, float attn, int flags, int pitch, const vec3_t pos);
+int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample, int vol, float attn,
+	int flags, int pitch, const vec3_t pos);
 qboolean SV_BoxInPVS (const vec3_t org, const vec3_t absmin, const vec3_t absmax);
 void SV_QueueChangeLevel (const char *level, const char *landname);
 void SV_WriteEntityPatch (const char *filename);
@@ -624,9 +634,11 @@ string_t SV_MakeString (const char *szValue);
 const char *SV_GetString (string_t iString);
 void SV_SetStringArrayMode (qboolean dynamic);
 void SV_EmptyStringPool (void);
+
 #ifdef XASH_64BIT
 void SV_PrintStr64Stats_f (void);
 #endif
+
 sv_client_t *SV_ClientFromEdict (const edict_t *pEdict, qboolean spawned_only);
 uint SV_MapIsValid (const char *filename, const char *spawn_entity, const char *landmark_name);
 void SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch);
@@ -645,8 +657,10 @@ void SV_RestartAmbientSounds (void);
 void SV_RestartDecals (void);
 void SV_RestartStaticEnts (void);
 int pfnGetCurrentPlayer (void);
+int pfnDropToFloor (edict_t *e);	// [Xash3D, 31.03.23]
 edict_t *SV_EdictNum (int n);
 char *SV_Localinfo (void);
+void SV_SetModel (edict_t *ent, const char *name);	// [Xash3D, 31.03.23]
 //
 // sv_log.c
 //
@@ -659,7 +673,9 @@ void SV_SetLogAddress_f (void);
 //
 // sv_save.c
 //
-void SV_SaveGame (const char *pName);
+//void SV_SaveGame (const char *pName);		// [Xash3D, 31.03.23]
+qboolean SV_SaveGame (const char *pName);
+
 qboolean SV_LoadGame (const char *pName);
 int SV_LoadGameState (char const *level);
 void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char *start, qboolean background);
@@ -680,7 +696,8 @@ qboolean SV_PlayerIsFrozen (edict_t *pClient);
 void SV_ClearWorld (void);
 void SV_UnlinkEdict (edict_t *ent);
 void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, trace_t *trace);
-void SV_CustomClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, trace_t *trace);
+void SV_CustomClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, 
+	const vec3_t end, trace_t *trace);
 trace_t SV_TraceHull (edict_t *ent, int hullNum, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end);
 trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e, qboolean monsterclip);
 trace_t SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e);
@@ -696,6 +713,6 @@ void SV_RunLightStyles (void);
 void SV_SetLightStyle (int style, const char *s, float f);
 const char *SV_GetLightStyle (int style);
 int SV_LightForEntity (edict_t *pEdict);
-void SV_ClearPhysEnts (void);
+//void SV_ClearPhysEnts (void);		// [Xash3D, 31.03.23]
 
-#endif//SERVER_H
+#endif

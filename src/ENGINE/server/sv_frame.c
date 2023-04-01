@@ -711,6 +711,7 @@ void SV_SendClientDatagram (sv_client_t *cl)
 	byte	msg_buf[MAX_DATAGRAM];
 	sizebuf_t	msg;
 
+	memset (msg_buf, 0, sizeof (msg_buf));	// [Xash3D, 31.03.23]
 	MSG_Init (&msg, "Datagram", msg_buf, sizeof (msg_buf));
 
 	// always send servertime at new frame

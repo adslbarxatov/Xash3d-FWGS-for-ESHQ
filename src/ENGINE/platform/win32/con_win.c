@@ -496,15 +496,18 @@ void Wcon_CreateConsole (void)
 	{
 	if (Sys_CheckParm ("-log"))
 		s_wcd.log_active = true;
-
+	
+	// [Xash3D, 31.03.23]
 	if (host.type == HOST_NORMAL)
-		{
-		Q_strncpy (s_wcd.title, va ("Xash3D %s", XASH_VERSION), sizeof (s_wcd.title));
+		{	
+		//Q_strncpy (s_wcd.title, va ("Xash3D %s", XASH_VERSION), sizeof (s_wcd.title));
+		Q_strncpy (s_wcd.title, "Xash3D " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));
 		}
 	else // dedicated console
 		{
-		Q_strncpy (s_wcd.title, va ("XashDS %s", XASH_VERSION), sizeof (s_wcd.title));
+		//Q_strncpy (s_wcd.title, va ("XashDS %s", XASH_VERSION), sizeof (s_wcd.title));
+		Q_strncpy (s_wcd.title, "XashDS " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "dedicated.log", sizeof (s_wcd.log_path));
 		s_wcd.log_active = true; // always make log
 		}
@@ -525,7 +528,6 @@ void Wcon_CreateConsole (void)
 		return;
 		}
 
-	// ESHQ: исправление фокуса на окнах для ESRM
 	SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);
 
 	// show console if needed

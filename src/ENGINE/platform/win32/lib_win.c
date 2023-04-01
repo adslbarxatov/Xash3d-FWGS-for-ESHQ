@@ -164,7 +164,8 @@ qboolean LibraryLoadSymbols (dll_user_t *hInst)
 			}
 
 		if (((optional_header.DataDirectory[0].VirtualAddress >= section_header.VirtualAddress) &&
-			(optional_header.DataDirectory[0].VirtualAddress < (section_header.VirtualAddress + section_header.Misc.VirtualSize))))
+			(optional_header.DataDirectory[0].VirtualAddress < (section_header.VirtualAddress +
+				section_header.Misc.VirtualSize))))
 			{
 			rdata_found = true;
 			break;
@@ -352,13 +353,16 @@ static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *dat
 	return importDesc;
 	}
 
+// [Xash3D, 31.03.23]
 static void ListMissingModules (dll_user_t *hInst)
 	{
 	PIMAGE_NT_HEADERS peHeader;
 	PIMAGE_IMPORT_DESCRIPTOR importDesc;
-	byte *data;
+	byte	*data;
+	char	buf[MAX_VA_STRING];
 
-	if (!hInst) return;
+	if (!hInst) 
+		return;
 
 	data = FS_LoadFile (hInst->dllName, NULL, false);
 	if (!data) 
@@ -378,9 +382,15 @@ static void ListMissingModules (dll_user_t *hInst)
 
 		hMod = LoadLibraryEx (importName, NULL, LOAD_LIBRARY_AS_DATAFILE);
 		if (!hMod)
-			COM_PushLibraryError (va ("%s not found!", importName));
+			{
+			Q_snprintf (buf, sizeof (buf), "%s not found!", importName);
+			COM_PushLibraryError (buf);
+			}
+			//COM_PushLibraryError (va ("%s not found!", importName));
 		else
+			{
 			FreeLibrary (hMod);
+			}
 		}
 
 	Mem_Free (data);
@@ -396,7 +406,8 @@ qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname
 	qboolean ret = FALSE;
 
 	hInst = FS_FindLibrary (name, directpath);
-	if (!hInst) return FALSE;
+	if (!hInst) 
+		return FALSE;
 
 	data = FS_LoadFile (name, NULL, false);
 	if (!data)
@@ -432,7 +443,7 @@ qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname
 
 /*
 ================
-COM_LoadLibrary
+COM_LoadLibrary [Xash3D, 31.03.23]
 
 smart dll loader - can loading dlls from pack or wad files
 ================
@@ -440,19 +451,25 @@ smart dll loader - can loading dlls from pack or wad files
 void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean directpath)
 	{
 	dll_user_t *hInst;
+	char buf[MAX_VA_STRING];
 
 	COM_ResetLibraryError ();
 
 	hInst = FS_FindLibrary (dllname, directpath);
 	if (!hInst)
 		{
-		COM_PushLibraryError (va ("Failed to find library %s", dllname));
+		//COM_PushLibraryError (va ("Failed to find library %s", dllname));
+		Q_snprintf (buf, sizeof (buf), "Failed to find library %s", dllname);
+		COM_PushLibraryError (buf);
 		return NULL;
 		}
 
 	if (hInst->encrypted)
 		{
-		COM_PushLibraryError (va ("Library %s is encrypted, cannot load", hInst->shortPath));
+		//COM_PushLibraryError (va ("Library %s is encrypted, cannot load", hInst->shortPath));
+		Q_snprintf (buf, sizeof (buf), "Library %s is encrypted, cannot load", hInst->shortPath);
+		COM_PushLibraryError (buf);
+
 		COM_FreeLibrary (hInst);
 		return NULL;
 		}
@@ -484,7 +501,10 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 		{
 		if (!LibraryLoadSymbols (hInst))
 			{
-			COM_PushLibraryError (va ("Failed to load library %s", dllname));
+			//COM_PushLibraryError (va ("Failed to load library %s", dllname));
+			Q_snprintf (buf, sizeof (buf), "Failed to load library %s", dllname);
+			COM_PushLibraryError (buf);
+
 			COM_FreeLibrary (hInst);
 			return NULL;
 			}

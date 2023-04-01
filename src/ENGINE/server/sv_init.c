@@ -18,7 +18,8 @@ GNU General Public License for more details.
 #include "net_encode.h"
 #include "library.h"
 #include "voice.h"
-#include <shellapi.h>
+#include <shellapi.h>	// ESHQ: поддержка вызова генератора карт ESRM
+#include "pm_local.h"	// [Xash3D, 31.03.23]
 
 #if XASH_LOW_MEMORY != 2
 int SV_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
@@ -97,7 +98,7 @@ int SV_ModelIndex (const char *filename)
 	if (!COM_CheckString (filename))
 		return 0;
 
-	if (*filename == '\\' || *filename == '/')
+	if ((*filename == '\\') || (*filename == '/'))
 		filename++;
 	Q_strncpy (name, filename, sizeof (name));
 	COM_FixSlashes (name);
@@ -148,7 +149,7 @@ int GAME_EXPORT SV_SoundIndex (const char *filename)
 		return 0;
 		}
 
-	if (*filename == '\\' || *filename == '/')
+	if ((*filename == '\\') || (*filename == '/'))
 		filename++;
 	Q_strncpy (name, filename, sizeof (name));
 	COM_FixSlashes (name);
@@ -271,7 +272,7 @@ get model by handle
 */
 model_t *SV_ModelHandle (int modelindex)
 	{
-	if (modelindex < 0 || modelindex >= MAX_MODELS)
+	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
 		return NULL;
 	return sv.models[modelindex];
 	}
@@ -455,7 +456,8 @@ void SV_CreateBaseline (void)
 			base->entityType = ENTITY_BEAM;
 		else base->entityType = ENTITY_NORMAL;
 
-		svgame.dllFuncs.pfnCreateBaseline (delta_type, entnum, base, pEdict, playermodel, host.player_mins[0], host.player_maxs[0]);
+		svgame.dllFuncs.pfnCreateBaseline (delta_type, entnum, base, pEdict, playermodel, host.player_mins[0],
+			host.player_maxs[0]);
 		sv.last_valid_baseline = entnum;
 		}
 
@@ -637,11 +639,13 @@ void SV_ActivateServer (int runPhysics)
 		{
 		const char *cycle = Cvar_VariableString ("mapchangecfgfile");
 
+		// [Xash3D, 31.03.23]
 		if (COM_CheckString (cycle))
-			Cbuf_AddText (va ("exec %s\n", cycle));
+			Cbuf_AddTextf ("exec %s\n", cycle);
+			/*Cbuf_AddText (va ("exec %s\n", cycle));
 
 		if (public_server->value)
-			Master_Add ();
+			Master_Add ();*/
 		}
 	}
 
@@ -656,7 +660,7 @@ void SV_DeactivateServer (void)
 	{
 	int	i;
 
-	if (!svs.initialized || sv.state == ss_dead)
+	if (!svs.initialized || (sv.state == ss_dead))
 		return;
 
 	svgame.globals->time = sv.time;
@@ -665,7 +669,9 @@ void SV_DeactivateServer (void)
 
 	SV_FreeEdicts ();
 
-	SV_ClearPhysEnts ();
+	// [Xash3D, 31.03.23]
+	//SV_ClearPhysEnts ();
+	PM_ClearPhysEnts (svgame.pmove);
 
 	SV_EmptyStringPool ();
 
@@ -888,6 +894,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	if (!SV_InitGame ())
 		return false;
+
+	// [Xash3D, 31.03.23] unlock sv_cheats in local game
+	ClearBits (sv_cheats.flags, FCVAR_READ_ONLY);
 
 	svs.initialized = true;
 	Log_Open ();

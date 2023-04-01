@@ -22,13 +22,14 @@ GNU General Public License for more details.
 
 static qboolean has_update = false;
 
-void SV_ClearPhysEnts (void)
+// [Xash3D, 31.03.23]
+/*void SV_ClearPhysEnts (void)
 	{
 	svgame.pmove->numtouch = 0;
 	svgame.pmove->numvisent = 0;
 	svgame.pmove->nummoveent = 0;
 	svgame.pmove->numphysent = 0;
-	}
+	}*/
 
 qboolean SV_PlayerIsFrozen (edict_t *pClient)
 	{
@@ -372,9 +373,11 @@ static int GAME_EXPORT pfnTestPlayerPosition (float *pos, pmtrace_t *ptrace)
 	return PM_TestPlayerPosition (svgame.pmove, pos, ptrace, NULL);
 	}
 
+// [Xash3D, 31.03.23]
 static void GAME_EXPORT pfnStuckTouch (int hitent, pmtrace_t *tr)
 	{
-	int	i;
+	PM_StuckTouch (svgame.pmove, hitent, tr);
+	/*int	i;
 
 	for (i = 0; i < svgame.pmove->numtouch; i++)
 		{
@@ -388,19 +391,21 @@ static void GAME_EXPORT pfnStuckTouch (int hitent, pmtrace_t *tr)
 	VectorCopy (svgame.pmove->velocity, tr->deltavelocity);
 	tr->ent = hitent;
 
-	svgame.pmove->touchindex[svgame.pmove->numtouch++] = *tr;
+	svgame.pmove->touchindex[svgame.pmove->numtouch++] = *tr;*/
 	}
 
+// [Xash3D, 31.03.23]
 static int GAME_EXPORT pfnPointContents (float *p, int *truecontents)
 	{
-	int	cont, truecont;
+	return PM_PointContentsPmove (svgame.pmove, p, truecontents);
+	/*int	cont, truecont;
 
 	truecont = cont = PM_PointContents (svgame.pmove, p);
 	if (truecontents) *truecontents = truecont;
 
 	if (cont <= CONTENTS_CURRENT_0 && cont >= CONTENTS_CURRENT_DOWN)
 		cont = CONTENTS_WATER;
-	return cont;
+	return cont;*/
 	}
 
 static int GAME_EXPORT pfnTruePointContents (float *p)
@@ -408,19 +413,23 @@ static int GAME_EXPORT pfnTruePointContents (float *p)
 	return PM_TruePointContents (svgame.pmove, p);
 	}
 
+/* [Xash3D, 31.03.23]
 static int GAME_EXPORT pfnHullPointContents (struct hull_s *hull, int num, float *p)
 	{
 	return PM_HullPointContents (hull, num, p);
-	}
+	}*/
 
 static pmtrace_t GAME_EXPORT pfnPlayerTrace (float *start, float *end, int traceFlags, int ignore_pe)
 	{
-	return PM_PlayerTraceExt (svgame.pmove, start, end, traceFlags, svgame.pmove->numphysent, svgame.pmove->physents, ignore_pe, NULL);
+	return PM_PlayerTraceExt (svgame.pmove, start, end, traceFlags, svgame.pmove->numphysent, 
+		svgame.pmove->physents, ignore_pe, NULL);
 	}
 
+// [Xash3D, 31.03.23]
 static pmtrace_t *pfnTraceLine (float *start, float *end, int flags, int usehull, int ignore_pe)
 	{
-	static pmtrace_t	tr;
+	return PM_TraceLine (svgame.pmove, start, end, flags, usehull, ignore_pe);
+	/*static pmtrace_t	tr;
 	int		old_usehull;
 
 	old_usehull = svgame.pmove->usehull;
@@ -438,7 +447,7 @@ static pmtrace_t *pfnTraceLine (float *start, float *end, int flags, int usehull
 
 	svgame.pmove->usehull = old_usehull;
 
-	return &tr;
+	return &tr;*/
 	}
 
 static hull_t *pfnHullForBsp (physent_t *pe, float *offset)
@@ -446,9 +455,11 @@ static hull_t *pfnHullForBsp (physent_t *pe, float *offset)
 	return PM_HullForBsp (pe, svgame.pmove, offset);
 	}
 
+// [Xash3D, 31.03.23]
 static float GAME_EXPORT pfnTraceModel (physent_t *pe, float *start, float *end, trace_t *trace)
 	{
-	int	old_usehull;
+	return PM_TraceModel (svgame.pmove, pe, start, end, trace);
+	/*int	old_usehull;
 	vec3_t	start_l, end_l;
 	vec3_t	offset, temp;
 	qboolean	rotated;
@@ -491,21 +502,24 @@ static float GAME_EXPORT pfnTraceModel (physent_t *pe, float *start, float *end,
 
 	VectorLerp (start, trace->fraction, end, trace->endpos);
 
-	return trace->fraction;
+	return trace->fraction;*/
 	}
 
+// [Xash3D, 31.03.23]
 static const char *pfnTraceTexture (int ground, float *vstart, float *vend)
 	{
-	physent_t *pe;
+	return PM_TraceTexture (svgame.pmove, ground, vstart, vend);
+	/*physent_t *pe;
 
 	if (ground < 0 || ground >= svgame.pmove->numphysent)
 		return NULL; // bad ground
 
 	pe = &svgame.pmove->physents[ground];
-	return PM_TraceTexture (pe, vstart, vend);
+	return PM_TraceTexture (pe, vstart, vend);*/
 	}
 
-static void GAME_EXPORT pfnPlaySound (int channel, const char *sample, float volume, float attenuation, int fFlags, int pitch)
+static void GAME_EXPORT pfnPlaySound (int channel, const char *sample, float volume, float attenuation, 
+	int fFlags, int pitch)
 	{
 	edict_t *ent;
 
@@ -535,7 +549,8 @@ static void GAME_EXPORT pfnPlaybackEventFull (int flags, int clientindex, word e
 
 static pmtrace_t GAME_EXPORT pfnPlayerTraceEx (float *start, float *end, int traceFlags, pfnIgnore pmFilter)
 	{
-	return PM_PlayerTraceExt (svgame.pmove, start, end, traceFlags, svgame.pmove->numphysent, svgame.pmove->physents, -1, pmFilter);
+	return PM_PlayerTraceExt (svgame.pmove, start, end, traceFlags, svgame.pmove->numphysent, 
+		svgame.pmove->physents, -1, pmFilter);
 	}
 
 static int GAME_EXPORT pfnTestPlayerPositionEx (float *pos, pmtrace_t *ptrace, pfnIgnore pmFilter)
@@ -543,9 +558,11 @@ static int GAME_EXPORT pfnTestPlayerPositionEx (float *pos, pmtrace_t *ptrace, p
 	return PM_TestPlayerPosition (svgame.pmove, pos, ptrace, pmFilter);
 	}
 
+// [Xash3D, 31.03.23]
 static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
 	{
-	static pmtrace_t	tr;
+	return PM_TraceLineEx (svgame.pmove, start, end, flags, usehull, pmFilter);
+	/*static pmtrace_t	tr;
 	int		old_usehull;
 
 	old_usehull = svgame.pmove->usehull;
@@ -563,24 +580,25 @@ static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehu
 
 	svgame.pmove->usehull = old_usehull;
 
-	return &tr;
+	return &tr;*/
 	}
 
+// [Xash3D, 31.03.23]
 static struct msurface_s *pfnTraceSurface (int ground, float *vstart, float *vend)
 	{
-	physent_t *pe;
+	return PM_TraceSurfacePmove (svgame.pmove, ground, vstart, vend);
+	/*physent_t *pe;
 
 	if (ground < 0 || ground >= svgame.pmove->numphysent)
 		return NULL; // bad ground
 
 	pe = &svgame.pmove->physents[ground];
-	return PM_TraceSurface (pe, vstart, vend);
+	return PM_TraceSurface (pe, vstart, vend);*/
 	}
 
 /*
 ===============
 SV_InitClientMove
-
 ===============
 */
 void SV_InitClientMove (void)
@@ -616,7 +634,11 @@ void SV_InitClientMove (void)
 	svgame.pmove->PM_StuckTouch = pfnStuckTouch;
 	svgame.pmove->PM_PointContents = pfnPointContents;
 	svgame.pmove->PM_TruePointContents = pfnTruePointContents;
-	svgame.pmove->PM_HullPointContents = pfnHullPointContents;
+	
+	// [Xash3D, 31.03.23]
+	//svgame.pmove->PM_HullPointContents = pfnHullPointContents;
+	svgame.pmove->PM_HullPointContents = (void *)PM_HullPointContents;
+
 	svgame.pmove->PM_PlayerTrace = pfnPlayerTrace;
 	svgame.pmove->PM_TraceLine = pfnTraceLine;
 	svgame.pmove->RandomLong = COM_RandomLong;
