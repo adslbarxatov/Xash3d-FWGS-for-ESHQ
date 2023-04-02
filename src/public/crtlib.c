@@ -29,9 +29,10 @@ void Q_strnupr (const char *in, char *out, size_t size_out)
 
 	while (*in && size_out > 1)
 		{
-		if (*in >= 'a' && *in <= 'z')
+		if ((*in >= 'a') && (*in <= 'z'))
 			*out++ = *in++ + 'A' - 'a';
-		else *out++ = *in++;
+		else 
+			*out++ = *in++;
 		size_out--;
 		}
 	*out = '\0';
@@ -43,9 +44,10 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 
 	while (*in && size_out > 1)
 		{
-		if (*in >= 'A' && *in <= 'Z')
+		if ((*in >= 'A') && (*in <= 'Z'))
 			*out++ = *in++ + 'a' - 'A';
-		else *out++ = *in++;
+		else 
+			*out++ = *in++;
 		size_out--;
 		}
 	*out = '\0';
@@ -55,8 +57,10 @@ qboolean Q_isdigit (const char *str)
 	{
 	if (str && *str)
 		{
-		while (isdigit (*str)) str++;
-		if (!*str) return true;
+		while (isdigit (*str)) 
+			str++;
+		if (!*str)
+			return true;
 		}
 	return false;
 	}
@@ -65,15 +69,17 @@ qboolean Q_isspace (const char *str)
 	{
 	if (str && *str)
 		{
-		while (isspace (*str)) str++;
-		if (!*str) return true;
+		while (isspace (*str))
+			str++;
+		if (!*str)
+			return true;
 		}
 	return false;
 	}
 
 size_t Q_colorstr (const char *string)
 	{
-	size_t		len;
+	size_t len;
 	const char *p;
 
 	if (!string) return 0;
@@ -96,9 +102,9 @@ size_t Q_colorstr (const char *string)
 
 char Q_toupper (const char in)
 	{
-	char	out;
+	char out;
 
-	if (in >= 'a' && in <= 'z')
+	if ((in >= 'a') && (in <= 'z'))
 		out = in + 'A' - 'a';
 	else
 		out = in;
@@ -108,11 +114,12 @@ char Q_toupper (const char in)
 
 char Q_tolower (const char in)
 	{
-	char	out;
+	char out;
 
-	if (in >= 'A' && in <= 'Z')
+	if ((in >= 'A') && (in <= 'Z'))
 		out = in + 'a' - 'A';
-	else out = in;
+	else 
+		out = in;
 
 	return out;
 	}
@@ -122,17 +129,18 @@ size_t Q_strncat (char *dst, const char *src, size_t size)
 	register char *d = dst;
 	register const char *s = src;
 	register size_t	n = size;
-	size_t		dlen;
+	size_t dlen;
 
 	if (!dst || !src || !size)
 		return 0;
 
 	// find the end of dst and adjust bytes left but don't go past end
-	while (n-- != 0 && *d != '\0') d++;
+	while ((n-- != 0) && (*d != '\0')) d++;
 	dlen = d - dst;
 	n = size - dlen;
 
-	if (n == 0) return(dlen + Q_strlen (s));
+	if (n == 0)
+		return(dlen + Q_strlen (s));
 
 	while (*s != '\0')
 		{
@@ -145,7 +153,7 @@ size_t Q_strncat (char *dst, const char *src, size_t size)
 		}
 
 	*d = '\0';
-	return(dlen + (s - src)); // count does not include NULL
+	return (dlen + (s - src)); // count does not include NULL
 	}
 
 size_t Q_strncpy (char *dst, const char *src, size_t size)
@@ -244,7 +252,10 @@ float Q_atof (const char *str)
 		sign = -1;
 		str++;
 		}
-	else sign = 1;
+	else
+		{
+		sign = 1;
+		}
 
 	// check for hex
 	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X'))
@@ -373,6 +384,27 @@ qboolean Q_stricmpext (const char *pattern, const char *text)
 	return Q_strnicmpext (pattern, text, ~((size_t)0));
 	}
 
+// [Xash3D, 31.03.23]
+const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *needle, size_t needlelen)
+	{
+	const byte *i;
+
+	// quickly find first matching symbol
+	while (haystacklen && (i = memchr (haystack, needle[0], haystacklen)))
+		{
+		if (!memcmp (i, needle, needlelen))
+			return i;
+
+		// skip one byte
+		i++;
+
+		haystacklen -= (i - haystack);
+		haystack = i;
+		}
+
+	return NULL;
+	}
+
 const char *Q_timestamp (int format)
 	{
 	static string	timestamp;
@@ -423,7 +455,8 @@ char *Q_stristr (const char *string, const char *string2)
 	int	c;
 	size_t	len;
 
-	if (!string || !string2) return NULL;
+	if (!string || !string2)
+		return NULL;
 
 	c = Q_tolower (*string2);
 	len = Q_strlen (string2);
@@ -438,11 +471,16 @@ char *Q_stristr (const char *string, const char *string2)
 				break;
 			string++;
 			}
-		else return NULL;
+		else
+			{
+			return NULL;
+			}
 		}
+
 	return (char *)string;
 	}
-#endif // !defined( HAVE_STRCASESTR )
+
+#endif
 
 int Q_vsnprintf (char *buffer, size_t buffersize, const char *format, va_list args)
 	{
@@ -497,6 +535,7 @@ int Q_sprintf (char *buffer, const char *format, ...)
 	return result;
 	}
 
+/* [Xash3D, 31.03.23]
 char *Q_strpbrk (const char *s, const char *accept)
 	{
 	for (; *s; s++)
@@ -511,7 +550,7 @@ char *Q_strpbrk (const char *s, const char *accept)
 		}
 
 	return NULL;
-	}
+	}*/
 
 void COM_StripColors (const char *in, char *out)
 	{
@@ -519,14 +558,15 @@ void COM_StripColors (const char *in, char *out)
 		{
 		if (IsColorString (in))
 			in += 2;
-		else *out++ = *in++;
+		else
+			*out++ = *in++;
 		}
 	*out = '\0';
 	}
 
 uint Q_hashkey (const char *string, uint hashSize, qboolean caseinsensitive)
 	{
-	uint	i, hashKey = 0;
+	uint i, hashKey = 0;
 
 	if (caseinsensitive)
 		{
@@ -551,24 +591,30 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	float		onekb = 1024.0f;
 	float		onemb = onekb * onekb;
 	char		suffix[8];
-	char *out = output[current];
+	char		*out = output[current];
 	char		val[32], *i, *o, *dot;
-	int		pos;
+	int			pos;
 
 	current = (current + 1) & (8 - 1);
 
-	// first figure out which bin to use
+	// [Xash3D, 31.03.23] first figure out which bin to use
 	if (value > onemb)
 		{
 		value /= onemb;
-		Q_sprintf (suffix, " Mb");
+		//Q_sprintf (suffix, " Mb");
+		Q_strcpy (suffix, " Mb");
 		}
 	else if (value > onekb)
 		{
 		value /= onekb;
-		Q_sprintf (suffix, " Kb");
+		//Q_sprintf (suffix, " Kb");
+		Q_strcpy (suffix, " Kb");
 		}
-	else Q_sprintf (suffix, " bytes");
+	else
+		{
+		//Q_sprintf (suffix, " bytes");
+		Q_strcpy (suffix, " bytes");
+		}
 
 	// clamp to >= 0
 	digitsafterdecimal = Q_max (digitsafterdecimal, 0);
@@ -591,9 +637,12 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	i = val;
 	o = out;
 
-	// search for decimal or if it was integral, find the space after the raw number
-	dot = Q_strstr (i, ".");
-	if (!dot) dot = Q_strstr (i, " ");
+	// [Xash3D, 31.03.23] search for decimal or if it was integral, find the space after the raw number
+	dot = Q_strchr (i, '.');
+	if (!dot)
+		dot = Q_strchr (i, ' ');
+	/*dot = Q_strstr (i, ".");
+	if (!dot) dot = Q_strstr (i, " ");*/
 
 	pos = dot - i;	// compute position of dot
 	pos -= 3;		// don't put a comma if it's <= 3 long
@@ -616,7 +665,7 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	return out;
 	}
 
-/*
+/* [Xash3D, 31.03.23]
 ============
 va
 
@@ -624,7 +673,7 @@ does a varargs printf into a temp buffer,
 so I don't need to have varargs versions
 of all text functions.
 ============
-*/
+//
 char *va (const char *format, ...)
 	{
 	va_list		argptr;
@@ -638,7 +687,7 @@ char *va (const char *format, ...)
 	va_end (argptr);
 
 	return s;
-	}
+	}*/
 
 /*
 ============
@@ -667,12 +716,13 @@ void COM_FileBase (const char *in, char *out)
 	// scan backward for '/'
 	start = len - 1;
 
-	while (start >= 0 && in[start] != '/' && in[start] != '\\')
+	while ((start >= 0) && (in[start] != '/') && (in[start] != '\\'))
 		start--;
 
-	if (start < 0 || (in[start] != '/' && in[start] != '\\'))
+	if ((start < 0) || ((in[start] != '/') && (in[start] != '\\')))
 		start = 0;
-	else start++;
+	else 
+		start++;
 
 	// length of new sting
 	len = end - start + 1;
@@ -704,7 +754,7 @@ const char *COM_FileExtension (const char *in)
 
 	dot = Q_strrchr (in, '.');
 
-	if (dot == NULL || (separator && (dot < separator)))
+	if ((dot == NULL) || (separator && (dot < separator)))
 		return "";
 
 	return dot + 1;
@@ -722,12 +772,12 @@ const char *COM_FileWithoutPath (const char *in)
 	separator = Q_strrchr (in, '/');
 	backslash = Q_strrchr (in, '\\');
 
-	if (!separator || separator < backslash)
+	if (!separator || (separator < backslash))
 		separator = backslash;
 
 	colon = Q_strrchr (in, ':');
 
-	if (!separator || separator < colon)
+	if (!separator || (separator < colon))
 		separator = colon;
 
 	return separator ? separator + 1 : in;
@@ -743,7 +793,7 @@ void COM_ExtractFilePath (const char *path, char *dest)
 	const char *src = path + Q_strlen (path) - 1;
 
 	// back up until a \ or the start
-	while (src != path && !(*(src - 1) == '\\' || *(src - 1) == '/'))
+	while ((src != path) && !((*(src - 1) == '\\') || (*(src - 1) == '/')))
 		src--;
 
 	if (src != path)
@@ -751,7 +801,11 @@ void COM_ExtractFilePath (const char *path, char *dest)
 		memcpy (dest, path, src - path);
 		dest[src - path - 1] = 0; // cutoff backslash
 		}
-	else Q_strcpy (dest, ""); // file without path
+	else
+		{
+		dest[0] = 0; // [Xash3D, 31.03.23] file without path
+		}
+	/*else Q_strcpy (dest, ""); // file without path*/
 	}
 
 /*
@@ -780,25 +834,30 @@ void COM_StripExtension (char *path)
 
 /*
 ==================
-COM_DefaultExtension
+COM_DefaultExtension [Xash3D, 31.03.23]
 ==================
 */
 void COM_DefaultExtension (char *path, const char *extension)
 	{
 	const char *src;
+	size_t len;
 
 	// if path doesn't have a .EXT, append extension
 	// (extension should include the .)
-	src = path + Q_strlen (path) - 1;
+	len = Q_strlen (path);
+	src = path + len - 1;
+	/*src = path + Q_strlen (path) - 1;*/
 
-	while (*src != '/' && src != path)
+	while ((*src != '/') && (src != path))
 		{
 		// it has an extension
-		if (*src == '.') return;
+		if (*src == '.')
+			return;
 		src--;
 		}
 
-	Q_strcat (path, extension);
+	//Q_strcat (path, extension);
+	Q_strcpy (&path[len], extension);
 	}
 
 /*
@@ -821,7 +880,7 @@ void COM_RemoveLineFeed (char *str)
 	{
 	while (*str != '\0')
 		{
-		if (*str == '\r' || *str == '\n')
+		if ((*str == '\r') || (*str == '\n'))
 			*str = '\0';
 
 		++str;
@@ -830,18 +889,19 @@ void COM_RemoveLineFeed (char *str)
 
 /*
 ============
-COM_FixSlashes
+COM_FixSlashes [Xash3D, 31.03.23]
 
-Changes all '/' characters into '\' characters, in place.
+Changes all '\' characters into '/' characters, in place
 ============
 */
 void COM_FixSlashes (char *pname)
 	{
-	while (*pname)
+	//while (*pname)
+	for (; *pname; pname++)
 		{
 		if (*pname == '\\')
 			*pname = '/';
-		pname++;
+		//pname++;
 		}
 	}
 

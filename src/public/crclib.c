@@ -450,17 +450,22 @@ char *MD5_Print (byte hash[16])
 
 /*
 =================
-COM_HashKey
+COM_HashKey [Xash3D, 31.03.23]
 
 returns hash key for string
 =================
 */
 uint COM_HashKey (const char *string, uint hashSize)
 	{
-	uint	i, hashKey = 0;
+	//uint	i, hashKey = 0;
+	int hashKey = 5381;
+	unsigned char i;
 
-	for (i = 0; string[i]; i++)
-		hashKey = (hashKey + i) * 37 + Q_tolower (string[i]);
+	/*for (i = 0; string[i]; i++)
+		hashKey = (hashKey + i) * 37 + Q_tolower (string[i]);*/
+	while ((i = *string++))
+		hashKey = (hashKey << 5) + hashKey + (i & 0xDF);
 
-	return (hashKey % hashSize);
+	//return (hashKey % hashSize);
+	return hashKey & (hashSize - 1);
 	}

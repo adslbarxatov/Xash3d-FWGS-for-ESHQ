@@ -21,12 +21,16 @@ GNU General Public License for more details.
 #include <tgmath.h>
 #endif
 
+// [Xash3D, 31.03.23]
 #include "build.h"
+#include "xash3d_types.h"
+#include "const.h"
 #include "com_model.h"
+#include "studio.h"
 
-#ifdef XASH_MSVC
+/*#ifdef XASH_MSVC
 #pragma warning(disable : 4201)	// nonstandard extension used
-#endif
+#endif*/
 
 // euler angle order
 #define PITCH		0
@@ -80,6 +84,11 @@ GNU General Public License for more details.
 #define Q_ceil( a )		((float)(int)((a) + 1))
 #define Q_round( x, y )	(floor( x / y + 0.5f ) * y )
 #define Q_rint(x)		((x) < 0.0f ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
+
+// [Xash3D, 31.03.23]
+#ifdef XASH_IRIX
+#undef isnan
+#endif
 
 #ifdef isnan // check for C99 isnan
 #define IS_NAN isnan
@@ -135,6 +144,42 @@ GNU General Public License for more details.
 #define PlaneDiff(point,plane) (((plane)->type < 3 ? (point)[(plane)->type] : DotProduct((point), (plane)->normal)) - (plane)->dist)
 #define bound( min, num, max ) ((num) >= (min) ? ((num) < (max) ? (num) : (max)) : (min))
 
+// [Xash3D, 31.03.23] horrible cast but helps not breaking strict aliasing in mathlib
+// as union type punning should be fine in C but not in C++.
+// So don't carry over this to C++ code
+typedef union
+	{
+	float fl;
+	uint32_t u;
+	int32_t i;
+	} float_bits_t;
+
+static inline uint32_t FloatAsUint (float v)
+	{
+	float_bits_t bits = { v };
+	return bits.u;
+	}
+
+static inline int32_t FloatAsInt (float v)
+	{
+	float_bits_t bits = { v };
+	return bits.i;
+	}
+
+static inline float IntAsFloat (int32_t i)
+	{
+	float_bits_t bits;
+	bits.i = i;
+	return bits.fl;
+	}
+
+static inline float UintAsFloat (uint32_t u)
+	{
+	float_bits_t bits;
+	bits.u = u;
+	return bits.fl;
+	}
+
 float rsqrt (float number);
 float anglemod (float a);
 word FloatToHalf (float v);
@@ -151,14 +196,16 @@ void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up);
 void VectorAngles (const float *forward, float *angles);
 void AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, vec3_t angles);
-qboolean PlanesGetIntersectionPoint (const struct mplane_s *plane1, const struct mplane_s *plane2, const struct mplane_s *plane3, vec3_t out);
+qboolean PlanesGetIntersectionPoint (const struct mplane_s *plane1, const struct mplane_s *plane2,
+	const struct mplane_s *plane3, vec3_t out);
 void PlaneIntersect (const struct mplane_s *plane, const vec3_t p0, const vec3_t p1, vec3_t out);
 
 void ClearBounds (vec3_t mins, vec3_t maxs);
 void AddPointToBounds (const vec3_t v, vec3_t mins, vec3_t maxs);
 qboolean BoundsIntersect (const vec3_t mins1, const vec3_t maxs1, const vec3_t mins2, const vec3_t maxs2);
 qboolean BoundsAndSphereIntersect (const vec3_t mins, const vec3_t maxs, const vec3_t origin, float radius);
-qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared, const vec3_t vLinePt, const vec3_t vLineDir);
+qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared, const vec3_t vLinePt,
+	const vec3_t vLineDir);
 float RadiusFromBounds (const vec3_t mins, const vec3_t maxs);
 void ExpandBounds (vec3_t mins, vec3_t maxs, float offset);
 
@@ -171,7 +218,7 @@ float ApproachVal (float target, float value, float speed);
 //
 // matrixlib.c
 //
-#define Matrix3x4_LoadIdentity( mat )		Matrix3x4_Copy( mat, matrix3x4_identity )
+#define Matrix3x4_LoadIdentity( mat )	Matrix3x4_Copy( mat, m_matrix3x4_identity )
 #define Matrix3x4_Copy( out, in )		memcpy( out, in, sizeof( matrix3x4 ))
 
 void Matrix3x4_VectorTransform (const matrix3x4 in, const float v[3], float out[3]);
@@ -189,7 +236,7 @@ void Matrix3x4_OriginFromMatrix (const matrix3x4 in, float *out);
 void Matrix3x4_AnglesFromMatrix (const matrix3x4 in, vec3_t out);
 void Matrix3x4_Transpose (matrix3x4 out, const matrix3x4 in1);
 
-#define Matrix4x4_LoadIdentity( mat )	Matrix4x4_Copy( mat, matrix4x4_identity )
+#define Matrix4x4_LoadIdentity( mat )	Matrix4x4_Copy( mat, m_matrix4x4_identity )
 #define Matrix4x4_Copy( out, in )	memcpy( out, in, sizeof( matrix4x4 ))
 
 void Matrix4x4_VectorTransform (const matrix4x4 in, const float v[3], float out[3]);
@@ -211,6 +258,14 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1);
 float V_CalcFov (float *fov_x, float width, float height);
 void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x);
 
+// [Xash3D, 31.03.23]
+void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_t q2[], 
+	const float pos2[][3], float s);
+void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone, 
+	const mstudioanim_t *panim, const float *adj, vec4_t q);
+void R_StudioCalcBonePosition (int frame, float s, const mstudiobone_t *pbone, 
+	const mstudioanim_t *panim, const vec3_t adj, vec3_t pos);
+
 int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p);
 #define BOX_ON_PLANE_SIDE( emins, emaxs, p )			\
 	((( p )->type < 3 ) ?				\
@@ -230,8 +285,8 @@ int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p);
 
 extern vec3_t		vec3_origin;
 extern int		boxpnt[6][4];
-extern const matrix3x4	matrix3x4_identity;
-extern const matrix4x4	matrix4x4_identity;
+extern const matrix3x4	m_matrix3x4_identity;
+extern const matrix4x4	m_matrix4x4_identity;
 extern const float		m_bytenormals[NUMVERTEXNORMALS][3];
 
 #endif 
