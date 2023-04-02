@@ -15,6 +15,7 @@ GNU General Public License for more details.
 
 #include "build.h"
 #include <fcntl.h>
+#include <sys/types.h>	// [Xash3D, 31.03.23]
 #include <sys/stat.h>
 #include <time.h>
 #if XASH_WIN32
@@ -50,9 +51,12 @@ poolhandle_t  fs_mempool;
 searchpath_t *fs_searchpaths = NULL;	// chain
 char          fs_rodir[MAX_SYSPATH];
 char          fs_rootdir[MAX_SYSPATH];
-char          fs_writedir[MAX_SYSPATH];	// path that game allows to overwrite, delete and rename files (and create new of course)
 
-static searchpath_t		fs_directpath;		// static direct path
+// [Xash3D, 31.03.23] path that game allows to overwrite, delete and rename files (and create new of course)
+//char          fs_writedir[MAX_SYSPATH];	
+searchpath_t	*fs_writepath;
+//static searchpath_t		fs_directpath;		// static direct path
+
 static char			fs_basedir[MAX_SYSPATH];	// base game directory
 static char			fs_gamedir[MAX_SYSPATH];	// game current directory
 #if !XASH_WIN32
@@ -117,12 +121,14 @@ FILEMATCH COMMON SYSTEM
 
 =============================================================================
 */
-static void stringlistinit (stringlist_t *list)
+// [Xash3D, 31.03.23]
+void stringlistinit (stringlist_t *list)
 	{
 	memset (list, 0, sizeof (*list));
 	}
 
-static void stringlistfreecontents (stringlist_t *list)
+// [Xash3D, 31.03.23]
+void stringlistfreecontents (stringlist_t *list)
 	{
 	int	i;
 
@@ -160,7 +166,8 @@ void stringlistappend (stringlist_t *list, char *text)
 	list->numstrings++;
 	}
 
-static void stringlistsort (stringlist_t *list)
+// [Xash3D, 31.03.23]
+void stringlistsort (stringlist_t *list)
 	{
 	char *temp;
 	int	i, j;
@@ -180,7 +187,8 @@ static void stringlistsort (stringlist_t *list)
 		}
 	}
 
-// convert names to lowercase because windows doesn't care, but pattern matching code often does
+// [Xash3D, 31.03.23] convert names to lowercase because dos doesn't care, but pattern matching code often does
+#if XASH_DOS4GW
 static void listlowercase (stringlist_t *list)
 	{
 	char *c;
@@ -192,11 +200,13 @@ static void listlowercase (stringlist_t *list)
 			*c = Q_tolower (*c);
 		}
 	}
+#endif
 
-static void listdirectory (stringlist_t *list, const char *path, qboolean lowercase)
+// [Xash3D, 31.03.23]
+static void listdirectory (stringlist_t *list, const char *path)
 	{
-	int		i;
-	signed char *c;
+	/*int		i;
+	signed char *c;*/
 #if XASH_WIN32
 	char pattern[4096];
 	struct _finddata_t	n_file;
@@ -207,19 +217,24 @@ static void listdirectory (stringlist_t *list, const char *path, qboolean lowerc
 #endif
 
 #if XASH_WIN32
-	Q_snprintf (pattern, sizeof (pattern), "%s*", path);
+	//Q_snprintf (pattern, sizeof (pattern), "%s*", path);
+	Q_snprintf (pattern, sizeof (pattern), "%s/*", path);
 
 	// ask for the directory listing handle
 	hFile = _findfirst (pattern, &n_file);
-	if (hFile == -1) return;
+	if (hFile == -1) 
+		return;
 
 	// start a new chain with the the first name
 	stringlistappend (list, n_file.name);
+
 	// iterate through the directory
 	while (_findnext (hFile, &n_file) == 0)
 		stringlistappend (list, n_file.name);
 	_findclose (hFile);
+
 #else
+
 	if (!(dir = opendir (path)))
 		return;
 
@@ -243,13 +258,13 @@ OTHER PRIVATE FUNCTIONS
 =============================================================================
 */
 
-/*
+/* [Xash3D, 31.03.23]
 ==================
 FS_FixFileCase
 
 emulate WIN32 FS behaviour when opening local file
 ==================
-*/
+//
 const char *FS_FixFileCase (const char *path)
 	{
 #if defined __DOS__ & !defined __WATCOM_LFN__
@@ -303,8 +318,8 @@ const char *FS_FixFileCase (const char *path)
 		Q_strcpy (path2, ".");
 		}
 
-	/* android has too slow directory scanning,
-		so drop out some not useful cases */
+	// android has too slow directory scanning,
+	// so drop out some not useful cases
 	if (fname - path2 > 4)
 		{
 		char *point;
@@ -321,8 +336,6 @@ const char *FS_FixFileCase (const char *path)
 			}
 		}
 
-	//Con_Reportf( "FS_FixFileCase: %s\n", path );
-
 	if (!(dir = opendir (path2)))
 		return path;
 
@@ -332,13 +345,13 @@ const char *FS_FixFileCase (const char *path)
 			continue;
 
 		path = va ("%s/%s", path2, entry->d_name);
-		//Con_Reportf( "FS_FixFileCase: %s %s %s\n", path2, fname, entry->d_name );
 		break;
 		}
 	closedir (dir);
 #endif
 	return path;
 	}
+	*/
 
 #if XASH_WIN32
 /*
@@ -369,7 +382,7 @@ void FS_CreatePath (char *path)
 
 	for (ofs = path + 1; *ofs; ofs++)
 		{
-		if (*ofs == '/' || *ofs == '\\')
+		if ((*ofs == '/') || (*ofs == '\\'))
 			{
 			// create the directory
 			save = *ofs;
@@ -379,8 +392,6 @@ void FS_CreatePath (char *path)
 			}
 		}
 	}
-
-
 
 /*
 ================
@@ -402,9 +413,9 @@ static qboolean FS_AddArchive_Fullpath (const char *file, qboolean *already_load
 
 /*
 ================
-FS_AddGameDirectory
+FS_AddGameDirectory [Xash3D, 31.03.23]
 
-Sets fs_writedir, adds the directory to the head of the path,
+Sets fs_writepath, adds the directory to the head of the path,
 then loads and adds pak1.pak pak2.pak ...
 ================
 */
@@ -412,83 +423,110 @@ void FS_AddGameDirectory (const char *dir, uint flags)
 	{
 	stringlist_t	list;
 	searchpath_t *search;
-	string		fullpath;
+	//string		fullpath;
+	char fullpath[MAX_SYSPATH];
 	int		i;
 
-	if (!FBitSet (flags, FS_NOWRITE_PATH))
-		Q_strncpy (fs_writedir, dir, sizeof (fs_writedir));
+	/*if (!FBitSet (flags, FS_NOWRITE_PATH))
+		Q_strncpy (fs_writedir, dir, sizeof (fs_writedir));*/
 	stringlistinit (&list);
-	listdirectory (&list, dir, false);
+
+	//listdirectory (&list, dir, false);
+	listdirectory (&list, dir);
 	stringlistsort (&list);
 
-	// add any PAK package in the directory
+	// add archives in specific order PAK -> PK3 -> WAD
+	// so raw WADs takes precedence over WADs included into PAKs and PK3s
 	for (i = 0; i < list.numstrings; i++)
 		{
-		if (!Q_stricmp (COM_FileExtension (list.strings[i]), "pak"))
+		//if (!Q_stricmp (COM_FileExtension (list.strings[i]), "pak"))
+		const char *ext = COM_FileExtension (list.strings[i]);
+
+		if (!Q_stricmp (ext, "pak"))
 			{
-			Q_sprintf (fullpath, "%s%s", dir, list.strings[i]);
+			//Q_sprintf (fullpath, "%s%s", dir, list.strings[i]);
+			Q_snprintf (fullpath, sizeof (fullpath), "%s%s", dir, list.strings[i]);
 			FS_AddPak_Fullpath (fullpath, NULL, flags);
 			}
 		}
 
-	// add any Zip package in the directory
 	for (i = 0; i < list.numstrings; i++)
 		{
-		if (!Q_stricmp (COM_FileExtension (list.strings[i]), "pk3"))
+		//if (!Q_stricmp (COM_FileExtension (list.strings[i]), "pk3"))
+		const char *ext = COM_FileExtension (list.strings[i]);
+
+		if (!Q_stricmp (ext, "pk3"))
 			{
-			Q_sprintf (fullpath, "%s%s", dir, list.strings[i]);
+			//Q_sprintf (fullpath, "%s%s", dir, list.strings[i]);
+			Q_snprintf (fullpath, sizeof (fullpath), "%s%s", dir, list.strings[i]);
 			FS_AddZip_Fullpath (fullpath, NULL, flags);
 			}
 		}
 
-	FS_AllowDirectPaths (true);
+	/*FS_AllowDirectPaths (true);
 
-	// add any WAD package in the directory
+	// add any WAD package in the directory*/
+
 	for (i = 0; i < list.numstrings; i++)
 		{
-		if (!Q_stricmp (COM_FileExtension (list.strings[i]), "wad"))
+		//if (!Q_stricmp (COM_FileExtension (list.strings[i]), "wad"))
+		const char *ext = COM_FileExtension (list.strings[i]);
+
+		if (!Q_stricmp (ext, "wad"))
 			{
-			Q_sprintf (fullpath, "%s%s", dir, list.strings[i]);
+			//Q_sprintf (fullpath, "%s%s", dir, list.strings[i]);
+			FS_AllowDirectPaths (true);
+			Q_snprintf (fullpath, sizeof (fullpath), "%s%s", dir, list.strings[i]);
+
 			FS_AddWad_Fullpath (fullpath, NULL, flags);
+			FS_AllowDirectPaths (false);
 			}
 		}
 
 	stringlistfreecontents (&list);
-	FS_AllowDirectPaths (false);
+	//FS_AllowDirectPaths (false);
 
 	// add the directory to the search path
 	// (unpacked files have the priority over packed files)
-	search = (searchpath_t *)Mem_Calloc (fs_mempool, sizeof (searchpath_t));
+	search = FS_AddDir_Fullpath (dir, NULL, flags);
+	if (!FBitSet (flags, FS_NOWRITE_PATH))
+		fs_writepath = search;
+
+	/*search = (searchpath_t *)Mem_Calloc (fs_mempool, sizeof (searchpath_t));
 	Q_strncpy (search->filename, dir, sizeof (search->filename));
 	search->next = fs_searchpaths;
 	search->type = SEARCHPATH_PLAIN;
 	search->flags = flags;
-	fs_searchpaths = search;
+	fs_searchpaths = search;*/
 	}
 
 /*
 ================
-FS_ClearSearchPath
+FS_ClearSearchPath [Xash3D, 31.03.23]
 ================
 */
 void FS_ClearSearchPath (void)
 	{
-	while (fs_searchpaths)
+	/*while (fs_searchpaths)
 		{
-		searchpath_t *search = fs_searchpaths;
+		searchpath_t *search = fs_searchpaths;*/
+	searchpath_t *cur, **prev;
 
-		if (!search) break;
+	/*if (!search) break;*/
+	prev = &fs_searchpaths;
 
-		if (FBitSet (search->flags, FS_STATIC_PATH))
-			{
-			// skip read-only pathes
-			if (search->next)
-				fs_searchpaths = search->next->next;
-			else break;
-			}
-		else fs_searchpaths = search->next;
+	/*if (FBitSet (search->flags, FS_STATIC_PATH))*/
+	while (true)
+		{
+		/* skip read-only pathes
+		if (search->next)
+			fs_searchpaths = search->next->next;
+		else break;
+		}
+	else fs_searchpaths = search->next;*/
+		cur = *prev;
 
-		switch (search->type)
+		/*switch (search->type)
 			{
 			case SEARCHPATH_PAK:
 				FS_ClosePAK (search->pack);
@@ -499,11 +537,21 @@ void FS_ClearSearchPath (void)
 			case SEARCHPATH_ZIP:
 				FS_CloseZIP (search->zip);
 				break;
-			default:
-				break;
+			default:*/
+		if (!cur)
+			break;
+
+		// never delete static paths
+		if (FBitSet (cur->flags, FS_STATIC_PATH))
+			{
+			prev = &cur->next;
+			continue;
 			}
 
-		Mem_Free (search);
+		/*Mem_Free (search);*/
+		*prev = cur->next;
+		cur->pfnClose (cur);
+		Mem_Free (cur);
 		}
 	}
 
@@ -518,31 +566,40 @@ Return true if the path should be rejected due to one of the following:
 */
 int FS_CheckNastyPath (const char *path, qboolean isgamedir)
 	{
-	// all: never allow an empty path, as for gamedir it would access the parent directory and a non-gamedir path it is just useless
-	if (!COM_CheckString (path)) return 2;
+	// all: never allow an empty path, as for gamedir it would access 
+	// the parent directory and a non-gamedir path it is just useless
+	if (!COM_CheckString (path)) 
+		return 2;
 
-	if (fs_ext_path) return 0;     // allow any path
+	if (fs_ext_path)
+		return 0;     // allow any path
 
 	// Mac: don't allow Mac-only filenames - : is a directory separator
 	// instead of /, but we rely on / working already, so there's no reason to
 	// support a Mac-only path
 	// Amiga and Windows: : tries to go to root of drive
-	if (Q_strchr (path, ':')) return 1; // non-portable attempt to go to root of drive
+	if (Q_strchr (path, ':'))
+		return 1; // non-portable attempt to go to root of drive
 
 	// Amiga: // is parent directory
-	if (Q_strstr (path, "//")) return 1; // non-portable attempt to go to parent directory
+	if (Q_strstr (path, "//"))
+		return 1; // non-portable attempt to go to parent directory
 
 	// all: don't allow going to parent directory (../ or /../)
-	if (Q_strstr (path, "..")) return 2; // attempt to go outside the game directory
+	if (Q_strstr (path, ".."))
+		return 2; // attempt to go outside the game directory
 
 	// Windows and UNIXes: don't allow absolute paths
-	if (path[0] == '/') return 2; // attempt to go outside the game directory
+	if (path[0] == '/')
+		return 2; // attempt to go outside the game directory
 
 	// all: forbid trailing slash on gamedir
-	if (isgamedir && path[Q_strlen (path) - 1] == '/') return 2;
+	if (isgamedir && path[Q_strlen (path) - 1] == '/')
+		return 2;
 
 	// all: forbid leading dot on any filename for any reason
-	if (Q_strstr (path, "/.")) return 2; // attempt to go outside the game directory
+	if (Q_strstr (path, "/.")) 
+		return 2; // attempt to go outside the game directory
 
 	// after all these checks we're pretty sure it's a / separated filename
 	// and won't do much if any harm
@@ -561,9 +618,14 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 	file_t *f = FS_Open (filepath, "w", false); // we in binary-mode
 	int	i, write_ambients = false;
 
-	if (!f) Sys_Error ("FS_WriteGameInfo: can't write %s\n", filepath);	// may be disk-space is out?
+	if (!f)
+		Sys_Error ("FS_WriteGameInfo: can't write %s\n", filepath);	// may be disk-space is out?
 
-	FS_Printf (f, "// generated by %s %s-%s (%s-%s)\n\n\n", XASH_ENGINE_NAME, XASH_VERSION, Q_buildcommit (), Q_buildos (), Q_buildarch ());
+	// [Xash3D, 31.03.23]
+	/*FS_Printf (f, "// generated by %s %s-%s (%s-%s)\n\n\n", XASH_ENGINE_NAME, XASH_VERSION, 
+		Q_buildcommit (), Q_buildos (), Q_buildarch ());*/
+	FS_Printf (f, "// generated by " XASH_ENGINE_NAME " " XASH_VERSION "-%s (%s-%s)\n\n\n", 
+		Q_buildcommit (), Q_buildos (), Q_buildarch ());
 
 	if (COM_CheckStringEmpty (GameInfo->basedir))
 		FS_Printf (f, "basedir\t\t\"%s\"\n", GameInfo->basedir);
@@ -667,6 +729,14 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 			FS_Printf (f, "ambient%i\t\t%s\n", i, GameInfo->ambientsound[i]);
 			}
 		}
+
+	// [Xash3D, 31.03.23]
+	if (GameInfo->noskills)
+		FS_Printf (f, "noskills\t\t\"%i\"\n", GameInfo->nomodels);
+
+	// always expose our extensions :)
+	FS_Printf (f, "internal_vgui_support\t\t%s\n", GameInfo->internal_vgui_support ? "1" : "0");
+	FS_Printf (f, "render_picbutton_text\t\t%s\n", GameInfo->render_picbutton_text ? "1" : "0");
 
 	FS_Print (f, "\n\n\n");
 	FS_Close (f);	// all done
@@ -787,7 +857,7 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 				/*if (!Q_stricmp (GameInfo->gamefolder, "valve"))
 					GameInfo->gamemode = GAME_NORMAL;
 				else*/
-					GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
+				GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
 				Q_strncpy (GameInfo->type, "Single", sizeof (GameInfo->type));
 				}
 			else if (!isGameInfo && !Q_stricmp (token, "multiplayer_only"))
@@ -890,6 +960,7 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			else if (!Q_stricmp (token, "gamemode"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
+
 				// ESHQ: удалено ограничение на рабочую директорию
 				if (!Q_stricmp (token, "singleplayer_only") /*&& Q_stricmp (GameInfo->gamefolder, "valve")*/)
 					GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
@@ -900,7 +971,7 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 				{
 				int	ambientNum = Q_atoi (token + 7);
 
-				if (ambientNum < 0 || ambientNum > (NUM_AMBIENTS - 1))
+				if ((ambientNum < 0) || (ambientNum > (NUM_AMBIENTS - 1)))
 					ambientNum = 0;
 				pfile = COM_ParseFile (pfile, GameInfo->ambientsound[ambientNum],
 					sizeof (GameInfo->ambientsound[ambientNum]));
@@ -914,6 +985,13 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->render_picbutton_text = Q_atoi (token);
+				}
+
+			// [Xash3D, 31.03.23]
+			else if (!Q_stricmp (token, "internal_vgui_support"))
+				{
+				pfile = COM_ParseFile (pfile, token, sizeof (token));
+				GameInfo->internal_vgui_support = Q_atoi (token);
 				}
 			}
 		}
@@ -932,8 +1010,10 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			Q_snprintf (GameInfo->game_dll_osx, sizeof (GameInfo->game_dll_osx), "%s.dylib", gamedll);
 		}
 
-	// make sure what gamedir is really exist
-	if (!FS_SysFolderExists (va ("%s"PATH_SPLITTER"%s", fs_rootdir, GameInfo->falldir)))
+	// [Xash3D, 31.03.23] make sure what gamedir is really exist
+	//if (!FS_SysFolderExists (va ("%s" PATH_SPLITTER "%s", fs_rootdir, GameInfo->falldir)))
+	Q_snprintf (token, sizeof (token), "%s/%s", fs_rootdir, GameInfo->falldir);
+	if (!FS_SysFolderExists (token))
 		GameInfo->falldir[0] = '\0';
 	}
 
@@ -961,16 +1041,16 @@ static qboolean FS_ParseLiblistGam (const char *filename, const char *gamedir, g
 	{
 	char *afile;
 
-	if (!GameInfo) return false;
+	if (!GameInfo)
+		return false;
 	afile = (char *)FS_LoadDirectFile (filename, NULL);
-	if (!afile) return false;
+	if (!afile) 
+		return false;
 
 	FS_InitGameInfo (GameInfo, gamedir);
-
 	FS_ParseGenericGameInfo (GameInfo, afile, false);
 
 	Mem_Free (afile);
-
 	return true;
 	}
 
@@ -1024,16 +1104,24 @@ FS_CheckForGameDir
 */
 static qboolean FS_CheckForGameDir (const char *gamedir)
 	{
+	char buf[MAX_VA_STRING];	// [Xash3D, 31.03.23]
+
 	// if directory contain config.cfg it's 100% gamedir
-	if (FS_FileExists (va ("%s/config.cfg", gamedir), false))
+	//if (FS_FileExists (va ("%s/config.cfg", gamedir), false))
+	Q_snprintf (buf, sizeof (buf), "%s/config.cfg", gamedir);
+	if (FS_FileExists (buf, false))
 		return true;
 
 	// if directory contain progs.dat it's 100% gamedir
-	if (FS_FileExists (va ("%s/progs.dat", gamedir), false))
+	//if (FS_FileExists (va ("%s/progs.dat", gamedir), false))
+	Q_snprintf (buf, sizeof (buf), "%s/progs.dat", gamedir);
+	if (FS_FileExists (buf, false))
 		return true;
 
 	// quake mods probably always archived but can missed config.cfg before first running
-	if (FS_FileExists (va ("%s/pak0.pak", gamedir), false))
+	//if (FS_FileExists (va ("%s/pak0.pak", gamedir), false))
+	Q_snprintf (buf, sizeof (buf), "%s/pak0.pak", gamedir);
+	if (FS_FileExists (buf, false))
 		return true;
 
 	// NOTE; adds here some additional checks if you wished
@@ -1043,14 +1131,14 @@ static qboolean FS_CheckForGameDir (const char *gamedir)
 
 /*
 ================
-FS_ParseGameInfo
+FS_ParseGameInfo [Xash3D, 31.03.23]
 ================
 */
 static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 	{
 	string		liblist_path, gameinfo_path;
 	string		default_gameinfo_path;
-	gameinfo_t	tmpGameInfo;
+	//gameinfo_t	tmpGameInfo;
 	qboolean	haveUpdate = false;
 
 	Q_snprintf (default_gameinfo_path, sizeof (default_gameinfo_path), "%s/gameinfo.txt", fs_basedir);
@@ -1060,16 +1148,17 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 	// here goes some RoDir magic...
 	if (COM_CheckStringEmpty (fs_rodir))
 		{
-		string	filepath_ro, liblist_ro;
+		//string	filepath_ro, liblist_ro;
+		string	gameinfo_ro, liblist_ro;
 		fs_offset_t roLibListTime, roGameInfoTime, rwGameInfoTime;
 
 		FS_AllowDirectPaths (true);
 
-		Q_snprintf (filepath_ro, sizeof (filepath_ro), "%s/%s/gameinfo.txt", fs_rodir, gamedir);
+		Q_snprintf (gameinfo_ro, sizeof (gameinfo_ro), "%s/%s/gameinfo.txt", fs_rodir, gamedir);
 		Q_snprintf (liblist_ro, sizeof (liblist_ro), "%s/%s/liblist.gam", fs_rodir, gamedir);
 
 		roLibListTime = FS_SysFileTime (liblist_ro);
-		roGameInfoTime = FS_SysFileTime (filepath_ro);
+		roGameInfoTime = FS_SysFileTime (gameinfo_ro);
 		rwGameInfoTime = FS_SysFileTime (gameinfo_path);
 
 		if (roLibListTime > rwGameInfoTime)
@@ -1078,17 +1167,21 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 			}
 		else if (roGameInfoTime > rwGameInfoTime)
 			{
-			char *afile_ro = (char *)FS_LoadDirectFile (filepath_ro, NULL);
+			//char *afile_ro = (char *)FS_LoadDirectFile (filepath_ro, NULL);
+			fs_offset_t len;
+			char *afile_ro = (char *)FS_LoadDirectFile (gameinfo_ro, &len);
 
 			if (afile_ro)
 				{
-				gameinfo_t gi;
+				//gameinfo_t gi;
+				Con_DPrintf ("Copy rodir %s to rwdir %s\n", gameinfo_ro, gameinfo_path);
 
 				haveUpdate = true;
 
-				FS_InitGameInfo (&gi, gamedir);
+				/*FS_InitGameInfo (&gi, gamedir);
 				FS_ParseGenericGameInfo (&gi, afile_ro, true);
-				FS_WriteGameInfo (gameinfo_path, &gi);
+				FS_WriteGameInfo (gameinfo_path, &gi);*/
+				FS_WriteFile (gameinfo_path, afile_ro, len);
 				Mem_Free (afile_ro);
 				}
 			}
@@ -1103,6 +1196,8 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 	// force to create gameinfo for specified game if missing
 	if ((FS_CheckForGameDir (gamedir) || !Q_stricmp (fs_gamedir, gamedir)) && !FS_FileExists (gameinfo_path, false))
 		{
+		gameinfo_t tmpGameInfo;
+
 		memset (&tmpGameInfo, 0, sizeof (tmpGameInfo));
 
 		if (FS_ReadGameInfo (default_gameinfo_path, gamedir, &tmpGameInfo))
@@ -1118,27 +1213,27 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 	if (!GameInfo || !FS_FileExists (gameinfo_path, false))
 		return false; // no dest
 
-	if (FS_ReadGameInfo (gameinfo_path, gamedir, GameInfo))
+	/*if (FS_ReadGameInfo (gameinfo_path, gamedir, GameInfo))
 		return true;
-	return false;
+	return false;*/
+	return FS_ReadGameInfo (gameinfo_path, gamedir, GameInfo);
 	}
 
 /*
 ================
-FS_AddGameHierarchy
+FS_AddGameHierarchy [Xash3D, 31.03.23]
 ================
 */
 void FS_AddGameHierarchy (const char *dir, uint flags)
 	{
 	int i;
 	qboolean isGameDir = flags & FS_GAMEDIR_PATH;
+	char buf[MAX_VA_STRING];
 
 	GI->added = true;
 
 	if (!COM_CheckString (dir))
 		return;
-
-	// add the common game directory
 
 	// recursive gamedirs
 	// for example, czeror->czero->cstrike->valve
@@ -1146,7 +1241,9 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 		{
 		if (!Q_strnicmp (FI.games[i]->gamefolder, dir, 64))
 			{
-			Con_Reportf ("FS_AddGameHierarchy: %d %s %s\n", i, FI.games[i]->gamefolder, FI.games[i]->basedir);
+			//Con_Reportf ("FS_AddGameHierarchy: %d %s %s\n", i, FI.games[i]->gamefolder, FI.games[i]->basedir);
+			Con_Reportf ("FS_AddGameHierarchy: adding recursive basedir %s\n", FI.games[i]->basedir);
+
 			if (!FI.games[i]->added && Q_stricmp (FI.games[i]->gamefolder, FI.games[i]->basedir))
 				{
 				FI.games[i]->added = true;
@@ -1164,15 +1261,30 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 			newFlags |= FS_GAMERODIR_PATH;
 
 		FS_AllowDirectPaths (true);
-		FS_AddGameDirectory (va ("%s/%s/", fs_rodir, dir), newFlags);
+		
+		//FS_AddGameDirectory (va ("%s/%s/", fs_rodir, dir), newFlags);
+		Q_snprintf (buf, sizeof (buf), "%s/%s/", fs_rodir, dir);
+		FS_AddGameDirectory (buf, newFlags);
+
 		FS_AllowDirectPaths (false);
 		}
 
 	if (isGameDir)
-		FS_AddGameDirectory (va ("%s/downloaded/", dir), FS_NOWRITE_PATH | FS_CUSTOM_PATH);
-	FS_AddGameDirectory (va ("%s/", dir), flags);
+		{
+		Q_snprintf (buf, sizeof (buf), "%s/downloaded/", dir);
+		FS_AddGameDirectory (buf, FS_NOWRITE_PATH | FS_CUSTOM_PATH);
+		}
+	Q_snprintf (buf, sizeof (buf), "%s/", dir);
+	FS_AddGameDirectory (buf, flags);
+	/*FS_AddGameDirectory (va ("%s/downloaded/", dir), FS_NOWRITE_PATH | FS_CUSTOM_PATH);
+	FS_AddGameDirectory (va ("%s/", dir), flags);*/
+
 	if (isGameDir)
-		FS_AddGameDirectory (va ("%s/custom/", dir), FS_NOWRITE_PATH | FS_CUSTOM_PATH);
+		{
+		Q_snprintf (buf, sizeof (buf), "%s/custom/", dir);
+		FS_AddGameDirectory (buf, FS_NOWRITE_PATH | FS_CUSTOM_PATH);
+		}
+	/*FS_AddGameDirectory (va ("%s/custom/", dir), FS_NOWRITE_PATH | FS_CUSTOM_PATH);*/
 	}
 
 /*
@@ -1188,12 +1300,22 @@ void FS_Rescan (void)
 
 	FS_ClearSearchPath ();
 
+// [Xash3D, 31.03.23]
 #if XASH_IOS
 	{
-	FS_AddPak_Fullpath (va ("%sextras.pak", SDL_GetBasePath ()), NULL, extrasFlags);
-	FS_AddPak_Fullpath (va ("%sextras_%s.pak", SDL_GetBasePath (), GI->gamefolder), NULL, extrasFlags);
+	char buf[MAX_VA_STRING];
+
+	Q_snprintf (buf, sizeof (buf), "%sextras.pak", SDL_GetBasePath ());
+	FS_AddPak_Fullpath (buf, NULL, extrasFlags);
+	Q_snprintf (buf, sizeof (buf), "%sextras_%s.pak", SDL_GetBasePath (), GI->gamefolder);
+	FS_AddPak_Fullpath (buf, NULL, extrasFlags);
+
+	/*FS_AddPak_Fullpath (va ("%sextras.pak", SDL_GetBasePath ()), NULL, extrasFlags);
+	FS_AddPak_Fullpath (va ("%sextras_%s.pak", SDL_GetBasePath (), GI->gamefolder), NULL, extrasFlags);*/
 	}
+
 #else
+
 	str = getenv ("XASH3D_EXTRAS_PAK1");
 	if (COM_CheckString (str))
 		FS_AddArchive_Fullpath (str, NULL, extrasFlags);
@@ -1201,6 +1323,7 @@ void FS_Rescan (void)
 	str = getenv ("XASH3D_EXTRAS_PAK2");
 	if (COM_CheckString (str))
 		FS_AddArchive_Fullpath (str, NULL, extrasFlags);
+
 #endif
 
 	if (Q_stricmp (GI->basedir, GI->gamefolder))
@@ -1224,7 +1347,8 @@ void FS_LoadGameInfo (const char *rootfolder)
 	// lock uplevel of gamedir for read\write
 	fs_ext_path = false;
 
-	if (rootfolder) Q_strcpy (fs_gamedir, rootfolder);
+	if (rootfolder)
+		Q_strcpy (fs_gamedir, rootfolder);
 	Con_Reportf ("FS_LoadGameInfo( %s )\n", fs_gamedir);
 
 	// clear any old pathes
@@ -1257,8 +1381,13 @@ static qboolean FS_CheckForCrypt (const char *dllname)
 	file_t *f;
 	int	key;
 
+	// [Xash3D, 31.03.23] this encryption is specific to DLLs
+	if (Q_stricmp (COM_FileExtension (dllname), "dll"))
+		return false;
+
 	f = FS_Open (dllname, "rb", false);
-	if (!f) return false;
+	if (!f) 
+		return false;
 
 	FS_Seek (f, 64, SEEK_SET);	// skip first 64 bytes
 	FS_Read (f, &key, sizeof (key));
@@ -1277,7 +1406,7 @@ search for library, assume index is valid
 static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dllinfo_t *dllInfo)
 	{
 	searchpath_t *search;
-	int		index, start = 0, i, len;
+	int index, start = 0, i, len;
 
 	fs_ext_path = directpath;
 
@@ -1294,14 +1423,18 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 
 	for (i = 0; i < len; i++)
 		{
-		if (dllname[i + start] == '\\') dllInfo->shortPath[i] = '/';
-		else dllInfo->shortPath[i] = Q_tolower (dllname[i + start]);
+		if (dllname[i + start] == '\\')
+			dllInfo->shortPath[i] = '/';
+		else 
+			dllInfo->shortPath[i] = Q_tolower (dllname[i + start]);
 		}
 	dllInfo->shortPath[i] = '\0';
 
-	COM_DefaultExtension (dllInfo->shortPath, "."OS_LIB_EXT);	// apply ext if forget
+	COM_DefaultExtension (dllInfo->shortPath, "." OS_LIB_EXT);	// apply ext if forget
 
-	search = FS_FindFile (dllInfo->shortPath, &index, false);
+	// [Xash3D, 31.03.23]
+	//search = FS_FindFile (dllInfo->shortPath, &index, false);
+	search = FS_FindFile (dllInfo->shortPath, &index, NULL, 0, false);
 
 	if (!search && !directpath)
 		{
@@ -1309,13 +1442,19 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 
 		// trying check also 'bin' folder for indirect paths
 		Q_strncpy (dllInfo->shortPath, dllname, sizeof (dllInfo->shortPath));
-		search = FS_FindFile (dllInfo->shortPath, &index, false);
-		if (!search) return false; // unable to find
+		
+		//search = FS_FindFile (dllInfo->shortPath, &index, false);
+		search = FS_FindFile (dllInfo->shortPath, &index, NULL, 0, false);
+
+		if (!search) 
+			return false; // unable to find
 		}
 
 	dllInfo->encrypted = FS_CheckForCrypt (dllInfo->shortPath);
 
-	if (index < 0 && !dllInfo->encrypted && search)
+	// [Xash3D, 31.03.23]
+	//if (index < 0 && !dllInfo->encrypted && search)
+	if ((index >= 0) && !dllInfo->encrypted && search)
 		{
 		Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath),
 			"%s%s", search->filename, dllInfo->shortPath);
@@ -1328,6 +1467,7 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 
 		if (search && search->type != SEARCHPATH_PLAIN)
 			{
+
 #if XASH_WIN32 && XASH_X86 // a1ba: custom loader is non-portable (I just don't want to touch it)
 			Con_Printf (S_WARN "%s: loading libraries from packs is deprecated "
 				"and will be removed in the future\n", __FUNCTION__);
@@ -1348,14 +1488,15 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 	return true;
 	}
 
+// [Xash3D, 31.03.23]
 poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline)
 	{
-	return 0xDEADC0DE;
+	//return 0xDEADC0DE;
+	return (poolhandle_t)0xDEADC0DE;
 	}
 
-void  _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
+void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
 	{
-	// stub
 	}
 
 void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
@@ -1364,12 +1505,13 @@ void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char 
 	return malloc (size);
 	}
 
-void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline)
+void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename,
+	int fileline)
 	{
 	return realloc (memptr, size);
 	}
 
-void  _Mem_Free (void *data, const char *filename, int fileline)
+void _Mem_Free (void *data, const char *filename, int fileline)
 	{
 	free (data);
 	}
@@ -1394,10 +1536,9 @@ void _Sys_Error (const char *fmt, ...)
 	exit (1);
 	}
 
-
 /*
 ================
-FS_Init
+FS_Init [Xash3D, 31.03.23]
 ================
 */
 qboolean FS_InitStdio (qboolean caseinsensitive, const char *rootdir, const char *basedir, const char *gamedir,
@@ -1406,7 +1547,8 @@ qboolean FS_InitStdio (qboolean caseinsensitive, const char *rootdir, const char
 	stringlist_t	dirs;
 	qboolean		hasBaseDir = false;
 	qboolean		hasGameDir = false;
-	int		i;
+	int				i;
+	char			buf[MAX_VA_STRING];
 
 	FS_InitMemory ();
 #if !XASH_WIN32
@@ -1428,13 +1570,19 @@ qboolean FS_InitStdio (qboolean caseinsensitive, const char *rootdir, const char
 			}
 
 		stringlistinit (&dirs);
-		listdirectory (&dirs, fs_rodir, false);
+		//listdirectory (&dirs, fs_rodir, false);
+		listdirectory (&dirs, fs_rodir);
 		stringlistsort (&dirs);
 
 		for (i = 0; i < dirs.numstrings; i++)
 			{
-			char *roPath = va ("%s" PATH_SPLITTER "%s" PATH_SPLITTER, fs_rodir, dirs.strings[i]);
-			char *rwPath = va ("%s" PATH_SPLITTER "%s" PATH_SPLITTER, fs_rootdir, dirs.strings[i]);
+			/*char *roPath = va ("%s" PATH_SPLITTER "%s" PATH_SPLITTER, fs_rodir, dirs.strings[i]);
+			char *rwPath = va ("%s" PATH_SPLITTER "%s" PATH_SPLITTER, fs_rootdir, dirs.strings[i]);*/
+			char roPath[MAX_SYSPATH];
+			char rwPath[MAX_SYSPATH];
+
+			Q_snprintf (roPath, sizeof (roPath), "%s/%s/", fs_rodir, dirs.strings[i]);
+			Q_snprintf (rwPath, sizeof (rwPath), "%s/%s/", fs_rootdir, dirs.strings[i]);
 
 			// check if it's a directory
 			if (!FS_SysFolderExists (roPath))
@@ -1449,7 +1597,8 @@ qboolean FS_InitStdio (qboolean caseinsensitive, const char *rootdir, const char
 
 	// validate directories
 	stringlistinit (&dirs);
-	listdirectory (&dirs, "./", false);
+	//listdirectory (&dirs, "./", false);
+	listdirectory (&dirs, "./");
 	stringlistsort (&dirs);
 
 	for (i = 0; i < dirs.numstrings; i++)
@@ -1468,11 +1617,18 @@ qboolean FS_InitStdio (qboolean caseinsensitive, const char *rootdir, const char
 		}
 
 	// build list of game directories here
-	FS_AddGameDirectory ("./", 0);
+	//FS_AddGameDirectory ("./", 0);
+	if (COM_CheckStringEmpty (fs_rodir))
+		{
+		Q_snprintf (buf, sizeof (buf), "%s/", fs_rodir);
+		FS_AddGameDirectory (buf, FS_STATIC_PATH | FS_NOWRITE_PATH);
+		}
+	FS_AddGameDirectory ("./", FS_STATIC_PATH);
 
 	for (i = 0; i < dirs.numstrings; i++)
 		{
-		if (!FS_SysFolderExists (dirs.strings[i]) || (!Q_strcmp (dirs.strings[i], "..") && !fs_ext_path))
+		//if (!FS_SysFolderExists (dirs.strings[i]) || (!Q_strcmp (dirs.strings[i], "..") && !fs_ext_path))
+		if (!FS_SysFolderExists (dirs.strings[i]))
 			continue;
 
 		if (FI.games[FI.numgames] == NULL)
@@ -1526,7 +1682,8 @@ void FS_Path_f (void)
 		{
 		string info;
 
-		switch (s->type)
+		// [Xash3D, 31.03.23]
+		/*switch (s->type)
 			{
 			case SEARCHPATH_PAK:
 				FS_PrintPAKInfo (info, sizeof (info), s->pack);
@@ -1540,15 +1697,21 @@ void FS_Path_f (void)
 			case SEARCHPATH_PLAIN:
 				Q_strncpy (info, s->filename, sizeof (info));
 				break;
-			}
+			}*/
+		s->pfnPrintInfo (s, info, sizeof (info));
 
 		Con_Printf ("%s", info);
 
-		if (s->flags & FS_GAMERODIR_PATH) Con_Printf (" ^2rodir^7");
-		if (s->flags & FS_GAMEDIR_PATH) Con_Printf (" ^2gamedir^7");
-		if (s->flags & FS_CUSTOM_PATH) Con_Printf (" ^2custom^7");
-		if (s->flags & FS_NOWRITE_PATH) Con_Printf (" ^2nowrite^7");
-		if (s->flags & FS_STATIC_PATH) Con_Printf (" ^2static^7");
+		if (s->flags & FS_GAMERODIR_PATH) 
+			Con_Printf (" ^2rodir^7");
+		if (s->flags & FS_GAMEDIR_PATH) 
+			Con_Printf (" ^2gamedir^7");
+		if (s->flags & FS_CUSTOM_PATH) 
+			Con_Printf (" ^2custom^7");
+		if (s->flags & FS_NOWRITE_PATH) 
+			Con_Printf (" ^2nowrite^7");
+		if (s->flags & FS_STATIC_PATH)
+			Con_Printf (" ^2static^7");
 
 		Con_Printf ("\n");
 		}
@@ -1556,16 +1719,26 @@ void FS_Path_f (void)
 
 /*
 ====================
-FS_SysFileTime
+FS_SysFileTime [Xash3D, 31.03.23]
 
 Internal function used to determine filetime
 ====================
 */
 int FS_SysFileTime (const char *filename)
 	{
+#if XASH_WIN32
+
+	struct _stat buf;
+	if (_wstat (FS_PathToWideChar (filename), &buf) < 0)
+
+#else
+
 	struct stat buf;
 
-	if (stat (filename, &buf) == -1)
+	//if (stat (filename, &buf) == -1)
+	if (stat (filename, &buf) < 0)
+
+#endif
 		return -1;
 
 	return buf.st_mtime;
@@ -1591,18 +1764,22 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 			mod = O_RDONLY;
 			opt = 0;
 			break;
+
 		case 'w': // write
 			mod = O_WRONLY;
 			opt = O_CREAT | O_TRUNC;
 			break;
+
 		case 'a': // append
 			mod = O_WRONLY;
 			opt = O_CREAT | O_APPEND;
 			break;
+
 		case 'e': // edit
 			mod = O_WRONLY;
 			opt = O_CREAT;
 			break;
+
 		default:
 			return NULL;
 		}
@@ -1614,9 +1791,11 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 			case '+':
 				mod = O_RDWR;
 				break;
+
 			case 'b':
 				opt |= O_BINARY;
 				break;
+
 			default:
 				break;
 			}
@@ -1632,16 +1811,17 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 	file->handle = open (filepath, mod | opt, 0666);
 #endif
 
+// [Xash3D, 31.03.23]
 #if !XASH_WIN32
 	if (file->handle < 0)
-		{
+		/*{
 		const char *ffilepath = FS_FixFileCase (filepath);
 		if (ffilepath != filepath)
 			file->handle = open (ffilepath, mod | opt, 0666);
 		if (file->handle >= 0)
 			FS_BackupFileName (file, ffilepath, mod | opt);
 		}
-	else
+	else*/
 		FS_BackupFileName (file, filepath, mod | opt);
 #endif
 
@@ -1651,31 +1831,16 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 		return NULL;
 		}
 
-
 	file->real_length = lseek (file->handle, 0, SEEK_END);
 
-	// uncomment do disable write
-	//if( opt & O_CREAT )
-	//	return NULL;
-
 	// For files opened in append mode, we start at the end of the file
-	if (opt & O_APPEND)  file->position = file->real_length;
-	else lseek (file->handle, 0, SEEK_SET);
+	if (opt & O_APPEND)
+		file->position = file->real_length;
+	else
+		lseek (file->handle, 0, SEEK_SET);
 
 	return file;
 	}
-/*
-static int FS_DuplicateHandle( const char *filename, int handle, fs_offset_t pos )
-{
-#ifdef HAVE_DUP
-	return dup( handle );
-#else
-	int newhandle = open( filename, O_RDONLY|O_BINARY );
-	lseek( newhandle, pos, SEEK_SET );
-	return newhandle;
-#endif
-}
-*/
 
 file_t *FS_OpenHandle (const char *syspath, int handle, fs_offset_t offset, fs_offset_t len)
 	{
@@ -1708,17 +1873,27 @@ file_t *FS_OpenHandle (const char *syspath, int handle, fs_offset_t offset, fs_o
 	return file;
 	}
 
+// [Xash3D, 31.03.23]
+#if !defined( S_ISREG )
+	#define S_ISREG( m ) ( FBitSet( m, S_IFMT ) == S_IFREG )
+#endif
+
+#if !defined( S_ISDIR )
+	#define S_ISDIR( m ) ( FBitSet( m, S_IFMT ) == S_IFDIR )
+#endif
+
 /*
 ==================
-FS_SysFileExists
+FS_SysFileExists [Xash3D, 31.03.23]
 
 Look for a file in the filesystem only
 ==================
 */
-qboolean FS_SysFileExists (const char *path, qboolean caseinsensitive)
+//qboolean FS_SysFileExists (const char *path, qboolean caseinsensitive)
+qboolean FS_SysFileExists (const char *path)
 	{
 #if XASH_WIN32
-	int desc;
+	/*int desc;
 
 	if ((desc = open (path, O_RDONLY | O_BINARY)) < 0)
 		return false;
@@ -1726,49 +1901,38 @@ qboolean FS_SysFileExists (const char *path, qboolean caseinsensitive)
 	close (desc);
 	return true;
 #elif XASH_POSIX
-	int ret;
-	struct stat buf;
+	int ret;*/
 
-	ret = stat (path, &buf);
+	struct _stat buf;
+	if (_wstat (FS_PathToWideChar (path), &buf) < 0)
+
+#else
+
+	struct stat buf;
+	if (stat (path, &buf) < 0)
+
+#endif
+		return false;
+
+	/*ret = stat (path, &buf);
 
 	// speedup custom path search
 	if (caseinsensitive && (ret < 0))
 		{
 		const char *fpath = FS_FixFileCase (path);
 		if (fpath != path)
-			ret = stat (fpath, &buf);
-		}
+			ret = stat (fpath, &buf);*/
+	return S_ISREG (buf.st_mode);
+	}
 
-	if (ret < 0)
+	/*if (ret < 0)
 		return false;
 
-	return S_ISREG (buf.st_mode);
-#else
-#error
-#endif
-	}
+	return S_ISREG (buf.st_mode);*/
 
 /*
 ==================
-FS_SetCurrentDirectory
-
-Sets current directory, path should be in UTF-8 encoding
-==================
-*/
-int FS_SetCurrentDirectory (const char *path)
-	{
-#if XASH_WIN32
-	return SetCurrentDirectoryW (FS_PathToWideChar (path));
-#elif XASH_POSIX
-	return !chdir (path);
-#else
-#error
-#endif
-	}
-
-/*
-==================
-FS_SysFolderExists
+FS_SysFolderExists [Xash3D, 31.03.23]
 
 Look for a existing folder
 ==================
@@ -1776,16 +1940,76 @@ Look for a existing folder
 qboolean FS_SysFolderExists (const char *path)
 	{
 #if XASH_WIN32
-	DWORD	dwFlags = GetFileAttributes (path);
 
-	return (dwFlags != -1) && (dwFlags & FILE_ATTRIBUTE_DIRECTORY);
-#elif XASH_POSIX
+	struct _stat buf;
+	if (_wstat (FS_PathToWideChar (path), &buf) < 0)
+
+#else
+
 	struct stat buf;
+	if (stat (path, &buf) < 0)
+		/*#error*/
+
+#endif
+
+		return false;
+
+	return S_ISDIR (buf.st_mode);
+	}
+
+/*
+==============
+FS_SysFileOrFolderExists [Xash3D, 31.03.23]
+
+Check if filesystem entry exists at all, don't mind the type
+==================
+*/
+//int FS_SetCurrentDirectory (const char *path)
+qboolean FS_SysFileOrFolderExists (const char *path)
+	{
+#if XASH_WIN32
+
+	/*return SetCurrentDirectoryW (FS_PathToWideChar (path));
+	#elif XASH_POSIX
+	return !chdir (path);*/
+	struct _stat buf;
+	return _wstat (FS_PathToWideChar (path), &buf) >= 0;
+
+#else
+
+	/*#error*/
+	struct stat buf;
+	return stat (path, &buf) >= 0;
+
+#endif
+	}
+
+/*
+==================
+FS_SetCurrentDirectory [Xash3D, 31.03.23]
+
+Sets current directory, path should be in UTF-8 encoding
+==================
+*/
+//qboolean FS_SysFolderExists (const char *path)
+int FS_SetCurrentDirectory (const char *path)
+	{
+#if XASH_WIN32
+	
+	/*DWORD	dwFlags = GetFileAttributes (path);
+	return (dwFlags != -1) && (dwFlags & FILE_ATTRIBUTE_DIRECTORY);*/
+	return SetCurrentDirectoryW (FS_PathToWideChar (path));
+
+#elif XASH_POSIX
+
+	return !chdir (path);
+	/*struct stat buf;
 
 	if (stat (path, &buf) < 0)
 		return false;
 
-	return S_ISDIR (buf.st_mode);
+	return S_ISDIR (buf.st_mode);*/
+
 #else
 #error
 #endif
@@ -1793,26 +2017,28 @@ qboolean FS_SysFolderExists (const char *path)
 
 /*
 ====================
-FS_FindFile
+FS_FindFile [Xash3D, 31.03.23]
 
-Look for a file in the packages and in the filesystem
-
+Look for a file in the packages and in the filesystem.
 Return the searchpath where the file was found (or NULL)
 and the file index in the package if relevant
 ====================
 */
-searchpath_t *FS_FindFile (const char *name, int *index, qboolean gamedironly)
+//searchpath_t *FS_FindFile (const char *name, int *index, qboolean gamedironly)
+searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t len, qboolean gamedironly)
 	{
 	searchpath_t *search;
-	char *pEnvPath;
+	//char *pEnvPath;
 
 	// search through the path, one element at a time
 	for (search = fs_searchpaths; search; search = search->next)
 		{
+		int pack_ind;
+
 		if (gamedironly & !FBitSet (search->flags, FS_GAMEDIRONLY_SEARCH_FLAGS))
 			continue;
 
-		// is the element a pak file?
+		/* is the element a pak file?
 		if (search->type == SEARCHPATH_PAK)
 			{
 			int pack_ind = FS_FindFilePAK (search->pack, name);
@@ -1833,45 +2059,67 @@ searchpath_t *FS_FindFile (const char *name, int *index, qboolean gamedironly)
 			}
 		else if (search->type == SEARCHPATH_ZIP)
 			{
-			int pack_ind = FS_FindFileZIP (search->zip, name);
-			if (pack_ind >= 0)
-				{
-				if (index) *index = pack_ind;
-				return search;
-				}
-			}
-		else
+			int pack_ind = FS_FindFileZIP (search->zip, name);*/
+		pack_ind = search->pfnFindFile (search, name, fixedname, len);
+		if (pack_ind >= 0)
 			{
-			char	netpath[MAX_SYSPATH];
-
-			Q_sprintf (netpath, "%s%s", search->filename, name);
-
-			if (FS_SysFileExists (netpath, !(search->flags & FS_CUSTOM_PATH)))
-				{
-				if (index != NULL) *index = -1;
-				return search;
-				}
+			if (index)
+				*index = pack_ind;
+			return search;
 			}
 		}
 
+	/*else*/
 	if (fs_ext_path)
 		{
-		char	netpath[MAX_SYSPATH];
+		//char	netpath[MAX_SYSPATH];
+		char netpath[MAX_SYSPATH], dirpath[MAX_SYSPATH];
 
-		// clear searchpath
-		search = &fs_directpath;
-		memset (search, 0, sizeof (searchpath_t));
+		/*Q_sprintf (netpath, "%s%s", search->filename, name);*/
+		Q_snprintf (dirpath, sizeof (dirpath), "%s/", fs_rootdir);
+		Q_snprintf (netpath, sizeof (netpath), "%s%s", dirpath, name);
 
-		// root folder has a more priority than netpath
-		Q_strncpy (search->filename, fs_rootdir, sizeof (search->filename));
-		Q_strcat (search->filename, PATH_SPLITTER);
-		Q_snprintf (netpath, MAX_SYSPATH, "%s%s", search->filename, name);
-
-		if (FS_SysFileExists (netpath, !(search->flags & FS_CUSTOM_PATH)))
+		/*if (FS_SysFileExists (netpath, !(search->flags & FS_CUSTOM_PATH)))*/
+		if (FS_SysFileExists (netpath))
 			{
-			if (index != NULL)
-				*index = -1;
+			/*if (index != NULL) *index = -1;
 			return search;
+			}
+			}
+			}*/
+			static searchpath_t fs_directpath;
+
+			//if (fs_ext_path)
+					// clear old dir cache, if needed
+			if (0 != Q_strcmp (fs_directpath.filename, dirpath))
+				{
+				/*char	netpath[MAX_SYSPATH];
+
+				// clear searchpath
+				search = &fs_directpath;
+				memset (search, 0, sizeof (searchpath_t));*/
+				if (fs_directpath.pfnClose)
+					fs_directpath.pfnClose (&fs_directpath);
+				FS_InitDirectorySearchpath (&fs_directpath, dirpath, 0);
+				}
+
+			/* root folder has a more priority than netpath
+			Q_strncpy (search->filename, fs_rootdir, sizeof (search->filename));
+			Q_strcat (search->filename, PATH_SPLITTER);
+			Q_snprintf (netpath, MAX_SYSPATH, "%s%s", search->filename, name);*/
+
+			// just copy the name, we don't do case sensitivity fix there
+			if (fixedname)
+				Q_strncpy (fixedname, name, len);
+
+			/*if (FS_SysFileExists (netpath, !(search->flags & FS_CUSTOM_PATH)))
+				{*/
+			if (index != NULL)
+				*index = 0;
+
+			return &fs_directpath;
+			/* *index = -1;
+			return search;*/
 			}
 		}
 
@@ -1881,10 +2129,9 @@ searchpath_t *FS_FindFile (const char *name, int *index, qboolean gamedironly)
 	return NULL;
 	}
 
-
 /*
 ===========
-FS_OpenReadFile
+FS_OpenReadFile [Xash3D, 31.03.23]
 
 Look for a file in the search paths and open it in read-only mode
 ===========
@@ -1892,15 +2139,17 @@ Look for a file in the search paths and open it in read-only mode
 file_t *FS_OpenReadFile (const char *filename, const char *mode, qboolean gamedironly)
 	{
 	searchpath_t *search;
-	int		pack_ind;
+	char netpath[MAX_SYSPATH];
+	int pack_ind;
 
-	search = FS_FindFile (filename, &pack_ind, gamedironly);
+	//search = FS_FindFile (filename, &pack_ind, gamedironly);
+	search = FS_FindFile (filename, &pack_ind, netpath, sizeof (netpath), gamedironly);
 
 	// not found?
 	if (search == NULL)
 		return NULL;
 
-	switch (search->type)
+	/*switch (search->type)
 		{
 		case SEARCHPATH_PAK:
 			return FS_OpenPackedFile (search->pack, pack_ind);
@@ -1919,7 +2168,8 @@ file_t *FS_OpenReadFile (const char *filename, const char *mode, qboolean gamedi
 				}
 		}
 
-	return NULL;
+	return NULL;*/
+	return search->pfnOpenFile (search, netpath, mode, pack_ind);
 	}
 
 /*
@@ -1939,23 +2189,27 @@ Open a file. The syntax is the same as fopen
 file_t *FS_Open (const char *filepath, const char *mode, qboolean gamedironly)
 	{
 	// some stupid mappers used leading '/' or '\' in path to models or sounds
-	if (filepath[0] == '/' || filepath[0] == '\\')
+	if ((filepath[0] == '/') || (filepath[0] == '\\'))
 		filepath++;
 
-	if (filepath[0] == '/' || filepath[0] == '\\')
+	if ((filepath[0] == '/') || (filepath[0] == '\\'))
 		filepath++;
 
 	if (FS_CheckNastyPath (filepath, false))
 		return NULL;
 
 	// if the file is opened in "write", "append", or "read/write" mode
-	if (mode[0] == 'w' || mode[0] == 'a' || mode[0] == 'e' || Q_strchr (mode, '+'))
+	if ((mode[0] == 'w') || (mode[0] == 'a') || (mode[0] == 'e') || Q_strchr (mode, '+'))
 		{
-		char	real_path[MAX_SYSPATH];
+		char real_path[MAX_SYSPATH];
 
-		// open the file on disk directly
-		Q_sprintf (real_path, "%s/%s", fs_writedir, filepath);
-		FS_CreatePath (real_path);// Create directories up to the file
+		// [Xash3D, 31.03.23] open the file on disk directly
+		//Q_sprintf (real_path, "%s/%s", fs_writedir, filepath);
+		if (!FS_FixFileCase (fs_writepath->dir, filepath, real_path, sizeof (real_path), true))
+			return NULL;
+
+		// Create directories up to the file
+		FS_CreatePath (real_path);
 		return FS_SysOpen (real_path, mode);
 		}
 
@@ -1972,7 +2226,8 @@ Close a file
 */
 int FS_Close (file_t *file)
 	{
-	if (!file) return 0;
+	if (!file)
+		return 0;
 
 	FS_BackupFileName (file, NULL, 0);
 
@@ -1993,7 +2248,8 @@ flushes written data to disk
 */
 int FS_Flush (file_t *file)
 	{
-	if (!file) return 0;
+	if (!file)
+		return 0;
 
 	// purge cached data
 	FS_Purge (file);
@@ -2021,7 +2277,8 @@ fs_offset_t FS_Write (file_t *file, const void *data, size_t datasize)
 	{
 	fs_offset_t	result;
 
-	if (!file) return 0;
+	if (!file)
+		return 0;
 
 	// if necessary, seek to the exact file position we're supposed to be
 	if (file->buff_ind != file->buff_len)
@@ -2082,8 +2339,8 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 		}
 
 	// NOTE: at this point, the read buffer is always empty
-
 	FS_EnsureOpenFile (file);
+
 	// we must take care to not read after the end of the file
 	count = file->real_length - file->position;
 
@@ -2199,7 +2456,7 @@ Get the next character of a file
 */
 int FS_Getc (file_t *file)
 	{
-	char	c;
+	char c;
 
 	if (FS_Read (file, &c, 1) != 1)
 		return EOF;
@@ -2239,7 +2496,7 @@ int FS_Gets (file_t *file, byte *string, size_t bufsize)
 		{
 		c = FS_Getc (file);
 
-		if (c == '\r' || c == '\n' || c < 0)
+		if ((c == '\r') || (c == '\n') || (c < 0))
 			break;
 
 		if (end < bufsize - 1)
@@ -2274,26 +2531,30 @@ int FS_Seek (file_t *file, fs_offset_t offset, int whence)
 		case SEEK_CUR:
 			offset += file->position - file->buff_len + file->buff_ind;
 			break;
+
 		case SEEK_SET:
 			break;
+
 		case SEEK_END:
 			offset += file->real_length;
 			break;
+
 		default:
 			return -1;
 		}
 
-	if (offset < 0 || offset > file->real_length)
+	if ((offset < 0) || (offset > file->real_length))
 		return -1;
 
 	// if we have the data in our read buffer, we don't need to actually seek
-	if (file->position - file->buff_len <= offset && offset <= file->position)
+	if ((file->position - file->buff_len <= offset) && (offset <= file->position))
 		{
 		file->buff_ind = offset + file->buff_len - file->position;
 		return 0;
 		}
 
 	FS_EnsureOpenFile (file);
+
 	// Purge cached data
 	FS_Purge (file);
 
@@ -2313,7 +2574,9 @@ Give the current position in a file
 */
 fs_offset_t FS_Tell (file_t *file)
 	{
-	if (!file) return 0;
+	if (!file)
+		return 0;
+
 	return file->position - file->buff_len + file->buff_ind;
 	}
 
@@ -2326,7 +2589,9 @@ indicates at reached end of file
 */
 qboolean FS_Eof (file_t *file)
 	{
-	if (!file) return true;
+	if (!file)
+		return true;
+
 	return ((file->position - file->buff_len + file->buff_ind) == file->real_length) ? true : false;
 	}
 
@@ -2349,7 +2614,7 @@ static void FS_Purge (file_t *file)
 FS_LoadFile
 
 Filename are relative to the xash directory.
-Always appends a 0 byte.
+Always appends a 0 byte
 ============
 */
 byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
@@ -2375,7 +2640,6 @@ byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamediro
 
 		if (!buf)
 			buf = FS_LoadZIPFile (path, &filesize, gamedironly);
-
 		}
 
 	if (filesizeptr)
@@ -2514,21 +2778,23 @@ OTHERS PUBLIC FUNCTIONS
 */
 /*
 ==================
-FS_FileExists
+FS_FileExists [Xash3D, 31.03.23]
 
 Look for a file in the packages and in the filesystem
 ==================
 */
 int GAME_EXPORT FS_FileExists (const char *filename, int gamedironly)
 	{
-	if (FS_FindFile (filename, NULL, gamedironly))
+	/*if (FS_FindFile (filename, NULL, gamedironly))
 		return true;
-	return false;
+
+	return false;*/
+	return FS_FindFile (filename, NULL, NULL, 0, gamedironly) != NULL;
 	}
 
 /*
 ==================
-FS_GetDiskPath
+FS_GetDiskPath [Xash3D, 31.03.23]
 
 Build direct path for file in the filesystem
 return NULL for file in pack
@@ -2536,16 +2802,21 @@ return NULL for file in pack
 */
 const char *FS_GetDiskPath (const char *name, qboolean gamedironly)
 	{
-	int		index;
+	//int		index;
+	static char temp[MAX_SYSPATH];
 	searchpath_t *search;
 
-	search = FS_FindFile (name, &index, gamedironly);
+	//search = FS_FindFile (name, &index, gamedironly);
+	search = FS_FindFile (name, NULL, temp, sizeof (temp), gamedironly);
 
 	if (search)
 		{
-		if (index != -1) // file in pack or wad
+		//if (index != -1) // file in pack or wad
+		if (search->type != SEARCHPATH_PLAIN) // file in pack or wad
 			return NULL;
-		return va ("%s%s", search->filename, name);
+
+		//return va ("%s%s", search->filename, name);
+		return temp;
 		}
 
 	return NULL;
@@ -2591,7 +2862,7 @@ fs_offset_t FS_FileLength (file_t *f)
 
 /*
 ==================
-FS_FileTime
+FS_FileTime [Xash3D, 31.03.23]
 
 return time of creation file in seconds
 ==================
@@ -2599,12 +2870,16 @@ return time of creation file in seconds
 int FS_FileTime (const char *filename, qboolean gamedironly)
 	{
 	searchpath_t *search;
-	int		pack_ind;
+	char netpath[MAX_SYSPATH];
+	int pack_ind;
 
-	search = FS_FindFile (filename, &pack_ind, gamedironly);
-	if (!search) return -1; // doesn't exist
+	//search = FS_FindFile (filename, &pack_ind, gamedironly);
+	search = FS_FindFile (filename, &pack_ind, netpath, sizeof (netpath), gamedironly);
+	if (!search) 
+		return -1; // doesn't exist
 
-	switch (search->type)
+	return search->pfnFileTime (search, netpath);
+	/*switch (search->type)
 		{
 		case SEARCHPATH_PAK:
 			return FS_FileTimePAK (search->pack);
@@ -2623,61 +2898,106 @@ int FS_FileTime (const char *filename, qboolean gamedironly)
 				}
 		}
 
-	return -1; // doesn't exist
+	return -1; // doesn't exist */
 	}
 
 /*
 ==================
-FS_Rename
+FS_Rename [Xash3D, 31.03.23]
 
 rename specified file from gamefolder
 ==================
 */
 qboolean FS_Rename (const char *oldname, const char *newname)
 	{
-	char	oldpath[MAX_SYSPATH], newpath[MAX_SYSPATH];
-	qboolean	iRet;
+	/*char	oldpath[MAX_SYSPATH], newpath[MAX_SYSPATH];
+	qboolean	iRet;*/
+	char oldname2[MAX_SYSPATH], newname2[MAX_SYSPATH], oldpath[MAX_SYSPATH], newpath[MAX_SYSPATH];
+	int ret;
 
-	if (!oldname || !newname || !*oldname || !*newname)
+	//if (!oldname || !newname || !*oldname || !*newname)
+	if (!COM_CheckString (oldname) || !COM_CheckString (newname))
 		return false;
 
-	Q_snprintf (oldpath, sizeof (oldpath), "%s%s", fs_writedir, oldname);
-	Q_snprintf (newpath, sizeof (newpath), "%s%s", fs_writedir, newname);
+	/*Q_snprintf (oldpath, sizeof (oldpath), "%s%s", fs_writedir, oldname);
+	Q_snprintf (newpath, sizeof (newpath), "%s%s", fs_writedir, newname);*/
 
-	COM_FixSlashes (oldpath);
-	COM_FixSlashes (newpath);
+	// no work done
+	if (!Q_stricmp (oldname, newname))
+		return true;
 
-	iRet = rename (oldpath, newpath);
+	// fix up slashes
+	Q_strncpy (oldname2, oldname, sizeof (oldname2));
+	Q_strncpy (newname2, newname, sizeof (newname2));
 
-	return (iRet == 0);
+	COM_FixSlashes (oldname2);
+	COM_FixSlashes (newname2);
+
+	// file does not exist
+	if (!FS_FixFileCase (fs_writepath->dir, oldname2, oldpath, sizeof (oldpath), false))
+		return false;
+
+	/*COM_FixSlashes (oldpath);
+	COM_FixSlashes (newpath);*/
+
+	// exit if overflowed
+	if (!FS_FixFileCase (fs_writepath->dir, newname2, newpath, sizeof (newpath), true))
+		return false;
+
+	//iRet = rename (oldpath, newpath);
+	ret = rename (oldpath, newpath);
+	if (ret < 0)
+		{
+		Con_Printf ("%s: failed to rename file %s (%s) to %s (%s): %s\n",
+			__FUNCTION__, oldpath, oldname2, newpath, newname2, strerror (errno));
+		return false;
+		}
+
+	//return (iRet == 0);
+	return true;
 	}
 
 /*
 ==================
-FS_Delete
+FS_Delete [Xash3D, 31.03.23]
 
 delete specified file from gamefolder
 ==================
 */
 qboolean GAME_EXPORT FS_Delete (const char *path)
 	{
-	char	real_path[MAX_SYSPATH];
-	qboolean	iRet;
+	/*char	real_path[MAX_SYSPATH];
+	qboolean	iRet;*/
+	char path2[MAX_SYSPATH], real_path[MAX_SYSPATH];
+	int ret;
 
-	if (!path || !*path)
+	//if (!path || !*path)
+	if (!COM_CheckString (path))
 		return false;
 
-	Q_snprintf (real_path, sizeof (real_path), "%s%s", fs_writedir, path);
+	/*Q_snprintf (real_path, sizeof (real_path), "%s%s", fs_writedir, path);
 	COM_FixSlashes (real_path);
-	iRet = remove (real_path);
+	iRet = remove (real_path);*/
+	Q_strncpy (path2, path, sizeof (path2));
+	COM_FixSlashes (path2);
 
-	return (iRet == 0);
+	//return (iRet == 0);
+	if (!FS_FixFileCase (fs_writepath->dir, path2, real_path, sizeof (real_path), true))
+		return true;
+
+	ret = remove (real_path);
+	if (ret < 0)
+		{
+		Con_Printf ("%s: failed to delete file %s (%s): %s\n", __FUNCTION__, real_path, path, strerror (errno));
+		return false;
+		}
+
+	return true;
 	}
 
 /*
 ==================
 FS_FileCopy
-
 ==================
 */
 qboolean FS_FileCopy (file_t *pOutput, file_t *pInput, int fileSize)
@@ -2690,7 +3010,8 @@ qboolean FS_FileCopy (file_t *pOutput, file_t *pInput, int fileSize)
 		{
 		if (fileSize > FILE_COPY_SIZE)
 			size = FILE_COPY_SIZE;
-		else size = fileSize;
+		else 
+			size = fileSize;
 
 		if ((readSize = FS_Read (pInput, buf, size)) < size)
 			{
@@ -2710,7 +3031,7 @@ qboolean FS_FileCopy (file_t *pOutput, file_t *pInput, int fileSize)
 
 /*
 ===========
-FS_Search
+FS_Search [Xash3D, 31.03.23]
 
 Allocate and fill a search structure with information on matching filenames.
 ===========
@@ -2719,22 +3040,24 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 	{
 	search_t *search = NULL;
 	searchpath_t *searchpath;
-	pack_t *pak;
+
+	/*pack_t *pak;
 	wfile_t *wad;
 	zip_t *zip;
-	int		i, basepathlength, numfiles, numchars;
-	int		resultlistindex, dirlistindex;
+	int i, basepathlength, numfiles, numchars;
+	int resultlistindex, dirlistindex;
 	const char *slash, *backslash, *colon, *separator;
-	string		netpath, temp;
-	stringlist_t	resultlist;
-	stringlist_t	dirlist;
-	char *basepath;
+	string netpath, temp;*/
+	int i, numfiles, numchars;
+	stringlist_t resultlist;
+	/*stringlist_t dirlist;
+	char *basepath;*/
 
-	if (pattern[0] == '.' || pattern[0] == ':' || pattern[0] == '/' || pattern[0] == '\\')
+	if ((pattern[0] == '.') || (pattern[0] == ':') || (pattern[0] == '/') || (pattern[0] == '\\'))
 		return NULL; // punctuation issues
 
 	stringlistinit (&resultlist);
-	stringlistinit (&dirlist);
+	/*stringlistinit (&dirlist);
 	slash = Q_strrchr (pattern, '/');
 	backslash = Q_strrchr (pattern, '\\');
 	colon = Q_strrchr (pattern, ':');
@@ -2743,7 +3066,7 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 	basepathlength = separator ? (separator + 1 - pattern) : 0;
 	basepath = Mem_Calloc (fs_mempool, basepathlength + 1);
 	if (basepathlength) memcpy (basepath, pattern, basepathlength);
-	basepath[basepathlength] = 0;
+	basepath[basepathlength] = 0;*/
 
 	// search through the path, one element at a time
 	for (searchpath = fs_searchpaths; searchpath; searchpath = searchpath->next)
@@ -2751,7 +3074,7 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 		if (gamedironly && !FBitSet (searchpath->flags, FS_GAMEDIRONLY_SEARCH_FLAGS))
 			continue;
 
-		// is the element a pak file?
+		/* is the element a pak file?
 		if (searchpath->type == SEARCHPATH_PAK)
 			{
 			// look through all the pak file elements
@@ -2790,7 +3113,8 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 				}
 
 			stringlistfreecontents (&dirlist);
-			}
+			}*/
+		searchpath->pfnSearch (searchpath, &resultlist, pattern, caseinsensitive);
 		}
 
 	if (resultlist.numstrings)
@@ -2799,21 +3123,29 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 		numfiles = resultlist.numstrings;
 		numchars = 0;
 
-		for (resultlistindex = 0; resultlistindex < resultlist.numstrings; resultlistindex++)
-			numchars += (int)Q_strlen (resultlist.strings[resultlistindex]) + 1;
+		/*for (resultlistindex = 0; resultlistindex < resultlist.numstrings; resultlistindex++)
+			numchars += (int)Q_strlen (resultlist.strings[resultlistindex]) + 1;*/
+		for (i = 0; i < resultlist.numstrings; i++)
+			numchars += (int)Q_strlen (resultlist.strings[i]) + 1;
+
 		search = Mem_Calloc (fs_mempool, sizeof (search_t) + numchars + numfiles * sizeof (char *));
 		search->filenames = (char **)((char *)search + sizeof (search_t));
 		search->filenamesbuffer = (char *)((char *)search + sizeof (search_t) + numfiles * sizeof (char *));
 		search->numfilenames = (int)numfiles;
 		numfiles = numchars = 0;
 
-		for (resultlistindex = 0; resultlistindex < resultlist.numstrings; resultlistindex++)
+		/*for (resultlistindex = 0; resultlistindex < resultlist.numstrings; resultlistindex++)*/
+		for (i = 0; i < resultlist.numstrings; i++)
 			{
-			size_t	textlen;
+			size_t textlen;
 
 			search->filenames[numfiles] = search->filenamesbuffer + numchars;
-			textlen = Q_strlen (resultlist.strings[resultlistindex]) + 1;
-			memcpy (search->filenames[numfiles], resultlist.strings[resultlistindex], textlen);
+			
+			/*textlen = Q_strlen (resultlist.strings[resultlistindex]) + 1;
+			memcpy (search->filenames[numfiles], resultlist.strings[resultlistindex], textlen);*/
+			textlen = Q_strlen (resultlist.strings[i]) + 1;
+			memcpy (search->filenames[numfiles], resultlist.strings[i], textlen);
+
 			numfiles++;
 			numchars += (int)textlen;
 			}
@@ -2821,7 +3153,7 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 
 	stringlistfreecontents (&resultlist);
 
-	Mem_Free (basepath);
+	/*Mem_Free (basepath);*/
 
 	return search;
 	}
@@ -2945,7 +3277,9 @@ fs_api_t g_api =
 
 int EXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *engfuncs)
 	{
-	if (!FS_InitInterface (version, engfuncs))
+	// [Xash3D, 31.03.23]
+	//if (!FS_InitInterface (version, engfuncs))
+	if (engfuncs && !FS_InitInterface (version, engfuncs))
 		return 0;
 
 	memcpy (api, &g_api, sizeof (*api));

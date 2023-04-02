@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
-#define ALLOCA_H	<malloc.h>
+//#define ALLOCA_H	<malloc.h>	// [Xash3D, 31.03.23]
 #include ALLOCA_H
 #include "crtlib.h"
 #include "filesystem.h"
@@ -43,20 +43,42 @@ static inline qboolean IsIdGamedir (const char *id)
 		!Q_strcmp (id, "GAMEDOWNLOAD");
 	}
 
-static inline const char *IdToDir (const char *id)
+// [Xash3D, 31.03.23]
+//static inline const char *IdToDir (const char *id)
+static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	{
 	if (!Q_strcmp (id, "GAME"))
+		{
 		return GI->gamefolder;
+		}
+
 	else if (!Q_strcmp (id, "GAMEDOWNLOAD"))
-		return va ("%s/downloaded", GI->gamefolder);
+		{
+		/*return va ("%s/downloaded", GI->gamefolder);*/
+		Q_snprintf (dir, size, "%s/downloaded", GI->gamefolder);
+		return dir;
+		}
+
 	else if (!Q_strcmp (id, "GAMECONFIG"))
-		return fs_writedir; // full path here so it's totally our write allowed directory
+		{
+		//return fs_writedir; // full path here so it's totally our write allowed directory
+		return fs_writepath->filename; // full path here so it's totally our write allowed directory
+		}
+
 	else if (!Q_strcmp (id, "PLATFORM"))
+		{
 		return "platform"; // stub
+		}
+
 	else if (!Q_strcmp (id, "CONFIG"))
+		{
 		return "platform/config"; // stub
+		}
+
 	else // ROOT || BASE
+		{
 		return fs_rootdir; // give at least root directory
+		}
 	}
 
 static inline void CopyAndFixSlashes (char *p, const char *in)
@@ -145,9 +167,14 @@ class CXashFS : public IVFileSystem009
 			FS_Delete (path); // FS_Delete is aware of slashes
 			}
 
+		// [Xash3D, 31.03.23]
 		void CreateDirHierarchy (const char *path, const char *id) override
 			{
-			FS_CreatePath (va ("%s/%s", IdToDir (id), path)); // FS_CreatePath is aware of slashes
+			//FS_CreatePath (va ("%s/%s", IdToDir (id), path)); // FS_CreatePath is aware of slashes
+			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
+
+			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
+			FS_CreatePath (fullpath); // FS_CreatePath is aware of slashes
 			}
 
 		bool FileExists (const char *path) override
@@ -449,12 +476,18 @@ class CXashFS : public IVFileSystem009
 			Q_strncpy (p, "Stdio", size);
 			}
 
+		// [Xash3D, 31.03.23]
 		bool AddPackFile (const char *path, const char *id) override
 			{
-			char *p = va ("%s/%s", IdToDir (id), path);
-			CopyAndFixSlashes (p, path);
+			/*char *p = va ("%s/%s", IdToDir (id), path);
+			CopyAndFixSlashes (p, path);*/
+			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
 
-			return !!FS_AddPak_Fullpath (p, NULL, FS_CUSTOM_PATH);
+			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
+			CopyAndFixSlashes (fullpath, path);
+
+			//return !!FS_AddPak_Fullpath (p, NULL, FS_CUSTOM_PATH);
+			return !!FS_AddPak_Fullpath (fullpath, NULL, FS_CUSTOM_PATH);
 			}
 
 		FileHandle_t OpenFromCacheForRead (const char *path, const char *mode, const char *id) override

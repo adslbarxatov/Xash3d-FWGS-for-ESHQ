@@ -28,8 +28,8 @@ extern "C"
 	{
 #endif // __cplusplus
 
-#define FS_API_VERSION 1 // not stable yet!
-#define FS_API_CREATEINTERFACE_TAG "XashFileSystem001" // follow FS_API_VERSION!!!
+#define FS_API_VERSION				2					// [Xash3D, 31.03.23]
+#define FS_API_CREATEINTERFACE_TAG	"XashFileSystem002" // [Xash3D, 31.03.23]
 
 	// search path flags
 	enum
@@ -78,11 +78,12 @@ extern "C"
 		char		date[MAX_QPATH];
 		size_t		size;
 
-		int		gamemode;
-		qboolean		secure;		// prevent to console acess
-		qboolean		nomodels;		// don't let player to choose model (use player.mdl always)
-		qboolean		noskills;		// disable skill menu selection
-		qboolean		render_picbutton_text; // use font renderer to render WON buttons
+		int			gamemode;
+		qboolean	secure;		// prevent to console acess
+		qboolean	nomodels;		// don't let player to choose model (use player.mdl always)
+		qboolean	noskills;		// disable skill menu selection
+		qboolean	render_picbutton_text; // use font renderer to render WON buttons
+		qboolean	internal_vgui_support; // [Xash3D, 31.03.23] skip loading VGUI, pass ingame UI support API to client
 
 		char		sp_entity[32];	// e.g. info_player_start
 		char		mp_entity[32];	// e.g. info_player_deathmatch
@@ -125,10 +126,10 @@ extern "C"
 
 	typedef void (*fs_event_callback_t)(const char *path);
 
-
 	typedef struct fs_api_t
 		{
-		qboolean (*InitStdio)(qboolean caseinsensitive, const char *rootdir, const char *basedir, const char *gamedir, const char *rodir);
+		qboolean (*InitStdio)(qboolean caseinsensitive, const char *rootdir, const char *basedir, 
+			const char *gamedir, const char *rodir);
 		void (*ShutdownStdio)(void);
 
 		// search path utils
@@ -178,7 +179,11 @@ extern "C"
 		fs_offset_t (*FileSize)(const char *filename, qboolean gamedironly);
 		qboolean (*Rename)(const char *oldname, const char *newname);
 		qboolean (*Delete)(const char *path);
-		qboolean (*SysFileExists)(const char *path, qboolean casesensitive);
+		
+		// [Xash3D, 31.03.23]
+		//qboolean (*SysFileExists)(const char *path, qboolean casesensitive);
+		qboolean (*SysFileExists)(const char *path);
+
 		const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
 
 		// file watcher
