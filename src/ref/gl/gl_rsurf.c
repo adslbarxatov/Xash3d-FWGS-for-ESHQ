@@ -802,8 +802,6 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 		else
 			{
 			// ESHQ: новый метод обработки скорости конвейера
-			/*flConveyorSpeed = (e->curstate.rendercolor.g << 8 | e->curstate.rendercolor.b) / 16.0f;
-			if (e->curstate.rendercolor.r) flConveyorSpeed = -flConveyorSpeed;*/
 			flConveyorSpeed = (float)(e->curstate.renderfx - kRenderFxEdge) * 10.0f;
 			}
 		texture = R_GetTexture (glState.currentTextures[glState.activeTMU]);
@@ -1804,8 +1802,13 @@ void R_GenerateVBO (void)
 
 	R_ClearVBO ();
 
-	// we do not want to write vbo code that does not use multitexture
-	if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) || glConfig.max_texture_units < 2)
+	// [Xash3D, 31.03.23] we do not want to write vbo code that does not use multitexture
+#if ALLOW_VBO
+	if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) ||
+		(glConfig.max_texture_units < 2))
+#else
+	if (1)
+#endif
 		{
 		gEngfuncs.Cvar_FullSet ("gl_vbo", "0", FCVAR_READ_ONLY);
 		return;
@@ -3328,6 +3331,12 @@ void R_DrawWorld (void)
 	// paranoia issues: when gl_renderer is "0" we need have something valid for currententity
 	// to prevent crashing until HeadShield drawing.
 	RI.currententity = gEngfuncs.GetEntityByIndex (0);
+	
+	// [Xash3D, 31.03.23]
+	//RI.currentmodel = RI.currententity->model;
+	if (!RI.currententity)
+		return;
+
 	RI.currentmodel = RI.currententity->model;
 
 	if (!RI.drawWorld || RI.onlyClientDraw)
@@ -3348,7 +3357,8 @@ void R_DrawWorld (void)
 	start = gEngfuncs.pfnTime ();
 	if (RI.drawOrtho)
 		R_DrawWorldTopView (WORLDMODEL->nodes, RI.frustum.clipFlags);
-	else R_RecursiveWorldNode (WORLDMODEL->nodes, RI.frustum.clipFlags);
+	else
+		R_RecursiveWorldNode (WORLDMODEL->nodes, RI.frustum.clipFlags);
 	end = gEngfuncs.pfnTime ();
 
 	r_stats.t_world_node = end - start;

@@ -291,9 +291,11 @@ void BuildTris (void)
 			s = (s + 0.5f) / m_pAliasHeader->skinwidth;
 			t = (t + 0.5f) / m_pAliasHeader->skinheight;
 
-			// Carmack use floats and Valve use shorts here...
-			*(float *)&g_commands[g_numcommands++] = s;
-			*(float *)&g_commands[g_numcommands++] = t;
+			// [Xash3D, 31.03.23] Carmack use floats and Valve use shorts here...
+			/* *(float *)&g_commands[g_numcommands++] = s;
+			*(float *)&g_commands[g_numcommands++] = t;*/
+			g_commands[g_numcommands++] = FloatAsInt (s);
+			g_commands[g_numcommands++] = FloatAsInt (t);
 			}
 		}
 
@@ -616,7 +618,7 @@ void Mod_CalcAliasBounds (model_t *mod)
 
 /*
 =================
-Mod_LoadAliasModel
+Mod_LoadAliasModel [Xash3D, 31.03.23]
 =================
 */
 void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
@@ -626,9 +628,11 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	dtriangle_t *pintriangles;
 	daliasframetype_t *pframetype;
 	daliasskintype_t *pskintype;
-	int		i, j, size;
+	int i, j, size;
+	char poolname[MAX_VA_STRING];
 
-	if (loaded) *loaded = false;
+	if (loaded)
+		*loaded = false;
 	pinmodel = (daliashdr_t *)buffer;
 	i = pinmodel->version;
 
@@ -638,10 +642,13 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 		return;
 		}
 
-	if (pinmodel->numverts <= 0 || pinmodel->numtris <= 0 || pinmodel->numframes <= 0)
+	if ((pinmodel->numverts <= 0) || (pinmodel->numtris <= 0) || (pinmodel->numframes <= 0))
 		return; // how to possible is make that?
 
-	mod->mempool = Mem_AllocPool (va ("^2%s^7", mod->name));
+	// [Xash3D, 31.03.23]
+	//mod->mempool = Mem_AllocPool (va ("^2%s^7", mod->name));
+	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
+	mod->mempool = Mem_AllocPool (poolname);
 
 	// allocate space for a working header, plus all the data except the frames,
 	// skin and group info

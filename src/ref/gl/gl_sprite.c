@@ -226,7 +226,7 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 
 /*
 ====================
-Mod_LoadMapSprite
+Mod_LoadMapSprite [Xash3D, 31.03.23]
 
 Loading a bitmap image as sprite with multiple frames
 as pieces of input image
@@ -234,35 +234,43 @@ as pieces of input image
 */
 void Mod_LoadMapSprite (model_t *mod, const void *buffer, size_t size, qboolean *loaded)
 	{
-	byte *src, *dst;
-	rgbdata_t *pix, temp;
+	byte		*src, *dst;
+	rgbdata_t	*pix, temp;
 	char		texname[128];
-	int		i, j, x, y, w, h;
-	int		xl, yl, xh, yh;
-	int		linedelta, numframes;
-	mspriteframe_t *pspriteframe;
-	msprite_t *psprite;
+	int			i, j, x, y, w, h;
+	int			xl, yl, xh, yh;
+	int			linedelta, numframes;
+	mspriteframe_t	*pspriteframe;
+	msprite_t	*psprite;
+	char		poolname[MAX_VA_STRING];
 
-	if (loaded) *loaded = false;
+	if (loaded)
+		*loaded = false;
 	Q_snprintf (texname, sizeof (texname), "#%s", mod->name);
 	gEngfuncs.Image_SetForceFlags (IL_OVERVIEW);
+
 	pix = gEngfuncs.FS_LoadImage (texname, buffer, size);
 	gEngfuncs.Image_ClearForceFlags ();
-	if (!pix) return;	// bad image or something else
+	if (!pix)
+		return;	// bad image or something else
 
 	mod->type = mod_sprite;
 	r_texFlags = 0; // no custom flags for map sprites
 
 	if (pix->width % MAPSPRITE_SIZE)
 		w = pix->width - (pix->width % MAPSPRITE_SIZE);
-	else w = pix->width;
+	else
+		w = pix->width;
 
 	if (pix->height % MAPSPRITE_SIZE)
 		h = pix->height - (pix->height % MAPSPRITE_SIZE);
-	else h = pix->height;
+	else
+		h = pix->height;
 
-	if (w < MAPSPRITE_SIZE) w = MAPSPRITE_SIZE;
-	if (h < MAPSPRITE_SIZE) h = MAPSPRITE_SIZE;
+	if (w < MAPSPRITE_SIZE)
+		w = MAPSPRITE_SIZE;
+	if (h < MAPSPRITE_SIZE)
+		h = MAPSPRITE_SIZE;
 
 	// resample image if needed
 	gEngfuncs.Image_Process (&pix, w, h, IMAGE_FORCE_RGBA | IMAGE_RESAMPLE, 0.0f);
@@ -270,12 +278,19 @@ void Mod_LoadMapSprite (model_t *mod, const void *buffer, size_t size, qboolean 
 	w = h = MAPSPRITE_SIZE;
 
 	// check range
-	if (w > pix->width) w = pix->width;
-	if (h > pix->height) h = pix->height;
+	if (w > pix->width)
+		w = pix->width;
+	if (h > pix->height)
+		h = pix->height;
 
 	// determine how many frames we needs
 	numframes = (pix->width * pix->height) / (w * h);
-	mod->mempool = Mem_AllocPool (va ("^2%s^7", mod->name));
+	
+	// [Xash3D, 31.03.23]
+	//mod->mempool = Mem_AllocPool (va ("^2%s^7", mod->name));
+	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
+	mod->mempool = Mem_AllocPool (poolname);
+
 	psprite = Mem_Calloc (mod->mempool, sizeof (msprite_t) + (numframes - 1) * sizeof (psprite->frames));
 	mod->cache.data = psprite;	// make link to extradata
 
@@ -342,7 +357,8 @@ void Mod_LoadMapSprite (model_t *mod, const void *buffer, size_t size, qboolean 
 	gEngfuncs.FS_FreeImage (pix);
 	Mem_Free (temp.buffer);
 
-	if (loaded) *loaded = true;
+	if (loaded)
+		*loaded = true;
 	}
 
 /*

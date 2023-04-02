@@ -1082,25 +1082,29 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 		case TE_BEAMTORUS:
 			GL_Cull (GL_NONE);
 			TriBegin (TRI_TRIANGLE_STRIP);
-			R_DrawTorus (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq, pbeam->speed, pbeam->segments);
+			R_DrawTorus (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq,
+				pbeam->speed, pbeam->segments);
 			TriEnd ();
 			break;
 		case TE_BEAMDISK:
 			GL_Cull (GL_NONE);
 			TriBegin (TRI_TRIANGLE_STRIP);
-			R_DrawDisk (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq, pbeam->speed, pbeam->segments);
+			R_DrawDisk (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq,
+				pbeam->speed, pbeam->segments);
 			TriEnd ();
 			break;
 		case TE_BEAMCYLINDER:
 			GL_Cull (GL_NONE);
 			TriBegin (TRI_TRIANGLE_STRIP);
-			R_DrawCylinder (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq, pbeam->speed, pbeam->segments);
+			R_DrawCylinder (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq,
+				pbeam->speed, pbeam->segments);
 			TriEnd ();
 			break;
 		case TE_BEAMPOINTS:
 		case TE_BEAMHOSE:
 			TriBegin (TRI_TRIANGLE_STRIP);
-			R_DrawSegs (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq, pbeam->speed, pbeam->segments, pbeam->flags);
+			R_DrawSegs (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq,
+				pbeam->speed, pbeam->segments, pbeam->flags);
 			TriEnd ();
 			break;
 		case TE_BEAMFOLLOW:
@@ -1111,7 +1115,8 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 		case TE_BEAMRING:
 			GL_Cull (GL_NONE);
 			TriBegin (TRI_TRIANGLE_STRIP);
-			R_DrawRing (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq, pbeam->speed, pbeam->segments);
+			R_DrawRing (pbeam->source, pbeam->delta, pbeam->width, pbeam->amplitude, pbeam->freq,
+				pbeam->speed, pbeam->segments);
 			TriEnd ();
 			break;
 		}
@@ -1144,7 +1149,8 @@ generic function. all beams must be
 passed through this
 ==============
 */
-static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, float life, float width, float amplitude, float brightness, float speed)
+static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, float life, float width,
+	float amplitude, float brightness, float speed)
 	{
 	model_t *sprite = gEngfuncs.pfnGetModelByIndex (modelIndex);
 
@@ -1169,13 +1175,12 @@ static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, 
 
 	if (amplitude >= 0.50f)
 		pbeam->segments = VectorLength (pbeam->delta) * 0.25f + 3.0f;	// one per 4 pixels
-	else pbeam->segments = VectorLength (pbeam->delta) * 0.075f + 3.0f;		// one per 16 pixels
+	else
+		pbeam->segments = VectorLength (pbeam->delta) * 0.075f + 3.0f;		// one per 16 pixels
 
 	pbeam->pFollowModel = NULL;
 	pbeam->flags = 0;
 	}
-
-
 
 /*
 ==============
@@ -1196,7 +1201,12 @@ void R_BeamDrawCustomEntity (cl_entity_t *ent)
 	g = ent->curstate.rendercolor.g / 255.0f;
 	b = ent->curstate.rendercolor.b / 255.0f;
 
-	R_BeamSetup (&beam, ent->origin, ent->angles, ent->curstate.modelindex, 0, ent->curstate.scale, amp, blend, ent->curstate.animtime);
+	// [Xash3D, 31.03.23]
+	/*R_BeamSetup (&beam, ent->origin, ent->angles, ent->curstate.modelindex, 0, ent->curstate.scale, amp, 
+		blend, ent->curstate.animtime);*/
+	R_BeamSetup (&beam, ent->origin, ent->curstate.angles, ent->curstate.modelindex, 0, ent->curstate.scale,
+		amp, blend, ent->curstate.animtime);
+
 	R_BeamSetAttributes (&beam, r, g, b, ent->curstate.framerate, ent->curstate.frame);
 	beam.pFollowModel = NULL;
 

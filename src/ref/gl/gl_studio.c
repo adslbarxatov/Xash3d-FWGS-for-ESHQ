@@ -142,19 +142,24 @@ int			g_nFaceFlags, g_nForceFaceFlags;
 /*
 ====================
 R_StudioInit
-
 ====================
 */
 void R_StudioInit (void)
 	{
-	r_studio_sort_textures = gEngfuncs.Cvar_Get ("r_studio_sort_textures", "0", FCVAR_GLCONFIG, "change draw order for additive meshes");
-	r_studio_drawelements = gEngfuncs.Cvar_Get ("r_studio_drawelements", "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels");
+	r_studio_sort_textures = gEngfuncs.Cvar_Get ("r_studio_sort_textures", "0", FCVAR_GLCONFIG,
+		"change draw order for additive meshes");
+	r_studio_drawelements = gEngfuncs.Cvar_Get ("r_studio_drawelements", "1", FCVAR_GLCONFIG,
+		"use glDrawElements for studiomodels");
+
+// [Xash3D, 31.03.23]
+#if XASH_PSVITA
+	// don't do the same array-building work twice since that's what our FFP shim does anyway
+	gEngfuncs.Cvar_FullSet ("r_studio_drawelements", "0", FCVAR_READ_ONLY);
+#endif
 
 	Matrix3x4_LoadIdentity (g_studio.rotationmatrix);
 
 	// g-cont. cvar disabled by Valve
-//	gEngfuncs.Cvar_RegisterVariable( &r_shadows );
-
 	g_studio.interpolate = true;
 	g_studio.framecount = 0;
 	m_fDoRemap = false;
@@ -625,11 +630,20 @@ float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc)
 	{
 	double	dfdt, f;
 
+	// [Xash3D, 31.03.23]
 	if (g_studio.interpolate)
 		{
-		if (g_studio.time < e->curstate.animtime) 
+		/*if (g_studio.time < e->curstate.animtime) 
 			dfdt = 0.0;
 		else 
+			dfdt = (g_studio.time - e->curstate.animtime) * e->curstate.framerate * pseqdesc->fps;
+		}
+	else
+		{
+		dfdt = 0;*/
+		if (g_studio.time < e->curstate.animtime)
+			dfdt = 0.0;
+		else
 			dfdt = (g_studio.time - e->curstate.animtime) * e->curstate.framerate * pseqdesc->fps;
 		}
 	else
@@ -791,7 +805,8 @@ void R_StudioCalcBoneAdj (float dadt, float *adj, const byte *pcontroller1, cons
 					}
 				else
 					{
-					value = ((pcontroller1[i] * dadt + (pcontroller2[i]) * (1.0f - dadt))) * (360.0f / 256.0f) + pbonecontroller[j].start;
+					value = ((pcontroller1[i] * dadt + (pcontroller2[i]) * (1.0f - dadt))) * 
+						(360.0f / 256.0f) + pbonecontroller[j].start;
 					}
 				}
 			else
@@ -824,7 +839,8 @@ StudioCalcRotations
 
 ====================
 */
-void R_StudioCalcRotations (cl_entity_t *e, float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc, mstudioanim_t *panim, float f)
+void R_StudioCalcRotations (cl_entity_t *e, float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc, 
+	mstudioanim_t *panim, float f)
 	{
 	int		i, frame;
 	float		adj[MAXSTUDIOCONTROLLERS];
@@ -854,15 +870,21 @@ void R_StudioCalcRotations (cl_entity_t *e, float pos[][3], vec4_t *q, mstudiose
 
 	R_StudioCalcBoneAdj (dadt, adj, e->curstate.controller, e->latched.prevcontroller, e->mouth.mouthopen);
 
+	// [Xash3D, 31.03.23]
 	for (i = 0; i < m_pStudioHeader->numbones; i++, pbone++, panim++)
 		{
-		gEngfuncs.R_StudioCalcBoneQuaternion (frame, s, pbone, panim, adj, q[i]);
-		gEngfuncs.R_StudioCalcBonePosition (frame, s, pbone, panim, adj, pos[i]);
+		/*gEngfuncs.R_StudioCalcBoneQuaternion (frame, s, pbone, panim, adj, q[i]);
+		gEngfuncs.R_StudioCalcBonePosition (frame, s, pbone, panim, adj, pos[i]);*/
+		R_StudioCalcBoneQuaternion (frame, s, pbone, panim, adj, q[i]);
+		R_StudioCalcBonePosition (frame, s, pbone, panim, adj, pos[i]);
 		}
 
-	if (pseqdesc->motiontype & STUDIO_X) pos[pseqdesc->motionbone][0] = 0.0f;
-	if (pseqdesc->motiontype & STUDIO_Y) pos[pseqdesc->motionbone][1] = 0.0f;
-	if (pseqdesc->motiontype & STUDIO_Z) pos[pseqdesc->motionbone][2] = 0.0f;
+	if (pseqdesc->motiontype & STUDIO_X)
+		pos[pseqdesc->motionbone][0] = 0.0f;
+	if (pseqdesc->motiontype & STUDIO_Y)
+		pos[pseqdesc->motionbone][1] = 0.0f;
+	if (pseqdesc->motiontype & STUDIO_Z)
+		pos[pseqdesc->motionbone][2] = 0.0f;
 	}
 
 /*
@@ -918,8 +940,10 @@ void R_StudioMergeBones (cl_entity_t *e, model_t *m_pSubModel)
 				}
 			else
 				{
-				Matrix3x4_ConcatTransforms (g_studio.bonestransform[i], g_studio.bonestransform[pbones[i].parent], bonematrix);
-				Matrix3x4_ConcatTransforms (g_studio.lighttransform[i], g_studio.lighttransform[pbones[i].parent], bonematrix);
+				Matrix3x4_ConcatTransforms (g_studio.bonestransform[i], 
+					g_studio.bonestransform[pbones[i].parent], bonematrix);
+				Matrix3x4_ConcatTransforms (g_studio.lighttransform[i], 
+					g_studio.lighttransform[pbones[i].parent], bonematrix);
 				}
 			}
 		}
@@ -969,7 +993,9 @@ void R_StudioSetupBones (cl_entity_t *e)
 		dadt = R_StudioEstimateInterpolant (e);
 		s = (e->curstate.blending[0] * dadt + e->latched.prevblending[0] * (1.0f - dadt)) / 255.0f;
 
-		gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q2, pos2, s);
+		// [Xash3D, 31.03.23]
+		//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q2, pos2, s);
+		R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q2, pos2, s);
 
 		if (pseqdesc->numblends == 4)
 			{
@@ -979,15 +1005,19 @@ void R_StudioSetupBones (cl_entity_t *e)
 			panim += m_pStudioHeader->numbones;
 			R_StudioCalcRotations (e, pos4, q4, pseqdesc, panim, f);
 
+			// [Xash3D, 31.03.23]
 			s = (e->curstate.blending[0] * dadt + e->latched.prevblending[0] * (1.0f - dadt)) / 255.0f;
-			gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
+			//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
+			R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
 
 			s = (e->curstate.blending[1] * dadt + e->latched.prevblending[1] * (1.0f - dadt)) / 255.0f;
-			gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q3, pos3, s);
+			//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q3, pos3, s);
+			R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q3, pos3, s);
 			}
 		}
 
-	if (g_studio.interpolate && e->latched.sequencetime && (e->latched.sequencetime + 0.2f > g_studio.time) && (e->latched.prevsequence < m_pStudioHeader->numseq))
+	if (g_studio.interpolate && e->latched.sequencetime && (e->latched.sequencetime + 0.2f > g_studio.time) &&
+		(e->latched.prevsequence < m_pStudioHeader->numseq))
 		{
 		// blend from last sequence
 		static vec3_t	pos1b[MAXSTUDIOBONES];
@@ -1005,8 +1035,10 @@ void R_StudioSetupBones (cl_entity_t *e)
 			panim += m_pStudioHeader->numbones;
 			R_StudioCalcRotations (e, pos2, q2, pseqdesc, panim, e->latched.prevframe);
 
+			// [Xash3D, 31.03.23]
 			s = (e->latched.prevseqblending[0]) / 255.0f;
-			gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q2, pos2, s);
+			//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q2, pos2, s);
+			R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q2, pos2, s);
 
 			if (pseqdesc->numblends == 4)
 				{
@@ -1016,16 +1048,21 @@ void R_StudioSetupBones (cl_entity_t *e)
 				panim += m_pStudioHeader->numbones;
 				R_StudioCalcRotations (e, pos4, q4, pseqdesc, panim, e->latched.prevframe);
 
+				// [Xash3D, 31.03.23]
 				s = (e->latched.prevseqblending[0]) / 255.0f;
-				gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
+				//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
+				R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
 
 				s = (e->latched.prevseqblending[1]) / 255.0f;
-				gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q3, pos3, s);
+				//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q3, pos3, s);
+				R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q3, pos3, s);
 				}
 			}
 
+		// [Xash3D, 31.03.23]
 		s = 1.0f - (g_studio.time - e->latched.sequencetime) / 0.2f;
-		gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q1b, pos1b, s);
+		//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q1b, pos1b, s);
+		R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q1b, pos1b, s);
 		}
 	else
 		{
@@ -1253,8 +1290,7 @@ void R_StudioGenerateNormals (void)
 
 /*
 ====================
-StudioSetupChrome
-
+StudioSetupChrome [Xash3D, 31.03.23]
 ====================
 */
 void R_StudioSetupChrome (float *pchrome, int bone, vec3_t normal)
@@ -1266,21 +1302,27 @@ void R_StudioSetupChrome (float *pchrome, int bone, vec3_t normal)
 		// calculate vectors from the viewer to the bone. This roughly adjusts for position
 		vec3_t	chromeupvec;	// g_studio.chrome t vector in world reference frame
 		vec3_t	chromerightvec;	// g_studio.chrome s vector in world reference frame
-		vec3_t	tmp;		// vector pointing at bone in world reference frame
+		vec3_t	tmp;			// vector pointing at bone in world reference frame
 
 		VectorNegate (g_studio.chrome_origin, tmp);
-		tmp[0] += g_studio.bonestransform[bone][0][3];
+		/*tmp[0] += g_studio.bonestransform[bone][0][3];
 		tmp[1] += g_studio.bonestransform[bone][1][3];
-		tmp[2] += g_studio.bonestransform[bone][2][3];
+		tmp[2] += g_studio.bonestransform[bone][2][3];*/
+		tmp[0] += g_studio.lighttransform[bone][0][3];
+		tmp[1] += g_studio.lighttransform[bone][1][3];
+		tmp[2] += g_studio.lighttransform[bone][2][3];
 
 		VectorNormalize (tmp);
 		CrossProduct (tmp, RI.vright, chromeupvec);
 		VectorNormalize (chromeupvec);
-		CrossProduct (tmp, chromeupvec, chromerightvec);
+		//CrossProduct (tmp, chromeupvec, chromerightvec);
+		CrossProduct (chromeupvec, tmp, chromerightvec);
 		VectorNormalize (chromerightvec);
 
-		Matrix3x4_VectorIRotate (g_studio.bonestransform[bone], chromeupvec, g_studio.chromeup[bone]);
-		Matrix3x4_VectorIRotate (g_studio.bonestransform[bone], chromerightvec, g_studio.chromeright[bone]);
+		/*Matrix3x4_VectorIRotate (g_studio.bonestransform[bone], chromeupvec, g_studio.chromeup[bone]);
+		Matrix3x4_VectorIRotate (g_studio.bonestransform[bone], chromerightvec, g_studio.chromeright[bone]);*/
+		Matrix3x4_VectorIRotate (g_studio.lighttransform[bone], chromeupvec, g_studio.chromeup[bone]);
+		Matrix3x4_VectorIRotate (g_studio.lighttransform[bone], chromerightvec, g_studio.chromeright[bone]);
 
 		g_studio.chromeage[bone] = g_studio.framecount;
 		}
@@ -1707,7 +1749,6 @@ void R_StudioLighting (float *lv, int bone, int flags, vec3_t normal)
 /*
 ====================
 R_LightLambert
-
 ====================
 */
 void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], vec3_t normal, vec3_t color, byte *out)
@@ -1753,37 +1794,43 @@ void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], vec3_t normal, vec3_t color,
 	out[2] = finalLight[2] * 255;
 	}
 
-static void R_StudioSetColorBegin (short *ptricmds, vec3_t *pstudionorms)
-	{
-	float *lv = (float *)g_studio.lightvalues[ptricmds[1]];
-	rgba_t color;
-
-	if (g_studio.numlocallights)
-		{
-		color[3] = tr.blend * 255;
-		R_LightLambert (g_studio.lightpos[ptricmds[0]], pstudionorms[ptricmds[1]], lv, color);
-		pglColor4ubv (color);
-		}
-	else
-		{
-		if (RI.currententity->curstate.rendermode == kRenderTransColor)
-			{
-			color[3] = tr.blend * 255;
-			VectorCopy ((byte *)&RI.currententity->curstate.rendercolor, color);
-			pglColor4ubv (color);
-			}
-		else pglColor4f (lv[0], lv[1], lv[2], tr.blend);
-		}
-	}
-
+// [Xash3D, 31.03.23]
+//static void R_StudioSetColorBegin (short *ptricmds, vec3_t *pstudionorms)
 static void R_StudioSetColorArray (short *ptricmds, vec3_t *pstudionorms, byte *color)
 	{
 	float *lv = (float *)g_studio.lightvalues[ptricmds[1]];
-
-	color[3] = tr.blend * 255;
+	/*rgba_t color;
 
 	if (g_studio.numlocallights)
+		{*/
+	color[3] = tr.blend * 255;
+	R_LightLambert (g_studio.lightpos[ptricmds[0]], pstudionorms[ptricmds[1]], lv, color);
+	/*pglColor4ubv (color);
+	}
+else
+	{
+	if (RI.currententity->curstate.rendermode == kRenderTransColor)
+		{
+		color[3] = tr.blend * 255;
+		VectorCopy ((byte *)&RI.currententity->curstate.rendercolor, color);
+		pglColor4ubv (color);
+		}
+	else pglColor4f (lv[0], lv[1], lv[2], tr.blend);
+	}*/
+	}
+
+// [Xash3D, 31.03.23]
+//static void R_StudioSetColorArray (short *ptricmds, vec3_t *pstudionorms, byte *color)
+static void R_StudioSetColorBegin (short *ptricmds, vec3_t *pstudionorms)
+	{
+	/*float *lv = (float *)g_studio.lightvalues[ptricmds[1]];
+	color[3] = tr.blend * 255;*/
+	rgba_t color;
+
+	/*if (g_studio.numlocallights)
+		{
 		R_LightLambert (g_studio.lightpos[ptricmds[0]], pstudionorms[ptricmds[1]], lv, color);
+		}
 	else
 		{
 		if (RI.currententity->curstate.rendermode == kRenderTransColor)
@@ -1794,13 +1841,14 @@ static void R_StudioSetColorArray (short *ptricmds, vec3_t *pstudionorms, byte *
 			color[1] = lv[1] * 255;
 			color[2] = lv[2] * 255;
 			}
-		}
+		}*/
+	R_StudioSetColorArray (ptricmds, pstudionorms, color);
+	pglColor4ubv (color);
 	}
 
 /*
 ====================
 R_LightStrength
-
 ====================
 */
 void R_LightStrength (int bone, vec3_t localpos, vec4_t light[MAX_LOCALLIGHTS])
@@ -2838,16 +2886,13 @@ static void R_StudioClientEvents (void)
 			continue;
 
 		if (((float)pevent[i].frame > start) && (pevent[i].frame <= end))
-			{
 			gEngfuncs.pfnStudioEvent (&pevent[i], e);
-			}
 		}
 	}
 
 /*
 ===============
 R_StudioGetForceFaceFlags
-
 ===============
 */
 int R_StudioGetForceFaceFlags (void)

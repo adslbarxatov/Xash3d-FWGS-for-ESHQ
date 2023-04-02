@@ -57,14 +57,16 @@ static const int vec_to_st[6][3] =
 // speed up sin calculations
 float r_turbsin[] =
 	{
-		#include "warpsin.h"
+	#include "warpsin.h"
 	};
 
+// [Xash3D, 31.03.23]
 static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 	{
-	const char *skybox_ext[3] = { "dds", "tga", "bmp" };
-	int		i, j, num_checked_sides;
-	const char *sidename;
+	const char	*skybox_ext[3] = { "dds", "tga", "bmp" };
+	int			i, j, num_checked_sides;
+	//const char *sidename;
+	char		sidename[MAX_VA_STRING];
 
 	// search for skybox images
 	for (i = 0; i < 3; i++)
@@ -73,8 +75,10 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 		num_checked_sides = 0;
 		for (j = 0; j < 6; j++)
 			{
-			// build side name
-			sidename = va ("%s%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
+			// [Xash3D, 31.03.23] build side name
+			//sidename = va ("%s%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
+			Q_snprintf (sidename, sizeof (sidename), "%s%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
+
 			if (gEngfuncs.fsapi->FileExists (sidename, false))
 				{
 				Q_strncpy (out[j], sidename, sizeof (out[j]));
@@ -89,8 +93,10 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 		num_checked_sides = 0;
 		for (j = 0; j < 6; j++)
 			{
-			// build side name
-			sidename = va ("%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
+			// [Xash3D, 31.03.23] build side name
+			//sidename = va ("%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
+			Q_snprintf (sidename, sizeof (sidename), "%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
+
 			if (gEngfuncs.fsapi->FileExists (sidename, false))
 				{
 				Q_strncpy (out[j], sidename, sizeof (out[j]));

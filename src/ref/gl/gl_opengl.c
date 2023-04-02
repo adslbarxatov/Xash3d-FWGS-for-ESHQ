@@ -327,22 +327,26 @@ int GL_MaxTextureUnits (void)
 
 /*
 =================
-GL_CheckExtension
+GL_CheckExtension [Xash3D, 31.03.23]
 =================
 */
 qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext)
 	{
-	const dllfunc_t *func;
-	cvar_t *parm = NULL;
-	const char *extensions_string;
+	const dllfunc_t	*func;
+	cvar_t	*parm = NULL;
+	const char	*extensions_string;
+	char		desc[MAX_VA_STRING];
 
 	gEngfuncs.Con_Reportf ("GL_CheckExtension: %s ", name);
 	GL_SetExtension (r_ext, true);
 
+	// system config disable extensions
 	if (cvarname)
 		{
-		// system config disable extensions
-		parm = gEngfuncs.Cvar_Get (cvarname, "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, va (CVAR_GLCONFIG_DESCRIPTION, name));
+		/*parm = gEngfuncs.Cvar_Get (cvarname, "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, 
+			va (CVAR_GLCONFIG_DESCRIPTION, name));*/
+		Q_snprintf (desc, sizeof (desc), CVAR_GLCONFIG_DESCRIPTION, name);
+		parm = gEngfuncs.Cvar_Get (cvarname, "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, desc);
 		}
 
 	if ((parm && !CVAR_TO_BOOL (parm)) || (!CVAR_TO_BOOL (gl_extensions) && r_ext != GL_OPENGL_110))
@@ -354,7 +358,7 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 
 	extensions_string = glConfig.extensions_string;
 
-	if ((name[2] == '_' || name[3] == '_') && !Q_strstr (extensions_string, name))
+	if (((name[2] == '_') || (name[3] == '_')) && !Q_strstr (extensions_string, name))
 		{
 		GL_SetExtension (r_ext, false);	// update render info
 		gEngfuncs.Con_Reportf ("- ^1failed\n");
@@ -746,11 +750,24 @@ void GL_InitExtensionsBigGL (void)
 	// this won't work without extended context
 	if (glw_state.extended)
 		GL_CheckExtension ("GL_ARB_debug_output", debugoutputfuncs, "gl_debug_output", GL_DEBUG_OUTPUT);
+
+// [Xash3D, 31.03.23]
+#if XASH_PSVITA
+	// not all GL1.1 functions are implemented in vitaGL, but there's enough
+	GL_SetExtension (GL_OPENGL_110, true);
+	// NPOT textures are actually supported, but the extension is not listed in GL_EXTENSIONS
+	GL_SetExtension (GL_ARB_TEXTURE_NPOT_EXT, true);
+	// init our immediate mode override
+	VGL_ShimInit ();
+#endif
 	}
 #endif
 
+// [Xash3D, 31.03.23]
 void GL_InitExtensions (void)
 	{
+	char value[MAX_VA_STRING];
+
 	GL_OnContextCreated ();
 
 	// initialize gl extensions
@@ -791,8 +808,12 @@ void GL_InitExtensions (void)
 	if (GL_Support (GL_TEXTURE_2D_RECT_EXT))
 		pglGetIntegerv (GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT, &glConfig.max_2d_rectangle_size);
 
-	gEngfuncs.Cvar_Get ("gl_max_size", va ("%i", glConfig.max_2d_texture_size), 0, "opengl texture max dims");
-	gEngfuncs.Cvar_Set ("gl_anisotropy", va ("%f", bound (0, gl_texture_anisotropy->value, glConfig.max_texture_anisotropy)));
+	/*gEngfuncs.Cvar_Get ("gl_max_size", va ("%i", glConfig.max_2d_texture_size), 0, "opengl texture max dims");
+	gEngfuncs.Cvar_Set ("gl_anisotropy", va ("%f", bound (0, gl_texture_anisotropy->value,
+		glConfig.max_texture_anisotropy)));*/
+	Q_snprintf (value, sizeof (value), "%i", glConfig.max_2d_texture_size);
+	gEngfuncs.Cvar_Get ("gl_max_size", value, 0, "opengl texture max dims");
+	gEngfuncs.Cvar_SetValue ("gl_anisotropy", bound (0, gl_texture_anisotropy->value, glConfig.max_texture_anisotropy));
 
 	if (GL_Support (GL_TEXTURE_COMPRESSION_EXT))
 		gEngfuncs.Image_AddCmdFlags (IL_DDS_HARDWARE);
@@ -809,11 +830,17 @@ void GL_InitExtensions (void)
 	glw_state.initialized = true;
 	}
 
+// [Xash3D, 31.03.23]
 void GL_ClearExtensions (void)
 	{
 	// now all extensions are disabled
 	memset (glConfig.extension, 0, sizeof (glConfig.extension));
 	glw_state.initialized = false;
+
+#if XASH_PSVITA
+	// deinit our immediate mode override
+	VGL_ShimShutdown ();
+#endif
 	}
 
 //=======================================================================

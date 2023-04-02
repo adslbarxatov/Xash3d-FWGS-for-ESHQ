@@ -1559,17 +1559,19 @@ int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags)
 
 /*
 ================
-GL_LoadTextureArray
+GL_LoadTextureArray [Xash3D, 31.03.23]
 ================
 */
 int GL_LoadTextureArray (const char **names, int flags)
 	{
-	rgbdata_t *pic, *src;
+	rgbdata_t	*pic, *src;
 	char		basename[256];
 	uint		numLayers = 0;
 	uint		picFlags = 0;
 	char		name[256];
-	gl_texture_t *tex;
+	gl_texture_t	*tex;
+	size_t		len = 0;
+	int			ret = 0;
 	uint		i, j;
 
 	if (!names || !names[0] || !glw_state.initialized)
@@ -1583,14 +1585,27 @@ int GL_LoadTextureArray (const char **names, int flags)
 	if (numLayers <= 0) return 0;
 
 	// create complexname from layer names
-	for (i = 0; i < numLayers; i++)
+	//for (i = 0; i < numLayers; i++)
+	for (i = 0; i < numLayers - 1; i++)
 		{
 		COM_FileBase (names[i], basename);
-		Q_strncat (name, basename, sizeof (name));
-		if (i != (numLayers - 1)) Q_strncat (name, "|", sizeof (name));
+		
+		/*Q_strncat (name, basename, sizeof (name));
+		if (i != (numLayers - 1))
+			Q_strncat (name, "|", sizeof (name));*/
+		ret = Q_snprintf (&name[len], sizeof (name) - len, "%s|", basename);
+		if (ret == -1)
+			return 0;
+
+		len += ret;
 		}
 
-	Q_strncat (name, va ("[%i]", numLayers), sizeof (name));
+	//Q_strncat (name, va ("[%i]", numLayers), sizeof (name));
+	COM_FileBase (names[i], basename);
+	ret = Q_snprintf (&name[len], sizeof (name) - len, "%s[%i]", basename, numLayers);
+
+	if (ret == -1)
+		return 0;
 
 	if (!GL_CheckTexName (name))
 		return 0;
