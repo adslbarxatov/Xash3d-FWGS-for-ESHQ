@@ -206,16 +206,20 @@ int Q_atoi (const char *str)
 	else sign = 1;
 
 	// check for hex
-	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X'))
+	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
 		{
 		str += 2;
 		while (1)
 			{
 			c = *str++;
-			if (c >= '0' && c <= '9') val = (val << 4) + c - '0';
-			else if (c >= 'a' && c <= 'f') val = (val << 4) + c - 'a' + 10;
-			else if (c >= 'A' && c <= 'F') val = (val << 4) + c - 'A' + 10;
-			else return val * sign;
+			if ((c >= '0') && (c <= '9'))
+				val = (val << 4) + c - '0';
+			else if ((c >= 'a') && (c <= 'f'))
+				val = (val << 4) + c - 'a' + 10;
+			else if ((c >= 'A') && (c <= 'F'))
+				val = (val << 4) + c - 'A' + 10;
+			else
+				return val * sign;
 			}
 		}
 
@@ -227,7 +231,7 @@ int Q_atoi (const char *str)
 	while (1)
 		{
 		c = *str++;
-		if (c < '0' || c > '9')
+		if ((c < '0') || (c > '9'))
 			return val * sign;
 		val = val * 10 + c - '0';
 		}
@@ -365,18 +369,21 @@ qboolean Q_strnicmpext (const char *pattern, const char *text, size_t minimumlen
 				if (*text++ == '\0')
 					return false;
 				break;
+
 			case '\\':
 				if (Q_tolower (*pattern++) != Q_tolower (*text++))
 					return false;
 				break;
+
 			case '*':
 				return Q_starcmp (pattern, text);
+
 			default:
 				if (Q_tolower (c) != Q_tolower (*text++))
 					return false;
 			}
 		}
-	return (*text == '\0') || i == minimumlength;
+	return (*text == '\0') || (i == minimumlength);
 	}
 
 qboolean Q_stricmpext (const char *pattern, const char *text)
@@ -384,7 +391,7 @@ qboolean Q_stricmpext (const char *pattern, const char *text)
 	return Q_strnicmpext (pattern, text, ~((size_t)0));
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *needle, size_t needlelen)
 	{
 	const byte *i;
@@ -535,7 +542,7 @@ int Q_sprintf (char *buffer, const char *format, ...)
 	return result;
 	}
 
-/* [Xash3D, 31.03.23]
+/* [FWGS, 01.04.23]
 char *Q_strpbrk (const char *s, const char *accept)
 	{
 	for (; *s; s++)
@@ -597,7 +604,7 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 
 	current = (current + 1) & (8 - 1);
 
-	// [Xash3D, 31.03.23] first figure out which bin to use
+	// [FWGS, 01.04.23] first figure out which bin to use
 	if (value > onemb)
 		{
 		value /= onemb;
@@ -637,7 +644,7 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	i = val;
 	o = out;
 
-	// [Xash3D, 31.03.23] search for decimal or if it was integral, find the space after the raw number
+	// [FWGS, 01.04.23] search for decimal or if it was integral, find the space after the raw number
 	dot = Q_strchr (i, '.');
 	if (!dot)
 		dot = Q_strchr (i, ' ');
@@ -665,7 +672,7 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	return out;
 	}
 
-/* [Xash3D, 31.03.23]
+/* [FWGS, 01.04.23]
 ============
 va
 
@@ -803,7 +810,7 @@ void COM_ExtractFilePath (const char *path, char *dest)
 		}
 	else
 		{
-		dest[0] = 0; // [Xash3D, 31.03.23] file without path
+		dest[0] = 0; // [FWGS, 01.04.23] file without path
 		}
 	/*else Q_strcpy (dest, ""); // file without path*/
 	}
@@ -834,7 +841,7 @@ void COM_StripExtension (char *path)
 
 /*
 ==================
-COM_DefaultExtension [Xash3D, 31.03.23]
+COM_DefaultExtension [FWGS, 01.04.23]
 ==================
 */
 void COM_DefaultExtension (char *path, const char *extension)
@@ -889,7 +896,7 @@ void COM_RemoveLineFeed (char *str)
 
 /*
 ============
-COM_FixSlashes [Xash3D, 31.03.23]
+COM_FixSlashes [FWGS, 01.04.23]
 
 Changes all '\' characters into '/' characters, in place
 ============

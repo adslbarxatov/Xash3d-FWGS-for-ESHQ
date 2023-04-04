@@ -14,7 +14,7 @@ GNU General Public License for more details.
 */
 
 #include "crtlib.h"
-#include "buildenums.h"		// [Xash3D, 31.03.23]
+#include "buildenums.h"		// [FWGS, 01.04.23]
 
 static const char *date = __DATE__;
 static const char *mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -72,7 +72,7 @@ int Q_buildnum_compat (void)
 
 /*
 ============
-Q_GetPlatformStringByID [Xash3D, 31.03.23]
+Q_GetPlatformStringByID [FWGS, 01.04.23]
 
 Returns name of operating system by ID. Without any spaces.
 ============
@@ -119,7 +119,7 @@ const char *Q_PlatformStringByID (const int platform)
 
 /*
 ============
-Q_buildos [Xash3D, 31.03.23]
+Q_buildos [FWGS, 01.04.23]
 
 Shortcut for Q_buildos_
 ============
@@ -162,7 +162,7 @@ const char *Q_buildos (void)
 
 /*
 ============
-Q_ArchitectureStringByID [Xash3D, 31.03.23]
+Q_ArchitectureStringByID [FWGS, 01.04.23]
 
 Returns name of the architecture by it's ID. Without any spaces.
 ============

@@ -450,7 +450,7 @@ char *MD5_Print (byte hash[16])
 
 /*
 =================
-COM_HashKey [Xash3D, 31.03.23]
+COM_HashKey [FWGS, 01.04.23]
 
 returns hash key for string
 =================

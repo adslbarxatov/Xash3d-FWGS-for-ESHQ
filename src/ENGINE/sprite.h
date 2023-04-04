@@ -86,7 +86,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (dsprite_t) == 8, "invalid dsprite_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		ident;			// LittleLong 'ISPR'
@@ -95,13 +95,13 @@ typedef struct
 	float		boundingradius;	// quick face culling
 	int32_t		bounds[2];		// mins\maxs
 	int32_t		numframes;		// including groups
-	float		beamlength;		// ???
+	float		beamlength;		// ?
 	uint32_t	synctype;		// animation synctype
 	} dsprite_q1_t;
 
 STATIC_ASSERT (sizeof (dsprite_q1_t) == 36, "invalid dsprite_q1_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		ident;			// LittleLong 'ISPR'
@@ -117,7 +117,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (dsprite_hl_t) == 40, "invalid dsprite_hl_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		origin[2];
@@ -127,7 +127,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (dspriteframe_t) == 16, "invalid dspriteframe_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		numframes;
@@ -135,7 +135,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (dspritegroup_t) == 4, "invalid dspritegroup_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	float		interval;
@@ -143,7 +143,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (dspriteinterval_t) == 4, "invalid dspriteinterval_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	uint32_t	type;
@@ -151,4 +151,4 @@ typedef struct
 
 STATIC_ASSERT (sizeof (dframetype_t) == 4, "invalid dframetype_t size");
 
-#endif//SPRITE_H
+#endif

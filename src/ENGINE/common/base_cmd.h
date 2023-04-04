@@ -31,7 +31,7 @@ typedef enum base_command_type
 
 typedef void base_command_t;
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 /*typedef struct base_command_hashmap_s
 	{
 	base_command_t *basecmd; // base command: cvar, alias or command

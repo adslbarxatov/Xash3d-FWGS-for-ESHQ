@@ -17,12 +17,15 @@ GNU General Public License for more details.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #if XASH_POSIX
-#include <unistd.h>
+	#include <unistd.h>
 #endif
+
 #include <errno.h>
 #include <stddef.h>
-//#define STDINT_H <stdint.h>		// FWGS
+
+#define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
 #include STDINT_H
 #include "port.h"
 #include "filesystem_internal.h"

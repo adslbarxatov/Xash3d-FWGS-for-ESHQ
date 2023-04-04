@@ -60,7 +60,7 @@ float r_turbsin[] =
 	#include "warpsin.h"
 	};
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 	{
 	const char	*skybox_ext[3] = { "dds", "tga", "bmp" };
@@ -75,7 +75,7 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 		num_checked_sides = 0;
 		for (j = 0; j < 6; j++)
 			{
-			// [Xash3D, 31.03.23] build side name
+			// [FWGS, 01.04.23] build side name
 			//sidename = va ("%s%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
 			Q_snprintf (sidename, sizeof (sidename), "%s%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
 
@@ -93,7 +93,7 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 		num_checked_sides = 0;
 		for (j = 0; j < 6; j++)
 			{
-			// [Xash3D, 31.03.23] build side name
+			// [FWGS, 01.04.23] build side name
 			//sidename = va ("%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
 			Q_snprintf (sidename, sizeof (sidename), "%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
 

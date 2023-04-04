@@ -89,7 +89,7 @@ typedef struct ui_enginefuncs_s
 	const char *(*pfnCmdArgv)(int argc);
 	const char *(*pfnCmd_Args)(void);
 
-	// [Xash3D, 20.03.23: отменено] debug messages (in-menu shows only notify)	
+	// [FWGS, 01.04.23] debug messages (in-menu shows only notify)	
 	void	(*Con_Printf)(const char *fmt, ...);	// FWGS: _format (1);
 	void	(*Con_DPrintf)(const char *fmt, ...);	// FWGS: _format (1);
 	void	(*Con_NPrintf)(int pos, const char *fmt, ...);	// FWGS: _format(2);

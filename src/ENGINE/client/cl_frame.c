@@ -974,7 +974,7 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 	if (!ent || !ent->model)
 		return false;
 
-	/* [Xash3D, 21.03.23] check for adding this entity
+	/* [FWGS, 01.04.23] check for adding this entity
 	if (!clgame.dllFuncs.pfnAddEntity (entityType, ent, ent->model->name))
 		{
 		// local player was reject by game code, so ignore any effects
@@ -993,7 +993,7 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 			return false;
 		}
 
-	// [Xash3D, 21.03.23] check for adding this entity
+	// [FWGS, 01.04.23] check for adding this entity
 	if (!clgame.dllFuncs.pfnAddEntity (entityType, ent, ent->model->name))
 		{
 		// local player was reject by game code, so ignore any effects
@@ -1014,7 +1014,7 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 
 	// because pTemp->entity.curstate.effects
 	// is already occupied by FTENT_FLICKER
-	if (entityType != ET_TEMPENTITY && !RP_LOCALCLIENT (ent))
+	if ((entityType != ET_TEMPENTITY) && !RP_LOCALCLIENT (ent))
 		{
 		// apply client-side effects
 		CL_AddEntityEffects (ent);

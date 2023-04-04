@@ -16,8 +16,8 @@ GNU General Public License for more details.
 #include "common.h"
 #include "server.h"
 
-// [Xash3D, 31.03.23]
-/*typedef struct ipfilter_s
+/* [FWGS, 01.04.23]
+typedef struct ipfilter_s
 	{
 	float time;
 	float endTime; // -1 for permanent ban
@@ -70,7 +70,7 @@ static void SV_RemoveID (const char *id)
 		}
 	}
 
-/* [Xash3D, 31.03.23]
+/* [FWGS, 01.04.23]
 static void SV_RemoveIP (uint ip, uint mask)
 	{
 	ipfilter_t *filter, *prevfilter = NULL;
@@ -126,7 +126,7 @@ qboolean SV_CheckID (const char *id)
 	return ret;
 	}
 
-/* [Xash3D, 31.03.23]
+/* [FWGS, 01.04.23]
 qboolean SV_CheckIP (netadr_t *addr)
 	{
 	uint ip = addr->ip[0] << 24 | addr->ip[1] << 16 | addr->ip[2] << 8 | addr->ip[3];
@@ -167,8 +167,8 @@ static void SV_BanID_f (void)
 
 	if (!id[0])
 		{
-		// [Xash3D, 31.03.23]
-		//Con_Reportf ("Usage: banid <minutes> <#userid or unique id>\n0 minutes for permanent ban\n");
+		// [FWGS, 01.04.23]
+		/*Con_Reportf ("Usage: banid <minutes> <#userid or unique id>\n0 minutes for permanent ban\n");*/
 		Con_Reportf (S_USAGE "banid <minutes> <#userid or unique id>\n0 minutes for permanent ban\n");
 		return;
 		}
@@ -227,10 +227,10 @@ static void SV_BanID_f (void)
 	Q_strncpy (filter->id, id, sizeof (filter->id));
 	cidfilter = filter;
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	if (cl && !Q_stricmp (Cmd_Argv (Cmd_Argc () - 1), "kick"))
 		Cbuf_AddTextf ("kick #%d \"Kicked and banned\"\n", cl->userid);
-	//Cbuf_AddText (va ("kick #%d \"Kicked and banned\"\n", cl->userid));
+	/*Cbuf_AddText (va ("kick #%d \"Kicked and banned\"\n", cl->userid));*/
 	}
 
 static void SV_ListID_f (void)
@@ -268,8 +268,8 @@ static void SV_RemoveID_f (void)
 
 	if (!id[0])
 		{
-		// [Xash3D, 31.03.23]
-		//Con_Reportf ("Usage: removeid <#slotnumber or uniqueid>\n");
+		// [FWGS, 01.04.23]
+		/*Con_Reportf ("Usage: removeid <#slotnumber or uniqueid>\n");*/
 		Con_Reportf( S_USAGE "removeid <#slotnumber or uniqueid>\n");
 		return;
 		}
@@ -300,7 +300,7 @@ static void SV_WriteID_f (void)
 	FS_Close (f);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 //static qboolean StringToIP (const char *str, const char *maskstr, uint *outip, uint *outmask)
 static void SV_InitIDFilter (void)
 	{
@@ -313,10 +313,10 @@ static void SV_InitIDFilter (void)
 	Cmd_AddRestrictedCommand ("writeid", SV_WriteID_f, "write banned.cfg");
 	}
 
-	/*if (*str > '9' || *str < '0')
-		return false;*/
+/*if (*str > '9' || *str < '0')
+return false;*/
 
-[Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_ShutdownIDFilter (void)
 	{
 	cidfilter_t *cidList, *cidNext;
@@ -344,7 +344,7 @@ CLIENT IP FILTER
 =============================================================================
 */
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 typedef struct ipfilter_s
 	{
 	float endTime;
@@ -354,7 +354,7 @@ typedef struct ipfilter_s
 	} ipfilter_t;
 static ipfilter_t *ipfilter = NULL;
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 /*do*/
 static void SV_CleanExpiredIPFilters (void)
 	{
@@ -392,7 +392,7 @@ str++;
 } while (i < 4);
 i = 0;*/
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static int SV_FilterToString (char *dest, size_t size, qboolean config, ipfilter_t *f)
 	{
 	const char *strformat;
@@ -410,7 +410,7 @@ static int SV_FilterToString (char *dest, size_t size, qboolean config, ipfilter
 	return Q_snprintf (dest, size, "%s/%d (permanent)", NET_AdrToString (f->adr), f->prefixlen);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static qboolean SV_IPFilterIncludesIPFilter (ipfilter_t *a, ipfilter_t *b)
 	{
 	if (a->adr.type6 != b->adr.type6)
@@ -426,7 +426,7 @@ static qboolean SV_IPFilterIncludesIPFilter (ipfilter_t *a, ipfilter_t *b)
 	return NET_CompareAdrByMask (a->adr, b->adr, b->prefixlen);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_RemoveIPFilter (ipfilter_t *toremove, qboolean removeAll, qboolean verbose)
 	{
 	ipfilter_t *f, **back;
@@ -477,7 +477,7 @@ end:
 		}
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 qboolean SV_CheckIP (netadr_t *adr)
 	{
 	ipfilter_t *entry = ipfilter;
@@ -497,7 +497,7 @@ qboolean SV_CheckIP (netadr_t *adr)
 	return false;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_AddIP_PrintUsage (void)
 	{
 	Con_Printf (S_USAGE "addip <minutes> <ipaddress>\n"
@@ -507,7 +507,7 @@ static void SV_AddIP_PrintUsage (void)
 		"NOTE: IPv6 addresses only support prefix format!\n");
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_RemoveIP_PrintUsage (void)
 	{
 	Con_Printf (S_USAGE "removeip <ipaddress> [removeAll]\n"
@@ -515,17 +515,18 @@ static void SV_RemoveIP_PrintUsage (void)
 		"Use removeAll to delete all ip filters which ipaddress or ipaddress/CIDR includes\n");
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_ListIP_PrintUsage (void)
 	{
 	Con_Printf (S_USAGE "listip [ipaddress]\n"
 		S_USAGE_INDENT  "listip [ipaddress/CIDR]\n");
 	}
 
-// [Xash3D, 31.03.23]
-//#define IPARGS(ip) (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF
+/* [FWGS, 01.04.23]
+#define IPARGS(ip) (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF
+*/
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_AddIP_f (void)
 	{
 	/*float time = Q_atof (Cmd_Argv (1));
@@ -594,7 +595,7 @@ static void SV_AddIP_f (void)
 		}
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_ListIP_f (void)
 	{
 	/*ipfilter_t *filter;*/
@@ -649,7 +650,7 @@ static void SV_ListIP_f (void)
 		}
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_RemoveIP_f (void)
 	{
 	/*uint ip, mask;*/
@@ -679,7 +680,7 @@ static void SV_RemoveIP_f (void)
 	SV_RemoveIPFilter (&filter, removeAll, true);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_WriteIP_f (void)
 	{
 	/*file_t *f = FS_Open (Cvar_VariableString ("listipcfgfile"), "w", false);
@@ -687,10 +688,10 @@ static void SV_WriteIP_f (void)
 	file_t *fd = FS_Open (Cvar_VariableString ("listipcfgfile"), "w", true);
 	ipfilter_t *f;
 
-	//if (!f)
+	/*if (!f)*/
 	if (!fd)
 		{
-		//Con_DPrintf (S_ERROR "Could not write %s\n", Cvar_VariableString ("listipcfgfile"));
+		/*Con_DPrintf (S_ERROR "Could not write %s\n", Cvar_VariableString ("listipcfgfile"));*/
 		Con_Printf ("Couldn't open listip.cfg\n");
 		return;
 		}
@@ -711,16 +712,16 @@ static void SV_WriteIP_f (void)
 		if (f->endTime)
 			continue;
 
-		//FS_Close (f);
+		/*FS_Close (f);*/
 		size = SV_FilterToString (filterStr, sizeof (filterStr), true, f);
 		FS_Write (fd, filterStr, size);
 		}
 
-	//void SV_InitFilter (void)
+	/*void SV_InitFilter (void)*/
 	FS_Close (fd);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void SV_InitIPFilter (void)
 	{
 	/*Cmd_AddRestrictedCommand ("banid", SV_BanID_f, "ban player by ID");
@@ -733,12 +734,12 @@ static void SV_InitIPFilter (void)
 	Cmd_AddRestrictedCommand ("writeip", SV_WriteIP_f, "write listip.cfg");
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 //void SV_ShutdownFilter (void)
 static void SV_ShutdownIPFilter (void)
 	{
 	ipfilter_t *ipList, *ipNext;
-	//cidfilter_t *cidList, *cidNext;
+	/*cidfilter_t *cidList, *cidNext;*/
 
 	for (ipList = ipfilter; ipList; ipList = ipNext)
 		{
@@ -746,11 +747,11 @@ static void SV_ShutdownIPFilter (void)
 		Mem_Free (ipList);
 		}
 
-	//for (cidList = cidfilter; cidList; cidList = cidNext)
+	/*for (cidList = cidfilter; cidList; cidList = cidNext)*/
 	ipfilter = NULL;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void SV_InitFilter (void)
 	{
 	/*cidNext = cidList->next;
@@ -762,7 +763,7 @@ void SV_InitFilter (void)
 /*cidfilter = NULL;
 ipfilter = NULL;*/
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void SV_ShutdownFilter (void)
 	{
 	SV_ShutdownIPFilter ();
@@ -773,7 +774,7 @@ void SV_ShutdownFilter (void)
 
 #include "tests.h"
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void Test_StringToFilterAdr (void)
 	{
 	ipfilter_t f1;
@@ -843,7 +844,7 @@ void Test_StringToFilterAdr (void)
 				}
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void Test_IPFilterIncludesIPFilter (void)
 	{
 	qboolean ret;
@@ -894,7 +895,7 @@ void Test_IPFilterIncludesIPFilter (void)
 		}
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void Test_RunIPFilter (void)
 	{
 	Test_StringToFilterAdr ();

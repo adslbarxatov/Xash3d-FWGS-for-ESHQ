@@ -22,14 +22,14 @@ GNU General Public License for more details.
 #include "vgui_draw.h"
 #include "library.h"
 #include "vid_common.h"
-#include "pm_local.h"	// [Xash3D, 21.03.23]
+#include "pm_local.h"	// [FWGS, 01.04.23]
 
-#define MAX_TOTAL_CMDS			32
-#define MAX_CMD_BUFFER			8000
-#define CONNECTION_PROBLEM_TIME	15.0	// 15 seconds
+#define MAX_TOTAL_CMDS				32
+#define MAX_CMD_BUFFER				8000
+#define CONNECTION_PROBLEM_TIME		15.0	// 15 seconds
 #define CL_CONNECTION_RETRIES		10
-#define CL_TEST_RETRIES_NORESPONCE	3	// [Xash3D, 21.03.23]
-#define CL_TEST_RETRIES			5
+#define CL_TEST_RETRIES_NORESPONCE	3	// [FWGS, 01.04.23]
+#define CL_TEST_RETRIES				5
 
 CVAR_DEFINE_AUTO (mp_decals, "300", FCVAR_ARCHIVE, "decals limit in multiplayer");
 CVAR_DEFINE_AUTO (dev_overview, "0", 0, "draw level in overview-mode");
@@ -40,11 +40,11 @@ CVAR_DEFINE_AUTO (cl_download_ingame, "1", FCVAR_ARCHIVE, "allow to downloading 
 CVAR_DEFINE_AUTO (cl_logofile, "lambda", FCVAR_ARCHIVE, "player logo name");
 CVAR_DEFINE_AUTO (cl_logocolor, "orange", FCVAR_ARCHIVE, "player logo color");
 
-// [Xash3D, 21.03.23]
+// [FWGS, 01.04.23]
 CVAR_DEFINE_AUTO (cl_logoext, "bmp", FCVAR_ARCHIVE, "temporary cvar to tell engine which logo must be packed");
 CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE, "test network bandwith before connection");
 
-//convar_t *rcon_client_password;
+//convar_t *rcon_client_password;	// [FWGS, 01.04.23]
 convar_t *rcon_address;
 convar_t *cl_timeout;
 convar_t *cl_nopred;
@@ -61,7 +61,7 @@ convar_t *cl_nosmooth;
 convar_t *cl_smoothtime;
 convar_t *cl_clockreset;
 convar_t *cl_fixtimerate;
-convar_t *hud_fontscale;	// [Xash3D, 21.03.23]
+convar_t *hud_fontscale;	// [FWGS, 01.04.23]
 convar_t *hud_scale;
 convar_t *cl_solid_players;
 convar_t *cl_draw_beams;
@@ -112,7 +112,7 @@ qboolean CL_IsInGame (void)
 	if (host.type == HOST_DEDICATED)
 		return true; // always active for dedicated servers
 
-	if (cl.background || CL_GetMaxClients () > 1)
+	if (cl.background || (CL_GetMaxClients () > 1))
 		return true; // always active for multiplayer or background map
 
 	return (cls.key_dest == key_game); // active if not menu or console
@@ -248,7 +248,7 @@ void CL_SignonReply (void)
 		}
 	}
 
-// [Xash3D, 21.03.23]
+// [FWGS, 01.04.23]
 /*float CL_LerpInterval (void)
 	{
 	return Q_max (cl_interp->value, 1.f / cl_updaterate->value);
@@ -256,10 +256,10 @@ void CL_SignonReply (void)
 
 /*
 ===============
-CL_LerpPoint [Xash3D, 21.03.23]
+CL_LerpPoint [FWGS, 01.04.23]
 
 Determines the fraction between the last two messages that the objects
-should be put at.
+should be put at
 ===============
 */
 static float CL_LerpPoint (void)
@@ -269,7 +269,7 @@ static float CL_LerpPoint (void)
 	double f = cl_serverframetime ();
 	double frac;
 
-	//if ((server_frametime == 0.0f) || cls.timedemo)
+	/*if ((server_frametime == 0.0f) || cls.timedemo)*/
 	if ((f == 0.0) || cls.timedemo)
 		{
 		double fgap = cl_clientframetime ();
@@ -369,8 +369,8 @@ void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 
 	min_interp = 1.0f / cl_updaterate->value;
 
-	// [Xash3D, 21.03.23]
-	//interpolation_time = CL_LerpInterval ();
+	// [FWGS, 01.04.23]
+	/*interpolation_time = CL_LerpInterval ();*/
 	interpolation_time = cl_interp->value * 1000.0;
 
 	if ((cl_interp->value + epsilon) < min_interp)
@@ -633,12 +633,12 @@ void CL_UpdateClientData (void)
 
 /*
 =================
-CL_CreateCmd [Xash3D, 21.03.23]
+CL_CreateCmd [FWGS, 01.04.23]
 =================
 */
 void CL_CreateCmd (void)
 	{
-	//usercmd_t	cmd;
+	/*usercmd_t	cmd;*/
 	usercmd_t	nullcmd, *cmd;
 	runcmd_t	*pcmd;
 	vec3_t		angles;
@@ -652,14 +652,14 @@ void CL_CreateCmd (void)
 	// store viewangles in case it's will be freeze
 	VectorCopy (cl.viewangles, angles);
 	ms = bound (1, host.frametime * 1000, 255);
-	memset (&cmd, 0, sizeof (cmd));		// [Xash3D, 21.03.23: ???]
+	memset (&cmd, 0, sizeof (cmd));		// [FWGS, 01.04.23]: ?
 	input_override = 0;
 
 	CL_SetSolidEntities ();
 	CL_PushPMStates ();
 	CL_SetSolidPlayers (cl.playernum);
 
-	// message we are constructing.
+	// message we are constructing
 	i = cls.netchan.outgoing_sequence & CL_UPDATE_MASK;
 	pcmd = &cl.commands[i];
 	pcmd->processedfuncs = false;
@@ -672,7 +672,7 @@ void CL_CreateCmd (void)
 		pcmd->heldback = false;
 		pcmd->sendsize = 0;
 
-		// [Xash3D, 21.03.23]
+		// [FWGS, 01.04.23]
 		cmd = &pcmd->cmd;
 		}
 	else
@@ -684,7 +684,7 @@ void CL_CreateCmd (void)
 	active = ((cls.signon == SIGNONS) && !cl.paused && !cls.demoplayback);
 	Platform_PreCreateMove ();
 	
-	// [Xash3D, 21.03.23]
+	// [FWGS, 01.04.23]
 	/*clgame.dllFuncs.CL_CreateMove (host.frametime, &pcmd->cmd, active);
 	IN_EngineAppendMove (host.frametime, &pcmd->cmd, active);*/
 	clgame.dllFuncs.CL_CreateMove (host.frametime, cmd, active);
@@ -765,18 +765,18 @@ void CL_WritePacket (void)
 		return;
 
 	CL_ComputePacketLoss ();
-	memset (data, 0, sizeof (data));	// [Xash3D, 21.03.23]
 
+	memset (data, 0, sizeof (data));	// [FWGS, 01.04.23]
 	MSG_Init (&buf, "ClientData", data, sizeof (data));
 
-	// Determine number of backup commands to send along [Xash3D, 21.03.23]
-	//numbackup = bound (0, cl_cmdbackup->value, MAX_BACKUP_COMMANDS);
+	// Determine number of backup commands to send along [FWGS, 01.04.23]
+	/*numbackup = bound (0, cl_cmdbackup->value, MAX_BACKUP_COMMANDS);*/
 	numbackup = bound (0, cl_cmdbackup->value, cls.legacymode ? MAX_LEGACY_BACKUP_CMDS : MAX_BACKUP_COMMANDS);
 
 	if (cls.state == ca_connected) 
 		numbackup = 0;
 
-	// clamp cmdrate [Xash3D, 21.03.23]
+	// clamp cmdrate [FWGS, 01.04.23]
 	if (cl_cmdrate->value < 10.0f)
 		Cvar_SetValue ("cl_cmdrate", 10.0f);
 	else if (cl_cmdrate->value > 100.0f)
@@ -811,7 +811,7 @@ void CL_WritePacket (void)
 			{
 			Con_NPrintf (1, "^3Warning:^1 Connection Problem^7\n");
 			Con_NPrintf (2, "^1Auto-disconnect in %.1f seconds^7", cl_timeout->value - 
-				(host.realtime - cls.netchan.last_received));	// [Xash3D, 21.03.23]
+				(host.realtime - cls.netchan.last_received));	// [FWGS, 01.04.23]
 			cl.validsequence = 0;
 			}
 		}
@@ -1087,8 +1087,8 @@ void CL_SendConnectPacket (void)
 		input_devices = IN_CollectInputDevices ();
 		IN_LockInputDevices (true);
 
-		// [Xash3D, 21.03.23]
-		//Info_SetValueForKey (protinfo, "d", va ("%d", input_devices), sizeof (protinfo));
+		// [FWGS, 01.04.23]
+		/*Info_SetValueForKey (protinfo, "d", va ("%d", input_devices), sizeof (protinfo));*/
 		Cvar_SetCheatState ();
 		Cvar_FullSet ("sv_cheats", "0", FCVAR_READ_ONLY | FCVAR_SERVER);
 
@@ -1096,7 +1096,8 @@ void CL_SendConnectPacket (void)
 
 		Info_SetValueForKey (protinfo, "v", XASH_VERSION, sizeof (protinfo));
 		
-		//Info_SetValueForKey (protinfo, "b", va ("%d", Q_buildnum ()), sizeof (protinfo));
+		// [FWGS, 01.04.23]
+		/*Info_SetValueForKey (protinfo, "b", va ("%d", Q_buildnum ()), sizeof (protinfo));*/
 		Info_SetValueForKeyf (protinfo, "b", sizeof (protinfo), "%d", Q_buildnum ());
 
 		Info_SetValueForKey (protinfo, "o", Q_buildos (), sizeof (protinfo));
@@ -1124,7 +1125,7 @@ void CL_SendConnectPacket (void)
 		{
 		int extensions = NET_EXT_SPLITSIZE;
 
-		if (cl_dlmax->value > FRAGMENT_MAX_SIZE || cl_dlmax->value < FRAGMENT_MIN_SIZE)
+		if ((cl_dlmax->value > FRAGMENT_MAX_SIZE) || (cl_dlmax->value < FRAGMENT_MIN_SIZE))
 			Cvar_SetValue ("cl_dlmax", FRAGMENT_DEFAULT_SIZE);
 
 		Info_RemoveKey (cls.userinfo, "cl_maxpacket");
@@ -1133,7 +1134,8 @@ void CL_SendConnectPacket (void)
 		Info_SetValueForKey (protinfo, "uuid", key, sizeof (protinfo));
 		Info_SetValueForKey (protinfo, "qport", qport, sizeof (protinfo));
 		
-		//Info_SetValueForKey (protinfo, "ext", va ("%d", extensions), sizeof (protinfo));
+		// [FWGS, 01.04.23]
+		/*Info_SetValueForKey (protinfo, "ext", va ("%d", extensions), sizeof (protinfo));*/
 		Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", extensions);
 
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "connect %i %i \"%s\" \"%s\"\n", PROTOCOL_VERSION, 
@@ -1155,7 +1157,7 @@ void CL_CheckForResend (void)
 	{
 	netadr_t adr;
 	int res;
-	qboolean bandwidthTest;	// [Xash3D, 21.03.23]
+	qboolean bandwidthTest;	// [FWGS, 01.04.23]
 
 	if (cls.internetservers_wait)
 		CL_InternetServers_f ();
@@ -1221,11 +1223,11 @@ void CL_CheckForResend (void)
 		return;
 		}
 
-	// [Xash3D, 21.03.23]
+	// [FWGS, 01.04.23]
 	bandwidthTest = !cls.legacymode && cl_test_bandwidth.value;
 	cls.serveradr = adr;
 	
-	//cls.max_fragment_size = Q_max (FRAGMENT_MAX_SIZE, cls.max_fragment_size >> Q_min (1, cls.connect_retry));
+	/*cls.max_fragment_size = Q_max (FRAGMENT_MAX_SIZE, cls.max_fragment_size >> Q_min (1, cls.connect_retry));*/
 	cls.max_fragment_size = Q_min (FRAGMENT_MAX_SIZE, cls.max_fragment_size / (cls.connect_retry + 1));
 
 	cls.connect_time = host.realtime;	// for retransmit requests
@@ -1237,7 +1239,7 @@ void CL_CheckForResend (void)
 	else
 		Con_Printf ("Connecting to %s... [retry #%i]\n", cls.servername, cls.connect_retry);
 
-	//if (!cls.legacymode && cl_test_bandwidth.value)
+	/*if (!cls.legacymode && cl_test_bandwidth.value)*/
 	if (bandwidthTest)
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "bandwidth %i %i\n", PROTOCOL_VERSION, cls.max_fragment_size);
 	else
@@ -1272,8 +1274,8 @@ void CL_CreateResourceList (void)
 	HPAK_FlushHostQueue ();
 	cl.num_resources = 0;
 
-	// [Xash3D, 21.03.23]
-	//Q_snprintf (szFileName, sizeof (szFileName), "logos/remapped.bmp");
+	// [FWGS, 01.04.23]
+	/*Q_snprintf (szFileName, sizeof (szFileName), "logos/remapped.bmp");*/
 	memset (rgucMD5_hash, 0, sizeof (rgucMD5_hash));
 
 	// sanitize cvar value
@@ -1366,8 +1368,8 @@ void CL_Rcon_f (void)
 	string		command;
 	int			i;
 
-	// [Xash3D, 21.03.23]
-	//if (!COM_CheckString (rcon_client_password->string))
+	// [FWGS, 01.04.23]
+	/*if (!COM_CheckString (rcon_client_password->string))*/
 	if (!COM_CheckString (rcon_password.string))
 		{
 		Con_Printf ("You must set 'rcon_password' before issuing an rcon command.\n");
@@ -1383,7 +1385,7 @@ void CL_Rcon_f (void)
 	NET_Config (true, false);	// allow remote
 
 	Q_strcat (message, "rcon ");
-	//Q_strcat (message, rcon_client_password->string);
+	/*Q_strcat (message, rcon_client_password->string);*/	// [FWGS, 01.04.23]
 	Q_strcat (message, rcon_password.string);
 	Q_strcat (message, " ");
 
@@ -1432,8 +1434,8 @@ void CL_ClearState (void)
 	CL_ClearEffects ();
 	CL_FreeEdicts ();
 
-	// [Xash3D, 21.03.23]
-	//CL_ClearPhysEnts ();
+	// [FWGS, 01.04.23]
+	/*CL_ClearPhysEnts ();*/
 	PM_ClearPhysEnts (clgame.pmove);
 	NetAPI_CancelAllRequests ();
 
@@ -1443,7 +1445,7 @@ void CL_ClearState (void)
 	memset (&clgame.fade, 0, sizeof (clgame.fade));
 	memset (&clgame.shake, 0, sizeof (clgame.shake));
 	
-	// [Xash3D, 21.03.23]
+	// [FWGS, 01.04.23]
 	clgame.mapname[0] = '\0';
 	Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
 	cl.maxclients = 1; // allow to drawing player in menu
@@ -1655,19 +1657,19 @@ void CL_LocalServers_f (void)
 	adr.type = NA_BROADCAST;
 	adr.port = MSG_BigShort (PORT_SERVER);
 	
-	// [Xash3D, 21.03.23]
+	// [FWGS, 01.04.23]
 	Netchan_OutOfBandPrint (NS_CLIENT, adr, "info %i", PROTOCOL_VERSION);
 	
 	adr.type = NA_MULTICAST_IP6;
 	Netchan_OutOfBandPrint (NS_CLIENT, adr, "info %i", PROTOCOL_VERSION);
 	}
 
-// [Xash3D, 21.03.23]
-//#define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"
+// [FWGS, 01.04.23]
+/*#define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"*/
 
 /*
 =================
-CL_BuildMasterServerScanRequest [Xash3D, 21.03.23]
+CL_BuildMasterServerScanRequest [FWGS, 01.04.23]
 =================
 */
 size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat)
@@ -1694,7 +1696,7 @@ size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat)
 
 /*
 =================
-CL_InternetServers_f [Xash3D, 21.03.23]
+CL_InternetServers_f [FWGS, 01.04.23]
 =================
 */
 void CL_InternetServers_f (void)
@@ -1706,7 +1708,7 @@ void CL_InternetServers_f (void)
 	size_t		len;
 	qboolean	nat = cl_nat->value != 0.0f;
 
-	//NET_Config (true, true); // allow remote
+	/*NET_Config (true, true); // allow remote*/
 	len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), nat);
 
 	Con_Printf ("Scanning for servers on the internet area...\n");
@@ -1753,7 +1755,7 @@ void CL_Reconnect_f (void)
 
 	if (COM_CheckString (cls.servername))
 		{
-		qboolean legacy = cls.legacymode;	// [Xash3D, 21.03.23]
+		qboolean legacy = cls.legacymode;	// [FWGS, 01.04.23]
 
 		if (cls.state >= ca_connected)
 			CL_Disconnect ();
@@ -1762,7 +1764,7 @@ void CL_Reconnect_f (void)
 		cls.demonum = cls.movienum = -1;	// not in the demo loop now
 		cls.state = ca_connecting;
 		cls.signon = 0;
-		cls.legacymode = legacy;			// [Xash3D, 21.03.23] don't change protocol
+		cls.legacymode = legacy;			// [FWGS, 01.04.23] don't change protocol
 
 		Con_Printf ("reconnecting...\n");
 		}
@@ -1788,7 +1790,7 @@ void CL_FixupColorStringsForInfoString (const char *in, char *out)
 		count++;
 		}
 
-	while (*in && count < MAX_INFO_STRING)
+	while (*in && (count < MAX_INFO_STRING))
 		{
 		if (IsColorString (in))
 			color = ColorIndex (*(in + 1));
@@ -2186,8 +2188,8 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 
 		if (NET_CompareAdr (from, cls.legacyserver))
 			{
-			// [Xash3D, 21.03.23]
-			//Cbuf_AddText (va ("connect %s legacy\n", NET_AdrToString (from)));
+			// [FWGS, 01.04.23]
+			/*Cbuf_AddText (va ("connect %s legacy\n", NET_AdrToString (from)));*/
 			Cbuf_AddTextf ("connect %s legacy\n", NET_AdrToString (from));
 			memset (&cls.legacyserver, 0, sizeof (cls.legacyserver));
 			}
@@ -2549,7 +2551,7 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 		if (filename[0] != '!')
 			Con_Printf ("processing %s\n", filename);
 
-		// [Xash3D, 21.03.23] skip "downloaded/" part to avoid mismatch with needed resources list
+		// [FWGS, 01.04.23] skip "downloaded/" part to avoid mismatch with needed resources list
 		if (!Q_strnicmp (filename, "downloaded/", 11))
 			filename += 11;
 		}
@@ -2953,132 +2955,228 @@ void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_download_ingame);
 	Cvar_RegisterVariable (&cl_logofile);
 	Cvar_RegisterVariable (&cl_logocolor);
-	Cvar_RegisterVariable (&cl_logoext);	// [Xash3D, 21.03.23]
+	Cvar_RegisterVariable (&cl_logoext);	// [FWGS, 01.04.23]
 	Cvar_RegisterVariable (&cl_test_bandwidth);
 
 	Voice_RegisterCvars ();
 
 	// register our variables
-	cl_crosshair = Cvar_Get ("crosshair", "1", FCVAR_ARCHIVE, "show weapon chrosshair");
-	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0, "disable delta-compression for server messages");
-	cl_idealpitchscale = Cvar_Get ("cl_idealpitchscale", "0.8", 0, "how much to look up/down slopes and stairs when not using freelook");
-	cl_solid_players = Cvar_Get ("cl_solid_players", "1", 0, "Make all players not solid (can't traceline them)");
-	cl_interp = Cvar_Get ("ex_interp", "0.1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "Interpolate object positions starting this many seconds in past");
-	cl_timeout = Cvar_Get ("cl_timeout", "60", 0, "connect timeout (in-seconds)");
-	cl_charset = Cvar_Get ("cl_charset", "utf-8", FCVAR_ARCHIVE, "1-byte charset to use (iconv style)");
-	hud_utf8 = Cvar_Get ("hud_utf8", "0", FCVAR_ARCHIVE, "Use utf-8 encoding for hud text");
+	cl_crosshair = Cvar_Get ("crosshair", "1", FCVAR_ARCHIVE,
+		"show weapon chrosshair");
+	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0,
+		"disable delta-compression for server messages");
+	cl_idealpitchscale = Cvar_Get ("cl_idealpitchscale", "0.8", 0,
+		"how much to look up/down slopes and stairs when not using freelook");
+	cl_solid_players = Cvar_Get ("cl_solid_players", "1", 0,
+		"Make all players not solid (can't traceline them)");
+	cl_interp = Cvar_Get ("ex_interp", "0.1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+		"Interpolate object positions starting this many seconds in past");
+	cl_timeout = Cvar_Get ("cl_timeout", "60", 0,
+		"connect timeout (in-seconds)");
+	cl_charset = Cvar_Get ("cl_charset", "utf-8", FCVAR_ARCHIVE,
+		"1-byte charset to use (iconv style)");
+	hud_utf8 = Cvar_Get ("hud_utf8", "0", FCVAR_ARCHIVE,
+		"Use utf-8 encoding for hud text");
 
-	// [Xash3D, 21.03.23]
-	//rcon_client_password = Cvar_Get ("rcon_password", "", FCVAR_PRIVILEGED, "remote control client password");
-	rcon_address = Cvar_Get ("rcon_address", "", FCVAR_PRIVILEGED, "remote control address");
+	// [FWGS, 01.04.23]
+	/*rcon_client_password = Cvar_Get ("rcon_password", "", FCVAR_PRIVILEGED, "remote control client password");*/
+	rcon_address = Cvar_Get ("rcon_address", "", FCVAR_PRIVILEGED,
+		"remote control address");
 
-	cl_trace_messages = Cvar_Get ("cl_trace_messages", "0", FCVAR_ARCHIVE | FCVAR_CHEAT, "enable message names tracing (good for developers)");
+	cl_trace_messages = Cvar_Get ("cl_trace_messages", "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
+		"enable message names tracing (good for developers)");
 
 	// userinfo
-	cl_nopred = Cvar_Get ("cl_nopred", "0", FCVAR_ARCHIVE | FCVAR_USERINFO, "disable client movement prediction");
-	name = Cvar_Get ("name", Sys_GetCurrentUser (), FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY, "player name");
-	model = Cvar_Get ("model", "", FCVAR_USERINFO | FCVAR_ARCHIVE, "player model ('player' is a singleplayer model)");
-	cl_updaterate = Cvar_Get ("cl_updaterate", "20", FCVAR_USERINFO | FCVAR_ARCHIVE, "refresh rate of server messages");
-	cl_dlmax = Cvar_Get ("cl_dlmax", "0", FCVAR_USERINFO | FCVAR_ARCHIVE, "max allowed outcoming fragment size");
-	cl_upmax = Cvar_Get ("cl_upmax", "1200", FCVAR_ARCHIVE, "max allowed incoming fragment size");
-	cl_nat = Cvar_Get ("cl_nat", "0", 0, "show servers running under NAT");
-	rate = Cvar_Get ("rate", "3500", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE, "player network rate");
-	topcolor = Cvar_Get ("topcolor", "0", FCVAR_USERINFO | FCVAR_ARCHIVE, "player top color");
-	bottomcolor = Cvar_Get ("bottomcolor", "0", FCVAR_USERINFO | FCVAR_ARCHIVE, "player bottom color");
-	cl_lw = Cvar_Get ("cl_lw", "1", FCVAR_ARCHIVE | FCVAR_USERINFO, "enable client weapon predicting");
-	Cvar_Get ("cl_lc", "1", FCVAR_ARCHIVE | FCVAR_USERINFO, "enable lag compensation");
-	Cvar_Get ("password", "", FCVAR_USERINFO, "server password");
-	Cvar_Get ("team", "", FCVAR_USERINFO, "player team");
-	Cvar_Get ("skin", "", FCVAR_USERINFO, "player skin");
+	cl_nopred = Cvar_Get ("cl_nopred", "0", FCVAR_ARCHIVE | FCVAR_USERINFO,
+		"disable client movement prediction");
+	name = Cvar_Get ("name", Sys_GetCurrentUser (), FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY,
+		"player name");
+	model = Cvar_Get ("model", "", FCVAR_USERINFO | FCVAR_ARCHIVE,
+		"player model ('player' is a singleplayer model)");
+	cl_updaterate = Cvar_Get ("cl_updaterate", "20", FCVAR_USERINFO | FCVAR_ARCHIVE,
+		"refresh rate of server messages");
+	cl_dlmax = Cvar_Get ("cl_dlmax", "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
+		"max allowed outcoming fragment size");
+	cl_upmax = Cvar_Get ("cl_upmax", "1200", FCVAR_ARCHIVE,
+		"max allowed incoming fragment size");
+	cl_nat = Cvar_Get ("cl_nat", "0", 0,
+		"show servers running under NAT");
+	rate = Cvar_Get ("rate", "3500", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+		"player network rate");
+	topcolor = Cvar_Get ("topcolor", "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
+		"player top color");
+	bottomcolor = Cvar_Get ("bottomcolor", "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
+		"player bottom color");
+	cl_lw = Cvar_Get ("cl_lw", "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
+		"enable client weapon predicting");
+	Cvar_Get ("cl_lc", "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
+		"enable lag compensation");
+	Cvar_Get ("password", "", FCVAR_USERINFO,
+		"server password");
+	Cvar_Get ("team", "", FCVAR_USERINFO,
+		"player team");
+	Cvar_Get ("skin", "", FCVAR_USERINFO,
+		"player skin");
 
-	cl_nosmooth = Cvar_Get ("cl_nosmooth", "0", FCVAR_ARCHIVE, "disable smooth up stair climbing");
-	cl_nointerp = Cvar_Get ("cl_nointerp", "0", FCVAR_CLIENTDLL, "disable interpolation of entities and players");
-	cl_smoothtime = Cvar_Get ("cl_smoothtime", "0.1", FCVAR_ARCHIVE, "time to smooth up");
-	cl_cmdbackup = Cvar_Get ("cl_cmdbackup", "10", FCVAR_ARCHIVE, "how many additional history commands are sent");
-	cl_cmdrate = Cvar_Get ("cl_cmdrate", "60", FCVAR_ARCHIVE, "Max number of command packets sent to server per second");
-	cl_draw_particles = Cvar_Get ("r_drawparticles", "1", FCVAR_CHEAT, "render particles");
-	cl_draw_tracers = Cvar_Get ("r_drawtracers", "1", FCVAR_CHEAT, "render tracers");
-	cl_draw_beams = Cvar_Get ("r_drawbeams", "1", FCVAR_CHEAT, "render beams");
-	cl_lightstyle_lerping = Cvar_Get ("cl_lightstyle_lerping", "0", FCVAR_ARCHIVE, "enables animated light lerping (perfomance option)");
-	cl_showerror = Cvar_Get ("cl_showerror", "0", FCVAR_ARCHIVE, "show prediction error");
-	cl_bmodelinterp = Cvar_Get ("cl_bmodelinterp", "1", FCVAR_ARCHIVE, "enable bmodel interpolation");
-	cl_clockreset = Cvar_Get ("cl_clockreset", "0.1", FCVAR_ARCHIVE, "frametime delta maximum value before reset");
-	cl_fixtimerate = Cvar_Get ("cl_fixtimerate", "7.5", FCVAR_ARCHIVE, "time in msec to client clock adjusting");
+	cl_nosmooth = Cvar_Get ("cl_nosmooth", "0", FCVAR_ARCHIVE,
+		"disable smooth up stair climbing");
+	cl_nointerp = Cvar_Get ("cl_nointerp", "0", FCVAR_CLIENTDLL,
+		"disable interpolation of entities and players");
+	cl_smoothtime = Cvar_Get ("cl_smoothtime", "0.1", FCVAR_ARCHIVE,
+		"time to smooth up");
+	cl_cmdbackup = Cvar_Get ("cl_cmdbackup", "10", FCVAR_ARCHIVE,
+		"how many additional history commands are sent");
+	cl_cmdrate = Cvar_Get ("cl_cmdrate", "60", FCVAR_ARCHIVE,
+		"Max number of command packets sent to server per second");
+	cl_draw_particles = Cvar_Get ("r_drawparticles", "1", FCVAR_CHEAT,
+		"render particles");
+	cl_draw_tracers = Cvar_Get ("r_drawtracers", "1", FCVAR_CHEAT,
+		"render tracers");
+	cl_draw_beams = Cvar_Get ("r_drawbeams", "1", FCVAR_CHEAT,
+		"render beams");
+	cl_lightstyle_lerping = Cvar_Get ("cl_lightstyle_lerping", "0", FCVAR_ARCHIVE,
+		"enables animated light lerping (perfomance option)");
+	cl_showerror = Cvar_Get ("cl_showerror", "0", FCVAR_ARCHIVE,
+		"show prediction error");
+	cl_bmodelinterp = Cvar_Get ("cl_bmodelinterp", "1", FCVAR_ARCHIVE,
+		"enable bmodel interpolation");
+	cl_clockreset = Cvar_Get ("cl_clockreset", "0.1", FCVAR_ARCHIVE,
+		"frametime delta maximum value before reset");
+	cl_fixtimerate = Cvar_Get ("cl_fixtimerate", "7.5", FCVAR_ARCHIVE,
+		"time in msec to client clock adjusting");
 
-	// [Xash3D, 21.03.23]
-	hud_fontscale = Cvar_Get ("hud_fontscale", "1.0", FCVAR_ARCHIVE | FCVAR_LATCH, "scale hud font texture");
-	hud_scale = Cvar_Get ("hud_scale", "0", FCVAR_ARCHIVE | FCVAR_LATCH, "scale hud at current resolution");
-	Cvar_Get ("cl_background", "0", FCVAR_READ_ONLY, "indicate what background map is running");
-	cl_showevents = Cvar_Get ("cl_showevents", "0", FCVAR_ARCHIVE, "show events playback");
-	Cvar_Get ("lastdemo", "", FCVAR_ARCHIVE, "last played demo");
-	ui_renderworld = Cvar_Get ("ui_renderworld", "0", FCVAR_ARCHIVE, "render world when UI is visible");
+	// [FWGS, 01.04.23]
+	hud_fontscale = Cvar_Get ("hud_fontscale", "1.0", FCVAR_ARCHIVE | FCVAR_LATCH,
+		"scale hud font texture");
+	hud_scale = Cvar_Get ("hud_scale", "0", FCVAR_ARCHIVE | FCVAR_LATCH,
+		"scale hud at current resolution");
+	Cvar_Get ("cl_background", "0", FCVAR_READ_ONLY,
+		"indicate what background map is running");
+	cl_showevents = Cvar_Get ("cl_showevents", "0", FCVAR_ARCHIVE,
+		"show events playback");
+	Cvar_Get ("lastdemo", "", FCVAR_ARCHIVE,
+		"last played demo");
+	ui_renderworld = Cvar_Get ("ui_renderworld", "0", FCVAR_ARCHIVE,
+		"render world when UI is visible");
 
 	// these two added to shut up CS 1.5 about 'unknown' commands
-	Cvar_Get ("lightgamma", "1", FCVAR_ARCHIVE, "ambient lighting level (legacy, unused)");
-	Cvar_Get ("direct", "1", FCVAR_ARCHIVE, "direct lighting level (legacy, unused)");
+	Cvar_Get ("lightgamma", "1", FCVAR_ARCHIVE,
+		"ambient lighting level (legacy, unused)");
+	Cvar_Get ("direct", "1", FCVAR_ARCHIVE,
+		"direct lighting level (legacy, unused)");
 
 	// server commands
-	Cmd_AddCommand ("noclip", NULL, "enable or disable no clipping mode");
-	Cmd_AddCommand ("notarget", NULL, "notarget mode (monsters do not see you)");
-	Cmd_AddCommand ("fullupdate", NULL, "re-init HUD on start demo recording");
-	Cmd_AddCommand ("give", NULL, "give specified item or weapon");
-	Cmd_AddCommand ("drop", NULL, "drop current/specified item or weapon");
-	Cmd_AddCommand ("gametitle", NULL, "show game logo");
-	Cmd_AddRestrictedCommand ("kill", NULL, "die instantly");
-	Cmd_AddCommand ("god", NULL, "enable godmode");
-	Cmd_AddCommand ("fov", NULL, "set client field of view");
+	Cmd_AddCommand ("noclip", NULL,
+		"enable or disable no clipping mode");
+	Cmd_AddCommand ("notarget", NULL,
+		"notarget mode (monsters do not see you)");
+	Cmd_AddCommand ("fullupdate", NULL,
+		"re-init HUD on start demo recording");
+	Cmd_AddCommand ("give", NULL,
+		"give specified item or weapon");
+	Cmd_AddCommand ("drop", NULL,
+		"drop current/specified item or weapon");
+	Cmd_AddCommand ("gametitle", NULL,
+		"show game logo");
+	Cmd_AddRestrictedCommand ("kill", NULL,
+		"die instantly");
+	Cmd_AddCommand ("god", NULL,
+		"enable godmode");
+	Cmd_AddCommand ("fov", NULL,
+		"set client field of view");
 
-	// [Xash3D, 21.03.23]
-	Cmd_AddRestrictedCommand ("ent_list", NULL, "list entities on server");
-	Cmd_AddRestrictedCommand ("ent_fire", NULL, "fire entity command (be careful)");
-	Cmd_AddRestrictedCommand ("ent_info", NULL, "dump entity information");
-	Cmd_AddRestrictedCommand ("ent_create", NULL, "create entity with specified values (be careful)");
-	Cmd_AddRestrictedCommand ("ent_getvars", NULL, "put parameters of specified entities to client's' ent_last_* cvars");
+	// [FWGS, 01.04.23]
+	Cmd_AddRestrictedCommand ("ent_list", NULL,
+		"list entities on server");
+	Cmd_AddRestrictedCommand ("ent_fire", NULL,
+		"fire entity command (be careful)");
+	Cmd_AddRestrictedCommand ("ent_info", NULL,
+		"dump entity information");
+	Cmd_AddRestrictedCommand ("ent_create", NULL,
+		"create entity with specified values (be careful)");
+	Cmd_AddRestrictedCommand ("ent_getvars", NULL,
+		"put parameters of specified entities to client's' ent_last_* cvars");
 
 	// register our commands
-	Cmd_AddCommand ("pause", NULL, "pause the game (if the server allows pausing)");
-	Cmd_AddCommand ("localservers", CL_LocalServers_f, "collect info about local servers");
-	Cmd_AddCommand ("internetservers", CL_InternetServers_f, "collect info about internet servers");
-	Cmd_AddCommand ("cd", CL_PlayCDTrack_f, "Play cd-track (not real cd-player of course)");
-	Cmd_AddCommand ("mp3", CL_PlayCDTrack_f, "Play mp3-track (based on virtual cd-player)");
-	Cmd_AddCommand ("waveplaylen", CL_WavePlayLen_f, "Get approximate length of wave file");
+	Cmd_AddCommand ("pause", NULL,
+		"pause the game (if the server allows pausing)");
+	Cmd_AddCommand ("localservers", CL_LocalServers_f,
+		"collect info about local servers");
+	Cmd_AddCommand ("internetservers", CL_InternetServers_f,
+		"collect info about internet servers");
+	Cmd_AddCommand ("cd", CL_PlayCDTrack_f,
+		"Play cd-track (not real cd-player of course)");
+	Cmd_AddCommand ("mp3", CL_PlayCDTrack_f,
+		"Play mp3-track (based on virtual cd-player)");
+	Cmd_AddCommand ("waveplaylen", CL_WavePlayLen_f,
+		"Get approximate length of wave file");
 
-	Cmd_AddRestrictedCommand ("setinfo", CL_SetInfo_f, "examine or change the userinfo string (alias of userinfo)");
-	Cmd_AddRestrictedCommand ("userinfo", CL_SetInfo_f, "examine or change the userinfo string (alias of setinfo)");
-	Cmd_AddCommand ("physinfo", CL_Physinfo_f, "print current client physinfo");
-	Cmd_AddCommand ("disconnect", CL_Disconnect_f, "disconnect from server");
-	Cmd_AddCommand ("record", CL_Record_f, "record a demo");
-	Cmd_AddCommand ("playdemo", CL_PlayDemo_f, "play a demo");
-	Cmd_AddCommand ("timedemo", CL_TimeDemo_f, "demo benchmark");
-	Cmd_AddCommand ("killdemo", CL_DeleteDemo_f, "delete a specified demo file");
-	Cmd_AddCommand ("startdemos", CL_StartDemos_f, "start playing back the selected demos sequentially");
-	Cmd_AddCommand ("demos", CL_Demos_f, "restart looping demos defined by the last startdemos command");
-	Cmd_AddCommand ("movie", CL_PlayVideo_f, "play a movie");
-	Cmd_AddCommand ("stop", CL_Stop_f, "stop playing or recording a demo");
-	Cmd_AddCommand ("info", NULL, "collect info about local servers with specified protocol");
-	Cmd_AddCommand ("escape", CL_Escape_f, "escape from game to menu");
-	Cmd_AddCommand ("togglemenu", CL_Escape_f, "toggle between game and menu");
-	Cmd_AddCommand ("pointfile", CL_ReadPointFile_f, "show leaks on a map (if present of course)");
-	Cmd_AddCommand ("linefile", CL_ReadLineFile_f, "show leaks on a map (if present of course)");
-	Cmd_AddCommand ("fullserverinfo", CL_FullServerinfo_f, "sent by server when serverinfo changes");
-	Cmd_AddCommand ("upload", CL_BeginUpload_f, "uploading file to the server");
+	Cmd_AddRestrictedCommand ("setinfo", CL_SetInfo_f,
+		"examine or change the userinfo string (alias of userinfo)");
+	Cmd_AddRestrictedCommand ("userinfo", CL_SetInfo_f,
+		"examine or change the userinfo string (alias of setinfo)");
+	Cmd_AddCommand ("physinfo", CL_Physinfo_f,
+		"print current client physinfo");
+	Cmd_AddCommand ("disconnect", CL_Disconnect_f,
+		"disconnect from server");
+	Cmd_AddCommand ("record", CL_Record_f,
+		"record a demo");
+	Cmd_AddCommand ("playdemo", CL_PlayDemo_f,
+		"play a demo");
+	Cmd_AddCommand ("timedemo", CL_TimeDemo_f,
+		"demo benchmark");
+	Cmd_AddCommand ("killdemo", CL_DeleteDemo_f,
+		"delete a specified demo file");
+	Cmd_AddCommand ("startdemos", CL_StartDemos_f,
+		"start playing back the selected demos sequentially");
+	Cmd_AddCommand ("demos", CL_Demos_f,
+		"restart looping demos defined by the last startdemos command");
+	Cmd_AddCommand ("movie", CL_PlayVideo_f,
+		"play a movie");
+	Cmd_AddCommand ("stop", CL_Stop_f,
+		"stop playing or recording a demo");
+	Cmd_AddCommand ("info", NULL,
+		"collect info about local servers with specified protocol");
+	Cmd_AddCommand ("escape", CL_Escape_f,
+		"escape from game to menu");
+	Cmd_AddCommand ("togglemenu", CL_Escape_f,
+		"toggle between game and menu");
+	Cmd_AddCommand ("pointfile", CL_ReadPointFile_f,
+		"show leaks on a map (if present of course)");
+	Cmd_AddCommand ("linefile", CL_ReadLineFile_f,
+		"show leaks on a map (if present of course)");
+	Cmd_AddCommand ("fullserverinfo", CL_FullServerinfo_f,
+		"sent by server when serverinfo changes");
+	Cmd_AddCommand ("upload", CL_BeginUpload_f,
+		"uploading file to the server");
 
-	Cmd_AddRestrictedCommand ("quit", CL_Quit_f, "quit from game");
-	Cmd_AddRestrictedCommand ("exit", CL_Quit_f, "quit from game");
+	Cmd_AddRestrictedCommand ("quit", CL_Quit_f,
+		"quit from game");
+	Cmd_AddRestrictedCommand ("exit", CL_Quit_f,
+		"quit from game");
 
-	Cmd_AddCommand ("screenshot", CL_ScreenShot_f, "takes a screenshot of the next rendered frame");
-	Cmd_AddCommand ("snapshot", CL_SnapShot_f, "takes a snapshot of the next rendered frame");
-	Cmd_AddCommand ("envshot", CL_EnvShot_f, "takes a six-sides cubemap shot with specified name");
-	Cmd_AddCommand ("skyshot", CL_SkyShot_f, "takes a six-sides envmap (skybox) shot with specified name");
-	Cmd_AddCommand ("levelshot", CL_LevelShot_f, "same as \"screenshot\", used for create plaque images");
-	Cmd_AddCommand ("saveshot", CL_SaveShot_f, "used for create save previews with LoadGame menu");
+	Cmd_AddCommand ("screenshot", CL_ScreenShot_f,
+		"takes a screenshot of the next rendered frame");
+	Cmd_AddCommand ("snapshot", CL_SnapShot_f,
+		"takes a snapshot of the next rendered frame");
+	Cmd_AddCommand ("envshot", CL_EnvShot_f,
+		"takes a six-sides cubemap shot with specified name");
+	Cmd_AddCommand ("skyshot", CL_SkyShot_f,
+		"takes a six-sides envmap (skybox) shot with specified name");
+	Cmd_AddCommand ("levelshot", CL_LevelShot_f,
+		"same as \"screenshot\", used for create plaque images");
+	Cmd_AddCommand ("saveshot", CL_SaveShot_f,
+		"used for create save previews with LoadGame menu");
 
-	Cmd_AddCommand ("connect", CL_Connect_f, "connect to a server by hostname");
-	Cmd_AddCommand ("reconnect", CL_Reconnect_f, "reconnect to current level");
+	Cmd_AddCommand ("connect", CL_Connect_f,
+		"connect to a server by hostname");
+	Cmd_AddCommand ("reconnect", CL_Reconnect_f,
+		"reconnect to current level");
 
-	Cmd_AddCommand ("rcon", CL_Rcon_f, "sends a command to the server console (rcon_password and rcon_address required)");
-	Cmd_AddCommand ("precache", CL_LegacyPrecache_f, "legacy server compatibility");
-
+	Cmd_AddCommand ("rcon", CL_Rcon_f,
+		"sends a command to the server console (rcon_password and rcon_address required)");
+	Cmd_AddCommand ("precache", CL_LegacyPrecache_f,
+		"legacy server compatibility");
 	}
 
 //============================================================================
@@ -3103,7 +3201,7 @@ void CL_AdjustClock (void)
 		double msec, adjust;
 		double sign;
 
-		// [Xash3D, 21.03.23]
+		// [FWGS, 01.04.23]
 		/*msec = (cl.timedelta * 1000.0f);
 		sign = (msec < 0) ? 1.0f : -1.0f;
 		msec = fabs (msec);
@@ -3196,7 +3294,7 @@ void Host_ClientFrame (void)
 	// catch changes video settings
 	VID_CheckChanges ();
 
-	/* [Xash3D, 21.03.23] process VGUI
+	/* [FWGS, 01.04.23] process VGUI
 	VGui_RunFrame ();*/
 
 	// update the screen
@@ -3274,7 +3372,7 @@ void CL_Shutdown (void)
 	CL_UnloadProgs ();
 	cls.initialized = false;
 
-	// [Xash3D, 21.03.23] for client-side VGUI support we use other order
+	// [FWGS, 01.04.23] for client-side VGUI support we use other order
 	if (!GI->internal_vgui_support)
 		VGui_Shutdown ();
 

@@ -80,8 +80,8 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 
 	MSG_BeginClientCmd (msg, clc_stringcmd);
 	
-	// [Xash3D, 21.03.23]
-	//MSG_WriteString (msg, va ("dlfile %s", filepath));
+	// [FWGS, 01.04.23]
+	/*MSG_WriteString (msg, va ("dlfile %s", filepath));*/
 	MSG_WriteStringf (msg, "dlfile %s", filepath);
 
 	host.downloadcount++;
@@ -91,13 +91,13 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 
 void CL_AddToResourceList (resource_t *pResource, resource_t *pList)
 	{
-	if (pResource->pPrev != NULL || pResource->pNext != NULL)
+	if ((pResource->pPrev != NULL) || (pResource->pNext != NULL))
 		{
 		Con_Reportf (S_ERROR "Resource already linked\n");
 		return;
 		}
 
-	if (pList->pPrev == NULL || pList->pNext == NULL)
+	if ((pList->pPrev == NULL) || (pList->pNext == NULL))
 		Host_Error ("Resource list corrupted.\n");
 
 	pResource->pPrev = pList->pPrev;
@@ -108,10 +108,10 @@ void CL_AddToResourceList (resource_t *pResource, resource_t *pList)
 
 void CL_RemoveFromResourceList (resource_t *pResource)
 	{
-	if (pResource->pPrev == NULL || pResource->pNext == NULL)
+	if ((pResource->pPrev == NULL) || (pResource->pNext == NULL))
 		Host_Error ("mislinked resource in CL_RemoveFromResourceList\n");
 
-	if (pResource->pNext == pResource || pResource->pPrev == pResource)
+	if ((pResource->pNext == pResource) || (pResource->pPrev == pResource))
 		Host_Error ("attempt to free last entry in list.\n");
 
 	pResource->pPrev->pNext = pResource->pNext;

@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #ifndef _GNU_SOURCE
 	#define _GNU_SOURCE
 #endif
@@ -22,15 +22,15 @@ GNU General Public License for more details.
 
 /*
 ================
-Sys_Crash [Xash3D, 31.03.23]
+Sys_Crash [FWGS, 01.04.23]
 
 Crash handler, called from system
 ================
 */
-//#if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP || XASH_CRASHHANDLER == CRASHHANDLER_WIN32
+/*#if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP || XASH_CRASHHANDLER == CRASHHANDLER_WIN32*/
 #if XASH_WIN32
 #if DBGHELP
-//#if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP
+/*#if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP*/
 
 #pragma comment( lib, "dbghelp" )
 
@@ -193,16 +193,16 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 
 	SymCleanup (process);
 	}
-/*#endif // [Xash3D, 31.03.23] XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP */
+/*#endif*/
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void Sys_GetProcessName (char *processName, size_t bufferSize)
 	{
 	GetModuleBaseName (GetCurrentProcess (), NULL, processName, bufferSize - 1);
 	COM_FileBase (processName, processName);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void Sys_GetMinidumpFileName (const char *processName, char *mdmpFileName, size_t bufferSize)
 	{
 	time_t currentUtcTime = time (NULL);
@@ -219,7 +219,7 @@ static void Sys_GetMinidumpFileName (const char *processName, char *mdmpFileName
 		currentLocalTime->tm_sec);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static qboolean Sys_WriteMinidump (PEXCEPTION_POINTERS exceptionInfo, MINIDUMP_TYPE minidumpType)
 	{
 	HRESULT errorCode;
@@ -265,7 +265,8 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 		// check to avoid recursive call
 		host.crashed = true;
 
-// [Xash3D, 31.03.23] #if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP
+// [FWGS, 01.04.23]
+/*#if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP*/
 #if DBGHELP
 		Sys_StackTrace (pInfo);
 #else
@@ -278,7 +279,7 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 		else
 			host.status = HOST_CRASHED;
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if DBGHELP
 	if (Sys_CheckParm ("-minidumps"))
 		{
@@ -329,7 +330,8 @@ void Sys_RestoreCrashHandler (void)
 	if (oldFilter) SetUnhandledExceptionFilter (oldFilter);
 	}
 
-// [Xash3D, 31.03.23] #elif XASH_CRASHHANDLER == CRASHHANDLER_UCONTEXT
+// [FWGS, 01.04.23]
+/*#elif XASH_CRASHHANDLER == CRASHHANDLER_UCONTEXT*/
 #elif XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
 
 // Posix signal handler
@@ -338,12 +340,14 @@ void Sys_RestoreCrashHandler (void)
 #include <sys/mman.h>
 #include "library.h"
 
+// [FWGS, 01.04.23]
 /*#if XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
 #define HAVE_UCONTEXT_H 1
 #endif*/
 #define STACK_BACKTRACE_STR     "Stack backtrace:\n"
 #define STACK_DUMP_STR          "Stack dump:\n"
 
+// [FWGS, 01.04.23]
 /*#ifdef HAVE_UCONTEXT_H
 #include <ucontext.h>
 #endif*/
@@ -351,6 +355,7 @@ void Sys_RestoreCrashHandler (void)
 #define STACK_DUMP_STR_LEN      ( sizeof( STACK_DUMP_STR ) - 1 )
 #define ALIGN( x, y ) (((uintptr_t) ( x ) + (( y ) - 1 )) & ~(( y ) - 1 ))
 
+// [FWGS, 01.04.23]
 /*#include <signal.h>
 #include <sys/mman.h>*/
 static struct sigaction oldFilter;
@@ -394,7 +399,7 @@ static int Sys_PrintFrame (char *buf, int len, int i, void *addr)
 		}
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 /*struct sigaction oldFilter;
 
 #define STACK_BACKTRACE_STR     "Stack backtrace:\n"
@@ -404,7 +409,7 @@ static int Sys_PrintFrame (char *buf, int len, int i, void *addr)
 #define STACK_DUMP_STR_LEN      (sizeof( STACK_DUMP_STR ) - 1)
 #define ALIGN( x, y ) (((uintptr_t) (x) + ((y)-1)) & ~((y)-1))*/
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void Sys_Crash (int signal, siginfo_t *si, void *context)
 	{
 	void *pc = NULL, **bp = NULL, **sp = NULL; // this must be set for every OS!
@@ -464,13 +469,13 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 	sp = (void *)ucontext->uc_mcontext.arm_sp;
 #endif
 
-	// [Xash3D, 31.03.23] safe actions first, stack and memory may be corrupted
+	// [FWGS, 01.04.23] safe actions first, stack and memory may be corrupted
 	/*len = Q_snprintf (message, sizeof (message), "Ver: %s %s (build %i-%s, %s-%s)\n",
 		XASH_ENGINE_NAME, XASH_VERSION, Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());*/
 	len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
 		Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());
 
-// [Xash3D, 31.03.23] #if !XASH_BSD
+// [FWGS, 01.04.23] #if !XASH_BSD
 #if !XASH_FREEBSD && !XASH_NETBSD && !XASH_OPENBSD
 	len += Q_snprintf (message + len, sizeof (message) - len, "Crash: signal %d errno %d with code %d at %p %p\n", 
 		signal, si->si_errno, si->si_code, si->si_addr, si->si_ptr);
@@ -558,7 +563,7 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 
 void Sys_SetupCrashHandler (void)
 	{
-	struct sigaction act = { 0 };	// [Xash3D, 31.03.23]
+	struct sigaction act = { 0 };	// [FWGS, 01.04.23]
 	act.sa_sigaction = Sys_Crash;
 	act.sa_flags = SA_SIGINFO | SA_ONSTACK;
 	sigaction (SIGSEGV, &act, &oldFilter);
@@ -575,17 +580,16 @@ void Sys_RestoreCrashHandler (void)
 	sigaction (SIGILL, &oldFilter, NULL);
 	}
 
-// [Xash3D, 31.03.23]
-//#elif XASH_CRASHHANDLER == CRASHHANDLER_NULL
+// [FWGS, 01.04.23]
+/*#elif XASH_CRASHHANDLER == CRASHHANDLER_NULL*/
 #else
 
 void Sys_SetupCrashHandler (void)
 	{
-	// stub
 	}
 
 void Sys_RestoreCrashHandler (void)
 	{
-	// stub
 	}
+
 #endif

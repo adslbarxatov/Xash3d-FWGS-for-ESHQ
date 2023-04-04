@@ -1559,7 +1559,7 @@ int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags)
 
 /*
 ================
-GL_LoadTextureArray [Xash3D, 31.03.23]
+GL_LoadTextureArray [FWGS, 01.04.23]
 ================
 */
 int GL_LoadTextureArray (const char **names, int flags)

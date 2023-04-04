@@ -371,7 +371,7 @@ static void UI_SaveGame_Init (void)
 
 	uiSaveGame.banner.generic.id = ID_BANNER;
 	uiSaveGame.banner.generic.type = QMTYPE_BITMAP;
-	uiSaveGame.banner.generic.flags = QMF_INACTIVE;// | QMF_DRAW_ADDITIVE;
+	uiSaveGame.banner.generic.flags = QMF_INACTIVE | QMF_DRAW_ADDITIVE;
 	uiSaveGame.banner.generic.x = UI_BANNER_POSX;
 	uiSaveGame.banner.generic.y = UI_BANNER_POSY;
 	uiSaveGame.banner.generic.width = UI_BANNER_WIDTH;

@@ -235,7 +235,7 @@ void CL_InitCDAudio (const char *filename)
 	Mem_Free (afile);
 	}
 
-/* [Xash3D, 21.03.23]
+/* [FWGS, 01.04.23]
 ====================
 CL_PointContents
 
@@ -317,9 +317,9 @@ static int CL_AdjustYPos (float y, int height)
 
 /*
 =============
-CL_CenterPrint
+CL_CenterPrint [FWGS, 01.04.23]
 
-print centerscreen message [Xash3D, 21.03.23]
+print centerscreen message
 =============
 */
 void CL_CenterPrint (const char *text, float y)
@@ -329,11 +329,11 @@ void CL_CenterPrint (const char *text, float y)
 	char *s;*/
 	cl_font_t *font = Con_GetCurFont ();
 
-	//if (!COM_CheckString (text))
+	/*if (!COM_CheckString (text))*/
 	if (!COM_CheckString (text) || !font || !font->valid)
 		return;
 
-	//clgame.centerPrint.lines = 1;
+	/*clgame.centerPrint.lines = 1;*/
 	clgame.centerPrint.totalWidth = 0;
 	clgame.centerPrint.time = cl.mtime[0]; // allow pause for centerprint
 	Q_strncpy (clgame.centerPrint.message, text, sizeof (clgame.centerPrint.message));
@@ -363,15 +363,15 @@ void CL_CenterPrint (const char *text, float y)
 	else 
 		clgame.centerPrint.lines = 1;
 
-	//clgame.centerPrint.totalHeight = (clgame.centerPrint.lines * clgame.scrInfo.iCharHeight);
+	/*clgame.centerPrint.totalHeight = (clgame.centerPrint.lines * clgame.scrInfo.iCharHeight);*/
 	clgame.centerPrint.y = CL_AdjustYPos (y, clgame.centerPrint.totalHeight);
 	}
 
 /*
 ====================
-SPR_AdjustSize
+SPR_AdjustSize [FWGS, 01.04.23]
 
-draw hudsprite routine [Xash3D, 21.03.23]
+draw hudsprite routine
 ====================
 */
 void SPR_AdjustSize (float *x, float *y, float *w, float *h)
@@ -459,10 +459,11 @@ static qboolean SPR_Scissor (float *x, float *y, float *width, float *height, fl
 	*h *= yscale;
 	}
 
+// [FWGS, 01.04.23]
 void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2)
 	{
-	//if (*x + *width > clgame.ds.scissor_x + clgame.ds.scissor_width)
-	/*
+	/*if (*x + *width > clgame.ds.scissor_x + clgame.ds.scissor_width)
+	
 	*u1 -= (*x + *width - (clgame.ds.scissor_x + clgame.ds.scissor_width)) * dudx;
 	*width = clgame.ds.scissor_x + clgame.ds.scissor_width - *x;
 	}
@@ -479,17 +480,18 @@ void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float
 		*s2 -= 0.5f;
 		}
 
-	//if (*y + *height > clgame.ds.scissor_y + clgame.ds.scissor_height)
+	/*if (*y + *height > clgame.ds.scissor_y + clgame.ds.scissor_height)*/
 	if (refState.height != clgame.scrInfo.iHeight)
 		{
 		/**v1 -= (*y + *height - (clgame.ds.scissor_y + clgame.ds.scissor_height)) * dvdy;
 		*height = clgame.ds.scissor_y + clgame.ds.scissor_height - *y;*/
+		
 		// align to texel if scaling
 		*t1 += 0.5f;
 		*t2 -= 0.5f;
 		}
 
-	//return true;
+	/*return true;*/
 	*s1 /= width;
 	*t1 /= height;
 	*s2 /= width;
@@ -498,9 +500,9 @@ void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float
 
 /*
 ====================
-SPR_DrawGeneric
+SPR_DrawGeneric [FWGS, 01.04.23]
 
-draw hudsprite routine [Xash3D, 21.03.23]
+draw hudsprite routine
 ====================
 */
 static void SPR_DrawGeneric (int frame, float x, float y, float width, float height, const wrect_t *prc)
@@ -555,7 +557,7 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 		}
 
 	// pass scissor test if supposed
-	//if (clgame.ds.scissor_test && !SPR_Scissor (&x, &y, &width, &height, &s1, &t1, &s2, &t2))
+	/*if (clgame.ds.scissor_test && !SPR_Scissor (&x, &y, &width, &height, &s1, &t1, &s2, &t2))*/
 	if (!CL_Scissor (&clgame.ds.scissor, &x, &y, &width, &height, &s1, &t1, &s2, &t2))
 		return;
 
@@ -569,9 +571,9 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 
 /*
 =============
-CL_DrawCenterPrint
+CL_DrawCenterPrint [FWGS, 01.04.23]
 
-called each frame [Xash3D, 21.03.23]
+called each frame
 =============
 */
 void CL_DrawCenterPrint (void)
@@ -597,7 +599,7 @@ void CL_DrawCenterPrint (void)
 	colorDefault = g_color_table[7];
 	pText = clgame.centerPrint.message;
 	
-	//Con_DrawCharacterLen (0, NULL, &charHeight);
+	/*Con_DrawCharacterLen (0, NULL, &charHeight);*/
 	CL_DrawCharacterLen (font, 0, NULL, &charHeight);
 	ref.dllFuncs.GL_SetRenderMode (font->rendermode);
 
@@ -611,7 +613,7 @@ void CL_DrawCenterPrint (void)
 			byte c = *pText;
 			line[lineLength] = c;
 			
-			//Con_DrawCharacterLen (c, &charWidth, NULL);
+			/*Con_DrawCharacterLen (c, &charWidth, NULL);*/
 			CL_DrawCharacterLen (font, c, &charWidth, NULL);
 
 			width += charWidth;
@@ -632,14 +634,14 @@ void CL_DrawCenterPrint (void)
 			if ((x >= 0) && (y >= 0) && (x <= refState.width))
 				x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_UTF8 | 
 					FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);
-				//x += Con_DrawCharacter (x, y, line[j], colorDefault);
+				/*x += Con_DrawCharacter (x, y, line[j], colorDefault);*/
 			}
 
 		y += charHeight;
 		}
 	}
 
-// [Xash3D, 21.03.23]
+// [FWGS, 01.04.23]
 static int V_FadeAlpha (screenfade_t *sf)
 	{
 	int alpha;
@@ -677,7 +679,7 @@ static int V_FadeAlpha (screenfade_t *sf)
 
 /*
 =============
-CL_DrawScreenFade
+CL_DrawScreenFade [FWGS, 01.04.23]
 
 fill screen with specfied color
 can be modulated
@@ -686,7 +688,7 @@ can be modulated
 void CL_DrawScreenFade (void)
 	{
 	screenfade_t *sf = &clgame.fade;
-	//int	iFadeAlpha, testFlags;
+	/*int	iFadeAlpha, testFlags;*/
 	int	alpha;
 
 	// keep pushing reset time out indefinitely
@@ -714,7 +716,7 @@ void CL_DrawScreenFade (void)
 
 	if (FBitSet (sf->fadeFlags, FFADE_MODULATE))
 		{
-		//iFadeAlpha = sf->fadealpha;
+		/*iFadeAlpha = sf->fadealpha;*/
 		ref.dllFuncs.GL_SetRenderMode (kRenderScreenFadeModulate);
 
 		ref.dllFuncs.Color4ub (
@@ -746,10 +748,10 @@ void CL_DrawScreenFade (void)
 
 /*
 ====================
-CL_InitTitles
+CL_InitTitles [FWGS, 01.04.23]
 
 parse all messages that declared in titles.txt
-and hold them into permament memory pool [Xash3D, 21.03.23]
+and hold them into permament memory pool
 ====================
 */
 static void CL_InitTitles (const char *filename)
@@ -761,7 +763,7 @@ static void CL_InitTitles (const char *filename)
 	// initialize text messages (game_text)
 	for (i = 0; i < MAX_TEXTCHANNELS; i++)
 		{
-		//cl_textmessage[i].pName = _copystring (clgame.mempool, va (TEXT_MSGNAME, i), __FILE__, __LINE__);
+		/*cl_textmessage[i].pName = _copystring (clgame.mempool, va (TEXT_MSGNAME, i), __FILE__, __LINE__);*/
 		char name[MAX_VA_STRING];
 
 		Q_snprintf (name, sizeof (name), TEXT_MSGNAME, i);
@@ -770,7 +772,7 @@ static void CL_InitTitles (const char *filename)
 		cl_textmessage[i].pMessage = cl_textbuffer[i];
 		}
 
-	// clear out any old data that's sitting around.
+	// clear out any old data that's sitting around
 	if (clgame.titles) Mem_Free (clgame.titles);
 
 	clgame.titles = NULL;
@@ -792,7 +794,8 @@ Template to show hud messages
 */
 void CL_HudMessage (const char *pMessage)
 	{
-	if (!COM_CheckString (pMessage)) return;
+	if (!COM_CheckString (pMessage))
+		return;
 	CL_DispatchUserMessage ("HudText", Q_strlen (pMessage), (void *)pMessage);
 	}
 
@@ -812,7 +815,7 @@ void CL_ParseTextMessage (sizebuf_t *msg)
 	// read channel ( 0 - auto)
 	channel = MSG_ReadByte (msg);
 
-	if (channel <= 0 || channel > (MAX_TEXTCHANNELS - 1))
+	if ((channel <= 0) || (channel > (MAX_TEXTCHANNELS - 1)))
 		{
 		channel = msgindex;
 		msgindex = (msgindex + 1) & (MAX_TEXTCHANNELS - 1);
@@ -838,7 +841,8 @@ void CL_ParseTextMessage (sizebuf_t *msg)
 
 	if (text->effect == 2)
 		text->fxtime = (float)(MSG_ReadShort (msg) / 256.0f);
-	else text->fxtime = 0.0f;
+	else
+		text->fxtime = 0.0f;
 
 	// to prevent grab too long messages
 	Q_strncpy ((char *)text->pMessage, MSG_ReadString (msg), 2048);
@@ -957,7 +961,7 @@ const char *CL_SoundFromIndex (int index)
 
 /*
 ================
-CL_EnableScissor [Xash3D, 21.03.23]
+CL_EnableScissor [FWGS, 01.04.23]
 
 enable scissor test
 ================
@@ -973,7 +977,7 @@ void CL_EnableScissor (scissor_state_t *scissor, int x, int y, int width, int he
 
 /*
 ================
-CL_DisableScissor [Xash3D, 21.03.23]
+CL_DisableScissor [FWGS, 01.04.23]
 
 disable scissor test
 ================
@@ -985,7 +989,7 @@ void CL_DisableScissor (scissor_state_t *scissor)
 
 /*
 ================
-CL_Scissor [Xash3D, 21.03.23]
+CL_Scissor [FWGS, 01.04.23]
 
 perform common scissor test
 ================
@@ -999,7 +1003,7 @@ qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *
 		return true;
 
 	// clip sub rect to sprite
-	if (*width == 0 || *height == 0)
+	if ((*width == 0) || (*height == 0))
 		return false;
 
 	if (*x + *width <= scissor->x)
@@ -1044,7 +1048,7 @@ qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *
 
 /*
 =========
-SPR_EnableScissor [Xash3D, 21.03.23]
+SPR_EnableScissor [FWGS, 01.04.23]
 =========
 */
 static void GAME_EXPORT SPR_EnableScissor (int x, int y, int width, int height)
@@ -1065,7 +1069,7 @@ static void GAME_EXPORT SPR_EnableScissor (int x, int y, int width, int height)
 
 /*
 =========
-SPR_DisableScissor [Xash3D, 21.03.23]
+SPR_DisableScissor [FWGS, 01.04.23]
 =========
 */
 static void GAME_EXPORT SPR_DisableScissor (void)
@@ -1094,7 +1098,7 @@ void CL_DrawCrosshair (void)
 		return;
 
 	// any camera on or client is died
-	if (cl.local.health <= 0 || cl.viewentity != (cl.playernum + 1))
+	if ((cl.local.health <= 0) || (cl.viewentity != (cl.playernum + 1)))
 		return;
 
 	// get crosshair dimension
@@ -1140,15 +1144,15 @@ void CL_DrawCrosshair (void)
 
 /*
 =============
-CL_DrawLoading
+CL_DrawLoading [FWGS, 01.04.23]
 
-draw loading progress bar [Xash3D, 21.03.23]
+draw loading progress bar
 =============
 */
 //static void CL_DrawLoadingOrPaused (qboolean paused, float percent)
 static void CL_DrawLoadingOrPaused (int tex)
 	{
-	//int	x, y, width, height, right;
+	/*int	x, y, width, height, right;*/
 	float x, y, width, height;
 	int iWidth, iHeight;
 
@@ -1183,13 +1187,13 @@ static void CL_DrawLoadingOrPaused (int tex)
 	ref.dllFuncs.R_DrawStretchPic (x, y, width, height, 0, 0, 1, 1, tex);
 	}
 
-// [Xash3D, 21.03.23]
+// [FWGS, 01.04.23]
 void CL_DrawHUD (int state)
 	{
-	if (state == CL_ACTIVE && !cl.video_prepped)
+	if ((state == CL_ACTIVE) && !cl.video_prepped)
 		state = CL_LOADING;
 
-	if (state == CL_ACTIVE && cl.paused)
+	if ((state == CL_ACTIVE) && cl.paused)
 		state = CL_PAUSED;
 
 	switch (state)
@@ -1199,8 +1203,10 @@ void CL_DrawHUD (int state)
 				CL_DrawScreenFade ();
 			CL_DrawCrosshair ();
 			CL_DrawCenterPrint ();
+			
 			clgame.dllFuncs.pfnRedraw (cl.time, cl.intermission);
-			if (cl.intermission) CL_DrawScreenFade ();
+			if (cl.intermission)
+				CL_DrawScreenFade ();
 			break;
 
 		case CL_PAUSED:
@@ -1208,19 +1214,19 @@ void CL_DrawHUD (int state)
 			CL_DrawCrosshair ();
 			CL_DrawCenterPrint ();
 			clgame.dllFuncs.pfnRedraw (cl.time, cl.intermission);
-			//CL_DrawLoadingOrPaused (true, 0.0f);
+			/*CL_DrawLoadingOrPaused (true, 0.0f);*/
 			CL_DrawLoadingOrPaused (cls.pauseIcon);
 			break;
 
 		case CL_LOADING:
-			//CL_DrawLoadingOrPaused (false, scr_loading->value);
+			/*CL_DrawLoadingOrPaused (false, scr_loading->value);*/
 			CL_DrawLoadingOrPaused (cls.loadingBar);
 			break;
 
 		case CL_CHANGELEVEL:
 			if (cls.draw_changelevel)
 				{
-				//CL_DrawLoadingOrPaused (false, 100.0f);
+				/*CL_DrawLoadingOrPaused (false, 100.0f);*/
 				CL_DrawLoadingOrPaused (cls.loadingBar);
 				cls.draw_changelevel = false;
 				}
@@ -1620,12 +1626,12 @@ static int GAME_EXPORT pfnSPR_Width (HLSPRITE hPic, int frame)
 
 /*
 =========
-pfnSPR_Set [Xash3D, 21.03.23]
+pfnSPR_Set [FWGS, 01.04.23]
 =========
 */
 static void GAME_EXPORT pfnSPR_Set (HLSPRITE hPic, int r, int g, int b)
 	{
-	//clgame.ds.pSprite = CL_GetSpritePointer (hPic);
+	/*clgame.ds.pSprite = CL_GetSpritePointer (hPic);*/
 	const model_t *sprite = CL_GetSpritePointer (hPic);
 
 	// a1ba: do not alter the state if invalid HSPRITE was passed
@@ -1642,7 +1648,6 @@ static void GAME_EXPORT pfnSPR_Set (HLSPRITE hPic, int r, int g, int b)
 /*
 =========
 pfnSPR_Draw
-
 =========
 */
 static void GAME_EXPORT pfnSPR_Draw (int frame, int x, int y, const wrect_t *prc)
@@ -1654,7 +1659,6 @@ static void GAME_EXPORT pfnSPR_Draw (int frame, int x, int y, const wrect_t *prc
 /*
 =========
 pfnSPR_DrawHoles
-
 =========
 */
 static void GAME_EXPORT pfnSPR_DrawHoles (int frame, int x, int y, const wrect_t *prc)
@@ -1668,7 +1672,6 @@ static void GAME_EXPORT pfnSPR_DrawHoles (int frame, int x, int y, const wrect_t
 /*
 =========
 pfnSPR_DrawAdditive
-
 =========
 */
 static void GAME_EXPORT pfnSPR_DrawAdditive (int frame, int x, int y, const wrect_t *prc)
@@ -1763,7 +1766,8 @@ static client_sprite_t *pfnSPR_GetList (char *psz, int *piCount)
 
 	if (index < numSprites)
 		Con_DPrintf (S_WARN "unexpected end of %s (%i should be %i)\n", psz, numSprites, index);
-	if (piCount) *piCount = pEntry->count;
+	if (piCount)
+		*piCount = pEntry->count;
 	Mem_Free (afile);
 
 	return pEntry->pList;
@@ -1772,7 +1776,6 @@ static client_sprite_t *pfnSPR_GetList (char *psz, int *piCount)
 /*
 =============
 CL_FillRGBA
-
 =============
 */
 void GAME_EXPORT CL_FillRGBA (int x, int y, int w, int h, int r, int g, int b, int a)
@@ -1800,7 +1803,7 @@ int GAME_EXPORT CL_GetScreenInfo (SCREENINFO *pscrinfo)
 	{
 	float scale_factor = hud_scale->value;
 
-	// [Xash3D, 21.03.23]
+	// [FWGS, 01.04.23]
 	if (FBitSet (hud_fontscale->flags, FCVAR_CHANGED))
 		{
 		CL_FreeFont (&cls.creditsFont);
@@ -1858,7 +1861,6 @@ static void GAME_EXPORT pfnSetCrosshair (HLSPRITE hspr, wrect_t rc, int r, int g
 /*
 =============
 pfnHookUserMsg
-
 =============
 */
 static int GAME_EXPORT pfnHookUserMsg (const char *pszName, pfnUserMsgHook pfn)
@@ -1869,7 +1871,7 @@ static int GAME_EXPORT pfnHookUserMsg (const char *pszName, pfnUserMsgHook pfn)
 	if (!pszName || !*pszName || !pfn)
 		return 0;
 
-	for (i = 0; i < MAX_USER_MESSAGES && clgame.msg[i].name[0]; i++)
+	for (i = 0; (i < MAX_USER_MESSAGES) && clgame.msg[i].name[0]; i++)
 		{
 		// see if already hooked
 		if (!Q_stricmp (clgame.msg[i].name, pszName))
@@ -1911,7 +1913,6 @@ static int GAME_EXPORT pfnServerCmd (const char *szCmdString)
 /*
 =============
 pfnClientCmd
-
 =============
 */
 static int GAME_EXPORT pfnClientCmd (const char *szCmdString)
@@ -1926,8 +1927,8 @@ static int GAME_EXPORT pfnClientCmd (const char *szCmdString)
 		}
 	else
 		{
-		// will exec later [Xash3D, 21.03.23]
-		//Q_strncat (host.deferred_cmd, va ("%s\n", szCmdString), sizeof (host.deferred_cmd));
+		// will exec later [FWGS, 01.04.23]
+		/*Q_strncat (host.deferred_cmd, va ("%s\n", szCmdString), sizeof (host.deferred_cmd));*/
 		Q_strncat (host.deferred_cmd, szCmdString, sizeof (host.deferred_cmd));
 		Q_strncat (host.deferred_cmd, "\n", sizeof (host.deferred_cmd));
 		}
@@ -1961,7 +1962,6 @@ static int GAME_EXPORT pfnFilteredClientCmd (const char *szCmdString)
 /*
 =============
 pfnGetPlayerInfo
-
 =============
 */
 static void GAME_EXPORT pfnGetPlayerInfo (int ent_num, hud_player_info_t *pinfo)
@@ -1991,7 +1991,6 @@ static void GAME_EXPORT pfnGetPlayerInfo (int ent_num, hud_player_info_t *pinfo)
 /*
 =============
 pfnPlaySoundByName
-
 =============
 */
 static void GAME_EXPORT pfnPlaySoundByName (const char *szSound, float volume)
@@ -2005,7 +2004,6 @@ static void GAME_EXPORT pfnPlaySoundByName (const char *szSound, float volume)
 /*
 =============
 pfnPlaySoundByIndex
-
 =============
 */
 static void GAME_EXPORT pfnPlaySoundByIndex (int iSound, float volume)
@@ -2036,8 +2034,8 @@ client_textmessage_t *CL_TextMessageGet (const char *pName)
 	// first check internal messages
 	for (i = 0; i < MAX_TEXTCHANNELS; i++)
 		{
-		// [Xash3D, 21.03.23]
-		// if (!Q_strcmp (pName, va (TEXT_MSGNAME, i)))
+		// [FWGS, 01.04.23]
+		/*if (!Q_strcmp (pName, va (TEXT_MSGNAME, i)))*/
 		char name[MAX_VA_STRING];
 
 		Q_snprintf (name, sizeof (name), TEXT_MSGNAME, i);
@@ -2052,14 +2050,15 @@ client_textmessage_t *CL_TextMessageGet (const char *pName)
 		if (!Q_stricmp (pName, clgame.titles[i].pName))
 			return clgame.titles + i;
 		}
+
 	return NULL; // found nothing
 	}
 
 /*
 =============
-pfnDrawCharacter
+pfnDrawCharacter [FWGS, 01.04.23]
 
-returns drawed chachter width (in real screen pixels) [Xash3D, 21.03.23]
+returns drawed chachter width (in real screen pixels)
 =============
 */
 static int GAME_EXPORT pfnDrawCharacter (int x, int y, int number, int r, int g, int b)
@@ -2092,7 +2091,7 @@ static int GAME_EXPORT pfnDrawCharacter (int x, int y, int number, int r, int g,
 
 /*
 =============
-pfnDrawConsoleString [Xash3D, 21.03.23]
+pfnDrawConsoleString [FWGS, 01.04.23]
 
 drawing string like a console string
 =============
@@ -2140,7 +2139,7 @@ void GAME_EXPORT pfnDrawSetTextColor (float r, float g, float b)
 
 /*
 =============
-pfnDrawConsoleStringLen [Xash3D, 21.03.23]
+pfnDrawConsoleStringLen [FWGS, 01.04.23]
 
 compute string length in screen pixels
 =============
@@ -2150,6 +2149,7 @@ void GAME_EXPORT pfnDrawConsoleStringLen (const char *pText, int *length, int *h
 	/*Con_SetFont (con_fontsize->value);
 	Con_DrawStringLen (pText, length, height);
 	Con_RestoreFont ();*/
+	
 	cl_font_t *font = Con_GetFont (con_fontsize->value);
 
 	if (height) 
@@ -2192,7 +2192,6 @@ static void GAME_EXPORT pfnCenterPrint (const char *string)
 /*
 =========
 GetWindowCenterX
-
 =========
 */
 static int GAME_EXPORT pfnGetWindowCenterX (void)
@@ -2217,7 +2216,6 @@ static int GAME_EXPORT pfnGetWindowCenterX (void)
 /*
 =========
 GetWindowCenterY
-
 =========
 */
 static int GAME_EXPORT pfnGetWindowCenterY (void)
@@ -2260,7 +2258,8 @@ return interpolated angles from previous frame
 */
 static void GAME_EXPORT pfnSetViewAngles (float *angles)
 	{
-	if (angles) VectorCopy (angles, cl.viewangles);
+	if (angles)
+		VectorCopy (angles, cl.viewangles);
 	}
 
 /*
@@ -2298,7 +2297,6 @@ static float GAME_EXPORT pfnGetClientMaxspeed (void)
 /*
 =============
 pfnIsNoClipping
-
 =============
 */
 static int GAME_EXPORT pfnIsNoClipping (void)
@@ -2309,7 +2307,6 @@ static int GAME_EXPORT pfnIsNoClipping (void)
 /*
 =============
 pfnGetViewModel
-
 =============
 */
 cl_entity_t *GAME_EXPORT CL_GetViewModel (void)
@@ -2320,7 +2317,6 @@ cl_entity_t *GAME_EXPORT CL_GetViewModel (void)
 /*
 =============
 pfnGetClientTime
-
 =============
 */
 static float GAME_EXPORT pfnGetClientTime (void)
@@ -2331,7 +2327,6 @@ static float GAME_EXPORT pfnGetClientTime (void)
 /*
 =============
 pfnCalcShake
-
 =============
 */
 void GAME_EXPORT pfnCalcShake (void)
@@ -2389,19 +2384,19 @@ void GAME_EXPORT pfnCalcShake (void)
 /*
 =============
 pfnApplyShake
-
 =============
 */
 void GAME_EXPORT pfnApplyShake (float *origin, float *angles, float factor)
 	{
-	if (origin) VectorMA (origin, factor, clgame.shake.applied_offset, origin);
-	if (angles) angles[ROLL] += clgame.shake.applied_angle * factor;
+	if (origin)
+		VectorMA (origin, factor, clgame.shake.applied_offset, origin);
+	if (angles)
+		angles[ROLL] += clgame.shake.applied_angle * factor;
 	}
 
 /*
 =============
 pfnIsSpectateOnly
-
 =============
 */
 static int GAME_EXPORT pfnIsSpectateOnly (void)
@@ -2411,7 +2406,7 @@ static int GAME_EXPORT pfnIsSpectateOnly (void)
 
 /*
 =============
-PM_CL_PointContents [Xash3D, 21.03.23]
+PM_CL_PointContents [FWGS, 01.04.23]
 =============
 */
 int GAME_EXPORT PM_CL_PointContents (const float *p, int *truecontents)
@@ -2444,7 +2439,7 @@ static pmtrace_t *pfnTraceLine (float *start, float *end, int flags, int usehull
 
 /*
 =============
-pfnTraceLine [Xash3D, 21.03.23]
+pfnTraceLine [FWGS, 01.04.23]
 =============
 */
 pmtrace_t *PM_CL_TraceLine (float *start, float *end, int flags, int usehull, int ignore_pe)
@@ -2476,7 +2471,6 @@ static void GAME_EXPORT pfnPlaySoundByNameAtLocation (char *szSound, float volum
 /*
 =============
 pfnPrecacheEvent
-
 =============
 */
 static word GAME_EXPORT pfnPrecacheEvent (int type, const char *psz)
@@ -2487,7 +2481,6 @@ static word GAME_EXPORT pfnPrecacheEvent (int type, const char *psz)
 /*
 =============
 pfnHookEvent
-
 =============
 */
 static void GAME_EXPORT pfnHookEvent (const char *filename, pfnEventHook pfn)
@@ -2507,7 +2500,8 @@ static void GAME_EXPORT pfnHookEvent (const char *filename, pfnEventHook pfn)
 	for (i = 0; i < MAX_EVENTS; i++)
 		{
 		ev = clgame.events[i];
-		if (!ev) break;
+		if (!ev)
+			break;
 
 		if (!Q_stricmp (name, ev->name) && ev->func != NULL)
 			{
@@ -2522,20 +2516,19 @@ static void GAME_EXPORT pfnHookEvent (const char *filename, pfnEventHook pfn)
 /*
 =============
 pfnKillEvent
-
 =============
 */
 static void GAME_EXPORT pfnKillEvents (int entnum, const char *eventname)
 	{
-	int		i;
-	event_state_t *es;
-	event_info_t *ei;
-	word		eventIndex = CL_EventIndex (eventname);
+	int	i;
+	event_state_t	*es;
+	event_info_t	*ei;
+	word	eventIndex = CL_EventIndex (eventname);
 
 	if (eventIndex >= MAX_EVENTS)
 		return;
 
-	if (entnum < 0 || entnum > clgame.maxEntities)
+	if ((entnum < 0) || (entnum > clgame.maxEntities))
 		return;
 
 	es = &cl.events;
@@ -2545,7 +2538,7 @@ static void GAME_EXPORT pfnKillEvents (int entnum, const char *eventname)
 		{
 		ei = &es->ei[i];
 
-		if (ei->index == eventIndex && ei->entity_index == entnum)
+		if ((ei->index == eventIndex) && (ei->entity_index == entnum))
 			{
 			CL_ResetEvent (ei);
 			break;
@@ -2556,7 +2549,6 @@ static void GAME_EXPORT pfnKillEvents (int entnum, const char *eventname)
 /*
 =============
 pfnPlaySound
-
 =============
 */
 void GAME_EXPORT pfnPlaySound (int ent, float *org, int chan, const char *samp, float vol, float attn,
@@ -2568,14 +2560,13 @@ void GAME_EXPORT pfnPlaySound (int ent, float *org, int chan, const char *samp, 
 /*
 =============
 CL_FindModelIndex
-
 =============
 */
 int GAME_EXPORT CL_FindModelIndex (const char *m)
 	{
-	char		filepath[MAX_QPATH];
+	char	filepath[MAX_QPATH];
 	static float	lasttimewarn;
-	int		i;
+	int	i;
 
 	if (!COM_CheckString (m))
 		return 0;
@@ -2605,13 +2596,13 @@ int GAME_EXPORT CL_FindModelIndex (const char *m)
 /*
 =============
 pfnIsLocal
-
 =============
 */
 int GAME_EXPORT pfnIsLocal (int playernum)
 	{
 	if (playernum == cl.playernum)
 		return true;
+
 	return false;
 	}
 
@@ -2632,7 +2623,8 @@ pfnLocalPlayerViewheight
 */
 void GAME_EXPORT pfnLocalPlayerViewheight (float *view_ofs)
 	{
-	if (view_ofs) VectorCopy (cl.viewheight, view_ofs);
+	if (view_ofs)
+		VectorCopy (cl.viewheight, view_ofs);
 	}
 
 /*
@@ -2728,7 +2720,7 @@ void GAME_EXPORT CL_PlayerTraceExt (float *start, float *end, int traceFlags, in
 
 /*
 =============
-PM_CL_TraceTexture [Xash3D, 21.03.23]
+PM_CL_TraceTexture [FWGS, 01.04.23]
 =============
 */
 //static const char *pfnTraceTexture (int ground, float *vstart, float *vend)
@@ -2746,7 +2738,7 @@ const char *GAME_EXPORT PM_CL_TraceTexture (int ground, float *vstart, float *ve
 
 /*
 =============
-pfnTraceSurface [Xash3D, 21.03.23]
+pfnTraceSurface [FWGS, 01.04.23]
 =============
 */
 struct msurface_s *pfnTraceSurface (int ground, float *vstart, float *vend)
@@ -2790,12 +2782,14 @@ model_t *CL_LoadModel (const char *modelname, int *index)
 	{
 	int	i;
 
-	if (index) *index = -1;
+	if (index)
+		*index = -1;
 
 	if ((i = CL_FindModelIndex (modelname)) == 0)
 		return NULL;
 
-	if (index) *index = i;
+	if (index)
+		*index = i;
 
 	return CL_ModelHandle (i);
 	}
@@ -2838,21 +2832,20 @@ const char *Key_LookupBinding (const char *pBinding)
 
 /*
 =============
-pfnGetLevelName [Xash3D, 21.03.23]
+pfnGetLevelName [FWGS, 01.04.23]
 =============
 */
 static const char *pfnGetLevelName (void)
 	{
 	static char	mapname[64];
 
-	//if (cls.state >= ca_connected)
-	// 
+	/*if (cls.state >= ca_connected)*/
+	 
 	// a1ba: don't return maps/.bsp if no map is loaded yet
 	// in GoldSrc this is handled by cl.levelname field but we don't have it
 	// so emulate this behavior here
 	if ((cls.state >= ca_connected) && COM_CheckStringEmpty (clgame.mapname))
 		Q_snprintf (mapname, sizeof (mapname), "maps/%s.bsp", clgame.mapname);
-
 	else
 		mapname[0] = '\0'; // not in game
 
@@ -2866,7 +2859,8 @@ pfnGetScreenFade
 */
 void GAME_EXPORT pfnGetScreenFade (struct screenfade_s *fade)
 	{
-	if (fade) *fade = clgame.fade;
+	if (fade)
+		*fade = clgame.fade;
 	}
 
 /*
@@ -2876,7 +2870,8 @@ pfnSetScreenFade
 */
 static void GAME_EXPORT pfnSetScreenFade (struct screenfade_s *fade)
 	{
-	if (fade) clgame.fade = *fade;
+	if (fade)
+		clgame.fade = *fade;
 	}
 
 /*
@@ -2983,7 +2978,6 @@ int GAME_EXPORT pfnGetPlayerForTrackerID (int trackerID)
 /*
 =============
 pfnServerCmdUnreliable
-
 =============
 */
 int GAME_EXPORT pfnServerCmdUnreliable (char *szCmdString)
@@ -3021,11 +3015,9 @@ void GAME_EXPORT pfnSetMouseEnable (qboolean fEnable)
 	{
 	}
 
-
 /*
 =============
 pfnGetServerTime
-
 =============
 */
 static float GAME_EXPORT pfnGetClientOldTime (void)
@@ -3046,8 +3038,6 @@ static float GAME_EXPORT pfnGetGravity (void)
 /*
 =============
 pfnEnableTexSort
-
-TODO: implement
 =============
 */
 static void GAME_EXPORT pfnEnableTexSort (int enable)
@@ -3057,8 +3047,6 @@ static void GAME_EXPORT pfnEnableTexSort (int enable)
 /*
 =============
 pfnSetLightmapColor
-
-TODO: implement
 =============
 */
 static void GAME_EXPORT pfnSetLightmapColor (float red, float green, float blue)
@@ -3068,8 +3056,6 @@ static void GAME_EXPORT pfnSetLightmapColor (float red, float green, float blue)
 /*
 =============
 pfnSetLightmapScale
-
-TODO: implement
 =============
 */
 static void GAME_EXPORT pfnSetLightmapScale (float scale)
@@ -3099,7 +3085,7 @@ static const char *GAME_EXPORT LocalPlayerInfo_ValueForKey (const char *key)
 
 /*
 =============
-pfnVGUI2DrawCharacter [Xash3D, 21.03.23]
+pfnVGUI2DrawCharacter [FWGS, 01.04.23]
 =============
 */
 static int GAME_EXPORT pfnVGUI2DrawCharacter (int x, int y, int number, unsigned int font)
@@ -3126,20 +3112,19 @@ static int GAME_EXPORT pfnVGUI2DrawCharacter (int x, int y, int number, unsigned
 
 /*
 =============
-pfnVGUI2DrawCharacterAdditive [Xash3D, 21.03.23]
+pfnVGUI2DrawCharacterAdditive [FWGS, 01.04.23]
 =============
 */
 static int GAME_EXPORT pfnVGUI2DrawCharacterAdditive (int x, int y, int ch, int r, int g, int b, unsigned int font)
 	{
 	/*if (!hud_utf8->value)
 		ch = Con_UtfProcessChar (ch);*/
-
 	return pfnDrawCharacter (x, y, ch, r, g, b);
 	}
 
 /*
 =============
-pfnDrawString [Xash3D, 21.03.23]
+pfnDrawString [FWGS, 01.04.23]
 =============
 */
 static int GAME_EXPORT pfnDrawString (int x, int y, const char *str, int r, int g, int b)
@@ -3165,7 +3150,7 @@ static int GAME_EXPORT pfnDrawString (int x, int y, const char *str, int r, int 
 
 /*
 =============
-pfnDrawStringReverse [Xash3D, 21.03.23]
+pfnDrawStringReverse [FWGS, 01.04.23]
 =============
 */
 static int GAME_EXPORT pfnDrawStringReverse (int x, int y, const char *str, int r, int g, int b)
@@ -3275,8 +3260,6 @@ static int GAME_EXPORT pfnGetAppID (void)
 /*
 =============
 pfnVguiWrap2_GetMouseDelta
-
-TODO: implement
 =============
 */
 static void GAME_EXPORT pfnVguiWrap2_GetMouseDelta (int *x, int *y)
@@ -3320,7 +3303,8 @@ void TriColor4f (float r, float g, float b, float a)
 	{
 	if (clgame.ds.renderMode == kRenderTransAlpha)
 		ref.dllFuncs.Color4ub (r * 255.9f, g * 255.9f, b * 255.9f, a * 255.0f);
-	else ref.dllFuncs.Color4f (r * a, g * a, b * a, 1.0);
+	else
+		ref.dllFuncs.Color4f (r * a, g * a, b * a, 1.0);
 
 	clgame.ds.triRGBA[0] = r;
 	clgame.ds.triRGBA[1] = g;
@@ -3403,7 +3387,8 @@ void TriLightAtPoint (float *pos, float *value)
 	{
 	colorVec	vLightColor;
 
-	if (!pos || !value) return;
+	if (!pos || !value)
+		return;
 
 	vLightColor = ref.dllFuncs.R_LightPoint (pos);
 
@@ -3430,7 +3415,6 @@ void TriColor4fRendermode (float r, float g, float b, float a, int rendermode)
 		ref.dllFuncs.Color4f (r * a, g * a, b * a, 1.0f);
 		}
 	}
-
 
 /*
 =============
@@ -3556,8 +3540,8 @@ void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags, double
 		return;
 		}
 
-	// [Xash3D, 21.03.23]
-	//if (remote_address->type >= NA_IPX)
+	// [FWGS, 01.04.23]
+	/*if (remote_address->type >= NA_IPX)*/
 	if ((remote_address->type != NA_IPX) && (remote_address->type != NA_BROADCAST_IPX))
 		return; // IPX no longer support
 
@@ -3600,8 +3584,8 @@ void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags, double
 
 	if (request == NETAPI_REQUEST_SERVERLIST)
 		{
-		// [Xash3D, 21.03.23]
-		//char	fullquery[512] = "1\xFF" "0.0.0.0:0\0" "\\gamedir\\";
+		// [FWGS, 01.04.23]
+		/*char	fullquery[512] = "1\xFF" "0.0.0.0:0\0" "\\gamedir\\";*/
 		char fullquery[512];
 		size_t len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), false);
 
@@ -3647,7 +3631,8 @@ void GAME_EXPORT NetAPI_CancelRequest (int context)
 				nr->pfnFunc (&nr->resp);
 				}
 
-			if (clgame.net_requests[i].resp.type == NETAPI_REQUEST_SERVERLIST && &clgame.net_requests[i] == clgame.master_request)
+			if ((clgame.net_requests[i].resp.type == NETAPI_REQUEST_SERVERLIST) && 
+				(&clgame.net_requests[i] == clgame.master_request))
 				{
 				if (clgame.request_type == NET_REQUEST_CLIENT)
 					clgame.request_type = NET_REQUEST_CANCEL;
@@ -3750,12 +3735,9 @@ void GAME_EXPORT NetAPI_SetValueForKey (char *s, const char *key, const char *va
 	Info_SetValueForStarKey (s, key, value, maxsize);
 	}
 
-
 /*
 =================
 IVoiceTweak implementation
-
-TODO: implement
 =================
 */
 /*
@@ -3798,7 +3780,6 @@ float GAME_EXPORT Voice_GetControlFloat (VoiceTweakControl iControl)
 
 static void GAME_EXPORT VGui_ViewportPaintBackground (int extents[4])
 	{
-	// stub
 	}
 
 // shared between client and server
@@ -3903,7 +3884,7 @@ static event_api_t gEventApi =
 		CL_WeaponAnim,
 		pfnPrecacheEvent,
 		CL_PlaybackEvent,
-		PM_CL_TraceTexture,	// [Xash3D, 21.03.23]
+		PM_CL_TraceTexture,		// [FWGS, 01.04.23]
 		pfnStopAllSounds,
 		pfnKillEvents,
 		CL_PlayerTraceExt,		// Xash3D added
@@ -4008,9 +3989,9 @@ static cl_enginefunc_t gEngfuncs =
 		pfnGetClientTime,
 		pfnCalcShake,
 		pfnApplyShake,
-		PM_CL_PointContents,	// [Xash3D, 21.03.23]
+		PM_CL_PointContents,	// [FWGS, 01.04.23]
 		CL_WaterEntity,
-		PM_CL_TraceLine,		// [Xash3D, 21.03.23]
+		PM_CL_TraceLine,		// [FWGS, 01.04.23]
 		CL_LoadModel,
 		CL_AddEntity,
 		CL_GetSpritePointer,
@@ -4105,7 +4086,7 @@ void CL_UnloadProgs (void)
 	if (Q_stricmp (GI->gamefolder, "hlfx") || (GI->version != 0.5f))
 		clgame.dllFuncs.pfnShutdown ();
 
-	// [Xash3D, 21.03.23]
+	// [FWGS, 01.04.23]
 	if (GI->internal_vgui_support)
 		VGui_Shutdown ();
 
@@ -4138,7 +4119,7 @@ qboolean CL_LoadProgs (const char *name)
 	clgame.mempool = Mem_AllocPool ("Client Edicts Zone");
 	clgame.entities = NULL;
 
-	/* [Xash3D, 21.03.23, obsolete]
+	/* [FWGS, 01.04.23]: obsolete
 	// NOTE: important stuff!
 	// vgui must startup BEFORE loading client.dll to avoid get error ERROR_NOACESS
 	// during LoadLibrary
@@ -4147,33 +4128,30 @@ qboolean CL_LoadProgs (const char *name)
 	// a1ba: we need to check if client.dll has direct dependency on SDL2
 	// and if so, disable relative mouse mode
 #if XASH_WIN32 && !XASH_64BIT
+
 	if ((clgame.client_dll_uses_sdl = COM_CheckLibraryDirectDependency (name, OS_LIB_PREFIX "SDL2." OS_LIB_EXT, false)))
-		{
 		Con_Printf (S_NOTE "%s uses SDL2 for mouse input\n", name);
-		}
 	else
-		{
 		Con_Printf (S_NOTE "%s uses Windows API for mouse input\n", name);
-		}
+
 #else
+
 	// this doesn't mean other platforms uses SDL2 in any case
 	// it just helps input code to stay platform-independent
 	clgame.client_dll_uses_sdl = true;
+
 #endif
 
-	// [Xash3D, 21.03.23]
+	// [FWGS, 01.04.23]
 	// NOTE: important stuff!
 	// vgui must startup BEFORE loading client.dll to avoid get error ERROR_NOACESS
 	// during LoadLibrary
 	if (!GI->internal_vgui_support && VGui_LoadProgs (NULL))
-		{
 		VGui_Startup (refState.width, refState.height);
-		}
+
+	// we failed to load vgui_support, but let's probe client.dll for support anyway
 	else
-		{
-		// we failed to load vgui_support, but let's probe client.dll for support anyway
 		GI->internal_vgui_support = true;
-		}
 
 	clgame.hInstance = COM_LoadLibrary (name, false, false);
 	if (!clgame.hInstance) 

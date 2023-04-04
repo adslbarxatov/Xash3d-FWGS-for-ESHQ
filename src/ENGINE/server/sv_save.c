@@ -2086,7 +2086,7 @@ void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char
 	SV_DeactivateServer ();
 
 	if (!SV_SpawnServer (level, startspot, background))
-		return;	// ???
+		return;
 
 	if (loadfromsavedgame)
 		{

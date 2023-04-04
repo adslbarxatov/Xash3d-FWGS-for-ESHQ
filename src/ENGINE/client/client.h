@@ -108,7 +108,7 @@ extern int CL_UPDATE_BACKUP;
 #define MIN_UPDATERATE	10.0f
 #define MAX_UPDATERATE	102.0f
 
-//#define MIN_EX_INTERP	0.005f	// [Xash3D, 26.03.23]
+//#define MIN_EX_INTERP	0.005f	// [FWGS, 01.04.23]
 #define MAX_EX_INTERP	0.1f
 
 #define CL_MIN_RESEND_TIME	1.5f		// mininum time gap (in seconds) before a subsequent connection request is sent.
@@ -139,7 +139,7 @@ typedef struct
 	int		light_level;
 	int		waterlevel;
 	int		usehull;
-	qboolean	moving;		// [Xash3D, 26.03.23]
+	qboolean	moving;		// [FWGS, 01.04.23]
 	int		pushmsec;
 	int		weapons;
 	float		maxspeed;
@@ -206,12 +206,12 @@ typedef struct
 	runcmd_t		commands[MULTIPLAYER_BACKUP];		// each mesage will send several old cmds
 	local_state_t	predicted_frames[MULTIPLAYER_BACKUP];	// local client state
 
-	double		time;			// this is the time value that the client
-	// is rendering at.  always <= cls.realtime
-	// a lerp point for other data
-	double		oldtime;			// previous cl.time, time-oldtime is used
-	// to decay light values and smooth step ups
-	double		timedelta;		// [Xash3D, 26.03.23] floating delta between two updates
+	double		time;	// this is the time value that the client
+						// is rendering at.  always <= cls.realtime
+						// a lerp point for other data
+	double		oldtime;	// previous cl.time, time-oldtime is used
+							// to decay light values and smooth step ups
+	double		timedelta;		// [FWGS, 01.04.23] floating delta between two updates
 
 	char		serverinfo[MAX_SERVERINFO_STRING];
 	player_info_t	players[MAX_CLIENTS];	// collected info about all other players include himself
@@ -322,7 +322,7 @@ typedef struct
 #define FONT_FIXED		0
 #define FONT_VARIABLE	1
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 #define FONT_DRAW_HUD				BIT( 0 ) // pass to drawing function to apply hud_scale
 #define FONT_DRAW_UTF8				BIT( 1 ) // call UtfProcessChar
 #define FONT_DRAW_FORCECOL			BIT( 2 ) // ignore colorcodes
@@ -330,7 +330,7 @@ typedef struct
 #define FONT_DRAW_NOLF				BIT( 4 ) // ignore \n
 #define FONT_DRAW_RESETCOLORONLF	BIT( 5 ) // yet another flag to simulate consecutive Con_DrawString calls...
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int		hFontTexture;			// handle to texture
@@ -350,7 +350,7 @@ typedef struct
 	qboolean		valid;			// all rectangles are valid
 	} cl_font_t;
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 typedef struct scissor_state_s
 	{
 	int x;
@@ -360,7 +360,7 @@ typedef struct scissor_state_s
 	qboolean test;
 	} scissor_state_t;
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	// scissor test
@@ -402,7 +402,7 @@ typedef struct cl_predicted_player_s
 	vec3_t		angles;
 	} predicted_player_t;
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	/*int		gl_texturenum;	// this is a real texnum
@@ -707,7 +707,7 @@ extern convar_t *cl_levelshot_name;
 extern convar_t *cl_draw_beams;
 extern convar_t *cl_clockreset;
 extern convar_t *cl_fixtimerate;
-extern convar_t *hud_fontscale;		// [Xash3D, 26.03.23]
+extern convar_t *hud_fontscale;		// [FWGS, 01.04.23]
 extern convar_t *hud_scale;
 extern convar_t *gl_showtextures;
 extern convar_t *cl_bmodelinterp;
@@ -790,7 +790,7 @@ int CL_IsDevOverviewMode (void);
 void CL_PingServers_f (void);
 void CL_SignonReply (void);
 void CL_ClearState (void);
-size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat);	// [Xash3D, 26.03.23]
+size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat);	// [FWGS, 01.04.23]
 
 //
 // cl_demo.c
@@ -833,7 +833,7 @@ word CL_EventIndex (const char *name);
 void CL_FireEvents (void);
 
 //
-// cl_font.c [Xash3D, 26.03.23]
+// cl_font.c [FWGS, 01.04.23]
 //
 qboolean CL_FixedFont (cl_font_t *font);
 qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags);
@@ -863,7 +863,7 @@ void CL_ClearSpriteTextures (void);
 void CL_FreeEntity (cl_entity_t *pEdict);
 void CL_CenterPrint (const char *text, float y);
 void CL_TextMessageParse (byte *pMemFile, int fileSize);
-client_textmessage_t *CL_TextMessageGet (const char *pName);	// [Xash3D, 26.03.23]
+client_textmessage_t *CL_TextMessageGet (const char *pName);	// [FWGS, 01.04.23]
 int pfnDecalIndexFromName (const char *szDecalName);
 int pfnIndexFromTrace (struct pmtrace_s *pTrace);
 model_t *CL_ModelHandle (int modelindex);
@@ -874,9 +874,7 @@ model_t *CL_LoadClientSprite (const char *filename);
 model_t *CL_LoadModel (const char *modelname, int *index);
 HLSPRITE EXPORT pfnSPR_Load (const char *szPicName);
 HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags);
-
-// [Xash3D, 26.03.23]
-//void PicAdjustSize (float *x, float *y, float *w, float *h);
+//void PicAdjustSize (float *x, float *y, float *w, float *h);	// [FWGS, 01.04.23]
 void SPR_AdjustSize (float *x, float *y, float *w, float *h);
 void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2);
 
@@ -885,21 +883,19 @@ void CL_FillRGBA (int x, int y, int width, int height, int r, int g, int b, int 
 void CL_PlayerTrace (float *start, float *end, int traceFlags, int ignore_pe, pmtrace_t *tr);
 void CL_PlayerTraceExt (float *start, float *end, int traceFlags, int (*pfnIgnore)(physent_t *pe), pmtrace_t *tr);
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 pmtrace_t *PM_CL_TraceLine (float *start, float *end, int flags, int usehull, int ignore_pe);
 const char *PM_CL_TraceTexture (int ground, float *vstart, float *vend);
 int PM_CL_PointContents (const float *p, int *truecontents);
 
 void CL_SetTraceHull (int hull);
-void CL_GetMousePosition (int *mx, int *my); // TODO: move to input
+void CL_GetMousePosition (int *mx, int *my);
 cl_entity_t *CL_GetViewModel (void);
 void pfnGetScreenFade (struct screenfade_s *fade);
 physent_t *pfnGetPhysent (int idx);
 struct msurface_s *pfnTraceSurface (int ground, float *vstart, float *vend);
 movevars_t *pfnGetMoveVars (void);
-
-// [Xash3D, 26.03.23]
-void CL_EnableScissor (scissor_state_t *scissor, int x, int y, int width, int height);
+void CL_EnableScissor (scissor_state_t *scissor, int x, int y, int width, int height);	// [FWGS, 01.04.23]
 void CL_DisableScissor (scissor_state_t *scissor);
 qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *width, float *height, float *u0, 
 	float *v0, float *u1, float *v1);
@@ -978,7 +974,7 @@ void CL_PredictMovement (qboolean repredicting);
 void CL_CheckPredictionError (void);
 qboolean CL_IsPredicted (void);
 int CL_TruePointContents (const vec3_t p);
-//int CL_PointContents (const vec3_t p);	// [Xash3D, 26.03.23]
+//int CL_PointContents (const vec3_t p);	// [FWGS, 01.04.23]
 int CL_WaterEntity (const float *rgflPos);
 cl_entity_t *CL_GetWaterEntity (const float *rgflPos);
 //void CL_SetupPMove (playermove_t *pmove, local_state_t *from, usercmd_t *ucmd, qboolean runfuncs, double time);
@@ -990,7 +986,7 @@ void CL_PopTraceBounds (void);
 void CL_MoveSpectatorCamera (void);
 void CL_SetLastUpdate (void);
 void CL_RedoPrediction (void);
-//void CL_ClearPhysEnts (void);		// [Xash3D, 26.03.23]
+//void CL_ClearPhysEnts (void);		// [FWGS, 01.04.23]
 void CL_PushPMStates (void);
 void CL_PopPMStates (void);
 void CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient);
@@ -1096,7 +1092,7 @@ int Con_UtfProcessCharForce (int in);
 int Con_UtfMoveLeft (char *str, int pos);
 int Con_UtfMoveRight (char *str, int pos, int length);
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 /*void Con_DrawStringLen (const char *pText, int *length, int *height);
 int Con_DrawString (int x, int y, const char *string, rgba_t setColor);
 int Con_DrawCharacter (int x, int y, int number, rgba_t color);
@@ -1104,9 +1100,7 @@ void Con_DrawCharacterLen (int number, int *width, int *height);*/
 
 void Con_DefaultColor (int r, int g, int b);
 void Con_InvalidateFonts (void);
-
-// [Xash3D, 26.03.23]
-//void Con_SetFont (int fontNum);
+//void Con_SetFont (int fontNum);	// [FWGS, 01.04.23]
 cl_font_t *Con_GetCurFont (void);
 cl_font_t *Con_GetFont (int num);
 void Con_DrawCharacterLen (int number, int *width, int *height);

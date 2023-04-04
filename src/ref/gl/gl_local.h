@@ -34,7 +34,7 @@ GNU General Public License for more details.
 #include "gl_export.h"
 #include "wadfile.h"
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_PSVITA
 int VGL_ShimInit (void);
 void VGL_ShimShutdown (void);

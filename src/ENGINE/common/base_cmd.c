@@ -19,12 +19,12 @@ GNU General Public License for more details.
 
 #define HASH_SIZE 128 // 128 * 4 * 4 == 2048 bytes
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 typedef struct base_command_hashmap_s
 	{
-	base_command_t	*basecmd;			// base command: cvar, alias or command
-	const char		*name;				// key for searching
-	base_command_type_e		type;		// type for faster searching
+	base_command_t					*basecmd;	// base command: cvar, alias or command
+	const char						*name;		// key for searching
+	base_command_type_e				type;		// type for faster searching
 	struct base_command_hashmap_s	*next;
 	} base_command_hashmap_t;
 static base_command_hashmap_t *hashed_cmds[HASH_SIZE];
@@ -117,7 +117,7 @@ void BaseCmd_FindAll (const char *name, base_command_t **cmd, base_command_t **a
 
 /*
 ============
-BaseCmd_Insert [Xash3D, 31.03.23]
+BaseCmd_Insert [FWGS, 01.04.23]
 
 Add new typed base command to hashmap
 ============
@@ -177,14 +177,14 @@ qboolean BaseCmd_Replace (base_command_type_e type, base_command_t *basecmd, con
 
 /*
 ============
-BaseCmd_Remove [Xash3D, 31.03.23]
+BaseCmd_Remove [FWGS, 01.04.23]
 
 Remove base command from hashmap
 ============
 */
 void BaseCmd_Remove (base_command_type_e type, const char *name)
 	{
-	//uint hash = COM_HashKey (name, HASH_SIZE);
+	/*uint hash = COM_HashKey (name, HASH_SIZE);*/
 	uint hash = BaseCmd_HashKey (name);
 	base_command_hashmap_t *i, *prev;
 
@@ -249,22 +249,22 @@ void BaseCmd_Stats_f (void)
 			maxsize = len;
 		}
 
-	// [Xash3D, 31.03.23]
-	/*Con_Printf ("Base command stats:\n");
+	/* [FWGS, 01.04.23]
+	Con_Printf ("Base command stats:\n");
 	Con_Printf ("Bucket minimal length: %d\n", minsize);
 	Con_Printf ("Bucket maximum length: %d\n", maxsize);
 	Con_Printf ("Empty buckets: %d\n", empty);*/
 	Con_Printf ("min length: %d, max length: %d, empty: %d\n", minsize, maxsize, empty);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	qboolean	valid;
 	int			lookups;
 	} basecmd_test_stats_t;
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void BaseCmd_CheckCvars (const char *key, const char *value, const void *unused, void *ptr)
 	{
 	/*base_command_t *v = BaseCmd_Find (HM_CVAR, key);
@@ -276,21 +276,21 @@ static void BaseCmd_CheckCvars (const char *key, const char *value, const void *
 	if (!BaseCmd_Find (HM_CVAR, key))
 		{
 		Con_Printf ("Cvar %s is missing in basecmd\n", key);
-		//*invalid = true;
+		/* *invalid = true;*/
 		stats->valid = false;
 		}
 	}
 
 /*
 ============
-BaseCmd_Stats_f [Xash3D, 31.03.23]
+BaseCmd_Stats_f [FWGS, 01.04.23]
 
 testing order matches cbuf execute
 ============
 */
 void BaseCmd_Test_f (void)
 	{
-	//void *cmd;
+	/*void *cmd;*/
 	basecmd_test_stats_t stats;
 	double start, end, dt;
 	int i;
@@ -303,11 +303,11 @@ void BaseCmd_Test_f (void)
 	for (i = 0; i < 1000; i++)
 		{
 		cmdalias_t *a;
-		//qboolean invalid = false;
+		/*qboolean invalid = false;*/
 		void *cmd;
 
 		// Cmd_LookupCmds don't allows to check alias, so just iterate
-		//for (a = Cmd_AliasGetList (); a; a = a->next)
+		/*for (a = Cmd_AliasGetList (); a; a = a->next)*/
 		for (a = Cmd_AliasGetList (); a; a = a->next, stats.lookups++)
 			{
 			/*base_command_t *v = BaseCmd_Find (HM_CMDALIAS, a->name);
@@ -316,13 +316,13 @@ void BaseCmd_Test_f (void)
 			if (!BaseCmd_Find (HM_CMDALIAS, a->name))
 				{
 				Con_Printf ("Alias %s is missing in basecmd\n", a->name);
-				//invalid = true;
+				/*invalid = true;*/
 				stats.valid = false;
 				}
 			}
 
 		for (cmd = Cmd_GetFirstFunctionHandle (); cmd;
-			//cmd = Cmd_GetNextFunctionHandle (cmd))
+			/*cmd = Cmd_GetNextFunctionHandle (cmd))*/
 			cmd = Cmd_GetNextFunctionHandle (cmd), stats.lookups++)
 			{
 			/*base_command_t *v = BaseCmd_Find (HM_CMD, Cmd_GetName (cmd));
@@ -331,12 +331,12 @@ void BaseCmd_Test_f (void)
 			if (!BaseCmd_Find (HM_CMD, Cmd_GetName (cmd)))
 				{
 				Con_Printf ("Command %s is missing in basecmd\n", Cmd_GetName (cmd));
-				//invalid = true;
+				/*invalid = true;*/
 				stats.valid = false;
 				}
 			}
 
-		//Cvar_LookupVars (0, NULL, &invalid, (setpair_t)BaseCmd_CheckCvars);
+		/*Cvar_LookupVars (0, NULL, &invalid, (setpair_t)BaseCmd_CheckCvars);*/
 		Cvar_LookupVars (0, NULL, &stats.valid, (setpair_t)BaseCmd_CheckCvars);
 		}
 
@@ -347,7 +347,6 @@ void BaseCmd_Test_f (void)
 
 	if (!stats.valid)
 		Con_Printf ("BaseCmd is valid\n");
-	//}
 
 	Con_Printf ("Test took %.3f ms, %d lookups, %.3f us/lookup\n", dt, stats.lookups, dt / stats.lookups * 1000);
 	BaseCmd_Stats_f ();

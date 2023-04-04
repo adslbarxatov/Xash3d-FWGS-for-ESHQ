@@ -418,7 +418,7 @@ void GL_SetRenderMode (int mode)
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
 			break;
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		case kRenderScreenFadeModulate:
 			pglEnable (GL_BLEND);
 			pglDisable (GL_ALPHA_TEST);

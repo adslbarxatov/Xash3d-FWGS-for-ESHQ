@@ -152,7 +152,7 @@ void SCR_NetSpeeds (void)
 	{
 	static char	msg[MAX_SYSPATH];
 	
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	/*int		x, y, height;
 	char *p, *start, *end;*/
 	int			x, y;
@@ -206,8 +206,8 @@ void SCR_NetSpeeds (void)
 		Q_memprint (cls.netchan.total_sended)
 	);
 
-	// [Xash3D, 26.03.23]
-	//x = refState.width - 320;
+	// [FWGS, 01.04.23]
+	/*x = refState.width - 320;*/
 	x = refState.width - 320 * font->scale;
 	y = 384;
 
@@ -245,18 +245,18 @@ void SCR_RSpeeds (void)
 
 	if (ref.dllFuncs.R_SpeedsMessage (msg, sizeof (msg)))
 		{
-		// [Xash3D, 26.03.23]
+		// [FWGS, 01.04.23]
 		/*int	x, y, height;
 		char *p, *start, *end;*/
 		int	x, y;
 		rgba_t	color;
 		cl_font_t *font = Con_GetCurFont ();
 
-		//x = refState.width - 340;
+		/*x = refState.width - 340;*/
 		x = refState.width - 340 * font->scale;
 		y = 64;
 
-		//Con_DrawStringLen (NULL, NULL, &height);
+		/*Con_DrawStringLen (NULL, NULL, &height);*/
 		MakeRGBA (color, 255, 255, 255, 255);
 
 		CL_DrawString (x, y, msg, color, font, FONT_DRAW_RESETCOLORONLF);
@@ -310,7 +310,8 @@ void VID_WriteOverviewScript (void)
 	Q_snprintf (filename, sizeof (filename), "overviews/%s.txt", clgame.mapname);
 
 	f = FS_Open (filename, "w", false);
-	if (!f) return;
+	if (!f)
+		return;
 
 	FS_Printf (f, "// overview description file for %s.bsp\n\n", clgame.mapname);
 	FS_Print (f, "global\n{\n");
@@ -319,7 +320,7 @@ void VID_WriteOverviewScript (void)
 	FS_Printf (f, "\tROTATED\t%i\n", ov->rotated ? 1 : 0);
 	FS_Print (f, "}\n\nlayer\n{\n");
 	FS_Printf (f, "\tIMAGE\t\"overviews/%s.bmp\"\n", clgame.mapname);
-	FS_Printf (f, "\tHEIGHT\t%.2f\n", ov->zFar);	// ???
+	FS_Printf (f, "\tHEIGHT\t%.2f\n", ov->zFar);
 	FS_Print (f, "}\n");
 
 	FS_Close (f);
@@ -601,7 +602,7 @@ void SCR_UpdateScreen (void)
 	V_PostRender ();
 	}
 
-/* [Xash3D, 26.03.23]
+/* [FWGS, 01.04.23]
 qboolean SCR_LoadFixedWidthFont (const char *fontname)
 	{
 	int	i, fontWidth;
@@ -676,7 +677,7 @@ qboolean SCR_LoadVariableWidthFont (const char *fontname)
 
 /*
 ================
-SCR_LoadCreditsFont [Xash3D, 26.03.23]
+SCR_LoadCreditsFont [FWGS, 01.04.23]
 
 INTERNAL RESOURCE
 ================
@@ -703,7 +704,7 @@ void SCR_LoadCreditsFont (void)
 			{
 			if (FS_FileExists (charsetFnt, false))
 				success = Con_LoadVariableWidthFont (charsetFnt, font, scale, kRenderTransAdd, TF_FONT);
-		}
+			}
 		}
 
 	if (!success)
@@ -713,6 +714,7 @@ void SCR_LoadCreditsFont (void)
 		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransAdd, TF_FONT);
 
 	/*if (!SCR_LoadVariableWidthFont (path))*/
+
 	// copy font size for client.dll
 	if (success)
 		{
@@ -838,8 +840,8 @@ SCR_VidInit
 */
 void SCR_VidInit (void)
 	{
-	//string libpath;	// [Xash3D, 26.03.23]
-	if (!ref.initialized) // don't call VidInit too soon
+	//string libpath;		// [FWGS, 01.04.23]
+	if (!ref.initialized)	// don't call VidInit too soon
 		return;
 
 	memset (&clgame.ds, 0, sizeof (clgame.ds)); // reset a draw state
@@ -853,7 +855,7 @@ void SCR_VidInit (void)
 		gameui.globals->scrHeight = refState.height;
 		}
 
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	/*COM_GetCommonLibraryPath (LIBRARY_CLIENT, libpath, sizeof (libpath));
 	VGui_Startup (libpath, refState.width, refState.height);*/
 	
@@ -882,31 +884,50 @@ void SCR_Init (void)
 	{
 	if (scr_init) return;
 
-	scr_centertime = Cvar_Get ("scr_centertime", "2.5", 0, "centerprint hold time");
-	cl_levelshot_name = Cvar_Get ("cl_levelshot_name", "*black", 0, "contains path to current levelshot");
+	scr_centertime = Cvar_Get ("scr_centertime", "2.5", 0,
+		"centerprint hold time");
+	cl_levelshot_name = Cvar_Get ("cl_levelshot_name", "*black", 0,
+		"contains path to current levelshot");
 	cl_allow_levelshots = Cvar_Get ("allow_levelshots", "0", FCVAR_ARCHIVE,
 		"allow engine to use indivdual levelshots instead of 'loading' image");
-	scr_loading = Cvar_Get ("scr_loading", "0", 0, "loading bar progress");
-	scr_download = Cvar_Get ("scr_download", "-1", 0, "downloading bar progress");
-	cl_testlights = Cvar_Get ("cl_testlights", "0", 0, "test dynamic lights");
-	cl_envshot_size = Cvar_Get ("cl_envshot_size", "256", FCVAR_ARCHIVE, "envshot size of cube side");
-	v_dark = Cvar_Get ("v_dark", "0", 0, "starts level from dark screen");
-	scr_viewsize = Cvar_Get ("viewsize", "120", FCVAR_ARCHIVE, "screen size");
-	net_speeds = Cvar_Get ("net_speeds", "0", FCVAR_ARCHIVE, "show network packets");
-	cl_showfps = Cvar_Get ("cl_showfps", "0", FCVAR_ARCHIVE, "show client fps");
-	cl_showpos = Cvar_Get ("cl_showpos", "0", FCVAR_ARCHIVE, "show local player position and velocity");
+	scr_loading = Cvar_Get ("scr_loading", "0", 0,
+		"loading bar progress");
+	scr_download = Cvar_Get ("scr_download", "-1", 0,
+		"downloading bar progress");
+	cl_testlights = Cvar_Get ("cl_testlights", "0", 0,
+		"test dynamic lights");
+	cl_envshot_size = Cvar_Get ("cl_envshot_size", "256", FCVAR_ARCHIVE,
+		"envshot size of cube side");
+	v_dark = Cvar_Get ("v_dark", "0", 0,
+		"starts level from dark screen");
+	scr_viewsize = Cvar_Get ("viewsize", "120", FCVAR_ARCHIVE,
+		"screen size");
+	net_speeds = Cvar_Get ("net_speeds", "0", FCVAR_ARCHIVE,
+		"show network packets");
+	cl_showfps = Cvar_Get ("cl_showfps", "0", FCVAR_ARCHIVE,
+		"show client fps");
+	cl_showpos = Cvar_Get ("cl_showpos", "0", FCVAR_ARCHIVE,
+		"show local player position and velocity");
 
 	// register our commands
-	Cmd_AddCommand ("skyname", CL_SetSky_f, "set new skybox by basename");
-	Cmd_AddCommand ("loadsky", CL_SetSky_f, "set new skybox by basename");
-	Cmd_AddCommand ("viewpos", SCR_Viewpos_f, "prints current player origin");
-	Cmd_AddCommand ("sizeup", SCR_SizeUp_f, "screen size up to 10 points");
-	Cmd_AddCommand ("sizedown", SCR_SizeDown_f, "screen size down to 10 points");
+	Cmd_AddCommand ("skyname", CL_SetSky_f,
+		"set new skybox by basename");
+	Cmd_AddCommand ("loadsky", CL_SetSky_f,
+		"set new skybox by basename");
+	Cmd_AddCommand ("viewpos", SCR_Viewpos_f,
+		"prints current player origin");
+	Cmd_AddCommand ("sizeup", SCR_SizeUp_f,
+		"screen size up to 10 points");
+	Cmd_AddCommand ("sizedown", SCR_SizeDown_f,
+		"screen size down to 10 points");
 
 	if (!UI_LoadProgs ())
 		{
-		Con_Printf (S_ERROR "can't initialize gameui DLL: %s\n", COM_GetLibraryError ()); // there is non fatal for us
-		host.allow_console = true; // we need console, because menu is missing
+		// there is non fatal for us
+		Con_Printf (S_ERROR "can't initialize gameui DLL: %s\n", COM_GetLibraryError ());
+
+		// we need console, because menu is missing
+		host.allow_console = true;
 		}
 
 	SCR_VidInit ();

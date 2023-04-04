@@ -1804,11 +1804,13 @@ void CL_Particle (const vec3_t org, int color, float life, int zpos, int zvel)
 	particle_t *p;
 
 	p = R_AllocParticle (NULL);
-	if (!p) return;
+	if (!p)
+		return;
 
-	if (org) VectorCopy (org, p->org);
+	if (org)
+		VectorCopy (org, p->org);
 	p->die = cl.time + life;
-	p->vel[2] += zvel;	// ???
+	p->vel[2] += zvel;
 	p->color = color;
 	}
 

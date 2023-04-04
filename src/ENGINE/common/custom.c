@@ -17,7 +17,7 @@ GNU General Public License for more details.
 #include "custom.h"
 #include "ref_common.h"
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 //qboolean CustomDecal_Validate (void *raw, int nFileSize)
 static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
 	{

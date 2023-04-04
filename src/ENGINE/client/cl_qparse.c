@@ -242,7 +242,7 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		Cvar_Reset ("r_decals");
 		}
 
-	/* [Xash3D, 26.03.23] re-init mouse
+	/* [FWGS, 01.04.23] re-init mouse
 	if (cl.background)
 		host.mouse_visible = false;*/
 
@@ -663,13 +663,13 @@ static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	ent = &clgame.static_entities[i];
 	clgame.numStatics++;
 
-	ent->index = 0; // ???
+	ent->index = 0;
 	ent->baseline = state;
 	ent->curstate = state;
 	ent->prevstate = state;
 
 	// statics may be respawned in game e.g. for demo recording
-	if (cls.state == ca_connected || cls.state == ca_validate)
+	if ((cls.state == ca_connected) || (cls.state == ca_validate))
 		ent->trivial_accept = INVALID_HANDLE;
 
 	// setup the new static entity

@@ -1617,7 +1617,7 @@ void SV_Physics_Step (edict_t *ent)
 		{
 		ent->v.flags &= ~FL_ONGROUND;
 
-		if ((wasonground || wasonmover) && (ent->v.health > 0 || SV_CheckBottom (ent, MOVE_NORMAL)))
+		if ((wasonground || wasonmover) && ((ent->v.health > 0) || SV_CheckBottom (ent, MOVE_NORMAL)))
 			{
 			float *vel = ent->v.velocity;
 			float	control, speed, newspeed;
@@ -1628,12 +1628,14 @@ void SV_Physics_Step (edict_t *ent)
 			if (speed)
 				{
 				friction = sv_friction.value * ent->v.friction;	// factor
-				ent->v.friction = 1.0f; // g-cont. ???
-				if (wasonmover) friction *= 0.5f; // add a little friction
+				ent->v.friction = 1.0f; // g-cont?
+				if (wasonmover)
+					friction *= 0.5f; // add a little friction
 
 				control = (speed < sv_stopspeed.value) ? sv_stopspeed.value : speed;
 				newspeed = speed - (sv.frametime * control * friction);
-				if (newspeed < 0) newspeed = 0;
+				if (newspeed < 0)
+					newspeed = 0;
 				newspeed /= speed;
 
 				vel[0] = vel[0] * newspeed;

@@ -341,7 +341,7 @@ static void UI_LoadGame_Init (void)
 
 	uiLoadGame.banner.generic.id = ID_BANNER;
 	uiLoadGame.banner.generic.type = QMTYPE_BITMAP;
-	uiLoadGame.banner.generic.flags = QMF_INACTIVE;// | QMF_DRAW_ADDITIVE;
+	uiLoadGame.banner.generic.flags = QMF_INACTIVE | QMF_DRAW_ADDITIVE;
 	uiLoadGame.banner.generic.x = UI_BANNER_POSX;
 	uiLoadGame.banner.generic.y = UI_BANNER_POSY;
 	uiLoadGame.banner.generic.width = UI_BANNER_WIDTH;

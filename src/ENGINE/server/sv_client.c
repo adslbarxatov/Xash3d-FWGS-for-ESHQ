@@ -1432,7 +1432,7 @@ void SV_PutClientInServer (sv_client_t *cl)
 			ent->v.flags = 0;
 
 		ent->v.netname = MAKE_STRING (cl->name);
-		ent->v.colormap = NUM_FOR_EDICT (ent);	// ???
+		ent->v.colormap = NUM_FOR_EDICT (ent);
 
 		// fisrt entering
 		svgame.globals->time = sv.time;

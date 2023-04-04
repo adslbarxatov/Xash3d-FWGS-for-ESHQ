@@ -151,7 +151,7 @@ void R_StudioInit (void)
 	r_studio_drawelements = gEngfuncs.Cvar_Get ("r_studio_drawelements", "1", FCVAR_GLCONFIG,
 		"use glDrawElements for studiomodels");
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_PSVITA
 	// don't do the same array-building work twice since that's what our FFP shim does anyway
 	gEngfuncs.Cvar_FullSet ("r_studio_drawelements", "0", FCVAR_READ_ONLY);
@@ -630,7 +630,7 @@ float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc)
 	{
 	double	dfdt, f;
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	if (g_studio.interpolate)
 		{
 		/*if (g_studio.time < e->curstate.animtime) 
@@ -870,7 +870,7 @@ void R_StudioCalcRotations (cl_entity_t *e, float pos[][3], vec4_t *q, mstudiose
 
 	R_StudioCalcBoneAdj (dadt, adj, e->curstate.controller, e->latched.prevcontroller, e->mouth.mouthopen);
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	for (i = 0; i < m_pStudioHeader->numbones; i++, pbone++, panim++)
 		{
 		/*gEngfuncs.R_StudioCalcBoneQuaternion (frame, s, pbone, panim, adj, q[i]);
@@ -993,7 +993,7 @@ void R_StudioSetupBones (cl_entity_t *e)
 		dadt = R_StudioEstimateInterpolant (e);
 		s = (e->curstate.blending[0] * dadt + e->latched.prevblending[0] * (1.0f - dadt)) / 255.0f;
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q2, pos2, s);
 		R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q2, pos2, s);
 
@@ -1005,7 +1005,7 @@ void R_StudioSetupBones (cl_entity_t *e)
 			panim += m_pStudioHeader->numbones;
 			R_StudioCalcRotations (e, pos4, q4, pseqdesc, panim, f);
 
-			// [Xash3D, 31.03.23]
+			// [FWGS, 01.04.23]
 			s = (e->curstate.blending[0] * dadt + e->latched.prevblending[0] * (1.0f - dadt)) / 255.0f;
 			//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
 			R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
@@ -1035,7 +1035,7 @@ void R_StudioSetupBones (cl_entity_t *e)
 			panim += m_pStudioHeader->numbones;
 			R_StudioCalcRotations (e, pos2, q2, pseqdesc, panim, e->latched.prevframe);
 
-			// [Xash3D, 31.03.23]
+			// [FWGS, 01.04.23]
 			s = (e->latched.prevseqblending[0]) / 255.0f;
 			//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q2, pos2, s);
 			R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q2, pos2, s);
@@ -1048,7 +1048,7 @@ void R_StudioSetupBones (cl_entity_t *e)
 				panim += m_pStudioHeader->numbones;
 				R_StudioCalcRotations (e, pos4, q4, pseqdesc, panim, e->latched.prevframe);
 
-				// [Xash3D, 31.03.23]
+				// [FWGS, 01.04.23]
 				s = (e->latched.prevseqblending[0]) / 255.0f;
 				//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
 				R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
@@ -1059,7 +1059,7 @@ void R_StudioSetupBones (cl_entity_t *e)
 				}
 			}
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		s = 1.0f - (g_studio.time - e->latched.sequencetime) / 0.2f;
 		//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q1b, pos1b, s);
 		R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q1b, pos1b, s);
@@ -1290,7 +1290,7 @@ void R_StudioGenerateNormals (void)
 
 /*
 ====================
-StudioSetupChrome [Xash3D, 31.03.23]
+StudioSetupChrome [FWGS, 01.04.23]
 ====================
 */
 void R_StudioSetupChrome (float *pchrome, int bone, vec3_t normal)
@@ -1794,7 +1794,7 @@ void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], vec3_t normal, vec3_t color,
 	out[2] = finalLight[2] * 255;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 //static void R_StudioSetColorBegin (short *ptricmds, vec3_t *pstudionorms)
 static void R_StudioSetColorArray (short *ptricmds, vec3_t *pstudionorms, byte *color)
 	{
@@ -1819,7 +1819,7 @@ else
 	}*/
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 //static void R_StudioSetColorArray (short *ptricmds, vec3_t *pstudionorms, byte *color)
 static void R_StudioSetColorBegin (short *ptricmds, vec3_t *pstudionorms)
 	{

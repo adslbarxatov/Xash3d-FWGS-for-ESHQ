@@ -470,15 +470,15 @@ qboolean CL_RequestMissingResources (void)
 void CL_BatchResourceRequest (qboolean initialize)
 	{
 	byte		data[MAX_INIT_MSG];
-	resource_t *p, *n;
-	sizebuf_t		msg;
+	resource_t	*p, *n;
+	sizebuf_t	msg;
 
 	MSG_Init (&msg, "Resource Batch", data, sizeof (data));
 
 	// client resources is not precached by server
 	if (initialize) CL_AddClientResources ();
 
-	for (p = cl.resourcesneeded.pNext; p && p != &cl.resourcesneeded; p = n)
+	for (p = cl.resourcesneeded.pNext; p && (p != &cl.resourcesneeded); p = n)
 		{
 		n = p->pNext;
 
@@ -514,8 +514,8 @@ void CL_BatchResourceRequest (qboolean initialize)
 						{
 						MSG_BeginClientCmd (&msg, clc_stringcmd);
 						
-						// [Xash3D, 26.03.23]
-						//MSG_WriteString (&msg, va ("dlfile !MD5%s", MD5_Print (p->rgucMD5_hash)));
+						// [FWGS, 01.04.23]
+						/*MSG_WriteString (&msg, va ("dlfile !MD5%s", MD5_Print (p->rgucMD5_hash)));*/
 						MSG_WriteStringf (&msg, "dlfile !MD5%s", MD5_Print (p->rgucMD5_hash));
 						
 						SetBits (p->ucFlags, RES_REQUESTED);
@@ -858,7 +858,7 @@ void CL_ParseFileTransferFailed (sizebuf_t *msg)
 */
 /*
 ==================
-CL_ParseServerData [Xash3D, 26.03.23]
+CL_ParseServerData [FWGS, 01.04.23]
 ==================
 */
 //void CL_ParseServerData (sizebuf_t *msg)
@@ -907,7 +907,7 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	if (legacy)
 		{
 		clgame.maxEntities = bound (MIN_LEGACY_EDICTS, clgame.maxEntities, MAX_LEGACY_EDICTS);
-		clgame.maxModels = 512; // ???
+		clgame.maxModels = 512;
 		}
 	else
 		{
@@ -922,7 +922,7 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 
 	background = MSG_ReadOneBit (msg);
 	
-	//Q_strncpy (gamefolder, MSG_ReadString (msg), MAX_QPATH);
+	/*Q_strncpy (gamefolder, MSG_ReadString (msg), MAX_QPATH);*/
 	Q_strncpy (gamefolder, MSG_ReadString (msg), sizeof (gamefolder));
 
 	host.features = (uint)MSG_ReadLong (msg);
@@ -973,11 +973,8 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 		// re-init mouse
 		host.mouse_visible = false;*/
 		cl.background = true;
-		/*}*/
 	else
-		{
 		cl.background = background;
-		}
 
 	if (cl.background)	// tell the game parts about background state
 		Cvar_FullSet ("cl_background", "1", FCVAR_READ_ONLY);
@@ -1201,16 +1198,16 @@ void CL_ParseClientData (sizebuf_t *msg)
 
 /*
 ==================
-CL_ParseBaseline [Xash3D, 26.03.23]
+CL_ParseBaseline [FWGS, 01.04.23]
 ==================
 */
 //void CL_ParseBaseline (sizebuf_t *msg)
 void CL_ParseBaseline (sizebuf_t *msg, qboolean legacy)
 	{
-	int		i, newnum;
+	int				i, newnum;
 	entity_state_t	nullstate;
 	qboolean		player;
-	cl_entity_t *ent;
+	cl_entity_t		*ent;
 
 	Delta_InitClient ();	// finalize client delta's
 
@@ -1392,7 +1389,7 @@ void CL_RegisterUserMessage (sizebuf_t *msg)
 
 /*
 ================
-CL_UpdateUserinfo [Xash3D, 26.03.23]
+CL_UpdateUserinfo [FWGS, 01.04.23]
 
 collect userinfo from all players
 ================
@@ -1653,8 +1650,8 @@ void CL_RegisterResources (sizebuf_t *msg)
 			// Include server count in case server disconnects and changes level during d/l
 			MSG_BeginClientCmd (msg, clc_stringcmd);
 
-			// [Xash3D, 26.03.23]
-			//MSG_WriteString (msg, va ("spawn %i", cl.servercount));
+			// [FWGS, 01.04.23]
+			/*MSG_WriteString (msg, va ("spawn %i", cl.servercount));*/
 			MSG_WriteStringf (msg, "spawn %i", cl.servercount);
 			}
 		}
@@ -1926,8 +1923,8 @@ void CL_ParseScreenFade (sizebuf_t *msg)
 	holdTime = (float)MSG_ReadWord (msg);
 	sf->fadeFlags = MSG_ReadShort (msg);
 
-	// [Xash3D, 26.03.23]
-	//flScale = (sf->fadeFlags & FFADE_LONGFADE) ? (1.0f / 256.0f) : (1.0f / 4096.0f);
+	// [FWGS, 01.04.23]
+	/*flScale = (sf->fadeFlags & FFADE_LONGFADE) ? (1.0f / 256.0f) : (1.0f / 4096.0f);*/
 	flScale = FBitSet (sf->fadeFlags, FFADE_LONGFADE) ? (1.0f / 256.0f) : (1.0f / 4096.0f);
 
 	sf->fader = MSG_ReadByte (msg);
@@ -1941,15 +1938,15 @@ void CL_ParseScreenFade (sizebuf_t *msg)
 	// calc fade speed
 	if (duration > 0)
 		{
-		// [Xash3D, 26.03.23]
-		//if (sf->fadeFlags & FFADE_OUT)
+		// [FWGS, 01.04.23]
+		/*if (sf->fadeFlags & FFADE_OUT)*/
 		if (FBitSet (sf->fadeFlags, FFADE_OUT))
 			{
 			if (sf->fadeEnd)
 				sf->fadeSpeed = -(float)sf->fadealpha / sf->fadeEnd;
 
 			sf->fadeEnd += cl.time;
-			sf->fadeTotalEnd = sf->fadeEnd;	// [Xash3D, 26.03.23]
+			sf->fadeTotalEnd = sf->fadeEnd;	// [FWGS, 01.04.23]
 			sf->fadeReset += sf->fadeEnd;
 			}
 		else
@@ -2045,7 +2042,7 @@ void CL_ParseExec (sizebuf_t *msg)
 		{
 		class_idx = MSG_ReadByte (msg);
 
-		if (class_idx >= 0 && class_idx <= 11 && !Q_stricmp (GI->gamefolder, "tfc"))
+		if ((class_idx >= 0) && (class_idx <= 11) && !Q_stricmp (GI->gamefolder, "tfc"))
 			Cbuf_AddText (class_cfgs[class_idx]);
 		}
 	else if (!Q_stricmp (GI->gamefolder, "tfc"))
@@ -2054,10 +2051,10 @@ void CL_ParseExec (sizebuf_t *msg)
 
 		COM_FileBase (clgame.mapname, mapname);
 
-		// [Xash3D, 26.03.23]
+		// [FWGS, 01.04.23]
 		if (COM_CheckString (mapname))
 			Cbuf_AddTextf ("exec %s.cfg\n", mapname);
-		//Cbuf_AddText (va ("exec %s.cfg\n", mapname));
+		/*Cbuf_AddText (va ("exec %s.cfg\n", mapname));*/
 		}
 	}
 
@@ -2345,8 +2342,8 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 			case svc_serverdata:
 				Cbuf_Execute (); // make sure any stuffed commands are done
 
-				// [Xash3D, 26.03.23]
-				//CL_ParseServerData (msg);
+				// [FWGS, 01.04.23]
+				/*CL_ParseServerData (msg);*/
 				CL_ParseServerData (msg, false);
 				break;
 
@@ -2355,7 +2352,8 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 				break;
 
 			case svc_updateuserinfo:
-				//CL_UpdateUserinfo (msg);
+				// [FWGS, 01.04.23]
+				/*CL_UpdateUserinfo (msg);*/
 				CL_UpdateUserinfo (msg, false);
 				break;
 
@@ -2395,8 +2393,8 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 				break;
 
 			case svc_spawnbaseline:
-				// [Xash3D, 26.03.23]
-				//CL_ParseBaseline (msg);
+				// [FWGS, 01.04.23]
+				/*CL_ParseBaseline (msg);*/
 				CL_ParseBaseline (msg, false);
 				break;
 
@@ -2567,7 +2565,7 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 		}
 	}
 
-/* [Xash3D, 26.03.23]
+/* [FWGS, 01.04.23]
 // ==================
 // CL_ParseBaseline
 // ==================
@@ -2772,7 +2770,7 @@ void CL_LegacyParseStaticEntity (sizebuf_t *msg)
 	ent->index = 0; // static entities doesn't has the numbers
 
 	// statics may be respawned in game e.g. for demo recording
-	if (cls.state == ca_connected || cls.state == ca_validate)
+	if ((cls.state == ca_connected) || (cls.state == ca_validate))
 		ent->trivial_accept = INVALID_HANDLE;
 
 	// setup the new static entity
@@ -2782,7 +2780,7 @@ void CL_LegacyParseStaticEntity (sizebuf_t *msg)
 	ent->curstate.framerate = 1.0f;
 	CL_ResetLatchedVars (ent, true);
 
-	if (ent->curstate.rendermode == kRenderNormal && ent->model != NULL)
+	if ((ent->curstate.rendermode == kRenderNormal) && (ent->model != NULL))
 		{
 		// auto 'solid' faces
 		if (FBitSet (ent->model->flags, MODEL_TRANSPARENT) && Host_IsQuakeCompatible ())
@@ -2794,8 +2792,6 @@ void CL_LegacyParseStaticEntity (sizebuf_t *msg)
 
 	R_AddEfrags (ent);	// add link
 	}
-
-
 
 void CL_LegacyParseSoundPacket (sizebuf_t *msg, qboolean is_ambient)
 	{
@@ -2925,7 +2921,7 @@ void CL_LegacyPrecacheEvent (sizebuf_t *msg)
 	CL_SetEventIndex (cl.event_precache[eventIndex], eventIndex);
 	}
 
-/* [Xash3D, 26.03.23]
+/* [FWGS, 01.04.23]
 void CL_LegacyUpdateUserinfo (sizebuf_t *msg)
 	{
 	int		slot, id = 0;
@@ -2991,13 +2987,11 @@ void CL_LegacyParseResourceList (sizebuf_t *msg)
 		}
 
 	if (CL_IsPlaybackDemo ())
-		{
 		return;
-		}
 
 	host.downloadcount = 0;
 
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	for (i = 0; i < reslist.rescount; i++)
 		{
 		const char *path;
@@ -3180,8 +3174,8 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 			case svc_serverdata:
 				Cbuf_Execute (); // make sure any stuffed commands are done
 				
-				// [Xash3D, 26.03.23]
-				//CL_ParseLegacyServerData (msg);
+				// [FWGS, 01.04.23]
+				/*CL_ParseLegacyServerData (msg);*/
 				CL_ParseServerData (msg, true);
 				break;
 
@@ -3190,7 +3184,8 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 				break;
 
 			case svc_updateuserinfo:
-				//CL_LegacyUpdateUserinfo (msg);
+				// [FWGS, 01.04.23]
+				/*CL_LegacyUpdateUserinfo (msg);*/
 				CL_UpdateUserinfo (msg, true);
 				break;
 
@@ -3230,8 +3225,8 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 				break;
 
 			case svc_spawnbaseline:
-				// [Xash3D, 26.03.23]
-				//CL_LegacyParseBaseline (msg);
+				// [FWGS, 01.04.23]
+				/*CL_LegacyParseBaseline (msg);*/
 				CL_ParseBaseline (msg, true);
 				break;
 
@@ -3450,8 +3445,8 @@ void CL_LegacyPrecache_f (void)
 	// Include server count in case server disconnects and changes level during d/l
 	MSG_BeginClientCmd (&cls.netchan.message, clc_stringcmd);
 	
-	// [Xash3D, 26.03.23]
-	//MSG_WriteString (&cls.netchan.message, va ("begin %i", spawncount));
+	// [FWGS, 01.04.23]
+	/*MSG_WriteString (&cls.netchan.message, va ("begin %i", spawncount));*/
 	MSG_WriteStringf (&cls.netchan.message, "begin %i", spawncount);
 	cls.signon = SIGNONS;
 	}

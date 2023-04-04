@@ -425,7 +425,7 @@ static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)
 		out->flags |= GFL_RENDER_PICBUTTON_TEXT;
 	}
 
-// [Xash3D, 21.03.23]
+// [FWGS, 01.04.23]
 /*static qboolean PIC_Scissor (float *x, float *y, float *width, float *height, float *u0, float *v0, 
 	float *u1, float *v1)
 	{
@@ -492,7 +492,7 @@ static void PIC_DrawGeneric (float x, float y, float width, float height, const 
 
 	if (prc)
 		{
-		// calc user-defined rectangle [Xash3D, 21.03.23]
+		// calc user-defined rectangle [FWGS, 01.04.23]
 		/*s1 = (float)prc->left / (float)w;
 		t1 = (float)prc->top / (float)h;
 		s2 = (float)prc->right / (float)w;
@@ -502,7 +502,7 @@ static void PIC_DrawGeneric (float x, float y, float width, float height, const 
 		s2 = prc->right / (float)w;
 		t2 = prc->bottom / (float)h;
 
-		if (width == -1 && height == -1)
+		if ((width == -1) && (height == -1))
 			{
 			width = prc->right - prc->left;
 			height = prc->bottom - prc->top;
@@ -520,12 +520,12 @@ static void PIC_DrawGeneric (float x, float y, float width, float height, const 
 		height = h;
 		}
 
-	// pass scissor test if supposed [Xash3D, 21.03.23]
-	//if (gameui.ds.scissor_test && !PIC_Scissor (&x, &y, &width, &height, &s1, &t1, &s2, &t2))
+	// pass scissor test if supposed [FWGS, 01.04.23]
+	/*if (gameui.ds.scissor_test && !PIC_Scissor (&x, &y, &width, &height, &s1, &t1, &s2, &t2))*/
 	if (!CL_Scissor (&gameui.ds.scissor, &x, &y, &width, &height, &s1, &t1, &s2, &t2))
 		return;
 
-	//PicAdjustSize (&x, &y, &width, &height);
+	/*PicAdjustSize (&x, &y, &width, &height);*/
 	ref.dllFuncs.R_DrawStretchPic (x, y, width, height, s1, t1, s2, t2, gameui.ds.gl_texturenum);
 	ref.dllFuncs.Color4ub (255, 255, 255, 255);
 	}
@@ -649,7 +649,7 @@ void GAME_EXPORT pfnPIC_DrawAdditive (int x, int y, int width, int height, const
 
 /*
 =========
-pfnPIC_EnableScissor [Xash3D, 21.03.23]
+pfnPIC_EnableScissor [FWGS, 01.04.23]
 =========
 */
 static void GAME_EXPORT pfnPIC_EnableScissor (int x, int y, int width, int height)
@@ -670,7 +670,7 @@ static void GAME_EXPORT pfnPIC_EnableScissor (int x, int y, int width, int heigh
 
 /*
 =========
-pfnPIC_DisableScissor [Xash3D, 21.03.23]
+pfnPIC_DisableScissor [FWGS, 01.04.23]
 =========
 */
 static void GAME_EXPORT pfnPIC_DisableScissor (void)
@@ -764,8 +764,8 @@ static void GAME_EXPORT pfnDrawCharacter (int ix, int iy, int iwidth, int iheigh
 	s2 = s1 + size;
 	t2 = t1 + size;
 
-	// pass scissor test if supposed [Xash3D, 21.03.23]
-	//if (gameui.ds.scissor_test && !PIC_Scissor (&x, &y, &width, &height, &s1, &t1, &s2, &t2))
+	// pass scissor test if supposed [FWGS, 01.04.23]
+	/*if (gameui.ds.scissor_test && !PIC_Scissor (&x, &y, &width, &height, &s1, &t1, &s2, &t2))*/
 	if (!CL_Scissor (&gameui.ds.scissor, &x, &y, &width, &height, &s1, &t1, &s2, &t2))
 		return;
 
@@ -785,7 +785,8 @@ static int GAME_EXPORT UI_DrawConsoleString (int x, int y, const char *string)
 	{
 	int	drawLen;
 
-	if (!string || !*string) return 0; // silent ignore
+	if (!string || !*string)
+		return 0; // silent ignore
 	drawLen = Con_DrawString (x, y, string, gameui.ds.textColor);
 	MakeRGBA (gameui.ds.textColor, 255, 255, 255, 255);
 
@@ -883,19 +884,20 @@ static int GAME_EXPORT pfnAddEntity (int entityType, cl_entity_t *ent)
 	{
 	if (!ref.dllFuncs.R_AddEntity (ent, entityType))
 		return false;
+
 	return true;
 	}
 
 /*
 ====================
-pfnClientJoin [Xash3D, 21.03.23]
+pfnClientJoin [FWGS, 01.04.23]
 
 send client connect
 ====================
 */
 static void GAME_EXPORT pfnClientJoin (const netadr_t adr)
 	{
-	//Cbuf_AddText (va ("connect %s\n", NET_AdrToString (adr)));
+	/*Cbuf_AddText (va ("connect %s\n", NET_AdrToString (adr)));*/
 	Cbuf_AddTextf ("connect %s\n", NET_AdrToString (adr));
 	}
 

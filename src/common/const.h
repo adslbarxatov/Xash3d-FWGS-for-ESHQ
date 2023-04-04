@@ -743,11 +743,11 @@ typedef unsigned short	word;
 
 #include "xash3d_types.h"
 
-/* Xash3D: 20.03.23
 #if !(XASH_DL || XASH_FS)
 	#define Q_isspace(ch)	(ch < 32 || ch > 255)
 #endif
 
+/* [FWGS, 01.04.23]
 #undef true
 #undef false
 
@@ -783,13 +783,13 @@ typedef struct
 typedef struct
 	{
 	qboolean	allsolid;		// if true, plane is not valid
-	qboolean	startsolid;	// if true, the initial point was in a solid area
+	qboolean	startsolid;		// if true, the initial point was in a solid area
 	qboolean	inopen, inwater;
 	float		fraction;		// time completed, 1.0 = didn't hit anything
-	vec3_t		endpos;		// final position
-	plane_t		plane;		// surface normal at impact
-	edict_t *ent;		// entity the surface is on
+	vec3_t		endpos;			// final position
+	plane_t		plane;			// surface normal at impact
+	edict_t		*ent;			// entity the surface is on
 	int			hitgroup;		// 0 == generic, non zero is specific body part
 	} trace_t;
 
-#endif//CONST_H
+#endif

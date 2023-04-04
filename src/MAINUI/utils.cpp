@@ -294,14 +294,15 @@ int UI_FadeAlpha (int starttime, int endtime)
 	// fade out
 	if ((endtime - time) < fade_time)
 		alpha = bound (0, ((endtime - time) * 1.0f / fade_time) * 255, 255);
-	else alpha = 255;
+	else 
+		alpha = 255;
 
 	return PackRGBA (255, 255, 255, alpha);
 	}
 
 void UI_UtilSetupPicButton (menuPicButton_s* pic, int ID)
 	{
-	if (ID < 0 || ID > PC_BUTTONCOUNT)
+	if ((ID < 0) || (ID > PC_BUTTONCOUNT))
 		return; // bad id
 
 	pic->generic.width = UI_BUTTONS_WIDTH;
@@ -2106,9 +2107,11 @@ void UI_Bitmap_Draw (menuBitmap_s* b)
 		{
 		// UNDONE: only inactive bitmaps supported
 		if (b->generic.flags & QMF_DRAW_ADDITIVE)
-			UI_DrawPicAdditive (b->generic.x, b->generic.y, b->generic.width, b->generic.height, b->generic.color, b->pic);
+			UI_DrawPicAdditive (b->generic.x, b->generic.y, b->generic.width, b->generic.height, 
+				b->generic.color, b->pic);
 		else 
-			UI_DrawPic (b->generic.x, b->generic.y, b->generic.width, b->generic.height, b->generic.color, b->pic);
+			UI_DrawPic (b->generic.x, b->generic.y, b->generic.width, b->generic.height,
+				b->generic.color, b->pic);
 		return; // no focus
 		}
 

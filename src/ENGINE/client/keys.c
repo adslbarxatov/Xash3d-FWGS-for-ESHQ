@@ -104,9 +104,9 @@ keyname_t keynames[] =
 	{"B_BUTTON",	K_B_BUTTON,		"+use"},
 	{"X_BUTTON",	K_X_BUTTON,		"+reload"},
 	{"Y_BUTTON",	K_Y_BUTTON,		"impulse 100"},	// Flashlight
-	{"BACK",		K_BACK_BUTTON,	"pause"},		// [Xash3D, 26.03.23] Menu
+	{"BACK",		K_BACK_BUTTON,	"pause"},		// [FWGS, 01.04.23] Menu
 	{"MODE",		K_MODE_BUTTON,	""},
-	{"START",		K_START_BUTTON,	"escape"},		// [Xash3D, 26.03.23]
+	{"START",		K_START_BUTTON,	"escape"},		// [FWGS, 01.04.23]
 	{"STICK1",		K_LSTICK,		"+speed"},
 	{"STICK2",		K_RSTICK,		"+duck"},
 	{"L1_BUTTON",	K_L1_BUTTON,	"+duck"},
@@ -123,7 +123,7 @@ keyname_t keynames[] =
 	{"JOY4" ,		K_JOY4 ,		""},
 	{"C_BUTTON",	K_C_BUTTON,		""},
 	{"Z_BUTTON",	K_Z_BUTTON,		""},
-	{"MISC_BUTTON",	K_MISC_BUTTON,	""},	// [Xash3D, 26.03.23]
+	{"MISC_BUTTON",	K_MISC_BUTTON,	""},	// [FWGS, 01.04.23]
 	{"PADDLE1",		K_PADDLE1_BUTTON,	""},
 	{"PADDLE2",		K_PADDLE2_BUTTON,	""},
 	{"PADDLE3",		K_PADDLE3_BUTTON,	""},
@@ -367,14 +367,14 @@ void Key_Unbind_f (void)
 
 /*
 ===================
-Key_Unbindall_f [Xash3D, 26.03.23]
+Key_Unbindall_f [FWGS, 01.04.23]
 ===================
 */
 void Key_Unbindall_f (void)
 	{
 	int	i;
 
-	//for (i = 0; i < 256; i++)
+	/*for (i = 0; i < 256; i++)*/
 	for (i = 0; i < ARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
@@ -388,7 +388,7 @@ void Key_Unbindall_f (void)
 
 /*
 ===================
-Key_Reset_f [Xash3D, 26.03.23]
+Key_Reset_f [FWGS, 01.04.23]
 ===================
 */
 void Key_Reset_f (void)
@@ -397,7 +397,7 @@ void Key_Reset_f (void)
 	int	i;
 
 	// clear all keys first
-	//for (i = 0; i < 256; i++)
+	/*for (i = 0; i < 256; i++)*/
 	for (i = 0; i < ARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
@@ -715,7 +715,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 		}
 
 	VGui_KeyEvent (key, down);
-	//Touch_KeyEvent (key, down);	// [Xash3D, 26.03.23]
+	//Touch_KeyEvent (key, down);	// [FWGS, 01.04.23]
 
 	// console key is hardcoded, so the user can never unbind it
 	if ((key == '`') || (key == '~'))
@@ -847,9 +847,10 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 			break;
 
 		case key_console:
-#if !XASH_NSWITCH && !XASH_PSVITA // [Xash3D, 26.03.23] if we don't disable this, pops up the keyboard during load
+#if !XASH_NSWITCH && !XASH_PSVITA // [FWGS, 01.04.23] if we don't disable this, pops up the keyboard during load
 			Key_EnableTextInput (true, false);
-#endif			cls.key_dest = key_console;
+#endif			
+			cls.key_dest = key_console;
 			break;
 
 		case key_message:
@@ -1148,14 +1149,14 @@ static void OSK_EnableTextInput (qboolean enable, qboolean force)
 
 /*
 ============
-Joy_DrawSymbolButton [Xash3D, 26.03.23]
+Joy_DrawSymbolButton [FWGS, 01.04.23]
 
 Draw button with symbol on it
 ============
 */
 static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float height)
 	{
-	//char str[] = { symb & 255, 0 };
+	/*char str[] = { symb & 255, 0 };*/
 	cl_font_t *font = Con_GetCurFont ();
 
 	byte color[] = { 255, 255, 255, 255 };
@@ -1170,14 +1171,14 @@ static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float
 	if (!symb || (symb == ' ') || ((symb >= OSK_TAB) && (symb < OSK_SPECKEY_LAST)))
 		return;
 
-	//Con_DrawCharacter (x1 + 1, y1, symb, color);
+	/*Con_DrawCharacter (x1 + 1, y1, symb, color);*/
 	CL_DrawCharacter (x1 + width * 0.4 * refState.width, y1 + height * 0.4 * refState.height,
 		symb, color, font, 0);
 	}
 
 /*
 =============
-Joy_DrawSpecialButton [Xash3D, 26.03.23]
+Joy_DrawSpecialButton [FWGS, 01.04.23]
 
 Draw special button, like shift, enter or esc
 =============
@@ -1186,7 +1187,7 @@ static void OSK_DrawSpecialButton (const char *name, float x, float y, float wid
 	{
 	byte color[] = { 0, 255, 0, 255 };
 
-	//Con_DrawString (x * refState.width, y * refState.height, name, color);
+	/*Con_DrawString (x * refState.width, y * refState.height, name, color);*/
 	Con_DrawString (x * refState.width + width * 0.4 * refState.width,
 		y * refState.height + height * 0.4 * refState.height, name, color);
 	}

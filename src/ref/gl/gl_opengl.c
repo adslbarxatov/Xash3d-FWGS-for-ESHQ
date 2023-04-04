@@ -327,7 +327,7 @@ int GL_MaxTextureUnits (void)
 
 /*
 =================
-GL_CheckExtension [Xash3D, 31.03.23]
+GL_CheckExtension [FWGS, 01.04.23]
 =================
 */
 qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext)
@@ -751,7 +751,7 @@ void GL_InitExtensionsBigGL (void)
 	if (glw_state.extended)
 		GL_CheckExtension ("GL_ARB_debug_output", debugoutputfuncs, "gl_debug_output", GL_DEBUG_OUTPUT);
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_PSVITA
 	// not all GL1.1 functions are implemented in vitaGL, but there's enough
 	GL_SetExtension (GL_OPENGL_110, true);
@@ -763,7 +763,7 @@ void GL_InitExtensionsBigGL (void)
 	}
 #endif
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void GL_InitExtensions (void)
 	{
 	char value[MAX_VA_STRING];
@@ -830,7 +830,7 @@ void GL_InitExtensions (void)
 	glw_state.initialized = true;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void GL_ClearExtensions (void)
 	{
 	// now all extensions are disabled

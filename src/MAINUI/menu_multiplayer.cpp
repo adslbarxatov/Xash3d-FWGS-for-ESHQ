@@ -109,7 +109,7 @@ static void UI_MultiPlayer_Init (void)
 
 	uiMultiPlayer.banner.generic.id = ID_BANNER;
 	uiMultiPlayer.banner.generic.type = QMTYPE_BITMAP;
-	uiMultiPlayer.banner.generic.flags = QMF_INACTIVE;// | QMF_DRAW_ADDITIVE;
+	uiMultiPlayer.banner.generic.flags = QMF_INACTIVE | QMF_DRAW_ADDITIVE;
 	uiMultiPlayer.banner.generic.x = UI_BANNER_POSX;
 	uiMultiPlayer.banner.generic.y = UI_BANNER_POSY;
 	uiMultiPlayer.banner.generic.width = UI_BANNER_WIDTH;
@@ -125,9 +125,11 @@ static void UI_MultiPlayer_Init (void)
 	uiMultiPlayer.internetGames.generic.callback = UI_MultiPlayer_Callback;
 	UI_UtilSetupPicButton (&uiMultiPlayer.internetGames, PC_INET_GAME);
 #ifdef RU
-	uiMultiPlayer.internetGames.generic.statusText = "ѕросмотрите список игровых интернет-серверов и присоединитесь\nк одному по вашему выбору";
+	uiMultiPlayer.internetGames.generic.statusText = 
+		"ѕросмотрите список игровых интернет-серверов и присоединитесь\nк одному по вашему выбору";
 #else
-	uiMultiPlayer.internetGames.generic.statusText = "View list of a game internet servers and join the one\nof your choise";
+	uiMultiPlayer.internetGames.generic.statusText = 
+		"View list of a game internet servers and join the one\nof your choise";
 #endif
 
 	uiMultiPlayer.spectateGames.generic.id = ID_SPECTATEGAMES;

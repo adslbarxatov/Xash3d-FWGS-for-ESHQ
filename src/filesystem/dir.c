@@ -19,18 +19,20 @@ GNU General Public License for more details.
 #include <fcntl.h>
 #include <errno.h>
 #include <stddef.h>
+
 #if XASH_POSIX
-#include <unistd.h>
-#if !XASH_PSVITA
-#include <sys/ioctl.h>
+	#include <unistd.h>
+	#if !XASH_PSVITA
+		#include <sys/ioctl.h>
+	#endif
 #endif
-#endif
+
 #if XASH_LINUX
-#include <linux/fs.h>
-#ifndef FS_CASEFOLD_FL // for compatibility with older distros
-#define FS_CASEFOLD_FL 0x40000000
-#endif // FS_CASEFOLD_FL
-#endif // XASH_LINUX
+	#include <linux/fs.h>
+	#ifndef FS_CASEFOLD_FL // for compatibility with older distros
+		#define FS_CASEFOLD_FL 0x40000000
+	#endif
+#endif
 
 #include "port.h"
 #include "filesystem_internal.h"
@@ -258,7 +260,10 @@ static int FS_MaybeUpdateDirEntries (dir_t *dir, const char *path, const char *e
 			FS_MergeDirEntries (dir, &list);
 			ret = FS_FindDirEntry (dir, entryname);
 			}
-		else ret = -1;
+		else
+			{
+			ret = -1;
+			}
 		}
 
 	stringlistfreecontents (&list);

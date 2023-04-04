@@ -37,11 +37,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ID_MOUSELOOK		6
 #define ID_LOOKSPRING		7
 #define ID_LOOKSTRAFE		8
-
-// ESHQ: замена параметра
-/*#define ID_MOUSEFILTER		9*/
-#define ID_INFINITERUN		9
-
+#define ID_INFINITERUN		9	// ESHQ: замена параметра
 #define ID_AUTOAIM			10
 
 typedef struct
@@ -58,7 +54,6 @@ typedef struct
 	menuCheckBox_s	mouseLook;
 	menuCheckBox_s	lookSpring;
 	menuCheckBox_s	lookStrafe;
-	/*menuCheckBox_s	mouseFilter;*/
 	menuCheckBox_s	infiniteRun;	// ESHQ: новый параметр - бесконечный бег
 	menuCheckBox_s	autoaim;
 	menuSlider_s	sensitivity;
@@ -83,7 +78,6 @@ static void UI_AdvControls_UpdateConfig (void)
 	CVAR_SET_FLOAT ("lookstrafe", uiAdvControls.lookStrafe.enabled);
 	
 	// ESHQ: замена параметра
-	/*CVAR_SET_FLOAT ("m_filter", uiAdvControls.mouseFilter.enabled);*/
 	if (uiAdvControls.infiniteRun.enabled)
 		{
 		CVAR_SET_FLOAT ("cl_movespeedkey", 0.95f);
@@ -138,8 +132,6 @@ static void UI_AdvControls_GetConfig (void)
 		uiAdvControls.lookStrafe.enabled = 1;
 
 	// ESHQ: замена параметра
-	/*if (CVAR_GET_FLOAT ("m_filter"))
-		uiAdvControls.mouseFilter.enabled = 1;*/
 	if (CVAR_GET_FLOAT ("cl_movespeedkey") > 0.7f)
 		uiAdvControls.infiniteRun.enabled = 1;
 	else
@@ -178,11 +170,7 @@ static void UI_AdvControls_Callback (void *self, int event)
 		case ID_MOUSELOOK:
 		case ID_LOOKSPRING:
 		case ID_LOOKSTRAFE:
-		
-		// ESHQ: замена параметра
-		/*case ID_MOUSEFILTER:*/
-		case ID_INFINITERUN:
-
+		case ID_INFINITERUN:	// ESHQ: замена параметра
 		case ID_AUTOAIM:
 			if (event == QM_PRESSED)
 				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_PRESSED;
@@ -230,7 +218,7 @@ static void UI_AdvControls_Init (void)
 
 	uiAdvControls.banner.generic.id = ID_BANNER;
 	uiAdvControls.banner.generic.type = QMTYPE_BITMAP;
-	uiAdvControls.banner.generic.flags = QMF_INACTIVE;// | QMF_DRAW_ADDITIVE;
+	uiAdvControls.banner.generic.flags = QMF_INACTIVE | QMF_DRAW_ADDITIVE;
 	uiAdvControls.banner.generic.x = UI_BANNER_POSX;
 	uiAdvControls.banner.generic.y = UI_BANNER_POSY;
 	uiAdvControls.banner.generic.width = UI_BANNER_WIDTH;
@@ -254,7 +242,8 @@ static void UI_AdvControls_Init (void)
 
 	uiAdvControls.crosshair.generic.id = ID_CROSSHAIR;
 	uiAdvControls.crosshair.generic.type = QMTYPE_CHECKBOX;
-	uiAdvControls.crosshair.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_NOTIFY | QMF_ACT_ONRELEASE | QMF_MOUSEONLY | QMF_DROPSHADOW;
+	uiAdvControls.crosshair.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_NOTIFY | QMF_ACT_ONRELEASE | 
+		QMF_MOUSEONLY | QMF_DROPSHADOW;
 	uiAdvControls.crosshair.generic.x = 72;
 	uiAdvControls.crosshair.generic.y = 230;
 	uiAdvControls.crosshair.generic.callback = UI_AdvControls_Callback;
@@ -322,23 +311,10 @@ static void UI_AdvControls_Init (void)
 #endif
 
 	// ESHQ: замена параметра на бесконечный бег
-/*	uiAdvControls.mouseFilter.generic.id = ID_MOUSEFILTER;
-	uiAdvControls.mouseFilter.generic.type = QMTYPE_CHECKBOX;
-	uiAdvControls.mouseFilter.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_NOTIFY | QMF_ACT_ONRELEASE | QMF_MOUSEONLY | QMF_DROPSHADOW;
-	uiAdvControls.mouseFilter.generic.x = 72;
-	uiAdvControls.mouseFilter.generic.y = 480;
-	uiAdvControls.mouseFilter.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
-	uiAdvControls.mouseFilter.generic.name = "Фильтр мыши";
-	uiAdvControls.mouseFilter.generic.statusText = "Усреднение работы мыши на последних двух кадрах\nдля сглаживания движений";
-#else
-	uiAdvControls.mouseFilter.generic.name = "Mouse filter";
-	uiAdvControls.mouseFilter.generic.statusText = "Average mouse inputs over the last two frames\nto smooth out movements";
-#endif*/
-
 	uiAdvControls.infiniteRun.generic.id = ID_INFINITERUN;
 	uiAdvControls.infiniteRun.generic.type = QMTYPE_CHECKBOX;
-	uiAdvControls.infiniteRun.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_NOTIFY | QMF_ACT_ONRELEASE | QMF_MOUSEONLY | QMF_DROPSHADOW;
+	uiAdvControls.infiniteRun.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_NOTIFY | QMF_ACT_ONRELEASE |
+		QMF_MOUSEONLY | QMF_DROPSHADOW;
 	uiAdvControls.infiniteRun.generic.x = 72;
 	uiAdvControls.infiniteRun.generic.y = 480;
 	uiAdvControls.infiniteRun.generic.callback = UI_AdvControls_Callback;
@@ -390,11 +366,7 @@ static void UI_AdvControls_Init (void)
 	UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.mouseLook);
 	UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.lookSpring);
 	UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.lookStrafe);
-	
-	// ESHQ: замена параметра
-	/*UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.mouseFilter);*/
-	UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.infiniteRun);
-
+	UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.infiniteRun);	// ESHQ: замена параметра
 	UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.autoaim);
 	UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.sensitivity);
 	}

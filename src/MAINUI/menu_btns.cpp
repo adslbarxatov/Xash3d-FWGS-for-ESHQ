@@ -124,7 +124,7 @@ void UI_LoadBmpButtons (void)
 	BITMAPINFOHEADER NewInfoHdr;
 	BITMAPFILEHEADER NewFileHdr;
 
-	if (pInfoHdr->biBitCount == 8 && pInfoHdr->biClrUsed == 0)
+	if ((pInfoHdr->biBitCount == 8) && (pInfoHdr->biClrUsed == 0))
 		pInfoHdr->biClrUsed = 256; // all colors used
 
 	memcpy (&NewFileHdr, pFileHdr, sizeof (BITMAPFILEHEADER));
@@ -139,7 +139,10 @@ void UI_LoadBmpButtons (void)
 			pInfoHdr->biClrUsed = 256;
 			palette_sz = (1 << pInfoHdr->biBitCount) * sizeof (RGBQUAD);
 			}
-		else palette_sz = pInfoHdr->biClrUsed * sizeof (RGBQUAD);
+		else
+			{
+			palette_sz = pInfoHdr->biClrUsed * sizeof (RGBQUAD);
+			}
 		}
 
 	uiStatic.buttons_width = pInfoHdr->biWidth;

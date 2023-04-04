@@ -62,13 +62,14 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 	for (i = 0, nummaps = 0; i < t->numfilenames; i++)
 		{
 		char		entfilename[MAX_QPATH];
-		const char *ext = COM_FileExtension (t->filenames[i]);
-		int		ver = -1, lumpofs = 0, lumplen = 0;
-		char *ents = NULL, *pfile;
-		int		version = 0;
-		string	version_description;
+		const char	*ext = COM_FileExtension (t->filenames[i]);
+		int			ver = -1, lumpofs = 0, lumplen = 0;
+		char		*ents = NULL, *pfile;
+		int			version = 0;
+		string		version_description;
 
-		if (Q_stricmp (ext, "bsp")) continue;
+		if (Q_stricmp (ext, "bsp"))
+			continue;
 		Q_strncpy (message, "^1error^7", sizeof (message));
 		compiler[0] = '\0';
 		generator[0] = '\0';
@@ -79,15 +80,15 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 			{
 			dheader_t *header;
 			dextrahdr_t *hdrext;
-			dlump_t entities;	// [Xash3D, 31.03.23]
+			dlump_t entities;	// [FWGS, 01.04.23]
 
 			memset (buf, 0, sizeof (buf));
 			FS_Read (f, buf, sizeof (buf));
 			header = (dheader_t *)buf;
 			ver = header->version;
 
-			// check all the lumps and some other errors
-			//if (Mod_TestBmodelLumps (t->filenames[i], buf, true))
+			// [FWGS, 01.04.23] check all the lumps and some other errors
+			/*if (Mod_TestBmodelLumps (t->filenames[i], buf, true))*/
 			if (Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
 				{
 				/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
@@ -98,14 +99,15 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 				}
 
 			hdrext = (dextrahdr_t *)((byte *)buf + sizeof (dheader_t));
-			if (hdrext->id == IDEXTRAHEADER) version = hdrext->version;
+			if (hdrext->id == IDEXTRAHEADER)
+				version = hdrext->version;
 
 			Q_strncpy (entfilename, t->filenames[i], sizeof (entfilename));
 			COM_StripExtension (entfilename);
 			COM_DefaultExtension (entfilename, ".ent");
 			ents = (char *)FS_LoadFile (entfilename, NULL, true);
 
-			if (!ents && lumplen >= 10)
+			if (!ents && (lumplen >= 10))
 				{
 				FS_Seek (f, lumpofs, SEEK_SET);
 				ents = (char *)Mem_Calloc (host.mempool, lumplen + 1);
@@ -917,21 +919,21 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			{
 			int	num_spawnpoints = 0;
 			dheader_t *header;
-			dlump_t entities;	// [Xash3D, 31.03.23]
+			dlump_t entities;	// [FWGS, 01.04.23]
 
 			memset (buf, 0, MAX_SYSPATH);
 			FS_Read (f, buf, MAX_SYSPATH);
 			header = (dheader_t *)buf;
 
-			// check all the lumps and some other errors
-			//if (!Mod_TestBmodelLumps (t->filenames[i], buf, true))
+			// [FWGS, 01.04.23] check all the lumps and some other errors
+			/*if (!Mod_TestBmodelLumps (t->filenames[i], buf, true))*/
 			if (!Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
 				{
 				FS_Close (f);
 				continue;
 				}
 
-			// after call Mod_TestBmodelLumps we gurantee what map is valid
+			// [FWGS, 01.04.23] after call Mod_TestBmodelLumps we gurantee what map is valid
 			/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
 			lumplen = header->lumps[LUMP_ENTITIES].filelen;*/
 			lumpofs = entities.fileofs;
@@ -942,7 +944,7 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			COM_DefaultExtension (entfilename, ".ent");
 			ents = (char *)FS_LoadFile (entfilename, NULL, true);
 
-			if (!ents && lumplen >= 10)
+			if (!ents && (lumplen >= 10))
 				{
 				FS_Seek (f, lumpofs, SEEK_SET);
 				ents = Z_Calloc (lumplen + 1);
@@ -953,7 +955,7 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 				{
 				// if there are entities to parse, a missing message key just
 				// means there is no title, so clear the message string now
-				char	token[MAX_TOKEN];
+				char		token[MAX_TOKEN];
 				qboolean	worldspawn = true;
 
 				Q_strncpy (message, "No Title", MAX_STRING);
@@ -1049,19 +1051,19 @@ autocomplete_list_t cmd_list[] =
 
 /*
 ===============
-Cmd_CheckName [Xash3D, 31.03.23]
+Cmd_CheckName [FWGS, 01.04.23]
 
 compare first argument with string
 ===============
 */
 static qboolean Cmd_CheckName (const char *name)
 	{
-	//if (!Q_stricmp (Cmd_Argv (0), name))
+	/*if (!Q_stricmp (Cmd_Argv (0), name))*/
 	const char *p = Cmd_Argv (0);
 	if (!Q_stricmp (p, name))
 		return true;
 
-	//if (!Q_stricmp (Cmd_Argv (0), va ("\\%s", name)))
+	/*if (!Q_stricmp (Cmd_Argv (0), va ("\\%s", name)))*/
 	if ((p[0] == '\\') && !Q_stricmp (&p[1], name))
 		return true;
 
@@ -1343,7 +1345,7 @@ static void Cmd_WriteOpenGLCvar (const char *name, const char *string, const cha
 	FS_Printf (f, "%s \"%s\"\n", name, string);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void Cmd_WriteHelp (const char *name, const char *unused, const char *desc, void *f)
 	{
 	int	length;
@@ -1384,7 +1386,7 @@ void Host_FinalizeConfig (file_t *f, const char *config)
 	FS_Close (f);
 	FS_Delete (backup);
 	FS_Rename (config, backup);
-	//FS_Delete (config);	// [Xash3D, 31.03.23]
+	//FS_Delete (config);	// [FWGS, 01.04.23]
 	FS_Rename (newcfg, config);
 	}
 

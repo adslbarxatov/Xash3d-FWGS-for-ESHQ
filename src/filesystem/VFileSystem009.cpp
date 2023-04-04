@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
-//#define ALLOCA_H	<malloc.h>	// [Xash3D, 31.03.23]
+#define ALLOCA_H	<malloc.h>	// [FWGS, 01.04.23]
 #include ALLOCA_H
 #include "crtlib.h"
 #include "filesystem.h"
@@ -24,7 +24,7 @@ GNU General Public License for more details.
 #include "VFileSystem009.h"
 
 #if __cplusplus < 201103L
-#define override
+	#define override
 #endif
 
 // GoldSrc Directories and ID
@@ -43,7 +43,7 @@ static inline qboolean IsIdGamedir (const char *id)
 		!Q_strcmp (id, "GAMEDOWNLOAD");
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 //static inline const char *IdToDir (const char *id)
 static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	{
@@ -167,7 +167,7 @@ class CXashFS : public IVFileSystem009
 			FS_Delete (path); // FS_Delete is aware of slashes
 			}
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		void CreateDirHierarchy (const char *path, const char *id) override
 			{
 			//FS_CreatePath (va ("%s/%s", IdToDir (id), path)); // FS_CreatePath is aware of slashes
@@ -476,7 +476,7 @@ class CXashFS : public IVFileSystem009
 			Q_strncpy (p, "Stdio", size);
 			}
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		bool AddPackFile (const char *path, const char *id) override
 			{
 			/*char *p = va ("%s/%s", IdToDir (id), path);

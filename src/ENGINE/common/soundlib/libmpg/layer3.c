@@ -1267,7 +1267,7 @@ static void III_i_stereo (float xr_buf[2][SBLIMIT][SSLIMIT], int *scalefac, gr_i
 				}
 
 			// in the original: copy 10 to 11 , here: copy 11 to 12
-			// maybe still wrong??? (copy 12 to 13?)
+			// maybe still wrong? (copy 12 to 13?)
 			is_p = scalefac[11 * 3 + lwin - gr_info->mixed_block_flag]; // scale: 0-15
 			sb = bi->shortDiff[12];
 			idx = bi->shortIdx[12] + lwin;

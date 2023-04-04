@@ -1043,16 +1043,18 @@ void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t
 			vecSpot[1] = pos[1] + COM_RandomFloat (-0.5f, 0.5f) * size[1];
 			vecSpot[2] = pos[2] + COM_RandomFloat (-0.5f, 0.5f) * size[2];
 
-			// [Xash3D, 26.03.23]
-			//if (CL_PointContents (vecSpot) != CONTENTS_SOLID)
+			// [FWGS, 01.04.23]
+			/*if (CL_PointContents (vecSpot) != CONTENTS_SOLID)*/
 			if (PM_CL_PointContents (vecSpot, NULL) != CONTENTS_SOLID)
 				break; // valid spot
 			}
 
-		if (j == 32) continue; // a piece completely stuck in the wall, ignore it
+		if (j == 32)
+			continue; // a piece completely stuck in the wall, ignore it
 
 		pTemp = CL_TempEntAlloc (vecSpot, pmodel);
-		if (!pTemp) return;
+		if (!pTemp)
+			return;
 
 		// keep track of break_type, so we know how to play sound on collision
 		pTemp->hitSound = type;
@@ -2954,8 +2956,8 @@ void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, float *pos
 			{
 			if (!pCust->nUserData1)
 				{
-				// [Xash3D, 26.03.23]
-				//const char *decalname = va ("player%dlogo%d", playernum, customIndex);
+				// [FWGS, 01.04.23]
+				/*const char *decalname = va ("player%dlogo%d", playernum, customIndex);*/
 				int sprayTextureIndex;
 				char decalname[MAX_VA_STRING];
 
@@ -2966,6 +2968,7 @@ void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, float *pos
 
 				pCust->nUserData1 = GL_LoadTextureInternal (decalname, pCust->pInfo, TF_DECAL);
 				}
+
 			textureIndex = pCust->nUserData1;
 			}
 		}

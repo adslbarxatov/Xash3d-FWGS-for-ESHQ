@@ -212,7 +212,7 @@ FARPROC MemoryGetProcAddress (void *module, const char *name)
 
 	exports = (PIMAGE_EXPORT_DIRECTORY)CALCULATE_ADDRESS (codeBase, directory->VirtualAddress);
 
-	if (exports->NumberOfNames == 0 || exports->NumberOfFunctions == 0)
+	if ((exports->NumberOfNames == 0) || (exports->NumberOfFunctions == 0))
 		{
 		// DLL doesn't export anything
 		return NULL;
@@ -224,7 +224,7 @@ FARPROC MemoryGetProcAddress (void *module, const char *name)
 
 	for (i = 0; i < exports->NumberOfNames; i++, nameRef++, ordinal++)
 		{
-		// GetProcAddress case insensative ?????
+		// GetProcAddress case insensative?
 		if (!Q_stricmp (name, (const char *)CALCULATE_ADDRESS (codeBase, *nameRef)))
 			{
 			idx = *ordinal;

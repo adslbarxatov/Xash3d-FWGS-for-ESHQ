@@ -143,13 +143,14 @@ loc0:
 	// walk through real faces
 	for (i = 0; i < node->numsurfaces; i++)
 		{
-		msurface_t *surf = &mod->surfaces[node->firstsurface + i];
-		mextrasurf_t *info = surf->info;
-		mfacebevel_t *fb = info->bevel;
-		int		j, contents;
-		vec3_t		delta;
+		msurface_t		*surf = &mod->surfaces[node->firstsurface + i];
+		mextrasurf_t	*info = surf->info;
+		mfacebevel_t	*fb = info->bevel;
+		int				j, contents;
+		vec3_t			delta;
 
-		if (!fb) continue;	// ???
+		if (!fb)
+			continue;
 
 		VectorSubtract (mid, fb->origin, delta);
 		if (DotProduct (delta, delta) >= fb->radius)

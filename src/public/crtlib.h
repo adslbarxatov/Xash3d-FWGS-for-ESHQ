@@ -25,7 +25,7 @@ GNU General Public License for more details.
 extern "C" {
 #endif
 
-// [Xash3D, 31.03.23] timestamp modes
+// [FWGS, 01.04.23] timestamp modes
 /*#define	TIME_FULL		0
 #define	TIME_DATE_ONLY	1
 #define	TIME_TIME_ONLY	2
@@ -81,7 +81,7 @@ const char *Q_buildcommit (void);
 	uint Q_hashkey (const char *string, uint hashSize, qboolean caseinsensitive);
 	qboolean Q_isdigit (const char *str);
 
-#if XASH_DL || XASH_FS
+#if XASH_DL || XASH_FS	// [FWGS, 01.04.23]
 	qboolean Q_isspace (const char *str);
 #endif
 	
@@ -151,11 +151,10 @@ static inline char *Q_strstr (const char *s1, const char *s2)
 	}
 
 // libc extensions, be careful
-
 #if XASH_WIN32
 #define strcasecmp stricmp
 #define strncasecmp strnicmp
-#endif // XASH_WIN32
+#endif
 
 static inline int Q_stricmp (const char *s1, const char *s2)
 	{
@@ -187,7 +186,7 @@ static inline char *Q_stristr (const char *s1, const char *s2)
 
 #endif
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if defined( HAVE_STRCHRNUL )
 	#define Q_strchrnul strchrnul
 #else

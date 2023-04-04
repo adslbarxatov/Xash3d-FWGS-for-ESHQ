@@ -89,7 +89,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		// NOTE: same as system font we can use 4-bit bmps only
 		// step1: move main layer into alpha-channel (give grayscale from RED channel)
 		// step2: fill main layer with 255 255 255 color (white)
-		// step3: ????
+		// step3: ?
 		// step4: PROFIT!!! (economy up to 150 kb for menu.dll final size)
 		image.flags |= IMAGE_HAS_ALPHA;
 		load_qfont = true;

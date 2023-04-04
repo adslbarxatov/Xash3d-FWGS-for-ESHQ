@@ -24,7 +24,7 @@ extern "C"
 	{
 #endif
 
-typedef struct dir_s dir_t;		// [Xash3D, 31.03.23]
+typedef struct dir_s dir_t;		// [FWGS, 01.04.23]
 typedef struct zip_s zip_t;
 typedef struct pack_s pack_t;
 typedef struct wfile_s wfile_t;
@@ -72,14 +72,14 @@ typedef struct wfile_s wfile_t;
 		int     flags;
 		union
 			{
-			dir_t *dir;		// [Xash3D, 31.03.23]
+			dir_t *dir;		// [FWGS, 01.04.23]
 			pack_t *pack;
 			wfile_t *wad;
 			zip_t *zip;
 			};
 		struct searchpath_s *next;
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		void    (*pfnPrintInfo)(struct searchpath_s *search, char *dst, size_t size);
 		void    (*pfnClose)(struct searchpath_s *search);
 		file_t *(*pfnOpenFile)(struct searchpath_s *search, const char *filename, const char *mode, int pack_ind);
@@ -90,13 +90,13 @@ typedef struct wfile_s wfile_t;
 
 	extern fs_globals_t		FI;
 	extern searchpath_t		*fs_searchpaths;
-	extern searchpath_t		*fs_writepath;				// [Xash3D, 31.03.23]
+	extern searchpath_t		*fs_writepath;				// [FWGS, 01.04.23]
 	extern poolhandle_t		fs_mempool;
 	extern fs_interface_t	g_engfuncs;
 	extern qboolean			fs_ext_path;
 	extern char				fs_rodir[MAX_SYSPATH];
 	extern char				fs_rootdir[MAX_SYSPATH];
-	//extern char			fs_writedir[MAX_SYSPATH];	// [Xash3D, 31.03.23]
+	//extern char			fs_writedir[MAX_SYSPATH];	// [FWGS, 01.04.23]
 	extern fs_api_t			g_api;
 
 #define GI FI.GameInfo
@@ -161,7 +161,7 @@ qboolean FS_WriteFile (const char *filename, const void *data, fs_offset_t len);
 qboolean CRC32_File (dword *crcvalue, const char *filename);
 qboolean MD5_HashFile (byte digest[16], const char *pszFileName, uint seed[4]);
 
-// [Xash3D, 31.03.23] stringlist ops
+// [FWGS, 01.04.23] stringlist ops
 void stringlistinit (stringlist_t *list);
 void stringlistfreecontents (stringlist_t *list);
 void stringlistappend (stringlist_t *list, char *text);
@@ -175,25 +175,25 @@ fs_offset_t FS_FileSize (const char *filename, qboolean gamedironly);
 qboolean FS_Rename (const char *oldname, const char *newname);
 qboolean FS_Delete (const char *path);
 //qboolean FS_SysFileExists (const char *path, qboolean casesensitive);
-qboolean FS_SysFileExists (const char *path);	// [Xash3D, 31.03.23]
+qboolean FS_SysFileExists (const char *path);	// [FWGS, 01.04.23]
 const char *FS_GetDiskPath (const char *name, qboolean gamedironly);
-//void     stringlistappend (stringlist_t *list, char *text);
+//void     stringlistappend (stringlist_t *list, char *text);	// // [FWGS, 01.04.23]
 void     FS_CreatePath (char *path);
 qboolean FS_SysFolderExists (const char *path);
-qboolean FS_SysFileOrFolderExists (const char *path);	// [Xash3D, 31.03.23]
+qboolean FS_SysFileOrFolderExists (const char *path);	// [FWGS, 01.04.23]
 file_t *FS_OpenReadFile (const char *filename, const char *mode, qboolean gamedironly);
 
 int		FS_SysFileTime (const char *filename);
 file_t	*FS_OpenHandle (const char *syspath, int handle, fs_offset_t offset, fs_offset_t len);
 file_t	*FS_SysOpen (const char *filepath, const char *mode);
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 /*const char	*FS_FixFileCase (const char *path);
 searchpath_t	*FS_FindFile (const char *name, int *index, qboolean gamedironly);*/
 searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t len, qboolean gamedironly);
 
 //
-// pak.c [Xash3D, 31.03.23]
+// pak.c [FWGS, 01.04.23]
 //
 /*int      FS_FileTimePAK (pack_t *pack);
 int      FS_FindFilePAK (pack_t *pack, const char *name);
@@ -204,7 +204,7 @@ file_t *FS_OpenPackedFile (pack_t *pack, int pack_ind);*/
 qboolean FS_AddPak_Fullpath (const char *pakfile, qboolean *already_loaded, int flags);
 
 //
-// wad.c
+// wad.c [FWGS, 01.04.23]
 //
 /*int      FS_FileTimeWAD (wfile_t *wad);
 int      FS_FindFileWAD (wfile_t *wad, const char *name);
@@ -222,7 +222,7 @@ int FS_AddWatch (const char *path, fs_event_callback_t callback);
 void FS_WatchFrame (void);
 
 //
-// zip.c
+// zip.c [FWGS, 01.04.23]
 //
 /*int      FS_FileTimeZIP (zip_t *zip);
 int      FS_FindFileZIP (zip_t *zip, const char *name);
@@ -234,7 +234,7 @@ byte *FS_LoadZIPFile (const char *path, fs_offset_t *sizeptr, qboolean gamediron
 qboolean FS_AddZip_Fullpath (const char *zipfile, qboolean *already_loaded, int flags);
 
 //
-// dir.c [Xash3D, 31.03.23]
+// dir.c [FWGS, 01.04.23]
 //
 searchpath_t *FS_AddDir_Fullpath (const char *path, qboolean *already_loaded, int flags);
 qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t len, qboolean createpath);

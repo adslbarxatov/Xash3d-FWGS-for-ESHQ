@@ -25,7 +25,7 @@ GNU General Public License for more details.
 #define MSG_COUNT		32		// last 32 messages parsed
 #define MSG_MASK		(MSG_COUNT - 1)
 
-/* [Xash3D, 21.03.23]
+/* [FWGS, 01.04.23]
 const char *svc_strings[svc_lastmsg + 1] =
 	{
 		"svc_bad",
@@ -113,12 +113,12 @@ const char *CL_MsgInfo (int cmd)
 
 	Q_strcpy (sz, "???");
 
-	if (cmd >= 0 && cmd <= svc_lastmsg)
+	if ((cmd >= 0) && (cmd <= svc_lastmsg))
 		{
 		// get engine message name
 		Q_strncpy (sz, svc_strings[cmd], sizeof (sz));
 		}
-	else if (cmd > svc_lastmsg && cmd <= (svc_lastmsg + MAX_USER_MESSAGES))
+	else if ((cmd > svc_lastmsg) && (cmd <= (svc_lastmsg + MAX_USER_MESSAGES)))
 		{
 		int	i;
 

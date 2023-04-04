@@ -421,10 +421,10 @@ static cldll_func_dst_t cldllFuncDst =
 		DstGetPlayerTeam,
 	};
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 void CL_GetSecuredClientAPI (CL_EXPORT_FUNCS F)
 	{
-	//cldll_func_src_t cldllFuncSrc = { 0 };
+	/*cldll_func_src_t cldllFuncSrc = { 0 };*/
 	modfuncs_t modFuncs = { 0 };
 
 	// secured client dlls need these

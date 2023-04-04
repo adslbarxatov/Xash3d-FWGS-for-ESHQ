@@ -31,27 +31,31 @@ SETUP BACKENDS DEFINITIONS
 		// we are building using libSDL
 		#ifndef XASH_VIDEO
 			#define XASH_VIDEO VIDEO_SDL
-		#endif // XASH_VIDEO
+		#endif
 
 		#ifndef XASH_INPUT
 			#define XASH_INPUT INPUT_SDL
-		#endif // XASH_INPUT
+		#endif
 
 		#ifndef XASH_SOUND
 			#define XASH_SOUND SOUND_SDL
-		#endif // XASH_SOUND
+		#endif
 
 		#if XASH_SDL == 2
 			#ifndef XASH_TIMER
 				#define XASH_TIMER TIMER_SDL
-			#endif // XASH_TIMER
+			#endif
 
 			#ifndef XASH_MESSAGEBOX
-				#if !XASH_NSWITCH // [Xash3D, 20.03.23] SDL2 messageboxes not available
+				// [FWGS, 01.04.23] SDL2 messageboxes not available
+				#if !XASH_NSWITCH
 					#define XASH_MESSAGEBOX MSGBOX_SDL
-				#endif			#endif // XASH_MESSAGEBOX
+				#endif			
+			#endif
 		#endif
+
 	#elif XASH_ANDROID
+
 		// we are building for Android platform, use Android APIs
 		#ifndef XASH_VIDEO
 			#define XASH_VIDEO VIDEO_ANDROID
@@ -71,7 +75,9 @@ SETUP BACKENDS DEFINITIONS
 
 		#define XASH_USE_EVDEV
 		#define XASH_DYNAMIC_DLADDR
+
 	#elif XASH_LINUX
+
 		// we are building for Linux without SDL2, can draw only to framebuffer yet
 		#ifndef XASH_VIDEO
 			#define XASH_VIDEO VIDEO_FBDEV
@@ -86,7 +92,9 @@ SETUP BACKENDS DEFINITIONS
 		#endif // XASH_SOUND
 
 		#define XASH_USE_EVDEV
+
 	#elif XASH_DOS4GW
+
 		#ifndef XASH_VIDEO
 			#define XASH_VIDEO VIDEO_DOS
 		#endif
@@ -96,14 +104,16 @@ SETUP BACKENDS DEFINITIONS
 
 		// usually only 10-20 fds availiable
 		#define XASH_REDUCE_FD
+
 	#endif
 
-#endif // XASH_DEDICATED
+#endif
 
 //
 // select messagebox implementation
 //
 #ifndef XASH_MESSAGEBOX
+
 	#if XASH_WIN32
 		#define XASH_MESSAGEBOX MSGBOX_WIN32
 	#elif XASH_NSWITCH	// [Xash3D, 20.03.23]
@@ -111,9 +121,10 @@ SETUP BACKENDS DEFINITIONS
 	#else // !XASH_WIN32
 		#define XASH_MESSAGEBOX MSGBOX_STDERR
 	#endif // !XASH_WIN32
-#endif // XASH_MESSAGEBOX
 
-/* [Xash3D, 20.03.23]
+#endif
+
+/* [FWGS, 01.04.23]
 // select crashhandler based on defines
 //
 #ifndef XASH_CRASHHANDLER
@@ -130,9 +141,9 @@ SETUP BACKENDS DEFINITIONS
 #ifndef XASH_TIMER
 	#if XASH_WIN32
 		#define XASH_TIMER TIMER_WIN32
-	#else // !XASH_WIN32
+	#else
 		#define XASH_TIMER TIMER_POSIX
-	#endif // !XASH_WIN32
+	#endif
 #endif
 
 #ifdef XASH_STATIC_LIBS
@@ -150,17 +161,17 @@ SETUP BACKENDS DEFINITIONS
 //
 #ifndef XASH_VIDEO
 	#define XASH_VIDEO VIDEO_NULL
-#endif // XASH_VIDEO
+#endif
 
 #ifndef XASH_SOUND
 	#define XASH_SOUND SOUND_NULL
-#endif // XASH_SOUND
+#endif
 
 #ifndef XASH_INPUT
 	#define XASH_INPUT INPUT_NULL
-#endif // XASH_INPUT
+#endif
 
-/* [Xash3D, 20.03.23]
+/* [FWGS, 01.04.23]
 #ifndef XASH_CRASHHANDLER
 	#define XASH_CRASHHANDLER CRASHHANDLER_NULL
 #endif // XASH_CRASHHANDLER 
@@ -174,7 +185,7 @@ Default build-depended cvar and constant values
 =========================================================================
 */
 
-/* [Xash3D, 20.03.23]
+/* [FWGS, 01.04.23]
 #if XASH_MOBILE_PLATFORM
 	#define DEFAULT_TOUCH_ENABLE	"1"
 */
@@ -184,7 +195,7 @@ Default build-depended cvar and constant values
 	#define DEFAULT_TOUCH_ENABLE	"0"
 	#define DEFAULT_M_IGNORE		"1"
 
-/*
+/* [FWGS, 01.04.23]
 #else // !XASH_MOBILE_PLATFORM 
 */
 	#define DEFAULT_MODE_WIDTH		1280
@@ -193,8 +204,8 @@ Default build-depended cvar and constant values
 #elif XASH_PSVITA
 	#define DEFAULT_TOUCH_ENABLE	"0"
 
-/*
-	#define DEFAULT_M_IGNORE		"0"
+/* [FWGS, 01.04.23]
+#define DEFAULT_M_IGNORE		"0"
 #endif // !XASH_MOBILE_PLATFORM
 */
 	#define DEFAULT_M_IGNORE		"1"
@@ -204,34 +215,34 @@ Default build-depended cvar and constant values
 #elif XASH_MOBILE_PLATFORM
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
-#endif // !XASH_MOBILE_PLATFORM && !XASH_NSWITCH
+#endif
 
 #if XASH_ANDROID || XASH_IOS || XASH_EMSCRIPTEN
 #define XASH_INTERNAL_GAMELIBS
 // this means that libraries are provided with engine, but not in game data
 // You need add library loading code to library.c when adding new platform
-#endif // XASH_ANDROID || XASH_IOS || XASH_EMSCRIPTEN
+#endif
 
-// [Xash3D, 20.03.23] Defaults
+// [FWGS, 01.04.23] Defaults
 #ifndef DEFAULT_TOUCH_ENABLE
 	#define DEFAULT_TOUCH_ENABLE	"0"
-#endif // DEFAULT_TOUCH_ENABLE
+#endif
 
 #ifndef DEFAULT_M_IGNORE
 	#define DEFAULT_M_IGNORE		"0"
-#endif // DEFAULT_M_IGNORE
+#endif
 
 #ifndef DEFAULT_DEV
 	#define DEFAULT_DEV 0
-#endif // DEFAULT_DEV
+#endif
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 #ifndef DEFAULT_ALLOWCONSOLE
 	#define DEFAULT_ALLOWCONSOLE	0
-#endif // DEFAULT_ALLOWCONSOLE
+#endif
 
 #ifndef DEFAULT_FULLSCREEN
 	#define DEFAULT_FULLSCREEN		1
-#endif // DEFAULT_FULLSCREEN
+#endif
 
-#endif // DEFAULTS_H
+#endif

@@ -47,7 +47,7 @@ static void R_ParseDetailTextures (const char *filename)
 			// this code will be fix it
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			
-			// [Xash3D, 31.03.23]
+			// [FWGS, 01.04.23]
 			/*Q_strncat (texname, "{", sizeof (texname));
 			Q_strncat (texname, token, sizeof (texname));*/
 			Q_snprintf (texname, sizeof (texname), "{%s", token);

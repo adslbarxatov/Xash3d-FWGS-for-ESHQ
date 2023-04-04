@@ -20,8 +20,8 @@ GNU General Public License for more details.
 #include "vid_common.h"
 #include "platform/platform.h"
 
-#define WINDOW_NAME			XASH_ENGINE_NAME " Window" // Half-Life
-//convar_t *vid_displayfrequency;	// [Xash3D, 28.03.23]
+#define WINDOW_NAME		XASH_ENGINE_NAME " Window" // Half-Life
+//convar_t *vid_displayfrequency;	// [FWGS, 01.04.23]
 convar_t *vid_fullscreen;
 convar_t *vid_mode;
 convar_t *vid_brightness;
@@ -69,7 +69,7 @@ R_SaveVideoMode
 */
 void R_SaveVideoMode (int w, int h, int render_w, int render_h)
 	{
-	// [Xash3D, 28.03.23]
+	// [FWGS, 01.04.23]
 	if (!w || !h || !render_w || !render_h)
 		{
 		host.renderinfo_changed = false;
@@ -82,7 +82,7 @@ void R_SaveVideoMode (int w, int h, int render_w, int render_h)
 	Cvar_SetValue ("width", w);
 	Cvar_SetValue ("height", h);
 
-	// [Xash3D, 28.03.23] immediately drop changed state or we may trigger
+	// [FWGS, 01.04.23] immediately drop changed state or we may trigger
 	// video subsystem to reapply settings
 	host.renderinfo_changed = false;
 
@@ -189,7 +189,7 @@ void VID_Init (void)
 	Cvar_Get ("width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, "screen width");
 	Cvar_Get ("height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, "screen height");
 
-	// [Xash3D, 28.03.23]
+	// [FWGS, 01.04.23]
 	/*window_xpos = Cvar_Get ("_window_xpos", "130", FCVAR_RENDERINFO, "window position by horizontal");
 	window_ypos = Cvar_Get ("_window_ypos", "48", FCVAR_RENDERINFO, "window position by vertical");*/
 	window_xpos = Cvar_Get ("_window_xpos", "-1", FCVAR_RENDERINFO, 
@@ -202,9 +202,9 @@ void VID_Init (void)
 	vid_brightness = Cvar_Get ("brightness", "0.0", FCVAR_ARCHIVE, 
 		"brightness factor");
 
-	// [Xash3D, 28.03.23]
+	// [FWGS, 01.04.23]
 	/*vid_displayfrequency = Cvar_Get ("vid_displayfrequency", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-		"fullscreen refresh rate");*/
+		"[legacy] fullscreen refresh rate");*/
 
 	vid_fullscreen = Cvar_Get ("fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, 
 		"enable fullscreen mode");

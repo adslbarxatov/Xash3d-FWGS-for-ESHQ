@@ -21,12 +21,12 @@ GNU General Public License for more details.
 #include "particledef.h"
 #include "studio.h"
 
-#define MAX_FORWARD			6	// forward probes for set idealpitch
+#define MAX_FORWARD				6		// forward probes for set idealpitch
 #define MIN_CORRECTION_DISTANCE	0.25f	// use smoothing if error is > this
 #define MIN_PREDICTION_EPSILON	0.5f	// complain if error is > this and we have cl_showerror set
-#define MAX_PREDICTION_ERROR		64.0f	// above this is assumed to be a teleport, don't smooth, etc.
+#define MAX_PREDICTION_ERROR	64.0f	// above this is assumed to be a teleport, don't smooth, etc.
 
-/* [Xash3D, 26.03.23]
+/* [FWGS, 01.04.23]
 // =============
 // CL_ClearPhysEnts
 // =============
@@ -41,7 +41,6 @@ void CL_ClearPhysEnts (void)
 /*
 =============
 CL_PushPMStates
-
 =============
 */
 void GAME_EXPORT CL_PushPMStates (void)
@@ -57,7 +56,6 @@ void GAME_EXPORT CL_PushPMStates (void)
 /*
 =============
 CL_PopPMStates
-
 =============
 */
 void GAME_EXPORT CL_PopPMStates (void)
@@ -71,7 +69,6 @@ void GAME_EXPORT CL_PopPMStates (void)
 /*
 =============
 CL_PushTraceBounds
-
 =============
 */
 void GAME_EXPORT CL_PushTraceBounds (int hullnum, const float *mins, const float *maxs)
@@ -84,7 +81,6 @@ void GAME_EXPORT CL_PushTraceBounds (int hullnum, const float *mins, const float
 /*
 =============
 CL_PopTraceBounds
-
 =============
 */
 void GAME_EXPORT CL_PopTraceBounds (void)
@@ -202,7 +198,7 @@ void CL_SetIdealPitch (void)
 
 /*
 ==================
-CL_PlayerTeleported [Xash3D, 26.03.23]
+CL_PlayerTeleported [FWGS, 01.04.23]
 
 check for instant movement in case
 we don't want interpolate this
@@ -713,7 +709,7 @@ static int GAME_EXPORT pfnTestPlayerPosition (float *pos, pmtrace_t *ptrace)
 	return PM_TestPlayerPosition (clgame.pmove, pos, ptrace, NULL);
 	}
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 static void GAME_EXPORT pfnStuckTouch (int hitent, pmtrace_t *tr)
 	{
 	PM_StuckTouch (clgame.pmove, hitent, tr);
@@ -751,7 +747,7 @@ static int GAME_EXPORT pfnTruePointContents (float *p)
 	return PM_TruePointContents (clgame.pmove, p);
 	}
 
-/* [Xash3D, 26.03.23]
+/* [FWGS, 01.04.23]
 static int GAME_EXPORT pfnHullPointContents (struct hull_s *hull, int num, float *p)
 	{
 	return PM_HullPointContents (hull, num, p);
@@ -790,13 +786,13 @@ static pmtrace_t GAME_EXPORT pfnPlayerTrace (float *start, float *end, int trace
 
 static hull_t *pfnHullForBsp (physent_t *pe, float *offset)*/
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 static void *pfnHullForBsp (physent_t *pe, float *offset)
 	{
 	return PM_HullForBsp (pe, clgame.pmove, offset);
 	}
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 static float GAME_EXPORT pfnTraceModel (physent_t *pe, float *start, float *end, trace_t *trace)
 	{
 	/*int	old_usehull;
@@ -884,7 +880,7 @@ static int GAME_EXPORT pfnTestPlayerPositionEx (float *pos, pmtrace_t *ptrace, p
 	return PM_TestPlayerPosition (clgame.pmove, pos, ptrace, pmFilter);
 	}
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
 	{
 	/*static pmtrace_t	tr;
@@ -948,18 +944,18 @@ void CL_InitClientMove (void)
 	clgame.pmove->Sys_FloatTime = Sys_DoubleTime;
 	clgame.pmove->PM_StuckTouch = pfnStuckTouch;
 	
-	// [Xash3D, 26.03.23]
-	//clgame.pmove->PM_PointContents = pfnPointContents;
+	// [FWGS, 01.04.23]
+	/*clgame.pmove->PM_PointContents = pfnPointContents;*/
 	clgame.pmove->PM_PointContents = (void *)PM_CL_PointContents;
 
 	clgame.pmove->PM_TruePointContents = pfnTruePointContents;
 
-	//clgame.pmove->PM_HullPointContents = pfnHullPointContents;
+	/*clgame.pmove->PM_HullPointContents = pfnHullPointContents;*/
 	clgame.pmove->PM_HullPointContents = (void *)PM_HullPointContents;
 
 	clgame.pmove->PM_PlayerTrace = pfnPlayerTrace;
 	
-	//clgame.pmove->PM_TraceLine = PM_TraceLine;
+	/*clgame.pmove->PM_TraceLine = PM_TraceLine;*/
 	clgame.pmove->PM_TraceLine = PM_CL_TraceLine;
 
 	clgame.pmove->RandomLong = COM_RandomLong;
@@ -967,7 +963,7 @@ void CL_InitClientMove (void)
 	clgame.pmove->PM_GetModelType = pfnGetModelType;
 	clgame.pmove->PM_GetModelBounds = pfnGetModelBounds;
 	
-	//clgame.pmove->PM_HullForBsp = (void *)pfnHullForBsp;
+	/*clgame.pmove->PM_HullForBsp = (void *)pfnHullForBsp;*/
 	clgame.pmove->PM_HullForBsp = pfnHullForBsp;
 
 	clgame.pmove->PM_TraceModel = pfnTraceModel;
@@ -977,7 +973,7 @@ void CL_InitClientMove (void)
 	clgame.pmove->memfgets = COM_MemFgets;
 	clgame.pmove->PM_PlaySound = pfnPlaySound;
 	
-	//clgame.pmove->PM_TraceTexture = pfnTraceTexture;
+	/*clgame.pmove->PM_TraceTexture = pfnTraceTexture;*/
 	clgame.pmove->PM_TraceTexture = PM_CL_TraceTexture;
 
 	clgame.pmove->PM_PlaybackEventFull = pfnPlaybackEventFull;
@@ -1003,7 +999,7 @@ void CL_InitClientMove (void)
 
 void CL_SetupPMove (playermove_t *pmove, local_state_t *from, usercmd_t *ucmd, qboolean runfuncs, double time)*/
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const usercmd_t *ucmd,
 	qboolean runfuncs, double time)
 	{
@@ -1026,8 +1022,8 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	VectorCopy (cd->view_ofs, pmove->view_ofs);
 	VectorClear (pmove->movedir);
 	
-	// [Xash3D, 26.03.23]
-	//pmove->flDuckTime = cd->flDuckTime;
+	// [FWGS, 01.04.23]
+	/*pmove->flDuckTime = cd->flDuckTime;*/
 	pmove->flDuckTime = (float)cd->flDuckTime;
 
 	pmove->bInDuck = cd->bInDuck;
@@ -1036,7 +1032,7 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	pmove->iStepLeft = ps->iStepLeft;
 	pmove->flFallVelocity = ps->flFallVelocity;
 	
-	//pmove->flSwimTime = cd->flSwimTime;
+	/*pmove->flSwimTime = cd->flSwimTime;*/
 	pmove->flSwimTime = (float)cd->flSwimTime;
 
 	VectorCopy (cd->punchangle, pmove->punchangle);
@@ -1047,7 +1043,7 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	pmove->friction = ps->friction;
 	pmove->oldbuttons = ps->oldbuttons;
 	
-	//pmove->waterjumptime = cd->waterjumptime;
+	/*pmove->waterjumptime = cd->waterjumptime;*/
 	pmove->waterjumptime = (float)cd->waterjumptime;
 
 	pmove->dead = (cl.local.health <= 0);
@@ -1080,7 +1076,7 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	Q_strncpy (pmove->physinfo, cls.physinfo, MAX_INFO_STRING);
 	}
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 //void CL_FinishPMove (playermove_t *pmove, local_state_t *to)
 const void CL_FinishPMove (const playermove_t *pmove, local_state_t *to)
 	{
@@ -1213,7 +1209,7 @@ void CL_MoveSpectatorCamera (void)
 
 /*
 =================
-CL_PredictMovement [Xash3D, 26.03.23]
+CL_PredictMovement [FWGS, 01.04.23]
 
 Sets cl.predicted.origin and cl.predicted.angles
 =================
@@ -1226,9 +1222,9 @@ void CL_PredictMovement (qboolean repredicting)
 	uint		current_command_mod;*/
 	frame_t *frame = NULL;
 	uint		i, stoppoint;
-	//qboolean		runfuncs;
+	/*qboolean		runfuncs;
+	cl_entity_t *ent;*/
 	double		f = 1.0;
-	//cl_entity_t *ent;
 	double		time;
 
 	if ((cls.state != ca_active) || cls.spectator)
@@ -1239,7 +1235,8 @@ void CL_PredictMovement (qboolean repredicting)
 
 	CL_SetUpPlayerPrediction (false, false);
 
-	if (/*(cls.state != ca_active) ||*/ !cl.validsequence)
+	/*(cls.state != ca_active) ||*/
+	if (!cl.validsequence)
 		return;
 
 	if ((cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged) >= CL_UPDATE_MASK)
@@ -1266,9 +1263,11 @@ void CL_PredictMovement (qboolean repredicting)
 	from = &cl.predicted_frames[cl.parsecountmod];
 	from_cmd = &cl.commands[cls.netchan.incoming_acknowledged & CL_UPDATE_MASK];
 	memcpy (from->weapondata, frame->weapondata, sizeof (from->weapondata));
+	
 	from->playerstate = frame->playerstate[cl.playernum];
 	from->client = frame->clientdata;
-	if (!frame->valid) return;
+	if (!frame->valid)
+		return;
 
 	time = frame->time;
 	stoppoint = (repredicting) ? 0 : 1;

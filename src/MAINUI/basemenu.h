@@ -500,4 +500,4 @@ class CMenu
 
 extern CMenu gMenu;
 
-#endif // BASEMENU_H
+#endif

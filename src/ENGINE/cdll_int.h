@@ -323,8 +323,7 @@ extern "C" {
 		int		(*pfnGetCurrentDuckState)(void);
 		} cl_enginefunc_t;
 
-// [Xash3D, 20.03.23]
-#define CLDLL_INTERFACE_VERSION	7
+#define CLDLL_INTERFACE_VERSION	7		// [FWGS, 01.04.23]
 
 #ifdef __cplusplus
 	}

@@ -314,7 +314,7 @@ static void UI_InternetGames_Init (void)
 
 	uiInternetGames.banner.generic.id = ID_BANNER;
 	uiInternetGames.banner.generic.type = QMTYPE_BITMAP;
-	uiInternetGames.banner.generic.flags = QMF_INACTIVE;// | QMF_DRAW_ADDITIVE;
+	uiInternetGames.banner.generic.flags = QMF_INACTIVE | QMF_DRAW_ADDITIVE;
 	uiInternetGames.banner.generic.x = UI_BANNER_POSX;
 	uiInternetGames.banner.generic.y = UI_BANNER_POSY;
 	uiInternetGames.banner.generic.width = UI_BANNER_WIDTH;

@@ -154,7 +154,7 @@ int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
 
 /*
 ============
-va [Xash3D, 31.03.23]
+va [FWGS, 01.04.23]
 
 does a varargs printf into a temp buffer,
 so I don't need to have varargs versions
@@ -891,7 +891,7 @@ void GAME_EXPORT pfnCvar_RegisterEngineVariable (cvar_t *variable)
 
 /*
 =============
-pfnCvar_RegisterVariable [Xash3D, 31.03.23]
+pfnCvar_RegisterVariable [FWGS, 01.04.23]
 =============
 */
 cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue, int flags)
@@ -910,7 +910,7 @@ cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue,
 
 /*
 =============
-pfnCvar_RegisterVariable [Xash3D, 31.03.23]
+pfnCvar_RegisterVariable [FWGS, 01.04.23]
 =============
 */
 cvar_t *pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)

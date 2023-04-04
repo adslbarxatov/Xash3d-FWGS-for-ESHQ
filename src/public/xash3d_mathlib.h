@@ -21,7 +21,7 @@ GNU General Public License for more details.
 #include <tgmath.h>
 #endif
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #include "build.h"
 #include "xash3d_types.h"
 #include "const.h"
@@ -85,7 +85,7 @@ GNU General Public License for more details.
 #define Q_round( x, y )	(floor( x / y + 0.5f ) * y )
 #define Q_rint(x)		((x) < 0.0f ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #ifdef XASH_IRIX
 #undef isnan
 #endif
@@ -144,7 +144,7 @@ GNU General Public License for more details.
 #define PlaneDiff(point,plane) (((plane)->type < 3 ? (point)[(plane)->type] : DotProduct((point), (plane)->normal)) - (plane)->dist)
 #define bound( min, num, max ) ((num) >= (min) ? ((num) < (max) ? (num) : (max)) : (min))
 
-// [Xash3D, 31.03.23] horrible cast but helps not breaking strict aliasing in mathlib
+// [FWGS, 01.04.23] horrible cast but helps not breaking strict aliasing in mathlib
 // as union type punning should be fine in C but not in C++.
 // So don't carry over this to C++ code
 typedef union
@@ -258,7 +258,7 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1);
 float V_CalcFov (float *fov_x, float width, float height);
 void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x);
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_t q2[], 
 	const float pos2[][3], float s);
 void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone, 

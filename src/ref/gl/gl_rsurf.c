@@ -1802,7 +1802,7 @@ void R_GenerateVBO (void)
 
 	R_ClearVBO ();
 
-	// [Xash3D, 31.03.23] we do not want to write vbo code that does not use multitexture
+	// [FWGS, 01.04.23] we do not want to write vbo code that does not use multitexture
 #if ALLOW_VBO
 	if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) ||
 		(glConfig.max_texture_units < 2))
@@ -3332,7 +3332,7 @@ void R_DrawWorld (void)
 	// to prevent crashing until HeadShield drawing.
 	RI.currententity = gEngfuncs.GetEntityByIndex (0);
 	
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	//RI.currentmodel = RI.currententity->model;
 	if (!RI.currententity)
 		return;

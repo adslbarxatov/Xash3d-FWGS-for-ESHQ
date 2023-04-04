@@ -16,8 +16,9 @@
 #ifndef NETADR_H
 #define NETADR_H
 
-// [Xash3D, 20.03.23]
 #include "build.h"
+#include "xash3d_types.h"		// [FWGS, 01.04.23]
+#define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
 #include STDINT_H
 
 typedef enum
@@ -29,12 +30,12 @@ typedef enum
 	NA_IPX,
 	NA_BROADCAST_IPX,
 	NA_IP6,
-	NA_MULTICAST_IP6,	// [Xash3D, 20.03.23] all nodes multicast
+	NA_MULTICAST_IP6,	// [FWGS, 01.04.23] all nodes multicast
 	} netadrtype_t;
 
-#pragma pack(push, 1)	// [Xash3D, 20.03.23]
+#pragma pack(push, 1)	// [FWGS, 01.04.23]
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct netadr_s
 	{
 	/*netadrtype_t	type;

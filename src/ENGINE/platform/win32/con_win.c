@@ -129,7 +129,7 @@ static void Wcon_PrintInternal (const char *msg, int length)
 
 void Wcon_ShowConsole (qboolean show)
 	{
-	if (!s_wcd.hWnd || show == s_wcd.consoleVisible)
+	if (!s_wcd.hWnd || (show == s_wcd.consoleVisible))
 		return;
 
 	s_wcd.consoleVisible = show;
@@ -153,9 +153,8 @@ static void Wcon_SetInputText (const char *inputText)
 		return;
 
 	while (s_wcd.consoleTextLen--)
-		{
 		Wcon_PrintInternal ("\b \b", 0);
-		}
+
 	Wcon_PrintInternal (inputText, 0);
 	Q_strncpy (s_wcd.consoleText, inputText, sizeof (s_wcd.consoleText) - 1);
 	s_wcd.consoleTextLen = Q_strlen (inputText);
@@ -213,22 +212,17 @@ static void Wcon_EventUpArrow ()
 	if (s_wcd.browseLine == s_wcd.inputLine)
 		{
 		if (s_wcd.consoleTextLen > 0)
-			{
 			Q_strncpy (s_wcd.savedConsoleText, s_wcd.consoleText, s_wcd.consoleTextLen);
-			}
+
 		s_wcd.savedConsoleTextLen = s_wcd.consoleTextLen;
 		}
 
 	s_wcd.browseLine--;
 	if (s_wcd.browseLine < 0)
-		{
 		s_wcd.browseLine = s_wcd.totalLines - 1;
-		}
 
 	while (s_wcd.consoleTextLen--)
-		{
 		Wcon_PrintInternal ("\b \b", 0);
-		}
 
 	Wcon_PrintInternal (s_wcd.lineBuffer[s_wcd.browseLine], 0);
 	Q_strncpy (s_wcd.consoleText, s_wcd.lineBuffer[s_wcd.browseLine], sizeof (s_wcd.consoleText));
@@ -245,9 +239,7 @@ static void Wcon_EventDownArrow ()
 		s_wcd.browseLine = 0;
 
 	while (s_wcd.consoleTextLen--)
-		{
 		Wcon_PrintInternal ("\b \b", 0);
-		}
 
 	if (s_wcd.browseLine == s_wcd.inputLine)
 		{
@@ -497,7 +489,7 @@ void Wcon_CreateConsole (void)
 	if (Sys_CheckParm ("-log"))
 		s_wcd.log_active = true;
 	
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	if (host.type == HOST_NORMAL)
 		{	
 		//Q_strncpy (s_wcd.title, va ("Xash3D %s", XASH_VERSION), sizeof (s_wcd.title));

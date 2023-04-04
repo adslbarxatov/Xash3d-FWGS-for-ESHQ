@@ -25,7 +25,7 @@ mobile_engfuncs_t *gMobileEngfuncs;
 convar_t *vibration_length;
 convar_t *vibration_enable;
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 static cl_font_t g_scaled_font;
 static float g_font_scale; 
 
@@ -60,7 +60,7 @@ static void pfnEnableTextInput (int enable)
 	Key_EnableTextInput (enable, false);
 	}
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 static int pfnDrawScaledCharacter (int x, int y, int number, int r, int g, int b, float scale)
 	{
 	/*int width = clgame.scrInfo.charWidths[number] * scale * hud_scale->value;

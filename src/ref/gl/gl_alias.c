@@ -291,7 +291,7 @@ void BuildTris (void)
 			s = (s + 0.5f) / m_pAliasHeader->skinwidth;
 			t = (t + 0.5f) / m_pAliasHeader->skinheight;
 
-			// [Xash3D, 31.03.23] Carmack use floats and Valve use shorts here...
+			// [FWGS, 01.04.23] Carmack use floats and Valve use shorts here...
 			/* *(float *)&g_commands[g_numcommands++] = s;
 			*(float *)&g_commands[g_numcommands++] = t;*/
 			g_commands[g_numcommands++] = FloatAsInt (s);
@@ -618,7 +618,7 @@ void Mod_CalcAliasBounds (model_t *mod)
 
 /*
 =================
-Mod_LoadAliasModel [Xash3D, 31.03.23]
+Mod_LoadAliasModel
 =================
 */
 void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
@@ -645,7 +645,7 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	if ((pinmodel->numverts <= 0) || (pinmodel->numtris <= 0) || (pinmodel->numframes <= 0))
 		return; // how to possible is make that?
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	//mod->mempool = Mem_AllocPool (va ("^2%s^7", mod->name));
 	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
 	mod->mempool = Mem_AllocPool (poolname);

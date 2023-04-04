@@ -74,7 +74,7 @@ float SimpleSpline (float value)
 word FloatToHalf (float v)
 	{
 	//unsigned int	i = *((unsigned int *)&v);
-	unsigned int	i = FloatAsUint (v);	// [Xash3D, 31.03.23]
+	unsigned int	i = FloatAsUint (v);	// [FWGS, 01.04.23]
 	unsigned int	e = (i >> 23) & 0x00ff;
 	unsigned int	m = i & 0x007fffff;
 	unsigned short	h;
@@ -118,7 +118,7 @@ float HalfToFloat (word h)
 		}
 
 	//return *((float *)&f);
-	return UintAsFloat (f);	// [Xash3D, 31.03.23]
+	return UintAsFloat (f);	// [FWGS, 01.04.23]
 	}
 
 /*
@@ -300,10 +300,10 @@ float rsqrt (float number)
 
 	x = number * 0.5f;
 	//i = *(int *)&number;		// evil floating point bit level hacking
-	i = FloatAsInt (number);	//[Xash3D, 31.03.23]
+	i = FloatAsInt (number);	// [FWGS, 01.04.23]
 	i = 0x5f3759df - (i >> 1);	// what the fuck?
 	//y = *(float *)&i;
-	y = IntAsFloat (i);			//[Xash3D, 31.03.23]
+	y = IntAsFloat (i);			// [FWGS, 01.04.23]
 	y = y * (1.5f - (x * y * y));	// first iteration
 
 	return y;
@@ -879,7 +879,7 @@ int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p)
 
 /*
 ====================
-StudioSlerpBones [Xash3D, 31.03.23]
+StudioSlerpBones [FWGS, 01.04.23]
 ====================
 */
 void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_t q2[], const float pos2[][3], float s)
@@ -897,7 +897,7 @@ void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_
 
 /*
 ====================
-StudioCalcBoneQuaternion [Xash3D, 31.03.23]
+StudioCalcBoneQuaternion [FWGS, 01.04.23]
 ====================
 */
 void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, 
@@ -985,7 +985,7 @@ void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone,
 
 /*
 ====================
-StudioCalcBonePosition [Xash3D, 31.03.23]
+StudioCalcBonePosition [FWGS, 01.04.23]
 ====================
 */
 void R_StudioCalcBonePosition (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, 

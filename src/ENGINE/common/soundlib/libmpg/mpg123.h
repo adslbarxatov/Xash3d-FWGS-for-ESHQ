@@ -31,7 +31,7 @@ typedef struct mpg123_handle_s	mpg123_handle_t;
 #include <string.h>
 #include <stdlib.h>
 #include "fmt123.h"
-//#define STDINT_H	<stdint.h>	// [Xash3D, 28.03.23]
+#define STDINT_H	<stdint.h>	// [FWGS, 01.04.23]
 #include STDINT_H
 
 #ifndef FALSE
@@ -70,8 +70,8 @@ typedef unsigned short	uint16_t;
 #define SEEKFRAME( mh )	((mh)->ignoreframe < 0 ? 0 : (mh)->ignoreframe)
 #define track_need_init( mh )	((mh)->num < 0)
 #define INDEX_SIZE		1000
-#define SBLIMIT		32
-#define SSLIMIT		18
+#define SBLIMIT			32
+#define SSLIMIT			18
 #define GAPLESS_DELAY	529
 #define SHORT_SCALE		32768
 

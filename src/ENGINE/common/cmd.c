@@ -120,7 +120,7 @@ void Cbuf_AddText (const char *text)
 	Cbuf_AddTextToBuffer (&cmd_text, text);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void Cbuf_AddTextf (const char *fmt, ...)
 	{
 	va_list va;
@@ -996,8 +996,8 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 
 	cmd_condlevel = 0;
 
-	// [Xash3D, 31.03.23] cvar value substitution
-	//if (CVAR_TO_BOOL (cmd_scripting))
+	// [FWGS, 01.04.23] cvar value substitution
+	/*if (CVAR_TO_BOOL (cmd_scripting))*/
 	if (CVAR_TO_BOOL (cmd_scripting) && isPrivileged)
 		{
 		while (*text)
@@ -1045,7 +1045,8 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 	// execute the command line
 	Cmd_TokenizeString (text);
 
-	if (!Cmd_Argc ()) return; // no tokens
+	if (!Cmd_Argc ())
+		return; // no tokens
 
 #if defined(XASH_HASHED_VARS)
 	BaseCmd_FindAll (cmd_argv[0],
@@ -1263,7 +1264,7 @@ void Cmd_Unlink (int group)
 	Con_Reportf ("unlink %i commands\n", count);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void Cmd_Apropos_f (void)
 	{
 	cmd_t *cmd;
@@ -1271,7 +1272,7 @@ static void Cmd_Apropos_f (void)
 	cmdalias_t *alias;
 	const char *partial;
 	int count = 0;
-	//qboolean ispattern;
+	/*qboolean ispattern;*/
 	char buf[MAX_VA_STRING];
 
 	/*if (Cmd_Argc () > 1)
@@ -1303,7 +1304,8 @@ static void Cmd_Apropos_f (void)
 
 			if (var->flags & FCVAR_EXTENDED)
 				desc = var->desc;
-			else desc = "game cvar";
+			else
+				desc = "game cvar";
 
 			if (!desc)
 				desc = "user cvar";
@@ -1432,7 +1434,7 @@ void Cmd_Init (void)
 	Cmd_AddRestrictedCommand ("unalias", Cmd_UnAlias_f, 
 		"remove a script function");
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	/*Cmd_AddCommand ("if", Cmd_If_f, "compare and set condition bits");
 	Cmd_AddCommand ("else", Cmd_Else_f, "invert condition bit");*/
 	Cmd_AddRestrictedCommand ("if", Cmd_If_f, 

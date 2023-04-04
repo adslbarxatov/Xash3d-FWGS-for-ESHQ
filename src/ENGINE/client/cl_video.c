@@ -209,8 +209,8 @@ qboolean SCR_PlayCinematic (const char *arg)
 
 	if (FS_FileExists (arg, false) && !fullpath)
 		{
-		// [Xash3D, 26.03.23]
-		//Con_Printf (S_ERROR "Couldn't load %s from packfile. Please extract it\n", path);
+		// [FWGS, 01.04.23]
+		/*Con_Printf (S_ERROR "Couldn't load %s from packfile. Please extract it\n", path);*/
 		Con_Printf (S_ERROR "Couldn't load %s from packfile. Please extract it\n", arg);
 		return false;
 		}

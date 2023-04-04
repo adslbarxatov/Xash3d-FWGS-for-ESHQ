@@ -77,8 +77,7 @@ enum
 	PC_CONTENT_CONTROL,
 	PC_UPDATE2,
 	PC_VISIT_WON,
-	// Изменено для поддержки титров
-	PC_CREDITS, //PC_PREVIEWS,
+	PC_CREDITS, // ESHQ: изменено для поддержки титров
 	PC_ADV_OPT,
 	PC_3DINFO_SITE,
 	PC_CUSTOM_GAME,
@@ -107,4 +106,4 @@ inline int PicButtonWidth (int pic_id)
 	return strlen (MenuButtons[pic_id]);
 	}
 
-#endif//MENU_BTNSBMP_TABLE_H
+#endif

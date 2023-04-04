@@ -16,14 +16,13 @@
 #ifndef ALIAS_H
 #define ALIAS_H
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 #include "build.h"
 #include STDINT_H
 #include "synctype.h"
 
 /*
 ==============================================================================
-
 ALIAS MODELS
 
 Alias models are position independent, so the cache manager can move them
@@ -44,7 +43,7 @@ Alias models are position independent, so the cache manager can move them
 #define ALIAS_TRACER2		0x0040	// orange split trail + rotate
 #define ALIAS_TRACER3		0x0080	// purple trail
 
-/* [Xash3D, 20.03.23]
+/* [FWGS, 01.04.23]
 // must match definition in sprite.h
 #ifndef SYNCTYPE_T
 #define SYNCTYPE_T
@@ -68,7 +67,7 @@ typedef enum
 	ALIAS_SKIN_GROUP
 	} aliasskintype_t;
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		ident;
@@ -90,7 +89,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (daliashdr_t) == 84, "invalid daliashdr_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		onseam;
@@ -100,7 +99,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (stvert_t) == 12, "invalid stvert_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct dtriangle_s
 	{
 	int32_t		facesfront;
@@ -112,7 +111,7 @@ STATIC_ASSERT (sizeof (dtriangle_t) == 16, "invalid dtriangle_t size");
 #define DT_FACES_FRONT	0x0010
 #define ALIAS_ONSEAM	0x0020
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	trivertex_t	bboxmin;	// lightnormal isn't used
@@ -122,7 +121,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (daliasframe_t) == 24, "invalid daliasframe_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		numframes;
@@ -132,7 +131,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (daliasgroup_t) == 12, "invalid daliasgrou_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		numskins;
@@ -140,7 +139,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (daliasskingroup_t) == 4, "invalid daliasskingroup_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	float		interval;
@@ -148,7 +147,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (daliasinterval_t) == 4, "invalid daliasinterval_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	float		interval;
@@ -156,7 +155,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (daliasskininterval_t) == 4, "invalid daliasskininterval_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	uint32_t	type;
@@ -164,7 +163,7 @@ typedef struct
 
 STATIC_ASSERT (sizeof (daliasframetype_t) == 4, "invalid daliasframetype_t size");
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 typedef struct
 	{
 	uint32_t	type;
@@ -172,4 +171,4 @@ typedef struct
 
 STATIC_ASSERT (sizeof (daliasskintype_t) == 4, "invalid daliasskintype_t size");
 
-#endif//ALIAS_H
+#endif

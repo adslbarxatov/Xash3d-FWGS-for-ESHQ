@@ -89,7 +89,7 @@ qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesi
 
 	memcpy (&font, buffer, sizeof (font));
 
-	// last sixty four bytes - what the hell ????
+	// last sixty four bytes - what the hell?
 	size = sizeof (qfont_t) - 4 + (font.height * font.width * QCHAR_WIDTH) + sizeof (short) + 768 + 64;
 
 	if (size != filesize)

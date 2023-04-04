@@ -676,7 +676,7 @@ typedef struct
 	// movement vector relative to this blocks initial angle
 	vec3_t		vector;
 
-	// relative to start of animation???
+	// relative to start of animation?
 	vec3_t		position;
 	} mstudiomovement_t;
 
@@ -840,7 +840,7 @@ typedef struct
 	// pose parameter name
 	char		name[MAXSTUDIONAME];
 
-	// ????
+	// ?
 	int32_t		flags;
 
 	// starting value

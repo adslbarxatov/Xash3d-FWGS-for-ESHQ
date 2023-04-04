@@ -88,7 +88,7 @@ static int R_TransEntityCompare (const void *a, const void *b)
 	rendermode2 = R_GetEntityRenderMode (ent2);
 
 	// ESHQ???: сортировка по дистанции без игнорирования аддитивных текстур (иначе получается странная картинка)
-	if ((ent1->model->type != mod_brush))//|| (rendermode1 != kRenderTransAlpha))
+	if ((ent1->model->type != mod_brush) || (rendermode1 != kRenderTransAlpha))		// ESHQ: проблемная прозрачность?
 		{
 		VectorAverage (ent1->model->mins, ent1->model->maxs, org);
 		VectorAdd (ent1->origin, org, org);
@@ -100,7 +100,7 @@ static int R_TransEntityCompare (const void *a, const void *b)
 		dist1 = 1000000000;
 		}
 
-	if ((ent2->model->type != mod_brush))//|| (rendermode2 != kRenderTransAlpha))
+	if ((ent2->model->type != mod_brush) || (rendermode2 != kRenderTransAlpha))		// ESHQ: проблемная прозрачность?
 		{
 		VectorAverage (ent2->model->mins, ent2->model->maxs, org);
 		VectorAdd (ent2->origin, org, org);
@@ -342,7 +342,7 @@ void R_SetupFrustum (void)
 	{
 	const ref_overview_t *ov = gEngfuncs.GetOverviewParms ();
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	//if (RP_NORMALPASS () && (ENGINE_GET_PARM (PARM_WATER_LEVEL) >= 3))
 	if (RP_NORMALPASS () && (ENGINE_GET_PARM (PARM_WATER_LEVEL) >= 3) && ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
 		{
@@ -1139,7 +1139,7 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 
 /*
 ===============
-R_EndFrame [Xash3D, 31.03.23]
+R_EndFrame [FWGS, 01.04.23]
 ===============
 */
 void R_EndFrame (void)

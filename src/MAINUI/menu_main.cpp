@@ -32,24 +32,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ART_CLOSEBTN_F	"gfx/shell/cls_f"
 #define ART_CLOSEBTN_D	"gfx/shell/cls_d"
 
-#define ID_BACKGROUND	0
-#define ID_CONSOLE		1
-#define ID_RESUME		2
-#define ID_NEWGAME		3
-#define ID_HAZARDCOURSE	4
+#define ID_BACKGROUND		0
+#define ID_CONSOLE			1
+#define ID_RESUME			2
+#define ID_NEWGAME			3
+#define ID_HAZARDCOURSE		4
 #define ID_CONFIGURATION	5
-#define ID_SAVERESTORE	6	
-#define ID_MULTIPLAYER	7
-#define ID_CUSTOMGAME	8
-// ESHQ: изменено для поддержки титров
-#define ID_CREDITS		9
-#define ID_QUIT			10
-#define ID_QUIT_BUTTON	11
-#define ID_MINIMIZE		12
-#define ID_MSGBOX	 	13
-#define ID_MSGTEXT	 	14
-#define ID_YES	 		130
-#define ID_NO	 		131
+#define ID_SAVERESTORE		6	
+#define ID_MULTIPLAYER		7
+#define ID_CUSTOMGAME		8
+#define ID_CREDITS			9		// ESHQ: изменено для поддержки титров
+#define ID_QUIT				10
+#define ID_QUIT_BUTTON		11
+#define ID_MINIMIZE			12
+#define ID_MSGBOX	 		13
+#define ID_MSGTEXT	 		14
+#define ID_YES	 			130
+#define ID_NO	 			131
 
 typedef struct
 	{
@@ -206,15 +205,9 @@ UI_Main_ActivateFunc
 */
 static void UI_Main_ActivateFunc (void)
 	{
+	// ESHQ: отменено изменение положения кнопки консоли
 	if (!CL_IsActive ())
 		uiMain.resumeGame.generic.flags |= QMF_HIDDEN;
-
-	// ESHQ: отменено
-	/*if (gpGlobals->developer)
-		{
-		uiMain.console.generic.y = CL_IsActive () ? 180 : 230;
-		UI_ScaleCoords (NULL, &uiMain.console.generic.y, NULL, NULL);
-		}*/
 	}
 
 /*

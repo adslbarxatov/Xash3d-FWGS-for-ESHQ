@@ -15,9 +15,7 @@
 
 #include <sys/types.h> // off_t
 
-// [Xash3D, 20.03.23]
-//#define STDINT_H <stdint.h>
-
+#define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
 #include STDINT_H
 #include <assert.h>
 

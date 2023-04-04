@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "build.h"
 #ifdef XASH_SDL
 #include <SDL.h>
-#endif // XASH_SDL
+#endif
 #include <stdarg.h>  // va_args
 #include <errno.h> // errno
 #include <string.h> // strerror
@@ -167,13 +167,10 @@ void Sys_PrintUsage (void)
 int Host_CompareFileTime (int ft1, int ft2)
 	{
 	if (ft1 < ft2)
-		{
 		return -1;
-		}
 	else if (ft1 > ft2)
-		{
 		return 1;
-		}
+
 	return 0;
 	}
 
@@ -270,13 +267,14 @@ void Host_AbortCurrentFrame (void)
 
 /*
 ==================
-Host_CalcSleep [Xash3D, 31.03.23]
+Host_CalcSleep [FWGS, 01.04.23]
 ==================
 */
 //void Host_CheckSleep (void)
 static int Host_CalcSleep (void)
 	{
-	//int sleeptime = host_sleeptime->value;
+	/*int sleeptime = host_sleeptime->value;*/
+
 #ifndef XASH_DEDICATED
 	// never sleep in timedemo for benchmarking purposes
 	// also don't sleep with vsync for less lag
@@ -287,7 +285,7 @@ static int Host_CalcSleep (void)
 	if (Host_IsDedicated ())
 		{
 		// let the dedicated server some sleep
-		//Sys_Sleep (sleeptime);
+		/*Sys_Sleep (sleeptime);*/
 		return host_sleeptime->value;
 		}
 	/*else
@@ -365,12 +363,12 @@ void Host_ChangeGame_f (void)
 		}
 	else
 		{
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		/*const char *arg1 = va ("%s%s", (host.type == HOST_NORMAL) ? "" : "#", Cmd_Argv (1));
 		const char *arg2 = va ("change game to '%s'", FI->games[i]->title);*/
 		char finalmsg[MAX_VA_STRING];
 
-		//Host_NewInstance (arg1, arg2);
+		/*Host_NewInstance (arg1, arg2);*/
 		Q_snprintf (finalmsg, sizeof (finalmsg), "change game to '%s'", FI->games[i]->title);
 		Host_NewInstance (Cmd_Argv (1), finalmsg);
 		}
@@ -408,10 +406,10 @@ void Host_Exec_f (void)
 			};
 
 		int i;
-		char temp[MAX_VA_STRING];	// [Xash3D, 31.03.23]
+		char temp[MAX_VA_STRING];	// [FWGS, 01.04.23]
 		qboolean allow = false;
 
-		//unprivilegedWhitelist[0] = va ("%s.cfg", clgame.mapname);
+		/*unprivilegedWhitelist[0] = va ("%s.cfg", clgame.mapname);*/
 		Q_snprintf (temp, sizeof (temp), "%s.cfg", clgame.mapname);
 		unprivilegedWhitelist[0] = temp;
 
@@ -430,7 +428,7 @@ void Host_Exec_f (void)
 			return;
 			}
 		}
-#endif // XASH_DEDICATED
+#endif
 
 	if (!Q_stricmp ("game.cfg", arg))
 		{
@@ -504,13 +502,9 @@ singleplayer game detect
 qboolean Host_IsLocalGame (void)
 	{
 	if (SV_Active ())
-		{
 		return (SV_GetMaxClients () == 1) ? true : false;
-		}
-	else
-		{
-		return (CL_GetMaxClients () == 1) ? true : false;
-		}
+
+	return (CL_GetMaxClients () == 1) ? true : false;
 	}
 
 qboolean Host_IsLocalClient (void)
@@ -611,12 +605,13 @@ compute actual FPS for various modes
 */
 double Host_CalcFPS (void)
 	{
-	double	fps = 0.0;
+	double fps = 60.0;	// ESHQ: при отмене vid_disp_freq нулевое значение приводит к сбою в дальнейшем расчёте
 
 	if (Host_IsDedicated ())
 		{
 		fps = sys_ticrate.value;
 		}
+
 #if !XASH_DEDICATED
 	else if (CL_IsPlaybackDemo () || CL_IsRecordDemo ()) // NOTE: we should play demos with same fps as it was recorded
 		{
@@ -624,7 +619,7 @@ double Host_CalcFPS (void)
 		}
 	else if (Host_IsLocalGame ())
 		{
-		if (!CVAR_TO_BOOL (gl_vsync))	// [Xash3D, 31.03.23]
+		if (!CVAR_TO_BOOL (gl_vsync))	// [FWGS, 01.04.23]
 			fps = host_maxfps->value;
 		}
 	else
@@ -637,8 +632,8 @@ double Host_CalcFPS (void)
 			fps = bound (MIN_FPS, fps, MAX_FPS);
 			}
 
-		/* [Xash3D, 31.03.23] probably left part of this condition is redundant :-)
-		if ((host.type != HOST_DEDICATED) && Host_IsLocalGame () && !CL_IsTimeDemo ())
+		// [FWGS, 01.04.23] probably left part of this condition is redundant [удаление отменено]
+		/*if ((host.type != HOST_DEDICATED) && Host_IsLocalGame () && !CL_IsTimeDemo ())
 			{
 			// adjust fps for vertical synchronization
 			if (CVAR_TO_BOOL (gl_vsync))
@@ -647,7 +642,8 @@ double Host_CalcFPS (void)
 					fps = vid_displayfrequency->value;
 				else
 					fps = 60.0; // default
-				}*/
+				}
+			}*/
 		}
 #endif
 
@@ -656,7 +652,7 @@ double Host_CalcFPS (void)
 
 /*
 ===================
-Host_FilterTime [Xash3D, 31.03.23]
+Host_FilterTime [FWGS, 01.04.23]
 
 Returns false if the time is too short to run a frame
 ===================
@@ -686,10 +682,10 @@ qboolean Host_FilterTime (float time)
 		else
 			targetframetime = (1.0 / fps);
 
-		if ((host.realtime - oldtime) < (targetframetime * scale))
+		if ((host.realtime - oldtime) < targetframetime * scale)
 			{
-			//if ((host.realtime - oldtime) < (1.0 / (fps + 1.0)) * scale)
-			if (sleeptime > 0 && sleeps > 0)
+			/*if ((host.realtime - oldtime) < (1.0 / (fps + 1.0)) * scale)*/
+			if ((sleeptime > 0) && (sleeps > 0))
 				{
 				Sys_Sleep (sleeptime);
 				sleeps--;
@@ -698,7 +694,7 @@ qboolean Host_FilterTime (float time)
 			return false;
 			}
 
-		if (sleeptime > 0 && sleeps <= 0)
+		if ((sleeptime > 0) && (sleeps <= 0))
 			{
 			if (host.status == HOST_FRAME)
 				{
@@ -727,7 +723,7 @@ qboolean Host_FilterTime (float time)
 	oldtime = host.realtime;
 
 	// NOTE: allow only in singleplayer while demos are not active
-	if (host_framerate->value > 0.0f && Host_IsLocalGame () && !CL_IsPlaybackDemo () && !CL_IsRecordDemo ())
+	if ((host_framerate->value > 0.0f) && Host_IsLocalGame () && !CL_IsPlaybackDemo () && !CL_IsRecordDemo ())
 		host.frametime = bound (MIN_FRAMETIME, host_framerate->value * scale, MAX_FRAMETIME);
 	else 
 		host.frametime = bound (MIN_FRAMETIME, host.frametime, MAX_FRAMETIME);
@@ -737,7 +733,7 @@ qboolean Host_FilterTime (float time)
 
 /*
 =================
-Host_Frame [Xash3D, 31.03.23]
+Host_Frame [FWGS, 01.04.23]
 =================
 */
 void Host_Frame (float time)
@@ -778,15 +774,15 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	static qboolean	recursive = false;
 	va_list		argptr;
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	/*if (host.mouse_visible && !CL_IsInMenu ())
-		{
-		// hide VGUI mouse
-#ifdef XASH_SDL
-		SDL_ShowCursor (0);
-#endif
-		host.mouse_visible = false;
-		}*/
+	{
+	// hide VGUI mouse
+	#ifdef XASH_SDL
+	SDL_ShowCursor (0);
+	#endif
+	host.mouse_visible = false;
+	}*/
 
 	va_start (argptr, error);
 	Q_vsprintf (hosterror1, error, argptr);
@@ -898,7 +894,7 @@ void Host_Userconfigd_f (void)
 
 #if XASH_ENGINE_TESTS
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void Host_RunTests (int stage)
 	{
 	switch (stage)
@@ -911,15 +907,15 @@ static void Host_RunTests (int stage)
 			Test_RunCmd ();
 			Test_RunCvar ();*/
 #if !XASH_DEDICATED
-			//Test_RunCon ();
+			/*Test_RunCon ();*/
 			TEST_LIST_0_CLIENT;
 #endif
 			break;
 		case 1: // after FS load
-			//Test_RunImagelib ();
+			/*Test_RunImagelib ();*/
 			TEST_LIST_1;
 #if !XASH_DEDICATED
-			//Test_RunVOX ();
+			/*Test_RunVOX ();*/
 			TEST_LIST_1_CLIENT;
 #endif
 			Msg ("Done! %d passed, %d failed\n", tests_stats.passed, tests_stats.failed);
@@ -935,11 +931,11 @@ Host_InitCommon
 */
 void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)
 	{
-	char		dev_level[4];
+	char	dev_level[4];
 	int		developer = DEFAULT_DEV;
-	const char *baseDir;
-	char ticrate[16];
-	int len;
+	const char	*baseDir;
+	char	ticrate[16];
+	int		len;
 
 	// some commands may turn engine into infinite loop,
 	// e.g. xash.exe +game xash -game xash
@@ -964,12 +960,12 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 	Memory_Init (); // init memory subsystem
 
 	host.mempool = Mem_AllocPool ("Zone Engine");
-	host.allow_console = DEFAULT_ALLOWCONSOLE;	// [Xash3D, 31.03.23]
+	host.allow_console = DEFAULT_ALLOWCONSOLE;	// [FWGS, 01.04.23]
+
+	/*if (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake"))*/
 
 	// HACKHACK: Quake console is always allowed
-	// TODO: determine if we are running QWrap more reliable
-	//if (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake"))
-	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake")))	// [Xash3D, 31.03.23]
+	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake")))	// [FWGS, 01.04.23]
 		host.allow_console = true;
 
 	if (Sys_CheckParm ("-dev"))
@@ -1074,23 +1070,28 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 		}
 	else
 		{
+
 #if TARGET_OS_IOS
 		const char *IOS_GetDocsDir ();
 		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));
-//#elif XASH_SDL == 2
-#elif XASH_PSVITA	// [Xash3D, 31.03.23]
+
+/*#elif XASH_SDL == 2*/
+#elif XASH_PSVITA	// [FWGS, 01.04.23]
 		if (!PSVita_GetBasePath (host.rootdir, sizeof (host.rootdir)))
 			{
 			Sys_Error ("couldn't find xash3d data directory");
 			host.rootdir[0] = 0;
 			}
-#elif (XASH_SDL == 2) && !XASH_NSWITCH // GetBasePath not impl'd in switch-sdl2
+
+// GetBasePath not impl'd in switch-sdl2
+#elif (XASH_SDL == 2) && !XASH_NSWITCH 
 		char *szBasePath;
 
 		if (!(szBasePath = SDL_GetBasePath ()))
 			Sys_Error ("couldn't determine current directory: %s", SDL_GetError ());
 		Q_strncpy (host.rootdir, szBasePath, sizeof (host.rootdir));
 		SDL_free (szBasePath);
+
 #else
 		if (!getcwd (host.rootdir, sizeof (host.rootdir)))
 			{
@@ -1100,7 +1101,7 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 #endif
 		}
 
-#if XASH_WIN32	// [Xash3D, 31.03.23]
+#if XASH_WIN32	// [FWGS, 01.04.23]
 		COM_FixSlashes (host.rootdir);
 #endif
 
@@ -1120,7 +1121,7 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 			Q_strncpy (host.rodir, roDir, sizeof (host.rodir));
 		}
 
-#if XASH_WIN32	// [Xash3D, 31.03.23]
+#if XASH_WIN32	// [FWGS, 01.04.23]
 	COM_FixSlashes (host.rootdir);
 #endif
 
@@ -1164,7 +1165,7 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 #endif
 
 	FS_LoadGameInfo (NULL);
-	Cvar_PostFSInit ();	// [Xash3D, 31.03.23]
+	Cvar_PostFSInit ();	// [FWGS, 01.04.23]
 
 	if (FS_FileExists (va ("%s.rc", SI.basedirName), false))
 		Q_strncpy (SI.rcName, SI.basedirName, sizeof (SI.rcName));	// e.g. valve.rc
@@ -1201,8 +1202,8 @@ Host_Main
 int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
 	{
 	static double	oldtime, newtime;
-	host.starttime = Sys_DoubleTime ();	// [Xash3D, 31.03.23]
-	pChangeGame = func;	// may be NULL
+	host.starttime = Sys_DoubleTime ();	// [FWGS, 01.04.23]
+	pChangeGame = func;					// may be NULL
 
 	Host_InitCommon (argc, argv, progname, bChangeGame);
 
@@ -1214,17 +1215,25 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		Cmd_AddRestrictedCommand ("crash", Host_Crash_f, "a way to force a bus error for development reasons");
 		}
 
-	host_serverstate = Cvar_Get ("host_serverstate", "0", FCVAR_READ_ONLY, "displays current server state");
-	host_maxfps = Cvar_Get ("fps_max", "72", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "host fps upper limit");
-	host_framerate = Cvar_Get ("host_framerate", "0", FCVAR_FILTERABLE, "locks frame timing to this value in seconds");
-	host_sleeptime = Cvar_Get ("sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "milliseconds to sleep for each frame. higher values reduce fps accuracy");
-	host_gameloaded = Cvar_Get ("host_gameloaded", "0", FCVAR_READ_ONLY, "inidcates a loaded game.dll");
-	host_clientloaded = Cvar_Get ("host_clientloaded", "0", FCVAR_READ_ONLY, "inidcates a loaded client.dll");
-	host_limitlocal = Cvar_Get ("host_limitlocal", "0", 0, "apply cl_cmdrate and rate to loopback connection");
-	con_gamemaps = Cvar_Get ("con_mapfilter", "1", FCVAR_ARCHIVE, "when true show only maps in game folder");
+	host_serverstate = Cvar_Get ("host_serverstate", "0", FCVAR_READ_ONLY, 
+		"displays current server state");
+	host_maxfps = Cvar_Get ("fps_max", "72", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+		"host fps upper limit");
+	host_framerate = Cvar_Get ("host_framerate", "0", FCVAR_FILTERABLE, 
+		"locks frame timing to this value in seconds");
+	host_sleeptime = Cvar_Get ("sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+		"milliseconds to sleep for each frame. higher values reduce fps accuracy");
+	host_gameloaded = Cvar_Get ("host_gameloaded", "0", FCVAR_READ_ONLY, 
+		"inidcates a loaded game.dll");
+	host_clientloaded = Cvar_Get ("host_clientloaded", "0", FCVAR_READ_ONLY,
+		"inidcates a loaded client.dll");
+	host_limitlocal = Cvar_Get ("host_limitlocal", "0", 0,
+		"apply cl_cmdrate and rate to loopback connection");
+	con_gamemaps = Cvar_Get ("con_mapfilter", "1", FCVAR_ARCHIVE,
+		"when true show only maps in game folder");
 	Cvar_RegisterVariable (&sys_timescale);
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	/*build = Cvar_Get ("buildnum", va ("%i", Q_buildnum_compat ()), FCVAR_READ_ONLY, "returns a current build number");
 	ver = Cvar_Get ("ver", va ("%i/%s (hw build %i)", PROTOCOL_VERSION, XASH_COMPAT_VERSION, Q_buildnum_compat ()), FCVAR_READ_ONLY, "shows an engine version");
 	Cvar_Get ("host_ver", va ("%i %s %s %s %s", Q_buildnum (), XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildcommit ()), FCVAR_READ_ONLY,
@@ -1284,8 +1293,8 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 #ifdef _WIN32
 			Wcon_ShowConsole (false); // hide console
 #endif
-			// [Xash3D, 31.03.23] execute startup config and cmdline
-			//Cbuf_AddText (va ("exec %s.rc\n", SI.rcName));
+			// [FWGS, 01.04.23] execute startup config and cmdline
+			/*Cbuf_AddText (va ("exec %s.rc\n", SI.rcName));*/
 			Cbuf_AddTextf ("exec %s.rc\n", SI.rcName);
 			Cbuf_Execute ();
 
@@ -1319,8 +1328,8 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	SCR_CheckStartupVids ();	// must be last
 	oldtime = Sys_DoubleTime () - 0.1;
 
-	// [Xash3D, 31.03.23]
-	//if (Host_IsDedicated () && (GameState->nextstate == STATE_RUNFRAME))
+	// [FWGS, 01.04.23]
+	/*if (Host_IsDedicated () && (GameState->nextstate == STATE_RUNFRAME))*/
 	if (Host_IsDedicated ())
 		{
 		// in dedicated server input system can't set HOST_FRAME status

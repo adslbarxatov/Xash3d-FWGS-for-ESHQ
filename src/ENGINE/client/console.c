@@ -286,7 +286,7 @@ void Con_ToggleConsole_f (void)
 	SCR_EndLoadingPlaque ();
 
 	// show console only in game or by special call from menu
-	if (cls.state != ca_active || cls.key_dest == key_menu)
+	if ((cls.state != ca_active) || (cls.key_dest == key_menu))
 		return;
 
 	Con_ClearTyping ();
@@ -296,7 +296,8 @@ void Con_ToggleConsole_f (void)
 		{
 		if (Cvar_VariableInteger ("sv_background") || Cvar_VariableInteger ("cl_background"))
 			UI_SetActiveMenu (true);
-		else UI_SetActiveMenu (false);
+		else
+			UI_SetActiveMenu (false);
 		}
 	else
 		{
@@ -550,7 +551,7 @@ int GAME_EXPORT Con_Visible (void)
 
 /*
 ================
-Con_FixedFont [Xash3D, 26.03.23]
+Con_FixedFont [FWGS, 01.04.23]
 ================
 */
 qboolean Con_FixedFont (void)
@@ -561,7 +562,7 @@ qboolean Con_FixedFont (void)
 	return CL_FixedFont (con.curFont);
 	}
 
-/* [Xash3D, 26.03.23]
+/* [FWGS, 01.04.23]
 static qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font)
 	{
 	int	i, fontWidth;
@@ -644,7 +645,7 @@ static qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font
 
 /*
 ================
-Con_LoadConsoleFont [Xash3D, 26.03.23]
+Con_LoadConsoleFont [FWGS, 01.04.23]
 
 INTERNAL RESOURCE
 ================
@@ -662,7 +663,8 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 	// loading conchars
 	if (Sys_CheckParm ("-oldfont"))
 		{
-		success = Con_LoadVariableWidthFont ("gfx/conchars.fnt", font, scale, kRenderTransTexture, TF_FONT | TF_NEAREST);
+		success = Con_LoadVariableWidthFont ("gfx/conchars.fnt", font, scale,
+			kRenderTransTexture, TF_FONT | TF_NEAREST);
 		}
 	else
 		{
@@ -678,7 +680,8 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 			if (Q_snprintf (path, sizeof (path),
 				"font%i_%s.fnt", fontNumber, Cvar_VariableString ("con_charset")) > 0)
 				{
-				success = Con_LoadVariableWidthFont (path, font, scale, kRenderTransTexture, TF_FONT | TF_NEAREST);
+				success = Con_LoadVariableWidthFont (path, font, scale,
+					kRenderTransTexture, TF_FONT | TF_NEAREST);
 				}
 			}
 
@@ -729,18 +732,18 @@ static void Con_LoadConchars (void)
 		fontSize = 0;
 	else if (refState.width >= 1280)
 		fontSize = 2;
-	else fontSize = 1;
+	else
+		fontSize = 1;
 
 	if (fontSize > CON_NUMFONTS - 1)
 		fontSize = CON_NUMFONTS - 1;
 
-	// [Xash3D, 26.03.23] sets the current font
-	//con.lastUsedFont = con.curFont = &con.chars[fontSize];
+	// [FWGS, 01.04.23] sets the current font
+	/*con.lastUsedFont = con.curFont = &con.chars[fontSize];*/
 	con.curFont = &con.chars[fontSize];
 	}
 
 // CP1251 table
-
 int table_cp1251[64] = {
 	0x0402, 0x0403, 0x201A, 0x0453, 0x201E, 0x2026, 0x2020, 0x2021,
 	0x20AC, 0x2030, 0x0409, 0x2039, 0x040A, 0x040C, 0x040B, 0x040F,
@@ -1024,7 +1027,7 @@ int Con_DrawCharacter (int x, int y, int number, rgba_t color)
 
 /*
 ====================
-Con_GetFont [Xash3D, 26.03.23]
+Con_GetFont [FWGS, 01.04.23]
 ====================
 */
 cl_font_t *Con_GetFont (int num)
@@ -1049,7 +1052,7 @@ void Con_DrawCharacterLen (int number, int *width, int *height)
 
 /*
 ====================
-Con_GetCurFont [Xash3D, 26.03.23]
+Con_GetCurFont [FWGS, 01.04.23]
 ====================
 */
 cl_font_t *Con_GetCurFont (void)
@@ -1059,7 +1062,7 @@ cl_font_t *Con_GetCurFont (void)
 	
 /*
 ====================
-Con_DrawStringLen [Xash3D, 26.03.23]
+Con_DrawStringLen [FWGS, 01.04.23]
 
 compute string width and height in screen pixels
 ====================
@@ -1170,14 +1173,14 @@ int Con_DrawGenericString (int x, int y, const char *string, rgba_t setColor, qb
 
 /*
 ====================
-Con_DrawString [Xash3D, 26.03.23]
+Con_DrawString [FWGS, 01.04.23]
 
 client version of routine
 ====================
 */
 int Con_DrawString (int x, int y, const char *string, rgba_t setColor)
 	{
-	//return Con_DrawGenericString (x, y, string, setColor, false, -1);
+	/*return Con_DrawGenericString (x, y, string, setColor, false, -1);*/
 	return CL_DrawString (x, y, string, setColor, con.curFont, FONT_DRAW_UTF8);
 	}
 
@@ -1559,8 +1562,8 @@ void Field_KeyDownEvent (field_t *edit, int key)
 		return;
 		}
 
-	//if (key == K_BACKSPACE)
-	if ((key == K_BACKSPACE) || (key == K_X_BUTTON))	// [Xash3D, 26.03.23]
+	/*if (key == K_BACKSPACE)*/
+	if ((key == K_BACKSPACE) || (key == K_X_BUTTON))	// [FWGS, 01.04.23]
 		{
 		if (edit->cursor > 0)
 			{
@@ -1572,8 +1575,8 @@ void Field_KeyDownEvent (field_t *edit, int key)
 		return;
 		}
 
-	//if (key == K_RIGHTARROW)
-	if ((key == K_RIGHTARROW) || (key == K_DPAD_RIGHT))	// [Xash3D, 26.03.23]
+	/*if (key == K_RIGHTARROW)*/
+	if ((key == K_RIGHTARROW) || (key == K_DPAD_RIGHT))	// [FWGS, 01.04.23]
 		{
 		if (edit->cursor < len) edit->cursor = Con_UtfMoveRight (edit->buffer, edit->cursor, edit->widthInChars);
 		if (edit->cursor >= edit->scroll + edit->widthInChars && edit->cursor <= len)
@@ -1581,8 +1584,8 @@ void Field_KeyDownEvent (field_t *edit, int key)
 		return;
 		}
 
-	//if (key == K_LEFTARROW)
-	if ((key == K_LEFTARROW) || (key == K_DPAD_LEFT))	// [Xash3D, 26.03.23]
+	/*if (key == K_LEFTARROW)*/
+	if ((key == K_LEFTARROW) || (key == K_DPAD_LEFT))	// [FWGS, 01.04.23]
 		{
 		if (edit->cursor > 0) edit->cursor = Con_UtfMoveLeft (edit->buffer, edit->cursor);
 		if (edit->cursor < edit->scroll) edit->scroll--;
@@ -1714,7 +1717,7 @@ void Field_DrawInputLine (int x, int y, field_t *edit)
 	// save char for overstrike
 	cursorChar = str[edit->cursor - prestep];
 
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	/*if (host.key_overstrike && cursorChar && !((int)(host.realtime * 4) & 1))
 		hideChar = edit->cursor - prestep; // skip this char
 
@@ -1732,18 +1735,16 @@ void Field_DrawInputLine (int x, int y, field_t *edit)
 	Con_UtfProcessChar (0);*/
 	CL_DrawStringLen (con.curFont, str, &curPos, NULL, FONT_DRAW_UTF8);
 
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	if (host.key_overstrike)
 		/*{
 		Con_DrawGenericChar (x + curPos, y, cursorChar, colorDefault);*/
 		CL_DrawCharacter (x + curPos, y, '|', colorDefault, con.curFont, 0);
-		/*}*/
 	else
 		/*{
 		Con_UtfProcessChar (0);
 		Con_DrawCharacter (x + curPos, y, '_', colorDefault);*/
 		CL_DrawCharacter (x + curPos, y, '_', colorDefault, con.curFont, 0);
-		/*}*/
 	}
 
 /*
@@ -1756,7 +1757,6 @@ CONSOLE HISTORY HANDLING
 /*
 ===================
 Con_HistoryUp
-
 ===================
 */
 static void Con_HistoryUp (con_history_t *self, field_t *in)
@@ -1891,7 +1891,7 @@ void Key_Console (int key)
 		return;
 		}
 
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	/*// enter finishes the line
 	if (key == K_ENTER || key == K_KP_ENTER)*/
 	
@@ -1923,8 +1923,8 @@ void Key_Console (int key)
 		return;
 		}
 
-	// [Xash3D, 26.03.23] command completion
-	//if (key == K_TAB)
+	// [FWGS, 01.04.23] command completion
+	/*if (key == K_TAB)*/
 	if ((key == K_TAB) || (key == K_L2_BUTTON))
 		{
 		Con_CompleteCommand (&con.input);
@@ -1992,14 +1992,14 @@ void Key_Console (int key)
 		return;
 		}
 
-	// [Xash3D, 26.03.23] enable the OSK with button press
+	// [FWGS, 01.04.23] enable the OSK with button press
 	if (key == K_Y_BUTTON)
 		{
 		Key_EnableTextInput (true, true);
 		return;
 		}
 
-	// [Xash3D, 26.03.23] exit the console by pressing MINUS on NSwitch
+	// [FWGS, 01.04.23] exit the console by pressing MINUS on NSwitch
 	// or both Back(Select)/Start buttons for everyone else
 	if ((key == K_BACK_BUTTON) || (key == K_START_BUTTON))
 		{
@@ -2025,16 +2025,18 @@ void Key_Message (int key)
 	{
 	char	buffer[MAX_SYSPATH];
 
-	//if (key == K_ESCAPE)
-	if ((key == K_ESCAPE) || (key == K_BACK_BUTTON))	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
+	/*if (key == K_ESCAPE)*/
+	if ((key == K_ESCAPE) || (key == K_BACK_BUTTON))
 		{
 		Key_SetKeyDest (key_game);
 		Con_ClearField (&con.chat);
 		return;
 		}
 
-	//if (key == K_ENTER || key == K_KP_ENTER)
-	if ((key == K_ENTER) || (key == K_KP_ENTER) || (key == K_A_BUTTON))		// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
+	/*if (key == K_ENTER || key == K_KP_ENTER)*/
+	if ((key == K_ENTER) || (key == K_KP_ENTER) || (key == K_A_BUTTON))
 		{
 		if (con.chat.buffer[0] && (cls.state == ca_active))
 			{
@@ -2078,8 +2080,8 @@ void Con_DrawInput (int lines)
 
 	y = lines - (con.curFont->charHeight * 2);
 	
-	// [Xash3D, 26.03.23]
-	//Con_DrawCharacter (con.curFont->charWidths[' '], y, ']', g_color_table[7]);
+	// [FWGS, 01.04.23]
+	/*Con_DrawCharacter (con.curFont->charWidths[' '], y, ']', g_color_table[7]);*/
 	CL_DrawCharacter (con.curFont->charWidths[' '], y, ']', g_color_table[7], con.curFont, 0);
 
 	Field_DrawInputLine (con.curFont->charWidths[' '] * 2, y, &con.input);
@@ -2087,7 +2089,7 @@ void Con_DrawInput (int lines)
 
 /*
 ================
-Con_DrawDebugLines [Xash3D, 26.03.23]
+Con_DrawDebugLines [FWGS, 01.04.23]
 
 Custom debug messages
 ================
@@ -2162,8 +2164,8 @@ void Con_DrawDebug (void)
 		}
 	else
 		{
-		//timeStart = Sys_DoubleTime ();
-		timeStart = host.realtime;	// [Xash3D, 26.03.23]
+		/*timeStart = Sys_DoubleTime ();*/
+		timeStart = host.realtime;	// [FWGS, 01.04.23]
 		}
 
 	if (!host.allow_console || Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background"))
@@ -2239,16 +2241,16 @@ int Con_DrawConsoleLine (int y, int lineno)
 	{
 	con_lineinfo_t *li = &CON_LINES (lineno);
 
-	if (!li || !li->start || *li->start == '\1')
+	if (!li || !li->start || (*li->start == '\1'))
 		return 0;	// this string will be shown only at notify
 
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	if (y >= con.curFont->charHeight)
 		{
 		float x = con.curFont->charWidths[' '];
 		CL_DrawString (x, y, li->start, g_color_table[7], con.curFont, FONT_DRAW_UTF8);
 		}
-	//Con_DrawGenericString (con.curFont->charWidths[' '], y, li->start, g_color_table[7], false, -1);
+	/*Con_DrawGenericString (con.curFont->charWidths[' '], y, li->start, g_color_table[7], false, -1);*/
 
 	return con.curFont->charHeight;
 	}
@@ -2318,7 +2320,7 @@ void Con_DrawSolidConsole (int lines)
 	// draw current version
 	memcpy (color, g_color_table[7], sizeof (color));
 
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	/*Q_snprintf (curbuild, MAX_STRING, "%s %i/%s (%s-%s build %i)", XASH_ENGINE_NAME, PROTOCOL_VERSION,
 		XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());*/
 	Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", 
@@ -2350,10 +2352,10 @@ void Con_DrawSolidConsole (int lines)
 			{
 			start = con.curFont->charWidths[' ']; // offset one space at left screen side
 
-			// [Xash3D, 26.03.23] draw red arrows to show the buffer is backscrolled
+			// [FWGS, 01.04.23] draw red arrows to show the buffer is backscrolled
 			for (x = 0; x < con.linewidth; x += 4)
 				CL_DrawCharacter ((x + 1) * start, y, '^', g_color_table[1], con.curFont, 0);
-			//Con_DrawCharacter ((x + 1) * start, y, '^', g_color_table[1]);
+			/*Con_DrawCharacter ((x + 1) * start, y, '^', g_color_table[1]);*/
 			
 			y -= con.curFont->charHeight;
 			}
@@ -2450,7 +2452,7 @@ void Con_DrawConsole (void)
 
 /*
 ==================
-Con_DrawVersion [Xash3D, 26.03.23]
+Con_DrawVersion [FWGS, 01.04.23]
 
 Used by menu
 ==================
@@ -2460,7 +2462,7 @@ void Con_DrawVersion (void)
 	// draws the current build
 	byte *color = g_color_table[7];
 	
-	//int	i, stringLen, width = 0, charH = 0;
+	/*int	i, stringLen, width = 0, charH = 0;*/
 	int	stringLen, charH = 0;
 	
 	int	start, height = refState.height;
@@ -2477,14 +2479,14 @@ void Con_DrawVersion (void)
 
 	if (!host.force_draw_version)
 		{
-		if ((cls.key_dest != key_menu && !draw_version) || CL_IsDevOverviewMode () == 2 || net_graph->value)
+		if ((cls.key_dest != key_menu && !draw_version) || (CL_IsDevOverviewMode () == 2) || net_graph->value)
 			return;
 		}
 
 	if (host.force_draw_version_time > host.realtime)
 		host.force_draw_version = false;
 
-	// [Xash3D, 26.03.23]
+	// [FWGS, 01.04.23]
 	if (host.force_draw_version || draw_version)
 		Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)",
 			PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
@@ -2572,15 +2574,14 @@ void Con_RunConsole (void)
 		Con_InvalidateFonts ();
 		Con_LoadConchars ();
 		
-		// [Xash3D, 26.03.23]
-		//cls.creditsFont.valid = false;
-		//SCR_LoadCreditsFont ();
+		// [FWGS, 01.04.23]
+		/*cls.creditsFont.valid = false;
+		SCR_LoadCreditsFont ();*/
 
 		ClearBits (con_charset->flags, FCVAR_CHANGED);
 		ClearBits (con_fontnum->flags, FCVAR_CHANGED);
 		ClearBits (con_fontscale->flags, FCVAR_CHANGED);
 		ClearBits (cl_charset->flags, FCVAR_CHANGED);
-
 		}
 	}
 
@@ -2711,7 +2712,7 @@ void Con_VidInit (void)
 
 /*
 =========
-Con_InvalidateFonts [Xash3D, 26.03.23]
+Con_InvalidateFonts [FWGS, 01.04.23]
 =========
 */
 void Con_InvalidateFonts (void)

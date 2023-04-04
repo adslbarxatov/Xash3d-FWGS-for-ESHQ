@@ -242,12 +242,11 @@ vidmode_t *R_GetVideoMode (int num)
 	return vidmodes + num;
 	}
 
-	// [Xash3D, 31.03.23]
 static void R_InitVideoModes (void)
 	{
 	char buf[MAX_VA_STRING];
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	int displayIndex = 0; // TODO: handle multiple displays somehow
+	int displayIndex = 0;
 	int i, modes;
 
 	num_vidmodes = 0;
@@ -286,7 +285,8 @@ static void R_InitVideoModes (void)
 		vidmodes[num_vidmodes].width = mode.w;
 		vidmodes[num_vidmodes].height = mode.h;
 
-		//vidmodes[num_vidmodes].desc = copystring (va ("%ix%i", mode.w, mode.h));
+		// [FWGS, 01.04.23]
+		/*vidmodes[num_vidmodes].desc = copystring (va ("%ix%i", mode.w, mode.h));*/
 		Q_snprintf (buf, sizeof (buf), "%ix%i", mode.w, mode.h);
 		vidmodes[num_vidmodes].desc = copystring (buf);
 
@@ -326,7 +326,8 @@ static void R_InitVideoModes (void)
 		vidmodes[num_vidmodes].width = mode->w;
 		vidmodes[num_vidmodes].height = mode->h;
 
-		//vidmodes[num_vidmodes].desc = copystring (va ("%ix%i", mode->w, mode->h));
+		// [FWGS, 01.04.23]
+		/*vidmodes[num_vidmodes].desc = copystring (va ("%ix%i", mode->w, mode->h));*/
 		Q_snprintf (buf, sizeof (buf), "%ix%i", mode->w, mode->h);
 		vidmodes[num_vidmodes].desc = copystring (buf);
 
@@ -427,7 +428,7 @@ static void WIN_SetDPIAwareness (void)
 
 /*
 =================
-GL_GetProcAddress [Xash3D, 31.03.23]
+GL_GetProcAddress [FWGS, 01.04.23]
 =================
 */
 void *GL_GetProcAddress (const char *name)
@@ -445,7 +446,7 @@ void *GL_GetProcAddress (const char *name)
 
 	if (!func)
 		Con_Reportf (S_ERROR "GL_GetProcAddress failed for %s\n", name);
-	//Con_Reportf (S_ERROR  "Error: GL_GetProcAddress failed for %s\n", name);
+	/*Con_Reportf (S_ERROR  "Error: GL_GetProcAddress failed for %s\n", name);*/
 
 	return func;
 	}
@@ -578,7 +579,7 @@ static qboolean VID_SetScreenResolution (int width, int height)
 	if (!SDL_GetClosestDisplayMode (0, &want, &got))
 		return false;
 
-	if ((got.w != want.w) || (got.h != want.h))	// [Xash3D, 31.03.23]
+	if ((got.w != want.w) || (got.h != want.h))	// [FWGS, 01.04.23]
 		Con_Reportf ("Got closest display mode: %ix%i@%i\n", got.w, got.h, got.refresh_rate);
 
 	if (SDL_SetWindowDisplayMode (host.hWnd, &got) == -1)
@@ -630,7 +631,7 @@ static void WIN_SetWindowIcon (HICON ico)
 
 /*
 =================
-VID_CreateWindow [Xash3D, 31.03.23]
+VID_CreateWindow [FWGS, 01.04.23]
 =================
 */
 qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
@@ -671,13 +672,13 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 			xpos = Cvar_VariableInteger ("_window_xpos");
 			ypos = Cvar_VariableInteger ("_window_ypos");
 
-			//if (xpos < 0)
+			/*if (xpos < 0)*/
 
 			// don't create window outside of usable display space
 			if ((xpos < r.x) || ((xpos + width) > (r.x + r.w)))
 				xpos = SDL_WINDOWPOS_CENTERED;
 
-			//if (ypos < 0)
+			/*if (ypos < 0)*/
 
 			if ((ypos < r.y) || ((ypos + height) > (r.y + r.h)))
 				ypos = SDL_WINDOWPOS_CENTERED;
@@ -712,16 +713,12 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 
 	// window creation has failed...
 	if (glw_state.safe >= SAFE_LAST)
-		{
 		return false;
-		}
 
 	if (fullscreen)
 		{
 		if (!VID_SetScreenResolution (width, height))
-			{
 			return false;
-			}
 		}
 	else
 		{
@@ -741,7 +738,7 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 			WIN_SetWindowIcon (ico);
 			}
 		}
-#endif // _WIN32 && !XASH_64BIT
+#endif
 
 	if (!iconLoaded)
 		{
@@ -768,7 +765,7 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 			}
 		}
 
-#if XASH_WIN32 // ICO support only for Win32
+#if XASH_WIN32
 	if (!iconLoaded)
 		{
 		WIN_SetWindowIcon (LoadIcon (host.hInst, MAKEINTRESOURCE (101)));
@@ -816,7 +813,8 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 
 		}
 
-#else // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#else
+
 	Uint32 flags = 0;
 
 	if (fullscreen)
@@ -841,7 +839,8 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 		if (host.hWnd)
 			break;
 
-		Con_Reportf (S_ERROR "VID_CreateWindow: couldn't create '%s' with safegl level %d: %s\n", wndname, glw_state.safe, SDL_GetError ());
+		Con_Reportf (S_ERROR "VID_CreateWindow: couldn't create '%s' with safegl level %d: %s\n",
+			wndname, glw_state.safe, SDL_GetError ());
 
 		glw_state.safe++;
 
@@ -858,7 +857,6 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 		{
 		return false;
 		}
-
 
 #endif
 

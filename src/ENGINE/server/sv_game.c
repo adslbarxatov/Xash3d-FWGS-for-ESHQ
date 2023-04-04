@@ -683,7 +683,7 @@ void SV_RestartAmbientSounds (void)
 			si->attenuation, 0, si->pitch);
 		}
 
-#if !XASH_DEDICATED // TODO: ???
+#if !XASH_DEDICATED
 	// restart soundtrack
 	if (S_StreamGetCurrentState (curtrack, looptrack, &position))
 		{
@@ -1524,17 +1524,16 @@ void GAME_EXPORT pfnSetSize (edict_t *e, const float *rgflMin, const float *rgfl
 /*
 =================
 pfnChangeLevel
-
 =================
 */
 void GAME_EXPORT pfnChangeLevel (const char *level, const char *landmark)
 	{
 	static uint	last_spawncount = 0;
 	char		landname[MAX_QPATH];
-	char *text;
+	char		*text;
 
-	if (!COM_CheckString (level) || sv.state != ss_active)
-		return; // ???
+	if (!COM_CheckString (level) || (sv.state != ss_active))
+		return;
 
 	// make sure we don't issue two changelevels
 	if (svs.spawncount == last_spawncount)
