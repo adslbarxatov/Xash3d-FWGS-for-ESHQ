@@ -167,13 +167,13 @@ static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
 		{
 		uint numbytes;
 		
-		// [Xash3D, 28.03.23]
-		//double updateInterval;
+		// [FWGS, 01.04.23]
+		/*double updateInterval;*/
 		double updateInterval, curtime = Sys_DoubleTime ();
 
 		updateInterval = curtime - voice.start_time;
 		voice.start_time = curtime;
-		//updateInterval = cl.mtime[0] - cl.mtime[1];
+		/*updateInterval = cl.mtime[0] - cl.mtime[1];*/
 
 		numbytes = updateInterval * voice.samplerate * voice.width * VOICE_PCM_CHANNELS;
 		numbytes = Q_min (numbytes, voice.input_file->size - voice.input_file_pos);
@@ -191,13 +191,11 @@ static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
 		{
 		int bytes;
 
-#if 1
 		if (!voice.input_file)
 			{
 			// adjust gain before encoding, but only for input from voice
 			Voice_ApplyGainAdjust ((opus_int16 *)(voice.input_buffer + ofs), voice.frame_size);
 			}
-#endif
 
 		bytes = opus_custom_encode (voice.encoder, (const opus_int16 *)(voice.input_buffer + ofs),
 			voice.frame_size, out + size + sizeof (uint16_t), maxsize);

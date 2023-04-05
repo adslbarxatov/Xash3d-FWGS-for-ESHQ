@@ -66,8 +66,8 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 	Sound_Reset (); // clear old sounddata
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	// [Xash3D, 28.03.23]
-	//if (Q_stricmp (ext, ""))
+	// [FWGS, 01.04.23]
+	/*if (Q_stricmp (ext, ""))*/
 	if (COM_CheckStringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
@@ -84,7 +84,7 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 		}
 
 	// special mode: skip any checks, load file from buffer
-	if (filename[0] == '#' && buffer && size)
+	if ((filename[0] == '#') && buffer && size)
 		goto load_internal;
 
 	// now try all the formats in the selected list
@@ -162,8 +162,8 @@ stream_t *FS_OpenStream (const char *filename)
 	Sound_Reset (); // clear old streaminfo
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	// [Xash3D, 28.03.23]
-	//if (Q_stricmp (ext, ""))
+	// [FWGS, 01.04.23]
+	/*if (Q_stricmp (ext, ""))*/
 	if (COM_CheckStringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats

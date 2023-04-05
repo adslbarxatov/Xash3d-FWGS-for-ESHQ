@@ -63,7 +63,7 @@ BRUSH MODELS
 #define LS_UNUSED			0xFE
 #define LS_NONE				0xFF
 
-// Xash3D: 20.03.23
+// [FWGS, 01.04.23]
 #define MAX_MAP_CLIPNODES_HLBSP	32767
 #define MAX_MAP_CLIPNODES_BSP2	524288
 
@@ -73,7 +73,7 @@ BRUSH MODELS
 #define MAX_MAP_ENTSTRING		0x200000		// 2 Mb should be enough
 #define MAX_MAP_PLANES			131072		// can be increased without problems
 #define MAX_MAP_NODES			262144		// can be increased without problems
-#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_BSP2		// [Xash3D: 20.03.23] can be increased without problems
+#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_BSP2		// [FWGS, 01.04.23] can be increased without problems
 #define MAX_MAP_LEAFS			131072		// CRITICAL STUFF to run ad_sepulcher!!!
 #define MAX_MAP_VERTS			524288		// can be increased without problems
 #define MAX_MAP_FACES			262144		// can be increased without problems
@@ -84,7 +84,7 @@ BRUSH MODELS
 #define MAX_MAP_ENTSTRING		0x100000	// 1 Mb should be enough
 #define MAX_MAP_PLANES			65536		// can be increased without problems
 #define MAX_MAP_NODES			32767		// because negative shorts are leafs
-#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_HLBSP		// [Xash3D: 20.03.23] because negative shorts are contents
+#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_HLBSP		// [FWGS, 01.04.23] because negative shorts are contents
 #define MAX_MAP_LEAFS			32767		// signed short limit
 #define MAX_MAP_VERTS			65535		// unsigned short limit
 #define MAX_MAP_FACES			65535		// unsigned short limit
@@ -329,4 +329,4 @@ typedef struct
 	int	lightofs;			// start of [numstyles*surfsize] samples
 	} dface32_t;
 
-#endif//BSPFILE_H
+#endif

@@ -310,7 +310,7 @@ void S_FadeMusicVolume (float fadePercent);
 //
 int S_ZeroCrossingAfter (wavdata_t *pWaveData, int sample);
 int S_ZeroCrossingBefore (wavdata_t *pWaveData, int sample);
-int S_ConvertLoopedPosition (wavdata_t *pSource, int samplePosition, qboolean use_loop);	// [Xash3D, 26.03.23]
+int S_ConvertLoopedPosition (wavdata_t *pSource, int samplePosition, qboolean use_loop);	// [FWGS, 01.04.23]
 int S_GetOutputData (wavdata_t *pSource, void **pData, int samplePosition, int sampleCount, qboolean use_loop);
 void S_SetSampleStart (channel_t *pChan, wavdata_t *pSource, int newPosition);
 void S_SetSampleEnd (channel_t *pChan, wavdata_t *pSource, int newEndPosition);
@@ -325,4 +325,4 @@ void VOX_LoadSound (channel_t *pchan, const char *psz);
 float VOX_ModifyPitch (channel_t *ch, float pitch);
 int VOX_MixDataToDevice (channel_t *pChannel, int sampleCount, int outputRate, int outputOffset);
 
-#endif//SOUND_H
+#endif

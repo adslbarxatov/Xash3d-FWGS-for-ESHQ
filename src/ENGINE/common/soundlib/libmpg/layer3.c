@@ -35,7 +35,7 @@ static float	tan1_1[16];
 static float	tan2_1[16];
 static float	tan1_2[16];
 static float	tan2_2[16];
-static float	pow1_1[2][32];	// [Xash3D, 28.03.23]
+static float	pow1_1[2][32];	// [FWGS, 01.04.23]
 static float	pow2_1[2][32];
 static float	pow1_2[2][32];
 static float	pow2_2[2][32];
@@ -224,7 +224,7 @@ void init_layer3 (void)
 		tan2_2[i] = DOUBLE_TO_REAL_15 (M_SQRT2 / (1.0 + t));
 		}
 
-	// [Xash3D, 28.03.23]
+	// [FWGS, 01.04.23]
 	for (i = 0; i < 32; i++)
 		{
 		for (j = 0; j < 2; j++)

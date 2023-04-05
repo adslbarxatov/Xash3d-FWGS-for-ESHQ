@@ -215,7 +215,7 @@ msurface_t *PM_TraceSurface (physent_t *pe, vec3_t start, vec3_t end)
 	return PM_RecursiveSurfCheck (bmodel, &bmodel->nodes[hull->firstclipnode], start_l, end_l);
 	}
 
-/* [Xash3D, 31.03.23]
+/* [FWGS, 01.04.23]
 ==================
 PM_TraceTexture
 
@@ -248,6 +248,7 @@ int PM_TestLine_r (model_t *mod, mnode_t *node, vec_t p1f, vec_t p2f, const vec3
 	float	frac, midf;
 	int	i, r, side;
 	vec3_t	mid;
+
 loc0:
 	if (node->contents < 0)
 		{

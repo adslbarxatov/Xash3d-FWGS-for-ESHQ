@@ -72,7 +72,7 @@ void Log_Open (void)
 		return;
 		}
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	if (fp)
 		svs.log.file = fp;
 	/*Log_Printf ("Log file started (file \"%s\") (game \"%s\") (version \"%i/%s/%d\")\n",
@@ -88,6 +88,7 @@ void Log_Close (void)
 		Log_Printf ("Log file closed\n");
 		FS_Close (svs.log.file);
 		}
+
 	svs.log.file = NULL;
 	}
 
@@ -212,8 +213,8 @@ void SV_ServerLog_f (void)
 	{
 	if (Cmd_Argc () != 2)
 		{
-		// [Xash3D, 31.03.23]
-		//Con_Printf ("usage: log < on|off >\n");
+		// [FWGS, 01.04.23]
+		/*Con_Printf ("usage: log < on|off >\n");*/
 		Con_Printf (S_USAGE "log < on|off >\n");
 
 		if (svs.log.active)

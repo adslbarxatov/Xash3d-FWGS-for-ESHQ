@@ -114,7 +114,7 @@ void Mod_ClearStudioCache (void)
 
 /*
 ====================
-AddToStudioCache [Xash3D, 31.03.23]
+AddToStudioCache [FWGS, 01.04.23]
 ====================
 */
 static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, 
@@ -152,7 +152,7 @@ static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3
 
 /*
 ====================
-CheckStudioCache [Xash3D, 31.03.23]
+CheckStudioCache [FWGS, 01.04.23]
 ====================
 */
 static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin,
@@ -204,7 +204,7 @@ static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int se
 */
 /*
 ====================
-SetStudioHullPlane [Xash3D, 31.03.23]
+SetStudioHullPlane [FWGS, 01.04.23]
 ====================
 */
 static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offset, const vec3_t size)
@@ -220,9 +220,10 @@ static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offs
 	pl->dist = (pl->normal[0] * studio_bones[bone][0][3]) + (pl->normal[1] * studio_bones[bone][1][3]) +
 		(pl->normal[2] * studio_bones[bone][2][3]) + offset;
 
-	if (planenum & 1) pl->dist -= DotProductFabs (pl->normal, size);
-	else pl->dist += DotProductFabs (pl->normal, size);
-
+	if (planenum & 1)
+		pl->dist -= DotProductFabs (pl->normal, size);
+	else
+		pl->dist += DotProductFabs (pl->normal, size);
 	}
 
 /*
@@ -391,7 +392,7 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 	// add in programtic controllers
 	pbone = (mstudiobone_t *)((byte *)mod_studiohdr + mod_studiohdr->boneindex);
 
-	memset (adj, 0, sizeof (adj));	// [Xash3D, 31.03.23]
+	memset (adj, 0, sizeof (adj));	// [FWGS, 01.04.23]
 	Mod_StudioCalcBoneAdj (adj, pcontroller);
 
 	for (j = numbones - 1; j >= 0; j--)
@@ -401,12 +402,15 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 		R_StudioCalcBonePosition (frame, s, &pbone[i], &panim[i], adj, pos[i]);
 		}
 
-	if (pseqdesc->motiontype & STUDIO_X) pos[pseqdesc->motionbone][0] = 0.0f;
-	if (pseqdesc->motiontype & STUDIO_Y) pos[pseqdesc->motionbone][1] = 0.0f;
-	if (pseqdesc->motiontype & STUDIO_Z) pos[pseqdesc->motionbone][2] = 0.0f;
+	if (pseqdesc->motiontype & STUDIO_X)
+		pos[pseqdesc->motionbone][0] = 0.0f;
+	if (pseqdesc->motiontype & STUDIO_Y)
+		pos[pseqdesc->motionbone][1] = 0.0f;
+	if (pseqdesc->motiontype & STUDIO_Z)
+		pos[pseqdesc->motionbone][2] = 0.0f;
 	}
 
-/* [Xash3D, 31.03.23]
+/* [FWGS, 01.04.23]
 ====================
 StudioCalcBoneQuaternion
 ====================
@@ -632,8 +636,10 @@ void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstud
 			pseqdesc->seqgroup / 10, pseqdesc->seqgroup % 10);
 
 		buf = FS_LoadFile (filepath, &filesize, false);
-		if (!buf || !filesize) Host_Error ("StudioGetAnim: can't load %s\n", filepath);
-		if (IDSEQGRPHEADER != *(uint *)buf) Host_Error ("StudioGetAnim: %s is corrupted\n", filepath);
+		if (!buf || !filesize)
+			Host_Error ("StudioGetAnim: can't load %s\n", filepath);
+		if (IDSEQGRPHEADER != *(uint *)buf)
+			Host_Error ("StudioGetAnim: %s is corrupted\n", filepath);
 
 		Con_Printf ("loading: %s\n", filepath);
 
@@ -834,7 +840,7 @@ int Mod_HitgroupForStudioHull (int index)
 
 /*
 ====================
-StudioBoundVertex [Xash3D, 31.03.23]
+StudioBoundVertex [FWGS, 01.04.23]
 ====================
 */
 static void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, const vec3_t vertex)
@@ -848,7 +854,7 @@ static void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, cons
 
 /*
 ====================
-StudioAccumulateBoneVerts [Xash3D, 31.03.23]
+StudioAccumulateBoneVerts [FWGS, 01.04.23]
 ====================
 */
 static void Mod_StudioAccumulateBoneVerts (vec3_t mins, vec3_t maxs, int *numverts, vec3_t bone_mins, 
@@ -1021,7 +1027,7 @@ static int Mod_StudioBodyVariations (model_t *mod)
 
 /*
 =================
-R_StudioLoadHeader [Xash3D, 31.03.23]
+R_StudioLoadHeader [FWGS, 01.04.23]
 =================
 */
 static studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
@@ -1030,7 +1036,8 @@ static studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
 	studiohdr_t *phdr;
 	int		i;
 
-	if (!buffer) return NULL;
+	if (!buffer)
+		return NULL;
 
 	pin = (byte *)buffer;
 	phdr = (studiohdr_t *)pin;
@@ -1047,7 +1054,7 @@ static studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
 
 /*
 =================
-Mod_LoadStudioModel [Xash3D, 31.03.23]
+Mod_LoadStudioModel [FWGS, 01.04.23]
 =================
 */
 void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded)
@@ -1059,7 +1066,7 @@ void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded)
 	if (loaded) 
 		*loaded = false;
 
-	//loadmodel->mempool = Mem_AllocPool (va ("^2%s^7", loadmodel->name));
+	/*loadmodel->mempool = Mem_AllocPool (va ("^2%s^7", loadmodel->name));*/
 	loadmodel->mempool = Mem_AllocPool (poolname);
 	loadmodel->type = mod_studio;
 

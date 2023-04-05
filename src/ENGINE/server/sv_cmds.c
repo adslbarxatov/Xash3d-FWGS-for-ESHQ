@@ -247,14 +247,13 @@ void SV_Maps_f (void)
 
 	if (Cmd_Argc () != 2)
 		{
-		// [Xash3D, 31.03.23]
-		//Msg ("Usage: maps <substring>\nmaps * for full listing\n");
+		// [FWGS, 01.04.23]
+		/*Msg ("Usage: maps <substring>\nmaps * for full listing\n");*/
 		Msg (S_USAGE "maps <substring>\nmaps * for full listing\n");
 		return;
 		}
 
 	mapList = FS_Search (va ("maps/*%s*.bsp", argStr), true, true);
-
 	if (!mapList)
 		{
 		Msg ("No related map found in \"%s/maps\"\n", GI->gamefolder);
@@ -262,7 +261,6 @@ void SV_Maps_f (void)
 		}
 
 	nummaps = Cmd_ListMaps (mapList, NULL, 0);
-
 	Mem_Free (mapList);
 
 	Msg ("%s\nDirectory: \"%s/maps\" - Maps listed: %d\n", separator, GI->gamefolder, nummaps);
@@ -394,8 +392,8 @@ void SV_HazardCourse_f (void)
 	// special case for Gunman Chronicles: playing avi-file
 	if (FS_FileExists (va ("media/%s.avi", GI->trainmap), false))
 		{
-		// [Xash3D, 31.03.23]
-		//Cbuf_AddText (va ("wait; movie %s\n", GI->trainmap));
+		// [FWGS, 01.04.23]
+		/*Cbuf_AddText (va ("wait; movie %s\n", GI->trainmap));*/
 		Cbuf_AddTextf ("wait; movie %s\n", GI->trainmap);
 		Host_EndGame (true, DEFAULT_ENDGAME_MESSAGE);
 		}
@@ -453,7 +451,7 @@ void SV_QuickLoad_f (void)
 
 /*
 ==============
-SV_Save_f [Xash3D, 31.03.23]
+SV_Save_f [FWGS, 01.04.23]
 ==============
 */
 void SV_Save_f (void)
@@ -520,7 +518,7 @@ void SV_AutoSave_f (void)
 		return;
 		}
 
-	if (Cvar_VariableInteger ("sv_autosave"))	// [Xash3D, 31.03.23]
+	if (Cvar_VariableInteger ("sv_autosave"))	// [FWGS, 01.04.23]
 		SV_SaveGame ("autosave");
 	}
 

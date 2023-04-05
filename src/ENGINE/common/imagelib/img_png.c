@@ -21,7 +21,7 @@ GNU General Public License for more details.
 #if defined(XASH_NO_NETWORK)
 	#include "platform/stub/net_stub.h"
 #elif XASH_NSWITCH
-	// [Xash3D, 28.03.23] our ntohl is here
+	// [FWGS, 01.04.23] our ntohl is here
 	#include <arpa/inet.h>
 #elif !XASH_WIN32
 	#include <netinet/in.h>
@@ -37,7 +37,7 @@ static const int  iend_crc32 = 0xAE426082;
 
 /*
 =============
-Image_LoadPNG [Xash3D, 28.03.23]
+Image_LoadPNG [FWGS, 01.04.23]
 =============
 */
 qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -175,7 +175,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		if (chunk_len > INT_MAX)
 			{
 			Con_DPrintf (S_ERROR "Image_LoadPNG: Found chunk with wrong size (%s)\n", name);
-			//Mem_Free (idat_buf);
+			/*Mem_Free (idat_buf);*/
 			if (idat_buf)
 				Mem_Free (idat_buf);
 			return false;
@@ -190,7 +190,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 
 		// move pointer
-		//buf_p += sizeof (chunk_sign);
+		/*buf_p += sizeof (chunk_sign);*/
 		buf_p += sizeof (chunk_len);
 
 		// find transparency
@@ -199,12 +199,14 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			trns = buf_p + sizeof (trns_sign);
 			trns_len = chunk_len;
 			}
+
 		// find pallete for indexed image
 		else if (!memcmp (buf_p, plte_sign, sizeof (plte_sign)))
 			{
 			pallete = buf_p + sizeof (plte_sign);
 			plte_len = chunk_len / 3;
 			}
+
 		// get all IDAT chunks data
 		else if (!memcmp (buf_p, idat_sign, sizeof (idat_sign)))
 			{
@@ -213,8 +215,11 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			memcpy (idat_buf + oldsize, buf_p + sizeof (idat_sign), chunk_len);
 			oldsize = newsize;
 			}
+
 		else if (!memcmp (buf_p, iend_sign, sizeof (iend_sign)))
+			{
 			has_iend_chunk = true;
+			}
 
 		// calculate chunk CRC
 		CRC32_Init (&crc32_check);
@@ -232,7 +237,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		if (ntohl (crc32) != crc32_check)
 			{
 			Con_DPrintf (S_ERROR "Image_LoadPNG: Found chunk with wrong CRC32 sum (%s)\n", name);
-			//Mem_Free (idat_buf);
+			/*Mem_Free (idat_buf);*/
 			if (idat_buf) 
 				Mem_Free (idat_buf);
 			return false;
@@ -281,15 +286,19 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		case PNG_CT_PALLETE:
 			pixel_size = 1;
 			break;
+
 		case PNG_CT_ALPHA:
 			pixel_size = 2;
 			break;
+
 		case PNG_CT_RGB:
 			pixel_size = 3;
 			break;
+
 		case PNG_CT_RGBA:
 			pixel_size = 4;
 			break;
+
 		default:
 			pixel_size = 0; // make compiler happy
 			ASSERT (false);
@@ -335,7 +344,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 
 	Mem_Free (idat_buf);
 
-	if (ret != Z_OK && ret != Z_STREAM_END)
+	if ((ret != Z_OK) && (ret != Z_STREAM_END))
 		{
 		Con_DPrintf (S_ERROR "Image_LoadPNG: IDAT chunk decompression failed (%s)\n", name);
 		Mem_Free (uncompressed_buffer);
@@ -361,6 +370,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			for (; i < rowsize; i++)
 				pixbuf[i] = raw[i];
 			break;
+
 		case PNG_F_SUB:
 		case PNG_F_PAETH:
 			for (; i < pixel_size; i++)
@@ -369,6 +379,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			for (; i < rowsize; i++)
 				pixbuf[i] = raw[i] + pixbuf[i - pixel_size];
 			break;
+
 		case PNG_F_AVERAGE:
 			for (; i < pixel_size; i++)
 				pixbuf[i] = raw[i];
@@ -376,6 +387,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			for (; i < rowsize; i++)
 				pixbuf[i] = raw[i] + (pixbuf[i - pixel_size] >> 1);
 			break;
+
 		default:
 			Con_DPrintf (S_ERROR "Image_LoadPNG: Found unknown filter type (%s)\n", name);
 			Mem_Free (uncompressed_buffer);
@@ -478,8 +490,8 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 				else
 					*pixbuf++ = 0xFF;
 				}
-				/*}*/
 			break;
+
 		case PNG_CT_GREY:
 			if (trns)
 				r_alpha = trns[0] << 8 | trns[1];
@@ -499,8 +511,8 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 				else
 					*pixbuf++ = 0xFF;
 				}
-				/*}*/
 			break;
+
 		case PNG_CT_ALPHA:
 			/*for (y = 0; y < image.height; y++)
 				{
@@ -513,8 +525,8 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 				*pixbuf++ = raw[0];
 				*pixbuf++ = raw[1];
 				}
-				/*}*/
 			break;
+
 		case PNG_CT_PALLETE:
 			/*for (y = 0; y < image.height; y++)*/
 			for (y = 0; y < pixel_count; y++, raw += pixel_size)
@@ -544,6 +556,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 					}
 				}
 			break;
+
 		default:
 			break;
 		}
@@ -619,6 +632,7 @@ qboolean Image_SavePNG (const char *name, rgbdata_t *pix)
 					}
 				}
 			break;
+
 		case PF_BGR_24:
 		case PF_BGRA_32:
 			for (y = 0; y < pix->height; y++)

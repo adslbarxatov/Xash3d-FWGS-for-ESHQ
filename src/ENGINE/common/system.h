@@ -59,7 +59,7 @@ extern "C" {
 	void Sys_MergeCommandLine (void);
 	void Sys_SetupCrashHandler (void);
 	void Sys_RestoreCrashHandler (void);
-	void Sys_DebugBreak (void);	// [Xash3D, 31.03.23]
+	void Sys_DebugBreak (void);	// [FWGS, 01.04.23]
 #define Sys_GetParmFromCmdLine( parm, out ) _Sys_GetParmFromCmdLine( parm, out, sizeof( out ))
 	qboolean _Sys_GetParmFromCmdLine (const char *parm, char *out, size_t size);
 	qboolean Sys_GetIntFromCmdLine (const char *parm, int *out);
@@ -101,4 +101,5 @@ extern "C" {
 #ifdef __cplusplus
 	}
 #endif
-#endif//SYSTEM_H
+
+#endif

@@ -25,7 +25,7 @@ GNU General Public License for more details.
 #include <string.h>
 #include <errno.h>
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_IRIX
 	#include <sys/time.h>
 #endif
@@ -270,7 +270,7 @@ static void Sys_PrintStdout (const char *logtime, const char *msg)
 	IOS_Log (buf);
 #endif
 
-#if (XASH_NSWITCH && NSWITCH_DEBUG) || XASH_PSVITA // [Xash3D, 31.03.23]
+#if (XASH_NSWITCH && NSWITCH_DEBUG) || XASH_PSVITA // [FWGS, 01.04.23]
 	// just spew it to stderr normally in debug mode
 	fprintf (stderr, "%s %s", logtime, buf);
 #endif
@@ -387,7 +387,6 @@ void Con_Reportf (const char *szFmt, ...)
 	Sys_Print (buffer);
 	}
 
-
 #if XASH_MESSAGEBOX == MSGBOX_STDERR
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow)
 	{
@@ -397,4 +396,3 @@ void Platform_MessageBox (const char *title, const char *message, qboolean paren
 		"======================================\n", title, message);
 	}
 #endif
-

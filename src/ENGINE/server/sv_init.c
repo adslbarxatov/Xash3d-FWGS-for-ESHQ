@@ -19,12 +19,12 @@ GNU General Public License for more details.
 #include "library.h"
 #include "voice.h"
 #include <shellapi.h>	// ESHQ: поддержка вызова генератора карт ESRM
-#include "pm_local.h"	// [Xash3D, 31.03.23]
+#include "pm_local.h"	// [FWGS, 01.04.23]
 
 #if XASH_LOW_MEMORY != 2
 int SV_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
 #endif
-server_t		sv;	// local server
+server_t		sv;		// local server
 server_static_t	svs;	// persistant server info
 svgame_static_t	svgame;	// persistant game info
 
@@ -639,7 +639,7 @@ void SV_ActivateServer (int runPhysics)
 		{
 		const char *cycle = Cvar_VariableString ("mapchangecfgfile");
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		if (COM_CheckString (cycle))
 			Cbuf_AddTextf ("exec %s\n", cycle);
 			/*Cbuf_AddText (va ("exec %s\n", cycle));
@@ -669,8 +669,8 @@ void SV_DeactivateServer (void)
 
 	SV_FreeEdicts ();
 
-	// [Xash3D, 31.03.23]
-	//SV_ClearPhysEnts ();
+	// [FWGS, 01.04.23]
+	/*SV_ClearPhysEnts ();*/
 	PM_ClearPhysEnts (svgame.pmove);
 
 	SV_EmptyStringPool ();
@@ -895,7 +895,7 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	if (!SV_InitGame ())
 		return false;
 
-	// [Xash3D, 31.03.23] unlock sv_cheats in local game
+	// [FWGS, 01.04.23] unlock sv_cheats in local game
 	ClearBits (sv_cheats.flags, FCVAR_READ_ONLY);
 
 	svs.initialized = true;
@@ -912,13 +912,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 			FS_Title ());
 
 	if (startspot)
-		{
 		Con_Printf ("Spawn Server: %s [%s]\n", mapname, startspot);
-		}
 	else
-		{
 		Con_DPrintf ("Spawn Server: %s\n", mapname);
-		}
 
 	memset (&sv, 0, sizeof (sv));	// wipe the entire per-level structure
 	sv.time = svgame.globals->time = 1.0f;	// server spawn time it's always 1.0 second

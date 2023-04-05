@@ -235,7 +235,7 @@ void Image_AddCmdFlags (uint flags)
 	SetBits (image.cmd_flags, flags);
 	}
 
-// [Xash3D, 28.03.23]
+// [FWGS, 01.04.23]
 qboolean Image_ValidSize (const char *name)
 	{
 	/*if (image.width > IMAGE_MAXWIDTH || image.height > IMAGE_MAXHEIGHT || image.width <= 0 || image.height <= 0)*/

@@ -305,8 +305,8 @@ qboolean SV_CheckFile (sizebuf_t *msg, const char *filename)
 
 	MSG_BeginServerCmd (msg, svc_stufftext);
 
-	// [Xash3D, 31.03.23]
-	//MSG_WriteString (msg, va ("upload \"!MD5%s\"\n", MD5_Print (p.rgucMD5_hash)));
+	// [FWGS, 01.04.23]
+	/*MSG_WriteString (msg, va ("upload \"!MD5%s\"\n", MD5_Print (p.rgucMD5_hash)));*/
 	MSG_WriteStringf (msg, "upload \"!MD5%s\"\n", MD5_Print (p.rgucMD5_hash));
 
 	return false;
@@ -326,7 +326,7 @@ void SV_MoveToOnHandList (sv_client_t *cl, resource_t *pResource)
 
 void SV_AddToResourceList (resource_t *pResource, resource_t *pList)
 	{
-	if (pResource->pPrev != NULL || pResource->pNext != NULL)
+	if ((pResource->pPrev != NULL) || (pResource->pNext != NULL))
 		{
 		Con_Reportf (S_ERROR "Resource already linked\n");
 		return;

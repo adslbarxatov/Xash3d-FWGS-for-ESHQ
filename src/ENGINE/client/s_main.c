@@ -211,7 +211,7 @@ qboolean SND_FStreamIsPlaying (sfx_t *sfx)
 
 /*
 =================
-SND_GetChannelTimeLeft [Xash3D, 26.03.23]
+SND_GetChannelTimeLeft [FWGS, 01.04.23]
 
 TODO: this function needs to be removed after whole sound subsystem rewrite
 =================
@@ -317,7 +317,7 @@ channel_t *SND_PickDynamicChannel (int entnum, int channel, sfx_t *sfx, qboolean
 		if (ch->sfx && S_IsClient (ch->entnum) && !S_IsClient (entnum))
 			continue;
 
-		// [Xash3D, 26.03.23] try to pick the sound with the least amount of data left to play
+		// [FWGS, 01.04.23] try to pick the sound with the least amount of data left to play
 		timeleft = SND_GetChannelTimeLeft (ch);
 		/*timeleft = 0;
 		if (ch->sfx)
@@ -1880,7 +1880,7 @@ void S_Music_f (void)
 
 		for (i = 0; i < 2; i++)
 			{
-			// [Xash3D, 26.03.23]
+			// [FWGS, 01.04.23]
 			/*const char *intro_path = va ("media/%s.%s", intro, ext[i]);
 			const char *main_path = va ("media/%s.%s", main, ext[i]);*/
 			char intro_path[MAX_VA_STRING];
@@ -1897,7 +1897,7 @@ void S_Music_f (void)
 				break;
 				}
 
-			// [Xash3D, 26.03.23]
+			// [FWGS, 01.04.23]
 			/*else if (FS_FileExists (va ("media/%s.%s", track, ext[i]), false))*/
 			
 			Q_snprintf (track_path, sizeof (track_path), "media/%s.%s", track, ext[i]);
@@ -1914,12 +1914,15 @@ void S_Music_f (void)
 		{
 		S_StartBackgroundTrack (Cmd_Argv (1), Cmd_Argv (2), 0, false);
 		}
-	else if (c == 4 && Q_atoi (Cmd_Argv (3)) != 0)
+	else if ((c == 4) && Q_atoi (Cmd_Argv (3)) != 0)
 		{
 		// restore command for singleplayer: all arguments are valid
 		S_StartBackgroundTrack (Cmd_Argv (1), Cmd_Argv (2), Q_atoi (Cmd_Argv (3)), false);
 		}
-	else Con_Printf (S_USAGE "music <musicfile> [loopfile]\n");
+	else
+		{
+		Con_Printf (S_USAGE "music <musicfile> [loopfile]\n");
+		}
 	}
 
 /*
@@ -1973,7 +1976,7 @@ S_VoiceRecordStart_f
 */
 void S_VoiceRecordStart_f (void)
 	{
-	if (cls.state != ca_active || cls.legacymode)
+	if ((cls.state != ca_active) || cls.legacymode)
 		return;
 
 	Voice_RecordStart ();
@@ -1986,7 +1989,7 @@ S_VoiceRecordStop_f
 */
 void S_VoiceRecordStop_f (void)
 	{
-	if (cls.state != ca_active || !Voice_IsRecording ())
+	if ((cls.state != ca_active) || !Voice_IsRecording ())
 		return;
 
 	CL_AddVoiceToDatagram ();

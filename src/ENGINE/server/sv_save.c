@@ -1405,7 +1405,7 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 			// NOTE: music is automatically goes across transition, never restore it on changelevel
 			MSG_BeginServerCmd (&sv.signon, svc_stufftext);
 
-			// [Xash3D, 31.03.23]
+			// [FWGS, 01.04.23]
 			/*MSG_WriteString (&sv.signon, va ("music \"%s\" \"%s\" %i\n", header.introTrack,
 				header.mainTrack, header.trackPosition));*/
 			MSG_WriteStringf (&sv.signon, "music \"%s\" \"%s\" %i\n", header.introTrack, header.mainTrack,
@@ -1705,7 +1705,7 @@ static int LoadGameState (char const *level, qboolean changelevel)
 
 /*
 =============
-SaveGameSlot [Xash3D, 31.03.23]
+SaveGameSlot [FWGS, 01.04.23]
 
 do a save game
 =============
@@ -1713,13 +1713,13 @@ do a save game
 //static int SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	{
-	char		hlPath[MAX_QPATH];
-	char		name[MAX_QPATH];
+	char	hlPath[MAX_QPATH];
+	char	name[MAX_QPATH];
 	int		id, version;
-	char *pTokenData;
-	SAVERESTOREDATA *pSaveData;
-	GAME_HEADER	gameHeader;
-	file_t *pFile;
+	char	*pTokenData;
+	SAVERESTOREDATA	*pSaveData;
+	GAME_HEADER		gameHeader;
+	file_t	*pFile;
 
 	pSaveData = SaveGameState (false);
 	if (!pSaveData)
@@ -1760,8 +1760,8 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 		return false;
 		}
 
-	// [Xash3D, 31.03.23] pending the preview image for savegame
-	//Cbuf_AddText (va ("saveshot \"%s\"\n", pSaveName));
+	// [FWGS, 01.04.23] pending the preview image for savegame
+	/*Cbuf_AddText (va ("saveshot \"%s\"\n", pSaveName));*/
 	Cbuf_AddTextf ("saveshot \"%s\"\n", pSaveName);
 	Con_Printf ("Saving game to %s...\n", name);
 
@@ -2189,14 +2189,14 @@ qboolean SV_LoadGame (const char *pPath)
 
 /*
 ==================
-SV_SaveGame [Xash3D, 31.03.23]
+SV_SaveGame [FWGS, 01.04.23]
 ==================
 */
 //void SV_SaveGame (const char *pName)
 qboolean SV_SaveGame (const char *pName)
 	{
 	char   comment[80];
-	//int    result;
+	/*int    result;*/
 	string savename;
 
 	if (!COM_CheckString (pName))
@@ -2233,10 +2233,10 @@ qboolean SV_SaveGame (const char *pName)
 #if !XASH_DEDICATED
 	// unload previous image from memory (it's will be overwritten)
 	GL_FreeImage (va (DEFAULT_SAVE_DIRECTORY "%s.bmp", savename));
-#endif // XASH_DEDICATED
+#endif
 
 	SaveBuildComment (comment, sizeof (comment));
-	return SaveGameSlot (savename, comment);	// [Xash3D, 31.03.23]
+	return SaveGameSlot (savename, comment);	// [FWGS, 01.04.23]
 	/*result = SaveGameSlot (savename, comment);
 
 #if !XASH_DEDICATED
@@ -2293,204 +2293,208 @@ SV_GetSaveComment
 check savegame for valid
 ==================
 */
-	int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
+int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
+	{
+	int	i, tag, size, nNumberOfFields, nFieldSize, tokenSize, tokenCount;
+	char *pData, *pSaveData, *pFieldName, **pTokenList;
+	string	mapName, description;
+	file_t *f;
+
+	if ((f = FS_Open (savename, "rb", true)) == NULL)
 		{
-		int	i, tag, size, nNumberOfFields, nFieldSize, tokenSize, tokenCount;
-		char *pData, *pSaveData, *pFieldName, **pTokenList;
-		string	mapName, description;
-		file_t *f;
-
-		if ((f = FS_Open (savename, "rb", true)) == NULL)
-			{
-			// just not exist - clear comment
-			comment[0] = '\0';
-			return 0;
-			}
-
-		FS_Read (f, &tag, sizeof (int));
-		if (tag != SAVEGAME_HEADER)
-			{
-			// invalid header
-			Q_strncpy (comment, "<corrupted>", MAX_STRING);
-			FS_Close (f);
-			return 0;
-			}
-
-		FS_Read (f, &tag, sizeof (int));
-
-		if (tag == 0x0065)
-			{
-			Q_strncpy (comment, "<old version Xash3D unsupported>", MAX_STRING);
-			FS_Close (f);
-			return 0;
-			}
-
-		if (tag < SAVEGAME_VERSION)
-			{
-			Q_strncpy (comment, "<old version>", MAX_STRING);
-			FS_Close (f);
-			return 0;
-			}
-
-		if (tag > SAVEGAME_VERSION)
-			{
-			// old xash version ?
-			Q_strncpy (comment, "<invalid version>", MAX_STRING);
-			FS_Close (f);
-			return 0;
-			}
-
-		mapName[0] = '\0';
+		// just not exist - clear comment
 		comment[0] = '\0';
-
-		FS_Read (f, &size, sizeof (int));
-		FS_Read (f, &tokenCount, sizeof (int));	// These two ints are the token list
-		FS_Read (f, &tokenSize, sizeof (int));
-		size += tokenSize;
-
-		// sanity check.
-		if (tokenCount < 0 || tokenCount > SAVE_HASHSTRINGS)
-			{
-			Q_strncpy (comment, "<corrupted hashtable>", MAX_STRING);
-			FS_Close (f);
-			return 0;
-			}
-
-		if (tokenSize < 0 || tokenSize > SAVE_HEAPSIZE)
-			{
-			Q_strncpy (comment, "<corrupted hashtable>", MAX_STRING);
-			FS_Close (f);
-			return 0;
-			}
-
-		pSaveData = (char *)Mem_Malloc (host.mempool, size);
-		FS_Read (f, pSaveData, size);
-		pData = pSaveData;
-
-		// allocate a table for the strings, and parse the table
-		if (tokenSize > 0)
-			{
-			pTokenList = Mem_Calloc (host.mempool, tokenCount * sizeof (char *));
-
-			// make sure the token strings pointed to by the pToken hashtable.
-			for (i = 0; i < tokenCount; i++)
-				{
-				pTokenList[i] = *pData ? pData : NULL;	// point to each string in the pToken table
-				while (*pData++);			// find next token (after next null)
-				}
-			}
-		else pTokenList = NULL;
-
-		// short, short (size, index of field name)
-		nFieldSize = *(short *)pData;
-		pData += sizeof (short);
-		pFieldName = pTokenList[*(short *)pData];
-
-		if (Q_stricmp (pFieldName, "GameHeader"))
-			{
-			Q_strncpy (comment, "<missing GameHeader>", MAX_STRING);
-			if (pTokenList) Mem_Free (pTokenList);
-			if (pSaveData) Mem_Free (pSaveData);
-			FS_Close (f);
-			return 0;
-			}
-
-		// int (fieldcount)
-		pData += sizeof (short);
-		nNumberOfFields = (int)*pData;
-		pData += nFieldSize;
-
-		// each field is a short (size), short (index of name), binary string of "size" bytes (data)
-		for (i = 0; i < nNumberOfFields; i++)
-			{
-			size_t size;
-			// Data order is:
-			// Size
-			// szName
-			// Actual Data
-			nFieldSize = *(short *)pData;
-			pData += sizeof (short);
-
-			pFieldName = pTokenList[*(short *)pData];
-			pData += sizeof (short);
-
-			size = Q_min (nFieldSize, MAX_STRING);
-
-			if (!Q_stricmp (pFieldName, "comment"))
-				{
-				Q_strncpy (description, pData, size);
-				}
-			else if (!Q_stricmp (pFieldName, "mapName"))
-				{
-				Q_strncpy (mapName, pData, size);
-				}
-
-			// move to start of next field.
-			pData += nFieldSize;
-			}
-
-		// delete the string table we allocated
-		if (pTokenList) Mem_Free (pTokenList);
-		if (pSaveData) Mem_Free (pSaveData);
-		FS_Close (f);
-
-		// at least mapname should be filled
-		if (COM_CheckStringEmpty (mapName))
-			{
-			time_t		fileTime;
-			const struct tm *file_tm;
-			string		timestring;
-			uint		flags;
-
-			// now check for map problems
-			flags = SV_MapIsValid (mapName, GI->sp_entity, NULL);
-
-			if (FBitSet (flags, MAP_INVALID_VERSION))
-				{
-				// [Xash3D, 31.03.23]
-				//Q_strncpy (comment, va ("<map %s has invalid format>", mapName), MAX_STRING);
-				Q_snprintf (comment, MAX_STRING, "<map %s has invalid format>", mapName);
-				return 0;
-				}
-
-			if (!FBitSet (flags, MAP_IS_EXIST))
-				{
-				// [Xash3D, 31.03.23]
-				//Q_strncpy (comment, va ("<map %s is missed>", mapName), MAX_STRING);
-				Q_snprintf (comment, MAX_STRING, "<map %s is missed>", mapName);
-				return 0;
-				}
-
-			fileTime = FS_FileTime (savename, true);
-			file_tm = localtime (&fileTime);
-
-			// [Xash3D, 31.03.23] split comment to sections
-			if (Q_strstr (savename, "quick"))
-				Q_snprintf (comment, CS_SIZE, "[quick]%s", description);
-			//Q_strncat (comment, "[quick]", CS_SIZE);
-
-			else if (Q_strstr (savename, "autosave"))
-				Q_snprintf (comment, CS_SIZE, "[autosave]%s", description);
-			//Q_strncat (comment, "[autosave]", CS_SIZE);
-			//Q_strncat (comment, description, CS_SIZE);
-			else
-				Q_strncpy (comment, description, CS_SIZE);
-
-			strftime (timestring, sizeof (timestring), "%b%d %Y", file_tm);
-			Q_strncpy (comment + CS_SIZE, timestring, CS_TIME);
-			strftime (timestring, sizeof (timestring), "%H:%M", file_tm);
-			Q_strncpy (comment + CS_SIZE + CS_TIME, timestring, CS_TIME);
-			Q_strncpy (comment + CS_SIZE + (CS_TIME * 2), description + CS_SIZE, CS_SIZE);
-
-			return 1;
-			}
-
-		Q_strncpy (comment, "<unknown version>", MAX_STRING);
-
 		return 0;
 		}
 
-	void SV_InitSaveRestore (void)
+	FS_Read (f, &tag, sizeof (int));
+	if (tag != SAVEGAME_HEADER)
 		{
-		pfnSaveGameComment = COM_GetProcAddress (svgame.hInstance, "SV_SaveGameComment");
+		// invalid header
+		Q_strncpy (comment, "<corrupted>", MAX_STRING);
+		FS_Close (f);
+		return 0;
 		}
+
+	FS_Read (f, &tag, sizeof (int));
+
+	if (tag == 0x0065)
+		{
+		Q_strncpy (comment, "<old version Xash3D unsupported>", MAX_STRING);
+		FS_Close (f);
+		return 0;
+		}
+
+	if (tag < SAVEGAME_VERSION)
+		{
+		Q_strncpy (comment, "<old version>", MAX_STRING);
+		FS_Close (f);
+		return 0;
+		}
+
+	if (tag > SAVEGAME_VERSION)
+		{
+		// old xash version ?
+		Q_strncpy (comment, "<invalid version>", MAX_STRING);
+		FS_Close (f);
+		return 0;
+		}
+
+	mapName[0] = '\0';
+	comment[0] = '\0';
+
+	FS_Read (f, &size, sizeof (int));
+	FS_Read (f, &tokenCount, sizeof (int));	// These two ints are the token list
+	FS_Read (f, &tokenSize, sizeof (int));
+	size += tokenSize;
+
+	// sanity check.
+	if (tokenCount < 0 || tokenCount > SAVE_HASHSTRINGS)
+		{
+		Q_strncpy (comment, "<corrupted hashtable>", MAX_STRING);
+		FS_Close (f);
+		return 0;
+		}
+
+	if (tokenSize < 0 || tokenSize > SAVE_HEAPSIZE)
+		{
+		Q_strncpy (comment, "<corrupted hashtable>", MAX_STRING);
+		FS_Close (f);
+		return 0;
+		}
+
+	pSaveData = (char *)Mem_Malloc (host.mempool, size);
+	FS_Read (f, pSaveData, size);
+	pData = pSaveData;
+
+	// allocate a table for the strings, and parse the table
+	if (tokenSize > 0)
+		{
+		pTokenList = Mem_Calloc (host.mempool, tokenCount * sizeof (char *));
+
+		// make sure the token strings pointed to by the pToken hashtable.
+		for (i = 0; i < tokenCount; i++)
+			{
+			pTokenList[i] = *pData ? pData : NULL;	// point to each string in the pToken table
+			while (*pData++);			// find next token (after next null)
+			}
+		}
+	else
+		{
+		pTokenList = NULL;
+		}
+
+	// short, short (size, index of field name)
+	nFieldSize = *(short *)pData;
+	pData += sizeof (short);
+	pFieldName = pTokenList[*(short *)pData];
+
+	if (Q_stricmp (pFieldName, "GameHeader"))
+		{
+		Q_strncpy (comment, "<missing GameHeader>", MAX_STRING);
+		if (pTokenList) Mem_Free (pTokenList);
+		if (pSaveData) Mem_Free (pSaveData);
+		FS_Close (f);
+		return 0;
+		}
+
+	// int (fieldcount)
+	pData += sizeof (short);
+	nNumberOfFields = (int)*pData;
+	pData += nFieldSize;
+
+	// each field is a short (size), short (index of name), binary string of "size" bytes (data)
+	for (i = 0; i < nNumberOfFields; i++)
+		{
+		size_t size;
+		// Data order is:
+		// Size
+		// szName
+		// Actual Data
+		nFieldSize = *(short *)pData;
+		pData += sizeof (short);
+
+		pFieldName = pTokenList[*(short *)pData];
+		pData += sizeof (short);
+
+		size = Q_min (nFieldSize, MAX_STRING);
+
+		if (!Q_stricmp (pFieldName, "comment"))
+			{
+			Q_strncpy (description, pData, size);
+			}
+		else if (!Q_stricmp (pFieldName, "mapName"))
+			{
+			Q_strncpy (mapName, pData, size);
+			}
+
+		// move to start of next field.
+		pData += nFieldSize;
+		}
+
+	// delete the string table we allocated
+	if (pTokenList) Mem_Free (pTokenList);
+	if (pSaveData) Mem_Free (pSaveData);
+	FS_Close (f);
+
+	// at least mapname should be filled
+	if (COM_CheckStringEmpty (mapName))
+		{
+		time_t		fileTime;
+		const struct tm *file_tm;
+		string		timestring;
+		uint		flags;
+
+		// now check for map problems
+		flags = SV_MapIsValid (mapName, GI->sp_entity, NULL);
+
+		if (FBitSet (flags, MAP_INVALID_VERSION))
+			{
+			// [FWGS, 01.04.23]
+			/*Q_strncpy (comment, va ("<map %s has invalid format>", mapName), MAX_STRING);*/
+			Q_snprintf (comment, MAX_STRING, "<map %s has invalid format>", mapName);
+			return 0;
+			}
+
+		if (!FBitSet (flags, MAP_IS_EXIST))
+			{
+			// [FWGS, 01.04.23]
+			/*Q_strncpy (comment, va ("<map %s is missed>", mapName), MAX_STRING);*/
+			Q_snprintf (comment, MAX_STRING, "<map %s is missed>", mapName);
+			return 0;
+			}
+
+		fileTime = FS_FileTime (savename, true);
+		file_tm = localtime (&fileTime);
+
+		// [FWGS, 01.04.23] split comment to sections
+		if (Q_strstr (savename, "quick"))
+			Q_snprintf (comment, CS_SIZE, "[quick]%s", description);
+		/*Q_strncat (comment, "[quick]", CS_SIZE);*/
+
+		else if (Q_strstr (savename, "autosave"))
+			Q_snprintf (comment, CS_SIZE, "[autosave]%s", description);
+		/*Q_strncat (comment, "[autosave]", CS_SIZE);
+		Q_strncat (comment, description, CS_SIZE);*/
+
+		else
+			Q_strncpy (comment, description, CS_SIZE);
+
+		strftime (timestring, sizeof (timestring), "%b%d %Y", file_tm);
+		Q_strncpy (comment + CS_SIZE, timestring, CS_TIME);
+		strftime (timestring, sizeof (timestring), "%H:%M", file_tm);
+		Q_strncpy (comment + CS_SIZE + CS_TIME, timestring, CS_TIME);
+		Q_strncpy (comment + CS_SIZE + (CS_TIME * 2), description + CS_SIZE, CS_SIZE);
+
+		return 1;
+		}
+
+	Q_strncpy (comment, "<unknown version>", MAX_STRING);
+
+	return 0;
+	}
+
+void SV_InitSaveRestore (void)
+	{
+	pfnSaveGameComment = COM_GetProcAddress (svgame.hInstance, "SV_SaveGameComment");
+	}

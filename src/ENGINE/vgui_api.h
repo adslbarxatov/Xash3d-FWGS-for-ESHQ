@@ -180,12 +180,13 @@ typedef struct  vguiapi_s
 	void	(*CursorSelect)(VGUI_DefaultCursor cursor);
 	byte (*GetColor)(int i, int j);
 	qboolean (*IsInGame)(void);
-	void	(*EnableTextInput)(qboolean enable, qboolean force);	// [Xash3D, 20.03.23]
+	void	(*EnableTextInput)(qboolean enable, qboolean force);	// [FWGS, 01.04.23]
 	void	(*GetCursorPos)(int *x, int *y);
 	int		(*ProcessUtfChar)(int ch);
 	int		(*GetClipboardText)(char *buffer, size_t bufferSize);
 	void	(*SetClipboardText)(const char *text);
 	key_modifier_t (*GetKeyModifiers)(void);
+
 	// called from engine side
 	void	(*Startup)(int width, int height);
 	void	(*Shutdown)(void);
@@ -196,4 +197,4 @@ typedef struct  vguiapi_s
 	void	(*MouseMove)(int x, int y);
 	void	(*TextInput)(const char *text);
 	} vguiapi_t;
-#endif // VGUI_API_H
+#endif

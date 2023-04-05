@@ -25,7 +25,7 @@ GNU General Public License for more details.
 #define BI_FILE_HEADER_SIZE 14
 #define BI_SIZE 40 // size of bitmap info header
 #if !defined(BI_RGB)
-	#define BI_RGB			0	// [Xash3D, 28.03.23] uncompressed RGB bitmap(defined in wingdi.h)
+	#define BI_RGB			0	// [FWGS, 01.04.23] uncompressed RGB bitmap(defined in wingdi.h)
 	#define BI_RLE8			1
 	#define BI_RLE4			2
 	#define BI_BITFIELDS	3

@@ -60,22 +60,22 @@ Then you can use another oneliner to query all variables:
 #undef XASH_ARMv7
 #undef XASH_ARMv8
 #undef XASH_BIG_ENDIAN
-//#undef XASH_BSD	// [Xash3D, 31.03.23]
+//#undef XASH_BSD	// [FWGS, 01.04.23]
 #undef XASH_DOS4GW
 #undef XASH_E2K
 #undef XASH_EMSCRIPTEN
 #undef XASH_FREEBSD
 #undef XASH_HAIKU
 #undef XASH_IOS
-#undef XASH_IRIX	// [Xash3D, 31.03.23]
+#undef XASH_IRIX	// [FWGS, 01.04.23]
 #undef XASH_JS
 #undef XASH_LINUX
-#undef XASH_LINUX_UNKNOWN	// [Xash3D, 31.03.23]
+#undef XASH_LINUX_UNKNOWN	// [FWGS, 01.04.23]
 #undef XASH_LITTLE_ENDIAN
-//#undef XASH_MINGW	// [Xash3D, 31.03.23]
+//#undef XASH_MINGW	// [FWGS, 01.04.23]
 #undef XASH_MIPS
 #undef XASH_MOBILE_PLATFORM
-//#undef XASH_MSVC	// [Xash3D, 31.03.23]
+//#undef XASH_MSVC	// [FWGS, 01.04.23]
 #undef XASH_NETBSD
 #undef XASH_OPENBSD
 #undef XASH_POSIX
@@ -85,10 +85,10 @@ Then you can use another oneliner to query all variables:
 #undef XASH_RISCV_SOFTFP
 #undef XASH_SERENITY
 #undef XASH_WIN32
-//#undef XASH_WIN64	// [Xash3D, 31.03.23]
+//#undef XASH_WIN64	// [FWGS, 01.04.23]
 #undef XASH_X86
-#undef XASH_NSWITCH	// [Xash3D, 31.03.23]
-#undef XASH_PSVITA	// [Xash3D, 31.03.23]
+#undef XASH_NSWITCH	// [FWGS, 01.04.23]
+#undef XASH_PSVITA	// [FWGS, 01.04.23]
 
 //================================================================
 //

@@ -55,7 +55,7 @@ void Pmove_Init (void)
 	memcpy (host.player_maxs, pm_hullmaxs, sizeof (pm_hullmaxs));
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void PM_ClearPhysEnts (playermove_t *pmove)
 	{
 	pmove->nummoveent = 0;
@@ -118,10 +118,10 @@ hull_t *PM_HullForBox (const vec3_t mins, const vec3_t maxs)
 	return &pm_boxhull;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
 	{
-	//memcpy (out, in, 48); // matched
+	/*memcpy (out, in, 48); // matched*/
 	out->allsolid = in->allsolid;
 	out->startsolid = in->startsolid;
 	out->inopen = in->inopen;
@@ -138,7 +138,6 @@ void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
 /*
 ==================
 PM_HullPointContents
-
 ==================
 */
 int PM_HullPointContents (hull_t *hull, int num, const vec3_t p)
@@ -746,7 +745,7 @@ int PM_PointContents (playermove_t *pmove, const vec3_t p)
 
 /*
 =============
-PM_TraceModel [Xash3D, 31.03.23]
+PM_TraceModel [FWGS, 01.04.23]
 =============
 */
 float PM_TraceModel (playermove_t *pmove, physent_t *pe, float *start, float *end, trace_t *trace)
@@ -767,9 +766,10 @@ float PM_TraceModel (playermove_t *pmove, physent_t *pe, float *start, float *en
 
 	pmove->usehull = old_usehull;
 
-	if (pe->solid == SOLID_BSP && !VectorIsNull (pe->angles))
+	if ((pe->solid == SOLID_BSP) && !VectorIsNull (pe->angles))
 		rotated = true;
-	else rotated = false;
+	else
+		rotated = false;
 
 	if (rotated)
 		{
@@ -797,7 +797,7 @@ float PM_TraceModel (playermove_t *pmove, physent_t *pe, float *start, float *en
 	return trace->fraction;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 pmtrace_t *PM_TraceLine (playermove_t *pmove, float *start, float *end, int flags, int usehull, int ignore_pe)
 	{
 	static pmtrace_t	tr;
@@ -822,7 +822,7 @@ pmtrace_t *PM_TraceLine (playermove_t *pmove, float *start, float *end, int flag
 	return &tr;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 pmtrace_t *PM_TraceLineEx (playermove_t *pmove, float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
 	{
 	static pmtrace_t	tr;
@@ -847,7 +847,7 @@ pmtrace_t *PM_TraceLineEx (playermove_t *pmove, float *start, float *end, int fl
 	return &tr;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 struct msurface_s *PM_TraceSurfacePmove (playermove_t *pmove, int ground, float *vstart, float *vend)
 	{
 	if ((ground < 0) || (ground >= pmove->numphysent))
@@ -856,7 +856,7 @@ struct msurface_s *PM_TraceSurfacePmove (playermove_t *pmove, int ground, float 
 	return PM_TraceSurface (&pmove->physents[ground], vstart, vend);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 const char *PM_TraceTexture (playermove_t *pmove, int ground, float *vstart, float *vend)
 	{
 	msurface_t *surf;
@@ -872,7 +872,7 @@ const char *PM_TraceTexture (playermove_t *pmove, int ground, float *vstart, flo
 	return surf->texinfo->texture->name;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 int PM_PointContentsPmove (playermove_t *pmove, const float *p, int *truecontents)
 	{
 	int	cont, truecont;
@@ -880,12 +880,12 @@ int PM_PointContentsPmove (playermove_t *pmove, const float *p, int *truecontent
 	truecont = cont = PM_PointContents (pmove, p);
 	if (truecontents) *truecontents = truecont;
 
-	if (cont <= CONTENTS_CURRENT_0 && cont >= CONTENTS_CURRENT_DOWN)
+	if ((cont <= CONTENTS_CURRENT_0) && (cont >= CONTENTS_CURRENT_DOWN))
 		cont = CONTENTS_WATER;
 	return cont;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void PM_StuckTouch (playermove_t *pmove, int hitent, pmtrace_t *tr)
 	{
 	int	i;

@@ -1010,7 +1010,7 @@ qboolean Delta_CompareField (delta_t *pField, void *from, void *to, double timeb
 		val_a -= Q_rint (timebase * 100.0);
 		val_b -= Q_rint (timebase * 100.0);
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		/*fromF = *((int *)&val_a);
 		toF = *((int *)&val_b);*/
 		fromF = FloatAsInt (val_a);
@@ -1034,7 +1034,7 @@ qboolean Delta_CompareField (delta_t *pField, void *from, void *to, double timeb
 			val_b = timebase - val_b;
 			}
 
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		/*fromF = *((int *)&val_a);
 		toF = *((int *)&val_b);*/
 		fromF = FloatAsInt (val_a);

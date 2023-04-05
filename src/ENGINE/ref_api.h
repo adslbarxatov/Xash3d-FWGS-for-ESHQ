@@ -32,7 +32,7 @@ GNU General Public License for more details.
 // RefAPI changelog:
 // 1. Initial release
 // 2. FS functions are removed, instead we have full fs_api_t
-// 3. [Xash3D, 20.03.23] SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
+// 3. [FWGS, 01.04.23] SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
 #define REF_API_VERSION 3
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP)
@@ -67,7 +67,7 @@ GNU General Public License for more details.
 #define FWORLD_WATERALPHA		BIT( 2 )
 #define FWORLD_HAS_DELUXEMAP	BIT( 3 )
 
-// [Xash3D, 20.03.23] special rendermode for screenfade modulate
+// [FWGS, 01.04.23] special rendermode for screenfade modulate
 // (probably will be expanded at some point)
 #define kRenderScreenFadeModulate 0x1000
 
@@ -103,13 +103,13 @@ typedef struct ref_globals_s
 	vec3_t vieworg;
 	vec3_t viewangles;
 	
-	// [Xash3D, 20.03.23]
-	// vec3_t vforward, vright, vup;
+	// [FWGS, 01.04.23]
+	/* vec3_t vforward, vright, vup;*/
 
 	// translucent sorted array
-	sortedface_t *draw_surfaces;	// used for sorting translucent surfaces
-	int		max_surfaces;	// max surfaces per submodel (for all models)
-	size_t		visbytes;		// cluster size
+	sortedface_t	*draw_surfaces;	// used for sorting translucent surfaces
+	int				max_surfaces;	// max surfaces per submodel (for all models)
+	size_t			visbytes;		// cluster size
 
 	int desktopBitsPixel;
 	} ref_globals_t;
@@ -311,7 +311,7 @@ typedef struct ref_api_s
 	mleaf_t *(*Mod_PointInLeaf)(const vec3_t p, mnode_t *node);
 	void (*Mod_CreatePolygonsForHull)(int hullnum);
 
-	// [Xash3D, 20.03.23]
+	// [FWGS, 01.04.23]
 	/*
 	void (*R_StudioSlerpBones)(int numbones, vec4_t q1[], float pos1[][3], vec4_t q2[], float pos2[][3], float s);
 	void (*R_StudioCalcBoneQuaternion)(int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, vec4_t q);
@@ -678,4 +678,4 @@ typedef void (*REF_HUMANREADABLE_NAME)(char *out, size_t len);
 	ENGINE_SHARED_CVAR_LIST( RETRIEVE_ENGINE_SHARED_CVAR )
 #endif
 
-#endif // REF_API
+#endif

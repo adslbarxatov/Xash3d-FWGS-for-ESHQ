@@ -311,7 +311,7 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		int	numcolors;
 
-		// [Xash3D, 28.03.23] HACKHACK: console background image shouldn't be transparent
+		// [FWGS, 01.04.23] HACKHACK: console background image shouldn't be transparent
 		if (!Q_stristr (name, "conback"))
 			{
 			for (i = 0; i < pixels; i++)

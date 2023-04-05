@@ -110,10 +110,11 @@ void Image_Reset (void)
 	image.size = 0;
 	}
 
-// [Xash3D, 28.03.23]
+// [FWGS, 01.04.23]
 static rgbdata_t *ImagePack (void)
 	{
-	rgbdata_t *pack; /* = Mem_Calloc (host.imagepool, sizeof (rgbdata_t));*/
+	rgbdata_t *pack;
+	/* = Mem_Calloc (host.imagepool, sizeof (rgbdata_t));*/
 
 	// clear any force flags
 	image.force_flags = 0;
@@ -121,7 +122,7 @@ static rgbdata_t *ImagePack (void)
 	if (image.cubemap && image.num_sides != 6)
 		{
 		// this never can happen, just in case
-		//FS_FreeImage (pack);
+		/*FS_FreeImage (pack);*/
 		return NULL;
 		}
 
@@ -162,7 +163,7 @@ static rgbdata_t *ImagePack (void)
 
 /*
 ================
-FS_AddSideToPack [Xash3D, 28.03.23]
+FS_AddSideToPack [FWGS, 01.04.23]
 ================
 */
 //qboolean FS_AddSideToPack (const char *name, int adjust_flags)
@@ -211,7 +212,7 @@ static qboolean FS_AddSideToPack (int adjust_flags)
 	return true;
 	}
 
-// [Xash3D, 28.03.23]
+// [FWGS, 01.04.23]
 static const loadpixformat_t *Image_GetLoadFormatForExtension (const char *ext)
 	{
 	const loadpixformat_t *format;
@@ -299,7 +300,7 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 
 /*
 ================
-FS_LoadImage [Xash3D, 28.03.23]
+FS_LoadImage [FWGS, 01.04.23]
 
 loading and unpack to rgba any known image
 ================
@@ -406,7 +407,9 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 				{
 				// first side not found, probably it's not cubemap
 				// it contain info about image_type and dimensions, don't generate black cubemaps
-				if (!image.cubemap) break;
+				if (!image.cubemap)
+					break;
+
 				// Mem_Alloc already filled memblock with 0x00, no need to do it again
 				image.cubemap = Mem_Realloc (host.imagepool, image.cubemap, image.ptr + image.size);
 				image.ptr += image.size; // move to next
@@ -422,7 +425,10 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 				Mem_Free (image.cubemap);
 			Image_Reset ();
 			}
-		else break;
+		else
+			{
+			break;
+			}
 		}
 
 	if (image.cubemap)
@@ -445,7 +451,7 @@ load_internal:
 			return ImagePack ();
 		}
 
-	//if (filename[0] != '#')
+	/*if (filename[0] != '#')*/
 	if (loadname[0] != '#')
 		Con_Reportf (S_WARN "FS_LoadImage: couldn't load \"%s\"\n", loadname);
 
@@ -466,9 +472,9 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 	{
 	const char	*ext = COM_FileExtension (filename);
 
-	// [Xash3D, 28.03.23]
-	//qboolean	anyformat = !Q_stricmp (ext, "") ? true : false;
-	qboolean		anyformat = !COM_CheckStringEmpty (ext);
+	// [FWGS, 01.04.23]
+	/*qboolean	anyformat = !Q_stricmp (ext, "") ? true : false;*/
+	qboolean	anyformat = !COM_CheckStringEmpty (ext);
 
 	string		path, savename;
 	const savepixformat_t *format;
@@ -665,7 +671,7 @@ void Test_RunImagelib (void)
 
 	for (i = 0; i < sizeof (extensions) / sizeof (extensions[0]); i++)
 		{
-		// [Xash3D, 28.03.23]
+		// [FWGS, 01.04.23]
 		//const char *name = va ("test_gen.%s", extensions[i]);
 		char name[MAX_VA_STRING];
 		Q_snprintf (name, sizeof (name), "test_gen.%s", extensions[i]);

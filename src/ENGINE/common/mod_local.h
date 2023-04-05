@@ -149,7 +149,7 @@ void Mod_FreeUnused (void);
 //
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 //qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean silent);
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);
 
@@ -188,7 +188,7 @@ void Mod_GetBonePosition (const edict_t *e, int iBone, float *org, float *ang);
 hull_t *Mod_HullForStudio (model_t *m, float frame, int seq, vec3_t ang, vec3_t org, vec3_t size, 
 	byte *pcnt, byte *pbl, int *hitboxes, edict_t *ed);
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 /*void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], vec4_t q2[], float pos2[][3], float s);
 void R_StudioCalcBoneQuaternion (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, vec4_t q);
 void R_StudioCalcBonePosition (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, vec3_t adj, vec3_t pos);*/
@@ -204,4 +204,4 @@ void Mod_ClearStudioCache (void);
 void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags);
 #endif
 
-#endif//MOD_LOCAL_H
+#endif

@@ -145,7 +145,7 @@
 #define K_AUX19		225
 #define K_DPAD_RIGHT	K_AUX19
 
-// [Xash3D, 20.03.23: Xbox Series, PS5, NSPro]
+// [FWGS, 01.04.23: Xbox Series, PS5, NSPro]
 #define K_AUX20		226
 #define K_MISC_BUTTON		K_AUX20 // Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button
 #define K_AUX21		227
@@ -179,4 +179,4 @@
 #define K_MOUSE4		244
 #define K_MOUSE5		245
 
-#endif//KEYDEFS_H
+#endif

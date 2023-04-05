@@ -497,7 +497,7 @@ qboolean Info_SetValueForKey (char *s, const char *key, const char *value, int m
 	return Info_SetValueForStarKey (s, key, value, maxsize);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 qboolean Info_SetValueForKeyf (char *s, const char *key, int maxsize, const char *format, ...)
 	{
 	char value[MAX_VA_STRING];

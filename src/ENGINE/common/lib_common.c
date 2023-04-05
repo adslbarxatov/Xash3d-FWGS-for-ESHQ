@@ -66,8 +66,8 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 		if (f) return f;
 		}
 
-// [Xash3D, 31.03.23]
-//#elif XASH_MSVC
+// [FWGS, 01.04.23]
+/*#elif XASH_MSVC*/
 #elif _MSC_VER
 	// TODO: COM_ConvertToLocalPlatform doesn't support MSVC yet
 	// also custom loader strips always MSVC mangling, so Win32
@@ -163,7 +163,7 @@ static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t s
 
 /*
 ==============
-COM_StripIntelSuffix [Xash3D, 31.03.23]
+COM_StripIntelSuffix [FWGS, 01.04.23]
 
 Some modders use _i?86 suffix in game library name
 So strip it to follow library naming for non-Intel CPUs
@@ -194,7 +194,7 @@ static void COM_GenerateServerLibraryPath (char *out, size_t size)
 	Q_strncpy (out, GI->game_dll, size);
 #elif XASH_APPLE
 	Q_strncpy (out, GI->game_dll_osx, size);
-#else // XASH_LINUX
+#else
 	Q_strncpy (out, GI->game_dll_linux, size);
 #endif
 
@@ -206,13 +206,13 @@ static void COM_GenerateServerLibraryPath (char *out, size_t size)
 	Q_strncpy (dllpath, GI->game_dll, sizeof (dllpath));
 #elif XASH_APPLE
 	Q_strncpy (dllpath, GI->game_dll_osx, sizeof (dllpath));
-#else // XASH_APPLE
+#else
 	Q_strncpy (dllpath, GI->game_dll_linux, sizeof (dllpath));
 #endif
 
 	ext = COM_FileExtension (dllpath);
 	COM_StripExtension (dllpath);
-	COM_StripIntelSuffix (dllpath);	// [Xash3D, 31.03.23]
+	COM_StripIntelSuffix (dllpath);	// [FWGS, 01.04.23]
 
 	COM_GenerateCommonLibraryName (dllpath, ext, out, size);
 #endif
@@ -249,8 +249,8 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 			break;
 
 		default:
-			// [Xash3D, 31.03.23]
-			//ASSERT (true);
+			// [FWGS, 01.04.23]
+			/*ASSERT (true);*/
 			ASSERT (0);
 			out[0] = 0;
 			break;
@@ -414,11 +414,13 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 			len = (uint)Q_strlen (prev);
 		Q_strncpy (symbols[i], prev, Q_min (len + 1, sizeof (symbols[i])));
 
-		// [Xash3D, 31.03.23]
-		//prev = at + 1;
+		// [FWGS, 01.04.23]
+		/*prev = at + 1;*/
 
 		if (!at)
 			break;
+
+		// [FWGS, 01.04.23]
 		prev = at + 1;
 		}
 

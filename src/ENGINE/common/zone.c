@@ -15,7 +15,7 @@ GNU General Public License for more details.
 
 #include "common.h"
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #define MEMHEADER_SENTINEL1	0xDEADF00DU
 #define MEMHEADER_SENTINEL2	0xDFU
 
@@ -36,7 +36,7 @@ typedef struct memheader_s
 	size_t		size;		// size of the memory after the header (excluding header and sentinel2)
 	const char *filename;	// file name and line where Mem_Alloc was called
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	/*uint		fileline;
 	uint		sentinel1;	// should always be MEMHEADER_SENTINEL1*/
 	int		fileline;
@@ -48,10 +48,10 @@ typedef struct memheader_s
 	// immediately followed by data, which is followed by a MEMHEADER_SENTINEL2 byte
 	} memheader_t;
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 typedef struct mempool_s
 	{
-	//uint		sentinel1;		// should always be MEMHEADER_SENTINEL1
+	/*uint		sentinel1;		// should always be MEMHEADER_SENTINEL1*/
 	uint32_t	sentinel1;		// should always be MEMHEADER_SENTINEL1
 	struct memheader_s *chain;	// chain of individual memory allocations
 	size_t		totalsize;		// total memory allocated in this pool (inside memheaders)
@@ -64,13 +64,13 @@ typedef struct mempool_s
 	poolhandle_t		idx;
 #endif
 	char		name[64];		// name of the pool
-	//uint		sentinel2;		// should always be MEMHEADER_SENTINEL1
+	/*uint		sentinel2;		// should always be MEMHEADER_SENTINEL1*/
 	uint32_t	sentinel2;		// should always be MEMHEADER_SENTINEL1
 	} mempool_t;
 
 static mempool_t *poolchain = NULL; // critical stuff
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_64BIT
 
 // a1ba: due to mempool being passed with the model through reused 32-bit field
@@ -105,7 +105,7 @@ static mempool_t *Mem_FindPool (poolhandle_t poolptr)
 
 #endif
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
 	{
 	memheader_t *mem;
@@ -117,7 +117,6 @@ void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char 
 		Sys_Error ("Mem_Alloc: pool == NULL (alloc at %s:%i)\n", filename, fileline);
 
 	pool = Mem_FindPool (poolptr);
-
 	pool->totalsize += size;
 
 	// big allocations are not clumped
@@ -272,7 +271,7 @@ void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean cl
 	return (void *)nb;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline)
 	{
 	mempool_t *pool;
@@ -318,7 +317,7 @@ void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
 		for (chainaddress = &poolchain; *chainaddress && *chainaddress != pool; chainaddress = &((*chainaddress)->next));
 		if (*chainaddress != pool) Sys_Error ("Mem_FreePool: pool already free (freepool at %s:%i)\n", filename, fileline);
 		
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		/*if (pool->sentinel1 != MEMHEADER_SENTINEL1) 
 			Sys_Error ("Mem_FreePool: trashed pool sentinel 1 (allocpool at %s:%i, freepool at %s:%i)\n", 
 				pool->filename, pool->fileline, filename, fileline);
@@ -348,8 +347,12 @@ void _Mem_EmptyPool (poolhandle_t poolptr, const char *filename, int fileline)
 	mempool_t *pool = Mem_FindPool (poolptr);
 	if (!poolptr) Sys_Error ("Mem_EmptyPool: pool == NULL (emptypool at %s:%i)\n", filename, fileline);
 
-	if (pool->sentinel1 != MEMHEADER_SENTINEL1) Sys_Error ("Mem_EmptyPool: trashed pool sentinel 1 (allocpool at %s:%i, emptypool at %s:%i)\n", pool->filename, pool->fileline, filename, fileline);
-	if (pool->sentinel2 != MEMHEADER_SENTINEL1) Sys_Error ("Mem_EmptyPool: trashed pool sentinel 2 (allocpool at %s:%i, emptypool at %s:%i)\n", pool->filename, pool->fileline, filename, fileline);
+	if (pool->sentinel1 != MEMHEADER_SENTINEL1)
+		Sys_Error ("Mem_EmptyPool: trashed pool sentinel 1 (allocpool at %s:%i, emptypool at %s:%i)\n",
+			pool->filename, pool->fileline, filename, fileline);
+	if (pool->sentinel2 != MEMHEADER_SENTINEL1)
+		Sys_Error ("Mem_EmptyPool: trashed pool sentinel 2 (allocpool at %s:%i, emptypool at %s:%i)\n",
+			pool->filename, pool->fileline, filename, fileline);
 
 	// free memory owned by the pool
 	while (pool->chain) Mem_FreeBlock (pool->chain, filename, fileline);
@@ -384,7 +387,8 @@ Check pointer for memory
 qboolean Mem_IsAllocatedExt (poolhandle_t poolptr, void *data)
 	{
 	mempool_t *pool = NULL;
-	if (poolptr) pool = Mem_FindPool (poolptr);
+	if (poolptr)
+		pool = Mem_FindPool (poolptr);
 
 	return Mem_CheckAlloc (pool, data);
 	}

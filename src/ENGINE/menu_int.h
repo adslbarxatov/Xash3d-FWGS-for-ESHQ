@@ -118,9 +118,9 @@ typedef struct ui_enginefuncs_s
 	void	(*pfnRenderScene)(const struct ref_viewpass_s *rvp);
 	int	(*CL_CreateVisibleEntity)(int type, struct cl_entity_s *ent);
 
-	// [Xash3D, 20.03.23: отменено] misc handlers
+	// [FWGS, 01.04.23: отменено] misc handlers
 	void	(*pfnHostError)(const char *szFmt, ...);	// FWGS: _format(1);
-	int	(*pfnFileExists)(const char *filename, int gamedironly);
+	int		(*pfnFileExists)(const char *filename, int gamedironly);
 	void	(*pfnGetGameDir)(char *szGetGameDir);
 
 	// gameinfo handlers
@@ -218,7 +218,7 @@ typedef struct ui_extendedfuncs_s
 
 	char	*(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
 
-	// [Xash3D, 20.03.23] network address funcs
+	// [FWGS, 01.04.23]: network address funcs
 	const char	*(*pfnAdrToString)(const struct netadr_s a);
 	int		(*pfnCompareAdr)(const void *a, const void *b);
 	} ui_extendedfuncs_t;

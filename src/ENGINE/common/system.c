@@ -26,7 +26,7 @@ GNU General Public License for more details.
 #if XASH_POSIX
 #include <unistd.h>
 #include <signal.h>
-//#include <dlfcn.h>	// [Xash3D, 31.03.23]
+//#include <dlfcn.h>	// [FWGS, 01.04.23]
 
 #if !XASH_ANDROID
 #include <pwd.h>
@@ -37,7 +37,7 @@ GNU General Public License for more details.
 #include <process.h>
 #endif
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_NSWITCH
 	#include <switch.h>
 #endif
@@ -52,7 +52,7 @@ GNU General Public License for more details.
 #include "whereami.h"
 
 qboolean	error_on_exit = false;	// arg for exit();
-//#define DEBUG_BREAK	// [Xash3D, 31.03.23]
+//#define DEBUG_BREAK	// [FWGS, 01.04.23]
 
 /*
 ================
@@ -66,7 +66,7 @@ double GAME_EXPORT Sys_DoubleTime (void)
 
 /*
 ================
-Sys_DebugBreak [Xash3D, 31.03.23]
+Sys_DebugBreak [FWGS, 01.04.23]
 ================
 */
 void Sys_DebugBreak (void)
@@ -148,7 +148,7 @@ const char *Sys_GetCurrentUser (void)
 	if (GetUserName (s_userName, &size))
 		return s_userName;
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 //#elif XASH_POSIX && !XASH_ANDROID
 #elif XASH_PSVITA
 	static string username;
@@ -401,7 +401,7 @@ void Sys_WaitForQuit (void)
 
 /*
 ================
-Sys_Warn [Xash3D, 31.03.23]
+Sys_Warn [FWGS, 01.04.23]
 
 Just messagebox
 ================
@@ -411,7 +411,7 @@ void Sys_Warn (const char *format, ...)
 	va_list	argptr;
 	char	text[MAX_PRINT_MSG];
 
-	//DEBUG_BREAK;
+	/*DEBUG_BREAK;*/
 
 	va_start (argptr, format);
 	Q_vsnprintf (text, MAX_PRINT_MSG, format, argptr);
@@ -437,8 +437,8 @@ void Sys_Error (const char *error, ...)
 	va_list	argptr;
 	char	text[MAX_PRINT_MSG];
 
-	// [Xash3D, 31.03.23] enable cursor before debugger call
-	//DEBUG_BREAK;
+	// [FWGS, 01.04.23] enable cursor before debugger call
+	/*DEBUG_BREAK;*/
 	if (!Host_IsDedicated ())
 		Platform_SetCursorType (dc_arrow);
 
@@ -468,7 +468,7 @@ void Sys_Error (const char *error, ...)
 		Wcon_ShowConsole (false);
 #endif
 		MSGBOX (text);
-		Sys_Print (text);	// [Xash3D, 31.03.23]
+		Sys_Print (text);	// [FWGS, 01.04.23]
 		}
 	else
 		{
@@ -589,7 +589,7 @@ void Sys_Print (const char *pMsg)
 
 /*
 ==================
-Sys_NewInstance [Xash3D, 31.03.23]
+Sys_NewInstance [FWGS, 01.04.23]
 
 This is a special function
 
@@ -604,14 +604,15 @@ qboolean Sys_NewInstance (const char *gamedir)
 	char newargs[4096];
 	const char *exe = host.argv[0]; // arg 0 is always the full NRO path
 
-	// TODO: carry over the old args (assuming you can even pass any)
 	Q_snprintf (newargs, sizeof (newargs), "%s -game %s", exe, gamedir);
+
 	// just restart the entire thing
 	printf ("envSetNextLoad exe: `%s`\n", exe);
 	printf ("envSetNextLoad argv:\n`%s`\n", newargs);
 	Host_Shutdown ();
 	envSetNextLoad (exe, newargs);
 	exit (0);
+
 #else
 
 	int i = 0;
@@ -633,7 +634,10 @@ qboolean Sys_NewInstance (const char *gamedir)
 			replacedArg = true;
 			i += 2;
 			}
-		else i++;
+		else
+			{
+			i++;
+			}
 		}
 
 	if (!replacedArg)

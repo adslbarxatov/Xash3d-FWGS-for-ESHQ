@@ -14,7 +14,7 @@ GNU General Public License for more details.
 */
 
 #include "common.h"
-#include "client.h"		// [Xash3D, 26.03.23]
+#include "client.h"		// [FWGS, 01.04.23]
 #include "sound.h"
 
 // during registration it is possible to have more sounds
@@ -29,7 +29,7 @@ static sfx_t	s_knownSfx[MAX_SFX];
 static sfx_t	*s_sfxHashList[MAX_SFX_HASH];
 static string	s_sentenceImmediateName;	// keep dummy sentence name
 qboolean		s_registering = false;
-//int				s_registration_sequence = 0;	// [Xash3D, 26.03.23]
+//int				s_registration_sequence = 0;	// [FWGS, 01.04.23]
 
 /*
 =================
@@ -58,8 +58,8 @@ void S_SoundList_f (void)
 			else 
 				Con_Printf (" ");
 
-			// [Xash3D, 26.03.23]
-			//if (sfx->name[0] == '*')
+			// [FWGS, 01.04.23]
+			/*if (sfx->name[0] == '*')*/
 			if ((sfx->name[0] == '*') || !Q_strncmp (sfx->name, DEFAULT_SOUNDPATH, sizeof (DEFAULT_SOUNDPATH) - 1))
 				Con_Printf (" (%2db) %s : %s\n", sc->width * 8, Q_memprint (sc->size), sfx->name);
 			else 
@@ -207,8 +207,8 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 				*pfInCache = (sfx->cache != NULL) ? true : false;
 				}
 
-			// [Xash3D, 26.03.23] prolonge registration
-			//sfx->servercount = s_registration_sequence;
+			// [FWGS, 01.04.23] prolonge registration
+			/*sfx->servercount = s_registration_sequence;*/
 			sfx->servercount = cl.servercount;
 			return sfx;
 			}
@@ -230,8 +230,8 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 	if (pfInCache) *pfInCache = false;
 	Q_strncpy (sfx->name, name, MAX_STRING);
 	
-	// [Xash3D, 26.03.23]
-	//sfx->servercount = s_registration_sequence;
+	// [FWGS, 01.04.23]
+	/*sfx->servercount = s_registration_sequence;*/
 	sfx->servercount = cl.servercount;
 	sfx->hashValue = COM_HashKey (sfx->name, MAX_SFX_HASH);
 
@@ -285,7 +285,7 @@ S_BeginRegistration
 void S_BeginRegistration (void)
 	{
 	int	i;
-	//s_registration_sequence++;		// [Xash3D, 26.03.23]
+	//s_registration_sequence++;		// [FWGS, 01.04.23]
 	snd_ambient = false;
 
 	// check for automatic ambient sounds
@@ -295,7 +295,8 @@ void S_BeginRegistration (void)
 			continue;	// empty slot
 
 		ambient_sfx[i] = S_RegisterSound (GI->ambientsound[i]);
-		if (ambient_sfx[i]) snd_ambient = true; // allow auto-ambients
+		if (ambient_sfx[i])
+			snd_ambient = true; // allow auto-ambients
 		}
 
 	s_registering = true;
@@ -321,8 +322,8 @@ void S_EndRegistration (void)
 		if (!sfx->name[0] || !Q_stricmp (sfx->name, "*default"))
 			continue; // don't release default sound
 
-		// [Xash3D, 26.03.23]
-		//if (sfx->servercount != s_registration_sequence)
+		// [FWGS, 01.04.23]
+		/*if (sfx->servercount != s_registration_sequence)*/
 		if (sfx->servercount != cl.servercount)
 			S_FreeSound (sfx); // don't need this sound
 		}
@@ -339,7 +340,7 @@ void S_EndRegistration (void)
 
 /*
 ==================
-S_RegisterSound [Xash3D, 26.03.23]
+S_RegisterSound [FWGS, 01.04.23]
 ==================
 */
 sound_t S_RegisterSound (const char *name)

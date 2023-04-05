@@ -112,12 +112,12 @@ void Platform_SetClipboardText (const char *buffer)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_SetClipboardText (buffer);
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#endif
 	}
 
 /*
 =============
-Platform_Vibrate [Xash3D, 31.03.23]
+Platform_Vibrate [FWGS, 01.04.23]
 =============
 */
 void Platform_Vibrate (float time, char flags)
@@ -126,7 +126,7 @@ void Platform_Vibrate (float time, char flags)
 		SDL_JoystickRumble (g_joy, 0xFFFF, 0xFFFF, time * 1000.0f);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if !XASH_PSVITA
 
 /*
@@ -305,12 +305,12 @@ void SDLash_FreeCursors (void)
 		}
 
 	cursors.initialized = false;
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#endif
 	}
 
 /*
 ========================
-Platform_SetCursorType [Xash3D, 31.03.23]
+Platform_SetCursorType [FWGS, 01.04.23]
 ========================
 */
 void Platform_SetCursorType (VGUI_DefaultCursor type)
@@ -331,6 +331,7 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 		case dc_none:
 			visible = false;
 			break;
+
 		default:
 			visible = true;
 			break;
@@ -347,33 +348,32 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 	VGui_UpdateInternalCursorState (type);
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
+
 	if (host.mouse_visible)
 		{
 		SDL_SetCursor (cursors.cursors[type]);
 		SDL_ShowCursor (true);
-		//Key_EnableTextInput (true, false);
+		/*Key_EnableTextInput (true, false);*/
 		}
 	else
 		{
 		SDL_ShowCursor (false);
-		//Key_EnableTextInput (false, false);
+		/*Key_EnableTextInput (false, false);*/
 		}
+
 #else
+
 	if (host.mouse_visible)
-		{
 		SDL_ShowCursor (true);
-		}
 	else
-		{
 		SDL_ShowCursor (false);
-		}
+
 #endif
 	}
 
 /*
 ========================
 Platform_GetKeyModifiers
-
 ========================
 */
 key_modifier_t Platform_GetKeyModifiers (void)

@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "common.h"
 #include "hpak.h"
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #define HPAK_MAX_ENTRIES	0x8000
 /*#define HPAK_MIN_SIZE	(1 * 1024)
 #define HPAK_MAX_SIZE	(128 * 1024)*/
@@ -117,8 +117,9 @@ void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *pData, f
 
 	Con_Printf ("creating HPAK %s.\n", pakname);
 
-	//fout = FS_Open (pakname, "wb", false);
-	fout = FS_Open (pakname, "wb", true);	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
+	/*fout = FS_Open (pakname, "wb", false);*/
+	fout = FS_Open (pakname, "wb", true);
 	if (!fout)
 		{
 		Con_DPrintf (S_ERROR "HPAK_CreatePak: can't write %s.\n", pakname);
@@ -220,8 +221,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	if ((pData == NULL) && (pFile == NULL))
 		return;
 
-	// [Xash3D, 31.03.23]
-	//if (pResource->nDownloadSize < HPAK_MIN_SIZE || pResource->nDownloadSize > HPAK_MAX_SIZE)
+	// [FWGS, 01.04.23]
+	/*if (pResource->nDownloadSize < HPAK_MIN_SIZE || pResource->nDownloadSize > HPAK_MAX_SIZE)*/
 	if ((pResource->nDownloadSize < HPAK_ENTRY_MIN_SIZE) || (pResource->nDownloadSize > HPAK_ENTRY_MAX_SIZE))
 		{
 		Con_Printf (S_ERROR "%s: invalid size %s\n", name, Q_pretifymem (pResource->nDownloadSize, 2));
@@ -232,8 +233,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	memset (&ctx, 0, sizeof (MD5Context_t));
 	MD5Init (&ctx);
 
-	// [Xash3D, 31.03.23]
-	//if (pData == NULL)
+	// [FWGS, 01.04.23]
+	/*if (pData == NULL)*/
 	if (!pData)
 		{
 		byte *temp;
@@ -241,8 +242,10 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 		// there are better ways
 		position = FS_Tell (pFile);
 		temp = Z_Malloc (pResource->nDownloadSize);
+
 		FS_Read (pFile, temp, pResource->nDownloadSize);
 		FS_Seek (pFile, position, SEEK_SET);
+
 		MD5Update (&ctx, temp, pResource->nDownloadSize);
 		Mem_Free (temp);
 		}
@@ -268,8 +271,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	Q_strncpy (srcname, name, sizeof (srcname));
 	COM_ReplaceExtension (srcname, ".hpk");
 
-	// [Xash3D, 31.03.23]
-	//file_src = FS_Open (srcname, "rb", false);
+	// [FWGS, 01.04.23]
+	/*file_src = FS_Open (srcname, "rb", false);*/
 	file_src = FS_Open (srcname, "rb", true);
 	if (!file_src)
 		{
@@ -281,8 +284,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	Q_strncpy (dstname, srcname, sizeof (dstname));
 	COM_ReplaceExtension (dstname, ".hp2");
 
-	// [Xash3D, 31.03.23]
-	//file_dst = FS_Open (dstname, "wb", false);
+	// [FWGS, 01.04.23]
+	/*file_dst = FS_Open (dstname, "wb", false);*/
 	file_dst = FS_Open (dstname, "wb", true);
 	if (!file_dst)
 		{
@@ -336,14 +339,14 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	dstpak.count = srcpak.count + 1;
 	dstpak.entries = Z_Malloc (sizeof (hpak_lump_t) * dstpak.count);
 
-	// [Xash3D, 31.03.23]
-	//memcpy (dstpak.entries, srcpak.entries, srcpak.count);
+	// [FWGS, 01.04.23]
+	/*memcpy (dstpak.entries, srcpak.entries, srcpak.count);*/
 	memcpy (dstpak.entries, srcpak.entries, sizeof (hpak_lump_t) *srcpak.count);
 
 	// check is there are entry with same hash
 	for (i = 0; i < srcpak.count; i++)
 		{
-		//if (memcmp (md5, srcpak.entries[i].resource.rgucMD5_hash, 16))
+		/*if (memcmp (md5, srcpak.entries[i].resource.rgucMD5_hash, 16))*/
 		if (memcmp (md5, srcpak.entries[i].resource.rgucMD5_hash, 16) == 0)
 			{
 			pCurrentEntry = &dstpak.entries[i];
@@ -362,7 +365,7 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	pCurrentEntry->filepos = FS_Tell (file_dst);
 	pCurrentEntry->disksize = pResource->nDownloadSize;
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	/*if (!pData) FS_FileCopy (file_dst, file_src, pCurrentEntry->disksize);
 	else FS_Write (file_dst, pData, pCurrentEntry->disksize);*/
 	if (!pData)
@@ -413,8 +416,8 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet)
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk");
 
-	// [Xash3D, 31.03.23]
-	//f = FS_Open (pakname, "rb", false);
+	// [FWGS, 01.04.23]
+	/*f = FS_Open (pakname, "rb", false);*/
 	f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
@@ -422,7 +425,8 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet)
 		return true;
 		}
 
-	if (!quiet) Con_Printf ("Validating %s\n", pakname);
+	if (!quiet)
+		Con_Printf ("Validating %s\n", pakname);
 
 	FS_Read (f, &hdr, sizeof (hdr));
 	if ((hdr.ident != IDHPAKHEADER) || (hdr.version != IDHPAK_VERSION))
@@ -448,12 +452,13 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet)
 	dataDir = Z_Malloc (sizeof (hpak_lump_t) * num_lumps);
 	FS_Read (f, dataDir, sizeof (hpak_lump_t) * num_lumps);
 
-	if (!quiet) Con_Printf ("# Type Size FileName : MD5 Hash\n");
+	if (!quiet)
+		Con_Printf ("# Type Size FileName : MD5 Hash\n");
 
 	for (i = 0; i < num_lumps; i++)
 		{
-		// [Xash3D, 31.03.23]
-		//if (dataDir[i].disksize < 1 || dataDir[i].disksize > 131071)
+		// [FWGS, 01.04.23]
+		/*if (dataDir[i].disksize < 1 || dataDir[i].disksize > 131071)*/
 		if ((dataDir[i].disksize < HPAK_ENTRY_MIN_SIZE) || (dataDir[i].disksize > HPAK_ENTRY_MAX_SIZE))
 			{
 			// odd max size
@@ -495,10 +500,11 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet)
 			}
 		else
 			{
-			if (!quiet) Con_Printf ("OK\n");
+			if (!quiet)
+				Con_Printf ("OK\n");
 			}
 
-		// at this point, it's passed our checks.
+		// at this point, it's passed our checks
 		Mem_Free (dataPak);
 		}
 
@@ -531,7 +537,8 @@ void HPAK_CheckSize (const char *filename)
 	int	maxsize;
 
 	maxsize = hpk_maxsize->value;
-	if (maxsize <= 0) return;
+	if (maxsize <= 0)
+		return;
 
 	if (!COM_CheckString (filename))
 		return;
@@ -539,8 +546,8 @@ void HPAK_CheckSize (const char *filename)
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk");
 
-	// [Xash3D, 31.03.23]
-	//if (FS_FileSize (pakname, false) > (maxsize * 1000000))
+	// [FWGS, 01.04.23]
+	/*if (FS_FileSize (pakname, false) > (maxsize * 1000000))*/
 	if (FS_FileSize (pakname, false) > (maxsize * 1048576))
 		{
 		Con_Printf ("Server: Size of %s > %f MB, deleting.\n", filename, hpk_maxsize->value);
@@ -574,8 +581,8 @@ qboolean HPAK_ResourceForHash (const char *filename, byte *hash, resource_t *pRe
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk");
 
-	// [Xash3D, 31.03.23]
-	//f = FS_Open (pakname, "rb", false);
+	// [FWGS, 01.04.23]
+	/*f = FS_Open (pakname, "rb", false);*/
 	f = FS_Open (pakname, "rb", true);
 	if (!f) 
 		return false;
@@ -625,8 +632,8 @@ static qboolean HPAK_ResourceForIndex (const char *filename, int index, resource
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk");
 
-	// [Xash3D, 31.03.23]
-	//f = FS_Open (pakname, "rb", false);
+	// [FWGS, 01.04.23]
+	/*f = FS_Open (pakname, "rb", false);*/
 	f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
@@ -689,8 +696,10 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 	if (!COM_CheckString (filename))
 		return false;
 
-	if (buffer) *buffer = NULL;
-	if (bufsize) *bufsize = 0;
+	if (buffer)
+		*buffer = NULL;
+	if (bufsize)
+		*bufsize = 0;
 
 	for (p = gp_hpak_queue; p != NULL; p = p->next)
 		{
@@ -713,8 +722,8 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk");
 
-	// [Xash3D, 31.03.23]
-	//f = FS_Open (pakname, "rb", false);
+	// [FWGS, 01.04.23]
+	/*f = FS_Open (pakname, "rb", false);*/
 	f = FS_Open (pakname, "rb", true);
 	if (!f) 
 		return false;
@@ -799,8 +808,8 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	Q_strncpy (read_path, name, sizeof (read_path));
 	COM_ReplaceExtension (read_path, ".hpk");
 
-	// [Xash3D, 31.03.23]
-	//file_src = FS_Open (read_path, "rb", false);
+	// [FWGS, 01.04.23]
+	/*file_src = FS_Open (read_path, "rb", false);*/
 	file_src = FS_Open (read_path, "rb", true);
 	if (!file_src)
 		{
@@ -811,8 +820,8 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	Q_strncpy (save_path, read_path, sizeof (save_path));
 	COM_ReplaceExtension (save_path, ".hp2");
 	
-	// [Xash3D, 31.03.23]
-	//file_dst = FS_Open (save_path, "wb", false);
+	// [FWGS, 01.04.23]
+	/*file_dst = FS_Open (save_path, "wb", false);*/
 	file_dst = FS_Open (save_path, "wb", true);
 	if (!file_dst)
 		{
@@ -933,8 +942,8 @@ void HPAK_List_f (void)
 	COM_ReplaceExtension (pakname, ".hpk");
 	Con_Printf ("Contents for %s.\n", pakname);
 
-	// [Xash3D, 31.03.23]
-	//f = FS_Open (pakname, "rb", false);
+	// [FWGS, 01.04.23]
+	/*f = FS_Open (pakname, "rb", false);*/
 	f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
@@ -1013,13 +1022,9 @@ void HPAK_Extract_f (void)
 		}
 
 	if (!Q_stricmp (Cmd_Argv (2), "all"))
-		{
 		nIndex = -1;
-		}
 	else
-		{
 		nIndex = Q_atoi (Cmd_Argv (2));
-		}
 
 	HPAK_FlushHostQueue ();
 
@@ -1027,8 +1032,8 @@ void HPAK_Extract_f (void)
 	COM_ReplaceExtension (pakname, ".hpk");
 	Con_Printf ("Contents for %s.\n", pakname);
 
-	// [Xash3D, 31.03.23]
-	//f = FS_Open (pakname, "rb", false);
+	// [FWGS, 01.04.23]
+	/*f = FS_Open (pakname, "rb", false);*/
 	f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
@@ -1074,7 +1079,7 @@ void HPAK_Extract_f (void)
 		{
 		entry = &directory.entries[nCurrent];
 
-		if (nIndex != -1 && nIndex != nCurrent)
+		if ((nIndex != -1) && (nIndex != nCurrent))
 			continue;
 
 		COM_FileBase (entry->resource.szFileName, lumpname);
@@ -1083,8 +1088,8 @@ void HPAK_Extract_f (void)
 
 		Con_Printf ("Extracting %i: %10s %s %s\n", nCurrent + 1, type, size, lumpname);
 
-		// [Xash3D, 31.03.23]
-		//if (entry->disksize <= 0 || entry->disksize >= HPAK_MAX_SIZE)
+		// [FWGS, 01.04.23]
+		/*if (entry->disksize <= 0 || entry->disksize >= HPAK_MAX_SIZE)*/
 		if ((entry->disksize < HPAK_ENTRY_MIN_SIZE) || (entry->disksize > HPAK_ENTRY_MAX_SIZE))
 			{
 			Con_DPrintf (S_WARN "Unable to extract data, size invalid:  %s\n", Q_memprint (entry->disksize));
@@ -1120,13 +1125,9 @@ void HPAK_Remove_f (void)
 		}
 
 	if (HPAK_ResourceForIndex (Cmd_Argv (1), Q_atoi (Cmd_Argv (2)), &resource))
-		{
 		HPAK_RemoveLump (Cmd_Argv (1), &resource);
-		}
 	else
-		{
 		Con_DPrintf (S_ERROR "Could not locate resource %i in %s\n", Q_atoi (Cmd_Argv (2)), Cmd_Argv (1));
-		}
 	}
 
 void HPAK_Validate_f (void)

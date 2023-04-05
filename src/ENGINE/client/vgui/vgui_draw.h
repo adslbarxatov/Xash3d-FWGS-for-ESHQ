@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #ifndef VGUI_DRAW_H
 #define VGUI_DRAW_H
 
-/* [Xash3D, 28.03.23]
+/* [FWGS, 01.04.23]
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +28,7 @@ extern "C" {
 //
 // vgui_draw.c
 //
-/*void VGui_Startup (const char *clientlib, int width, int height);*/
+//void VGui_Startup (const char *clientlib, int width, int height);		// [FWGS, 01.04.23]
 void VGui_RegisterCvars (void);
 qboolean VGui_LoadProgs (HINSTANCE hInstance);
 void VGui_Startup (int width, int height);

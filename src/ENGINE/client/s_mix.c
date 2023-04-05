@@ -625,8 +625,8 @@ void MIX_MixChannelsToPaintbuffer (int endtime, int rate, int outputRate)
 
 		ch->pitch *= (sys_timescale.value + 1) / 2;
 
-		// [Xash3D, 26.03.23]
-		//if (CL_GetEntityByIndex (ch->entnum) && (ch->entchannel == CHAN_VOICE))
+		// [FWGS, 01.04.23]
+		/*if (CL_GetEntityByIndex (ch->entnum) && (ch->entchannel == CHAN_VOICE))*/
 		if (CL_GetEntityByIndex (ch->entnum) && ((ch->entchannel == CHAN_VOICE) || (ch->entchannel == CHAN_STREAM)))
 			{
 			if (pSource->width == 1)
@@ -643,19 +643,21 @@ void MIX_MixChannelsToPaintbuffer (int endtime, int rate, int outputRate)
 			S_MixDataToDevice (ch, sampleCount, outputRate, 0, 0);
 
 		if (!S_ShouldContinueMixing (ch))
-			{
 			S_FreeChannel (ch);
-			}
 		}
 	}
 
 // pass in index -1...count+2, return pointer to source sample in either paintbuffer or delay buffer
-_inline portable_samplepair_t *S_GetNextpFilter (int i, portable_samplepair_t *pbuffer, portable_samplepair_t *pfiltermem)
+_inline portable_samplepair_t *S_GetNextpFilter (int i, portable_samplepair_t *pbuffer,
+	portable_samplepair_t *pfiltermem)
 	{
 	// The delay buffer is assumed to precede the paintbuffer by 6 duplicated samples
-	if (i == -1) return (&(pfiltermem[0]));
-	if (i == 0) return (&(pfiltermem[1]));
-	if (i == 1) return (&(pfiltermem[2]));
+	if (i == -1)
+		return (&(pfiltermem[0]));
+	if (i == 0)
+		return (&(pfiltermem[1]));
+	if (i == 1)
+		return (&(pfiltermem[2]));
 
 	// return from paintbuffer, where samples are doubled.
 	// even samples are to be replaced with interpolated value.
@@ -906,7 +908,7 @@ void S_MixUpsample (int sampleCount, int filtertype)
 	ppaint->ifilter++;
 	}
 
-/* [Xash3D, 26.03.23]
+/* [FWGS, 01.04.23]
 void MIX_MixStreamBuffer (int end)
 	{
 	portable_samplepair_t *pbuf;
@@ -939,14 +941,14 @@ void MIX_MixStreamBuffer (int end)
 	}
 */
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 void MIX_MixRawSamplesBuffer (int end)
 	{
-	//portable_samplepair_t *pbuf;
+	/*portable_samplepair_t *pbuf;*/
 	portable_samplepair_t *pbuf, *roombuf, *streambuf;
 	uint i, j, stop;
 
-	//pbuf = MIX_GetCurrentPaintbufferPtr ()->pbuf;
+	/*pbuf = MIX_GetCurrentPaintbufferPtr ()->pbuf;*/
 	roombuf = MIX_GetPFrontFromIPaint (IROOMBUFFER);
 	streambuf = MIX_GetPFrontFromIPaint (ISTREAMBUFFER);
 
@@ -990,7 +992,7 @@ void MIX_MixRawSamplesBuffer (int end)
 // caller also remixes all into final IPAINTBUFFER output.
 void MIX_UpsampleAllPaintbuffers (int end, int count)
 	{
-	/* [Xash3D, 26.03.23] process stream buffer
+	/* [FWGS, 01.04.23] process stream buffer
 	MIX_MixStreamBuffer (end);*/
 
 	// 11khz sounds are mixed into 3 buffers based on distance from listener, and facing direction
@@ -1034,7 +1036,7 @@ void MIX_UpsampleAllPaintbuffers (int end, int count)
 #endif
 
 	// mix raw samples from the video streams
-	// MIX_SetCurrentPaintbuffer (IROOMBUFFER);		// [Xash3D, 26.03.23]
+	// MIX_SetCurrentPaintbuffer (IROOMBUFFER);		// [FWGS, 01.04.23]
 	MIX_MixRawSamplesBuffer (end);
 
 	MIX_DeactivateAllPaintbuffers ();

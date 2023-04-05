@@ -34,7 +34,7 @@ static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
 	return FS_LoadImage (testname, raw, size);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static qboolean CustomDecal_Validate (const char *path, void *raw, int nFileSize)
 	{
 	rgbdata_t *test = CustomDecal_LoadImage (path, raw, nFileSize);
@@ -115,13 +115,13 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 		{
 		pCust->resource.playernum = playernumber;
 
-		// [Xash3D, 31.03.23]
-		//if (CustomDecal_Validate (pCust->pBuffer, pResource->nDownloadSize))
+		// [FWGS, 01.04.23]
+		/*if (CustomDecal_Validate (pCust->pBuffer, pResource->nDownloadSize))*/
 		if (CustomDecal_Validate (pResource->szFileName, pCust->pBuffer, pResource->nDownloadSize))
 			{
 			if (!FBitSet (flags, FCUST_IGNOREINIT))
 				{
-				//if (pResource->nDownloadSize >= (1 * 1024) && pResource->nDownloadSize <= (16 * 1024))
+				/*if (pResource->nDownloadSize >= (1 * 1024) && pResource->nDownloadSize <= (16 * 1024))*/
 				if ((pResource->nDownloadSize >= (1 * 1024)) && (pResource->nDownloadSize <= (128 * 1024)))
 					{
 					pCust->bTranslated = true;
@@ -129,7 +129,7 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 					pCust->nUserData2 = 1;
 
 					if (!FBitSet (flags, FCUST_WIPEDATA))
-						//pCust->pInfo = FS_LoadImage ("#logo.bmp", pCust->pBuffer, pCust->resource.nDownloadSize);
+						/*pCust->pInfo = FS_LoadImage ("#logo.bmp", pCust->pBuffer, pCust->resource.nDownloadSize);*/
 						pCust->pInfo = CustomDecal_LoadImage (pResource->szFileName, pCust->pBuffer, 
 							pCust->resource.nDownloadSize);
 					else
@@ -167,8 +167,8 @@ CustomizationError:
 
 int COM_SizeofResourceList (resource_t *pList, resourceinfo_t *ri)
 	{
-	int		nSize = 0;
-	resource_t *p;
+	int	nSize = 0;
+	resource_t	*p;
 
 	memset (ri, 0, sizeof (*ri));
 
@@ -176,7 +176,7 @@ int COM_SizeofResourceList (resource_t *pList, resourceinfo_t *ri)
 		{
 		nSize += p->nDownloadSize;
 
-		if (p->type == t_model && p->nIndex == 1)
+		if ((p->type == t_model) && (p->nIndex == 1))
 			ri->info[t_world].size += p->nDownloadSize;
 		else 
 			ri->info[p->type].size += p->nDownloadSize;

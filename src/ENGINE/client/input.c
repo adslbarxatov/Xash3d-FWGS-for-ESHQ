@@ -47,7 +47,7 @@ convar_t *cl_backspeed;
 convar_t *look_filter;
 convar_t *m_rawinput;
 
-//static qboolean s_bRawInput, s_bMouseGrab;	// [Xash3D, 26.03.23]
+//static qboolean s_bRawInput, s_bMouseGrab;	// [FWGS, 01.04.23]
 
 /*
 ================
@@ -63,8 +63,8 @@ uint IN_CollectInputDevices (void)
 	if (!m_ignore->value) // no way to check is mouse connected, so use cvar only
 		ret |= INPUT_DEVICE_MOUSE;
 
-	//if (CVAR_TO_BOOL (touch_enable))
-	if (touch_enable.value)		// [Xash3D, 26.03.23]
+	/*if (CVAR_TO_BOOL (touch_enable))*/
+	if (touch_enable.value)		// [FWGS, 01.04.23]
 		ret |= INPUT_DEVICE_TOUCH;
 
 	if (Joy_IsActive ()) // connected or enabled
@@ -81,7 +81,7 @@ uint IN_CollectInputDevices (void)
 
 /*
 =================
-IN_LockInputDevices [Xash3D, 26.03.23]
+IN_LockInputDevices [FWGS, 01.04.23]
 
 tries to lock any possibilty to connect another input device after
 player is connected to the server
@@ -95,14 +95,14 @@ void IN_LockInputDevices (qboolean lock)
 		{
 		SetBits (m_ignore->flags, FCVAR_READ_ONLY);
 		SetBits (joy_enable->flags, FCVAR_READ_ONLY);
-		//SetBits (touch_enable->flags, FCVAR_READ_ONLY);
+		/*SetBits (touch_enable->flags, FCVAR_READ_ONLY);*/
 		SetBits (touch_enable.flags, FCVAR_READ_ONLY);
 		}
 	else
 		{
 		ClearBits (m_ignore->flags, FCVAR_READ_ONLY);
 		ClearBits (joy_enable->flags, FCVAR_READ_ONLY);
-		//ClearBits (touch_enable->flags, FCVAR_READ_ONLY);
+		/*ClearBits (touch_enable->flags, FCVAR_READ_ONLY);*/
 		ClearBits (touch_enable.flags, FCVAR_READ_ONLY);
 		}
 	}
@@ -115,12 +115,16 @@ IN_StartupMouse
 */
 void IN_StartupMouse (void)
 	{
-	m_ignore = Cvar_Get ("m_ignore", DEFAULT_M_IGNORE, FCVAR_ARCHIVE | FCVAR_FILTERABLE, "ignore mouse events");
-
-	m_pitch = Cvar_Get ("m_pitch", "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "mouse pitch value");
-	m_yaw = Cvar_Get ("m_yaw", "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "mouse yaw value");
-	look_filter = Cvar_Get ("look_filter", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "filter look events making it smoother");
-	m_rawinput = Cvar_Get ("m_rawinput", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable mouse raw input");
+	m_ignore = Cvar_Get ("m_ignore", DEFAULT_M_IGNORE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+		"ignore mouse events");
+	m_pitch = Cvar_Get ("m_pitch", "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+		"mouse pitch value");
+	m_yaw = Cvar_Get ("m_yaw", "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+		"mouse yaw value");
+	look_filter = Cvar_Get ("look_filter", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+		"filter look events making it smoother");
+	m_rawinput = Cvar_Get ("m_rawinput", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+		"enable mouse raw input");
 
 	// You can use -nomouse argument to prevent using mouse from client
 	// -noenginemouse will disable all mouse input
@@ -131,7 +135,6 @@ void IN_StartupMouse (void)
 
 void GAME_EXPORT IN_SetCursor (void *hCursor)
 	{
-	// stub
 	}
 
 /*
@@ -169,7 +172,7 @@ void IN_MouseRestorePos (void)
 
 /*
 ===========
-IN_ToggleClientMouse [Xash3D, 26.03.23]
+IN_ToggleClientMouse [FWGS, 01.04.23]
 
 Called when key_dest is changed
 ===========
@@ -216,7 +219,7 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		IN_ActivateMouse ();
 	}
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 void IN_CheckMouseState (qboolean active)
 	{
 	static qboolean s_bRawInput, s_bMouseGrab;
@@ -236,7 +239,7 @@ void IN_CheckMouseState (qboolean active)
 			SDL_SetRelativeMouseMode (SDL_TRUE);
 #endif
 
-			// Con_Printf( "Enable relative mode\n" );
+			/* Con_Printf( "Enable relative mode\n" );*/
 			s_bRawInput = true;
 			}
 		}
@@ -253,14 +256,14 @@ void IN_CheckMouseState (qboolean active)
 			}
 		}
 
-	if (active && !host.mouse_visible && cls.state == ca_active)
+	if (active && !host.mouse_visible && (cls.state == ca_active))
 		{
 		if (!s_bMouseGrab)
 			{
 #if XASH_SDL
 			SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
 #endif
-			// Con_Printf( "Enable grab\n" );
+			/* Con_Printf( "Enable grab\n" );*/
 			s_bMouseGrab = true;
 			}
 		}
@@ -272,7 +275,7 @@ void IN_CheckMouseState (qboolean active)
 			SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
 #endif
 
-			// Con_Printf( "Disable grab\n" );
+			/* Con_Printf( "Disable grab\n" );*/
 			s_bMouseGrab = false;
 			}
 		}
@@ -318,12 +321,12 @@ void IN_DeactivateMouse (void)
 
 /*
 ================
-IN_MouseMove [Xash3D, 26.03.23]
+IN_MouseMove [FWGS, 01.04.23]
 ================
 */
 void IN_MouseMove (void)
 	{
-	//POINT	current_pos;
+	/*POINT	current_pos;*/
 	int x, y;
 
 	if (!in_mouseinitialized)
@@ -341,7 +344,7 @@ void IN_MouseMove (void)
 
 	// find mouse movement
 	Platform_GetMousePos (&x, &y);
-	//VGui_MouseMove (current_pos.x, current_pos.y);
+	/*VGui_MouseMove (current_pos.x, current_pos.y);*/
 
 	VGui_MouseMove (x, y);
 	/* HACKHACK: show cursor in UI, as mainui doesn't call
@@ -353,12 +356,12 @@ void IN_MouseMove (void)
 
 	// if the menu is visible, move the menu cursor
 	UI_MouseMove (x, y);
-	//UI_MouseMove (current_pos.x, current_pos.y);
+	/*UI_MouseMove (current_pos.x, current_pos.y);*/
 	}
 
 /*
 ===========
-IN_MouseEvent [Xash3D, 26.03.23]
+IN_MouseEvent [FWGS, 01.04.23]
 ===========
 */
 void IN_MouseEvent (int key, int down)
@@ -373,7 +376,7 @@ void IN_MouseEvent (int key, int down)
 	else
 		ClearBits (in_mstate, BIT (key));
 
-	//if (cls.key_dest == key_game)
+	/*if (cls.key_dest == key_game)*/
 
 	// touch emulation overrides all input
 	if (touch_emulate.value)
@@ -384,7 +387,7 @@ void IN_MouseEvent (int key, int down)
 		{
 		// perform button actions
 		VGui_MouseEvent( K_MOUSE1 + key, down );
-		//VGui_KeyEvent (K_MOUSE1 + key, down);
+		/*VGui_KeyEvent (K_MOUSE1 + key, down);*/
 
 		// don't do Key_Event here
 		// client may override IN_MouseEvent
@@ -401,7 +404,7 @@ void IN_MouseEvent (int key, int down)
 
 /*
 ==============
-IN_MWheelEvent [Xash3D, 26.03.23]
+IN_MWheelEvent [FWGS, 01.04.23]
 
 direction is negative for wheel down, otherwise wheel up
 ==============
@@ -431,7 +434,6 @@ void IN_Shutdown (void)
 
 	Touch_Shutdown ();
 	}
-
 
 /*
 ===========

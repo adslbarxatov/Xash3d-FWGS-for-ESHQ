@@ -40,7 +40,7 @@ GNU General Public License for more details.
 	#if XASH_POSIX
 		#include <unistd.h>
 
-		// [Xash3D, 20.03.23]
+		// [FWGS, 01.04.23]
 		#if XASH_NSWITCH
 			#define SOLDER_LIBDL_COMPAT
 			#include <solder.h>
@@ -113,4 +113,4 @@ GNU General Public License for more details.
 #include <SDL.h>
 #endif
 
-#endif // PORT_H
+#endif

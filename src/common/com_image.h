@@ -49,7 +49,7 @@ typedef enum
 	IL_DDS_HARDWARE	= BIT(4),	// DXT compression is support
 	IL_LOAD_DECAL	= BIT(5),	// special mode for load gradient decals
 	IL_OVERVIEW	= BIT(6),	// overview required some unque operations
-	IL_LOAD_PLAYER_DECAL = BIT(7), // [// Xash3D: 20.03.23] special mode for player decals
+	IL_LOAD_PLAYER_DECAL = BIT(7), // [FWGS, 01.04.23] special mode for player decals
 } ilFlags_t;
 
 // goes into rgbdata_t->encode
@@ -111,4 +111,3 @@ typedef struct rgbdata_s
 	rgba_t	fogParams;	// some water textures in hl1 has info about fog color and alpha
 	size_t	size;		// for bounds checking
 } rgbdata_t;
-

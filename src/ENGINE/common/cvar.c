@@ -21,8 +21,9 @@ GNU General Public License for more details.
 convar_t *cvar_vars = NULL; // head of list
 convar_t *cmd_scripting;
 
-// [Xash3D, 31.03.23]
-//CVAR_DEFINE_AUTO (cl_filterstuffcmd, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "filter commands coming from server");
+// [FWGS, 01.04.23]
+/*CVAR_DEFINE_AUTO (cl_filterstuffcmd, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "filter commands coming from server");*/
+
 #ifdef HACKS_RELATED_HLMODS
 typedef struct cvar_filter_quirks_s
 	{
@@ -94,7 +95,7 @@ convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 
 /*
 ============
-Cvar_BuildAutoDescription [Xash3D, 31.03.23]
+Cvar_BuildAutoDescription [FWGS, 01.04.23]
 
 build cvar auto description that based on the setup flags
 ============
@@ -255,7 +256,7 @@ const char *Cvar_ValidateString (convar_t *var, const char *value)
 
 /*
 ============
-Cvar_ValidateVarName [Xash3D, 31.03.23]
+Cvar_ValidateVarName [FWGS, 01.04.23]
 ============
 */
 static qboolean Cvar_ValidateVarName (const char *s, qboolean isvalue)
@@ -420,8 +421,8 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			// change value here: we *already* have actual value from config.
 			// in other cases we need to rewrite them
 			
-			// [Xash3D, 31.03.23]
-			//if (Q_strcmp (var->desc, ""))
+			// [FWGS, 01.04.23]
+			/*if (Q_strcmp (var->desc, ""))*/
 			if (COM_CheckStringEmpty (var->desc))
 				{
 				// directly set value
@@ -484,7 +485,7 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 
 /*
 ============
-Cvar_Getf [Xash3D, 31.03.23]
+Cvar_Getf [FWGS, 01.04.23]
 ============
 */
 convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, const char *format, ...)
@@ -568,7 +569,7 @@ void Cvar_RegisterVariable (convar_t *var)
 
 /*
 ============
-Cvar_Set2 [Xash3D, 31.03.23]
+Cvar_Set2 [FWGS, 01.04.23]
 ============
 */
 static convar_t *Cvar_Set2 (const char *var_name, const char *value)
@@ -956,7 +957,7 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	if (cl_filterstuffcmd.value <= 0.0f)
 		return true;
 
-// [Xash3D, 31.03.23] check if game-specific filter exceptions should be applied
+// [FWGS, 01.04.23] check if game-specific filter exceptions should be applied
 #ifdef HACKS_RELATED_HLMODS
 	if (cvar_active_filter_quirks)
 		{
@@ -965,7 +966,6 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 		cur = cvar_active_filter_quirks->cvars;
 		next = Q_strchr (cur, ';');
 
-		// TODO: implement Q_strchrnul
 		while (cur && *cur)
 			{
 			size_t len = next ? next - cur : Q_strlen (cur);
@@ -1052,7 +1052,7 @@ qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged)
 	else
 		{
 		Cvar_DirectSet (v, Cmd_Argv (1));
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		/*if (host.apply_game_config)
 			host.sv_cvars_restored++;*/
 		return true;
@@ -1097,17 +1097,17 @@ void Cvar_Toggle_f (void)
 
 	v = !Cvar_VariableInteger (Cmd_Argv (1));
 
-	// [Xash3D, 31.03.23]
-	//Cvar_Set (Cmd_Argv (1), va ("%i", v));
+	// [FWGS, 01.04.23]
+	/*Cvar_Set (Cmd_Argv (1), va ("%i", v));*/
 	Cvar_Set (Cmd_Argv (1), v ? "1" : "0");
 	}
 
 /*
 ============
-Cvar_Set_f [Xash3D, 31.03.23]
+Cvar_Set_f [FWGS, 01.04.23]
 
 Allows setting and defining of arbitrary cvars from console, even if they
-weren't declared in C code.
+weren't declared in C code
 ============
 */
 void Cvar_Set_f (void)
@@ -1128,8 +1128,10 @@ void Cvar_Set_f (void)
 		len = Q_strlen (Cmd_Argv (i) + 1);
 		if (l + len >= MAX_CMD_TOKENS - 2)
 			break;
+
 		Q_strcat (combined, Cmd_Argv (i));
-		if (i != c - 1) Q_strcat (combined, " ");
+		if (i != c - 1)
+			Q_strcat (combined, " ");
 		l += len;
 		}
 
@@ -1174,14 +1176,14 @@ void Cvar_Reset_f (void)
 
 /*
 ============
-Cvar_List_f [Xash3D, 31.03.23]
+Cvar_List_f [FWGS, 01.04.23]
 ============
 */
 void Cvar_List_f (void)
 	{
 	convar_t *var;
 	const char *match = NULL;
-	//char *value;
+	/*char *value;*/
 	int	count = 0;
 	size_t	matchlen = 0;
 
@@ -1213,7 +1215,7 @@ void Cvar_List_f (void)
 			Con_Printf (" %-*s %s ^3%s^7\n", 32, var->name, value, var->desc);
 		else 
 			Con_Printf (" %-*s %s ^3%s^7\n", 32, var->name, value, Cvar_BuildAutoDescription (var->name, var->flags));
-			//Con_Printf (" %-*s %s ^3%s^7\n", 32, var->name, value, Cvar_BuildAutoDescription (var->flags));
+			/*Con_Printf (" %-*s %s ^3%s^7\n", 32, var->name, value, Cvar_BuildAutoDescription (var->flags));*/
 
 		count++;
 		}
@@ -1247,7 +1249,7 @@ void Cvar_Unlink (int group)
 
 /*
 ============
-Cvar_Init [Xash3D, 31.03.23]
+Cvar_Init [FWGS, 01.04.23]
 
 Reads in all archived cvars
 ============
@@ -1276,7 +1278,7 @@ void Cvar_Init (void)
 
 /*
 ============
-Cvar_PostFSInit [Xash3D, 31.03.23]
+Cvar_PostFSInit [FWGS, 01.04.23]
 ============
 */
 void Cvar_PostFSInit (void)
@@ -1294,6 +1296,7 @@ void Cvar_PostFSInit (void)
 	}
 
 #if XASH_ENGINE_TESTS
+
 #include "tests.h"
 
 void Test_RunCvar (void)
@@ -1338,4 +1341,5 @@ void Test_RunCvar (void)
 	TASSERT (hud_filtered->value == 0.0f);
 	TASSERT (filtered2->value == 0.0f);
 	}
+
 #endif

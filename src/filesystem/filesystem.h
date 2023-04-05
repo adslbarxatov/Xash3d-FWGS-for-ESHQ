@@ -28,8 +28,8 @@ extern "C"
 	{
 #endif // __cplusplus
 
-#define FS_API_VERSION				2					// [Xash3D, 31.03.23]
-#define FS_API_CREATEINTERFACE_TAG	"XashFileSystem002" // [Xash3D, 31.03.23]
+#define FS_API_VERSION				2					// [FWGS, 01.04.23]
+#define FS_API_CREATEINTERFACE_TAG	"XashFileSystem002" // [FWGS, 01.04.23]
 
 	// search path flags
 	enum
@@ -83,7 +83,7 @@ extern "C"
 		qboolean	nomodels;		// don't let player to choose model (use player.mdl always)
 		qboolean	noskills;		// disable skill menu selection
 		qboolean	render_picbutton_text; // use font renderer to render WON buttons
-		qboolean	internal_vgui_support; // [Xash3D, 31.03.23] skip loading VGUI, pass ingame UI support API to client
+		qboolean	internal_vgui_support; // [FWGS, 01.04.23] skip loading VGUI, pass ingame UI support API to client
 
 		char		sp_entity[32];	// e.g. info_player_start
 		char		mp_entity[32];	// e.g. info_player_deathmatch
@@ -180,8 +180,8 @@ extern "C"
 		qboolean (*Rename)(const char *oldname, const char *newname);
 		qboolean (*Delete)(const char *path);
 		
-		// [Xash3D, 31.03.23]
-		//qboolean (*SysFileExists)(const char *path, qboolean casesensitive);
+		// [FWGS, 01.04.23]
+		/*qboolean (*SysFileExists)(const char *path, qboolean casesensitive);*/
 		qboolean (*SysFileExists)(const char *path);
 
 		const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
@@ -214,6 +214,6 @@ extern "C"
 
 #ifdef __cplusplus
 	}
-#endif // __cplusplus
+#endif
 
-#endif//FILESYSTEM_H
+#endif

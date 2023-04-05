@@ -711,7 +711,7 @@ void SV_SendClientDatagram (sv_client_t *cl)
 	byte	msg_buf[MAX_DATAGRAM];
 	sizebuf_t	msg;
 
-	memset (msg_buf, 0, sizeof (msg_buf));	// [Xash3D, 31.03.23]
+	memset (msg_buf, 0, sizeof (msg_buf));	// [FWGS, 01.04.23]
 	MSG_Init (&msg, "Datagram", msg_buf, sizeof (msg_buf));
 
 	// always send servertime at new frame
@@ -731,7 +731,8 @@ void SV_SendClientDatagram (sv_client_t *cl)
 		{
 		if (MSG_GetNumBytesWritten (&cl->datagram) < MSG_GetNumBytesLeft (&msg))
 			MSG_WriteBits (&msg, MSG_GetData (&cl->datagram), MSG_GetNumBitsWritten (&cl->datagram));
-		else Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow on msg\n", cl->name);
+		else
+			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow on msg\n", cl->name);
 		}
 
 	MSG_Clear (&cl->datagram);

@@ -185,8 +185,8 @@ typedef struct fragbuf_s
 	struct fragbuf_s	*next;				// next buffer in chain
 	int					bufferid;			// id of this buffer
 	sizebuf_t			frag_message;		// message buffer where raw data is stored
-	//byte				frag_message_buf[NET_MAX_FRAGMENT];	// the actual data sits here
-	byte				*frag_message_buf;	// [Xash3D, 31.03.23] the actual data sits here
+	//byte				frag_message_buf[NET_MAX_FRAGMENT];	// [FWGS, 01.04.23] the actual data sits here
+	byte				*frag_message_buf;	// [FWGS, 01.04.23] the actual data sits here
 	qboolean			isfile;				// is this a file buffer?
 	qboolean			isbuffer;			// is this file buffer from memory ( custom decal, etc. ).
 	qboolean			iscompressed;		// is compressed file, we should using filename.ztmp
@@ -198,9 +198,9 @@ typedef struct fragbuf_s
 // Waiting list of fragbuf chains
 typedef struct fbufqueue_s
 	{
-	struct fbufqueue_s *next;		// next chain in waiting list
-	int		fragbufcount;	// number of buffers in this chain
-	fragbuf_t *fragbufs;	// the actual buffers
+	struct fbufqueue_s *next;	// next chain in waiting list
+	int		fragbufcount;		// number of buffers in this chain
+	fragbuf_t *fragbufs;		// the actual buffers
 	} fragbufwaiting_t;
 
 typedef enum fragsize_e
@@ -280,7 +280,7 @@ typedef struct netchan_s
 
 extern netadr_t		net_from;
 extern netadr_t		net_local;
-extern netadr_t		net6_local;	// [Xash3D, 31.03.23]
+extern netadr_t		net6_local;	// [FWGS, 01.04.23]
 extern sizebuf_t	net_message;
 extern byte			net_message_buffer[NET_MAX_MESSAGE];
 extern convar_t		sv_lan;
@@ -309,4 +309,4 @@ void Netchan_ReportFlow (netchan_t *chan);
 void Netchan_FragSend (netchan_t *chan);
 void Netchan_Clear (netchan_t *chan);
 
-#endif//NET_MSG_H
+#endif

@@ -16,7 +16,7 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-// [Xash3D, 20.03.23]
+// [FWGS, 01.04.23]
 #include "build.h"
 #include STDINT_H
 #include "synctype.h"
@@ -36,7 +36,7 @@ SPRITE MODELS
 #define SPRITE_VERSION_HL	2				// Half-Life sprites
 #define SPRITE_VERSION_32	32				// Captain Obvious mode on
 
-/* [Xash3D, 20.03.23] must match definition in alias.h
+/* [FWGS, 01.04.23] must match definition in alias.h
 #ifndef SYNCTYPE_T
 #define SYNCTYPE_T
 typedef enum
@@ -77,7 +77,7 @@ typedef enum
 	SPR_CULL_NONE,			// oriented sprite will be draw back face too
 	} facetype_t;
 
-// [Xash3D, 20.03.23] generic helper
+// [FWGS, 01.04.23] generic helper
 typedef struct
 	{
 	int32_t		ident;		// LittleLong 'ISPR'

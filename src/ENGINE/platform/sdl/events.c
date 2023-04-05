@@ -91,7 +91,7 @@ GNU General Public License for more details.
 #define SDL_JoystickID Uint8
 #endif
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static int SDLash_GameControllerButtonMapping[] =
 	{
 	#if XASH_NSWITCH // devkitPro/SDL has inverted Nintendo layout for SDL_GameController
@@ -112,12 +112,12 @@ static int SDLash_GameControllerButtonMapping[] =
 // LeftX, LeftY, RightX, RightY, TriggerRight, TriggerLeft
 static int SDLash_GameControllerAxisMapping[] =
 	{
-		JOY_AXIS_SIDE, // SDL_CONTROLLER_AXIS_LEFTX,
-		JOY_AXIS_FWD, // SDL_CONTROLLER_AXIS_LEFTY,
-		JOY_AXIS_PITCH, // SDL_CONTROLLER_AXIS_RIGHTX,
-		JOY_AXIS_YAW, // SDL_CONTROLLER_AXIS_RIGHTY,
-		JOY_AXIS_LT, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
-		JOY_AXIS_RT, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+		JOY_AXIS_SIDE,	// SDL_CONTROLLER_AXIS_LEFTX,
+		JOY_AXIS_FWD,	// SDL_CONTROLLER_AXIS_LEFTY,
+		JOY_AXIS_PITCH,	// SDL_CONTROLLER_AXIS_RIGHTX,
+		JOY_AXIS_YAW,	// SDL_CONTROLLER_AXIS_RIGHTY,
+		JOY_AXIS_LT,	// SDL_CONTROLLER_AXIS_TRIGGERLEFT,
+		JOY_AXIS_RT,	// SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
 	};
 
 static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
@@ -646,7 +646,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 	{
 	switch (event->type)
 		{
-		/* Mouse events */
+		// Mouse events
 		case SDL_MOUSEMOTION:
 			if (host.mouse_visible)
 				SDL_GetRelativeMouseState (NULL, NULL);
@@ -657,13 +657,13 @@ static void SDLash_EventFilter (SDL_Event *event)
 			SDLash_MouseEvent (event->button);
 			break;
 
-			/* Keyboard events */
+		// Keyboard events
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
 			SDLash_KeyEvent (event->key);
 			break;
 
-			/* Joystick events */
+		// Joystick events
 		case SDL_JOYAXISMOTION:
 			if (!SDLash_IsInstanceIDAGameController (event->jaxis.which))
 				Joy_AxisMotionEvent (event->jaxis.axis, event->jaxis.value);
@@ -688,16 +688,17 @@ static void SDLash_EventFilter (SDL_Event *event)
 		case SDL_QUIT:
 			Sys_Quit ();
 			break;
+
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 		case SDL_MOUSEWHEEL:
-			// [Xash3D, 31.03.23]
+			// [FWGS, 01.04.23]
 			/*int wheelbutton = event->wheel.y < 0 ? K_MWHEELDOWN : K_MWHEELUP;
 			Key_Event (wheelbutton, true);
 			Key_Event (wheelbutton, false);*/
 			IN_MWheelEvent (event->wheel.y);
 			break;
 
-			/* Touch events */
+		// Touch events
 		case SDL_FINGERDOWN:
 		case SDL_FINGERUP:
 		case SDL_FINGERMOTION:
@@ -751,7 +752,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			break;
 			}
 
-			/* IME */
+		// IME
 		case SDL_TEXTINPUT:
 			SDLash_InputEvent (event->text);
 			break;
@@ -763,21 +764,9 @@ static void SDLash_EventFilter (SDL_Event *event)
 			Joy_RemoveEvent ();
 			break;
 
-			/* GameController API */
+		// GameController API
 		case SDL_CONTROLLERAXISMOTION:
 			{
-			/* Swap axis to follow default axis binding:
-			// LeftX, LeftY, RightX, RightY, TriggerRight, TriggerLeft
-			static int sdlControllerAxisToEngine[] = {
-				JOY_AXIS_SIDE, // SDL_CONTROLLER_AXIS_LEFTX,
-				JOY_AXIS_FWD, // SDL_CONTROLLER_AXIS_LEFTY,
-				JOY_AXIS_PITCH, // SDL_CONTROLLER_AXIS_RIGHTX,
-				JOY_AXIS_YAW, // SDL_CONTROLLER_AXIS_RIGHTY,
-				JOY_AXIS_LT, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
-				JOY_AXIS_RT, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
-				};
-			if (Joy_IsActive () && event->caxis.axis != (Uint8)SDL_CONTROLLER_AXIS_INVALID)
-				Joy_KnownAxisMotionEvent (sdlControllerAxisToEngine[event->caxis.axis], event->caxis.value);*/
 			if (!Joy_IsActive ())
 				break;
 
@@ -789,7 +778,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 		case SDL_CONTROLLERBUTTONDOWN:
 		case SDL_CONTROLLERBUTTONUP:
 			{
-			// [Xash3D, 31.03.23]
+			// [FWGS, 01.04.23]
 			/*static int sdlControllerButtonToEngine[] =
 				{
 					K_A_BUTTON, K_B_BUTTON, K_X_BUTTON,	K_Y_BUTTON,
@@ -801,10 +790,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			if (!Joy_IsActive ())
 				break;
 
-			/* TODO: Use joyinput funcs, for future multiple gamepads support
-			if (Joy_IsActive () && event->cbutton.button != (Uint8)SDL_CONTROLLER_BUTTON_INVALID)
-				Key_Event (sdlControllerButtonToEngine[event->cbutton.button], event->cbutton.state);*/
-			if (event->cbutton.button >= 0 && event->cbutton.button < ARRAYSIZE (SDLash_GameControllerButtonMapping))
+			if ((event->cbutton.button >= 0) && (event->cbutton.button < ARRAYSIZE (SDLash_GameControllerButtonMapping)))
 				Key_Event (SDLash_GameControllerButtonMapping[event->cbutton.button], event->cbutton.state);
 			break;
 			}
@@ -821,7 +807,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			if (event->window.windowID != SDL_GetWindowID (host.hWnd))
 				return;
 
-			if (host.status == HOST_SHUTDOWN || Host_IsDedicated ())
+			if ((host.status == HOST_SHUTDOWN) || Host_IsDedicated ())
 				break; // no need to activate
 
 			switch (event->window.event)
@@ -833,10 +819,12 @@ static void SDLash_EventFilter (SDL_Event *event)
 						Cvar_SetValue ("_window_ypos", (float)event->window.data2);
 						}
 					break;
+
 				case SDL_WINDOWEVENT_MINIMIZED:
 					host.status = HOST_SLEEP;
 					VID_RestoreScreenResolution ();
 					break;
+
 				case SDL_WINDOWEVENT_RESTORED:
 					host.status = HOST_FRAME;
 					host.force_draw_version = true;
@@ -844,12 +832,14 @@ static void SDLash_EventFilter (SDL_Event *event)
 					if (vid_fullscreen->value)
 						VID_SetMode ();
 					break;
+
 				case SDL_WINDOWEVENT_FOCUS_GAINED:
 					SDLash_ActiveEvent (true);
 					break;
 				case SDL_WINDOWEVENT_FOCUS_LOST:
 					SDLash_ActiveEvent (false);
 					break;
+
 				case SDL_WINDOWEVENT_RESIZED:
 					{
 					if (vid_fullscreen->value)
@@ -858,6 +848,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 					VID_SaveWindowSize (event->window.data1, event->window.data2);
 					break;
 					}
+
 				default:
 					break;
 				}
@@ -885,7 +876,7 @@ void Platform_RunEvents (void)
 		SDLash_EventFilter (&event);
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_PSVITA
 	PSVita_InputUpdate ();
 #endif
@@ -900,7 +891,6 @@ void *Platform_GetNativeObject (const char *name)
 Platform_PreCreateMove
 
 this should disable mouse look on client when m_ignore enabled
-TODO: kill mouse in win32 clients too
 ========================
 */
 void Platform_PreCreateMove (void)

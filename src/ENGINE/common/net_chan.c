@@ -245,14 +245,16 @@ void Netchan_Init (void)
 	// pick a port value that should be nice and random
 	port = COM_RandomLong (1, 65535);
 
-	net_showpackets = Cvar_Get ("net_showpackets", "0", 0, "show network packets");
-	net_chokeloopback = Cvar_Get ("net_chokeloop", "0", 0, "apply bandwidth choke to loopback packets");
-	net_showdrop = Cvar_Get ("net_showdrop", "0", 0, "show packets that are dropped");
+	net_showpackets = Cvar_Get ("net_showpackets", "0", 0,
+		"show network packets");
+	net_chokeloopback = Cvar_Get ("net_chokeloop", "0", 0,
+		"apply bandwidth choke to loopback packets");
+	net_showdrop = Cvar_Get ("net_showdrop", "0", 0,
+		"show packets that are dropped");
 
-	// [Xash3D, 31.03.23]
-	//net_qport = Cvar_Get ("net_qport", va ("%i", port), FCVAR_READ_ONLY, "current quake netport");
+	// [FWGS, 01.04.23]
+	/*net_qport = Cvar_Get ("net_qport", va ("%i", port), FCVAR_READ_ONLY, "current quake netport");*/
 	net_qport = Cvar_Getf ("net_qport", FCVAR_READ_ONLY, "current quake netport", "%i", port);
-
 	net_mempool = Mem_AllocPool ("Network Pool");
 
 	MSG_InitMasks ();	// initialize bit-masks
@@ -400,14 +402,14 @@ void Netchan_UnlinkFragment (fragbuf_t *buf, fragbuf_t **list)
 /*
 ==============================
 Netchan_ClearFragbufs
-
 ==============================
 */
 void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 	{
 	fragbuf_t *buf, *n;
 
-	if (!ppbuf) return;
+	if (!ppbuf)
+		return;
 
 	// Throw away any that are sitting around
 	buf = *ppbuf;
@@ -415,7 +417,7 @@ void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 	while (buf)
 		{
 		n = buf->next;
-		Mem_Free (buf->frag_message_buf);	// [Xash3D, 31.03.23]
+		Mem_Free (buf->frag_message_buf);	// [FWGS, 01.04.23]
 		Mem_Free (buf);
 		buf = n;
 		}
@@ -426,7 +428,6 @@ void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 /*
 ==============================
 Netchan_ClearFragments
-
 ==============================
 */
 void Netchan_ClearFragments (netchan_t *chan)
@@ -533,7 +534,7 @@ void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, .
 
 /*
 ==============================
-Netchan_AllocFragbuf [Xash3D, 31.03.23]
+Netchan_AllocFragbuf [FWGS, 01.04.23]
 ==============================
 */
 //fragbuf_t *Netchan_AllocFragbuf (void)
@@ -542,7 +543,7 @@ fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	fragbuf_t *buf;
 
 	buf = (fragbuf_t *)Mem_Calloc (net_mempool, sizeof (fragbuf_t));
-	//MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, sizeof (buf->frag_message_buf));
+	/*MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, sizeof (buf->frag_message_buf));*/
 	buf->frag_message_buf = (byte *)Mem_Calloc (net_mempool, fragment_size);
 	MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, fragment_size);
 
@@ -552,7 +553,6 @@ fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 /*
 ==============================
 Netchan_AddFragbufToTail
-
 ==============================
 */
 void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
@@ -569,7 +569,10 @@ void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
 			p = p->next;
 		p->next = buf;
 		}
-	else wait->fragbufs = buf;
+	else
+		{
+		wait->fragbufs = buf;
+		}
 	}
 
 /*
@@ -741,8 +744,8 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 		bytes = Q_min (remaining, chunksize);
 		remaining -= bytes;
 
-		// [Xash3D, 31.03.23]
-		//buf = Netchan_AllocFragbuf ();
+		// [FWGS, 01.04.23]
+		/*buf = Netchan_AllocFragbuf ();*/
 		buf = Netchan_AllocFragbuf (bytes);
 		buf->bufferid = bufferid++;
 
@@ -772,7 +775,6 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 /*
 ==============================
 Netchan_CreateFragments
-
 ==============================
 */
 void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg)
@@ -790,7 +792,6 @@ void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg)
 /*
 ==============================
 Netchan_FindBufferById
-
 ==============================
 */
 fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate)
@@ -809,8 +810,8 @@ fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate
 	if (!allocate)
 		return NULL;
 
-	// [Xash3D, 31.03.23] create new entry
-	//pnewbuf = Netchan_AllocFragbuf ();
+	// [FWGS, 01.04.23] create new entry
+	/*pnewbuf = Netchan_AllocFragbuf ();*/
 	pnewbuf = Netchan_AllocFragbuf (NET_MAX_FRAGMENT);
 	pnewbuf->bufferid = id;
 	Netchan_AddBufferToList (pplist, pnewbuf);
@@ -821,7 +822,6 @@ fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate
 /*
 ==============================
 Netchan_CheckForCompletion
-
 ==============================
 */
 void Netchan_CheckForCompletion (netchan_t *chan, int stream, int intotalbuffers)
@@ -834,7 +834,8 @@ void Netchan_CheckForCompletion (netchan_t *chan, int stream, int intotalbuffers
 	c = 0;
 
 	p = chan->incomingbufs[stream];
-	if (!p) return;
+	if (!p)
+		return;
 
 	while (p)
 		{
@@ -903,8 +904,8 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 		{
 		send = Q_min (remaining, chunksize);
 
-		// [Xash3D, 31.03.23]
-		//buf = Netchan_AllocFragbuf ();
+		// [FWGS, 01.04.23]
+		/*buf = Netchan_AllocFragbuf ();*/
 		buf = Netchan_AllocFragbuf (send);
 		buf->bufferid = bufferid++;
 
@@ -953,7 +954,6 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 /*
 ==============================
 Netchan_CreateFileFragments
-
 ==============================
 */
 int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
@@ -963,7 +963,7 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	int		remaining;
 	int		bufferid = 1;
 	fs_offset_t	filesize = 0;
-	char		compressedfilename[MAX_OSPATH];
+	char	compressedfilename[MAX_OSPATH];
 	int		compressedFileTime;
 	int		fileTime;
 	qboolean		firstfragment = true;
@@ -979,7 +979,8 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 
 	if (chan->pfnBlockSize != NULL)
 		chunksize = chan->pfnBlockSize (chan->client, FRAGSIZE_FRAG);
-	else chunksize = FRAGMENT_MAX_SIZE; // fallback
+	else
+		chunksize = FRAGMENT_MAX_SIZE; // fallback
 
 	Q_strncpy (compressedfilename, filename, sizeof (compressedfilename));
 	COM_ReplaceExtension (compressedfilename, ".ztmp");
@@ -988,8 +989,8 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 
 	if (compressedFileTime >= fileTime)
 		{
-		// [Xash3D, 31.03.23] if compressed file already created and newer than source
-		//if (FS_FileSize (compressedfilename, false) != -1)
+		// [FWGS, 01.04.23] if compressed file already created and newer than source
+		/*if (FS_FileSize (compressedfilename, false) != -1)*/
 		fs_offset_t compressedSize = FS_FileSize (compressedfilename, false);
 		if (compressedSize != -1)
 			{
@@ -1000,8 +1001,8 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	else
 		{
 		uint	uCompressedSize;
-		byte *uncompressed;
-		byte *compressed;
+		byte	*uncompressed;
+		byte	*compressed;
 
 		uncompressed = FS_LoadFile (filename, &filesize, false);
 		compressed = LZSS_Compress (uncompressed, filesize, &uCompressedSize);
@@ -1025,8 +1026,8 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 		{
 		send = Q_min (remaining, chunksize);
 
-		// [Xash3D, 31.03.23]
-		//buf = Netchan_AllocFragbuf ();
+		// [FWGS, 01.04.23]
+		/*buf = Netchan_AllocFragbuf ();*/
 		buf = Netchan_AllocFragbuf (send);
 		buf->bufferid = bufferid++;
 
@@ -1199,14 +1200,14 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 		Netchan_FlushIncoming (chan, FRAG_FILE_STREAM);
 		return false;
 		}
-	else if (filename[0] != '!' && !COM_IsSafeFileToDownload (filename))
+	else if ((filename[0] != '!') && !COM_IsSafeFileToDownload (filename))
 		{
 		Con_Printf (S_ERROR "file fragment received with bad path, ignoring\n");
 		Netchan_FlushIncoming (chan, FRAG_FILE_STREAM);
 		return false;
 		}
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	if (filename[0] != '!')
 		{
 		string temp_filename;
@@ -1606,7 +1607,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 			}
 		}
 
-	memset (send_buf, 0, sizeof (send_buf));	// [Xash3D, 31.03.23]
+	memset (send_buf, 0, sizeof (send_buf));	// [FWGS, 01.04.23]
 	MSG_Init (&send, "NetSend", send_buf, sizeof (send_buf));
 
 	// prepare the packet header
@@ -1634,9 +1635,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 
 	// send the qport if we are a client
 	if (chan->sock == NS_CLIENT)
-		{
 		MSG_WriteWord (&send, Cvar_VariableInteger ("net_qport"));
-		}
 
 	if (send_reliable && send_reliable_fragment)
 		{

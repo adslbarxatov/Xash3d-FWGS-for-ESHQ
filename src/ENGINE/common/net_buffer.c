@@ -27,7 +27,7 @@ GNU General Public License for more details.
 static dword	BitWriteMasks[32][33];
 static dword	ExtraMasks[32];
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 /*unsigned short MSG_BigShort (unsigned short swap)
 	{
 	return (swap >> 8) | (swap << 8);
@@ -374,8 +374,8 @@ void MSG_WriteBitFloat (sizebuf_t *sb, float val)
 	Assert (sizeof (int) == sizeof (float));
 	Assert (sizeof (float) == 4);
 
-	// [Xash3D, 31.03.23]
-	//intVal = *((int *)&val);
+	// [FWGS, 01.04.23]
+	/*intVal = *((int *)&val);*/
 	intVal = FloatAsInt (val);
 	MSG_WriteUBitLong (sb, intVal, 32);
 	}
@@ -465,7 +465,7 @@ qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr)
 	return !sb->bOverflow;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...)
 	{
 	va_list va;
@@ -486,6 +486,7 @@ int MSG_ReadOneBit (sizebuf_t *sb)
 		sb->iCurBit++;
 		return !!value;
 		}
+
 	return 0;
 	}
 
@@ -560,8 +561,8 @@ float MSG_ReadBitFloat (sizebuf_t *sb)
 		val |= ((int)sb->pData[byte + 4]) << (32 - bit);
 	sb->iCurBit += 32;
 
-	// [Xash3D, 31.03.23]
-	//return *((float *)&val);
+	// [FWGS, 01.04.23]
+	/*return *((float *)&val);*/
 	return IntAsFloat (val);
 	}
 
@@ -570,8 +571,8 @@ qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)
 	byte *pOut = (byte *)pOutData;
 	int	nBitsLeft = nBits;
 
-	// get output dword-aligned.
-	while (((dword)pOut & 3) != 0 && nBitsLeft >= 8)
+	// get output dword-aligned
+	while ((  ((dword)pOut & 3)  != 0) && (nBitsLeft >= 8))
 		{
 		*pOut = (byte)MSG_ReadUBitLong (sb, 8);
 		++pOut;

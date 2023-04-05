@@ -44,7 +44,7 @@ static int	g_userid = 1;
 
 /*
 =================
-SV_GetPlayerCount [Xash3D, 31.03.23]
+SV_GetPlayerCount [FWGS, 01.04.23]
 =================
 */
 //static void SV_GetPlayerCount (int *players, int *bots)
@@ -422,8 +422,9 @@ void SV_ConnectClient (netadr_t from)
 	memset (newcl->viewentity, 0, sizeof (newcl->viewentity));
 	newcl->num_viewents = 0;
 	
-	// [Xash3D, 31.03.23]
-	//newcl->listeners = 0;
+	// [FWGS, 01.04.23]
+	/*newcl->listeners = 0;*/
+	
 	// HACKHACK: can hear all players by default to avoid issues
 	// with server.dll without voice game manager
 	newcl->listeners = -1;
@@ -435,9 +436,9 @@ void SV_ConnectClient (netadr_t from)
 	Q_strncpy (newcl->hashedcdkey, Info_ValueForKey (protinfo, "uuid"), 32);
 	newcl->hashedcdkey[32] = '\0';
 
-	// [Xash3D, 31.03.23] build protinfo answer
+	// [FWGS, 01.04.23] build protinfo answer
 	protinfo[0] = '\0';
-	//Info_SetValueForKey (protinfo, "ext", va ("%d", newcl->extensions), sizeof (protinfo));
+	/*Info_SetValueForKey (protinfo, "ext", va ("%d", newcl->extensions), sizeof (protinfo));*/
 	Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", newcl->extensions);
 
 	// send the connect packet to the client
@@ -448,8 +449,6 @@ void SV_ConnectClient (netadr_t from)
 	newcl->cl_updaterate = 0.05;	// 20 fps as default
 	newcl->delta_sequence = -1;
 	newcl->flags = 0;
-
-
 
 	// reset any remaining events
 	memset (&newcl->events, 0, sizeof (newcl->events));
@@ -847,7 +846,7 @@ void SV_Ack (netadr_t from)
 
 /*
 ================
-SV_Info [Xash3D, 31.03.23]
+SV_Info [FWGS, 01.04.23]
 
 Responds with short info for broadcast scans
 The second parameter should be the current protocol version number.
@@ -855,7 +854,7 @@ The second parameter should be the current protocol version number.
 */
 void SV_Info (netadr_t from, int protocolVersion)
 	{
-	//char	string[MAX_INFO_STRING];
+	/*char	string[MAX_INFO_STRING];*/
 	char s[512];
 
 	// ignore in single player
@@ -957,7 +956,7 @@ void SV_BuildNetAnswer (netadr_t from)
 		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, svs.serverinfo);
 		}
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	else if (type == NETAPI_REQUEST_PLAYERS)
 		{
 		size_t len = 0;
@@ -1001,7 +1000,7 @@ void SV_BuildNetAnswer (netadr_t from)
 		Info_SetValueForKey (string, "hostname", hostname.string, MAX_INFO_STRING);
 		Info_SetValueForKey (string, "gamedir", GI->gamefolder, MAX_INFO_STRING);
 		
-		// [Xash3D, 31.03.23]
+		// [FWGS, 01.04.23]
 		/*Info_SetValueForKey (string, "current", va ("%i", count), MAX_INFO_STRING);
 		Info_SetValueForKey (string, "max", va ("%i", svs.maxclients), MAX_INFO_STRING);*/
 		Info_SetValueForKeyf (string, "current", MAX_INFO_STRING, "%i", count);
@@ -1063,7 +1062,7 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 	char		remaining[1024];
 	int			i;
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	if (!rcon_enable.value)
 		return;
 
@@ -1081,7 +1080,10 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 			}
 		Cmd_ExecuteString (remaining);
 		}
-	else Con_Printf (S_ERROR "Bad rcon_password.\n");
+	else
+		{
+		Con_Printf (S_ERROR "Bad rcon_password.\n");
+		}
 
 	SV_EndRedirect ();
 	}
@@ -1448,8 +1450,8 @@ void SV_PutClientInServer (sv_client_t *cl)
 		{
 		MSG_BeginServerCmd (&msg, svc_stufftext);
 		
-		// [Xash3D, 31.03.23]
-		//MSG_WriteString (&msg, va ("cd loop %3d\n", svgame.globals->cdAudioTrack));
+		// [FWGS, 01.04.23]
+		/*MSG_WriteString (&msg, va ("cd loop %3d\n", svgame.globals->cdAudioTrack));*/
 		MSG_WriteStringf (&msg, "cd loop %3d\n", svgame.globals->cdAudioTrack);
 
 		svgame.globals->cdAudioTrack = 0;
@@ -1664,7 +1666,7 @@ static qboolean SV_New_f (sv_client_t *cl)
 	sizebuf_t	msg;
 	int			i;
 
-	memset (msg_buf, 0, sizeof (msg_buf));	// [Xash3D, 31.03.23]
+	memset (msg_buf, 0, sizeof (msg_buf));	// [FWGS, 01.04.23]
 	MSG_Init (&msg, "New", msg_buf, sizeof (msg_buf));
 
 	if (cl->state != cs_connected)
@@ -1673,7 +1675,7 @@ static qboolean SV_New_f (sv_client_t *cl)
 	// send the serverdata
 	SV_SendServerdata (&msg, cl);
 
-	// if the client was connected, tell the game .dll to disconnect him/her.
+	// if the client was connected, tell the game .dll to disconnect him/her
 	if ((cl->state == cs_spawned) && cl->edict)
 		svgame.dllFuncs.pfnClientDisconnect (cl->edict);
 
@@ -1690,9 +1692,9 @@ static qboolean SV_New_f (sv_client_t *cl)
 		return true;
 		}
 
-	// [Xash3D, 31.03.23] server info string
+	// [FWGS, 01.04.23] server info string
 	MSG_BeginServerCmd (&msg, svc_stufftext);
-	//MSG_WriteString (&msg, va ("fullserverinfo \"%s\"\n", SV_Serverinfo ()));
+	/*MSG_WriteString (&msg, va ("fullserverinfo \"%s\"\n", SV_Serverinfo ()));*/
 	MSG_WriteStringf (&msg, "fullserverinfo \"%s\"\n", SV_Serverinfo ());
 
 	// collect the info about all the players and send to me
@@ -2016,7 +2018,7 @@ static qboolean SV_SendRes_f (sv_client_t *cl)
 	if (cl->state != cs_connected)
 		return false;
 
-	memset (buffer, 0, sizeof (buffer));	// [Xash3D, 31.03.23]
+	memset (buffer, 0, sizeof (buffer));	// [FWGS, 01.04.23]
 	MSG_Init (&msg, "SendResources", buffer, sizeof (buffer));
 
 	if ((svs.maxclients > 1) && FBitSet (cl->flags, FCL_SEND_RESOURCES))
@@ -2169,13 +2171,13 @@ static qboolean SV_Begin_f (sv_client_t *cl)
 
 	// now client is spawned
 	cl->state = cs_spawned;
-	cl->connecttime = host.realtime;	// [Xash3D, 31.03.23]
+	cl->connecttime = host.realtime;	// [FWGS, 01.04.23]
 	return true;
 	}
 
 /*
 ==================
-SV_SendBuildInfo_f [Xash3D, 31.03.23]
+SV_SendBuildInfo_f [FWGS, 01.04.23]
 ==================
 */
 static qboolean SV_SendBuildInfo_f (sv_client_t *cl)
@@ -2189,7 +2191,7 @@ static qboolean SV_SendBuildInfo_f (sv_client_t *cl)
 
 /*
 ==================
-SV_GetCrossEnt [Xash3D, 31.03.23]
+SV_GetCrossEnt [FWGS, 01.04.23]
 ==================
 */
 static edict_t *SV_GetCrossEnt (edict_t *player)
@@ -2290,7 +2292,7 @@ static edict_t *SV_GetCrossEnt (edict_t *player)
 
 /*
 ==================
-SV_EntFindSingle [Xash3D, 31.03.23]
+SV_EntFindSingle [FWGS, 01.04.23]
 ==================
 */
 static edict_t *SV_EntFindSingle (sv_client_t *cl, const char *pattern)
@@ -2356,7 +2358,7 @@ static edict_t *SV_EntFindSingle (sv_client_t *cl, const char *pattern)
 
 /*
 ===============
-SV_EntList_f [Xash3D, 31.03.23]
+SV_EntList_f [FWGS, 01.04.23]
 
 Print list of entities to client
 ===============
@@ -2409,7 +2411,7 @@ static qboolean SV_EntList_f (sv_client_t *cl)
 
 /*
 ===============
-SV_EntInfo_f [Xash3D, 31.03.23]
+SV_EntInfo_f [FWGS, 01.04.23]
 
 Print specified entity information to client
 ===============
@@ -2474,7 +2476,7 @@ static qboolean SV_EntInfo_f (sv_client_t *cl)
 
 /*
 ===============
-SV_EntFire_f [Xash3D, 31.03.23]
+SV_EntFire_f [FWGS, 01.04.23]
 
 Perform some actions
 ===============
@@ -2811,7 +2813,7 @@ static qboolean SV_EntFire_f (sv_client_t *cl)
 
 /*
 ===============
-SV_EntSendVars [Xash3D, 31.03.23]
+SV_EntSendVars [FWGS, 01.04.23]
 ===============
 */
 static void SV_EntSendVars (sv_client_t *cl, edict_t *ent)
@@ -2836,7 +2838,7 @@ static void SV_EntSendVars (sv_client_t *cl, edict_t *ent)
 
 /*
 ===============
-SV_EntCreate_f [Xash3D, 31.03.23]
+SV_EntCreate_f [FWGS, 01.04.23]
 
 Create new entity with specified name
 ===============
@@ -2946,7 +2948,7 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 		Q_snprintf (newname, sizeof (newname), "%s_%i_e%i", clientname, cl->userid, NUM_FOR_EDICT (ent));
 
 		// i know, it may break strict aliasing rules
-		// but we will not lose anything in this case.
+		// but we will not lose anything in this case
 		Q_strnlwr (newname, newname, sizeof (newname));
 		ent->v.targetname = ALLOC_STRING (newname);
 		SV_EntSendVars (cl, ent);
@@ -2958,10 +2960,10 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 	if (svgame.dllFuncs.pfnSpawn)
 		svgame.dllFuncs.pfnSpawn (ent);
 
-	// now drop entity to floor.
+	// now drop entity to floor
 	pfnDropToFloor (ent);
 
-	// force think. Otherwise given weapon may crash server if player touch it before.
+	// force think. Otherwise given weapon may crash server if player touch it before
 	svgame.dllFuncs.pfnThink (ent);
 	pfnDropToFloor (ent);
 
@@ -2990,7 +2992,7 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 	return true;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static qboolean SV_EntGetVars_f (sv_client_t *cl)
 	{
 	edict_t *ent = NULL;
@@ -3032,7 +3034,7 @@ ucmd_t ucmds[] =
 	{ NULL, NULL }
 	};
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 ucmd_t enttoolscmds[] =
 	{
 	{ "ent_list", SV_EntList_f },
@@ -3066,7 +3068,7 @@ void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 			}
 		}
 
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	if (!u->name && (sv_enttools_enable.value > 0.0f) && !sv.background)
 		{
 		for (u = enttoolscmds; u->name; u++)
@@ -3197,19 +3199,30 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	pcmd = Cmd_Argv (0);
 	Con_Reportf ("SV_ConnectionlessPacket: %s : %s\n", NET_AdrToString (from), pcmd);
 
-	if (!Q_strcmp (pcmd, "ping")) SV_Ping (from);
-	else if (!Q_strcmp (pcmd, "ack")) SV_Ack (from);
-	else if (!Q_strcmp (pcmd, "info")) SV_Info (from, Q_atoi (Cmd_Argv (1)));
-	else if (!Q_strcmp (pcmd, "bandwidth")) SV_TestBandWidth (from);
-	else if (!Q_strcmp (pcmd, "getchallenge")) SV_GetChallenge (from);
-	else if (!Q_strcmp (pcmd, "connect")) SV_ConnectClient (from);
-	else if (!Q_strcmp (pcmd, "rcon")) SV_RemoteCommand (from, msg);
-	else if (!Q_strcmp (pcmd, "netinfo")) SV_BuildNetAnswer (from);
-	else if (!Q_strcmp (pcmd, "s")) SV_AddToMaster (from, msg);
-	else if (!Q_strcmp (pcmd, "T" "Source")) SV_TSourceEngineQuery (from);
-	else if (!Q_strcmp (pcmd, "i")) NET_SendPacket (NS_SERVER, 5, "\xFF\xFF\xFF\xFFj", from); // A2A_PING
+	if (!Q_strcmp (pcmd, "ping"))
+		SV_Ping (from);
+	else if (!Q_strcmp (pcmd, "ack"))
+		SV_Ack (from);
+	else if (!Q_strcmp (pcmd, "info"))
+		SV_Info (from, Q_atoi (Cmd_Argv (1)));
+	else if (!Q_strcmp (pcmd, "bandwidth"))
+		SV_TestBandWidth (from);
+	else if (!Q_strcmp (pcmd, "getchallenge"))
+		SV_GetChallenge (from);
+	else if (!Q_strcmp (pcmd, "connect"))
+		SV_ConnectClient (from);
+	else if (!Q_strcmp (pcmd, "rcon"))
+		SV_RemoteCommand (from, msg);
+	else if (!Q_strcmp (pcmd, "netinfo"))
+		SV_BuildNetAnswer (from);
+	else if (!Q_strcmp (pcmd, "s")) 
+		SV_AddToMaster (from, msg);
+	else if (!Q_strcmp (pcmd, "T" "Source"))
+		SV_TSourceEngineQuery (from);
+	else if (!Q_strcmp (pcmd, "i"))
+		NET_SendPacket (NS_SERVER, 5, "\xFF\xFF\xFF\xFFj", from); // A2A_PING
 	
-	// [Xash3D, 31.03.23]
+	// [FWGS, 01.04.23]
 	/*else if (!Q_strcmp (pcmd, "c"))
 		{
 		qboolean sv_nat = Cvar_VariableInteger ("sv_nat");
@@ -3221,7 +3234,6 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		if (NET_StringToAdr (Cmd_Argv (1), &to) && !NET_IsReservedAdr (to))
 			SV_Info (to, PROTOCOL_VERSION);
 		}
-		//}
 
 	else if (svgame.dllFuncs.pfnConnectionlessPacket (&from, args, buf, &len))
 		{
@@ -3529,8 +3541,8 @@ void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 
 	for (i = 0, cur = svs.clients; i < svs.maxclients; i++, cur++)
 		{
-		// [Xash3D, 31.03.23]
-		//if (cur->state < cs_connected && cl != cur)
+		// [FWGS, 01.04.23]
+		/*if (cur->state < cs_connected && cl != cur)*/
 		if (cl != cur)
 			{
 			if (cur->state < cs_connected)

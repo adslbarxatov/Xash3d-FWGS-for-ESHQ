@@ -37,7 +37,7 @@ double Platform_DoubleTime (void);
 void Platform_Sleep (int msec);
 void Platform_ShellExecute (const char *path, const char *parms);
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow);
-qboolean Sys_DebuggerPresent (void);	// [Xash3D, 31.03.23] optional, see Sys_DebugBreak
+qboolean Sys_DebuggerPresent (void);	// [FWGS, 01.04.23] optional, see Sys_DebugBreak
 
 #if XASH_ANDROID
 	const char *Android_GetAndroidID (void);
@@ -51,7 +51,7 @@ qboolean Sys_DebuggerPresent (void);	// [Xash3D, 31.03.23] optional, see Sys_Deb
 	static inline void Platform_UpdateStatusLine (void) {}
 #endif
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_NSWITCH
 	void NSwitch_Init (void);
 	void NSwitch_Shutdown (void);
@@ -145,7 +145,6 @@ void *SW_LockBuffer (void);
 void SW_UnlockBuffer (void);
 qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *r, uint *g, uint *b);
 
-
 //
 // in_evdev.c
 //
@@ -169,13 +168,10 @@ void SNDDMA_Shutdown (void);
 void SNDDMA_BeginPainting (void);
 void SNDDMA_Submit (void);
 void SNDDMA_Activate (qboolean active); // pause audio
-// void SNDDMA_PrintDeviceName( void ); // unused
-// void SNDDMA_LockSound( void ); // unused
-// void SNDDMA_UnlockSound( void ); // unused
 
 qboolean VoiceCapture_Init (void);
 void VoiceCapture_Shutdown (void);
 qboolean VoiceCapture_Activate (qboolean activate);
 qboolean VoiceCapture_Lock (qboolean lock);
 
-#endif // PLATFORM_H
+#endif

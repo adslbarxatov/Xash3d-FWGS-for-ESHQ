@@ -409,8 +409,8 @@ void learn (void)
 
 		p += step;
 		
-		// [Xash3D, 28.03.23]
-		//if (p >= lim) p -= lengthcount;
+		// [FWGS, 01.04.23]
+		/*if (p >= lim) p -= lengthcount;*/
 		while (p >= lim) 
 			p -= lengthcount;
 

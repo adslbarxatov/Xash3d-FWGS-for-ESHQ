@@ -54,10 +54,10 @@ enum
 //
 int Q_buildnum (void);
 int Q_buildnum_compat (void);
-const char *Q_PlatformStringByID (const int platform);	// [Xash3D, 31.03.23]
+const char *Q_PlatformStringByID (const int platform);	// [FWGS, 01.04.23]
 const char *Q_buildos (void);
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int endianness, const qboolean is64);
 
 const char *Q_buildarch (void);
@@ -92,18 +92,18 @@ void Q_atov (float *vec, const char *str, size_t siz);
 #define Q_strrchr strrchr
 qboolean Q_stricmpext (const char *pattern, const char *text);
 qboolean Q_strnicmpext (const char *pattern, const char *text, size_t minimumlen);
-const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *needle, size_t needlelen);	// [Xash3D, 31.03.23]
+const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *needle, size_t needlelen);	// [FWGS, 01.04.23]
 const char *Q_timestamp (int format);
 #define Q_vsprintf( buffer, format, args ) Q_vsnprintf( buffer, 99999, format, args )
 int Q_vsnprintf (char *buffer, size_t buffersize, const char *format, va_list args);
 int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) _format (3);
 int Q_sprintf (char *buffer, const char *format, ...) _format (2);
 //char *Q_strpbrk (const char *s, const char *accept);
-#define Q_strpbrk strpbrk	// [Xash3D, 31.03.23]
+#define Q_strpbrk strpbrk	// [FWGS, 01.04.23]
 void COM_StripColors (const char *in, char *out);
 #define Q_memprint( val ) Q_pretifymem( val, 2 )
 char *Q_pretifymem (float value, int digitsafterdecimal);
-//char *va (const char *format, ...) _format (1);	// [Xash3D, 31.03.23]
+//char *va (const char *format, ...) _format (1);	// [FWGS, 01.04.23]
 void COM_FileBase (const char *in, char *out);
 const char *COM_FileExtension (const char *in);
 void COM_DefaultExtension (char *path, const char *extension);

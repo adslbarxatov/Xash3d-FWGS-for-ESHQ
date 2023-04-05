@@ -48,7 +48,7 @@ typedef struct convar_s
 #define FCVAR_VIDRESTART	(1<<20)	// recreate the window is cvar with this flag was changed
 #define FCVAR_TEMPORARY		(1<<21)	// these cvars holds their values and can be unlink in any time
 #define FCVAR_MOVEVARS		(1<<22)	// this cvar is a part of movevars_t struct that shared between client and server
-#define FCVAR_USER_CREATED	(1<<23) // [Xash3D, 31.03.23] created by a set command (dll's used)
+#define FCVAR_USER_CREATED	(1<<23) // [FWGS, 01.04.23] created by a set command (dll's used)
 
 #define CVAR_DEFINE( cv, cvname, cvstr, cvflags, cvdesc ) \
 	convar_t cv = { (char*)cvname, (char*)cvstr, cvflags, 0.0f, (void *)CVAR_SENTINEL, (char*)cvdesc, NULL }
@@ -70,7 +70,7 @@ void Cvar_DirectSet (convar_t *var, const char *value);
 void Cvar_Set (const char *var_name, const char *value);
 void Cvar_SetValue (const char *var_name, float value);
 //const char *Cvar_BuildAutoDescription (int flags);
-const char *Cvar_BuildAutoDescription (const char *szName, int flags);	// [Xash3D, 31.03.23]
+const char *Cvar_BuildAutoDescription (const char *szName, int flags);	// [FWGS, 01.04.23]
 float Cvar_VariableValue (const char *var_name);
 int Cvar_VariableInteger (const char *var_name);
 const char *Cvar_VariableString (const char *var_name);
@@ -80,7 +80,7 @@ void Cvar_Reset (const char *var_name);
 void Cvar_SetCheatState (void);
 qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged);
 void Cvar_Init (void);
-void Cvar_PostFSInit (void);	// [Xash3D, 31.03.23]
+void Cvar_PostFSInit (void);	// [FWGS, 01.04.23]
 void Cvar_Unlink (int group);
 
 #endif

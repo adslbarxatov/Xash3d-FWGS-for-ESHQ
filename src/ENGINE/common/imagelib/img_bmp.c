@@ -24,14 +24,14 @@ Image_LoadBMP
 */
 qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	byte *buf_p, *pixbuf;
-	rgba_t	palette[256] = { 0 };	// [Xash3D, 28.03.23]
-	int	i, columns, column, rows, row, bpp = 1;
-	int	cbPalBytes = 0, padSize = 0, bps = 0;
-	int	reflectivity[3] = { 0, 0, 0 };
+	byte		*buf_p, *pixbuf;
+	rgba_t		palette[256] = { 0 };	// [FWGS, 01.04.23]
+	int			i, columns, column, rows, row, bpp = 1;
+	int			cbPalBytes = 0, padSize = 0, bps = 0;
+	int			reflectivity[3] = { 0, 0, 0 };
 	qboolean	load_qfont = false;
-	bmp_t	bhdr;
-	fs_offset_t estimatedSize;
+	bmp_t		bhdr;
+	fs_offset_t	estimatedSize;
 
 	if (filesize < sizeof (bhdr))
 		{
@@ -45,8 +45,10 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	buf_p += BI_FILE_HEADER_SIZE + bhdr.bitmapHeaderSize;
 
 	// bogus file header check
-	if (bhdr.reserved0 != 0) return false;
-	if (bhdr.planes != 1) return false;
+	if (bhdr.reserved0 != 0)
+		return false;
+	if (bhdr.planes != 1)
+		return false;
 
 	if (memcmp (bhdr.id, "BM", 2))
 		{
@@ -54,7 +56,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		return false;
 		}
 
-	if (!(bhdr.bitmapHeaderSize == 40 || bhdr.bitmapHeaderSize == 108 || bhdr.bitmapHeaderSize == 124))
+	if (!((bhdr.bitmapHeaderSize == 40) || (bhdr.bitmapHeaderSize == 108) || (bhdr.bitmapHeaderSize == 124)))
 		{
 		Con_DPrintf (S_ERROR "Image_LoadBMP: %s have non-standard header size %i\n", name, bhdr.bitmapHeaderSize);
 		return false;
@@ -64,10 +66,11 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	if (bhdr.fileSize != filesize)
 		{
 		// Sweet Half-Life issues. splash.bmp have bogus filesize
-		Con_Reportf (S_WARN "Image_LoadBMP: %s have incorrect file size %li should be %i\n", name, filesize, bhdr.fileSize);
+		Con_Reportf (S_WARN "Image_LoadBMP: %s have incorrect file size %li should be %i\n", name, 
+			filesize, bhdr.fileSize);
 		}
 
-	// [Xash3D, 28.03.23] Bogus compression? Only non-compressed supported
+	// [FWGS, 01.04.23] Bogus compression? Only non-compressed supported
 	if (bhdr.compression != BI_RGB)
 		{
 		if ((bhdr.bitsPerPixel != 32) || (bhdr.compression != BI_BITFIELDS))
@@ -103,7 +106,10 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			bhdr.colors = 256;
 			cbPalBytes = (1 << bhdr.bitsPerPixel) * sizeof (rgba_t);
 			}
-		else cbPalBytes = bhdr.colors * sizeof (rgba_t);
+		else
+			{
+			cbPalBytes = bhdr.colors * sizeof (rgba_t);
+			}
 		}
 
 	estimatedSize = (buf_p - buffer) + cbPalBytes;
@@ -127,7 +133,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	if (Image_CheckFlag (IL_OVERVIEW) && (bhdr.bitsPerPixel == 8))
 		{
 		// convert green background into alpha-layer, make opacity for all other entries
-		for (i = 0; i < bhdr.colors; i++)
+		for (i = 0; (i < bhdr.colors) && (i < 256); i++)
 			{
 			if ((palette[i][0] == 0) && (palette[i][1] == 255) && (palette[i][2] == 0))
 				{
@@ -182,8 +188,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			break;
 		}
 
-	// [Xash3D, 28.03.23]
-	//estimatedSize = (buf_p - buffer) + (image.width + padSize) * image.height * (bhdr.bitsPerPixel >> 3);
+	// [FWGS, 01.04.23]
+	/*estimatedSize = (buf_p - buffer) + (image.width + padSize) * image.height * (bhdr.bitsPerPixel >> 3);*/
 	estimatedSize = (buf_p - buffer) + image.width * image.height * (bhdr.bitsPerPixel >> 3);
 	if (filesize < estimatedSize)
 		{

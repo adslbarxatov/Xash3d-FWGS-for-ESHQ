@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 
-// [Xash3D, 28.03.23]
+// [FWGS, 01.04.23]
 
 #include <string.h>
 #include "common.h"

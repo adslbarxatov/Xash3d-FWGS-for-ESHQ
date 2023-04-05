@@ -19,7 +19,7 @@ GNU General Public License for more details.
 
 ref_globals_t refState;
 
-/* [Xash3D, 31.03.23]
+/* [FWGS, 01.04.23]
 const char *svc_strings[256] =
 	{
 		"svc_bad",
@@ -298,7 +298,7 @@ void CL_Crashed (void)
 	{
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 void CL_HudMessage (const char *pMessage)
 	{
 	}

@@ -108,7 +108,7 @@ typedef struct
 
 	vec3_t		mins, maxs;	// terrain bounds (fill by user)
 
-	intptr_t			reserved[32];	// [Xash3D: 20.03.23] just for future expansions or mod-makers
+	intptr_t			reserved[32];	// [FWGS, 01.04.23] just for future expansions or mod-makers
 	} mfaceinfo_t;
 
 // 4529
@@ -178,7 +178,7 @@ struct decal_s
 // Xash3D specific
 	vec3_t		position;		// location of the decal center in world space.
 	glpoly_t*	polys;		// precomputed decal vertices
-	intptr_t			reserved[4];	// [Xash3D: 20.03.23] just for future expansions or mod-makers
+	intptr_t			reserved[4];	// [FWGS, 01.04.23] just for future expansions or mod-makers
 	};
 
 typedef struct mleaf_s
@@ -234,7 +234,7 @@ typedef struct mextrasurf_s
 	unsigned short	numverts;		// world->vertexes[]
 	int			firstvertex;	// fisrt look up in tr.tbn_vectors[], then acess to world->vertexes[]
 
-	intptr_t			reserved[32];	// [Xash3D: 20.03.23] just for future expansions or mod-makers
+	intptr_t			reserved[32];	// [FWGS, 01.04.23] just for future expansions or mod-makers
 	} mextrasurf_t;
 
 struct msurface_s
@@ -297,7 +297,7 @@ typedef struct model_s
 	// shared modelinfo
 	modtype_t	type;		// model type
 	int			numframes;	// sprite's framecount
-	poolhandle_t mempool;	// [Xash3D: 20.03.23] private mempool (was synctype)
+	poolhandle_t mempool;	// [FWGS, 01.04.23] private mempool (was synctype)
 	int			flags;		// hl compatibility
 
 //

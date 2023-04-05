@@ -20,7 +20,7 @@ GNU General Public License for more details.
 
 #define CAVGSAMPLES		10
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 void SND_InitMouth (int entnum, int entchannel)
 	{
 	if (((entchannel == CHAN_VOICE) || (entchannel == CHAN_STREAM)) && (entnum > 0))
@@ -40,7 +40,7 @@ void SND_InitMouth (int entnum, int entchannel)
 		}*/
 	}
 
-// [Xash3D, 26.03.23]
+// [FWGS, 01.04.23]
 void SND_CloseMouth (channel_t *ch)
 	{
 	if ((ch->entchannel == CHAN_VOICE) || (ch->entchannel == CHAN_STREAM))
@@ -199,7 +199,7 @@ void SND_MoveMouthRaw (rawchan_t *ch, portable_samplepair_t *pData, int count)
 	scount = pMouth->sndcount;
 	savg = 0;
 
-	while (i < count && scount < CAVGSAMPLES)
+	while ((i < count) && (scount < CAVGSAMPLES))
 		{
 		data = pData[i].left; // mono sound anyway
 		data = (bound (-32767, data, 0x7ffe) >> 8);

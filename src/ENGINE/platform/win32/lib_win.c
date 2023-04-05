@@ -353,7 +353,7 @@ static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *dat
 	return importDesc;
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 static void ListMissingModules (dll_user_t *hInst)
 	{
 	PIMAGE_NT_HEADERS peHeader;
@@ -443,7 +443,7 @@ qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname
 
 /*
 ================
-COM_LoadLibrary [Xash3D, 31.03.23]
+COM_LoadLibrary [FWGS, 01.04.23]
 
 smart dll loader - can loading dlls from pack or wad files
 ================
@@ -458,7 +458,7 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 	hInst = FS_FindLibrary (dllname, directpath);
 	if (!hInst)
 		{
-		//COM_PushLibraryError (va ("Failed to find library %s", dllname));
+		/*COM_PushLibraryError (va ("Failed to find library %s", dllname));*/
 		Q_snprintf (buf, sizeof (buf), "Failed to find library %s", dllname);
 		COM_PushLibraryError (buf);
 		return NULL;
@@ -466,7 +466,7 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 
 	if (hInst->encrypted)
 		{
-		//COM_PushLibraryError (va ("Library %s is encrypted, cannot load", hInst->shortPath));
+		/*COM_PushLibraryError (va ("Library %s is encrypted, cannot load", hInst->shortPath));*/
 		Q_snprintf (buf, sizeof (buf), "Library %s is encrypted, cannot load", hInst->shortPath);
 		COM_PushLibraryError (buf);
 
@@ -476,14 +476,11 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 
 #if XASH_X86
 	if (hInst->custom_loader)
-		{
 		hInst->hInstance = MemoryLoadLibrary (hInst->fullPath);
-		}
+
 	else
 #endif
-		{
 		hInst->hInstance = LoadLibrary (hInst->fullPath);
-		}
 
 	if (!hInst->hInstance)
 		{

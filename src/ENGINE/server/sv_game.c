@@ -262,15 +262,15 @@ void SV_CopyTraceToGlobal (trace_t *trace)
 
 /*
 ==============
-SV_SetModel [Xash3D, 31.03.23]
+SV_SetModel [FWGS, 01.04.23]
 ==============
 */
 void SV_SetModel (edict_t *ent, const char *modelname)
 	{
-	char	name[MAX_QPATH];
+	char		name[MAX_QPATH];
 	qboolean	found = false;
-	model_t *mod;
-	int	i = 1;
+	model_t		*mod;
+	int			i = 1;
 
 	if (!SV_IsValidEdict (ent))
 		{
@@ -865,7 +865,7 @@ void SV_WriteEntityPatch (const char *filename)
 	byte		buf[MAX_TOKEN]; // 1 kb
 	string		bspfilename;
 	dheader_t	*header;
-	dlump_t		entities;	// [Xash3D, 31.03.23]
+	dlump_t		entities;	// [FWGS, 01.04.23]
 	file_t		*f;
 
 	Q_snprintf (bspfilename, sizeof (bspfilename), "maps/%s.bsp", filename);
@@ -878,8 +878,8 @@ void SV_WriteEntityPatch (const char *filename)
 	FS_Read (f, buf, MAX_TOKEN);
 	header = (dheader_t *)buf;
 
-	// [Xash3D, 31.03.23] check all the lumps and some other errors
-	//if (!Mod_TestBmodelLumps (bspfilename, buf, true))
+	// [FWGS, 01.04.23] check all the lumps and some other errors
+	/*if (!Mod_TestBmodelLumps (bspfilename, buf, true))*/
 	if (!Mod_TestBmodelLumps (f, bspfilename, buf, true, &entities))
 		{
 		FS_Close (f);
@@ -897,8 +897,10 @@ void SV_WriteEntityPatch (const char *filename)
 
 		FS_Seek (f, lumpofs, SEEK_SET);
 		entities = (char *)Z_Calloc (lumplen + 1);
+
 		FS_Read (f, entities, lumplen);
 		FS_WriteFile (va ("maps/%s.ent", filename), entities, lumplen);
+		
 		Con_Printf ("Write 'maps/%s.ent'\n", filename);
 		Mem_Free (entities);
 		}
@@ -920,7 +922,7 @@ static char *SV_ReadEntityScript (const char *filename, int *flags)
 	byte		buf[MAX_TOKEN];
 	char		*ents = NULL;
 	dheader_t	*header;
-	dlump_t		entities;	// [Xash3D, 31.03.23]
+	dlump_t		entities;	// [FWGS, 01.04.23]
 	size_t		ft1, ft2;
 	file_t		*f;
 
@@ -929,15 +931,16 @@ static char *SV_ReadEntityScript (const char *filename, int *flags)
 	Q_snprintf (bspfilename, sizeof (bspfilename), "maps/%s.bsp", filename);
 
 	f = FS_Open (bspfilename, "rb", false);
-	if (!f) return NULL;
+	if (!f)
+		return NULL;
 
 	SetBits (*flags, MAP_IS_EXIST);
 	memset (buf, 0, MAX_TOKEN);
 	FS_Read (f, buf, MAX_TOKEN);
 	header = (dheader_t *)buf;
 
-	// [Xash3D, 31.03.23] check all the lumps and some other errors
-	//if (!Mod_TestBmodelLumps (bspfilename, buf, (host_developer.value) ? false : true))
+	// [FWGS, 01.04.23] check all the lumps and some other errors
+	/*if (!Mod_TestBmodelLumps (bspfilename, buf, (host_developer.value) ? false : true))*/
 	if (!Mod_TestBmodelLumps (f, bspfilename, buf, (host_developer.value) ? false : true, &entities))
 		{
 		SetBits (*flags, MAP_INVALID_VERSION);
@@ -945,7 +948,7 @@ static char *SV_ReadEntityScript (const char *filename, int *flags)
 		return NULL;
 		}
 
-	// [Xash3D, 31.03.23] after call Mod_TestBmodelLumps we gurantee what map is valid
+	// [FWGS, 01.04.23] after call Mod_TestBmodelLumps we gurantee what map is valid
 	/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
 	lumplen = header->lumps[LUMP_ENTITIES].filelen;*/
 	lumpofs = entities.fileofs;
@@ -958,22 +961,20 @@ static char *SV_ReadEntityScript (const char *filename, int *flags)
 	ft1 = FS_FileTime (bspfilename, false);
 	ft2 = FS_FileTime (entfilename, true);
 
-	if (ft2 != -1 && ft1 < ft2)
-		{
-		// grab .ent files only from gamedir
+	// grab .ent files only from gamedir
+	if ((ft2 != -1) && (ft1 < ft2))
 		ents = (char *)FS_LoadFile (entfilename, NULL, true);
-		}
 
 	// at least entities should contain "{ "classname" "worldspawn" }\0"
 	// for correct spawn the level
-	if (!ents && lumplen >= 32)
+	if (!ents && (lumplen >= 32))
 		{
 		FS_Seek (f, lumpofs, SEEK_SET);
 		ents = Z_Calloc (lumplen + 1);
 		FS_Read (f, ents, lumplen);
 		}
-	FS_Close (f); // all done
 
+	FS_Close (f); // all done
 	return ents;
 	}
 
@@ -1401,7 +1402,7 @@ int GAME_EXPORT pfnPrecacheModel (const char *s)
 
 /*
 =================
-pfnSetModel [Xash3D, 31.03.23]
+pfnSetModel [FWGS, 01.04.23]
 =================
 */
 void GAME_EXPORT pfnSetModel (edict_t *e, const char *m)
@@ -2113,11 +2114,11 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 	int flags, int pitch, const vec3_t pos)
 	{
 	int	entityIndex;
-	int	sound_idx;	// [Xash3D, 31.03.23]
-	qboolean spawn;
 
-	/* ESHQ: исправление дефекта, не позволявшего вызвать первое предложение из sentences.txt
-	int	sound_idx = -1;*/
+	// ESHQ: исправление более не требуется
+	int	sound_idx;// = -1;
+
+	qboolean spawn;
 
 	if ((vol < 0) || (vol > 255))
 		{
@@ -2173,7 +2174,7 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 		/* TESTTEST
 		if (*sample == '*') chan = CHAN_AUTO;*/
 
-		// [Xash3D, 31.03.23] '*' is special symbol to handle stream sounds
+		// [FWGS, 01.04.23] '*' is special symbol to handle stream sounds
 		// (CHAN_VOICE but cannot be overriden) originally handled on client side
 		if (*sample == '*')
 			chan = CHAN_STREAM;
@@ -2181,7 +2182,6 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 		// precache_sound can be used twice: cache sounds when loading
 		// and return sound index when server is active
 		sound_idx = SV_SoundIndex (sample);
-		//}
 
 		if (!sound_idx)
 			{
@@ -2299,13 +2299,13 @@ void GAME_EXPORT pfnEmitAmbientSound (edict_t *ent, float *pos, const char *samp
 
 /*
 =================
-SV_StartMusic [Xash3D, 31.03.23]
+SV_StartMusic [FWGS, 01.04.23]
 =================
 */
 void SV_StartMusic (const char *curtrack, const char *looptrack, int position)
 	{
 	MSG_BeginServerCmd (&sv.multicast, svc_stufftext);
-	//MSG_WriteString (&sv.multicast, va ("music \"%s\" \"%s\" %d\n", curtrack, looptrack, position));
+	/*MSG_WriteString (&sv.multicast, va ("music \"%s\" \"%s\" %d\n", curtrack, looptrack, position));*/
 	MSG_WriteStringf (&sv.multicast, "music \"%s\" \"%s\" %d\n", curtrack, looptrack, position);
 	SV_Multicast (MSG_ALL, NULL, NULL, false, false);
 	}
@@ -2545,7 +2545,7 @@ void GAME_EXPORT pfnServerCommand (const char *str)
 
 /*
 =========
-pfnServerExecute [Xash3D, 31.03.23]
+pfnServerExecute [FWGS, 01.04.23]
 =========
 */
 void GAME_EXPORT pfnServerExecute (void)
@@ -2761,7 +2761,7 @@ void GAME_EXPORT pfnMessageEnd (void)
 	{
 	const char *name = "Unknown";
 	float *org = NULL;
-	word realsize;	// [Xash3D, 31.03.23]
+	word realsize;	// [FWGS, 01.04.23]
 
 	if (svgame.msg_name)
 		name = svgame.msg_name;
@@ -2795,8 +2795,8 @@ void GAME_EXPORT pfnMessageEnd (void)
 				return;
 				}
 
-			// [Xash3D, 31.03.23]
-			//*(word *)&sv.multicast.pData[svgame.msg_size_index] = svgame.msg_realsize;
+			// [FWGS, 01.04.23]
+			/* *(word *)&sv.multicast.pData[svgame.msg_size_index] = svgame.msg_realsize;*/
 			realsize = svgame.msg_realsize;
 			memcpy (&sv.multicast.pData[svgame.msg_size_index], &realsize, sizeof (realsize));
 			}
@@ -2809,7 +2809,8 @@ void GAME_EXPORT pfnMessageEnd (void)
 		// compare sizes
 		if (expsize != realsize)
 			{
-			Con_Printf (S_ERROR "SV_Multicast: %s expected %i bytes, it written %i. Ignored.\n", name, expsize, realsize);
+			Con_Printf (S_ERROR "SV_Multicast: %s expected %i bytes, it written %i. Ignored.\n", name,
+				expsize, realsize);
 			MSG_Clear (&sv.multicast);
 			return;
 			}
@@ -2830,8 +2831,8 @@ void GAME_EXPORT pfnMessageEnd (void)
 			return;
 			}
 
-		// [Xash3D, 31.03.23]
-		//*(word *)&sv.multicast.pData[svgame.msg_size_index] = svgame.msg_realsize;
+		// [FWGS, 01.04.23]
+		/* *(word *)&sv.multicast.pData[svgame.msg_size_index] = svgame.msg_realsize;*/
 		realsize = svgame.msg_realsize;
 		memcpy (&sv.multicast.pData[svgame.msg_size_index], &realsize, sizeof (realsize));
 		}
@@ -3212,7 +3213,7 @@ void SV_SetStringArrayMode (qboolean dynamic)
 #endif
 	}
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 #if XASH_64BIT && !XASH_WIN32 && !XASH_APPLE && !XASH_NSWITCH
 #define USE_MMAP
 #include <sys/mman.h>
@@ -3871,8 +3872,8 @@ void GAME_EXPORT pfnSetClientMaxspeed (const edict_t *pEdict, float fNewMaxspeed
 
 	fNewMaxspeed = bound (-svgame.movevars.maxspeed, fNewMaxspeed, svgame.movevars.maxspeed);
 
-	// [Xash3D, 31.03.23]
-	//Info_SetValueForKey (cl->physinfo, "maxspd", va ("%.f", fNewMaxspeed), MAX_INFO_STRING);
+	// [FWGS, 01.04.23]
+	/*Info_SetValueForKey (cl->physinfo, "maxspd", va ("%.f", fNewMaxspeed), MAX_INFO_STRING);*/
 	Info_SetValueForKeyf (cl->physinfo, "maxspd", MAX_INFO_STRING, "%.f", fNewMaxspeed);
 	cl->edict->v.maxspeed = fNewMaxspeed;
 	}
@@ -4985,9 +4986,9 @@ qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 			Mem_Free (pkvd[i].szValue);		// release old value, so we don't need these
 			pkvd[i].szKeyName = copystring ("angles");
 
-			// [Xash3D, 31.03.23]
+			// [FWGS, 01.04.23]
 			if (flYawAngle >= 0.0f)
-				//pkvd[i].szValue = copystring (va ("%g %g %g", ent->v.angles[0], flYawAngle, ent->v.angles[2]));
+				/*pkvd[i].szValue = copystring (va ("%g %g %g", ent->v.angles[0], flYawAngle, ent->v.angles[2]));*/
 				{
 				char temp[MAX_VA_STRING];
 
@@ -5014,14 +5015,14 @@ qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 #ifdef HACKS_RELATED_HLMODS
 		if (adjust_origin && !Q_strcmp (pkvd[i].szKeyName, "origin"))
 			{
-			// [Xash3D, 31.03.23]
+			// [FWGS, 01.04.23]
 			char temp[MAX_VA_STRING];
 			char *pstart = pkvd[i].szValue;
 
 			COM_ParseVector (&pstart, origin, 3);
 			Mem_Free (pkvd[i].szValue);	// release old value, so we don't need these
 			
-			//pkvd[i].szValue = copystring (va ("%g %g %g", origin[0], origin[1], origin[2] - 16.0f));
+			/*pkvd[i].szValue = copystring (va ("%g %g %g", origin[0], origin[1], origin[2] - 16.0f));*/
 			Q_snprintf (temp, sizeof (temp), "%g %g %g", origin[0], origin[1], origin[2] - 16.0f);
 			pkvd[i].szValue = copystring (temp);
 			}

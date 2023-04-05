@@ -63,7 +63,7 @@ void Platform_Init (void)
 	SDL_StopTextInput ();
 #endif
 
-// [Xash3D, 31.03.23]
+// [FWGS, 01.04.23]
 /*#if XASH_POSIX
 	Posix_Daemonize ();
 #endif
@@ -88,7 +88,6 @@ void Platform_Shutdown (void)
 	{
 	SDLash_FreeCursors ();
 
-//#ifdef XASH_WIN32
 #if XASH_NSWITCH
 	NSwitch_Shutdown ();
 #elif XASH_WIN32
