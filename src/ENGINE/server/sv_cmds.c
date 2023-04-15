@@ -520,6 +520,10 @@ void SV_AutoSave_f (void)
 
 	if (Cvar_VariableInteger ("sv_autosave"))	// [FWGS, 01.04.23]
 		SV_SaveGame ("autosave");
+
+	// ESHQ
+	if (CL_Active () && !FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
+		CL_HudMessage ("GAMESAVED"); // defined in titles.txt
 	}
 
 /*
