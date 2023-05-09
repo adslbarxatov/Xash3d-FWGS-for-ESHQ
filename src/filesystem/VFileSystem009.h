@@ -1,6 +1,6 @@
 /*
 VFileSystem009.h - C++ interface for filesystem_stdio
-Copyright (C) 2022 Alibek Omarov
+Copyright (C) 2022-2023 Xash3D FWGS contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -150,4 +150,6 @@ public:
 	virtual void AddSearchPathNoWrite(const char *, const char *) = 0; /* linkage=_ZN11IFileSystem20AddSearchPathNoWriteEPKcS1_ */
 };
 
-#endif // VFILESYSTEM009_H
+#define FILESYSTEM_INTERFACE_VERSION "VFileSystem009"	// [FWGS, 01.05.23] never change this!
+
+#endif

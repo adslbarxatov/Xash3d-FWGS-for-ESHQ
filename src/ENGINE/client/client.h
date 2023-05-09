@@ -860,7 +860,7 @@ void CL_FreeEdicts (void);
 void CL_ClearWorld (void);
 void CL_DrawCenterPrint (void);
 void CL_ClearSpriteTextures (void);
-void CL_FreeEntity (cl_entity_t *pEdict);
+/*void CL_FreeEntity (cl_entity_t *pEdict);*/	// // [FWGS, 01.05.23]
 void CL_CenterPrint (const char *text, float y);
 void CL_TextMessageParse (byte *pMemFile, int fileSize);
 client_textmessage_t *CL_TextMessageGet (const char *pName);	// [FWGS, 01.04.23]
@@ -923,7 +923,7 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message);
 void CL_LegacyPrecache_f (void);
 
 void CL_ParseTempEntity (sizebuf_t *msg);
-void CL_StartResourceDownloading (const char *pszMessage, qboolean bCustom);
+/*void CL_StartResourceDownloading (const char *pszMessage, qboolean bCustom);*/	// [FWGS, 01.05.23]
 qboolean CL_DispatchUserMessage (const char *pszName, int iSize, void *pbuf);
 qboolean CL_RequestMissingResources (void);
 void CL_RegisterResources (sizebuf_t *msg);
@@ -1037,7 +1037,7 @@ const ref_overview_t *GL_GetOverviewParms (void);
 //
 void R_StoreEfrags (efrag_t **ppefrag, int framecount);
 void R_AddEfrags (cl_entity_t *ent);
-void R_RemoveEfrags (cl_entity_t *ent);
+/*void R_RemoveEfrags (cl_entity_t *ent);*/		// [FWGS, 01.05.23]
 //
 // cl_tent.c
 //
@@ -1130,7 +1130,8 @@ void S_StopStreaming (void);
 void S_BeginRegistration (void);
 sound_t S_RegisterSound (const char *sample);
 void S_EndRegistration (void);
-void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn, int pitch, int flags, double sample, double end, int wordIndex);
+void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn,
+	int pitch, int flags, double sample, double end, int wordIndex);
 void S_StartSound (const vec3_t pos, int ent, int chan, sound_t sfx, float vol, float attn, int pitch, int flags);
 void S_AmbientSound (const vec3_t pos, int ent, sound_t handle, float fvol, float attn, int pitch, int flags);
 void S_FadeClientVolume (float fadePercent, float fadeOutSeconds, float holdTime, float fadeInSeconds);
@@ -1159,9 +1160,11 @@ qboolean UI_IsVisible (void);
 void UI_ResetPing (void);
 void UI_ShowUpdateDialog (qboolean preferStore);
 void UI_ShowMessageBox (const char *text);
-void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command, unsigned char *color, int flags);
+void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command, unsigned char *color,
+	int flags);
 void UI_ConnectionProgress_Disconnect (void);
-void UI_ConnectionProgress_Download (const char *pszFileName, const char *pszServerName, const char *pszServerPath, int iCurrent, int iTotal, const char *comment);
+void UI_ConnectionProgress_Download (const char *pszFileName, const char *pszServerName, const char *pszServerPath,
+	int iCurrent, int iTotal, const char *comment);
 void UI_ConnectionProgress_DownloadEnd (void);
 void UI_ConnectionProgress_Precache (void);
 void UI_ConnectionProgress_Connect (const char *server);
@@ -1201,7 +1204,7 @@ void CL_PlayVideo_f (void);
 // keys.c
 //
 int Key_IsDown (int keynum);
-const char *Key_IsBind (int keynum);
+/*const char *Key_IsBind (int keynum);*/	// [FWGS, 01.05.23]
 void Key_Event (int key, int down);
 void Key_Init (void);
 void Key_WriteBindings (file_t *f);

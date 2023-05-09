@@ -300,7 +300,7 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 
 /*
 ================
-FS_LoadImage [FWGS, 01.04.23]
+FS_LoadImage [FWGS, 01.05.23]
 
 loading and unpack to rgba any known image
 ================
@@ -311,13 +311,11 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 	/*string path, loadname, sidename;
 	qboolean anyformat = true;*/
 	string		loadname;
-
 	int i;
 	
 	/*fs_offset_t	filesize = 0;
 	const loadpixformat_t *format;*/
 	const loadpixformat_t *extfmt;
-
 	const cubepack_t *cmap;
 	/*byte *f;*/
 
@@ -390,8 +388,9 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 							Q_snprintf (sidename, sizeof (sidename), "%s%s.%s", loadname, cmap->type[i].suf, format->ext);
 							if (FS_AddSideToPack (sidename, cmap->type[i].flags)) // process flags to flip some sides
 								*/
-			if (Image_ProbeLoad (extfmt, loadname, cmap->type[i].suf, cmap->type[i].hint) &&
-				FS_AddSideToPack (cmap->type[i].flags)) // process flags to flip some sides
+			/*if (Image_ProbeLoad (extfmt, loadname, cmap->type[i].suf, cmap->type[i].hint) &&
+				FS_AddSideToPack (cmap->type[i].flags)) // process flags to flip some sides */
+			if (Image_ProbeLoad (extfmt, loadname, cmap->type[i].suf, cmap->type[i].hint))
 				{
 				/*Mem_Free (f);
 				break; // loaded
@@ -400,7 +399,8 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 		Mem_Free (f);
 		}
 	}*/
-				break;
+				/*break;*/
+				FS_AddSideToPack (cmap->type[i].flags);
 				}
 
 			if (image.num_sides != i + 1) // check side
@@ -417,7 +417,7 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 				}
 			}
 
-		// make sure what all sides is loaded
+		// make sure that all sides is loaded
 		if (image.num_sides != 6)
 			{
 			// unexpected errors ?
@@ -497,9 +497,13 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 		int		i;
 
 		if (pix->flags & IMAGE_SKYBOX)
+			{
 			box = skybox_qv1;
+			}
 		else if (pix->flags & IMAGE_CUBEMAP)
+			{
 			box = cubemap_v1;
+			}
 		else
 			{
 			// clear any force flags
@@ -517,8 +521,13 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 				{
 				for (i = 0; i < 6; i++)
 					{
-					Q_sprintf (path, format->formatstring, savename, box[i].suf, format->ext);
-					if (!format->savefunc (path, pix)) break; // there were errors
+					// [FWGS, 01.05.23]
+					/*Q_sprintf (path, format->formatstring, savename, box[i].suf, format->ext);*/
+					Q_snprintf (path, sizeof (path),
+						format->formatstring, savename, box[i].suf, format->ext);
+
+					if (!format->savefunc (path, pix))
+						break; // there were errors
 					pix->buffer += pix->size; // move pointer
 					}
 
@@ -539,7 +548,11 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 			{
 			if (!Q_stricmp (ext, format->ext))
 				{
-				Q_sprintf (path, format->formatstring, savename, "", format->ext);
+				// [FWGS, 01.05.23]
+				/*Q_sprintf (path, format->formatstring, savename, "", format->ext);*/
+				Q_snprintf (path, sizeof (path),
+					format->formatstring, savename, "", format->ext);
+
 				if (format->savefunc (path, pix))
 					{
 					// clear any force flags
@@ -565,9 +578,12 @@ free RGBA buffer
 */
 void FS_FreeImage (rgbdata_t *pack)
 	{
-	if (!pack) return;
-	if (pack->buffer) Mem_Free (pack->buffer);
-	if (pack->palette) Mem_Free (pack->palette);
+	if (!pack)
+		return;
+	if (pack->buffer)
+		Mem_Free (pack->buffer);
+	if (pack->palette)
+		Mem_Free (pack->palette);
 	Mem_Free (pack);
 	}
 
@@ -583,7 +599,8 @@ rgbdata_t *FS_CopyImage (rgbdata_t *in)
 	rgbdata_t *out;
 	int	palSize = 0;
 
-	if (!in) return NULL;
+	if (!in)
+		return NULL;
 
 	out = Mem_Malloc (host.imagepool, sizeof (rgbdata_t));
 	*out = *in;
@@ -671,13 +688,14 @@ void Test_RunImagelib (void)
 
 	for (i = 0; i < sizeof (extensions) / sizeof (extensions[0]); i++)
 		{
-		// [FWGS, 01.04.23]
+		// [FWGS, 01.05.23]
 		//const char *name = va ("test_gen.%s", extensions[i]);
+		qboolean ret; 
 		char name[MAX_VA_STRING];
 		Q_snprintf (name, sizeof (name), "test_gen.%s", extensions[i]);
 
 		// test saving
-		qboolean ret = FS_SaveImage (name, &rgb);
+		ret = FS_SaveImage (name, &rgb);
 		Con_Printf ("Checking if we can save images in '%s' format...\n", extensions[i]);
 		ASSERT (ret == true);
 

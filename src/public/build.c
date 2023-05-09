@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "crtlib.h"
 #include "buildenums.h"		// [FWGS, 01.04.23]
 
-static const char *date = __DATE__;
+/*static const char *date = __DATE__;*/	// [FWGS, 01.05.23]
 static const char *mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 static const char mond[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
@@ -26,14 +26,19 @@ Q_buildnum
 
 returns days since Apr 1 2015
 ===============
-*/
-int Q_buildnum (void)
-	{
-	int m = 0, d = 0, y = 0;
-	static int b = 0;
+int Q_buildnum (void)*/
 
-	if (b != 0) 
-		return b;
+// [FWGS, 01.05.23]
+int Q_buildnum_date (const char *date)
+	{
+	/*static int b = 0;*/
+	int b;
+	int m = 0;
+	int d = 0;
+	int y = 0;
+
+	/*if (b != 0) 
+		return b;*/
 
 	for (m = 0; m < 11; m++)
 		{
@@ -51,6 +56,23 @@ int Q_buildnum (void)
 		b += 1;
 		}
 	b -= 41728; // Apr 1 2015
+
+	return b;
+	}
+
+/*
+===============
+Q_buildnum [FWGS, 01.05.23]
+
+returns days since Apr 1 2015
+===============
+*/
+int Q_buildnum (void)
+	{
+	static int b = 0;
+
+	if (!b)
+		b = Q_buildnum_date (__DATE__);
 
 	return b;
 	}
@@ -190,8 +212,11 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 			// no support for big endian ARM here
 			if (endianness == ENDIANNESS_LITTLE)
 				{
-				const int ver = (abi >> ARCHITECTURE_ARM_VER_SHIFT) & ARCHITECTURE_ARM_VER_MASK;
-				const qboolean hardfp = FBitSet (abi, ARCHITECTURE_ARM_HARDFP);
+				// [FWGS, 01.05.23]
+				/*const int ver = (abi >> ARCHITECTURE_ARM_VER_SHIFT) & ARCHITECTURE_ARM_VER_MASK;
+				const qboolean hardfp = FBitSet (abi, ARCHITECTURE_ARM_HARDFP);*/
+				const uint ver = (abi >> ARCH_ARM_VER_SHIFT) & ARCH_ARM_VER_MASK;
+				const qboolean hardfp = FBitSet (abi, ARCH_ARM_HARDFP);
 
 				if (is64)
 					return "arm64"; // keep as arm64, it's not aarch64!
@@ -212,14 +237,17 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 				}
 			break;
 		case ARCHITECTURE_RISCV:
+			// [FWGS, 01.05.23]
 			switch (abi)
 				{
-				case ARCHITECTURE_RISCV_FP_SOFT:
+				case ARCH_RISCV_FP_SOFT /*ARCHITECTURE_RISCV_FP_SOFT*/:
 					return is64 ? "riscv64" : "riscv32";
-				case ARCHITECTURE_RISCV_FP_SINGLE:
+				case ARCH_RISCV_FP_SINGLE /*ARCHITECTURE_RISCV_FP_SINGLE*/:
 					return is64 ? "riscv64f" : "riscv32f";
-				case ARCHITECTURE_RISCV_FP_DOUBLE:
-					return is64 ? "riscv64d" : "riscv64f";
+				/*case ARCHITECTURE_RISCV_FP_DOUBLE:
+					return is64 ? "riscv64d" : "riscv64f";*/
+				case ARCH_RISCV_FP_DOUBLE:
+					return is64 ? "riscv64d" : "riscv32d";
 				}
 			break;
 		}

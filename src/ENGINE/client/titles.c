@@ -30,7 +30,7 @@ static int IsComment (const char *pText)
 		{
 		int length = Q_strlen (pText);
 
-		if (length >= 2 && pText[0] == '/' && pText[1] == '/')
+		if ((length >= 2) && (pText[0] == '/') && (pText[1] == '/'))
 			return 1;
 
 		// no text?
@@ -210,14 +210,15 @@ static int ParseDirective (const char *pText)
 
 void CL_TextMessageParse (byte *pMemFile, int fileSize)
 	{
-	char			buf[512], trim[512], currentName[512];
-	char *pCurrentText = NULL, *pNameHeap;
-	char			nameHeap[32768]; // g-cont. i will scale up heap to handle all TFC messages
-	int			mode = MSGFILE_NAME; // searching for a message name
-	int			lineNumber, filePos, lastLinePos;
+	char	buf[512], trim[512], currentName[512];
+	char	*pCurrentText = NULL, *pNameHeap;
+	char	nameHeap[32768]; // g-cont. i will scale up heap to handle all TFC messages
+	int		mode = MSGFILE_NAME; // searching for a message name
+	int		lineNumber, filePos, lastLinePos;
 	client_textmessage_t	textMessages[MAX_MESSAGES];
-	int			i, nameHeapSize, textHeapSize, messageSize, nameOffset;
-	int			messageCount, lastNamePos;
+	int		i, nameHeapSize, textHeapSize, messageSize, nameOffset;
+	int		messageCount, lastNamePos;
+	size_t	textHeapSizeRemaining;	// [FWGS, 01.05.23]
 
 	lastNamePos = 0;
 	lineNumber = 0;
@@ -252,8 +253,11 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 					Con_Reportf ("TextMessage: unexpected '}' found, line %d\n", lineNumber);
 					return;
 					}
-				Q_strcpy (currentName, trim);
+
+				/*Q_strcpy (currentName, trim);*/
+				Q_strncpy (currentName, trim, sizeof (currentName));	// [FWGS, 01.05.23]
 				break;
+
 			case MSGFILE_TEXT:
 				if (IsEndOfText (trim))
 					{
@@ -266,7 +270,9 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 						return;
 						}
 
-					Q_strcpy (nameHeap + lastNamePos, currentName);
+					// [FWGS, 01.05.23]
+					/*Q_strcpy (nameHeap + lastNamePos, currentName);*/
+					Q_strncpy (nameHeap + lastNamePos, currentName, sizeof (nameHeap) - lastNamePos);
 
 					// terminate text in-place in the memory file
 					// (it's temporary memory that will be deleted)
@@ -325,19 +331,25 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 	// copy Name heap
 	pNameHeap = ((char *)clgame.titles) + messageSize;
 	memcpy (pNameHeap, nameHeap, nameHeapSize);
-	//nameOffset = pNameHeap - clgame.titles[0].pName; //undefined on amd64
+	/*nameOffset = pNameHeap - clgame.titles[0].pName; //undefined on amd64*/
 
 
-	// copy text & fixup pointers
+	// [FWGS, 01.05.23]  copy text & fixup pointers
+	textHeapSizeRemaining = textHeapSize;
 	pCurrentText = pNameHeap + nameHeapSize;
 
 	for (i = 0; i < messageCount; i++)
 		{
+		size_t currentTextSize = Q_strlen (clgame.titles[i].pMessage) + 1;
+
 		clgame.titles[i].pName = pNameHeap;			// adjust name pointer (parallel buffer)
-		Q_strcpy (pCurrentText, clgame.titles[i].pMessage);	// copy text over
+		/*Q_strcpy (pCurrentText, clgame.titles[i].pMessage);	// copy text over*/
+		Q_strncpy (pCurrentText, clgame.titles[i].pMessage, textHeapSizeRemaining);	// copy text over
 		clgame.titles[i].pMessage = pCurrentText;
 		pNameHeap += Q_strlen (pNameHeap) + 1;
-		pCurrentText += Q_strlen (pCurrentText) + 1;
+		/*pCurrentText += Q_strlen (pCurrentText) + 1;*/
+		pCurrentText += currentTextSize;
+		textHeapSizeRemaining -= currentTextSize;
 		}
 
 	if ((pCurrentText - (char *)clgame.titles) != (textHeapSize + nameHeapSize + messageSize))

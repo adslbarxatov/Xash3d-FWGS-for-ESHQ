@@ -886,6 +886,7 @@ void *Platform_GetNativeObject (const char *name)
 	return NULL; // SDL don't have it
 	}
 
+
 /*
 ========================
 Platform_PreCreateMove

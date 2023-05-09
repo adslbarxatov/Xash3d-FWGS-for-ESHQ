@@ -95,8 +95,9 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 		s_bgTrack.loopName[0] = '\0';
 	else Q_strncpy (s_bgTrack.loopName, mainTrack, sizeof (s_bgTrack.loopName));
 
-	// open stream
-	s_bgTrack.stream = FS_OpenStream (va ("media/%s", introTrack));
+	// [FWGS, 01.05.23] open stream
+	/*s_bgTrack.stream = FS_OpenStream (va ("media/%s", introTrack));*/
+	s_bgTrack.stream = FS_OpenStream (introTrack);
 	Q_strncpy (s_bgTrack.current, introTrack, sizeof (s_bgTrack.current));
 	memset (&musicfade, 0, sizeof (musicfade)); // clear any soundfade
 	s_bgTrack.source = cls.key_dest;
@@ -243,10 +244,14 @@ void S_StreamBackgroundTrack (void)
 			if (s_bgTrack.loopName[0])
 				{
 				FS_FreeStream (s_bgTrack.stream);
-				s_bgTrack.stream = FS_OpenStream (va ("media/%s", s_bgTrack.loopName));
+
+				// [FWGS, 01.05.23]
+				/*s_bgTrack.stream = FS_OpenStream (va ("media/%s", s_bgTrack.loopName));*/
+				s_bgTrack.stream = FS_OpenStream (s_bgTrack.loopName);
 				Q_strncpy (s_bgTrack.current, s_bgTrack.loopName, sizeof (s_bgTrack.current));
 
-				if (!s_bgTrack.stream) return;
+				if (!s_bgTrack.stream)
+					return;
 				}
 			else
 				{
@@ -254,7 +259,6 @@ void S_StreamBackgroundTrack (void)
 				return;
 				}
 			}
-
 		}
 	}
 
@@ -265,7 +269,8 @@ S_StartStreaming
 */
 void S_StartStreaming (void)
 	{
-	if (!dma.initialized) return;
+	if (!dma.initialized)
+		return;
 	// begin streaming movie soundtrack
 	s_listener.streaming = true;
 	}
@@ -277,7 +282,8 @@ S_StopStreaming
 */
 void S_StopStreaming (void)
 	{
-	if (!dma.initialized) return;
+	if (!dma.initialized)
+		return;
 	s_listener.streaming = false;
 	}
 

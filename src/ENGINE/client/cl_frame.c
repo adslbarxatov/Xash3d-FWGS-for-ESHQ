@@ -35,14 +35,12 @@ detect player entity
 */
 qboolean CL_IsPlayerIndex (int idx)
 	{
-	return (idx >= 1 && idx <= cl.maxclients);
+	return ((idx >= 1) && (idx <= cl.maxclients));
 	}
 
 /*
 =========================================================================
-
 FRAME INTERPOLATION
-
 =========================================================================
 */
 /*
@@ -61,7 +59,7 @@ void CL_UpdatePositions (cl_entity_t *ent)
 	VectorCopy (ent->curstate.origin, ph->origin);
 	VectorCopy (ent->curstate.angles, ph->angles);
 
-	if (ent->model && ent->model->type == mod_brush)
+	if (ent->model && (ent->model->type == mod_brush))
 		ph->animtime = ent->curstate.animtime;
 	else
 		ph->animtime = cl.time;
@@ -78,7 +76,8 @@ void CL_ResetPositions (cl_entity_t *ent)
 	{
 	position_history_t	store;
 
-	if (!ent) return;
+	if (!ent)
+		return;
 
 	store = ent->ph[ent->current_position];
 	ent->current_position = 1;
@@ -146,7 +145,6 @@ qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
 /*
 ==================
 CL_EntityCustomLerp
-
 ==================
 */
 qboolean CL_EntityCustomLerp (cl_entity_t *e)
@@ -237,17 +235,16 @@ void CL_UpdateLatchedVars (cl_entity_t *ent)
 
 /*
 ====================
-CL_GetStudioEstimatedFrame
-
+CL_GetStudioEstimatedFrame [FWGS, 01.05.23]
 ====================
 */
-float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
+static float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
 	{
 	studiohdr_t *pstudiohdr;
 	mstudioseqdesc_t *pseqdesc;
 	int		sequence;
 
-	if (ent->model != NULL && ent->model->type == mod_studio)
+	if ((ent->model != NULL) && (ent->model->type == mod_studio))
 		{
 		pstudiohdr = (studiohdr_t *)Mod_StudioExtradata (ent->model);
 
@@ -255,7 +252,8 @@ float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
 			{
 			sequence = bound (0, ent->curstate.sequence, pstudiohdr->numseq - 1);
 			pseqdesc = (mstudioseqdesc_t *)((byte *)pstudiohdr + pstudiohdr->seqindex) + sequence;
-			return ref.dllFuncs.R_StudioEstimateFrame (ent, pseqdesc);
+			/*return ref.dllFuncs.R_StudioEstimateFrame (ent, pseqdesc);*/
+			return ref.dllFuncs.R_StudioEstimateFrame (ent, pseqdesc, cl.time);
 			}
 		}
 
@@ -265,7 +263,6 @@ float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
 /*
 ====================
 CL_ResetLatchedVars
-
 ====================
 */
 void CL_ResetLatchedVars (cl_entity_t *ent, qboolean full_reset)
@@ -649,16 +646,33 @@ void CL_ProcessPacket (frame_t *frame)
 
 /*
 =========================================================================
-
 FRAME PARSING
-
 =========================================================================
 */
+
+// [FWGS, 01.05.23]
+static qboolean CL_ParseEntityNumFromPacket (sizebuf_t *msg, int *newnum)
+	{
+	if (cls.legacymode)
+		{
+		*newnum = MSG_ReadWord (msg);
+		if (*newnum == 0)
+			return false;
+		}
+	else
+		{
+		*newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
+		if (*newnum == LAST_EDICT)
+			return false;
+		}
+
+	return true;
+	}
 /*
 =================
 CL_FlushEntityPacket
 
-Read and ignore whole entity packet.
+Read and ignore whole entity packet
 =================
 */
 void CL_FlushEntityPacket (sizebuf_t *msg)
@@ -674,8 +688,10 @@ void CL_FlushEntityPacket (sizebuf_t *msg)
 	// read it all, but ignore it
 	while (1)
 		{
-		newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
-		if (newnum == LAST_EDICT) break; // done
+		/*newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
+		if (newnum == LAST_EDICT) break; // done*/
+		if (!CL_ParseEntityNumFromPacket (msg, &newnum))	// [FWGS, 01.05.23]
+			break; // done
 
 		if (MSG_CheckOverflow (msg))
 			Host_Error ("CL_FlushEntityPacket: overflow\n");
@@ -723,12 +739,6 @@ void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_state_t 
 	if (!alive)
 		{
 		CL_KillDeadBeams (ent); // release dead beams
-#if 0
-		// this is for reference
-		if (state->number == -1)
-			Con_DPrintf ("Entity %i was removed from server\n", newnum);
-		else Con_Dprintf ("Entity %i was removed from delta-message\n", newnum);
-#endif
 		return;
 		}
 
@@ -772,7 +782,8 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 	// sentinel count. save it for debug checking
 	if (cls.legacymode)
 		count = MSG_ReadWord (msg);
-	else count = MSG_ReadUBitLong (msg, MAX_VISIBLE_PACKET_BITS) + 1;
+	else
+		count = MSG_ReadUBitLong (msg, MAX_VISIBLE_PACKET_BITS) + 1;
 
 	newframe = &cl.frames[cl.parsecountmod];
 
@@ -847,7 +858,7 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 
 	while (1)
 		{
-		int lastedict;
+		/*int lastedict;
 		if (cls.legacymode)
 			{
 			newnum = MSG_ReadWord (msg);
@@ -857,9 +868,12 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 			{
 			newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
 			lastedict = LAST_EDICT;
-			}
+			}*/
+		if (!CL_ParseEntityNumFromPacket (msg, &newnum))	// [FWGS, 01.05.23]
+			break; // done
 
-		if (newnum == lastedict) break; // end of packet entities
+		/*if (newnum == lastedict) break; // end of packet entities*/
+
 		if (MSG_CheckOverflow (msg))
 			Host_Error ("CL_ParsePacketEntities: overflow\n");
 		player = CL_IsPlayerIndex (newnum);
@@ -957,9 +971,7 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 
 /*
 ==========================================================================
-
 INTERPOLATE BETWEEN FRAMES TO GET RENDERING PARMS
-
 ==========================================================================
 */
 /*
@@ -971,6 +983,8 @@ all the visible entities should pass this filter
 */
 qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 	{
+	qboolean draw_player = true;	// [FWGS, 01.05.23]
+
 	if (!ent || !ent->model)
 		return false;
 
@@ -989,8 +1003,14 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 		{
 		cl.local.apply_effects = true;
 
-		if (!CL_IsThirdPerson () && (ent->index == cl.viewentity))
-			return false;
+		if (!CL_IsThirdPerson () && (ent->index == cl.viewentity))	// [FWGS, 01.05.23]
+			{
+			// we don't draw player in default renderer in firstperson mode
+			// but let the client.dll know about player entity anyway
+			// for use in custom renderers
+			draw_player = false;
+			}
+		/*return false;*/
 		}
 
 	// [FWGS, 01.04.23] check for adding this entity
@@ -1001,6 +1021,9 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 			cl.local.apply_effects = false;
 		return false;
 		}
+
+	if (!draw_player)	// [FWGS, 01.05.23]
+		return false;
 
 	if (entityType == ET_BEAM)
 		{

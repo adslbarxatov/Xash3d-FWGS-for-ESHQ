@@ -34,11 +34,11 @@ extern "C"
 	// search path flags
 	enum
 		{
-		FS_STATIC_PATH = BIT (0), // FS_ClearSearchPath will be ignore this path
-		FS_NOWRITE_PATH = BIT (1), // default behavior - last added gamedir set as writedir. This flag disables it
-		FS_GAMEDIR_PATH = BIT (2), // just a marker for gamedir path
-		FS_CUSTOM_PATH = BIT (3), // gamedir but with custom/mod data
-		FS_GAMERODIR_PATH = BIT (4), // gamedir but read-only
+		FS_STATIC_PATH = BIT (0),	// FS_ClearSearchPath will be ignore this path
+		FS_NOWRITE_PATH = BIT (1),	// default behavior - last added gamedir set as writedir. This flag disables it
+		FS_GAMEDIR_PATH = BIT (2),	// just a marker for gamedir path
+		FS_CUSTOM_PATH = BIT (3),	// gamedir but with custom/mod data
+		FS_GAMERODIR_PATH = BIT (4),	// gamedir but read-only
 
 		FS_GAMEDIRONLY_SEARCH_FLAGS = FS_GAMEDIR_PATH | FS_CUSTOM_PATH | FS_GAMERODIR_PATH
 		};
@@ -128,8 +128,8 @@ extern "C"
 
 	typedef struct fs_api_t
 		{
-		qboolean (*InitStdio)(qboolean caseinsensitive, const char *rootdir, const char *basedir, 
-			const char *gamedir, const char *rodir);
+		qboolean (*InitStdio)(qboolean unused_set_to_true, const char *rootdir, const char *basedir,
+			const char *gamedir, const char *rodir);	// [FWGS, 01.05.23]
 		void (*ShutdownStdio)(void);
 
 		// search path utils
@@ -155,8 +155,8 @@ extern "C"
 		qboolean (*Eof)(file_t *file);
 		int (*Flush)(file_t *file);
 		int (*Close)(file_t *file);
-		int (*Gets)(file_t *file, byte *string, size_t bufsize);
-		int (*UnGetc)(file_t *file, byte c);
+		int (*Gets)(file_t *file, char *string, size_t bufsize);	// [FWGS, 01.05.23]
+		int (*UnGetc)(file_t *file, char c);	// [FWGS, 01.05.23]
 		int (*Getc)(file_t *file);
 		int (*VPrintf)(file_t *file, const char *format, va_list ap);
 		int (*Printf)(file_t *file, const char *format, ...) _format (2);
@@ -186,9 +186,14 @@ extern "C"
 
 		const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
 
-		// file watcher
+		/* file watcher
 		void (*WatchFrame)(void); // engine will read all events and call appropriate callbacks
-		qboolean (*AddWatch)(const char *path, fs_event_callback_t callback);
+		qboolean (*AddWatch)(const char *path, fs_event_callback_t callback);*/
+
+		// [FWGS, 01.05.23] reserved
+		void (*Unused0)(void);
+		void (*Unused1)(void);
+		qboolean (*GetFullDiskPath)(char *buffer, size_t size, const char *name, qboolean gamedironly);
 		} fs_api_t;
 
 	typedef struct fs_interface_t

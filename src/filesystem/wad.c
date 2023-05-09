@@ -1,7 +1,9 @@
 /*
 wad.c - WAD support for filesystem
+Copyright (C) 2003-2006 Mathieu Olivier
+Copyright (C) 2000-2007 DarkPlaces contributors
 Copyright (C) 2007 Uncle Mike
-Copyright (C) 2022 Alibek Omarov
+Copyright (C) 2015-2023 Xash3D FWGS contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -423,7 +425,6 @@ static wfile_t *W_Open (const char *filename, int *error)
 /*
 ===========
 FS_FileTime_WAD
-
 ===========
 */
 static int FS_FileTime_WAD (searchpath_t *search, const char *filename)
@@ -434,7 +435,6 @@ static int FS_FileTime_WAD (searchpath_t *search, const char *filename)
 /*
 ===========
 FS_PrintInfo_WAD
-
 ===========
 */
 static void FS_PrintInfo_WAD (searchpath_t *search, char *dst, size_t size)
@@ -445,16 +445,15 @@ static void FS_PrintInfo_WAD (searchpath_t *search, char *dst, size_t size)
 /*
 ===========
 FS_FindFile_WAD
-
 ===========
 */
 static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedname, size_t len)
 	{
-	dlumpinfo_t *lump;
+	dlumpinfo_t		*lump;
 	signed char		type = W_TypeFromExt (path);
 	qboolean		anywadname = true;
-	string		wadname, wadfolder;
-	string		shortname;
+	string			wadname, wadfolder;
+	string			shortname;
 
 	// quick reject by filetype
 	if (type == TYP_NONE)
@@ -463,17 +462,26 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 	COM_ExtractFilePath (path, wadname);
 	wadfolder[0] = '\0';
 
+	// [FWGS, 01.05.23]
 	if (COM_CheckStringEmpty (wadname))
 		{
-		COM_FileBase (wadname, wadname);
+		/*COM_FileBase (wadname, wadname);
 		Q_strncpy (wadfolder, wadname, sizeof (wadfolder));
-		COM_DefaultExtension (wadname, ".wad");
+		COM_DefaultExtension (wadname, ".wad");*/
+		string wadbasename;
+		COM_FileBase (wadname, wadbasename, sizeof (wadbasename));
+
+		Q_strncpy (wadfolder, wadbasename, sizeof (wadfolder));
+		Q_snprintf (wadname, sizeof (wadname), "%s.wad", wadbasename);
+
 		anywadname = false;
 		}
 
-	// make wadname from wad fullpath
-	COM_FileBase (search->filename, shortname);
-	COM_DefaultExtension (shortname, ".wad");
+	// [FWGS, 01.05.23] make wadname from wad fullpath
+	/*COM_FileBase (search->filename, shortname);
+	COM_DefaultExtension (shortname, ".wad");*/
+	COM_FileBase (search->filename, shortname, sizeof (shortname));
+	COM_DefaultExtension (shortname, ".wad", sizeof (shortname));
 
 	// quick reject by wadname
 	if (!anywadname && Q_stricmp (wadname, shortname))
@@ -481,7 +489,7 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 
 	// NOTE: we can't using long names for wad,
 	// because we using original wad names[16];
-	COM_FileBase (path, shortname);
+	COM_FileBase (path, shortname, sizeof (shortname));	// [FWGS, 01.05.23]
 
 	lump = W_FindLump (search->wad, shortname, type);
 
@@ -498,38 +506,45 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 /*
 ===========
 FS_Search_WAD
-
 ===========
 */
 static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char *pattern, int caseinsensitive)
 	{
-	string	wadpattern, wadname, temp2;
+	string		wadpattern, wadname, temp2;
 	signed char	type = W_TypeFromExt (pattern);
 	qboolean	anywadname = true;
-	string	wadfolder, temp;
-	int j, i;
-	const char *slash, *backslash, *colon, *separator;
-	char buf[MAX_VA_STRING];
+	string		wadfolder, temp;
+	int			j, i;
+	const char	*slash, *backslash, *colon, *separator;
+	char		buf[MAX_VA_STRING];
 
 	// quick reject by filetype
 	if (type == TYP_NONE)
 		return;
 
 	COM_ExtractFilePath (pattern, wadname);
-	COM_FileBase (pattern, wadpattern);
+	COM_FileBase (pattern, wadpattern, sizeof (wadpattern));	// [FWGS, 01.05.23]
 	wadfolder[0] = '\0';
 
+	// [FWGS, 01.05.23]
 	if (COM_CheckStringEmpty (wadname))
 		{
-		COM_FileBase (wadname, wadname);
+		/*COM_FileBase (wadname, wadname);
 		Q_strncpy (wadfolder, wadname, sizeof (wadfolder));
-		COM_DefaultExtension (wadname, ".wad");
+		COM_DefaultExtension (wadname, ".wad");*/
+		string wadbasename;
+		COM_FileBase (wadname, wadbasename, sizeof (wadbasename));
+
+		Q_strncpy (wadfolder, wadbasename, sizeof (wadfolder));
+		Q_snprintf (wadname, sizeof (wadname), "%s.wad", wadbasename);
 		anywadname = false;
 		}
 
-	// make wadname from wad fullpath
-	COM_FileBase (search->filename, temp2);
-	COM_DefaultExtension (temp2, ".wad");
+	// [FWGS, 01.05.23] make wadname from wad fullpath
+	/*COM_FileBase (search->filename, temp2);
+	COM_DefaultExtension (temp2, ".wad");*/
+	COM_FileBase (search->filename, temp2, sizeof (temp2));
+	COM_DefaultExtension (temp2, ".wad", sizeof (temp2));
 
 	// quick reject by wadname
 	if (!anywadname && Q_stricmp (wadname, temp2))
@@ -538,7 +553,7 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 	for (i = 0; i < search->wad->numlumps; i++)
 		{
 		// if type not matching, we already have no chance ...
-		if (type != TYP_ANY && search->wad->lumps[i].type != type)
+		if ((type != TYP_ANY) && (search->wad->lumps[i].type != type))
 			continue;
 
 		// build the lumpname with image suffix (if present)
@@ -559,7 +574,7 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 					// build path: wadname/lumpname.ext
 					Q_snprintf (temp2, sizeof (temp2), "%s/%s", wadfolder, temp);
 					Q_snprintf (buf, sizeof (buf), ".%s", W_ExtFromType (search->wad->lumps[i].type));
-					COM_DefaultExtension (temp2, buf);
+					COM_DefaultExtension (temp2, buf, sizeof (temp2));	// [FWGS, 01.05.23]
 					stringlistappend (list, temp2);
 					}
 				}
@@ -637,9 +652,7 @@ qboolean FS_AddWad_Fullpath (const char *wadfile, qboolean *already_loaded, int 
 
 /*
 =============================================================================
-
 WADSYSTEM PRIVATE ROUTINES
-
 =============================================================================
 */
 
@@ -700,7 +713,7 @@ byte *FS_LoadWADFile (const char *path, fs_offset_t *lumpsizeptr, qboolean gamed
 	int		index;
 
 	search = FS_FindFile (path, &index, NULL, 0, gamedironly);
-	if (search && search->type == SEARCHPATH_WAD)
+	if (search && (search->type == SEARCHPATH_WAD))
 		return W_ReadLump (search->wad, &search->wad->lumps[index], lumpsizeptr);
 	return NULL;
 	}

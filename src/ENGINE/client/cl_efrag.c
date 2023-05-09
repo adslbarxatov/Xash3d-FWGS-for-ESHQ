@@ -22,9 +22,7 @@ GNU General Public License for more details.
 
 /*
 ===============================================================================
-
-			ENTITY FRAGMENT FUNCTIONS
-
+ENTITY FRAGMENT FUNCTIONS
 ===============================================================================
 */
 
@@ -33,13 +31,12 @@ static mnode_t *r_pefragtopnode;
 static vec3_t	r_emins, r_emaxs;
 static cl_entity_t *r_addent;
 
-/*
+/*[FWGS, 01.05.23]
 ================
 R_RemoveEfrags
 
 Call when removing an object from the world or moving it to another position
 ================
-*/
 void R_RemoveEfrags (cl_entity_t *ent)
 	{
 	efrag_t *ef, *old, *walk, **prev;
@@ -52,7 +49,8 @@ void R_RemoveEfrags (cl_entity_t *ent)
 		while (1)
 			{
 			walk = *prev;
-			if (!walk) break;
+			if (!walk)
+				break;
 
 			if (walk == ef)
 				{
@@ -60,7 +58,10 @@ void R_RemoveEfrags (cl_entity_t *ent)
 				*prev = ef->leafnext;
 				break;
 				}
-			else prev = &walk->leafnext;
+			else
+				{
+				prev = &walk->leafnext;
+				}
 			}
 
 		old = ef;
@@ -72,6 +73,7 @@ void R_RemoveEfrags (cl_entity_t *ent)
 		}
 	ent->efrag = NULL;
 	}
+*/
 
 /*
 ===================

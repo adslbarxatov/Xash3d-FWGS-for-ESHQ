@@ -63,7 +63,8 @@ static int (_stdcall *pAVIStreamTimeToSample)(PAVISTREAM pavi, LONG lTime);
 static void *(_stdcall *pAVIStreamGetFrame)(PGETFRAME pg, LONG lPos);
 static int (_stdcall *pAVIStreamGetFrameClose)(PGETFRAME pg);
 static dword (_stdcall *pAVIStreamRelease)(PAVISTREAM pavi);
-static int (_stdcall *pAVIFileOpen)(PAVIFILE *ppfile, LPCSTR szFile, UINT uMode, LPCLSID lpHandler);
+/*static int (_stdcall *pAVIFileOpen)(PAVIFILE *ppfile, LPCSTR szFile, UINT uMode, LPCLSID lpHandler);*/
+static int (_stdcall *pAVIFileOpenW)(PAVIFILE *ppfile, LPCWSTR szFile, UINT uMode, LPCLSID lpHandler);	// [FWGS, 01.05.23]
 static int (_stdcall *pAVIFileGetStream)(PAVIFILE pfile, PAVISTREAM *ppavi, DWORD fccType, LONG lParam);
 static int (_stdcall *pAVIStreamReadFormat)(PAVISTREAM pavi, LONG lPos, LPVOID lpFormat, LONG *lpcbFormat);
 static int (_stdcall *pAVIStreamStart)(PAVISTREAM pavi);
@@ -76,7 +77,7 @@ static dllfunc_t avifile_funcs[] =
 	{ "AVIFileExit", (void **)&pAVIFileExit },
 	{ "AVIFileGetStream", (void **)&pAVIFileGetStream },
 	{ "AVIFileInit", (void **)&pAVIFileInit },
-	{ "AVIFileOpenA", (void **)&pAVIFileOpen },
+	{ "AVIFileOpenW", (void **)&pAVIFileOpenW },	// [FWGS, 01.05.23]
 	{ "AVIFileRelease", (void **)&pAVIFileRelease },
 	{ "AVIStreamGetFrame", (void **)&pAVIStreamGetFrame },
 	{ "AVIStreamGetFrameClose", (void **)&pAVIStreamGetFrameClose },
@@ -133,7 +134,7 @@ typedef struct movie_state_s
 static qboolean		avi_initialized = false;
 static movie_state_t	avi[2];
 
-// Converts a compressed audio stream into uncompressed PCM.
+// Converts a compressed audio stream into uncompressed PCM
 qboolean AVI_ACMConvertAudio (movie_state_t *Avi)
 	{
 	WAVEFORMATEX	dest_header, *sh, *dh;
@@ -142,7 +143,7 @@ qboolean AVI_ACMConvertAudio (movie_state_t *Avi)
 	short		bits;
 
 	// WMA codecs, both versions - they simply don't work.
-	if (Avi->audio_header->wFormatTag == 0x160 || Avi->audio_header->wFormatTag == 0x161)
+	if ((Avi->audio_header->wFormatTag == 0x160) || (Avi->audio_header->wFormatTag == 0x161))
 		{
 		if (!Avi->quiet)
 			Con_Reportf (S_ERROR "ACM does not support this audio codec.\n");
@@ -204,7 +205,8 @@ qboolean AVI_ACMConvertAudio (movie_state_t *Avi)
 		}
 
 	// get the size of the output buffer for streaming the compressed audio
-	if (pacmStreamSize (Avi->cpa_conversion_stream, Avi->cpa_blockalign, &dest_length, ACM_STREAMSIZEF_SOURCE) != MMSYSERR_NOERROR)
+	if (pacmStreamSize (Avi->cpa_conversion_stream, Avi->cpa_blockalign, &dest_length, ACM_STREAMSIZEF_SOURCE) !=
+		MMSYSERR_NOERROR)
 		{
 		if (!Avi->quiet)
 			Con_Reportf (S_ERROR "Couldn't get ACM conversion stream size.\n");
@@ -236,15 +238,18 @@ qboolean AVI_ACMConvertAudio (movie_state_t *Avi)
 		return false;
 		}
 
-	Avi->cpa_blocknum = 0; // start at 0.
+	Avi->cpa_blocknum = 0; // start at 0
 	Avi->cpa_blockpos = 0;
 	Avi->cpa_blockoffset = 0;
 
-	pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign, Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
-	pacmStreamConvert (Avi->cpa_conversion_stream, &Avi->cpa_conversion_header, ACM_STREAMCONVERTF_BLOCKALIGN | ACM_STREAMCONVERTF_START);
+	pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign,
+		Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
+	pacmStreamConvert (Avi->cpa_conversion_stream, &Avi->cpa_conversion_header,
+		ACM_STREAMCONVERTF_BLOCKALIGN | ACM_STREAMCONVERTF_START);
 
-	// convert first chunk twice. it often fails the first time. BLACK MAGIC.
-	pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign, Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
+	// convert first chunk twice. it often fails the first time. BLACK MAGIC
+	pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign,
+		Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
 	pacmStreamConvert (Avi->cpa_conversion_stream, &Avi->cpa_conversion_header, ACM_STREAMCONVERTF_BLOCKALIGN);
 
 	Avi->audio_bytes_per_sample = (bits >> 3) * Avi->audio_header->nChannels;
@@ -278,6 +283,7 @@ int AVI_GetVideoFrameNumber (movie_state_t *Avi, float time)
 	return (time * Avi->video_fps);
 	}
 
+/* [FWGS, 01.05.23]
 int AVI_GetVideoFrameCount (movie_state_t *Avi)
 	{
 	if (!Avi->active)
@@ -285,6 +291,7 @@ int AVI_GetVideoFrameCount (movie_state_t *Avi)
 
 	return Avi->video_frames;
 	}
+*/
 
 int AVI_TimeToSoundPosition (movie_state_t *Avi, int time)
 	{
@@ -308,7 +315,8 @@ byte *AVI_GetVideoFrame (movie_state_t *Avi, int frame)
 
 	frame_info = (LPBITMAPINFOHEADER)pAVIStreamGetFrame (Avi->video_getframe, frame);
 	frame_raw = (byte *)frame_info + frame_info->biSize + frame_info->biClrUsed * sizeof (RGBQUAD);
-	pDrawDibDraw (Avi->hDD, Avi->hDC, 0, 0, Avi->video_xres, Avi->video_yres, frame_info, frame_raw, 0, 0, Avi->video_xres, Avi->video_yres, 0);
+	pDrawDibDraw (Avi->hDD, Avi->hDC, 0, 0, Avi->video_xres, Avi->video_yres, frame_info, frame_raw,
+		0, 0, Avi->video_xres, Avi->video_yres, 0);
 
 	return Avi->pframe_data;
 	}
@@ -347,11 +355,14 @@ qboolean AVI_SeekPosition (movie_state_t *Avi, dword offset)
 		Avi->cpa_blockpos = 0;
 		Avi->cpa_blockoffset = 0;
 
-		pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign, Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
-		pacmStreamConvert (Avi->cpa_conversion_stream, &Avi->cpa_conversion_header, ACM_STREAMCONVERTF_BLOCKALIGN | ACM_STREAMCONVERTF_START);
+		pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign,
+			Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
+		pacmStreamConvert (Avi->cpa_conversion_stream, &Avi->cpa_conversion_header,
+			ACM_STREAMCONVERTF_BLOCKALIGN | ACM_STREAMCONVERTF_START);
 
 		// convert first chunk twice. it often fails the first time. BLACK MAGIC.
-		pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign, Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
+		pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign,
+			Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
 		pacmStreamConvert (Avi->cpa_conversion_stream, &Avi->cpa_conversion_header, ACM_STREAMCONVERTF_BLOCKALIGN);
 		}
 
@@ -363,7 +374,8 @@ qboolean AVI_SeekPosition (movie_state_t *Avi, dword offset)
 		Avi->cpa_blocknum++;
 		Avi->cpa_blockoffset += Avi->cpa_conversion_header.cbDstLengthUsed;
 
-		pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign, Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
+		pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign,
+			Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
 		pacmStreamConvert (Avi->cpa_conversion_stream, &Avi->cpa_conversion_header, ACM_STREAMCONVERTF_BLOCKALIGN);
 
 		if (Avi->cpa_conversion_header.cbDstLengthUsed == 0)
@@ -406,7 +418,7 @@ int AVI_GetAudioChunk (movie_state_t *Avi, char *audiodata, int offset, int leng
 			for (i = 0; i < length; i++)
 				audiodata[i] = 0;
 
-			//			return length;
+			// return length;
 			}
 		}
 
@@ -414,7 +426,8 @@ int AVI_GetAudioChunk (movie_state_t *Avi, char *audiodata, int offset, int leng
 	if (Avi->audio_codec == WAVE_FORMAT_PCM)
 		{
 		// very simple - read straight out
-		pAVIStreamRead (Avi->audio_stream, offset / Avi->audio_bytes_per_sample, length / Avi->audio_bytes_per_sample, audiodata, length, &result, NULL);
+		pAVIStreamRead (Avi->audio_stream, offset / Avi->audio_bytes_per_sample, length / Avi->audio_bytes_per_sample,
+			audiodata, length, &result, NULL);
 		return result;
 		}
 	else
@@ -435,7 +448,8 @@ int AVI_GetAudioChunk (movie_state_t *Avi, char *audiodata, int offset, int leng
 				Avi->cpa_blocknum++;
 				Avi->cpa_blockoffset += Avi->cpa_conversion_header.cbDstLengthUsed;
 
-				pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign, Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
+				pAVIStreamRead (Avi->audio_stream, Avi->cpa_blocknum * Avi->cpa_blockalign, Avi->cpa_blockalign,
+					Avi->cpa_srcbuffer, Avi->cpa_blockalign, NULL, NULL);
 				pacmStreamConvert (Avi->cpa_conversion_stream, &Avi->cpa_conversion_header, ACM_STREAMCONVERTF_BLOCKALIGN);
 
 				Avi->cpa_blockpos = 0;
@@ -490,11 +504,12 @@ void AVI_CloseVideo (movie_state_t *Avi)
 void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audio, int quiet)
 	{
 	BITMAPINFOHEADER	bmih;
-	AVISTREAMINFO	stream_info;
+	AVISTREAMINFO		stream_info;
 	int		opened_streams = 0;
-	LONG		hr;
+	LONG	hr;
+	wchar_t		pathBuffer[MAX_PATH];	// [FWGS, 01.05.23]
 
-	// default state: non-working.
+	// default state: non-working
 	Avi->active = false;
 	Avi->quiet = quiet;
 
@@ -502,8 +517,16 @@ void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audi
 	if (!avi_initialized)
 		return;
 
-	// load the AVI
-	hr = pAVIFileOpen (&Avi->pfile, filename, OF_SHARE_DENY_WRITE, 0L);
+	// convert to wide char [FWGS, 01.05.23]
+	if (MultiByteToWideChar (CP_UTF8, 0, filename, -1, pathBuffer, ARRAYSIZE (pathBuffer)) <= 0)
+		{
+		Con_DPrintf (S_ERROR "filename buffer limit exceeded\n");
+		return;
+		}
+
+	// load the AVI [FWGS, 01.05.23]
+	/*hr = pAVIFileOpen (&Avi->pfile, filename, OF_SHARE_DENY_WRITE, 0L);*/
+	hr = pAVIFileOpenW (&Avi->pfile, pathBuffer, OF_SHARE_DENY_WRITE, 0L);
 
 	if (hr != 0) // error opening AVI:
 		{
@@ -658,7 +681,8 @@ movie_state_t *AVI_LoadVideo (const char *filename, qboolean load_audio)
 
 	// open cinematic
 	Q_snprintf (path, sizeof (path), "media/%s", filename);
-	COM_DefaultExtension (path, ".avi");
+	/*COM_DefaultExtension (path, ".avi");*/
+	COM_DefaultExtension (path, ".avi", sizeof (path));	// [FWGS, 01.05.23]
 	fullpath = FS_GetDiskPath (path, false);
 
 	if (FS_FileExists (path, false) && !fullpath)
@@ -732,4 +756,5 @@ void AVI_Shutdown (void)
 	Sys_FreeLibrary (&msacm_dll);
 	avi_initialized = false;
 	}
-#endif // _WIN32
+
+#endif

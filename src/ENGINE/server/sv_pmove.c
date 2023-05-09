@@ -44,7 +44,8 @@ qboolean SV_PlayerIsFrozen (edict_t *pClient)
 	return false;
 	}
 
-void SV_ClipPMoveToEntity (physent_t *pe, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, pmtrace_t *tr)
+void SV_ClipPMoveToEntity (physent_t *pe, const vec3_t start, vec3_t mins, vec3_t maxs,
+	const vec3_t end, pmtrace_t *tr)
 	{
 	Assert (tr != NULL);
 
@@ -363,10 +364,12 @@ static void GAME_EXPORT pfnParticle (const float *origin, int color, float life,
 	MSG_WriteByte (&sv.reliable_datagram, bound (0, life * 8, 255));
 	}
 
+/* [FWGS, 01.05.23]
 int SV_TestLine (const vec3_t start, const vec3_t end, int flags)
 	{
 	return PM_TestLineExt (svgame.pmove, svgame.pmove->physents, svgame.pmove->numphysent, start, end, flags);
 	}
+*/
 
 static int GAME_EXPORT pfnTestPlayerPosition (float *pos, pmtrace_t *ptrace)
 	{

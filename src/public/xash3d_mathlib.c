@@ -55,14 +55,13 @@ float anglemod (float a)
 
 /*
 =================
-SimpleSpline
+SimpleSpline [FWGS, 01.05.23]
 
 NOTE: ripped from hl2 source
 hermite basis function for smooth interpolation
 Similar to Gain() above, but very cheap to call
 value should be between 0 & 1 inclusive
 =================
-*/
 float SimpleSpline (float value)
 	{
 	float	valueSquared = value * value;
@@ -70,6 +69,7 @@ float SimpleSpline (float value)
 	// nice little ease-in, ease-out spline-like curve
 	return (3.0f * valueSquared - 2.0f * valueSquared * value);
 	}
+*/
 
 word FloatToHalf (float v)
 	{
@@ -117,7 +117,7 @@ float HalfToFloat (word h)
 			}
 		}
 
-	//return *((float *)&f);
+	/*return *((float *)&f);*/
 	return UintAsFloat (f);	// [FWGS, 01.04.23]
 	}
 
@@ -206,10 +206,8 @@ int PlaneTypeForNormal (const vec3_t normal)
 
 /*
 =================
-PlanesGetIntersectionPoint
-
+PlanesGetIntersectionPoint [FWGS, 01.05.23]
 =================
-*/
 qboolean PlanesGetIntersectionPoint (const mplane_t *plane1, const mplane_t *plane2, const mplane_t *plane3, vec3_t out)
 	{
 	vec3_t	n1, n2, n3;
@@ -246,6 +244,7 @@ qboolean PlanesGetIntersectionPoint (const mplane_t *plane1, const mplane_t *pla
 
 	return true;
 	}
+	*/
 
 /*
 =================
@@ -630,7 +629,6 @@ float RadiusFromBounds (const vec3_t mins, const vec3_t maxs)
 /*
 ====================
 AngleQuaternion
-
 ====================
 */
 void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean studio)
@@ -659,7 +657,6 @@ void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean studio)
 /*
 ====================
 QuaternionAngle
-
 ====================
 */
 void QuaternionAngle (const vec4_t q, vec3_t angles)
@@ -771,9 +768,8 @@ void QuaternionSlerp (const vec4_t p, const vec4_t q, float t, vec4_t qt)
 
 /*
 ====================
-V_CalcFov
+V_CalcFov [FWGS, 01.05.23]
 ====================
-*/
 float V_CalcFov (float *fov_x, float width, float height)
 	{
 	float	x, half_fov_y;
@@ -791,7 +787,6 @@ float V_CalcFov (float *fov_x, float width, float height)
 ====================
 V_AdjustFov
 ====================
-*/
 void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x)
 	{
 	float x, y;
@@ -815,6 +810,7 @@ void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolea
 	if (*fov_x < x) *fov_x = x;
 	else *fov_y = y;
 	}
+	*/
 
 /*
 ==================

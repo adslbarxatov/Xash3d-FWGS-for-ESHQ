@@ -111,7 +111,8 @@ const char *CL_MsgInfo (int cmd)
 	{
 	static string	sz;
 
-	Q_strcpy (sz, "???");
+	/*Q_strcpy (sz, "???");*/
+	Q_strncpy (sz, "???", sizeof (sz));	// [FWGS, 01.05.23]
 
 	if ((cmd >= 0) && (cmd <= svc_lastmsg))
 		{

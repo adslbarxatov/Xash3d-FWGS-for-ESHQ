@@ -34,7 +34,7 @@ void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...)
 		return;
 
 	va_start (argptr, fmt);
-	Q_vsprintf (string, fmt, argptr);
+	Q_vsnprintf (string, sizeof (string), fmt, argptr);
 	va_end (argptr);
 
 	MSG_BeginServerCmd (&cl->netchan.message, svc_print);
@@ -56,7 +56,7 @@ void SV_BroadcastPrintf (sv_client_t *ignore, const char *fmt, ...)
 	int		i;
 
 	va_start (argptr, fmt);
-	Q_vsprintf (string, fmt, argptr);
+	Q_vsnprintf (string, sizeof (string), fmt, argptr);
 	va_end (argptr);
 
 	if (sv.state == ss_active)
@@ -97,7 +97,7 @@ void SV_BroadcastCommand (const char *fmt, ...)
 		return;
 
 	va_start (argptr, fmt);
-	Q_vsprintf (string, fmt, argptr);
+	Q_vsnprintf (string, sizeof (string), fmt, argptr);
 	va_end (argptr);
 
 	MSG_BeginServerCmd (&sv.reliable_datagram, svc_stufftext);
@@ -335,12 +335,12 @@ void SV_NextMap_f (void)
 		if (Q_stricmp (ext, "bsp"))
 			continue;
 
-		COM_FileBase (t->filenames[i], nextmap);
+		COM_FileBase (t->filenames[i], nextmap, sizeof (nextmap));	// [FWGS, 01.05.23]
 		if (Q_stricmp (sv_hostmap->string, nextmap))
 			continue;
 
 		next = (i + 1) % t->numfilenames;
-		COM_FileBase (t->filenames[next], nextmap);
+		COM_FileBase (t->filenames[next], nextmap, sizeof (nextmap));	// [FWGS, 01.05.23]
 		Cvar_DirectSet (sv_hostmap, nextmap);
 
 		// found current point, check for valid
@@ -767,12 +767,13 @@ void SV_ConSay_f (void)
 
 /*
 ==================
-SV_Heartbeat_f
+SV_Heartbeat_f [FWGS, 01.05.23]
 ==================
 */
-void SV_Heartbeat_f (void)
+static void SV_Heartbeat_f (void)
 	{
-	svs.last_heartbeat = MAX_HEARTBEAT;
+	/*svs.last_heartbeat = MAX_HEARTBEAT;*/
+	NET_MasterClear ();
 	}
 
 /*

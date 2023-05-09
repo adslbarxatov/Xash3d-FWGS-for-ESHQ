@@ -1320,19 +1320,22 @@ void CL_CheckStartupDemos (void)
 
 /*
 ==================
-CL_DemoGetName
+CL_DemoGetName [FWGS, 01.05.23]
 ==================
 */
-static void CL_DemoGetName (int lastnum, char *filename)
+/*static void CL_DemoGetName (int lastnum, char *filename)*/
+static void CL_DemoGetName (int lastnum, char *filename, size_t size)
 	{
-	if (lastnum < 0 || lastnum > 9999)
+	if ((lastnum < 0) || (lastnum > 9999))
 		{
 		// bound
-		Q_strcpy (filename, "demo9999");
+		/*Q_strcpy (filename, "demo9999");*/
+		Q_strncpy (filename, "demo9999.dem", size);
 		return;
 		}
 
-	Q_sprintf (filename, "demo%04d", lastnum);
+	/*Q_sprintf (filename, "demo%04d", lastnum);*/
+	Q_snprintf (filename, size, "demo%04d.dem", lastnum);
 	}
 
 /*
@@ -1375,7 +1378,7 @@ void CL_Record_f (void)
 		return;
 		}
 
-	if (!cls.demoheader || cls.state != ca_active)
+	if (!cls.demoheader || (cls.state != ca_active))
 		{
 		Con_Printf ("You must be in a level to record.\n");
 		return;
@@ -1386,8 +1389,10 @@ void CL_Record_f (void)
 		// scan for a free filename
 		for (n = 0; n < 10000; n++)
 			{
-			CL_DemoGetName (n, demoname);
-			if (!FS_FileExists (va ("%s.dem", demoname), true))
+			/*CL_DemoGetName (n, demoname);
+			if (!FS_FileExists (va ("%s.dem", demoname), true))*/
+			CL_DemoGetName (n, demoname, sizeof (demoname));	// [FWGS, 01.05.23]
+			if (!FS_FileExists (demoname, true))
 				break;
 			}
 
@@ -1403,7 +1408,8 @@ void CL_Record_f (void)
 		}
 
 	// open the demo file
-	Q_sprintf (demopath, "%s.dem", demoname);
+	/*Q_sprintf (demopath, "%s.dem", demoname);*/
+	Q_snprintf (demopath, sizeof (demopath), "%s.dem", demoname);	// [FWGS, 01.05.23]
 
 	// make sure that old demo is removed
 	if (FS_FileExists (demopath, false))

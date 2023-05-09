@@ -64,13 +64,18 @@ convar_t *host_sleeptime;
 convar_t *con_gamemaps;
 convar_t *build, *ver;
 
+// [FWGS, 01.05.23]
 void Sys_PrintUsage (void)
 	{
+	string version_str;
 	const char *usage_str;
 
-#define O(x,y) "   "x"  "y"\n"
+/*#define O(x,y) "   "x"  "y"\n"*/
+	Q_snprintf (version_str, sizeof (version_str),
+		XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
+		Q_buildos (), Q_buildarch (), Q_buildnum ());
 
-	usage_str = ""
+	/*usage_str = ""
 #if XASH_MESSAGEBOX == MSGBOX_STDERR
 		"\n" // dirty hack to not have Xash Error: Usage: on same line
 #endif
@@ -85,37 +90,98 @@ void Sys_PrintUsage (void)
 		"Options:\n"
 		O ("-dev [level]     ", "set log verbosity 0-2")
 		O ("-log             ", "write log to \"engine.log\"")
-		O ("-nowriteconfig   ", "disable config save")
+		O ("-nowriteconfig   ", "disable config save")*/
 
-#if !XASH_WIN32
+#if XASH_WIN32
+	#define XASH_EXE "(xash).exe"
+#else
+	#define XASH_EXE "(xash)"
+#endif
+
+/*#if !XASH_WIN32
 		O ("-casesensitive   ", "disable case-insensitive FS emulation")
-#endif // !XASH_WIN32
+#endif */
 
-#if !XASH_MOBILE_PLATFORM
+#define O( x, y ) "  "x"  "y"\n"
+
+/*#if !XASH_MOBILE_PLATFORM
 		O ("-daemonize       ", "run engine in background, dedicated only")
-#endif // !XASH_MOBILE_PLATFORM
+#endif */
 
+	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
+		"\nCommon options:\n"
+		O ("-dev [level]     ", "set log verbosity 0-2")
+		O ("-log             ", "write log to \"engine.log\"")
+		O ("-nowriteconfig   ", "disable config save")
+		O ("-noch            ", "disable crashhandler")
+#if XASH_WIN32 // !!!!
+		O ("-minidumps       ", "enable writing minidumps when game is crashed")
+#endif
+		O ("-rodir <path>    ", "set read-only base directory")
+		O ("-bugcomp         ", "enable precise bug compatibility. Will break games that don't require it")
+		O ("                 ", "Refer to engine documentation for more info")
+		O ("-disablehelp     ", "disable this message")
 #if !XASH_DEDICATED
-		O ("-toconsole       ", "run engine witn console open")
+		/*O ("-toconsole       ", "run engine witn console open")
 		O ("-width <n>       ", "set window width")
 		O ("-height <n>      ", "set window height")
-		O ("-oldfont         ", "enable unused Quake font in Half-Life")
+		O ("-oldfont         ", "enable unused Quake font in Half-Life")*/
+		O ("-dedicated       ", "run engine in dedicated mode")
+#endif
 
-#if !XASH_MOBILE_PLATFORM
+/*#if !XASH_MOBILE_PLATFORM
 		O ("-fullscreen      ", "run engine in fullscreen mode")
 		O ("-windowed        ", "run engine in windowed mode")
 		O ("-dedicated       ", "run engine in dedicated server mode")
+#endif*/
+
+		"\nNetworking options:\n"
+		O ("-noip            ", "disable IPv4")
+		O ("-ip <ip>         ", "set IPv4 address")
+		O ("-port <port>     ", "set IPv4 port")
+		O ("-noip6           ", "disable IPv6")
+		O ("-ip6 <ip>        ", "set IPv6 address")
+		O ("-port6 <port>    ", "set IPv6 port")
+		O ("-clockwindow <cw>", "adjust clockwindow used to ignore client commands to prevent speed hacks")
+		"\nGame options:\n"
+		O ("-dll <path>      ", "override server DLL path")
+#if !XASH_DEDICATED
+		O ("-clientlib <path>", "override client DLL path")
+		O ("-console         ", "run engine with console enabled")
+		O ("-toconsole       ", "run engine witn console open")
+		O ("-oldfont         ", "enable unused Quake font in Half-Life")
+		O ("-width <n>       ", "set window width")
+		O ("-height <n>      ", "set window height")
+		O ("-fullscreen      ", "run engine in fullscreen mode")
+		O ("-windowed        ", "run engine in windowed mode")
+		O ("-ref <name>      ", "use selected renderer dll")
+		O ("-gldebug         ", "enable OpenGL debug log")
+#if XASH_WIN32
+		O ("-noavi           ", "disable AVI support")
+		O ("-nointro         ", "disable intro video")
+#endif
+		O ("-noenginejoy     ", "disable engine builtin joystick support")
+		O ("-noenginemouse   ", "disable engine builtin mouse support")
+		O ("-nosound         ", "disable sound output")
+#endif
+		"\nPlatform-specific options:\n"
+#if !XASH_MOBILE_PLATFORM
+		O ("-daemonize       ", "run engine as a daemon")
+#endif
+#if XASH_SDL == 2
+		O ("-sdl_joy_old_api ", "use SDL legacy joystick API")
+		O ("-sdl_renderer <n>", "use alternative SDL_Renderer for software")
 #endif
 
 #if XASH_ANDROID
 		O ("-nativeegl       ", "use native egl implementation. Use if screen does not update or black")
 #endif
 
-#if XASH_WIN32
+/*#if XASH_WIN32
 		O ("-noavi           ", "disable AVI support")
 		O ("-nointro         ", "disable intro video")
 		O ("-minidumps       ", "enable writing minidumps when game crashed")
-#endif
+#endif*/
 
 #if XASH_DOS
 		O ("-novesa          ", "disable vesa")
@@ -130,8 +196,10 @@ void Sys_PrintUsage (void)
 #if XASH_SOUND == SOUND_ALSA
 		O ("-alsadev <dev>   ", "open selected ALSA device")
 #endif
+		;
+#undef O
 
-		O ("-nojoy           ", "disable joystick support")
+		/*O ("-nojoy           ", "disable joystick support")
 
 #ifdef XASH_SDL
 		O ("-sdl_joy_old_api ", "use SDL legacy joystick API")
@@ -149,9 +217,16 @@ void Sys_PrintUsage (void)
 		O ("-disablehelp     ", "disable this message")
 		O ("-dll <path>      ", "override server DLL path")
 #if !XASH_DEDICATED
-		O ("-clientlib <path>", "override client DLL path")
+		O ("-clientlib <path>", "override client DLL path")*/
+
+// HACKHACK: pretty output in dedicated
+#if XASH_MESSAGEBOX != MSGBOX_STDERR
+	Platform_MessageBox (version_str, usage_str, false);
+#else
+	fprintf (stderr, "%s\n%s", version_str, usage_str);
 #endif
-		O ("-rodir <path>    ", "set read-only base directory, experimental")
+
+		/*O ("-rodir <path>    ", "set read-only base directory, experimental")
 		O ("-bugcomp         ", "enable precise bug compatibility. Will break games that don't require it")
 		O ("                 ", "Refer to engine documentation for more info")
 
@@ -161,7 +236,8 @@ void Sys_PrintUsage (void)
 		;
 #undef  O
 
-	Sys_Error ("%s", usage_str);
+	Sys_Error ("%s", usage_str);*/
+	Sys_Quit ();
 	}
 
 int Host_CompareFileTime (int ft1, int ft2)
@@ -438,7 +514,7 @@ void Host_Exec_f (void)
 		}
 
 	Q_strncpy (cfgpath, arg, sizeof (cfgpath));
-	COM_DefaultExtension (cfgpath, ".cfg"); // append as default
+	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath)); // [FWGS, 01.05.23] append as default
 
 	f = FS_LoadFile (cfgpath, &len, false);
 	if (!f)
@@ -528,7 +604,7 @@ qboolean Host_RegisterDecal (const char *name, int *count)
 	if (!COM_CheckString (name))
 		return 0;
 
-	COM_FileBase (name, shortname);
+	COM_FileBase (name, shortname, sizeof (shortname));	// [FWGS, 01.05.23]
 
 	for (i = 1; i < MAX_DECALS && host.draw_decals[i][0]; i++)
 		{
@@ -785,7 +861,8 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	}*/
 
 	va_start (argptr, error);
-	Q_vsprintf (hosterror1, error, argptr);
+	/*Q_vsprintf (hosterror1, error, argptr);*/
+	Q_vsnprintf (hosterror1, sizeof (hosterror1), error, argptr);	// [FWGS, 01.05.23]
 	va_end (argptr);
 
 	CL_WriteMessageHistory (); // before Q_error call
@@ -824,7 +901,8 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	recursive = true;
 	Q_strncpy (hosterror2, hosterror1, MAX_SYSPATH);
 	host.errorframe = host.framecount; // to avoid multply calls per frame
-	Q_sprintf (host.finalmsg, "Server crashed: %s", hosterror1);
+	/*Q_sprintf (host.finalmsg, "Server crashed: %s", hosterror1);*/
+	Q_snprintf (host.finalmsg, sizeof (host.finalmsg), "Server crashed: %s", hosterror1);	// [FWGS, 01.05.23]
 
 	// clearing cmd buffer to prevent execute any commands
 	COM_InitHostState ();
@@ -1284,6 +1362,7 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		Cmd_AddRestrictedCommand ("minimize", Host_Minimize_f, "minimize main window to tray");
 		}
 
+	HPAK_CheckIntegrity (CUSTOM_RES_PATH);	// [FWGS, 01.05.23]
 	host.errorframe = 0;
 
 	// post initializations

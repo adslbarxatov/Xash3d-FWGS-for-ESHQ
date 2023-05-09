@@ -78,8 +78,10 @@ void V_CalcViewRect (void)
 		clgame.viewport[3] = refState.height;
 
 	clgame.viewport[0] = (refState.width - clgame.viewport[2]) / 2;
-	if (full) clgame.viewport[1] = 0;
-	else clgame.viewport[1] = (refState.height - sb_lines - clgame.viewport[3]) / 2;
+	if (full)
+		clgame.viewport[1] = 0;
+	else
+		clgame.viewport[1] = (refState.height - sb_lines - clgame.viewport[3]) / 2;
 
 	}
 
@@ -159,7 +161,10 @@ void V_SetRefParams (ref_params_t *fd)
 		cl.first_frame = false;		// now can be unlocked
 		fd->smoothing = true;		// NOTE: currently this used to prevent ugly un-duck effect while level is changed
 		}
-	else fd->smoothing = cl.local.pushmsec;		// enable smoothing in multiplayer by server request (AMX uses)
+	else
+		{
+		fd->smoothing = cl.local.pushmsec;		// enable smoothing in multiplayer by server request (AMX uses)
+		}
 
 	// get pointers to movement vars and user cmd
 	fd->movevars = &clgame.movevars;
@@ -230,6 +235,53 @@ void V_RefApplyOverview (ref_viewpass_t *rvp)
 	}
 
 /*
+====================
+V_CalcFov [FWGS, 01.05.23]
+====================
+*/
+static float V_CalcFov (float *fov_x, float width, float height)
+	{
+	float	x, half_fov_y;
+
+	if ((*fov_x < 1.0f) || (*fov_x > 179.0f))
+		*fov_x = 90.0f; // default value
+
+	x = width / tan (DEG2RAD (*fov_x) * 0.5f);
+	half_fov_y = atan (height / x);
+
+	return RAD2DEG (half_fov_y) * 2;
+	}
+
+/*
+====================
+V_AdjustFov [FWGS, 01.05.23]
+====================
+*/
+static void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x)
+	{
+	float x, y;
+
+	// 4:3 or 5:4 ratio
+	if ((width * 3 == 4 * height) || (width * 4 == height * 5))
+		return;
+
+	if (lock_x)
+		{
+		*fov_y = 2 * atan ((width * 3) / (height * 4) * tan (*fov_y * M_PI_F / 360.0f * 0.5f)) * 360 / M_PI_F;
+		return;
+		}
+
+	y = V_CalcFov (fov_x, 640, 480);
+	x = *fov_x;
+
+	*fov_x = V_CalcFov (&y, height, width);
+	if (*fov_x < x)
+		*fov_x = x;
+	else
+		*fov_y = y;
+	}
+
+/*
 =============
 V_GetRefParams
 =============
@@ -277,7 +329,6 @@ void V_GetRefParams (ref_params_t *fd, ref_viewpass_t *rvp)
 /*
 ==================
 V_PreRender
-
 ==================
 */
 qboolean V_PreRender (void)
@@ -312,7 +363,6 @@ qboolean V_PreRender (void)
 /*
 ==================
 V_RenderView
-
 ==================
 */
 void V_RenderView (void)
@@ -431,16 +481,16 @@ void R_ShowTree (void)
 	world.recursion_level = 0;
 	viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes);
 
-	//pglEnable( GL_BLEND );
-	//pglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	//pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+	/*pglEnable( GL_BLEND );
+	pglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
-	//pglLineWidth( 2.0f );
+	pglLineWidth( 2.0f );*/
 	ref.dllFuncs.Color4f (1, 0.7f, 0, 1.0f);
-	//pglDisable( GL_TEXTURE_2D );
+	/*pglDisable( GL_TEXTURE_2D );*/
 	R_ShowTree_r (cl.worldmodel->nodes, x, y, world.max_recursion * 3.5f, 2, viewleaf);
-	//pglEnable( GL_TEXTURE_2D );
-	//pglLineWidth( 1.0f );
+	/*pglEnable( GL_TEXTURE_2D );
+	pglLineWidth( 1.0f );*/
 
 	R_ShowTree_r (cl.worldmodel->nodes, x, y, world.max_recursion * 3.5f, 1, viewleaf);
 

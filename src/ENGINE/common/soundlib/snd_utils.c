@@ -17,9 +17,7 @@ GNU General Public License for more details.
 
 /*
 =============================================================================
-
-	XASH3D LOAD SOUND FORMATS
-
+XASH3D LOAD SOUND FORMATS
 =============================================================================
 */
 // stub
@@ -288,5 +286,20 @@ qboolean Sound_Process (wavdata_t **wav, int rate, int width, uint flags)
 
 	*wav = snd;
 
+	return false;
+	}
+
+// [FWGS, 01.05.23]
+qboolean Sound_SupportedFileFormat (const char *fileext)
+	{
+	const loadwavfmt_t *format;
+	if (COM_CheckStringEmpty (fileext))
+		{
+		for (format = sound.loadformats; format && format->formatstring; format++)
+			{
+			if (!Q_stricmp (format->ext, fileext))
+				return true;
+			}
+		}
 	return false;
 	}

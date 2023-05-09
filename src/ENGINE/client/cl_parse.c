@@ -605,7 +605,7 @@ int CL_EstimateNeededResources (void)
 	return nTotalSize;
 	}
 
-void CL_StartResourceDownloading (const char *pszMessage, qboolean bCustom)
+static void CL_StartResourceDownloading (const char *pszMessage, qboolean bCustom)
 	{
 	resourceinfo_t	ri;
 
@@ -621,6 +621,7 @@ void CL_StartResourceDownloading (const char *pszMessage, qboolean bCustom)
 		}
 	else
 		{
+		HTTP_ResetProcessState ();	// [FWGS, 01.05.23]
 		cls.state = ca_validate;
 		cls.dl.custom = false;
 		}
@@ -858,7 +859,7 @@ void CL_ParseFileTransferFailed (sizebuf_t *msg)
 */
 /*
 ==================
-CL_ParseServerData [FWGS, 01.04.23]
+CL_ParseServerData [FWGS, 01.05.23]
 ==================
 */
 //void CL_ParseServerData (sizebuf_t *msg)
@@ -870,6 +871,7 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 
 	/*Con_Reportf ("Serverdata packet received.\n");
 	cls.timestart = Sys_DoubleTime ();*/
+	HPAK_CheckSize (CUSTOM_RES_PATH);
 	Con_Reportf ("%s packet received.\n", legacy ? "Legacy serverdata" : "Serverdata");
 	cls.timestart = Sys_DoubleTime ();
 
@@ -1273,16 +1275,17 @@ void CL_ParseLightStyle (sizebuf_t *msg)
 
 /*
 ================
-CL_ParseSetAngle
+CL_ParseSetAngle [FWGS, 01.05.23]
 
 set the view angle to this absolute value
 ================
 */
-void CL_ParseSetAngle (sizebuf_t *msg)
+static void CL_ParseSetAngle (sizebuf_t *msg)
 	{
-	cl.viewangles[0] = MSG_ReadBitAngle (msg, 16);
+	/*cl.viewangles[0] = MSG_ReadBitAngle (msg, 16);
 	cl.viewangles[1] = MSG_ReadBitAngle (msg, 16);
-	cl.viewangles[2] = MSG_ReadBitAngle (msg, 16);
+	cl.viewangles[2] = MSG_ReadBitAngle (msg, 16);*/
+	MSG_ReadVec3Angles (msg, cl.viewangles);
 	}
 
 /*
@@ -1585,9 +1588,48 @@ void CL_SendConsistencyInfo (sizebuf_t *msg)
 
 /*
 ==================
+CL_StartDark [FWGS, 01.05.23]
+==================
+*/
+static void CL_StartDark (void)
+	{
+	if (Cvar_VariableValue ("v_dark"))
+		{
+		screenfade_t *sf = &clgame.fade;
+		float fadetime = 5.0f;
+		client_textmessage_t *title;
+
+		title = CL_TextMessageGet ("GAMETITLE");
+		if (Host_IsQuakeCompatible ())
+			fadetime = 1.0f;
+
+		if (title)
+			{
+			// get settings from titles.txt
+			sf->fadeEnd = title->holdtime + title->fadeout;
+			sf->fadeReset = title->fadeout;
+			}
+		else
+			{
+			sf->fadeEnd = sf->fadeReset = fadetime;
+			}
+
+		sf->fadeFlags = FFADE_IN;
+		sf->fader = sf->fadeg = sf->fadeb = 0;
+		sf->fadealpha = 255;
+		sf->fadeSpeed = (float)sf->fadealpha / sf->fadeReset;
+		sf->fadeReset += cl.time;
+		sf->fadeEnd += sf->fadeReset;
+
+		Cvar_SetValue ("v_dark", 0.0f);
+		}
+	}
+
+/*
+==================
 CL_RegisterResources
 
-Clean up and move to next part of sequence.
+Clean up and move to next part of sequence
 ==================
 */
 void CL_RegisterResources (sizebuf_t *msg)
@@ -1631,6 +1673,9 @@ void CL_RegisterResources (sizebuf_t *msg)
 
 			// tell rendering system we have a new set of models
 			ref.dllFuncs.R_NewMap ();
+
+			// [FWGS, 01.05.23] check if this map must start from dark screen
+			CL_StartDark ();
 
 			CL_SetupOverviewParams ();
 
@@ -1724,7 +1769,6 @@ void CL_ParseConsistencyInfo (sizebuf_t *msg)
 /*
 ==============
 CL_ParseResourceList
-
 ==============
 */
 void CL_ParseResourceList (sizebuf_t *msg)
@@ -1761,7 +1805,6 @@ void CL_ParseResourceList (sizebuf_t *msg)
 /*
 ==================
 CL_ParseVoiceInit
-
 ==================
 */
 void CL_ParseVoiceInit (sizebuf_t *msg)
@@ -1775,7 +1818,6 @@ void CL_ParseVoiceInit (sizebuf_t *msg)
 /*
 ==================
 CL_ParseVoiceData
-
 ==================
 */
 void CL_ParseVoiceData (sizebuf_t *msg)
@@ -1810,7 +1852,6 @@ void CL_ParseVoiceData (sizebuf_t *msg)
 /*
 ==================
 CL_ParseResLocation
-
 ==================
 */
 void CL_ParseResLocation (sizebuf_t *msg)
@@ -1892,17 +1933,30 @@ void CL_ParseDirector (sizebuf_t *msg)
 
 /*
 ==============
-CL_ParseScreenShake
+CL_ParseScreenShake [FWGS, 01.05.23]
 
 Set screen shake
 ==============
 */
 void CL_ParseScreenShake (sizebuf_t *msg)
 	{
-	clgame.shake.amplitude = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 12));
+	/*clgame.shake.amplitude = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 12));
 	clgame.shake.duration = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 12));
 	clgame.shake.frequency = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 8));
-	clgame.shake.time = cl.time + Q_max (clgame.shake.duration, 0.01f);
+	clgame.shake.time = cl.time + Q_max (clgame.shake.duration, 0.01f);*/
+
+	float amplitude = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 12));
+	float duration = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 12));
+	float frequency = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 8));
+
+	// don't overwrite larger existing shake
+	if (amplitude > clgame.shake.amplitude)
+		clgame.shake.amplitude = amplitude;
+
+	clgame.shake.duration = duration;
+	clgame.shake.time = cl.time + clgame.shake.duration;
+	clgame.shake.frequency = frequency;
+
 	clgame.shake.next_shake = 0.0f; // apply immediately
 	}
 
@@ -2049,7 +2103,8 @@ void CL_ParseExec (sizebuf_t *msg)
 		{
 		Cbuf_AddText ("exec mapdefault.cfg\n");
 
-		COM_FileBase (clgame.mapname, mapname);
+		/*COM_FileBase (clgame.mapname, mapname);*/
+		COM_FileBase (clgame.mapname, mapname, sizeof (mapname));	// [FWGS, 01.05.23]
 
 		// [FWGS, 01.04.23]
 		if (COM_CheckString (mapname))
@@ -2305,6 +2360,7 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 
 					cl.background = old_background;
 					cls.connect_time = MAX_HEARTBEAT;
+					cls.connect_retry = 0;	// [FWGS, 01.05.23]
 					}
 				break;
 
@@ -2989,6 +3045,7 @@ void CL_LegacyParseResourceList (sizebuf_t *msg)
 	if (CL_IsPlaybackDemo ())
 		return;
 
+	HTTP_ResetProcessState ();	// [FWGS, 01.05.23]
 	host.downloadcount = 0;
 
 	// [FWGS, 01.04.23]
@@ -3128,9 +3185,12 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 					// g-cont. local client skip the challenge
 					if (SV_Active ())
 						cls.state = ca_disconnected;
-					else cls.state = ca_connecting;
+					else
+						cls.state = ca_connecting;
+
 					cl.background = old_background;
 					cls.connect_time = MAX_HEARTBEAT;
+					cls.connect_retry = 0;	// [FWGS, 01.05.23]
 					}
 				break;
 
@@ -3216,7 +3276,8 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 				break;
 
 			case svc_spawnstatic:
-				CL_ParseStaticEntity (msg);
+				/*CL_ParseStaticEntity (msg);*/
+				CL_LegacyParseStaticEntity (msg);	// [FWGS, 01.05.23]
 				break;
 
 			case svc_event_reliable:

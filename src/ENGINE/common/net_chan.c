@@ -104,9 +104,7 @@ const char *ns_strings[NS_COUNT] =
 
 /*
 =================================
-
 NETWORK PACKET SPLIT
-
 =================================
 */
 
@@ -123,15 +121,14 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 	netsplit_packet_t *packet = (netsplit_packet_t *)data;
 	netsplit_chain_packet_t *p;
 
-	//ASSERT( *length > NETSPLIT_HEADER_SIZE );
-	if (*length <= NETSPLIT_HEADER_SIZE) return false;
+	if (*length <= NETSPLIT_HEADER_SIZE)
+		return false;
 
 	LittleLongSW (packet->id);
 	LittleLongSW (packet->length);
 	LittleLongSW (packet->part);
 
 	p = &ns->packets[packet->id & NETSPLIT_BACKUP_MASK];
-	// Con_Reportf( S_NOTE "NetSplit_GetLong: packet from %s, id %d, index %d length %d\n", NET_AdrToString( *from ), (int)packet->id, (int)packet->index, (int)*length );
 
 	// no packets with this id received
 	if (packet->id != p->id)
@@ -164,13 +161,15 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 	// prevent overflow
 	if (packet->part * packet->index > NET_MAX_PAYLOAD)
 		{
-		Con_Reportf (S_WARN "NetSplit_GetLong: packet out fo bounds from %s (part %d index %d)\n", NET_AdrToString (*from), packet->part, packet->index);
+		Con_Reportf (S_WARN "NetSplit_GetLong: packet out fo bounds from %s (part %d index %d)\n",
+			NET_AdrToString (*from), packet->part, packet->index);
 		return false;
 		}
 
 	if (packet->length > NET_MAX_PAYLOAD)
 		{
-		Con_Reportf (S_WARN "NetSplit_GetLong: packet out fo bounds from %s (length %d)\n", NET_AdrToString (*from), packet->length);
+		Con_Reportf (S_WARN "NetSplit_GetLong: packet out fo bounds from %s (length %d)\n",
+			NET_AdrToString (*from), packet->length);
 		return false;
 		}
 
@@ -179,7 +178,6 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 	// rewrite results of NET_GetPacket
 	if (p->received == packet->count)
 		{
-		//ASSERT( packet->length % packet->part == (*length - NETSPLIT_HEADER_SIZE) % packet->part );
 		size_t len = packet->length;
 
 		ns->total_received += len;
@@ -187,13 +185,13 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 		ns->total_received_uncompressed += len;
 		*length = len;
 
-		// Con_Reportf( S_NOTE "NetSplit_GetLong: packet from %s, id %d received %d length %d\n", NET_AdrToString( *from ), (int)packet->id, (int)p->received, (int)packet->length );
 		memcpy (data, p->data, len);
 		return true;
 		}
 	else
+		{
 		*length = NETSPLIT_HEADER_SIZE + packet->part;
-
+		}
 
 	return false;
 	}
@@ -205,7 +203,8 @@ NetSplit_SendLong
 Send parts that are less or equal maxpacket
 ======================
 */
-void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, unsigned int maxpacket, unsigned int id)
+void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, unsigned int maxpacket,
+	unsigned int id)
 	{
 	netsplit_packet_t packet = { 0 };
 	unsigned int part = maxpacket - NETSPLIT_HEADER_SIZE;
@@ -230,7 +229,6 @@ void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, u
 		NET_SendPacket (sock, size + NETSPLIT_HEADER_SIZE, &packet, to);
 		packet.index++;
 		}
-
 	}
 
 /*
@@ -275,8 +273,11 @@ void Netchan_ReportFlow (netchan_t *chan)
 
 	Assert (chan != NULL);
 
-	Q_strcpy (incoming, Q_pretifymem ((float)chan->flow[FLOW_INCOMING].totalbytes, 3));
-	Q_strcpy (outgoing, Q_pretifymem ((float)chan->flow[FLOW_OUTGOING].totalbytes, 3));
+	// [FWGS, 01.05.23]
+	/*Q_strcpy (incoming, Q_pretifymem ((float)chan->flow[FLOW_INCOMING].totalbytes, 3));
+	Q_strcpy (outgoing, Q_pretifymem ((float)chan->flow[FLOW_OUTGOING].totalbytes, 3));*/
+	Q_strncpy (incoming, Q_pretifymem ((float)chan->flow[FLOW_INCOMING].totalbytes, 3), sizeof (incoming));
+	Q_strncpy (outgoing, Q_pretifymem ((float)chan->flow[FLOW_OUTGOING].totalbytes, 3), sizeof (outgoing));
 
 	Con_DPrintf ("Signon network traffic:  %s from server, %s to server\n", incoming, outgoing);
 	}
@@ -292,6 +293,7 @@ qboolean Netchan_IsLocal (netchan_t *chan)
 	{
 	if (!NET_IsActive () || NET_IsLocalAddress (chan->remote_address))
 		return true;
+
 	return false;
 	}
 
@@ -983,7 +985,7 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 		chunksize = FRAGMENT_MAX_SIZE; // fallback
 
 	Q_strncpy (compressedfilename, filename, sizeof (compressedfilename));
-	COM_ReplaceExtension (compressedfilename, ".ztmp");
+	COM_ReplaceExtension (compressedfilename, ".ztmp", sizeof (compressedfilename));	// [FWGS, 01.05.23]
 	compressedFileTime = FS_FileTime (compressedfilename, false);
 	fileTime = FS_FileTime (filename, false);
 
@@ -1574,10 +1576,11 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 
 					if (pbuf->iscompressed)
 						{
-						char	compressedfilename[MAX_OSPATH];
+						char compressedfilename[MAX_OSPATH];
 
 						Q_strncpy (compressedfilename, pbuf->filename, sizeof (compressedfilename));
-						COM_ReplaceExtension (compressedfilename, ".ztmp");
+						// [FWGS, 01.05.23]
+						COM_ReplaceExtension (compressedfilename, ".ztmp", sizeof (compressedfilename));
 						file = FS_Open (compressedfilename, "rb", false);
 						}
 					else file = FS_Open (pbuf->filename, "rb", false);
@@ -1670,11 +1673,13 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 
 		if (((MSG_GetNumBytesWritten (&send) + length) >> 3) <= maxsize)
 			MSG_WriteBits (&send, data, length);
-		else Con_Printf (S_WARN "Netchan_Transmit: unreliable message overflow: %d\n", MSG_GetNumBytesWritten (&send));
+		else
+			Con_Printf (S_WARN "Netchan_Transmit: unreliable message overflow: %d\n", MSG_GetNumBytesWritten (&send));
 		}
 
 	// deal with packets that are too small for some networks
-	if (MSG_GetNumBytesWritten (&send) < 16 && !NET_IsLocalAddress (chan->remote_address)) // packet too small for some networks
+	if (MSG_GetNumBytesWritten (&send) < 16 && !NET_IsLocalAddress (chan->remote_address))
+		// packet too small for some networks
 		{
 		// go ahead and pad a full 16 extra bytes -- this only happens during authentication / signon
 		for (i = MSG_GetNumBytesWritten (&send); i < 16; i++)
@@ -1683,7 +1688,8 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 				MSG_BeginClientCmd (&send, clc_nop);
 			else if (chan->sock == NS_SERVER)
 				MSG_BeginServerCmd (&send, svc_nop);
-			else break;
+			else
+				break;
 			}
 		}
 
@@ -1703,12 +1709,14 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 		int splitsize = 0;
 		if (chan->pfnBlockSize)
 			splitsize = chan->pfnBlockSize (chan->client, FRAGSIZE_SPLIT);
-		NET_SendPacketEx (chan->sock, MSG_GetNumBytesWritten (&send), MSG_GetData (&send), chan->remote_address, splitsize);
+		NET_SendPacketEx (chan->sock, MSG_GetNumBytesWritten (&send), MSG_GetData (&send),
+			chan->remote_address, splitsize);
 		}
 
 	if (SV_Active () && sv_lan.value && sv_lan_rate.value > 1000.0f)
 		fRate = 1.0f / sv_lan_rate.value;
-	else fRate = 1.0f / chan->rate;
+	else
+		fRate = 1.0f / chan->rate;
 
 	if (chan->cleartime < host.realtime)
 		chan->cleartime = host.realtime;
@@ -1727,7 +1735,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 		}
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ===============
 Netchan_Transmit
 
@@ -1736,11 +1744,11 @@ transmition / retransmition of the reliable messages.
 
 A 0 length will still generate a packet and deal with the reliable messages.
 ================
-*/
 void Netchan_Transmit (netchan_t *chan, int lengthInBytes, byte *data)
 	{
 	Netchan_TransmitBits (chan, lengthInBytes << 3, data);
 	}
+*/
 
 /*
 =================

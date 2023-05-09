@@ -16,6 +16,7 @@ GNU General Public License for more details.
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
 
+/* [FWGS, 01.05.23]
 void GL_FrustumEnablePlane (gl_frustum_t *out, int side)
 	{
 	Assert (side >= 0 && side < FRUSTUM_PLANES);
@@ -30,6 +31,7 @@ void GL_FrustumDisablePlane (gl_frustum_t *out, int side)
 	Assert (side >= 0 && side < FRUSTUM_PLANES);
 	ClearBits (out->clipFlags, BIT (side));
 	}
+*/
 
 void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist)
 	{
@@ -43,6 +45,7 @@ void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, fl
 	SetBits (out->clipFlags, BIT (side));
 	}
 
+/* [FWGS, 01.05.23]
 void GL_FrustumNormalizePlane (gl_frustum_t *out, int side)
 	{
 	float	length;
@@ -66,6 +69,7 @@ void GL_FrustumNormalizePlane (gl_frustum_t *out, int side)
 
 	SetBits (out->clipFlags, BIT (side));
 	}
+	*/
 
 void GL_FrustumInitProj (gl_frustum_t *out, float flZNear, float flZFar, float flFovX, float flFovY)
 	{
@@ -108,7 +112,8 @@ void GL_FrustumInitProj (gl_frustum_t *out, float flZNear, float flZFar, float f
 	GL_FrustumSetPlane (out, FRUSTUM_NEAR, RI.cull_vforward, DotProduct (RI.cull_vforward, nearpoint));
 	}
 
-void GL_FrustumInitOrtho (gl_frustum_t *out, float xLeft, float xRight, float yTop, float yBottom, float flZNear, float flZFar)
+void GL_FrustumInitOrtho (gl_frustum_t *out, float xLeft, float xRight, float yTop, float yBottom,
+	float flZNear, float flZFar)
 	{
 	vec3_t	iforward, iright, iup;
 
@@ -135,6 +140,7 @@ void GL_FrustumInitOrtho (gl_frustum_t *out, float xLeft, float xRight, float yT
 	GL_FrustumSetPlane (out, FRUSTUM_BOTTOM, iup, -yBottom - orgOffset);
 	}
 
+/* [FWGS, 01.05.23]
 void GL_FrustumInitBox (gl_frustum_t *out, const vec3_t org, float radius)
 	{
 	vec3_t	normal;
@@ -264,8 +270,11 @@ void GL_FrustumDrawDebug (gl_frustum_t *out)
 	pglEnd ();
 	pglEnable (GL_TEXTURE_2D);
 	}
+	*/
 
-// cull methods
+// ==============================
+// Cull methods
+// ==============================
 qboolean GL_FrustumCullBox (gl_frustum_t *out, const vec3_t mins, const vec3_t maxs, int userClipFlags)
 	{
 	int	iClipFlags;

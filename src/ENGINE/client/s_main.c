@@ -62,9 +62,7 @@ CVAR_DEFINE_AUTO (s_warn_late_precache, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 
 /*
 =============================================================================
-
-		SOUNDS PROCESSING
-
+SOUNDS PROCESSING
 =============================================================================
 */
 /*
@@ -149,7 +147,7 @@ void S_UpdateSoundFade (void)
 	elapsed = cl.mtime[0] - soundfade.starttime;
 
 	// clock wrapped or reset (BUG) or we've gone far enough
-	if (elapsed < 0.0f || elapsed >= totaltime || totaltime <= 0.0f)
+	if ((elapsed < 0.0f) || (elapsed >= totaltime) || (totaltime <= 0.0f))
 		return;
 
 	// We are in the fade time, so determine amount of fade.
@@ -170,8 +168,9 @@ void S_UpdateSoundFade (void)
 		f = 1.0f - f; // backward interpolated...
 		}
 
-	// spline it.
-	f = SimpleSpline (f);
+	// [FWGS, 01.05.23] spline it
+	/*f = SimpleSpline (f);*/
+	f = -(cos (M_PI * f) - 1) / 2;
 	f = bound (0.0f, f, 1.0f);
 
 	soundfade.percent = soundfade.initial_percent * f;
@@ -1329,11 +1328,10 @@ void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float sy
 		}
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ===================
 S_GetRawSamplesLength
 ===================
-*/
 uint S_GetRawSamplesLength (int entnum)
 	{
 	rawchan_t *ch;
@@ -1348,7 +1346,6 @@ uint S_GetRawSamplesLength (int entnum)
 ===================
 S_ClearRawChannel
 ===================
-*/
 void S_ClearRawChannel (int entnum)
 	{
 	rawchan_t *ch;
@@ -1358,6 +1355,7 @@ void S_ClearRawChannel (int entnum)
 
 	ch->s_rawend = 0;
 	}
+*/
 
 /*
 ===================
@@ -1374,7 +1372,8 @@ static void S_FreeIdleRawChannels (void)
 		{
 		rawchan_t *ch = raw_channels[i];
 
-		if (!ch) continue;
+		if (!ch)
+			continue;
 
 		if (ch->s_rawend >= paintedtime)
 			continue;

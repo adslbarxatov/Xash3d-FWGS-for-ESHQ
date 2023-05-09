@@ -182,9 +182,9 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 	if (newstate == oldstate)
 		return;
 
-	// since SetCursorType controls cursor visibility
+	// since SetCursorType controls cursor visibility [FWGS, 01.05.23]
 	// execute it first, and then check mouse grab state
-	if ((newstate == key_menu) || (newstate == key_console) || (newstate == key_message))
+	if ((newstate == key_menu) || (newstate == key_console) /*|| (newstate == key_message)*/)
 		{
 		Platform_SetCursorType (dc_arrow);
 		/*if (oldstate == key_game)
@@ -198,7 +198,7 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 #if XASH_ANDROID
 		Android_ShowMouse (true);
 #endif
-#ifdef XASH_USE_EVDEV
+#if XASH_USE_EVDEV
 		Evdev_SetGrab (false);
 #endif
 		}
@@ -208,7 +208,7 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 #if XASH_ANDROID
 		Android_ShowMouse (false);
 #endif
-#ifdef XASH_USE_EVDEV
+#if XASH_USE_EVDEV
 		Evdev_SetGrab (true);
 #endif
 		}
@@ -225,12 +225,15 @@ void IN_CheckMouseState (qboolean active)
 	static qboolean s_bRawInput, s_bMouseGrab;
 
 #if XASH_WIN32
-	qboolean useRawInput = CVAR_TO_BOOL (m_rawinput) && clgame.client_dll_uses_sdl || clgame.dllFuncs.pfnLookEvent;
+	// [FWGS, 01.05.23]
+	/*qboolean useRawInput = CVAR_TO_BOOL (m_rawinput) && clgame.client_dll_uses_sdl || clgame.dllFuncs.pfnLookEvent;*/
+	qboolean useRawInput = (CVAR_TO_BOOL (m_rawinput) && clgame.client_dll_uses_sdl) ||
+		(clgame.dllFuncs.pfnLookEvent != NULL);
 #else
 	qboolean useRawInput = true; // always use SDL code
 #endif
 
-	if (active && useRawInput && !host.mouse_visible && cls.state == ca_active)
+	if (active && useRawInput && !host.mouse_visible && (cls.state == ca_active))
 		{
 		if (!s_bRawInput)
 			{
@@ -428,7 +431,7 @@ void IN_Shutdown (void)
 	{
 	IN_DeactivateMouse ();
 
-#ifdef XASH_USE_EVDEV
+#if XASH_USE_EVDEV
 	Evdev_Shutdown ();
 #endif
 
@@ -457,7 +460,7 @@ void IN_Init (void)
 
 		Touch_Init ();
 
-#ifdef XASH_USE_EVDEV
+#if XASH_USE_EVDEV
 		Evdev_Init ();
 #endif
 		}
@@ -547,7 +550,7 @@ static void IN_JoyAppendMove (usercmd_t *cmd, float forwardmove, float sidemove)
 		moveflags |= L;
 		Cmd_ExecuteString ("+moveleft");
 		}
-	else if (sidemove > -0.9f && (moveflags & L))
+	else if ((sidemove > -0.9f) && (moveflags & L))
 		{
 		moveflags &= ~L;
 		Cmd_ExecuteString ("-moveleft");
@@ -563,7 +566,7 @@ static void IN_CollectInput (float *forward, float *side, float *pitch, float *y
 		*pitch += y * m_pitch->value;
 		*yaw -= x * m_yaw->value;
 
-#ifdef XASH_USE_EVDEV
+#if XASH_USE_EVDEV
 		IN_EvdevMove (yaw, pitch);
 #endif
 		}
@@ -603,7 +606,8 @@ void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)
 
 	if (active)
 		{
-		float sensitivity = 1;//( (float)cl.local.scr_fov / (float)90.0f );
+		float sensitivity = 1;
+		/*( (float)cl.local.scr_fov / (float)90.0f );*/
 
 		IN_CollectInput (&forward, &side, &pitch, &yaw, false);
 
@@ -621,7 +625,7 @@ void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)
 
 void IN_Commands (void)
 	{
-#ifdef XASH_USE_EVDEV
+#if XASH_USE_EVDEV
 	IN_EvdevFrame ();
 #endif
 

@@ -270,9 +270,16 @@ static void Sys_PrintStdout (const char *logtime, const char *msg)
 	IOS_Log (buf);
 #endif
 
-#if (XASH_NSWITCH && NSWITCH_DEBUG) || XASH_PSVITA // [FWGS, 01.04.23]
+#if XASH_NSWITCH && NSWITCH_DEBUG	// [FWGS, 01.05.23]
 	// just spew it to stderr normally in debug mode
 	fprintf (stderr, "%s %s", logtime, buf);
+#endif
+
+// [FWGS, 01.05.23]
+#if XASH_PSVITA
+	// spew to stderr only in developer mode
+	if (host_developer.value)
+		fprintf (stderr, "%s %s", logtime, buf);
 #endif
 
 #elif !XASH_WIN32 // Wcon does the job

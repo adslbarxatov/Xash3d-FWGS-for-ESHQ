@@ -18,9 +18,7 @@ GNU General Public License for more details.
 
 /*
 =============================================================
-
 FRUSTUM AND PVS CULLING
-
 =============================================================
 */
 /*
@@ -37,15 +35,15 @@ qboolean R_CullBox (const vec3_t mins, const vec3_t maxs)
 
 /*
 =================
-R_CullSphere
+R_CullSphere [FWGS, 01.05.23]
 
 Returns true if the sphere is completely outside the frustum
 =================
-*/
 qboolean R_CullSphere (const vec3_t centre, const float radius)
 	{
 	return GL_FrustumCullSphere (&RI.frustum, centre, radius, 0);
 	}
+*/
 
 /*
 =============

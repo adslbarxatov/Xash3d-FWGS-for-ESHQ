@@ -159,17 +159,17 @@ int GAME_EXPORT Key_IsDown (int keynum)
 	return keys[keynum].down;
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ===================
 Key_GetBind
 ===================
-*/
 const char *Key_IsBind (int keynum)
 	{
 	if (keynum == -1 || !keys[keynum].binding)
 		return NULL;
 	return keys[keynum].binding;
 	}
+*/
 
 /*
 ===================
@@ -192,31 +192,37 @@ int Key_StringToKeynum (const char *str)
 	if (!str[1]) return str[0];
 
 	// check for hex code
-	if (str[0] == '0' && str[1] == 'x' && Q_strlen (str) == 4)
+	if ((str[0] == '0') && (str[1] == 'x') && (Q_strlen (str) == 4))
 		{
 		int	n1, n2;
 
 		n1 = str[2];
-		if (n1 >= '0' && n1 <= '9')
+		if ((n1 >= '0') && (n1 <= '9'))
 			{
 			n1 -= '0';
 			}
-		else if (n1 >= 'a' && n1 <= 'f')
+		else if ((n1 >= 'a') && (n1 <= 'f'))
 			{
 			n1 = n1 - 'a' + 10;
 			}
-		else n1 = 0;
+		else
+			{
+			n1 = 0;
+			}
 
 		n2 = str[3];
-		if (n2 >= '0' && n2 <= '9')
+		if ((n2 >= '0') && (n2 <= '9'))
 			{
 			n2 -= '0';
 			}
-		else if (n2 >= 'a' && n2 <= 'f')
+		else if ((n2 >= 'a') && (n2 <= 'f'))
 			{
 			n2 = n2 - 'a' + 10;
 			}
-		else n2 = 0;
+		else
+			{
+			n2 = 0;
+			}
 
 		return n1 * 16 + n2;
 		}
@@ -245,11 +251,13 @@ const char *Key_KeynumToString (int keynum)
 	static char	tinystr[5];
 	int		i, j;
 
-	if (keynum == -1) return "<KEY NOT FOUND>";
-	if (keynum < 0 || keynum > 255) return "<OUT OF RANGE>";
+	if (keynum == -1)
+		return "<KEY NOT FOUND>";
+	if ((keynum < 0) || (keynum > 255))
+		return "<OUT OF RANGE>";
 
 	// check for printable ascii (don't use quote)
-	if (keynum > 32 && keynum < 127 && keynum != '"' && keynum != ';' && keynum != K_SCROLLOCK)
+	if ((keynum > 32) && (keynum < 127) && (keynum != '"') && (keynum != ';') && (keynum != K_SCROLLOCK))
 		{
 		tinystr[0] = keynum;
 		tinystr[1] = 0;
@@ -283,7 +291,8 @@ Key_SetBinding
 */
 void GAME_EXPORT Key_SetBinding (int keynum, const char *binding)
 	{
-	if (keynum == -1) return;
+	if (keynum == -1)
+		return;
 
 	// free old bindings
 	if (keys[keynum].binding)
@@ -304,7 +313,8 @@ Key_GetBinding
 */
 const char *Key_GetBinding (int keynum)
 	{
-	if (keynum == -1) return NULL;
+	if (keynum == -1)
+		return NULL;
 	return keys[keynum].binding;
 	}
 
@@ -439,17 +449,22 @@ void Key_Bind_f (void)
 		{
 		if (keys[b].binding)
 			Con_Printf ("\"%s\" = \"%s\"\n", Cmd_Argv (1), keys[b].binding);
-		else Con_Printf ("\"%s\" is not bound\n", Cmd_Argv (1));
+		else
+			Con_Printf ("\"%s\" is not bound\n", Cmd_Argv (1));
 		return;
 		}
 
 	// copy the rest of the command line
 	cmd[0] = 0; // start out with a null string
 
+	// [FWGS, 01.05.23]
 	for (i = 2; i < c; i++)
 		{
-		Q_strcat (cmd, Cmd_Argv (i));
-		if (i != (c - 1)) Q_strcat (cmd, " ");
+		/*Q_strcat (cmd, Cmd_Argv (i));
+		if (i != (c - 1)) Q_strcat (cmd, " ");*/
+		Q_strncat (cmd, Cmd_Argv (i), sizeof (cmd));
+		if (i != (c - 1))
+			Q_strncat (cmd, " ", sizeof (cmd));
 		}
 
 	Key_SetBinding (b, cmd);
@@ -502,9 +517,7 @@ void Key_Bindlist_f (void)
 
 /*
 ==============================================================================
-
-			LINE TYPING INTO THE CONSOLE
-
+LINE TYPING INTO THE CONSOLE
 ==============================================================================
 */
 /*
@@ -554,9 +567,14 @@ void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 			*buttonPtr = '\0';
 			if (button[0] == '+')
 				{
-				// button commands add keynum as a parm
-				if (down) Q_sprintf (cmd, "%s %i\n", button, key);
-				else Q_sprintf (cmd, "-%s %i\n", button + 1, key);
+				// [FWGS, 01.05.23] button commands add keynum as a parm
+				/*if (down) Q_sprintf (cmd, "%s %i\n", button, key);
+				else Q_sprintf (cmd, "-%s %i\n", button + 1, key);*/
+				if (down)
+					Q_snprintf (cmd, sizeof (cmd), "%s %i\n", button, key);
+				else
+					Q_snprintf (cmd, sizeof (cmd), "-%s %i\n", button + 1, key);
+
 				Cbuf_AddText (cmd);
 				}
 			else if (down)
@@ -567,12 +585,13 @@ void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 				}
 
 			buttonPtr = button;
-			while ((kb[i] <= ' ' || kb[i] == ';') && kb[i] != 0)
+			while (((kb[i] <= ' ') || (kb[i] == ';')) && (kb[i] != 0))
 				i++;
 			}
 
 		*buttonPtr++ = kb[i];
-		if (!kb[i]) break;
+		if (!kb[i])
+			break;
 		}
 	}
 

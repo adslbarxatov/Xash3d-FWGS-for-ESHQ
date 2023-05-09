@@ -23,11 +23,12 @@ GNU General Public License for more details.
 #include "crtlib.h"
 #include "xash3d_mathlib.h"
 
+/* [FWGS, 01.05.23]
 void Q_strnupr (const char *in, char *out, size_t size_out)
 	{
 	if (size_out == 0) return;
 
-	while (*in && size_out > 1)
+	while (*in && (size_out > 1))
 		{
 		if ((*in >= 'a') && (*in <= 'z'))
 			*out++ = *in++ + 'A' - 'a';
@@ -37,12 +38,13 @@ void Q_strnupr (const char *in, char *out, size_t size_out)
 		}
 	*out = '\0';
 	}
+*/
 
 void Q_strnlwr (const char *in, char *out, size_t size_out)
 	{
 	if (size_out == 0) return;
 
-	while (*in && size_out > 1)
+	while (*in && (size_out > 1))
 		{
 		if ((*in >= 'A') && (*in <= 'Z'))
 			*out++ = *in++ + 'a' - 'A';
@@ -530,6 +532,7 @@ int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...)
 	return result;
 	}
 
+/* [FWGS, 01.05.23]
 int Q_sprintf (char *buffer, const char *format, ...)
 	{
 	va_list	args;
@@ -541,6 +544,7 @@ int Q_sprintf (char *buffer, const char *format, ...)
 
 	return result;
 	}
+*/
 
 /* [FWGS, 01.04.23]
 char *Q_strpbrk (const char *s, const char *accept)
@@ -571,6 +575,7 @@ void COM_StripColors (const char *in, char *out)
 	*out = '\0';
 	}
 
+/* [FWGS, 01.05.23]
 uint Q_hashkey (const char *string, uint hashSize, qboolean caseinsensitive)
 	{
 	uint i, hashKey = 0;
@@ -590,6 +595,7 @@ uint Q_hashkey (const char *string, uint hashSize, qboolean caseinsensitive)
 
 	return hashKey;
 	}
+*/
 
 char *Q_pretifymem (float value, int digitsafterdecimal)
 	{
@@ -608,19 +614,19 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	if (value > onemb)
 		{
 		value /= onemb;
-		//Q_sprintf (suffix, " Mb");
-		Q_strcpy (suffix, " Mb");
+		/*Q_sprintf (suffix, " Mb");*/
+		Q_strncpy (suffix, " Mb", sizeof (suffix));
 		}
 	else if (value > onekb)
 		{
 		value /= onekb;
-		//Q_sprintf (suffix, " Kb");
-		Q_strcpy (suffix, " Kb");
+		/*Q_sprintf (suffix, " Kb");*/
+		Q_strncpy (suffix, " Kb", sizeof (suffix));
 		}
 	else
 		{
-		//Q_sprintf (suffix, " bytes");
-		Q_strcpy (suffix, " bytes");
+		/*Q_sprintf (suffix, " bytes");*/
+		Q_strncpy (suffix, " bytes", sizeof (suffix));
 		}
 
 	// clamp to >= 0
@@ -629,15 +635,17 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	// if it's basically integral, don't do any decimals
 	if (fabs (value - (int)value) < 0.00001f)
 		{
-		Q_sprintf (val, "%i%s", (int)value, suffix);
+		Q_snprintf (val, sizeof (val), "%i%s", (int)value, suffix);	// [FWGS, 01.05.23]
 		}
 	else
 		{
 		char fmt[32];
 
-		// otherwise, create a format string for the decimals
-		Q_sprintf (fmt, "%%.%if%s", digitsafterdecimal, suffix);
-		Q_sprintf (val, fmt, (double)value);
+		// [FWGS, 01.05.23] otherwise, create a format string for the decimals
+		/*Q_sprintf (fmt, "%%.%if%s", digitsafterdecimal, suffix);
+		Q_sprintf (val, fmt, (double)value);*/
+		Q_snprintf (fmt, sizeof (fmt), "%%.%if%s", digitsafterdecimal, suffix);
+		Q_snprintf (val, sizeof (val), fmt, (double)value);
 		}
 
 	// copy from in to out
@@ -698,44 +706,67 @@ char *va (const char *format, ...)
 
 /*
 ============
-COM_FileBase
+COM_FileBase [FWGS, 01.05.23]
 
-Extracts the base name of a file (no path, no extension, assumes '/' as path separator)
+Extracts the base name of a file (no path, no extension, assumes '/' as path separator).
+a1ba: adapted and simplified version from QuakeSpasm
 ============
 */
-void COM_FileBase (const char *in, char *out)
+void COM_FileBase (const char *in, char *out, size_t size)
 	{
-	int	len, start, end;
+	/*int	len, start, end;
 
 	len = Q_strlen (in);
 	if (!len) return;
 
 	// scan backward for '.'
-	end = len - 1;
+	end = len - 1;*/
+	const char *dot, *slash, *s;
+	size_t len;
 
-	while (end && in[end] != '.' && in[end] != '/' && in[end] != '\\')
+	/*while (end && (in[end] != '.') && (in[end] != '/') && (in[end] != '\\'))
 		end--;
 
 	if (in[end] != '.')
 		end = len - 1; // no '.', copy to end
-	else end--; // found ',', copy to left of '.'
+	else
+		end--; // found ',', copy to left of '.'
+	*/
+	if (unlikely (!COM_CheckString (in) || size <= 1))
+		{
+		out[0] = 0;
+		return;
+		}
 
-	// scan backward for '/'
-	start = len - 1;
+	/* scan backward for '/'
+	start = len - 1;*/
+	slash = in;
+	dot = NULL;
+	for (s = in; *s; s++)
+		{
+		if (*s == '/' || *s == '\\')
+			slash = s + 1;
 
-	while ((start >= 0) && (in[start] != '/') && (in[start] != '\\'))
-		start--;
+		/*while ((start >= 0) && (in[start] != '/') && (in[start] != '\\'))
+			start--;*/
+		if (*s == '.')
+			dot = s;
+		}
 
-	if ((start < 0) || ((in[start] != '/') && (in[start] != '\\')))
+	/*if ((start < 0) || ((in[start] != '/') && (in[start] != '\\')))
 		start = 0;
 	else 
-		start++;
+		start++;*/
+	if (dot == NULL || dot < slash)
+		dot = s;
 
-	// length of new sting
-	len = end - start + 1;
+	/* length of new sting
+	len = end - start + 1;*/
+	len = Q_min (size - 1, dot - slash);
 
-	// Copy partial string
-	Q_strncpy (out, &in[start], len + 1);
+	/* Copy partial string
+	Q_strncpy (out, &in[start], len + 1);*/
+	memcpy (out, slash, len);
 	out[len] = 0;
 	}
 
@@ -751,12 +782,12 @@ const char *COM_FileExtension (const char *in)
 	separator = Q_strrchr (in, '/');
 	backslash = Q_strrchr (in, '\\');
 
-	if (!separator || separator < backslash)
+	if (!separator || (separator < backslash))
 		separator = backslash;
 
 	colon = Q_strrchr (in, ':');
 
-	if (!separator || separator < colon)
+	if (!separator || (separator < colon))
 		separator = colon;
 
 	dot = Q_strrchr (in, '.');
@@ -829,22 +860,23 @@ void COM_StripExtension (char *path)
 	if (length > 0)
 		length--;
 
-	while (length > 0 && path[length] != '.')
+	while ((length > 0) && (path[length] != '.'))
 		{
 		length--;
-		if (path[length] == '/' || path[length] == '\\' || path[length] == ':')
+		if ((path[length] == '/') || (path[length] == '\\') || (path[length] == ':'))
 			return; // no extension
 		}
 
-	if (length) path[length] = 0;
+	if (length)
+		path[length] = 0;
 	}
 
 /*
 ==================
-COM_DefaultExtension [FWGS, 01.04.23]
+COM_DefaultExtension [FWGS, 01.05.23]
 ==================
 */
-void COM_DefaultExtension (char *path, const char *extension)
+void COM_DefaultExtension (char *path, const char *extension, size_t size)
 	{
 	const char *src;
 	size_t len;
@@ -863,19 +895,19 @@ void COM_DefaultExtension (char *path, const char *extension)
 		src--;
 		}
 
-	//Q_strcat (path, extension);
-	Q_strcpy (&path[len], extension);
+	/*Q_strcat (path, extension);*/
+	Q_strncpy (&path[len], extension, size - len);
 	}
 
 /*
 ==================
-COM_ReplaceExtension
+COM_ReplaceExtension [FWGS, 01.05.23]
 ==================
 */
-void COM_ReplaceExtension (char *path, const char *extension)
+void COM_ReplaceExtension (char *path, const char *extension, size_t size)
 	{
 	COM_StripExtension (path);
-	COM_DefaultExtension (path, extension);
+	COM_DefaultExtension (path, extension, size);
 	}
 
 /*
@@ -903,18 +935,18 @@ Changes all '\' characters into '/' characters, in place
 */
 void COM_FixSlashes (char *pname)
 	{
-	//while (*pname)
+	/*while (*pname)*/
 	for (; *pname; pname++)
 		{
 		if (*pname == '\\')
 			*pname = '/';
-		//pname++;
+		/*pname++;*/
 		}
 	}
 
 /*
 ============
-COM_PathSlashFix
+COM_PathSlashFix [FWGS, 01.05.23]
 ============
 */
 void COM_PathSlashFix (char *path)
@@ -923,8 +955,12 @@ void COM_PathSlashFix (char *path)
 
 	len = Q_strlen (path);
 
-	if (path[len - 1] != '\\' && path[len - 1] != '/')
-		Q_strcpy (&path[len], "/");
+	if ((path[len - 1] != '\\') && (path[len - 1] != '/'))
+		{
+		path[len] = '/';
+		path[len + 1] = '\0';
+		}
+	/*Q_strcpy (&path[len], "/");*/
 	}
 
 /*
@@ -934,9 +970,9 @@ COM_Hex2Char
 */
 char COM_Hex2Char (uint8_t hex)
 	{
-	if (hex >= 0x0 && hex <= 0x9)
+	if ((hex >= 0x0) && (hex <= 0x9))
 		hex += '0';
-	else if (hex >= 0xA && hex <= 0xF)
+	else if ((hex >= 0xA) && (hex <= 0xF))
 		hex += '7';
 
 	return (char)hex;
@@ -963,10 +999,10 @@ interpert this character as single
 */
 static int COM_IsSingleChar (unsigned int flags, char c)
 	{
-	if (c == '{' || c == '}' || c == '\'' || c == ',')
+	if ((c == '{') || (c == '}') || (c == '\'') || (c == ','))
 		return true;
 
-	if (!FBitSet (flags, PFILE_IGNOREBRACKET) && (c == ')' || c == '('))
+	if (!FBitSet (flags, PFILE_IGNOREBRACKET) && ((c == ')') || (c == '(')))
 		return true;
 
 	if (FBitSet (flags, PFILE_HANDLECOLON) && c == ':')
@@ -992,7 +1028,8 @@ char *COM_ParseFileSafe (char *data, char *token, const int size, unsigned int f
 
 	if (!token || !size)
 		{
-		if (plen) *plen = 0;
+		if (plen)
+			*plen = 0;
 		return NULL;
 		}
 
@@ -1000,22 +1037,24 @@ char *COM_ParseFileSafe (char *data, char *token, const int size, unsigned int f
 
 	if (!data)
 		return NULL;
+
 	// skip whitespace
 skipwhite:
 	while ((c = ((byte)*data)) <= ' ')
 		{
 		if (c == 0)
 			{
-			if (plen) *plen = overflow ? -1 : len;
+			if (plen)
+				*plen = overflow ? -1 : len;
 			return NULL;	// end of file;
 			}
 		data++;
 		}
 
 	// skip // comments
-	if (c == '/' && data[1] == '/')
+	if ((c == '/') && (data[1] == '/'))
 		{
-		while (*data && *data != '\n')
+		while (*data && (*data != '\n'))
 			data++;
 		goto skipwhite;
 		}
@@ -1040,7 +1079,7 @@ skipwhite:
 				}
 			data++;
 
-			if (c == '\\' && *data == '"')
+			if ((c == '\\') && (*data == '"'))
 				{
 				if (len + 1 < size)
 					{
@@ -1097,7 +1136,10 @@ skipwhite:
 			token[len] = c;
 			len++;
 			}
-		else overflow = true;
+		else
+			{
+			overflow = true;
+			}
 
 		data++;
 		c = ((byte)*data);
@@ -1108,7 +1150,8 @@ skipwhite:
 
 		token[len] = 0;
 
-		if (plen) *plen = overflow ? -1 : len;
+		if (plen)
+			*plen = overflow ? -1 : len;
 
 		return data;
 	}
@@ -1131,16 +1174,18 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 			{
 			case 0:
 				return 1; // end of pattern
+
 			case '?': // match any single character
-				if (*in == 0 || Q_strchr (separators, *in))
+				if ((*in == 0) || Q_strchr (separators, *in))
 					return 0; // no match
 				in++;
 				pattern++;
 				break;
+
 			case '*': // match anything until following string
 				if (wildcard_least_one)
 					{
-					if (*in == 0 || Q_strchr (separators, *in))
+					if ((*in == 0) || Q_strchr (separators, *in))
 						return 0; // no match
 					in++;
 					}
@@ -1156,16 +1201,17 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 					in++;
 					}
 				break;
+
 			default:
 				if (*in != *pattern)
 					{
 					if (!caseinsensitive)
 						return 0; // no match
 					c1 = *in;
-					if (c1 >= 'A' && c1 <= 'Z')
+					if ((c1 >= 'A') && (c1 <= 'Z'))
 						c1 += 'a' - 'A';
 					c2 = *pattern;
-					if (c2 >= 'A' && c2 <= 'Z')
+					if ((c2 >= 'A') && (c2 <= 'Z'))
 						c2 += 'a' - 'A';
 					if (c1 != c2)
 						return 0; // no match
@@ -1175,8 +1221,8 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 				break;
 			}
 		}
+
 	if (*in)
 		return 0; // reached end of pattern but not end of input
 	return 1; // success
 	}
-

@@ -72,8 +72,8 @@ GNU General Public License for more details.
 #define XASH_VERSION        "0.20" // engine current version
 #define XASH_COMPAT_VERSION "0.99" // version we are based on
 
-// renderers order is important, software is always a last chance fallback
+/* [FWGS, 01.05.23] renderers order is important, software is always a last chance fallback
 #define DEFAULT_RENDERERS { "gl", "gles1", "gles2", "gl4es", "soft" }
-#define DEFAULT_RENDERERS_LEN 5
+#define DEFAULT_RENDERERS_LEN 5*/
 
-#endif//COM_STRINGS_H
+#endif

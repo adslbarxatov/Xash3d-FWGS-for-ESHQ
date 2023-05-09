@@ -107,7 +107,7 @@ typedef struct wfile_s wfile_t;
 #define Mem_Free( mem ) g_engfuncs._Mem_Free( mem, __FILE__, __LINE__ )
 #define Mem_AllocPool( name ) g_engfuncs._Mem_AllocPool( name, __FILE__, __LINE__ )
 #define Mem_FreePool( pool ) g_engfuncs._Mem_FreePool( pool, __FILE__, __LINE__ )
-//#define Mem_Free( mem ) g_engfuncs._Mem_Free( mem, __FILE__, __LINE__ )
+/*#define Mem_Free( mem ) g_engfuncs._Mem_Free( mem, __FILE__, __LINE__ )*/
 
 #define Con_Printf  (*g_engfuncs._Con_Printf)
 #define Con_DPrintf (*g_engfuncs._Con_DPrintf)
@@ -143,8 +143,8 @@ fs_offset_t FS_Tell (file_t *file);
 qboolean FS_Eof (file_t *file);
 int FS_Flush (file_t *file);
 int FS_Close (file_t *file);
-int FS_Gets (file_t *file, byte *string, size_t bufsize);
-int FS_UnGetc (file_t *file, byte c);
+int FS_Gets (file_t *file, char *string, size_t bufsize);	// [FWGS, 01.05.23]
+int FS_UnGetc (file_t *file, char c);	// [FWGS, 01.05.23]
 int FS_Getc (file_t *file);
 int FS_VPrintf (file_t *file, const char *format, va_list ap);
 int FS_Printf (file_t *file, const char *format, ...) _format (2);
@@ -174,10 +174,11 @@ int FS_FileTime (const char *filename, qboolean gamedironly);
 fs_offset_t FS_FileSize (const char *filename, qboolean gamedironly);
 qboolean FS_Rename (const char *oldname, const char *newname);
 qboolean FS_Delete (const char *path);
-//qboolean FS_SysFileExists (const char *path, qboolean casesensitive);
+/*qboolean FS_SysFileExists (const char *path, qboolean casesensitive);*/
 qboolean FS_SysFileExists (const char *path);	// [FWGS, 01.04.23]
 const char *FS_GetDiskPath (const char *name, qboolean gamedironly);
-//void     stringlistappend (stringlist_t *list, char *text);	// // [FWGS, 01.04.23]
+qboolean FS_GetFullDiskPath (char *buffer, size_t size, const char *name, qboolean gamedironly);	// [FWGS, 01.05.23]
+/*void     stringlistappend (stringlist_t *list, char *text);*/	// [FWGS, 01.04.23]
 void     FS_CreatePath (char *path);
 qboolean FS_SysFolderExists (const char *path);
 qboolean FS_SysFileOrFolderExists (const char *path);	// [FWGS, 01.04.23]

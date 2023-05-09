@@ -58,11 +58,10 @@ const sequenceCommandMapping_s g_sequenceCommandMappingTable[] =
 
 /*
 =============
-Sequence_GetCommandEnumForName
-
+Sequence_GetCommandEnumForName [FWGS, 01.05.23]
 =============
 */
-sequenceCommandEnum_e Sequence_GetCommandEnumForName (const char *commandName, sequenceCommandType_e type)
+static sequenceCommandEnum_e Sequence_GetCommandEnumForName (const char *commandName, sequenceCommandType_e type)
 	{
 	int i;
 
@@ -78,11 +77,10 @@ sequenceCommandEnum_e Sequence_GetCommandEnumForName (const char *commandName, s
 
 /*
 =============
-Sequence_ResetDefaults
-
+Sequence_ResetDefaults [FWGS, 01.05.23]
 =============
 */
-void Sequence_ResetDefaults (sequenceCommandLine_s *destination, sequenceCommandLine_s *source)
+static void Sequence_ResetDefaults (sequenceCommandLine_s *destination, sequenceCommandLine_s *source)
 	{
 	if (!source)
 		{
@@ -127,11 +125,10 @@ void Sequence_ResetDefaults (sequenceCommandLine_s *destination, sequenceCommand
 
 /*
 =============
-Sequence_WriteDefaults
-
+Sequence_WriteDefaults [FWGS, 01.05.23]
 =============
 */
-void Sequence_WriteDefaults (sequenceCommandLine_s *source, sequenceCommandLine_s *destination)
+static void Sequence_WriteDefaults (sequenceCommandLine_s *source, sequenceCommandLine_s *destination)
 	{
 	if (!destination)
 		Con_Reportf (S_ERROR  "Attempt to bake defaults into a non-existant command.");
@@ -206,11 +203,10 @@ void Sequence_WriteDefaults (sequenceCommandLine_s *source, sequenceCommandLine_
 
 /*
 =============
-Sequence_BakeDefaults
-
+Sequence_BakeDefaults [FWGS, 01.05.23]
 =============
 */
-void Sequence_BakeDefaults (sequenceCommandLine_s *destination, sequenceCommandLine_s *source)
+static void Sequence_BakeDefaults (sequenceCommandLine_s *destination, sequenceCommandLine_s *source)
 	{
 	char *saveName, *saveMessage;
 
@@ -239,11 +235,10 @@ void Sequence_BakeDefaults (sequenceCommandLine_s *destination, sequenceCommandL
 
 /*
 =============
-Sequence_SkipWhitespace
-
+Sequence_SkipWhitespace [FWGS, 01.05.23]
 =============
 */
-qboolean Sequence_SkipWhitespace (void)
+static qboolean Sequence_SkipWhitespace (void)
 	{
 	qboolean newLine = false;
 
@@ -263,11 +258,10 @@ qboolean Sequence_SkipWhitespace (void)
 
 /*
 =============
-Sequence_IsNameValueChar
-
+Sequence_IsNameValueChar [FWGS, 01.05.23]
 =============
 */
-qboolean Sequence_IsNameValueChar (char ch)
+static qboolean Sequence_IsNameValueChar (char ch)
 	{
 	if (isalnum (ch))
 		return true;
@@ -287,11 +281,10 @@ qboolean Sequence_IsNameValueChar (char ch)
 
 /*
 =============
-Sequence_IsSymbol
-
+Sequence_IsSymbol [FWGS, 01.05.23]
 =============
 */
-qboolean Sequence_IsSymbol (char ch)
+static qboolean Sequence_IsSymbol (char ch)
 	{
 	switch (ch)
 		{
@@ -312,11 +305,10 @@ qboolean Sequence_IsSymbol (char ch)
 
 /*
 =============
-Sequence_GetNameValueString
-
+Sequence_GetNameValueString [FWGS, 01.05.23]
 =============
 */
-size_t Sequence_GetNameValueString (char *token, size_t len)
+static size_t Sequence_GetNameValueString (char *token, size_t len)
 	{
 	char *p;
 
@@ -324,29 +316,25 @@ size_t Sequence_GetNameValueString (char *token, size_t len)
 
 	if (!Sequence_IsNameValueChar (*g_scan))
 		{
-		if (*g_scan == '#' || *g_scan == '$')
-			Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: cannot have more than one '%c' per line; '%c' must be at the beginning of the line ONLY\n", g_lineNum, g_sequenceParseFileName, *g_scan, *g_scan);
+		if ((*g_scan == '#') || (*g_scan == '$'))
+			Con_Reportf (S_ERROR "Parsing error on line %d of %s.seq: cannot have more than one '%c' per line; '%c' must be at the beginning of the line ONLY\n", g_lineNum, g_sequenceParseFileName, *g_scan, *g_scan);
 		else
 			Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: expected name/value, found illegal character '%c'\n", g_lineNum, g_sequenceParseFileName, *g_scan);
 		}
 
 	for (p = token; Sequence_IsNameValueChar (*g_scan) && len; p++, g_scan++, len--)
-		{
 		*p = *g_scan;
-		}
 
 	*p = 0;
-
 	return p - token;
 	}
 
 /*
 =============
-Sequence_GetSymbol
-
+Sequence_GetSymbol [FWGS, 01.05.23]
 =============
 */
-char Sequence_GetSymbol (void)
+static char Sequence_GetSymbol (void)
 	{
 	char ch;
 
@@ -362,11 +350,10 @@ char Sequence_GetSymbol (void)
 
 /*
 =============
-Sequence_ValidateNameValueString
-
+Sequence_ValidateNameValueString [FWGS, 01.05.23]
 =============
 */
-void Sequence_ValidateNameValueString (char *token)
+static void Sequence_ValidateNameValueString (char *token)
 	{
 	char *scan;
 
@@ -379,21 +366,19 @@ void Sequence_ValidateNameValueString (char *token)
 
 /*
 =============
-Sequence_GetToken
-
+Sequence_GetToken [FWGS, 01.05.23]
 =============
 */
-size_t Sequence_GetToken (char *token, size_t size)
+static size_t Sequence_GetToken (char *token, size_t size)
 	{
 	Sequence_SkipWhitespace ();
 
 	if (Sequence_IsNameValueChar (*g_scan))
-		{
 		return Sequence_GetNameValueString (token, size);
-		}
 
 	if (!Sequence_IsSymbol (*g_scan))
-		Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: expected token, found '%c' instead\n", g_lineNum, g_sequenceParseFileName, *g_scan);
+		Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: expected token, found '%c' instead\n",
+			g_lineNum, g_sequenceParseFileName, *g_scan);
 
 	token[0] = *g_scan++;
 	token[1] = 0;
@@ -404,11 +389,10 @@ size_t Sequence_GetToken (char *token, size_t size)
 
 /*
 =============
-Sequence_GetLine
-
+Sequence_GetLine [FWGS, 01.05.23]
 =============
 */
-size_t Sequence_GetLine (char *line, int lineMaxLen)
+static size_t Sequence_GetLine (char *line, int lineMaxLen)
 	{
 	int lineLen;
 	char *read;
@@ -435,11 +419,10 @@ size_t Sequence_GetLine (char *line, int lineMaxLen)
 
 /*
 =============
-Sequence_StripComments
-
+Sequence_StripComments [FWGS, 01.05.23]
 =============
 */
-void Sequence_StripComments (char *buffer, int *pBufSize)
+static void Sequence_StripComments (char *buffer, int *pBufSize)
 	{
 	char *eof = buffer + *pBufSize;
 	char *read = buffer;
@@ -478,13 +461,13 @@ void Sequence_StripComments (char *buffer, int *pBufSize)
 
 				while (*read && read[1])
 					{
-					if (*read == '*' && read[1] == '/')
+					if ((*read == '*') && (read[1] == '/'))
 						{
 						read += 2;
 						break;
 						}
 
-					if (*read == '\n' || *read == '\r')
+					if ((*read == '\n') || (*read == '\r'))
 						*write++ = *read;
 
 					read++;
@@ -502,11 +485,10 @@ void Sequence_StripComments (char *buffer, int *pBufSize)
 
 /*
 =============
-Sequence_ReadInt
-
+Sequence_ReadInt [FWGS, 01.05.23]
 =============
 */
-int Sequence_ReadInt (void)
+static int Sequence_ReadInt (void)
 	{
 	char str[MAX_STRING];
 
@@ -518,11 +500,10 @@ int Sequence_ReadInt (void)
 
 /*
 =============
-Sequence_ReadFloat
-
+Sequence_ReadFloat [FWGS, 01.05.23]
 =============
 */
-float Sequence_ReadFloat (void)
+static float Sequence_ReadFloat (void)
 	{
 	char str[MAX_STRING];
 
@@ -534,25 +515,24 @@ float Sequence_ReadFloat (void)
 
 /*
 =============
-Sequence_ReadFloat
-
+Sequence_ReadString [FWGS, 01.05.23]
 =============
 */
-void Sequence_ReadString (char **dest, char *string, size_t len)
+static void Sequence_ReadString (char **dest, char *string, size_t len)
 	{
 	Sequence_SkipWhitespace ();
 	Sequence_GetNameValueString (string, len);
 
-	if (dest) *dest = copystring (string);
+	if (dest)
+		*dest = copystring (string);
 	}
 
 /*
 =============
-Sequence_ReadQuotedString
-
+Sequence_ReadQuotedString [FWGS, 01.05.23]
 =============
 */
-void Sequence_ReadQuotedString (char **dest, char *str, size_t len)
+static void Sequence_ReadQuotedString (char **dest, char *str, size_t len)
 	{
 	char *write, ch;
 
@@ -576,30 +556,28 @@ void Sequence_ReadQuotedString (char **dest, char *str, size_t len)
 	*write = 0;
 	g_scan++;
 
-	if (dest) *dest = copystring (str);
+	if (dest)
+		*dest = copystring (str);
 	}
 
 /*
 =============
-Sequence_ConfirmCarriageReturnOrSymbol
-
+Sequence_ConfirmCarriageReturnOrSymbol [FWGS, 01.05.23]
 =============
 */
-qboolean Sequence_ConfirmCarriageReturnOrSymbol (char symbol)
+static qboolean Sequence_ConfirmCarriageReturnOrSymbol (char symbol)
 	{
 	if (Sequence_SkipWhitespace ())
 		return true;
 	return *g_scan == symbol;
 	}
 
-
 /*
 =============
-Sequence_IsCommandAModifier
-
+Sequence_IsCommandAModifier [FWGS, 01.05.23]
 =============
 */
-qboolean Sequence_IsCommandAModifier (sequenceCommandEnum_e commandEnum)
+static qboolean Sequence_IsCommandAModifier (sequenceCommandEnum_e commandEnum)
 	{
 	int i;
 
@@ -609,17 +587,17 @@ qboolean Sequence_IsCommandAModifier (sequenceCommandEnum_e commandEnum)
 			return (g_sequenceCommandMappingTable[i].commandType == SEQUENCE_TYPE_MODIFIER);
 		}
 
-	Con_Reportf (S_ERROR  "Internal error caused by line %d of %s.seq: unknown command enum = %d\n", g_lineNum, g_sequenceParseFileName, commandEnum);
+	Con_Reportf (S_ERROR  "Internal error caused by line %d of %s.seq: unknown command enum = %d\n",
+		g_lineNum, g_sequenceParseFileName, commandEnum);
 	return false;
 	}
 
 /*
 =============
-Sequence_ReadCommandData
-
+Sequence_ReadCommandData [FWGS, 01.05.23]
 =============
 */
-void Sequence_ReadCommandData (sequenceCommandEnum_e commandEnum, sequenceCommandLine_s *defaults)
+static void Sequence_ReadCommandData (sequenceCommandEnum_e commandEnum, sequenceCommandLine_s *defaults)
 	{
 	char temp[1024];
 
@@ -712,17 +690,17 @@ void Sequence_ReadCommandData (sequenceCommandEnum_e commandEnum, sequenceComman
 			break;
 
 		default:
-			Con_Reportf (S_ERROR  "Internal error caused by line %d of %s.seq: unknown command enum = %d\n", g_lineNum, g_sequenceParseFileName, commandEnum);
+			Con_Reportf (S_ERROR  "Internal error caused by line %d of %s.seq: unknown command enum = %d\n",
+				g_lineNum, g_sequenceParseFileName, commandEnum);
 		}
 	}
 
 /*
 =============
-Sequence_ParseModifier
-
+Sequence_ParseModifier [FWGS, 01.05.23]
 =============
 */
-char Sequence_ParseModifier (sequenceCommandLine_s *defaults)
+static char Sequence_ParseModifier (sequenceCommandLine_s *defaults)
 	{
 	char modifierName[MAX_STRING];
 	char delimiter;
@@ -732,10 +710,12 @@ char Sequence_ParseModifier (sequenceCommandLine_s *defaults)
 	modifierEnum = Sequence_GetCommandEnumForName (modifierName, SEQUENCE_TYPE_MODIFIER);
 
 	if (modifierEnum == SEQUENCE_COMMAND_ERROR)
-		Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: unknown modifier \"%s\"\n", g_lineNum, g_sequenceParseFileName, modifierName);
+		Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: unknown modifier \"%s\"\n",
+			g_lineNum, g_sequenceParseFileName, modifierName);
 
 	if (!Sequence_IsCommandAModifier (modifierEnum))
-		Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: \"%s\" is a #command, not a $modifier\n", g_lineNum, g_sequenceParseFileName, modifierName);
+		Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: \"%s\" is a #command, not a $modifier\n",
+			g_lineNum, g_sequenceParseFileName, modifierName);
 
 	delimiter = Sequence_GetSymbol ();
 
@@ -752,11 +732,10 @@ char Sequence_ParseModifier (sequenceCommandLine_s *defaults)
 
 /*
 =============
-Sequence_AddCommandLineToEntry
-
+Sequence_AddCommandLineToEntry [FWGS, 01.05.23]
 =============
 */
-void Sequence_AddCommandLineToEntry (sequenceCommandLine_s *commandLine, sequenceEntry_s *entry)
+static void Sequence_AddCommandLineToEntry (sequenceCommandLine_s *commandLine, sequenceEntry_s *entry)
 	{
 	sequenceCommandLine_s *scan;
 
@@ -765,18 +744,20 @@ void Sequence_AddCommandLineToEntry (sequenceCommandLine_s *commandLine, sequenc
 		for (scan = entry->firstCommand; scan->nextCommandLine; scan = scan->nextCommandLine);
 		scan->nextCommandLine = commandLine;
 		}
-	else entry->firstCommand = commandLine;
+	else
+		{
+		entry->firstCommand = commandLine;
+		}
 
 	commandLine->nextCommandLine = NULL;
 	}
 
 /*
 =============
-Sequence_ParseModifierLine
-
+Sequence_ParseModifierLine [FWGS, 01.05.23]
 =============
 */
-char Sequence_ParseModifierLine (sequenceEntry_s *entry, sequenceCommandType_e modifierType)
+static char Sequence_ParseModifierLine (sequenceEntry_s *entry, sequenceCommandType_e modifierType)
 	{
 	sequenceCommandLine_s *newCommandLine;
 	char delimiter = ',';
@@ -804,11 +785,10 @@ char Sequence_ParseModifierLine (sequenceEntry_s *entry, sequenceCommandType_e m
 
 /*
 =============
-Sequence_ParseCommand
-
+Sequence_ParseCommand [FWGS, 01.05.23]
 =============
 */
-char Sequence_ParseCommand (sequenceCommandLine_s *newCommandLine)
+static char Sequence_ParseCommand (sequenceCommandLine_s *newCommandLine)
 	{
 	char commandName[MAX_STRING], ch;
 	sequenceCommandEnum_e commandEnum;
@@ -843,11 +823,10 @@ char Sequence_ParseCommand (sequenceCommandLine_s *newCommandLine)
 
 /*
 =============
-Sequence_ParseCommandLine
-
+Sequence_ParseCommandLine [FWGS, 01.05.23]
 =============
 */
-char Sequence_ParseCommandLine (sequenceEntry_s *entry)
+static char Sequence_ParseCommandLine (sequenceEntry_s *entry)
 	{
 	char symbol;
 	sequenceCommandLine_s *newCommandLine;
@@ -861,20 +840,17 @@ char Sequence_ParseCommandLine (sequenceEntry_s *entry)
 	symbol = Sequence_ParseCommand (newCommandLine);
 
 	while (symbol == ',')
-		{
 		symbol = Sequence_ParseCommand (newCommandLine);
-		}
 
 	return symbol;
 	}
 
 /*
 =============
-Sequence_ParseMacro
-
+Sequence_ParseMacro [FWGS, 01.05.23]
 =============
 */
-char Sequence_ParseMacro (sequenceEntry_s *entry)
+static char Sequence_ParseMacro (sequenceEntry_s *entry)
 	{
 	char symbol;
 	sequenceCommandLine_s *newCommandLine;
@@ -889,20 +865,17 @@ char Sequence_ParseMacro (sequenceEntry_s *entry)
 	symbol = Sequence_GetSymbol ();
 
 	while (symbol == ',')
-		{
 		symbol = Sequence_ParseCommand (newCommandLine);
-		}
 
 	return symbol;
 	}
 
 /*
 =============
-Sequence_ParseLine
-
+Sequence_ParseLine [FWGS, 01.05.23]
 =============
 */
-char Sequence_ParseLine (char start, sequenceEntry_s *entry)
+static char Sequence_ParseLine (char start, sequenceEntry_s *entry)
 	{
 	char end = '\0';
 
@@ -929,11 +902,10 @@ char Sequence_ParseLine (char start, sequenceEntry_s *entry)
 
 /*
 =============
-Sequence_CalcEntryDuration
-
+Sequence_CalcEntryDuration [FWGS, 01.05.23]
 =============
 */
-float Sequence_CalcEntryDuration (sequenceEntry_s *entry)
+static float Sequence_CalcEntryDuration (sequenceEntry_s *entry)
 	{
 	float duration;
 	sequenceCommandLine_s *cmd;
@@ -948,11 +920,10 @@ float Sequence_CalcEntryDuration (sequenceEntry_s *entry)
 
 /*
 =============
-Sequence_DoesEntryContainInfiniteLoop
-
+Sequence_DoesEntryContainInfiniteLoop [FWGS, 01.05.23]
 =============
 */
-qboolean Sequence_DoesEntryContainInfiniteLoop (sequenceEntry_s *entry)
+static qboolean Sequence_DoesEntryContainInfiniteLoop (sequenceEntry_s *entry)
 	{
 	sequenceCommandLine_s *cmd;
 
@@ -967,11 +938,10 @@ qboolean Sequence_DoesEntryContainInfiniteLoop (sequenceEntry_s *entry)
 
 /*
 =============
-Sequence_IsEntrySafe
-
+Sequence_IsEntrySafe [FWGS, 01.05.23]
 =============
 */
-qboolean Sequence_IsEntrySafe (sequenceEntry_s *entry)
+static qboolean Sequence_IsEntrySafe (sequenceEntry_s *entry)
 	{
 	float duration;
 	sequenceCommandLine_s *cmd;
@@ -994,11 +964,10 @@ qboolean Sequence_IsEntrySafe (sequenceEntry_s *entry)
 
 /*
 =============
-Sequence_CreateDefaultsCommand
-
+Sequence_CreateDefaultsCommand [FWGS, 01.05.23]
 =============
 */
-void Sequence_CreateDefaultsCommand (sequenceEntry_s *entry)
+static void Sequence_CreateDefaultsCommand (sequenceEntry_s *entry)
 	{
 	sequenceCommandLine_s *cmd;
 
@@ -1019,14 +988,12 @@ void Sequence_CreateDefaultsCommand (sequenceEntry_s *entry)
 	Sequence_AddCommandLineToEntry (cmd, entry);
 	}
 
-
 /*
 =============
-Sequence_ParseEntry
-
+Sequence_ParseEntry [FWGS, 01.05.23]
 =============
 */
-char Sequence_ParseEntry (void)
+static char Sequence_ParseEntry (void)
 	{
 	char symbol;
 	char token[MAX_STRING];
@@ -1049,9 +1016,7 @@ char Sequence_ParseEntry (void)
 	symbol = Sequence_GetSymbol ();
 
 	while (symbol != '}')
-		{
 		symbol = Sequence_ParseLine (symbol, entry);
-		}
 
 	if (!Sequence_IsEntrySafe (entry))
 		Con_Reportf (S_ERROR  "Logic error in file %s.seq before line %d: execution of entry \"%%%s\" would cause an infinite loop!", g_sequenceParseFileName, g_lineNum, entry->entryName);
@@ -1064,11 +1029,10 @@ char Sequence_ParseEntry (void)
 
 /*
 =============
-Sequence_FindSentenceGroup
-
+Sequence_FindSentenceGroup [FWGS, 01.05.23]
 =============
 */
-sentenceGroupEntry_s *Sequence_FindSentenceGroup (const char *groupName)
+static sentenceGroupEntry_s *Sequence_FindSentenceGroup (const char *groupName)
 	{
 	sentenceGroupEntry_s *groupEntry;
 
@@ -1084,7 +1048,6 @@ sentenceGroupEntry_s *Sequence_FindSentenceGroup (const char *groupName)
 /*
 =============
 Sequence_GetSentenceByIndex
-
 =============
 */
 sentenceEntry_s *Sequence_GetSentenceByIndex (unsigned int index)
@@ -1110,11 +1073,9 @@ sentenceEntry_s *Sequence_GetSentenceByIndex (unsigned int index)
 	return NULL;
 	}
 
-
 /*
 =============
 Sequence_PickSentence
-
 =============
 */
 sentenceEntry_s *Sequence_PickSentence (const char *groupName, int pickMethod, int *picked)
@@ -1148,11 +1109,10 @@ sentenceEntry_s *Sequence_PickSentence (const char *groupName, int pickMethod, i
 
 /*
 =============
-Sequence_AddSentenceGroup
-
+Sequence_AddSentenceGroup [FWGS, 01.05.23]
 =============
 */
-sentenceGroupEntry_s *Sequence_AddSentenceGroup (char *groupName)
+static sentenceGroupEntry_s *Sequence_AddSentenceGroup (char *groupName)
 	{
 	sentenceGroupEntry_s *entry, *last;
 
@@ -1177,11 +1137,10 @@ sentenceGroupEntry_s *Sequence_AddSentenceGroup (char *groupName)
 
 /*
 =============
-Sequence_AddSentenceToGroup
-
+Sequence_AddSentenceToGroup [FWGS, 01.05.23]
 =============
 */
-void Sequence_AddSentenceToGroup (char *groupName, char *data)
+static void Sequence_AddSentenceToGroup (char *groupName, char *data)
 	{
 	sentenceEntry_s *entry, *last;
 	sentenceGroupEntry_s *group;
@@ -1193,7 +1152,8 @@ void Sequence_AddSentenceToGroup (char *groupName, char *data)
 		group = Sequence_AddSentenceGroup (groupName);
 
 		if (!group)
-			Con_Reportf (S_ERROR  "Unable to allocate sentence group %s at line %d in file %s.seq", groupName, g_lineNum, g_sequenceParseFileName);
+			Con_Reportf (S_ERROR  "Unable to allocate sentence group %s at line %d in file %s.seq",
+				groupName, g_lineNum, g_sequenceParseFileName);
 		}
 
 	entry = Z_Malloc (sizeof (sentenceEntry_s));
@@ -1219,11 +1179,10 @@ void Sequence_AddSentenceToGroup (char *groupName, char *data)
 
 /*
 =============
-Sequence_ParseSentenceLine
-
+Sequence_ParseSentenceLine [FWGS, 01.05.23]
 =============
 */
-qboolean Sequence_ParseSentenceLine (void)
+static qboolean Sequence_ParseSentenceLine (void)
 	{
 	char data[1024];
 	char fullgroup[64];
@@ -1252,7 +1211,7 @@ qboolean Sequence_ParseSentenceLine (void)
 	len = Sequence_GetLine (data, sizeof (data));
 	lastCharacterPos = len - 1;
 
-	if (data[lastCharacterPos] == '\n' || data[lastCharacterPos] == '\r')
+	if ((data[lastCharacterPos] == '\n') || (data[lastCharacterPos] == '\r'))
 		data[lastCharacterPos] = 0;
 
 	Sequence_AddSentenceToGroup (groupName, data);
@@ -1261,11 +1220,10 @@ qboolean Sequence_ParseSentenceLine (void)
 
 /*
 ==============
-Sequence_ParseSentenceBlock
-
+Sequence_ParseSentenceBlock [FWGS, 01.05.23]
 ==============
 */
-char Sequence_ParseSentenceBlock (void)
+static char Sequence_ParseSentenceBlock (void)
 	{
 	qboolean end = false;
 	char ch = Sequence_GetSymbol ();
@@ -1273,20 +1231,17 @@ char Sequence_ParseSentenceBlock (void)
 		Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: expected '{' to start a\n new sentence block; found '%c' instead!", g_lineNum, g_sequenceParseFileName, ch);
 
 	while (!end)
-		{
 		end = Sequence_ParseSentenceLine ();
-		}
 
 	return Sequence_GetSymbol ();
 	}
 
 /*
 ==============
-Sequence_ParseGlobalDataBlock
-
+Sequence_ParseGlobalDataBlock [FWGS, 01.05.23]
 ==============
 */
-char Sequence_ParseGlobalDataBlock (void)
+static char Sequence_ParseGlobalDataBlock (void)
 	{
 	char token[MAX_STRING];
 
@@ -1300,11 +1255,10 @@ char Sequence_ParseGlobalDataBlock (void)
 
 /*
 ==============
-Sequence_GetEntryForName
-
+Sequence_GetEntryForName [FWGS, 01.05.23]
 ==============
 */
-sequenceEntry_s *Sequence_GetEntryForName (const char *entryName)
+static sequenceEntry_s *Sequence_GetEntryForName (const char *entryName)
 	{
 	sequenceEntry_s *scan;
 
@@ -1319,11 +1273,10 @@ sequenceEntry_s *Sequence_GetEntryForName (const char *entryName)
 
 /*
 ==============
-Sequence_CopyCommand
-
+Sequence_CopyCommand [FWGS, 01.05.23]
 ==============
 */
-sequenceCommandLine_s *Sequence_CopyCommand (sequenceCommandLine_s *commandOrig)
+static sequenceCommandLine_s *Sequence_CopyCommand (sequenceCommandLine_s *commandOrig)
 	{
 	sequenceCommandLine_s *commandCopy;
 
@@ -1350,11 +1303,10 @@ sequenceCommandLine_s *Sequence_CopyCommand (sequenceCommandLine_s *commandOrig)
 
 /*
 ==============
-Sequence_CopyCommandList
-
+Sequence_CopyCommandList [FWGS, 01.05.23]
 ==============
 */
-sequenceCommandLine_s *Sequence_CopyCommandList (sequenceCommandLine_s *list)
+static sequenceCommandLine_s *Sequence_CopyCommandList (sequenceCommandLine_s *list)
 	{
 	sequenceCommandLine_s *scan, *copy, *new, *prev;
 
@@ -1385,11 +1337,10 @@ sequenceCommandLine_s *Sequence_CopyCommandList (sequenceCommandLine_s *list)
 
 /*
 ==============
-Sequence_ExpandGosubsForEntry
-
+Sequence_ExpandGosubsForEntry [FWGS, 01.05.23]
 ==============
 */
-qboolean Sequence_ExpandGosubsForEntry (sequenceEntry_s *entry)
+static qboolean Sequence_ExpandGosubsForEntry (sequenceEntry_s *entry)
 	{
 	sequenceCommandLine_s *cmd, *copyList, *scan;
 	sequenceEntry_s *gosubEntry;
@@ -1401,12 +1352,14 @@ qboolean Sequence_ExpandGosubsForEntry (sequenceEntry_s *entry)
 			continue;
 
 		if (!Q_stricmp (cmd->clientMessage.pName, entry->entryName))
-			Con_Reportf (S_ERROR  "Error in %s.seq: entry \"%s\" gosubs itself!\n", entry->fileName, entry->entryName);
+			Con_Reportf (S_ERROR  "Error in %s.seq: entry \"%s\" gosubs itself!\n", entry->fileName,
+				entry->entryName);
 
 		gosubEntry = Sequence_GetEntryForName (cmd->clientMessage.pName);
 
 		if (!gosubEntry)
-			Con_Reportf (S_ERROR  "Error in %s.seq: Gosub in entry \"%s\" specified unknown entry \"%s\"\n", entry->fileName, entry->entryName, cmd->clientMessage.pName);
+			Con_Reportf (S_ERROR  "Error in %s.seq: Gosub in entry \"%s\" specified unknown entry \"%s\"\n",
+				entry->fileName, entry->entryName, cmd->clientMessage.pName);
 
 		foundGosubs = true;
 		copyList = Sequence_CopyCommandList (gosubEntry->firstCommand);
@@ -1433,11 +1386,10 @@ qboolean Sequence_ExpandGosubsForEntry (sequenceEntry_s *entry)
 
 /*
 ==============
-Sequence_ExpandAllGosubs
-
+Sequence_ExpandAllGosubs [FWGS, 01.05.23]
 ==============
 */
-void Sequence_ExpandAllGosubs (void)
+static void Sequence_ExpandAllGosubs (void)
 	{
 	sequenceEntry_s *scan;
 	qboolean isComplete = true;
@@ -1453,11 +1405,10 @@ void Sequence_ExpandAllGosubs (void)
 
 /*
 ==============
-Sequence_FlattenEntry
-
+Sequence_FlattenEntry [FWGS, 01.05.23]
 ==============
 */
-void Sequence_FlattenEntry (sequenceEntry_s *entry)
+static void Sequence_FlattenEntry (sequenceEntry_s *entry)
 	{
 	sequenceCommandLine_s *cmd, *last = NULL;
 
@@ -1487,11 +1438,10 @@ void Sequence_FlattenEntry (sequenceEntry_s *entry)
 
 /*
 ==============
-Sequence_FlattenAllEntries
-
+Sequence_FlattenAllEntries [FWGS, 01.05.23]
 ==============
 */
-void Sequence_FlattenAllEntries (void)
+static void Sequence_FlattenAllEntries (void)
 	{
 	sequenceEntry_s *entry;
 
@@ -1502,7 +1452,6 @@ void Sequence_FlattenAllEntries (void)
 /*
 ==============
 Sequence_ParseBuffer
-
 ==============
 */
 static void Sequence_ParseBuffer (char *buffer, int bufferSize)
@@ -1537,7 +1486,8 @@ static void Sequence_ParseBuffer (char *buffer, int bufferSize)
 				break;
 
 			default:
-				Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: At file scope, lines must begin with '$' (modifier) or '%%' (entry block) or '!' (sentence / global data block); found '%c'\n", g_lineNum, g_sequenceParseFileName, symbol);
+				Con_Reportf (S_ERROR  "Parsing error on line %d of %s.seq: At file scope, lines must begin with '$' (modifier) or '%%' (entry block) or '!' (sentence / global data block); found '%c'\n",
+					g_lineNum, g_sequenceParseFileName, symbol);
 			}
 		}
 
@@ -1547,16 +1497,15 @@ static void Sequence_ParseBuffer (char *buffer, int bufferSize)
 
 /*
 ==============
-Sequence_ParseFile
-
+Sequence_ParseFile [FWGS, 01.05.23]
 ==============
 */
-void Sequence_ParseFile (const char *fileName, qboolean isGlobal)
+static void Sequence_ParseFile (const char *fileName, qboolean isGlobal)
 	{
 	byte *buffer;
 	fs_offset_t bufSize = 0;
 
-	Q_strcpy (g_sequenceParseFileName, fileName);
+	Q_strncpy (g_sequenceParseFileName, fileName, sizeof (g_sequenceParseFileName));
 	g_sequenceParseFileIsGlobal = isGlobal;
 
 	buffer = FS_LoadFile (va ("sequences/%s.seq", fileName), &bufSize, true);
@@ -1574,7 +1523,6 @@ void Sequence_ParseFile (const char *fileName, qboolean isGlobal)
 /*
 ==============
 Sequence_Init
-
 ==============
 */
 void Sequence_Init (void)
@@ -1585,7 +1533,6 @@ void Sequence_Init (void)
 /*
 ==============
 SequenceGet
-
 ==============
 */
 sequenceEntry_s *Sequence_Get (const char *fileName, const char *entryName)
@@ -1594,7 +1541,8 @@ sequenceEntry_s *Sequence_Get (const char *fileName, const char *entryName)
 
 	for (scan = g_sequenceList; scan; scan = scan->nextEntry)
 		{
-		if ((!fileName || !Q_stricmp (fileName, scan->fileName)) && // a1ba: add filename check, even if originally it is ignored
+		if ((!fileName || !Q_stricmp (fileName, scan->fileName)) &&
+			// a1ba: add filename check, even if originally it is ignored
 			!Q_stricmp (entryName, scan->entryName))
 			return scan;
 		}
@@ -1604,11 +1552,10 @@ sequenceEntry_s *Sequence_Get (const char *fileName, const char *entryName)
 
 /*
 ==============
-Sequence_FreeCommand
-
+Sequence_FreeCommand [FWGS, 01.05.23]
 ==============
 */
-void Sequence_FreeCommand (sequenceCommandLine_s *kill)
+static void Sequence_FreeCommand (sequenceCommandLine_s *kill)
 	{
 	Z_Free (kill->fireTargetNames);
 	Z_Free (kill->speakerName);
@@ -1621,11 +1568,10 @@ void Sequence_FreeCommand (sequenceCommandLine_s *kill)
 
 /*
 ==============
-Sequence_FreeEntry
-
+Sequence_FreeEntry [FWGS, 01.05.23]
 ==============
 */
-void Sequence_FreeEntry (sequenceEntry_s *kill)
+static void Sequence_FreeEntry (sequenceEntry_s *kill)
 	{
 	sequenceCommandLine_s *dead;
 
@@ -1643,11 +1589,10 @@ void Sequence_FreeEntry (sequenceEntry_s *kill)
 
 /*
 ==============
-Sequence_FreeSentence
-
+Sequence_FreeSentence [FWGS, 01.05.23]
 ==============
 */
-void Sequence_FreeSentence (sentenceEntry_s *sentenceEntry)
+static void Sequence_FreeSentence (sentenceEntry_s *sentenceEntry)
 	{
 	Z_Free (sentenceEntry->data);
 	Z_Free (sentenceEntry);
@@ -1655,11 +1600,10 @@ void Sequence_FreeSentence (sentenceEntry_s *sentenceEntry)
 
 /*
 ==============
-Sequence_FreeSentenceGroup
-
+Sequence_FreeSentenceGroup [FWGS, 01.05.23]
 ==============
 */
-void Sequence_FreeSentenceGroup (sentenceGroupEntry_s *groupEntry)
+static void Sequence_FreeSentenceGroup (sentenceGroupEntry_s *groupEntry)
 	{
 	Z_Free (groupEntry->groupName);
 	Z_Free (groupEntry);
@@ -1667,11 +1611,10 @@ void Sequence_FreeSentenceGroup (sentenceGroupEntry_s *groupEntry)
 
 /*
 ==============
-Sequence_FreeSentenceGroupEntries
-
+Sequence_FreeSentenceGroupEntries [FWGS, 01.05.23]
 ==============
 */
-void Sequence_FreeSentenceGroupEntries (sentenceGroupEntry_s *groupEntry, qboolean purgeGlobals)
+static void Sequence_FreeSentenceGroupEntries (sentenceGroupEntry_s *groupEntry, qboolean purgeGlobals)
 	{
 	sentenceEntry_s *sentenceEntry;
 	sentenceEntry_s *deadSentence;
@@ -1707,11 +1650,10 @@ void Sequence_FreeSentenceGroupEntries (sentenceGroupEntry_s *groupEntry, qboole
 
 /*
 ==============
-Sequence_PurgeEntries
-
+Sequence_PurgeEntries [FWGS, 01.05.23]
 ==============
 */
-void Sequence_PurgeEntries (qboolean purgeGlobals)
+static void Sequence_PurgeEntries (qboolean purgeGlobals)
 	{
 	sequenceEntry_s *scan;
 	sequenceEntry_s *dead;
@@ -1772,7 +1714,6 @@ void Sequence_PurgeEntries (qboolean purgeGlobals)
 /*
 ==============
 Sequence_OnLevelLoad
-
 ==============
 */
 void Sequence_OnLevelLoad (const char *mapName)

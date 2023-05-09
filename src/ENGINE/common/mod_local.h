@@ -150,7 +150,7 @@ void Mod_FreeUnused (void);
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
 
 // [FWGS, 01.04.23]
-//qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean silent);
+/*qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean silent);*/
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);
 
 qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf);
@@ -160,7 +160,7 @@ int Mod_CheckLump (const char *filename, const int lump, int *lumpsize);
 int Mod_ReadLump (const char *filename, const int lump, void **lumpdata, int *lumpsize);
 int Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lumpsize);
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node);
-void Mod_AmbientLevels (const vec3_t p, byte *pvolumes);
+/*void Mod_AmbientLevels (const vec3_t p, byte *pvolumes);*/	// [FWGS, 01.05.23]
 int Mod_SampleSizeForFace (msurface_t *surf);
 byte *Mod_GetPVSForPoint (const vec3_t p);
 void Mod_UnloadBrushModel (model_t *mod);

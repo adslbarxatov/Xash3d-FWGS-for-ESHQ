@@ -24,110 +24,108 @@ GNU General Public License for more details.
 #include "client.h"
 #include "server.h"			// LUMP_ error codes
 #include "ref_common.h"
+
+// [FWGS, 01.05.23]
+#define MIPTEX_CUSTOM_PALETTE_SIZE_BYTES ( sizeof( int16_t ) + 768 )
+
 typedef struct wadlist_s
 	{
-	char			wadnames[MAX_MAP_WADS][32];
-	int			wadusage[MAX_MAP_WADS];
-	int			count;
+	char	wadnames[MAX_MAP_WADS][32];
+	int		wadusage[MAX_MAP_WADS];
+	int		count;
 	} wadlist_t;
 
 typedef struct leaflist_s
 	{
-	int			count;
-	int			maxcount;
-	qboolean			overflowed;
-	int *list;
-	vec3_t			mins, maxs;
-	int			topnode;		// for overflows where each leaf can't be stored individually
+	int		count;
+	int		maxcount;
+	qboolean	overflowed;
+	int		*list;
+	vec3_t	mins, maxs;
+	int		topnode;	// for overflows where each leaf can't be stored individually
 	} leaflist_t;
 
 typedef struct
 	{
 	// generic lumps
-	dmodel_t *submodels;
-	size_t			numsubmodels;
-
-	dvertex_t *vertexes;
-	size_t			numvertexes;
-
-	dplane_t *planes;
-	size_t			numplanes;
+	dmodel_t	*submodels;
+	size_t		numsubmodels;
+	dvertex_t	*vertexes;
+	size_t		numvertexes;
+	dplane_t	*planes;
+	size_t		numplanes;
 
 	union
 		{
-		dnode_t *nodes;
-		dnode32_t *nodes32;
+		dnode_t		*nodes;
+		dnode32_t	*nodes32;
 		};
-	size_t			numnodes;
+	size_t		numnodes;
 
 	union
 		{
-		dleaf_t *leafs;
-		dleaf32_t *leafs32;
+		dleaf_t		*leafs;
+		dleaf32_t	*leafs32;
 		};
-	size_t			numleafs;
+	size_t		numleafs;
 
 	union
 		{
-		dclipnode_t *clipnodes;
-		dclipnode32_t *clipnodes32;
+		dclipnode_t		*clipnodes;
+		dclipnode32_t	*clipnodes32;
 		};
-	size_t			numclipnodes;
+	size_t		numclipnodes;
 
-	dtexinfo_t *texinfo;
-	size_t			numtexinfo;
+	dtexinfo_t	*texinfo;
+	size_t		numtexinfo;
 
 	union
 		{
-		dmarkface_t *markfaces;
-		dmarkface32_t *markfaces32;
+		dmarkface_t		*markfaces;
+		dmarkface32_t	*markfaces32;
 		};
-	size_t			nummarkfaces;
+	size_t		nummarkfaces;
 
-	dsurfedge_t *surfedges;
-	size_t			numsurfedges;
+	dsurfedge_t	*surfedges;
+	size_t		numsurfedges;
 
 	union
 		{
-		dedge_t *edges;
-		dedge32_t *edges32;
+		dedge_t		*edges;
+		dedge32_t	*edges32;
 		};
-	size_t			numedges;
+	size_t		numedges;
 
 	union
 		{
-		dface_t *surfaces;
-		dface32_t *surfaces32;
+		dface_t		*surfaces;
+		dface32_t	*surfaces32;
 		};
-	size_t			numsurfaces;
+	size_t		numsurfaces;
 
-	dfaceinfo_t *faceinfo;
+	dfaceinfo_t		*faceinfo;
 	size_t			numfaceinfo;
 
 	// array lumps
-	byte *visdata;
-	size_t			visdatasize;
-
-	byte *lightdata;
-	size_t			lightdatasize;
-
-	byte *deluxdata;
-	size_t			deluxdatasize;
-
-	byte *shadowdata;
-	size_t			shadowdatasize;
-
-	byte *entdata;
-	size_t			entdatasize;
+	byte		*visdata;
+	size_t		visdatasize;
+	byte		*lightdata;
+	size_t		lightdatasize;
+	byte		*deluxdata;
+	size_t		deluxdatasize;
+	byte		*shadowdata;
+	size_t		shadowdatasize;
+	byte		*entdata;
+	size_t		entdatasize;
 
 	// lumps that required personal handler
-	dmiptexlump_t *textures;
+	dmiptexlump_t	*textures;
 	size_t			texdatasize;
 
 	// intermediate arrays (pointers will lost after loading, but keep the data)
-	color24 *deluxedata_out;	// deluxemap data pointer
-	byte *shadowdata_out;	// occlusion data pointer
-	dclipnode32_t *clipnodes_out;	// temporary 32-bit array to hold clipnodes
+	color24		*deluxedata_out;	// deluxemap data pointer
+	byte		*shadowdata_out;	// occlusion data pointer
+	dclipnode32_t	*clipnodes_out;	// temporary 32-bit array to hold clipnodes
 
 	// misc stuff
 	wadlist_t	wadlist;
@@ -210,9 +208,137 @@ static mlumpinfo_t		extlumps[EXTRA_LUMPS] =
 
 /*
 ===============================================================================
+Static helper functions
+===============================================================================
+*/
+// [FWGS, 01.05.23]
+static mip_t *Mod_GetMipTexForTexture (dbspmodel_t *bmod, int i)
+	{
+	if ((i < 0) || (i >= bmod->textures->nummiptex))
+		return NULL;
+	if (bmod->textures->dataofs[i] == -1)
+		return NULL;
 
-			MAP PROCESSING
+	return (mip_t *)((byte *)bmod->textures + bmod->textures->dataofs[i]);
+	}
 
+// [FWGS, 01.05.23] Returns index of WAD that texture was found in, or -1 if not found.
+static int Mod_FindTextureInWadList (wadlist_t *list, const char *name, char *dst, size_t size)
+	{
+	int i;
+
+	if (!list || !COM_CheckString (name))
+		return -1;
+
+	// check wads in reverse order
+	for (i = list->count - 1; i >= 0; i--)
+		{
+		char path[MAX_VA_STRING];
+
+		Q_snprintf (path, sizeof (path), "%s.wad/%s.mip", list->wadnames[i], name);
+
+		if (FS_FileExists (path, false))
+			{
+			if (dst && size > 0)
+				Q_strncpy (dst, path, size);
+
+			return i;
+			}
+		}
+
+	return -1;
+	}
+
+// [FWGS, 01.05.23]
+static fs_offset_t Mod_CalculateMipTexSize (mip_t *mt, qboolean palette)
+	{
+	if (!mt)
+		return 0;
+
+	return sizeof (*mt) + ((mt->width * mt->height * 85) >> 6) +
+		(palette ? MIPTEX_CUSTOM_PALETTE_SIZE_BYTES : 0);
+	}
+
+// [FWGS, 01.05.23]
+static qboolean Mod_CalcMipTexUsesCustomPalette (dbspmodel_t *bmod, int textureIndex)
+	{
+	int nextTextureIndex = 0;
+	mip_t *mipTex;
+	fs_offset_t size, remainingBytes;
+
+	mipTex = Mod_GetMipTexForTexture (bmod, textureIndex);
+
+	if (!mipTex || (mipTex->offsets[0] <= 0))
+		return false;
+
+	// Calculate the size assuming we are not using a custom palette
+	size = Mod_CalculateMipTexSize (mipTex, false);
+
+	// Compute next data offset to determine allocated miptex space
+	for (nextTextureIndex = textureIndex + 1; nextTextureIndex < loadmodel->numtextures; nextTextureIndex++)
+		{
+		int nextOffset = bmod->textures->dataofs[nextTextureIndex];
+
+		if (nextOffset != -1)
+			{
+			remainingBytes = nextOffset - (bmod->textures->dataofs[textureIndex] + size);
+			return remainingBytes >= MIPTEX_CUSTOM_PALETTE_SIZE_BYTES;
+			}
+		}
+
+	// There was no other miptex after this one.
+	// See if there is enough space between the end and our offset
+	remainingBytes = bmod->texdatasize - (bmod->textures->dataofs[textureIndex] + size);
+	return remainingBytes >= MIPTEX_CUSTOM_PALETTE_SIZE_BYTES;
+	}
+
+// [FWGS, 01.05.23]
+static qboolean Mod_NameImpliesTextureIsAnimated (texture_t *tex)
+	{
+	if (!tex)
+		return false;
+
+	// Not an animated texture name
+	if ((tex->name[0] != '-') && (tex->name[0] != '+'))
+		return false;
+
+	// Name implies texture is animated - check second character is valid
+	if (!((tex->name[1] >= '0') && (tex->name[1] <= '9')) &&
+		!((tex->name[1] >= 'a') && (tex->name[1] <= 'j')))
+		{
+		Con_Printf (S_ERROR "Mod_NameImpliesTextureIsAnimated: animating texture \"%s\" has invalid name\n",
+			tex->name);
+		return false;
+		}
+
+	return true;
+	}
+
+// [FWGS, 01.05.23]
+static void Mod_CreateDefaultTexture (texture_t **texture)
+	{
+	texture_t *tex;
+
+	// Pointer must be valid, and value pointed to must be null
+	if (!texture || (*texture != NULL))
+		return;
+
+	*texture = tex = Mem_Calloc (loadmodel->mempool, sizeof (*tex));
+	Q_strncpy (tex->name, REF_DEFAULT_TEXTURE, sizeof (tex->name));
+
+#if !XASH_DEDICATED
+	if (!Host_IsDedicated ())
+		{
+		tex->gl_texturenum = R_GetBuiltinTexture (REF_DEFAULT_TEXTURE);
+		tex->width = 16;
+		tex->height = 16;
+		}
+#endif
+	}
+
+/*
+===============================================================================
+MAP PROCESSING
 ===============================================================================
 */
 /*
@@ -317,7 +443,8 @@ static void Mod_LoadLump (const byte *in, mlumpinfo_t *info, mlumpstat_t *stat, 
 	if (l->filelen % real_entrysize)
 		{
 		if (!FBitSet (flags, LUMP_SILENT))
-			Con_DPrintf (S_ERROR "Mod_Load%s: Lump size %d was not a multiple of %lu bytes\n", msg2, l->filelen, real_entrysize);
+			Con_DPrintf (S_ERROR "Mod_Load%s: Lump size %d was not a multiple of %zu bytes\n", msg2,
+				l->filelen, real_entrysize);	// [FWGS, 01.05.23]
 		loadstat.numerrors++;
 		return;
 		}
@@ -761,11 +888,10 @@ qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf)
 
 /*
 ==================
-Mod_AmbientLevels
+Mod_AmbientLevels [FWGS, 01.05.23]
 
 grab the ambient sound levels for current point
 ==================
-*/
 void Mod_AmbientLevels (const vec3_t p, byte *pvolumes)
 	{
 	mleaf_t *leaf;
@@ -776,6 +902,7 @@ void Mod_AmbientLevels (const vec3_t p, byte *pvolumes)
 	leaf = Mod_PointInLeaf (p, worldmodel->nodes);
 	*(int *)pvolumes = *(int *)leaf->ambient_sound_level;
 	}
+*/
 
 /*
 =================
@@ -786,13 +913,15 @@ routine to detect bmodels with origin-brush
 */
 static void Mod_FindModelOrigin (const char *entities, const char *modelname, vec3_t origin)
 	{
-	char *pfile;
+	char	*pfile;
 	string	keyname;
 	char	token[2048];
 	qboolean	model_found;
 	qboolean	origin_found;
 
-	if (!entities || !modelname || !*modelname)
+	// [FWGS, 01.05.23]
+	/*if (!entities || !modelname || !*modelname)*/
+	if (!entities || !COM_CheckString (modelname))
 		return;
 
 	if (!origin || !VectorIsNull (origin))
@@ -1384,7 +1513,7 @@ static qboolean Mod_LoadColoredLighting (dbspmodel_t *bmod)
 	fs_offset_t	litdatasize;
 	byte *in;
 
-	COM_FileBase (loadmodel->name, modelname);
+	COM_FileBase (loadmodel->name, modelname, sizeof (modelname));	// [FWGS, 01.05.23]
 	Q_snprintf (path, sizeof (path), "maps/%s.lit", modelname);
 
 	// make sure what deluxemap is actual
@@ -1409,7 +1538,8 @@ static qboolean Mod_LoadColoredLighting (dbspmodel_t *bmod)
 
 	if (litdatasize != (bmod->lightdatasize * 3))
 		{
-		Con_Printf (S_ERROR "%s has mismatched size (%li should be %lu)\n", path, litdatasize, bmod->lightdatasize * 3);
+		Con_Printf (S_ERROR "%s has mismatched size (%llu should be %zu)\n", path, litdatasize,
+			bmod->lightdatasize * 3);
 		Mem_Free (in);
 		return false;
 		}
@@ -1439,7 +1569,7 @@ static void Mod_LoadDeluxemap (dbspmodel_t *bmod)
 	if (!FBitSet (host.features, ENGINE_LOAD_DELUXEDATA))
 		return;
 
-	COM_FileBase (loadmodel->name, modelname);
+	COM_FileBase (loadmodel->name, modelname, sizeof (modelname));	// [FWGS, 01.05.23]
 	Q_snprintf (path, sizeof (path), "maps/%s.dlit", modelname);
 
 	// make sure what deluxemap is actual
@@ -1453,7 +1583,7 @@ static void Mod_LoadDeluxemap (dbspmodel_t *bmod)
 
 	Assert (in != NULL);
 
-	if (*(uint *)in != IDDELUXEMAPHEADER || *((uint *)in + 1) != DELUXEMAP_VERSION)
+	if ((*(uint *)in != IDDELUXEMAPHEADER) || (*((uint *)in + 1) != DELUXEMAP_VERSION))
 		{
 		Mem_Free (in);
 		return;
@@ -1464,7 +1594,8 @@ static void Mod_LoadDeluxemap (dbspmodel_t *bmod)
 
 	if (deluxdatasize != bmod->lightdatasize)
 		{
-		Con_Reportf (S_ERROR "%s has mismatched size (%li should be %lu)\n", path, deluxdatasize, bmod->lightdatasize);
+		Con_Reportf (S_ERROR "%s has mismatched size (%llu should be %zu)\n", path, deluxdatasize,
+			bmod->lightdatasize);	// [FWGS, 01.05.23]
 		Mem_Free (in);
 		return;
 		}
@@ -1668,7 +1799,7 @@ static void Mod_LoadEntities (dbspmodel_t *bmod)
 
 		// world is check for entfile too
 		Q_strncpy (entfilename, loadmodel->name, sizeof (entfilename));
-		COM_ReplaceExtension (entfilename, ".ent");
+		COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));	// [FWGS, 01.05.23]
 
 		// make sure what entity patch is never than bsp
 		ft1 = FS_FileTime (loadmodel->name, false);
@@ -1731,13 +1862,13 @@ static void Mod_LoadEntities (dbspmodel_t *bmod)
 				wadstring[MAX_TOKEN - 2] = 0;
 
 				if (!Q_strchr (wadstring, ';'))
-					Q_strcat (wadstring, ";");
+					Q_strncat (wadstring, ";", sizeof (wadstring));	// [FWGS, 01.05.23]
 
 				// parse wad pathes
 				for (pszWadFile = strtok (wadstring, ";"); pszWadFile != NULL; pszWadFile = strtok (NULL, ";"))
 					{
 					COM_FixSlashes (pszWadFile);
-					COM_FileBase (pszWadFile, token);
+					COM_FileBase (pszWadFile, token, sizeof (token));	// [FWGS, 01.05.23]
 
 					// make sure what wad is really exist
 					if (FS_FileExists (va ("%s.wad", token), false))
@@ -1918,12 +2049,13 @@ static void Mod_LoadMarkSurfaces (dbspmodel_t *bmod)
 
 /*
 =================
-Mod_LoadTextures
+Mod_LoadTextureData [FWGS, 01.05.23]
 =================
 */
-static void Mod_LoadTextures (dbspmodel_t *bmod)
+static void Mod_LoadTextureData (dbspmodel_t *bmod, int textureIndex)
+/*static void Mod_LoadTextures (dbspmodel_t *bmod)*/
 	{
-	dmiptexlump_t *in;
+	/*dmiptexlump_t *in;
 	texture_t *tx, *tx2;
 	texture_t *anims[10];
 	texture_t *altanims[10];
@@ -1934,35 +2066,70 @@ static void Mod_LoadTextures (dbspmodel_t *bmod)
 	int 		i, j;
 
 	if (bmod->isworld)
-		{
+		{*/
 #if !XASH_DEDICATED
-		// release old sky layers first
+		/* release old sky layers first
 		if (!Host_IsDedicated ())
 			{
 			ref.dllFuncs.GL_FreeTexture (R_GetBuiltinTexture (REF_ALPHASKY_TEXTURE));
 			ref.dllFuncs.GL_FreeTexture (R_GetBuiltinTexture (REF_SOLIDSKY_TEXTURE));
 			}
 #endif
-		}
+		}*/
+	texture_t *texture = NULL;
+	mip_t *mipTex = NULL;
+	qboolean usesCustomPalette = false;
+	uint32_t txFlags = 0;
 
-	if (!bmod->texdatasize)
+	// Don't load texture data on dedicated server, as there is no renderer.
+	// FIXME: for ENGINE_IMPROVED_LINETRACE we need to load textures on server too
+	// but there is no facility for this yet
+	if (Host_IsDedicated ())
+		return;
+
+	texture = loadmodel->textures[textureIndex];
+	mipTex = Mod_GetMipTexForTexture (bmod, textureIndex);
+
+	/*if (!bmod->texdatasize)*/
+	if (FBitSet (host.features, ENGINE_IMPROVED_LINETRACE) && mipTex->name[0] == '{')
+		SetBits (txFlags, TF_KEEP_SOURCE); // Paranoia2 texture alpha-tracing
+
+	usesCustomPalette = Mod_CalcMipTexUsesCustomPalette (bmod, textureIndex);
+
+	// check for multi-layered sky texture (quake1 specific)
+	if (bmod->isworld && Q_strncmp (mipTex->name, "sky", 3) == 0 && (mipTex->width / mipTex->height) == 2)
 		{
-		// no textures
-		loadmodel->textures = NULL;
+		/* no textures
+		loadmodel->textures = NULL;*/
+		ref.dllFuncs.R_InitSkyClouds (mipTex, texture, usesCustomPalette); // load quake sky
+
+		if (R_GetBuiltinTexture (REF_SOLIDSKY_TEXTURE) && R_GetBuiltinTexture (REF_ALPHASKY_TEXTURE))
+			SetBits (world.flags, FWORLD_SKYSPHERE);
+
+		// No texture to load in this case, so just exit
 		return;
 		}
 
-	in = bmod->textures;
+	/*in = bmod->textures;
 	loadmodel->textures = (texture_t **)Mem_Calloc (loadmodel->mempool, in->nummiptex * sizeof (texture_t *));
-	loadmodel->numtextures = in->nummiptex;
+	loadmodel->numtextures = in->nummiptex;*/
 
-	for (i = 0; i < loadmodel->numtextures; i++)
+	// Texture loading order:
+	// 1. From WAD
+	// 2. Internal from map
+
+	// Try WAD texture (force while r_wadtextures is 1)
+	/*for (i = 0; i < loadmodel->numtextures; i++)*/
+	if ((r_wadtextures->value && bmod->wadlist.count > 0) || mipTex->offsets[0] <= 0)
 		{
-		int	txFlags = 0;
+		/*int	txFlags = 0;*/
+		char texpath[MAX_VA_STRING];
+		int wadIndex = Mod_FindTextureInWadList (&bmod->wadlist, mipTex->name, texpath, sizeof (texpath));
 
-		if (in->dataofs[i] == -1)
+		/*if (in->dataofs[i] == -1)*/
+		if (wadIndex >= 0)
 			{
-			// create default texture (some mods requires this)
+			/* create default texture (some mods requires this)
 			tx = Mem_Calloc (loadmodel->mempool, sizeof (*tx));
 			loadmodel->textures[i] = tx;
 
@@ -1974,204 +2141,365 @@ static void Mod_LoadTextures (dbspmodel_t *bmod)
 				tx->width = tx->height = 16;
 				}
 #endif
-			continue; // missed
+			continue; // missed*/
+			texture->gl_texturenum = ref.dllFuncs.GL_LoadTexture (texpath, NULL, 0, txFlags);
+			bmod->wadlist.wadusage[wadIndex]++;
 			}
+		}
 
-		mt = (mip_t *)((byte *)in + in->dataofs[i]);
+	/*mt = (mip_t *)((byte *)in + in->dataofs[i]);
 
-		if (!mt->name[0])
-			Q_snprintf (mt->name, sizeof (mt->name), "miptex_%i", i);
-		tx = Mem_Calloc (loadmodel->mempool, sizeof (*tx));
-		loadmodel->textures[i] = tx;
+	if (!mt->name[0])
+		Q_snprintf (mt->name, sizeof (mt->name), "miptex_%i", i);
+	tx = Mem_Calloc (loadmodel->mempool, sizeof (*tx));
+	loadmodel->textures[i] = tx;*/
 
-		// convert to lowercase
+	// WAD failed, so use internal texture (if present)
+	if (mipTex->offsets[0] > 0 && texture->gl_texturenum == 0)
+		{
+		char texName[64];
+		const size_t size = Mod_CalculateMipTexSize (mipTex, usesCustomPalette);
+
+		/* convert to lowercase
 		Q_strncpy (tx->name, mt->name, sizeof (tx->name));
 		Q_strnlwr (tx->name, tx->name, sizeof (tx->name));
-		custom_palette = false;
+		custom_palette = false;*/
+		Q_snprintf (texName, sizeof (texName), "#%s:%s.mip", loadstat.name, mipTex->name);
+		texture->gl_texturenum = ref.dllFuncs.GL_LoadTexture (texName, (byte *)mipTex, size, txFlags);
+		}
 
-		tx->width = mt->width;
-		tx->height = mt->height;
+	/*tx->width = mt->width;
+	tx->height = mt->height;*/
+	// If texture is completely missed:
+	if (texture->gl_texturenum == 0)
+		{
+		Con_DPrintf (S_ERROR "Unable to find %s.mip\n", mipTex->name);
+		texture->gl_texturenum = R_GetBuiltinTexture (REF_DEFAULT_TEXTURE);
+		}
 
-		if (FBitSet (host.features, ENGINE_IMPROVED_LINETRACE) && mt->name[0] == '{')
-			SetBits (txFlags, TF_KEEP_SOURCE); // Paranoia2 texture alpha-tracing
+	/*if (FBitSet (host.features, ENGINE_IMPROVED_LINETRACE) && mt->name[0] == '{')
+		SetBits (txFlags, TF_KEEP_SOURCE); // Paranoia2 texture alpha-tracing*/
 
-		if (mt->offsets[0] > 0)
+	// Check for luma texture
+	if (FBitSet (REF_GET_PARM (PARM_TEX_FLAGS, texture->gl_texturenum), TF_HAS_LUMA))
+		{
+		char texName[64];
+		Q_snprintf (texName, sizeof (texName), "#%s:%s_luma.mip", loadstat.name, mipTex->name);
+
+		if (mipTex->offsets[0] > 0)
 			{
-			int	size = (int)sizeof (mip_t) + ((mt->width * mt->height * 85) >> 6);
-			int	next_dataofs = 0, remaining;
+			/*int	size = (int)sizeof (mip_t) + ((mt->width * mt->height * 85) >> 6);
+			int	next_dataofs = 0, remaining;*/
+			const size_t size = Mod_CalculateMipTexSize (mipTex, usesCustomPalette);
+			texture->fb_texturenum = ref.dllFuncs.GL_LoadTexture (texName, (byte *)mipTex, size, TF_MAKELUMA);
+			}
+		else
+			{
+			char texpath[MAX_VA_STRING];
+			int wadIndex;
+			fs_offset_t srcSize = 0;
+			byte *src = NULL;
 
-			// compute next dataofset to determine allocated miptex space
-			for (j = i + 1; j < loadmodel->numtextures; j++)
+			// NOTE: We can't load the _luma texture from the WAD as normal because it
+			// doesn't exist there. The original texture is already loaded, but cannot be modified.
+			// Instead, load the original texture again and convert it to luma
+
+				   /* compute next dataofset to determine allocated miptex space
+				   for (j = i + 1; j < loadmodel->numtextures; j++)*/
+			wadIndex = Mod_FindTextureInWadList (&bmod->wadlist, texture->name, texpath, sizeof (texpath));
+			if (wadIndex >= 0)
 				{
-				next_dataofs = in->dataofs[j];
-				if (next_dataofs != -1) break;
+				/*next_dataofs = in->dataofs[j];
+				if (next_dataofs != -1) break;*/
+				src = FS_LoadFile (texpath, &srcSize, false);
+				bmod->wadlist.wadusage[wadIndex]++;
 				}
 
-			if (j == loadmodel->numtextures)
-				next_dataofs = bmod->texdatasize;
+			/*if (j == loadmodel->numtextures)
+				next_dataofs = bmod->texdatasize;*/
 
-			// NOTE: imagelib detect miptex version by size
+				// OK, loading it from wad or hi-res version
+			texture->fb_texturenum = ref.dllFuncs.GL_LoadTexture (texName, src, srcSize, TF_MAKELUMA);
+
+			/* NOTE: imagelib detect miptex version by size
 			// 770 additional bytes is indicated custom palette
 			remaining = next_dataofs - (in->dataofs[i] + size);
-			if (remaining >= 770) custom_palette = true;
+			if (remaining >= 770) custom_palette = true;*/
+			if (src)
+				Mem_Free (src);
 			}
+		}
+#endif
+	}
 
-#if !XASH_DEDICATED
+/*#if !XASH_DEDICATED
 		if (!Host_IsDedicated ())
 			{
 			// check for multi-layered sky texture (quake1 specific)
 			if (bmod->isworld && !Q_strncmp (mt->name, "sky", 3) && ((mt->width / mt->height) == 2))
 				{
-				ref.dllFuncs.R_InitSkyClouds (mt, tx, custom_palette); // load quake sky
+				ref.dllFuncs.R_InitSkyClouds (mt, tx, custom_palette); // load quake sky*/
 
-				if (R_GetBuiltinTexture (REF_SOLIDSKY_TEXTURE) &&
+// [FWGS, 01.05.23]
+static void Mod_LoadTexture (dbspmodel_t *bmod, int textureIndex)
+	{
+	texture_t *texture;
+	mip_t *mipTex;
+
+	/*if (R_GetBuiltinTexture (REF_SOLIDSKY_TEXTURE) &&
 					R_GetBuiltinTexture (REF_ALPHASKY_TEXTURE))
 					SetBits (world.flags, FWORLD_SKYSPHERE);
 				continue;
-				}
+				}*/
+	if ((textureIndex < 0) || (textureIndex >= loadmodel->numtextures))
+		return;
 
-			// texture loading order:
-			// 1. from wad
-			// 2. internal from map
+	/* texture loading order:
+	1. from wad
+	2. internal from map*/
 
-			// trying wad texture (force while r_wadtextures is 1)
+	mipTex = Mod_GetMipTexForTexture (bmod, textureIndex);
+
+	/* trying wad texture (force while r_wadtextures is 1)
 			if ((r_wadtextures->value && (bmod->wadlist.count > 0)) || (mt->offsets[0] <= 0))
 				{
-				Q_snprintf (texname, sizeof (texname), "%s.mip", mt->name);
+				Q_snprintf (texname, sizeof (texname), "%s.mip", mt->name);*/
 
-				// check wads in reverse order
+	if (!mipTex)
+		{
+		// No data for this texture.
+		// Create default texture (some mods require this)
+		Mod_CreateDefaultTexture (&loadmodel->textures[textureIndex]);
+		return;
+		}
+
+	/* check wads in reverse order
 				for (j = bmod->wadlist.count - 1; j >= 0; j--)
 					{
-					// [FWGS, 01.04.23]
-					/*char *texpath = va ("%s.wad/%s", bmod->wadlist.wadnames[j], texname);*/
-					char texpath[MAX_VA_STRING];
+					char texpath[MAX_VA_STRING];*/
+	if (mipTex->name[0] == '\0')
+		Q_snprintf (mipTex->name, sizeof (mipTex->name), "miptex_%i", textureIndex);
 
-					Q_snprintf (texpath, sizeof (texpath), "%s.wad/%s", bmod->wadlist.wadnames[j], texname);
+	/*Q_snprintf (texpath, sizeof (texpath), "%s.wad/%s", bmod->wadlist.wadnames[j], texname);*/
 
-					if (FS_FileExists (texpath, false))
+	texture = (texture_t *)Mem_Calloc (loadmodel->mempool, sizeof (*texture));
+	loadmodel->textures[textureIndex] = texture;
+
+	/*if (FS_FileExists (texpath, false))
 						{
 						tx->gl_texturenum = ref.dllFuncs.GL_LoadTexture (texpath, NULL, 0, txFlags);
 						bmod->wadlist.wadusage[j]++; // this wad are really used
 						break;
 						}
 					}
-				}
+				}*/
+				// Ensure texture name is lowercase
+	Q_strnlwr (mipTex->name, texture->name, sizeof (texture->name));
 
-			// wad failed, so use internal texture (if present)
+	/* wad failed, so use internal texture (if present)
 			if (mt->offsets[0] > 0 && !tx->gl_texturenum)
 				{
 				// NOTE: imagelib detect miptex version by size
 				// 770 additional bytes is indicated custom palette
-				int	size = (int)sizeof (mip_t) + ((mt->width * mt->height * 85) >> 6);
+				int	size = (int)sizeof (mip_t) + ((mt->width * mt->height * 85) >> 6);*/
+	texture->width = mipTex->width;
+	texture->height = mipTex->height;
 
-				if (custom_palette) size += sizeof (short) + 768;
-				Q_snprintf (texname, sizeof (texname), "#%s:%s.mip", loadstat.name, mt->name);
-				tx->gl_texturenum = ref.dllFuncs.GL_LoadTexture (texname, (byte *)mt, size, txFlags);
-				}
+	/*if (custom_palette) size += sizeof (short) + 768;
+	Q_snprintf (texname, sizeof (texname), "#%s:%s.mip", loadstat.name, mt->name);
+	tx->gl_texturenum = ref.dllFuncs.GL_LoadTexture (texname, (byte *)mt, size, txFlags);*/
+	Mod_LoadTextureData (bmod, textureIndex);
+	}
 
-			// if texture is completely missed
-			if (!tx->gl_texturenum)
-				{
-				Con_DPrintf (S_ERROR "unable to find %s.mip\n", mt->name);
-				tx->gl_texturenum = R_GetBuiltinTexture (REF_DEFAULT_TEXTURE);
-				}
+/* if texture is completely missed
+if (!tx->gl_texturenum)
+{
+Con_DPrintf (S_ERROR "unable to find %s.mip\n", mt->name);
+tx->gl_texturenum = R_GetBuiltinTexture (REF_DEFAULT_TEXTURE);
+}*/
 
-			// check for luma texture
+// [FWGS, 01.05.23]
+static void Mod_LoadAllTextures (dbspmodel_t *bmod)
+	{
+	int i;
+
+	for (i = 0; i < loadmodel->numtextures; i++)
+		Mod_LoadTexture (bmod, i);
+	}
+
+/* check for luma texture
 			if (FBitSet (REF_GET_PARM (PARM_TEX_FLAGS, tx->gl_texturenum), TF_HAS_LUMA))
 				{
-				Q_snprintf (texname, sizeof (texname), "#%s:%s_luma.mip", loadstat.name, mt->name);
-
-				if (mt->offsets[0] > 0)
+				Q_snprintf (texname, sizeof (texname), "#%s:%s_luma.mip", loadstat.name, mt->name);*/
+/*if (mt->offsets[0] > 0)
 					{
 					// NOTE: imagelib detect miptex version by size
 					// 770 additional bytes is indicated custom palette
-					int	size = (int)sizeof (mip_t) + ((mt->width * mt->height * 85) >> 6);
+					int	size = (int)sizeof (mip_t) + ((mt->width * mt->height * 85) >> 6);*/
 
-					if (custom_palette) size += sizeof (short) + 768;
+// [FWGS, 01.05.23]
+static void Mod_SequenceAnimatedTexture (int baseTextureIndex)
+	{
+	texture_t *anims[10];
+	texture_t *altanims[10];
+	texture_t *baseTexture;
+	int max = 0;
+	int altmax = 0;
+	int candidateIndex;
+
+	/*if (custom_palette) size += sizeof (short) + 768;
 					tx->fb_texturenum = ref.dllFuncs.GL_LoadTexture (texname, (byte *)mt, size, TF_MAKELUMA);
 					}
 				else
 					{
 					fs_offset_t srcSize = 0;
-					byte *src = NULL;
+					byte *src = NULL;*/
+	if ((baseTextureIndex < 0) || (baseTextureIndex >= loadmodel->numtextures))
+		return;
 
-					// NOTE: we can't loading it from wad as normal because _luma texture doesn't exist
-					// and not be loaded. But original texture is already loaded and can't be modified
-					// So load original texture manually and convert it to luma
+	/* NOTE: we can't loading it from wad as normal because _luma texture doesn't exist
+	and not be loaded. But original texture is already loaded and can't be modified
+	So load original texture manually and convert it to luma*/
+	baseTexture = loadmodel->textures[baseTextureIndex];
 
-					// check wads in reverse order
+	/* check wads in reverse order
 					for (j = bmod->wadlist.count - 1; j >= 0; j--)
 						{
-						// [FWGS, 01.04.23]
-						/*char *texpath = va ("%s.wad/%s.mip", bmod->wadlist.wadnames[j], tx->name);*/
-						char texpath[MAX_VA_STRING];
+						char texpath[MAX_VA_STRING];*/
+	if (!Mod_NameImpliesTextureIsAnimated (baseTexture))
+		return;
 
-						Q_snprintf (texpath, sizeof (texpath), "%s.wad/%s.mip", bmod->wadlist.wadnames[j], tx->name);
+	/*Q_snprintf (texpath, sizeof (texpath), "%s.wad/%s.mip", bmod->wadlist.wadnames[j], tx->name);*/
 
-						if (FS_FileExists (texpath, false))
+	// Already sequenced
+	if (baseTexture->anim_next)
+		return;
+
+	/*if (FS_FileExists (texpath, false))
 							{
 							src = FS_LoadFile (texpath, &srcSize, false);
 							bmod->wadlist.wadusage[j]++; // this wad are really used
 							break;
 							}
-						}
+						}*/
+						// find the number of frames in the animation
+	memset (anims, 0, sizeof (anims));
+	memset (altanims, 0, sizeof (altanims));
 
-					// okay, loading it from wad or hi-res version
+	/* okay, loading it from wad or hi-res version
 					tx->fb_texturenum = ref.dllFuncs.GL_LoadTexture (texname, src, srcSize, TF_MAKELUMA);
 					if (src) Mem_Free (src);
 					}
 				}
 			}
 #endif
+		}*/
+	if ((baseTexture->name[1] >= '0') && (baseTexture->name[1] <= '9'))
+		{
+		// This texture is a standard animation frame.
+		int frameIndex = (int)baseTexture->name[1] - (int)'0';
+
+		/* sequence the animations and detail textures
+		for (i = 0; i < loadmodel->numtextures; i++)*/
+		anims[frameIndex] = baseTexture;
+		max = frameIndex + 1;
+		}
+	else
+		{
+		/*tx = loadmodel->textures[i];*/
+		// This texture is an alternate animation frame
+		int frameIndex = (int)baseTexture->name[1] - (int)'a';
+
+		/*if (!tx || (tx->name[0] != '-' && tx->name[0] != '+'))
+			continue;*/
+		altanims[frameIndex] = baseTexture;
+		altmax = frameIndex + 1;
 		}
 
-	// sequence the animations and detail textures
-	for (i = 0; i < loadmodel->numtextures; i++)
+	/*if (tx->anim_next)
+	continue;	// already sequenced*/
+	// Now search the rest of the textures to find all other frames.
+	for (candidateIndex = baseTextureIndex + 1; candidateIndex < loadmodel->numtextures; candidateIndex++)
 		{
-		tx = loadmodel->textures[i];
+		texture_t *altTexture = loadmodel->textures[candidateIndex];
 
-		if (!tx || (tx->name[0] != '-' && tx->name[0] != '+'))
+		/* find the number of frames in the animation
+		memset (anims, 0, sizeof (anims));
+		memset (altanims, 0, sizeof (altanims));*/
+
+		if (!Mod_NameImpliesTextureIsAnimated (altTexture))
 			continue;
 
-		if (tx->anim_next)
-			continue;	// already sequenced
+		/*max = tx->name[1];
+		altmax = 0;*/
 
-		// find the number of frames in the animation
-		memset (anims, 0, sizeof (anims));
-		memset (altanims, 0, sizeof (altanims));
+		// This texture is animated, but is it part of the same group as
+		// the original texture we encountered? Check that the rest of
+		// the name matches the original (both will be valid for at least
+		// string index 2)
+		if (Q_strcmp (altTexture->name + 2, baseTexture->name + 2) != 0)
+			continue;
 
-		max = tx->name[1];
-		altmax = 0;
-
-		if (max >= '0' && max <= '9')
+		/*if (max >= '0' && max <= '9')*/
+		if ((altTexture->name[1] >= '0') && (altTexture->name[1] <= '9'))
 			{
-			max -= '0';
+			/*max -= '0';
 			altmax = 0;
 			anims[max] = tx;
-			max++;
+			max++;*/
+			// This texture is a standard frame.
+			int frameIndex = (int)altTexture->name[1] - (int)'0';
+			anims[frameIndex] = altTexture;
+			if (frameIndex >= max)
+				max = frameIndex + 1;
 			}
-		else if (max >= 'a' && max <= 'j')
+		else /*if (max >= 'a' && max <= 'j')*/
 			{
-			altmax = max - 'a';
+			/*altmax = max - 'a';
 			max = 0;
 			altanims[altmax] = tx;
-			altmax++;
+			altmax++;*/
+			// This texture is an alternate frame.
+			int frameIndex = (int)altTexture->name[1] - (int)'a';
+			altanims[frameIndex] = altTexture;
+			if (frameIndex >= altmax)
+				altmax = frameIndex + 1;
 			}
-		else Con_Printf (S_ERROR "Mod_LoadTextures: bad animating texture %s\n", tx->name);
+		/*else Con_Printf (S_ERROR "Mod_LoadTextures: bad animating texture %s\n", tx->name);*/
+		}
 
-		for (j = i + 1; j < loadmodel->numtextures; j++)
+	/*for (j = i + 1; j < loadmodel->numtextures; j++)*/
+
+	// Link all standard animated frames together
+	for (candidateIndex = 0; candidateIndex < max; candidateIndex++)
+		{
+		texture_t *tex = anims[candidateIndex];
+
+		if (!tex)
 			{
-			tx2 = loadmodel->textures[j];
+			/*tx2 = loadmodel->textures[j];*/
+			Con_Printf (S_ERROR "Mod_SequenceAnimatedTexture: missing frame %i of animated texture \"%s\"\n",
+				candidateIndex, baseTexture->name);
 
-			if (!tx2 || (tx2->name[0] != '-' && tx2->name[0] != '+'))
-				continue;
+			/*if (!tx2 || (tx2->name[0] != '-' && tx2->name[0] != '+'))
+				continue;*/
+			baseTexture->anim_total = 0;
+			break;
+			}
 
-			if (Q_strcmp (tx2->name + 2, tx->name + 2))
-				continue;
+		/*if (Q_strcmp (tx2->name + 2, tx->name + 2))
+			continue;*/
+		tex->anim_total = max * ANIM_CYCLE;
+		tex->anim_min = candidateIndex * ANIM_CYCLE;
+		tex->anim_max = (candidateIndex + 1) * ANIM_CYCLE;
+		tex->anim_next = anims[(candidateIndex + 1) % max];
 
-			num = tx2->name[1];
+		/*num = tx2->name[1];*/
+		if (altmax > 0)
+			tex->alternate_anims = altanims[0];
+		}
 
-			if (num >= '0' && num <= '9')
+	/*if (num >= '0' && num <= '9')
 				{
 				num -= '0';
 				anims[num] = tx2;
@@ -2186,45 +2514,103 @@ static void Mod_LoadTextures (dbspmodel_t *bmod)
 					altmax = num + 1;
 				}
 			else Con_Printf (S_ERROR "Mod_LoadTextures: bad animating texture %s\n", tx->name);
-			}
+			}*/
 
-		// link them all together
-		for (j = 0; j < max; j++)
+			// Link all alternate animated frames together
+	for (candidateIndex = 0; candidateIndex < altmax; candidateIndex++)
+		{
+		texture_t *tex = altanims[candidateIndex];
+
+		/* link them all together
+		for (j = 0; j < max; j++)*/
+		if (!tex)
 			{
-			tx2 = anims[j];
+			/*tx2 = anims[j];
 
 			if (!tx2)
 				{
 				Con_Printf (S_ERROR "Mod_LoadTextures: missing frame %i of %s\n", j, tx->name);
 				tx->anim_total = 0;
 				break;
-				}
+				}*/
+			Con_Printf (S_ERROR "Mod_SequenceAnimatedTexture: missing alternate frame %i of animated texture \"%s\"\n",
+				candidateIndex, baseTexture->name);
 
-			tx2->anim_total = max * ANIM_CYCLE;
+			/*tx2->anim_total = max * ANIM_CYCLE;
 			tx2->anim_min = j * ANIM_CYCLE;
 			tx2->anim_max = (j + 1) * ANIM_CYCLE;
 			tx2->anim_next = anims[(j + 1) % max];
-			if (altmax) tx2->alternate_anims = altanims[0];
+			if (altmax) tx2->alternate_anims = altanims[0];*/
+			baseTexture->anim_total = 0;
+			break;
 			}
 
-		for (j = 0; j < altmax; j++)
+		/*for (j = 0; j < altmax; j++)
 			{
-			tx2 = altanims[j];
+			tx2 = altanims[j];*/
+		tex->anim_total = altmax * ANIM_CYCLE;
+		tex->anim_min = candidateIndex * ANIM_CYCLE;
+		tex->anim_max = (candidateIndex + 1) * ANIM_CYCLE;
+		tex->anim_next = altanims[(candidateIndex + 1) % altmax];
 
-			if (!tx2)
-				{
-				Con_Printf (S_ERROR "Mod_LoadTextures: missing frame %i of %s\n", j, tx->name);
-				tx->anim_total = 0;
-				break;
-				}
+		/*if (!tx2)
+			{
+			Con_Printf (S_ERROR "Mod_LoadTextures: missing frame %i of %s\n", j, tx->name);
+			tx->anim_total = 0;
+			break;
+			}*/
+		if (max > 0)
+			tex->alternate_anims = anims[0];
+		}
+	}
 
-			tx2->anim_total = altmax * ANIM_CYCLE;
+/*tx2->anim_total = altmax * ANIM_CYCLE;
 			tx2->anim_min = j * ANIM_CYCLE;
 			tx2->anim_max = (j + 1) * ANIM_CYCLE;
 			tx2->anim_next = altanims[(j + 1) % altmax];
 			if (max) tx2->alternate_anims = anims[0];
-			}
+			}*/
+
+// [FWGS, 01.05.23]
+static void Mod_SequenceAllAnimatedTextures (void)
+	{
+	int i;
+
+	for (i = 0; i < loadmodel->numtextures; i++)
+		Mod_SequenceAnimatedTexture (i);
+	}
+	
+/*
+=================
+Mod_LoadTextures [FWGS, 01.05.23]
+=================
+*/
+static void Mod_LoadTextures (dbspmodel_t *bmod)
+	{
+	dmiptexlump_t *lump;
+
+#if !XASH_DEDICATED
+	// release old sky layers first
+	if (!Host_IsDedicated () && bmod->isworld)
+		{
+		ref.dllFuncs.GL_FreeTexture (R_GetBuiltinTexture (REF_ALPHASKY_TEXTURE));
+		ref.dllFuncs.GL_FreeTexture (R_GetBuiltinTexture (REF_SOLIDSKY_TEXTURE));
 		}
+#endif
+	lump = bmod->textures;
+
+	if ((bmod->texdatasize < 1) || !lump || (lump->nummiptex < 1))
+		{
+		// no textures
+		loadmodel->textures = NULL;
+		return;
+		}
+
+	loadmodel->textures = (texture_t **)Mem_Calloc (loadmodel->mempool, lump->nummiptex * sizeof (texture_t *));
+	loadmodel->numtextures = lump->nummiptex;
+
+	Mod_LoadAllTextures (bmod);
+	Mod_SequenceAllAnimatedTextures ();
 	}
 
 /*
@@ -2263,13 +2649,13 @@ static void Mod_LoadTexInfo (dbspmodel_t *bmod)
 				out->vecs[j][k] = in->vecs[j][k];
 
 		miptex = in->miptex;
-		if (miptex < 0 || miptex > loadmodel->numtextures)
+		if ((miptex < 0) || (miptex > loadmodel->numtextures))
 			miptex = 0; // this is possible?
 		out->texture = loadmodel->textures[miptex];
 		out->flags = in->flags;
 
 		// make sure what faceinfo is really exist
-		if (faceinfo != NULL && in->faceinfo != -1 && in->faceinfo < bmod->numfaceinfo)
+		if ((faceinfo != NULL) && (in->faceinfo != -1) && (in->faceinfo < bmod->numfaceinfo))
 			out->faceinfo = &faceinfo[in->faceinfo];
 		}
 	}
@@ -2293,9 +2679,10 @@ static void Mod_LoadSurfaces (dbspmodel_t *bmod)
 	loadmodel->numsurfaces = bmod->numsurfaces;
 
 	// predict samplecount based on bspversion
-	if (bmod->version == Q1BSP_VERSION || bmod->version == QBSP2_VERSION)
+	if ((bmod->version == Q1BSP_VERSION) || (bmod->version == QBSP2_VERSION))
 		bmod->lightmap_samples = 1;
-	else bmod->lightmap_samples = 3;
+	else
+		bmod->lightmap_samples = 3;
 
 	for (i = 0; i < bmod->numsurfaces; i++, out++, info++)
 		{
@@ -2327,7 +2714,7 @@ static void Mod_LoadSurfaces (dbspmodel_t *bmod)
 
 			if ((in->firstedge + in->numedges) > loadmodel->numsurfedges)
 				{
-				Con_Reportf (S_ERROR "bad surface %i from %lu\n", i, bmod->numsurfaces);
+				Con_Reportf (S_ERROR "bad surface %i from %zu\n", i, bmod->numsurfaces);	// [FWGS, 01.05.23]
 				continue;
 				}
 
@@ -2347,7 +2734,7 @@ static void Mod_LoadSurfaces (dbspmodel_t *bmod)
 		if (!Q_strncmp (tex->name, "sky", 3))
 			SetBits (out->flags, SURF_DRAWSKY);
 
-		if ((tex->name[0] == '*' && Q_stricmp (tex->name, "*default")) || tex->name[0] == '!')
+		if (((tex->name[0] == '*') && Q_stricmp (tex->name, REF_DEFAULT_TEXTURE)) || (tex->name[0] == '!'))
 			SetBits (out->flags, SURF_DRAWTURB);
 
 		if (!Host_IsQuakeCompatible ())
@@ -2408,7 +2795,7 @@ static void Mod_LoadSurfaces (dbspmodel_t *bmod)
 		}
 
 	// now we have enough data to trying determine samplecount per lightmap pixel
-	if (test_lightsize > 0 && prev_lightofs != -1 && next_lightofs != -1 && next_lightofs != 99999999)
+	if ((test_lightsize > 0) && (prev_lightofs != -1) && (next_lightofs != -1) && (next_lightofs != 99999999))
 		{
 		float	samples = (float)(next_lightofs - prev_lightofs) / (float)test_lightsize;
 
@@ -2418,13 +2805,17 @@ static void Mod_LoadSurfaces (dbspmodel_t *bmod)
 			samples = (float)(next_lightofs - prev_lightofs) / (float)test_lightsize;
 			}
 
-		if (samples == 1 || samples == 3)
+		if ((samples == 1) || (samples == 3))
 			{
 			bmod->lightmap_samples = (int)samples;
 			Con_Reportf ("lighting: %s\n", (bmod->lightmap_samples == 1) ? "monochrome" : "colored");
 			bmod->lightmap_samples = Q_max (bmod->lightmap_samples, 1); // avoid division by zero
 			}
-		else Con_DPrintf (S_WARN "lighting invalid samplecount: %g, defaulting to %i\n", samples, bmod->lightmap_samples);
+		else
+			{
+			Con_DPrintf (S_WARN "lighting invalid samplecount: %g, defaulting to %i\n", samples,
+				bmod->lightmap_samples);
+			}
 		}
 	}
 
@@ -2672,8 +3063,8 @@ static void Mod_LoadLightVecs (dbspmodel_t *bmod)
 	if (bmod->deluxdatasize != bmod->lightdatasize)
 		{
 		if (bmod->deluxdatasize > 0)
-			Con_Printf (S_ERROR "Mod_LoadLightVecs: has mismatched size (%lu should be %i)\n", 
-				bmod->deluxdatasize, bmod->lightdatasize);
+			Con_Printf (S_ERROR "Mod_LoadLightVecs: has mismatched size (%zu should be %zu)\n", 
+				bmod->deluxdatasize, bmod->lightdatasize);	// [FWGS, 01.05.23]
 		else
 			Mod_LoadDeluxemap (bmod); // old method
 		return;
@@ -2693,8 +3084,8 @@ static void Mod_LoadShadowmap (dbspmodel_t *bmod)
 	if (bmod->shadowdatasize != (bmod->lightdatasize / 3))
 		{
 		if (bmod->shadowdatasize > 0)
-			Con_Printf (S_ERROR "Mod_LoadShadowmap: has mismatched size (%i should be %lu)\n", 
-				bmod->shadowdatasize, bmod->lightdatasize / 3);
+			Con_Printf (S_ERROR "Mod_LoadShadowmap: has mismatched size (%zu should be %zu)\n", 
+				bmod->shadowdatasize, bmod->lightdatasize / 3);	// [FWGS, 01.05.23]
 		return;
 		}
 

@@ -77,6 +77,7 @@ static void pfnStudioEvent (const mstudioevent_t *event, const cl_entity_t *e)
 	clgame.dllFuncs.pfnStudioEvent (event, e);
 	}
 
+/* [FWGS, 01.05.23]
 static efrag_t *pfnGetEfragsFreeList (void)
 	{
 	return clgame.free_efrags;
@@ -86,15 +87,20 @@ static void pfnSetEfragsFreeList (efrag_t *list)
 	{
 	clgame.free_efrags = list;
 	}
+*/
 
 static model_t *pfnGetDefaultSprite (enum ref_defaultsprite_e spr)
 	{
 	switch (spr)
 		{
-		case REF_DOT_SPRITE: return cl_sprite_dot;
-		case REF_CHROME_SPRITE: return cl_sprite_shell;
-		default: Host_Error ("GetDefaultSprite: unknown sprite %d\n", spr);
+		case REF_DOT_SPRITE:
+			return cl_sprite_dot;
+		case REF_CHROME_SPRITE:
+			return cl_sprite_shell;
+		default:
+			Host_Error ("GetDefaultSprite: unknown sprite %d\n", spr);
 		}
+
 	return NULL;
 	}
 
@@ -102,11 +108,15 @@ static void *pfnMod_Extradata (int type, model_t *m)
 	{
 	switch (type)
 		{
-		case mod_alias: return Mod_AliasExtradata (m);
-		case mod_studio: return Mod_StudioExtradata (m);
+		case mod_alias:
+			return Mod_AliasExtradata (m);
+		case mod_studio:
+			return Mod_StudioExtradata (m);
 		case mod_sprite: // fallthrough
-		case mod_brush: return NULL;
-		default: Host_Error ("Mod_Extradata: unknown type %d\n", type);
+		case mod_brush:
+			return NULL;
+		default:
+			Host_Error ("Mod_Extradata: unknown type %d\n", type);
 		}
 	return NULL;
 	}
@@ -531,12 +541,11 @@ static void R_GetRendererName (char *dest, size_t size, const char *opt)
 			format = OS_LIB_PREFIX "ref_%s." OS_LIB_EXT;
 #endif
 		Q_snprintf (dest, size, format, opt);
-
 		}
 	else
 		{
 		// full path
-		Q_strcpy (dest, opt);
+		Q_strncpy (dest, opt, size);	// [FWGS, 01.05.23]
 		}
 	}
 
@@ -567,9 +576,9 @@ static void SetWidthAndHeightFromCommandLine (void)
 	Sys_GetIntFromCmdLine ("-width", &width);
 	Sys_GetIntFromCmdLine ("-height", &height);
 
-	if (width < 1 || height < 1)
+	if ((width < 1) || (height < 1))
 		{
-		// Not specified or invalid, so don't bother.
+		// Not specified or invalid, so don't bother
 		return;
 		}
 
@@ -580,24 +589,41 @@ static void SetFullscreenModeFromCommandLine (void)
 	{
 #if !XASH_MOBILE_PLATFORM
 	if (Sys_CheckParm ("-fullscreen"))
-		{
 		Cvar_Set ("fullscreen", "1");
-		}
 	else if (Sys_CheckParm ("-windowed"))
-		{
 		Cvar_Set ("fullscreen", "0");
-		}
 #endif
 	}
 
-void R_CollectRendererNames (void)
+// [FWGS, 01.05.23]
+static void R_CollectRendererNames (void)
 	{
-	const char *renderers[] = DEFAULT_RENDERERS;
+	/*const char *renderers[] = DEFAULT_RENDERERS;
 	int i, cur;
 
 	cur = 0;
-	for (i = 0; i < DEFAULT_RENDERERS_LEN; i++)
+	for (i = 0; i < DEFAULT_RENDERERS_LEN; i++)*/
+	// ordering is important!
+	static const char *shortNames[] =
 		{
+		#if XASH_REF_GL_ENABLED
+			"gl",
+		#endif
+		#if XASH_REF_NANOGL_ENABLED
+			"gles1",
+		#endif
+		#if XASH_REF_GLWES_ENABLED
+			"gles2",
+		#endif
+		#if XASH_REF_GL4ES_ENABLED
+			"gl4es",
+		#endif
+		#if XASH_REF_SOFT_ENABLED
+			"soft",
+		#endif
+		};
+
+		/*
 		string temp;
 		void *dll, *pfn;
 
@@ -632,13 +658,37 @@ void R_CollectRendererNames (void)
 
 			GetHumanReadableName (ref.readableNames[cur], sizeof (ref.readableNames[cur]));
 			}
+		*/
 
-		Con_Printf ("Found renderer %s: %s\n", ref.shortNames[cur], ref.readableNames[cur]);
+		/*Con_Printf ("Found renderer %s: %s\n", ref.shortNames[cur], ref.readableNames[cur]);*/
 
-		cur++;
+	// ordering is important here too!
+	static const char *readableNames[ARRAYSIZE (shortNames)] =
+		{
+		#if XASH_REF_GL_ENABLED
+			"OpenGL",
+		#endif
+		#if XASH_REF_NANOGL_ENABLED
+			"GLES1 (NanoGL)",
+		#endif
+		#if XASH_REF_GLWES_ENABLED
+			"GLES2 (gl-wes-v2)",
+		#endif
+		#if XASH_REF_GL4ES_ENABLED
+			"GL4ES",
+		#endif
+		#if XASH_REF_SOFT_ENABLED
+			"Software",
+		#endif
+		};
+
+		/*cur++;
 		COM_FreeLibrary (dll);
 		}
-	ref.numRenderers = cur;
+	ref.numRenderers = cur;*/
+	ref.numRenderers = ARRAYSIZE (shortNames);
+	ref.shortNames = shortNames;
+	ref.readableNames = readableNames;
 	}
 
 qboolean R_Init (void)
@@ -653,7 +703,9 @@ qboolean R_Init (void)
 	gl_msaa_samples = Cvar_Get ("gl_msaa_samples", "0", FCVAR_GLCONFIG, "samples number for multisample anti-aliasing");
 	gl_clear = Cvar_Get ("gl_clear", "0", FCVAR_ARCHIVE, "clearing screen after each frame");
 	r_showtree = Cvar_Get ("r_showtree", "0", FCVAR_ARCHIVE, "build the graph of visible BSP tree");
-	r_refdll = Cvar_Get ("r_refdll", "", FCVAR_RENDERINFO | FCVAR_VIDRESTART, "choose renderer implementation, if supported");
+	// [FWGS, 01.05.23]
+	r_refdll = Cvar_Get ("r_refdll", "", FCVAR_RENDERINFO /*| FCVAR_VIDRESTART*/,
+		"choose renderer implementation, if supported");
 
 	// cvars that are expected to exist
 	Cvar_Get ("r_speeds", "0", FCVAR_ARCHIVE, "shows renderer speeds");
@@ -688,24 +740,35 @@ qboolean R_Init (void)
 
 	R_CollectRendererNames ();
 
-	// Priority:
+	// [FWGS, 01.05.23] Priority:
 	// 1. Command line `-ref` argument.
 	// 2. `ref_dll` cvar.
 	// 3. Detected renderers in `DEFAULT_RENDERERS` order.
-	requested[0] = '\0';
+
+	/*requested[0] = '\0';
 	if (!Sys_GetParmFromCmdLine ("-ref", requested) && COM_CheckString (r_refdll->string))
 		// r_refdll is set to empty by default, so we can change hardcoded defaults just in case
-		Q_strncpy (requested, r_refdll->string, sizeof (requested));
+		Q_strncpy (requested, r_refdll->string, sizeof (requested));*/
+	requested[0] = 0;
 
-	if (requested[0])
+	/*if (requested[0])*/
+	if (!success && Sys_GetParmFromCmdLine ("-ref", requested))
 		success = R_LoadRenderer (requested);
+
+	// [FWGS, 01.05.23]
+	if (!success && COM_CheckString (r_refdll->string))
+		{
+		Q_strncpy (requested, r_refdll->string, sizeof (requested));
+		success = R_LoadRenderer (requested);
+		}
 
 	if (!success)
 		{
 		int i;
 
-		// cycle through renderers that we collected in CollectRendererNames
-		for (i = 0; i < ref.numRenderers; i++)
+		/* cycle through renderers that we collected in CollectRendererNames
+		for (i = 0; i < ref.numRenderers; i++)*/
+		for (i = 0; i < ref.numRenderers && !success; i++)
 			{
 			// skip renderer that was requested but failed to load
 			if (!Q_strcmp (requested, ref.shortNames[i]))
@@ -713,9 +776,9 @@ qboolean R_Init (void)
 
 			success = R_LoadRenderer (ref.shortNames[i]);
 
-			// yay, found working one
+			/* [FWGS, 01.05.23] yay, found working one
 			if (success)
-				break;
+				break;*/
 			}
 		}
 

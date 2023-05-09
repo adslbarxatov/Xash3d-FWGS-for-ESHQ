@@ -170,13 +170,12 @@ hull_t *SV_HullForBox (const vec3_t mins, const vec3_t maxs)
 	return &box_hull;
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ==================
 SV_HullAutoSelect
 
 select the apropriate hull automatically
 ==================
-*/
 hull_t *SV_HullAutoSelect (model_t *model, const vec3_t mins, const vec3_t maxs, const vec3_t size, vec3_t offset)
 	{
 	float	curdiff;
@@ -209,6 +208,7 @@ hull_t *SV_HullAutoSelect (model_t *model, const vec3_t mins, const vec3_t maxs,
 
 	return hull;
 	}
+	*/
 
 /*
 ==================

@@ -27,9 +27,12 @@ struct ref_state_s
 	HINSTANCE hInstance;
 	ref_interface_t dllFuncs;
 
+	// [FWGS, 01.05.23] depends on build configuration
 	int numRenderers;
-	string shortNames[DEFAULT_RENDERERS_LEN];
-	string readableNames[DEFAULT_RENDERERS_LEN];
+	/*string shortNames[DEFAULT_RENDERERS_LEN];
+	string readableNames[DEFAULT_RENDERERS_LEN];*/
+	const char **shortNames;
+	const char **readableNames;
 	};
 
 extern struct ref_state_s ref;

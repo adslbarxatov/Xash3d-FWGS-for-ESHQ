@@ -546,26 +546,27 @@ void GAME_EXPORT COM_AddAppDirectoryToSearchPath (const char *pszBaseDir, const 
 
 /*
 ===========
-COM_ExpandFilename
+COM_ExpandFilename [FWGS, 01.05.23]
 
 Finds the file in the search path, copies over the name with the full path name.
-This doesn't search in the pak file.
+This doesn't search in the pak file
 ===========
 */
 int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, int nameOutBufferSize)
 	{
-	const char *path;
-	char		result[MAX_SYSPATH];
+	/*const char *path;*/
+	char	result[MAX_SYSPATH];
 
-	if (!COM_CheckString (fileName) || !nameOutBuffer || nameOutBufferSize <= 0)
+	if (!COM_CheckString (fileName) || !nameOutBuffer || (nameOutBufferSize <= 0))
 		return 0;
 
 	// filename examples:
 	// media\sierra.avi - D:\Xash3D\valve\media\sierra.avi
 	// models\barney.mdl - D:\Xash3D\bshift\models\barney.mdl
-	if ((path = FS_GetDiskPath (fileName, false)) != NULL)
+	/*if ((path = FS_GetDiskPath (fileName, false)) != NULL)*/
+	if (g_fsapi.GetFullDiskPath (result, sizeof (result), fileName, false))
 		{
-		Q_sprintf (result, "%s/%s", host.rootdir, path);
+		/*Q_sprintf (result, "%s/%s", host.rootdir, path);*/
 
 		// check for enough room
 		if (Q_strlen (result) > nameOutBufferSize)
@@ -574,6 +575,7 @@ int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, i
 		Q_strncpy (nameOutBuffer, result, nameOutBufferSize);
 		return 1;
 		}
+
 	return 0;
 	}
 
@@ -1008,14 +1010,15 @@ float GAME_EXPORT pfnTime (void)
 
 /*
 =============
-pfnGetGameDir
-
+pfnGetGameDir [FWGS, 01.05.23]
 =============
 */
 void GAME_EXPORT pfnGetGameDir (char *szGetGameDir)
 	{
-	if (!szGetGameDir) return;
-	Q_strcpy (szGetGameDir, GI->gamefolder);
+	if (!szGetGameDir)
+		return;
+	/*Q_strcpy (szGetGameDir, GI->gamefolder);*/
+	Q_strncpy (szGetGameDir, GI->gamefolder, sizeof (GI->gamefolder));
 	}
 
 qboolean COM_IsSafeFileToDownload (const char *filename)
@@ -1062,27 +1065,56 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	return true;
 	}
 
+// [FWGS, 01.05.23]
+const char *COM_GetResourceTypeName (resourcetype_t restype)
+	{
+	switch (restype)
+		{
+		case t_decal:
+			return "decal";
+		case t_eventscript:
+			return "eventscript";
+		case t_generic:
+			return "generic";
+		case t_model:
+			return "model";
+		case t_skin:
+			return "skin";
+		case t_sound:
+			return "sound";
+		case t_world:
+			return "world";
+
+		default:
+			return "unknown";
+		}
+	}
+
+// [FWGS, 01.05.23]
 char *_copystring (poolhandle_t mempool, const char *s, const char *filename, int fileline)
 	{
+	size_t size;
 	char *b;
 
-	if (!s) return NULL;
-	if (!mempool) mempool = host.mempool;
+	if (!s)
+		return NULL;
+	if (!mempool)
+		mempool = host.mempool;
 
-	b = _Mem_Alloc (mempool, Q_strlen (s) + 1, false, filename, fileline);
-	Q_strcpy (b, s);
+	/*b = _Mem_Alloc (mempool, Q_strlen (s) + 1, false, filename, fileline);
+	Q_strcpy (b, s);*/
+	size = Q_strlen (s) + 1;
+	b = _Mem_Alloc (mempool, size, false, filename, fileline);
+	Q_strncpy (b, s, size);
 
 	return b;
 	}
 
 /*
 ======================
-
 COMMON EXPORT STUBS
-
 ======================
 */
-
 
 /*
 =============

@@ -494,10 +494,10 @@ qboolean GL_DeleteContext (void)
 
 /*
 =================
-GL_CreateContext
+GL_CreateContext [FWGS, 01.05.23]
 =================
 */
-qboolean GL_CreateContext (void)
+static qboolean GL_CreateContext (void)
 	{
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	if ((glw_state.context = SDL_GL_CreateContext (host.hWnd)) == NULL)
@@ -511,10 +511,10 @@ qboolean GL_CreateContext (void)
 
 /*
 =================
-GL_UpdateContext
+GL_UpdateContext [FWGS, 01.05.23]
 =================
 */
-qboolean GL_UpdateContext (void)
+static qboolean GL_UpdateContext (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	if (SDL_GL_MakeCurrent (host.hWnd, glw_state.context))
@@ -624,7 +624,7 @@ static void WIN_SetWindowIcon (HICON ico)
 
 	if (SDL_GetWindowWMInfo (host.hWnd, &wminfo))
 		{
-		SetClassLongPtr (wminfo.info.win.window, GCLP_HICON, (LONG)ico);
+		SetClassLongPtr (wminfo.info.win.window, GCLP_HICON, (LONG_PTR)ico);	// [FWGS, 01.05.23]
 		}
 	}
 #endif
@@ -742,9 +742,12 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 
 	if (!iconLoaded)
 		{
-		Q_strcpy (iconpath, GI->iconpath);
+		// [FWGS, 01.05.23]
+		/*Q_strcpy (iconpath, GI->iconpath);
 		COM_StripExtension (iconpath);
-		COM_DefaultExtension (iconpath, ".tga");
+		COM_DefaultExtension (iconpath, ".tga");*/
+		Q_strncpy (iconpath, GI->iconpath, sizeof (iconpath));
+		COM_ReplaceExtension (iconpath, ".tga", sizeof (iconpath));
 
 		icon = FS_LoadImage (iconpath, NULL, 0);
 

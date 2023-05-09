@@ -18,7 +18,8 @@ GNU General Public License for more details.
 
 #include "eiface.h"
 
-#define DT_BYTE		BIT( 0 )	// A byte
+// [FWGS, 01.05.23]
+/*#define DT_BYTE		BIT( 0 )	// A byte
 #define DT_SHORT		BIT( 1 ) 	// 2 byte field
 #define DT_FLOAT		BIT( 2 )	// A floating point field
 #define DT_INTEGER		BIT( 3 )	// 4 byte integer
@@ -36,7 +37,7 @@ GNU General Public License for more details.
 #define EVNT_DEF( x )	#x, offsetof( event_args_t, x ), sizeof( ((event_args_t *)0)->x )
 #define PHYS_DEF( x )	#x, offsetof( movevars_t, x ), sizeof( ((movevars_t *)0)->x )
 #define CLDT_DEF( x )	#x, offsetof( clientdata_t, x ), sizeof( ((clientdata_t *)0)->x )
-#define WPDT_DEF( x )	#x, offsetof( weapon_data_t, x ), sizeof( ((weapon_data_t *)0)->x )
+#define WPDT_DEF( x )	#x, offsetof( weapon_data_t, x ), sizeof( ((weapon_data_t *)0)->x )*/
 
 enum
 	{
@@ -64,14 +65,14 @@ typedef struct
 // one field
 struct delta_s
 	{
-	const char *name;
-	int		offset;		// in bytes
-	int		size;		// used for bounds checking in DT_STRING
-	int		flags;		// DT_INTEGER, DT_FLOAT etc
+	const char	*name;
+	int			offset;		// in bytes
+	int			size;		// used for bounds checking in DT_STRING
+	int			flags;		// DT_INTEGER, DT_FLOAT etc
 	float		multiplier;
 	float		post_multiplier;	// for DEFINE_DELTA_POST
-	int		bits;		// how many bits we send\receive
-	qboolean		bInactive;	// unsetted by user request
+	int			bits;		// how many bits we send\receive
+	qboolean	bInactive;	// unsetted by user request
 	};
 
 typedef void (*pfnDeltaEncode)(struct delta_s *pFields, const byte *from, const byte *to);
@@ -97,7 +98,7 @@ typedef struct
 void Delta_Init (void);
 void Delta_InitClient (void);
 void Delta_Shutdown (void);
-void Delta_InitFields (void);
+/*void Delta_InitFields (void);*/	// [FWGS, 01.05.23]
 int Delta_NumTables (void);
 delta_info_t *Delta_FindStructByIndex (int index);
 void Delta_AddEncoder (char *name, pfnDeltaEncode encodeFunc);

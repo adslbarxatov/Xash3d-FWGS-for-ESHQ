@@ -94,9 +94,7 @@ void Mod_InitStudioHull (void)
 
 /*
 ===============================================================================
-
-	STUDIO MODELS CACHE
-
+STUDIO MODELS CACHE
 ===============================================================================
 */
 /*
@@ -197,9 +195,7 @@ static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int se
 
 /*
 ===============================================================================
-
-	STUDIO MODELS TRACING
-
+STUDIO MODELS TRACING
 ===============================================================================
 */
 /*
@@ -251,7 +247,8 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 
 		if (bonecache != NULL)
 			{
-			memcpy (studio_planes, &cache_planes[bonecache->current_plane], bonecache->numhitboxes * sizeof (mplane_t) * 6);
+			memcpy (studio_planes, &cache_planes[bonecache->current_plane], bonecache->numhitboxes *
+				sizeof (mplane_t) * 6);
 			memcpy (studio_hull_hitgroup, &cache_hull_hitgroup[bonecache->current_hull], bonecache->numhitboxes *
 				sizeof (uint));
 			memcpy (studio_hull, &cache_hull[bonecache->current_hull], bonecache->numhitboxes * sizeof (hull_t));
@@ -302,9 +299,7 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 
 /*
 ===============================================================================
-
-	STUDIO MODELS SETUP BONES
-
+STUDIO MODELS SETUP BONES
 ===============================================================================
 */
 /*
@@ -628,7 +623,7 @@ void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstud
 		{
 		string	filepath, modelname, modelpath;
 
-		COM_FileBase (m_pSubModel->name, modelname);
+		COM_FileBase (m_pSubModel->name, modelname, sizeof (modelname));	// [FWGS, 01.05.23]
 		COM_ExtractFilePath (m_pSubModel->name, modelpath);
 
 		// NOTE: here we build real sub-animation filename because stupid user may rename model without recompile

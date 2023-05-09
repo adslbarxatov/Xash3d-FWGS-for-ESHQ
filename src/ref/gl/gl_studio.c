@@ -622,15 +622,13 @@ void R_StudioSetUpTransform (cl_entity_t *e)
 
 /*
 ====================
-StudioEstimateFrame
-
+StudioEstimateFrame [FWGS, 01.05.23]
 ====================
 */
-float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc)
+float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc, double time)
 	{
 	double	dfdt, f;
 
-	// [FWGS, 01.04.23]
 	if (g_studio.interpolate)
 		{
 		/*if (g_studio.time < e->curstate.animtime) 
@@ -641,10 +639,14 @@ float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc)
 	else
 		{
 		dfdt = 0;*/
-		if (g_studio.time < e->curstate.animtime)
+		/*if (g_studio.time < e->curstate.animtime)
 			dfdt = 0.0;
 		else
-			dfdt = (g_studio.time - e->curstate.animtime) * e->curstate.framerate * pseqdesc->fps;
+			dfdt = (g_studio.time - e->curstate.animtime) * e->curstate.framerate * pseqdesc->fps;*/
+		if (time < e->curstate.animtime)
+			dfdt = 0.0;
+		else
+			dfdt = (time - e->curstate.animtime) * e->curstate.framerate * pseqdesc->fps;
 		}
 	else
 		{
@@ -694,12 +696,10 @@ float R_StudioEstimateInterpolant (cl_entity_t *e)
 	return dadt;
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ====================
 CL_GetSequenceDuration
-
 ====================
-*/
 float CL_GetSequenceDuration (cl_entity_t *ent, int sequence)
 	{
 	studiohdr_t *pstudiohdr;
@@ -721,12 +721,11 @@ float CL_GetSequenceDuration (cl_entity_t *ent, int sequence)
 
 	return 0.1f;
 	}
-
+	*/
 
 /*
 ====================
 StudioFxTransform
-
 ====================
 */
 void R_StudioFxTransform (cl_entity_t *ent, matrix3x4 transform)
@@ -890,7 +889,6 @@ void R_StudioCalcRotations (cl_entity_t *e, float pos[][3], vec4_t *q, mstudiose
 /*
 ====================
 StudioMergeBones
-
 ====================
 */
 void R_StudioMergeBones (cl_entity_t *e, model_t *m_pSubModel)
@@ -909,7 +907,7 @@ void R_StudioMergeBones (cl_entity_t *e, model_t *m_pSubModel)
 
 	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + e->curstate.sequence;
 
-	f = R_StudioEstimateFrame (e, pseqdesc);
+	f = R_StudioEstimateFrame (e, pseqdesc, g_studio.time);	// [FWGS, 01.05.23]
 
 	panim = gEngfuncs.R_StudioGetAnim (m_pStudioHeader, m_pSubModel, pseqdesc);
 	R_StudioCalcRotations (e, pos, q, pseqdesc, panim, f);
@@ -952,7 +950,6 @@ void R_StudioMergeBones (cl_entity_t *e, model_t *m_pSubModel)
 /*
 ====================
 StudioSetupBones
-
 ====================
 */
 void R_StudioSetupBones (cl_entity_t *e)
@@ -977,7 +974,7 @@ void R_StudioSetupBones (cl_entity_t *e)
 
 	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + e->curstate.sequence;
 
-	f = R_StudioEstimateFrame (e, pseqdesc);
+	f = R_StudioEstimateFrame (e, pseqdesc, g_studio.time);	// [FWGS, 01.05.23]
 
 	panim = gEngfuncs.R_StudioGetAnim (m_pStudioHeader, RI.currentmodel, pseqdesc);
 	R_StudioCalcRotations (e, pos, q, pseqdesc, panim, f);
@@ -1748,50 +1745,75 @@ void R_StudioLighting (float *lv, int bone, int flags, vec3_t normal)
 
 /*
 ====================
-R_LightLambert
+R_LightLambert [FWGS, 01.05.23]
 ====================
 */
-void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], vec3_t normal, vec3_t color, byte *out)
+static void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], const vec3_t normal, const vec3_t color, byte *out)
 	{
 	vec3_t	finalLight;
-	vec3_t	localLight;
+	/*vec3_t	localLight;*/
 	int	i;
+
+	if (!g_studio.numlocallights)
+		{
+		VectorScale (color, 255.0f, out);
+		return;
+		}
 
 	VectorCopy (color, finalLight);
 
 	for (i = 0; i < g_studio.numlocallights; i++)
 		{
-		float	r, r2;
+		float r;
 
-		if (tr.fFlipViewModel)
+		/*if (tr.fFlipViewModel)
 			r = DotProduct (normal, light[i]);
-		else r = -DotProduct (normal, light[i]);
+		else
+			r = -DotProduct (normal, light[i]);*/
+		r = DotProduct (normal, light[i]);
+		if (likely (!tr.fFlipViewModel))
+			r = -r;
 
 		if (r > 0.0f)
 			{
+			vec3_t localLight;
+			float temp;
+
 			if (light[i][3] == 0.0f)
 				{
-				r2 = DotProduct (light[i], light[i]);
+				float r2 = DotProduct (light[i], light[i]);
 
 				if (r2 > 0.0f)
 					light[i][3] = g_studio.locallightR2[i] / (r2 * sqrt (r2));
-				else light[i][3] = 0.0001f;
+				else
+					light[i][3] = 0.0001f;
 				}
 
-			localLight[0] = Q_min (g_studio.locallightcolor[i].r * r * light[i][3], 255.0f);
+			/*localLight[0] = Q_min (g_studio.locallightcolor[i].r * r * light[i][3], 255.0f);
 			localLight[1] = Q_min (g_studio.locallightcolor[i].g * r * light[i][3], 255.0f);
 			localLight[2] = Q_min (g_studio.locallightcolor[i].b * r * light[i][3], 255.0f);
-			VectorScale (localLight, (1.0f / 255.0f), localLight);
+			VectorScale (localLight, (1.0f / 255.0f), localLight);*/
+			temp = Q_min (r * light[i][3] / 255.0f, 1.0f);
 
-			finalLight[0] = Q_min (finalLight[0] + localLight[0], 1.0f);
+			localLight[0] = (float)g_studio.locallightcolor[i].r * temp;
+			localLight[1] = (float)g_studio.locallightcolor[i].g * temp;
+			localLight[2] = (float)g_studio.locallightcolor[i].b * temp;
+
+			/*finalLight[0] = Q_min (finalLight[0] + localLight[0], 1.0f);
 			finalLight[1] = Q_min (finalLight[1] + localLight[1], 1.0f);
-			finalLight[2] = Q_min (finalLight[2] + localLight[2], 1.0f);
+			finalLight[2] = Q_min (finalLight[2] + localLight[2], 1.0f);*/
+			VectorAdd (finalLight, localLight, finalLight);
 			}
 		}
 
-	out[0] = finalLight[0] * 255;
+	/*out[0] = finalLight[0] * 255;
 	out[1] = finalLight[1] * 255;
-	out[2] = finalLight[2] * 255;
+	out[2] = finalLight[2] * 255;*/
+	VectorScale (finalLight, 255.0f, finalLight);
+
+	out[0] = Q_min ((int)(finalLight[0]), 255);
+	out[1] = Q_min ((int)(finalLight[1]), 255);
+	out[2] = Q_min ((int)(finalLight[2]), 255);
 	}
 
 // [FWGS, 01.04.23]
@@ -2869,7 +2891,7 @@ static void R_StudioClientEvents (void)
 	if (pseqdesc->numevents == 0)
 		return;
 
-	end = R_StudioEstimateFrame (e, pseqdesc);
+	end = R_StudioEstimateFrame (e, pseqdesc, g_studio.time);	// [FWGS, 01.05.23]
 	start = end - e->curstate.framerate * gpGlobals->frametime * pseqdesc->fps;
 	pevent = (mstudioevent_t *)((byte *)m_pStudioHeader + pseqdesc->eventindex);
 
@@ -3857,7 +3879,7 @@ static void R_StudioLoadTexture (model_t *mod, studiohdr_t *phdr, mstudiotexture
 		}
 
 	Q_strncpy (mdlname, mod->name, sizeof (mdlname));
-	COM_FileBase (ptexture->name, name);
+	COM_FileBase (ptexture->name, name, sizeof (name));	// [FWGS, 01.05.23]
 	COM_StripExtension (mdlname);
 
 	if (FBitSet (ptexture->flags, STUDIO_NF_NOMIPS))
@@ -3868,7 +3890,8 @@ static void R_StudioLoadTexture (model_t *mod, studiohdr_t *phdr, mstudiotexture
 	gEngfuncs.Image_SetMDLPointer ((byte *)phdr + ptexture->index);
 	size = sizeof (mstudiotexture_t) + ptexture->width * ptexture->height + 768;
 
-	if (FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_IMPROVED_LINETRACE) && FBitSet (ptexture->flags, STUDIO_NF_MASKED))
+	if (FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_IMPROVED_LINETRACE) &&
+		FBitSet (ptexture->flags, STUDIO_NF_MASKED))
 		flags |= TF_KEEP_SOURCE; // Paranoia2 texture alpha-tracing
 
 	// build the texname

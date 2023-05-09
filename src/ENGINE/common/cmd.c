@@ -1167,17 +1167,24 @@ void Cmd_ForwardToServer (void)
 	str[0] = 0;
 	if (Q_stricmp (Cmd_Argv (0), "cmd"))
 		{
-		Q_strcat (str, Cmd_Argv (0));
-		Q_strcat (str, " ");
+		/*Q_strcat (str, Cmd_Argv (0));
+		Q_strcat (str, " ");*/
+		Q_strncat (str, Cmd_Argv (0), sizeof (str));	// [FWGS, 01.05.23]
+		Q_strncat (str, " ", sizeof (str));
 		}
 
+	// [FWGS, 01.05.23]
 	if (Cmd_Argc () > 1)
-		Q_strcat (str, Cmd_Args ());
-	else Q_strcat (str, "\n");
+		Q_strncat (str, Cmd_Args (), sizeof (str));
+	else
+		Q_strncat (str, "\n", sizeof (str));
+		/*Q_strcat (str, Cmd_Args ());
+	else Q_strcat (str, "\n");*/
 
 	MSG_WriteString (&cls.netchan.message, str);
 	}
-#endif // XASH_DEDICATED
+
+#endif
 
 /*
 ============

@@ -76,7 +76,8 @@ in hardware mode does nothing
 */
 void GAME_EXPORT R_GetPackedColor (short *packed, short color)
 	{
-	if (packed) *packed = 0;
+	if (packed)
+		*packed = 0;
 	}
 
 /*
@@ -140,13 +141,12 @@ void CL_FreeParticles (void)
 	cl_particles = NULL;
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ================
 CL_FreeParticle
 
 move particle to freelist
 ================
-*/
 void CL_FreeParticle (particle_t *p)
 	{
 	if (p->deathfunc)
@@ -159,6 +159,7 @@ void CL_FreeParticle (particle_t *p)
 	p->next = cl_free_particles;
 	cl_free_particles = p;
 	}
+*/
 
 /*
 ================

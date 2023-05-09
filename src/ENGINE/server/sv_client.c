@@ -475,8 +475,10 @@ void SV_ConnectClient (netadr_t from)
 	Log_Printf ("\"%s<%i><%i><>\" connected, address \"%s\"\n", newcl->name, newcl->userid, i, 
 		NET_AdrToString (newcl->netchan.remote_address));
 
+	// [FWGS, 01.05.23]
 	if ((count == 1) || (count == svs.maxclients))
-		svs.last_heartbeat = MAX_HEARTBEAT;
+		NET_MasterClear ();
+		/*svs.last_heartbeat = MAX_HEARTBEAT;*/
 	}
 
 /*
@@ -542,8 +544,10 @@ edict_t *SV_FakeConnect (const char *netname)
 	cl->connection_started = host.realtime;
 	cl->state = cs_spawned;
 
-	if (count == 1 || count == svs.maxclients)
-		svs.last_heartbeat = MAX_HEARTBEAT;
+	// [FWGS, 01.05.23]
+	if ((count == 1) || (count == svs.maxclients))
+		NET_MasterClear ();
+		/*svs.last_heartbeat = MAX_HEARTBEAT;*/
 
 	return cl->edict;
 	}
@@ -572,7 +576,7 @@ void SV_DropClient (sv_client_t *cl, qboolean crash)
 			MSG_BeginServerCmd (&cl->netchan.message, svc_disconnect);
 			}
 
-		if (cl->edict && cl->state == cs_spawned)
+		if (cl->edict && (cl->state == cs_spawned))
 			{
 			svgame.dllFuncs.pfnClientDisconnect (cl->edict);
 			}
@@ -619,15 +623,15 @@ void SV_DropClient (sv_client_t *cl, qboolean crash)
 			break;
 		}
 
+	// [FWGS, 01.05.23]
 	if (i == svs.maxclients)
-		svs.last_heartbeat = MAX_HEARTBEAT;
+		NET_MasterClear ();
+		/*svs.last_heartbeat = MAX_HEARTBEAT;*/
 	}
 
 /*
 ==============================================================================
-
 SVC COMMAND REDIRECT
-
 ==============================================================================
 */
 void SV_BeginRedirect (netadr_t adr, rdtype_t target, char *buffer, size_t buffersize, void (*flush))
@@ -1073,10 +1077,14 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 	if (Rcon_Validate ())
 		{
 		remaining[0] = 0;
+
+		// [FWGS, 01.05.23]
 		for (i = 2; i < Cmd_Argc (); i++)
 			{
-			Q_strcat (remaining, Cmd_Argv (i));
-			Q_strcat (remaining, " ");
+			/*Q_strcat (remaining, Cmd_Argv (i));
+			Q_strcat (remaining, " ");*/
+			Q_strncat (remaining, Cmd_Argv (i), sizeof (remaining));
+			Q_strncat (remaining, " ", sizeof (remaining));
 			}
 		Cmd_ExecuteString (remaining);
 		}
@@ -3222,12 +3230,13 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	else if (!Q_strcmp (pcmd, "i"))
 		NET_SendPacket (NS_SERVER, 5, "\xFF\xFF\xFF\xFFj", from); // A2A_PING
 	
-	// [FWGS, 01.04.23]
+	// [FWGS, 01.05.23]
 	/*else if (!Q_strcmp (pcmd, "c"))
 		{
 		qboolean sv_nat = Cvar_VariableInteger ("sv_nat");
-		if (sv_nat)*/
-	else if (!Q_strcmp (pcmd, "c") && Cvar_VariableInteger ("sv_nat") && NET_IsMasterAdr (from))
+		if (sv_nat)
+	else if (!Q_strcmp (pcmd, "c") && Cvar_VariableInteger ("sv_nat") && NET_IsMasterAdr (from))*/
+	else if (!Q_strcmp (pcmd, "c") && sv_nat.value && NET_IsMasterAdr (from))
 		{
 		netadr_t to;
 
@@ -3500,12 +3509,16 @@ void SV_ParseCvarValue2 (sv_client_t *cl, sizebuf_t *msg)
 	string	name, value;
 	int	requestID = MSG_ReadLong (msg);
 
-	Q_strcpy (name, MSG_ReadString (msg));
-	Q_strcpy (value, MSG_ReadString (msg));
+	// [FWGS, 01.05.23]
+	/*Q_strcpy (name, MSG_ReadString (msg));
+	Q_strcpy (value, MSG_ReadString (msg));*/
+	Q_strncpy (name, MSG_ReadString (msg), sizeof (name));
+	Q_strncpy (value, MSG_ReadString (msg), sizeof (value));
 
 	if (svgame.dllFuncs2.pfnCvarValue2 != NULL)
 		svgame.dllFuncs2.pfnCvarValue2 (cl->edict, requestID, name, value);
-	Con_Reportf ("Cvar query response: name:%s, request ID %d, cvar:%s, value:%s\n", cl->name, requestID, name, value);
+	Con_Reportf ("Cvar query response: name:%s, request ID %d, cvar:%s, value:%s\n", cl->name, requestID,
+		name, value);
 	}
 
 /*

@@ -25,9 +25,7 @@ GNU General Public License for more details.
 
 /*
 ==============================================================================
-
-					   SYSTEM UTILS
-
+SYSTEM UTILS
 ==============================================================================
 */
 
@@ -61,14 +59,13 @@ qboolean Sys_DebuggerPresent (void);	// [FWGS, 01.04.23] optional, see Sys_Debug
 	void PSVita_Init (void);
 	void PSVita_Shutdown (void);
 	qboolean PSVita_GetBasePath (char *buf, const size_t buflen);
+	int PSVita_GetArgv (int in_argc, char **in_argv, char ***out_argv);	// [FWGS, 01.05.23]
 	void PSVita_InputUpdate (void);
 #endif
 
 /*
 ==============================================================================
-
-			MOBILE API
-
+MOBILE API
 ==============================================================================
 */
 void Platform_Vibrate (float life, char flags);
@@ -76,9 +73,7 @@ void *Platform_GetNativeObject (const char *name);
 
 /*
 ==============================================================================
-
-			INPUT
-
+INPUT
 ==============================================================================
 */
 // Gamepad support
@@ -115,9 +110,7 @@ void Android_MouseMove (float *x, float *y);
 
 /*
 ==============================================================================
-
-			WINDOW MANAGEMENT
-
+WINDOW MANAGEMENT
 ==============================================================================
 */
 typedef enum
@@ -148,7 +141,7 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 //
 // in_evdev.c
 //
-#ifdef XASH_USE_EVDEV
+#if XASH_USE_EVDEV
 void Evdev_SetGrab (qboolean grab);
 void Evdev_Shutdown (void);
 void Evdev_Init (void);
@@ -157,9 +150,7 @@ void IN_EvdevFrame (void);
 #endif // XASH_USE_EVDEV
 /*
 ==============================================================================
-
-			AUDIO INPUT/OUTPUT
-
+AUDIO INPUT/OUTPUT
 ==============================================================================
 */
 // initializes cycling through a DMA buffer and returns information on it

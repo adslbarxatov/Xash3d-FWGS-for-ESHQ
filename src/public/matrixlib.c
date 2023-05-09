@@ -28,9 +28,7 @@ const matrix3x4 m_matrix3x4_identity =
 
 /*
 ========================================================================
-
-		Matrix3x4 operations
-
+Matrix3x4 operations
 ========================================================================
 */
 void Matrix3x4_VectorTransform (const matrix3x4 in, const float v[3], float out[3])
@@ -217,6 +215,7 @@ void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_
 		}
 	}
 
+/* [FWGS, 01.05.23]
 void Matrix3x4_TransformPositivePlane (const matrix3x4 in, const vec3_t normal, float d, vec3_t out, float *dist)
 	{
 	float	scale = sqrt (in[0][0] * in[0][0] + in[0][1] * in[0][1] + in[0][2] * in[0][2]);
@@ -272,13 +271,15 @@ void Matrix3x4_Transpose (matrix3x4 out, const matrix3x4 in1)
 	out[1][3] = in1[1][3];
 	out[2][3] = in1[2][3];
 	}
+*/
 
 /*
 ==================
 Matrix3x4_TransformAABB
 ==================
 */
-void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const vec3_t maxs, vec3_t absmin, vec3_t absmax)
+void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const vec3_t maxs,
+	vec3_t absmin, vec3_t absmax)
 	{
 	vec3_t	localCenter, localExtents;
 	vec3_t	worldCenter, worldExtents;
@@ -305,9 +306,7 @@ const matrix4x4 m_matrix4x4_identity =
 
 /*
 ========================================================================
-
-		Matrix4x4 operations
-
+Matrix4x4 operations
 ========================================================================
 */
 void Matrix4x4_VectorTransform (const matrix4x4 in, const float v[3], float out[3])
@@ -360,6 +359,7 @@ void Matrix4x4_ConcatTransforms (matrix4x4 out, const matrix4x4 in1, const matri
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
 
+/* [FWGS, 01.05.23]
 void Matrix4x4_SetOrigin (matrix4x4 out, float x, float y, float z)
 	{
 	out[0][3] = x;
@@ -393,6 +393,7 @@ void Matrix4x4_FromOriginQuat (matrix4x4 out, const vec4_t quaternion, const vec
 	out[3][2] = 0.0f;
 	out[3][3] = 1.0f;
 	}
+*/
 
 void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_t origin, float scale)
 	{
@@ -525,6 +526,7 @@ void Matrix4x4_TransformPositivePlane (const matrix4x4 in, const vec3_t normal, 
 	*dist = d * scale + (out[0] * in[0][3] + out[1] * in[1][3] + out[2] * in[2][3]);
 	}
 
+/* [FWGS, 01.05.23]
 void Matrix4x4_TransformStandardPlane (const matrix4x4 in, const vec3_t normal, float d, vec3_t out, float *dist)
 	{
 	float scale = sqrt (in[0][0] * in[0][0] + in[0][1] * in[0][1] + in[0][2] * in[0][2]);
@@ -535,6 +537,7 @@ void Matrix4x4_TransformStandardPlane (const matrix4x4 in, const vec3_t normal, 
 	out[2] = (normal[0] * in[2][0] + normal[1] * in[2][1] + normal[2] * in[2][2]) * iscale;
 	*dist = d * scale - (out[0] * in[0][3] + out[1] * in[1][3] + out[2] * in[2][3]);
 	}
+*/
 
 void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	{
@@ -568,6 +571,7 @@ void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	out[3][3] = 1.0f;
 	}
 
+/* [FWGS, 01.05.23]
 void Matrix4x4_Transpose (matrix4x4 out, const matrix4x4 in1)
 	{
 	out[0][0] = in1[0][0];
@@ -587,6 +591,7 @@ void Matrix4x4_Transpose (matrix4x4 out, const matrix4x4 in1)
 	out[3][2] = in1[2][3];
 	out[3][3] = in1[3][3];
 	}
+*/
 
 qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 	{
@@ -847,5 +852,6 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 				}
 			}
 		}
+
 	return false;
 	}

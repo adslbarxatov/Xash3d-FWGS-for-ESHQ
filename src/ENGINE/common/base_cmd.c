@@ -149,13 +149,12 @@ void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const ch
 	elem->next = find;
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ============
 BaseCmd_Replace
 
 Used in case, when basecmd has been registered, but gamedll wants to register it's own
 ============
-*/
 qboolean BaseCmd_Replace (base_command_type_e type, base_command_t *basecmd, const char *name)
 	{
 	base_command_hashmap_t *i = BaseCmd_GetBucket (name);
@@ -174,6 +173,7 @@ qboolean BaseCmd_Replace (base_command_type_e type, base_command_t *basecmd, con
 
 	return true;
 	}
+*/
 
 /*
 ============

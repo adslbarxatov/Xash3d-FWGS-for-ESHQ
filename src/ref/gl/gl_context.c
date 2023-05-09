@@ -44,7 +44,6 @@ static const byte *R_GetTextureOriginalBuffer (unsigned int idx)
 /*
 =============
 CL_FillRGBA
-
 =============
 */
 static void CL_FillRGBA (float _x, float _y, float _w, float _h, int r, int g, int b, int a)
@@ -70,7 +69,6 @@ static void CL_FillRGBA (float _x, float _y, float _w, float _h, int r, int g, i
 /*
 =============
 pfnFillRGBABlend
-
 =============
 */
 static void GAME_EXPORT CL_FillRGBABlend (float _x, float _y, float _w, float _h, int r, int g, int b, int a)
@@ -513,6 +511,7 @@ int EXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, 
 	return REF_API_VERSION;
 	}
 
+/* [FWGS, 01.05.23]
 void EXPORT GetRefHumanReadableName (char *out, size_t size)
 	{
 #if defined XASH_NANOGL
@@ -525,3 +524,4 @@ void EXPORT GetRefHumanReadableName (char *out, size_t size)
 	Q_strncpy (out, "OpenGL", size);
 #endif
 	}
+*/

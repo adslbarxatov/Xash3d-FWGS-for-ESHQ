@@ -1585,10 +1585,10 @@ int GL_LoadTextureArray (const char **names, int flags)
 	if (numLayers <= 0) return 0;
 
 	// create complexname from layer names
-	//for (i = 0; i < numLayers; i++)
+	/*for (i = 0; i < numLayers; i++)*/
 	for (i = 0; i < numLayers - 1; i++)
 		{
-		COM_FileBase (names[i], basename);
+		COM_FileBase (names[i], basename, sizeof (basename));	// [FWGS, 01.05.23]
 		
 		/*Q_strncat (name, basename, sizeof (name));
 		if (i != (numLayers - 1))
@@ -1600,8 +1600,8 @@ int GL_LoadTextureArray (const char **names, int flags)
 		len += ret;
 		}
 
-	//Q_strncat (name, va ("[%i]", numLayers), sizeof (name));
-	COM_FileBase (names[i], basename);
+	/*Q_strncat (name, va ("[%i]", numLayers), sizeof (name));*/
+	COM_FileBase (names[i], basename, sizeof (basename));	// [FWGS, 01.05.23]
 	ret = Q_snprintf (&name[len], sizeof (name) - len, "%s[%i]", basename, numLayers);
 
 	if (ret == -1)
@@ -1627,30 +1627,35 @@ int GL_LoadTextureArray (const char **names, int flags)
 			// mixed mode: DXT + RGB
 			if (pic->type != src->type)
 				{
-				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch image format for %s and %s\n", names[0], names[i]);
+				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch image format for %s and %s\n",
+					names[0], names[i]);
 				break;
 				}
 
 			// different mipcount
 			if (pic->numMips != src->numMips)
 				{
-				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch mip count for %s and %s\n", names[0], names[i]);
+				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch mip count for %s and %s\n",
+					names[0], names[i]);
 				break;
 				}
 
 			if (pic->encode != src->encode)
 				{
-				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch custom encoding for %s and %s\n", names[0], names[i]);
+				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch custom encoding for %s and %s\n",
+					names[0], names[i]);
 				break;
 				}
 
 			// but allow to rescale raw images
-			if (ImageRAW (pic->type) && ImageRAW (src->type) && (pic->width != src->width || pic->height != src->height))
+			if (ImageRAW (pic->type) && ImageRAW (src->type) && ((pic->width != src->width) ||
+				(pic->height != src->height)))
 				gEngfuncs.Image_Process (&src, pic->width, pic->height, IMAGE_RESAMPLE, 0.0f);
 
 			if (pic->size != src->size)
 				{
-				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch image size for %s and %s\n", names[0], names[i]);
+				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch image size for %s and %s\n",
+					names[0], names[i]);
 				break;
 				}
 			}
@@ -1890,7 +1895,7 @@ void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 	rgbdata_t *pic;
 	int		flags = 0;
 
-	if (texnum <= 0 || texnum >= MAX_TEXTURES)
+	if ((texnum <= 0) || (texnum >= MAX_TEXTURES))
 		return; // missed image
 	image = &gl_textures[texnum];
 
@@ -1899,7 +1904,7 @@ void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 		{
 		flags = IMAGE_LIGHTGAMMA;
 		}
-	else if (topColor != -1 && bottomColor != -1)
+	else if ((topColor != -1) && (bottomColor != -1))
 		{
 		flags = IMAGE_REMAP;
 		}
@@ -1925,7 +1930,7 @@ void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 	pic = gEngfuncs.FS_CopyImage (image->original);
 
 	// we need to expand image into RGBA buffer
-	if (pic->type == PF_INDEXED_24 || pic->type == PF_INDEXED_32)
+	if ((pic->type == PF_INDEXED_24) || (pic->type == PF_INDEXED_32))
 		flags |= IMAGE_FORCE_RGBA;
 
 	gEngfuncs.Image_Process (&pic, topColor, bottomColor, flags, 0.0f);
@@ -1938,11 +1943,10 @@ void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 
 /*
 ================
-GL_TexMemory
+GL_TexMemory [FWGS, 01.05.23]
 
 return size of all uploaded textures
 ================
-*/
 int GL_TexMemory (void)
 	{
 	int	i, total = 0;
@@ -1952,12 +1956,11 @@ int GL_TexMemory (void)
 
 	return total;
 	}
+*/
 
 /*
 ==============================================================================
-
 INTERNAL TEXTURES
-
 ==============================================================================
 */
 /*

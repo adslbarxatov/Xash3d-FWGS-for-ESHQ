@@ -23,6 +23,7 @@ GNU General Public License for more details.
 #include "library.h"
 #include "vid_common.h"
 #include "pm_local.h"	// [FWGS, 01.04.23]
+#include "sequence.h"	// [FWGS, 01.05.23]
 
 #define MAX_TOTAL_CMDS				32
 #define MAX_CMD_BUFFER				8000
@@ -153,6 +154,7 @@ qboolean CL_DisableVisibility (void)
 	return cls.envshot_disable_vis;
 	}
 
+/* [FWGS, 01.05.23]
 qboolean CL_IsBackgroundDemo (void)
 	{
 	return (cls.demoplayback && cls.demonum != -1);
@@ -162,6 +164,7 @@ qboolean CL_IsBackgroundMap (void)
 	{
 	return (cl.background && !cls.demoplayback);
 	}
+*/
 
 char *CL_Userinfo (void)
 	{
@@ -190,7 +193,7 @@ with new cls.state
 void CL_CheckClientState (void)
 	{
 	// first update is the pre-final signon stage
-	if ((cls.state == ca_connected || cls.state == ca_validate) && (cls.signon == SIGNONS))
+	if (((cls.state == ca_connected) || (cls.state == ca_validate)) && (cls.signon == SIGNONS))
 		{
 		cls.state = ca_active;
 		cls.changelevel = false;		// changelevel is done
@@ -244,6 +247,9 @@ void CL_SignonReply (void)
 			if (cl.proxy_redirect && !cls.spectator)
 				CL_Disconnect ();
 			cl.proxy_redirect = false;
+
+			if (cls.demoplayback)	// [FWGS, 01.05.23]
+				Sequence_OnLevelLoad (clgame.mapname);
 			break;
 		}
 	}
@@ -974,7 +980,7 @@ void CL_BeginUpload_f (void)
 	if (!cl_allow_upload.value)
 		return;
 
-	if (Q_strlen (name) != 36 || Q_strnicmp (name, "!MD5", 4))
+	if ((Q_strlen (name) != 36) || Q_strnicmp (name, "!MD5", 4))
 		{
 		Con_Printf ("Ingoring upload of non-customization\n");
 		return;
@@ -1014,7 +1020,7 @@ void CL_BeginUpload_f (void)
 			}
 		}
 
-	if (buf && size > 0)
+	if (buf && (size > 0))
 		{
 		Netchan_CreateFileFragmentsFromBuffer (&cls.netchan, name, buf, size);
 		Netchan_FragSend (&cls.netchan);
@@ -1156,7 +1162,8 @@ Resend a connect message if the last one has timed out
 void CL_CheckForResend (void)
 	{
 	netadr_t adr;
-	int res;
+	/*int res;*/
+	net_gai_state_t res;	// [FWGS, 01.05.23]
 	qboolean bandwidthTest;	// [FWGS, 01.04.23]
 
 	if (cls.internetservers_wait)
@@ -1189,13 +1196,15 @@ void CL_CheckForResend (void)
 
 	res = NET_StringToAdrNB (cls.servername, &adr);
 
-	if (!res)
+	/*if (!res)*/
+	if (res == NET_EAI_NONAME)	// [FWGS, 01.05.23]
 		{
 		CL_Disconnect ();
 		return;
 		}
 
-	if (res == 2)
+	/*if (res == 2)*/
+	if (res == NET_EAI_AGAIN)	// [FWGS, 01.05.23]
 		{
 		cls.connect_time = MAX_HEARTBEAT;
 		return;
@@ -1384,16 +1393,20 @@ void CL_Rcon_f (void)
 
 	NET_Config (true, false);	// allow remote
 
-	Q_strcat (message, "rcon ");
-	/*Q_strcat (message, rcon_client_password->string);*/	// [FWGS, 01.04.23]
+	/*Q_strcat (message, "rcon ");
 	Q_strcat (message, rcon_password.string);
-	Q_strcat (message, " ");
+	Q_strcat (message, " ");*/
+	Q_strncat (message, "rcon ", sizeof (message));	// [FWGS, 01.05.23]
+	Q_strncat (message, rcon_password.string, sizeof (message));
+	Q_strncat (message, " ", sizeof (message));
 
 	for (i = 1; i < Cmd_Argc (); i++)
 		{
 		Cmd_Escape (command, Cmd_Argv (i), sizeof (command));
-		Q_strcat (message, command);
-		Q_strcat (message, " ");
+		/*Q_strcat (message, command);
+		Q_strcat (message, " ");*/
+		Q_strncat (message, command, sizeof (message));	// [FWGS, 01.05.23]
+		Q_strncat (message, " ", sizeof (message));
 		}
 
 	if (cls.state >= ca_connected)
@@ -1409,7 +1422,8 @@ void CL_Rcon_f (void)
 			}
 
 		NET_StringToAdr (rcon_address->string, &to);
-		if (to.port == 0) to.port = MSG_BigShort (PORT_SERVER);
+		if (to.port == 0)
+			to.port = MSG_BigShort (PORT_SERVER);
 		}
 
 	NET_SendPacket (NS_CLIENT, Q_strlen (message) + 1, message, to);
@@ -2686,7 +2700,8 @@ void CL_ServerCommand (qboolean reliable, const char *fmt, ...)
 		return;
 
 	va_start (argptr, fmt);
-	Q_vsprintf (string, fmt, argptr);
+	/*Q_vsprintf (string, fmt, argptr);*/
+	Q_vsnprintf (string, sizeof (string), fmt, argptr);	// [FWGS, 01.05.23]
 	va_end (argptr);
 
 	if (reliable)
@@ -2959,6 +2974,7 @@ void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_test_bandwidth);
 
 	Voice_RegisterCvars ();
+	VGui_RegisterCvars ();	// [FWGS, 01.05.23]
 
 	// register our variables
 	cl_crosshair = Cvar_Get ("crosshair", "1", FCVAR_ARCHIVE,
@@ -3225,7 +3241,6 @@ void CL_AdjustClock (void)
 /*
 ==================
 Host_ClientBegin
-
 ==================
 */
 void Host_ClientBegin (void)
@@ -3249,7 +3264,6 @@ void Host_ClientBegin (void)
 /*
 ==================
 Host_ClientFrame
-
 ==================
 */
 void Host_ClientFrame (void)
@@ -3329,11 +3343,12 @@ void CL_Init (void)
 	VID_Init ();	// init video
 	S_Init ();	// init sound
 	Voice_Init (VOICE_DEFAULT_CODEC, 3); // init voice
+	Sequence_Init ();	// [FWGS, 01.05.23]
 
 	// unreliable buffer. unsed for unreliable commands and voice stream
 	MSG_Init (&cls.datagram, "cls.datagram", cls.datagram_buf, sizeof (cls.datagram_buf));
 
-	// IN_TouchInit();
+	/* IN_TouchInit();*/
 
 	COM_GetCommonLibraryPath (LIBRARY_CLIENT, libpath, sizeof (libpath));
 
@@ -3349,7 +3364,6 @@ void CL_Init (void)
 /*
 ===============
 CL_Shutdown
-
 ===============
 */
 void CL_Shutdown (void)
@@ -3372,11 +3386,15 @@ void CL_Shutdown (void)
 	CL_UnloadProgs ();
 	cls.initialized = false;
 
-	// [FWGS, 01.04.23] for client-side VGUI support we use other order
-	if (!GI->internal_vgui_support)
+	// [FWGS, 01.05.23] for client-side VGUI support we use other order
+	/*if (!GI->internal_vgui_support)*/
+	if (FI && FI->GameInfo && !FI->GameInfo->internal_vgui_support)
 		VGui_Shutdown ();
 
-	FS_Delete ("demoheader.tmp"); // remove tmp file
+	/*FS_Delete ("demoheader.tmp"); // remove tmp file*/
+	if (g_fsapi.Delete)
+		g_fsapi.Delete ("demoheader.tmp"); // [FWGS, 01.05.23] remove tmp file
+
 	SCR_FreeCinematic (); // release AVI's *after* client.dll because custom renderer may use them
 	S_Shutdown ();
 	R_Shutdown ();

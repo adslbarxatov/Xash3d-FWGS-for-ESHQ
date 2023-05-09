@@ -33,7 +33,8 @@ GNU General Public License for more details.
 // 1. Initial release
 // 2. FS functions are removed, instead we have full fs_api_t
 // 3. [FWGS, 01.04.23] SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
-#define REF_API_VERSION 3
+// 4. [FWGS, 01.05.23] R_StudioEstimateFrame now has time argument
+#define REF_API_VERSION 4
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP)
@@ -446,7 +447,7 @@ typedef struct ref_interface_s
 	{
 	// construct, destruct
 	qboolean (*R_Init)(void); // context is true if you need context management
-	// const char *(*R_GetInitError)( void );
+	/* const char *(*R_GetInitError)( void );*/
 	void (*R_Shutdown)(void);
 	const char *(*R_GetConfigName)(void); // returns config name without extension
 	qboolean (*R_SetDisplayTransform)(ref_screen_rotation_t rotate, int x, int y, float scale_x, float scale_y);
@@ -470,7 +471,7 @@ typedef struct ref_interface_s
 
 	qboolean (*R_AddEntity)(struct cl_entity_s *clent, int type);
 	void (*CL_AddCustomBeam)(cl_entity_t *pEnvBeam);
-	void		(*R_ProcessEntData)(qboolean allocate);
+	void	(*R_ProcessEntData)(qboolean allocate);
 
 	// debug
 	void (*R_ShowTextures)(void);
@@ -505,7 +506,7 @@ typedef struct ref_interface_s
 	void (*R_ClearAllDecals)(void);
 
 	// studio interface
-	float (*R_StudioEstimateFrame)(cl_entity_t *e, mstudioseqdesc_t *pseqdesc);
+	float (*R_StudioEstimateFrame)(cl_entity_t *e, mstudioseqdesc_t *pseqdesc, double time);	// [FWGS, 01.05.23]
 	void (*R_StudioLerpMovement)(cl_entity_t *e, double time, vec3_t origin, vec3_t angles);
 	void (*CL_InitStudioAPI)(void);
 
@@ -515,7 +516,8 @@ typedef struct ref_interface_s
 	void (*CL_RunLightStyles)(void);
 
 	// sprites
-	void (*R_GetSpriteParms)(int *frameWidth, int *frameHeight, int *numFrames, int currentFrame, const model_t *pSprite);
+	void (*R_GetSpriteParms)(int *frameWidth, int *frameHeight, int *numFrames, int currentFrame,
+		const model_t *pSprite);
 	int (*R_GetSpriteTexture)(const model_t *m_pSpriteModel, int frame);
 
 	// model management
@@ -548,7 +550,8 @@ typedef struct ref_interface_s
 	int		(*GL_LoadTexture)(const char *name, const byte *buf, size_t size, int flags);
 	int		(*GL_CreateTexture)(const char *name, int width, int height, const void *buffer, texFlags_t flags);
 	int		(*GL_LoadTextureArray)(const char **names, int flags);
-	int		(*GL_CreateTextureArray)(const char *name, int width, int height, int depth, const void *buffer, texFlags_t flags);
+	int		(*GL_CreateTextureArray)(const char *name, int width, int height, int depth, const void *buffer,
+		texFlags_t flags);
 	void		(*GL_FreeTexture)(unsigned int texnum);
 
 	// Decals manipulating (draw & remove)
@@ -559,7 +562,8 @@ typedef struct ref_interface_s
 	// AVI
 	void		(*AVI_UploadRawFrame)(int texture, int cols, int rows, int width, int height, const byte *data);
 
-	// glState related calls (must use this instead of normal gl-calls to prevent de-synchornize local states between engine and the client)
+	// glState related calls (must use this instead of normal gl-calls to prevent de-synchornize
+	// local states between engine and the client)
 	void		(*GL_Bind)(int tmu, unsigned int texnum);
 	void		(*GL_SelectTexture)(int tmu);
 	void		(*GL_LoadTextureMatrix)(const float *glmatrix);
@@ -627,8 +631,9 @@ typedef struct ref_interface_s
 typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *engfuncs, ref_globals_t *pGlobals);
 #define GET_REF_API "GetRefAPI"
 
-typedef void (*REF_HUMANREADABLE_NAME)(char *out, size_t len);
-#define GET_REF_HUMANREADABLE_NAME "GetRefHumanReadableName"
+// [FWGS, 01.05.23]
+/*typedef void (*REF_HUMANREADABLE_NAME)(char *out, size_t len);
+#define GET_REF_HUMANREADABLE_NAME "GetRefHumanReadableName"*/
 
 #ifdef REF_DLL
 #define DEFINE_ENGINE_SHARED_CVAR( x, y ) cvar_t *x = NULL;

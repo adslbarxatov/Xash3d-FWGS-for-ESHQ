@@ -213,13 +213,12 @@ void Con_ClearTyping (void)
 	Cmd_AutoCompleteClear ();
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ============
 Con_StringLength
 
 skipped color prefixes
 ============
-*/
 int Con_StringLength (const char *string)
 	{
 	int		len;
@@ -243,6 +242,7 @@ int Con_StringLength (const char *string)
 
 	return len;
 	}
+*/
 
 /*
 ================
@@ -1455,7 +1455,7 @@ void GAME_EXPORT UI_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 
 	if (!info) return;
 
-	if (info->index < 0 || info->index >= MAX_DBG_NOTIFY)
+	if ((info->index < 0) || (info->index >= MAX_DBG_NOTIFY))
 		return;
 
 	memset (con.notify[info->index].szNotify, 0, MAX_STRING);
@@ -1474,9 +1474,7 @@ void GAME_EXPORT UI_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 
 /*
 =============================================================================
-
 EDIT FIELDS
-
 =============================================================================
 */
 /*
@@ -1749,9 +1747,7 @@ void Field_DrawInputLine (int x, int y, field_t *edit)
 
 /*
 =============================================================================
-
 CONSOLE HISTORY HANDLING
-
 =============================================================================
 */
 /*
@@ -1781,7 +1777,8 @@ static void Con_HistoryDown (con_history_t *self, field_t *in)
 	self->line = Q_min (self->next, self->line + 1);
 	if (self->line == self->next)
 		*in = self->backup;
-	else *in = self->lines[self->line % CON_HISTORY];
+	else
+		*in = self->lines[self->line % CON_HISTORY];
 	}
 
 /*
@@ -1856,6 +1853,10 @@ static void Con_SaveHistory (con_history_t *self)
 	int historyStart = self->next - CON_HISTORY, i;
 	file_t *f;
 
+	// [FWGS, 01.05.23] do not save history if nothing was executed
+	if (self->next == 0)
+		return;
+
 	if (historyStart < 0)
 		historyStart = 0;
 
@@ -1870,9 +1871,7 @@ static void Con_SaveHistory (con_history_t *self)
 
 /*
 =============================================================================
-
 CONSOLE LINE EDITING
-
 =============================================================================
 */
 /*
@@ -1885,7 +1884,7 @@ Handles history and console scrollback
 void Key_Console (int key)
 	{
 	// ctrl-L clears screen
-	if (key == 'l' && Key_IsDown (K_CTRL))
+	if ((key == 'l') && Key_IsDown (K_CTRL))
 		{
 		Cbuf_AddText ("clear\n");
 		return;
@@ -1948,13 +1947,15 @@ void Key_Console (int key)
 		}
 
 	// console scrolling
-	if (key == K_PGUP)
+	/*if (key == K_PGUP)*/
+	if ((key == K_PGUP) || (key == K_DPAD_UP))	// [FWGS, 01.05.23]
 		{
 		Con_PageUp (1);
 		return;
 		}
 
-	if (key == K_PGDN)
+	/*if (key == K_PGDN)*/
+	if ((key == K_PGDN) || (key == K_DPAD_DOWN))	// [FWGS, 01.05.23]
 		{
 		Con_PageDown (1);
 		return;
@@ -2058,9 +2059,7 @@ void Key_Message (int key)
 
 /*
 ==============================================================================
-
 DRAWING
-
 ==============================================================================
 */
 /*
@@ -2447,7 +2446,8 @@ void Con_DrawConsole (void)
 			break;
 		}
 
-	if (!Con_Visible ()) SCR_DrawFPS (4);
+	if (!Con_Visible ())
+		SCR_DrawFPS (4);
 	}
 
 /*
@@ -2499,7 +2499,7 @@ void Con_DrawVersion (void)
 
 	Con_DrawStringLen (curbuild, &stringLen, &charH);
 	start = refState.width - stringLen * 1.05f;
-	stringLen = Con_StringLength (curbuild);
+	/*stringLen = Con_StringLength (curbuild);*/	// [FWGS, 01.05.23]
 	height -= charH * 1.05f;
 
 	/*for (i = 0; i < stringLen; i++)

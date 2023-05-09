@@ -195,11 +195,15 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	}
 /*#endif*/
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.05.23]
 static void Sys_GetProcessName (char *processName, size_t bufferSize)
 	{
-	GetModuleBaseName (GetCurrentProcess (), NULL, processName, bufferSize - 1);
-	COM_FileBase (processName, processName);
+	/*GetModuleBaseName (GetCurrentProcess (), NULL, processName, bufferSize - 1);
+	COM_FileBase (processName, processName);*/
+	char fullpath[MAX_PATH];
+	
+	GetModuleBaseName (GetCurrentProcess (), NULL, fullpath, sizeof (fullpath) - 1);
+	COM_FileBase (fullpath, processName, bufferSize);
 	}
 
 // [FWGS, 01.04.23]

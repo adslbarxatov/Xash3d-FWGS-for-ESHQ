@@ -259,7 +259,8 @@ qboolean Touch_DumpConfig (const char *name, const char *profilename)
 	FS_Printf (f, "touch_grid_count \"%d\"\n", (int)touch_grid_count->value);
 	FS_Printf (f, "touch_grid_enable \"%d\"\n", CVAR_TO_BOOL (touch_grid_enable));
 	FS_Printf (f, "\n// global overstroke (width, r, g, b, a)\n");
-	FS_Printf (f, "touch_set_stroke %d %d %d %d %d\n", touch.swidth, touch.scolor[0], touch.scolor[1], touch.scolor[2], touch.scolor[3]);
+	FS_Printf (f, "touch_set_stroke %d %d %d %d %d\n", touch.swidth, touch.scolor[0], touch.scolor[1],
+		touch.scolor[2], touch.scolor[3]);
 	FS_Printf (f, "\n// highlight when pressed\n");
 	FS_Printf (f, "touch_highlight_r \"%f\"\n", touch_highlight_r->value);
 	FS_Printf (f, "touch_highlight_g \"%f\"\n", touch_highlight_g->value);
@@ -339,16 +340,21 @@ static void Touch_ExportConfig_f (void)
 		return;
 		}
 
-	if (!touch.list_user.first) return;
+	if (!touch.list_user.first)
+		return;
 
 	name = Cmd_Argv (1);
 
 	if (Q_strstr (name, "touch_presets/"))
 		{
-		COM_FileBase (name, profilebase);
+		/*COM_FileBase (name, profilebase);*/
+		COM_FileBase (name, profilebase, sizeof (profilebase));	// [FWGS, 01.05.23]
 		Q_snprintf (profilename, sizeof (profilebase), "touch_profiles/%s (copy).cfg", profilebase);
 		}
-	else Q_strncpy (profilename, name, sizeof (profilename));
+	else
+		{
+		Q_strncpy (profilename, name, sizeof (profilename));
+		}
 
 	Con_Reportf ("Exporting config to \"%s\", profile name \"%s\"\n", name, profilename);
 	Touch_DumpConfig (name, profilename);
@@ -1355,7 +1361,8 @@ static void Touch_DrawButtons (touchbuttonlist_t *list)
 
 			color[3] *= B (fade);
 			if (button->texturefile[0] == '#')
-				Touch_DrawText (touch.swidth / SCR_W + B (x1), touch.swidth / SCR_H + B (y1), B (x2), B (y2), button->texturefile + 1, color, B (aspect) ? B (aspect) : 1);
+				Touch_DrawText (touch.swidth / SCR_W + B (x1), touch.swidth / SCR_H + B (y1), B (x2), B (y2),
+					button->texturefile + 1, color, B (aspect) ? B (aspect) : 1);
 			else if (button->texturefile[0])
 				{
 				if (button->texture == -1)
@@ -1407,7 +1414,6 @@ static void Touch_DrawButtons (touchbuttonlist_t *list)
 			Con_DrawString (TO_SCRN_X (B (x1)), TO_SCRN_Y (B (y1)), B (name), color);
 			}
 		}
-
 	}
 
 void Touch_Draw (void)
@@ -1513,14 +1519,16 @@ void Touch_Draw (void)
 		ref.dllFuncs.Color4ub (255, 255, 255, 128);
 		ref.dllFuncs.R_DrawStretchPic (TO_SCRN_X (touch.move_start_x - GRID_X * touch_move_indicator->value),
 			TO_SCRN_Y (touch.move_start_y - GRID_Y * touch_move_indicator->value),
-			TO_SCRN_X (GRID_X * 2 * touch_move_indicator->value), TO_SCRN_Y (GRID_Y * 2 * touch_move_indicator->value), 0, 0, 1, 1, touch.joytexture);
+			TO_SCRN_X (GRID_X * 2 * touch_move_indicator->value), TO_SCRN_Y (GRID_Y * 2 * touch_move_indicator->value),
+			0, 0, 1, 1, touch.joytexture);
 		ref.dllFuncs.Color4ub (255, 255, 255, 255);
-		ref.dllFuncs.R_DrawStretchPic (TO_SCRN_X (touch.move_start_x + touch.side * width - GRID_X * touch_move_indicator->value),
+		ref.dllFuncs.R_DrawStretchPic (TO_SCRN_X (touch.move_start_x + touch.side * width - GRID_X *
+			touch_move_indicator->value),
 			TO_SCRN_Y (touch.move_start_y - touch.forward * height - GRID_Y * touch_move_indicator->value),
-			TO_SCRN_X (GRID_X * 2 * touch_move_indicator->value), TO_SCRN_Y (GRID_Y * 2 * touch_move_indicator->value), 0, 0, 1, 1, touch.joytexture);
+			TO_SCRN_X (GRID_X * 2 * touch_move_indicator->value), TO_SCRN_Y (GRID_Y * 2 * touch_move_indicator->value),
+			0, 0, 1, 1, touch.joytexture);
 
 		}
-
 	}
 
 // clear move and selection state
@@ -1559,10 +1567,15 @@ static void Touch_EditMove (touchEventType type, int fingerID, float x, float y,
 				touch.hidebutton->texture = -1;
 				touch.hidebutton->flags &= ~TOUCH_FL_HIDE;
 
+				// [FWGS, 01.05.23]
 				if (FBitSet (button->flags, TOUCH_FL_HIDE))
-					Q_strcpy (touch.hidebutton->texturefile, "touch_default/edit_show");
+					/*Q_strcpy (touch.hidebutton->texturefile, "touch_default/edit_show");*/
+					Q_strncpy (touch.hidebutton->texturefile, "touch_default/edit_show",
+						sizeof (touch.hidebutton->texturefile));
 				else
-					Q_strcpy (touch.hidebutton->texturefile, "touch_default/edit_hide");
+					/*Q_strcpy (touch.hidebutton->texturefile, "touch_default/edit_hide");*/
+					Q_strncpy (touch.hidebutton->texturefile, "touch_default/edit_hide",
+						sizeof (touch.hidebutton->texturefile));
 				}
 			}
 		if (type == event_motion) // shutdown button move

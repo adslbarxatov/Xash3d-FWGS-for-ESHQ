@@ -34,8 +34,10 @@ qboolean R_SpeedsMessage (char *out, size_t size)
 		// otherwise pass to default handler
 		}
 
-	if (r_speeds->value <= 0) return false;
-	if (!out || !size) return false;
+	if (r_speeds->value <= 0)
+		return false;
+	if (!out || !size)
+		return false;
 
 	Q_strncpy (out, r_speeds_msg, size);
 
@@ -55,7 +57,7 @@ void R_Speeds_Printf (const char *msg, ...)
 	char	text[2048];
 
 	va_start (argptr, msg);
-	Q_vsprintf (text, msg, argptr);
+	Q_vsnprintf (text, sizeof (text), msg, argptr);	// [FWGS, 01.05.23]
 	va_end (argptr);
 
 	Q_strncat (r_speeds_msg, text, sizeof (r_speeds_msg));
@@ -80,12 +82,13 @@ void GL_BackendEndFrame (void)
 	{
 	mleaf_t *curleaf;
 
-	if (r_speeds->value <= 0 || !RI.drawWorld)
+	if ((r_speeds->value <= 0) || !RI.drawWorld)
 		return;
 
 	if (!RI.viewleaf)
 		curleaf = WORLDMODEL->leafs;
-	else curleaf = RI.viewleaf;
+	else
+		curleaf = RI.viewleaf;
 
 	R_Speeds_Printf ("Renderer: ^1Engine^7\n\n");
 
@@ -95,18 +98,24 @@ void GL_BackendEndFrame (void)
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i wpoly, %3i apoly\n%3i epoly, %3i spoly",
 				r_stats.c_world_polys, r_stats.c_alias_polys, r_stats.c_studio_polys, r_stats.c_sprite_polys);
 			break;
+
 		case 2:
-			R_Speeds_Printf ("visible leafs:\n%3i leafs\ncurrent leaf %3i\n", r_stats.c_world_leafs, curleaf - WORLDMODEL->leafs);
-			R_Speeds_Printf ("ReciusiveWorldNode: %3lf secs\nDrawTextureChains %lf\n", r_stats.t_world_node, r_stats.t_world_draw);
+			R_Speeds_Printf ("visible leafs:\n%3i leafs\ncurrent leaf %3i\n", r_stats.c_world_leafs,
+				curleaf - WORLDMODEL->leafs);
+			R_Speeds_Printf ("ReciusiveWorldNode: %3lf secs\nDrawTextureChains %lf\n", r_stats.t_world_node,
+				r_stats.t_world_draw);
 			break;
+
 		case 3:
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i alias models drawn\n%3i studio models drawn\n%3i sprites drawn",
 				r_stats.c_alias_models_drawn, r_stats.c_studio_models_drawn, r_stats.c_sprite_models_drawn);
 			break;
+
 		case 4:
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i static entities\n%3i normal entities\n%3i server entities",
 				r_numStatics, r_numEntities - r_numStatics, ENGINE_GET_PARM (PARM_NUMENTITIES));
 			break;
+
 		case 5:
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i tempents\n%3i viewbeams\n%3i particles",
 				r_stats.c_active_tents_count, r_stats.c_view_beams_count, r_stats.c_particle_count);
@@ -116,17 +125,17 @@ void GL_BackendEndFrame (void)
 	memset (&r_stats, 0, sizeof (r_stats));
 	}
 
-/*
+/* [FWGS, 01.05.23]
 =================
 GL_LoadTexMatrix
 =================
-*/
 void GL_LoadTexMatrix (const matrix4x4 m)
 	{
 	pglMatrixMode (GL_TEXTURE);
 	GL_LoadMatrix (m);
 	glState.texIdentityMatrix[glState.activeTMU] = false;
 	}
+*/
 
 /*
 =================
@@ -591,10 +600,12 @@ qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qbo
 	r_shot->palette = NULL;
 	r_shot->buffer = buffer;
 
-	// make sure what we have right extension
-	Q_strncpy (basename, base, MAX_STRING);
+	// [FWGS, 01.05.23] make sure what we have right extension
+	/*Q_strncpy (basename, base, MAX_STRING);
 	COM_StripExtension (basename);
-	COM_DefaultExtension (basename, ".tga");
+	COM_DefaultExtension (basename, ".tga");*/
+	Q_strncpy (basename, base, sizeof (basename));
+	COM_ReplaceExtension (basename, ".tga", sizeof (basename));
 
 	// write image as 6 sides
 	result = gEngfuncs.FS_SaveImage (basename, r_shot);
@@ -703,7 +714,7 @@ rebuild_page:
 		if (FBitSet (image->flags, TF_DEPTHMAP) && !FBitSet (image->flags, TF_NOCOMPARE))
 			pglTexParameteri (image->target, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
 
-		COM_FileBase (image->name, shortname);
+		COM_FileBase (image->name, shortname, sizeof (shortname));	// [FWGS, 01.05.23]
 		if (Q_strlen (shortname) > 18)
 			{
 			// cutoff too long names, it looks ugly

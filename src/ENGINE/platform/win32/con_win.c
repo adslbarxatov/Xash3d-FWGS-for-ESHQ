@@ -18,18 +18,21 @@ GNU General Public License for more details.
 
 /*
 ===============================================================================
-
 WIN32 CONSOLE
-
 ===============================================================================
 */
 
 // console defines
 #define COMMAND_HISTORY	64	// system console keep more commands than game console
 
+// [FWGS, 01.05.23]
 typedef struct
 	{
-	char		title[64];
+	/*char		title[64];*/
+	string		title;
+	string		previousTitle;
+	UINT		previousCodePage;
+	UINT		previousOutputCodePage;
 	HWND		hWnd;
 	HANDLE		hInput;
 	HANDLE		hOutput;
@@ -45,6 +48,7 @@ typedef struct
 	string		lineBuffer[COMMAND_HISTORY];
 	qboolean	inputEnabled;
 	qboolean	consoleVisible;
+	qboolean	attached;
 
 	// log stuff
 	qboolean	log_active;
@@ -129,7 +133,8 @@ static void Wcon_PrintInternal (const char *msg, int length)
 
 void Wcon_ShowConsole (qboolean show)
 	{
-	if (!s_wcd.hWnd || (show == s_wcd.consoleVisible))
+	/*if (!s_wcd.hWnd || (show == s_wcd.consoleVisible))*/
+	if (!s_wcd.hWnd || (show == s_wcd.consoleVisible) || s_wcd.attached)	// [FWGS, 01.05.23]
 		return;
 
 	s_wcd.consoleVisible = show;
@@ -442,9 +447,7 @@ static char *Wcon_KeyEvent (int key, WCHAR character)
 
 /*
 ===============================================================================
-
 WIN32 IO
-
 ===============================================================================
 */
 
@@ -470,11 +473,12 @@ void Wcon_WinPrint (const char *pMsg)
 	Wcon_PrintInternal (pMsg, 0);
 
 	if (s_wcd.consoleTextLen)
-		{
 		Wcon_PrintInternal (s_wcd.consoleText, s_wcd.consoleTextLen);
-		}
 
-	Wcon_UpdateStatusLine ();
+	// [FWGS, 01.05.23]
+	/*Wcon_UpdateStatusLine ();*/
+	if (!s_wcd.attached)
+		Wcon_UpdateStatusLine ();
 	}
 
 /*
@@ -488,10 +492,10 @@ void Wcon_CreateConsole (void)
 	{
 	if (Sys_CheckParm ("-log"))
 		s_wcd.log_active = true;
-	
+
 	// [FWGS, 01.04.23]
 	if (host.type == HOST_NORMAL)
-		{	
+		{
 		//Q_strncpy (s_wcd.title, va ("Xash3D %s", XASH_VERSION), sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.title, "Xash3D " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));
@@ -504,7 +508,20 @@ void Wcon_CreateConsole (void)
 		s_wcd.log_active = true; // always make log
 		}
 
-	AllocConsole ();
+	// [FWGS, 01.05.23]
+	/*AllocConsole ();*/
+	s_wcd.attached = (AttachConsole (ATTACH_PARENT_PROCESS) != 0);
+	if (s_wcd.attached)
+		{
+		GetConsoleTitle (&s_wcd.previousTitle, sizeof (s_wcd.previousTitle));
+		s_wcd.previousCodePage = GetConsoleCP ();
+		s_wcd.previousOutputCodePage = GetConsoleOutputCP ();
+		}
+	else
+		{
+		AllocConsole ();
+		}
+
 	SetConsoleTitle (s_wcd.title);
 	SetConsoleCP (CP_UTF8);
 	SetConsoleOutputCP (CP_UTF8);
@@ -520,22 +537,41 @@ void Wcon_CreateConsole (void)
 		return;
 		}
 
-	SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);
+	// [FWGS, 01.05.23]
+	/*SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);*/
+	if (!s_wcd.attached)
+		{
+		SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);
 
-	// show console if needed
-	if (host.con_showalways)
-		{
-		// make console visible
-		ShowWindow (s_wcd.hWnd, SW_SHOWDEFAULT);
-		UpdateWindow (s_wcd.hWnd);
-		SetForegroundWindow (s_wcd.hWnd);
-		SetFocus (s_wcd.hWnd);
-		s_wcd.consoleVisible = true;
-		}
-	else
-		{
-		s_wcd.consoleVisible = false;
-		ShowWindow (s_wcd.hWnd, SW_HIDE);
+		/* show console if needed
+		if (host.con_showalways)
+			{
+			// make console visible
+			ShowWindow (s_wcd.hWnd, SW_SHOWDEFAULT);
+			UpdateWindow (s_wcd.hWnd);
+			SetForegroundWindow (s_wcd.hWnd);
+			SetFocus (s_wcd.hWnd);
+			s_wcd.consoleVisible = true;
+			}
+		else
+			{
+			s_wcd.consoleVisible = false;
+			ShowWindow (s_wcd.hWnd, SW_HIDE);*/
+		// show console if needed
+		if (host.con_showalways)
+			{
+			// make console visible
+			ShowWindow (s_wcd.hWnd, SW_SHOWDEFAULT);
+			UpdateWindow (s_wcd.hWnd);
+			SetForegroundWindow (s_wcd.hWnd);
+			SetFocus (s_wcd.hWnd);
+			s_wcd.consoleVisible = true;
+			}
+		else
+			{
+			s_wcd.consoleVisible = false;
+			ShowWindow (s_wcd.hWnd, SW_HIDE);
+			}
 		}
 	}
 
@@ -556,7 +592,7 @@ void Wcon_InitConsoleCommands (void)
 
 /*
 ================
-Con_DestroyConsole
+Con_DestroyConsole [FWGS, 01.05.23]
 
 destroy win32 console
 ================
@@ -568,10 +604,25 @@ void Wcon_DestroyConsole (void)
 
 	Sys_CloseLog ();
 
-	if (s_wcd.hWnd)
+	/*if (s_wcd.hWnd)*/
+	if (!s_wcd.attached)
 		{
-		ShowWindow (s_wcd.hWnd, SW_HIDE);
-		s_wcd.hWnd = 0;
+		if (s_wcd.hWnd)
+			{
+			ShowWindow (s_wcd.hWnd, SW_HIDE);
+			s_wcd.hWnd = 0;
+			}
+		}
+	else
+		{
+		/*ShowWindow (s_wcd.hWnd, SW_HIDE);
+		s_wcd.hWnd = 0;*/
+
+		// reverts title & code page for console window that was before starting Xash3D
+		SetConsoleCP (s_wcd.previousCodePage);
+		SetConsoleOutputCP (s_wcd.previousOutputCodePage);
+		SetConsoleTitle (&s_wcd.previousTitle);
+		Con_Printf ("Press Enter to continue...\n");
 		}
 
 	FreeConsole ();
@@ -590,8 +641,8 @@ returned input text
 */
 char *Wcon_Input (void)
 	{
-	int i;
-	int eventsCount;
+	DWORD i;	// [FWGS, 01.05.23]
+	DWORD eventsCount;
 	static INPUT_RECORD events[1024];
 
 	if (!s_wcd.inputEnabled)
@@ -600,17 +651,13 @@ char *Wcon_Input (void)
 	while (true)
 		{
 		if (!GetNumberOfConsoleInputEvents (s_wcd.hInput, &eventsCount))
-			{
 			return NULL;
-			}
 
 		if (eventsCount <= 0)
 			break;
 
 		if (!ReadConsoleInputW (s_wcd.hInput, events, ARRAYSIZE (events), &eventsCount))
-			{
 			return NULL;
-			}
 
 		if (eventsCount == 0)
 			return NULL;
@@ -625,6 +672,7 @@ char *Wcon_Input (void)
 				return Wcon_KeyEvent (pRec->Event.KeyEvent.wVirtualKeyCode, pRec->Event.KeyEvent.uChar.UnicodeChar);
 			}
 		}
+
 	return NULL;
 	}
 
@@ -637,7 +685,8 @@ set server status string in console
 */
 void Wcon_SetStatus (const char *pStatus)
 	{
-	if (host.type != HOST_DEDICATED)
+	/*if (host.type != HOST_DEDICATED)*/
+	if ((host.type != HOST_DEDICATED) || s_wcd.attached)	// [FWGS, 01.05.23]
 		return;
 
 	Q_strncpy (s_wcd.statusLine, pStatus, sizeof (s_wcd.statusLine) - 1);

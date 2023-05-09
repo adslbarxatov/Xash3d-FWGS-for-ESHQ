@@ -1,6 +1,10 @@
 /*
 filesystem.c - game filesystem based on DP fs
 Copyright (C) 2007 Uncle Mike
+Copyright (C) 2003-2006 Mathieu Olivier
+Copyright (C) 2000-2007 DarkPlaces contributors
+Copyright (C) 2015-2023 Xash3D FWGS contributors
+
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -50,10 +54,16 @@ static fs_interface_t fs_memfuncs =
 		_Mem_Free,
 	};
 
+// [FWGS, 01.05.23]
 static void FS_UnloadProgs (void)
 	{
-	COM_FreeLibrary (fs_hInstance);
-	fs_hInstance = 0;
+	/*COM_FreeLibrary (fs_hInstance);
+	fs_hInstance = 0;*/
+	if (fs_hInstance)
+		{
+		COM_FreeLibrary (fs_hInstance);
+		fs_hInstance = 0;
+		}
 	}
 
 #ifdef XASH_INTERNAL_GAMELIBS
@@ -97,14 +107,14 @@ qboolean FS_LoadProgs (void)
 
 /*
 ================
-FS_Init
+FS_Init [FWGS, 01.05.23]
 ================
 */
 void FS_Init (void)
 	{
-	qboolean		hasBaseDir = false;
+	/*qboolean		hasBaseDir = false;
 	qboolean		hasGameDir = false;
-	qboolean		caseinsensitive = true;
+	qboolean		caseinsensitive = true;*/
 	int		i;
 	string gamedir;
 
@@ -112,15 +122,17 @@ void FS_Init (void)
 	Cmd_AddRestrictedCommand ("fs_path", FS_Path_f_, "show filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_clearpaths", FS_ClearPaths_f, "clear filesystem search pathes");
 
+/*
 #if !XASH_WIN32
 	if (Sys_CheckParm ("-casesensitive"))
 		caseinsensitive = false;
 #endif
+*/
 
 	if (!Sys_GetParmFromCmdLine ("-game", gamedir))
 		Q_strncpy (gamedir, SI.basedirName, sizeof (gamedir)); // gamedir == basedir
 
-	if (!FS_InitStdio (caseinsensitive, host.rootdir, SI.basedirName, gamedir, host.rodir))
+	if (!FS_InitStdio (/*caseinsensitive*/ true, host.rootdir, SI.basedirName, gamedir, host.rodir))
 		{
 		Host_Error ("Can't init filesystem_stdio!\n");
 		return;
@@ -135,14 +147,17 @@ void FS_Init (void)
 
 /*
 ================
-FS_Shutdown
+FS_Shutdown [FWGS, 01.05.23]
 ================
 */
 void FS_Shutdown (void)
 	{
-	int	i;
+	/*int	i;
 
-	FS_ShutdownStdio ();
+	FS_ShutdownStdio ();*/
+
+	if (g_fsapi.ShutdownStdio)
+		g_fsapi.ShutdownStdio ();
 
 	memset (&SI, 0, sizeof (sysinfo_t));
 
@@ -186,7 +201,7 @@ ESHQ: поддержка достижений
 	if (!f)
 		return false;
 
-	Q_sprintf (temp, "//%c\\\\\n", level + 0x70);
+	Q_snprintf (temp, sizeof (temp), "//%c\\\\\n", level + 0x70);
 	FS_Print (f, temp);
 	FS_Print (f, "bind \"6\" \"impulse 211\"\n");
 
@@ -249,7 +264,7 @@ qboolean FS_WriteAchievementsScript (int NewLevel)
 		return false;
 
 	// Код проверки скрипта
-	Q_sprintf (temp, "//%c%c%c\\\\\n", WAS_Level + 0x70, ((gravity >> 4) & 0x3F) + 0x20,
+	Q_snprintf (temp, sizeof (temp), "//%c%c%c\\\\\n", WAS_Level + 0x70, ((gravity >> 4) & 0x3F) + 0x20,
 		(roomtype & 0x3F) + 0x20);
 	FS_Print (f, temp);
 
@@ -264,10 +279,10 @@ qboolean FS_WriteAchievementsScript (int NewLevel)
 		FS_Print (f, "bind \"8\" \"impulse 228\"\n");
 
 	// Независимые параметры
-	Q_sprintf (temp, "sv_gravity \"%u\"\n", gravity);
+	Q_snprintf (temp, sizeof(temp), "sv_gravity \"%u\"\n", gravity);
 	FS_Print (f, temp);
 
-	Q_sprintf (temp, "room_type \"%u\"\n", roomtype);
+	Q_snprintf (temp, sizeof (temp), "room_type \"%u\"\n", roomtype);
 	FS_Print (f, temp);
 
 	// Завершено. Принудительное выполнение

@@ -59,21 +59,21 @@ SETUP BACKENDS DEFINITIONS
 		// we are building for Android platform, use Android APIs
 		#ifndef XASH_VIDEO
 			#define XASH_VIDEO VIDEO_ANDROID
-		#endif // XASH_VIDEO
+		#endif
 
 		#ifndef XASH_INPUT
 			#define XASH_INPUT INPUT_ANDROID
-		#endif // XASH_INPUT
+		#endif
 
 		#ifndef XASH_SOUND
 			#define XASH_SOUND SOUND_OPENSLES
-		#endif // XASH_SOUND
+		#endif
 
 		#ifndef XASH_MESSAGEBOX
 			#define XASH_MESSAGEBOX MSGBOX_ANDROID
-		#endif // XASH_MESSAGEBOX
+		#endif
 
-		#define XASH_USE_EVDEV
+		#define XASH_USE_EVDEV	1	// [FWGS, 01.05.23]
 		#define XASH_DYNAMIC_DLADDR
 
 	#elif XASH_LINUX
@@ -81,17 +81,17 @@ SETUP BACKENDS DEFINITIONS
 		// we are building for Linux without SDL2, can draw only to framebuffer yet
 		#ifndef XASH_VIDEO
 			#define XASH_VIDEO VIDEO_FBDEV
-		#endif // XASH_VIDEO
+		#endif
 
 		#ifndef XASH_INPUT
 			#define XASH_INPUT INPUT_EVDEV
-		#endif // XASH_INPUT
+		#endif
 
 		#ifndef XASH_SOUND
 			#define XASH_SOUND SOUND_ALSA
-		#endif // XASH_SOUND
+		#endif
 
-		#define XASH_USE_EVDEV
+		#define XASH_USE_EVDEV	1	// [FWGS, 01.05.23]
 
 	#elif XASH_DOS4GW
 
@@ -196,7 +196,7 @@ Default build-depended cvar and constant values
 	#define DEFAULT_M_IGNORE		"1"
 
 /* [FWGS, 01.04.23]
-#else // !XASH_MOBILE_PLATFORM 
+#else
 */
 	#define DEFAULT_MODE_WIDTH		1280
 	#define DEFAULT_MODE_HEIGHT		720
@@ -230,6 +230,11 @@ Default build-depended cvar and constant values
 
 #ifndef DEFAULT_M_IGNORE
 	#define DEFAULT_M_IGNORE		"0"
+#endif
+
+// [FWGS, 01.05.23]
+#ifndef DEFAULT_JOY_DEADZONE
+	#define DEFAULT_JOY_DEADZONE "4096"
 #endif
 
 #ifndef DEFAULT_DEV

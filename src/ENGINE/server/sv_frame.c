@@ -928,13 +928,12 @@ void SV_SendClientMessages (void)
 	sv.current_client = NULL;
 	}
 
-/*
+/* [FWGS, 01.05.23]
 =======================
 SV_SendMessagesToAll
 
 e.g. before changing level
 =======================
-*/
 void SV_SendMessagesToAll (void)
 	{
 	sv_client_t *cl;
@@ -951,6 +950,7 @@ void SV_SendMessagesToAll (void)
 
 	SV_SendClientMessages ();
 	}
+*/
 
 /*
 =======================

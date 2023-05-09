@@ -142,7 +142,7 @@ static const char *VOX_GetDirectory (char *szpath, const char *psz, int nsize)
 
 	if (!p)
 		{
-		Q_strcpy (szpath, "vox/");
+		Q_strncpy (szpath, "vox/", nsize);	// [FWGS, 01.05.23]
 		return psz;
 		}
 
@@ -176,6 +176,7 @@ static const char *VOX_LookupString (const char *pszin)
 			i = Q_atoi (pszin + 1);
 			if ((sentenceEntry = Sequence_GetSentenceByIndex (i)))
 				return sentenceEntry->data;
+			return NULL;	// [FWGS, 01.05.23]
 			}
 		else
 			{

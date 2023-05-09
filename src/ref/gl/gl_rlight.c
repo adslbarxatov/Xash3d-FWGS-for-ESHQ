@@ -21,15 +21,12 @@ GNU General Public License for more details.
 
 /*
 =============================================================================
-
 DYNAMIC LIGHTS
-
 =============================================================================
 */
 /*
 ==================
 CL_RunLightStyles
-
 ==================
 */
 void CL_RunLightStyles (void)
@@ -104,7 +101,7 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 	msurface_t *surf;
 	int		i;
 
-	if (!node || node->contents < 0)
+	if (!node || (node->contents < 0))
 		return;
 
 	dist = PlaneDiff (light->origin, node->plane);
@@ -171,11 +168,10 @@ void R_PushDlights (void)
 		}
 	}
 
-/*
+/* [FWGS, 01.05.23]
 =============
 R_CountDlights
 =============
-*/
 int R_CountDlights (void)
 	{
 	dlight_t *l;
@@ -193,6 +189,7 @@ int R_CountDlights (void)
 
 	return numDlights;
 	}
+*/
 
 /*
 =============

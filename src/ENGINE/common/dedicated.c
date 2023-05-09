@@ -137,6 +137,7 @@ qboolean CL_DisableVisibility (void)
 	return false;
 	}
 
+/* [FWGS, 01.05.23]
 qboolean CL_IsBackgroundDemo (void)
 	{
 	return false;
@@ -146,6 +147,7 @@ qboolean CL_IsBackgroundMap (void)
 	{
 	return false;
 	}
+*/
 
 void CL_Init (void)
 	{

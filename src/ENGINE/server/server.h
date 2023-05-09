@@ -377,9 +377,9 @@ typedef struct
 	entity_state_t *baselines;		// [GI->max_edicts]
 	entity_state_t *static_entities;		// [MAX_STATIC_ENTITIES];
 
-	double		last_heartbeat;
+	/*double		last_heartbeat;*/	// [FWGS, 01.05.23]
 	challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting
-	uint		heartbeat_challenge;	// [FWGS, 01.04.23]
+	/*uint		heartbeat_challenge;*/	// [FWGS, 01.05.23]
 	} server_static_t;
 
 //=============================================================================
@@ -450,6 +450,8 @@ extern convar_t		coop;
 
 extern convar_t		meat_mode;		// ESHQ: meat mode
 extern convar_t		sv_cheats;		// [FWGS, 01.04.23]
+extern convar_t		public_server;	// [FWGS, 01.05.23]
+extern convar_t		sv_nat;			// [FWGS, 01.05.23]
 
 extern	convar_t *sv_pausable;		// allows pause in multiplayer
 extern	convar_t *sv_check_errors;
@@ -458,7 +460,7 @@ extern	convar_t *sv_lighting_modulate;
 extern	convar_t *sv_novis;
 extern	convar_t *sv_hostmap;
 extern	convar_t *sv_validate_changelevel;
-extern	convar_t *public_server;
+/*extern	convar_t *public_server;*/	// [FWGS, 01.05.23]
 
 //===========================================================
 //
@@ -601,7 +603,7 @@ void SV_InactivateClients (void);
 int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to);
 void SV_WriteFrameToClient (sv_client_t *client, sizebuf_t *msg);
 void SV_BuildClientFrame (sv_client_t *client);
-void SV_SendMessagesToAll (void);
+/*void SV_SendMessagesToAll (void);*/	// [FWGS, 01.05.23]
 void SV_SkipUpdates (void);
 
 //
@@ -717,6 +719,6 @@ void SV_RunLightStyles (void);
 void SV_SetLightStyle (int style, const char *s, float f);
 const char *SV_GetLightStyle (int style);
 int SV_LightForEntity (edict_t *pEdict);
-//void SV_ClearPhysEnts (void);		// [FWGS, 01.04.23]
+/*void SV_ClearPhysEnts (void);*/		// [FWGS, 01.04.23]
 
 #endif

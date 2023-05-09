@@ -82,7 +82,7 @@ static void R_ParseDetailTextures (const char *filename)
 		pfile = COM_ParseFile (pfile, token, sizeof (token));
 		yScale = Q_atof (token);
 
-		if (xScale <= 0.0f || yScale <= 0.0f)
+		if ((xScale <= 0.0f) || (yScale <= 0.0f))
 			continue;
 
 		// search for existing texture and uploading detail texture
@@ -127,11 +127,12 @@ void R_NewMap (void)
 
 		Q_strncpy (mapname, WORLDMODEL->name, sizeof (mapname));
 		COM_StripExtension (mapname);
-		Q_sprintf (filepath, "%s_detail.txt", mapname);
+		Q_snprintf (filepath, sizeof (filepath), "%s_detail.txt", mapname);	// [FWGS, 01.05.23]
 
 		R_ParseDetailTextures (filepath);
 		}
 
+	/* [FWGS, 01.05.23]
 	if (gEngfuncs.pfnGetCvarFloat ("v_dark"))
 		{
 		screenfade_t *sf = gEngfuncs.GetScreenFade ();
@@ -159,6 +160,7 @@ void R_NewMap (void)
 
 		gEngfuncs.Cvar_SetValue ("v_dark", 0.0f);
 		}
+	*/
 
 	// clear out efrags in case the level hasn't been reloaded
 	for (i = 0; i < WORLDMODEL->numleafs; i++)

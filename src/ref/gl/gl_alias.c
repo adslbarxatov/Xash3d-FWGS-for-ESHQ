@@ -445,7 +445,7 @@ rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 			}
 		}
 
-	COM_FileBase (loadmodel->name, name);
+	COM_FileBase (loadmodel->name, name, sizeof (name));	// [FWGS, 01.05.23]
 
 	// for alias models only player can have remap textures
 	if (mod != NULL && !Q_stricmp (name, "player"))

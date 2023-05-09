@@ -74,7 +74,8 @@ static void CopySections (const byte *data, PIMAGE_NT_HEADERS old_headers, PMEMO
 			}
 
 		// commit memory block and copy data from dll
-		dest = (byte *)VirtualAlloc ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress), section->SizeOfRawData, MEM_COMMIT, PAGE_READWRITE);
+		dest = (byte *)VirtualAlloc ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress),
+			section->SizeOfRawData, MEM_COMMIT, PAGE_READWRITE);
 		memcpy (dest, (byte *)CALCULATE_ADDRESS (data, section->PointerToRawData), section->SizeOfRawData);
 		section->Misc.PhysicalAddress = (DWORD)dest;
 		}
@@ -99,7 +100,8 @@ static void FreeSections (PIMAGE_NT_HEADERS old_headers, PMEMORYMODULE module)
 			continue;
 			}
 
-		VirtualFree ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress), section->SizeOfRawData, MEM_DECOMMIT);
+		VirtualFree ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress),
+			section->SizeOfRawData, MEM_DECOMMIT);
 		section->Misc.PhysicalAddress = 0;
 		}
 	}
@@ -157,7 +159,8 @@ static void PerformBaseRelocation (MEMORYMODULE *module, DWORD delta)
 
 	if (directory->Size > 0)
 		{
-		PIMAGE_BASE_RELOCATION relocation = (PIMAGE_BASE_RELOCATION)CALCULATE_ADDRESS (codeBase, directory->VirtualAddress);
+		PIMAGE_BASE_RELOCATION relocation = (PIMAGE_BASE_RELOCATION)CALCULATE_ADDRESS (codeBase,
+			directory->VirtualAddress);
 		for (; relocation->VirtualAddress > 0; )
 			{
 			byte *dest = (byte *)CALCULATE_ADDRESS (codeBase, relocation->VirtualAddress);
@@ -245,7 +248,8 @@ FARPROC MemoryGetProcAddress (void *module, const char *name)
 		}
 
 	// addressOfFunctions contains the RVAs to the "real" functions
-	return (FARPROC)CALCULATE_ADDRESS (codeBase, *(DWORD *)CALCULATE_ADDRESS (codeBase, exports->AddressOfFunctions + (idx * 4)));
+	return (FARPROC)CALCULATE_ADDRESS (codeBase, *(DWORD *)CALCULATE_ADDRESS (codeBase,
+		exports->AddressOfFunctions + (idx * 4)));
 	}
 
 static int BuildImportTable (MEMORYMODULE *module)
@@ -256,7 +260,8 @@ static int BuildImportTable (MEMORYMODULE *module)
 
 	if (directory->Size > 0)
 		{
-		PIMAGE_IMPORT_DESCRIPTOR importDesc = (PIMAGE_IMPORT_DESCRIPTOR)CALCULATE_ADDRESS (codeBase, directory->VirtualAddress);
+		PIMAGE_IMPORT_DESCRIPTOR importDesc = (PIMAGE_IMPORT_DESCRIPTOR)CALCULATE_ADDRESS (codeBase,
+			directory->VirtualAddress);
 
 		for (; !IsBadReadPtr (importDesc, sizeof (IMAGE_IMPORT_DESCRIPTOR)) && importDesc->Name; importDesc++)
 			{
@@ -274,7 +279,8 @@ static int BuildImportTable (MEMORYMODULE *module)
 				break;
 				}
 
-			module->modules = (void *)Mem_Realloc (host.mempool, module->modules, (module->numModules + 1) * (sizeof (void *)));
+			module->modules = (void *)Mem_Realloc (host.mempool, module->modules, (module->numModules + 1) *
+				(sizeof (void *)));
 			module->modules[module->numModules++] = handle;
 
 			if (importDesc->OriginalFirstThunk)
@@ -329,7 +335,8 @@ void MemoryFreeLibrary (void *hInstance)
 		if (module->initialized != 0)
 			{
 			// notify library about detaching from process
-			DllEntryProc DllEntry = (DllEntryProc)CALCULATE_ADDRESS (module->codeBase, module->headers->OptionalHeader.AddressOfEntryPoint);
+			DllEntryProc DllEntry = (DllEntryProc)CALCULATE_ADDRESS (module->codeBase,
+				module->headers->OptionalHeader.AddressOfEntryPoint);
 			(*DllEntry)((HINSTANCE)module->codeBase, DLL_PROCESS_DETACH, 0);
 			module->initialized = 0;
 			}
@@ -373,26 +380,27 @@ void *MemoryLoadLibrary (const char *name)
 
 	if (!data)
 		{
-		Q_sprintf (errorstring, "couldn't load %s", name);
+		Q_snprintf (errorstring, sizeof (errorstring), "couldn't load %s", name);
 		goto library_error;
 		}
 
 	dos_header = (PIMAGE_DOS_HEADER)data;
 	if (dos_header->e_magic != IMAGE_DOS_SIGNATURE)
 		{
-		Q_sprintf (errorstring, "%s it's not a valid executable file", name);
+		Q_snprintf (errorstring, sizeof (errorstring), "%s it's not a valid executable file", name);
 		goto library_error;
 		}
 
 	old_header = (PIMAGE_NT_HEADERS) & ((const byte *)(data))[dos_header->e_lfanew];
 	if (old_header->Signature != IMAGE_NT_SIGNATURE)
 		{
-		Q_sprintf (errorstring, "%s missing PE header", name);
+		Q_snprintf (errorstring, sizeof (errorstring), "%s missing PE header", name);
 		goto library_error;
 		}
 
 	// reserve memory for image of library
-	code = (byte *)VirtualAlloc ((LPVOID)(old_header->OptionalHeader.ImageBase), old_header->OptionalHeader.SizeOfImage, MEM_RESERVE, PAGE_READWRITE);
+	code = (byte *)VirtualAlloc ((LPVOID)(old_header->OptionalHeader.ImageBase),
+		old_header->OptionalHeader.SizeOfImage, MEM_RESERVE, PAGE_READWRITE);
 
 	if (code == NULL)
 		{
@@ -402,7 +410,7 @@ void *MemoryLoadLibrary (const char *name)
 
 	if (code == NULL)
 		{
-		Q_sprintf (errorstring, "%s can't reserve memory", name);
+		Q_snprintf (errorstring, sizeof (errorstring), "%s can't reserve memory", name);
 		goto library_error;
 		}
 
@@ -436,7 +444,7 @@ void *MemoryLoadLibrary (const char *name)
 	// load required dlls and adjust function table of imports
 	if (!BuildImportTable (result))
 		{
-		Q_sprintf (errorstring, "%s failed to build import table", name);
+		Q_snprintf (errorstring, sizeof (errorstring), "%s failed to build import table", name);
 		goto library_error;
 		}
 
@@ -450,7 +458,7 @@ void *MemoryLoadLibrary (const char *name)
 		DllEntry = (DllEntryProc)CALCULATE_ADDRESS (code, result->headers->OptionalHeader.AddressOfEntryPoint);
 		if (DllEntry == 0)
 			{
-			Q_sprintf (errorstring, "%s has no entry point", name);
+			Q_snprintf (errorstring, sizeof (errorstring), "%s has no entry point", name);
 			goto library_error;
 			}
 
@@ -458,7 +466,7 @@ void *MemoryLoadLibrary (const char *name)
 		successfull = (*DllEntry)((HINSTANCE)code, DLL_PROCESS_ATTACH, 0);
 		if (!successfull)
 			{
-			Q_sprintf (errorstring, "can't attach library %s", name);
+			Q_snprintf (errorstring, sizeof (errorstring), "can't attach library %s", name);
 			goto library_error;
 			}
 		result->initialized = 1;
@@ -475,4 +483,4 @@ library_error:
 	return NULL;
 	}
 
-#endif // XASH_LIB == LIB_WIN32 && XASH_X86
+#endif

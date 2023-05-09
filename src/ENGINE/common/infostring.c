@@ -267,17 +267,22 @@ qboolean GAME_EXPORT Info_RemoveKey (char *s, const char *key)
 		count = 0;
 		o = value;
 
-		while (count < (MAX_KV_SIZE - 1) && *s != '\\' && *s)
+		while (count < (MAX_KV_SIZE - 1) && (*s != '\\') && *s)
 			{
-			if (!*s) return false;
+			if (!*s)
+				return false;
 			*o++ = *s++;
 			count++;
 			}
 		*o = 0;
 
+		// [FWGS, 01.05.23]
 		if (!Q_strncmp (key, pkey, cmpsize))
 			{
-			Q_strcpy (start, s); // remove this part
+			/*Q_strcpy (start, s); // remove this part*/
+			size_t size = Q_strlen (s) + 1;
+			
+			memmove (start, s, size); // remove this part
 			return true;
 			}
 

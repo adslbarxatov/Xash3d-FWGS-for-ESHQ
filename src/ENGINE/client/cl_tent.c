@@ -26,9 +26,7 @@ GNU General Public License for more details.
 
 /*
 ==============================================================
-
 TEMPENTS MANAGEMENT
-
 ==============================================================
 */
 #define FLASHLIGHT_DISTANCE				1000	// ESHQ: дистанция фонарика уменьшена
@@ -1215,7 +1213,8 @@ R_TempSprite
 Create an animated moving sprite
 ===============
 */
-TEMPENTITY *R_TempSprite (vec3_t pos, const vec3_t dir, float scale, int modelIndex, int rendermode, int renderfx, float a, float life, int flags)
+TEMPENTITY *R_TempSprite (vec3_t pos, const vec3_t dir, float scale, int modelIndex, int rendermode,
+	int renderfx, float a, float life, int flags)
 	{
 	TEMPENTITY *pTemp;
 	model_t *pmodel;
@@ -1239,8 +1238,10 @@ TEMPENTITY *R_TempSprite (vec3_t pos, const vec3_t dir, float scale, int modelIn
 
 	VectorCopy (dir, pTemp->entity.baseline.origin);
 
-	if (life) pTemp->die = cl.time + life;
-	else pTemp->die = cl.time + (pTemp->frameMax * 0.1f) + 1.0f;
+	if (life)
+		pTemp->die = cl.time + life;
+	else
+		pTemp->die = cl.time + (pTemp->frameMax * 0.1f) + 1.0f;
 	pTemp->entity.curstate.frame = 0;
 
 	return pTemp;
@@ -1248,16 +1249,19 @@ TEMPENTITY *R_TempSprite (vec3_t pos, const vec3_t dir, float scale, int modelIn
 
 /*
 ===============
-R_Sprite_Explode
+R_Sprite_Explode [FWGS, 01.05.23]
 
 apply params for exploding sprite
 ===============
 */
 void GAME_EXPORT R_Sprite_Explode (TEMPENTITY *pTemp, float scale, int flags)
 	{
-	if (!pTemp) return;
+	/*if (!pTemp) return;*/
+	qboolean noadditive, drawalpha, rotate;
 
-	if (FBitSet (flags, TE_EXPLFLAG_NOADDITIVE))
+	if (!pTemp)
+		return;
+	/*if (FBitSet (flags, TE_EXPLFLAG_NOADDITIVE))
 		{
 		// solid sprite
 		pTemp->entity.curstate.rendermode = kRenderNormal;
@@ -1274,18 +1278,33 @@ void GAME_EXPORT R_Sprite_Explode (TEMPENTITY *pTemp, float scale, int flags)
 		// additive sprite
 		pTemp->entity.curstate.rendermode = kRenderTransAdd;
 		pTemp->entity.curstate.renderamt = 180;
-		}
+		}*/
 
-	if (FBitSet (flags, TE_EXPLFLAG_ROTATE))
+	noadditive = FBitSet (flags, TE_EXPLFLAG_NOADDITIVE);
+	drawalpha = FBitSet (flags, TE_EXPLFLAG_DRAWALPHA);
+	rotate = FBitSet (flags, TE_EXPLFLAG_ROTATE);
+	/*if (FBitSet (flags, TE_EXPLFLAG_ROTATE))
 		{
 		// came from hl2
 		pTemp->entity.angles[2] = COM_RandomLong (0, 360);
-		}
+		}*/
 
-	pTemp->entity.curstate.renderfx = kRenderFxNone;
+	/*pTemp->entity.curstate.renderfx = kRenderFxNone;
 	pTemp->entity.baseline.origin[2] = 8;
-	pTemp->entity.origin[2] += 10;
+	pTemp->entity.origin[2] += 10;*/
 	pTemp->entity.curstate.scale = scale;
+	pTemp->entity.baseline.origin[2] = 8.0f;
+	pTemp->entity.origin[2] = pTemp->entity.origin[2] + 10.0f;
+	if (rotate)
+		pTemp->entity.angles[2] = COM_RandomFloat (0.0, 360.0f);
+
+	pTemp->entity.curstate.rendermode = noadditive ? kRenderNormal :
+		drawalpha ? kRenderTransAlpha : kRenderTransAdd;
+	pTemp->entity.curstate.renderamt = noadditive ? 0xff : 0xb4;
+	pTemp->entity.curstate.renderfx = 0;
+	pTemp->entity.curstate.rendercolor.r = 0;
+	pTemp->entity.curstate.rendercolor.g = 0;
+	pTemp->entity.curstate.rendercolor.b = 0;
 	}
 
 /*

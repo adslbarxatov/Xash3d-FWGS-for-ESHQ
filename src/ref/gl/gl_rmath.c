@@ -18,9 +18,7 @@ GNU General Public License for more details.
 
 /*
 ========================================================================
-
-		   Matrix4x4 operations (private to renderer)
-
+Matrix4x4 operations (private to renderer)
 ========================================================================
 */
 void Matrix4x4_Concat (matrix4x4 out, const matrix4x4 in1, const matrix4x4 in2)
@@ -119,6 +117,7 @@ void Matrix4x4_ToArrayFloatGL (const matrix4x4 in, float out[16])
 	out[15] = in[3][3];
 	}
 
+/* [FWGS, 01.05.23]
 void Matrix4x4_FromArrayFloatGL (matrix4x4 out, const float in[16])
 	{
 	out[0][0] = in[0];
@@ -138,6 +137,7 @@ void Matrix4x4_FromArrayFloatGL (matrix4x4 out, const float in[16])
 	out[2][3] = in[14];
 	out[3][3] = in[15];
 	}
+*/
 
 void Matrix4x4_CreateTranslate (matrix4x4 out, float x, float y, float z)
 	{
@@ -190,6 +190,7 @@ void Matrix4x4_CreateRotate (matrix4x4 out, float angle, float x, float y, float
 	out[3][3] = 1.0f;
 	}
 
+/* [FWGS, 01.05.23]
 void Matrix4x4_CreateScale (matrix4x4 out, float x)
 	{
 	out[0][0] = x;
@@ -229,6 +230,7 @@ void Matrix4x4_CreateScale3 (matrix4x4 out, float x, float y, float z)
 	out[3][2] = 0.0f;
 	out[3][3] = 1.0f;
 	}
+*/
 
 void Matrix4x4_ConcatTranslate (matrix4x4 out, float x, float y, float z)
 	{
@@ -248,6 +250,7 @@ void Matrix4x4_ConcatRotate (matrix4x4 out, float angle, float x, float y, float
 	Matrix4x4_Concat (out, base, temp);
 	}
 
+/* [FWGS, 01.05.23]
 void Matrix4x4_ConcatScale (matrix4x4 out, float x)
 	{
 	matrix4x4	base, temp;
@@ -265,3 +268,4 @@ void Matrix4x4_ConcatScale3 (matrix4x4 out, float x, float y, float z)
 	Matrix4x4_CreateScale3 (temp, x, y, z);
 	Matrix4x4_Concat (out, base, temp);
 	}
+*/

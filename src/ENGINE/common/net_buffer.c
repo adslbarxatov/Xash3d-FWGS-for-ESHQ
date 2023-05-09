@@ -18,8 +18,8 @@ GNU General Public License for more details.
 #include "net_buffer.h"
 #include "xash3d_mathlib.h"
 
-//#define DEBUG_NET_MESSAGES_SEND
-//#define DEBUG_NET_MESSAGES_READ
+/*#define DEBUG_NET_MESSAGES_SEND
+#define DEBUG_NET_MESSAGES_READ*/
 
 // precalculated bit masks for WriteUBitLong.
 // Using these tables instead of doing the calculations
@@ -188,7 +188,7 @@ int MSG_SeekToBit (sizebuf_t *sb, int bitPos, int whence)
 			return -1;
 		}
 
-	if (bitPos < 0 || bitPos > sb->nDataBits)
+	if ((bitPos < 0) || (bitPos > sb->nDataBits))
 		return -1;
 
 	sb->iCurBit = bitPos;
@@ -334,7 +334,8 @@ void MSG_WriteBitAngle (sizebuf_t *sb, float fAngle, int numbits)
 
 	// clamp the angle before receiving
 	fAngle = fmod (fAngle, 360.0f);
-	if (fAngle < 0) fAngle += 360.0f;
+	if (fAngle < 0)
+		fAngle += 360.0f;
 
 	shift = (1 << numbits);
 	mask = shift - 1;
@@ -350,7 +351,8 @@ void MSG_WriteCoord (sizebuf_t *sb, float val)
 	// g-cont. we loose precision here but keep old size of coord variable!
 	if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
 		MSG_WriteShort (sb, Q_rint (val));
-	else MSG_WriteShort (sb, (int)(val * 8.0f));
+	else
+		MSG_WriteShort (sb, (int)(val * 8.0f));
 	}
 
 void MSG_WriteVec3Coord (sizebuf_t *sb, const float *fa)
@@ -367,6 +369,7 @@ void MSG_WriteVec3Angles (sizebuf_t *sb, const float *fa)
 	MSG_WriteBitAngle (sb, fa[2], 16);
 	}
 
+/* [FWGS, 01.05.23]
 void MSG_WriteBitFloat (sizebuf_t *sb, float val)
 	{
 	int	intVal;
@@ -374,11 +377,10 @@ void MSG_WriteBitFloat (sizebuf_t *sb, float val)
 	Assert (sizeof (int) == sizeof (float));
 	Assert (sizeof (float) == 4);
 
-	// [FWGS, 01.04.23]
-	/*intVal = *((int *)&val);*/
 	intVal = FloatAsInt (val);
 	MSG_WriteUBitLong (sb, intVal, 32);
 	}
+*/
 
 void MSG_WriteCmdExt (sizebuf_t *sb, int cmd, netsrc_t type, const char *name)
 	{
@@ -538,6 +540,7 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 	return ret;
 	}
 
+/* [FWGS, 01.05.23]
 float MSG_ReadBitFloat (sizebuf_t *sb)
 	{
 	int	val;
@@ -561,10 +564,9 @@ float MSG_ReadBitFloat (sizebuf_t *sb)
 		val |= ((int)sb->pData[byte + 4]) << (32 - bit);
 	sb->iCurBit += 32;
 
-	// [FWGS, 01.04.23]
-	/*return *((float *)&val);*/
 	return IntAsFloat (val);
 	}
+*/
 
 qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)
 	{

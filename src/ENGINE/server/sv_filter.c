@@ -30,9 +30,7 @@ static ipfilter_t *ipfilter = NULL;*/
 
 /*
 =============================================================================
-
 PLAYER ID FILTER
-
 =============================================================================
 */
 typedef struct cidfilter_s
@@ -155,6 +153,7 @@ qboolean SV_CheckIP (netadr_t *addr)
 	return ret;
 	}*/
 
+// [FWGS, 01.05.23]
 static void SV_BanID_f (void)
 	{
 	float time = Q_atof (Cmd_Argv (1));
@@ -167,57 +166,100 @@ static void SV_BanID_f (void)
 
 	if (!id[0])
 		{
-		// [FWGS, 01.04.23]
 		/*Con_Reportf ("Usage: banid <minutes> <#userid or unique id>\n0 minutes for permanent ban\n");*/
 		Con_Reportf (S_USAGE "banid <minutes> <#userid or unique id>\n0 minutes for permanent ban\n");
 		return;
 		}
 
-	if (!Q_strnicmp (id, "STEAM_", 6) || !Q_strnicmp (id, "VALVE_", 6))
+	/*if (!Q_strnicmp (id, "STEAM_", 6) || !Q_strnicmp (id, "VALVE_", 6))
 		id += 6;
 	if (!Q_strnicmp (id, "XASH_", 5))
-		id += 5;
-
-	if (svs.clients)
+		id += 5;*/
+	if (!svs.clients)
 		{
-		if (id[0] == '#')
-			cl = SV_ClientById (Q_atoi (id + 1));
+		Con_Reportf (S_ERROR "banid: no players\n");
+		return;
+		}
+
+	/*if (svs.clients)*/
+	if (id[0] == '#')
+		{
+	/*if (id[0] == '#')
+			cl = SV_ClientById (Q_atoi (id + 1));*/
+
+		Con_Printf (S_ERROR "banid: not supported\n");
+		return;
+
+#if 0
+		int i = Q_atoi (&id[1]);
+		cl = SV_ClientById (i);
 
 		if (!cl)
 			{
-			int i;
+			/*int i;
 			sv_client_t *cl1;
-			int len = Q_strlen (id);
+			int len = Q_strlen (id);*/
 
-			for (i = 0, cl1 = svs.clients; i < sv_maxclients->value; i++, cl1++)
+			Con_Printf (S_ERROR "banid: no such player with userid %d\n", i);
+			return;
+			}
+#endif
+
+		}
+	else
+		{
+		size_t len;
+		int i;
+
+		if (!Q_strnicmp (id, "STEAM_", 6) || !Q_strnicmp (id, "VALVE_", 6))
+			id += 6;
+		if (!Q_strnicmp (id, "XASH_", 5))
+			id += 5;
+
+		len = Q_strlen (id);
+
+		for (i = 0; i < sv_maxclients->value; i++)
+			{
+			if (FBitSet (svs.clients[i].flags, FCL_FAKECLIENT))
+				continue;
+
+			if (svs.clients[i].state != cs_spawned)
+				continue;
+
+			/*for (i = 0, cl1 = svs.clients; i < sv_maxclients->value; i++, cl1++)*/
+			if (!Q_strncmp (id, Info_ValueForKey (svs.clients[i].useragent, "uuid"), len))
 				{
-				if (!Q_strncmp (id, Info_ValueForKey (cl1->useragent, "uuid"), len))
+				/*if (!Q_strncmp (id, Info_ValueForKey (cl1->useragent, "uuid"), len))
 					{
 					cl = cl1;
 					break;
-					}
+					}*/
+				cl = &svs.clients[i];
+				break;
 				}
 			}
 
 		if (!cl)
 			{
-			Con_DPrintf (S_WARN "banid: no such player\n");
+			/*Con_DPrintf (S_WARN "banid: no such player\n");
 			}
 		else
 			id = Info_ValueForKey (cl->useragent, "uuid");
 
 		if (!id[0])
 			{
-			Con_DPrintf (S_ERROR "Could not ban, not implemented yet\n");
+			Con_DPrintf (S_ERROR "Could not ban, not implemented yet\n");*/
+			Con_Printf (S_ERROR "banid: no such player with userid %s\n", id);
 			return;
 			}
 		}
 
-	if (!id[0] || id[0] == '#')
+	/*if (!id[0] || id[0] == '#')
 		{
 		Con_DPrintf (S_ERROR "banid: bad id\n");
 		return;
-		}
+		}*/
+	id = Info_ValueForKey (cl->useragent, "uuid");
 
 	SV_RemoveID (id);
 
@@ -227,7 +269,6 @@ static void SV_BanID_f (void)
 	Q_strncpy (filter->id, id, sizeof (filter->id));
 	cidfilter = filter;
 
-	// [FWGS, 01.04.23]
 	if (cl && !Q_stricmp (Cmd_Argv (Cmd_Argc () - 1), "kick"))
 		Cbuf_AddTextf ("kick #%d \"Kicked and banned\"\n", cl->userid);
 	/*Cbuf_AddText (va ("kick #%d \"Kicked and banned\"\n", cl->userid));*/

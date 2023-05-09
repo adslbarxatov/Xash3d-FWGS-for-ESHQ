@@ -719,12 +719,10 @@ void SV_AddGravity (edict_t *ent)
 	SV_CheckVelocity (ent);
 	}
 
-/*
+/* [FWGS, 01.05.23]
 ============
 SV_AddHalfGravity
-
 ============
-*/
 void SV_AddHalfGravity (edict_t *ent, float timestep)
 	{
 	float	ent_gravity;
@@ -742,12 +740,11 @@ void SV_AddHalfGravity (edict_t *ent, float timestep)
 	// bound velocity
 	SV_CheckVelocity (ent);
 	}
+*/
 
 /*
 ===============================================================================
-
 PUSHMOVE
-
 ===============================================================================
 */
 /*
@@ -763,7 +760,7 @@ qboolean SV_AllowPushRotate (edict_t *ent)
 
 	mod = SV_ModelHandle (ent->v.modelindex);
 
-	if (!mod || mod->type != mod_brush)
+	if (!mod || (mod->type != mod_brush))
 		return true;
 
 	if (!FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT))

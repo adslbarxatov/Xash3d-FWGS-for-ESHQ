@@ -93,12 +93,24 @@ _inline int Sys_Start (void)
 #if !XASH_WIN32
 int main (int argc, char **argv)
 	{
+	// [FWGS, 01.05.23]
+#if XASH_PSVITA
+	
+	// inject -dev -console into args if required
+	szArgc = PSVita_GetArgv (argc, argv, &szArgv);
+
+#else
+
 	szArgc = argc;
 	szArgv = argv;
 
+#endif
+
 	return Sys_Start ();
 	}
+
 #else
+
 int __stdcall WinMain (HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR cmdLine, int nShow)
 	{
 	LPWSTR *lpArgv;
@@ -127,7 +139,6 @@ int __stdcall WinMain (HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR cmdLine, int 
 
 	return ret;
 	}
-#endif // XASH_WIN32
-
+#endif
 
 #endif

@@ -27,7 +27,7 @@ convar_t *vibration_enable;
 
 // [FWGS, 01.04.23]
 static cl_font_t g_scaled_font;
-static float g_font_scale; 
+static float g_font_scale;
 
 static void pfnVibrate (float life, char flags)
 	{
@@ -97,7 +97,7 @@ static int pfnDrawScaledCharacter (int x, int y, int number, int r, int g, int b
 
 		g_font_scale = scale;
 		}
-		
+
 	/*if (y < -height)
 		return 0;
 
