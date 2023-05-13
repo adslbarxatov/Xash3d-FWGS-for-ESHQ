@@ -36,7 +36,7 @@
 #define CONTROLLER_AE_POWERUP_FULL	4
 #define CONTROLLER_AE_POWERUP_HALF	5
 
-#define CONTROLLER_FLINCH_DELAY			2		// at most one flinch every n secs
+#define CONTROLLER_FLINCH_DELAY		2		// at most one flinch every n secs
 
 class CController: public CSquadMonster
 	{

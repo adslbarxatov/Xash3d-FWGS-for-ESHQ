@@ -104,10 +104,7 @@ void CRoach::Touch (CBaseEntity* pOther)
 //=========================================================
 void CRoach::SetYawSpeed (void)
 	{
-	int ys;
-
-	ys = 120;
-
+	int ys = 120;
 	pev->yaw_speed = ys;
 	}
 
@@ -136,7 +133,7 @@ void CRoach::Spawn ()
 	pev->takedamage = DAMAGE_YES;
 	m_fLightHacked = FALSE;
 	m_flLastLightLevel = -1;
-	m_iMode = ROACH_IDLE;
+	m_iMode = ROACH_SCARED_BY_ENT;	// ESHQ: принудительное обновление позиции
 	m_flNextSmellTime = gpGlobals->time;
 	}
 

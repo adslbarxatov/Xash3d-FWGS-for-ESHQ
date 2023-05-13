@@ -134,12 +134,12 @@ void CRat::Spawn ()
 
 	SetActivity (ACT_IDLE);
 
-	pev->view_ofs = Vector (0, 0, 3);// position of the eyes relative to monster's origin.
+	pev->view_ofs = Vector (0, 0, 3);// position of the eyes relative to monster's origin
 	pev->takedamage = DAMAGE_YES;
 	pev->skin = RANDOM_LONG (0, 1);
 	m_fLightHacked = FALSE;
 	m_flLastLightLevel = -1;
-	m_iMode = RAT_IDLE;
+	m_iMode = RAT_SCARED_BY_ENT;	// ESHQ: принудительное обновление позиции
 	m_flNextSmellTime = gpGlobals->time;
 	}
 
@@ -196,14 +196,14 @@ void CRat::MonsterThink (void)
 	if (!m_fLightHacked)
 		{
 		// if light value hasn't been collection for the first time yet, 
-		// suspend the creature for a second so the world finishes spawning, then we'll collect the light level.
+		// suspend the creature for a second so the world finishes spawning, then we'll collect the light level
 		pev->nextthink = gpGlobals->time + 1;
 		m_fLightHacked = TRUE;
 		return;
 		}
 	else if (m_flLastLightLevel < 0)
 		{
-		// collect light level for the first time, now that all of the lightmaps in the rat's area have been calculated.
+		// collect light level for the first time, now that all of the lightmaps in the rat's area have been calculated
 		m_flLastLightLevel = GETENTITYILLUM (ENT (pev));
 		}
 
@@ -212,30 +212,26 @@ void CRat::MonsterThink (void)
 		case	RAT_IDLE:
 		case	RAT_EAT:
 			{
-			// if not moving, sample environment to see if anything scary is around. Do a radius search 'look' at random.
+			// if not moving, sample environment to see if anything scary is around. Do a radius search 'look' at random
 			if (RANDOM_LONG (0, 3) == 1)
 				{
 				Look (150);
 				if (HasConditions (bits_COND_SEE_FEAR))
 					{
 					// if see something scary
-					//ALERT (at_aiconsole, "Scared\n");
-					Eat (30 + (RANDOM_LONG (0, 14)));// rat will ignore food for 30 to 45 seconds
+					Eat (30 + (RANDOM_LONG (0, 14)));	// rat will ignore food for 30 to 45 seconds
 					PickNewDest (RAT_SCARED_BY_ENT);
 					SetActivity (ACT_WALK);
 					}
 				else if (RANDOM_LONG (0, 149) == 1)
 					{
 					// if rat doesn't see anything, there's still a chance that it will move. (boredom)
-					//ALERT (at_aiconsole, "Bored\n");
 					PickNewDest (RAT_BORED);
 					SetActivity (ACT_WALK);
 
+					// rat will ignore food for 30 to 45 seconds if it got bored while eating
 					if (m_iMode == RAT_EAT)
-						{
-						// rat will ignore food for 30 to 45 seconds if it got bored while eating. 
 						Eat (30 + (RANDOM_LONG (0, 14)));
-						}
 					}
 				}
 
@@ -243,14 +239,11 @@ void CRat::MonsterThink (void)
 			if (m_iMode == RAT_IDLE)
 				{
 				if (FShouldEat ())
-					{
 					Listen ();
-					}
 
 				if (GETENTITYILLUM (ENT (pev)) > m_flLastLightLevel)
 					{
 					// someone turned on lights!
-					//ALERT (at_console, "Lights! Rats run away!\n");
 					PickNewDest (RAT_SCARED_BY_LIGHT);
 					SetActivity (ACT_WALK);
 					}
@@ -277,16 +270,14 @@ void CRat::MonsterThink (void)
 			if (GETENTITYILLUM (ENT (pev)) <= m_flLastLightLevel)
 				{
 				SetActivity (ACT_IDLE);
-				m_flLastLightLevel = GETENTITYILLUM (ENT (pev));// make this our new light level.
+				m_flLastLightLevel = GETENTITYILLUM (ENT (pev));// make this our new light level
 				}
 			break;
 			}
 		}
 
 	if (m_flGroundSpeed != 0)
-		{
 		Move (flInterval);
-		}
 	}
 
 //=========================================================
@@ -302,9 +293,8 @@ void CRat::PickNewDest (int iCondition)
 
 	if (m_iMode == RAT_SMELL_FOOD)
 		{
-		// find the food and go there.
+		// find the food and go there
 		CSound* pSound;
-
 		pSound = CSoundEnt::SoundPointerForIndex (m_iAudibleList);
 
 		if (pSound)
@@ -322,12 +312,11 @@ void CRat::PickNewDest (int iCondition)
 		{
 		// picks a random spot, requiring that it be at least 128 units away
 		// else, the rat will pick a spot too close to itself and run in 
-		// circles. this is a hack but buys me time to work on the real monsters.
+		// circles. this is a hack but buys me time to work on the real monsters
 		vecNewDir.x = RANDOM_FLOAT (-1, 1);
 		vecNewDir.y = RANDOM_FLOAT (-1, 1);
 		flDist = 256 + (RANDOM_LONG (0, 255));
 		vecDest = pev->origin + vecNewDir * flDist;
-
 		} while ((vecDest - pev->origin).Length2D () < 128);
 
 		m_Route[0].vecLocation.x = vecDest.x;
@@ -336,11 +325,9 @@ void CRat::PickNewDest (int iCondition)
 		m_Route[0].iType = bits_MF_TO_LOCATION;
 		m_movementGoal = RouteClassify (m_Route[0].iType);
 
+		// every once in a while, a rat will play a skitter sound when they decide to run
 		if (RANDOM_LONG (0, 5) == 1)
-			{
-			// every once in a while, a rat will play a skitter sound when they decide to run
 			EMIT_SOUND_DYN (ENT (pev), CHAN_BODY, "roach/rch_walk.wav", 1, ATTN_MEDIUM, 0, 80 + RANDOM_LONG (0, 39));
-			}
 	}
 
 //=========================================================
@@ -351,7 +338,7 @@ void CRat::Move (float flInterval)
 	float		flWaypointDist;
 	Vector		vecApex;
 
-	// local move to waypoint.
+	// local move to waypoint
 	flWaypointDist = (m_Route[m_iRouteIndex].vecLocation - pev->origin).Length2D ();
 	MakeIdealYaw (m_Route[m_iRouteIndex].vecLocation);
 
@@ -360,7 +347,7 @@ void CRat::Move (float flInterval)
 
 	if (RANDOM_LONG (0, 7) == 1)
 		{
-		// randomly check for blocked path.(more random load balancing)
+		// randomly check for blocked path (more random load balancing)
 		if (!WALK_MOVE (ENT (pev), pev->ideal_yaw, 4, WALKMOVE_NORMAL))
 			{
 			// stuck, so just pick a new spot to run off to
@@ -378,25 +365,19 @@ void CRat::Move (float flInterval)
 		m_flLastLightLevel = GETENTITYILLUM (ENT (pev));// this is rat's new comfortable light level
 
 		if (m_iMode == RAT_SMELL_FOOD)
-			{
 			m_iMode = RAT_EAT;
-			}
 		else
-			{
 			m_iMode = RAT_IDLE;
-			}
 		}
 
-	if (RANDOM_LONG (0, 149) == 1 && m_iMode != RAT_SCARED_BY_LIGHT && m_iMode != RAT_SMELL_FOOD)
-		{
-		// random skitter while moving as long as not on a b-line to get out of light or going to food
+	// random skitter while moving as long as not on a b-line to get out of light or going to food
+	if ((RANDOM_LONG (0, 149) == 1) && (m_iMode != RAT_SCARED_BY_LIGHT) && (m_iMode != RAT_SMELL_FOOD))
 		PickNewDest (FALSE);
-		}
 	}
 
 //=========================================================
 // Look - overriden for the rat, which can virtually see 
-// 360 degrees.
+// 360 degrees
 //=========================================================
 void CRat::Look (int iDistance)
 	{
@@ -410,9 +391,7 @@ void CRat::Look (int iDistance)
 	// don't let monsters outside of the player's PVS act up, or most of the interesting
 	// things will happen before the player gets there!
 	if (FNullEnt (FIND_CLIENT_IN_PVS (edict ())))
-		{
 		return;
-		}
 
 	m_pLink = NULL;
 	pPreviousEnt = this;
@@ -428,13 +407,13 @@ void CRat::Look (int iDistance)
 			if (!FBitSet (pSightEnt->pev->flags, FL_NOTARGET) && pSightEnt->pev->health > 0)
 				{
 				// NULL the Link pointer for each ent added to the link list. If other ents follow, the will overwrite
-				// this value. If this ent happens to be the last, the list will be properly terminated.
+				// this value. If this ent happens to be the last, the list will be properly terminated
 				pPreviousEnt->m_pLink = pSightEnt;
 				pSightEnt->m_pLink = NULL;
 				pPreviousEnt = pSightEnt;
 
 				// don't add the Enemy's relationship to the conditions. We only want to worry about conditions when
-				// we see monsters other than the Enemy.
+				// we see monsters other than the Enemy
 				switch (IRelationship (pSightEnt))
 					{
 					case	R_FR:
@@ -443,11 +422,13 @@ void CRat::Look (int iDistance)
 					case	R_NO:
 						break;
 					default:
-						ALERT (at_console, "%s can't asses %s\n", STRING (pev->classname), STRING (pSightEnt->pev->classname));
+						ALERT (at_console, "%s can't asses %s\n", STRING (pev->classname),
+							STRING (pSightEnt->pev->classname));
 						break;
 					}
 				}
 			}
 		}
+
 	SetConditions (iSighted);
 	}

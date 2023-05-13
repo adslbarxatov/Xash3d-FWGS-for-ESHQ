@@ -87,7 +87,7 @@ void CPython::Precache (void)
 	PRECACHE_MODEL ("models/w_357ammobox.mdl");
 	PRECACHE_SOUND ("items/9mmclip1.wav");
 
-	//PRECACHE_SOUND ("weapons/357_reload1.wav");	// ESHQ: возможно, больше не потребуется
+	PRECACHE_SOUND ("weapons/357_reload1.wav");	// ESHQ: возможно, больше не потребуется
 	PRECACHE_SOUND ("weapons/357_cock1.wav");
 	PRECACHE_SOUND ("weapons/357_shot1.wav");
 	PRECACHE_SOUND ("weapons/357_shot2.wav");
@@ -206,31 +206,31 @@ void CPython::Reload (void)
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
 		}
 
-	// ESHQ: включение зума, удаление лишних определений
-	/*if (m_flSoundDelay <= UTIL_WeaponTimeBase ())
+	// ESHQ: местная озвучка перезарядки заменила внутримодельное событие
+	/*m_flSoundDelay = 4.0f;*/
+	if (DefaultReload (PYTHON_MAX_CLIP, PYTHON_RELOAD, 3.5f, FALSE))
 		{
-		m_flSoundDelay = UTIL_WeaponTimeBase () + 4.0f;
-		DefaultReload (6, PYTHON_RELOAD, 4.0, FALSE);
+		/*if ((m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
+			{*/
+		EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav",
+			RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
+		/*m_flSoundDelay = 0.0f;
 		}*/
-
-	// ESHQ: местная озвучка перезарядки больше не требуется
-	if (DefaultReload (6, PYTHON_RELOAD, 4.0, FALSE))
-		m_flSoundDelay = 1.5;
+		}
 	}
 
 void CPython::WeaponIdle (void)
 	{
 	ResetEmptySound ();
-
 	m_pPlayer->GetAutoaimVector (AUTOAIM_10DEGREES);
 
 	// ESHQ: здесь не работает
-	if (((int)m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
+	/*if ((m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
 		{
-		//EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", 
-		//	RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
-		m_flSoundDelay = 0;
-		}
+		EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", 
+			RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
+		m_flSoundDelay = 0.0f;
+		}*/
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase ())
 		return;
@@ -240,26 +240,25 @@ void CPython::WeaponIdle (void)
 	if (flRand <= 0.5)
 		{
 		iAnim = PYTHON_IDLE1;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (70.0 / 30.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (70.0f / 30.0f);
 		}
 	else if (flRand <= 0.7)
 		{
 		iAnim = PYTHON_IDLE2;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (60.0 / 30.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (60.0f / 30.0f);
 		}
 	else if (flRand <= 0.9)
 		{
 		iAnim = PYTHON_IDLE3;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (88.0 / 30.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (88.0f / 30.0f);
 		}
 	else
 		{
 		iAnim = PYTHON_FIDGET;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (170.0 / 30.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + (170.0f / 30.0f);
 		}
 
 	// ESHQ: включение зума, удаление лишних элементов
-	m_flSoundDelay = 0;
 	SendWeaponAnim (iAnim, UseDecrement () ? 1 : 0, FALSE);
 	}
 

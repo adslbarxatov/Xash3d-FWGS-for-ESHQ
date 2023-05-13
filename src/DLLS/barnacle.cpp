@@ -96,7 +96,7 @@ int	CBarnacle::Classify (void)
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
 //
-// Returns number of events handled, 0 if none.
+// Returns number of events handled, 0 if none
 //=========================================================
 void CBarnacle::HandleAnimEvent (MonsterEvent_t *pEvent)
 	{
@@ -105,8 +105,9 @@ void CBarnacle::HandleAnimEvent (MonsterEvent_t *pEvent)
 		// ESHQ
 		case BARNACLE_AE_PUKEGIB:
 			if (!FBitSet (pev->spawnflags, BARNACLE_WILL_NOT_GIB))
-				CGib::SpawnRandomGibs (pev, 1, 1);
+				CGib::SpawnRandomGibs2 (pev, 1, 0);	// ESHQ: изменено поведение
 			break;
+
 		default:
 			CBaseMonster::HandleAnimEvent (pEvent);
 			break;
@@ -286,8 +287,8 @@ void CBarnacle::BarnacleThink (void)
 
 		if (m_cGibs && (RANDOM_LONG (0, 99) == 1))
 			{
-			// cough up a gib.
-			CGib::SpawnRandomGibs (pev, 1, 1);
+			// cough up a gib
+			CGib::SpawnRandomGibs2 (pev, 1, 0);	// ESHQ: изменено поведение
 			m_cGibs--;
 
 			switch (RANDOM_LONG (0, 2))

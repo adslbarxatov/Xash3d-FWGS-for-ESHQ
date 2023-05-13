@@ -169,7 +169,7 @@ void CCycler::Spawn ()
 
 	ResetSequenceInfo ();
 
-	if (/*pev->sequence != 0 ||*/ pev->frame != 0)	// ESHQ: непонятно, зачем было отключать анимацию на ненулевых секъюэнсах
+	if (pev->frame != 0)	// ESHQ: непонятно, зачем было отключать анимацию на ненулевых секъюэнсах
 		{
 		m_animate = 0;
 		pev->framerate = 0;
@@ -290,9 +290,7 @@ void CCycler::DamageSound (void)
 		}
 
 	if (i)
-		{
 		EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, rgpsz[RANDOM_LONG (0, i - 1)], fvol, ATTN_MEDIUM, 0, pitch);
-		}
 	}
 
 // Обработка получения урона
@@ -313,13 +311,12 @@ int CCycler::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 
 	// Звук материала
 	DamageSound ();
-
 	return 0;
 	}
 
 #endif
 
-// ESHQ: устаревший объект
+/* ESHQ: устаревший объект
 class CCyclerSprite: public CBaseEntity
 	{
 	public:
@@ -339,9 +336,11 @@ class CCyclerSprite: public CBaseEntity
 		float		m_lastTime;
 		float		m_maxFrame;
 	};
+*/
 
-LINK_ENTITY_TO_CLASS (cycler_sprite, CCyclerSprite);
+LINK_ENTITY_TO_CLASS (cycler_sprite, CGenericCycler/*CCyclerSprite*/);
 
+/*
 TYPEDESCRIPTION	CCyclerSprite::m_SaveData[] =
 	{
 		DEFINE_FIELD (CCyclerSprite, m_animate, FIELD_INTEGER),
@@ -413,9 +412,11 @@ class CWeaponCycler: public CBasePlayerWeapon
 		int m_iszModel;
 		int m_iModel;
 	};
+*/
 
-LINK_ENTITY_TO_CLASS (cycler_weapon, CWeaponCycler);
+LINK_ENTITY_TO_CLASS (cycler_weapon, CGenericCycler/*CWeaponCycler*/);
 
+/*
 void CWeaponCycler::Spawn ()
 	{
 	pev->solid = SOLID_SLIDEBOX;
@@ -470,8 +471,9 @@ void CWeaponCycler::SecondaryAttack (void)
 
 	m_flNextSecondaryAttack = gpGlobals->time + 0.3;
 	}
+*/
 
-// Flaming Wreckage
+// Flaming wreckage
 class CWreckage: public CBaseMonster
 	{
 	int		Save (CSave& save);
@@ -491,7 +493,6 @@ TYPEDESCRIPTION	CWreckage::m_SaveData[] =
 	};
 
 IMPLEMENT_SAVERESTORE (CWreckage, CBaseMonster);
-
 LINK_ENTITY_TO_CLASS (cycler_wreckage, CWreckage);
 
 void CWreckage::Spawn (void)

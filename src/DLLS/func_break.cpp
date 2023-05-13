@@ -259,8 +259,8 @@ const char** CBreakable::MaterialSoundList (Materials precacheMaterial, int& sou
 
 void CBreakable::MaterialSoundPrecache (Materials precacheMaterial)
 	{
-	const char** pSoundList;
-	int			i, soundCount = 0;
+	const char**	pSoundList;
+	int				i, soundCount = 0;
 
 	pSoundList = MaterialSoundList (precacheMaterial, soundCount);
 
@@ -270,8 +270,8 @@ void CBreakable::MaterialSoundPrecache (Materials precacheMaterial)
 
 void CBreakable::MaterialSoundRandom (edict_t* pEdict, Materials soundMaterial, float volume)
 	{
-	const char** pSoundList;
-	int			soundCount = 0;
+	const char**	pSoundList;
+	int				soundCount = 0;
 
 	pSoundList = MaterialSoundList (soundMaterial, soundCount);
 
@@ -439,9 +439,7 @@ void CBreakable::BreakTouch (CBaseEntity* pOther)
 
 	// only players can break these right now
 	if (!pOther->IsPlayer () || !IsBreakable ())
-		{
 		return;
-		}
 
 	if (FBitSet (pev->spawnflags, SF_BREAK_TOUCH))
 		{// can be broken when run into 
@@ -467,28 +465,27 @@ void CBreakable::BreakTouch (CBaseEntity* pOther)
 		SetTouch (NULL);
 
 		if (m_flDelay == 0)
-			{// !!!BUGBUG - why doesn't zero delay work?
 			m_flDelay = 0.1;
-			}
 
 		pev->nextthink = pev->ltime + m_flDelay;
 		}
 	}
 
 // Break when triggered
-void CBreakable::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CBreakable::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
-	if (IsBreakable ())
-		{
-		pev->angles.y = m_angle;
-		UTIL_MakeVectors (pev->angles);
-		g_vecAttackDir = gpGlobals->v_forward;
+	if (!IsBreakable ())
+		return;
 
-		Die ();
-		}
+	pev->angles.y = m_angle;
+	UTIL_MakeVectors (pev->angles);
+	g_vecAttackDir = gpGlobals->v_forward;
+
+	Die ();
 	}
 
-void CBreakable::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType)
+void CBreakable::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir,
+	TraceResult* ptr, int bitsDamageType)
 	{
 	// ESHQ: принудительные искры при ударе по металлу
 	if (m_Material == matMetal)
@@ -510,6 +507,7 @@ void CBreakable::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vec
 					case 0: 
 						EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark5.wav", flVolume, ATTN_MEDIUM);	
 						break;
+
 					case 1: 
 						EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark6.wav", flVolume, ATTN_MEDIUM);	
 						break;
@@ -529,7 +527,7 @@ void CBreakable::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vec
 
 //=========================================================
 // Special takedamage for func_breakable. Allows us to make
-// exceptions that are breakable-specific
+// exceptions that are breakable-specific.
 // bitsDamageType indicates the type of damage sustained ie: DMG_CRUSH
 //=========================================================
 int CBreakable::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
@@ -537,12 +535,12 @@ int CBreakable::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 	Vector	vecTemp;
 
 	// if Attacker == Inflictor, the attack was a melee or other instant-hit attack.
-	// (that is, no actual entity projectile was involved in the attack so use the shooter's origin). 
+	// (that is, no actual entity projectile was involved in the attack so use the shooter's origin)
 	if (pevAttacker == pevInflictor)
 		{
 		vecTemp = pevInflictor->origin - (pev->absmin + (pev->size * 0.5));
 
-		// if a client hit the breakable with a crowbar, and breakable is crowbar-sensitive, break it now.
+		// if a client hit the breakable with a crowbar, and breakable is crowbar-sensitive, break it now
 		if (FBitSet (pevAttacker->flags, FL_CLIENT) &&
 			FBitSet (pev->spawnflags, SF_BREAK_CROWBAR) && (bitsDamageType & DMG_CLUB))
 			flDamage = pev->health;
@@ -564,7 +562,7 @@ int CBreakable::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 	if (bitsDamageType & DMG_POISON)
 		flDamage *= 0.1;
 
-	// this global is still used for glass and other non-monster killables, along with decals.
+	// this global is still used for glass and other non-monster killables, along with decals
 	g_vecAttackDir = vecTemp.Normalize ();
 
 	// do the damage
@@ -579,7 +577,6 @@ int CBreakable::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 	// Make a shard noise each time func_breakable is hit.
 	// Don't play shard noise if breakable actually died
 	DamageSound ();
-
 	return 1;
 	}
 
@@ -723,10 +720,10 @@ void CBreakable::Die (void)
 	WRITE_SHORT (m_idShard);	//model id#
 
 	// # of shards
-	WRITE_BYTE (0);	// let client decide
+	WRITE_BYTE (0);		// let client decide
 
 	// duration
-	WRITE_BYTE (25);// 2.5 seconds
+	WRITE_BYTE (25);	// 2.5 seconds
 
 	// flags
 	WRITE_BYTE (cFlag);
@@ -745,7 +742,7 @@ void CBreakable::Die (void)
 	mins.z = pev->absmax.z;
 	maxs.z += 8;
 
-	// BUGBUG -- can only find 256 entities on a breakable -- should be enough
+	// BUGBUG -- can only find 256 entities on a breakable - should be enough
 	CBaseEntity* pList[256];
 	int count = UTIL_EntitiesInBox (pList, 256, mins, maxs, FL_ONGROUND);
 	if (count)
@@ -776,10 +773,6 @@ void CBreakable::Die (void)
 		else
 			pOnBreak = CBaseEntity::Create ((char*)STRING (m_iszSpawnObject), pev->origin, 
 				pev->angles, edict ());
-
-		// А эта манипуляция призвана "подбрасывать" создаваемые объекты
-		/*pOnBreak->pev->velocity = Vector (0, 0, RANDOM_FLOAT (30, 100));
-		pOnBreak->pev->avelocity = Vector (0, RANDOM_FLOAT (100, 300), 0);*/
 		}
 
 	if (Explodable ())
@@ -805,7 +798,7 @@ void CBreakable::Die (void)
 
 BOOL CBreakable::IsBreakable (void)
 	{
-	return m_Material != matUnbreakableGlass;
+	return (m_Material != matUnbreakableGlass);
 	}
 
 int	CBreakable::DamageDecal (int bitsDamageType)
@@ -832,7 +825,6 @@ class CPushable: public CBreakable
 		void	KeyValue (KeyValueData* pkvd);
 		void	Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		void	EXPORT StopSound (void);
-		//	virtual void	SetActivator( CBaseEntity *pActivator ) { m_pPusher = pActivator; }
 
 		virtual int	ObjectCaps (void) { return (CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION) | FCAP_CONTINUOUS_USE; }
 		virtual int		Save (CSave& save);
@@ -882,11 +874,7 @@ char* CPushable::m_soundNames[PUSH_SOUND_NAMES] =
 
 void CPushable::Spawn (void)
 	{
-	// ESHQ: включена обязательная обработка методом TakeDamage
-	/*if (pev->spawnflags & SF_PUSH_BREAKABLE)*/
 	CBreakable::Spawn ();
-	/*else
-		Precache ();*/
 
 	pev->movetype = MOVETYPE_PUSHSTEP;
 	pev->solid = SOLID_BBOX;

@@ -3519,7 +3519,7 @@ void CBasePlayer::CheatImpulseCommands (int iImpulse)
 
 		case 102:
 			// Gibbage!!!
-			CGib::SpawnRandomGibs (pev, 1, 1);
+			CGib::SpawnRandomGibs2 (pev, 1, 0);	// ESHQ: изменено поведение
 			break;
 
 		case 103:

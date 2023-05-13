@@ -573,7 +573,7 @@ class CPython: public CBasePlayerWeapon
 		void Holster (int skiplocal = 0);
 		void Reload (void);
 		void WeaponIdle (void);
-		float m_flSoundDelay;
+		/*float m_flSoundDelay;*/	// ESHQ: не нужен
 
 		BOOL m_fInZoom;	// don't save this
 

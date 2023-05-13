@@ -36,9 +36,9 @@ extern DLL_GLOBAL int			g_iSkillLevel;
 extern Vector VecBModelOrigin (entvars_t* pevBModel);
 extern entvars_t* g_pevLastInflictor;
 
-#define GERMAN_GIB_COUNT		4
-#define	HUMAN_GIB_COUNT			6
-#define ALIEN_GIB_COUNT			4
+/*#define GERMAN_GIB_COUNT		4*/	// ESHQ: нам это не нужно
+#define	HUMAN_GIB_COUNT			11	// ESHQ: в новой модели их 11
+#define ALIEN_GIB_COUNT			6	// ESHQ: этих тоже стало больше
 
 
 // HACKHACK -- The gib velocity equations don't work
@@ -174,7 +174,8 @@ void CGib::SpawnHeadGib (entvars_t* pevVictim)
 	pGib->LimitVelocity ();
 	}
 
-void CGib::SpawnRandomGibs (entvars_t* pevVictim, int cGibs, int human)
+// ESHQ: изменение поведения (0 - человеческие, 1 - чужие малые, 2 - чужие большие)
+void CGib::SpawnRandomGibs2 (entvars_t* pevVictim, int cGibs, int gibsType)
 	{
 	int cSplat;
 
@@ -182,26 +183,35 @@ void CGib::SpawnRandomGibs (entvars_t* pevVictim, int cGibs, int human)
 		{
 		CGib* pGib = GetClassPtr ((CGib*)NULL);
 
-		if (g_Language == LANGUAGE_GERMAN)
+		// ESHQ: нам это не нужно
+		/*if (g_Language == LANGUAGE_GERMAN)
 			{
 			pGib->Spawn ("models/germangibs.mdl");
 			pGib->pev->body = RANDOM_LONG (0, GERMAN_GIB_COUNT - 1);
 			}
 		else
+		{*/
+
+		switch (gibsType)
 			{
-			if (human)
-				{
-				// human pieces
+			// human pieces
+			case 0:
 				pGib->Spawn ("models/hgibs.mdl");
 				pGib->pev->body = RANDOM_LONG (1, HUMAN_GIB_COUNT - 1);
 				// start at one to avoid throwing random amounts of skulls (0th gib)
-				}
-			else
-				{
-				// aliens
+				break;
+
+			// little aliens
+			case 1:
 				pGib->Spawn ("models/agibs.mdl");
 				pGib->pev->body = RANDOM_LONG (0, ALIEN_GIB_COUNT - 1);
-				}
+				break;
+
+			// large aliens
+			case 2:
+				pGib->Spawn ("models/agibsbig.mdl");
+				pGib->pev->body = RANDOM_LONG (0, ALIEN_GIB_COUNT - 1);
+				break;
 			}
 
 		if (pevVictim)
@@ -229,21 +239,16 @@ void CGib::SpawnRandomGibs (entvars_t* pevVictim, int cGibs, int human)
 			pGib->m_bloodColor = (CBaseEntity::Instance (pevVictim))->BloodColor ();
 
 			if (pevVictim->health > -50)
-				{
 				pGib->pev->velocity = pGib->pev->velocity * 0.7;
-				}
 			else if (pevVictim->health > -200)
-				{
 				pGib->pev->velocity = pGib->pev->velocity * 2;
-				}
 			else
-				{
 				pGib->pev->velocity = pGib->pev->velocity * 4;
-				}
 
 			pGib->pev->solid = SOLID_BBOX;
 			UTIL_SetSize (pGib->pev, Vector (0, 0, 0), Vector (0, 0, 0));
 			}
+
 		pGib->LimitVelocity ();
 		}
 	}
@@ -348,7 +353,7 @@ void CBaseMonster::GibMonster (void)
 		if (CVAR_GET_FLOAT ("violence_hgibs") != 0)	// Only the player will ever get here
 			{
 			CGib::SpawnHeadGib (pev);
-			CGib::SpawnRandomGibs (pev, 4, 1);	// throw some human gibs
+			CGib::SpawnRandomGibs2 (pev, 4, 0);	// ESHQ: изменено поведение
 			}
 		gibbed = TRUE;
 		}
@@ -356,8 +361,14 @@ void CBaseMonster::GibMonster (void)
 		{
 		if (CVAR_GET_FLOAT ("violence_agibs") != 0)	// Should never get here, but someone might call it directly
 			{
-			CGib::SpawnRandomGibs (pev, 4, 0);	// Throw alien gibs
+			if (sizeCoeff < 95)
+				CGib::SpawnRandomGibs2 (pev, 5, 2);		// ESHQ: изменено поведение
+			else if (sizeCoeff < 110)
+				CGib::SpawnRandomGibs2 (pev, 4, 2);
+			else
+				CGib::SpawnRandomGibs2 (pev, 5, 1);
 			}
+
 		gibbed = TRUE;
 		}
 
