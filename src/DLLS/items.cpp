@@ -45,17 +45,17 @@ extern int gmsgItemPickup;
 		//textParams.r1 = textParams.r2 = 0;
 		//getMessage[0] = '\0';
 
-class CWorldItem: public CBaseEntity
+class CWorldItem : public CBaseEntity
 	{
 	public:
-		void	KeyValue (KeyValueData* pkvd);
+		void	KeyValue (KeyValueData *pkvd);
 		void	Spawn (void);
 		int		m_iType;
 	};
 
 LINK_ENTITY_TO_CLASS (world_items, CWorldItem);
 
-void CWorldItem::KeyValue (KeyValueData* pkvd)
+void CWorldItem::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "type"))
 		{
@@ -70,7 +70,7 @@ void CWorldItem::KeyValue (KeyValueData* pkvd)
 
 void CWorldItem::Spawn (void)
 	{
-	CBaseEntity* pEntity = NULL;
+	CBaseEntity *pEntity = NULL;
 
 	switch (m_iType)
 		{
@@ -103,7 +103,7 @@ void CWorldItem::Spawn (void)
 	}
 
 // ESHQ: метод извлекает сообщение из titles.txt
-char* CItem::DereferenceTextMessage (const char *MessageName)
+char *CItem::DereferenceTextMessage (const char *MessageName)
 	{
 	// Извлечение основано на размерах полей структуры client_textmessage_t
 	char *msg0 = g_engfuncs.pfnTextMessageGet (MessageName);
@@ -148,7 +148,7 @@ void CItem::Spawn (void)
 
 	if (DROP_TO_FLOOR (ENT (pev)) == 0)
 		{
-		ALERT (at_error, "Item %s fell out of level at %f,%f,%f\n", STRING (pev->classname), 
+		ALERT (at_error, "Item %s fell out of level at %f,%f,%f\n", STRING (pev->classname),
 			pev->origin.x, pev->origin.y, pev->origin.z);
 		UTIL_Remove (this);
 		return;
@@ -157,7 +157,7 @@ void CItem::Spawn (void)
 
 extern int gEvilImpulse101;
 
-void CItem::ItemTouch (CBaseEntity* pOther)
+void CItem::ItemTouch (CBaseEntity *pOther)
 	{
 	// if it's not a player, ignore
 	if (!pOther->IsPlayer ())
@@ -165,7 +165,7 @@ void CItem::ItemTouch (CBaseEntity* pOther)
 		return;
 		}
 
-	CBasePlayer* pPlayer = (CBasePlayer*)pOther;
+	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 
 	// ok, a player is touching this item, but can he have it?
 	if (!g_pGameRules->CanHaveItem (pPlayer, this))
@@ -201,7 +201,7 @@ void CItem::ItemTouch (CBaseEntity* pOther)
 		}
 	}
 
-CBaseEntity* CItem::Respawn (void)
+CBaseEntity *CItem::Respawn (void)
 	{
 	SetTouch (NULL);
 	pev->effects |= EF_NODRAW;
@@ -234,7 +234,7 @@ TYPEDESCRIPTION	CItem::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CItem, CBaseEntity);
 
-void CItem::KeyValue (KeyValueData* pkvd)
+void CItem::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "MinimumToTrigger"))
 		{
@@ -251,7 +251,7 @@ void CItem::KeyValue (KeyValueData* pkvd)
 
 #define SF_SUIT_SHORTLOGON		0x0001
 
-class CItemSuit: public CItem
+class CItemSuit : public CItem
 	{
 	void Spawn (void)
 		{
@@ -265,7 +265,7 @@ class CItemSuit: public CItem
 		PRECACHE_MODEL ("models/w_suit.mdl");
 		}
 
-	int MyTouch (CBasePlayer* pPlayer)
+	int MyTouch (CBasePlayer *pPlayer)
 		{
 		if (pPlayer->pev->weapons & (1 << WEAPON_SUIT))
 			return -1;
@@ -283,7 +283,7 @@ class CItemSuit: public CItem
 LINK_ENTITY_TO_CLASS (item_suit, CItemSuit);
 LINK_ENTITY_TO_CLASS (item_flashlight, CItemSuit);	// EHSQ: поддержка AOMDC
 
-class CItemBattery: public CItem
+class CItemBattery : public CItem
 	{
 	void Spawn (void)
 		{
@@ -314,7 +314,7 @@ class CItemBattery: public CItem
 		PRECACHE_SOUND ("items/gunpickup2.wav");
 		}
 
-	int MyTouch (CBasePlayer* pPlayer)
+	int MyTouch (CBasePlayer *pPlayer)
 		{
 		if (pPlayer->pev->deadflag != DEAD_NO)
 			return -1;
@@ -355,7 +355,7 @@ LINK_ENTITY_TO_CLASS (item_battery, CItemBattery);
 LINK_ENTITY_TO_CLASS (item_helmet, CItemBattery);		// ESHQ: поддержка Blue shift
 LINK_ENTITY_TO_CLASS (item_armorvest, CItemBattery);
 
-class CItemAntidote: public CItem
+class CItemAntidote : public CItem
 	{
 	// ESHQ: поддержка сообщений
 	struct hudtextparms_s textParams;
@@ -377,9 +377,8 @@ class CItemAntidote: public CItem
 	// ESHQ: теперь антидот используется как собираемый объект.
 	// Младшие 10 бит - количество, следующие 4 бита - уровень достижения (обеспечивает непревышение
 	// текущего достижения с сохранением ранее полученного)
-	int MyTouch (CBasePlayer* pPlayer)
+	int MyTouch (CBasePlayer *pPlayer)
 		{
-		//pPlayer->SetSuitUpdate("!HEV_DET4", FALSE, SUIT_NEXT_IN_1MIN);
 		EMIT_SOUND (pPlayer->edict (), CHAN_ITEM, "items/suitchargeok1.wav", 1, ATTN_MEDIUM);
 		pPlayer->m_rgItems[ITEM_ANTIDOTE] += 1;
 
@@ -388,33 +387,44 @@ class CItemAntidote: public CItem
 		textParams.channel = 5;
 
 		// Сообщение
+		int lowestMinimumToTrigger = 91 * minimumToTrigger / 100;	// 91%
+		int itemsCount = pPlayer->m_rgItems[ITEM_ANTIDOTE] & 0x03FF;
+
+		// Сообщение
 		if (minimumToTrigger == 0)
 			{
-			sprintf (getMessage, "%s: %2u", DereferenceTextMessage ("HCFOUND"),
-				pPlayer->m_rgItems[ITEM_ANTIDOTE] & 0x03FF);
+			sprintf (getMessage, "%s: %2u", DereferenceTextMessage ("HCFOUND"), itemsCount);
 			}
 
-		else if ((pPlayer->m_rgItems[ITEM_ANTIDOTE] & 0x03FF) < minimumToTrigger)
+		// Значение меньше нижнего порога - этого недостаточно
+		else if ((lowestMinimumToTrigger != minimumToTrigger) &&
+			(itemsCount < lowestMinimumToTrigger))
 			{
-			sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HCFOUND"),
-				pPlayer->m_rgItems[ITEM_ANTIDOTE] & 0x03FF, minimumToTrigger,
-				DereferenceTextMessage ("HCFOUND1"));
+			sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HDFOUND"),
+				itemsCount, minimumToTrigger, DereferenceTextMessage ("HCFOUND1"));
 			}
 
+		// Значение больше нижнего порога - этого достаточно, но это не круто
+		else if (itemsCount < minimumToTrigger)
+			{
+			sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HDFOUND"),
+				itemsCount, minimumToTrigger, DereferenceTextMessage ("HCFOUND2"));
+			}
+
+		// Собраны все контейнеры на уровне
 		else
 			{
-			sprintf (getMessage, "%s: %u\n%s!", DereferenceTextMessage ("HCFOUND"),
-				pPlayer->m_rgItems[ITEM_ANTIDOTE] & 0x03FF,
-				(pev->spawnflags & SF_THELASTONE) ? (DereferenceTextMessage ("HCFOUND4")) : 
+			sprintf (getMessage, "%s: %u\n%s!", DereferenceTextMessage ("HCFOUND"), itemsCount,
+				(pev->spawnflags & SF_THELASTONE) ? (DereferenceTextMessage ("HCFOUND4")) :
 				(DereferenceTextMessage ("HCFOUND3")));
 
 			// Бонус
 			pPlayer->m_rgItems[ITEM_ANTIDOTE] += (1 << 10);
-			WRITE_ACHIEVEMENTS_SCRIPT ((pPlayer->m_rgItems[ITEM_ANTIDOTE] & 0x3C00) >> 10);
+			WRITE_ACHIEVEMENTS_SCRIPT (0, (pPlayer->m_rgItems[ITEM_ANTIDOTE] & 0x3C00) >> 10);
 			}
 		UTIL_HudMessageAll (textParams, getMessage);
 
-		if ((pPlayer->m_rgItems[ITEM_ANTIDOTE] & 0x03FF) < minimumToTrigger)
+		if (itemsCount < lowestMinimumToTrigger)
 			return 1;	// Успешно, но цель срабатывать не должна
 
 		return 0;
@@ -423,7 +433,7 @@ class CItemAntidote: public CItem
 
 LINK_ENTITY_TO_CLASS (item_antidote, CItemAntidote);
 
-class CItemSecurity: public CItem
+class CItemSecurity : public CItem
 	{
 	// ESHQ: поддержка сообщений
 	struct hudtextparms_s textParams;
@@ -443,7 +453,7 @@ class CItemSecurity: public CItem
 		}
 
 	// ESHQ: поодержка собираемых объектов
-	int MyTouch (CBasePlayer* pPlayer)
+	int MyTouch (CBasePlayer *pPlayer)
 		{
 		EMIT_SOUND (pPlayer->edict (), CHAN_ITEM, "debris/flesh1.wav", 1, ATTN_MEDIUM);
 		pPlayer->m_rgItems[ITEM_SECURITY] += 1;
@@ -454,38 +464,39 @@ class CItemSecurity: public CItem
 
 		// Сообщение
 		int lowestMinimumToTrigger = 91 * minimumToTrigger / 100;	// 91%
+		int itemsCount = pPlayer->m_rgItems[ITEM_SECURITY];
 
 		// Значение не задано - простой сбор
 		if (minimumToTrigger == 0)
 			{
-			sprintf (getMessage, "%s: %3u", DereferenceTextMessage ("HDFOUND"), pPlayer->m_rgItems[ITEM_SECURITY]);
+			sprintf (getMessage, "%s: %3u", DereferenceTextMessage ("HDFOUND"), itemsCount);
 			}
 
 		// Значение меньше нижнего порога - этого недостаточно
-		else if ((lowestMinimumToTrigger != minimumToTrigger) && (pPlayer->m_rgItems[ITEM_SECURITY] < lowestMinimumToTrigger))
+		else if ((lowestMinimumToTrigger != minimumToTrigger) &&
+			(itemsCount < lowestMinimumToTrigger))
 			{
 			sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HDFOUND"),
-				pPlayer->m_rgItems[ITEM_SECURITY], minimumToTrigger, DereferenceTextMessage ("HCFOUND1"));
+				itemsCount, minimumToTrigger, DereferenceTextMessage ("HCFOUND1"));
 			}
 
 		// Значение больше нижнего порога - этого достаточно, но это не круто
-		else if (pPlayer->m_rgItems[ITEM_SECURITY] < minimumToTrigger)
+		else if (itemsCount < minimumToTrigger)
 			{
 			sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HDFOUND"),
-				pPlayer->m_rgItems[ITEM_SECURITY], minimumToTrigger, DereferenceTextMessage ("HCFOUND2"));
+				itemsCount, minimumToTrigger, DereferenceTextMessage ("HCFOUND2"));
 			}
 
 		// Собраны все документы на уровне
 		else
 			{
-			sprintf (getMessage, "%s: %u\n%s!", DereferenceTextMessage ("HDFOUND"),
-				pPlayer->m_rgItems[ITEM_SECURITY],
+			sprintf (getMessage, "%s: %u\n%s!", DereferenceTextMessage ("HDFOUND"), itemsCount,
 				(pev->spawnflags & SF_THELASTONE) ? (DereferenceTextMessage ("HCFOUND4")) :
 				(DereferenceTextMessage ("HCFOUND3")));
 			}
 		UTIL_HudMessageAll (textParams, getMessage);
 
-		if (pPlayer->m_rgItems[ITEM_SECURITY] < lowestMinimumToTrigger)
+		if (itemsCount < lowestMinimumToTrigger)
 			return 1;	// Успешно, но цель срабатывать не должна
 
 		return 0;
@@ -495,7 +506,7 @@ class CItemSecurity: public CItem
 LINK_ENTITY_TO_CLASS (item_security, CItemSecurity);
 
 // ESHQ: поддержка триггера-ключа
-class CItemKey: public CItem
+class CItemKey : public CItem
 	{
 	void Spawn (void)
 		{
@@ -510,7 +521,7 @@ class CItemKey: public CItem
 		PRECACHE_SOUND ("items/9mmclip1.wav");
 		}
 
-	int MyTouch (CBasePlayer* pPlayer)
+	int MyTouch (CBasePlayer *pPlayer)
 		{
 		EMIT_SOUND (pPlayer->edict (), CHAN_ITEM, "items/9mmclip1.wav", 1, ATTN_MEDIUM);
 		pPlayer->m_rgItems[ITEM_KEY] += 1;
@@ -520,7 +531,7 @@ class CItemKey: public CItem
 
 LINK_ENTITY_TO_CLASS (item_key, CItemKey);
 
-class CItemLongJump: public CItem
+class CItemLongJump : public CItem
 	{
 	void Spawn (void)
 		{
@@ -534,12 +545,10 @@ class CItemLongJump: public CItem
 		PRECACHE_MODEL ("models/w_longjump.mdl");
 		}
 
-	int MyTouch (CBasePlayer* pPlayer)
+	int MyTouch (CBasePlayer *pPlayer)
 		{
 		if (pPlayer->m_fLongJump)
-			{
 			return -1;
-			}
 
 		if ((pPlayer->pev->weapons & (1 << WEAPON_SUIT)))
 			{

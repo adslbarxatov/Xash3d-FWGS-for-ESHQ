@@ -4862,7 +4862,7 @@ static enginefuncs_t gEngfuncs =
 		pfnQueryClientCvarValue2,
 		COM_CheckParm,
 		pfnPEntityOfEntIndexAllEntities,
-		FS_WriteAchievementsScript,		// ESHQ: поддержка собираемых объектов
+		FS_WriteAchievementsScript,		// ESHQ: поддержка скриптов достижений
 		CL_TextMessageGet,				// ESHQ: поддержка текста из titles.txt
 	};
 

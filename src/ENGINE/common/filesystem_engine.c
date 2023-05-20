@@ -122,12 +122,12 @@ void FS_Init (void)
 	Cmd_AddRestrictedCommand ("fs_path", FS_Path_f_, "show filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_clearpaths", FS_ClearPaths_f, "clear filesystem search pathes");
 
-/*
-#if !XASH_WIN32
-	if (Sys_CheckParm ("-casesensitive"))
-		caseinsensitive = false;
-#endif
-*/
+	/*
+	#if !XASH_WIN32
+		if (Sys_CheckParm ("-casesensitive"))
+			caseinsensitive = false;
+	#endif
+	*/
 
 	if (!Sys_GetParmFromCmdLine ("-game", gamedir))
 		Q_strncpy (gamedir, SI.basedirName, sizeof (gamedir)); // gamedir == basedir
@@ -169,57 +169,15 @@ void FS_Shutdown (void)
 ESHQ: поддержка достижений
 ================
 */
-/*#define ACHI_OLD_SCRIPT_FN	"achi.cfg"*/
-#define ACHI_SCRIPT_FN		"achi2.cfg"
-#define ACHI_EXEC_STRING	"exec " ACHI_SCRIPT_FN "\n"
-
-/*qboolean FS_UpdateAchievementsScript (void)
-	{
-	// Переменные
-	file_t *f;
-	unsigned int level = 0;
-	char temp[16];
-
-	// Чтение предыдущего состояния (ошибки игнорируются)
-	f = FS_Open (ACHI_OLD_SCRIPT_FN, "r", false);
-	if (f)
-		{
-		FS_Getc (f); FS_Getc (f); FS_Getc (f);
-		level = ((unsigned int)FS_Getc (f)) & 0x0F;
-		FS_Close (f);
-		}
-	else
-		{
-		return true;
-		}
-
-	if (level < 1)
-		return true;
-
-	// Запись
-	f = FS_Open (ACHI_SCRIPT_FN, "w", false);
-	if (!f)
-		return false;
-
-	Q_snprintf (temp, sizeof (temp), "//%c\\\\\n", level + 0x70);
-	FS_Print (f, temp);
-	FS_Print (f, "bind \"6\" \"impulse 211\"\n");
-
-	if (level > 0)
-		FS_Print (f, "bind \"7\" \"impulse 219\"\n");
-
-	if (level > 1)
-		FS_Print (f, "bind \"8\" \"impulse 228\"\n");
-
-	// Завершено
-	FS_Close (f);
-	FS_Delete (ACHI_OLD_SCRIPT_FN);
-	return true;
-	}*/
 
 // ESHQ: состояние теперь хранится в памяти, чтобы постоянно не дёргать файл
 static unsigned int WAS_Level = 0, WAS_Code = 0;
-qboolean FS_WriteAchievementsScript (int NewLevel)
+
+// Метод запрашивает настройки из сохранённой конфигурации, обновляет их до нового формата
+// и контролирует их целостность.
+// Режимы: 0 - достижения, 1 - гравитация, 2 - тип помещения
+// Новый уровень учитывается только в режиме 0
+void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	{
 	// Переменные
 	file_t *f;
@@ -229,17 +187,34 @@ qboolean FS_WriteAchievementsScript (int NewLevel)
 	unsigned int gravity = (unsigned int)sv_gravity.value;
 	unsigned int roomtype = 0;
 	unsigned int newCode;
+	qboolean oldScript = false;
 
 	if (rt)
 		roomtype = (unsigned int)rt->value;
 
-	// Чтение предыдущего состояния (ошибки игнорируются)
-	if (!WAS_Code)
+	// Чтение старого скрипта (ошибки игнорируются)
+	if (!WAS_Code && FS_FileExists (ACHI_OLD_SCRIPT_FN, 1))
 		{
-		f = FS_Open (ACHI_SCRIPT_FN, "r", false);
+		f = FS_Open (ACHI_OLD_SCRIPT_FN, "r", false);
 		if (f)
 			{
 			FS_Getc (f); FS_Getc (f);
+			WAS_Level = ((unsigned int)FS_Getc (f)) & 0x0F;
+			WAS_Code = ((unsigned int)FS_Getc (f) - 0x20) & 0x3F;
+			WAS_Code |= (((unsigned int)FS_Getc (f) - 0x20) & 0x3F) << 8;
+			FS_Close (f);
+
+			FS_Rename (ACHI_OLD_SCRIPT_FN, ACHI_OLD_SCRIPT_FN ".bak");
+			oldScript = true;
+			}
+		}
+
+	// Чтение предыдущего состояния (ошибки игнорируются)
+	if (!WAS_Code && !FS_FileExists (ACHI_OLD_SCRIPT_FN, 1))
+		{
+		f = FS_Open (ACHI_SCRIPT_С, "r", false);
+		if (f)
+			{
 			WAS_Level = ((unsigned int)FS_Getc (f)) & 0x0F;
 			WAS_Code = ((unsigned int)FS_Getc (f) - 0x20) & 0x3F;
 			WAS_Code |= (((unsigned int)FS_Getc (f) - 0x20) & 0x3F) << 8;
@@ -250,46 +225,77 @@ qboolean FS_WriteAchievementsScript (int NewLevel)
 	// Проверочный код, позволяющий избежать постоянной перезаписи файла и повторного его исполнения
 	newCode = ((gravity >> 4) & 0x3F) | ((roomtype & 0x3F) << 8);
 	if (((NewLevel <= (int)WAS_Level) || (WAS_Level >= 3)) && (WAS_Code == newCode))
-		return true;	// Уровень уже достигнут или является максимальным
+		return;	// Уровень уже достигнут или является максимальным
 	WAS_Code = newCode;
 
 	// Условие для последующего повышения
-	// int, потому что иначепри сравнении происходит приведение к uint
+	// int, потому что иначе при сравнении происходит приведение к uint
 	if ((NewLevel > (int)WAS_Level) && (WAS_Level < 3))
 		WAS_Level++;
 
-	// Запись
-	f = FS_Open (ACHI_SCRIPT_FN, "w", false);
-	if (!f)
-		return false;
-
-	// Код проверки скрипта
-	Q_snprintf (temp, sizeof (temp), "//%c%c%c\\\\\n", WAS_Level + 0x70, ((gravity >> 4) & 0x3F) + 0x20,
-		(roomtype & 0x3F) + 0x20);
-	FS_Print (f, temp);
+	// Запись проверочного кода (некритично)
+	f = FS_Open (ACHI_SCRIPT_С, "w", false);
+	if (f)
+		{
+		Q_snprintf (temp, sizeof (temp), "%c%c%c", WAS_Level + 0x70, ((gravity >> 4) & 0x3F) + 0x20,
+			(roomtype & 0x3F) + 0x20);
+		FS_Print (f, temp);
+		FS_Close (f);
+		}
 
 	// Достижения, зависящие от уровня
-	if (WAS_Level > 0)
-		FS_Print (f, "bind \"6\" \"impulse 211\"\n");
+	if ((Mode == 0) || oldScript)
+		{
+		f = FS_Open (ACHI_SCRIPT_A, "w", false);
+		if (f)
+			{
+			if (WAS_Level > 0)
+				FS_Print (f, "bind \"6\" \"impulse 211\"\n");
 
-	if (WAS_Level > 1)
-		FS_Print (f, "bind \"7\" \"impulse 219\"\n");
+			if (WAS_Level > 1)
+				FS_Print (f, "bind \"7\" \"impulse 219\"\n");
 
-	if (WAS_Level > 2)
-		FS_Print (f, "bind \"8\" \"impulse 228\"\n");
+			if (WAS_Level > 2)
+				FS_Print (f, "bind \"8\" \"impulse 228\"\n");
 
-	// Независимые параметры
-	Q_snprintf (temp, sizeof(temp), "sv_gravity \"%u\"\n", gravity);
-	FS_Print (f, temp);
+			FS_Close (f);
 
-	Q_snprintf (temp, sizeof (temp), "room_type \"%u\"\n", roomtype);
-	FS_Print (f, temp);
+			Cbuf_AddText (ACHI_EXEC_LINE_A);
+			Cbuf_Execute ();
+			}
+		}
 
-	// Завершено. Принудительное выполнение
-	FS_Close (f);
+	// Гравитация
+	if ((Mode == 1) || oldScript)
+		{
+		f = FS_Open (ACHI_SCRIPT_G, "w", false);
+		if (f)
+			{
+			Q_snprintf (temp, sizeof (temp), "sv_gravity \"%u\"\n", gravity);
+			FS_Print (f, temp);
 
-	Cbuf_AddText (ACHI_EXEC_STRING);
-	Cbuf_Execute ();
+			FS_Close (f);
 
-	return true;
+			Cbuf_AddText (ACHI_EXEC_LINE_G);
+			Cbuf_Execute ();
+			}
+		}
+
+	// Тип помещения
+	if ((Mode == 2) || oldScript)
+		{
+		f = FS_Open (ACHI_SCRIPT_R, "w", false);
+		if (f)
+			{
+			Q_snprintf (temp, sizeof (temp), "room_type \"%u\"\n", roomtype);
+			FS_Print (f, temp);
+
+			FS_Close (f);
+
+			Cbuf_AddText (ACHI_EXEC_LINE_R);
+			Cbuf_Execute ();
+			}
+		}
+
+	return;
 	}

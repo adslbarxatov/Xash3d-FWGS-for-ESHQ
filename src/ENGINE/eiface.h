@@ -132,19 +132,19 @@ typedef struct enginefuncs_s
 	int	(*pfnDropToFloor)(edict_t *e);
 	int	(*pfnWalkMove)(edict_t *ent, float yaw, float dist, int iMode);
 	void	(*pfnSetOrigin)(edict_t *e, const float *rgflOrigin);
-	void	(*pfnEmitSound)(edict_t *entity, int channel, const char *sample, /*int*/float volume, 
+	void	(*pfnEmitSound)(edict_t *entity, int channel, const char *sample, /*int*/float volume,
 		float attenuation, int fFlags, int pitch);
-	void	(*pfnEmitAmbientSound)(edict_t *entity, float *pos, const char *samp, float vol, 
+	void	(*pfnEmitAmbientSound)(edict_t *entity, float *pos, const char *samp, float vol,
 		float attenuation, int fFlags, int pitch);
 	void	(*pfnTraceLine)(const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip, TraceResult *ptr);
 	void	(*pfnTraceToss)(edict_t *pent, edict_t *pentToIgnore, TraceResult *ptr);
-	int	(*pfnTraceMonsterHull)(edict_t *pEdict, const float *v1, const float *v2, int fNoMonsters, 
+	int	(*pfnTraceMonsterHull)(edict_t *pEdict, const float *v1, const float *v2, int fNoMonsters,
 		edict_t *pentToSkip, TraceResult *ptr);
-	void	(*pfnTraceHull)(const float *v1, const float *v2, int fNoMonsters, int hullNumber, 
+	void	(*pfnTraceHull)(const float *v1, const float *v2, int fNoMonsters, int hullNumber,
 		edict_t *pentToSkip, TraceResult *ptr);
 	void	(*pfnTraceModel)(const float *v1, const float *v2, int hullNumber, edict_t *pent, TraceResult *ptr);
 	const char *(*pfnTraceTexture)(edict_t *pTextureEntity, const float *v1, const float *v2);
-	void	(*pfnTraceSphere)(const float *v1, const float *v2, int fNoMonsters, float radius, 
+	void	(*pfnTraceSphere)(const float *v1, const float *v2, int fNoMonsters, float radius,
 		edict_t *pentToSkip, TraceResult *ptr);
 	void	(*pfnGetAimVector)(edict_t *ent, float speed, float *rgflReturn);
 	void	(*pfnServerCommand)(const char *str);
@@ -188,7 +188,10 @@ typedef struct enginefuncs_s
 	void	(*pfnGetBonePosition)(const edict_t *pEdict, int iBone, float *rgflOrigin, float *rgflAngles);
 	unsigned long (*pfnFunctionFromName)(const char *pName);
 	const char *(*pfnNameForFunction)(unsigned long function);
-	void	(*pfnClientPrintf)(edict_t *pEdict, PRINT_TYPE ptype, const char *szMsg); // JOHN: engine callbacks so game DLL can print messages to individual clients
+	
+	// JOHN: engine callbacks so game DLL can print messages to individual clients
+	void	(*pfnClientPrintf)(edict_t *pEdict, PRINT_TYPE ptype, const char *szMsg);
+	
 	void	(*pfnServerPrint)(const char *szMsg);
 	const char *(*pfnCmd_Args)(void);		// these 3 added 
 	const char *(*pfnCmd_Argv)(int argc);		// so game DLL can easily 
@@ -209,7 +212,8 @@ typedef struct enginefuncs_s
 	int	(*pfnCompareFileTime)(const char *filename1, const char *filename2, int *iCompare);
 	void	(*pfnGetGameDir)(char *szGetGameDir);
 	void	(*pfnCvar_RegisterVariable)(cvar_t *variable);
-	void	(*pfnFadeClientVolume)(const edict_t *pEdict, int fadePercent, int fadeOutSeconds, int holdTime, int fadeInSeconds);
+	void	(*pfnFadeClientVolume)(const edict_t *pEdict, int fadePercent, int fadeOutSeconds, int holdTime,
+		int fadeInSeconds);
 	void	(*pfnSetClientMaxspeed)(const edict_t *pEdict, float fNewMaxspeed);
 	edict_t *(*pfnCreateFakeClient)(const char *netname); // returns NULL if fake client can't be created
 	void	(*pfnRunPlayerMove)(edict_t *fakeclient, const float *viewangles, float forwardmove,
@@ -222,12 +226,21 @@ typedef struct enginefuncs_s
 	int	(*pfnIsMapValid)(char *filename);
 	void	(*pfnStaticDecal)(const float *origin, int decalIndex, int entityIndex, int modelIndex);
 	int	(*pfnPrecacheGeneric)(const char *s);
-	int	(*pfnGetPlayerUserId)(edict_t *e); // returns the server assigned userid for this player.  useful for logging frags, etc.  returns -1 if the edict couldn't be found in the list of clients
-	void	(*pfnBuildSoundMsg)(edict_t *entity, int channel, const char *sample, /*int*/float volume, 
+	
+	// returns the server assigned userid for this player.
+	// useful for logging frags, etc.
+	// returns -1 if the edict couldn't be found in the list of clients
+	int	(*pfnGetPlayerUserId)(edict_t *e);
+	
+	void	(*pfnBuildSoundMsg)(edict_t *entity, int channel, const char *sample, /*int*/float volume,
 		float attenuation, int fFlags, int pitch, int msg_dest, int msg_type, const float *pOrigin, edict_t *ed);
 	int	(*pfnIsDedicatedServer)(void);			// is this a dedicated server?
 	cvar_t *(*pfnCVarGetPointer)(const char *szVarName);
-	unsigned int (*pfnGetPlayerWONId)(edict_t *e); // returns the server assigned WONid for this player.  useful for logging frags, etc.  returns -1 if the edict couldn't be found in the list of clients
+
+	// returns the server assigned WONid for this player.
+	// useful for logging frags, etc.
+	// returns -1 if the edict couldn't be found in the list of clients
+	unsigned int (*pfnGetPlayerWONId)(edict_t *e);
 
 	// YWB 8/1/99 TFF Physics additions
 	void	(*pfnInfo_RemoveKey)(char *s, const char *key);
@@ -235,7 +248,7 @@ typedef struct enginefuncs_s
 	void	(*pfnSetPhysicsKeyValue)(const edict_t *pClient, const char *key, const char *value);
 	const char *(*pfnGetPhysicsInfoString)(const edict_t *pClient);
 	unsigned short (*pfnPrecacheEvent)(int type, const char *psz);
-	void	(*pfnPlaybackEvent)(int flags, const edict_t *pInvoker, unsigned short eventindex, 
+	void	(*pfnPlaybackEvent)(int flags, const edict_t *pInvoker, unsigned short eventindex,
 		float delay, float *origin, float *angles,
 		float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2);
 
@@ -246,7 +259,7 @@ typedef struct enginefuncs_s
 
 	void	(*pfnDeltaSetField)	(struct delta_s *pFields, const char *fieldname);
 	void	(*pfnDeltaUnsetField)(struct delta_s *pFields, const char *fieldname);
-	void	(*pfnDeltaAddEncoder)(char *name, void (*conditionalencode)(struct delta_s *pFields, 
+	void	(*pfnDeltaAddEncoder)(char *name, void (*conditionalencode)(struct delta_s *pFields,
 		const unsigned char *from, const unsigned char *to));
 	int		(*pfnGetCurrentPlayer)(void);
 	int		(*pfnCanSkipPlayer)(const edict_t *player);
@@ -294,7 +307,7 @@ typedef struct enginefuncs_s
 	// FWGS: added in 8279
 	edict_t *(*pfnPEntityOfEntIndexAllEntities)(int iEntIndex);
 
-	qboolean (*pfnWriteAchievementsScript)(int newLevel);	// ESHQ: добавление поддержки для достижений
+	void (*pfnWriteAchievementsScript)(byte Mode, int NewLevel);	// ESHQ: добавление поддержки для достижений
 	char *(*pfnTextMessageGet)(const char *pName);			// ESHQ: поддержка извлечения текста из titles.txt
 	} enginefuncs_t;
 // ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT. INTERFACE VERSION IS FROZEN AT 138

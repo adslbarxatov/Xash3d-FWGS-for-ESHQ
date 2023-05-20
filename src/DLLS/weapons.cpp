@@ -1037,7 +1037,7 @@ void CBasePlayerAmmo::Spawn (void)
 	{
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_TRIGGER;
-	UTIL_SetSize (pev, Vector (-16, -16, 0), Vector (16, 16, 16));
+	UTIL_SetSize (pev, Vector (-8, -8, 0), Vector (8, 8, 8));
 	UTIL_SetOrigin (pev, pev->origin);
 
 	SetTouch (&CBasePlayerAmmo::DefaultTouch);
@@ -1048,7 +1048,8 @@ CBaseEntity* CBasePlayerAmmo::Respawn (void)
 	pev->effects |= EF_NODRAW;
 	SetTouch (NULL);
 
-	UTIL_SetOrigin (pev, g_pGameRules->VecAmmoRespawnSpot (this));// move to wherever I'm supposed to repawn.
+	// move to wherever I'm supposed to repawn
+	UTIL_SetOrigin (pev, g_pGameRules->VecAmmoRespawnSpot (this));
 
 	SetThink (&CBasePlayerAmmo::Materialize);
 	pev->nextthink = g_pGameRules->FlAmmoRespawnTime (this);
@@ -1060,7 +1061,7 @@ void CBasePlayerAmmo::Materialize (void)
 	{
 	if (pev->effects & EF_NODRAW)
 		{
-		// changing from invisible state to visible.
+		// changing from invisible state to visible
 		EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "items/suitchargeok1.wav", 1, ATTN_MEDIUM, 0, 150);
 		pev->effects &= ~EF_NODRAW;
 		pev->effects |= EF_MUZZLEFLASH;

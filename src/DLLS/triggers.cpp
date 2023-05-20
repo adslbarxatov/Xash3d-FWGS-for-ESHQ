@@ -37,17 +37,17 @@
 
 extern DLL_GLOBAL BOOL		g_fGameOver;
 
-extern void SetMovedir (entvars_t* pev);
-extern Vector VecBModelOrigin (entvars_t* pevBModel);
+extern void SetMovedir (entvars_t *pev);
+extern Vector VecBModelOrigin (entvars_t *pevBModel);
 
-class CFrictionModifier: public CBaseEntity
+class CFrictionModifier : public CBaseEntity
 	{
 	public:
 		void		Spawn (void);
-		void		KeyValue (KeyValueData* pkvd);
-		void EXPORT	ChangeFriction (CBaseEntity* pOther);
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		void		KeyValue (KeyValueData *pkvd);
+		void EXPORT	ChangeFriction (CBaseEntity *pOther);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 
 		virtual int	ObjectCaps (void) { return CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
 
@@ -77,14 +77,14 @@ void CFrictionModifier::Spawn (void)
 	}
 
 // Sets toucher's friction to m_frictionFraction (1.0 = normal friction)
-void CFrictionModifier::ChangeFriction (CBaseEntity* pOther)
+void CFrictionModifier::ChangeFriction (CBaseEntity *pOther)
 	{
 	if ((pOther->pev->movetype != MOVETYPE_BOUNCEMISSILE) && (pOther->pev->movetype != MOVETYPE_BOUNCE))
 		pOther->pev->friction = m_frictionFraction;
 	}
 
 // Sets toucher's friction to m_frictionFraction (1.0 = normal friction)
-void CFrictionModifier::KeyValue (KeyValueData* pkvd)
+void CFrictionModifier::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "modifier"))
 		{
@@ -102,17 +102,17 @@ void CFrictionModifier::KeyValue (KeyValueData* pkvd)
 
 #define SF_AUTO_FIREONCE		0x0001
 
-class CAutoTrigger: public CBaseDelay
+class CAutoTrigger : public CBaseDelay
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 		void Precache (void);
 		void Think (void);
 
 		int ObjectCaps (void) { return CBaseDelay::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
@@ -130,7 +130,7 @@ TYPEDESCRIPTION	CAutoTrigger::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CAutoTrigger, CBaseDelay);
 
-void CAutoTrigger::KeyValue (KeyValueData* pkvd)
+void CAutoTrigger::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "globalstate"))
 		{
@@ -180,16 +180,16 @@ void CAutoTrigger::Think (void)
 
 #define SF_RELAY_FIREONCE		0x0001
 
-class CTriggerRelay: public CBaseDelay
+class CTriggerRelay : public CBaseDelay
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
-		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
 		int ObjectCaps (void) { return CBaseDelay::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
@@ -205,7 +205,7 @@ TYPEDESCRIPTION	CTriggerRelay::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CTriggerRelay, CBaseDelay);
 
-void CTriggerRelay::KeyValue (KeyValueData* pkvd)
+void CTriggerRelay::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "triggerstate"))
 		{
@@ -236,7 +236,7 @@ void CTriggerRelay::Spawn (void)
 
 
 
-void CTriggerRelay::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CTriggerRelay::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	SUB_UseTargets (this, triggerType, 0);
 	if (pev->spawnflags & SF_RELAY_FIREONCE)
@@ -253,13 +253,13 @@ void CTriggerRelay::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE
 #define SF_MULTIMAN_CLONE		0x80000000
 #define SF_MULTIMAN_THREAD		0x00000001
 
-class CMultiManager: public CBaseToggle
+class CMultiManager : public CBaseToggle
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 		void EXPORT ManagerThink (void);
-		void EXPORT ManagerUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void EXPORT ManagerUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
 #if _DEBUG
 		void EXPORT ManagerReport (void);
@@ -269,8 +269,8 @@ class CMultiManager: public CBaseToggle
 
 		int ObjectCaps (void) { return CBaseToggle::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
@@ -289,7 +289,7 @@ class CMultiManager: public CBaseToggle
 			return (pev->spawnflags & SF_MULTIMAN_THREAD) ? TRUE : FALSE;
 			}
 
-		CMultiManager* Clone (void);
+		CMultiManager *Clone (void);
 	};
 LINK_ENTITY_TO_CLASS (multi_manager, CMultiManager);
 
@@ -305,7 +305,7 @@ TYPEDESCRIPTION	CMultiManager::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CMultiManager, CBaseToggle);
 
-void CMultiManager::KeyValue (KeyValueData* pkvd)
+void CMultiManager::KeyValue (KeyValueData *pkvd)
 	{
 	// UNDONE: Maybe this should do something like this:
 	//CBaseToggle::KeyValue( pkvd );
@@ -403,11 +403,11 @@ void CMultiManager::ManagerThink (void)
 		}
 	}
 
-CMultiManager* CMultiManager::Clone (void)
+CMultiManager *CMultiManager::Clone (void)
 	{
-	CMultiManager* pMulti = GetClassPtr ((CMultiManager*)NULL);
+	CMultiManager *pMulti = GetClassPtr ((CMultiManager *)NULL);
 
-	edict_t* pEdict = pMulti->pev->pContainingEntity;
+	edict_t *pEdict = pMulti->pev->pContainingEntity;
 	memcpy (pMulti->pev, pev, sizeof (*pev));
 	pMulti->pev->pContainingEntity = pEdict;
 
@@ -421,13 +421,13 @@ CMultiManager* CMultiManager::Clone (void)
 
 
 // The USE function builds the time table and starts the entity thinking.
-void CMultiManager::ManagerUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CMultiManager::ManagerUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	// In multiplayer games, clone the MM and execute in the clone (like a thread)
 	// to allow multiple players to trigger the same multimanager
 	if (ShouldClone ())
 		{
-		CMultiManager* pClone = Clone ();
+		CMultiManager *pClone = Clone ();
 		pClone->ManagerUse (pActivator, pCaller, useType, value);
 		return;
 		}
@@ -469,11 +469,11 @@ void CMultiManager::ManagerReport (void)
 #define SF_RENDER_MASKMODE	(1<<2)
 #define SF_RENDER_MASKCOLOR	(1<<3)
 
-class CRenderFxManager: public CBaseEntity
+class CRenderFxManager : public CBaseEntity
 	{
 	public:
 		void Spawn (void);
-		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	};
 
 LINK_ENTITY_TO_CLASS (env_render, CRenderFxManager);
@@ -484,18 +484,18 @@ void CRenderFxManager::Spawn (void)
 	pev->solid = SOLID_NOT;
 	}
 
-void CRenderFxManager::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CRenderFxManager::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	if (!FStringNull (pev->target))
 		{
-		edict_t* pentTarget = NULL;
+		edict_t *pentTarget = NULL;
 		while (1)
 			{
 			pentTarget = FIND_ENTITY_BY_TARGETNAME (pentTarget, STRING (pev->target));
 			if (FNullEnt (pentTarget))
 				break;
 
-			entvars_t* pevTarget = VARS (pentTarget);
+			entvars_t *pevTarget = VARS (pentTarget);
 			if (!FBitSet (pev->spawnflags, SF_RENDER_MASKFX))
 				pevTarget->renderfx = pev->renderfx;
 			if (!FBitSet (pev->spawnflags, SF_RENDER_MASKAMT))
@@ -508,19 +508,19 @@ void CRenderFxManager::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 		}
 	}
 
-class CBaseTrigger: public CBaseToggle
+class CBaseTrigger : public CBaseToggle
 	{
 	public:
-		void EXPORT TeleportTouch (CBaseEntity* pOther);
-		void KeyValue (KeyValueData* pkvd);
-		void EXPORT MultiTouch (CBaseEntity* pOther);
-		void EXPORT HurtTouch (CBaseEntity* pOther);
-		void EXPORT CDAudioTouch (CBaseEntity* pOther);
+		void EXPORT TeleportTouch (CBaseEntity *pOther);
+		void KeyValue (KeyValueData *pkvd);
+		void EXPORT MultiTouch (CBaseEntity *pOther);
+		void EXPORT HurtTouch (CBaseEntity *pOther);
+		void EXPORT CDAudioTouch (CBaseEntity *pOther);
 		// ESHQ: поддержка дополнительных возможностей
-		void ActivateMultiTrigger (CBaseEntity* pActivator, int RoomType);
+		void ActivateMultiTrigger (CBaseEntity *pActivator, int RoomType);
 		void EXPORT MultiWaitOver (void);
-		void EXPORT CounterUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-		void EXPORT ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void EXPORT CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void EXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void InitTrigger (void);
 
 		virtual int	ObjectCaps (void) { return CBaseToggle::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
@@ -549,7 +549,7 @@ void CBaseTrigger::InitTrigger ()
 //
 // Cache user-entity-field values until spawn is called
 //
-void CBaseTrigger::KeyValue (KeyValueData* pkvd)
+void CBaseTrigger::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "damage"))
 		{
@@ -572,7 +572,7 @@ void CBaseTrigger::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-class CTriggerHurt: public CBaseTrigger
+class CTriggerHurt : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
@@ -584,11 +584,11 @@ LINK_ENTITY_TO_CLASS (trigger_hurt, CTriggerHurt);
 //
 // trigger_monsterjump
 //
-class CTriggerMonsterJump: public CBaseTrigger
+class CTriggerMonsterJump : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void Touch (CBaseEntity* pOther);
+		void Touch (CBaseEntity *pOther);
 		void Think (void);
 	};
 
@@ -620,9 +620,9 @@ void CTriggerMonsterJump::Think (void)
 	SetThink (NULL);
 	}
 
-void CTriggerMonsterJump::Touch (CBaseEntity* pOther)
+void CTriggerMonsterJump::Touch (CBaseEntity *pOther)
 	{
-	entvars_t* pevOther = pOther->pev;
+	entvars_t *pevOther = pOther->pev;
 
 	if (!FBitSet (pevOther->flags, FL_MONSTER))
 		{// touched by a non-monster.
@@ -647,14 +647,14 @@ void CTriggerMonsterJump::Touch (CBaseEntity* pOther)
 //
 // trigger_cdaudio - starts/stops cd audio tracks
 //
-class CTriggerCDAudio: public CBaseTrigger
+class CTriggerCDAudio : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
 
-		virtual void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		virtual void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void PlayTrack (void);
-		void Touch (CBaseEntity* pOther);
+		void Touch (CBaseEntity *pOther);
 	};
 
 LINK_ENTITY_TO_CLASS (trigger_cdaudio, CTriggerCDAudio);
@@ -663,7 +663,7 @@ LINK_ENTITY_TO_CLASS (trigger_cdaudio, CTriggerCDAudio);
 // Changes tracks or stops CD when player touches
 //
 // !!!HACK - overloaded HEALTH to avoid adding new field
-void CTriggerCDAudio::Touch (CBaseEntity* pOther)
+void CTriggerCDAudio::Touch (CBaseEntity *pOther)
 	{
 	if (!pOther->IsPlayer ())
 		{// only clients may trigger these events
@@ -678,14 +678,14 @@ void CTriggerCDAudio::Spawn (void)
 	InitTrigger ();
 	}
 
-void CTriggerCDAudio::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CTriggerCDAudio::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	PlayTrack ();
 	}
 
 void PlayCDTrack (int iTrack)
 	{
-	edict_t* pClient;
+	edict_t *pClient;
 
 	// manually find the single player. 
 	pClient = g_engfuncs.pfnPEntityOfEntIndex (1);
@@ -725,20 +725,20 @@ void CTriggerCDAudio::PlayTrack (void)
 
 
 // This plays a CD track when fired or when the player enters it's radius
-class CTargetCDAudio: public CPointEntity
+class CTargetCDAudio : public CPointEntity
 	{
 	public:
 		void			Spawn (void);
-		void			KeyValue (KeyValueData* pkvd);
+		void			KeyValue (KeyValueData *pkvd);
 
-		virtual void	Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		virtual void	Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void			Think (void);
 		void			Play (void);
 	};
 
 LINK_ENTITY_TO_CLASS (target_cdaudio, CTargetCDAudio);
 
-void CTargetCDAudio::KeyValue (KeyValueData* pkvd)
+void CTargetCDAudio::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "radius"))
 		{
@@ -758,7 +758,7 @@ void CTargetCDAudio::Spawn (void)
 		pev->nextthink = gpGlobals->time + 1.0;
 	}
 
-void CTargetCDAudio::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CTargetCDAudio::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	Play ();
 	}
@@ -766,7 +766,7 @@ void CTargetCDAudio::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 // only plays for ONE client, so only use in single play!
 void CTargetCDAudio::Think (void)
 	{
-	edict_t* pClient;
+	edict_t *pClient;
 
 	// manually find the single player. 
 	pClient = g_engfuncs.pfnPEntityOfEntIndex (1);
@@ -822,10 +822,10 @@ void CTriggerHurt::Spawn (void)
 // according to distance from center of trigger
 void CTriggerHurt::RadiationThink (void)
 	{
-	edict_t* pentPlayer;
-	CBasePlayer* pPlayer = NULL;
+	edict_t *pentPlayer;
+	CBasePlayer *pPlayer = NULL;
 	float flRange;
-	entvars_t* pevTarget;
+	entvars_t *pevTarget;
 	Vector vecSpot1;
 	Vector vecSpot2;
 	Vector vecRange;
@@ -850,7 +850,7 @@ void CTriggerHurt::RadiationThink (void)
 	// reset origin
 	if (!FNullEnt (pentPlayer))
 		{
-		pPlayer = GetClassPtr ((CBasePlayer*)VARS (pentPlayer));
+		pPlayer = GetClassPtr ((CBasePlayer *)VARS (pentPlayer));
 
 		pevTarget = VARS (pentPlayer);
 
@@ -874,7 +874,7 @@ void CTriggerHurt::RadiationThink (void)
 //
 // ToggleUse - If this is the USE function for a trigger, its state will toggle every time it's fired
 //
-void CBaseTrigger::ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CBaseTrigger::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	if (pev->solid == SOLID_NOT)
 		{// if the trigger is off, turn it on
@@ -892,7 +892,7 @@ void CBaseTrigger::ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE
 	}
 
 // When touched, a hurt trigger does DMG points of damage each half-second
-void CBaseTrigger::HurtTouch (CBaseEntity* pOther)
+void CBaseTrigger::HurtTouch (CBaseEntity *pOther)
 	{
 	float fldmg;
 
@@ -1004,7 +1004,7 @@ sounds
 NEW
 if a trigger has a NETNAME, that NETNAME will become the TARGET of the triggered object.
 */
-class CTriggerMultiple: public CBaseTrigger
+class CTriggerMultiple : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
@@ -1024,18 +1024,18 @@ void CTriggerMultiple::Spawn (void)
 	}
 
 /// ESHQ: специальная brush entity для замещения функционала env_sound для более предсказуемого поведения
-class CTriggerSound: public CBaseTrigger
+class CTriggerSound : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void KeyValue (KeyValueData* pkvd);
-		
+		void KeyValue (KeyValueData *pkvd);
+
 		/// trigger_sound
-		void EXPORT MultiTouch_Sound (CBaseEntity* pOther);
+		void EXPORT MultiTouch_Sound (CBaseEntity *pOther);
 		///
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 
 		/// trigger_sound
 		static	TYPEDESCRIPTION m_SaveData[];
@@ -1074,7 +1074,7 @@ void CTriggerSound::Spawn (void)
 	SetTouch (&CTriggerSound::MultiTouch_Sound);
 	}
 
-void CTriggerSound::KeyValue (KeyValueData* pkvd)
+void CTriggerSound::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "roomtype"))
 		{
@@ -1104,7 +1104,7 @@ sounds
 3)      large switch
 4)
 */
-class CTriggerOnce: public CTriggerMultiple
+class CTriggerOnce : public CTriggerMultiple
 	{
 	public:
 		void Spawn (void);
@@ -1118,9 +1118,9 @@ void CTriggerOnce::Spawn (void)
 	CTriggerMultiple::Spawn ();
 	}
 
-void CBaseTrigger::MultiTouch (CBaseEntity* pOther)
+void CBaseTrigger::MultiTouch (CBaseEntity *pOther)
 	{
-	entvars_t* pevToucher;
+	entvars_t *pevToucher;
 	pevToucher = pOther->pev;
 
 	// Only touch clients, monsters, or pushables (depending on flags)
@@ -1133,9 +1133,9 @@ void CBaseTrigger::MultiTouch (CBaseEntity* pOther)
 	}
 
 /// ESHQ: поддержка brush entity для замещения функционала env_sound
-void CTriggerSound::MultiTouch_Sound (CBaseEntity* pOther)
+void CTriggerSound::MultiTouch_Sound (CBaseEntity *pOther)
 	{
-	entvars_t* pevToucher;
+	entvars_t *pevToucher;
 	float rt = m_flRoomtype;
 
 	// Only touch clients
@@ -1146,7 +1146,7 @@ void CTriggerSound::MultiTouch_Sound (CBaseEntity* pOther)
 	// Определение пересечения
 	if (m_direction)
 		{
-		switch (m_direction) 
+		switch (m_direction)
 			{
 			case 0x01:
 				if (pevToucher->origin.x > (pev->absmin.x + pev->absmax.x) / 2.0f)
@@ -1172,7 +1172,7 @@ void CTriggerSound::MultiTouch_Sound (CBaseEntity* pOther)
 		}
 
 	ActivateMultiTrigger (pOther, rt);
-	WRITE_ACHIEVEMENTS_SCRIPT (-1);	// ESHQ: запись настроек в конфигурацию игры
+	WRITE_ACHIEVEMENTS_SCRIPT (2, -1);	// ESHQ: запись настроек в конфигурацию игры
 	}
 
 //
@@ -1181,7 +1181,7 @@ void CTriggerSound::MultiTouch_Sound (CBaseEntity* pOther)
 // so wait for the delay time before firing
 
 // ESHQ: RoomType используется для установки звукового эффекта вместо вызова цели (-1 - игнорировать)
-void CBaseTrigger::ActivateMultiTrigger (CBaseEntity* pActivator, int RoomType)
+void CBaseTrigger::ActivateMultiTrigger (CBaseEntity *pActivator, int RoomType)
 	{
 	if (pev->nextthink > gpGlobals->time)
 		return;         // still waiting for reset time
@@ -1197,19 +1197,19 @@ void CBaseTrigger::ActivateMultiTrigger (CBaseEntity* pActivator, int RoomType)
 		}
 
 	if (!FStringNull (pev->noise))
-		EMIT_SOUND (ENT (pev), CHAN_VOICE, (char*)STRING (pev->noise), 1, ATTN_MEDIUM);
+		EMIT_SOUND (ENT (pev), CHAN_VOICE, (char *)STRING (pev->noise), 1, ATTN_MEDIUM);
 
 	m_hActivator = pActivator;
-	
+
 	/// ESHQ: запуск звука, если он указан
 	if (RoomType >= 0)
 		{
-		edict_t* pentPlayer = ENT (pActivator->pev);
-		CBasePlayer* pPlayer = NULL;
+		edict_t *pentPlayer = ENT (pActivator->pev);
+		CBasePlayer *pPlayer = NULL;
 
 		if (!FNullEnt (pentPlayer))
 			{
-			pPlayer = GetClassPtr ((CBasePlayer*)VARS (pentPlayer));
+			pPlayer = GetClassPtr ((CBasePlayer *)VARS (pentPlayer));
 			pPlayer->m_flSndRoomtype = RoomType;
 
 			MESSAGE_BEGIN (MSG_ONE, SVC_ROOMTYPE, NULL, pentPlayer);
@@ -1252,7 +1252,7 @@ void CBaseTrigger::MultiWaitOver (void)
 //
 // GLOBALS ASSUMED SET:  g_eoActivator
 //
-void CBaseTrigger::CounterUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CBaseTrigger::CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	m_cTriggersLeft--;
 	m_hActivator = pActivator;
@@ -1294,7 +1294,7 @@ If nomessage is not set, it will print "1 more.. " etc when triggered and
 "sequence complete" when finished.  After the counter has been triggered "cTriggersLeft"
 times (default 2), it will fire all of it's targets and remove itself.
 */
-class CTriggerCounter: public CBaseTrigger
+class CTriggerCounter : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
@@ -1313,7 +1313,7 @@ void CTriggerCounter::Spawn (void)
 	}
 
 // ====================== TRIGGER_CHANGELEVEL ================================
-class CTriggerVolume: public CPointEntity	// Derive from point entity so this doesn't move across levels
+class CTriggerVolume : public CPointEntity	// Derive from point entity so this doesn't move across levels
 	{
 	public:
 		void		Spawn (void);
@@ -1332,7 +1332,7 @@ void CTriggerVolume::Spawn (void)
 	}
 
 // Fires a target after level transition and then dies
-class CFireAndDie: public CBaseDelay
+class CFireAndDie : public CBaseDelay
 	{
 	public:
 		void Spawn (void);
@@ -1364,24 +1364,24 @@ void CFireAndDie::Think (void)
 
 
 #define SF_CHANGELEVEL_USEONLY		0x0002
-class CChangeLevel: public CBaseTrigger
+class CChangeLevel : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void KeyValue (KeyValueData* pkvd);
-		void EXPORT UseChangeLevel (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void KeyValue (KeyValueData *pkvd);
+		void EXPORT UseChangeLevel (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void EXPORT TriggerChangeLevel (void);
 		void EXPORT ExecuteChangeLevel (void);
-		void EXPORT TouchChangeLevel (CBaseEntity* pOther);
-		void ChangeLevelNow (CBaseEntity* pActivator);
+		void EXPORT TouchChangeLevel (CBaseEntity *pOther);
+		void ChangeLevelNow (CBaseEntity *pActivator);
 
-		static edict_t* FindLandmark (const char* pLandmarkName);
-		static int ChangeList (LEVELLIST* pLevelList, int maxList);
-		static int AddTransitionToList (LEVELLIST* pLevelList, int listCount, const char* pMapName, const char* pLandmarkName, edict_t* pentLandmark);
-		static int InTransitionVolume (CBaseEntity* pEntity, char* pVolumeName);
+		static edict_t *FindLandmark (const char *pLandmarkName);
+		static int ChangeList (LEVELLIST *pLevelList, int maxList);
+		static int AddTransitionToList (LEVELLIST *pLevelList, int listCount, const char *pMapName, const char *pLandmarkName, edict_t *pentLandmark);
+		static int InTransitionVolume (CBaseEntity *pEntity, char *pVolumeName);
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
@@ -1407,7 +1407,7 @@ IMPLEMENT_SAVERESTORE (CChangeLevel, CBaseTrigger);
 // Cache user-entity-field values until spawn is called.
 //
 
-void CChangeLevel::KeyValue (KeyValueData* pkvd)
+void CChangeLevel::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "map"))
 		{
@@ -1474,9 +1474,9 @@ void CChangeLevel::ExecuteChangeLevel (void)
 FILE_GLOBAL char st_szNextMap[cchMapNameMost];
 FILE_GLOBAL char st_szNextSpot[cchMapNameMost];
 
-edict_t* CChangeLevel::FindLandmark (const char* pLandmarkName)
+edict_t *CChangeLevel::FindLandmark (const char *pLandmarkName)
 	{
-	edict_t* pentLandmark;
+	edict_t *pentLandmark;
 
 	pentLandmark = FIND_ENTITY_BY_STRING (NULL, "targetname", pLandmarkName);
 	while (!FNullEnt (pentLandmark))
@@ -1497,14 +1497,14 @@ edict_t* CChangeLevel::FindLandmark (const char* pLandmarkName)
 // triggered by buttons, etc.
 //
 //=========================================================
-void CChangeLevel::UseChangeLevel (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CChangeLevel::UseChangeLevel (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	ChangeLevelNow (pActivator);
 	}
 
-void CChangeLevel::ChangeLevelNow (CBaseEntity* pActivator)
+void CChangeLevel::ChangeLevelNow (CBaseEntity *pActivator)
 	{
-	edict_t* pentLandmark;
+	edict_t *pentLandmark;
 	LEVELLIST	levels[16];
 
 	ASSERT (!FStrEq (m_szMapName, ""));
@@ -1519,7 +1519,7 @@ void CChangeLevel::ChangeLevelNow (CBaseEntity* pActivator)
 
 	pev->dmgtime = gpGlobals->time;
 
-	CBaseEntity* pPlayer = CBaseEntity::Instance (g_engfuncs.pfnPEntityOfEntIndex (1));
+	CBaseEntity *pPlayer = CBaseEntity::Instance (g_engfuncs.pfnPEntityOfEntIndex (1));
 	if (!InTransitionVolume (pPlayer, m_szLandmarkName))
 		{
 		ALERT (at_aiconsole, "Player isn't in the transition volume %s, aborting\n", m_szLandmarkName);
@@ -1529,7 +1529,7 @@ void CChangeLevel::ChangeLevelNow (CBaseEntity* pActivator)
 	// Create an entity to fire the changetarget
 	if (m_changeTarget)
 		{
-		CFireAndDie* pFireAndDie = GetClassPtr ((CFireAndDie*)NULL);
+		CFireAndDie *pFireAndDie = GetClassPtr ((CFireAndDie *)NULL);
 		if (pFireAndDie)
 			{
 			// Set target and delay
@@ -1564,7 +1564,7 @@ void CChangeLevel::ChangeLevelNow (CBaseEntity* pActivator)
 //
 // GLOBALS ASSUMED SET:  st_szNextMap
 //
-void CChangeLevel::TouchChangeLevel (CBaseEntity* pOther)
+void CChangeLevel::TouchChangeLevel (CBaseEntity *pOther)
 	{
 	if (!FClassnameIs (pOther->pev, "player"))
 		return;
@@ -1575,8 +1575,8 @@ void CChangeLevel::TouchChangeLevel (CBaseEntity* pOther)
 
 // Add a transition to the list, but ignore duplicates 
 // (a designer may have placed multiple trigger_changelevels with the same landmark)
-int CChangeLevel::AddTransitionToList (LEVELLIST* pLevelList, int listCount, const char* pMapName, 
-	const char* pLandmarkName, edict_t* pentLandmark)
+int CChangeLevel::AddTransitionToList (LEVELLIST *pLevelList, int listCount, const char *pMapName,
+	const char *pLandmarkName, edict_t *pentLandmark)
 	{
 	int i;
 
@@ -1597,14 +1597,14 @@ int CChangeLevel::AddTransitionToList (LEVELLIST* pLevelList, int listCount, con
 	return 1;
 	}
 
-int BuildChangeList (LEVELLIST* pLevelList, int maxList)
+int BuildChangeList (LEVELLIST *pLevelList, int maxList)
 	{
 	return CChangeLevel::ChangeList (pLevelList, maxList);
 	}
 
-int CChangeLevel::InTransitionVolume (CBaseEntity* pEntity, char* pVolumeName)
+int CChangeLevel::InTransitionVolume (CBaseEntity *pEntity, char *pVolumeName)
 	{
-	edict_t* pentVolume;
+	edict_t *pentVolume;
 
 	if (pEntity->ObjectCaps () & FCAP_FORCE_TRANSITION)
 		return 1;
@@ -1621,7 +1621,7 @@ int CChangeLevel::InTransitionVolume (CBaseEntity* pEntity, char* pVolumeName)
 	pentVolume = FIND_ENTITY_BY_TARGETNAME (NULL, pVolumeName);
 	while (!FNullEnt (pentVolume))
 		{
-		CBaseEntity* pVolume = CBaseEntity::Instance (pentVolume);
+		CBaseEntity *pVolume = CBaseEntity::Instance (pentVolume);
 
 		if (pVolume && FClassnameIs (pVolume->pev, "trigger_transition"))
 			{
@@ -1643,9 +1643,9 @@ int CChangeLevel::InTransitionVolume (CBaseEntity* pEntity, char* pVolumeName)
 // Can we make this more elegant?
 // This builds the list of all transitions on this level and which entities are in their PVS's and can / should
 // be moved across.
-int CChangeLevel::ChangeList (LEVELLIST* pLevelList, int maxList)
+int CChangeLevel::ChangeList (LEVELLIST *pLevelList, int maxList)
 	{
-	edict_t* pentChangelevel, * pentLandmark;
+	edict_t *pentChangelevel, *pentLandmark;
 	int			i, count;
 
 	count = 0;
@@ -1656,9 +1656,9 @@ int CChangeLevel::ChangeList (LEVELLIST* pLevelList, int maxList)
 		return 0;
 	while (!FNullEnt (pentChangelevel))
 		{
-		CChangeLevel* pTrigger;
+		CChangeLevel *pTrigger;
 
-		pTrigger = GetClassPtr ((CChangeLevel*)VARS (pentChangelevel));
+		pTrigger = GetClassPtr ((CChangeLevel *)VARS (pentChangelevel));
 		if (pTrigger)
 			{
 			// Find the corresponding landmark
@@ -1677,23 +1677,23 @@ int CChangeLevel::ChangeList (LEVELLIST* pLevelList, int maxList)
 		pentChangelevel = FIND_ENTITY_BY_STRING (pentChangelevel, "classname", "trigger_changelevel");
 		}
 
-	if (gpGlobals->pSaveData && ((SAVERESTOREDATA*)gpGlobals->pSaveData)->pTable)
+	if (gpGlobals->pSaveData && ((SAVERESTOREDATA *)gpGlobals->pSaveData)->pTable)
 		{
-		CSave saveHelper ((SAVERESTOREDATA*)gpGlobals->pSaveData);
+		CSave saveHelper ((SAVERESTOREDATA *)gpGlobals->pSaveData);
 
 		for (i = 0; i < count; i++)
 			{
 			int j, entityCount = 0;
-			CBaseEntity* pEntList[MAX_ENTITY];
+			CBaseEntity *pEntList[MAX_ENTITY];
 			int			 entityFlags[MAX_ENTITY];
 
 			// Follow the linked list of entities in the PVS of the transition landmark
-			edict_t* pent = UTIL_EntitiesInPVS (pLevelList[i].pentLandmark);
+			edict_t *pent = UTIL_EntitiesInPVS (pLevelList[i].pentLandmark);
 
 			// Build a list of valid entities in this linked list (we're going to use pent->v.chain again)
 			while (!FNullEnt (pent))
 				{
-				CBaseEntity* pEntity = CBaseEntity::Instance (pent);
+				CBaseEntity *pEntity = CBaseEntity::Instance (pent);
 				if (pEntity)
 					{
 					int caps = pEntity->ObjectCaps ();
@@ -1742,8 +1742,8 @@ only called if a time or frag limit has expired
 */
 void NextLevel (void)
 	{
-	edict_t* pent;
-	CChangeLevel* pChange;
+	edict_t *pent;
+	CChangeLevel *pChange;
 
 	// find a trigger_changelevel
 	pent = FIND_ENTITY_BY_CLASSNAME (NULL, "trigger_changelevel");
@@ -1752,7 +1752,7 @@ void NextLevel (void)
 	if (FNullEnt (pent))
 		{
 		gpGlobals->mapname = ALLOC_STRING ("start");
-		pChange = GetClassPtr ((CChangeLevel*)NULL);
+		pChange = GetClassPtr ((CChangeLevel *)NULL);
 		strcpy (pChange->m_szMapName, "start");
 		}
 	else
@@ -1772,17 +1772,17 @@ void NextLevel (void)
 
 // ============================== LADDER =======================================
 
-class CLadder: public CBaseTrigger
+class CLadder : public CBaseTrigger
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 		void Precache (void);
 	};
 LINK_ENTITY_TO_CLASS (func_ladder, CLadder);
 
 
-void CLadder::KeyValue (KeyValueData* pkvd)
+void CLadder::KeyValue (KeyValueData *pkvd)
 	{
 	CBaseTrigger::KeyValue (pkvd);
 	}
@@ -1816,17 +1816,17 @@ void CLadder::Spawn (void)
 
 // ========================== A TRIGGER THAT PUSHES YOU ===============================
 
-class CTriggerPush: public CBaseTrigger
+class CTriggerPush : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void KeyValue (KeyValueData* pkvd);
-		void Touch (CBaseEntity* pOther);
+		void KeyValue (KeyValueData *pkvd);
+		void Touch (CBaseEntity *pOther);
 	};
 LINK_ENTITY_TO_CLASS (trigger_push, CTriggerPush);
 
 
-void CTriggerPush::KeyValue (KeyValueData* pkvd)
+void CTriggerPush::KeyValue (KeyValueData *pkvd)
 	{
 	CBaseTrigger::KeyValue (pkvd);
 	}
@@ -1857,9 +1857,9 @@ void CTriggerPush::Spawn ()
 	UTIL_SetOrigin (pev, pev->origin);		// Link into the list
 	}
 
-void CTriggerPush::Touch (CBaseEntity* pOther)
+void CTriggerPush::Touch (CBaseEntity *pOther)
 	{
-	entvars_t* pevToucher = pOther->pev;
+	entvars_t *pevToucher = pOther->pev;
 
 	// UNDONE: Is there a better way than health to detect things that have physics? (clients/monsters)
 	switch (pevToucher->movetype)
@@ -1901,10 +1901,10 @@ void CTriggerPush::Touch (CBaseEntity* pOther)
 //
 //
 
-void CBaseTrigger::TeleportTouch (CBaseEntity* pOther)
+void CBaseTrigger::TeleportTouch (CBaseEntity *pOther)
 	{
-	entvars_t* pevToucher = pOther->pev;
-	edict_t* pentTarget = NULL;
+	entvars_t *pevToucher = pOther->pev;
+	edict_t *pentTarget = NULL;
 
 	// Only teleport monsters or clients
 	if (!FBitSet (pevToucher->flags, FL_CLIENT | FL_MONSTER))
@@ -1966,7 +1966,7 @@ void CBaseTrigger::TeleportTouch (CBaseEntity* pOther)
 		}
 	}
 
-class CTriggerTeleport: public CBaseTrigger
+class CTriggerTeleport : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
@@ -1982,11 +1982,11 @@ void CTriggerTeleport::Spawn (void)
 
 LINK_ENTITY_TO_CLASS (info_teleport_destination, CPointEntity);
 
-class CTriggerSave: public CBaseTrigger
+class CTriggerSave : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void EXPORT SaveTouch (CBaseEntity* pOther);
+		void EXPORT SaveTouch (CBaseEntity *pOther);
 	};
 LINK_ENTITY_TO_CLASS (trigger_autosave, CTriggerSave);
 
@@ -2002,7 +2002,7 @@ void CTriggerSave::Spawn (void)
 	SetTouch (&CTriggerSave::SaveTouch);
 	}
 
-void CTriggerSave::SaveTouch (CBaseEntity* pOther)
+void CTriggerSave::SaveTouch (CBaseEntity *pOther)
 	{
 	if (!UTIL_IsMasterTriggered (m_sMaster, pOther))
 		return;
@@ -2018,18 +2018,18 @@ void CTriggerSave::SaveTouch (CBaseEntity* pOther)
 
 #define SF_ENDSECTION_USEONLY		0x0001
 
-class CTriggerEndSection: public CBaseTrigger
+class CTriggerEndSection : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void EXPORT EndSectionTouch (CBaseEntity* pOther);
-		void KeyValue (KeyValueData* pkvd);
-		void EXPORT EndSectionUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void EXPORT EndSectionTouch (CBaseEntity *pOther);
+		void KeyValue (KeyValueData *pkvd);
+		void EXPORT EndSectionUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	};
 LINK_ENTITY_TO_CLASS (trigger_endsection, CTriggerEndSection);
 
 
-void CTriggerEndSection::EndSectionUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CTriggerEndSection::EndSectionUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	// Only save on clients
 	if (pActivator && !pActivator->IsNetClient ())
@@ -2061,7 +2061,7 @@ void CTriggerEndSection::Spawn (void)
 		SetTouch (&CTriggerEndSection::EndSectionTouch);
 	}
 
-void CTriggerEndSection::EndSectionTouch (CBaseEntity* pOther)
+void CTriggerEndSection::EndSectionTouch (CBaseEntity *pOther)
 	{
 	// Only save on clients
 	if (!pOther->IsNetClient ())
@@ -2075,7 +2075,7 @@ void CTriggerEndSection::EndSectionTouch (CBaseEntity* pOther)
 	UTIL_Remove (this);
 	}
 
-void CTriggerEndSection::KeyValue (KeyValueData* pkvd)
+void CTriggerEndSection::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "section"))
 		{
@@ -2089,11 +2089,11 @@ void CTriggerEndSection::KeyValue (KeyValueData* pkvd)
 	}
 
 
-class CTriggerGravity: public CBaseTrigger
+class CTriggerGravity : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void EXPORT GravityTouch (CBaseEntity* pOther);
+		void EXPORT GravityTouch (CBaseEntity *pOther);
 	};
 LINK_ENTITY_TO_CLASS (trigger_gravity, CTriggerGravity);
 
@@ -2106,7 +2106,7 @@ void CTriggerGravity::Spawn (void)
 // ESHQ: возможность установки всеобщей гравитации
 static cvar_t *g_psv_gravity = NULL;
 
-void CTriggerGravity::GravityTouch (CBaseEntity* pOther)
+void CTriggerGravity::GravityTouch (CBaseEntity *pOther)
 	{
 	// Only save on clients
 	if (!pOther->IsPlayer ())
@@ -2127,7 +2127,7 @@ void CTriggerGravity::GravityTouch (CBaseEntity* pOther)
 			if (g_psv_gravity)
 				{
 				g_psv_gravity->value = pev->gravity;
-				WRITE_ACHIEVEMENTS_SCRIPT (-1);	// Запись настроек в конфигурацию игры
+				WRITE_ACHIEVEMENTS_SCRIPT (1, -1);	// Запись настроек в конфигурацию игры
 				}
 			}
 		pOther->pev->gravity = 1.0f;
@@ -2135,16 +2135,16 @@ void CTriggerGravity::GravityTouch (CBaseEntity* pOther)
 	}
 
 // this is a really bad idea
-class CTriggerChangeTarget: public CBaseDelay
+class CTriggerChangeTarget : public CBaseDelay
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
-		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
 		int ObjectCaps (void) { return CBaseDelay::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
@@ -2160,7 +2160,7 @@ TYPEDESCRIPTION	CTriggerChangeTarget::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CTriggerChangeTarget, CBaseDelay);
 
-void CTriggerChangeTarget::KeyValue (KeyValueData* pkvd)
+void CTriggerChangeTarget::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "m_iszNewTarget"))
 		{
@@ -2177,15 +2177,14 @@ void CTriggerChangeTarget::Spawn (void)
 	{
 	}
 
-
-void CTriggerChangeTarget::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CTriggerChangeTarget::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
-	CBaseEntity* pTarget = UTIL_FindEntityByString (NULL, "targetname", STRING (pev->target));
+	CBaseEntity *pTarget = UTIL_FindEntityByString (NULL, "targetname", STRING (pev->target));
 
 	if (pTarget)
 		{
 		pTarget->pev->target = m_iszNewTarget;
-		CBaseMonster* pMonster = pTarget->MyMonsterPointer ();
+		CBaseMonster *pMonster = pTarget->MyMonsterPointer ();
 		if (pMonster)
 			{
 			pMonster->m_pGoalEnt = NULL;
@@ -2197,23 +2196,23 @@ void CTriggerChangeTarget::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, U
 #define SF_CAMERA_PLAYER_TARGET		2
 #define SF_CAMERA_PLAYER_TAKECONTROL 4
 
-class CTriggerCamera: public CBaseDelay
+class CTriggerCamera : public CBaseDelay
 	{
 	public:
 		void Spawn (void);
-		void KeyValue (KeyValueData* pkvd);
-		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void KeyValue (KeyValueData *pkvd);
+		void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void EXPORT FollowTarget (void);
 		void Move (void);
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 		virtual int	ObjectCaps (void) { return CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
 		static	TYPEDESCRIPTION m_SaveData[];
 
 		EHANDLE m_hPlayer;
 		EHANDLE m_hTarget;
-		CBaseEntity* m_pentPath;
+		CBaseEntity *m_pentPath;
 		int	  m_sPath;
 		float m_flWait;
 		float m_flReturnTime;
@@ -2256,15 +2255,15 @@ void CTriggerCamera::Spawn (void)
 	pev->rendermode = kRenderTransTexture;
 
 	m_initialSpeed = pev->speed;
-	
+
 	// ESHQ: нулевые значения будут использованы для отмены ускорения
 	/*if ( m_acceleration == 0 )
 		m_acceleration = 500;
 	if ( m_deceleration == 0 )
-		m_deceleration = 500;*/		
+		m_deceleration = 500;*/
 	}
 
-void CTriggerCamera::KeyValue (KeyValueData* pkvd)
+void CTriggerCamera::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "wait"))
 		{
@@ -2290,7 +2289,7 @@ void CTriggerCamera::KeyValue (KeyValueData* pkvd)
 		CBaseDelay::KeyValue (pkvd);
 	}
 
-void CTriggerCamera::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CTriggerCamera::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	if (!ShouldToggle (useType, m_state))
 		return;
@@ -2330,7 +2329,7 @@ void CTriggerCamera::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 
 	if (FBitSet (pev->spawnflags, SF_CAMERA_PLAYER_TAKECONTROL))
 		{
-		((CBasePlayer*)pActivator)->EnableControl (FALSE);
+		((CBasePlayer *)pActivator)->EnableControl (FALSE);
 		}
 
 	if (m_sPath)
@@ -2386,7 +2385,7 @@ void CTriggerCamera::FollowTarget ()
 		if (m_hPlayer->IsAlive ())
 			{
 			SET_VIEW (m_hPlayer->edict (), m_hPlayer->edict ());
-			((CBasePlayer*)((CBaseEntity*)m_hPlayer))->EnableControl (TRUE);
+			((CBasePlayer *)((CBaseEntity *)m_hPlayer))->EnableControl (TRUE);
 			}
 		SUB_UseTargets (this, USE_TOGGLE, 0);
 		pev->avelocity = Vector (0, 0, 0);
@@ -2492,13 +2491,13 @@ void CTriggerCamera::Move ()
 #define MAX_RANDOM_RATE	10
 
 // Generic implementation
-class CTriggerRandom: public CBaseToggle
+class CTriggerRandom : public CBaseToggle
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 		void EXPORT ManagerThink (void);
-		void EXPORT ManagerUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void EXPORT ManagerUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
 		BOOL HasTarget (string_t targetname);
 
@@ -2507,8 +2506,8 @@ class CTriggerRandom: public CBaseToggle
 			return CBaseToggle::ObjectCaps () & ~FCAP_ACROSS_TRANSITION;
 			}
 
-		virtual int Save (CSave& save);
-		virtual int Restore (CRestore& restore);
+		virtual int Save (CSave &save);
+		virtual int Restore (CRestore &restore);
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
@@ -2532,7 +2531,7 @@ class CTriggerRandom: public CBaseToggle
 			return (pev->spawnflags & SF_MULTIMAN_THREAD) ? TRUE : FALSE;
 			}
 
-		CTriggerRandom* Clone (void);
+		CTriggerRandom *Clone (void);
 	};
 
 LINK_ENTITY_TO_CLASS (trigger_random, CTriggerRandom);
@@ -2547,7 +2546,7 @@ TYPEDESCRIPTION	CTriggerRandom::m_SaveData[] =
 IMPLEMENT_SAVERESTORE (CTriggerRandom, CBaseToggle);
 
 // Creating a list of targets taking into account the probabilities
-void CTriggerRandom::KeyValue (KeyValueData* pkvd)
+void CTriggerRandom::KeyValue (KeyValueData *pkvd)
 	{
 	if (m_cTargets < MAX_MULTI_TARGETS * MAX_RANDOM_RATE)
 		{
@@ -2608,11 +2607,11 @@ void CTriggerRandom::ManagerThink (void)
 	}
 
 // Cloning for multiplayer mode
-CTriggerRandom* CTriggerRandom::Clone (void)
+CTriggerRandom *CTriggerRandom::Clone (void)
 	{
-	CTriggerRandom* pMulti = GetClassPtr ((CTriggerRandom*)NULL);
+	CTriggerRandom *pMulti = GetClassPtr ((CTriggerRandom *)NULL);
 
-	edict_t* pEdict = pMulti->pev->pContainingEntity;
+	edict_t *pEdict = pMulti->pev->pContainingEntity;
 	memcpy (pMulti->pev, pev, sizeof (*pev));
 	pMulti->pev->pContainingEntity = pEdict;
 
@@ -2624,13 +2623,13 @@ CTriggerRandom* CTriggerRandom::Clone (void)
 	}
 
 // Activating a trigger
-void CTriggerRandom::ManagerUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CTriggerRandom::ManagerUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	// In multiplayer games, clone the MM and execute in the clone (like a thread)
 	// to allow multiple players to trigger the same multimanager
 	if (ShouldClone ())
 		{
-		CTriggerRandom* pClone = Clone ();
+		CTriggerRandom *pClone = Clone ();
 		pClone->ManagerUse (pActivator, pCaller, useType, value);
 		return;
 		}

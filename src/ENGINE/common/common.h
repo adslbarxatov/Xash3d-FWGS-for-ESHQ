@@ -413,7 +413,19 @@ typedef void (*xcommand_t)(void);
 qboolean FS_LoadProgs (void);
 void FS_Init (void);
 void FS_Shutdown (void);
-qboolean FS_WriteAchievementsScript (int NewLevel);		// ESHQ: поддержка скриптов
+
+// ESHQ: поддержка скриптов достижений
+#define ACHI_OLD_SCRIPT_FN	"achi2.cfg"
+
+#define ACHI_SCRIPT_С		"achi0.sc"
+#define ACHI_SCRIPT_G		"achi2.sc"
+#define ACHI_EXEC_LINE_G	"exec " ACHI_SCRIPT_G "\n"
+#define ACHI_SCRIPT_R		"achi3.sc"
+#define ACHI_EXEC_LINE_R	"exec " ACHI_SCRIPT_R "\n"
+#define ACHI_SCRIPT_A		"achi1.sc"
+#define ACHI_EXEC_LINE_A	"exec " ACHI_SCRIPT_A "\n"
+
+void FS_WriteAchievementsScript (byte Mode, int NewLevel);
 
 //
 // cmd.c

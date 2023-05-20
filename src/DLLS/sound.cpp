@@ -24,7 +24,7 @@
 #include "talkmonster.h"
 #include "gamerules.h"
 
-static char* memfgets (byte* pMemFile, int fileSize, int& filePos, char* pBuffer, int bufferSize);
+static char *memfgets (byte *pMemFile, int fileSize, int &filePos, char *pBuffer, int bufferSize);
 
 // ==================== GENERIC AMBIENT SOUND ======================================
 
@@ -48,7 +48,7 @@ typedef struct dynpitchvol
 	int fadein;			// volume fade in time 0 - 100
 	int fadeout;		// volume fade out time 0 - 100
 
-						// Low Frequency Oscillator
+	// Low Frequency Oscillator
 	int	lfotype;		// 0) off 1) square 2) triangle 3) random
 	int lforate;		// 0 - 1000, how fast lfo osciallates
 
@@ -111,18 +111,18 @@ dynpitchvol_t rgdpvpreset[CDPVPRESETMAX] =
 	{27,128,	 90,	10,		10,		10,		1,		20,		40,		1,		5,		10,		20,		0,		0,0,0,0,0,0,0,0,0,0}
 	};
 
-class CAmbientGeneric: public CBaseEntity
+class CAmbientGeneric : public CBaseEntity
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 		void Precache (void);
-		void EXPORT ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void EXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void EXPORT RampThink (void);
 		void InitModulationParms (void);
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 		static	TYPEDESCRIPTION m_SaveData[];
 		virtual int	ObjectCaps (void) { return (CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION); }
 
@@ -177,7 +177,7 @@ void CAmbientGeneric::Spawn (void)
 		m_flAttenuation = ATTN_SMALL;
 		}
 
-	char* szSoundFile = (char*)STRING (pev->message);
+	char *szSoundFile = (char *)STRING (pev->message);
 
 	if (FStringNull (pev->message) || strlen (szSoundFile) < 1)
 		{
@@ -209,7 +209,7 @@ void CAmbientGeneric::Spawn (void)
 
 void CAmbientGeneric::Precache (void)
 	{
-	char* szSoundFile = (char*)STRING (pev->message);
+	char *szSoundFile = (char *)STRING (pev->message);
 
 	if (!FStringNull (pev->message) && strlen (szSoundFile) > 1)
 		{
@@ -241,7 +241,7 @@ void CAmbientGeneric::Precache (void)
 
 void CAmbientGeneric::RampThink (void)
 	{
-	char* szSoundFile = (char*)STRING (pev->message);
+	char *szSoundFile = (char *)STRING (pev->message);
 	int pitch = m_dpv.pitch;
 	int vol = m_dpv.vol;
 	int flags = 0;
@@ -509,7 +509,7 @@ void CAmbientGeneric::InitModulationParms (void)
 	if ((m_dpv.spinupsav || m_dpv.spindownsav || (m_dpv.lfotype && m_dpv.lfomodpitch))
 		&& (m_dpv.pitch == PITCH_NORM))
 		m_dpv.pitch = PITCH_NORM + 1; // must never send 'no pitch' as first pitch
-									  // if we intend to pitch shift later!
+	// if we intend to pitch shift later!
 	}
 
 //
@@ -518,9 +518,9 @@ void CAmbientGeneric::InitModulationParms (void)
 // if it's playing, innactive if not.  If the sound is not
 // a looping sound, never mark it as active.
 //
-void CAmbientGeneric::ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CAmbientGeneric::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
-	char* szSoundFile = (char*)STRING (pev->message);
+	char *szSoundFile = (char *)STRING (pev->message);
 	float fraction;
 
 	if (useType != USE_TOGGLE)
@@ -630,7 +630,7 @@ void CAmbientGeneric::ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, 
 // KeyValue - load keyvalue pairs into member data of the
 // ambient generic. NOTE: called BEFORE spawn!
 
-void CAmbientGeneric::KeyValue (KeyValueData* pkvd)
+void CAmbientGeneric::KeyValue (KeyValueData *pkvd)
 	{
 	// NOTE: changing any of the modifiers in this code
 	// NOTE: also requires changing InitModulationParms code.
@@ -788,16 +788,16 @@ void CAmbientGeneric::KeyValue (KeyValueData* pkvd)
 
 // =================== ROOM SOUND FX ==========================================
 
-class CEnvSound: public CPointEntity
+class CEnvSound : public CPointEntity
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 
 		void Think (void);
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 		static	TYPEDESCRIPTION m_SaveData[];
 
 		float m_flRadius;
@@ -814,7 +814,7 @@ TYPEDESCRIPTION	CEnvSound::m_SaveData[] =
 IMPLEMENT_SAVERESTORE (CEnvSound, CBaseEntity);
 
 
-void CEnvSound::KeyValue (KeyValueData* pkvd)
+void CEnvSound::KeyValue (KeyValueData *pkvd)
 	{
 
 	if (FStrEq (pkvd->szKeyName, "radius"))
@@ -832,9 +832,9 @@ void CEnvSound::KeyValue (KeyValueData* pkvd)
 // returns TRUE if the given sound entity (pev) is in range 
 // and can see the given player entity (pevTarget)
 
-BOOL FEnvSoundInRange (entvars_t* pev, entvars_t* pevTarget, float* pflRange)
+BOOL FEnvSoundInRange (entvars_t *pev, entvars_t *pevTarget, float *pflRange)
 	{
-	CEnvSound* pSound = GetClassPtr ((CEnvSound*)pev);
+	CEnvSound *pSound = GetClassPtr ((CEnvSound *)pev);
 	Vector vecSpot1 = pev->origin + pev->view_ofs;
 	Vector vecSpot2 = pevTarget->origin + pevTarget->view_ofs;
 	Vector vecRange;
@@ -878,33 +878,37 @@ void CEnvSound::Think (void)
 	// get pointer to client if visible; FIND_CLIENT_IN_PVS will
 	// cycle through visible clients on consecutive calls.
 
-	edict_t* pentPlayer = FIND_CLIENT_IN_PVS (edict ());
-	CBasePlayer* pPlayer = NULL;
+	edict_t *pentPlayer = FIND_CLIENT_IN_PVS (edict ());
+	CBasePlayer *pPlayer = NULL;
 
 	if (FNullEnt (pentPlayer))
 		goto env_sound_Think_slow; // no player in pvs of sound entity, slow it down
 
-	pPlayer = GetClassPtr ((CBasePlayer*)VARS (pentPlayer));
+	pPlayer = GetClassPtr ((CBasePlayer *)VARS (pentPlayer));
 	float flRange;
 
 	// check to see if this is the sound entity that is 
 	// currently affecting this player
 
-	if (!FNullEnt (pPlayer->m_pentSndLast) && (pPlayer->m_pentSndLast == ENT (pev))) {
+	if (!FNullEnt (pPlayer->m_pentSndLast) && (pPlayer->m_pentSndLast == ENT (pev)))
+		{
 
 		// this is the entity currently affecting player, check
 		// for validity
 
-		if (pPlayer->m_flSndRoomtype != 0 && pPlayer->m_flSndRange != 0) {
+		if (pPlayer->m_flSndRoomtype != 0 && pPlayer->m_flSndRange != 0)
+			{
 
 			// we're looking at a valid sound entity affecting
 			// player, make sure it's still valid, update range
 
-			if (FEnvSoundInRange (pev, VARS (pentPlayer), &flRange)) {
+			if (FEnvSoundInRange (pev, VARS (pentPlayer), &flRange))
+				{
 				pPlayer->m_flSndRange = flRange;
 				goto env_sound_Think_fast;
 				}
-			else {
+			else
+				{
 
 				// current sound entity affecting player is no longer valid,
 				// flag this state by clearing room_type and range.
@@ -916,7 +920,7 @@ void CEnvSound::Think (void)
 				goto env_sound_Think_slow;
 				}
 			}
-		else 
+		else
 			{
 			// entity is affecting player but is out of range,
 			// wait passively for another entity to usurp it...
@@ -953,7 +957,7 @@ void CEnvSound::Think (void)
 		// cranks up the think_rate of entities near the player.
 
 		// ESHQ: запись настроек в конфигурацию игры
-		WRITE_ACHIEVEMENTS_SCRIPT (-1);
+		WRITE_ACHIEVEMENTS_SCRIPT (2, -1);
 		}
 
 	// player is in pvs of sound entity, but either not visible or
@@ -1004,7 +1008,7 @@ int gcallsentences = 0;
 
 // randomize list of sentence name indices
 
-void USENTENCEG_InitLRU (unsigned char* plru, int count)
+void USENTENCEG_InitLRU (unsigned char *plru, int count)
 	{
 	int i, j, k;
 	unsigned char temp;
@@ -1033,11 +1037,10 @@ void USENTENCEG_InitLRU (unsigned char* plru, int count)
 // then repeat list if freset is true.  If freset is false, then repeat last sentence.
 // ipick is passed in as the requested sentence ordinal.
 // ipick 'next' is returned.  
-// return of -1 indicates an error.
-
-int USENTENCEG_PickSequential (int isentenceg, char* szfound, int ipick, int freset)
+// return of -1 indicates an error
+int USENTENCEG_PickSequential (int isentenceg, char *szfound, int ipick, int freset)
 	{
-	char* szgroupname;
+	char *szgroupname;
 	unsigned char count;
 	char sznum[8];
 
@@ -1083,10 +1086,10 @@ int USENTENCEG_PickSequential (int isentenceg, char* szfound, int ipick, int fre
 // actually the size of the list.  Returns ipick, the ordinal
 // of the picked sentence within the group.
 
-int USENTENCEG_Pick (int isentenceg, char* szfound)
+int USENTENCEG_Pick (int isentenceg, char *szfound)
 	{
-	char* szgroupname;
-	unsigned char* plru;
+	char *szgroupname;
+	unsigned char *plru;
 	unsigned char i;
 	unsigned char count;
 	char sznum[8];
@@ -1133,7 +1136,7 @@ int USENTENCEG_Pick (int isentenceg, char* szfound)
 // Given sentence group rootname (name without number suffix),
 // get sentence group index (isentenceg). Returns -1 if no such name.
 
-int SENTENCEG_GetIndex (const char* szgroupname)
+int SENTENCEG_GetIndex (const char *szgroupname)
 	{
 	int i;
 
@@ -1158,7 +1161,7 @@ int SENTENCEG_GetIndex (const char* szgroupname)
 // play from the group. Ipick is only needed if you plan on stopping
 // the sound before playback is done (see SENTENCEG_Stop).
 
-int SENTENCEG_PlayRndI (edict_t* entity, int isentenceg,
+int SENTENCEG_PlayRndI (edict_t *entity, int isentenceg,
 	float volume, float attenuation, int flags, int pitch)
 	{
 	char name[64];
@@ -1177,7 +1180,7 @@ int SENTENCEG_PlayRndI (edict_t* entity, int isentenceg,
 
 // same as above, but takes sentence group name instead of index
 
-int SENTENCEG_PlayRndSz (edict_t* entity, const char* szgroupname,
+int SENTENCEG_PlayRndSz (edict_t *entity, const char *szgroupname,
 	float volume, float attenuation, int flags, int pitch)
 	{
 	char name[64];
@@ -1205,7 +1208,7 @@ int SENTENCEG_PlayRndSz (edict_t* entity, const char* szgroupname,
 
 // play sentences in sequential order from sentence group.  Reset after last sentence.
 
-int SENTENCEG_PlaySequentialSz (edict_t* entity, const char* szgroupname,
+int SENTENCEG_PlaySequentialSz (edict_t *entity, const char *szgroupname,
 	float volume, float attenuation, int flags, int pitch, int ipick, int freset)
 	{
 	char name[64];
@@ -1231,7 +1234,7 @@ int SENTENCEG_PlaySequentialSz (edict_t* entity, const char* szgroupname,
 // for this entity, for the given sentence within the sentence group, stop
 // the sentence.
 
-void SENTENCEG_Stop (edict_t* entity, int isentenceg, int ipick)
+void SENTENCEG_Stop (edict_t *entity, int isentenceg, int ipick)
 	{
 	char buffer[64];
 	char sznum[8];
@@ -1274,7 +1277,7 @@ void SENTENCEG_Init ()
 
 
 	int filePos = 0, fileSize;
-	byte* pMemFile = g_engfuncs.pfnLoadFileForMe ("sound/sentences.txt", &fileSize);
+	byte *pMemFile = g_engfuncs.pfnLoadFileForMe ("sound/sentences.txt", &fileSize);
 	if (!pMemFile)
 		return;
 
@@ -1308,7 +1311,7 @@ void SENTENCEG_Init ()
 
 		// null-terminate name and save in sentences array
 		buffer[j] = 0;
-		const char* pString = buffer + i;
+		const char *pString = buffer + i;
 
 		if (strlen (pString) >= CBSENTENCENAME_MAX)
 			ALERT (at_warning, "Sentence %s longer than %d letters\n", pString, CBSENTENCENAME_MAX - 1);
@@ -1377,7 +1380,7 @@ void SENTENCEG_Init ()
 
 // convert sentence (sample) name to !sentencenum, return !sentencenum
 
-int SENTENCEG_Lookup (const char* sample, char* sentencenum)
+int SENTENCEG_Lookup (const char *sample, char *sentencenum)
 	{
 	char sznum[8];
 
@@ -1399,7 +1402,7 @@ int SENTENCEG_Lookup (const char* sample, char* sentencenum)
 	return -1;
 	}
 
-void EMIT_SOUND_DYN (edict_t* entity, int channel, const char* sample, float volume, float attenuation,
+void EMIT_SOUND_DYN (edict_t *entity, int channel, const char *sample, float volume, float attenuation,
 	int flags, int pitch)
 	{
 	if (sample && (*sample == '!'))
@@ -1418,7 +1421,7 @@ void EMIT_SOUND_DYN (edict_t* entity, int channel, const char* sample, float vol
 
 // play a specific sentence over the HEV suit speaker - just pass player entity, and !sentencename
 
-void EMIT_SOUND_SUIT (edict_t* entity, const char* sample)
+void EMIT_SOUND_SUIT (edict_t *entity, const char *sample)
 	{
 	float fvol;
 	int pitch = PITCH_NORM;
@@ -1433,7 +1436,7 @@ void EMIT_SOUND_SUIT (edict_t* entity, const char* sample)
 
 // play a sentence, randomly selected from the passed in group id, over the HEV suit speaker
 
-void EMIT_GROUPID_SUIT (edict_t* entity, int isentenceg)
+void EMIT_GROUPID_SUIT (edict_t *entity, int isentenceg)
 	{
 	float fvol;
 	int pitch = PITCH_NORM;
@@ -1448,7 +1451,7 @@ void EMIT_GROUPID_SUIT (edict_t* entity, int isentenceg)
 
 // play a sentence, randomly selected from the passed in groupname
 
-void EMIT_GROUPNAME_SUIT (edict_t* entity, const char* groupname)
+void EMIT_GROUPNAME_SUIT (edict_t *entity, const char *groupname)
 	{
 	float fvol;
 	int pitch = PITCH_NORM;
@@ -1479,7 +1482,7 @@ char grgchTextureType[CTEXTURESMAX];						// parallel array of texture types
 // save in array.  Only works first time called, 
 // ignored on subsequent calls.
 
-static char* memfgets (byte* pMemFile, int fileSize, int& filePos, char* pBuffer, int bufferSize)
+static char *memfgets (byte *pMemFile, int fileSize, int &filePos, char *pBuffer, int bufferSize)
 	{
 	// Bullet-proofing
 	if (!pMemFile || !pBuffer)
@@ -1532,7 +1535,7 @@ void TEXTURETYPE_Init ()
 	{
 	char buffer[512];
 	int i, j;
-	byte* pMemFile;
+	byte *pMemFile;
 	int fileSize, filePos;
 
 	if (fTextureTypeInit)
@@ -1598,7 +1601,7 @@ void TEXTURETYPE_Init ()
 // NOTE: this routine should ONLY be called if the 
 // current texture under the player changes!
 
-char TEXTURETYPE_Find (char* name)
+char TEXTURETYPE_Find (char *name)
 	{
 	// CONSIDER: pre-sort texture names and perform faster binary search here
 
@@ -1615,24 +1618,24 @@ char TEXTURETYPE_Find (char* name)
 // original traceline endpoints used by the attacker, iBulletType is the type of bullet that hit the texture.
 // returns volume of strike instrument (crowbar) to play
 
-float TEXTURETYPE_PlaySound (TraceResult* ptr, Vector vecSrc, Vector vecEnd, int iBulletType)
+float TEXTURETYPE_PlaySound (TraceResult *ptr, Vector vecSrc, Vector vecEnd, int iBulletType)
 	{
 	// hit the world, try to play sound based on texture material type
 	char chTextureType;
 	float fvol;
 	float fvolbar;
 	char szbuffer[64];
-	const char* pTextureName;
+	const char *pTextureName;
 	float rgfl1[3];
 	float rgfl2[3];
-	char* rgsz[4];
+	char *rgsz[4];
 	int cnt;
 	float fattn = ATTN_MEDIUM;
 
 	if (!g_pGameRules->PlayTextureSounds ())
 		return 0.0;
 
-	CBaseEntity* pEntity = CBaseEntity::Instance (ptr->pHit);
+	CBaseEntity *pEntity = CBaseEntity::Instance (ptr->pHit);
 
 	chTextureType = 0;
 
@@ -1704,7 +1707,7 @@ float TEXTURETYPE_PlaySound (TraceResult* ptr, Vector vecSrc, Vector vecEnd, int
 			cnt = 3;
 			break;
 
-		case CHAR_TEX_VENT:	
+		case CHAR_TEX_VENT:
 			fvol = 0.5; fvolbar = 0.3;
 			rgsz[0] = "player/pl_duct1.wav";
 			rgsz[1] = "player/pl_duct3.wav";
@@ -1774,7 +1777,7 @@ float TEXTURETYPE_PlaySound (TraceResult* ptr, Vector vecSrc, Vector vecEnd, int
 		}
 
 	// ESHQ: мы ударили breakable или cycler?
-	if (pEntity && (FClassnameIs (pEntity->pev, "func_breakable") || FClassnameIs (pEntity->pev, "func_pushable") || 
+	if (pEntity && (FClassnameIs (pEntity->pev, "func_breakable") || FClassnameIs (pEntity->pev, "func_pushable") ||
 		FClassnameIs (pEntity->pev, "cycler")))
 		{
 		// Ёти объекты выполн€ют обработку самосто€тельно
@@ -1790,11 +1793,11 @@ float TEXTURETYPE_PlaySound (TraceResult* ptr, Vector vecSrc, Vector vecEnd, int
 			float flVolume = RANDOM_FLOAT (0.7, 1.0);//random volume range
 			switch (RANDOM_LONG (0, 1))
 				{
-				case 0: 
-					UTIL_EmitAmbientSound (ENT (0), ptr->vecEndPos, "buttons/spark5.wav", flVolume, ATTN_MEDIUM, 0, 100); 
+				case 0:
+					UTIL_EmitAmbientSound (ENT (0), ptr->vecEndPos, "buttons/spark5.wav", flVolume, ATTN_MEDIUM, 0, 100);
 					break;
-				case 1: 
-					UTIL_EmitAmbientSound (ENT (0), ptr->vecEndPos, "buttons/spark6.wav", flVolume, ATTN_MEDIUM, 0, 100); 
+				case 1:
+					UTIL_EmitAmbientSound (ENT (0), ptr->vecEndPos, "buttons/spark6.wav", flVolume, ATTN_MEDIUM, 0, 100);
 					break;
 				}
 			}
@@ -1816,17 +1819,17 @@ float TEXTURETYPE_PlaySound (TraceResult* ptr, Vector vecSrc, Vector vecEnd, int
 //
 // Speaker class. Used for announcements per level, for door lock/unlock spoken voice. 
 //
-class CSpeaker: public CBaseEntity
+class CSpeaker : public CBaseEntity
 	{
 	public:
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 		void Precache (void);
-		void EXPORT ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void EXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void EXPORT SpeakerThink (void);
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 		static	TYPEDESCRIPTION m_SaveData[];
 
 		virtual int	ObjectCaps (void) { return (CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION); }
@@ -1847,7 +1850,7 @@ IMPLEMENT_SAVERESTORE (CSpeaker, CBaseEntity);
 //
 void CSpeaker::Spawn (void)
 	{
-	char* szSoundFile = (char*)STRING (pev->message);
+	char *szSoundFile = (char *)STRING (pev->message);
 
 	if (!m_preset && (FStringNull (pev->message) || strlen (szSoundFile) < 1))
 		{
@@ -1880,7 +1883,7 @@ void CSpeaker::Precache (void)
 	}
 void CSpeaker::SpeakerThink (void)
 	{
-	char* szSoundFile;
+	char *szSoundFile;
 	float flvolume = pev->health * 0.1;
 	float flattenuation = 0.3;
 	int flags = 0;
@@ -1914,7 +1917,7 @@ void CSpeaker::SpeakerThink (void)
 			}
 		}
 	else
-		szSoundFile = (char*)STRING (pev->message);
+		szSoundFile = (char *)STRING (pev->message);
 
 	if (szSoundFile[0] == '!')
 		{
@@ -1945,7 +1948,7 @@ void CSpeaker::SpeakerThink (void)
 //
 // ToggleUse - if an announcement is pending, cancel it.  If no announcement is pending, start one.
 //
-void CSpeaker::ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CSpeaker::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	int fActive = (pev->nextthink > 0.0);
 
@@ -1992,7 +1995,7 @@ void CSpeaker::ToggleUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 // KeyValue - load keyvalue pairs into member data
 // NOTE: called BEFORE spawn!
 
-void CSpeaker::KeyValue (KeyValueData* pkvd)
+void CSpeaker::KeyValue (KeyValueData *pkvd)
 	{
 
 	// preset

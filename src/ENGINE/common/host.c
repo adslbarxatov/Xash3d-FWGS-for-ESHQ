@@ -1275,7 +1275,7 @@ void Host_FreeCommon (void)
 Host_Main
 =================
 */
-#define ACHI_EXEC_STRING	"exec achi2.cfg\n"
+/*#define ACHI_EXEC_STRING	"exec achi2.cfg\n"*/
 
 int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
 	{
@@ -1383,7 +1383,12 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 				Cbuf_Execute ();
 
 				// ESHQ: поддержка достижений
-				Cbuf_AddText (ACHI_EXEC_STRING);
+				Cbuf_AddText (ACHI_EXEC_LINE_A);
+				Cbuf_Execute ();
+				Cbuf_AddText (ACHI_EXEC_LINE_G);
+				Cbuf_Execute ();
+				Cbuf_AddText (ACHI_EXEC_LINE_R);
+				Cbuf_Execute ();
 				}
 
 			// exec all files from userconfig.d
@@ -1401,7 +1406,11 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	Cbuf_ExecStuffCmds ();	// execute stuffcmds (commandline)
 
 	// ESHQ: поддержка достижений
-	Cbuf_AddText (ACHI_EXEC_STRING);
+	Cbuf_AddText (ACHI_EXEC_LINE_A);
+	Cbuf_Execute ();
+	Cbuf_AddText (ACHI_EXEC_LINE_G);
+	Cbuf_Execute ();
+	Cbuf_AddText (ACHI_EXEC_LINE_R);
 	Cbuf_Execute ();
 
 	SCR_CheckStartupVids ();	// must be last

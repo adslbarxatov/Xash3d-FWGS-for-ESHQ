@@ -189,7 +189,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 	DECLARE_KEY_RANGE (SDL_SCANCODE_A, SDL_SCANCODE_Z, 'a')
 	else
-		DECLARE_KEY_RANGE (SDL_SCANCODE_1, SDL_SCANCODE_9, '1')
+	DECLARE_KEY_RANGE (SDL_SCANCODE_1, SDL_SCANCODE_9, '1')
 	else
 		DECLARE_KEY_RANGE (SDL_SCANCODE_F1, SDL_SCANCODE_F12, K_F1)
 	else
@@ -401,7 +401,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 			break;
 
-		// [FWGS, 01.04.23]
+			// [FWGS, 01.04.23]
 		case SDL_SCANCODE_PAUSE:
 			keynum = K_PAUSE;
 			break;
@@ -416,7 +416,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			keynum = K_WIN;
 			break; // (compose key)
 
-		// don't console spam on known functional buttons, not used in engine
+			// don't console spam on known functional buttons, not used in engine
 		case SDL_SCANCODE_MUTE:
 		case SDL_SCANCODE_VOLUMEUP:
 		case SDL_SCANCODE_VOLUMEDOWN:
@@ -657,13 +657,13 @@ static void SDLash_EventFilter (SDL_Event *event)
 			SDLash_MouseEvent (event->button);
 			break;
 
-		// Keyboard events
+			// Keyboard events
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
 			SDLash_KeyEvent (event->key);
 			break;
 
-		// Joystick events
+			// Joystick events
 		case SDL_JOYAXISMOTION:
 			if (!SDLash_IsInstanceIDAGameController (event->jaxis.which))
 				Joy_AxisMotionEvent (event->jaxis.axis, event->jaxis.value);
@@ -698,7 +698,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			IN_MWheelEvent (event->wheel.y);
 			break;
 
-		// Touch events
+			// Touch events
 		case SDL_FINGERDOWN:
 		case SDL_FINGERUP:
 		case SDL_FINGERMOTION:
@@ -752,7 +752,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			break;
 			}
 
-		// IME
+			// IME
 		case SDL_TEXTINPUT:
 			SDLash_InputEvent (event->text);
 			break;
@@ -764,7 +764,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			Joy_RemoveEvent ();
 			break;
 
-		// GameController API
+			// GameController API
 		case SDL_CONTROLLERAXISMOTION:
 			{
 			if (!Joy_IsActive ())
@@ -878,7 +878,7 @@ void Platform_RunEvents (void)
 
 // [FWGS, 01.04.23]
 #if XASH_PSVITA
-	PSVita_InputUpdate ();
+PSVita_InputUpdate ();
 #endif
 
 void *Platform_GetNativeObject (const char *name)
