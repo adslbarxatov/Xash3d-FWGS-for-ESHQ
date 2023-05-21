@@ -1147,7 +1147,7 @@ edict_t *SV_AllocEdict (void)
 		e = EDICT_NUM (i);
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
-		if (e->free && (e->freetime < 2.0f || (sv.time - e->freetime) > 0.5f))
+		if (e->free && ((e->freetime < 2.0f) || ((sv.time - e->freetime) > 0.5f)))
 			{
 			SV_InitEdict (e);
 			return e;
@@ -1192,14 +1192,9 @@ edict_t *SV_AllocPrivateData (edict_t *ent, string_t className)
 	pszClassName = STRING (className);
 
 	if (!ent)
-		{
-		// allocate a new one
-		ent = SV_AllocEdict ();
-		}
+		ent = SV_AllocEdict ();	// allocate a new one
 	else if (ent->free)
-		{
-		SV_InitEdict (ent); // re-init edict
-		}
+		SV_InitEdict (ent);		// re-init edict
 
 	ent->v.classname = className;
 	ent->v.pContainingEntity = ent; // re-link
@@ -1210,7 +1205,7 @@ edict_t *SV_AllocPrivateData (edict_t *ent, string_t className)
 	if (!SpawnEdict)
 		{
 		// attempt to create custom entity (Xash3D extension)
-		if (svgame.physFuncs.SV_CreateEntity && svgame.physFuncs.SV_CreateEntity (ent, pszClassName) != -1)
+		if (svgame.physFuncs.SV_CreateEntity && (svgame.physFuncs.SV_CreateEntity (ent, pszClassName) != -1))
 			return ent;
 
 		SpawnEdict = SV_GetEntityClass ("custom");
@@ -1245,7 +1240,8 @@ edict_t *SV_CreateNamedEntity (edict_t *ent, string_t className)
 	edict_t *ed = SV_AllocPrivateData (ent, className);
 
 	// for some reasons this flag should be immediately cleared
-	if (ed) ClearBits (ed->v.flags, FL_CUSTOMENTITY);
+	if (ed)
+		ClearBits (ed->v.flags, FL_CUSTOMENTITY);
 
 	return ed;
 	}
