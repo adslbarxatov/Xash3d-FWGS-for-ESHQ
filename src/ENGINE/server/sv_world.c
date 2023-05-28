@@ -634,14 +634,17 @@ void SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 	areanode_t *node;
 	int		headnode;
 
-	if (ent->area.prev) SV_UnlinkEdict (ent);	// unlink from old position
-	if (ent == svgame.edicts) return;		// don't add the world
-	if (!SV_IsValidEdict (ent)) return;		// never add freed ents
+	if (ent->area.prev)
+		SV_UnlinkEdict (ent);	// unlink from old position
+	if (ent == svgame.edicts)
+		return;		// don't add the world
+	if (!SV_IsValidEdict (ent))
+		return;		// never add freed ents
 
 	// set the abs box
 	svgame.dllFuncs.pfnSetAbsBox (ent);
 
-	if (ent->v.movetype == MOVETYPE_FOLLOW && SV_IsValidEdict (ent->v.aiment))
+	if ((ent->v.movetype == MOVETYPE_FOLLOW) && SV_IsValidEdict (ent->v.aiment))
 		{
 		memcpy (ent->leafnums, ent->v.aiment->leafnums, sizeof (ent->leafnums));
 		ent->num_leafs = ent->v.aiment->num_leafs;
@@ -666,7 +669,7 @@ void SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 		}
 
 	// ignore non-solid bodies
-	if (ent->v.solid == SOLID_NOT && ent->v.skin >= CONTENTS_EMPTY)
+	if ((ent->v.solid == SOLID_NOT) && (ent->v.skin >= CONTENTS_EMPTY))
 		return;
 
 	// find the first node that the ent's box crosses
@@ -674,12 +677,14 @@ void SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 
 	while (1)
 		{
-		if (node->axis == -1) break;
+		if (node->axis == -1)
+			break;
 		if (ent->v.absmin[node->axis] > node->dist)
 			node = node->children[0];
 		else if (ent->v.absmax[node->axis] < node->dist)
 			node = node->children[1];
-		else break; // crosses the node
+		else
+			break;	// crosses the node
 		}
 
 	// link it in
@@ -687,7 +692,8 @@ void SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 		InsertLinkBefore (&ent->area, &node->trigger_edicts);
 	else if (ent->v.solid == SOLID_PORTAL)
 		InsertLinkBefore (&ent->area, &node->portal_edicts);
-	else InsertLinkBefore (&ent->area, &node->solid_edicts);
+	else
+		InsertLinkBefore (&ent->area, &node->solid_edicts);
 
 	if (touch_triggers && !iTouchLinkSemaphore)
 		{
@@ -699,9 +705,7 @@ void SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 
 /*
 ===============================================================================
-
 POINT TESTING IN HULLS
-
 ===============================================================================
 */
 void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)

@@ -1874,7 +1874,6 @@ void CFade::Spawn (void)
 	pev->frame = 0;
 	}
 
-
 void CFade::KeyValue (KeyValueData* pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "duration"))
@@ -1888,7 +1887,9 @@ void CFade::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CPointEntity::KeyValue (pkvd);
+		}
 	}
 
 void CFade::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
@@ -1904,14 +1905,13 @@ void CFade::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType
 	if (pev->spawnflags & SF_FADE_ONLYONE)
 		{
 		if (pActivator->IsNetClient ())
-			{
 			UTIL_ScreenFade (pActivator, pev->rendercolor, Duration (), HoldTime (), pev->renderamt, fadeFlags);
-			}
 		}
 	else
 		{
 		UTIL_ScreenFadeAll (pev->rendercolor, Duration (), HoldTime (), pev->renderamt, fadeFlags);
 		}
+
 	SUB_UseTargets (this, USE_TOGGLE, 0);
 	}
 

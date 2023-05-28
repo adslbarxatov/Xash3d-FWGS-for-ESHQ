@@ -298,24 +298,34 @@ void CBaseMonster::FadeMonster (void)
 
 //=========================================================
 // GibMonster - create some gore and get rid of a monster's
-// model.
+// model
 //=========================================================
 void CBaseMonster::GibMonster (void)
 	{
 	TraceResult	tr;
 	BOOL		gibbed = FALSE;
+	Vector		v = ENT (pev)->v.size;
+
+	// ESHQ: обход необрабатываемого самоназначения размеров для сущностей, созданных MonsterInitDead
+	float sizeCoeff;
+	float soundNumber;
+	if (ENT (pev)->v.deadflag == DEAD_ORIGINALLY)	// Признак инициализации через MonsterInitDead
+		{
+		sizeCoeff = 1.0f;
+		}
 
 	// ESHQ: новый звук для расчленёнки, зависимый от размера объекта
-	Vector v = ENT (pev)->v.size;
-	float sizeCoeff = v.x * v.y * sqrtf (v.z);
-	float soundNumber;
+	else
+		{
+		sizeCoeff = v.x * v.y * sqrtf (v.z);
 
-	// (32 * 32 * 72) = рост человека
-	sizeCoeff = sizeCoeff / 1024.0f; 
-	if (v.z > 2.0f)	// Признак живого существа
-		sizeCoeff /= 8.5f;	// sqrt (72)
+		// (32 * 32 * 72) = рост человека
+		sizeCoeff = sizeCoeff / 1024.0f;
+		if (v.z > 2.0f)	// Признак живого существа
+			sizeCoeff /= 8.5f;	// sqrt (72)
+		}
 
-	// Нормализованный на единицу коэффициент подтягивается к ней корнем, после чего выводится на нормальную частоту
+	// Нормализованный на единицу коэффициент подтягивается к ней корнем, после чего пересчитывается на частоту
 	sizeCoeff = sqrtf (sqrtf (sizeCoeff)) * 100.0f;
 	if (sizeCoeff < 70.0f)
 		sizeCoeff = 70.0f;
@@ -557,14 +567,13 @@ Activity CBaseMonster::GetSmallFlinchActivity (void)
 	return flinchActivity;
 	}
 
-
 void CBaseMonster::BecomeDead (void)
 	{
-	pev->takedamage = DAMAGE_YES;// don't let autoaim aim at corpses.
+	pev->takedamage = DAMAGE_YES;	// don't let autoaim aim at corpses
 
-	// give the corpse half of the monster's original maximum health. 
+	// give the corpse half of the monster's original maximum health
 	pev->health = pev->max_health / 2;
-	pev->max_health = 5; // max_health now becomes a counter for how many blood decals the corpse can place.
+	pev->max_health = 5;	// max_health now becomes a counter for how many blood decals the corpse can place
 
 	// make the corpse fly away from the attack vector
 	pev->movetype = MOVETYPE_TOSS;
@@ -603,14 +612,14 @@ void CBaseMonster::CallGibMonster (void)
 		}
 	else
 		{
-		pev->effects = EF_NODRAW; // make the model invisible.
+		pev->effects = EF_NODRAW;	// make the model invisible
 		GibMonster ();
 		}
 
-	pev->deadflag = DEAD_DEAD;
+	pev->deadflag = DEAD_KILLED;
 	FCheckAITrigger ();
 
-	// don't let the status bar glitch for players.with <0 health.
+	// don't let the status bar glitch for players.with <0 health
 	if (pev->health < -99)
 		pev->health = 0;
 
@@ -1044,15 +1053,12 @@ int CBaseMonster::DeadTakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacke
 	return 1;
 	}
 
-
 float CBaseMonster::DamageForce (float damage)
 	{
 	float force = damage * ((32 * 32 * 72.0) / (pev->size.x * pev->size.y * pev->size.z)) * 5;
 
 	if (force > 1000.0)
-		{
 		force = 1000.0;
-		}
 
 	return force;
 	}

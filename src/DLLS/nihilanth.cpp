@@ -1273,9 +1273,6 @@ void CNihilanthHVR::CircleInit (CBaseEntity* pTarget)
 	pev->movetype = MOVETYPE_NOCLIP;
 	pev->solid = SOLID_NOT;
 
-	// SET_MODEL(edict(), "sprites/flare6.spr");
-	// pev->scale = 3.0;
-	// SET_MODEL(edict(), "sprites/xspark4.spr");
 	SET_MODEL (edict (), "sprites/muzzleflash3.spr");
 	pev->rendercolor.x = 255;
 	pev->rendercolor.y = 224;

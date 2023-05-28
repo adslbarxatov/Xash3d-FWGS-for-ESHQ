@@ -1868,7 +1868,8 @@ R_MultiGunshot
 Client version of shotgun shot
 ==============
 */
-void GAME_EXPORT R_MultiGunshot (const vec3_t org, const vec3_t dir, const vec3_t noise, int count, int decalCount, int *decalIndices)
+void GAME_EXPORT R_MultiGunshot (const vec3_t org, const vec3_t dir, const vec3_t noise, int count,
+	int decalCount, int *decalIndices)
 	{
 	pmtrace_t	trace;
 	vec3_t	right, up;

@@ -293,11 +293,9 @@ void CFlockingFlyer::Killed (entvars_t* pevAttacker, int iGib)
 		}
 
 	if (m_pSquadLeader)
-		{
 		m_pSquadLeader->SquadRemove (this);
-		}
 
-	pev->deadflag = DEAD_DEAD;
+	pev->deadflag = DEAD_KILLED;
 
 	pev->framerate = 0;
 	pev->effects = EF_NOINTERP;

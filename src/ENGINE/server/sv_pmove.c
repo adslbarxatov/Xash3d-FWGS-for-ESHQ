@@ -248,15 +248,17 @@ void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t
 			continue;
 
 		// ignore monsterclip brushes
-		if (FBitSet (check->v.flags, FL_MONSTERCLIP) && check->v.solid == SOLID_BSP)
+		if (FBitSet (check->v.flags, FL_MONSTERCLIP) && (check->v.solid == SOLID_BSP))
 			continue;
 
-		if (check == pl) continue;	// himself
+		if (check == pl)
+			continue;	// himself
 
-		// nehahra collision flags
+		// ESHQ: nehahra collision flags (ס םמגûלט פכאדאלט)
 		if (check->v.movetype != MOVETYPE_PUSH)
 			{
-			if ((FBitSet (check->v.flags, FL_CLIENT | FL_FAKECLIENT) && check->v.health <= 0.0f) || check->v.deadflag == DEAD_DEAD)
+			if ((FBitSet (check->v.flags, FL_CLIENT | FL_FAKECLIENT) && (check->v.health <= 0.0f)) ||
+				(check->v.deadflag == DEAD_KILLED) || (check->v.deadflag == DEAD_ORIGINALLY))
 				continue;	// dead body
 			}
 
@@ -288,7 +290,8 @@ void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t
 		}
 
 	// recurse down both sides
-	if (node->axis == -1) return;
+	if (node->axis == -1)
+		return;
 
 	if (pmove_maxs[node->axis] > node->dist)
 		SV_AddLinksToPmove (node->children[0], pmove_mins, pmove_maxs);

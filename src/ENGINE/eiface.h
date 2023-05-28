@@ -456,7 +456,8 @@ typedef struct
 	void	(*pfnRestoreGlobalState)(SAVERESTOREDATA *);
 	void	(*pfnResetGlobalState)(void);
 
-	qboolean (*pfnClientConnect)(edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[128]);
+	qboolean (*pfnClientConnect)(edict_t *pEntity, const char *pszName, const char *pszAddress,
+		char szRejectReason[128]);
 
 	void	(*pfnClientDisconnect)(edict_t *pEntity);
 	void	(*pfnClientKill)(edict_t *pEntity);

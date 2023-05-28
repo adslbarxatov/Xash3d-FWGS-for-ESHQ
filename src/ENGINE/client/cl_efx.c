@@ -1628,7 +1628,6 @@ void GAME_EXPORT R_ParticleLine (const vec3_t start, const vec3_t end, byte r, b
 /*
 ================
 R_ParticleBox
-
 ================
 */
 void GAME_EXPORT R_ParticleBox (const vec3_t absmin, const vec3_t absmax, byte r, byte g, byte b, float life)
@@ -1649,7 +1648,6 @@ void GAME_EXPORT R_ParticleBox (const vec3_t absmin, const vec3_t absmax, byte r
 /*
 ================
 R_ShowLine
-
 ================
 */
 void GAME_EXPORT R_ShowLine (const vec3_t start, const vec3_t end)

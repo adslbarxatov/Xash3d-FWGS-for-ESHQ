@@ -411,7 +411,8 @@ void DispatchObjectCollsionBox (edict_t* pent)
 		}
 	}
 
-void SaveWriteFields (SAVERESTOREDATA* pSaveData, const char* pname, void* pBaseData, TYPEDESCRIPTION* pFields, int fieldCount)
+void SaveWriteFields (SAVERESTOREDATA* pSaveData, const char* pname, void* pBaseData, TYPEDESCRIPTION* pFields,
+	int fieldCount)
 	{
 	CSave saveHelper (pSaveData);
 	saveHelper.WriteFields (pname, pBaseData, pFields, fieldCount);
@@ -547,7 +548,7 @@ int CBaseEntity::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, fl
 void CBaseEntity::Killed (entvars_t* pevAttacker, int iGib)
 	{
 	pev->takedamage = DAMAGE_NO;
-	pev->deadflag = DEAD_DEAD;
+	pev->deadflag = DEAD_KILLED;
 	UTIL_Remove (this);
 	}
 

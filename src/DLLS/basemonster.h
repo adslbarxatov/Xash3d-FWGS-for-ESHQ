@@ -121,7 +121,7 @@ class CBaseMonster: public CBaseToggle
 		virtual void RunAI (void);			// core ai function!	
 		void Listen (void);
 
-		virtual BOOL	IsAlive (void) { return (pev->deadflag != DEAD_DEAD); }
+		virtual BOOL	IsAlive (void) { return ((pev->deadflag != DEAD_KILLED) && (pev->deadflag != DEAD_ORIGINALLY)); }
 		virtual BOOL	ShouldFadeOnDeath (void);
 
 		// Basic Monster AI functions

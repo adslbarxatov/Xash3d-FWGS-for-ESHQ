@@ -1292,7 +1292,6 @@ int CBaseMonster::CheckLocalMove (const Vector& vecStart, const Vector& vecEnd, 
 
 	vecStartPos = pev->origin;
 
-
 	flYaw = UTIL_VecToYaw (vecEnd - vecStart);// build a yaw that points to the goal.
 	flDist = (vecEnd - vecStart).Length2D ();// get the distance.
 	iReturn = LOCALMOVE_VALID;// assume everything will be ok.
@@ -1336,10 +1335,13 @@ int CBaseMonster::CheckLocalMove (const Vector& vecStart, const Vector& vecEnd, 
 			}
 		}
 
-	if ((iReturn == LOCALMOVE_VALID) && !(pev->flags & (FL_FLY | FL_SWIM)) && (!pTarget || (pTarget->pev->flags & FL_ONGROUND)))
+	if ((iReturn == LOCALMOVE_VALID) && !(pev->flags & (FL_FLY | FL_SWIM)) && (!pTarget ||
+		(pTarget->pev->flags & FL_ONGROUND)))
 		{
-		// The monster can move to a spot UNDER the target, but not to it. Don't try to triangulate, go directly to the node graph.
-		// UNDONE: Magic # 64 -- this used to be pev->size.z but that won't work for small creatures like the headcrab
+		// The monster can move to a spot UNDER the target, but not to it. Don't try to triangulate,
+		// go directly to the node graph.
+		// UNDONE: Magic # 64 -- this used to be pev->size.z but that won't work for small creatures
+		// like the headcrab
 		if (fabs (vecEnd.z - pev->origin.z) > 64.0)
 			iReturn = LOCALMOVE_INVALID_DONT_TRIANGULATE;
 		}
@@ -1570,9 +1572,10 @@ void CBaseMonster::InsertWaypoint (Vector vecLocation, int afMoveFlags)
 // triangulating a path around them.
 //
 // iApexDist is how far the obstruction that we are trying
-// to triangulate around is from the monster.
+// to triangulate around is from the monster
 //=========================================================
-BOOL CBaseMonster::FTriangulate (const Vector& vecStart, const Vector& vecEnd, float flDist, CBaseEntity* pTargetEnt, Vector* pApex)
+BOOL CBaseMonster::FTriangulate (const Vector& vecStart, const Vector& vecEnd, float flDist,
+	CBaseEntity* pTargetEnt, Vector* pApex)
 	{
 	Vector		vecDir;
 	Vector		vecForward;
@@ -1584,16 +1587,13 @@ BOOL CBaseMonster::FTriangulate (const Vector& vecStart, const Vector& vecEnd, f
 	int			i;
 	float		sizeX, sizeZ;
 
-	// If the hull width is less than 24, use 24 because CheckLocalMove uses a min of
-	// 24.
+	// If the hull width is less than 24, use 24 because CheckLocalMove uses a min of 24
 	sizeX = pev->size.x;
 	if (sizeX < 24.0)
 		sizeX = 24.0;
 	else if (sizeX > 48.0)
 		sizeX = 48.0;
 	sizeZ = pev->size.z;
-	//if (sizeZ < 24.0)
-	//	sizeZ = 24.0;
 
 	vecForward = (vecEnd - vecStart).Normalize ();
 
@@ -2925,7 +2925,7 @@ BOOL CBaseMonster::FCheckAITrigger (void)
 //=========================================================	
 int CBaseMonster::CanPlaySequence (BOOL fDisregardMonsterState, int interruptLevel)
 	{
-	if (m_pCine || !IsAlive () || m_MonsterState == MONSTERSTATE_PRONE)
+	if (m_pCine || !IsAlive () || (m_MonsterState == MONSTERSTATE_PRONE))
 		{
 		// monster is already running a scripted sequence or dead!
 		return FALSE;
@@ -2937,7 +2937,8 @@ int CBaseMonster::CanPlaySequence (BOOL fDisregardMonsterState, int interruptLev
 		return TRUE;
 		}
 
-	if ((m_MonsterState == MONSTERSTATE_NONE) || (m_MonsterState == MONSTERSTATE_IDLE) || (m_IdealMonsterState == MONSTERSTATE_IDLE))
+	if ((m_MonsterState == MONSTERSTATE_NONE) || (m_MonsterState == MONSTERSTATE_IDLE) ||
+		(m_IdealMonsterState == MONSTERSTATE_IDLE))
 		{
 		// ok to go, but only in these states
 		return TRUE;
@@ -2980,7 +2981,8 @@ BOOL CBaseMonster::FindLateralCover (const Vector& vecThreat, const Vector& vecV
 		vecLeftTest = vecLeftTest - vecStepRight;
 		vecRightTest = vecRightTest + vecStepRight;
 
-		// it's faster to check the SightEnt's visibility to the potential spot than to check the local move, so we do that first.
+		// it's faster to check the SightEnt's visibility to the potential spot than to check the local move,
+		// so we do that first
 		UTIL_TraceLine (vecThreat + vecViewOffset, vecLeftTest + pev->view_ofs, ignore_monsters, ignore_glass, 
 			ENT (pev)/*pentIgnore*/, &tr);
 
@@ -2989,13 +2991,12 @@ BOOL CBaseMonster::FindLateralCover (const Vector& vecThreat, const Vector& vecV
 			if (FValidateCover (vecLeftTest) && CheckLocalMove (pev->origin, vecLeftTest, NULL, NULL) == LOCALMOVE_VALID)
 				{
 				if (MoveToLocation (ACT_RUN, 0, vecLeftTest))
-					{
 					return TRUE;
-					}
 				}
 			}
 
-		// it's faster to check the SightEnt's visibility to the potential spot than to check the local move, so we do that first.
+		// it's faster to check the SightEnt's visibility to the potential spot than to check the local move,
+		// so we do that first
 		UTIL_TraceLine (vecThreat + vecViewOffset, vecRightTest + pev->view_ofs, ignore_monsters, ignore_glass, 
 			ENT (pev)/*pentIgnore*/, &tr);
 
@@ -3004,16 +3005,13 @@ BOOL CBaseMonster::FindLateralCover (const Vector& vecThreat, const Vector& vecV
 			if (FValidateCover (vecRightTest) && CheckLocalMove (pev->origin, vecRightTest, NULL, NULL) == LOCALMOVE_VALID)
 				{
 				if (MoveToLocation (ACT_RUN, 0, vecRightTest))
-					{
 					return TRUE;
-					}
 				}
 			}
 		}
 
 	return FALSE;
 	}
-
 
 Vector CBaseMonster::ShootAtEnemy (const Vector& shootOrigin)
 	{
@@ -3024,7 +3022,6 @@ Vector CBaseMonster::ShootAtEnemy (const Vector& shootOrigin)
 
 	return gpGlobals->v_forward;
 	}
-
 
 
 //=========================================================
@@ -3079,10 +3076,12 @@ void CBaseMonster::CorpseFallThink (void)
 		SetThink (NULL);
 
 		SetSequenceBox ();
-		UTIL_SetOrigin (pev, pev->origin);// link into world.
+		UTIL_SetOrigin (pev, pev->origin);	// link into world
 		}
 	else
+		{
 		pev->nextthink = gpGlobals->time + 0.1;
+		}
 	}
 
 // Call after animation/pose is set up
@@ -3091,7 +3090,7 @@ void CBaseMonster::MonsterInitDead (void)
 	InitBoneControllers ();
 
 	pev->solid = SOLID_BBOX;
-	pev->movetype = MOVETYPE_TOSS;// so he'll fall to ground
+	pev->movetype = MOVETYPE_TOSS;	// so he'll fall to ground
 
 	pev->frame = 0;
 	ResetSequenceInfo (FALSE);
@@ -3099,7 +3098,7 @@ void CBaseMonster::MonsterInitDead (void)
 
 	// Copy health
 	pev->max_health = pev->health;
-	pev->deadflag = DEAD_DEAD;
+	pev->deadflag = DEAD_ORIGINALLY;	// ESHQ: выделенное состо€ние дл€ управлени€ звуком
 
 	UTIL_SetSize (pev, g_vecZero, g_vecZero);
 	UTIL_SetOrigin (pev, pev->origin);

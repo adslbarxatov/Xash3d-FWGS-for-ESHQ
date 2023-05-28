@@ -63,7 +63,7 @@ void set_suicide_frame (entvars_t* pev)
 
 	pev->solid = SOLID_NOT;
 	pev->movetype = MOVETYPE_TOSS;
-	pev->deadflag = DEAD_DEAD;
+	pev->deadflag = DEAD_KILLED;
 	pev->nextthink = -1;
 	}
 

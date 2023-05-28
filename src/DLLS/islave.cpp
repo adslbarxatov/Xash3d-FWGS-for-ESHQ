@@ -450,9 +450,9 @@ BOOL CISlave::CheckRangeAttack2 (float flDot, float flDist)
 		TraceResult tr;
 
 		UTIL_TraceLine (EyePosition (), pEntity->EyePosition (), ignore_monsters, ENT (pev), &tr);
-		if (tr.flFraction == 1.0 || tr.pHit == pEntity->edict ())
+		if ((tr.flFraction == 1.0) || (tr.pHit == pEntity->edict ()))
 			{
-			if (pEntity->pev->deadflag == DEAD_DEAD)
+			if (pEntity->pev->deadflag == DEAD_KILLED)
 				{
 				float d = (pev->origin - pEntity->pev->origin).Length ();
 				if (d < flDist)

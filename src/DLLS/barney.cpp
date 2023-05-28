@@ -308,7 +308,7 @@ void CBarney::SetYawSpeed (void)
 //=========================================================
 BOOL CBarney::CheckRangeAttack1 (float flDot, float flDist)
 	{
-	if (flDist <= 1024 && flDot >= 0.5)
+	if ((flDist <= 1024) && (flDot >= 0.5))
 		{
 		if (gpGlobals->time > m_checkAttackTime)
 			{
@@ -319,21 +319,25 @@ BOOL CBarney::CheckRangeAttack1 (float flDot, float flDist)
 			Vector shootTarget = ((pEnemy->BodyTarget (shootOrigin) - pEnemy->pev->origin) + m_vecEnemyLKP);
 			UTIL_TraceLine (shootOrigin, shootTarget, dont_ignore_monsters, ENT (pev), &tr);
 			m_checkAttackTime = gpGlobals->time + 1;
-			if (tr.flFraction == 1.0 || (tr.pHit != NULL && CBaseEntity::Instance (tr.pHit) == pEnemy))
+
+			if ((tr.flFraction == 1.0) || ((tr.pHit != NULL) && (CBaseEntity::Instance (tr.pHit) == pEnemy)))
 				m_lastAttackCheck = TRUE;
 			else
 				m_lastAttackCheck = FALSE;
+			
 			m_checkAttackTime = gpGlobals->time + 1.5;
 			}
+
 		return m_lastAttackCheck;
 		}
+
 	return FALSE;
 	}
 
 
 //=========================================================
 // BarneyFirePistol - shoots one round from the pistol at
-// the enemy barney is facing.
+// the enemy barney is facing
 //=========================================================
 void CBarney::BarneyFirePistol (void)
 	{
@@ -368,7 +372,7 @@ void CBarney::BarneyFirePistol (void)
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
 //
-// Returns number of events handled, 0 if none.
+// Returns number of events handled, 0 if none
 //=========================================================
 void CBarney::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
@@ -898,9 +902,7 @@ void CBurnedBarney::Spawn ()
 
 	pev->sequence = LookupSequence (m_szPoses[m_iPose]);
 	if (pev->sequence == -1)
-		{
 		ALERT (at_console, "Burned barney with bad pose\n");
-		}
 
 	pev->health = 20;
 

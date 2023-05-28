@@ -1659,8 +1659,10 @@ static void Touch_Motion (touchEventType type, int fingerID, float x, float y, f
 		else if (touch.move_button->type == touch_dpad)
 			{
 			// like joy, but without acceleration. useful for bhop
-			touch.forward = round (((touch.move_button->y2 + touch.move_button->y1) - y * 2) / (touch.move_button->y2 - touch.move_button->y1) * touch_dpad_radius->value);
-			touch.side = round ((x * 2 - (touch.move_button->x2 + touch.move_button->x1)) / (touch.move_button->x2 - touch.move_button->x1) * touch_dpad_radius->value);
+			touch.forward = round (((touch.move_button->y2 + touch.move_button->y1) - y * 2) /
+				(touch.move_button->y2 - touch.move_button->y1) * touch_dpad_radius->value);
+			touch.side = round ((x * 2 - (touch.move_button->x2 + touch.move_button->x1)) /
+				(touch.move_button->x2 - touch.move_button->x1) * touch_dpad_radius->value);
 			}
 
 		touch.forward = bound (-1, touch.forward, 1);

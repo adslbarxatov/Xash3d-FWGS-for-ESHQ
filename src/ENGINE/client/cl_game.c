@@ -727,14 +727,13 @@ void CL_DrawScreenFade (void)
 
 	if (FBitSet (sf->fadeFlags, FFADE_MODULATE))
 		{
-		/*iFadeAlpha = sf->fadealpha;*/
-		ref.dllFuncs.GL_SetRenderMode (kRenderScreenFadeModulate);
-
+		// ESHQ: исправление для обеспечения полной заливки экрана
+		ref.dllFuncs.GL_SetRenderMode (kRenderTransAdd);
 		ref.dllFuncs.Color4ub (
 			(uint16_t)(sf->fader * alpha + (255 - alpha) * 255) >> 8,
 			(uint16_t)(sf->fadeg * alpha + (255 - alpha) * 255) >> 8,
 			(uint16_t)(sf->fadeb * alpha + (255 - alpha) * 255) >> 8,
-			255);
+			alpha);
 		}
 	else
 		{

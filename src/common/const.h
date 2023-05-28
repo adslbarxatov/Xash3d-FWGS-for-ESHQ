@@ -96,9 +96,10 @@
 // edict->deadflag values
 #define DEAD_NO				0 	// alive
 #define DEAD_DYING			1 	// playing death animation or still falling off of a ledge waiting to hit ground
-#define DEAD_DEAD			2 	// dead. lying still.
+#define DEAD_KILLED			2 	// ESHQ: убитый
 #define DEAD_RESPAWNABLE	3
 #define DEAD_DISCARDBODY	4
+#define DEAD_ORIGINALLY		5 	// ESHQ: изначально мёртвый
 
 #define DAMAGE_NO			0
 #define DAMAGE_YES			1

@@ -33,7 +33,7 @@
 #define	SF_TRIGGER_HURT_START_OFF	2		// spawnflag that makes trigger_push spawn turned OFF
 #define	SF_TRIGGER_HURT_NO_CLIENTS	8		// spawnflag that makes trigger_push spawn turned OFF
 #define SF_TRIGGER_HURT_CLIENTONLYFIRE	16	// trigger hurt will only fire its target if it is hurting a client
-#define SF_TRIGGER_HURT_CLIENTONLYTOUCH 32	// only clients may touch this trigger.
+#define SF_TRIGGER_HURT_CLIENTONLYTOUCH 32	// only clients may touch this trigger
 
 extern DLL_GLOBAL BOOL		g_fGameOver;
 
@@ -2250,8 +2250,8 @@ IMPLEMENT_SAVERESTORE (CTriggerCamera, CBaseDelay);
 void CTriggerCamera::Spawn (void)
 	{
 	pev->movetype = MOVETYPE_NOCLIP;
-	pev->solid = SOLID_NOT;							// Remove model & collisions
-	pev->renderamt = 0;								// The engine won't draw this model if this is set to 0 and blending is on
+	pev->solid = SOLID_NOT;				// Remove model & collisions
+	pev->renderamt = 0;					// The engine won't draw this model if this is set to 0 and blending is on
 	pev->rendermode = kRenderTransTexture;
 
 	m_initialSpeed = pev->speed;
@@ -2286,7 +2286,9 @@ void CTriggerCamera::KeyValue (KeyValueData *pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseDelay::KeyValue (pkvd);
+		}
 	}
 
 void CTriggerCamera::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
@@ -2302,44 +2304,29 @@ void CTriggerCamera::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 		return;
 		}
 	if (!pActivator || !pActivator->IsPlayer ())
-		{
 		pActivator = CBaseEntity::Instance (g_engfuncs.pfnPEntityOfEntIndex (1));
-		}
 
 	m_hPlayer = pActivator;
-
 	m_flReturnTime = gpGlobals->time + m_flWait;
 	pev->speed = m_initialSpeed;
 	m_targetSpeed = m_initialSpeed;
 
 	if (FBitSet (pev->spawnflags, SF_CAMERA_PLAYER_TARGET))
-		{
 		m_hTarget = m_hPlayer;
-		}
 	else
-		{
 		m_hTarget = GetNextTarget ();
-		}
 
 	// Nothing to look at!
 	if (m_hTarget == NULL)
-		{
 		return;
-		}
 
 	if (FBitSet (pev->spawnflags, SF_CAMERA_PLAYER_TAKECONTROL))
-		{
 		((CBasePlayer *)pActivator)->EnableControl (FALSE);
-		}
 
 	if (m_sPath)
-		{
 		m_pentPath = Instance (FIND_ENTITY_BY_TARGETNAME (NULL, STRING (m_sPath)));
-		}
 	else
-		{
 		m_pentPath = NULL;
-		}
 
 	m_flStopTime = gpGlobals->time;
 	if (m_pentPath)
@@ -2387,6 +2374,7 @@ void CTriggerCamera::FollowTarget ()
 			SET_VIEW (m_hPlayer->edict (), m_hPlayer->edict ());
 			((CBasePlayer *)((CBaseEntity *)m_hPlayer))->EnableControl (TRUE);
 			}
+
 		SUB_UseTargets (this, USE_TOGGLE, 0);
 		pev->avelocity = Vector (0, 0, 0);
 		m_state = 0;
@@ -2449,6 +2437,7 @@ void CTriggerCamera::Move ()
 			if (FBitSet (m_pentPath->pev->spawnflags, SF_CORNER_FIREONCE))
 				m_pentPath->pev->message = 0;
 			}
+
 		// Time to go to the next target
 		m_pentPath = m_pentPath->GetNextTarget ();
 

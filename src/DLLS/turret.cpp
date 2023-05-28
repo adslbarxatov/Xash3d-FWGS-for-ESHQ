@@ -892,9 +892,9 @@ void CBaseTurret::TurretDeath (void)
 	StudioFrameAdvance ();
 	pev->nextthink = gpGlobals->time + 0.1;
 
-	if (pev->deadflag != DEAD_DEAD)
+	if (pev->deadflag != DEAD_KILLED)
 		{
-		pev->deadflag = DEAD_DEAD;
+		pev->deadflag = DEAD_KILLED;
 
 		float flRndSound = RANDOM_FLOAT (0, 1);
 
@@ -1211,9 +1211,9 @@ void CSentry::SentryDeath (void)
 	StudioFrameAdvance ();
 	pev->nextthink = gpGlobals->time + 0.1;
 
-	if (pev->deadflag != DEAD_DEAD)
+	if (pev->deadflag != DEAD_KILLED)
 		{
-		pev->deadflag = DEAD_DEAD;
+		pev->deadflag = DEAD_KILLED;
 
 		float flRndSound = RANDOM_FLOAT (0, 1);
 

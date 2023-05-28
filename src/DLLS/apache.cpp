@@ -419,7 +419,7 @@ void CApache::CrashTouch (CBaseEntity* pOther)
 
 void CApache::GibMonster (void)
 	{
-	// EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "common/bodysplat.wav", 0.75, ATTN_MEDIUM, 0, 200);		
+	/* EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "common/bodysplat.wav", 0.75, ATTN_MEDIUM, 0, 200);*/
 	}
 
 void CApache::HuntThink (void)

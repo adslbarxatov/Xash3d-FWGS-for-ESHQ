@@ -330,12 +330,11 @@ static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 		top = y
 		bottom = height*/
 
-		/*
-		===========
-		NetGraph_DrawHatches
-
-		===========
-		*/
+/*
+===========
+NetGraph_DrawHatches
+===========
+*/
 static void NetGraph_DrawHatches (int x, int y)
 	{
 	int	ystep = (int)(10.0f / net_scale->value);
@@ -360,12 +359,11 @@ static void NetGraph_DrawHatches (int x, int y)
 		}
 	}
 
-		/*
-		===========
-		NetGraph_DrawTextFields
-
-		===========
-		*/
+/*
+===========
+NetGraph_DrawTextFields
+===========
+*/
 static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int count, float avg,
 	int packet_loss, int packet_choke, int graphtype)
 	{
