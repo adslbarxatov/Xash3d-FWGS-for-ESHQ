@@ -454,9 +454,6 @@ int CAxe::Swing ()
 			{
 			if ((pEntity->Classify () != CLASS_NONE) && (pEntity->Classify () != CLASS_MACHINE))
 				{
-				/*EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_ITEM, "weapons/axe_hitbod.wav",
-					0.8f + RANDOM_FLOAT (0.0f, 0.2f), ATTN_MEDIUM, 0, 95 + RANDOM_LONG (0, 10));*/
-
 				m_pPlayer->m_iWeaponVolume = CROWBAR_BODYHIT_VOLUME;
 				if (!pEntity->IsAlive ())
 					return TRUE;

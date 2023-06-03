@@ -1201,14 +1201,16 @@ int CHudAmmo::DrawWList (float flTime)
 	}
 
 
-/* =================================
+/*
+=================================
 GetSpriteList
 
 Finds and returns the matching
 sprite name 'psz' and resolution 'iRes'
 in the given sprite list 'pList'
 iCount is the number of items in the pList
-================================= */
+=================================
+*/
 client_sprite_t* GetSpriteList (client_sprite_t* pList, const char* psz, int iRes, int iCount)
 	{
 	if (!pList)

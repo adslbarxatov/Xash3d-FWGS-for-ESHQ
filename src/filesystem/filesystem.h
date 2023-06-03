@@ -181,14 +181,9 @@ extern "C"
 		qboolean (*Delete)(const char *path);
 		
 		// [FWGS, 01.04.23]
-		/*qboolean (*SysFileExists)(const char *path, qboolean casesensitive);*/
 		qboolean (*SysFileExists)(const char *path);
 
 		const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
-
-		/* file watcher
-		void (*WatchFrame)(void); // engine will read all events and call appropriate callbacks
-		qboolean (*AddWatch)(const char *path, fs_event_callback_t callback);*/
 
 		// [FWGS, 01.05.23] reserved
 		void (*Unused0)(void);

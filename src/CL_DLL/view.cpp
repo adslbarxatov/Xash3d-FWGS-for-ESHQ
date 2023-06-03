@@ -1611,10 +1611,10 @@ void V_Move (int mx, int my)
 
 	farpoint = v_origin + 8192 * forward;
 
-	// Trace
-	tr = *(gEngfuncs.PM_TraceLine ((float*)&v_origin, (float*)&farpoint, PM_TRACELINE_PHYSENTSONLY, 2 /*point sized hull*/, -1));
+	// Trace (point sized hull)
+	tr = *(gEngfuncs.PM_TraceLine ((float*)&v_origin, (float*)&farpoint, PM_TRACELINE_PHYSENTSONLY, 2, -1));
 
-	if (tr.fraction != 1.0 && tr.ent != 0)
+	if ((tr.fraction != 1.0) && (tr.ent != 0))
 		{
 		hitent = PM_GetPhysEntInfo (tr.ent);
 		PM_ParticleLine ((float*)&v_origin, (float*)&tr.endpos, 5, 1.0, 0.0);

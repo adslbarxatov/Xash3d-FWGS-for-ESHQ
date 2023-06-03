@@ -207,15 +207,10 @@ void CPython::Reload (void)
 		}
 
 	// ESHQ: местная озвучка перезарядки заменила внутримодельное событие
-	/*m_flSoundDelay = 4.0f;*/
 	if (DefaultReload (PYTHON_MAX_CLIP, PYTHON_RELOAD, 3.5f, FALSE))
 		{
-		/*if ((m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
-			{*/
 		EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav",
 			RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
-		/*m_flSoundDelay = 0.0f;
-		}*/
 		}
 	}
 
@@ -224,13 +219,7 @@ void CPython::WeaponIdle (void)
 	ResetEmptySound ();
 	m_pPlayer->GetAutoaimVector (AUTOAIM_10DEGREES);
 
-	// ESHQ: здесь не работает
-	/*if ((m_flSoundDelay != 0) && (m_flSoundDelay <= UTIL_WeaponTimeBase ()))
-		{
-		EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", 
-			RANDOM_FLOAT (0.8, 0.9), ATTN_MEDIUM);
-		m_flSoundDelay = 0.0f;
-		}*/
+	// ESHQ: озвучка перезарядки здесь больше не работает
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase ())
 		return;

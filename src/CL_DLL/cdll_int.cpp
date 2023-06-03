@@ -45,9 +45,9 @@ void IN_Commands (void);
 
 /*
 ==========================
-	Initialize
+Initialize
 
-Called when the DLL is first loaded.
+Called when the DLL is first loaded
 ==========================
 */
 extern "C"
@@ -73,7 +73,7 @@ extern "C"
 ================================
 HUD_GetHullBounds
 
-  Engine calls this to enumerate player collision hulls, for prediction.  Return 0 if the hullnumber doesn't exist.
+Engine calls this to enumerate player collision hulls, for prediction.  Return 0 if the hullnumber doesn't exist
 ================================
 */
 int DLLEXPORT HUD_GetHullBounds (int hullnumber, float* mins, float* maxs)

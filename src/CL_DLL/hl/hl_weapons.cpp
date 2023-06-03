@@ -260,9 +260,9 @@ CBasePlayerWeapon::Holster
 Put away weapon
 =====================
 */
-void CBasePlayerWeapon::Holster (int skiplocal /* = 0 */)
+void CBasePlayerWeapon::Holster (int skiplocal)	// == 0
 	{
-	m_fInReload = FALSE; // cancel any reload in progress.
+	m_fInReload = FALSE; // cancel any reload in progress
 	g_irunninggausspred = false;
 	m_pPlayer->pev->viewmodel = 0;
 	}

@@ -128,7 +128,7 @@ BOOL CGauss::Deploy ()
 	return DefaultDeploy ("models/v_gauss.mdl", "models/p_gauss.mdl", GAUSS_DRAW, "gauss");
 	}
 
-void CGauss::Holster (int skiplocal /* = 0 */)
+void CGauss::Holster (int skiplocal)	// == 0
 	{
 	PLAYBACK_EVENT_FULL (FEV_RELIABLE | FEV_GLOBAL, m_pPlayer->edict (), m_usGaussFire, 0.01, 
 		(float*)&m_pPlayer->pev->origin, (float*)&m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1);
@@ -369,7 +369,7 @@ void CGauss::Fire (Vector vecOrigSrc, Vector vecDir, float flDamage)
 
 	Vector vecSrc = vecOrigSrc;
 	Vector vecDest = vecSrc + vecDir * 8192;
-	edict_t* pentIgnore;
+	edict_t *pentIgnore;
 	TraceResult tr, beam_tr;
 	float flMaxFrac = 1.0;
 	int	nTotal = 0;
@@ -385,14 +385,14 @@ void CGauss::Fire (Vector vecOrigSrc, Vector vecDir, float flDamage)
 #endif
 
 	// The main firing event is sent unreliably so it won't be delayed
-	PLAYBACK_EVENT_FULL (FEV_NOTHOST, m_pPlayer->edict (), m_usGaussFire, 0.0, 
-		(float*)&m_pPlayer->pev->origin, (float*)&m_pPlayer->pev->angles, flDamage, 0.0, 0, 0, m_fPrimaryFire ? 1 : 0, 0);
+	PLAYBACK_EVENT_FULL (FEV_NOTHOST, m_pPlayer->edict (), m_usGaussFire, 0.0,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles, flDamage, 0.0, 0, 0, m_fPrimaryFire ? 1 : 0, 0);
 
 	// This reliable event is used to stop the spinning sound
 	// It's delayed by a fraction of second to make sure it is delayed by 1 frame on the client
 	// It's sent reliably anyway, which could lead to other delays
-	PLAYBACK_EVENT_FULL (FEV_NOTHOST | FEV_RELIABLE, m_pPlayer->edict (), m_usGaussFire, 0.01, 
-		(float*)&m_pPlayer->pev->origin, (float*)&m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1);
+	PLAYBACK_EVENT_FULL (FEV_NOTHOST | FEV_RELIABLE, m_pPlayer->edict (), m_usGaussFire, 0.01,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1);
 
 #ifndef CLIENT_DLL
 	while ((flDamage > 10) && (nMaxHits > 0))
@@ -405,7 +405,7 @@ void CGauss::Fire (Vector vecOrigSrc, Vector vecDir, float flDamage)
 		if (tr.fAllSolid)
 			break;
 
-		CBaseEntity* pEntity = CBaseEntity::Instance (tr.pHit);
+		CBaseEntity *pEntity = CBaseEntity::Instance (tr.pHit);
 
 		if (pEntity == NULL)
 			break;
@@ -425,107 +425,11 @@ void CGauss::Fire (Vector vecOrigSrc, Vector vecDir, float flDamage)
 			ApplyMultiDamage (m_pPlayer->pev, m_pPlayer->pev);
 			}
 
-		// ESHQ: дефектная зона
-		/*if (pEntity->ReflectGauss ())
-			{
-			float n;
-
-			pentIgnore = NULL;
-
-			n = -DotProduct (tr.vecPlaneNormal, vecDir);
-
-			if (n < 0.5) // 60 degrees
-				{
-				// ALERT( at_console, "reflect %f\n", n );
-				// reflect
-				Vector r;
-
-				r = 2.0 * tr.vecPlaneNormal * n + vecDir;
-				flMaxFrac = flMaxFrac - tr.flFraction;
-				vecDir = r;
-				vecSrc = tr.vecEndPos + vecDir * 8;
-				vecDest = vecSrc + vecDir * 8192;
-
-				// explode a bit
-				m_pPlayer->RadiusDamage (tr.vecEndPos, pev, m_pPlayer->pev, flDamage * n, CLASS_NONE, DMG_BLAST);
-
-				nTotal += 34;
-
-				// lose energy
-				if (n == 0) n = 0.1;
-				flDamage = flDamage * (1 - n);
-				}
-			else
-				{
-				nTotal += 13;
-
-				// limit it to one hole punch
-				if (fHasPunched)
-					break;
-				fHasPunched = 1;
-
-				// try punching through wall if secondary attack (primary is incapable of breaking through)
-				if (!m_fPrimaryFire)
-					{
-					UTIL_TraceLine (tr.vecEndPos + vecDir * 8, vecDest, dont_ignore_monsters, pentIgnore, &beam_tr);
-					if (!beam_tr.fAllSolid)
-						{
-						// trace backwards to find exit point
-						UTIL_TraceLine (beam_tr.vecEndPos, tr.vecEndPos, dont_ignore_monsters, pentIgnore, &beam_tr);
-
-						float n = (beam_tr.vecEndPos - tr.vecEndPos).Length ();
-
-						if (n < flDamage)
-							{
-							if (n == 0) n = 1;
-							flDamage -= n;
-
-							// ALERT( at_console, "punch %f\n", n );
-							nTotal += 21;
-
-							// exit blast damage
-							//m_pPlayer->RadiusDamage( beam_tr.vecEndPos + vecDir * 8, pev, m_pPlayer->pev, flDamage, CLASS_NONE, DMG_BLAST );
-							float damage_radius;
-
-							if (g_pGameRules->IsMultiplayer ())
-								{
-								damage_radius = flDamage * 1.75;  // Old code == 2.5
-								}
-							else
-								{
-								damage_radius = flDamage * 2.5;
-								}
-
-							::RadiusDamage (beam_tr.vecEndPos + vecDir * 8, pev, m_pPlayer->pev, flDamage, damage_radius, CLASS_NONE, DMG_BLAST);
-
-							CSoundEnt::InsertSound (bits_SOUND_COMBAT, pev->origin, NORMAL_EXPLOSION_VOLUME, 3.0);
-
-							nTotal += 53;
-
-							vecSrc = beam_tr.vecEndPos + vecDir;
-							}
-						}
-					else
-						{
-						//ALERT( at_console, "blocked %f\n", n );
-						flDamage = 0;
-						}
-					}
-				else
-					{
-					//ALERT( at_console, "blocked solid\n" );
-
-					flDamage = 0;
-					}
-
-				}
-			}
-		else*/
-			{
-			vecSrc = tr.vecEndPos + vecDir;
-			pentIgnore = ENT (pEntity->pev);
-			}
+		// ESHQ: удалена дефектная зона, отвечавшая за отражение лучей: они часто отражались в игрока
+		vecSrc = tr.vecEndPos + vecDir;
+		pentIgnore = ENT (pEntity->pev);
 		}
+
 #endif
 	}
 

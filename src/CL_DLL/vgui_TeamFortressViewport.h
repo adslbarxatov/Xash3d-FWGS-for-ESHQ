@@ -236,7 +236,6 @@ class ColorButton: public CommandButton
 			UnArmedBorderColor = NULL;
 			}
 
-
 		virtual void paintBackground ()
 			{
 			int r, g, b, a;
@@ -245,11 +244,6 @@ class ColorButton: public CommandButton
 			if (isArmed ())
 				{
 				// Highlight background
-			/*	getBgColor(bgcolor);
-				bgcolor.getColor(r, g, b, a);
-				drawSetColor( r,g,b,a );
-				drawFilledRect(0,0,_size[0],_size[1]);*/
-
 				if (ArmedBorderColor)
 					{
 					ArmedBorderColor->getColor (r, g, b, a);

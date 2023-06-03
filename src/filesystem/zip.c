@@ -449,15 +449,6 @@ byte *FS_LoadZIPFile (const char *path, fs_offset_t *sizeptr, qboolean gamediron
 	if (lseek (search->zip->handle, file->offset, SEEK_SET) == -1)
 		return NULL;
 
-	/*if( read( search->zip->handle, &header, sizeof( header ) ) < 0 )
-		return NULL;
-
-	if( header.signature != ZIP_HEADER_LF )
-	{
-		Con_Reportf( S_ERROR "Zip_LoadFile: %s signature error\n", file->name );
-		return NULL;
-	}*/
-
 	if (file->flags == ZIP_COMPRESSION_NO_COMPRESSION)
 		{
 		decompressed_buffer = Mem_Malloc (fs_mempool, file->size + 1);
@@ -470,20 +461,8 @@ byte *FS_LoadZIPFile (const char *path, fs_offset_t *sizeptr, qboolean gamediron
 			return NULL;
 			}
 
-#if 0
-		CRC32_Init (&test_crc);
-		CRC32_ProcessBuffer (&test_crc, decompressed_buffer, file->size);
-
-		final_crc = CRC32_Final (test_crc);
-
-		if (final_crc != file->crc32)
-			{
-			Con_Reportf (S_ERROR "Zip_LoadFile: %s file crc32 mismatch\n", file->name);
-			Mem_Free (decompressed_buffer);
-			return NULL;
-			}
-#endif
-		if (sizeptr) *sizeptr = file->size;
+		if (sizeptr)
+			*sizeptr = file->size;
 
 		FS_EnsureOpenZip (NULL);
 		return decompressed_buffer;
@@ -526,27 +505,16 @@ byte *FS_LoadZIPFile (const char *path, fs_offset_t *sizeptr, qboolean gamediron
 		if (zlib_result == Z_OK || zlib_result == Z_STREAM_END)
 			{
 			Mem_Free (compressed_buffer); // finaly free compressed buffer
-#if 0
-			CRC32_Init (&test_crc);
-			CRC32_ProcessBuffer (&test_crc, decompressed_buffer, file->size);
-
-			final_crc = CRC32_Final (test_crc);
-
-			if (final_crc != file->crc32)
-				{
-				Con_Reportf (S_ERROR "Zip_LoadFile: %s file crc32 mismatch\n", file->name);
-				Mem_Free (decompressed_buffer);
-				return NULL;
-				}
-#endif
-			if (sizeptr) *sizeptr = file->size;
+			if (sizeptr)
+				*sizeptr = file->size;
 
 			FS_EnsureOpenZip (NULL);
 			return decompressed_buffer;
 			}
 		else
 			{
-			Con_Reportf (S_ERROR "Zip_LoadFile: %s : error while file decompressing. Zlib return code %d.\n", file->name, zlib_result);
+			Con_Reportf (S_ERROR "Zip_LoadFile: %s : error while file decompressing. Zlib return code %d.\n",
+				file->name, zlib_result);
 			Mem_Free (compressed_buffer);
 			Mem_Free (decompressed_buffer);
 			return NULL;
@@ -616,7 +584,8 @@ int FS_FindFile_ZIP (searchpath_t *search, const char *path, char *fixedname, si
 		// if we're too far in the list
 		if (diff > 0)
 			right = middle - 1;
-		else left = middle + 1;
+		else
+			left = middle + 1;
 		}
 
 	return -1;
@@ -671,7 +640,6 @@ void FS_Search_ZIP (searchpath_t *search, stringlist_t *list, const char *patter
 /*
 ===========
 FS_AddZip_Fullpath
-
 ===========
 */
 qboolean FS_AddZip_Fullpath (const char *zipfile, qboolean *already_loaded, int flags)
@@ -736,4 +704,3 @@ qboolean FS_AddZip_Fullpath (const char *zipfile, qboolean *already_loaded, int 
 		return false;
 		}
 	}
-

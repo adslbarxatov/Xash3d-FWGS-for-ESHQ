@@ -304,18 +304,15 @@ BOOL CSatchel::Deploy ()
 	}
 
 
-void CSatchel::Holster (int skiplocal /* = 0 */)
+void CSatchel::Holster (int skiplocal)	// == 0
 	{
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + 0.5;
 
 	if (m_chargeReady)
-		{
 		SendWeaponAnim (SATCHEL_RADIO_HOLSTER);
-		}
 	else
-		{
 		SendWeaponAnim (SATCHEL_DROP);
-		}
+
 	EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "common/null.wav", 1.0, ATTN_MEDIUM);
 
 	if (!m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] && !m_chargeReady)

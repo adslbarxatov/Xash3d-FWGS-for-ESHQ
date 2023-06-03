@@ -38,9 +38,7 @@ GNU General Public License for more details.
 // PLATFORM      platform
 // CONFIG        platform/config
 
-/*static inline qboolean IsIdGamedir (const char *id)*/
 // This is a macro because pointers returned by alloca
-
 // [FWGS, 01.05.23] shouldn't leave current scope
 #define FixupPath(var, str) \
 	const size_t var ## _size = Q_strlen(( str )) + 1; \
@@ -60,38 +58,25 @@ static inline bool IsIdGamedir (const char *id)
 static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	{
 	if (!Q_strcmp (id, "GAME"))
-		{
 		return GI->gamefolder;
-		}
 
 	if (!Q_strcmp (id, "GAMEDOWNLOAD"))
 		{
-		/*return va ("%s/downloaded", GI->gamefolder);*/
 		Q_snprintf (dir, size, "%s/downloaded", GI->gamefolder);
 		return dir;
 		}
 
 	if (!Q_strcmp (id, "GAMECONFIG"))
-		{
-		/*return fs_writedir; // full path here so it's totally our write allowed directory*/
 		return fs_writepath->filename; // full path here so it's totally our write allowed directory
-		}
 
 	if (!Q_strcmp (id, "PLATFORM"))
-		{
 		return "platform"; // stub
-		}
 
 	if (!Q_strcmp (id, "CONFIG"))
-		{
 		return "platform/config"; // stub
-		}
 
-	/*else // ROOT || BASE
-		{*/
 	// ROOT || BASE
 	return fs_rootdir; // give at least root directory
-	/*}*/
 	}
 
 // [FWGS, 01.05.23]
@@ -109,16 +94,11 @@ class CXashFS : public IVFileSystem009
 			// [FWGS, 01.05.23]
 			public:
 				CSearchState (CSearchState **head, search_t *search) :
-					/*next (*head), search (search), index (0)*/
 					next (*head),
 					search (search),
 					index (0),
 					handle (*head ? (*head)->handle + 1 : 0)
 					{
-					/*if (*head)
-						handle = (*head)->handle + 1;
-					else 
-						handle = 0;*/
 					*head = this;
 					}
 				~CSearchState ()
@@ -160,8 +140,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		void AddSearchPath (const char *path, const char *id) override
 			{
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);*/
 			FixupPath (p, path);
 
 			FS_AddGameDirectory (p, FS_CUSTOM_PATH);
@@ -170,8 +148,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		void AddSearchPathNoWrite (const char *path, const char *id) override
 			{
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);*/
 			FixupPath (p, path);
 
 			FS_AddGameDirectory (p, FS_NOWRITE_PATH | FS_CUSTOM_PATH);
@@ -191,7 +167,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.04.23]
 		void CreateDirHierarchy (const char *path, const char *id) override
 			{
-			/*FS_CreatePath (va ("%s/%s", IdToDir (id), path)); // FS_CreatePath is aware of slashes*/
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
 
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
@@ -201,8 +176,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		bool FileExists (const char *path) override
 			{
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);*/
 			FixupPath (p, path);
 
 			return FS_FileExists (p, false);
@@ -211,8 +184,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		bool IsDirectory (const char *path) override
 			{
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);*/
 			FixupPath (p, path);
 
 			return FS_SysFolderExists (p);
@@ -221,11 +192,8 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		FileHandle_t Open (const char *path, const char *mode, const char *id) override
 			{
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);*/
 			file_t *fd;
 
-			/*file_t *fd = FS_Open (p, mode, IsIdGamedir (id));*/
 			FixupPath (p, path);
 			fd = FS_Open (p, mode, IsIdGamedir (id));
 
@@ -235,7 +203,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		void Close (FileHandle_t handle) override
 			{
-			/*FS_Close ((file_t *)handle);*/
 			FS_Close (static_cast<file_t *>(handle));
 			}
 
@@ -258,30 +225,24 @@ class CXashFS : public IVFileSystem009
 					break;
 				}
 
-			/*FS_Seek ((file_t *)handle, offset, whence_);*/
 			FS_Seek (static_cast<file_t *>(handle), offset, whence_);
 			}
 
 		// [FWGS, 01.05.23]
 		unsigned int Tell (FileHandle_t handle) override
 			{
-			/*return FS_Tell ((file_t *)handle);*/
 			return FS_Tell (static_cast<file_t *>(handle));
 			}
 
 		// [FWGS, 01.05.23]
 		unsigned int Size (FileHandle_t handle) override
 			{
-			/*file_t *fd = (file_t *)handle;
-			return fd->real_length;*/
 			return static_cast<file_t *>(handle)->real_length;
 			}
 
 		// [FWGS, 01.05.23]
 		unsigned int Size (const char *path) override
 			{
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);*/
 			FixupPath (p, path);
 			return FS_FileSize (p, false);
 			}
@@ -289,8 +250,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		long int GetFileTime (const char *path) override
 			{
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);*/
 			FixupPath (p, path);
 			return FS_FileTime (p, false);
 			}
@@ -307,43 +266,36 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		bool IsOk (FileHandle_t handle) override
 			{
-			/*return !FS_Eof ((file_t *)handle);*/
 			return !FS_Eof (static_cast<file_t *>(handle));
 			}
 
 		// [FWGS, 01.05.23]
 		void Flush (FileHandle_t handle) override
 			{
-			/*FS_Flush ((file_t *)handle);*/
 			FS_Flush (static_cast<file_t *>(handle));
 			}
 
 		// [FWGS, 01.05.23]
 		bool EndOfFile (FileHandle_t handle) override
 			{
-			/*return FS_Eof ((file_t *)handle);*/
 			return FS_Eof (static_cast<file_t *>(handle));
 			}
 
 		// [FWGS, 01.05.23]
 		int Read (void *buf, int size, FileHandle_t handle) override
 			{
-			/*return FS_Read ((file_t *)handle, buf, size);*/
 			return FS_Read (static_cast<file_t *>(handle), buf, size);
 			}
 
 		// [FWGS, 01.05.23]
 		int Write (const void *buf, int size, FileHandle_t handle) override
 			{
-			/*return FS_Write ((file_t *)handle, buf, size);*/
 			return FS_Write (static_cast<file_t *>(handle), buf, size);
 			}
 
 		// [FWGS, 01.05.23]
 		char *ReadLine (char *buf, int size, FileHandle_t handle) override
 			{
-			/*int c = FS_Gets ((file_t *)handle, (byte *)buf, size);
-			return c >= 0 ? buf : NULL;*/
 			const int c = FS_Gets (static_cast<file_t *>(handle), buf, size);
 			return c >= 0 ? buf : nullptr;
 			}
@@ -354,7 +306,6 @@ class CXashFS : public IVFileSystem009
 			int ret;
 
 			va_start (ap, fmt);
-			/*ret = FS_VPrintf ((file_t *)handle, fmt, ap);*/
 			ret = FS_VPrintf (static_cast<file_t *>(handle), fmt, ap);	// [FWGS, 01.05.23]
 			va_end (ap);
 
@@ -383,18 +334,13 @@ class CXashFS : public IVFileSystem009
 			if (!handle || !pattern)
 				return nullptr;
 
-			/*char *p = (char *)alloca (Q_strlen (pattern) + 1);
-			CopyAndFixSlashes (p, pattern);
-			search_t *search = FS_Search (p, true, IsIdGamedir (id));*/
 			FixupPath (p, pattern);
 			search = FS_Search (p, true, IsIdGamedir (id));
 
 			if (!search)
 				return nullptr;
 
-			/*CSearchState *state = new CSearchState (&searchHead, search);*/
 			state = new CSearchState (&searchHead, search);
-
 			*handle = state->handle;
 			return state->search->filenames[0];
 			}
@@ -428,32 +374,18 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		void FindClose (FileFindHandle_t handle) override
 			{
-			/*for (CSearchState *state = searchHead, **prev = NULL;
-				state;
-				*prev = state, state = state->next)
-				{
-				if (state->handle == handle)
-					{
-					if (prev)
-						(*prev)->next = state->next;
-					else searchHead = state->next;*/
 			CSearchState *prev;
 			CSearchState *i;
 
-			/*delete state;*/
 			for (prev = nullptr, i = searchHead; i != nullptr && i->handle != handle;
 				prev = i, i = i->next);
 
-			/*return;
-			}*/
 			if (i == nullptr)
 				{
 				Con_DPrintf ("FindClose: Can't find search state by handle %d\n", handle);
 				return;
 				}
 
-			/*Con_DPrintf ("FindClose: Can't find search state by handle %d\n", handle);
-			return;*/
 			if (prev != nullptr)
 				prev->next = i->next;
 			else
@@ -465,14 +397,11 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		const char *GetLocalPath (const char *name, char *buf, int size) override
 			{
-			/*if (!name) return NULL;*/
 			const char *fullpath;
 			
 			if (!name)
 				return nullptr;
 
-			/*char *p = (char *)alloca (Q_strlen (name) + 1);
-			CopyAndFixSlashes (p, name);*/
 			FixupPath (p, name);
 
 #if !XASH_WIN32
@@ -485,7 +414,6 @@ class CXashFS : public IVFileSystem009
 
 				return buf;
 				}
-
 
 			fullpath = FS_GetDiskPath (p, false);
 			if (!fullpath)
@@ -501,8 +429,6 @@ class CXashFS : public IVFileSystem009
 			qboolean qquoted;
 			char *p;
 
-			/*char *p = COM_ParseFileSafe (buf, token, PFILE_FS_TOKEN_MAX_LENGTH, 0, NULL, &qquoted);
-			if (quoted) *quoted = qquoted;*/
 			p = COM_ParseFileSafe (buf, token, PFILE_FS_TOKEN_MAX_LENGTH, 0, nullptr, &qquoted);
 			if (quoted)
 				*quoted = qquoted;
@@ -521,9 +447,6 @@ class CXashFS : public IVFileSystem009
 				return false;
 				}
 
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);
-			searchpath_t *sp;*/
 			FixupPath (p, path);
 
 			for (sp = fs_searchpaths; sp; sp = sp->next)
@@ -591,8 +514,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.05.23]
 		FileHandle_t OpenFromCacheForRead (const char *path, const char *mode, const char *id) override
 			{
-			/*char *p = (char *)alloca (Q_strlen (path) + 1);
-			CopyAndFixSlashes (p, path);*/
 			FixupPath (p, path);
 
 			return FS_OpenReadFile (p, mode, IsIdGamedir (id));
@@ -624,7 +545,7 @@ class CXashFS : public IVFileSystem009
 
 extern "C" void EXPORT * CreateInterface (const char *interface, int *retval)
 	{
-	if (!Q_strcmp (interface, FILESYSTEM_INTERFACE_VERSION /*"VFileSystem009"*/))
+	if (!Q_strcmp (interface, FILESYSTEM_INTERFACE_VERSION))
 		{
 		if (retval)
 			*retval = 0;

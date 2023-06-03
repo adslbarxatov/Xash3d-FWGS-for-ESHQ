@@ -465,9 +465,6 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 	// [FWGS, 01.05.23]
 	if (COM_CheckStringEmpty (wadname))
 		{
-		/*COM_FileBase (wadname, wadname);
-		Q_strncpy (wadfolder, wadname, sizeof (wadfolder));
-		COM_DefaultExtension (wadname, ".wad");*/
 		string wadbasename;
 		COM_FileBase (wadname, wadbasename, sizeof (wadbasename));
 
@@ -478,8 +475,6 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 		}
 
 	// [FWGS, 01.05.23] make wadname from wad fullpath
-	/*COM_FileBase (search->filename, shortname);
-	COM_DefaultExtension (shortname, ".wad");*/
 	COM_FileBase (search->filename, shortname, sizeof (shortname));
 	COM_DefaultExtension (shortname, ".wad", sizeof (shortname));
 
@@ -529,9 +524,6 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 	// [FWGS, 01.05.23]
 	if (COM_CheckStringEmpty (wadname))
 		{
-		/*COM_FileBase (wadname, wadname);
-		Q_strncpy (wadfolder, wadname, sizeof (wadfolder));
-		COM_DefaultExtension (wadname, ".wad");*/
 		string wadbasename;
 		COM_FileBase (wadname, wadbasename, sizeof (wadbasename));
 
@@ -541,8 +533,6 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 		}
 
 	// [FWGS, 01.05.23] make wadname from wad fullpath
-	/*COM_FileBase (search->filename, temp2);
-	COM_DefaultExtension (temp2, ".wad");*/
 	COM_FileBase (search->filename, temp2, sizeof (temp2));
 	COM_DefaultExtension (temp2, ".wad", sizeof (temp2));
 

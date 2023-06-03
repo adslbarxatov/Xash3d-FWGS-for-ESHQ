@@ -2054,13 +2054,7 @@ void PM_Duck (void)
 		return;
 		}
 
-	// ESHQ: удаление коэффициентов в связи с разворотом клавиш бега
-	/*if (pmove->flags & FL_DUCKING)
-		{
-		pmove->cmd.forwardmove *= 0.9;
-		pmove->cmd.sidemove *= 0.9;
-		pmove->cmd.upmove *= 0.9;
-		}*/
+	// ESHQ: удалены коэффициенты скорости движения в связи с разворотом клавиш бега
 
 	if ((pmove->cmd.buttons & IN_DUCK) || (pmove->bInDuck) || (pmove->flags & FL_DUCKING))
 		{

@@ -520,9 +520,9 @@ class CHud
 		// the memory for these arrays are allocated in the first call to CHud::VidInit(), 
 		// when the hud.txt and associated sprites are loaded.
 		// freed in ~CHud()
-		HLSPRITE*	m_rghSprites;	/*[HUD_SPRITE_COUNT]*/			// the sprites loaded from hud.txt
-		wrect_t*	m_rgrcRects;	/*[HUD_SPRITE_COUNT]*/
-		char*		m_rgszSpriteNames; /*[HUD_SPRITE_COUNT][MAX_SPRITE_NAME_LENGTH]*/
+		HLSPRITE*	m_rghSprites;			// the sprites loaded from hud.txt
+		wrect_t*	m_rgrcRects;
+		char*		m_rgszSpriteNames;
 
 		struct cvar_s* default_fov;
 	public:
