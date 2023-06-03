@@ -1202,8 +1202,6 @@ void R_BeamDrawCustomEntity (cl_entity_t *ent)
 	b = ent->curstate.rendercolor.b / 255.0f;
 
 	// [FWGS, 01.04.23]
-	/*R_BeamSetup (&beam, ent->origin, ent->angles, ent->curstate.modelindex, 0, ent->curstate.scale, amp, 
-		blend, ent->curstate.animtime);*/
 	R_BeamSetup (&beam, ent->origin, ent->curstate.angles, ent->curstate.modelindex, 0, ent->curstate.scale,
 		amp, blend, ent->curstate.animtime);
 

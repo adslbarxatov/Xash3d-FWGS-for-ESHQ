@@ -28,10 +28,6 @@ GNU General Public License for more details.
 #include "com_model.h"
 #include "studio.h"
 
-/*#ifdef XASH_MSVC
-#pragma warning(disable : 4201)	// nonstandard extension used
-#endif*/
-
 // euler angle order
 #define PITCH		0
 #define YAW			1
@@ -184,7 +180,6 @@ float rsqrt (float number);
 float anglemod (float a);
 word FloatToHalf (float v);
 float HalfToFloat (word h);
-/*float SimpleSpline (float value);*/	// [FWGS, 01.05.23]
 void RoundUpHullSize (vec3_t size);
 int SignbitsForPlane (const vec3_t normal);
 int PlaneTypeForNormal (const vec3_t normal);
@@ -196,8 +191,6 @@ void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up);
 void VectorAngles (const float *forward, float *angles);
 void AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, vec3_t angles);
-/*qboolean PlanesGetIntersectionPoint (const struct mplane_s *plane1, const struct mplane_s *plane2,
-	const struct mplane_s *plane3, vec3_t out);*/	// [FWGS, 01.05.23]
 void PlaneIntersect (const struct mplane_s *plane, const vec3_t p0, const vec3_t p1, vec3_t out);
 
 void ClearBounds (vec3_t mins, vec3_t maxs);
@@ -228,14 +221,10 @@ void Matrix3x4_VectorIRotate (const matrix3x4 in, const float v[3], float out[3]
 void Matrix3x4_ConcatTransforms (matrix3x4 out, const matrix3x4 in1, const matrix3x4 in2);
 void Matrix3x4_FromOriginQuat (matrix3x4 out, const vec4_t quaternion, const vec3_t origin);
 void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_t origin, float scale);
-/*void Matrix3x4_TransformPositivePlane (const matrix3x4 in, const vec3_t normal, float d,
-	vec3_t out, float *dist);*/	// [FWGS, 01.05.23]
 void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const vec3_t maxs, vec3_t absmin, vec3_t absmax);
 void Matrix3x4_SetOrigin (matrix3x4 out, float x, float y, float z);
-/*void Matrix3x4_Invert_Simple (matrix3x4 out, const matrix3x4 in1);*/	// [FWGS, 01.05.23]
 void Matrix3x4_OriginFromMatrix (const matrix3x4 in, float *out);
 void Matrix3x4_AnglesFromMatrix (const matrix3x4 in, vec3_t out);
-/*void Matrix3x4_Transpose (matrix3x4 out, const matrix3x4 in1);*/	// [FWGS, 01.05.23]
 
 #define Matrix4x4_LoadIdentity( mat )	Matrix4x4_Copy( mat, m_matrix4x4_identity )
 #define Matrix4x4_Copy( out, in )	memcpy( out, in, sizeof( matrix4x4 ))
@@ -245,21 +234,11 @@ void Matrix4x4_VectorITransform (const matrix4x4 in, const float v[3], float out
 void Matrix4x4_VectorRotate (const matrix4x4 in, const float v[3], float out[3]);
 void Matrix4x4_VectorIRotate (const matrix4x4 in, const float v[3], float out[3]);
 void Matrix4x4_ConcatTransforms (matrix4x4 out, const matrix4x4 in1, const matrix4x4 in2);
-/*void Matrix4x4_FromOriginQuat (matrix4x4 out, const vec4_t quaternion,
-	const vec3_t origin);*/	// [FWGS, 01.05.23]
 void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_t origin, float scale);
 void Matrix4x4_TransformPositivePlane (const matrix4x4 in, const vec3_t normal, float d, vec3_t out, float *dist);
-/*void Matrix4x4_TransformStandardPlane (const matrix4x4 in, const vec3_t normal, float d,
-	vec3_t out, float *dist);*/	// [FWGS, 01.05.23]
 void Matrix4x4_ConvertToEntity (const matrix4x4 in, vec3_t angles, vec3_t origin);
-/*void Matrix4x4_SetOrigin (matrix4x4 out, float x, float y, float z);*/	// [FWGS, 01.05.23]
 void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1);
-/*void Matrix4x4_OriginFromMatrix (const matrix4x4 in, float *out);	// [FWGS, 01.05.23]
-void Matrix4x4_Transpose (matrix4x4 out, const matrix4x4 in1);*/
 qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1);
-
-/*float V_CalcFov (float *fov_x, float width, float height);	// [FWGS, 01.05.23]
-void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x);*/
 
 // [FWGS, 01.04.23]
 void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_t q2[], 

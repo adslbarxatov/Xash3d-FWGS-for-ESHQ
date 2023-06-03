@@ -706,11 +706,11 @@ void CIchthyosaur::RunTask (Task_t* pTask)
 				TaskComplete ();
 				}
 			break;
+
 		case TASK_DIE:
 			if (m_fSequenceFinished)
 				{
-				pev->deadflag = DEAD_DEAD;
-
+				pev->deadflag = DEAD_KILLED;
 				TaskComplete ();
 				}
 			break;
@@ -718,15 +718,11 @@ void CIchthyosaur::RunTask (Task_t* pTask)
 		case TASK_ICHTHYOSAUR_FLOAT:
 			pev->angles.x = UTIL_ApproachAngle (0, pev->angles.x, 20);
 			pev->velocity = pev->velocity * 0.8;
-			if (pev->waterlevel > 1 && pev->velocity.z < 64)
-				{
+			if ((pev->waterlevel > 1) && (pev->velocity.z < 64))
 				pev->velocity.z += 8;
-				}
 			else
-				{
 				pev->velocity.z -= 8;
-				}
-			// ALERT( at_console, "%f\n", pev->velocity.z );
+
 			break;
 
 		default:

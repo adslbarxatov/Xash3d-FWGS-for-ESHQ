@@ -215,63 +215,7 @@ void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_
 		}
 	}
 
-/* [FWGS, 01.05.23]
-void Matrix3x4_TransformPositivePlane (const matrix3x4 in, const vec3_t normal, float d, vec3_t out, float *dist)
-	{
-	float	scale = sqrt (in[0][0] * in[0][0] + in[0][1] * in[0][1] + in[0][2] * in[0][2]);
-	float	iscale = 1.0f / scale;
-
-	out[0] = (normal[0] * in[0][0] + normal[1] * in[0][1] + normal[2] * in[0][2]) * iscale;
-	out[1] = (normal[0] * in[1][0] + normal[1] * in[1][1] + normal[2] * in[1][2]) * iscale;
-	out[2] = (normal[0] * in[2][0] + normal[1] * in[2][1] + normal[2] * in[2][2]) * iscale;
-	*dist = d * scale + (out[0] * in[0][3] + out[1] * in[1][3] + out[2] * in[2][3]);
-	}
-
-void Matrix3x4_Invert_Simple (matrix3x4 out, const matrix3x4 in1)
-	{
-	// we only support uniform scaling, so assume the first row is enough
-	// (note the lack of sqrt here, because we're trying to undo the scaling,
-	// this means multiplying by the inverse scale twice - squaring it, which
-	// makes the sqrt a waste of time)
-	float	scale = 1.0f / (in1[0][0] * in1[0][0] + in1[0][1] * in1[0][1] + in1[0][2] * in1[0][2]);
-
-	// invert the rotation by transposing and multiplying by the squared
-	// recipricol of the input matrix scale as described above
-	out[0][0] = in1[0][0] * scale;
-	out[0][1] = in1[1][0] * scale;
-	out[0][2] = in1[2][0] * scale;
-	out[1][0] = in1[0][1] * scale;
-	out[1][1] = in1[1][1] * scale;
-	out[1][2] = in1[2][1] * scale;
-	out[2][0] = in1[0][2] * scale;
-	out[2][1] = in1[1][2] * scale;
-	out[2][2] = in1[2][2] * scale;
-
-	// invert the translate
-	out[0][3] = -(in1[0][3] * out[0][0] + in1[1][3] * out[0][1] + in1[2][3] * out[0][2]);
-	out[1][3] = -(in1[0][3] * out[1][0] + in1[1][3] * out[1][1] + in1[2][3] * out[1][2]);
-	out[2][3] = -(in1[0][3] * out[2][0] + in1[1][3] * out[2][1] + in1[2][3] * out[2][2]);
-	}
-
-void Matrix3x4_Transpose (matrix3x4 out, const matrix3x4 in1)
-	{
-	// transpose only rotational component
-	out[0][0] = in1[0][0];
-	out[0][1] = in1[1][0];
-	out[0][2] = in1[2][0];
-	out[1][0] = in1[0][1];
-	out[1][1] = in1[1][1];
-	out[1][2] = in1[2][1];
-	out[2][0] = in1[0][2];
-	out[2][1] = in1[1][2];
-	out[2][2] = in1[2][2];
-
-	// copy origin
-	out[0][3] = in1[0][3];
-	out[1][3] = in1[1][3];
-	out[2][3] = in1[2][3];
-	}
-*/
+// [FWGS, 01.05.23] удалены Matrix3x4_TransformPositivePlane, Matrix3x4_Invert_Simple, Matrix3x4_Transpose
 
 /*
 ==================
@@ -359,41 +303,7 @@ void Matrix4x4_ConcatTransforms (matrix4x4 out, const matrix4x4 in1, const matri
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
 
-/* [FWGS, 01.05.23]
-void Matrix4x4_SetOrigin (matrix4x4 out, float x, float y, float z)
-	{
-	out[0][3] = x;
-	out[1][3] = y;
-	out[2][3] = z;
-	}
-
-void Matrix4x4_OriginFromMatrix (const matrix4x4 in, float *out)
-	{
-	out[0] = in[0][3];
-	out[1] = in[1][3];
-	out[2] = in[2][3];
-	}
-
-void Matrix4x4_FromOriginQuat (matrix4x4 out, const vec4_t quaternion, const vec3_t origin)
-	{
-	out[0][0] = 1.0f - 2.0f * quaternion[1] * quaternion[1] - 2.0f * quaternion[2] * quaternion[2];
-	out[1][0] = 2.0f * quaternion[0] * quaternion[1] + 2.0f * quaternion[3] * quaternion[2];
-	out[2][0] = 2.0f * quaternion[0] * quaternion[2] - 2.0f * quaternion[3] * quaternion[1];
-	out[0][3] = origin[0];
-	out[0][1] = 2.0f * quaternion[0] * quaternion[1] - 2.0f * quaternion[3] * quaternion[2];
-	out[1][1] = 1.0f - 2.0f * quaternion[0] * quaternion[0] - 2.0f * quaternion[2] * quaternion[2];
-	out[2][1] = 2.0f * quaternion[1] * quaternion[2] + 2.0f * quaternion[3] * quaternion[0];
-	out[1][3] = origin[1];
-	out[0][2] = 2.0f * quaternion[0] * quaternion[2] + 2.0f * quaternion[3] * quaternion[1];
-	out[1][2] = 2.0f * quaternion[1] * quaternion[2] - 2.0f * quaternion[3] * quaternion[0];
-	out[2][2] = 1.0f - 2.0f * quaternion[0] * quaternion[0] - 2.0f * quaternion[1] * quaternion[1];
-	out[2][3] = origin[2];
-	out[3][0] = 0.0f;
-	out[3][1] = 0.0f;
-	out[3][2] = 0.0f;
-	out[3][3] = 1.0f;
-	}
-*/
+// [FWGS, 01.05.23] удалены Matrix4x4_SetOrigin, Matrix4x4_OriginFromMatrix, Matrix4x4_FromOriginQuat
 
 void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_t origin, float scale)
 	{
@@ -526,18 +436,7 @@ void Matrix4x4_TransformPositivePlane (const matrix4x4 in, const vec3_t normal, 
 	*dist = d * scale + (out[0] * in[0][3] + out[1] * in[1][3] + out[2] * in[2][3]);
 	}
 
-/* [FWGS, 01.05.23]
-void Matrix4x4_TransformStandardPlane (const matrix4x4 in, const vec3_t normal, float d, vec3_t out, float *dist)
-	{
-	float scale = sqrt (in[0][0] * in[0][0] + in[0][1] * in[0][1] + in[0][2] * in[0][2]);
-	float iscale = 1.0f / scale;
-
-	out[0] = (normal[0] * in[0][0] + normal[1] * in[0][1] + normal[2] * in[0][2]) * iscale;
-	out[1] = (normal[0] * in[1][0] + normal[1] * in[1][1] + normal[2] * in[1][2]) * iscale;
-	out[2] = (normal[0] * in[2][0] + normal[1] * in[2][1] + normal[2] * in[2][2]) * iscale;
-	*dist = d * scale - (out[0] * in[0][3] + out[1] * in[1][3] + out[2] * in[2][3]);
-	}
-*/
+// [FWGS, 01.05.23] удалена Matrix4x4_TransformStandardPlane
 
 void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	{
@@ -571,27 +470,7 @@ void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	out[3][3] = 1.0f;
 	}
 
-/* [FWGS, 01.05.23]
-void Matrix4x4_Transpose (matrix4x4 out, const matrix4x4 in1)
-	{
-	out[0][0] = in1[0][0];
-	out[0][1] = in1[1][0];
-	out[0][2] = in1[2][0];
-	out[0][3] = in1[3][0];
-	out[1][0] = in1[0][1];
-	out[1][1] = in1[1][1];
-	out[1][2] = in1[2][1];
-	out[1][3] = in1[3][1];
-	out[2][0] = in1[0][2];
-	out[2][1] = in1[1][2];
-	out[2][2] = in1[2][2];
-	out[2][3] = in1[3][2];
-	out[3][0] = in1[0][3];
-	out[3][1] = in1[1][3];
-	out[3][2] = in1[2][3];
-	out[3][3] = in1[3][3];
-	}
-*/
+// [FWGS, 01.05.23] удалена Matrix4x4_Transpose
 
 qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 	{

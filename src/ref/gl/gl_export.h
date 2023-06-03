@@ -309,47 +309,47 @@ typedef float GLmatrix[16];
 #define GL_BLUE_SCALE			0x0D1A
 #define GL_ALPHA_SCALE			0x0D1C
 
-/* AttribMask */
+// AttribMask
 #define GL_CURRENT_BIT			0x00000001
 #define GL_POINT_BIT			0x00000002
 #define GL_LINE_BIT				0x00000004
 #define GL_POLYGON_BIT			0x00000008
-#define GL_POLYGON_STIPPLE_BIT		0x00000010
-#define GL_PIXEL_MODE_BIT			0x00000020
+#define GL_POLYGON_STIPPLE_BIT	0x00000010
+#define GL_PIXEL_MODE_BIT		0x00000020
 #define GL_LIGHTING_BIT			0x00000040
 #define GL_FOG_BIT				0x00000080
-#define GL_DEPTH_BUFFER_BIT			0x00000100
-#define GL_ACCUM_BUFFER_BIT			0x00000200
-#define GL_STENCIL_BUFFER_BIT			0x00000400
+#define GL_DEPTH_BUFFER_BIT		0x00000100
+#define GL_ACCUM_BUFFER_BIT		0x00000200
+#define GL_STENCIL_BUFFER_BIT	0x00000400
 #define GL_VIEWPORT_BIT			0x00000800
-#define GL_TRANSFORM_BIT			0x00001000
+#define GL_TRANSFORM_BIT		0x00001000
 #define GL_ENABLE_BIT			0x00002000
-#define GL_COLOR_BUFFER_BIT			0x00004000
+#define GL_COLOR_BUFFER_BIT		0x00004000
 #define GL_HINT_BIT				0x00008000
 #define GL_EVAL_BIT				0x00010000
 #define GL_LIST_BIT				0x00020000
 #define GL_TEXTURE_BIT			0x00040000
 #define GL_SCISSOR_BIT			0x00080000
-#define GL_ALL_ATTRIB_BITS			0x000fffff
+#define GL_ALL_ATTRIB_BITS		0x000fffff
 
 #define GL_STENCIL_TEST			0x0B90
-#define GL_KEEP				0x1E00
+#define GL_KEEP					0x1E00
 #define GL_REPLACE				0x1E01
-#define GL_INCR				0x1E02
-#define GL_DECR				0x1E03
+#define GL_INCR					0x1E02
+#define GL_DECR					0x1E03
 
 // fog stuff
-#define GL_FOG				0x0B60
+#define GL_FOG					0x0B60
 #define GL_FOG_INDEX			0x0B61
 #define GL_FOG_DENSITY			0x0B62
 #define GL_FOG_START			0x0B63
 #define GL_FOG_END				0x0B64
 #define GL_FOG_MODE				0x0B65
 #define GL_FOG_COLOR			0x0B66
-#define GL_EXP				0x0800
-#define GL_EXP2				0x0801
+#define GL_EXP					0x0800
+#define GL_EXP2					0x0801
 
-#define GL_POLYGON_OFFSET_FACTOR		0x8038
+#define GL_POLYGON_OFFSET_FACTOR	0x8038
 #define GL_POLYGON_OFFSET_UNITS		0x2A00
 #define GL_POLYGON_OFFSET_POINT		0x2A01
 #define GL_POLYGON_OFFSET_LINE		0x2A02
@@ -357,8 +357,8 @@ typedef float GLmatrix[16];
 
 #define GL_POINT_SMOOTH			0x0B10
 #define GL_LINE_SMOOTH			0x0B20
-#define GL_POLYGON_SMOOTH			0x0B41
-#define GL_POLYGON_STIPPLE			0x0B42
+#define GL_POLYGON_SMOOTH		0x0B41
+#define GL_POLYGON_STIPPLE		0x0B42
 #define GL_CLIP_PLANE0			0x3000
 #define GL_CLIP_PLANE1			0x3001
 #define GL_CLIP_PLANE2			0x3002
@@ -820,7 +820,7 @@ typedef float GLmatrix[16];
 #define WGL_CONTEXT_PROFILE_MASK_ARB		0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB	0x00000001
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB	0x00000002
-#define WGL_CONTEXT_ES2_PROFILE_BIT_EXT		0x00000004	/*WGL_CONTEXT_ES2_PROFILE_BIT_EXT*/
+#define WGL_CONTEXT_ES2_PROFILE_BIT_EXT		0x00000004
 #define ERROR_INVALID_VERSION_ARB		0x2095
 #define ERROR_INVALID_PROFILE_ARB		0x2096
 
@@ -1360,7 +1360,7 @@ APIENTRY_LINKAGE void GL_FUNCTION (glSwapInterval) (int interval);
 
 #if !defined( XASH_GLES ) && !defined( XASH_GL4ES )
 APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-#endif /* !XASH_GLES && !XASH_GL4ES */
+#endif
 
 #if defined( XASH_GL_STATIC ) && !defined( REF_GL_KEEP_MANGLED_FUNCTIONS )
 #define pglGetError glGetError

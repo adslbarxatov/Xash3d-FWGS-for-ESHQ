@@ -2135,16 +2135,6 @@ static void R_SetLightmap (void)
 	if (mtst.skiptexture)
 		return;
 
-	/*if( gl_overbright->integer )
-	{
-		pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB );
-		pglTexEnvi( GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE );
-		pglTexEnvi( GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB );
-		pglTexEnvi( GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE );
-		pglTexEnvi( GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, 2 );
-
-	}
-	else*/
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
 	}

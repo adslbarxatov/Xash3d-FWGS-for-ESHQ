@@ -168,28 +168,7 @@ void R_PushDlights (void)
 		}
 	}
 
-/* [FWGS, 01.05.23]
-=============
-R_CountDlights
-=============
-int R_CountDlights (void)
-	{
-	dlight_t *l;
-	int	i, numDlights = 0;
-
-	for (i = 0; i < MAX_DLIGHTS; i++)
-		{
-		l = gEngfuncs.GetDynamicLight (i);
-
-		if (l->die < gpGlobals->time || !l->radius)
-			continue;
-
-		numDlights++;
-		}
-
-	return numDlights;
-	}
-*/
+// [FWGS, 01.05.23] удалена R_CountDlights
 
 /*
 =============

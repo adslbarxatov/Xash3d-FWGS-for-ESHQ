@@ -48,8 +48,6 @@ static void R_ParseDetailTextures (const char *filename)
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			
 			// [FWGS, 01.04.23]
-			/*Q_strncat (texname, "{", sizeof (texname));
-			Q_strncat (texname, token, sizeof (texname));*/
 			Q_snprintf (texname, sizeof (texname), "{%s", token);
 			}
 		else
@@ -59,7 +57,6 @@ static void R_ParseDetailTextures (const char *filename)
 
 		// read detailtexture name
 		pfile = COM_ParseFile (pfile, token, sizeof (token));
-		/*Q_strncat (detail_texname, token, sizeof (detail_texname));*/
 		Q_strncpy (detail_texname, token, sizeof (detail_texname));
 
 		// trying the scales or '{'
@@ -132,35 +129,7 @@ void R_NewMap (void)
 		R_ParseDetailTextures (filepath);
 		}
 
-	/* [FWGS, 01.05.23]
-	if (gEngfuncs.pfnGetCvarFloat ("v_dark"))
-		{
-		screenfade_t *sf = gEngfuncs.GetScreenFade ();
-		float			fadetime = 5.0f;
-		client_textmessage_t *title;
-
-		title = gEngfuncs.pfnTextMessageGet ("GAMETITLE");
-		if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
-			fadetime = 1.0f;
-
-		if (title)
-			{
-			// get settings from titles.txt
-			sf->fadeEnd = title->holdtime + title->fadeout;
-			sf->fadeReset = title->fadeout;
-			}
-		else sf->fadeEnd = sf->fadeReset = fadetime;
-
-		sf->fadeFlags = FFADE_IN;
-		sf->fader = sf->fadeg = sf->fadeb = 0;
-		sf->fadealpha = 255;
-		sf->fadeSpeed = (float)sf->fadealpha / sf->fadeReset;
-		sf->fadeReset += gpGlobals->time;
-		sf->fadeEnd += sf->fadeReset;
-
-		gEngfuncs.Cvar_SetValue ("v_dark", 0.0f);
-		}
-	*/
+	// [FWGS, 01.05.23] удалена поддержка переменной v_dark
 
 	// clear out efrags in case the level hasn't been reloaded
 	for (i = 0; i < WORLDMODEL->numleafs; i++)

@@ -1083,9 +1083,9 @@ static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLin
 				samplesCount = 1;
 			}
 		pglTexImage2DMultisample (tex->target, samplesCount, tex->format, width, height, GL_TRUE);
-#else /* !XASH_GLES && !XASH_GL4ES */
+#else
 		gEngfuncs.Con_Printf (S_ERROR "GLES renderer don't support GL_TEXTURE_2D_MULTISAMPLE!\n");
-#endif /* !XASH_GLES && !XASH_GL4ES */
+#endif
 		}
 	else // 2D or RECT
 		{
@@ -1585,14 +1585,10 @@ int GL_LoadTextureArray (const char **names, int flags)
 	if (numLayers <= 0) return 0;
 
 	// create complexname from layer names
-	/*for (i = 0; i < numLayers; i++)*/
 	for (i = 0; i < numLayers - 1; i++)
 		{
 		COM_FileBase (names[i], basename, sizeof (basename));	// [FWGS, 01.05.23]
 		
-		/*Q_strncat (name, basename, sizeof (name));
-		if (i != (numLayers - 1))
-			Q_strncat (name, "|", sizeof (name));*/
 		ret = Q_snprintf (&name[len], sizeof (name) - len, "%s|", basename);
 		if (ret == -1)
 			return 0;
@@ -1600,7 +1596,6 @@ int GL_LoadTextureArray (const char **names, int flags)
 		len += ret;
 		}
 
-	/*Q_strncat (name, va ("[%i]", numLayers), sizeof (name));*/
 	COM_FileBase (names[i], basename, sizeof (basename));	// [FWGS, 01.05.23]
 	ret = Q_snprintf (&name[len], sizeof (name) - len, "%s[%i]", basename, numLayers);
 

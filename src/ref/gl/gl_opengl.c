@@ -343,8 +343,6 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 	// system config disable extensions
 	if (cvarname)
 		{
-		/*parm = gEngfuncs.Cvar_Get (cvarname, "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, 
-			va (CVAR_GLCONFIG_DESCRIPTION, name));*/
 		Q_snprintf (desc, sizeof (desc), CVAR_GLCONFIG_DESCRIPTION, name);
 		parm = gEngfuncs.Cvar_Get (cvarname, "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, desc);
 		}
@@ -808,9 +806,6 @@ void GL_InitExtensions (void)
 	if (GL_Support (GL_TEXTURE_2D_RECT_EXT))
 		pglGetIntegerv (GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT, &glConfig.max_2d_rectangle_size);
 
-	/*gEngfuncs.Cvar_Get ("gl_max_size", va ("%i", glConfig.max_2d_texture_size), 0, "opengl texture max dims");
-	gEngfuncs.Cvar_Set ("gl_anisotropy", va ("%f", bound (0, gl_texture_anisotropy->value,
-		glConfig.max_texture_anisotropy)));*/
 	Q_snprintf (value, sizeof (value), "%i", glConfig.max_2d_texture_size);
 	gEngfuncs.Cvar_Get ("gl_max_size", value, 0, "opengl texture max dims");
 	gEngfuncs.Cvar_SetValue ("gl_anisotropy", bound (0, gl_texture_anisotropy->value, glConfig.max_texture_anisotropy));

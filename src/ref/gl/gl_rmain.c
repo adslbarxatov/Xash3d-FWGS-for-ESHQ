@@ -366,7 +366,7 @@ void R_SetupFrustum (void)
 	if (RI.drawOrtho)
 		GL_FrustumInitOrtho (&RI.frustum, ov->xLeft, ov->xRight, ov->yTop, ov->yBottom, ov->zNear, ov->zFar);
 	else
-		GL_FrustumInitProj (&RI.frustum, 0.0f, R_GetFarClip (), RI.fov_x, RI.fov_y); 
+		GL_FrustumInitProj (&RI.frustum, 0.0f, R_GetFarClip (), RI.fov_x, RI.fov_y);
 	// NOTE: we ignore nearplane here (mirrors only)
 	}
 
@@ -727,54 +727,40 @@ static void R_CheckFog (void)
 
 	RI.cached_waterlevel = ENGINE_GET_PARM (PARM_WATER_LEVEL);
 
-	// ESHQ???: отменено дефектное исправление, выводящее туман из строя
-	/*if (!IsLiquidContents (RI.cached_contents) && IsLiquidContents (cnt))
-		{*/
-		tex = NULL;
+	// ESHQ: отменено дефектное исправление, выводящее туман из строя
+	tex = NULL;
 
-		// check for water texture
-		if (ent && ent->model && (ent->model->type == mod_brush))
+	// check for water texture
+	if (ent && ent->model && (ent->model->type == mod_brush))
+		{
+		msurface_t *surf;
+
+		count = ent->model->nummodelsurfaces;
+
+		for (i = 0, surf = &ent->model->surfaces[ent->model->firstmodelsurface]; i < count; i++, surf++)
 			{
-			msurface_t *surf;
-
-			count = ent->model->nummodelsurfaces;
-
-			for (i = 0, surf = &ent->model->surfaces[ent->model->firstmodelsurface]; i < count; i++, surf++)
+			if (surf->flags & SURF_DRAWTURB && surf->texinfo && surf->texinfo->texture)
 				{
-				if (surf->flags & SURF_DRAWTURB && surf->texinfo && surf->texinfo->texture)
-					{
-					tex = R_GetTexture (surf->texinfo->texture->gl_texturenum);
-					RI.cached_contents = ent->curstate.skin;
-					break;
-					}
+				tex = R_GetTexture (surf->texinfo->texture->gl_texturenum);
+				RI.cached_contents = ent->curstate.skin;
+				break;
 				}
 			}
-		/*else
-			{
-			tex = R_RecursiveFindWaterTexture (RI.viewleaf->parent, NULL, false);
-			if (tex) RI.cached_contents = RI.viewleaf->contents;
-			}*/
+		}
 
-		if (!tex) 
-			return;	// no valid fogs
+	if (!tex)
+		return;	// no valid fogs
 
-		// copy fog params
-		RI.fogColor[0] = tex->fogParams[0] / 255.0f;
-		RI.fogColor[1] = tex->fogParams[1] / 255.0f;
-		RI.fogColor[2] = tex->fogParams[2] / 255.0f;
-		RI.fogDensity = tex->fogParams[3] * 0.000075f;	// ESHQ: коррекция насыщенности тумана
-		RI.fogStart = RI.fogEnd = 0.0f;
-		RI.fogColor[3] = 1.0f;
-		RI.fogCustom = false;
-		RI.fogEnabled = true;
-		RI.fogSkybox = true;
-		/*}
-	else
-		{
-		RI.fogCustom = false;
-		RI.fogEnabled = true;
-		RI.fogSkybox = true;
-		}*/
+	// copy fog params
+	RI.fogColor[0] = tex->fogParams[0] / 255.0f;
+	RI.fogColor[1] = tex->fogParams[1] / 255.0f;
+	RI.fogColor[2] = tex->fogParams[2] / 255.0f;
+	RI.fogDensity = tex->fogParams[3] * 0.000075f;	// ESHQ: коррекция насыщенности тумана
+	RI.fogStart = RI.fogEnd = 0.0f;
+	RI.fogColor[3] = 1.0f;
+	RI.fogCustom = false;
+	RI.fogEnabled = true;
+	RI.fogSkybox = true;
 	}
 
 /*
@@ -805,13 +791,13 @@ R_DrawFog
 */
 void R_DrawFog (void)
 	{
-	if (!RI.fogEnabled) 
+	if (!RI.fogEnabled)
 		return;
 
 	pglEnable (GL_FOG);
 	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
 		pglFogi (GL_FOG_MODE, GL_EXP2);
-	else 
+	else
 		pglFogi (GL_FOG_MODE, GL_EXP);
 
 	pglFogf (GL_FOG_DENSITY, RI.fogDensity);
@@ -903,10 +889,10 @@ void R_DrawEntitiesOnList (void)
 		// handle studiomodels with custom rendermodes on texture
 		if (RI.currententity->curstate.rendermode != kRenderNormal)
 			tr.blend = CL_FxBlend (RI.currententity) / 255.0f;
-		else 
+		else
 			tr.blend = 1.0f; // draw as solid but sorted by distance
 
-		if (tr.blend <= 0.0f) 
+		if (tr.blend <= 0.0f)
 			continue;
 
 		Assert (RI.currententity != NULL);
@@ -1238,7 +1224,7 @@ int CL_FxBlend (cl_entity_t *e)
 				{
 				if (e->curstate.renderamt < 255)
 					e->curstate.renderamt += 1;
-				else 
+				else
 					e->curstate.renderamt = 255;
 				}
 			blend = e->curstate.renderamt;
@@ -1249,7 +1235,7 @@ int CL_FxBlend (cl_entity_t *e)
 				{
 				if (e->curstate.renderamt < 252)
 					e->curstate.renderamt += 4;
-				else 
+				else
 					e->curstate.renderamt = 255;
 				}
 			blend = e->curstate.renderamt;
@@ -1259,39 +1245,39 @@ int CL_FxBlend (cl_entity_t *e)
 			blend = 20 * sin (gpGlobals->time * 4 + offset);
 			if (blend < 0)
 				blend = 0;
-			else 
+			else
 				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxStrobeFast:
 			blend = 20 * sin (gpGlobals->time * 16 + offset);
-			if (blend < 0) 
+			if (blend < 0)
 				blend = 0;
-			else 
+			else
 				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxStrobeFaster:
 			blend = 20 * sin (gpGlobals->time * 36 + offset);
-			if (blend < 0) 
+			if (blend < 0)
 				blend = 0;
-			else 
+			else
 				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxFlickerSlow:
 			blend = 20 * (sin (gpGlobals->time * 2) + sin (gpGlobals->time * 17 + offset));
-			if (blend < 0) 
+			if (blend < 0)
 				blend = 0;
-			else 
+			else
 				blend = e->curstate.renderamt;
 			break;
 
 		case kRenderFxFlickerFast:
 			blend = 20 * (sin (gpGlobals->time * 16) + sin (gpGlobals->time * 23 + offset));
-			if (blend < 0) 
+			if (blend < 0)
 				blend = 0;
-			else 
+			else
 				blend = e->curstate.renderamt;
 			break;
 
@@ -1312,15 +1298,15 @@ int CL_FxBlend (cl_entity_t *e)
 			else
 				{
 				e->curstate.renderamt = 180;
-				if (dist <= 100) 
+				if (dist <= 100)
 					blend = e->curstate.renderamt;
-				else 
+				else
 					blend = (int)((1.0f - (dist - 100) * (1.0f / 400.0f)) * e->curstate.renderamt);
 				blend += gEngfuncs.COM_RandomLong (-32, 31);
 				}
 			break;
 
-		// ESHQ: поддержка мигалок
+			// ESHQ: поддержка мигалок
 		case kRenderFxLeftPoliceLight:
 		case kRenderFxRightPoliceLight:
 			blend = 20 * sin (gpGlobals->time * 60);

@@ -117,7 +117,6 @@ float HalfToFloat (word h)
 			}
 		}
 
-	/*return *((float *)&f);*/
 	return UintAsFloat (f);	// [FWGS, 01.04.23]
 	}
 

@@ -735,7 +735,7 @@ BOOL CBaseMonster::CineCleanup ()
 		pev->framerate = 0.0;
 		pev->solid = SOLID_NOT;
 		SetState (MONSTERSTATE_DEAD);
-		pev->deadflag = DEAD_DEAD;
+		pev->deadflag = DEAD_KILLED;
 		UTIL_SetSize (pev, pev->mins, Vector (pev->maxs.x, pev->maxs.y, pev->mins.z + 2));
 
 		if (pOldCine && FBitSet (pOldCine->pev->spawnflags, SF_SCRIPT_LEAVECORPSE))
@@ -745,11 +745,16 @@ BOOL CBaseMonster::CineCleanup ()
 			SetTouch (NULL);
 			}
 		else
-			SUB_StartFadeOut (); // SetThink( SUB_DoNothing );
+			{
+			SUB_StartFadeOut ();
+			}
+
 		// This turns off animation & physics in case their origin ends up stuck in the world or something
 		StopAnimation ();
 		pev->movetype = MOVETYPE_NONE;
-		pev->effects |= EF_NOINTERP;	// Don't interpolate either, assume the corpse is positioned in its final resting place
+
+		// Don't interpolate either, assume the corpse is positioned in its final resting place
+		pev->effects |= EF_NOINTERP;	
 		return FALSE;
 		}
 

@@ -1078,7 +1078,8 @@ void UI_SpinControl_Draw (menuSpinControl_s* sc)
 
 		color = PackAlpha (sc->generic.color, 255 * (0.5 + 0.5 * sin ((double)uiStatic.realTime / UI_PULSE_DIVISOR)));
 
-		UI_DrawString (x, y, w, h, sc->generic.name, color, false, sc->generic.charWidth, sc->generic.charHeight, justify, shadow);
+		UI_DrawString (x, y, w, h, sc->generic.name, color, false, sc->generic.charWidth, sc->generic.charHeight,
+			justify, shadow);
 		UI_DrawPic (leftX, leftY, arrowWidth, arrowHeight, (leftFocus) ? color : sc->generic.color, (leftFocus) ? 
 			sc->leftArrowFocus : sc->leftArrow);
 		UI_DrawPic (rightX, rightY, arrowWidth, arrowHeight, (rightFocus) ? color : sc->generic.color, (rightFocus) ? 
@@ -1087,8 +1088,8 @@ void UI_SpinControl_Draw (menuSpinControl_s* sc)
 
 	if (sc->generic.flags & QMF_FOCUSBEHIND)
 		{
-		UI_DrawString (x, y, w, h, sc->generic.name, sc->generic.color, false, sc->generic.charWidth, sc->generic.charHeight,
-			justify, shadow);
+		UI_DrawString (x, y, w, h, sc->generic.name, sc->generic.color, false, sc->generic.charWidth,
+			sc->generic.charHeight, justify, shadow);
 		UI_DrawPic (leftX, leftY, arrowWidth, arrowHeight, sc->generic.color, sc->leftArrow);
 		UI_DrawPic (rightX, rightY, arrowWidth, arrowHeight, sc->generic.color, sc->rightArrow);
 		}
@@ -1108,7 +1109,7 @@ void UI_Slider_Init (menuSlider_s* sl)
 	if (!sl->generic.color) sl->generic.color = uiColorWhite;
 	if (!sl->generic.focusColor) sl->generic.focusColor = uiColorWhite;
 	if (!sl->range) sl->range = 1.0f;
-	if (sl->range < 0.01f) sl->range = 0.01f;	// Детализация трекера
+	if (sl->range < 0.01f) sl->range = 0.01f;	// ESHQ: детализация трекера
 
 	if (sl->generic.flags & QMF_BIGFONT)
 		{
@@ -1369,8 +1370,8 @@ void UI_CheckBox_Draw (menuCheckBox_s* cb)
 
 	y = cb->generic.y + (cb->generic.height >> 2);
 	textOffset = cb->generic.x + (cb->generic.width * 1.7f);
-	UI_DrawString (textOffset, y, strlen (cb->generic.name) * cb->generic.charWidth, cb->generic.charHeight, cb->generic.name,
-		uiColorHelp, true, cb->generic.charWidth, cb->generic.charHeight, justify, shadow);
+	UI_DrawString (textOffset, y, strlen (cb->generic.name) * cb->generic.charWidth, cb->generic.charHeight,
+		cb->generic.name, uiColorHelp, true, cb->generic.charWidth, cb->generic.charHeight, justify, shadow);
 
 	if (cb->generic.statusText && cb->generic.flags & QMF_NOTIFY)
 		{
@@ -1396,35 +1397,46 @@ void UI_CheckBox_Draw (menuCheckBox_s* cb)
 
 	if (cb->generic.flags & QMF_GRAYED)
 		{
-		UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, uiColorWhite, cb->grayedPic);
+		UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, uiColorWhite,
+			cb->grayedPic);
 		return; // grayed
 		}
 
 	if ((cb->generic.flags & QMF_MOUSEONLY) && !(cb->generic.flags & QMF_HASMOUSEFOCUS))
 		{
 		if (!cb->enabled)
-			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color, cb->emptyPic);
-		else UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color, cb->checkPic);
+			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color,
+				cb->emptyPic);
+		else
+			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color,
+				cb->checkPic);
 		return; // no focus
 		}
 
 	if ((menuCommon_s*)cb != (menuCommon_s*)UI_ItemAtCursor (cb->generic.parent))
 		{
 		if (!cb->enabled)
-			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color, cb->emptyPic);
-		else UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color, cb->checkPic);
+			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color,
+				cb->emptyPic);
+		else
+			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color,
+				cb->checkPic);
 		return; // no focus
 		}
 
 	if (cb->generic.flags & QMF_HIGHLIGHTIFFOCUS && !cb->enabled)
 		{
-		UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.focusColor, cb->focusPic);
+		UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.focusColor,
+			cb->focusPic);
 		}
 	else
 		{
 		if (!cb->enabled)
-			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color, cb->emptyPic);
-		else UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color, cb->checkPic);
+			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color,
+				cb->emptyPic);
+		else
+			UI_DrawPic (cb->generic.x, cb->generic.y, cb->generic.width, cb->generic.height, cb->generic.color,
+				cb->checkPic);
 		}
 	}
 
@@ -1627,7 +1639,7 @@ void UI_Field_Char (menuField_s* f, int key)
 	// ignore any other non printable chars
 	if (key < 32) return;
 
-	if (key == '^' && !(f->generic.flags & QMF_ALLOW_COLORSTRINGS))
+	if ((key == '^') && !(f->generic.flags & QMF_ALLOW_COLORSTRINGS))
 		{
 		// ignore color key-symbol
 		return;
@@ -1635,7 +1647,7 @@ void UI_Field_Char (menuField_s* f, int key)
 
 	if (f->generic.flags & QMF_NUMBERSONLY)
 		{
-		if (key < '0' || key > '9')
+		if ((key < '0') || (key > '9'))
 			return;
 		}
 
@@ -1906,7 +1918,10 @@ const char* UI_Action_Key (menuAction_s* a, int key, int down)
 				event = QM_PRESSED;
 				a->generic.bPressed = true;
 				}
-			else event = QM_ACTIVATED;
+			else
+				{
+				event = QM_ACTIVATED;
+				}
 			a->generic.callback (a, event);
 			}
 		}
@@ -1972,30 +1987,33 @@ void UI_Action_Draw (menuAction_s* a)
 
 	if ((menuCommon_s*)a != (menuCommon_s*)UI_ItemAtCursor (a->generic.parent))
 		{
-		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name, a->generic.color, 
-			false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
+		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name,
+			a->generic.color, false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
 		return; // no focus
 		}
 
 	if (!(a->generic.flags & QMF_FOCUSBEHIND))
-		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name, a->generic.color, 
-			false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
+		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name,
+			a->generic.color, false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
 
 	if (a->generic.flags & QMF_HIGHLIGHTIFFOCUS)
-		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name, a->generic.focusColor,
-			false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
+		{
+		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name,
+			a->generic.focusColor, false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
+		}
 	else if (a->generic.flags & QMF_PULSEIFFOCUS)
 		{
 		int	color;
 
 		color = PackAlpha (a->generic.color, 255 * (0.5 + 0.5 * sin ((double)uiStatic.realTime / UI_PULSE_DIVISOR)));
 
-		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name, color, false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
+		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name,
+			color, false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
 		}
 
 	if (a->generic.flags & QMF_FOCUSBEHIND)
-		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name, a->generic.color, 
-			false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
+		UI_DrawString (a->generic.x, a->generic.y, a->generic.width, a->generic.height, a->generic.name,
+			a->generic.color, false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
 	}
 
 /*
