@@ -37,7 +37,7 @@
 #ifdef _WIN32
 #define DLLEXPORT __stdcall
 #else
-#define DLLEXPORT /* */
+#define DLLEXPORT
 #endif
 
 typedef enum
@@ -132,7 +132,7 @@ typedef struct enginefuncs_s
 	int	(*pfnDropToFloor)(edict_t *e);
 	int	(*pfnWalkMove)(edict_t *ent, float yaw, float dist, int iMode);
 	void	(*pfnSetOrigin)(edict_t *e, const float *rgflOrigin);
-	void	(*pfnEmitSound)(edict_t *entity, int channel, const char *sample, /*int*/float volume,
+	void	(*pfnEmitSound)(edict_t *entity, int channel, const char *sample, float volume,
 		float attenuation, int fFlags, int pitch);
 	void	(*pfnEmitAmbientSound)(edict_t *entity, float *pos, const char *samp, float vol,
 		float attenuation, int fFlags, int pitch);
@@ -232,7 +232,7 @@ typedef struct enginefuncs_s
 	// returns -1 if the edict couldn't be found in the list of clients
 	int	(*pfnGetPlayerUserId)(edict_t *e);
 	
-	void	(*pfnBuildSoundMsg)(edict_t *entity, int channel, const char *sample, /*int*/float volume,
+	void	(*pfnBuildSoundMsg)(edict_t *entity, int channel, const char *sample, float volume,
 		float attenuation, int fFlags, int pitch, int msg_dest, int msg_type, const float *pOrigin, edict_t *ed);
 	int	(*pfnIsDedicatedServer)(void);			// is this a dedicated server?
 	cvar_t *(*pfnCVarGetPointer)(const char *szVarName);

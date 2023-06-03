@@ -1429,8 +1429,6 @@ void CBaseMonster::AdvanceRoute (float distance)
 			if ((m_Route[m_iRouteIndex].iType & bits_MF_TO_NODE) == bits_MF_TO_NODE
 				&& (m_Route[m_iRouteIndex + 1].iType & bits_MF_TO_NODE) == bits_MF_TO_NODE)
 				{
-				//ALERT(at_aiconsole, "SVD: Two nodes. ");
-
 				int iSrcNode = WorldGraph.FindNearestNode (m_Route[m_iRouteIndex].vecLocation, this);
 				int iDestNode = WorldGraph.FindNearestNode (m_Route[m_iRouteIndex + 1].vecLocation, this);
 
@@ -1439,10 +1437,9 @@ void CBaseMonster::AdvanceRoute (float distance)
 
 				if (iLink >= 0 && WorldGraph.m_pLinkPool[iLink].m_pLinkEnt != NULL)
 					{
-					//ALERT(at_aiconsole, "A link. ");
-					if (WorldGraph.HandleLinkEnt (iSrcNode, WorldGraph.m_pLinkPool[iLink].m_pLinkEnt, m_afCapability, CGraph::NODEGRAPH_DYNAMIC))
+					if (WorldGraph.HandleLinkEnt (iSrcNode, WorldGraph.m_pLinkPool[iLink].m_pLinkEnt,
+						m_afCapability, CGraph::NODEGRAPH_DYNAMIC))
 						{
-						//ALERT(at_aiconsole, "usable.");
 						entvars_t* pevDoor = WorldGraph.m_pLinkPool[iLink].m_pLinkEnt;
 						if (pevDoor)
 							m_flMoveWaitFinished = OpenDoorAndWait (pevDoor);
@@ -1454,7 +1451,7 @@ void CBaseMonster::AdvanceRoute (float distance)
 			}
 		else	// At goal!!!
 			{
-			if (distance < m_flGroundSpeed * 0.2 /* FIX */)
+			if (distance < m_flGroundSpeed * 0.2)
 				MovementComplete ();
 			}
 		}
@@ -2984,7 +2981,7 @@ BOOL CBaseMonster::FindLateralCover (const Vector& vecThreat, const Vector& vecV
 		// it's faster to check the SightEnt's visibility to the potential spot than to check the local move,
 		// so we do that first
 		UTIL_TraceLine (vecThreat + vecViewOffset, vecLeftTest + pev->view_ofs, ignore_monsters, ignore_glass, 
-			ENT (pev)/*pentIgnore*/, &tr);
+			ENT (pev), &tr);
 
 		if (tr.flFraction != 1.0)
 			{
@@ -2998,7 +2995,7 @@ BOOL CBaseMonster::FindLateralCover (const Vector& vecThreat, const Vector& vecV
 		// it's faster to check the SightEnt's visibility to the potential spot than to check the local move,
 		// so we do that first
 		UTIL_TraceLine (vecThreat + vecViewOffset, vecRightTest + pev->view_ofs, ignore_monsters, ignore_glass, 
-			ENT (pev)/*pentIgnore*/, &tr);
+			ENT (pev), &tr);
 
 		if (tr.flFraction != 1.0)
 			{

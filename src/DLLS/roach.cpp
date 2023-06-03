@@ -34,7 +34,7 @@
 //=========================================================
 // Monster's Anim Events Go Here
 //=========================================================
-class CRoach: public CBaseMonster
+class CRoach : public CBaseMonster
 	{
 	public:
 		void Spawn (void);
@@ -43,8 +43,8 @@ class CRoach: public CBaseMonster
 		void EXPORT MonsterThink (void);
 		void Move (float flInterval);
 		void PickNewDest (int iCondition);
-		void EXPORT Touch (CBaseEntity* pOther);
-		void Killed (entvars_t* pevAttacker, int iGib);
+		void EXPORT Touch (CBaseEntity *pOther);
+		void Killed (entvars_t *pevAttacker, int iGib);
 
 		float	m_flLastLightLevel;
 		float	m_flNextSmellTime;
@@ -81,7 +81,7 @@ int	CRoach::Classify (void)
 //=========================================================
 // Touch
 //=========================================================
-void CRoach::Touch (CBaseEntity* pOther)
+void CRoach::Touch (CBaseEntity *pOther)
 	{
 	Vector		vecSpot;
 	TraceResult	tr;
@@ -153,7 +153,7 @@ void CRoach::Precache ()
 //=========================================================
 // Killed.
 //=========================================================
-void CRoach::Killed (entvars_t* pevAttacker, int iGib)
+void CRoach::Killed (entvars_t *pevAttacker, int iGib)
 	{
 	pev->solid = SOLID_NOT;
 
@@ -165,7 +165,7 @@ void CRoach::Killed (entvars_t* pevAttacker, int iGib)
 
 	CSoundEnt::InsertSound (bits_SOUND_WORLD, pev->origin, 128, 1);
 
-	CBaseEntity* pOwner = CBaseEntity::Instance (pev->owner);
+	CBaseEntity *pOwner = CBaseEntity::Instance (pev->owner);
 	if (pOwner)
 		pOwner->DeathNotice (pev);
 
@@ -252,7 +252,7 @@ void CRoach::MonsterThink (void)
 					}
 				else if (HasConditions (bits_COND_SMELL_FOOD))
 					{
-					CSound* pSound;
+					CSound *pSound;
 
 					pSound = CSoundEnt::SoundPointerForIndex (m_iAudibleList);
 
@@ -299,7 +299,7 @@ void CRoach::PickNewDest (int iCondition)
 	if (m_iMode == ROACH_SMELL_FOOD)
 		{
 		// find the food and go there.
-		CSound* pSound;
+		CSound *pSound;
 
 		pSound = CSoundEnt::SoundPointerForIndex (m_iAudibleList);
 
@@ -397,8 +397,8 @@ void CRoach::Move (float flInterval)
 //=========================================================
 void CRoach::Look (int iDistance)
 	{
-	CBaseEntity* pSightEnt = NULL;// the current visible entity that we're dealing with
-	CBaseEntity* pPreviousEnt;// the last entity added to the link list 
+	CBaseEntity *pSightEnt = NULL;// the current visible entity that we're dealing with
+	CBaseEntity *pPreviousEnt;// the last entity added to the link list 
 	int			iSighted = 0;
 
 	// DON'T let visibility information from last frame sit around!
@@ -422,16 +422,16 @@ void CRoach::Look (int iDistance)
 		// only consider ents that can be damaged. !!!temporarily only considering other monsters and clients
 		if (pSightEnt->IsPlayer () || FBitSet (pSightEnt->pev->flags, FL_MONSTER))
 			{
-			if ( /*FVisible( pSightEnt ) &&*/ !FBitSet (pSightEnt->pev->flags, FL_NOTARGET) && pSightEnt->pev->health > 0)
+			if (!FBitSet (pSightEnt->pev->flags, FL_NOTARGET) && (pSightEnt->pev->health > 0))
 				{
 				// NULL the Link pointer for each ent added to the link list. If other ents follow, the will overwrite
-				// this value. If this ent happens to be the last, the list will be properly terminated.
+				// this value. If this ent happens to be the last, the list will be properly terminated
 				pPreviousEnt->m_pLink = pSightEnt;
 				pSightEnt->m_pLink = NULL;
 				pPreviousEnt = pSightEnt;
 
 				// don't add the Enemy's relationship to the conditions. We only want to worry about conditions when
-				// we see monsters other than the Enemy.
+				// we see monsters other than the Enemy
 				switch (IRelationship (pSightEnt))
 					{
 					case	R_FR:

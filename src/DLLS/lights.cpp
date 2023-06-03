@@ -73,13 +73,13 @@ void CLight::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-/*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) LIGHT_START_OFF
+/*
+QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) LIGHT_START_OFF
 Non-displayed light.
 Default light value is 300
 Default style is 0
 If targeted, it will toggle between on or off.
 */
-
 void CLight::Spawn (void)
 	{
 	if (FStringNull (pev->targetname))

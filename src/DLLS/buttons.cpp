@@ -408,7 +408,8 @@ int CBaseButton::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, fl
 	return 0;
 	}
 
-/*QUAKED func_button (0 .5 .8) ?
+/*
+QUAKED func_button (0 .5 .8) ?
 When a button is touched, it moves some distance in the direction of it's angle,
 triggers all of it's targets, waits some time, then returns to it's original position
 where it can be triggered again.

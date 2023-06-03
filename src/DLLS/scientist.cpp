@@ -464,11 +464,9 @@ void CScientist::StartTask (Task_t* pTask)
 				{
 				Talk (2);
 				m_hTalkTarget = m_hEnemy;
-				// ESHQ: в следующем вызове при возврате из функции [CBaseEntity * EHANDLE :: operator -> ()] значения NULL
-				// почему-то происходит обращение к адресу 0x00000000 (в регистр EAX попадает нулевое значение)
-				/*if (m_hEnemy->IsPlayer())
-					PlaySentence ("SC_PLFEAR", 5, VOL_NORM, ATTN_MEDIUM);
-				else*/
+				// ESHQ: удалён вызов, в котором при возврате из функции [CBaseEntity * EHANDLE :: operator -> ()]
+				// значения NULL почему-то происходит обращение к адресу 0x00000000 (в регистр EAX попадает
+				// нулевое значение)
 				PlaySentence ("SC_FEAR", 5, VOL_NORM, ATTN_MEDIUM);
 				}
 			TaskComplete ();

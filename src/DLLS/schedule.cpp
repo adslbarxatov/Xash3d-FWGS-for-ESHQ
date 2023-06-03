@@ -153,15 +153,12 @@ BOOL CBaseMonster::FScheduleValid (void)
 #ifdef DEBUG
 		if (HasConditions (bits_COND_TASK_FAILED) && m_failSchedule == SCHED_NONE)
 			{
-			// fail! Send a visual indicator.
+			// fail! Send a visual indicator
 			ALERT (at_aiconsole, "Schedule: %s Failed\n", m_pSchedule->pName);
 
-			// ESHQ: дефектный вызов
-			/*Vector tmp = pev->origin;
-			tmp.z = pev->absmax.z + 16;
-			UTIL_Sparks (tmp);*/
+			// ESHQ: удалён дефектный вызов
 			}
-#endif // DEBUG
+#endif
 
 		// some condition has interrupted the schedule, or the schedule is done
 		return FALSE;
@@ -387,7 +384,8 @@ void CBaseMonster::RunTask (Task_t* pTask)
 				{
 				distance = (m_vecMoveGoal - pev->origin).Length2D ();
 				// Re-evaluate when you think your finished, or the target has moved too far
-				if ((distance < pTask->flData) || (m_vecMoveGoal - m_hTargetEnt->pev->origin).Length () > pTask->flData * 0.5)
+				if ((distance < pTask->flData) || (m_vecMoveGoal - m_hTargetEnt->pev->origin).Length () >
+					pTask->flData * 0.5)
 					{
 					m_vecMoveGoal = m_hTargetEnt->pev->origin;
 					distance = (m_vecMoveGoal - pev->origin).Length2D ();
@@ -420,26 +418,32 @@ void CBaseMonster::RunTask (Task_t* pTask)
 			}
 		case TASK_DIE:
 			{
-			if (m_fSequenceFinished && pev->frame >= 255)
+			if (m_fSequenceFinished && (pev->frame >= 255))
 				{
-				pev->deadflag = DEAD_DEAD;
+				pev->deadflag = DEAD_KILLED;
 
 				SetThink (NULL);
 				StopAnimation ();
 
+				// a bit of a hack. If a corpses' bbox is positioned such that being left solid
+				// so that it can be attacked will
+				// block the player on a slope or stairs, the corpse is made nonsolid
 				if (!BBoxFlat ())
 					{
-					// a bit of a hack. If a corpses' bbox is positioned such that being left solid so that it can be attacked will
-					// block the player on a slope or stairs, the corpse is made nonsolid. 
-//					pev->solid = SOLID_NOT;
 					UTIL_SetSize (pev, Vector (-4, -4, 0), Vector (4, 4, 1));
 					}
-				else // !!!HACKHACK - put monster in a thin, wide bounding box until we fix the solid type/bounding volume problem
-					UTIL_SetSize (pev, Vector (pev->mins.x, pev->mins.y, pev->mins.z), Vector (pev->maxs.x, pev->maxs.y, pev->mins.z + 1));
+
+				// !!!HACKHACK - put monster in a thin, wide bounding box until we fix the solid
+				// type/bounding volume problem
+				else
+					{
+					UTIL_SetSize (pev, Vector (pev->mins.x, pev->mins.y, pev->mins.z), Vector (pev->maxs.x,
+						pev->maxs.y, pev->mins.z + 1));
+					}
 
 				if (ShouldFadeOnDeath ())
 					{
-					// this monster was created by a monstermaker... fade the corpse out.
+					// this monster was created by a monstermaker... fade the corpse out
 					SUB_StartFadeOut ();
 					}
 				else

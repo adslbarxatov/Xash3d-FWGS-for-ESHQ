@@ -30,43 +30,24 @@
 // Monster's Anim Events Go Here
 //=========================================================
 
-class CGMan: public CTalkMonster
+class CGMan : public CTalkMonster
 	{
 	public:
 		void Spawn (void);
 		void Precache (void);
 		void SetYawSpeed (void);
 		int  Classify (void);
-		void HandleAnimEvent (MonsterEvent_t* pEvent);
+		void HandleAnimEvent (MonsterEvent_t *pEvent);
 		int ISoundMask (void);
 		// ESHQ: поддержка речи
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 
-		/*int	Save (CSave& save);
-		int Restore (CRestore& restore);
-		static TYPEDESCRIPTION m_SaveData[];*/
+		int  TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+		void TraceAttack (entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
 
-		/*void TalkInit (void);
-		void StartTask (Task_t* pTask);
-		void RunTask (Task_t* pTask);*/
-		int  TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
-		void TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
-
-		/*void PlayScriptedSentence (const char* pszSentence, float duration, float volume, float attenuation, BOOL bConcurrent, CBaseEntity* pListener);
-
-		EHANDLE m_hTalkTarget;
-		float m_flTalkTime;*/
 		EHANDLE m_hPlayer;
 	};
 LINK_ENTITY_TO_CLASS (monster_gman, CGMan);
-
-/*TYPEDESCRIPTION	CGMan::m_SaveData[] =
-	{
-		DEFINE_FIELD (CGMan, m_hTalkTarget, FIELD_EHANDLE),
-		DEFINE_FIELD (CGMan, m_flTalkTime, FIELD_TIME),
-	};
-IMPLEMENT_SAVERESTORE (CGMan, CBaseMonster);*/
-
 
 //=========================================================
 // Classify - indicates this monster's place in the 
@@ -99,7 +80,7 @@ void CGMan::SetYawSpeed (void)
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
 //=========================================================
-void CGMan::HandleAnimEvent (MonsterEvent_t* pEvent)
+void CGMan::HandleAnimEvent (MonsterEvent_t *pEvent)
 	{
 	switch (pEvent->event)
 		{
@@ -111,7 +92,7 @@ void CGMan::HandleAnimEvent (MonsterEvent_t* pEvent)
 	}
 
 //=========================================================
-// ISoundMask - generic monster can't hear.
+// ISoundMask - generic monster can't hear
 //=========================================================
 int CGMan::ISoundMask (void)
 	{
@@ -124,21 +105,21 @@ int CGMan::ISoundMask (void)
 void CGMan::Spawn ()
 	{
 	// ESHQ: обязательно до переопределния скина, т.к. опирается на него
-	Precache ();	
+	Precache ();
 
 	switch (pev->skin)
 		{
 		default:
 			pev->skin = 0;	// Принудительное переназначение в случае несоответствия диапазону
 
-		// Чёрный и белый gman
+			// Чёрный и белый gman
 		case 0:
 		case 1:
 			SET_MODEL (ENT (pev), "models/gman.mdl");
 			UTIL_SetSize (pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 			break;
 
-		// Псевдо-гордон
+			// Псевдо-гордон
 		case 2:
 			pev->skin = 0;
 			SET_MODEL (ENT (pev), "models/player.mdl");
@@ -150,14 +131,14 @@ void CGMan::Spawn ()
 	pev->movetype = MOVETYPE_STEP;
 	m_bloodColor = DONT_BLEED;
 	pev->health = 100;
-	m_flFieldOfView = 0.5;	// indicates the width of this monster's forward view cone ( as a dotproduct result )
+	m_flFieldOfView = 0.5;	// indicates the width of this monster's forward view cone (as a dotproduct result)
 	m_MonsterState = MONSTERSTATE_NONE;
 
 	CTalkMonster::MonsterInit ();
 	}
 
 // ESHQ: поддержка скинов
-void CGMan::KeyValue (KeyValueData* pkvd)
+void CGMan::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "skin"))
 		{
@@ -165,7 +146,9 @@ void CGMan::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CTalkMonster::KeyValue (pkvd);
+		}
 	}
 
 //=========================================================
@@ -183,74 +166,16 @@ void CGMan::Precache ()
 	CTalkMonster::Precache ();
 	}
 
-//=========================================================
-// AI Schedules Specific to this monster
-// ESHQ: удалено за ненадобностью
-//=========================================================
-/*void CGMan::StartTask (Task_t* pTask)
-	{
-	switch (pTask->iTask)
-		{
-		case TASK_WAIT:
-			if (m_hPlayer == NULL)
-				{
-				m_hPlayer = UTIL_FindEntityByClassname (NULL, "player");
-				}
-			break;
-		}
-	CBaseMonster::StartTask (pTask);
-	}
-
-void CGMan::RunTask (Task_t* pTask)
-	{
-	switch (pTask->iTask)
-		{
-		case TASK_WAIT:
-			// look at who I'm talking to
-			if (m_flTalkTime > gpGlobals->time && m_hTalkTarget != NULL)
-				{
-				float yaw = VecToYaw (m_hTalkTarget->pev->origin - pev->origin) - pev->angles.y;
-
-				if (yaw > 180) yaw -= 360;
-				if (yaw < -180) yaw += 360;
-
-				// turn towards vector
-				SetBoneController (0, yaw);
-				}
-			// look at player, but only if playing a "safe" idle animation
-			else if (m_hPlayer != NULL && pev->sequence == 0)
-				{
-				float yaw = VecToYaw (m_hPlayer->pev->origin - pev->origin) - pev->angles.y;
-
-				if (yaw > 180) yaw -= 360;
-				if (yaw < -180) yaw += 360;
-
-				// turn towards vector
-				SetBoneController (0, yaw);
-				}
-			else
-				{
-				SetBoneController (0, 0);
-				}
-			CBaseMonster::RunTask (pTask);
-			break;
-		default:
-			SetBoneController (0, 0);
-			CBaseMonster::RunTask (pTask);
-			break;
-		}
-	}*/
+// ESHQ: удалены StartTask, RunTask
 
 //=========================================================
 // Override all damage
 // EHSQ: GMan теперь может получать урон, но только если это разрешено spawn-флагом
 //=========================================================
-int CGMan::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
+int CGMan::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
 	{
 	if ((pev->spawnflags & 32) == 0)
-		{
 		pev->health = pev->max_health / 2; // always trigger the 50% damage aitrigger
-		}
 
 	if (flDamage > 0)
 		{
@@ -266,18 +191,10 @@ int CGMan::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float fl
 		return TRUE;
 	}
 
-void CGMan::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType)
+// ESHQ: изолирован функционал поддержки завершающей сцены HL1
+
+void CGMan::TraceAttack (entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
 	{
 	UTIL_Ricochet (ptr->vecEndPos, 1.0);
 	AddMultiDamage (pevAttacker, this, flDamage, bitsDamageType);
 	}
-
-// ESHQ: изолирован функционал поддержки завершающей сцены HL1
-/*void CGMan::PlayScriptedSentence (const char* pszSentence, float duration, float volume, float attenuation, BOOL bConcurrent, CBaseEntity* pListener)
-	{
-	CBaseMonster::PlayScriptedSentence (pszSentence, duration, volume, attenuation, bConcurrent, pListener);
-
-	m_flTalkTime = gpGlobals->time + duration;
-	m_hTalkTarget = pListener;
-	}
-*/

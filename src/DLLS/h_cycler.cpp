@@ -32,29 +32,29 @@
 #define TEMP_FOR_SCREEN_SHOTS
 #ifdef TEMP_FOR_SCREEN_SHOTS
 
-class CCycler: public CBaseMonster
+class CCycler : public CBaseMonster
 	{
 	public:
-		void GenericCyclerSpawn (char* szModel, Vector vecMin, Vector vecMax);
+		void GenericCyclerSpawn (char *szModel, Vector vecMin, Vector vecMax);
 		virtual int	ObjectCaps (void) { return (CBaseEntity::ObjectCaps () | FCAP_IMPULSE_USE); }
-		int TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
+		int TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
 		void Spawn (void);
 		void Think (void);
 
 		// ESHQ: поддержка звуков ударов
 		void CCycler::DamageSound (void);
 
-		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
 		// Don't treat as a live target
 		virtual BOOL IsAlive (void) { return FALSE; }
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
+		virtual int		Save (CSave &save);
+		virtual int		Restore (CRestore &restore);
 		static	TYPEDESCRIPTION m_SaveData[];
 
 		// ESHQ: поддержка звуков ударов
-		void KeyValue (KeyValueData* pkvd);
+		void KeyValue (KeyValueData *pkvd);
 
 		int			m_animate;
 		Materials	m_Material;
@@ -83,18 +83,18 @@ TYPEDESCRIPTION	CCycler::m_SaveData[] =
 IMPLEMENT_SAVERESTORE (CCycler, CBaseMonster);
 
 // ESHQ: поддержка возможности задания физического размера модели
-void CCycler::KeyValue (KeyValueData* pkvd)
+void CCycler::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "MinPoint"))
 		{
 		Vector tmp;
-		UTIL_StringToVector ((float*)tmp, pkvd->szValue);
+		UTIL_StringToVector ((float *)tmp, pkvd->szValue);
 		pev->startpos = tmp;
 		}
 	else if (FStrEq (pkvd->szKeyName, "MaxPoint"))
 		{
 		Vector tmp;
-		UTIL_StringToVector ((float*)tmp, pkvd->szValue);
+		UTIL_StringToVector ((float *)tmp, pkvd->szValue);
 		pev->endpos = tmp;
 		}
 	else if (FStrEq (pkvd->szKeyName, "material"))
@@ -115,16 +115,16 @@ void CCycler::KeyValue (KeyValueData* pkvd)
 	}
 
 // we should get rid of all the other cyclers and replace them with this.
-class CGenericCycler: public CCycler
+class CGenericCycler : public CCycler
 	{
 	public:
-		void Spawn (void) { GenericCyclerSpawn ((char*)STRING (pev->model), Vector (-16, -16, 0), Vector (16, 16, 72)); }
+		void Spawn (void) { GenericCyclerSpawn ((char *)STRING (pev->model), Vector (-16, -16, 0), Vector (16, 16, 72)); }
 	};
 LINK_ENTITY_TO_CLASS (cycler, CGenericCycler);
 LINK_ENTITY_TO_CLASS (env_model, CGenericCycler);	// ESHQ: совместимость с AOMDC
 
 // Cycler member functions
-void CCycler::GenericCyclerSpawn (char* szModel, Vector vecMin, Vector vecMax)
+void CCycler::GenericCyclerSpawn (char *szModel, Vector vecMin, Vector vecMax)
 	{
 	if (!szModel || !*szModel)
 		{
@@ -203,7 +203,7 @@ void CCycler::Think (void)
 	}
 
 // CyclerUse - starts a rotation trend
-void CCycler::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void CCycler::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	m_animate = !m_animate;
 	if (m_animate)
@@ -217,11 +217,11 @@ void CCycler::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useTy
 
 // ESHQ: обработка звукового сопровождения
 // Почти полная копия из CBreakable
-void CCycler::DamageSound (void)		
+void CCycler::DamageSound (void)
 	{
 	int pitch;
 	float fvol;
-	char* rgpsz[6];
+	char *rgpsz[6];
 	int i;
 	int material = m_Material;
 
@@ -294,7 +294,7 @@ void CCycler::DamageSound (void)
 	}
 
 // Обработка получения урона
-int CCycler::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
+int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
 	{
 	if (m_animate)
 		{
@@ -316,168 +316,16 @@ int CCycler::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 
 #endif
 
-/* ESHQ: устаревший объект
-class CCyclerSprite: public CBaseEntity
-	{
-	public:
-		void Spawn (void);
-		void Think (void);
-		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-		virtual int	ObjectCaps (void) { return (CBaseEntity::ObjectCaps () | FCAP_IMPULSE_USE); }
-		virtual int	TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
-		void	Animate (float frames);
+// ESHQ: удалена поддержка CCyclerSprite, соответствующие сущности переназначены
 
-		virtual int		Save (CSave& save);
-		virtual int		Restore (CRestore& restore);
-		static	TYPEDESCRIPTION m_SaveData[];
-
-		inline int		ShouldAnimate (void) { return (m_animate && (m_maxFrame > 1.0)); }
-		int			m_animate;
-		float		m_lastTime;
-		float		m_maxFrame;
-	};
-*/
-
-LINK_ENTITY_TO_CLASS (cycler_sprite, CGenericCycler/*CCyclerSprite*/);
-
-/*
-TYPEDESCRIPTION	CCyclerSprite::m_SaveData[] =
-	{
-		DEFINE_FIELD (CCyclerSprite, m_animate, FIELD_INTEGER),
-		DEFINE_FIELD (CCyclerSprite, m_lastTime, FIELD_TIME),
-		DEFINE_FIELD (CCyclerSprite, m_maxFrame, FIELD_FLOAT),
-	};
-
-IMPLEMENT_SAVERESTORE (CCyclerSprite, CBaseEntity);
-
-void CCyclerSprite::Spawn (void)
-	{
-	pev->solid = SOLID_SLIDEBOX;
-	pev->movetype = MOVETYPE_NONE;
-	pev->takedamage = DAMAGE_YES;
-	pev->effects = 0;
-
-	pev->frame = 0;
-	pev->nextthink = gpGlobals->time + 0.1;
-	m_animate = 1;
-	m_lastTime = gpGlobals->time;
-
-	PRECACHE_MODEL ((char*)STRING (pev->model));
-	SET_MODEL (ENT (pev), STRING (pev->model));
-
-	m_maxFrame = (float)MODEL_FRAMES (pev->modelindex) - 1;
-	}
-
-void CCyclerSprite::Think (void)
-	{
-	if (ShouldAnimate ())
-		Animate (pev->framerate * (gpGlobals->time - m_lastTime));
-
-	pev->nextthink = gpGlobals->time + 0.1;
-	m_lastTime = gpGlobals->time;
-	}
-
-void CCyclerSprite::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
-	{
-	m_animate = !m_animate;
-	ALERT (at_console, "Sprite: %s\n", STRING (pev->model));
-	}
-
-int	CCyclerSprite::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
-	{
-	if (m_maxFrame > 1.0)
-		Animate (1.0);
-
-	return 1;
-	}
-
-void CCyclerSprite::Animate (float frames)
-	{
-	pev->frame += frames;
-	if (m_maxFrame > 0)
-		pev->frame = fmod (pev->frame, m_maxFrame);
-	}
-
-class CWeaponCycler: public CBasePlayerWeapon
-	{
-	public:
-		void Spawn (void);
-		int iItemSlot (void) { return 1; }
-		int GetItemInfo (ItemInfo* p) { return 0; }
-
-		void PrimaryAttack (void);
-		void SecondaryAttack (void);
-		BOOL Deploy (void);
-		void Holster (int skiplocal = 0);
-		int m_iszModel;
-		int m_iModel;
-	};
-*/
-
-LINK_ENTITY_TO_CLASS (cycler_weapon, CGenericCycler/*CWeaponCycler*/);
-
-/*
-void CWeaponCycler::Spawn ()
-	{
-	pev->solid = SOLID_SLIDEBOX;
-	pev->movetype = MOVETYPE_NONE;
-
-	PRECACHE_MODEL ((char*)STRING (pev->model));
-	SET_MODEL (ENT (pev), STRING (pev->model));
-	m_iszModel = pev->model;
-	m_iModel = pev->modelindex;
-
-	UTIL_SetOrigin (pev, pev->origin);
-	UTIL_SetSize (pev, Vector (-16, -16, 0), Vector (16, 16, 16));
-	SetTouch (&CBasePlayerItem::DefaultTouch);
-	}
-
-BOOL CWeaponCycler::Deploy ()
-	{
-	m_pPlayer->pev->viewmodel = m_iszModel;
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + 1.0;
-	SendWeaponAnim (0);
-	m_iClip = 0;
-	return TRUE;
-	}
-
-void CWeaponCycler::Holster (int skiplocal)
-	{
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + 0.5;
-	}
-
-void CWeaponCycler::PrimaryAttack ()
-	{
-	SendWeaponAnim (pev->sequence);
-
-	m_flNextPrimaryAttack = gpGlobals->time + 0.3;
-	}
-
-void CWeaponCycler::SecondaryAttack (void)
-	{
-	float flFrameRate, flGroundSpeed;
-
-	pev->sequence = (pev->sequence + 1) % 8;
-
-	pev->modelindex = m_iModel;
-	void* pmodel = GET_MODEL_PTR (ENT (pev));
-	GetSequenceInfo (pmodel, pev, &flFrameRate, &flGroundSpeed);
-	pev->modelindex = 0;
-
-	if (flFrameRate == 0.0)
-		pev->sequence = 0;
-
-	SendWeaponAnim (pev->sequence);
-
-	m_flNextSecondaryAttack = gpGlobals->time + 0.3;
-	}
-*/
+LINK_ENTITY_TO_CLASS (cycler_sprite, CGenericCycler);
+LINK_ENTITY_TO_CLASS (cycler_weapon, CGenericCycler);
 
 // Flaming wreckage
-class CWreckage: public CBaseMonster
+class CWreckage : public CBaseMonster
 	{
-	int		Save (CSave& save);
-	int		Restore (CRestore& restore);
+	int		Save (CSave &save);
+	int		Restore (CRestore &restore);
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	void Spawn (void);
@@ -507,17 +355,17 @@ void CWreckage::Spawn (void)
 
 	if (pev->model)
 		{
-		PRECACHE_MODEL ((char*)STRING (pev->model));
+		PRECACHE_MODEL ((char *)STRING (pev->model));
 		SET_MODEL (ENT (pev), STRING (pev->model));
 		}
-	
+
 	m_flStartTime = gpGlobals->time;
 	}
 
 void CWreckage::Precache ()
 	{
 	if (pev->model)
-		PRECACHE_MODEL ((char*)STRING (pev->model));
+		PRECACHE_MODEL ((char *)STRING (pev->model));
 	}
 
 void CWreckage::Think (void)

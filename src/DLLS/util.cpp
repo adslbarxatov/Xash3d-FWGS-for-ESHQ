@@ -114,7 +114,7 @@ float UTIL_SharedRandomFloat (unsigned int seed, float low, float high)
 	//
 	unsigned int range;
 
-	U_Srand ((int)seed + *(int*)&low + *(int*)&high);
+	U_Srand ((int)seed + *(int *)&low + *(int *)&high);
 
 	U_Random ();
 	U_Random ();
@@ -137,7 +137,7 @@ float UTIL_SharedRandomFloat (unsigned int seed, float low, float high)
 		}
 	}
 
-void UTIL_ParametricRocket (entvars_t* pev, Vector vecOrigin, Vector vecAngles, edict_t* owner)
+void UTIL_ParametricRocket (entvars_t *pev, Vector vecOrigin, Vector vecAngles, edict_t *owner)
 	{
 	pev->startpos = vecOrigin;
 	// Trace out line to end pos
@@ -312,15 +312,15 @@ TYPEDESCRIPTION	gEntvarsDescription[] =
 
 
 #ifdef	DEBUG
-edict_t* DBG_EntOfVars (const entvars_t* pev)
+edict_t *DBG_EntOfVars (const entvars_t *pev)
 	{
 	if (pev->pContainingEntity != NULL)
 		return pev->pContainingEntity;
 	ALERT (at_console, "entvars_t pContainingEntity is NULL, calling into engine");
-	edict_t* pent = (*g_engfuncs.pfnFindEntityByVars)((entvars_t*)pev);
+	edict_t *pent = (*g_engfuncs.pfnFindEntityByVars)((entvars_t *)pev);
 	if (pent == NULL)
 		ALERT (at_console, "DAMN!  Even the engine couldn't FindEntityByVars!");
-	((entvars_t*)pev)->pContainingEntity = pent;
+	((entvars_t *)pev)->pContainingEntity = pent;
 	return pent;
 	}
 #endif //DEBUG
@@ -330,10 +330,10 @@ edict_t* DBG_EntOfVars (const entvars_t* pev)
 void
 DBG_AssertFunction (
 	BOOL		fExpr,
-	const char* szExpr,
-	const char* szFile,
+	const char *szExpr,
+	const char *szFile,
 	int			szLine,
-	const char* szMessage)
+	const char *szMessage)
 	{
 	if (fExpr)
 		return;
@@ -346,7 +346,7 @@ DBG_AssertFunction (
 	}
 #endif	// DEBUG
 
-BOOL UTIL_GetNextBestWeapon (CBasePlayer* pPlayer, CBasePlayerItem* pCurrentWeapon)
+BOOL UTIL_GetNextBestWeapon (CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon)
 	{
 	return g_pGameRules->GetNextBestWeapon (pPlayer, pCurrentWeapon);
 	}
@@ -384,14 +384,14 @@ float UTIL_AngleDiff (float destAngle, float srcAngle)
 	return delta;
 	}
 
-Vector UTIL_VecToAngles (const Vector& vec)
+Vector UTIL_VecToAngles (const Vector &vec)
 	{
 	float rgflVecOut[3];
 	VEC_TO_ANGLES (vec, rgflVecOut);
 	return Vector (rgflVecOut);
 	}
 
-void UTIL_MoveToOrigin (edict_t* pent, const Vector& vecGoal, float flDist, int iMoveType)
+void UTIL_MoveToOrigin (edict_t *pent, const Vector &vecGoal, float flDist, int iMoveType)
 	{
 	float rgfl[3];
 	vecGoal.CopyToArray (rgfl);
@@ -399,10 +399,10 @@ void UTIL_MoveToOrigin (edict_t* pent, const Vector& vecGoal, float flDist, int 
 	}
 
 
-int UTIL_EntitiesInBox (CBaseEntity** pList, int listMax, const Vector& mins, const Vector& maxs, int flagMask)
+int UTIL_EntitiesInBox (CBaseEntity **pList, int listMax, const Vector &mins, const Vector &maxs, int flagMask)
 	{
-	edict_t* pEdict = g_engfuncs.pfnPEntityOfEntIndex (1);
-	CBaseEntity* pEntity;
+	edict_t *pEdict = g_engfuncs.pfnPEntityOfEntIndex (1);
+	CBaseEntity *pEntity;
 	int			count;
 
 	count = 0;
@@ -441,10 +441,10 @@ int UTIL_EntitiesInBox (CBaseEntity** pList, int listMax, const Vector& mins, co
 	}
 
 
-int UTIL_MonstersInSphere (CBaseEntity** pList, int listMax, const Vector& center, float radius)
+int UTIL_MonstersInSphere (CBaseEntity **pList, int listMax, const Vector &center, float radius)
 	{
-	edict_t* pEdict = g_engfuncs.pfnPEntityOfEntIndex (1);
-	CBaseEntity* pEntity;
+	edict_t *pEdict = g_engfuncs.pfnPEntityOfEntIndex (1);
+	CBaseEntity *pEntity;
 	int			count;
 	float		distance, delta;
 
@@ -503,9 +503,9 @@ int UTIL_MonstersInSphere (CBaseEntity** pList, int listMax, const Vector& cente
 	}
 
 
-CBaseEntity* UTIL_FindEntityInSphere (CBaseEntity* pStartEntity, const Vector& vecCenter, float flRadius)
+CBaseEntity *UTIL_FindEntityInSphere (CBaseEntity *pStartEntity, const Vector &vecCenter, float flRadius)
 	{
-	edict_t* pentEntity;
+	edict_t *pentEntity;
 
 	if (pStartEntity)
 		pentEntity = pStartEntity->edict ();
@@ -520,9 +520,9 @@ CBaseEntity* UTIL_FindEntityInSphere (CBaseEntity* pStartEntity, const Vector& v
 	}
 
 
-CBaseEntity* UTIL_FindEntityByString (CBaseEntity* pStartEntity, const char* szKeyword, const char* szValue)
+CBaseEntity *UTIL_FindEntityByString (CBaseEntity *pStartEntity, const char *szKeyword, const char *szValue)
 	{
-	edict_t* pentEntity;
+	edict_t *pentEntity;
 
 	if (pStartEntity)
 		pentEntity = pStartEntity->edict ();
@@ -536,25 +536,25 @@ CBaseEntity* UTIL_FindEntityByString (CBaseEntity* pStartEntity, const char* szK
 	return NULL;
 	}
 
-CBaseEntity* UTIL_FindEntityByClassname (CBaseEntity* pStartEntity, const char* szName)
+CBaseEntity *UTIL_FindEntityByClassname (CBaseEntity *pStartEntity, const char *szName)
 	{
 	return UTIL_FindEntityByString (pStartEntity, "classname", szName);
 	}
 
-CBaseEntity* UTIL_FindEntityByTargetname (CBaseEntity* pStartEntity, const char* szName)
+CBaseEntity *UTIL_FindEntityByTargetname (CBaseEntity *pStartEntity, const char *szName)
 	{
 	return UTIL_FindEntityByString (pStartEntity, "targetname", szName);
 	}
 
-CBaseEntity* UTIL_FindEntityGeneric (const char* szWhatever, Vector& vecSrc, float flRadius)
+CBaseEntity *UTIL_FindEntityGeneric (const char *szWhatever, Vector &vecSrc, float flRadius)
 	{
-	CBaseEntity* pEntity = NULL;
+	CBaseEntity *pEntity = NULL;
 
 	pEntity = UTIL_FindEntityByTargetname (NULL, szWhatever);
 	if (pEntity)
 		return pEntity;
 
-	CBaseEntity* pSearch = NULL;
+	CBaseEntity *pSearch = NULL;
 	float flMaxDist2 = flRadius * flRadius;
 	while ((pSearch = UTIL_FindEntityByClassname (pSearch, szWhatever)) != NULL)
 		{
@@ -573,13 +573,13 @@ CBaseEntity* UTIL_FindEntityGeneric (const char* szWhatever, Vector& vecSrc, flo
 // returns a CBaseEntity pointer to a player by index.  Only returns if the player is spawned and connected
 // otherwise returns NULL
 // Index is 1 based
-CBaseEntity* UTIL_PlayerByIndex (int playerIndex)
+CBaseEntity *UTIL_PlayerByIndex (int playerIndex)
 	{
-	CBaseEntity* pPlayer = NULL;
+	CBaseEntity *pPlayer = NULL;
 
 	if ((playerIndex > 0) && (playerIndex <= gpGlobals->maxClients))
 		{
-		edict_t* pPlayerEdict = INDEXENT (playerIndex);
+		edict_t *pPlayerEdict = INDEXENT (playerIndex);
 		if (pPlayerEdict && !pPlayerEdict->free)
 			{
 			pPlayer = CBaseEntity::Instance (pPlayerEdict);
@@ -589,12 +589,12 @@ CBaseEntity* UTIL_PlayerByIndex (int playerIndex)
 	return pPlayer;
 	}
 
-void UTIL_MakeVectors (const Vector& vecAngles)
+void UTIL_MakeVectors (const Vector &vecAngles)
 	{
 	MAKE_VECTORS (vecAngles);
 	}
 
-void UTIL_MakeAimVectors (const Vector& vecAngles)
+void UTIL_MakeAimVectors (const Vector &vecAngles)
 	{
 	float rgflVec[3];
 	vecAngles.CopyToArray (rgflVec);
@@ -604,7 +604,7 @@ void UTIL_MakeAimVectors (const Vector& vecAngles)
 
 #define SWAP(a,b,temp)	((temp)=(a),(a)=(b),(b)=(temp))
 
-void UTIL_MakeInvVectors (const Vector& vec, globalvars_t* pgv)
+void UTIL_MakeInvVectors (const Vector &vec, globalvars_t *pgv)
 	{
 	MAKE_VECTORS (vec);
 
@@ -616,7 +616,7 @@ void UTIL_MakeInvVectors (const Vector& vec, globalvars_t* pgv)
 	SWAP (pgv->v_right.z, pgv->v_up.y, tmp);
 	}
 
-void UTIL_EmitAmbientSound (edict_t* entity, const Vector& vecOrigin, const char* samp, float vol, 
+void UTIL_EmitAmbientSound (edict_t *entity, const Vector &vecOrigin, const char *samp, float vol,
 	float attenuation, int fFlags, int pitch)
 	{
 	float rgfl[3];
@@ -667,7 +667,7 @@ static short FixedSigned16 (float value, float scale)
 // UNDONE: Allow caller to shake clients not ONGROUND?
 // UNDONE: Fix falloff model (disabled)?
 // UNDONE: Affect user controls?
-void UTIL_ScreenShake (const Vector& center, float amplitude, float frequency, float duration, float radius)
+void UTIL_ScreenShake (const Vector &center, float amplitude, float frequency, float duration, float radius)
 	{
 	int			i;
 	float		localAmplitude;
@@ -678,10 +678,10 @@ void UTIL_ScreenShake (const Vector& center, float amplitude, float frequency, f
 
 	for (i = 1; i <= gpGlobals->maxClients; i++)
 		{
-		CBaseEntity* pPlayer = UTIL_PlayerByIndex (i);
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex (i);
 
 		// ESHQ: разрешено землетрясение при нахождении в воздухе
-		if (!pPlayer /*|| !(pPlayer->pev->flags & FL_ONGROUND)*/)	
+		if (!pPlayer)
 			continue;
 
 		localAmplitude = 0;
@@ -697,7 +697,7 @@ void UTIL_ScreenShake (const Vector& center, float amplitude, float frequency, f
 
 			// Had to get rid of this falloff - it didn't work well
 			if (distance < radius)
-				localAmplitude = amplitude;	//radius - distance;
+				localAmplitude = amplitude;	// radius - distance;
 			}
 		if (localAmplitude)
 			{
@@ -714,12 +714,12 @@ void UTIL_ScreenShake (const Vector& center, float amplitude, float frequency, f
 		}
 	}
 
-void UTIL_ScreenShakeAll (const Vector& center, float amplitude, float frequency, float duration)
+void UTIL_ScreenShakeAll (const Vector &center, float amplitude, float frequency, float duration)
 	{
 	UTIL_ScreenShake (center, amplitude, frequency, duration, 0);
 	}
 
-void UTIL_ScreenFadeBuild (ScreenFade& fade, const Vector& color, float fadeTime, float fadeHold, int alpha, int flags)
+void UTIL_ScreenFadeBuild (ScreenFade &fade, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags)
 	{
 	fade.duration = FixedUnsigned16 (fadeTime, 1 << 12);		// 4.12 fixed
 	fade.holdTime = FixedUnsigned16 (fadeHold, 1 << 12);		// 4.12 fixed
@@ -730,7 +730,7 @@ void UTIL_ScreenFadeBuild (ScreenFade& fade, const Vector& color, float fadeTime
 	fade.fadeFlags = flags;
 	}
 
-void UTIL_ScreenFadeWrite (const ScreenFade& fade, CBaseEntity* pEntity)
+void UTIL_ScreenFadeWrite (const ScreenFade &fade, CBaseEntity *pEntity)
 	{
 	if (!pEntity || !pEntity->IsNetClient ())
 		return;
@@ -748,7 +748,7 @@ void UTIL_ScreenFadeWrite (const ScreenFade& fade, CBaseEntity* pEntity)
 	MESSAGE_END ();
 	}
 
-void UTIL_ScreenFadeAll (const Vector& color, float fadeTime, float fadeHold, int alpha, int flags)
+void UTIL_ScreenFadeAll (const Vector &color, float fadeTime, float fadeHold, int alpha, int flags)
 	{
 	int			i;
 	ScreenFade	fade;
@@ -757,13 +757,13 @@ void UTIL_ScreenFadeAll (const Vector& color, float fadeTime, float fadeHold, in
 
 	for (i = 1; i <= gpGlobals->maxClients; i++)
 		{
-		CBaseEntity* pPlayer = UTIL_PlayerByIndex (i);
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex (i);
 
 		UTIL_ScreenFadeWrite (fade, pPlayer);
 		}
 	}
 
-void UTIL_ScreenFade (CBaseEntity* pEntity, const Vector& color, float fadeTime, float fadeHold, int alpha, int flags)
+void UTIL_ScreenFade (CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags)
 	{
 	ScreenFade	fade;
 
@@ -771,7 +771,7 @@ void UTIL_ScreenFade (CBaseEntity* pEntity, const Vector& color, float fadeTime,
 	UTIL_ScreenFadeWrite (fade, pEntity);
 	}
 
-void UTIL_HudMessage (CBaseEntity* pEntity, const hudtextparms_t& textparms, const char* pMessage)
+void UTIL_HudMessage (CBaseEntity *pEntity, const hudtextparms_t &textparms, const char *pMessage)
 	{
 	if (!pEntity || !pEntity->IsNetClient ())
 		return;
@@ -815,21 +815,21 @@ void UTIL_HudMessage (CBaseEntity* pEntity, const hudtextparms_t& textparms, con
 	MESSAGE_END ();
 	}
 
-void UTIL_HudMessageAll (const hudtextparms_t& textparms, const char* pMessage)
+void UTIL_HudMessageAll (const hudtextparms_t &textparms, const char *pMessage)
 	{
 	int i;
 
 	for (i = 1; i <= gpGlobals->maxClients; i++)
 		{
-		CBaseEntity* pPlayer = UTIL_PlayerByIndex (i);
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex (i);
 		if (pPlayer)
 			UTIL_HudMessage (pPlayer, textparms, pMessage);
 		}
 	}
 
 extern int gmsgTextMsg, gmsgSayText;
-void UTIL_ClientPrintAll (int msg_dest, const char* msg_name, const char* param1, const char* param2, 
-	const char* param3, const char* param4)
+void UTIL_ClientPrintAll (int msg_dest, const char *msg_name, const char *param1, const char *param2,
+	const char *param3, const char *param4)
 	{
 	MESSAGE_BEGIN (MSG_ALL, gmsgTextMsg);
 	WRITE_BYTE (msg_dest);
@@ -847,8 +847,8 @@ void UTIL_ClientPrintAll (int msg_dest, const char* msg_name, const char* param1
 	MESSAGE_END ();
 	}
 
-void ClientPrint (entvars_t* client, int msg_dest, const char* msg_name, const char* param1, 
-	const char* param2, const char* param3, const char* param4)
+void ClientPrint (entvars_t *client, int msg_dest, const char *msg_name, const char *param1,
+	const char *param2, const char *param3, const char *param4)
 	{
 	MESSAGE_BEGIN (MSG_ONE, gmsgTextMsg, NULL, client);
 	WRITE_BYTE (msg_dest);
@@ -866,7 +866,7 @@ void ClientPrint (entvars_t* client, int msg_dest, const char* msg_name, const c
 	MESSAGE_END ();
 	}
 
-void UTIL_SayText (const char* pText, CBaseEntity* pEntity)
+void UTIL_SayText (const char *pText, CBaseEntity *pEntity)
 	{
 	if (!pEntity->IsNetClient ())
 		return;
@@ -877,7 +877,7 @@ void UTIL_SayText (const char* pText, CBaseEntity* pEntity)
 	MESSAGE_END ();
 	}
 
-void UTIL_SayTextAll (const char* pText, CBaseEntity* pEntity)
+void UTIL_SayTextAll (const char *pText, CBaseEntity *pEntity)
 	{
 	MESSAGE_BEGIN (MSG_ALL, gmsgSayText, NULL);
 	WRITE_BYTE (pEntity->entindex ());
@@ -885,35 +885,35 @@ void UTIL_SayTextAll (const char* pText, CBaseEntity* pEntity)
 	MESSAGE_END ();
 	}
 
-char* UTIL_dtos1 (int d)
+char *UTIL_dtos1 (int d)
 	{
 	static char buf[8];
 	sprintf (buf, "%d", d);
 	return buf;
 	}
 
-char* UTIL_dtos2 (int d)
+char *UTIL_dtos2 (int d)
 	{
 	static char buf[8];
 	sprintf (buf, "%d", d);
 	return buf;
 	}
 
-char* UTIL_dtos3 (int d)
+char *UTIL_dtos3 (int d)
 	{
 	static char buf[8];
 	sprintf (buf, "%d", d);
 	return buf;
 	}
 
-char* UTIL_dtos4 (int d)
+char *UTIL_dtos4 (int d)
 	{
 	static char buf[8];
 	sprintf (buf, "%d", d);
 	return buf;
 	}
 
-void UTIL_ShowMessage (const char* pString, CBaseEntity* pEntity)
+void UTIL_ShowMessage (const char *pString, CBaseEntity *pEntity)
 	{
 	if (!pEntity || !pEntity->IsNetClient ())
 		return;
@@ -924,39 +924,39 @@ void UTIL_ShowMessage (const char* pString, CBaseEntity* pEntity)
 	}
 
 
-void UTIL_ShowMessageAll (const char* pString)
+void UTIL_ShowMessageAll (const char *pString)
 	{
 	int		i;
 
 	// loop through all players
 	for (i = 1; i <= gpGlobals->maxClients; i++)
 		{
-		CBaseEntity* pPlayer = UTIL_PlayerByIndex (i);
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex (i);
 		if (pPlayer)
 			UTIL_ShowMessage (pString, pPlayer);
 		}
 	}
 
 // Overloaded to add IGNORE_GLASS
-void UTIL_TraceLine (const Vector& vecStart, const Vector& vecEnd, IGNORE_MONSTERS igmon, 
-	IGNORE_GLASS ignoreGlass, edict_t* pentIgnore, TraceResult* ptr)
+void UTIL_TraceLine (const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon,
+	IGNORE_GLASS ignoreGlass, edict_t *pentIgnore, TraceResult *ptr)
 	{
 	TRACE_LINE (vecStart, vecEnd, (igmon == ignore_monsters ? TRUE : FALSE) | (ignoreGlass ? 0x100 : 0), pentIgnore, ptr);
 	}
 
-void UTIL_TraceLine (const Vector& vecStart, const Vector& vecEnd, IGNORE_MONSTERS igmon, 
-	edict_t* pentIgnore, TraceResult* ptr)
+void UTIL_TraceLine (const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon,
+	edict_t *pentIgnore, TraceResult *ptr)
 	{
 	TRACE_LINE (vecStart, vecEnd, (igmon == ignore_monsters ? TRUE : FALSE), pentIgnore, ptr);
 	}
 
-void UTIL_TraceHull (const Vector& vecStart, const Vector& vecEnd, IGNORE_MONSTERS igmon, int hullNumber, 
-	edict_t* pentIgnore, TraceResult* ptr)
+void UTIL_TraceHull (const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, int hullNumber,
+	edict_t *pentIgnore, TraceResult *ptr)
 	{
 	TRACE_HULL (vecStart, vecEnd, (igmon == ignore_monsters ? TRUE : FALSE), hullNumber, pentIgnore, ptr);
 	}
 
-void UTIL_TraceModel (const Vector& vecStart, const Vector& vecEnd, int hullNumber, edict_t* pentModel, TraceResult* ptr)
+void UTIL_TraceModel (const Vector &vecStart, const Vector &vecEnd, int hullNumber, edict_t *pentModel, TraceResult *ptr)
 	{
 	g_engfuncs.pfnTraceModel (vecStart, vecEnd, hullNumber, pentModel, ptr);
 	}
@@ -978,22 +978,22 @@ TraceResult UTIL_GetGlobalTrace ()
 	return tr;
 	}
 
-void UTIL_SetSize (entvars_t* pev, const Vector& vecMin, const Vector& vecMax)
+void UTIL_SetSize (entvars_t *pev, const Vector &vecMin, const Vector &vecMax)
 	{
 	SET_SIZE (ENT (pev), vecMin, vecMax);
 	}
 
-float UTIL_VecToYaw (const Vector& vec)
+float UTIL_VecToYaw (const Vector &vec)
 	{
 	return VEC_TO_YAW (vec);
 	}
 
-void UTIL_SetOrigin (entvars_t* pev, const Vector& vecOrigin)
+void UTIL_SetOrigin (entvars_t *pev, const Vector &vecOrigin)
 	{
 	SET_ORIGIN (ENT (pev), vecOrigin);
 	}
 
-void UTIL_ParticleEffect (const Vector& vecOrigin, const Vector& vecDirection, ULONG ulColor, ULONG ulCount)
+void UTIL_ParticleEffect (const Vector &vecOrigin, const Vector &vecDirection, ULONG ulColor, ULONG ulCount)
 	{
 	PARTICLE_EFFECT (vecOrigin, vecDirection, (float)ulColor, (float)ulCount);
 	}
@@ -1060,7 +1060,7 @@ float UTIL_SplineFraction (float value, float scale)
 	return 3 * valueSquared - 2 * valueSquared * value;
 	}
 
-char* UTIL_VarArgs (char* format, ...)
+char *UTIL_VarArgs (char *format, ...)
 	{
 	va_list		argptr;
 	static char		string[1024];
@@ -1072,22 +1072,22 @@ char* UTIL_VarArgs (char* format, ...)
 	return string;
 	}
 
-Vector UTIL_GetAimVector (edict_t* pent, float flSpeed)
+Vector UTIL_GetAimVector (edict_t *pent, float flSpeed)
 	{
 	Vector tmp;
 	GET_AIM_VECTOR (pent, flSpeed, tmp);
 	return tmp;
 	}
 
-int UTIL_IsMasterTriggered (string_t sMaster, CBaseEntity* pActivator)
+int UTIL_IsMasterTriggered (string_t sMaster, CBaseEntity *pActivator)
 	{
 	if (sMaster)
 		{
-		edict_t* pentTarget = FIND_ENTITY_BY_TARGETNAME (NULL, STRING (sMaster));
+		edict_t *pentTarget = FIND_ENTITY_BY_TARGETNAME (NULL, STRING (sMaster));
 
 		if (!FNullEnt (pentTarget))
 			{
-			CBaseEntity* pMaster = CBaseEntity::Instance (pentTarget);
+			CBaseEntity *pMaster = CBaseEntity::Instance (pentTarget);
 			if (pMaster && (pMaster->ObjectCaps () & FCAP_MASTER))
 				return pMaster->IsTriggered (pActivator);
 			}
@@ -1117,12 +1117,12 @@ BOOL UTIL_ShouldShowBlood (int color)
 	return FALSE;
 	}
 
-int UTIL_PointContents (const Vector& vec)
+int UTIL_PointContents (const Vector &vec)
 	{
 	return POINT_CONTENTS (vec);
 	}
 
-void UTIL_BloodStream (const Vector& origin, const Vector& direction, int color, int amount)
+void UTIL_BloodStream (const Vector &origin, const Vector &direction, int color, int amount)
 	{
 	if (!UTIL_ShouldShowBlood (color))
 		return;
@@ -1143,7 +1143,7 @@ void UTIL_BloodStream (const Vector& origin, const Vector& direction, int color,
 	MESSAGE_END ();
 	}
 
-void UTIL_BloodDrips (const Vector& origin, const Vector& direction, int color, int amount)
+void UTIL_BloodDrips (const Vector &origin, const Vector &direction, int color, int amount)
 	{
 	if (!UTIL_ShouldShowBlood (color))
 		return;
@@ -1186,7 +1186,7 @@ Vector UTIL_RandomBloodVector (void)
 	return direction;
 	}
 
-void UTIL_BloodDecalTrace (TraceResult* pTrace, int bloodColor)
+void UTIL_BloodDecalTrace (TraceResult *pTrace, int bloodColor)
 	{
 	if (UTIL_ShouldShowBlood (bloodColor))
 		{
@@ -1200,12 +1200,12 @@ void UTIL_BloodDecalTrace (TraceResult* pTrace, int bloodColor)
 		}
 	}
 
-void UTIL_DecalTrace (TraceResult* pTrace, int decalNumber)
+void UTIL_DecalTrace (TraceResult *pTrace, int decalNumber)
 	{
 	short entityIndex;
 	int index;
 	int message;
-	
+
 	if (decalNumber < 0)
 		return;
 
@@ -1220,7 +1220,7 @@ void UTIL_DecalTrace (TraceResult* pTrace, int decalNumber)
 	// Only decal BSP models
 	if (pTrace->pHit)
 		{
-		CBaseEntity* pEntity = CBaseEntity::Instance (pTrace->pHit);
+		CBaseEntity *pEntity = CBaseEntity::Instance (pTrace->pHit);
 		if (pEntity && !pEntity->IsBSPModel ())
 			return;
 		entityIndex = ENTINDEX (pTrace->pHit);
@@ -1269,7 +1269,7 @@ Tell connected clients to display it, or use the default spray can decal
 if the custom can't be loaded.
 ==============
 */
-void UTIL_PlayerDecalTrace (TraceResult* pTrace, int playernum, int decalNumber, BOOL bIsCustom)
+void UTIL_PlayerDecalTrace (TraceResult *pTrace, int playernum, int decalNumber, BOOL bIsCustom)
 	{
 	int index;
 
@@ -1299,7 +1299,7 @@ void UTIL_PlayerDecalTrace (TraceResult* pTrace, int playernum, int decalNumber,
 	MESSAGE_END ();
 	}
 
-void UTIL_GunshotDecalTrace (TraceResult* pTrace, int decalNumber)
+void UTIL_GunshotDecalTrace (TraceResult *pTrace, int decalNumber)
 	{
 	if (decalNumber < 0)
 		return;
@@ -1322,7 +1322,7 @@ void UTIL_GunshotDecalTrace (TraceResult* pTrace, int decalNumber)
 	}
 
 
-void UTIL_Sparks (const Vector& position)
+void UTIL_Sparks (const Vector &position)
 	{
 	MESSAGE_BEGIN (MSG_PVS, SVC_TEMPENTITY, position);
 	WRITE_BYTE (TE_SPARKS);
@@ -1333,7 +1333,7 @@ void UTIL_Sparks (const Vector& position)
 	}
 
 
-void UTIL_Ricochet (const Vector& position, float scale)
+void UTIL_Ricochet (const Vector &position, float scale)
 	{
 	MESSAGE_BEGIN (MSG_PVS, SVC_TEMPENTITY, position);
 	WRITE_BYTE (TE_ARMOR_RICOCHET);
@@ -1345,7 +1345,7 @@ void UTIL_Ricochet (const Vector& position, float scale)
 	}
 
 
-BOOL UTIL_TeamsMatch (const char* pTeamName1, const char* pTeamName2)
+BOOL UTIL_TeamsMatch (const char *pTeamName1, const char *pTeamName2)
 	{
 	// Everyone matches unless it's teamplay
 	if (!g_pGameRules->IsTeamplay ())
@@ -1362,9 +1362,9 @@ BOOL UTIL_TeamsMatch (const char* pTeamName1, const char* pTeamName2)
 	}
 
 
-void UTIL_StringToVector (float* pVector, const char* pString)
+void UTIL_StringToVector (float *pVector, const char *pString)
 	{
-	char* pstr, * pfront, tempString[128];
+	char *pstr, *pfront, tempString[128];
 	int	j;
 
 	strcpy (tempString, pString);
@@ -1393,9 +1393,9 @@ void UTIL_StringToVector (float* pVector, const char* pString)
 	}
 
 
-void UTIL_StringToIntArray (int* pVector, int count, const char* pString)
+void UTIL_StringToIntArray (int *pVector, int count, const char *pString)
 	{
-	char* pstr, * pfront, tempString[128];
+	char *pstr, *pfront, tempString[128];
 	int	j;
 
 	strcpy (tempString, pString);
@@ -1419,7 +1419,7 @@ void UTIL_StringToIntArray (int* pVector, int count, const char* pString)
 		}
 	}
 
-Vector UTIL_ClampVectorToBox (const Vector& input, const Vector& clampSize)
+Vector UTIL_ClampVectorToBox (const Vector &input, const Vector &clampSize)
 	{
 	Vector sourceVector = input;
 
@@ -1448,7 +1448,7 @@ Vector UTIL_ClampVectorToBox (const Vector& input, const Vector& clampSize)
 	}
 
 
-float UTIL_WaterLevel (const Vector& position, float minz, float maxz)
+float UTIL_WaterLevel (const Vector &position, float minz, float maxz)
 	{
 	Vector midUp = position;
 	midUp.z = minz;
@@ -1538,7 +1538,7 @@ void UTIL_BubbleTrail (Vector from, Vector to, int count)
 	}
 
 
-void UTIL_Remove (CBaseEntity* pEntity)
+void UTIL_Remove (CBaseEntity *pEntity)
 	{
 	if (!pEntity)
 		return;
@@ -1549,7 +1549,7 @@ void UTIL_Remove (CBaseEntity* pEntity)
 	}
 
 
-BOOL UTIL_IsValidEntity (edict_t* pent)
+BOOL UTIL_IsValidEntity (edict_t *pent)
 	{
 	if (!pent || pent->free || (pent->v.flags & FL_KILLME))
 		return FALSE;
@@ -1557,9 +1557,9 @@ BOOL UTIL_IsValidEntity (edict_t* pent)
 	}
 
 
-void UTIL_PrecacheOther (const char* szClassname)
+void UTIL_PrecacheOther (const char *szClassname)
 	{
-	edict_t* pent;
+	edict_t *pent;
 
 	pent = CREATE_NAMED_ENTITY (MAKE_STRING (szClassname));
 	if (FNullEnt (pent))
@@ -1568,7 +1568,7 @@ void UTIL_PrecacheOther (const char* szClassname)
 		return;
 		}
 
-	CBaseEntity* pEntity = CBaseEntity::Instance (VARS (pent));
+	CBaseEntity *pEntity = CBaseEntity::Instance (VARS (pent));
 	if (pEntity)
 		pEntity->Precache ();
 
@@ -1579,7 +1579,7 @@ void UTIL_PrecacheOther (const char* szClassname)
 // UTIL_LogPrintf - Prints a logged message to console.
 // Preceded by LOG: ( timestamp ) < message >
 //=========================================================
-void UTIL_LogPrintf (char* fmt, ...)
+void UTIL_LogPrintf (char *fmt, ...)
 	{
 	va_list			argptr;
 	static char		string[1024];
@@ -1596,7 +1596,7 @@ void UTIL_LogPrintf (char* fmt, ...)
 // UTIL_DotPoints - returns the dot product of a line from
 // src to check and vecdir.
 //=========================================================
-float UTIL_DotPoints (const Vector& vecSrc, const Vector& vecCheck, const Vector& vecDir)
+float UTIL_DotPoints (const Vector &vecSrc, const Vector &vecCheck, const Vector &vecDir)
 	{
 	Vector2D	vec2LOS;
 
@@ -1610,7 +1610,7 @@ float UTIL_DotPoints (const Vector& vecSrc, const Vector& vecCheck, const Vector
 //=========================================================
 // UTIL_StripToken - for redundant keynames
 //=========================================================
-void UTIL_StripToken (const char* pKey, char* pDest)
+void UTIL_StripToken (const char *pKey, char *pDest)
 	{
 	int i = 0;
 
@@ -1639,9 +1639,9 @@ static int gSizes[FIELD_TYPECOUNT] =
 		sizeof (int),		// FIELD_EDICT
 		sizeof (float) * 3,	// FIELD_VECTOR
 		sizeof (float) * 3,	// FIELD_POSITION_VECTOR
-		sizeof (int*),		// FIELD_POINTER
+		sizeof (int *),		// FIELD_POINTER
 		sizeof (int),		// FIELD_INTEGER
-		sizeof (int*),		// FIELD_FUNCTION
+		sizeof (int *),		// FIELD_FUNCTION
 		sizeof (int),		// FIELD_BOOLEAN
 		sizeof (short),		// FIELD_SHORT
 		sizeof (char),		// FIELD_CHARACTER
@@ -1658,7 +1658,7 @@ CSaveRestoreBuffer::CSaveRestoreBuffer (void)
 	}
 
 
-CSaveRestoreBuffer::CSaveRestoreBuffer (SAVERESTOREDATA* pdata)
+CSaveRestoreBuffer::CSaveRestoreBuffer (SAVERESTOREDATA *pdata)
 	{
 	m_pdata = pdata;
 	}
@@ -1668,7 +1668,7 @@ CSaveRestoreBuffer :: ~CSaveRestoreBuffer (void)
 	{
 	}
 
-int	CSaveRestoreBuffer::EntityIndex (CBaseEntity* pEntity)
+int	CSaveRestoreBuffer::EntityIndex (CBaseEntity *pEntity)
 	{
 	if (pEntity == NULL)
 		return -1;
@@ -1676,7 +1676,7 @@ int	CSaveRestoreBuffer::EntityIndex (CBaseEntity* pEntity)
 	}
 
 
-int	CSaveRestoreBuffer::EntityIndex (entvars_t* pevLookup)
+int	CSaveRestoreBuffer::EntityIndex (entvars_t *pevLookup)
 	{
 	if (pevLookup == NULL)
 		return -1;
@@ -1689,13 +1689,13 @@ int	CSaveRestoreBuffer::EntityIndex (EOFFSET eoLookup)
 	}
 
 
-int	CSaveRestoreBuffer::EntityIndex (edict_t* pentLookup)
+int	CSaveRestoreBuffer::EntityIndex (edict_t *pentLookup)
 	{
 	if (!m_pdata || pentLookup == NULL)
 		return -1;
 
 	int i;
-	ENTITYTABLE* pTable;
+	ENTITYTABLE *pTable;
 
 	for (i = 0; i < m_pdata->tableCount; i++)
 		{
@@ -1707,13 +1707,13 @@ int	CSaveRestoreBuffer::EntityIndex (edict_t* pentLookup)
 	}
 
 
-edict_t* CSaveRestoreBuffer::EntityFromIndex (int entityIndex)
+edict_t *CSaveRestoreBuffer::EntityFromIndex (int entityIndex)
 	{
 	if (!m_pdata || entityIndex < 0)
 		return NULL;
 
 	int i;
-	ENTITYTABLE* pTable;
+	ENTITYTABLE *pTable;
 
 	for (i = 0; i < m_pdata->tableCount; i++)
 		{
@@ -1754,17 +1754,18 @@ void CSaveRestoreBuffer::BufferRewind (int size)
 extern "C" {
 	unsigned _rotr (unsigned val, int shift)
 		{
-		register unsigned lobit;        /* non-zero means lo bit set */
-		register unsigned num = val;    /* number to rotate */
+		register unsigned lobit;        // non-zero means lo bit set
+		register unsigned num = val;    // number to rotate
 
-		shift &= 0x1f;                  /* modulo 32 -- this will also make
-										   negative shifts work */
+		shift &= 0x1f;                  // modulo 32 -- this will also make
+										   negative shifts work
 
-		while (shift--) {
-			lobit = num & 1;        /* get high bit */
-			num >>= 1;              /* shift right one bit */
+		while (shift--)
+			{
+			lobit = num & 1;        // get high bit
+			num >>= 1;              // shift right one bit
 			if (lobit)
-				num |= 0x80000000;  /* set hi bit if lo bit was set */
+				num |= 0x80000000;  // set hi bit if lo bit was set
 			}
 
 		return num;
@@ -1772,7 +1773,7 @@ extern "C" {
 	}
 #endif
 
-unsigned int CSaveRestoreBuffer::HashString (const char* pszToken)
+unsigned int CSaveRestoreBuffer::HashString (const char *pszToken)
 	{
 	unsigned int	hash = 0;
 
@@ -1782,7 +1783,7 @@ unsigned int CSaveRestoreBuffer::HashString (const char* pszToken)
 	return hash;
 	}
 
-unsigned short CSaveRestoreBuffer::TokenHash (const char* pszToken)
+unsigned short CSaveRestoreBuffer::TokenHash (const char *pszToken)
 	{
 	unsigned short	hash = (unsigned short)(HashString (pszToken) % (unsigned)m_pdata->tokenCount);
 
@@ -1810,7 +1811,7 @@ unsigned short CSaveRestoreBuffer::TokenHash (const char* pszToken)
 
 		if (!m_pdata->pTokens[index] || strcmp (pszToken, m_pdata->pTokens[index]) == 0)
 			{
-			m_pdata->pTokens[index] = (char*)pszToken;
+			m_pdata->pTokens[index] = (char *)pszToken;
 			return index;
 			}
 		}
@@ -1821,31 +1822,31 @@ unsigned short CSaveRestoreBuffer::TokenHash (const char* pszToken)
 	return 0;
 	}
 
-void CSave::WriteData (const char* pname, int size, const char* pdata)
+void CSave::WriteData (const char *pname, int size, const char *pdata)
 	{
 	BufferField (pname, size, pdata);
 	}
 
 
-void CSave::WriteShort (const char* pname, const short* data, int count)
+void CSave::WriteShort (const char *pname, const short *data, int count)
 	{
-	BufferField (pname, sizeof (short) * count, (const char*)data);
+	BufferField (pname, sizeof (short) * count, (const char *)data);
 	}
 
 
-void CSave::WriteInt (const char* pname, const int* data, int count)
+void CSave::WriteInt (const char *pname, const int *data, int count)
 	{
-	BufferField (pname, sizeof (int) * count, (const char*)data);
+	BufferField (pname, sizeof (int) * count, (const char *)data);
 	}
 
 
-void CSave::WriteFloat (const char* pname, const float* data, int count)
+void CSave::WriteFloat (const char *pname, const float *data, int count)
 	{
-	BufferField (pname, sizeof (float) * count, (const char*)data);
+	BufferField (pname, sizeof (float) * count, (const char *)data);
 	}
 
 
-void CSave::WriteTime (const char* pname, const float* data, int count)
+void CSave::WriteTime (const char *pname, const float *data, int count)
 	{
 	int i;
 	Vector tmp, input;
@@ -1860,13 +1861,13 @@ void CSave::WriteTime (const char* pname, const float* data, int count)
 		if (m_pdata)
 			tmp -= m_pdata->time;
 
-		BufferData ((const char*)&tmp, sizeof (float));
+		BufferData ((const char *)&tmp, sizeof (float));
 		data++;
 		}
 	}
 
 
-void CSave::WriteString (const char* pname, const char* pdata)
+void CSave::WriteString (const char *pname, const char *pdata)
 	{
 #ifdef TOKENIZE
 	short	token = (short)TokenHash (pdata);
@@ -1877,7 +1878,7 @@ void CSave::WriteString (const char* pname, const char* pdata)
 	}
 
 
-void CSave::WriteString (const char* pname, const int* stringId, int count)
+void CSave::WriteString (const char *pname, const int *stringId, int count)
 	{
 	int i, size;
 
@@ -1888,7 +1889,7 @@ void CSave::WriteString (const char* pname, const int* stringId, int count)
 #if 0
 	if (count != 1)
 		ALERT (at_error, "No string arrays!\n");
-	WriteString (pname, (char*)STRING (*stringId));
+	WriteString (pname, (char *)STRING (*stringId));
 #endif
 
 	size = 0;
@@ -1898,28 +1899,28 @@ void CSave::WriteString (const char* pname, const int* stringId, int count)
 	BufferHeader (pname, size);
 	for (i = 0; i < count; i++)
 		{
-		const char* pString = STRING (stringId[i]);
+		const char *pString = STRING (stringId[i]);
 		BufferData (pString, strlen (pString) + 1);
 		}
 #endif
 	}
 
 
-void CSave::WriteVector (const char* pname, const Vector& value)
+void CSave::WriteVector (const char *pname, const Vector &value)
 	{
 	WriteVector (pname, &value.x, 1);
 	}
 
 
-void CSave::WriteVector (const char* pname, const float* value, int count)
+void CSave::WriteVector (const char *pname, const float *value, int count)
 	{
 	BufferHeader (pname, sizeof (float) * 3 * count);
-	BufferData ((const char*)value, sizeof (float) * 3 * count);
+	BufferData ((const char *)value, sizeof (float) * 3 * count);
 	}
 
 
 
-void CSave::WritePositionVector (const char* pname, const Vector& value)
+void CSave::WritePositionVector (const char *pname, const Vector &value)
 	{
 
 	if (m_pdata && m_pdata->fUseLandmark)
@@ -1932,7 +1933,7 @@ void CSave::WritePositionVector (const char* pname, const Vector& value)
 	}
 
 
-void CSave::WritePositionVector (const char* pname, const float* value, int count)
+void CSave::WritePositionVector (const char *pname, const float *value, int count)
 	{
 	int i;
 	Vector tmp, input;
@@ -1945,15 +1946,15 @@ void CSave::WritePositionVector (const char* pname, const float* value, int coun
 		if (m_pdata && m_pdata->fUseLandmark)
 			tmp = tmp - m_pdata->vecLandmarkOffset;
 
-		BufferData ((const char*)&tmp.x, sizeof (float) * 3);
+		BufferData ((const char *)&tmp.x, sizeof (float) * 3);
 		value += 3;
 		}
 	}
 
 
-void CSave::WriteFunction (const char* pname, const int* data, int count)
+void CSave::WriteFunction (const char *pname, const int *data, int count)
 	{
-	const char* functionName;
+	const char *functionName;
 
 	functionName = NAME_FOR_FUNCTION (*data);
 	if (functionName)
@@ -1963,10 +1964,10 @@ void CSave::WriteFunction (const char* pname, const int* data, int count)
 	}
 
 
-void EntvarsKeyvalue (entvars_t* pev, KeyValueData* pkvd)
+void EntvarsKeyvalue (entvars_t *pev, KeyValueData *pkvd)
 	{
 	int i;
-	TYPEDESCRIPTION* pField;
+	TYPEDESCRIPTION *pField;
 
 	for (i = 0; i < ENTVARS_COUNT; i++)
 		{
@@ -1979,21 +1980,21 @@ void EntvarsKeyvalue (entvars_t* pev, KeyValueData* pkvd)
 				case FIELD_MODELNAME:
 				case FIELD_SOUNDNAME:
 				case FIELD_STRING:
-					(*(int*)((char*)pev + pField->fieldOffset)) = ALLOC_STRING (pkvd->szValue);
+					(*(int *)((char *)pev + pField->fieldOffset)) = ALLOC_STRING (pkvd->szValue);
 					break;
 
 				case FIELD_TIME:
 				case FIELD_FLOAT:
-					(*(float*)((char*)pev + pField->fieldOffset)) = atof (pkvd->szValue);
+					(*(float *)((char *)pev + pField->fieldOffset)) = atof (pkvd->szValue);
 					break;
 
 				case FIELD_INTEGER:
-					(*(int*)((char*)pev + pField->fieldOffset)) = atoi (pkvd->szValue);
+					(*(int *)((char *)pev + pField->fieldOffset)) = atoi (pkvd->szValue);
 					break;
 
 				case FIELD_POSITION_VECTOR:
 				case FIELD_VECTOR:
-					UTIL_StringToVector ((float*)((char*)pev + pField->fieldOffset), pkvd->szValue);
+					UTIL_StringToVector ((float *)((char *)pev + pField->fieldOffset), pkvd->szValue);
 					break;
 
 				default:
@@ -2013,26 +2014,26 @@ void EntvarsKeyvalue (entvars_t* pev, KeyValueData* pkvd)
 
 
 
-int CSave::WriteEntVars (const char* pname, entvars_t* pev)
+int CSave::WriteEntVars (const char *pname, entvars_t *pev)
 	{
 	return WriteFields (pname, pev, gEntvarsDescription, ENTVARS_COUNT);
 	}
 
 
 
-int CSave::WriteFields (const char* pname, void* pBaseData, TYPEDESCRIPTION* pFields, int fieldCount)
+int CSave::WriteFields (const char *pname, void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCount)
 	{
 	int				i, j, actualCount, emptyCount;
-	TYPEDESCRIPTION* pTest;
+	TYPEDESCRIPTION *pTest;
 	int				entityArray[MAX_ENTITYARRAY];
 
 	// Precalculate the number of empty fields
 	emptyCount = 0;
 	for (i = 0; i < fieldCount; i++)
 		{
-		void* pOutputData;
-		pOutputData = ((char*)pBaseData + pFields[i].fieldOffset);
-		if (DataEmpty ((const char*)pOutputData, pFields[i].fieldSize * gSizes[pFields[i].fieldType]))
+		void *pOutputData;
+		pOutputData = ((char *)pBaseData + pFields[i].fieldOffset);
+		if (DataEmpty ((const char *)pOutputData, pFields[i].fieldSize * gSizes[pFields[i].fieldType]))
 			emptyCount++;
 		}
 
@@ -2042,26 +2043,26 @@ int CSave::WriteFields (const char* pname, void* pBaseData, TYPEDESCRIPTION* pFi
 
 	for (i = 0; i < fieldCount; i++)
 		{
-		void* pOutputData;
+		void *pOutputData;
 		pTest = &pFields[i];
-		pOutputData = ((char*)pBaseData + pTest->fieldOffset);
+		pOutputData = ((char *)pBaseData + pTest->fieldOffset);
 
 		// UNDONE: Must we do this twice?
-		if (DataEmpty ((const char*)pOutputData, pTest->fieldSize * gSizes[pTest->fieldType]))
+		if (DataEmpty ((const char *)pOutputData, pTest->fieldSize * gSizes[pTest->fieldType]))
 			continue;
 
 		switch (pTest->fieldType)
 			{
 			case FIELD_FLOAT:
-				WriteFloat (pTest->fieldName, (float*)pOutputData, pTest->fieldSize);
+				WriteFloat (pTest->fieldName, (float *)pOutputData, pTest->fieldSize);
 				break;
 			case FIELD_TIME:
-				WriteTime (pTest->fieldName, (float*)pOutputData, pTest->fieldSize);
+				WriteTime (pTest->fieldName, (float *)pOutputData, pTest->fieldSize);
 				break;
 			case FIELD_MODELNAME:
 			case FIELD_SOUNDNAME:
 			case FIELD_STRING:
-				WriteString (pTest->fieldName, (int*)pOutputData, pTest->fieldSize);
+				WriteString (pTest->fieldName, (int *)pOutputData, pTest->fieldSize);
 				break;
 			case FIELD_CLASSPTR:
 			case FIELD_EVARS:
@@ -2075,51 +2076,51 @@ int CSave::WriteFields (const char* pname, void* pBaseData, TYPEDESCRIPTION* pFi
 					switch (pTest->fieldType)
 						{
 						case FIELD_EVARS:
-							entityArray[j] = EntityIndex (((entvars_t**)pOutputData)[j]);
+							entityArray[j] = EntityIndex (((entvars_t **)pOutputData)[j]);
 							break;
 						case FIELD_CLASSPTR:
-							entityArray[j] = EntityIndex (((CBaseEntity**)pOutputData)[j]);
+							entityArray[j] = EntityIndex (((CBaseEntity **)pOutputData)[j]);
 							break;
 						case FIELD_EDICT:
-							entityArray[j] = EntityIndex (((edict_t**)pOutputData)[j]);
+							entityArray[j] = EntityIndex (((edict_t **)pOutputData)[j]);
 							break;
 						case FIELD_ENTITY:
-							entityArray[j] = EntityIndex (((EOFFSET*)pOutputData)[j]);
+							entityArray[j] = EntityIndex (((EOFFSET *)pOutputData)[j]);
 							break;
 						case FIELD_EHANDLE:
-							entityArray[j] = EntityIndex ((CBaseEntity*)(((EHANDLE*)pOutputData)[j]));
+							entityArray[j] = EntityIndex ((CBaseEntity *)(((EHANDLE *)pOutputData)[j]));
 							break;
 						}
 					}
 				WriteInt (pTest->fieldName, entityArray, pTest->fieldSize);
 				break;
 			case FIELD_POSITION_VECTOR:
-				WritePositionVector (pTest->fieldName, (float*)pOutputData, pTest->fieldSize);
+				WritePositionVector (pTest->fieldName, (float *)pOutputData, pTest->fieldSize);
 				break;
 			case FIELD_VECTOR:
-				WriteVector (pTest->fieldName, (float*)pOutputData, pTest->fieldSize);
+				WriteVector (pTest->fieldName, (float *)pOutputData, pTest->fieldSize);
 				break;
 
 			case FIELD_BOOLEAN:
 			case FIELD_INTEGER:
-				WriteInt (pTest->fieldName, (int*)pOutputData, pTest->fieldSize);
+				WriteInt (pTest->fieldName, (int *)pOutputData, pTest->fieldSize);
 				break;
 
 			case FIELD_SHORT:
-				WriteData (pTest->fieldName, 2 * pTest->fieldSize, ((char*)pOutputData));
+				WriteData (pTest->fieldName, 2 * pTest->fieldSize, ((char *)pOutputData));
 				break;
 
 			case FIELD_CHARACTER:
-				WriteData (pTest->fieldName, pTest->fieldSize, ((char*)pOutputData));
+				WriteData (pTest->fieldName, pTest->fieldSize, ((char *)pOutputData));
 				break;
 
 				// For now, just write the address out, we're not going to change memory while doing this yet!
 			case FIELD_POINTER:
-				WriteInt (pTest->fieldName, (int*)(char*)pOutputData, pTest->fieldSize);
+				WriteInt (pTest->fieldName, (int *)(char *)pOutputData, pTest->fieldSize);
 				break;
 
 			case FIELD_FUNCTION:
-				WriteFunction (pTest->fieldName, (int*)(char*)pOutputData, pTest->fieldSize);
+				WriteFunction (pTest->fieldName, (int *)(char *)pOutputData, pTest->fieldSize);
 				break;
 			default:
 				ALERT (at_error, "Bad field type\n");
@@ -2130,7 +2131,7 @@ int CSave::WriteFields (const char* pname, void* pBaseData, TYPEDESCRIPTION* pFi
 	}
 
 
-void CSave::BufferString (char* pdata, int len)
+void CSave::BufferString (char *pdata, int len)
 	{
 	char c = 0;
 
@@ -2139,7 +2140,7 @@ void CSave::BufferString (char* pdata, int len)
 	}
 
 
-int CSave::DataEmpty (const char* pdata, int size)
+int CSave::DataEmpty (const char *pdata, int size)
 	{
 	for (int i = 0; i < size; i++)
 		{
@@ -2150,24 +2151,24 @@ int CSave::DataEmpty (const char* pdata, int size)
 	}
 
 
-void CSave::BufferField (const char* pname, int size, const char* pdata)
+void CSave::BufferField (const char *pname, int size, const char *pdata)
 	{
 	BufferHeader (pname, size);
 	BufferData (pdata, size);
 	}
 
 
-void CSave::BufferHeader (const char* pname, int size)
+void CSave::BufferHeader (const char *pname, int size)
 	{
 	short	hashvalue = TokenHash (pname);
 	if (size > 1 << (sizeof (short) * 8))
 		ALERT (at_error, "CSave :: BufferHeader() size parameter exceeds 'short'!");
-	BufferData ((const char*)&size, sizeof (short));
-	BufferData ((const char*)&hashvalue, sizeof (short));
+	BufferData ((const char *)&size, sizeof (short));
+	BufferData ((const char *)&hashvalue, sizeof (short));
 	}
 
 
-void CSave::BufferData (const char* pdata, int size)
+void CSave::BufferData (const char *pdata, int size)
 	{
 	if (!m_pdata)
 		return;
@@ -2192,14 +2193,14 @@ void CSave::BufferData (const char* pdata, int size)
 //
 // --------------------------------------------------------------
 
-int CRestore::ReadField (void* pBaseData, TYPEDESCRIPTION* pFields, int fieldCount, int startField, int size, char* pName, void* pData)
+int CRestore::ReadField (void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCount, int startField, int size, char *pName, void *pData)
 	{
 	int i, j, stringCount, fieldNumber, entityIndex;
-	TYPEDESCRIPTION* pTest;
+	TYPEDESCRIPTION *pTest;
 	float	time, timeData;
 	Vector	position;
-	edict_t* pent;
-	char* pString;
+	edict_t *pent;
+	char *pString;
 
 	time = 0;
 	position = Vector (0, 0, 0);
@@ -2221,25 +2222,25 @@ int CRestore::ReadField (void* pBaseData, TYPEDESCRIPTION* pFields, int fieldCou
 				{
 				for (j = 0; j < pTest->fieldSize; j++)
 					{
-					void* pOutputData = ((char*)pBaseData + pTest->fieldOffset + (j * gSizes[pTest->fieldType]));
-					void* pInputData = (char*)pData + j * gSizes[pTest->fieldType];
+					void *pOutputData = ((char *)pBaseData + pTest->fieldOffset + (j * gSizes[pTest->fieldType]));
+					void *pInputData = (char *)pData + j * gSizes[pTest->fieldType];
 
 					switch (pTest->fieldType)
 						{
 						case FIELD_TIME:
-							timeData = *(float*)pInputData;
+							timeData = *(float *)pInputData;
 							// Re-base time variables
 							timeData += time;
-							*((float*)pOutputData) = timeData;
+							*((float *)pOutputData) = timeData;
 							break;
 						case FIELD_FLOAT:
-							*((float*)pOutputData) = *(float*)pInputData;
+							*((float *)pOutputData) = *(float *)pInputData;
 							break;
 						case FIELD_MODELNAME:
 						case FIELD_SOUNDNAME:
 						case FIELD_STRING:
 							// Skip over j strings
-							pString = (char*)pData;
+							pString = (char *)pData;
 							for (stringCount = 0; stringCount < j; stringCount++)
 								{
 								while (*pString)
@@ -2247,96 +2248,96 @@ int CRestore::ReadField (void* pBaseData, TYPEDESCRIPTION* pFields, int fieldCou
 								pString++;
 								}
 							pInputData = pString;
-							if (strlen ((char*)pInputData) == 0)
-								*((int*)pOutputData) = 0;
+							if (strlen ((char *)pInputData) == 0)
+								*((int *)pOutputData) = 0;
 							else
 								{
 								int string;
 
-								string = ALLOC_STRING ((char*)pInputData);
+								string = ALLOC_STRING ((char *)pInputData);
 
-								*((int*)pOutputData) = string;
+								*((int *)pOutputData) = string;
 
 								if (!FStringNull (string) && m_precache)
 									{
 									if (pTest->fieldType == FIELD_MODELNAME)
-										PRECACHE_MODEL ((char*)STRING (string));
+										PRECACHE_MODEL ((char *)STRING (string));
 									else if (pTest->fieldType == FIELD_SOUNDNAME)
-										PRECACHE_SOUND ((char*)STRING (string));
+										PRECACHE_SOUND ((char *)STRING (string));
 									}
 								}
 							break;
 						case FIELD_EVARS:
-							entityIndex = *(int*)pInputData;
+							entityIndex = *(int *)pInputData;
 							pent = EntityFromIndex (entityIndex);
 							if (pent)
-								*((entvars_t**)pOutputData) = VARS (pent);
+								*((entvars_t **)pOutputData) = VARS (pent);
 							else
-								*((entvars_t**)pOutputData) = NULL;
+								*((entvars_t **)pOutputData) = NULL;
 							break;
 						case FIELD_CLASSPTR:
-							entityIndex = *(int*)pInputData;
+							entityIndex = *(int *)pInputData;
 							pent = EntityFromIndex (entityIndex);
 							if (pent)
-								*((CBaseEntity**)pOutputData) = CBaseEntity::Instance (pent);
+								*((CBaseEntity **)pOutputData) = CBaseEntity::Instance (pent);
 							else
-								*((CBaseEntity**)pOutputData) = NULL;
+								*((CBaseEntity **)pOutputData) = NULL;
 							break;
 						case FIELD_EDICT:
-							entityIndex = *(int*)pInputData;
+							entityIndex = *(int *)pInputData;
 							pent = EntityFromIndex (entityIndex);
-							*((edict_t**)pOutputData) = pent;
+							*((edict_t **)pOutputData) = pent;
 							break;
 						case FIELD_EHANDLE:
 							// Input and Output sizes are different!
-							pOutputData = (char*)pOutputData + j * (sizeof (EHANDLE) - gSizes[pTest->fieldType]);
-							entityIndex = *(int*)pInputData;
+							pOutputData = (char *)pOutputData + j * (sizeof (EHANDLE) - gSizes[pTest->fieldType]);
+							entityIndex = *(int *)pInputData;
 							pent = EntityFromIndex (entityIndex);
 							if (pent)
-								*((EHANDLE*)pOutputData) = CBaseEntity::Instance (pent);
+								*((EHANDLE *)pOutputData) = CBaseEntity::Instance (pent);
 							else
-								*((EHANDLE*)pOutputData) = NULL;
+								*((EHANDLE *)pOutputData) = NULL;
 							break;
 						case FIELD_ENTITY:
-							entityIndex = *(int*)pInputData;
+							entityIndex = *(int *)pInputData;
 							pent = EntityFromIndex (entityIndex);
 							if (pent)
-								*((EOFFSET*)pOutputData) = OFFSET (pent);
+								*((EOFFSET *)pOutputData) = OFFSET (pent);
 							else
-								*((EOFFSET*)pOutputData) = 0;
+								*((EOFFSET *)pOutputData) = 0;
 							break;
 						case FIELD_VECTOR:
-							((float*)pOutputData)[0] = ((float*)pInputData)[0];
-							((float*)pOutputData)[1] = ((float*)pInputData)[1];
-							((float*)pOutputData)[2] = ((float*)pInputData)[2];
+							((float *)pOutputData)[0] = ((float *)pInputData)[0];
+							((float *)pOutputData)[1] = ((float *)pInputData)[1];
+							((float *)pOutputData)[2] = ((float *)pInputData)[2];
 							break;
 						case FIELD_POSITION_VECTOR:
-							((float*)pOutputData)[0] = ((float*)pInputData)[0] + position.x;
-							((float*)pOutputData)[1] = ((float*)pInputData)[1] + position.y;
-							((float*)pOutputData)[2] = ((float*)pInputData)[2] + position.z;
+							((float *)pOutputData)[0] = ((float *)pInputData)[0] + position.x;
+							((float *)pOutputData)[1] = ((float *)pInputData)[1] + position.y;
+							((float *)pOutputData)[2] = ((float *)pInputData)[2] + position.z;
 							break;
 
 						case FIELD_BOOLEAN:
 						case FIELD_INTEGER:
-							*((int*)pOutputData) = *(int*)pInputData;
+							*((int *)pOutputData) = *(int *)pInputData;
 							break;
 
 						case FIELD_SHORT:
-							*((short*)pOutputData) = *(short*)pInputData;
+							*((short *)pOutputData) = *(short *)pInputData;
 							break;
 
 						case FIELD_CHARACTER:
-							*((char*)pOutputData) = *(char*)pInputData;
+							*((char *)pOutputData) = *(char *)pInputData;
 							break;
 
 						case FIELD_POINTER:
-							*((int*)pOutputData) = *(int*)pInputData;
+							*((int *)pOutputData) = *(int *)pInputData;
 							break;
 						case FIELD_FUNCTION:
-							if (strlen ((char*)pInputData) == 0)
-								*((int*)pOutputData) = 0;
+							if (strlen ((char *)pInputData) == 0)
+								*((int *)pOutputData) = 0;
 							else
-								*((int*)pOutputData) = FUNCTION_FROM_NAME ((char*)pInputData);
+								*((int *)pOutputData) = FUNCTION_FROM_NAME ((char *)pInputData);
 							break;
 
 						default:
@@ -2358,13 +2359,13 @@ int CRestore::ReadField (void* pBaseData, TYPEDESCRIPTION* pFields, int fieldCou
 	}
 
 
-int CRestore::ReadEntVars (const char* pname, entvars_t* pev)
+int CRestore::ReadEntVars (const char *pname, entvars_t *pev)
 	{
 	return ReadFields (pname, pev, gEntvarsDescription, ENTVARS_COUNT);
 	}
 
 
-int CRestore::ReadFields (const char* pname, void* pBaseData, TYPEDESCRIPTION* pFields, int fieldCount)
+int CRestore::ReadFields (const char *pname, void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCount)
 	{
 	unsigned short	i, token;
 	int		lastField, fileCount;
@@ -2393,7 +2394,7 @@ int CRestore::ReadFields (const char* pname, void* pBaseData, TYPEDESCRIPTION* p
 		{
 		// Don't clear global fields
 		if (!m_global || !(pFields[i].flags & FTYPEDESC_GLOBAL))
-			memset (((char*)pBaseData + pFields[i].fieldOffset), 0, pFields[i].fieldSize * gSizes[pFields[i].fieldType]);
+			memset (((char *)pBaseData + pFields[i].fieldOffset), 0, pFields[i].fieldSize * gSizes[pFields[i].fieldType]);
 		}
 
 	for (i = 0; i < fileCount; i++)
@@ -2407,7 +2408,7 @@ int CRestore::ReadFields (const char* pname, void* pBaseData, TYPEDESCRIPTION* p
 	}
 
 
-void CRestore::BufferReadHeader (HEADER* pheader)
+void CRestore::BufferReadHeader (HEADER *pheader)
 	{
 	ASSERT (pheader != NULL);
 	pheader->size = ReadShort ();				// Read field size
@@ -2421,7 +2422,7 @@ short	CRestore::ReadShort (void)
 	{
 	short tmp = 0;
 
-	BufferReadBytes ((char*)&tmp, sizeof (short));
+	BufferReadBytes ((char *)&tmp, sizeof (short));
 
 	return tmp;
 	}
@@ -2430,33 +2431,33 @@ int	CRestore::ReadInt (void)
 	{
 	int tmp = 0;
 
-	BufferReadBytes ((char*)&tmp, sizeof (int));
+	BufferReadBytes ((char *)&tmp, sizeof (int));
 
 	return tmp;
 	}
 
-int CRestore::ReadNamedInt (const char* pName)
+int CRestore::ReadNamedInt (const char *pName)
 	{
 	HEADER header;
 
 	BufferReadHeader (&header);
-	return ((int*)header.pData)[0];
+	return ((int *)header.pData)[0];
 	}
 
-char* CRestore::ReadNamedString (const char* pName)
+char *CRestore::ReadNamedString (const char *pName)
 	{
 	HEADER header;
 
 	BufferReadHeader (&header);
 #ifdef TOKENIZE
-	return (char*)(m_pdata->pTokens[*(short*)header.pData]);
+	return (char *)(m_pdata->pTokens[*(short *)header.pData]);
 #else
-	return (char*)header.pData;
+	return (char *)header.pData;
 #endif
 	}
 
 
-char* CRestore::BufferPointer (void)
+char *CRestore::BufferPointer (void)
 	{
 	if (!m_pdata)
 		return NULL;
@@ -2464,7 +2465,7 @@ char* CRestore::BufferPointer (void)
 	return m_pdata->pCurrentData;
 	}
 
-void CRestore::BufferReadBytes (char* pOutput, int size)
+void CRestore::BufferReadBytes (char *pOutput, int size)
 	{
 	ASSERT (m_pdata != NULL);
 
@@ -2492,7 +2493,7 @@ void CRestore::BufferSkipBytes (int bytes)
 
 int CRestore::BufferSkipZString (void)
 	{
-	char* pszSearch;
+	char *pszSearch;
 	int	 len;
 
 	if (!m_pdata)
@@ -2512,7 +2513,7 @@ int CRestore::BufferSkipZString (void)
 	return len;
 	}
 
-int	CRestore::BufferCheckZString (const char* string)
+int	CRestore::BufferCheckZString (const char *string)
 	{
 	if (!m_pdata)
 		return 0;

@@ -75,7 +75,7 @@ void UI_DrawTitleAnim ()
 
 	wrect_t r = { 0, uiStatic.buttons_width, 26, 51 };
 
-	float frac = UI_GetTitleTransFraction ();/*(sin(gpGlobals->time*4)+1)/2*/;
+	float frac = UI_GetTitleTransFraction ();
 
 #ifdef TA_ALT_MODE
 	if (frac == 1 && transition_state == AS_TO_BUTTON)

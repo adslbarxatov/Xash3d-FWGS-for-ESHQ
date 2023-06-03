@@ -989,7 +989,8 @@ void CBaseTrigger::HurtTouch (CBaseEntity *pOther)
 		}
 	}
 
-/*QUAKED trigger_multiple (.5 .5 .5) ? notouch
+/*
+QUAKED trigger_multiple (.5 .5 .5) ? notouch
 Variable sized repeatable trigger.  Must be targeted at one or more entities.
 If "health" is set, the trigger must be killed to activate each time.
 If "delay" is set, the trigger waits some time after activating before firing.
@@ -1092,12 +1093,15 @@ void CTriggerSound::KeyValue (KeyValueData *pkvd)
 		}
 	}
 
-/*QUAKED trigger_once (.5 .5 .5) ? notouch
-Variable sized trigger. Triggers once, then removes itself.  You must set the key "target" to the name of another object in the level that has a matching
+/*
+QUAKED trigger_once (.5 .5 .5) ? notouch
+Variable sized trigger. Triggers once, then removes itself.  You must set the key "target"
+to the name of another object in the level that has a matching
 "targetname".  If "health" is set, the trigger must be killed to activate.
 If notouch is set, the trigger is only fired by other entities, not by touching.
 if "killtarget" is set, any objects that have a matching "target" will be removed when the trigger is fired.
-if "angle" is set, the trigger will only fire when someone is facing the direction of the angle.  Use "360" for an angle of 0.
+if "angle" is set, the trigger will only fire when someone is facing the direction of the angle.
+Use "360" for an angle of 0.
 sounds
 1)      secret
 2)      beep beep
@@ -1287,8 +1291,8 @@ void CBaseTrigger::CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	ActivateMultiTrigger (m_hActivator, -1);
 	}
 
-
-/*QUAKED trigger_counter (.5 .5 .5) ? nomessage
+/*
+QUAKED trigger_counter (.5 .5 .5) ? nomessage
 Acts as an intermediary for an action that takes multiple inputs.
 If nomessage is not set, it will print "1 more.. " etc when triggered and
 "sequence complete" when finished.  After the counter has been triggered "cTriggersLeft"
@@ -1439,11 +1443,11 @@ void CChangeLevel::KeyValue (KeyValueData *pkvd)
 		}
 	}
 
-
-/*QUAKED trigger_changelevel (0.5 0.5 0.5) ? NO_INTERMISSION
-When the player touches this, he gets sent to the map listed in the "map" variable.  Unless the NO_INTERMISSION flag is set, the view will go to the info_intermission spot and display stats.
+/*
+QUAKED trigger_changelevel (0.5 0.5 0.5) ? NO_INTERMISSION
+When the player touches this, he gets sent to the map listed in the "map" variable. Unless the NO_INTERMISSION flag
+is set, the view will go to the info_intermission spot and display stats.
 */
-
 void CChangeLevel::Spawn (void)
 	{
 	if (FStrEq (m_szMapName, ""))
@@ -1831,11 +1835,8 @@ void CTriggerPush::KeyValue (KeyValueData *pkvd)
 	CBaseTrigger::KeyValue (pkvd);
 	}
 
-
-/*QUAKED trigger_push (.5 .5 .5) ? TRIG_PUSH_ONCE
-Pushes the player
-*/
-
+// QUAKED trigger_push (.5 .5 .5) ? TRIG_PUSH_ONCE
+// Pushes the player
 void CTriggerPush::Spawn ()
 	{
 	if (pev->angles == g_vecZero)
@@ -2256,11 +2257,7 @@ void CTriggerCamera::Spawn (void)
 
 	m_initialSpeed = pev->speed;
 
-	// ESHQ: нулевые значения будут использованы для отмены ускорения
-	/*if ( m_acceleration == 0 )
-		m_acceleration = 500;
-	if ( m_deceleration == 0 )
-		m_deceleration = 500;*/
+	// ESHQ: нулевые значения m_acceleration будут использованы для отмены ускорения
 	}
 
 void CTriggerCamera::KeyValue (KeyValueData *pkvd)

@@ -773,14 +773,6 @@ void CBasePlayer::RemoveCurrentItem ()
 	if (id >= WEAPON_CROWBAR)
 		pev->weapons &= ~(1 << id);
 
-	/*// send Selected Weapon Message to our client
-	UpdateClientData ();
-	MESSAGE_BEGIN (MSG_ONE, gmsgCurWeapon, NULL, pev);
-	WRITE_BYTE (0);
-	WRITE_BYTE (0);
-	WRITE_BYTE (0);
-	MESSAGE_END ();*/
-
 	// Звук
 	EMIT_SOUND (ENT (pev), CHAN_VOICE, "items/weapondrop1.wav", 1, ATTN_MEDIUM);
 	}
@@ -1283,7 +1275,7 @@ void CBasePlayer::PlayerDeathThink (void)
 		pev->movetype = MOVETYPE_NONE;
 
 	if (pev->deadflag == DEAD_DYING)
-		pev->deadflag = DEAD_DEAD;
+		pev->deadflag = DEAD_KILLED;
 
 	StopAnimation ();
 
@@ -1293,7 +1285,7 @@ void CBasePlayer::PlayerDeathThink (void)
 	BOOL fAnyButtonDown = (pev->button & ~IN_SCORE);
 
 	// wait for all buttons released
-	if (pev->deadflag == DEAD_DEAD)
+	if (pev->deadflag == DEAD_KILLED)
 		{
 		if (fAnyButtonDown)
 			return;
@@ -1878,7 +1870,9 @@ void CBasePlayer::PreThink (void)
 		pev->velocity = g_vecZero;
 		}
 	}
-/* Time based Damage works as follows:
+
+/*
+Time based Damage works as follows:
 	1) There are several types of timebased damage:
 
 		#define DMG_PARALYZE		(1 << 14)	// slows affected creature down
@@ -2002,22 +1996,24 @@ void CBasePlayer::CheckTimeBasedDamage ()
 
 			if (m_rgbTimeBasedDamage[i])
 				{
-				// use up an antitoxin on poison or nervegas after a few seconds of damage					
+				// use up an antitoxin on poison or nervegas after a few seconds of damage
+
+				// ESHQ: объект более не используется как антидот
+#if EN_ANTIDOTE
 				if (((i == itbd_NerveGas) && (m_rgbTimeBasedDamage[i] < NERVEGAS_DURATION)) ||
 					((i == itbd_Poison) && (m_rgbTimeBasedDamage[i] < POISON_DURATION)))
 					{
-					// ESHQ: более не используется как антидот
-					/*if (m_rgItems[ITEM_ANTIDOTE])
+					if (m_rgItems[ITEM_ANTIDOTE])
 						{
 						m_rgbTimeBasedDamage[i] = 0;
 						m_rgItems[ITEM_ANTIDOTE]--;
 						SetSuitUpdate ("!HEV_HEAL4", FALSE, SUIT_REPEAT_OK);
-						}*/
+						}
 					}
+#endif
 
-
-				// decrement damage duration, detect when done.
-				if (!m_rgbTimeBasedDamage[i] || --m_rgbTimeBasedDamage[i] == 0)
+				// decrement damage duration, detect when done
+				if (!m_rgbTimeBasedDamage[i] || (--m_rgbTimeBasedDamage[i] == 0))
 					{
 					m_rgbTimeBasedDamage[i] = 0;
 					// if we're done, clear damage bits

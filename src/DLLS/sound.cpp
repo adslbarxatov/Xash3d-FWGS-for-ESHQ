@@ -168,10 +168,6 @@ void CAmbientGeneric::Spawn (void)
 		{
 		m_flAttenuation = ATTN_MEDIUM;
 		}
-	/*else if (FBitSet (pev->spawnflags, AMBIENT_SOUND_SMALLRADIUS))
-		{
-		m_flAttenuation = ATTN_SMALL;
-		}*/
 	else	// По умолчанию
 		{
 		m_flAttenuation = ATTN_SMALL;
@@ -179,7 +175,7 @@ void CAmbientGeneric::Spawn (void)
 
 	char *szSoundFile = (char *)STRING (pev->message);
 
-	if (FStringNull (pev->message) || strlen (szSoundFile) < 1)
+	if (FStringNull (pev->message) || (strlen (szSoundFile) < 1))
 		{
 		ALERT (at_error, "EMPTY AMBIENT AT: %f, %f, %f\n", pev->origin.x, pev->origin.y, pev->origin.z);
 		pev->nextthink = gpGlobals->time + 0.1;

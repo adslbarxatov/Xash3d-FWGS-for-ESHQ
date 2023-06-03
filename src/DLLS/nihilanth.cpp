@@ -427,7 +427,7 @@ void CNihilanth::DyingThink (void)
 			{
 			pev->velocity = Vector (0, 0, 0);
 			FireTargets (m_szDeadUse, this, this, USE_ON, 1.0);
-			pev->deadflag = DEAD_DEAD;
+			pev->deadflag = DEAD_KILLED;
 			}
 		}
 
@@ -1621,39 +1621,31 @@ BOOL CNihilanthHVR::CircleTarget (Vector vecTarget)
 		m_vecIdeal = pev->velocity;
 		}
 
-	if (d1 < 0 && d2 <= d1)
-		{
-		// ALERT( at_console, "too close\n");
+	// too close
+	if ((d1 < 0) && (d2 <= d1))
 		m_vecIdeal = m_vecIdeal - (vecDest - vecSrc).Normalize () * 50;
-		}
-	else if (d1 > 0 && d2 >= d1)
-		{
-		// ALERT( at_console, "too far\n");
+
+	// too far
+	else if ((d1 > 0) && (d2 >= d1))
 		m_vecIdeal = m_vecIdeal + (vecDest - vecSrc).Normalize () * 50;
-		}
+
 	pev->avelocity.z = d1 * 20;
 
 	if (d1 < 32)
-		{
 		fClose = TRUE;
-		}
 
 	m_vecIdeal = m_vecIdeal + Vector (RANDOM_FLOAT (-2, 2), RANDOM_FLOAT (-2, 2), RANDOM_FLOAT (-2, 2));
 	m_vecIdeal = Vector (m_vecIdeal.x, m_vecIdeal.y, 0).Normalize () * 200
-		/* + Vector( -m_vecIdeal.y, m_vecIdeal.x, 0 ).Normalize( ) * 32 */
 		+ Vector (0, 0, m_vecIdeal.z);
-	// m_vecIdeal = m_vecIdeal + Vector( -m_vecIdeal.y, m_vecIdeal.x, 0 ).Normalize( ) * 2;
 
 	// move up/down
 	d1 = vecTarget.z - pev->origin.z;
-	if (d1 > 0 && m_vecIdeal.z < 200)
+	if ((d1 > 0) && (m_vecIdeal.z < 200))
 		m_vecIdeal.z += 20;
-	else if (d1 < 0 && m_vecIdeal.z > -200)
+	else if ((d1 < 0) && (m_vecIdeal.z > -200))
 		m_vecIdeal.z -= 20;
 
 	pev->velocity = m_vecIdeal;
-
-	// ALERT( at_console, "%.0f %.0f %.0f\n", m_vecIdeal.x, m_vecIdeal.y, m_vecIdeal.z );
 	return fClose;
 	}
 
@@ -1661,16 +1653,13 @@ BOOL CNihilanthHVR::CircleTarget (Vector vecTarget)
 void CNihilanthHVR::MovetoTarget (Vector vecTarget)
 	{
 	if (m_vecIdeal == Vector (0, 0, 0))
-		{
 		m_vecIdeal = pev->velocity;
-		}
 
 	// accelerate
 	float flSpeed = m_vecIdeal.Length ();
 	if (flSpeed > 300)
-		{
 		m_vecIdeal = m_vecIdeal.Normalize () * 300;
-		}
+
 	m_vecIdeal = m_vecIdeal + (vecTarget - pev->origin).Normalize () * 300;
 	pev->velocity = m_vecIdeal;
 	}

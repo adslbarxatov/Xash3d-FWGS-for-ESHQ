@@ -209,11 +209,6 @@ static void UI_NewGame_Init (void)
 	uiNewGame.easy.generic.y = 230;
 	uiNewGame.easy.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.easy, PC_EASY);
-/*#ifdef RU
-	uiNewGame.easy.generic.statusText = "Слабый урон, прочная броня, слабые враги";
-#else
-	uiNewGame.easy.generic.statusText = "Low damage, strong armor, weak enemies";
-#endif*/
 
 	uiNewGame.medium.generic.id = ID_MEDIUM;
 	uiNewGame.medium.generic.type = QMTYPE_BM_BUTTON;
@@ -224,11 +219,6 @@ static void UI_NewGame_Init (void)
 	uiNewGame.medium.generic.y = 280;
 	uiNewGame.medium.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.medium, PC_MEDIUM);
-/*#ifdef RU
-	uiNewGame.medium.generic.statusText = "Средние урон, броня и враги";
-#else
-	uiNewGame.medium.generic.statusText = "Medium damage, armor and enemies";
-#endif*/
 
 	uiNewGame.hard.generic.id = ID_DIFFICULT;
 	uiNewGame.hard.generic.type = QMTYPE_BM_BUTTON;
@@ -239,11 +229,6 @@ static void UI_NewGame_Init (void)
 	uiNewGame.hard.generic.y = 330;
 	uiNewGame.hard.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.hard, PC_DIFFICULT);
-/*#ifdef RU
-	uiNewGame.hard.generic.statusText = "Сильный урон, слабая броня, сильные враги";
-#else
-	uiNewGame.hard.generic.statusText = "High damage, weak armor, strong enemies";
-#endif*/
 
 	uiNewGame.cancel.generic.id = ID_CANCEL;
 	uiNewGame.cancel.generic.type = QMTYPE_BM_BUTTON;

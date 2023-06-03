@@ -36,7 +36,7 @@ extern DLL_GLOBAL int			g_iSkillLevel;
 extern Vector VecBModelOrigin (entvars_t* pevBModel);
 extern entvars_t* g_pevLastInflictor;
 
-/*#define GERMAN_GIB_COUNT		4*/	// ESHQ: нам это не нужно
+// ESHQ: удалена GERMAN_GIB_COUNT
 #define	HUMAN_GIB_COUNT			11	// ESHQ: в новой модели их 11
 #define ALIEN_GIB_COUNT			6	// ESHQ: этих тоже стало больше
 
@@ -183,14 +183,7 @@ void CGib::SpawnRandomGibs2 (entvars_t* pevVictim, int cGibs, int gibsType)
 		{
 		CGib* pGib = GetClassPtr ((CGib*)NULL);
 
-		// ESHQ: нам это не нужно
-		/*if (g_Language == LANGUAGE_GERMAN)
-			{
-			pGib->Spawn ("models/germangibs.mdl");
-			pGib->pev->body = RANDOM_LONG (0, GERMAN_GIB_COUNT - 1);
-			}
-		else
-		{*/
+		// ESHQ: удалена LANGUAGE_GERMAN
 
 		switch (gibsType)
 			{
@@ -1270,16 +1263,15 @@ BOOL CBaseEntity::FVisible (CBaseEntity* pEntity)
 	vecLookerOrigin = pev->origin + pev->view_ofs;//look through the caller's 'eyes'
 	vecTargetOrigin = pEntity->EyePosition ();
 
-	UTIL_TraceLine (vecLookerOrigin, vecTargetOrigin, ignore_monsters, ignore_glass, ENT (pev)/*pentIgnore*/, &tr);
+	UTIL_TraceLine (vecLookerOrigin, vecTargetOrigin, ignore_monsters, ignore_glass, ENT (pev), &tr);
 
+	// Line of sight is not established
 	if (tr.flFraction != 1.0)
-		{
-		return FALSE;// Line of sight is not established
-		}
+		return FALSE;
+
+	// Line of sight is valid
 	else
-		{
-		return TRUE;// line of sight is valid.
-		}
+		return TRUE;
 	}
 
 //=========================================================
@@ -1293,16 +1285,15 @@ BOOL CBaseEntity::FVisible (const Vector& vecOrigin)
 
 	vecLookerOrigin = EyePosition ();//look through the caller's 'eyes'
 
-	UTIL_TraceLine (vecLookerOrigin, vecOrigin, ignore_monsters, ignore_glass, ENT (pev)/*pentIgnore*/, &tr);
+	UTIL_TraceLine (vecLookerOrigin, vecOrigin, ignore_monsters, ignore_glass, ENT (pev), &tr);
 
+	// Line of sight is not established
 	if (tr.flFraction != 1.0)
-		{
-		return FALSE;// Line of sight is not established
-		}
+		return FALSE;
+
+	// Line of sight is valid
 	else
-		{
-		return TRUE;// line of sight is valid.
-		}
+		return TRUE;
 	}
 
 /*
@@ -1407,24 +1398,22 @@ void CBaseEntity::FireBullets (ULONG cShots, Vector vecSrc, Vector vecDirShootin
 			Vector vecEnd;
 
 			vecEnd = vecSrc + vecDir * flDistance;
-			UTIL_TraceLine (vecSrc, vecEnd, dont_ignore_monsters, ENT (pev)/*pentIgnore*/, &tr);
+			UTIL_TraceLine (vecSrc, vecEnd, dont_ignore_monsters, ENT (pev), &tr);
 
 			tracer = 0;
-			if (iTracerFreq != 0 && (tracerCount++ % iTracerFreq) == 0)
+			if ((iTracerFreq != 0) && ((tracerCount++ % iTracerFreq) == 0))
 				{
 				Vector vecTracerSrc;
 
+				// adjust tracer position for player
 				if (IsPlayer ())
-					{// adjust tracer position for player
 					vecTracerSrc = vecSrc + Vector (0, 0, -4) + gpGlobals->v_right * 2 + gpGlobals->v_forward * 16;
-					}
 				else
-					{
 					vecTracerSrc = vecSrc;
-					}
 
 				if (iTracerFreq != 1)		// guns that always trace also always decal
 					tracer = 1;
+
 				switch (iBulletType)
 					{
 					case BULLET_MONSTER_MP5:
@@ -1541,7 +1530,7 @@ Vector CBaseEntity::FireBulletsPlayer (ULONG cShots, Vector vecSrc, Vector vecDi
 		Vector vecEnd;
 
 		vecEnd = vecSrc + vecDir * flDistance;
-		UTIL_TraceLine (vecSrc, vecEnd, dont_ignore_monsters, ENT (pev)/*pentIgnore*/, &tr);
+		UTIL_TraceLine (vecSrc, vecEnd, dont_ignore_monsters, ENT (pev), &tr);
 
 		// do damage, paint decals
 		if (tr.flFraction != 1.0)

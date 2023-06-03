@@ -265,7 +265,8 @@ class CPlatTrigger: public CBaseEntity
 		CFuncPlat* m_pPlatform;
 	};
 
-/*QUAKED func_plat (0 .5 .8) ? PLAT_LOW_TRIGGER
+/*
+QUAKED func_plat (0 .5 .8) ? PLAT_LOW_TRIGGER
 speed	default 150
 
 Plats are always drawn in the extended position, so they will light correctly.
@@ -835,7 +836,8 @@ void CFuncTrain::Activate (void)
 		}
 	}
 
-/*QUAKED func_train (0 .5 .8) ?
+/*
+QUAKED func_train (0 .5 .8) ?
 Trains are moving platforms that players can ride.
 The targets origin specifies the min point of the train at each corner.
 The train spawns at the first target it is pointing at.
@@ -1448,7 +1450,8 @@ CFuncTrackTrain* CFuncTrackTrain::Instance (edict_t* pent)
 	return NULL;
 	}
 
-/*QUAKED func_train (0 .5 .8) ?
+/*
+QUAKED func_train (0 .5 .8) ?
 Trains are moving platforms that players can ride.
 The targets origin specifies the min point of the train at each corner.
 The train spawns at the first target it is pointing at.
@@ -1458,7 +1461,6 @@ dmg		default	2
 sounds
 1) ratchet metal
 */
-
 void CFuncTrackTrain::Spawn (void)
 	{
 	if (pev->speed == 0)

@@ -249,7 +249,8 @@ void CBaseDoor::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-/*QUAKED func_door (0 .5 .8) ? START_OPEN x DOOR_DONT_LINK TOGGLE
+/*
+QUAKED func_door (0 .5 .8) ? START_OPEN x DOOR_DONT_LINK TOGGLE
 if two doors touch, they are assumed to be connected and operate as a unit.
 
 TOGGLE causes the door to wait in both the start and end states for a trigger event.
@@ -796,8 +797,8 @@ void CBaseDoor::Blocked (CBaseEntity* pOther)
 		}
 	}
 
-
-/*QUAKED FuncRotDoorSpawn (0 .5 .8) ? START_OPEN REVERSE
+/*
+QUAKED FuncRotDoorSpawn (0 .5 .8) ? START_OPEN REVERSE
 DOOR_DONT_LINK TOGGLE X_AXIS Y_AXIS
 if two doors touch, they are assumed to be connected and operate as
 a unit.

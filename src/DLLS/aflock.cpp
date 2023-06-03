@@ -568,14 +568,16 @@ void CFlockingFlyer::FlockLeaderThink (void)
 	UTIL_MakeVectors (pev->angles);
 
 	// ESHQ test: перенос на игрока
-	/*CBaseEntity* p = UTIL_PlayerByIndex (1);
+#if ATT_P_TO_FF
+	CBaseEntity* p = UTIL_PlayerByIndex (1);
 	if (p)
 		{
 		//SET_VIEW (p->edict (), edict ());
 		Vector delta = pev->origin - p->pev->origin;
 		delta = delta.Normalize ();
 		p->pev->velocity = delta * 100;
-		}/**/
+		}
+#endif
 
 	// is the way ahead clear?
 	if (!FPathBlocked ())

@@ -49,9 +49,8 @@ Vector VecBModelOrigin (entvars_t* pevBModel)
 
 // =================== FUNC_WALL ==============================================
 
-/*QUAKED func_wall (0 .5 .8) ?
-This is just a solid wall if not inhibited
-*/
+// QUAKED func_wall (0 .5 .8) ?
+// This is just a solid wall if not inhibited
 class CFuncWall: public CBaseEntity
 	{
 	public:
@@ -184,9 +183,8 @@ void CFuncConveyor::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE
 
 // =================== FUNC_ILLUSIONARY ==============================================
 
-/*QUAKED func_illusionary (0 .5 .8) ?
-A simple entity that looks solid but lets you walk through it.
-*/
+// QUAKED func_illusionary (0 .5 .8) ?
+// A simple entity that looks solid but lets you walk through it
 class CFuncIllusionary: public CBaseToggle
 	{
 	public:
@@ -338,7 +336,8 @@ void CFuncRotating::KeyValue (KeyValueData* pkvd)
 		CBaseEntity::KeyValue (pkvd);
 	}
 
-/*QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS
+/*
+QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS
 You need to have an origin brush as part of this entity.  The
 center of that brush will be
 the point around which it is rotated. It will rotate around the Z

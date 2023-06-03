@@ -419,7 +419,6 @@ void CApache::CrashTouch (CBaseEntity* pOther)
 
 void CApache::GibMonster (void)
 	{
-	/* EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "common/bodysplat.wav", 0.75, ATTN_MEDIUM, 0, 200);*/
 	}
 
 void CApache::HuntThink (void)
@@ -429,7 +428,7 @@ void CApache::HuntThink (void)
 
 	ShowDamage ();
 
-	if (m_pGoalEnt == NULL && !FStringNull (pev->target))	// this monster has a target
+	if ((m_pGoalEnt == NULL) && !FStringNull (pev->target))	// this monster has a target
 		{
 		m_pGoalEnt = UTIL_FindEntityByTargetname (NULL, STRING (pev->target));
 		if (m_pGoalEnt)
