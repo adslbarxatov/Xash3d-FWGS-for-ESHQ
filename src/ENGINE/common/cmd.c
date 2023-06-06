@@ -997,7 +997,6 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 	cmd_condlevel = 0;
 
 	// [FWGS, 01.04.23] cvar value substitution
-	/*if (CVAR_TO_BOOL (cmd_scripting))*/
 	if (CVAR_TO_BOOL (cmd_scripting) && isPrivileged)
 		{
 		while (*text)
@@ -1167,8 +1166,6 @@ void Cmd_ForwardToServer (void)
 	str[0] = 0;
 	if (Q_stricmp (Cmd_Argv (0), "cmd"))
 		{
-		/*Q_strcat (str, Cmd_Argv (0));
-		Q_strcat (str, " ");*/
 		Q_strncat (str, Cmd_Argv (0), sizeof (str));	// [FWGS, 01.05.23]
 		Q_strncat (str, " ", sizeof (str));
 		}
@@ -1178,8 +1175,6 @@ void Cmd_ForwardToServer (void)
 		Q_strncat (str, Cmd_Args (), sizeof (str));
 	else
 		Q_strncat (str, "\n", sizeof (str));
-		/*Q_strcat (str, Cmd_Args ());
-	else Q_strcat (str, "\n");*/
 
 	MSG_WriteString (&cls.netchan.message, str);
 	}
@@ -1279,23 +1274,14 @@ static void Cmd_Apropos_f (void)
 	cmdalias_t *alias;
 	const char *partial;
 	int count = 0;
-	/*qboolean ispattern;*/
 	char buf[MAX_VA_STRING];
 
-	/*if (Cmd_Argc () > 1)
-		{
-		partial = Cmd_Args ();
-		}
-	else*/
 	if (Cmd_Argc () < 2)
 		{
 		Msg ("apropos what?\n");
 		return;
 		}
 
-	/*ispattern = partial && Q_strpbrk (partial, "*?");
-	if (!ispattern)
-		partial = va ("*%s*", partial);*/
 	partial = Cmd_Args ();
 	if (!Q_strpbrk (partial, "*?"))
 		{
@@ -1442,8 +1428,6 @@ void Cmd_Init (void)
 		"remove a script function");
 
 	// [FWGS, 01.04.23]
-	/*Cmd_AddCommand ("if", Cmd_If_f, "compare and set condition bits");
-	Cmd_AddCommand ("else", Cmd_Else_f, "invert condition bit");*/
 	Cmd_AddRestrictedCommand ("if", Cmd_If_f, 
 		"compare and set condition bits");
 	Cmd_AddRestrictedCommand ("else", Cmd_Else_f, 

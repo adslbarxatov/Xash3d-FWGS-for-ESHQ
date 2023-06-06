@@ -480,27 +480,16 @@ void R_ShowTree (void)
 
 	world.recursion_level = 0;
 	viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes);
-
-	/*pglEnable( GL_BLEND );
-	pglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-
-	pglLineWidth( 2.0f );*/
 	ref.dllFuncs.Color4f (1, 0.7f, 0, 1.0f);
-	/*pglDisable( GL_TEXTURE_2D );*/
+
 	R_ShowTree_r (cl.worldmodel->nodes, x, y, world.max_recursion * 3.5f, 2, viewleaf);
-	/*pglEnable( GL_TEXTURE_2D );
-	pglLineWidth( 1.0f );*/
-
 	R_ShowTree_r (cl.worldmodel->nodes, x, y, world.max_recursion * 3.5f, 1, viewleaf);
-
 	Con_NPrintf (0, "max recursion %d\n", world.max_recursion);
 	}
 
 /*
 ==================
 V_PostRender
-
 ==================
 */
 void V_PostRender (void)

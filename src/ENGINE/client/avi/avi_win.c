@@ -57,13 +57,13 @@ dll_info_t msacm_dll = { "msacm32.dll", msacm_funcs, false };
 
 // avifil32.dll exports
 static int (_stdcall *pAVIStreamInfo)(PAVISTREAM pavi, AVISTREAMINFO *psi, LONG lSize);
-static int (_stdcall *pAVIStreamRead)(PAVISTREAM pavi, LONG lStart, LONG lSamples, void *lpBuffer, LONG cbBuffer, LONG *plBytes, LONG *plSamples);
+static int (_stdcall *pAVIStreamRead)(PAVISTREAM pavi, LONG lStart, LONG lSamples, void *lpBuffer,
+	LONG cbBuffer, LONG *plBytes, LONG *plSamples);
 static PGETFRAME (_stdcall *pAVIStreamGetFrameOpen)(PAVISTREAM pavi, LPBITMAPINFOHEADER lpbiWanted);
 static int (_stdcall *pAVIStreamTimeToSample)(PAVISTREAM pavi, LONG lTime);
 static void *(_stdcall *pAVIStreamGetFrame)(PGETFRAME pg, LONG lPos);
 static int (_stdcall *pAVIStreamGetFrameClose)(PGETFRAME pg);
 static dword (_stdcall *pAVIStreamRelease)(PAVISTREAM pavi);
-/*static int (_stdcall *pAVIFileOpen)(PAVIFILE *ppfile, LPCSTR szFile, UINT uMode, LPCLSID lpHandler);*/
 static int (_stdcall *pAVIFileOpenW)(PAVIFILE *ppfile, LPCWSTR szFile, UINT uMode, LPCLSID lpHandler);	// [FWGS, 01.05.23]
 static int (_stdcall *pAVIFileGetStream)(PAVIFILE pfile, PAVISTREAM *ppavi, DWORD fccType, LONG lParam);
 static int (_stdcall *pAVIStreamReadFormat)(PAVISTREAM pavi, LONG lPos, LPVOID lpFormat, LONG *lpcbFormat);
@@ -283,15 +283,7 @@ int AVI_GetVideoFrameNumber (movie_state_t *Avi, float time)
 	return (time * Avi->video_fps);
 	}
 
-/* [FWGS, 01.05.23]
-int AVI_GetVideoFrameCount (movie_state_t *Avi)
-	{
-	if (!Avi->active)
-		return 0;
-
-	return Avi->video_frames;
-	}
-*/
+// [FWGS, 01.05.23] удалена AVI_GetVideoFrameCount
 
 int AVI_TimeToSoundPosition (movie_state_t *Avi, int time)
 	{
@@ -525,7 +517,6 @@ void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audi
 		}
 
 	// load the AVI [FWGS, 01.05.23]
-	/*hr = pAVIFileOpen (&Avi->pfile, filename, OF_SHARE_DENY_WRITE, 0L);*/
 	hr = pAVIFileOpenW (&Avi->pfile, pathBuffer, OF_SHARE_DENY_WRITE, 0L);
 
 	if (hr != 0) // error opening AVI:
@@ -681,7 +672,6 @@ movie_state_t *AVI_LoadVideo (const char *filename, qboolean load_audio)
 
 	// open cinematic
 	Q_snprintf (path, sizeof (path), "media/%s", filename);
-	/*COM_DefaultExtension (path, ".avi");*/
 	COM_DefaultExtension (path, ".avi", sizeof (path));	// [FWGS, 01.05.23]
 	fullpath = FS_GetDiskPath (path, false);
 

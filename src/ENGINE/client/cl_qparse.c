@@ -242,10 +242,6 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		Cvar_Reset ("r_decals");
 		}
 
-	/* [FWGS, 01.04.23] re-init mouse
-	if (cl.background)
-		host.mouse_visible = false;*/
-
 	if (cl.background)	// tell the game parts about background state
 		Cvar_FullSet ("cl_background", "1", FCVAR_READ_ONLY);
 	else

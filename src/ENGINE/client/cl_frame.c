@@ -252,7 +252,6 @@ static float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
 			{
 			sequence = bound (0, ent->curstate.sequence, pstudiohdr->numseq - 1);
 			pseqdesc = (mstudioseqdesc_t *)((byte *)pstudiohdr + pstudiohdr->seqindex) + sequence;
-			/*return ref.dllFuncs.R_StudioEstimateFrame (ent, pseqdesc);*/
 			return ref.dllFuncs.R_StudioEstimateFrame (ent, pseqdesc, cl.time);
 			}
 		}
@@ -688,15 +687,14 @@ void CL_FlushEntityPacket (sizebuf_t *msg)
 	// read it all, but ignore it
 	while (1)
 		{
-		/*newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
-		if (newnum == LAST_EDICT) break; // done*/
 		if (!CL_ParseEntityNumFromPacket (msg, &newnum))	// [FWGS, 01.05.23]
 			break; // done
 
 		if (MSG_CheckOverflow (msg))
 			Host_Error ("CL_FlushEntityPacket: overflow\n");
 
-		MSG_ReadDeltaEntity (msg, &from, &to, newnum, CL_IsPlayerIndex (newnum) ? DELTA_PLAYER : DELTA_ENTITY, cl.mtime[0]);
+		MSG_ReadDeltaEntity (msg, &from, &to, newnum, CL_IsPlayerIndex (newnum) ? DELTA_PLAYER : DELTA_ENTITY,
+			cl.mtime[0]);
 		}
 	}
 
@@ -858,21 +856,8 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 
 	while (1)
 		{
-		/*int lastedict;
-		if (cls.legacymode)
-			{
-			newnum = MSG_ReadWord (msg);
-			lastedict = 0;
-			}
-		else
-			{
-			newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
-			lastedict = LAST_EDICT;
-			}*/
 		if (!CL_ParseEntityNumFromPacket (msg, &newnum))	// [FWGS, 01.05.23]
 			break; // done
-
-		/*if (newnum == lastedict) break; // end of packet entities*/
 
 		if (MSG_CheckOverflow (msg))
 			Host_Error ("CL_ParsePacketEntities: overflow\n");
@@ -988,16 +973,6 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 	if (!ent || !ent->model)
 		return false;
 
-	/* [FWGS, 01.04.23] check for adding this entity
-	if (!clgame.dllFuncs.pfnAddEntity (entityType, ent, ent->model->name))
-		{
-		// local player was reject by game code, so ignore any effects
-		if (RP_LOCALCLIENT (ent))
-			cl.local.apply_effects = false;
-		return false;
-		}
-	*/
-
 	// don't add the player in firstperson mode
 	if (RP_LOCALCLIENT (ent))
 		{
@@ -1010,7 +985,6 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 			// for use in custom renderers
 			draw_player = false;
 			}
-		/*return false;*/
 		}
 
 	// [FWGS, 01.04.23] check for adding this entity

@@ -333,21 +333,15 @@ typedef struct
 // [FWGS, 01.04.23]
 typedef struct
 	{
-	int		hFontTexture;			// handle to texture
-	
-	/*wrect_t		fontRc[256];	// rectangles
-	byte		charWidths[256];
-	int		charHeight;
-	int		type;*/
-	wrect_t  fontRc[256];			// tex coords
-	float    scale;					// scale factor
-	byte     charWidths[256];		// scaled widths
-	int      charHeight;			// scaled height
-	int      type;					// fixed width font or variable
-	int      rendermode;			// default rendermode
+	int			hFontTexture;		// handle to texture	
+	wrect_t		fontRc[256];		// tex coords
+	float		scale;				// scale factor
+	byte		charWidths[256];	// scaled widths
+	int			charHeight;			// scaled height
+	int			type;				// fixed width font or variable
+	int			rendermode;			// default rendermode
 	qboolean	nearest;			// nearest filtering enabled
-
-	qboolean		valid;			// all rectangles are valid
+	qboolean	valid;				// all rectangles are valid
 	} cl_font_t;
 
 // [FWGS, 01.04.23]
@@ -364,22 +358,12 @@ typedef struct scissor_state_s
 typedef struct
 	{
 	// scissor test
-	scissor_state_t scissor;
+	scissor_state_t	scissor;
 
 	// temp handle
-	const model_t *pSprite;			// pointer to current SpriteTexture
-
-	/* scissor test
-	int		scissor_x;
-	int		scissor_y;
-	int		scissor_width;
-	int		scissor_height;
-	qboolean		scissor_test;
-	qboolean		adjust_size;		// allow to adjust scale for fonts
-	*/
-
-	int		renderMode;		// override kRenderMode from TriAPI
-	TRICULLSTYLE	cullMode;			// override CULL FACE from TriAPI
+	const model_t	*pSprite;		// pointer to current SpriteTexture
+	int				renderMode;		// override kRenderMode from TriAPI
+	TRICULLSTYLE	cullMode;		// override CULL FACE from TriAPI
 
 	// holds text color
 	rgba_t		textColor;
@@ -405,25 +389,16 @@ typedef struct cl_predicted_player_s
 // [FWGS, 01.04.23]
 typedef struct
 	{
-	/*int		gl_texturenum;	// this is a real texnum
-
-	// scissor test
-	int		scissor_x;
-	int		scissor_y;
-	int		scissor_width;
-	int		scissor_height;
-	qboolean		scissor_test;*/
-
-	scissor_state_t scissor;	// scissor test
-	int		gl_texturenum;		// this is a real texnum
-	rgba_t		textColor;		// holds text color
+	scissor_state_t	scissor;		// scissor test
+	int				gl_texturenum;	// this is a real texnum
+	rgba_t			textColor;		// holds text color
 	} gameui_draw_t;
 
 typedef struct
 	{
-	char		szListName[MAX_QPATH];
-	client_sprite_t *pList;
-	int		count;
+	char			szListName[MAX_QPATH];
+	client_sprite_t	*pList;
+	int				count;
 	} cached_spritelist_t;
 
 typedef struct
@@ -575,7 +550,8 @@ typedef struct
 	int		quakePort;		// a 16 bit value that allows quake servers
 	// to work around address translating routers
 	// g-cont. this port allow many copies of engine in multiplayer game
-// connection information
+	// connection information
+
 	char		servername[MAX_QPATH];	// name of server from original connect
 	double		connect_time;		// for connection retransmits
 	int		max_fragment_size;		// we needs to test a real network bandwidth
@@ -860,7 +836,6 @@ void CL_FreeEdicts (void);
 void CL_ClearWorld (void);
 void CL_DrawCenterPrint (void);
 void CL_ClearSpriteTextures (void);
-/*void CL_FreeEntity (cl_entity_t *pEdict);*/	// // [FWGS, 01.05.23]
 void CL_CenterPrint (const char *text, float y);
 void CL_TextMessageParse (byte *pMemFile, int fileSize);
 client_textmessage_t *CL_TextMessageGet (const char *pName);	// [FWGS, 01.04.23]
@@ -874,7 +849,6 @@ model_t *CL_LoadClientSprite (const char *filename);
 model_t *CL_LoadModel (const char *modelname, int *index);
 HLSPRITE EXPORT pfnSPR_Load (const char *szPicName);
 HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags);
-//void PicAdjustSize (float *x, float *y, float *w, float *h);	// [FWGS, 01.04.23]
 void SPR_AdjustSize (float *x, float *y, float *w, float *h);
 void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2);
 
@@ -923,7 +897,6 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message);
 void CL_LegacyPrecache_f (void);
 
 void CL_ParseTempEntity (sizebuf_t *msg);
-/*void CL_StartResourceDownloading (const char *pszMessage, qboolean bCustom);*/	// [FWGS, 01.05.23]
 qboolean CL_DispatchUserMessage (const char *pszName, int iSize, void *pbuf);
 qboolean CL_RequestMissingResources (void);
 void CL_RegisterResources (sizebuf_t *msg);
@@ -974,10 +947,8 @@ void CL_PredictMovement (qboolean repredicting);
 void CL_CheckPredictionError (void);
 qboolean CL_IsPredicted (void);
 int CL_TruePointContents (const vec3_t p);
-//int CL_PointContents (const vec3_t p);	// [FWGS, 01.04.23]
 int CL_WaterEntity (const float *rgflPos);
 cl_entity_t *CL_GetWaterEntity (const float *rgflPos);
-//void CL_SetupPMove (playermove_t *pmove, local_state_t *from, usercmd_t *ucmd, qboolean runfuncs, double time);
 int CL_TestLine (const vec3_t start, const vec3_t end, int flags);
 pmtrace_t *CL_VisTraceLine (vec3_t start, vec3_t end, int flags);
 pmtrace_t CL_TraceLine (vec3_t start, vec3_t end, int flags);
@@ -986,7 +957,6 @@ void CL_PopTraceBounds (void);
 void CL_MoveSpectatorCamera (void);
 void CL_SetLastUpdate (void);
 void CL_RedoPrediction (void);
-//void CL_ClearPhysEnts (void);		// [FWGS, 01.04.23]
 void CL_PushPMStates (void);
 void CL_PopPMStates (void);
 void CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient);
@@ -1037,7 +1007,7 @@ const ref_overview_t *GL_GetOverviewParms (void);
 //
 void R_StoreEfrags (efrag_t **ppefrag, int framecount);
 void R_AddEfrags (cl_entity_t *ent);
-/*void R_RemoveEfrags (cl_entity_t *ent);*/		// [FWGS, 01.05.23]
+
 //
 // cl_tent.c
 //
@@ -1092,15 +1062,10 @@ int Con_UtfProcessCharForce (int in);
 int Con_UtfMoveLeft (char *str, int pos);
 int Con_UtfMoveRight (char *str, int pos, int length);
 
-// [FWGS, 01.04.23]
-/*void Con_DrawStringLen (const char *pText, int *length, int *height);
-int Con_DrawString (int x, int y, const char *string, rgba_t setColor);
-int Con_DrawCharacter (int x, int y, int number, rgba_t color);
-void Con_DrawCharacterLen (int number, int *width, int *height);*/
+// [FWGS, 01.04.23] удалены Con_DrawStringLen, Con_DrawString, Con_DrawCharacter, Con_DrawCharacterLen
 
 void Con_DefaultColor (int r, int g, int b);
 void Con_InvalidateFonts (void);
-//void Con_SetFont (int fontNum);	// [FWGS, 01.04.23]
 cl_font_t *Con_GetCurFont (void);
 cl_font_t *Con_GetFont (int num);
 void Con_DrawCharacterLen (int number, int *width, int *height);
@@ -1204,7 +1169,6 @@ void CL_PlayVideo_f (void);
 // keys.c
 //
 int Key_IsDown (int keynum);
-/*const char *Key_IsBind (int keynum);*/	// [FWGS, 01.05.23]
 void Key_Event (int key, int down);
 void Key_Init (void);
 void Key_WriteBindings (file_t *f);
@@ -1222,4 +1186,4 @@ void OSK_Draw (void);
 
 extern rgba_t g_color_table[8];
 
-#endif//CLIENT_H
+#endif

@@ -554,7 +554,6 @@ This doesn't search in the pak file
 */
 int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, int nameOutBufferSize)
 	{
-	/*const char *path;*/
 	char	result[MAX_SYSPATH];
 
 	if (!COM_CheckString (fileName) || !nameOutBuffer || (nameOutBufferSize <= 0))
@@ -563,11 +562,8 @@ int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, i
 	// filename examples:
 	// media\sierra.avi - D:\Xash3D\valve\media\sierra.avi
 	// models\barney.mdl - D:\Xash3D\bshift\models\barney.mdl
-	/*if ((path = FS_GetDiskPath (fileName, false)) != NULL)*/
 	if (g_fsapi.GetFullDiskPath (result, sizeof (result), fileName, false))
 		{
-		/*Q_sprintf (result, "%s/%s", host.rootdir, path);*/
-
 		// check for enough room
 		if (Q_strlen (result) > nameOutBufferSize)
 			return 0;
@@ -902,10 +898,6 @@ cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue,
 	if (!Q_stricmp (szName, "motdfile"))
 		flags |= FCVAR_PRIVILEGED;
 
-	/*if (FBitSet (flags, FCVAR_GLCONFIG))
-		return (cvar_t *)Cvar_Get (szName, szValue, flags, va (CVAR_GLCONFIG_DESCRIPTION, szName));
-	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_CLIENTDLL, Cvar_BuildAutoDescription (flags |
-		FCVAR_CLIENTDLL));*/
 	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_CLIENTDLL, Cvar_BuildAutoDescription (szName, flags |
 		FCVAR_CLIENTDLL));
 	}
@@ -917,10 +909,6 @@ pfnCvar_RegisterVariable [FWGS, 01.04.23]
 */
 cvar_t *pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
 	{
-	/*if (FBitSet (flags, FCVAR_GLCONFIG))
-		return (cvar_t *)Cvar_Get (szName, szValue, flags, va (CVAR_GLCONFIG_DESCRIPTION, szName));
-	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (flags |
-		FCVAR_GAMEUIDLL));*/
 	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (szName, flags |
 		FCVAR_GAMEUIDLL));
 	}
@@ -1017,7 +1005,7 @@ void GAME_EXPORT pfnGetGameDir (char *szGetGameDir)
 	{
 	if (!szGetGameDir)
 		return;
-	/*Q_strcpy (szGetGameDir, GI->gamefolder);*/
+
 	Q_strncpy (szGetGameDir, GI->gamefolder, sizeof (GI->gamefolder));
 	}
 
@@ -1101,8 +1089,6 @@ char *_copystring (poolhandle_t mempool, const char *s, const char *filename, in
 	if (!mempool)
 		mempool = host.mempool;
 
-	/*b = _Mem_Alloc (mempool, Q_strlen (s) + 1, false, filename, fileline);
-	Q_strcpy (b, s);*/
 	size = Q_strlen (s) + 1;
 	b = _Mem_Alloc (mempool, size, false, filename, fileline);
 	Q_strncpy (b, s, size);

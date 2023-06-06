@@ -101,12 +101,6 @@ void CL_DescribeEvent (event_info_t *ei, int slot)
 			ei->args.origin[0], ei->args.origin[1], ei->args.origin[2]);
 		}
 
-	/*if( !VectorIsNull( ei->args.angles ))
-	{
-		Q_snprintf( angles_str, sizeof( angles_str ), "ang %.2f %.2f %.2f",
-			ei->args.angles[0], ei->args.angles[1], ei->args.angles[2]);
-	}*/
-
 	Con_NXPrintf (&info, "%i %.2f %c %s %s",
 		slot, cl.time,
 		(FBitSet (ei->flags, FEV_CLIENT) ? 'c' :

@@ -1042,7 +1042,6 @@ void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t
 			vecSpot[2] = pos[2] + COM_RandomFloat (-0.5f, 0.5f) * size[2];
 
 			// [FWGS, 01.04.23]
-			/*if (CL_PointContents (vecSpot) != CONTENTS_SOLID)*/
 			if (PM_CL_PointContents (vecSpot, NULL) != CONTENTS_SOLID)
 				break; // valid spot
 			}
@@ -1256,42 +1255,15 @@ apply params for exploding sprite
 */
 void GAME_EXPORT R_Sprite_Explode (TEMPENTITY *pTemp, float scale, int flags)
 	{
-	/*if (!pTemp) return;*/
 	qboolean noadditive, drawalpha, rotate;
 
 	if (!pTemp)
 		return;
-	/*if (FBitSet (flags, TE_EXPLFLAG_NOADDITIVE))
-		{
-		// solid sprite
-		pTemp->entity.curstate.rendermode = kRenderNormal;
-		pTemp->entity.curstate.renderamt = 255;
-		}
-	else if (FBitSet (flags, TE_EXPLFLAG_DRAWALPHA))
-		{
-		// alpha sprite (came from hl2)
-		pTemp->entity.curstate.rendermode = kRenderTransAlpha;
-		pTemp->entity.curstate.renderamt = 180;
-		}
-	else
-		{
-		// additive sprite
-		pTemp->entity.curstate.rendermode = kRenderTransAdd;
-		pTemp->entity.curstate.renderamt = 180;
-		}*/
 
 	noadditive = FBitSet (flags, TE_EXPLFLAG_NOADDITIVE);
 	drawalpha = FBitSet (flags, TE_EXPLFLAG_DRAWALPHA);
 	rotate = FBitSet (flags, TE_EXPLFLAG_ROTATE);
-	/*if (FBitSet (flags, TE_EXPLFLAG_ROTATE))
-		{
-		// came from hl2
-		pTemp->entity.angles[2] = COM_RandomLong (0, 360);
-		}*/
 
-	/*pTemp->entity.curstate.renderfx = kRenderFxNone;
-	pTemp->entity.baseline.origin[2] = 8;
-	pTemp->entity.origin[2] += 10;*/
 	pTemp->entity.curstate.scale = scale;
 	pTemp->entity.baseline.origin[2] = 8.0f;
 	pTemp->entity.origin[2] = pTemp->entity.origin[2] + 10.0f;
@@ -2977,7 +2949,6 @@ void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, float *pos
 			if (!pCust->nUserData1)
 				{
 				// [FWGS, 01.04.23]
-				/*const char *decalname = va ("player%dlogo%d", playernum, customIndex);*/
 				int sprayTextureIndex;
 				char decalname[MAX_VA_STRING];
 

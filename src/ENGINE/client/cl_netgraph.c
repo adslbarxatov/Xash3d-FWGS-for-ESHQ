@@ -282,7 +282,6 @@ static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 			for (j = start; j < h; j++)
 				{
 				// [FWGS, 01.04.23]
-				/*NetGraph_DrawRect (&fill, netcolors[NETGRAPH_NET_COLORS + j + extrap_point]);*/
 				int color = NETGRAPH_NET_COLORS + j + extrap_point;
 				color = Q_min (color, ARRAYSIZE (netcolors) - 1);
 
@@ -303,7 +302,6 @@ static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 			for (j = 0; j < h; j++)
 				{
 				// [FWGS, 01.04.23]
-				/*NetGraph_DrawRect (&fill, netcolors[NETGRAPH_NET_COLORS + j + oldh]);*/
 				int color = NETGRAPH_NET_COLORS + j + oldh;
 				color = Q_min (color, ARRAYSIZE (netcolors) - 1);
 
@@ -325,11 +323,6 @@ static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 		}
 	}
 
-		/*left = x
-		right = width
-		top = y
-		bottom = height*/
-
 /*
 ===========
 NetGraph_DrawHatches
@@ -337,11 +330,11 @@ NetGraph_DrawHatches
 */
 static void NetGraph_DrawHatches (int x, int y)
 	{
-	int	ystep = (int)(10.0f / net_scale->value);
+	int		ystep = (int)(10.0f / net_scale->value);
 	byte	colorminor[4] = { 0, 63, 63, 200 };
 	byte	color[4] = { 0, 200, 0, 255 };
 	wrect_t	hatch = { x, 4, y, 1 };
-	int	starty;
+	int		starty;
 
 	ystep = Q_max (ystep, 1);
 
@@ -395,7 +388,6 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 	framerate = FRAMERATE_AVG_FRAC * host.frametime + (1.0f - FRAMERATE_AVG_FRAC) * framerate;
 
 	// [FWGS, 01.04.23]
-	/*Con_SetFont (0);*/
 	ref.dllFuncs.GL_SetRenderMode (font->rendermode);
 
 	if (framerate > 0.0f)
@@ -403,12 +395,10 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 		y -= net_graphheight->value;
 
 		// [FWGS, 01.04.23]
-		/*Con_DrawString (x, y, va ("%.1f fps", 1.0f / framerate), colors);*/
 		CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE, "%.1f fps", 1.0f / framerate);
 
 		if (avg > 1.0f)
 			CL_DrawStringf (font, x + 75, y, colors, FONT_DRAW_NORENDERMODE, "%i ms", (int)avg);
-		/*Con_DrawString (x + 75, y, va ("%i ms", (int)avg), colors);*/
 
 		y += 15;
 
@@ -421,15 +411,12 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 		// [FWGS, 01.04.23]
 		CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE,
 			"in :  %i %.2f kb/s", netstat_graph[j].msgbytes, cls.netchan.flow[FLOW_INCOMING].avgkbytespersec);
-		/*Con_DrawString (x, y, va ("in :  %i %.2f kb/s", netstat_graph[j].msgbytes,
-			cls.netchan.flow[FLOW_INCOMING].avgkbytespersec), colors);*/
 
 		y += 15;
 
 		CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE,
 			"out:  %i %.2f kb/s", out, cls.netchan.flow[FLOW_OUTGOING].avgkbytespersec);
-		/*Con_DrawString (x, y, va ("out:  %i %.2f kb/s", out, cls.netchan.flow[FLOW_OUTGOING].avgkbytespersec),
-			colors);*/
+
 		y += 15;
 
 		if (graphtype > 2)
@@ -438,7 +425,6 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 			int	choke = (int)((packet_choke + PACKETCHOKE_AVG_FRAC) - 0.01f);
 
 			// [FWGS, 01.04.23]
-			/*Con_DrawString (x, y, va ("loss: %i choke: %i", loss, choke), colors);*/
 			CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE, "loss: %i choke: %i", loss, choke);
 			}
 		}
@@ -448,17 +434,13 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 		CL_DrawStringf (font, ptx, pty, colors, FONT_DRAW_NORENDERMODE, "%i/s", (int)cl_cmdrate->value);
 
 	CL_DrawStringf (font, ptx, last_y, colors, FONT_DRAW_NORENDERMODE, "%i/s", (int)cl_updaterate->value);
-
-	/*Con_DrawString (ptx, pty, va ("%i/s", (int)cl_cmdrate->value), colors);
-	Con_DrawString (ptx, last_y, va ("%i/s", (int)cl_updaterate->value), colors);
-	Con_RestoreFont ();*/
 	}
 
-		/*
-		===========
-		NetGraph_DrawDataSegment
-		===========
-		*/
+/*
+===========
+NetGraph_DrawDataSegment
+===========
+*/
 static int NetGraph_DrawDataSegment (wrect_t *fill, int bytes, byte r, byte g, byte b, byte a)
 	{
 	float	h = bytes / net_scale->value;
@@ -479,13 +461,13 @@ static int NetGraph_DrawDataSegment (wrect_t *fill, int bytes, byte r, byte g, b
 	return 0;
 	}
 
-		/*
-		===========
-		NetGraph_ColorForHeight
+/*
+===========
+NetGraph_ColorForHeight
 
-		color based on packet latency
-		===========
-		*/
+color based on packet latency
+===========
+*/
 static void NetGraph_ColorForHeight (struct packet_latency_t *packet, byte color[4], int *ping)
 	{
 	switch (packet->latency)
@@ -537,8 +519,10 @@ static void NetGraph_DrawDataUsage (int x, int y, int w, int graphtype)
 
 		NetGraph_ColorForHeight (&netstat_packet_latency[i], color, &ping);
 
-		if (!ping) h = lastvalidh;
-		else lastvalidh = h;
+		if (!ping)
+			h = lastvalidh;
+		else
+			lastvalidh = h;
 
 		if (h > pingheight)
 			h = pingheight;

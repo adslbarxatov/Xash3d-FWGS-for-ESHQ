@@ -43,18 +43,6 @@ Alias models are position independent, so the cache manager can move them
 #define ALIAS_TRACER2		0x0040	// orange split trail + rotate
 #define ALIAS_TRACER3		0x0080	// purple trail
 
-/* [FWGS, 01.04.23]
-// must match definition in sprite.h
-#ifndef SYNCTYPE_T
-#define SYNCTYPE_T
-typedef enum
-	{
-	ST_SYNC = 0,
-	ST_RAND
-	} synctype_t;
-#endif
-*/
-
 typedef enum
 	{
 	ALIAS_SINGLE = 0,

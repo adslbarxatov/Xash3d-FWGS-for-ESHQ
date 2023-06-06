@@ -747,7 +747,6 @@ char *CL_Userinfo (void);
 void CL_LegacyUpdateInfo (void);
 void CL_CharEvent (int key);
 qboolean CL_DisableVisibility (void);
-/*int CL_PointContents (const vec3_t point);*/	// [FWGS, 01.04.23]
 byte *COM_LoadFile (const char *filename, int usehunk, int *pLength);
 int CL_GetDemoComment (const char *demoname, char *comment);
 void COM_AddAppDirectoryToSearchPath (const char *pszBaseDir, const char *appName);
@@ -756,7 +755,6 @@ struct cmd_s *Cmd_GetFirstFunctionHandle (void);
 struct cmd_s *Cmd_GetNextFunctionHandle (struct cmd_s *cmd);
 struct cmdalias_s *Cmd_AliasGetList (void);
 const char *Cmd_GetName (struct cmd_s *cmd);
-/*struct pmtrace_s *PM_TraceLine (float *start, float *end, int flags, int usehull, int ignore_pe);*/	// [FWGS, 01.04.23]
 void SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch);
 void SV_StartMusic (const char *curtrack, const char *looptrack, int position);
 void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int entityIndex, int modelIndex, 
@@ -784,8 +782,6 @@ int SV_GetMaxClients (void);
 qboolean CL_IsRecordDemo (void);
 qboolean CL_IsTimeDemo (void);
 qboolean CL_IsPlaybackDemo (void);
-/*qboolean CL_IsBackgroundDemo (void);	// [FWGS, 01.05.23]
-qboolean CL_IsBackgroundMap (void);*/
 qboolean SV_Initialized (void);
 qboolean CL_LoadProgs (const char *name);
 void CL_ProcessFile (qboolean successfully_received, const char *filename);
@@ -869,7 +865,6 @@ void S_StopAllSounds (qboolean ambient);
 // gamma routines
 void BuildGammaTable (float gamma, float brightness);
 byte LightToTexGamma (byte b);
-/*byte TextureToGamma (byte b);*/	// [FWGS, 01.05.23]
 
 //
 // identification.c

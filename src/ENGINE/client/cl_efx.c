@@ -141,25 +141,7 @@ void CL_FreeParticles (void)
 	cl_particles = NULL;
 	}
 
-/* [FWGS, 01.05.23]
-================
-CL_FreeParticle
-
-move particle to freelist
-================
-void CL_FreeParticle (particle_t *p)
-	{
-	if (p->deathfunc)
-		{
-		// call right the deathfunc before die
-		p->deathfunc (p);
-		p->deathfunc = NULL;
-		}
-
-	p->next = cl_free_particles;
-	cl_free_particles = p;
-	}
-*/
+// [FWGS, 01.05.23] удалена CL_FreeParticle
 
 /*
 ================

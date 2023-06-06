@@ -22,10 +22,10 @@ GNU General Public License for more details.
 // [FWGS, 01.04.23]
 typedef struct base_command_hashmap_s
 	{
-	base_command_t					*basecmd;	// base command: cvar, alias or command
-	const char						*name;		// key for searching
+	base_command_t *basecmd;	// base command: cvar, alias or command
+	const char *name;		// key for searching
 	base_command_type_e				type;		// type for faster searching
-	struct base_command_hashmap_s	*next;
+	struct base_command_hashmap_s *next;
 	} base_command_hashmap_t;
 static base_command_hashmap_t *hashed_cmds[HASH_SIZE];
 
@@ -38,7 +38,7 @@ BaseCmd_FindInBucket
 Find base command in bucket
 ============
 */
-static base_command_hashmap_t *BaseCmd_FindInBucket (base_command_hashmap_t *bucket, base_command_type_e type, 
+static base_command_hashmap_t *BaseCmd_FindInBucket (base_command_hashmap_t *bucket, base_command_type_e type,
 	const char *name)
 	{
 	base_command_hashmap_t *i = bucket;
@@ -124,8 +124,6 @@ Add new typed base command to hashmap
 */
 void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const char *name)
 	{
-	/*uint hash = COM_HashKey (name, HASH_SIZE);
-	base_command_hashmap_t *elem;*/
 	base_command_hashmap_t *elem, *cur, *find;
 	uint hash = BaseCmd_HashKey (name);
 
@@ -133,47 +131,19 @@ void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const ch
 	elem->basecmd = basecmd;
 	elem->type = type;
 	elem->name = name;
-	/*elem->next = hashed_cmds[hash];
-	hashed_cmds[hash] = elem;*/
 
 	// link the variable in alphanumerical order
 	for (cur = NULL, find = hashed_cmds[hash];
 		find && Q_strcmp (find->name, elem->name) < 0;
 		cur = find, find = find->next);
 
-	if (cur) 
+	if (cur)
 		cur->next = elem;
-	else 
+	else
 		hashed_cmds[hash] = elem;
 
 	elem->next = find;
 	}
-
-/* [FWGS, 01.05.23]
-============
-BaseCmd_Replace
-
-Used in case, when basecmd has been registered, but gamedll wants to register it's own
-============
-qboolean BaseCmd_Replace (base_command_type_e type, base_command_t *basecmd, const char *name)
-	{
-	base_command_hashmap_t *i = BaseCmd_GetBucket (name);
-
-	for (; i && ((i->type != type) || Q_stricmp (name, i->name)); // filter out
-		i = i->next);
-
-	if (!i)
-		{
-		Con_Reportf (S_ERROR  "BaseCmd_Replace: couldn't find %s\n", name);
-		return false;
-		}
-
-	i->basecmd = basecmd;
-	i->name = name; // may be freed after
-
-	return true;
-	}
-*/
 
 /*
 ============
@@ -184,7 +154,6 @@ Remove base command from hashmap
 */
 void BaseCmd_Remove (base_command_type_e type, const char *name)
 	{
-	/*uint hash = COM_HashKey (name, HASH_SIZE);*/
 	uint hash = BaseCmd_HashKey (name);
 	base_command_hashmap_t *i, *prev;
 
@@ -249,11 +218,6 @@ void BaseCmd_Stats_f (void)
 			maxsize = len;
 		}
 
-	/* [FWGS, 01.04.23]
-	Con_Printf ("Base command stats:\n");
-	Con_Printf ("Bucket minimal length: %d\n", minsize);
-	Con_Printf ("Bucket maximum length: %d\n", maxsize);
-	Con_Printf ("Empty buckets: %d\n", empty);*/
 	Con_Printf ("min length: %d, max length: %d, empty: %d\n", minsize, maxsize, empty);
 	}
 
@@ -267,16 +231,12 @@ typedef struct
 // [FWGS, 01.04.23]
 static void BaseCmd_CheckCvars (const char *key, const char *value, const void *unused, void *ptr)
 	{
-	/*base_command_t *v = BaseCmd_Find (HM_CVAR, key);
-	qboolean *invalid = ptr;*/
 	basecmd_test_stats_t *stats = ptr;
 
-	//if (!v)
 	stats->lookups++;
 	if (!BaseCmd_Find (HM_CVAR, key))
 		{
 		Con_Printf ("Cvar %s is missing in basecmd\n", key);
-		/* *invalid = true;*/
 		stats->valid = false;
 		}
 	}
@@ -290,7 +250,6 @@ testing order matches cbuf execute
 */
 void BaseCmd_Test_f (void)
 	{
-	/*void *cmd;*/
 	basecmd_test_stats_t stats;
 	double start, end, dt;
 	int i;
@@ -303,45 +262,31 @@ void BaseCmd_Test_f (void)
 	for (i = 0; i < 1000; i++)
 		{
 		cmdalias_t *a;
-		/*qboolean invalid = false;*/
 		void *cmd;
 
 		// Cmd_LookupCmds don't allows to check alias, so just iterate
-		/*for (a = Cmd_AliasGetList (); a; a = a->next)*/
 		for (a = Cmd_AliasGetList (); a; a = a->next, stats.lookups++)
 			{
-			/*base_command_t *v = BaseCmd_Find (HM_CMDALIAS, a->name);
-
-			if (!v)*/
 			if (!BaseCmd_Find (HM_CMDALIAS, a->name))
 				{
 				Con_Printf ("Alias %s is missing in basecmd\n", a->name);
-				/*invalid = true;*/
 				stats.valid = false;
 				}
 			}
 
 		for (cmd = Cmd_GetFirstFunctionHandle (); cmd;
-			/*cmd = Cmd_GetNextFunctionHandle (cmd))*/
 			cmd = Cmd_GetNextFunctionHandle (cmd), stats.lookups++)
 			{
-			/*base_command_t *v = BaseCmd_Find (HM_CMD, Cmd_GetName (cmd));
-
-			if (!v)*/
 			if (!BaseCmd_Find (HM_CMD, Cmd_GetName (cmd)))
 				{
 				Con_Printf ("Command %s is missing in basecmd\n", Cmd_GetName (cmd));
-				/*invalid = true;*/
 				stats.valid = false;
 				}
 			}
 
-		/*Cvar_LookupVars (0, NULL, &invalid, (setpair_t)BaseCmd_CheckCvars);*/
 		Cvar_LookupVars (0, NULL, &stats.valid, (setpair_t)BaseCmd_CheckCvars);
 		}
 
-	/*if (!invalid)
-		{*/
 	end = Sys_DoubleTime () * 1000;
 	dt = end - start;
 

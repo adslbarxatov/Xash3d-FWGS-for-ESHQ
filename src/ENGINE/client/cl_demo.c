@@ -508,9 +508,7 @@ void CL_DrawDemoRecording (void)
 
 /*
 =======================================================================
-
 CLIENT SIDE DEMO PLAYBACK
-
 =======================================================================
 */
 /*
@@ -527,7 +525,6 @@ qboolean CL_ReadDemoCmdHeader (byte *cmd, float *dt)
 	do
 		{
 		FS_Read (cls.demofile, cmd, sizeof (byte));
-		/*Assert (*cmd >= 1 && *cmd <= dem_lastcmd);*/
 		} while (*cmd == dem_unknown);
 
 	if (*cmd > dem_lastcmd)
@@ -928,7 +925,6 @@ qboolean CL_DemoReadMessage (byte *buffer, size_t *length)
 		curpos = FS_Tell (cls.demofile);
 
 		// [FWGS, 01.04.23]
-		/* CL_ReadDemoCmdHeader (&cmd, &demo.timestamp);*/
 		if (!CL_ReadDemoCmdHeader (&cmd, &demo.timestamp))
 			return false;
 
@@ -1323,18 +1319,15 @@ void CL_CheckStartupDemos (void)
 CL_DemoGetName [FWGS, 01.05.23]
 ==================
 */
-/*static void CL_DemoGetName (int lastnum, char *filename)*/
 static void CL_DemoGetName (int lastnum, char *filename, size_t size)
 	{
 	if ((lastnum < 0) || (lastnum > 9999))
 		{
 		// bound
-		/*Q_strcpy (filename, "demo9999");*/
 		Q_strncpy (filename, "demo9999.dem", size);
 		return;
 		}
 
-	/*Q_sprintf (filename, "demo%04d", lastnum);*/
 	Q_snprintf (filename, size, "demo%04d.dem", lastnum);
 	}
 
@@ -1389,8 +1382,6 @@ void CL_Record_f (void)
 		// scan for a free filename
 		for (n = 0; n < 10000; n++)
 			{
-			/*CL_DemoGetName (n, demoname);
-			if (!FS_FileExists (va ("%s.dem", demoname), true))*/
 			CL_DemoGetName (n, demoname, sizeof (demoname));	// [FWGS, 01.05.23]
 			if (!FS_FileExists (demoname, true))
 				break;
@@ -1408,7 +1399,6 @@ void CL_Record_f (void)
 		}
 
 	// open the demo file
-	/*Q_sprintf (demopath, "%s.dem", demoname);*/
 	Q_snprintf (demopath, sizeof (demopath), "%s.dem", demoname);	// [FWGS, 01.05.23]
 
 	// make sure that old demo is removed
@@ -1437,7 +1427,6 @@ void CL_PlayDemo_f (void)
 	if (Cmd_Argc () < 2)
 		{
 		// [FWGS, 01.04.23]
-		/* Con_Printf (S_USAGE "playdemo <demoname>\n");*/
 		Con_Printf (S_USAGE "%s <demoname>\n", Cmd_Argv (0));
 		return;
 		}
@@ -1564,14 +1553,6 @@ timedemo <demoname>
 */
 void CL_TimeDemo_f (void)
 	{
-	/* [FWGS, 01.04.23]
-	if (Cmd_Argc () != 2)
-		{
-		Con_Printf (S_USAGE "timedemo <demoname>\n");
-		return;
-		}
-	*/
-
 	CL_PlayDemo_f ();
 
 	// cls.td_starttime will be grabbed at the second frame of the demo, so

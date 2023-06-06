@@ -154,17 +154,7 @@ qboolean CL_DisableVisibility (void)
 	return cls.envshot_disable_vis;
 	}
 
-/* [FWGS, 01.05.23]
-qboolean CL_IsBackgroundDemo (void)
-	{
-	return (cls.demoplayback && cls.demonum != -1);
-	}
-
-qboolean CL_IsBackgroundMap (void)
-	{
-	return (cl.background && !cls.demoplayback);
-	}
-*/
+// [FWGS, 01.05.23] удалены CL_IsBackgroundDemo, CL_IsBackgroundMap
 
 char *CL_Userinfo (void)
 	{
@@ -254,11 +244,7 @@ void CL_SignonReply (void)
 		}
 	}
 
-// [FWGS, 01.04.23]
-/*float CL_LerpInterval (void)
-	{
-	return Q_max (cl_interp->value, 1.f / cl_updaterate->value);
-	}*/
+// [FWGS, 01.04.23] удалена CL_LerpInterval
 
 /*
 ===============
@@ -270,12 +256,9 @@ should be put at
 */
 static float CL_LerpPoint (void)
 	{
-	/*float frac = 1.0f;
-	float server_frametime = cl_serverframetime ();*/
 	double f = cl_serverframetime ();
 	double frac;
 
-	/*if ((server_frametime == 0.0f) || cls.timedemo)*/
 	if ((f == 0.0) || cls.timedemo)
 		{
 		double fgap = cl_clientframetime ();
@@ -288,29 +271,8 @@ static float CL_LerpPoint (void)
 		return 1.0f;
 		}
 
-	/*if (server_frametime > 0.1f)
-		{
-		// dropped packet, or start of demo
-		cl.mtime[1] = cl.mtime[0] - 0.1f;
-		server_frametime = 0.1f;
-		}
-
-	// for multiplayer
-	if (cl_interp->value > 0.001f)
-		{
-		// manual lerp value (goldsrc mode)
-		float td = Q_max (0.f, cl.time - cl.mtime[0]);
-		frac = td / CL_LerpInterval ();
-		}
-	else if (server_frametime > 0.001f)
-		{
-		// automatic lerp (classic mode)
-		frac = (cl.time - cl.mtime[1]) / server_frametime;
-		}*/
-
 	if (cl_interp->value <= 0.001)
 		return 1.0f;
-
 	frac = (cl.time - cl.mtime[0]) / cl_interp->value;
 
 	return frac;
@@ -354,7 +316,7 @@ Validate interpolation cvars, calc interpolation window
 void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	{
 	const float epsilon = 0.001f; // to avoid float invalid comparision
-	float min_interp /*= MIN_EX_INTERP*/;
+	float min_interp;
 	float max_interp = MAX_EX_INTERP;
 	float interpolation_time;
 
@@ -376,7 +338,6 @@ void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	min_interp = 1.0f / cl_updaterate->value;
 
 	// [FWGS, 01.04.23]
-	/*interpolation_time = CL_LerpInterval ();*/
 	interpolation_time = cl_interp->value * 1000.0;
 
 	if ((cl_interp->value + epsilon) < min_interp)
@@ -644,7 +605,6 @@ CL_CreateCmd [FWGS, 01.04.23]
 */
 void CL_CreateCmd (void)
 	{
-	/*usercmd_t	cmd;*/
 	usercmd_t	nullcmd, *cmd;
 	runcmd_t	*pcmd;
 	vec3_t		angles;
@@ -691,8 +651,6 @@ void CL_CreateCmd (void)
 	Platform_PreCreateMove ();
 	
 	// [FWGS, 01.04.23]
-	/*clgame.dllFuncs.CL_CreateMove (host.frametime, &pcmd->cmd, active);
-	IN_EngineAppendMove (host.frametime, &pcmd->cmd, active);*/
 	clgame.dllFuncs.CL_CreateMove (host.frametime, cmd, active);
 	IN_EngineAppendMove (host.frametime, cmd, active);
 
@@ -776,7 +734,6 @@ void CL_WritePacket (void)
 	MSG_Init (&buf, "ClientData", data, sizeof (data));
 
 	// Determine number of backup commands to send along [FWGS, 01.04.23]
-	/*numbackup = bound (0, cl_cmdbackup->value, MAX_BACKUP_COMMANDS);*/
 	numbackup = bound (0, cl_cmdbackup->value, cls.legacymode ? MAX_LEGACY_BACKUP_CMDS : MAX_BACKUP_COMMANDS);
 
 	if (cls.state == ca_connected) 
@@ -1094,7 +1051,6 @@ void CL_SendConnectPacket (void)
 		IN_LockInputDevices (true);
 
 		// [FWGS, 01.04.23]
-		/*Info_SetValueForKey (protinfo, "d", va ("%d", input_devices), sizeof (protinfo));*/
 		Cvar_SetCheatState ();
 		Cvar_FullSet ("sv_cheats", "0", FCVAR_READ_ONLY | FCVAR_SERVER);
 
@@ -1103,9 +1059,7 @@ void CL_SendConnectPacket (void)
 		Info_SetValueForKey (protinfo, "v", XASH_VERSION, sizeof (protinfo));
 		
 		// [FWGS, 01.04.23]
-		/*Info_SetValueForKey (protinfo, "b", va ("%d", Q_buildnum ()), sizeof (protinfo));*/
 		Info_SetValueForKeyf (protinfo, "b", sizeof (protinfo), "%d", Q_buildnum ());
-
 		Info_SetValueForKey (protinfo, "o", Q_buildos (), sizeof (protinfo));
 		Info_SetValueForKey (protinfo, "a", Q_buildarch (), sizeof (protinfo));
 		}
@@ -1141,7 +1095,6 @@ void CL_SendConnectPacket (void)
 		Info_SetValueForKey (protinfo, "qport", qport, sizeof (protinfo));
 		
 		// [FWGS, 01.04.23]
-		/*Info_SetValueForKey (protinfo, "ext", va ("%d", extensions), sizeof (protinfo));*/
 		Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", extensions);
 
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "connect %i %i \"%s\" \"%s\"\n", PROTOCOL_VERSION, 
@@ -1162,7 +1115,6 @@ Resend a connect message if the last one has timed out
 void CL_CheckForResend (void)
 	{
 	netadr_t adr;
-	/*int res;*/
 	net_gai_state_t res;	// [FWGS, 01.05.23]
 	qboolean bandwidthTest;	// [FWGS, 01.04.23]
 
@@ -1196,14 +1148,12 @@ void CL_CheckForResend (void)
 
 	res = NET_StringToAdrNB (cls.servername, &adr);
 
-	/*if (!res)*/
 	if (res == NET_EAI_NONAME)	// [FWGS, 01.05.23]
 		{
 		CL_Disconnect ();
 		return;
 		}
 
-	/*if (res == 2)*/
 	if (res == NET_EAI_AGAIN)	// [FWGS, 01.05.23]
 		{
 		cls.connect_time = MAX_HEARTBEAT;
@@ -1235,10 +1185,7 @@ void CL_CheckForResend (void)
 	// [FWGS, 01.04.23]
 	bandwidthTest = !cls.legacymode && cl_test_bandwidth.value;
 	cls.serveradr = adr;
-	
-	/*cls.max_fragment_size = Q_max (FRAGMENT_MAX_SIZE, cls.max_fragment_size >> Q_min (1, cls.connect_retry));*/
 	cls.max_fragment_size = Q_min (FRAGMENT_MAX_SIZE, cls.max_fragment_size / (cls.connect_retry + 1));
-
 	cls.connect_time = host.realtime;	// for retransmit requests
 	cls.connect_retry++;
 
@@ -1248,7 +1195,6 @@ void CL_CheckForResend (void)
 	else
 		Con_Printf ("Connecting to %s... [retry #%i]\n", cls.servername, cls.connect_retry);
 
-	/*if (!cls.legacymode && cl_test_bandwidth.value)*/
 	if (bandwidthTest)
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "bandwidth %i %i\n", PROTOCOL_VERSION, cls.max_fragment_size);
 	else
@@ -1284,7 +1230,6 @@ void CL_CreateResourceList (void)
 	cl.num_resources = 0;
 
 	// [FWGS, 01.04.23]
-	/*Q_snprintf (szFileName, sizeof (szFileName), "logos/remapped.bmp");*/
 	memset (rgucMD5_hash, 0, sizeof (rgucMD5_hash));
 
 	// sanitize cvar value
@@ -1294,9 +1239,6 @@ void CL_CreateResourceList (void)
 	Q_snprintf (szFileName, sizeof (szFileName),
 		"logos/remapped.%s", cl_logoext.string);
 	fp = FS_Open (szFileName, "rb", true);
-
-	/*if (fp)
-		{*/
 	if (!fp)
 		return;
 
@@ -1378,7 +1320,6 @@ void CL_Rcon_f (void)
 	int			i;
 
 	// [FWGS, 01.04.23]
-	/*if (!COM_CheckString (rcon_client_password->string))*/
 	if (!COM_CheckString (rcon_password.string))
 		{
 		Con_Printf ("You must set 'rcon_password' before issuing an rcon command.\n");
@@ -1393,9 +1334,6 @@ void CL_Rcon_f (void)
 
 	NET_Config (true, false);	// allow remote
 
-	/*Q_strcat (message, "rcon ");
-	Q_strcat (message, rcon_password.string);
-	Q_strcat (message, " ");*/
 	Q_strncat (message, "rcon ", sizeof (message));	// [FWGS, 01.05.23]
 	Q_strncat (message, rcon_password.string, sizeof (message));
 	Q_strncat (message, " ", sizeof (message));
@@ -1403,8 +1341,6 @@ void CL_Rcon_f (void)
 	for (i = 1; i < Cmd_Argc (); i++)
 		{
 		Cmd_Escape (command, Cmd_Argv (i), sizeof (command));
-		/*Q_strcat (message, command);
-		Q_strcat (message, " ");*/
 		Q_strncat (message, command, sizeof (message));	// [FWGS, 01.05.23]
 		Q_strncat (message, " ", sizeof (message));
 		}
@@ -1449,7 +1385,6 @@ void CL_ClearState (void)
 	CL_FreeEdicts ();
 
 	// [FWGS, 01.04.23]
-	/*CL_ClearPhysEnts ();*/
 	PM_ClearPhysEnts (clgame.pmove);
 	NetAPI_CancelAllRequests ();
 
@@ -1624,9 +1559,6 @@ void CL_Disconnect (void)
 	cls.signon = 0;
 
 	// ESHQ: back to menu in non-developer mode
-	/*if (host_developer.value || CL_IsInMenu ())
-		return;*/
-
 	UI_SetActiveMenu (true);
 	}
 
@@ -1634,7 +1566,8 @@ void CL_Disconnect_f (void)
 	{
 	if (Host_IsLocalClient ())
 		Host_EndGame (true, "disconnected from server\n");
-	else CL_Disconnect ();
+	else
+		CL_Disconnect ();
 	}
 
 void CL_Crashed (void)
@@ -1678,9 +1611,6 @@ void CL_LocalServers_f (void)
 	Netchan_OutOfBandPrint (NS_CLIENT, adr, "info %i", PROTOCOL_VERSION);
 	}
 
-// [FWGS, 01.04.23]
-/*#define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"*/
-
 /*
 =================
 CL_BuildMasterServerScanRequest [FWGS, 01.04.23]
@@ -1715,24 +1645,13 @@ CL_InternetServers_f [FWGS, 01.04.23]
 */
 void CL_InternetServers_f (void)
 	{
-	/*char	fullquery[512] = MS_SCAN_REQUEST;
-	char *info = fullquery + sizeof (MS_SCAN_REQUEST) - 1;
-	const size_t remaining = sizeof (fullquery) - sizeof (MS_SCAN_REQUEST);*/
 	char		fullquery[512];
 	size_t		len;
 	qboolean	nat = cl_nat->value != 0.0f;
 
-	/*NET_Config (true, true); // allow remote*/
 	len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), nat);
 
-	Con_Printf ("Scanning for servers on the internet area...\n");
-
-	/*Info_SetValueForKey (info, "gamedir", GI->gamefolder, remaining);
-	Info_SetValueForKey (info, "clver", XASH_VERSION, remaining); // let master know about client version
-	Info_SetValueForKey (info, "nat", cl_nat->string, remaining);
-
-	cls.internetservers_wait = NET_SendToMasters (NS_CLIENT, sizeof (MS_SCAN_REQUEST) + Q_strlen (info), fullquery);*/
-	
+	Con_Printf ("Scanning for servers on the internet area...\n");	
 	NET_Config (true, true); // allow remote
 
 	cls.internetservers_wait = NET_SendToMasters (NS_CLIENT, len, fullquery); 
@@ -2203,7 +2122,6 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		if (NET_CompareAdr (from, cls.legacyserver))
 			{
 			// [FWGS, 01.04.23]
-			/*Cbuf_AddText (va ("connect %s legacy\n", NET_AdrToString (from)));*/
 			Cbuf_AddTextf ("connect %s legacy\n", NET_AdrToString (from));
 			memset (&cls.legacyserver, 0, sizeof (cls.legacyserver));
 			}
@@ -2700,7 +2618,6 @@ void CL_ServerCommand (qboolean reliable, const char *fmt, ...)
 		return;
 
 	va_start (argptr, fmt);
-	/*Q_vsprintf (string, fmt, argptr);*/
 	Q_vsnprintf (string, sizeof (string), fmt, argptr);	// [FWGS, 01.05.23]
 	va_end (argptr);
 
@@ -2993,12 +2910,8 @@ void CL_InitLocal (void)
 		"1-byte charset to use (iconv style)");
 	hud_utf8 = Cvar_Get ("hud_utf8", "0", FCVAR_ARCHIVE,
 		"Use utf-8 encoding for hud text");
-
-	// [FWGS, 01.04.23]
-	/*rcon_client_password = Cvar_Get ("rcon_password", "", FCVAR_PRIVILEGED, "remote control client password");*/
 	rcon_address = Cvar_Get ("rcon_address", "", FCVAR_PRIVILEGED,
-		"remote control address");
-
+		"remote control address");		// [FWGS, 01.04.23]
 	cl_trace_messages = Cvar_Get ("cl_trace_messages", "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
 		"enable message names tracing (good for developers)");
 
@@ -3218,10 +3131,6 @@ void CL_AdjustClock (void)
 		double sign;
 
 		// [FWGS, 01.04.23]
-		/*msec = (cl.timedelta * 1000.0f);
-		sign = (msec < 0) ? 1.0f : -1.0f;
-		msec = fabs (msec);
-		adjust = sign * (cl_fixtimerate->value / 1000.0f);*/
 		msec = (cl.timedelta * 1000.0);
 		sign = (msec < 0) ? 1.0 : -1.0;
 		msec = Q_min (cl_fixtimerate->value, fabs (msec));
@@ -3308,9 +3217,6 @@ void Host_ClientFrame (void)
 	// catch changes video settings
 	VID_CheckChanges ();
 
-	/* [FWGS, 01.04.23] process VGUI
-	VGui_RunFrame ();*/
-
 	// update the screen
 	SCR_UpdateScreen ();
 
@@ -3347,9 +3253,6 @@ void CL_Init (void)
 
 	// unreliable buffer. unsed for unreliable commands and voice stream
 	MSG_Init (&cls.datagram, "cls.datagram", cls.datagram_buf, sizeof (cls.datagram_buf));
-
-	/* IN_TouchInit();*/
-
 	COM_GetCommonLibraryPath (LIBRARY_CLIENT, libpath, sizeof (libpath));
 
 	if (!CL_LoadProgs (libpath))
@@ -3387,11 +3290,9 @@ void CL_Shutdown (void)
 	cls.initialized = false;
 
 	// [FWGS, 01.05.23] for client-side VGUI support we use other order
-	/*if (!GI->internal_vgui_support)*/
 	if (FI && FI->GameInfo && !FI->GameInfo->internal_vgui_support)
 		VGui_Shutdown ();
 
-	/*FS_Delete ("demoheader.tmp"); // remove tmp file*/
 	if (g_fsapi.Delete)
 		g_fsapi.Delete ("demoheader.tmp"); // [FWGS, 01.05.23] remove tmp file
 

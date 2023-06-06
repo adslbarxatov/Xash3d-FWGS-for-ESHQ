@@ -213,36 +213,7 @@ void Con_ClearTyping (void)
 	Cmd_AutoCompleteClear ();
 	}
 
-/* [FWGS, 01.05.23]
-============
-Con_StringLength
-
-skipped color prefixes
-============
-int Con_StringLength (const char *string)
-	{
-	int		len;
-	const char *p;
-
-	if (!string) return 0;
-
-	len = 0;
-	p = string;
-
-	while (*p)
-		{
-		if (IsColorString (p))
-			{
-			p += 2;
-			continue;
-			}
-		len++;
-		p++;
-		}
-
-	return len;
-	}
-*/
+// [FWGS, 01.05.23] удалена Con_StringLength
 
 /*
 ================
@@ -255,7 +226,8 @@ void Con_MessageMode_f (void)
 
 	if (Cmd_Argc () == 2)
 		Q_strncpy (con.chat_cmd, Cmd_Argv (1), sizeof (con.chat_cmd));
-	else Q_strncpy (con.chat_cmd, "say", sizeof (con.chat_cmd));
+	else
+		Q_strncpy (con.chat_cmd, "say", sizeof (con.chat_cmd));
 
 	Key_SetKeyDest (key_message);
 	}
@@ -556,92 +528,8 @@ Con_FixedFont [FWGS, 01.04.23]
 */
 qboolean Con_FixedFont (void)
 	{
-	/*if (con.curFont && con.curFont->valid && con.curFont->type == FONT_FIXED)
-		return true;
-	return false;*/
 	return CL_FixedFont (con.curFont);
 	}
-
-/* [FWGS, 01.04.23]
-static qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font)
-	{
-	int	i, fontWidth;
-
-	if (font->valid)
-		return true; // already loaded
-
-	if (!FS_FileExists (fontname, false))
-		return false;
-
-	// keep source to print directly into conback image
-	font->hFontTexture = ref.dllFuncs.GL_LoadTexture (fontname, NULL, 0, TF_FONT | TF_KEEP_SOURCE);
-	R_GetTextureParms (&fontWidth, NULL, font->hFontTexture);
-
-	if (font->hFontTexture && fontWidth != 0)
-		{
-		font->charHeight = fontWidth / 16 * con_fontscale->value;
-		font->type = FONT_FIXED;
-
-		// build fixed rectangles
-		for (i = 0; i < 256; i++)
-			{
-			font->fontRc[i].left = (i * (fontWidth / 16)) % fontWidth;
-			font->fontRc[i].right = font->fontRc[i].left + fontWidth / 16;
-			font->fontRc[i].top = (i / 16) * (fontWidth / 16);
-			font->fontRc[i].bottom = font->fontRc[i].top + fontWidth / 16;
-			font->charWidths[i] = fontWidth / 16 * con_fontscale->value;
-			}
-		font->valid = true;
-		}
-
-	return true;
-	}
-
-static qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font)
-	{
-	int	i, fontWidth;
-	byte *buffer;
-	fs_offset_t	length;
-	qfont_t *src;
-
-	if (font->valid)
-		return true; // already loaded
-
-	if (!FS_FileExists (fontname, false))
-		return false;
-
-	font->hFontTexture = ref.dllFuncs.GL_LoadTexture (fontname, NULL, 0, TF_FONT | TF_NEAREST);
-	R_GetTextureParms (&fontWidth, NULL, font->hFontTexture);
-
-	// setup consolefont
-	if (font->hFontTexture && fontWidth != 0)
-		{
-		// half-life font with variable chars witdh
-		buffer = FS_LoadFile (fontname, &length, false);
-
-		if (buffer && length >= sizeof (qfont_t))
-			{
-			src = (qfont_t *)buffer;
-			font->charHeight = src->rowheight * con_fontscale->value;
-			font->type = FONT_VARIABLE;
-
-			// build rectangles
-			for (i = 0; i < 256; i++)
-				{
-				font->fontRc[i].left = (word)src->fontinfo[i].startoffset % fontWidth;
-				font->fontRc[i].right = font->fontRc[i].left + src->fontinfo[i].charwidth;
-				font->fontRc[i].top = (word)src->fontinfo[i].startoffset / fontWidth;
-				font->fontRc[i].bottom = font->fontRc[i].top + src->rowheight;
-				font->charWidths[i] = src->fontinfo[i].charwidth * con_fontscale->value;
-				}
-			font->valid = true;
-			}
-		if (buffer) Mem_Free (buffer);
-		}
-
-	return true;
-	}
-*/
 
 /*
 ================
@@ -652,8 +540,6 @@ INTERNAL RESOURCE
 */
 static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 	{
-	/*const char *path = NULL;
-	dword crc = 0;*/
 	qboolean success = false;
 	float scale = con_fontscale->value;
 
@@ -674,9 +560,6 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 		// replace default fonts.wad textures by current charset's font
 		if (!CRC32_File (&crc, "fonts.wad") || (crc == 0x3c0a0029))
 			{
-			/*const char *path2 = va ("font%i_%s.fnt", fontNumber, Cvar_VariableString ("con_charset"));
-			if (FS_FileExists (path2, false))
-				path = path2;*/
 			if (Q_snprintf (path, sizeof (path),
 				"font%i_%s.fnt", fontNumber, Cvar_VariableString ("con_charset")) > 0)
 				{
@@ -685,24 +568,12 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 				}
 			}
 
-		/* loading conchars
-		if (Sys_CheckParm ("-oldfont"))
-			Con_LoadVariableWidthFont ("gfx/conchars.fnt", font);
-		else*/
 		if (!success)
 			{
-			/*if (!path)
-				path = va ("fonts/font%i", fontNumber);
-
-			Con_LoadVariableWidthFont (path, font);*/
 			Q_snprintf (path, sizeof (path), "fonts/font%i", fontNumber);
 			success = Con_LoadVariableWidthFont (path, font, scale, kRenderTransTexture, TF_FONT | TF_NEAREST);
 			}
 		}
-
-	/* quake fixed font as fallback
-	if (!font->valid)
-		Con_LoadFixedWidthFont ("gfx/conchars", font);*/
 
 	if (!success)
 		{
@@ -739,7 +610,6 @@ static void Con_LoadConchars (void)
 		fontSize = CON_NUMFONTS - 1;
 
 	// [FWGS, 01.04.23] sets the current font
-	/*con.lastUsedFont = con.curFont = &con.chars[fontSize];*/
 	con.curFont = &con.chars[fontSize];
 	}
 
@@ -1050,16 +920,16 @@ void Con_DrawCharacterLen (int number, int *width, int *height)
 	}
 	*/
 
-/*
-====================
-Con_GetCurFont [FWGS, 01.04.23]
-====================
-*/
+	/*
+	====================
+	Con_GetCurFont [FWGS, 01.04.23]
+	====================
+	*/
 cl_font_t *Con_GetCurFont (void)
 	{
 	return con.curFont;
 	}
-	
+
 /*
 ====================
 Con_DrawStringLen [FWGS, 01.04.23]
@@ -1069,105 +939,6 @@ compute string width and height in screen pixels
 */
 void GAME_EXPORT Con_DrawStringLen (const char *pText, int *length, int *height)
 	{
-	/*int	curLength = 0;
-
-	if (!con.curFont)
-		return;
-	if (height)
-		*height = con.curFont->charHeight;
-	if (!length)
-		return;
-
-	*length = 0;
-
-	while (*pText)
-		{
-		byte	c = *pText;
-
-		if (*pText == '\n')
-			{
-			pText++;
-			curLength = 0;
-			}
-
-		// skip color strings they are not drawing
-		if (IsColorString (pText))
-			{
-			pText += 2;
-			continue;
-			}
-
-
-		// Convert to unicode
-		c = Con_UtfProcessChar (c);
-
-		if (c)
-			curLength += con.curFont->charWidths[c];
-
-		pText++;
-
-		if (curLength > *length)
-			*length = curLength;
-		}
-	}
-
-//
-==================
-Con_DrawString
-
-Draws a multi-colored string, optionally forcing
-to a fixed color.
-==================
-//
-int Con_DrawGenericString (int x, int y, const char *string, rgba_t setColor, qboolean forceColor, int hideChar)
-	{
-	rgba_t		color;
-	int		drawLen = 0;
-	int		numDraws = 0;
-	const char *s;
-
-	if (!con.curFont) return 0; // no font set
-
-	Con_UtfProcessChar (0);
-
-	// draw the colored text
-	memcpy (color, setColor, sizeof (color));
-	s = string;
-
-	while (*s)
-		{
-		if (*s == '\n')
-			{
-			s++;
-			if (!*s) break; // at end the string
-			drawLen = 0; // begin new row
-			y += con.curFont->charHeight;
-			}
-
-		if (IsColorString (s))
-			{
-			if (!forceColor)
-				{
-				memcpy (color, g_color_table[ColorIndex (*(s + 1))], sizeof (color));
-				color[3] = setColor[3];
-				}
-
-			s += 2;
-			numDraws++;
-			continue;
-			}
-
-		// hide char for overstrike mode
-		if (hideChar == numDraws)
-			drawLen += con.curFont->charWidths[*s];
-		else drawLen += Con_DrawCharacter (x + drawLen, y, *s, color);
-
-		numDraws++;
-		s++;
-		}
-
-	ref.dllFuncs.Color4ub (255, 255, 255, 255);
-	return drawLen;*/
 	return CL_DrawStringLen (con.curFont, pText, length, height, FONT_DRAW_UTF8);
 	}
 
@@ -1180,7 +951,6 @@ client version of routine
 */
 int Con_DrawString (int x, int y, const char *string, rgba_t setColor)
 	{
-	/*return Con_DrawGenericString (x, y, string, setColor, false, -1);*/
 	return CL_DrawString (x, y, string, setColor, con.curFont, FONT_DRAW_UTF8);
 	}
 
@@ -1194,8 +964,9 @@ void Con_Init (void)
 	{
 	int	i;
 
+	// dedicated server already have console
 	if (host.type == HOST_DEDICATED)
-		return; // dedicated server already have console
+		return;
 
 	// must be init before startup video subsystem
 	scr_conspeed = Cvar_Get ("scr_conspeed", "600", FCVAR_ARCHIVE, "console moving speed");
@@ -1410,7 +1181,7 @@ void GAME_EXPORT Con_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 	// setup values
 	con.notify[info->index].key_dest = key_game;
 	con.notify[info->index].expire = host.realtime + info->time_to_live;
-	MakeRGBA (con.notify[info->index].color, (byte)(info->color[0] * 255), (byte)(info->color[1] * 255), 
+	MakeRGBA (con.notify[info->index].color, (byte)(info->color[0] * 255), (byte)(info->color[1] * 255),
 		(byte)(info->color[2] * 255), 255);
 	con.draw_notify = true;
 	}
@@ -1467,7 +1238,7 @@ void GAME_EXPORT UI_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 	// setup values
 	con.notify[info->index].key_dest = key_menu;
 	con.notify[info->index].expire = host.realtime + info->time_to_live;
-	MakeRGBA (con.notify[info->index].color, (byte)(info->color[0] * 255), (byte)(info->color[1] * 255), 
+	MakeRGBA (con.notify[info->index].color, (byte)(info->color[0] * 255), (byte)(info->color[1] * 255),
 		(byte)(info->color[2] * 255), 255);
 	con.draw_notify = true;
 	}
@@ -1560,7 +1331,6 @@ void Field_KeyDownEvent (field_t *edit, int key)
 		return;
 		}
 
-	/*if (key == K_BACKSPACE)*/
 	if ((key == K_BACKSPACE) || (key == K_X_BUTTON))	// [FWGS, 01.04.23]
 		{
 		if (edit->cursor > 0)
@@ -1568,12 +1338,12 @@ void Field_KeyDownEvent (field_t *edit, int key)
 			int newcursor = Con_UtfMoveLeft (edit->buffer, edit->cursor);
 			memmove (edit->buffer + newcursor, edit->buffer + edit->cursor, len - edit->cursor + 1);
 			edit->cursor = newcursor;
-			if (edit->scroll) edit->scroll--;
+			if (edit->scroll)
+				edit->scroll--;
 			}
 		return;
 		}
 
-	/*if (key == K_RIGHTARROW)*/
 	if ((key == K_RIGHTARROW) || (key == K_DPAD_RIGHT))	// [FWGS, 01.04.23]
 		{
 		if (edit->cursor < len) edit->cursor = Con_UtfMoveRight (edit->buffer, edit->cursor, edit->widthInChars);
@@ -1582,7 +1352,6 @@ void Field_KeyDownEvent (field_t *edit, int key)
 		return;
 		}
 
-	/*if (key == K_LEFTARROW)*/
 	if ((key == K_LEFTARROW) || (key == K_DPAD_LEFT))	// [FWGS, 01.04.23]
 		{
 		if (edit->cursor > 0) edit->cursor = Con_UtfMoveLeft (edit->buffer, edit->cursor);
@@ -1716,32 +1485,20 @@ void Field_DrawInputLine (int x, int y, field_t *edit)
 	cursorChar = str[edit->cursor - prestep];
 
 	// [FWGS, 01.04.23]
-	/*if (host.key_overstrike && cursorChar && !((int)(host.realtime * 4) & 1))
-		hideChar = edit->cursor - prestep; // skip this char
-
-	// draw it
-	Con_DrawGenericString (x, y, str, colorDefault, false, hideChar);*/
 	CL_DrawString (x, y, str, colorDefault, con.curFont, FONT_DRAW_UTF8);
 
 	// draw the cursor
-	if ((int)(host.realtime * 4) & 1) 
+	if ((int)(host.realtime * 4) & 1)
 		return; // off blink
 
 	// calc cursor position
 	str[edit->cursor - prestep] = 0;
-	/*Con_DrawStringLen (str, &curPos, NULL);
-	Con_UtfProcessChar (0);*/
 	CL_DrawStringLen (con.curFont, str, &curPos, NULL, FONT_DRAW_UTF8);
 
 	// [FWGS, 01.04.23]
 	if (host.key_overstrike)
-		/*{
-		Con_DrawGenericChar (x + curPos, y, cursorChar, colorDefault);*/
 		CL_DrawCharacter (x + curPos, y, '|', colorDefault, con.curFont, 0);
 	else
-		/*{
-		Con_UtfProcessChar (0);
-		Con_DrawCharacter (x + curPos, y, '_', colorDefault);*/
 		CL_DrawCharacter (x + curPos, y, '_', colorDefault, con.curFont, 0);
 	}
 
@@ -1890,17 +1647,13 @@ void Key_Console (int key)
 		return;
 		}
 
-	// [FWGS, 01.04.23]
-	/*// enter finishes the line
-	if (key == K_ENTER || key == K_KP_ENTER)*/
-	
 	// enter or A finish the line
 	if ((key == K_ENTER) || (key == K_KP_ENTER) || (key == K_A_BUTTON))
 		{
 		// backslash text are commands, else chat
 		if ((con.input.buffer[0] == '\\') || (con.input.buffer[0] == '/'))
 			Cbuf_AddText (con.input.buffer + 1);	// skip backslash
-		else 
+		else
 			Cbuf_AddText (con.input.buffer);		// valid command
 		Cbuf_AddText ("\n");
 
@@ -1923,7 +1676,6 @@ void Key_Console (int key)
 		}
 
 	// [FWGS, 01.04.23] command completion
-	/*if (key == K_TAB)*/
 	if ((key == K_TAB) || (key == K_L2_BUTTON))
 		{
 		Con_CompleteCommand (&con.input);
@@ -1939,7 +1691,7 @@ void Key_Console (int key)
 		return;
 		}
 
-	if (((key == K_MWHEELDOWN) && Key_IsDown (K_SHIFT)) || (key == K_DOWNARROW) || ((Q_tolower (key) == 'n') && 
+	if (((key == K_MWHEELDOWN) && Key_IsDown (K_SHIFT)) || (key == K_DOWNARROW) || ((Q_tolower (key) == 'n') &&
 		Key_IsDown (K_CTRL)))
 		{
 		Con_HistoryDown (&con.history, &con.input);
@@ -1947,14 +1699,12 @@ void Key_Console (int key)
 		}
 
 	// console scrolling
-	/*if (key == K_PGUP)*/
 	if ((key == K_PGUP) || (key == K_DPAD_UP))	// [FWGS, 01.05.23]
 		{
 		Con_PageUp (1);
 		return;
 		}
 
-	/*if (key == K_PGDN)*/
 	if ((key == K_PGDN) || (key == K_DPAD_DOWN))	// [FWGS, 01.05.23]
 		{
 		Con_PageDown (1);
@@ -1965,7 +1715,7 @@ void Key_Console (int key)
 		{
 		if (Key_IsDown (K_CTRL))
 			Con_PageUp (8);
-		else 
+		else
 			Con_PageUp (2);
 		return;
 		}
@@ -2027,7 +1777,6 @@ void Key_Message (int key)
 	char	buffer[MAX_SYSPATH];
 
 	// [FWGS, 01.04.23]
-	/*if (key == K_ESCAPE)*/
 	if ((key == K_ESCAPE) || (key == K_BACK_BUTTON))
 		{
 		Key_SetKeyDest (key_game);
@@ -2036,7 +1785,6 @@ void Key_Message (int key)
 		}
 
 	// [FWGS, 01.04.23]
-	/*if (key == K_ENTER || key == K_KP_ENTER)*/
 	if ((key == K_ENTER) || (key == K_KP_ENTER) || (key == K_A_BUTTON))
 		{
 		if (con.chat.buffer[0] && (cls.state == ca_active))
@@ -2045,7 +1793,7 @@ void Key_Message (int key)
 
 			if (g_messagemode_privileged)
 				Cbuf_AddText (buffer);
-			else 
+			else
 				Cbuf_AddFilteredText (buffer);
 			}
 
@@ -2078,11 +1826,9 @@ void Con_DrawInput (int lines)
 		return;
 
 	y = lines - (con.curFont->charHeight * 2);
-	
-	// [FWGS, 01.04.23]
-	/*Con_DrawCharacter (con.curFont->charWidths[' '], y, ']', g_color_table[7]);*/
-	CL_DrawCharacter (con.curFont->charWidths[' '], y, ']', g_color_table[7], con.curFont, 0);
 
+	// [FWGS, 01.04.23]
+	CL_DrawCharacter (con.curFont->charWidths[' '], y, ']', g_color_table[7], con.curFont, 0);
 	Field_DrawInputLine (con.curFont->charWidths[' '] * 2, y, &con.input);
 	}
 
@@ -2107,14 +1853,9 @@ int Con_DrawDebugLines (void)
 	defaultX = refState.width / 4;
 	fontTall = con.curFont->charHeight + 1;
 
-	/*for (i = 0; i < MAX_DBG_NOTIFY; i++)
-		{
-		if ((host.realtime < con.notify[i].expire) && (con.notify[i].key_dest == cls.key_dest))*/
 	for (i = 0; i < ARRAYSIZE (con.notify); i++, notify++)
 		{
 		int	x, len;
-		/*int	fontTall = 0;
-		Con_DrawStringLen (con.notify[i].szNotify, &len, &fontTall);*/
 
 		if (host.realtime > notify->expire)
 			continue;
@@ -2130,9 +1871,6 @@ int Con_DrawDebugLines (void)
 			return count;
 
 		count++;
-		/*y = 20 + fontTall * i;
-		Con_DrawString (x, y, con.notify[i].szNotify, con.notify[i].color);
-		}*/
 		y += fontTall;
 		CL_DrawString (x, y, notify->szNotify, notify->color, con.curFont, FONT_DRAW_UTF8 | FONT_DRAW_NOLF);
 		}
@@ -2163,7 +1901,6 @@ void Con_DrawDebug (void)
 		}
 	else
 		{
-		/*timeStart = Sys_DoubleTime ();*/
 		timeStart = host.realtime;	// [FWGS, 01.04.23]
 		}
 
@@ -2249,7 +1986,6 @@ int Con_DrawConsoleLine (int y, int lineno)
 		float x = con.curFont->charWidths[' '];
 		CL_DrawString (x, y, li->start, g_color_table[7], con.curFont, FONT_DRAW_UTF8);
 		}
-	/*Con_DrawGenericString (con.curFont->charWidths[' '], y, li->start, g_color_table[7], false, -1);*/
 
 	return con.curFont->charHeight;
 	}
@@ -2259,7 +1995,7 @@ int Con_DrawConsoleLine (int y, int lineno)
 Con_LastVisibleLine
 
 Calculates the last visible line index and how much to show
-of it based on con.backscroll.
+of it based on con.backscroll
 ================
 */
 static void Con_LastVisibleLine (int *lastline)
@@ -2320,22 +2056,15 @@ void Con_DrawSolidConsole (int lines)
 	memcpy (color, g_color_table[7], sizeof (color));
 
 	// [FWGS, 01.04.23]
-	/*Q_snprintf (curbuild, MAX_STRING, "%s %i/%s (%s-%s build %i)", XASH_ENGINE_NAME, PROTOCOL_VERSION,
-		XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());*/
-	Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", 
+	Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)",
 		PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
 
 	Con_DrawStringLen (curbuild, &stringLen, &charH);
-	
-	/*start = refState.width - stringLen;
-	stringLen = Con_StringLength (curbuild);*/
-	start = refState.width - stringLen;
 
+	start = refState.width - stringLen;
 	fraction = lines / (float)refState.height;
 	color[3] = Q_min (fraction * 2.0f, 1.0f) * 255; // fadeout version number
 
-	/*for (i = 0; i < stringLen; i++)
-		width += Con_DrawCharacter (start + width, 0, curbuild[i], color);*/
 	Con_DrawString (start, 0, curbuild, color);
 
 	// draw the text
@@ -2354,8 +2083,7 @@ void Con_DrawSolidConsole (int lines)
 			// [FWGS, 01.04.23] draw red arrows to show the buffer is backscrolled
 			for (x = 0; x < con.linewidth; x += 4)
 				CL_DrawCharacter ((x + 1) * start, y, '^', g_color_table[1], con.curFont, 0);
-			/*Con_DrawCharacter ((x + 1) * start, y, '^', g_color_table[1]);*/
-			
+
 			y -= con.curFont->charHeight;
 			}
 		x = lastline;
@@ -2398,10 +2126,10 @@ void Con_DrawConsole (void)
 		{
 		if (!cl_allow_levelshots->value)
 			{
-			if ((Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background")) && 
+			if ((Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background")) &&
 				(cls.key_dest != key_console))
 				con.vislines = con.showlines = 0;
-			else 
+			else
 				con.vislines = con.showlines = refState.height;
 			}
 		else
@@ -2460,12 +2188,9 @@ Used by menu
 void Con_DrawVersion (void)
 	{
 	// draws the current build
-	byte *color = g_color_table[7];
-	
-	/*int	i, stringLen, width = 0, charH = 0;*/
-	int	stringLen, charH = 0;
-	
-	int	start, height = refState.height;
+	byte	*color = g_color_table[7];
+	int		stringLen, charH = 0;
+	int		start, height = refState.height;
 	qboolean	draw_version = false;
 	string	curbuild;
 
@@ -2490,20 +2215,14 @@ void Con_DrawVersion (void)
 	if (host.force_draw_version || draw_version)
 		Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)",
 			PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
-	else 
+	else
 		Q_snprintf (curbuild, MAX_STRING, "v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
 			Q_buildos (), Q_buildarch (), Q_buildnum ());
 
-	/*Q_snprintf (curbuild, MAX_STRING, "%s v%i/%s (%s-%s build %i)", XASH_ENGINE_NAME, PROTOCOL_VERSION, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
-	else Q_snprintf (curbuild, MAX_STRING, "v%i/%s (%s-%s build %i)", PROTOCOL_VERSION, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());*/
-
 	Con_DrawStringLen (curbuild, &stringLen, &charH);
 	start = refState.width - stringLen * 1.05f;
-	/*stringLen = Con_StringLength (curbuild);*/	// [FWGS, 01.05.23]
 	height -= charH * 1.05f;
 
-	/*for (i = 0; i < stringLen; i++)
-		width += Con_DrawCharacter (start + width, height, curbuild[i], color);*/
 	Con_DrawString (start, height, curbuild, color);
 	}
 
@@ -2525,7 +2244,7 @@ void Con_RunConsole (void)
 		{
 		if ((cls.state < ca_active) || cl.first_frame)
 			con.showlines = refState.height;	// full screen
-		else 
+		else
 			con.showlines = (refState.height >> 1);	// half screen
 		}
 	else
@@ -2573,11 +2292,8 @@ void Con_RunConsole (void)
 		g_utf8 = !Q_stricmp (cl_charset->string, "utf-8");
 		Con_InvalidateFonts ();
 		Con_LoadConchars ();
-		
-		// [FWGS, 01.04.23]
-		/*cls.creditsFont.valid = false;
-		SCR_LoadCreditsFont ();*/
 
+		// [FWGS, 01.04.23]
 		ClearBits (con_charset->flags, FCVAR_CHANGED);
 		ClearBits (con_fontnum->flags, FCVAR_CHANGED);
 		ClearBits (con_fontscale->flags, FCVAR_CHANGED);
@@ -2587,9 +2303,7 @@ void Con_RunConsole (void)
 
 /*
 ==============================================================================
-
 CONSOLE INTERFACE
-
 ==============================================================================
 */
 /*
@@ -2632,76 +2346,7 @@ void Con_VidInit (void)
 #if XASH_LOW_MEMORY
 	con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);
 #else
-	// loading console image
-	// ESHQ: не требуется
-	/*if (host.allow_console)
-		{
-		// trying to load truecolor image first
-		if (FS_FileExists ("gfx/shell/conback.bmp", false) || FS_FileExists ("gfx/shell/conback.tga", false))
-			con.background = ref.dllFuncs.GL_LoadTexture ("gfx/shell/conback", NULL, 0, TF_IMAGE);
-
-		if (!con.background)
-			{
-			if (FS_FileExists ("cached/conback640", false))
-				con.background = ref.dllFuncs.GL_LoadTexture ("cached/conback640", NULL, 0, TF_IMAGE);
-			else if (FS_FileExists ("cached/conback", false))
-				con.background = ref.dllFuncs.GL_LoadTexture ("cached/conback", NULL, 0, TF_IMAGE);
-			}
-		}
-	else
-		{
-		// trying to load truecolor image first
-		if (FS_FileExists ("gfx/shell/loading.bmp", false) || FS_FileExists ("gfx/shell/loading.tga", false))
-			con.background = ref.dllFuncs.GL_LoadTexture ("gfx/shell/loading", NULL, 0, TF_IMAGE);
-
-		if (!con.background)
-			{
-			if (FS_FileExists ("cached/loading640", false))
-				con.background = ref.dllFuncs.GL_LoadTexture ("cached/loading640", NULL, 0, TF_IMAGE);
-			else if (FS_FileExists ("cached/loading", false))
-				con.background = ref.dllFuncs.GL_LoadTexture ("cached/loading", NULL, 0, TF_IMAGE);
-			}
-		}
-
-	if (!con.background) // last chance - quake conback image
-		{
-		qboolean		draw_to_console = false;
-		fs_offset_t		length = 0;
-		const byte *buf;
-
-		// NOTE: only these games want to draw build number into console background
-		if (!Q_stricmp (FS_Gamedir (), "id1"))
-			draw_to_console = true;
-
-		if (!Q_stricmp (FS_Gamedir (), "hipnotic"))
-			draw_to_console = true;
-
-		if (!Q_stricmp (FS_Gamedir (), "rogue"))
-			draw_to_console = true;
-
-		if (draw_to_console && con.curFont &&
-			(buf = ref.dllFuncs.R_GetTextureOriginalBuffer (con.curFont->hFontTexture)) != NULL)
-			{
-			lmp_t *cb = (lmp_t *)FS_LoadFile ("gfx/conback.lmp", &length, false);
-			char	ver[64];
-			byte *dest;
-			int	x, y, len;
-
-			if (cb && cb->width == 320 && cb->height == 200)
-				{
-				len = Q_snprintf (ver, 64, "%i", Q_buildnum ()); // can store only buildnum
-				dest = (byte *)(cb + 1) + 320 * 186 + 320 - 11 - 8 * len;
-				y = len;
-				for (x = 0; x < y; x++)
-					Con_DrawCharToConback (ver[x], buf, dest + (x << 3));
-				con.background = ref.dllFuncs.GL_LoadTexture ("#gfx/conback.lmp", (byte *)cb, length, TF_IMAGE);
-				}
-			if (cb) Mem_Free (cb);
-			}
-
-		if (!con.background) // trying the load unmodified conback
-			con.background = ref.dllFuncs.GL_LoadTexture ("gfx/conback.lmp", NULL, 0, TF_IMAGE);
-		}*/
+	// ESHQ: удалена поддержка фона консоли
 
 	// missed console image will be replaced as gray background like X-Ray or Crysis
 	if ((con.background == R_GetBuiltinTexture (REF_DEFAULT_TEXTURE)) || (con.background == 0))
@@ -2717,8 +2362,6 @@ Con_InvalidateFonts [FWGS, 01.04.23]
 */
 void Con_InvalidateFonts (void)
 	{
-	/*memset (con.chars, 0, sizeof (con.chars));
-	con.curFont = con.lastUsedFont = NULL;*/
 	int i;
 	for (i = 0; i < ARRAYSIZE (con.chars); i++)
 		CL_FreeFont (&con.chars[i]);
@@ -2798,4 +2441,4 @@ void Test_RunCon (void)
 	TRUN (Test_RunConHistory ());
 	}
 
-#endif /* XASH_ENGINE_TESTS */
+#endif
