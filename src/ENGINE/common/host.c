@@ -70,27 +70,9 @@ void Sys_PrintUsage (void)
 	string version_str;
 	const char *usage_str;
 
-/*#define O(x,y) "   "x"  "y"\n"*/
 	Q_snprintf (version_str, sizeof (version_str),
 		XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
 		Q_buildos (), Q_buildarch (), Q_buildnum ());
-
-	/*usage_str = ""
-#if XASH_MESSAGEBOX == MSGBOX_STDERR
-		"\n" // dirty hack to not have Xash Error: Usage: on same line
-#endif
-		S_USAGE "\n"
-#if !XASH_MOBILE_PLATFORM
-#if XASH_WIN32
-		O ("<xash>.exe [options] [+command1] [+command2 arg]", "")
-#else // XASH_WIN32
-		O ("<xash> [options] [+command1] [+command2 arg]", "")
-#endif // !XASH_WIN32
-#endif // !XASH_MOBILE_PLATFORM
-		"Options:\n"
-		O ("-dev [level]     ", "set log verbosity 0-2")
-		O ("-log             ", "write log to \"engine.log\"")
-		O ("-nowriteconfig   ", "disable config save")*/
 
 #if XASH_WIN32
 	#define XASH_EXE "(xash).exe"
@@ -98,15 +80,7 @@ void Sys_PrintUsage (void)
 	#define XASH_EXE "(xash)"
 #endif
 
-/*#if !XASH_WIN32
-		O ("-casesensitive   ", "disable case-insensitive FS emulation")
-#endif */
-
 #define O( x, y ) "  "x"  "y"\n"
-
-/*#if !XASH_MOBILE_PLATFORM
-		O ("-daemonize       ", "run engine in background, dedicated only")
-#endif */
 
 	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
 		"\nCommon options:\n"
@@ -122,18 +96,8 @@ void Sys_PrintUsage (void)
 		O ("                 ", "Refer to engine documentation for more info")
 		O ("-disablehelp     ", "disable this message")
 #if !XASH_DEDICATED
-		/*O ("-toconsole       ", "run engine witn console open")
-		O ("-width <n>       ", "set window width")
-		O ("-height <n>      ", "set window height")
-		O ("-oldfont         ", "enable unused Quake font in Half-Life")*/
 		O ("-dedicated       ", "run engine in dedicated mode")
 #endif
-
-/*#if !XASH_MOBILE_PLATFORM
-		O ("-fullscreen      ", "run engine in fullscreen mode")
-		O ("-windowed        ", "run engine in windowed mode")
-		O ("-dedicated       ", "run engine in dedicated server mode")
-#endif*/
 
 		"\nNetworking options:\n"
 		O ("-noip            ", "disable IPv4")
@@ -177,12 +141,6 @@ void Sys_PrintUsage (void)
 		O ("-nativeegl       ", "use native egl implementation. Use if screen does not update or black")
 #endif
 
-/*#if XASH_WIN32
-		O ("-noavi           ", "disable AVI support")
-		O ("-nointro         ", "disable intro video")
-		O ("-minidumps       ", "enable writing minidumps when game crashed")
-#endif*/
-
 #if XASH_DOS
 		O ("-novesa          ", "disable vesa")
 #endif
@@ -199,26 +157,6 @@ void Sys_PrintUsage (void)
 		;
 #undef O
 
-		/*O ("-nojoy           ", "disable joystick support")
-
-#ifdef XASH_SDL
-		O ("-sdl_joy_old_api ", "use SDL legacy joystick API")
-		O ("-sdl_renderer <n>", "use alternative SDL_Renderer for software")
-#endif 
-		O ("-nosound         ", "disable sound")
-		O ("-noenginemouse   ", "disable mouse completely")
-
-		O ("-ref <name>      ", "use selected renderer dll")
-		O ("-gldebug         ", "enable OpenGL debug log")
-#endif 
-
-		O ("-noip            ", "disable TCP/IP")
-		O ("-noch            ", "disable crashhandler")
-		O ("-disablehelp     ", "disable this message")
-		O ("-dll <path>      ", "override server DLL path")
-#if !XASH_DEDICATED
-		O ("-clientlib <path>", "override client DLL path")*/
-
 // HACKHACK: pretty output in dedicated
 #if XASH_MESSAGEBOX != MSGBOX_STDERR
 	Platform_MessageBox (version_str, usage_str, false);
@@ -226,17 +164,6 @@ void Sys_PrintUsage (void)
 	fprintf (stderr, "%s\n%s", version_str, usage_str);
 #endif
 
-		/*O ("-rodir <path>    ", "set read-only base directory, experimental")
-		O ("-bugcomp         ", "enable precise bug compatibility. Will break games that don't require it")
-		O ("                 ", "Refer to engine documentation for more info")
-
-		O ("-ip <ip>         ", "set custom ip")
-		O ("-port <port>     ", "set custom host port")
-		O ("-clockwindow <cw>", "adjust clockwindow")
-		;
-#undef  O
-
-	Sys_Error ("%s", usage_str);*/
 	Sys_Quit ();
 	}
 
@@ -281,7 +208,6 @@ void Host_PrintEngineFeatures (void)
 /*
 ==============
 Host_IsQuakeCompatible
-
 ==============
 */
 qboolean Host_IsQuakeCompatible (void)
@@ -294,7 +220,7 @@ qboolean Host_IsQuakeCompatible (void)
 	// quake demo playing
 	if (cls.demoplayback == DEMO_QUAKE1)
 		return true;
-#endif // XASH_DEDICATED
+#endif
 
 	return false;
 	}
@@ -346,11 +272,8 @@ void Host_AbortCurrentFrame (void)
 Host_CalcSleep [FWGS, 01.04.23]
 ==================
 */
-//void Host_CheckSleep (void)
 static int Host_CalcSleep (void)
 	{
-	/*int sleeptime = host_sleeptime->value;*/
-
 #ifndef XASH_DEDICATED
 	// never sleep in timedemo for benchmarking purposes
 	// also don't sleep with vsync for less lag
@@ -358,32 +281,14 @@ static int Host_CalcSleep (void)
 		return 0;
 #endif
 
+	// let the dedicated server some sleep
 	if (Host_IsDedicated ())
-		{
-		// let the dedicated server some sleep
-		/*Sys_Sleep (sleeptime);*/
 		return host_sleeptime->value;
-		}
-	/*else
-		{
-		if (host.status == HOST_NOFOCUS)*/
+
 	switch (host.status)
 		{
 		case HOST_NOFOCUS:
 			if (SV_Active () && CL_IsInGame ())
-				/*Sys_Sleep (sleeptime); // listenserver
-			else
-				Sys_Sleep (20); // sleep 20 ms otherwise
-			}
-		else if (host.status == HOST_SLEEP)
-			{
-			// completely sleep in minimized state
-			Sys_Sleep (20);
-			}
-		else
-			{
-			Sys_Sleep (sleeptime);
-			}*/
 				return host_sleeptime->value;
 		
 		// fallthrough
@@ -440,11 +345,8 @@ void Host_ChangeGame_f (void)
 	else
 		{
 		// [FWGS, 01.04.23]
-		/*const char *arg1 = va ("%s%s", (host.type == HOST_NORMAL) ? "" : "#", Cmd_Argv (1));
-		const char *arg2 = va ("change game to '%s'", FI->games[i]->title);*/
 		char finalmsg[MAX_VA_STRING];
 
-		/*Host_NewInstance (arg1, arg2);*/
 		Q_snprintf (finalmsg, sizeof (finalmsg), "change game to '%s'", FI->games[i]->title);
 		Host_NewInstance (Cmd_Argv (1), finalmsg);
 		}
@@ -485,7 +387,6 @@ void Host_Exec_f (void)
 		char temp[MAX_VA_STRING];	// [FWGS, 01.04.23]
 		qboolean allow = false;
 
-		/*unprivilegedWhitelist[0] = va ("%s.cfg", clgame.mapname);*/
 		Q_snprintf (temp, sizeof (temp), "%s.cfg", clgame.mapname);
 		unprivilegedWhitelist[0] = temp;
 
@@ -551,10 +452,12 @@ void Host_MemStats_f (void)
 			Mem_PrintList (1 << 30);
 			Mem_PrintStats ();
 			break;
+
 		case 2:
 			Mem_PrintList (Q_atoi (Cmd_Argv (1)) * 1024);
 			Mem_PrintStats ();
 			break;
+
 		default:
 			Con_Printf (S_USAGE "memlist <all>\n");
 			break;
@@ -588,6 +491,7 @@ qboolean Host_IsLocalClient (void)
 	// only the local client have the active server
 	if (CL_Initialized () && SV_Initialized ())
 		return true;
+
 	return false;
 	}
 
@@ -707,19 +611,6 @@ double Host_CalcFPS (void)
 				fps = MAX_FPS;
 			fps = bound (MIN_FPS, fps, MAX_FPS);
 			}
-
-		// [FWGS, 01.04.23] probably left part of this condition is redundant [удаление отменено]
-		/*if ((host.type != HOST_DEDICATED) && Host_IsLocalGame () && !CL_IsTimeDemo ())
-			{
-			// adjust fps for vertical synchronization
-			if (CVAR_TO_BOOL (gl_vsync))
-				{
-				if (vid_displayfrequency->value != 0.0f)
-					fps = vid_displayfrequency->value;
-				else
-					fps = 60.0; // default
-				}
-			}*/
 		}
 #endif
 
@@ -736,8 +627,6 @@ Returns false if the time is too short to run a frame
 qboolean Host_FilterTime (float time)
 	{
 	static double	oldtime;
-	/*double		fps;
-	double		scale = sys_timescale.value;*/
 	double fps, scale = sys_timescale.value;
 
 	host.realtime += time * scale;
@@ -760,7 +649,6 @@ qboolean Host_FilterTime (float time)
 
 		if ((host.realtime - oldtime) < targetframetime * scale)
 			{
-			/*if ((host.realtime - oldtime) < (1.0 / (fps + 1.0)) * scale)*/
 			if ((sleeptime > 0) && (sleeps > 0))
 				{
 				Sys_Sleep (sleeptime);
@@ -785,9 +673,6 @@ qboolean Host_FilterTime (float time)
 				}
 			else
 				{
-				/*if ((host.realtime - oldtime) < (1.0 / fps) * scale)
-					return false;*/
-
 				// always sleep at least once in minimized/nofocus state
 				sleeps = 1;
 				}
@@ -850,18 +735,7 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	static qboolean	recursive = false;
 	va_list		argptr;
 
-	// [FWGS, 01.04.23]
-	/*if (host.mouse_visible && !CL_IsInMenu ())
-	{
-	// hide VGUI mouse
-	#ifdef XASH_SDL
-	SDL_ShowCursor (0);
-	#endif
-	host.mouse_visible = false;
-	}*/
-
 	va_start (argptr, error);
-	/*Q_vsprintf (hosterror1, error, argptr);*/
 	Q_vsnprintf (hosterror1, sizeof (hosterror1), error, argptr);	// [FWGS, 01.05.23]
 	va_end (argptr);
 
@@ -901,7 +775,6 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	recursive = true;
 	Q_strncpy (hosterror2, hosterror1, MAX_SYSPATH);
 	host.errorframe = host.framecount; // to avoid multply calls per frame
-	/*Q_sprintf (host.finalmsg, "Server crashed: %s", hosterror1);*/
 	Q_snprintf (host.finalmsg, sizeof (host.finalmsg), "Server crashed: %s", hosterror1);	// [FWGS, 01.05.23]
 
 	// clearing cmd buffer to prevent execute any commands
@@ -963,9 +836,6 @@ void Host_Userconfigd_f (void)
 
 	for (i = 0; i < t->numfilenames; i++)
 		Cbuf_AddTextf ("exec %s\n", t->filenames[i]);
-		/*{
-		Cbuf_AddText (va ("exec %s\n", t->filenames[i]));
-		}*/
 
 	Mem_Free (t);
 	}
@@ -980,20 +850,14 @@ static void Host_RunTests (int stage)
 		case 0: // early engine load
 			memset (&tests_stats, 0, sizeof (tests_stats));
 			TEST_LIST_0;
-			/*Test_RunLibCommon ();
-			Test_RunCommon ();
-			Test_RunCmd ();
-			Test_RunCvar ();*/
 #if !XASH_DEDICATED
-			/*Test_RunCon ();*/
 			TEST_LIST_0_CLIENT;
 #endif
 			break;
+
 		case 1: // after FS load
-			/*Test_RunImagelib ();*/
 			TEST_LIST_1;
 #if !XASH_DEDICATED
-			/*Test_RunVOX ();*/
 			TEST_LIST_1_CLIENT;
 #endif
 			Msg ("Done! %d passed, %d failed\n", tests_stats.passed, tests_stats.failed);
@@ -1039,8 +903,6 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 
 	host.mempool = Mem_AllocPool ("Zone Engine");
 	host.allow_console = DEFAULT_ALLOWCONSOLE;	// [FWGS, 01.04.23]
-
-	/*if (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake"))*/
 
 	// HACKHACK: Quake console is always allowed
 	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake")))	// [FWGS, 01.04.23]
@@ -1153,7 +1015,6 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 		const char *IOS_GetDocsDir ();
 		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));
 
-/*#elif XASH_SDL == 2*/
 #elif XASH_PSVITA	// [FWGS, 01.04.23]
 		if (!PSVita_GetBasePath (host.rootdir, sizeof (host.rootdir)))
 			{
@@ -1275,8 +1136,6 @@ void Host_FreeCommon (void)
 Host_Main
 =================
 */
-/*#define ACHI_EXEC_STRING	"exec achi2.cfg\n"*/
-
 int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
 	{
 	static double	oldtime, newtime;
@@ -1312,12 +1171,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	Cvar_RegisterVariable (&sys_timescale);
 
 	// [FWGS, 01.04.23]
-	/*build = Cvar_Get ("buildnum", va ("%i", Q_buildnum_compat ()), FCVAR_READ_ONLY, "returns a current build number");
-	ver = Cvar_Get ("ver", va ("%i/%s (hw build %i)", PROTOCOL_VERSION, XASH_COMPAT_VERSION, Q_buildnum_compat ()), FCVAR_READ_ONLY, "shows an engine version");
-	Cvar_Get ("host_ver", va ("%i %s %s %s %s", Q_buildnum (), XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildcommit ()), FCVAR_READ_ONLY,
-		"detailed info about this build");
-	Cvar_Get ("host_lowmemorymode", va ("%i", XASH_LOW_MEMORY), FCVAR_READ_ONLY,
-		"indicates if engine compiled for low RAM consumption (0 - normal, 1 - low engine limits, 2 - low protocol limits)");*/
 	build = Cvar_Getf ("buildnum", FCVAR_READ_ONLY, "returns a current build number", "%i", Q_buildnum_compat ());
 	ver = Cvar_Getf ("ver", FCVAR_READ_ONLY, "shows an engine version", "%i/%s (hw build %i)", PROTOCOL_VERSION, XASH_COMPAT_VERSION, Q_buildnum_compat ());
 	Cvar_Getf ("host_ver", FCVAR_READ_ONLY, "detailed info about this build", 
@@ -1373,7 +1226,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 			Wcon_ShowConsole (false); // hide console
 #endif
 			// [FWGS, 01.04.23] execute startup config and cmdline
-			/*Cbuf_AddText (va ("exec %s.rc\n", SI.rcName));*/
 			Cbuf_AddTextf ("exec %s.rc\n", SI.rcName);
 			Cbuf_Execute ();
 
@@ -1417,7 +1269,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	oldtime = Sys_DoubleTime () - 0.1;
 
 	// [FWGS, 01.04.23]
-	/*if (Host_IsDedicated () && (GameState->nextstate == STATE_RUNFRAME))*/
 	if (Host_IsDedicated ())
 		{
 		// in dedicated server input system can't set HOST_FRAME status
@@ -1429,8 +1280,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 
 		// execute server.cfg after commandline
 		// so we have a chance to set servercfgfile
-		/*Con_Printf ("Type 'map <mapname>' to start game... (TAB-autocomplete is working too)\n");
-		Cbuf_AddText (va ("exec %s\n", Cvar_VariableString ("servercfgfile")));*/
 		Cbuf_AddTextf ("exec %s\n", Cvar_VariableString ("servercfgfile"));
 		Cbuf_Execute ();
 		}

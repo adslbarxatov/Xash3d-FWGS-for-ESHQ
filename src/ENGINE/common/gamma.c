@@ -20,7 +20,6 @@ GNU General Public License for more details.
 //-----------------------------------------------------------------------------
 // Gamma conversion support
 //-----------------------------------------------------------------------------
-/*static byte	texgammatable[256];		// [FWGS, 01.05.23] palette is sent through this to convert to screen gamma*/
 static byte	lightgammatable[256];
 static int	lineargammatable[1024];
 static int	screengammatable[1024];
@@ -61,15 +60,6 @@ void BuildGammaTable (float lightgamma, float brightness)
 		lightgammatable[i] = bound (0, inf, 255);
 		}
 
-	/* [FWGS, 01.05.23]
-	for (i = 0; i < 256; i++)
-		{
-		f = 255.0f * pow ((float)i / 255.0f, TEXGAMMA);
-		inf = (int)(f + 0.5f);
-		texgammatable[i] = bound (0, inf, 255);
-		}
-	*/
-
 	for (i = 0; i < 1024; i++)
 		{
 		// convert from screen gamma space to linear space
@@ -80,6 +70,8 @@ void BuildGammaTable (float lightgamma, float brightness)
 		}
 	}
 
+// [FWGS, 01.05.23] удалена TextureToGamma
+
 byte LightToTexGamma (byte b)
 	{
 	if (FBitSet (host.features, ENGINE_LINEAR_GAMMA_SPACE))
@@ -87,13 +79,3 @@ byte LightToTexGamma (byte b)
 	else
 		return lightgammatable[b];
 	}
-
-/* [FWGS, 01.05.23]
-byte TextureToGamma (byte b)
-	{
-	if (FBitSet (host.features, ENGINE_LINEAR_GAMMA_SPACE))
-		return b;
-	else
-		return texgammatable[b];
-	}
-*/

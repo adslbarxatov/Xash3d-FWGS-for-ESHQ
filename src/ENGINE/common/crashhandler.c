@@ -27,10 +27,8 @@ Sys_Crash [FWGS, 01.04.23]
 Crash handler, called from system
 ================
 */
-/*#if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP || XASH_CRASHHANDLER == CRASHHANDLER_WIN32*/
 #if XASH_WIN32
 #if DBGHELP
-/*#if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP*/
 
 #pragma comment( lib, "dbghelp" )
 
@@ -193,13 +191,10 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 
 	SymCleanup (process);
 	}
-/*#endif*/
 
 // [FWGS, 01.05.23]
 static void Sys_GetProcessName (char *processName, size_t bufferSize)
 	{
-	/*GetModuleBaseName (GetCurrentProcess (), NULL, processName, bufferSize - 1);
-	COM_FileBase (processName, processName);*/
 	char fullpath[MAX_PATH];
 	
 	GetModuleBaseName (GetCurrentProcess (), NULL, fullpath, sizeof (fullpath) - 1);
@@ -270,7 +265,6 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 		host.crashed = true;
 
 // [FWGS, 01.04.23]
-/*#if XASH_CRASHHANDLER == CRASHHANDLER_DBGHELP*/
 #if DBGHELP
 		Sys_StackTrace (pInfo);
 #else
@@ -335,7 +329,6 @@ void Sys_RestoreCrashHandler (void)
 	}
 
 // [FWGS, 01.04.23]
-/*#elif XASH_CRASHHANDLER == CRASHHANDLER_UCONTEXT*/
 #elif XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
 
 // Posix signal handler
@@ -345,23 +338,15 @@ void Sys_RestoreCrashHandler (void)
 #include "library.h"
 
 // [FWGS, 01.04.23]
-/*#if XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
-#define HAVE_UCONTEXT_H 1
-#endif*/
 #define STACK_BACKTRACE_STR     "Stack backtrace:\n"
 #define STACK_DUMP_STR          "Stack dump:\n"
 
 // [FWGS, 01.04.23]
-/*#ifdef HAVE_UCONTEXT_H
-#include <ucontext.h>
-#endif*/
 #define STACK_BACKTRACE_STR_LEN ( sizeof( STACK_BACKTRACE_STR ) - 1 )
 #define STACK_DUMP_STR_LEN      ( sizeof( STACK_DUMP_STR ) - 1 )
 #define ALIGN( x, y ) (((uintptr_t) ( x ) + (( y ) - 1 )) & ~(( y ) - 1 ))
 
 // [FWGS, 01.04.23]
-/*#include <signal.h>
-#include <sys/mman.h>*/
 static struct sigaction oldFilter;
 
 #ifdef XASH_DYNAMIC_DLADDR
@@ -402,16 +387,6 @@ static int Sys_PrintFrame (char *buf, int len, int i, void *addr)
 		return Q_snprintf (buf, len, "%2d: %p\n", i, addr); // print only address
 		}
 	}
-
-// [FWGS, 01.04.23]
-/*struct sigaction oldFilter;
-
-#define STACK_BACKTRACE_STR     "Stack backtrace:\n"
-#define STACK_DUMP_STR          "Stack dump:\n"
-
-#define STACK_BACKTRACE_STR_LEN (sizeof( STACK_BACKTRACE_STR ) - 1)
-#define STACK_DUMP_STR_LEN      (sizeof( STACK_DUMP_STR ) - 1)
-#define ALIGN( x, y ) (((uintptr_t) (x) + ((y)-1)) & ~((y)-1))*/
 
 // [FWGS, 01.04.23]
 static void Sys_Crash (int signal, siginfo_t *si, void *context)
@@ -474,8 +449,6 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 #endif
 
 	// [FWGS, 01.04.23] safe actions first, stack and memory may be corrupted
-	/*len = Q_snprintf (message, sizeof (message), "Ver: %s %s (build %i-%s, %s-%s)\n",
-		XASH_ENGINE_NAME, XASH_VERSION, Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());*/
 	len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
 		Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());
 
@@ -585,7 +558,6 @@ void Sys_RestoreCrashHandler (void)
 	}
 
 // [FWGS, 01.04.23]
-/*#elif XASH_CRASHHANDLER == CRASHHANDLER_NULL*/
 #else
 
 void Sys_SetupCrashHandler (void)

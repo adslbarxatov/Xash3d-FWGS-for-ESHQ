@@ -19,74 +19,7 @@ GNU General Public License for more details.
 
 ref_globals_t refState;
 
-/* [FWGS, 01.04.23]
-const char *svc_strings[256] =
-	{
-		"svc_bad",
-		"svc_nop",
-		"svc_disconnect",
-		"svc_changing",
-		"svc_version",
-		"svc_setview",
-		"svc_sound",
-		"svc_time",
-		"svc_print",
-		"svc_stufftext",
-		"svc_setangle",
-		"svc_serverdata",
-		"svc_lightstyle",
-		"svc_updateuserinfo",
-		"svc_deltatable",
-		"svc_clientdata",
-		"svc_stopsound",
-		"svc_updatepings",
-		"svc_particle",
-		"svc_restoresound",
-		"svc_spawnstatic",
-		"svc_event_reliable",
-		"svc_spawnbaseline",
-		"svc_temp_entity",
-		"svc_setpause",
-		"svc_signonnum",
-		"svc_centerprint",
-		"svc_event",
-		"svc_soundindex",
-		"svc_ambientsound",
-		"svc_intermission",
-		"svc_modelindex",
-		"svc_cdtrack",
-		"svc_serverinfo",
-		"svc_eventindex",
-		"svc_weaponanim",
-		"svc_bspdecal",
-		"svc_roomtype",
-		"svc_addangle",
-		"svc_usermessage",
-		"svc_packetentities",
-		"svc_deltapacketentities",
-		"svc_chokecount",
-		"svc_resourcelist",
-		"svc_deltamovevars",
-		"svc_customization",
-		"svc_unused46",
-		"svc_crosshairangle",
-		"svc_soundfade",
-		"svc_unused49",
-		"svc_unused50",
-		"svc_director",
-		"svc_studiodecal",
-		"svc_unused53",
-		"svc_unused54",
-		"svc_unused55",
-		"svc_unused56",
-		"svc_querycvarvalue",
-		"svc_querycvarvalue2",
-		"svc_exec",
-		"svc_unused60",
-		"svc_unused61",
-		"svc_unused62",
-		"svc_unused63",
-	};*/
+// [FWGS, 01.04.23] удалены svc_strings
 
 void CL_ProcessFile (qboolean successfully_received, const char *filename)
 	{
@@ -137,17 +70,7 @@ qboolean CL_DisableVisibility (void)
 	return false;
 	}
 
-/* [FWGS, 01.05.23]
-qboolean CL_IsBackgroundDemo (void)
-	{
-	return false;
-	}
-
-qboolean CL_IsBackgroundMap (void)
-	{
-	return false;
-	}
-*/
+// [FWGS, 01.05.23] удалены CL_IsBackgroundDemo, CL_IsBackgroundMap
 
 void CL_Init (void)
 	{

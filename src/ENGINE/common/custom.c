@@ -116,12 +116,10 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 		pCust->resource.playernum = playernumber;
 
 		// [FWGS, 01.04.23]
-		/*if (CustomDecal_Validate (pCust->pBuffer, pResource->nDownloadSize))*/
 		if (CustomDecal_Validate (pResource->szFileName, pCust->pBuffer, pResource->nDownloadSize))
 			{
 			if (!FBitSet (flags, FCUST_IGNOREINIT))
 				{
-				/*if (pResource->nDownloadSize >= (1 * 1024) && pResource->nDownloadSize <= (16 * 1024))*/
 				if ((pResource->nDownloadSize >= (1 * 1024)) && (pResource->nDownloadSize <= (128 * 1024)))
 					{
 					pCust->bTranslated = true;
@@ -129,7 +127,6 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 					pCust->nUserData2 = 1;
 
 					if (!FBitSet (flags, FCUST_WIPEDATA))
-						/*pCust->pInfo = FS_LoadImage ("#logo.bmp", pCust->pBuffer, pCust->resource.nDownloadSize);*/
 						pCust->pInfo = CustomDecal_LoadImage (pResource->szFileName, pCust->pBuffer, 
 							pCust->resource.nDownloadSize);
 					else

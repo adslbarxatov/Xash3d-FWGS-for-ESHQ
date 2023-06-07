@@ -172,7 +172,8 @@ void frame_init_par (mpg123_handle_t *fr, mpg123_parm_t *mp)
 
 static void frame_decode_buffers_reset (mpg123_handle_t *fr)
 	{
-	if (fr->rawbuffs) /* memset(NULL, 0, 0) not desired */
+	// memset(NULL, 0, 0) not desired
+	if (fr->rawbuffs)
 		memset (fr->rawbuffs, 0, fr->rawbuffss);
 	}
 
@@ -180,9 +181,9 @@ int frame_buffers (mpg123_handle_t *fr)
 	{
 	int	buffssize = 4352;
 
-	buffssize += 15; // for 16-byte alignment
+	buffssize += 15;	// for 16-byte alignment
 
-	if (fr->rawbuffs != NULL && fr->rawbuffss != buffssize)
+	if ((fr->rawbuffs != NULL) && (fr->rawbuffss != buffssize))
 		{
 		free (fr->rawbuffs);
 		fr->rawbuffs = NULL;

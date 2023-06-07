@@ -21,8 +21,7 @@ GNU General Public License for more details.
 convar_t *cvar_vars = NULL; // head of list
 convar_t *cmd_scripting;
 
-// [FWGS, 01.04.23]
-/*CVAR_DEFINE_AUTO (cl_filterstuffcmd, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "filter commands coming from server");*/
+// [FWGS, 01.04.23] удалена команда cl_filterstuffcmd
 
 #ifdef HACKS_RELATED_HLMODS
 typedef struct cvar_filter_quirks_s
@@ -420,9 +419,6 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			// which executed from the config file. So we don't need to
 			// change value here: we *already* have actual value from config.
 			// in other cases we need to rewrite them
-			
-			// [FWGS, 01.04.23]
-			/*if (Q_strcmp (var->desc, ""))*/
 			if (COM_CheckStringEmpty (var->desc))
 				{
 				// directly set value
@@ -957,7 +953,7 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	if (cl_filterstuffcmd.value <= 0.0f)
 		return true;
 
-// [FWGS, 01.04.23] check if game-specific filter exceptions should be applied
+	// [FWGS, 01.04.23] check if game-specific filter exceptions should be applied
 #ifdef HACKS_RELATED_HLMODS
 	if (cvar_active_filter_quirks)
 		{
@@ -1027,7 +1023,7 @@ qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged)
 		{
 		if (FBitSet (v->flags, FCVAR_ALLOCATED | FCVAR_EXTENDED))
 			Con_Printf ("\"%s\" is \"%s\" ( ^3\"%s\"^7 )\n", v->name, v->string, v->def_string);
-		else 
+		else
 			Con_Printf ("\"%s\" is \"%s\"\n", v->name, v->string);
 
 		return true;
@@ -1052,9 +1048,8 @@ qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged)
 	else
 		{
 		Cvar_DirectSet (v, Cmd_Argv (1));
+
 		// [FWGS, 01.04.23]
-		/*if (host.apply_game_config)
-			host.sv_cvars_restored++;*/
 		return true;
 		}
 	}
@@ -1098,7 +1093,6 @@ void Cvar_Toggle_f (void)
 	v = !Cvar_VariableInteger (Cmd_Argv (1));
 
 	// [FWGS, 01.04.23]
-	/*Cvar_Set (Cmd_Argv (1), va ("%i", v));*/
 	Cvar_Set (Cmd_Argv (1), v ? "1" : "0");
 	}
 
@@ -1130,9 +1124,6 @@ void Cvar_Set_f (void)
 			break;
 
 		// [FWGS, 01.05.23]
-		/*Q_strcat (combined, Cmd_Argv (i));
-		if (i != c - 1)
-			Q_strcat (combined, " ");*/
 		Q_strncat (combined, Cmd_Argv (i), sizeof (combined));
 		if (i != c - 1)
 			Q_strncat (combined, " ", sizeof (combined));
@@ -1188,9 +1179,8 @@ void Cvar_List_f (void)
 	{
 	convar_t *var;
 	const char *match = NULL;
-	/*char *value;*/
-	int	count = 0;
-	size_t	matchlen = 0;
+	int			count = 0;
+	size_t		matchlen = 0;
 
 	if (Cmd_Argc () > 1)
 		{
@@ -1209,18 +1199,14 @@ void Cvar_List_f (void)
 			continue;
 
 		if (Q_colorstr (var->string))
-			/*value = va ("\"%s\"", var->string);
-		else 
-			value = va ("\"^2%s^7\"", var->string);*/
 			Q_snprintf (value, sizeof (value), "\"%s\"", var->string);
-		else 
+		else
 			Q_snprintf (value, sizeof (value), "\"^2%s^7\"", var->string);
 
 		if (FBitSet (var->flags, FCVAR_EXTENDED | FCVAR_ALLOCATED))
 			Con_Printf (" %-*s %s ^3%s^7\n", 32, var->name, value, var->desc);
-		else 
+		else
 			Con_Printf (" %-*s %s ^3%s^7\n", 32, var->name, value, Cvar_BuildAutoDescription (var->name, var->flags));
-			/*Con_Printf (" %-*s %s ^3%s^7\n", 32, var->name, value, Cvar_BuildAutoDescription (var->flags));*/
 
 		count++;
 		}
@@ -1269,15 +1255,15 @@ void Cvar_Init (void)
 	Cvar_RegisterVariable (&host_developer); // early registering for dev
 	Cvar_RegisterVariable (&cl_filterstuffcmd);
 
-	Cmd_AddRestrictedCommand ("setgl", Cvar_SetGL_f, 
+	Cmd_AddRestrictedCommand ("setgl", Cvar_SetGL_f,
 		"change the value of a opengl variable");	// OBSOLETE
-	Cmd_AddRestrictedCommand ("toggle", Cvar_Toggle_f, 
+	Cmd_AddRestrictedCommand ("toggle", Cvar_Toggle_f,
 		"toggles a console variable's values (use for more info)");
-	Cmd_AddRestrictedCommand ("reset", Cvar_Reset_f, 
+	Cmd_AddRestrictedCommand ("reset", Cvar_Reset_f,
 		"reset any type variable to initial value");
-	Cmd_AddCommand ("set", Cvar_Set_f, 
+	Cmd_AddCommand ("set", Cvar_Set_f,
 		"create or change the value of a console variable");
-	Cmd_AddCommand ("cvarlist", Cvar_List_f, 
+	Cmd_AddCommand ("cvarlist", Cvar_List_f,
 		"display all console variables beginning with the specified prefix");
 	}
 

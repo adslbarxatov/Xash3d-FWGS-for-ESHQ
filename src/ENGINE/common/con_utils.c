@@ -62,9 +62,9 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 	for (i = 0, nummaps = 0; i < t->numfilenames; i++)
 		{
 		char		entfilename[MAX_QPATH];
-		const char	*ext = COM_FileExtension (t->filenames[i]);
+		const char *ext = COM_FileExtension (t->filenames[i]);
 		int			ver = -1, lumpofs = 0, lumplen = 0;
-		char		*ents = NULL, *pfile;
+		char *ents = NULL, *pfile;
 		int			version = 0;
 		string		version_description;
 
@@ -88,11 +88,8 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 			ver = header->version;
 
 			// [FWGS, 01.04.23] check all the lumps and some other errors
-			/*if (Mod_TestBmodelLumps (t->filenames[i], buf, true))*/
 			if (Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
 				{
-				/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
-				lumplen = header->lumps[LUMP_ENTITIES].filelen;*/
 				lumpofs = entities.fileofs;
 				lumplen = entities.filelen;
 				ver = header->version;
@@ -103,8 +100,6 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 				version = hdrext->version;
 
 			Q_strncpy (entfilename, t->filenames[i], sizeof (entfilename));
-			/*COM_StripExtension (entfilename);
-			COM_DefaultExtension (entfilename, ".ent");*/
 			COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));	// [FWGS, 01.05.23]
 			ents = (char *)FS_LoadFile (entfilename, NULL, true);
 
@@ -127,28 +122,22 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 				while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
 					{
 					if (!Q_strcmp (token, "{"))
-						{
 						continue;
-						}
+
 					else if (!Q_strcmp (token, "}"))
-						{
 						break;
-						}
+
+					// get the message contents
 					else if (!Q_strcmp (token, "message"))
-						{
-						// get the message contents
 						pfile = COM_ParseFile (pfile, message, sizeof (message));
-						}
+
+					// get the message contents
 					else if (!Q_strcmp (token, "compiler") || !Q_strcmp (token, "_compiler"))
-						{
-						// get the message contents
 						pfile = COM_ParseFile (pfile, compiler, sizeof (compiler));
-						}
+
+					// get the message contents
 					else if (!Q_strcmp (token, "generator") || !Q_strcmp (token, "_generator"))
-						{
-						// get the message contents
 						pfile = COM_ParseFile (pfile, generator, sizeof (generator));
-						}
 					}
 				Mem_Free (ents);
 				}
@@ -156,7 +145,6 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 
 		if (f)
 			FS_Close (f);
-		/*COM_FileBase (t->filenames[i], mapname);*/
 		COM_FileBase (t->filenames[i], mapname, sizeof (mapname));	// [FWGS, 01.05.23]
 
 		switch (ver)
@@ -187,7 +175,7 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 					}
 				break;
 
-			default:	
+			default:
 				Q_strncpy (version_description, "??", sizeof (version_description));
 				break;
 			}
@@ -219,7 +207,6 @@ qboolean Cmd_GetMapList (const char *s, char *completedname, int length)
 	if (!t)
 		return false;
 
-	/*COM_FileBase (t->filenames[0], matchbuf);*/
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 
 	if (completedname && length)
@@ -259,7 +246,6 @@ qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
 	t = FS_Search (va ("%s*.dem", s), true, true);
 	if (!t) return false;
 
-	/*COM_FileBase (t->filenames[0], matchbuf);*/
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
@@ -270,7 +256,6 @@ qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "dem"))
 			continue;
 
-		/*COM_FileBase (t->filenames[i], matchbuf);*/
 		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 		Con_Printf ("%16s\n", matchbuf);
 		numdems++;
@@ -399,7 +384,7 @@ qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 	string		matchbuf;
 	int		i, numsaves;
 
-	t = FS_Search (va ("%s%s*.%s", DEFAULT_SAVE_DIRECTORY, s, DEFAULT_SAVE_EXTENSION), true, true);	
+	t = FS_Search (va ("%s%s*.%s", DEFAULT_SAVE_DIRECTORY, s, DEFAULT_SAVE_EXTENSION), true, true);
 	// lookup only in gamedir
 	if (!t) return false;
 
@@ -448,7 +433,7 @@ qboolean Cmd_GetConfigList (const char *s, char *completedname, int length)
 	int		i, numconfigs;
 
 	t = FS_Search (va ("%s*.cfg", s), true, false);
-	if (!t) 
+	if (!t)
 		return false;
 
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
@@ -645,7 +630,7 @@ static void Con_AddCommandToList (const char *s, const char *unused1, const char
 	{
 	con_autocomplete_t *list = (con_autocomplete_t *)_autocompleteList;
 
-	if (*s == '@') 
+	if (*s == '@')
 		return; // never show system cvars or cmds
 	if (list->matchCount >= CON_MAXCMDS)
 		return; // list is full
@@ -694,13 +679,13 @@ qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
 	Cmd_LookupCmds (NULL, &list, (setpair_t)Con_AddCommandToList);
 	Cvar_LookupVars (0, NULL, &list, (setpair_t)Con_AddCommandToList);
 
-	if (!list.matchCount) 
+	if (!list.matchCount)
 		return false;
 	Q_strncpy (matchbuf, list.cmds[0], sizeof (matchbuf));
 
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (list.matchCount == 1) 
+	if (list.matchCount == 1)
 		return true;
 
 	qsort (list.cmds, list.matchCount, sizeof (char *), Con_SortCmds);
@@ -926,7 +911,6 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 		}
 
 	// [FWGS, 01.05.23]
-	/*buffer = Mem_Calloc (host.mempool, t->numfilenames * 2 * sizeof (result));*/
 	buffersize = t->numfilenames * 2 * sizeof (result);
 	buffer = Mem_Calloc (host.mempool, buffersize);
 
@@ -958,7 +942,6 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			header = (dheader_t *)buf;
 
 			// [FWGS, 01.04.23] check all the lumps and some other errors
-			/*if (!Mod_TestBmodelLumps (t->filenames[i], buf, true))*/
 			if (!Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
 				{
 				FS_Close (f);
@@ -966,13 +949,10 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 				}
 
 			// [FWGS, 01.04.23] after call Mod_TestBmodelLumps we gurantee what map is valid
-			/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
-			lumplen = header->lumps[LUMP_ENTITIES].filelen;*/
 			lumpofs = entities.fileofs;
 			lumplen = entities.filelen;
 
 			Q_strncpy (entfilename, t->filenames[i], sizeof (entfilename));
-			/*COM_StripExtension (entfilename);
 			COM_DefaultExtension (entfilename, ".ent");*/
 			COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));	// [FWGS, 01.05.23]
 			ents = (char *)FS_LoadFile (entfilename, NULL, true);
@@ -1020,8 +1000,6 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			if (num_spawnpoints)
 				{
 				// [FWGS, 01.05.23] format: mapname "maptitle"\n
-				/*Q_sprintf (result, "%s \"%s\"\n", mapname, message);
-				Q_strcat (buffer, result); // add new string*/
 				Q_snprintf (result, sizeof (result), "%s \"%s\"\n", mapname, message);
 				Q_strncat (buffer, result, buffersize); // add new string
 				}
@@ -1095,12 +1073,10 @@ compare first argument with string
 */
 static qboolean Cmd_CheckName (const char *name)
 	{
-	/*if (!Q_stricmp (Cmd_Argv (0), name))*/
 	const char *p = Cmd_Argv (0);
 	if (!Q_stricmp (p, name))
 		return true;
 
-	/*if (!Q_stricmp (Cmd_Argv (0), va ("\\%s", name)))*/
 	if ((p[0] == '\\') && !Q_stricmp (&p[1], name))
 		return true;
 
@@ -1340,7 +1316,7 @@ void Cmd_AutoComplete (char *complete_string)
 	// setup output
 	if (input.buffer[0] == '\\' || input.buffer[0] == '/')
 		Q_strncpy (complete_string, input.buffer + 1, sizeof (input.buffer));
-	else 
+	else
 		Q_strncpy (complete_string, input.buffer, sizeof (input.buffer));
 	}
 
@@ -1396,13 +1372,13 @@ static void Cmd_WriteHelp (const char *name, const char *unused, const char *des
 
 	length = 3 - (Q_strlen (name) / 10); // Asm_Ed default tab stop is 10
 
-	if (length == 3) 
+	if (length == 3)
 		FS_Printf (f, "%s\t\t\t\"%s\"\n", name, desc);
-	if (length == 2) 
+	if (length == 2)
 		FS_Printf (f, "%s\t\t\"%s\"\n", name, desc);
-	if (length == 1) 
+	if (length == 1)
 		FS_Printf (f, "%s\t\"%s\"\n", name, desc);
-	if (length == 0) 
+	if (length == 0)
 		FS_Printf (f, "%s \"%s\"\n", name, desc);
 	}
 

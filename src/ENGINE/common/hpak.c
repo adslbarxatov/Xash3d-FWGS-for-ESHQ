@@ -18,8 +18,6 @@ GNU General Public License for more details.
 
 // [FWGS, 01.04.23]
 #define HPAK_MAX_ENTRIES	0x8000
-/*#define HPAK_MIN_SIZE	(1 * 1024)
-#define HPAK_MAX_SIZE	(128 * 1024)*/
 #define HPAK_ENTRY_MIN_SIZE	(512)
 #define HPAK_ENTRY_MAX_SIZE	(128 * 1024)
 

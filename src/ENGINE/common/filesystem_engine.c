@@ -57,8 +57,6 @@ static fs_interface_t fs_memfuncs =
 // [FWGS, 01.05.23]
 static void FS_UnloadProgs (void)
 	{
-	/*COM_FreeLibrary (fs_hInstance);
-	fs_hInstance = 0;*/
 	if (fs_hInstance)
 		{
 		COM_FreeLibrary (fs_hInstance);
@@ -112,27 +110,17 @@ FS_Init [FWGS, 01.05.23]
 */
 void FS_Init (void)
 	{
-	/*qboolean		hasBaseDir = false;
-	qboolean		hasGameDir = false;
-	qboolean		caseinsensitive = true;*/
 	int		i;
-	string gamedir;
+	string	gamedir;
 
 	Cmd_AddRestrictedCommand ("fs_rescan", FS_Rescan_f, "rescan filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_path", FS_Path_f_, "show filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_clearpaths", FS_ClearPaths_f, "clear filesystem search pathes");
 
-	/*
-	#if !XASH_WIN32
-		if (Sys_CheckParm ("-casesensitive"))
-			caseinsensitive = false;
-	#endif
-	*/
-
 	if (!Sys_GetParmFromCmdLine ("-game", gamedir))
-		Q_strncpy (gamedir, SI.basedirName, sizeof (gamedir)); // gamedir == basedir
+		Q_strncpy (gamedir, SI.basedirName, sizeof (gamedir));	// gamedir == basedir
 
-	if (!FS_InitStdio (/*caseinsensitive*/ true, host.rootdir, SI.basedirName, gamedir, host.rodir))
+	if (!FS_InitStdio (true, host.rootdir, SI.basedirName, gamedir, host.rodir))
 		{
 		Host_Error ("Can't init filesystem_stdio!\n");
 		return;
@@ -152,10 +140,6 @@ FS_Shutdown [FWGS, 01.05.23]
 */
 void FS_Shutdown (void)
 	{
-	/*int	i;
-
-	FS_ShutdownStdio ();*/
-
 	if (g_fsapi.ShutdownStdio)
 		g_fsapi.ShutdownStdio ();
 

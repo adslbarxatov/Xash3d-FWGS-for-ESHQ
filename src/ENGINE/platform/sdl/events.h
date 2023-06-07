@@ -25,8 +25,7 @@ void VID_RestoreScreenResolution (void);
 qboolean  VID_CreateWindow (int width, int height, qboolean fullscreen);
 void      VID_DestroyWindow (void);
 void GL_InitExtensions (void);
-/*qboolean GL_CreateContext (void);	// [FWGS, 01.05.23]
-qboolean GL_UpdateContext (void);*/
+// [FWGS, 01.05.23] удалены GL_CreateContext, GL_UpdateContext
 qboolean GL_DeleteContext (void);
 void VID_SaveWindowSize (int width, int height);
 
@@ -39,5 +38,5 @@ extern SDL_Joystick *g_joy;
 void SDLash_InitCursors (void);
 void SDLash_FreeCursors (void);
 
-#endif // XASH_SDL
-#endif // KEYWRAPPER_H
+#endif
+#endif

@@ -443,19 +443,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		Key_Event (keynum, down);
 	}
 
-/* [FWGS, 01.04.23]
-static void SDLash_MouseKey (int key, int down, int istouch)
-	{
-	if (CVAR_TO_BOOL (touch_emulate))
-		{
-		Touch_KeyEvent (key, down);
-		}
-	else if (in_mouseinitialized && !m_ignore->value && !istouch)
-		{
-		Key_Event (key, down);
-		}
-	}
-*/
+// [FWGS, 01.04.23] удалена SDLash_MouseKey
 
 /*
 =============
@@ -464,8 +452,6 @@ SDLash_MouseEvent [FWGS, 01.04.23]
 */
 static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 	{
-	/*int down = button.state != SDL_RELEASED;
-	uint mstate = 0;*/
 	int down;
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -476,7 +462,7 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 	if (button.state == SDL_RELEASED)
 		down = 0;
 	else if (button.clicks >= 2)
-		down = 2; // special state for double-click in UI
+		down = 2;	// special state for double-click in UI
 	else
 		down = 1;
 
@@ -504,12 +490,10 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 
 #if !SDL_VERSION_ATLEAST( 2, 0, 0 )
 		case SDL_BUTTON_WHEELUP:
-			//Key_Event (K_MWHEELUP, down);
 			IN_MWheelEvent (-1);
 			break;
 
 		case SDL_BUTTON_WHEELDOWN:
-			//Key_Event (K_MWHEELDOWN, down);
 			IN_MWheelEvent (1);
 			break;
 #endif
@@ -545,7 +529,7 @@ static void SDLash_InputEvent (SDL_TextInputEvent input)
 		CL_CharEvent (ch);
 		}
 	}
-#endif // SDL_VERSION_AT_LEAST( 2, 0, 0 )
+#endif
 
 static void SDLash_ActiveEvent (int gain)
 	{
@@ -692,9 +676,6 @@ static void SDLash_EventFilter (SDL_Event *event)
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 		case SDL_MOUSEWHEEL:
 			// [FWGS, 01.04.23]
-			/*int wheelbutton = event->wheel.y < 0 ? K_MWHEELDOWN : K_MWHEELUP;
-			Key_Event (wheelbutton, true);
-			Key_Event (wheelbutton, false);*/
 			IN_MWheelEvent (event->wheel.y);
 			break;
 
@@ -779,14 +760,6 @@ static void SDLash_EventFilter (SDL_Event *event)
 		case SDL_CONTROLLERBUTTONUP:
 			{
 			// [FWGS, 01.04.23]
-			/*static int sdlControllerButtonToEngine[] =
-				{
-					K_A_BUTTON, K_B_BUTTON, K_X_BUTTON,	K_Y_BUTTON,
-					K_BACK_BUTTON, K_MODE_BUTTON, K_START_BUTTON,
-					K_LSTICK, K_RSTICK,
-					K_L1_BUTTON, K_R1_BUTTON,
-					K_DPAD_UP, K_DPAD_DOWN, K_DPAD_LEFT, K_DPAD_RIGHT
-				};*/
 			if (!Joy_IsActive ())
 				break;
 

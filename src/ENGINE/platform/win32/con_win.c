@@ -28,7 +28,6 @@ WIN32 CONSOLE
 // [FWGS, 01.05.23]
 typedef struct
 	{
-	/*char		title[64];*/
 	string		title;
 	string		previousTitle;
 	UINT		previousCodePage;
@@ -133,7 +132,6 @@ static void Wcon_PrintInternal (const char *msg, int length)
 
 void Wcon_ShowConsole (qboolean show)
 	{
-	/*if (!s_wcd.hWnd || (show == s_wcd.consoleVisible))*/
 	if (!s_wcd.hWnd || (show == s_wcd.consoleVisible) || s_wcd.attached)	// [FWGS, 01.05.23]
 		return;
 
@@ -476,7 +474,6 @@ void Wcon_WinPrint (const char *pMsg)
 		Wcon_PrintInternal (s_wcd.consoleText, s_wcd.consoleTextLen);
 
 	// [FWGS, 01.05.23]
-	/*Wcon_UpdateStatusLine ();*/
 	if (!s_wcd.attached)
 		Wcon_UpdateStatusLine ();
 	}
@@ -496,20 +493,17 @@ void Wcon_CreateConsole (void)
 	// [FWGS, 01.04.23]
 	if (host.type == HOST_NORMAL)
 		{
-		//Q_strncpy (s_wcd.title, va ("Xash3D %s", XASH_VERSION), sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.title, "Xash3D " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));
 		}
 	else // dedicated console
 		{
-		//Q_strncpy (s_wcd.title, va ("XashDS %s", XASH_VERSION), sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.title, "XashDS " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "dedicated.log", sizeof (s_wcd.log_path));
-		s_wcd.log_active = true; // always make log
+		s_wcd.log_active = true;	// always make log
 		}
 
 	// [FWGS, 01.05.23]
-	/*AllocConsole ();*/
 	s_wcd.attached = (AttachConsole (ATTACH_PARENT_PROCESS) != 0);
 	if (s_wcd.attached)
 		{
@@ -538,25 +532,10 @@ void Wcon_CreateConsole (void)
 		}
 
 	// [FWGS, 01.05.23]
-	/*SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);*/
 	if (!s_wcd.attached)
 		{
 		SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);
 
-		/* show console if needed
-		if (host.con_showalways)
-			{
-			// make console visible
-			ShowWindow (s_wcd.hWnd, SW_SHOWDEFAULT);
-			UpdateWindow (s_wcd.hWnd);
-			SetForegroundWindow (s_wcd.hWnd);
-			SetFocus (s_wcd.hWnd);
-			s_wcd.consoleVisible = true;
-			}
-		else
-			{
-			s_wcd.consoleVisible = false;
-			ShowWindow (s_wcd.hWnd, SW_HIDE);*/
 		// show console if needed
 		if (host.con_showalways)
 			{
@@ -604,7 +583,6 @@ void Wcon_DestroyConsole (void)
 
 	Sys_CloseLog ();
 
-	/*if (s_wcd.hWnd)*/
 	if (!s_wcd.attached)
 		{
 		if (s_wcd.hWnd)
@@ -615,9 +593,6 @@ void Wcon_DestroyConsole (void)
 		}
 	else
 		{
-		/*ShowWindow (s_wcd.hWnd, SW_HIDE);
-		s_wcd.hWnd = 0;*/
-
 		// reverts title & code page for console window that was before starting Xash3D
 		SetConsoleCP (s_wcd.previousCodePage);
 		SetConsoleOutputCP (s_wcd.previousOutputCodePage);
@@ -685,7 +660,6 @@ set server status string in console
 */
 void Wcon_SetStatus (const char *pStatus)
 	{
-	/*if (host.type != HOST_DEDICATED)*/
 	if ((host.type != HOST_DEDICATED) || s_wcd.attached)	// [FWGS, 01.05.23]
 		return;
 
