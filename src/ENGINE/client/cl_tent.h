@@ -118,4 +118,4 @@ int TriSpriteTexture (model_t *pSpriteModel, int frame);
 extern model_t *cl_sprite_dot;
 extern model_t *cl_sprite_shell;
 
-#endif//CL_TENT_H
+#endif

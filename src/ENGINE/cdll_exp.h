@@ -87,4 +87,4 @@ typedef struct cldll_func_s
 	void (*pfnLookEvent)(float relyaw, float relpitch);
 	} cldll_func_t;
 
-#endif//CDLL_EXP_H
+#endif

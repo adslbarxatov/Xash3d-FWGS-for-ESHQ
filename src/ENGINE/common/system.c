@@ -72,24 +72,14 @@ Sys_DebugBreak [FWGS, 01.04.23]
 void Sys_DebugBreak (void)
 	{
 #if XASH_LINUX || ( XASH_WIN32 && !XASH_64BIT )
-	/*#undef DEBUG_BREAK
-	qboolean Sys_DebuggerPresent (void); // see sys_linux.c
-	#if XASH_MSVC
-	#define DEBUG_BREAK \
-				if( Sys_DebuggerPresent() ) \*/
+	
 #if _MSC_VER
 	if (Sys_DebuggerPresent ())
 		_asm { int 3 }
 #elif XASH_X86
-	/*#define DEBUG_BREAK \
-	if( Sys_DebuggerPresent() ) \
-	asm volatile("int $3;")*/
 	if (Sys_DebuggerPresent ())
 		asm volatile("int $3;");
 #else
-	/*#define DEBUG_BREAK \
-	if( Sys_DebuggerPresent() ) \
-	raise( SIGINT )*/
 	if (Sys_DebuggerPresent ())
 		raise (SIGINT);
 #endif
@@ -411,8 +401,6 @@ void Sys_Warn (const char *format, ...)
 	va_list	argptr;
 	char	text[MAX_PRINT_MSG];
 
-	/*DEBUG_BREAK;*/
-
 	va_start (argptr, format);
 	Q_vsnprintf (text, MAX_PRINT_MSG, format, argptr);
 	va_end (argptr);
@@ -438,7 +426,6 @@ void Sys_Error (const char *error, ...)
 	char	text[MAX_PRINT_MSG];
 
 	// [FWGS, 01.04.23] enable cursor before debugger call
-	/*DEBUG_BREAK;*/
 	if (!Host_IsDedicated ())
 		Platform_SetCursorType (dc_arrow);
 
@@ -484,10 +471,9 @@ void Sys_Error (const char *error, ...)
 	}
 
 #if XASH_EMSCRIPTEN
-/* strange glitchy bug on emscripten
-_exit->_Exit->asm._exit->_exit
-As we do not need atexit(), just throw hidden exception
-*/
+// strange glitchy bug on emscripten
+// _exit->_Exit->asm._exit->_exit
+// As we do not need atexit(), just throw hidden exception
 #include <emscripten.h>
 #define exit my_exit
 void my_exit (int ret)

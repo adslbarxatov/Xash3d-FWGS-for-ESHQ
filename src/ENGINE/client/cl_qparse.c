@@ -875,9 +875,8 @@ void CL_QuakeExecStuff (void)
 			// debug: find all missed commands and cvars to add them into QWrap
 			if (!Cvar_Exists (token) && !Cmd_Exists (token))
 				Con_Printf (S_WARN "'%s' is not exist\n", token);
-			//			else Msg( "cmd: %s\n", token );
 
-						// process some special commands
+			// process some special commands
 			if (!Q_stricmp (token, "playdemo"))
 				cls.changedemo = true;
 			argc++;

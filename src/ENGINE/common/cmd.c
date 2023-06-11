@@ -1334,7 +1334,7 @@ static void Cmd_Apropos_f (void)
 		// proceed a bit differently here as an alias value always got a final \n
 		if (!matchpattern_with_separator (alias->name, partial, true, "", false) &&
 			!matchpattern_with_separator (alias->value, partial, true, "\n", false)) 
-			// when \n is a separator, wildcards don't match it //-V666
+			// when \n is a separator, wildcards don't match it // -V666
 			continue;
 
 		Msg ("alias ^5%s^7: %s", alias->name, alias->value); // do not print an extra \n

@@ -40,7 +40,7 @@ GNU General Public License for more details.
 #define SPR_HUDSPRITE	1	// hud sprite
 #define SPR_MAPSPRITE	2	// contain overview.bmp that diced into frames 128x128
 
-//=============================================================================
+// =============================================================================
 typedef struct netbandwithgraph_s
 	{
 	word		client;
@@ -107,8 +107,6 @@ extern int CL_UPDATE_BACKUP;
 
 #define MIN_UPDATERATE	10.0f
 #define MAX_UPDATERATE	102.0f
-
-//#define MIN_EX_INTERP	0.005f	// [FWGS, 01.04.23]
 #define MAX_EX_INTERP	0.1f
 
 #define CL_MIN_RESEND_TIME	1.5f		// mininum time gap (in seconds) before a subsequent connection request is sent.
@@ -702,7 +700,7 @@ extern convar_t *m_ignore;
 extern convar_t *r_showtree;
 extern convar_t *ui_renderworld;
 
-//=============================================================================
+// =============================================================================
 
 void CL_SetLightstyle (int style, const char *s, float f);
 void CL_RunLightStyles (void);
@@ -710,7 +708,7 @@ void CL_DecayLights (void);
 dlight_t *CL_GetDynamicLight (int number);
 dlight_t *CL_GetEntityLight (int number);
 
-//=================================================
+// =================================================
 
 //
 // cl_cmds.c

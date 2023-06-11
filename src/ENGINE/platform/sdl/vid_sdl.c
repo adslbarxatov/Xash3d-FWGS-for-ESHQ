@@ -286,7 +286,6 @@ static void R_InitVideoModes (void)
 		vidmodes[num_vidmodes].height = mode.h;
 
 		// [FWGS, 01.04.23]
-		/*vidmodes[num_vidmodes].desc = copystring (va ("%ix%i", mode.w, mode.h));*/
 		Q_snprintf (buf, sizeof (buf), "%ix%i", mode.w, mode.h);
 		vidmodes[num_vidmodes].desc = copystring (buf);
 
@@ -327,7 +326,6 @@ static void R_InitVideoModes (void)
 		vidmodes[num_vidmodes].height = mode->h;
 
 		// [FWGS, 01.04.23]
-		/*vidmodes[num_vidmodes].desc = copystring (va ("%ix%i", mode->w, mode->h));*/
 		Q_snprintf (buf, sizeof (buf), "%ix%i", mode->w, mode->h);
 		vidmodes[num_vidmodes].desc = copystring (buf);
 
@@ -433,9 +431,6 @@ GL_GetProcAddress [FWGS, 01.04.23]
 */
 void *GL_GetProcAddress (const char *name)
 	{
-	/*#if defined( XASH_NANOGL )
-	void *func = nanoGL_GetProcAddress (name);
-	#else*/
 	void *func = SDL_GL_GetProcAddress (name);
 
 #if XASH_PSVITA
@@ -446,7 +441,6 @@ void *GL_GetProcAddress (const char *name)
 
 	if (!func)
 		Con_Reportf (S_ERROR "GL_GetProcAddress failed for %s\n", name);
-	/*Con_Reportf (S_ERROR  "Error: GL_GetProcAddress failed for %s\n", name);*/
 
 	return func;
 	}
@@ -672,13 +666,9 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 			xpos = Cvar_VariableInteger ("_window_xpos");
 			ypos = Cvar_VariableInteger ("_window_ypos");
 
-			/*if (xpos < 0)*/
-
 			// don't create window outside of usable display space
 			if ((xpos < r.x) || ((xpos + width) > (r.x + r.w)))
 				xpos = SDL_WINDOWPOS_CENTERED;
-
-			/*if (ypos < 0)*/
 
 			if ((ypos < r.y) || ((ypos + height) > (r.y + r.h)))
 				ypos = SDL_WINDOWPOS_CENTERED;
@@ -743,9 +733,6 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 	if (!iconLoaded)
 		{
 		// [FWGS, 01.05.23]
-		/*Q_strcpy (iconpath, GI->iconpath);
-		COM_StripExtension (iconpath);
-		COM_DefaultExtension (iconpath, ".tga");*/
 		Q_strncpy (iconpath, GI->iconpath, sizeof (iconpath));
 		COM_ReplaceExtension (iconpath, ".tga", sizeof (iconpath));
 

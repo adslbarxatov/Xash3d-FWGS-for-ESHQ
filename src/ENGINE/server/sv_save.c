@@ -1406,8 +1406,6 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 			MSG_BeginServerCmd (&sv.signon, svc_stufftext);
 
 			// [FWGS, 01.04.23]
-			/*MSG_WriteString (&sv.signon, va ("music \"%s\" \"%s\" %i\n", header.introTrack,
-				header.mainTrack, header.trackPosition));*/
 			MSG_WriteStringf (&sv.signon, "music \"%s\" \"%s\" %i\n", header.introTrack, header.mainTrack,
 				header.trackPosition);
 			}
@@ -1761,7 +1759,6 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 		}
 
 	// [FWGS, 01.04.23] pending the preview image for savegame
-	/*Cbuf_AddText (va ("saveshot \"%s\"\n", pSaveName));*/
 	Cbuf_AddTextf ("saveshot \"%s\"\n", pSaveName);
 	Con_Printf ("Saving game to %s...\n", name);
 
@@ -2192,12 +2189,10 @@ qboolean SV_LoadGame (const char *pPath)
 SV_SaveGame [FWGS, 01.04.23]
 ==================
 */
-//void SV_SaveGame (const char *pName)
 qboolean SV_SaveGame (const char *pName)
 	{
-	char   comment[80];
-	/*int    result;*/
-	string savename;
+	char	comment[80];
+	string	savename;
 
 	if (!COM_CheckString (pName))
 		return false;
@@ -2237,12 +2232,6 @@ qboolean SV_SaveGame (const char *pName)
 
 	SaveBuildComment (comment, sizeof (comment));
 	return SaveGameSlot (savename, comment);	// [FWGS, 01.04.23]
-	/*result = SaveGameSlot (savename, comment);
-
-#if !XASH_DEDICATED
-	if (result && !FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
-		CL_HudMessage ("GAMESAVED"); // defined in titles.txt
-#endif*/
 	}
 
 /*
@@ -2255,9 +2244,9 @@ used for reload game after player death
 const char *SV_GetLatestSave (void)
 	{
 	static char	savename[MAX_QPATH];
-	int		newest = 0, ft;
-	int		i, found = 0;
-	search_t *t;
+	int			newest = 0, ft;
+	int			i, found = 0;
+	search_t	*t;
 
 	if ((t = FS_Search (DEFAULT_SAVE_DIRECTORY "*." DEFAULT_SAVE_EXTENSION, true, true)) == NULL)
 		return NULL;
@@ -2451,7 +2440,6 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		if (FBitSet (flags, MAP_INVALID_VERSION))
 			{
 			// [FWGS, 01.04.23]
-			/*Q_strncpy (comment, va ("<map %s has invalid format>", mapName), MAX_STRING);*/
 			Q_snprintf (comment, MAX_STRING, "<map %s has invalid format>", mapName);
 			return 0;
 			}
@@ -2459,7 +2447,6 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		if (!FBitSet (flags, MAP_IS_EXIST))
 			{
 			// [FWGS, 01.04.23]
-			/*Q_strncpy (comment, va ("<map %s is missed>", mapName), MAX_STRING);*/
 			Q_snprintf (comment, MAX_STRING, "<map %s is missed>", mapName);
 			return 0;
 			}
@@ -2470,12 +2457,9 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		// [FWGS, 01.04.23] split comment to sections
 		if (Q_strstr (savename, "quick"))
 			Q_snprintf (comment, CS_SIZE, "[quick]%s", description);
-		/*Q_strncat (comment, "[quick]", CS_SIZE);*/
 
 		else if (Q_strstr (savename, "autosave"))
 			Q_snprintf (comment, CS_SIZE, "[autosave]%s", description);
-		/*Q_strncat (comment, "[autosave]", CS_SIZE);
-		Q_strncat (comment, description, CS_SIZE);*/
 
 		else
 			Q_strncpy (comment, description, CS_SIZE);

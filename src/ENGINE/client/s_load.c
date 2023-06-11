@@ -59,7 +59,6 @@ void S_SoundList_f (void)
 				Con_Printf (" ");
 
 			// [FWGS, 01.04.23]
-			/*if (sfx->name[0] == '*')*/
 			if ((sfx->name[0] == '*') || !Q_strncmp (sfx->name, DEFAULT_SOUNDPATH, sizeof (DEFAULT_SOUNDPATH) - 1))
 				Con_Printf (" (%2db) %s : %s\n", sc->width * 8, Q_memprint (sc->size), sfx->name);
 			else 
@@ -208,7 +207,6 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 				}
 
 			// [FWGS, 01.04.23] prolonge registration
-			/*sfx->servercount = s_registration_sequence;*/
 			sfx->servercount = cl.servercount;
 			return sfx;
 			}
@@ -216,7 +214,8 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 
 	// find a free sfx slot spot
 	for (i = 0, sfx = s_knownSfx; i < s_numSfx; i++, sfx++)
-		if (!sfx->name[0]) break; // free spot
+		if (!sfx->name[0])
+			break; // free spot
 
 	if (i == s_numSfx)
 		{
@@ -231,7 +230,6 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 	Q_strncpy (sfx->name, name, MAX_STRING);
 	
 	// [FWGS, 01.04.23]
-	/*sfx->servercount = s_registration_sequence;*/
 	sfx->servercount = cl.servercount;
 	sfx->hashValue = COM_HashKey (sfx->name, MAX_SFX_HASH);
 
@@ -323,7 +321,6 @@ void S_EndRegistration (void)
 			continue; // don't release default sound
 
 		// [FWGS, 01.04.23]
-		/*if (sfx->servercount != s_registration_sequence)*/
 		if (sfx->servercount != cl.servercount)
 			S_FreeSound (sfx); // don't need this sound
 		}
@@ -363,17 +360,9 @@ sound_t S_RegisterSound (const char *name)
 	if ((name[0] == '/') || (name[0] == '\\')) 
 		name++;
 
-	/*for (i = 0; i < 2; i++)
-		if ((name[0] == '/') || (name[0] == '\\'))
-			name++;*/
-
 	sfx = S_FindName (name, NULL);
 	if (!sfx) 
 		return -1;
-
-	/*sfx->servercount = s_registration_sequence;
-	if (!s_registering)
-		S_LoadSound (sfx);*/
 
 	sfx->servercount = cl.servercount;
 	if (!s_registering)

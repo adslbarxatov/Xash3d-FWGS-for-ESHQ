@@ -169,7 +169,6 @@ void S_UpdateSoundFade (void)
 		}
 
 	// [FWGS, 01.05.23] spline it
-	/*f = SimpleSpline (f);*/
 	f = -(cos (M_PI * f) - 1) / 2;
 	f = bound (0.0f, f, 1.0f);
 
@@ -318,12 +317,6 @@ channel_t *SND_PickDynamicChannel (int entnum, int channel, sfx_t *sfx, qboolean
 
 		// [FWGS, 01.04.23] try to pick the sound with the least amount of data left to play
 		timeleft = SND_GetChannelTimeLeft (ch);
-		/*timeleft = 0;
-		if (ch->sfx)
-			{
-			timeleft = 1; // ch->end - paintedtime
-			}*/
-
 		if (timeleft < life_left)
 			{
 			life_left = timeleft;
@@ -1328,34 +1321,7 @@ void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float sy
 		}
 	}
 
-/* [FWGS, 01.05.23]
-===================
-S_GetRawSamplesLength
-===================
-uint S_GetRawSamplesLength (int entnum)
-	{
-	rawchan_t *ch;
-
-	if (!(ch = S_FindRawChannel (entnum, false)))
-		return 0;
-
-	return ch->s_rawend <= paintedtime ? 0 : (float)(ch->s_rawend - paintedtime) * DMA_MSEC_PER_SAMPLE;
-	}
-
-/*
-===================
-S_ClearRawChannel
-===================
-void S_ClearRawChannel (int entnum)
-	{
-	rawchan_t *ch;
-
-	if (!(ch = S_FindRawChannel (entnum, false)))
-		return;
-
-	ch->s_rawend = 0;
-	}
-*/
+// [FWGS, 01.05.23] удалены S_GetRawSamplesLength, S_ClearRawChannel
 
 /*
 ===================
@@ -1880,8 +1846,6 @@ void S_Music_f (void)
 		for (i = 0; i < 2; i++)
 			{
 			// [FWGS, 01.04.23]
-			/*const char *intro_path = va ("media/%s.%s", intro, ext[i]);
-			const char *main_path = va ("media/%s.%s", main, ext[i]);*/
 			char intro_path[MAX_VA_STRING];
 			char main_path[MAX_VA_STRING];
 			char track_path[MAX_VA_STRING];
@@ -1897,8 +1861,6 @@ void S_Music_f (void)
 				}
 
 			// [FWGS, 01.04.23]
-			/*else if (FS_FileExists (va ("media/%s.%s", track, ext[i]), false))*/
-			
 			Q_snprintf (track_path, sizeof (track_path), "media/%s.%s", track, ext[i]);
 			if (FS_FileExists (track_path, false))
 				{

@@ -634,8 +634,8 @@ Convert utf char to current font's single-byte encoding
 */
 int Con_UtfProcessCharForce (int in)
 	{
-	static int m = -1, k = 0; //multibyte state
-	static int uc = 0; //unicode char
+	static int m = -1, k = 0;	// multibyte state
+	static int uc = 0;			// unicode char
 
 	if (!in)
 		{

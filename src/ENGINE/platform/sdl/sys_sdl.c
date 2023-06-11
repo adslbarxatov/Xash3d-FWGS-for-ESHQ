@@ -63,13 +63,6 @@ void Platform_Init (void)
 	SDL_StopTextInput ();
 #endif
 
-// [FWGS, 01.04.23]
-/*#if XASH_POSIX
-	Posix_Daemonize ();
-#endif
-#ifdef XASH_WIN32
-	// ESHQ: отключено из-за конфликтов с основным окном */
-
 #if XASH_WIN32
 	Wcon_CreateConsole (); // system console used by dedicated server or show fatal errors
 #elif XASH_POSIX

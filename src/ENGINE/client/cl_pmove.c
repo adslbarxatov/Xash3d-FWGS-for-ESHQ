@@ -194,7 +194,6 @@ check for instant movement in case
 we don't want interpolate this
 ==================
 */
-//qboolean CL_PlayerTeleported (local_state_t *from, local_state_t *to)
 static qboolean CL_PlayerTeleported (local_state_t *from, local_state_t *to)
 	{
 	int	len, maxlen;
@@ -908,10 +907,7 @@ const void CL_FinishPMove (const playermove_t *pmove, local_state_t *to)
 	cd->flags = pmove->flags;
 	cd->bInDuck = pmove->bInDuck;
 	cd->flTimeStepSound = pmove->flTimeStepSound;
-	
-	//cd->flDuckTime = pmove->flDuckTime;
 	cd->flDuckTime = (int)pmove->flDuckTime;
-	
 	cd->flSwimTime = (int)pmove->flSwimTime;
 	cd->waterjumptime = (int)pmove->waterjumptime;
 	cd->watertype = pmove->watertype;
@@ -924,10 +920,7 @@ const void CL_FinishPMove (const playermove_t *pmove, local_state_t *to)
 	VectorCopy (pmove->angles, ps->angles);
 	VectorCopy (pmove->basevelocity, ps->basevelocity);
 	VectorCopy (pmove->punchangle, cd->punchangle);
-	
-	//ps->oldbuttons = pmove->cmd.buttons;
 	ps->oldbuttons = (uint)pmove->cmd.buttons;
-
 	ps->friction = pmove->friction;
 	ps->movetype = pmove->movetype;
 	ps->onground = pmove->onground;

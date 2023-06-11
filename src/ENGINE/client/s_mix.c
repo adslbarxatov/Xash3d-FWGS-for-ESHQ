@@ -117,13 +117,7 @@ _inline void MIX_ActivatePaintbuffer (int ipaintbuffer)
 	paintbuffers[ipaintbuffer].factive = true;
 	}
 
-/* [FWGS, 01.05.23] don't mix into this paintbuffer
-_inline void MIX_DeactivatePaintbuffer (int ipaintbuffer)
-	{
-	Assert (ipaintbuffer < CPAINTBUFFERS);
-	paintbuffers[ipaintbuffer].factive = false;
-	}
-*/
+// [FWGS, 01.05.23] удалена MIX_DeactivatePaintbuffer
 
 _inline void MIX_SetCurrentPaintbuffer (int ipaintbuffer)
 	{
@@ -170,13 +164,7 @@ _inline void MIX_ResetPaintbufferFilterCounters (void)
 		paintbuffers[i].ifilter = FILTERTYPE_NONE;
 	}
 
-/* [FWGS, 01.05.23]
-_inline void MIX_ResetPaintbufferFilterCounter (int ipaintbuffer)
-	{
-	Assert (ipaintbuffer < CPAINTBUFFERS);
-	paintbuffers[ipaintbuffer].ifilter = 0;
-	}
-*/
+// [FWGS, 01.05.23] удалена MIX_ResetPaintbufferFilterCounter
 
 // return pointer to front paintbuffer pbuf, given index
 _inline portable_samplepair_t *MIX_GetPFrontFromIPaint (int ipaintbuffer)
@@ -629,7 +617,6 @@ void MIX_MixChannelsToPaintbuffer (int endtime, int rate, int outputRate)
 		ch->pitch *= (sys_timescale.value + 1) / 2;
 
 		// [FWGS, 01.04.23]
-		/*if (CL_GetEntityByIndex (ch->entnum) && (ch->entchannel == CHAN_VOICE))*/
 		if (CL_GetEntityByIndex (ch->entnum) && ((ch->entchannel == CHAN_VOICE) || (ch->entchannel == CHAN_STREAM)))
 			{
 			if (pSource->width == 1)
@@ -911,47 +898,14 @@ void S_MixUpsample (int sampleCount, int filtertype)
 	ppaint->ifilter++;
 	}
 
-/* [FWGS, 01.04.23]
-void MIX_MixStreamBuffer (int end)
-	{
-	portable_samplepair_t *pbuf;
-	rawchan_t *ch;
-
-	pbuf = MIX_GetPFrontFromIPaint (ISTREAMBUFFER);
-	ch = S_FindRawChannel (S_RAW_SOUND_BACKGROUNDTRACK, false);
-
-	// clear the paint buffer
-	if (s_listener.paused || !ch || ch->s_rawend < paintedtime)
-		{
-		memset (pbuf, 0, (end - paintedtime) * sizeof (portable_samplepair_t));
-		}
-	else
-		{
-		int	i, stop;
-
-		// copy from the streaming sound source
-		stop = (end < ch->s_rawend) ? end : ch->s_rawend;
-
-		for (i = paintedtime; i < stop; i++)
-			{
-			pbuf[i - paintedtime].left = (ch->rawsamples[i & (ch->max_samples - 1)].left * ch->leftvol) >> 8;
-			pbuf[i - paintedtime].right = (ch->rawsamples[i & (ch->max_samples - 1)].right * ch->rightvol) >> 8;
-			}
-
-		for (; i < end; i++)
-			pbuf[i - paintedtime].left = pbuf[i - paintedtime].right = 0;
-		}
-	}
-*/
+// [FWGS, 01.04.23] удалена MIX_MixStreamBuffer
 
 // [FWGS, 01.04.23]
 void MIX_MixRawSamplesBuffer (int end)
 	{
-	/*portable_samplepair_t *pbuf;*/
 	portable_samplepair_t *pbuf, *roombuf, *streambuf;
 	uint i, j, stop;
 
-	/*pbuf = MIX_GetCurrentPaintbufferPtr ()->pbuf;*/
 	roombuf = MIX_GetPFrontFromIPaint (IROOMBUFFER);
 	streambuf = MIX_GetPFrontFromIPaint (ISTREAMBUFFER);
 
@@ -966,7 +920,7 @@ void MIX_MixRawSamplesBuffer (int end)
 		qboolean stream;
 
 		// background track should be mixing into another buffer
-		if (!ch /*|| (ch->entnum == S_RAW_SOUND_BACKGROUNDTRACK)*/)
+		if (!ch)
 			continue;
 
 		// not audible
@@ -995,9 +949,6 @@ void MIX_MixRawSamplesBuffer (int end)
 // caller also remixes all into final IPAINTBUFFER output.
 void MIX_UpsampleAllPaintbuffers (int end, int count)
 	{
-	/* [FWGS, 01.04.23] process stream buffer
-	MIX_MixStreamBuffer (end);*/
-
 	// 11khz sounds are mixed into 3 buffers based on distance from listener, and facing direction
 	// These buffers are facing, facingaway, room
 	// These 3 mixed buffers are then each upsampled to 22khz.

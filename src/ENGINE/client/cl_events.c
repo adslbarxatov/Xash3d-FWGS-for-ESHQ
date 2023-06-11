@@ -75,14 +75,13 @@ void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
 /*
 =============
 CL_DescribeEvent
-
 =============
 */
 void CL_DescribeEvent (event_info_t *ei, int slot)
 	{
 	int		idx = (slot & 63) * 2;
 	con_nprint_t	info;
-	string origin_str = { 0 }; //, angles_str = { 0 };
+	string origin_str = { 0 };
 
 	if (!cl_showevents->value)
 		return;

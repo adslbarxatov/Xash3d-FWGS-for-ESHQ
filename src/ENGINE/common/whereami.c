@@ -174,7 +174,6 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	}
 
 // [FWGS, 01.05.23]
-/*#elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun) || defined(WAI_USE_PROC_SELF_EXE)*/
 #elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun) || defined(__serenity__) || defined(WAI_USE_PROC_SELF_EXE)
 
 #include <stdio.h>

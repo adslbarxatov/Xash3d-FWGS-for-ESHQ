@@ -37,8 +37,6 @@ typedef struct memheader_s
 	const char *filename;	// file name and line where Mem_Alloc was called
 
 	// [FWGS, 01.04.23]
-	/*uint		fileline;
-	uint		sentinel1;	// should always be MEMHEADER_SENTINEL1*/
 	int		fileline;
 #if !XASH_64BIT
 	uint32_t		pad0; // doesn't have value, only to make Mem_Alloc return aligned addresses on ILP32
@@ -51,7 +49,6 @@ typedef struct memheader_s
 // [FWGS, 01.04.23]
 typedef struct mempool_s
 	{
-	/*uint		sentinel1;		// should always be MEMHEADER_SENTINEL1*/
 	uint32_t	sentinel1;		// should always be MEMHEADER_SENTINEL1
 	struct memheader_s *chain;	// chain of individual memory allocations
 	size_t		totalsize;		// total memory allocated in this pool (inside memheaders)
@@ -64,7 +61,6 @@ typedef struct mempool_s
 	poolhandle_t		idx;
 #endif
 	char		name[64];		// name of the pool
-	/*uint		sentinel2;		// should always be MEMHEADER_SENTINEL1*/
 	uint32_t	sentinel2;		// should always be MEMHEADER_SENTINEL1
 	} mempool_t;
 
@@ -77,8 +73,6 @@ static mempool_t *poolchain = NULL; // critical stuff
 // which makes engine incompatible with 64-bit pointers I changed mempool type
 // from pointer to 32-bit handle, thankfully mempool structure is private
 // But! Mempools are handled through linked list so we can't index them safely
-
-//static uint lastidx = 0;
 static poolhandle_t lastidx = 0;
 
 static mempool_t *Mem_FindPool (poolhandle_t poolptr)
@@ -186,8 +180,10 @@ static void Mem_FreeBlock (memheader_t *mem, const char *filename, int fileline)
 	if ((mem->prev ? mem->prev->next != mem : pool->chain != mem) || (mem->next && mem->next->prev != mem))
 		Sys_Error ("Mem_Free: not allocated or double freed (free at %s:%i)\n", filename, fileline);
 
-	if (mem->prev) mem->prev->next = mem->next;
-	else pool->chain = mem->next;
+	if (mem->prev)
+		mem->prev->next = mem->next;
+	else
+		pool->chain = mem->next;
 
 	if (mem->next)
 		mem->next->prev = mem->prev;
@@ -199,45 +195,7 @@ static void Mem_FreeBlock (memheader_t *mem, const char *filename, int fileline)
 	Q_free (mem);
 	}
 
-/* ESHQ: накладывающиеся определения
-void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
-	{
-	memheader_t *mem;
-	mempool_t *pool;
-
-	if (size <= 0)
-		return NULL;
-	if (!poolptr)
-		Sys_Error ("Mem_Alloc: pool == NULL (alloc at %s:%i)\n", filename, fileline);
-
-	pool = Mem_FindPool (poolptr);
-
-	pool->totalsize += size;
-
-	// big allocations are not clumped
-	pool->realsize += sizeof (memheader_t) + size + sizeof (size_t);
-	mem = (memheader_t *)Q_malloc (sizeof (memheader_t) + size + sizeof (size_t));
-	if (mem == NULL) Sys_Error ("Mem_Alloc: out of memory (alloc at %s:%i)\n", filename, fileline);
-
-	mem->filename = filename;
-	mem->fileline = fileline;
-	mem->size = size;
-	mem->pool = pool;
-	mem->sentinel1 = MEMHEADER_SENTINEL1;
-	// we have to use only a single byte for this sentinel, because it may not be aligned
-	// and some platforms can't use unaligned accesses
-	*((byte *)mem + sizeof (memheader_t) + mem->size) = MEMHEADER_SENTINEL2;
-	// append to head of list
-	mem->next = pool->chain;
-	mem->prev = NULL;
-	pool->chain = mem;
-	if (mem->next) mem->next->prev = mem;
-	if (clear)
-		memset ((void *)((byte *)mem + sizeof (memheader_t)), 0, mem->size);
-
-	return (void *)((byte *)mem + sizeof (memheader_t));
-	}
-	*/
+// ESHQ: удалена _Mem_Alloc
 
 void _Mem_Free (void *data, const char *filename, int fileline)
 	{
@@ -294,10 +252,8 @@ poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int filelin
 	pool->realsize = sizeof (mempool_t);
 	Q_strncpy (pool->name, name, sizeof (pool->name));
 	pool->next = poolchain;
-	//pool->idx = ++lastidx;
 	poolchain = pool;
 
-	//return pool->idx;
 #if XASH_64BIT
 	pool->idx = ++lastidx;
 	return pool->idx;
@@ -318,12 +274,6 @@ void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
 		if (*chainaddress != pool) Sys_Error ("Mem_FreePool: pool already free (freepool at %s:%i)\n", filename, fileline);
 		
 		// [FWGS, 01.04.23]
-		/*if (pool->sentinel1 != MEMHEADER_SENTINEL1) 
-			Sys_Error ("Mem_FreePool: trashed pool sentinel 1 (allocpool at %s:%i, freepool at %s:%i)\n", 
-				pool->filename, pool->fileline, filename, fileline);
-		if (pool->sentinel2 != MEMHEADER_SENTINEL1) 
-			Sys_Error ("Mem_FreePool: trashed pool sentinel 2 (allocpool at %s:%i, freepool at %s:%i)\n", 
-				pool->filename, pool->fileline, filename, fileline);*/
 		if (pool->sentinel1 != MEMHEADER_SENTINEL1)
 			Sys_Error ("Mem_FreePool: trashed pool sentinel 1 (allocpool at %s:%i, freepool at %s:%i)\n", 
 				pool->filename, pool->fileline, filename, fileline);

@@ -973,7 +973,6 @@ CL_DrawLoading [FWGS, 01.04.23]
 draw loading progress bar
 =============
 */
-//static void CL_DrawLoadingOrPaused (qboolean paused, float percent)
 static void CL_DrawLoadingOrPaused (int tex)
 	{
 	float x, y, width, height;
@@ -2441,7 +2440,6 @@ void GAME_EXPORT CL_PlayerTraceExt (float *start, float *end, int traceFlags, in
 PM_CL_TraceTexture [FWGS, 01.04.23]
 =============
 */
-//static const char *pfnTraceTexture (int ground, float *vstart, float *vend)
 const char *GAME_EXPORT PM_CL_TraceTexture (int ground, float *vstart, float *vend)
 	{
 	return PM_TraceTexture (clgame.pmove, ground, vstart, vend);

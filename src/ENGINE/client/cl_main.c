@@ -45,7 +45,6 @@ CVAR_DEFINE_AUTO (cl_logocolor, "orange", FCVAR_ARCHIVE, "player logo color");
 CVAR_DEFINE_AUTO (cl_logoext, "bmp", FCVAR_ARCHIVE, "temporary cvar to tell engine which logo must be packed");
 CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE, "test network bandwith before connection");
 
-//convar_t *rcon_client_password;	// [FWGS, 01.04.23]
 convar_t *rcon_address;
 convar_t *cl_timeout;
 convar_t *cl_nopred;
@@ -96,7 +95,7 @@ clgame_static_t	clgame;
 
 void CL_InternetServers_f (void);
 
-//======================================================================
+// ======================================================================
 int GAME_EXPORT CL_Active (void)
 	{
 	return (cls.state == ca_active);
@@ -107,7 +106,7 @@ qboolean CL_Initialized (void)
 	return cls.initialized;
 	}
 
-//======================================================================
+// ======================================================================
 qboolean CL_IsInGame (void)
 	{
 	if (host.type == HOST_DEDICATED)
@@ -1901,7 +1900,7 @@ void CL_ProcessNetRequests (void)
 		}
 	}
 
-//===================================================================
+// ===================================================================
 /*
 ===============
 CL_SetupOverviewParams
@@ -2633,7 +2632,7 @@ void CL_ServerCommand (qboolean reliable, const char *fmt, ...)
 		}
 	}
 
-//=============================================================================
+// =============================================================================
 /*
 ==============
 CL_SetInfo_f
@@ -3108,7 +3107,7 @@ void CL_InitLocal (void)
 		"legacy server compatibility");
 	}
 
-//============================================================================
+// ============================================================================
 /*
 ==================
 CL_AdjustClock
@@ -3230,7 +3229,7 @@ void Host_ClientFrame (void)
 	CL_AdjustClock ();
 	}
 
-//============================================================================
+// ============================================================================
 
 /*
 ====================

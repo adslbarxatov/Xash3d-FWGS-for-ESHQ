@@ -850,8 +850,7 @@ DSP_ClearState
 */
 void DSP_ClearState (void)
 	{
-	// ESHQ: удалено, поскольку теперь выполняется скриптом ачивок
-	/*Cvar_SetValue ("room_type", 0.0f);*/
+	// ESHQ: удалено обнуление room_type, поскольку теперь её установка выполняется скриптом ачивок
 	SX_ReloadRoomFX ();
 	}
 

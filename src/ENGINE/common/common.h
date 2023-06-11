@@ -159,7 +159,6 @@ extern convar_t *scr_download;
 extern convar_t *cmd_scripting;
 extern convar_t *sv_maxclients;
 extern convar_t *cl_allow_levelshots;
-//extern convar_t *vid_displayfrequency;	// [FWGS, 01.04.23]
 extern convar_t	host_developer;
 extern convar_t *host_limitlocal;
 extern convar_t *host_framerate;
@@ -363,7 +362,6 @@ typedef struct host_parm_s
 	qboolean		apply_game_config;	// when true apply only to game cvars and ignore all other commands
 	qboolean		apply_opengl_config;// when true apply only to opengl cvars and ignore all other commands
 	qboolean		config_executed;	// a bit who indicated was config.cfg already executed e.g. from valve.rc
-	//int			sv_cvars_restored;	// [FWGS, 01.04.23] count of restored server cvars
 	qboolean		crashed;			// set to true if crashed
 	qboolean		daemonized;
 	qboolean		enabledll;

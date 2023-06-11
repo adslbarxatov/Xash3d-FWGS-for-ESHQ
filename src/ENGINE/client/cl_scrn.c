@@ -405,8 +405,6 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 
 	if (!Host_IsDedicated ())
 		gl_clear->value = oldclear;
-
-	//	SNDDMA_LockSound();
 	}
 
 /*
@@ -418,7 +416,6 @@ void SCR_EndLoadingPlaque (void)
 	{
 	cls.disable_screen = 0.0f;
 	Con_ClearNotify ();
-	//	SNDDMA_UnlockSound();
 	}
 
 /*
@@ -718,7 +715,6 @@ SCR_VidInit
 */
 void SCR_VidInit (void)
 	{
-	//string libpath;		// [FWGS, 01.04.23]
 	if (!ref.initialized)	// don't call VidInit too soon
 		return;
 

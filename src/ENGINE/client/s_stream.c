@@ -93,20 +93,18 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 
 	if (!COM_CheckString (mainTrack))
 		s_bgTrack.loopName[0] = '\0';
-	else Q_strncpy (s_bgTrack.loopName, mainTrack, sizeof (s_bgTrack.loopName));
+	else
+		Q_strncpy (s_bgTrack.loopName, mainTrack, sizeof (s_bgTrack.loopName));
 
 	// [FWGS, 01.05.23] open stream
-	/*s_bgTrack.stream = FS_OpenStream (va ("media/%s", introTrack));*/
 	s_bgTrack.stream = FS_OpenStream (introTrack);
 	Q_strncpy (s_bgTrack.current, introTrack, sizeof (s_bgTrack.current));
 	memset (&musicfade, 0, sizeof (musicfade)); // clear any soundfade
 	s_bgTrack.source = cls.key_dest;
 
+	// restore message, update song position
 	if (position != 0)
-		{
-		// restore message, update song position
 		FS_SetStreamPos (s_bgTrack.stream, position);
-		}
 	}
 
 /*
@@ -246,7 +244,6 @@ void S_StreamBackgroundTrack (void)
 				FS_FreeStream (s_bgTrack.stream);
 
 				// [FWGS, 01.05.23]
-				/*s_bgTrack.stream = FS_OpenStream (va ("media/%s", s_bgTrack.loopName));*/
 				s_bgTrack.stream = FS_OpenStream (s_bgTrack.loopName);
 				Q_strncpy (s_bgTrack.current, s_bgTrack.loopName, sizeof (s_bgTrack.current));
 

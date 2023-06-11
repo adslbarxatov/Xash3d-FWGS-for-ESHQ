@@ -254,7 +254,6 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 					return;
 					}
 
-				/*Q_strcpy (currentName, trim);*/
 				Q_strncpy (currentName, trim, sizeof (currentName));	// [FWGS, 01.05.23]
 				break;
 
@@ -271,7 +270,6 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 						}
 
 					// [FWGS, 01.05.23]
-					/*Q_strcpy (nameHeap + lastNamePos, currentName);*/
 					Q_strncpy (nameHeap + lastNamePos, currentName, sizeof (nameHeap) - lastNamePos);
 
 					// terminate text in-place in the memory file
@@ -331,7 +329,6 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 	// copy Name heap
 	pNameHeap = ((char *)clgame.titles) + messageSize;
 	memcpy (pNameHeap, nameHeap, nameHeapSize);
-	/*nameOffset = pNameHeap - clgame.titles[0].pName; //undefined on amd64*/
 
 
 	// [FWGS, 01.05.23]  copy text & fixup pointers
@@ -343,11 +340,9 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 		size_t currentTextSize = Q_strlen (clgame.titles[i].pMessage) + 1;
 
 		clgame.titles[i].pName = pNameHeap;			// adjust name pointer (parallel buffer)
-		/*Q_strcpy (pCurrentText, clgame.titles[i].pMessage);	// copy text over*/
 		Q_strncpy (pCurrentText, clgame.titles[i].pMessage, textHeapSizeRemaining);	// copy text over
 		clgame.titles[i].pMessage = pCurrentText;
 		pNameHeap += Q_strlen (pNameHeap) + 1;
-		/*pCurrentText += Q_strlen (pCurrentText) + 1;*/
 		pCurrentText += currentTextSize;
 		textHeapSizeRemaining -= currentTextSize;
 		}

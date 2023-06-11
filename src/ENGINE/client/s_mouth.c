@@ -25,19 +25,6 @@ void SND_InitMouth (int entnum, int entchannel)
 	{
 	if (((entchannel == CHAN_VOICE) || (entchannel == CHAN_STREAM)) && (entnum > 0))
 		SND_ForceInitMouth (entnum);
-		/*{
-		cl_entity_t *clientEntity;
-
-		// init mouth movement vars
-		clientEntity = CL_GetEntityByIndex (entnum);
-
-		if (clientEntity)
-			{
-			clientEntity->mouth.mouthopen = 0;
-			clientEntity->mouth.sndcount = 0;
-			clientEntity->mouth.sndavg = 0;
-			}
-		}*/
 	}
 
 // [FWGS, 01.04.23]
@@ -45,17 +32,6 @@ void SND_CloseMouth (channel_t *ch)
 	{
 	if ((ch->entchannel == CHAN_VOICE) || (ch->entchannel == CHAN_STREAM))
 		SND_ForceCloseMouth (ch->entnum);
-		/*{
-		cl_entity_t *clientEntity;
-
-		clientEntity = CL_GetEntityByIndex (ch->entnum);
-
-		if (clientEntity)
-			{
-			// shut mouth
-			clientEntity->mouth.mouthopen = 0;
-			}
-		}*/
 	}
 
 void SND_MoveMouth8 (channel_t *ch, wavdata_t *pSource, int count)

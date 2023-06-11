@@ -851,9 +851,7 @@ void CL_ParseFileTransferFailed (sizebuf_t *msg)
 
 /*
 =====================================================================
-
-  SERVER CONNECTING MESSAGES
-
+SERVER CONNECTING MESSAGES
 =====================================================================
 */
 /*
@@ -861,7 +859,6 @@ void CL_ParseFileTransferFailed (sizebuf_t *msg)
 CL_ParseServerData [FWGS, 01.05.23]
 ==================
 */
-//void CL_ParseServerData (sizebuf_t *msg)
 void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	{
 	char		gamefolder[MAX_QPATH];
@@ -1189,7 +1186,6 @@ void CL_ParseClientData (sizebuf_t *msg)
 CL_ParseBaseline [FWGS, 01.04.23]
 ==================
 */
-//void CL_ParseBaseline (sizebuf_t *msg)
 void CL_ParseBaseline (sizebuf_t *msg, qboolean legacy)
 	{
 	int				i, newnum;
@@ -1380,7 +1376,6 @@ CL_UpdateUserinfo [FWGS, 01.04.23]
 collect userinfo from all players
 ================
 */
-//void CL_UpdateUserinfo (sizebuf_t *msg)
 void CL_UpdateUserinfo (sizebuf_t *msg, qboolean legacy)
 	{
 	int		slot, id;
@@ -2742,8 +2737,6 @@ void CL_LegacyPrecacheSound (sizebuf_t *msg)
 	Q_strncpy (cl.sound_precache[soundIndex], MSG_ReadString (msg), sizeof (cl.sound_precache[0]));
 
 	// when we loading map all resources is precached sequentially
-	//if( !cl.audio_prepped ) return;
-
 	cl.sound_index[soundIndex] = S_RegisterSound (cl.sound_precache[soundIndex]);
 	}
 

@@ -75,8 +75,6 @@ void Log_Open (void)
 	// [FWGS, 01.04.23]
 	if (fp)
 		svs.log.file = fp;
-	/*Log_Printf ("Log file started (file \"%s\") (game \"%s\") (version \"%i/%s/%d\")\n",
-		szTestFile, Info_ValueForKey (SV_Serverinfo (), "*gamedir"), PROTOCOL_VERSION, XASH_VERSION, Q_buildnum ());*/
 	Log_Printf ("Log file started (file \"%s\") (game \"%s\") (version \"%i/" XASH_VERSION "/%d\")\n",
 		szTestFile, Info_ValueForKey (SV_Serverinfo (), "*gamedir"), PROTOCOL_VERSION, Q_buildnum ());
 	}
@@ -214,7 +212,6 @@ void SV_ServerLog_f (void)
 	if (Cmd_Argc () != 2)
 		{
 		// [FWGS, 01.04.23]
-		/*Con_Printf ("usage: log < on|off >\n");*/
 		Con_Printf (S_USAGE "log < on|off >\n");
 
 		if (svs.log.active)

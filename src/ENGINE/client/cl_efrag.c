@@ -31,7 +31,7 @@ static mnode_t *r_pefragtopnode;
 static vec3_t	r_emins, r_emaxs;
 static cl_entity_t *r_addent;
 
-//[FWGS, 01.05.23] удалена R_RemoveEfrags
+// [FWGS, 01.05.23] удалена R_RemoveEfrags
 
 /*
 ===================

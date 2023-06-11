@@ -18,9 +18,6 @@ GNU General Public License for more details.
 #include "net_encode.h"
 #include "platform/platform.h"
 
-// [FWGS, 01.05.23]
-/*#define HEARTBEAT_SECONDS	((sv_nat.value > 0.0f) ? 60.0f : 300.0f)  	// 1 or 5 minutes*/
-
 // server cvars
 CVAR_DEFINE_AUTO (sv_lan, "0", 0, 
 	"server is a lan server ( no heartbeat, no authentication, no non-class C addresses, 9999.0 rate, etc.");
@@ -32,9 +29,7 @@ CVAR_DEFINE_AUTO (sv_maxunlag, "0.5", 0,
 	"max latency value which can be interpolated (by default ping should not exceed 500 units)");
 CVAR_DEFINE_AUTO (sv_unlagpush, "0.0", 0, "interpolation bias for unlag time");
 CVAR_DEFINE_AUTO (sv_unlagsamples, "1", 0, "max samples to interpolate");
-
-// [FWGS, 01.04.23]
-/*CVAR_DEFINE_AUTO (rcon_password, "", 0, "remote connect password");*/
+// [FWGS, 01.04.23] удалена переменная rcon_password
 CVAR_DEFINE_AUTO (rcon_password, "", FCVAR_PROTECTED | FCVAR_PRIVILEGED, "remote connect password");
 CVAR_DEFINE_AUTO (rcon_enable, "1", FCVAR_PROTECTED, "enable accepting remote commands on server");
 
@@ -165,21 +160,15 @@ convar_t *timeout;				// seconds without any message
 convar_t *sv_lighting_modulate;
 convar_t *sv_maxclients;
 convar_t *sv_check_errors;
-/*convar_t *public_server;			// should heartbeats be sent*/	// [FWGS, 01.05.23]
 convar_t *sv_reconnect_limit;		// minimum seconds between connect messages
 convar_t *sv_validate_changelevel;
 convar_t *sv_sendvelocity;
 convar_t *sv_hostmap;
-
 convar_t *sv_allow_noinputdevices;
 convar_t *sv_allow_touch;
 convar_t *sv_allow_mouse;
 convar_t *sv_allow_joystick;
 convar_t *sv_allow_vr;
-
-// [FWGS, 01.05.23]
-/*void Master_Shutdown (void);
-static void Master_Heartbeat (void);*/
 
 //============================================================================
 /*
@@ -204,42 +193,6 @@ qboolean SV_HasActivePlayers (void)
 		}
 	return false;
 	}
-
-/* [FWGS, 01.04.23]
-================
-SV_GetConnectedClientsCount
-
-returns connected clients count (and optionally bots count)
-================
-//
-int SV_GetConnectedClientsCount (int *bots)
-	{
-	int index;
-	int	clients;
-
-	clients = 0;
-	if (svs.clients)
-		{
-		if (bots)
-			*bots = 0;
-
-		for (index = 0; index < svs.maxclients; index++)
-			{
-			if (svs.clients[index].state >= cs_connected)
-				{
-				if (FBitSet (svs.clients[index].flags, FCL_FAKECLIENT))
-					{
-					if (bots)
-						(*bots)++;
-					}
-				else
-					clients++;
-				}
-			}
-		}
-	return clients;
-	}
-	*/
 
 /*
 ===================
@@ -747,7 +700,6 @@ void Host_ServerFrame (void)
 
 	// [FWGS, 01.05.23] send a heartbeat to the master if needed
 	NET_MasterHeartbeat ();
-	/*Master_Heartbeat ();*/
 	}
 
 /*
@@ -763,104 +715,27 @@ void Host_SetServerState (int state)
 
 //============================================================================
 
-/* [FWGS, 01.05.23]
-=================
-Master_Add
-=================
-static void Master_Add (void)
-	{
-	sizebuf_t msg;
-	char buf[16];
-	uint challenge;
+// [FWGS, 01.05.23] удалены Master_Add, Master_Heartbeat, Master_Shutdown
 
-	NET_Config (true, false); // allow remote
-	svs.heartbeat_challenge = challenge = COM_RandomLong (0, INT_MAX);
-
-	MSG_Init (&msg, "Master Join", buf, sizeof (buf));
-	MSG_WriteBytes (&msg, "q\xFF", 2);
-	MSG_WriteDword (&msg, challenge);
-
-	if (NET_SendToMasters (NS_SERVER, MSG_GetNumBytesWritten (&msg), MSG_GetBuf (&msg)))
-		svs.last_heartbeat = MAX_HEARTBEAT;
-	}
-
-/*
-================
-Master_Heartbeat
-
-Send a message to the master every few minutes to
-let it know we are alive, and log information
-================
-static void Master_Heartbeat (void)
-	{
-	if ((!public_server->value && !sv_nat.value) || (svs.maxclients == 1))
-		return; // only public servers send heartbeats
-
-	// check for time wraparound
-	if (svs.last_heartbeat > host.realtime)
-		svs.last_heartbeat = host.realtime;
-
-	if ((host.realtime - svs.last_heartbeat) < HEARTBEAT_SECONDS)
-		return; // not time to send yet
-
-	svs.last_heartbeat = host.realtime;
-
-	Master_Add ();
-	}
-
-/*
-=================
-Master_Shutdown
-
-Informs all masters that this server is going down
-=================
-static void Master_Shutdown (void)
-	{
-	NET_Config (true, false); // allow remote
-	while (NET_SendToMasters (NS_SERVER, 2, "\x62\x0A"));
-	}
-
-/*
-=================
-SV_AddToMaster [FWGS, 01.05.23]
-
-A server info answer to master server.
-Master will validate challenge and this server to public list
-=================
-*/
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	{
-	/*uint	challenge;*/
 	uint	challenge, challenge2, heartbeat_challenge;
 	char	s[MAX_INFO_STRING] = "0\n"; // skip 2 bytes of header
-	
-	/*int	clients = 0, bots = 0;
-	int	len = sizeof (s);*/
 	int		clients, bots;
 	double	last_heartbeat;
 	const int	len = sizeof (s);
 
-	/*if (!NET_IsMasterAdr (from))*/
 	if (!NET_GetMaster (from, &heartbeat_challenge, &last_heartbeat))
 		{
 		Con_Printf (S_WARN "unexpected master server info query packet from %s\n", NET_AdrToString (from));
 		return;
 		}
 
-	/*clients = SV_GetConnectedClientsCount (&bots);
-	challenge = MSG_ReadUBitLong (msg, sizeof (uint) << 3);*/
-	/*if (svs.last_heartbeat + sv_master_response_timeout.value < host.realtime)*/
 	if (last_heartbeat + sv_master_response_timeout.value < host.realtime)
 		{
 		Con_Printf (S_WARN "unexpected master server info query packet (too late? try increasing sv_master_response_timeout value)\n");
 		return;
 		}
-
-	/*Info_SetValueForKey (s, "protocol", va ("%d", PROTOCOL_VERSION), len); // protocol version
-	Info_SetValueForKey (s, "challenge", va ("%u", challenge), len); // challenge number
-	Info_SetValueForKey (s, "players", va ("%d", clients), len); // current player number, without bots
-	Info_SetValueForKey (s, "max", va ("%d", svs.maxclients), len); // max_players
-	Info_SetValueForKey (s, "bots", va ("%d", bots), len); // bot count*/
 
 	challenge = MSG_ReadDword (msg);
 	challenge2 = MSG_ReadDword (msg);
@@ -886,13 +761,9 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	Info_SetValueForKey (s, "secure", "0", len); // server anti-cheat
 	Info_SetValueForKey (s, "lan", "0", len); // LAN servers doesn't send info to master
 	
-	/*Info_SetValueForKey (s, "version", va ("%s", XASH_VERSION), len); // server region. 255 -- all regions*/
 	Info_SetValueForKey (s, "version", XASH_VERSION, len); // server region. 255 -- all regions
-
 	Info_SetValueForKey (s, "region", "255", len); // server region. 255 -- all regions
 	Info_SetValueForKey (s, "product", GI->gamefolder, len); // product? Where is the difference with gamedir?
-	
-	/*Info_SetValueForKey (s, "nat", sv_nat.string, sizeof (s)); // Server running under NAT, use reverse connection*/
 	Info_SetValueForKey (s, "nat", sv_nat.string, len); // Server running under NAT, use reverse connection
 
 	NET_SendPacket (NS_SERVER, Q_strlen (s), s, from);
@@ -972,10 +843,7 @@ void SV_Init (void)
 	SV_InitHostCommands ();
 
 	// [FWGS, 01.04.23]
-	/*Cvar_Get ("protocol", va ("%i", PROTOCOL_VERSION), FCVAR_READ_ONLY,
-		"displays server protocol version");*/
 	Cvar_Getf ("protocol", FCVAR_READ_ONLY, "displays server protocol version", "%i", PROTOCOL_VERSION);
-
 	Cvar_Get ("suitvolume", "0.25", FCVAR_ARCHIVE, "HEV suit volume");
 	Cvar_Get ("sv_background", "0", FCVAR_READ_ONLY, "indicate what background map is running");
 	Cvar_Get ("gamedir", GI->gamefolder, FCVAR_READ_ONLY, "game folder");
@@ -1043,7 +911,6 @@ void SV_Init (void)
 	sv_check_errors = Cvar_Get ("sv_check_errors", "0", FCVAR_ARCHIVE, "check edicts for errors");
 
 	// [FWGS, 01.05.23]
-	/*public_server = Cvar_Get ("public", "0", 0, "change server type from private to public");*/
 	Cvar_RegisterVariable (&public_server);
 
 	sv_lighting_modulate = Cvar_Get ("r_lighting_modulate", "0.6", FCVAR_ARCHIVE, "lightstyles modulate scale");
@@ -1108,8 +975,6 @@ void SV_Init (void)
 	MSG_Init (&net_message, "NetMessage", net_message_buffer, sizeof (net_message_buffer));
 
 	// [FWGS, 01.04.23]
-	/*Q_snprintf (versionString, sizeof (versionString), "%s: %s-%s(%s-%s),%i,%i",
-		XASH_ENGINE_NAME, XASH_VERSION, Q_buildcommit (), Q_buildos (), Q_buildarch (), PROTOCOL_VERSION, Q_buildnum ());*/
 	Q_snprintf (versionString, sizeof (versionString), XASH_ENGINE_NAME ": " XASH_VERSION "-%s(%s-%s),%i,%i",
 		Q_buildcommit (), Q_buildos (), Q_buildarch (), PROTOCOL_VERSION, Q_buildnum ());
 
@@ -1232,8 +1097,6 @@ void SV_Shutdown (const char *finalmsg)
 		SV_FinalMessage (finalmsg, false);
 
 	// [FWGS, 01.05.23]
-	/*if (public_server->value && svs.maxclients != 1)
-		Master_Shutdown ();*/
 	if (public_server.value && svs.maxclients != 1)
 		NET_MasterShutdown ();
 

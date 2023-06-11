@@ -614,4 +614,4 @@ void Test_RunVOX (void)
 	TRUN (Test_VOX_ParseWordParams ());
 	}
 
-#endif /* XASH_ENGINE_TESTS */
+#endif
