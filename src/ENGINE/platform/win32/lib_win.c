@@ -398,7 +398,6 @@ static void ListMissingModules (dll_user_t *hInst)
 			Q_snprintf (buf, sizeof (buf), "%s not found!", importName);
 			COM_PushLibraryError (buf);
 			}
-			//COM_PushLibraryError (va ("%s not found!", importName));
 		else
 			{
 			FreeLibrary (hMod);
@@ -508,7 +507,6 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 		{
 		if (!LibraryLoadSymbols (hInst))
 			{
-			//COM_PushLibraryError (va ("Failed to load library %s", dllname));
 			Q_snprintf (buf, sizeof (buf), "Failed to load library %s", dllname);
 			COM_PushLibraryError (buf);
 

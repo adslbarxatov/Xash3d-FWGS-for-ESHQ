@@ -221,23 +221,23 @@ GNU General Public License for more details.
 
 // listed only unmatched ops
 #define svc_updatestat		3	// [byte] [int]			(svc_event)
-#define svc_version			4	// [int] server version		(svc_changing)
-#define svc_updatename		13	// [byte] [string]			(svc_updateuserinfo)
-#define svc_updatefrags		14	// [byte] [short]			(svc_deltatable)
+#define svc_version			4	// [int] server version	(svc_changing)
+#define svc_updatename		13	// [byte] [string]		(svc_updateuserinfo)
+#define svc_updatefrags		14	// [byte] [short]		(svc_deltatable)
 #define svc_stopsound		16	// <see code>			(svc_resource)
-#define svc_updatecolors		17	// [byte] [byte]			(svc_pings)
-#define svc_damage			19	//				(svc_restoresound)
-#define svc_spawnbinary		21	//				(svc_event_reliable)
-#define svc_killedmonster		27
+#define svc_updatecolors	17	// [byte] [byte]		(svc_pings)
+#define svc_damage			19	// (svc_restoresound)
+#define svc_spawnbinary		21	// (svc_event_reliable)
+#define svc_killedmonster	27
 #define svc_foundsecret		28
-#define svc_spawnstaticsound		29	// [coord3] [byte] samp [byte] vol [byte] aten
-#define svc_sellscreen		33	//				(svc_restore)
+#define svc_spawnstaticsound	29	// [coord3] [byte] samp [byte] vol [byte] aten
+#define svc_sellscreen		33	// (svc_restore)
 // Nehahra added
 #define svc_showlmp			35	// [string] slotname [string] lmpfilename [coord] x [coord] y
 #define svc_hidelmp			36	// [string] slotname
 #define svc_skybox			37	// [string] skyname
 #define svc_skyboxsize		50	// [coord] size (default is 4096)
-#define svc_fog			51	// [byte] enable <optional past this point, only included if enable is true>
+#define svc_fog				51	// [byte] enable <optional past this point, only included if enable is true>
 					// [float] density [byte] red [byte] green [byte] blue
 
 // if the high bit of the servercmd is set, the low bits are fast update flags:
@@ -269,7 +269,6 @@ GNU General Public License for more details.
 #define SU_VELOCITY1	(1<<5)
 #define SU_VELOCITY2	(1<<6)
 #define SU_VELOCITY3	(1<<7)
-//define	SU_AIMENT		(1<<8)  AVAILABLE BIT
 #define SU_ITEMS		(1<<9)
 #define SU_ONGROUND		(1<<10)		// no data follows, the bit is it
 #define SU_INWATER		(1<<11)		// no data follows, the bit is it

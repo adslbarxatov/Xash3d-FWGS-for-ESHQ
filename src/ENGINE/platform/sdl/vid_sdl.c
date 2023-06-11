@@ -202,7 +202,6 @@ void SW_UnlockBuffer (void)
 		SDL_RenderPresent (sw.renderer);
 
 		return;
-		//Con_Printf("%s\n", SDL_GetError());
 		}
 
 	// blit if blitting surface availiable

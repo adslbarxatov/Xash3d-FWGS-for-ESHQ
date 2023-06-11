@@ -73,7 +73,6 @@ float SimpleSpline (float value)
 
 word FloatToHalf (float v)
 	{
-	//unsigned int	i = *((unsigned int *)&v);
 	unsigned int	i = FloatAsUint (v);	// [FWGS, 01.04.23]
 	unsigned int	e = (i >> 23) & 0x00ff;
 	unsigned int	m = i & 0x007fffff;
@@ -297,10 +296,8 @@ float rsqrt (float number)
 		return 0.0f;
 
 	x = number * 0.5f;
-	//i = *(int *)&number;		// evil floating point bit level hacking
 	i = FloatAsInt (number);	// [FWGS, 01.04.23]
 	i = 0x5f3759df - (i >> 1);	// what the fuck?
-	//y = *(float *)&i;
 	y = IntAsFloat (i);			// [FWGS, 01.04.23]
 	y = y * (1.5f - (x * y * y));	// first iteration
 

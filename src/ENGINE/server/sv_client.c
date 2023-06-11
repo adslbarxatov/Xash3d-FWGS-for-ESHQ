@@ -47,7 +47,6 @@ static int	g_userid = 1;
 SV_GetPlayerCount [FWGS, 01.04.23]
 =================
 */
-//static void SV_GetPlayerCount (int *players, int *bots)
 void SV_GetPlayerCount (int *players, int *bots)
 	{
 	int i;

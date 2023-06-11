@@ -165,4 +165,4 @@ typedef struct physics_interface_s
 	int		(*SV_PlayerThink)(edict_t *ent, float frametime, double time);
 	} physics_interface_t;
 
-#endif//PHYSINT_H
+#endif

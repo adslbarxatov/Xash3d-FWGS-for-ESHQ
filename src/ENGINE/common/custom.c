@@ -18,10 +18,8 @@ GNU General Public License for more details.
 #include "ref_common.h"
 
 // [FWGS, 01.04.23]
-//qboolean CustomDecal_Validate (void *raw, int nFileSize)
 static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
 	{
-	//rgbdata_t *test = FS_LoadImage ("#logo.bmp", raw, nFileSize);
 	const char *testname;
 
 	// this way we limit file types

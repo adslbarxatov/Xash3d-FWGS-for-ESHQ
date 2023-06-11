@@ -50,9 +50,6 @@ static SDL_AudioDeviceID in_dev = 0;
 static SDL_AudioFormat sdl_format;
 static char sdl_backend_name[32];
 
-//static qboolean	snd_firsttime = true;
-//static qboolean	primary_format_set;
-
 void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 	{
 	int size = dma.samples << 1;
@@ -165,7 +162,6 @@ Makes sure dma.buffer is valid
 */
 void SNDDMA_BeginPainting (void)
 	{
-	//	SDL_LockAudioDevice( sdl_dev );
 	}
 
 /*
@@ -178,7 +174,6 @@ Also unlocks the dsound buffer
 */
 void SNDDMA_Submit (void)
 	{
-	//	SDL_UnlockAudioDevice( sdl_dev );
 	}
 
 /*

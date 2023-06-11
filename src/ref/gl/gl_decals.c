@@ -129,9 +129,9 @@ static decal_t *R_DecalAlloc (decal_t *pdecal)
 	return pdecal;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // find decal image and grab size from it
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 static void R_GetDecalDimensions (int texture, int *width, int *height)
 	{
 	if (width) *width = 1;	// to avoid divide by zero
@@ -140,9 +140,9 @@ static void R_GetDecalDimensions (int texture, int *width, int *height)
 	R_GetTextureParms (width, height, texture);
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // compute the decal basis based on surface normal
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void R_DecalComputeBasis (msurface_t *surf, int flags, vec3_t textureSpaceBasis[3])
 	{
 	vec3_t	surfaceNormal;
@@ -371,9 +371,9 @@ float *R_DoDecalSHClip (float *pInVerts, decal_t *pDecal, int nStartVerts, int *
 	return pOutVerts;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Generate clipped vertex list for decal pdecal projected onto polygon psurf
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 float *R_DecalVertsClip (decal_t *pDecal, msurface_t *surf, int texture, int *pVertCount)
 	{
 	float	decalWorldScale[2];
@@ -406,12 +406,12 @@ static void R_DecalVertsLight (float *v, msurface_t *surf, int vertCount)
 		s = DotProduct (v, info->lmvecs[0]) + info->lmvecs[0][3] - info->lightmapmins[0];
 		s += surf->light_s * sample_size;
 		s += sample_size * 0.5f;
-		s /= BLOCK_SIZE * sample_size; //fa->texinfo->texture->width;
+		s /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->width;
 
 		t = DotProduct (v, info->lmvecs[1]) + info->lmvecs[1][3] - info->lightmapmins[1];
 		t += surf->light_t * sample_size;
 		t += sample_size * 0.5f;
-		t /= BLOCK_SIZE * sample_size; //fa->texinfo->texture->height;
+		t /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->height;
 
 		v[5] = s;
 		v[6] = t;
@@ -677,9 +677,9 @@ void R_DecalSurface (msurface_t *surf, decalinfo_t *decalinfo)
 	R_DecalCreate (decalinfo, surf, s, t);
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // iterate over all surfaces on a node, looking for surfaces to decal
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 static void R_DecalNodeSurfaces (model_t *model, mnode_t *node, decalinfo_t *decalinfo)
 	{
 	// iterate over all surfaces in the node
@@ -701,11 +701,11 @@ static void R_DecalNodeSurfaces (model_t *model, mnode_t *node, decalinfo_t *dec
 		}
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Recursive routine to find surface to apply a decal to.  World coordinates of
 // the decal are passed in r_recalpos like the rest of the engine.  This should
 // be called through R_DecalShoot()
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 static void R_DecalNode (model_t *model, mnode_t *node, decalinfo_t *decalinfo)
 	{
 	mplane_t *splitplane;
@@ -1108,12 +1108,12 @@ static qboolean R_DecalUnProject (decal_t *pdecal, decallist_t *entry)
 	return true;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose:
 // Input  : *pList -
-//			count -
+// 			count -
 // Output : static int
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 static int DecalListAdd (decallist_t *pList, int count)
 	{
 	vec3_t		tmp;
@@ -1152,11 +1152,11 @@ static int DecalDepthCompare (const void *a, const void *b)
 	return 0;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Called by CSaveRestore::SaveClientState
 // Input  : *pList -
 // Output : int
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 int R_CreateDecalList (decallist_t *pList)
 	{
 	int	total = 0;

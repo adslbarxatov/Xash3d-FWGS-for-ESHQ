@@ -417,8 +417,8 @@ int mpg123_framedata (mpg123_handle_t *mh, ulong *header, byte **bodydata, size_
 // Fuzzy frame offset searching (guessing).
 // When we don't have an accurate position, we may use an inaccurate one.
 // Possibilities:
-//	- use approximate positions from Xing TOC (not yet parsed)
-//	- guess wildly from mean framesize and offset of first frame / beginning of file.
+// - use approximate positions from Xing TOC (not yet parsed)
+// - guess wildly from mean framesize and offset of first frame / beginning of file.
 static mpg_off_t frame_fuzzy_find (mpg123_handle_t *fr, mpg_off_t want_frame, mpg_off_t *get_frame)
 	{
 	mpg_off_t	ret = fr->audio_start; // default is to go to the beginning.

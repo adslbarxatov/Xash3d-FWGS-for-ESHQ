@@ -29,7 +29,7 @@ GNU General Public License for more details.
 #include "custom.h"
 #include "world.h"
 
-//=============================================================================
+// =============================================================================
 
 #define SV_UPDATE_MASK	(SV_UPDATE_BACKUP - 1)
 #if XASH_LOW_MEMORY == 2
@@ -330,8 +330,6 @@ typedef struct
 	qboolean	msg_trace;		// trace this message
 
 	void *hInstance;		// pointer to game.dll
-	//qboolean		config_executed;		// [FWGS, 01.04.23]
-
 	edict_t *edicts;			// solid array of server entities
 	int		numEntities;		// actual entities count
 
@@ -379,7 +377,7 @@ typedef struct
 	challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting
 	} server_static_t;
 
-//=============================================================================
+// =============================================================================
 
 extern	server_static_t	svs;			// persistant server info
 extern	server_t		sv;			// local server
@@ -458,7 +456,7 @@ extern	convar_t *sv_novis;
 extern	convar_t *sv_hostmap;
 extern	convar_t *sv_validate_changelevel;
 
-//===========================================================
+// ===========================================================
 //
 // sv_main.c
 //
@@ -666,9 +664,7 @@ void SV_SetLogAddress_f (void);
 //
 // sv_save.c
 //
-//void SV_SaveGame (const char *pName);		// [FWGS, 01.04.23]
 qboolean SV_SaveGame (const char *pName);
-
 qboolean SV_LoadGame (const char *pName);
 int SV_LoadGameState (char const *level);
 void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char *start, qboolean background);

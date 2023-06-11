@@ -1708,7 +1708,6 @@ SaveGameSlot [FWGS, 01.04.23]
 do a save game
 =============
 */
-//static int SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	{
 	char	hlPath[MAX_QPATH];

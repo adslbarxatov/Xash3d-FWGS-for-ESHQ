@@ -173,7 +173,6 @@ rgbdata_t *Image_Quantize (rgbdata_t *pic);
 // img_utils.c
 //
 void Image_Reset (void);
-//rgbdata_t *ImagePack (void);	// [FWGS, 01.04.23]
 byte *Image_Copy (size_t size);
 void Image_CopyParms (rgbdata_t *src);
 qboolean Image_ValidSize (const char *name);

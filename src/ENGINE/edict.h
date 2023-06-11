@@ -46,4 +46,4 @@ struct edict_s
 	// other fields from progs come immediately after
 	};
 
-#endif//EDICT_H
+#endif

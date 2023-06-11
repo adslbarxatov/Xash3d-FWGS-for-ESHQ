@@ -45,4 +45,4 @@ static _inline int16_t ftoi16 (float x)
 #define REAL_TO_SHORT( x )	(short)( x )
 #endif
 
-#endif//SAMPLE_H
+#endif

@@ -18,7 +18,7 @@
 
 #include "const.h"
 
-/////////////////
+// ================================
 // Customization
 // passed to pfnPlayerCustomization
 // For automatic downloading.

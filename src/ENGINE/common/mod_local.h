@@ -16,13 +16,12 @@ GNU General Public License for more details.
 #ifndef MOD_LOCAL_H
 #define MOD_LOCAL_H
 
-//#include "common.h"
 #include "edict.h"
 #include "eiface.h"
 #include "ref_api.h"
 #include "studio.h"
 
-#define LM_SAMPLE_SIZE		16
+#define LM_SAMPLE_SIZE			16
 #define LM_SAMPLE_EXTRASIZE		8
 
 #define MAX_MAP_WADS		256	// max wads that can be referenced per one map

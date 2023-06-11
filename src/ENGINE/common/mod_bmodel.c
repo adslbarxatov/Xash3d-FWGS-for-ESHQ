@@ -2914,7 +2914,6 @@ static void Mod_LoadLighting (dbspmodel_t *bmod)
 Mod_LumpLooksLikeEntities [FWGS, 01.04.23]
 =================
 */
-//static qboolean Mod_LumpLooksLikePlanes (const byte *in, dlump_t *lump, qboolean fast)
 static int Mod_LumpLooksLikeEntities (const char *lump, const size_t lumplen)
 	{
 	// look for "classname" string
@@ -3108,7 +3107,6 @@ check for possible errors
 return real entities lump (for bshift swapped lumps)
 =================
 */
-//qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean silent)
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities)
 	{
 	const dheader_t *header = (const dheader_t *)mod_base;

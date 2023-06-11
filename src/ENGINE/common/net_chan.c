@@ -536,7 +536,6 @@ void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, .
 Netchan_AllocFragbuf [FWGS, 01.04.23]
 ==============================
 */
-//fragbuf_t *Netchan_AllocFragbuf (void)
 fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	{
 	fragbuf_t *buf;

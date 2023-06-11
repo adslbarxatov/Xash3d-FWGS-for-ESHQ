@@ -30,11 +30,11 @@ typedef struct cvar_filter_quirks_s
 	const char *cvars;		// list of cvars should be excluded from filter
 	} cvar_filter_quirks_t;
 
-//	EXAMPLE:
-//	{
-//	"valve",
-//	"test;test1;test100"
-//	}
+// EXAMPLE:
+// {
+// "valve",
+// "test;test1;test100"
+// }
 static cvar_filter_quirks_t cvar_filter_quirks[] =
 	{
 		{
@@ -99,7 +99,6 @@ Cvar_BuildAutoDescription [FWGS, 01.04.23]
 build cvar auto description that based on the setup flags
 ============
 */
-//const char *Cvar_BuildAutoDescription (int flags)
 const char *Cvar_BuildAutoDescription (const char *szName, int flags)
 	{
 	static char	desc[256];

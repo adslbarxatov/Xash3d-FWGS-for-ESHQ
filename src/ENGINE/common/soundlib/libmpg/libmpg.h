@@ -52,4 +52,4 @@ extern "C" {
 	}
 #endif
 
-#endif//LIBMPG_H
+#endif

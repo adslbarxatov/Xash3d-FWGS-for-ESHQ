@@ -106,9 +106,9 @@ void S_TransferPaintBuffer (int endtime)
 		}
 	}
 
-//===============================================================================
+// ===============================================================================
 // Mix buffer (paintbuffer) management routines
-//===============================================================================
+// ===============================================================================
 // Activate a paintbuffer.  All active paintbuffers are mixed in parallel within
 // MIX_MixChannelsToPaintbuffer, according to flags
 _inline void MIX_ActivatePaintbuffer (int ipaintbuffer)
@@ -283,15 +283,12 @@ void S_Mix8MonoTimeCompress (portable_samplepair_t *pbuf, int *volume, byte *pDa
 
 void S_Mix8Mono (portable_samplepair_t *pbuf, int *volume, byte *pData, int inputOffset, uint rateScale, int outCount, int timecompress)
 	{
-	int	i, sampleIndex = 0;
+	int		i, sampleIndex = 0;
 	uint	sampleFrac = inputOffset;
-	int *lscale, *rscale;
+	int		*lscale, *rscale;
 
 	if (timecompress != 0)
-		{
 		S_Mix8MonoTimeCompress (pbuf, volume, pData, inputOffset, rateScale, outCount, timecompress);
-		//		return;
-		}
 
 	// Not using pitch shift?
 	if (rateScale == FIX (1))
@@ -669,18 +666,8 @@ void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_samplepair_t
 	// count: number of samples to process in buffer ie: how many samples at 0, 2, 4, 6...
 
 	// finpos is the fractional, inpos the integer part.
-	//		finpos = 0.5 for upsampling by 2x
-	//		inpos is the position of the sample
-
-	//		xm1 = x [inpos - 1];
-	//		x0 = x [inpos + 0];
-	//		x1 = x [inpos + 1];
-	//		x2 = x [inpos + 2];
-	//		a = (3 * (x0-x1) - xm1 + x2) / 2;
-	//		b = 2*x1 + xm1 - (5*x0 + x2) / 2;
-	//		c = (x1 - xm1) / 2;
-	//		y [outpos] = (((a * finpos) + b) * finpos + c) * finpos + x0;
-
+	// finpos = 0.5 for upsampling by 2x
+	// inpos is the position of the sample
 	int i, upCount = count << 1;
 	int a, b, c;
 	int xm1, x0, x1, x2;

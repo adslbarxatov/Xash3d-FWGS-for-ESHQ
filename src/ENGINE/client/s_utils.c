@@ -20,11 +20,11 @@ GNU General Public License for more details.
 #define ZERO_X_8( b )	(( b ) < 2 && ( b ) > -2 )
 #define ZERO_X_16( b )	(( b ) < 512 && ( b ) > -512 )
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Search backward for a zero crossing starting at sample
 // Input  : sample - starting point
 // Output : position of zero crossing
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 int S_ZeroCrossingBefore (wavdata_t *pWaveData, int sample)
 	{
 	if (pWaveData == NULL)
@@ -117,11 +117,11 @@ int S_ZeroCrossingBefore (wavdata_t *pWaveData, int sample)
 	return sample;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Search forward for a zero crossing
 // Input  : sample - starting point
 // Output : position of found zero crossing
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 int S_ZeroCrossingAfter (wavdata_t *pWaveData, int sample)
 	{
 	if (pWaveData == NULL)
@@ -214,11 +214,11 @@ int S_ZeroCrossingAfter (wavdata_t *pWaveData, int sample)
 	return sample;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: wrap the position wrt looping
 // Input  : samplePosition - absolute position
 // Output : int - looped position
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 int S_ConvertLoopedPosition (wavdata_t *pSource, int samplePosition, qboolean use_loop)
 	{
 	// if the wave is looping and we're past the end of the sample

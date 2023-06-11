@@ -764,7 +764,6 @@ int SV_TruePointContents (const vec3_t p)
 /*
 =============
 SV_PointContents
-
 =============
 */
 int GAME_EXPORT SV_PointContents (const vec3_t p)
@@ -776,7 +775,7 @@ int GAME_EXPORT SV_PointContents (const vec3_t p)
 	return cont;
 	}
 
-//===========================================================================
+// ===========================================================================
 
 /*
 ============
@@ -955,12 +954,13 @@ SV_PortalCSG
 
 a portal is flush with a world surface behind it. this causes problems. namely that we can't pass through the portal plane
 if the bsp behind it prevents out origin from getting through. so if the trace was clipped and ended infront of the portal,
-continue the trace to the edges of the portal cutout instead.
+continue the trace to the edges of the portal cutout instead
 ==================
 */
-void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_maxs, const vec3_t start, const vec3_t end, trace_t *trace)
+void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_maxs, const vec3_t start,
+	const vec3_t end, trace_t *trace)
 	{
-	vec4_t	planes[6];	//far, near, right, left, up, down
+	vec4_t	planes[6];	// far, near, right, left, up, down
 	int	plane, k;
 	vec3_t	worldpos;
 	float	bestfrac;
@@ -990,7 +990,7 @@ void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_
 
 	portalradius = model->radius * 0.5f;
 	planes[0][3] = DotProduct (portal->v.origin, planes[0]) - (4.0f / 32.0f);
-	planes[1][3] = DotProduct (portal->v.origin, planes[1]) - (4.0f / 32.0f);	//an epsilon beyond the portal
+	planes[1][3] = DotProduct (portal->v.origin, planes[1]) - (4.0f / 32.0f);	// an epsilon beyond the portal
 	planes[2][3] = DotProduct (portal->v.origin, planes[2]) - portalradius;
 	planes[3][3] = DotProduct (portal->v.origin, planes[3]) - portalradius;
 	planes[4][3] = DotProduct (portal->v.origin, planes[4]) - portalradius;

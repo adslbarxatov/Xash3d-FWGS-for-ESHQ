@@ -579,7 +579,7 @@ void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype)
 	return (void *)pskintype;
 	}
 
-//=========================================================================
+// =========================================================================
 /*
 =================
 Mod_CalcAliasBounds
@@ -644,7 +644,6 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 		return; // how to possible is make that?
 
 	// [FWGS, 01.04.23]
-	//mod->mempool = Mem_AllocPool (va ("^2%s^7", mod->name));
 	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
 	mod->mempool = Mem_AllocPool (poolname);
 
@@ -671,7 +670,6 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 		}
 
 	m_pAliasHeader->size = pinmodel->size;
-	//	mod->synctype = pinmodel->synctype;
 	mod->numframes = m_pAliasHeader->numframes;
 
 	for (i = 0; i < 3; i++)
@@ -1508,5 +1506,3 @@ void R_DrawAliasModel (cl_entity_t *e)
 	// restore original angles
 	VectorCopy (angles, e->angles);
 	}
-
-//==================================================================================

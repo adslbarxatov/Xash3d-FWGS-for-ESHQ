@@ -152,7 +152,6 @@ convar_t *touch_exp_mult;
 convar_t *touch_grid_enable;
 convar_t *touch_grid_count;
 convar_t *touch_config_file;
-//convar_t *touch_enable;		// [FWGS, 01.04.23]
 convar_t *touch_in_menu;
 convar_t *touch_joy_radius;
 convar_t *touch_dpad_radius;
@@ -163,7 +162,6 @@ convar_t *touch_highlight_b;
 convar_t *touch_highlight_a;
 convar_t *touch_precise_amount;
 convar_t *touch_joy_texture;
-//convar_t *touch_emulate;		// [FWGS, 01.04.23]
 
 CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable touch controls");
@@ -482,9 +480,8 @@ static touch_button_t *Touch_FindFirst (touchbuttonlist_t *list, const char *nam
 
 void Touch_SetClientOnly (byte state)
 	{
+	// [FWGS, 01.04.23]
 	touch.clientonly = state;
-	//host.mouse_visible = state;		// [FWGS, 01.04.23]
-
 	touch.move_finger = touch.look_finger = -1;
 	touch.forward = touch.side = 0;
 
@@ -764,7 +761,7 @@ static touch_button_t *Touch_AddButton (touchbuttonlist_t *list,
 	button->texture = -1;
 	Q_strncpy (button->texturefile, texture, sizeof (B (texturefile)));
 	Q_strncpy (button->name, name, sizeof (B (name)));
-	Touch_RemoveButtonFromList (list, name, privileged); //replace if exist
+	Touch_RemoveButtonFromList (list, name, privileged);	// replace if exist
 	button->x1 = x1;
 	button->y1 = y1;
 	button->x2 = x2;
@@ -1181,19 +1178,19 @@ TOUCH CONTROLS RENDERING
 static qboolean Touch_IsVisible (touch_button_t *button)
 	{
 	if (!FBitSet (button->flags, TOUCH_FL_CLIENT) && touch.clientonly)
-		return false; // skip nonclient buttons in clientonly mode
+		return false;	// skip nonclient buttons in clientonly mode
 
 	if (touch.state >= state_edit)
-		return true; //!!! Draw when editor is open
+		return true;	// !!! Draw when editor is open
 
 	if (FBitSet (button->flags, TOUCH_FL_HIDE))
-		return false; // skip hidden
+		return false;	// skip hidden
 
 	if (FBitSet (button->flags, TOUCH_FL_SP) && CL_GetMaxClients () != 1)
-		return false; // skip singleplayer(load, save) buttons in multiplayer
+		return false;	// skip singleplayer(load, save) buttons in multiplayer
 
 	if (FBitSet (button->flags, TOUCH_FL_MP) && CL_GetMaxClients () == 1)
-		return false; // skip multiplayer buttons in singleplayer
+		return false;	// skip multiplayer buttons in singleplayer
 
 	return true;
 	}
@@ -1223,7 +1220,7 @@ static void Touch_DrawTexture (float x1, float y1, float x2, float y2, int textu
 
 static void IN_TouchCheckCoords (float *x1, float *y1, float *x2, float *y2)
 	{
-	/// TODO: grid check here
+	// TODO: grid check here
 	if (*x2 - *x1 < GRID_X * 2)
 		*x2 = *x1 + GRID_X * 2;
 	if (*y2 - *y1 < GRID_Y * 2)
@@ -1457,7 +1454,7 @@ void Touch_Draw (void)
 		if (touch.showeditbuttons)
 			Touch_DrawButtons (&touch.list_edit);
 
-		/// TODO: move to mainui
+		// TODO: move to mainui
 		if (touch.selection)
 			{
 			button = touch.selection;
@@ -1512,9 +1509,6 @@ void Touch_Draw (void)
 // clear move and selection state
 static void IN_TouchEditClear (void)
 	{
-	// allow keep move/look fingers when doing touch_removeall
-	//touch.move_finger = touch.look_finger = -1;
-
 	if (touch.state < state_edit)
 		return;
 

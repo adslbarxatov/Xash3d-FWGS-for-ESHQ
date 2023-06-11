@@ -42,4 +42,4 @@ int fi_set (frame_index_t *fi, mpg_off_t *offsets, mpg_off_t step, size_t fill);
 // empty the index (setting fill=0 and step=1), but keep current size.
 void fi_reset (frame_index_t *fi);
 
-#endif//INDEX_H
+#endif

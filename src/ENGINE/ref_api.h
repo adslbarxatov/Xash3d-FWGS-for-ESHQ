@@ -602,7 +602,7 @@ typedef struct ref_interface_s
 	void	(*TexCoord2f)(float u, float v);
 	void	(*Vertex3fv)(const float *worldPnt);
 	void	(*Vertex3f)(float x, float y, float z);
-	void	(*Fog)(float flFogColor[3], float flStart, float flEnd, int bOn); //Works just like GL_FOG, flFogColor is r/g/b.
+	void	(*Fog)(float flFogColor[3], float flStart, float flEnd, int bOn); // Works just like GL_FOG, flFogColor is r/g/b.
 	void	(*ScreenToWorld)(const float *screen, float *world);
 	void	(*GetMatrix)(const int pname, float *matrix);
 	void	(*FogParams)(float flDensity, int iFogSkybox);

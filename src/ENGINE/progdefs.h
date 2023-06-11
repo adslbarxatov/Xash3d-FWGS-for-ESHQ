@@ -217,4 +217,4 @@ typedef struct entvars_s
 	edict_t *euser4;
 	} entvars_t;
 
-#endif//PROGDEFS_H
+#endif

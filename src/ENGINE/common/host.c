@@ -699,7 +699,6 @@ Host_Frame [FWGS, 01.04.23]
 */
 void Host_Frame (float time)
 	{
-	//Host_CheckSleep ();
 	double t1, t2;
 
 	// decide the simulation time

@@ -187,9 +187,9 @@ static int check_lame_tag (mpg123_handle_t *fr)
 	int	i;
 
 	// going to look for Xing or Info at some position after the header
-	//	                                   MPEG 1  MPEG 2/2.5 (LSF)
-	//	Stereo, Joint Stereo, Dual Channel  32      17
-	//	Mono                                17       9
+	//                                    MPEG 1  MPEG 2/2.5 (LSF)
+	// Stereo, Joint Stereo, Dual Channel  32      17
+	// Mono                                17       9
 
 	if (fr->p.flags & MPG123_IGNORE_INFOFRAME)
 		goto check_lame_tag_no;

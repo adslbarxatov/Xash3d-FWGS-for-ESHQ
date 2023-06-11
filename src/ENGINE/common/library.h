@@ -85,4 +85,4 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 char *COM_GetMSVCName (const char *in_name);
 
 
-#endif//LIBRARY_H
+#endif

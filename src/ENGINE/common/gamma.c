@@ -17,9 +17,9 @@ GNU General Public License for more details.
 #include "xash3d_mathlib.h"
 #include "enginefeatures.h"
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Gamma conversion support
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 static byte	lightgammatable[256];
 static int	lineargammatable[1024];
 static int	screengammatable[1024];

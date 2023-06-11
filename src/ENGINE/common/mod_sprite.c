@@ -69,7 +69,7 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 		mod->cache.data = psprite;	// make link to extradata
 
 		psprite->type = pinq1->type;
-		psprite->texFormat = SPR_ADDITIVE;	//SPR_ALPHTEST;
+		psprite->texFormat = SPR_ADDITIVE;
 		psprite->numframes = mod->numframes = pinq1->numframes;
 		psprite->facecull = SPR_CULL_FRONT;
 		psprite->radius = pinq1->boundingradius;

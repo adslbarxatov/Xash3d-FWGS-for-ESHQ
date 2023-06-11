@@ -47,8 +47,6 @@ convar_t *cl_backspeed;
 convar_t *look_filter;
 convar_t *m_rawinput;
 
-//static qboolean s_bRawInput, s_bMouseGrab;	// [FWGS, 01.04.23]
-
 /*
 ================
 IN_CollectInputDevices

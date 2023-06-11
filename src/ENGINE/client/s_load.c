@@ -29,7 +29,6 @@ static sfx_t	s_knownSfx[MAX_SFX];
 static sfx_t	*s_sfxHashList[MAX_SFX_HASH];
 static string	s_sentenceImmediateName;	// keep dummy sentence name
 qboolean		s_registering = false;
-//int				s_registration_sequence = 0;	// [FWGS, 01.04.23]
 
 /*
 =================
@@ -283,7 +282,6 @@ S_BeginRegistration
 void S_BeginRegistration (void)
 	{
 	int	i;
-	//s_registration_sequence++;		// [FWGS, 01.04.23]
 	snd_ambient = false;
 
 	// check for automatic ambient sounds
@@ -343,7 +341,6 @@ S_RegisterSound [FWGS, 01.04.23]
 sound_t S_RegisterSound (const char *name)
 	{
 	sfx_t *sfx;
-	//int i;
 
 	if (!COM_CheckString (name) || !dma.initialized)
 		return -1;

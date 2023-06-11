@@ -4216,7 +4216,7 @@ byte *pfnSetFatPVS (const float *org)
 		// org = pView->v.origin + pView->v.view_ofs;
 		// if ( pView->v.flags & FL_DUCKING )
 		// {
-		//	org = org + ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+		// org = org + ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
 		// }
 		// so we have unneeded duck calculations who have affect when player
 		// is ducked into water. Remove offset to restore right PVS position
@@ -4266,7 +4266,7 @@ byte *pfnSetFatPAS (const float *org)
 		// org = pView->v.origin + pView->v.view_ofs;
 		// if ( pView->v.flags & FL_DUCKING )
 		// {
-		//	org = org + ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+		// org = org + ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
 		// }
 		// so we have unneeded duck calculations who have affect when player
 		// is ducked into water. Remove offset to restore right PVS position
@@ -5075,9 +5075,9 @@ void SV_UnloadProgs (void)
 
 	SV_DeactivateServer ();
 	Delta_Shutdown ();
-	/// TODO: reenable this when
-	/// SV_UnloadProgs will be disabled
-	//Mod_ClearUserData ();
+	// TODO: reenable this when
+	// SV_UnloadProgs will be disabled
+	// Mod_ClearUserData ();
 
 	SV_FreeStringPool ();
 

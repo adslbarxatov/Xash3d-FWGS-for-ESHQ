@@ -44,7 +44,6 @@ typedef struct mpg123_handle_s	mpg123_handle_t;
 
 // configure the lib
 #define ACCURATE_ROUNDING
-//#define IEEE_FLOAT
 
 // begin used typedefs
 typedef unsigned char	byte;
@@ -494,4 +493,4 @@ mpg_off_t mpg123_tell (mpg123_handle_t *mh);
 int mpg123_init (void);
 void mpg123_exit (void);
 
-#endif//MPG123_H
+#endif

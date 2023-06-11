@@ -602,7 +602,7 @@ qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qbo
 	return result;
 	}
 
-//=======================================================
+// =======================================================
 
 /*
 ===============

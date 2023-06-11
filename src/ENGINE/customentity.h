@@ -36,4 +36,4 @@ enum
 #define BEAM_FSHADEIN	0x40
 #define BEAM_FSHADEOUT	0x80
 
-#endif//CUSTOMENTITY_H
+#endif

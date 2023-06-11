@@ -601,7 +601,6 @@ typedef float GLmatrix[16];
 #define GL_LUMINANCE_FLOAT16_ATI                  0x881E
 #define GL_LUMINANCE_ALPHA_FLOAT16_ATI            0x881F
 
-//GL_ARB_vertex_buffer_object
 #define GL_ARRAY_BUFFER_ARB			0x8892
 #define GL_ELEMENT_ARRAY_BUFFER_ARB		0x8893
 #define GL_ARRAY_BUFFER_BINDING_ARB		0x8894

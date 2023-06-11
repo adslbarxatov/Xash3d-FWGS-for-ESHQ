@@ -128,4 +128,4 @@ mpg_off_t feed_set_pos (mpg123_handle_t *fr, mpg_off_t pos);
 // error fallback
 void open_bad (mpg123_handle_t *fr);
 
-#endif//READER_H
+#endif

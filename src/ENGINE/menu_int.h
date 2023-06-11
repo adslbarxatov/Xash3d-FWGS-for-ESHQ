@@ -255,4 +255,4 @@ typedef int (*UITEXTAPI)(ui_extendedfuncs_t *engfuncs);
 #define PLATFORM_UPDATE_PAGE "PlatformUpdatePage"
 #define GENERIC_UPDATE_PAGE "GenericUpdatePage"
 
-#endif//MENU_INT_H
+#endif

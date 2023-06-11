@@ -30,7 +30,7 @@
 // This header file included by engine files and DLL files.
 //
 // Before including this header, DLLs must:
-//		include progdefs.h
+// include progdefs.h
 // This is conveniently done for them in extdll.h
 //
 
@@ -543,4 +543,4 @@ extern NEW_DLL_FUNCTIONS		gNewDLLFunctions;
 typedef int	(*APIFUNCTION)(DLL_FUNCTIONS *pFunctionTable, int interfaceVersion);
 typedef int	(*APIFUNCTION2)(DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion);
 
-#endif//EIFACE_H
+#endif

@@ -162,7 +162,6 @@ static rgbdata_t *ImagePack (void)
 FS_AddSideToPack [FWGS, 01.04.23]
 ================
 */
-//qboolean FS_AddSideToPack (const char *name, int adjust_flags)
 static qboolean FS_AddSideToPack (int adjust_flags)
 	{
 	byte *out, *flipped;
@@ -604,7 +603,6 @@ void Test_RunImagelib (void)
 	for (i = 0; i < sizeof (extensions) / sizeof (extensions[0]); i++)
 		{
 		// [FWGS, 01.05.23]
-		//const char *name = va ("test_gen.%s", extensions[i]);
 		qboolean ret; 
 		char name[MAX_VA_STRING];
 		Q_snprintf (name, sizeof (name), "test_gen.%s", extensions[i]);

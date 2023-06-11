@@ -26,7 +26,6 @@ GNU General Public License for more details.
 #if XASH_POSIX
 #include <unistd.h>
 #include <signal.h>
-//#include <dlfcn.h>	// [FWGS, 01.04.23]
 
 #if !XASH_ANDROID
 #include <pwd.h>
@@ -52,7 +51,6 @@ GNU General Public License for more details.
 #include "whereami.h"
 
 qboolean	error_on_exit = false;	// arg for exit();
-//#define DEBUG_BREAK	// [FWGS, 01.04.23]
 
 /*
 ================
@@ -139,7 +137,6 @@ const char *Sys_GetCurrentUser (void)
 		return s_userName;
 
 // [FWGS, 01.04.23]
-//#elif XASH_POSIX && !XASH_ANDROID
 #elif XASH_PSVITA
 	static string username;
 	sceAppUtilSystemParamGetString (SCE_SYSTEM_PARAM_ID_USERNAME, username, sizeof (username) - 1);
@@ -280,9 +277,9 @@ void Sys_SendKeyEvents (void)
 #endif
 	}
 
-//=======================================================================
-//			DLL'S MANAGER SYSTEM
-//=======================================================================
+// =======================================================================
+// DLL'S MANAGER SYSTEM
+// =======================================================================
 qboolean Sys_LoadLibrary (dll_info_t *dll)
 	{
 	const dllfunc_t *func;

@@ -334,4 +334,4 @@ static const struct newhuff htc[] =
 	{ 0 , tab_c1 }
 	};
 
-#endif//HUFFMAN_H
+#endif

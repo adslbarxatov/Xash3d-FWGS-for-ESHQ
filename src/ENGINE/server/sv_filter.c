@@ -234,7 +234,6 @@ static void SV_WriteID_f (void)
 	}
 
 // [FWGS, 01.04.23]
-//static qboolean StringToIP (const char *str, const char *maskstr, uint *outip, uint *outmask)
 static void SV_InitIDFilter (void)
 	{
 	Cmd_AddRestrictedCommand ("banid", SV_BanID_f, "ban player by ID");

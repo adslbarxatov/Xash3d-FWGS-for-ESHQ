@@ -134,4 +134,4 @@ int Stream_SetPosMPG (stream_t *stream, int newpos);
 int Stream_GetPosMPG (stream_t *stream);
 void Stream_FreeMPG (stream_t *stream);
 
-#endif//SOUNDLIB_H
+#endif

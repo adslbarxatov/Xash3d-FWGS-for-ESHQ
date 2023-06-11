@@ -203,7 +203,7 @@ typedef struct
 	int		source;		// may be game, menu, etc
 	} bg_track_t;
 
-//====================================================================
+// ====================================================================
 
 #define MAX_DYNAMIC_CHANNELS	(60 + NUM_AMBIENTS)
 #define MAX_CHANNELS			384		// ESHQ: принудительное увеличение

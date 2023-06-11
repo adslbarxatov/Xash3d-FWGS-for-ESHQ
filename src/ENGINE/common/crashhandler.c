@@ -394,7 +394,6 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 	void *pc = NULL, **bp = NULL, **sp = NULL; // this must be set for every OS!
 	char message[8192];
 	int len, logfd, i = 0;
-	//size_t pagesize;
 
 #if XASH_OPENBSD
 	struct sigcontext *ucontext = (struct sigcontext *)context;
@@ -493,7 +492,6 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 			write (STDERR_FILENO, message + len, line);
 			write (logfd, message + len, line);
 			len += line;
-			//if( !dladdr(bp,0) ) break; // only when bp is in module
 			if (try_allow_read (bp, pagesize))
 				break;
 			if (try_allow_read (bp[0], pagesize))

@@ -720,7 +720,6 @@ void GAME_EXPORT Key_Event (int key, int down)
 		}
 
 	VGui_KeyEvent (key, down);
-	//Touch_KeyEvent (key, down);	// [FWGS, 01.04.23]
 
 	// console key is hardcoded, so the user can never unbind it
 	if ((key == '`') || (key == '~'))
@@ -771,15 +770,16 @@ void GAME_EXPORT Key_Event (int key, int down)
 		// only non printable keys passed
 		if (!gameui.use_text_api)
 			Key_EnableTextInput (true, false);
-		//pass printable chars for old menus
+		
+		// pass printable chars for old menus
 		if (!gameui.use_text_api && !host.textmode && down && (key >= 32) && (key <= 'z'))
 			{
 			if (Key_IsDown (K_SHIFT))
-				{
 				key += 'A' - 'a';
-				}
+
 			UI_CharEvent (key);
 			}
+
 		UI_KeyEvent (key, down);
 		return;
 		}

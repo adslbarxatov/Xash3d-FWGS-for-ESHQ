@@ -54,4 +54,4 @@ typedef struct synth_s
 void init_synth (mpg123_handle_t *fr);
 int set_synth_functions (mpg123_handle_t *fr);
 
-#endif//SYNTH_H
+#endif

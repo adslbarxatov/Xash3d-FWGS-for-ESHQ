@@ -21,7 +21,6 @@ GNU General Public License for more details.
 #include "platform/platform.h"
 
 #define WINDOW_NAME		XASH_ENGINE_NAME " Window" // Half-Life
-//convar_t *vid_displayfrequency;	// [FWGS, 01.04.23]
 convar_t *vid_fullscreen;
 convar_t *vid_mode;
 convar_t *vid_brightness;
@@ -91,8 +90,6 @@ void R_SaveVideoMode (int w, int h, int render_w, int render_h)
 
 	refState.width = render_w;
 	refState.height = render_h;
-
-	//host.renderinfo_changed = false;
 
 	// check for 4:3 or 5:4
 	if ((render_w * 3 != render_h * 4) && (render_w * 4 != render_h * 5))

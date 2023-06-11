@@ -995,4 +995,4 @@ typedef struct
 	int16_t		s, t;
 	} mstudiotrivert_t;
 
-#endif//STUDIO_H
+#endif

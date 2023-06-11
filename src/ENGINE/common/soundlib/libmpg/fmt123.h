@@ -41,4 +41,4 @@ enum mpg123_enc_enum
 	MPG123_ENC_ALAW_8 = 0x08,
 	};
 
-#endif//FMT123_H
+#endif

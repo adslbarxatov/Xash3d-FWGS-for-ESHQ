@@ -87,4 +87,4 @@ int frame_fill_toc (mpg123_handle_t *fr, byte *in);
 void frame_skip (mpg123_handle_t *fr);
 void do_rva (mpg123_handle_t *fr);
 
-#endif//FRAME_H
+#endif

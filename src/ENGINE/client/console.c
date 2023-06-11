@@ -658,11 +658,13 @@ int Con_UtfProcessCharForce (int in)
 		else if (in >= 0xC0)
 			uc = in & 0x1F, m = 1;
 		else if (in <= 0x7F)
-			return in; //ascii
+			return in;	// ASCII
+
 		// return 0 if we need more chars to decode one
 		k = 0;
 		return 0;
 		}
+
 	// get more chars
 	else if (k <= m)
 		{
@@ -1865,7 +1867,6 @@ int Con_DrawDebugLines (void)
 
 		Con_DrawStringLen (notify->szNotify, &len, NULL);
 		x = refState.width - Q_max (defaultX, len) - 10;
-		//fontTall += 1;
 
 		if (y + fontTall > refState.height - 20)
 			return count;

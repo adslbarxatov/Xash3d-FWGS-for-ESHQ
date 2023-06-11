@@ -298,8 +298,8 @@ void Sys_PrintLog (const char *pMsg)
 	time (&crt_time);
 	crt_tm = localtime (&crt_time);
 
-	if (!lastchar || lastchar == '\n')
-		strftime (logtime, sizeof (logtime), "[%H:%M:%S] ", crt_tm); //short time
+	if (!lastchar || (lastchar == '\n'))
+		strftime (logtime, sizeof (logtime), "[%H:%M:%S] ", crt_tm);	// short time
 
 	// spew to stdout
 	Sys_PrintStdout (logtime, pMsg);
@@ -312,7 +312,7 @@ void Sys_PrintLog (const char *pMsg)
 		}
 
 	if (!lastchar || lastchar == '\n')
-		strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm); //full time
+		strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm);	// full time
 
 	// save last char to detect when line was not ended
 	lastchar = pMsg[Q_strlen (pMsg) - 1];

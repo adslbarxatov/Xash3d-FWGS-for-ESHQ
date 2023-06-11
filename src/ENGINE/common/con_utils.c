@@ -1362,7 +1362,6 @@ static void Cmd_WriteHelp (const char *name, const char *unused, const char *des
 	{
 	int	length;
 
-	//if (!desc || !Q_strcmp (desc, ""))
 	if (!COM_CheckString (desc))
 		return; // ignore fantom cmds
 
@@ -1398,7 +1397,6 @@ void Host_FinalizeConfig (file_t *f, const char *config)
 	FS_Close (f);
 	FS_Delete (backup);
 	FS_Rename (config, backup);
-	//FS_Delete (config);	// [FWGS, 01.04.23]
 	FS_Rename (newcfg, config);
 	}
 

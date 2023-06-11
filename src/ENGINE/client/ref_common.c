@@ -471,7 +471,7 @@ static qboolean R_LoadProgs (const char *name)
 	if (!ref.dllFuncs.R_Init ())
 		{
 		COM_FreeLibrary (ref.hInstance);
-		Con_Reportf ("R_LoadProgs: can't init renderer!\n"); //, ref.dllFuncs.R_GetInitError() );
+		Con_Reportf ("R_LoadProgs: can't init renderer!\n");
 		ref.hInstance = NULL;
 		return false;
 		}

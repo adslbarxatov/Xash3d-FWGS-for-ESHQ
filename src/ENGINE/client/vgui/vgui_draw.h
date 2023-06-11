@@ -19,7 +19,6 @@ GNU General Public License for more details.
 //
 // vgui_draw.c
 //
-//void VGui_Startup (const char *clientlib, int width, int height);		// [FWGS, 01.04.23]
 void VGui_RegisterCvars (void);
 qboolean VGui_LoadProgs (HINSTANCE hInstance);
 void VGui_Startup (int width, int height);

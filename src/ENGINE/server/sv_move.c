@@ -255,7 +255,7 @@ float SV_VecToYaw (const vec3_t src)
 	return yaw;
 	}
 
-//============================================================================
+// ============================================================================
 
 qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 	{

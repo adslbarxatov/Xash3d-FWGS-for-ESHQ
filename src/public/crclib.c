@@ -457,7 +457,6 @@ returns hash key for string
 */
 uint COM_HashKey (const char *string, uint hashSize)
 	{
-	//uint	i, hashKey = 0;
 	int hashKey = 5381;
 	unsigned char i;
 
