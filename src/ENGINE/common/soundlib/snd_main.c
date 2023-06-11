@@ -67,7 +67,6 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
 	// [FWGS, 01.04.23]
-	/*if (Q_stricmp (ext, ""))*/
 	if (COM_CheckStringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
@@ -93,7 +92,6 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
 			// [FWGS, 01.05.23]
-			/*Q_sprintf (path, format->formatstring, loadname, "", format->ext);*/
 			Q_snprintf (path, sizeof (path),
 				format->formatstring, loadname, "", format->ext);
 
@@ -167,7 +165,6 @@ stream_t *FS_OpenStream (const char *filename)
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
 	// [FWGS, 01.04.23]
-	/*if (Q_stricmp (ext, ""))*/
 	if (COM_CheckStringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
@@ -189,7 +186,6 @@ stream_t *FS_OpenStream (const char *filename)
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
 			// [FWGS, 01.05.23]
-			/*Q_sprintf (path, format->formatstring, loadname, "", format->ext);*/
 			Q_snprintf (path, sizeof (path),
 				format->formatstring, loadname, "", format->ext);
 

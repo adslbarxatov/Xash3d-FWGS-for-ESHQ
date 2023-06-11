@@ -953,7 +953,6 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			lumplen = entities.filelen;
 
 			Q_strncpy (entfilename, t->filenames[i], sizeof (entfilename));
-			COM_DefaultExtension (entfilename, ".ent");*/
 			COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));	// [FWGS, 01.05.23]
 			ents = (char *)FS_LoadFile (entfilename, NULL, true);
 

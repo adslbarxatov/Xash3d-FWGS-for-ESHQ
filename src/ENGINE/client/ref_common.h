@@ -29,8 +29,6 @@ struct ref_state_s
 
 	// [FWGS, 01.05.23] depends on build configuration
 	int numRenderers;
-	/*string shortNames[DEFAULT_RENDERERS_LEN];
-	string readableNames[DEFAULT_RENDERERS_LEN];*/
 	const char **shortNames;
 	const char **readableNames;
 	};

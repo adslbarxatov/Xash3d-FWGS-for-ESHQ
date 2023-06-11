@@ -470,7 +470,6 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 	hInst = FS_FindLibrary (dllname, directpath);
 	if (!hInst)
 		{
-		/*COM_PushLibraryError (va ("Failed to find library %s", dllname));*/
 		Q_snprintf (buf, sizeof (buf), "Failed to find library %s", dllname);
 		COM_PushLibraryError (buf);
 		return NULL;
@@ -478,7 +477,6 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 
 	if (hInst->encrypted)
 		{
-		/*COM_PushLibraryError (va ("Library %s is encrypted, cannot load", hInst->shortPath));*/
 		Q_snprintf (buf, sizeof (buf), "Library %s is encrypted, cannot load", hInst->shortPath);
 		COM_PushLibraryError (buf);
 

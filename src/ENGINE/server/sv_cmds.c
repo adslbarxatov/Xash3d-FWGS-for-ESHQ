@@ -248,7 +248,6 @@ void SV_Maps_f (void)
 	if (Cmd_Argc () != 2)
 		{
 		// [FWGS, 01.04.23]
-		/*Msg ("Usage: maps <substring>\nmaps * for full listing\n");*/
 		Msg (S_USAGE "maps <substring>\nmaps * for full listing\n");
 		return;
 		}
@@ -393,7 +392,6 @@ void SV_HazardCourse_f (void)
 	if (FS_FileExists (va ("media/%s.avi", GI->trainmap), false))
 		{
 		// [FWGS, 01.04.23]
-		/*Cbuf_AddText (va ("wait; movie %s\n", GI->trainmap));*/
 		Cbuf_AddTextf ("wait; movie %s\n", GI->trainmap);
 		Host_EndGame (true, DEFAULT_ENDGAME_MESSAGE);
 		}
@@ -772,7 +770,6 @@ SV_Heartbeat_f [FWGS, 01.05.23]
 */
 static void SV_Heartbeat_f (void)
 	{
-	/*svs.last_heartbeat = MAX_HEARTBEAT;*/
 	NET_MasterClear ();
 	}
 

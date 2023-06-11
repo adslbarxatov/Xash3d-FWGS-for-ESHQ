@@ -65,7 +65,6 @@ const char *NET_BaseAdrToString (const netadr_t a);
 qboolean NET_IsReservedAdr (netadr_t a);
 
 // [FWGS, 01.04.23]
-/*qboolean NET_CompareClassBAdr (netadr_t a, netadr_t b);*/
 qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b);
 
 qboolean NET_StringToAdr (const char *string, netadr_t *adr);
@@ -76,8 +75,6 @@ qboolean NET_CompareAdr (const netadr_t a, const netadr_t b);
 qboolean NET_CompareBaseAdr (const netadr_t a, const netadr_t b);
 qboolean NET_CompareAdrByMask (const netadr_t a, const netadr_t b, uint prefixlen);	// [FWGS, 01.04.23]
 qboolean NET_GetPacket (netsrc_t sock, netadr_t *from, byte *data, size_t *length);
-/*qboolean NET_BufferToBufferCompress (byte *dest, uint *destLen, byte *source, uint sourceLen);	// [FWGS, 01.05.23]
-qboolean NET_BufferToBufferDecompress (byte *dest, uint *destLen, byte *source, uint sourceLen);*/
 void NET_SendPacket (netsrc_t sock, size_t length, const void *data, netadr_t to);
 void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t to, size_t splitsize);
 void NET_ClearLagData (qboolean bClient, qboolean bServer);

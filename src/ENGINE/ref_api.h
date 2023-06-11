@@ -104,9 +104,6 @@ typedef struct ref_globals_s
 	vec3_t vieworg;
 	vec3_t viewangles;
 	
-	// [FWGS, 01.04.23]
-	/* vec3_t vforward, vright, vup;*/
-
 	// translucent sorted array
 	sortedface_t	*draw_surfaces;	// used for sorting translucent surfaces
 	int				max_surfaces;	// max surfaces per submodel (for all models)
@@ -447,7 +444,6 @@ typedef struct ref_interface_s
 	{
 	// construct, destruct
 	qboolean (*R_Init)(void); // context is true if you need context management
-	/* const char *(*R_GetInitError)( void );*/
 	void (*R_Shutdown)(void);
 	const char *(*R_GetConfigName)(void); // returns config name without extension
 	qboolean (*R_SetDisplayTransform)(ref_screen_rotation_t rotate, int x, int y, float scale_x, float scale_y);
@@ -630,10 +626,6 @@ typedef struct ref_interface_s
 
 typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *engfuncs, ref_globals_t *pGlobals);
 #define GET_REF_API "GetRefAPI"
-
-// [FWGS, 01.05.23]
-/*typedef void (*REF_HUMANREADABLE_NAME)(char *out, size_t len);
-#define GET_REF_HUMANREADABLE_NAME "GetRefHumanReadableName"*/
 
 #ifdef REF_DLL
 #define DEFINE_ENGINE_SHARED_CVAR( x, y ) cvar_t *x = NULL;

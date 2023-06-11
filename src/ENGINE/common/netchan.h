@@ -181,7 +181,6 @@ typedef struct fragbuf_s
 	struct fragbuf_s	*next;				// next buffer in chain
 	int					bufferid;			// id of this buffer
 	sizebuf_t			frag_message;		// message buffer where raw data is stored
-	/*byte				frag_message_buf[NET_MAX_FRAGMENT];*/	// [FWGS, 01.04.23] the actual data sits here
 	byte				*frag_message_buf;	// [FWGS, 01.04.23] the actual data sits here
 	qboolean			isfile;				// is this a file buffer?
 	qboolean			isbuffer;			// is this file buffer from memory ( custom decal, etc. ).
@@ -292,7 +291,7 @@ qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *l
 qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg);
 void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg);
 int Netchan_CreateFileFragments (netchan_t *chan, const char *filename);
-/*void Netchan_Transmit (netchan_t *chan, int lengthInBytes, byte *data);*/	// [FWGS, 01.05.23]
+// [FWGS, 01.05.23] удалена Netchan_Transmit
 void Netchan_TransmitBits (netchan_t *chan, int lengthInBits, byte *data);
 void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data);
 void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...) _format (3);

@@ -462,8 +462,6 @@ out_free:
 	free (sides);
 	}
 
-/* ------------------------------------------------------------------------- */
-
 /*
  * This is a stack of the clipnodes we have traversed
  * "sides" indicates which side we went down each time

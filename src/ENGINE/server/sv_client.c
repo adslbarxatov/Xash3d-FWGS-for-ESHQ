@@ -421,10 +421,7 @@ void SV_ConnectClient (netadr_t from)
 	// reset viewentities (from previous level)
 	memset (newcl->viewentity, 0, sizeof (newcl->viewentity));
 	newcl->num_viewents = 0;
-	
-	// [FWGS, 01.04.23]
-	/*newcl->listeners = 0;*/
-	
+		
 	// HACKHACK: can hear all players by default to avoid issues
 	// with server.dll without voice game manager
 	newcl->listeners = -1;
@@ -438,7 +435,6 @@ void SV_ConnectClient (netadr_t from)
 
 	// [FWGS, 01.04.23] build protinfo answer
 	protinfo[0] = '\0';
-	/*Info_SetValueForKey (protinfo, "ext", va ("%d", newcl->extensions), sizeof (protinfo));*/
 	Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", newcl->extensions);
 
 	// send the connect packet to the client
@@ -478,7 +474,6 @@ void SV_ConnectClient (netadr_t from)
 	// [FWGS, 01.05.23]
 	if ((count == 1) || (count == svs.maxclients))
 		NET_MasterClear ();
-		/*svs.last_heartbeat = MAX_HEARTBEAT;*/
 	}
 
 /*
@@ -547,7 +542,6 @@ edict_t *SV_FakeConnect (const char *netname)
 	// [FWGS, 01.05.23]
 	if ((count == 1) || (count == svs.maxclients))
 		NET_MasterClear ();
-		/*svs.last_heartbeat = MAX_HEARTBEAT;*/
 
 	return cl->edict;
 	}
@@ -572,19 +566,13 @@ void SV_DropClient (sv_client_t *cl, qboolean crash)
 		{
 		// add the disconnect
 		if (!FBitSet (cl->flags, FCL_FAKECLIENT))
-			{
 			MSG_BeginServerCmd (&cl->netchan.message, svc_disconnect);
-			}
 
 		if (cl->edict && (cl->state == cs_spawned))
-			{
 			svgame.dllFuncs.pfnClientDisconnect (cl->edict);
-			}
 
 		if (!FBitSet (cl->flags, FCL_FAKECLIENT))
-			{
 			Netchan_TransmitBits (&cl->netchan, 0, NULL);
-			}
 		}
 
 	ClearBits (cl->flags, FCL_FAKECLIENT);
@@ -626,7 +614,6 @@ void SV_DropClient (sv_client_t *cl, qboolean crash)
 	// [FWGS, 01.05.23]
 	if (i == svs.maxclients)
 		NET_MasterClear ();
-		/*svs.last_heartbeat = MAX_HEARTBEAT;*/
 	}
 
 /*
@@ -858,7 +845,6 @@ The second parameter should be the current protocol version number.
 */
 void SV_Info (netadr_t from, int protocolVersion)
 	{
-	/*char	string[MAX_INFO_STRING];*/
 	char s[512];
 
 	// ignore in single player
@@ -873,8 +859,6 @@ void SV_Info (netadr_t from, int protocolVersion)
 		}
 	else
 		{
-		/*int i, count, bots;
-		qboolean havePassword = COM_CheckStringEmpty (sv_password.string);*/
 		int count, bots, remaining;
 		char temp[sizeof (s)];
 		qboolean have_password = COM_CheckStringEmpty (sv_password.string);
@@ -882,17 +866,6 @@ void SV_Info (netadr_t from, int protocolVersion)
 		SV_GetPlayerCount (&count, &bots);
 
 		// a1ba: send protocol version to distinguish old engine and new
-		/*Info_SetValueForKey (string, "p", va ("%i", PROTOCOL_VERSION), MAX_INFO_STRING);
-		Info_SetValueForKey (string, "host", hostname.string, MAX_INFO_STRING);
-		Info_SetValueForKey (string, "map", sv.name, MAX_INFO_STRING);
-		Info_SetValueForKey (string, "dm", va ("%i", (int)svgame.globals->deathmatch), MAX_INFO_STRING);
-		Info_SetValueForKey (string, "team", va ("%i", (int)svgame.globals->teamplay), MAX_INFO_STRING);
-		Info_SetValueForKey (string, "coop", va ("%i", (int)svgame.globals->coop), MAX_INFO_STRING);
-		Info_SetValueForKey (string, "numcl", va ("%i", count), MAX_INFO_STRING);
-		Info_SetValueForKey (string, "maxcl", va ("%i", svs.maxclients), MAX_INFO_STRING);
-		Info_SetValueForKey (string, "gamedir", GI->gamefolder, MAX_INFO_STRING);
-		Info_SetValueForKey (string, "password", havePassword ? "1" : "0", MAX_INFO_STRING);*/
-
 		Info_SetValueForKeyf (s, "p", sizeof (s), "%i", PROTOCOL_VERSION);
 		Info_SetValueForKey (s, "map", sv.name, sizeof (s));
 		Info_SetValueForKey (s, "dm", svgame.globals->deathmatch ? "1" : "0", sizeof (s));
@@ -911,6 +884,7 @@ void SV_Info (netadr_t from, int protocolVersion)
 			Con_Printf (S_ERROR "SV_Info: infostring overflow!\n");
 			return;
 			}
+
 		Q_strncpy (temp, hostname.string, remaining);
 		Info_SetValueForKey (s, "host", temp, sizeof (s));
 		}
@@ -974,8 +948,6 @@ void SV_BuildNetAnswer (netadr_t from)
 				edict_t *ed = svs.clients[i].edict;
 				float time = host.realtime - svs.clients[i].connection_started;
 
-				/*Q_strncat (string, va ("%c\\%s\\%i\\%f\\", count, svs.clients[i].name, (int)ed->v.frags, time),
-					sizeof (string));*/
 				ret = Q_snprintf (&string[len], sizeof (string) - len, "%c\\%s\\%i\\%f\\", count,
 					svs.clients[i].name, (int)ed->v.frags, time);
 
@@ -1005,11 +977,8 @@ void SV_BuildNetAnswer (netadr_t from)
 		Info_SetValueForKey (string, "gamedir", GI->gamefolder, MAX_INFO_STRING);
 		
 		// [FWGS, 01.04.23]
-		/*Info_SetValueForKey (string, "current", va ("%i", count), MAX_INFO_STRING);
-		Info_SetValueForKey (string, "max", va ("%i", svs.maxclients), MAX_INFO_STRING);*/
 		Info_SetValueForKeyf (string, "current", MAX_INFO_STRING, "%i", count);
 		Info_SetValueForKeyf (string, "max", MAX_INFO_STRING, "%i", svs.maxclients);
-
 		Info_SetValueForKey (string, "map", sv.name, MAX_INFO_STRING);
 
 		// send serverinfo
@@ -1081,8 +1050,6 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 		// [FWGS, 01.05.23]
 		for (i = 2; i < Cmd_Argc (); i++)
 			{
-			/*Q_strcat (remaining, Cmd_Argv (i));
-			Q_strcat (remaining, " ");*/
 			Q_strncat (remaining, Cmd_Argv (i), sizeof (remaining));
 			Q_strncat (remaining, " ", sizeof (remaining));
 			}
@@ -1459,7 +1426,6 @@ void SV_PutClientInServer (sv_client_t *cl)
 		MSG_BeginServerCmd (&msg, svc_stufftext);
 		
 		// [FWGS, 01.04.23]
-		/*MSG_WriteString (&msg, va ("cd loop %3d\n", svgame.globals->cdAudioTrack));*/
 		MSG_WriteStringf (&msg, "cd loop %3d\n", svgame.globals->cdAudioTrack);
 
 		svgame.globals->cdAudioTrack = 0;
@@ -1702,7 +1668,6 @@ static qboolean SV_New_f (sv_client_t *cl)
 
 	// [FWGS, 01.04.23] server info string
 	MSG_BeginServerCmd (&msg, svc_stufftext);
-	/*MSG_WriteString (&msg, va ("fullserverinfo \"%s\"\n", SV_Serverinfo ()));*/
 	MSG_WriteStringf (&msg, "fullserverinfo \"%s\"\n", SV_Serverinfo ());
 
 	// collect the info about all the players and send to me
@@ -2190,8 +2155,6 @@ SV_SendBuildInfo_f [FWGS, 01.04.23]
 */
 static qboolean SV_SendBuildInfo_f (sv_client_t *cl)
 	{
-	/*SV_ClientPrintf (cl, "Server running %s %s (build %i-%s, %s-%s)\n",
-		XASH_ENGINE_NAME, XASH_VERSION, Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());*/
 	SV_ClientPrintf (cl, "Server running " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
 		Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());
 	return true;
@@ -3231,11 +3194,6 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		NET_SendPacket (NS_SERVER, 5, "\xFF\xFF\xFF\xFFj", from); // A2A_PING
 	
 	// [FWGS, 01.05.23]
-	/*else if (!Q_strcmp (pcmd, "c"))
-		{
-		qboolean sv_nat = Cvar_VariableInteger ("sv_nat");
-		if (sv_nat)
-	else if (!Q_strcmp (pcmd, "c") && Cvar_VariableInteger ("sv_nat") && NET_IsMasterAdr (from))*/
 	else if (!Q_strcmp (pcmd, "c") && sv_nat.value && NET_IsMasterAdr (from))
 		{
 		netadr_t to;
@@ -3510,8 +3468,6 @@ void SV_ParseCvarValue2 (sv_client_t *cl, sizebuf_t *msg)
 	int	requestID = MSG_ReadLong (msg);
 
 	// [FWGS, 01.05.23]
-	/*Q_strcpy (name, MSG_ReadString (msg));
-	Q_strcpy (value, MSG_ReadString (msg));*/
 	Q_strncpy (name, MSG_ReadString (msg), sizeof (name));
 	Q_strncpy (value, MSG_ReadString (msg), sizeof (value));
 
@@ -3555,7 +3511,6 @@ void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 	for (i = 0, cur = svs.clients; i < svs.maxclients; i++, cur++)
 		{
 		// [FWGS, 01.04.23]
-		/*if (cur->state < cs_connected && cl != cur)*/
 		if (cl != cur)
 			{
 			if (cur->state < cs_connected)

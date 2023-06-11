@@ -121,7 +121,6 @@ hull_t *PM_HullForBox (const vec3_t mins, const vec3_t maxs)
 // [FWGS, 01.04.23]
 void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
 	{
-	/*memcpy (out, in, 48); // matched*/
 	out->allsolid = in->allsolid;
 	out->startsolid = in->startsolid;
 	out->inopen = in->inopen;

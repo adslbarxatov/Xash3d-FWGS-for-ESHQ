@@ -454,7 +454,7 @@ static void Sequence_StripComments (char *buffer, int *pBufSize)
 				continue;
 				}
 
-			// skip multiline /* */
+			// skip multiline comments
 			if (read[1] == '*')
 				{
 				read += 2;

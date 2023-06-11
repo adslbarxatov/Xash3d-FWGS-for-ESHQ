@@ -57,8 +57,6 @@ void GL_RenderFrame (const ref_viewpass_t *rvp)
 	VectorCopy (rvp->viewangles, refState.viewangles);
 
 	// [FWGS, 01.04.23]
-	/*AngleVectors (refState.viewangles, refState.vforward, refState.vright, refState.vup);*/
-
 	ref.dllFuncs.GL_RenderFrame (rvp);
 	}
 
@@ -77,17 +75,7 @@ static void pfnStudioEvent (const mstudioevent_t *event, const cl_entity_t *e)
 	clgame.dllFuncs.pfnStudioEvent (event, e);
 	}
 
-/* [FWGS, 01.05.23]
-static efrag_t *pfnGetEfragsFreeList (void)
-	{
-	return clgame.free_efrags;
-	}
-
-static void pfnSetEfragsFreeList (efrag_t *list)
-	{
-	clgame.free_efrags = list;
-	}
-*/
+// [FWGS, 01.05.23] удалены pfnGetEfragsFreeList, pfnSetEfragsFreeList
 
 static model_t *pfnGetDefaultSprite (enum ref_defaultsprite_e spr)
 	{
@@ -241,7 +229,6 @@ static qboolean R_Init_Video_ (const int type)
 	host.apply_opengl_config = true;
 	
 	// [FWGS, 01.04.23]
-	/*Cbuf_AddText (va ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ()));*/
 	Cbuf_AddTextf ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ());
 	
 	Cbuf_Execute ();
@@ -296,11 +283,6 @@ static ref_api_t gEngfuncs =
 		pfnGetWorld,
 		Mod_PointInLeaf,
 		Mod_CreatePolygonsForHull,
-
-		// [FWGS, 01.04.23]
-		/*R_StudioSlerpBones,
-		R_StudioCalcBoneQuaternion,
-		R_StudioCalcBonePosition,*/
 
 		R_StudioGetAnim,
 		pfnStudioEvent,
@@ -598,11 +580,6 @@ static void SetFullscreenModeFromCommandLine (void)
 // [FWGS, 01.05.23]
 static void R_CollectRendererNames (void)
 	{
-	/*const char *renderers[] = DEFAULT_RENDERERS;
-	int i, cur;
-
-	cur = 0;
-	for (i = 0; i < DEFAULT_RENDERERS_LEN; i++)*/
 	// ordering is important!
 	static const char *shortNames[] =
 		{
@@ -622,45 +599,6 @@ static void R_CollectRendererNames (void)
 			"soft",
 		#endif
 		};
-
-		/*
-		string temp;
-		void *dll, *pfn;
-
-		R_GetRendererName (temp, sizeof (temp), renderers[i]);
-
-		dll = COM_LoadLibrary (temp, false, true);
-		if (!dll)
-			{
-			Con_Reportf ("R_CollectRendererNames: can't load library %s: %s\n", temp, COM_GetLibraryError ());
-			continue;
-			}
-
-		pfn = COM_GetProcAddress (dll, GET_REF_API);
-		if (!pfn)
-			{
-			Con_Reportf ("R_CollectRendererNames: can't find API entry point in %s\n", temp);
-			COM_FreeLibrary (dll);
-			continue;
-			}
-
-		Q_strncpy (ref.shortNames[cur], renderers[i], sizeof (ref.shortNames[cur]));
-
-		pfn = COM_GetProcAddress (dll, GET_REF_HUMANREADABLE_NAME);
-		if (!pfn) // just in case
-			{
-			Con_Reportf ("R_CollectRendererNames: can't find GetHumanReadableName export in %s\n", temp);
-			Q_strncpy (ref.readableNames[cur], renderers[i], sizeof (ref.readableNames[cur]));
-			}
-		else
-			{
-			REF_HUMANREADABLE_NAME GetHumanReadableName = (REF_HUMANREADABLE_NAME)pfn;
-
-			GetHumanReadableName (ref.readableNames[cur], sizeof (ref.readableNames[cur]));
-			}
-		*/
-
-		/*Con_Printf ("Found renderer %s: %s\n", ref.shortNames[cur], ref.readableNames[cur]);*/
 
 	// ordering is important here too!
 	static const char *readableNames[ARRAYSIZE (shortNames)] =
@@ -682,10 +620,6 @@ static void R_CollectRendererNames (void)
 		#endif
 		};
 
-		/*cur++;
-		COM_FreeLibrary (dll);
-		}
-	ref.numRenderers = cur;*/
 	ref.numRenderers = ARRAYSIZE (shortNames);
 	ref.shortNames = shortNames;
 	ref.readableNames = readableNames;
@@ -704,8 +638,7 @@ qboolean R_Init (void)
 	gl_clear = Cvar_Get ("gl_clear", "0", FCVAR_ARCHIVE, "clearing screen after each frame");
 	r_showtree = Cvar_Get ("r_showtree", "0", FCVAR_ARCHIVE, "build the graph of visible BSP tree");
 	// [FWGS, 01.05.23]
-	r_refdll = Cvar_Get ("r_refdll", "", FCVAR_RENDERINFO /*| FCVAR_VIDRESTART*/,
-		"choose renderer implementation, if supported");
+	r_refdll = Cvar_Get ("r_refdll", "", FCVAR_RENDERINFO, "choose renderer implementation, if supported");
 
 	// cvars that are expected to exist
 	Cvar_Get ("r_speeds", "0", FCVAR_ARCHIVE, "shows renderer speeds");
@@ -741,17 +674,10 @@ qboolean R_Init (void)
 	R_CollectRendererNames ();
 
 	// [FWGS, 01.05.23] Priority:
-	// 1. Command line `-ref` argument.
-	// 2. `ref_dll` cvar.
-	// 3. Detected renderers in `DEFAULT_RENDERERS` order.
-
-	/*requested[0] = '\0';
-	if (!Sys_GetParmFromCmdLine ("-ref", requested) && COM_CheckString (r_refdll->string))
-		// r_refdll is set to empty by default, so we can change hardcoded defaults just in case
-		Q_strncpy (requested, r_refdll->string, sizeof (requested));*/
+	// 1. Command line `-ref` argument
+	// 2. `ref_dll` cvar
+	// 3. Detected renderers in `DEFAULT_RENDERERS` order
 	requested[0] = 0;
-
-	/*if (requested[0])*/
 	if (!success && Sys_GetParmFromCmdLine ("-ref", requested))
 		success = R_LoadRenderer (requested);
 
@@ -766,8 +692,6 @@ qboolean R_Init (void)
 		{
 		int i;
 
-		/* cycle through renderers that we collected in CollectRendererNames
-		for (i = 0; i < ref.numRenderers; i++)*/
 		for (i = 0; i < ref.numRenderers && !success; i++)
 			{
 			// skip renderer that was requested but failed to load
@@ -775,10 +699,6 @@ qboolean R_Init (void)
 				continue;
 
 			success = R_LoadRenderer (ref.shortNames[i]);
-
-			/* [FWGS, 01.05.23] yay, found working one
-			if (success)
-				break;*/
 			}
 		}
 

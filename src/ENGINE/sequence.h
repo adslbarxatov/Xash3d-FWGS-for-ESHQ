@@ -8,7 +8,6 @@
 
 
 #ifndef _DEF_BYTE_
-/*typedef unsigned char byte;*/
 #endif
 
 #ifndef CDLL_INT_H
@@ -193,11 +192,9 @@ struct sentenceGroupEntry_
 // Function declarations
 //---------------------------------------------------------------------------
 sequenceEntry_s *Sequence_Get (const char *fileName, const char *entryName);
-/*void Sequence_ParseFile (const char *fileName, qboolean isGlobal);*/	// [FWGS, 01.05.23]
 void Sequence_OnLevelLoad (const char *mapName);
 sentenceEntry_s *Sequence_PickSentence (const char *groupName, int pickMethod, int *picked);
 void Sequence_Init (void);
-/*void Sequence_PurgeEntries (qboolean purgeGlobals);*/	// [FWGS, 01.05.23]
 sentenceEntry_s *Sequence_GetSentenceByIndex (unsigned int index);
 
 #endif

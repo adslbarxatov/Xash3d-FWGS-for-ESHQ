@@ -398,7 +398,6 @@ void *NET_ThreadStart (void *unused)
 #define mutex_lock EnterCriticalSection
 #define mutex_unlock LeaveCriticalSection
 #define detach_thread( x ) CloseHandle(x)
-/*#define create_thread( pfn ) nsthread.thread = CreateThread( NULL, 0, pfn, NULL, 0, NULL )*/
 #define create_thread( pfn ) ( nsthread.thread = CreateThread( NULL, 0, pfn, NULL, 0, NULL ))	// [FWGS, 01.05.23]
 #define mutex_t  CRITICAL_SECTION
 #define thread_t HANDLE
@@ -732,7 +731,6 @@ const char *NET_AdrToString (const netadr_t a)
 		}
 
 	// [FWGS, 01.05.23]
-	/*Q_sprintf (s, "%i.%i.%i.%i:%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3], ntohs (a.port));*/
 	Q_snprintf (s, sizeof (s),
 		"%i.%i.%i.%i:%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3], ntohs (a.port));
 
@@ -761,7 +759,6 @@ const char *NET_BaseAdrToString (const netadr_t a)
 		}
 
 	// [FWGS, 01.05.23]
-	/*Q_sprintf (s, "%i.%i.%i.%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3]);*/
 	Q_snprintf (s, sizeof (s),
 		"%i.%i.%i.%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3]);
 
@@ -1046,7 +1043,6 @@ qboolean NET_StringToAdrEx (const char *string, netadr_t *adr, int family)
 		}
 
 	// [FWGS, 01.05.23]
-	/*if (!NET_StringToSockaddr (string, &s, false, family))*/
 	if (NET_StringToSockaddr (string, &s, false, family) != NET_EAI_OK)
 		return false;
 	NET_SockadrToNetadr (&s, adr);
@@ -1073,11 +1069,6 @@ net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)
 		}
 
 	res = NET_StringToSockaddr (string, &s, true, AF_UNSPEC);
-
-	/*if ((res == 0) || (res == 2))
-		return res;
-
-	NET_SockadrToNetadr (&s, adr);*/
 	if (res == NET_EAI_OK)
 		NET_SockadrToNetadr (&s, adr);
 
@@ -1688,66 +1679,7 @@ void NET_SendPacket (netsrc_t sock, size_t length, const void *data, netadr_t to
 	NET_SendPacketEx (sock, length, data, to, 0);
 	}
 
-/* [FWGS, 01.05.23]
-====================
-NET_BufferToBufferCompress
-
-generic fast compression
-====================
-qboolean NET_BufferToBufferCompress (byte *dest, uint *destLen, byte *source, uint sourceLen)
-	{
-	uint	uCompressedLen = 0;
-	byte *pbOut = NULL;
-
-	memcpy (dest, source, sourceLen);
-	pbOut = LZSS_Compress (source, sourceLen, &uCompressedLen);
-
-	if (pbOut && uCompressedLen > 0 && uCompressedLen <= *destLen)
-		{
-		memcpy (dest, pbOut, uCompressedLen);
-		*destLen = uCompressedLen;
-		free (pbOut);
-		return true;
-		}
-	else
-		{
-		if (pbOut) free (pbOut);
-		memcpy (dest, source, sourceLen);
-		*destLen = sourceLen;
-		return false;
-		}
-	}
-
-/*
-====================
-NET_BufferToBufferDecompress
-
-generic fast decompression
-====================
-qboolean NET_BufferToBufferDecompress (byte *dest, uint *destLen, byte *source, uint sourceLen)
-	{
-	if (LZSS_IsCompressed (source))
-		{
-		uint	uDecompressedLen = LZSS_GetActualSize (source);
-
-		if (uDecompressedLen <= *destLen)
-			{
-			*destLen = LZSS_Decompress (source, dest);
-			}
-		else
-			{
-			return false;
-			}
-		}
-	else
-		{
-		memcpy (dest, source, sourceLen);
-		*destLen = sourceLen;
-		}
-
-	return true;
-	}
-*/
+// [FWGS, 01.05.23] удалены NET_BufferToBufferCompress, NET_BufferToBufferDecompress
 
 /*
 ====================
@@ -2618,7 +2550,6 @@ void HTTP_Run (void)
 
 	for (curfile = http.first_file; curfile; curfile = curfile->next)
 		{
-		/*int res;*/	// [FWGS, 01.05.23]
 		struct sockaddr_storage addr;
 
 		if (curfile->state == HTTP_FREE)
@@ -2742,7 +2673,7 @@ void HTTP_Run (void)
 				"GET %s%s HTTP/1.0\r\n"
 				"Host: %s\r\n"
 				"User-Agent: %s\r\n\r\n", curfile->server->path,
-				curfile->path, curfile->server->host, /*http_*/useragent/*->string*/);	// [FWGS, 01.05.23]
+				curfile->path, curfile->server->host, useragent);	// [FWGS, 01.05.23]
 			curfile->header_size = 0;
 			curfile->bytes_sent = 0;
 			curfile->state = HTTP_REQUEST;
@@ -3091,16 +3022,6 @@ void HTTP_Init (void)
 	http.first_file = http.last_file = NULL;
 
 	// [FWGS, 01.05.23]
-	/*Cmd_AddRestrictedCommand ("http_download", &HTTP_Download_f, "add file to download queue");
-	Cmd_AddRestrictedCommand ("http_skip", &HTTP_Skip_f, "skip current download server");
-	Cmd_AddRestrictedCommand ("http_cancel", &HTTP_Cancel_f, "cancel current download");
-	Cmd_AddRestrictedCommand ("http_clear", &HTTP_Clear_f, "cancel all downloads");
-	Cmd_AddCommand ("http_list", &HTTP_List_f, "list all queued downloads");
-	Cmd_AddCommand ("http_addcustomserver", &HTTP_AddCustomServer_f, "add custom fastdl server");
-	http_useragent = Cvar_Get ("http_useragent", "xash3d", FCVAR_ARCHIVE, "User-Agent string");
-	http_autoremove = Cvar_Get ("http_autoremove", "1", FCVAR_ARCHIVE, "remove broken files");
-	http_timeout = Cvar_Get ("http_timeout", "45", FCVAR_ARCHIVE, "timeout for http downloader");
-	http_maxconnections = Cvar_Get ("http_maxconnections", "4", FCVAR_ARCHIVE, "maximum http connection number");*/
 	Cmd_AddRestrictedCommand ("http_download", HTTP_Download_f, "add file to download queue");
 	Cmd_AddRestrictedCommand ("http_skip", HTTP_Skip_f, "skip current download server");
 	Cmd_AddRestrictedCommand ("http_cancel", HTTP_Cancel_f, "cancel current download");

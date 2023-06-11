@@ -32,20 +32,9 @@ SPRITE MODELS
 
 #define IDSPRITEHEADER	(('P'<<24)+('S'<<16)+('D'<<8)+'I')	// little-endian "IDSP"
 
-#define SPRITE_VERSION_Q1	1				// Quake sprites
-#define SPRITE_VERSION_HL	2				// Half-Life sprites
-#define SPRITE_VERSION_32	32				// Captain Obvious mode on
-
-/* [FWGS, 01.04.23] must match definition in alias.h
-#ifndef SYNCTYPE_T
-#define SYNCTYPE_T
-typedef enum
-	{
-	ST_SYNC = 0,
-	ST_RAND
-	} synctype_t;
-#endif
-*/
+#define SPRITE_VERSION_Q1	1		// Quake sprites
+#define SPRITE_VERSION_HL	2		// Half-Life sprites
+#define SPRITE_VERSION_32	32		// Captain Obvious mode on
 
 typedef enum
 	{

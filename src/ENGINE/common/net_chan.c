@@ -251,7 +251,6 @@ void Netchan_Init (void)
 		"show packets that are dropped");
 
 	// [FWGS, 01.04.23]
-	/*net_qport = Cvar_Get ("net_qport", va ("%i", port), FCVAR_READ_ONLY, "current quake netport");*/
 	net_qport = Cvar_Getf ("net_qport", FCVAR_READ_ONLY, "current quake netport", "%i", port);
 	net_mempool = Mem_AllocPool ("Network Pool");
 
@@ -274,8 +273,6 @@ void Netchan_ReportFlow (netchan_t *chan)
 	Assert (chan != NULL);
 
 	// [FWGS, 01.05.23]
-	/*Q_strcpy (incoming, Q_pretifymem ((float)chan->flow[FLOW_INCOMING].totalbytes, 3));
-	Q_strcpy (outgoing, Q_pretifymem ((float)chan->flow[FLOW_OUTGOING].totalbytes, 3));*/
 	Q_strncpy (incoming, Q_pretifymem ((float)chan->flow[FLOW_INCOMING].totalbytes, 3), sizeof (incoming));
 	Q_strncpy (outgoing, Q_pretifymem ((float)chan->flow[FLOW_OUTGOING].totalbytes, 3), sizeof (outgoing));
 
@@ -545,7 +542,6 @@ fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	fragbuf_t *buf;
 
 	buf = (fragbuf_t *)Mem_Calloc (net_mempool, sizeof (fragbuf_t));
-	/*MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, sizeof (buf->frag_message_buf));*/
 	buf->frag_message_buf = (byte *)Mem_Calloc (net_mempool, fragment_size);
 	MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, fragment_size);
 
@@ -747,7 +743,6 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 		remaining -= bytes;
 
 		// [FWGS, 01.04.23]
-		/*buf = Netchan_AllocFragbuf ();*/
 		buf = Netchan_AllocFragbuf (bytes);
 		buf->bufferid = bufferid++;
 
@@ -813,7 +808,6 @@ fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate
 		return NULL;
 
 	// [FWGS, 01.04.23] create new entry
-	/*pnewbuf = Netchan_AllocFragbuf ();*/
 	pnewbuf = Netchan_AllocFragbuf (NET_MAX_FRAGMENT);
 	pnewbuf->bufferid = id;
 	Netchan_AddBufferToList (pplist, pnewbuf);
@@ -907,7 +901,6 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 		send = Q_min (remaining, chunksize);
 
 		// [FWGS, 01.04.23]
-		/*buf = Netchan_AllocFragbuf ();*/
 		buf = Netchan_AllocFragbuf (send);
 		buf->bufferid = bufferid++;
 
@@ -992,7 +985,6 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	if (compressedFileTime >= fileTime)
 		{
 		// [FWGS, 01.04.23] if compressed file already created and newer than source
-		/*if (FS_FileSize (compressedfilename, false) != -1)*/
 		fs_offset_t compressedSize = FS_FileSize (compressedfilename, false);
 		if (compressedSize != -1)
 			{
@@ -1029,7 +1021,6 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 		send = Q_min (remaining, chunksize);
 
 		// [FWGS, 01.04.23]
-		/*buf = Netchan_AllocFragbuf ();*/
 		buf = Netchan_AllocFragbuf (send);
 		buf->bufferid = bufferid++;
 
@@ -1735,20 +1726,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 		}
 	}
 
-/* [FWGS, 01.05.23]
-===============
-Netchan_Transmit
-
-tries to send an unreliable message to a connection, and handles the
-transmition / retransmition of the reliable messages.
-
-A 0 length will still generate a packet and deal with the reliable messages.
-================
-void Netchan_Transmit (netchan_t *chan, int lengthInBytes, byte *data)
-	{
-	Netchan_TransmitBits (chan, lengthInBytes << 3, data);
-	}
-*/
+// [FWGS, 01.05.23] удалена Netchan_Transmit
 
 /*
 =================

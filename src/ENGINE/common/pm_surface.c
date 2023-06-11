@@ -215,24 +215,7 @@ msurface_t *PM_TraceSurface (physent_t *pe, vec3_t start, vec3_t end)
 	return PM_RecursiveSurfCheck (bmodel, &bmodel->nodes[hull->firstclipnode], start_l, end_l);
 	}
 
-/* [FWGS, 01.04.23]
-==================
-PM_TraceTexture
-
-find the face where the traceline hit
-assume physentity is valid
-==================
-//
-const char *PM_TraceTexture (physent_t *pe, vec3_t start, vec3_t end)
-	{
-	msurface_t *surf = PM_TraceSurface (pe, start, end);
-
-	if (!surf || !surf->texinfo || !surf->texinfo->texture)
-		return NULL;
-
-	return surf->texinfo->texture->name;
-	}
-	*/
+// [FWGS, 01.04.23] удалена PM_TraceTexture
 
 /*
 ==================

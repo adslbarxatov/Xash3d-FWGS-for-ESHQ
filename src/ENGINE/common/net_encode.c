@@ -1039,8 +1039,6 @@ static qboolean Delta_CompareField (delta_t *pField, void *from, void *to, doubl
 		val_b -= Q_rint (timebase * 100.0);
 
 		// [FWGS, 01.04.23]
-		/*fromF = *((int *)&val_a);
-		toF = *((int *)&val_b);*/
 		fromF = FloatAsInt (val_a);
 		toF = FloatAsInt (val_b);
 		}
@@ -1063,8 +1061,6 @@ static qboolean Delta_CompareField (delta_t *pField, void *from, void *to, doubl
 			}
 
 		// [FWGS, 01.04.23]
-		/*fromF = *((int *)&val_a);
-		toF = *((int *)&val_b);*/
 		fromF = FloatAsInt (val_a);
 		toF = FloatAsInt (val_b);
 		}

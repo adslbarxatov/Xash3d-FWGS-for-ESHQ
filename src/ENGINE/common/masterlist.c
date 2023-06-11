@@ -74,17 +74,11 @@ qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data)
 
 	for (list = ml.list; list; list = list->next)
 		{
-		/*int res;*/
-
 		if (list->sent)
 			continue;
 
-		/*res = NET_StringToAdrNB (list->address, &list->adr);
-
-		if (!res)*/
 		switch (NET_GetMasterHostByName (list))
 			{
-			/*Con_Reportf ("Can't resolve adr: %s\n", list->address);*/
 			case NET_EAI_AGAIN:
 				list->sent = false;
 				wait = true;
@@ -92,8 +86,6 @@ qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data)
 
 			case NET_EAI_NONAME:
 				list->sent = true;
-				/*list->adr.type = NA_UNUSED;
-				continue;*/
 				break;
 
 			case NET_EAI_OK:
@@ -103,17 +95,11 @@ qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data)
 			}
 		}
 
-	/*if (res == 2)
-		{*/
 	if (!wait)
 		{
 		// reset sent state
 		for (list = ml.list; list; list = list->next)
 			list->sent = false;
-		/*list->adr.type = NA_UNUSED;
-		wait = true;
-		continue;
-		}*/
 		}
 
 	return wait;
@@ -130,13 +116,11 @@ static void NET_AnnounceToMaster (master_t *m)
 	char buf[16];
 
 	m->heartbeat_challenge = COM_RandomLong (0, INT_MAX);
-	/*list->sent = true;*/
 
 	MSG_Init (&msg, "Master Join", buf, sizeof (buf));
 	MSG_WriteBytes (&msg, "q\xFF", 2);
 	MSG_WriteDword (&msg, m->heartbeat_challenge);
 
-	/*NET_SendPacket (sock, len, data, list->adr);*/
 	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&msg), MSG_GetBuf (&msg), m->adr);
 	if (sv_verbose_heartbeats.value)
 		{
@@ -144,8 +128,6 @@ static void NET_AnnounceToMaster (master_t *m)
 			m->address, NET_AdrToString (m->adr), m->heartbeat_challenge);
 		}
 	}
-
-	/*if (!wait)*/
 
 /*
 ========================
@@ -174,15 +156,11 @@ void NET_MasterHeartbeat (void)
 
 	for (m = ml.list; m; m = m->next)
 		{
-		/*list = ml.list;*/
 		if (host.realtime - m->last_heartbeat < HEARTBEAT_SECONDS)
 			continue;
 
-		/*while (list)*/
 		switch (NET_GetMasterHostByName (m))
 			{
-			/*list->sent = false;
-			list = list->next;*/
 			case NET_EAI_AGAIN:
 				m->last_heartbeat = MAX_HEARTBEAT; // retry on next frame
 				if (sv_verbose_heartbeats.value)
@@ -200,8 +178,6 @@ void NET_MasterHeartbeat (void)
 			}
 		}
 	}
-
-/*return wait;*/
 
 /*
 =================
@@ -222,7 +198,6 @@ void NET_MasterShutdown (void)
 NET_GetMasterFromAdr [FWGS, 01.05.23]
 ========================
 */
-/*qboolean NET_IsMasterAdr (netadr_t adr)*/
 static master_t *NET_GetMasterFromAdr (netadr_t adr)
 	{
 	master_t *master;

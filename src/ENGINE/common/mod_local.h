@@ -148,11 +148,8 @@ void Mod_FreeUnused (void);
 // mod_bmodel.c
 //
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
-
-// [FWGS, 01.04.23]
-/*qboolean Mod_TestBmodelLumps (const char *name, const byte *mod_base, qboolean silent);*/
+// [FWGS, 01.04.23] удалена Mod_TestBmodelLumps
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);
-
 qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf);
 int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis);
 qboolean Mod_BoxVisible (const vec3_t mins, const vec3_t maxs, const byte *visbits);
@@ -160,7 +157,7 @@ int Mod_CheckLump (const char *filename, const int lump, int *lumpsize);
 int Mod_ReadLump (const char *filename, const int lump, void **lumpdata, int *lumpsize);
 int Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lumpsize);
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node);
-/*void Mod_AmbientLevels (const vec3_t p, byte *pvolumes);*/	// [FWGS, 01.05.23]
+// [FWGS, 01.05.23] удалена Mod_AmbientLevels
 int Mod_SampleSizeForFace (msurface_t *surf);
 byte *Mod_GetPVSForPoint (const vec3_t p);
 void Mod_UnloadBrushModel (model_t *mod);
@@ -188,10 +185,7 @@ void Mod_GetBonePosition (const edict_t *e, int iBone, float *org, float *ang);
 hull_t *Mod_HullForStudio (model_t *m, float frame, int seq, vec3_t ang, vec3_t org, vec3_t size, 
 	byte *pcnt, byte *pbl, int *hitboxes, edict_t *ed);
 
-// [FWGS, 01.04.23]
-/*void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], vec4_t q2[], float pos2[][3], float s);
-void R_StudioCalcBoneQuaternion (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, vec4_t q);
-void R_StudioCalcBonePosition (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, vec3_t adj, vec3_t pos);*/
+// [FWGS, 01.04.23] удалены R_StudioSlerpBones, R_StudioCalcBoneQuaternion, R_StudioCalcBonePosition
 
 void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc);
 void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences);

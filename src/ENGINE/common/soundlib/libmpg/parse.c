@@ -34,11 +34,11 @@ enum parse_codes
 	{
 	PARSE_MORE = MPG123_NEED_MORE,
 	PARSE_ERR = MPG123_ERR,
-	PARSE_END = 10,		/* No more audio data to find. */
-	PARSE_GOOD = 1,		/* Everything's fine. */
-	PARSE_BAD = 0,		/* Not fine (invalid data). */
-	PARSE_RESYNC = 2,		/* Header not good, go into resync. */
-	PARSE_AGAIN = 3,		/* Really start over, throw away and read a new header, again. */
+	PARSE_END = 10,		// No more audio data to find
+	PARSE_GOOD = 1,		// Everything's fine
+	PARSE_BAD = 0,		// Not fine (invalid data)
+	PARSE_RESYNC = 2,	// Header not good, go into resync
+	PARSE_AGAIN = 3,	// Really start over, throw away and read a new header, again
 	};
 
 // bitrates for [mpeg1/2][layer]
@@ -589,7 +589,7 @@ static int decode_header (mpg123_handle_t *fr, ulong newhead, int *freeformat_co
 	switch (fr->lay)
 		{
 		case 3:
-			fr->spf = fr->lsf ? 576 : 1152; /* MPEG 2.5 implies LSF.*/
+			fr->spf = fr->lsf ? 576 : 1152; // MPEG 2.5 implies LSF
 			fr->do_layer = do_layer3;
 			if (fr->lsf) fr->ssize = (fr->stereo == 1) ? 9 : 17;
 			else fr->ssize = (fr->stereo == 1) ? 17 : 32;

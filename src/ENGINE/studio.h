@@ -335,27 +335,9 @@ typedef struct mstudiobone_s
 	int32_t		unused;
 
 	// 1vailable bone controller per motion type.
-	// (-1) if no controller is available.
+	// (-1) if no controller is available
 	int32_t		bonecontroller[6];
-
-	/* default position and rotation values where
-	scale[0] = position.X
-	scale[1] = position.Y
-	scale[2] = position.Z
-	scale[3] = rotation.X
-	scale[4] = rotation.Y
-	scale[5] = rotation.Z
-	*/
 	vec_t		value[6];
-
-	/* compressed scale values where
-	scale[0] = position.X scale
-	scale[1] = position.Y scale
-	scale[2] = position.Z scale
-	scale[3] = rotation.X scale
-	scale[4] = rotation.Y scale
-	scale[5] = rotation.Z scale
-	*/
 	vec_t		scale[6];
 	} mstudiobone_t;
 

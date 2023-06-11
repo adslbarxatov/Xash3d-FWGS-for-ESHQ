@@ -368,8 +368,7 @@ typedef struct
 	char		serverinfo[MAX_SERVERINFO_STRING];
 	char		localinfo[MAX_LOCALINFO_STRING];
 
-	int		spawncount;		// incremented each server start
-	// used to check late spawns
+	int		spawncount;		// incremented each server start, used to check late spawns
 	sv_client_t *clients;			// [svs.maxclients]
 	int		num_client_entities;	// svs.maxclients*UPDATE_BACKUP*MAX_PACKET_ENTITIES
 	int		next_client_entities;	// next client_entity to use
@@ -377,9 +376,7 @@ typedef struct
 	entity_state_t *baselines;		// [GI->max_edicts]
 	entity_state_t *static_entities;		// [MAX_STATIC_ENTITIES];
 
-	/*double		last_heartbeat;*/	// [FWGS, 01.05.23]
 	challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting
-	/*uint		heartbeat_challenge;*/	// [FWGS, 01.05.23]
 	} server_static_t;
 
 //=============================================================================
@@ -460,7 +457,6 @@ extern	convar_t *sv_lighting_modulate;
 extern	convar_t *sv_novis;
 extern	convar_t *sv_hostmap;
 extern	convar_t *sv_validate_changelevel;
-/*extern	convar_t *public_server;*/	// [FWGS, 01.05.23]
 
 //===========================================================
 //
@@ -485,15 +481,9 @@ void SV_SendResource (resource_t *pResource, sizebuf_t *msg);
 void SV_SendResourceList (sv_client_t *cl);
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg);
 qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent);
-//int SV_GetConnectedClientsCount (int *bots);	// [FWGS, 01.04.23]
 void Host_SetServerState (int state);
 qboolean SV_IsSimulating (void);
 void SV_FreeClients (void);
-
-// [FWGS, 01.04.23]
-/*void Master_Add (void);
-void Master_Heartbeat (void);
-void Master_Packet (void);*/
 
 //
 // sv_init.c
@@ -603,7 +593,6 @@ void SV_InactivateClients (void);
 int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to);
 void SV_WriteFrameToClient (sv_client_t *client, sizebuf_t *msg);
 void SV_BuildClientFrame (sv_client_t *client);
-/*void SV_SendMessagesToAll (void);*/	// [FWGS, 01.05.23]
 void SV_SkipUpdates (void);
 
 //
@@ -719,6 +708,5 @@ void SV_RunLightStyles (void);
 void SV_SetLightStyle (int style, const char *s, float f);
 const char *SV_GetLightStyle (int style);
 int SV_LightForEntity (edict_t *pEdict);
-/*void SV_ClearPhysEnts (void);*/		// [FWGS, 01.04.23]
 
 #endif

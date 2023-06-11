@@ -18,9 +18,6 @@ GNU General Public License for more details.
 #include "net_buffer.h"
 #include "xash3d_mathlib.h"
 
-/*#define DEBUG_NET_MESSAGES_SEND
-#define DEBUG_NET_MESSAGES_READ*/
-
 // precalculated bit masks for WriteUBitLong.
 // Using these tables instead of doing the calculations
 // gives a 33% speedup in WriteUBitLong.
@@ -28,10 +25,6 @@ static dword	BitWriteMasks[32][33];
 static dword	ExtraMasks[32];
 
 // [FWGS, 01.04.23]
-/*unsigned short MSG_BigShort (unsigned short swap)
-	{
-	return (swap >> 8) | (swap << 8);
-	}*/
 
 const char *svc_strings[svc_lastmsg + 1] =
 	{
@@ -369,18 +362,7 @@ void MSG_WriteVec3Angles (sizebuf_t *sb, const float *fa)
 	MSG_WriteBitAngle (sb, fa[2], 16);
 	}
 
-/* [FWGS, 01.05.23]
-void MSG_WriteBitFloat (sizebuf_t *sb, float val)
-	{
-	int	intVal;
-
-	Assert (sizeof (int) == sizeof (float));
-	Assert (sizeof (float) == 4);
-
-	intVal = FloatAsInt (val);
-	MSG_WriteUBitLong (sb, intVal, 32);
-	}
-*/
+// [FWGS, 01.05.23] удалена MSG_WriteBitFloat
 
 void MSG_WriteCmdExt (sizebuf_t *sb, int cmd, netsrc_t type, const char *name)
 	{
@@ -540,33 +522,7 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 	return ret;
 	}
 
-/* [FWGS, 01.05.23]
-float MSG_ReadBitFloat (sizebuf_t *sb)
-	{
-	int	val;
-	int	bit, byte;
-
-	Assert (sizeof (float) == sizeof (int));
-	Assert (sizeof (float) == 4);
-
-	if (MSG_Overflow (sb, 32))
-		return 0.0f;
-
-	bit = sb->iCurBit & 0x7;
-	byte = sb->iCurBit >> 3;
-
-	val = sb->pData[byte] >> bit;
-	val |= ((int)sb->pData[byte + 1]) << (8 - bit);
-	val |= ((int)sb->pData[byte + 2]) << (16 - bit);
-	val |= ((int)sb->pData[byte + 3]) << (24 - bit);
-
-	if (bit != 0)
-		val |= ((int)sb->pData[byte + 4]) << (32 - bit);
-	sb->iCurBit += 32;
-
-	return IntAsFloat (val);
-	}
-*/
+// [FWGS, 01.05.23] удалена MSG_ReadBitFloat
 
 qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)
 	{

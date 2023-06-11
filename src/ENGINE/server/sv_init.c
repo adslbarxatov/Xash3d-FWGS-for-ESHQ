@@ -310,8 +310,6 @@ void SV_ReadResourceList (const char *filename)
 		if (!COM_IsSafeFileToDownload (token))
 			continue;
 
-		/*Con_DPrintf ("  %s\n", token);
-		SV_GenericIndex (token);*/
 		COM_FixSlashes (token);
 		restype = SV_DetermineResourceType (token);
 		Con_DPrintf ("  %s (%s)\n", token, COM_GetResourceTypeName (restype));
@@ -675,10 +673,6 @@ void SV_ActivateServer (int runPhysics)
 		// [FWGS, 01.04.23]
 		if (COM_CheckString (cycle))
 			Cbuf_AddTextf ("exec %s\n", cycle);
-			/*Cbuf_AddText (va ("exec %s\n", cycle));
-
-		if (public_server->value)
-			Master_Add ();*/
 		}
 	}
 
@@ -703,9 +697,7 @@ void SV_DeactivateServer (void)
 	SV_FreeEdicts ();
 
 	// [FWGS, 01.04.23]
-	/*SV_ClearPhysEnts ();*/
 	PM_ClearPhysEnts (svgame.pmove);
-
 	SV_EmptyStringPool ();
 
 	for (i = 0; i < svs.maxclients; i++)
@@ -1025,7 +1017,6 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	for (i = WORLD_INDEX; i < sv.worldmodel->numsubmodels; i++)
 		{
 		// [FWGS, 01.05.23]
-		/*Q_sprintf (sv.model_precache[i + 1], "*%i", i);*/
 		Q_snprintf (sv.model_precache[i + 1], sizeof (sv.model_precache[i + 1]), "*%i", i);
 
 		sv.models[i + 1] = Mod_ForName (sv.model_precache[i + 1], false, false);
@@ -1050,7 +1041,6 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	// heartbeats will always be sent to the id master
 	NET_MasterClear ();
-	/*svs.last_heartbeat = MAX_HEARTBEAT; // send immediately*/
 
 	// get actual movevars
 	SV_UpdateMovevars (true);

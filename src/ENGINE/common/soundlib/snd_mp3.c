@@ -342,7 +342,6 @@ stream_t *Stream_OpenMPG (const char *filename)
 		Con_DPrintf (S_ERROR "%s\n", get_error (mpeg));
 
 	// [FWGS, 01.04.23] trying to open stream and read header
-	/*if (!open_mpeg_stream (mpeg, file, (void *)FS_Read, (void *)FS_Seek, &sc))*/
 	if (!open_mpeg_stream (mpeg, file, (void *)FS_Read, (void *)FS_SeekEx, &sc))
 		{
 		Con_DPrintf (S_ERROR "Stream_OpenMPG: failed to load (%s): %s\n", filename, get_error (mpeg));

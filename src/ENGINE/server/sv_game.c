@@ -879,15 +879,12 @@ void SV_WriteEntityPatch (const char *filename)
 	header = (dheader_t *)buf;
 
 	// [FWGS, 01.04.23] check all the lumps and some other errors
-	/*if (!Mod_TestBmodelLumps (bspfilename, buf, true))*/
 	if (!Mod_TestBmodelLumps (f, bspfilename, buf, true, &entities))
 		{
 		FS_Close (f);
 		return;
 		}
 
-	/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
-	lumplen = header->lumps[LUMP_ENTITIES].filelen;*/
 	lumpofs = entities.fileofs;
 	lumplen = entities.filelen;
 
@@ -940,7 +937,6 @@ static char *SV_ReadEntityScript (const char *filename, int *flags)
 	header = (dheader_t *)buf;
 
 	// [FWGS, 01.04.23] check all the lumps and some other errors
-	/*if (!Mod_TestBmodelLumps (bspfilename, buf, (host_developer.value) ? false : true))*/
 	if (!Mod_TestBmodelLumps (f, bspfilename, buf, (host_developer.value) ? false : true, &entities))
 		{
 		SetBits (*flags, MAP_INVALID_VERSION);
@@ -949,8 +945,6 @@ static char *SV_ReadEntityScript (const char *filename, int *flags)
 		}
 
 	// [FWGS, 01.04.23] after call Mod_TestBmodelLumps we gurantee what map is valid
-	/*lumpofs = header->lumps[LUMP_ENTITIES].fileofs;
-	lumplen = header->lumps[LUMP_ENTITIES].filelen;*/
 	lumpofs = entities.fileofs;
 	lumplen = entities.filelen;
 
@@ -1404,61 +1398,6 @@ pfnSetModel [FWGS, 01.04.23]
 void GAME_EXPORT pfnSetModel (edict_t *e, const char *m)
 	{
 	SV_SetModel (e, m);
-	/*char	name[MAX_QPATH];
-	qboolean	found = false;
-	model_t *mod;
-	int	i = 1;
-
-	if (!SV_IsValidEdict (e))
-		return;
-
-	if (*m == '\\' || *m == '/') m++;
-	Q_strncpy (name, m, sizeof (name));
-	COM_FixSlashes (name);
-
-	if (COM_CheckString (name))
-		{
-		// check to see if model was properly precached
-		for (; i < MAX_MODELS && sv.model_precache[i][0]; i++)
-			{
-			if (!Q_stricmp (sv.model_precache[i], name))
-				{
-				found = true;
-				break;
-				}
-			}
-
-		if (!found)
-			{
-			Con_Printf (S_ERROR "Failed to set model %s: was not precached\n", name);
-			return;
-			}
-		}
-
-	if (e == svgame.edicts)
-		{
-		if (sv.state == ss_active)
-			Con_Printf (S_ERROR "Failed to set model %s: world model cannot be changed\n", name);
-		return;
-		}
-
-	if (COM_CheckString (name))
-		{
-		e->v.model = MAKE_STRING (sv.model_precache[i]);
-		e->v.modelindex = i;
-		mod = sv.models[i];
-		}
-	else
-		{
-		// model will be cleared
-		e->v.model = e->v.modelindex = 0;
-		mod = NULL;
-		}
-
-	// set the model size
-	if (mod && mod->type != mod_studio)
-		SV_SetMinMaxSize (e, mod->mins, mod->maxs, true);
-	else SV_SetMinMaxSize (e, vec3_origin, vec3_origin, true);*/
 	}
 
 /*
@@ -2167,9 +2106,6 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 		}
 	else
 		{
-		/* TESTTEST
-		if (*sample == '*') chan = CHAN_AUTO;*/
-
 		// [FWGS, 01.04.23] '*' is special symbol to handle stream sounds
 		// (CHAN_VOICE but cannot be overriden) originally handled on client side
 		if (*sample == '*')
@@ -2235,7 +2171,8 @@ SV_StartSound
 
 =================
 */
-void GAME_EXPORT SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch)
+void GAME_EXPORT SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn,
+	int flags, int pitch)
 	{
 	qboolean	filter = false;
 	int	msg_dest;
@@ -2270,7 +2207,6 @@ void GAME_EXPORT SV_StartSound (edict_t *ent, int chan, const char *sample, floa
 /*
 =================
 pfnEmitAmbientSound
-
 =================
 */
 void GAME_EXPORT pfnEmitAmbientSound (edict_t *ent, float *pos, const char *sample, float vol, float attn, 
@@ -2301,7 +2237,6 @@ SV_StartMusic [FWGS, 01.04.23]
 void SV_StartMusic (const char *curtrack, const char *looptrack, int position)
 	{
 	MSG_BeginServerCmd (&sv.multicast, svc_stufftext);
-	/*MSG_WriteString (&sv.multicast, va ("music \"%s\" \"%s\" %d\n", curtrack, looptrack, position));*/
 	MSG_WriteStringf (&sv.multicast, "music \"%s\" \"%s\" %d\n", curtrack, looptrack, position);
 	SV_Multicast (MSG_ALL, NULL, NULL, false, false);
 	}
@@ -2547,21 +2482,6 @@ pfnServerExecute [FWGS, 01.04.23]
 void GAME_EXPORT pfnServerExecute (void)
 	{
 	Cbuf_Execute ();
-
-	/*if (svgame.config_executed)
-		return;
-
-	// here we restore arhcived cvars only from game.dll
-	host.apply_game_config = true;
-	Cbuf_AddText ("exec config.cfg\n");
-	Cbuf_Execute ();
-
-	if (host.sv_cvars_restored > 0)
-		Con_Reportf ("server executing ^2config.cfg^7 (%i cvars)\n", host.sv_cvars_restored);
-
-	host.apply_game_config = false;
-	svgame.config_executed = true;
-	host.sv_cvars_restored = 0;*/
 	}
 
 /*
@@ -2792,7 +2712,6 @@ void GAME_EXPORT pfnMessageEnd (void)
 				}
 
 			// [FWGS, 01.04.23]
-			/* *(word *)&sv.multicast.pData[svgame.msg_size_index] = svgame.msg_realsize;*/
 			realsize = svgame.msg_realsize;
 			memcpy (&sv.multicast.pData[svgame.msg_size_index], &realsize, sizeof (realsize));
 			}
@@ -2828,7 +2747,6 @@ void GAME_EXPORT pfnMessageEnd (void)
 			}
 
 		// [FWGS, 01.04.23]
-		/* *(word *)&sv.multicast.pData[svgame.msg_size_index] = svgame.msg_realsize;*/
 		realsize = svgame.msg_realsize;
 		memcpy (&sv.multicast.pData[svgame.msg_size_index], &realsize, sizeof (realsize));
 		}
@@ -3869,7 +3787,6 @@ void GAME_EXPORT pfnSetClientMaxspeed (const edict_t *pEdict, float fNewMaxspeed
 	fNewMaxspeed = bound (-svgame.movevars.maxspeed, fNewMaxspeed, svgame.movevars.maxspeed);
 
 	// [FWGS, 01.04.23]
-	/*Info_SetValueForKey (cl->physinfo, "maxspd", va ("%.f", fNewMaxspeed), MAX_INFO_STRING);*/
 	Info_SetValueForKeyf (cl->physinfo, "maxspd", MAX_INFO_STRING, "%.f", fNewMaxspeed);
 	cl->edict->v.maxspeed = fNewMaxspeed;
 	}
@@ -4984,7 +4901,6 @@ qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 
 			// [FWGS, 01.04.23]
 			if (flYawAngle >= 0.0f)
-				/*pkvd[i].szValue = copystring (va ("%g %g %g", ent->v.angles[0], flYawAngle, ent->v.angles[2]));*/
 				{
 				char temp[MAX_VA_STRING];
 
@@ -5018,7 +4934,6 @@ qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 			COM_ParseVector (&pstart, origin, 3);
 			Mem_Free (pkvd[i].szValue);	// release old value, so we don't need these
 			
-			/*pkvd[i].szValue = copystring (va ("%g %g %g", origin[0], origin[1], origin[2] - 16.0f));*/
 			Q_snprintf (temp, sizeof (temp), "%g %g %g", origin[0], origin[1], origin[2] - 16.0f);
 			pkvd[i].szValue = copystring (temp);
 			}
