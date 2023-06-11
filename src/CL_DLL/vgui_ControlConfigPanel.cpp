@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include<stdio.h>
 #include"vgui_ControlConfigPanel.h"
@@ -36,7 +36,6 @@ namespace
 				_label->setFont (Scheme::sf_primary3);
 
 				_textEntry = new TextEntry ("", 0, 0, 100, 20);
-				//_textEntry->setFont(Scheme::sf_primary3);
 				}
 		public:
 			virtual int getRowCount ()

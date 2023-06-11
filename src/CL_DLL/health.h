@@ -23,7 +23,8 @@
 #define DMG_IMAGE_NERVE		5
 #define DMG_IMAGE_RAD		6
 #define DMG_IMAGE_SHOCK		7
-//tf defines
+
+// tf defines
 #define DMG_IMAGE_CALTROP	8
 #define DMG_IMAGE_TRANQ		9
 #define DMG_IMAGE_CONCUSS	10
@@ -47,7 +48,7 @@
 #define DMG_ALWAYSGIB		(1 << 13)	// with this bit OR'd in, any damage type can be made to gib victims upon death.
 
 // time-based damage
-//mask off TF-specific stuff too
+// mask off TF-specific stuff too
 #define DMG_TIMEBASED		(~(0xff003fff))	// mask for time-based damage
 
 #define DMG_DROWN			(1 << 14)	// Drowning
@@ -63,7 +64,7 @@
 #define DMG_SLOWFREEZE		(1 << 22)	// in a subzero freezer
 #define DMG_MORTAR			(1 << 23)	// Hit by air raid (done to distinguish grenade from mortar)
 
-//TF ADDITIONS
+// TF ADDITIONS
 #define DMG_IGNITE			(1 << 24)	// Players hit by this begin to burn
 #define DMG_RADIUS_MAX		(1 << 25)	// Radius damage with this flag doesn't decrease over distance
 #define DMG_RADIUS_QUAKE	(1 << 26)	// Radius damage is done like Quake. 1/2 damage at 1/2 radius.
@@ -91,7 +92,7 @@ typedef struct
 	} DAMAGE_IMAGE;
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudHealth: public CHudBase
 	{

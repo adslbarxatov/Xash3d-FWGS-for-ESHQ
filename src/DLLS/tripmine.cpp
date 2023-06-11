@@ -250,8 +250,6 @@ void CTripmineGrenade::MakeBeam (void)
 
 	m_pBeam = CBeam::BeamCreate (g_pModelNameLaser, 8);
 	m_pBeam->PointEntInit (vecTmpEnd, entindex ());
-	//m_pBeam->HoseInit( pev->origin, vecTmpEnd );
-	
 	m_pBeam->SetColor (255, 32, 0);		// ESHQ: новый цвет
 	m_pBeam->SetScrollRate (255);
 	m_pBeam->SetBrightness (64);

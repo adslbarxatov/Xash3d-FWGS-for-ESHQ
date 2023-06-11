@@ -121,7 +121,7 @@ void CHgun::Holster (int skiplocal)	// == 0
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + 0.5;
 	SendWeaponAnim (HGUN_DOWN);
 
-	//!!!HACKHACK - can't select hornetgun if it's empty! no way to get ammo for it, either
+	// !!!HACKHACK - can't select hornetgun if it's empty! no way to get ammo for it, either
 	if (!m_pPlayer->m_rgAmmo[PrimaryAmmoIndex ()])
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex ()] = 1;
 	}
@@ -175,7 +175,7 @@ void CHgun::SecondaryAttack (void)
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		return;
 
-	//Wouldn't be a bad idea to completely predict these, since they fly so fast...
+	// Wouldn't be a bad idea to completely predict these, since they fly so fast...
 #ifndef CLIENT_DLL
 	CBaseEntity* pHornet;
 	Vector vecSrc;

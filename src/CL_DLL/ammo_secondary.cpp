@@ -111,7 +111,7 @@ int CHudAmmoSecondary::Draw (float flTime)
 
 // Message handler for Secondary Ammo Value
 // accepts one value:
-//		string:  sprite name
+// string:  sprite name
 int CHudAmmoSecondary::MsgFunc_SecAmmoIcon (const char* pszName, int iSize, void* pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
@@ -123,8 +123,8 @@ int CHudAmmoSecondary::MsgFunc_SecAmmoIcon (const char* pszName, int iSize, void
 // Message handler for Secondary Ammo Icon
 // Sets an ammo value
 // takes two values:
-//		byte:  ammo index
-//		byte:  ammo value
+// byte:  ammo index
+// byte:  ammo value
 int CHudAmmoSecondary::MsgFunc_SecAmmoVal (const char* pszName, int iSize, void* pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);

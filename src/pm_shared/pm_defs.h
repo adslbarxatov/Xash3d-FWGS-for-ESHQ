@@ -228,4 +228,4 @@ int pfnGetCurrentDuckState (void);
 // ESHQ: поддержка извлечения сообщений из titles.txt для HL.DLL
 struct client_textmessage_s *CL_TextMessageGet (const char *pName);
 
-#endif//PM_DEFS_H
+#endif

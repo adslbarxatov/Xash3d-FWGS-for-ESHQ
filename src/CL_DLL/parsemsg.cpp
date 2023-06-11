@@ -118,8 +118,6 @@ float READ_FLOAT (void)
 	dat.b[3] = gpBuf[giRead + 3];
 	giRead += 4;
 
-	//	dat.l = LittleLong (dat.l);
-
 	return dat.f;
 	}
 

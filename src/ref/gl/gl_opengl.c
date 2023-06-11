@@ -838,7 +838,7 @@ void GL_ClearExtensions (void)
 #endif
 	}
 
-//=======================================================================
+// =======================================================================
 
 /*
 =================
@@ -954,8 +954,7 @@ qboolean R_Init (void)
 		{
 		GL_RemoveCommands ();
 		gEngfuncs.R_Free_Video ();
-		// Why? Host_Error again???
-		//		gEngfuncs.Host_Error( "Can't initialize video subsystem\nProbably driver was not installed" );
+
 		return false;
 		}
 

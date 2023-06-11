@@ -1,4 +1,4 @@
-//=========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
+// =========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
 //
 // The copyright to the contents herein is the property of Valve, L.L.C.
 // The contents may be used and/or copied only with the written permission of
@@ -10,11 +10,11 @@
 // $Workfile:     $
 // $Date:         $
 //
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // $Log: $
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include "hud.h"
 #include "vgui_SchemeManager.h"
@@ -29,9 +29,9 @@ void Scheme_Init ()
 	g_CV_BitmapFonts = gEngfuncs.pfnRegisterVariable ("bitmapfonts", "1", 0);
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Scheme managers data container
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 class CSchemeManager::CScheme
 	{
 	public:
@@ -86,10 +86,10 @@ CSchemeManager::CScheme::~CScheme ()
 		}
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: resolution information
-//			!! needs to be shared out
-//-----------------------------------------------------------------------------
+//          !! needs to be shared out
+// -----------------------------------------------------------------------------
 static int g_ResArray[] =
 	{
 		320,
@@ -148,12 +148,12 @@ static void ParseRGBAFromString (byte colorArray[4], const char* colorVector)
 	colorArray[3] = a;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: initializes the scheme manager
-//			loading the scheme files for the current resolution
+//          loading the scheme files for the current resolution
 // Input  : xRes - 
-//			yRes - dimensions of output window
-//-----------------------------------------------------------------------------
+//          yRes - dimensions of output window
+// -----------------------------------------------------------------------------
 CSchemeManager::CSchemeManager (int xRes, int yRes)
 	{
 	// basic setup
@@ -423,20 +423,20 @@ buildDefaultFont:
 		}
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: frees all the memory used by the scheme manager
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 CSchemeManager::~CSchemeManager ()
 	{
 	delete[] m_pSchemeList;
 	m_iNumSchemes = 0;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Finds a scheme in the list, by name
 // Input  : char *schemeName - string name of the scheme
 // Output : SchemeHandle_t handle to the scheme
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 SchemeHandle_t CSchemeManager::getSchemeHandle (const char* schemeName)
 	{
 	// iterate through the list
@@ -449,11 +449,11 @@ SchemeHandle_t CSchemeManager::getSchemeHandle (const char* schemeName)
 	return 0;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: always returns a valid scheme handle
 // Input  : schemeHandle - 
 // Output : CScheme
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 CSchemeManager::CScheme* CSchemeManager::getSafeScheme (SchemeHandle_t schemeHandle)
 	{
 	if (schemeHandle < m_iNumSchemes)
@@ -462,11 +462,11 @@ CSchemeManager::CScheme* CSchemeManager::getSafeScheme (SchemeHandle_t schemeHan
 	return m_pSchemeList;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Returns the schemes pointer to a font
 // Input  : schemeHandle - 
 // Output : vgui::Font
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 vgui::Font* CSchemeManager::getFont (SchemeHandle_t schemeHandle)
 	{
 	return getSafeScheme (schemeHandle)->font;

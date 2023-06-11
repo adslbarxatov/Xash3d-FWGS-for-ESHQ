@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include <assert.h>
 #include "hud.h"
@@ -40,21 +40,19 @@ CGameStudioModelRenderer g_StudioRenderer;
 /*
 ====================
 CGameStudioModelRenderer
-
 ====================
 */
 CGameStudioModelRenderer::CGameStudioModelRenderer (void)
 	{
 	}
 
-////////////////////////////////////
+// =============================
 // Hooks to class implementation
-////////////////////////////////////
+// =============================
 
 /*
 ====================
 R_StudioDrawPlayer
-
 ====================
 */
 int R_StudioDrawPlayer (int flags, entity_state_t* pplayer)

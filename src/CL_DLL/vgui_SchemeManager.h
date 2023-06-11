@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include <VGUI_Font.h>
 
@@ -13,10 +13,10 @@ typedef int SchemeHandle_t;
 // Register console variables, etc..
 void Scheme_Init ();
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Handles the loading of text scheme description from disk
-//			supports different font/color/size schemes at different resolutions 
-//-----------------------------------------------------------------------------
+//          supports different font/color/size schemes at different resolutions 
+// -----------------------------------------------------------------------------
 class CSchemeManager
 	{
 	public:

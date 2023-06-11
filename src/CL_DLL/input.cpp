@@ -1,13 +1,13 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // cl.input.c  -- builds an intended movement command to send to the server
 
-//xxxxxx Move bob and pitch drifting code here and other stuff from view if needed
+// xxxxxx Move bob and pitch drifting code here and other stuff from view if needed
 
 // Quake is a trademark of Id Software, Inc., (c) 1996 Id Software, Inc. All
 // rights reserved.
@@ -302,9 +302,8 @@ KeyDown
 void KeyDown (kbutton_t* b)
 	{
 	int		k;
-	//char* c;
-
 	const char* c = gEngfuncs.Cmd_Argv (1);	// FWGS
+
 	if (c[0])
 		k = atoi (c);
 	else
@@ -336,9 +335,8 @@ KeyUp
 void KeyUp (kbutton_t* b)
 	{
 	int		k;
-	//char* c;
-
 	const char *c = gEngfuncs.Cmd_Argv (1);	// FWGS
+
 	if (c[0])
 		{
 		k = atoi (c);
@@ -356,11 +354,9 @@ void KeyUp (kbutton_t* b)
 		b->down[1] = 0;
 	else
 		return;		// key up without coresponding down (menu pass through)
+
 	if (b->down[0] || b->down[1])
-		{
-		//Con_Printf ("Keys down for button: '%c' '%c' '%c' (%d,%d,%d)!\n", b->down[0], b->down[1], c, b->down[0], b->down[1], c);
 		return;		// some other key is still holding it down
-		}
 
 	if (!(b->state & 1))
 		return;		// still up (this should not happen)

@@ -1,13 +1,13 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // vgui_SpectatorPanel.cpp: implementation of the SpectatorPanel class.
 //
-//////////////////////////////////////////////////////////////////////
+// ================================================
 
 #include "hud.h"
 #include "cl_util.h"
@@ -27,9 +27,9 @@
 #define OPTIONS_BUTTON_X 96
 #define CAMOPTIONS_BUTTON_X 200
 
-//////////////////////////////////////////////////////////////////////
+// ================================================
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+// ================================================
 
 SpectatorPanel::SpectatorPanel (int x, int y, int wide, int tall): Panel (x, y, wide, tall)
 	{
@@ -186,7 +186,6 @@ void SpectatorPanel::Initialize ()
 
 	m_menuVisible = false;
 	m_insetVisible = false;
-	//	m_HideButton->setVisible(false);
 	m_CamButton->setVisible (false);
 	m_OptionButton->setVisible (false);
 	m_NextPlayerButton->setVisible (false);
@@ -199,7 +198,6 @@ void SpectatorPanel::Initialize ()
 
 void SpectatorPanel::ShowMenu (bool isVisible)
 	{
-	//	m_HideButton->setVisible(isVisible);	m_HideButton->setArmed( false );
 	m_OptionButton->setVisible (isVisible);		m_OptionButton->setArmed (false);
 	m_CamButton->setVisible (isVisible);			m_CamButton->setArmed (false);
 	m_NextPlayerButton->setVisible (isVisible);	m_NextPlayerButton->setArmed (false);

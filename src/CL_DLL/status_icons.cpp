@@ -76,11 +76,11 @@ int CHudStatusIcons::Draw (float flTime)
 
 // Message handler for StatusIcon message
 // accepts five values:
-//		byte   : TRUE = ENABLE icon, FALSE = DISABLE icon
-//		string : the sprite name to display
-//		byte   : red
-//		byte   : green
-//		byte   : blue
+//  byte   : TRUE = ENABLE icon, FALSE = DISABLE icon
+//  string : the sprite name to display
+//  byte   : red
+//  byte   : green
+//  byte   : blue
 int CHudStatusIcons::MsgFunc_StatusIcon (const char* pszName, int iSize, void* pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);

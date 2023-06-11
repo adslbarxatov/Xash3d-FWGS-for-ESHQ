@@ -391,7 +391,7 @@ void EV_HLDM_FireBullets (int idx, float* forward, float* right, float* up, int 
 		vec3_t vecDir, vecEnd;
 
 		float x, y, z;
-		//We randomize for the Shotgun.
+		// We randomize for the Shotgun
 		if (iBulletType == BULLET_PLAYER_BUCKSHOT)
 			{
 			do {
@@ -405,7 +405,8 @@ void EV_HLDM_FireBullets (int idx, float* forward, float* right, float* up, int 
 					vecDir[i] = vecDirShooting[i] + x * flSpreadX * right[i] + y * flSpreadY * up[i];
 					vecEnd[i] = vecSrc[i] + flDistance * vecDir[i];
 					}
-			}//But other guns already have their spread randomized in the synched spread.
+				// But other guns already have their spread randomized in the synched spread
+			}
 		else
 			{
 
@@ -467,9 +468,9 @@ void EV_HLDM_FireBullets (int idx, float* forward, float* right, float* up, int 
 		}
 	}
 
-//======================
-//	    GLOCK START
-//======================
+// ======================
+// GLOCK START
+// ======================
 void EV_FireGlock1 (event_args_t* args)
 	{
 	int idx;
@@ -559,16 +560,17 @@ void EV_FireGlock2 (event_args_t* args)
 
 	VectorCopy (forward, vecAiming);
 
-	EV_HLDM_FireBullets (idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, &tracerCount[idx - 1], args->fparam1, args->fparam2);
+	EV_HLDM_FireBullets (idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0,
+		&tracerCount[idx - 1], args->fparam1, args->fparam2);
 
 	}
-//======================
-//	   GLOCK END
-//======================
+// ======================
+// GLOCK END
+// ======================
 
-//======================
-//	  SHOTGUN START
-//======================
+// ======================
+// SHOTGUN START
+// ======================
 void EV_FireShotGunDouble (event_args_t* args)
 	{
 	int idx;
@@ -677,13 +679,13 @@ void EV_FireShotGunSingle (event_args_t* args)
 		EV_HLDM_FireBullets (idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx - 1], 0.08716, 0.08716);
 		}
 	}
-//======================
-//	   SHOTGUN END
-//======================
+// ======================
+// SHOTGUN END
+// ======================
 
-//======================
-//	    MP5 START
-//======================
+// ======================
+// MP5 START
+// ======================
 void EV_FireMP5 (event_args_t* args)
 	{
 	int idx;
@@ -775,14 +777,14 @@ void EV_FireMP52 (event_args_t* args)
 			break;
 		}
 	}
-//======================
-//		 MP5 END
-//======================
+// ======================
+// MP5 END
+// ======================
 
-//======================
-//	   PHYTON START 
-//	     ( .357 )
-//======================
+// ======================
+// PHYTON START 
+// ( .357 )
+// ======================
 void EV_FirePython (event_args_t* args)
 	{
 	int idx;
@@ -829,16 +831,17 @@ void EV_FirePython (event_args_t* args)
 
 	VectorCopy (forward, vecAiming);
 
-	EV_HLDM_FireBullets (idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2);
+	EV_HLDM_FireBullets (idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0,
+		args->fparam1, args->fparam2);
 	}
-//======================
-//	    PHYTON END 
-//	     ( .357 )
-//======================
+// ======================
+// PHYTON END 
+// ( .357 )
+// ======================
 
-//======================
-//	   GAUSS START 
-//======================
+// ======================
+// GAUSS START 
+// ======================
 #define SND_CHANGE_PITCH	(1<<7)		// duplicated in protocol.h change sound pitch
 
 void EV_SpinGauss (event_args_t* args)
@@ -914,7 +917,6 @@ void EV_FireGauss (event_args_t* args)
 		return;
 		}
 
-	//	Con_Printf( "Firing gauss with %f\n", flDamage );
 	EV_GetGunPosition (args, vecSrc, origin);
 
 	m_iBeam = gEngfuncs.pEventAPI->EV_FindModelIndex ("sprites/smoke.spr");
@@ -1097,12 +1099,9 @@ void EV_FireGauss (event_args_t* args)
 							{
 							vec3_t fwd;
 							VectorSubtract (tr.endpos, forward, fwd);
-							gEngfuncs.pEfxAPI->R_Sprite_Trail (TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 3, 0.1, gEngfuncs.pfnRandomFloat (10, 20) / 100.0, 100,
-								255, 100);
+							gEngfuncs.pEfxAPI->R_Sprite_Trail (TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 3, 0.1,
+								gEngfuncs.pfnRandomFloat (10, 20) / 100.0, 100, 255, 100);
 							}
-
-							//////////////////////////////////// WHAT TO DO HERE
-													// CSoundEnt::InsertSound ( bits_SOUND_COMBAT, pev->origin, NORMAL_EXPLOSION_VOLUME, 3.0 );
 
 							EV_HLDM_DecalGunshot (&beam_tr, BULLET_MONSTER_12MM);
 
@@ -1152,13 +1151,13 @@ void EV_FireGauss (event_args_t* args)
 			}
 		}
 	}
-//======================
-//	   GAUSS END 
-//======================
+// ======================
+// GAUSS END 
+// ======================
 
-//======================
+// ======================
 // ESHQ: AXE START
-//======================
+// ======================
 enum axe_e
 	{
 	AXE_IDLE = 0,
@@ -1185,13 +1184,13 @@ void EV_Axe (event_args_t *args)
 			gEngfuncs.pEventAPI->EV_WeaponAnimation (AXE_ATTACK, 0);
 		}
 
-//======================
+// ======================
 // AXE END 
-//======================
+// ======================
 
-//======================
-//	   CROWBAR START
-//======================
+// ======================
+// CROWBAR START
+// ======================
 
 enum crowbar_e {
 	CROWBAR_IDLE = 0,
@@ -1238,13 +1237,13 @@ void EV_Crowbar (event_args_t* args)
 			}
 		}
 	}
-//======================
-//	   CROWBAR END 
-//======================
+// ======================
+// CROWBAR END 
+// ======================
 
-//======================
-//	  CROSSBOW START
-//======================
+// ======================
+// CROSSBOW START
+// ======================
 enum crossbow_e {
 	CROSSBOW_IDLE1 = 0,	// full
 	CROSSBOW_IDLE2,		// empty
@@ -1260,11 +1259,11 @@ enum crossbow_e {
 	CROSSBOW_HOLSTER2,	// empty
 	};
 
-//=====================
+// =====================
 // EV_BoltCallback
 // This function is used to correct the origin and angles 
-// of the bolt, so it looks like it's stuck on the wall.
-//=====================
+// of the bolt, so it looks like it's stuck on the wall
+// =====================
 void EV_BoltCallback (struct tempent_s* ent, float frametime, float currenttime)
 	{
 	ent->entity.origin = ent->entity.baseline.vuser1;
@@ -1315,12 +1314,12 @@ void EV_FireCrossbow2 (event_args_t* args)
 	gEngfuncs.pEventAPI->EV_SetTraceHull (2);
 	gEngfuncs.pEventAPI->EV_PlayerTrace (vecSrc, vecEnd, PM_STUDIO_BOX, -1, &tr);
 
-	//We hit something
+	// We hit something
 	if (tr.fraction < 1.0)
 		{
 		physent_t* pe = gEngfuncs.pEventAPI->EV_GetPhysent (tr.ent);
 
-		//Not the world, let's assume we hit something organic ( dog, cat, uncle joe, etc ).
+		// Not the world, let's assume we hit something organic (dog, cat, uncle joe, etc)
 		if (pe->solid != SOLID_BSP)
 			{
 			switch (gEngfuncs.pfnRandomLong (0, 1))
@@ -1333,13 +1332,14 @@ void EV_FireCrossbow2 (event_args_t* args)
 						ATTN_MEDIUM, 0, PITCH_NORM); break;
 				}
 			}
-		//Stick to world but don't stick to glass, it might break and leave the bolt floating. It can still stick to other non-transparent breakables though.
+		// Stick to world but don't stick to glass, it might break and leave the bolt floating.
+		// It can still stick to other non-transparent breakables though
 		else if (pe->rendermode == kRenderNormal)
 			{
 			gEngfuncs.pEventAPI->EV_PlaySound (0, tr.endpos, CHAN_BODY, "weapons/xbow_hit1.wav", gEngfuncs.pfnRandomFloat (0.95, 1.0),
 				ATTN_MEDIUM, 0, PITCH_NORM);
 
-			//Not underwater, do some sparks...
+			// Not underwater, do some sparks...
 			if (gEngfuncs.PM_PointContents (tr.endpos, NULL) != CONTENTS_WATER)
 				gEngfuncs.pEfxAPI->R_SparkShower (tr.endpos);
 
@@ -1352,10 +1352,10 @@ void EV_FireCrossbow2 (event_args_t* args)
 
 			if (bolt)
 				{
-				bolt->flags |= (FTENT_CLIENTCUSTOM); //So it calls the callback function.
+				bolt->flags |= (FTENT_CLIENTCUSTOM); // So it calls the callback function.
 				bolt->entity.baseline.vuser1 = tr.endpos - forward * 10; // Pull out a little bit
-				bolt->entity.baseline.vuser2 = vBoltAngles; //Look forward!
-				bolt->callback = EV_BoltCallback; //So we can set the angles and origin back. (Stick the bolt to the wall)
+				bolt->entity.baseline.vuser2 = vBoltAngles; // Look forward!
+				bolt->callback = EV_BoltCallback; // So we can set the angles and origin back. (Stick the bolt to the wall)
 				}
 			}
 		}
@@ -1363,7 +1363,7 @@ void EV_FireCrossbow2 (event_args_t* args)
 	gEngfuncs.pEventAPI->EV_PopPMStates ();
 	}
 
-//TODO: Fully predict the fliying bolt.
+// TODO: Fully predict the fliying bolt
 void EV_FireCrossbow (event_args_t* args)
 	{
 	int idx;
@@ -1374,10 +1374,10 @@ void EV_FireCrossbow (event_args_t* args)
 
 	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/xbow_fire1.wav", 1,
 		ATTN_MEDIUM, 0, 93 + gEngfuncs.pfnRandomLong (0, 0xF));
-	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_ITEM, "weapons/xbow_reload1.wav", gEngfuncs.pfnRandomFloat (0.95, 1.0),
-		ATTN_MEDIUM, 0, 93 + gEngfuncs.pfnRandomLong (0, 0xF));
+	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_ITEM, "weapons/xbow_reload1.wav",
+		gEngfuncs.pfnRandomFloat (0.95, 1.0), ATTN_MEDIUM, 0, 93 + gEngfuncs.pfnRandomLong (0, 0xF));
 
-	//Only play the weapon anims if I shot it. 
+	// Only play the weapon anims if I shot it
 	if (EV_IsLocal (idx))
 		{
 		if (args->iparam1)
@@ -1388,13 +1388,13 @@ void EV_FireCrossbow (event_args_t* args)
 		V_PunchAxis (0, -2.0);
 		}
 	}
-//======================
-//	   CROSSBOW END 
-//======================
+// ======================
+// CROSSBOW END 
+// ======================
 
-//======================
-//	    RPG START 
-//======================
+// ======================
+// RPG START 
+// ======================
 enum rpg_e {
 	RPG_IDLE = 0,
 	RPG_FIDGET,
@@ -1419,7 +1419,7 @@ void EV_FireRpg (event_args_t* args)
 	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/rocketfire1.wav", 0.9, ATTN_MEDIUM, 0, PITCH_NORM);
 	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_ITEM, "weapons/glauncher.wav", 0.7, ATTN_MEDIUM, 0, PITCH_NORM);
 
-	//Only play the weapon anims if I shot it. 
+	// Only play the weapon anims if I shot it
 	if (EV_IsLocal (idx))
 		{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation (RPG_FIRE2, 1);
@@ -1427,13 +1427,13 @@ void EV_FireRpg (event_args_t* args)
 		V_PunchAxis (0, -5.0);
 		}
 	}
-//======================
-//	     RPG END 
-//======================
+// ======================
+// RPG END 
+// ======================
 
-//======================
-//	    EGON END 
-//======================
+// ======================
+// EGON END 
+// ======================
 enum egon_e {
 	EGON_IDLE1 = 0,
 	EGON_FIDGET1,
@@ -1493,11 +1493,12 @@ void EV_EgonFire (event_args_t* args)
 			gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_STATIC, EGON_SOUND_RUN, 0.9, ATTN_MEDIUM, 0, 100);
 		}
 
-	//Only play the weapon anims if I shot it.
+	// Only play the weapon anims if I shot it
 	if (EV_IsLocal (idx))
 		gEngfuncs.pEventAPI->EV_WeaponAnimation (g_fireAnims1[gEngfuncs.pfnRandomLong (0, 3)], 1);
 
-	if (iStartup == 1 && EV_IsLocal (idx) && !pBeam && !pBeam2 && cl_lw->value) //Adrian: Added the cl_lw check for those lital people that hate weapon prediction.
+	// Adrian: added the cl_lw check for those lital people that hate weapon prediction
+	if (iStartup == 1 && EV_IsLocal (idx) && !pBeam && !pBeam2 && cl_lw->value)
 		{
 		vec3_t vecSrc, vecEnd, origin, angles, forward, right, up;
 		pmtrace_t tr;
@@ -1578,13 +1579,13 @@ void EV_EgonStop (event_args_t* args)
 			}
 		}
 	}
-//======================
-//	    EGON END 
-//======================
+// ======================
+// EGON END 
+// ======================
 
-//======================
-//	   HORNET START
-//======================
+// ======================
+// HORNET START
+// ======================
 enum hgun_e {
 	HGUN_IDLE1 = 0,
 	HGUN_FIDGETSWAY,
@@ -1604,7 +1605,7 @@ void EV_HornetGunFire (event_args_t* args)
 	VectorCopy (args->angles, angles);
 	iFireMode = args->iparam1;
 
-	//Only play the weapon anims if I shot it.
+	// Only play the weapon anims if I shot it
 	if (EV_IsLocal (idx))
 		{
 		V_PunchAxis (0, gEngfuncs.pfnRandomLong (0, 2));
@@ -1624,13 +1625,13 @@ void EV_HornetGunFire (event_args_t* args)
 			break;
 		}
 	}
-//======================
-//	   HORNET END
-//======================
+// ======================
+// HORNET END
+// ======================
 
-//======================
-//	   TRIPMINE START
-//======================
+// ======================
+// TRIPMINE START
+// ======================
 enum tripmine_e {
 	TRIPMINE_IDLE1 = 0,
 	TRIPMINE_IDLE2,
@@ -1643,8 +1644,8 @@ enum tripmine_e {
 	TRIPMINE_GROUND,
 	};
 
-//We only check if it's possible to put a trip mine
-//and if it is, then we play the animation. Server still places it.
+// We only check if it's possible to put a trip mine
+// and if it is, then we play the animation. Server still places it
 void EV_TripmineFire (event_args_t* args)
 	{
 	int idx;
@@ -1673,19 +1674,19 @@ void EV_TripmineFire (event_args_t* args)
 	gEngfuncs.pEventAPI->EV_SetTraceHull (2);
 	gEngfuncs.pEventAPI->EV_PlayerTrace (vecSrc, vecSrc + forward * 128, PM_NORMAL, -1, &tr);
 
-	//Hit something solid
+	// Hit something solid
 	if (tr.fraction < 1.0)
 		gEngfuncs.pEventAPI->EV_WeaponAnimation (TRIPMINE_DRAW, 0);
 
 	gEngfuncs.pEventAPI->EV_PopPMStates ();
 	}
-//======================
-//	   TRIPMINE END
-//======================
+// ======================
+// TRIPMINE END
+// ======================
 
-//======================
-//	   SQUEAK START
-//======================
+// ======================
+// SQUEAK START
+// ======================
 enum squeak_e {
 	SQUEAK_IDLE1 = 0,
 	SQUEAK_FIDGETFIT,
@@ -1724,16 +1725,16 @@ void EV_SnarkFire (event_args_t* args)
 	gEngfuncs.pEventAPI->EV_SetTraceHull (2);
 	gEngfuncs.pEventAPI->EV_PlayerTrace (vecSrc + forward * 20, vecSrc + forward * 64, PM_NORMAL, -1, &tr);
 
-	//Find space to drop the thing.
+	// Find space to drop the thing
 	if (tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25)
 		gEngfuncs.pEventAPI->EV_WeaponAnimation (SQUEAK_THROW, 0);
 
 	gEngfuncs.pEventAPI->EV_PopPMStates ();
 	}
-//======================
-//	   SQUEAK END
-//======================
 
+// ======================
+// SQUEAK END
+// ======================
 void EV_TrainPitchAdjust (event_args_t* args)
 	{
 	int idx;

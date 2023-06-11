@@ -1,22 +1,18 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include <stdarg.h>
 #include <stdio.h>
 #include "vgui_checkbutton2.h"
 #include "vgui_loadtga.h"
 
-
 #define EXTRA_X	5
 
-
 using namespace vgui;
-
-
 
 CCheckButton2::CCheckButton2() :
 	m_Label(""),

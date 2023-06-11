@@ -52,10 +52,10 @@ class CSatchelCharge: public CGrenade
 	};
 LINK_ENTITY_TO_CLASS (monster_satchel, CSatchelCharge);
 
-//=========================================================
+// =========================================================
 // Deactivate - do whatever it is we do to an orphaned 
 // satchel when we don't want it in the world anymore.
-//=========================================================
+// =========================================================
 void CSatchelCharge::Deactivate (void)
 	{
 	pev->solid = SOLID_NOT;
@@ -171,9 +171,9 @@ void CSatchelCharge::BounceSound (void)
 LINK_ENTITY_TO_CLASS (weapon_satchel, CSatchel);
 
 
-//=========================================================
+// =========================================================
 // CALLED THROUGH the newly-touched weapon's instance. The existing player weapon is pOriginal
-//=========================================================
+// =========================================================
 int CSatchel::AddDuplicate (CBasePlayerItem* pOriginal)
 	{
 	CSatchel* pSatchel;
@@ -196,8 +196,8 @@ int CSatchel::AddDuplicate (CBasePlayerItem* pOriginal)
 	return CBasePlayerWeapon::AddDuplicate (pOriginal);
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CSatchel::AddToPlayer (CBasePlayer* pPlayer)
 	{
 	int bResult = CBasePlayerItem::AddToPlayer (pPlayer);
@@ -252,8 +252,8 @@ int CSatchel::GetItemInfo (ItemInfo* p)
 	return 1;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CSatchel::IsUseable (void)
 	{
 	if (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex ()] > 0)
@@ -450,15 +450,17 @@ void CSatchel::WeaponIdle (void)
 			m_chargeReady = 0;
 			break;
 		}
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + UTIL_SharedRandomFloat (m_pPlayer->random_seed, 10, 15);// how long till we do this again.
+
+	// how long till we do this again
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + UTIL_SharedRandomFloat (m_pPlayer->random_seed, 10, 15);
 	}
 
-//=========================================================
+// =========================================================
 // DeactivateSatchels - removes all satchels owned by
 // the provided player. Should only be used upon death.
 //
-// Made this global on purpose.
-//=========================================================
+// Made this global on purpose
+// =========================================================
 void DeactivateSatchels (CBasePlayer* pOwner)
 	{
 	edict_t* pFind;

@@ -54,7 +54,6 @@ static inline bool IsIdGamedir (const char *id)
 	}
 
 // [FWGS, 01.04.23]
-//static inline const char *IdToDir (const char *id)
 static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	{
 	if (!Q_strcmp (id, "GAME"))

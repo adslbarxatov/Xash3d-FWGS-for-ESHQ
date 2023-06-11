@@ -1,4 +1,4 @@
-//=========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
+// =========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
 //
 // The copyright to the contents herein is the property of Valve, L.L.C.
 // The contents may be used and/or copied only with the written permission of
@@ -10,11 +10,11 @@
 // $Workfile:     $
 // $Date:         $
 //
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // $Log: $
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include "vgui_int.h"
 #include "VGUI_Font.h"
@@ -158,9 +158,9 @@ CTeamMenuPanel::CTeamMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wid
 	Initialize ();
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Called each time a new level is started.
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void CTeamMenuPanel::Initialize (void)
 	{
 	m_bUpdatedMapName = false;
@@ -168,9 +168,9 @@ void CTeamMenuPanel::Initialize (void)
 	m_pScrollPanel->setScrollValue (0, 0);
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Called everytime the Team Menu is displayed
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void CTeamMenuPanel::Update (void)
 	{
 	int	 iYPos = TEAMMENU_TOPLEFT_BUTTON_Y;
@@ -317,7 +317,7 @@ void CTeamMenuPanel::Update (void)
 	m_pScrollPanel->validate ();
 	}
 
-//=====================================
+// =====================================
 // Key inputs
 bool CTeamMenuPanel::SlotInput (int iSlot)
 	{
@@ -351,7 +351,7 @@ bool CTeamMenuPanel::SlotInput (int iSlot)
 	return false;
 	}
 
-//======================================
+// ======================================
 // Update the Team menu before opening it
 void CTeamMenuPanel::Open (void)
 	{
@@ -368,7 +368,7 @@ void CTeamMenuPanel::paintBackground ()
 	CMenuPanel::paintBackground ();
 	}
 
-//======================================
+// ======================================
 // Mouse is over a team button, bring up the class info
 void CTeamMenuPanel::SetActiveInfo (int iInput)
 	{

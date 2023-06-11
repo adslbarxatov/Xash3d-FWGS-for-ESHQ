@@ -50,14 +50,9 @@ void PM_ShowClipBox (void)
 	if (!pmove->runfuncs)
 		return;
 
-	// More debugging, draw the particle bbox for player and for the entity we are looking directly at.
-	//  aslo prints entity info to the console overlay.
-	//if ( !pmove->server )
-	//	return;
-
 	// Draw entity in center of view
-	// Also draws the normal to the clip plane that intersects our movement ray.  Leaves a particle
-	//  trail at the intersection point.
+	// Also draws the normal to the clip plane that intersects our movement ray. Leaves a particle
+	// trail at the intersection point
 	PM_ViewEntity ();
 
 	VectorCopy (pmove->origin, org);

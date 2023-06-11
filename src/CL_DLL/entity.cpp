@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // Client side entity management functions
 
@@ -324,12 +324,10 @@ void CL_UpdateLaserSpot (void)
 		m_pLaserSpot->entity.curstate.rendercolor.r = 200;
 		m_pLaserSpot->entity.curstate.rendercolor.g = 12;
 		m_pLaserSpot->entity.curstate.rendercolor.b = 12;
-		//		gEngfuncs.Con_Printf( "CLaserSpot::Create()\n" );
 		}
 	else if ((!g_iLaserDot || !cl_lw->value) && m_pLaserSpot)
 		{
 		// destroy laserspot
-//		gEngfuncs.Con_Printf( "CLaserSpot::Killed()\n" );
 		m_pLaserSpot->die = 0.0f;
 		m_pLaserSpot = NULL;
 		return;

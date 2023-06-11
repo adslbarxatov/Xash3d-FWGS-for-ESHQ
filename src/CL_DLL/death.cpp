@@ -113,7 +113,7 @@ int CHudDeathNotice::Draw (float flTime)
 		if (gViewPort && gViewPort->AllowedToPrintText ())
 			{
 			// Draw the death notice
-			y = YRES (DEATHNOTICE_TOP) + 2 + (20 * i);  //!!!
+			y = YRES (DEATHNOTICE_TOP) + 2 + (20 * i);	// !!!
 
 			int id = (rgDeathNoticeList[i].iId == -1) ? m_HUD_d_skull : rgDeathNoticeList[i].iId;
 			x = ScreenWidth - ConsoleStringLen (rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect (id).right - gHUD.GetSpriteRect (id).left);
@@ -124,7 +124,8 @@ int CHudDeathNotice::Draw (float flTime)
 
 				// Draw killers name
 				if (rgDeathNoticeList[i].KillerColor)
-					gEngfuncs.pfnDrawSetTextColor (rgDeathNoticeList[i].KillerColor[0], rgDeathNoticeList[i].KillerColor[1], rgDeathNoticeList[i].KillerColor[2]);
+					gEngfuncs.pfnDrawSetTextColor (rgDeathNoticeList[i].KillerColor[0],
+						rgDeathNoticeList[i].KillerColor[1], rgDeathNoticeList[i].KillerColor[2]);
 				x = 5 + DrawConsoleString (x, y, rgDeathNoticeList[i].szKiller);
 				}
 

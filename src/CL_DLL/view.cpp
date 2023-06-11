@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // view/refresh setup functions
 
@@ -638,7 +638,6 @@ void V_CalcNormalRefdef (struct ref_params_s* pparams)
 
 		steptime = pparams->time - lasttime;
 		if (steptime < 0)
-			//FIXME		I_Error ("steptime < 0");
 			steptime = 0;
 
 		oldz += steptime * 150;
@@ -726,7 +725,6 @@ void V_CalcNormalRefdef (struct ref_params_s* pparams)
 	// Store off v_angles before munging for third person
 	v_angles = pparams->viewangles;
 	v_lastAngles = pparams->viewangles;
-	//	v_cl_angles = pparams->cl_viewangles;	// keep old user mouse angles !
 	if (CL_IsThirdPerson ())
 		{
 		VectorCopy (camAngles, pparams->viewangles);
@@ -914,12 +912,14 @@ void V_GetSingleTargetCam (cl_entity_t* ent1, float* angle, float* origin)
 	if (ent1->player)
 		{
 		if (deadPlayer)
-			newOrigin[2] += 2;	//laying on ground
+			newOrigin[2] += 2;	// laying on ground
 		else
-			newOrigin[2] += 17; // head level of living player
+			newOrigin[2] += 17;	// head level of living player
 		}
 	else
+		{
 		newOrigin[2] += 8;	// object, tricky, must be above bomb in CS
+		}
 
 	// we have no second target, choose view direction based on
 	// show front of primary target
@@ -1545,7 +1545,6 @@ void V_Init (void)
 	}
 
 
-//#define TRACE_TEST
 #if defined( TRACE_TEST )
 
 extern float in_fov;

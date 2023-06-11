@@ -212,8 +212,8 @@ int CHudStatusBar::Draw (float fTime)
 
 // Message handler for StatusText message
 // accepts two values:
-//		byte: line number of status bar text 
-//		string: status bar text
+//  byte: line number of status bar text 
+//  string: status bar text
 // this string describes how the status bar should be drawn
 // a semi-regular expression:
 // ( slotnum ([a..z] [%pX] [%iX])*)*
@@ -246,14 +246,14 @@ int CHudStatusBar::MsgFunc_StatusText (const char* pszName, int iSize, void* pbu
 
 // Message handler for StatusText message
 // accepts two values:
-//		byte: index into the status value array
-//		short: value to store
+//  byte: index into the status value array
+//  short: value to store
 int CHudStatusBar::MsgFunc_StatusValue (const char* pszName, int iSize, void* pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 
 	int index = READ_BYTE ();
-	if (index < 1 || index >= MAX_STATUSBAR_VALUES)
+	if ((index < 1) || (index >= MAX_STATUSBAR_VALUES))
 		return 1; // index out of range
 
 	m_iStatusValues[index] = READ_SHORT ();

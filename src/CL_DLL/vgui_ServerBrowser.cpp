@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include<VGUI_HeaderPanel.h>
 #include<VGUI_TablePanel.h>
@@ -128,12 +128,9 @@ class ServerBrowserTablePanel: public TablePanel
 				return;
 
 			address = gEngfuncs.pNetAPI->ValueForKey (info, "address");
-			//gEngfuncs.Con_Printf( "Connecting to %s\n", address );
-
 			sprintf (sz, "connect %s\n", address);
 
 			ClientCmd (sz);
-
 			DoCancel ();
 			}
 

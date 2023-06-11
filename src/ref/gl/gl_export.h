@@ -1833,4 +1833,4 @@ APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsiz
 #define pglSwapInterval glSwapInterval
 #endif
 
-#endif//GL_EXPORT_H
+#endif

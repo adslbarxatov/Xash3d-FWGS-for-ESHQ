@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #ifndef SPECTATOR_H
 #define SPECTATOR_H
@@ -22,9 +22,9 @@
 #define OVERVIEW_TILE_SIZE		128		// don't change this
 #define OVERVIEW_MAX_LAYERS		1
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Handles the drawing of the spectator stuff (camera & top-down map and all the things on it )
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 typedef struct overviewInfo_s {
 	char		map[64];	// cl.levelname or empty

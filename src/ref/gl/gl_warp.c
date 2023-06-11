@@ -65,7 +65,6 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 	{
 	const char	*skybox_ext[3] = { "dds", "tga", "bmp" };
 	int			i, j, num_checked_sides;
-	//const char *sidename;
 	char		sidename[MAX_VA_STRING];
 
 	// search for skybox images
@@ -76,7 +75,6 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 		for (j = 0; j < 6; j++)
 			{
 			// [FWGS, 01.04.23] build side name
-			//sidename = va ("%s%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
 			Q_snprintf (sidename, sizeof (sidename), "%s%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
 
 			if (gEngfuncs.fsapi->FileExists (sidename, false))
@@ -94,7 +92,6 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 		for (j = 0; j < 6; j++)
 			{
 			// [FWGS, 01.04.23] build side name
-			//sidename = va ("%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
 			Q_snprintf (sidename, sizeof (sidename), "%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
 
 			if (gEngfuncs.fsapi->FileExists (sidename, false))
@@ -474,11 +471,9 @@ void R_SetupSky (const char *skyboxname)
 	R_UnloadSkybox ();
 	}
 
-//==============================================================================
-//
-//  RENDER CLOUDS
-//
-//==============================================================================
+// ==============================================================================
+// RENDER CLOUDS
+// ==============================================================================
 /*
 ==============
 R_CloudVertex
@@ -589,7 +584,7 @@ void R_CloudRenderSide (int axis)
 	p->numverts = 4;
 	di = SKYCLOUDS_QUALITY;
 	qi = 1.0f / di;
-	dj = (axis < 4) ? di * 2 : di; //subdivide vertically more than horizontally on skybox sides
+	dj = (axis < 4) ? di * 2 : di;	// subdivide vertically more than horizontally on skybox sides
 	qj = 1.0f / dj;
 
 	for (i = 0; i < di; i++)

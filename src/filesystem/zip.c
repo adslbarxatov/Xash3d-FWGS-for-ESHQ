@@ -47,12 +47,12 @@ GNU General Public License for more details.
 #pragma pack( push, 1 )
 typedef struct zip_header_s
 	{
-	uint32_t	signature; // little endian ZIP_HEADER
-	uint16_t	version; // version of pkzip need to unpack
-	uint16_t	flags; // flags (16 bits == 16 flags)
-	uint16_t	compression_flags; // compression flags (bits)
-	uint32_t	dos_date; // file modification time and file modification date
-	uint32_t	crc32; //crc32
+	uint32_t	signature;	// little endian ZIP_HEADER
+	uint16_t	version;	// version of pkzip need to unpack
+	uint16_t	flags;		// flags (16 bits == 16 flags)
+	uint16_t	compression_flags;	// compression flags (bits)
+	uint32_t	dos_date;	// file modification time and file modification date
+	uint32_t	crc32;		// CRC32
 	uint32_t	compressed_size;
 	uint32_t	uncompressed_size;
 	uint16_t	filename_len;
@@ -119,8 +119,8 @@ enum
 typedef struct zipfile_s
 	{
 	char		name[MAX_SYSPATH];
-	fs_offset_t	offset; // offset of local file header
-	fs_offset_t	size; //original file size
+	fs_offset_t	offset;	// offset of local file header
+	fs_offset_t	size;	// original file size
 	fs_offset_t	compressed_size; // compressed file size
 	uint16_t flags;
 	} zipfile_t;

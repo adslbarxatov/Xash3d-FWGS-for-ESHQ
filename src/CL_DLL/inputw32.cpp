@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // in_win.c -- windows 95 mouse and joystick code
 // 02/21/97 JCB Added extended DirectInput code to support external controllers.
@@ -309,8 +309,8 @@ void IN_MouseMove (float frametime, usercmd_t* cmd)
 		V_StopPitchDrift ();
 		}
 
-	//jjb - this disbles normal mouse control if the user is trying to 
-	//      move the camera, or if the mouse cursor is visible or if we're in intermission
+	// jjb - this disbles normal mouse control if the user is trying to 
+	// move the camera, or if the mouse cursor is visible or if we're in intermission
 	if (!iMouseInUse && !g_iVisibleMouse && !gHUD.m_iIntermission)
 		{
 		GetCursorPos (&current_pos);
@@ -389,7 +389,7 @@ IN_Accumulate
 */
 void DLLEXPORT IN_Accumulate (void)
 	{
-	//only accumulate mouse if we are not moving the camera with the mouse
+	// only accumulate mouse if we are not moving the camera with the mouse
 	if (!iMouseInUse && !g_iVisibleMouse)
 		{
 		if (mouseactive)

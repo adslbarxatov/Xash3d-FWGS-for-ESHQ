@@ -12,7 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//			
+//
 //  hud.h
 //
 // class CHud declaration
@@ -63,7 +63,7 @@ typedef struct cvar_s cvar_t;
 #define	MAX_MOTD_LENGTH				1536
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudBase
 	{
@@ -87,13 +87,13 @@ struct HUDLIST {
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 #include "..\game_shared\voice_status.h"
 #include "hud_spectator.h"
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudAmmo: public CHudBase
 	{
@@ -136,9 +136,8 @@ class CHudAmmo: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
-
 class CHudAmmoSecondary: public CHudBase
 	{
 	public:
@@ -165,7 +164,7 @@ class CHudAmmoSecondary: public CHudBase
 #define FADE_TIME 100
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudGeiger: public CHudBase
 	{
@@ -180,7 +179,7 @@ class CHudGeiger: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudTrain: public CHudBase
 	{
@@ -196,7 +195,7 @@ class CHudTrain: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudStatusBar: public CHudBase
 	{
@@ -258,7 +257,7 @@ extern team_info_t			g_TeamInfo[MAX_TEAMS + 1];
 extern int					g_IsSpectator[MAX_PLAYERS + 1];
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudDeathNotice: public CHudBase
 	{
@@ -274,7 +273,7 @@ class CHudDeathNotice: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudMenu: public CHudBase
 	{
@@ -295,7 +294,7 @@ class CHudMenu: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudSayText: public CHudBase
 	{
@@ -316,7 +315,7 @@ class CHudSayText: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudBattery: public CHudBase
 	{
@@ -337,7 +336,7 @@ class CHudBattery: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudFlashlight: public CHudBase
 	{
@@ -375,7 +374,7 @@ class CHudFlashlight: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 const int maxHUDMessages = 16;
 struct message_parms_t
@@ -396,7 +395,7 @@ struct message_parms_t
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudTextMessage: public CHudBase
 	{
@@ -409,7 +408,7 @@ class CHudTextMessage: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 class CHudMessage: public CHudBase
 	{
@@ -443,7 +442,7 @@ class CHudMessage: public CHudBase
 	};
 
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
 #define MAX_SPRITE_NAME_LENGTH	24
 
@@ -479,9 +478,8 @@ class CHudStatusIcons: public CHudBase
 		icon_sprite_t m_IconList[MAX_ICONSPRITES];
 	};
 //
-//-----------------------------------------------------
+// -----------------------------------------------------
 //
-
 class CHud
 	{
 	private:

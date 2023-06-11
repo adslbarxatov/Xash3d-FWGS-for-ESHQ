@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // Triangle rendering, if any
 
@@ -25,7 +25,6 @@ extern "C"
 	void DLLEXPORT HUD_DrawTransparentTriangles (void);
 	};
 
-//#define TEST_IT
 #if defined( TEST_IT )
 
 /*
@@ -104,7 +103,6 @@ void DLLEXPORT HUD_DrawNormalTriangles (void)
 	gHUD.m_Spectator.DrawOverview ();
 
 #if defined( TEST_IT )
-	//	Draw_Triangles();
 #endif
 	}
 
@@ -118,6 +116,5 @@ Render any triangles with transparent rendermode needs here
 void DLLEXPORT HUD_DrawTransparentTriangles (void)
 	{
 #if defined( TEST_IT )
-	//	Draw_Triangles();
 #endif
 	}

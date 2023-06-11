@@ -856,7 +856,6 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 		}
 
 	// [FWGS, 01.04.23] make sure what gamedir is really exist
-	//if (!FS_SysFolderExists (va ("%s" PATH_SPLITTER "%s", fs_rootdir, GameInfo->falldir)))
 	Q_snprintf (token, sizeof (token), "%s/%s", fs_rootdir, GameInfo->falldir);
 	if (!FS_SysFolderExists (token))
 		GameInfo->falldir[0] = '\0';
@@ -1758,7 +1757,6 @@ FS_SysFileOrFolderExists [FWGS, 01.04.23]
 Check if filesystem entry exists at all, don't mind the type
 ==================
 */
-//int FS_SetCurrentDirectory (const char *path)
 qboolean FS_SysFileOrFolderExists (const char *path)
 	{
 #if XASH_WIN32
@@ -2901,7 +2899,6 @@ fs_api_t g_api =
 int EXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *engfuncs)
 	{
 	// [FWGS, 01.04.23]
-	//if (!FS_InitInterface (version, engfuncs))
 	if (engfuncs && !FS_InitInterface (version, engfuncs))
 		return 0;
 

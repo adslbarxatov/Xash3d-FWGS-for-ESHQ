@@ -415,7 +415,7 @@ void CSqueak::Spawn ()
 	m_iId = WEAPON_SNARK;
 	SET_MODEL (ENT (pev), "models/w_sqknest.mdl");
 
-	FallInit ();//get ready to fall down.
+	FallInit ();	// get ready to fall down
 
 	m_iDefaultAmmo = SNARK_DEFAULT_GIVE;
 

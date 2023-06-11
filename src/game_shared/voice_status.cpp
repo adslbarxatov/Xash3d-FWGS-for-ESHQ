@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // There are hud.h's coming out of the woodwork so this ensures that we get the right one.
 #if defined( DMC_BUILD )
@@ -826,11 +826,11 @@ void CVoiceStatus::FreeBitmaps ()
 		m_pLocalLabel->setImage (NULL);
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: returns true if the target client has been banned
 // Input  : playerID - 
 // Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 bool CVoiceStatus::IsPlayerBlocked (int iPlayer)
 	{
 	char playerID[16];
@@ -840,21 +840,21 @@ bool CVoiceStatus::IsPlayerBlocked (int iPlayer)
 	return m_BanMgr.GetPlayerBan (playerID);
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: returns true if the player can't hear the other client due to game rules (eg. the other team)
 // Input  : playerID - 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
+// Output : Returns true on success, false on failure
+// -----------------------------------------------------------------------------
 bool CVoiceStatus::IsPlayerAudible (int iPlayer)
 	{
 	return !!m_AudiblePlayers[iPlayer - 1];
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: blocks/unblocks the target client from being heard
 // Input  : playerID - 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
+// Output : Returns true on success, false on failure
+// -----------------------------------------------------------------------------
 void CVoiceStatus::SetPlayerBlockedState (int iPlayer, bool blocked)
 	{
 	if (gEngfuncs.pfnGetCvarFloat ("voice_clientdebug"))

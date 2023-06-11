@@ -26,8 +26,7 @@
 extern BEAM* pBeam;
 extern BEAM* pBeam2;
 
-/// USER-DEFINED SERVER MESSAGE HANDLERS
-
+// USER-DEFINED SERVER MESSAGE HANDLERS
 int CHud::MsgFunc_ResetHUD (const char* pszName, int iSize, void* pbuf)
 	{
 	ASSERT (iSize == 0);
@@ -70,7 +69,7 @@ void CHud::MsgFunc_InitHUD (const char* pszName, int iSize, void* pbuf)
 		pList = pList->pNext;
 		}
 
-	//Probably not a good place to put this.
+	// Probably not a good place to put this
 	pBeam = pBeam2 = NULL;
 	}
 

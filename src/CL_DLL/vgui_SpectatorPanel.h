@@ -1,13 +1,13 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // vgui_SpectatorPanel.h: interface for the SpectatorPanel class.
 //
-//////////////////////////////////////////////////////////////////////
+// =============================================
 
 #ifndef SPECTATORPANEL_H
 #define SPECTATORPANEL_H
@@ -29,9 +29,8 @@ using namespace vgui;
 
 #define TEAM_NUMBER 2
 
-class SpectatorPanel: public Panel //, public vgui::CDefaultInputSignal
+class SpectatorPanel: public Panel
 	{
-
 	public:
 		SpectatorPanel (int x, int y, int wide, int tall);
 		virtual ~SpectatorPanel ();
@@ -49,7 +48,6 @@ class SpectatorPanel: public Panel //, public vgui::CDefaultInputSignal
 
 
 		ColorButton* m_OptionButton;
-		//	CommandButton     *	m_HideButton;
 		ColorButton* m_PrevPlayerButton;
 		ColorButton* m_NextPlayerButton;
 		ColorButton* m_CamButton;

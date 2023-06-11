@@ -1,4 +1,4 @@
-//=========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
+// =========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
 //
 // The copyright to the contents herein is the property of Valve, L.L.C.
 // The contents may be used and/or copied only with the written permission of
@@ -10,11 +10,11 @@
 // $Workfile:     $
 // $Date:         $
 //
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // $Log: $
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include "VGUI_Font.h"
 
@@ -58,9 +58,9 @@ char* GetTGANameForRes (const char* pszName)
 	return gd;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Loads a .tga file and returns a pointer to the VGUI tga object
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 BitmapTGA* LoadTGAForRes (const char* pImageName)
 	{
 	BitmapTGA* pTGA;
@@ -72,7 +72,7 @@ BitmapTGA* LoadTGAForRes (const char* pImageName)
 	return pTGA;
 	}
 
-//===========================================================
+// ===========================================================
 // All TFC Hud buttons are derived from this one.
 CommandButton::CommandButton (const char* text, int x, int y, int wide, int tall, bool bNoHighlight): Button ("", x, y, wide, tall)
 	{
@@ -121,10 +121,10 @@ void CommandButton::Init (void)
 	m_cBoundKey = 0;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Prepends the button text with the current bound key
-//			if no bound key, then a clear space ' ' instead
-//-----------------------------------------------------------------------------
+//          if no bound key, then a clear space ' ' instead
+// -----------------------------------------------------------------------------
 void CommandButton::RecalculateText (void)
 	{
 	char szBuf[128];
@@ -234,9 +234,9 @@ void CommandButton::paintBackground ()
 		}
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Highlights the current button, and all it's parent menus
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void CommandButton::cursorEntered (void)
 	{
 	// unarm all the other buttons in this menu
@@ -259,9 +259,9 @@ void CommandButton::cursorEntered (void)
 	setArmed (true);
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void CommandButton::cursorExited (void)
 	{
 	// only clear ourselves if we have do not have a containing menu
@@ -273,25 +273,25 @@ void CommandButton::cursorExited (void)
 		}
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Returns the command menu that the button is part of, if any
 // Output : CCommandMenu *
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 CCommandMenu* CommandButton::getParentMenu (void)
 	{
 	return m_pParentMenu;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Sets the menu that contains this button
 // Input  : *pParentMenu - 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void CommandButton::setParentMenu (CCommandMenu* pParentMenu)
 	{
 	m_pParentMenu = pParentMenu;
 	}
 
-//===========================================================
+// ===========================================================
 int ClassButton::IsNotValid ()
 	{
 	// If this is the main ChangeClass button, remove it if the player's only able to be civilians
@@ -319,7 +319,7 @@ int ClassButton::IsNotValid ()
 	return false;
 	}
 
-//===========================================================
+// ===========================================================
 // Button with Class image beneath it
 CImageLabel::CImageLabel (const char* pImageName, int x, int y): Label ("", x, y)
 	{
@@ -335,7 +335,7 @@ CImageLabel::CImageLabel (const char* pImageName, int x, int y, int wide, int ta
 	setImage (m_pTGA);
 	}
 
-//===========================================================
+// ===========================================================
 // Image size
 int CImageLabel::getImageWide (void)
 	{
@@ -396,7 +396,7 @@ void CImageLabel::LoadImage (const char* pImageName)
 	setImage (m_pTGA);
 	}
 
-//===========================================================
+// ===========================================================
 // Various overloaded paint functions for Custom VGUI objects
 void CCommandMenu::paintBackground ()
 	{
@@ -410,9 +410,9 @@ void CCommandMenu::paintBackground ()
 	drawFilledRect (0, 0, _size[0], _size[1]);
 	}
 
-//=================================================================================
+// =================================================================================
 // CUSTOM SCROLLPANEL
-//=================================================================================
+// =================================================================================
 CTFScrollButton::CTFScrollButton (int iArrow, const char* text, int x, int y, int wide, int tall): CommandButton (text, x, y, wide, tall)
 	{
 	// Set text color to orange
@@ -500,15 +500,13 @@ CTFScrollPanel::CTFScrollPanel (int x, int y, int wide, int tall): ScrollPanel (
 	pScrollBar->setPaintEnabled (false);
 	}
 
-//=================================================================================
+// =================================================================================
 // CUSTOM HANDLERS
-//=================================================================================
+// =================================================================================
 void CHandler_MenuButtonOver::cursorEntered (Panel* panel)
 	{
 	if (gViewPort && m_pMenuPanel)
-		{
 		m_pMenuPanel->SetActiveInfo (m_iButton);
-		}
 	}
 
 void CMenuHandler_StringCommandClassSelect::actionPerformed (Panel* panel)

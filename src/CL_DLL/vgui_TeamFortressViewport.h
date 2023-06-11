@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #ifndef TEAMFORTRESSVIEWPORT_H
 #define TEAMFORTRESSVIEWPORT_H
@@ -105,9 +105,9 @@ enum
 	ARROW_RIGHT,
 	};
 
-//==============================================================================
+// ==============================================================================
 // VIEWPORT PIECES
-//============================================================
+// ============================================================
 // Wrapper for an Image Label without a background
 class CImageLabel: public Label
 	{
@@ -154,7 +154,7 @@ class CommandLabel: public Label
 			}
 	};
 
-//============================================================
+// ============================================================
 // Command Buttons
 class CommandButton: public Button
 	{
@@ -346,7 +346,7 @@ class SpectButton: public CommandButton
 			Button::paint ();
 			}
 	};
-//============================================================
+// ============================================================
 // Command Menus
 class CCommandMenu: public Panel
 	{
@@ -402,7 +402,7 @@ class CCommandMenu: public Panel
 		virtual void paintBackground ();
 	};
 
-//==============================================================================
+// ==============================================================================
 class TeamFortressViewport: public Panel
 	{
 	private:
@@ -553,7 +553,7 @@ class TeamFortressViewport: public Panel
 		char			m_szServerName[MAX_SERVERNAME_LENGTH];
 	};
 
-//============================================================
+// ============================================================
 // Command Menu Button Handlers
 #define MAX_COMMAND_SIZE	256
 
@@ -649,7 +649,6 @@ class CMenuHandler_PopupSubMenuInput: public InputSignal
 
 		virtual void cursorMoved (int x, int y, Panel* panel)
 			{
-			//gViewPort->SetCurrentCommandMenu( m_pSubMenu );
 			}
 
 		virtual void cursorEntered (Panel* panel)
@@ -834,9 +833,9 @@ class CHandler_ButtonHighlight: public InputSignal
 		virtual void keyFocusTicked (Panel* panel) {};
 	};
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Special handler for highlighting of command menu buttons
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 class CHandler_CommandButtonHighlight: public CHandler_ButtonHighlight
 	{
 	private:
@@ -859,7 +858,7 @@ class CHandler_CommandButtonHighlight: public CHandler_ButtonHighlight
 	};
 
 
-//================================================================
+// ================================================================
 // Overidden Command Buttons for special visibilities
 class ClassButton: public CommandButton
 	{
@@ -1107,9 +1106,9 @@ class MapButton: public CommandButton
 			}
 	};
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: CommandButton which is only displayed if the player is on team X
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 class TeamOnlyCommandButton: public CommandButton
 	{
 	private:
@@ -1151,9 +1150,9 @@ class TeamOnlyCommandButton: public CommandButton
 			}
 	};
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: CommandButton which is only displayed if the player is on team X
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 class ToggleCommandButton: public CommandButton, public InputSignal
 	{
 	private:
@@ -1324,85 +1323,7 @@ class SpectToggleButton: public CommandButton, public InputSignal
 			}
 	};
 
-/*
-class SpectToggleButton : public ToggleCommandButton
-{
-private:
-	struct cvar_s * m_cvar;
-	CImageLabel *	pLabelOn;
-	CImageLabel *	pLabelOff;
-
-public:
-
-	SpectToggleButton( const char* cvarname, const char* text,int x,int y,int wide,int tall, bool flat ) :
-	  ToggleCommandButton( cvarname, text, x, y, wide, tall, flat, TRUE )
-	 {
-		m_cvar = gEngfuncs.pfnGetCvarPointer( cvarname );
-
-			// Put a > to show it's a submenu
-		pLabelOn = new CImageLabel( "checked", 0, 0 );
-		pLabelOn->setParent(this);
-		pLabelOn->addInputSignal(this);
-
-		pLabelOff = new CImageLabel( "unchecked", 0, 0 );
-		pLabelOff->setParent(this);
-		pLabelOff->setEnabled(true);
-		pLabelOff->addInputSignal(this);
-
-		int textwide, texttall;
-		getTextSize( textwide, texttall);
-
-		// Reposition
-		pLabelOn->setPos( textwide, (tall - pLabelOn->getTall()) / 2 );
-
-		pLabelOff->setPos( textwide, (tall - pLabelOff->getTall()) / 2 );
-
-		// Set text color to orange
-		setFgColor(Scheme::sc_primary1);
-	}
-
-	virtual void paintBackground()
-	{
-		if ( isArmed())
-		{
-			drawSetColor( 143,143, 54, 125 );
-			drawFilledRect( 5, 0,_size[0] - 5,_size[1]);
-		}
-	}
-
-	virtual void paint()
-	{
-
-		if ( isArmed() )
-		{
-			setFgColor( 194, 202, 54, 0 );
-		}
-		else
-		{
-			setFgColor( 143, 143, 54, 15 );
-		}
-
-			if ( !m_cvar )
-		{
-			pLabelOff->setVisible(false);
-			pLabelOn->setVisible(false);
-		}
-		else if ( m_cvar->value )
-		{
-			pLabelOff->setVisible(false);
-			pLabelOn->setVisible(true);
-		}
-		else
-		{
-			pLabelOff->setVisible(true);
-			pLabelOn->setVisible(false);
-		}
-
-		Button::paint();
-	}
-};
-*/
-//============================================================
+// ============================================================
 // Panel that can be dragged around
 class DragNDropPanel: public Panel
 	{
@@ -1432,7 +1353,7 @@ class DragNDropPanel: public Panel
 			}
 	};
 
-//================================================================
+// ================================================================
 // Panel that draws itself with a transparent black background
 class CTransparentPanel: public Panel
 	{
@@ -1455,7 +1376,7 @@ class CTransparentPanel: public Panel
 			}
 	};
 
-//================================================================
+// ================================================================
 // Menu Panel that supports buffering of menus
 class CMenuPanel: public CTransparentPanel
 	{
@@ -1533,7 +1454,7 @@ class CMenuPanel: public CTransparentPanel
 		virtual void SetActiveInfo (int iInput) {};
 	};
 
-//================================================================
+// ================================================================
 // Custom drawn scroll bars
 class CTFScrollButton: public CommandButton
 	{
@@ -1565,9 +1486,9 @@ class CTFScrollPanel: public ScrollPanel
 		CTFScrollPanel (int x, int y, int wide, int tall);
 	};
 
-//================================================================
+// ================================================================
 // Menu Panels that take key input
-//============================================================
+// ============================================================
 class CClassMenuPanel: public CMenuPanel
 	{
 	private:
@@ -1633,7 +1554,7 @@ class CTeamMenuPanel: public CMenuPanel
 			}
 	};
 
-//=========================================================
+// =========================================================
 // Specific Menus to handle old HUD sections
 class CHealthPanel: public DragNDropPanel
 	{
@@ -1654,11 +1575,6 @@ class CHealthPanel: public DragNDropPanel
 			m_pHealthLabel = new Label ("", 0, 0, iXSize, iYSize);
 			m_pHealthLabel->setImage (m_pHealthTGA);
 			m_pHealthLabel->setParent (this);
-
-			// Set panel dimension
-			// Shouldn't be needed once Billy's fized setImage not recalculating the size
-			//setSize( iXSize + 100, gHUD.m_iFontHeight + 10 );
-			//m_pHealthLabel->setPos( 10, (getTall() - iYSize) / 2 );
 			}
 
 		virtual void paintBackground ()

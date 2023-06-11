@@ -41,8 +41,8 @@ LINK_ENTITY_TO_CLASS (weapon_9mmAR, CMP5);
 LINK_ENTITY_TO_CLASS (weapon_mp5k, CMP5);	// ESHQ: поддержка AOMDC
 LINK_ENTITY_TO_CLASS (weapon_uzi, CMP5);
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CMP5::SecondaryAmmoIndex (void)
 	{
 	return m_iSecondaryAmmoType;

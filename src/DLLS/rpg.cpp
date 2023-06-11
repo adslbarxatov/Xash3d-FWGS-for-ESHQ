@@ -42,8 +42,8 @@ LINK_ENTITY_TO_CLASS (weapon_rpg, CRpg);
 
 LINK_ENTITY_TO_CLASS (laser_spot, CLaserSpot);
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 CLaserSpot* CLaserSpot::CreateSpot (edict_t* pOwner)
 	{
 	CLaserSpot* pSpot = GetClassPtr ((CLaserSpot*)NULL);
@@ -62,8 +62,8 @@ CLaserSpot* CLaserSpot::CreateSpot (edict_t* pOwner)
 	return pSpot;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CLaserSpot::Spawn (void)
 	{
 	Precache ();
@@ -78,9 +78,9 @@ void CLaserSpot::Spawn (void)
 	UTIL_SetOrigin (pev, pev->origin);
 	};
 
-//=========================================================
-// Suspend- make the laser sight invisible. 
-//=========================================================
+// =========================================================
+// Suspend- make the laser sight invisible
+// =========================================================
 void CLaserSpot::Suspend (float flSuspendTime)
 	{
 	pev->effects |= EF_NODRAW;
@@ -92,9 +92,9 @@ void CLaserSpot::Suspend (float flSuspendTime)
 	pev->nextthink = gpGlobals->time + flSuspendTime;
 	}
 
-//=========================================================
+// =========================================================
 // Revive - bring a suspended laser sight back
-//=========================================================
+// =========================================================
 void CLaserSpot::Revive (void)
 	{
 	pev->effects &= ~EF_NODRAW;
@@ -121,8 +121,8 @@ void CLaserSpot::Precache (void)
 
 LINK_ENTITY_TO_CLASS (rpg_rocket, CRpgRocket);
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 CRpgRocket* CRpgRocket::CreateRpgRocket (Vector vecOrigin, Vector vecAngles, CBaseEntity* pOwner, CRpg* pLauncher)
 	{
 	CRpgRocket* pRocket = GetClassPtr ((CRpgRocket*)NULL);
@@ -138,7 +138,7 @@ CRpgRocket* CRpgRocket::CreateRpgRocket (Vector vecOrigin, Vector vecAngles, CBa
 	return pRocket;
 	}
 
-//=========================================================
+// =========================================================
 void CRpgRocket::Spawn (void)
 	{
 	Precache ();
@@ -167,8 +167,8 @@ void CRpgRocket::Spawn (void)
 	pev->dmg = gSkillData.plrDmgRPG;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CRpgRocket::RocketTouch (CBaseEntity* pOther)
 	{
 	// my launcher is still around, tell it I'm dead
@@ -179,8 +179,8 @@ void CRpgRocket::RocketTouch (CBaseEntity* pOther)
 	ExplodeTouch (pOther);
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CRpgRocket::Precache (void)
 	{
 	PRECACHE_MODEL ("models/rpgrocket.mdl");

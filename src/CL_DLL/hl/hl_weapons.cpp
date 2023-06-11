@@ -89,13 +89,13 @@ void AlertMessage (ALERT_TYPE atype, char* szFmt, ...)
 	gEngfuncs.Con_Printf (string);
 	}
 
-//Returns if it's multiplayer.
-//Mostly used by the client side weapons.
+// Returns if it's multiplayer.
+// Mostly used by the client side weapons
 bool bIsMultiplayer (void)
 	{
 	return gEngfuncs.GetMaxClients () == 1 ? 0 : 1;
 	}
-//Just loads a v_ model.
+// Just loads a v_ model
 void LoadVModel (char* szViewModel, CBasePlayer* m_pPlayer)
 	{
 	gEngfuncs.CL_LoadModel (szViewModel, &m_pPlayer->pev->viewmodel);
@@ -159,7 +159,7 @@ BOOL CBasePlayerWeapon::DefaultReload (int iClipSize, int iAnim, float fDelay, i
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + fDelay;
 
-	//!!UNDONE -- reload sound goes here !!!
+	// !!UNDONE -- reload sound goes here !!!
 	SendWeaponAnim (iAnim, UseDecrement (), body);
 
 	m_fInReload = TRUE;
@@ -802,7 +802,6 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 
 		pCurrent->m_fInReload = pfrom->m_fInReload;
 		pCurrent->m_fInSpecialReload = pfrom->m_fInSpecialReload;
-		//		pCurrent->m_flPumpTime			= pfrom->m_flPumpTime;
 		pCurrent->m_iClip = pfrom->m_iClip;
 		pCurrent->m_flNextPrimaryAttack = pfrom->m_flNextPrimaryAttack;
 		pCurrent->m_flNextSecondaryAttack = pfrom->m_flNextSecondaryAttack;
@@ -855,11 +854,11 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 	player.m_flNextAmmoBurn = from->client.fuser2;
 	player.m_flAmmoStartCharge = from->client.fuser3;
 
-	//Stores all our ammo info, so the client side weapons can use them.
+	// Stores all our ammo info, so the client side weapons can use them
 	player.ammo_9mm = (int)from->client.vuser1[0];
 	player.ammo_357 = (int)from->client.vuser1[1];
 	player.ammo_argrens = (int)from->client.vuser1[2];
-	player.ammo_bolts = (int)from->client.ammo_nails; //is an int anyways...
+	player.ammo_bolts = (int)from->client.ammo_nails;	// is an int anyways...
 	player.ammo_buckshot = (int)from->client.ammo_shells;
 	player.ammo_uranium = (int)from->client.ammo_cells;
 	player.ammo_hornets = (int)from->client.vuser2[0];
@@ -929,7 +928,7 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 	to->client.fuser3 = player.m_flAmmoStartCharge;
 	to->client.maxspeed = player.pev->maxspeed;
 
-	//HL Weapons
+	// HL Weapons
 	to->client.vuser1[0] = player.ammo_9mm;
 	to->client.vuser1[1] = player.ammo_357;
 	to->client.vuser1[2] = player.ammo_argrens;
@@ -952,11 +951,11 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 		{
 		int body = 2;
 
-		//Pop the model to body 0.
+		// Pop the model to body 0
 		if (pWeapon == &g_Tripmine)
 			body = 0;
 
-		//Show laser sight/scope combo
+		// Show laser sight/scope combo
 		if (pWeapon == &g_Python && bIsMultiplayer ())
 			body = 1;
 
@@ -978,7 +977,6 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 
 		pto->m_fInReload = pCurrent->m_fInReload;
 		pto->m_fInSpecialReload = pCurrent->m_fInSpecialReload;
-		//		pto->m_flPumpTime				= pCurrent->m_flPumpTime;
 		pto->m_iClip = pCurrent->m_iClip;
 		pto->m_flNextPrimaryAttack = pCurrent->m_flNextPrimaryAttack;
 		pto->m_flNextSecondaryAttack = pCurrent->m_flNextSecondaryAttack;
@@ -990,7 +988,7 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 		pto->iuser2 = pCurrent->m_fInAttack;
 		pto->iuser3 = pCurrent->m_fireState;
 
-		// Decrement weapon counters, server does this at same time ( during post think, after doing everything else )
+		// Decrement weapon counters, server does this at same time (during post think, after doing everything else)
 		pto->m_flNextReload -= cmd->msec / 1000.0;
 		pto->m_fNextAimBonus -= cmd->msec / 1000.0;
 		pto->m_flNextPrimaryAttack -= cmd->msec / 1000.0;

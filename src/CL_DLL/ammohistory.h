@@ -44,7 +44,7 @@ class WeaponsResource
 			memset (riAmmo, 0, sizeof riAmmo);
 			}
 
-		///// WEAPON /////
+		// WEAPON
 		int			iOldWeaponBits;
 
 		WEAPON* GetWeapon (int iId) { return &rgWeapons[iId]; }
@@ -83,7 +83,7 @@ class WeaponsResource
 
 		int HasAmmo (WEAPON* p);
 
-		///// AMMO /////
+		// AMMO
 		AMMO GetAmmo (int iId) { return iId; }
 
 		void SetAmmo (int iId, int iCount) { riAmmo[iId] = iCount; }

@@ -1,4 +1,4 @@
-//=========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
+// =========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
 //
 // The copyright to the contents herein is the property of Valve, L.L.C.
 // The contents may be used and/or copied only with the written permission of
@@ -10,11 +10,11 @@
 // $Workfile:     $
 // $Date:         $
 //
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // $Log: $
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include "VGUI_Font.h"
 #include "VGUI_ScrollPanel.h"
@@ -40,31 +40,34 @@
 #define MOTD_WINDOW_SIZE_X			XRES(424)
 #define MOTD_WINDOW_SIZE_Y			YRES(312)
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Displays the MOTD and basic server information
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 class CMessageWindowPanel: public CMenuPanel
 	{
 	public:
-		CMessageWindowPanel (const char* szMOTD, const char* szTitle, int iShadeFullScreen, int iRemoveMe, int x, int y, int wide, int tall);
+		CMessageWindowPanel (const char* szMOTD, const char* szTitle, int iShadeFullScreen, int iRemoveMe,
+			int x, int y, int wide, int tall);
 
 	private:
 		CTransparentPanel* m_pBackgroundPanel;
 	};
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Creates a new CMessageWindowPanel
 // Output : CMenuPanel - interface to the panel
-//-----------------------------------------------------------------------------
-CMenuPanel* CMessageWindowPanel_Create (const char* szMOTD, const char* szTitle, int iShadeFullscreen, int iRemoveMe, int x, int y, int wide, int tall)
+// -----------------------------------------------------------------------------
+CMenuPanel* CMessageWindowPanel_Create (const char* szMOTD, const char* szTitle, int iShadeFullscreen,
+	int iRemoveMe, int x, int y, int wide, int tall)
 	{
 	return new CMessageWindowPanel (szMOTD, szTitle, iShadeFullscreen, iRemoveMe, x, y, wide, tall);
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Constructs a message panel
-//-----------------------------------------------------------------------------
-CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitle, int iShadeFullscreen, int iRemoveMe, int x, int y, int wide, int tall): CMenuPanel (iShadeFullscreen ? 100 : 255, iRemoveMe, x, y, wide, tall)
+// -----------------------------------------------------------------------------
+CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitle, int iShadeFullscreen,
+	int iRemoveMe, int x, int y, int wide, int tall): CMenuPanel (iShadeFullscreen ? 100 : 255, iRemoveMe, x, y, wide, tall)
 	{
 	// Get the scheme used for the Titles
 	CSchemeManager* pSchemes = gViewPort->GetSchemeManager ();
@@ -101,10 +104,11 @@ CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitl
 	pLabel->setText (szTitle);
 
 	// Create the Scroll panel
-	ScrollPanel* pScrollPanel = new CTFScrollPanel (iXPos + XRES (16), iYPos + MOTD_TITLE_Y * 2 + YRES (16), iXSize - XRES (32), iYSize - (YRES (48) + BUTTON_SIZE_Y * 2));
+	ScrollPanel* pScrollPanel = new CTFScrollPanel (iXPos + XRES (16), iYPos + MOTD_TITLE_Y * 2 + YRES (16),
+		iXSize - XRES (32), iYSize - (YRES (48) + BUTTON_SIZE_Y * 2));
 	pScrollPanel->setParent (this);
 
-	//force the scrollbars on so clientClip will take them in account after the validate
+	// force the scrollbars on so clientClip will take them in account after the validate
 	pScrollPanel->setScrollBarAutoVisible (false, false);
 	pScrollPanel->setScrollBarVisible (true, true);
 	pScrollPanel->validate ();
@@ -134,13 +138,14 @@ CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitl
 	// Now resize the textpanel to fit the scrolled size
 	pText->setSize (iScrollSizeX, iScrollSizeY);
 
-	//turn the scrollbars back into automode
+	// turn the scrollbars back into automode
 	pScrollPanel->setScrollBarAutoVisible (true, true);
 	pScrollPanel->setScrollBarVisible (false, false);
 
 	pScrollPanel->validate ();
 
-	CommandButton* pButton = new CommandButton (CHudTextMessage::BufferedLocaliseTextString ("#Menu_OK"), iXPos + XRES (16), iYPos + iYSize - YRES (16) - BUTTON_SIZE_Y, CMENU_SIZE_X, BUTTON_SIZE_Y);
+	CommandButton* pButton = new CommandButton (CHudTextMessage::BufferedLocaliseTextString ("#Menu_OK"),
+		iXPos + XRES (16), iYPos + iYSize - YRES (16) - BUTTON_SIZE_Y, CMENU_SIZE_X, BUTTON_SIZE_Y);
 	pButton->addActionSignal (new CMenuHandler_TextWindow (HIDE_TEXTWINDOW));
 	pButton->setParent (this);
 	}

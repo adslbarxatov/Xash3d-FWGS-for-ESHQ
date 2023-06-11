@@ -82,13 +82,11 @@ cvar_t* cl_lw = NULL;
 
 void ShutdownInput (void);
 
-//DECLARE_MESSAGE(m_Logo, Logo)
 int __MsgFunc_Logo (const char* pszName, int iSize, void* pbuf)
 	{
 	return gHUD.MsgFunc_Logo (pszName, iSize, pbuf);
 	}
 
-//DECLARE_MESSAGE(m_Logo, Logo)
 int __MsgFunc_ResetHUD (const char* pszName, int iSize, void* pbuf)
 	{
 	return gHUD.MsgFunc_ResetHUD (pszName, iSize, pbuf);
@@ -634,7 +632,7 @@ int CHud::MsgFunc_SetFOV (const char* pszName, int iSize, void* pbuf)
 	int newfov = READ_BYTE ();
 	int def_fov = CVAR_GET_FLOAT ("default_fov");
 
-	//Weapon prediction already takes care of changing the fog. ( g_lastFOV ).
+	// Weapon prediction already takes care of changing the fog (g_lastFOV)
 	if (cl_lw && cl_lw->value)
 		return 1;
 
@@ -669,8 +667,6 @@ int CHud::MsgFunc_SetFOV (const char* pszName, int iSize, void* pbuf)
 void CHud::AddHudElem (CHudBase* phudelem)
 	{
 	HUDLIST* pdl, * ptemp;
-
-	//phudelem->Think();
 
 	if (!phudelem)
 		return;

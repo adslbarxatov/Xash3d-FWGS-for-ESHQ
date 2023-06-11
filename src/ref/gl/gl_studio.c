@@ -952,7 +952,6 @@ void R_StudioSetupBones (cl_entity_t *e)
 		s = (e->curstate.blending[0] * dadt + e->latched.prevblending[0] * (1.0f - dadt)) / 255.0f;
 
 		// [FWGS, 01.04.23]
-		//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q2, pos2, s);
 		R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q2, pos2, s);
 
 		if (pseqdesc->numblends == 4)
@@ -965,11 +964,9 @@ void R_StudioSetupBones (cl_entity_t *e)
 
 			// [FWGS, 01.04.23]
 			s = (e->curstate.blending[0] * dadt + e->latched.prevblending[0] * (1.0f - dadt)) / 255.0f;
-			//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
 			R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
 
 			s = (e->curstate.blending[1] * dadt + e->latched.prevblending[1] * (1.0f - dadt)) / 255.0f;
-			//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q3, pos3, s);
 			R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q3, pos3, s);
 			}
 		}
@@ -995,7 +992,6 @@ void R_StudioSetupBones (cl_entity_t *e)
 
 			// [FWGS, 01.04.23]
 			s = (e->latched.prevseqblending[0]) / 255.0f;
-			//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q2, pos2, s);
 			R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q2, pos2, s);
 
 			if (pseqdesc->numblends == 4)
@@ -1008,18 +1004,15 @@ void R_StudioSetupBones (cl_entity_t *e)
 
 				// [FWGS, 01.04.23]
 				s = (e->latched.prevseqblending[0]) / 255.0f;
-				//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
 				R_StudioSlerpBones (m_pStudioHeader->numbones, q3, pos3, q4, pos4, s);
 
 				s = (e->latched.prevseqblending[1]) / 255.0f;
-				//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q3, pos3, s);
 				R_StudioSlerpBones (m_pStudioHeader->numbones, q1b, pos1b, q3, pos3, s);
 				}
 			}
 
 		// [FWGS, 01.04.23]
 		s = 1.0f - (g_studio.time - e->latched.sequencetime) / 0.2f;
-		//gEngfuncs.R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q1b, pos1b, s);
 		R_StudioSlerpBones (m_pStudioHeader->numbones, q, pos, q1b, pos1b, s);
 		}
 	else
@@ -3787,7 +3780,6 @@ static void R_StudioLoadTexture (model_t *mod, studiohdr_t *phdr, mstudiotexture
 		SetBits (flags, TF_NOMIPMAP);
 
 	// NOTE: replace index with pointer to start of imagebuffer, ImageLib expected it
-	//ptexture->index = (int)((byte *)phdr) + ptexture->index;
 	gEngfuncs.Image_SetMDLPointer ((byte *)phdr + ptexture->index);
 	size = sizeof (mstudiotexture_t) + ptexture->width * ptexture->height + 768;
 

@@ -287,7 +287,6 @@ void Mod_LoadMapSprite (model_t *mod, const void *buffer, size_t size, qboolean 
 	numframes = (pix->width * pix->height) / (w * h);
 	
 	// [FWGS, 01.04.23]
-	//mod->mempool = Mem_AllocPool (va ("^2%s^7", mod->name));
 	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
 	mod->mempool = Mem_AllocPool (poolname);
 

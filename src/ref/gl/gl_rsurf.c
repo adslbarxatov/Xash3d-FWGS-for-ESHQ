@@ -186,13 +186,13 @@ static void SubdividePolygon_r (msurface_t *warpface, int numverts, float *verts
 			s -= warpinfo->lightmapmins[0];
 			s += warpface->light_s * sample_size;
 			s += sample_size * 0.5f;
-			s /= BLOCK_SIZE * sample_size; //fa->texinfo->texture->width;
+			s /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->width;
 
 			t = DotProduct (verts, warpinfo->lmvecs[1]) + warpinfo->lmvecs[1][3];
 			t -= warpinfo->lightmapmins[1];
 			t += warpface->light_t * sample_size;
 			t += sample_size * 0.5f;
-			t /= BLOCK_SIZE * sample_size; //fa->texinfo->texture->height;
+			t /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->height;
 
 			poly->verts[i][5] = s;
 			poly->verts[i][6] = t;
@@ -342,13 +342,13 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 		s -= info->lightmapmins[0];
 		s += fa->light_s * sample_size;
 		s += sample_size * 0.5f;
-		s /= BLOCK_SIZE * sample_size; //fa->texinfo->texture->width;
+		s /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->width;
 
 		t = DotProduct (vec, info->lmvecs[1]) + info->lmvecs[1][3];
 		t -= info->lightmapmins[1];
 		t += fa->light_t * sample_size;
 		t += sample_size * 0.5f;
-		t /= BLOCK_SIZE * sample_size; //fa->texinfo->texture->height;
+		t /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->height;
 
 		poly->verts[i][5] = s;
 		poly->verts[i][6] = t;
@@ -1683,7 +1683,6 @@ Store index base for every surface (vbosurfdata_t) to build index arrays
 For each texture build index arrays (vbotexture_t) every frame.
 */
 // vertex attribs
-//#define NO_TEXTURE_MATRIX // need debug
 typedef struct vbovertex_s
 	{
 	vec3_t pos;
@@ -2281,13 +2280,14 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 		else
 #endif
 			pglDrawElements (GL_LINES, vbotex->curindex, GL_UNSIGNED_SHORT, vbotex->indexarray);
+
 		pglEnable (GL_DEPTH_TEST);
 		pglEnable (GL_TEXTURE_2D);
 		GL_SelectTexture (XASH_TEXTURE1);
 		pglEnable (GL_TEXTURE_2D);
 		R_SetDecalMode (false);
 		}
-	//Msg( "%d %d %d\n", vbo->array_len, vbotex->len, lightmap );
+
 	if (skiplighting)
 		{
 		vbotex->curindex = 0;
@@ -2517,7 +2517,6 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 				vbos.decal_numverts[decalcount] = numVerts;
 				decalcount++;
 				}
-			//info->dlight_s = info->dlight_t = 0;
 			}
 
 		if (dlightindex)
@@ -2942,7 +2941,6 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 			{
 			smax = Q_min (smax, 132);
 			tmax = Q_min (tmax, 132);
-			//Host_MapDesignError( "R_RenderBrushPoly: bad surface extents: %d %d", fa->extents[0], fa->extents[1] );
 			memset (temp, 255, sizeof (temp));
 			}
 
@@ -3323,7 +3321,6 @@ void R_DrawWorld (void)
 	RI.currententity = gEngfuncs.GetEntityByIndex (0);
 	
 	// [FWGS, 01.04.23]
-	//RI.currentmodel = RI.currententity->model;
 	if (!RI.currententity)
 		return;
 

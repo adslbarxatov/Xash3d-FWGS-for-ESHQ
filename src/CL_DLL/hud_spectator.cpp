@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include "hud.h"
 #include "cl_util.h"
@@ -128,9 +128,9 @@ void ToggleScores (void)
 		}
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 int CHudSpectator::Init ()
 	{
 	gHUD.AddHudElem (this);
@@ -168,10 +168,9 @@ int CHudSpectator::Init ()
 	}
 
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // UTIL_StringToVector originally from ..\dlls\util.cpp, slightly changed
-//-----------------------------------------------------------------------------
-
+// -----------------------------------------------------------------------------
 void UTIL_StringToVector (float* pVector, const char* pString)
 	{
 	char* pstr, * pfront, tempString[128];
@@ -324,11 +323,10 @@ int UTIL_FindEntityInMap (char* name, float* origin, float* angle)
 
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // SetSpectatorStartPosition(): 
 // Get valid map position and 'beam' spectator to this position
-//-----------------------------------------------------------------------------
-
+// -----------------------------------------------------------------------------
 void CHudSpectator::SetSpectatorStartPosition ()
 	{
 	// search for info_player start
@@ -356,9 +354,9 @@ void CHudSpectator::SetSpectatorStartPosition ()
 	iJumpSpectator = 1;	// jump anyway
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Loads new icons
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 int CHudSpectator::VidInit ()
 	{
 	m_hsprPlayer = SPR_Load ("sprites/iplayer.spr");
@@ -373,11 +371,11 @@ int CHudSpectator::VidInit ()
 	return 1;
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: 
 // Input  : flTime - 
-//			intermission - 
-//-----------------------------------------------------------------------------
+// 			intermission - 
+// -----------------------------------------------------------------------------
 int CHudSpectator::Draw (float flTime)
 	{
 	int lx;
@@ -594,8 +592,7 @@ void CHudSpectator::DirectorMessage (int iSize, void* pbuf)
 void CHudSpectator::FindNextPlayer (bool bReverse)
 	{
 	// MOD AUTHORS: Modify the logic of this function if you want to restrict the observer to watching
-	//				only a subset of the players. e.g. Make it check the target's team.
-
+	// only a subset of the players. e.g. Make it check the target's team
 	int		iStart;
 	cl_entity_t* pEnt = NULL;
 
@@ -669,11 +666,10 @@ void CHudSpectator::HandleButtonsDown (int ButtonPressed)
 	int newMainMode = g_iUser1;
 	int newInsetMode = m_pip->value;
 
-	// gEngfuncs.Con_Printf(" HandleButtons:%i\n", ButtonPressed );
 	if (!gViewPort)
 		return;
 
-	//Not in intermission.
+	// Not in intermission
 	if (gHUD.m_iIntermission)
 		return;
 

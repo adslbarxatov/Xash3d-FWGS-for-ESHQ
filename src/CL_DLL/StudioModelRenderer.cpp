@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // studio_model.cpp
 // routines for setting up to draw 3DStudio models
@@ -32,12 +32,12 @@
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
 
-/////////////////////
+// ========================================
 // Implementation of CStudioModelRenderer.h
 #define LEGS_BONES_COUNT	8
 
 // enumerate all the bones that used for gait animation
-const char* legs_bones[] =
+const char *legs_bones[] =
 	{
 	{ "Bip01" },
 	{ "Bip01 Pelvis" },
@@ -115,13 +115,13 @@ CStudioModelRenderer::~CStudioModelRenderer (void)
 StudioCalcBoneAdj
 ====================
 */
-void CStudioModelRenderer::StudioCalcBoneAdj (float dadt, float* adj, const byte* pcontroller1, const byte* pcontroller2, byte mouthopen)
+void CStudioModelRenderer::StudioCalcBoneAdj (float dadt, float *adj, const byte *pcontroller1, const byte *pcontroller2, byte mouthopen)
 	{
 	int					i, j;
 	float				value;
-	mstudiobonecontroller_t* pbonecontroller;
+	mstudiobonecontroller_t *pbonecontroller;
 
-	pbonecontroller = (mstudiobonecontroller_t*)((byte*)m_pStudioHeader + m_pStudioHeader->bonecontrollerindex);
+	pbonecontroller = (mstudiobonecontroller_t *)((byte *)m_pStudioHeader + m_pStudioHeader->bonecontrollerindex);
 
 	for (j = 0; j < m_pStudioHeader->numbonecontrollers; j++)
 		{
@@ -180,12 +180,12 @@ void CStudioModelRenderer::StudioCalcBoneAdj (float dadt, float* adj, const byte
 StudioCalcBoneQuaterion
 ====================
 */
-void CStudioModelRenderer::StudioCalcBoneQuaterion (int frame, float s, mstudiobone_t* pbone, mstudioanim_t* panim, float* adj, float* q)
+void CStudioModelRenderer::StudioCalcBoneQuaterion (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, float *q)
 	{
 	int					j, k;
 	vec4_t				q1, q2;
 	vec3_t				angle1, angle2;
-	mstudioanimvalue_t* panimvalue;
+	mstudioanimvalue_t *panimvalue;
 
 	for (j = 0; j < 3; j++)
 		{
@@ -195,7 +195,7 @@ void CStudioModelRenderer::StudioCalcBoneQuaterion (int frame, float s, mstudiob
 			}
 		else
 			{
-			panimvalue = (mstudioanimvalue_t*)((byte*)panim + panim->offset[j + 3]);
+			panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[j + 3]);
 			k = frame;
 			// DEBUG
 			if (panimvalue->num.total < panimvalue->num.valid)
@@ -265,17 +265,17 @@ void CStudioModelRenderer::StudioCalcBoneQuaterion (int frame, float s, mstudiob
 StudioCalcBonePosition
 ====================
 */
-void CStudioModelRenderer::StudioCalcBonePosition (int frame, float s, mstudiobone_t* pbone, mstudioanim_t* panim, float* adj, float* pos)
+void CStudioModelRenderer::StudioCalcBonePosition (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, float *pos)
 	{
 	int					j, k;
-	mstudioanimvalue_t* panimvalue;
+	mstudioanimvalue_t *panimvalue;
 
 	for (j = 0; j < 3; j++)
 		{
 		pos[j] = pbone->value[j]; // default;
 		if (panim->offset[j] != 0)
 			{
-			panimvalue = (mstudioanimvalue_t*)((byte*)panim + panim->offset[j]);
+			panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[j]);
 
 			k = frame;
 			// DEBUG
@@ -357,32 +357,32 @@ void CStudioModelRenderer::StudioSlerpBones (vec4_t q1[], float pos1[][3], vec4_
 StudioGetAnim
 ====================
 */
-mstudioanim_t* CStudioModelRenderer::StudioGetAnim (model_t* m_pSubModel, mstudioseqdesc_t* pseqdesc)
+mstudioanim_t *CStudioModelRenderer::StudioGetAnim (model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc)
 	{
-	mstudioseqgroup_t* pseqgroup;
-	cache_user_t* paSequences;
+	mstudioseqgroup_t *pseqgroup;
+	cache_user_t *paSequences;
 
-	pseqgroup = (mstudioseqgroup_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqgroupindex) + pseqdesc->seqgroup;
+	pseqgroup = (mstudioseqgroup_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqgroupindex) + pseqdesc->seqgroup;
 
 	if (pseqdesc->seqgroup == 0)
 		{
-		return (mstudioanim_t*)((byte*)m_pStudioHeader + pseqgroup->unused2 + pseqdesc->animindex);	// FWGS
+		return (mstudioanim_t *)((byte *)m_pStudioHeader + pseqgroup->unused2 + pseqdesc->animindex);	// FWGS
 		}
 
-	paSequences = (cache_user_t*)m_pSubModel->submodels;
+	paSequences = (cache_user_t *)m_pSubModel->submodels;
 
 	if (paSequences == NULL)
 		{
-		paSequences = (cache_user_t*)IEngineStudio.Mem_Calloc (16, sizeof (cache_user_t)); // UNDONE: leak!
-		m_pSubModel->submodels = (dmodel_t*)paSequences;
+		paSequences = (cache_user_t *)IEngineStudio.Mem_Calloc (16, sizeof (cache_user_t)); // UNDONE: leak!
+		m_pSubModel->submodels = (dmodel_t *)paSequences;
 		}
 
-	if (!IEngineStudio.Cache_Check ((struct cache_user_s*)&(paSequences[pseqdesc->seqgroup])))
+	if (!IEngineStudio.Cache_Check ((struct cache_user_s *)&(paSequences[pseqdesc->seqgroup])))
 		{
 		gEngfuncs.Con_DPrintf ("loading %s\n", pseqgroup->name);
-		IEngineStudio.LoadCacheFile (pseqgroup->name, (struct cache_user_s*)&paSequences[pseqdesc->seqgroup]);
+		IEngineStudio.LoadCacheFile (pseqgroup->name, (struct cache_user_s *)&paSequences[pseqdesc->seqgroup]);
 		}
-	return (mstudioanim_t*)((byte*)paSequences[pseqdesc->seqgroup].data + pseqdesc->animindex);
+	return (mstudioanim_t *)((byte *)paSequences[pseqdesc->seqgroup].data + pseqdesc->animindex);
 	}
 
 /*
@@ -390,7 +390,7 @@ mstudioanim_t* CStudioModelRenderer::StudioGetAnim (model_t* m_pSubModel, mstudi
 StudioPlayerBlend
 ====================
 */
-void CStudioModelRenderer::StudioPlayerBlend (mstudioseqdesc_t* pseqdesc, int* pBlend, float* pPitch)
+void CStudioModelRenderer::StudioPlayerBlend (mstudioseqdesc_t *pseqdesc, int *pBlend, float *pPitch)
 	{
 	// calc up/down pointing
 	*pBlend = (*pPitch * 3);
@@ -426,9 +426,6 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 	vec3_t			modelpos;
 
 	// tweek model origin	
-		//for (i = 0; i < 3; i++)
-		//	modelpos[i] = m_pCurrentEntity->origin[i];
-
 	VectorCopy (m_pCurrentEntity->origin, modelpos);
 
 	// TODO: should really be stored with the entity instead of being reconstructed
@@ -438,23 +435,20 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 	angles[PITCH] = m_pCurrentEntity->curstate.angles[PITCH];
 	angles[YAW] = m_pCurrentEntity->curstate.angles[YAW];
 
-	//Con_DPrintf("Angles %4.2f prev %4.2f for %i\n", angles[PITCH], m_pCurrentEntity->index);
-	//Con_DPrintf("movetype %d %d\n", m_pCurrentEntity->movetype, m_pCurrentEntity->aiment );
 	if (m_pCurrentEntity->curstate.movetype == MOVETYPE_STEP)
 		{
-		float			f = 0;
-		float			d;
+		float	f = 0;
+		float	d;
 
 		// don't do it if the goalstarttime hasn't updated in a while.
 
 		// NOTE:  Because we need to interpolate multiplayer characters, the interpolation time limit
-		//  was increased to 1.0 s., which is 2x the max lag we are accounting for.
+		// was increased to 1.0 s., which is 2x the max lag we are accounting for
 
 		if ((m_clTime < m_pCurrentEntity->curstate.animtime + 1.0f) &&
 			(m_pCurrentEntity->curstate.animtime != m_pCurrentEntity->latched.prevanimtime))
 			{
 			f = (m_clTime - m_pCurrentEntity->curstate.animtime) / (m_pCurrentEntity->curstate.animtime - m_pCurrentEntity->latched.prevanimtime);
-			//Con_DPrintf("%4.2f %.2f %.2f\n", f, m_pCurrentEntity->curstate.animtime, m_clTime);
 			}
 
 		if (m_fDoInterp)
@@ -472,11 +466,7 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 			modelpos[i] += (m_pCurrentEntity->origin[i] - m_pCurrentEntity->latched.prevorigin[i]) * f;
 			}
 
-		// NOTE:  Because multiplayer lag can be relatively large, we don't want to cap
-		//  f at 1.5 anymore.
-		//if (f > -1.0 && f < 1.5) {}
-
-//			Con_DPrintf("%.0f %.0f\n",m_pCurrentEntity->msg_angles[0][YAW], m_pCurrentEntity->msg_angles[1][YAW] );
+		// NOTE:  Because multiplayer lag can be relatively large, we don't want to cap f at 1.5 anymore
 		for (i = 0; i < 3; i++)
 			{
 			float ang1, ang2;
@@ -496,15 +486,11 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 
 			angles[i] += d * f;
 			}
-		//Con_DPrintf("%.3f \n", f );
 		}
 	else if (m_pCurrentEntity->curstate.movetype != MOVETYPE_NONE)
 		{
 		VectorCopy (m_pCurrentEntity->angles, angles);
 		}
-
-	//Con_DPrintf("%.0f %0.f %0.f\n", modelpos[0], modelpos[1], modelpos[2] );
-	//Con_DPrintf("%.0f %0.f %0.f\n", angles[0], angles[1], angles[2] );
 
 	angles[PITCH] = -angles[PITCH];
 	AngleMatrix (angles, (*m_protationmatrix));
@@ -575,11 +561,11 @@ StudioCalcRotations
 
 ====================
 */
-void CStudioModelRenderer::StudioCalcRotations (float pos[][3], vec4_t* q, mstudioseqdesc_t* pseqdesc, mstudioanim_t* panim, float f)
+void CStudioModelRenderer::StudioCalcRotations (float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc, mstudioanim_t *panim, float f)
 	{
 	int					i;
 	int					frame;
-	mstudiobone_t* pbone;
+	mstudiobone_t *pbone;
 
 	float				s;
 	float				adj[MAXSTUDIOCONTROLLERS];
@@ -607,7 +593,7 @@ void CStudioModelRenderer::StudioCalcRotations (float pos[][3], vec4_t* q, mstud
 	s = (f - frame);
 
 	// add in programtic controllers
-	pbone = (mstudiobone_t*)((byte*)m_pStudioHeader + m_pStudioHeader->boneindex);
+	pbone = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
 
 	StudioCalcBoneAdj (dadt, adj, m_pCurrentEntity->curstate.controller, m_pCurrentEntity->latched.prevcontroller, m_pCurrentEntity->mouth.mouthopen);
 
@@ -616,46 +602,31 @@ void CStudioModelRenderer::StudioCalcRotations (float pos[][3], vec4_t* q, mstud
 		StudioCalcBoneQuaterion (frame, s, pbone, panim, adj, q[i]);
 
 		StudioCalcBonePosition (frame, s, pbone, panim, adj, pos[i]);
-		// if (0 && i == 0)
-		//	Con_DPrintf("%d %d %d %d\n", m_pCurrentEntity->curstate.sequence, frame, j, k );
 		}
 
 	if (pseqdesc->motiontype & STUDIO_X)
-		{
 		pos[pseqdesc->motionbone][0] = 0.0;
-		}
 	if (pseqdesc->motiontype & STUDIO_Y)
-		{
 		pos[pseqdesc->motionbone][1] = 0.0;
-		}
 	if (pseqdesc->motiontype & STUDIO_Z)
-		{
 		pos[pseqdesc->motionbone][2] = 0.0;
-		}
 
 	s = 0 * ((1.0 - (f - (int)(f))) / (pseqdesc->numframes)) * m_pCurrentEntity->curstate.framerate;
 
 	if (pseqdesc->motiontype & STUDIO_LX)
-		{
 		pos[pseqdesc->motionbone][0] += s * pseqdesc->linearmovement[0];
-		}
 	if (pseqdesc->motiontype & STUDIO_LY)
-		{
 		pos[pseqdesc->motionbone][1] += s * pseqdesc->linearmovement[1];
-		}
 	if (pseqdesc->motiontype & STUDIO_LZ)
-		{
 		pos[pseqdesc->motionbone][2] += s * pseqdesc->linearmovement[2];
-		}
 	}
 
 /*
 ====================
 Studio_FxTransform
-
 ====================
 */
-void CStudioModelRenderer::StudioFxTransform (cl_entity_t* ent, float transform[3][4])
+void CStudioModelRenderer::StudioFxTransform (cl_entity_t *ent, float transform[3][4])
 	{
 	switch (ent->curstate.renderfx)
 		{
@@ -699,7 +670,7 @@ void CStudioModelRenderer::StudioFxTransform (cl_entity_t* ent, float transform[
 StudioEstimateFrame
 ====================
 */
-float CStudioModelRenderer::StudioEstimateFrame (mstudioseqdesc_t* pseqdesc)
+float CStudioModelRenderer::StudioEstimateFrame (mstudioseqdesc_t *pseqdesc)
 	{
 	double				dfdt, f;
 
@@ -766,9 +737,9 @@ void CStudioModelRenderer::StudioSetupBones (void)
 	int					i, j;
 	double				f;
 
-	mstudiobone_t* pbones;
-	mstudioseqdesc_t* pseqdesc;
-	mstudioanim_t* panim;
+	mstudiobone_t *pbones;
+	mstudioseqdesc_t *pseqdesc;
+	mstudioanim_t *panim;
 
 	static float		pos[MAXSTUDIOBONES][3];
 	static vec4_t		q[MAXSTUDIOBONES];
@@ -786,13 +757,12 @@ void CStudioModelRenderer::StudioSetupBones (void)
 		m_pCurrentEntity->curstate.sequence = 0;
 		}
 
-	pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->curstate.sequence;
+	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) +
+		m_pCurrentEntity->curstate.sequence;
 
 	f = StudioEstimateFrame (pseqdesc);
-
 	if (m_pCurrentEntity->latched.prevframe > f)
 		{
-		//Con_DPrintf("%f %f\n", m_pCurrentEntity->prevframe, f );
 		}
 
 	panim = StudioGetAnim (m_pRenderModel, pseqdesc);
@@ -837,7 +807,7 @@ void CStudioModelRenderer::StudioSetupBones (void)
 		static vec4_t		q1b[MAXSTUDIOBONES];
 		float				s;
 
-		pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->latched.prevsequence;
+		pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->latched.prevsequence;
 		panim = StudioGetAnim (m_pRenderModel, pseqdesc);
 		// clip prevframe
 		StudioCalcRotations (pos1b, q1b, pseqdesc, panim, m_pCurrentEntity->latched.prevframe);
@@ -871,11 +841,10 @@ void CStudioModelRenderer::StudioSetupBones (void)
 		}
 	else
 		{
-		//Con_DPrintf("prevframe = %4.2f\n", f);
 		m_pCurrentEntity->latched.prevframe = f;
 		}
 
-	pbones = (mstudiobone_t*)((byte*)m_pStudioHeader + m_pStudioHeader->boneindex);
+	pbones = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
 
 	// calc gait animation
 	if (m_pPlayerInfo && m_pPlayerInfo->gaitsequence != 0)
@@ -885,7 +854,7 @@ void CStudioModelRenderer::StudioSetupBones (void)
 			m_pPlayerInfo->gaitsequence = 0;
 			}
 
-		pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pPlayerInfo->gaitsequence;
+		pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pPlayerInfo->gaitsequence;
 
 		panim = StudioGetAnim (m_pRenderModel, pseqdesc);
 		StudioCalcRotations (pos2, q2, pseqdesc, panim, m_pPlayerInfo->gaitframe);
@@ -922,7 +891,6 @@ void CStudioModelRenderer::StudioSetupBones (void)
 				ConcatTransforms ((*m_protationmatrix), bonematrix, (*m_pbonetransform)[i]);
 
 				// MatrixCopy should be faster...
-				//ConcatTransforms ((*m_protationmatrix), bonematrix, (*m_plighttransform)[i]);
 				MatrixCopy ((*m_pbonetransform)[i], (*m_plighttransform)[i]);
 				}
 			else
@@ -951,8 +919,8 @@ void CStudioModelRenderer::StudioSaveBones (void)
 	{
 	int		i;
 
-	mstudiobone_t* pbones;
-	pbones = (mstudiobone_t*)((byte*)m_pStudioHeader + m_pStudioHeader->boneindex);
+	mstudiobone_t *pbones;
+	pbones = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
 
 	m_nCachedBones = m_pStudioHeader->numbones;
 
@@ -969,15 +937,15 @@ void CStudioModelRenderer::StudioSaveBones (void)
 StudioMergeBones
 ====================
 */
-void CStudioModelRenderer::StudioMergeBones (model_t* m_pSubModel)
+void CStudioModelRenderer::StudioMergeBones (model_t *m_pSubModel)
 	{
 	int					i, j;
 	double				f;
 	int					do_hunt = true;
 
-	mstudiobone_t* pbones;
-	mstudioseqdesc_t* pseqdesc;
-	mstudioanim_t* panim;
+	mstudiobone_t *pbones;
+	mstudioseqdesc_t *pseqdesc;
+	mstudioanim_t *panim;
 
 	static float		pos[MAXSTUDIOBONES][3];
 	float				bonematrix[3][4];
@@ -988,19 +956,18 @@ void CStudioModelRenderer::StudioMergeBones (model_t* m_pSubModel)
 		m_pCurrentEntity->curstate.sequence = 0;
 		}
 
-	pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->curstate.sequence;
+	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->curstate.sequence;
 
 	f = StudioEstimateFrame (pseqdesc);
 
 	if (m_pCurrentEntity->latched.prevframe > f)
 		{
-		//Con_DPrintf("%f %f\n", m_pCurrentEntity->prevframe, f );
 		}
 
 	panim = StudioGetAnim (m_pSubModel, pseqdesc);
 	StudioCalcRotations (pos, q, pseqdesc, panim, f);
 
-	pbones = (mstudiobone_t*)((byte*)m_pStudioHeader + m_pStudioHeader->boneindex);
+	pbones = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
 
 
 	for (i = 0; i < m_pStudioHeader->numbones; i++)
@@ -1029,7 +996,6 @@ void CStudioModelRenderer::StudioMergeBones (model_t* m_pSubModel)
 					ConcatTransforms ((*m_protationmatrix), bonematrix, (*m_pbonetransform)[i]);
 
 					// MatrixCopy should be faster...
-					//ConcatTransforms ((*m_protationmatrix), bonematrix, (*m_plighttransform)[i]);
 					MatrixCopy ((*m_pbonetransform)[i], (*m_plighttransform)[i]);
 					}
 				else
@@ -1076,7 +1042,7 @@ int CStudioModelRenderer::StudioDrawModel (int flags)
 			return 0;
 
 		// get copy of player
-		deadplayer = *(IEngineStudio.GetPlayerState (m_pCurrentEntity->curstate.renderamt - 1)); //cl.frames[cl.parsecount & CL_UPDATE_MASK].playerstate[m_pCurrentEntity->curstate.renderamt-1];
+		deadplayer = *(IEngineStudio.GetPlayerState (m_pCurrentEntity->curstate.renderamt - 1));
 
 		// clear weapon, movement state
 		deadplayer.number = m_pCurrentEntity->curstate.renderamt;
@@ -1098,7 +1064,7 @@ int CStudioModelRenderer::StudioDrawModel (int flags)
 		}
 
 	m_pRenderModel = m_pCurrentEntity->model;
-	m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata (m_pRenderModel);
+	m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata (m_pRenderModel);
 	IEngineStudio.StudioSetHeader (m_pStudioHeader);
 	IEngineStudio.SetRenderModel (m_pRenderModel);
 
@@ -1134,7 +1100,7 @@ int CStudioModelRenderer::StudioDrawModel (int flags)
 		// copy attachments into global entity array
 		if (m_pCurrentEntity->index > 0)
 			{
-			cl_entity_t* ent = gEngfuncs.GetEntityByIndex (m_pCurrentEntity->index);
+			cl_entity_t *ent = gEngfuncs.GetEntityByIndex (m_pCurrentEntity->index);
 
 			memcpy (ent->attachment, m_pCurrentEntity->attachment, sizeof (vec3_t) * 4);
 			}
@@ -1167,7 +1133,7 @@ int CStudioModelRenderer::StudioDrawModel (int flags)
 StudioEstimateGait
 ====================
 */
-void CStudioModelRenderer::StudioEstimateGait (entity_state_t* pplayer)
+void CStudioModelRenderer::StudioEstimateGait (entity_state_t *pplayer)
 	{
 	float dt;
 	vec3_t est_velocity;
@@ -1238,9 +1204,9 @@ StudioProcessGait
 
 ====================
 */
-void CStudioModelRenderer::StudioProcessGait (entity_state_t* pplayer)
+void CStudioModelRenderer::StudioProcessGait (entity_state_t *pplayer)
 	{
-	mstudioseqdesc_t* pseqdesc;
+	mstudioseqdesc_t *pseqdesc;
 	float dt;
 	int iBlend;
 	float flYaw;	 // view direction relative to movement
@@ -1250,7 +1216,7 @@ void CStudioModelRenderer::StudioProcessGait (entity_state_t* pplayer)
 		m_pCurrentEntity->curstate.sequence = 0;
 		}
 
-	pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->curstate.sequence;
+	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->curstate.sequence;
 
 	StudioPlayerBlend (pseqdesc, &iBlend, &m_pCurrentEntity->angles[PITCH]);
 
@@ -1312,7 +1278,7 @@ void CStudioModelRenderer::StudioProcessGait (entity_state_t* pplayer)
 		pplayer->gaitsequence = 0;
 		}
 
-	pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + pplayer->gaitsequence;
+	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + pplayer->gaitsequence;
 
 	// calc gait frame
 	if (pseqdesc->linearmovement[0] > 0)
@@ -1335,7 +1301,7 @@ void CStudioModelRenderer::StudioProcessGait (entity_state_t* pplayer)
 StudioDrawPlayer
 ====================
 */
-int CStudioModelRenderer::StudioDrawPlayer (int flags, entity_state_t* pplayer)
+int CStudioModelRenderer::StudioDrawPlayer (int flags, entity_state_t *pplayer)
 	{
 	alight_t lighting;
 	vec3_t dir;
@@ -1360,7 +1326,7 @@ int CStudioModelRenderer::StudioDrawPlayer (int flags, entity_state_t* pplayer)
 	if (m_pRenderModel == NULL)
 		return 0;
 
-	m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata (m_pRenderModel);
+	m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata (m_pRenderModel);
 	IEngineStudio.StudioSetHeader (m_pStudioHeader);
 	IEngineStudio.SetRenderModel (m_pRenderModel);
 
@@ -1423,7 +1389,7 @@ int CStudioModelRenderer::StudioDrawPlayer (int flags, entity_state_t* pplayer)
 		// copy attachments into global entity array
 		if (m_pCurrentEntity->index > 0)
 			{
-			cl_entity_t* ent = gEngfuncs.GetEntityByIndex (m_pCurrentEntity->index);
+			cl_entity_t *ent = gEngfuncs.GetEntityByIndex (m_pCurrentEntity->index);
 
 			memcpy (ent->attachment, m_pCurrentEntity->attachment, sizeof (vec3_t) * 4);
 			}
@@ -1473,9 +1439,9 @@ int CStudioModelRenderer::StudioDrawPlayer (int flags, entity_state_t* pplayer)
 			{
 			cl_entity_t saveent = *m_pCurrentEntity;
 
-			model_t* pweaponmodel = IEngineStudio.GetModelByIndex (pplayer->weaponmodel);
+			model_t *pweaponmodel = IEngineStudio.GetModelByIndex (pplayer->weaponmodel);
 
-			m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata (pweaponmodel);
+			m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata (pweaponmodel);
 			IEngineStudio.StudioSetHeader (m_pStudioHeader);
 
 			StudioMergeBones (pweaponmodel);
@@ -1501,7 +1467,7 @@ StudioCalcAttachments
 void CStudioModelRenderer::StudioCalcAttachments (void)
 	{
 	int i;
-	mstudioattachment_t* pattachment;
+	mstudioattachment_t *pattachment;
 
 	if (m_pStudioHeader->numattachments > 4)
 		{
@@ -1510,7 +1476,7 @@ void CStudioModelRenderer::StudioCalcAttachments (void)
 		}
 
 	// calculate attachment points
-	pattachment = (mstudioattachment_t*)((byte*)m_pStudioHeader + m_pStudioHeader->attachmentindex);
+	pattachment = (mstudioattachment_t *)((byte *)m_pStudioHeader + m_pStudioHeader->attachmentindex);
 	for (i = 0; i < m_pStudioHeader->numattachments; i++)
 		{
 		VectorTransform (pattachment[i].org, (*m_plighttransform)[pattachment[i].bone], m_pCurrentEntity->attachment[i]);
@@ -1578,7 +1544,7 @@ void CStudioModelRenderer::StudioRenderFinal_Software (void)
 		{
 		for (i = 0; i < m_pStudioHeader->numbodyparts; i++)
 			{
-			IEngineStudio.StudioSetupModel (i, (void**)&m_pBodyPart, (void**)&m_pSubModel);
+			IEngineStudio.StudioSetupModel (i, (void **)&m_pBodyPart, (void **)&m_pSubModel);
 			IEngineStudio.StudioDrawPoints ();
 			}
 		}
@@ -1623,7 +1589,7 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware (void)
 		{
 		for (i = 0; i < m_pStudioHeader->numbodyparts; i++)
 			{
-			IEngineStudio.StudioSetupModel (i, (void**)&m_pBodyPart, (void**)&m_pSubModel);
+			IEngineStudio.StudioSetupModel (i, (void **)&m_pBodyPart, (void **)&m_pSubModel);
 
 			if (m_fDoInterp)
 				{

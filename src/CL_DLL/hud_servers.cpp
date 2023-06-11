@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 // hud_servers.cpp
 #include "hud.h"
@@ -109,10 +109,10 @@ ListResponse
 
 ===================
 */
-void CHudServers::ListResponse (struct net_response_s* response)
+void CHudServers::ListResponse (struct net_response_s *response)
 	{
-	request_t* list;
-	request_t* p;
+	request_t *list;
+	request_t *p;
 	int c = 0;
 
 	if (!(response->error == NET_SUCCESS))
@@ -123,20 +123,17 @@ void CHudServers::ListResponse (struct net_response_s* response)
 
 	if (response->response)
 		{
-		list = (request_t*)response->response;
+		list = (request_t *)response->response;
 		while (list)
 			{
 			c++;
 
-			//if ( c < 40 )
-			{
 			// Copy from parsed stuff
 			p = new request_t;
 			p->context = -1;
 			p->remote_address = list->remote_address;
 			p->next = m_pServerList;
 			m_pServerList = p;
-			}
 
 			// Move on
 			list = list->next;
@@ -1071,11 +1068,9 @@ CHudServers::~CHudServers (void)
 		}
 	}
 
-///////////////////////////////
-//
+// ===========================
 // PUBLIC APIs
-//
-///////////////////////////////
+// ===========================
 
 /*
 ===================

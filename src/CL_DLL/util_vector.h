@@ -28,10 +28,10 @@ typedef int	string_t;				// from engine's pr_comp.h;
 typedef float vec_t;				// needed before including progdefs.h
 
 
-//=========================================================
+// =========================================================
 // 2DVector - used for many pathfinding and many other 
 // operations that are treated as planar rather than 3d.
-//=========================================================
+// =========================================================
 class Vector2D
 	{
 	public:
@@ -67,11 +67,11 @@ inline float DotProduct (const Vector2D& a, const Vector2D& b) { return(a.x * b.
 inline Vector2D operator*(float fl, const Vector2D& v) { return v * fl; }
 
 
-//=========================================================
+// =========================================================
 // 3D Vector
-//=========================================================
+// =========================================================
 class Vector						// same data-layout as engine's vec3_t,
-	{								//		which is a vec_t[3]
+	{								// which is a vec_t[3]
 	public:
 		// Construction/destruction
 		inline Vector (void) { }

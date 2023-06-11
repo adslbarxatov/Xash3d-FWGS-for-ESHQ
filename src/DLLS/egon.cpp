@@ -343,7 +343,7 @@ void CEgon::Fire (const Vector& vecOrigSrc, const Vector& vecDir)
 
 				if (g_pGameRules->IsMultiplayer ())
 					{
-					//multiplayer uses 5 ammo/second
+					// multiplayer uses 5 ammo/second
 					if (gpGlobals->time >= m_flAmmoUseTime)
 						{
 						UseAmmo (1);
@@ -523,10 +523,11 @@ void CEgon::EndAttack (void)
 	{
 	bool bMakeNoise = false;
 
-	if (m_fireState != FIRE_OFF) //Checking the button just in case!.
+	if (m_fireState != FIRE_OFF)	// Checking the button just in case!
 		bMakeNoise = true;
 
-	PLAYBACK_EVENT_FULL (FEV_GLOBAL | FEV_RELIABLE, m_pPlayer->edict (), m_usEgonStop, 0, (float*)&m_pPlayer->pev->origin, (float*)&m_pPlayer->pev->angles, 0.0, 0.0, bMakeNoise, 0, 0, 0);
+	PLAYBACK_EVENT_FULL (FEV_GLOBAL | FEV_RELIABLE, m_pPlayer->edict (), m_usEgonStop, 0,
+		(float*)&m_pPlayer->pev->origin, (float*)&m_pPlayer->pev->angles, 0.0, 0.0, bMakeNoise, 0, 0, 0);
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + 2.0;
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase () + 0.5;

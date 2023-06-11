@@ -1,16 +1,15 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #ifndef VOICE_BANMGR_H
 #define VOICE_BANMGR_H
 #ifdef _WIN32
 #pragma once
 #endif
-
 
 // This class manages the (persistent) list of squelched players.
 class CVoiceBanMgr

@@ -143,7 +143,7 @@ void WeaponsResource::LoadWeaponSprites (WEAPON* pWeapon)
 		}
 	else
 		{
-		pWeapon->hZoomedAutoaim = pWeapon->hZoomedCrosshair;  //default to zoomed crosshair
+		pWeapon->hZoomedAutoaim = pWeapon->hZoomedCrosshair;	// default to zoomed crosshair
 		pWeapon->rcZoomedAutoaim = pWeapon->rcZoomedCrosshair;
 		}
 
@@ -286,11 +286,12 @@ int CHudAmmo::Init (void)
 	HOOK_COMMAND ("invprev", PrevWeapon);
 
 	Reset ();
-
 	CVAR_CREATE ("hud_drawhistory_time", HISTORY_DRAW_TIME, 0);
-	CVAR_CREATE ("hud_fastswitch", "0", FCVAR_ARCHIVE);		// controls whether or not weapons can be selected in one keypress
 
-	m_iFlags |= HUD_ACTIVE; //!!!
+	// controls whether or not weapons can be selected in one keypress
+	CVAR_CREATE ("hud_fastswitch", "0", FCVAR_ARCHIVE);
+
+	m_iFlags |= HUD_ACTIVE;		// !!!
 
 	gWR.Init ();
 	gHR.Init ();
@@ -301,16 +302,13 @@ int CHudAmmo::Init (void)
 void CHudAmmo::Reset (void)
 	{
 	m_fFade = 0;
-	m_iFlags |= HUD_ACTIVE; //!!!
+	m_iFlags |= HUD_ACTIVE;	// !!!
 
 	gpActiveSel = NULL;
 	gHUD.m_iHideHUDDisplay = 0;
 
 	gWR.Reset ();
 	gHR.Reset ();
-
-	//	VidInit();
-
 	}
 
 int CHudAmmo::VidInit (void)
@@ -439,7 +437,6 @@ void WeaponsResource::SelectSlot (int iSlot, int fAdvance, int iDirection)
 	WEAPON* p = NULL;
 
 	// ESHQ: принудительное быстрое переключение оружия
-	//bool fastSwitch = CVAR_GET_FLOAT( "hud_fastswitch" ) != 0;
 	bool fastSwitch = true;
 
 	if ((gpActiveSel == NULL) || (gpActiveSel == (WEAPON*)1) || (iSlot != gpActiveSel->iSlot))
@@ -505,9 +502,9 @@ void WeaponsResource::SelectSlot (int iSlot, int fAdvance, int iDirection)
 		gpActiveSel = p;
 	}
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Message Handlers
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 //
 // AmmoX  -- Update the count of a known type of ammo
@@ -655,7 +652,7 @@ int CHudAmmo::MsgFunc_CurWeapon (const char* pszName, int iSize, void* pbuf)
 
 		}
 
-	m_fFade = 200.0f; //!!!
+	m_fFade = 200.0f;	// !!!
 	m_iFlags |= HUD_ACTIVE;
 
 	return 1;
@@ -694,9 +691,9 @@ int CHudAmmo::MsgFunc_WeaponList (const char* pszName, int iSize, void* pbuf)
 
 	}
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Command Handlers
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Slot button pressed
 void CHudAmmo::SlotInput (int iSlot)
 	{
@@ -854,9 +851,9 @@ void CHudAmmo::UserCmd_PrevWeapon (void)
 
 
 
-//-------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 // Drawing code
-//-------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 
 int CHudAmmo::Draw (float flTime)
 	{
@@ -1029,7 +1026,7 @@ void DrawAmmoBar (WEAPON* p, int x, int y, int width, int height)
 			{
 			f = (float)gWR.CountAmmo (p->iAmmo2Type) / (float)p->iMax2;
 
-			x += 5; //!!!
+			x += 5;	// !!!
 
 			DrawBar (x, y, width, height, f);
 			}
@@ -1056,8 +1053,8 @@ int CHudAmmo::DrawWList (float flTime)
 	else
 		iActiveSlot = gpActiveSel->iSlot;
 
-	x = 10; //!!!
-	y = 10; //!!!
+	x = 10;	// !!!
+	y = 10;	// !!!
 
 
 	// Ensure that there are available choices in the active slot
@@ -1103,7 +1100,7 @@ int CHudAmmo::DrawWList (float flTime)
 		}
 
 
-	a = 128; //!!!
+	a = 128;	// !!!
 	x = 10;
 
 	// Draw all of the buckets

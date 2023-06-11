@@ -302,12 +302,12 @@ void CGauss::SecondaryAttack ()
 		}
 	}
 
-//=========================================================
+// =========================================================
 // StartFire- since all of this code has to run and then 
 // call Fire(), it was easier at this point to rip it out 
 // of weaponidle() and make its own function then to try to
 // merge this into Fire(), which has some identical variable names 
-//=========================================================
+// =========================================================
 void CGauss::StartFire (void)
 	{
 	float flDamage;
@@ -337,7 +337,6 @@ void CGauss::StartFire (void)
 
 	if (m_fInAttack != 3)
 		{
-		//ALERT ( at_console, "Time:%f Damage:%f\n", gpGlobals->time - m_pPlayer->m_flStartCharge, flDamage );
 
 #ifndef CLIENT_DLL
 		float flZVel = m_pPlayer->pev->velocity.z;

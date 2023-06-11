@@ -157,7 +157,6 @@ int CHudFlashlight::Draw (float flTime)
 
 	ScaleColors (r, g, b, a);
 
-	//y = (m_prc1->bottom - m_prc2->top) / 2;
 	x = ScreenWidth - m_iWidth - m_iWidth / 2;
 
 	// Draw the flashlight casing

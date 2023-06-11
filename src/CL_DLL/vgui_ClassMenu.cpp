@@ -1,4 +1,4 @@
-//=========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
+// =========== (C) Copyright 1996-2002 Valve, L.L.C. All rights reserved. ===========
 //
 // The copyright to the contents herein is the property of Valve, L.L.C.
 // The contents may be used and/or copied only with the written permission of
@@ -10,11 +10,11 @@
 // $Workfile:     $
 // $Date:         $
 //
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // $Log: $
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include "VGUI_Font.h"
 #include <VGUI_TextImage.h>
@@ -86,9 +86,11 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 	pLabel->setText (gHUD.m_TextMessage.BufferedLocaliseTextString ("#Title_SelectYourClass"));
 
 	// Create the Scroll panel
-	m_pScrollPanel = new CTFScrollPanel (CLASSMENU_WINDOW_X, CLASSMENU_WINDOW_Y, CLASSMENU_WINDOW_SIZE_X, CLASSMENU_WINDOW_SIZE_Y);
+	m_pScrollPanel = new CTFScrollPanel (CLASSMENU_WINDOW_X, CLASSMENU_WINDOW_Y, CLASSMENU_WINDOW_SIZE_X,
+		CLASSMENU_WINDOW_SIZE_Y);
 	m_pScrollPanel->setParent (this);
-	//force the scrollbars on, so after the validate clientClip will be smaller
+	
+	// force the scrollbars on, so after the validate clientClip will be smaller
 	m_pScrollPanel->setScrollBarAutoVisible (false, false);
 	m_pScrollPanel->setScrollBarVisible (true, true);
 	m_pScrollPanel->setBorder (new LineBorder (Color (255 * 0.7, 170 * 0.7, 0, 0)));
@@ -96,7 +98,7 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 
 	int clientWide = m_pScrollPanel->getClient ()->getWide ();
 
-	//turn scrollpanel back into auto show scrollbar mode and validate
+	// turn scrollpanel back into auto show scrollbar mode and validate
 	m_pScrollPanel->setScrollBarAutoVisible (false, true);
 	m_pScrollPanel->setScrollBarVisible (false, false);
 	m_pScrollPanel->validate ();
@@ -111,16 +113,15 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 
 		// Class button
 		sprintf (sz, "%s", CHudTextMessage::BufferedLocaliseTextString (sLocalisedClasses[i]));
-		m_pButtons[i] = new ClassButton (i, sz, CLASSMENU_TOPLEFT_BUTTON_X, iYPos, CLASSMENU_BUTTON_SIZE_X, CLASSMENU_BUTTON_SIZE_Y, true);
+		m_pButtons[i] = new ClassButton (i, sz, CLASSMENU_TOPLEFT_BUTTON_X, iYPos, CLASSMENU_BUTTON_SIZE_X,
+			CLASSMENU_BUTTON_SIZE_Y, true);
+
 		// RandomPC uses '0'
-		if (i >= 1 && i <= 9)
-			{
+		if ((i >= 1) && (i <= 9))
 			sprintf (sz, "%d", i);
-			}
 		else
-			{
 			sprintf (sz, "0");
-			}
+
 		m_pButtons[i]->setBoundKey (sz[0]);
 		m_pButtons[i]->setContentAlignment (vgui::Label::a_west);
 		m_pButtons[i]->addActionSignal (pASignal);
@@ -128,18 +129,14 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 		m_pButtons[i]->setParent (this);
 
 		// Create the Class Info Window
-		//m_pClassInfoPanel[i] = new CTransparentPanel( 255, CLASSMENU_WINDOW_X, CLASSMENU_WINDOW_Y, CLASSMENU_WINDOW_SIZE_X, CLASSMENU_WINDOW_SIZE_Y );
 		m_pClassInfoPanel[i] = new CTransparentPanel (255, 0, 0, clientWide, CLASSMENU_WINDOW_SIZE_Y);
 		m_pClassInfoPanel[i]->setParent (m_pScrollPanel->getClient ());
-		//m_pClassInfoPanel[i]->setVisible( false );
 
 		// don't show class pic in lower resolutions
 		int textOffs = XRES (8);
 
 		if (bShowClassGraphic)
-			{
 			textOffs = CLASSMENU_WINDOW_NAME_X;
-			}
 
 		// Create the Class Name Label
 		sprintf (sz, "#Title_%s", sTFClassSelection[i]);
@@ -152,7 +149,6 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 		pSchemes->getBgColor (hTitleScheme, r, g, b, a);
 		pNameLabel->setBgColor (r, g, b, a);
 		pNameLabel->setContentAlignment (vgui::Label::a_west);
-		//pNameLabel->setBorder(new LineBorder());
 		pNameLabel->setText (localName);
 
 		// Create the Class Image
@@ -161,24 +157,17 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 			for (int team = 0; team < 2; team++)
 				{
 				if (team == 1)
-					{
 					sprintf (sz, "%sred", sTFClassSelection[i]);
-					}
 				else
-					{
 					sprintf (sz, "%sblue", sTFClassSelection[i]);
-					}
 
 				m_pClassImages[team][i] = new CImageLabel (sz, 0, 0, CLASSMENU_WINDOW_TEXT_X, CLASSMENU_WINDOW_TEXT_Y);
 
 				CImageLabel* pLabel = m_pClassImages[team][i];
 				pLabel->setParent (m_pClassInfoPanel[i]);
-				//pLabel->setBorder(new LineBorder());
 
 				if (team != 1)
-					{
 					pLabel->setVisible (false);
-					}
 
 				// Reposition it based upon it's size
 				int xOut, yOut;
@@ -188,7 +177,8 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 			}
 
 		// Create the Player count string
-		gHUD.m_TextMessage.LocaliseTextString ("#Title_CurrentlyOnYourTeam", m_sPlayersOnTeamString, STRLENMAX_PLAYERSONTEAM);
+		gHUD.m_TextMessage.LocaliseTextString ("#Title_CurrentlyOnYourTeam", m_sPlayersOnTeamString,
+			STRLENMAX_PLAYERSONTEAM);
 		m_pPlayers[i] = new Label ("", textOffs, CLASSMENU_WINDOW_PLAYERS_Y);
 		m_pPlayers[i]->setParent (m_pClassInfoPanel[i]);
 		m_pPlayers[i]->setBgColor (0, 0, 0, 255);
@@ -200,12 +190,11 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 		char* cText = "Class Description not available.";
 		char* pfile = (char*)gEngfuncs.COM_LoadFile (sz, 5, NULL);
 		if (pfile)
-			{
 			cText = pfile;
-			}
 
 		// Create the Text info window
-		TextPanel* pTextWindow = new TextPanel (cText, textOffs, CLASSMENU_WINDOW_TEXT_Y, (CLASSMENU_WINDOW_SIZE_X - textOffs) - 5, CLASSMENU_WINDOW_SIZE_Y - CLASSMENU_WINDOW_TEXT_Y);
+		TextPanel* pTextWindow = new TextPanel (cText, textOffs, CLASSMENU_WINDOW_TEXT_Y,
+			(CLASSMENU_WINDOW_SIZE_X - textOffs) - 5, CLASSMENU_WINDOW_SIZE_Y - CLASSMENU_WINDOW_TEXT_Y);
 		pTextWindow->setParent (m_pClassInfoPanel[i]);
 		pTextWindow->setFont (pSchemes->getFont (hClassWindowText));
 		pSchemes->getFgColor (hClassWindowText, r, g, b, a);
@@ -223,25 +212,22 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 		int maxX = xx + wide;
 		int maxY = yy + tall;
 
-		//check to see if the image goes lower than the text
-		//just use the red teams [0] images
+		// check to see if the image goes lower than the text
+		// just use the red teams [0] images
 		if (m_pClassImages[0][i] != null)
 			{
 			m_pClassImages[0][i]->getPos (xx, yy);
 			if ((yy + m_pClassImages[0][i]->getTall ()) > maxY)
-				{
 				maxY = yy + m_pClassImages[0][i]->getTall ();
-				}
 			}
 
 		m_pClassInfoPanel[i]->setSize (maxX, maxY);
 		if (pfile) gEngfuncs.COM_FreeFile (pfile);
-		//m_pClassInfoPanel[i]->setBorder(new LineBorder());
-
 		}
 
 	// Create the Cancel button
-	m_pCancelButton = new CommandButton (gHUD.m_TextMessage.BufferedLocaliseTextString ("#Menu_Cancel"), CLASSMENU_TOPLEFT_BUTTON_X, 0, CLASSMENU_BUTTON_SIZE_X, CLASSMENU_BUTTON_SIZE_Y);
+	m_pCancelButton = new CommandButton (gHUD.m_TextMessage.BufferedLocaliseTextString ("#Menu_Cancel"),
+		CLASSMENU_TOPLEFT_BUTTON_X, 0, CLASSMENU_BUTTON_SIZE_X, CLASSMENU_BUTTON_SIZE_Y);
 	m_pCancelButton->setParent (this);
 	m_pCancelButton->addActionSignal (new CMenuHandler_TextWindow (HIDE_TEXTWINDOW));
 
@@ -357,7 +343,7 @@ void CClassMenuPanel::Update ()
 		}
 	}
 
-//======================================
+// ======================================
 // Key inputs for the Class Menu
 bool CClassMenuPanel::SlotInput (int iSlot)
 	{
@@ -389,7 +375,7 @@ bool CClassMenuPanel::SlotInput (int iSlot)
 	return false;
 	}
 
-//======================================
+// ======================================
 // Update the Class menu before opening it
 void CClassMenuPanel::Open (void)
 	{
@@ -397,16 +383,16 @@ void CClassMenuPanel::Open (void)
 	CMenuPanel::Open ();
 	}
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Purpose: Called each time a new level is started.
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void CClassMenuPanel::Initialize (void)
 	{
 	setVisible (false);
 	m_pScrollPanel->setScrollValue (0, 0);
 	}
 
-//======================================
+// ======================================
 // Mouse is over a class button, bring up the class info
 void CClassMenuPanel::SetActiveInfo (int iInput)
 	{
@@ -417,7 +403,7 @@ void CClassMenuPanel::SetActiveInfo (int iInput)
 		m_pClassInfoPanel[i]->setVisible (false);
 		}
 
-	if (iInput > PC_RANDOM || iInput < 0)
+	if ((iInput > PC_RANDOM) || (iInput < 0))
 		iInput = 0;
 
 	m_pButtons[iInput]->setArmed (true);
