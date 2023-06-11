@@ -410,7 +410,6 @@ void learn (void)
 		p += step;
 		
 		// [FWGS, 01.04.23]
-		/*if (p >= lim) p -= lengthcount;*/
 		while (p >= lim) 
 			p -= lengthcount;
 

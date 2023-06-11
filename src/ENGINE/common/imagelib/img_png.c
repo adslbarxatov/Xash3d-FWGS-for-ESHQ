@@ -43,21 +43,14 @@ Image_LoadPNG [FWGS, 01.04.23]
 qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	int		ret;
-	short		p, a, b, c, pa, pb, pc;
-	
-	/*byte *buf_p, *pixbuf, *raw, *prior, *idat_buf = NULL, *uncompressed_buffer = NULL, *rowend;*/
-	byte *buf_p, *pixbuf, *raw, *prior, *idat_buf = NULL, *uncompressed_buffer = NULL;
-	
-	byte *pallete = NULL, *trns = NULL;
-	
-	/*uint	 	chunk_len, trns_len, crc32, crc32_check, oldsize = 0, newsize = 0, rowsize;
-	uint	 	uncompressed_size, pixel_size, i, y, filter_type, chunk_sign, r_alpha, g_alpha, b_alpha;*/
-	uint	 	chunk_len, trns_len, plte_len, crc32, crc32_check, oldsize = 0, newsize = 0, rowsize;
-	uint		uncompressed_size, pixel_size, pixel_count, i, y, filter_type, chunk_sign, r_alpha, g_alpha, b_alpha;
-
+	short	p, a, b, c, pa, pb, pc;
+	byte	*buf_p, *pixbuf, *raw, *prior, *idat_buf = NULL, *uncompressed_buffer = NULL;
+	byte	*pallete = NULL, *trns = NULL;
+	uint 	chunk_len, trns_len, plte_len, crc32, crc32_check, oldsize = 0, newsize = 0, rowsize;
+	uint	uncompressed_size, pixel_size, pixel_count, i, y, filter_type, chunk_sign, r_alpha, g_alpha, b_alpha;
 	qboolean 	has_iend_chunk = false;
 	z_stream 	stream = { 0 };
-	png_t		png_hdr;
+	png_t	png_hdr;
 
 	if (filesize < sizeof (png_hdr))
 		return false;
@@ -92,8 +85,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	// convert image width and height to little endian
-	/*png_hdr.ihdr_chunk.height = ntohl (png_hdr.ihdr_chunk.height);
-	png_hdr.ihdr_chunk.width = ntohl (png_hdr.ihdr_chunk.width);*/
 	image.height = png_hdr.ihdr_chunk.height = ntohl (png_hdr.ihdr_chunk.height);
 	image.width = png_hdr.ihdr_chunk.width = ntohl (png_hdr.ihdr_chunk.width);
 
@@ -175,7 +166,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		if (chunk_len > INT_MAX)
 			{
 			Con_DPrintf (S_ERROR "Image_LoadPNG: Found chunk with wrong size (%s)\n", name);
-			/*Mem_Free (idat_buf);*/
 			if (idat_buf)
 				Mem_Free (idat_buf);
 			return false;
@@ -190,7 +180,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 
 		// move pointer
-		/*buf_p += sizeof (chunk_sign);*/
 		buf_p += sizeof (chunk_len);
 
 		// find transparency
@@ -237,7 +226,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		if (ntohl (crc32) != crc32_check)
 			{
 			Con_DPrintf (S_ERROR "Image_LoadPNG: Found chunk with wrong CRC32 sum (%s)\n", name);
-			/*Mem_Free (idat_buf);*/
 			if (idat_buf) 
 				Mem_Free (idat_buf);
 			return false;
@@ -274,12 +262,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		return false;
 		}
 
-	/*if (oldsize == 0)
-		{
-		Con_DPrintf (S_ERROR "Image_LoadPNG: Couldn't find IDAT chunks (%s)\n", name);
-		return false;
-		}*/
-
 	switch (png_hdr.ihdr_chunk.colortype)
 		{
 		case PNG_CT_GREY:
@@ -306,9 +288,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	image.type = PF_RGBA_32; // always exctracted to 32-bit buffer
-	/*image.width = png_hdr.ihdr_chunk.width;
-	image.height = png_hdr.ihdr_chunk.height;
-	image.size = image.height * image.width * 4;*/
 	pixel_count = image.height * image.width;
 	image.size = pixel_count * 4;
 
@@ -352,9 +331,7 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	prior = pixbuf = image.rgba = Mem_Malloc (host.imagepool, image.size);
-
 	i = 0;
-
 	raw = uncompressed_buffer;
 
 	if (png_hdr.ihdr_chunk.colortype != PNG_CT_RGBA)
@@ -475,10 +452,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 				b_alpha = trns[4] << 8 | trns[5];
 				}
 
-			/*for (y = 0; y < image.height; y++)
-				{
-				rowend = raw + rowsize;
-				for (; raw < rowend; raw += pixel_size)*/
 			for (y = 0; y < pixel_count; y++, raw += pixel_size)
 				{
 				*pixbuf++ = raw[0];
@@ -496,10 +469,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			if (trns)
 				r_alpha = trns[0] << 8 | trns[1];
 
-			/*for (y = 0; y < image.height; y++)
-				{
-				rowend = raw + rowsize;
-				for (; raw < rowend; raw += pixel_size)*/
 			for (y = 0; y < pixel_count; y++, raw += pixel_size)
 				{
 				*pixbuf++ = raw[0];
@@ -514,10 +483,6 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			break;
 
 		case PNG_CT_ALPHA:
-			/*for (y = 0; y < image.height; y++)
-				{
-				rowend = raw + rowsize;
-				for (; raw < rowend; raw += pixel_size)*/
 			for (y = 0; y < pixel_count; y++, raw += pixel_size)
 				{
 				*pixbuf++ = raw[0];
@@ -528,16 +493,10 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 			break;
 
 		case PNG_CT_PALLETE:
-			/*for (y = 0; y < image.height; y++)*/
 			for (y = 0; y < pixel_count; y++, raw += pixel_size)
 				{
-				/*rowend = raw + rowsize;
-				for (; raw < rowend; raw += pixel_size)*/
 				if (raw[0] < plte_len)
 					{
-					/**pixbuf++ = pallete[raw[0] + 2];
-					*pixbuf++ = pallete[raw[0] + 1];
-					*pixbuf++ = pallete[raw[0] + 0];*/
 					*pixbuf++ = pallete[3 * raw[0] + 0];
 					*pixbuf++ = pallete[3 * raw[0] + 1];
 					*pixbuf++ = pallete[3 * raw[0] + 2];

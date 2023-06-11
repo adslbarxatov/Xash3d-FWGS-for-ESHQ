@@ -347,7 +347,6 @@ static void Touch_ExportConfig_f (void)
 
 	if (Q_strstr (name, "touch_presets/"))
 		{
-		/*COM_FileBase (name, profilebase);*/
 		COM_FileBase (name, profilebase, sizeof (profilebase));	// [FWGS, 01.05.23]
 		Q_snprintf (profilename, sizeof (profilebase), "touch_profiles/%s (copy).cfg", profilebase);
 		}
@@ -752,7 +751,6 @@ static void Touch_ReloadConfig_f (void)
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
 
 	// [FWGS, 01.04.23]
-	/*Cbuf_AddText (va ("exec %s\n", touch_config_file->string));*/
 	Cbuf_AddTextf ("exec %s\n", touch_config_file->string);
 	}
 
@@ -1044,30 +1042,20 @@ void Touch_Init (void)
 		0.530200, color, 2, 1, 0);
 
 	// [FWGS, 01.04.23]
-	/*Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.760000, 0.000000, 0.840000,
-		0.151486, color, 2, 1, 16);
-	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.840000, 0.000000, 0.920000, 
-		0.151486, color, 2, 1, 16);
-	Touch_AddDefaultButton ("messagemode", "touch_default/keyboard", "messagemode", 0.840000, 0.000000, 0.920000,
-		0.151486, color, 2, 1, 8);*/
 	Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.680000, 0.000000, 0.760000, 
 		0.151486, color, 2, 1, 16);
 	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.760000, 0.000000, 0.840000,
 		0.151486, color, 2, 1, 16);
 	Touch_AddDefaultButton ("messagemode", "touch_default/keyboard", "messagemode", 0.760000, 0.000000, 0.840000,
 		0.151486, color, 2, 1, 8);
-
 	Touch_AddDefaultButton ("reload", "touch_default/reload", "+reload", 0.000000, 0.302971, 0.120000,
 		0.530200, color, 2, 1, 0);
 	Touch_AddDefaultButton ("flashlight", "touch_default/flash_light_filled", "impulse 100", 0.920000, 0.000000,
 		1.000000, 0.151486, color, 2, 1, 0);
 	
 	// [FWGS, 01.04.23]
-	/*Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.760000, 0.000000, 0.840000, 0.151486,
-		color, 2, 1, 8);*/
 	Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.680000, 0.000000, 0.760000, 0.151486, 
 		color, 2, 1, 8);
-
 	Touch_AddDefaultButton ("show_numbers", "touch_default/show_weapons", "exec touch_default/numbers.cfg", 
 		0.440000, 0.833171, 0.520000, 0.984656, color, 2, 1, 0);
 	Touch_AddDefaultButton ("duck", "touch_default/crouch", "+duck", 0.880000, 0.757428, 1.000000, 0.984656, 
@@ -1142,10 +1130,6 @@ void Touch_Init (void)
 		"texture for move indicator");
 
 	// [FWGS, 01.04.23]
-	/* input devices cvar
-	touch_enable = Cvar_Get ("touch_enable", DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
-		"enable touch controls");
-	touch_emulate = Cvar_Get ("touch_emulate", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "emulate touch with mouse");*/
 	Cvar_RegisterVariable (&touch_enable);
 	Cvar_RegisterVariable (&touch_emulate);
 
@@ -1180,9 +1164,6 @@ static void Touch_InitConfig (void)
 		{
 		Touch_LoadDefaults_f ();
 		}
-		/*Cbuf_AddText (va ("exec \"%s\"\n", touch_config_file->string));
-	else 
-		Touch_LoadDefaults_f ();*/
 
 	Touch_InitEditor ();
 	touch.joytexture = ref.dllFuncs.GL_LoadTexture (touch_joy_texture->string, NULL, 0, TF_NOMIPMAP);
@@ -1193,9 +1174,7 @@ static void Touch_InitConfig (void)
 
 /*
 ============================================================================
-
-					 TOUCH CONTROLS RENDERING
-
+TOUCH CONTROLS RENDERING
 ============================================================================
 */
 
@@ -1421,7 +1400,6 @@ void Touch_Draw (void)
 	touch_button_t *button;
 
 	// [FWGS, 01.04.23]
-	/*if (!touch.initialized || (!CVAR_TO_BOOL (touch_enable) && !touch.clientonly))*/
 	if (!touch.initialized || (!touch_enable.value && !touch.clientonly))
 		return;
 
@@ -1569,11 +1547,9 @@ static void Touch_EditMove (touchEventType type, int fingerID, float x, float y,
 
 				// [FWGS, 01.05.23]
 				if (FBitSet (button->flags, TOUCH_FL_HIDE))
-					/*Q_strcpy (touch.hidebutton->texturefile, "touch_default/edit_show");*/
 					Q_strncpy (touch.hidebutton->texturefile, "touch_default/edit_show",
 						sizeof (touch.hidebutton->texturefile));
 				else
-					/*Q_strcpy (touch.hidebutton->texturefile, "touch_default/edit_hide");*/
 					Q_strncpy (touch.hidebutton->texturefile, "touch_default/edit_hide",
 						sizeof (touch.hidebutton->texturefile));
 				}
@@ -2074,13 +2050,6 @@ int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx
 		{
 		VGui_MouseMove (TO_SCRN_X (x), TO_SCRN_Y (y));
 
-		/*if (type != event_motion)
-			VGui_KeyEvent (K_MOUSE1, type == event_down ? 1 : 0);
-
-		// allow scoreboard scroll
-		if (host.mouse_visible && type == event_motion)
-			return 0;*/
-
 		switch (type)
 			{
 			case event_down:
@@ -2093,7 +2062,6 @@ int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx
 			}
 		}
 
-	/*if (!touch.initialized || (!CVAR_TO_BOOL (touch_enable) && !touch.clientonly))*/
 	if (!touch.initialized || (!touch_enable.value && !touch.clientonly))
 		return 0;
 
@@ -2115,18 +2083,14 @@ void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch)
 // [FWGS, 01.04.23]
 void Touch_KeyEvent (int key, int down)
 	{
-	/*int xi, yi;
-	float x, y;*/
 	static float lx, ly;
 	static int kidNamedFinger = -1;
 	touchEventType event;
 	float x, y;
 	int finger, xi, yi;
 
-	/*if (!CVAR_TO_BOOL (touch_emulate))*/
 	if (!touch_emulate.value)
 		{
-		/*if (CVAR_TO_BOOL (touch_enable))*/
 		if (touch_enable.value)
 			return;
 
@@ -2166,10 +2130,6 @@ void Touch_KeyEvent (int key, int down)
 	x = xi / SCR_W;
 	y = yi / SCR_H;
 
-	/*if ((cls.key_dest == key_menu) && (down < 2) && (key == K_MOUSE1))
-		{
-		UI_MouseMove (xi, yi);
-		UI_KeyEvent (key, down);*/
 	Con_DPrintf ("event %d %.2f %.2f %.2f %.2f\n",
 		event, x, y, x - lx, y - ly);
 
@@ -2178,12 +2138,6 @@ void Touch_KeyEvent (int key, int down)
 	lx = x;
 	ly = y;
 	}
-
-	/*if (down == 1)
-		Touch_ControlsEvent (event_down, key == K_MOUSE1 ? 0 : 1, x, y, 0, 0);
-	else
-		Touch_ControlsEvent (down ? event_motion : event_up, key == K_MOUSE1 ? 0 : 1, x, y, x - lx, y - ly);
-	lx = x, ly = y;*/
 
 // [FWGS, 01.04.23]
 qboolean Touch_WantVisibleCursor (void)

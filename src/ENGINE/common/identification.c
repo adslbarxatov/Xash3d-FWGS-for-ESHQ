@@ -690,7 +690,6 @@ void ID_Init (void)
 	// [FWGS, 01.05.23]
 	for (i = 0; i < 16; i++)
 		Q_snprintf (&id_md5[i * 2], sizeof (id_md5) - i * 2, "%02hhx", md5[i]);
-	/*Q_sprintf (&id_md5[i * 2], "%02hhx", md5[i]);*/
 
 #if XASH_ANDROID && !XASH_DEDICATED
 	Android_SaveID (va ("%016llX", id ^ SYSTEM_XOR_MASK));

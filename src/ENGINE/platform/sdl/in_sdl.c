@@ -322,9 +322,6 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 		return;
 #endif
 
-	/*if (cls.key_dest != key_game || cl.paused)
-		return;*/
-
 	switch (type)
 		{
 		case dc_user:
@@ -336,9 +333,6 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 			visible = true;
 			break;
 		}
-
-	/*host.mouse_visible = visible;
-	if (CVAR_TO_BOOL (touch_emulate))*/
 	
 	// never disable cursor in touch emulation mode
 	if (!visible && touch_emulate.value)
@@ -353,12 +347,10 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 		{
 		SDL_SetCursor (cursors.cursors[type]);
 		SDL_ShowCursor (true);
-		/*Key_EnableTextInput (true, false);*/
 		}
 	else
 		{
 		SDL_ShowCursor (false);
-		/*Key_EnableTextInput (false, false);*/
 		}
 
 #else

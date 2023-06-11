@@ -238,7 +238,6 @@ void Image_AddCmdFlags (uint flags)
 // [FWGS, 01.04.23]
 qboolean Image_ValidSize (const char *name)
 	{
-	/*if (image.width > IMAGE_MAXWIDTH || image.height > IMAGE_MAXHEIGHT || image.width <= 0 || image.height <= 0)*/
 	int max_width = IMAGE_MAXWIDTH;
 	int max_height = IMAGE_MAXHEIGHT;
 

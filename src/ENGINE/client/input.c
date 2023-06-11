@@ -63,7 +63,6 @@ uint IN_CollectInputDevices (void)
 	if (!m_ignore->value) // no way to check is mouse connected, so use cvar only
 		ret |= INPUT_DEVICE_MOUSE;
 
-	/*if (CVAR_TO_BOOL (touch_enable))*/
 	if (touch_enable.value)		// [FWGS, 01.04.23]
 		ret |= INPUT_DEVICE_TOUCH;
 
@@ -95,14 +94,12 @@ void IN_LockInputDevices (qboolean lock)
 		{
 		SetBits (m_ignore->flags, FCVAR_READ_ONLY);
 		SetBits (joy_enable->flags, FCVAR_READ_ONLY);
-		/*SetBits (touch_enable->flags, FCVAR_READ_ONLY);*/
 		SetBits (touch_enable.flags, FCVAR_READ_ONLY);
 		}
 	else
 		{
 		ClearBits (m_ignore->flags, FCVAR_READ_ONLY);
 		ClearBits (joy_enable->flags, FCVAR_READ_ONLY);
-		/*ClearBits (touch_enable->flags, FCVAR_READ_ONLY);*/
 		ClearBits (touch_enable.flags, FCVAR_READ_ONLY);
 		}
 	}
@@ -128,7 +125,8 @@ void IN_StartupMouse (void)
 
 	// You can use -nomouse argument to prevent using mouse from client
 	// -noenginemouse will disable all mouse input
-	if (Sys_CheckParm ("-noenginemouse")) return;
+	if (Sys_CheckParm ("-noenginemouse"))
+		return;
 
 	in_mouseinitialized = true;
 	}
@@ -184,17 +182,9 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 
 	// since SetCursorType controls cursor visibility [FWGS, 01.05.23]
 	// execute it first, and then check mouse grab state
-	if ((newstate == key_menu) || (newstate == key_console) /*|| (newstate == key_message)*/)
+	if ((newstate == key_menu) || (newstate == key_console))
 		{
 		Platform_SetCursorType (dc_arrow);
-		/*if (oldstate == key_game)
-			IN_DeactivateMouse ();
-		else if (newstate == key_game)
-			IN_ActivateMouse ();
-
-		if (((newstate == key_menu) || (newstate == key_console) || (newstate == key_message)) &&
-			(!CL_IsBackgroundMap () || CL_IsBackgroundDemo ()))
-			{*/
 #if XASH_ANDROID
 		Android_ShowMouse (true);
 #endif
@@ -217,7 +207,7 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		IN_DeactivateMouse ();
 	else if (newstate == key_game)
 		IN_ActivateMouse ();
-	}
+		}
 
 // [FWGS, 01.04.23]
 void IN_CheckMouseState (qboolean active)
@@ -226,7 +216,6 @@ void IN_CheckMouseState (qboolean active)
 
 #if XASH_WIN32
 	// [FWGS, 01.05.23]
-	/*qboolean useRawInput = CVAR_TO_BOOL (m_rawinput) && clgame.client_dll_uses_sdl || clgame.dllFuncs.pfnLookEvent;*/
 	qboolean useRawInput = (CVAR_TO_BOOL (m_rawinput) && clgame.client_dll_uses_sdl) ||
 		(clgame.dllFuncs.pfnLookEvent != NULL);
 #else
@@ -242,7 +231,6 @@ void IN_CheckMouseState (qboolean active)
 			SDL_SetRelativeMouseMode (SDL_TRUE);
 #endif
 
-			/* Con_Printf( "Enable relative mode\n" );*/
 			s_bRawInput = true;
 			}
 		}
@@ -254,7 +242,6 @@ void IN_CheckMouseState (qboolean active)
 			SDL_GetRelativeMouseState (NULL, NULL);
 			SDL_SetRelativeMouseMode (SDL_FALSE);
 #endif
-			// Con_Printf( "Disable relative mode\n" );
 			s_bRawInput = false;
 			}
 		}
@@ -266,7 +253,6 @@ void IN_CheckMouseState (qboolean active)
 #if XASH_SDL
 			SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
 #endif
-			/* Con_Printf( "Enable grab\n" );*/
 			s_bMouseGrab = true;
 			}
 		}
@@ -278,7 +264,6 @@ void IN_CheckMouseState (qboolean active)
 			SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
 #endif
 
-			/* Con_Printf( "Disable grab\n" );*/
 			s_bMouseGrab = false;
 			}
 		}
@@ -320,8 +305,6 @@ void IN_DeactivateMouse (void)
 	in_mouseactive = false;
 	}
 
-
-
 /*
 ================
 IN_MouseMove [FWGS, 01.04.23]
@@ -329,14 +312,10 @@ IN_MouseMove [FWGS, 01.04.23]
 */
 void IN_MouseMove (void)
 	{
-	/*POINT	current_pos;*/
 	int x, y;
 
 	if (!in_mouseinitialized)
 		return;
-
-	/* find mouse movement
-	Platform_GetMousePos (&current_pos.x, &current_pos.y);*/
 
 	// touch emulation overrides all input
 	if (touch_emulate.value)
@@ -347,19 +326,10 @@ void IN_MouseMove (void)
 
 	// find mouse movement
 	Platform_GetMousePos (&x, &y);
-	/*VGui_MouseMove (current_pos.x, current_pos.y);*/
-
 	VGui_MouseMove (x, y);
-	/* HACKHACK: show cursor in UI, as mainui doesn't call
-	// platform-dependent SetCursor anymore
-#if XASH_SDL
-	if (UI_IsVisible ())
-		SDL_ShowCursor (SDL_TRUE);
-#endif*/
 
 	// if the menu is visible, move the menu cursor
 	UI_MouseMove (x, y);
-	/*UI_MouseMove (current_pos.x, current_pos.y);*/
 	}
 
 /*
@@ -369,8 +339,6 @@ IN_MouseEvent [FWGS, 01.04.23]
 */
 void IN_MouseEvent (int key, int down)
 	{
-	//int	i;
-
 	if (!in_mouseinitialized)
 		return;
 
@@ -378,8 +346,6 @@ void IN_MouseEvent (int key, int down)
 		SetBits (in_mstate, BIT (key));
 	else
 		ClearBits (in_mstate, BIT (key));
-
-	/*if (cls.key_dest == key_game)*/
 
 	// touch emulation overrides all input
 	if (touch_emulate.value)
@@ -389,8 +355,7 @@ void IN_MouseEvent (int key, int down)
 	else if (cls.key_dest == key_game)
 		{
 		// perform button actions
-		VGui_MouseEvent( K_MOUSE1 + key, down );
-		/*VGui_KeyEvent (K_MOUSE1 + key, down);*/
+		VGui_MouseEvent (K_MOUSE1 + key, down);
 
 		// don't do Key_Event here
 		// client may override IN_MouseEvent
@@ -445,11 +410,11 @@ IN_Init
 */
 void IN_Init (void)
 	{
-	cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, 
+	cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 		"Default forward move speed");
-	cl_backspeed = Cvar_Get ("cl_backspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, 
+	cl_backspeed = Cvar_Get ("cl_backspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 		"Default back move speed");
-	cl_sidespeed = Cvar_Get ("cl_sidespeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE, 
+	cl_sidespeed = Cvar_Get ("cl_sidespeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 		"Default side move speed");
 
 	if (!Host_IsDedicated ())
@@ -464,7 +429,7 @@ void IN_Init (void)
 		Evdev_Init ();
 #endif
 		}
-	}
+		}
 
 /*
 ================
@@ -582,7 +547,7 @@ static void IN_CollectInput (float *forward, float *side, float *pitch, float *y
 		inputstate.lastyaw = *yaw;
 		}
 
-	}
+		}
 
 /*
 ================
@@ -607,7 +572,6 @@ void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)
 	if (active)
 		{
 		float sensitivity = 1;
-		/*( (float)cl.local.scr_fov / (float)90.0f );*/
 
 		IN_CollectInput (&forward, &side, &pitch, &yaw, false);
 

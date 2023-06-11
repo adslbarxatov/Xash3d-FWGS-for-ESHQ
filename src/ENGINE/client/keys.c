@@ -159,17 +159,7 @@ int GAME_EXPORT Key_IsDown (int keynum)
 	return keys[keynum].down;
 	}
 
-/* [FWGS, 01.05.23]
-===================
-Key_GetBind
-===================
-const char *Key_IsBind (int keynum)
-	{
-	if (keynum == -1 || !keys[keynum].binding)
-		return NULL;
-	return keys[keynum].binding;
-	}
-*/
+// [FWGS, 01.05.23] удалена Key_IsBind
 
 /*
 ===================
@@ -384,7 +374,6 @@ void Key_Unbindall_f (void)
 	{
 	int	i;
 
-	/*for (i = 0; i < 256; i++)*/
 	for (i = 0; i < ARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
@@ -407,7 +396,6 @@ void Key_Reset_f (void)
 	int	i;
 
 	// clear all keys first
-	/*for (i = 0; i < 256; i++)*/
 	for (i = 0; i < ARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
@@ -460,8 +448,6 @@ void Key_Bind_f (void)
 	// [FWGS, 01.05.23]
 	for (i = 2; i < c; i++)
 		{
-		/*Q_strcat (cmd, Cmd_Argv (i));
-		if (i != (c - 1)) Q_strcat (cmd, " ");*/
 		Q_strncat (cmd, Cmd_Argv (i), sizeof (cmd));
 		if (i != (c - 1))
 			Q_strncat (cmd, " ", sizeof (cmd));
@@ -482,7 +468,8 @@ void Key_WriteBindings (file_t *f)
 	int	i;
 	string newCommand;
 
-	if (!f) return;
+	if (!f)
+		return;
 
 	FS_Printf (f, "unbindall\n");
 
@@ -499,7 +486,6 @@ void Key_WriteBindings (file_t *f)
 /*
 ============
 Key_Bindlist_f
-
 ============
 */
 void Key_Bindlist_f (void)
@@ -538,7 +524,8 @@ void Key_Init (void)
 	Cmd_AddCommand ("makehelp", Key_EnumCmds_f, "write help.txt that contains all console cvars and cmds");
 
 	// setup default binding. "unbindall" from config.cfg will be reset it
-	for (kn = keynames; kn->name; kn++) Key_SetBinding (kn->keynum, kn->binding);
+	for (kn = keynames; kn->name; kn++)
+		Key_SetBinding (kn->keynum, kn->binding);
 
 	osk_enable = Cvar_Get ("osk_enable", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable built-in on-screen keyboard");
 	key_rotate = Cvar_Get ("key_rotate", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "rotate arrow keys (0-3)");
@@ -553,23 +540,22 @@ Key_AddKeyCommands
 void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 	{
 	char	button[1024];
-	char *buttonPtr;
+	char	*buttonPtr;
 	char	cmd[1024];
-	int	i;
+	int		i;
 
-	if (!kb) return;
+	if (!kb)
+		return;
 	buttonPtr = button;
 
 	for (i = 0; ; i++)
 		{
-		if (kb[i] == ';' || !kb[i])
+		if ((kb[i] == ';') || !kb[i])
 			{
 			*buttonPtr = '\0';
 			if (button[0] == '+')
 				{
 				// [FWGS, 01.05.23] button commands add keynum as a parm
-				/*if (down) Q_sprintf (cmd, "%s %i\n", button, key);
-				else Q_sprintf (cmd, "-%s %i\n", button + 1, key);*/
 				if (down)
 					Q_snprintf (cmd, sizeof (cmd), "%s %i\n", button, key);
 				else
@@ -960,25 +946,26 @@ int Key_ToUpper (int keynum)
 	return keynum;
 	}
 
-/* On-screen keyboard:
- *
- * 4 lines with 13 buttons each
- * Left trigger == backspace
- * Right trigger == space
- * Any button press is button press on keyboard
- *
- * Our layout:
- *  0  1  2  3  4  5  6  7  8  9  10 11 12
- * +--+--+--+--+--+--+--+--+--+--+--+--+--+
- * |` |1 |2 |3 |4 |5 |6 |7 |8 |9 |0 |- |= | 0
- * +--+--+--+--+--+--+--+--+--+--+--+--+--+
- * |q |w |e |r |t |y |u |i |o |p |[ |] |\ | 1
- * +--+--+--+--+--+--+--+--+--+--+--+--+--+
- * |CL|a |s |d |f |g |h |j |k |l |; |' |BS| 2
- * +--+--+--+--+--+--+--+--+--+--+--+--+--+
- * |SH|z |x |c |v |b |n |m |, |. |/ |SP|EN| 3
- * +--+--+--+--+--+--+--+--+--+--+--+--+--+
- */
+/*
+On-screen keyboard:
+
+4 lines with 13 buttons each
+Left trigger == backspace
+Right trigger == space
+Any button press is button press on keyboard
+
+Our layout:
+ 0  1  2  3  4  5  6  7  8  9  10 11 12
++--+--+--+--+--+--+--+--+--+--+--+--+--+
+|` |1 |2 |3 |4 |5 |6 |7 |8 |9 |0 |- |= | 0
++--+--+--+--+--+--+--+--+--+--+--+--+--+
+|q |w |e |r |t |y |u |i |o |p |[ |] |\ | 1
++--+--+--+--+--+--+--+--+--+--+--+--+--+
+|CL|a |s |d |f |g |h |j |k |l |; |' |BS| 2
++--+--+--+--+--+--+--+--+--+--+--+--+--+
+|SH|z |x |c |v |b |n |m |, |. |/ |SP|EN| 3
++--+--+--+--+--+--+--+--+--+--+--+--+--+
+*/
 
 #define MAX_OSK_ROWS 13
 #define MAX_OSK_LINES 4
@@ -1175,7 +1162,6 @@ Draw button with symbol on it
 */
 static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float height)
 	{
-	/*char str[] = { symb & 255, 0 };*/
 	cl_font_t *font = Con_GetCurFont ();
 
 	byte color[] = { 255, 255, 255, 255 };
@@ -1190,7 +1176,6 @@ static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float
 	if (!symb || (symb == ' ') || ((symb >= OSK_TAB) && (symb < OSK_SPECKEY_LAST)))
 		return;
 
-	/*Con_DrawCharacter (x1 + 1, y1, symb, color);*/
 	CL_DrawCharacter (x1 + width * 0.4 * refState.width, y1 + height * 0.4 * refState.height,
 		symb, color, font, 0);
 	}
@@ -1206,7 +1191,6 @@ static void OSK_DrawSpecialButton (const char *name, float x, float y, float wid
 	{
 	byte color[] = { 0, 255, 0, 255 };
 
-	/*Con_DrawString (x * refState.width, y * refState.height, name, color);*/
 	Con_DrawString (x * refState.width + width * 0.4 * refState.width,
 		y * refState.height + height * 0.4 * refState.height, name, color);
 	}

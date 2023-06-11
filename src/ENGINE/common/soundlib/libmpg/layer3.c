@@ -720,24 +720,17 @@ static int III_get_scale_factors_2 (mpg123_handle_t *fr, int *scf, gr_info_t *gr
 	return numbits;
 	}
 
-/* 24 is enough because tab13 has max. a 19 bit huffvector */
-/* The old code played games with shifting signed integers around in not quite */
-/* legal ways. Also, it used long where just 32 bits are required. This could */
-/* be good or bad on 64 bit architectures ... anyway, making clear that */
-/* 32 bits suffice is a benefit. */
-#if 0
-/* To reconstruct old code, use this: */
-#define MASK_STYPE long
-#define MASK_UTYPE unsigned long
-#define MASK_TYPE MASK_STYPE
-#define MSB_MASK (mask < 0)
-#else
-/* This should be more proper: */
+// 24 is enough because tab13 has max. a 19 bit huffvector
+// The old code played games with shifting signed integers around in not quite
+// legal ways. Also, it used long where just 32 bits are required. This could
+// be good or bad on 64 bit architectures ... anyway, making clear that
+// 32 bits suffice is a benefit
+
+// This should be more proper:
 #define MASK_STYPE int32_t
 #define MASK_UTYPE uint32_t
 #define MASK_TYPE  MASK_UTYPE
 #define MSB_MASK ((MASK_UTYPE)mask & (MASK_UTYPE)1<<(sizeof(MASK_TYPE)*8-1))
-#endif
 
 // 24 is enough because tab13 has max. a 19 bit huffvector
 #define BITSHIFT	((sizeof(MASK_TYPE) - 1) * 8)

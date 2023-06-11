@@ -247,7 +247,6 @@ void Joy_AxisMotionEvent (byte axis, short value)
 		}
 
 	// [FWGS, 01.04.23]
-	/*return Joy_KnownAxisMotionEvent (joyaxesmap[axis], value);*/
 	Joy_KnownAxisMotionEvent (joyaxesmap[axis], value);
 	}
 
@@ -409,26 +408,25 @@ void Joy_Init (void)
 
 	// [FWGS, 01.05.23] by default, we rely on deadzone detection come from system,
 	// but some glitchy devices report false deadzones
-	joy_side_deadzone = Cvar_Get ("joy_side_deadzone", DEFAULT_JOY_DEADZONE/*"0"*/, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	joy_side_deadzone = Cvar_Get ("joy_side_deadzone", DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 		"side axis deadzone. Value from 0 to 32767");
-	joy_forward_deadzone = Cvar_Get ("joy_forward_deadzone", DEFAULT_JOY_DEADZONE/*"0"*/, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	joy_forward_deadzone = Cvar_Get ("joy_forward_deadzone", DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 		"forward axis deadzone. Value from 0 to 32767");
-	joy_pitch_deadzone = Cvar_Get ("joy_pitch_deadzone", DEFAULT_JOY_DEADZONE/*"0"*/, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	joy_pitch_deadzone = Cvar_Get ("joy_pitch_deadzone", DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 		"pitch axis deadzone. Value from 0 to 32767");
-	joy_yaw_deadzone = Cvar_Get ("joy_yaw_deadzone", DEFAULT_JOY_DEADZONE/*"0"*/, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	joy_yaw_deadzone = Cvar_Get ("joy_yaw_deadzone", DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 		"yaw axis deadzone. Value from 0 to 32767");
 
 	joy_axis_binding = Cvar_Get ("joy_axis_binding", "sfpyrl", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 		"axis hardware id to engine inner axis binding, "
 		"s - side, f - forward, y - yaw, p - pitch, r - left trigger, l - right trigger");
 	joy_found = Cvar_Get ("joy_found", "0", FCVAR_READ_ONLY, "is joystick is connected");
+
 	// we doesn't loaded config.cfg yet, so this cvar is not archive.
 	// change by +set joy_index in cmdline
 	joy_index = Cvar_Get ("joy_index", "0", FCVAR_READ_ONLY, "current active joystick");
 
 	joy_enable = Cvar_Get ("joy_enable", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable joystick");
-
-	/*if (Sys_CheckParm ("-nojoy"))*/
 
 	// [FWGS, 01.05.23] renamed from -nojoy to -noenginejoy to not conflict with
 	// client.dll's joystick support
@@ -439,7 +437,6 @@ void Joy_Init (void)
 		}
 
 	Cvar_FullSet ("joy_found", va ("%d", Platform_JoyInit (joy_index->value)), FCVAR_READ_ONLY);
-
 	joy_initialized = true;		// [FWGS, 01.05.23]
 	}
 
@@ -452,7 +449,6 @@ Shutdown joystick code
 */
 void Joy_Shutdown (void)
 	{
-	/*Cvar_FullSet ("joy_found", 0, FCVAR_READ_ONLY);*/
 	if (joy_initialized)
 		Cvar_FullSet ("joy_found", 0, FCVAR_READ_ONLY);
 	}

@@ -62,16 +62,16 @@ typedef enum
 	{
 	MANGLE_UNKNOWN = 0,
 
-	/* binary offset, when NameForFunction isn't implemented */
+	// binary offset, when NameForFunction isn't implemented
 	MANGLE_OFFSET,
 
-	/* Itanium C++ ABI mangling, native for most operating systems */
+	// Itanium C++ ABI mangling, native for most operating systems
 	MANGLE_ITANIUM,
 
-	/* MSVC "decoration" */
+	// MSVC "decoration"
 	MANGLE_MSVC,
 
-	/* Valve's silly mangle for crossplatform saves */
+	// Valve's silly mangle for crossplatform saves
 	MANGLE_VALVE,
 	} EFunctionMangleType;
 

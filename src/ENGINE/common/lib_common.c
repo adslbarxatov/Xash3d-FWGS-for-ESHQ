@@ -67,7 +67,6 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 		}
 
 // [FWGS, 01.04.23]
-/*#elif XASH_MSVC*/
 #elif _MSC_VER
 	// TODO: COM_ConvertToLocalPlatform doesn't support MSVC yet
 	// also custom loader strips always MSVC mangling, so Win32
@@ -250,7 +249,6 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 
 		default:
 			// [FWGS, 01.04.23]
-			/*ASSERT (true);*/
 			ASSERT (0);
 			out[0] = 0;
 			break;
@@ -259,12 +257,10 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 
 /*
 =============================================================================
-
-	C++ MANGLE CONVERSION
-
+C++ MANGLE CONVERSION
 =============================================================================
 */
-#define MAX_NESTED_NAMESPACES 16 /* MSVC limit */
+#define MAX_NESTED_NAMESPACES 16	// MSVC limit
 
 static EFunctionMangleType COM_DetectMangleType (const char *str)
 	{
@@ -415,12 +411,9 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 		Q_strncpy (symbols[i], prev, Q_min (len + 1, sizeof (symbols[i])));
 
 		// [FWGS, 01.04.23]
-		/*prev = at + 1;*/
-
 		if (!at)
 			break;
 
-		// [FWGS, 01.04.23]
 		prev = at + 1;
 		}
 
@@ -581,4 +574,4 @@ void Test_RunLibCommon (void)
 	TRUN (Test_GetItaniumName ());
 	TRUN (Test_ConvertFromValveToLocal ());
 	}
-#endif /* XASH_ENGINE_TESTS */
+#endif
