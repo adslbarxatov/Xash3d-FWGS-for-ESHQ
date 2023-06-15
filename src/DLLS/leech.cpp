@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // leech - basic little swimming monster
-//=========================================================
+// =========================================================
 
 #include	"float.h"
 #include	"extdll.h"
@@ -153,10 +153,6 @@ void CLeech::Spawn (void)
 	{
 	Precache ();
 	SET_MODEL (ENT (pev), "models/leech.mdl");
-
-	// Just for fun
-	//	SET_MODEL(ENT(pev), "models/icky.mdl");
-
 	UTIL_SetSize (pev, Vector (-1, -1, 0), Vector (1, 1, 2));
 
 	// Don't push the minz down too much or the water check will fail because this entity is really point-sized
@@ -257,7 +253,6 @@ void CLeech::Precache (void)
 	{
 	int i;
 
-	//PRECACHE_MODEL("models/icky.mdl");
 	PRECACHE_MODEL ("models/leech.mdl");
 
 	for (i = 0; i < HLARRAYSIZE (pAttackSounds); i++)
@@ -324,16 +319,13 @@ void CLeech::MakeVectors (void)
 	UTIL_MakeVectors (tmp);
 	}
 
-//
 // ObstacleDistance - returns normalized distance to obstacle
-//
 float CLeech::ObstacleDistance (CBaseEntity* pTarget)
 	{
 	TraceResult		tr;
 	Vector			vecTest;
 
 	// use VELOCITY, not angles, not all boids point the direction they are flying
-	//Vector vecDir = UTIL_VecToAngles( pev->velocity );
 	MakeVectors ();
 
 	// check for obstacle ahead
@@ -648,8 +640,7 @@ void CLeech::Killed (entvars_t* pevAttacker, int iGib)
 	Vector			vecSplatDir;
 	TraceResult		tr;
 
-	//ALERT(at_aiconsole, "Leech: killed\n");
-	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
+	// tell owner (if any) that we're dead. This is mostly for MonsterMaker functionality
 	CBaseEntity* pOwner = CBaseEntity::Instance (pev->owner);
 	if (pOwner)
 		pOwner->DeathNotice (pev);

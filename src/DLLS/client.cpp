@@ -13,14 +13,11 @@
 *
 ****/
 // Robin, 4-22-98: Moved set_suicide_frame() here from player.cpp to allow us to 
-//				   have one without a hardcoded player.mdl in tf_client.cpp
+// have one without a hardcoded player.mdl in tf_client.cpp
 
 /*
-
 ===== client.cpp ========================================================
-
-  client/server game specific stuff
-
+client/server game specific stuff
 */
 
 #include "extdll.h"
@@ -191,12 +188,11 @@ void ClientPutInServer (edict_t* pEntity)
 #include "voice_gamemgr.h"
 extern CVoiceGameMgr g_VoiceGameMgr;
 
-//// HOST_SAY
+// HOST_SAY
 // String comes in as
 // say blah blah blah
 // or as
 // blah blah blah
-//
 void Host_Say (edict_t* pEntity, int teamonly)
 	{
 	CBasePlayer* client;
@@ -551,19 +547,14 @@ static int g_serveractive = 0;
 
 void ServerDeactivate (void)
 	{
-	//	ALERT( at_console, "ServerDeactivate()\n" );
-
-		// It's possible that the engine will call this function more times than is necessary
-		//  Therefore, only run it one time for each call to ServerActivate 
+	// It's possible that the engine will call this function more times than is necessary
+	//  Therefore, only run it one time for each call to ServerActivate 
 	if (g_serveractive != 1)
-		{
 		return;
-		}
 
 	g_serveractive = 0;
 
 	// Peform any shutdown operations here...
-	//
 	}
 
 void ServerActivate (edict_t* pEdictList, int edictCount, int clientMax)
@@ -646,9 +637,7 @@ void ParmsChangeLevel (void)
 		pSaveData->connectionCount = BuildChangeList (pSaveData->levelList, MAX_LEVEL_CONNECTIONS);
 	}
 
-//
 // GLOBALS ASSUMED SET:  g_ulFrameCount
-//
 void StartFrame (void)
 	{
 	if (g_pGameRules)
@@ -915,9 +904,7 @@ void SpectatorThink (edict_t* pEntity)
 		pPlayer->SpectatorThink ();
 	}
 
-////////////////////////////////////////////////////////
 // PAS and PVS routines for client messaging
-//
 
 /*
 ================
@@ -1064,9 +1051,7 @@ int AddToFullPack (struct entity_state_s* state, int e, edict_t* ent, edict_t* h
 		state->entityType = ENTITY_BEAM;
 		}
 
-	// 
 	// Copy state data
-	//
 
 	// Round animtime to nearest millisecond
 	state->animtime = (int)(1000.0 * ent->v.animtime) / 1000.0;

@@ -12,10 +12,10 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // CSquadMonster - all the extra data for monsters that
 // form squads.
-//=========================================================
+// =========================================================
 
 #define	SF_SQUADMONSTER_LEADER	32
 
@@ -50,9 +50,9 @@
 
 #define	MAX_SQUAD_MEMBERS	5
 
-//=========================================================
+// =========================================================
 // CSquadMonster - for any monster that forms squads.
-//=========================================================
+// =========================================================
 class CSquadMonster: public CBaseMonster
 	{
 	public:

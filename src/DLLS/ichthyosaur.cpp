@@ -14,9 +14,9 @@
 ****/
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
-//=========================================================
+// =========================================================
 // icthyosaur - evin, satan fish monster
-//=========================================================
+// =========================================================
 
 #include	"extdll.h"
 #include	"util.h"
@@ -42,9 +42,9 @@ extern CGraph WorldGraph;
 #define EYE_BACK	3
 #define EYE_LOOK	4
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 
 // UNDONE: Save/restore here
 class CIchthyosaur: public CFlyingMonster
@@ -215,9 +215,9 @@ void CIchthyosaur::PainSound (void)
 	EMIT_ICKY_SOUND (CHAN_VOICE, pPainSounds);
 	}
 
-//=========================================================
+// =========================================================
 // monster-specific tasks and states
-//=========================================================
+// =========================================================
 enum
 	{
 	TASK_ICHTHYOSAUR_CIRCLE_ENEMY = LAST_COMMON_TASK + 1,
@@ -225,9 +225,9 @@ enum
 	TASK_ICHTHYOSAUR_FLOAT,
 	};
 
-//=========================================================
+// =========================================================
 // AI Schedules Specific to this monster
-//=========================================================
+// =========================================================
 
 static Task_t	tlSwimAround[] =
 	{
@@ -321,18 +321,18 @@ DEFINE_CUSTOM_SCHEDULES (CIchthyosaur)
 	};
 IMPLEMENT_CUSTOM_SCHEDULES (CIchthyosaur, CFlyingMonster);
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CIchthyosaur::Classify (void)
 	{
 	return	CLASS_ALIEN_MONSTER;
 	}
 
-//=========================================================
+// =========================================================
 // CheckMeleeAttack1
-//=========================================================
+// =========================================================
 BOOL CIchthyosaur::CheckMeleeAttack1 (float flDot, float flDist)
 	{
 	if (flDot >= 0.7 && m_flEnemyTouched > gpGlobals->time - 0.2)
@@ -362,30 +362,29 @@ void CIchthyosaur::CombatUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE
 		m_bOnAttack = 1;
 	}
 
-//=========================================================
+// =========================================================
 // CheckRangeAttack1  - swim in for a chomp
-//
-//=========================================================
+// =========================================================
 BOOL CIchthyosaur::CheckRangeAttack1 (float flDot, float flDist)
 	{
-	if (flDot > -0.7 && (m_bOnAttack || (flDist <= 192 && m_idealDist <= 192)))
+	if ((flDot > -0.7) && (m_bOnAttack || ((flDist <= 192) && (m_idealDist <= 192))))
 		return TRUE;
 
 	return FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
-//=========================================================
+// =========================================================
 void CIchthyosaur::SetYawSpeed (void)
 	{
 	pev->yaw_speed = 100;
 	}
 
-//=========================================================
-// Killed - overrides CFlyingMonster.
-//
+// =========================================================
+// Killed - overrides CFlyingMonster
+// =========================================================
 void CIchthyosaur::Killed (entvars_t* pevAttacker, int iGib)
 	{
 	CBaseMonster::Killed (pevAttacker, iGib);
@@ -398,17 +397,17 @@ void CIchthyosaur::BecomeDead (void)
 
 	// give the corpse half of the monster's original maximum health. 
 	pev->health = pev->max_health / 2;
-	pev->max_health = 5; // max_health now becomes a counter for how many blood decals the corpse can place.
+	pev->max_health = 5;	// max_health now becomes a counter for how many blood decals the corpse can place
 	}
 
 #define ICHTHYOSAUR_AE_SHAKE_RIGHT 1
 #define ICHTHYOSAUR_AE_SHAKE_LEFT  2
 
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//=========================================================
+// =========================================================
 void CIchthyosaur::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	int bDidAttack = FALSE;
@@ -460,9 +459,9 @@ void CIchthyosaur::HandleAnimEvent (MonsterEvent_t* pEvent)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CIchthyosaur::Spawn ()
 	{
 	Precache ();
@@ -499,9 +498,9 @@ void CIchthyosaur::Spawn ()
 	m_SaveVelocity = pev->velocity;
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CIchthyosaur::Precache ()
 	{
 	PRECACHE_MODEL ("models/icky.mdl");
@@ -514,9 +513,9 @@ void CIchthyosaur::Precache ()
 	PRECACHE_SOUND_ARRAY (pPainSounds);
 	}
 
-//=========================================================
+// =========================================================
 // GetSchedule
-//=========================================================
+// =========================================================
 Schedule_t* CIchthyosaur::GetSchedule ()
 	{
 	// ALERT( at_console, "GetSchedule( )\n" );
@@ -558,8 +557,8 @@ Schedule_t* CIchthyosaur::GetSchedule ()
 	}
 
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 Schedule_t* CIchthyosaur::GetScheduleOfType (int Type)
 	{
 	// ALERT( at_console, "GetScheduleOfType( %d ) %d\n", Type, m_bOnAttack );
@@ -580,11 +579,11 @@ Schedule_t* CIchthyosaur::GetScheduleOfType (int Type)
 	return CBaseMonster::GetScheduleOfType (Type);
 	}
 
-//=========================================================
+// =========================================================
 // Start task - selects the correct activity and performs
 // any necessary calculations to start the next task on the
 // schedule.
-//=========================================================
+// =========================================================
 void CIchthyosaur::StartTask (Task_t* pTask)
 	{
 	switch (pTask->iTask)
@@ -745,7 +744,7 @@ float CIchthyosaur::VectorToPitch (const Vector& vec)
 	return pitch;
 	}
 
-//=========================================================
+// =========================================================
 void CIchthyosaur::Move (float flInterval)
 	{
 	CFlyingMonster::Move (flInterval);
@@ -933,16 +932,12 @@ void CIchthyosaur::Swim ()
 	else
 		pev->velocity = m_SaveVelocity = m_SaveVelocity * 80;
 
-	// ALERT( at_console, "%.0f %.0f\n", m_flightSpeed, pev->velocity.Length() );
-	// ALERT( at_console, "Steer %f %f %f\n", SteeringVector.x, SteeringVector.y, SteeringVector.z );
-	// ALERT( at_console, "speed %f\n", m_flightSpeed );
-
 	Angles = UTIL_VecToAngles (m_SaveVelocity);
 
 	// Smooth Pitch
-	//
 	if (Angles.x > 180)
 		Angles.x = Angles.x - 360;
+
 	pev->angles.x = UTIL_Approach (Angles.x, pev->angles.x, 50 * 0.1);
 	if (pev->angles.x < -80) pev->angles.x = -80;
 	if (pev->angles.x > 80) pev->angles.x = 80;

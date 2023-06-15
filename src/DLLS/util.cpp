@@ -1575,10 +1575,10 @@ void UTIL_PrecacheOther (const char *szClassname)
 	REMOVE_ENTITY (pent);
 	}
 
-//=========================================================
+// =========================================================
 // UTIL_LogPrintf - Prints a logged message to console.
 // Preceded by LOG: ( timestamp ) < message >
-//=========================================================
+// =========================================================
 void UTIL_LogPrintf (char *fmt, ...)
 	{
 	va_list			argptr;
@@ -1592,10 +1592,10 @@ void UTIL_LogPrintf (char *fmt, ...)
 	ALERT (at_logged, "%s", string);
 	}
 
-//=========================================================
+// =========================================================
 // UTIL_DotPoints - returns the dot product of a line from
 // src to check and vecdir.
-//=========================================================
+// =========================================================
 float UTIL_DotPoints (const Vector &vecSrc, const Vector &vecCheck, const Vector &vecDir)
 	{
 	Vector2D	vec2LOS;
@@ -1607,9 +1607,9 @@ float UTIL_DotPoints (const Vector &vecSrc, const Vector &vecCheck, const Vector
 	}
 
 
-//=========================================================
+// =========================================================
 // UTIL_StripToken - for redundant keynames
-//=========================================================
+// =========================================================
 void UTIL_StripToken (const char *pKey, char *pDest)
 	{
 	int i = 0;

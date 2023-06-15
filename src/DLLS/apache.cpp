@@ -261,13 +261,13 @@ void CApache::DyingThink (void)
 		WRITE_BYTE (50);
 
 		// Model
-		WRITE_SHORT (m_iBodyGibs);	//model id#
+		WRITE_SHORT (m_iBodyGibs);	// model id#
 
 		// # of shards
-		WRITE_BYTE (4);	// let client decide
+		WRITE_BYTE (4);		// let client decide
 
 		// duration
-		WRITE_BYTE (30);// 3.0 seconds
+		WRITE_BYTE (30);	// 3.0 seconds
 
 		// flags
 
@@ -370,13 +370,13 @@ void CApache::DyingThink (void)
 		WRITE_BYTE (30);
 
 		// Model
-		WRITE_SHORT (m_iBodyGibs);	//model id#
+		WRITE_SHORT (m_iBodyGibs);	// model id#
 
 		// # of shards
 		WRITE_BYTE (200);
 
 		// duration
-		WRITE_BYTE (200);// 10.0 seconds
+		WRITE_BYTE (200);	// 10.0 seconds
 
 		// flags
 

@@ -138,10 +138,10 @@ void CCineMonster::Spawn (void)
 		m_interruptable = TRUE;
 	}
 
-//=========================================================
+// =========================================================
 // FCanOverrideState - returns FALSE, scripted sequences 
 // cannot possess entities regardless of state.
-//=========================================================
+// =========================================================
 BOOL CCineMonster::FCanOverrideState (void)
 	{
 	if (pev->spawnflags & SF_SCRIPT_OVERRIDESTATE)
@@ -149,10 +149,10 @@ BOOL CCineMonster::FCanOverrideState (void)
 	return FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // FCanOverrideState - returns true because scripted AI can
 // possess entities regardless of their state.
-//=========================================================
+// =========================================================
 BOOL CCineAI::FCanOverrideState (void)
 	{
 	return TRUE;
@@ -470,13 +470,13 @@ BOOL CCineAI::StartSequence (CBaseMonster* pTarget, int iszSeq, BOOL completeOnE
 	return TRUE;
 	}
 
-//=========================================================
+// =========================================================
 // SequenceDone - called when a scripted sequence animation
 // sequence is done playing ( or when an AI Scripted Sequence
 // doesn't supply an animation sequence to play ). Expects
 // the CBaseMonster pointer to the monster that the sequence
 // possesses. 
-//=========================================================
+// =========================================================
 void CCineMonster::SequenceDone (CBaseMonster* pMonster)
 	{
 	//ALERT( at_aiconsole, "Sequence %s finished\n", STRING( m_pCine->m_iszPlay ) );
@@ -497,14 +497,14 @@ void CCineMonster::SequenceDone (CBaseMonster* pMonster)
 	SUB_UseTargets (NULL, USE_TOGGLE, 0);
 	}
 
-//=========================================================
+// =========================================================
 // When a monster finishes a scripted sequence, we have to 
 // fix up its state and schedule for it to return to a 
 // normal AI monster. 
 //
 // Scripted sequences just dirty the Schedule and drop the
 // monster in Idle State.
-//=========================================================
+// =========================================================
 void CCineMonster::FixScriptMonsterSchedule (CBaseMonster* pMonster)
 	{
 	if (pMonster->m_IdealMonsterState != MONSTERSTATE_DEAD)
@@ -512,7 +512,7 @@ void CCineMonster::FixScriptMonsterSchedule (CBaseMonster* pMonster)
 	pMonster->ClearSchedule ();
 	}
 
-//=========================================================
+// =========================================================
 // When a monster finishes a scripted sequence, we have to 
 // fix up its state and schedule for it to return to a 
 // normal AI monster. 
@@ -524,7 +524,7 @@ void CCineMonster::FixScriptMonsterSchedule (CBaseMonster* pMonster)
 //  sequence in their current state.
 //
 // -Select a specific AMBUSH schedule, regardless of state.
-//=========================================================
+// =========================================================
 void CCineAI::FixScriptMonsterSchedule (CBaseMonster* pMonster)
 	{
 	switch (m_iFinishSchedule)
@@ -1130,9 +1130,9 @@ BOOL CScriptedSentence::StartSentence (CBaseMonster* pTarget)
 	return TRUE;
 	}
 
-//=========================================================
+// =========================================================
 // Furniture - this is the cool comment I cut-and-pasted
-//=========================================================
+// =========================================================
 class CFurniture: public CBaseMonster
 	{
 	public:
@@ -1145,19 +1145,19 @@ class CFurniture: public CBaseMonster
 LINK_ENTITY_TO_CLASS (monster_furniture, CFurniture);
 
 
-//=========================================================
+// =========================================================
 // Furniture is killed
-//=========================================================
+// =========================================================
 void CFurniture::Die (void)
 	{
 	SetThink (&CBaseEntity::SUB_Remove);
 	pev->nextthink = gpGlobals->time;
 	}
 
-//=========================================================
+// =========================================================
 // This used to have something to do with bees flying, but 
 // now it only initializes moving furniture in scripted sequences
-//=========================================================
+// =========================================================
 void CFurniture::Spawn ()
 	{
 	PRECACHE_MODEL ((char*)STRING (pev->model));
@@ -1177,9 +1177,9 @@ void CFurniture::Spawn ()
 	MonsterInit ();
 	}
 
-//=========================================================
+// =========================================================
 // ID's Furniture as neutral (noone will attack it)
-//=========================================================
+// =========================================================
 int CFurniture::Classify (void)
 	{
 	return	CLASS_NONE;

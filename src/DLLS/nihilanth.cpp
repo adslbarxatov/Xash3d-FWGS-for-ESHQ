@@ -230,9 +230,9 @@ TYPEDESCRIPTION	CNihilanthHVR::m_SaveData[] =
 IMPLEMENT_SAVERESTORE (CNihilanthHVR, CBaseMonster);
 
 
-//=========================================================
+// =========================================================
 // Nihilanth, final Boss monster
-//=========================================================
+// =========================================================
 
 const char* CNihilanth::pAttackSounds[] =
 	{
@@ -1241,9 +1241,9 @@ CBaseEntity* CNihilanth::RandomTargetname (const char* szName)
 	return pEntity;
 	}
 
-//=========================================================
+// =========================================================
 // Controller bouncy ball attack
-//=========================================================
+// =========================================================
 
 void CNihilanthHVR::Spawn (void)
 	{

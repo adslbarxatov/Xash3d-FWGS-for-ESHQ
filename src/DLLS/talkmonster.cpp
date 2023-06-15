@@ -23,10 +23,10 @@
 #include	"soundent.h"
 #include	"animation.h"
 
-//=========================================================
+// =========================================================
 // Talking monster base class
 // Used for scientists and barneys
-//=========================================================
+// =========================================================
 float	CTalkMonster::g_talkWaitTime = 0;		// time delay until it's ok to speak: used so that two NPCs don't talk at once
 
 // NOTE: m_voicePitch & m_szGrp should be fixed up by precache each save/restore
@@ -55,9 +55,9 @@ char* CTalkMonster::m_szFriends[TLK_CFRIENDS] =
 		"monster_sitting_scientist",
 	};
 
-//=========================================================
+// =========================================================
 // AI Schedules Specific to talking monsters
-//=========================================================
+// =========================================================
 
 Task_t	tlIdleResponse[] =
 	{
@@ -749,10 +749,10 @@ float CTalkMonster::TargetDistance (void)
 	}
 
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//=========================================================
+// =========================================================
 void CTalkMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	switch (pEvent->event)
@@ -784,11 +784,11 @@ void CTalkMonster::TalkInit (void)
 
 	m_voicePitch = 100;
 	}
-//=========================================================
+// =========================================================
 // FindNearestFriend
 // Scan for nearest, visible friend. If fPlayer is true, look for
 // nearest player
-//=========================================================
+// =========================================================
 CBaseEntity* CTalkMonster::FindNearestFriend (BOOL fPlayer)
 	{
 	CBaseEntity* pFriend = NULL;
@@ -887,10 +887,10 @@ void CTalkMonster::Touch (CBaseEntity* pOther)
 
 
 
-//=========================================================
+// =========================================================
 // IdleRespond
 // Respond to a previous question
-//=========================================================
+// =========================================================
 void CTalkMonster::IdleRespond (void)
 	{
 	int pitch = GetVoicePitch ();
@@ -943,9 +943,9 @@ int CTalkMonster::CanPlaySentence (BOOL fDisregardState)
 	return FOkToSpeak ();
 	}
 
-//=========================================================
+// =========================================================
 // FIdleStare
-//=========================================================
+// =========================================================
 int CTalkMonster::FIdleStare (void)
 	{
 	if (!FOkToSpeak ())
@@ -957,10 +957,10 @@ int CTalkMonster::FIdleStare (void)
 	return TRUE;
 	}
 
-//=========================================================
+// =========================================================
 // IdleHello
 // Try to greet player first time he's seen
-//=========================================================
+// =========================================================
 int CTalkMonster::FIdleHello (void)
 	{
 	if (!FOkToSpeak ())
@@ -1009,10 +1009,10 @@ void CTalkMonster::IdleHeadTurn (Vector& vecFriend)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // FIdleSpeak
 // ask question of nearby friend, or make statement
-//=========================================================
+// =========================================================
 int CTalkMonster::FIdleSpeak (void)
 	{
 	// try to start a conversation, or make statement
@@ -1163,10 +1163,10 @@ void CTalkMonster::PlaySentence (const char* pszSentence, float duration, float 
 	SetBits (m_bitsSaid, bit_saidHelloPlayer);
 	}
 
-//=========================================================
+// =========================================================
 // Talk - set a timer that tells us when the monster is done
 // talking.
-//=========================================================
+// =========================================================
 void CTalkMonster::Talk (float flDuration)
 	{
 	if (flDuration <= 0)
@@ -1297,9 +1297,9 @@ Schedule_t* CTalkMonster::GetScheduleOfType (int Type)
 	return CBaseMonster::GetScheduleOfType (Type);
 	}
 
-//=========================================================
+// =========================================================
 // IsTalking - am I saying a sentence right now?
-//=========================================================
+// =========================================================
 BOOL CTalkMonster::IsTalking (void)
 	{
 	if (m_flStopTalkTime > gpGlobals->time)
@@ -1308,9 +1308,9 @@ BOOL CTalkMonster::IsTalking (void)
 	return FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // If there's a player around, watch him.
-//=========================================================
+// =========================================================
 void CTalkMonster::PrescheduleThink (void)
 	{
 	if (!HasConditions (bits_COND_SEE_CLIENT))

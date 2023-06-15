@@ -55,11 +55,11 @@ MULTIDAMAGE gMultiDamage;
 
 #define TRACER_FREQ		4			// Tracers fire every fourth bullet
 
-//=========================================================
+// =========================================================
 // MaxAmmoCarry - pass in a name and this function will tell
 // you the maximum amount of that type of ammunition that a 
 // player can carry.
-//=========================================================
+// =========================================================
 int MaxAmmoCarry (int iszName)
 	{
 	for (int i = 0; i < MAX_WEAPONS; i++)
@@ -442,9 +442,9 @@ void CBasePlayerItem::SetObjectCollisionBox (void)
 	pev->absmax = pev->origin + Vector (24, 24, 16);
 	}
 
-//=========================================================
+// =========================================================
 // Sets up movetype, size, solidtype for a new weapon. 
-//=========================================================
+// =========================================================
 void CBasePlayerItem::FallInit (void)
 	{
 	pev->movetype = MOVETYPE_TOSS;
@@ -459,13 +459,13 @@ void CBasePlayerItem::FallInit (void)
 	pev->nextthink = gpGlobals->time + 0.1;
 	}
 
-//=========================================================
+// =========================================================
 // FallThink - Items that have just spawned run this think
 // to catch them when they hit the ground. Once we're sure
 // that the object is grounded, we change its solid type
 // to trigger and set it in a large box that helps the
 // player get it
-//=========================================================
+// =========================================================
 void CBasePlayerItem::FallThink (void)
 	{
 	pev->nextthink = gpGlobals->time + 0.1;
@@ -488,9 +488,9 @@ void CBasePlayerItem::FallThink (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Materialize - make a CBasePlayerItem visible and tangible
-//=========================================================
+// =========================================================
 void CBasePlayerItem::Materialize (void)
 	{
 	if (pev->effects & EF_NODRAW)
@@ -508,10 +508,10 @@ void CBasePlayerItem::Materialize (void)
 	SetThink (NULL);
 	}
 
-//=========================================================
+// =========================================================
 // AttemptToMaterialize - the item is trying to rematerialize,
 // should it do so now or wait longer?
-//=========================================================
+// =========================================================
 void CBasePlayerItem::AttemptToMaterialize (void)
 	{
 	float time = g_pGameRules->FlWeaponTryRespawn (this);
@@ -525,10 +525,10 @@ void CBasePlayerItem::AttemptToMaterialize (void)
 	pev->nextthink = gpGlobals->time + time;
 	}
 
-//=========================================================
+// =========================================================
 // CheckRespawn - a player is taking this weapon, should 
 // it respawn?
-//=========================================================
+// =========================================================
 void CBasePlayerItem::CheckRespawn (void)
 	{
 	switch (g_pGameRules->WeaponShouldRespawn (this))
@@ -542,10 +542,10 @@ void CBasePlayerItem::CheckRespawn (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Respawn- this item is already in the world, but it is
 // invisible and intangible. Make it visible and tangible.
-//=========================================================
+// =========================================================
 CBaseEntity* CBasePlayerItem::Respawn (void)
 	{
 	// make a copy of this weapon that is invisible and inaccessible to players 
@@ -916,12 +916,12 @@ BOOL CBasePlayerWeapon::AddSecondaryAmmo (int iCount, char* szName, int iMax)
 	return (iIdAmmo > 0) ? TRUE : FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // IsUseable - this function determines whether or not a 
 // weapon is useable by the player in its current state
 // (does it have ammo loaded? do I have any ammo for the 
 // weapon?, etc)
-//=========================================================
+// =========================================================
 BOOL CBasePlayerWeapon::IsUseable (void)
 	{
 	if (m_iClip <= 0)
@@ -1012,15 +1012,15 @@ void CBasePlayerWeapon::ResetEmptySound (void)
 	m_iPlayEmptySound = 1;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CBasePlayerWeapon::PrimaryAmmoIndex (void)
 	{
 	return m_iPrimaryAmmoType;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CBasePlayerWeapon::SecondaryAmmoIndex (void)
 	{
 	return -1;
@@ -1097,14 +1097,14 @@ void CBasePlayerAmmo::DefaultTouch (CBaseEntity* pOther)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // called by the new item with the existing item as parameter
 //
 // if we call ExtractAmmo(), it's because the player is picking up this type of weapon for 
 // the first time. If it is spawned by the world, m_iDefaultAmmo will have a default ammo amount in it.
 // if  this is a weapon dropped by a dying player, has 0 m_iDefaultAmmo, which means only the ammo in 
 // the weapon clip comes along. 
-//=========================================================
+// =========================================================
 int CBasePlayerWeapon::ExtractAmmo (CBasePlayerWeapon* pWeapon)
 	{
 	int iReturn = 0;
@@ -1126,9 +1126,9 @@ int CBasePlayerWeapon::ExtractAmmo (CBasePlayerWeapon* pWeapon)
 	return iReturn;
 	}
 
-//=========================================================
+// =========================================================
 // called by the new item's class with the existing item as parameter
-//=========================================================
+// =========================================================
 int CBasePlayerWeapon::ExtractClipAmmo (CBasePlayerWeapon* pWeapon)
 	{
 	int iAmmo;
@@ -1142,9 +1142,9 @@ int CBasePlayerWeapon::ExtractClipAmmo (CBasePlayerWeapon* pWeapon)
 	return pWeapon->m_pPlayer->GiveAmmo (iAmmo, (char*)pszAmmo1 (), iMaxAmmo1 ());
 	}
 
-//=========================================================
+// =========================================================
 // RetireWeapon - no more ammo for this gun, put it away.
-//=========================================================
+// =========================================================
 void CBasePlayerWeapon::RetireWeapon (void)
 	{
 	// first, no viewmodel at all
@@ -1170,16 +1170,16 @@ TYPEDESCRIPTION	CWeaponBox::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CWeaponBox, CBaseEntity);
 
-//=========================================================
+// =========================================================
 //
-//=========================================================
+// =========================================================
 void CWeaponBox::Precache (void)
 	{
 	PRECACHE_MODEL ("models/w_weaponbox.mdl");
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CWeaponBox::KeyValue (KeyValueData* pkvd)
 	{
 	if (m_cAmmoTypes < MAX_AMMO_SLOTS)
@@ -1195,9 +1195,9 @@ void CWeaponBox::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // CWeaponBox - Spawn 
-//=========================================================
+// =========================================================
 void CWeaponBox::Spawn (void)
 	{
 	Precache ();
@@ -1210,10 +1210,10 @@ void CWeaponBox::Spawn (void)
 	SET_MODEL (ENT (pev), "models/w_weaponbox.mdl");
 	}
 
-//=========================================================
+// =========================================================
 // CWeaponBox - Kill - the think function that removes the
 // box from the world.
-//=========================================================
+// =========================================================
 void CWeaponBox::Kill (void)
 	{
 	CBasePlayerItem* pWeapon;
@@ -1236,10 +1236,10 @@ void CWeaponBox::Kill (void)
 	UTIL_Remove (this);
 	}
 
-//=========================================================
+// =========================================================
 // CWeaponBox - Touch: try to add my contents to the toucher
 // if the toucher is a player.
-//=========================================================
+// =========================================================
 void CWeaponBox::Touch (CBaseEntity* pOther)
 	{
 	if (!(pev->flags & FL_ONGROUND))
@@ -1300,9 +1300,9 @@ void CWeaponBox::Touch (CBaseEntity* pOther)
 	UTIL_Remove (this);
 	}
 
-//=========================================================
+// =========================================================
 // CWeaponBox - PackWeapon: Add this weapon to the box
-//=========================================================
+// =========================================================
 BOOL CWeaponBox::PackWeapon (CBasePlayerItem* pWeapon)
 	{
 	// is one of these weapons already packed in this box?
@@ -1349,9 +1349,9 @@ BOOL CWeaponBox::PackWeapon (CBasePlayerItem* pWeapon)
 	return TRUE;
 	}
 
-//=========================================================
+// =========================================================
 // CWeaponBox - PackAmmo
-//=========================================================
+// =========================================================
 BOOL CWeaponBox::PackAmmo (int iszName, int iCount)
 	{
 	int iMaxCarry;
@@ -1375,9 +1375,9 @@ BOOL CWeaponBox::PackAmmo (int iszName, int iCount)
 	return FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // CWeaponBox - GiveAmmo
-//=========================================================
+// =========================================================
 int CWeaponBox::GiveAmmo (int iCount, char* szName, int iMax, int* pIndex)
 	{
 	int i;
@@ -1413,10 +1413,10 @@ int CWeaponBox::GiveAmmo (int iCount, char* szName, int iMax, int* pIndex)
 	return i;
 	}
 
-//=========================================================
+// =========================================================
 // CWeaponBox::HasWeapon - is a weapon of this type already
 // packed in this box?
-//=========================================================
+// =========================================================
 BOOL CWeaponBox::HasWeapon (CBasePlayerItem* pCheckItem)
 	{
 	CBasePlayerItem* pItem = m_rgpPlayerItems[pCheckItem->iItemSlot ()];
@@ -1433,9 +1433,9 @@ BOOL CWeaponBox::HasWeapon (CBasePlayerItem* pCheckItem)
 	return FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // CWeaponBox::IsEmpty - is there anything in this box?
-//=========================================================
+// =========================================================
 BOOL CWeaponBox::IsEmpty (void)
 	{
 	int i;
@@ -1460,8 +1460,8 @@ BOOL CWeaponBox::IsEmpty (void)
 	return TRUE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CWeaponBox::SetObjectCollisionBox (void)
 	{
 	pev->absmin = pev->origin + Vector (-16, -16, 0);

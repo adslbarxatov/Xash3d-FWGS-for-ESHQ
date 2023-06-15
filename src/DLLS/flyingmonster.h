@@ -47,4 +47,4 @@ class CFlyingMonster: public CBaseMonster
 		const char* m_pFlapSound;
 	};
 
-#endif		//FLYINGMONSTER_H
+#endif

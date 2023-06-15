@@ -12,12 +12,10 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//=========================================================
+// =========================================================
 // GameRules
-//=========================================================
+// =========================================================
 
-//#include "weapons.h"
-//#include "items.h"
 class CBasePlayerItem;
 class CBasePlayer;
 class CItem;
@@ -63,18 +61,21 @@ class CGameRules
 		virtual void Think (void) = 0;// GR_Think - runs every server frame, should handle any timer tasks, periodic events, etc.
 		virtual BOOL IsAllowedToSpawn (CBaseEntity* pEntity) = 0;  // Can this item spawn (eg monsters don't spawn in deathmatch).
 
-		virtual BOOL FAllowFlashlight (void) = 0;// Are players allowed to switch on their flashlight?
-		virtual BOOL FShouldSwitchWeapon (CBasePlayer* pPlayer, CBasePlayerItem* pWeapon) = 0;// should the player switch to this weapon?
-		virtual BOOL GetNextBestWeapon (CBasePlayer* pPlayer, CBasePlayerItem* pCurrentWeapon) = 0;// I can't use this weapon anymore, get me the next best one.
+		virtual BOOL FAllowFlashlight (void) = 0;	// Are players allowed to switch on their flashlight?
+		virtual BOOL FShouldSwitchWeapon (CBasePlayer* pPlayer, CBasePlayerItem* pWeapon) = 0;
+		// should the player switch to this weapon?
+		virtual BOOL GetNextBestWeapon (CBasePlayer* pPlayer, CBasePlayerItem* pCurrentWeapon) = 0;
+		// I can't use this weapon anymore, get me the next best one
 
-	// Functions to verify the single/multiplayer status of a game
-		virtual BOOL IsMultiplayer (void) = 0;// is this a multiplayer game? (either coop or deathmatch)
-		virtual BOOL IsDeathmatch (void) = 0;//is this a deathmatch game?
+		// Functions to verify the single/multiplayer status of a game
+		virtual BOOL IsMultiplayer (void) = 0;	// is this a multiplayer game? (either coop or deathmatch)
+		virtual BOOL IsDeathmatch (void) = 0;	// is this a deathmatch game?
 		virtual BOOL IsTeamplay (void) { return FALSE; };// is this deathmatch game being played with team rules?
 		virtual BOOL IsCoOp (void) = 0;// is this a coop game?
-		virtual const char* GetGameDescription (void) { return "Half-Life"; }  // this is the game name that gets seen in the server browser
+		virtual const char* GetGameDescription (void) { return "Half-Life"; }
+		// this is the game name that gets seen in the server browser
 
-	// Client connection/disconnection
+		// Client connection/disconnection
 		virtual BOOL ClientConnected (edict_t* pEntity, const char* pszName, const char* pszAddress, char szRejectReason[128]) = 0;// a client just connected to the server (player hasn't spawned yet)
 		virtual void InitHUD (CBasePlayer* pl) = 0;		// the client dll is ready for updating
 		virtual void ClientDisconnected (edict_t* pClient) = 0;// a client just disconnected from the server
@@ -153,7 +154,7 @@ class CGameRules
 		virtual BOOL PlayFootstepSounds (CBasePlayer* pl, float fvol) { return TRUE; }
 
 		// Monsters
-		virtual BOOL FAllowMonsters (void) = 0;//are monsters allowed
+		virtual BOOL FAllowMonsters (void) = 0;	// are monsters allowed
 
 		// Immediately end a multiplayer game
 		virtual void EndMultiplayerGame (void) {}
@@ -162,10 +163,10 @@ class CGameRules
 extern CGameRules* InstallGameRules (void);
 
 
-//=========================================================
+// =========================================================
 // CHalfLifeRules - rules for the single player Half-Life 
 // game.
-//=========================================================
+// =========================================================
 class CHalfLifeRules: public CGameRules
 	{
 	public:
@@ -248,10 +249,10 @@ class CHalfLifeRules: public CGameRules
 		virtual int PlayerRelationship (CBaseEntity* pPlayer, CBaseEntity* pTarget);
 	};
 
-//=========================================================
+// =========================================================
 // CHalfLifeMultiplay - rules for the basic half life multiplayer
 // competition
-//=========================================================
+// =========================================================
 class CHalfLifeMultiplay: public CGameRules
 	{
 	public:

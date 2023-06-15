@@ -127,7 +127,6 @@ void CEnvGlobal::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE us
 
 TYPEDESCRIPTION CMultiSource::m_SaveData[] =
 	{
-	//!!!BUGBUG FIX
 	DEFINE_ARRAY (CMultiSource, m_rgEntities, FIELD_EHANDLE, MS_MAX_TARGETS),
 	DEFINE_ARRAY (CMultiSource, m_rgTriggered, FIELD_INTEGER, MS_MAX_TARGETS),
 	DEFINE_FIELD (CMultiSource, m_iTotal, FIELD_INTEGER),
@@ -137,10 +136,8 @@ TYPEDESCRIPTION CMultiSource::m_SaveData[] =
 IMPLEMENT_SAVERESTORE (CMultiSource, CBaseEntity);
 
 LINK_ENTITY_TO_CLASS (multisource, CMultiSource);
-//
-// Cache user-entity-field values until spawn is called.
-//
 
+// Cache user-entity-field values until spawn is called
 void CMultiSource::KeyValue (KeyValueData* pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "style") ||
@@ -149,14 +146,18 @@ void CMultiSource::KeyValue (KeyValueData* pkvd)
 		FStrEq (pkvd->szKeyName, "value1") ||
 		FStrEq (pkvd->szKeyName, "value2") ||
 		FStrEq (pkvd->szKeyName, "value3"))
+		{
 		pkvd->fHandled = TRUE;
+		}
 	else if (FStrEq (pkvd->szKeyName, "globalstate"))
 		{
 		m_globalstate = ALLOC_STRING (pkvd->szValue);
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CPointEntity::KeyValue (pkvd);
+		}
 	}
 
 #define SF_MULTI_INIT		1
@@ -432,10 +433,10 @@ void CBaseButton::Spawn ()
 	{
 	char* pszSound;
 
-	//----------------------------------------------------
-	//determine sounds for buttons
-	//a sound of 0 should not make a sound
-	//----------------------------------------------------
+	// ----------------------------------------------------
+	// determine sounds for buttons
+	// a sound of 0 should not make a sound
+	// ----------------------------------------------------
 	pszSound = ButtonSound (m_sounds);
 	PRECACHE_SOUND (pszSound);
 	pev->noise = ALLOC_STRING (pszSound);
@@ -595,8 +596,6 @@ void CBaseButton::ButtonUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_
 		if (!m_fStayPushed && FBitSet (pev->spawnflags, SF_BUTTON_TOGGLE))
 			{
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, (char*)STRING (pev->noise), 1, ATTN_MEDIUM);
-
-			//SUB_UseTargets( m_eoActivator );
 			ButtonReturn ();
 			}
 		}
@@ -733,9 +732,7 @@ void CBaseButton::ButtonReturn (void)
 	pev->frame = 0;			// use normal textures
 	}
 
-//
 // Button has returned to start state. Quiesce it
-//
 void CBaseButton::ButtonBackHome (void)
 	{
 	ASSERT (m_toggle_state == TS_GOING_DOWN);
@@ -779,9 +776,7 @@ void CBaseButton::ButtonBackHome (void)
 		}
 	}
 
-//
 // Rotating button (aka "lever")
-//
 class CRotButton: public CBaseButton
 	{
 	public:
@@ -793,10 +788,11 @@ LINK_ENTITY_TO_CLASS (func_rot_button, CRotButton);
 void CRotButton::Spawn (void)
 	{
 	char* pszSound;
-	//----------------------------------------------------
-	//determine sounds for buttons
-	//a sound of 0 should not make a sound
-	//----------------------------------------------------
+
+	// ----------------------------------------------------
+	// determine sounds for buttons
+	// a sound of 0 should not make a sound
+	// ----------------------------------------------------
 	pszSound = ButtonSound (m_sounds);
 	PRECACHE_SOUND (pszSound);
 	pev->noise = ALLOC_STRING (pszSound);
@@ -1111,10 +1107,9 @@ void CMomentaryRotButton::UpdateSelfReturn (float value)
 		}
 	}
 
-//----------------------------------------------------------------
+// ----------------------------------------------------------------
 // Spark
-//----------------------------------------------------------------
-
+// ----------------------------------------------------------------
 class CEnvSpark: public CBaseEntity
 	{
 	public:

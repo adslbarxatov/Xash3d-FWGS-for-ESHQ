@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // monster template
-//=========================================================
+// =========================================================
 #if 0
 
 #include	"extdll.h"
@@ -23,9 +23,9 @@
 #include	"monsters.h"
 #include	"schedule.h"
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 
 class CMyMonster: public CBaseMonster
 	{
@@ -38,19 +38,19 @@ class CMyMonster: public CBaseMonster
 	};
 LINK_ENTITY_TO_CLASS (my_monster, CMyMonster);
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CMyMonster::Classify (void)
 	{
 	return	CLASS_MY_MONSTER;
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
-//=========================================================
+// =========================================================
 void CMyMonster::SetYawSpeed (void)
 	{
 	int ys;
@@ -65,10 +65,10 @@ void CMyMonster::SetYawSpeed (void)
 	pev->yaw_speed = ys;
 	}
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//=========================================================
+// =========================================================
 void CMyMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	switch (pEvent->event)
@@ -80,9 +80,9 @@ void CMyMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CMyMonster::Spawn ()
 	{
 	Precache ();
@@ -101,9 +101,9 @@ void CMyMonster::Spawn ()
 	MonsterInit ();
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CMyMonster::Precache ()
 	{
 	PRECACHE_SOUND ("mysound.wav");
@@ -111,7 +111,7 @@ void CMyMonster::Precache ()
 	PRECACHE_MODEL ("models/mymodel.mdl");
 	}
 
-//=========================================================
+// =========================================================
 // AI Schedules Specific to this monster
-//=========================================================
+// =========================================================
 #endif 0

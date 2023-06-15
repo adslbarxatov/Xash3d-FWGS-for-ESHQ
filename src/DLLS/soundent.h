@@ -12,11 +12,11 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//=========================================================
+// =========================================================
 // Soundent.h - the entity that spawns when the world 
 // spawns, and handles the world's active and free sound
 // lists.
-//=========================================================
+// =========================================================
 
 #define	MAX_WORLD_SOUNDS	64 // maximum number of sounds handled by the world at one time.
 
@@ -38,9 +38,9 @@
 
 #define	SOUND_NEVER_EXPIRE	-1 // with this set as a sound's ExpireTime, the sound will never expire.
 
-//=========================================================
+// =========================================================
 // CSound - an instance of a sound in the world.
-//=========================================================
+// =========================================================
 class CSound
 	{
 	public:
@@ -59,11 +59,11 @@ class CSound
 		BOOL	FIsScent (void);
 	};
 
-//=========================================================
+// =========================================================
 // CSoundEnt - a single instance of this entity spawns when
 // the world spawns. The SoundEnt's job is to update the 
 // world's Free and Active sound lists.
-//=========================================================
+// =========================================================
 class CSoundEnt: public CBaseEntity
 	{
 	public:

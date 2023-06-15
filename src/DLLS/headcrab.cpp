@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // headcrab.cpp - tiny, jumpy alien parasite
-//=========================================================
+// =========================================================
 
 #include	"extdll.h"
 #include	"util.h"
@@ -23,9 +23,9 @@
 #include	"schedule.h"
 #include	"game.h"
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 #define		HC_AE_JUMPATTACK	( 2 )
 
 Task_t	tlHCRangeAttack1[] =
@@ -156,20 +156,20 @@ const char* CHeadCrab::pBiteSounds[] =
 		"headcrab/hc_headbite.wav",
 	};
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CHeadCrab::Classify (void)
 	{
 	return CLASS_ALIEN_PREY;
 	}
 
-//=========================================================
+// =========================================================
 // Center - returns the real center of the headcrab.  The 
 // bounding box is much larger than the actual creature so 
 // this is needed for targeting
-//=========================================================
+// =========================================================
 Vector CHeadCrab::Center (void)
 	{
 	return Vector (pev->origin.x, pev->origin.y, pev->origin.z + 6);
@@ -180,10 +180,10 @@ Vector CHeadCrab::BodyTarget (const Vector& posSrc)
 	return Center ();
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
-//=========================================================
+// =========================================================
 void CHeadCrab::SetYawSpeed (void)
 	{
 	int ys;
@@ -212,10 +212,10 @@ void CHeadCrab::SetYawSpeed (void)
 	pev->yaw_speed = ys;
 	}
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//=========================================================
+// =========================================================
 void CHeadCrab::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	switch (pEvent->event)
@@ -277,9 +277,9 @@ void CHeadCrab::HandleAnimEvent (MonsterEvent_t* pEvent)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CHeadCrab::Spawn ()
 	{
 	Precache ();
@@ -304,9 +304,9 @@ void CHeadCrab::Spawn ()
 	MonsterInit ();
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CHeadCrab::Precache ()
 	{
 	PRECACHE_SOUND_ARRAY (pIdleSounds);
@@ -319,9 +319,9 @@ void CHeadCrab::Precache ()
 	PRECACHE_MODEL ("models/headcrab.mdl");
 	}
 
-//=========================================================
+// =========================================================
 // RunTask 
-//=========================================================
+// =========================================================
 void CHeadCrab::RunTask (Task_t* pTask)
 	{
 	switch (pTask->iTask)
@@ -342,10 +342,10 @@ void CHeadCrab::RunTask (Task_t* pTask)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // LeapTouch - this is the headcrab's touch function when it
 // is in the air
-//=========================================================
+// =========================================================
 void CHeadCrab::LeapTouch (CBaseEntity* pOther)
 	{
 	if (!pOther->pev->takedamage)
@@ -366,9 +366,9 @@ void CHeadCrab::LeapTouch (CBaseEntity* pOther)
 	SetTouch (NULL);
 	}
 
-//=========================================================
+// =========================================================
 // PrescheduleThink
-//=========================================================
+// =========================================================
 void CHeadCrab::PrescheduleThink (void)
 	{
 	// make the crab coo a little bit in combat state
@@ -393,9 +393,9 @@ void CHeadCrab::StartTask (Task_t* pTask)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // CheckRangeAttack1
-//=========================================================
+// =========================================================
 BOOL CHeadCrab::CheckRangeAttack1 (float flDot, float flDist)
 	{
 	if (FBitSet (pev->flags, FL_ONGROUND) && (flDist <= 256) && (flDot >= 0.65))
@@ -404,9 +404,9 @@ BOOL CHeadCrab::CheckRangeAttack1 (float flDot, float flDist)
 	return FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // CheckRangeAttack2
-//=========================================================
+// =========================================================
 BOOL CHeadCrab::CheckRangeAttack2 (float flDot, float flDist)
 	{
 	return FALSE;
@@ -421,33 +421,33 @@ int CHeadCrab::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, floa
 	return CBaseMonster::TakeDamage (pevInflictor, pevAttacker, flDamage, bitsDamageType);
 	}
 
-//=========================================================
+// =========================================================
 // IdleSound
-//=========================================================
+// =========================================================
 void CHeadCrab::IdleSound (void)
 	{
 	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pIdleSounds), GetSoundVolue (), ATTN_SMALL, 0, GetVoicePitch ());
 	}
 
-//=========================================================
+// =========================================================
 // AlertSound 
-//=========================================================
+// =========================================================
 void CHeadCrab::AlertSound (void)
 	{
 	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pAlertSounds), GetSoundVolue (), ATTN_SMALL, 0, GetVoicePitch ());
 	}
 
-//=========================================================
+// =========================================================
 // AlertSound 
-//=========================================================
+// =========================================================
 void CHeadCrab::PainSound (void)
 	{
 	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pPainSounds), GetSoundVolue (), ATTN_SMALL, 0, GetVoicePitch ());
 	}
 
-//=========================================================
+// =========================================================
 // DeathSound 
-//=========================================================
+// =========================================================
 void CHeadCrab::DeathSound (void)
 	{
 	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pDeathSounds), GetSoundVolue (), ATTN_SMALL, 0, GetVoicePitch ());

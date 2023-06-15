@@ -12,9 +12,9 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//=========================================================
+// =========================================================
 // GameRules.cpp
-//=========================================================
+// =========================================================
 
 #include	"extdll.h"
 #include	"util.h"
@@ -35,8 +35,8 @@ extern int gmsgMOTD;
 
 int g_teamplay = 0;
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CGameRules::CanHaveAmmo (CBasePlayer* pPlayer, const char* pszAmmoName, int iMaxCarry)
 	{
 	int iAmmoIndex;
@@ -56,8 +56,8 @@ BOOL CGameRules::CanHaveAmmo (CBasePlayer* pPlayer, const char* pszAmmoName, int
 	return FALSE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 edict_t* CGameRules::GetPlayerSpawnSpot (CBasePlayer* pPlayer)
 	{
 	edict_t* pentSpawnSpot = EntSelectSpawnPoint (pPlayer);
@@ -72,8 +72,8 @@ edict_t* CGameRules::GetPlayerSpawnSpot (CBasePlayer* pPlayer)
 	return pentSpawnSpot;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CGameRules::CanHavePlayerItem (CBasePlayer* pPlayer, CBasePlayerItem* pWeapon)
 	{
 	// only living players can have items
@@ -105,9 +105,9 @@ BOOL CGameRules::CanHavePlayerItem (CBasePlayer* pPlayer, CBasePlayerItem* pWeap
 	return TRUE;
 	}
 
-//=========================================================
+// =========================================================
 // load the SkillData struct with the proper values based on the skill level.
-//=========================================================
+// =========================================================
 void CGameRules::RefreshSkillData (void)
 	{
 	int	iSkill;
@@ -128,7 +128,7 @@ void CGameRules::RefreshSkillData (void)
 
 	ALERT (at_console, "\nGAME SKILL LEVEL:%d\n", iSkill);
 
-	//Agrunt		
+	// Agrunt		
 	gSkillData.agruntHealth = GetSkillCvar ("sk_agrunt_health");
 	gSkillData.agruntDmgPunch = GetSkillCvar ("sk_agrunt_dmg_punch");
 
@@ -211,7 +211,7 @@ void CGameRules::RefreshSkillData (void)
 	gSkillData.zombieDmgOneSlash = GetSkillCvar ("sk_zombie_dmg_one_slash");
 	gSkillData.zombieDmgBothSlash = GetSkillCvar ("sk_zombie_dmg_both_slash");
 
-	//Turret
+	// Turret
 	gSkillData.turretHealth = GetSkillCvar ("sk_turret_health");
 
 	// MiniTurret
@@ -302,9 +302,9 @@ void CGameRules::RefreshSkillData (void)
 	gSkillData.plrArm = GetSkillCvar ("sk_player_arm");
 	}
 
-//=========================================================
+// =========================================================
 // instantiate the proper game rules object
-//=========================================================
+// =========================================================
 
 CGameRules* InstallGameRules (void)
 	{

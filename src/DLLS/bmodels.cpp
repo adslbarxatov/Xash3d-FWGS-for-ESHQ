@@ -37,9 +37,8 @@ extern DLL_GLOBAL Vector		g_vecAttackDir;
 #define		noiseRunning	noise3
 
 #define		SF_PENDULUM_SWING		2	// spawnflag that makes a pendulum a rope swing.
-//
+
 // BModelOrigin - calculates origin of a bmodel from absmin/size because all bmodel origins are 0 0 0
-//
 Vector VecBModelOrigin (entvars_t* pevBModel)
 	{
 	// ESHQ: из-за функции SetObjectCollisionBox, вносящей дефект в absmin и absmax, 
@@ -200,13 +199,15 @@ LINK_ENTITY_TO_CLASS (func_illusionary, CFuncIllusionary);
 
 void CFuncIllusionary::KeyValue (KeyValueData* pkvd)
 	{
-	if (FStrEq (pkvd->szKeyName, "skin"))//skin is used for content type
+	if (FStrEq (pkvd->szKeyName, "skin"))	// skin is used for content type
 		{
 		pev->skin = atof (pkvd->szValue);
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseToggle::KeyValue (pkvd);
+		}
 	}
 
 // ESHQ: обработка текстур
@@ -222,29 +223,23 @@ void CFuncIllusionary::Spawn (void)
 	pev->movetype = MOVETYPE_NONE;
 	pev->solid = SOLID_NOT;	// always solid_not 
 	SET_MODEL (ENT (pev), STRING (pev->model));
-
-	// I'd rather eat the network bandwidth of this than figure out how to save/restore
-	// these entities after they have been moved to the client, or respawn them ala Quake
-	// Perhaps we can do this in deathmatch only.
-	//	MAKE_STATIC(ENT(pev));
 	}
 
 // -------------------------------------------------------------------------------
-//
 // Monster only clip brush
 // 
 // This brush will be solid for any entity who has the FL_MONSTERCLIP flag set
 // in pev->flags
-//
+// 
 // otherwise it will be invisible and not solid.  This can be used to keep 
 // specific monsters out of certain areas
-//
 // -------------------------------------------------------------------------------
 class CFuncMonsterClip: public CFuncWall
 	{
 	public:
 		void	Spawn (void);
-		void	Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) {}		// Clear out func_wall's use function
+		void	Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) {}
+		// Clear out func_wall's use function
 	};
 
 LINK_ENTITY_TO_CLASS (func_monsterclip, CFuncMonsterClip);
@@ -495,9 +490,7 @@ void CFuncRotating::Precache (void)
 		}
 	}
 
-//
 // Touch - will hurt others based on how fast the brush is spinning
-//
 void CFuncRotating::HurtTouch (CBaseEntity* pOther)
 	{
 	entvars_t* pevOther = pOther->pev;
@@ -514,10 +507,8 @@ void CFuncRotating::HurtTouch (CBaseEntity* pOther)
 	pevOther->velocity = (pevOther->origin - VecBModelOrigin (pev)).Normalize () * pev->dmg;
 	}
 
-//
 // RampPitchVol - ramp pitch and volume up to final values, based on difference
 // between how fast we're going vs how fast we plan to go
-//
 #define FANPITCHMIN		30
 #define FANPITCHMAX		100
 
@@ -554,12 +545,10 @@ void CFuncRotating::RampPitchVol (int fUp)
 		fvol, m_flAttenuation, SND_CHANGE_PITCH | SND_CHANGE_VOL, pitch);
 	}
 
-//
 // SpinUp - accelerates a non-moving func_rotating up to it's speed
-//
 void CFuncRotating::SpinUp (void)
 	{
-	Vector	vecAVel;//rotational velocity
+	Vector	vecAVel;	// rotational velocity
 
 	pev->nextthink = pev->ltime + 0.1;
 	pev->avelocity = pev->avelocity + (pev->movedir * (pev->speed * m_flFanFriction));
@@ -586,19 +575,17 @@ void CFuncRotating::SpinUp (void)
 		}
 	}
 
-//
 // SpinDown - decelerates a moving func_rotating to a standstill.
-//
 void CFuncRotating::SpinDown (void)
 	{
-	Vector	vecAVel;//rotational velocity
+	Vector	vecAVel;	// rotational velocity
 	vec_t vecdir;
 
 	pev->nextthink = pev->ltime + 0.1;
 
-	pev->avelocity = pev->avelocity - (pev->movedir * (pev->speed * m_flFanFriction));//spin down slower than spinup
+	pev->avelocity = pev->avelocity - (pev->movedir * (pev->speed * m_flFanFriction));	// spin down slower than spinup
 
-	vecAVel = pev->avelocity;// cache entity's rotational velocity
+	vecAVel = pev->avelocity;	// cache entity's rotational velocity
 
 	if (pev->movedir.x != 0)
 		vecdir = pev->movedir.x;
@@ -634,9 +621,9 @@ void CFuncRotating::Rotate (void)
 	pev->nextthink = pev->ltime + 10;
 	}
 
-//=========================================================
+// =========================================================
 // Rotating Use - when a rotating brush is triggered
-//=========================================================
+// =========================================================
 void CFuncRotating::RotatingUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
 	// is this a brush that should accelerate and decelerate when turned on/off (fan)?
@@ -687,14 +674,11 @@ void CFuncRotating::RotatingUse (CBaseEntity* pActivator, CBaseEntity* pCaller, 
 		}
 	}
 
-//
 // RotatingBlocked - An entity has blocked the brush
-//
 void CFuncRotating::Blocked (CBaseEntity* pOther)
 	{
 	pOther->TakeDamage (pev, pev, pev->dmg, DMG_CRUSH);
 	}
-
 
 class CPendulum: public CBaseEntity
 	{

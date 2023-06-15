@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // Default behaviors.
-//=========================================================
+// =========================================================
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
@@ -25,9 +25,9 @@
 #include	"nodes.h"
 #include	"scripted.h"
 
-//=========================================================
+// =========================================================
 // Fail
-//=========================================================
+// =========================================================
 Task_t	tlFail[] =
 	{
 		{ TASK_STOP_MOVING,			0				},
@@ -47,14 +47,15 @@ Schedule_t	slFail[] =
 		},
 	};
 
-//=========================================================
-//	Idle Schedules
-//=========================================================
+// =========================================================
+// Idle Schedules
+// =========================================================
 Task_t	tlIdleStand1[] =
 	{
 		{ TASK_STOP_MOVING,			0				},
 		{ TASK_SET_ACTIVITY,		(float)ACT_IDLE },
-		{ TASK_WAIT,				(float)5		},// repick IDLESTAND every five seconds. gives us a chance to pick an active idle, fidget, etc.
+		{ TASK_WAIT,				(float)5		},
+		// repick IDLESTAND every five seconds. gives us a chance to pick an active idle, fidget, etc.
 	};
 
 Schedule_t	slIdleStand[] =
@@ -124,10 +125,10 @@ Schedule_t	slIdleWalk[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // Ambush - monster stands in place and waits for a new 
 // enemy, or chance to attack an existing enemy.
-//=========================================================
+// =========================================================
 Task_t	tlAmbush[] =
 	{
 		{ TASK_STOP_MOVING,			0				},
@@ -150,14 +151,14 @@ Schedule_t	slAmbush[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // ActiveIdle schedule - !!!BUGBUG - if this schedule doesn't
 // complete on its own, the monster's HintNode will not be 
 // cleared, and the rest of the monster's group will avoid
 // that node because they think the group member that was 
 // previously interrupted is still using that node to active
 // idle.
-///=========================================================
+// =========================================================
 Task_t tlActiveIdle[] =
 	{
 		{ TASK_FIND_HINTNODE,			(float)0	},
@@ -193,9 +194,9 @@ Schedule_t slActiveIdle[] =
 		}
 	};
 
-//=========================================================
-//	Wake Schedules
-//=========================================================
+// =========================================================
+// Wake Schedules
+// =========================================================
 Task_t tlWakeAngry1[] =
 	{
 		{ TASK_STOP_MOVING,			0				},
@@ -215,9 +216,9 @@ Schedule_t slWakeAngry[] =
 		}
 	};
 
-//=========================================================
+// =========================================================
 // AlertFace Schedules
-//=========================================================
+// =========================================================
 Task_t	tlAlertFace1[] =
 	{
 		{ TASK_STOP_MOVING,				0				},
@@ -240,10 +241,10 @@ Schedule_t	slAlertFace[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // AlertSmallFlinch Schedule - shot, but didn't see attacker,
 // flinch then face
-//=========================================================
+// =========================================================
 Task_t	tlAlertSmallFlinch[] =
 	{
 		{ TASK_STOP_MOVING,				0						},
@@ -263,9 +264,9 @@ Schedule_t	slAlertSmallFlinch[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // AlertIdle Schedules
-//=========================================================
+// =========================================================
 Task_t	tlAlertStand1[] =
 	{
 		{ TASK_STOP_MOVING,			0						 },
@@ -301,10 +302,10 @@ Schedule_t	slAlertStand[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // InvestigateSound - sends a monster to the location of the
 // sound that was just heard, to check things out. 
-//=========================================================
+// =========================================================
 Task_t tlInvestigateSound[] =
 	{
 		{ TASK_STOP_MOVING,				(float)0				},
@@ -337,9 +338,9 @@ Schedule_t	slInvestigateSound[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // CombatIdle Schedule
-//=========================================================
+// =========================================================
 Task_t	tlCombatStand1[] =
 	{
 		{ TASK_STOP_MOVING,			0				},
@@ -362,9 +363,9 @@ Schedule_t	slCombatStand[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // CombatFace Schedule
-//=========================================================
+// =========================================================
 Task_t	tlCombatFace1[] =
 	{
 		{ TASK_STOP_MOVING,				0				},
@@ -385,11 +386,11 @@ Schedule_t	slCombatFace[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // Standoff schedule. Used in combat when a monster is 
 // hiding in cover or the enemy has moved out of sight. 
 // Should we look around in this schedule?
-//=========================================================
+// =========================================================
 Task_t	tlStandoff[] =
 	{
 		{ TASK_STOP_MOVING,				(float)0					},
@@ -413,9 +414,9 @@ Schedule_t slStandoff[] =
 		}
 	};
 
-//=========================================================
+// =========================================================
 // Arm weapon (draw gun)
-//=========================================================
+// =========================================================
 Task_t	tlArmWeapon[] =
 	{
 		{ TASK_STOP_MOVING,		0				},
@@ -433,9 +434,9 @@ Schedule_t slArmWeapon[] =
 		}
 	};
 
-//=========================================================
+// =========================================================
 // reload schedule
-//=========================================================
+// =========================================================
 Task_t	tlReload[] =
 	{
 		{ TASK_STOP_MOVING,			0					},
@@ -453,9 +454,9 @@ Schedule_t slReload[] =
 		}
 	};
 
-//=========================================================
-//	Attack Schedules
-//=========================================================
+// =========================================================
+// Attack Schedules
+// =========================================================
 
 // primary range attack
 Task_t	tlRangeAttack1[] =
@@ -643,9 +644,8 @@ Task_t	tlChaseEnemyFailed[] =
 		{ TASK_RUN_PATH,				(float)0					},
 		{ TASK_WAIT_FOR_MOVEMENT,		(float)0					},
 		{ TASK_REMEMBER,				(float)bits_MEMORY_INCOVER	},
-		//	{ TASK_TURN_LEFT,				(float)179					},
-			{ TASK_FACE_ENEMY,				(float)0					},
-			{ TASK_WAIT,					(float)1					},
+		{ TASK_FACE_ENEMY,				(float)0					},
+		{ TASK_WAIT,					(float)1					},
 	};
 
 Schedule_t	slChaseEnemyFailed[] =
@@ -666,9 +666,9 @@ Schedule_t	slChaseEnemyFailed[] =
 	};
 
 
-//=========================================================
+// =========================================================
 // small flinch, played when minor damage is taken.
-//=========================================================
+// =========================================================
 Task_t tlSmallFlinch[] =
 	{
 		{ TASK_REMEMBER,			(float)bits_MEMORY_FLINCHED },
@@ -687,9 +687,9 @@ Schedule_t slSmallFlinch[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // Die!
-//=========================================================
+// =========================================================
 Task_t tlDie1[] =
 	{
 		{ TASK_STOP_MOVING,			0				 },
@@ -708,9 +708,9 @@ Schedule_t slDie[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // Victory Dance
-//=========================================================
+// =========================================================
 Task_t tlVictoryDance[] =
 	{
 		{ TASK_STOP_MOVING,			0							},
@@ -729,11 +729,11 @@ Schedule_t slVictoryDance[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // BarnacleVictimGrab - barnacle tongue just hit the monster,
 // so play a hit animation, then play a cycling pull animation
 // as the creature is hoisting the monster.
-//=========================================================
+// =========================================================
 Task_t	tlBarnacleVictimGrab[] =
 	{
 		{ TASK_STOP_MOVING,			0				},
@@ -753,11 +753,11 @@ Schedule_t slBarnacleVictimGrab[] =
 		}
 	};
 
-//=========================================================
+// =========================================================
 // BarnacleVictimChomp - barnacle has pulled the prey to its
 // mouth. Victim should play the BARNCLE_CHOMP animation 
 // once, then loop the BARNACLE_CHEW animation indefinitely
-//=========================================================
+// =========================================================
 Task_t	tlBarnacleVictimChomp[] =
 	{
 		{ TASK_STOP_MOVING,			0				},
@@ -778,7 +778,7 @@ Schedule_t slBarnacleVictimChomp[] =
 	};
 
 
-//	Universal Error Schedule
+// Universal Error Schedule
 Task_t	tlError[] =
 	{
 		{ TASK_STOP_MOVING,			0				},
@@ -881,10 +881,10 @@ Schedule_t slFaceScript[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // Cower - this is what is usually done when attempts
 // to escape danger fail.
-//=========================================================
+// =========================================================
 Task_t	tlCower[] =
 	{
 		{ TASK_STOP_MOVING,			0					},
@@ -902,9 +902,9 @@ Schedule_t	slCower[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // move away from where you're currently standing. 
-//=========================================================
+// =========================================================
 Task_t	tlTakeCoverFromOrigin[] =
 	{
 		{ TASK_STOP_MOVING,					(float)0					},
@@ -926,9 +926,9 @@ Schedule_t	slTakeCoverFromOrigin[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // hide from the loudest sound source
-//=========================================================
+// =========================================================
 Task_t	tlTakeCoverFromBestSound[] =
 	{
 		{ TASK_STOP_MOVING,					(float)0					},
@@ -950,10 +950,10 @@ Schedule_t	slTakeCoverFromBestSound[] =
 		},
 	};
 
-//=========================================================
+// =========================================================
 // Take cover from enemy! Tries lateral cover before node 
 // cover! 
-//=========================================================
+// =========================================================
 Task_t	tlTakeCoverFromEnemy[] =
 	{
 		{ TASK_STOP_MOVING,				(float)0					},
@@ -962,9 +962,8 @@ Task_t	tlTakeCoverFromEnemy[] =
 		{ TASK_RUN_PATH,				(float)0					},
 		{ TASK_WAIT_FOR_MOVEMENT,		(float)0					},
 		{ TASK_REMEMBER,				(float)bits_MEMORY_INCOVER	},
-		//	{ TASK_TURN_LEFT,				(float)179					},
-			{ TASK_FACE_ENEMY,				(float)0					},
-			{ TASK_WAIT,					(float)1					},
+		{ TASK_FACE_ENEMY,				(float)0					},
+		{ TASK_WAIT,					(float)1					},
 	};
 
 Schedule_t	slTakeCoverFromEnemy[] =
@@ -1050,13 +1049,12 @@ Schedule_t* CBaseMonster::ScheduleInList (const char* pName, Schedule_t** pList,
 	return NULL;
 	}
 
-//=========================================================
+// =========================================================
 // GetScheduleOfType - returns a pointer to one of the 
 // monster's available schedules of the indicated type.
-//=========================================================
+// =========================================================
 Schedule_t* CBaseMonster::GetScheduleOfType (int Type)
 	{
-	//	ALERT ( at_console, "Sched Type:%d\n", Type );
 	switch (Type)
 		{
 		// This is the schedule for scripted sequences AND scripted AI
@@ -1069,8 +1067,6 @@ Schedule_t* CBaseMonster::GetScheduleOfType (int Type)
 				CineCleanup ();
 				return GetScheduleOfType (SCHED_IDLE_STAND);
 				}
-			//			else
-			//				ALERT( at_aiconsole, "Starting script %s for %s\n", STRING( m_pCine->m_iszPlay ), STRING(pev->classname) );
 
 			switch (m_pCine->m_fMoveTo)
 				{

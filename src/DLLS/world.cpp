@@ -443,11 +443,11 @@ void ResetGlobalState (void)
 	}
 
 // moved CWorld class definition to cbase.h
-//=======================
+// =======================
 // CWorld
 //
 // This spawns first when each level begins.
-//=======================
+// =======================
 
 LINK_ENTITY_TO_CLASS (worldspawn, CWorld);
 

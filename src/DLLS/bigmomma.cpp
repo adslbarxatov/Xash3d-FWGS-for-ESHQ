@@ -14,9 +14,9 @@
 ****/
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
-//=========================================================
+// =========================================================
 // monster template
-//=========================================================
+// =========================================================
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
@@ -95,9 +95,9 @@ void CInfoBM::KeyValue (KeyValueData* pkvd)
 		CPointEntity::KeyValue (pkvd);
 	}
 
-//=========================================================
+// =========================================================
 // Mortar shot entity
-//=========================================================
+// =========================================================
 class CBMortar: public CBaseEntity
 	{
 	public:
@@ -123,9 +123,9 @@ TYPEDESCRIPTION	CBMortar::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CBMortar, CBaseEntity);
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 #define	BIG_AE_STEP1				1		// Footstep left
 #define	BIG_AE_STEP2				2		// Footstep right
 #define	BIG_AE_STEP3				3		// Footstep back left
@@ -392,19 +392,19 @@ void CBigMomma::KeyValue (KeyValueData* pkvd)
 		CBaseMonster::KeyValue (pkvd);
 	}
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CBigMomma::Classify (void)
 	{
 	return	CLASS_ALIEN_MONSTER;
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
-//=========================================================
+// =========================================================
 void CBigMomma::SetYawSpeed (void)
 	{
 	int ys;
@@ -417,15 +417,15 @@ void CBigMomma::SetYawSpeed (void)
 		default:
 			ys = 90;
 		}
+
 	pev->yaw_speed = ys;
 	}
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//
-// Returns number of events handled, 0 if none.
-//=========================================================
+// Returns number of events handled, 0 if none
+// =========================================================
 void CBigMomma::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	switch (pEvent->event)
@@ -641,9 +641,9 @@ void CBigMomma::LaunchMortar (void)
 	MortarSpray (startPos, Vector (0, 0, 1), gSpitSprite, 24);
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CBigMomma::Spawn ()
 	{
 	Precache ();
@@ -662,9 +662,9 @@ void CBigMomma::Spawn ()
 	MonsterInit ();
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CBigMomma::Precache ()
 	{
 	PRECACHE_MODEL ("models/big_mom.mdl");
@@ -782,9 +782,9 @@ BOOL CBigMomma::CheckRangeAttack1 (float flDot, float flDist)
 	return FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // AI Schedules Specific to this monster
-//=========================================================
+// =========================================================
 
 enum
 	{
@@ -1001,9 +1001,9 @@ void CBigMomma::StartTask (Task_t* pTask)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // RunTask
-//=========================================================
+// =========================================================
 void CBigMomma::RunTask (Task_t* pTask)
 	{
 	switch (pTask->iTask)
@@ -1098,9 +1098,7 @@ Vector VecCheckSplatToss (entvars_t* pev, const Vector& vecSpot1, Vector vecSpot
 	}
 
 // ---------------------------------
-//
 // Mortar
-//
 // ---------------------------------
 void MortarSpray (const Vector& position, const Vector& direction, int spriteModel, int count)
 	{

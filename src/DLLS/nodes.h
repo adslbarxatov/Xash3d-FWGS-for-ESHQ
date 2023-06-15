@@ -12,13 +12,13 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // nodes.h
-//=========================================================
+// =========================================================
 
-//=========================================================
+// =========================================================
 // DEFINE
-//=========================================================
+// =========================================================
 #define MAX_STACK_NODES	    100
 #define	NO_NODE				-1
 #define MAX_NODE_HULLS		4
@@ -28,9 +28,9 @@
 #define bits_NODE_WATER     ( 1 << 2 )  // Water node, don't nudge.
 #define bits_NODE_GROUP_REALM (bits_NODE_LAND | bits_NODE_AIR | bits_NODE_WATER)
 
-//=========================================================
+// =========================================================
 // Instance of a node.
-//=========================================================
+// =========================================================
 class CNode
 	{
 	public:
@@ -43,25 +43,23 @@ class CNode
 		int		m_iFirstLink;// index of this node's first link in the link pool.
 
 		// Where to start looking in the compressed routing table (offset into m_pRouteInfo).
-		// (4 hull sizes -- smallest to largest + fly/swim), and secondly, door capability.
-		//
+		// (4 hull sizes -- smallest to largest + fly/swim), and secondly, door capability
 		int		m_pNextBestNode[MAX_NODE_HULLS][2];
 
 		// Used in finding the shortest path. m_fClosestSoFar is -1 if not visited.
 		// Then it is the distance to the source. If another path uses this node
-		// and has a closer distance, then m_iPreviousNode is also updated.
-		//
-		float   m_flClosestSoFar; // Used in finding the shortest path.
+		// and has a closer distance, then m_iPreviousNode is also updated
+		float   m_flClosestSoFar; // Used in finding the shortest path
 		int		m_iPreviousNode;
 
 		short	m_sHintType;// there is something interesting in the world at this node's position
 		short	m_sHintActivity;// there is something interesting in the world at this node's position
-		float	m_flHintYaw;// monster on this node should face this yaw to face the hint.
+		float	m_flHintYaw;// monster on this node should face this yaw to face the hint
 	};
 
-//=========================================================
+// =========================================================
 // CLink - A link between 2 nodes
-//=========================================================
+// =========================================================
 #define		bits_LINK_SMALL_HULL	( 1 << 0 )// headcrab box can fit through this connection
 #define		bits_LINK_HUMAN_HULL	( 1 << 1 )// player box can fit through this connection
 #define		bits_LINK_LARGE_HULL	( 1 << 2 )// big box can fit through this connection
@@ -101,9 +99,9 @@ typedef struct
 	short n;		// Nearest node or -1 if no node found.
 	} CACHE_ENTRY;
 
-//=========================================================
+// =========================================================
 // CGraph 
-//=========================================================
+// =========================================================
 #define	GRAPH_VERSION	(int)16// !!!increment this whever graph/node/link classes change, to obsolesce older disk files.
 class CGraph
 	{
@@ -125,15 +123,14 @@ class CGraph
 		// Tables for making nearest node lookup faster. SortedBy provided nodes in a
 		// order of a particular coordinate. Instead of doing a binary search, RangeStart
 		// and RangeEnd let you get to the part of SortedBy that you are interested in.
-		//
+		// 
 		// Once you have a point of interest, the only way you'll find a closer point is
 		// if at least one of the coordinates is closer than the ones you have now. So we
 		// search each range. After the search is exhausted, we know we have the closest
-		// node.
-		//
+		// node
 #define CACHE_SIZE 128
 #define NUM_RANGES 256
-		DIST_INFO* m_di;	// This is m_cNodes long, but the entries don't correspond to CNode entries.
+		DIST_INFO* m_di;	// This is m_cNodes long, but the entries don't correspond to CNode entries
 		int m_RangeStart[3][NUM_RANGES];
 		int m_RangeEnd[3][NUM_RANGES];
 		float m_flShortest;
@@ -235,10 +232,10 @@ class CGraph
 			}
 	};
 
-//=========================================================
+// =========================================================
 // Nodes start out as ents in the level. The node graph 
 // is built, then these ents are discarded. 
-//=========================================================
+// =========================================================
 class CNodeEnt: public CBaseEntity
 	{
 	void Spawn (void);
@@ -250,9 +247,9 @@ class CNodeEnt: public CBaseEntity
 	};
 
 
-//=========================================================
+// =========================================================
 // CStack - last in, first out.
-//=========================================================
+// =========================================================
 class CStack
 	{
 	public:
@@ -270,9 +267,9 @@ class CStack
 	};
 
 
-//=========================================================
+// =========================================================
 // CQueue - first in, first out.
-//=========================================================
+// =========================================================
 class CQueue
 	{
 	public:
@@ -295,10 +292,9 @@ class CQueue
 			int m_tail;
 	};
 
-//=========================================================
-// CQueuePriority - Priority queue (smallest item out first).
-//
-//=========================================================
+// =========================================================
+// CQueuePriority - Priority queue (smallest item out first)
+// =========================================================
 class CQueuePriority
 	{
 	public:
@@ -322,10 +318,10 @@ class CQueuePriority
 
 	};
 
-//=========================================================
+// =========================================================
 // hints - these MUST coincide with the HINTS listed under
 // info_node in the FGD file!
-//=========================================================
+// =========================================================
 enum
 	{
 	HINT_NONE = 0,

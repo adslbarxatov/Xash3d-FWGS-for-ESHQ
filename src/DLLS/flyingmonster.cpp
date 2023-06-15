@@ -219,7 +219,6 @@ BOOL CFlyingMonster::ProbeZ (const Vector& position, const Vector& probe, float*
 		{
 		//    SWIMING & !WATER
 		// or FLYING  & WATER
-		//
 		*pFraction = 0.0;
 		return TRUE; // We hit a water boundary because we are where we don't belong.
 		}
@@ -227,8 +226,7 @@ BOOL CFlyingMonster::ProbeZ (const Vector& position, const Vector& probe, float*
 	if (conProbe == conPosition)
 		{
 		// The probe is either entirely inside the water (for fish) or entirely
-		// outside the water (for birds).
-		//
+		// outside the water (for birds)
 		*pFraction = 1.0;
 		return FALSE;
 		}

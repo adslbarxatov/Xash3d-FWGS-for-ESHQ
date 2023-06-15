@@ -118,9 +118,7 @@ void CLegacyCineMonster::CineSpawn (char* szModel)
 		}
 	}
 
-//
 // CineStart
-//
 void CLegacyCineMonster::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
 	pev->animtime = 0;	// reset the sequence
@@ -128,17 +126,13 @@ void CLegacyCineMonster::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE
 	pev->nextthink = gpGlobals->time;
 	}
 
-//
 // ********** Scientist DIE **********
-//
 void CLegacyCineMonster::Die (void)
 	{
 	SetThink (&CBaseEntity::SUB_Remove);
 	}
 
-//
 // ********** Scientist PAIN **********
-//
 void CLegacyCineMonster::Pain (void)
 	{
 	EMIT_SOUND (ENT (pev), CHAN_VOICE, "player/pain3.wav", 1, ATTN_MEDIUM);
@@ -146,12 +140,6 @@ void CLegacyCineMonster::Pain (void)
 
 void CLegacyCineMonster::CineThink (void)
 	{
-	// DBG_CheckMonsterData(pev);
-
-	// Emit particles from origin (double check animator's placement of model)
-	// THIS is a test feature
-	// UTIL_ParticleEffect(pev->origin, g_vecZero, 255, 20);
-
 	if (!pev->animtime)
 		ResetSequenceInfo ();
 
@@ -166,10 +154,7 @@ void CLegacyCineMonster::CineThink (void)
 	StudioFrameAdvance ();
 	}
 
-//
-// cine_blood
-//
-// e3/prealpha only. 
+// cine_blood. e3/prealpha only.
 class CCineBlood: public CBaseEntity
 	{
 	public:
@@ -189,21 +174,21 @@ void CCineBlood::BloodGush (void)
 	UTIL_MakeVectors (pev->angles);
 	if (pev->health-- < 0)
 		REMOVE_ENTITY (ENT (pev));
-	// CHANGE_METHOD ( ENT(pev), em_think, SUB_Remove );
 
-	if (RANDOM_FLOAT (0, 1) < 0.7)// larger chance of globs
-		{
+	// larger chance of globs
+	if (RANDOM_FLOAT (0, 1) < 0.7)
 		UTIL_BloodDrips (pev->origin, UTIL_RandomBloodVector (), BLOOD_COLOR_RED, 10);
-		}
-	else// slim chance of geyser
-		{
-		UTIL_BloodStream (pev->origin, UTIL_RandomBloodVector (), BLOOD_COLOR_RED, RANDOM_LONG (50, 150));
-		}
 
+	// slim chance of geyser
+	else
+		UTIL_BloodStream (pev->origin, UTIL_RandomBloodVector (), BLOOD_COLOR_RED, RANDOM_LONG (50, 150));
+
+	// decals the floor with blood
 	if (RANDOM_FLOAT (0, 1) < 0.75)
-		{// decals the floor with blood.
+		{
 		vecSplatDir = Vector (0, 0, -1);
-		vecSplatDir = vecSplatDir + (RANDOM_FLOAT (-1, 1) * 0.6 * gpGlobals->v_right) + (RANDOM_FLOAT (-1, 1) * 0.6 * gpGlobals->v_forward);// randomize a bit
+		vecSplatDir = vecSplatDir + (RANDOM_FLOAT (-1, 1) * 0.6 * gpGlobals->v_right) +
+			(RANDOM_FLOAT (-1, 1) * 0.6 * gpGlobals->v_forward);	// randomize a bit
 		UTIL_TraceLine (pev->origin + Vector (0, 0, 64), pev->origin + vecSplatDir * 256, ignore_monsters, ENT (pev), &tr);
 		if (tr.flFraction != 1.0)
 			{

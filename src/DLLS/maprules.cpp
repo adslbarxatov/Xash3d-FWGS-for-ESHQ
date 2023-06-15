@@ -13,14 +13,12 @@
 *
 ****/
 
-//	-------------------------------------------
-//
-//	maprules.cpp
-//
-//	This module contains entities for implementing/changing game
-//	rules dynamically within each map (.BSP)
-//
-//	-------------------------------------------
+// -------------------------------------------
+// maprules.cpp
+// 
+// This module contains entities for implementing/changing game
+// rules dynamically within each map (.BSP)
+// -------------------------------------------
 
 #include "extdll.h"
 #include "eiface.h"
@@ -88,9 +86,7 @@ BOOL CRuleEntity::CanFireForActivator (CBaseEntity *pActivator)
 	return TRUE;
 	}
 
-// 
 // CRulePointEntity -- base class for all rule "point" entities (not brushes)
-//
 class CRulePointEntity : public CRuleEntity
 	{
 	public:
@@ -104,10 +100,8 @@ void CRulePointEntity::Spawn (void)
 	pev->model = 0;
 	}
 
-// 
 // CRuleBrushEntity -- base class for all rule "brush" entities (not brushes)
 // Default behavior is to set up like a trigger, invisible, but keep the model for volume testing
-//
 class CRuleBrushEntity : public CRuleEntity
 	{
 	public:
@@ -124,9 +118,9 @@ void CRuleBrushEntity::Spawn (void)
 
 
 // CGameScore / game_score	-- award points to player / team 
-//	Points +/- total
-//	Flag: Allow negative scores					SF_SCORE_NEGATIVE
-//	Flag: Award points to team in teamplay		SF_SCORE_TEAM
+// Points +/- total
+// Flag: Allow negative scores					SF_SCORE_NEGATIVE
+// Flag: Award points to team in teamplay		SF_SCORE_TEAM
 
 #define SF_SCORE_NEGATIVE			0x0001
 #define SF_SCORE_TEAM				0x0002
@@ -209,7 +203,7 @@ void CGameEnd::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useT
 
 
 // CGameText / game_text	-- NON-Localized HUD Message (use env_message to display a titles.txt message)
-//	Flag: All players					SF_ENVTEXT_ALLPLAYERS
+// Flag: All players					SF_ENVTEXT_ALLPLAYERS
 #define SF_ENVTEXT_ALLPLAYERS			0x0001
 
 class CGameText : public CRulePointEntity
@@ -331,14 +325,12 @@ void CGameText::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 	}
 
 
-//
 // CGameTeamMaster / game_team_master	-- "Masters" like multisource, but based on the team of the activator
 // Only allows mastered entity to fire if the team matches my team
-//
+// 
 // team index (pulled from server team list "mp_teamlist"
 // Flag: Remove on Fire
 // Flag: Any team until set?		-- Any team can use this until the team is set (otherwise no teams can use it)
-//
 
 #define SF_TEAMMASTER_FIREONCE			0x0001
 #define SF_TEAMMASTER_ANYTEAM			0x0002
@@ -447,7 +439,6 @@ BOOL CGameTeamMaster::TeamMatch (CBaseEntity *pActivator)
 	}
 
 
-//
 // CGameTeamSet / game_team_set	-- Changes the team of the entity it targets to the activator's team
 // Flag: Fire once
 // Flag: Clear team				-- Sets the team to "NONE" instead of activator
@@ -489,9 +480,7 @@ void CGameTeamSet::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 	}
 
 
-//
-// CGamePlayerZone / game_player_zone -- players in the zone fire my target when I'm fired
-//
+// CGamePlayerZone / game_player_zone -- players in the zone fire my target when I'm fired.
 // Needs master?
 class CGamePlayerZone : public CRuleBrushEntity
 	{
@@ -605,7 +594,6 @@ void CGamePlayerZone::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 
 
 
-//
 // CGamePlayerHurt / game_player_hurt	-- Damages the player who fires it
 // Flag: Fire once
 
@@ -685,7 +673,6 @@ void CGamePlayerSetHealth::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, U
 		UTIL_Remove (this);
 	}
 
-//
 // CGameCounter / game_counter	-- Counts events and fires target
 // Flag: Fire once
 // Flag: Reset on Fire
@@ -760,7 +747,6 @@ void CGameCounter::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		}
 	}
 
-//
 // CGameCounterSet / game_counter_set	-- Sets the counter's value
 // Flag: Fire once
 #define SF_GAMECOUNTSET_FIREONCE			0x0001
@@ -784,12 +770,9 @@ void CGameCounterSet::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	SUB_UseTargets (pActivator, USE_SET, pev->frags);
 
 	if (RemoveOnFire ())
-		{
 		UTIL_Remove (this);
-		}
 	}
 
-//
 // CGamePlayerEquip / game_playerequip	-- Sets the default player equipment
 // Flag: USE Only
 #define SF_PLAYEREQUIP_USEONLY			0x0001
@@ -877,7 +860,6 @@ void CGamePlayerEquip::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 	EquipPlayer (pActivator);
 	}
 
-//
 // CGamePlayerTeam / game_player_team	-- Changes the team of the player who fired it
 // Flag: Fire once
 // Flag: Kill Player

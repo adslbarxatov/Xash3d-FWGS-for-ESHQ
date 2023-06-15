@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // Generic Monster - purely for scripted sequence work.
-//=========================================================
+// =========================================================
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
@@ -24,9 +24,9 @@
 // For holograms, make them not solid so the player can walk through them
 #define	SF_GENERICMONSTER_NOTSOLID					4 
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 
 class CGenericMonster: public CBaseMonster
 	{
@@ -73,10 +73,10 @@ void CGenericMonster::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CGenericMonster::Classify (void)
 	{
 	// ESHQ: разведение по цвету крови
@@ -86,10 +86,10 @@ int	CGenericMonster::Classify (void)
 	return CLASS_ALIEN_MONSTER;
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
-//=========================================================
+// =========================================================
 void CGenericMonster::SetYawSpeed (void)
 	{
 	int ys;
@@ -104,10 +104,10 @@ void CGenericMonster::SetYawSpeed (void)
 	pev->yaw_speed = ys;
 	}
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//=========================================================
+// =========================================================
 void CGenericMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	switch (pEvent->event)
@@ -119,17 +119,17 @@ void CGenericMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // ISoundMask - generic monster can't hear.
-//=========================================================
+// =========================================================
 int CGenericMonster::ISoundMask (void)
 	{
 	return	NULL;
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CGenericMonster::Spawn ()
 	{
 	Precache ();
@@ -160,9 +160,9 @@ void CGenericMonster::Spawn ()
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CGenericMonster::Precache ()
 	{
 	PRECACHE_MODEL ((char*)STRING (pev->model));

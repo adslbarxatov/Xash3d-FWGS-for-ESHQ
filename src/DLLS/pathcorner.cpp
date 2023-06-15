@@ -12,10 +12,8 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//
-// ========================== PATH_CORNER ===========================
-//
 
+// ========================== PATH_CORNER ===========================
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -47,9 +45,7 @@ TYPEDESCRIPTION	CPathCorner::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CPathCorner, CPointEntity);
 
-//
-// Cache user-entity-field values until spawn is called.
-//
+// Cache user-entity-field values until spawn is called
 void CPathCorner::KeyValue (KeyValueData* pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "wait"))
@@ -58,7 +54,9 @@ void CPathCorner::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CPointEntity::KeyValue (pkvd);
+		}
 	}
 
 void CPathCorner::Spawn ()
@@ -78,9 +76,7 @@ TYPEDESCRIPTION	CPathTrack::m_SaveData[] =
 IMPLEMENT_SAVERESTORE (CPathTrack, CBaseEntity);
 LINK_ENTITY_TO_CLASS (path_track, CPathTrack);
 
-//
-// Cache user-entity-field values until spawn is called.
-//
+// Cache user-entity-field values until spawn is called
 void CPathTrack::KeyValue (KeyValueData* pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "altpath"))

@@ -38,11 +38,10 @@ enum TANKBULLET
 	TANK_BULLET_12MM = 3,
 	};
 
-//			Custom damage
-//			env_laser (duration is 0.5 rate of fire)
-//			rockets
-//			explosion?
-
+// Custom damage
+// env_laser (duration is 0.5 rate of fire)
+// rockets
+// explosion?
 class CFuncTank: public CBaseEntity
 	{
 	public:
@@ -322,9 +321,9 @@ void CFuncTank::KeyValue (KeyValueData* pkvd)
 		CBaseEntity::KeyValue (pkvd);
 	}
 
-////////////// START NEW STUFF //////////////
+// START NEW STUFF
 
-//==================================================================================
+// ==================================================================================
 // TANK CONTROLLING
 BOOL CFuncTank::OnControls (entvars_t* pevTest)
 	{
@@ -414,8 +413,7 @@ void CFuncTank::ControllerPostFrame (void)
 		m_flNextAttack = gpGlobals->time + (1 / m_fireRate);
 		}
 	}
-////////////// END NEW STUFF //////////////
-
+// END NEW STUFF
 
 void CFuncTank::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
@@ -540,9 +538,8 @@ void CFuncTank::TrackTarget (void)
 
 		// Track sight origin
 
-// !!! I'm not sure what i changed
+		// !!! I'm not sure what i changed
 		direction = m_sightOrigin - pev->origin;
-		//		direction = m_sightOrigin - barrelEnd;
 		angles = UTIL_VecToAngles (direction);
 
 		// Calculate the additional rotation to point the end of the barrel at the target (not the gun's center) 
@@ -966,9 +963,9 @@ void CFuncTankMortar::Fire (const Vector& barrelEnd, const Vector& forward, entv
 
 
 
-//============================================================================
+// ============================================================================
 // FUNC TANK CONTROLS
-//============================================================================
+// ============================================================================
 class CFuncTankControls: public CBaseEntity
 	{
 	public:

@@ -28,4 +28,4 @@
 #define SF_DOOR_NOMONSTERS			512	// Monster can't open
 #define SF_DOOR_SILENT				0x80000000
 
-#endif		//DOORS_H
+#endif

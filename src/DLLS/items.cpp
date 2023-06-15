@@ -42,8 +42,6 @@ extern int gmsgItemPickup;
 		\
 		textParams.x = -1.0f;\
 		textParams.y = 0.15f;
-		//textParams.r1 = textParams.r2 = 0;
-		//getMessage[0] = '\0';
 
 class CWorldItem : public CBaseEntity
 	{

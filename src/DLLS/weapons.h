@@ -431,10 +431,10 @@ extern MULTIDAMAGE gMultiDamage;
 #define VECTOR_CONE_15DEGREES	Vector( 0.13053, 0.13053, 0.13053 )
 #define VECTOR_CONE_20DEGREES	Vector( 0.17365, 0.17365, 0.17365 )
 
-//=========================================================
+// =========================================================
 // CWeaponBox - a single entity that can store weapons
 // and ammo. 
-//=========================================================
+// =========================================================
 class CWeaponBox: public CBaseEntity
 	{
 	void Precache (void);

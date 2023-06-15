@@ -1097,9 +1097,9 @@ int	CBaseTurret::Classify (void)
 	return CLASS_NONE;
 	}
 
-//=========================================================
+// =========================================================
 // Sentry gun - smallest turret, placed near grunt entrenchments
-//=========================================================
+// =========================================================
 class CSentry: public CBaseTurret
 	{
 	public:

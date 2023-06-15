@@ -47,9 +47,7 @@ TYPEDESCRIPTION	CLight::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CLight, CPointEntity);
 
-//
-// Cache user-entity-field values until spawn is called.
-//
+// Cache user-entity-field values until spawn is called
 void CLight::KeyValue (KeyValueData* pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "style"))
@@ -124,9 +122,7 @@ void CLight::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTyp
 		}
 	}
 
-//
 // shut up spawn functions for new spotlights
-//
 LINK_ENTITY_TO_CLASS (light_spot, CLight);
 
 class CEnvLight: public CLight

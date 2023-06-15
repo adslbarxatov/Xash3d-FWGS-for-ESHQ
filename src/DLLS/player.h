@@ -19,29 +19,32 @@
 #include "pm_materials.h"
 
 
-#define PLAYER_FATAL_FALL_SPEED		1024// approx 60 feet
-#define PLAYER_MAX_SAFE_FALL_SPEED	580// approx 20 feet
-#define DAMAGE_FOR_FALL_SPEED		(float) 100 / ( PLAYER_FATAL_FALL_SPEED - PLAYER_MAX_SAFE_FALL_SPEED )// damage per unit per second.
-#define PLAYER_MIN_BOUNCE_SPEED		200
-#define PLAYER_FALL_PUNCH_THRESHHOLD (float)350 // won't punch player's screen/make scrape noise unless player falling at least this fast.
+#define PLAYER_FATAL_FALL_SPEED		1024	// approx 60 feet
+#define PLAYER_MAX_SAFE_FALL_SPEED	580		// approx 20 feet
 
-//
+// damage per unit per second
+#define DAMAGE_FOR_FALL_SPEED		(float) 100 / ( PLAYER_FATAL_FALL_SPEED - PLAYER_MAX_SAFE_FALL_SPEED )
+
+#define PLAYER_MIN_BOUNCE_SPEED		200
+
+// won't punch player's screen/make scrape noise unless player falling at least this fast
+#define PLAYER_FALL_PUNCH_THRESHHOLD (float)350
+
 // Player PHYSICS FLAGS bits
-//
 #define		PFLAG_ONLADDER		( 1<<0 )
 #define		PFLAG_ONSWING		( 1<<0 )
 #define		PFLAG_ONTRAIN		( 1<<1 )
 #define		PFLAG_ONBARNACLE	( 1<<2 )
 #define		PFLAG_DUCKING		( 1<<3 )		// In the process of ducking, but totally squatted yet
 #define		PFLAG_USING			( 1<<4 )		// Using a continuous entity
-#define		PFLAG_OBSERVER		( 1<<5 )		// player is locked in stationary cam mode. Spectators can move, observers can't.
+#define		PFLAG_OBSERVER		( 1<<5 )
+// player is locked in stationary cam mode. Spectators can move, observers can't
 
-//
 // generic player
-//
-//-----------------------------------------------------
-//This is Half-Life player entity
-//-----------------------------------------------------
+// 
+// -----------------------------------------------------
+// This is Half-Life player entity
+// -----------------------------------------------------
 #define CSUITPLAYLIST	4		// max of 4 suit sentences queued up at any time
 
 #define SUIT_GROUP			TRUE
@@ -188,7 +191,6 @@ class CBasePlayer: public CBaseMonster
 		virtual void Spawn (void);
 		void Pain (void);
 
-		//	virtual void Think( void );
 		virtual void Jump (void);
 		virtual void Duck (void);
 		virtual void PreThink (void);
@@ -301,7 +303,7 @@ class CBasePlayer: public CBaseMonster
 		float m_flPlayAftershock;
 		float m_flNextAmmoBurn;// while charging, when to absorb another unit of player's ammo?
 
-		//Player ID
+		// Player ID
 		void InitStatusBar (void);
 		void UpdateStatusBar (void);
 		int m_izSBarState[SBAR_END];

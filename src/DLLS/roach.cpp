@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // cockroach
-//=========================================================
+// =========================================================
 
 #include	"extdll.h"
 #include	"util.h"
@@ -31,9 +31,9 @@
 #define		ROACH_SMELL_FOOD		4
 #define		ROACH_EAT				5
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 class CRoach : public CBaseMonster
 	{
 	public:
@@ -59,28 +59,28 @@ class CRoach : public CBaseMonster
 	};
 LINK_ENTITY_TO_CLASS (monster_cockroach, CRoach);
 
-//=========================================================
+// =========================================================
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
-//=========================================================
+// =========================================================
 int CRoach::ISoundMask (void)
 	{
 	return	bits_SOUND_CARCASS | bits_SOUND_MEAT;
 	}
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CRoach::Classify (void)
 	{
 	return CLASS_INSECT;
 	}
 
-//=========================================================
+// =========================================================
 // Touch
-//=========================================================
+// =========================================================
 void CRoach::Touch (CBaseEntity *pOther)
 	{
 	Vector		vecSpot;
@@ -98,19 +98,19 @@ void CRoach::Touch (CBaseEntity *pOther)
 	TakeDamage (pOther->pev, pOther->pev, pev->health, DMG_CRUSH);
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
-//=========================================================
+// =========================================================
 void CRoach::SetYawSpeed (void)
 	{
 	int ys = 120;
 	pev->yaw_speed = ys;
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CRoach::Spawn ()
 	{
 	Precache ();
@@ -137,9 +137,9 @@ void CRoach::Spawn ()
 	m_flNextSmellTime = gpGlobals->time;
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CRoach::Precache ()
 	{
 	PRECACHE_MODEL ("models/roach.mdl");
@@ -150,9 +150,9 @@ void CRoach::Precache ()
 	}
 
 
-//=========================================================
+// =========================================================
 // Killed.
-//=========================================================
+// =========================================================
 void CRoach::Killed (entvars_t *pevAttacker, int iGib)
 	{
 	pev->solid = SOLID_NOT;
@@ -177,9 +177,9 @@ void CRoach::Killed (entvars_t *pevAttacker, int iGib)
 	UTIL_Remove (this);
 	}
 
-//=========================================================
+// =========================================================
 // MonsterThink, overridden for roaches.
-//=========================================================
+// =========================================================
 void CRoach::MonsterThink (void)
 	{
 	if (FNullEnt (FIND_CLIENT_IN_PVS (edict ())))
@@ -285,9 +285,9 @@ void CRoach::MonsterThink (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Picks a new spot for roach to run to.(
-//=========================================================
+// =========================================================
 void CRoach::PickNewDest (int iCondition)
 	{
 	Vector	vecNewDir;
@@ -339,9 +339,9 @@ void CRoach::PickNewDest (int iCondition)
 			}
 	}
 
-//=========================================================
+// =========================================================
 // roach's move function
-//=========================================================
+// =========================================================
 void CRoach::Move (float flInterval)
 	{
 	float		flWaypointDist;
@@ -391,10 +391,10 @@ void CRoach::Move (float flInterval)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Look - overriden for the roach, which can virtually see 
 // 360 degrees.
-//=========================================================
+// =========================================================
 void CRoach::Look (int iDistance)
 	{
 	CBaseEntity *pSightEnt = NULL;// the current visible entity that we're dealing with

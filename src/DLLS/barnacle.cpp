@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // barnacle - stationary ceiling mounted 'fishing' monster
-//=========================================================
+// =========================================================
 
 #include	"extdll.h"
 #include	"util.h"
@@ -26,9 +26,9 @@
 #define BARNACLE_PULL_SPEED			8
 #define BARNACLE_KILL_VICTIM_DELAY	5	// how many seconds after pulling prey in to gib them. 
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 #define	BARNACLE_AE_PUKEGIB		2
 // ESHQ
 #define BARNACLE_WILL_NOT_GIB	8
@@ -83,21 +83,20 @@ TYPEDESCRIPTION	CBarnacle::m_SaveData[] =
 IMPLEMENT_SAVERESTORE (CBarnacle, CBaseMonster);
 
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CBarnacle::Classify (void)
 	{
 	return	CLASS_ALIEN_MONSTER;
 	}
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//
 // Returns number of events handled, 0 if none
-//=========================================================
+// =========================================================
 void CBarnacle::HandleAnimEvent (MonsterEvent_t *pEvent)
 	{
 	switch (pEvent->event)
@@ -114,9 +113,9 @@ void CBarnacle::HandleAnimEvent (MonsterEvent_t *pEvent)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CBarnacle::Spawn ()
 	{
 	Precache ();
@@ -156,8 +155,8 @@ int CBarnacle::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 	return CBaseMonster::TakeDamage (pevInflictor, pevAttacker, flDamage, bitsDamageType);
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CBarnacle::BarnacleThink (void)
 	{
 	CBaseEntity *pTouchEnt;
@@ -352,9 +351,9 @@ void CBarnacle::BarnacleThink (void)
 	StudioFrameAdvance (0.1);
 	}
 
-//=========================================================
+// =========================================================
 // Killed
-//=========================================================
+// =========================================================
 void CBarnacle::Killed (entvars_t *pevAttacker, int iGib)
 	{
 	CBaseMonster *pVictim;
@@ -394,8 +393,8 @@ void CBarnacle::Killed (entvars_t *pevAttacker, int iGib)
 	SetThink (&CBarnacle::WaitTillDead);
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CBarnacle::WaitTillDead (void)
 	{
 	pev->nextthink = gpGlobals->time + 0.1;
@@ -411,9 +410,9 @@ void CBarnacle::WaitTillDead (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CBarnacle::Precache ()
 	{
 	PRECACHE_MODEL ("models/barnacle.mdl");
@@ -427,11 +426,11 @@ void CBarnacle::Precache ()
 	PRECACHE_SOUND ("barnacle/bcl_die2.wav");
 	}
 
-//=========================================================
+// =========================================================
 // TongueTouchEnt - does a trace along the barnacle's tongue
 // to see if any entity is touching it. Also stores the length
 // of the trace in the int pointer provided.
-//=========================================================
+// =========================================================
 #define BARNACLE_CHECK_SPACING	8
 CBaseEntity *CBarnacle::TongueTouchEnt (float *pflLength)
 	{

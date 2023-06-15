@@ -226,10 +226,10 @@ typedef enum
 	TENTACLE_ANIM_none
 	} TENTACLE_ANIM;
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CTentacle::Classify (void)
 	{
 	return	CLASS_ALIEN_MONSTER;

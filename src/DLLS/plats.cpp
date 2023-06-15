@@ -225,10 +225,7 @@ void CBasePlatTrain::Precache (void)
 		}
 	}
 
-//
-//====================== PLAT code ====================================================
-//
-
+// ====================== PLAT code ====================================================
 #define noiseMovement noise
 #define noiseStopMoving noise1
 
@@ -346,9 +343,7 @@ static void PlatSpawnInsideTrigger (entvars_t* pevPlatform)
 	GetClassPtr ((CPlatTrigger*)NULL)->SpawnInsideTrigger (GetClassPtr ((CFuncPlat*)pevPlatform));
 	}
 
-//
-// Create a trigger entity for a platform.
-//
+// Create a trigger entity for a platform
 void CPlatTrigger::SpawnInsideTrigger (CFuncPlat* pPlatform)
 	{
 	m_pPlatform = pPlatform;
@@ -374,9 +369,7 @@ void CPlatTrigger::SpawnInsideTrigger (CFuncPlat* pPlatform)
 	UTIL_SetSize (pev, vecTMin, vecTMax);
 	}
 
-//
-// When the platform's trigger field is touched, the platform ???
-//
+// When the platform's trigger field is touched, the platform?
 void CPlatTrigger::Touch (CBaseEntity* pOther)
 	{
 	// Ignore touches by non-players
@@ -395,11 +388,8 @@ void CPlatTrigger::Touch (CBaseEntity* pOther)
 		m_pPlatform->pev->nextthink = m_pPlatform->pev->ltime + 1;// delay going down
 	}
 
-
-//
 // Used by SUB_UseTargets, when a platform is the target of a button.
-// Start bringing platform down.
-//
+// Start bringing platform down
 void CFuncPlat::PlatUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
 	if (IsTogglePlat ())
@@ -424,23 +414,19 @@ void CFuncPlat::PlatUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE
 		}
 	}
 
-//
-// Platform is at top, now starts moving down.
-//
+// Platform is at top, now starts moving down
 void CFuncPlat::GoDown (void)
 	{
 	if (pev->noiseMovement)
 		EMIT_SOUND (ENT (pev), CHAN_STATIC, (char*)STRING (pev->noiseMovement), m_volume, ATTN_MEDIUM);
 
-	ASSERT (m_toggle_state == TS_AT_TOP || m_toggle_state == TS_GOING_UP);
+	ASSERT ((m_toggle_state == TS_AT_TOP) || (m_toggle_state == TS_GOING_UP));
 	m_toggle_state = TS_GOING_DOWN;
 	SetMoveDone (&CFuncPlat::CallHitBottom);
 	LinearMove (m_vecPosition2, pev->speed);
 	}
 
-//
 // Platform has hit bottom. Stops and waits forever
-//
 void CFuncPlat::HitBottom (void)
 	{
 	if (pev->noiseMovement)
@@ -453,9 +439,7 @@ void CFuncPlat::HitBottom (void)
 	m_toggle_state = TS_AT_BOTTOM;
 	}
 
-//
 // Platform is at bottom, now starts moving up
-//
 void CFuncPlat::GoUp (void)
 	{
 	if (pev->noiseMovement)
@@ -467,9 +451,7 @@ void CFuncPlat::GoUp (void)
 	LinearMove (m_vecPosition1, pev->speed);
 	}
 
-//
-// Platform has hit top.  Pauses, then starts back down again.
-//
+// Platform has hit top.  Pauses, then starts back down again
 void CFuncPlat::HitTop (void)
 	{
 	if (pev->noiseMovement)
@@ -566,10 +548,7 @@ void CFuncPlatRot::GoDown (void)
 	RotMove (m_start, pev->nextthink - pev->ltime);
 	}
 
-
-//
 // Platform has hit bottom. Stops and waits forever
-//
 void CFuncPlatRot::HitBottom (void)
 	{
 	CFuncPlat::HitBottom ();
@@ -609,10 +588,7 @@ void CFuncPlatRot::RotMove (Vector& destAngle, float time)
 		}
 	}
 
-
-//
-//====================== TRAIN code ==================================================
-//
+// ====================== TRAIN code ==================================================
 class CFuncTrain: public CBasePlatTrain
 	{
 	public:
@@ -651,7 +627,6 @@ TYPEDESCRIPTION	CFuncTrain::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CFuncTrain, CBasePlatTrain);
 
-
 void CFuncTrain::KeyValue (KeyValueData* pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "sounds"))
@@ -664,7 +639,6 @@ void CFuncTrain::KeyValue (KeyValueData* pkvd)
 		CBasePlatTrain::KeyValue (pkvd);
 		}
 	}
-
 
 void CFuncTrain::Blocked (CBaseEntity* pOther)
 	{
@@ -740,9 +714,7 @@ void CFuncTrain::Wait (void)
 		}
 	}
 
-//
 // Train next - path corner needs to change to next target 
-//
 void CFuncTrain::Next (void)
 	{
 	CBaseEntity* pTarg;
@@ -883,8 +855,7 @@ void CFuncTrain::Spawn (void)
 		m_flAttenuation = ATTN_LARGE;
 	else if (FBitSet (pev->spawnflags, SF_TRAIN_MEDIUMRADIUS))
 		m_flAttenuation = ATTN_MEDIUM;
-	//else if (FBitSet (pev->spawnflags, SF_TRAIN_SMALLRADIUS))
-	else
+	else	// SF_TRAIN_SMALLRADIUS
 		m_flAttenuation = ATTN_SMALL;
 	}
 
@@ -1154,8 +1125,6 @@ void CFuncTrackTrain::Next (void)
 		return;
 		}
 
-	//	if ( !m_ppath )
-	//		m_ppath = CPathTrack::Instance(FIND_ENTITY_BY_TARGETNAME( NULL, STRING(pev->target) ));
 	if (!m_ppath)
 		{
 		ALERT (at_aiconsole, "TRAIN(%s): Lost path\n", STRING (pev->targetname));
@@ -1595,11 +1564,9 @@ void CFuncTrainControls::Spawn (void)
 #define SF_TRACK_STARTBOTTOM		0x00000008
 #define SF_TRACK_DONT_MOVE			0x00000010
 
-//
 // This entity is a rotating/moving platform that will carry a train to a new track.
 // It must be larger in X-Y planar area than the train, since it must contain the
-// train within these dimensions in order to operate when the train is near it.
-//
+// train within these dimensions in order to operate when the train is near it
 
 typedef enum { TRAIN_SAFE, TRAIN_BLOCKING, TRAIN_FOLLOWING } TRAIN_CODE;
 
@@ -1609,7 +1576,6 @@ class CFuncTrackChange: public CFuncPlatRot
 		void Spawn (void);
 		void Precache (void);
 
-		//	virtual void	Blocked( void );
 		virtual void	EXPORT GoUp (void);
 		virtual void	EXPORT GoDown (void);
 
@@ -1864,17 +1830,14 @@ void CFuncTrackChange::GoDown (void)
 		}
 	}
 
-//
 // Platform is at bottom, now starts moving up
-//
 void CFuncTrackChange::GoUp (void)
 	{
 	if (m_code == TRAIN_BLOCKING)
 		return;
 
 	// HitTop may get called during CFuncPlat::GoUp(), so set up for that
-	// before you call GoUp();
-
+	// before you call GoUp()
 	UpdateAutoTargets (TS_GOING_UP);
 	if (FBitSet (pev->spawnflags, SF_TRACK_DONT_MOVE))
 		{
@@ -1949,18 +1912,13 @@ void CFuncTrackChange::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 		GoUp ();
 	}
 
-
-//
-// Platform has hit bottom.  Stops and waits forever.
-//
+// Platform has hit bottom.  Stops and waits forever
 void CFuncTrackChange::HitBottom (void)
 	{
 	CFuncPlatRot::HitBottom ();
 	if (m_code == TRAIN_FOLLOWING)
-		{
-		//		UpdateTrain();
 		m_train->SetTrack (m_trackBottom);
-		}
+
 	SetThink (NULL);
 	pev->nextthink = -1;
 
@@ -1969,17 +1927,12 @@ void CFuncTrackChange::HitBottom (void)
 	EnableUse ();
 	}
 
-//
-// Platform has hit bottom.  Stops and waits forever.
-//
+// Platform has hit bottom.  Stops and waits forever
 void CFuncTrackChange::HitTop (void)
 	{
 	CFuncPlatRot::HitTop ();
 	if (m_code == TRAIN_FOLLOWING)
-		{
-		//		UpdateTrain();
 		m_train->SetTrack (m_trackTop);
-		}
 
 	// Don't let the plat go back down
 	SetThink (NULL);
@@ -2072,8 +2025,6 @@ void CFuncTrackAuto::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 
 
 // ----------------------------------------------------------
-//
-//
 // pev->speed is the travel speed
 // pev->health is current health
 // pev->max_health is the amount to reset to each time it starts

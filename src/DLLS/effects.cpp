@@ -151,11 +151,8 @@ void CBubbling::FizzThink (void)
 	}
 
 // --------------------------------------------------
-// 
 // Beams
-//
 // --------------------------------------------------
-
 LINK_ENTITY_TO_CLASS (beam, CBeam);
 
 void CBeam::Spawn (void)
@@ -2016,9 +2013,9 @@ void CMessage::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 	SUB_UseTargets (this, USE_TOGGLE, 0);
 	}
 
-//=========================================================
+// =========================================================
 // FunnelEffect
-//=========================================================
+// =========================================================
 class CEnvFunnel: public CBaseDelay
 	{
 	public:
@@ -2063,11 +2060,11 @@ void CEnvFunnel::Spawn (void)
 	pev->effects = EF_NODRAW;
 	}
 
-//=========================================================
+// =========================================================
 // Beverage Dispenser
 // overloaded pev->frags, is now a flag for whether or not a can is stuck in the dispenser. 
 // overloaded pev->health, is now how many cans remain in the machine.
-//=========================================================
+// =========================================================
 class CEnvBeverage: public CBaseDelay
 	{
 	public:
@@ -2095,20 +2092,12 @@ void CEnvBeverage::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 	CBaseEntity* pCan = CBaseEntity::Create ("item_sodacan", pev->origin, pev->angles, edict ());
 
 	if (pev->skin == 6)
-		{
-		// random
-		pCan->pev->skin = RANDOM_LONG (0, 5);
-		}
+		pCan->pev->skin = RANDOM_LONG (0, 5);	// random
 	else
-		{
 		pCan->pev->skin = pev->skin;
-		}
 
 	pev->frags = 1;
 	pev->health--;
-
-	//SetThink (SUB_Remove);
-	//pev->nextthink = gpGlobals->time;
 	}
 
 void CEnvBeverage::Spawn (void)
@@ -2124,9 +2113,9 @@ void CEnvBeverage::Spawn (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Soda can
-//=========================================================
+// =========================================================
 class CItemSoda: public CBaseEntity
 	{
 	public:

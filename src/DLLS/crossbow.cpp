@@ -28,9 +28,7 @@
 #define BOLT_WATER_VELOCITY	1000
 
 // UNDONE: Save/restore this?  Don't forget to set classname and LINK_ENTITY_TO_CLASS()
-// 
 // OVERLOADS SOME ENTVARS:
-//
 // speed - the ideal magnitude of my velocity
 class CCrossbowBolt: public CBaseEntity
 	{

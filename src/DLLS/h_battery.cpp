@@ -138,8 +138,7 @@ void CRecharge::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE use
 
 	m_hActivator = pActivator;
 
-	//only recharge the player
-
+	// only recharge the player
 	if (!m_hActivator->IsPlayer ())
 		return;
 

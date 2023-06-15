@@ -643,7 +643,7 @@ void CTriggerMonsterJump::Touch (CBaseEntity *pOther)
 	}
 
 
-//=====================================
+// =====================================
 //
 // trigger_cdaudio - starts/stops cd audio tracks
 //
@@ -788,7 +788,7 @@ void CTargetCDAudio::Play (void)
 	UTIL_Remove (this);
 	}
 
-//=====================================
+// =====================================
 
 //
 // trigger_hurt - hurts anything that touches it. if the trigger has a targetname, firing it will toggle state
@@ -1496,11 +1496,11 @@ edict_t *CChangeLevel::FindLandmark (const char *pLandmarkName)
 	return NULL;
 	}
 
-//=========================================================
+// =========================================================
 // CChangeLevel :: Use - allows level transitions to be 
 // triggered by buttons, etc.
 //
-//=========================================================
+// =========================================================
 void CChangeLevel::UseChangeLevel (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	ChangeLevelNow (pActivator);
@@ -1792,9 +1792,9 @@ void CLadder::KeyValue (KeyValueData *pkvd)
 	}
 
 
-//=========================================================
+// =========================================================
 // func_ladder - makes an area vertically negotiable
-//=========================================================
+// =========================================================
 void CLadder::Precache (void)
 	{
 	// Do all of this in here because we need to 'convert' old saved games
@@ -1897,7 +1897,7 @@ void CTriggerPush::Touch (CBaseEntity *pOther)
 	}
 
 
-//======================================
+// ======================================
 // teleport trigger
 //
 //

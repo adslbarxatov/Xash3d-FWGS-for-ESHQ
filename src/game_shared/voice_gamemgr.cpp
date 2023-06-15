@@ -1,9 +1,9 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+// ========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================
+// =============================================================================
 
 #include "voice_gamemgr.h"
 #include <string.h>

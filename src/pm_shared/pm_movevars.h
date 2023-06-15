@@ -1,7 +1,5 @@
 // ========= Copyright 1996-2002, Valve LLC, All rights reserved. ============
-//
 // Purpose: 
-//
 // $NoKeywords: $
 // =============================================================================
 
@@ -35,19 +33,19 @@ struct movevars_s
 	float	rollangle;
 	float	rollspeed;
 	float	skycolor_r;			// Sky color
-	float	skycolor_g;			// 
-	float	skycolor_b;			//
+	float	skycolor_g;
+	float	skycolor_b;
 	float	skyvec_x;			// Sky vector
-	float	skyvec_y;			// 
-	float	skyvec_z;			// 
+	float	skyvec_y;
+	float	skyvec_z;
 	int		features;			// engine features that shared across network
 	int		fog_settings;		// Global fog settings (packed color+density) 
 	float	wateralpha;			// World water alpha 1.0 - solid 0.0 - transparent
 
 	// FWGS
 	float	skydir_x;			// skybox rotate direction
-	float	skydir_y;			//
-	float	skydir_z;			//
+	float	skydir_y;
+	float	skydir_z;
 	float	skyangle;			// skybox rotate angle
 	};
 

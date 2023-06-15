@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // Alien slave monster
-//=========================================================
+// =========================================================
 
 #include	"extdll.h"
 #include	"util.h"
@@ -28,9 +28,9 @@
 
 extern DLL_GLOBAL int		g_iSkillLevel;
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 #define		ISLAVE_AE_CLAW			( 1 )
 #define		ISLAVE_AE_CLAWRAKE		( 2 )
 #define		ISLAVE_AE_ZAP_POWERUP	( 3 )
@@ -137,10 +137,10 @@ const char* CISlave::pDeathSounds[] =
 		"aslave/slv_die2.wav",
 	};
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CISlave::Classify (void)
 	{
 	return	CLASS_ALIEN_MILITARY;
@@ -181,9 +181,9 @@ void CISlave::CallForHelp (char* szClassname, float flDist, EHANDLE hEnemy, Vect
 		}
 	}
 
-//=========================================================
+// =========================================================
 // ALertSound - scream
-//=========================================================
+// =========================================================
 void CISlave::AlertSound (void)
 	{
 	if (m_hEnemy != NULL)
@@ -194,9 +194,9 @@ void CISlave::AlertSound (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // IdleSound
-//=========================================================
+// =========================================================
 void CISlave::IdleSound (void)
 	{
 	if (RANDOM_LONG (0, 2) == 0)
@@ -205,9 +205,9 @@ void CISlave::IdleSound (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // PainSound
-//=========================================================
+// =========================================================
 void CISlave::PainSound (void)
 	{
 	if (RANDOM_LONG (0, 2) == 0)
@@ -216,9 +216,9 @@ void CISlave::PainSound (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // DieSound
-//=========================================================
+// =========================================================
 
 void CISlave::DeathSound (void)
 	{
@@ -226,10 +226,10 @@ void CISlave::DeathSound (void)
 	}
 
 
-//=========================================================
+// =========================================================
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards. 
-//=========================================================
+// =========================================================
 int CISlave::ISoundMask (void)
 	{
 	return	bits_SOUND_WORLD |
@@ -245,10 +245,10 @@ void CISlave::Killed (entvars_t* pevAttacker, int iGib)
 	CSquadMonster::Killed (pevAttacker, iGib);
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
-//=========================================================
+// =========================================================
 void CISlave::SetYawSpeed (void)
 	{
 	int ys;
@@ -272,15 +272,14 @@ void CISlave::SetYawSpeed (void)
 	pev->yaw_speed = ys;
 	}
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//
-// Returns number of events handled, 0 if none.
-//=========================================================
+// 
+// Returns number of events handled, 0 if none
+// =========================================================
 void CISlave::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
-	// ALERT( at_console, "event %d : %f\n", pEvent->event, pev->frame );
 	switch (pEvent->event)
 		{
 		case ISLAVE_AE_CLAW:
@@ -416,9 +415,9 @@ void CISlave::HandleAnimEvent (MonsterEvent_t* pEvent)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // CheckRangeAttack1 - normal beam attack 
-//=========================================================
+// =========================================================
 BOOL CISlave::CheckRangeAttack1 (float flDot, float flDist)
 	{
 	if (m_flNextAttack > gpGlobals->time)
@@ -429,9 +428,9 @@ BOOL CISlave::CheckRangeAttack1 (float flDot, float flDist)
 	return CSquadMonster::CheckRangeAttack1 (flDot, flDist);
 	}
 
-//=========================================================
+// =========================================================
 // CheckRangeAttack2 - check bravery and try to resurect dead comrades
-//=========================================================
+// =========================================================
 BOOL CISlave::CheckRangeAttack2 (float flDot, float flDist)
 	{
 	return FALSE;
@@ -475,9 +474,9 @@ BOOL CISlave::CheckRangeAttack2 (float flDot, float flDist)
 	}
 
 
-//=========================================================
+// =========================================================
 // StartTask
-//=========================================================
+// =========================================================
 void CISlave::StartTask (Task_t* pTask)
 	{
 	ClearBeams ();
@@ -486,9 +485,9 @@ void CISlave::StartTask (Task_t* pTask)
 	}
 
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CISlave::Spawn ()
 	{
 	Precache ();
@@ -511,9 +510,9 @@ void CISlave::Spawn ()
 	MonsterInit ();
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CISlave::Precache ()
 	{
 	int i;
@@ -544,9 +543,9 @@ void CISlave::Precache ()
 	}
 
 
-//=========================================================
+// =========================================================
 // TakeDamage - get provoked when injured
-//=========================================================
+// =========================================================
 
 int CISlave::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
@@ -568,9 +567,9 @@ void CISlave::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir
 	}
 
 
-//=========================================================
+// =========================================================
 // AI Schedules Specific to this monster
-//=========================================================
+// =========================================================
 
 
 
@@ -605,8 +604,8 @@ DEFINE_CUSTOM_SCHEDULES (CISlave)
 IMPLEMENT_CUSTOM_SCHEDULES (CISlave, CSquadMonster);
 
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 Schedule_t* CISlave::GetSchedule (void)
 	{
 	ClearBeams ();
@@ -683,9 +682,9 @@ Schedule_t* CISlave::GetScheduleOfType (int Type)
 	}
 
 
-//=========================================================
+// =========================================================
 // ArmBeam - small beam from arm to nearby geometry
-//=========================================================
+// =========================================================
 
 void CISlave::ArmBeam (int side)
 	{
@@ -730,9 +729,9 @@ void CISlave::ArmBeam (int side)
 	}
 
 
-//=========================================================
+// =========================================================
 // BeamGlow - brighten all beams
-//=========================================================
+// =========================================================
 void CISlave::BeamGlow ()
 	{
 	int b = m_iBeams * 32;
@@ -749,9 +748,9 @@ void CISlave::BeamGlow ()
 	}
 
 
-//=========================================================
+// =========================================================
 // WackBeam - regenerate dead colleagues
-//=========================================================
+// =========================================================
 void CISlave::WackBeam (int side, CBaseEntity* pEntity)
 	{
 	Vector vecDest;
@@ -775,9 +774,9 @@ void CISlave::WackBeam (int side, CBaseEntity* pEntity)
 	m_iBeams++;
 	}
 
-//=========================================================
+// =========================================================
 // ZapBeam - heavy damage directly forward
-//=========================================================
+// =========================================================
 void CISlave::ZapBeam (int side)
 	{
 	Vector vecSrc, vecAim;
@@ -813,9 +812,9 @@ void CISlave::ZapBeam (int side)
 	}
 
 
-//=========================================================
+// =========================================================
 // ClearBeams - remove all beams
-//=========================================================
+// =========================================================
 void CISlave::ClearBeams ()
 	{
 	for (int i = 0; i < ISLAVE_MAX_BEAMS; i++)

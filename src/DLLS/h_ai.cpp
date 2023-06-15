@@ -25,32 +25,25 @@
 #define		NUM_LATERAL_CHECKS		13  // how many checks are made on each side of a monster looking for lateral cover
 #define		NUM_LATERAL_LOS_CHECKS		6  // how many checks are made on each side of a monster looking for lateral cover
 
-//float flRandom = RANDOM_FLOAT(0,1);
-
 DLL_GLOBAL	BOOL	g_fDrawLines = FALSE;
 
-//=========================================================
-// 
+// =========================================================
 // AI UTILITY FUNCTIONS
-//
-// !!!UNDONE - move CBaseMonster functions to monsters.cpp
-//=========================================================
+// =========================================================
 
-//=========================================================
+// =========================================================
 // FBoxVisible - a more accurate ( and slower ) version
 // of FVisible. 
-//
-// !!!UNDONE - make this CBaseMonster?
-//=========================================================
+// =========================================================
 BOOL FBoxVisible (entvars_t* pevLooker, entvars_t* pevTarget, Vector& vecTargetOrigin, float flSize)
 	{
 	// don't look through water
-	if ((pevLooker->waterlevel != 3 && pevTarget->waterlevel == 3)
-		|| (pevLooker->waterlevel == 3 && pevTarget->waterlevel == 0))
+	if (((pevLooker->waterlevel != 3) && (pevTarget->waterlevel == 3))
+		|| ((pevLooker->waterlevel == 3) && (pevTarget->waterlevel == 0)))
 		return FALSE;
 
 	TraceResult tr;
-	Vector	vecLookerOrigin = pevLooker->origin + pevLooker->view_ofs;//look through the monster's 'eyes'
+	Vector	vecLookerOrigin = pevLooker->origin + pevLooker->view_ofs;	// look through the monster's 'eyes'
 	for (int i = 0; i < 5; i++)
 		{
 		Vector vecTarget = pevTarget->origin;
@@ -63,16 +56,15 @@ BOOL FBoxVisible (entvars_t* pevLooker, entvars_t* pevTarget, Vector& vecTargetO
 		if (tr.flFraction == 1.0)
 			{
 			vecTargetOrigin = vecTarget;
-			return TRUE;// line of sight is valid.
+			return TRUE;	// line of sight is valid
 			}
 		}
-	return FALSE;// Line of sight is not established
+
+	return FALSE;	// Line of sight is not established
 	}
 
-//
 // VecCheckToss - returns the velocity at which an object should be lobbed from vecspot1 to land near vecspot2.
-// returns g_vecZero if toss is not feasible.
-// 
+// returns g_vecZero if toss is not feasible
 Vector VecCheckToss (entvars_t* pev, const Vector& vecSpot1, Vector vecSpot2, float flGravityAdj)
 	{
 	TraceResult		tr;
@@ -145,19 +137,16 @@ Vector VecCheckToss (entvars_t* pev, const Vector& vecSpot1, Vector vecSpot2, fl
 
 	// UNDONE: either ignore monsters or change it to not care if we hit our enemy
 	UTIL_TraceLine (vecSpot2, vecApex, ignore_monsters, ENT (pev), &tr);
+
+	// fail!
 	if (tr.flFraction != 1.0)
-		{
-		// fail!
 		return g_vecZero;
-		}
 
 	return vecGrenadeVel;
 	}
 
-//
 // VecCheckThrow - returns the velocity vector at which an object should be thrown from vecspot1 to hit vecspot2.
-// returns g_vecZero if throw is not feasible.
-// 
+// returns g_vecZero if throw is not feasible
 Vector VecCheckThrow (entvars_t* pev, const Vector& vecSpot1, Vector vecSpot2, float flSpeed, float flGravityAdj)
 	{
 	float flGravity = g_psv_gravity->value * flGravityAdj;
@@ -182,11 +171,10 @@ Vector VecCheckThrow (entvars_t* pev, const Vector& vecSpot1, Vector vecSpot2, f
 		}
 
 	UTIL_TraceLine (vecSpot2, vecApex, ignore_monsters, ENT (pev), &tr);
+
+	// fail!
 	if (tr.flFraction != 1.0)
-		{
-		// fail!
 		return g_vecZero;
-		}
 
 	return vecGrenadeVel;
 	}

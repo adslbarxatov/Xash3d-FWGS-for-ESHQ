@@ -25,16 +25,14 @@
 #include "soundent.h"
 #include "decals.h"
 
-//===================grenade
+// ===================grenade
 
 LINK_ENTITY_TO_CLASS (grenade, CGrenade);
 
 // Grenades flagged with this will be triggered when the owner calls detonateSatchelCharges
 #define SF_DETONATE		0x0001
 
-//
 // Grenade Explode
-//
 void CGrenade::Explode (Vector vecSrc, Vector vecAim)
 	{
 	TraceResult tr;
@@ -168,9 +166,7 @@ void CGrenade::Detonate (void)
 	Explode (&tr, DMG_BLAST);
 	}
 
-//
 // Contact grenade, explode when it touches something
-// 
 void CGrenade::ExplodeTouch (CBaseEntity* pOther)
 	{
 	TraceResult tr;
@@ -230,12 +226,10 @@ void CGrenade::BounceTouch (CBaseEntity* pOther)
 	vecTestVelocity = pev->velocity;
 	vecTestVelocity.z *= 0.45;
 
-	if (!m_fRegisteredSound && vecTestVelocity.Length () <= 60)
+	if (!m_fRegisteredSound && (vecTestVelocity.Length () <= 60))
 		{
-		//ALERT( at_console, "Grenade Registered!: %f\n", vecTestVelocity.Length() );
-
 		// grenade is moving really slow. It's probably very close to where it will ultimately stop moving. 
-		// go ahead and emit the danger sound.
+		// go ahead and emit the danger sound
 
 		// register a radius louder than the explosion, so we make sure everyone gets out of the way
 		CSoundEnt::InsertSound (bits_SOUND_DANGER, pev->origin, pev->dmg / 0.4, 0.3);

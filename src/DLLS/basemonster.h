@@ -16,13 +16,11 @@
 #ifndef BASEMONSTER_H
 #define BASEMONSTER_H
 
-//
 // generic Monster
-//
 class CBaseMonster: public CBaseToggle
 	{
 	private:
-		int					m_afConditions;
+		int	m_afConditions;
 
 	public:
 		typedef enum

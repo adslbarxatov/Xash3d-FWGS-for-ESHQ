@@ -12,9 +12,8 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//
+
 // teamplay_gamerules.cpp
-//
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
@@ -63,10 +62,9 @@ class CMultiplayGameMgrHelper: public IVoiceGameMgrHelper
 	};
 static CMultiplayGameMgrHelper g_GameMgrHelper;
 
-//*********************************************************
-// Rules for the half-life multiplayer game.
-//*********************************************************
-
+// *********************************************************
+// Rules for the half-life multiplayer game
+// *********************************************************
 CHalfLifeMultiplay::CHalfLifeMultiplay ()
 	{
 	g_VoiceGameMgr.Init (&g_GameMgrHelper, gpGlobals->maxClients);
@@ -122,8 +120,8 @@ BOOL CHalfLifeMultiplay::ClientCommand (CBasePlayer* pPlayer, const char* pcmd)
 	return CGameRules::ClientCommand (pPlayer, pcmd);
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CHalfLifeMultiplay::RefreshSkillData (void)
 	{
 	// load all default values
@@ -182,13 +180,13 @@ extern cvar_t timeleft, fragsleft;
 
 extern cvar_t mp_chattime;
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CHalfLifeMultiplay::Think (void)
 	{
 	g_VoiceGameMgr.Update (gpGlobals->frametime);
 
-	///// Check game rules /////
+	// Check game rules
 	static int last_frags;
 	static int last_time;
 
@@ -275,29 +273,29 @@ void CHalfLifeMultiplay::Think (void)
 	}
 
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::IsMultiplayer (void)
 	{
 	return TRUE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::IsDeathmatch (void)
 	{
 	return TRUE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::IsCoOp (void)
 	{
 	return gpGlobals->coop;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::FShouldSwitchWeapon (CBasePlayer* pPlayer, CBasePlayerItem* pWeapon)
 	{
 	if (!pWeapon->CanDeploy ())
@@ -360,12 +358,13 @@ BOOL CHalfLifeMultiplay::GetNextBestWeapon (CBasePlayer* pPlayer, CBasePlayerIte
 						}
 					}
 				}
-			else if (pCheck->iWeight () > iBestWeight && pCheck != pCurrentWeapon)// don't reselect the weapon we're trying to get rid of
+
+			// don't reselect the weapon we're trying to get rid of
+			else if ((pCheck->iWeight () > iBestWeight) && (pCheck != pCurrentWeapon))
 				{
-				//ALERT ( at_console, "Considering %s\n", STRING( pCheck->pev->classname ) );
 				// we keep updating the 'best' weapon just in case we can't find a weapon of the same weight
 				// that the player was using. This will end up leaving the player with his heaviest-weighted 
-				// weapon. 
+				// weapon
 				if (pCheck->CanDeploy ())
 					{
 					// if this weapon is useable, flag it as the best
@@ -382,19 +381,16 @@ BOOL CHalfLifeMultiplay::GetNextBestWeapon (CBasePlayer* pPlayer, CBasePlayerIte
 	// weapon in the same catagory as the current weapon. 
 
 	// if pBest is null, we didn't find ANYTHING. Shouldn't be possible- should always 
-	// at least get the crowbar, but ya never know.
+	// at least get the crowbar, but ya never know
 	if (!pBest)
-		{
 		return FALSE;
-		}
 
 	pPlayer->SwitchWeapon (pBest);
-
 	return TRUE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::ClientConnected (edict_t* pEntity, const char* pszName, const char* pszAddress, char szRejectReason[128])
 	{
 	g_VoiceGameMgr.ClientConnected (pEntity);
@@ -474,8 +470,8 @@ void CHalfLifeMultiplay::InitHUD (CBasePlayer* pl)
 		}
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CHalfLifeMultiplay::ClientDisconnected (edict_t* pClient)
 	{
 	if (pClient)
@@ -509,34 +505,35 @@ void CHalfLifeMultiplay::ClientDisconnected (edict_t* pClient)
 		}
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 float CHalfLifeMultiplay::FlPlayerFallDamage (CBasePlayer* pPlayer)
 	{
 	int iFallDamage = (int)falldamage.value;
 
 	switch (iFallDamage)
 		{
-		case 1://progressive
+		case 1:	// progressive
 			pPlayer->m_flFallVelocity -= PLAYER_MAX_SAFE_FALL_SPEED;
 			return pPlayer->m_flFallVelocity * DAMAGE_FOR_FALL_SPEED;
 			break;
+
 		default:
-		case 0:// fixed
+		case 0:	// fixed
 			return 10;
 			break;
 		}
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage (CBasePlayer* pPlayer, CBaseEntity* pAttacker)
 	{
 	return TRUE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CHalfLifeMultiplay::PlayerThink (CBasePlayer* pPlayer)
 	{
 	if (g_fGameOver)
@@ -552,8 +549,8 @@ void CHalfLifeMultiplay::PlayerThink (CBasePlayer* pPlayer)
 		}
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CHalfLifeMultiplay::PlayerSpawn (CBasePlayer* pPlayer)
 	{
 	BOOL		addDefault;
@@ -577,18 +574,18 @@ void CHalfLifeMultiplay::PlayerSpawn (CBasePlayer* pPlayer)
 		}
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::FPlayerCanRespawn (CBasePlayer* pPlayer)
 	{
 	return TRUE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 float CHalfLifeMultiplay::FlPlayerSpawnTime (CBasePlayer* pPlayer)
 	{
-	return gpGlobals->time;//now!
+	return gpGlobals->time;	// now!
 	}
 
 BOOL CHalfLifeMultiplay::AllowAutoTargetCrosshair (void)
@@ -596,19 +593,19 @@ BOOL CHalfLifeMultiplay::AllowAutoTargetCrosshair (void)
 	return (aimcrosshair.value != 0);
 	}
 
-//=========================================================
+// =========================================================
 // IPointsForKill - how many points awarded to anyone
 // that kills this player?
-//=========================================================
+// =========================================================
 int CHalfLifeMultiplay::IPointsForKill (CBasePlayer* pAttacker, CBasePlayer* pKilled)
 	{
 	return 1;
 	}
 
 
-//=========================================================
+// =========================================================
 // PlayerKilled - someone/something killed this player
-//=========================================================
+// =========================================================
 void CHalfLifeMultiplay::PlayerKilled (CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor)
 	{
 	DeathNotice (pVictim, pKiller, pInflictor);
@@ -673,9 +670,9 @@ void CHalfLifeMultiplay::PlayerKilled (CBasePlayer* pVictim, entvars_t* pKiller,
 #endif
 	}
 
-//=========================================================
+// =========================================================
 // Deathnotice. 
-//=========================================================
+// =========================================================
 void CHalfLifeMultiplay::DeathNotice (CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pevInflictor)
 	{
 	// Work out what killed the player, and send a message to all clients about it
@@ -875,18 +872,18 @@ void CHalfLifeMultiplay::DeathNotice (CBasePlayer* pVictim, entvars_t* pKiller, 
 */
 	}
 
-//=========================================================
+// =========================================================
 // PlayerGotWeapon - player has grabbed a weapon that was
 // sitting in the world
-//=========================================================
+// =========================================================
 void CHalfLifeMultiplay::PlayerGotWeapon (CBasePlayer* pPlayer, CBasePlayerItem* pWeapon)
 	{
 	}
 
-//=========================================================
+// =========================================================
 // FlWeaponRespawnTime - what is the time in the future
 // at which this weapon may spawn?
-//=========================================================
+// =========================================================
 float CHalfLifeMultiplay::FlWeaponRespawnTime (CBasePlayerItem* pWeapon)
 	{
 	if (weaponstay.value > 0)
@@ -905,11 +902,11 @@ float CHalfLifeMultiplay::FlWeaponRespawnTime (CBasePlayerItem* pWeapon)
 // marked with the ITEM_FLAG_LIMITINWORLD will delay their respawn
 #define ENTITY_INTOLERANCE	100
 
-//=========================================================
+// =========================================================
 // FlWeaponRespawnTime - Returns 0 if the weapon can respawn 
 // now,  otherwise it returns the time at which it can try
 // to spawn again.
-//=========================================================
+// =========================================================
 float CHalfLifeMultiplay::FlWeaponTryRespawn (CBasePlayerItem* pWeapon)
 	{
 	if (pWeapon && pWeapon->m_iId && (pWeapon->iFlags () & ITEM_FLAG_LIMITINWORLD))
@@ -924,19 +921,19 @@ float CHalfLifeMultiplay::FlWeaponTryRespawn (CBasePlayerItem* pWeapon)
 	return 0;
 	}
 
-//=========================================================
+// =========================================================
 // VecWeaponRespawnSpot - where should this weapon spawn?
 // Some game variations may choose to randomize spawn locations
-//=========================================================
+// =========================================================
 Vector CHalfLifeMultiplay::VecWeaponRespawnSpot (CBasePlayerItem* pWeapon)
 	{
 	return pWeapon->pev->origin;
 	}
 
-//=========================================================
+// =========================================================
 // WeaponShouldRespawn - any conditions inhibiting the
 // respawning of this weapon?
-//=========================================================
+// =========================================================
 int CHalfLifeMultiplay::WeaponShouldRespawn (CBasePlayerItem* pWeapon)
 	{
 	if (pWeapon->pev->spawnflags & SF_NORESPAWN)
@@ -947,10 +944,10 @@ int CHalfLifeMultiplay::WeaponShouldRespawn (CBasePlayerItem* pWeapon)
 	return GR_WEAPON_RESPAWN_YES;
 	}
 
-//=========================================================
+// =========================================================
 // CanHaveWeapon - returns FALSE if the player is not allowed
 // to pick up this weapon
-//=========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::CanHavePlayerItem (CBasePlayer* pPlayer, CBasePlayerItem* pItem)
 	{
 	if (weaponstay.value > 0)
@@ -978,21 +975,21 @@ BOOL CHalfLifeMultiplay::CanHavePlayerItem (CBasePlayer* pPlayer, CBasePlayerIte
 	return CGameRules::CanHavePlayerItem (pPlayer, pItem);
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::CanHaveItem (CBasePlayer* pPlayer, CItem* pItem)
 	{
 	return TRUE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CHalfLifeMultiplay::PlayerGotItem (CBasePlayer* pPlayer, CItem* pItem)
 	{
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CHalfLifeMultiplay::ItemShouldRespawn (CItem* pItem)
 	{
 	if (pItem->pev->spawnflags & SF_NORESPAWN)
@@ -1004,67 +1001,62 @@ int CHalfLifeMultiplay::ItemShouldRespawn (CItem* pItem)
 	}
 
 
-//=========================================================
+// =========================================================
 // At what time in the future may this Item respawn?
-//=========================================================
+// =========================================================
 float CHalfLifeMultiplay::FlItemRespawnTime (CItem* pItem)
 	{
 	return gpGlobals->time + ITEM_RESPAWN_TIME;
 	}
 
-//=========================================================
+// =========================================================
 // Where should this item respawn?
 // Some game variations may choose to randomize spawn locations
-//=========================================================
+// =========================================================
 Vector CHalfLifeMultiplay::VecItemRespawnSpot (CItem* pItem)
 	{
 	return pItem->pev->origin;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CHalfLifeMultiplay::PlayerGotAmmo (CBasePlayer* pPlayer, char* szName, int iCount)
 	{
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::IsAllowedToSpawn (CBaseEntity* pEntity)
 	{
-	//	if ( pEntity->pev->flags & FL_MONSTER )
-	//		return FALSE;
-
 	return TRUE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CHalfLifeMultiplay::AmmoShouldRespawn (CBasePlayerAmmo* pAmmo)
 	{
 	if (pAmmo->pev->spawnflags & SF_NORESPAWN)
-		{
 		return GR_AMMO_RESPAWN_NO;
-		}
 
 	return GR_AMMO_RESPAWN_YES;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 float CHalfLifeMultiplay::FlAmmoRespawnTime (CBasePlayerAmmo* pAmmo)
 	{
 	return gpGlobals->time + AMMO_RESPAWN_TIME;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 Vector CHalfLifeMultiplay::VecAmmoRespawnSpot (CBasePlayerAmmo* pAmmo)
 	{
 	return pAmmo->pev->origin;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 float CHalfLifeMultiplay::FlHealthChargerRechargeTime (void)
 	{
 	return 60;
@@ -1076,15 +1068,15 @@ float CHalfLifeMultiplay::FlHEVChargerRechargeTime (void)
 	return 30;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CHalfLifeMultiplay::DeadPlayerWeapons (CBasePlayer* pPlayer)
 	{
 	return GR_PLR_DROP_GUN_ACTIVE;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CHalfLifeMultiplay::DeadPlayerAmmo (CBasePlayer* pPlayer)
 	{
 	return GR_PLR_DROP_AMMO_ACTIVE;
@@ -1102,8 +1094,8 @@ edict_t* CHalfLifeMultiplay::GetPlayerSpawnSpot (CBasePlayer* pPlayer)
 	}
 
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 int CHalfLifeMultiplay::PlayerRelationship (CBaseEntity* pPlayer, CBaseEntity* pTarget)
 	{
 	// half life deathmatch has only enemies
@@ -1126,15 +1118,15 @@ BOOL CHalfLifeMultiplay::FAllowFlashlight (void)
 	return flashlight.value != 0;
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 BOOL CHalfLifeMultiplay::FAllowMonsters (void)
 	{
 	return (allowmonsters.value != 0);
 	}
 
-//=========================================================
-//======== CHalfLifeMultiplay private functions ===========
+// =========================================================
+// ======== CHalfLifeMultiplay private functions ===========
 #define INTERMISSION_TIME		6
 
 void CHalfLifeMultiplay::GoToIntermission (void)
@@ -1387,7 +1379,6 @@ int ReloadMapCycleFile (char* filename, mapcycle_t* cycle)
 						}
 
 					// Remove keys
-					//
 					g_engfuncs.pfnInfo_RemoveKey (szBuffer, "minplayers");
 					g_engfuncs.pfnInfo_RemoveKey (szBuffer, "maxplayers");
 

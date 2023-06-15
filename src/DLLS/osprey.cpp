@@ -561,7 +561,7 @@ void COsprey::DyingThink (void)
 		WRITE_BYTE (50);
 
 		// Model
-		WRITE_SHORT (m_iTailGibs);	//model id#
+		WRITE_SHORT (m_iTailGibs);	// model id#
 
 		// # of shards
 		WRITE_BYTE (8);	// let client decide
@@ -647,7 +647,7 @@ void COsprey::DyingThink (void)
 		WRITE_BYTE (40);
 
 		// Model
-		WRITE_SHORT (m_iBodyGibs);	//model id#
+		WRITE_SHORT (m_iBodyGibs);	// model id#
 
 		// # of shards
 		WRITE_BYTE (128);

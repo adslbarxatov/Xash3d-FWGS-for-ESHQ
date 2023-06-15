@@ -186,13 +186,11 @@ void PlayLockSounds (entvars_t* pev, locksound_t* pls, int flocked, int fbutton)
 		}
 	}
 
-//
 // Cache user-entity-field values until spawn is called
-//
 void CBaseDoor::KeyValue (KeyValueData* pkvd)
 	{
 
-	if (FStrEq (pkvd->szKeyName, "skin"))	//skin is used for content type
+	if (FStrEq (pkvd->szKeyName, "skin"))	// skin is used for content type
 		{
 		pev->skin = atof (pkvd->szValue);
 		pkvd->fHandled = TRUE;
@@ -276,9 +274,8 @@ touch or takedamage doors).
 */
 
 LINK_ENTITY_TO_CLASS (func_door, CBaseDoor);
-//
+
 // func_water - same as a door
-//
 LINK_ENTITY_TO_CLASS (func_water, CBaseDoor);
 
 void CBaseDoor::Spawn ()
@@ -515,9 +512,7 @@ void CBaseDoor::Precache (void)
 		}
 	}
 
-//
 // Doors not tied to anything (e.g. button, another door) can be touched, to make them activate.
-//
 void CBaseDoor::DoorTouch (CBaseEntity* pOther)
 	{
 	entvars_t* pevToucher = pOther->pev;
@@ -548,12 +543,10 @@ void CBaseDoor::DoorTouch (CBaseEntity* pOther)
 	m_hActivator = pOther;// remember who activated the door
 
 	if (DoorActivate ())
-		SetTouch (NULL); // Temporarily disable the touch function, until movement is finished.
+		SetTouch (NULL); // Temporarily disable the touch function, until movement is finished
 	}
 
-//
-// Used by SUB_UseTargets, when a door is the target of a button.
-//
+// Used by SUB_UseTargets, when a door is the target of a button
 void CBaseDoor::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
 	m_hActivator = pActivator;
@@ -586,9 +579,7 @@ void CBaseDoor::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE use
 		DoorActivate ();
 	}
 
-//
-// Causes the door to "do its thing", i.e. start moving, and cascade activation.
-//
+// Causes the door to "do its thing", i.e. start moving, and cascade activation
 int CBaseDoor::DoorActivate ()
 	{
 	if (!UTIL_IsMasterTriggered (m_sMaster, m_hActivator))
@@ -627,9 +618,7 @@ int CBaseDoor::DoorActivate ()
 
 extern Vector VecBModelOrigin (entvars_t* pevBModel);
 
-//
-// Starts the door going to its "up" position (simply ToggleData->vecPosition2).
-//
+// Starts the door going to its "up" position (simply ToggleData->vecPosition2)
 void CBaseDoor::DoorGoUp (void)
 	{
 	entvars_t* pevActivator;
@@ -679,9 +668,7 @@ void CBaseDoor::DoorGoUp (void)
 		}
 	}
 
-//
-// The door has reached the "up" position.  Either go back down, or wait for another activation.
-//
+// The door has reached the "up" position.  Either go back down, or wait for another activation
 void CBaseDoor::DoorHitTop (void)
 	{
 	if (!FBitSet (pev->spawnflags, SF_DOOR_SILENT))
@@ -719,9 +706,7 @@ void CBaseDoor::DoorHitTop (void)
 	SUB_UseTargets (m_hActivator, USE_TOGGLE, 0); // this isn't finished
 	}
 
-//
-// Starts the door going to its "down" position (simply ToggleData->vecPosition1).
-//
+// Starts the door going to its "down" position (simply ToggleData->vecPosition1)
 void CBaseDoor::DoorGoDown (void)
 	{
 	if (!FBitSet (pev->spawnflags, SF_DOOR_SILENT))
@@ -737,15 +722,13 @@ void CBaseDoor::DoorGoDown (void)
 	m_toggle_state = TS_GOING_DOWN;
 
 	SetMoveDone (&CBaseDoor::DoorHitBottom);
-	if (FClassnameIs (pev, "func_door_rotating"))//rotating door
+	if (FClassnameIs (pev, "func_door_rotating"))	// rotating door
 		AngularMove (m_vecAngle1, pev->speed);
 	else
 		LinearMove (m_vecPosition1, pev->speed);
 	}
 
-//
-// The door has reached the "down" position.  Back to quiescence.
-//
+// The door has reached the "down" position. Back to quiescence
 void CBaseDoor::DoorHitBottom (void)
 	{
 	if (!FBitSet (pev->spawnflags, SF_DOOR_SILENT))

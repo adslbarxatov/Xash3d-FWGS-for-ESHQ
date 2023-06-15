@@ -200,4 +200,4 @@ class CLaser: public CBeam
 		Vector  m_firePosition;
 	};
 
-#endif		//EFFECTS_H
+#endif

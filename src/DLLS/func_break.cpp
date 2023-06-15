@@ -119,9 +119,7 @@ void CBreakable::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-//
 // func_breakable - bmodel that breaks into pieces after taking damage
-//
 LINK_ENTITY_TO_CLASS (func_breakable, CBreakable);
 TYPEDESCRIPTION CBreakable::m_SaveData[] =
 	{
@@ -525,11 +523,11 @@ void CBreakable::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vec
 	CBaseDelay::TraceAttack (pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
 	}
 
-//=========================================================
+// =========================================================
 // Special takedamage for func_breakable. Allows us to make
 // exceptions that are breakable-specific.
 // bitsDamageType indicates the type of damage sustained ie: DMG_CRUSH
-//=========================================================
+// =========================================================
 int CBreakable::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
 	Vector	vecTemp;
@@ -717,7 +715,7 @@ void CBreakable::Die (void)
 	WRITE_BYTE (10);
 
 	// Model
-	WRITE_SHORT (m_idShard);	//model id#
+	WRITE_SHORT (m_idShard);	// model id#
 
 	// # of shards
 	WRITE_BYTE (0);		// let client decide

@@ -12,10 +12,10 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//=========================================================
+// =========================================================
 // Monster Maker - this is an entity that creates monsters
 // in the game.
-//=========================================================
+// =========================================================
 
 #include "extdll.h"
 #include "util.h"
@@ -28,9 +28,9 @@
 #define	SF_MONSTERMAKER_CYCLIC		4 // drop one monster every time fired.
 #define SF_MONSTERMAKER_MONSTERCLIP	8 // Children are blocked by monsterclip
 
-//=========================================================
+// =========================================================
 // MonsterMaker - this ent creates monsters during the game.
-//=========================================================
+// =========================================================
 class CMonsterMaker : public CBaseMonster
 	{
 	public:
@@ -178,9 +178,9 @@ void CMonsterMaker::Precache (void)
 	UTIL_PrecacheOther (STRING (m_iszMonsterClassname));
 	}
 
-//=========================================================
+// =========================================================
 // MakeMonster-  this is the code that drops the monster
-//=========================================================
+// =========================================================
 void CMonsterMaker::MakeMonster (void)
 	{
 	edict_t *pent;
@@ -273,18 +273,18 @@ void CMonsterMaker::MakeMonster (void)
 			0, RANDOM_LONG (90, 110));
 	}
 
-//=========================================================
+// =========================================================
 // CyclicUse - drops one monster from the monstermaker
 // each time we call this
-//=========================================================
+// =========================================================
 void CMonsterMaker::CyclicUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	MakeMonster ();
 	}
 
-//=========================================================
+// =========================================================
 // ToggleUse - activates/deactivates the monster maker
-//=========================================================
+// =========================================================
 void CMonsterMaker::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	if (!ShouldToggle (useType, m_fActive))
@@ -304,9 +304,9 @@ void CMonsterMaker::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	pev->nextthink = gpGlobals->time;
 	}
 
-//=========================================================
+// =========================================================
 // MakerThink - creates a new monster every so often
-//=========================================================
+// =========================================================
 void CMonsterMaker::MakerThink (void)
 	{
 	pev->nextthink = gpGlobals->time + m_flDelay;
@@ -315,8 +315,8 @@ void CMonsterMaker::MakerThink (void)
 	}
 
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CMonsterMaker::DeathNotice (entvars_t *pevChild)
 	{
 	// ok, we've gotten the deathnotice from our child, now clear out its owner if we don't want it to fade

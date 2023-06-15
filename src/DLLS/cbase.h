@@ -113,9 +113,7 @@ class CSquadMonster;
 
 #define	SF_NORESPAWN	( 1 << 30 )// !!!set this bit on guns and stuff that should never respawn.
 
-//
 // EHANDLE. Safe way to point to CBaseEntities who may die between frames
-//
 class EHANDLE
 	{
 	private:
@@ -133,9 +131,7 @@ class EHANDLE
 		CBaseEntity* operator ->();
 	};
 
-//
 // Base Entity.  All entity types derive from this
-//
 class CBaseEntity
 	{
 	public:
@@ -201,8 +197,6 @@ class CBaseEntity
 		virtual BOOL	IsNetClient (void) { return FALSE; }
 		virtual const char* TeamID (void) { return ""; }
 
-
-		//	virtual void	SetActivator( CBaseEntity *pActivator ) {}
 		virtual CBaseEntity* GetNextTarget (void);
 
 		// fundamental callbacks
@@ -322,7 +316,6 @@ class CBaseEntity
 		// used by monsters that are created by the MonsterMaker
 		virtual	void UpdateOwner (void) { return; };
 
-		//
 		static CBaseEntity* Create (char* szName, const Vector& vecOrigin, const Vector& vecAngles, edict_t* pentOwner = NULL);
 
 		virtual BOOL FBecomeProne (void) { return FALSE; };
@@ -340,7 +333,7 @@ class CBaseEntity
 		virtual	BOOL FVisible (CBaseEntity* pEntity);
 		virtual	BOOL FVisible (const Vector& vecOrigin);
 
-		//We use this variables to store each ammo count.
+		// We use this variables to store each ammo count
 		int ammo_9mm;
 		int ammo_357;
 		int ammo_bolts;
@@ -349,7 +342,8 @@ class CBaseEntity
 		int ammo_uranium;
 		int ammo_hornets;
 		int ammo_argrens;
-		//Special stuff for grenades and satchels.
+
+		// Special stuff for grenades and satchels
 		float m_flStartThrow;
 		float m_flReleaseThrow;
 		int m_chargeReady;
@@ -405,9 +399,7 @@ typedef struct locksounds			// sounds that doors and buttons make when locked/un
 
 void PlayLockSounds (entvars_t* pev, locksound_t* pls, int flocked, int fbutton);
 
-//
 // MultiSouce
-//
 #define MAX_MULTI_TARGETS	16 // maximum number of targets a single multi_manager entity may be assigned.
 #define MS_MAX_TARGETS 32
 
@@ -432,9 +424,7 @@ class CMultiSource: public CPointEntity
 		string_t	m_globalstate;
 	};
 
-//
-// generic Delay entity.
-//
+// generic Delay entity
 class CBaseDelay: public CBaseEntity
 	{
 	public:
@@ -492,9 +482,7 @@ class CBaseAnimating: public CBaseDelay
 		BOOL				m_fSequenceLoops;	// true if the sequence loops
 	};
 
-//
 // generic Toggle entity
-//
 #define	SF_ITEM_USE_ONLY	256 //  ITEM_USE_ONLY = BUTTON_USE_ONLY = DOOR_USE_ONLY!!! 
 
 class CBaseToggle: public CBaseAnimating
@@ -503,12 +491,12 @@ class CBaseToggle: public CBaseAnimating
 		void				KeyValue (KeyValueData* pkvd);
 
 		TOGGLE_STATE		m_toggle_state;
-		float				m_flActivateFinished;//like attack_finished, but for doors
-		float				m_flMoveDistance;// how far a door should slide or rotate
+		float				m_flActivateFinished;	// like attack_finished, but for doors
+		float				m_flMoveDistance;	// how far a door should slide or rotate
 		float				m_flWait;
 		float				m_flLip;
-		float				m_flTWidth;// for plats
-		float				m_flTLength;// for plats
+		float				m_flTWidth;	// for plats
+		float				m_flTLength;	// for plats
 
 		Vector				m_vecPosition1;
 		Vector				m_vecPosition2;
@@ -664,9 +652,7 @@ class CSound;
 
 char* ButtonSound (int sound);				// get string of button sound number
 
-//
 // Generic Button
-//
 class CBaseButton: public CBaseToggle
 	{
 	public:
@@ -712,15 +698,11 @@ class CBaseButton: public CBaseToggle
 		int		m_sounds;
 	};
 
-//
 // Weapons 
-//
 #define	BAD_WEAPON 0x00007FFF
 
-//
 // Converts a entvars_t * to a class pointer
 // It will allocate the class and entity if necessary
-//
 template <class T> T* GetClassPtr (T* a)
 	{
 	entvars_t* pev = (entvars_t*)a;
@@ -776,11 +758,10 @@ typedef struct _SelAmmo
 
 
 // this moved here from world.cpp, to allow classes to be derived from it
-//=======================
+// =======================
 // CWorld
-//
-// This spawns first when each level begins.
-//=======================
+// This spawns first when each level begins
+// =======================
 class CWorld: public CBaseEntity
 	{
 	public:

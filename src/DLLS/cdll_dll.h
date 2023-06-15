@@ -12,9 +12,8 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//
-//  cdll_dll.h
 
+// cdll_dll.h
 // this file is included by both the game-dll and the client-dll,
 
 #ifndef CDLL_DLL_H

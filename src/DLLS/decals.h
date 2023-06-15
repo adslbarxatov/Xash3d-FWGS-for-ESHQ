@@ -15,9 +15,7 @@
 #ifndef DECALS_H
 #define DECALS_H
 
-//
 // Dynamic Decals
-//
 enum decal_e
 	{
 	DECAL_GUNSHOT1 = 0,

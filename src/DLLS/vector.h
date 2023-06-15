@@ -15,10 +15,10 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-//=========================================================
+// =========================================================
 // 2DVector - used for many pathfinding and many other 
 // operations that are treated as planar rather than 3d.
-//=========================================================
+// =========================================================
 class Vector2D
 	{
 	public:
@@ -53,9 +53,9 @@ class Vector2D
 inline float DotProduct (const Vector2D& a, const Vector2D& b) { return(a.x * b.x + a.y * b.y); }
 inline Vector2D operator*(float fl, const Vector2D& v) { return v * fl; }
 
-//=========================================================
+// =========================================================
 // 3D Vector
-//=========================================================
+// =========================================================
 class Vector						// same data-layout as engine's vec3_t,
 	{								//		which is a vec_t[3]
 	public:

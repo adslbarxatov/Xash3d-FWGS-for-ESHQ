@@ -19,10 +19,10 @@
 #include "monsters.h"
 #endif
 
-//=========================================================
+// =========================================================
 // Talking monster base class
 // Used for scientists and barneys
-//=========================================================
+// =========================================================
 
 #define TALKRANGE_MIN 500.0				// don't talk to anyone farther away than this
 

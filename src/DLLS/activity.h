@@ -104,4 +104,4 @@ typedef struct {
 
 extern activity_map_t activity_map[];
 
-#endif	//ACTIVITY_H
+#endif

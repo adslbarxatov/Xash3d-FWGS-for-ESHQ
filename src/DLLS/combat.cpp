@@ -289,10 +289,10 @@ void CBaseMonster::FadeMonster (void)
 	SUB_StartFadeOut ();
 	}
 
-//=========================================================
+// =========================================================
 // GibMonster - create some gore and get rid of a monster's
 // model
-//=========================================================
+// =========================================================
 void CBaseMonster::GibMonster (void)
 	{
 	TraceResult	tr;
@@ -390,10 +390,10 @@ void CBaseMonster::GibMonster (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // GetDeathActivity - determines the best type of death
 // anim to play.
-//=========================================================
+// =========================================================
 Activity CBaseMonster::GetDeathActivity (void)
 	{
 	Activity	deathActivity;
@@ -508,10 +508,10 @@ Activity CBaseMonster::GetDeathActivity (void)
 	return deathActivity;
 	}
 
-//=========================================================
+// =========================================================
 // GetSmallFlinchActivity - determines the best type of flinch
 // anim to play.
-//=========================================================
+// =========================================================
 Activity CBaseMonster::GetSmallFlinchActivity (void)
 	{
 	Activity	flinchActivity;
@@ -670,9 +670,8 @@ void CBaseMonster::Killed (entvars_t* pevAttacker, int iGib)
 	m_IdealMonsterState = MONSTERSTATE_DEAD;
 	}
 
-//
 // fade out - slowly fades a entity out, then removes it.
-//
+// 
 // DON'T USE ME FOR GIBS AND STUFF IN MULTIPLAYER! 
 // SET A FUTURE THINK AND A RENDERMODE!!
 void CBaseEntity::SUB_StartFadeOut (void)
@@ -705,12 +704,12 @@ void CBaseEntity::SUB_FadeOut (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // WaitTillLand - in order to emit their meaty scent from
 // the proper location, gibs should wait until they stop 
 // bouncing to emit their scent. That's what this function
 // does.
-//=========================================================
+// =========================================================
 void CGib::WaitTillLand (void)
 	{
 	if (!IsInWorld ())
@@ -738,9 +737,7 @@ void CGib::WaitTillLand (void)
 		}
 	}
 
-//
 // Gib bounces on the ground or wall, sponges some blood down, too!
-//
 void CGib::BounceGibTouch (CBaseEntity* pOther)
 	{
 	Vector	vecSpot;
@@ -778,9 +775,7 @@ void CGib::BounceGibTouch (CBaseEntity* pOther)
 		}
 	}
 
-//
-// Sticky gib puts blood on the wall and stays put. 
-//
+// Sticky gib puts blood on the wall and stays put
 void CGib::StickyGibTouch (CBaseEntity* pOther)
 	{
 	Vector	vecSpot;
@@ -806,9 +801,7 @@ void CGib::StickyGibTouch (CBaseEntity* pOther)
 	pev->movetype = MOVETYPE_NONE;
 	}
 
-//
 // Throw a chunk
-//
 void CGib::Spawn (const char* szGibModel)
 	{
 	pev->movetype = MOVETYPE_BOUNCE;
@@ -820,10 +813,9 @@ void CGib::Spawn (const char* szGibModel)
 	pev->rendermode = kRenderNormal;
 	pev->renderfx = kRenderFxNone;
 
-	// ESHQ: возможно, это больше не потребуется
+	// ESHQ: возможно, это больше не потребуется.
 	// Устраняет бесконечное прыгание гибсов, хотя остальные последствия неизвестны
 	pev->solid = SOLID_TRIGGER;
-	//pev->solid = SOLID_SLIDEBOX;
 
 	pev->classname = MAKE_STRING ("gib");
 
@@ -893,7 +885,6 @@ int CBaseMonster::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, f
 		PainSound ();
 		}
 
-	//!!!LATER - make armor consideration here!
 	flTake = flDamage;
 
 	// set damage type sustained
@@ -1002,10 +993,10 @@ int CBaseMonster::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, f
 	return 1;
 	}
 
-//=========================================================
+// =========================================================
 // DeadTakeDamage - takedamage function called when a monster's
 // corpse is damaged
-//=========================================================
+// =========================================================
 int CBaseMonster::DeadTakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
 	Vector vecDir;
@@ -1056,13 +1047,10 @@ float CBaseMonster::DamageForce (float damage)
 	return force;
 	}
 
-//
 // RadiusDamage - this entity is exploding, or otherwise needs to inflict damage upon entities within a certain range.
-// 
 // only damage ents that can clearly be seen by the explosion!
-
-
-void RadiusDamage (Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType)
+void RadiusDamage (Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage,
+	float flRadius, int iClassIgnore, int bitsDamageType)
 	{
 	CBaseEntity* pEntity = NULL;
 	TraceResult	tr;
@@ -1149,14 +1137,14 @@ void CBaseMonster::RadiusDamage (Vector vecSrc, entvars_t* pevInflictor, entvars
 	}
 
 
-//=========================================================
+// =========================================================
 // CheckTraceHullAttack - expects a length to trace, amount 
 // of damage to do, and damage type. Returns a pointer to
 // the damaged entity in case the monster wishes to do
 // other stuff to the victim (punchangle, etc)
-//
+// 
 // Used for many contact-range melee attacks. Bites, claws, etc.
-//=========================================================
+// =========================================================
 CBaseEntity* CBaseMonster::CheckTraceHullAttack (float flDist, int iDamage, int iDmgType)
 	{
 	TraceResult tr;
@@ -1188,11 +1176,11 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack (float flDist, int iDamage, int 
 	}
 
 
-//=========================================================
+// =========================================================
 // FInViewCone - returns true is the passed ent is in
 // the caller's forward view cone. The dot product is performed
 // in 2d, making the view cone infinitely tall. 
-//=========================================================
+// =========================================================
 BOOL CBaseMonster::FInViewCone (CBaseEntity* pEntity)
 	{
 	Vector2D	vec2LOS;
@@ -1215,11 +1203,11 @@ BOOL CBaseMonster::FInViewCone (CBaseEntity* pEntity)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // FInViewCone - returns true is the passed vector is in
 // the caller's forward view cone. The dot product is performed
 // in 2d, making the view cone infinitely tall. 
-//=========================================================
+// =========================================================
 BOOL CBaseMonster::FInViewCone (Vector* pOrigin)
 	{
 	Vector2D	vec2LOS;
@@ -1242,10 +1230,10 @@ BOOL CBaseMonster::FInViewCone (Vector* pOrigin)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // FVisible - returns true if a line can be traced from
 // the caller's eyes to the target
-//=========================================================
+// =========================================================
 BOOL CBaseEntity::FVisible (CBaseEntity* pEntity)
 	{
 	TraceResult tr;
@@ -1260,7 +1248,7 @@ BOOL CBaseEntity::FVisible (CBaseEntity* pEntity)
 		|| (pev->waterlevel == 3 && pEntity->pev->waterlevel == 0))
 		return FALSE;
 
-	vecLookerOrigin = pev->origin + pev->view_ofs;//look through the caller's 'eyes'
+	vecLookerOrigin = pev->origin + pev->view_ofs;	// look through the caller's 'eyes'
 	vecTargetOrigin = pEntity->EyePosition ();
 
 	UTIL_TraceLine (vecLookerOrigin, vecTargetOrigin, ignore_monsters, ignore_glass, ENT (pev), &tr);
@@ -1274,16 +1262,16 @@ BOOL CBaseEntity::FVisible (CBaseEntity* pEntity)
 		return TRUE;
 	}
 
-//=========================================================
+// =========================================================
 // FVisible - returns true if a line can be traced from
 // the caller's eyes to the target vector
-//=========================================================
+// =========================================================
 BOOL CBaseEntity::FVisible (const Vector& vecOrigin)
 	{
 	TraceResult tr;
 	Vector		vecLookerOrigin;
 
-	vecLookerOrigin = EyePosition ();//look through the caller's 'eyes'
+	vecLookerOrigin = EyePosition ();	// look through the caller's 'eyes'
 
 	UTIL_TraceLine (vecLookerOrigin, vecOrigin, ignore_monsters, ignore_glass, ENT (pev), &tr);
 
@@ -1319,9 +1307,9 @@ void CBaseEntity::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector ve
 		}
 	}
 
-//=========================================================
+// =========================================================
 // TraceAttack
-//=========================================================
+// =========================================================
 void CBaseMonster::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType)
 	{
 	if (pev->takedamage)
@@ -1636,8 +1624,8 @@ void CBaseEntity::TraceBleed (float flDamage, Vector vecDir, TraceResult* ptr, i
 		}
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 void CBaseMonster::MakeDamageBloodDecal (int cCount, float flNoise, TraceResult* ptr, const Vector& vecDir)
 	{
 	// make blood decal on the wall! 

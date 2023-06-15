@@ -12,10 +12,10 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // monsterstate.cpp - base class monster functions for 
 // controlling core AI.
-//=========================================================
+// =========================================================
 
 #include "extdll.h"
 #include "util.h"
@@ -26,9 +26,9 @@
 #include "saverestore.h"
 #include "soundent.h"
 
-//=========================================================
+// =========================================================
 // SetState
-//=========================================================
+// =========================================================
 void CBaseMonster::SetState (MONSTERSTATE State)
 	{
 	switch (State)
@@ -47,9 +47,9 @@ void CBaseMonster::SetState (MONSTERSTATE State)
 	m_IdealMonsterState = State;
 	}
 
-//=========================================================
+// =========================================================
 // RunAI
-//=========================================================
+// =========================================================
 void CBaseMonster::RunAI (void)
 	{
 	// IDLE sound permitted in ALERT state is because monsters were silent in ALERT state. Only play IDLE sound in IDLE state
@@ -99,10 +99,10 @@ void CBaseMonster::RunAI (void)
 	m_afConditions &= ~(bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE);
 	}
 
-//=========================================================
+// =========================================================
 // GetIdealState - surveys the Conditions information available
 // and finds the best new state for a monster.
-//=========================================================
+// =========================================================
 MONSTERSTATE CBaseMonster::GetIdealState (void)
 	{
 	int	iConditions;

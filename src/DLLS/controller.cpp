@@ -14,9 +14,9 @@
 ****/
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
-//=========================================================
+// =========================================================
 // CONTROLLER
-//=========================================================
+// =========================================================
 
 #include	"extdll.h"
 #include	"util.h"
@@ -27,9 +27,9 @@
 #include	"weapons.h"
 #include	"squadmonster.h"
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 #define	CONTROLLER_AE_HEAD_OPEN		1
 #define	CONTROLLER_AE_BALL_SHOOT	2
 #define	CONTROLLER_AE_SMALL_SHOOT	3
@@ -149,19 +149,19 @@ const char* CController::pDeathSounds[] =
 		"controller/con_die2.wav",
 	};
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
-//=========================================================
+// =========================================================
 int	CController::Classify (void)
 	{
 	return	CLASS_ALIEN_MILITARY;
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
-//=========================================================
+// =========================================================
 void CController::SetYawSpeed (void)
 	{
 	int ys;
@@ -237,10 +237,10 @@ void CController::DeathSound (void)
 	EMIT_SOUND_ARRAY_DYN (CHAN_VOICE, pDeathSounds);
 	}
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//=========================================================
+// =========================================================
 void CController::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	switch (pEvent->event)
@@ -332,9 +332,9 @@ void CController::HandleAnimEvent (MonsterEvent_t* pEvent)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CController::Spawn ()
 	{
 	Precache ();
@@ -354,9 +354,9 @@ void CController::Spawn ()
 	MonsterInit ();
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CController::Precache ()
 	{
 	PRECACHE_MODEL ("models/controller.mdl");
@@ -373,9 +373,9 @@ void CController::Precache ()
 	UTIL_PrecacheOther ("controller_head_ball");
 	}
 
-//=========================================================
+// =========================================================
 // AI Schedules Specific to this monster
-//=========================================================
+// =========================================================
 
 // Chase enemy schedule
 Task_t tlControllerChaseEnemy[] =
@@ -463,9 +463,9 @@ DEFINE_CUSTOM_SCHEDULES (CController)
 
 IMPLEMENT_CUSTOM_SCHEDULES (CController, CSquadMonster);
 
-//=========================================================
+// =========================================================
 // StartTask
-//=========================================================
+// =========================================================
 void CController::StartTask (Task_t* pTask)
 	{
 	switch (pTask->iTask)
@@ -587,9 +587,9 @@ int CController::LookupFloat ()
 		}
 	}
 
-//=========================================================
+// =========================================================
 // RunTask 
-//=========================================================
+// =========================================================
 void CController::RunTask (Task_t* pTask)
 	{
 
@@ -685,12 +685,12 @@ void CController::RunTask (Task_t* pTask)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // GetSchedule - Decides which type of schedule best suits
 // the monster's current state and conditions. Then calls
 // monster's member function to get a pointer to a schedule
 // of the proper type.
-//=========================================================
+// =========================================================
 Schedule_t* CController::GetSchedule (void)
 	{
 	switch (m_MonsterState)
@@ -721,8 +721,8 @@ Schedule_t* CController::GetSchedule (void)
 	return CSquadMonster::GetSchedule ();
 	}
 
-//=========================================================
-//=========================================================
+// =========================================================
+// =========================================================
 Schedule_t* CController::GetScheduleOfType (int Type)
 	{
 	// ALERT( at_console, "%d\n", m_iFrustration );
@@ -744,25 +744,22 @@ Schedule_t* CController::GetScheduleOfType (int Type)
 	return CBaseMonster::GetScheduleOfType (Type);
 	}
 
-//=========================================================
+// =========================================================
 // CheckRangeAttack1  - shoot a bigass energy ball out of their head
-//
-//=========================================================
+// =========================================================
 BOOL CController::CheckRangeAttack1 (float flDot, float flDist)
 	{
-	if (flDot > 0.5 && flDist > 256 && flDist <= 2048)
-		{
+	if ((flDot > 0.5) && (flDist > 256) && (flDist <= 2048))
 		return TRUE;
-		}
+
 	return FALSE;
 	}
 
 BOOL CController::CheckRangeAttack2 (float flDot, float flDist)
 	{
-	if (flDot > 0.5 && flDist > 64 && flDist <= 2048)
-		{
+	if ((flDot > 0.5) && (flDist > 64) && (flDist <= 2048))
 		return TRUE;
-		}
+
 	return FALSE;
 	}
 
@@ -786,9 +783,9 @@ void CController::SetActivity (Activity NewActivity)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // RunAI
-//=========================================================
+// =========================================================
 void CController::RunAI (void)
 	{
 	CBaseMonster::RunAI ();
@@ -865,32 +862,12 @@ void CController::Move (float flInterval)
 	if (m_flMoveWaitFinished > gpGlobals->time)
 		return;
 
-	// Debug, test movement code
-#if 0
-//	if ( CVAR_GET_FLOAT("stopmove" ) != 0 )
-	{
-	if (m_movementGoal == MOVEGOAL_ENEMY)
-		RouteSimplify (m_hEnemy);
-	else
-		RouteSimplify (m_hTargetEnt);
-	FRefreshRoute ();
-	return;
-	}
-#else
-// Debug, draw the route
-//	DrawRoute( pev, m_Route, m_iRouteIndex, 0, 0, 255 );
-#endif
-
 	// if the monster is moving directly towards an entity (enemy for instance), we'll set this pointer
-	// to that entity for the CheckLocalMove and Triangulate functions.
+	// to that entity for the CheckLocalMove and Triangulate functions
 	pTargetEnt = NULL;
 
 	if (m_flGroundSpeed == 0)
-		{
 		m_flGroundSpeed = 100;
-		// TaskFail( );
-		// return;
-		}
 
 	flMoveDist = m_flGroundSpeed * flInterval;
 
@@ -946,7 +923,6 @@ void CController::Move (float flInterval)
 					{
 					// Wait for a second
 					m_flMoveWaitFinished = gpGlobals->time + m_moveWaitTime;
-					//				ALERT( at_aiconsole, "Move %s!!!\n", STRING( pBlocker->pev->classname ) );
 					return;
 					}
 				}
@@ -971,19 +947,17 @@ void CController::Move (float flInterval)
 						{
 						TaskFail ();
 						ALERT (at_aiconsole, "Failed to move!\n");
-						//ALERT( at_aiconsole, "%f, %f, %f\n", pev->origin.z, (pev->origin + (vecDir * flCheckDist)).z, m_Route[m_iRouteIndex].vecLocation.z );
 						}
 					return;
 					}
 				}
 			}
 
-		// UNDONE: this is a hack to quit moving farther than it has looked ahead.
+		// UNDONE: this is a hack to quit moving farther than it has looked ahead
 		if (flCheckDist < flMoveDist)
 			{
 			MoveExecute (pTargetEnt, vecDir, flCheckDist / m_flGroundSpeed);
 
-			// ALERT( at_console, "%.02f\n", flInterval );
 			AdvanceRoute (flWaypointDist);
 			flMoveDist -= flCheckDist;
 			}
@@ -1073,9 +1047,9 @@ void CController::MoveExecute (CBaseEntity* pTargetEnt, const Vector& vecDir, fl
 
 	}
 
-//=========================================================
+// =========================================================
 // Controller bouncy ball attack
-//=========================================================
+// =========================================================
 class CControllerHeadBall: public CBaseMonster
 	{
 	void Spawn (void);

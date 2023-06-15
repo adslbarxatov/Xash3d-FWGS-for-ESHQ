@@ -33,66 +33,66 @@ extern DLL_GLOBAL int			g_iSkillLevel;
 
 static DLL_FUNCTIONS gFunctionTable =
 	{
-		GameDLLInit,				//pfnGameInit
-		DispatchSpawn,				//pfnSpawn
-		DispatchThink,				//pfnThink
-		DispatchUse,				//pfnUse
-		DispatchTouch,				//pfnTouch
-		DispatchBlocked,			//pfnBlocked
-		DispatchKeyValue,			//pfnKeyValue
-		DispatchSave,				//pfnSave
-		DispatchRestore,			//pfnRestore
-		DispatchObjectCollsionBox,	//pfnAbsBox
+		GameDLLInit,				// pfnGameInit
+		DispatchSpawn,				// pfnSpawn
+		DispatchThink,				// pfnThink
+		DispatchUse,				// pfnUse
+		DispatchTouch,				// pfnTouch
+		DispatchBlocked,			// pfnBlocked
+		DispatchKeyValue,			// pfnKeyValue
+		DispatchSave,				// pfnSave
+		DispatchRestore,			// pfnRestore
+		DispatchObjectCollsionBox,	// pfnAbsBox
 
-		SaveWriteFields,			//pfnSaveWriteFields
-		SaveReadFields,				//pfnSaveReadFields
+		SaveWriteFields,			// pfnSaveWriteFields
+		SaveReadFields,				// pfnSaveReadFields
 
-		SaveGlobalState,			//pfnSaveGlobalState
-		RestoreGlobalState,			//pfnRestoreGlobalState
-		ResetGlobalState,			//pfnResetGlobalState
+		SaveGlobalState,			// pfnSaveGlobalState
+		RestoreGlobalState,			// pfnRestoreGlobalState
+		ResetGlobalState,			// pfnResetGlobalState
 
-		ClientConnect,				//pfnClientConnect
-		ClientDisconnect,			//pfnClientDisconnect
-		ClientKill,					//pfnClientKill
-		ClientPutInServer,			//pfnClientPutInServer
-		ClientCommand,				//pfnClientCommand
-		ClientUserInfoChanged,		//pfnClientUserInfoChanged
-		ServerActivate,				//pfnServerActivate
-		ServerDeactivate,			//pfnServerDeactivate
+		ClientConnect,				// pfnClientConnect
+		ClientDisconnect,			// pfnClientDisconnect
+		ClientKill,					// pfnClientKill
+		ClientPutInServer,			// pfnClientPutInServer
+		ClientCommand,				// pfnClientCommand
+		ClientUserInfoChanged,		// pfnClientUserInfoChanged
+		ServerActivate,				// pfnServerActivate
+		ServerDeactivate,			// pfnServerDeactivate
 
-		PlayerPreThink,				//pfnPlayerPreThink
-		PlayerPostThink,			//pfnPlayerPostThink
+		PlayerPreThink,				// pfnPlayerPreThink
+		PlayerPostThink,			// pfnPlayerPostThink
 
-		StartFrame,					//pfnStartFrame
-		ParmsNewLevel,				//pfnParmsNewLevel
-		ParmsChangeLevel,			//pfnParmsChangeLevel
+		StartFrame,					// pfnStartFrame
+		ParmsNewLevel,				// pfnParmsNewLevel
+		ParmsChangeLevel,			// pfnParmsChangeLevel
 
-		GetGameDescription,         //pfnGetGameDescription    Returns string describing current .dll game.
-		PlayerCustomization,        //pfnPlayerCustomization   Notifies .dll of new customization for player.
+		GetGameDescription,         // pfnGetGameDescription    Returns string describing current .dll game.
+		PlayerCustomization,        // pfnPlayerCustomization   Notifies .dll of new customization for player.
 
-		SpectatorConnect,			//pfnSpectatorConnect      Called when spectator joins server
-		SpectatorDisconnect,        //pfnSpectatorDisconnect   Called when spectator leaves the server
-		SpectatorThink,				//pfnSpectatorThink        Called when spectator sends a command packet (usercmd_t)
+		SpectatorConnect,			// pfnSpectatorConnect      Called when spectator joins server
+		SpectatorDisconnect,        // pfnSpectatorDisconnect   Called when spectator leaves the server
+		SpectatorThink,				// pfnSpectatorThink        Called when spectator sends a command packet (usercmd_t)
 
-		Sys_Error,					//pfnSys_Error				Called when engine has encountered an error
+		Sys_Error,					// pfnSys_Error				Called when engine has encountered an error
 
-		PM_Move,					//pfnPM_Move
-		PM_Init,					//pfnPM_Init				Server version of player movement initialization
-		PM_FindTextureType,			//pfnPM_FindTextureType
+		PM_Move,					// pfnPM_Move
+		PM_Init,					// pfnPM_Init				Server version of player movement initialization
+		PM_FindTextureType,			// pfnPM_FindTextureType
 
-		SetupVisibility,			//pfnSetupVisibility        Set up PVS and PAS for networking for this client
-		UpdateClientData,			//pfnUpdateClientData       Set up data sent only to specific client
-		AddToFullPack,				//pfnAddToFullPack
-		CreateBaseline,				//pfnCreateBaseline			Tweak entity baseline for network encoding, allows setup of player baselines, too.
-		RegisterEncoders,			//pfnRegisterEncoders		Callbacks for network encoding
-		GetWeaponData,				//pfnGetWeaponData
-		CmdStart,					//pfnCmdStart
-		CmdEnd,						//pfnCmdEnd
-		ConnectionlessPacket,		//pfnConnectionlessPacket
-		GetHullBounds,				//pfnGetHullBounds
-		CreateInstancedBaselines,   //pfnCreateInstancedBaselines
-		InconsistentFile,			//pfnInconsistentFile
-		AllowLagCompensation,		//pfnAllowLagCompensation
+		SetupVisibility,			// pfnSetupVisibility        Set up PVS and PAS for networking for this client
+		UpdateClientData,			// pfnUpdateClientData       Set up data sent only to specific client
+		AddToFullPack,				// pfnAddToFullPack
+		CreateBaseline,				// pfnCreateBaseline			Tweak entity baseline for network encoding, allows setup of player baselines, too.
+		RegisterEncoders,			// pfnRegisterEncoders		Callbacks for network encoding
+		GetWeaponData,				// pfnGetWeaponData
+		CmdStart,					// pfnCmdStart
+		CmdEnd,						// pfnCmdEnd
+		ConnectionlessPacket,		// pfnConnectionlessPacket
+		GetHullBounds,				// pfnGetHullBounds
+		CreateInstancedBaselines,   // pfnCreateInstancedBaselines
+		InconsistentFile,			// pfnInconsistentFile
+		AllowLagCompensation,		// pfnAllowLagCompensation
 	};
 
 static void SetObjectCollisionBox (entvars_t* pev);
@@ -103,9 +103,7 @@ extern "C" {
 	int GetEntityAPI (DLL_FUNCTIONS* pFunctionTable, int interfaceVersion)
 		{
 		if (!pFunctionTable || interfaceVersion != INTERFACE_VERSION)
-			{
 			return FALSE;
-			}
 
 		memcpy (pFunctionTable, &gFunctionTable, sizeof (DLL_FUNCTIONS));
 		return TRUE;
@@ -329,19 +327,20 @@ int DispatchRestore (edict_t* pent, SAVERESTOREDATA* pSaveData, int globalEntity
 			CBaseEntity* pNewEntity = FindGlobalEntity (tmpVars.classname, tmpVars.globalname);
 			if (pNewEntity)
 				{
-				//				ALERT( at_console, "Overlay %s with %s\n", STRING(pNewEntity->pev->classname), STRING(tmpVars.classname) );
-								// Tell the restore code we're overlaying a global entity from another level
+				// Tell the restore code we're overlaying a global entity from another level
 				restoreHelper.SetGlobalMode (1);	// Don't overwrite global fields
 				pSaveData->vecLandmarkOffset = (pSaveData->vecLandmarkOffset - pNewEntity->pev->mins) + tmpVars.mins;
-				pEntity = pNewEntity;// we're going to restore this data OVER the old entity
+				pEntity = pNewEntity;	// we're going to restore this data OVER the old entity
 				pent = ENT (pEntity->pev);
+
 				// Update the global table to say that the global definition of this entity should come from this level
 				gGlobalState.EntityUpdate (pEntity->pev->globalname, gpGlobals->mapname);
 				}
 			else
 				{
-				// This entity will be freed automatically by the engine.  If we don't do a restore on a matching entity (below)
-				// or call EntityUpdate() to move it to this level, we haven't changed global state at all.
+				// This entity will be freed automatically by the engine.
+				// If we don't do a restore on a matching entity (below)
+				// or call EntityUpdate() to move it to this level, we haven't changed global state at all
 				return 0;
 				}
 
@@ -364,7 +363,6 @@ int DispatchRestore (edict_t* pent, SAVERESTOREDATA* pSaveData, int globalEntity
 		// Is this an overriding global entity (coming over the transition), or one restoring in a level
 		if (globalEntity)
 			{
-			//			ALERT( at_console, "After: %f %f %f %s\n", pEntity->pev->origin.x, pEntity->pev->origin.y, pEntity->pev->origin.z, STRING(pEntity->pev->model) );
 			pSaveData->vecLandmarkOffset = oldOffset;
 			if (pEntity)
 				{

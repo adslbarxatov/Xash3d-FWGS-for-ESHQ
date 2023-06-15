@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-//=========================================================
+// =========================================================
 // human scientist (passive lab worker)
-//=========================================================
+// =========================================================
 
 #include	"extdll.h"
 #include	"util.h"
@@ -52,16 +52,16 @@ enum
 	TASK_MOVE_TO_TARGET_RANGE_SCARED,
 	};
 
-//=========================================================
+// =========================================================
 // Monster's Anim Events Go Here
-//=========================================================
+// =========================================================
 #define		SCIENTIST_AE_HEAL		( 1 )
 #define		SCIENTIST_AE_NEEDLEON	( 2 )
 #define		SCIENTIST_AE_NEEDLEOFF	( 3 )
 
-//=======================================================
+// =======================================================
 // Scientist
-//=======================================================
+// =======================================================
 
 class CScientist: public CTalkMonster
 	{
@@ -124,9 +124,9 @@ TYPEDESCRIPTION	CScientist::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CScientist, CTalkMonster);
 
-//=========================================================
+// =========================================================
 // AI Schedules Specific to this monster
-//=========================================================
+// =========================================================
 Task_t	tlFollow[] =
 	{
 		{ TASK_SET_FAIL_SCHEDULE,	(float)SCHED_CANT_FOLLOW },	// If you fail, bail out of follow
@@ -571,19 +571,19 @@ void CScientist::RunTask (Task_t* pTask)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Classify - indicates this monster's place in the 
 // relationship table
-//=========================================================
+// =========================================================
 int	CScientist::Classify (void)
 	{
 	return	CLASS_HUMAN_PASSIVE;
 	}
 
-//=========================================================
+// =========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it
-//=========================================================
+// =========================================================
 void CScientist::SetYawSpeed (void)
 	{
 	int ys;
@@ -610,10 +610,10 @@ void CScientist::SetYawSpeed (void)
 	pev->yaw_speed = ys;
 	}
 
-//=========================================================
+// =========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
-//=========================================================
+// =========================================================
 void CScientist::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	switch (pEvent->event)
@@ -640,9 +640,9 @@ void CScientist::HandleAnimEvent (MonsterEvent_t* pEvent)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // Spawn
-//=========================================================
+// =========================================================
 void CScientist::Spawn (void)
 	{
 	Precache ();
@@ -676,9 +676,9 @@ void CScientist::Spawn (void)
 	SetUse (&CTalkMonster::FollowerUse);
 	}
 
-//=========================================================
+// =========================================================
 // Precache - precaches all resources this monster needs
-//=========================================================
+// =========================================================
 void CScientist::Precache (void)
 	{
 	PRECACHE_MODEL ("models/scientist.mdl");
@@ -755,11 +755,11 @@ int CScientist::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 	}
 
 
-//=========================================================
+// =========================================================
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
-//=========================================================
+// =========================================================
 int CScientist::ISoundMask (void)
 	{
 	return	bits_SOUND_WORLD |
@@ -768,9 +768,9 @@ int CScientist::ISoundMask (void)
 		bits_SOUND_PLAYER;
 	}
 
-//=========================================================
+// =========================================================
 // PainSound
-//=========================================================
+// =========================================================
 void CScientist::PainSound (void)
 	{
 	if (gpGlobals->time < m_painTime)
@@ -804,9 +804,9 @@ void CScientist::PainSound (void)
 		}
 	}
 
-//=========================================================
+// =========================================================
 // DeathSound 
-//=========================================================
+// =========================================================
 void CScientist::DeathSound (void)
 	{
 	PainSound ();
@@ -1094,9 +1094,9 @@ int CScientist::FriendNumber (int arrayNumber)
 	return arrayNumber;
 	}
 
-//=========================================================
+// =========================================================
 // Dead Scientist PROP
-//=========================================================
+// =========================================================
 class CDeadScientist: public CBaseMonster
 	{
 	public:
@@ -1158,9 +1158,9 @@ void CDeadScientist::Spawn ()
 	MonsterInitDead ();
 	}
 
-//=========================================================
+// =========================================================
 // Sitting Scientist PROP
-//=========================================================
+// =========================================================
 
 class CSittingScientist: public CScientist // kdb: changed from public CBaseMonster so he can speak
 	{
@@ -1251,9 +1251,9 @@ void CSittingScientist::Precache (void)
 	TalkInit ();
 	}
 
-//=========================================================
+// =========================================================
 // ID as a passive human
-//=========================================================
+// =========================================================
 int	CSittingScientist::Classify (void)
 	{
 	return	CLASS_HUMAN_PASSIVE;
@@ -1267,9 +1267,9 @@ int CSittingScientist::FriendNumber (int arrayNumber)
 	return arrayNumber;
 	}
 
-//=========================================================
+// =========================================================
 // sit, do stuff
-//=========================================================
+// =========================================================
 void CSittingScientist::SittingThink (void)
 	{
 	CBaseEntity* pent;
@@ -1373,10 +1373,10 @@ void CSittingScientist::SetAnswerQuestion (CTalkMonster* pSpeaker)
 	m_hTalkTarget = (CBaseMonster*)pSpeaker;
 	}
 
-//=========================================================
+// =========================================================
 // FIdleSpeak
 // ask question of nearby friend, or make statement
-//=========================================================
+// =========================================================
 int CSittingScientist::FIdleSpeak (void)
 	{
 	// try to start a conversation, or make statement
@@ -1420,9 +1420,9 @@ int CSittingScientist::FIdleSpeak (void)
 	return FALSE;
 	}
 
-//=========================================================
+// =========================================================
 // ESHQ: сгоревший труп учёного
-//=========================================================
+// =========================================================
 class CBurnedScientist: public CBaseMonster
 	{
 	public:
