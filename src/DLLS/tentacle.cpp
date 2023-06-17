@@ -235,9 +235,7 @@ int	CTentacle::Classify (void)
 	return	CLASS_ALIEN_MONSTER;
 	}
 
-//
 // Tentacle Spawn
-//
 void CTentacle::Spawn ()
 	{
 	Precache ();
@@ -435,15 +433,10 @@ void CTentacle::Test (void)
 	pev->nextthink = gpGlobals->time + 0.1;
 	}
 
-//
 // TentacleThink
-//
 void CTentacle::Cycle (void)
 	{
-	// ALERT( at_console, "%s %.2f %d %d\n", STRING( pev->targetname ), pev->origin.z, m_MonsterState, m_IdealMonsterState );
 	pev->nextthink = gpGlobals->time + 0.1;
-
-	// ALERT( at_console, "%s %d %d %d %f %f\n", STRING( pev->targetname ), pev->sequence, m_iGoalAnim, m_iDir, pev->framerate, pev->health );
 
 	if (m_MonsterState == MONSTERSTATE_SCRIPT || m_IdealMonsterState == MONSTERSTATE_SCRIPT)
 		{
@@ -897,10 +890,7 @@ void CTentacle::HandleAnimEvent (MonsterEvent_t* pEvent)
 		}
 	}
 
-//
 // TentacleStart
-//
-// void CTentacle :: Start( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 void CTentacle::Start (void)
 	{
 	SetThink (&CTentacle::Cycle);
@@ -982,9 +972,7 @@ class CTentacleMaw: public CBaseMonster
 
 LINK_ENTITY_TO_CLASS (monster_tentaclemaw, CTentacleMaw);
 
-//
 // Tentacle Spawn
-//
 void CTentacleMaw::Spawn ()
 	{
 	Precache ();

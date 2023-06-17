@@ -12,9 +12,8 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//
+
 // Misc utility code
-//
 #ifndef ACTIVITY_H
 #include "activity.h"
 #endif
@@ -97,10 +96,7 @@ typedef int BOOL;
 #define LINK_ENTITY_TO_CLASS(mapClassName,DLLClassName) extern "C" void mapClassName( entvars_t *pev ); void mapClassName( entvars_t *pev ) { GetClassPtr( (DLLClassName *)pev ); }
 #endif
 
-
-//
-// Conversion among the three types of "entity", including identity-conversions.
-//
+// Conversion among the three types of "entity", including identity-conversions
 #ifdef DEBUG
 extern edict_t* DBG_EntOfVars (const entvars_t* pev);
 inline edict_t* ENT (const entvars_t* pev) { return DBG_EntOfVars (pev); }
@@ -352,26 +348,20 @@ extern void SetMovedir (entvars_t* pev);
 extern Vector VecBModelOrigin (entvars_t* pevBModel);
 extern int BuildChangeList (LEVELLIST* pLevelList, int maxList);
 
-//
 // How did I ever live without ASSERT?
-//
 #ifdef	DEBUG
 void DBG_AssertFunction (BOOL fExpr, const char* szExpr, const char* szFile, int szLine, const char* szMessage);
 #define ASSERT(f)		DBG_AssertFunction(f, #f, __FILE__, __LINE__, NULL)
 #define ASSERTSZ(f, sz)	DBG_AssertFunction(f, #f, __FILE__, __LINE__, sz)
-#else	// !DEBUG
+#else
 #define ASSERT(f)
 #define ASSERTSZ(f, sz)
-#endif	// !DEBUG
-
+#endif
 
 extern DLL_GLOBAL const Vector g_vecZero;
 
-//
 // Constants that were used only by QC (maybe not used at all now)
-//
 // Un-comment only as needed
-//
 #define LANGUAGE_ENGLISH				0
 #define LANGUAGE_GERMAN					1
 #define LANGUAGE_FRENCH					2

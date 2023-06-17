@@ -84,7 +84,6 @@ BOOL CSquadMonster::OccupySlot (int iDesiredSlots)
 				// No, use this bit
 				pSquadLeader->m_afSquadSlots |= iMask;
 				m_iMySlot = iMask;
-				//				ALERT ( at_aiconsole, "Took slot %d - %d\n", i, m_hSquadLeader->m_afSquadSlots );
 				return TRUE;
 				}
 			}
@@ -98,9 +97,8 @@ BOOL CSquadMonster::OccupySlot (int iDesiredSlots)
 // =========================================================
 void CSquadMonster::VacateSlot ()
 	{
-	if (m_iMySlot != bits_NO_SLOT && InSquad ())
+	if ((m_iMySlot != bits_NO_SLOT) && InSquad ())
 		{
-		//		ALERT ( at_aiconsole, "Vacated Slot %d - %d\n", m_iMySlot, m_hSquadLeader->m_afSquadSlots );
 		MySquadLeader ()->m_afSquadSlots &= ~m_iMySlot;
 		m_iMySlot = bits_NO_SLOT;
 		}
@@ -133,10 +131,8 @@ void CSquadMonster::Killed (entvars_t* pevAttacker, int iGib)
 
 
 // =========================================================
-//
 // SquadRemove(), remove pRemove from my squad.
 // If I am pRemove, promote m_pSquadNext to leader
-//
 // =========================================================
 void CSquadMonster::SquadRemove (CSquadMonster* pRemove)
 	{
@@ -177,9 +173,7 @@ void CSquadMonster::SquadRemove (CSquadMonster* pRemove)
 	}
 
 // =========================================================
-//
 // SquadAdd(), add pAdd to my squad
-//
 // =========================================================
 BOOL CSquadMonster::SquadAdd (CSquadMonster* pAdd)
 	{
@@ -202,11 +196,9 @@ BOOL CSquadMonster::SquadAdd (CSquadMonster* pAdd)
 
 
 // =========================================================
-// 
 // SquadPasteEnemyInfo - called by squad members that have
 // current info on the enemy so that it can be stored for 
 // members who don't have current info.
-//
 // =========================================================
 void CSquadMonster::SquadPasteEnemyInfo (void)
 	{
@@ -216,12 +208,10 @@ void CSquadMonster::SquadPasteEnemyInfo (void)
 	}
 
 // =========================================================
-//
 // SquadCopyEnemyInfo - called by squad members who don't
 // have current info on the enemy. Reads from the same fields
 // in the leader's data that other squad members write to,
 // so the most recent data is always available here.
-//
 // =========================================================
 void CSquadMonster::SquadCopyEnemyInfo (void)
 	{
@@ -231,10 +221,8 @@ void CSquadMonster::SquadCopyEnemyInfo (void)
 	}
 
 // =========================================================
-// 
 // SquadMakeEnemy - makes everyone in the squad angry at
-// the same entity.
-//
+// the same entity
 // =========================================================
 void CSquadMonster::SquadMakeEnemy (CBaseEntity* pEnemy)
 	{
@@ -272,10 +260,8 @@ void CSquadMonster::SquadMakeEnemy (CBaseEntity* pEnemy)
 
 
 // =========================================================
-//
 // SquadCount(), return the number of members of this squad
 // callable from leaders & followers
-//
 // =========================================================
 int CSquadMonster::SquadCount (void)
 	{
@@ -294,16 +280,13 @@ int CSquadMonster::SquadCount (void)
 	}
 
 // =========================================================
-//
 // SquadRecruit(), get some monsters of my classification and
 // link them as a group.  returns the group size
-//
 // =========================================================
 int CSquadMonster::SquadRecruit (int searchRadius, int maxMembers)
 	{
 	int squadCount;
 	int iMyClass = Classify ();// cache this monster's class
-
 
 	// Don't recruit if I'm already in a group
 	if (InSquad ())
@@ -441,16 +424,14 @@ void CSquadMonster::StartMonster (void)
 
 // =========================================================
 // NoFriendlyFire - checks for possibility of friendly fire
-//
+// 
 // Builds a large box in front of the grunt and checks to see 
-// if any squad members are in that box. 
+// if any squad members are in that box
 // =========================================================
 BOOL CSquadMonster::NoFriendlyFire (void)
 	{
 	if (!InSquad ())
-		{
 		return TRUE;
-		}
 
 	CPlane	backPlane;
 	CPlane  leftPlane;
@@ -460,8 +441,8 @@ BOOL CSquadMonster::NoFriendlyFire (void)
 	Vector	vecRightSide;
 	Vector	v_left;
 
-	//!!!BUGBUG - to fix this, the planes must be aligned to where the monster will be firing its gun, not the direction it is facing!!!
-
+	// !!!BUGBUG - to fix this, the planes must be aligned to where the monster
+	// will be firing its gun, not the direction it is facing!!!
 	if (m_hEnemy != NULL)
 		{
 		UTIL_MakeVectors (UTIL_VecToAngles (m_hEnemy->Center () - pev->origin));
@@ -472,8 +453,6 @@ BOOL CSquadMonster::NoFriendlyFire (void)
 		return FALSE;
 		}
 
-	//UTIL_MakeVectors ( pev->angles );
-
 	vecLeftSide = pev->origin - (gpGlobals->v_right * (pev->size.x * 1.5));
 	vecRightSide = pev->origin + (gpGlobals->v_right * (pev->size.x * 1.5));
 	v_left = gpGlobals->v_right * -1;
@@ -481,12 +460,6 @@ BOOL CSquadMonster::NoFriendlyFire (void)
 	leftPlane.InitializePlane (gpGlobals->v_right, vecLeftSide);
 	rightPlane.InitializePlane (v_left, vecRightSide);
 	backPlane.InitializePlane (gpGlobals->v_forward, pev->origin);
-
-	/*
-		ALERT ( at_console, "LeftPlane: %f %f %f : %f\n", leftPlane.m_vecNormal.x, leftPlane.m_vecNormal.y, leftPlane.m_vecNormal.z, leftPlane.m_flDist );
-		ALERT ( at_console, "RightPlane: %f %f %f : %f\n", rightPlane.m_vecNormal.x, rightPlane.m_vecNormal.y, rightPlane.m_vecNormal.z, rightPlane.m_flDist );
-		ALERT ( at_console, "BackPlane: %f %f %f : %f\n", backPlane.m_vecNormal.x, backPlane.m_vecNormal.y, backPlane.m_vecNormal.z, backPlane.m_flDist );
-	*/
 
 	CSquadMonster* pSquadLeader = MySquadLeader ();
 	for (int i = 0; i < MAX_SQUAD_MEMBERS; i++)

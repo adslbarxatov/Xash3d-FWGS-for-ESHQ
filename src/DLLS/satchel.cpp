@@ -458,7 +458,7 @@ void CSatchel::WeaponIdle (void)
 // =========================================================
 // DeactivateSatchels - removes all satchels owned by
 // the provided player. Should only be used upon death.
-//
+// 
 // Made this global on purpose
 // =========================================================
 void DeactivateSatchels (CBasePlayer* pOwner)

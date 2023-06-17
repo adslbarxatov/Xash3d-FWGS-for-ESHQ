@@ -12,9 +12,8 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//
+
 // teamplay_gamerules.cpp
-//
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
@@ -148,7 +147,7 @@ BOOL CHalfLifeRules::FPlayerCanRespawn (CBasePlayer* pPlayer)
 // =========================================================
 float CHalfLifeRules::FlPlayerSpawnTime (CBasePlayer* pPlayer)
 	{
-	return gpGlobals->time;//now!
+	return gpGlobals->time;	// now!
 	}
 
 // =========================================================

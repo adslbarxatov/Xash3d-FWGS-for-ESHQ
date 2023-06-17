@@ -243,8 +243,7 @@ void CTriggerRelay::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 		UTIL_Remove (this);
 	}
 
-
-//**********************************************************
+// **********************************************************
 // The Multimanager Entity - when fired, will fire up to 16 targets 
 // at specified times.
 // FLAG:		THREAD (create clones when triggered)
@@ -307,11 +306,6 @@ IMPLEMENT_SAVERESTORE (CMultiManager, CBaseToggle);
 
 void CMultiManager::KeyValue (KeyValueData *pkvd)
 	{
-	// UNDONE: Maybe this should do something like this:
-	//CBaseToggle::KeyValue( pkvd );
-	// if ( !pkvd->fHandled )
-	// ... etc.
-
 	if (FStrEq (pkvd->szKeyName, "wait"))
 		{
 		m_flWait = atof (pkvd->szValue);
@@ -319,7 +313,7 @@ void CMultiManager::KeyValue (KeyValueData *pkvd)
 		}
 	else // add this field to the target list
 		{
-		// this assumes that additional fields are targetnames and their values are delay values.
+		// this assumes that additional fields are targetnames and their values are delay values
 		if (m_cTargets < MAX_MULTI_TARGETS)
 			{
 			char tmp[128];
@@ -454,14 +448,11 @@ void CMultiManager::ManagerReport (void)
 	}
 #endif
 
-//***********************************************************
-
-//
+// ***********************************************************
 // Render parameters trigger
-//
+// 
 // This entity will copy its render parameters (renderfx, rendermode, rendercolor, renderamt)
-// to its targets when triggered.
-//
+// to its targets when triggered
 
 // Flags to indicate masking off various render parameters that are normally copied to the targets
 #define SF_RENDER_MASKFX	(1<<0)
@@ -546,9 +537,7 @@ void CBaseTrigger::InitTrigger ()
 		SetBits (pev->effects, EF_NODRAW);
 	}
 
-//
 // Cache user-entity-field values until spawn is called
-//
 void CBaseTrigger::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "damage"))
@@ -581,9 +570,7 @@ class CTriggerHurt : public CBaseTrigger
 
 LINK_ENTITY_TO_CLASS (trigger_hurt, CTriggerHurt);
 
-//
 // trigger_monsterjump
-//
 class CTriggerMonsterJump : public CBaseTrigger
 	{
 	public:
@@ -593,7 +580,6 @@ class CTriggerMonsterJump : public CBaseTrigger
 	};
 
 LINK_ENTITY_TO_CLASS (trigger_monsterjump, CTriggerMonsterJump);
-
 
 void CTriggerMonsterJump::Spawn (void)
 	{
@@ -644,9 +630,7 @@ void CTriggerMonsterJump::Touch (CBaseEntity *pOther)
 
 
 // =====================================
-//
 // trigger_cdaudio - starts/stops cd audio tracks
-//
 class CTriggerCDAudio : public CBaseTrigger
 	{
 	public:
@@ -659,16 +643,13 @@ class CTriggerCDAudio : public CBaseTrigger
 
 LINK_ENTITY_TO_CLASS (trigger_cdaudio, CTriggerCDAudio);
 
-//
 // Changes tracks or stops CD when player touches
-//
 // !!!HACK - overloaded HEALTH to avoid adding new field
 void CTriggerCDAudio::Touch (CBaseEntity *pOther)
 	{
+	// only clients may trigger these events
 	if (!pOther->IsPlayer ())
-		{// only clients may trigger these events
 		return;
-		}
 
 	PlayTrack ();
 	}
@@ -687,14 +668,14 @@ void PlayCDTrack (int iTrack)
 	{
 	edict_t *pClient;
 
-	// manually find the single player. 
+	// manually find the single player
 	pClient = g_engfuncs.pfnPEntityOfEntIndex (1);
 
 	// Can't play if the client is not connected!
 	if (!pClient)
 		return;
 
-	if (iTrack < -1 || iTrack > 30)
+	if ((iTrack < -1) || (iTrack > 30))
 		{
 		ALERT (at_console, "TriggerCDAudio - Track %d out of range\n");
 		return;
@@ -713,7 +694,6 @@ void PlayCDTrack (int iTrack)
 		}
 	}
 
-
 // only plays for ONE client, so only use in single play!
 void CTriggerCDAudio::PlayTrack (void)
 	{
@@ -722,7 +702,6 @@ void CTriggerCDAudio::PlayTrack (void)
 	SetTouch (NULL);
 	UTIL_Remove (this);
 	}
-
 
 // This plays a CD track when fired or when the player enters it's radius
 class CTargetCDAudio : public CPointEntity
@@ -746,7 +725,9 @@ void CTargetCDAudio::KeyValue (KeyValueData *pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CPointEntity::KeyValue (pkvd);
+		}
 	}
 
 void CTargetCDAudio::Spawn (void)
@@ -790,11 +771,7 @@ void CTargetCDAudio::Play (void)
 
 // =====================================
 
-//
 // trigger_hurt - hurts anything that touches it. if the trigger has a targetname, firing it will toggle state
-//
-//int gfToggleState = 0; // used to determine when all radiation trigger hurts have called 'RadiationThink'
-
 void CTriggerHurt::Spawn (void)
 	{
 	InitTrigger ();
@@ -871,13 +848,12 @@ void CTriggerHurt::RadiationThink (void)
 	pev->nextthink = gpGlobals->time + 0.25;
 	}
 
-//
 // ToggleUse - If this is the USE function for a trigger, its state will toggle every time it's fired
-//
 void CBaseTrigger::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
+	// if the trigger is off, turn it on
 	if (pev->solid == SOLID_NOT)
-		{// if the trigger is off, turn it on
+		{
 		pev->solid = SOLID_TRIGGER;
 
 		// Force retouch
@@ -1024,26 +1000,24 @@ void CTriggerMultiple::Spawn (void)
 	SetTouch (&CBaseTrigger::MultiTouch);
 	}
 
-/// ESHQ: специальная brush entity для замещения функционала env_sound для более предсказуемого поведения
+// ESHQ: специальная brush entity для замещения функционала env_sound для более предсказуемого поведения
 class CTriggerSound : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
 		void KeyValue (KeyValueData *pkvd);
 
-		/// trigger_sound
+		// trigger_sound
 		void EXPORT MultiTouch_Sound (CBaseEntity *pOther);
-		///
 
 		virtual int		Save (CSave &save);
 		virtual int		Restore (CRestore &restore);
 
-		/// trigger_sound
+		// trigger_sound
 		static	TYPEDESCRIPTION m_SaveData[];
 		float m_flRoomtype;
 		float m_flRoomtype2;
 		unsigned char m_direction;
-		///
 	};
 
 LINK_ENTITY_TO_CLASS (trigger_sound, CTriggerSound);
@@ -1068,7 +1042,7 @@ void CTriggerSound::Spawn (void)
 			m_direction = 0x01;
 		else if ((pev->size.y <= pev->size.x) && (pev->size.y <= pev->size.z))
 			m_direction = 0x02;
-		else //if ((y <= x) && (y <= z))
+		else // if ((y <= x) && (y <= z))
 			m_direction = 0x04;
 		}
 
@@ -1136,7 +1110,7 @@ void CBaseTrigger::MultiTouch (CBaseEntity *pOther)
 		}
 	}
 
-/// ESHQ: поддержка brush entity для замещения функционала env_sound
+// ESHQ: поддержка brush entity для замещения функционала env_sound
 void CTriggerSound::MultiTouch_Sound (CBaseEntity *pOther)
 	{
 	entvars_t *pevToucher;
@@ -1179,7 +1153,6 @@ void CTriggerSound::MultiTouch_Sound (CBaseEntity *pOther)
 	WRITE_ACHIEVEMENTS_SCRIPT (2, -1);	// ESHQ: запись настроек в конфигурацию игры
 	}
 
-//
 // the trigger was just touched/killed/used
 // self.enemy should be set to the activator so it can be held through a delay
 // so wait for the delay time before firing
@@ -1205,7 +1178,7 @@ void CBaseTrigger::ActivateMultiTrigger (CBaseEntity *pActivator, int RoomType)
 
 	m_hActivator = pActivator;
 
-	/// ESHQ: запуск звука, если он указан
+	// ESHQ: запуск звука, если он указан
 	if (RoomType >= 0)
 		{
 		edict_t *pentPlayer = ENT (pActivator->pev);
@@ -1253,9 +1226,7 @@ void CBaseTrigger::MultiWaitOver (void)
 	}
 
 // ========================= COUNTING TRIGGER =====================================
-//
 // GLOBALS ASSUMED SET:  g_eoActivator
-//
 void CBaseTrigger::CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	m_cTriggersLeft--;
@@ -1407,10 +1378,7 @@ TYPEDESCRIPTION	CChangeLevel::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CChangeLevel, CBaseTrigger);
 
-//
-// Cache user-entity-field values until spawn is called.
-//
-
+// Cache user-entity-field values until spawn is called
 void CChangeLevel::KeyValue (KeyValueData *pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "map"))
@@ -1499,7 +1467,6 @@ edict_t *CChangeLevel::FindLandmark (const char *pLandmarkName)
 // =========================================================
 // CChangeLevel :: Use - allows level transitions to be 
 // triggered by buttons, etc.
-//
 // =========================================================
 void CChangeLevel::UseChangeLevel (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
@@ -1560,14 +1527,11 @@ void CChangeLevel::ChangeLevelNow (CBaseEntity *pActivator)
 		gpGlobals->vecLandmarkOffset = VARS (pentLandmark)->origin;
 		}
 
-	//	ALERT( at_console, "Level touches %d levels\n", ChangeList( levels, 16 ) );
 	ALERT (at_console, "CHANGE LEVEL: %s %s\n", st_szNextMap, st_szNextSpot);
 	CHANGE_LEVEL (st_szNextMap, st_szNextSpot);
 	}
 
-//
 // GLOBALS ASSUMED SET:  st_szNextMap
-//
 void CChangeLevel::TouchChangeLevel (CBaseEntity *pOther)
 	{
 	if (!FClassnameIs (pOther->pev, "player"))
@@ -1575,7 +1539,6 @@ void CChangeLevel::TouchChangeLevel (CBaseEntity *pOther)
 
 	ChangeLevelNow (pOther);
 	}
-
 
 // Add a transition to the list, but ignore duplicates 
 // (a designer may have placed multiple trigger_changelevels with the same landmark)
@@ -1889,9 +1852,7 @@ void CTriggerPush::Touch (CBaseEntity *pOther)
 				vecPush = vecPush + pevToucher->basevelocity;
 
 			pevToucher->basevelocity = vecPush;
-
 			pevToucher->flags |= FL_BASEVELOCITY;
-			//			ALERT( at_console, "Vel %f, base %f\n", pevToucher->velocity.z, pevToucher->basevelocity.z );
 			}
 		}
 	}
@@ -1899,9 +1860,6 @@ void CTriggerPush::Touch (CBaseEntity *pOther)
 
 // ======================================
 // teleport trigger
-//
-//
-
 void CBaseTrigger::TeleportTouch (CBaseEntity *pOther)
 	{
 	entvars_t *pevToucher = pOther->pev;
@@ -2468,7 +2426,7 @@ void CTriggerCamera::Move ()
 	pev->velocity = ((pev->movedir * pev->speed) * fraction) + (pev->velocity * (1 - fraction));
 	}
 
-//**********************************************************
+// **********************************************************
 // ESHQ: поддержка рандомного срабатывания
 // Trigger random - when fired, will randomly fire one of up to 16 targets
 // FLAG:		THREAD (create clones when triggered)

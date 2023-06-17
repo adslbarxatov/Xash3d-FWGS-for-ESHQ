@@ -45,9 +45,7 @@ extern DLL_GLOBAL	int			gDisplayTitle;
 
 extern void W_Precache (void);
 
-//
 // This must match the list in util.h
-//
 DLL_DECALLIST gDecals[] = {
 	{ "{shot1",	0 },		// DECAL_GUNSHOT1 
 	{ "{shot2",	0 },		// DECAL_GUNSHOT2
@@ -228,11 +226,8 @@ static void InitBodyQue (void)
 	pev->owner = g_pBodyQueueHead;
 	}
 
-//
 // make a body que entry for the given ent so the ent can be respawned elsewhere
-//
 // GLOBALS ASSUMED SET:  g_eoBodyQueueHead
-//
 void CopyToBodyQue (entvars_t* pev)
 	{
 	if (pev->effects & EF_NODRAW)
@@ -295,7 +290,6 @@ globalentity_t* CGlobalState::Find (string_t globalname)
 	}
 
 // This is available all the time now on impulse 104, remove later
-//#ifdef _DEBUG
 void CGlobalState::DumpGlobals (void)
 	{
 	static char* estates[] = {"Off", "On", "Dead"};
@@ -309,7 +303,6 @@ void CGlobalState::DumpGlobals (void)
 		pTest = pTest->pNext;
 		}
 	}
-//#endif
 
 void CGlobalState::EntityAdd (string_t globalname, string_t mapName, GLOBALESTATE state)
 	{
@@ -445,10 +438,8 @@ void ResetGlobalState (void)
 // moved CWorld class definition to cbase.h
 // =======================
 // CWorld
-//
-// This spawns first when each level begins.
+// This spawns first when each level begins
 // =======================
-
 LINK_ENTITY_TO_CLASS (worldspawn, CWorld);
 
 #define SF_WORLD_DARK		0x0001		// Fade from black at startup
@@ -479,10 +470,8 @@ void CWorld::Precache (void)
 
 	g_pGameRules = InstallGameRules ();
 
-	//!!!UNDONE why is there so much Spawn code in the Precache function? I'll just keep it here 
-
-	///!!!LATER - do we want a sound ent in deathmatch? (sjb)
-	//pSoundEnt = CBaseEntity::Create( "soundent", g_vecZero, g_vecZero, edict() );
+	// !!!UNDONE why is there so much Spawn code in the Precache function? I'll just keep it here 
+	// !!!LATER - do we want a sound ent in deathmatch? (sjb)
 	pSoundEnt = GetClassPtr ((CSoundEnt*)NULL);
 	pSoundEnt->Spawn ();
 
@@ -510,7 +499,7 @@ void CWorld::Precache (void)
 	// sounds used from C physics code
 	PRECACHE_SOUND ("common/null.wav");				// clears sound channels
 
-	PRECACHE_SOUND ("items/suitchargeok1.wav");		//!!! temporary sound for respawning weapons.
+	PRECACHE_SOUND ("items/suitchargeok1.wav");		// !!! temporary sound for respawning weapons
 	PRECACHE_SOUND ("items/gunpickup2.wav");		// player picks up a gun.
 
 	// ESHQ: новые звуки
@@ -535,9 +524,7 @@ void CWorld::Precache (void)
 	PRECACHE_SOUND ("weapons/ric3.wav");
 	PRECACHE_SOUND ("weapons/ric4.wav");
 	PRECACHE_SOUND ("weapons/ric5.wav");
-	//
-	// Setup light animation tables. 'a' is total darkness, 'z' is maxbright.
-	//
+	// Setup light animation tables. 'a' is total darkness, 'z' is maxbright
 
 	// 0 normal
 	LIGHT_STYLE (0, "m");
@@ -663,9 +650,7 @@ void CWorld::Precache (void)
 	g_flWeaponCheat = CVAR_GET_FLOAT ("sv_cheats");  // Is the impulse 101 command allowed?
 	}
 
-//
-// Just to ignore the "wad" field.
-//
+// Just to ignore the "wad" field
 void CWorld::KeyValue (KeyValueData* pkvd)
 	{
 	if (FStrEq (pkvd->szKeyName, "skyname"))
@@ -735,34 +720,24 @@ void CWorld::KeyValue (KeyValueData* pkvd)
 		CBaseEntity::KeyValue (pkvd);
 	}
 
-//
 // Xash3D physics interface
-//
-
 typedef void (__cdecl* LINK_ENTITY_FN)(entvars_t* pev);
 
-//
 // attempt to create custom entity when default method is failed
 // 0 - attempt to create, -1 - reject to create
-//
 int DispatchCreateEntity (edict_t* pent, const char* szName)
 	{
 	return -1;
 	}
 
-//
 // run custom physics for each entity
 // return 0 to use built-in engine physic
-//
 int DispatchPhysicsEntity (edict_t* pEdict)
 	{
 	CBaseEntity* pEntity = (CBaseEntity*)GET_PRIVATE (pEdict);
 
 	if (!pEntity)
-		{
-		//		ALERT( at_console, "skip %s [%i] without private data\n", STRING( pEdict->v.classname ), ENTINDEX( pEdict )); 
 		return 0;	// not initialized
-		}
 
 	// NOTE: at this point pEntity assume to be valid
 	return 0;
@@ -778,10 +753,8 @@ static physics_interface_t gPhysicsInterface =
 int Server_GetPhysicsInterface (int iVersion, server_physics_api_t* pfuncsFromEngine, 
 	physics_interface_t* pFunctionTable)
 	{
-	if (!pFunctionTable || !pfuncsFromEngine || iVersion != SV_PHYSICS_INTERFACE_VERSION)
-		{
+	if (!pFunctionTable || !pfuncsFromEngine || (iVersion != SV_PHYSICS_INTERFACE_VERSION))
 		return FALSE;
-		}
 
 	// copy new physics interface
 	memcpy (&g_physfuncs, pfuncsFromEngine, sizeof (server_physics_api_t));

@@ -171,7 +171,6 @@ void PM_SwapTextures (int i, int j)
 void PM_SortTextures (void)
 	{
 	// Bubble sort, yuck, but this only occurs at startup and it's only 512 elements...
-	//
 	int i, j;
 
 	for (i = 0; i < gcTextures; i++)
@@ -179,11 +178,8 @@ void PM_SortTextures (void)
 		for (j = i + 1; j < gcTextures; j++)
 			{
 			if (stricmp (grgszTextureName[i], grgszTextureName[j]) > 0)
-				{
 				// Swap
-				//
 				PM_SwapTextures (i, j);
-				}
 			}
 		}
 	}
@@ -730,11 +726,9 @@ See if the player has a bogus velocity value.
 */
 void PM_CheckVelocity ()
 	{
-	int		i;
+	int i;
 
-	//
 	// bound velocity
-	//
 	for (i = 0; i < 3; i++)
 		{
 		// See if it's bogus.
@@ -782,11 +776,11 @@ int PM_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overbounce)
 
 	angle = normal[2];
 
-	blocked = 0x00;            // Assume unblocked.
-	if (angle > 0)      // If the plane that is blocking us has a positive z component, then assume it's a floor.
-		blocked |= 0x01;		// 
-	if (!angle)         // If the plane has no Z, it is vertical (wall/step)
-		blocked |= 0x02;		// 
+	blocked = 0x00;		// Assume unblocked.
+	if (angle > 0)		// If the plane that is blocking us has a positive z component, then assume it's a floor
+		blocked |= 0x01;
+	if (!angle)			// If the plane has no Z, it is vertical (wall/step)
+		blocked |= 0x02;
 
 	// Determine how far along plane to slide based on incoming direction.
 	// Scale by overbounce factor.
@@ -952,9 +946,7 @@ int PM_FlyMove (void)
 		VectorCopy (trace.plane.normal, planes[numplanes]);
 		numplanes++;
 
-		//
 		// modify original_velocity so it parallels all of the clip planes
-		//
 		if (pmove->movetype == MOVETYPE_WALK &&
 			((pmove->onground == -1) || (pmove->friction != 1)))	// relfect player velocity
 			{
@@ -1011,10 +1003,8 @@ int PM_FlyMove (void)
 				VectorScale (dir, d, pmove->velocity);
 				}
 
-			//
 			// if original velocity is against the original velocity, stop dead
 			// to avoid tiny occilations in sloping corners
-			//
 			if (DotProduct (pmove->velocity, primal_velocity) <= 0)
 				{
 				VectorCopy (vec3_origin, pmove->velocity);
@@ -1118,9 +1108,7 @@ void PM_WalkMove ()
 	VectorCopy (wishvel, wishdir);   // Determine maginitude of speed of move
 	wishspeed = VectorNormalize (wishdir);
 
-	//
 	// Clamp to server defined max speed
-	//
 	if (wishspeed > pmove->maxspeed)
 		{
 		VectorScale (wishvel, pmove->maxspeed / wishspeed, wishvel);
@@ -1369,16 +1357,14 @@ void PM_WaterMove (void)
 
 	float speed, newspeed, addspeed, accelspeed;
 
-	//
 	// user intentions
-	//
 	for (i = 0; i < 3; i++)
 		wishvel[i] = pmove->forward[i] * pmove->cmd.forwardmove + pmove->right[i] * pmove->cmd.sidemove;
 
 	// Sinking after no other movement occurs
 	if (!pmove->cmd.forwardmove && !pmove->cmd.sidemove && !pmove->cmd.upmove)
 		wishvel[2] -= 60;		// drift towards bottom
-	else  // Go straight up by upmove amount.
+	else  // Go straight up by upmove amount
 		wishvel[2] += pmove->cmd.upmove;
 
 	// Copy it over and determine speed
@@ -1409,18 +1395,13 @@ void PM_WaterMove (void)
 	else
 		newspeed = 0;
 
-	//
 	// water acceleration
-	//
 	if (wishspeed < 0.1f)
-		{
 		return;
-		}
 
 	addspeed = wishspeed - newspeed;
 	if (addspeed > 0)
 		{
-
 		VectorNormalize (wishvel);
 		accelspeed = pmove->movevars->accelerate * wishspeed * pmove->frametime * pmove->friction;
 		if (accelspeed > addspeed)
@@ -1436,13 +1417,15 @@ void PM_WaterMove (void)
 	VectorCopy (dest, start);
 	start[2] += pmove->movevars->stepsize + 1;
 	trace = pmove->PM_PlayerTrace (start, dest, PM_NORMAL, -1);
+
+	// walked up the step, so just keep result and exit
 	if (!trace.startsolid && !trace.allsolid)	// FIXME: check steep slope?
-		{	// walked up the step, so just keep result and exit
+		{
 		VectorCopy (trace.endpos, pmove->origin);
 		return;
 		}
 
-	// Try moving straight along out normal path.
+	// Try moving straight along out normal path
 	PM_FlyMove ();
 	}
 
@@ -1860,9 +1843,7 @@ void PM_SpectatorMove (void)
 		VectorCopy (wishvel, wishdir);
 		wishspeed = VectorNormalize (wishdir);
 
-		//
 		// clamp to server defined max speed
-		//
 		if (wishspeed > pmove->movevars->spectatormaxspeed)
 			{
 			VectorScale (wishvel, pmove->movevars->spectatormaxspeed / wishspeed, wishvel);

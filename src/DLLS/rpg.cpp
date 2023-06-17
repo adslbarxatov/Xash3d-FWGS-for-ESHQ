@@ -314,7 +314,7 @@ void CRpg::Reload (void)
 	// or
 	// b) player is totally out of ammo and has nothing to switch to, and should be allowed to
 	//    shine the designator around
-	//
+	// 
 	// Set the next attack time into the future so that WeaponIdle will get called more often
 	// than reload, allowing the RPG LTD to be updated
 

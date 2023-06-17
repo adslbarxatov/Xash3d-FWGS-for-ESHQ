@@ -761,10 +761,10 @@ void CTalkMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 			if (RANDOM_LONG (0, 99) < 75)
 				break;
 			// fall through...
+
 		case SCRIPT_EVENT_SENTENCE:				// Play a named sentence group
 			ShutUpFriends ();
 			PlaySentence (pEvent->options, RANDOM_FLOAT (2.8, 3.4), VOL_NORM, ATTN_SMALL);
-			//ALERT(at_console, "script event speak\n");
 			break;
 
 		default:
@@ -1076,7 +1076,7 @@ int CTalkMonster::FIdleSpeak (void)
 				}
 			else
 				{
-				//!!!KELLY - here's a cool spot to have the talkmonster talk about the dead player if we want.
+				// !!!KELLY - here's a cool spot to have the talkmonster talk about the dead player if we want.
 				// "Oh dear, Gordon Freeman is dead!" -Scientist
 				// "Damn, I can't do this without you." -Barney
 				}
@@ -1103,7 +1103,6 @@ int CTalkMonster::FIdleSpeak (void)
 	// otherwise, play an idle statement, try to face client when making a statement.
 	if (RANDOM_LONG (0, 1))
 		{
-		//SENTENCEG_PlayRndSz( ENT(pev), szIdleGroup, 1.0, ATTN_SMALL, 0, pitch );
 		CBaseEntity* pFriend = FindNearestFriend (TRUE);
 
 		if (pFriend)
@@ -1224,7 +1223,6 @@ Schedule_t* CTalkMonster::GetScheduleOfType (int Type)
 		case SCHED_TARGET_FACE:
 			// speak during 'use'
 			if (RANDOM_LONG (0, 99) < 2)
-				//ALERT ( at_console, "target chase speak\n" );
 				return slIdleSpeakWait;
 			else
 				return slIdleStand;
@@ -1254,10 +1252,7 @@ Schedule_t* CTalkMonster::GetScheduleOfType (int Type)
 
 			// talk about world
 			if (FOkToSpeak () && RANDOM_LONG (0, m_nSpeak * 2) == 0)
-				{
-				//ALERT ( at_console, "standing idle speak\n" );
 				return slIdleSpeak;
-				}
 
 			if (!IsTalking () && HasConditions (bits_COND_SEE_CLIENT) && RANDOM_LONG (0, 6) == 0)
 				{
@@ -1328,14 +1323,14 @@ void CTalkMonster::TrySmellTalk (void)
 	// clear smell bits periodically
 	if (gpGlobals->time > m_flLastSaidSmelled)
 		{
-		//		ALERT ( at_aiconsole, "Clear smell bits\n" );
 		ClearBits (m_bitsSaid, bit_saidSmelled);
 		}
+
 	// smelled something?
 	if (!FBitSet (m_bitsSaid, bit_saidSmelled) && HasConditions (bits_COND_SMELL))
 		{
 		PlaySentence (m_szGrp[TLK_SMELL], RANDOM_FLOAT (2.8, 3.2), VOL_NORM, ATTN_SMALL);
-		m_flLastSaidSmelled = gpGlobals->time + 60;// don't talk about the stinky for a while.
+		m_flLastSaidSmelled = gpGlobals->time + 60;	// don't talk about the stinky for a while
 		SetBits (m_bitsSaid, bit_saidSmelled);
 		}
 	}

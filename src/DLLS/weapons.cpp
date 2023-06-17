@@ -76,17 +76,12 @@ int MaxAmmoCarry (int iszName)
 
 /*
 ==============================================================================
-
 MULTI-DAMAGE
-
 Collects multiple small damages into a single damage
-
 ==============================================================================
 */
 
-//
 // ClearMultiDamage - resets the global multi damage accumulator
-//
 void ClearMultiDamage (void)
 	{
 	gMultiDamage.pEntity = NULL;
@@ -94,16 +89,14 @@ void ClearMultiDamage (void)
 	gMultiDamage.type = 0;
 	}
 
-//
 // ApplyMultiDamage - inflicts contents of global multi damage register on gMultiDamage.pEntity
-//
 // GLOBALS USED:
-//		gMultiDamage
+// gMultiDamage
 
 void ApplyMultiDamage (entvars_t* pevInflictor, entvars_t* pevAttacker)
 	{
-	Vector		vecSpot1;//where blood comes from
-	Vector		vecDir;//direction blood should go
+	Vector		vecSpot1;	// where blood comes from
+	Vector		vecDir;		// direction blood should go
 	TraceResult	tr;
 
 	if (!gMultiDamage.pEntity)
@@ -113,8 +106,7 @@ void ApplyMultiDamage (entvars_t* pevInflictor, entvars_t* pevAttacker)
 	}
 
 // GLOBALS USED:
-//		gMultiDamage
-
+// gMultiDamage
 void AddMultiDamage (entvars_t* pevInflictor, CBaseEntity* pEntity, float flDamage, int bitsDamageType)
 	{
 	if (!pEntity)
@@ -195,12 +187,10 @@ void DecalGunshot (TraceResult* pTrace, int iBulletType)
 		}
 	}
 
-//
 // EjectBrass - tosses a brass shell from passed origin at passed velocity
-//
 void EjectBrass (const Vector& vecOrigin, const Vector& vecVelocity, float rotation, int model, int soundtype)
 	{
-	// FIX: when the player shoots, their gun isn't in the same position as it is on the model other players see.
+	// FIX: when the player shoots, their gun isn't in the same position as it is on the model other players see
 
 	MESSAGE_BEGIN (MSG_PVS, SVC_TEMPENTITY, vecOrigin);
 	WRITE_BYTE (TE_MODEL);
@@ -373,31 +363,29 @@ void W_Precache (void)
 		}
 #endif
 
-	g_sModelIndexFireball = PRECACHE_MODEL ("sprites/zerogxplode.spr");// fireball
-	g_sModelIndexWExplosion = PRECACHE_MODEL ("sprites/WXplo1.spr");// underwater fireball
-	g_sModelIndexSmoke = PRECACHE_MODEL ("sprites/steam1.spr");// smoke
-	g_sModelIndexBubbles = PRECACHE_MODEL ("sprites/bubble.spr");//bubbles
-	g_sModelIndexBloodSpray = PRECACHE_MODEL ("sprites/bloodspray.spr"); // initial blood
-	g_sModelIndexBloodDrop = PRECACHE_MODEL ("sprites/blood.spr"); // splattered blood 
-
+	g_sModelIndexFireball = PRECACHE_MODEL ("sprites/zerogxplode.spr");	// fireball
+	g_sModelIndexWExplosion = PRECACHE_MODEL ("sprites/WXplo1.spr");	// underwater fireball
+	g_sModelIndexSmoke = PRECACHE_MODEL ("sprites/steam1.spr");			// smoke
+	g_sModelIndexBubbles = PRECACHE_MODEL ("sprites/bubble.spr");		// bubbles
+	g_sModelIndexBloodSpray = PRECACHE_MODEL ("sprites/bloodspray.spr");	// initial blood
+	g_sModelIndexBloodDrop = PRECACHE_MODEL ("sprites/blood.spr");		// splattered blood
 	g_sModelIndexLaser = PRECACHE_MODEL ((char*)g_pModelNameLaser);
 	g_sModelIndexLaserDot = PRECACHE_MODEL ("sprites/laserdot.spr");
-
 
 	// used by explosions
 	PRECACHE_MODEL ("models/grenade.mdl");
 	PRECACHE_MODEL ("sprites/explode1.spr");
 
-	PRECACHE_SOUND ("weapons/debris1.wav");// explosion aftermaths
-	PRECACHE_SOUND ("weapons/debris2.wav");// explosion aftermaths
-	PRECACHE_SOUND ("weapons/debris3.wav");// explosion aftermaths
+	PRECACHE_SOUND ("weapons/debris1.wav");	// explosion aftermaths
+	PRECACHE_SOUND ("weapons/debris2.wav");	// explosion aftermaths
+	PRECACHE_SOUND ("weapons/debris3.wav");	// explosion aftermaths
 
-	PRECACHE_SOUND ("weapons/grenade_hit1.wav");//grenade
-	PRECACHE_SOUND ("weapons/grenade_hit2.wav");//grenade
-	PRECACHE_SOUND ("weapons/grenade_hit3.wav");//grenade
+	PRECACHE_SOUND ("weapons/grenade_hit1.wav");	// grenade
+	PRECACHE_SOUND ("weapons/grenade_hit2.wav");	// grenade
+	PRECACHE_SOUND ("weapons/grenade_hit3.wav");	// grenade
 
-	PRECACHE_SOUND ("weapons/bullet_hit1.wav");	// hit by bullet
-	PRECACHE_SOUND ("weapons/bullet_hit2.wav");	// hit by bullet
+	PRECACHE_SOUND ("weapons/bullet_hit1.wav");		// hit by bullet
+	PRECACHE_SOUND ("weapons/bullet_hit2.wav");		// hit by bullet
 
 	// ESHQ: поддержка новых звуков
 	PRECACHE_SOUND ("weapons/concrete_hit1.wav");	
@@ -987,7 +975,7 @@ BOOL CBasePlayerWeapon::DefaultReload (int iClipSize, int iAnim, float fDelay, i
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + fDelay;
 
-	//!!UNDONE -- reload sound goes here !!!
+	// !!!UNDONE - reload sound goes here
 	SendWeaponAnim (iAnim, UseDecrement () ? 1 : 0);
 
 	m_fInReload = TRUE;
@@ -1099,11 +1087,11 @@ void CBasePlayerAmmo::DefaultTouch (CBaseEntity* pOther)
 
 // =========================================================
 // called by the new item with the existing item as parameter
-//
+// 
 // if we call ExtractAmmo(), it's because the player is picking up this type of weapon for 
 // the first time. If it is spawned by the world, m_iDefaultAmmo will have a default ammo amount in it.
 // if  this is a weapon dropped by a dying player, has 0 m_iDefaultAmmo, which means only the ammo in 
-// the weapon clip comes along. 
+// the weapon clip comes along
 // =========================================================
 int CBasePlayerWeapon::ExtractAmmo (CBasePlayerWeapon* pWeapon)
 	{
@@ -1154,9 +1142,9 @@ void CBasePlayerWeapon::RetireWeapon (void)
 	g_pGameRules->GetNextBestWeapon (m_pPlayer, this);
 	}
 
-//*********************************************************
+// *********************************************************
 // weaponbox code:
-//*********************************************************
+// *********************************************************
 
 LINK_ENTITY_TO_CLASS (weaponbox, CWeaponBox);
 
@@ -1171,14 +1159,11 @@ TYPEDESCRIPTION	CWeaponBox::m_SaveData[] =
 IMPLEMENT_SAVERESTORE (CWeaponBox, CBaseEntity);
 
 // =========================================================
-//
-// =========================================================
 void CWeaponBox::Precache (void)
 	{
 	PRECACHE_MODEL ("models/w_weaponbox.mdl");
 	}
 
-// =========================================================
 // =========================================================
 void CWeaponBox::KeyValue (KeyValueData* pkvd)
 	{
@@ -1282,8 +1267,6 @@ void CWeaponBox::Touch (CBaseEntity* pOther)
 			// have at least one weapon in this slot
 			while (m_rgpPlayerItems[i])
 				{
-				//ALERT ( at_console, "trying to give %s\n", STRING( m_rgpPlayerItems[ i ]->pev->classname ) );
-
 				pItem = m_rgpPlayerItems[i];
 				m_rgpPlayerItems[i] = m_rgpPlayerItems[i]->m_pNext;// unlink this weapon from the box
 
@@ -1365,9 +1348,8 @@ BOOL CWeaponBox::PackAmmo (int iszName, int iCount)
 
 	iMaxCarry = MaxAmmoCarry (iszName);
 
-	if (iMaxCarry != -1 && iCount > 0)
+	if ((iMaxCarry != -1) && (iCount > 0))
 		{
-		//ALERT ( at_console, "Packed %d rounds of %s\n", iCount, STRING(iszName) );
 		GiveAmmo (iCount, (char*)STRING (iszName), iMaxCarry);
 		return TRUE;
 		}
@@ -1390,7 +1372,7 @@ int CWeaponBox::GiveAmmo (int iCount, char* szName, int iMax, int* pIndex)
 				*pIndex = i;
 
 			int iAdd = min (iCount, iMax - m_rgAmmo[i]);
-			if (iCount == 0 || iAdd > 0)
+			if ((iCount == 0) || (iAdd > 0))
 				{
 				m_rgAmmo[i] += iAdd;
 
@@ -1472,18 +1454,9 @@ void CBasePlayerWeapon::PrintState (void)
 	{
 	ALERT (at_console, "primary:  %f\n", m_flNextPrimaryAttack);
 	ALERT (at_console, "idle   :  %f\n", m_flTimeWeaponIdle);
-
-	//	ALERT( at_console, "nextrl :  %f\n", m_flNextReload );
-	//	ALERT( at_console, "nextpum:  %f\n", m_flPumpTime );
-	//	ALERT( at_console, "m_frt  :  %f\n", m_fReloadTime );
-
 	ALERT (at_console, "m_finre:  %i\n", m_fInReload);
-
-	//	ALERT( at_console, "m_finsr:  %i\n", m_fInSpecialReload );
-
 	ALERT (at_console, "m_iclip:  %i\n", m_iClip);
 	}
-
 
 TYPEDESCRIPTION	CRpg::m_SaveData[] =
 	{

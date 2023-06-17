@@ -74,7 +74,7 @@ BOOL CBaseMonster::FScheduleDone (void)
 // with the passed pointer, and sets the ScheduleIndex back
 // to 0
 // =========================================================
-void CBaseMonster::ChangeSchedule (Schedule_t* pNewSchedule)
+void CBaseMonster::ChangeSchedule (Schedule_t *pNewSchedule)
 	{
 	ASSERT (pNewSchedule != NULL);
 
@@ -111,12 +111,9 @@ void CBaseMonster::NextScheduledTask (void)
 	m_iTaskStatus = TASKSTATUS_NEW;
 	m_iScheduleIndex++;
 
+	// just completed last task in schedule, so make it invalid by clearing it
 	if (FScheduleDone ())
-		{
-		// just completed last task in schedule, so make it invalid by clearing it.
 		SetConditions (bits_COND_SCHEDULE_DONE);
-		//ClearSchedule();	
-		}
 	}
 
 // =========================================================
@@ -127,11 +124,9 @@ void CBaseMonster::NextScheduledTask (void)
 int CBaseMonster::IScheduleFlags (void)
 	{
 	if (!m_pSchedule)
-		{
 		return 0;
-		}
 
-	// strip off all bits excepts the ones capable of breaking this schedule.
+	// strip off all bits excepts the ones capable of breaking this schedule
 	return m_afConditions & m_pSchedule->iInterruptMask;
 	}
 
@@ -142,11 +137,9 @@ int CBaseMonster::IScheduleFlags (void)
 // =========================================================
 BOOL CBaseMonster::FScheduleValid (void)
 	{
+	// schedule is empty, and therefore not valid
 	if (m_pSchedule == NULL)
-		{
-		// schedule is empty, and therefore not valid.
 		return FALSE;
-		}
 
 	if (HasConditions (m_pSchedule->iInterruptMask | bits_COND_SCHEDULE_DONE | bits_COND_TASK_FAILED))
 		{
@@ -174,19 +167,17 @@ BOOL CBaseMonster::FScheduleValid (void)
 // =========================================================
 void CBaseMonster::MaintainSchedule (void)
 	{
-	Schedule_t* pNewSchedule;
+	Schedule_t *pNewSchedule;
 	int			i;
 
 	// UNDONE: Tune/fix this 10... This is just here so infinite loops are impossible
 	for (i = 0; i < 10; i++)
 		{
-		if (m_pSchedule != NULL && TaskIsComplete ())
-			{
+		if ((m_pSchedule != NULL) && TaskIsComplete ())
 			NextScheduledTask ();
-			}
 
 		// validate existing schedule 
-		if (!FScheduleValid () || m_MonsterState != m_IdealMonsterState)
+		if (!FScheduleValid () || (m_MonsterState != m_IdealMonsterState))
 			{
 			// if we come into this block of code, the schedule is going to have to be changed.
 			// if the previous schedule was interrupted by a condition, GetIdealState will be 
@@ -201,8 +192,8 @@ void CBaseMonster::MaintainSchedule (void)
 			// - schedule is done but schedule indicates it wants GetIdealState called
 			//   after successful completion (by setting bits_COND_SCHEDULE_DONE in iInterruptMask)
 			// DEAD & SCRIPT are not suggestions, they are commands!
-			if (m_IdealMonsterState != MONSTERSTATE_DEAD &&
-				(m_IdealMonsterState != MONSTERSTATE_SCRIPT || m_IdealMonsterState == m_MonsterState))
+			if ((m_IdealMonsterState != MONSTERSTATE_DEAD) &&
+				((m_IdealMonsterState != MONSTERSTATE_SCRIPT) || (m_IdealMonsterState == m_MonsterState)))
 				{
 				if ((m_afConditions && !HasConditions (bits_COND_SCHEDULE_DONE)) ||
 					(m_pSchedule && (m_pSchedule->iInterruptMask & bits_COND_SCHEDULE_DONE)) ||
@@ -211,7 +202,7 @@ void CBaseMonster::MaintainSchedule (void)
 					GetIdealState ();
 					}
 				}
-			if (HasConditions (bits_COND_TASK_FAILED) && m_MonsterState == m_IdealMonsterState)
+			if (HasConditions (bits_COND_TASK_FAILED) && (m_MonsterState == m_IdealMonsterState))
 				{
 				if (m_failSchedule != SCHED_NONE)
 					pNewSchedule = GetScheduleOfType (m_failSchedule);
@@ -234,7 +225,7 @@ void CBaseMonster::MaintainSchedule (void)
 
 		if (m_iTaskStatus == TASKSTATUS_NEW)
 			{
-			Task_t* pTask = GetTask ();
+			Task_t *pTask = GetTask ();
 			ASSERT (pTask != NULL);
 			TaskBegin ();
 			StartTask (pTask);
@@ -252,7 +243,7 @@ void CBaseMonster::MaintainSchedule (void)
 
 	if (TaskIsRunning ())
 		{
-		Task_t* pTask = GetTask ();
+		Task_t *pTask = GetTask ();
 		ASSERT (pTask != NULL);
 		RunTask (pTask);
 		}
@@ -269,117 +260,92 @@ void CBaseMonster::MaintainSchedule (void)
 // =========================================================
 // RunTask 
 // =========================================================
-void CBaseMonster::RunTask (Task_t* pTask)
+void CBaseMonster::RunTask (Task_t *pTask)
 	{
 	switch (pTask->iTask)
 		{
 		case TASK_TURN_RIGHT:
 		case TASK_TURN_LEFT:
-			{
 			ChangeYaw (pev->yaw_speed);
 
 			if (FacingIdeal ())
-				{
 				TaskComplete ();
-				}
 			break;
-			}
 
 		case TASK_PLAY_SEQUENCE_FACE_ENEMY:
 		case TASK_PLAY_SEQUENCE_FACE_TARGET:
-			{
-			CBaseEntity* pTarget;
+			CBaseEntity *pTarget;
 
 			if (pTask->iTask == TASK_PLAY_SEQUENCE_FACE_TARGET)
 				pTarget = m_hTargetEnt;
 			else
 				pTarget = m_hEnemy;
+
 			if (pTarget)
 				{
 				pev->ideal_yaw = UTIL_VecToYaw (pTarget->pev->origin - pev->origin);
 				ChangeYaw (pev->yaw_speed);
 				}
+
 			if (m_fSequenceFinished)
 				TaskComplete ();
-			}
 			break;
 
 		case TASK_PLAY_SEQUENCE:
 		case TASK_PLAY_ACTIVE_IDLE:
-			{
 			if (m_fSequenceFinished)
-				{
 				TaskComplete ();
-				}
 			break;
-			}
-
 
 		case TASK_FACE_ENEMY:
-			{
 			MakeIdealYaw (m_vecEnemyLKP);
-
 			ChangeYaw (pev->yaw_speed);
 
 			if (FacingIdeal ())
-				{
 				TaskComplete ();
-				}
 			break;
-			}
+
 		case TASK_FACE_HINTNODE:
 		case TASK_FACE_LASTPOSITION:
 		case TASK_FACE_TARGET:
 		case TASK_FACE_IDEAL:
 		case TASK_FACE_ROUTE:
-			{
 			ChangeYaw (pev->yaw_speed);
 
 			if (FacingIdeal ())
-				{
 				TaskComplete ();
-				}
 			break;
-			}
+
 		case TASK_WAIT_PVS:
-			{
 			if (!FNullEnt (FIND_CLIENT_IN_PVS (edict ())))
-				{
 				TaskComplete ();
-				}
 			break;
-			}
+
 		case TASK_WAIT_INDEFINITE:
-			{
 			// don't do anything.
 			break;
-			}
+
 		case TASK_WAIT:
 		case TASK_WAIT_RANDOM:
-			{
 			if (gpGlobals->time >= m_flWaitFinished)
-				{
 				TaskComplete ();
-				}
 			break;
-			}
+
 		case TASK_WAIT_FACE_ENEMY:
-			{
 			MakeIdealYaw (m_vecEnemyLKP);
 			ChangeYaw (pev->yaw_speed);
 
 			if (gpGlobals->time >= m_flWaitFinished)
-				{
 				TaskComplete ();
-				}
 			break;
-			}
+
 		case TASK_MOVE_TO_TARGET_RANGE:
-			{
 			float distance;
 
 			if (m_hTargetEnt == NULL)
+				{
 				TaskFail ();
+				}
 			else
 				{
 				distance = (m_vecMoveGoal - pev->origin).Length2D ();
@@ -400,24 +366,26 @@ void CBaseMonster::RunTask (Task_t* pTask)
 					RouteClear ();		// Stop moving
 					}
 				else if (distance < 190 && m_movementActivity != ACT_WALK)
+					{
 					m_movementActivity = ACT_WALK;
+					}
 				else if (distance >= 270 && m_movementActivity != ACT_RUN)
+					{
 					m_movementActivity = ACT_RUN;
+					}
 				}
 
 			break;
-			}
+
 		case TASK_WAIT_FOR_MOVEMENT:
-			{
 			if (MovementIsComplete ())
 				{
 				TaskComplete ();
 				RouteClear ();		// Stop moving
 				}
 			break;
-			}
+
 		case TASK_DIE:
-			{
 			if (m_fSequenceFinished && (pev->frame >= 255))
 				{
 				pev->deadflag = DEAD_KILLED;
@@ -453,20 +421,19 @@ void CBaseMonster::RunTask (Task_t* pTask)
 					}
 				}
 			break;
-			}
+
 		case TASK_RANGE_ATTACK1_NOTURN:
 		case TASK_MELEE_ATTACK1_NOTURN:
 		case TASK_MELEE_ATTACK2_NOTURN:
 		case TASK_RANGE_ATTACK2_NOTURN:
 		case TASK_RELOAD_NOTURN:
-			{
 			if (m_fSequenceFinished)
 				{
 				m_Activity = ACT_RESET;
 				TaskComplete ();
 				}
 			break;
-			}
+
 		case TASK_RANGE_ATTACK1:
 		case TASK_MELEE_ATTACK1:
 		case TASK_MELEE_ATTACK2:
@@ -474,7 +441,6 @@ void CBaseMonster::RunTask (Task_t* pTask)
 		case TASK_SPECIAL_ATTACK1:
 		case TASK_SPECIAL_ATTACK2:
 		case TASK_RELOAD:
-			{
 			MakeIdealYaw (m_vecEnemyLKP);
 			ChangeYaw (pev->yaw_speed);
 
@@ -484,36 +450,27 @@ void CBaseMonster::RunTask (Task_t* pTask)
 				TaskComplete ();
 				}
 			break;
-			}
+
 		case TASK_SMALL_FLINCH:
-			{
 			if (m_fSequenceFinished)
-				{
 				TaskComplete ();
-				}
-			}
 			break;
+
 		case TASK_WAIT_FOR_SCRIPT:
-			{
 			if (m_pCine->m_iDelay <= 0 && gpGlobals->time >= m_pCine->m_startTime)
 				{
 				TaskComplete ();
-				m_pCine->StartSequence ((CBaseMonster*)this, m_pCine->m_iszPlay, TRUE);
+				m_pCine->StartSequence ((CBaseMonster *)this, m_pCine->m_iszPlay, TRUE);
 				if (m_fSequenceFinished)
 					ClearSchedule ();
 				pev->framerate = 1.0;
-				//ALERT( at_aiconsole, "Script %s has begun for %s\n", STRING( m_pCine->m_iszPlay ), STRING(pev->classname) );
 				}
 			break;
-			}
+
 		case TASK_PLAY_SCRIPT:
-			{
 			if (m_fSequenceFinished)
-				{
 				m_pCine->SequenceDone (this);
-				}
 			break;
-			}
 		}
 	}
 
@@ -542,7 +499,7 @@ void CBaseMonster::SetTurnActivity (void)
 // any necessary calculations to start the next task on the
 // schedule. 
 // =========================================================
-void CBaseMonster::StartTask (Task_t* pTask)
+void CBaseMonster::StartTask (Task_t *pTask)
 	{
 	switch (pTask->iTask)
 		{
@@ -635,7 +592,7 @@ void CBaseMonster::StartTask (Task_t* pTask)
 			}
 		case TASK_SET_SCHEDULE:
 			{
-			Schedule_t* pNewSchedule;
+			Schedule_t *pNewSchedule;
 
 			pNewSchedule = GetScheduleOfType ((int)pTask->flData);
 
@@ -712,15 +669,11 @@ void CBaseMonster::StartTask (Task_t* pTask)
 			}
 		case TASK_FIND_COVER_FROM_ENEMY:
 			{
-			entvars_t* pevCover;
+			entvars_t *pevCover;
 
+			// Find cover from self if no enemy available
 			if (m_hEnemy == NULL)
-				{
-				// Find cover from self if no enemy available
 				pevCover = pev;
-				//				TaskFail();
-				//				return;
-				}
 			else
 				pevCover = m_hEnemy->pev;
 
@@ -760,7 +713,7 @@ void CBaseMonster::StartTask (Task_t* pTask)
 			break;
 		case TASK_FIND_COVER_FROM_BEST_SOUND:
 			{
-			CSound* pBestSound;
+			CSound *pBestSound;
 
 			pBestSound = PBestSound ();
 
@@ -955,7 +908,7 @@ void CBaseMonster::StartTask (Task_t* pTask)
 			}
 		case TASK_GET_PATH_TO_ENEMY:
 			{
-			CBaseEntity* pEnemy = m_hEnemy;
+			CBaseEntity *pEnemy = m_hEnemy;
 
 			if (pEnemy == NULL)
 				{
@@ -995,7 +948,7 @@ void CBaseMonster::StartTask (Task_t* pTask)
 			break;
 		case TASK_GET_PATH_TO_SPOT:
 			{
-			CBaseEntity* pPlayer = CBaseEntity::Instance (FIND_ENTITY_BY_CLASSNAME (NULL, "player"));
+			CBaseEntity *pPlayer = CBaseEntity::Instance (FIND_ENTITY_BY_CLASSNAME (NULL, "player"));
 			if (BuildRoute (m_vecMoveGoal, bits_MF_TO_LOCATION, pPlayer))
 				{
 				TaskComplete ();
@@ -1056,7 +1009,7 @@ void CBaseMonster::StartTask (Task_t* pTask)
 			}
 		case TASK_GET_PATH_TO_BESTSOUND:
 			{
-			CSound* pSound;
+			CSound *pSound;
 
 			pSound = PBestSound ();
 
@@ -1074,7 +1027,7 @@ void CBaseMonster::StartTask (Task_t* pTask)
 			}
 		case TASK_GET_PATH_TO_BESTSCENT:
 			{
-			CSound* pScent;
+			CSound *pScent;
 
 			pScent = PBestScent ();
 
@@ -1218,7 +1171,7 @@ void CBaseMonster::StartTask (Task_t* pTask)
 			{
 			if (m_pCine->m_iszIdle)
 				{
-				m_pCine->StartSequence ((CBaseMonster*)this, m_pCine->m_iszIdle, FALSE);
+				m_pCine->StartSequence ((CBaseMonster *)this, m_pCine->m_iszIdle, FALSE);
 				if (FStrEq (STRING (m_pCine->m_iszIdle), STRING (m_pCine->m_iszPlay)))
 					{
 					pev->framerate = 0;
@@ -1294,7 +1247,7 @@ void CBaseMonster::StartTask (Task_t* pTask)
 // GetTask - returns a pointer to the current 
 // scheduled task. NULL if there's a problem.
 // =========================================================
-Task_t* CBaseMonster::GetTask (void)
+Task_t *CBaseMonster::GetTask (void)
 	{
 	if (m_iScheduleIndex < 0 || m_iScheduleIndex >= m_pSchedule->cTasks)
 		{
@@ -1313,7 +1266,7 @@ Task_t* CBaseMonster::GetTask (void)
 // monster's member function to get a pointer to a schedule
 // of the proper type.
 // =========================================================
-Schedule_t* CBaseMonster::GetSchedule (void)
+Schedule_t *CBaseMonster::GetSchedule (void)
 	{
 	switch (m_MonsterState)
 		{
@@ -1436,8 +1389,7 @@ Schedule_t* CBaseMonster::GetSchedule (void)
 					}
 				else if (!FacingIdeal ())
 					{
-					//turn
-					return GetScheduleOfType (SCHED_COMBAT_FACE);
+					return GetScheduleOfType (SCHED_COMBAT_FACE);	// turn
 					}
 				else
 					{

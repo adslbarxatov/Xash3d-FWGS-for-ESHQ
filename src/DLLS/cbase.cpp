@@ -102,7 +102,7 @@ extern "C" {
 #endif
 	int GetEntityAPI (DLL_FUNCTIONS* pFunctionTable, int interfaceVersion)
 		{
-		if (!pFunctionTable || interfaceVersion != INTERFACE_VERSION)
+		if (!pFunctionTable || (interfaceVersion != INTERFACE_VERSION))
 			return FALSE;
 
 		memcpy (pFunctionTable, &gFunctionTable, sizeof (DLL_FUNCTIONS));

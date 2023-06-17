@@ -172,11 +172,10 @@ class CTalkMonster: public CBaseMonster
 		CUSTOM_SCHEDULES;
 	};
 
-
 // Clients can push talkmonsters out of their way
 #define		bits_COND_CLIENT_PUSH		( bits_COND_SPECIAL1 )
-// Don't see a client right now.
+
+// Don't see a client right now
 #define		bits_COND_CLIENT_UNSEEN		( bits_COND_SPECIAL2 )
 
-
-#endif		//TALKMONSTER_H
+#endif

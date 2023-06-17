@@ -121,7 +121,6 @@ class CGrenade: public CBaseMonster
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
 
-//#define CROWBAR_MAX_CLIP		WEAPON_NOCLIP
 #define GLOCK_MAX_CLIP			17
 #define PYTHON_MAX_CLIP			6
 #define MP5_MAX_CLIP			50
@@ -291,8 +290,8 @@ class CBasePlayerWeapon: public CBasePlayerItem
 		virtual int AddToPlayer (CBasePlayer* pPlayer);
 		virtual int AddDuplicate (CBasePlayerItem* pItem);
 
-		virtual int ExtractAmmo (CBasePlayerWeapon* pWeapon); //{ return TRUE; };			// Return TRUE if you can add ammo to yourself when picked up
-		virtual int ExtractClipAmmo (CBasePlayerWeapon* pWeapon);// { return TRUE; };			// Return TRUE if you can add ammo to yourself when picked up
+		virtual int ExtractAmmo (CBasePlayerWeapon* pWeapon);	// Return TRUE if you can add ammo to yourself when picked up
+		virtual int ExtractClipAmmo (CBasePlayerWeapon* pWeapon);	// Return TRUE if you can add ammo to yourself when picked up
 
 		virtual int AddWeapon (void) { ExtractAmmo (this); return TRUE; };	// Return TRUE if you want to add yourself to the player
 
@@ -983,7 +982,6 @@ class CSatchel: public CBasePlayerWeapon
 			}
 	};
 
-
 class CTripmine: public CBasePlayerWeapon
 	{
 	public:
@@ -993,7 +991,7 @@ class CTripmine: public CBasePlayerWeapon
 		int GetItemInfo (ItemInfo* p);
 		void SetObjectCollisionBox (void)
 			{
-			//!!!BUGBUG - fix the model!
+			// !!!BUGBUG - fix the model
 			pev->absmin = pev->origin + Vector (-16, -16, -5);
 			pev->absmax = pev->origin + Vector (16, 16, 28);
 			}

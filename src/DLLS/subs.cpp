@@ -38,7 +38,6 @@ extern DLL_GLOBAL int g_iSkillLevel;
 void CPointEntity::Spawn (void)
 	{
 	pev->solid = SOLID_NOT;
-	//	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 	}
 
 class CNullEntity: public CBaseEntity
@@ -171,13 +170,9 @@ match (string)self.target and call their .use function (if they have one)
 */
 void CBaseEntity::SUB_UseTargets (CBaseEntity* pActivator, USE_TYPE useType, float value)
 	{
-	//
 	// fire targets
-	//
 	if (!FStringNull (pev->target))
-		{
 		FireTargets (STRING (pev->target), pActivator, this, useType, value);
-		}
 	}
 
 void FireTargets (const char* targetName, CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
@@ -207,15 +202,11 @@ LINK_ENTITY_TO_CLASS (DelayedUse, CBaseDelay);
 
 void CBaseDelay::SUB_UseTargets (CBaseEntity* pActivator, USE_TYPE useType, float value)
 	{
-	//
 	// exit immediatly if we don't have a target or kill target
-	//
 	if (FStringNull (pev->target) && !m_iszKillTarget)
 		return;
 
-	//
 	// check for a delay
-	//
 	if (m_flDelay != 0)
 		{
 		// create a temp object to fire at a later time
@@ -248,10 +239,7 @@ void CBaseDelay::SUB_UseTargets (CBaseEntity* pActivator, USE_TYPE useType, floa
 		return;
 		}
 
-	//
 	// kill the killtargets
-	//
-
 	if (m_iszKillTarget)
 		{
 		edict_t* pentKillTarget = NULL;
@@ -267,18 +255,14 @@ void CBaseDelay::SUB_UseTargets (CBaseEntity* pActivator, USE_TYPE useType, floa
 			}
 		}
 
-	//
 	// fire targets
-	//
 	if (!FStringNull (pev->target))
-		{
 		FireTargets (STRING (pev->target), pActivator, this, useType, value);
-		}
 	}
 
 /*
 QuakeEd only writes a single float for angles (bad idea), so up and down are
-just constant angles.
+just constant angles
 */
 void SetMovedir (entvars_t* pev)
 	{
@@ -304,9 +288,8 @@ void CBaseDelay::DelayThink (void)
 	CBaseEntity* pActivator = NULL;
 
 	if (pev->owner != NULL)		// A player activated this on delay
-		{
 		pActivator = CBaseEntity::Instance (pev->owner);
-		}
+
 	// The use type is cached (and stashed) in pev->button
 	SUB_UseTargets (pActivator, (USE_TYPE)pev->button, 0);
 	REMOVE_ENTITY (ENT (pev));

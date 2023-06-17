@@ -111,7 +111,6 @@ UTIL_SharedRandomFloat
 */
 float UTIL_SharedRandomFloat (unsigned int seed, float low, float high)
 	{
-	//
 	unsigned int range;
 
 	U_Srand ((int)seed + *(int *)&low + *(int *)&high);
@@ -323,7 +322,7 @@ edict_t *DBG_EntOfVars (const entvars_t *pev)
 	((entvars_t *)pev)->pContainingEntity = pent;
 	return pent;
 	}
-#endif //DEBUG
+#endif
 
 
 #ifdef	DEBUG
@@ -464,7 +463,7 @@ int UTIL_MonstersInSphere (CBaseEntity **pList, int listMax, const Vector &cente
 
 		// Use origin for X & Y since they are centered for all monsters
 		// Now X
-		delta = center.x - pEdict->v.origin.x;//(pEdict->v.absmin.x + pEdict->v.absmax.x)*0.5;
+		delta = center.x - pEdict->v.origin.x;
 		delta *= delta;
 
 		if (delta > radiusSquared)
@@ -472,7 +471,7 @@ int UTIL_MonstersInSphere (CBaseEntity **pList, int listMax, const Vector &cente
 		distance = delta;
 
 		// Now Y
-		delta = center.y - pEdict->v.origin.y;//(pEdict->v.absmin.y + pEdict->v.absmax.y)*0.5;
+		delta = center.y - pEdict->v.origin.y;
 		delta *= delta;
 
 		distance += delta;
@@ -1624,9 +1623,7 @@ void UTIL_StripToken (const char *pKey, char *pDest)
 
 
 // --------------------------------------------------------------
-//
 // CSave
-//
 // --------------------------------------------------------------
 static int gSizes[FIELD_TYPECOUNT] =
 	{
@@ -1650,19 +1647,16 @@ static int gSizes[FIELD_TYPECOUNT] =
 		sizeof (int),		// FIELD_SOUNDNAME
 	};
 
-
 // Base class includes common SAVERESTOREDATA pointer, and manages the entity table
 CSaveRestoreBuffer::CSaveRestoreBuffer (void)
 	{
 	m_pdata = NULL;
 	}
 
-
 CSaveRestoreBuffer::CSaveRestoreBuffer (SAVERESTOREDATA *pdata)
 	{
 	m_pdata = pdata;
 	}
-
 
 CSaveRestoreBuffer :: ~CSaveRestoreBuffer (void)
 	{
@@ -1675,7 +1669,6 @@ int	CSaveRestoreBuffer::EntityIndex (CBaseEntity *pEntity)
 	return EntityIndex (pEntity->pev);
 	}
 
-
 int	CSaveRestoreBuffer::EntityIndex (entvars_t *pevLookup)
 	{
 	if (pevLookup == NULL)
@@ -1687,7 +1680,6 @@ int	CSaveRestoreBuffer::EntityIndex (EOFFSET eoLookup)
 	{
 	return EntityIndex (ENT (eoLookup));
 	}
-
 
 int	CSaveRestoreBuffer::EntityIndex (edict_t *pentLookup)
 	{
@@ -1705,7 +1697,6 @@ int	CSaveRestoreBuffer::EntityIndex (edict_t *pentLookup)
 		}
 	return -1;
 	}
-
 
 edict_t *CSaveRestoreBuffer::EntityFromIndex (int entityIndex)
 	{
@@ -1727,7 +1718,7 @@ edict_t *CSaveRestoreBuffer::EntityFromIndex (int entityIndex)
 
 int	CSaveRestoreBuffer::EntityFlagsSet (int entityIndex, int flags)
 	{
-	if (!m_pdata || entityIndex < 0)
+	if (!m_pdata || (entityIndex < 0))
 		return 0;
 	if (entityIndex > m_pdata->tableCount)
 		return 0;
@@ -1827,24 +1818,20 @@ void CSave::WriteData (const char *pname, int size, const char *pdata)
 	BufferField (pname, size, pdata);
 	}
 
-
 void CSave::WriteShort (const char *pname, const short *data, int count)
 	{
 	BufferField (pname, sizeof (short) * count, (const char *)data);
 	}
-
 
 void CSave::WriteInt (const char *pname, const int *data, int count)
 	{
 	BufferField (pname, sizeof (int) * count, (const char *)data);
 	}
 
-
 void CSave::WriteFloat (const char *pname, const float *data, int count)
 	{
 	BufferField (pname, sizeof (float) * count, (const char *)data);
 	}
-
 
 void CSave::WriteTime (const char *pname, const float *data, int count)
 	{
@@ -1866,7 +1853,6 @@ void CSave::WriteTime (const char *pname, const float *data, int count)
 		}
 	}
 
-
 void CSave::WriteString (const char *pname, const char *pdata)
 	{
 #ifdef TOKENIZE
@@ -1877,7 +1863,6 @@ void CSave::WriteString (const char *pname, const char *pdata)
 #endif
 	}
 
-
 void CSave::WriteString (const char *pname, const int *stringId, int count)
 	{
 	int i, size;
@@ -1886,12 +1871,6 @@ void CSave::WriteString (const char *pname, const int *stringId, int count)
 	short	token = (short)TokenHash (STRING (*stringId));
 	WriteShort (pname, &token, 1);
 #else
-#if 0
-	if (count != 1)
-		ALERT (at_error, "No string arrays!\n");
-	WriteString (pname, (char *)STRING (*stringId));
-#endif
-
 	size = 0;
 	for (i = 0; i < count; i++)
 		size += strlen (STRING (stringId[i])) + 1;
@@ -1905,20 +1884,16 @@ void CSave::WriteString (const char *pname, const int *stringId, int count)
 #endif
 	}
 
-
 void CSave::WriteVector (const char *pname, const Vector &value)
 	{
 	WriteVector (pname, &value.x, 1);
 	}
-
 
 void CSave::WriteVector (const char *pname, const float *value, int count)
 	{
 	BufferHeader (pname, sizeof (float) * 3 * count);
 	BufferData ((const char *)value, sizeof (float) * 3 * count);
 	}
-
-
 
 void CSave::WritePositionVector (const char *pname, const Vector &value)
 	{
@@ -1931,7 +1906,6 @@ void CSave::WritePositionVector (const char *pname, const Vector &value)
 
 	WriteVector (pname, value);
 	}
-
 
 void CSave::WritePositionVector (const char *pname, const float *value, int count)
 	{
@@ -1951,7 +1925,6 @@ void CSave::WritePositionVector (const char *pname, const float *value, int coun
 		}
 	}
 
-
 void CSave::WriteFunction (const char *pname, const int *data, int count)
 	{
 	const char *functionName;
@@ -1962,7 +1935,6 @@ void CSave::WriteFunction (const char *pname, const int *data, int count)
 	else
 		ALERT (at_error, "Invalid function pointer in entity!");
 	}
-
 
 void EntvarsKeyvalue (entvars_t *pev, KeyValueData *pkvd)
 	{
@@ -2012,14 +1984,10 @@ void EntvarsKeyvalue (entvars_t *pev, KeyValueData *pkvd)
 		}
 	}
 
-
-
 int CSave::WriteEntVars (const char *pname, entvars_t *pev)
 	{
 	return WriteFields (pname, pev, gEntvarsDescription, ENTVARS_COUNT);
 	}
-
-
 
 int CSave::WriteFields (const char *pname, void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCount)
 	{
@@ -2130,15 +2098,13 @@ int CSave::WriteFields (const char *pname, void *pBaseData, TYPEDESCRIPTION *pFi
 	return 1;
 	}
 
-
 void CSave::BufferString (char *pdata, int len)
 	{
 	char c = 0;
 
-	BufferData (pdata, len);		// Write the string
+	BufferData (pdata, len);	// Write the string
 	BufferData (&c, 1);			// Write a null terminator
 	}
-
 
 int CSave::DataEmpty (const char *pdata, int size)
 	{
@@ -2150,13 +2116,11 @@ int CSave::DataEmpty (const char *pdata, int size)
 	return 1;
 	}
 
-
 void CSave::BufferField (const char *pname, int size, const char *pdata)
 	{
 	BufferHeader (pname, size);
 	BufferData (pdata, size);
 	}
-
 
 void CSave::BufferHeader (const char *pname, int size)
 	{
@@ -2166,7 +2130,6 @@ void CSave::BufferHeader (const char *pname, int size)
 	BufferData ((const char *)&size, sizeof (short));
 	BufferData ((const char *)&hashvalue, sizeof (short));
 	}
-
 
 void CSave::BufferData (const char *pdata, int size)
 	{
@@ -2185,15 +2148,11 @@ void CSave::BufferData (const char *pdata, int size)
 	m_pdata->size += size;
 	}
 
-
-
 // --------------------------------------------------------------
-//
 // CRestore
-//
 // --------------------------------------------------------------
-
-int CRestore::ReadField (void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCount, int startField, int size, char *pName, void *pData)
+int CRestore::ReadField (void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCount, int startField,
+	int size, char *pName, void *pData)
 	{
 	int i, j, stringCount, fieldNumber, entityIndex;
 	TYPEDESCRIPTION *pTest;
@@ -2379,14 +2338,12 @@ int CRestore::ReadFields (const char *pname, void *pBaseData, TYPEDESCRIPTION *p
 	// Check the struct name
 	if (token != TokenHash (pname))			// Field Set marker
 		{
-		//		ALERT( at_error, "Expected %s found %s!\n", pname, BufferPointer() );
 		BufferRewind (2 * sizeof (short));
 		return 0;
 		}
 
 	// Skip over the struct name
 	fileCount = ReadInt ();						// Read field count
-
 	lastField = 0;								// Make searches faster, most data is read/written in the same order
 
 	// Clear out base data

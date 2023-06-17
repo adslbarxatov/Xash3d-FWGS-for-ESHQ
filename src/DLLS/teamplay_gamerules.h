@@ -12,10 +12,8 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//
-// teamplay_gamerules.h
-//
 
+// teamplay_gamerules.h
 #define MAX_TEAMNAME_LENGTH	16
 #define MAX_TEAMS			32
 

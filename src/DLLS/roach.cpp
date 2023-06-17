@@ -89,7 +89,7 @@ void CRoach::Touch (CBaseEntity *pOther)
 	if ((pOther->pev->velocity == g_vecZero) || !pOther->IsPlayer ())
 		return;
 
-	vecSpot = pev->origin + Vector (0, 0, 8);//move up a bit, and trace down.
+	vecSpot = pev->origin + Vector (0, 0, 8);	// move up a bit, and trace down
 	UTIL_TraceLine (vecSpot, vecSpot + Vector (0, 0, -24), ignore_monsters, ENT (pev), &tr);
 
 	// This isn't really blood. So you don't have to screen it out based on violence levels (UTIL_ShouldShowBlood())
@@ -157,7 +157,7 @@ void CRoach::Killed (entvars_t *pevAttacker, int iGib)
 	{
 	pev->solid = SOLID_NOT;
 
-	//random sound
+	// random sound
 	if (RANDOM_LONG (0, 4) == 1)
 		EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "roach/rch_die.wav", 0.8, ATTN_MEDIUM, 0, 80 + RANDOM_LONG (0, 39));
 	else
@@ -208,14 +208,13 @@ void CRoach::MonsterThink (void)
 		case	ROACH_IDLE:
 		case	ROACH_EAT:
 			{
-			// if not moving, sample environment to see if anything scary is around. Do a radius search 'look' at random.
+			// if not moving, sample environment to see if anything scary is around. Do a radius search 'look' at random
 			if (RANDOM_LONG (0, 3) == 1)
 				{
 				Look (150);
 				if (HasConditions (bits_COND_SEE_FEAR))
 					{
 					// if see something scary
-					//ALERT ( at_aiconsole, "Scared\n" );
 					Eat (30 + (RANDOM_LONG (0, 14)));// roach will ignore food for 30 to 45 seconds
 					PickNewDest (ROACH_SCARED_BY_ENT);
 					SetActivity (ACT_WALK);
@@ -223,7 +222,6 @@ void CRoach::MonsterThink (void)
 				else if (RANDOM_LONG (0, 149) == 1)
 					{
 					// if roach doesn't see anything, there's still a chance that it will move. (boredom)
-					//ALERT ( at_aiconsole, "Bored\n" );
 					PickNewDest (ROACH_BORED);
 					SetActivity (ACT_WALK);
 
@@ -246,14 +244,12 @@ void CRoach::MonsterThink (void)
 				if (GETENTITYILLUM (ENT (pev)) > m_flLastLightLevel)
 					{
 					// someone turned on lights!
-					//ALERT ( at_console, "Lights!\n" );
 					PickNewDest (ROACH_SCARED_BY_LIGHT);
 					SetActivity (ACT_WALK);
 					}
 				else if (HasConditions (bits_COND_SMELL_FOOD))
 					{
 					CSound *pSound;
-
 					pSound = CSoundEnt::SoundPointerForIndex (m_iAudibleList);
 
 					// roach smells food and is just standing around. Go to food unless food isn't on same z-plane

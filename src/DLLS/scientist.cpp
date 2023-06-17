@@ -1123,9 +1123,7 @@ void CDeadScientist::KeyValue (KeyValueData* pkvd)
 	}
 LINK_ENTITY_TO_CLASS (monster_scientist_dead, CDeadScientist);
 
-//
 // ********** DeadScientist SPAWN **********
-//
 void CDeadScientist::Spawn ()
 	{
 	PRECACHE_MODEL ("models/scientist.mdl");
@@ -1203,9 +1201,7 @@ typedef enum
 	SITTING_ANIM_sitting3
 	} SITTING_ANIM;
 
-//
 // ********** Scientist SPAWN **********
-//
 void CSittingScientist::Spawn ()
 	{
 	PRECACHE_MODEL ("models/scientist.mdl");

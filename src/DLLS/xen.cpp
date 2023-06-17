@@ -398,9 +398,7 @@ void CXenTree::Think (void)
 		}
 	}
 
-//
 // Spores
-//
 class CXenSpore: public CActAnimating
 	{
 	public:
@@ -509,7 +507,6 @@ void CXenSpore::Spawn (void)
 	pev->solid = SOLID_BBOX;
 	pev->takedamage = DAMAGE_YES;
 
-	//	SetActivity( ACT_IDLE );
 	pev->sequence = 0;
 	pev->frame = RANDOM_FLOAT (0, 255);
 	pev->framerate = RANDOM_FLOAT (0.7, 1.4);

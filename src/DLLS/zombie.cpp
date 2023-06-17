@@ -114,12 +114,12 @@ const char* CZombie::pPainSounds[] =
 
 // =========================================================
 // Classify - indicates this monster's place in the 
-// relationship table.
+// relationship table
 // =========================================================
 int	CZombie::Classify (void)
 	{
 	// ESHQ: смена поведения врагов
-	return	CLASS_HUMAN_ASSASSIN; //CLASS_ALIEN_MONSTER;
+	return	CLASS_HUMAN_ASSASSIN;
 	}
 
 // =========================================================

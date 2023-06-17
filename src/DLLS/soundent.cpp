@@ -137,26 +137,19 @@ void CSoundEnt::Precache (void)
 // =========================================================
 void CSoundEnt::FreeSound (int iSound, int iPrevious)
 	{
+	// no sound ent!
 	if (!pSoundEnt)
-		{
-		// no sound ent!
 		return;
-		}
 
+	// iSound is not the head of the active list, so must fix the index for the Previous sound
 	if (iPrevious != SOUNDLIST_EMPTY)
-		{
-		// iSound is not the head of the active list, so
-		// must fix the index for the Previous sound
-//		pSoundEnt->m_SoundPool[ iPrevious ].m_iNext = m_SoundPool[ iSound ].m_iNext;
 		pSoundEnt->m_SoundPool[iPrevious].m_iNext = pSoundEnt->m_SoundPool[iSound].m_iNext;
-		}
-	else
-		{
-		// the sound we're freeing IS the head of the active list.
-		pSoundEnt->m_iActiveSound = pSoundEnt->m_SoundPool[iSound].m_iNext;
-		}
 
-	// make iSound the head of the Free list.
+	// the sound we're freeing IS the head of the active list
+	else
+		pSoundEnt->m_iActiveSound = pSoundEnt->m_SoundPool[iSound].m_iNext;
+
+	// make iSound the head of the Free list
 	pSoundEnt->m_SoundPool[iSound].m_iNext = pSoundEnt->m_iFreeSound;
 	pSoundEnt->m_iFreeSound = iSound;
 	}

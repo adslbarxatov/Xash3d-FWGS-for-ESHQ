@@ -12,9 +12,8 @@
 *   without written permission from Valve LLC.
 *
 ****/
-//
+
 // teamplay_gamerules.cpp
-//
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
@@ -73,7 +72,7 @@ extern CVoiceGameMgr	g_VoiceGameMgr;
 
 void CHalfLifeTeamplay::Think (void)
 	{
-	///// Check game rules /////
+	// Check game rules
 	static int last_frags;
 	static int last_time;
 
@@ -601,7 +600,7 @@ void CHalfLifeTeamplay::RecountTeams (bool bResendInfo)
 				team_scores[tm] += plr->pev->frags;
 				}
 
-			if (bResendInfo) //Someone's info changed, let's send the team info again.
+			if (bResendInfo)	// Someone's info changed, let's send the team info again
 				{
 				if (plr && IsValidTeam (plr->TeamID ()))
 					{

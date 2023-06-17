@@ -150,28 +150,18 @@ TYPEDESCRIPTION	CAmbientGeneric::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CAmbientGeneric, CBaseEntity);
 
-//
 // ambient_generic - general-purpose user-defined static sound
-//
 void CAmbientGeneric::Spawn (void)
 	{
 	// ESHQ: обновление логики назначения радиуса
 	if (FBitSet (pev->spawnflags, AMBIENT_SOUND_EVERYWHERE))
-		{
 		m_flAttenuation = ATTN_EVERYWHERE;
-		}
 	else if (FBitSet (pev->spawnflags, AMBIENT_SOUND_LARGERADIUS))
-		{
 		m_flAttenuation = ATTN_LARGE;
-		}
 	else if (FBitSet (pev->spawnflags, AMBIENT_SOUND_MEDIUMRADIUS))
-		{
 		m_flAttenuation = ATTN_MEDIUM;
-		}
 	else	// По умолчанию
-		{
 		m_flAttenuation = ATTN_SMALL;
-		}
 
 	char *szSoundFile = (char *)STRING (pev->message);
 
@@ -190,10 +180,8 @@ void CAmbientGeneric::Spawn (void)
 	SetThink (&CAmbientGeneric::RampThink);
 	pev->nextthink = 0;
 
-	// allow on/off switching via 'use' function.
-
+	// allow on/off switching via 'use' function
 	SetUse (&CAmbientGeneric::ToggleUse);
-
 	m_fActive = FALSE;
 
 	if (FBitSet (pev->spawnflags, AMBIENT_SOUND_NOT_LOOPING))
@@ -508,12 +496,10 @@ void CAmbientGeneric::InitModulationParms (void)
 	// if we intend to pitch shift later!
 	}
 
-//
 // ToggleUse - turns an ambient sound on or off.  If the 
 // ambient is a looping sound, mark sound as active (m_fActive)
 // if it's playing, innactive if not.  If the sound is not
-// a looping sound, never mark it as active.
-//
+// a looping sound, never mark it as active
 void CAmbientGeneric::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	char *szSoundFile = (char *)STRING (pev->message);
@@ -521,7 +507,7 @@ void CAmbientGeneric::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, 
 
 	if (useType != USE_TOGGLE)
 		{
-		if ((m_fActive && useType == USE_ON) || (!m_fActive && useType == USE_OFF))
+		if ((m_fActive && (useType == USE_ON)) || (!m_fActive && (useType == USE_OFF)))
 			return;
 		}
 	// Directly change pitch if arg passed. Only works if sound is already playing.
@@ -858,16 +844,14 @@ BOOL FEnvSoundInRange (entvars_t *pev, entvars_t *pevTarget, float *pflRange)
 	return TRUE;
 	}
 
-//
 // A client that is visible and in range of a sound entity will
 // have its room_type set by that sound entity.  If two or more
 // sound entities are contending for a client, then the nearest
 // sound entity to the client will set the client's room_type.
 // A client's room_type will remain set to its prior value until
 // a new in-range, visible sound entity resets a new room_type.
-//
 
-// CONSIDER: if player in water state, autoset roomtype to 14,15 or 16. 
+// CONSIDER: if player in water state, autoset roomtype to 14, 15 or 16
 
 void CEnvSound::Think (void)
 	{
@@ -968,11 +952,8 @@ env_sound_Think_slow:
 	return;
 	}
 
-//
 // env_sound - spawn a sound entity that will set player roomtype
-// when player moves in range and sight.
-//
-//
+// when player moves in range and sight
 void CEnvSound::Spawn ()
 	{
 	// spread think times
@@ -1352,7 +1333,7 @@ void SENTENCEG_Init ()
 			}
 		else
 			{
-			//name matches with previous, increment group count
+			// name matches with previous, increment group count
 			if (isentencegs >= 0)
 				rgsentenceg[isentencegs].count++;
 			}
@@ -1786,7 +1767,7 @@ float TEXTURETYPE_PlaySound (TraceResult *ptr, Vector vecSrc, Vector vecEnd, int
 			{
 			UTIL_Sparks (ptr->vecEndPos);
 
-			float flVolume = RANDOM_FLOAT (0.7, 1.0);//random volume range
+			float flVolume = RANDOM_FLOAT (0.7, 1.0);	// random volume range
 			switch (RANDOM_LONG (0, 1))
 				{
 				case 0:
@@ -1812,9 +1793,7 @@ float TEXTURETYPE_PlaySound (TraceResult *ptr, Vector vecSrc, Vector vecEnd, int
 	}
 
 // ===================================================================================
-//
-// Speaker class. Used for announcements per level, for door lock/unlock spoken voice. 
-//
+// Speaker class. Used for announcements per level, for door lock/unlock spoken voice
 class CSpeaker : public CBaseEntity
 	{
 	public:
@@ -1841,9 +1820,7 @@ TYPEDESCRIPTION	CSpeaker::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE (CSpeaker, CBaseEntity);
 
-//
 // ambient_generic - general-purpose user-defined static sound
-//
 void CSpeaker::Spawn (void)
 	{
 	char *szSoundFile = (char *)STRING (pev->message);
@@ -1941,20 +1918,17 @@ void CSpeaker::SpeakerThink (void)
 	return;
 	}
 
-//
-// ToggleUse - if an announcement is pending, cancel it.  If no announcement is pending, start one.
-//
+// ToggleUse - if an announcement is pending, cancel it.  If no announcement is pending, start one
 void CSpeaker::ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	int fActive = (pev->nextthink > 0.0);
 
 	// fActive is TRUE only if an announcement is pending
-
 	if (useType != USE_TOGGLE)
 		{
 		// ignore if we're just turning something on that's already on, or
 		// turning something off that's already off.
-		if ((fActive && useType == USE_ON) || (!fActive && useType == USE_OFF))
+		if ((fActive && (useType == USE_ON)) || (!fActive && (useType == USE_OFF)))
 			return;
 		}
 

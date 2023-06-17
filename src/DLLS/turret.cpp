@@ -28,7 +28,7 @@ extern Vector VecBModelOrigin (entvars_t* pevBModel);
 #define TURRET_SHOTS	2
 #define TURRET_RANGE	(100 * 12)
 #define TURRET_SPREAD	Vector (0, 0, 0)
-#define TURRET_TURNRATE	30		//angles per 0.1 second
+#define TURRET_TURNRATE	30		// angles per 0.1 second
 #define TURRET_MAXWAIT	15		// seconds turret will stay active w/o a target
 #define TURRET_MAXSPIN	5		// seconds turret barrel will spin w/o a target
 #define TURRET_MACHINE_VOLUME	0.5
@@ -378,9 +378,9 @@ void CBaseTurret::TurretUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_
 		{
 		m_hEnemy = NULL;
 		pev->nextthink = gpGlobals->time + 0.1;
-		m_iAutoStart = FALSE;// switching off a turret disables autostart
+		m_iAutoStart = FALSE;	// switching off a turret disables autostart
 
-		//!!!! this should spin down first!!BUGBUG
+		// this should spin down first (BUGBUG)
 		SetThink (&CBaseTurret::Retire);
 		}
 	else
@@ -510,7 +510,7 @@ void CBaseTurret::ActiveThink (void)
 
 	UTIL_MakeAimVectors (m_vecCurAngles);
 
-	Vector vecLOS = vecDirToEnemy; //vecMid - m_vecLastSight;
+	Vector vecLOS = vecDirToEnemy;
 	vecLOS = vecLOS.Normalize ();
 
 	// Is the Gun looking at the target
@@ -532,14 +532,14 @@ void CBaseTurret::ActiveThink (void)
 		SetTurretAnim (TURRET_ANIM_SPIN);
 		}
 
-	//move the gun
+	// move the gun
 	if (m_fBeserk)
 		{
 		if (RANDOM_LONG (0, 9) == 0)
 			{
 			m_vecGoalAngles.y = RANDOM_FLOAT (0, 360);
 			m_vecGoalAngles.x = RANDOM_FLOAT (0, 90) - 90 * m_iOrientation;
-			TakeDamage (pev, pev, 1, DMG_GENERIC); // don't beserk forever
+			TakeDamage (pev, pev, 1, DMG_GENERIC);	// don't beserk forever
 			return;
 			}
 		}
@@ -791,7 +791,6 @@ void CBaseTurret::SetTurretAnim (TURRET_ANIM anim)
 		}
 	}
 
-//
 // This search function will sit with the turret deployed and look for a new target. 
 // After a set amount of time, the barrel will spin down. After m_flMaxWait, the turret will
 // retact
@@ -833,7 +832,7 @@ void CBaseTurret::SearchThink (void)
 		// Are we out of time, do we need to retract?
 		if (gpGlobals->time > m_flLastSight)
 			{
-			//Before we retrace, make sure that we are spun down.
+			// Before we retrace, make sure that we are spun down
 			m_flLastSight = 0;
 			m_flSpinUpTime = 0;
 			SetThink (&CBaseTurret::Retire);
@@ -852,10 +851,8 @@ void CBaseTurret::SearchThink (void)
 		}
 	}
 
-// 
 // This think function will deploy the turret when something comes into range. This is for
-// automatically activated turrets.
-//
+// automatically activated turrets
 void CBaseTurret::AutoSearchThink (void)
 	{
 	// ensure rethink
@@ -1087,13 +1084,12 @@ int CBaseTurret::MoveTurret (void)
 	return state;
 	}
 
-//
 // ID as a machine
-//
 int	CBaseTurret::Classify (void)
 	{
 	if (m_iOn || m_iAutoStart)
 		return	CLASS_MACHINE;
+
 	return CLASS_NONE;
 	}
 
