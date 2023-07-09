@@ -34,9 +34,7 @@ typedef struct moveclip_s
 
 /*
 ===============================================================================
-
 HULL BOXES
-
 ===============================================================================
 */
 
@@ -52,7 +50,7 @@ Set up the planes and clipnodes so that the six floats of a bounding box
 can just be stored out and get a proper hull_t structure.
 ===================
 */
-void SV_InitBoxHull (void)
+static void SV_InitBoxHull (void)
 	{
 	int	i, side;
 
@@ -81,10 +79,9 @@ void SV_InitBoxHull (void)
 /*
 ====================
 StudioPlayerBlend
-
 ====================
 */
-void SV_StudioPlayerBlend (mstudioseqdesc_t *pseqdesc, int *pBlend, float *pPitch)
+static void SV_StudioPlayerBlend (mstudioseqdesc_t *pseqdesc, int *pBlend, float *pPitch)
 	{
 	// calc up/down pointing
 	*pBlend = (*pPitch * 3);
@@ -115,7 +112,7 @@ SV_CheckSphereIntersection
 check clients only
 ====================
 */
-qboolean SV_CheckSphereIntersection (edict_t *ent, const vec3_t start, const vec3_t end)
+static qboolean SV_CheckSphereIntersection (edict_t *ent, const vec3_t start, const vec3_t end)
 	{
 	int		i, sequence;
 	float		radiusSquared;
@@ -158,7 +155,7 @@ To keep everything totally uniform, bounding boxes are turned into small
 BSP trees instead of being compared directly.
 ===================
 */
-hull_t *SV_HullForBox (const vec3_t mins, const vec3_t maxs)
+static hull_t *SV_HullForBox (const vec3_t mins, const vec3_t maxs)
 	{
 	box_planes[0].dist = maxs[0];
 	box_planes[1].dist = mins[0];
@@ -179,7 +176,7 @@ SV_HullForBsp
 forcing to select BSP hull
 ==================
 */
-hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs, vec3_t offset)
+static hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs, vec3_t offset)
 	{
 	hull_t *hull;
 	model_t *model;
@@ -188,14 +185,16 @@ hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs, vec3_
 	if (svgame.physFuncs.SV_HullForBsp != NULL)
 		{
 		hull = svgame.physFuncs.SV_HullForBsp (ent, mins, maxs, offset);
-		if (hull) return hull;
+		if (hull)
+			return hull;
 		}
 
 	// decide which clipping hull to use, based on the size
 	model = SV_ModelHandle (ent->v.modelindex);
 
 	if (!model || model->type != mod_brush)
-		Host_Error ("Entity %i (%s) SOLID_BSP with a non bsp model %s\n", NUM_FOR_EDICT (ent), SV_ClassName (ent), STRING (ent->v.model));
+		Host_Error ("Entity %i (%s) SOLID_BSP with a non bsp model %s\n", NUM_FOR_EDICT (ent), SV_ClassName (ent),
+			STRING (ent->v.model));
 
 	VectorSubtract (maxs, mins, size);
 
@@ -211,13 +210,14 @@ hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs, vec3_
 			hull = &model->hulls[0];
 		else if (size[0] <= 32.0f)
 			hull = &model->hulls[1];
-		else hull = &model->hulls[2];
+		else
+			hull = &model->hulls[2];
 
 		VectorSubtract (hull->clip_mins, mins, offset);
 		}
 	else
 		{
-		if (size[0] <= 8.0f || ent->v.solid == SOLID_PORTAL)
+		if ((size[0] <= 8.0f) || (ent->v.solid == SOLID_PORTAL))
 			{
 			hull = &model->hulls[0];
 			VectorCopy (hull->clip_mins, offset);
@@ -228,9 +228,13 @@ hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs, vec3_
 				{
 				if (size[2] <= 36.0f)
 					hull = &model->hulls[3];
-				else hull = &model->hulls[1];
+				else
+					hull = &model->hulls[1];
 				}
-			else hull = &model->hulls[2];
+			else
+				{
+				hull = &model->hulls[2];
+				}
 
 			VectorSubtract (hull->clip_mins, mins, offset);
 			}
@@ -251,12 +255,12 @@ Offset is filled in to contain the adjustment that must be added to the
 testing object's origin to get a point to use with the returned hull.
 ================
 */
-hull_t *SV_HullForEntity (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t offset)
+static hull_t *SV_HullForEntity (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t offset)
 	{
 	hull_t *hull;
 	vec3_t	hullmins, hullmaxs;
 
-	if (ent->v.solid == SOLID_BSP || ent->v.solid == SOLID_PORTAL)
+	if ((ent->v.solid == SOLID_BSP) || (ent->v.solid == SOLID_PORTAL))
 		{
 		if (ent->v.solid != SOLID_PORTAL)
 			{
@@ -281,16 +285,15 @@ hull_t *SV_HullForEntity (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t offset)
 /*
 ====================
 SV_HullForStudioModel
-
 ====================
 */
-hull_t *SV_HullForStudioModel (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t offset, int *numhitboxes)
+static hull_t *SV_HullForStudioModel (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t offset, int *numhitboxes)
 	{
-	qboolean		useComplexHull;
+	qboolean	useComplexHull;
 	float		scale = 0.5f;
-	hull_t *hull = NULL;
+	hull_t		*hull = NULL;
 	vec3_t		size;
-	model_t *mod;
+	model_t		*mod;
 
 	if ((mod = SV_ModelHandle (ent->v.modelindex)) == NULL)
 		{
@@ -346,11 +349,13 @@ hull_t *SV_HullForStudioModel (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t of
 			blending[0] = (byte)iBlend;
 			blending[1] = 0;
 
-			hull = Mod_HullForStudio (mod, ent->v.frame, ent->v.sequence, angles, ent->v.origin, size, controller, blending, numhitboxes, ent);
+			hull = Mod_HullForStudio (mod, ent->v.frame, ent->v.sequence, angles, ent->v.origin, size,
+				controller, blending, numhitboxes, ent);
 			}
 		else
 			{
-			hull = Mod_HullForStudio (mod, ent->v.frame, ent->v.sequence, ent->v.angles, ent->v.origin, size, ent->v.controller, ent->v.blending, numhitboxes, ent);
+			hull = Mod_HullForStudio (mod, ent->v.frame, ent->v.sequence, ent->v.angles, ent->v.origin,
+				size, ent->v.controller, ent->v.blending, numhitboxes, ent);
 			}
 		}
 
@@ -362,9 +367,7 @@ hull_t *SV_HullForStudioModel (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t of
 
 /*
 ===============================================================================
-
 ENTITY AREA CHECKING
-
 ===============================================================================
 */
 static int	iTouchLinkSemaphore = 0;	// prevent recursion when SV_TouchLinks is active
@@ -378,7 +381,7 @@ SV_CreateAreaNode
 builds a uniformly subdivided tree for the given world size
 ===============
 */
-areanode_t *SV_CreateAreaNode (int depth, vec3_t mins, vec3_t maxs)
+static areanode_t *SV_CreateAreaNode (int depth, vec3_t mins, vec3_t maxs)
 	{
 	areanode_t *anode;
 	vec3_t		size;
@@ -419,7 +422,6 @@ areanode_t *SV_CreateAreaNode (int depth, vec3_t mins, vec3_t maxs)
 /*
 ===============
 SV_ClearWorld
-
 ===============
 */
 void SV_ClearWorld (void)
@@ -462,13 +464,13 @@ void SV_UnlinkEdict (edict_t *ent)
 SV_TouchLinks
 ====================
 */
-void SV_TouchLinks (edict_t *ent, areanode_t *node)
+static void SV_TouchLinks (edict_t *ent, areanode_t *node)
 	{
-	link_t *l, *next;
-	edict_t *touch;
-	hull_t *hull;
+	link_t	*l, *next;
+	edict_t	*touch;
+	hull_t	*hull;
 	vec3_t	test, offset;
-	model_t *mod;
+	model_t	*mod;
 
 	// touch linked edicts
 	for (l = node->trigger_edicts.next; l != &node->trigger_edicts; l = next)
@@ -484,15 +486,15 @@ void SV_TouchLinks (edict_t *ent, areanode_t *node)
 			}
 		else
 			{
-			if (touch == ent || touch->v.solid != SOLID_TRIGGER) // disabled ?
+			if ((touch == ent) || (touch->v.solid != SOLID_TRIGGER)) // disabled ?
 				continue;
 
 			if (touch->v.groupinfo && ent->v.groupinfo)
 				{
-				if (svs.groupop == GROUP_OP_AND && !FBitSet (touch->v.groupinfo, ent->v.groupinfo))
+				if ((svs.groupop == GROUP_OP_AND) && !FBitSet (touch->v.groupinfo, ent->v.groupinfo))
 					continue;
 
-				if (svs.groupop == GROUP_OP_NAND && FBitSet (touch->v.groupinfo, ent->v.groupinfo))
+				if ((svs.groupop == GROUP_OP_NAND) && FBitSet (touch->v.groupinfo, ent->v.groupinfo))
 					continue;
 				}
 
@@ -502,7 +504,7 @@ void SV_TouchLinks (edict_t *ent, areanode_t *node)
 			mod = SV_ModelHandle (touch->v.modelindex);
 
 			// check brush triggers accuracy
-			if (mod && mod->type == mod_brush)
+			if (mod && (mod->type == mod_brush))
 				{
 				// force to select bsp-hull
 				hull = SV_HullForBsp (touch, ent->v.mins, ent->v.maxs, offset);
@@ -546,10 +548,9 @@ void SV_TouchLinks (edict_t *ent, areanode_t *node)
 /*
 ===============
 SV_FindTouchedLeafs
-
 ===============
 */
-void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)
+static void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)
 	{
 	int	sides;
 	mleaf_t *leaf;
@@ -591,7 +592,7 @@ void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)
 SV_LinkEdict
 ===============
 */
-void SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
+void GAME_EXPORT SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 	{
 	areanode_t *node;
 	int		headnode;
@@ -670,7 +671,7 @@ void SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 POINT TESTING IN HULLS
 ===============================================================================
 */
-void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
+static void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 	{
 	link_t *l, *next;
 	edict_t *touch;
@@ -742,7 +743,6 @@ void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 /*
 =============
 SV_TruePointContents
-
 =============
 */
 int SV_TruePointContents (const vec3_t p)
@@ -775,15 +775,13 @@ int GAME_EXPORT SV_PointContents (const vec3_t p)
 	return cont;
 	}
 
-// ===========================================================================
-
+// [FWGS, 01.07.23] SV_TestEntityPosition
 /*
 ============
 SV_TestEntityPosition
 
 returns true if the entity is in solid currently
 ============
-*/
 qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker)
 	{
 	qboolean	monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
@@ -808,12 +806,11 @@ qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker)
 
 	return trace.startsolid;
 	}
+*/
 
 /*
 ===============================================================================
-
 LINE TESTING IN HULLS
-
 ===============================================================================
 */
 /*
@@ -957,7 +954,7 @@ if the bsp behind it prevents out origin from getting through. so if the trace w
 continue the trace to the edges of the portal cutout instead
 ==================
 */
-void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_maxs, const vec3_t start,
+static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_maxs, const vec3_t start,
 	const vec3_t end, trace_t *trace)
 	{
 	vec4_t	planes[6];	// far, near, right, left, up, down
@@ -969,18 +966,20 @@ void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_
 	float	portalradius;
 
 	// only run this code if we impacted on the portal's parent.
-	if (trace->fraction == 1.0f && !trace->startsolid)
+	if ((trace->fraction == 1.0f) && !trace->startsolid)
 		return;
 
 	// decide which clipping hull to use, based on the size
 	model = SV_ModelHandle (portal->v.modelindex);
 
-	if (!model || model->type != mod_brush)
+	if (!model || (model->type != mod_brush))
 		return;
 
 	// make sure we use a sane valid position.
-	if (trace->startsolid) VectorCopy (start, worldpos);
-	else VectorCopy (trace->endpos, worldpos);
+	if (trace->startsolid)
+		VectorCopy (start, worldpos);
+	else
+		VectorCopy (trace->endpos, worldpos);
 
 	// determine the csg area. normals should be facing in
 	AngleVectors (portal->v.angles, planes[1], planes[3], planes[5]);
@@ -1031,7 +1030,7 @@ void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_
 		float	de = DotProduct (end, planes[plane]) - planes[plane][3];
 		float	frac;
 
-		if (ds >= 0 && de < 0)
+		if ((ds >= 0) && (de < 0))
 			{
 			frac = (ds) / (ds - de);
 			if (frac < bestfrac)
@@ -1059,7 +1058,8 @@ void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_
 		{
 		VectorCopy (planes[hitplane], trace->plane.normal);
 		trace->plane.dist = planes[hitplane][3];
-		if (hitplane == 1) trace->ent = portal;
+		if (hitplane == 1)
+			trace->ent = portal;
 		}
 	}
 
@@ -1071,7 +1071,8 @@ A part of physics engine implementation
 or custom physics implementation
 ==================
 */
-void SV_CustomClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, trace_t *trace)
+void SV_CustomClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
+	trace_t *trace)
 	{
 	// initialize custom trace
 	PM_InitTrace (trace, end);
@@ -1109,7 +1110,7 @@ static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 			return true;
 		}
 
-	if (touch == clip->passedict || touch->v.solid == SOLID_NOT)
+	if ((touch == clip->passedict) || (touch->v.solid == SOLID_NOT))
 		return true;
 
 	if (touch->v.solid == SOLID_TRIGGER)
@@ -1123,7 +1124,7 @@ static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 		}
 
 	// monsterclip filter (solid custom is a static or dynamic bodies)
-	if (touch->v.solid == SOLID_BSP || touch->v.solid == SOLID_CUSTOM)
+	if ((touch->v.solid == SOLID_BSP) || (touch->v.solid == SOLID_CUSTOM))
 		{
 		// func_monsterclip works only with monsters that have same flag!
 		if (FBitSet (touch->v.flags, FL_MONSTERCLIP) && !clip->monsterclip)
@@ -1132,13 +1133,13 @@ static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 	else
 		{
 		// ignore all monsters but pushables
-		if (clip->type == MOVE_NOMONSTERS && touch->v.movetype != MOVETYPE_PUSHSTEP)
+		if ((clip->type == MOVE_NOMONSTERS) && (touch->v.movetype != MOVETYPE_PUSHSTEP))
 			return true;
 		}
 
 	mod = SV_ModelHandle (touch->v.modelindex);
 
-	if (mod && mod->type == mod_brush && clip->ignoretrans)
+	if (mod && (mod->type == mod_brush) && clip->ignoretrans)
 		{
 		// we ignore brushes with rendermode != kRenderNormal and without FL_WORLDBRUSH set
 		if (touch->v.rendermode != kRenderNormal && !FBitSet (touch->v.flags, FL_WORLDBRUSH))
@@ -1149,11 +1150,11 @@ static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 		return true;
 
 	// aditional check to intersects clients with sphere
-	if (touch->v.solid != SOLID_SLIDEBOX && !SV_CheckSphereIntersection (touch, clip->start, clip->end))
+	if ((touch->v.solid != SOLID_SLIDEBOX) && !SV_CheckSphereIntersection (touch, clip->start, clip->end))
 		return true;
 
 	// Xash3D extension
-	if (SV_IsValidEdict (clip->passedict) && clip->passedict->v.solid == SOLID_TRIGGER)
+	if (SV_IsValidEdict (clip->passedict) && (clip->passedict->v.solid == SOLID_TRIGGER))
 		{
 		// never collide items and player (because call "give" always stuck item in player
 		// and total trace returns fail (old half-life bug)
@@ -1185,7 +1186,8 @@ static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 		SV_CustomClipMoveToEntity (touch, clip->start, clip->mins, clip->maxs, clip->end, &trace);
 	else if (FBitSet (touch->v.flags, FL_MONSTER))
 		SV_ClipMoveToEntity (touch, clip->start, clip->mins2, clip->maxs2, clip->end, &trace);
-	else SV_ClipMoveToEntity (touch, clip->start, clip->mins, clip->maxs, clip->end, &trace);
+	else
+		SV_ClipMoveToEntity (touch, clip->start, clip->mins, clip->maxs, clip->end, &trace);
 
 	clip->trace = World_CombineTraces (&clip->trace, &trace, touch);
 
@@ -1263,7 +1265,7 @@ SV_ClipToWorldBrush
 Mins and maxs enclose the entire area swept by the move
 ====================
 */
-void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
+static void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 	{
 	link_t *l, *next;
 	edict_t *touch;
@@ -1275,7 +1277,7 @@ void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 
 		touch = EDICT_FROM_AREA (l);
 
-		if (touch->v.solid != SOLID_BSP || touch == clip->passedict || !(touch->v.flags & FL_WORLDBRUSH))
+		if ((touch->v.solid != SOLID_BSP) || (touch == clip->passedict) || !(touch->v.flags & FL_WORLDBRUSH))
 			continue;
 
 		if (!BoundsIntersect (clip->boxmins, clip->boxmaxs, touch->v.absmin, touch->v.absmax))
@@ -1353,17 +1355,20 @@ trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
 	return clip.trace;
 	}
 
+// [FWGS, 01.07.23] SV_MoveNormal
+/*
 trace_t SV_MoveNormal (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e)
 	{
 	return SV_Move (start, mins, maxs, end, type, e, false);
 	}
+*/
 
 /*
 ==================
 SV_MoveNoEnts
 ==================
 */
-trace_t SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e)
+trace_t GAME_EXPORT SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e)
 	{
 	moveclip_t	clip;
 	vec3_t		trace_endpos;
@@ -1410,16 +1415,16 @@ find the face where the traceline hit
 assume pTextureEntity is valid
 ==================
 */
-msurface_t *SV_TraceSurface (edict_t *ent, const vec3_t start, const vec3_t end)
+msurface_t *GAME_EXPORT SV_TraceSurface (edict_t *ent, const vec3_t start, const vec3_t end)
 	{
-	matrix4x4		matrix;
-	model_t *bmodel;
-	hull_t *hull;
+	matrix4x4	matrix;
+	model_t		*bmodel;
+	hull_t		*hull;
 	vec3_t		start_l, end_l;
 	vec3_t		offset;
 
 	bmodel = SV_ModelHandle (ent->v.modelindex);
-	if (!bmodel || bmodel->type != mod_brush)
+	if (!bmodel || (bmodel->type != mod_brush))
 		return NULL;
 
 	hull = SV_HullForBsp (ent, vec3_origin, vec3_origin, offset);
@@ -1500,9 +1505,7 @@ trace_t SV_MoveToss (edict_t *tossent, edict_t *ignore)
 
 /*
 ===============================================================================
-
-	LIGHTING INFO
-
+LIGHTING INFO
 ===============================================================================
 */
 
@@ -1516,17 +1519,17 @@ SV_RecursiveLightPoint
 static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec3_t start, const vec3_t end)
 	{
 	float		front, back, scale, frac;
-	int		i, map, side, size;
+	int			i, map, side, size;
 	float		ds, dt, s, t;
-	int		sample_size;
-	msurface_t *surf;
-	mtexinfo_t *tex;
-	mextrasurf_t *info;
-	color24 *lm;
+	int			sample_size;
+	msurface_t	*surf;
+	mtexinfo_t	*tex;
+	mextrasurf_t	*info;
+	color24		*lm;
 	vec3_t		mid;
 
 	// didn't hit anything
-	if (!node || node->contents < 0)
+	if (!node || (node->contents < 0))
 		return false;
 
 	// calculate mid point
@@ -1604,6 +1607,8 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 	return SV_RecursiveLightPoint (model, node->children[!side], mid, end);
 	}
 
+// [FWGS, 01.07.23] SV_RunLightStyles
+/*
 void SV_RunLightStyles (void)
 	{
 	int		i, ofs;
@@ -1623,6 +1628,7 @@ void SV_RunLightStyles (void)
 		else ls->value = (ls->map[ofs % ls->length] / 12.0f) * scale;
 		}
 	}
+*/
 
 /*
 ==================
@@ -1644,7 +1650,8 @@ void SV_SetLightStyle (int style, const char *s, float f)
 	for (k = 0; k < j; k++)
 		sv.lightstyles[style].map[k] = (float)(s[k] - 'a');
 
-	if (sv.state != ss_active) return;
+	if (sv.state != ss_active)
+		return;
 
 	// tell the clients about changed lightstyle
 	MSG_BeginServerCmd (&sv.reliable_datagram, svc_lightstyle);
@@ -1653,13 +1660,13 @@ void SV_SetLightStyle (int style, const char *s, float f)
 	MSG_WriteFloat (&sv.reliable_datagram, sv.lightstyles[style].time);
 	}
 
+// [FWGS, 01.07.23] SV_GetLightStyle
 /*
 ==================
 SV_GetLightStyle
 
 needs to get correct working SV_LightPoint
 ==================
-*/
 const char *SV_GetLightStyle (int style)
 	{
 	if (style < 0) style = 0;
@@ -1668,6 +1675,7 @@ const char *SV_GetLightStyle (int style)
 
 	return sv.lightstyles[style].pattern;
 	}
+*/
 
 /*
 ==================

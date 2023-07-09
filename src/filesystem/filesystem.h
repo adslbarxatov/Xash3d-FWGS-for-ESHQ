@@ -34,11 +34,12 @@ extern "C"
 	// search path flags
 	enum
 		{
-		FS_STATIC_PATH = BIT (0),	// FS_ClearSearchPath will be ignore this path
-		FS_NOWRITE_PATH = BIT (1),	// default behavior - last added gamedir set as writedir. This flag disables it
-		FS_GAMEDIR_PATH = BIT (2),	// just a marker for gamedir path
-		FS_CUSTOM_PATH = BIT (3),	// gamedir but with custom/mod data
+		FS_STATIC_PATH = BIT (0),		// FS_ClearSearchPath will be ignore this path
+		FS_NOWRITE_PATH = BIT (1),		// default behavior - last added gamedir set as writedir. This flag disables it
+		FS_GAMEDIR_PATH = BIT (2),		// just a marker for gamedir path
+		FS_CUSTOM_PATH = BIT (3),		// gamedir but with custom/mod data
 		FS_GAMERODIR_PATH = BIT (4),	// gamedir but read-only
+		FS_SKIP_ARCHIVED_WADS = BIT (5),// [FWGS, 01.07.23] don't mount wads inside archives automatically
 
 		FS_GAMEDIRONLY_SEARCH_FLAGS = FS_GAMEDIR_PATH | FS_CUSTOM_PATH | FS_GAMERODIR_PATH
 		};
@@ -91,15 +92,19 @@ extern "C"
 
 		char		ambientsound[NUM_AMBIENTS][MAX_QPATH];	// quake ambient sounds
 
-		int		max_edicts;	// min edicts is 600, max edicts is 8196
-		int		max_tents;	// min temp ents is 300, max is 2048
-		int		max_beams;	// min beams is 64, max beams is 512
-		int		max_particles;	// min particles is 4096, max particles is 32768
+		int			max_edicts;	// min edicts is 600, max edicts is 8196
+		int			max_tents;	// min temp ents is 300, max is 2048
+		int			max_beams;	// min beams is 64, max beams is 512
+		int			max_particles;	// min particles is 4096, max particles is 32768
 
 		char		game_dll_linux[64];	// custom path for game.dll
 		char		game_dll_osx[64];	// custom path for game.dll
 
 		qboolean	added;
+
+		// [FWGS, 01.07.23]
+		int			quicksave_aged_count; // min is 1, max is 99
+		int			autosave_aged_count; // min is 1, max is 99
 		} gameinfo_t;
 
 	typedef enum
@@ -179,15 +184,11 @@ extern "C"
 		fs_offset_t (*FileSize)(const char *filename, qboolean gamedironly);
 		qboolean (*Rename)(const char *oldname, const char *newname);
 		qboolean (*Delete)(const char *path);
-		
-		// [FWGS, 01.04.23]
-		qboolean (*SysFileExists)(const char *path);
-
+		qboolean (*SysFileExists)(const char *path);	// [FWGS, 01.04.23]
 		const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
 
-		// [FWGS, 01.05.23] reserved
 		void (*Unused0)(void);
-		void (*Unused1)(void);
+		void *(*MountArchive_Fullpath)(const char *path, int flags);	// [FWGS, 01.07.23]
 		qboolean (*GetFullDiskPath)(char *buffer, size_t size, const char *name, qboolean gamedironly);
 		} fs_api_t;
 
@@ -207,6 +208,9 @@ extern "C"
 		void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, 
 			const char *filename, int fileline);
 		void  (*_Mem_Free)(void *data, const char *filename, int fileline);
+
+		// [FWGS, 01.07.23] platform
+		void *(*_Platform_GetNativeObject)(const char *object);
 		} fs_interface_t;
 
 	typedef int (*FSAPI)(int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *interface);

@@ -26,12 +26,6 @@ GNU General Public License for more details.
 // OPERATING SYSTEM DEFINES
 //================================================================
 #define PLATFORM_WIN32      1
-
-// [FWGS, 01.05.23]
-/*#define PLATFORM_ANDROID    2
-#define PLATFORM_LINUX      3
-#define PLATFORM_APPLE      4
-#define PLATFORM_FREEBSD    5*/
 #define PLATFORM_LINUX      2
 #define PLATFORM_FREEBSD    3
 #define PLATFORM_ANDROID    4
@@ -86,17 +80,14 @@ GNU General Public License for more details.
 // CPU ARCHITECTURE DEFINES
 //================================================================
 
-// [FWGS, 01.05.23]
-#define ARCHITECTURE_X86     1
-#define ARCHITECTURE_AMD64   2
-/*#define ARCHITECTURE_AMD64   1
-#define ARCHITECTURE_X86     2*/
-
-#define ARCHITECTURE_ARM     3
-#define ARCHITECTURE_MIPS    4
-#define ARCHITECTURE_JS      6
-#define ARCHITECTURE_E2K     7
-#define ARCHITECTURE_RISCV   8
+#define ARCHITECTURE_X86	1
+#define ARCHITECTURE_AMD64	2
+#define ARCHITECTURE_ARM	3
+#define ARCHITECTURE_MIPS	4
+#define ARCHITECTURE_JS		6
+#define ARCHITECTURE_E2K	7
+#define ARCHITECTURE_RISCV	8
+#define ARCHITECTURE_PPC	9	// [FWGS, 01.07.23]
 
 #if XASH_AMD64
 	#define XASH_ARCHITECTURE ARCHITECTURE_AMD64
@@ -112,6 +103,8 @@ GNU General Public License for more details.
 	#define XASH_ARCHITECTURE ARCHITECTURE_E2K
 #elif XASH_RISCV
 	#define XASH_ARCHITECTURE ARCHITECTURE_RISCV
+#elif XASH_PPC	// [FWGS, 01.07.23]
+	#define XASH_ARCHITECTURE ARCHITECTURE_PPC
 #else
 	#error
 #endif
@@ -136,17 +129,11 @@ GNU General Public License for more details.
 #define BIT( n )		( 1U << ( n ))
 
 // [FWGS, 01.05.23]
-/*#define ARCHITECTURE_ARM_VER_MASK   ( BIT( 5 ) - 1 )
-#define ARCHITECTURE_ARM_VER_SHIFT  0
-#define ARCHITECTURE_ARM_HARDFP     BIT( 5 )*/
 #define ARCH_ARM_VER_MASK   ( BIT( 5 ) - 1 )
 #define ARCH_ARM_VER_SHIFT  0
 #define ARCH_ARM_HARDFP     BIT (5)
 
 // [FWGS, 01.05.23]
-/*#define ARCHITECTURE_RISCV_FP_SOFT   0
-#define ARCHITECTURE_RISCV_FP_SINGLE 1
-#define ARCHITECTURE_RISCV_FP_DOUBLE 2*/
 #define ARCH_RISCV_FP_SOFT   0
 #define ARCH_RISCV_FP_SINGLE 1
 #define ARCH_RISCV_FP_DOUBLE 2

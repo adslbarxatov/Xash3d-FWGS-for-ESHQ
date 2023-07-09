@@ -11,7 +11,7 @@
 
 #if XASH_WIN32
 	#include <wchar.h> // off_t
-#endif // _WIN32
+#endif
 
 #include <sys/types.h> // off_t
 
@@ -31,7 +31,7 @@ typedef vec_t		vec2_t[2];
 
 typedef vec_t		vec4_t[4];
 typedef vec_t		quat_t[4];
-typedef byte		rgba_t[4];	// unsigned byte colorpack
+typedef byte		rgba_t[4];		// unsigned byte colorpack
 typedef byte		rgb_t[3];		// unsigned byte colorpack
 typedef vec_t		matrix3x4[3][4];
 typedef vec_t		matrix4x4[4][4];
@@ -97,9 +97,6 @@ typedef uint64_t longtime_t;
 	#define _format(x) __attribute__((format(printf, x, x+1)))
 	#define NORETURN __attribute__((noreturn))
 #elif defined(_MSC_VER)
-	// [FWGS, 01.04.23]
-	//#undef EXPORT
-
 	#define EXPORT		__declspec( dllexport )
 	#define GAME_EXPORT
 	#define _format(x)
@@ -171,9 +168,9 @@ typedef struct stream_s	stream_t;		// sound stream for background music playing
 typedef off_t fs_offset_t;
 #if XASH_WIN32
 typedef int fs_size_t; // return type of _read, _write funcs
-#else /* !XASH_WIN32 */
+#else
 typedef ssize_t fs_size_t;
-#endif /* !XASH_WIN32 */
+#endif
 
 typedef struct dllfunc_s
 	{

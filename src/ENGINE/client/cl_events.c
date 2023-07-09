@@ -22,7 +22,6 @@ GNU General Public License for more details.
 /*
 ===============
 CL_ResetEvent
-
 ===============
 */
 void CL_ResetEvent (event_info_t *ei)
@@ -48,7 +47,7 @@ void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
 
 	VectorClear (velocity);
 
-	if (idx <= 0 || idx > cl.maxclients)
+	if ((idx <= 0) || (idx > cl.maxclients))
 		return;
 
 	if (idx == cl.playernum + 1)
@@ -83,7 +82,8 @@ void CL_DescribeEvent (event_info_t *ei, int slot)
 	con_nprint_t	info;
 	string origin_str = { 0 };
 
-	if (!cl_showevents->value)
+	/*if (!cl_showevents->value)*/
+	if (!cl_showevents.value)	// [FWGS, 01.07.23]
 		return;
 
 	info.time_to_live = 1.0f;
@@ -92,7 +92,8 @@ void CL_DescribeEvent (event_info_t *ei, int slot)
 	// mark reliable as green and unreliable as red
 	if (FBitSet (ei->flags, FEV_RELIABLE))
 		VectorSet (info.color, 0.5f, 1.0f, 0.5f);
-	else VectorSet (info.color, 1.0f, 0.5f, 0.5f);
+	else
+		VectorSet (info.color, 1.0f, 0.5f, 0.5f);
 
 	if (!VectorIsNull (ei->args.origin))
 		{
@@ -118,7 +119,6 @@ void CL_DescribeEvent (event_info_t *ei, int slot)
 /*
 =============
 CL_SetEventIndex
-
 =============
 */
 void CL_SetEventIndex (const char *szEvName, int ev_index)
@@ -146,7 +146,6 @@ void CL_SetEventIndex (const char *szEvName, int ev_index)
 /*
 =============
 CL_EventIndex
-
 =============
 */
 word CL_EventIndex (const char *name)
@@ -167,7 +166,6 @@ word CL_EventIndex (const char *name)
 /*
 =============
 CL_RegisterEvent
-
 =============
 */
 void CL_RegisterEvent (int lastnum, const char *szEvName, pfnEventHook func)
@@ -180,7 +178,8 @@ void CL_RegisterEvent (int lastnum, const char *szEvName, pfnEventHook func)
 	// clear existing or allocate new one
 	if (!clgame.events[lastnum])
 		clgame.events[lastnum] = Mem_Calloc (cls.mempool, sizeof (cl_user_event_t));
-	else memset (clgame.events[lastnum], 0, sizeof (cl_user_event_t));
+	else
+		memset (clgame.events[lastnum], 0, sizeof (cl_user_event_t));
 
 	ev = clgame.events[lastnum];
 
@@ -192,7 +191,6 @@ void CL_RegisterEvent (int lastnum, const char *szEvName, pfnEventHook func)
 /*
 =============
 CL_FireEvent
-
 =============
 */
 qboolean CL_FireEvent (event_info_t *ei, int slot)
@@ -218,6 +216,18 @@ qboolean CL_FireEvent (event_info_t *ei, int slot)
 
 		if (ev->index == ei->index)
 			{
+			// [FWGS, 01.07.23]
+			name = cl.event_precache[ei->index];
+			if (cl_trace_events.value)
+				{
+				Con_Printf ("^3EVENT %s AT %.2f %.2f %.2f\n"    // event name
+					"\t%.2f %.2f %i %i %s %s\n", // bool params
+					name, ei->args.origin[0], ei->args.origin[1], ei->args.origin[2],
+					ei->args.fparam1, ei->args.fparam2,
+					ei->args.iparam1, ei->args.iparam2,
+					ei->args.bparam1 ? "TRUE" : "FALSE", ei->args.bparam2 ? "TRUE" : "FALSE");
+				}
+
 			if (ev->func)
 				{
 				CL_DescribeEvent (ei, slot);
@@ -225,7 +235,7 @@ qboolean CL_FireEvent (event_info_t *ei, int slot)
 				return true;
 				}
 
-			name = cl.event_precache[ei->index];
+			/*name = cl.event_precache[ei->index];*/
 			Con_Reportf (S_ERROR "CL_FireEvent: %s not hooked\n", name);
 			break;
 			}

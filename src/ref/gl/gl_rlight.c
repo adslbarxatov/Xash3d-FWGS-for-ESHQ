@@ -71,7 +71,8 @@ void CL_RunLightStyles (void)
 			tr.lightstylevalue[i] = ls->map[0] * 22 * scale;
 			continue;
 			}
-		else if (!ls->interp || !CVAR_TO_BOOL (cl_lightstyle_lerping))
+		/*else if (!ls->interp || !CVAR_TO_BOOL (cl_lightstyle_lerping))*/
+		else if (!ls->interp || !cl_lightstyle_lerping->flags)	// [FWGS, 01.07.23]
 			{
 			tr.lightstylevalue[i] = ls->map[flight % ls->length] * 22 * scale;
 			continue;
@@ -192,9 +193,7 @@ int R_CountSurfaceDlights (msurface_t *surf)
 
 /*
 =======================================================================
-
-	AMBIENT LIGHTING
-
+AMBIENT LIGHTING
 =======================================================================
 */
 static vec3_t	g_trace_lightspot;
@@ -206,7 +205,8 @@ static float	g_trace_fraction;
 R_RecursiveLightPoint
 =================
 */
-static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f, float p2f, colorVec *cv, const vec3_t start, const vec3_t end)
+static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f, float p2f, colorVec *cv,
+	const vec3_t start, const vec3_t end)
 	{
 	float		front, back, frac, midf;
 	int		i, map, side, size;
@@ -374,8 +374,9 @@ colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot,
 		light.r = light.g = light.b = light.a = 0;
 		last_fraction = 1.0f;
 
-		// get light from bmodels too
-		if (CVAR_TO_BOOL (r_lighting_extended))
+		// [FWGS, 01.07.23] get light from bmodels too
+		/*if (CVAR_TO_BOOL (r_lighting_extended))*/
+		if (r_lighting_extended.value)
 			maxEnts = MAX_PHYSENTS;
 
 		// check all the bsp-models
@@ -415,8 +416,10 @@ colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot,
 
 			if (g_trace_fraction < last_fraction)
 				{
-				if (lspot) VectorCopy (g_trace_lightspot, lspot);
-				if (lvec) VectorNormalize2 (g_trace_lightvec, lvec);
+				if (lspot)
+					VectorCopy (g_trace_lightspot, lspot);
+				if (lvec)
+					VectorNormalize2 (g_trace_lightvec, lvec);
 				light.r = Q_min ((cv.r >> 7), 255);
 				light.g = Q_min ((cv.g >> 7), 255);
 				light.b = Q_min ((cv.b >> 7), 255);
@@ -447,7 +450,9 @@ colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t 
 	{
 	colorVec	light = R_LightVecInternal (start, end, lspot, lvec);
 
-	if (CVAR_TO_BOOL (r_lighting_extended) && lspot != NULL && lvec != NULL)
+	// [FWGS, 01.07.23]
+	/*if (CVAR_TO_BOOL (r_lighting_extended) && lspot != NULL && lvec != NULL)*/
+	if (r_lighting_extended.value && (lspot != NULL) && (lvec != NULL))
 		{
 		// trying to get light from ceiling (but ignore gradient analyze)
 		if ((light.r + light.g + light.b) == 0)

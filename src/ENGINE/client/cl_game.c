@@ -30,9 +30,9 @@ GNU General Public License for more details.
 #include "sound.h"		// SND_STOP_LOOPING
 #include "platform/platform.h"
 
-#define MAX_LINELENGTH	80
+#define MAX_LINELENGTH		80
 #define MAX_TEXTCHANNELS	8		// must be power of two (GoldSrc uses 4 channels)
-#define TEXT_MSGNAME	"TextMessage%i"
+#define TEXT_MSGNAME		"TextMessage%i"
 
 char			cl_textbuffer[MAX_TEXTCHANNELS][2048];
 client_textmessage_t	cl_textmessage[MAX_TEXTCHANNELS];

@@ -95,11 +95,11 @@ of the list so they override previous pack files.
 */
 static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
 	{
-	dpackheader_t header;
-	int         packhandle;
-	int         numpackfiles;
-	pack_t *pack;
-	fs_size_t     c;
+	dpackheader_t	header;
+	int				packhandle;
+	int				numpackfiles;
+	pack_t			*pack;
+	fs_size_t		c;
 
 	packhandle = open (packfile, O_RDONLY | O_BINARY);
 
@@ -315,7 +315,7 @@ static void FS_Close_PAK (searchpath_t *search)
 
 /*
 ================
-FS_AddPak_Fullpath
+FS_AddPak_Fullpath [FWGS, 01.07.23]
 
 Adds the given pack to the search path.
 The pack type is autodetected by the file extension.
@@ -324,32 +324,53 @@ Returns true if the file was successfully added to the
 search path or if it was already included.
 
 If keep_plain_dirs is set, the pack will be added AFTER the first sequence of
-plain directories.
+plain directories
 ================
 */
-qboolean FS_AddPak_Fullpath (const char *pakfile, qboolean *already_loaded, int flags)
+/*qboolean FS_AddPak_Fullpath (const char *pakfile, qboolean *already_loaded, int flags)*/
+searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags)
 	{
-	searchpath_t *search;
+	/*searchpath_t *search;
 	pack_t *pak = NULL;
 	const char *ext = COM_FileExtension (pakfile);
-	int		i, errorcode = PAK_LOAD_COULDNT_OPEN;
+	int		i, errorcode = PAK_LOAD_COULDNT_OPEN;*/
+	searchpath_t *search;
+	pack_t *pak;
+	int i, errorcode = PAK_LOAD_COULDNT_OPEN;
 
-	for (search = fs_searchpaths; search; search = search->next)
+	/*for (search = fs_searchpaths; search; search = search->next)*/
+	pak = FS_LoadPackPAK (pakfile, &errorcode);
+
+	if (!pak)
 		{
-		if (search->type == SEARCHPATH_PAK && !Q_stricmp (search->filename, pakfile))
+		/*if (search->type == SEARCHPATH_PAK && !Q_stricmp (search->filename, pakfile))
 			{
 			if (already_loaded) *already_loaded = true;
 			return true; // already loaded
-			}
+			}*/
+		if (errorcode != PAK_LOAD_NO_FILES)
+			Con_Reportf (S_ERROR "FS_AddPak_Fullpath: unable to load pak \"%s\"\n", pakfile);
+		return NULL;
 		}
 
-	if (already_loaded)
-		*already_loaded = false;
+	/*if (already_loaded)
+		*already_loaded = false;*/
+	search = (searchpath_t *)Mem_Calloc (fs_mempool, sizeof (searchpath_t));
+	Q_strncpy (search->filename, pakfile, sizeof (search->filename));
+	search->pack = pak;
+	search->type = SEARCHPATH_PAK;
+	search->flags = flags;
 
-	if (!Q_stricmp (ext, "pak"))
-		pak = FS_LoadPackPAK (pakfile, &errorcode);
+	/*if (!Q_stricmp (ext, "pak"))
+		pak = FS_LoadPackPAK (pakfile, &errorcode);*/
+	search->pfnPrintInfo = FS_PrintInfo_PAK;
+	search->pfnClose = FS_Close_PAK;
+	search->pfnOpenFile = FS_OpenFile_PAK;
+	search->pfnFileTime = FS_FileTime_PAK;
+	search->pfnFindFile = FS_FindFile_PAK;
+	search->pfnSearch = FS_Search_PAK;
 
-	if (pak)
+	/*if (pak)
 		{
 		search = (searchpath_t *)Mem_Calloc (fs_mempool, sizeof (searchpath_t));
 		Q_strncpy (search->filename, pakfile, sizeof (search->filename));
@@ -374,19 +395,21 @@ qboolean FS_AddPak_Fullpath (const char *pakfile, qboolean *already_loaded, int 
 			{
 			if (!Q_stricmp (COM_FileExtension (pak->files[i].name), "wad"))
 				{
-				char fullpath[MAX_SYSPATH];
+				char fullpath[MAX_SYSPATH];*/
+	Con_Reportf ("Adding pakfile: %s (%i files)\n", pakfile, pak->numfiles);
 
-				Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", pakfile, pak->files[i].name);
-				FS_AddWad_Fullpath (fullpath, NULL, flags);
-				}
-			}
+	/*Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", pakfile, pak->files[i].name);
+	FS_AddWad_Fullpath (fullpath, NULL, flags);
+	}
+}
 
-		return true;
-		}
-	else
-		{
-		if (errorcode != PAK_LOAD_NO_FILES)
-			Con_Reportf (S_ERROR "FS_AddPak_Fullpath: unable to load pak \"%s\"\n", pakfile);
-		return false;
-		}
+return true;
+}
+else
+	{
+	if (errorcode != PAK_LOAD_NO_FILES)
+		Con_Reportf (S_ERROR "FS_AddPak_Fullpath: unable to load pak \"%s\"\n", pakfile);
+	return false;
+	}*/
+	return search;
 	}

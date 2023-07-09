@@ -83,7 +83,7 @@ int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
 	if (!surf || !surf->texinfo || !surf->texinfo->texture)
 		return CULL_OTHER;
 
-	if (r_nocull->value)
+	if (r_nocull.value)
 		return CULL_VISIBLE;
 
 	// world surfaces can be culled by vis frame too
@@ -91,7 +91,8 @@ int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
 		return CULL_VISFRAME;
 
 	// only static ents can be culled by frustum
-	if (!R_StaticEntity (e)) frustum = NULL;
+	if (!R_StaticEntity (e))
+		frustum = NULL;
 
 	if (!VectorIsNull (surf->plane->normal))
 		{

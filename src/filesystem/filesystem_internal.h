@@ -31,73 +31,90 @@ typedef struct wfile_s wfile_t;
 
 #define FILE_BUFF_SIZE		(2048)
 
-	struct file_s
-		{
-		int		handle;			// file descriptor
-		int		ungetc;			// single stored character from ungetc, cleared to EOF when read
-		fs_offset_t		real_length;		// uncompressed file size (for files opened in "read" mode)
-		fs_offset_t		position;			// current position in the file
-		fs_offset_t		offset;			// offset into the package (0 if external file)
-		time_t		filetime;			// pak, wad or real filetime
-		// contents buffer
-		fs_offset_t		buff_ind, buff_len;		// buffer current index and length
-		byte		buff[FILE_BUFF_SIZE];	// intermediate buffer
+struct file_s
+	{
+	int		handle;			// file descriptor
+	int		ungetc;			// single stored character from ungetc, cleared to EOF when read
+	fs_offset_t		real_length;		// uncompressed file size (for files opened in "read" mode)
+	fs_offset_t		position;			// current position in the file
+	fs_offset_t		offset;			// offset into the package (0 if external file)
+	time_t		filetime;			// pak, wad or real filetime
+
+	// contents buffer
+	fs_offset_t		buff_ind, buff_len;		// buffer current index and length
+	byte		buff[FILE_BUFF_SIZE];	// intermediate buffer
 #ifdef XASH_REDUCE_FD
-		const char *backup_path;
-		fs_offset_t backup_position;
-		uint backup_options;
+	const char *backup_path;
+	fs_offset_t backup_position;
+	uint backup_options;
 #endif
+	};
+
+enum
+	{
+	SEARCHPATH_PLAIN = 0,
+	SEARCHPATH_PAK,
+	SEARCHPATH_WAD,
+	SEARCHPATH_ZIP,
+	SEARCHPATH_PK3DIR,	// [FWGS, 01.07.23] it's actually a plain directory but it must behave like a ZIP archive
+	};
+
+typedef struct stringlist_s
+	{
+	// maxstrings changes as needed, causing reallocation of strings[] array
+	int		maxstrings;
+	int		numstrings;
+	char **strings;
+	} stringlist_t;
+
+typedef struct searchpath_s
+	{
+	string  filename;
+	int     type;
+	int     flags;
+	union
+		{
+		dir_t *dir;		// [FWGS, 01.04.23]
+		pack_t *pack;
+		wfile_t *wad;
+		zip_t *zip;
 		};
+	struct searchpath_s *next;
 
-	enum
-		{
-		SEARCHPATH_PLAIN = 0,
-		SEARCHPATH_PAK,
-		SEARCHPATH_WAD,
-		SEARCHPATH_ZIP
-		};
+	// [FWGS, 01.04.23]
+	void    (*pfnPrintInfo)(struct searchpath_s *search, char *dst, size_t size);
+	void    (*pfnClose)(struct searchpath_s *search);
+	file_t *(*pfnOpenFile)(struct searchpath_s *search, const char *filename, const char *mode, int pack_ind);
+	int     (*pfnFileTime)(struct searchpath_s *search, const char *filename);
+	int     (*pfnFindFile)(struct searchpath_s *search, const char *path, char *fixedname, size_t len);
+	void    (*pfnSearch)(struct searchpath_s *search, stringlist_t *list, const char *pattern, int caseinsensitive);
 
-	typedef struct stringlist_s
-		{
-		// maxstrings changes as needed, causing reallocation of strings[] array
-		int		maxstrings;
-		int		numstrings;
-		char **strings;
-		} stringlist_t;
+	// [FWGS, 01.07.23]
+	byte *(*pfnLoadFile)(struct searchpath_s *search, const char *path, int pack_ind, fs_offset_t *filesize);
+	} searchpath_t;
 
-	typedef struct searchpath_s
-		{
-		string  filename;
-		int     type;
-		int     flags;
-		union
-			{
-			dir_t *dir;		// [FWGS, 01.04.23]
-			pack_t *pack;
-			wfile_t *wad;
-			zip_t *zip;
-			};
-		struct searchpath_s *next;
+// [FWGS, 01.07.23]
+typedef searchpath_t *(*FS_ADDARCHIVE_FULLPATH)(const char *path, int flags);
+	
+typedef struct fs_archive_s
+	{
+	const char *ext;
+	int type;
+	FS_ADDARCHIVE_FULLPATH pfnAddArchive_Fullpath;
+	qboolean load_wads; // load wads from this archive
+	} fs_archive_t;
 
-		// [FWGS, 01.04.23]
-		void    (*pfnPrintInfo)(struct searchpath_s *search, char *dst, size_t size);
-		void    (*pfnClose)(struct searchpath_s *search);
-		file_t *(*pfnOpenFile)(struct searchpath_s *search, const char *filename, const char *mode, int pack_ind);
-		int     (*pfnFileTime)(struct searchpath_s *search, const char *filename);
-		int     (*pfnFindFile)(struct searchpath_s *search, const char *path, char *fixedname, size_t len);
-		void    (*pfnSearch)(struct searchpath_s *search, stringlist_t *list, const char *pattern, int caseinsensitive);
-		} searchpath_t;
-
-	extern fs_globals_t		FI;
-	extern searchpath_t		*fs_searchpaths;
-	extern searchpath_t		*fs_writepath;				// [FWGS, 01.04.23]
-	extern poolhandle_t		fs_mempool;
-	extern fs_interface_t	g_engfuncs;
-	extern qboolean			fs_ext_path;
-	extern char				fs_rodir[MAX_SYSPATH];
-	extern char				fs_rootdir[MAX_SYSPATH];
-	// [FWGS, 01.04.23] удалена fs_writedir
-	extern fs_api_t			g_api;
+extern fs_globals_t		FI;
+/*extern searchpath_t	*fs_searchpaths;*/	// [FWGS, 01.07.23]
+extern searchpath_t		*fs_writepath;		// [FWGS, 01.04.23]
+extern poolhandle_t		fs_mempool;
+extern fs_interface_t	g_engfuncs;
+extern qboolean			fs_ext_path;
+extern char				fs_rodir[MAX_SYSPATH];
+extern char				fs_rootdir[MAX_SYSPATH];
+// [FWGS, 01.04.23] удалена fs_writedir
+extern fs_api_t			g_api;
+extern const fs_archive_t g_archives[];		// [FWGS, 01.07.23]
 
 #define GI FI.GameInfo
 
@@ -112,6 +129,7 @@ typedef struct wfile_s wfile_t;
 #define Con_DPrintf (*g_engfuncs._Con_DPrintf)
 #define Con_Reportf (*g_engfuncs._Con_Reportf)
 #define Sys_Error   (*g_engfuncs._Sys_Error)
+#define Platform_GetNativeObject (*g_engfuncs._Platform_GetNativeObject)	// [FWGS, 01.07.23]
 
 //
 // filesystem.c
@@ -119,6 +137,7 @@ typedef struct wfile_s wfile_t;
 qboolean FS_InitStdio (qboolean caseinsensitive, const char *rootdir, const char *basedir, 
 	const char *gamedir, const char *rodir);
 void FS_ShutdownStdio (void);
+searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const char *file, int flags);	// [FWGS, 01.07.23]
 
 // search path utils
 void FS_Rescan (void);
@@ -189,19 +208,24 @@ file_t	*FS_SysOpen (const char *filepath, const char *mode);
 
 // [FWGS, 01.04.23] удалены FS_FixFileCase, FS_FindFile
 searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t len, qboolean gamedironly);
+qboolean FS_FullPathToRelativePath (char *dst, const char *src, size_t size);	// [FWGS, 01.07.23]
 
 //
 // pak.c
 //
 // [FWGS, 01.04.23] удалены FS_FileTimePAK, FS_FindFilePAK, FS_PrintPAKInfo, FS_ClosePAK,
 // FS_SearchPAK, FS_OpenPackedFile
-qboolean FS_AddPak_Fullpath (const char *pakfile, qboolean *already_loaded, int flags);
+/*qboolean FS_AddPak_Fullpath (const char *pakfile, qboolean *already_loaded, int flags);*/
+searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags);	// [FWGS, 01.07.23]
+
 
 //
 // wad.c
 //
 // [FWGS, 01.04.23] удалены FS_FileTimeWAD, FS_PrintWADInfo, FS_CloseWAD, FS_SearchWAD, FS_FindFileWAD
-byte *FS_LoadWADFile (const char *path, fs_offset_t *sizeptr, qboolean gamedironly);
+searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags);	// [FWGS, 01.07.23]
+
+/*byte *FS_LoadWADFile (const char *path, fs_offset_t *sizeptr, qboolean gamedironly);
 qboolean FS_AddWad_Fullpath (const char *wadfile, qboolean *already_loaded, int flags);
 
 //
@@ -209,20 +233,22 @@ qboolean FS_AddWad_Fullpath (const char *wadfile, qboolean *already_loaded, int 
 //
 qboolean FS_WatchInitialize (void);
 int FS_AddWatch (const char *path, fs_event_callback_t callback);
-void FS_WatchFrame (void);
+void FS_WatchFrame (void);*/
 
 //
 // zip.c
 //
 // [FWGS, 01.04.23] удалены FS_FileTimeZIP, FS_FindFileZIP, FS_PrintZIPInfo, FS_CloseZIP,
 // FS_OpenZipFile, FS_SearchZIP
-byte *FS_LoadZIPFile (const char *path, fs_offset_t *sizeptr, qboolean gamedironly);
-qboolean FS_AddZip_Fullpath (const char *zipfile, qboolean *already_loaded, int flags);
+searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags);	// [FWGS, 01.07.23]
+/*byte *FS_LoadZIPFile (const char *path, fs_offset_t *sizeptr, qboolean gamedironly);
+qboolean FS_AddZip_Fullpath (const char *zipfile, qboolean *already_loaded, int flags);*/
 
 //
-// dir.c [FWGS, 01.04.23]
+// dir.c
 //
-searchpath_t *FS_AddDir_Fullpath (const char *path, qboolean *already_loaded, int flags);
+/*searchpath_t *FS_AddDir_Fullpath (const char *path, qboolean *already_loaded, int flags);*/
+searchpath_t *FS_AddDir_Fullpath (const char *path, int flags);	// [FWGS, 01.07.23]
 qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t len, qboolean createpath);
 void FS_InitDirectorySearchpath (searchpath_t *search, const char *path, int flags);
 

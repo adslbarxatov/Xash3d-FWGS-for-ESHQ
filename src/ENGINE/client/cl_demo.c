@@ -373,7 +373,11 @@ void CL_WriteDemoHeader (const char *name)
 	demo.header.id = IDEMOHEADER;
 	demo.header.dem_protocol = DEMO_PROTOCOL;
 	demo.header.net_protocol = cls.legacymode ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION;
-	demo.header.host_fps = bound (MIN_FPS, host_maxfps->value, MAX_FPS);
+	
+	// [FWGS, 01.07.23]
+	/*demo.header.host_fps = bound (MIN_FPS, host_maxfps->value, MAX_FPS);*/
+	demo.header.host_fps = bound (MIN_FPS, host_maxfps.value, MAX_FPS);
+
 	Q_strncpy (demo.header.mapname, clgame.mapname, sizeof (demo.header.mapname));
 	Q_strncpy (demo.header.comment, clgame.maptitle, sizeof (demo.header.comment));
 	Q_strncpy (demo.header.gamedir, FS_Gamedir (), sizeof (demo.header.gamedir));
@@ -385,22 +389,22 @@ void CL_WriteDemoHeader (const char *name)
 	demo.directory.entries = Mem_Calloc (cls.mempool, sizeof (demoentry_t) * demo.directory.numentries);
 
 	// DIRECTORY ENTRY # 0
-	demo.entry = &demo.directory.entries[0];	// only one here.
+	demo.entry = &demo.directory.entries[0];	// only one here
 	demo.entry->entrytype = DEMO_STARTUP;
-	demo.entry->playback_time = 0.0f;		// startup takes 0 time.
-	demo.entry->offset = FS_Tell (cls.demofile);	// position for this chunk.
+	demo.entry->playback_time = 0.0f;			// startup takes 0 time
+	demo.entry->offset = FS_Tell (cls.demofile);	// position for this chunk
 
 	// finish off the startup info.
 	CL_WriteDemoCmdHeader (dem_stop, cls.demoheader);
 
-	// now copy the stuff we cached from the server.
+	// now copy the stuff we cached from the server
 	copysize = savepos = FS_Tell (cls.demoheader);
 
 	FS_Seek (cls.demoheader, 0, SEEK_SET);
 
 	FS_FileCopy (cls.demofile, cls.demoheader, copysize);
 
-	// jump back to end, in case we record another demo for this session.
+	// jump back to end, in case we record another demo for this session
 	FS_Seek (cls.demoheader, savepos, SEEK_SET);
 
 	demo.starttime = CL_GetDemoRecordClock ();	// setup the demo starttime
@@ -439,17 +443,19 @@ finish recording demo
 */
 void CL_StopRecord (void)
 	{
-	int	i, curpos;
+	int		i, curpos;
 	float	stoptime;
-	int	frames;
+	int		frames;
 
-	if (!cls.demorecording) return;
+	if (!cls.demorecording)
+		return;
 
 	// demo playback should read this as an incoming message.
 	CL_WriteDemoCmdHeader (dem_stop, cls.demofile);
 
 	stoptime = CL_GetDemoRecordClock ();
-	if (clgame.hInstance) clgame.dllFuncs.pfnReset ();
+	if (clgame.hInstance)
+		clgame.dllFuncs.pfnReset ();
 
 	curpos = FS_Tell (cls.demofile);
 	demo.entry->length = curpos - demo.entry->offset;
@@ -492,8 +498,8 @@ void CL_DrawDemoRecording (void)
 	{
 	char	string[64];
 	rgba_t	color = { 255, 255, 255, 255 };
-	int	pos;
-	int	len;
+	int		pos;
+	int		len;
 
 	if (!(host_developer.value && cls.demorecording))
 		return;
@@ -550,9 +556,9 @@ and smooth movement during playback the demo
 void CL_ReadDemoUserCmd (qboolean discard)
 	{
 	byte	data[1024];
-	int	cmdnumber;
-	int	outgoing_sequence;
-	runcmd_t *pcmd;
+	int		cmdnumber;
+	int		outgoing_sequence;
+	runcmd_t	*pcmd;
 	word	bytes;
 
 	FS_Read (cls.demofile, &outgoing_sequence, sizeof (int));
@@ -562,9 +568,9 @@ void CL_ReadDemoUserCmd (qboolean discard)
 
 	if (!discard)
 		{
-		usercmd_t		nullcmd;
-		sizebuf_t		buf;
-		demoangle_t *a;
+		usercmd_t	nullcmd;
+		sizebuf_t	buf;
+		demoangle_t	*a;
 
 		memset (&nullcmd, 0, sizeof (nullcmd));
 		MSG_Init (&buf, "UserCmd", data, sizeof (data));
@@ -627,7 +633,8 @@ void CL_ReadDemoSequence (qboolean discard)
 	FS_Read (cls.demofile, &reliable_sequence, sizeof (int));
 	FS_Read (cls.demofile, &last_reliable_sequence, sizeof (int));
 
-	if (discard) return;
+	if (discard)
+		return;
 
 	cls.netchan.incoming_sequence = incoming_sequence;
 	cls.netchan.incoming_acknowledged = incoming_acknowledged;
@@ -640,18 +647,22 @@ void CL_ReadDemoSequence (qboolean discard)
 
 /*
 =================
-CL_DemoStartPlayback
+CL_DemoStartPlayback [FWGS, 01.07.23]
 =================
 */
 void CL_DemoStartPlayback (int mode)
 	{
 	if (cls.changedemo)
 		{
+		int maxclients = cl.maxclients;
+
 		S_StopAllSounds (true);
 		SCR_BeginLoadingPlaque (false);
 
+		/*CL_ClearState ();
+		CL_InitEdicts (); // re-arrange edicts*/
 		CL_ClearState ();
-		CL_InitEdicts (); // re-arrange edicts
+		CL_InitEdicts (maxclients); // re-arrange edicts
 		}
 	else
 		{
@@ -690,6 +701,7 @@ void CL_DemoAborted (void)
 	{
 	if (cls.demofile)
 		FS_Close (cls.demofile);
+
 	cls.demoplayback = false;
 	cls.changedemo = false;
 	cls.timedemo = false;
@@ -697,7 +709,8 @@ void CL_DemoAborted (void)
 	cls.demofile = NULL;
 	cls.demonum = -1;
 
-	Cvar_SetValue ("v_dark", 0.0f);
+	/*Cvar_SetValue ("v_dark", 0.0f);*/
+	Cvar_DirectSet (&v_dark, "0");	// [FWGS, 01.07.23]
 	}
 
 /*
@@ -715,7 +728,8 @@ void CL_DemoCompleted (void)
 	if (!CL_NextDemo () && !cls.changedemo)
 		UI_SetActiveMenu (true);
 
-	Cvar_SetValue ("v_dark", 0.0f);
+	/*Cvar_SetValue ("v_dark", 0.0f);*/
+	Cvar_DirectSet (&v_dark, "0");	// [FWGS, 01.07.23]
 	}
 
 /*
@@ -1260,13 +1274,13 @@ Called when a demo finishes
 */
 qboolean CL_NextDemo (void)
 	{
-	char	str[MAX_QPATH];
+	char str[MAX_QPATH];
 
 	if (cls.demonum == -1)
 		return false; // don't play demos
 	S_StopAllSounds (true);
 
-	if (!cls.demos[cls.demonum][0] || cls.demonum == MAX_DEMOS)
+	if (!cls.demos[cls.demonum][0] || (cls.demonum == MAX_DEMOS))
 		{
 		cls.demonum = 0;
 		if (!cls.demos[cls.demonum][0])
@@ -1299,7 +1313,7 @@ void CL_CheckStartupDemos (void)
 	if (cls.movienum != -1)
 		return; // wait until movies finished
 
-	if (GameState->nextstate != STATE_RUNFRAME || cls.demoplayback)
+	if ((GameState->nextstate != STATE_RUNFRAME) || cls.demoplayback)
 		{
 		// commandline override
 		cls.demos_pending = false;
@@ -1308,7 +1322,8 @@ void CL_CheckStartupDemos (void)
 		}
 
 	// run demos loop in background mode
-	Cvar_SetValue ("v_dark", 1.0f);
+	/*Cvar_SetValue ("v_dark", 1.0f);*/
+	Cvar_DirectSet (&v_dark, "1");	// [FWGS, 01.07.23]
 	cls.demos_pending = false;
 	cls.demonum = 0;
 	CL_NextDemo ();
@@ -1316,7 +1331,7 @@ void CL_CheckStartupDemos (void)
 
 /*
 ==================
-CL_DemoGetName [FWGS, 01.05.23]
+CL_DemoGetName [FWGS, 01.07.23]
 ==================
 */
 static void CL_DemoGetName (int lastnum, char *filename, size_t size)
@@ -1324,11 +1339,13 @@ static void CL_DemoGetName (int lastnum, char *filename, size_t size)
 	if ((lastnum < 0) || (lastnum > 9999))
 		{
 		// bound
-		Q_strncpy (filename, "demo9999.dem", size);
+		/*Q_strncpy (filename, "demo9999.dem", size);*/
+		Q_strncpy (filename, "demo9999", size);
 		return;
 		}
 
-	Q_snprintf (filename, size, "demo%04d.dem", lastnum);
+	/*Q_snprintf (filename, size, "demo%04d.dem", lastnum);*/
+	Q_snprintf (filename, size, "demo%04d", lastnum);
 	}
 
 /*
@@ -1342,8 +1359,8 @@ Begins recording a demo from the current position
 void CL_Record_f (void)
 	{
 	string		demoname, demopath;
-	const char *name;
-	int		n;
+	const char	*name;
+	int			n;
 
 	if (Cmd_Argc () == 1)
 		{
@@ -1382,8 +1399,12 @@ void CL_Record_f (void)
 		// scan for a free filename
 		for (n = 0; n < 10000; n++)
 			{
-			CL_DemoGetName (n, demoname, sizeof (demoname));	// [FWGS, 01.05.23]
-			if (!FS_FileExists (demoname, true))
+			// [FWGS, 01.07.23]
+			CL_DemoGetName (n, demoname, sizeof (demoname));
+			/*if (!FS_FileExists (demoname, true))*/
+			Q_snprintf (demopath, sizeof (demopath), "%s.dem", demoname);
+
+			if (!FS_FileExists (demopath, true))
 				break;
 			}
 
@@ -1472,15 +1493,19 @@ void CL_PlayDemo_f (void)
 		{
 		int	c, neg = false;
 
-		demo.header.host_fps = host_maxfps->value;
+		/*demo.header.host_fps = host_maxfps->value;*/
+		demo.header.host_fps = host_maxfps.value;	// [FWGS, 01.07.23]
 
 		while ((c = FS_Getc (cls.demofile)) != '\n')
 			{
-			if (c == '-') neg = true;
-			else cls.forcetrack = cls.forcetrack * 10 + (c - '0');
+			if (c == '-')
+				neg = true;
+			else
+				cls.forcetrack = cls.forcetrack * 10 + (c - '0');
 			}
 
-		if (neg) cls.forcetrack = -cls.forcetrack;
+		if (neg)
+			cls.forcetrack = -cls.forcetrack;
 		CL_DemoStartPlayback (DEMO_QUAKE1);
 		return; // quake demo is started
 		}

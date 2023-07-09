@@ -53,23 +53,7 @@ float anglemod (float a)
 	return a;
 	}
 
-/*
-=================
-SimpleSpline [FWGS, 01.05.23]
-
-NOTE: ripped from hl2 source
-hermite basis function for smooth interpolation
-Similar to Gain() above, but very cheap to call
-value should be between 0 & 1 inclusive
-=================
-float SimpleSpline (float value)
-	{
-	float	valueSquared = value * value;
-
-	// nice little ease-in, ease-out spline-like curve
-	return (3.0f * valueSquared - 2.0f * valueSquared * value);
-	}
-*/
+// [FWGS, 01.05.23] Удалена SimpleSpline
 
 word FloatToHalf (float v)
 	{
@@ -202,47 +186,7 @@ int PlaneTypeForNormal (const vec3_t normal)
 	return PLANE_NONAXIAL;
 	}
 
-/*
-=================
-PlanesGetIntersectionPoint [FWGS, 01.05.23]
-=================
-qboolean PlanesGetIntersectionPoint (const mplane_t *plane1, const mplane_t *plane2, const mplane_t *plane3, vec3_t out)
-	{
-	vec3_t	n1, n2, n3;
-	vec3_t	n1n2, n2n3, n3n1;
-	float	denom;
-
-	VectorNormalize2 (plane1->normal, n1);
-	VectorNormalize2 (plane2->normal, n2);
-	VectorNormalize2 (plane3->normal, n3);
-
-	CrossProduct (n1, n2, n1n2);
-	CrossProduct (n2, n3, n2n3);
-	CrossProduct (n3, n1, n3n1);
-
-	denom = DotProduct (n1, n2n3);
-	VectorClear (out);
-
-	// check if the denominator is zero (which would mean that no intersection is to be found
-	if (denom == 0.0f)
-		{
-		// no intersection could be found, return <0,0,0>
-		return false;
-		}
-
-	// compute intersection point
-#if 0
-	VectorMAMAM (plane1->dist, n2n3, plane2->dist, n3n1, plane3->dist, n1n2, out);
-#else
-	VectorMA (out, plane1->dist, n2n3, out);
-	VectorMA (out, plane2->dist, n3n1, out);
-	VectorMA (out, plane3->dist, n1n2, out);
-#endif
-	VectorScale (out, (1.0f / denom), out);
-
-	return true;
-	}
-	*/
+// [FWGS, 01.05.23] Удалена PlanesGetIntersectionPoint
 
 /*
 =================
@@ -253,17 +197,21 @@ int NearestPOW (int value, qboolean roundDown)
 	{
 	int	n = 1;
 
-	if (value <= 0) return 1;
-	while (n < value) n <<= 1;
+	if (value <= 0)
+		return 1;
+	while (n < value)
+		n <<= 1;
 
 	if (roundDown)
 		{
-		if (n > value) n >>= 1;
+		if (n > value)
+			n >>= 1;
 		}
 	return n;
 	}
 
-// remap a value in the range [A,B] to [C,D]
+// [FWGS, 01.07.23] remap a value in the range [A,B] to [C,D]
+/*
 float RemapVal (float val, float A, float B, float C, float D)
 	{
 	return C + (D - C) * (val - A) / (B - A);
@@ -281,6 +229,7 @@ float ApproachVal (float target, float value, float speed)
 
 	return value;
 	}
+*/
 
 /*
 =================
@@ -304,11 +253,8 @@ float rsqrt (float number)
 	return y;
 	}
 
+// [FWGS, 01.07.23] SinCos
 /*
-=================
-SinCos
-=================
-*/
 void SinCos (float radians, float *sine, float *cosine)
 	{
 #if _MSC_VER == 1200
@@ -328,11 +274,11 @@ void SinCos (float radians, float *sine, float *cosine)
 	*cosine = cos (radians);
 #endif
 	}
+*/
 
 /*
 ==============
 VectorCompareEpsilon
-
 ==============
 */
 qboolean VectorCompareEpsilon (const vec3_t vec1, const vec3_t vec2, vec_t epsilon)
@@ -384,7 +330,6 @@ void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up)
 /*
 =================
 AngleVectors
-
 =================
 */
 void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
@@ -420,7 +365,6 @@ void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right
 /*
 =================
 VectorAngles
-
 =================
 */
 void GAME_EXPORT VectorAngles (const float *forward, float *angles)
@@ -429,22 +373,25 @@ void GAME_EXPORT VectorAngles (const float *forward, float *angles)
 
 	if (!forward || !angles)
 		{
-		if (angles) VectorClear (angles);
+		if (angles)
+			VectorClear (angles);
 		return;
 		}
 
-	if (forward[1] == 0 && forward[0] == 0)
+	if ((forward[1] == 0) && (forward[0] == 0))
 		{
 		// fast case
 		yaw = 0;
 		if (forward[2] > 0)
 			pitch = 90.0f;
-		else pitch = 270.0f;
+		else
+			pitch = 270.0f;
 		}
 	else
 		{
 		yaw = (atan2 (forward[1], forward[0]) * 180 / M_PI_F);
-		if (yaw < 0) yaw += 360;
+		if (yaw < 0)
+			yaw += 360;
 
 		tmp = sqrt (forward[0] * forward[0] + forward[1] * forward[1]);
 		pitch = (atan2 (forward[2], tmp) * 180 / M_PI_F);

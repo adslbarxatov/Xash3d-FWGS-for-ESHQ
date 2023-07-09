@@ -214,8 +214,8 @@ void GL_SetupFogColorForSurfaces (void)
 		return;
 		}
 
-	div = (r_detailtextures->value) ? 2.0f : 1.0f;
-	factor = (r_detailtextures->value) ? 3.0f : 2.0f;
+	div = (r_detailtextures.value) ? 2.0f : 1.0f;
+	factor = (r_detailtextures.value) ? 3.0f : 2.0f;
 	fogColor[0] = pow (RI.fogColor[0] / div, (1.0f / factor));
 	fogColor[1] = pow (RI.fogColor[1] / div, (1.0f / factor));
 	fogColor[2] = pow (RI.fogColor[2] / div, (1.0f / factor));
@@ -305,7 +305,8 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 	poly = fa->polys;
 	fa->polys = NULL;
 
-	// quake simple models (healthkits etc) need to be reconstructed their polys because LM coords has changed after the map change
+	// quake simple models (healthkits etc) need to be reconstructed their polys because
+	// LM coords has changed after the map change
 	poly = Mem_Realloc (mod->mempool, poly, sizeof (glpoly_t) + (lnumverts - 4) * VERTEXSIZE * sizeof (float));
 	poly->next = fa->polys;
 	poly->flags = fa->flags;
@@ -354,8 +355,9 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 		poly->verts[i][6] = t;
 		}
 
-	// remove co-linear points - Ed
-	if (!CVAR_TO_BOOL (gl_keeptjunctions) && !FBitSet (fa->flags, SURF_UNDERWATER))
+	// [FWGS, 01.07.23] remove co-linear points - Ed
+	/*if (!CVAR_TO_BOOL (gl_keeptjunctions) && !FBitSet (fa->flags, SURF_UNDERWATER))*/
+	if (!gl_keeptjunctions.value && !FBitSet (fa->flags, SURF_UNDERWATER))
 		{
 		for (i = 0; i < lnumverts; i++)
 			{
@@ -804,7 +806,10 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 			// ESHQ: новый метод обработки скорости конвейера
 			flConveyorSpeed = (float)(e->curstate.renderfx - kRenderFxEdge) * 10.0f;
 			}
-		texture = R_GetTexture (glState.currentTextures[glState.activeTMU]);
+
+		// [FWGS, 01.07.23]
+		/*texture = R_GetTexture (glState.currentTextures[glState.activeTMU]);*/
+		texture = R_GetTexture (glState.currentTexturesIndex[glState.activeTMU]);
 
 		flRate = fabs (flConveyorSpeed) / (float)texture->srcWidth;
 		flAngle = (flConveyorSpeed >= 0) ? 180 : 0;
@@ -860,7 +865,7 @@ void DrawGLPolyChain (glpoly_t *p, float soffset, float toffset)
 	{
 	qboolean	dynamic = true;
 
-	if (soffset == 0.0f && toffset == 0.0f)
+	if ((soffset == 0.0f) && (toffset == 0.0f))
 		dynamic = false;
 
 	for (; p != NULL; p = p->chain)
@@ -873,17 +878,21 @@ void DrawGLPolyChain (glpoly_t *p, float soffset, float toffset)
 		v = p->verts[0];
 		for (i = 0; i < p->numverts; i++, v += VERTEXSIZE)
 			{
-			if (!dynamic) pglTexCoord2f (v[5], v[6]);
-			else pglTexCoord2f (v[5] - soffset, v[6] - toffset);
+			if (!dynamic)
+				pglTexCoord2f (v[5], v[6]);
+			else
+				pglTexCoord2f (v[5] - soffset, v[6] - toffset);
 			pglVertex3fv (v);
 			}
+
 		pglEnd ();
 		}
 	}
 
 _inline qboolean R_HasLightmap (void)
 	{
-	if (CVAR_TO_BOOL (r_fullbright) || !WORLDMODEL->lightdata)
+	/*if (CVAR_TO_BOOL (r_fullbright) || !WORLDMODEL->lightdata)*/
+	if (r_fullbright->value || !WORLDMODEL->lightdata)	// [FWGS, 01.07.23]
 		return false;
 
 	if (RI.currententity)
@@ -920,9 +929,12 @@ void R_BlendLightmaps (void)
 
 	GL_SetupFogColorForSurfaces ();
 
-	if (!CVAR_TO_BOOL (r_lightmap))
+	// [FWGS, 01.07.23]
+	/*if (!CVAR_TO_BOOL (r_lightmap))*/
+	if (!r_lightmap->value)
 		pglEnable (GL_BLEND);
-	else pglDisable (GL_BLEND);
+	else
+		pglDisable (GL_BLEND);
 
 	// lightmapped solid surfaces
 	pglDepthMask (GL_FALSE);
@@ -946,8 +958,9 @@ void R_BlendLightmaps (void)
 			}
 		}
 
-	// render dynamic lightmaps
-	if (CVAR_TO_BOOL (r_dynamic))
+	// [FWGS, 01.07.23] render dynamic lightmaps
+	/*if (CVAR_TO_BOOL (r_dynamic))*/
+	if (r_dynamic->value)
 		{
 		LM_InitBlock ();
 
@@ -1157,7 +1170,8 @@ void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 		draw_fullbrights = true;
 		}
 
-	if (CVAR_TO_BOOL (r_detailtextures))
+	/*if (CVAR_TO_BOOL (r_detailtextures))*/
+	if (r_detailtextures.value)	// [FWGS, 01.07.23]
 		{
 		if (glState.isFogEnabled)
 			{
@@ -1220,7 +1234,8 @@ dynamic:
 
 	if (is_dynamic)
 		{
-		if ((fa->styles[maps] >= 32 || fa->styles[maps] == 0 || fa->styles[maps] == 20) && (fa->dlightframe != tr.framecount))
+		if (((fa->styles[maps] >= 32) || (fa->styles[maps] == 0) || (fa->styles[maps] == 20)) &&
+			(fa->dlightframe != tr.framecount))
 			{
 			byte		temp[132 * 132 * 4];
 			mextrasurf_t *info = fa->info;
@@ -1525,17 +1540,19 @@ R_DrawBrushModel
 void R_DrawBrushModel (cl_entity_t *e)
 	{
 	int		i, k, num_sorted;
-	vec3_t		origin_l, oldorigin;
+	vec3_t	origin_l, oldorigin;
 	int		old_rendermode;
-	vec3_t		mins, maxs;
+	vec3_t	mins, maxs;
 	int		cull_type;
-	msurface_t *psurf;
-	model_t *clmodel;
-	qboolean		rotated;
-	dlight_t *l;
-	qboolean allow_vbo = CVAR_TO_BOOL (r_vbo);
+	msurface_t	*psurf;
+	model_t		*clmodel;
+	qboolean	rotated;
+	dlight_t	*l;
+	/*qboolean allow_vbo = CVAR_TO_BOOL (r_vbo);*/
+	qboolean	allow_vbo = r_vbo.value;	// [FWGS, 01.07.23]
 
-	if (!RI.drawWorld) return;
+	if (!RI.drawWorld)
+		return;
 
 	clmodel = e->model;
 
@@ -1566,8 +1583,10 @@ void R_DrawBrushModel (cl_entity_t *e)
 	old_rendermode = e->curstate.rendermode;
 	gl_lms.dynamic_surfaces = NULL;
 
-	if (rotated) R_RotateForEntity (e);
-	else R_TranslateForEntity (e);
+	if (rotated)
+		R_RotateForEntity (e);
+	else
+		R_TranslateForEntity (e);
 
 	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && FBitSet (clmodel->flags, MODEL_TRANSPARENT))
 		e->curstate.rendermode = kRenderTransAlpha;
@@ -1637,8 +1656,11 @@ void R_DrawBrushModel (cl_entity_t *e)
 			}
 		}
 
-	// sort faces if needs
-	if (!FBitSet (clmodel->flags, MODEL_LIQUID) && e->curstate.rendermode == kRenderTransTexture && !CVAR_TO_BOOL (gl_nosort))
+	// [FWGS, 01.07.23] sort faces if needs
+	/*if (!FBitSet (clmodel->flags, MODEL_LIQUID) && e->curstate.rendermode ==
+	kRenderTransTexture && !CVAR_TO_BOOL (gl_nosort))*/
+	if (!FBitSet (clmodel->flags, MODEL_LIQUID) && (e->curstate.rendermode == kRenderTransTexture) &&
+		!gl_nosort.value)
 		qsort (gpGlobals->draw_surfaces, num_sorted, sizeof (sortedface_t), R_SurfaceCompare);
 
 	// draw sorted translucent surfaces
@@ -1813,9 +1835,11 @@ void R_GenerateVBO (void)
 		return;
 		}
 
-	// save in config if enabled manually
-	if (CVAR_TO_BOOL (r_vbo))
-		r_vbo->flags |= FCVAR_ARCHIVE;
+	// [FWGS, 01.07.23] save in config if enabled manually
+	/*if (CVAR_TO_BOOL (r_vbo))
+		r_vbo->flags |= FCVAR_ARCHIVE;*/
+	if (r_vbo.value)
+		r_vbo.flags |= FCVAR_ARCHIVE;
 
 	vbos.mempool = Mem_AllocPool ("Render VBO Zone");
 
@@ -1982,24 +2006,27 @@ void R_GenerateVBO (void)
 	// prepare decal array
 	pglGenBuffersARB (1, &vbos.decaldata->decalvbo);
 	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decaldata->decalvbo);
-	pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * DECAL_VERTS_CUT * MAX_RENDER_DECALS, vbos.decaldata->decalarray, GL_DYNAMIC_DRAW_ARB);
+	pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * DECAL_VERTS_CUT * MAX_RENDER_DECALS,
+		vbos.decaldata->decalarray, GL_DYNAMIC_DRAW_ARB);
 
 	// preallocate dlight arrays
 	vbos.dlight_index = Mem_Calloc (vbos.mempool, maxindex * sizeof (unsigned short) * 6);
 
 	// select maximum possible length for dlight
-	vbos.dlight_tc = Mem_Calloc (vbos.mempool, sizeof (vec2_t) * (int)(vbos.arraylist->next ? USHRT_MAX + 1 : vbos.arraylist->array_len + 1));
+	vbos.dlight_tc = Mem_Calloc (vbos.mempool, sizeof (vec2_t) * (int)(vbos.arraylist->next ? USHRT_MAX + 1 :
+		vbos.arraylist->array_len + 1));
 
-	if (CVAR_TO_BOOL (r_vbo_dlightmode))
+	/*if (CVAR_TO_BOOL (r_vbo_dlightmode))*/
+	if (r_vbo_dlightmode.value)	// [FWGS, 01.07.23]
 		{
 		pglGenBuffersARB (1, &vbos.dlight_vbo);
 		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
-		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (int)(vbos.arraylist->next ? USHRT_MAX + 1 : vbos.arraylist->array_len + 1), vbos.dlight_tc, GL_STREAM_DRAW_ARB);
+		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (int)(vbos.arraylist->next ? USHRT_MAX + 1 :
+			vbos.arraylist->array_len + 1), vbos.dlight_tc, GL_STREAM_DRAW_ARB);
 		pglGenBuffersARB (1, &vbos.decal_dlight_vbo);
 		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
 		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbos.decal_dlight), vbos.decal_dlight, GL_STREAM_DRAW_ARB);
 		}
-
 
 	// reset state
 	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);
@@ -2035,7 +2062,8 @@ void R_AddDecalVBO (decal_t *pdecal, msurface_t *surf)
 		memcpy (&vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i], v + i * VERTEXSIZE, VERTEXSIZE * 4);
 
 	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decaldata->decalvbo);
-	pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, decalindex * sizeof (vbovertex_t) * DECAL_VERTS_CUT, sizeof (vbovertex_t) * numVerts, &vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT]);
+	pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, decalindex * sizeof (vbovertex_t) * DECAL_VERTS_CUT,
+		sizeof (vbovertex_t) * numVerts, &vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT]);
 	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);
 
 	vbos.decaldata->decals[decalindex].numVerts = numVerts;
@@ -2177,17 +2205,21 @@ static texture_t *R_SetupVBOTexture (texture_t *tex, int number)
 	if (!tex)
 		tex = R_TextureAnim (WORLDMODEL->textures[number]);
 
-	if (CVAR_TO_BOOL (r_detailtextures) && tex->dt_texturenum && mtst.tmu_dt != -1)
+	/*if (CVAR_TO_BOOL (r_detailtextures) && tex->dt_texturenum && mtst.tmu_dt != -1)*/
+	if (r_detailtextures.value && tex->dt_texturenum && (mtst.tmu_dt != -1))	// [FWGS, 01.07.23]
 		{
 		mtst.details_enabled = true;
 		GL_Bind (mtst.tmu_dt, tex->dt_texturenum);
 		mtst.glt = R_GetTexture (tex->gl_texturenum);
 		R_EnableDetail ();
 		}
-	else R_DisableDetail ();
+	else
+		{
+		R_DisableDetail ();
+		}
 
-	GL_Bind (mtst.tmu_gl, CVAR_TO_BOOL (r_lightmap) ? tr.whiteTexture : tex->gl_texturenum);
-
+	/*GL_Bind (mtst.tmu_gl, CVAR_TO_BOOL (r_lightmap) ? tr.whiteTexture : tex->gl_texturenum);*/
+	GL_Bind (mtst.tmu_gl, r_lightmap->value ? tr.whiteTexture : tex->gl_texturenum);	// [FWGS, 01.07.23]
 	return tex;
 	}
 
@@ -2201,7 +2233,7 @@ draw details when not enough tmus
 static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray, texture_t *tex, qboolean resetvbo)
 	{
 	// draw details in additional pass
-	if (r_detailtextures->value && mtst.tmu_dt == -1 && tex->dt_texturenum)
+	if (r_detailtextures.value && (mtst.tmu_dt == -1) && tex->dt_texturenum)
 		{
 		gl_texture_t *glt = R_GetTexture (tex->gl_texturenum);
 
@@ -2232,7 +2264,6 @@ static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray,
 		else
 #endif
 			pglDrawElements (GL_TRIANGLES, indexlen, GL_UNSIGNED_SHORT, indexarray);
-
 
 		// restore state
 		pglLoadIdentity ();
@@ -2266,8 +2297,9 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 
 	R_AdditionalPasses (vbo, vbotex->curindex, vbotex->indexarray, texture, false);
 
-	// draw debug lines
-	if (CVAR_TO_BOOL (gl_wireframe) && !skiplighting)
+	// [FWGS, 01.07.23] draw debug lines
+	/*if (CVAR_TO_BOOL (gl_wireframe) && !skiplighting)*/
+	if (gl_wireframe.value && !skiplighting)
 		{
 		R_SetDecalMode (true);
 		pglDisable (GL_TEXTURE_2D);
@@ -2641,7 +2673,8 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 	int k;
 	vboarray_t *vbo = vbos.arraylist;
 
-	if (!CVAR_TO_BOOL (r_vbo))
+	/*if (!CVAR_TO_BOOL (r_vbo))*/
+	if (!r_vbo.value)	// [FWGS, 01.07.23]
 		return;
 
 	// bind array
@@ -2967,9 +3000,11 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 	return false;
 	}
 
+// [FWGS, 01.07.23]
 qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 	{
-	if (CVAR_TO_BOOL (r_vbo) && vbos.surfdata[surf - WORLDMODEL->surfaces].vbotexture)
+	/*if (CVAR_TO_BOOL (r_vbo) && vbos.surfdata[surf - WORLDMODEL->surfaces].vbotexture)*/
+	if (r_vbo.value && vbos.surfdata[surf - WORLDMODEL->surfaces].vbotexture)
 		{
 		// find vbotexture_t assotiated with this surface
 		int idx = surf - WORLDMODEL->surfaces;
@@ -2988,7 +3023,8 @@ qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 		if (vbos.mintexture > texturenum)
 			vbos.mintexture = texturenum;
 
-		buildlightmap &= !CVAR_TO_BOOL (r_fullbright) && !!WORLDMODEL->lightdata;
+		/*buildlightmap &= !CVAR_TO_BOOL (r_fullbright) && !!WORLDMODEL->lightdata;*/
+		buildlightmap &= !r_fullbright->value && !!WORLDMODEL->lightdata;
 
 		if (buildlightmap && R_CheckLightMap (surf))
 			{
@@ -3023,9 +3059,7 @@ qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 
 /*
 =============================================================
-
-	WORLD MODEL
-
+WORLD MODEL
 =============================================================
 */
 /*
@@ -3035,10 +3069,10 @@ R_RecursiveWorldNode
 */
 void R_RecursiveWorldNode (mnode_t *node, uint clipflags)
 	{
-	int		i, clipped;
-	msurface_t *surf, **mark;
-	mleaf_t *pleaf;
-	int		c, side;
+	int			i, clipped;
+	msurface_t	*surf, **mark;
+	mleaf_t		*pleaf;
+	int			c, side;
 	float		dot;
 loc0:
 	if (node->contents == CONTENTS_SOLID)
@@ -3047,7 +3081,8 @@ loc0:
 	if (node->visframe != tr.visframecount)
 		return;
 
-	if (clipflags && !CVAR_TO_BOOL (r_nocull))
+	/*if (clipflags && !CVAR_TO_BOOL (r_nocull))*/
+	if (clipflags && !r_nocull.value)	// [FWGS, 01.07.23]
 		{
 		for (i = 0; i < 6; i++)
 			{
@@ -3057,8 +3092,10 @@ loc0:
 				continue;
 
 			clipped = BoxOnPlaneSide (node->minmaxs, node->minmaxs + 3, p);
-			if (clipped == 2) return;
-			if (clipped == 1) ClearBits (clipflags, BIT (i));
+			if (clipped == 2)
+				return;
+			if (clipped == 1)
+				ClearBits (clipflags, BIT (i));
 			}
 		}
 
@@ -3187,8 +3224,8 @@ R_DrawWorldTopView
 */
 void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 	{
-	int		i, c, clipped;
-	msurface_t *surf;
+	int			i, c, clipped;
+	msurface_t	*surf;
 
 	do
 		{
@@ -3198,7 +3235,7 @@ void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 		if (node->visframe != tr.visframecount)
 			return;
 
-		if (clipflags && !r_nocull->value)
+		if (clipflags && !r_nocull.value)
 			{
 			for (i = 0; i < 6; i++)
 				{
@@ -3208,8 +3245,10 @@ void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 					continue;
 
 				clipped = BoxOnPlaneSide (node->minmaxs, node->minmaxs + 3, p);
-				if (clipped == 2) return;
-				if (clipped == 1) ClearBits (clipflags, BIT (i));
+				if (clipped == 2)
+					return;
+				if (clipped == 1)
+					ClearBits (clipflags, BIT (i));
 				}
 			}
 
@@ -3262,7 +3301,7 @@ void R_DrawTriangleOutlines (void)
 	glpoly_t *p;
 	float *v;
 
-	if (!gl_wireframe->value)
+	if (!gl_wireframe.value)
 		return;
 
 	pglDisable (GL_TEXTURE_2D);
@@ -3351,7 +3390,8 @@ void R_DrawWorld (void)
 	r_stats.t_world_node = end - start;
 
 	start = gEngfuncs.pfnTime ();
-	R_DrawVBO (!CVAR_TO_BOOL (r_fullbright) && !!WORLDMODEL->lightdata, true);
+	/*R_DrawVBO (!CVAR_TO_BOOL (r_fullbright) && !!WORLDMODEL->lightdata, true);*/
+	R_DrawVBO (!r_fullbright->value && !!WORLDMODEL->lightdata, true);	// [FWGS, 01.07.23]
 
 	R_DrawTextureChains ();
 
@@ -3374,7 +3414,6 @@ void R_DrawWorld (void)
 	skychain = NULL;
 
 	R_DrawTriangleOutlines ();
-
 	R_DrawWorldHull ();
 	}
 
@@ -3389,17 +3428,18 @@ void R_MarkLeaves (void)
 	{
 	qboolean	novis = false;
 	qboolean	force = false;
-	mleaf_t *leaf = NULL;
-	mnode_t *node;
-	vec3_t	test;
-	int	i;
+	mleaf_t		*leaf = NULL;
+	mnode_t		*node;
+	vec3_t		test;
+	int			i;
 
-	if (!RI.drawWorld) return;
+	if (!RI.drawWorld)
+		return;
 
-	if (FBitSet (r_novis->flags, FCVAR_CHANGED) || tr.fResetVis)
+	if (FBitSet (r_novis.flags, FCVAR_CHANGED) || tr.fResetVis)
 		{
 		// force recalc viewleaf
-		ClearBits (r_novis->flags, FCVAR_CHANGED);
+		ClearBits (r_novis.flags, FCVAR_CHANGED);
 		tr.fResetVis = false;
 		RI.viewleaf = NULL;
 		}
@@ -3424,17 +3464,18 @@ void R_MarkLeaves (void)
 			force = true;
 		}
 
-	if (RI.viewleaf == RI.oldviewleaf && RI.viewleaf != NULL && !force)
+	if ((RI.viewleaf == RI.oldviewleaf) && (RI.viewleaf != NULL) && !force)
 		return;
 
 	// development aid to let you run around
 	// and see exactly where the pvs ends
-	if (r_lockpvs->value) return;
+	if (r_lockpvs.value)
+		return;
 
 	RI.oldviewleaf = RI.viewleaf;
 	tr.visframecount++;
 
-	if (r_novis->value || RI.drawOrtho || !RI.viewleaf || !WORLDMODEL->visdata)
+	if (r_novis.value || RI.drawOrtho || !RI.viewleaf || !WORLDMODEL->visdata)
 		novis = true;
 
 	gEngfuncs.R_FatPVS (RI.pvsorigin, REFPVS_RADIUS, RI.visbytes, FBitSet (RI.params, RP_OLDVIEWLEAF), novis);

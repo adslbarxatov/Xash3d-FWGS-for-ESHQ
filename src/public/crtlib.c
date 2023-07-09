@@ -143,6 +143,8 @@ size_t Q_strncat (char *dst, const char *src, size_t size)
 	return (dlen + (s - src)); // count does not include NULL
 	}
 
+// [FWGS, 01.07.23]
+/*
 size_t Q_strncpy (char *dst, const char *src, size_t size)
 	{
 	register char *d = dst;
@@ -171,6 +173,7 @@ size_t Q_strncpy (char *dst, const char *src, size_t size)
 		}
 	return (s - src - 1); // count does not include NULL
 	}
+*/
 
 int Q_atoi (const char *str)
 	{
@@ -1032,9 +1035,16 @@ skipwhite:
 		return data;
 	}
 
+// [FWGS, 01.07.23]
 int matchpattern (const char *in, const char *pattern, qboolean caseinsensitive)
 	{
-	return matchpattern_with_separator (in, pattern, caseinsensitive, "/\\:", false);
+	/*return matchpattern_with_separator (in, pattern, caseinsensitive, "/\\:", false);*/
+	const char *separators = "/\\:";
+
+	if (!Q_strcmp (pattern, "*"))
+		separators = "";
+
+	return matchpattern_with_separator (in, pattern, caseinsensitive, separators, false);
 	}
 
 // wildcard_least_one: if true * matches 1 or more characters

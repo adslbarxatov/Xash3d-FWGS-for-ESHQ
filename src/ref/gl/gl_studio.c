@@ -120,10 +120,12 @@ typedef struct
 	uint			numelems;
 	} studio_draw_state_t;
 
-// studio-related cvars
-static cvar_t *r_studio_sort_textures;
+// [FWGS, 01.07.23] studio-related cvars
+/*static cvar_t *r_studio_sort_textures;*/
+static CVAR_DEFINE_AUTO (r_studio_sort_textures, "0", FCVAR_GLCONFIG, "change draw order for additive meshes");
 static cvar_t *cl_righthand = NULL;
-static cvar_t *r_studio_drawelements;
+/*static cvar_t *r_studio_drawelements;*/
+static CVAR_DEFINE_AUTO (r_studio_drawelements, "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels");
 
 static r_studio_interface_t *pStudioDraw;
 static studio_draw_state_t	g_studio;		// global studio state
@@ -135,7 +137,7 @@ mstudiobodyparts_t *m_pBodyPart;
 player_info_t *m_pPlayerInfo;
 studiohdr_t *m_pStudioHeader;
 float			m_flGaitMovement;
-int			g_iBackFaceCull;
+/*int			g_iBackFaceCull;*/	// [FWGS, 01.07.23]
 int			g_nTopColor, g_nBottomColor;	// remap colors
 int			g_nFaceFlags, g_nForceFaceFlags;
 
@@ -146,10 +148,13 @@ R_StudioInit
 */
 void R_StudioInit (void)
 	{
-	r_studio_sort_textures = gEngfuncs.Cvar_Get ("r_studio_sort_textures", "0", FCVAR_GLCONFIG,
+	// [FWGS, 01.07.23]
+	/*r_studio_sort_textures = gEngfuncs.Cvar_Get ("r_studio_sort_textures", "0", FCVAR_GLCONFIG,
 		"change draw order for additive meshes");
 	r_studio_drawelements = gEngfuncs.Cvar_Get ("r_studio_drawelements", "1", FCVAR_GLCONFIG,
-		"use glDrawElements for studiomodels");
+		"use glDrawElements for studiomodels");*/
+	gEngfuncs.Cvar_RegisterVariable (&r_studio_sort_textures);
+	gEngfuncs.Cvar_RegisterVariable (&r_studio_drawelements);
 
 // [FWGS, 01.04.23]
 #if XASH_PSVITA
@@ -1792,7 +1797,6 @@ void R_LightStrength (int bone, vec3_t localpos, vec4_t light[MAX_LOCALLIGHTS])
 /*
 ===============
 R_StudioSetupSkin
-
 ===============
 */
 static void R_StudioSetupSkin (studiohdr_t *ptexturehdr, int index)
@@ -1850,12 +1854,13 @@ void R_StudioSetRenderamt (int iRenderamt)
 ===============
 R_StudioSetCullState
 
-sets true for enable backculling (for left-hand viewmodel)
+[FWGS, 01.07.23] doesn't set true for enable backculling (for left-hand viewmodel)
 ===============
 */
 void R_StudioSetCullState (int iCull)
 	{
-	g_iBackFaceCull = iCull;
+	/*g_iBackFaceCull = iCull;*/
+	// This function intentionally does nothing
 	}
 
 /*
@@ -2348,7 +2353,7 @@ static void R_StudioDrawPoints (void)
 			}
 		}
 
-	if (r_studio_sort_textures->value && need_sort)
+	if (r_studio_sort_textures.value && need_sort)
 		{
 		// resort opaque and translucent meshes draw order
 		qsort (g_studio.meshes, m_pSubModel->nummesh, sizeof (sortedmesh_t), R_StudioMeshCompare);
@@ -2395,7 +2400,9 @@ static void R_StudioDrawPoints (void)
 
 		R_StudioSetupSkin (m_pStudioHeader, pskinref[pmesh->skinref]);
 
-		if (CVAR_TO_BOOL (r_studio_drawelements))
+		// [FWGS, 01.07.23]
+		/*if (CVAR_TO_BOOL (r_studio_drawelements))*/
+		if (r_studio_drawelements.value)
 			{
 			if (FBitSet (g_nFaceFlags, STUDIO_NF_CHROME))
 				R_StudioBuildArrayChromeMesh (ptricmds, pstudionorms, s, t, shellscale);
@@ -3663,11 +3670,11 @@ void R_DrawViewModel (void)
 		return;
 
 	// ignore in thirdperson, camera view or client is died
-	if (!RP_NORMALPASS () || ENGINE_GET_PARM (PARM_LOCAL_HEALTH) <= 0 || !CL_IsViewEntityLocalPlayer ())
+	if (!RP_NORMALPASS () || (ENGINE_GET_PARM (PARM_LOCAL_HEALTH) <= 0) || !CL_IsViewEntityLocalPlayer ())
 		return;
 
 	tr.blend = CL_FxBlend (view) / 255.0f;
-	if (!R_ModelOpaque (view->curstate.rendermode) && tr.blend <= 0.0f)
+	if (!R_ModelOpaque (view->curstate.rendermode) && (tr.blend <= 0.0f))
 		return; // invisible ?
 
 	RI.currententity = view;
@@ -3680,7 +3687,7 @@ void R_DrawViewModel (void)
 	RI.currentmodel = RI.currententity->model;
 
 	// backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity) || g_iBackFaceCull)
+	if (R_AllowFlipViewModel (RI.currententity) /*|| g_iBackFaceCull*/)	// [FWGS, 01.07.23]
 		{
 		tr.fFlipViewModel = true;
 		pglFrontFace (GL_CW);
@@ -3701,7 +3708,7 @@ void R_DrawViewModel (void)
 	pglDepthRange (gldepthmin, gldepthmax);
 
 	// backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity) || g_iBackFaceCull)
+	if (R_AllowFlipViewModel (RI.currententity) /*|| g_iBackFaceCull*/)	// [FWGS, 01.07.23]
 		{
 		tr.fFlipViewModel = false;
 		pglFrontFace (GL_CCW);

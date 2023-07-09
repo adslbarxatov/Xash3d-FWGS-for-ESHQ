@@ -31,6 +31,7 @@ GNU General Public License for more details.
 #include "enginefeatures.h"
 #include "com_strings.h"
 #include "pm_movevars.h"
+#include "common/cvar.h"	// [FWGS, 01.07.23]
 #include "gl_export.h"
 #include "wadfile.h"
 
@@ -54,17 +55,17 @@ void VGL_ShimEndFrame (void);
 
 #include <stdio.h>
 
-#define CVAR_DEFINE( cv, cvname, cvstr, cvflags, cvdesc )	cvar_t cv = { cvname, cvstr, cvflags, 0.0f, (void *)CVAR_SENTINEL, cvdesc }
+// [FWGS, 01.07.23]
+/*#define CVAR_DEFINE( cv, cvname, cvstr, cvflags, cvdesc )	cvar_t cv = { cvname, cvstr, cvflags, 0.0f, (void *)CVAR_SENTINEL, cvdesc }
 #define CVAR_DEFINE_AUTO( cv, cvstr, cvflags, cvdesc )	cvar_t cv = { #cv, cvstr, cvflags, 0.0f, (void *)CVAR_SENTINEL, cvdesc }
-#define CVAR_TO_BOOL( x )		((x) && ((x)->value != 0.0f) ? true : false )
+#define CVAR_TO_BOOL( x )		((x) && ((x)->value != 0.0f) ? true : false )*/
 
 #define WORLD (gEngfuncs.GetWorld())
 #define WORLDMODEL (gEngfuncs.pfnGetModelByIndex( 1 ))
 #define MOVEVARS (gEngfuncs.pfnGetMoveVars())
 
 // make mod_ref.h?
-#define LM_SAMPLE_SIZE             16
-
+#define LM_SAMPLE_SIZE	16
 
 extern poolhandle_t r_temppool;
 
@@ -106,23 +107,28 @@ extern poolhandle_t r_temppool;
 #define HACKS_RELATED_HLMODS		
 // some HL-mods works differently under Xash and can't be fixed without some hacks at least at current time
 
+// [FWGS, 01.07.23]
+#define SKYBOX_BASE_NUM		5800	// set skybox base (to let some mods load hi-res skyboxes)
+#define SKYBOX_MAX_SIDES	6		// box can only have 6 sides
+
 typedef struct gltexture_s
 	{
-	char		name[256];	// game path, including extension (can be store image programs)
+	char		name[256];		// game path, including extension (can be store image programs)
 	word		srcWidth;		// keep unscaled sizes
 	word		srcHeight;
-	word		width;		// upload width\height
+	word		width;			// upload width\height
 	word		height;
-	word		depth;		// texture depth or count of layers for 2D_ARRAY
+	word		depth;			// texture depth or count of layers for 2D_ARRAY
 	byte		numMips;		// mipmap count
 
-	GLuint		target;		// glTarget
-	GLuint		texnum;		// gl texture binding
-	GLint		format;		// uploaded format
-	GLint		encode;		// using GLSL decoder
+	GLuint		target;			// glTarget
+	GLuint		texnum;			// gl texture binding
+	GLint		format;			// uploaded format
+	GLint		encode;			// using GLSL decoder
 	texFlags_t	flags;
 
-	rgba_t		fogParams;	// some water textures
+	rgba_t		fogParams;		// some water textures
+
 	// contain info about underwater fog
 	rgbdata_t *original;	// keep original image
 
@@ -133,7 +139,7 @@ typedef struct gltexture_s
 	float		xscale;
 	float		yscale;
 
-	int		servercount;
+	int			servercount;
 	uint		hashValue;
 	struct gltexture_s *nextHash;
 	} gl_texture_t;
@@ -182,8 +188,8 @@ typedef struct
 	int		cached_contents;	// in water
 	int		cached_waterlevel;	// was in water
 
-	float		skyMins[2][6];
-	float		skyMaxs[2][6];
+	float		skyMins[2][SKYBOX_MAX_SIDES];
+	float		skyMaxs[2][SKYBOX_MAX_SIDES];
 
 	matrix4x4		objectMatrix;		// currententity matrix
 	matrix4x4		worldviewMatrix;		// modelview for world
@@ -217,8 +223,8 @@ typedef struct
 	int		solidskyTexture;	// quake1 solid-sky layer
 	int		alphaskyTexture;	// quake1 alpha-sky layer
 	int		lightmapTextures[MAX_LIGHTMAPS];
-	int		dlightTexture;	// custom dlight texture
-	int		skyboxTextures[6];	// skybox sides
+	int		dlightTexture;		// custom dlight texture
+	int		skyboxTextures[SKYBOX_MAX_SIDES];	// skybox sides
 	int		cinTexture;      	// cinematic texture
 
 	int		skytexturenum;	// this not a gl_texturenum!
@@ -672,20 +678,20 @@ typedef struct
 
 typedef struct
 	{
-
-	int width, height;
-	int		activeTMU;
+	int			width, height;
+	int			activeTMU;
 	GLint		currentTextures[MAX_TEXTURE_UNITS];
+	GLint		currentTexturesIndex[MAX_TEXTURE_UNITS];	// [FWGS, 01.07.23]
 	GLuint		currentTextureTargets[MAX_TEXTURE_UNITS];
-	GLboolean		texIdentityMatrix[MAX_TEXTURE_UNITS];
+	GLboolean	texIdentityMatrix[MAX_TEXTURE_UNITS];
 	GLint		genSTEnabled[MAX_TEXTURE_UNITS];	// 0 - disabled, OR 1 - S, OR 2 - T, OR 4 - R
 	GLint		texCoordArrayMode[MAX_TEXTURE_UNITS];	// 0 - disabled, 1 - enabled, 2 - cubemap
 	GLint		isFogEnabled;
 
-	int		faceCull;
+	int			faceCull;
 
-	qboolean		stencilEnabled;
-	qboolean		in2DMode;
+	qboolean	stencilEnabled;
+	qboolean	in2DMode;
 	} glstate_t;
 
 
@@ -705,10 +711,8 @@ extern ref_globals_t *gpGlobals;
 #define ENGINE_GET_PARM_ (*gEngfuncs.EngineGetParm)
 #define ENGINE_GET_PARM( parm ) ENGINE_GET_PARM_( ( parm ), 0 )
 
-//
-// renderer cvars
-//
-extern cvar_t *gl_texture_anisotropy;
+// [FWGS, 01.07.23] renderer cvars
+/*extern cvar_t *gl_texture_anisotropy;
 extern cvar_t *gl_extensions;
 extern cvar_t *gl_check_errors;
 extern cvar_t *gl_texture_lodbias;
@@ -738,8 +742,34 @@ extern cvar_t *r_lockpvs;
 extern cvar_t *r_lockfrustum;
 extern cvar_t *r_traceglow;
 extern cvar_t *r_vbo;
-extern cvar_t *r_vbo_dlightmode;
+extern cvar_t *r_vbo_dlightmode;*/
+extern convar_t gl_texture_anisotropy;
+extern convar_t gl_extensions;
+extern convar_t gl_check_errors;
+extern convar_t gl_texture_lodbias;
+extern convar_t gl_texture_nearest;
+extern convar_t gl_lightmap_nearest;
+extern convar_t gl_keeptjunctions;
+extern convar_t gl_round_down;
+extern convar_t gl_wireframe;
+extern convar_t gl_polyoffset;
+extern convar_t gl_finish;
+extern convar_t gl_nosort;
+extern convar_t gl_test;	// cvar to testify new effects
+extern convar_t gl_msaa;
+extern convar_t gl_stencilbits;
 
+extern convar_t r_lighting_extended;
+extern convar_t r_lighting_ambient;
+extern convar_t r_studio_lambert;
+extern convar_t r_detailtextures;
+extern convar_t r_novis;
+extern convar_t r_nocull;
+extern convar_t r_lockpvs;
+extern convar_t r_lockfrustum;
+extern convar_t r_traceglow;
+extern convar_t r_vbo;
+extern convar_t r_vbo_dlightmode;
 
 //
 // engine shared convars

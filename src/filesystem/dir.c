@@ -22,17 +22,17 @@ GNU General Public License for more details.
 #include <stddef.h>
 
 #if XASH_POSIX
-	#include <unistd.h>
-	#if !XASH_PSVITA
-		#include <sys/ioctl.h>
-	#endif
+#include <unistd.h>
+#if !XASH_PSVITA
+#include <sys/ioctl.h>
+#endif
 #endif
 
 #if XASH_LINUX
-	#include <linux/fs.h>
-	#ifndef FS_CASEFOLD_FL // for compatibility with older distros
-		#define FS_CASEFOLD_FL 0x40000000
-	#endif
+#include <linux/fs.h>
+#ifndef FS_CASEFOLD_FL // for compatibility with older distros
+#define FS_CASEFOLD_FL 0x40000000
+#endif
 #endif
 
 #include "port.h"
@@ -271,7 +271,8 @@ static int FS_MaybeUpdateDirEntries (dir_t *dir, const char *path, const char *e
 	return ret;
 	}
 
-static inline qboolean FS_AppendToPath (char *dst, size_t *pi, const size_t len, const char *src, const char *path, const char *err)
+static inline qboolean FS_AppendToPath (char *dst, size_t *pi, const size_t len, const char *src,
+	const char *path, const char *err)
 	{
 	size_t i = *pi;
 
@@ -294,6 +295,10 @@ qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t l
 
 	if (!FS_AppendToPath (dst, &i, len, dir->name, path, "init"))
 		return false;
+
+	// [FWGS, 01.07.23] nothing to fix
+	if (!COM_CheckStringEmpty (path))
+		return true;
 
 	for (prev = path, next = Q_strchrnul (prev, '/');
 		;
@@ -465,12 +470,21 @@ static file_t *FS_OpenFile_DIR (searchpath_t *search, const char *filename, cons
 	return FS_SysOpen (path, mode);
 	}
 
+// [FWGS, 01.07.23]
 void FS_InitDirectorySearchpath (searchpath_t *search, const char *path, int flags)
 	{
 	memset (search, 0, sizeof (searchpath_t));
 
-	Q_strncpy (search->filename, path, sizeof (search->filename));
-	search->type = SEARCHPATH_PLAIN;
+	/*Q_strncpy (search->filename, path, sizeof (search->filename));
+	search->type = SEARCHPATH_PLAIN;*/
+	Q_strncpy (search->filename, path, sizeof (search->filename) - 1);
+	COM_PathSlashFix (search->filename);
+
+	if (!Q_stricmp (COM_FileExtension (path), "pk3dir"))
+		search->type = SEARCHPATH_PK3DIR;
+	else
+		search->type = SEARCHPATH_PLAIN;
+
 	search->flags = flags;
 	search->pfnPrintInfo = FS_PrintInfo_DIR;
 	search->pfnClose = FS_Close_DIR;
@@ -485,11 +499,13 @@ void FS_InitDirectorySearchpath (searchpath_t *search, const char *path, int fla
 	FS_PopulateDirEntries (search->dir, path);
 	}
 
-searchpath_t *FS_AddDir_Fullpath (const char *path, qboolean *already_loaded, int flags)
+// [FWGS, 01.07.23]
+/*searchpath_t *FS_AddDir_Fullpath (const char *path, qboolean *already_loaded, int flags)*/
+searchpath_t *FS_AddDir_Fullpath (const char *path, int flags)
 	{
 	searchpath_t *search;
 
-	for (search = fs_searchpaths; search; search = search->next)
+	/*for (search = fs_searchpaths; search; search = search->next)
 		{
 		if (search->type == SEARCHPATH_PLAIN && !Q_stricmp (search->filename, path))
 			{
@@ -500,15 +516,14 @@ searchpath_t *FS_AddDir_Fullpath (const char *path, qboolean *already_loaded, in
 		}
 
 	if (already_loaded)
-		*already_loaded = false;
+		*already_loaded = false;*/
 
 	search = (searchpath_t *)Mem_Calloc (fs_mempool, sizeof (searchpath_t));
 	FS_InitDirectorySearchpath (search, path, flags);
 
-	search->next = fs_searchpaths;
-	fs_searchpaths = search;
+	/*search->next = fs_searchpaths;
+	fs_searchpaths = search;*/
 
 	Con_Printf ("Adding directory: %s\n", path);
-
 	return search;
 	}

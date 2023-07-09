@@ -133,10 +133,11 @@ some ents will be ignore lerping
 */
 qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
 	{
-	if (cl_nointerp->value > 0.f)
+	/*if (cl_nointerp->value > 0.f)*/
+	if (cl_nointerp.value > 0.0f)	// [FWGS, 01.07.23]
 		return true;
 
-	if (e->model && e->model->type == mod_alias)
+	if (e->model && (e->model->type == mod_alias))
 		return false;
 
 	return (e->curstate.movetype == MOVETYPE_NONE) ? true : false;
@@ -174,7 +175,7 @@ qboolean CL_ParametricMove (cl_entity_t *ent)
 	float	frac, dt, t;
 	vec3_t	delta;
 
-	if (ent->curstate.starttime == 0.0f || ent->curstate.impacttime == 0.0f)
+	if ((ent->curstate.starttime == 0.0f) || (ent->curstate.impacttime == 0.0f))
 		return false;
 
 	VectorSubtract (ent->curstate.endpos, ent->curstate.startpos, delta);
@@ -184,7 +185,8 @@ qboolean CL_ParametricMove (cl_entity_t *ent)
 		{
 		if (ent->lastmove > cl.time)
 			t = ent->lastmove;
-		else t = cl.time;
+		else
+			t = cl.time;
 
 		frac = (t - ent->curstate.starttime) / dt;
 		frac = bound (0.0f, frac, 1.0f);
@@ -203,7 +205,6 @@ qboolean CL_ParametricMove (cl_entity_t *ent)
 /*
 ====================
 CL_UpdateLatchedVars
-
 ====================
 */
 void CL_UpdateLatchedVars (cl_entity_t *ent)
@@ -460,16 +461,18 @@ int CL_InterpolateModel (cl_entity_t *e)
 	if (cl.maxclients <= 1)
 		return 1;
 
-	if (e->model->type == mod_brush && !cl_bmodelinterp->value)
+	/*if (e->model->type == mod_brush && !cl_bmodelinterp->value)*/
+	if ((e->model->type == mod_brush) && !cl_bmodelinterp.value)	// [FWGS, 01.07.23]
 		return 1;
 
-	if (cl.local.moving && cl.local.onground == e->index)
+	if (cl.local.moving && (cl.local.onground == e->index))
 		return 1;
 
-	t = cl.time - cl_interp->value;
+	/*t = cl.time - cl_interp->value;*/
+	t = cl.time - cl_interp.value;	// [FWGS, 01.07.23]
 	CL_FindInterpolationUpdates (e, t, &ph0, &ph1);
 
-	if (ph0 == NULL || ph1 == NULL)
+	if ((ph0 == NULL) || (ph1 == NULL))
 		return 0;
 
 	t1 = ph1->animtime;
@@ -487,7 +490,7 @@ int CL_InterpolateModel (cl_entity_t *e)
 
 	// HACKHACK: workaround buggy position history animtime
 	// going backward sometimes
-	if (Q_equal (t2, t1) || t2 < t1)
+	if (Q_equal (t2, t1) || (t2 < t1))
 		{
 		VectorCopy (ph0->origin, e->origin);
 		VectorCopy (ph0->angles, e->angles);
@@ -533,7 +536,8 @@ void CL_ComputePlayerOrigin (cl_entity_t *ent)
 	if (!ent->player)
 		return;
 
-	if (cl_nointerp->value > 0.f)
+	/*if (cl_nointerp->value > 0.f)*/
+	if (cl_nointerp.value > 0.0f)	// [FWGS, 01.07.23]
 		{
 		VectorCopy (ent->curstate.angles, ent->angles);
 		VectorCopy (ent->curstate.origin, ent->origin);
@@ -551,7 +555,8 @@ void CL_ComputePlayerOrigin (cl_entity_t *ent)
 		return;
 		}
 
-	targettime = cl.time - cl_interp->value;
+	/*targettime = cl.time - cl_interp->value;*/
+	targettime = cl.time - cl_interp.value;	// [FWGS, 01.07.23]
 	CL_PureOrigin (ent, targettime, origin, angles);
 
 	VectorCopy (angles, ent->angles);
@@ -596,7 +601,7 @@ void CL_ResetLatchedState (int pnum, frame_t *frame, cl_entity_t *ent)
 		CL_ResetPositions (ent);
 
 		// parametric interpolation will starts at this point
-		if (ent->curstate.starttime != 0.0f && ent->curstate.impacttime != 0.0f)
+		if ((ent->curstate.starttime != 0.0f) && (ent->curstate.impacttime != 0.0f))
 			ent->lastmove = cl.time;
 		}
 	}

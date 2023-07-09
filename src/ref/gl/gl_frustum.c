@@ -20,7 +20,7 @@ GNU General Public License for more details.
 
 void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist)
 	{
-	Assert (side >= 0 && side < FRUSTUM_PLANES);
+	Assert ((side >= 0) && (side < FRUSTUM_PLANES));
 
 	out->planes[side].type = PlaneTypeForNormal (vecNormal);
 	out->planes[side].signbits = SignbitsForPlane (vecNormal);
@@ -112,7 +112,7 @@ qboolean GL_FrustumCullBox (gl_frustum_t *out, const vec3_t mins, const vec3_t m
 	int	iClipFlags;
 	int	i, bit;
 
-	if (r_nocull->value)
+	if (r_nocull.value)
 		return false;
 
 	if (userClipFlags != 0)
@@ -173,7 +173,7 @@ qboolean GL_FrustumCullSphere (gl_frustum_t *out, const vec3_t center, float rad
 	int	iClipFlags;
 	int	i, bit;
 
-	if (r_nocull->value)
+	if (r_nocull.value)
 		return false;
 
 	if (userClipFlags != 0)

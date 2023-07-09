@@ -21,9 +21,7 @@ GNU General Public License for more details.
 
 /*
 ===================================================================
-
 SETUP BACKENDS DEFINITIONS
-
 ===================================================================
 */
 #if !XASH_DEDICATED
@@ -54,6 +52,7 @@ SETUP BACKENDS DEFINITIONS
 			#endif
 		#endif
 
+/*	[FWGS, 01.07.23]
 	#elif XASH_ANDROID
 
 		// we are building for Android platform, use Android APIs
@@ -73,8 +72,9 @@ SETUP BACKENDS DEFINITIONS
 			#define XASH_MESSAGEBOX MSGBOX_ANDROID
 		#endif
 
-		#define XASH_USE_EVDEV	1	// [FWGS, 01.05.23]
+		#define XASH_USE_EVDEV	1
 		#define XASH_DYNAMIC_DLADDR
+*/
 
 	#elif XASH_LINUX
 
@@ -124,17 +124,6 @@ SETUP BACKENDS DEFINITIONS
 
 #endif
 
-/* [FWGS, 01.04.23]
-// select crashhandler based on defines
-//
-#ifndef XASH_CRASHHANDLER
-	#if XASH_WIN32 && defined(DBGHELP)
-		#define XASH_CRASHHANDLER CRASHHANDLER_DBGHELP
-	#elif XASH_LINUX || XASH_BSD
-		#define XASH_CRASHHANDLER CRASHHANDLER_UCONTEXT
-	#endif // !(XASH_LINUX || XASH_BSD || XASH_WIN32)
-#endif*/
-
 //
 // no timer - no xash
 //
@@ -171,23 +160,10 @@ SETUP BACKENDS DEFINITIONS
 	#define XASH_INPUT INPUT_NULL
 #endif
 
-/* [FWGS, 01.04.23]
-#ifndef XASH_CRASHHANDLER
-	#define XASH_CRASHHANDLER CRASHHANDLER_NULL
-#endif // XASH_CRASHHANDLER 
-*/
-
 /*
 =========================================================================
-
 Default build-depended cvar and constant values
-
 =========================================================================
-*/
-
-/* [FWGS, 01.04.23]
-#if XASH_MOBILE_PLATFORM
-	#define DEFAULT_TOUCH_ENABLE	"1"
 */
 
 // Platform overrides
@@ -195,23 +171,17 @@ Default build-depended cvar and constant values
 	#define DEFAULT_TOUCH_ENABLE	"0"
 	#define DEFAULT_M_IGNORE		"1"
 
-/* [FWGS, 01.04.23]
-#else
-*/
 	#define DEFAULT_MODE_WIDTH		1280
 	#define DEFAULT_MODE_HEIGHT		720
 	#define DEFAULT_ALLOWCONSOLE	1
 #elif XASH_PSVITA
 	#define DEFAULT_TOUCH_ENABLE	"0"
-
-/* [FWGS, 01.04.23]
-#define DEFAULT_M_IGNORE		"0"
-#endif // !XASH_MOBILE_PLATFORM
-*/
 	#define DEFAULT_M_IGNORE		"1"
 	#define DEFAULT_MODE_WIDTH		960
 	#define DEFAULT_MODE_HEIGHT		544
 	#define DEFAULT_ALLOWCONSOLE	1
+#elif XASH_ANDROID	// [FWGS, 01.07.23]
+	#define DEFAULT_TOUCH_ENABLE "1"
 #elif XASH_MOBILE_PLATFORM
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
@@ -247,7 +217,7 @@ Default build-depended cvar and constant values
 #endif
 
 #ifndef DEFAULT_FULLSCREEN
-	#define DEFAULT_FULLSCREEN		1
+	#define DEFAULT_FULLSCREEN "1"	// [FWGS, 01.07.23] must be a string
 #endif
 
 #endif

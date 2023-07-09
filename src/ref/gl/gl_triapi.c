@@ -25,9 +25,7 @@ static struct
 
 /*
 ===============================================================
-
-  TRIAPI IMPLEMENTATION
-
+TRIAPI IMPLEMENTATION
 ===============================================================
 */
 /*
@@ -123,7 +121,6 @@ void TriEnd (void)
 /*
 =============
 _TriColor4f
-
 =============
 */
 void _TriColor4f (float r, float g, float b, float a)
@@ -134,7 +131,6 @@ void _TriColor4f (float r, float g, float b, float a)
 /*
 =============
 _TriColor4f
-
 =============
 */
 void _TriColor4ub (byte r, byte g, byte b, byte a)
@@ -142,11 +138,9 @@ void _TriColor4ub (byte r, byte g, byte b, byte a)
 	pglColor4ub (r, g, b, a);
 	}
 
-
 /*
 =============
 TriColor4ub
-
 =============
 */
 void TriColor4ub (byte r, byte g, byte b, byte a)
@@ -179,7 +173,6 @@ void TriColor4f (float r, float g, float b, float a)
 /*
 =============
 TriTexCoord2f
-
 =============
 */
 void TriTexCoord2f (float u, float v)
@@ -190,7 +183,6 @@ void TriTexCoord2f (float u, float v)
 /*
 =============
 TriVertex3fv
-
 =============
 */
 void TriVertex3fv (const float *v)
@@ -201,7 +193,6 @@ void TriVertex3fv (const float *v)
 /*
 =============
 TriVertex3f
-
 =============
 */
 void TriVertex3f (float x, float y, float z)
@@ -277,17 +268,29 @@ void TriFog (float flFogColor[3], float flStart, float flEnd, int bOn)
 		pglEnable (GL_FOG);
 	else pglDisable (GL_FOG);
 
-	// copy fog params
+	// [FWGS, 01.07.23] copy fog params
 	RI.fogColor[0] = flFogColor[0] / 255.0f;
 	RI.fogColor[1] = flFogColor[1] / 255.0f;
 	RI.fogColor[2] = flFogColor[2] / 255.0f;
-	RI.fogStart = flStart;
+	/*RI.fogStart = flStart;*/
 	RI.fogColor[3] = 1.0f;
-	RI.fogDensity = 0.0f;
-	RI.fogSkybox = true;
+	/*RI.fogDensity = 0.0f;
+	RI.fogSkybox = true;*/
+	RI.fogStart = flStart;
 	RI.fogEnd = flEnd;
 
-	pglFogi (GL_FOG_MODE, GL_LINEAR);
+	/*pglFogi (GL_FOG_MODE, GL_LINEAR);*/
+	if (RI.fogDensity > 0.0f)
+		{
+		pglFogi (GL_FOG_MODE, GL_EXP2);
+		pglFogf (GL_FOG_DENSITY, RI.fogDensity);
+		}
+	else
+		{
+		pglFogi (GL_FOG_MODE, GL_LINEAR);
+		RI.fogSkybox = true;
+		}
+
 	pglFogfv (GL_FOG_COLOR, RI.fogColor);
 	pglFogf (GL_FOG_START, RI.fogStart);
 	pglFogf (GL_FOG_END, RI.fogEnd);

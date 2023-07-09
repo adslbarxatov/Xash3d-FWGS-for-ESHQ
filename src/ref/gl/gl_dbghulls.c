@@ -35,12 +35,16 @@ void R_DrawWorldHull (void)
 	if (FBitSet (r_showhull->flags, FCVAR_CHANGED))
 		{
 		int val = bound (0, (int)r_showhull->value, 3);
-		if (val) gEngfuncs.Mod_CreatePolygonsForHull (val);
+		if (val)
+			gEngfuncs.Mod_CreatePolygonsForHull (val);
 		ClearBits (r_showhull->flags, FCVAR_CHANGED);
 		}
 
-	if (!CVAR_TO_BOOL (r_showhull))
+	// [FWGS, 01.07.23]
+	/*if (!CVAR_TO_BOOL (r_showhull))*/
+	if (!r_showhull->value)
 		return;
+
 	pglDisable (GL_TEXTURE_2D);
 
 	list_for_each_entry (poly, &hull->polys, chain)
@@ -61,14 +65,15 @@ void R_DrawModelHull (void)
 	winding_t *poly;
 	int		i;
 
-	if (!CVAR_TO_BOOL (r_showhull))
+	/*if (!CVAR_TO_BOOL (r_showhull))*/
+	if (!r_showhull->value)	// [FWGS, 01.07.23]
 		return;
 
-	if (!RI.currentmodel || RI.currentmodel->name[0] != '*')
+	if (!RI.currentmodel || (RI.currentmodel->name[0] != '*'))
 		return;
 
 	i = atoi (RI.currentmodel->name + 1);
-	if (i < 1 || i >= WORLD->num_hull_models)
+	if ((i < 1) || (i >= WORLD->num_hull_models))
 		return;
 
 	hull = &WORLD->hull_models[i];
@@ -85,6 +90,7 @@ void R_DrawModelHull (void)
 			pglVertex3fv (poly->p[i]);
 		pglEnd ();
 		}
+
 	pglEnable (GL_TEXTURE_2D);
 	pglDisable (GL_POLYGON_OFFSET_FILL);
 	}

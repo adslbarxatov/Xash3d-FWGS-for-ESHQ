@@ -435,10 +435,10 @@ class CXashFS : public IVFileSystem009
 			return p;
 			}
 
-		// [FWGS, 01.05.23]
+		// [FWGS, 01.07.23]
 		bool FullPathToRelativePath (const char *path, char *out) override
 			{
-			searchpath_t *sp;
+			/*searchpath_t *sp;*/
 
 			if (!COM_CheckString (path))
 				{
@@ -448,7 +448,7 @@ class CXashFS : public IVFileSystem009
 
 			FixupPath (p, path);
 
-			for (sp = fs_searchpaths; sp; sp = sp->next)
+			/*for (sp = fs_searchpaths; sp; sp = sp->next)
 				{
 				size_t splen = Q_strlen (sp->filename);
 
@@ -460,7 +460,8 @@ class CXashFS : public IVFileSystem009
 				}
 
 			Q_strncpy (out, p, 512);
-			return false;
+			return false;*/
+			return FS_FullPathToRelativePath (out, p, 512);
 			}
 
 		bool GetCurrentDirectory (char *p, int size) override
@@ -499,15 +500,26 @@ class CXashFS : public IVFileSystem009
 			Q_strncpy (p, "Stdio", size);
 			}
 
-		// [FWGS, 01.05.23]
+		// [FWGS, 01.07.23]
 		bool AddPackFile (const char *path, const char *id) override
 			{
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
+			const char *ext = COM_FileExtension (path);
 
-			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
-			CopyAndFixSlashes (fullpath, path, sizeof (fullpath));
+			/*Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
+			CopyAndFixSlashes (fullpath, path, sizeof (fullpath));*/
+			IdToDir (dir, sizeof (dir), id);
+			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", dir, path);
+			COM_FixSlashes (fullpath);
 
-			return !!FS_AddPak_Fullpath (fullpath, nullptr, FS_CUSTOM_PATH);
+			/*return !!FS_AddPak_Fullpath (fullpath, nullptr, FS_CUSTOM_PATH);*/
+			for (const fs_archive_t *archive = g_archives; archive->ext; archive++)
+				{
+				if ((archive->type == SEARCHPATH_PAK) && !Q_stricmp (ext, archive->ext))
+					return FS_AddArchive_Fullpath (archive, fullpath, FS_CUSTOM_PATH);
+				}
+
+			return false;
 			}
 
 		// [FWGS, 01.05.23]

@@ -30,7 +30,8 @@ static void R_ParseDetailTextures (const char *filename)
 	int	i;
 
 	afile = gEngfuncs.fsapi->LoadFile (filename, NULL, false);
-	if (!afile) return;
+	if (!afile)
+		return;
 
 	pfile = (char *)afile;
 
@@ -117,8 +118,9 @@ void R_NewMap (void)
 
 	R_StudioResetPlayerModels ();
 
-	// upload detailtextures
-	if (CVAR_TO_BOOL (r_detailtextures))
+	// [FWGS, 01.07.23] upload detailtextures
+	/*if (CVAR_TO_BOOL (r_detailtextures))*/
+	if (r_detailtextures.value)
 		{
 		string	mapname, filepath;
 

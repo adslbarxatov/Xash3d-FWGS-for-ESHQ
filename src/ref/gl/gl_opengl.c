@@ -1,11 +1,11 @@
-
 #include "gl_local.h"
 #if XASH_GL4ES
 #include "gl4es/include/gl4esinit.h"
 #include "gl4es/include/gl4eshint.h"
-#endif // XASH_GL4ES
+#endif
 
-cvar_t *gl_extensions;
+// [FWGS, 01.07.23]
+/*cvar_t *gl_extensions;
 cvar_t *gl_texture_anisotropy;
 cvar_t *gl_texture_lodbias;
 cvar_t *gl_texture_nearest;
@@ -40,7 +40,32 @@ cvar_t *r_vbo_dlightmode;
 cvar_t *tracerred;
 cvar_t *tracergreen;
 cvar_t *tracerblue;
-cvar_t *traceralpha;
+cvar_t *traceralpha;*/
+CVAR_DEFINE (gl_extensions, "gl_allow_extensions", "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, "allow gl_extensions");
+CVAR_DEFINE (gl_texture_anisotropy, "gl_anisotropy", "8", FCVAR_GLCONFIG, "textures anisotropic filter");
+CVAR_DEFINE_AUTO (gl_texture_lodbias, "0.0", FCVAR_GLCONFIG, "LOD bias for mipmapped textures (perfomance|quality)");
+CVAR_DEFINE_AUTO (gl_texture_nearest, "0", FCVAR_GLCONFIG, "disable texture filter");
+CVAR_DEFINE_AUTO (gl_lightmap_nearest, "0", FCVAR_GLCONFIG, "disable lightmap filter");
+CVAR_DEFINE_AUTO (gl_keeptjunctions, "1", FCVAR_GLCONFIG, "removing tjuncs causes blinking pixels");
+CVAR_DEFINE_AUTO (gl_check_errors, "1", FCVAR_GLCONFIG, "ignore video engine errors");
+CVAR_DEFINE_AUTO (gl_polyoffset, "2.0", FCVAR_GLCONFIG, "polygon offset for decals");
+CVAR_DEFINE_AUTO (gl_wireframe, "0", FCVAR_GLCONFIG | FCVAR_SPONLY, "show wireframe overlay");
+CVAR_DEFINE_AUTO (gl_finish, "0", FCVAR_GLCONFIG, "use glFinish instead of glFlush");
+CVAR_DEFINE_AUTO (gl_nosort, "0", FCVAR_GLCONFIG, "disable sorting of translucent surfaces");
+CVAR_DEFINE_AUTO (gl_test, "0", 0, "engine developer cvar for quick testing new features");
+CVAR_DEFINE_AUTO (gl_msaa, "1", FCVAR_GLCONFIG, "enable or disable multisample anti-aliasing");
+CVAR_DEFINE_AUTO (gl_stencilbits, "8", FCVAR_GLCONFIG | FCVAR_READ_ONLY, "pixelformat stencil bits (0 - auto)");
+CVAR_DEFINE_AUTO (r_lighting_extended, "1", FCVAR_GLCONFIG, "allow to get lighting from world and bmodels");
+CVAR_DEFINE_AUTO (r_lighting_ambient, "0.3", FCVAR_GLCONFIG, "map ambient lighting scale");
+CVAR_DEFINE_AUTO (r_detailtextures, "1", FCVAR_ARCHIVE, "enable detail textures support");
+CVAR_DEFINE_AUTO (r_novis, "0", 0, "ignore vis information (perfomance test)");
+CVAR_DEFINE_AUTO (r_nocull, "0", 0, "ignore frustrum culling (perfomance test)");
+CVAR_DEFINE_AUTO (r_lockpvs, "0", FCVAR_CHEAT, "lockpvs area at current point (pvs test)");
+CVAR_DEFINE_AUTO (r_lockfrustum, "0", FCVAR_CHEAT, "lock frustrum area at current point (cull test)");
+CVAR_DEFINE_AUTO (r_traceglow, "1", FCVAR_GLCONFIG, "cull flares behind models");
+CVAR_DEFINE_AUTO (gl_round_down, "2", FCVAR_GLCONFIG | FCVAR_READ_ONLY, "round texture sizes to nearest POT value");
+CVAR_DEFINE (r_vbo, "gl_vbo", "0", FCVAR_ARCHIVE, "draw world using VBO (known to be glitchy)");
+CVAR_DEFINE (r_vbo_dlightmode, "gl_vbo_dlightmode", "1", FCVAR_ARCHIVE, "vbo dlight rendering mode (0-1)");
 
 DEFINE_ENGINE_SHARED_CVAR_LIST ()
 
@@ -265,7 +290,8 @@ DebugCallback
 For ARB_debug_output
 ========================
 */
-static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLuint severity, GLint length, const GLcharARB *message, GLvoid *userParam)
+static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLuint severity, GLint length,
+	const GLcharARB *message, GLvoid *userParam)
 	{
 	switch (type)
 		{
@@ -332,9 +358,9 @@ GL_CheckExtension [FWGS, 01.04.23]
 */
 qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext)
 	{
-	const dllfunc_t	*func;
-	cvar_t	*parm = NULL;
-	const char	*extensions_string;
+	const dllfunc_t *func;
+	cvar_t *parm = NULL;
+	const char *extensions_string;
 	char		desc[MAX_VA_STRING];
 
 	gEngfuncs.Con_Reportf ("GL_CheckExtension: %s ", name);
@@ -347,7 +373,8 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 		parm = gEngfuncs.Cvar_Get (cvarname, "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, desc);
 		}
 
-	if ((parm && !CVAR_TO_BOOL (parm)) || (!CVAR_TO_BOOL (gl_extensions) && r_ext != GL_OPENGL_110))
+	/*if ((parm && !CVAR_TO_BOOL (parm)) || (!CVAR_TO_BOOL (gl_extensions) && r_ext != GL_OPENGL_110))*/
+	if ((parm && !parm->value) || !gl_extensions.value && (r_ext != GL_OPENGL_110))	// [FWGS, 01.07.23]
 		{
 		gEngfuncs.Con_Reportf ("- disabled\n");
 		GL_SetExtension (r_ext, false);
@@ -749,12 +776,10 @@ void GL_InitExtensionsBigGL (void)
 	if (glw_state.extended)
 		GL_CheckExtension ("GL_ARB_debug_output", debugoutputfuncs, "gl_debug_output", GL_DEBUG_OUTPUT);
 
-// [FWGS, 01.04.23]
+	// [FWGS, 01.07.23]
 #if XASH_PSVITA
 	// not all GL1.1 functions are implemented in vitaGL, but there's enough
 	GL_SetExtension (GL_OPENGL_110, true);
-	// NPOT textures are actually supported, but the extension is not listed in GL_EXTENSIONS
-	GL_SetExtension (GL_ARB_TEXTURE_NPOT_EXT, true);
 	// init our immediate mode override
 	VGL_ShimInit ();
 #endif
@@ -808,7 +833,7 @@ void GL_InitExtensions (void)
 
 	Q_snprintf (value, sizeof (value), "%i", glConfig.max_2d_texture_size);
 	gEngfuncs.Cvar_Get ("gl_max_size", value, 0, "opengl texture max dims");
-	gEngfuncs.Cvar_SetValue ("gl_anisotropy", bound (0, gl_texture_anisotropy->value, glConfig.max_texture_anisotropy));
+	gEngfuncs.Cvar_SetValue ("gl_anisotropy", bound (0, gl_texture_anisotropy.value, glConfig.max_texture_anisotropy));
 
 	if (GL_Support (GL_TEXTURE_COMPRESSION_EXT))
 		gEngfuncs.Image_AddCmdFlags (IL_DDS_HARDWARE);
@@ -842,14 +867,14 @@ void GL_ClearExtensions (void)
 
 /*
 =================
-GL_InitCommands
+GL_InitCommands [FWGS, 01.07.23]
 =================
 */
 void GL_InitCommands (void)
 	{
 	RETRIEVE_ENGINE_SHARED_CVAR_LIST ();
 
-	r_lighting_extended = gEngfuncs.Cvar_Get ("r_lighting_extended", "1", FCVAR_GLCONFIG, "allow to get lighting from world and bmodels");
+	/*r_lighting_extended = gEngfuncs.Cvar_Get ("r_lighting_extended", "1", FCVAR_GLCONFIG, "allow to get lighting from world and bmodels");
 	r_lighting_modulate = gEngfuncs.Cvar_Get ("r_lighting_modulate", "0.6", FCVAR_GLCONFIG, "lightstyles modulate scale");
 	r_lighting_ambient = gEngfuncs.Cvar_Get ("r_lighting_ambient", "0.3", FCVAR_GLCONFIG, "map ambient lighting scale");
 	r_novis = gEngfuncs.Cvar_Get ("r_novis", "0", 0, "ignore vis information (perfomance test)");
@@ -872,10 +897,34 @@ void GL_InitCommands (void)
 	gl_wireframe = gEngfuncs.Cvar_Get ("gl_wireframe", "0", FCVAR_GLCONFIG | FCVAR_SPONLY, "show wireframe overlay");
 	gl_msaa = gEngfuncs.Cvar_Get ("gl_msaa", "1", FCVAR_GLCONFIG, "enable or disable multisample anti-aliasing");
 	gl_stencilbits = gEngfuncs.Cvar_Get ("gl_stencilbits", "8", FCVAR_GLCONFIG | FCVAR_READ_ONLY, "pixelformat stencil bits (0 - auto)");
-	gl_round_down = gEngfuncs.Cvar_Get ("gl_round_down", "2", FCVAR_GLCONFIG | FCVAR_READ_ONLY, "round texture sizes to nearest POT value");
+	gl_round_down = gEngfuncs.Cvar_Get ("gl_round_down", "2", FCVAR_GLCONFIG | FCVAR_READ_ONLY, "round texture sizes to nearest POT value");*/
+	gEngfuncs.Cvar_RegisterVariable (&r_lighting_extended);
+	gEngfuncs.Cvar_RegisterVariable (&r_lighting_ambient);
+	gEngfuncs.Cvar_RegisterVariable (&r_novis);
+	gEngfuncs.Cvar_RegisterVariable (&r_nocull);
+	gEngfuncs.Cvar_RegisterVariable (&r_detailtextures);
+	gEngfuncs.Cvar_RegisterVariable (&r_lockpvs);
+	gEngfuncs.Cvar_RegisterVariable (&r_lockfrustum);
+	gEngfuncs.Cvar_RegisterVariable (&r_traceglow);
+
+	gEngfuncs.Cvar_RegisterVariable (&gl_extensions);
+	gEngfuncs.Cvar_RegisterVariable (&gl_texture_nearest);
+	gEngfuncs.Cvar_RegisterVariable (&gl_lightmap_nearest);
+	gEngfuncs.Cvar_RegisterVariable (&gl_check_errors);
+	gEngfuncs.Cvar_RegisterVariable (&gl_texture_anisotropy);
+	gEngfuncs.Cvar_RegisterVariable (&gl_texture_lodbias);
+	gEngfuncs.Cvar_RegisterVariable (&gl_keeptjunctions);
+	gEngfuncs.Cvar_RegisterVariable (&gl_finish);
+	gEngfuncs.Cvar_RegisterVariable (&gl_nosort);
+	gEngfuncs.Cvar_RegisterVariable (&gl_test);
+	gEngfuncs.Cvar_RegisterVariable (&gl_wireframe);
+	gEngfuncs.Cvar_RegisterVariable (&gl_msaa);
+	gEngfuncs.Cvar_RegisterVariable (&gl_stencilbits);
+	gEngfuncs.Cvar_RegisterVariable (&gl_round_down);
 
 	// these cvar not used by engine but some mods requires this
-	gl_polyoffset = gEngfuncs.Cvar_Get ("gl_polyoffset", "2.0", FCVAR_GLCONFIG, "polygon offset for decals");
+	/*gl_polyoffset = gEngfuncs.Cvar_Get ("gl_polyoffset", "2.0", FCVAR_GLCONFIG, "polygon offset for decals");*/
+	gEngfuncs.Cvar_RegisterVariable (&gl_polyoffset);
 
 	// make sure gl_vsync is checked after vid_restart
 	SetBits (gl_vsync->flags, FCVAR_CHANGED);
@@ -886,16 +935,16 @@ void GL_InitCommands (void)
 
 /*
 ===============
-R_CheckVBO
+R_CheckVBO [FWGS, 01.07.23]
 
 register VBO cvars and get default value
 ===============
 */
 static void R_CheckVBO (void)
 	{
-	const char *def = "0";
+	/*const char *def = "0";
 	const char *dlightmode = "1";
-	int flags = FCVAR_ARCHIVE;
+	int flags = FCVAR_ARCHIVE;*/
 	qboolean disable = false;
 
 	// some bad GLES1 implementations breaks dlights completely
@@ -907,21 +956,22 @@ static void R_CheckVBO (void)
 	// Disable it, as there is no suitable workaround here
 	if (Q_stristr (glConfig.renderer_string, "VideoCore IV") || Q_stristr (glConfig.renderer_string, "vc4"))
 		disable = true;
-
-	// dlightmode 1 is not too much tested on android
-	// so better to left it off
-	dlightmode = "0";
 #endif
 
 	if (disable)
 		{
-		// do not keep in config unless dev > 3 and enabled
+		/* do not keep in config unless dev > 3 and enabled
 		flags = 0;
-		def = "0";
+		def = "0";*/
+		r_vbo.flags = r_vbo_dlightmode.flags = 0;
+		r_vbo.string = "0";
+		r_vbo_dlightmode.string = "0";
 		}
 
-	r_vbo = gEngfuncs.Cvar_Get ("gl_vbo", def, flags, "draw world using VBO (known to be glitchy)");
-	r_vbo_dlightmode = gEngfuncs.Cvar_Get ("gl_vbo_dlightmode", dlightmode, FCVAR_ARCHIVE, "vbo dlight rendering mode(0-1)");
+	/*r_vbo = gEngfuncs.Cvar_Get ("gl_vbo", def, flags, "draw world using VBO (known to be glitchy)");
+	r_vbo_dlightmode = gEngfuncs.Cvar_Get ("gl_vbo_dlightmode", dlightmode, FCVAR_ARCHIVE, "vbo dlight rendering mode(0-1)");*/
+	gEngfuncs.Cvar_RegisterVariable (&r_vbo);
+	gEngfuncs.Cvar_RegisterVariable (&r_vbo_dlightmode);
 	}
 
 /*
@@ -1025,14 +1075,15 @@ const char *GL_ErrorString (int err)
 /*
 =================
 GL_CheckForErrors
-obsolete
 =================
 */
 void GL_CheckForErrors_ (const char *filename, const int fileline)
 	{
 	int	err;
 
-	if (!CVAR_TO_BOOL (gl_check_errors))
+	// [FWGS, 01.07.23]
+	/*if (!CVAR_TO_BOOL (gl_check_errors))**/
+	if (!gl_check_errors.value)
 		return;
 
 	if ((err = pglGetError ()) == GL_NO_ERROR)
@@ -1072,7 +1123,7 @@ void GL_SetupAttributes (int safegl)
 		{
 		gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_PROFILE_MASK, REF_GL_CONTEXT_PROFILE_COMPATIBILITY);
 		}
-#endif // XASH_GLES
+#endif
 
 	if (gEngfuncs.Sys_CheckParm ("-gldebug"))
 		{
@@ -1100,8 +1151,10 @@ void GL_SetupAttributes (int safegl)
 
 	gEngfuncs.Con_Printf ("bpp %d\n", gpGlobals->desktopBitsPixel);
 
+	// [FWGS, 01.07.23]
 	if (safegl < SAFE_NOSTENCIL)
-		gEngfuncs.GL_SetAttribute (REF_GL_STENCIL_SIZE, gl_stencilbits->value);
+		gEngfuncs.GL_SetAttribute (REF_GL_STENCIL_SIZE, gl_stencilbits.value);
+	/*gEngfuncs.GL_SetAttribute (REF_GL_STENCIL_SIZE, gl_stencilbits->value);*/
 
 	if (safegl < SAFE_NOALPHA)
 		gEngfuncs.GL_SetAttribute (REF_GL_ALPHA_SIZE, 8);

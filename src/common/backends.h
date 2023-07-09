@@ -12,13 +12,14 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
+
 #ifndef BACKENDS_H
 #define BACKENDS_H
 
 // video backends (XASH_VIDEO)
 #define VIDEO_NULL    0
 #define VIDEO_SDL     1
-#define VIDEO_ANDROID 2
+/*#define VIDEO_ANDROID 2*/		// [FWGS, 01.07.23]
 #define VIDEO_FBDEV   3
 #define VIDEO_DOS     4
 
@@ -26,20 +27,13 @@ GNU General Public License for more details.
 // audio backends (XASH_SOUND)
 #define SOUND_NULL     0
 #define SOUND_SDL      1
-#define SOUND_OPENSLES 2
+/*#define SOUND_OPENSLES 2*/	// [FWGS, 01.07.23]
 #define SOUND_ALSA     3
-
-// [FWGS, 01.04.23]
-/* crash handler (XASH_CRASHHANDLER)
-#define CRASHHANDLER_NULL     0
-#define CRASHHANDLER_UCONTEXT 1
-#define CRASHHANDLER_DBGHELP  2
-#define CRASHHANDLER_WIN32    3*/
 
 // input (XASH_INPUT)
 #define INPUT_NULL    0
 #define INPUT_SDL     1
-#define INPUT_ANDROID 2
+/*#define INPUT_ANDROID 2*/		// [FWGS, 01.07.23]
 #define INPUT_EVDEV   3
 
 // timer (XASH_TIMER)
@@ -52,7 +46,7 @@ GNU General Public License for more details.
 // messageboxes (XASH_MESSAGEBOX)
 #define MSGBOX_STDERR	0
 #define MSGBOX_SDL		1
-#define MSGBOX_ANDROID	2
+/*#define MSGBOX_ANDROID	2*/	// [FWGS, 01.07.23]
 #define MSGBOX_WIN32	3
 #define MSGBOX_NSWITCH	4	// [FWGS, 01.04.23]
 

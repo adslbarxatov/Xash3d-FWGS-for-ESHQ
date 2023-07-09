@@ -81,6 +81,8 @@ void Matrix3x4_ConcatTransforms (matrix3x4 out, const matrix3x4 in1, const matri
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
 
+// [FWGS, 01.07.23]
+/*
 void Matrix3x4_SetOrigin (matrix3x4 out, float x, float y, float z)
 	{
 	out[0][3] = x;
@@ -94,6 +96,7 @@ void Matrix3x4_OriginFromMatrix (const matrix3x4 in, float *out)
 	out[1] = in[1][3];
 	out[2] = in[2][3];
 	}
+*/
 
 void Matrix3x4_AnglesFromMatrix (const matrix3x4 in, vec3_t out)
 	{

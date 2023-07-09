@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "gl_local.h"
 
 #define DECAL_OVERLAP_DISTANCE	2
-#define DECAL_DISTANCE		4	// too big values produce more clipped polygons
+#define DECAL_DISTANCE			4	// too big values produce more clipped polygons
 #define MAX_DECALCLIPVERT		32	// produced vertexes of fragmented decal
 #define DECAL_CACHEENTRY		256	// MUST BE POWER OF 2 or code below needs to change!
 #define DECAL_TRANSPARENT_THRESHOLD	230	// transparent decals draw with GL_MODULATE
@@ -927,10 +927,10 @@ void DrawSurfaceDecals (msurface_t *fa, qboolean single, qboolean reverse)
 		if (e->curstate.rendermode == kRenderTransTexture || e->curstate.rendermode == kRenderTransAdd)
 			GL_Cull (GL_NONE);
 
-		if (gl_polyoffset->value)
+		if (gl_polyoffset.value)
 			{
 			pglEnable (GL_POLYGON_OFFSET_FILL);
-			pglPolygonOffset (-1.0f, -gl_polyoffset->value);
+			pglPolygonOffset (-1.0f, -gl_polyoffset.value);
 			}
 		}
 
@@ -1020,7 +1020,7 @@ void DrawSurfaceDecals (msurface_t *fa, qboolean single, qboolean reverse)
 				pglEnable (GL_ALPHA_TEST);
 			}
 
-		if (gl_polyoffset->value)
+		if (gl_polyoffset.value)
 			pglDisable (GL_POLYGON_OFFSET_FILL);
 
 		if (e->curstate.rendermode == kRenderTransTexture || e->curstate.rendermode == kRenderTransAdd)
@@ -1058,10 +1058,10 @@ void DrawDecalsBatch (void)
 	if (e->curstate.rendermode == kRenderTransTexture || e->curstate.rendermode == kRenderTransAdd)
 		GL_Cull (GL_NONE);
 
-	if (gl_polyoffset->value)
+	if (gl_polyoffset.value)
 		{
 		pglEnable (GL_POLYGON_OFFSET_FILL);
-		pglPolygonOffset (-1.0f, -gl_polyoffset->value);
+		pglPolygonOffset (-1.0f, -gl_polyoffset.value);
 		}
 
 	for (i = 0; i < tr.num_draw_decals; i++)
@@ -1076,7 +1076,7 @@ void DrawDecalsBatch (void)
 		pglDisable (GL_ALPHA_TEST);
 		}
 
-	if (gl_polyoffset->value)
+	if (gl_polyoffset.value)
 		pglDisable (GL_POLYGON_OFFSET_FILL);
 
 	if (e->curstate.rendermode == kRenderTransTexture || e->curstate.rendermode == kRenderTransAdd)
@@ -1087,9 +1087,7 @@ void DrawDecalsBatch (void)
 
 /*
 =============================================================
-
-  DECALS SERIALIZATION
-
+DECALS SERIALIZATION
 =============================================================
 */
 static qboolean R_DecalUnProject (decal_t *pdecal, decallist_t *entry)
@@ -1103,7 +1101,8 @@ static qboolean R_DecalUnProject (decal_t *pdecal, decallist_t *entry)
 	// Grab surface plane equation
 	if (pdecal->psurface->flags & SURF_PLANEBACK)
 		VectorNegate (pdecal->psurface->plane->normal, entry->impactPlaneNormal);
-	else VectorCopy (pdecal->psurface->plane->normal, entry->impactPlaneNormal);
+	else
+		VectorCopy (pdecal->psurface->plane->normal, entry->impactPlaneNormal);
 
 	return true;
 	}

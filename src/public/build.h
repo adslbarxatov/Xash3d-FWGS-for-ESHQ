@@ -60,7 +60,6 @@ Then you can use another oneliner to query all variables:
 #undef XASH_ARMv7
 #undef XASH_ARMv8
 #undef XASH_BIG_ENDIAN
-//#undef XASH_BSD	// [FWGS, 01.04.23]
 #undef XASH_DOS4GW
 #undef XASH_E2K
 #undef XASH_EMSCRIPTEN
@@ -72,36 +71,27 @@ Then you can use another oneliner to query all variables:
 #undef XASH_LINUX
 #undef XASH_LINUX_UNKNOWN	// [FWGS, 01.04.23]
 #undef XASH_LITTLE_ENDIAN
-//#undef XASH_MINGW	// [FWGS, 01.04.23]
 #undef XASH_MIPS
 #undef XASH_MOBILE_PLATFORM
-//#undef XASH_MSVC	// [FWGS, 01.04.23]
 #undef XASH_NETBSD
 #undef XASH_OPENBSD
 #undef XASH_POSIX
+#undef XASH_PPC		// [FWGS, 01.07.23]
 #undef XASH_RISCV
 #undef XASH_RISCV_DOUBLEFP
 #undef XASH_RISCV_SINGLEFP
 #undef XASH_RISCV_SOFTFP
 #undef XASH_SERENITY
 #undef XASH_WIN32
-//#undef XASH_WIN64	// [FWGS, 01.04.23]
 #undef XASH_X86
 #undef XASH_NSWITCH	// [FWGS, 01.04.23]
 #undef XASH_PSVITA	// [FWGS, 01.04.23]
 
 //================================================================
-//
-//           PLATFORM DETECTION CODE
-//
+// PLATFORM DETECTION CODE
 //================================================================
 #if defined _WIN32
 	#define XASH_WIN32 1
-
-/*#if defined(__MINGW32__)
-#define XASH_MINGW 1
-#elif defined(_MSC_VER)
-#define XASH_MSVC 1*/
 
 #elif defined __EMSCRIPTEN__
 	#define XASH_EMSCRIPTEN 1
@@ -121,29 +111,9 @@ Then you can use another oneliner to query all variables:
 				#define XASH_LINUX_UNKNOWN 1
 			#endif
 
-/*#if defined(_WIN64)
-#define XASH_WIN64 1*/
-
 		#endif
 
-/*#elif defined(__linux__)*/
-
 		#define XASH_LINUX 1
-
-/*#if defined(__ANDROID__)
-#define XASH_ANDROID 1
-#endif // defined(__ANDROID__)
-#define XASH_POSIX 1
-#elif defined(__APPLE__)
-#include <TargetConditionals.h>
-#define XASH_APPLE 1
-#if TARGET_OS_IOS
-#define XASH_IOS 1
-#endif // TARGET_OS_IOS
-#define XASH_POSIX 1
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-#define XASH_BSD 1
-#if defined(__FreeBSD__)*/
 
 	#elif defined __FreeBSD__
 		#define XASH_FREEBSD 1
@@ -152,23 +122,11 @@ Then you can use another oneliner to query all variables:
 	#elif defined __OpenBSD__
 		#define XASH_OPENBSD 1
 
-/*#endif
-#define XASH_POSIX 1
-#elif defined __EMSCRIPTEN__
-#define XASH_EMSCRIPTEN 1
-#elif defined __WATCOMC__ && defined __DOS__
-#define XASH_DOS4GW 1
-#define XASH_LITTLE_ENDIAN 1*/
-
 	#elif defined __HAIKU__
 		#define XASH_HAIKU 1
 
-/*#define XASH_POSIX 1*/
-
 	#elif defined __serenity__
 		#define XASH_SERENITY 1
-
-/*#define XASH_POSIX 1*/
 
 	#elif defined __sgi
 		#define XASH_IRIX 1
@@ -184,32 +142,24 @@ Then you can use another oneliner to query all variables:
 	#elif defined __vita__
 		#define XASH_PSVITA 1
 	#else
-/*#error "Place your operating system name here! If this is a mistake, try to fix conditions above and report a bug"*/
 		#error
 	#endif
 #endif
 
-/*#if defined XASH_ANDROID || defined XASH_IOS*/
-#if XASH_ANDROID || defined XASH_IOS || defined XASH_NSWITCH || defined XASH_PSVITA
+/*#if XASH_ANDROID || defined XASH_IOS || defined XASH_NSWITCH || defined XASH_PSVITA*/
+// [FWGS, 01.07.23] XASH_SAILFISH is special: SailfishOS by itself is a normal GNU/Linux platform
+// It doesn't make sense to split it to separate platform
+// but we still need XASH_MOBILE_PLATFORM for the engine.
+// So this macro is defined entirely in build-system: see main wscript
+// HLSDK/PrimeXT/other SDKs users note: you may ignore this macro
+#if XASH_ANDROID || XASH_IOS || XASH_NSWITCH || XASH_PSVITA || XASH_SAILFISH
 	#define XASH_MOBILE_PLATFORM 1
 #endif
 
 //================================================================
-//
-//           ENDIANNESS DEFINES
-//
+// ENDIANNESS DEFINES
 //================================================================
 
-/*#if defined(XASH_FORCE_LITTLE_ENDIAN) && defined(XASH_FORCE_BIG_ENDIAN)
-#error "Both XASH_FORCE_LITTLE_ENDIAN and XASH_FORCE_BIG_ENDIAN are defined"
-#elif defined(XASH_FORCE_LITTLE_ENDIAN)
-#define XASH_LITTLE_ENDIAN 1
-#elif defined(XASH_FORCE_BIG_ENDIAN)
-#define XASH_BIG_ENDIAN 1
-#endif
-
-#if !defined(XASH_LITTLE_ENDIAN) && !defined(XASH_BIG_ENDIAN)
-#if defined XASH_MSVC || __LITTLE_ENDIAN__*/
 #if !defined XASH_ENDIANNESS
 	#if defined XASH_WIN32 || __LITTLE_ENDIAN__
 		//!!! Probably all WinNT installations runs in little endian
@@ -222,8 +172,6 @@ Then you can use another oneliner to query all variables:
 			#define XASH_BIG_ENDIAN 1
 		#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 			#define XASH_LITTLE_ENDIAN 1
-/*#else
-#error "Unknown endianness!"*/
 		#endif
 	#else
 		#include <sys/param.h>
@@ -231,16 +179,12 @@ Then you can use another oneliner to query all variables:
 			#define XASH_BIG_ENDIAN 1
 		#elif __BYTE_ORDER == __LITTLE_ENDIAN
 			#define XASH_LITTLE_ENDIAN 1
-/*#else
-#error "Unknown endianness!"*/
 		#endif
 	#endif
 #endif
 
 //================================================================
-//
-//           CPU ARCHITECTURE DEFINES
-//
+// CPU ARCHITECTURE DEFINES
 //================================================================
 #if defined __x86_64__ || defined _M_X64
 	#define XASH_64BIT 1
@@ -250,7 +194,6 @@ Then you can use another oneliner to query all variables:
 #elif defined __aarch64__ || defined _M_ARM64
 	#define XASH_64BIT 1
 	#define XASH_ARM 8
-/*#elif defined __arm__ || defined _M_ARM*/
 #elif defined __mips__
 	#define XASH_MIPS 1
 #elif defined __EMSCRIPTEN__
@@ -258,13 +201,20 @@ Then you can use another oneliner to query all variables:
 #elif defined __e2k__
 	#define XASH_64BIT 1
 	#define XASH_E2K 1
+
+// [FWGS, 01.07.23]
+#elif defined __PPC__ || defined __powerpc__
+	#define XASH_PPC 1
+	#if defined __PPC64__ || defined __powerpc64__
+		#define XASH_64BIT 1
+	#endif
+
 #elif defined _M_ARM // msvc
 	#define XASH_ARM 7
 	#define XASH_ARM_HARDFP 1
 #elif defined __arm__
 	#if __ARM_ARCH == 8 || __ARM_ARCH_8__
 		#define XASH_ARM 8
-/*#elif __ARM_ARCH == 7 || __ARM_ARCH_7__ || defined _M_ARM // msvc can only armv7 in 32 bit*/
 	#elif __ARM_ARCH == 7 || __ARM_ARCH_7__
 		#define XASH_ARM 7
 	#elif __ARM_ARCH == 6 || __ARM_ARCH_6__ || __ARM_ARCH_6J__
@@ -277,31 +227,16 @@ Then you can use another oneliner to query all variables:
 		#error "Unknown ARM"
 	#endif
 
-/*#if defined _M_ARM
-#error "No WinMobile port yet! Need to determine which ARM float ABI msvc uses if applicable"
-#endif*/
-
 	#if defined __SOFTFP__ || __ARM_PCS_VFP == 0
 		#define XASH_ARM_SOFTFP 1
 	#else
 		#define XASH_ARM_HARDFP 1
 	#endif
 
-/*#elif defined __mips__
-#define XASH_MIPS 1
-#elif defined __EMSCRIPTEN__
-#define XASH_JS 1
-#elif defined __e2k__
-#define XASH_64BIT 1
-#define XASH_E2K 1*/
-
 #elif defined __riscv
 	#define XASH_RISCV 1
 	#if __riscv_xlen == 64
 		#define XASH_64BIT 1
-/*#elif __riscv_xlen == 32
-// ...
-#else*/
 	#elif __riscv_xlen != 32
 		#error "Unknown RISC-V ABI"
 	#endif
@@ -318,10 +253,6 @@ Then you can use another oneliner to query all variables:
 #else
 	#error "Place your architecture name here! If this is a mistake, try to fix conditions above and report a bug"
 #endif
-
-/*#if defined(XASH_WAF_DETECTED_64BIT) && !defined(XASH_64BIT)
-#define XASH_64BIT 1
-#endif*/
 
 #if XASH_ARM == 8
 	#define XASH_ARMv8 1
