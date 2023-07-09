@@ -33,9 +33,9 @@ half-life implementation of saverestore system
 #define SAVEGAME_VERSION		0x0071				// Version 0.71 GoldSrc compatible
 #define CLIENT_SAVEGAME_VERSION	0x0067				// Version 0.67
 
-#define SAVE_HEAPSIZE		0x400000				// reserve 4Mb for now
+#define SAVE_HEAPSIZE			0x400000			// reserve 4Mb for now
 #define SAVE_HASHSTRINGS		0xFFF				// 4095 unique strings
-#define SAVE_AGED_COUNT		2
+/*#define SAVE_AGED_COUNT		2*/	// [FWGS, 01.07.23]
 
 // savedata headers
 typedef struct
@@ -1745,9 +1745,13 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.%s", pSaveName, DEFAULT_SAVE_EXTENSION);
 	COM_FixSlashes (name);
 
-	// output to disk
-	if (!Q_stricmp (pSaveName, "quick") || !Q_stricmp (pSaveName, "autosave"))
-		AgeSaveList (pSaveName, SAVE_AGED_COUNT);
+	// [FWGS, 01.07.23] output to disk
+	/*if (!Q_stricmp (pSaveName, "quick") || !Q_stricmp (pSaveName, "autosave"))
+		AgeSaveList (pSaveName, SAVE_AGED_COUNT);*/
+	if (!Q_stricmp (pSaveName, "quick"))
+		AgeSaveList (pSaveName, GI->quicksave_aged_count);
+	else if (!Q_stricmp (pSaveName, "autosave"))
+		AgeSaveList (pSaveName, GI->autosave_aged_count);
 
 	// output to disk
 	if ((pFile = FS_Open (name, "wb", true)) == NULL)

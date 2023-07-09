@@ -124,7 +124,7 @@ void Log_Printf (const char *fmt, ...)
 	if (svs.log.net_log)
 		Netchan_OutOfBandPrint (NS_SERVER, svs.log.net_address, "log %s", string);
 
-	if (svs.log.active && (svs.maxclients > 1 || sv_log_singleplayer.value != 0.0f))
+	if (svs.log.active && ((svs.maxclients > 1) || (sv_log_singleplayer.value != 0.0f)))
 		{
 		// echo to server console
 		if (mp_logecho.value)
@@ -158,7 +158,7 @@ void Log_PrintServerVars (void)
 
 /*
 ====================
-SV_SetLogAddress_f
+SV_SetLogAddress_f [FWGS, 01.07.23]
 ====================
 */
 void SV_SetLogAddress_f (void)
@@ -167,11 +167,23 @@ void SV_SetLogAddress_f (void)
 	int port;
 	string addr;
 
+	if (svs.log.net_log && (Cmd_Argc () == 2) && !Q_strcmp (Cmd_Argv (1), "off"))
+		{
+		svs.log.net_log = false;
+		memset (&svs.log.net_address, 0, sizeof (netadr_t));
+
+		Con_Printf ("logaddress: disabled.\n");
+
+		return;
+		}
+
 	if (Cmd_Argc () != 3)
 		{
-		Con_Printf ("logaddress: usage\nlogaddress ip port\n");
+		/*Con_Printf ("logaddress: usage\nlogaddress ip port\n");*/
+		Con_Printf (S_USAGE "logaddress < ip port | off >\n");
 
-		if (svs.log.active)
+		/*if (svs.log.active)*/
+		if (svs.log.active && svs.log.net_log)
 			Con_Printf ("current: %s\n", NET_AdrToString (svs.log.net_address));
 
 		return;
@@ -224,7 +236,10 @@ void SV_ServerLog_f (void)
 	if (!Q_stricmp (Cmd_Argv (1), "off"))
 		{
 		if (svs.log.active)
+			{
 			Log_Close ();
+			svs.log.active = false;	// [FWGS, 01.07.23]
+			}
 		}
 	else if (!Q_stricmp (Cmd_Argv (1), "on"))
 		{

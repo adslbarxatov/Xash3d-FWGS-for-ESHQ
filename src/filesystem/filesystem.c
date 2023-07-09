@@ -3031,7 +3031,6 @@ fs_interface_t g_engfuncs =
 		_Mem_Alloc,
 		_Mem_Realloc,
 		_Mem_Free,
-		_Mem_Free,
 		_Platform_GetNativeObject_stub,	// [FWGS, 01.07.23]
 	};
 

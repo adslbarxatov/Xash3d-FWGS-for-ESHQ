@@ -271,7 +271,7 @@ SV_ModelHandle
 get model by handle
 ================
 */
-model_t *SV_ModelHandle (int modelindex)
+model_t *GAME_EXPORT SV_ModelHandle (int modelindex)
 	{
 	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
 		return NULL;
@@ -784,16 +784,17 @@ void SV_SetupClients (void)
 	qboolean	changed_maxclients = false;
 
 	// check if clients count was really changed
-	if (svs.maxclients != (int)sv_maxclients->value)
+	if (svs.maxclients != (int)sv_maxclients.value)
 		changed_maxclients = true;
 
-	if (!changed_maxclients) return; // nothing to change
+	if (!changed_maxclients)
+		return; // nothing to change
 
 	// if clients count was changed we need to run full shutdown procedure
 	if (svs.maxclients) Host_ShutdownServer ();
 
 	// copy the actual value from cvar
-	svs.maxclients = (int)sv_maxclients->value;
+	svs.maxclients = (int)sv_maxclients.value;
 
 	// dedicated servers are can't be single player and are usually DM
 	if (Host_IsDedicated ())
@@ -821,10 +822,10 @@ void SV_SetupClients (void)
 	// init network stuff
 	NET_Config ((svs.maxclients > 1), true);
 	svgame.numEntities = svs.maxclients + 1; // clients + world
-	ClearBits (sv_maxclients->flags, FCVAR_CHANGED);
+	ClearBits (sv_maxclients.flags, FCVAR_CHANGED);
 	}
 
-static qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer)
+qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer)
 	{
 	char	headbuf[1024], buffer[1024];
 	int	i, num_bytes, lumplen;
@@ -900,6 +901,67 @@ static qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean m
 	FS_Close (f);
 
 	return 1;
+	}
+
+/*
+================
+SV_GenerateTestPacket [FWGS, 01.07.23]
+================
+*/
+static void SV_GenerateTestPacket (void)
+	{
+	const int maxsize = FRAGMENT_MAX_SIZE;
+	uint32_t crc;
+	file_t *file;
+	byte *filepos;
+	int i, filesize;
+
+	// testpacket already generated once, exit
+	// testpacket and lookup table takes ~300k of memory
+	// disable for low memory mode
+	if (svs.testpacket_buf || (XASH_LOW_MEMORY >= 0))
+		return;
+
+	// don't need in singleplayer with full client
+	if (svs.maxclients <= 1 && !Host_IsDedicated ())
+		return;
+
+	file = FS_Open ("gfx.wad", "rb", false);
+	if (FS_FileLength (file) < maxsize)
+		{
+		FS_Close (file);
+		return;
+		}
+
+	svs.testpacket_buf = Mem_Malloc (host.mempool, sizeof (*svs.testpacket_buf) * maxsize);
+
+	// write packet base data
+	MSG_Init (&svs.testpacket, "BandWidthTest", svs.testpacket_buf, maxsize);
+	MSG_WriteLong (&svs.testpacket, -1);
+	MSG_WriteString (&svs.testpacket, "testpacket");
+	svs.testpacket_crcpos = svs.testpacket.pData + MSG_GetNumBytesWritten (&svs.testpacket);
+	MSG_WriteDword (&svs.testpacket, 0); // to be changed by crc
+
+	// time to read our file
+	svs.testpacket_filepos = MSG_GetNumBytesWritten (&svs.testpacket);
+	svs.testpacket_filelen = maxsize - svs.testpacket_filepos;
+
+	filepos = svs.testpacket.pData + svs.testpacket_filepos;
+	FS_Read (file, filepos, svs.testpacket_filelen);
+	FS_Close (file);
+
+	// now generate checksums lookup table
+	svs.testpacket_crcs = Mem_Malloc (host.mempool, sizeof (*svs.testpacket_crcs) * svs.testpacket_filelen);
+	crc = 0; // intentional omit of CRC32_Init because of the client
+
+	// TODO: shrink to minimum!
+	for (i = 0; i < svs.testpacket_filelen; i++)
+		{
+		uint32_t crc2;
+
+		CRC32_ProcessByte (&crc, filepos[i]);
+		svs.testpacket_crcs[i] = crc;
+		}
 	}
 
 /*
@@ -1047,6 +1109,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	// clear physics interaction links
 	SV_ClearWorld ();
+
+	// [FWGS, 01.07.23] pregenerate test packet
+	SV_GenerateTestPacket ();
 
 	return true;
 	}

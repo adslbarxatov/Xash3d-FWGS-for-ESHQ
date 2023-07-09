@@ -1117,7 +1117,7 @@ static void GL_TextureImageDXT (gl_texture_t *tex, GLint side, GLint level, GLin
 		else
 			pglCompressedTexImage2DARB (cubeTarget + side, level, tex->format, width, height, 0, size, data);
 		}
-	else if (tex->target == GL_TEXTURE_3D || (tex->target == GL_TEXTURE_2D_ARRAY_EXT))
+	else if ((tex->target == GL_TEXTURE_3D) || (tex->target == GL_TEXTURE_2D_ARRAY_EXT))
 		{
 		if (subImage)
 			pglCompressedTexSubImage3DARB (tex->target, level, 0, 0, 0, width, height, depth, tex->format, size, data);

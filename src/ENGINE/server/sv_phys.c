@@ -55,9 +55,7 @@ static const vec3_t current_table[] =
 
 /*
 ===============================================================================
-
 Utility functions
-
 ===============================================================================
 */
 /*
@@ -65,13 +63,13 @@ Utility functions
 SV_CheckAllEnts
 ================
 */
-void SV_CheckAllEnts (void)
+static void SV_CheckAllEnts (void)
 	{
 	static double	nextcheck;
 	edict_t *e;
 	int		i;
 
-	if (!sv_check_errors->value || sv.state != ss_active)
+	if (!sv_check_errors.value || (sv.state != ss_active))
 		return;
 
 	if ((nextcheck - Sys_DoubleTime ()) > 0.0)
@@ -128,14 +126,14 @@ void SV_CheckVelocity (edict_t *ent)
 		{
 		if (IS_NAN (ent->v.velocity[i]))
 			{
-			if (sv_check_errors->value)
+			if (sv_check_errors.value)
 				Con_Printf ("Got a NaN velocity on %s\n", STRING (ent->v.classname));
 			ent->v.velocity[i] = 0.0f;
 			}
 
 		if (IS_NAN (ent->v.origin[i]))
 			{
-			if (sv_check_errors->value)
+			if (sv_check_errors.value)
 				Con_Printf ("Got a NaN origin on %s\n", STRING (ent->v.classname));
 			ent->v.origin[i] = 0.0f;
 			}
@@ -147,8 +145,9 @@ void SV_CheckVelocity (edict_t *ent)
 	if (wishspd > maxspd)
 		{
 		wishspd = sqrt (wishspd);
-		if (sv_check_errors->value)
-			Con_Printf ("Got a velocity too high on %s ( %.2f > %.2f )\n", STRING (ent->v.classname), wishspd, sqrt (maxspd));
+		if (sv_check_errors.value)
+			Con_Printf ("Got a velocity too high on %s ( %.2f > %.2f )\n", STRING (ent->v.classname),
+				wishspd, sqrt (maxspd));
 		wishspd = sv_maxvelocity.value / wishspd;
 		VectorScale (ent->v.velocity, wishspd, ent->v.velocity);
 		}
@@ -184,6 +183,39 @@ void SV_UpdateBaseVelocity (edict_t *ent)
 	}
 
 /*
+============
+SV_TestEntityPosition [FWGS, 01.07.23]
+
+returns true if the entity is in solid currently
+============
+*/
+static qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker)
+	{
+	qboolean monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
+	trace_t trace;
+
+	if (FBitSet (ent->v.flags, FL_CLIENT | FL_FAKECLIENT))
+		{
+		// to avoid falling through tracktrain update client mins\maxs here
+		if (FBitSet (ent->v.flags, FL_DUCKING))
+			SV_SetMinMaxSize (ent, svgame.pmove->player_mins[1], svgame.pmove->player_maxs[1], true);
+		else
+			SV_SetMinMaxSize (ent, svgame.pmove->player_mins[0], svgame.pmove->player_maxs[0], true);
+		}
+
+	trace = SV_Move (ent->v.origin, ent->v.mins, ent->v.maxs, ent->v.origin, MOVE_NORMAL, ent, monsterClip);
+
+	if (SV_IsValidEdict (blocker) && SV_IsValidEdict (trace.ent))
+		{
+		if ((trace.ent->v.movetype == MOVETYPE_PUSH) || (trace.ent == blocker))
+			return trace.startsolid;
+		return false;
+		}
+
+	return trace.startsolid;
+	}
+
+/*
 =============
 SV_RunThink
 
@@ -193,20 +225,19 @@ in a frame.  Not used for pushmove objects, because they must be exact.
 Returns false if the entity removed itself.
 =============
 */
-qboolean SV_RunThink (edict_t *ent)
+static qboolean SV_RunThink (edict_t *ent)
 	{
 	float	thinktime;
 
 	if (!FBitSet (ent->v.flags, FL_KILLME))
 		{
 		thinktime = ent->v.nextthink;
-		if (thinktime <= 0.0f || thinktime > (sv.time + sv.frametime))
+		if ((thinktime <= 0.0f) || (thinktime > (sv.time + sv.frametime)))
 			return true;
 
 		if (thinktime < sv.time)
-			thinktime = sv.time;	// don't let things stay in the past.
-		// it is possible to start that way
-		// by a trigger with a local time.
+			thinktime = sv.time;	// don't let things stay in the past
+		// it is possible to start that way by a trigger with a local time
 		ent->v.nextthink = 0.0f;
 		svgame.globals->time = thinktime;
 		svgame.dllFuncs.pfnThink (ent);
@@ -238,14 +269,13 @@ qboolean SV_PlayerRunThink (edict_t *ent, float frametime, double time)
 	if (!FBitSet (ent->v.flags, FL_KILLME | FL_DORMANT))
 		{
 		thinktime = ent->v.nextthink;
-		if (thinktime <= 0.0f || thinktime > (time + frametime))
+		if ((thinktime <= 0.0f) || (thinktime > (time + frametime)))
 			return true;
 
 		if (thinktime < time)
-			thinktime = time;	// don't let things stay in the past.
-		// it is possible to start that way
-		// by a trigger with a local time.
+			thinktime = time;	// don't let things stay in the past
 
+		// it is possible to start that way by a trigger with a local time
 		ent->v.nextthink = 0.0f;
 		svgame.globals->time = thinktime;
 		svgame.dllFuncs.pfnThink (ent);
@@ -300,13 +330,14 @@ SV_AngularMove
 may use friction for smooth stopping
 =============
 */
-void SV_AngularMove (edict_t *ent, float frametime, float friction)
+static void SV_AngularMove (edict_t *ent, float frametime, float friction)
 	{
 	float	adjustment;
 	int	i;
 
 	VectorMA (ent->v.angles, frametime, ent->v.avelocity, ent->v.angles);
-	if (friction == 0.0f) return;
+	if (friction == 0.0f)
+		return;
 
 	adjustment = frametime * (sv_stopspeed.value / 10.0f) * sv_friction.value * fabs (friction);
 
@@ -334,13 +365,14 @@ SV_LinearMove
 use friction for smooth stopping
 =============
 */
-void SV_LinearMove (edict_t *ent, float frametime, float friction)
+static void SV_LinearMove (edict_t *ent, float frametime, float friction)
 	{
 	int	i;
 	float	adjustment;
 
 	VectorMA (ent->v.origin, frametime, ent->v.velocity, ent->v.origin);
-	if (friction == 0.0f) return;
+	if (friction == 0.0f)
+		return;
 
 	adjustment = frametime * (sv_stopspeed.value / 10.0f) * sv_friction.value * fabs (friction);
 
@@ -368,13 +400,14 @@ SV_RecursiveWaterLevel
 recursively recalculating the middle
 =============
 */
-float SV_RecursiveWaterLevel (vec3_t origin, float out, float in, int count)
+static float SV_RecursiveWaterLevel (vec3_t origin, float out, float in, int count)
 	{
 	vec3_t	point;
 	float	offset;
 
 	offset = ((out - in) * 0.5f) + in;
-	if (++count > 5) return offset;
+	if (++count > 5)
+		return offset;
 
 	VectorSet (point, origin[0], origin[1], origin[2] + offset);
 
@@ -390,7 +423,7 @@ SV_Submerged
 determine how deep the entity is
 =============
 */
-float SV_Submerged (edict_t *ent)
+static float SV_Submerged (edict_t *ent)
 	{
 	float	start, bottom;
 	vec3_t	point;
@@ -404,12 +437,14 @@ float SV_Submerged (edict_t *ent)
 		case 1:
 			bottom = SV_RecursiveWaterLevel (center, 0.0f, start, 0);
 			return bottom - start;
+
 		case 3:
 			VectorSet (point, center[0], center[1], ent->v.absmax[2]);
 			svs.groupmask = ent->v.groupinfo;
 			if (SV_PointContents (point) == CONTENTS_WATER)
 				return (ent->v.maxs[2] - ent->v.mins[2]);
 			// intentionally fallthrough
+
 		case 2:
 			bottom = SV_RecursiveWaterLevel (center, ent->v.absmax[2] - center[2], 0.0f, 0);
 			return bottom - start;
@@ -423,7 +458,7 @@ float SV_Submerged (edict_t *ent)
 SV_CheckWater
 =============
 */
-qboolean SV_CheckWater (edict_t *ent)
+static qboolean SV_CheckWater (edict_t *ent)
 	{
 	int	cont, truecont;
 	vec3_t	point;
@@ -437,7 +472,6 @@ qboolean SV_CheckWater (edict_t *ent)
 	ent->v.waterlevel = 0;
 
 	cont = SV_PointContents (point);
-
 	if (cont <= CONTENTS_WATER && cont > CONTENTS_TRANSLUCENT)
 		{
 		svs.groupmask = ent->v.groupinfo;
@@ -491,7 +525,7 @@ SV_CheckMover
 test thing (applies the friction to pushables while standing on moving platform)
 =============
 */
-qboolean SV_CheckMover (edict_t *ent)
+static qboolean SV_CheckMover (edict_t *ent)
 	{
 	edict_t *gnd = ent->v.groundentity;
 
@@ -514,15 +548,17 @@ SV_ClipVelocity
 Slide off of the impacting object
 ==================
 */
-int SV_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overbounce)
+static int SV_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overbounce)
 	{
 	float	backoff;
 	float	change;
 	int	i, blocked;
 
 	blocked = 0;
-	if (normal[2] > 0.0f) blocked |= 1;	// floor
-	if (!normal[2]) blocked |= 2;	// step
+	if (normal[2] > 0.0f)
+		blocked |= 1;	// floor
+	if (!normal[2])
+		blocked |= 2;	// step
 
 	backoff = DotProduct (in, normal) * overbounce;
 
@@ -540,9 +576,7 @@ int SV_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overbounce)
 
 /*
 ===============================================================================
-
-	FLYING MOVEMENT CODE
-
+FLYING MOVEMENT CODE
 ===============================================================================
 */
 /*
@@ -557,9 +591,9 @@ Returns the clipflags if the velocity was modified (hit something solid)
 4 = dead stop
 ============
 */
-int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
+static int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 	{
-	int	i, j, numplanes, bumpcount, blocked;
+	int		i, j, numplanes, bumpcount, blocked;
 	vec3_t	dir, end, planes[MAX_CLIP_PLANES];
 	vec3_t	primal_velocity, original_velocity, new_velocity;
 	float	d, time_left, allFraction;
@@ -584,7 +618,6 @@ int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 		trace = SV_Move (ent->v.origin, ent->v.mins, ent->v.maxs, end, MOVE_NORMAL, ent, monsterClip);
 
 		allFraction += trace.fraction;
-
 		if (trace.allsolid)
 			{
 			// entity is trapped in another solid
@@ -610,8 +643,8 @@ int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 			{
 			blocked |= 1; // floor
 
-			if (trace.ent->v.solid == SOLID_BSP || trace.ent->v.solid == SOLID_SLIDEBOX ||
-				trace.ent->v.movetype == MOVETYPE_PUSHSTEP || (trace.ent->v.flags & FL_CLIENT))
+			if ((trace.ent->v.solid == SOLID_BSP) || (trace.ent->v.solid == SOLID_SLIDEBOX) ||
+				(trace.ent->v.movetype == MOVETYPE_PUSHSTEP) || (trace.ent->v.flags & FL_CLIENT))
 				{
 				SetBits (ent->v.flags, FL_ONGROUND);
 				ent->v.groundentity = trace.ent;
@@ -628,7 +661,8 @@ int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 		SV_Impact (ent, trace.ent, &trace);
 
 		// break if removed by the impact function
-		if (ent->free) break;
+		if (ent->free)
+			break;
 
 		time_left -= time_left * trace.fraction;
 
@@ -698,10 +732,9 @@ int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 /*
 ============
 SV_AddGravity
-
 ============
 */
-void SV_AddGravity (edict_t *ent)
+static void SV_AddGravity (edict_t *ent)
 	{
 	float	ent_gravity;
 
@@ -733,10 +766,9 @@ SV_AllowPushRotate
 Allows to change entity yaw?
 ============
 */
-qboolean SV_AllowPushRotate (edict_t *ent)
+static qboolean SV_AllowPushRotate (edict_t *ent)
 	{
 	model_t *mod;
-
 	mod = SV_ModelHandle (ent->v.modelindex);
 
 	if (!mod || (mod->type != mod_brush))
@@ -758,30 +790,30 @@ SV_PushEntity
 Does not change the entities velocity at all
 ============
 */
-trace_t SV_PushEntity (edict_t *ent, const vec3_t lpush, const vec3_t apush, int *blocked, float flDamage)
+static trace_t SV_PushEntity (edict_t *ent, const vec3_t lpush, const vec3_t apush, int *blocked, float flDamage)
 	{
-	trace_t	trace;
+	trace_t		trace;
 	qboolean	monsterBlock;
 	qboolean	monsterClip;
-	int	type;
-	vec3_t	end;
+	int			type;
+	vec3_t		end;
 
 	monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
 	VectorAdd (ent->v.origin, lpush, end);
 
 	if (ent->v.movetype == MOVETYPE_FLYMISSILE)
 		type = MOVE_MISSILE;
-	else if (ent->v.solid == SOLID_TRIGGER || ent->v.solid == SOLID_NOT)
+	else if ((ent->v.solid == SOLID_TRIGGER) || (ent->v.solid == SOLID_NOT))
 		type = MOVE_NOMONSTERS; // only clip against bmodels
-	else type = MOVE_NORMAL;
+	else
+		type = MOVE_NORMAL;
 
 	trace = SV_Move (ent->v.origin, ent->v.mins, ent->v.maxs, end, type, ent, monsterClip);
-
 	if (trace.fraction != 0.0f)
 		{
 		VectorCopy (trace.endpos, ent->v.origin);
 
-		if (sv.state == ss_active && apush[YAW] && (ent->v.flags & FL_CLIENT))
+		if ((sv.state == ss_active) && apush[YAW] && (ent->v.flags & FL_CLIENT))
 			{
 			ent->v.avelocity[1] += apush[1];
 			ent->v.fixangle = 2;
@@ -794,16 +826,19 @@ trace_t SV_PushEntity (edict_t *ent, const vec3_t lpush, const vec3_t apush, int
 
 	SV_LinkEdict (ent, true);
 
-	if (ent->v.movetype == MOVETYPE_WALK || ent->v.movetype == MOVETYPE_STEP || ent->v.movetype == MOVETYPE_PUSHSTEP)
+	if ((ent->v.movetype == MOVETYPE_WALK) || (ent->v.movetype == MOVETYPE_STEP) ||
+		(ent->v.movetype == MOVETYPE_PUSHSTEP))
 		monsterBlock = true;
-	else monsterBlock = false;
+	else
+		monsterBlock = false;
 
 	if (blocked)
 		{
 		// more accuracy blocking code
 		if (monsterBlock)
 			*blocked = !VectorCompareEpsilon (ent->v.origin, end, ON_EPSILON); // can't move full distance
-		else *blocked = true;
+		else
+			*blocked = true;
 		}
 
 	// so we can run impact function afterwards.
@@ -820,7 +855,7 @@ SV_CanPushed
 filter entities for push
 ============
 */
-qboolean SV_CanPushed (edict_t *ent)
+static qboolean SV_CanPushed (edict_t *ent)
 	{
 	// filter movetypes to collide with
 	switch (ent->v.movetype)
@@ -847,7 +882,7 @@ static qboolean SV_CanBlock (edict_t *ent)
 	if (ent->v.mins[0] == ent->v.maxs[0])
 		return false;
 
-	if (ent->v.solid == SOLID_NOT || ent->v.solid == SOLID_TRIGGER)
+	if ((ent->v.solid == SOLID_NOT) || (ent->v.solid == SOLID_TRIGGER))
 		{
 		// clear bounds for deadbody
 		ent->v.mins[0] = ent->v.mins[1] = 0;
@@ -861,7 +896,6 @@ static qboolean SV_CanBlock (edict_t *ent)
 /*
 ============
 SV_PushMove
-
 ============
 */
 static edict_t *SV_PushMove (edict_t *pusher, float movetime)
@@ -978,7 +1012,6 @@ static edict_t *SV_PushMove (edict_t *pusher, float movetime)
 /*
 ============
 SV_PushRotate
-
 ============
 */
 static edict_t *SV_PushRotate (edict_t *pusher, float movetime)
@@ -1116,10 +1149,9 @@ static edict_t *SV_PushRotate (edict_t *pusher, float movetime)
 /*
 ================
 SV_Physics_Pusher
-
 ================
 */
-void SV_Physics_Pusher (edict_t *ent)
+static void SV_Physics_Pusher (edict_t *ent)
 	{
 	float	oldtime, oldtime2;
 	float	thinktime, movetime;
@@ -1133,9 +1165,13 @@ void SV_Physics_Pusher (edict_t *ent)
 	if (thinktime < oldtime + sv.frametime)
 		{
 		movetime = thinktime - oldtime;
-		if (movetime < 0.0f) movetime = 0.0f;
+		if (movetime < 0.0f)
+			movetime = 0.0f;
 		}
-	else movetime = sv.frametime;
+	else
+		{
+		movetime = sv.frametime;
+		}
 
 	if (movetime)
 		{
@@ -1169,7 +1205,8 @@ void SV_Physics_Pusher (edict_t *ent)
 
 	// if the pusher has a "blocked" function, call it
 	// otherwise, just stay in place until the obstacle is gone
-	if (pBlocker) svgame.dllFuncs.pfnBlocked (ent, pBlocker);
+	if (pBlocker)
+		svgame.dllFuncs.pfnBlocked (ent, pBlocker);
 
 	// ESHQ: исправление для десятиоборотных rot_button и mom_rot_button
 	// (± младшие разряды float, ± инерция дефектного кода mom_rot_button)
@@ -1187,7 +1224,6 @@ void SV_Physics_Pusher (edict_t *ent)
 		}
 	}
 
-// ============================================================================
 /*
 =============
 SV_Physics_Follow
@@ -1195,12 +1231,13 @@ SV_Physics_Follow
 just copy angles and origin of parent
 =============
 */
-void SV_Physics_Follow (edict_t *ent)
+static void SV_Physics_Follow (edict_t *ent)
 	{
 	edict_t *parent;
 
 	// regular thinking
-	if (!SV_RunThink (ent)) return;
+	if (!SV_RunThink (ent))
+		return;
 
 	parent = ent->v.aiment;
 
@@ -1223,12 +1260,13 @@ SV_Physics_Compound
 a glue two entities together
 =============
 */
-void SV_Physics_Compound (edict_t *ent)
+static void SV_Physics_Compound (edict_t *ent)
 	{
 	edict_t *parent;
 
 	// regular thinking
-	if (!SV_RunThink (ent)) return;
+	if (!SV_RunThink (ent))
+		return;
 
 	parent = ent->v.aiment;
 
@@ -1246,7 +1284,8 @@ void SV_Physics_Compound (edict_t *ent)
 		case MOVETYPE_PUSH:
 		case MOVETYPE_PUSHSTEP:
 			break;
-		default: return;
+		default:
+			return;
 		}
 
 	// not initialized ?
@@ -1303,10 +1342,11 @@ SV_PhysicsNoclip
 A moving object that doesn't obey physics
 =============
 */
-void SV_Physics_Noclip (edict_t *ent)
+static void SV_Physics_Noclip (edict_t *ent)
 	{
 	// regular thinking
-	if (!SV_RunThink (ent)) return;
+	if (!SV_RunThink (ent))
+		return;
 
 	SV_CheckWater (ent);
 
@@ -1319,18 +1359,15 @@ void SV_Physics_Noclip (edict_t *ent)
 
 /*
 ==============================================================================
-
 TOSS / BOUNCE
-
 ==============================================================================
 */
 /*
 =============
 SV_CheckWaterTransition
-
 =============
 */
-void SV_CheckWaterTransition (edict_t *ent)
+static void SV_CheckWaterTransition (edict_t *ent)
 	{
 	vec3_t	point;
 	int	cont;
@@ -1402,10 +1439,10 @@ void SV_CheckWaterTransition (edict_t *ent)
 =============
 SV_Physics_Toss
 
-Toss, bounce, and fly movement.  When onground, do nothing.
+Toss, bounce, and fly movement.  When onground, do nothing
 =============
 */
-void SV_Physics_Toss (edict_t *ent)
+static void SV_Physics_Toss (edict_t *ent)
 	{
 	trace_t	trace;
 	vec3_t	move;
@@ -1536,9 +1573,7 @@ void SV_Physics_Toss (edict_t *ent)
 
 /*
 ===============================================================================
-
 STEPPING MOVEMENT
-
 ===============================================================================
 */
 /*
@@ -1549,10 +1584,10 @@ Monsters freefall when they don't have a ground entity, otherwise
 all movement is done with discrete steps.
 
 This is also used for objects that have become still on the ground, but
-will fall if the floor is pulled out from under them.
+will fall if the floor is pulled out from under them
 =============
 */
-void SV_Physics_Step (edict_t *ent)
+static void SV_Physics_Step (edict_t *ent)
 	{
 	qboolean	inwater;
 	qboolean	wasonground;
@@ -1569,7 +1604,7 @@ void SV_Physics_Step (edict_t *ent)
 	wasonmover = SV_CheckMover (ent);
 	inwater = SV_CheckWater (ent);
 
-	if (FBitSet (ent->v.flags, FL_FLOAT) && ent->v.waterlevel > 0)
+	if (FBitSet (ent->v.flags, FL_FLOAT) && (ent->v.waterlevel > 0))
 		{
 		float buoyancy = SV_Submerged (ent) * ent->v.skin * sv.frametime;
 
@@ -1686,7 +1721,7 @@ SV_PhysicsNone
 Non moving objects can only think
 =============
 */
-void SV_Physics_None (edict_t *ent)
+static void SV_Physics_None (edict_t *ent)
 	{
 	SV_RunThink (ent);
 	}
@@ -1754,10 +1789,33 @@ static void SV_Physics_Entity (edict_t *ent)
 		SV_FreeEdict (ent);
 	}
 
+// [FWGS, 01.07.23]
+static void SV_RunLightStyles (void)
+	{
+	int i, ofs;
+	lightstyle_t *ls;
+	float scale;
+
+	scale = sv_lighting_modulate.value;
+
+	// run lightstyles animation
+	for (i = 0, ls = sv.lightstyles; i < MAX_LIGHTSTYLES; i++, ls++)
+		{
+		ls->time += sv.frametime;
+		ofs = (ls->time * 10);
+
+		if (ls->length == 0)
+			ls->value = scale;	// disable this light
+		else if (ls->length == 1)
+			ls->value = (ls->map[0] / 12.0f) * scale;
+		else
+			ls->value = (ls->map[ofs % ls->length] / 12.0f) * scale;
+		}
+	}
+
 /*
 ================
 SV_Physics
-
 ================
 */
 void SV_Physics (void)
@@ -1780,7 +1838,7 @@ void SV_Physics (void)
 		if (!SV_IsValidEdict (ent))
 			continue;
 
-		if (i > 0 && i <= svs.maxclients)
+		if ((i > 0) && (i <= svs.maxclients))
 			continue;
 
 		SV_Physics_Entity (ent);
@@ -1809,7 +1867,7 @@ SV_GetServerTime
 Inplementation for new physics interface
 ================
 */
-double SV_GetServerTime (void)
+static double GAME_EXPORT SV_GetServerTime (void)
 	{
 	return sv.time;
 	}
@@ -1821,7 +1879,7 @@ SV_GetFrameTime
 Inplementation for new physics interface
 ================
 */
-double SV_GetFrameTime (void)
+static double GAME_EXPORT SV_GetFrameTime (void)
 	{
 	return sv.frametime;
 	}
@@ -1833,7 +1891,7 @@ SV_GetHeadNode
 Inplementation for new physics interface
 ================
 */
-areanode_t *SV_GetHeadNode (void)
+static areanode_t *GAME_EXPORT SV_GetHeadNode (void)
 	{
 	return sv_areanodes;
 	}
@@ -1845,7 +1903,7 @@ SV_ServerState
 Inplementation for new physics interface
 ================
 */
-int SV_ServerState (void)
+static int GAME_EXPORT SV_ServerState (void)
 	{
 	return sv.state;
 	}
@@ -1870,19 +1928,8 @@ void SV_DrawDebugTriangles (void)
 
 	if (svgame.physFuncs.DrawDebugTriangles != NULL)
 		{
-#if 0
-		// debug draws only
-		pglDisable (GL_BLEND);
-		pglDepthMask (GL_FALSE);
-		pglDisable (GL_TEXTURE_2D);
-#endif
 		// draw wireframe overlay
 		svgame.physFuncs.DrawDebugTriangles ();
-#if 0
-		pglEnable (GL_TEXTURE_2D);
-		pglDepthMask (GL_TRUE);
-		pglEnable (GL_BLEND);
-#endif
 		}
 	}
 
@@ -1905,7 +1952,26 @@ void SV_DrawOrthoTriangles (void)
 		}
 	}
 
-void SV_UpdateFogSettings (unsigned int packed_fog)
+/*void SV_UpdateFogSettings (unsigned int packed_fog)*/
+/*
+==================
+SV_GetLightStyle [FWGS, 01.07.23]
+
+needs to get correct working SV_LightPoint
+==================
+*/
+const char *GAME_EXPORT SV_GetLightStyle (int style)
+	{
+	if (style < 0)
+		style = 0;
+	if (style >= MAX_LIGHTSTYLES)
+		Host_Error ("SV_GetLightStyle: style: %i >= %d", style, MAX_LIGHTSTYLES);
+
+	return sv.lightstyles[style].pattern;
+	}
+
+// [FWGS, 01.07.23]
+static void GAME_EXPORT SV_UpdateFogSettings (unsigned int packed_fog)
 	{
 	svgame.movevars.fog_settings = packed_fog;
 	host.movevars_changed = true; // force to transmit
@@ -1914,49 +1980,52 @@ void SV_UpdateFogSettings (unsigned int packed_fog)
 /*
 =========
 pfnGetFilesList
-
 =========
 */
-static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
+static char **GAME_EXPORT pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
 	{
 	static search_t *t = NULL;
 
-	if (t) Mem_Free (t); // release prev search
+	if (t)
+		Mem_Free (t); // release prev search
 
 	t = FS_Search (pattern, true, gamedironly);
 
 	if (!t)
 		{
-		if (numFiles) *numFiles = 0;
+		if (numFiles)
+			*numFiles = 0;
 		return NULL;
 		}
 
-	if (numFiles) *numFiles = t->numfilenames;
+	if (numFiles)
+		*numFiles = t->numfilenames;
 	return t->filenames;
 	}
 
-static void *pfnMem_Alloc (size_t cb, const char *filename, const int fileline)
+static void *GAME_EXPORT pfnMem_Alloc (size_t cb, const char *filename, const int fileline)
 	{
 	return _Mem_Alloc (svgame.mempool, cb, true, filename, fileline);
 	}
 
-static void pfnMem_Free (void *mem, const char *filename, const int fileline)
+static void GAME_EXPORT pfnMem_Free (void *mem, const char *filename, const int fileline)
 	{
-	if (!mem) return;
+	if (!mem)
+		return;
 	_Mem_Free (mem, filename, fileline);
 	}
 
 /*
 =============
 pfnPointContents
-
 =============
 */
 static int GAME_EXPORT pfnPointContents (const float *pos, int groupmask)
 	{
 	int	oldmask, cont;
 
-	if (!pos) return CONTENTS_NONE;
+	if (!pos)
+		return CONTENTS_NONE;
 	oldmask = svs.groupmask;
 
 	svs.groupmask = groupmask;
@@ -1966,36 +2035,65 @@ static int GAME_EXPORT pfnPointContents (const float *pos, int groupmask)
 	return cont;
 	}
 
-const byte *pfnLoadImagePixels (const char *filename, int *width, int *height)
+/*const byte *pfnLoadImagePixels (const char *filename, int *width, int *height)*/
+
+// [FWGS, 01.07.23]
+static trace_t GAME_EXPORT SV_MoveNormal (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
+	int type, edict_t *e)
+	{
+	return SV_Move (start, mins, maxs, end, type, e, false);
+	}
+
+/*
+=============
+pfnWriteBytes [FWGS, 01.07.23]
+=============
+*/
+static void GAME_EXPORT pfnWriteBytes (const byte *bytes, int count)
+	{
+	MSG_WriteBytes (&sv.multicast, bytes, count);
+
+	if (svgame.msg_trace)
+		Con_Printf ("\t^3%s( %i )\n", __FUNCTION__, count);
+
+	svgame.msg_realsize += count;
+	}
+
+// [FWGS, 01.07.23]
+static const byte *GAME_EXPORT pfnLoadImagePixels (const char *filename, int *width, int *height)
 	{
 	rgbdata_t *pic = FS_LoadImage (filename, NULL, 0);
 	byte *buffer;
 
-	if (!pic) return NULL;
+	if (!pic)
+		return NULL;
 
 	buffer = Mem_Malloc (svgame.mempool, pic->size);
-	if (buffer) memcpy (buffer, pic->buffer, pic->size);
-	if (width) *width = pic->width;
-	if (height) *height = pic->height;
-	FS_FreeImage (pic);
+	if (buffer)
+		memcpy (buffer, pic->buffer, pic->size);
+	if (width)
+		*width = pic->width;
+	if (height)
+		*height = pic->height;
 
+	FS_FreeImage (pic);
 	return buffer;
 	}
 
-const char *pfnGetModelName (int modelindex)
+static const char *GAME_EXPORT pfnGetModelName (int modelindex)
 	{
-	if (modelindex < 0 || modelindex >= MAX_MODELS)
+	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
 		return NULL;
 	return sv.model_precache[modelindex];
 	}
 
-static const byte *GL_TextureData (unsigned int texnum)
+static const byte *GAME_EXPORT GL_TextureData (unsigned int texnum)
 	{
 #if !XASH_DEDICATED
 	return Host_IsDedicated () ? NULL : ref.dllFuncs.GL_TextureData (texnum);
-#else // XASH_DEDICATED
+#else
 	return NULL;
-#endif // XASH_DEDICATED
+#endif
 	}
 
 static server_physics_api_t gPhysicsAPI =

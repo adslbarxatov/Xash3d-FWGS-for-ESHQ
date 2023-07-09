@@ -21,6 +21,7 @@ GNU General Public License for more details.
 #include "studio.h"
 
 static qboolean has_update = false;
+static void SV_GetTrueOrigin (sv_client_t *cl, int edictnum, vec3_t origin);	// [FWGS, 01.07.23]
 
 // [FWGS, 01.04.23] удалена SV_ClearPhysEnts
 
@@ -54,7 +55,7 @@ void SV_ClipPMoveToEntity (physent_t *pe, const vec3_t start, vec3_t mins, vec3_
 		}
 	}
 
-qboolean SV_CopyEdictToPhysEnt (physent_t *pe, edict_t *ed)
+static qboolean SV_CopyEdictToPhysEnt (physent_t *pe, edict_t *ed)
 	{
 	model_t *mod = SV_ModelHandle (ed->v.modelindex);
 
@@ -148,7 +149,7 @@ qboolean SV_CopyEdictToPhysEnt (physent_t *pe, edict_t *ed)
 	return true;
 	}
 
-qboolean SV_ShouldUnlagForPlayer (sv_client_t *cl)
+static qboolean SV_ShouldUnlagForPlayer (sv_client_t *cl)
 	{
 	// can't unlag in singleplayer
 	if (svs.maxclients <= 1)
@@ -168,24 +169,24 @@ qboolean SV_ShouldUnlagForPlayer (sv_client_t *cl)
 	return true;
 	}
 
-void SV_GetTrueOrigin (sv_client_t *cl, int edictnum, vec3_t origin)
+static void SV_GetTrueOrigin (sv_client_t *cl, int edictnum, vec3_t origin)
 	{
 	if (!SV_ShouldUnlagForPlayer (cl))
 		return;
 
-	if (edictnum < 1 || edictnum > svs.maxclients)
+	if ((edictnum < 1) || (edictnum > svs.maxclients))
 		return;
 
 	if (svgame.interp[edictnum - 1].active && svgame.interp[edictnum - 1].moving)
 		VectorCopy (svgame.interp[edictnum - 1].oldpos, origin);
 	}
 
-void SV_GetTrueMinMax (sv_client_t *cl, int edictnum, vec3_t mins, vec3_t maxs)
+static void SV_GetTrueMinMax (sv_client_t *cl, int edictnum, vec3_t mins, vec3_t maxs)
 	{
 	if (!SV_ShouldUnlagForPlayer (cl))
 		return;
 
-	if (edictnum < 1 || edictnum > svs.maxclients)
+	if ((edictnum < 1) || (edictnum > svs.maxclients))
 		return;
 
 	if (svgame.interp[edictnum - 1].active && svgame.interp[edictnum - 1].moving)
@@ -202,12 +203,12 @@ SV_AddLinksToPmove
 collect solid entities
 ====================
 */
-void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t pmove_maxs)
+static void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t pmove_maxs)
 	{
-	link_t *l, *next;
-	edict_t *check, *pl;
+	link_t	*l, *next;
+	edict_t	*check, *pl;
 	vec3_t	mins, maxs;
-	physent_t *pe;
+	physent_t	*pe;
 
 	pl = EDICT_NUM (svgame.pmove->player_index + 1);
 	Assert (SV_IsValidEdict (pl));
@@ -297,7 +298,7 @@ void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t
 SV_AddLaddersToPmove
 ====================
 */
-void SV_AddLaddersToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t pmove_maxs)
+static void SV_AddLaddersToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t pmove_maxs)
 	{
 	link_t *l, *next;
 	edict_t *check;
@@ -391,12 +392,12 @@ static pmtrace_t GAME_EXPORT pfnPlayerTrace (float *start, float *end, int trace
 	}
 
 // [FWGS, 01.04.23]
-static pmtrace_t *pfnTraceLine (float *start, float *end, int flags, int usehull, int ignore_pe)
+static pmtrace_t *GAME_EXPORT pfnTraceLine (float *start, float *end, int flags, int usehull, int ignore_pe)
 	{
 	return PM_TraceLine (svgame.pmove, start, end, flags, usehull, ignore_pe);
 	}
 
-static hull_t *pfnHullForBsp (physent_t *pe, float *offset)
+static hull_t *GAME_EXPORT pfnHullForBsp (physent_t *pe, float *offset)
 	{
 	return PM_HullForBsp (pe, svgame.pmove, offset);
 	}
@@ -408,7 +409,7 @@ static float GAME_EXPORT pfnTraceModel (physent_t *pe, float *start, float *end,
 	}
 
 // [FWGS, 01.04.23]
-static const char *pfnTraceTexture (int ground, float *vstart, float *vend)
+static const char *GAME_EXPORT pfnTraceTexture (int ground, float *vstart, float *vend)
 	{
 	return PM_TraceTexture (svgame.pmove, ground, vstart, vend);
 	}
@@ -454,13 +455,13 @@ static int GAME_EXPORT pfnTestPlayerPositionEx (float *pos, pmtrace_t *ptrace, p
 	}
 
 // [FWGS, 01.04.23]
-static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
+static pmtrace_t *GAME_EXPORT pfnTraceLineEx (float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
 	{
 	return PM_TraceLineEx (svgame.pmove, start, end, flags, usehull, pmFilter);
 	}
 
 // [FWGS, 01.04.23]
-static struct msurface_s *pfnTraceSurface (int ground, float *vstart, float *vend)
+static struct msurface_s *GAME_EXPORT pfnTraceSurface (int ground, float *vstart, float *vend)
 	{
 	return PM_TraceSurfacePmove (svgame.pmove, ground, vstart, vend);
 	}
@@ -703,7 +704,7 @@ static void SV_FinishPMove (playermove_t *pmove, sv_client_t *cl)
 	pmove->runfuncs = false;
 	}
 
-entity_state_t *SV_FindEntInPack (int index, client_frame_t *frame)
+static entity_state_t *SV_FindEntInPack (int index, client_frame_t *frame)
 	{
 	entity_state_t *state;
 	int		i;
@@ -718,7 +719,7 @@ entity_state_t *SV_FindEntInPack (int index, client_frame_t *frame)
 	return NULL;
 	}
 
-qboolean SV_UnlagCheckTeleport (vec3_t old_pos, vec3_t new_pos)
+static qboolean SV_UnlagCheckTeleport (vec3_t old_pos, vec3_t new_pos)
 	{
 	int	i;
 
@@ -730,16 +731,16 @@ qboolean SV_UnlagCheckTeleport (vec3_t old_pos, vec3_t new_pos)
 	return false;
 	}
 
-void SV_SetupMoveInterpolant (sv_client_t *cl)
+static void SV_SetupMoveInterpolant (sv_client_t *cl)
 	{
-	int		i, j, clientnum;
+	int			i, j, clientnum;
 	float		finalpush, lerp_msec;
 	float		latency, lerpFrac;
-	client_frame_t *frame, *frame2;
-	entity_state_t *state, *lerpstate;
+	client_frame_t	*frame, *frame2;
+	entity_state_t	*state, *lerpstate;
 	vec3_t		curpos, newpos;
-	sv_client_t *check;
-	sv_interp_t *lerp;
+	sv_client_t	*check;
+	sv_interp_t	*lerp;
 
 	memset (svgame.interp, 0, sizeof (svgame.interp));
 	has_update = false;
@@ -751,7 +752,7 @@ void SV_SetupMoveInterpolant (sv_client_t *cl)
 
 	for (i = 0, check = svs.clients; i < svs.maxclients; i++, check++)
 		{
-		if (check->state != cs_spawned || check == cl)
+		if ((check->state != cs_spawned) || (check == cl))
 			continue;
 
 		lerp = &svgame.interp[i];
@@ -804,7 +805,10 @@ void SV_SetupMoveInterpolant (sv_client_t *cl)
 				if (SV_UnlagCheckTeleport (state->origin, lerp->finalpos))
 					lerp->nointerp = true;
 				}
-			else lerp->firstframe = true;
+			else
+				{
+				lerp->firstframe = true;
+				}
 
 			VectorCopy (state->origin, lerp->finalpos);
 			}
@@ -813,7 +817,7 @@ void SV_SetupMoveInterpolant (sv_client_t *cl)
 			break;
 		}
 
-	if (i == SV_UPDATE_BACKUP || finalpush - frame->senttime > 1.0f)
+	if ((i == SV_UPDATE_BACKUP) || (finalpush - frame->senttime > 1.0f))
 		{
 		memset (svgame.interp, 0, sizeof (svgame.interp));
 		has_update = false;
@@ -842,13 +846,13 @@ void SV_SetupMoveInterpolant (sv_client_t *cl)
 		{
 		state = &svs.packet_entities[(frame->first_entity + i) % svs.num_client_entities];
 
-		if (state->number < 1 || state->number > svs.maxclients)
+		if ((state->number < 1) || (state->number > svs.maxclients))
 			continue;
 
 		clientnum = state->number - 1;
 		check = &svs.clients[clientnum];
 
-		if (check->state != cs_spawned || check == cl)
+		if ((check->state != cs_spawned) || (check == cl))
 			continue;
 
 		lerp = &svgame.interp[clientnum];
@@ -880,7 +884,7 @@ void SV_SetupMoveInterpolant (sv_client_t *cl)
 		}
 	}
 
-void SV_RestoreMoveInterpolant (sv_client_t *cl)
+static void SV_RestoreMoveInterpolant (sv_client_t *cl)
 	{
 	sv_client_t *check;
 	sv_interp_t *oldlerp;
@@ -897,13 +901,13 @@ void SV_RestoreMoveInterpolant (sv_client_t *cl)
 
 	for (i = 0, check = svs.clients; i < svs.maxclients; i++, check++)
 		{
-		if (check->state != cs_spawned || check == cl)
+		if ((check->state != cs_spawned) || (check == cl))
 			continue;
 
 		oldlerp = &svgame.interp[i];
 
 		if (VectorCompareEpsilon (oldlerp->oldpos, oldlerp->newpos, ON_EPSILON))
-			continue; // they didn't actually move.
+			continue;	// they didn't actually move
 
 		if (!oldlerp->moving || !oldlerp->active)
 			continue;
@@ -918,29 +922,42 @@ void SV_RestoreMoveInterpolant (sv_client_t *cl)
 
 /*
 ===========
-SV_RunCmd
+SV_RunCmd [FWGS, 01.07.23]
 ===========
 */
 void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 	{
 	edict_t *clent, *touch;
-	double	frametime;
-	int	i, oldmsec;
+	double		frametime;
+	int			i, oldmsec;
 	pmtrace_t *pmtrace;
-	trace_t	trace;
-	vec3_t	oldvel;
-	usercmd_t cmd;
+	trace_t		trace;
+	vec3_t		oldvel;
+	usercmd_t	cmd;
 
 	clent = cl->edict;
 	cmd = *ucmd;
 
 	if (cl->ignorecmdtime > host.realtime)
 		{
+		if (!cl->ignorecmdtime_warned && !FBitSet (cl->flags, FCL_FAKECLIENT))
+			{
+			// report to server op
+			Con_Reportf (S_WARN "%s time is faster than server time (speed hack?)\n", cl->name);
+			cl->ignorecmdtime_warned = true;
+			cl->ignorecmdtime_warns++;
+
+			// automatically kick player
+			if (sv_speedhack_kick.value && cl->ignorecmdtime_warns > sv_speedhack_kick.value)
+				SV_KickPlayer (cl, "Speed hacks aren't allowed on this server");
+			}
+
 		cl->cmdtime += ((double)ucmd->msec / 1000.0);
 		return;
 		}
 
 	cl->ignorecmdtime = 0.0;
+	cl->ignorecmdtime_warned = false;
 
 	// chop up very long commands
 	if (cmd.msec > 50)
