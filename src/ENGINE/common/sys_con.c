@@ -34,8 +34,8 @@ GNU General Public License for more details.
 #if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
 #define XASH_COLORIZE_CONSOLE true
 // use with caution, running engine in Qt Creator may cause a freeze in read() call
-// I was never encountered this bug anywhere else, so still enable by default
-// #define XASH_USE_SELECT 1
+// I have never encountered this bug anywhere else, so still enable by default
+#define XASH_USE_SELECT 1	// [FWGS, 01.07.23]
 #else
 #define XASH_COLORIZE_CONSOLE false
 #endif
@@ -48,9 +48,9 @@ GNU General Public License for more details.
 typedef struct
 	{
 	char		title[64];
-	qboolean		log_active;
+	qboolean	log_active;
 	char		log_path[MAX_SYSPATH];
-	FILE *logfile;
+	FILE		*logfile;
 	int 		logfileno;
 	} LogData;
 
@@ -59,35 +59,38 @@ static LogData s_ld;
 char *Sys_Input (void)
 	{
 #if XASH_USE_SELECT
+	if (Host_IsDedicated ())	// [FWGS, 01.07.23]
+		{
+		fd_set rfds;
+		static char line[1024];
+		static int len;
+		struct timeval tv;
+
+		tv.tv_sec = 0;
+		tv.tv_usec = 0;
+		FD_ZERO (&rfds);
+		FD_SET (0, &rfds); // stdin
+		while (select (1, &rfds, NULL, NULL, &tv) > 0)
 			{
-			fd_set rfds;
-			static char line[1024];
-			static int len;
-			struct timeval tv;
+			if (read (0, &line[len], 1) != 1)
+				break;
+			if (line[len] == '\n' || len > 1022)
+				{
+				line[++len] = 0;
+				len = 0;
+				return line;
+				}
+			len++;
 			tv.tv_sec = 0;
 			tv.tv_usec = 0;
-			FD_ZERO (&rfds);
-			FD_SET (0, &rfds); // stdin
-			while (select (1, &rfds, NULL, NULL, &tv) > 0)
-				{
-				if (read (0, &line[len], 1) != 1)
-					break;
-				if (line[len] == '\n' || len > 1022)
-					{
-					line[++len] = 0;
-					len = 0;
-					return line;
-					}
-				len++;
-				tv.tv_sec = 0;
-				tv.tv_usec = 0;
-				}
 			}
+		}
 #endif
+
 #if XASH_WIN32
-			return Wcon_Input ();
+	return Wcon_Input ();
 #endif
-			return NULL;
+	return NULL;
 	}
 
 void Sys_DestroyConsole (void)
@@ -101,9 +104,7 @@ void Sys_DestroyConsole (void)
 
 /*
 ===============================================================================
-
 SYSTEM LOG
-
 ===============================================================================
 */
 int Sys_LogFileNo (void)

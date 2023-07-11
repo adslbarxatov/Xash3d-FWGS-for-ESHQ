@@ -38,7 +38,6 @@ static struct
 /*
 =============
 Platform_GetMousePos
-
 =============
 */
 void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
@@ -49,7 +48,6 @@ void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 /*
 =============
 Platform_SetMousePos
-
 ============
 */
 void GAME_EXPORT Platform_SetMousePos (int x, int y)
@@ -60,7 +58,6 @@ void GAME_EXPORT Platform_SetMousePos (int x, int y)
 /*
 ========================
 Platform_MouseMove
-
 ========================
 */
 void Platform_MouseMove (float *x, float *y)
@@ -74,7 +71,6 @@ void Platform_MouseMove (float *x, float *y)
 /*
 =============
 Platform_GetClipobardText
-
 =============
 */
 int Platform_GetClipboardText (char *buffer, size_t size)
@@ -96,16 +92,15 @@ int Platform_GetClipboardText (char *buffer, size_t size)
 		}
 	SDL_free (sdlbuffer);
 	return textLength;
-#else // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#else
 	buffer[0] = 0;
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#endif
 	return 0;
 	}
 
 /*
 =============
 Platform_SetClipobardText
-
 =============
 */
 void Platform_SetClipboardText (const char *buffer)
@@ -117,13 +112,15 @@ void Platform_SetClipboardText (const char *buffer)
 
 /*
 =============
-Platform_Vibrate [FWGS, 01.04.23]
+Platform_Vibrate [FWGS, 01.07.23]
 =============
 */
 void Platform_Vibrate (float time, char flags)
 	{
+#if SDL_VERSION_ATLEAST( 2, 0, 9 )
 	if (g_joy)
 		SDL_JoystickRumble (g_joy, 0xFFFF, 0xFFFF, time * 1000.0f);
+#endif
 	}
 
 // [FWGS, 01.04.23]
@@ -212,7 +209,6 @@ static int SDLash_JoyInit_Old (int numjoy)
 /*
 =============
 SDLash_JoyInit_New
-
 =============
 */
 static int SDLash_JoyInit_New (int numjoy)
@@ -237,12 +233,11 @@ static int SDLash_JoyInit_New (int numjoy)
 
 	return count;
 	}
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#endif
 
 /*
 =============
 Platform_JoyInit
-
 =============
 */
 int Platform_JoyInit (int numjoy)
@@ -259,7 +254,6 @@ int Platform_JoyInit (int numjoy)
 /*
 ========================
 SDLash_InitCursors
-
 ========================
 */
 void SDLash_InitCursors (void)
@@ -289,7 +283,6 @@ void SDLash_InitCursors (void)
 /*
 ========================
 SDLash_FreeCursors
-
 ========================
 */
 void SDLash_FreeCursors (void)
@@ -403,4 +396,4 @@ key_modifier_t Platform_GetKeyModifiers (void)
 #endif
 	}
 
-#endif // XASH_DEDICATED
+#endif

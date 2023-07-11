@@ -21,22 +21,24 @@ GNU General Public License for more details.
 #include "voice.h"
 
 #include <SDL.h>
+#include <stdlib.h>	// [FWGS, 01.07.23]
 
 #define SAMPLE_16BIT_SHIFT 1
 #define SECONDARY_BUFFER_SIZE 0x10000
 
+// [FWGS, 01.07.23]
 #if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
-#include <stdlib.h>
-#define SDL_setenv setenv
-#define SDL_GetCurrentAudioDriver() "legacysdl"
-#define SDL_OpenAudioDevice( a, b, c, d, e ) SDL_OpenAudio( ( c ), ( d ) )
-#define SDL_CloseAudioDevice( a ) SDL_CloseAudio()
-#define SDL_PauseAudioDevice( a, b ) SDL_PauseAudio( ( b ) )
-#define SDL_LockAudioDevice( x ) SDL_LockAudio()
-#define SDL_UnlockAudioDevice( x ) SDL_UnlockAudio()
-#define SDLash_IsAudioError( x ) (( x ) != 0)
+	/*#include <stdlib.h>
+	#define SDL_setenv setenv*/
+	#define SDL_GetCurrentAudioDriver() "legacysdl"
+	#define SDL_OpenAudioDevice( a, b, c, d, e ) SDL_OpenAudio( ( c ), ( d ) )
+	#define SDL_CloseAudioDevice( a ) SDL_CloseAudio()
+	#define SDL_PauseAudioDevice( a, b ) SDL_PauseAudio( ( b ) )
+	#define SDL_LockAudioDevice( x ) SDL_LockAudio()
+	#define SDL_UnlockAudioDevice( x ) SDL_UnlockAudio()
+	#define SDLash_IsAudioError( x ) (( x ) != 0)
 #else
-#define SDLash_IsAudioError( x ) (( x ) == 0)
+	#define SDLash_IsAudioError( x ) (( x ) == 0)
 #endif
 
 /*
@@ -50,17 +52,29 @@ static SDL_AudioDeviceID in_dev = 0;
 static SDL_AudioFormat sdl_format;
 static char sdl_backend_name[32];
 
+// [FWGS, 01.07.23]
 void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 	{
-	int size = dma.samples << 1;
+	/*int size = dma.samples << 1;
 	int pos = dma.samplepos << 1;
-	int wrapped = pos + len - size;
+	int wrapped = pos + len - size;*/
+	const int size = dma.samples << 1;
+	int pos;
+	int wrapped;
 
 #if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
 	if (!dma.buffer)
+		{
+		memset (stream, 0, len);
 		return;
+		}
 #endif
 
+	pos = dma.samplepos << 1;
+	if (pos >= size)
+		pos = dma.samplepos = 0;
+
+	wrapped = pos + len - size;
 	if (wrapped < 0)
 		{
 		memcpy (stream, dma.buffer + pos, len);
@@ -73,11 +87,14 @@ void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 		memcpy (stream + remaining, dma.buffer, wrapped);
 		dma.samplepos = wrapped >> 1;
 		}
+
+	if (dma.samplepos >= size)
+		dma.samplepos = 0;
 	}
 
 /*
 ==================
-SNDDMA_Init
+SNDDMA_Init [FWGS, 01.07.23]
 
 Try to find a sound device to mix for.
 Returns false if nothing is found.
@@ -88,16 +105,22 @@ qboolean SNDDMA_Init (void)
 	SDL_AudioSpec desired, obtained;
 	int samplecount;
 
-	if (SDL_Init (SDL_INIT_AUDIO))
+	/*if (SDL_Init (SDL_INIT_AUDIO))
 		{
 		Con_Reportf (S_ERROR  "Audio: SDL: %s \n", SDL_GetError ());
 		return false;
-		}
+		}*/
 
 	// even if we don't have PA
 	// we still can safely set env variables
 	SDL_setenv ("PULSE_PROP_application.name", GI->title, 1);
 	SDL_setenv ("PULSE_PROP_media.role", "game", 1);
+
+	if (SDL_Init (SDL_INIT_AUDIO))
+		{
+		Con_Reportf (S_ERROR "Audio: SDL: %s \n", SDL_GetError ());
+		return false;
+		}
 
 	memset (&desired, 0, sizeof (desired));
 	desired.freq = SOUND_DMA_SPEED;
@@ -155,18 +178,19 @@ fail:
 
 /*
 ==============
-SNDDMA_BeginPainting
+SNDDMA_BeginPainting [FWGS, 01.07.23]
 
 Makes sure dma.buffer is valid
 ===============
 */
 void SNDDMA_BeginPainting (void)
 	{
+	SDL_LockAudioDevice (sdl_dev);
 	}
 
 /*
 ==============
-SNDDMA_Submit
+SNDDMA_Submit [FWGS, 01.07.23]
 
 Send sound to device if buffer isn't really the dma buffer
 Also unlocks the dsound buffer
@@ -174,6 +198,7 @@ Also unlocks the dsound buffer
 */
 void SNDDMA_Submit (void)
 	{
+	SDL_UnlockAudioDevice (sdl_dev);
 	}
 
 /*

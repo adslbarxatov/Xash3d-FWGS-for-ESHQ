@@ -70,7 +70,7 @@ qboolean SV_CheckID (const char *id)
 		int len1 = Q_strlen (id), len2 = Q_strlen (filter->id);
 		int len = Q_min (len1, len2);
 
-		while (filter->endTime && host.realtime > filter->endTime)
+		while (filter->endTime && (host.realtime > filter->endTime))
 			{
 			char *fid = filter->id;
 			filter = filter->next;
@@ -131,7 +131,7 @@ static void SV_BanID_f (void)
 
 		len = Q_strlen (id);
 
-		for (i = 0; i < sv_maxclients->value; i++)
+		for (i = 0; i < sv_maxclients.value; i++)
 			{
 			if (FBitSet (svs.clients[i].flags, FCL_FAKECLIENT))
 				continue;
@@ -194,7 +194,7 @@ static void SV_RemoveID_f (void)
 		{
 		int num = Q_atoi (id + 1);
 
-		if ((num >= sv_maxclients->value) || (num < 0))
+		if ((num >= sv_maxclients.value) || (num < 0))
 			return;
 
 		id = Info_ValueForKey (svs.clients[num].useragent, "uuid");

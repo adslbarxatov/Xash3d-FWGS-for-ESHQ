@@ -855,7 +855,7 @@ void SV_SendClientMessages (void)
 		{
 		cl = sv.current_client;
 
-		if (cl->state <= cs_zombie || FBitSet (cl->flags, FCL_FAKECLIENT))
+		if ((cl->state <= cs_zombie) || FBitSet (cl->flags, FCL_FAKECLIENT))
 			continue;
 
 		if (FBitSet (cl->flags, FCL_SKIP_NET_MESSAGE))
@@ -864,13 +864,13 @@ void SV_SendClientMessages (void)
 			continue;
 			}
 
-		if (!host_limitlocal->value && NET_IsLocalAddress (cl->netchan.remote_address))
+		if (!host_limitlocal.value && NET_IsLocalAddress (cl->netchan.remote_address))
 			SetBits (cl->flags, FCL_SEND_NET_MESSAGE);
 
 		if (cl->state == cs_spawned)
 			{
 			// Try to send a message as soon as we can.
-			// If the target time for sending is within the next frame interval ( based on last frame ),
+			// If the target time for sending is within the next frame interval (based on last frame),
 			// trigger the send now. Note that in single player,
 			// FCL_SEND_NET_MESSAGE flag is also set any time a packet arrives from the client.
 			time_until_next_message = cl->next_messagetime - (host.realtime + sv.frametime);

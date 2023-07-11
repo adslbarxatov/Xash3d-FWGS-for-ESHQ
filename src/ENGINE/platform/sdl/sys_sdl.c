@@ -37,16 +37,19 @@ void Platform_Sleep (int msec)
 	{
 	SDL_Delay (msec);
 	}
-#endif // XASH_TIMER == TIMER_SDL
+#endif
 
 #if XASH_MESSAGEBOX == MSGBOX_SDL
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow)
 	{
 	SDL_ShowSimpleMessageBox (SDL_MESSAGEBOX_ERROR, title, message, parentMainWindow ? host.hWnd : NULL);
 	}
-#endif // XASH_MESSAGEBOX == MSGBOX_SDL
-void Posix_Daemonize (void);
-void Platform_Init (void)
+#endif
+
+// [FWGS, 01.07.23]
+/*void Posix_Daemonize (void);
+void Platform_Init (void)*/
+void SDLash_Init (void)
 	{
 #ifndef SDL_INIT_EVENTS
 #define SDL_INIT_EVENTS 0
@@ -63,29 +66,31 @@ void Platform_Init (void)
 	SDL_StopTextInput ();
 #endif
 
-#if XASH_WIN32
-	Wcon_CreateConsole (); // system console used by dedicated server or show fatal errors
-#elif XASH_POSIX
-	Posix_Daemonize ();
-#if XASH_PSVITA
-	PSVita_Init ();
-#elif XASH_NSWITCH
-	NSwitch_Init (); 
-#endif
-#endif
+	/*#if XASH_WIN32
+		Wcon_CreateConsole (); // system console used by dedicated server or show fatal errors
+	#elif XASH_POSIX
+		Posix_Daemonize ();
+	#if XASH_PSVITA
+		PSVita_Init ();
+	#elif XASH_NSWITCH
+		NSwitch_Init ();
+	#endif
+	#endif*/
 
 	SDLash_InitCursors ();
 	}
 
-void Platform_Shutdown (void)
+// [FWGS, 01.07.23]
+/*void Platform_Shutdown (void)*/
+void SDLash_Shutdown (void)
 	{
 	SDLash_FreeCursors ();
 
-#if XASH_NSWITCH
-	NSwitch_Shutdown ();
-#elif XASH_WIN32
-	Wcon_DestroyConsole ();
-#elif XASH_PSVITA
-	PSVita_Shutdown ();
-#endif
+	/*#if XASH_NSWITCH
+		NSwitch_Shutdown ();
+	#elif XASH_WIN32
+		Wcon_DestroyConsole ();
+	#elif XASH_PSVITA
+		PSVita_Shutdown ();
+	#endif*/
 	}

@@ -39,7 +39,7 @@ void Platform_Sleep (int msec)
 	{
 	Sleep (msec);
 	}
-#endif // XASH_TIMER == TIMER_WIN32
+#endif
 
 qboolean Sys_DebuggerPresent (void)
 	{
@@ -54,7 +54,8 @@ void Platform_ShellExecute (const char *path, const char *parms)
 	ShellExecute (NULL, "open", path, parms, NULL, SW_SHOW);
 	}
 
-// 
+// [FWGS, 01.07.23] Platform_UpdateStatusLine
+/*
 void Platform_UpdateStatusLine (void)
 	{
 	int clientsCount, botsCountUnused;
@@ -79,14 +80,17 @@ void Platform_UpdateStatusLine (void)
 
 	lastTime = sv.time;
 	}
+*/
 
 #if XASH_MESSAGEBOX == MSGBOX_WIN32
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow)
 	{
 	MessageBox (parentMainWindow ? host.hWnd : NULL, message, title, MB_OK | MB_SETFOREGROUND | MB_ICONSTOP);
 	}
-#endif // XASH_MESSAGEBOX == MSGBOX_WIN32
+#endif
 
+// [FWGS, 01.07.23]
+/*
 #ifndef XASH_SDL
 
 void Platform_Init (void)
@@ -99,3 +103,4 @@ void Platform_Shutdown (void)
 	Wcon_DestroyConsole ();
 	}
 #endif
+*/

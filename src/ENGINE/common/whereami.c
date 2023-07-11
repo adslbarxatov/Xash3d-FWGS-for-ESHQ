@@ -800,7 +800,7 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	return length;
 	}
 
-#elif defined(__sgi) || defined(__SWITCH__) || defined(__vita__)
+#elif defined(__sgi) /*|| defined(__SWITCH__) || defined(__vita__)*/	// [FWGS, 01.07.23]
 
 /*
  * These functions are stubbed for now to get the code compiling.
@@ -815,6 +815,22 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
  * that make finding the absolute path possible but these don't exist on IRIX.
  */
 
+WAI_FUNCSPEC
+int WAI_PREFIX (getExecutablePath)(char *out, int capacity, int *dirname_length)
+	{
+	return -1;
+	}
+
+WAI_FUNCSPEC
+int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
+	{
+	return -1;
+	}
+
+// [FWGS, 01.07.23]
+#elif defined(__SWITCH__) || defined(__vita__)
+
+/* Not possible on this platform */
 WAI_FUNCSPEC
 int WAI_PREFIX (getExecutablePath)(char *out, int capacity, int *dirname_length)
 	{

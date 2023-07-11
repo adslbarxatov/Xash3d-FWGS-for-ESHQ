@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "common.h"
 #include "server.h"
 
-extern convar_t *con_gamemaps;
+extern convar_t con_gamemaps;
 
 /*
 =================
@@ -52,8 +52,8 @@ void SV_BroadcastPrintf (sv_client_t *ignore, const char *fmt, ...)
 	{
 	char		string[MAX_SYSPATH];
 	va_list		argptr;
-	sv_client_t *cl;
-	int		i;
+	sv_client_t	*cl;
+	int			i;
 
 	va_start (argptr, fmt);
 	Q_vsnprintf (string, sizeof (string), fmt, argptr);
@@ -175,9 +175,10 @@ qboolean SV_ValidateMap (const char *pMapName, qboolean check_spawn)
 	int	flags;
 
 	// determine spawn entity classname
-	if (!check_spawn || (int)sv_maxclients->value <= 1)
+	if (!check_spawn || ((int)sv_maxclients.value <= 1))
 		spawn_entity = GI->sp_entity;
-	else spawn_entity = GI->mp_entity;
+	else
+		spawn_entity = GI->mp_entity;
 
 	flags = SV_MapIsValid (pMapName, spawn_entity, NULL);
 
@@ -227,7 +228,7 @@ void SV_Map_f (void)
 	if (!SV_ValidateMap (mapname, true))
 		return;
 
-	Cvar_DirectSet (sv_hostmap, mapname);
+	Cvar_DirectSet (&sv_hostmap, mapname);
 	COM_LoadLevel (mapname, false);
 	}
 
@@ -314,12 +315,16 @@ For development work
 */
 void SV_NextMap_f (void)
 	{
-	char	nextmap[MAX_QPATH];
-	int	i, next;
-	search_t *t;
+	char		nextmap[MAX_QPATH];
+	int			i, next;
+	search_t	*t;
 
-	t = FS_Search ("maps\\*.bsp", true, CVAR_TO_BOOL (con_gamemaps)); // only in gamedir
-	if (!t) t = FS_Search ("maps/*.bsp", true, CVAR_TO_BOOL (con_gamemaps)); // only in gamedir
+	// [FWGS, 01.07.23]
+	/*t = FS_Search ("maps\\*.bsp", true, CVAR_TO_BOOL (con_gamemaps)); // only in gamedir
+	if (!t) t = FS_Search ("maps/*.bsp", true, CVAR_TO_BOOL (con_gamemaps)); // only in gamedir*/
+	t = FS_Search ("maps\\*.bsp", true, con_gamemaps.value);	// only in gamedir
+	if (!t)
+		t = FS_Search ("maps/*.bsp", true, con_gamemaps.value);	// only in gamedir
 
 	if (!t)
 		{
@@ -335,12 +340,12 @@ void SV_NextMap_f (void)
 			continue;
 
 		COM_FileBase (t->filenames[i], nextmap, sizeof (nextmap));	// [FWGS, 01.05.23]
-		if (Q_stricmp (sv_hostmap->string, nextmap))
+		if (Q_stricmp (sv_hostmap.string, nextmap))
 			continue;
 
 		next = (i + 1) % t->numfilenames;
 		COM_FileBase (t->filenames[next], nextmap, sizeof (nextmap));	// [FWGS, 01.05.23]
-		Cvar_DirectSet (sv_hostmap, nextmap);
+		Cvar_DirectSet (&sv_hostmap, nextmap);
 
 		// found current point, check for valid
 		if (SV_ValidateMap (nextmap, true))
@@ -360,7 +365,6 @@ void SV_NextMap_f (void)
 /*
 ==============
 SV_NewGame_f
-
 ==============
 */
 void SV_NewGame_f (void)
@@ -377,7 +381,6 @@ void SV_NewGame_f (void)
 /*
 ==============
 SV_HazardCourse_f
-
 ==============
 */
 void SV_HazardCourse_f (void)
@@ -554,7 +557,7 @@ void SV_Reload_f (void)
 		return;
 
 	if (!SV_LoadGame (SV_GetLatestSave ()))
-		COM_LoadLevel (sv_hostmap->string, false);
+		COM_LoadLevel (sv_hostmap.string, false);
 	}
 
 /*
@@ -595,7 +598,7 @@ void SV_ChangeLevel2_f (void)
 
 /*
 ==================
-SV_Kick_f
+SV_Kick_f [FWGS, 01.07.23]
 
 Kick a user off of the server
 ==================
@@ -603,7 +606,8 @@ Kick a user off of the server
 void SV_Kick_f (void)
 	{
 	sv_client_t *cl;
-	const char *param, *clientId;
+	/*const char *param, *clientId;*/
+	const char *param;
 
 	if (Cmd_Argc () != 2)
 		{
@@ -613,9 +617,10 @@ void SV_Kick_f (void)
 
 	param = Cmd_Argv (1);
 
-	if (*param == '#' && Q_isdigit (param + 1))
+	if ((*param == '#') && Q_isdigit (param + 1))
 		cl = SV_ClientById (Q_atoi (param + 1));
-	else cl = SV_ClientByName (param);
+	else
+		cl = SV_ClientByName (param);
 
 	if (!cl)
 		{
@@ -623,7 +628,7 @@ void SV_Kick_f (void)
 		return;
 		}
 
-	if (NET_IsLocalAddress (cl->netchan.remote_address))
+	/*if (NET_IsLocalAddress (cl->netchan.remote_address))
 		{
 		Con_Printf ("The local player cannot be kicked!\n");
 		return;
@@ -654,7 +659,8 @@ void SV_Kick_f (void)
 			Netchan_OutOfBandPrint (NS_SERVER, cl->netchan.remote_address, "errormsg\nYou were kicked from the game\n");
 		}
 
-	SV_DropClient (cl, false);
+	SV_DropClient (cl, false);*/
+	SV_KickPlayer (cl, "%s", Cmd_Argv (2));
 	}
 
 /*
@@ -1097,6 +1103,7 @@ void SV_KillOperatorCommands (void)
 	Cmd_RemoveCommand ("localinfo");
 	Cmd_RemoveCommand ("serverinfo");
 	Cmd_RemoveCommand ("clientinfo");
+	Cmd_RemoveCommand ("clientuseragent");	// [FWGS, 01.07.23]
 	Cmd_RemoveCommand ("playersonly");
 	Cmd_RemoveCommand ("restart");
 	Cmd_RemoveCommand ("entpatch");
@@ -1105,6 +1112,7 @@ void SV_KillOperatorCommands (void)
 	Cmd_RemoveCommand ("shutdownserver");
 	Cmd_RemoveCommand ("changelevel");
 	Cmd_RemoveCommand ("changelevel2");
+	Cmd_RemoveCommand ("redirect");	// [FWGS, 01.07.23]
 	Cmd_RemoveCommand ("logaddress");
 	Cmd_RemoveCommand ("log");
 

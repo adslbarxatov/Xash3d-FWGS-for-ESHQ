@@ -39,11 +39,11 @@ extern int SV_UPDATE_BACKUP;
 #endif
 
 // hostflags
-#define SVF_SKIPLOCALHOST	BIT( 0 )
+#define SVF_SKIPLOCALHOST		BIT( 0 )
 #define SVF_MERGE_VISIBILITY	BIT( 1 )	// we are do portal pass
 
 // mapvalid flags
-#define MAP_IS_EXIST	BIT( 0 )
+#define MAP_IS_EXIST		BIT( 0 )
 #define MAP_HAS_SPAWNPOINT	BIT( 1 )
 #define MAP_HAS_LANDMARK	BIT( 2 )
 #define MAP_INVALID_VERSION	BIT( 3 )
@@ -68,16 +68,16 @@ extern int SV_UPDATE_BACKUP;
 #define MAX_PUSHED_ENTS	256
 #define MAX_VIEWENTS	128
 
-#define FCL_RESEND_USERINFO	BIT( 0 )
-#define FCL_RESEND_MOVEVARS	BIT( 1 )
+#define FCL_RESEND_USERINFO		BIT( 0 )
+#define FCL_RESEND_MOVEVARS		BIT( 1 )
 #define FCL_SKIP_NET_MESSAGE	BIT( 2 )
 #define FCL_SEND_NET_MESSAGE	BIT( 3 )
 #define FCL_PREDICT_MOVEMENT	BIT( 4 )	// movement prediction is enabled
-#define FCL_LOCAL_WEAPONS	BIT( 5 )	// weapon prediction is enabled
+#define FCL_LOCAL_WEAPONS		BIT( 5 )	// weapon prediction is enabled
 #define FCL_LAG_COMPENSATION	BIT( 6 )	// lag compensation is enabled
-#define FCL_FAKECLIENT	BIT( 7 )	// this client is a fake player controlled by the game DLL
-#define FCL_HLTV_PROXY	BIT( 8 )	// this is a proxy for a HLTV client (spectator)
-#define FCL_SEND_RESOURCES	BIT( 9 )
+#define FCL_FAKECLIENT			BIT( 7 )	// this client is a fake player controlled by the game DLL
+#define FCL_HLTV_PROXY			BIT( 8 )	// this is a proxy for a HLTV client (spectator)
+#define FCL_SEND_RESOURCES		BIT( 9 )
 #define FCL_FORCE_UNMODIFIED	BIT( 10 )
 
 typedef enum
@@ -262,8 +262,8 @@ typedef struct sv_client_s
 	char		useragent[MAX_INFO_STRING];
 
 	// [FWGS, 01.07.23]
-	int ignorecmdtime_warns; // how many times client time was faster than server during this session
-	qboolean ignorecmdtime_warned; // did we warn our server operator in the log for this batch of commands?
+	int ignorecmdtime_warns;		// how many times client time was faster than server during this session
+	qboolean ignorecmdtime_warned;	// did we warn our server operator in the log for this batch of commands?
 	
 	double fullupdate_next_calltime;
 	double userinfo_next_changetime;

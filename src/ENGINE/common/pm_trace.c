@@ -139,7 +139,7 @@ void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
 PM_HullPointContents
 ==================
 */
-int PM_HullPointContents (hull_t *hull, int num, const vec3_t p)
+int GAME_EXPORT PM_HullPointContents (hull_t *hull, int num, const vec3_t p)
 	{
 	mplane_t *plane;
 

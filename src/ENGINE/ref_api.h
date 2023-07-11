@@ -234,6 +234,7 @@ typedef struct remap_info_s
 	model_t *model;		// for catch model changes
 	} remap_info_t;
 
+typedef struct convar_s convar_t;	// [FWGS, 01.07.23]
 struct con_nprint_s;
 struct engine_studio_api_s;
 struct r_studio_interface_s;
@@ -266,7 +267,8 @@ typedef struct ref_api_s
 	const char *(*pfnGetCvarString)(const char *szName);
 	void        (*Cvar_SetValue)(const char *name, float value);
 	void        (*Cvar_Set)(const char *name, const char *value);
-	void (*Cvar_RegisterVariable)(cvar_t *var);
+	/*void (*Cvar_RegisterVariable)(cvar_t *var);*/
+	void (*Cvar_RegisterVariable)(convar_t *var);	// [FWGS, 01.07.23]
 	void (*Cvar_FullSet)(const char *var_name, const char *value, int flags);
 
 	// command handlers
@@ -308,13 +310,6 @@ typedef struct ref_api_s
 	struct world_static_s *(*GetWorld)(void); // returns &world
 	mleaf_t *(*Mod_PointInLeaf)(const vec3_t p, mnode_t *node);
 	void (*Mod_CreatePolygonsForHull)(int hullnum);
-
-	// [FWGS, 01.04.23]
-	/*
-	void (*R_StudioSlerpBones)(int numbones, vec4_t q1[], float pos1[][3], vec4_t q2[], float pos2[][3], float s);
-	void (*R_StudioCalcBoneQuaternion)(int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, vec4_t q);
-	void (*R_StudioCalcBonePosition)(int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, vec3_t adj, vec3_t pos);
-	*/
 
 	// studio models
 	void	*(*R_StudioGetAnim)(studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc);
@@ -362,13 +357,15 @@ typedef struct ref_api_s
 	void *(*Mod_CacheCheck)(struct cache_user_s *c);
 	void (*Mod_LoadCacheFile)(const char *path, struct cache_user_s *cu);
 	void *(*Mod_Calloc)(int number, size_t size);
-	int	(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface, struct engine_studio_api_s *pstudio);
+	int	(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface,
+		struct engine_studio_api_s *pstudio);
 
 	// memory
 	poolhandle_t (*_Mem_AllocPool)(const char *name, const char *filename, int fileline);
 	void  (*_Mem_FreePool)(poolhandle_t *poolptr, const char *filename, int fileline);
 	void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline);
-	void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline);
+	void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename,
+		int fileline);
 	void  (*_Mem_Free)(void *data, const char *filename, int fileline);
 
 	// library management
@@ -643,7 +640,8 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 #define ENGINE_SHARED_CVAR_LIST( f ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_gamma, gamma ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_brightness, brightness ) \
-	ENGINE_SHARED_CVAR_NAME( f, gl_showtextures, r_showtextures ) \
+	/*ENGINE_SHARED_CVAR_NAME( f, gl_showtextures, r_showtextures ) \*/ // [FWGS, 01.07.23]
+	ENGINE_SHARED_CVAR( f, r_showtextures ) \
 	ENGINE_SHARED_CVAR( f, r_speeds ) \
 	ENGINE_SHARED_CVAR( f, r_fullbright ) \
 	ENGINE_SHARED_CVAR( f, r_norefresh ) \
@@ -664,6 +662,7 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 	ENGINE_SHARED_CVAR( f, r_sprite_lighting ) \
 	ENGINE_SHARED_CVAR( f, r_drawviewmodel ) \
 	ENGINE_SHARED_CVAR( f, r_glowshellfreq ) \
+	ENGINE_SHARED_CVAR( f, r_lighting_modulate ) \
 
 #define DECLARE_ENGINE_SHARED_CVAR_LIST() \
 	ENGINE_SHARED_CVAR_LIST( DECLARE_ENGINE_SHARED_CVAR )

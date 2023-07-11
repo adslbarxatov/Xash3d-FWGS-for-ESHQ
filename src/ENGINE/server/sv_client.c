@@ -41,6 +41,7 @@ typedef struct ucmd_s
 	} ucmd_t;
 
 static int	g_userid = 1;
+static void SV_UserinfoChanged (sv_client_t *cl);	// [FWGS, 01.07.23]
 
 /*
 =================
@@ -482,11 +483,11 @@ SV_FakeConnect
 A connection request that came from the game module
 ==================
 */
-edict_t *SV_FakeConnect (const char *netname)
+edict_t *GAME_EXPORT SV_FakeConnect (const char *netname)
 	{
 	char		userinfo[MAX_INFO_STRING];
-	int		i, count = 0;
-	sv_client_t *cl;
+	int			i, count = 0;
+	sv_client_t	*cl;
 
 	if (!COM_CheckString (netname))
 		netname = "Bot";
@@ -543,6 +544,54 @@ edict_t *SV_FakeConnect (const char *netname)
 		NET_MasterClear ();
 
 	return cl->edict;
+	}
+
+/*
+==================
+SV_Kick_f [FWGS, 01.07.23]
+
+Kick a user off of the server
+==================
+*/
+void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...)
+	{
+	const char *clientId;
+	va_list va;
+	char buf[MAX_VA_STRING];
+
+	if (NET_IsLocalAddress (cl->netchan.remote_address))
+		{
+		Con_Printf ("The local player cannot be kicked!\n");
+		return;
+		}
+
+	clientId = SV_GetClientIDString (cl);
+
+	va_start (va, fmt);
+	Q_vsnprintf (buf, sizeof (buf), fmt, va);
+	va_end (va);
+
+	if (buf[0])
+		{
+		Log_Printf ("Kick: \"%s<%i><%s><>\" was kicked by \"Console\" (message \"%s\")\n", cl->name,
+			cl->userid, clientId, buf);
+		SV_BroadcastPrintf (cl, "%s was kicked with message: \"%s\"\n", cl->name, buf);
+		SV_ClientPrintf (cl, "You were kicked from the game with message: \"%s\"\n", buf);
+
+		if (cl->useragent[0])
+			Netchan_OutOfBandPrint (NS_SERVER, cl->netchan.remote_address, "errormsg\nKicked with message:\n % s\n", buf);
+		}
+	else
+		{
+		Log_Printf ("Kick: \"%s<%i><%s><>\" was kicked by \"Console\"\n", cl->name, cl->userid, clientId);
+		SV_BroadcastPrintf (cl, "%s was kicked\n", cl->name);
+		SV_ClientPrintf (cl, "You were kicked from the game\n");
+
+		if (cl->useragent[0])
+			Netchan_OutOfBandPrint (NS_SERVER, cl->netchan.remote_address, "errormsg\nYou were kicked from the game\n");
+		}
+
+	SV_DropClient (cl, false);
 	}
 
 /*
@@ -774,20 +823,23 @@ sv_client_t *SV_ClientByName (const char *name)
 
 /*
 ================
-SV_TestBandWidth
-
+SV_TestBandWidth [FWGS, 01.07.23]
 ================
 */
 void SV_TestBandWidth (netadr_t from)
 	{
-	int	version = Q_atoi (Cmd_Argv (1));
+	/*int	version = Q_atoi (Cmd_Argv (1));
 	int	packetsize = Q_atoi (Cmd_Argv (2));
 	byte	send_buf[FRAGMENT_MAX_SIZE];
 	dword	crcValue = 0;
 	byte *filepos;
 	int	crcpos;
 	file_t *test;
-	sizebuf_t	send;
+	sizebuf_t	send;*/
+	const int version = Q_atoi (Cmd_Argv (1));
+	const int packetsize = Q_atoi (Cmd_Argv (2));
+	uint32_t crc;
+	int ofs;
 
 	// don't waste time of protocol mismatched
 	if (version != PROTOCOL_VERSION)
@@ -796,16 +848,18 @@ void SV_TestBandWidth (netadr_t from)
 		return;
 		}
 
-	test = FS_Open ("gfx.wad", "rb", false);
+	/*test = FS_Open ("gfx.wad", "rb", false);
 
-	if (FS_FileLength (test) < sizeof (send_buf))
+	if (FS_FileLength (test) < sizeof (send_buf))*/
+	// quickly reject invalid packets
+	if (!svs.testpacket_buf || (packetsize <= FRAGMENT_MIN_SIZE) || (packetsize > FRAGMENT_MAX_SIZE))
 		{
 		// skip the test and just get challenge
 		SV_GetChallenge (from);
 		return;
 		}
 
-	// write the packet header
+	/* write the packet header
 	MSG_Init (&send, "BandWidthPacket", send_buf, sizeof (send_buf));
 	MSG_WriteLong (&send, -1);	// -1 sequence means out of band
 	MSG_WriteString (&send, "testpacket");
@@ -814,14 +868,25 @@ void SV_TestBandWidth (netadr_t from)
 	filepos = send.pData + MSG_GetNumBytesWritten (&send);
 	packetsize = packetsize - MSG_GetNumBytesWritten (&send); // adjust the packet size
 	FS_Read (test, filepos, packetsize);
-	FS_Close (test);
+	FS_Close (test);*/
+	
+	// don't go out of bounds
+	ofs = packetsize - svs.testpacket_filepos - 1;
+	if ((ofs < 0) || (ofs > svs.testpacket_filelen))
+		{
+		SV_GetChallenge (from);
+		return;
+		}
 
-	CRC32_ProcessBuffer (&crcValue, filepos, packetsize);	// calc CRC
+	/*CRC32_ProcessBuffer (&crcValue, filepos, packetsize);	// calc CRC
 	MSG_SeekToBit (&send, packetsize << 3, SEEK_CUR);
-	*(uint *)&send.pData[crcpos] = crcValue;
+	*(uint *)&send.pData[crcpos] = crcValue;*/
+	crc = svs.testpacket_crcs[ofs];
+	memcpy (svs.testpacket_crcpos, &crc, sizeof (crc));
 
 	// send the datagram
-	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&send), MSG_GetData (&send), from);
+	/*NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&send), MSG_GetData (&send), from);*/
+	NET_SendPacket (NS_SERVER, packetsize, MSG_GetData (&svs.testpacket), from);
 	}
 
 /*
@@ -1021,7 +1086,7 @@ qboolean Rcon_Validate (void)
 
 /*
 ===============
-SV_RemoteCommand
+SV_RemoteCommand [FWGS, 01.07.23]
 
 A client issued an rcon command.
 Shift down the remaining args
@@ -1030,36 +1095,47 @@ Redirect all printfs
 */
 void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 	{
-	static char	outputbuf[2048];
-	char		remaining[1024];
-	int			i;
+	static char		outputbuf[2048];
+	const char		*adr;
+	char			remaining[1024];
+	char			*p = remaining;
+	int				i;
 
-	// [FWGS, 01.04.23]
-	if (!rcon_enable.value)
+	/*if (!rcon_enable.value)*/
+	if (!rcon_enable.value || !COM_CheckStringEmpty (rcon_password.string))
 		return;
 
-	Con_Printf ("Rcon from %s:\n%s\n", NET_AdrToString (from), MSG_GetData (msg) + 4);
+	/*Con_Printf ("Rcon from %s:\n%s\n", NET_AdrToString (from), MSG_GetData (msg) + 4);
 	Log_Printf ("Rcon: \"%s\" from \"%s\"\n", MSG_GetData (msg) + 4, NET_AdrToString (from));
-	SV_BeginRedirect (from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);
+	SV_BeginRedirect (from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);*/
+	adr = NET_AdrToString (from);
+	Con_Printf ("Rcon from %s:\n%s\n", adr, MSG_GetData (msg) + 4);
+	Log_Printf ("Rcon: \"%s\" from \"%s\"\n", MSG_GetData (msg) + 4, adr);
 
 	if (Rcon_Validate ())
 		{
+		SV_BeginRedirect (from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);
 		remaining[0] = 0;
 
 		// [FWGS, 01.05.23]
 		for (i = 2; i < Cmd_Argc (); i++)
 			{
-			Q_strncat (remaining, Cmd_Argv (i), sizeof (remaining));
-			Q_strncat (remaining, " ", sizeof (remaining));
+			/*Q_strncat (remaining, Cmd_Argv (i), sizeof (remaining));
+			Q_strncat (remaining, " ", sizeof (remaining));*/
+			p += Q_strncpy (p, "\"", sizeof (remaining) - (p - remaining));
+			p += Q_strncpy (p, Cmd_Argv (i), sizeof (remaining) - (p - remaining));
+			p += Q_strncpy (p, "\" ", sizeof (remaining) - (p - remaining));
 			}
+		
 		Cmd_ExecuteString (remaining);
+		SV_EndRedirect ();
 		}
 	else
 		{
 		Con_Printf (S_ERROR "Bad rcon_password.\n");
 		}
 
-	SV_EndRedirect ();
+	/*SV_EndRedirect ();*/
 	}
 
 /*
@@ -1489,7 +1565,8 @@ void SV_UpdateClientView (sv_client_t *cl)
 
 	if (cl->pViewEntity)
 		viewEnt = NUM_FOR_EDICT (cl->pViewEntity);
-	else viewEnt = NUM_FOR_EDICT (cl->edict);
+	else
+		viewEnt = NUM_FOR_EDICT (cl->edict);
 
 	MSG_BeginServerCmd (&cl->netchan.message, svc_setview);
 	MSG_WriteWord (&cl->netchan.message, viewEnt);
@@ -1527,13 +1604,13 @@ void SV_BuildReconnect (sizebuf_t *msg)
 	MSG_WriteString (msg, "reconnect\n");
 	}
 
+// [FWGS, 01.07.23] SV_WriteDeltaDescriptionToClient
 /*
 ==================
 SV_WriteDeltaDescriptionToClient
 
 send delta communication encoding
 ==================
-*/
 void SV_WriteDeltaDescriptionToClient (sizebuf_t *msg)
 	{
 	int	tableIndex;
@@ -1547,6 +1624,7 @@ void SV_WriteDeltaDescriptionToClient (sizebuf_t *msg)
 			Delta_WriteTableField (msg, tableIndex, &dt->pFields[fieldIndex]);
 		}
 	}
+*/
 
 /*
 ================
@@ -1592,8 +1670,9 @@ void SV_SendServerdata (sizebuf_t *msg, sv_client_t *cl)
 		MSG_WriteChar (msg, host.player_maxs[i / 3][i % 3]);
 		}
 
-	// send delta-encoding
-	SV_WriteDeltaDescriptionToClient (msg);
+	// [FWGS, 01.07.23] send delta-encoding
+	/*SV_WriteDeltaDescriptionToClient (msg);*/
+	Delta_WriteDescriptionToClient (msg);
 
 	// now client know delta and can reading encoded messages
 	SV_FullUpdateMovevars (cl, msg);
@@ -1616,9 +1695,7 @@ void SV_SendServerdata (sizebuf_t *msg, sv_client_t *cl)
 
 /*
 ============================================================
-
 CLIENT COMMAND EXECUTION
-
 ============================================================
 */
 /*
@@ -1724,7 +1801,7 @@ static qboolean SV_Pause_f (sv_client_t *cl)
 	if (UI_CreditsActive ())
 		return true;
 
-	if (!sv_pausable->value)
+	if (!sv_pausable.value)
 		{
 		SV_ClientPrintf (cl, "Pause not allowed.\n");
 		return true;
@@ -1736,12 +1813,58 @@ static qboolean SV_Pause_f (sv_client_t *cl)
 		return true;
 		}
 
-	if (!sv.paused) Q_snprintf (message, MAX_STRING, "^2%s^7 paused the game\n", cl->name);
-	else Q_snprintf (message, MAX_STRING, "^2%s^7 unpaused the game\n", cl->name);
+	if (!sv.paused)
+		Q_snprintf (message, MAX_STRING, "^2%s^7 paused the game\n", cl->name);
+	else
+		Q_snprintf (message, MAX_STRING, "^2%s^7 unpaused the game\n", cl->name);
 
 	SV_TogglePause (message);
 
 	return true;
+	}
+
+// [FWGS, 01.07.23]
+static qboolean SV_ShouldUpdateUserinfo (sv_client_t *cl)
+	{
+	qboolean allow = true;	// predict state
+
+	if (!sv_userinfo_enable_penalty.value)
+		return allow;
+
+	if (FBitSet (cl->flags, FCL_FAKECLIENT))
+		return allow;
+
+	// start from 1 second
+	if (!cl->userinfo_penalty)
+		cl->userinfo_penalty = sv_userinfo_penalty_time.value;
+
+	// player changes userinfo after limit time window, but before
+	// next timewindow
+	// he seems to be spammer, so just increase change attempts
+	if (host.realtime < cl->userinfo_next_changetime + cl->userinfo_penalty * sv_userinfo_penalty_multiplier.value)
+		{
+		// player changes userinfo too quick! ignore!
+		if (host.realtime < cl->userinfo_next_changetime)
+			{
+			Con_Reportf ("SV_ShouldUpdateUserinfo: ignore userinfo update for %s: penalty %f, attempts %i\n",
+				cl->name, cl->userinfo_penalty, cl->userinfo_change_attempts);
+			allow = false;
+			}
+
+		cl->userinfo_change_attempts++;
+		}
+
+	// they spammed too fast, increase penalty
+	if (cl->userinfo_change_attempts > sv_userinfo_penalty_attempts.value)
+		{
+		Con_Reportf ("SV_ShouldUpdateUserinfo: penalty set %f for %s\n", cl->userinfo_penalty, cl->name);
+		cl->userinfo_penalty *= sv_userinfo_penalty_multiplier.value;
+		cl->userinfo_change_attempts = 0;
+		}
+
+	cl->userinfo_next_changetime = host.realtime + cl->userinfo_penalty;
+
+	return allow;
 	}
 
 /*
@@ -1752,15 +1875,22 @@ Pull specific info from a newly changed userinfo string
 into a more C freindly form.
 =================
 */
-void SV_UserinfoChanged (sv_client_t *cl)
+static void SV_UserinfoChanged (sv_client_t *cl)
 	{
-	int		i, dupc = 1;
-	edict_t *ent = cl->edict;
+	int			i, dupc = 1;
+	edict_t		*ent = cl->edict;
 	string		name1, name2;
-	sv_client_t *current;
-	const char *val;
+	sv_client_t	*current;
+	const char	*val;
 
 	if (!COM_CheckString (cl->userinfo))
+		return;
+
+	// [FWGS, 01.07.23]
+	if (!SV_ShouldUpdateUserinfo (cl))
+		return;
+
+	if (!Info_IsValid (cl->userinfo))
 		return;
 
 	val = Info_ValueForKey (cl->userinfo, "name");
@@ -3015,6 +3145,8 @@ ucmd_t enttoolscmds[] =
 	{ NULL, NULL }
 	};
 
+// [FWGS, 01.07.23] Удалена SV_TSourceEngineQuery
+
 /*
 ==================
 SV_ExecuteUserCommand
@@ -3032,7 +3164,7 @@ void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 			{
 			if (!u->func (cl))
 				Con_Printf ("'%s' is not valid from the console\n", u->name);
-			else 
+			else
 				Con_Reportf ("ucmd->%s()\n", u->name);
 			break;
 			}
@@ -3057,30 +3189,41 @@ void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 			}
 		}
 
+	// [FWGS, 01.07.23]
 	if (!u->name && (sv.state == ss_active))
 		{
+		qboolean fullupdate = !Q_strcmp (Cmd_Argv (0), "fullupdate");
+
+		if (fullupdate)
+			{
+			if (sv_fullupdate_penalty_time.value && (host.realtime < cl->fullupdate_next_calltime))
+				return;
+			}
+
 		// custom client commands
 		svgame.dllFuncs.pfnClientCommand (cl->edict);
 
-		if (!Q_strcmp (Cmd_Argv (0), "fullupdate"))
+		/*if (!Q_strcmp (Cmd_Argv (0), "fullupdate"))*/
+		if (fullupdate)
 			{
 			// resend the ambient sounds for demo recording
 			SV_RestartAmbientSounds ();
+
 			// resend all the decals for demo recording
 			SV_RestartDecals ();
+
 			// resend all the static ents for demo recording
 			SV_RestartStaticEnts ();
 			// resend the viewentity
 			SV_UpdateClientView (cl);
-			}
+
+			/*}
 		}
 	}
 
-/*
-==================
-SV_TSourceEngineQuery
-==================
-*/
+// ==================
+// SV_TSourceEngineQuery
+// ==================
 void SV_TSourceEngineQuery (netadr_t from)
 	{
 	// A2S_INFO
@@ -3120,15 +3263,18 @@ void SV_TSourceEngineQuery (netadr_t from)
 
 		if (GI->gamemode == 2)
 			MSG_WriteByte (&buf, 1); // multiplayer_only
-		else 
+		else
 			MSG_WriteByte (&buf, 0);
 
 		if (Q_strstr (GI->game_dll, "hl."))
 			MSG_WriteByte (&buf, 0); // Half-Life DLL
-		else 
-			MSG_WriteByte (&buf, 1); // Own DLL
+		else
+			MSG_WriteByte (&buf, 1); // Own DLL*/
+			if (sv_fullupdate_penalty_time.value)
+				cl->fullupdate_next_calltime = host.realtime + sv_fullupdate_penalty_time.value;
+			}
 		}
-	else
+	/*else
 		{
 		MSG_WriteByte (&buf, 0); // Half-Life
 		}
@@ -3136,7 +3282,7 @@ void SV_TSourceEngineQuery (netadr_t from)
 	MSG_WriteByte (&buf, GI->secure); // unsecure
 	MSG_WriteByte (&buf, bots);
 
-	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);
+	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);*/
 	}
 
 /*
@@ -3151,10 +3297,10 @@ connectionless packets.
 */
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	{
-	char *args;
-	const char *pcmd;
-	char buf[MAX_SYSPATH];
-	int	len = sizeof (buf);
+	char		*args;
+	const char	*pcmd;
+	char		buf[MAX_SYSPATH];
+	int			len = sizeof (buf);
 
 	// prevent flooding from banned address
 	if (SV_CheckIP (&from))
@@ -3166,8 +3312,11 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	args = MSG_ReadStringLine (msg);
 	Cmd_TokenizeString (args);
 
+	// [FWGS, 01.07.23]
 	pcmd = Cmd_Argv (0);
-	Con_Reportf ("SV_ConnectionlessPacket: %s : %s\n", NET_AdrToString (from), pcmd);
+	/*Con_Reportf ("SV_ConnectionlessPacket: %s : %s\n", NET_AdrToString (from), pcmd);*/
+	if (sv_log_outofband.value)
+		Con_Reportf ("SV_ConnectionlessPacket: %s : %s\n", NET_AdrToString (from), pcmd);
 
 	if (!Q_strcmp (pcmd, "ping"))
 		SV_Ping (from);
@@ -3187,11 +3336,18 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		SV_BuildNetAnswer (from);
 	else if (!Q_strcmp (pcmd, "s")) 
 		SV_AddToMaster (from, msg);
-	else if (!Q_strcmp (pcmd, "T" "Source"))
-		SV_TSourceEngineQuery (from);
+
+	// [FWGS, 01.07.23]
+	/*else if (!Q_strcmp (pcmd, "T" "Source"))
+		SV_TSourceEngineQuery (from);*/
+	
 	else if (!Q_strcmp (pcmd, "i"))
 		NET_SendPacket (NS_SERVER, 5, "\xFF\xFF\xFF\xFFj", from); // A2A_PING
-	
+
+	// [FWGS, 01.07.23]
+	else if (SV_SourceQuery_HandleConnnectionlessPacket (pcmd, from))
+		{} // function handles replies
+
 	// [FWGS, 01.05.23]
 	else if (!Q_strcmp (pcmd, "c") && sv_nat.value && NET_IsMasterAdr (from))
 		{
