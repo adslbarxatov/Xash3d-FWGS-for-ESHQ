@@ -84,10 +84,20 @@ such as during the connection stage while waiting for the client to load,
 then a packet only needs to be delivered if there is something in the
 unacknowledged reliable
 */
-convar_t *net_showpackets;
+
+// [FWGS, 01.07.23]
+/*convar_t *net_showpackets;
 convar_t *net_chokeloopback;
 convar_t *net_showdrop;
-convar_t *net_qport;
+convar_t *net_qport;*/
+CVAR_DEFINE_AUTO (net_showpackets, "0", 0,
+	"show network packets");
+CVAR_DEFINE_AUTO (net_chokeloop, "0", 0,
+	"apply bandwidth choke to loopback packets");
+CVAR_DEFINE_AUTO (net_showdrop, "0", 0,
+	"show packets that are dropped");
+CVAR_DEFINE_AUTO (net_qport, "0", FCVAR_READ_ONLY,
+	"current quake netport");
 
 int	net_drop;
 netadr_t	net_from;
@@ -100,7 +110,6 @@ const char *ns_strings[NS_COUNT] =
 		"Client",
 		"Server",
 	};
-
 
 /*
 =================================
@@ -233,25 +242,31 @@ void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, u
 
 /*
 ===============
-Netchan_Init
+Netchan_Init [FWGS, 01.07.23]
 ===============
 */
 void Netchan_Init (void)
 	{
+	char buf[32];
 	int	port;
 
 	// pick a port value that should be nice and random
 	port = COM_RandomLong (1, 65535);
+	Q_snprintf (buf, sizeof (buf), "%i", port);
 
-	net_showpackets = Cvar_Get ("net_showpackets", "0", 0,
+	/*net_showpackets = Cvar_Get ("net_showpackets", "0", 0,
 		"show network packets");
 	net_chokeloopback = Cvar_Get ("net_chokeloop", "0", 0,
 		"apply bandwidth choke to loopback packets");
 	net_showdrop = Cvar_Get ("net_showdrop", "0", 0,
 		"show packets that are dropped");
-
-	// [FWGS, 01.04.23]
-	net_qport = Cvar_Getf ("net_qport", FCVAR_READ_ONLY, "current quake netport", "%i", port);
+	net_qport = Cvar_Getf ("net_qport", FCVAR_READ_ONLY, "current quake netport", "%i", port);*/
+	Cvar_RegisterVariable (&net_showpackets);
+	Cvar_RegisterVariable (&net_chokeloop);
+	Cvar_RegisterVariable (&net_showdrop);
+	Cvar_RegisterVariable (&net_qport);
+	
+	Cvar_DirectSet (&net_qport, buf);
 	net_mempool = Mem_AllocPool ("Network Pool");
 
 	MSG_InitMasks ();	// initialize bit-masks
@@ -343,15 +358,16 @@ qboolean Netchan_IncomingReady (netchan_t *chan)
 
 /*
 ===============
-Netchan_CanPacket
+Netchan_CanPacket [FWGS, 01.07.23]
 
 Returns true if the bandwidth choke isn't active
 ================
 */
 qboolean Netchan_CanPacket (netchan_t *chan, qboolean choke)
 	{
-	// never choke loopback packets.
-	if (!choke || (!net_chokeloopback->value && NET_IsLocalAddress (chan->remote_address)))
+	// never choke loopback packets
+	/*if (!choke || (!net_chokeloopback->value && NET_IsLocalAddress (chan->remote_address)))*/
+	if (!choke || (!net_chokeloop.value && NET_IsLocalAddress (chan->remote_address)))
 		{
 		chan->cleartime = host.realtime;
 		return true;
@@ -363,7 +379,6 @@ qboolean Netchan_CanPacket (netchan_t *chan, qboolean choke)
 /*
 ==============================
 Netchan_UnlinkFragment
-
 ==============================
 */
 void Netchan_UnlinkFragment (fragbuf_t *buf, fragbuf_t **list)
@@ -1325,7 +1340,6 @@ qboolean Netchan_Validate (netchan_t *chan, sizebuf_t *sb, qboolean *frag_messag
 /*
 ==============================
 Netchan_UpdateProgress
-
 ==============================
 */
 void Netchan_UpdateProgress (netchan_t *chan)
@@ -1338,7 +1352,7 @@ void Netchan_UpdateProgress (netchan_t *chan)
 
 	if (host.downloadcount == 0)
 		{
-		scr_download->value = -1.0f;
+		scr_download.value = -1.0f;
 		host.downloadfile[0] = '\0';
 		}
 
@@ -1406,8 +1420,8 @@ void Netchan_UpdateProgress (netchan_t *chan)
 
 		}
 
-	scr_download->value = bestpercent;
-#endif // XASH_DEDICATED
+	scr_download.value = bestpercent;
+#endif
 	}
 
 /*
@@ -1713,7 +1727,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 
 	chan->cleartime += (MSG_GetNumBytesWritten (&send) + UDP_HEADER_SIZE) * fRate;
 
-	if (net_showpackets->value && net_showpackets->value != 2.0f)
+	if (net_showpackets.value && (net_showpackets.value != 2.0f))
 		{
 		Con_Printf (" %s --> sz=%i seq=%i ack=%i rel=%i tm=%f\n"
 			, ns_strings[chan->sock]
@@ -1741,10 +1755,10 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 	uint	reliable_ack, reliable_message;
 	uint	fragid[MAX_STREAMS] = { 0, 0 };
 	qboolean	frag_message[MAX_STREAMS] = { false, false };
-	int	frag_offset[MAX_STREAMS] = { 0, 0 };
-	int	frag_length[MAX_STREAMS] = { 0, 0 };
+	int		frag_offset[MAX_STREAMS] = { 0, 0 };
+	int		frag_length[MAX_STREAMS] = { 0, 0 };
 	qboolean	message_contains_fragments;
-	int	i, qport, statId;
+	int		i, qport, statId;
 
 	if (!CL_IsPlaybackDemo () && !NET_CompareAdr (net_from, chan->remote_address))
 		return false;
@@ -1785,7 +1799,7 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 	sequence_ack &= ~BIT (30);
 	sequence_ack &= ~BIT (31);
 
-	if (net_showpackets->value && net_showpackets->value != 3.0f)
+	if (net_showpackets.value && (net_showpackets.value != 3.0f))
 		{
 		Con_Printf (" %s <-- sz=%i seq=%i ack=%i rel=%i tm=%f\n"
 			, ns_strings[chan->sock]
@@ -1799,20 +1813,21 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 	// discard stale or duplicated packets
 	if (sequence <= (uint)chan->incoming_sequence)
 		{
-		if (net_showdrop->value)
+		if (net_showdrop.value)
 			{
 			const char *adr = NET_AdrToString (chan->remote_address);
 
 			if (sequence == (uint)chan->incoming_sequence)
 				Con_Printf ("%s:duplicate packet %i at %i\n", adr, sequence, chan->incoming_sequence);
-			else Con_Printf ("%s:out of order packet %i at %i\n", adr, sequence, chan->incoming_sequence);
+			else
+				Con_Printf ("%s:out of order packet %i at %i\n", adr, sequence, chan->incoming_sequence);
 			}
 		return false;
 		}
 
 	// dropped packets don't keep the message from being used
 	net_drop = sequence - (chan->incoming_sequence + 1);
-	if (net_drop > 0 && net_showdrop->value)
+	if ((net_drop > 0) && net_showdrop.value)
 		Con_Printf ("%s:dropped %i packets at %i\n", NET_AdrToString (chan->remote_address), net_drop, sequence);
 
 	// if the current outgoing reliable message has been acknowledged
@@ -1821,9 +1836,7 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 		{
 		// make sure we actually could have ack'd this message
 		if (sequence_ack >= (uint)chan->last_reliable_sequence)
-			{
 			chan->reliable_length = 0;	// it has been received
-			}
 		}
 
 	// if this message contains a reliable message, bump incoming_reliable_sequence

@@ -144,8 +144,14 @@ keyname_t keynames[] =
 
 static void OSK_EnableTextInput (qboolean enable, qboolean force);
 static qboolean OSK_KeyEvent (int key, int down);
-static convar_t *osk_enable;
-static convar_t *key_rotate;
+
+// [FWGS, 01.07.23]
+/*static convar_t *osk_enable;
+static convar_t *key_rotate;*/
+static CVAR_DEFINE_AUTO (osk_enable, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"enable built-in on-screen keyboard");
+static CVAR_DEFINE_AUTO (key_rotate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"rotate arrow keys (0-3)");
 
 /*
 ===================
@@ -527,9 +533,11 @@ void Key_Init (void)
 	for (kn = keynames; kn->name; kn++)
 		Key_SetBinding (kn->keynum, kn->binding);
 
-	osk_enable = Cvar_Get ("osk_enable", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable built-in on-screen keyboard");
-	key_rotate = Cvar_Get ("key_rotate", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "rotate arrow keys (0-3)");
-
+	// [FWGS, 01.07.23]
+	/*osk_enable = Cvar_Get ("osk_enable", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable built-in on-screen keyboard");
+	key_rotate = Cvar_Get ("key_rotate", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "rotate arrow keys (0-3)");*/
+	Cvar_RegisterVariable (&osk_enable);
+	Cvar_RegisterVariable (&key_rotate);
 	}
 
 /*
@@ -609,7 +617,7 @@ static qboolean Key_IsAllowedAutoRepeat (int key)
 
 static int Key_Rotate (int key)
 	{
-	if (key_rotate->value == 1.0f) // CW
+	if (key_rotate.value == 1.0f) // CW
 		{
 		if (key == K_UPARROW)
 			key = K_LEFTARROW;
@@ -621,7 +629,7 @@ static int Key_Rotate (int key)
 			key = K_RIGHTARROW;
 		}
 
-	else if (key_rotate->value == 3.0f) // CCW
+	else if (key_rotate.value == 3.0f) // CCW
 		{
 		if (key == K_UPARROW)
 			key = K_RIGHTARROW;
@@ -633,7 +641,7 @@ static int Key_Rotate (int key)
 			key = K_LEFTARROW;
 		}
 
-	else if (key_rotate->value == 2.0f)
+	else if (key_rotate.value == 2.0f)
 		{
 		if (key == K_UPARROW)
 			key = K_DOWNARROW;
@@ -681,11 +689,11 @@ void GAME_EXPORT Key_Event (int key, int down)
 		}
 #endif
 	// distribute the key down event to the apropriate handler
-	if (cls.key_dest == key_game && (down || keys[key].gamedown))
+	if ((cls.key_dest == key_game) && (down || keys[key].gamedown))
 		{
 		if (!clgame.dllFuncs.pfnKey_Event (down, key, keys[key].binding))
 			{
-			if (keys[key].repeats == 0 && down)
+			if ((keys[key].repeats == 0) && down)
 				{
 				keys[key].gamedown = true;
 				}
@@ -732,36 +740,44 @@ void GAME_EXPORT Key_Event (int key, int down)
 		return;
 		}
 
-	// escape is always handled special
+	// [FWGS, 01.07.23] escape is always handled special
 	if ((key == K_ESCAPE) && down)
 		{
 		switch (cls.key_dest)
 			{
 			case key_game:
-				if (CVAR_TO_BOOL (gl_showtextures))
+				/*if (CVAR_TO_BOOL (gl_showtextures))*/
+				if (r_showtextures.value)
 					{
 					// close texture atlas
-					Cvar_SetValue ("r_showtextures", 0.0f);
+					/*Cvar_SetValue ("r_showtextures", 0.0f);*/
+					Cvar_DirectSet (&r_showtextures, "0");
 					return;
 					}
-				else if (host.mouse_visible && cls.state != ca_cinematic)
+				else if (host.mouse_visible && (cls.state != ca_cinematic))
 					{
 					clgame.dllFuncs.pfnKey_Event (down, key, keys[key].binding);
-					return; // handled in client.dll
+					return;	// handled in client.dll
 					}
 				break;
+
 			case key_message:
 				Key_Message (key);
 				return;
+
 			case key_console:
-				if (cls.state == ca_active && !cl.background)
+				if ((cls.state == ca_active) && !cl.background)
 					Key_SetKeyDest (key_game);
-				else UI_SetActiveMenu (true);
+				else
+					UI_SetActiveMenu (true);
 				return;
+
 			case key_menu:
 				UI_KeyEvent (key, true);
 				return;
-			default:	return;
+
+			default:
+				return;
 			}
 		}
 
@@ -811,17 +827,18 @@ void GAME_EXPORT Key_Event (int key, int down)
 
 /*
 ================
-Key_EnableTextInput
-
+Key_EnableTextInput [FWGS, 01.07.23]
 ================
 */
 void Key_EnableTextInput (qboolean enable, qboolean force)
 	{
-	if (CVAR_TO_BOOL (osk_enable))
+	/*if (CVAR_TO_BOOL (osk_enable))*/
+	if (osk_enable.value)
 		{
 		OSK_EnableTextInput (enable, force);
 		return;
 		}
+
 	if (enable && (!host.textmode || force))
 		Platform_EnableTextInput (true);
 	else if (!enable && (host.textmode || force))
@@ -1021,7 +1038,9 @@ struct osk_s
 
 static qboolean OSK_KeyEvent (int key, int down)
 	{
-	if (!osk.enable || !CVAR_TO_BOOL (osk_enable))
+	// [FWGS, 01.07.23]
+	/*if (!osk.enable || !CVAR_TO_BOOL (osk_enable))*/
+	if (!osk.enable || !osk_enable.value)
 		return false;
 
 	if (osk.sending)
@@ -1079,7 +1098,7 @@ static qboolean OSK_KeyEvent (int key, int down)
 						break;
 						}
 
-					if (!Q_stricmp (cl_charset->string, "utf-8"))
+					if (!Q_stricmp (cl_charset.string, "utf-8"))
 						ch = (unsigned char)osk.curbutton.val;
 					else
 						ch = Con_UtfProcessCharForce ((unsigned char)osk.curbutton.val);
@@ -1209,7 +1228,9 @@ void OSK_Draw (void)
 	float  x, y;
 	int i, j;
 
-	if (!osk.enable || !CVAR_TO_BOOL (osk_enable) || !osk.curbutton.val)
+	// [FWGS, 01.07.23]
+	/*if (!osk.enable || !CVAR_TO_BOOL (osk_enable) || !osk.curbutton.val)*/
+	if (!osk.enable || !osk_enable.value || !osk.curbutton.val)
 		return;
 
 	// draw keyboard

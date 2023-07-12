@@ -46,7 +46,6 @@ static sizebuf_t	msg_demo;
 /*
 ==================
 CL_DispatchQuakeMessage
-
 ==================
 */
 static void CL_DispatchQuakeMessage (const char *name)
@@ -133,7 +132,6 @@ static void CL_UpdateQuakeGameMode (int gamemode)
 /*
 ==================
 CL_ParseQuakeSound
-
 ==================
 */
 static void CL_ParseQuakeSound (sizebuf_t *msg)
@@ -177,7 +175,6 @@ static void CL_ParseQuakeSound (sizebuf_t *msg)
 /*
 ==================
 CL_ParseQuakeServerInfo
-
 ==================
 */
 static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
@@ -234,12 +231,17 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		// loading user settings
 		CSCR_LoadDefaultCVars ("user.scr");
 
-		if (r_decals->value > mp_decals.value)
-			Cvar_SetValue ("r_decals", mp_decals.value);
+		// [FWGS, 01.07.23]
+		/*if (r_decals->value > mp_decals.value)
+			Cvar_SetValue ("r_decals", mp_decals.value);*/
+		if (r_decals.value > mp_decals.value)
+			Cvar_DirectSet (&r_decals, mp_decals.string);
 		}
 	else
 		{
-		Cvar_Reset ("r_decals");
+		// [FWGS, 01.07.23]
+		/*Cvar_Reset ("r_decals");*/
+		Cvar_DirectSet (&r_decals, NULL);
 		}
 
 	if (cl.background)	// tell the game parts about background state
@@ -264,7 +266,8 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	Q_strncpy (gameui.globals->maptitle, clgame.maptitle, sizeof (gameui.globals->maptitle));
 
 	if (!cls.changelevel && !cls.changedemo)
-		CL_InitEdicts (); // re-arrange edicts
+		/*CL_InitEdicts (); // re-arrange edicts*/
+		CL_InitEdicts (cl.maxclients);	// [FWGS, 01.07.23] re-arrange edicts
 
 	// Quake just have a large packet of initialization data
 	for (i = 1; i < MAX_MODELS; i++)
@@ -308,9 +311,9 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	else Cvar_Set ("cl_levelshot_name", va ("levelshots/%s_%s", clgame.mapname, refState.wideScreen ? "16x9" : "4x3"));
 	Cvar_SetValue ("scr_loading", 0.0f); // reset progress bar
 
-	if ((cl_allow_levelshots->value && !cls.changelevel) || cl.background)
+	if ((cl_allow_levelshots.value && !cls.changelevel) || cl.background)
 		{
-		if (!FS_FileExists (va ("%s.bmp", cl_levelshot_name->string), true))
+		if (!FS_FileExists (va ("%s.bmp", cl_levelshot_name.string), true))
 			Cvar_Set ("cl_levelshot_name", "*black"); // render a black screen
 		cls.scrshot_request = scrshot_plaque; // request levelshot even if exist (check filetime)
 		}
@@ -340,7 +343,6 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 /*
 ==================
 CL_ParseQuakeClientData
-
 ==================
 */
 static void CL_ParseQuakeClientData (sizebuf_t *msg)
@@ -422,11 +424,11 @@ relinked.  Other attributes can change without relinking.
 */
 void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 	{
-	int		i, newnum, pack;
+	int				i, newnum, pack;
 	qboolean		forcelink;
-	entity_state_t *state;
-	frame_t *frame;
-	cl_entity_t *ent;
+	entity_state_t	*state;
+	frame_t			*frame;
+	cl_entity_t		*ent;
 
 	// first update is the final signon stage where we actually receive an entity (i.e., the world at least)
 	if (cls.signon == (SIGNONS - 1))
@@ -452,7 +454,8 @@ void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 
 	if (FBitSet (bits, U_LONGENTITY))
 		newnum = MSG_ReadWord (msg);
-	else newnum = MSG_ReadByte (msg);
+	else
+		newnum = MSG_ReadByte (msg);
 
 	memset (state, 0, sizeof (*state));
 	SetBits (state->entityType, ENTITY_NORMAL);
@@ -466,58 +469,71 @@ void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 
 	if (ent->curstate.msg_time != cl.mtime[1])
 		forcelink = true;	// no previous frame to lerp from
-	else forcelink = false;
+	else
+		forcelink = false;
 
 	if (FBitSet (bits, U_MODEL))
 		state->modelindex = MSG_ReadByte (msg);
-	else state->modelindex = ent->baseline.modelindex;
+	else
+		state->modelindex = ent->baseline.modelindex;
 
 	if (FBitSet (bits, U_FRAME))
 		state->frame = MSG_ReadByte (msg);
-	else state->frame = ent->baseline.frame;
+	else
+		state->frame = ent->baseline.frame;
 
 	if (FBitSet (bits, U_COLORMAP))
 		state->colormap = MSG_ReadByte (msg);
-	else state->colormap = ent->baseline.colormap;
+	else
+		state->colormap = ent->baseline.colormap;
 
 	if (FBitSet (bits, U_SKIN))
 		state->skin = MSG_ReadByte (msg);
-	else state->skin = ent->baseline.skin;
+	else
+		state->skin = ent->baseline.skin;
 
 	if (FBitSet (bits, U_EFFECTS))
 		state->effects = MSG_ReadByte (msg);
-	else state->effects = ent->baseline.effects;
+	else
+		state->effects = ent->baseline.effects;
 
 	if (FBitSet (bits, U_ORIGIN1))
 		state->origin[0] = MSG_ReadCoord (msg);
-	else state->origin[0] = ent->baseline.origin[0];
+	else
+		state->origin[0] = ent->baseline.origin[0];
 
 	if (FBitSet (bits, U_ANGLE1))
 		state->angles[0] = MSG_ReadAngle (msg);
-	else state->angles[0] = ent->baseline.angles[0];
+	else
+		state->angles[0] = ent->baseline.angles[0];
 
 	if (FBitSet (bits, U_ORIGIN2))
 		state->origin[1] = MSG_ReadCoord (msg);
-	else state->origin[1] = ent->baseline.origin[1];
+	else
+		state->origin[1] = ent->baseline.origin[1];
 
 	if (FBitSet (bits, U_ANGLE2))
 		state->angles[1] = MSG_ReadAngle (msg);
-	else state->angles[1] = ent->baseline.angles[1];
+	else
+		state->angles[1] = ent->baseline.angles[1];
 
 	if (FBitSet (bits, U_ORIGIN3))
 		state->origin[2] = MSG_ReadCoord (msg);
-	else state->origin[2] = ent->baseline.origin[2];
+	else
+		state->origin[2] = ent->baseline.origin[2];
 
 	if (FBitSet (bits, U_ANGLE3))
 		state->angles[2] = MSG_ReadAngle (msg);
-	else state->angles[2] = ent->baseline.angles[2];
+	else
+		state->angles[2] = ent->baseline.angles[2];
 
 	if (FBitSet (bits, U_TRANS))
 		{
 		int	temp = MSG_ReadFloat (msg);
 		float	alpha = MSG_ReadFloat (msg);
 
-		if (alpha == 0.0f) alpha = 1.0f;
+		if (alpha == 0.0f)
+			alpha = 1.0f;
 
 		if (alpha < 1.0f)
 			{
@@ -525,13 +541,14 @@ void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 			state->renderamt = (int)(alpha * 255.0f);
 			}
 
-		if (temp == 2 && MSG_ReadFloat (msg))
+		if ((temp == 2) && MSG_ReadFloat (msg))
 			SetBits (state->effects, EF_FULLBRIGHT);
 		}
 
 	if (FBitSet (bits, U_NOLERP))
 		state->movetype = MOVETYPE_STEP;
-	else state->movetype = MOVETYPE_NOCLIP;
+	else
+		state->movetype = MOVETYPE_NOCLIP;
 
 	if (CL_QuakeEntityTeleported (ent, state))
 		{
@@ -568,7 +585,6 @@ void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 /*
 ==================
 CL_ParseQuakeParticles
-
 ==================
 */
 void CL_ParseQuakeParticle (sizebuf_t *msg)
@@ -590,7 +606,6 @@ void CL_ParseQuakeParticle (sizebuf_t *msg)
 /*
 ===================
 CL_ParseQuakeStaticSound
-
 ===================
 */
 void CL_ParseQuakeStaticSound (sizebuf_t *msg)
@@ -627,7 +642,6 @@ static void CL_ParseQuakeDamage (sizebuf_t *msg)
 /*
 ===================
 CL_ParseQuakeStaticEntity
-
 ===================
 */
 static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
@@ -691,7 +705,6 @@ static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 /*
 ===================
 CL_ParseQuakeBaseline
-
 ===================
 */
 static void CL_ParseQuakeBaseline (sizebuf_t *msg)
@@ -730,7 +743,6 @@ static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 /*
 ===================
 CL_ParseQuakeTempEntity
-
 ===================
 */
 static void CL_ParseQuakeTempEntity (sizebuf_t *msg)
@@ -821,7 +833,6 @@ static void CL_ParseNehahraHideLMP (sizebuf_t *msg)
 /*
 ==================
 CL_QuakeStuffText
-
 ==================
 */
 void CL_QuakeStuffText (const char *text)
@@ -836,7 +847,6 @@ void CL_QuakeStuffText (const char *text)
 /*
 ==================
 CL_QuakeExecStuff
-
 ==================
 */
 void CL_QuakeExecStuff (void)
@@ -855,20 +865,22 @@ void CL_QuakeExecStuff (void)
 		while (*text && ((byte)*text) <= ' ' && *text != '\r' && *text != '\n')
 			text++;
 
-		if (*text == '\n' || *text == '\r')
+		if ((*text == '\n') || (*text == '\r'))
 			{
 			// a newline seperates commands in the buffer
-			if (*text == '\r' && text[1] == '\n')
+			if ((*text == '\r') && (text[1] == '\n'))
 				text++;
 			argc = 0;
 			text++;
 			}
 
-		if (!*text) break;
+		if (!*text)
+			break;
 
 		text = COM_ParseFileSafe (text, token, sizeof (token), PFILE_IGNOREBRACKET, NULL, NULL);
 
-		if (!text) break;
+		if (!text)
+			break;
 
 		if (argc == 0)
 			{
@@ -890,7 +902,6 @@ void CL_QuakeExecStuff (void)
 /*
 ==================
 CL_ParseQuakeMessage
-
 ==================
 */
 void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)
@@ -1107,7 +1118,8 @@ void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)
 					packed_fog[1] = fog_settings[1] * 255;
 					packed_fog[2] = fog_settings[2] * 255;
 					packed_fog[3] = fog_settings[3] * 255;
-					clgame.movevars.fog_settings = (packed_fog[1] << 24) | (packed_fog[2] << 16) | (packed_fog[3] << 8) | packed_fog[0];
+					clgame.movevars.fog_settings = (packed_fog[1] << 24) | (packed_fog[2] << 16) |
+						(packed_fog[3] << 8) | packed_fog[0];
 					}
 				else
 					{

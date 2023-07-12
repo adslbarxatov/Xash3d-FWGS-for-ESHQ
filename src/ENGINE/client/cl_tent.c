@@ -2844,7 +2844,8 @@ void CL_AddModelEffects (cl_entity_t *ent)
 		// XASH SPECIFIC: get radius from head entity
 		if (ent->curstate.rendermode != kRenderNormal)
 			dl->radius = Q_max (0, ent->curstate.renderamt - 55);
-		else dl->radius = 200;
+		else
+			dl->radius = 200;
 
 		dl->die = cl.time + 0.01f;
 
@@ -2872,10 +2873,12 @@ void CL_TestLights (void)
 	float	f, r;
 	dlight_t *dl;
 
-	if (!CVAR_TO_BOOL (cl_testlights))
+	// [FWGS, 01.07.23]
+	/*if (!CVAR_TO_BOOL (cl_testlights))*/
+	if (!cl_testlights.value)
 		return;
 
-	numLights = bound (1, cl_testlights->value, MAX_DLIGHTS);
+	numLights = bound (1, cl_testlights.value, MAX_DLIGHTS);
 	AngleVectors (cl.viewangles, forward, right, NULL);
 
 	for (i = 0; i < numLights; i++)

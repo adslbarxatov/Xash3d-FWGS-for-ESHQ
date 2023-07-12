@@ -29,23 +29,34 @@ GNU General Public License for more details.
 #define MAX_CMD_BUFFER				8000
 #define CONNECTION_PROBLEM_TIME		15.0	// 15 seconds
 #define CL_CONNECTION_RETRIES		10
-#define CL_TEST_RETRIES_NORESPONCE	3	// [FWGS, 01.04.23]
+#define CL_TEST_RETRIES_NORESPONCE	3		// [FWGS, 01.04.23]
 #define CL_TEST_RETRIES				5
 
-CVAR_DEFINE_AUTO (mp_decals, "300", FCVAR_ARCHIVE, "decals limit in multiplayer");
-CVAR_DEFINE_AUTO (dev_overview, "0", 0, "draw level in overview-mode");
-CVAR_DEFINE_AUTO (cl_resend, "6.0", 0, "time to resend connect");
-CVAR_DEFINE_AUTO (cl_allow_download, "1", FCVAR_ARCHIVE, "allow to downloading resources from the server");
-CVAR_DEFINE_AUTO (cl_allow_upload, "1", FCVAR_ARCHIVE, "allow to uploading resources to the server");
-CVAR_DEFINE_AUTO (cl_download_ingame, "1", FCVAR_ARCHIVE, "allow to downloading resources while client is active");
-CVAR_DEFINE_AUTO (cl_logofile, "lambda", FCVAR_ARCHIVE, "player logo name");
-CVAR_DEFINE_AUTO (cl_logocolor, "orange", FCVAR_ARCHIVE, "player logo color");
+CVAR_DEFINE_AUTO (mp_decals, "300", FCVAR_ARCHIVE,
+	"decals limit in multiplayer");
+CVAR_DEFINE_AUTO (dev_overview, "0", 0,
+	"draw level in overview-mode");
+CVAR_DEFINE_AUTO (cl_resend, "6.0", 0,
+	"time to resend connect");
+CVAR_DEFINE_AUTO (cl_allow_download, "1", FCVAR_ARCHIVE,
+	"allow to downloading resources from the server");
+CVAR_DEFINE_AUTO (cl_allow_upload, "1", FCVAR_ARCHIVE,
+	"allow to uploading resources to the server");
+CVAR_DEFINE_AUTO (cl_download_ingame, "1", FCVAR_ARCHIVE,
+	"allow to downloading resources while client is active");
+CVAR_DEFINE_AUTO (cl_logofile, "lambda", FCVAR_ARCHIVE,
+	"player logo name");
+CVAR_DEFINE_AUTO (cl_logocolor, "orange", FCVAR_ARCHIVE,
+	"player logo color");
 
 // [FWGS, 01.04.23]
-CVAR_DEFINE_AUTO (cl_logoext, "bmp", FCVAR_ARCHIVE, "temporary cvar to tell engine which logo must be packed");
-CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE, "test network bandwith before connection");
+CVAR_DEFINE_AUTO (cl_logoext, "bmp", FCVAR_ARCHIVE,
+	"temporary cvar to tell engine which logo must be packed");
+CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE,
+	"test network bandwith before connection");
 
-convar_t *rcon_address;
+// [FWGS, 01.07.23]
+/*convar_t *rcon_address;
 convar_t *cl_timeout;
 convar_t *cl_nopred;
 convar_t *cl_nodelta;
@@ -61,7 +72,7 @@ convar_t *cl_nosmooth;
 convar_t *cl_smoothtime;
 convar_t *cl_clockreset;
 convar_t *cl_fixtimerate;
-convar_t *hud_fontscale;	// [FWGS, 01.04.23]
+convar_t *hud_fontscale;
 convar_t *hud_scale;
 convar_t *cl_solid_players;
 convar_t *cl_draw_beams;
@@ -78,16 +89,94 @@ convar_t *cl_charset;
 convar_t *cl_trace_messages;
 convar_t *cl_nat;
 convar_t *hud_utf8;
-convar_t *ui_renderworld;
+convar_t *ui_renderworld;*/
+CVAR_DEFINE (cl_draw_particles, "r_drawparticles", "1", FCVAR_CHEAT,
+	"render particles");
+CVAR_DEFINE (cl_draw_tracers, "r_drawtracers", "1", FCVAR_CHEAT,
+	"render tracers");
+CVAR_DEFINE (cl_draw_beams, "r_drawbeams", "1", FCVAR_CHEAT,
+	"render beams");
+static CVAR_DEFINE_AUTO (rcon_address, "", FCVAR_PRIVILEGED,
+	"remote control address");
+CVAR_DEFINE_AUTO (cl_timeout, "60", 0,
+	"connect timeout (in-seconds)");
+CVAR_DEFINE_AUTO (cl_nopred, "0", FCVAR_ARCHIVE | FCVAR_USERINFO,
+	"disable client movement prediction");
+CVAR_DEFINE_AUTO (cl_nodelta, "0", 0,
+	"disable delta-compression for server messages");
+CVAR_DEFINE (cl_crosshair, "crosshair", "1", FCVAR_ARCHIVE,
+	"show weapon chrosshair");
+static CVAR_DEFINE_AUTO (cl_cmdbackup, "10", FCVAR_ARCHIVE,
+	"how many additional history commands are sent");
+CVAR_DEFINE_AUTO (cl_showerror, "0", FCVAR_ARCHIVE,
+	"show prediction error");
+CVAR_DEFINE_AUTO (cl_bmodelinterp, "1", FCVAR_ARCHIVE,
+	"enable bmodel interpolation");
+CVAR_DEFINE_AUTO (cl_lightstyle_lerping, "0", FCVAR_ARCHIVE,
+	"enables animated light lerping (perfomance option)");
+CVAR_DEFINE_AUTO (cl_idealpitchscale, "0.8", 0,
+	"how much to look up/down slopes and stairs when not using freelook");
+CVAR_DEFINE_AUTO (cl_nosmooth, "0", FCVAR_ARCHIVE,
+	"disable smooth up stair climbing");
+CVAR_DEFINE_AUTO (cl_smoothtime, "0.1", FCVAR_ARCHIVE,
+	"time to smooth up");
+CVAR_DEFINE_AUTO (cl_clockreset, "0.1", FCVAR_ARCHIVE,
+	"frametime delta maximum value before reset");
+CVAR_DEFINE_AUTO (cl_fixtimerate, "7.5", FCVAR_ARCHIVE,
+	"time in msec to client clock adjusting");
+CVAR_DEFINE_AUTO (hud_fontscale, "1.0", FCVAR_ARCHIVE | FCVAR_LATCH,
+	"scale hud font texture");
+CVAR_DEFINE_AUTO (hud_scale, "0", FCVAR_ARCHIVE | FCVAR_LATCH,
+	"scale hud at current resolution");
+CVAR_DEFINE_AUTO (cl_solid_players, "1", 0,
+	"Make all players not solid (can't traceline them)");
+CVAR_DEFINE_AUTO (cl_updaterate, "20", FCVAR_USERINFO | FCVAR_ARCHIVE,
+	"refresh rate of server messages");
+CVAR_DEFINE_AUTO (cl_showevents, "0", FCVAR_ARCHIVE,
+	"show events playback");
+CVAR_DEFINE_AUTO (cl_cmdrate, "60", FCVAR_ARCHIVE,
+	"Max number of command packets sent to server per second");
+CVAR_DEFINE (cl_interp, "ex_interp", "0.1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"Interpolate object positions starting this many seconds in past");
+CVAR_DEFINE_AUTO (cl_nointerp, "0", FCVAR_CLIENTDLL,
+	"disable interpolation of entities and players");
+static CVAR_DEFINE_AUTO (cl_dlmax, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
+	"max allowed outcoming fragment size");
+static CVAR_DEFINE_AUTO (cl_upmax, "1200", FCVAR_ARCHIVE,
+	"max allowed incoming fragment size");
+CVAR_DEFINE_AUTO (cl_lw, "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
+	"enable client weapon predicting");
+CVAR_DEFINE_AUTO (cl_charset, "utf-8", FCVAR_ARCHIVE,
+	"1-byte charset to use (iconv style)");
+CVAR_DEFINE_AUTO (cl_trace_messages, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
+	"enable message names tracing (good for developers)");
+CVAR_DEFINE_AUTO (cl_trace_events, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
+	"enable events tracing (good for developers)");
+static CVAR_DEFINE_AUTO (cl_nat, "0", 0,
+	"show servers running under NAT");
+CVAR_DEFINE_AUTO (hud_utf8, "0", FCVAR_ARCHIVE,
+	"Use utf-8 encoding for hud text");
+CVAR_DEFINE_AUTO (ui_renderworld, "0", FCVAR_ARCHIVE,
+	"render world when UI is visible");
 
 //
-// userinfo
+// [FWGS, 01.07.23] userinfo
 //
-convar_t *name;
+/*convar_t *name;
 convar_t *model;
 convar_t *topcolor;
 convar_t *bottomcolor;
-convar_t *rate;
+convar_t *rate;*/
+static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY,
+	"player name");
+static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE,
+	"player model ('player' is a singleplayer model)");
+static CVAR_DEFINE_AUTO (topcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
+	"player top color");
+static CVAR_DEFINE_AUTO (bottomcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
+	"player bottom color");
+CVAR_DEFINE_AUTO (rate, "3500", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"player network rate");
 
 client_t		cl;
 client_static_t	cls;
@@ -208,7 +297,7 @@ int CL_GetFragmentSize (void *unused, fragsize_t mode)
 	if (Netchan_IsLocal (&cls.netchan))
 		return FRAGMENT_LOCAL_SIZE;
 
-	return cl_upmax->value;
+	return cl_upmax.value;
 	}
 
 /*
@@ -270,9 +359,9 @@ static float CL_LerpPoint (void)
 		return 1.0f;
 		}
 
-	if (cl_interp->value <= 0.001)
+	if (cl_interp.value <= 0.001)
 		return 1.0f;
-	frac = (cl.time - cl.mtime[0]) / cl_interp->value;
+	frac = (cl.time - cl.mtime[0]) / cl_interp.value;
 
 	return frac;
 	}
@@ -319,13 +408,13 @@ void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	float max_interp = MAX_EX_INTERP;
 	float interpolation_time;
 
-	if (cl_updaterate->value < MIN_UPDATERATE)
+	if (cl_updaterate.value < MIN_UPDATERATE)
 		{
 		Con_Printf ("cl_updaterate minimum is %f, resetting to default (20)\n", MIN_UPDATERATE);
 		Cvar_Reset ("cl_updaterate");
 		}
 
-	if (cl_updaterate->value > MAX_UPDATERATE)
+	if (cl_updaterate.value > MAX_UPDATERATE)
 		{
 		Con_Printf ("cl_updaterate clamped at maximum (%f)\n", MAX_UPDATERATE);
 		Cvar_SetValue ("cl_updaterate", MAX_UPDATERATE);
@@ -334,17 +423,17 @@ void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	if (cls.spectator)
 		max_interp = 0.2f;
 
-	min_interp = 1.0f / cl_updaterate->value;
+	min_interp = 1.0f / cl_updaterate.value;
 
 	// [FWGS, 01.04.23]
-	interpolation_time = cl_interp->value * 1000.0;
+	interpolation_time = cl_interp.value * 1000.0;
 
-	if ((cl_interp->value + epsilon) < min_interp)
+	if ((cl_interp.value + epsilon) < min_interp)
 		{
 		Con_Printf ("ex_interp forced up to %.1f msec\n", min_interp * 1000.f);
 		Cvar_SetValue ("ex_interp", min_interp);
 		}
-	else if ((cl_interp->value - epsilon) > max_interp)
+	else if ((cl_interp.value - epsilon) > max_interp)
 		{
 		Con_Printf ("ex_interp forced down to %.1f msec\n", max_interp * 1000.f);
 		Cvar_SetValue ("ex_interp", max_interp);
@@ -357,7 +446,6 @@ void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 /*
 =================
 CL_ComputePacketLoss
-
 =================
 */
 void CL_ComputePacketLoss (void)
@@ -393,7 +481,6 @@ void CL_ComputePacketLoss (void)
 /*
 =================
 CL_UpdateFrameLerp
-
 =================
 */
 void CL_UpdateFrameLerp (void)
@@ -459,7 +546,8 @@ void CL_ApplyAddAngle (void)
 
 	if (prev && next)
 		addangletotal = prev->total + frac * (next->total - prev->total);
-	else addangletotal = cl.prevaddangletotal;
+	else
+		addangletotal = cl.prevaddangletotal;
 
 	amove = addangletotal - cl.prevaddangletotal;
 
@@ -473,9 +561,7 @@ void CL_ApplyAddAngle (void)
 
 /*
 =======================================================================
-
 CLIENT MOVEMENT COMMUNICATION
-
 =======================================================================
 */
 /*
@@ -488,20 +574,27 @@ navigate around texture atlas
 qboolean CL_ProcessShowTexturesCmds (usercmd_t *cmd)
 	{
 	static int	oldbuttons;
-	int		changed;
-	int		pressed, released;
+	int			changed;
+	int			pressed, released;
 
-	if (!gl_showtextures->value || CL_IsDevOverviewMode ())
+	// [FWGS, 01.07.23]
+	/*if (!gl_showtextures->value || CL_IsDevOverviewMode ())*/
+	if (!r_showtextures.value || CL_IsDevOverviewMode ())
 		return false;
 
 	changed = (oldbuttons ^ cmd->buttons);
 	pressed = changed & cmd->buttons;
 	released = changed & (~cmd->buttons);
 
+	// [FWGS, 01.07.23]
 	if (released & (IN_RIGHT | IN_MOVERIGHT))
-		Cvar_SetValue ("r_showtextures", gl_showtextures->value + 1);
+		/*Cvar_SetValue ("r_showtextures", gl_showtextures->value + 1);*/
+		Cvar_SetValue ("r_showtextures", r_showtextures.value + 1);
+
 	if (released & (IN_LEFT | IN_MOVELEFT))
-		Cvar_SetValue ("r_showtextures", Q_max (1, gl_showtextures->value - 1));
+		/*Cvar_SetValue ("r_showtextures", Q_max (1, gl_showtextures->value - 1));*/
+		Cvar_SetValue ("r_showtextures", Q_max (1, r_showtextures.value - 1));
+
 	oldbuttons = cmd->buttons;
 
 	return true;
@@ -516,16 +609,19 @@ Transform user movement into overview adjust
 */
 qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 	{
-	ref_overview_t *ov = &clgame.overView;
+	ref_overview_t	*ov = &clgame.overView;
 	int		sign = 1;
-	float		size = world.size[!ov->rotated] / world.size[ov->rotated];
-	float		step = (2.0f / size) * host.realframetime;
-	float		step2 = step * 100.0f * (2.0f / ov->flZoom);
+	float	size = world.size[!ov->rotated] / world.size[ov->rotated];
+	float	step = (2.0f / size) * host.realframetime;
+	float	step2 = step * 100.0f * (2.0f / ov->flZoom);
 
-	if (!CL_IsDevOverviewMode () || gl_showtextures->value)
+	// [FWGS, 01.07.23]
+	/*if (!CL_IsDevOverviewMode () || gl_showtextures->value)*/
+	if (!CL_IsDevOverviewMode () || r_showtextures.value)
 		return false;
 
-	if (ov->flZoom < 0.0f) sign = -1;
+	if (ov->flZoom < 0.0f)
+		sign = -1;
 
 	if (cmd->upmove > 0.0f) 
 		ov->zNear += step;
@@ -733,22 +829,25 @@ void CL_WritePacket (void)
 	MSG_Init (&buf, "ClientData", data, sizeof (data));
 
 	// Determine number of backup commands to send along [FWGS, 01.04.23]
-	numbackup = bound (0, cl_cmdbackup->value, cls.legacymode ? MAX_LEGACY_BACKUP_CMDS : MAX_BACKUP_COMMANDS);
+	numbackup = bound (0, cl_cmdbackup.value, cls.legacymode ? MAX_LEGACY_BACKUP_CMDS : MAX_BACKUP_COMMANDS);
 
 	if (cls.state == ca_connected) 
 		numbackup = 0;
 
-	// clamp cmdrate [FWGS, 01.04.23]
-	if (cl_cmdrate->value < 10.0f)
-		Cvar_SetValue ("cl_cmdrate", 10.0f);
-	else if (cl_cmdrate->value > 100.0f)
-		Cvar_SetValue ("cl_cmdrate", 100.0f);
+	// clamp cmdrate [FWGS, 01.07.23]
+	if (cl_cmdrate.value < 10.0f)
+		/*Cvar_SetValue ("cl_cmdrate", 10.0f);*/
+		Cvar_DirectSet (&cl_cmdrate, "10");
+
+	else if (cl_cmdrate.value > 100.0f)
+		/*Cvar_SetValue ("cl_cmdrate", 100.0f);*/
+		Cvar_DirectSet (&cl_cmdrate, "100");
 
 	// Check to see if we can actually send this command
 
 	// In single player, send commands as fast as possible
 	// Otherwise, only send when ready and when not choking bandwidth
-	if ((cl.maxclients == 1) || (NET_IsLocalAddress (cls.netchan.remote_address) && !host_limitlocal->value))
+	if ((cl.maxclients == 1) || (NET_IsLocalAddress (cls.netchan.remote_address) && !host_limitlocal.value))
 		send_command = true;
 
 	if ((host.realtime >= cls.nextcmdtime) && Netchan_CanPacket (&cls.netchan, true))
@@ -761,7 +860,7 @@ void CL_WritePacket (void)
 		}
 
 	// spectator is not sending cmds to server
-	if (cls.spectator && cls.state == ca_active && cl.delta_sequence == cl.validsequence)
+	if (cls.spectator && (cls.state == ca_active) && cl.delta_sequence == cl.validsequence)
 		{
 		if (!(cls.demorecording && cls.demowaiting) && cls.nextcmdtime + 1.0f > host.realtime)
 			return;
@@ -772,21 +871,21 @@ void CL_WritePacket (void)
 		if ((host.realtime - cls.netchan.last_received) > CONNECTION_PROBLEM_TIME)
 			{
 			Con_NPrintf (1, "^3Warning:^1 Connection Problem^7\n");
-			Con_NPrintf (2, "^1Auto-disconnect in %.1f seconds^7", cl_timeout->value - 
+			Con_NPrintf (2, "^1Auto-disconnect in %.1f seconds^7", cl_timeout.value - 
 				(host.realtime - cls.netchan.last_received));	// [FWGS, 01.04.23]
 			cl.validsequence = 0;
 			}
 		}
 
-	if (cl_nodelta->value)
+	if (cl_nodelta.value)
 		cl.validsequence = 0;
 
 	if (send_command)
 		{
 		int	outgoing_sequence;
 
-		if (cl_cmdrate->value > 0) // clamped between 10 and 100 fps
-			cls.nextcmdtime = host.realtime + bound (0.1f, (1.0f / cl_cmdrate->value), 0.01f);
+		if (cl_cmdrate.value > 0) // clamped between 10 and 100 fps
+			cls.nextcmdtime = host.realtime + bound (0.1f, (1.0f / cl_cmdrate.value), 0.01f);
 		else
 			cls.nextcmdtime = host.realtime; // always able to send right away
 
@@ -1013,15 +1112,14 @@ void CL_Drop (void)
 =======================
 CL_SendConnectPacket
 
-We have gotten a challenge from the server, so try and
-connect.
+We have gotten a challenge from the server, so try and connect
 ======================
 */
 void CL_SendConnectPacket (void)
 	{
-	char	protinfo[MAX_INFO_STRING];
-	const char *qport;
-	const char *key;
+	char		protinfo[MAX_INFO_STRING];
+	const char	*qport;
+	const char	*key;
 	netadr_t	adr;
 
 	if (!NET_StringToAdr (cls.servername, &adr))
@@ -1054,7 +1152,6 @@ void CL_SendConnectPacket (void)
 		Cvar_FullSet ("sv_cheats", "0", FCVAR_READ_ONLY | FCVAR_SERVER);
 
 		Info_SetValueForKeyf (protinfo, "d", sizeof (protinfo), "%d", input_devices);
-
 		Info_SetValueForKey (protinfo, "v", XASH_VERSION, sizeof (protinfo));
 		
 		// [FWGS, 01.04.23]
@@ -1066,10 +1163,10 @@ void CL_SendConnectPacket (void)
 	if (cls.legacymode)
 		{
 		// set related userinfo keys
-		if ((cl_dlmax->value >= 40000) || (cl_dlmax->value < 100))
+		if ((cl_dlmax.value >= 40000) || (cl_dlmax.value < 100))
 			Info_SetValueForKey (cls.userinfo, "cl_maxpacket", "1400", sizeof (cls.userinfo));
 		else
-			Info_SetValueForKey (cls.userinfo, "cl_maxpacket", cl_dlmax->string, sizeof (cls.userinfo));
+			Info_SetValueForKey (cls.userinfo, "cl_maxpacket", cl_dlmax.string, sizeof (cls.userinfo));
 
 		if (!*Info_ValueForKey (cls.userinfo, "cl_maxpayload"))
 			Info_SetValueForKey (cls.userinfo, "cl_maxpayload", "1000", sizeof (cls.userinfo));
@@ -1084,7 +1181,7 @@ void CL_SendConnectPacket (void)
 		{
 		int extensions = NET_EXT_SPLITSIZE;
 
-		if ((cl_dlmax->value > FRAGMENT_MAX_SIZE) || (cl_dlmax->value < FRAGMENT_MIN_SIZE))
+		if ((cl_dlmax.value > FRAGMENT_MAX_SIZE) || (cl_dlmax.value < FRAGMENT_MIN_SIZE))
 			Cvar_SetValue ("cl_dlmax", FRAGMENT_DEFAULT_SIZE);
 
 		Info_RemoveKey (cls.userinfo, "cl_maxpacket");
@@ -1283,8 +1380,12 @@ void CL_Connect_f (void)
 	Q_strncpy (server, Cmd_Argv (1), sizeof (server));
 
 	// if running a local server, kill it and reissue
-	if (SV_Active ()) Host_ShutdownServer ();
-	NET_Config (true, !CVAR_TO_BOOL (cl_nat)); // allow remote
+	if (SV_Active ())
+		Host_ShutdownServer ();
+
+	// [FWGS, 01.07.23]
+	/*NET_Config (true, !CVAR_TO_BOOL (cl_nat)); // allow remote*/
+	NET_Config (true, !cl_nat.value); // allow remote
 
 	Con_Printf ("server %s\n", server);
 	CL_Disconnect ();
@@ -1350,13 +1451,13 @@ void CL_Rcon_f (void)
 		}
 	else
 		{
-		if (!COM_CheckString (rcon_address->string))
+		if (!COM_CheckString (rcon_address.string))
 			{
 			Con_Printf ("You must either be connected or set the 'rcon_address' cvar to issue rcon commands\n");
 			return;
 			}
 
-		NET_StringToAdr (rcon_address->string, &to);
+		NET_StringToAdr (rcon_address.string, &to);
 		if (to.port == 0)
 			to.port = MSG_BigShort (PORT_SERVER);
 		}
@@ -1452,12 +1553,12 @@ int CL_GetSplitSize (void)
 	if (!(cls.extensions & NET_EXT_SPLITSIZE))
 		return 1400;
 
-	splitsize = cl_dlmax->value;
+	splitsize = cl_dlmax.value;
 
-	if (splitsize < FRAGMENT_MIN_SIZE || splitsize > FRAGMENT_MAX_SIZE)
+	if ((splitsize < FRAGMENT_MIN_SIZE) || (splitsize > FRAGMENT_MAX_SIZE))
 		Cvar_SetValue ("cl_dlmax", FRAGMENT_DEFAULT_SIZE);
 
-	return cl_dlmax->value;
+	return cl_dlmax.value;
 	}
 
 /*
@@ -1481,7 +1582,7 @@ void CL_Reconnect (qboolean setup_netchan)
 				{
 				// only enable incoming split for legacy mode
 				cls.netchan.split = true;
-				Con_Reportf ("^2NET_EXT_SPLIT enabled^7 (packet sizes is %d/%d)\n", (int)cl_dlmax->value, 65536);
+				Con_Reportf ("^2NET_EXT_SPLIT enabled^7 (packet sizes is %d/%d)\n", (int)cl_dlmax.value, 65536);
 				}
 			}
 		else
@@ -1490,7 +1591,7 @@ void CL_Reconnect (qboolean setup_netchan)
 
 			if (cls.extensions & NET_EXT_SPLITSIZE)
 				{
-				Con_Reportf ("^2NET_EXT_SPLITSIZE enabled^7 (packet size is %d)\n", (int)cl_dlmax->value);
+				Con_Reportf ("^2NET_EXT_SPLITSIZE enabled^7 (packet size is %d)\n", (int)cl_dlmax.value);
 				}
 			}
 
@@ -1646,7 +1747,7 @@ void CL_InternetServers_f (void)
 	{
 	char		fullquery[512];
 	size_t		len;
-	qboolean	nat = cl_nat->value != 0.0f;
+	qboolean	nat = cl_nat.value != 0.0f;
 
 	len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), nat);
 
@@ -2027,8 +2128,13 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		{
 		byte	recv_buf[NET_MAX_FRAGMENT];
 		dword	crcValue;
-		int	realsize;
+		int		realsize;
 		dword	crcValue2 = 0;
+
+		// [FWGS, 01.07.23] this message only used during connection
+		// it doesn't make sense after client_connect
+		if (cls.state != ca_connecting)
+			return;
 
 		if (!CL_IsFromConnectingServer (from))
 			return;
@@ -2093,6 +2199,11 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		}
 	else if (!Q_strcmp (c, "challenge"))
 		{
+		// [FWGS, 01.07.23] this message only used during connection
+		// it doesn't make sense after client_connect
+		if (cls.state != ca_connecting)
+			return;
+
 		if (!CL_IsFromConnectingServer (from))
 			return;
 
@@ -2111,6 +2222,11 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		}
 	else if (!Q_strcmp (c, "disconnect"))
 		{
+		// [FWGS, 01.07.23] this message only used during connection
+		// it doesn't make sense after client_connect
+		if (cls.state != ca_connecting)
+			return;
+
 		if (!CL_IsFromConnectingServer (from))
 			return;
 
@@ -2400,16 +2516,15 @@ void CL_ReadPackets (void)
 	if (host.frametime > 5.0f) cls.netchan.last_received = Sys_DoubleTime ();
 
 	// check timeout
-	if (cls.state >= ca_connected && cls.state != ca_cinematic && !cls.demoplayback)
+	if ((cls.state >= ca_connected) && (cls.state != ca_cinematic) && !cls.demoplayback)
 		{
-		if (host.realtime - cls.netchan.last_received > cl_timeout->value)
+		if (host.realtime - cls.netchan.last_received > cl_timeout.value)
 			{
 			Con_Printf ("\nServer connection timed out.\n");
 			CL_Disconnect ();
 			return;
 			}
 		}
-
 	}
 
 /*
@@ -2421,12 +2536,11 @@ Replace the displayed name for some resources
 */
 const char *CL_CleanFileName (const char *filename)
 	{
-	if (COM_CheckString (filename) && filename[0] == '!')
+	if (COM_CheckString (filename) && (filename[0] == '!'))
 		return "customization";
 
 	return filename;
 	}
-
 
 /*
 ====================
@@ -2892,8 +3006,8 @@ void CL_InitLocal (void)
 	Voice_RegisterCvars ();
 	VGui_RegisterCvars ();	// [FWGS, 01.05.23]
 
-	// register our variables
-	cl_crosshair = Cvar_Get ("crosshair", "1", FCVAR_ARCHIVE,
+	// [FWGS, 01.07.23] register our variables
+	/*cl_crosshair = Cvar_Get ("crosshair", "1", FCVAR_ARCHIVE,
 		"show weapon chrosshair");
 	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0,
 		"disable delta-compression for server messages");
@@ -2908,14 +3022,27 @@ void CL_InitLocal (void)
 	cl_charset = Cvar_Get ("cl_charset", "utf-8", FCVAR_ARCHIVE,
 		"1-byte charset to use (iconv style)");
 	hud_utf8 = Cvar_Get ("hud_utf8", "0", FCVAR_ARCHIVE,
-		"Use utf-8 encoding for hud text");
-	rcon_address = Cvar_Get ("rcon_address", "", FCVAR_PRIVILEGED,
-		"remote control address");		// [FWGS, 01.04.23]
-	cl_trace_messages = Cvar_Get ("cl_trace_messages", "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
-		"enable message names tracing (good for developers)");
+		"Use utf-8 encoding for hud text");*/
+	Cvar_RegisterVariable (&cl_crosshair);
+	Cvar_RegisterVariable (&cl_nodelta);
+	Cvar_RegisterVariable (&cl_idealpitchscale);
+	Cvar_RegisterVariable (&cl_solid_players);
+	Cvar_RegisterVariable (&cl_interp);
+	Cvar_RegisterVariable (&cl_timeout);
+	Cvar_RegisterVariable (&cl_charset);
+	Cvar_RegisterVariable (&hud_utf8);
 
-	// userinfo
-	cl_nopred = Cvar_Get ("cl_nopred", "0", FCVAR_ARCHIVE | FCVAR_USERINFO,
+	/*rcon_address = Cvar_Get ("rcon_address", "", FCVAR_PRIVILEGED,
+		"remote control address");*/
+	Cvar_RegisterVariable (&rcon_address);
+
+	/*cl_trace_messages = Cvar_Get ("cl_trace_messages", "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
+		"enable message names tracing (good for developers)");*/
+	Cvar_RegisterVariable (&cl_trace_messages);
+	Cvar_RegisterVariable (&cl_trace_events);
+
+	// [FWGS, 01.07.23] userinfo
+	/*cl_nopred = Cvar_Get ("cl_nopred", "0", FCVAR_ARCHIVE | FCVAR_USERINFO,
 		"disable client movement prediction");
 	name = Cvar_Get ("name", Sys_GetCurrentUser (), FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY,
 		"player name");
@@ -2936,7 +3063,20 @@ void CL_InitLocal (void)
 	bottomcolor = Cvar_Get ("bottomcolor", "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
 		"player bottom color");
 	cl_lw = Cvar_Get ("cl_lw", "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
-		"enable client weapon predicting");
+		"enable client weapon predicting");*/
+	Cvar_RegisterVariable (&cl_nopred);
+	Cvar_RegisterVariable (&name);
+	Cvar_DirectSet (&name, Sys_GetCurrentUser ());
+	Cvar_RegisterVariable (&model);
+	Cvar_RegisterVariable (&cl_updaterate);
+	Cvar_RegisterVariable (&cl_dlmax);
+	Cvar_RegisterVariable (&cl_upmax);
+	Cvar_RegisterVariable (&cl_nat);
+	Cvar_RegisterVariable (&rate);
+	Cvar_RegisterVariable (&topcolor);
+	Cvar_RegisterVariable (&bottomcolor);
+	Cvar_RegisterVariable (&cl_lw);
+
 	Cvar_Get ("cl_lc", "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
 		"enable lag compensation");
 	Cvar_Get ("password", "", FCVAR_USERINFO,
@@ -2946,7 +3086,8 @@ void CL_InitLocal (void)
 	Cvar_Get ("skin", "", FCVAR_USERINFO,
 		"player skin");
 
-	cl_nosmooth = Cvar_Get ("cl_nosmooth", "0", FCVAR_ARCHIVE,
+	// [FWGS, 01.07.23]
+	/*cl_nosmooth = Cvar_Get ("cl_nosmooth", "0", FCVAR_ARCHIVE,
 		"disable smooth up stair climbing");
 	cl_nointerp = Cvar_Get ("cl_nointerp", "0", FCVAR_CLIENTDLL,
 		"disable interpolation of entities and players");
@@ -2972,20 +3113,39 @@ void CL_InitLocal (void)
 		"frametime delta maximum value before reset");
 	cl_fixtimerate = Cvar_Get ("cl_fixtimerate", "7.5", FCVAR_ARCHIVE,
 		"time in msec to client clock adjusting");
-
-	// [FWGS, 01.04.23]
 	hud_fontscale = Cvar_Get ("hud_fontscale", "1.0", FCVAR_ARCHIVE | FCVAR_LATCH,
 		"scale hud font texture");
 	hud_scale = Cvar_Get ("hud_scale", "0", FCVAR_ARCHIVE | FCVAR_LATCH,
-		"scale hud at current resolution");
+		"scale hud at current resolution");*/
+	Cvar_RegisterVariable (&cl_nosmooth);
+	Cvar_RegisterVariable (&cl_nointerp);
+	Cvar_RegisterVariable (&cl_smoothtime);
+	Cvar_RegisterVariable (&cl_cmdbackup);
+	Cvar_RegisterVariable (&cl_cmdrate);
+	Cvar_RegisterVariable (&cl_draw_particles);
+	Cvar_RegisterVariable (&cl_draw_tracers);
+	Cvar_RegisterVariable (&cl_draw_beams);
+	Cvar_RegisterVariable (&cl_lightstyle_lerping);
+	Cvar_RegisterVariable (&cl_showerror);
+	Cvar_RegisterVariable (&cl_bmodelinterp);
+	Cvar_RegisterVariable (&cl_clockreset);
+	Cvar_RegisterVariable (&cl_fixtimerate);
+	Cvar_RegisterVariable (&hud_fontscale);
+	Cvar_RegisterVariable (&hud_scale);
+
 	Cvar_Get ("cl_background", "0", FCVAR_READ_ONLY,
 		"indicate what background map is running");
-	cl_showevents = Cvar_Get ("cl_showevents", "0", FCVAR_ARCHIVE,
-		"show events playback");
+
+	/*cl_showevents = Cvar_Get ("cl_showevents", "0", FCVAR_ARCHIVE,
+		"show events playback");*/
+	Cvar_RegisterVariable (&cl_showevents);
+
 	Cvar_Get ("lastdemo", "", FCVAR_ARCHIVE,
 		"last played demo");
-	ui_renderworld = Cvar_Get ("ui_renderworld", "0", FCVAR_ARCHIVE,
-		"render world when UI is visible");
+	
+	/*ui_renderworld = Cvar_Get ("ui_renderworld", "0", FCVAR_ARCHIVE,
+		"render world when UI is visible");*/
+	Cvar_RegisterVariable (&ui_renderworld);
 
 	// these two added to shut up CS 1.5 about 'unknown' commands
 	Cvar_Get ("lightgamma", "1", FCVAR_ARCHIVE,
@@ -3118,10 +3278,10 @@ to smooth lag effect
 */
 void CL_AdjustClock (void)
 	{
-	if ((cl.timedelta == 0.0f) || !cl_fixtimerate->value)
+	if ((cl.timedelta == 0.0f) || !cl_fixtimerate.value)
 		return;
 
-	if (cl_fixtimerate->value < 0.0f)
+	if (cl_fixtimerate.value < 0.0f)
 		Cvar_SetValue ("cl_fixtimerate", 7.5f);
 
 	if (fabs (cl.timedelta) >= 0.001f)
@@ -3132,7 +3292,7 @@ void CL_AdjustClock (void)
 		// [FWGS, 01.04.23]
 		msec = (cl.timedelta * 1000.0);
 		sign = (msec < 0) ? 1.0 : -1.0;
-		msec = Q_min (cl_fixtimerate->value, fabs (msec));
+		msec = Q_min (cl_fixtimerate.value, fabs (msec));
 		adjust = sign * (msec / 1000.0);
 
 		if (fabs (adjust) < fabs (cl.timedelta))

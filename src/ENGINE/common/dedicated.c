@@ -198,10 +198,13 @@ void GAME_EXPORT Con_NXPrintf (struct  con_nprint_s *info, const char *fmt, ...)
 	{
 	}
 
+// [FWGS, 01.07.23]
+/*
 const byte *GL_TextureData (unsigned int texnum)
 	{
 	return NULL;
 	}
+*/
 
 void SCR_CheckStartupVids (void)
 	{

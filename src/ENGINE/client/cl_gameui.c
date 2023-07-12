@@ -39,7 +39,7 @@ void UI_UpdateMenu (float realtime)
 		}
 
 	// don't show menu while level is loaded
-	if (GameState->nextstate != STATE_RUNFRAME && !GameState->loadGame)
+	if ((GameState->nextstate != STATE_RUNFRAME) && !GameState->loadGame)
 		return;
 
 	// menu time (not paused, not clamped)
@@ -639,6 +639,17 @@ static void GAME_EXPORT pfnFillRGBA (int x, int y, int width, int height, int r,
 
 /*
 =============
+pfnCvar_RegisterVariable [FWGS, 01.07.23]
+=============
+*/
+static cvar_t * GAME_EXPORT pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
+	{
+	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (szName,
+		flags | FCVAR_GAMEUIDLL));
+	}
+
+/*
+=============
 pfnClientCmd
 =============
 */
@@ -1197,6 +1208,7 @@ static ui_extendedfuncs_t gExtendedfuncs =
 		NET_CompareAdrSort
 	};
 
+// [FWGS, 01.07.23]
 void UI_UnloadProgs (void)
 	{
 	if (!gameui.hInstance) return;
@@ -1206,12 +1218,15 @@ void UI_UnloadProgs (void)
 
 	Cvar_FullSet ("host_gameuiloaded", "0", FCVAR_READ_ONLY);
 
+	Cvar_Unlink (FCVAR_GAMEUIDLL);
+	Cmd_Unlink (CMD_GAMEUIDLL);
+
 	COM_FreeLibrary (gameui.hInstance);
 	Mem_FreePool (&gameui.mempool);
 	memset (&gameui, 0, sizeof (gameui));
 
-	Cvar_Unlink (FCVAR_GAMEUIDLL);
-	Cmd_Unlink (CMD_GAMEUIDLL);
+	/*Cvar_Unlink (FCVAR_GAMEUIDLL);
+	Cmd_Unlink (CMD_GAMEUIDLL);*/
 	}
 
 qboolean UI_LoadProgs (void)

@@ -18,7 +18,7 @@ GNU General Public License for more details.
 #include "const.h"
 #include "kbutton.h"
 
-extern convar_t *con_gamemaps;
+extern convar_t con_gamemaps;	// [FWGS, 01.07.23]
 
 #define CON_MAXCMDS		4096	// auto-complete intermediate list
 
@@ -44,7 +44,7 @@ static con_autocomplete_t		con;
 
 /*
 =======================================================================
-			FILENAME AUTOCOMPLETION
+FILENAME AUTOCOMPLETION
 =======================================================================
 */
 /*
@@ -74,7 +74,7 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 		compiler[0] = '\0';
 		generator[0] = '\0';
 
-		f = FS_Open (t->filenames[i], "rb", con_gamemaps->value);
+		f = FS_Open (t->filenames[i], "rb", con_gamemaps.value);
 
 		if (f)
 			{
@@ -199,11 +199,11 @@ Prints or complete map filename
 */
 qboolean Cmd_GetMapList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
-	string   matchbuf;
-	int	 i, nummaps;
+	search_t	*t;
+	string		matchbuf;
+	int			i, nummaps;
 
-	t = FS_Search (va ("maps/%s*.bsp", s), true, con_gamemaps->value);
+	t = FS_Search (va ("maps/%s*.bsp", s), true, con_gamemaps.value);
 	if (!t)
 		return false;
 

@@ -19,7 +19,11 @@ GNU General Public License for more details.
 #include "eiface.h" // ARRAYSIZE
 
 convar_t *cvar_vars = NULL; // head of list
-convar_t *cmd_scripting;
+
+// [FWGS, 01.07.23]
+/*convar_t *cmd_scripting;*/
+CVAR_DEFINE_AUTO (cmd_scripting, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"enable simple condition checking and variable operations");
 
 // [FWGS, 01.04.23] удалена команда cl_filterstuffcmd
 
@@ -680,19 +684,28 @@ void Cvar_DirectSet (convar_t *var, const char *value)
 	{
 	const char *pszValue;
 
-	if (!var)
-		return;
+	// [FWGS, 01.07.23]
+	/*if (!var)*/
+	if (unlikely (!var))
+		return; // ???
 
-	// lookup for registration
-	if (CVAR_CHECK_SENTINEL (var) || ((var->next == NULL) && !FBitSet (var->flags, FCVAR_EXTENDED | FCVAR_ALLOCATED)))
+	// [FWGS, 01.07.23] lookup for registration
+	/*if (CVAR_CHECK_SENTINEL (var) || ((var->next == NULL) && !FBitSet (var->flags, FCVAR_EXTENDED | FCVAR_ALLOCATED)))*/
+	if (unlikely (CVAR_CHECK_SENTINEL (var) || (var->next == NULL && !FBitSet (var->flags,
+		FCVAR_EXTENDED | FCVAR_ALLOCATED))))
 		{
 		// need to registering cvar fisrt
 		Cvar_RegisterVariable (var);	// ok, register it
-		}
+		/*}
 
 	// lookup for registration again
 	if (var != Cvar_FindVar (var->name))
-		return; // how this possible?
+		return; // how this possible?*/
+
+		// lookup for registration again
+		if (var != Cvar_FindVar (var->name))
+			return; // how this possible?
+		}
 
 	if (FBitSet (var->flags, FCVAR_READ_ONLY))
 		{
@@ -1239,7 +1252,7 @@ void Cvar_Unlink (int group)
 
 /*
 ============
-Cvar_Init [FWGS, 01.04.23]
+Cvar_Init [FWGS, 01.07.23]
 
 Reads in all archived cvars
 ============
@@ -1249,8 +1262,10 @@ void Cvar_Init (void)
 	cvar_vars = NULL;
 	cvar_active_filter_quirks = NULL;
 
-	cmd_scripting = Cvar_Get ("cmd_scripting", "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-		"enable simple condition checking and variable operations");
+	/*cmd_scripting = Cvar_Get ("cmd_scripting", "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+		"enable simple condition checking and variable operations");*/
+	Cvar_RegisterVariable (&cmd_scripting);
+
 	Cvar_RegisterVariable (&host_developer); // early registering for dev
 	Cvar_RegisterVariable (&cl_filterstuffcmd);
 

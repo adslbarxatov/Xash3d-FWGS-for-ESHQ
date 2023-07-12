@@ -349,7 +349,8 @@ void Sys_RestoreCrashHandler (void)
 // [FWGS, 01.04.23]
 static struct sigaction oldFilter;
 
-#ifdef XASH_DYNAMIC_DLADDR
+// [FWGS, 01.07.23]
+/*#ifdef XASH_DYNAMIC_DLADDR
 static int d_dladdr (void *sym, Dl_info *info)
 	{
 	static int (*dladdr_real) (void *sym, Dl_info * info);
@@ -365,7 +366,7 @@ static int d_dladdr (void *sym, Dl_info *info)
 	return dladdr_real (sym, info);
 	}
 #define dladdr d_dladdr
-#endif
+#endif*/
 
 static int Sys_PrintFrame (char *buf, int len, int i, void *addr)
 	{

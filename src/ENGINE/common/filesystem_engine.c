@@ -19,11 +19,11 @@ GNU General Public License for more details.
 
 #include "common.h"
 #include "library.h"
-#include "server.h"
+#include "server.h"				// ESHQ
+#include "platform/platform.h"	// [FWGS, 01.07.23]
 
 fs_api_t g_fsapi;
 fs_globals_t *FI;
-
 static HINSTANCE fs_hInstance;
 
 static void FS_Rescan_f (void)
@@ -52,6 +52,7 @@ static fs_interface_t fs_memfuncs =
 		_Mem_Alloc,
 		_Mem_Realloc,
 		_Mem_Free,
+		 Platform_GetNativeObject,	// [FWGS, 01.07.23]
 	};
 
 // [FWGS, 01.05.23]

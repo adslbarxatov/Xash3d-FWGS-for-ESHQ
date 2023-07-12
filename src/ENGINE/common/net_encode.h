@@ -19,7 +19,6 @@ GNU General Public License for more details.
 #include "eiface.h"
 
 // [FWGS, 01.05.23]
-
 enum
 	{
 	CUSTOM_NONE = 0,
@@ -60,15 +59,15 @@ typedef void (*pfnDeltaEncode)(struct delta_s *pFields, const byte *from, const 
 
 typedef struct
 	{
-	const char *pName;
-	const delta_field_t *pInfo;
-	const int		maxFields;	// maximum number of fields in struct
-	int		numFields;	// may be merged during initialization
-	delta_t *pFields;
+	const char	*pName;
+	const delta_field_t	*pInfo;
+	const int	maxFields;	// maximum number of fields in struct
+	int			numFields;	// may be merged during initialization
+	delta_t		*pFields;
 
 	// added these for custom entity encode
-	int		customEncode;
-	char		funcName[32];
+	int				customEncode;
+	char			funcName[32];
 	pfnDeltaEncode	userCallback;
 	qboolean		bInitialized;
 	} delta_info_t;
@@ -79,8 +78,8 @@ typedef struct
 void Delta_Init (void);
 void Delta_InitClient (void);
 void Delta_Shutdown (void);
-int Delta_NumTables (void);
-delta_info_t *Delta_FindStructByIndex (int index);
+/*int Delta_NumTables (void);	// [FWGS, 01.07.23]
+delta_info_t *Delta_FindStructByIndex (int index);*/
 void Delta_AddEncoder (char *name, pfnDeltaEncode encodeFunc);
 int Delta_FindField (delta_t *pFields, const char *fieldname);
 void Delta_SetField (delta_t *pFields, const char *fieldname);
@@ -88,10 +87,10 @@ void Delta_UnsetField (delta_t *pFields, const char *fieldname);
 void Delta_SetFieldByIndex (delta_t *pFields, int fieldNumber);
 void Delta_UnsetFieldByIndex (delta_t *pFields, int fieldNumber);
 
-// send table over network
-void Delta_WriteTableField (sizebuf_t *msg, int tableIndex, const delta_t *pField);
+// [FWGS, 01.07.23] send table over network
+/*void Delta_WriteTableField (sizebuf_t *msg, int tableIndex, const delta_t *pField);*/
+void Delta_WriteDescriptionToClient (sizebuf_t *msg);
 void Delta_ParseTableField (sizebuf_t *msg);
-
 
 // encode routines
 struct entity_state_s;

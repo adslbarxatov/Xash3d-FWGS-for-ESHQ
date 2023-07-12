@@ -20,7 +20,7 @@ GNU General Public License for more details.
 #include "input.h"
 #include "library.h"
 
-convar_t *scr_centertime;
+/*convar_t *scr_centertime;
 convar_t *scr_loading;
 convar_t *scr_download;
 convar_t *scr_viewsize;
@@ -31,7 +31,31 @@ static convar_t *cl_envshot_size;
 convar_t *v_dark;
 static convar_t *net_speeds;
 static convar_t *cl_showfps;
-static convar_t *cl_showpos;
+static convar_t *cl_showpos;*/
+CVAR_DEFINE_AUTO (scr_centertime, "2.5", 0,
+	"centerprint hold time");
+CVAR_DEFINE_AUTO (scr_loading, "0", 0,
+	"loading bar progress");
+CVAR_DEFINE_AUTO (scr_download, "-1", 0,
+	"downloading bar progress");
+CVAR_DEFINE (scr_viewsize, "viewsize", "120", FCVAR_ARCHIVE,
+	"screen size (quake only)");
+CVAR_DEFINE_AUTO (cl_testlights, "0", 0,
+	"test dynamic lights");
+CVAR_DEFINE (cl_allow_levelshots, "allow_levelshots", "0", FCVAR_ARCHIVE,
+	"allow engine to use indivdual levelshots instead of 'loading' image");
+CVAR_DEFINE_AUTO (cl_levelshot_name, "*black", 0,
+	"contains path to current levelshot");
+static CVAR_DEFINE_AUTO (cl_envshot_size, "256", FCVAR_ARCHIVE,
+	"envshot size of cube side");
+CVAR_DEFINE_AUTO (v_dark, "0", 0,
+	"starts level from dark screen");
+static CVAR_DEFINE_AUTO (net_speeds, "0", FCVAR_ARCHIVE,
+	"show network packets");
+static CVAR_DEFINE_AUTO (cl_showfps, "0", FCVAR_ARCHIVE,
+	"show client fps");
+static CVAR_DEFINE_AUTO (cl_showpos, "0", FCVAR_ARCHIVE,
+	"show local player position and velocity");
 
 typedef struct
 	{
@@ -48,18 +72,18 @@ SCR_DrawFPS
 */
 void SCR_DrawFPS (int height)
 	{
-	float		calc;
-	rgba_t		color;
-	double		newtime;
+	float			calc;
+	rgba_t			color;
+	double			newtime;
 	static double	nexttime = 0, lasttime = 0;
 	static double	framerate = 0;
-	static int	framecount = 0;
-	static int	minfps = 9999;
-	static int	maxfps = 0;
-	char		fpsstring[64];
-	int		offset;
+	static int		framecount = 0;
+	static int		minfps = 9999;
+	static int		maxfps = 0;
+	char			fpsstring[64];
+	int				offset;
 
-	if ((cls.state != ca_active) || !cl_showfps->value || cl.background)
+	if ((cls.state != ca_active) || !cl_showfps.value || cl.background)
 		return;
 
 	switch (cls.scrshot_action)
@@ -95,7 +119,7 @@ void SCR_DrawFPS (int height)
 		if (curfps < minfps) minfps = curfps;
 		if (curfps > maxfps) maxfps = curfps;
 
-		if (cl_showfps->value == 2)
+		if (cl_showfps.value == 2)
 			Q_snprintf (fpsstring, sizeof (fpsstring), "fps: ^1%4i min, ^3%4i cur, ^2%4i max", minfps, curfps, maxfps);
 		else 
 			Q_snprintf (fpsstring, sizeof (fpsstring), "%4i fps", curfps);
@@ -120,7 +144,7 @@ void SCR_DrawPos (void)
 	cl_entity_t *ent;
 	rgba_t color;
 
-	if ((cls.state != ca_active) || !cl_showpos->value || cl.background)
+	if ((cls.state != ca_active) || !cl_showpos.value || cl.background)
 		return;
 
 	ent = CL_GetLocalPlayer ();
@@ -165,7 +189,7 @@ void SCR_NetSpeeds (void)
 	if (!host.allow_console)
 		return;
 
-	if (!net_speeds->value || (cls.state != ca_active))
+	if (!net_speeds.value || (cls.state != ca_active))
 		return;
 
 	// prevent to get too big values at max
@@ -298,7 +322,8 @@ void SCR_MakeScreenShot (void)
 
 	if (cls.envshot_viewsize > 0)
 		viewsize = cls.envshot_viewsize;
-	else viewsize = cl_envshot_size->value;
+	else
+		viewsize = cl_envshot_size.value;
 
 	switch (cls.scrshot_action)
 		{
@@ -355,12 +380,13 @@ SCR_DrawPlaque
 */
 void SCR_DrawPlaque (void)
 	{
-	if ((cl_allow_levelshots->value && !cls.changelevel) || cl.background)
+	if ((cl_allow_levelshots.value && !cls.changelevel) || cl.background)
 		{
-		int levelshot = ref.dllFuncs.GL_LoadTexture (cl_levelshot_name->string, NULL, 0, TF_IMAGE);
+		int levelshot = ref.dllFuncs.GL_LoadTexture (cl_levelshot_name.string, NULL, 0, TF_IMAGE);
 		ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
 		ref.dllFuncs.R_DrawStretchPic (0, 0, refState.width, refState.height, 0, 0, 1, 1, levelshot);
-		if (!cl.background) CL_DrawHUD (CL_LOADING);
+		if (!cl.background)
+			CL_DrawHUD (CL_LOADING);
 		}
 	}
 
@@ -377,7 +403,7 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	cl.video_prepped = false;
 
 	if (!Host_IsDedicated ())
-		oldclear = gl_clear->value;
+		oldclear = gl_clear.value;
 
 	if (CL_IsInMenu () && !cls.changedemo && !is_background)
 		{
@@ -394,7 +420,7 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 		return;
 
 	if (!Host_IsDedicated ())
-		gl_clear->value = 0.0f;
+		gl_clear.value = 0.0f;
 
 	if (is_background) 
 		IN_MouseSavePos ();
@@ -404,7 +430,7 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	cl.background = is_background;		// set right state before svc_serverdata is came
 
 	if (!Host_IsDedicated ())
-		gl_clear->value = oldclear;
+		gl_clear.value = oldclear;
 	}
 
 /*
@@ -452,7 +478,7 @@ void SCR_TileClear (void)
 	int	i, top, bottom, left, right;
 	dirty_t	clear;
 
-	if (scr_viewsize->value >= 120)
+	if (scr_viewsize.value >= 120)
 		return; // full screen rendering
 
 	// erase rect will be the union of the past three frames
@@ -570,7 +596,7 @@ void SCR_LoadCreditsFont (void)
 	{
 	cl_font_t *const font = &cls.creditsFont;
 	qboolean success = false;
-	float scale = hud_fontscale->value;
+	float scale = hud_fontscale.value;
 	dword crc = 0;
 
 	// replace default gfx.wad textures by current charset's font
@@ -667,14 +693,14 @@ void SCR_RegisterTextures (void)
 
 	if (FS_FileExists ("gfx/lambda.lmp", false))
 		{
-		if (cl_allow_levelshots->value)
+		if (cl_allow_levelshots.value)
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
 		else 
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE);
 		}
 	else if (FS_FileExists ("gfx/loading.lmp", false))
 		{
-		if (cl_allow_levelshots->value)
+		if (cl_allow_levelshots.value)
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
 		else 
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE);
@@ -692,7 +718,7 @@ Keybinding command
 */
 void SCR_SizeUp_f (void)
 	{
-	Cvar_SetValue ("viewsize", Q_min (scr_viewsize->value + 10, 120));
+	Cvar_SetValue ("viewsize", Q_min (scr_viewsize.value + 10, 120));
 	}
 
 
@@ -705,7 +731,7 @@ Keybinding command
 */
 void SCR_SizeDown_f (void)
 	{
-	Cvar_SetValue ("viewsize", Q_max (scr_viewsize->value - 10, 30));
+	Cvar_SetValue ("viewsize", Q_max (scr_viewsize.value - 10, 30));
 	}
 
 /*
@@ -747,14 +773,15 @@ void SCR_VidInit (void)
 
 /*
 ==================
-SCR_Init
+SCR_Init [FWGS, 01.07.23]
 ==================
 */
 void SCR_Init (void)
 	{
-	if (scr_init) return;
+	if (scr_init)
+		return;
 
-	scr_centertime = Cvar_Get ("scr_centertime", "2.5", 0,
+	/*scr_centertime = Cvar_Get ("scr_centertime", "2.5", 0,
 		"centerprint hold time");
 	cl_levelshot_name = Cvar_Get ("cl_levelshot_name", "*black", 0,
 		"contains path to current levelshot");
@@ -777,7 +804,19 @@ void SCR_Init (void)
 	cl_showfps = Cvar_Get ("cl_showfps", "0", FCVAR_ARCHIVE,
 		"show client fps");
 	cl_showpos = Cvar_Get ("cl_showpos", "0", FCVAR_ARCHIVE,
-		"show local player position and velocity");
+		"show local player position and velocity");*/
+	Cvar_RegisterVariable (&scr_centertime);
+	Cvar_RegisterVariable (&cl_levelshot_name);
+	Cvar_RegisterVariable (&cl_allow_levelshots);
+	Cvar_RegisterVariable (&scr_loading);
+	Cvar_RegisterVariable (&scr_download);
+	Cvar_RegisterVariable (&cl_testlights);
+	Cvar_RegisterVariable (&cl_envshot_size);
+	Cvar_RegisterVariable (&v_dark);
+	Cvar_RegisterVariable (&scr_viewsize);
+	Cvar_RegisterVariable (&net_speeds);
+	Cvar_RegisterVariable (&cl_showfps);
+	Cvar_RegisterVariable (&cl_showpos);
 
 	// register our commands
 	Cmd_AddCommand ("skyname", CL_SetSky_f,

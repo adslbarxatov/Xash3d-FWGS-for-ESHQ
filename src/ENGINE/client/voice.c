@@ -26,20 +26,24 @@ GNU General Public License for more details.
 
 voice_state_t voice = { 0 };
 
-CVAR_DEFINE_AUTO (voice_enable, "1", FCVAR_PRIVILEGED | FCVAR_ARCHIVE, "enable voice chat");
-CVAR_DEFINE_AUTO (voice_loopback, "0", FCVAR_PRIVILEGED, "loopback voice back to the speaker");
-CVAR_DEFINE_AUTO (voice_scale, "1.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE, "incoming voice volume scale");
-CVAR_DEFINE_AUTO (voice_avggain, "0.5", FCVAR_PRIVILEGED | FCVAR_ARCHIVE, "automatic voice gain control (average)");
-CVAR_DEFINE_AUTO (voice_maxgain, "5.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE, "automatic voice gain control (maximum)");
-CVAR_DEFINE_AUTO (voice_inputfromfile, "0", FCVAR_PRIVILEGED, "input voice from voice_input.wav");
+CVAR_DEFINE_AUTO (voice_enable, "1", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
+	"enable voice chat");
+CVAR_DEFINE_AUTO (voice_loopback, "0", FCVAR_PRIVILEGED,
+	"loopback voice back to the speaker");
+CVAR_DEFINE_AUTO (voice_scale, "1.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
+	"incoming voice volume scale");
+CVAR_DEFINE_AUTO (voice_avggain, "0.5", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
+	"automatic voice gain control (average)");
+CVAR_DEFINE_AUTO (voice_maxgain, "5.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
+	"automatic voice gain control (maximum)");
+CVAR_DEFINE_AUTO (voice_inputfromfile, "0", FCVAR_PRIVILEGED,
+	"input voice from voice_input.wav");
 
 static void Voice_ApplyGainAdjust (int16_t *samples, int count);
 
 /*
 ===============================================================================
-
-	OPUS INTEGRATION
-
+OPUS INTEGRATION
 ===============================================================================
 */
 
@@ -48,7 +52,6 @@ static void Voice_ApplyGainAdjust (int16_t *samples, int count);
 /*
 =========================
 Voice_InitOpusDecoder
-
 =========================
 */
 
@@ -80,7 +83,6 @@ static qboolean Voice_InitOpusDecoder (void)
 /*
 =========================
 Voice_InitOpusEncoder
-
 =========================
 */
 static qboolean Voice_InitOpusEncoder (int quality)
@@ -119,7 +121,6 @@ static qboolean Voice_InitOpusEncoder (int quality)
 /*
 =========================
 Voice_ShutdownOpusDecoder
-
 =========================
 */
 static void Voice_ShutdownOpusDecoder (void)
@@ -134,7 +135,6 @@ static void Voice_ShutdownOpusDecoder (void)
 /*
 =========================
 Voice_ShutdownOpusEncoder
-
 =========================
 */
 static void Voice_ShutdownOpusEncoder (void)
@@ -155,7 +155,6 @@ static void Voice_ShutdownOpusEncoder (void)
 /*
 =========================
 Voice_GetOpusCompressedData
-
 =========================
 */
 static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
@@ -235,16 +234,13 @@ static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
 
 /*
 ===============================================================================
-
-	VOICE CHAT INTEGRATION
-
+VOICE CHAT INTEGRATION
 ===============================================================================
 */
 
 /*
 =========================
 Voice_ApplyGainAdjust
-
 =========================
 */
 static void Voice_ApplyGainAdjust (int16_t *samples, int count)
@@ -343,7 +339,6 @@ void Voice_StatusAck (voice_status_t *status, int playerIndex)
 /*
 =========================
 Voice_IsRecording
-
 =========================
 */
 qboolean Voice_IsRecording (void)
@@ -354,7 +349,6 @@ qboolean Voice_IsRecording (void)
 /*
 =========================
 Voice_RecordStop
-
 =========================
 */
 void Voice_RecordStop (void)
@@ -377,7 +371,6 @@ void Voice_RecordStop (void)
 /*
 =========================
 Voice_RecordStart
-
 =========================
 */
 void Voice_RecordStart (void)
@@ -509,7 +502,7 @@ void CL_AddVoiceToDatagram (void)
 	{
 	uint size, frames = 0;
 
-	if (cls.state != ca_active || !Voice_IsRecording () || !voice.encoder)
+	if ((cls.state != ca_active) || !Voice_IsRecording () || !voice.encoder)
 		return;
 
 #ifdef OPUS
@@ -617,9 +610,14 @@ qboolean Voice_Init (const char *pszCodecName, int quality)
 		return false;
 		}
 
-	// reinitialize only if codec parameters are different
-	if (Q_strcmp (voice.codec, pszCodecName) && voice.quality != quality)
-		Voice_Shutdown ();
+	// [FWGS, 01.07.23] reinitialize only if codec parameters are different
+	if (!Q_strcmp (voice.codec, pszCodecName) && (voice.quality == quality))
+		return true;
+	
+	Voice_Shutdown ();
+
+	/*if (Q_strcmp (voice.codec, pszCodecName) && (voice.quality != quality))
+		Voice_Shutdown ();*/
 
 	voice.autogain.block_size = 128;
 

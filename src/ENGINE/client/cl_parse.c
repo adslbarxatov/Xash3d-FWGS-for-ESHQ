@@ -21,6 +21,8 @@ GNU General Public License for more details.
 #include "shake.h"
 #include "hltv.h"
 #include "input.h"
+#include "server.h"	// [FWGS, 01.07.23]
+
 #if XASH_LOW_MEMORY != 2
 int CL_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
 #endif
@@ -39,7 +41,6 @@ int CL_UserMsgStub (const char *pszName, int iSize, void *pbuf)
 /*
 ==================
 CL_ParseViewEntity
-
 ==================
 */
 void CL_ParseViewEntity (sizebuf_t *msg)
@@ -192,7 +193,6 @@ void CL_ParseRestoreSoundPacket (sizebuf_t *msg)
 /*
 ==================
 CL_ParseServerTime
-
 ==================
 */
 void CL_ParseServerTime (sizebuf_t *msg)
@@ -210,7 +210,7 @@ void CL_ParseServerTime (sizebuf_t *msg)
 
 	dt = cl.time - cl.mtime[0];
 
-	if (fabs (dt) > cl_clockreset->value)	// 0.1 by default
+	if (fabs (dt) > cl_clockreset.value)	// 0.1 by default
 		{
 		cl.time = cl.mtime[0];
 		cl.timedelta = 0.0f;
@@ -395,7 +395,6 @@ void GAME_EXPORT CL_WeaponAnim (int iAnim, int body)
 /*
 ==================
 CL_ParseStaticDecal
-
 ==================
 */
 void CL_ParseStaticDecal (sizebuf_t *msg)
@@ -422,7 +421,6 @@ void CL_ParseStaticDecal (sizebuf_t *msg)
 /*
 ==================
 CL_ParseSoundFade
-
 ==================
 */
 void CL_ParseSoundFade (sizebuf_t *msg)
@@ -441,7 +439,6 @@ void CL_ParseSoundFade (sizebuf_t *msg)
 /*
 ==================
 CL_RequestMissingResources
-
 ==================
 */
 qboolean CL_RequestMissingResources (void)
@@ -680,7 +677,6 @@ void CL_RemoveCustomization (int nPlayerNum, customization_t *pRemove)
 /*
 ==================
 CL_ParseCustomization
-
 ==================
 */
 void CL_ParseCustomization (sizebuf_t *msg)
@@ -768,7 +764,6 @@ void CL_ParseCustomization (sizebuf_t *msg)
 /*
 ==================
 CL_ParseResourceRequest
-
 ==================
 */
 void CL_ParseResourceRequest (sizebuf_t *msg)
@@ -838,7 +833,6 @@ void CL_CreateCustomizationList (void)
 /*
 ==================
 CL_ParseFileTransferFailed
-
 ==================
 */
 void CL_ParseFileTransferFailed (sizebuf_t *msg)
@@ -856,14 +850,16 @@ SERVER CONNECTING MESSAGES
 */
 /*
 ==================
-CL_ParseServerData [FWGS, 01.05.23]
+CL_ParseServerData [FWGS, 01.07.23]
 ==================
 */
 void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	{
 	char		gamefolder[MAX_QPATH];
+	string		mapfile;
 	qboolean	background;
 	int			i;
+	uint32_t	mapCRC;
 
 	HPAK_CheckSize (CUSTOM_RES_PATH);
 	Con_Reportf ("%s packet received.\n", legacy ? "Legacy serverdata" : "Serverdata");
@@ -928,6 +924,18 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 			}
 		}
 
+	Q_snprintf (mapfile, sizeof (mapfile), "maps/%s.bsp", clgame.mapname);
+	if (CRC32_MapFile (&mapCRC, mapfile, cl.maxclients > 1))
+		{
+		// validate map checksum
+		if (mapCRC != cl.checksum)
+			{
+			Con_Printf (S_ERROR "Your map [%s] differs from the server's.\n", clgame.mapname);
+			CL_Disconnect_f (); // for local game, call EndGame
+			Host_AbortCurrentFrame (); // to avoid svc_bad
+			}
+		}
+
 	if (clgame.maxModels > MAX_MODELS)
 		Con_Printf (S_WARN "server model limit is above client model limit %i > %i\n", clgame.maxModels, MAX_MODELS);
 
@@ -947,12 +955,15 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 		// loading user settings
 		CSCR_LoadDefaultCVars ("user.scr");
 
-		if (r_decals->value > mp_decals.value)
-			Cvar_SetValue ("r_decals", mp_decals.value);
+		/*if (r_decals->value > mp_decals.value)
+			Cvar_SetValue ("r_decals", mp_decals.value);*/
+		if (r_decals.value > mp_decals.value)
+			Cvar_DirectSet (&r_decals, mp_decals.string);
 		}
 	else
 		{
-		Cvar_Reset ("r_decals");
+		/*Cvar_Reset ("r_decals");*/
+		Cvar_DirectSet (&r_decals, NULL);
 		}
 
 	// set the background state
@@ -987,7 +998,8 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	Q_strncpy (gameui.globals->maptitle, clgame.maptitle, sizeof (gameui.globals->maptitle));
 
 	if (!cls.changelevel && !cls.changedemo)
-		CL_InitEdicts (); // re-arrange edicts
+		/*CL_InitEdicts (); // re-arrange edicts*/
+		CL_InitEdicts (cl.maxclients); // re-arrange edicts
 
 	// get splash name
 	if (cls.demoplayback && (cls.demonum != -1))
@@ -996,9 +1008,9 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 		Cvar_Set ("cl_levelshot_name", va ("levelshots/%s_%s", clgame.mapname, refState.wideScreen ? "16x9" : "4x3"));
 	Cvar_SetValue ("scr_loading", 0.0f); // reset progress bar
 
-	if ((cl_allow_levelshots->value && !cls.changelevel) || cl.background)
+	if ((cl_allow_levelshots.value && !cls.changelevel) || cl.background)
 		{
-		if (!FS_FileExists (va ("%s.bmp", cl_levelshot_name->string), true))
+		if (!FS_FileExists (va ("%s.bmp", cl_levelshot_name.string), true))
 			Cvar_Set ("cl_levelshot_name", "*black"); // render a black screen
 		cls.scrshot_request = scrshot_plaque; // request levelshot even if exist (check filetime)
 		}
@@ -1262,7 +1274,7 @@ CL_ParseSetAngle [FWGS, 01.05.23]
 set the view angle to this absolute value
 ================
 */
-static void CL_ParseSetAngle (sizebuf_t *msg)
+void CL_ParseSetAngle (sizebuf_t *msg)
 	{
 	MSG_ReadVec3Angles (msg, cl.viewangles);
 	}
@@ -1566,12 +1578,13 @@ void CL_SendConsistencyInfo (sizebuf_t *msg)
 
 /*
 ==================
-CL_StartDark [FWGS, 01.05.23]
+CL_StartDark [FWGS, 01.07.23]
 ==================
 */
 static void CL_StartDark (void)
 	{
-	if (Cvar_VariableValue ("v_dark"))
+	/*if (Cvar_VariableValue ("v_dark"))*/
+	if (v_dark.value)
 		{
 		screenfade_t *sf = &clgame.fade;
 		float fadetime = 5.0f;
@@ -1599,7 +1612,8 @@ static void CL_StartDark (void)
 		sf->fadeReset += cl.time;
 		sf->fadeEnd += sf->fadeReset;
 
-		Cvar_SetValue ("v_dark", 0.0f);
+		/*Cvar_SetValue ("v_dark", 0.0f);*/
+		Cvar_DirectSet (&v_dark, "0");
 		}
 	}
 
@@ -2181,7 +2195,7 @@ void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 	// parse user message into buffer
 	MSG_ReadBytes (msg, pbuf, iSize);
 
-	if (cl_trace_messages->value)
+	if (cl_trace_messages.value)
 		{
 		Con_Reportf ("^3USERMSG %s SIZE %i SVC_NUM %i\n",
 			clgame.msg[i].name, iSize, clgame.msg[i].number);
@@ -2204,9 +2218,7 @@ void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 
 /*
 =====================================================================
-
 ACTION MESSAGES
-
 =====================================================================
 */
 /*
@@ -2284,8 +2296,12 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 
 			case svc_changing:
 				old_background = cl.background;
+
+				// [FWGS, 01.07.23]
 				if (MSG_ReadOneBit (msg))
 					{
+					int maxclients = cl.maxclients;
+
 					cls.changelevel = true;
 					S_StopAllSounds (true);
 
@@ -2297,8 +2313,10 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 						cls.changedemo = true;
 						}
 
+					/*CL_ClearState ();
+					CL_InitEdicts (); // re-arrange edicts*/
 					CL_ClearState ();
-					CL_InitEdicts (); // re-arrange edicts
+					CL_InitEdicts (maxclients);		// re-arrange edicts
 					}
 				else
 					{
@@ -2580,13 +2598,13 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 
 // [FWGS, 01.04.23] удалены CL_LegacyParseBaseline, CL_ParseLegacyServerData
 
+// [FWGS, 01.07.23] перенесены в cl_parse_48.c
 /*
 ==================
 CL_ParseStaticEntity
 
 static client entity
 ==================
-*/
 void CL_LegacyParseStaticEntity (sizebuf_t *msg)
 	{
 	int		i;
@@ -2724,7 +2742,6 @@ CL_PrecacheSound
 
 prceache sound from server
 ================
-*/
 void CL_LegacyPrecacheSound (sizebuf_t *msg)
 	{
 	int	soundIndex;
@@ -2794,7 +2811,6 @@ void CL_LegacyPrecacheEvent (sizebuf_t *msg)
 ==============
 CL_ParseResourceList
 ==============
-*/
 void CL_LegacyParseResourceList (sizebuf_t *msg)
 	{
 	int	i = 0;
@@ -2860,7 +2876,6 @@ CL_ParseLegacyServerMessage
 
 dispatch messages
 =====================
-*/
 void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 	{
 	size_t		bufStart, playerbytes;
@@ -3299,3 +3314,4 @@ qboolean CL_LegacyMode (void)
 	{
 	return cls.legacymode;
 	}
+*/

@@ -19,9 +19,7 @@ GNU General Public License for more details.
 
 /*
 =======================================================================
-
-			INFOSTRING STUFF
-
+INFOSTRING STUFF
 =======================================================================
 */
 /*
@@ -38,14 +36,15 @@ void Info_Print (const char *s)
 	int	l, count;
 	char *o;
 
-	if (*s == '\\') s++;
+	if (*s == '\\')
+		s++;
 
 	while (*s)
 		{
 		count = 0;
 		o = key;
 
-		while (count < (MAX_KV_SIZE - 1) && *s && *s != '\\')
+		while (count < (MAX_KV_SIZE - 1) && *s && (*s != '\\'))
 			{
 			*o++ = *s++;
 			count++;
@@ -70,7 +69,7 @@ void Info_Print (const char *s)
 		count = 0;
 		o = value;
 		s++;
-		while (count < (MAX_KV_SIZE - 1) && *s && *s != '\\')
+		while (count < (MAX_KV_SIZE - 1) && *s && (*s != '\\'))
 			{
 			*o++ = *s++;
 			count++;
@@ -189,7 +188,7 @@ Searches the string for the given
 key and returns the associated value, or an empty string.
 ===============
 */
-const char *Info_ValueForKey (const char *s, const char *key)
+const char *GAME_EXPORT Info_ValueForKey (const char *s, const char *key)
 	{
 	char	pkey[MAX_KV_SIZE];
 	static	char value[4][MAX_KV_SIZE]; // use two buffers so compares work without stomping on each other

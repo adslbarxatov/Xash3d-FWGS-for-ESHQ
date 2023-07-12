@@ -232,16 +232,16 @@ NOTE: pEdict may be NULL
 hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin, 
 	vec3_t size, byte *pcontroller, byte *pblending, int *numhitboxes, edict_t *pEdict)
 	{
-	vec3_t		angles2;
-	mstudiocache_t *bonecache;
-	mstudiobbox_t *phitbox;
+	vec3_t			angles2;
+	mstudiocache_t	*bonecache;
+	mstudiobbox_t	*phitbox;
 	qboolean		bSkipShield;
-	int		i, j;
+	int				i, j;
 
 	bSkipShield = false;
 	*numhitboxes = 0; // assume error
 
-	if (mod_studiocache->value)
+	if (mod_studiocache.value)
 		{
 		bonecache = Mod_CheckStudioCache (model, frame, sequence, angles, origin, size, pcontroller, pblending);
 
@@ -259,17 +259,18 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 		}
 
 	mod_studiohdr = Mod_StudioExtradata (model);
-	if (!mod_studiohdr) return NULL; // probably not a studiomodel
+	if (!mod_studiohdr)
+		return NULL;	// probably not a studiomodel
 
 	VectorCopy (angles, angles2);
 
 	if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
-		angles2[PITCH] = -angles2[PITCH]; // stupid quake bug
+		angles2[PITCH] = -angles2[PITCH];	// stupid quake bug
 
 	pBlendAPI->SV_StudioSetupBones (model, frame, sequence, angles2, origin, pcontroller, pblending, -1, pEdict);
 	phitbox = (mstudiobbox_t *)((byte *)mod_studiohdr + mod_studiohdr->hitboxindex);
 
-	if (SV_IsValidEdict (pEdict) && pEdict->v.gamestate == 1)
+	if (SV_IsValidEdict (pEdict) && (pEdict->v.gamestate == 1))
 		bSkipShield = 1;
 
 	for (i = j = 0; i < mod_studiohdr->numhitboxes; i++, j += 6)
@@ -290,7 +291,7 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 	// tell trace code about hitbox count
 	*numhitboxes = (bSkipShield) ? (mod_studiohdr->numhitboxes - 1) : (mod_studiohdr->numhitboxes);
 
-	if (mod_studiocache->value)
+	if (mod_studiocache.value)
 		Mod_AddToStudioCache (frame, sequence, angles, origin, size, pcontroller, pblending, model,
 			studio_hull, *numhitboxes);
 
@@ -305,7 +306,6 @@ STUDIO MODELS SETUP BONES
 /*
 ====================
 StudioCalcBoneAdj
-
 ====================
 */
 static void Mod_StudioCalcBoneAdj (float *adj, const byte *pcontroller)
@@ -357,7 +357,6 @@ static void Mod_StudioCalcBoneAdj (float *adj, const byte *pcontroller)
 /*
 ====================
 StudioCalcRotations
-
 ====================
 */
 static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *pcontroller, float pos[][3],

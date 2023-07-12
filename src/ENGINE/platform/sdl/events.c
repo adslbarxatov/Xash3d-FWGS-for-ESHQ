@@ -551,7 +551,7 @@ static void SDLash_ActiveEvent (int gain)
 			{
 			SNDDMA_Activate (true);
 			}
-		/*host.force_draw_version = true;*/
+		/*host.force_draw_version = true;*/	// [FWGS, 01.07.23]
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 		if (vid_fullscreen.value)
 			VID_SetMode ();
@@ -816,7 +816,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 
 				case SDL_WINDOWEVENT_RESTORED:
 					host.status = HOST_FRAME;
-					/*host.force_draw_version = true;*/
+					/*host.force_draw_version = true;*/	// [FWGS, 01.07.23]
 					host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 					if (vid_fullscreen.value)
 						VID_SetMode ();

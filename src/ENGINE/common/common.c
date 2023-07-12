@@ -71,15 +71,19 @@ static int lran1 (void)
 
 	if (idum <= 0 || !iy)
 		{
-		if (-(idum) < 1) idum = 1;
-		else idum = -(idum);
+		if (-(idum) < 1)
+			idum = 1;
+		else
+			idum = -(idum);
 
 		for (j = NTAB + 7; j >= 0; j--)
 			{
 			k = (idum) / IQ;
 			idum = IA * (idum - k * IQ) - IR * k;
-			if (idum < 0) idum += IM;
-			if (j < NTAB) iv[j] = idum;
+			if (idum < 0)
+				idum += IM;
+			if (j < NTAB)
+				iv[j] = idum;
 			}
 
 		iy = iv[0];
@@ -104,10 +108,12 @@ static float fran1 (void)
 	return temp;
 	}
 
-void COM_SetRandomSeed (int lSeed)
+void GAME_EXPORT COM_SetRandomSeed (int lSeed)
 	{
-	if (lSeed) idum = lSeed;
-	else idum = -time (NULL);
+	if (lSeed)
+		idum = lSeed;
+	else
+		idum = -time (NULL);
 
 	if (1000 < idum)
 		idum = -idum;
@@ -178,9 +184,7 @@ char *va (const char *format, ...)
 
 /*
 ===============================================================================
-
-	LZSS Compression
-
+LZSS Compression
 ===============================================================================
 */
 #define LZSS_ID		(('S'<<24)|('S'<<16)|('Z'<<8)|('L'))
@@ -268,7 +272,7 @@ static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 	list->start = node;
 	}
 
-byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_length, byte *pOutputBuf, uint *pOutputSize)
+static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_length, byte *pOutputBuf, uint *pOutputSize)
 	{
 	byte *pStart = pOutputBuf; // allocate the output buffer, compressed buffer is expected to be less, caller will free
 	byte *pEnd = pStart + input_length - sizeof (lzss_header_t) - 8; // prevent compression failure
@@ -615,22 +619,16 @@ COM_Nibble
 Returns the 4 bit nibble for a hex character
 ==================
 */
-byte COM_Nibble (char c)
+static byte COM_Nibble (char c)
 	{
 	if ((c >= '0') && (c <= '9'))
-		{
 		return (byte)(c - '0');
-		}
 
 	if ((c >= 'A') && (c <= 'F'))
-		{
 		return (byte)(c - 'A' + 0x0a);
-		}
 
 	if ((c >= 'a') && (c <= 'f'))
-		{
 		return (byte)(c - 'a' + 0x0a);
-		}
 
 	return '0';
 	}
@@ -660,10 +658,9 @@ void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput)
 /*
 =============
 COM_MemFgets
-
 =============
 */
-char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize)
+char *GAME_EXPORT COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize)
 	{
 	int	i, last, stop;
 
@@ -683,7 +680,7 @@ char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, i
 	stop = 0;
 
 	// stop at the next newline (inclusive) or end of buffer
-	while (i < last && !stop)
+	while ((i < last) && !stop)
 		{
 		if (pMemFile[i] == '\n')
 			stop = 1;
@@ -717,7 +714,7 @@ Cache_Check
 consistency check
 ====================
 */
-void *Cache_Check (poolhandle_t mempool, cache_user_t *c)
+void *GAME_EXPORT Cache_Check (poolhandle_t mempool, cache_user_t *c)
 	{
 	if (!c->data)
 		return NULL;
@@ -731,7 +728,6 @@ void *Cache_Check (poolhandle_t mempool, cache_user_t *c)
 /*
 =============
 COM_LoadFileForMe
-
 =============
 */
 byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
@@ -751,7 +747,8 @@ byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 	COM_FixSlashes (name);
 
 	pfile = FS_LoadFile (name, &iLength, false);
-	if (pLength) *pLength = (int)iLength;
+	if (pLength)
+		*pLength = (int)iLength;
 
 	if (pfile)
 		{
@@ -771,10 +768,9 @@ byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 /*
 =============
 COM_LoadFile
-
 =============
 */
-byte *COM_LoadFile (const char *filename, int usehunk, int *pLength)
+byte *GAME_EXPORT COM_LoadFile (const char *filename, int usehunk, int *pLength)
 	{
 	return COM_LoadFileForMe (filename, pLength);
 	}
@@ -801,7 +797,6 @@ int GAME_EXPORT COM_SaveFile (const char *filename, const void *data, int len)
 /*
 =============
 COM_FreeFile
-
 =============
 */
 void GAME_EXPORT COM_FreeFile (void *buffer)
@@ -812,7 +807,6 @@ void GAME_EXPORT COM_FreeFile (void *buffer)
 /*
 =============
 COM_NormalizeAngles
-
 =============
 */
 void COM_NormalizeAngles (vec3_t angles)
@@ -831,42 +825,45 @@ void COM_NormalizeAngles (vec3_t angles)
 /*
 =============
 pfnGetModelType
-
 =============
 */
 int GAME_EXPORT pfnGetModelType (model_t *mod)
 	{
-	if (!mod) return mod_bad;
+	if (!mod)
+		return mod_bad;
 	return mod->type;
 	}
 
 /*
 =============
 pfnGetModelBounds
-
 =============
 */
 void GAME_EXPORT pfnGetModelBounds (model_t *mod, float *mins, float *maxs)
 	{
 	if (mod)
 		{
-		if (mins) VectorCopy (mod->mins, mins);
-		if (maxs) VectorCopy (mod->maxs, maxs);
+		if (mins)
+			VectorCopy (mod->mins, mins);
+		if (maxs)
+			VectorCopy (mod->maxs, maxs);
 		}
 	else
 		{
-		if (mins) VectorClear (mins);
-		if (maxs) VectorClear (maxs);
+		if (mins)
+			VectorClear (mins);
+		if (maxs)
+			VectorClear (maxs);
 		}
 	}
 
+// [FWGS, 01.07.23]
 /*
 =============
 pfnCvar_RegisterServerVariable
 
 standard path to register game variable
 =============
-*/
 void GAME_EXPORT pfnCvar_RegisterServerVariable (cvar_t *variable)
 	{
 	if (variable != NULL)
@@ -881,7 +878,6 @@ pfnCvar_RegisterEngineVariable
 use with precaution: this cvar will NOT unlinked
 after game.dll is unloaded
 =============
-*/
 void GAME_EXPORT pfnCvar_RegisterEngineVariable (cvar_t *variable)
 	{
 	Cvar_RegisterVariable ((convar_t *)variable);
@@ -891,7 +887,6 @@ void GAME_EXPORT pfnCvar_RegisterEngineVariable (cvar_t *variable)
 =============
 pfnCvar_RegisterVariable [FWGS, 01.04.23]
 =============
-*/
 cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue, int flags)
 	{
 	// a1ba: try to mitigate outdated client.dll vulnerabilities
@@ -906,12 +901,12 @@ cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue,
 =============
 pfnCvar_RegisterVariable [FWGS, 01.04.23]
 =============
-*/
 cvar_t *pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
 	{
 	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (szName, flags |
 		FCVAR_GAMEUIDLL));
 	}
+*/
 
 /*
 =============
@@ -920,7 +915,7 @@ pfnCVarGetPointer
 can return NULL
 =============
 */
-cvar_t *pfnCVarGetPointer (const char *szVarName)
+cvar_t *GAME_EXPORT pfnCVarGetPointer (const char *szVarName)
 	{
 	return (cvar_t *)Cvar_FindVar (szVarName);
 	}
@@ -946,7 +941,6 @@ COM_CompareFileTime
 int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare)
 	{
 	int	bRet = 0;
-
 	*iCompare = 0;
 
 	if (filename1 && filename2)
@@ -955,7 +949,7 @@ int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename
 		int ft2 = FS_FileTime (filename2, false);
 
 		// one of files is missing
-		if (ft1 == -1 || ft2 == -1)
+		if ((ft1 == -1) || (ft2 == -1))
 			return bRet;
 
 		*iCompare = Host_CompareFileTime (ft1, ft2);
@@ -968,7 +962,6 @@ int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename
 /*
 =============
 COM_CheckParm
-
 =============
 */
 int GAME_EXPORT COM_CheckParm (char *parm, char **ppnext)
@@ -977,9 +970,10 @@ int GAME_EXPORT COM_CheckParm (char *parm, char **ppnext)
 
 	if (ppnext)
 		{
-		if (i != 0 && i < host.argc - 1)
+		if ((i != 0) && (i < host.argc - 1))
 			*ppnext = (char *)host.argv[i + 1];
-		else *ppnext = NULL;
+		else
+			*ppnext = NULL;
 		}
 
 	return i;
@@ -988,7 +982,6 @@ int GAME_EXPORT COM_CheckParm (char *parm, char **ppnext)
 /*
 =============
 pfnTime
-
 =============
 */
 float GAME_EXPORT pfnTime (void)
@@ -1033,7 +1026,7 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	first = Q_strchr (lwrfilename, '.');
 	last = Q_strrchr (lwrfilename, '.');
 
-	if (first == NULL || last == NULL)
+	if ((first == NULL) || (last == NULL))
 		return false;
 
 	if (first != last)
@@ -1132,13 +1125,13 @@ void *GAME_EXPORT pfnSequencePickSentence (const char *groupName, int pickMethod
 
 	}
 
+// [FWGS, 01.07.23]
 /*
 =============
 pfnIsCareerMatch
 
 used by CS:CZ (client stub)
 =============
-*/
 int GAME_EXPORT GAME_EXPORT pfnIsCareerMatch (void)
 	{
 	return 0;
@@ -1150,19 +1143,20 @@ pfnRegisterTutorMessageShown
 
 only exists in PlayStation version
 =============
-*/
 void GAME_EXPORT pfnRegisterTutorMessageShown (int mid)
 	{
 	}
+*/
 
 /*
 =============
-pfnGetTimesTutorMessageShown
+pfnIsCareerMatch [FWGS, 01.07.23]
 
 only exists in PlayStation version
 =============
 */
-int GAME_EXPORT pfnGetTimesTutorMessageShown (int mid)
+/*int GAME_EXPORT pfnGetTimesTutorMessageShown (int mid)*/
+int GAME_EXPORT pfnIsCareerMatch (void)
 	{
 	return 0;
 	}

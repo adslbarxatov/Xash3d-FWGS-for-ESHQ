@@ -42,9 +42,7 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 
 /*
 =============================================================================
-
-			COMMAND BUFFER
-
+COMMAND BUFFER
 =============================================================================
 */
 
@@ -294,7 +292,8 @@ void Cbuf_ExecStuffCmds (void)
 
 	for (i = 0; i < host.argc; i++)
 		{
-		if (host.argv[i] && host.argv[i][0] == '+' && (host.argv[i][1] < '0' || host.argv[i][1] > '9') && l + Q_strlen (host.argv[i]) - 1 <= sizeof (build) - 1)
+		if (host.argv[i] && host.argv[i][0] == '+' && (host.argv[i][1] < '0' || host.argv[i][1] > '9') &&
+			l + Q_strlen (host.argv[i]) - 1 <= sizeof (build) - 1)
 			{
 			j = 1;
 
@@ -337,9 +336,7 @@ void Cbuf_ExecStuffCmds (void)
 
 /*
 ==============================================================================
-
-			SCRIPT COMMANDS
-
+SCRIPT COMMANDS
 ==============================================================================
 */
 qboolean Cmd_CurrentCommandIsPrivileged (void)
@@ -513,9 +510,7 @@ static void Cmd_UnAlias_f (void)
 
 /*
 =============================================================================
-
-			COMMAND EXECUTION
-
+COMMAND EXECUTION
 =============================================================================
 */
 typedef struct cmd_s
@@ -548,7 +543,7 @@ int GAME_EXPORT Cmd_Argc (void)
 Cmd_Argv
 ============
 */
-const char *Cmd_Argv (int arg)
+const char *GAME_EXPORT Cmd_Argv (int arg)
 	{
 	if ((uint)arg >= cmd_argc)
 		return "";
@@ -560,7 +555,7 @@ const char *Cmd_Argv (int arg)
 Cmd_Args
 ============
 */
-const char *Cmd_Args (void)
+const char *GAME_EXPORT Cmd_Args (void)
 	{
 	return cmd_args;
 	}
@@ -568,12 +563,9 @@ const char *Cmd_Args (void)
 
 /*
 ===========================
-
 Client exports
-
 ===========================
 */
-
 
 /*
 ============
@@ -996,8 +988,9 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 
 	cmd_condlevel = 0;
 
-	// [FWGS, 01.04.23] cvar value substitution
-	if (CVAR_TO_BOOL (cmd_scripting) && isPrivileged)
+	// [FWGS, 01.07.23] cvar value substitution
+	/*if (CVAR_TO_BOOL (cmd_scripting) && isPrivileged)*/
+	if (cmd_scripting.value && isPrivileged)
 		{
 		while (*text)
 			{
@@ -1366,7 +1359,8 @@ inserts escape sequences
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len)
 	{
 	int c;
-	int scripting = CVAR_TO_BOOL (cmd_scripting);
+	/*int scripting = CVAR_TO_BOOL (cmd_scripting);*/
+	int scripting = cmd_scripting.value;	// [FWGS, 01.07.23]
 
 	while ((c = *oldCommand++) && len > 1)
 		{
@@ -1388,11 +1382,9 @@ void Cmd_Escape (char *newCommand, const char *oldCommand, int len)
 	*newCommand++ = 0;
 	}
 
-
 /*
 ============
 Cmd_Init
-
 ============
 */
 void Cmd_Init (void)

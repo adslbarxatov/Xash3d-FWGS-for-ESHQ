@@ -20,20 +20,43 @@ GNU General Public License for more details.
 #include "vid_common.h"
 #include "platform/platform.h"
 
-#define WINDOW_NAME		XASH_ENGINE_NAME " Window" // Half-Life
+// [FWGS, 01.07.23]
+/*#define WINDOW_NAME		XASH_ENGINE_NAME " Window" // Half-Life
 convar_t *vid_fullscreen;
 convar_t *vid_mode;
 convar_t *vid_brightness;
 convar_t *vid_gamma;
-convar_t *vid_highdpi;
+convar_t *vid_highdpi;*/
+static CVAR_DEFINE (window_width, "width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"screen width");
+static CVAR_DEFINE (window_height, "height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"screen height");
+static CVAR_DEFINE (vid_brightness, "brightness", "0.0", FCVAR_ARCHIVE,
+	"brightness factor");
+static CVAR_DEFINE (vid_gamma, "gamma", "2.5", FCVAR_ARCHIVE,
+	"gamma amount");
+static CVAR_DEFINE_AUTO (vid_mode, "0", FCVAR_RENDERINFO,
+	"current video mode index (used only for storage)");
+static CVAR_DEFINE_AUTO (vid_rotate, "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"screen rotation (0-3)");
+static CVAR_DEFINE_AUTO (vid_scale, "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"pixel scale");
+CVAR_DEFINE_AUTO (vid_highdpi, "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"enable High-DPI mode");
+CVAR_DEFINE (vid_fullscreen, "fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"enable fullscreen mode");
+CVAR_DEFINE (window_xpos, "_window_xpos", "-1", FCVAR_RENDERINFO,
+	"window position by horizontal");
+CVAR_DEFINE (window_ypos, "_window_ypos", "-1", FCVAR_RENDERINFO,
+	"window position by vertical");
 
 glwstate_t	glw_state;
 
-convar_t *window_xpos;
+// [FWGS, 01.07.23]
+/*convar_t *window_xpos;
 convar_t *window_ypos;
-
 convar_t *vid_rotate;
-convar_t *vid_scale;
+convar_t *vid_scale;*/
 
 /*
 =================
@@ -42,10 +65,10 @@ VID_StartupGamma
 */
 void VID_StartupGamma (void)
 	{
-	BuildGammaTable (vid_gamma->value, vid_brightness->value);
-	Con_Reportf ("VID_StartupGamma: gamma %g brightness %g\n", vid_gamma->value, vid_brightness->value);
-	ClearBits (vid_brightness->flags, FCVAR_CHANGED);
-	ClearBits (vid_gamma->flags, FCVAR_CHANGED);
+	BuildGammaTable (vid_gamma.value, vid_brightness.value);
+	Con_Reportf ("VID_StartupGamma: gamma %g brightness %g\n", vid_gamma.value, vid_brightness.value);
+	ClearBits (vid_brightness.flags, FCVAR_CHANGED);
+	ClearBits (vid_gamma.flags, FCVAR_CHANGED);
 	}
 
 /*
@@ -126,10 +149,10 @@ check vid modes and fullscreen
 */
 void VID_CheckChanges (void)
 	{
-	if (FBitSet (cl_allow_levelshots->flags, FCVAR_CHANGED))
+	if (FBitSet (cl_allow_levelshots.flags, FCVAR_CHANGED))
 		{
 		SCR_RegisterTextures ();	// reload 'lambda' image
-		ClearBits (cl_allow_levelshots->flags, FCVAR_CHANGED);
+		ClearBits (cl_allow_levelshots.flags, FCVAR_CHANGED);
 		}
 
 	if (host.renderinfo_changed)
@@ -140,6 +163,36 @@ void VID_CheckChanges (void)
 			Sys_Error ("Can't re-initialize video subsystem\n");
 
 		host.renderinfo_changed = false;
+		}
+	}
+
+/*
+===============
+VID_SetDisplayTransform [FWGS, 01.07.23]
+
+notify ref dll about screen transformations
+===============
+*/
+void VID_SetDisplayTransform (int *render_w, int *render_h)
+	{
+	uint rotate = vid_rotate.value;
+
+	if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, vid_scale.value, vid_scale.value))
+		{
+		if (rotate & 1)
+			{
+			int swap = *render_w;
+
+			*render_w = *render_h;
+			*render_h = swap;
+			}
+
+		*render_h /= vid_scale.value;
+		*render_w /= vid_scale.value;
+		}
+	else
+		{
+		Con_Printf (S_WARN "failed to setup screen transform\n");
 		}
 	}
 
@@ -177,37 +230,47 @@ static void VID_Mode_f (void)
 			return;
 		}
 
-	R_ChangeDisplaySettings (w, h, Cvar_VariableInteger ("fullscreen"));
+	// [FWGS, 01.07.23]
+	/*R_ChangeDisplaySettings (w, h, Cvar_VariableInteger ("fullscreen"));*/
+	R_ChangeDisplaySettings (w, h, !!vid_fullscreen.value);
 	}
 
+// [FWGS, 01.07.23]
 void VID_Init (void)
 	{
-	// system screen width and height (don't suppose for change from console at all)
+	/* system screen width and height (don't suppose for change from console at all)
 	Cvar_Get ("width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, "screen width");
 	Cvar_Get ("height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, "screen height");
-
-	// [FWGS, 01.04.23]
-	window_xpos = Cvar_Get ("_window_xpos", "-1", FCVAR_RENDERINFO, 
+	window_xpos = Cvar_Get ("_window_xpos", "-1", FCVAR_RENDERINFO,
 		"window position by horizontal");
-	window_ypos = Cvar_Get ("_window_ypos", "-1", FCVAR_RENDERINFO, 
+	window_ypos = Cvar_Get ("_window_ypos", "-1", FCVAR_RENDERINFO,
 		"window position by vertical");
-
-	vid_gamma = Cvar_Get ("gamma", "2.5", FCVAR_ARCHIVE, 
+	vid_gamma = Cvar_Get ("gamma", "2.5", FCVAR_ARCHIVE,
 		"gamma amount");
-	vid_brightness = Cvar_Get ("brightness", "0.0", FCVAR_ARCHIVE, 
+	vid_brightness = Cvar_Get ("brightness", "0.0", FCVAR_ARCHIVE,
 		"brightness factor");
-
-	// [FWGS, 01.04.23]
-	vid_fullscreen = Cvar_Get ("fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, 
+	vid_fullscreen = Cvar_Get ("fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 		"enable fullscreen mode");
-	vid_mode = Cvar_Get ("vid_mode", "0", FCVAR_RENDERINFO, 
+	vid_mode = Cvar_Get ("vid_mode", "0", FCVAR_RENDERINFO,
 		"current video mode index (used just for storage)");
-	vid_highdpi = Cvar_Get ("vid_highdpi", "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART, 
+	vid_highdpi = Cvar_Get ("vid_highdpi", "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 		"enable High-DPI mode");
-	vid_rotate = Cvar_Get ("vid_rotate", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, 
+	vid_rotate = Cvar_Get ("vid_rotate", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 		"screen rotation (0-3)");
-	vid_scale = Cvar_Get ("vid_scale", "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, 
-		"pixel scale");
+	vid_scale = Cvar_Get ("vid_scale", "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+		"pixel scale");*/
+	Cvar_RegisterVariable (&window_width);
+	Cvar_RegisterVariable (&window_height);
+
+	Cvar_RegisterVariable (&vid_mode);
+	Cvar_RegisterVariable (&vid_highdpi);
+	Cvar_RegisterVariable (&vid_rotate);
+	Cvar_RegisterVariable (&vid_scale);
+	Cvar_RegisterVariable (&vid_fullscreen);
+	Cvar_RegisterVariable (&vid_brightness);
+	Cvar_RegisterVariable (&vid_gamma);
+	Cvar_RegisterVariable (&window_xpos);
+	Cvar_RegisterVariable (&window_ypos);
 
 	// a1ba: planned to be named vid_mode for compability
 	// but supported mode list is filled by backends, so numbers are not portable any more

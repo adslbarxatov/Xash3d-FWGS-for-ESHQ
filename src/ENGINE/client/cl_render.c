@@ -48,7 +48,6 @@ static void R_Mem_Free (void *mem, const char *filename, const int fileline)
 /*
 =========
 pfnGetFilesList
-
 =========
 */
 static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
@@ -73,7 +72,7 @@ static uint pfnFileBufferCRC32 (const void *buffer, const int length)
 	{
 	uint	modelCRC = 0;
 
-	if (!buffer || length <= 0)
+	if (!buffer || (length <= 0))
 		return modelCRC;
 
 	CRC32_Init (&modelCRC);
@@ -84,7 +83,6 @@ static uint pfnFileBufferCRC32 (const void *buffer, const int length)
 /*
 =================
 R_EnvShot
-
 =================
 */
 static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot, int shotsize)
@@ -123,12 +121,11 @@ static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot,
 /*
 =============
 CL_GenericHandle
-
 =============
 */
 const char *CL_GenericHandle (int fileindex)
 	{
-	if (fileindex < 0 || fileindex >= MAX_CUSTOM)
+	if ((fileindex < 0) || (fileindex >= MAX_CUSTOM))
 		return 0;
 	return cl.files_precache[fileindex];
 	}
@@ -164,6 +161,17 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 			return (intptr_t)world.deluxedata;
 		case PARM_SHADOWDATA:
 			return (intptr_t)world.shadowdata;
+
+		// [FWGS, 01.07.23]
+		case PARM_FULLSCREEN:
+			return refState.fullScreen;
+		case PARM_WIDESCREEN:
+			return refState.wideScreen;
+		case PARM_SCREEN_WIDTH:
+			return refState.width;
+		case PARM_SCREEN_HEIGHT:
+			return refState.height;
+
 		default:
 			// indicates call from client.dll
 			if (checkRef)

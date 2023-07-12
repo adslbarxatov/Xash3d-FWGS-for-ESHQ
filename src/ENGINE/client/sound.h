@@ -42,7 +42,7 @@ extern poolhandle_t sndpool;
 // NOTE: clipped sound at 32760 to avoid overload
 #define CLIP( x )			(( x ) > 32760 ? 32760 : (( x ) < -32760 ? -32760 : ( x )))
 
-#define PAINTBUFFER_SIZE		1024	// 44k: was 512
+#define PAINTBUFFER_SIZE	1024	// 44k: was 512
 #define PAINTBUFFER			(g_curpaintbuffer)
 #define CPAINTBUFFERS		3
 
@@ -50,9 +50,9 @@ extern poolhandle_t sndpool;
 #define CPAINTFILTERMEM		3
 #define CPAINTFILTERS		4	// maximum number of consecutive upsample passes per paintbuffer
 
-#define S_RAW_SOUND_IDLE_SEC		10	// time interval for idling raw sound before it's freed
-#define S_RAW_SOUND_BACKGROUNDTRACK	-2
-#define S_RAW_SOUND_SOUNDTRACK	-1
+#define S_RAW_SOUND_IDLE_SEC			10	// time interval for idling raw sound before it's freed
+#define S_RAW_SOUND_BACKGROUNDTRACK		-2
+#define S_RAW_SOUND_SOUNDTRACK			-1
 #define S_RAW_SAMPLES_PRECISION_BITS	14
 
 #define CIN_FRAMETIME		(1.0f / 30.0f)
@@ -65,29 +65,29 @@ typedef struct
 
 typedef struct
 	{
-	qboolean			factive;	// if true, mix to this paintbuffer using flags
-	portable_samplepair_t *pbuf;	// front stereo mix buffer, for 2 or 4 channel mixing
-	int			ifilter;	// current filter memory buffer to use for upsampling pass
+	qboolean				factive;	// if true, mix to this paintbuffer using flags
+	portable_samplepair_t	*pbuf;	// front stereo mix buffer, for 2 or 4 channel mixing
+	int						ifilter;	// current filter memory buffer to use for upsampling pass
 	portable_samplepair_t	fltmem[CPAINTFILTERS][CPAINTFILTERMEM];
 	} paintbuffer_t;
 
 typedef struct sfx_s
 	{
 	char		name[MAX_QPATH];
-	wavdata_t *cache;
+	wavdata_t	*cache;
 
-	int		servercount;
+	int			servercount;
 	uint		hashValue;
-	struct sfx_s *hashNext;
+	struct sfx_s	*hashNext;
 	} sfx_t;
 
 extern portable_samplepair_t	paintbuffer[];
 extern portable_samplepair_t	roombuffer[];
 extern portable_samplepair_t	temppaintbuffer[];
-extern portable_samplepair_t *g_curpaintbuffer;
-extern paintbuffer_t	paintbuffers[];
+extern portable_samplepair_t	*g_curpaintbuffer;
+extern paintbuffer_t			paintbuffers[];
 
-// structure used for fading in and out client sound volume.
+// structure used for fading in and out client sound volume
 typedef struct
 	{
 	float		initial_percent;
@@ -115,9 +115,9 @@ typedef struct
 	snd_format_t	format;
 	int				samples;		// mono samples in buffer
 	int				samplepos;	// in mono samples
-	byte *buffer;
+	byte			*buffer;
 	qboolean		initialized;	// sound engine is active
-	const char *backendName;
+	const char		*backendName;
 	} dma_t;
 
 #include "vox.h"
@@ -126,9 +126,9 @@ typedef struct
 	{
 	double		sample;
 
-	wavdata_t *pData;
+	wavdata_t	*pData;
 	double 		forcedEndSample;
-	qboolean		finished;
+	qboolean	finished;
 	} mixer_t;
 
 typedef struct rawchan_s
@@ -223,7 +223,7 @@ extern dma_t	dma;
 
 extern convar_t	s_musicvolume;
 extern convar_t	s_lerping;
-extern convar_t *dsp_off;
+/*extern convar_t *dsp_off;*/	// [FWGS, 01.07.23]
 extern convar_t	s_test;		// cvar to testify new effects
 extern convar_t s_samplecount;
 extern convar_t snd_mute_losefocus;

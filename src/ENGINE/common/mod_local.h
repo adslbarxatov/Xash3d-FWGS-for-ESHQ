@@ -24,7 +24,7 @@ GNU General Public License for more details.
 #define LM_SAMPLE_SIZE			16
 #define LM_SAMPLE_EXTRASIZE		8
 
-#define MAX_MAP_WADS		256	// max wads that can be referenced per one map
+#define MAX_MAP_WADS			256	// max wads that can be referenced per one map
 
 #define CHECKVISBIT( vis, b )		((b) >= 0 ? (byte)((vis)[(b) >> 3] & (1 << ((b) & 7))) : (byte)false )
 #define SETVISBIT( vis, b )( void )	((b) >= 0 ? (byte)((vis)[(b) >> 3] |= (1 << ((b) & 7))) : (byte)false )
@@ -38,21 +38,21 @@ GNU General Public License for more details.
 
 typedef struct consistency_s
 	{
-	const char *filename;
-	int		orig_index;
-	int		check_type;
-	qboolean		issound;
-	int		value;
+	const char	*filename;
+	int			orig_index;
+	int			check_type;
+	qboolean	issound;
+	int			value;
 	vec3_t		mins;
 	vec3_t		maxs;
 	} consistency_t;
 
 #define FCRC_SHOULD_CHECKSUM	BIT( 0 )
-#define FCRC_CHECKSUM_DONE	BIT( 1 )
+#define FCRC_CHECKSUM_DONE		BIT( 1 )
 
 typedef struct
 	{
-	int		flags;
+	int			flags;
 	CRC32_t		initialCRC;
 	} model_info_t;
 
@@ -69,11 +69,11 @@ typedef struct hullnode_s
 
 typedef struct winding_s
 	{
-	const mplane_t *plane;
-	struct winding_s *pair;
-	hullnode_t	chain;
-	int		numpoints;
-	vec3_t		p[4];		// variable sized
+	const mplane_t		*plane;
+	struct winding_s	*pair;
+	hullnode_t			chain;
+	int					numpoints;
+	vec3_t				p[4];		// variable sized
 	} winding_t;
 
 typedef struct
@@ -85,20 +85,20 @@ typedef struct
 
 typedef struct world_static_s
 	{
-	qboolean		loading;		// true if worldmodel is loading
-	int		flags;		// misc flags
+	qboolean	loading;		// true if worldmodel is loading
+	int			flags;		// misc flags
 
 	// mapstats info
 	char		message[2048];	// just for debug
 	char		compiler[256];	// map compiler
 	char		generator[256];	// map editor
 
-	hull_model_t *hull_models;
-	int		num_hull_models;
+	hull_model_t	*hull_models;
+	int				num_hull_models;
 
 	// out pointers to light data
-	color24 *deluxedata;	// deluxemap data pointer
-	byte *shadowdata;	// occlusion data pointer
+	color24		*deluxedata;	// deluxemap data pointer
+	byte		*shadowdata;	// occlusion data pointer
 
 	// visibility info
 	size_t		visbytes;		// cluster size
@@ -117,10 +117,12 @@ typedef struct world_static_s
 #ifndef REF_DLL
 extern world_static_t	world;
 extern poolhandle_t     com_studiocache;
-extern model_t *loadmodel;
-extern convar_t *mod_studiocache;
-extern convar_t *r_wadtextures;
-extern convar_t *r_showhull;
+extern model_t			*loadmodel;
+
+// [FWGS, 01.07.23]
+extern convar_t			mod_studiocache;
+extern convar_t			r_wadtextures;
+extern convar_t			r_showhull;
 
 //
 // model.c

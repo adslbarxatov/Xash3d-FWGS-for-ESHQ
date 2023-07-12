@@ -20,10 +20,15 @@ GNU General Public License for more details.
 #include "input.h"
 #include "platform/platform.h"
 
-mobile_engfuncs_t *gMobileEngfuncs;
+// [FWGS, 01.07.23]
+static mobile_engfuncs_t *gMobileEngfuncs;
 
-convar_t *vibration_length;
-convar_t *vibration_enable;
+/*convar_t *vibration_length;
+convar_t *vibration_enable;*/
+static CVAR_DEFINE_AUTO (vibration_length, "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"vibration length");
+static CVAR_DEFINE_AUTO (vibration_enable, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"enable vibration");
 
 // [FWGS, 01.04.23]
 static cl_font_t g_scaled_font;
@@ -31,7 +36,7 @@ static float g_font_scale;
 
 static void pfnVibrate (float life, char flags)
 	{
-	if (!vibration_enable->value)
+	if (!vibration_enable.value)
 		return;
 
 	if (life < 0.0f)
@@ -41,7 +46,7 @@ static void pfnVibrate (float life, char flags)
 		}
 
 	// here goes platform-specific backends
-	Platform_Vibrate (life * vibration_length->value, flags);
+	Platform_Vibrate (life * vibration_length.value, flags);
 	}
 
 static void Vibrate_f (void)
@@ -67,7 +72,7 @@ static int pfnDrawScaledCharacter (int x, int y, int number, int r, int g, int b
 	rgba_t color = { r, g, b, 255 };
 	int flags = FONT_DRAW_HUD;
 
-	if (hud_utf8->value)
+	if (hud_utf8.value)
 		SetBits (flags, FONT_DRAW_UTF8);
 
 	if ((fabs (g_font_scale - scale) > 0.1f) ||
@@ -142,8 +147,12 @@ qboolean Mobile_Init (void)
 		success = true;
 
 	Cmd_AddCommand ("vibrate", (xcommand_t)Vibrate_f, "Vibrate for specified time");
-	vibration_length = Cvar_Get ("vibration_length", "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "Vibration length");
-	vibration_enable = Cvar_Get ("vibration_enable", "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "Enable vibration");
+
+	// [FWGS, 01.07.23]
+	/*vibration_length = Cvar_Get ("vibration_length", "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "Vibration length");
+	vibration_enable = Cvar_Get ("vibration_enable", "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "Enable vibration");*/
+	Cvar_RegisterVariable (&vibration_length);
+	Cvar_RegisterVariable (&vibration_enable);
 
 	return success;
 	}

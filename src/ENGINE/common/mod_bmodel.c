@@ -2078,7 +2078,7 @@ static void Mod_LoadTextureData (dbspmodel_t *bmod, int textureIndex)
 	// 2. Internal from map
 
 	// Try WAD texture (force while r_wadtextures is 1)
-	if ((r_wadtextures->value && bmod->wadlist.count > 0) || mipTex->offsets[0] <= 0)
+	if ((r_wadtextures.value && (bmod->wadlist.count > 0)) || (mipTex->offsets[0] <= 0))
 		{
 		char texpath[MAX_VA_STRING];
 		int wadIndex = Mod_FindTextureInWadList (&bmod->wadlist, mipTex->name, texpath, sizeof (texpath));
@@ -3238,15 +3238,16 @@ Mod_CheckLump
 check lump for existing
 ==================
 */
-int Mod_CheckLump (const char *filename, const int lump, int *lumpsize)
+int GAME_EXPORT Mod_CheckLump (const char *filename, const int lump, int *lumpsize)
 	{
-	file_t *f = FS_Open (filename, "rb", false);
+	file_t		*f = FS_Open (filename, "rb", false);
 	byte		buffer[sizeof (dheader_t) + sizeof (dextrahdr_t)];
 	size_t		prefetch_size = sizeof (buffer);
-	dextrahdr_t *extrahdr;
-	dheader_t *header;
+	dextrahdr_t	*extrahdr;
+	dheader_t	*header;
 
-	if (!f) return LUMP_LOAD_COULDNT_OPEN;
+	if (!f)
+		return LUMP_LOAD_COULDNT_OPEN;
 
 	if (FS_Read (f, buffer, prefetch_size) != prefetch_size)
 		{
@@ -3297,17 +3298,18 @@ Mod_ReadLump
 reading random lump by user request
 ==================
 */
-int Mod_ReadLump (const char *filename, const int lump, void **lumpdata, int *lumpsize)
+int GAME_EXPORT Mod_ReadLump (const char *filename, const int lump, void **lumpdata, int *lumpsize)
 	{
-	file_t *f = FS_Open (filename, "rb", false);
+	file_t		*f = FS_Open (filename, "rb", false);
 	byte		buffer[sizeof (dheader_t) + sizeof (dextrahdr_t)];
 	size_t		prefetch_size = sizeof (buffer);
-	dextrahdr_t *extrahdr;
-	dheader_t *header;
-	byte *data;
-	int		length;
+	dextrahdr_t	*extrahdr;
+	dheader_t	*header;
+	byte		*data;
+	int			length;
 
-	if (!f) return LUMP_LOAD_COULDNT_OPEN;
+	if (!f)
+		return LUMP_LOAD_COULDNT_OPEN;
 
 	if (FS_Read (f, buffer, prefetch_size) != prefetch_size)
 		{
@@ -3379,16 +3381,16 @@ writing lump by user request
 only empty lumps is allows
 ==================
 */
-int Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lumpsize)
+int GAME_EXPORT Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lumpsize)
 	{
 	byte		buffer[sizeof (dheader_t) + sizeof (dextrahdr_t)];
 	size_t		prefetch_size = sizeof (buffer);
-	int		result, dummy = lumpsize;
-	dextrahdr_t *extrahdr;
-	dheader_t *header;
-	file_t *f;
+	int			result, dummy = lumpsize;
+	dextrahdr_t	*extrahdr;
+	dheader_t	*header;
+	file_t		*f;
 
-	if (!lumpdata || lumpsize <= 0)
+	if (!lumpdata || (lumpsize <= 0))
 		return LUMP_SAVE_NO_DATA;
 
 	// make sure what .bsp is placed into gamedir and not in pak
@@ -3403,7 +3405,8 @@ int Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lump
 
 	f = FS_Open (filename, "e+b", true);
 
-	if (!f) return LUMP_SAVE_COULDNT_OPEN;
+	if (!f)
+		return LUMP_SAVE_COULDNT_OPEN;
 
 	if (FS_Read (f, buffer, prefetch_size) != prefetch_size)
 		{
