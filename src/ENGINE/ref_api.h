@@ -637,10 +637,12 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 // actually, they are just created on engine side for convinience
 // and must be retrieved by renderer side
 // sometimes it's done to standartize cvars to make it easier for users
+
+/*ENGINE_SHARED_CVAR_NAME( f, gl_showtextures, r_showtextures ) \*/ // [FWGS, 01.07.23]
+
 #define ENGINE_SHARED_CVAR_LIST( f ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_gamma, gamma ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_brightness, brightness ) \
-	/*ENGINE_SHARED_CVAR_NAME( f, gl_showtextures, r_showtextures ) \*/ // [FWGS, 01.07.23]
 	ENGINE_SHARED_CVAR( f, r_showtextures ) \
 	ENGINE_SHARED_CVAR( f, r_speeds ) \
 	ENGINE_SHARED_CVAR( f, r_fullbright ) \

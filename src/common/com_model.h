@@ -21,8 +21,7 @@ GNU General Public License for more details.
 
 /*
 ==============================================================================
-
-	ENGINE MODEL FORMAT
+ENGINE MODEL FORMAT
 ==============================================================================
 */
 #define STUDIO_RENDER	1

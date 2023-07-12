@@ -104,4 +104,4 @@ typedef struct ref_viewpass_s
 	int		flags;		// if !=0 nothing is drawn by the engine except clientDraw functions
 	} ref_viewpass_t;
 
-#endif//REF_PARAMS_H
+#endif

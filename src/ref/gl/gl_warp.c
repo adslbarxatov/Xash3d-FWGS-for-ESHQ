@@ -94,7 +94,7 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 
 		// check Q1-style skyboxes
 		num_checked_sides = 0;
-		for (j = 0; j < SKYBOX_MAX_SIDE; j++)	// [FWGS, 01.07.23]
+		for (j = 0; j < SKYBOX_MAX_SIDES; j++)	// [FWGS, 01.07.23]
 			{
 			// [FWGS, 01.04.23] build side name
 			Q_snprintf (sidename, sizeof (sidename), "%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);

@@ -191,7 +191,8 @@ void RoundUpHullSize (vec3_t size);
 int SignbitsForPlane (const vec3_t normal);
 int PlaneTypeForNormal (const vec3_t normal);
 int NearestPOW (int value, qboolean roundDown);
-/*void SinCos (float radians, float *sine, float *cosine);*/	// [FWGS, 01.07.23]
+// [FWGS, 01.07.23]
+/*void SinCos (float radians, float *sine, float *cosine);*/
 float VectorNormalizeLength2 (const vec3_t v, vec3_t out);
 qboolean VectorCompareEpsilon (const vec3_t vec1, const vec3_t vec2, vec_t epsilon);
 void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up);
