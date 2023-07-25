@@ -36,16 +36,31 @@ remap_info_t *CL_GetRemapInfoForEntity (cl_entity_t *e)
 
 /*
 ====================
-CL_CmpStudioTextures
+CL_CmpStudioTextures [FWGS, 01.08.23]
 
 return true if equal
 ====================
 */
-qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, mstudiotexture_t *p2)
+/*qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, mstudiotexture_t *p2)*/
+static qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, remap_info_t *remap)
 	{
 	int	i;
+	mstudiotexture_t *p2;
 
-	if (!p1 || !p2) return false;
+	/*if (!p1 || !p2) return false;*/
+	if (!p1)	// no textures
+		return false;
+
+	if (!remap)		// current model has no remap
+		return false;
+
+	if (!remap->textures)	// shouldn't happen, just in case
+		return false;
+
+	if (numtexs != remap->numtextures)	// amount of textures differs, it's a different model
+		return false;
+
+	p2 = remap->ptexture;
 
 	for (i = 0; i < numtexs; i++, p1++, p2++)
 		{
@@ -253,7 +268,7 @@ void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor, int b
 	if (!entity) return;
 	i = (entity == &clgame.viewent) ? clgame.maxEntities : entity->curstate.number;
 
-	if (!model || (model->type != mod_alias && model->type != mod_studio))
+	if (!model || (model->type != mod_alias) && (model->type != mod_studio))
 		{
 		// entity has changed model by another type, release remap info
 		if (clgame.remap_info[i])
@@ -279,13 +294,16 @@ void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor, int b
 	if (model->type == mod_studio)
 		{
 		phdr = (studiohdr_t *)Mod_StudioExtradata (model);
-		if (!phdr) return;	// bad model?
+		if (!phdr)
+			return;		// bad model?
 
+		// [FWGS, 01.08.23]
 		src = (mstudiotexture_t *)(((byte *)phdr) + phdr->textureindex);
-		dst = (clgame.remap_info[i] ? clgame.remap_info[i]->ptexture : NULL);
+		/*dst = (clgame.remap_info[i] ? clgame.remap_info[i]->ptexture : NULL);*/
 
 		// NOTE: we must copy all the structures 'mstudiotexture_t' for easy access when model is rendering
-		if (!CL_CmpStudioTextures (phdr->numtextures, src, dst) || clgame.remap_info[i]->model != model)
+		/*if (!CL_CmpStudioTextures (phdr->numtextures, src, dst) || clgame.remap_info[i]->model != model)*/
+		if (!CL_CmpStudioTextures (phdr->numtextures, src, clgame.remap_info[i]) || (clgame.remap_info[i]->model != model))
 			{
 			// this code catches studiomodel change with another studiomodel with remap textures
 			// e.g. playermodel 'barney' with playermodel 'gordon'

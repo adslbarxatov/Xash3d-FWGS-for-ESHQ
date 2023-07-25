@@ -737,11 +737,10 @@ qboolean R_Init (void)
 
 	if (!success)
 		{
-		Host_Error ("Can't initialize any renderer. Check your video drivers!");
+		Host_Error ("Can't initialize any renderer. Check your video drivers!\n");
 		return false;
 		}
 
 	SCR_Init ();
-
 	return true;
 	}

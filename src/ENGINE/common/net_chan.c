@@ -242,7 +242,7 @@ void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, u
 
 /*
 ===============
-Netchan_Init [FWGS, 01.07.23]
+Netchan_Init [FWGS, 01.08.23]
 ===============
 */
 void Netchan_Init (void)
@@ -265,8 +265,9 @@ void Netchan_Init (void)
 	Cvar_RegisterVariable (&net_chokeloop);
 	Cvar_RegisterVariable (&net_showdrop);
 	Cvar_RegisterVariable (&net_qport);
-	
-	Cvar_DirectSet (&net_qport, buf);
+
+	/*Cvar_DirectSet (&net_qport, buf);*/
+	Cvar_FullSet (net_qport.name, buf, net_qport.flags);
 	net_mempool = Mem_AllocPool ("Network Pool");
 
 	MSG_InitMasks ();	// initialize bit-masks
@@ -744,7 +745,7 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 			memcpy (msg->pData, pbOut, uCompressedSize);
 			MSG_SeekToBit (msg, uCompressedSize << 3, SEEK_SET);
 			}
-		if (pbOut) 
+		if (pbOut)
 			free (pbOut);
 		}
 
@@ -902,7 +903,7 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 			memcpy (pbuf, pbOut, uCompressedSize);
 			size = uCompressedSize;
 			}
-		if (pbOut) 
+		if (pbOut)
 			free (pbOut);
 		}
 
@@ -1009,8 +1010,8 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	else
 		{
 		uint	uCompressedSize;
-		byte	*uncompressed;
-		byte	*compressed;
+		byte *uncompressed;
+		byte *compressed;
 
 		uncompressed = FS_LoadFile (filename, &filesize, false);
 		compressed = LZSS_Compress (uncompressed, filesize, &uCompressedSize);
@@ -1305,7 +1306,7 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 	return true;
 	}
 
-qboolean Netchan_Validate (netchan_t *chan, sizebuf_t *sb, qboolean *frag_message, uint *fragid, 
+qboolean Netchan_Validate (netchan_t *chan, sizebuf_t *sb, qboolean *frag_message, uint *fragid,
 	int *frag_offset, int *frag_length)
 	{
 	int	i, buffer, offset;
@@ -1454,7 +1455,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 	// if the remote side dropped the last reliable message, resend it
 	send_reliable = false;
 
-	if ((chan->incoming_acknowledged > chan->last_reliable_sequence) && 
+	if ((chan->incoming_acknowledged > chan->last_reliable_sequence) &&
 		(chan->incoming_reliable_acknowledged != chan->reliable_sequence))
 		send_reliable = true;
 

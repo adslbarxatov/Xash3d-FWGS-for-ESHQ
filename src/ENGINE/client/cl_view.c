@@ -372,7 +372,11 @@ V_RenderView
 */
 void V_RenderView (void)
 	{
-	ref_params_t	rp;
+	// HACKHACK: make ref params static [FWGS, 01.08.23]
+	// not really critical but allows client.dll to take address of refdef and don't trigger ASan
+	static ref_params_t	rp;
+	/*ref_params_t	rp;*/
+
 	ref_viewpass_t	rvp;
 	int		viewnum = 0;
 

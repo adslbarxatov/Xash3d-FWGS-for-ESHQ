@@ -2149,7 +2149,7 @@ void NET_ClearLagData (qboolean bClient, qboolean bServer)
 
 /*
 ====================
-NET_Init [FWGS, 01.07.23]
+NET_Init [FWGS, 01.08.23]
 ====================
 */
 void NET_Init (void)
@@ -2187,10 +2187,12 @@ void NET_Init (void)
 	Cvar_RegisterVariable (&net_fakeloss);
 
 	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_SERVER);
-	Cvar_DirectSet (&net_hostport, cmd);
+	/*Cvar_DirectSet (&net_hostport, cmd);*/
+	Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);
 
 	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_CLIENT);
-	Cvar_DirectSet (&net_clientport, cmd);
+	/*Cvar_DirectSet (&net_clientport, cmd);*/
+	Cvar_FullSet ("clientport", cmd, FCVAR_READ_ONLY);
 
 	// cvar equivalents for IPv6
 	/*net_ip6name = Cvar_Get ("ip6", "localhost", FCVAR_PRIVILEGED,

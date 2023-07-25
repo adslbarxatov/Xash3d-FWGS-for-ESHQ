@@ -1209,7 +1209,7 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 
 /*
 ================
-FS_AddGameHierarchy [FWGS, 01.04.23]
+FS_AddGameHierarchy [FWGS, 01.08.23]
 ================
 */
 void FS_AddGameHierarchy (const char *dir, uint flags)
@@ -1227,8 +1227,10 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 	// for example, czeror->czero->cstrike->valve
 	for (i = 0; i < FI.numgames; i++)
 		{
-		if (!Q_strnicmp (FI.games[i]->gamefolder, dir, 64))
+		/*if (!Q_strnicmp (FI.games[i]->gamefolder, dir, 64))*/
+		if (!Q_stricmp (FI.games[i]->gamefolder, dir))
 			{
+			dir = FI.games[i]->gamefolder;	// fixup directory case
 			Con_Reportf ("FS_AddGameHierarchy: adding recursive basedir %s\n", FI.games[i]->basedir);
 
 			if (!FI.games[i]->added && Q_stricmp (FI.games[i]->gamefolder, FI.games[i]->basedir))
@@ -1379,13 +1381,14 @@ static qboolean FS_CheckForCrypt (const char *dllname)
 
 /*
 ==================
-FS_FindLibrary [FWGS, 01.07.23]
+FS_FindLibrary [FWGS, 01.08.23]
 
 search for library, assume index is valid
 ==================
 */
 static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dllinfo_t *dllInfo)
 	{
+	string fixedname;
 	searchpath_t *search;
 	int index, start = 0, i, len;
 
@@ -1413,22 +1416,31 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 		}
 	dllInfo->shortPath[i] = '\0';
 
-	// [FWGS, 01.05.23] apply ext if forget
+	// apply ext if forget
 	COM_DefaultExtension (dllInfo->shortPath, "." OS_LIB_EXT, sizeof (dllInfo->shortPath));
+	/*search = FS_FindFile (dllInfo->shortPath, &index, NULL, 0, false);*/
+	search = FS_FindFile (dllInfo->shortPath, &index, fixedname, sizeof (fixedname), false);
 
-	// [FWGS, 01.04.23]
-	search = FS_FindFile (dllInfo->shortPath, &index, NULL, 0, false);
-
-	if (!search && !directpath)
+	/*if (!search && !directpath)*/
+	if (search)
+		{
+		Q_strncpy (dllInfo->shortPath, fixedname, sizeof (dllInfo->shortPath));
+		}
+	else if (!directpath)
 		{
 		fs_ext_path = false;
 
 		// trying check also 'bin' folder for indirect paths
-		Q_strncpy (dllInfo->shortPath, dllname, sizeof (dllInfo->shortPath));
+		/*Q_strncpy (dllInfo->shortPath, dllname, sizeof (dllInfo->shortPath));
 		search = FS_FindFile (dllInfo->shortPath, &index, NULL, 0, false);
 
 		if (!search) 
+			return false; // unable to find*/
+		search = FS_FindFile (dllname, &index, fixedname, sizeof (fixedname), false);
+		if (!search)
 			return false; // unable to find
+
+		Q_strncpy (dllInfo->shortPath, fixedname, sizeof (dllInfo->shortPath));
 		}
 
 	dllInfo->encrypted = FS_CheckForCrypt (dllInfo->shortPath);
