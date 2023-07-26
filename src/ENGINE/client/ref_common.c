@@ -674,15 +674,24 @@ qboolean R_Init (void)
 	Cvar_RegisterVariable (&r_refdll);
 
 	// cvars that are expected to exist
-	Cvar_Get ("r_speeds", "0", FCVAR_ARCHIVE, "shows renderer speeds");
-	Cvar_Get ("r_fullbright", "0", FCVAR_CHEAT, "disable lightmaps, get fullbright for entities");
-	Cvar_Get ("r_norefresh", "0", 0, "disable 3D rendering (use with caution)");
-	Cvar_Get ("r_dynamic", "1", FCVAR_ARCHIVE, "allow dynamic lighting (dlights, lightstyles)");
-	Cvar_Get ("r_lightmap", "0", FCVAR_CHEAT, "lightmap debugging tool");
-	Cvar_Get ("tracerred", "0.8", 0, "tracer red component weight ( 0 - 1.0 )");
-	Cvar_Get ("tracergreen", "0.8", 0, "tracer green component weight ( 0 - 1.0 )");
-	Cvar_Get ("tracerblue", "0.4", 0, "tracer blue component weight ( 0 - 1.0 )");
-	Cvar_Get ("traceralpha", "0.5", 0, "tracer alpha amount ( 0 - 1.0 )");
+	Cvar_Get ("r_speeds", "0", FCVAR_ARCHIVE,
+		"shows renderer speeds");
+	Cvar_Get ("r_fullbright", "0", FCVAR_CHEAT,
+		"disable lightmaps, get fullbright for entities");
+	Cvar_Get ("r_norefresh", "0", 0,
+		"disable 3D rendering (use with caution)");
+	Cvar_Get ("r_dynamic", "1", FCVAR_ARCHIVE,
+		"allow dynamic lighting (dlights, lightstyles)");
+	Cvar_Get ("r_lightmap", "0", FCVAR_CHEAT,
+		"lightmap debugging tool");
+	Cvar_Get ("tracerred", "0.8", 0,
+		"tracer red component weight ( 0 - 1.0 )");
+	Cvar_Get ("tracergreen", "0.8", 0,
+		"tracer green component weight ( 0 - 1.0 )");
+	Cvar_Get ("tracerblue", "0.4", 0,
+		"tracer blue component weight ( 0 - 1.0 )");
+	Cvar_Get ("traceralpha", "0.5", 0,
+		"tracer alpha amount ( 0 - 1.0 )");
 
 	Cvar_Get ("r_sprite_lerping", "1", FCVAR_ARCHIVE, "enables sprite animation lerping");
 	Cvar_Get ("r_sprite_lighting", "1", FCVAR_ARCHIVE, "enables sprite lighting (blood etc)");

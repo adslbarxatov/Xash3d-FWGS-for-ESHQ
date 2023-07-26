@@ -227,7 +227,6 @@ void R_ClearScene (void)
 	// clear the scene befor start new frame
 	if (gEngfuncs.drawFuncs->R_ClearScene != NULL)
 		gEngfuncs.drawFuncs->R_ClearScene ();
-
 	}
 
 /*
@@ -257,7 +256,8 @@ qboolean R_AddEntity (struct cl_entity_s *clent, int type)
 		case ET_TEMPENTITY:
 			r_stats.c_active_tents_count++;
 			break;
-		default: break;
+		default:
+			break;
 		}
 
 	if (R_OpaqueEntity (clent))
@@ -293,7 +293,8 @@ static void R_Clear (int bitMask)
 
 	if (ENGINE_GET_PARM (PARM_DEV_OVERVIEW))
 		pglClearColor (0.0f, 1.0f, 0.0f, 1.0f); // green background (Valve rules)
-	else pglClearColor (0.5f, 0.5f, 0.5f, 1.0f);
+	else
+		pglClearColor (0.5f, 0.5f, 0.5f, 1.0f);
 
 	bits = GL_DEPTH_BUFFER_BIT;
 

@@ -518,7 +518,8 @@ void R_AddDynamicLights (msurface_t *surf)
 	uint *bl;
 
 	// no dlighted surfaces here
-	if (!R_CountSurfaceDlights (surf)) return;
+	if (!R_CountSurfaceDlights (surf))
+		return;
 
 	sample_size = gEngfuncs.Mod_SampleSizeForFace (surf);
 	smax = (info->lightextents[0] / sample_size) + 1;
@@ -531,7 +532,8 @@ void R_AddDynamicLights (msurface_t *surf)
 			sample_frac = surf->texinfo->faceinfo->texture_step;
 		else if (FBitSet (surf->texinfo->flags, TEX_EXTRA_LIGHTMAP))
 			sample_frac = LM_SAMPLE_EXTRASIZE;
-		else sample_frac = LM_SAMPLE_SIZE;
+		else
+			sample_frac = LM_SAMPLE_SIZE;
 		}
 
 	for (lnum = 0; lnum < MAX_DLIGHTS; lnum++)
@@ -544,7 +546,8 @@ void R_AddDynamicLights (msurface_t *surf)
 		// transform light origin to local bmodel space
 		if (!tr.modelviewIdentity)
 			Matrix4x4_VectorITransform (RI.objectMatrix, dl->origin, origin_l);
-		else VectorCopy (dl->origin, origin_l);
+		else
+			VectorCopy (dl->origin, origin_l);
 
 		rad = dl->radius;
 		dist = PlaneDiff (origin_l, surf->plane);
@@ -562,7 +565,10 @@ void R_AddDynamicLights (msurface_t *surf)
 			VectorCopy (origin_l, impact);
 			impact[surf->plane->type] -= dist;
 			}
-		else VectorMA (origin_l, -dist, surf->plane->normal, impact);
+		else
+			{
+			VectorMA (origin_l, -dist, surf->plane->normal, impact);
+			}
 
 		sl = DotProduct (impact, info->lmvecs[0]) + info->lmvecs[0][3] - info->lightmapmins[0];
 		tl = DotProduct (impact, info->lmvecs[1]) + info->lmvecs[1][3] - info->lightmapmins[1];
@@ -576,10 +582,13 @@ void R_AddDynamicLights (msurface_t *surf)
 			for (s = 0, sacc = 0; s < smax; s++, sacc += sample_size, bl += 3)
 				{
 				sd = (sl - sacc) * sample_frac;
-				if (sd < 0) sd = -sd;
+				if (sd < 0)
+					sd = -sd;
 
-				if (sd > td) dist = sd + (td >> 1);
-				else dist = td + (sd >> 1);
+				if (sd > td)
+					dist = sd + (td >> 1);
+				else
+					dist = td + (sd >> 1);
 
 				if (dist < minlight)
 					{
@@ -601,7 +610,7 @@ void R_SetCacheState (msurface_t *surf)
 	{
 	int	maps;
 
-	for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
+	for (maps = 0; maps < MAXLIGHTMAPS && (surf->styles[maps] != 255); maps++)
 		{
 		surf->cached_light[maps] = tr.lightstylevalue[surf->styles[maps]];
 		}
@@ -609,9 +618,7 @@ void R_SetCacheState (msurface_t *surf)
 
 /*
 =============================================================================
-
-  LIGHTMAP ALLOCATION
-
+LIGHTMAP ALLOCATION
 =============================================================================
 */
 static void LM_InitBlock (void)
@@ -749,7 +756,7 @@ static void R_BuildLightMap (msurface_t *surf, byte *dest, int stride, qboolean 
 		}
 
 	// add all the dynamic lights
-	if (surf->dlightframe == tr.framecount && dynamic)
+	if ((surf->dlightframe == tr.framecount) && dynamic)
 		R_AddDynamicLights (surf);
 
 	// Put into texture format
@@ -953,7 +960,8 @@ void R_BlendLightmaps (void)
 
 			for (surf = gl_lms.lightmap_surfaces[i]; surf != NULL; surf = surf->info->lightmapchain)
 				{
-				if (surf->polys) DrawGLPolyChain (surf->polys, 0.0f, 0.0f);
+				if (surf->polys)
+					DrawGLPolyChain (surf->polys, 0.0f, 0.0f);
 				}
 			}
 		}
@@ -1020,7 +1028,8 @@ void R_BlendLightmaps (void)
 			}
 
 		// draw remainder of dynamic lightmaps that haven't been uploaded yet
-		if (newsurf) LM_UploadBlock (true);
+		if (newsurf)
+			LM_UploadBlock (true);
 
 		for (surf = newsurf; surf != NULL; surf = surf->info->lightmapchain)
 			{
@@ -1229,7 +1238,8 @@ void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 		{
 dynamic:
 		// NOTE: at this point we have only valid textures
-		if (r_dynamic->value) is_dynamic = true;
+		if (r_dynamic->value)
+			is_dynamic = true;
 		}
 
 	if (is_dynamic)
@@ -1621,7 +1631,7 @@ void R_DrawBrushModel (cl_entity_t *e)
 		allow_vbo = false;
 		}
 
-	if (e->curstate.rendermode == kRenderTransColor || e->curstate.rendermode == kRenderTransTexture)
+	if ((e->curstate.rendermode == kRenderTransColor) || (e->curstate.rendermode == kRenderTransTexture))
 		allow_vbo = false;
 
 	psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
@@ -1691,16 +1701,13 @@ void R_DrawBrushModel (cl_entity_t *e)
 	R_LoadIdentity ();	// restore worldmatrix
 	}
 
-
 /*
 ==============================
-
 VBO
-
 ==============================
 */
 /*
-Bulld arrays (vboarray_t) for all map geometry on map load.
+Build arrays (vboarray_t) for all map geometry on map load.
 Store index base for every surface (vbosurfdata_t) to build index arrays
 For each texture build index arrays (vbotexture_t) every frame.
 */
@@ -2487,18 +2494,24 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 				}
 
 			// build index and texcoords arrays
-			vbos.dlight_tc[indexbase][0] = surf->polys->verts[0][5] - (surf->light_s - info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
-			vbos.dlight_tc[indexbase][1] = surf->polys->verts[0][6] - (surf->light_t - info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
-			vbos.dlight_tc[indexbase + 1][0] = surf->polys->verts[1][5] - (surf->light_s - info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
-			vbos.dlight_tc[indexbase + 1][1] = surf->polys->verts[1][6] - (surf->light_t - info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
+			vbos.dlight_tc[indexbase][0] = surf->polys->verts[0][5] - (surf->light_s - info->dlight_s) *
+				(1.0f / (float)BLOCK_SIZE);
+			vbos.dlight_tc[indexbase][1] = surf->polys->verts[0][6] - (surf->light_t - info->dlight_t) *
+				(1.0f / (float)BLOCK_SIZE);
+			vbos.dlight_tc[indexbase + 1][0] = surf->polys->verts[1][5] - (surf->light_s - info->dlight_s) *
+				(1.0f / (float)BLOCK_SIZE);
+			vbos.dlight_tc[indexbase + 1][1] = surf->polys->verts[1][6] - (surf->light_t - info->dlight_t) *
+				(1.0f / (float)BLOCK_SIZE);
 
 			for (index = indexbase + 2; index < indexbase + surf->polys->numverts; index++)
 				{
 				dlightarray[dlightindex++] = indexbase;
 				dlightarray[dlightindex++] = index - 1;
 				dlightarray[dlightindex++] = index;
-				vbos.dlight_tc[index][0] = surf->polys->verts[index - indexbase][5] - (surf->light_s - info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
-				vbos.dlight_tc[index][1] = surf->polys->verts[index - indexbase][6] - (surf->light_t - info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
+				vbos.dlight_tc[index][0] = surf->polys->verts[index - indexbase][5] - (surf->light_s - info->dlight_s) *
+					(1.0f / (float)BLOCK_SIZE);
+				vbos.dlight_tc[index][1] = surf->polys->verts[index - indexbase][6] - (surf->light_t - info->dlight_t) *
+					(1.0f / (float)BLOCK_SIZE);
 				}
 
 			if (vbos.dlight_vbo)
@@ -2524,8 +2537,10 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 						VectorCopy (v, vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].pos);
 						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[0] = v[3];
 						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[1] = v[4];
-						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[0] = v[5] - (surf->light_s - info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
-						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[1] = v[6] - (surf->light_t - info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
+						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[0] = v[5] -
+							(surf->light_s - info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
+						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[1] = v[6] -
+							(surf->light_t - info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
 						}
 					}
 				else
@@ -2533,17 +2548,25 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 					// copy from vbo
 					for (i = 0; i < numVerts; i++)
 						{
-						VectorCopy (vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].pos, vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].pos);
-						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[0] = vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].gl_tc[0];
-						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[1] = vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].gl_tc[1];
-						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[0] = vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].lm_tc[0] - (surf->light_s - info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
-						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[1] = vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].lm_tc[1] - (surf->light_t - info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
+						VectorCopy (vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].pos,
+							vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].pos);
+						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[0] =
+							vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].gl_tc[0];
+						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[1] =
+							vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].gl_tc[1];
+						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[0] =
+							vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].lm_tc[0] -
+							(surf->light_s - info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
+						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[1] =
+							vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].lm_tc[1] -
+							(surf->light_t - info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
 						}
 					}
 				if (vbos.dlight_vbo)
 					{
 					pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
-					pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * decalcount * DECAL_VERTS_MAX, sizeof (vbovertex_t) * numVerts, vbos.decal_dlight + decalcount * DECAL_VERTS_MAX);
+					pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * decalcount * DECAL_VERTS_MAX,
+						sizeof (vbovertex_t) * numVerts, vbos.decal_dlight + decalcount * DECAL_VERTS_MAX);
 					}
 
 				vbos.decal_numverts[decalcount] = numVerts;
@@ -2950,11 +2973,11 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 		}
 
 	// already up to date
-	if (!is_dynamic && (fa->dlightframe != tr.framecount || maps == MAXLIGHTMAPS))
+	if (!is_dynamic && ((fa->dlightframe != tr.framecount) || (maps == MAXLIGHTMAPS)))
 		return false;
 
 	// build lightmap
-	if ((fa->styles[maps] >= 32 || fa->styles[maps] == 0) && (fa->dlightframe != tr.framecount))
+	if (((fa->styles[maps] >= 32) || (fa->styles[maps] == 0)) && (fa->dlightframe != tr.framecount))
 		{
 		byte	temp[132 * 132 * 4];
 		int	smax, tmax;
@@ -3024,7 +3047,7 @@ qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 			vbos.mintexture = texturenum;
 
 		/*buildlightmap &= !CVAR_TO_BOOL (r_fullbright) && !!WORLDMODEL->lightdata;*/
-		buildlightmap &= !r_fullbright->value && !!WORLDMODEL->lightdata;
+		buildlightmap &= (!r_fullbright->value && !!WORLDMODEL->lightdata);
 
 		if (buildlightmap && R_CheckLightMap (surf))
 			{

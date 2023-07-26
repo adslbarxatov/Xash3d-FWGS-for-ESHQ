@@ -607,7 +607,10 @@ compute actual FPS for various modes
 */
 double Host_CalcFPS (void)
 	{
-	double fps = 60.0;	// ESHQ: при отмене vid_disp_freq нулевое значение приводит к сбою в дальнейшем расчёте
+	// ESHQ: при отмене vid_displayfrequency нулевое значение приводило к сбою в дальнейшем расчёте
+	// (для ГП IntelGPU). Но на nVidia оказалось, что установка значения 60 приводит к рваной картинке
+	// без возможности определить источник проблемы (FPS по команде cl_showfps стабилен)
+	double fps = 0.0;
 
 	if (Host_IsDedicated ())
 		{
@@ -615,10 +618,12 @@ double Host_CalcFPS (void)
 		}
 
 #if !XASH_DEDICATED
-	else if (CL_IsPlaybackDemo () || CL_IsRecordDemo ()) // NOTE: we should play demos with same fps as it was recorded
+	// NOTE: we should play demos with same fps as it was recorded
+	else if (CL_IsPlaybackDemo () || CL_IsRecordDemo ()) 
 		{
 		fps = CL_GetDemoFramerate ();
 		}
+
 	else if (Host_IsLocalGame ())
 		{
 		// [FWGS, 01.07.23]

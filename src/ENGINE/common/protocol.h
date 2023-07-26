@@ -118,7 +118,7 @@ GNU General Public License for more details.
 
 #define MAX_ENTITY_BITS		13		// 13 bits = 8192 edicts
 #define MAX_EDICTS			(1<<MAX_ENTITY_BITS)
-#define MAX_EDICTS_BYTES		((MAX_EDICTS + 7) / 8)
+#define MAX_EDICTS_BYTES	((MAX_EDICTS + 7) / 8)
 #define LAST_EDICT			(MAX_EDICTS - 1)
 
 #define MIN_EDICTS			64
@@ -129,7 +129,7 @@ GNU General Public License for more details.
 #define MAX_DLIGHTS			32		// dynamic lights (rendered per one frame)
 #define MAX_ELIGHTS			64		// entity only point lights
 #define MAX_LIGHTSTYLES		256		// [FWGS, 01.05.23] a1ba: increased from 64 to 256, protocol limit
-#define MAX_RENDER_DECALS	4096		// max rendering decals per a level
+#define MAX_RENDER_DECALS	4096	// max rendering decals per a level
 
 // sound proto
 #define MAX_SND_FLAGS_BITS		14

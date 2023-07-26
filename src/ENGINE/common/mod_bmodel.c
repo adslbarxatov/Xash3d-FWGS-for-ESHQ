@@ -623,7 +623,6 @@ byte *Mod_DecompressPVS (const byte *in, int visbytes)
 /*
 ==================
 Mod_PointInLeaf
-
 ==================
 */
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node)
@@ -668,7 +667,7 @@ byte *Mod_GetPVSForPoint (const vec3_t p)
 		node = node->children[PlaneDiff (p, node->plane) <= 0];
 		}
 
-	if (leaf && leaf->cluster >= 0)
+	if (leaf && (leaf->cluster >= 0))
 		return Mod_DecompressPVS (leaf->compressed_vis, world.visbytes);
 	return NULL;
 	}
@@ -676,7 +675,6 @@ byte *Mod_GetPVSForPoint (const vec3_t p)
 /*
 ==================
 Mod_FatPVS_RecursiveBSPNode
-
 ==================
 */
 static void Mod_FatPVS_RecursiveBSPNode (const vec3_t org, float radius, byte *visbuffer, int visbytes, mnode_t *node)
@@ -728,13 +726,14 @@ int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, q
 	bytes = Q_min (bytes, visbytes);
 
 	// enable full visibility for some reasons
-	if (fullvis || !worldmodel->visdata || !leaf || leaf->cluster < 0)
+	if (fullvis || !worldmodel->visdata || !leaf || (leaf->cluster < 0))
 		{
 		memset (visbuffer, 0xFF, bytes);
 		return bytes;
 		}
 
-	if (!merge) memset (visbuffer, 0x00, bytes);
+	if (!merge)
+		memset (visbuffer, 0x00, bytes);
 
 	Mod_FatPVS_RecursiveBSPNode (org, radius, visbuffer, bytes, worldmodel->nodes);
 
@@ -873,24 +872,6 @@ qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf)
 
 	return false;
 	}
-
-/*
-==================
-Mod_AmbientLevels [FWGS, 01.05.23]
-
-grab the ambient sound levels for current point
-==================
-void Mod_AmbientLevels (const vec3_t p, byte *pvolumes)
-	{
-	mleaf_t *leaf;
-
-	if (!worldmodel || !p || !pvolumes)
-		return;
-
-	leaf = Mod_PointInLeaf (p, worldmodel->nodes);
-	*(int *)pvolumes = *(int *)leaf->ambient_sound_level;
-	}
-*/
 
 /*
 =================

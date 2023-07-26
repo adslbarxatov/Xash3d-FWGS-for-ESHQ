@@ -1372,7 +1372,8 @@ void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 	// determine plane to get lightvalues from: ceil or floor
 	if (FBitSet (ent->curstate.effects, EF_INVLIGHT))
 		VectorSet (lightDir, 0.0f, 0.0f, 1.0f);
-	else VectorSet (lightDir, 0.0f, 0.0f, -1.0f);
+	else
+		VectorSet (lightDir, 0.0f, 0.0f, -1.0f);
 
 	VectorCopy (ent->origin, origin);
 
@@ -1527,17 +1528,16 @@ void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 /*
 ===============
 pfnStudioEntityLight
-
 ===============
 */
 void R_StudioEntityLight (alight_t *lightinfo)
 	{
-	int		lnum, i, j, k;
+	int			lnum, i, j, k;
 	float		minstrength, dist2, f, r2;
 	float		lstrength[MAX_LOCALLIGHTS];
-	cl_entity_t *ent = RI.currententity;
+	cl_entity_t	*ent = RI.currententity;
 	vec3_t		mid, origin, pos;
-	dlight_t *el;
+	dlight_t	*el;
 
 	g_studio.numlocallights = 0;
 
@@ -1555,15 +1555,17 @@ void R_StudioEntityLight (alight_t *lightinfo)
 		{
 		el = gEngfuncs.GetEntityLight (lnum);
 
-		if (el->die < g_studio.time || el->radius <= 0.0f)
+		if ((el->die < g_studio.time) || (el->radius <= 0.0f))
 			continue;
 
 		if ((el->key & 0xFFF) == ent->index)
 			{
 			int	att = (el->key >> 12) & 0xF;
 
-			if (att) VectorCopy (ent->attachment[att], el->origin);
-			else VectorCopy (ent->origin, el->origin);
+			if (att)
+				VectorCopy (ent->attachment[att], el->origin);
+			else
+				VectorCopy (ent->origin, el->origin);
 			}
 
 		VectorCopy (el->origin, pos);
@@ -1572,8 +1574,10 @@ void R_StudioEntityLight (alight_t *lightinfo)
 		f = DotProduct (mid, mid);
 		r2 = el->radius * el->radius;
 
-		if (f > r2) minstrength = r2 / f;
-		else minstrength = 1.0f;
+		if (f > r2)
+			minstrength = r2 / f;
+		else
+			minstrength = 1.0f;
 
 		if (minstrength > 0.05f)
 			{
@@ -1588,7 +1592,10 @@ void R_StudioEntityLight (alight_t *lightinfo)
 						}
 					}
 				}
-			else k = g_studio.numlocallights;
+			else
+				{
+				k = g_studio.numlocallights;
+				}
 
 			if (k != -1)
 				{
@@ -1609,7 +1616,6 @@ void R_StudioEntityLight (alight_t *lightinfo)
 /*
 ===============
 R_StudioSetupLighting
-
 ===============
 */
 void R_StudioSetupLighting (alight_t *plight)
@@ -1639,7 +1645,6 @@ void R_StudioSetupLighting (alight_t *plight)
 /*
 ===============
 R_StudioLighting
-
 ===============
 */
 void R_StudioLighting (float *lv, int bone, int flags, vec3_t normal)
@@ -1662,9 +1667,12 @@ void R_StudioLighting (float *lv, int bone, int flags, vec3_t normal)
 		{
 		float	r, lightcos;
 
-		if (bone != -1) lightcos = DotProduct (normal, g_studio.blightvec[bone]);
-		else lightcos = DotProduct (normal, g_studio.lightvec); // -1 colinear, 1 opposite
-		if (lightcos > 1.0f) lightcos = 1.0f;
+		if (bone != -1)
+			lightcos = DotProduct (normal, g_studio.blightvec[bone]);
+		else
+			lightcos = DotProduct (normal, g_studio.lightvec); // -1 colinear, 1 opposite
+		if (lightcos > 1.0f)
+			lightcos = 1.0f;
 
 		illum += g_studio.shadelight;
 
@@ -1810,12 +1818,15 @@ static void R_StudioSetupSkin (studiohdr_t *ptexturehdr, int index)
 		return;
 
 	// NOTE: user may ignore to call StudioRemapColors and remap_info will be unavailable
-	if (m_fDoRemap) ptexture = gEngfuncs.CL_GetRemapInfoForEntity (RI.currententity)->ptexture;
-	if (!ptexture) ptexture = (mstudiotexture_t *)((byte *)ptexturehdr + ptexturehdr->textureindex); // fallback
+	if (m_fDoRemap)
+		ptexture = gEngfuncs.CL_GetRemapInfoForEntity (RI.currententity)->ptexture;
+	if (!ptexture)
+		ptexture = (mstudiotexture_t *)((byte *)ptexturehdr + ptexturehdr->textureindex); // fallback
 
 	if (r_lightmap->value && !r_fullbright->value)
 		GL_Bind (XASH_TEXTURE0, tr.whiteTexture);
-	else GL_Bind (XASH_TEXTURE0, ptexture[index].index);
+	else
+		GL_Bind (XASH_TEXTURE0, ptexture[index].index);
 	}
 
 /*
@@ -1836,8 +1847,10 @@ mstudiotexture_t *R_StudioGetTexture (cl_entity_t *e)
 	thdr = m_pStudioHeader;
 	if (!thdr) return NULL;
 
-	if (m_fDoRemap) ptexture = gEngfuncs.CL_GetRemapInfoForEntity (e)->ptexture;
-	else ptexture = (mstudiotexture_t *)((byte *)thdr + thdr->textureindex);
+	if (m_fDoRemap)
+		ptexture = gEngfuncs.CL_GetRemapInfoForEntity (e)->ptexture;
+	else
+		ptexture = (mstudiotexture_t *)((byte *)thdr + thdr->textureindex);
 
 	return ptexture;
 	}

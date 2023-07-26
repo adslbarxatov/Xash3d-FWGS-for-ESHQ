@@ -1012,17 +1012,24 @@ void SV_Init (void)
 	SV_InitHostCommands ();
 
 	// [FWGS, 01.04.23]
-	Cvar_Getf ("protocol", FCVAR_READ_ONLY, "displays server protocol version", "%i", PROTOCOL_VERSION);
-	Cvar_Get ("suitvolume", "0.25", FCVAR_ARCHIVE, "HEV suit volume");
-	Cvar_Get ("sv_background", "0", FCVAR_READ_ONLY, "indicate what background map is running");
-	Cvar_Get ("gamedir", GI->gamefolder, FCVAR_READ_ONLY, "game folder");
-	Cvar_Get ("sv_alltalk", "1", 0, "allow to talking for all players (legacy, unused)");
+	Cvar_Getf ("protocol", FCVAR_READ_ONLY,
+		"displays server protocol version", "%i", PROTOCOL_VERSION);
+	Cvar_Get ("suitvolume", "0.25", FCVAR_ARCHIVE,
+		"HEV suit volume");
+	Cvar_Get ("sv_background", "0", FCVAR_READ_ONLY,
+		"indicate what background map is running");
+	Cvar_Get ("gamedir", GI->gamefolder, FCVAR_READ_ONLY,
+		"game folder");
+	Cvar_Get ("sv_alltalk", "1", 0,
+		"allow to talking for all players (legacy, unused)");
 	Cvar_Get ("sv_allow_PhysX", "1", FCVAR_ARCHIVE,
 		"allow XashXT to use PhysX engine");			// XashXT cvar
 	Cvar_Get ("sv_precache_meshes", "1", FCVAR_ARCHIVE,
 		"cache SOLID_CUSTOM meshes before level loading");	// Paranoia 2 cvar
-	Cvar_Get ("servercfgfile", "server.cfg", 0, "name of dedicated server configuration file");
-	Cvar_Get ("lservercfgfile", "listenserver.cfg", 0, "name of listen server configuration file");
+	Cvar_Get ("servercfgfile", "server.cfg", 0,
+		"name of dedicated server configuration file");
+	Cvar_Get ("lservercfgfile", "listenserver.cfg", 0,
+		"name of listen server configuration file");
 
 	Cvar_RegisterVariable (&sv_zmax);
 	Cvar_RegisterVariable (&sv_wateramp);

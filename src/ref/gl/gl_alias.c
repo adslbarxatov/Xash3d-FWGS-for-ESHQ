@@ -755,9 +755,7 @@ void Mod_AliasUnloadTextures (void *data)
 
 /*
 =============================================================
-
-  ALIAS MODELS
-
+ALIAS MODELS
 =============================================================
 */
 
@@ -770,13 +768,13 @@ similar to R_StudioDynamicLight
 */
 void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	{
-	movevars_t *mv = gEngfuncs.pfnGetMoveVars ();
+	movevars_t	*mv = gEngfuncs.pfnGetMoveVars ();
 	vec3_t		lightDir, vecSrc, vecEnd;
 	vec3_t		origin, dist, finalLight;
 	float		add, radius, total;
-	colorVec		light;
+	colorVec	light;
 	uint		lnum;
-	dlight_t *dl;
+	dlight_t	*dl;
 
 	if (!plight || !ent)
 		return;
@@ -794,7 +792,8 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	// determine plane to get lightvalues from: ceil or floor
 	if (FBitSet (ent->curstate.effects, EF_INVLIGHT))
 		VectorSet (lightDir, 0.0f, 0.0f, 1.0f);
-	else VectorSet (lightDir, 0.0f, 0.0f, -1.0f);
+	else
+		VectorSet (lightDir, 0.0f, 0.0f, -1.0f);
 
 	VectorCopy (ent->origin, origin);
 
@@ -885,7 +884,8 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	ent->cvFloorColor = light;
 
 	total = Q_max (Q_max (light.r, light.g), light.b);
-	if (total == 0.0f) total = 1.0f;
+	if (total == 0.0f)
+		total = 1.0f;
 
 	// scale lightdir by light intentsity
 	VectorScale (lightDir, total, lightDir);
@@ -908,7 +908,8 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 
 			if (radius > 1.0f)
 				VectorScale (dist, (add / radius), dist);
-			else VectorScale (dist, add, dist);
+			else
+				VectorScale (dist, add, dist);
 
 			VectorAdd (lightDir, dist, lightDir);
 
@@ -931,7 +932,10 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 		plight->color[1] = finalLight[1] * (1.0f / total);
 		plight->color[2] = finalLight[2] * (1.0f / total);
 		}
-	else VectorSet (plight->color, 1.0f, 1.0f, 1.0f);
+	else
+		{
+		VectorSet (plight->color, 1.0f, 1.0f, 1.0f);
+		}
 
 	if (plight->ambientlight > 128)
 		plight->ambientlight = 128;
@@ -945,7 +949,6 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 /*
 ===============
 R_AliasSetupLighting
-
 ===============
 */
 void R_AliasSetupLighting (alight_t *plight)
@@ -966,7 +969,6 @@ void R_AliasSetupLighting (alight_t *plight)
 /*
 ===============
 R_AliasLighting
-
 ===============
 */
 void R_AliasLighting (float *lv, const vec3_t normal)
@@ -975,7 +977,8 @@ void R_AliasLighting (float *lv, const vec3_t normal)
 	float	r, lightcos;
 
 	lightcos = DotProduct (normal, g_alias.lightvec_local); // -1 colinear, 1 opposite
-	if (lightcos > 1.0f) lightcos = 1.0f;
+	if (lightcos > 1.0f)
+		lightcos = 1.0f;
 
 	illum += g_alias.shadelight;
 
@@ -1257,7 +1260,6 @@ void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
 /*
 ===============
 R_StudioDrawAbsBBox
-
 ===============
 */
 static void R_AliasDrawAbsBBox (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
@@ -1266,7 +1268,7 @@ static void R_AliasDrawAbsBBox (cl_entity_t *e, const vec3_t absmin, const vec3_
 	int	i;
 
 	// looks ugly, skip
-	if (r_drawentities->value != 5 || e == gEngfuncs.GetViewModel ())
+	if ((r_drawentities->value != 5) || (e == gEngfuncs.GetViewModel ()))
 		return;
 
 	// compute a full bounding box
@@ -1356,7 +1358,6 @@ static void R_AliasSetupTimings (void)
 /*
 =================
 R_DrawAliasModel
-
 =================
 */
 void R_DrawAliasModel (cl_entity_t *e)

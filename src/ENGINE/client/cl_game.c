@@ -2209,7 +2209,7 @@ static void GAME_EXPORT pfnPlaySoundByNameAtLocation (char *szSound, float volum
 	{
 	int hSound = S_RegisterSound (szSound);
 
-	// ESHQ: ипсравление радиуса звука
+	// ESHQ: исправление радиуса звука
 	S_StartSound (origin, cl.viewentity, CHAN_AUTO, hSound, volume, ATTN_MEDIUM, PITCH_NORM, 0);
 	}
 
