@@ -658,9 +658,9 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 			}
 		}
 
-	// [FWGS, 01.04.23]
+	// [FWGS, 01.07.23]
 	if (GameInfo->noskills)
-		FS_Printf (f, "noskills\t\t\"%i\"\n", GameInfo->nomodels);
+		FS_Printf (f, "noskills\t\t\"%i\"\n", GameInfo->noskills);
 
 	// [FWGS, 01.07.23] the default count of quick and auto saves
 #define SAVE_AGED_COUNT 2
@@ -742,12 +742,14 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			pfile = COM_ParseFile (pfile, GameInfo->trainmap, sizeof (GameInfo->trainmap));
 			COM_StripExtension (GameInfo->trainmap); // HQ2:Amen has extension .bsp
 			}
+
 		// ESHQ: добавлено для поддержки титров
 		else if (!Q_stricmp (token, "creditsmap"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->creditsmap, sizeof (GameInfo->creditsmap));
 			COM_StripExtension (GameInfo->creditsmap);
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "url_info"))
 			{
@@ -882,6 +884,14 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			GameInfo->max_edicts = bound (MIN_EDICTS, Q_atoi (token), MAX_EDICTS);
 			}
+
+		// ESHQ: разрешено для всех типов игр
+		else if (!Q_stricmp (token, "noskills"))
+			{
+			pfile = COM_ParseFile (pfile, token, sizeof (token));
+			GameInfo->noskills = Q_atoi (token);
+			}
+
 		// only for gameinfo
 		else if (isGameInfo)
 			{
@@ -938,11 +948,6 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 					ambientNum = 0;
 				pfile = COM_ParseFile (pfile, GameInfo->ambientsound[ambientNum],
 					sizeof (GameInfo->ambientsound[ambientNum]));
-				}
-			else if (!Q_stricmp (token, "noskills"))
-				{
-				pfile = COM_ParseFile (pfile, token, sizeof (token));
-				GameInfo->noskills = Q_atoi (token);
 				}
 			else if (!Q_stricmp (token, "render_picbutton_text"))
 				{

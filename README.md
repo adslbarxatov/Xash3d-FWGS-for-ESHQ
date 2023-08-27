@@ -113,6 +113,8 @@ It was based on one of the newest versions of [Xash3d FWGS engine](https://githu
 
 50. Our monstermakers are now able to emit teleportation sounds and show specified sprites when activated.
 
+51. Our cyclers are able to be broken (with specified health and explosion coefficients).
+
 &nbsp;
 
 

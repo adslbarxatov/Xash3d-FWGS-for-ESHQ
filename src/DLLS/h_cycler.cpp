@@ -26,8 +26,10 @@
 #include "player.h"
 // ESHQ
 #include "func_break.h"
+#include "explode.h"
 
-#define HC_CYCLER_PASSABLE	0x8
+#define HC_CYCLER_PASSABLE	0x08
+#define HC_CYCLER_BREAKABLE	0x10
 
 #define TEMP_FOR_SCREEN_SHOTS
 #ifdef TEMP_FOR_SCREEN_SHOTS
@@ -35,14 +37,16 @@
 class CCycler : public CBaseMonster
 	{
 	public:
-		void GenericCyclerSpawn (char *szModel, Vector vecMin, Vector vecMax);
 		virtual int	ObjectCaps (void) { return (CBaseEntity::ObjectCaps () | FCAP_IMPULSE_USE); }
 		int TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
 		void Spawn (void);
 		void Think (void);
+		void Precache (void);
 
 		// ESHQ: поддержка звуков ударов
-		void CCycler::DamageSound (void);
+		float GetVolume (void);
+		int GetPitch (void);
+		void CCycler::DamageSound ();
 
 		void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
@@ -57,7 +61,12 @@ class CCycler : public CBaseMonster
 		void KeyValue (KeyValueData *pkvd);
 
 		int			m_animate;
+
+		// ESHQ: поддержка разрушаемости
 		Materials	m_Material;
+		int			m_magnitude;
+		float		m_sizeFactor;
+		int			m_idShard;
 	};
 
 // ESHQ: контроль корректности задания параметров
@@ -78,13 +87,16 @@ TYPEDESCRIPTION	CCycler::m_SaveData[] =
 	{
 	DEFINE_FIELD (CCycler, m_animate, FIELD_INTEGER),
 	DEFINE_FIELD (CCycler, m_Material, FIELD_INTEGER),
+	DEFINE_FIELD (CCycler, m_magnitude, FIELD_INTEGER),
+	DEFINE_FIELD (CCycler, m_sizeFactor, FIELD_FLOAT)
 	};
 
 IMPLEMENT_SAVERESTORE (CCycler, CBaseMonster);
 
-// ESHQ: поддержка возможности задания физического размера модели
+// ESHQ: поддержка возможности задания физического размера модели и разрушаемости
 void CCycler::KeyValue (KeyValueData *pkvd)
 	{
+	// Физические размеры
 	if (FStrEq (pkvd->szKeyName, "MinPoint"))
 		{
 		Vector tmp;
@@ -97,6 +109,8 @@ void CCycler::KeyValue (KeyValueData *pkvd)
 		UTIL_StringToVector ((float *)tmp, pkvd->szValue);
 		pev->endpos = tmp;
 		}
+
+	// Материал для звука и обломков
 	else if (FStrEq (pkvd->szKeyName, "material"))
 		{
 		int i = atoi (pkvd->szValue);
@@ -108,24 +122,96 @@ void CCycler::KeyValue (KeyValueData *pkvd)
 
 		pkvd->fHandled = TRUE;
 		}
+
+	// Разрушаемость
+	else if (FStrEq (pkvd->szKeyName, "explodemagnitude"))
+		{
+		pev->impulse = atoi (pkvd->szValue);
+		pkvd->fHandled = TRUE;
+		}
+
 	else
 		{
 		CBaseMonster::KeyValue (pkvd);
 		}
 	}
 
-// we should get rid of all the other cyclers and replace them with this.
-class CGenericCycler : public CCycler
+LINK_ENTITY_TO_CLASS (cycler, CCycler);
+LINK_ENTITY_TO_CLASS (env_model, CCycler);	// ESHQ: совместимость с AOMDC
+
+// ESHQ: удалена поддержка CCyclerSprite, соответствующие сущности переназначены
+LINK_ENTITY_TO_CLASS (cycler_sprite, CCycler);
+LINK_ENTITY_TO_CLASS (cycler_weapon, CCycler);
+
+void CCycler::Precache (void) 
 	{
-	public:
-		void Spawn (void) { GenericCyclerSpawn ((char *)STRING (pev->model), Vector (-16, -16, 0), Vector (16, 16, 72)); }
-	};
-LINK_ENTITY_TO_CLASS (cycler, CGenericCycler);
-LINK_ENTITY_TO_CLASS (env_model, CGenericCycler);	// ESHQ: совместимость с AOMDC
+	const char *pGibName;
+
+	// ESHQ: обработка звуков и моделей разрушения
+	switch (m_Material)
+		{
+		case matWood:
+			pGibName = "models/woodgibs.mdl";
+			PRECACHE_SOUND ("debris/bustcrate1.wav");
+			PRECACHE_SOUND ("debris/bustcrate2.wav");
+			PRECACHE_SOUND ("debris/bustcrate3.wav");
+			break;
+
+		case matFlesh:
+			pGibName = "models/fleshgibs.mdl";
+			PRECACHE_SOUND ("debris/bustflesh1.wav");
+			PRECACHE_SOUND ("debris/bustflesh2.wav");
+			break;
+
+		case matComputer:
+			PRECACHE_SOUND ("buttons/spark5.wav");
+			PRECACHE_SOUND ("buttons/spark6.wav");
+			pGibName = "models/computergibs.mdl";
+			PRECACHE_SOUND ("debris/bustmetal1.wav");
+			PRECACHE_SOUND ("debris/bustmetal2.wav");
+			break;
+
+		case matUnbreakableGlass:
+		case matGlass:
+			pGibName = "models/glassgibs.mdl";
+			PRECACHE_SOUND ("debris/bustglass1.wav");
+			PRECACHE_SOUND ("debris/bustglass2.wav");
+			PRECACHE_SOUND ("debris/bustglass3.wav");
+			break;
+
+		case matMetal:
+		default:
+			pGibName = "models/metalplategibs.mdl";
+			PRECACHE_SOUND ("debris/bustmetal1.wav");
+			PRECACHE_SOUND ("debris/bustmetal2.wav");
+			break;
+
+		case matCinderBlock:
+			pGibName = "models/cindergibs.mdl";
+			PRECACHE_SOUND ("debris/bustconcrete1.wav");
+			PRECACHE_SOUND ("debris/bustconcrete2.wav");
+			break;
+
+		case matRocks:
+			pGibName = "models/rockgibs.mdl";
+			PRECACHE_SOUND ("debris/bustconcrete1.wav");
+			PRECACHE_SOUND ("debris/bustconcrete2.wav");
+			break;
+
+		case matCeilingTile:
+			pGibName = "models/ceilinggibs.mdl";
+			PRECACHE_SOUND ("debris/bustceiling1.wav");
+			PRECACHE_SOUND ("debris/bustceiling2.wav");
+			break;
+		}
+	m_idShard = PRECACHE_MODEL ((char *)pGibName);
+	}
 
 // Cycler member functions
-void CCycler::GenericCyclerSpawn (char *szModel, Vector vecMin, Vector vecMax)
+void CCycler::Spawn ()
 	{
+	const char *szModel = (char *)STRING (pev->model);
+
 	if (!szModel || !*szModel)
 		{
 		ALERT (at_error, "cycler at %.0f %.0f %0.f missing modelname", pev->origin.x, pev->origin.y, pev->origin.z);
@@ -134,30 +220,22 @@ void CCycler::GenericCyclerSpawn (char *szModel, Vector vecMin, Vector vecMax)
 		}
 
 	pev->classname = MAKE_STRING ("cycler");
+
+	m_magnitude = pev->impulse;
+	if (pev->health == 0.0f)
+		pev->health = 100;
+
 	PRECACHE_MODEL (szModel);
 	SET_MODEL (ENT (pev), szModel);
 
-	CCycler::Spawn ();
+	CCycler::Precache ();
 
-	// Контроль размеров
-	if (!FBitSet (pev->spawnflags, HC_CYCLER_PASSABLE))
-		{
-		CHECK_CYCLER_SIZE (x);
-		CHECK_CYCLER_SIZE (y);
-		CHECK_CYCLER_SIZE (z);
-
-		UTIL_SetSize (pev, pev->startpos, pev->endpos);
-		}
-	}
-
-void CCycler::Spawn ()
-	{
+	// Создание объекта
 	InitBoneControllers ();
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_NONE;
 	pev->takedamage = DAMAGE_YES;
 	pev->effects = 0;
-	pev->health = 80000;
 	pev->yaw_speed = 5;
 	pev->ideal_yaw = pev->angles.y;
 	ChangeYaw (360);
@@ -177,6 +255,26 @@ void CCycler::Spawn ()
 	else
 		{
 		m_animate = 1;
+		}
+
+	// Контроль размеров
+	if (!FBitSet (pev->spawnflags, HC_CYCLER_PASSABLE))
+		{
+		CHECK_CYCLER_SIZE (x);
+		CHECK_CYCLER_SIZE (y);
+		CHECK_CYCLER_SIZE (z);
+
+		UTIL_SetSize (pev, pev->startpos, pev->endpos);
+
+		// ESHQ: расчёт фактора размера для звуков
+		m_sizeFactor = (pev->size.x * pev->size.x + pev->size.y * pev->size.y +
+			pev->size.z * pev->size.z) / 6144.0f;	// Коробка 32 х 32 х 32 с двойным запасом
+		if (m_sizeFactor > 1.0f)
+			m_sizeFactor = 1.0f;
+		}
+	else
+		{
+		m_sizeFactor = 0.75f;
 		}
 	}
 
@@ -217,7 +315,17 @@ void CCycler::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTy
 
 // ESHQ: обработка звукового сопровождения
 // Почти полная копия из CBreakable
-void CCycler::DamageSound (void)
+float CCycler::GetVolume (void)
+	{
+	return RANDOM_FLOAT (0.20, 0.35) + 0.6 * m_sizeFactor;
+	}
+
+int CCycler::GetPitch (void)
+	{
+	return RANDOM_LONG (130, 145) - (int)(45 * m_sizeFactor);
+	}
+
+void CCycler::DamageSound ()
 	{
 	int pitch;
 	float fvol;
@@ -230,12 +338,8 @@ void CCycler::DamageSound (void)
 		return;
 
 	// Настройка звука
-	if (RANDOM_LONG (0, 2))
-		pitch = PITCH_NORM;
-	else
-		pitch = 95 + RANDOM_LONG (0, 34);
-
-	fvol = RANDOM_FLOAT (0.85, 1.0);
+	fvol = GetVolume ();
+	pitch = GetPitch ();
 
 	if (material == matComputer && RANDOM_LONG (0, 1))
 		material = matMetal;
@@ -296,30 +400,217 @@ void CCycler::DamageSound (void)
 // Обработка получения урона
 int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
 	{
-	if (m_animate)
+	Vector vecSpot;		// shard origin
+	Vector vecVelocity;	// shard velocity
+	CBaseEntity *pEntity = NULL;
+	char cFlag = 0;
+	int pitch;
+	float fvol;
+	float ampl, freq, duration;
+
+	// Защита от посторонних обработок
+	if (pev->health - flDamage > 0.0f)
 		{
-		ResetSequenceInfo ();
-		pev->frame = 0;
+		if (m_animate)
+			{
+			ResetSequenceInfo ();
+			pev->frame = 0;
+			}
+		else
+			{
+			pev->framerate = 1.0;
+			StudioFrameAdvance (0.1);
+			pev->framerate = 0;
+			ALERT (at_console, "sequence: %d, frame %.0f\n", pev->sequence, pev->frame);
+			}
 		}
-	else
+
+	// Защита от двойного входа
+	else if (pev->health <= 0.0f)
 		{
-		pev->framerate = 1.0;
-		StudioFrameAdvance (0.1);
-		pev->framerate = 0;
-		ALERT (at_console, "sequence: %d, frame %.0f\n", pev->sequence, pev->frame);
+		return 0;
 		}
 
 	// Звук материала
 	DamageSound ();
+
+	if (!FBitSet (pev->spawnflags, HC_CYCLER_BREAKABLE))
+		return 1;
+
+	// Разрушение
+	pev->health -= flDamage;
+	if (pev->health > 0.0f)
+		return 1;
+
+	pev->takedamage = DAMAGE_NO;
+	pev->deadflag = DEAD_KILLED;
+	UTIL_Remove (this);
+
+	// ESHQ: громкость и высота теперь зависят от размера объекта
+	fvol = GetVolume ();
+	pitch = GetPitch ();
+
+	switch (m_Material)
+		{
+		case matGlass:
+			switch (RANDOM_LONG (0, 2))
+				{
+				case 0:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustglass1.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				case 1:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustglass2.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				case 2:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustglass3.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				}
+			cFlag = BREAK_GLASS;
+			break;
+
+		case matWood:
+			switch (RANDOM_LONG (0, 2))
+				{
+				case 0:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustcrate1.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				case 1:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustcrate2.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				case 2:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustcrate3.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				}
+			cFlag = BREAK_WOOD;
+			break;
+
+		case matComputer:
+		case matMetal:
+			switch (RANDOM_LONG (0, 1))
+				{
+				case 0:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustmetal1.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				case 1:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustmetal2.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				}
+			cFlag = BREAK_METAL;
+			break;
+
+		case matFlesh:
+			switch (RANDOM_LONG (0, 1))
+				{
+				case 0:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustflesh1.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				case 1:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustflesh2.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				}
+			cFlag = BREAK_FLESH;
+			break;
+
+		case matRocks:
+		case matCinderBlock:
+			switch (RANDOM_LONG (0, 1))
+				{
+				case 0:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustconcrete1.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				case 1:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustconcrete2.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				}
+			cFlag = BREAK_CONCRETE;
+			break;
+
+		case matCeilingTile:
+			switch (RANDOM_LONG (0, 1))
+				{
+				case 0:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustceiling1.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				case 1:
+					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustceiling2.wav", fvol, ATTN_MEDIUM, 0, pitch);
+					break;
+				}
+			break;
+		}
+
+	// Направление
+	vecVelocity.x = 0;
+	vecVelocity.y = 0;
+	vecVelocity.z = 0;
+
+	vecSpot = pev->origin + (pev->mins + pev->maxs) * 0.5;
+	MESSAGE_BEGIN (MSG_PVS, SVC_TEMPENTITY, vecSpot);
+	WRITE_BYTE (TE_BREAKMODEL);
+
+	WRITE_COORD (vecSpot.x);
+	WRITE_COORD (vecSpot.y);
+	WRITE_COORD (vecSpot.z);
+	WRITE_COORD (pev->size.x);
+	WRITE_COORD (pev->size.y);
+	WRITE_COORD (pev->size.z);
+	WRITE_COORD (vecVelocity.x);
+	WRITE_COORD (vecVelocity.y);
+	WRITE_COORD (vecVelocity.z);
+	WRITE_BYTE (10);	// RND
+	WRITE_SHORT (m_idShard);
+	WRITE_BYTE (0);		// let client decide
+	WRITE_BYTE (25);	// 2.5 seconds
+	WRITE_BYTE (cFlag);
+	MESSAGE_END ();
+
+	// Падение всего, что стояло на уничтоженном объекте
+	Vector mins = pev->absmin;
+	Vector maxs = pev->absmax;
+	mins.z = pev->absmax.z;
+	maxs.z += 8;
+
+	CBaseEntity *pList[256];
+	int count = UTIL_EntitiesInBox (pList, 256, mins, maxs, FL_ONGROUND);
+	if (count)
+		{
+		for (int i = 0; i < count; i++)
+			{
+			ClearBits (pList[i]->pev->flags, FL_ONGROUND);
+			pList[i]->pev->groundentity = NULL;
+			}
+		}
+
+	// Don't fire something that could fire myself
+	pev->targetname = 0;
+	pev->solid = SOLID_NOT;
+
+	SetThink (&CBaseEntity::SUB_Remove);
+	pev->nextthink = pev->ltime + 0.1;
+
+	if (m_magnitude)
+		{
+		ExplosionCreate (Center (), pev->angles, edict (), m_magnitude, TRUE);
+
+		// ESHQ: добавление дрожи к эффекту взрыва
+		ampl = m_magnitude / 20.0f;
+		if (ampl > 16.0f)
+			ampl = 16.0f;
+
+		freq = m_magnitude / 10.0f;
+		if (freq > 60.0f)
+			freq = 60.0f;
+
+		duration = m_magnitude / 75.0f;
+		if (duration > 4.0f)
+			duration = 4.0f;
+
+		UTIL_ScreenShake (VecBModelOrigin (pev), ampl, freq, duration, m_magnitude * 3.0f);
+		}
+
 	return 0;
 	}
 
 #endif
-
-// ESHQ: удалена поддержка CCyclerSprite, соответствующие сущности переназначены
-
-LINK_ENTITY_TO_CLASS (cycler_sprite, CGenericCycler);
-LINK_ENTITY_TO_CLASS (cycler_weapon, CGenericCycler);
 
 // Flaming wreckage
 class CWreckage : public CBaseMonster

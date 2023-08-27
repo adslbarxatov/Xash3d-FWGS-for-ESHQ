@@ -78,4 +78,4 @@ class CBreakable: public CBaseDelay
 		float		m_sizeFactor;
 	};
 
-#endif	// FUNC_BREAK_H
+#endif

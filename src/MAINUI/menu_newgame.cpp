@@ -95,7 +95,7 @@ static void UI_PromptDialog (float skill)
 
 	uiNewGame.skill = skill;
 
-	// toggle main menu between active\inactive, show\hide quit dialog
+	// toggle main menu between active/inactive, show/hide quit dialog
 	uiNewGame.easy.generic.flags ^= QMF_INACTIVE;
 	uiNewGame.medium.generic.flags ^= QMF_INACTIVE;
 	uiNewGame.hard.generic.flags ^= QMF_INACTIVE;
@@ -105,7 +105,6 @@ static void UI_PromptDialog (float skill)
 	uiNewGame.dlgMessage1.generic.flags ^= QMF_HIDDEN;
 	uiNewGame.no.generic.flags ^= QMF_HIDDEN;
 	uiNewGame.yes.generic.flags ^= QMF_HIDDEN;
-
 	}
 
 /*
@@ -310,13 +309,12 @@ UI_NewGame_Menu
 */
 void UI_NewGame_Menu (void)
 	{
+	// completely ignore save/load menus for multiplayer_only
 	if (gMenu.m_gameinfo.gamemode == GAME_MULTIPLAYER_ONLY)
-		{
-		// completely ignore save\load menus for multiplayer_only
 		return;
-		}
 
-	if (!CheckGameDll ()) return;
+	if (!CheckGameDll ())
+		return;
 
 	// FIXME: show prompt dialog
 	if (gMenu.m_gameinfo.flags & GFL_NOSKILLS)

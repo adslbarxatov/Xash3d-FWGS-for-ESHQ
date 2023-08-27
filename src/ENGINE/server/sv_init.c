@@ -1019,7 +1019,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	memset (svs.baselines, 0, sizeof (entity_state_t) * GI->max_edicts);
 
 	// make cvars consistant
-	if (coop.value) Cvar_SetValue ("deathmatch", 0);
+	if (coop.value)
+		Cvar_SetValue ("deathmatch", 0);
+
 	current_skill = Q_rint (skill.value);
 	current_skill = bound (0, current_skill, 3);
 	Cvar_SetValue ("skill", (float)current_skill);
