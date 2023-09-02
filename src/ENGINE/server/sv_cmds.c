@@ -15,6 +15,7 @@ GNU General Public License for more details.
 
 #include "common.h"
 #include "server.h"
+#include <shellapi.h>	// ESHQ: поддержка вызова генератора карт ESRM
 
 extern convar_t con_gamemaps;
 
@@ -52,7 +53,7 @@ void SV_BroadcastPrintf (sv_client_t *ignore, const char *fmt, ...)
 	{
 	char		string[MAX_SYSPATH];
 	va_list		argptr;
-	sv_client_t	*cl;
+	sv_client_t *cl;
 	int			i;
 
 	va_start (argptr, fmt);
@@ -205,6 +206,70 @@ qboolean SV_ValidateMap (const char *pMapName, qboolean check_spawn)
 
 /*
 ==================
+SV_ESRM_Command
+
+ESHQ: обработчик перенаправлений настроечных команд для мода ESRM
+==================
+*/
+void SV_ESRM_Command (void)
+	{
+	char cmdLine[MAX_QPATH];
+
+	// Контроль корректности вызова (не требуется, т.к. эта команда не будет вызвана из других модов)
+	/*if (!strstr (host.gamefolder, "esrm"))
+		return;*/
+
+	char rebuild = (strstr (Cmd_Argv (0), "esrm_rebuild") != NULL);
+	if ((Cmd_Argc () != 2) && !rebuild)
+		{
+		Con_Printf (S_USAGE "%s <value>\n", Cmd_Argv (0));
+		return;
+		}
+
+	// Сборка команды для генератора
+	if (rebuild)
+		Q_strncpy (cmdLine, "-r", MAX_QPATH);
+	else
+		Q_strncpy (cmdLine, "-s ", MAX_QPATH);
+
+	if (strstr (Cmd_Argv (0), "esrm_size"))
+		Q_strncat (cmdLine, "MS ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_enemies"))
+		Q_strncat (cmdLine, "DF ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_items"))
+		Q_strncat (cmdLine, "ID ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_walls"))
+		Q_strncat (cmdLine, "WD ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_light"))
+		Q_strncat (cmdLine, "LG ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_crates"))
+		Q_strncat (cmdLine, "CD ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_gravity"))
+		Q_strncat (cmdLine, "GR ", MAX_QPATH);
+
+	else if (strstr (Cmd_Argv (0), "esrm_button"))
+		Q_strncat (cmdLine, "BM ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_sections"))
+		Q_strncat (cmdLine, "ST ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_two_floors"))
+		Q_strncat (cmdLine, "TF ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_expl_crates"))
+		Q_strncat (cmdLine, "XC ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_item_crates"))
+		Q_strncat (cmdLine, "IC ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_makers"))
+		Q_strncat (cmdLine, "MM ", MAX_QPATH);
+
+	else if (!rebuild)
+		return;
+
+	if (!rebuild)
+		Q_strncat (cmdLine, Cmd_Argv (1), MAX_QPATH);
+	ShellExecute (NULL, "open", "esrm\\randomaze.exe", cmdLine, NULL, SW_SHOWMINNOACTIVE);
+	}
+
+/*
+==================
 SV_Map_f
 
 Goes directly to a given map without any savegame archiving.
@@ -236,7 +301,7 @@ void SV_Map_f (void)
 ==================
 SV_Maps_f
 
-Lists maps according to given substring.
+Lists maps according to given substring
 ==================
 */
 void SV_Maps_f (void)
@@ -317,7 +382,7 @@ void SV_NextMap_f (void)
 	{
 	char		nextmap[MAX_QPATH];
 	int			i, next;
-	search_t	*t;
+	search_t *t;
 
 	// [FWGS, 01.07.23]
 	/*t = FS_Search ("maps\\*.bsp", true, CVAR_TO_BOOL (con_gamemaps)); // only in gamedir
@@ -719,10 +784,14 @@ void SV_Status_f (void)
 		Con_Printf ("%3i ", i);
 		Con_Printf ("%5i ", (int)cl->edict->v.frags);
 
-		if (cl->state == cs_connected) Con_Printf ("Connect");
-		else if (cl->state == cs_zombie) Con_Printf ("Zombie ");
-		else if (FBitSet (cl->flags, FCL_FAKECLIENT)) Con_Printf ("Bot   ");
-		else Con_Printf ("%7i ", SV_CalcPing (cl));
+		if (cl->state == cs_connected)
+			Con_Printf ("Connect");
+		else if (cl->state == cs_zombie)
+			Con_Printf ("Zombie ");
+		else if (FBitSet (cl->flags, FCL_FAKECLIENT))
+			Con_Printf ("Bot   ");
+		else
+			Con_Printf ("%7i ", SV_CalcPing (cl));
 
 		Con_Printf ("%s", cl->name);
 		l = 24 - Q_strlen (cl->name);
@@ -1049,6 +1118,41 @@ void SV_InitHostCommands (void)
 
 		// ESHQ: добавлено для поддержки титров
 		Cmd_AddRestrictedCommand ("credits", SV_Credits_f, "starting a credits");
+
+		// ESHQ: команды для ESRM
+		if (strstr (host.gamefolder, "esrm"))
+			{
+			Cmd_AddRestrictedCommand ("esrm_size", SV_ESRM_Command,
+				"Sets the size of the next map (coeff, 1 - 8)");
+			Cmd_AddRestrictedCommand ("esrm_enemies", SV_ESRM_Command,
+				"Sets the enemies density for the next map (coeff, 1 - 8)");
+			Cmd_AddRestrictedCommand ("esrm_items", SV_ESRM_Command,
+				"Sets the enemies density for the next map (coeff, 1 - 8)");
+			Cmd_AddRestrictedCommand ("esrm_walls", SV_ESRM_Command,
+				"Sets the walls density for the next map (coeff, 1 - 12)");
+			Cmd_AddRestrictedCommand ("esrm_light", SV_ESRM_Command,
+				"Sets the lighting intensity for the next map (coeff, 1 - 6)");
+			Cmd_AddRestrictedCommand ("esrm_crates", SV_ESRM_Command,
+				"Sets the crates density for the next map (coeff, 1 - 5)");
+			Cmd_AddRestrictedCommand ("esrm_gravity", SV_ESRM_Command,
+				"Sets the gravity multiplier (x * 10%) for the next map (coeff, 1 - 20)");
+
+			Cmd_AddRestrictedCommand ("esrm_button", SV_ESRM_Command,
+				"Disables / enables the button mode for the next map (flag, 0 / 1)");
+			Cmd_AddRestrictedCommand ("esrm_sections", SV_ESRM_Command,
+				"Sets types of map sections for the next map (0 = all, 1 = only under sky, 2 = only inside)");
+			Cmd_AddRestrictedCommand ("esrm_two_floors", SV_ESRM_Command,
+				"Disables / enables the two floors mode for the next map (flag, 0 / 1)");
+			Cmd_AddRestrictedCommand ("esrm_expl_crates", SV_ESRM_Command,
+				"Disables / enables crates with explosives for the next map (flag, 0 / 1)");
+			Cmd_AddRestrictedCommand ("esrm_item_crates", SV_ESRM_Command,
+				"Disables / enables crates with items (weapons, bugs) for the next map (flag, 0 / 1)");
+			Cmd_AddRestrictedCommand ("esrm_makers", SV_ESRM_Command,
+				"Disables / enables monster makers for the next map (flag, 0 / 1)");
+
+			Cmd_AddRestrictedCommand ("esrm_rebuild", SV_ESRM_Command,
+				"Forces the rebuilding of the next map. Settings will be applied right after the next teleportation, but the compilation may take one or two minutes (you'll be unable to teleport there during the process)");
+			}
 		}
 	}
 

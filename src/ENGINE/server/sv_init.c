@@ -455,7 +455,8 @@ void SV_CreateBaseline (void)
 
 	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
 		playermodel = SV_ModelIndex (DEFAULT_PLAYER_PATH_QUAKE);
-	else playermodel = SV_ModelIndex (DEFAULT_PLAYER_PATH_HALFLIFE);
+	else
+		playermodel = SV_ModelIndex (DEFAULT_PLAYER_PATH_HALFLIFE);
 
 	memset (&nullstate, 0, sizeof (nullstate));
 
@@ -466,7 +467,7 @@ void SV_CreateBaseline (void)
 		if (!SV_IsValidEdict (pEdict))
 			continue;
 
-		if (entnum != 0 && entnum <= svs.maxclients)
+		if ((entnum != 0) && (entnum <= svs.maxclients))
 			{
 			delta_type = DELTA_PLAYER;
 			}
@@ -479,13 +480,13 @@ void SV_CreateBaseline (void)
 
 		// take current state as baseline
 		base = &svs.baselines[entnum];
-
 		base->number = entnum;
 
 		// set entity type
 		if (FBitSet (pEdict->v.flags, FL_CUSTOMENTITY))
 			base->entityType = ENTITY_BEAM;
-		else base->entityType = ENTITY_NORMAL;
+		else
+			base->entityType = ENTITY_NORMAL;
 
 		svgame.dllFuncs.pfnCreateBaseline (delta_type, entnum, base, pEdict, playermodel, host.player_mins[0],
 			host.player_maxs[0]);
@@ -505,7 +506,7 @@ void SV_CreateBaseline (void)
 		if (!SV_IsValidEdict (pEdict))
 			continue;
 
-		if (entnum != 0 && entnum <= svs.maxclients)
+		if ((entnum != 0) && (entnum <= svs.maxclients))
 			{
 			delta_type = DELTA_PLAYER;
 			}
@@ -647,7 +648,8 @@ void SV_ActivateServer (int runPhysics)
 	// tell what kind of server has been started.
 	if (svs.maxclients > 1)
 		Con_Printf ("%i player server started\n", svs.maxclients);
-	else Con_Printf ("Game started\n");
+	else
+		Con_Printf ("Game started\n");
 
 	Log_Printf ("Started map \"%s\" (CRC \"%u\")\n", sv.name, sv.worldmapCRC);
 
@@ -791,7 +793,8 @@ void SV_SetupClients (void)
 		return; // nothing to change
 
 	// if clients count was changed we need to run full shutdown procedure
-	if (svs.maxclients) Host_ShutdownServer ();
+	if (svs.maxclients)
+		Host_ShutdownServer ();
 
 	// copy the actual value from cvar
 	svs.maxclients = (int)sv_maxclients.value;
@@ -799,11 +802,13 @@ void SV_SetupClients (void)
 	// dedicated servers are can't be single player and are usually DM
 	if (Host_IsDedicated ())
 		svs.maxclients = bound (4, svs.maxclients, MAX_CLIENTS);
-	else svs.maxclients = bound (1, svs.maxclients, MAX_CLIENTS);
+	else
+		svs.maxclients = bound (1, svs.maxclients, MAX_CLIENTS);
 
 	if (svs.maxclients == 1)
 		Cvar_SetValue ("deathmatch", 0.0f);
-	else Cvar_SetValue ("deathmatch", 1.0f);
+	else
+		Cvar_SetValue ("deathmatch", 1.0f);
 
 	// make cvars consistant
 	if (coop.value) Cvar_SetValue ("deathmatch", 0.0f);
@@ -969,7 +974,7 @@ static void SV_GenerateTestPacket (void)
 SV_SpawnServer
 
 Change the server to a new map, taking all connected
-clients along with it.
+clients along with it
 ================
 */
 qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean background)

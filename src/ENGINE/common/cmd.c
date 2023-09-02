@@ -468,7 +468,7 @@ void Cmd_Alias_f (void)
 ===============
 Cmd_UnAlias_f
 
-Remove existing aliases.
+Remove existing aliases
 ===============
 */
 static void Cmd_UnAlias_f (void)
@@ -497,14 +497,17 @@ static void Cmd_UnAlias_f (void)
 #endif
 				if (a == cmd_alias)
 					cmd_alias = a->next;
-				if (p) p->next = a->next;
+				if (p)
+					p->next = a->next;
+
 				Mem_Free (a->value);
 				Mem_Free (a);
 				break;
 				}
 			}
 
-		if (!a) Con_Printf ("%s not found\n", s);
+		if (!a)
+			Con_Printf ("%s not found\n", s);
 		}
 	}
 
@@ -634,13 +637,13 @@ void Cmd_TokenizeString (const char *text)
 	while (1)
 		{
 		// skip whitespace up to a /n
-		while (*text && *text <= ' ' && *text != '\r' && *text != '\n')
+		while (*text && (*text <= ' ') && (*text != '\r') && (*text != '\n'))
 			text++;
 
-		if (*text == '\n' || *text == '\r')
+		if ((*text == '\n') || (*text == '\r'))
 			{
 			// a newline seperates commands in the buffer
-			if (*text == '\r' && text[1] == '\n')
+			if ((*text == '\r') && (text[1] == '\n'))
 				text++;
 			text++;
 			break;
@@ -654,7 +657,8 @@ void Cmd_TokenizeString (const char *text)
 
 		text = COM_ParseFileSafe ((char *)text, cmd_token, sizeof (cmd_token), PFILE_IGNOREBRACKET, NULL, NULL);
 
-		if (!text) return;
+		if (!text)
+			return;
 
 		if (cmd_argc < MAX_CMD_TOKENS)
 			{
@@ -704,8 +708,10 @@ static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcomman
 	// insert it at the right alphanumeric position
 	for (prev = NULL, cur = cmd_functions; cur && Q_strcmp (cur->name, cmd_name) < 0; prev = cur, cur = cur->next);
 
-	if (prev) prev->next = cmd;
-	else cmd_functions = cmd;
+	if (prev)
+		prev->next = cmd;
+	else
+		cmd_functions = cmd;
 	cmd->next = cur;
 
 #if defined(XASH_HASHED_VARS)

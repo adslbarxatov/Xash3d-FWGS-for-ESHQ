@@ -33,7 +33,7 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 		{
 		if ((*in >= 'A') && (*in <= 'Z'))
 			*out++ = *in++ + 'a' - 'A';
-		else 
+		else
 			*out++ = *in++;
 		size_out--;
 		}
@@ -44,7 +44,7 @@ qboolean Q_isdigit (const char *str)
 	{
 	if (str && *str)
 		{
-		while (isdigit (*str)) 
+		while (isdigit (*str))
 			str++;
 		if (!*str)
 			return true;
@@ -105,7 +105,7 @@ char Q_tolower (const char in)
 
 	if ((in >= 'A') && (in <= 'Z'))
 		out = in + 'a' - 'A';
-	else 
+	else
 		out = in;
 
 	return out;
@@ -122,12 +122,13 @@ size_t Q_strncat (char *dst, const char *src, size_t size)
 		return 0;
 
 	// find the end of dst and adjust bytes left but don't go past end
-	while ((n-- != 0) && (*d != '\0')) d++;
+	while ((n-- != 0) && (*d != '\0'))
+		d++;
 	dlen = d - dst;
 	n = size - dlen;
 
 	if (n == 0)
-		return(dlen + Q_strlen (s));
+		return (dlen + Q_strlen (s));
 
 	while (*s != '\0')
 		{
@@ -544,7 +545,7 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	float		onekb = 1024.0f;
 	float		onemb = onekb * onekb;
 	char		suffix[8];
-	char		*out = output[current];
+	char *out = output[current];
 	char		val[32], *i, *o, *dot;
 	int			pos;
 
@@ -1049,7 +1050,7 @@ int matchpattern (const char *in, const char *pattern, qboolean caseinsensitive)
 
 // wildcard_least_one: if true * matches 1 or more characters
 //                     if false * matches 0 or more characters
-int matchpattern_with_separator (const char *in, const char *pattern, qboolean caseinsensitive, 
+int matchpattern_with_separator (const char *in, const char *pattern, qboolean caseinsensitive,
 	const char *separators, qboolean wildcard_least_one)
 	{
 	int c1, c2;
