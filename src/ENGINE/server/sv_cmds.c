@@ -265,6 +265,12 @@ void SV_ESRM_Command (void)
 
 	if (!rebuild)
 		Q_strncat (cmdLine, Cmd_Argv (1), MAX_QPATH);
+
+	// Обязательная операция, т.к. при переходе через уровень можно напороться на неправильный номер карты,
+	// если сохранение осталось старым
+	else
+		Cbuf_AddText ("echo Rebuilding...; wait; save quick");
+
 	ShellExecute (NULL, "open", "esrm\\randomaze.exe", cmdLine, NULL, SW_SHOWMINNOACTIVE);
 	}
 

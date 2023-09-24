@@ -1,5 +1,5 @@
 # Xash3D FWGS Engine adaptation
-### for mods **ESHQ** v 13.5 (and newer) and **ES: Randomaze** v 4.13 (and newer)
+### for mods **ESHQ** v 13.5 (and newer) and **ES: Randomaze** v 5.0 (and newer)
 
 #
 
