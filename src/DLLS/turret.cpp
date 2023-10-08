@@ -659,7 +659,6 @@ void CBaseTurret::Retire (void)
 	pev->nextthink = gpGlobals->time + 0.1;
 
 	StudioFrameAdvance ();
-
 	EyeOff ();
 
 	if (!MoveTurret ())
@@ -904,7 +903,6 @@ void CBaseTurret::TurretDeath (void)
 			m_vecGoalAngles.x = -90;
 
 		SetTurretAnim (TURRET_ANIM_DIE);
-
 		EyeOn ();
 		}
 
@@ -936,7 +934,7 @@ void CBaseTurret::TurretDeath (void)
 		UTIL_Sparks (vecSrc);
 		}
 
-	if (m_fSequenceFinished && !MoveTurret () && pev->dmgtime + 5 < gpGlobals->time)
+	if (m_fSequenceFinished && !MoveTurret () && ((pev->dmgtime + 5) < gpGlobals->time))
 		{
 		pev->framerate = 0;
 		SetThink (NULL);
@@ -958,8 +956,9 @@ void CBaseTurret::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector ve
 		flDamage = 0.1;	// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
 		}
 
-	if (!pev->takedamage)
-		return;
+	// ESHQ: работает неправильно
+	/*if (!pev->takedamage)
+		return;*/
 
 	AddMultiDamage (pevAttacker, this, flDamage, bitsDamageType);
 	}
@@ -967,14 +966,15 @@ void CBaseTurret::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector ve
 // take damage. bitsDamageType indicates type of damage sustained, ie: DMG_BULLET
 int CBaseTurret::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
-	if (!pev->takedamage)
-		return 0;
+	// ESHQ: работает неправильно
+	/*if (!pev->takedamage)
+		return 0;*/
 
 	if (!m_iOn)
 		flDamage /= 10.0;
 
 	pev->health -= flDamage;
-	if (pev->health <= 0)
+	if (pev->health <= 0.0f)
 		{
 		// ESHQ: поддержка trigger_target
 		pev->deadflag = DEAD_DYING;
@@ -1047,6 +1047,7 @@ int CBaseTurret::MoveTurret (void)
 			flDist = 360.0f - flDist;
 			flDir = -flDir;
 			}
+
 		if (flDist > 30.0f)
 			{
 			if (m_fTurnRate < m_iBaseTurnRate * 10)
@@ -1159,8 +1160,9 @@ void CSentry::Shoot (Vector& vecSrc, Vector& vecDirToEnemy)
 
 int CSentry::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
-	if (!pev->takedamage)
-		return 0;
+	// ESHQ: работает неправильно
+	/*if (!pev->takedamage)
+		return 0;*/
 
 	if (!m_iOn)
 		{
@@ -1241,8 +1243,8 @@ void CSentry::SentryDeath (void)
 		WRITE_COORD (vecSrc.y + RANDOM_FLOAT (-16, 16));
 		WRITE_COORD (vecSrc.z - 32);
 		WRITE_SHORT (g_sModelIndexSmoke);
-		WRITE_BYTE (15); // scale * 10
-		WRITE_BYTE (8); // framerate
+		WRITE_BYTE (15);	// scale * 10
+		WRITE_BYTE (8);		// framerate
 		MESSAGE_END ();
 		}
 

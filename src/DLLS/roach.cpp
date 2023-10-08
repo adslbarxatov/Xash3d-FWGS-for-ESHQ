@@ -100,7 +100,7 @@ void CRoach::Touch (CBaseEntity *pOther)
 
 // =========================================================
 // SetYawSpeed - allows each sequence to have a different
-// turn rate associated with it.
+// turn rate associated with it
 // =========================================================
 void CRoach::SetYawSpeed (void)
 	{
@@ -123,17 +123,17 @@ void CRoach::Spawn ()
 	m_bloodColor = BLOOD_COLOR_YELLOW;
 	pev->effects = 0;
 	pev->health = 1;
-	m_flFieldOfView = 0.5;// indicates the width of this monster's forward view cone (as a dotproduct result)
+	m_flFieldOfView = 0.5;	// indicates the width of this monster's forward view cone (as a dotproduct result)
 	m_MonsterState = MONSTERSTATE_NONE;
 
 	MonsterInit ();
 	SetActivity (ACT_IDLE);
 
-	pev->view_ofs = Vector (0, 0, 1);// position of the eyes relative to monster's origin.
+	pev->view_ofs = Vector (0, 0, 1);	// position of the eyes relative to monster's origin.
 	pev->takedamage = DAMAGE_YES;
 	m_fLightHacked = FALSE;
 	m_flLastLightLevel = -1;
-	m_iMode = ROACH_SCARED_BY_ENT;	// ESHQ: принудительное обновление позиции
+	m_iMode = ROACH_SCARED_BY_LIGHT;	// ESHQ: принудительное обновление позиции
 	m_flNextSmellTime = gpGlobals->time;
 	}
 
@@ -149,9 +149,8 @@ void CRoach::Precache ()
 	PRECACHE_SOUND ("roach/rch_smash.wav");
 	}
 
-
 // =========================================================
-// Killed.
+// Killed
 // =========================================================
 void CRoach::Killed (entvars_t *pevAttacker, int iGib)
 	{
@@ -178,7 +177,7 @@ void CRoach::Killed (entvars_t *pevAttacker, int iGib)
 	}
 
 // =========================================================
-// MonsterThink, overridden for roaches.
+// MonsterThink, overridden for roaches
 // =========================================================
 void CRoach::MonsterThink (void)
 	{
@@ -192,14 +191,14 @@ void CRoach::MonsterThink (void)
 	if (!m_fLightHacked)
 		{
 		// if light value hasn't been collection for the first time yet, 
-		// suspend the creature for a second so the world finishes spawning, then we'll collect the light level.
+		// suspend the creature for a second so the world finishes spawning, then we'll collect the light level
 		pev->nextthink = gpGlobals->time + 1;
 		m_fLightHacked = TRUE;
 		return;
 		}
 	else if (m_flLastLightLevel < 0)
 		{
-		// collect light level for the first time, now that all of the lightmaps in the roach's area have been calculated.
+		// collect light level for the first time, now that all of the lightmaps in the roach's area have been calculated
 		m_flLastLightLevel = GETENTITYILLUM (ENT (pev));
 		}
 
@@ -215,19 +214,19 @@ void CRoach::MonsterThink (void)
 				if (HasConditions (bits_COND_SEE_FEAR))
 					{
 					// if see something scary
-					Eat (30 + (RANDOM_LONG (0, 14)));// roach will ignore food for 30 to 45 seconds
+					Eat (30 + (RANDOM_LONG (0, 14)));	// roach will ignore food for 30 to 45 seconds
 					PickNewDest (ROACH_SCARED_BY_ENT);
 					SetActivity (ACT_WALK);
 					}
 				else if (RANDOM_LONG (0, 149) == 1)
 					{
-					// if roach doesn't see anything, there's still a chance that it will move. (boredom)
+					// if roach doesn't see anything, there's still a chance that it will move (boredom)
 					PickNewDest (ROACH_BORED);
 					SetActivity (ACT_WALK);
 
 					if (m_iMode == ROACH_EAT)
 						{
-						// roach will ignore food for 30 to 45 seconds if it got bored while eating. 
+						// roach will ignore food for 30 to 45 seconds if it got bored while eating
 						Eat (30 + (RANDOM_LONG (0, 14)));
 						}
 					}
@@ -237,9 +236,7 @@ void CRoach::MonsterThink (void)
 			if (m_iMode == ROACH_IDLE)
 				{
 				if (FShouldEat ())
-					{
 					Listen ();
-					}
 
 				if (GETENTITYILLUM (ENT (pev)) > m_flLastLightLevel)
 					{

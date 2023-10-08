@@ -239,14 +239,16 @@ void CLeech::AttackSound (void)
 	{
 	if (gpGlobals->time > m_attackSoundTime)
 		{
-		EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, pAttackSounds[RANDOM_LONG (0, HLARRAYSIZE (pAttackSounds) - 1)], 1.0, ATTN_MEDIUM, 0, PITCH_NORM);
+		EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, pAttackSounds[RANDOM_LONG (0, HLARRAYSIZE (pAttackSounds) - 1)],
+			1.0, ATTN_MEDIUM, 0, PITCH_NORM);
 		m_attackSoundTime = gpGlobals->time + 0.5;
 		}
 	}
 
 void CLeech::AlertSound (void)
 	{
-	EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, pAlertSounds[RANDOM_LONG (0, HLARRAYSIZE (pAlertSounds) - 1)], 1.0, ATTN_MEDIUM * 0.5, 0, PITCH_NORM);
+	EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, pAlertSounds[RANDOM_LONG (0, HLARRAYSIZE (pAlertSounds) - 1)],
+		1.0, ATTN_MEDIUM * 0.5, 0, PITCH_NORM);
 	}
 
 void CLeech::Precache (void)
@@ -267,13 +269,10 @@ int CLeech::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float f
 
 	// Nudge the leech away from the damage
 	if (pevInflictor)
-		{
 		pev->velocity = (pev->origin - pevInflictor->origin).Normalize () * 25;
-		}
 
 	return CBaseMonster::TakeDamage (pevInflictor, pevAttacker, flDamage, bitsDamageType);
 	}
-
 
 void CLeech::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{

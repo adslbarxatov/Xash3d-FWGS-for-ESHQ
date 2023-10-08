@@ -126,20 +126,19 @@ void CRat::Spawn ()
 
 	pev->effects = 0;
 	pev->health = 5;
-	m_flFieldOfView = 0.5;// indicates the width of this monster's forward view cone (as a dotproduct result)
+	m_flFieldOfView = 0.5;	// indicates the width of this monster's forward view cone (as a dotproduct result)
 
 	m_MonsterState = MONSTERSTATE_NONE;
 
 	MonsterInit ();
-
 	SetActivity (ACT_IDLE);
 
-	pev->view_ofs = Vector (0, 0, 3);// position of the eyes relative to monster's origin
+	pev->view_ofs = Vector (0, 0, 3);	// position of the eyes relative to monster's origin
 	pev->takedamage = DAMAGE_YES;
 	pev->skin = RANDOM_LONG (0, 1);
 	m_fLightHacked = FALSE;
 	m_flLastLightLevel = -1;
-	m_iMode = RAT_SCARED_BY_ENT;	// ESHQ: принудительное обновление позиции
+	m_iMode = RAT_SCARED_BY_LIGHT;	// ESHQ: принудительное обновление позиции
 	m_flNextSmellTime = gpGlobals->time;
 	}
 
@@ -182,17 +181,16 @@ void CRat::Killed (entvars_t* pevAttacker, int iGib)
 	}
 
 // =========================================================
-// MonsterThink, overridden for rats.
+// MonsterThink, overridden for rats
 // =========================================================
 void CRat::MonsterThink (void)
 	{
 	if (FNullEnt (FIND_CLIENT_IN_PVS (edict ())))
 		pev->nextthink = gpGlobals->time + RANDOM_FLOAT (1, 1.5);
 	else
-		pev->nextthink = gpGlobals->time + 0.1;// keep monster thinking
+		pev->nextthink = gpGlobals->time + 0.1;	// keep monster thinking
 
 	float flInterval = StudioFrameAdvance (); // animate
-
 	if (!m_fLightHacked)
 		{
 		// if light value hasn't been collection for the first time yet, 
@@ -225,7 +223,7 @@ void CRat::MonsterThink (void)
 					}
 				else if (RANDOM_LONG (0, 149) == 1)
 					{
-					// if rat doesn't see anything, there's still a chance that it will move. (boredom)
+					// if rat doesn't see anything, there's still a chance that it will move (boredom)
 					PickNewDest (RAT_BORED);
 					SetActivity (ACT_WALK);
 

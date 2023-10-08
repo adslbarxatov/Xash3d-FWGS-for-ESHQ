@@ -234,10 +234,17 @@ void SV_ESRM_Command (void)
 
 	if (strstr (Cmd_Argv (0), "esrm_size"))
 		Q_strncat (cmdLine, "MS ", MAX_QPATH);
+
+	else if (strstr (Cmd_Argv (0), "esrm_enemies_list"))
+		Q_strncat (cmdLine, "EP ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_items_list"))
+		Q_strncat (cmdLine, "IP ", MAX_QPATH);
+
 	else if (strstr (Cmd_Argv (0), "esrm_enemies"))
 		Q_strncat (cmdLine, "DF ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_items"))
 		Q_strncat (cmdLine, "ID ", MAX_QPATH);
+
 	else if (strstr (Cmd_Argv (0), "esrm_walls"))
 		Q_strncat (cmdLine, "WD ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_light"))
@@ -1133,7 +1140,7 @@ void SV_InitHostCommands (void)
 			Cmd_AddRestrictedCommand ("esrm_enemies", SV_ESRM_Command,
 				"Sets the enemies density for the next map (coeff, 1 - 8)");
 			Cmd_AddRestrictedCommand ("esrm_items", SV_ESRM_Command,
-				"Sets the enemies density for the next map (coeff, 1 - 8)");
+				"Sets the items density for the next map (coeff, 1 - 8)");
 			Cmd_AddRestrictedCommand ("esrm_walls", SV_ESRM_Command,
 				"Sets the walls density for the next map (coeff, 1 - 12)");
 			Cmd_AddRestrictedCommand ("esrm_light", SV_ESRM_Command,
@@ -1155,6 +1162,15 @@ void SV_InitHostCommands (void)
 				"Disables / enables crates with items (weapons, bugs) for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_makers", SV_ESRM_Command,
 				"Disables / enables monster makers for the next map (flag, 0 / 1)");
+
+			Cmd_AddRestrictedCommand ("esrm_enemies_list", SV_ESRM_Command,
+				"Enumerates the allowed enemies (the line of letters for [a]ssassins, [b]ullchickens, "
+				"[c]ontrollers, hound[e]yes, human [g]runts, [h]eadcrabs, trip[m]ines, bar[n]acles, "
+				"alien g[r]unts, alien [s]laves, [t]urrets and [z]ombies");
+			Cmd_AddRestrictedCommand ("esrm_items_list", SV_ESRM_Command,
+				"Enumerates the allowed items (the line of letters for health[k]its, [b]atteries, [g]renades, "
+				"[9] mm handguns, [s]atchels, .[3]57 pythons, [c]rossbows, ga[u]ss, cro[w]bars, [h]ornetguns, "
+				"9 mm A[R]s, sh[o]tguns, R[P]Gs, [t]ripmines, s[n]arks, [e]gons and [a]xes");
 
 			Cmd_AddRestrictedCommand ("esrm_rebuild", SV_ESRM_Command,
 				"Forces the rebuilding of the next map. Settings will be applied right after the next teleportation, but the compilation may take one or two minutes (you'll be unable to teleport there during the process)");
