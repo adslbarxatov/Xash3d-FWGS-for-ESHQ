@@ -1224,23 +1224,21 @@ void UI_UnloadProgs (void)
 	COM_FreeLibrary (gameui.hInstance);
 	Mem_FreePool (&gameui.mempool);
 	memset (&gameui, 0, sizeof (gameui));
-
-	/*Cvar_Unlink (FCVAR_GAMEUIDLL);
-	Cmd_Unlink (CMD_GAMEUIDLL);*/
 	}
 
 qboolean UI_LoadProgs (void)
 	{
-	static ui_enginefuncs_t	gpEngfuncs;
-	static ui_extendedfuncs_t gpExtendedfuncs;
-	static ui_globalvars_t	gpGlobals;
-	UIEXTENEDEDAPI GetExtAPI;
-	UITEXTAPI	GiveTextApi;
-	MENUAPI	GetMenuAPI;
-	string dllpath;
-	int			i;
+	static ui_enginefuncs_t		gpEngfuncs;
+	static ui_extendedfuncs_t	gpExtendedfuncs;
+	static ui_globalvars_t		gpGlobals;
+	UIEXTENEDEDAPI	GetExtAPI;
+	UITEXTAPI		GiveTextApi;
+	MENUAPI			GetMenuAPI;
+	string			dllpath;
+	int				i;
 
-	if (gameui.hInstance) UI_UnloadProgs ();
+	if (gameui.hInstance)
+		UI_UnloadProgs ();
 
 	// setup globals
 	gameui.globals = &gpGlobals;

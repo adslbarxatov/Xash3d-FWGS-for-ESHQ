@@ -28,8 +28,6 @@ GNU General Public License for more details.
 
 // [FWGS, 01.07.23]
 #if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
-	/*#include <stdlib.h>
-	#define SDL_setenv setenv*/
 	#define SDL_GetCurrentAudioDriver() "legacysdl"
 	#define SDL_OpenAudioDevice( a, b, c, d, e ) SDL_OpenAudio( ( c ), ( d ) )
 	#define SDL_CloseAudioDevice( a ) SDL_CloseAudio()
@@ -55,9 +53,6 @@ static char sdl_backend_name[32];
 // [FWGS, 01.07.23]
 void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 	{
-	/*int size = dma.samples << 1;
-	int pos = dma.samplepos << 1;
-	int wrapped = pos + len - size;*/
 	const int size = dma.samples << 1;
 	int pos;
 	int wrapped;
@@ -104,12 +99,6 @@ qboolean SNDDMA_Init (void)
 	{
 	SDL_AudioSpec desired, obtained;
 	int samplecount;
-
-	/*if (SDL_Init (SDL_INIT_AUDIO))
-		{
-		Con_Reportf (S_ERROR  "Audio: SDL: %s \n", SDL_GetError ());
-		return false;
-		}*/
 
 	// even if we don't have PA
 	// we still can safely set env variables

@@ -229,21 +229,6 @@ CVAR_DEFINE (public_server, "public", "0", 0,
 	"change server type from private to public");
 
 // [FWGS, 01.07.23]
-/*convar_t *sv_novis;				// disable server culling entities by vis
-convar_t *sv_pausable;
-convar_t *timeout;				// seconds without any message
-convar_t *sv_lighting_modulate;
-convar_t *sv_maxclients;
-convar_t *sv_check_errors;
-convar_t *sv_reconnect_limit;		// minimum seconds between connect messages
-convar_t *sv_validate_changelevel;
-convar_t *sv_sendvelocity;
-convar_t *sv_hostmap;
-convar_t *sv_allow_noinputdevices;
-convar_t *sv_allow_touch;
-convar_t *sv_allow_mouse;
-convar_t *sv_allow_joystick;
-convar_t *sv_allow_vr;*/
 CVAR_DEFINE_AUTO (sv_novis, "0", 0,
 	"force to ignore server visibility");	// disable server culling entities by vis
 CVAR_DEFINE (sv_pausable, "pausable", "1", FCVAR_SERVER,
@@ -860,9 +845,6 @@ void Host_ServerFrame (void)
 	// clear edict flags for next frame
 	SV_PrepWorldFrame ();
 
-	/* [FWGS, 01.07.23] update dedicated server status line in console
-	Platform_UpdateStatusLine ();*/
-
 	// [FWGS, 01.05.23] send a heartbeat to the master if needed
 	NET_MasterHeartbeat ();
 	}
@@ -1056,24 +1038,17 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&teamplay);
 	Cvar_RegisterVariable (&skill);
 	Cvar_RegisterVariable (&temp1);
-
 	Cvar_RegisterVariable (&meat_mode);		// ESHQ: meat mode
 	Cvar_RegisterVariable (&rcon_enable);	// [FWGS, 01.04.23]
-
 	Cvar_RegisterVariable (&rcon_password);
 	Cvar_RegisterVariable (&sv_stepsize);
 	Cvar_RegisterVariable (&sv_newunit);
 	Cvar_RegisterVariable (&hostname);
 
 	// [FWGS, 01.07.23]
-	/*timeout = Cvar_Get ("timeout", "125", FCVAR_SERVER, "connection timeout");
-	sv_pausable = Cvar_Get ("pausable", "1", FCVAR_SERVER, "allow players to pause or not");
-	sv_validate_changelevel = Cvar_Get ("sv_validate_changelevel", "0", 0,
-		"test change level for level-designer errors");*/
 	Cvar_RegisterVariable (&timeout);
 	Cvar_RegisterVariable (&sv_pausable);
 	Cvar_RegisterVariable (&sv_validate_changelevel);
-
 	Cvar_RegisterVariable (&sv_clienttrace);
 	Cvar_RegisterVariable (&sv_bounce);
 	Cvar_RegisterVariable (&sv_spectatormaxspeed);
@@ -1091,8 +1066,6 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_stopspeed);
 
 	// [FWGS, 01.07.23]
-	/*sv_maxclients = Cvar_Get ("maxplayers", "1", FCVAR_LATCH, "server max capacity");
-	sv_check_errors = Cvar_Get ("sv_check_errors", "0", FCVAR_ARCHIVE, "check edicts for errors");*/
 	Cvar_RegisterVariable (&sv_maxclients);
 	Cvar_RegisterVariable (&sv_check_errors);
 
@@ -1100,11 +1073,8 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&public_server);
 
 	// [FWGS, 01.07.23]
-	/*sv_lighting_modulate = Cvar_Get ("r_lighting_modulate", "0.6", FCVAR_ARCHIVE, "lightstyles modulate scale");
-	sv_reconnect_limit = Cvar_Get ("sv_reconnect_limit", "3", FCVAR_ARCHIVE, "max reconnect attempts");*/
 	Cvar_RegisterVariable (&sv_lighting_modulate);
 	Cvar_RegisterVariable (&sv_reconnect_limit);
-
 	Cvar_RegisterVariable (&sv_failuretime);
 	Cvar_RegisterVariable (&sv_unlag);
 	Cvar_RegisterVariable (&sv_maxunlag);
@@ -1121,12 +1091,9 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_downloadurl);
 
 	// [FWGS, 01.07.23]
-	/*sv_novis = Cvar_Get ("sv_novis", "0", 0, "force to ignore server visibility");
-	sv_hostmap = Cvar_Get ("hostmap", GI->startmap, 0, "keep name of last entered map");*/
 	Cvar_RegisterVariable (&sv_novis);
 	Cvar_RegisterVariable (&sv_hostmap);
 	Cvar_DirectSet (&sv_hostmap, GI->startmap);
-
 	Cvar_RegisterVariable (&sv_password);
 	Cvar_RegisterVariable (&sv_lan);
 	Cvar_RegisterVariable (&sv_nat);
@@ -1157,13 +1124,6 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_enttools_maxfire);	// [FWGS, 01.04.23]
 
 	// [FWGS, 01.07.23]
-	/*sv_allow_joystick = Cvar_Get ("sv_allow_joystick", "1", FCVAR_ARCHIVE,
-		"allow connect with joystick enabled");
-	sv_allow_mouse = Cvar_Get ("sv_allow_mouse", "1", FCVAR_ARCHIVE, "allow connect with mouse");
-	sv_allow_touch = Cvar_Get ("sv_allow_touch", "1", FCVAR_ARCHIVE, "allow connect with touch controls");
-	sv_allow_vr = Cvar_Get ("sv_allow_vr", "1", FCVAR_ARCHIVE, "allow connect from vr version");
-	sv_allow_noinputdevices = Cvar_Get ("sv_allow_noinputdevices", "1", FCVAR_ARCHIVE,
-		"allow connect from old versions without useragent");*/
 	Cvar_RegisterVariable (&sv_speedhack_kick);
 	Cvar_RegisterVariable (&sv_allow_joystick);
 	Cvar_RegisterVariable (&sv_allow_mouse);

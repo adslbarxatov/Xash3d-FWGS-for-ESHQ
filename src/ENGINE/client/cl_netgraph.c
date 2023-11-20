@@ -34,12 +34,6 @@ GNU General Public License for more details.
 #define NUM_LATENCY_SAMPLES		8
 
 // [FWGS, 01.07.23]
-/*convar_t *net_graph;
-static convar_t *net_graphpos;
-static convar_t *net_graphwidth;
-static convar_t *net_graphheight;
-static convar_t *net_graphsolid;
-static convar_t *net_scale;*/
 CVAR_DEFINE_AUTO (net_graph, "0", FCVAR_ARCHIVE,
 	"draw network usage graph");
 static CVAR_DEFINE_AUTO (net_graphpos, "1", FCVAR_ARCHIVE,
@@ -719,18 +713,6 @@ void SCR_DrawNetGraph (void)
 // [FWGS, 01.07.23]
 void CL_InitNetgraph (void)
 	{
-	/*net_graph = Cvar_Get ("net_graph", "0", FCVAR_ARCHIVE,
-		"draw network usage graph");
-	net_graphpos = Cvar_Get ("net_graphpos", "1", FCVAR_ARCHIVE,
-		"network usage graph position");
-	net_scale = Cvar_Get ("net_scale", "5", FCVAR_ARCHIVE,
-		"network usage graph scale level");
-	net_graphwidth = Cvar_Get ("net_graphwidth", "192", FCVAR_ARCHIVE,
-		"network usage graph width");
-	net_graphheight = Cvar_Get ("net_graphheight", "64", FCVAR_ARCHIVE,
-		"network usage graph height");
-	net_graphsolid = Cvar_Get ("net_graphsolid", "1", FCVAR_ARCHIVE,
-		"fill segments in network usage graph");*/
 	Cvar_RegisterVariable (&net_graph);
 	Cvar_RegisterVariable (&net_graphpos);
 	Cvar_RegisterVariable (&net_scale);

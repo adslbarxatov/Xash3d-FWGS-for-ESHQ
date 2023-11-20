@@ -267,7 +267,6 @@ typedef struct ref_api_s
 	const char *(*pfnGetCvarString)(const char *szName);
 	void        (*Cvar_SetValue)(const char *name, float value);
 	void        (*Cvar_Set)(const char *name, const char *value);
-	/*void (*Cvar_RegisterVariable)(cvar_t *var);*/
 	void (*Cvar_RegisterVariable)(convar_t *var);	// [FWGS, 01.07.23]
 	void (*Cvar_FullSet)(const char *var_name, const char *value, int flags);
 
@@ -637,8 +636,6 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 // actually, they are just created on engine side for convinience
 // and must be retrieved by renderer side
 // sometimes it's done to standartize cvars to make it easier for users
-
-/*ENGINE_SHARED_CVAR_NAME( f, gl_showtextures, r_showtextures ) \*/ // [FWGS, 01.07.23]
 
 #define ENGINE_SHARED_CVAR_LIST( f ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_gamma, gamma ) \

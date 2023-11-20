@@ -616,9 +616,6 @@ qboolean Voice_Init (const char *pszCodecName, int quality)
 	
 	Voice_Shutdown ();
 
-	/*if (Q_strcmp (voice.codec, pszCodecName) && (voice.quality != quality))
-		Voice_Shutdown ();*/
-
 	voice.autogain.block_size = 128;
 
 #ifdef OPUS

@@ -86,10 +86,6 @@ unacknowledged reliable
 */
 
 // [FWGS, 01.07.23]
-/*convar_t *net_showpackets;
-convar_t *net_chokeloopback;
-convar_t *net_showdrop;
-convar_t *net_qport;*/
 CVAR_DEFINE_AUTO (net_showpackets, "0", 0,
 	"show network packets");
 CVAR_DEFINE_AUTO (net_chokeloop, "0", 0,
@@ -254,19 +250,11 @@ void Netchan_Init (void)
 	port = COM_RandomLong (1, 65535);
 	Q_snprintf (buf, sizeof (buf), "%i", port);
 
-	/*net_showpackets = Cvar_Get ("net_showpackets", "0", 0,
-		"show network packets");
-	net_chokeloopback = Cvar_Get ("net_chokeloop", "0", 0,
-		"apply bandwidth choke to loopback packets");
-	net_showdrop = Cvar_Get ("net_showdrop", "0", 0,
-		"show packets that are dropped");
-	net_qport = Cvar_Getf ("net_qport", FCVAR_READ_ONLY, "current quake netport", "%i", port);*/
 	Cvar_RegisterVariable (&net_showpackets);
 	Cvar_RegisterVariable (&net_chokeloop);
 	Cvar_RegisterVariable (&net_showdrop);
 	Cvar_RegisterVariable (&net_qport);
 
-	/*Cvar_DirectSet (&net_qport, buf);*/
 	Cvar_FullSet (net_qport.name, buf, net_qport.flags);
 	net_mempool = Mem_AllocPool ("Network Pool");
 
@@ -367,7 +355,6 @@ Returns true if the bandwidth choke isn't active
 qboolean Netchan_CanPacket (netchan_t *chan, qboolean choke)
 	{
 	// never choke loopback packets
-	/*if (!choke || (!net_chokeloopback->value && NET_IsLocalAddress (chan->remote_address)))*/
 	if (!choke || (!net_chokeloop.value && NET_IsLocalAddress (chan->remote_address)))
 		{
 		chan->cleartime = host.realtime;

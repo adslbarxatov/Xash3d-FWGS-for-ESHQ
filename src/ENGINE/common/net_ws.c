@@ -110,15 +110,6 @@ typedef struct
 static net_state_t		net;
 
 // [FWGS, 01.07.23]
-/*static convar_t *net_ipname;
-static convar_t *net_hostport;
-static convar_t *net_iphostport;
-static convar_t *net_clientport;
-static convar_t *net_ipclientport;
-static convar_t *net_fakelag;
-static convar_t *net_fakeloss;
-static convar_t *net_address;
-convar_t *net_clockwindow;*/
 static CVAR_DEFINE_AUTO (net_address, "0", FCVAR_PRIVILEGED | FCVAR_READ_ONLY,
 	"contain local address of current client");
 static CVAR_DEFINE (net_ipname, "ip", "localhost", FCVAR_PRIVILEGED,
@@ -142,10 +133,6 @@ netadr_t			net_local;
 netadr_t			net6_local;
 
 // [FWGS, 01.07.23] cvars equivalents for IPv6
-/*static convar_t *net_ip6name;
-static convar_t *net_ip6hostport;
-static convar_t *net_ip6clientport;
-static convar_t *net6_address;*/
 static CVAR_DEFINE (net_ip6name, "ip6", "localhost", FCVAR_PRIVILEGED,
 	"network ip6 address");
 static CVAR_DEFINE (net_ip6hostport, "ip6_hostport", "0", FCVAR_READ_ONLY,
@@ -1419,7 +1406,6 @@ qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize)
 			net.split_flags[i] = -1;
 
 		// [FWGS, 01.07.23]
-		/*if (net_showpackets && (net_showpackets->value == 4.0f))*/
 		if (net_showpackets.value == 4.0f)
 			Con_Printf ("<-- Split packet restart %i count %i seq\n", net.split.split_count, sequence_number);
 		}
@@ -1435,7 +1421,6 @@ qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize)
 		net.split_flags[packet_number] = sequence_number;
 
 		// [FWGS, 01.07.23]
-		/*if (net_showpackets && net_showpackets->value == 4.0f)*/
 		if (net_showpackets.value == 4.0f)
 			Con_Printf ("<-- Split packet %i of %i, %i bytes %i seq\n", packet_number + 1,
 				packet_count, size, sequence_number);
@@ -1608,7 +1593,6 @@ int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t len, in
 			memcpy (packet + sizeof (SPLITPACKET), buf + (packet_number * body_size), size);
 
 			// [FWGS, 01.07.23]
-			/*if (net_showpackets && net_showpackets->value == 3.0f)*/
 			if (net_showpackets.value == 3.0f)
 				{
 				netadr_t	adr;
@@ -2155,28 +2139,11 @@ NET_Init [FWGS, 01.08.23]
 void NET_Init (void)
 	{
 	char	cmd[64];
-	int	i = 1;
+	int		i = 1;
 
-	if (net.initialized) return;
+	if (net.initialized)
+		return;
 
-	/*net_clockwindow = Cvar_Get ("clockwindow", "0.5", FCVAR_PRIVILEGED,
-		"timewindow to execute client moves");
-	net_address = Cvar_Get ("net_address", "0", FCVAR_PRIVILEGED | FCVAR_READ_ONLY,
-		"contain local address of current client");
-	net_ipname = Cvar_Get ("ip", "localhost", FCVAR_PRIVILEGED,
-		"network ip address");
-	net_iphostport = Cvar_Get ("ip_hostport", "0", FCVAR_READ_ONLY,
-		"network ip host port");
-	net_hostport = Cvar_Getf ("hostport", FCVAR_READ_ONLY,
-		"network default host port", "%i", PORT_SERVER);
-	net_ipclientport = Cvar_Get ("ip_clientport", "0", FCVAR_READ_ONLY,
-		"network ip client port");
-	net_clientport = Cvar_Getf ("clientport", FCVAR_READ_ONLY,
-		"network default client port", "%i", PORT_CLIENT);
-	net_fakelag = Cvar_Get ("fakelag", "0", FCVAR_PRIVILEGED,
-		"lag all incoming network data (including loopback) by xxx ms.");
-	net_fakeloss = Cvar_Get ("fakeloss", "0", FCVAR_PRIVILEGED,
-		"act like we dropped the packet this % of the time.");*/
 	Cvar_RegisterVariable (&net_address);
 	Cvar_RegisterVariable (&net_ipname);
 	Cvar_RegisterVariable (&net_iphostport);
@@ -2187,22 +2154,12 @@ void NET_Init (void)
 	Cvar_RegisterVariable (&net_fakeloss);
 
 	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_SERVER);
-	/*Cvar_DirectSet (&net_hostport, cmd);*/
 	Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);
 
 	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_CLIENT);
-	/*Cvar_DirectSet (&net_clientport, cmd);*/
 	Cvar_FullSet ("clientport", cmd, FCVAR_READ_ONLY);
 
 	// cvar equivalents for IPv6
-	/*net_ip6name = Cvar_Get ("ip6", "localhost", FCVAR_PRIVILEGED,
-		"network ip6 address");
-	net_ip6hostport = Cvar_Get ("ip6_hostport", "0", FCVAR_READ_ONLY,
-		"network ip6 host port");
-	net_ip6clientport = Cvar_Get ("ip6_clientport", "0", FCVAR_READ_ONLY,
-		"network ip6 client port");
-	net6_address = Cvar_Get ("net6_address", "0", FCVAR_PRIVILEGED | FCVAR_READ_ONLY,
-		"contain local IPv6 address of current client");*/
 	Cvar_RegisterVariable (&net_ip6name);
 	Cvar_RegisterVariable (&net_ip6hostport);
 	Cvar_RegisterVariable (&net_ip6clientport);
@@ -2333,10 +2290,6 @@ static struct http_static_s
 	} http;
 
 // [FWGS, 01.07.23]
-/*static convar_t *http_useragent;
-static convar_t *http_autoremove;
-static convar_t *http_timeout;
-static convar_t *http_maxconnections;*/
 static CVAR_DEFINE_AUTO (http_useragent, "", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"User-Agent string");
 static CVAR_DEFINE_AUTO (http_autoremove, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
@@ -3095,14 +3048,6 @@ void HTTP_Init (void)
 	Cmd_AddCommand ("http_addcustomserver", HTTP_AddCustomServer_f, "add custom fastdl server");
 
 	// [FWGS, 01.07.23]
-	/*http_useragent = Cvar_Get ("http_useragent", "", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-		"User-Agent string");
-	http_autoremove = Cvar_Get ("http_autoremove", "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-		"remove broken files");
-	http_timeout = Cvar_Get ("http_timeout", "45", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-		"timeout for http downloader");
-	http_maxconnections = Cvar_Get ("http_maxconnections", "4", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-		"maximum http connection number");*/
 	Cvar_RegisterVariable (&http_useragent);
 	Cvar_RegisterVariable (&http_autoremove);
 	Cvar_RegisterVariable (&http_timeout);

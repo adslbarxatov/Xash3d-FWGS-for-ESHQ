@@ -146,8 +146,6 @@ static void OSK_EnableTextInput (qboolean enable, qboolean force);
 static qboolean OSK_KeyEvent (int key, int down);
 
 // [FWGS, 01.07.23]
-/*static convar_t *osk_enable;
-static convar_t *key_rotate;*/
 static CVAR_DEFINE_AUTO (osk_enable, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable built-in on-screen keyboard");
 static CVAR_DEFINE_AUTO (key_rotate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -534,8 +532,6 @@ void Key_Init (void)
 		Key_SetBinding (kn->keynum, kn->binding);
 
 	// [FWGS, 01.07.23]
-	/*osk_enable = Cvar_Get ("osk_enable", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable built-in on-screen keyboard");
-	key_rotate = Cvar_Get ("key_rotate", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "rotate arrow keys (0-3)");*/
 	Cvar_RegisterVariable (&osk_enable);
 	Cvar_RegisterVariable (&key_rotate);
 	}
@@ -746,11 +742,9 @@ void GAME_EXPORT Key_Event (int key, int down)
 		switch (cls.key_dest)
 			{
 			case key_game:
-				/*if (CVAR_TO_BOOL (gl_showtextures))*/
 				if (r_showtextures.value)
 					{
 					// close texture atlas
-					/*Cvar_SetValue ("r_showtextures", 0.0f);*/
 					Cvar_DirectSet (&r_showtextures, "0");
 					return;
 					}
@@ -832,7 +826,6 @@ Key_EnableTextInput [FWGS, 01.07.23]
 */
 void Key_EnableTextInput (qboolean enable, qboolean force)
 	{
-	/*if (CVAR_TO_BOOL (osk_enable))*/
 	if (osk_enable.value)
 		{
 		OSK_EnableTextInput (enable, force);
@@ -1039,7 +1032,6 @@ struct osk_s
 static qboolean OSK_KeyEvent (int key, int down)
 	{
 	// [FWGS, 01.07.23]
-	/*if (!osk.enable || !CVAR_TO_BOOL (osk_enable))*/
 	if (!osk.enable || !osk_enable.value)
 		return false;
 
@@ -1229,7 +1221,6 @@ void OSK_Draw (void)
 	int i, j;
 
 	// [FWGS, 01.07.23]
-	/*if (!osk.enable || !CVAR_TO_BOOL (osk_enable) || !osk.curbutton.val)*/
 	if (!osk.enable || !osk_enable.value || !osk.curbutton.val)
 		return;
 

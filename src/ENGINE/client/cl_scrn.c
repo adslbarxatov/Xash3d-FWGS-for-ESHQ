@@ -20,18 +20,6 @@ GNU General Public License for more details.
 #include "input.h"
 #include "library.h"
 
-/*convar_t *scr_centertime;
-convar_t *scr_loading;
-convar_t *scr_download;
-convar_t *scr_viewsize;
-convar_t *cl_testlights;
-convar_t *cl_allow_levelshots;
-convar_t *cl_levelshot_name;
-static convar_t *cl_envshot_size;
-convar_t *v_dark;
-static convar_t *net_speeds;
-static convar_t *cl_showfps;
-static convar_t *cl_showpos;*/
 CVAR_DEFINE_AUTO (scr_centertime, "2.5", 0,
 	"centerprint hold time");
 CVAR_DEFINE_AUTO (scr_loading, "0", 0,
@@ -781,30 +769,6 @@ void SCR_Init (void)
 	if (scr_init)
 		return;
 
-	/*scr_centertime = Cvar_Get ("scr_centertime", "2.5", 0,
-		"centerprint hold time");
-	cl_levelshot_name = Cvar_Get ("cl_levelshot_name", "*black", 0,
-		"contains path to current levelshot");
-	cl_allow_levelshots = Cvar_Get ("allow_levelshots", "0", FCVAR_ARCHIVE,
-		"allow engine to use indivdual levelshots instead of 'loading' image");
-	scr_loading = Cvar_Get ("scr_loading", "0", 0,
-		"loading bar progress");
-	scr_download = Cvar_Get ("scr_download", "-1", 0,
-		"downloading bar progress");
-	cl_testlights = Cvar_Get ("cl_testlights", "0", 0,
-		"test dynamic lights");
-	cl_envshot_size = Cvar_Get ("cl_envshot_size", "256", FCVAR_ARCHIVE,
-		"envshot size of cube side");
-	v_dark = Cvar_Get ("v_dark", "0", 0,
-		"starts level from dark screen");
-	scr_viewsize = Cvar_Get ("viewsize", "120", FCVAR_ARCHIVE,
-		"screen size");
-	net_speeds = Cvar_Get ("net_speeds", "0", FCVAR_ARCHIVE,
-		"show network packets");
-	cl_showfps = Cvar_Get ("cl_showfps", "0", FCVAR_ARCHIVE,
-		"show client fps");
-	cl_showpos = Cvar_Get ("cl_showpos", "0", FCVAR_ARCHIVE,
-		"show local player position and velocity");*/
 	Cvar_RegisterVariable (&scr_centertime);
 	Cvar_RegisterVariable (&cl_levelshot_name);
 	Cvar_RegisterVariable (&cl_allow_levelshots);
@@ -848,7 +812,8 @@ void SCR_Init (void)
 
 	if (host.allow_console && Sys_CheckParm ("-toconsole"))
 		Cbuf_AddText ("toggleconsole\n");
-	else UI_SetActiveMenu (true);
+	else
+		UI_SetActiveMenu (true);
 
 	scr_init = true;
 	}

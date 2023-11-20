@@ -956,9 +956,7 @@ void CBaseTurret::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector ve
 		flDamage = 0.1;	// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
 		}
 
-	// ESHQ: работает неправильно
-	/*if (!pev->takedamage)
-		return;*/
+	// ESHQ: pev->takedamage работает неправильно
 
 	AddMultiDamage (pevAttacker, this, flDamage, bitsDamageType);
 	}
@@ -966,9 +964,7 @@ void CBaseTurret::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector ve
 // take damage. bitsDamageType indicates type of damage sustained, ie: DMG_BULLET
 int CBaseTurret::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
-	// ESHQ: работает неправильно
-	/*if (!pev->takedamage)
-		return 0;*/
+	// ESHQ: pev->takedamage работает неправильно
 
 	if (!m_iOn)
 		flDamage /= 10.0;
@@ -1160,9 +1156,7 @@ void CSentry::Shoot (Vector& vecSrc, Vector& vecDirToEnemy)
 
 int CSentry::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
-	// ESHQ: работает неправильно
-	/*if (!pev->takedamage)
-		return 0;*/
+	// ESHQ: pev->takedamage работает неправильно
 
 	if (!m_iOn)
 		{

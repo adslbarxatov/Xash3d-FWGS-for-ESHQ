@@ -56,40 +56,6 @@ CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE,
 	"test network bandwith before connection");
 
 // [FWGS, 01.07.23]
-/*convar_t *rcon_address;
-convar_t *cl_timeout;
-convar_t *cl_nopred;
-convar_t *cl_nodelta;
-convar_t *cl_crosshair;
-convar_t *cl_cmdbackup;
-convar_t *cl_showerror;
-convar_t *cl_bmodelinterp;
-convar_t *cl_draw_particles;
-convar_t *cl_draw_tracers;
-convar_t *cl_lightstyle_lerping;
-convar_t *cl_idealpitchscale;
-convar_t *cl_nosmooth;
-convar_t *cl_smoothtime;
-convar_t *cl_clockreset;
-convar_t *cl_fixtimerate;
-convar_t *hud_fontscale;
-convar_t *hud_scale;
-convar_t *cl_solid_players;
-convar_t *cl_draw_beams;
-convar_t *cl_updaterate;
-convar_t *cl_showevents;
-convar_t *cl_cmdrate;
-convar_t *cl_interp;
-convar_t *cl_nointerp;
-convar_t *cl_dlmax;
-convar_t *cl_upmax;
-
-convar_t *cl_lw;
-convar_t *cl_charset;
-convar_t *cl_trace_messages;
-convar_t *cl_nat;
-convar_t *hud_utf8;
-convar_t *ui_renderworld;*/
 CVAR_DEFINE (cl_draw_particles, "r_drawparticles", "1", FCVAR_CHEAT,
 	"render particles");
 CVAR_DEFINE (cl_draw_tracers, "r_drawtracers", "1", FCVAR_CHEAT,
@@ -159,14 +125,7 @@ CVAR_DEFINE_AUTO (hud_utf8, "0", FCVAR_ARCHIVE,
 CVAR_DEFINE_AUTO (ui_renderworld, "0", FCVAR_ARCHIVE,
 	"render world when UI is visible");
 
-//
 // [FWGS, 01.07.23] userinfo
-//
-/*convar_t *name;
-convar_t *model;
-convar_t *topcolor;
-convar_t *bottomcolor;
-convar_t *rate;*/
 static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY,
 	"player name");
 static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE,
@@ -578,7 +537,6 @@ qboolean CL_ProcessShowTexturesCmds (usercmd_t *cmd)
 	int			pressed, released;
 
 	// [FWGS, 01.07.23]
-	/*if (!gl_showtextures->value || CL_IsDevOverviewMode ())*/
 	if (!r_showtextures.value || CL_IsDevOverviewMode ())
 		return false;
 
@@ -588,15 +546,12 @@ qboolean CL_ProcessShowTexturesCmds (usercmd_t *cmd)
 
 	// [FWGS, 01.07.23]
 	if (released & (IN_RIGHT | IN_MOVERIGHT))
-		/*Cvar_SetValue ("r_showtextures", gl_showtextures->value + 1);*/
 		Cvar_SetValue ("r_showtextures", r_showtextures.value + 1);
 
 	if (released & (IN_LEFT | IN_MOVELEFT))
-		/*Cvar_SetValue ("r_showtextures", Q_max (1, gl_showtextures->value - 1));*/
 		Cvar_SetValue ("r_showtextures", Q_max (1, r_showtextures.value - 1));
 
 	oldbuttons = cmd->buttons;
-
 	return true;
 	}
 
@@ -616,7 +571,6 @@ qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 	float	step2 = step * 100.0f * (2.0f / ov->flZoom);
 
 	// [FWGS, 01.07.23]
-	/*if (!CL_IsDevOverviewMode () || gl_showtextures->value)*/
 	if (!CL_IsDevOverviewMode () || r_showtextures.value)
 		return false;
 
@@ -836,11 +790,9 @@ void CL_WritePacket (void)
 
 	// clamp cmdrate [FWGS, 01.07.23]
 	if (cl_cmdrate.value < 10.0f)
-		/*Cvar_SetValue ("cl_cmdrate", 10.0f);*/
 		Cvar_DirectSet (&cl_cmdrate, "10");
 
 	else if (cl_cmdrate.value > 100.0f)
-		/*Cvar_SetValue ("cl_cmdrate", 100.0f);*/
 		Cvar_DirectSet (&cl_cmdrate, "100");
 
 	// Check to see if we can actually send this command
@@ -1384,7 +1336,6 @@ void CL_Connect_f (void)
 		Host_ShutdownServer ();
 
 	// [FWGS, 01.07.23]
-	/*NET_Config (true, !CVAR_TO_BOOL (cl_nat)); // allow remote*/
 	NET_Config (true, !cl_nat.value); // allow remote
 
 	Con_Printf ("server %s\n", server);
@@ -1397,8 +1348,8 @@ void CL_Connect_f (void)
 	cls.state = ca_connecting;
 	cls.legacymode = legacyconnect;
 	Q_strncpy (cls.servername, server, sizeof (cls.servername));
-	cls.connect_time = MAX_HEARTBEAT; // CL_CheckForResend() will fire immediately
-	cls.max_fragment_size = FRAGMENT_MAX_SIZE; // guess a we can establish connection with maximum fragment size
+	cls.connect_time = MAX_HEARTBEAT;	// CL_CheckForResend() will fire immediately
+	cls.max_fragment_size = FRAGMENT_MAX_SIZE;	// guess a we can establish connection with maximum fragment size
 	cls.connect_retry = 0;
 	cls.spectator = false;
 	cls.signon = 0;
@@ -3007,22 +2958,6 @@ void CL_InitLocal (void)
 	VGui_RegisterCvars ();	// [FWGS, 01.05.23]
 
 	// [FWGS, 01.07.23] register our variables
-	/*cl_crosshair = Cvar_Get ("crosshair", "1", FCVAR_ARCHIVE,
-		"show weapon chrosshair");
-	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0,
-		"disable delta-compression for server messages");
-	cl_idealpitchscale = Cvar_Get ("cl_idealpitchscale", "0.8", 0,
-		"how much to look up/down slopes and stairs when not using freelook");
-	cl_solid_players = Cvar_Get ("cl_solid_players", "1", 0,
-		"Make all players not solid (can't traceline them)");
-	cl_interp = Cvar_Get ("ex_interp", "0.1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"Interpolate object positions starting this many seconds in past");
-	cl_timeout = Cvar_Get ("cl_timeout", "60", 0,
-		"connect timeout (in-seconds)");
-	cl_charset = Cvar_Get ("cl_charset", "utf-8", FCVAR_ARCHIVE,
-		"1-byte charset to use (iconv style)");
-	hud_utf8 = Cvar_Get ("hud_utf8", "0", FCVAR_ARCHIVE,
-		"Use utf-8 encoding for hud text");*/
 	Cvar_RegisterVariable (&cl_crosshair);
 	Cvar_RegisterVariable (&cl_nodelta);
 	Cvar_RegisterVariable (&cl_idealpitchscale);
@@ -3031,39 +2966,11 @@ void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_timeout);
 	Cvar_RegisterVariable (&cl_charset);
 	Cvar_RegisterVariable (&hud_utf8);
-
-	/*rcon_address = Cvar_Get ("rcon_address", "", FCVAR_PRIVILEGED,
-		"remote control address");*/
 	Cvar_RegisterVariable (&rcon_address);
-
-	/*cl_trace_messages = Cvar_Get ("cl_trace_messages", "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
-		"enable message names tracing (good for developers)");*/
 	Cvar_RegisterVariable (&cl_trace_messages);
 	Cvar_RegisterVariable (&cl_trace_events);
 
 	// [FWGS, 01.07.23] userinfo
-	/*cl_nopred = Cvar_Get ("cl_nopred", "0", FCVAR_ARCHIVE | FCVAR_USERINFO,
-		"disable client movement prediction");
-	name = Cvar_Get ("name", Sys_GetCurrentUser (), FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY,
-		"player name");
-	model = Cvar_Get ("model", "", FCVAR_USERINFO | FCVAR_ARCHIVE,
-		"player model ('player' is a singleplayer model)");
-	cl_updaterate = Cvar_Get ("cl_updaterate", "20", FCVAR_USERINFO | FCVAR_ARCHIVE,
-		"refresh rate of server messages");
-	cl_dlmax = Cvar_Get ("cl_dlmax", "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
-		"max allowed outcoming fragment size");
-	cl_upmax = Cvar_Get ("cl_upmax", "1200", FCVAR_ARCHIVE,
-		"max allowed incoming fragment size");
-	cl_nat = Cvar_Get ("cl_nat", "0", 0,
-		"show servers running under NAT");
-	rate = Cvar_Get ("rate", "3500", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"player network rate");
-	topcolor = Cvar_Get ("topcolor", "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
-		"player top color");
-	bottomcolor = Cvar_Get ("bottomcolor", "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
-		"player bottom color");
-	cl_lw = Cvar_Get ("cl_lw", "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
-		"enable client weapon predicting");*/
 	Cvar_RegisterVariable (&cl_nopred);
 	Cvar_RegisterVariable (&name);
 	Cvar_DirectSet (&name, Sys_GetCurrentUser ());
@@ -3087,36 +2994,6 @@ void CL_InitLocal (void)
 		"player skin");
 
 	// [FWGS, 01.07.23]
-	/*cl_nosmooth = Cvar_Get ("cl_nosmooth", "0", FCVAR_ARCHIVE,
-		"disable smooth up stair climbing");
-	cl_nointerp = Cvar_Get ("cl_nointerp", "0", FCVAR_CLIENTDLL,
-		"disable interpolation of entities and players");
-	cl_smoothtime = Cvar_Get ("cl_smoothtime", "0.1", FCVAR_ARCHIVE,
-		"time to smooth up");
-	cl_cmdbackup = Cvar_Get ("cl_cmdbackup", "10", FCVAR_ARCHIVE,
-		"how many additional history commands are sent");
-	cl_cmdrate = Cvar_Get ("cl_cmdrate", "60", FCVAR_ARCHIVE,
-		"Max number of command packets sent to server per second");
-	cl_draw_particles = Cvar_Get ("r_drawparticles", "1", FCVAR_CHEAT,
-		"render particles");
-	cl_draw_tracers = Cvar_Get ("r_drawtracers", "1", FCVAR_CHEAT,
-		"render tracers");
-	cl_draw_beams = Cvar_Get ("r_drawbeams", "1", FCVAR_CHEAT,
-		"render beams");
-	cl_lightstyle_lerping = Cvar_Get ("cl_lightstyle_lerping", "0", FCVAR_ARCHIVE,
-		"enables animated light lerping (perfomance option)");
-	cl_showerror = Cvar_Get ("cl_showerror", "0", FCVAR_ARCHIVE,
-		"show prediction error");
-	cl_bmodelinterp = Cvar_Get ("cl_bmodelinterp", "1", FCVAR_ARCHIVE,
-		"enable bmodel interpolation");
-	cl_clockreset = Cvar_Get ("cl_clockreset", "0.1", FCVAR_ARCHIVE,
-		"frametime delta maximum value before reset");
-	cl_fixtimerate = Cvar_Get ("cl_fixtimerate", "7.5", FCVAR_ARCHIVE,
-		"time in msec to client clock adjusting");
-	hud_fontscale = Cvar_Get ("hud_fontscale", "1.0", FCVAR_ARCHIVE | FCVAR_LATCH,
-		"scale hud font texture");
-	hud_scale = Cvar_Get ("hud_scale", "0", FCVAR_ARCHIVE | FCVAR_LATCH,
-		"scale hud at current resolution");*/
 	Cvar_RegisterVariable (&cl_nosmooth);
 	Cvar_RegisterVariable (&cl_nointerp);
 	Cvar_RegisterVariable (&cl_smoothtime);
@@ -3135,16 +3012,10 @@ void CL_InitLocal (void)
 
 	Cvar_Get ("cl_background", "0", FCVAR_READ_ONLY,
 		"indicate what background map is running");
-
-	/*cl_showevents = Cvar_Get ("cl_showevents", "0", FCVAR_ARCHIVE,
-		"show events playback");*/
 	Cvar_RegisterVariable (&cl_showevents);
 
 	Cvar_Get ("lastdemo", "", FCVAR_ARCHIVE,
 		"last played demo");
-	
-	/*ui_renderworld = Cvar_Get ("ui_renderworld", "0", FCVAR_ARCHIVE,
-		"render world when UI is visible");*/
 	Cvar_RegisterVariable (&ui_renderworld);
 
 	// these two added to shut up CS 1.5 about 'unknown' commands

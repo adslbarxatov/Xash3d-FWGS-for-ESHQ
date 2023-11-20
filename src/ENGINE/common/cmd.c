@@ -995,7 +995,6 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 	cmd_condlevel = 0;
 
 	// [FWGS, 01.07.23] cvar value substitution
-	/*if (CVAR_TO_BOOL (cmd_scripting) && isPrivileged)*/
 	if (cmd_scripting.value && isPrivileged)
 		{
 		while (*text)
@@ -1365,7 +1364,6 @@ inserts escape sequences
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len)
 	{
 	int c;
-	/*int scripting = CVAR_TO_BOOL (cmd_scripting);*/
 	int scripting = cmd_scripting.value;	// [FWGS, 01.07.23]
 
 	while ((c = *oldCommand++) && len > 1)

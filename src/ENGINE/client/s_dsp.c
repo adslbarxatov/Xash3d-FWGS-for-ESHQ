@@ -163,10 +163,6 @@ static const sx_preset_t rgsxpre_hlalpha052[] =
 static const sx_preset_t *ptable = rgsxpre;
 
 // [FWGS, 01.07.23] cvars
-/*convar_t *dsp_off;		// disable dsp
-convar_t *roomwater_type;	// water room_type
-convar_t *room_type;	// current room type
-convar_t *hisound;		// DSP quality*/
 static CVAR_DEFINE_AUTO (dsp_off, "0", FCVAR_ARCHIVE,
 	"disable DSP processing");
 static CVAR_DEFINE_AUTO (dsp_coeff_table, "0", FCVAR_ARCHIVE,
@@ -179,22 +175,16 @@ static CVAR_DEFINE (hisound, "room_hires", "2", FCVAR_ARCHIVE,
 	"dsp quality. 1 for 22k, 2 for 44k(recommended) and 3 for 96k");
 
 // [FWGS, 01.07.23] underwater/special fx modulations
-/*convar_t *sxmod_mod;
-convar_t *sxmod_lowpass;*/
 static CVAR_DEFINE (sxmod_mod, "room_mod", "0", 0,
 	"stereo amptitude modulation for room");
 static CVAR_DEFINE (sxmod_lowpass, "room_lp", "0", 0,
 	"for water fx, lowpass for entire room");
 
 // [FWGS, 01.07.23] stereo delay(no feedback)
-/*convar_t *sxste_delay;	// straight left delay*/
 static CVAR_DEFINE (sxste_delay, "room_left", "0", 0,
 	"left channel delay time");
 
 // [FWGS, 01.07.23] mono reverb
-/*convar_t *sxrvb_lp;	// lowpass
-convar_t *sxrvb_feedback;	// reverb decay. Higher -- longer
-convar_t *sxrvb_size;	// room size. Higher -- larger*/
 static CVAR_DEFINE (sxrvb_lp, "room_rvblp", "1", 0,
 	"reverb: low pass filtering level");
 static CVAR_DEFINE (sxrvb_feedback, "room_refl", "0", 0,
@@ -203,10 +193,6 @@ static CVAR_DEFINE (sxrvb_size, "room_size", "0", 0,
 	"reverb: initial reflection size");
 
 // [FWGS, 01.07.23] mono delay
-/*convar_t *sxdly_lp;	// lowpass
-convar_t *sxdly_feedback;	// cycles
-convar_t *sxdly_delay;	// current delay in seconds
-convar_t *dsp_room;	// for compability*/
 static CVAR_DEFINE (sxdly_lp, "room_dlylp", "1", 0,
 	"mono delay: low pass filtering level");
 static CVAR_DEFINE (sxdly_feedback, "room_feedback", "0.2", 0,
@@ -215,19 +201,11 @@ static CVAR_DEFINE (sxdly_delay, "room_delay", "0.8", 0,
 	"mono delay: delay time");
 
 // [FWGS, 01.07.23]
-/*convar_t *dsp_coeff_table; // use release or 0.52 style
-int			idsp_dma_speed;*/
 static int	idsp_dma_speed;
 int			idsp_room;
-/*int			room_typeprev;*/
 static int	room_typeprev;
 
 // [FWGS, 01.07.23] routines
-/*int			sxamodl, sxamodr;      // amplitude modulation values
-int			sxamodlt, sxamodrt;    // modulation targets
-int			sxmod1cur, sxmod2cur;
-int			sxmod1, sxmod2;
-int			sxhires;*/
 static int	sxamodl, sxamodr;		// amplitude modulation values
 static int	sxamodlt, sxamodrt;		// modulation targets
 static int	sxmod1cur, sxmod2cur;
@@ -248,12 +226,6 @@ SX_ReloadRoomFX [FWGS, 01.07.23]
 */
 static void SX_ReloadRoomFX (void)
 	{
-	/*if (!dsp_room) return; // not initialized
-
-	SetBits (sxste_delay->flags, FCVAR_CHANGED);
-	SetBits (sxrvb_feedback->flags, FCVAR_CHANGED);
-	SetBits (sxdly_delay->flags, FCVAR_CHANGED);
-	SetBits (room_type->flags, FCVAR_CHANGED);*/
 	SetBits (sxste_delay.flags, FCVAR_CHANGED);
 	SetBits (sxrvb_feedback.flags, FCVAR_CHANGED);
 	SetBits (sxdly_delay.flags, FCVAR_CHANGED);
@@ -275,8 +247,6 @@ void SX_Init (void)
 	sxamodr = sxamodl = sxamodrt = sxamodlt = 255;
 	idsp_dma_speed = SOUND_11k;
 
-	/*hisound = Cvar_Get ("room_hires", "2", FCVAR_ARCHIVE,
-		"dsp quality. 1 for 22k, 2 for 44k(recommended) and 3 for 96k");*/
 	Cvar_RegisterVariable (&hisound);
 
 	sxhires = 2;
@@ -284,43 +254,21 @@ void SX_Init (void)
 	sxmod1cur = sxmod1 = 350 * (idsp_dma_speed / SOUND_11k);
 	sxmod2cur = sxmod2 = 450 * (idsp_dma_speed / SOUND_11k);
 
-	/*dsp_off = Cvar_Get ("dsp_off", "0", FCVAR_ARCHIVE, "disable DSP processing");
-	dsp_coeff_table = Cvar_Get ("dsp_coeff_table", "0", FCVAR_ARCHIVE, 
-		"select DSP coefficient table: 0 for release or 1 for alpha 0.52");*/
 	Cvar_RegisterVariable (&dsp_off);
 	Cvar_RegisterVariable (&dsp_coeff_table);
-
-	/*roomwater_type = Cvar_Get ("waterroom_type", "14", 0, "water room type");
-	room_type = Cvar_Get ("room_type", "0", 0, "current room type preset");*/
 	Cvar_RegisterVariable (&roomwater_type);
 	Cvar_RegisterVariable (&room_type);
-
-	/*sxmod_lowpass = Cvar_Get ("room_lp", "0", 0, "for water fx, lowpass for entire room");
-	sxmod_mod = Cvar_Get ("room_mod", "0", 0, "stereo amptitude modulation for room");*/
 	Cvar_RegisterVariable (&sxmod_lowpass);
 	Cvar_RegisterVariable (&sxmod_mod);
-
-	/*sxrvb_size = Cvar_Get ("room_size", "0", 0, "reverb: initial reflection size");
-	sxrvb_feedback = Cvar_Get ("room_refl", "0", 0, "reverb: decay time");
-	sxrvb_lp = Cvar_Get ("room_rvblp", "1", 0, "reverb: low pass filtering level");*/
 	Cvar_RegisterVariable (&sxrvb_size);
 	Cvar_RegisterVariable (&sxrvb_feedback);
 	Cvar_RegisterVariable (&sxrvb_lp);
-
-	/*sxdly_delay = Cvar_Get ("room_delay", "0.8", 0, "mono delay: delay time");
-	sxdly_feedback = Cvar_Get ("room_feedback", "0.2", 0, "mono delay: decay time");
-	sxdly_lp = Cvar_Get ("room_dlylp", "1", 0, "mono delay: low pass filtering level");*/
 	Cvar_RegisterVariable (&sxdly_delay);
 	Cvar_RegisterVariable (&sxdly_feedback);
 	Cvar_RegisterVariable (&sxdly_lp);
-
-	/*sxste_delay = Cvar_Get ("room_left", "0", 0, "left channel delay time");*/
 	Cvar_RegisterVariable (&sxste_delay);
 
 	Cmd_AddCommand ("dsp_profile", SX_Profiling_f, "dsp stress-test, first argument is room_type");
-
-	/* for compability
-	dsp_room = room_type;*/
 
 	SX_ReloadRoomFX ();
 	}

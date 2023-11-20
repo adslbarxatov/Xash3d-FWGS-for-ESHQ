@@ -6,7 +6,6 @@
 #include "r_efx.h"
 #include "cl_tent.h"
 #include "pm_local.h"
-/*#define PART_SIZE	Q_max( 0.5f, cl_draw_particles->value )*/
 #define PART_SIZE	Q_max(0.5f, cl_draw_particles.value)	// [FWGS, 01.07.23]
 
 /*
@@ -21,9 +20,6 @@ static int ramp3[6] = { 0x6d, 0x6b, 6, 5, 4, 3 };
 static int gSparkRamp[9] = { 0xfe, 0xfd, 0xfc, 0x6f, 0x6e, 0x6d, 0x6c, 0x67, 0x60 };
 
 // [FWGS, 01.07.23]
-/*convar_t *tracerspeed;
-convar_t *tracerlength;
-convar_t *traceroffset;*/
 static CVAR_DEFINE_AUTO (tracerspeed, "6000", 0, "tracer speed");
 static CVAR_DEFINE_AUTO (tracerlength, "0.8", 0, "tracer length factor");
 static CVAR_DEFINE_AUTO (traceroffset, "30", 0, "tracer starting offset");
@@ -104,9 +100,6 @@ void CL_InitParticles (void)
 		}
 
 	// [FWGS, 01.07.23]
-	/*tracerspeed = Cvar_Get ("tracerspeed", "6000", 0, "tracer speed");
-	tracerlength = Cvar_Get ("tracerlength", "0.8", 0, "tracer length factor");
-	traceroffset = Cvar_Get ("traceroffset", "30", 0, "tracer starting offset");*/
 	Cvar_RegisterVariable (&tracerspeed);
 	Cvar_RegisterVariable (&tracerlength);
 	Cvar_RegisterVariable (&traceroffset);
@@ -179,7 +172,6 @@ particle_t *GAME_EXPORT R_AllocParticle (void (*callback)(particle_t *, float))
 	{
 	particle_t *p;
 
-	/*if (!cl_draw_particles->value)*/
 	if (!cl_draw_particles.value)	// [FWGS, 01.07.23]
 		return NULL;
 
@@ -228,7 +220,6 @@ particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life)
 	{
 	particle_t *p;
 
-	/*if (!cl_draw_tracers->value)*/
 	if (!cl_draw_tracers.value)	// [FWGS, 01.07.23]
 		return NULL;
 
@@ -253,7 +244,6 @@ particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life)
 	VectorCopy (org, p->org);
 	VectorCopy (vel, p->vel);
 	p->die = cl.time + life;
-	/*p->ramp = tracerlength->value;*/
 	p->ramp = tracerlength.value;	// [FWGS, 01.07.23]
 	p->color = 4; // select custom color
 	p->packedColor = 255; // alpha
@@ -1789,15 +1779,12 @@ void GAME_EXPORT R_TracerEffect (const vec3_t start, const vec3_t end)
 	float	len, speed;
 	float	offset;
 
-	/*speed = Q_max (tracerspeed->value, 3.0f);*/
 	speed = Q_max (tracerspeed.value, 3.0f);	// [FWGS, 01.07.23]
-
 	VectorSubtract (end, start, dir);
 	len = VectorLength (dir);
 	if (len == 0.0f) return;
 
 	VectorScale (dir, 1.0f / len, dir); // normalize
-	/*offset = COM_RandomFloat (-10.0f, 9.0f) + traceroffset->value;*/
 	offset = COM_RandomFloat (-10.0f, 9.0f) + traceroffset.value;	// [FWGS, 01.07.23]
 	VectorScale (dir, offset, vel);
 	VectorAdd (start, vel, pos);
@@ -2058,18 +2045,16 @@ void CL_FreeDeadBeams (void)
 void CL_DrawEFX (float time, qboolean fTrans)
 	{
 	CL_FreeDeadBeams ();
-	/*if (CVAR_TO_BOOL (cl_draw_beams))*/
 	if (cl_draw_beams.value)
 		ref.dllFuncs.CL_DrawBeams (fTrans, cl_active_beams);
 
 	if (fTrans)
 		{
 		R_FreeDeadParticles (&cl_active_particles);
-		/*if (CVAR_TO_BOOL (cl_draw_particles))*/
 		if (cl_draw_particles.value)
 			ref.dllFuncs.CL_DrawParticles (time, cl_active_particles, PART_SIZE);
+
 		R_FreeDeadParticles (&cl_active_tracers);
-		/*if (CVAR_TO_BOOL (cl_draw_tracers))*/
 		if (cl_draw_tracers.value)
 			ref.dllFuncs.CL_DrawTracers (time, cl_active_tracers);
 		}
@@ -2077,11 +2062,11 @@ void CL_DrawEFX (float time, qboolean fTrans)
 
 void CL_ThinkParticle (double frametime, particle_t *p)
 	{
-	float		time3 = 15.0f * frametime;
-	float		time2 = 10.0f * frametime;
-	float		time1 = 5.0f * frametime;
-	float		dvel = 4.0f * frametime;
-	float		grav = frametime * clgame.movevars.gravity * 0.05f;
+	float	time3 = 15.0f * frametime;
+	float	time2 = 10.0f * frametime;
+	float	time1 = 5.0f * frametime;
+	float	dvel = 4.0f * frametime;
+	float	grav = frametime * clgame.movevars.gravity * 0.05f;
 
 
 	if (p->type != pt_clientcustom)
@@ -2094,12 +2079,14 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 		{
 		case pt_static:
 			break;
+
 		case pt_fire:
 			p->ramp += time1;
 			if (p->ramp >= 6.0f) p->die = -1.0f;
 			else p->color = ramp3[(int)p->ramp];
 			p->vel[2] += grav;
 			break;
+
 		case pt_explode:
 			p->ramp += time2;
 			if (p->ramp >= 8.0f) p->die = -1.0f;
@@ -2107,6 +2094,7 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 			VectorMA (p->vel, dvel, p->vel, p->vel);
 			p->vel[2] -= grav;
 			break;
+
 		case pt_explode2:
 			p->ramp += time3;
 			if (p->ramp >= 8.0f) p->die = -1.0f;
@@ -2114,6 +2102,7 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 			VectorMA (p->vel, -frametime, p->vel, p->vel);
 			p->vel[2] -= grav;
 			break;
+
 		case pt_blob:
 			if (p->packedColor == 255)
 				{
@@ -2122,7 +2111,8 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 				p->vel[2] -= grav;
 				break;
 				}
-			// intentionally fallthrough
+
+		// intentionally fallthrough
 		case pt_blob2:
 			if (p->packedColor == 255)
 				{
@@ -2141,22 +2131,26 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 				p->vel[2] -= grav * 5.0f;
 				}
 			break;
+
 		case pt_grav:
 			p->vel[2] -= grav * 20.0f;
 			break;
+
 		case pt_slowgrav:
 			p->vel[2] -= grav;
 			break;
+
 		case pt_vox_grav:
 			p->vel[2] -= grav * 8.0f;
 			break;
+
 		case pt_vox_slowgrav:
 			p->vel[2] -= grav * 4.0f;
 			break;
+
 		case pt_clientcustom:
 			if (p->callback)
 				p->callback (p, frametime);
 			break;
 		}
 	}
-

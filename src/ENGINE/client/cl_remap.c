@@ -41,20 +41,21 @@ CL_CmpStudioTextures [FWGS, 01.08.23]
 return true if equal
 ====================
 */
-/*qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, mstudiotexture_t *p2)*/
 static qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, remap_info_t *remap)
 	{
 	int	i;
 	mstudiotexture_t *p2;
 
-	/*if (!p1 || !p2) return false;*/
-	if (!p1)	// no textures
+	// no textures
+	if (!p1)
 		return false;
 
-	if (!remap)		// current model has no remap
+	// current model has no remap
+	if (!remap)
 		return false;
 
-	if (!remap->textures)	// shouldn't happen, just in case
+	// shouldn't happen, just in case
+	if (!remap->textures)
 		return false;
 
 	if (numtexs != remap->numtextures)	// amount of textures differs, it's a different model
@@ -299,15 +300,15 @@ void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor, int b
 
 		// [FWGS, 01.08.23]
 		src = (mstudiotexture_t *)(((byte *)phdr) + phdr->textureindex);
-		/*dst = (clgame.remap_info[i] ? clgame.remap_info[i]->ptexture : NULL);*/
 
 		// NOTE: we must copy all the structures 'mstudiotexture_t' for easy access when model is rendering
-		/*if (!CL_CmpStudioTextures (phdr->numtextures, src, dst) || clgame.remap_info[i]->model != model)*/
 		if (!CL_CmpStudioTextures (phdr->numtextures, src, clgame.remap_info[i]) || (clgame.remap_info[i]->model != model))
 			{
 			// this code catches studiomodel change with another studiomodel with remap textures
 			// e.g. playermodel 'barney' with playermodel 'gordon'
-			if (clgame.remap_info[i]) CL_FreeRemapInfo (clgame.remap_info[i]); // free old info
+			if (clgame.remap_info[i])
+				CL_FreeRemapInfo (clgame.remap_info[i]); // free old info
+
 			size = sizeof (remap_info_t) + (sizeof (mstudiotexture_t) * phdr->numtextures);
 			info = clgame.remap_info[i] = Mem_Calloc (clgame.mempool, size);
 			info->ptexture = (mstudiotexture_t *)(info + 1); // textures are immediately comes after remap_info

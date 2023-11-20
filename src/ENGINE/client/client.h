@@ -661,46 +661,6 @@ extern convar_t	cl_allow_upload;
 extern convar_t	cl_download_ingame;
 
 // [FWGS, 01.07.23]
-/*extern convar_t *cl_nopred;
-extern convar_t *cl_timeout;
-extern convar_t *cl_nodelta;
-extern convar_t *cl_interp;
-extern convar_t *cl_nointerp;
-extern convar_t *cl_showerror;
-extern convar_t *cl_nosmooth;
-extern convar_t *cl_smoothtime;
-extern convar_t *cl_crosshair;
-extern convar_t *cl_testlights;
-extern convar_t *cl_cmdrate;
-extern convar_t *cl_updaterate;
-extern convar_t *cl_solid_players;
-extern convar_t *cl_idealpitchscale;
-extern convar_t *cl_allow_levelshots;
-extern convar_t *cl_lightstyle_lerping;
-extern convar_t *cl_draw_particles;
-extern convar_t *cl_draw_tracers;
-extern convar_t *cl_levelshot_name;
-extern convar_t *cl_draw_beams;
-extern convar_t *cl_clockreset;
-extern convar_t *cl_fixtimerate;
-extern convar_t *hud_fontscale;
-extern convar_t *hud_scale;
-extern convar_t *gl_showtextures;
-extern convar_t *cl_bmodelinterp;
-extern convar_t *cl_lw;		// local weapons
-extern convar_t *cl_charset;
-extern convar_t *cl_trace_messages;
-extern convar_t *hud_utf8;
-extern convar_t *cl_showevents;
-extern convar_t *scr_centertime;
-extern convar_t *scr_viewsize;
-extern convar_t *scr_loading;
-extern convar_t *v_dark;	// start from dark
-extern convar_t *net_graph;
-extern convar_t *rate;
-extern convar_t *m_ignore;
-extern convar_t *r_showtree;
-extern convar_t *ui_renderworld;*/
 extern convar_t cl_nopred;
 extern convar_t cl_timeout;
 extern convar_t cl_nodelta;
@@ -872,7 +832,6 @@ void CL_LinkUserMessage (char *pszName, const int svc_num, int iSize);
 void CL_ParseFinaleCutscene (sizebuf_t *msg, int level);
 void CL_ParseTextMessage (sizebuf_t *msg);
 void CL_DrawHUD (int state);
-/*void CL_InitEdicts (void);*/
 void CL_InitEdicts (int maxclients);	// [FWGS, 01.07.23]
 void CL_FreeEdicts (void);
 void CL_ClearWorld (void);
@@ -881,31 +840,23 @@ void CL_ClearSpriteTextures (void);
 void CL_CenterPrint (const char *text, float y);
 void CL_TextMessageParse (byte *pMemFile, int fileSize);
 client_textmessage_t *CL_TextMessageGet (const char *pName);	// [FWGS, 01.04.23]
-/*int pfnDecalIndexFromName (const char *szDecalName);	// [FWGS, 01.07.23]
-int pfnIndexFromTrace (struct pmtrace_s *pTrace);*/
 model_t *CL_ModelHandle (int modelindex);
 void NetAPI_CancelAllRequests (void);
-/*int CL_FindModelIndex (const char *m);*/	// [FWGS, 01.07.23]
 cl_entity_t *CL_GetLocalPlayer (void);
 model_t *CL_LoadClientSprite (const char *filename);
 model_t *CL_LoadModel (const char *modelname, int *index);
-/*HLSPRITE EXPORT pfnSPR_Load (const char *szPicName);*/	// [FWGS, 01.07.23]
 HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags);
 void SPR_AdjustSize (float *x, float *y, float *w, float *h);
 void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2);
 
 int CL_GetScreenInfo (SCREENINFO *pscrinfo);
 void CL_FillRGBA (int x, int y, int width, int height, int r, int g, int b, int a);
-/*void CL_PlayerTrace (float *start, float *end, int traceFlags, int ignore_pe, pmtrace_t *tr);	// [FWGS, 01.07.23]
-void CL_PlayerTraceExt (float *start, float *end, int traceFlags, int (*pfnIgnore)(physent_t *pe), pmtrace_t *tr);*/
 pmtrace_t *PM_CL_TraceLine (float *start, float *end, int flags, int usehull, int ignore_pe);
 const char *PM_CL_TraceTexture (int ground, float *vstart, float *vend);
 int PM_CL_PointContents (const float *p, int *truecontents);
 
-/*void CL_SetTraceHull (int hull);*/	// [FWGS, 01.07.23]
 void CL_GetMousePosition (int *mx, int *my);
 cl_entity_t *CL_GetViewModel (void);
-/*void pfnGetScreenFade (struct screenfade_s *fade);*/	// [FWGS, 01.07.23]
 physent_t *pfnGetPhysent (int idx);
 struct msurface_s *pfnTraceSurface (int ground, float *vstart, float *vend);
 movevars_t *pfnGetMoveVars (void);
@@ -962,9 +913,6 @@ void CL_ParseCvarValue (sizebuf_t * msg, const qboolean ext);
 void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message);
 
 // [FWGS, 01.07.23]
-/*void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message);
-void CL_LegacyPrecache_f (void);*/
-
 void CL_ParseTempEntity (sizebuf_t *msg);
 qboolean CL_DispatchUserMessage (const char *pszName, int iSize, void *pbuf);
 qboolean CL_RequestMissingResources (void);
@@ -1087,7 +1035,6 @@ void R_AddEfrags (cl_entity_t *ent);
 // cl_tent.c
 //
 struct particle_s;
-/*int CL_AddEntity (int entityType, cl_entity_t *pEnt);*/	// [FWGS, 01.07.23]
 void CL_WeaponAnim (int iAnim, int body);
 void CL_ClearEffects (void);
 void CL_ClearEfrags (void);

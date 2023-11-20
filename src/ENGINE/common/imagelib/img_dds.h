@@ -257,5 +257,4 @@ typedef struct dds_s
 	dds_caps_t  dsCaps;
 	uint32_t    dwTextureStage;
 	} dds_t;
-#endif // IMG_DDS_H
-
+#endif

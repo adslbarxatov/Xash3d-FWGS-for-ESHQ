@@ -78,11 +78,10 @@ CL_DescribeEvent
 */
 void CL_DescribeEvent (event_info_t *ei, int slot)
 	{
-	int		idx = (slot & 63) * 2;
+	int				idx = (slot & 63) * 2;
 	con_nprint_t	info;
-	string origin_str = { 0 };
+	string			origin_str = { 0 };
 
-	/*if (!cl_showevents->value)*/
 	if (!cl_showevents.value)	// [FWGS, 01.07.23]
 		return;
 
@@ -235,7 +234,6 @@ qboolean CL_FireEvent (event_info_t *ei, int slot)
 				return true;
 				}
 
-			/*name = cl.event_precache[ei->index];*/
 			Con_Reportf (S_ERROR "CL_FireEvent: %s not hooked\n", name);
 			break;
 			}
@@ -253,10 +251,9 @@ called right before draw frame
 */
 void CL_FireEvents (void)
 	{
-	event_state_t *es;
-	event_info_t *ei;
-	int		i;
-
+	event_state_t	*es;
+	event_info_t	*ei;
+	int				i;
 	es = &cl.events;
 
 	for (i = 0; i < MAX_EVENT_QUEUE; i++)

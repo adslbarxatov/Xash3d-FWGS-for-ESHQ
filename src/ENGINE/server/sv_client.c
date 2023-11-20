@@ -828,18 +828,10 @@ SV_TestBandWidth [FWGS, 01.07.23]
 */
 void SV_TestBandWidth (netadr_t from)
 	{
-	/*int	version = Q_atoi (Cmd_Argv (1));
-	int	packetsize = Q_atoi (Cmd_Argv (2));
-	byte	send_buf[FRAGMENT_MAX_SIZE];
-	dword	crcValue = 0;
-	byte *filepos;
-	int	crcpos;
-	file_t *test;
-	sizebuf_t	send;*/
-	const int version = Q_atoi (Cmd_Argv (1));
-	const int packetsize = Q_atoi (Cmd_Argv (2));
-	uint32_t crc;
-	int ofs;
+	const int	version = Q_atoi (Cmd_Argv (1));
+	const int	packetsize = Q_atoi (Cmd_Argv (2));
+	uint32_t	crc;
+	int			ofs;
 
 	// don't waste time of protocol mismatched
 	if (version != PROTOCOL_VERSION)
@@ -848,9 +840,6 @@ void SV_TestBandWidth (netadr_t from)
 		return;
 		}
 
-	/*test = FS_Open ("gfx.wad", "rb", false);
-
-	if (FS_FileLength (test) < sizeof (send_buf))*/
 	// quickly reject invalid packets
 	if (!svs.testpacket_buf || (packetsize <= FRAGMENT_MIN_SIZE) || (packetsize > FRAGMENT_MAX_SIZE))
 		{
@@ -858,17 +847,6 @@ void SV_TestBandWidth (netadr_t from)
 		SV_GetChallenge (from);
 		return;
 		}
-
-	/* write the packet header
-	MSG_Init (&send, "BandWidthPacket", send_buf, sizeof (send_buf));
-	MSG_WriteLong (&send, -1);	// -1 sequence means out of band
-	MSG_WriteString (&send, "testpacket");
-	crcpos = MSG_GetNumBytesWritten (&send);
-	MSG_WriteLong (&send, 0); // reserve space for crc
-	filepos = send.pData + MSG_GetNumBytesWritten (&send);
-	packetsize = packetsize - MSG_GetNumBytesWritten (&send); // adjust the packet size
-	FS_Read (test, filepos, packetsize);
-	FS_Close (test);*/
 	
 	// don't go out of bounds
 	ofs = packetsize - svs.testpacket_filepos - 1;
@@ -878,14 +856,10 @@ void SV_TestBandWidth (netadr_t from)
 		return;
 		}
 
-	/*CRC32_ProcessBuffer (&crcValue, filepos, packetsize);	// calc CRC
-	MSG_SeekToBit (&send, packetsize << 3, SEEK_CUR);
-	*(uint *)&send.pData[crcpos] = crcValue;*/
 	crc = svs.testpacket_crcs[ofs];
 	memcpy (svs.testpacket_crcpos, &crc, sizeof (crc));
 
 	// send the datagram
-	/*NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&send), MSG_GetData (&send), from);*/
 	NET_SendPacket (NS_SERVER, packetsize, MSG_GetData (&svs.testpacket), from);
 	}
 
@@ -1101,13 +1075,9 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 	char			*p = remaining;
 	int				i;
 
-	/*if (!rcon_enable.value)*/
 	if (!rcon_enable.value || !COM_CheckStringEmpty (rcon_password.string))
 		return;
 
-	/*Con_Printf ("Rcon from %s:\n%s\n", NET_AdrToString (from), MSG_GetData (msg) + 4);
-	Log_Printf ("Rcon: \"%s\" from \"%s\"\n", MSG_GetData (msg) + 4, NET_AdrToString (from));
-	SV_BeginRedirect (from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);*/
 	adr = NET_AdrToString (from);
 	Con_Printf ("Rcon from %s:\n%s\n", adr, MSG_GetData (msg) + 4);
 	Log_Printf ("Rcon: \"%s\" from \"%s\"\n", MSG_GetData (msg) + 4, adr);
@@ -1120,8 +1090,6 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 		// [FWGS, 01.05.23]
 		for (i = 2; i < Cmd_Argc (); i++)
 			{
-			/*Q_strncat (remaining, Cmd_Argv (i), sizeof (remaining));
-			Q_strncat (remaining, " ", sizeof (remaining));*/
 			p += Q_strncpy (p, "\"", sizeof (remaining) - (p - remaining));
 			p += Q_strncpy (p, Cmd_Argv (i), sizeof (remaining) - (p - remaining));
 			p += Q_strncpy (p, "\" ", sizeof (remaining) - (p - remaining));
@@ -1134,8 +1102,6 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 		{
 		Con_Printf (S_ERROR "Bad rcon_password.\n");
 		}
-
-	/*SV_EndRedirect ();*/
 	}
 
 /*
@@ -1671,7 +1637,6 @@ void SV_SendServerdata (sizebuf_t *msg, sv_client_t *cl)
 		}
 
 	// [FWGS, 01.07.23] send delta-encoding
-	/*SV_WriteDeltaDescriptionToClient (msg);*/
 	Delta_WriteDescriptionToClient (msg);
 
 	// now client know delta and can reading encoded messages
@@ -3203,7 +3168,6 @@ void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 		// custom client commands
 		svgame.dllFuncs.pfnClientCommand (cl->edict);
 
-		/*if (!Q_strcmp (Cmd_Argv (0), "fullupdate"))*/
 		if (fullupdate)
 			{
 			// resend the ambient sounds for demo recording
@@ -3217,72 +3181,10 @@ void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 			// resend the viewentity
 			SV_UpdateClientView (cl);
 
-			/*}
-		}
-	}
-
-// ==================
-// SV_TSourceEngineQuery
-// ==================
-void SV_TSourceEngineQuery (netadr_t from)
-	{
-	// A2S_INFO
-	char	answer[1024] = "";
-	int	count, bots;
-	int	index;
-	sizebuf_t	buf;
-
-	SV_GetPlayerCount (&count, &bots);
-
-	MSG_Init (&buf, "TSourceEngineQuery", answer, sizeof (answer));
-
-	MSG_WriteLong (&buf, -1); // Mark as connectionless
-	MSG_WriteByte (&buf, 'm');
-	MSG_WriteString (&buf, NET_AdrToString (net_local));
-	MSG_WriteString (&buf, hostname.string);
-	MSG_WriteString (&buf, sv.name);
-	MSG_WriteString (&buf, GI->gamefolder);
-	MSG_WriteString (&buf, GI->title);
-	MSG_WriteByte (&buf, count);
-	MSG_WriteByte (&buf, svs.maxclients);
-	MSG_WriteByte (&buf, PROTOCOL_VERSION);
-	MSG_WriteByte (&buf, Host_IsDedicated () ? 'D' : 'L');
-#if defined(_WIN32)
-	MSG_WriteByte (&buf, 'W');
-#else
-	MSG_WriteByte (&buf, 'L');
-#endif
-	if (Q_stricmp (GI->gamefolder, "valve"))
-		{
-		MSG_WriteByte (&buf, 1); // mod
-		MSG_WriteString (&buf, GI->game_url);
-		MSG_WriteString (&buf, GI->update_url);
-		MSG_WriteByte (&buf, 0);
-		MSG_WriteLong (&buf, (int)GI->version);
-		MSG_WriteLong (&buf, GI->size);
-
-		if (GI->gamemode == 2)
-			MSG_WriteByte (&buf, 1); // multiplayer_only
-		else
-			MSG_WriteByte (&buf, 0);
-
-		if (Q_strstr (GI->game_dll, "hl."))
-			MSG_WriteByte (&buf, 0); // Half-Life DLL
-		else
-			MSG_WriteByte (&buf, 1); // Own DLL*/
 			if (sv_fullupdate_penalty_time.value)
 				cl->fullupdate_next_calltime = host.realtime + sv_fullupdate_penalty_time.value;
 			}
 		}
-	/*else
-		{
-		MSG_WriteByte (&buf, 0); // Half-Life
-		}
-
-	MSG_WriteByte (&buf, GI->secure); // unsecure
-	MSG_WriteByte (&buf, bots);
-
-	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);*/
 	}
 
 /*
@@ -3292,7 +3194,7 @@ SV_ConnectionlessPacket
 A connectionless packet has four leading 0xff
 characters to distinguish it from a game channel.
 Clients that are in the game can still send
-connectionless packets.
+connectionless packets
 =================
 */
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
@@ -3314,7 +3216,6 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 
 	// [FWGS, 01.07.23]
 	pcmd = Cmd_Argv (0);
-	/*Con_Reportf ("SV_ConnectionlessPacket: %s : %s\n", NET_AdrToString (from), pcmd);*/
 	if (sv_log_outofband.value)
 		Con_Reportf ("SV_ConnectionlessPacket: %s : %s\n", NET_AdrToString (from), pcmd);
 
@@ -3338,9 +3239,6 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		SV_AddToMaster (from, msg);
 
 	// [FWGS, 01.07.23]
-	/*else if (!Q_strcmp (pcmd, "T" "Source"))
-		SV_TSourceEngineQuery (from);*/
-	
 	else if (!Q_strcmp (pcmd, "i"))
 		NET_SendPacket (NS_SERVER, 5, "\xFF\xFF\xFF\xFFj", from); // A2A_PING
 

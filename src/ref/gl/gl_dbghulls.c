@@ -41,7 +41,6 @@ void R_DrawWorldHull (void)
 		}
 
 	// [FWGS, 01.07.23]
-	/*if (!CVAR_TO_BOOL (r_showhull))*/
 	if (!r_showhull->value)
 		return;
 
@@ -61,11 +60,10 @@ void R_DrawWorldHull (void)
 
 void R_DrawModelHull (void)
 	{
-	hull_model_t *hull;
-	winding_t *poly;
-	int		i;
+	hull_model_t	*hull;
+	winding_t		*poly;
+	int				i;
 
-	/*if (!CVAR_TO_BOOL (r_showhull))*/
 	if (!r_showhull->value)	// [FWGS, 01.07.23]
 		return;
 

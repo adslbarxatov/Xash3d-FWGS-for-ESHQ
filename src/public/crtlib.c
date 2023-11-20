@@ -1039,7 +1039,6 @@ skipwhite:
 // [FWGS, 01.07.23]
 int matchpattern (const char *in, const char *pattern, qboolean caseinsensitive)
 	{
-	/*return matchpattern_with_separator (in, pattern, caseinsensitive, "/\\:", false);*/
 	const char *separators = "/\\:";
 
 	if (!Q_strcmp (pattern, "*"))

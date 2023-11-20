@@ -2906,65 +2906,11 @@ pfnWriteString [FWGS, 01.07.23]
 */
 static void GAME_EXPORT pfnWriteString (const char *src)
 	{
-	/*static char	string[MAX_USERMSG_LENGTH];
-	int		len = Q_strlen (src) + 1;
-	int		rem = sizeof (string) - 1;
-	char *dst;
-
-	if (len == 1)
-		{
-		MSG_WriteChar (&sv.multicast, 0);
-		svgame.msg_realsize += 1;
-		return; // fast exit
-		}
-
-	// prepare string to sending
-	dst = string;
-
-	while (1)
-		{
-		// some escaped chars parsed as two symbols - merge it here
-		if (src[0] == '\\' && src[1] == 'n')
-			{
-			*dst++ = '\n';
-			src += 2;
-			len -= 1;
-			}
-		else if (src[0] == '\\' && src[1] == 'r')
-			{
-			*dst++ = '\r';
-			src += 2;
-			len -= 1;
-			}
-		else if (src[0] == '\\' && src[1] == 't')
-			{
-			*dst++ = '\t';
-			src += 2;
-			len -= 1;
-			}
-		else if ((*dst++ = *src++) == 0)
-			{
-			break;
-			}
-
-		if (--rem <= 0)
-			{
-			Con_Printf (S_ERROR "pfnWriteString: exceeds %i symbols\n", len);
-			*dst = '\0'; // string end (not included in count)
-			len = Q_strlen (string) + 1;
-			break;
-			}
-		}
-
-	*dst = '\0'; // string end (not included in count)
-	MSG_WriteString (&sv.multicast, string);
-	if (svgame.msg_trace) Con_Printf ("\t^3%s( %s )\n", __FUNCTION__, string);*/
 	MSG_WriteString (&sv.multicast, src);
 	if (svgame.msg_trace)
 		Con_Printf ("\t^3%s( %s )\n", __FUNCTION__, src);
 
 	// NOTE: some messages with constant string length can be marked as known sized
-	/*svgame.msg_realsize += len;*/
 	svgame.msg_realsize += Q_strlen (src) + 1;
 	}
 
@@ -3057,7 +3003,6 @@ pfnEngineFprintf [FWGS, 01.07.23]
 OBSOLETE, UNUSED
 =============
 */
-/*static void pfnEngineFprintf (FILE *pfile, char *szFmt, ...) _format (2);*/
 static void GAME_EXPORT pfnEngineFprintf (FILE *pfile, char *szFmt, ...)
 	{
 	}
@@ -3363,10 +3308,9 @@ use -str64dup to disable deduplication, -str64alloc to set array size
 */
 string_t GAME_EXPORT SV_AllocString (const char *szValue)
 	{
-	/*const char *newString = NULL;*/
-	char *newString = NULL;
-	uint len;
-	int cmp;
+	char	*newString = NULL;
+	uint	len;
+	int		cmp;
 
 	if (svgame.physFuncs.pfnAllocString != NULL)
 		return svgame.physFuncs.pfnAllocString (szValue);
@@ -3384,10 +3328,8 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 
 	if (cmp)
 		{
-		/*uint len = Q_strlen (szValue);*/
 		uint len = SV_ProcessString (NULL, szValue);
 
-		/*if (str64.plast - str64.poldstringbase + len + 2 > str64.maxstringarray)*/
 		if (str64.plast - str64.poldstringbase + len + 1 > str64.maxstringarray)
 			{
 			str64.plast = str64.pstringbase + 1;
@@ -3395,13 +3337,10 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 			str64.numoverflows++;
 			}
 
-		/*memcpy (str64.plast, szValue, len + 1);
-		str64.totalalloc += len + 1;*/
 		SV_ProcessString (str64.plast, szValue);
 		str64.totalalloc += len;
 
 		newString = str64.plast;
-		/*str64.plast += len + 1;*/
 		str64.plast += len;
 		}
 	else
@@ -3416,7 +3355,6 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 
 #else
 
-	/*newString = _copystring (svgame.stringspool, szValue, __FILE__, __LINE__);*/
 	len = SV_ProcessString (NULL, szValue);
 	newString = Mem_Malloc (svgame.stringspool, len);
 	SV_ProcessString (newString, szValue);
@@ -4363,7 +4301,6 @@ static byte *GAME_EXPORT pfnSetFatPVS (const float *org)
 	if (!FBitSet (sv.hostflags, SVF_MERGE_VISIBILITY))
 		{
 		vec3_t	viewPos, offset;
-		/*ASSERT (pfnGetCurrentPlayer () != -1);*/
 		qboolean client_active = pfnGetCurrentPlayer () != -1;
 
 		// see code from client.cpp for understanding:
@@ -4374,7 +4311,6 @@ static byte *GAME_EXPORT pfnSetFatPVS (const float *org)
 		//   }
 		// so we have unneeded duck calculations who have affect when player
 		// is ducked into water. Remove offset to restore right PVS position
-		/*if (FBitSet (sv.current_client->edict->v.flags, FL_DUCKING))*/
 		if (client_active && FBitSet (sv.current_client->edict->v.flags, FL_DUCKING))
 			{
 			VectorSubtract (svgame.pmove->player_mins[0], svgame.pmove->player_mins[1], offset);
@@ -4388,7 +4324,6 @@ static byte *GAME_EXPORT pfnSetFatPVS (const float *org)
 		// build a new PVS frame
 		Mod_FatPVS (viewPos, FATPVS_RADIUS, fatpvs, world.fatbytes, false, fullvis);
 		
-		/*VectorCopy (viewPos, viewPoint[pfnGetCurrentPlayer ()]);*/
 		if (client_active)
 			VectorCopy (viewPos, viewPoint[pfnGetCurrentPlayer ()]);
 		}
@@ -4420,7 +4355,6 @@ byte *pfnSetFatPAS (const float *org)
 	if (!FBitSet (sv.hostflags, SVF_MERGE_VISIBILITY))
 		{
 		vec3_t	viewPos, offset;
-		/*ASSERT (pfnGetCurrentPlayer () != -1);*/
 		qboolean client_active = pfnGetCurrentPlayer () != -1;
 
 		// see code from client.cpp for understanding:
@@ -4432,7 +4366,6 @@ byte *pfnSetFatPAS (const float *org)
 		// so we have unneeded duck calculations who have affect when player
 		// is ducked into water. Remove offset to restore right PVS position
 		if (client_active && FBitSet (sv.current_client->edict->v.flags, FL_DUCKING))
-		/*if (FBitSet (sv.current_client->edict->v.flags, FL_DUCKING))*/
 			{
 			VectorSubtract (svgame.pmove->player_mins[0], svgame.pmove->player_mins[1], offset);
 			VectorSubtract (org, offset, viewPos);
@@ -4813,7 +4746,6 @@ static enginefuncs_t gEngfuncs =
 	{
 		pfnPrecacheModel,
 		SV_SoundIndex,
-		/*pfnSetModel,*/
 		SV_SetModel,	// [FWGS, 01.07.23]
 		pfnModelIndex,
 		pfnModelFrames,

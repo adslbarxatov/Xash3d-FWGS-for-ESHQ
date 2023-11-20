@@ -20,13 +20,9 @@ GNU General Public License for more details.
 #define SKYCLOUDS_QUALITY	12
 #define MAX_CLIP_VERTS		128 // skybox clip vertices
 #define TURBSCALE			( 256.0f / ( M_PI2 ))
-/*const char *r_skyBoxSuffix[6] = { "rt", "bk", "lf", "ft", "up", "dn" };	// [FWGS, 01.07.23]
-static const int	r_skyTexOrder[6] = { 0, 2, 1, 3, 4, 5 };
 
-static const vec3_t skyclip[6] =*/
 static const char *r_skyBoxSuffix[SKYBOX_MAX_SIDES] = { "rt", "bk", "lf", "ft", "up", "dn" };
 static const int r_skyTexOrder[SKYBOX_MAX_SIDES] = { 0, 2, 1, 3, 4, 5 };
-
 static const vec3_t skyclip[SKYBOX_MAX_SIDES] =
 	{
 	{  1,  1,  0 },
@@ -279,14 +275,6 @@ static void MakeSkyVec (float s, float t, int axis)
 	t = (t + 1.0f) * 0.5f;
 
 	// [FWGS, 01.07.23]
-	/*if (s < 1.0f / 512.0f)
-		s = 1.0f / 512.0f;
-	else if (s > 511.0f / 512.0f)
-		s = 511.0f / 512.0f;
-	if (t < 1.0f / 512.0f)
-		t = 1.0f / 512.0f;
-	else if (t > 511.0f / 512.0f)
-		t = 511.0f / 512.0f;*/
 	s = bound (1.0f / 512.0f, s, 511.0f / 512.0f);
 	t = bound (1.0f / 512.0f, t, 511.0f / 512.0f);
 	t = 1.0f - t;

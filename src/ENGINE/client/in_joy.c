@@ -48,22 +48,6 @@ static byte currentbinding;			// add posibility to remap keys, to place it in jo
 static qboolean joy_initialized;	// [FWGS, 01.05.23]
 
 // [FWGS, 01.07.23]
-/*convar_t *joy_enable;
-static convar_t *joy_pitch;
-static convar_t *joy_yaw;
-static convar_t *joy_forward;
-static convar_t *joy_side;
-static convar_t *joy_found;
-static convar_t *joy_index;
-static convar_t *joy_lt_threshold;
-static convar_t *joy_rt_threshold;
-static convar_t *joy_side_deadzone;
-static convar_t *joy_forward_deadzone;
-static convar_t *joy_side_key_threshold;
-static convar_t *joy_forward_key_threshold;
-static convar_t *joy_pitch_deadzone;
-static convar_t *joy_yaw_deadzone;
-static convar_t *joy_axis_binding;*/
 static CVAR_DEFINE_AUTO (joy_pitch, "100.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"joystick pitch sensitivity");
 static CVAR_DEFINE_AUTO (joy_yaw, "100.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -438,63 +422,30 @@ Main init procedure
 */
 void Joy_Init (void)
 	{
-	/*joy_pitch = Cvar_Get ("joy_pitch", "100.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"joystick pitch sensitivity");
-	joy_yaw = Cvar_Get ("joy_yaw", "100.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"joystick yaw sensitivity");
-	joy_side = Cvar_Get ("joy_side", "1.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"joystick side sensitivity. Values from -1.0 to 1.0");
-	joy_forward = Cvar_Get ("joy_forward", "1.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"joystick forward sensitivity. Values from -1.0 to 1.0");*/
 	Cvar_RegisterVariable (&joy_pitch);
 	Cvar_RegisterVariable (&joy_yaw);
 	Cvar_RegisterVariable (&joy_side);
 	Cvar_RegisterVariable (&joy_forward);
-
-	/*joy_lt_threshold = Cvar_Get ("joy_lt_threshold", "16384", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"left trigger threshold. Value from 0 to 32767");
-	joy_rt_threshold = Cvar_Get ("joy_rt_threshold", "16384", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"right trigger threshold. Value from 0 to 32767");*/
 	Cvar_RegisterVariable (&joy_lt_threshold);
 	Cvar_RegisterVariable (&joy_rt_threshold);
 
 	// emit a key event at 75% axis move
-	/*joy_side_key_threshold = Cvar_Get ("joy_side_key_threshold", "24576", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"side axis key event emit threshold. Value from 0 to 32767");
-	joy_forward_key_threshold = Cvar_Get ("joy_forward_key_threshold", "24576", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"forward axis key event emit threshold. Value from 0 to 32767");*/
 	Cvar_RegisterVariable (&joy_side_key_threshold);
 	Cvar_RegisterVariable (&joy_forward_key_threshold);
 
 	// by default, we rely on deadzone detection come from system,
 	// but some glitchy devices report false deadzones
-	/*joy_side_deadzone = Cvar_Get ("joy_side_deadzone", DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"side axis deadzone. Value from 0 to 32767");
-	joy_forward_deadzone = Cvar_Get ("joy_forward_deadzone", DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"forward axis deadzone. Value from 0 to 32767");
-	joy_pitch_deadzone = Cvar_Get ("joy_pitch_deadzone", DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"pitch axis deadzone. Value from 0 to 32767");
-	joy_yaw_deadzone = Cvar_Get ("joy_yaw_deadzone", DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"yaw axis deadzone. Value from 0 to 32767");*/
 	Cvar_RegisterVariable (&joy_side_deadzone);
 	Cvar_RegisterVariable (&joy_forward_deadzone);
 	Cvar_RegisterVariable (&joy_pitch_deadzone);
 	Cvar_RegisterVariable (&joy_yaw_deadzone);
-
-	/*joy_axis_binding = Cvar_Get ("joy_axis_binding", "sfpyrl", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"axis hardware id to engine inner axis binding, "
-		"s - side, f - forward, y - yaw, p - pitch, r - left trigger, l - right trigger");
-	joy_found = Cvar_Get ("joy_found", "0", FCVAR_READ_ONLY, "is joystick is connected");*/
 	Cvar_RegisterVariable (&joy_axis_binding);
 	Cvar_RegisterVariable (&joy_found);
 
 	// we doesn't loaded config.cfg yet, so this cvar is not archive.
 	// change by +set joy_index in cmdline
-	/*joy_index = Cvar_Get ("joy_index", "0", FCVAR_READ_ONLY, "current active joystick");
-	joy_enable = Cvar_Get ("joy_enable", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, "enable joystick");*/
 	Cvar_RegisterVariable (&joy_index);
 	Cvar_RegisterVariable (&joy_enable);
-
 
 	// [FWGS, 01.05.23] renamed from -nojoy to -noenginejoy to not conflict with
 	// client.dll's joystick support

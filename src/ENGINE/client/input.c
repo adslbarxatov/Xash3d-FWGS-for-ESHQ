@@ -37,9 +37,6 @@ static struct inputstate_s
 	} inputstate;
 
 // [FWGS, 01.07.23]
-/*extern convar_t *vid_fullscreen;
-convar_t *m_pitch;
-convar_t *m_yaw;*/
 CVAR_DEFINE_AUTO (m_pitch, "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"mouse pitch value");
 CVAR_DEFINE_AUTO (m_yaw, "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -52,12 +49,6 @@ static CVAR_DEFINE_AUTO (m_rawinput, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable mouse raw input");
 
 // [FWGS, 01.07.23]
-/*convar_t *m_ignore;
-convar_t *cl_forwardspeed;
-convar_t *cl_sidespeed;
-convar_t *cl_backspeed;
-convar_t *look_filter;
-convar_t *m_rawinput;*/
 static CVAR_DEFINE_AUTO (cl_forwardspeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 	"Default forward move speed");
 static CVAR_DEFINE_AUTO (cl_backspeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
@@ -127,16 +118,6 @@ IN_StartupMouse [FWGS, 01.07.23]
 */
 void IN_StartupMouse (void)
 	{
-	/*m_ignore = Cvar_Get ("m_ignore", DEFAULT_M_IGNORE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"ignore mouse events");
-	m_pitch = Cvar_Get ("m_pitch", "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"mouse pitch value");
-	m_yaw = Cvar_Get ("m_yaw", "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"mouse yaw value");
-	look_filter = Cvar_Get ("look_filter", "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"filter look events making it smoother");
-	m_rawinput = Cvar_Get ("m_rawinput", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-		"enable mouse raw input");*/
 	Cvar_RegisterVariable (&m_ignore);
 	Cvar_RegisterVariable (&m_pitch);
 	Cvar_RegisterVariable (&m_yaw);
@@ -206,10 +187,6 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		{
 		Platform_SetCursorType (dc_arrow);
 
-/*#if XASH_ANDROID
-		Android_ShowMouse (true);
-#endif*/
-
 #if XASH_USE_EVDEV
 		Evdev_SetGrab (false);
 #endif
@@ -217,10 +194,6 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 	else
 		{
 		Platform_SetCursorType (dc_none);
-
-/*#if XASH_ANDROID
-		Android_ShowMouse (false);
-#endif*/
 
 #if XASH_USE_EVDEV
 		Evdev_SetGrab (true);
@@ -240,8 +213,6 @@ void IN_CheckMouseState (qboolean active)
 
 #if XASH_WIN32
 	// [FWGS, 01.07.23]
-	/*qboolean useRawInput = (CVAR_TO_BOOL (m_rawinput) && clgame.client_dll_uses_sdl) ||
-		(clgame.dllFuncs.pfnLookEvent != NULL);*/
 	qboolean useRawInput = (m_rawinput.value && clgame.client_dll_uses_sdl) ||
 		(clgame.dllFuncs.pfnLookEvent != NULL);
 #else
@@ -436,12 +407,6 @@ IN_Init
 void IN_Init (void)
 	{
 	// [FWGS, 01.07.23]
-	/*cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
-		"Default forward move speed");
-	cl_backspeed = Cvar_Get ("cl_backspeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
-		"Default back move speed");
-	cl_sidespeed = Cvar_Get ("cl_sidespeed", "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
-		"Default side move speed");*/
 	Cvar_RegisterVariable (&cl_forwardspeed);
 	Cvar_RegisterVariable (&cl_backspeed);
 	Cvar_RegisterVariable (&cl_sidespeed);
@@ -449,9 +414,7 @@ void IN_Init (void)
 	if (!Host_IsDedicated ())
 		{
 		IN_StartupMouse ();
-
 		Joy_Init (); // common joystick support init
-
 		Touch_Init ();
 
 #if XASH_USE_EVDEV
@@ -629,7 +592,6 @@ void IN_Commands (void)
 		float forward = 0, side = 0, pitch = 0, yaw = 0;
 
 		// [FWGS, 01.07.23]
-		/*IN_CollectInput (&forward, &side, &pitch, &yaw, in_mouseinitialized && !CVAR_TO_BOOL (m_ignore));*/
 		IN_CollectInput (&forward, &side, &pitch, &yaw, in_mouseinitialized && !m_ignore.value);
 
 		if (cls.key_dest == key_game)

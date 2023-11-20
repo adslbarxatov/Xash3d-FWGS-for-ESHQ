@@ -105,7 +105,6 @@ typedef struct fs_archive_s
 	} fs_archive_t;
 
 extern fs_globals_t		FI;
-/*extern searchpath_t	*fs_searchpaths;*/	// [FWGS, 01.07.23]
 extern searchpath_t		*fs_writepath;		// [FWGS, 01.04.23]
 extern poolhandle_t		fs_mempool;
 extern fs_interface_t	g_engfuncs;
@@ -215,7 +214,6 @@ qboolean FS_FullPathToRelativePath (char *dst, const char *src, size_t size);	//
 //
 // [FWGS, 01.04.23] удалены FS_FileTimePAK, FS_FindFilePAK, FS_PrintPAKInfo, FS_ClosePAK,
 // FS_SearchPAK, FS_OpenPackedFile
-/*qboolean FS_AddPak_Fullpath (const char *pakfile, qboolean *already_loaded, int flags);*/
 searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags);	// [FWGS, 01.07.23]
 
 
@@ -225,29 +223,16 @@ searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags);	// [FWGS, 01.
 // [FWGS, 01.04.23] удалены FS_FileTimeWAD, FS_PrintWADInfo, FS_CloseWAD, FS_SearchWAD, FS_FindFileWAD
 searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags);	// [FWGS, 01.07.23]
 
-/*byte *FS_LoadWADFile (const char *path, fs_offset_t *sizeptr, qboolean gamedironly);
-qboolean FS_AddWad_Fullpath (const char *wadfile, qboolean *already_loaded, int flags);
-
-//
-// watch.c
-//
-qboolean FS_WatchInitialize (void);
-int FS_AddWatch (const char *path, fs_event_callback_t callback);
-void FS_WatchFrame (void);*/
-
 //
 // zip.c
 //
 // [FWGS, 01.04.23] удалены FS_FileTimeZIP, FS_FindFileZIP, FS_PrintZIPInfo, FS_CloseZIP,
 // FS_OpenZipFile, FS_SearchZIP
 searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags);	// [FWGS, 01.07.23]
-/*byte *FS_LoadZIPFile (const char *path, fs_offset_t *sizeptr, qboolean gamedironly);
-qboolean FS_AddZip_Fullpath (const char *zipfile, qboolean *already_loaded, int flags);*/
 
 //
 // dir.c
 //
-/*searchpath_t *FS_AddDir_Fullpath (const char *path, qboolean *already_loaded, int flags);*/
 searchpath_t *FS_AddDir_Fullpath (const char *path, int flags);	// [FWGS, 01.07.23]
 qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t len, qboolean createpath);
 void FS_InitDirectorySearchpath (searchpath_t *search, const char *path, int flags);

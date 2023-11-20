@@ -403,11 +403,10 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 				break;
 
 			case SDL_SCANCODE_PRINTSCREEN:
-				/*host.force_draw_version = true;*/	// [FWGS, 01.07.23]
 				host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 				break;
 
-				// [FWGS, 01.04.23]
+			// [FWGS, 01.04.23]
 			case SDL_SCANCODE_PAUSE:
 				keynum = K_PAUSE;
 				break;
@@ -543,15 +542,11 @@ static void SDLash_ActiveEvent (int gain)
 		{
 		host.status = HOST_FRAME;
 		if (cls.key_dest == key_game)
-			{
 			IN_ActivateMouse ();
-			}
 
 		if (dma.initialized && snd_mute_losefocus.value)
-			{
 			SNDDMA_Activate (true);
-			}
-		/*host.force_draw_version = true;*/	// [FWGS, 01.07.23]
+
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 		if (vid_fullscreen.value)
 			VID_SetMode ();
@@ -567,15 +562,11 @@ static void SDLash_ActiveEvent (int gain)
 #endif
 				host.status = HOST_NOFOCUS;
 				if (cls.key_dest == key_game)
-					{
 					IN_DeactivateMouse ();
-					}
 
 				if (dma.initialized && snd_mute_losefocus.value)
-					{
 					SNDDMA_Activate (false);
-					}
-				/*host.force_draw_version = true;*/
+
 				host.force_draw_version_time = host.realtime + 2.0;	// [FWGS, 01.07.23]
 				VID_RestoreScreenResolution ();
 		}
@@ -797,8 +788,6 @@ static void SDLash_EventFilter (SDL_Event *event)
 					// [FWGS, 01.07.23]
 					if (!vid_fullscreen.value)
 						{
-						/*Cvar_SetValue ("_window_xpos", (float)event->window.data1);
-						Cvar_SetValue ("_window_ypos", (float)event->window.data2);*/
 						char val[32];
 
 						Q_snprintf (val, sizeof (val), "%d", event->window.data1);
@@ -816,7 +805,6 @@ static void SDLash_EventFilter (SDL_Event *event)
 
 				case SDL_WINDOWEVENT_RESTORED:
 					host.status = HOST_FRAME;
-					/*host.force_draw_version = true;*/	// [FWGS, 01.07.23]
 					host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 					if (vid_fullscreen.value)
 						VID_SetMode ();
@@ -887,7 +875,6 @@ this should disable mouse look on client when m_ignore enabled
 */
 void Platform_PreCreateMove (void)
 	{
-	/*if (CVAR_TO_BOOL (m_ignore))*/
 	if (m_ignore.value)
 		{
 		SDL_GetRelativeMouseState (NULL, NULL);

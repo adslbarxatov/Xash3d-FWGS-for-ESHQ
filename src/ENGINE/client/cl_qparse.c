@@ -232,15 +232,12 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		CSCR_LoadDefaultCVars ("user.scr");
 
 		// [FWGS, 01.07.23]
-		/*if (r_decals->value > mp_decals.value)
-			Cvar_SetValue ("r_decals", mp_decals.value);*/
 		if (r_decals.value > mp_decals.value)
 			Cvar_DirectSet (&r_decals, mp_decals.string);
 		}
 	else
 		{
 		// [FWGS, 01.07.23]
-		/*Cvar_Reset ("r_decals");*/
 		Cvar_DirectSet (&r_decals, NULL);
 		}
 
@@ -266,7 +263,6 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	Q_strncpy (gameui.globals->maptitle, clgame.maptitle, sizeof (gameui.globals->maptitle));
 
 	if (!cls.changelevel && !cls.changedemo)
-		/*CL_InitEdicts (); // re-arrange edicts*/
 		CL_InitEdicts (cl.maxclients);	// [FWGS, 01.07.23] re-arrange edicts
 
 	// Quake just have a large packet of initialization data

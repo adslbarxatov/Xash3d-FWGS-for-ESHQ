@@ -955,14 +955,11 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 		// loading user settings
 		CSCR_LoadDefaultCVars ("user.scr");
 
-		/*if (r_decals->value > mp_decals.value)
-			Cvar_SetValue ("r_decals", mp_decals.value);*/
 		if (r_decals.value > mp_decals.value)
 			Cvar_DirectSet (&r_decals, mp_decals.string);
 		}
 	else
 		{
-		/*Cvar_Reset ("r_decals");*/
 		Cvar_DirectSet (&r_decals, NULL);
 		}
 
@@ -977,11 +974,9 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	else 
 		Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
 
+	// continue playing if we are changing level
 	if (!cls.changelevel)
-		{
-		// continue playing if we are changing level
 		S_StopBackgroundTrack ();
-		}
 
 	if (!cls.changedemo)
 		UI_SetActiveMenu (cl.background);
@@ -998,7 +993,6 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	Q_strncpy (gameui.globals->maptitle, clgame.maptitle, sizeof (gameui.globals->maptitle));
 
 	if (!cls.changelevel && !cls.changedemo)
-		/*CL_InitEdicts (); // re-arrange edicts*/
 		CL_InitEdicts (cl.maxclients); // re-arrange edicts
 
 	// get splash name
@@ -1583,7 +1577,6 @@ CL_StartDark [FWGS, 01.07.23]
 */
 static void CL_StartDark (void)
 	{
-	/*if (Cvar_VariableValue ("v_dark"))*/
 	if (v_dark.value)
 		{
 		screenfade_t *sf = &clgame.fade;
@@ -1612,7 +1605,6 @@ static void CL_StartDark (void)
 		sf->fadeReset += cl.time;
 		sf->fadeEnd += sf->fadeReset;
 
-		/*Cvar_SetValue ("v_dark", 0.0f);*/
 		Cvar_DirectSet (&v_dark, "0");
 		}
 	}
@@ -2313,8 +2305,6 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 						cls.changedemo = true;
 						}
 
-					/*CL_ClearState ();
-					CL_InitEdicts (); // re-arrange edicts*/
 					CL_ClearState ();
 					CL_InitEdicts (maxclients);		// re-arrange edicts
 					}

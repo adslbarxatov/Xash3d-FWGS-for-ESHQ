@@ -625,7 +625,6 @@ void R_ShowTextures (void)
 	string			shortname;
 
 	// [FWGS, 01.07.23]
-	/*if (!CVAR_TO_BOOL (gl_showtextures))*/
 	if (!r_showtextures->value)
 		return;
 
@@ -646,8 +645,6 @@ rebuild_page:
 	total = base_w * base_h;
 	
 	// [FWGS, 01.07.23]
-	/*start = total * (gl_showtextures->value - 1);
-	end = total * gl_showtextures->value;*/
 	start = total * (r_showtextures->value - 1);
 	end = total * r_showtextures->value;
 
@@ -666,18 +663,17 @@ rebuild_page:
 		}
 
 	// [FWGS, 01.07.23]
-	/*if (i == MAX_TEXTURES && gl_showtextures->value != 1)*/
 	if ((i == MAX_TEXTURES) && (r_showtextures->value != 1))
 		{
 		// bad case, rewind to one and try again
-		/*gEngfuncs.Cvar_SetValue ("r_showtextures", Q_max (1, gl_showtextures->value - 1));*/
 		gEngfuncs.Cvar_SetValue ("r_showtextures", Q_max (1, r_showtextures->value - 1));
 		if (++numTries < 2) goto rebuild_page;	// to prevent infinite loop
 		}
 
 	for (k = 0; i < MAX_TEXTURES; i++)
 		{
-		if (j == end) break; // page is full
+		if (j == end)
+			break; // page is full
 
 		image = R_GetTexture (i);
 		if (!pglIsTexture (image->texnum))

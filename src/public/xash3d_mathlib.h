@@ -192,7 +192,6 @@ int SignbitsForPlane (const vec3_t normal);
 int PlaneTypeForNormal (const vec3_t normal);
 int NearestPOW (int value, qboolean roundDown);
 // [FWGS, 01.07.23]
-/*void SinCos (float radians, float *sine, float *cosine);*/
 float VectorNormalizeLength2 (const vec3_t v, vec3_t out);
 qboolean VectorCompareEpsilon (const vec3_t vec1, const vec3_t vec2, vec_t epsilon);
 void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up);
@@ -209,12 +208,9 @@ qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared
 	const vec3_t vLineDir);
 float RadiusFromBounds (const vec3_t mins, const vec3_t maxs);
 void ExpandBounds (vec3_t mins, vec3_t maxs, float offset);
-
 void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean studio);
 void QuaternionAngle (const vec4_t q, vec3_t angles);
 void QuaternionSlerp (const vec4_t p, const vec4_t q, float t, vec4_t qt);
-/*float RemapVal (float val, float A, float B, float C, float D);	// [FWGS, 01.07.23]
-float ApproachVal (float target, float value, float speed);*/
 
 //
 // matrixlib.c
@@ -245,8 +241,6 @@ void Matrix3x4_ConcatTransforms (matrix3x4 out, const matrix3x4 in1, const matri
 void Matrix3x4_FromOriginQuat (matrix3x4 out, const vec4_t quaternion, const vec3_t origin);
 void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_t origin, float scale);
 void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const vec3_t maxs, vec3_t absmin, vec3_t absmax);
-/*void Matrix3x4_SetOrigin (matrix3x4 out, float x, float y, float z);	// [FWGS, 01.07.23]
-void Matrix3x4_OriginFromMatrix (const matrix3x4 in, float *out);*/
 void Matrix3x4_AnglesFromMatrix (const matrix3x4 in, vec3_t out);
 
 #define Matrix4x4_LoadIdentity( mat )	Matrix4x4_Copy( mat, m_matrix4x4_identity )

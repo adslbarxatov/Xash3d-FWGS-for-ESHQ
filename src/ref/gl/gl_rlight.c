@@ -71,7 +71,6 @@ void CL_RunLightStyles (void)
 			tr.lightstylevalue[i] = ls->map[0] * 22 * scale;
 			continue;
 			}
-		/*else if (!ls->interp || !CVAR_TO_BOOL (cl_lightstyle_lerping))*/
 		else if (!ls->interp || !cl_lightstyle_lerping->flags)	// [FWGS, 01.07.23]
 			{
 			tr.lightstylevalue[i] = ls->map[flight % ls->length] * 22 * scale;
@@ -375,7 +374,6 @@ colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot,
 		last_fraction = 1.0f;
 
 		// [FWGS, 01.07.23] get light from bmodels too
-		/*if (CVAR_TO_BOOL (r_lighting_extended))*/
 		if (r_lighting_extended.value)
 			maxEnts = MAX_PHYSENTS;
 
@@ -451,7 +449,6 @@ colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t 
 	colorVec	light = R_LightVecInternal (start, end, lspot, lvec);
 
 	// [FWGS, 01.07.23]
-	/*if (CVAR_TO_BOOL (r_lighting_extended) && lspot != NULL && lvec != NULL)*/
 	if (r_lighting_extended.value && (lspot != NULL) && (lvec != NULL))
 		{
 		// trying to get light from ceiling (but ignore gradient analyze)

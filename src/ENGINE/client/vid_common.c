@@ -21,12 +21,6 @@ GNU General Public License for more details.
 #include "platform/platform.h"
 
 // [FWGS, 01.07.23]
-/*#define WINDOW_NAME		XASH_ENGINE_NAME " Window" // Half-Life
-convar_t *vid_fullscreen;
-convar_t *vid_mode;
-convar_t *vid_brightness;
-convar_t *vid_gamma;
-convar_t *vid_highdpi;*/
 static CVAR_DEFINE (window_width, "width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen width");
 static CVAR_DEFINE (window_height, "height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
@@ -51,12 +45,6 @@ CVAR_DEFINE (window_ypos, "_window_ypos", "-1", FCVAR_RENDERINFO,
 	"window position by vertical");
 
 glwstate_t	glw_state;
-
-// [FWGS, 01.07.23]
-/*convar_t *window_xpos;
-convar_t *window_ypos;
-convar_t *vid_rotate;
-convar_t *vid_scale;*/
 
 /*
 =================
@@ -231,37 +219,14 @@ static void VID_Mode_f (void)
 		}
 
 	// [FWGS, 01.07.23]
-	/*R_ChangeDisplaySettings (w, h, Cvar_VariableInteger ("fullscreen"));*/
 	R_ChangeDisplaySettings (w, h, !!vid_fullscreen.value);
 	}
 
 // [FWGS, 01.07.23]
 void VID_Init (void)
 	{
-	/* system screen width and height (don't suppose for change from console at all)
-	Cvar_Get ("width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, "screen width");
-	Cvar_Get ("height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART, "screen height");
-	window_xpos = Cvar_Get ("_window_xpos", "-1", FCVAR_RENDERINFO,
-		"window position by horizontal");
-	window_ypos = Cvar_Get ("_window_ypos", "-1", FCVAR_RENDERINFO,
-		"window position by vertical");
-	vid_gamma = Cvar_Get ("gamma", "2.5", FCVAR_ARCHIVE,
-		"gamma amount");
-	vid_brightness = Cvar_Get ("brightness", "0.0", FCVAR_ARCHIVE,
-		"brightness factor");
-	vid_fullscreen = Cvar_Get ("fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-		"enable fullscreen mode");
-	vid_mode = Cvar_Get ("vid_mode", "0", FCVAR_RENDERINFO,
-		"current video mode index (used just for storage)");
-	vid_highdpi = Cvar_Get ("vid_highdpi", "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-		"enable High-DPI mode");
-	vid_rotate = Cvar_Get ("vid_rotate", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-		"screen rotation (0-3)");
-	vid_scale = Cvar_Get ("vid_scale", "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-		"pixel scale");*/
 	Cvar_RegisterVariable (&window_width);
 	Cvar_RegisterVariable (&window_height);
-
 	Cvar_RegisterVariable (&vid_mode);
 	Cvar_RegisterVariable (&vid_highdpi);
 	Cvar_RegisterVariable (&vid_rotate);

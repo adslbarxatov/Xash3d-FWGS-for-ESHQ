@@ -1125,28 +1125,7 @@ void *GAME_EXPORT pfnSequencePickSentence (const char *groupName, int pickMethod
 
 	}
 
-// [FWGS, 01.07.23]
-/*
-=============
-pfnIsCareerMatch
-
-used by CS:CZ (client stub)
-=============
-int GAME_EXPORT GAME_EXPORT pfnIsCareerMatch (void)
-	{
-	return 0;
-	}
-
-/*
-=============
-pfnRegisterTutorMessageShown
-
-only exists in PlayStation version
-=============
-void GAME_EXPORT pfnRegisterTutorMessageShown (int mid)
-	{
-	}
-*/
+// [FWGS, 01.07.23] removed pfnIsCareerMatch, pfnRegisterTutorMessageShown
 
 /*
 =============
@@ -1155,7 +1134,6 @@ pfnIsCareerMatch [FWGS, 01.07.23]
 only exists in PlayStation version
 =============
 */
-/*int GAME_EXPORT pfnGetTimesTutorMessageShown (int mid)*/
 int GAME_EXPORT pfnIsCareerMatch (void)
 	{
 	return 0;

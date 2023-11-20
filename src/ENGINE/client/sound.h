@@ -223,7 +223,6 @@ extern dma_t	dma;
 
 extern convar_t	s_musicvolume;
 extern convar_t	s_lerping;
-/*extern convar_t *dsp_off;*/	// [FWGS, 01.07.23]
 extern convar_t	s_test;		// cvar to testify new effects
 extern convar_t s_samplecount;
 extern convar_t snd_mute_losefocus;

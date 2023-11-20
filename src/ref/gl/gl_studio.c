@@ -121,10 +121,8 @@ typedef struct
 	} studio_draw_state_t;
 
 // [FWGS, 01.07.23] studio-related cvars
-/*static cvar_t *r_studio_sort_textures;*/
 static CVAR_DEFINE_AUTO (r_studio_sort_textures, "0", FCVAR_GLCONFIG, "change draw order for additive meshes");
 static cvar_t *cl_righthand = NULL;
-/*static cvar_t *r_studio_drawelements;*/
 static CVAR_DEFINE_AUTO (r_studio_drawelements, "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels");
 
 static r_studio_interface_t *pStudioDraw;
@@ -132,14 +130,13 @@ static studio_draw_state_t	g_studio;		// global studio state
 
 // global variables
 static qboolean		m_fDoRemap;
-mstudiomodel_t *m_pSubModel;
-mstudiobodyparts_t *m_pBodyPart;
-player_info_t *m_pPlayerInfo;
-studiohdr_t *m_pStudioHeader;
-float			m_flGaitMovement;
-/*int			g_iBackFaceCull;*/	// [FWGS, 01.07.23]
-int			g_nTopColor, g_nBottomColor;	// remap colors
-int			g_nFaceFlags, g_nForceFaceFlags;
+mstudiomodel_t		*m_pSubModel;
+mstudiobodyparts_t	*m_pBodyPart;
+player_info_t		*m_pPlayerInfo;
+studiohdr_t			*m_pStudioHeader;
+float				m_flGaitMovement;
+int					g_nTopColor, g_nBottomColor;	// remap colors
+int					g_nFaceFlags, g_nForceFaceFlags;
 
 /*
 ====================
@@ -149,10 +146,6 @@ R_StudioInit
 void R_StudioInit (void)
 	{
 	// [FWGS, 01.07.23]
-	/*r_studio_sort_textures = gEngfuncs.Cvar_Get ("r_studio_sort_textures", "0", FCVAR_GLCONFIG,
-		"change draw order for additive meshes");
-	r_studio_drawelements = gEngfuncs.Cvar_Get ("r_studio_drawelements", "1", FCVAR_GLCONFIG,
-		"use glDrawElements for studiomodels");*/
 	gEngfuncs.Cvar_RegisterVariable (&r_studio_sort_textures);
 	gEngfuncs.Cvar_RegisterVariable (&r_studio_drawelements);
 
@@ -1872,7 +1865,6 @@ R_StudioSetCullState
 */
 void R_StudioSetCullState (int iCull)
 	{
-	/*g_iBackFaceCull = iCull;*/
 	// This function intentionally does nothing
 	}
 
@@ -2414,7 +2406,6 @@ static void R_StudioDrawPoints (void)
 		R_StudioSetupSkin (m_pStudioHeader, pskinref[pmesh->skinref]);
 
 		// [FWGS, 01.07.23]
-		/*if (CVAR_TO_BOOL (r_studio_drawelements))*/
 		if (r_studio_drawelements.value)
 			{
 			if (FBitSet (g_nFaceFlags, STUDIO_NF_CHROME))
@@ -3700,7 +3691,7 @@ void R_DrawViewModel (void)
 	RI.currentmodel = RI.currententity->model;
 
 	// backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity) /*|| g_iBackFaceCull*/)	// [FWGS, 01.07.23]
+	if (R_AllowFlipViewModel (RI.currententity))	// [FWGS, 01.07.23]
 		{
 		tr.fFlipViewModel = true;
 		pglFrontFace (GL_CW);
@@ -3721,7 +3712,7 @@ void R_DrawViewModel (void)
 	pglDepthRange (gldepthmin, gldepthmax);
 
 	// backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity) /*|| g_iBackFaceCull*/)	// [FWGS, 01.07.23]
+	if (R_AllowFlipViewModel (RI.currententity))	// [FWGS, 01.07.23]
 		{
 		tr.fFlipViewModel = false;
 		pglFrontFace (GL_CCW);

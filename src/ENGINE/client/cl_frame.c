@@ -133,7 +133,6 @@ some ents will be ignore lerping
 */
 qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
 	{
-	/*if (cl_nointerp->value > 0.f)*/
 	if (cl_nointerp.value > 0.0f)	// [FWGS, 01.07.23]
 		return true;
 
@@ -461,14 +460,12 @@ int CL_InterpolateModel (cl_entity_t *e)
 	if (cl.maxclients <= 1)
 		return 1;
 
-	/*if (e->model->type == mod_brush && !cl_bmodelinterp->value)*/
 	if ((e->model->type == mod_brush) && !cl_bmodelinterp.value)	// [FWGS, 01.07.23]
 		return 1;
 
 	if (cl.local.moving && (cl.local.onground == e->index))
 		return 1;
 
-	/*t = cl.time - cl_interp->value;*/
 	t = cl.time - cl_interp.value;	// [FWGS, 01.07.23]
 	CL_FindInterpolationUpdates (e, t, &ph0, &ph1);
 
@@ -536,7 +533,6 @@ void CL_ComputePlayerOrigin (cl_entity_t *ent)
 	if (!ent->player)
 		return;
 
-	/*if (cl_nointerp->value > 0.f)*/
 	if (cl_nointerp.value > 0.0f)	// [FWGS, 01.07.23]
 		{
 		VectorCopy (ent->curstate.angles, ent->angles);
@@ -555,7 +551,6 @@ void CL_ComputePlayerOrigin (cl_entity_t *ent)
 		return;
 		}
 
-	/*targettime = cl.time - cl_interp->value;*/
 	targettime = cl.time - cl_interp.value;	// [FWGS, 01.07.23]
 	CL_PureOrigin (ent, targettime, origin, angles);
 

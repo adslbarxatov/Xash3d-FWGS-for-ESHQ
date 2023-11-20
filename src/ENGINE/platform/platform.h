@@ -29,8 +29,6 @@ SYSTEM UTILS
 ==============================================================================
 */
 
-/*void Platform_Init (void);	// [FWGS, 01.07.23]
-void Platform_Shutdown (void);*/
 double Platform_DoubleTime (void);
 void Platform_Sleep (int msec);
 void Platform_ShellExecute (const char *path, const char *parms);
@@ -68,10 +66,6 @@ void Platform_SetStatus (const char *status);
 
 // [FWGS, 01.07.23]
 #if XASH_WIN32
-	/*void Platform_UpdateStatusLine (void);
-#else
-	static inline void Platform_UpdateStatusLine (void) {}
-#endif*/
 	void Wcon_CreateConsole (void);
 	void Wcon_DestroyConsole (void);
 #endif
@@ -199,12 +193,6 @@ void Platform_SetClipboardText (const char *buffer);
 #if !XASH_SDL
 #define SDL_VERSION_ATLEAST( x, y, z ) 0
 #endif
-
-// [FWGS, 01.07.23]
-/*#if XASH_ANDROID
-void Android_ShowMouse (qboolean show);
-void Android_MouseMove (float *x, float *y);
-#endif*/
 
 /*
 ==============================================================================

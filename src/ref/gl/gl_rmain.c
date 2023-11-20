@@ -87,8 +87,9 @@ static int R_TransEntityCompare (const void *a, const void *b)
 	rendermode1 = R_GetEntityRenderMode (ent1);
 	rendermode2 = R_GetEntityRenderMode (ent2);
 
-	// ESHQ???: сортировка по дистанции без игнорирования аддитивных текстур (иначе получается странная картинка)
-	if ((ent1->model->type != mod_brush) /*|| (rendermode1 != kRenderTransAlpha)*/)		// ESHQ: проблемная прозрачность?
+	// ESHQ: сортировка по дистанции без игнорирования аддитивных текстур (иначе наблюдаются проблемы с
+	// прозрачными текстурами при взгляде на объекты с точки ниже их центра)
+	if ((ent1->model->type != mod_brush)) // || (rendermode1 != kRenderTransAlpha))		// ESHQ: проблемная прозрачность?
 		{
 		VectorAverage (ent1->model->mins, ent1->model->maxs, org);
 		VectorAdd (ent1->origin, org, org);
@@ -100,7 +101,7 @@ static int R_TransEntityCompare (const void *a, const void *b)
 		dist1 = 1000000000;
 		}
 
-	if ((ent2->model->type != mod_brush) /*|| (rendermode2 != kRenderTransAlpha)*/)		// ESHQ: проблемная прозрачность?
+	if ((ent2->model->type != mod_brush)) // || (rendermode2 != kRenderTransAlpha))		// ESHQ: проблемная прозрачность?
 		{
 		VectorAverage (ent2->model->mins, ent2->model->maxs, org);
 		VectorAdd (ent2->origin, org, org);
@@ -1036,8 +1037,6 @@ void R_BeginFrame (qboolean clearScene)
 	pglDrawBuffer (GL_BACK);
 
 	// [FWGS, 01.07.23] update texture parameters
-	/*if (FBitSet (gl_texture_nearest->flags | gl_lightmap_nearest->flags | gl_texture_anisotropy->flags |
-	gl_texture_lodbias->flags, FCVAR_CHANGED))*/
 	if (FBitSet (gl_texture_nearest.flags | gl_lightmap_nearest.flags | gl_texture_anisotropy.flags |
 		gl_texture_lodbias.flags, FCVAR_CHANGED))
 		R_SetTextureParameters ();
@@ -1096,7 +1095,6 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 
 	if ((glConfig.max_multisamples > 1) && FBitSet (gl_msaa.flags, FCVAR_CHANGED))
 		{
-		/*if (CVAR_TO_BOOL (gl_msaa))*/
 		if (gl_msaa.value)
 			pglEnable (GL_MULTISAMPLE_ARB);
 		else

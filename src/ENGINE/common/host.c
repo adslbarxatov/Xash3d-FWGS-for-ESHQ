@@ -58,15 +58,6 @@ CVAR_DEFINE_AUTO (sys_ticrate, "100", 0,
 	"framerate in dedicated mode");
 
 // [FWGS, 01.07.23]
-/*convar_t *host_serverstate;
-convar_t *host_gameloaded;
-convar_t *host_clientloaded;
-convar_t *host_limitlocal;
-convar_t *host_maxfps;
-convar_t *host_framerate;
-convar_t *host_sleeptime;
-convar_t *con_gamemaps;
-convar_t *build, *ver;*/
 static CVAR_DEFINE_AUTO (host_serverstate, "0", FCVAR_READ_ONLY,
 	"displays current server state");
 static CVAR_DEFINE_AUTO (host_gameloaded, "0", FCVAR_READ_ONLY,
@@ -297,7 +288,6 @@ static int Host_CalcSleep (void)
 #ifndef XASH_DEDICATED
 	// never sleep in timedemo for benchmarking purposes
 	// also don't sleep with vsync for less lag
-	/*if (CL_IsTimeDemo () || CVAR_TO_BOOL (gl_vsync))*/
 	if (CL_IsTimeDemo () || gl_vsync.value)
 		return 0;
 #endif
@@ -627,15 +617,12 @@ double Host_CalcFPS (void)
 	else if (Host_IsLocalGame ())
 		{
 		// [FWGS, 01.07.23]
-		/*if (!CVAR_TO_BOOL (gl_vsync))
-			fps = host_maxfps->value;*/
 		if (!gl_vsync.value)
 			fps = host_maxfps.value;
 		}
 	else
 		{
 		// [FWGS, 01.07.23]
-		/*if (!CVAR_TO_BOOL (gl_vsync))*/
 		if (!gl_vsync.value)
 			{
 			fps = host_maxfps.value;
@@ -1111,10 +1098,6 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 	// [FWGS, 01.07.23] TODO: this function will cause engine to stop in case of fail
 	// when it will have an option to return string error, restore Sys_Error
 	FS_SetCurrentDirectory (host.rootdir);
-	/*if (FS_SetCurrentDirectory (host.rootdir) != 0)
-		Con_Reportf ("%s is working directory now\n", host.rootdir);
-	else
-		Sys_Error ("Changing working directory to %s failed.\n", host.rootdir);*/
 
 	FS_Init ();
 	Sys_InitLog ();
@@ -1187,22 +1170,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		}
 
 	// [FWGS, 01.07.23]
-	/*host_serverstate = Cvar_Get ("host_serverstate", "0", FCVAR_READ_ONLY, 
-		"displays current server state");
-	host_maxfps = Cvar_Get ("fps_max", "72", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
-		"host fps upper limit");
-	host_framerate = Cvar_Get ("host_framerate", "0", FCVAR_FILTERABLE, 
-		"locks frame timing to this value in seconds");
-	host_sleeptime = Cvar_Get ("sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
-		"milliseconds to sleep for each frame. higher values reduce fps accuracy");
-	host_gameloaded = Cvar_Get ("host_gameloaded", "0", FCVAR_READ_ONLY, 
-		"inidcates a loaded game.dll");
-	host_clientloaded = Cvar_Get ("host_clientloaded", "0", FCVAR_READ_ONLY,
-		"inidcates a loaded client.dll");
-	host_limitlocal = Cvar_Get ("host_limitlocal", "0", 0,
-		"apply cl_cmdrate and rate to loopback connection");
-	con_gamemaps = Cvar_Get ("con_mapfilter", "1", FCVAR_ARCHIVE,
-		"when true show only maps in game folder");*/
 	Cvar_RegisterVariable (&host_serverstate);
 	Cvar_RegisterVariable (&host_maxfps);
 	Cvar_RegisterVariable (&host_framerate);
@@ -1215,9 +1182,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	Cvar_RegisterVariable (&sys_timescale);
 
 	// [FWGS, 01.07.23]
-	/*build = Cvar_Getf ("buildnum", FCVAR_READ_ONLY, "returns a current build number", "%i", Q_buildnum_compat ());
-	ver = Cvar_Getf ("ver", FCVAR_READ_ONLY, "shows an engine version", "%i/%s (hw build %i)", PROTOCOL_VERSION,
-		XASH_COMPAT_VERSION, Q_buildnum_compat ());*/
 	Cvar_Getf ("buildnum", FCVAR_READ_ONLY, "returns a current build number", "%i", Q_buildnum_compat ());
 	Cvar_Getf ("ver", FCVAR_READ_ONLY, "shows an engine version", "%i/%s (hw build %i)", PROTOCOL_VERSION,
 		XASH_COMPAT_VERSION, Q_buildnum_compat ());

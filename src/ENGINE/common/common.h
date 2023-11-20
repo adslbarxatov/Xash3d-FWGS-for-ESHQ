@@ -154,26 +154,14 @@ typedef enum
 #endif
 
 // [FWGS, 01.07.23]
-/*extern convar_t *gl_vsync;
-extern convar_t *scr_loading;
-extern convar_t *scr_download;
-extern convar_t *cmd_scripting;
-extern convar_t *sv_maxclients;
-extern convar_t *cl_allow_levelshots;*/
 extern convar_t gl_vsync;
 extern convar_t scr_loading;
 extern convar_t scr_download;
 extern convar_t cmd_scripting;
 extern convar_t cl_allow_levelshots;
-
 extern convar_t	host_developer;
-
-/*extern convar_t *host_limitlocal;
-extern convar_t *host_framerate;
-extern convar_t *host_maxfps;*/
 extern convar_t host_limitlocal;
 extern convar_t host_maxfps;
-
 extern convar_t	sys_timescale;
 extern convar_t	cl_filterstuffcmd;
 extern convar_t	rcon_password;
@@ -373,8 +361,6 @@ typedef struct host_parm_s
 	qboolean		shutdown_issued;	// engine is shutting down
 	
 	// [FWGS, 01.07.23]
-	/*qboolean		force_draw_version;	// used when fraps is loaded
-	float			force_draw_version_time;*/
 	double			force_draw_version_time;
 
 	qboolean		apply_game_config;	// when true apply only to game cvars and ignore all other commands
@@ -649,10 +635,6 @@ qboolean SV_Active (void);
 SHARED ENGFUNCS [FWGS, 01.07.23]
 ==============================================================
 */
-/*void pfnCvar_RegisterServerVariable (cvar_t *variable);
-void pfnCvar_RegisterEngineVariable (cvar_t *variable);
-cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue, int flags);
-cvar_t *pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags);*/
 char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize);
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput);
 int COM_SaveFile (const char *filename, const void *data, int len);
@@ -669,7 +651,6 @@ void pfnGetModelBounds (model_t *mod, float *mins, float *maxs);
 void pfnCVarDirectSet (cvar_t *var, const char *szValue);
 int COM_CheckParm (char *parm, char **ppnext);
 void pfnGetGameDir (char *szGetGameDir);
-/*int pfnDecalIndex (const char *m);*/
 int pfnGetModelType (model_t *mod);
 int pfnIsMapValid (char *filename);
 void Con_Reportf (const char *szFmt, ...) _format (1);
@@ -689,8 +670,6 @@ void *pfnSequencePickSentence (const char *groupName, int pickMethod, int *picke
 int pfnIsCareerMatch (void);
 
 // Decay engfuncs (stubs)
-/*int pfnGetTimesTutorMessageShown (int mid);
-void pfnRegisterTutorMessageShown (int mid);*/
 void pfnConstructTutorMessageDecayBuffer (int *buffer, int buflen);
 void pfnProcessTutorMessageDecayBuffer (int *buffer, int bufferLength);
 void pfnResetTutorMessageDecayData (void);
@@ -772,7 +751,6 @@ struct cmd_s *Cmd_GetNextFunctionHandle (struct cmd_s *cmd);
 struct cmdalias_s *Cmd_AliasGetList (void);
 const char *Cmd_GetName (struct cmd_s *cmd);
 void SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch);
-/*void SV_StartMusic (const char *curtrack, const char *looptrack, int position);*/	// [FWGS, 01.07.23]
 void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int entityIndex, int modelIndex, 
 	int flags, float scale);
 void Log_Printf (const char *fmt, ...) _format (1);

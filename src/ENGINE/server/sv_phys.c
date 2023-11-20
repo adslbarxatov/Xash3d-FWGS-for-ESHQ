@@ -1952,7 +1952,7 @@ void SV_DrawOrthoTriangles (void)
 		}
 	}
 
-/*void SV_UpdateFogSettings (unsigned int packed_fog)*/
+// [FWGS, 01.07.23] removed void SV_UpdateFogSettings
 /*
 ==================
 SV_GetLightStyle [FWGS, 01.07.23]
@@ -2035,7 +2035,7 @@ static int GAME_EXPORT pfnPointContents (const float *pos, int groupmask)
 	return cont;
 	}
 
-/*const byte *pfnLoadImagePixels (const char *filename, int *width, int *height)*/
+// [FWGS, 01.07.23] removed pfnLoadImagePixels
 
 // [FWGS, 01.07.23]
 static trace_t GAME_EXPORT SV_MoveNormal (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,

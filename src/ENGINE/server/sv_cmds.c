@@ -216,8 +216,8 @@ void SV_ESRM_Command (void)
 	char cmdLine[MAX_QPATH];
 
 	// Контроль корректности вызова (не требуется, т.к. эта команда не будет вызвана из других модов)
-	/*if (!strstr (host.gamefolder, "esrm"))
-		return;*/
+	//if (!strstr (host.gamefolder, "esrm"))
+	//return;
 
 	char rebuild = (strstr (Cmd_Argv (0), "esrm_rebuild") != NULL);
 	if ((Cmd_Argc () != 2) && !rebuild)
@@ -398,8 +398,6 @@ void SV_NextMap_f (void)
 	search_t *t;
 
 	// [FWGS, 01.07.23]
-	/*t = FS_Search ("maps\\*.bsp", true, CVAR_TO_BOOL (con_gamemaps)); // only in gamedir
-	if (!t) t = FS_Search ("maps/*.bsp", true, CVAR_TO_BOOL (con_gamemaps)); // only in gamedir*/
 	t = FS_Search ("maps\\*.bsp", true, con_gamemaps.value);	// only in gamedir
 	if (!t)
 		t = FS_Search ("maps/*.bsp", true, con_gamemaps.value);	// only in gamedir
@@ -683,9 +681,8 @@ Kick a user off of the server
 */
 void SV_Kick_f (void)
 	{
-	sv_client_t *cl;
-	/*const char *param, *clientId;*/
-	const char *param;
+	sv_client_t		*cl;
+	const char		*param;
 
 	if (Cmd_Argc () != 2)
 		{
@@ -706,38 +703,6 @@ void SV_Kick_f (void)
 		return;
 		}
 
-	/*if (NET_IsLocalAddress (cl->netchan.remote_address))
-		{
-		Con_Printf ("The local player cannot be kicked!\n");
-		return;
-		}
-
-	param = Cmd_Argv (2);
-
-	clientId = SV_GetClientIDString (cl);
-
-	if (*param)
-		{
-		Log_Printf ("Kick: \"%s<%i><%s><>\" was kicked by \"Console\" (message \"%s\")\n", cl->name, cl->userid, clientId, param);
-		SV_BroadcastPrintf (cl, "%s was kicked with message: \"%s\"\n", cl->name, param);
-		SV_ClientPrintf (cl, "You were kicked from the game with message: \"%s\"\n", param);
-		}
-	else
-		{
-		Log_Printf ("Kick: \"%s<%i><%s><>\" was kicked by \"Console\"\n", cl->name, cl->userid, clientId);
-		SV_BroadcastPrintf (cl, "%s was kicked\n", cl->name);
-		SV_ClientPrintf (cl, "You were kicked from the game\n");
-		}
-
-	if (cl->useragent[0])
-		{
-		if (*param)
-			Netchan_OutOfBandPrint (NS_SERVER, cl->netchan.remote_address, "errormsg\nKicked with message:\n%s\n", param);
-		else
-			Netchan_OutOfBandPrint (NS_SERVER, cl->netchan.remote_address, "errormsg\nYou were kicked from the game\n");
-		}
-
-	SV_DropClient (cl, false);*/
 	SV_KickPlayer (cl, "%s", Cmd_Argv (2));
 	}
 

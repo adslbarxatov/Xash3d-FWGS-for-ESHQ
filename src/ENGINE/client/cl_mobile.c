@@ -23,8 +23,6 @@ GNU General Public License for more details.
 // [FWGS, 01.07.23]
 static mobile_engfuncs_t *gMobileEngfuncs;
 
-/*convar_t *vibration_length;
-convar_t *vibration_enable;*/
 static CVAR_DEFINE_AUTO (vibration_length, "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"vibration length");
 static CVAR_DEFINE_AUTO (vibration_enable, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
@@ -149,8 +147,6 @@ qboolean Mobile_Init (void)
 	Cmd_AddCommand ("vibrate", (xcommand_t)Vibrate_f, "Vibrate for specified time");
 
 	// [FWGS, 01.07.23]
-	/*vibration_length = Cvar_Get ("vibration_length", "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "Vibration length");
-	vibration_enable = Cvar_Get ("vibration_enable", "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "Enable vibration");*/
 	Cvar_RegisterVariable (&vibration_length);
 	Cvar_RegisterVariable (&vibration_enable);
 

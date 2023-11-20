@@ -142,27 +142,6 @@ touchdefaultbutton_t g_DefaultButtons[256];
 int g_LastDefaultButton;
 
 // [FWGS, 01.07.23]
-/*convar_t *touch_pitch;
-convar_t *touch_yaw;
-convar_t *touch_forwardzone;
-convar_t *touch_sidezone;
-convar_t *touch_nonlinear_look;
-convar_t *touch_pow_mult;
-convar_t *touch_pow_factor;
-convar_t *touch_exp_mult;
-convar_t *touch_grid_enable;
-convar_t *touch_grid_count;
-convar_t *touch_config_file;
-convar_t *touch_in_menu;
-convar_t *touch_joy_radius;
-convar_t *touch_dpad_radius;
-convar_t *touch_move_indicator;
-convar_t *touch_highlight_r;
-convar_t *touch_highlight_g;
-convar_t *touch_highlight_b;
-convar_t *touch_highlight_a;
-convar_t *touch_precise_amount;
-convar_t *touch_joy_texture;*/
 static CVAR_DEFINE_AUTO (touch_in_menu, "0", FCVAR_FILTERABLE,
 	"draw touch in menu (for internal use only)");
 static CVAR_DEFINE_AUTO (touch_forwardzone, "0.06", FCVAR_FILTERABLE,
@@ -291,14 +270,6 @@ qboolean Touch_DumpConfig (const char *name, const char *profilename)
 	FS_Printf (f, "\n// touch cvars\n");
 
 	FS_Printf (f, "\n// sensitivity settings\n");
-	/*FS_Printf (f, "touch_pitch \"%f\"\n", touch_pitch->value);
-	FS_Printf (f, "touch_yaw \"%f\"\n", touch_yaw->value);
-	FS_Printf (f, "touch_forwardzone \"%f\"\n", touch_forwardzone->value);
-	FS_Printf (f, "touch_sidezone \"%f\"\n", touch_sidezone->value);
-	FS_Printf (f, "touch_nonlinear_look \"%d\"\n", CVAR_TO_BOOL (touch_nonlinear_look));
-	FS_Printf (f, "touch_pow_factor \"%f\"\n", touch_pow_factor->value);
-	FS_Printf (f, "touch_pow_mult \"%f\"\n", touch_pow_mult->value);
-	FS_Printf (f, "touch_exp_mult \"%f\"\n", touch_exp_mult->value);*/
 	FS_Printf (f, "touch_pitch \"%f\"\n", touch_pitch.value);
 	FS_Printf (f, "touch_yaw \"%f\"\n", touch_yaw.value);
 	FS_Printf (f, "touch_forwardzone \"%f\"\n", touch_forwardzone.value);
@@ -309,8 +280,6 @@ qboolean Touch_DumpConfig (const char *name, const char *profilename)
 	FS_Printf (f, "touch_exp_mult \"%f\"\n", touch_exp_mult.value);
 
 	FS_Printf (f, "\n// grid settings\n");
-	/*FS_Printf (f, "touch_grid_count \"%d\"\n", (int)touch_grid_count->value);
-	FS_Printf (f, "touch_grid_enable \"%d\"\n", CVAR_TO_BOOL (touch_grid_enable));*/
 	FS_Printf (f, "touch_grid_count \"%d\"\n", (int)touch_grid_count.value);
 	FS_Printf (f, "touch_grid_enable \"%d\"\n", touch_grid_enable.value ? 1 : 0);
 
@@ -318,18 +287,12 @@ qboolean Touch_DumpConfig (const char *name, const char *profilename)
 	FS_Printf (f, "touch_set_stroke %d %d %d %d %d\n", touch.swidth, touch.scolor[0], touch.scolor[1],
 		touch.scolor[2], touch.scolor[3]);
 	FS_Printf (f, "\n// highlight when pressed\n");
-	/*FS_Printf (f, "touch_highlight_r \"%f\"\n", touch_highlight_r->value);
-	FS_Printf (f, "touch_highlight_g \"%f\"\n", touch_highlight_g->value);
-	FS_Printf (f, "touch_highlight_b \"%f\"\n", touch_highlight_b->value);
-	FS_Printf (f, "touch_highlight_a \"%f\"\n", touch_highlight_a->value);*/
 	FS_Printf (f, "touch_highlight_r \"%f\"\n", touch_highlight_r.value);
 	FS_Printf (f, "touch_highlight_g \"%f\"\n", touch_highlight_g.value);
 	FS_Printf (f, "touch_highlight_b \"%f\"\n", touch_highlight_b.value);
 	FS_Printf (f, "touch_highlight_a \"%f\"\n", touch_highlight_a.value);
 
 	FS_Printf (f, "\n// _joy and _dpad options\n");
-	/*FS_Printf (f, "touch_dpad_radius \"%f\"\n", touch_dpad_radius->value);
-	FS_Printf (f, "touch_joy_radius \"%f\"\n", touch_joy_radius->value);*/
 	FS_Printf (f, "touch_dpad_radius \"%f\"\n", touch_dpad_radius.value);
 	FS_Printf (f, "touch_joy_radius \"%f\"\n", touch_joy_radius.value);
 
@@ -1016,7 +979,6 @@ static void Touch_DisableEdit_f (void)
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
 
 	// [FWGS, 01.07.23]
-	/*if (CVAR_TO_BOOL (touch_in_menu))*/
 	if (touch_in_menu.value)
 		{
 		Cvar_Set ("touch_in_menu", "0");
@@ -1166,21 +1128,9 @@ void Touch_Init (void)
 		"toggle vidibility on selected button in editor");
 
 	// [FWGS, 01.07.23] not saved, just runtime state for scripting
-	/*touch_in_menu = Cvar_Get ("touch_in_menu", "0", FCVAR_FILTERABLE,
-		"draw touch in menu (for internal use only)");*/
 	Cvar_RegisterVariable (&touch_in_menu);
 
 	// [FWGS, 01.07.23] sensitivity configuration
-	/*touch_forwardzone = Cvar_Get ("touch_forwardzone", "0.06", FCVAR_FILTERABLE, "forward touch zone");
-	touch_sidezone = Cvar_Get ("touch_sidezone", "0.06", FCVAR_FILTERABLE, "side touch zone");
-	touch_pitch = Cvar_Get ("touch_pitch", "90", FCVAR_FILTERABLE, "touch pitch sensitivity");
-	touch_yaw = Cvar_Get ("touch_yaw", "120", FCVAR_FILTERABLE, "touch yaw sensitivity");
-	touch_nonlinear_look = Cvar_Get ("touch_nonlinear_look", "0", FCVAR_FILTERABLE, "enable nonlinear touch look");
-	touch_pow_factor = Cvar_Get ("touch_pow_factor", "1.3", FCVAR_FILTERABLE, "set > 1 to enable");
-	touch_pow_mult = Cvar_Get ("touch_pow_mult", "400.0", FCVAR_FILTERABLE,
-		"power multiplier, usually 200-1000");
-	touch_exp_mult = Cvar_Get ("touch_exp_mult", "0", FCVAR_FILTERABLE,
-		"exponent multiplier, usually 20-200, 0 to disable");*/
 	Cvar_RegisterVariable (&touch_forwardzone);
 	Cvar_RegisterVariable (&touch_sidezone);
 	Cvar_RegisterVariable (&touch_pitch);
@@ -1191,22 +1141,6 @@ void Touch_Init (void)
 	Cvar_RegisterVariable (&touch_exp_mult);
 
 	// [FWGS, 01.07.23] touch.cfg
-	/*touch_grid_count = Cvar_Get ("touch_grid_count", "50", FCVAR_FILTERABLE, "touch grid count");
-	touch_grid_enable = Cvar_Get ("touch_grid_enable", "1", FCVAR_FILTERABLE, "enable touch grid");
-	touch_config_file = Cvar_Get ("touch_config_file", "touch.cfg", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, 
-		"current touch profile file");
-	touch_precise_amount = Cvar_Get ("touch_precise_amount", "0.5", FCVAR_FILTERABLE, 
-		"sensitivity multiplier for precise-look");
-	touch_highlight_r = Cvar_Get ("touch_highlight_r", "1.0", 0, "highlight r color");
-	touch_highlight_g = Cvar_Get ("touch_highlight_g", "1.0", 0, "highlight g color");
-	touch_highlight_b = Cvar_Get ("touch_highlight_b", "1.0", 0, "highlight b color");
-	touch_highlight_a = Cvar_Get ("touch_highlight_a", "1.0", 0, "highlight alpha");
-	touch_dpad_radius = Cvar_Get ("touch_dpad_radius", "1.0", FCVAR_FILTERABLE, "dpad radius multiplier");
-	touch_joy_radius = Cvar_Get ("touch_joy_radius", "1.0", FCVAR_FILTERABLE, "joy radius multiplier");
-	touch_move_indicator = Cvar_Get ("touch_move_indicator", "0.0", FCVAR_FILTERABLE,
-		"indicate move events (0 to disable)");
-	touch_joy_texture = Cvar_Get ("touch_joy_texture", "touch_default/joy", FCVAR_FILTERABLE,
-		"texture for move indicator");*/
 	Cvar_RegisterVariable (&touch_grid_count);
 	Cvar_RegisterVariable (&touch_grid_enable);
 	Cvar_RegisterVariable (&touch_config_file);
@@ -1329,7 +1263,6 @@ static void IN_TouchCheckCoords (float *x1, float *y1, float *x2, float *y2)
 		*x1 -= *x2 - 1, *x2 = 1;
 
 	// [FWGS, 01.07.23]
-	/*if (CVAR_TO_BOOL (touch_grid_enable))*/
 	if (touch_grid_enable.value)
 		{
 		*x1 = GRID_ROUND_X (*x1);
@@ -1501,18 +1434,16 @@ void Touch_Draw (void)
 	Touch_InitConfig ();
 
 	// [FWGS, 01.07.23]
-	/*if ((cls.key_dest != key_game) && !CVAR_TO_BOOL (touch_in_menu))*/
 	if ((cls.key_dest != key_game) && !touch_in_menu.value)
 		return;
 
 	ref.dllFuncs.GL_SetRenderMode (kRenderTransTexture);
 
 	// [FWGS, 01.07.23]
-	/*if ((touch.state >= state_edit) && CVAR_TO_BOOL (touch_grid_enable))*/
 	if ((touch.state >= state_edit) && touch_grid_enable.value)
 		{
 		float x;
-		/*if (CVAR_TO_BOOL (touch_in_menu))*/
+
 		if (touch_in_menu.value)
 			Touch_DrawTexture (0, 0, 1, 1, touch.whitetexture, 32, 32, 32, 255);
 		else
@@ -1749,7 +1680,6 @@ static void Touch_Motion (touchEventType type, int fingerID, float x, float y, f
 			dx *= touch_precise_amount.value, dy *= touch_precise_amount.value;
 
 		// [FWGS, 01.07.23]
-		/*if (CVAR_TO_BOOL (touch_nonlinear_look))*/
 		if (touch_nonlinear_look.value)
 			{
 			float dabs, dcos, dsin;
@@ -2103,7 +2033,6 @@ static int Touch_ControlsEvent (touchEventType type, int fingerID, float x, floa
 int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy)
 	{
 	// [FWGS, 01.07.23] simulate menu mouse click
-	/*if (cls.key_dest != key_game && !CVAR_TO_BOOL (touch_in_menu))*/
 	if ((cls.key_dest != key_game) && !touch_in_menu.value)
 		{
 		touch.move_finger = touch.resize_finger = touch.look_finger = -1;

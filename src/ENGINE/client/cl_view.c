@@ -375,7 +375,6 @@ void V_RenderView (void)
 	// HACKHACK: make ref params static [FWGS, 01.08.23]
 	// not really critical but allows client.dll to take address of refdef and don't trigger ASan
 	static ref_params_t	rp;
-	/*ref_params_t	rp;*/
 
 	ref_viewpass_t	rvp;
 	int		viewnum = 0;
@@ -485,7 +484,6 @@ void R_ShowTree (void)
 	mleaf_t *viewleaf;
 
 	// [FWGS, 01.07.23]
-	/*if (!cl.worldmodel || !CVAR_TO_BOOL (r_showtree))*/
 	if (!cl.worldmodel || !r_showtree.value)
 		return;
 
@@ -511,7 +509,7 @@ void V_PostRender (void)
 	ref.dllFuncs.R_AllowFog (false);
 	ref.dllFuncs.R_Set2DMode (true);
 
-	if (cls.state == ca_active && cls.signon == SIGNONS && cls.scrshot_action != scrshot_mapshot)
+	if ((cls.state == ca_active) && (cls.signon == SIGNONS) && (cls.scrshot_action != scrshot_mapshot))
 		{
 		SCR_TileClear ();
 		CL_DrawHUD (CL_ACTIVE);

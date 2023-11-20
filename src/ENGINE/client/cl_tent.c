@@ -2874,7 +2874,6 @@ void CL_TestLights (void)
 	dlight_t *dl;
 
 	// [FWGS, 01.07.23]
-	/*if (!CVAR_TO_BOOL (cl_testlights))*/
 	if (!cl_testlights.value)
 		return;
 

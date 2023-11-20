@@ -658,10 +658,8 @@ Platform_SetStatus [FWGS, 01.07.23]
 set server status string in console
 ================
 */
-/*void Wcon_SetStatus (const char *pStatus)*/
 void Platform_SetStatus (const char *pStatus)
 	{
-	/*if ((host.type != HOST_DEDICATED) || s_wcd.attached)*/
 	if (s_wcd.attached)
 		return;
 

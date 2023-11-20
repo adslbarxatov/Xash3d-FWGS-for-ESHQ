@@ -1147,7 +1147,6 @@ static void GL_CheckTexImageError (gl_texture_t *tex)
 	Assert (tex != NULL);
 
 	// [FWGS, 01.07.23] catch possible errors
-	/*if (CVAR_TO_BOOL (gl_check_errors) && (err = pglGetError ()) != GL_NO_ERROR)*/
 	if (gl_check_errors.value && (err = pglGetError ()) != GL_NO_ERROR)
 		gEngfuncs.Con_Printf (S_OPENGL_ERROR "%s while uploading %s [%s]\n", GL_ErrorString (err),
 			tex->name, GL_TargetToString (tex->target));
@@ -1441,7 +1440,6 @@ static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 			} while ((tex->texnum >= SKYBOX_BASE_NUM) &&
 				(tex->texnum <= SKYBOX_BASE_NUM + SKYBOX_MAX_SIDES));
 		}
-	/*else tex->texnum = i; // texnum is used for fast access into gl_textures array too*/
 
 	tex->flags = flags;
 

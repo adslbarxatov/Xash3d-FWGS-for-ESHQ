@@ -884,14 +884,14 @@ qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 	{
 	qboolean	use_filter = false;
-	byte	buf[MAX_SYSPATH];
-	string	mpfilter;
-	char *buffer;
-	size_t buffersize;	// [FWGS, 01.05.23]
-	string	result;
-	int	i, size;
-	search_t *t;
-	file_t *f;
+	byte		buf[MAX_SYSPATH];
+	string		mpfilter;
+	char		*buffer;
+	size_t		buffersize;	// [FWGS, 01.05.23]
+	string		result;
+	int			i, size;
+	search_t	*t;
+	file_t		*f;
 
 	if (FS_FileSize ("maps.lst", onlyingamedir) > 0 && !fRefresh)
 		return true; // exist
@@ -902,11 +902,10 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 
 	if (!t)
 		{
+		// mod doesn't contain any maps (probably this is a bot)
 		if (onlyingamedir)
-			{
-			// mod doesn't contain any maps (probably this is a bot)
 			return Cmd_CheckMapsList_R (fRefresh, false);
-			}
+
 		return false;
 		}
 

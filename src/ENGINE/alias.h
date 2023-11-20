@@ -12,7 +12,6 @@
 *   without written permission from Valve LLC.
 *
 ****/
-
 #ifndef ALIAS_H
 #define ALIAS_H
 

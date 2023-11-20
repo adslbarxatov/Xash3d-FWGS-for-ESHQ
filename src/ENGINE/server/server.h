@@ -466,13 +466,6 @@ extern convar_t		public_server;	// [FWGS, 01.05.23]
 extern convar_t		sv_nat;			// [FWGS, 01.05.23]
 
 // [FWGS, 01.07.23]
-/*extern	convar_t *sv_pausable;		// allows pause in multiplayer
-extern	convar_t *sv_check_errors;
-extern	convar_t *sv_reconnect_limit;
-extern	convar_t *sv_lighting_modulate;
-extern	convar_t *sv_novis;
-extern	convar_t *sv_hostmap;
-extern	convar_t *sv_validate_changelevel;*/
 extern convar_t sv_speedhack_kick;
 extern convar_t sv_pausable;	// allows pause in multiplayer
 extern convar_t sv_check_errors;
@@ -505,7 +498,6 @@ int SV_CalcPacketLoss (sv_client_t *cl);
 void SV_ExecuteUserCommand (char *s);
 void SV_InitOperatorCommands (void);
 void SV_KillOperatorCommands (void);
-/*void SV_UserinfoChanged (sv_client_t *cl);*/	// [FWGS, 01.07.23]
 void SV_RemoteCommand (netadr_t from, sizebuf_t *msg);
 void SV_PrepWorldFrame (void);
 void SV_ProcessFile (sv_client_t *cl, const char *filename);
@@ -533,14 +525,9 @@ void SV_DeactivateServer (void);
 void SV_Physics (void);
 qboolean SV_InitPhysicsAPI (void);
 void SV_CheckVelocity (edict_t *ent);
-/*qboolean SV_CheckWater (edict_t *ent);	// [FWGS, 01.07.23]
-qboolean SV_RunThink (edict_t *ent);*/
 qboolean SV_PlayerRunThink (edict_t *ent, float frametime, double time);
-/*qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker);*/
 void SV_Impact (edict_t *e1, edict_t *e2, trace_t *trace);
-/*qboolean SV_CanPushed (edict_t *ent);*/
 void SV_FreeOldEntities (void);
-/*void SV_CheckAllEnts (void);*/
 
 //
 // sv_move.c
@@ -579,7 +566,6 @@ void SV_ExecuteClientMessage (sv_client_t *cl, sizebuf_t *msg);
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg);
 edict_t *SV_FakeConnect (const char *netname);
 void SV_ExecuteClientCommand (sv_client_t *cl, const char *s);
-/*void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed);*/	// [FWGS, 01.07.23]
 void SV_BuildReconnect (sizebuf_t *msg);
 qboolean SV_IsPlayerIndex (int idx);
 int SV_CalcPing (sv_client_t *cl);
@@ -638,22 +624,17 @@ edict_t *SV_AllocEdict (void);
 void SV_FreeEdict (edict_t *pEdict);
 void SV_InitEdict (edict_t *pEdict);
 const char *SV_ClassName (const edict_t *e);
-/*void SV_FreePrivateData (edict_t *pEdict);*/	// [FWGS, 01.07.23]
 void SV_CopyTraceToGlobal (trace_t *trace);
 qboolean SV_CheckEdict (const edict_t *e, const char *file, const int line);
 void SV_SetMinMaxSize (edict_t *e, const float *min, const float *max, qboolean relink);
-/*edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszField, const char *pszValue);*/	// [FWGS, 01.07.23]
 void SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2);
-/*void SV_PlaybackReliableEvent (sizebuf_t *msg, word eventindex, float delay, event_args_t *args);*/	// [FWGS, 01.07.23]
 int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample, int vol, float attn,
 	int flags, int pitch, const vec3_t pos);
 qboolean SV_BoxInPVS (const vec3_t org, const vec3_t absmin, const vec3_t absmax);
 void SV_QueueChangeLevel (const char *level, const char *landname);
 void SV_WriteEntityPatch (const char *filename);
-/*float SV_AngleMod (float ideal, float current, float speed);*/	// [FWGS, 01.07.23]
 void SV_SpawnEntities (const char *mapname);
-/*edict_t *SV_AllocPrivateData (edict_t *ent, string_t className);*/	// [FWGS, 01.07.23]
 edict_t *SV_CreateNamedEntity (edict_t *ent, string_t className);
 string_t SV_AllocString (const char *szValue);
 string_t SV_MakeString (const char *szValue);
@@ -672,20 +653,12 @@ edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname);
 qboolean SV_CreateStaticEntity (struct sizebuf_s *msg, int index);
 void SV_SendUserReg (sizebuf_t *msg, sv_user_message_t *user);
 int pfnIndexOfEdict (const edict_t *pEdict);
-/*void pfnWriteBytes (const byte *bytes, int count);*/	// [FWGS, 01.07.23]
 void SV_UpdateBaseVelocity (edict_t *ent);
-/*byte *pfnSetFatPVS (const float *org);	// [FWGS, 01.07.23]
-byte *pfnSetFatPAS (const float *org);
-int pfnPrecacheModel (const char *s);
-int pfnModelIndex (const char *m);
-void pfnRemoveEntity (edict_t *e);*/
 void SV_RestartAmbientSounds (void);
 void SV_RestartDecals (void);
 void SV_RestartStaticEnts (void);
-/*int pfnGetCurrentPlayer (void);*/	// [FWGS, 01.07.23]
 int pfnDropToFloor (edict_t *e);	// [FWGS, 01.04.23]
 edict_t *SV_EdictNum (int n);
-/*char *SV_Localinfo (void);*/		// [FWGS, 01.07.23]
 void SV_SetModel (edict_t *ent, const char *name);	// [FWGS, 01.04.23]
 int pfnDecalIndex (const char *m);	// [FWGS, 01.07.23]
 
@@ -712,8 +685,6 @@ void SV_ClearGameState (void);
 //
 // sv_pmove.c [FWGS, 01.07.23]
 //
-/*void SV_GetTrueOrigin (sv_client_t *cl, int edictnum, vec3_t origin);
-void SV_GetTrueMinMax (sv_client_t *cl, int edictnum, vec3_t mins, vec3_t maxs);*/
 qboolean SV_PlayerIsFrozen (edict_t *pClient);
 void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed);
 
@@ -730,17 +701,13 @@ trace_t SV_TraceHull (edict_t *ent, int hullNum, const vec3_t start, vec3_t mins
 trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type,
 	edict_t *e, qboolean monsterclip);
 trace_t SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e);
-/*trace_t SV_MoveNormal (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e);*/
 const char *SV_TraceTexture (edict_t *ent, const vec3_t start, const vec3_t end);
 msurface_t *SV_TraceSurface (edict_t *ent, const vec3_t start, const vec3_t end);
 trace_t SV_MoveToss (edict_t *tossent, edict_t *ignore);
 void SV_LinkEdict (edict_t *ent, qboolean touch_triggers);
-/*void SV_TouchLinks (edict_t *ent, areanode_t *node);*/	// [FWGS, 01.07.23]
 int SV_TruePointContents (const vec3_t p);
 int SV_PointContents (const vec3_t p);
-/*void SV_RunLightStyles (void);*/	// [FWGS, 01.07.23]
 void SV_SetLightStyle (int style, const char *s, float f);
-/*const char *SV_GetLightStyle (int style);*/	// [FWGS, 01.07.23]
 int SV_LightForEntity (edict_t *pEdict);
 
 //

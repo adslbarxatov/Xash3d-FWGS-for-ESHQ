@@ -95,9 +95,7 @@ void MSG_WriteWord (sizebuf_t *sb, int val);
 void MSG_WriteLong (sizebuf_t *sb, int val);
 
 // [FWGS, 01.07.23]
-/*void MSG_WriteDword (sizebuf_t *sb, dword val);*/
 void MSG_WriteDword (sizebuf_t *sb, uint val);
-
 void MSG_WriteCoord (sizebuf_t *sb, float val);
 void MSG_WriteFloat (sizebuf_t *sb, float val);
 void MSG_WriteVec3Coord (sizebuf_t *sb, const float *fa);
@@ -136,9 +134,7 @@ int MSG_ReadWord (sizebuf_t *sb);
 int MSG_ReadLong (sizebuf_t *sb);
 
 // [FWGS, 01.07.23]
-/*dword MSG_ReadDword (sizebuf_t *sb);*/
 uint MSG_ReadDword (sizebuf_t *sb);
-
 float MSG_ReadCoord (sizebuf_t *sb);
 float MSG_ReadFloat (sizebuf_t *sb);
 void MSG_ReadVec3Coord (sizebuf_t *sb, vec3_t fa);

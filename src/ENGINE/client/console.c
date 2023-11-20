@@ -23,13 +23,6 @@ GNU General Public License for more details.
 #include "input.h"
 
 // [FWGS, 01.07.23]
-/*convar_t *con_notifytime;
-convar_t *scr_conspeed;
-convar_t *con_fontsize;
-convar_t *con_charset;
-convar_t *con_fontscale;
-convar_t *con_fontnum;
-convar_t *con_color;*/
 static CVAR_DEFINE_AUTO (scr_conspeed, "600", FCVAR_ARCHIVE,
 	"console moving speed");
 static CVAR_DEFINE_AUTO (con_notifytime, "3", FCVAR_ARCHIVE,
@@ -177,7 +170,6 @@ Con_SetColor [FWGS, 01.07.23]
 */
 static void Con_SetColor (void)
 	{
-	/*vec3_t color;*/
 	int r, g, b;
 	int num;
 
@@ -860,20 +852,11 @@ Con_Init [FWGS, 01.07.23]
 */
 void Con_Init (void)
 	{
-	/*int	i;*/
-
 	// dedicated server already have console
 	if (host.type == HOST_DEDICATED)
 		return;
 
 	// must be init before startup video subsystem
-	/*scr_conspeed = Cvar_Get ("scr_conspeed", "600", FCVAR_ARCHIVE, "console moving speed");
-	con_notifytime = Cvar_Get ("con_notifytime", "3", FCVAR_ARCHIVE, "notify time to live");
-	con_fontsize = Cvar_Get ("con_fontsize", "1", FCVAR_ARCHIVE, "console font number (0, 1 or 2)");
-	con_charset = Cvar_Get ("con_charset", "cp1251", FCVAR_ARCHIVE, "console font charset (only cp1251 supported now)");
-	con_fontscale = Cvar_Get ("con_fontscale", "1.0", FCVAR_ARCHIVE, "scale font texture");
-	con_fontnum = Cvar_Get ("con_fontnum", "-1", FCVAR_ARCHIVE, "console font number (0, 1 or 2), -1 for autoselect");
-	con_color = Cvar_Get ("con_color", "240 180 24", FCVAR_ARCHIVE, "set a custom console color");*/
 	Cvar_RegisterVariable (&scr_conspeed);
 	Cvar_RegisterVariable (&con_notifytime);
 	Cvar_RegisterVariable (&con_fontsize);
@@ -2095,20 +2078,12 @@ void Con_DrawVersion (void)
 			break;
 		}
 
-	/*if (!host.force_draw_version)
-		{
-		if ((cls.key_dest != key_menu && !draw_version) || (CL_IsDevOverviewMode () == 2) || net_graph->value)
-			return;
-		}*/
-
 	if (host.force_draw_version_time > host.realtime)
-		/*host.force_draw_version = false;*/
 		draw_version = true;
 	
 	if (((cls.key_dest != key_menu) && !draw_version) || (CL_IsDevOverviewMode () == 2) || net_graph.value)
 		return;
 
-	/*if (host.force_draw_version || draw_version)*/
 	if (draw_version)
 		Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)",
 			PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());

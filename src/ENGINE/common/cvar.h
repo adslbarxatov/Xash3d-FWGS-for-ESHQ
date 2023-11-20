@@ -57,9 +57,6 @@ typedef struct convar_s
 	CVAR_DEFINE( cv, #cv, cvstr, cvflags, cvdesc )
 
 // [FWGS, 01.07.23]
-/*#define CVAR_TO_BOOL( x )		((x) && ((x)->value != 0.0f) ? true : false )*/
-
-// [FWGS, 01.07.23]
 #ifndef REF_DLL
 cvar_t *Cvar_GetList (void);
 #define Cvar_FindVar( name )	Cvar_FindVarExt( name, 0 )

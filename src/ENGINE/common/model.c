@@ -30,9 +30,6 @@ static int	mod_numknown = 0;
 poolhandle_t      com_studiocache;		// cache for submodels
 
 // [FWGS, 01.07.23]
-/*convar_t *mod_studiocache;
-convar_t *r_wadtextures;
-convar_t *r_showhull;*/
 CVAR_DEFINE (mod_studiocache, "r_studiocache", "1", FCVAR_ARCHIVE,
 	"enables studio cache for speedup tracing hitboxes");
 CVAR_DEFINE_AUTO (r_wadtextures, "0", 0,
@@ -141,9 +138,6 @@ void Mod_Init (void)
 	com_studiocache = Mem_AllocPool ("Studio Cache");
 	
 	// [FWGS, 01.07.23]
-	/*mod_studiocache = Cvar_Get ("r_studiocache", "1", FCVAR_ARCHIVE, "enables studio cache for speedup tracing hitboxes");
-	r_wadtextures = Cvar_Get ("r_wadtextures", "0", 0, "completely ignore textures in the bsp-file if enabled");
-	r_showhull = Cvar_Get ("r_showhull", "0", 0, "draw collision hulls 1-3");*/
 	Cvar_RegisterVariable (&mod_studiocache);
 	Cvar_RegisterVariable (&r_wadtextures);
 	Cvar_RegisterVariable (&r_showhull);

@@ -672,15 +672,11 @@ void CL_ParseTextMessage (sizebuf_t *msg)
 	text->a2 = MSG_ReadByte (msg);
 	
 	// [FWGS, 01.07.23]
-	/*text->fadein = (float)(MSG_ReadShort (msg) / 256.0f);
-	text->fadeout = (float)(MSG_ReadShort (msg) / 256.0f);
-	text->holdtime = (float)(MSG_ReadShort (msg) / 256.0f);*/
 	text->fadein = (float)(MSG_ReadWord (msg) / 256.0f);
 	text->fadeout = (float)(MSG_ReadWord (msg) / 256.0f);
 	text->holdtime = (float)(MSG_ReadWord (msg) / 256.0f);
 
 	if (text->effect == 2)
-		/*text->fxtime = (float)(MSG_ReadShort (msg) / 256.0f);*/
 		text->fxtime = (float)(MSG_ReadWord (msg) / 256.0f);
 
 	else
@@ -1110,7 +1106,6 @@ void CL_ClearWorld (void)
 	}
 
 // [FWGS, 01.07.23]
-/*void CL_InitEdicts (void)*/
 void CL_InitEdicts (int maxclients)
 	{
 	Assert (clgame.entities == NULL);
@@ -1118,7 +1113,6 @@ void CL_InitEdicts (int maxclients)
 	if (!clgame.mempool) return; // Host_Error without client
 
 #if XASH_LOW_MEMORY != 2
-	/*CL_UPDATE_BACKUP = (cl.maxclients <= 1) ? SINGLEPLAYER_BACKUP : MULTIPLAYER_BACKUP;*/
 	CL_UPDATE_BACKUP = (maxclients <= 1) ? SINGLEPLAYER_BACKUP : MULTIPLAYER_BACKUP;
 #endif
 
@@ -1169,8 +1163,6 @@ void CL_ClearEdicts (void)
 
 	// in case we stopped with error
 	clgame.maxEntities = 2;
-
-	/*CL_InitEdicts ();*/
 	CL_InitEdicts (cl.maxclients);
 	}
 
@@ -3791,9 +3783,6 @@ void CL_UnloadProgs (void)
 	Mem_FreePool (&cls.mempool);
 	Mem_FreePool (&clgame.mempool);
 	memset (&clgame, 0, sizeof (clgame));
-
-	/*Cvar_Unlink (FCVAR_CLIENTDLL);
-	Cmd_Unlink (CMD_CLIENTDLL);*/
 	}
 
 qboolean CL_LoadProgs (const char *name)
@@ -3947,14 +3936,11 @@ qboolean CL_LoadProgs (const char *name)
 		Con_Reportf (S_WARN "CL_LoadProgs: couldn't get mobility API\n");
 
 	// [FWGS, 01.07.23]
-	/*CL_InitEdicts ();		// initailize local player and world*/
 	CL_InitEdicts (cl.maxclients);	// initailize local player and world
 	CL_InitClientMove ();	// initialize pm_shared
 
 	// initialize game
 	clgame.dllFuncs.pfnInit ();
-
 	ref.dllFuncs.CL_InitStudioAPI ();
-
 	return true;
 	}

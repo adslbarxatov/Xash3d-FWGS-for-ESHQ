@@ -800,7 +800,7 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	return length;
 	}
 
-#elif defined(__sgi) /*|| defined(__SWITCH__) || defined(__vita__)*/	// [FWGS, 01.07.23]
+#elif defined(__sgi) 	// [FWGS, 01.07.23]
 
 /*
  * These functions are stubbed for now to get the code compiling.
@@ -830,7 +830,7 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 // [FWGS, 01.07.23]
 #elif defined(__SWITCH__) || defined(__vita__)
 
-/* Not possible on this platform */
+// Not possible on this platform
 WAI_FUNCSPEC
 int WAI_PREFIX (getExecutablePath)(char *out, int capacity, int *dirname_length)
 	{

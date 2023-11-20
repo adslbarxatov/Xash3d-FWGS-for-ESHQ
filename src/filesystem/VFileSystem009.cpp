@@ -438,8 +438,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.07.23]
 		bool FullPathToRelativePath (const char *path, char *out) override
 			{
-			/*searchpath_t *sp;*/
-
 			if (!COM_CheckString (path))
 				{
 				*out = 0;
@@ -447,20 +445,6 @@ class CXashFS : public IVFileSystem009
 				}
 
 			FixupPath (p, path);
-
-			/*for (sp = fs_searchpaths; sp; sp = sp->next)
-				{
-				size_t splen = Q_strlen (sp->filename);
-
-				if (!Q_strnicmp (sp->filename, p, splen))
-					{
-					Q_strncpy (out, p + splen + 1, 512);
-					return true;
-					}
-				}
-
-			Q_strncpy (out, p, 512);
-			return false;*/
 			return FS_FullPathToRelativePath (out, p, 512);
 			}
 
@@ -506,13 +490,10 @@ class CXashFS : public IVFileSystem009
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
 			const char *ext = COM_FileExtension (path);
 
-			/*Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
-			CopyAndFixSlashes (fullpath, path, sizeof (fullpath));*/
 			IdToDir (dir, sizeof (dir), id);
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", dir, path);
 			COM_FixSlashes (fullpath);
 
-			/*return !!FS_AddPak_Fullpath (fullpath, nullptr, FS_CUSTOM_PATH);*/
 			for (const fs_archive_t *archive = g_archives; archive->ext; archive++)
 				{
 				if ((archive->type == SEARCHPATH_PAK) && !Q_stricmp (ext, archive->ext))

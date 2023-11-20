@@ -1131,7 +1131,6 @@ void CL_PredictMovement (qboolean repredicting)
 			cl.local.onground = -1;
 
 		// [FWGS, 01.07.23]
-		/*if (!repredicting || !CVAR_TO_BOOL (cl_lw))*/
 		if (!repredicting || !cl_lw.value)
 			cl.local.viewmodel = to->client.viewmodel;
 		cl.local.repredicting = false;
@@ -1168,7 +1167,6 @@ void CL_PredictMovement (qboolean repredicting)
 	cl.local.usehull = to->playerstate.usehull;
 
 	// [FWGS, 01.07.23]
-	/*if (!repredicting || !CVAR_TO_BOOL (cl_lw))*/
 	if (!repredicting || !cl_lw.value)
 		cl.local.viewmodel = to->client.viewmodel;
 

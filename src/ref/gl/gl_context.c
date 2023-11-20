@@ -203,15 +203,6 @@ static int GL_RefGetParm (int parm, int arg)
 			return tr.lightmapTextures[arg];
 
 		// [FWGS, 01.07.23]
-		/*case PARM_WIDESCREEN:
-			return gpGlobals->wideScreen;
-		case PARM_FULLSCREEN:
-			return gpGlobals->fullScreen;
-		case PARM_SCREEN_WIDTH:
-			return gpGlobals->width;
-		case PARM_SCREEN_HEIGHT:
-			return gpGlobals->height;*/
-
 		case PARM_TEX_TARGET:
 			glt = R_GetTexture (arg);
 			return glt->target;
