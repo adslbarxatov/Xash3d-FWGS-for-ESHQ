@@ -24,7 +24,17 @@ GNU General Public License for more details.
 
 fs_api_t g_fsapi;
 fs_globals_t *FI;
+
+static pfnCreateInterface_t fs_pfnCreateInterface;	// [FWGS, 01.11.23]
 static HINSTANCE fs_hInstance;
+
+void *FS_GetNativeObject (const char *obj)
+	{
+	if (fs_pfnCreateInterface)
+		return fs_pfnCreateInterface (obj, NULL);
+
+	return NULL;
+	}
 
 static void FS_Rescan_f (void)
 	{
@@ -52,7 +62,8 @@ static fs_interface_t fs_memfuncs =
 		_Mem_Alloc,
 		_Mem_Realloc,
 		_Mem_Free,
-		 Platform_GetNativeObject,	// [FWGS, 01.07.23]
+		 /*Platform_GetNativeObject,	// [FWGS, 01.07.23]*/
+		Sys_GetNativeObject,	// [FWGS, 01.11.23]
 	};
 
 // [FWGS, 01.05.23]
@@ -99,8 +110,15 @@ qboolean FS_LoadProgs (void)
 		return false;
 		}
 
-	Con_DPrintf ("FS_LoadProgs: filesystem_stdio successfully loaded\n");
+	// [FWGS, 01.11.23]
+	if (!(fs_pfnCreateInterface = (pfnCreateInterface_t)COM_GetProcAddress (fs_hInstance, "CreateInterface")))
+		{
+		FS_UnloadProgs ();
+		Host_Error ("FS_LoadProgs: can't find CreateInterface entry point in %s\n", name);
+		return false;
+		}
 
+	Con_DPrintf ("FS_LoadProgs: filesystem_stdio successfully loaded\n");
 	return true;
 	}
 

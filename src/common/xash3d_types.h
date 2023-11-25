@@ -54,21 +54,22 @@ typedef vec_t		matrix4x4[4][4];
 
 typedef uint64_t longtime_t;
 
-#define MAX_STRING		256	// generic string
-#define MAX_INFO_STRING	256	// infostrings are transmitted across network
-#define MAX_SERVERINFO_STRING	512	// server handles too many settings. expand to 1024?
+#define MAX_STRING		256		// generic string
+#define MAX_INFO_STRING	256		// infostrings are transmitted across network
+#define MAX_SERVERINFO_STRING	512		// server handles too many settings. expand to 1024?
 #define MAX_LOCALINFO_STRING	32768	// localinfo used on server and not sended to the clients
 #define MAX_SYSPATH		1024	// system filepath
 #define MAX_VA_STRING	1024	// [FWGS, 01.04.23] string length returned by va()
 #define MAX_PRINT_MSG	8192	// how many symbols can handle single call of Con_Printf or Con_DPrintf
 #define MAX_TOKEN		2048	// parse token length
-#define MAX_MODS		512	// environment games that engine can keep visible
+#define MAX_MODS		512		// environment games that engine can keep visible
 #define MAX_USERMSG_LENGTH	2048	// don't modify it's relies on a client-side definitions
 
 #define BIT( n )		( 1U << ( n ))
-#define GAMMA		( 2.2f )		// Valve Software gamma
-#define INVGAMMA		( 1.0f / 2.2f )	// back to 1.0
-#define TEXGAMMA		( 0.9f )		// compensate dim textures
+#define BIT64( n )		( 1ULL << ( n ))	// [FWGS, 01.11.23]
+#define GAMMA			( 2.2f )			// Valve Software gamma
+#define INVGAMMA		( 1.0f / 2.2f )		// back to 1.0
+#define TEXGAMMA		( 0.9f )			// compensate dim textures
 #define SetBits( iBitVector, bits )	((iBitVector) = (iBitVector) | (bits))
 #define ClearBits( iBitVector, bits )	((iBitVector) = (iBitVector) & ~(bits))
 #define FBitSet( iBitVector, bit )	((iBitVector) & (bit))
@@ -78,7 +79,7 @@ typedef uint64_t longtime_t;
 #undef NULL
 #endif
 
-#define NULL		((void *)0)
+#define NULL	((void *)0)
 #endif
 
 // color strings
@@ -96,16 +97,19 @@ typedef uint64_t longtime_t;
 
 	#define _format(x) __attribute__((format(printf, x, x+1)))
 	#define NORETURN __attribute__((noreturn))
+	#define NONNULL __attribute__((nonnull))	// [FWGS, 01.11.23]
 #elif defined(_MSC_VER)
 	#define EXPORT		__declspec( dllexport )
 	#define GAME_EXPORT
 	#define _format(x)
 	#define NORETURN
+	#define NONNULL	// [FWGS, 01.11.23]
 #else
 	#define EXPORT
 	#define GAME_EXPORT
 	#define _format(x)
 	#define NORETURN
+	#define NONNULL	// [FWGS, 01.11.23]
 #endif
 
 #if ( __GNUC__ >= 3 )
@@ -188,16 +192,20 @@ typedef struct dll_info_s
 
 typedef void (*setpair_t)(const char *key, const void *value, const void *buffer, void *numpairs);
 
+// [FWGS, 01.11.23]
+typedef void *(*pfnCreateInterface_t)(const char *, int *);
+
 // config strings are a general means of communication from
 // the server to all connected clients.
-// each config string can be at most CS_SIZE characters.
+// each config string can be at most CS_SIZE characters
 #if XASH_LOW_MEMORY == 0
-#define MAX_QPATH		64	// max length of a game pathname
+	#define MAX_QPATH	64	// max length of a game pathname
 #elif XASH_LOW_MEMORY == 2
-#define MAX_QPATH		32 // should be enough for singleplayer
+	#define MAX_QPATH	32	// should be enough for singleplayer
 #elif XASH_LOW_MEMORY == 1
-#define MAX_QPATH 48
+	#define MAX_QPATH	48
 #endif
+
 #define MAX_OSPATH		260	// max length of a filesystem pathname
 #define CS_SIZE		64	// size of one config string
 #define CS_TIME		16	// size of time string

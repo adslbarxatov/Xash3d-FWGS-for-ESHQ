@@ -212,8 +212,9 @@ const char *Cvar_ValidateString (convar_t *var, const char *value)
 		char *szVal = szNew;
 		int	len = 0;
 
-		// step through the string, only copying back in characters that are printable
-		while (*pszValue && len < MAX_STRING)
+		// [FWGS, 01.11.23] step through the string, only copying back in characters that are printable
+		/*while (*pszValue && len < MAX_STRING)*/
+		while (*pszValue && (len < (MAX_STRING - 1)))
 			{
 			if (((byte)*pszValue) < 32)
 				{

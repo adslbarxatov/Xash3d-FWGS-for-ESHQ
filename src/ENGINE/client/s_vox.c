@@ -13,10 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 
+// [FWGS, 01.11.23]
 #include "common.h"
 #include "sound.h"
 #include "const.h"
-#include "sequence.h"
+/*#include "sequence.h"*/
 #include <ctype.h>
 
 static int cszrawsentences = 0;
@@ -160,14 +161,16 @@ static const char *VOX_GetDirectory (char *szpath, const char *psz, int nsize)
 	return p + 1;
 	}
 
+// [FWGS, 01.11.23]
 static const char *VOX_LookupString (const char *pszin)
 	{
 	int i = -1, len;
 	const char *c;
 
-	// check if we are a CSCZ or immediate sentence
+	// check if we are an immediate sentence
 	if (*pszin == '#')
 		{
+		/*
 		// Q_atoi is too smart and allows negative values
 		// so check with Q_isdigit beforehand
 		if (Q_isdigit (pszin + 1))
@@ -183,6 +186,10 @@ static const char *VOX_LookupString (const char *pszin)
 			// immediate sentence, probably coming from "speak" command
 			return pszin + 1;
 			}
+		*/
+		
+		// immediate sentence, probably coming from "speak" command
+		return pszin + 1;
 		}
 
 	// check if we received an index

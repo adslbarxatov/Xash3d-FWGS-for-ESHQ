@@ -107,7 +107,8 @@ void GL_BackendEndFrame (void)
 			break;
 
 		case 3:
-			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i alias models drawn\n%3i studio models drawn\n%3i sprites drawn",
+			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg),
+				"%3i alias models drawn\n%3i studio models drawn\n%3i sprites drawn",
 				r_stats.c_alias_models_drawn, r_stats.c_studio_models_drawn, r_stats.c_sprite_models_drawn);
 			break;
 
@@ -271,8 +272,29 @@ void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t)
 	}
 
 /*
+====================
+GL_EnableTextureUnit [FWGS, 01.11.23]
+====================
+*/
+void GL_EnableTextureUnit (int tmu, qboolean enable)
+	{
+	// only enable fixed-function pipeline units
+	if (tmu < glConfig.max_texture_units)
+		{
+		if (enable)
+			{
+			pglEnable (glState.currentTextureTargets[tmu]);
+			}
+		else if (glState.currentTextureTargets[tmu] != GL_NONE)
+			{
+			pglDisable (glState.currentTextureTargets[tmu]);
+			}
+		}
+	}
+
+/*
 =================
-GL_TextureTarget
+GL_TextureTarget [FWGS, 01.11.23]
 =================
 */
 void GL_TextureTarget (uint target)
@@ -285,11 +307,14 @@ void GL_TextureTarget (uint target)
 
 	if (glState.currentTextureTargets[glState.activeTMU] != target)
 		{
-		if (glState.currentTextureTargets[glState.activeTMU] != GL_NONE)
-			pglDisable (glState.currentTextureTargets[glState.activeTMU]);
+		/*if (glState.currentTextureTargets[glState.activeTMU] != GL_NONE)
+			pglDisable (glState.currentTextureTargets[glState.activeTMU]);*/
+		GL_EnableTextureUnit (glState.activeTMU, false);
+
 		glState.currentTextureTargets[glState.activeTMU] = target;
 		if (target != GL_NONE)
-			pglEnable (glState.currentTextureTargets[glState.activeTMU]);
+			GL_EnableTextureUnit (glState.activeTMU, true);
+		/*pglEnable (glState.currentTextureTargets[glState.activeTMU]);*/
 		}
 	}
 

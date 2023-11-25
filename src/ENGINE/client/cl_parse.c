@@ -1384,9 +1384,9 @@ collect userinfo from all players
 */
 void CL_UpdateUserinfo (sizebuf_t *msg, qboolean legacy)
 	{
-	int		slot, id;
+	int				slot, id;
 	qboolean		active;
-	player_info_t *player;
+	player_info_t	*player;
 
 	slot = MSG_ReadUBitLong (msg, MAX_CLIENT_BITS);
 
@@ -1452,25 +1452,25 @@ void CL_ParseResource (sizebuf_t *msg)
 		Host_Error ("bad sound index\n");
 		}
 
-	if (pResource->type == t_model && pResource->nIndex > MAX_MODELS)
+	if ((pResource->type == t_model) && (pResource->nIndex > MAX_MODELS))
 		{
 		Mem_Free (pResource);
 		Host_Error ("bad model index\n");
 		}
 
-	if (pResource->type == t_eventscript && pResource->nIndex > MAX_EVENTS)
+	if ((pResource->type == t_eventscript) && (pResource->nIndex > MAX_EVENTS))
 		{
 		Mem_Free (pResource);
 		Host_Error ("bad event index\n");
 		}
 
-	if (pResource->type == t_generic && pResource->nIndex > MAX_CUSTOM)
+	if ((pResource->type == t_generic) && (pResource->nIndex > MAX_CUSTOM))
 		{
 		Mem_Free (pResource);
 		Host_Error ("bad file index\n");
 		}
 
-	if (pResource->type == t_decal && pResource->nIndex > MAX_DECALS)
+	if ((pResource->type == t_decal) && (pResource->nIndex > MAX_DECALS))
 		{
 		Mem_Free (pResource);
 		Host_Error ("bad decal index\n");
@@ -1488,8 +1488,8 @@ collect pings and packet lossage from clients
 */
 void CL_UpdateUserPings (sizebuf_t *msg)
 	{
-	int		i, slot;
-	player_info_t *player;
+	int				i, slot;
+	player_info_t	*player;
 
 	for (i = 0; i < MAX_CLIENTS; i++)
 		{
@@ -1508,13 +1508,13 @@ void CL_UpdateUserPings (sizebuf_t *msg)
 
 void CL_SendConsistencyInfo (sizebuf_t *msg)
 	{
-	qboolean		user_changed_diskfile;
+	qboolean	user_changed_diskfile;
 	vec3_t		mins, maxs;
 	string		filename;
 	CRC32_t		crcFile;
 	byte		md5[16];
-	consistency_t *pc;
-	int		i;
+	consistency_t	*pc;
+	int			i;
 
 	if (!cl.need_force_consistency_response)
 		return;
@@ -1532,7 +1532,8 @@ void CL_SendConsistencyInfo (sizebuf_t *msg)
 
 		if (pc->issound)
 			Q_snprintf (filename, sizeof (filename), DEFAULT_SOUNDPATH "%s", pc->filename);
-		else Q_strncpy (filename, pc->filename, sizeof (filename));
+		else
+			Q_strncpy (filename, pc->filename, sizeof (filename));
 
 		if (Q_strstr (filename, "models/"))
 			{
@@ -1545,22 +1546,29 @@ void CL_SendConsistencyInfo (sizebuf_t *msg)
 		switch (pc->check_type)
 			{
 			case force_exactfile:
+				// [FWGS, 01.11.23]
 				MD5_HashFile (md5, filename, NULL);
-				pc->value = *(int *)md5;
+				/*pc->value = *(int *)md5;*/
+				memcpy (&pc->value, md5, sizeof (pc->value));
+				LittleLongSW (pc->value);
 
 				if (user_changed_diskfile)
 					MSG_WriteUBitLong (msg, 0, 32);
-				else MSG_WriteUBitLong (msg, pc->value, 32);
+				else
+					MSG_WriteUBitLong (msg, pc->value, 32);
 				break;
+
 			case force_model_samebounds:
 			case force_model_specifybounds:
 				if (!Mod_GetStudioBounds (filename, mins, maxs))
 					Host_Error ("unable to find %s\n", filename);
 				if (user_changed_diskfile)
 					ClearBounds (maxs, mins); // g-cont. especially swapped
+
 				MSG_WriteBytes (msg, mins, 12);
 				MSG_WriteBytes (msg, maxs, 12);
 				break;
+
 			default:
 				Host_Error ("Unknown consistency type %i\n", pc->check_type);
 				break;

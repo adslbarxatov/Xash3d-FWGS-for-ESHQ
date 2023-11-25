@@ -88,16 +88,16 @@ qboolean SV_FileInConsistencyList (const char *filename, consistency_t **ppout)
 
 void SV_ParseConsistencyResponse (sv_client_t *cl, sizebuf_t *msg)
 	{
-	int		i, c, idx, value;
+	int			i, c, idx, value;
 	byte		readbuffer[32];
 	byte		nullbuffer[32];
 	byte		resbuffer[32];
-	qboolean		invalid_type;
+	qboolean	invalid_type;
 	vec3_t		cmins, cmaxs;
-	int		badresindex;
+	int			badresindex;
 	vec3_t		mins, maxs;
 	FORCE_TYPE	ft;
-	resource_t *r;
+	resource_t	*r;
 
 	memset (nullbuffer, 0, sizeof (nullbuffer));
 	invalid_type = false;
@@ -107,7 +107,7 @@ void SV_ParseConsistencyResponse (sv_client_t *cl, sizebuf_t *msg)
 	while (MSG_ReadOneBit (msg))
 		{
 		idx = MSG_ReadUBitLong (msg, MAX_MODEL_BITS);
-		if (idx < 0 || idx >= sv.num_resources)
+		if ((idx < 0) || (idx >= sv.num_resources))
 			break;
 
 		r = &sv.resources[idx];
@@ -117,12 +117,16 @@ void SV_ParseConsistencyResponse (sv_client_t *cl, sizebuf_t *msg)
 
 		memcpy (readbuffer, r->rguc_reserved, 32);
 
+		// [FWGS, 01.11.23]
 		if (!memcmp (readbuffer, nullbuffer, 32))
 			{
 			value = MSG_ReadUBitLong (msg, 32);
 
+			LittleLongSW (value);
+
 			// will be compare only first 4 bytes
-			if (value != *(int *)r->rgucMD5_hash)
+			/*if (value != *(int *)r->rgucMD5_hash)*/
+			if (memcmp (&value, r->rgucMD5_hash, 4))
 				badresindex = idx + 1;
 			}
 		else

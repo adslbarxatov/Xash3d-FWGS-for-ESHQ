@@ -38,6 +38,11 @@ qboolean Sys_DebuggerPresent (void);	// [FWGS, 01.04.23] optional, see Sys_Debug
 // [FWGS, 01.07.23]
 void Platform_SetStatus (const char *status);
 
+// [FWGS, 01.11.23] legacy iOS port functions
+#if TARGET_OS_IOS
+	const char *IOS_GetDocsDir (void);
+#endif
+
 #if XASH_WIN32 || XASH_LINUX
 	#define XASH_PLATFORM_HAVE_STATUS 1
 #else
@@ -58,10 +63,10 @@ void Platform_SetStatus (const char *status);
 	const char *Android_LoadID (void);
 	void Android_SaveID (const char *id);
 
-	// [FWGS, 01.07.23]
+	// [FWGS, 01.11.23]
 	void Android_Init (void);
 	void *Android_GetNativeObject (const char *name);
-	int Android_GetKeyboardHeight (void);
+	/*int Android_GetKeyboardHeight (void);*/
 #endif
 
 // [FWGS, 01.07.23]
@@ -142,8 +147,8 @@ static inline void Platform_Shutdown (void)
 #endif
 	}
 
-// [FWGS, 01.07.23]
-static inline void *Platform_GetNativeObject (const char *name)
+// [FWGS, 01.11.23]
+/*static inline void *Platform_GetNativeObject (const char *name)
 	{
 	void *ptr = NULL;
 
@@ -152,15 +157,17 @@ static inline void *Platform_GetNativeObject (const char *name)
 #endif
 
 	return ptr;
-	}
+	}*/
 
 /*
 ==============================================================================
 MOBILE API
 ==============================================================================
 */
+
+// [FWGS, 01.11.23]
 void Platform_Vibrate (float life, char flags);
-void *Platform_GetNativeObject (const char *name);
+/*void *Platform_GetNativeObject (const char *name);*/
 
 /*
 ==============================================================================
@@ -207,12 +214,19 @@ typedef enum
 	rserr_unknown
 	} rserr_t;
 
+// [FWGS, 01.11.23]
 struct vidmode_s;
+typedef enum window_mode_e window_mode_t;
+
 // Window
 qboolean  R_Init_Video (const int type);
 void      R_Free_Video (void);
 qboolean  VID_SetMode (void);
-rserr_t   R_ChangeDisplaySettings (int width, int height, qboolean fullscreen);
+
+// [FWGS, 01.11.23]
+/*rserr_t   R_ChangeDisplaySettings (int width, int height, qboolean fullscreen);*/
+rserr_t   R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode);
+
 int       R_MaxVideoModes (void);
 struct vidmode_s *R_GetVideoMode (int num);
 void *GL_GetProcAddress (const char *name); // RenderAPI requirement
@@ -233,7 +247,8 @@ void Evdev_Shutdown (void);
 void Evdev_Init (void);
 void IN_EvdevMove (float *yaw, float *pitch);
 void IN_EvdevFrame (void);
-#endif // XASH_USE_EVDEV
+#endif
+
 /*
 ==============================================================================
 AUDIO INPUT/OUTPUT

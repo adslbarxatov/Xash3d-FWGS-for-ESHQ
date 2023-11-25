@@ -83,8 +83,11 @@ static qboolean SV_CopyEdictToPhysEnt (physent_t *pe, edict_t *ed)
 		}
 	else
 		{
-		// otherwise copy the classname
-		Q_strncpy (pe->name, STRING (ed->v.classname), sizeof (pe->name));
+		// [FWGS, 01.11.23]
+		/*// otherwise copy the classname
+		Q_strncpy (pe->name, STRING (ed->v.classname), sizeof (pe->name));*/
+		// otherwise copy the modelname
+		Q_strncpy (pe->name, mod->name, sizeof (pe->name));
 		}
 
 	pe->model = pe->studiomodel = NULL;
@@ -97,18 +100,21 @@ static qboolean SV_CopyEdictToPhysEnt (physent_t *pe, edict_t *ed)
 			VectorClear (pe->mins);
 			VectorClear (pe->maxs);
 			break;
+
 		case SOLID_BBOX:
-			if (mod && mod->type == mod_studio && mod->flags & STUDIO_TRACE_HITBOX)
+			if (mod && (mod->type == mod_studio) && (mod->flags & STUDIO_TRACE_HITBOX))
 				pe->studiomodel = mod;
 			VectorCopy (ed->v.mins, pe->mins);
 			VectorCopy (ed->v.maxs, pe->maxs);
 			break;
+
 		case SOLID_CUSTOM:
 			pe->model = (mod->type == mod_brush) ? mod : NULL;
 			pe->studiomodel = (mod->type == mod_studio) ? mod : NULL;
 			VectorCopy (ed->v.mins, pe->mins);
 			VectorCopy (ed->v.maxs, pe->maxs);
 			break;
+
 		default:
 			pe->studiomodel = (mod->type == mod_studio) ? mod : NULL;
 			VectorCopy (ed->v.mins, pe->mins);

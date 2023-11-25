@@ -414,5 +414,6 @@ void NET_InitMasters (void)
 	// keep main master always there
 	Cvar_RegisterVariable (&sv_verbose_heartbeats);	// [FWGS, 01.05.23]
 	NET_AddMaster (MASTERSERVER_ADR, false);
+	NET_AddMaster (MASTERSERVER_ADR_TEST, false);	// [FWGS, 01.11.23]
 	NET_LoadMasters ();
 	}

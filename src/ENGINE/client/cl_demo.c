@@ -1110,7 +1110,9 @@ void CL_DemoInterpolateAngles (void)
 		QuaternionAngle (q, cl.viewangles);
 		}
 	else if (cl.cmd != NULL)
+		{
 		VectorCopy (cl.cmd->viewangles, cl.viewangles);
+		}
 	}
 
 /*
@@ -1122,7 +1124,7 @@ show stats
 */
 void CL_FinishTimeDemo (void)
 	{
-	int	frames;
+	int		frames;
 	double	time;
 
 	cls.timedemo = false;
@@ -1130,9 +1132,15 @@ void CL_FinishTimeDemo (void)
 	// the first frame didn't count
 	frames = (host.framecount - cls.td_startframe) - 1;
 	time = host.realtime - cls.td_starttime;
-	if (!time) time = 1.0;
+	if (!time)
+		time = 1.0;
 
-	Con_Printf ("%i frames %5.3f seconds %5.3f fps\n", frames, time, frames / time);
+	// [FWGS, 01.11.23]
+	/*Con_Printf ("%i frames %5.3f seconds %5.3f fps\n", frames, time, frames / time);*/
+	Con_Printf ("timedemo result: %i frames %5.3f seconds %5.3f fps\n", frames, time, frames / time);
+	
+	if (Sys_CheckParm ("-timedemo"))
+		CL_Quit_f ();
 	}
 
 /*

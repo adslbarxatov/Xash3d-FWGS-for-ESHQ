@@ -75,6 +75,12 @@ const fs_archive_t g_archives[] =
 // [FWGS, 01.07.23] special fs_archive_t for plain directories
 static const fs_archive_t g_directory_archive = { NULL, SEARCHPATH_PLAIN, FS_AddDir_Fullpath, false };
 
+// [FWGS, 01.11.23]
+#ifdef XASH_ANDROID
+static const fs_archive_t g_android_archive =
+	{ NULL, SEARCHPATH_ANDROID_ASSETS, FS_AddAndroidAssets_Fullpath, false };
+#endif
+
 #ifdef XASH_REDUCE_FD
 static file_t *fs_last_readfile;
 static zip_t *fs_last_zip;
@@ -157,7 +163,8 @@ void stringlistfreecontents (stringlist_t *list)
 	list->strings = NULL;
 	}
 
-void stringlistappend (stringlist_t *list, char *text)
+// [FWGS, 01.11.23]
+void stringlistappend (stringlist_t *list, const char *text)
 	{
 	size_t	textlen;
 
@@ -373,7 +380,7 @@ static searchpath_t *FS_MountArchive_Fullpath (const char *file, int flags)
 
 /*
 ================
-FS_AddGameDirectory [FWGS, 01.07.23]
+FS_AddGameDirectory [FWGS, 01.11.23]
 
 Sets fs_writepath, adds the directory to the head of the path,
 then loads and adds pak1.pak pak2.pak...
@@ -381,11 +388,11 @@ then loads and adds pak1.pak pak2.pak...
 */
 void FS_AddGameDirectory (const char *dir, uint flags)
 	{
-	const fs_archive_t *archive;
-	stringlist_t	list;
-	searchpath_t *search;
-	char fullpath[MAX_SYSPATH];
-	int		i;
+	const fs_archive_t	*archive;
+	stringlist_t		list;
+	searchpath_t		*search;
+	char				fullpath[MAX_SYSPATH];
+	int					i;
 
 	stringlistinit (&list);
 	listdirectory (&list, dir);
@@ -411,6 +418,10 @@ void FS_AddGameDirectory (const char *dir, uint flags)
 		}
 
 	stringlistfreecontents (&list);
+
+#ifdef XASH_ANDROID
+	FS_AddArchive_Fullpath (&g_android_archive, dir, flags);
+#endif
 
 	// add the directory to the search path
 	// (unpacked files have the priority over packed files)
@@ -803,18 +814,20 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			pfile = COM_ParseFile (pfile, GameInfo->mp_filter, sizeof (GameInfo->mp_filter));
 			}
 
-		// valid for both
+		// [FWGS, 01.11.23] valid for both
 		else if (!Q_stricmp (token, "secure"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
-			GameInfo->secure = Q_atoi (token);
+			/*GameInfo->secure = Q_atoi (token);*/
+			GameInfo->secure = Q_atoi (token) ? true : false;
 			}
 
 		// valid for both
 		else if (!Q_stricmp (token, "nomodels"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
-			GameInfo->nomodels = Q_atoi (token);
+			/*GameInfo->nomodels = Q_atoi (token);*/
+			GameInfo->nomodels = Q_atoi (token) ? true : false;
 			}
 
 		else if (!Q_stricmp (token, isGameInfo ? "max_edicts" : "edicts"))
@@ -827,7 +840,8 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 		else if (!Q_stricmp (token, "noskills"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
-			GameInfo->noskills = Q_atoi (token);
+			/*GameInfo->noskills = Q_atoi (token);*/
+			GameInfo->noskills = Q_atoi (token) ? true : false;	// [FWGS, 01.11.23]
 			}
 
 		// only for gameinfo
@@ -894,17 +908,21 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 				pfile = COM_ParseFile (pfile, GameInfo->ambientsound[ambientNum],
 					sizeof (GameInfo->ambientsound[ambientNum]));
 				}
+
+			// [FWGS, 01.11.23]
 			else if (!Q_stricmp (token, "render_picbutton_text"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
-				GameInfo->render_picbutton_text = Q_atoi (token);
+				/*GameInfo->render_picbutton_text = Q_atoi (token);*/
+				GameInfo->render_picbutton_text = Q_atoi (token) ? true : false;
 				}
 
-			// [FWGS, 01.04.23]
+			// [FWGS, 01.11.23]
 			else if (!Q_stricmp (token, "internal_vgui_support"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
-				GameInfo->internal_vgui_support = Q_atoi (token);
+				/*GameInfo->internal_vgui_support = Q_atoi (token);*/
+				GameInfo->internal_vgui_support = Q_atoi (token) ? true : false;
 				}
 
 			// [FWGS, 01.07.23]
@@ -1459,15 +1477,16 @@ static void _Sys_Error (const char *fmt, ...)
 	exit (1);
 	}
 
-// [FWGS, 01.07.23]
-static void *_Platform_GetNativeObject_stub (const char *object)
+// [FWGS, 01.11.23]
+/*static void *_Platform_GetNativeObject_stub (const char *object)*/
+static void *Sys_GetNativeObject_stub (const char *object)
 	{
 	return NULL;
 	}
 
 /*
 ================
-FS_Init [FWGS, 01.05.23]
+FS_Init [FWGS, 01.11.23]
 ================
 */
 qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const char *basedir, const char *gamedir,
@@ -1480,6 +1499,10 @@ qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const c
 	char			buf[MAX_VA_STRING];
 
 	FS_InitMemory ();
+
+#ifdef XASH_ANDROID
+	FS_InitAndroid ();
+#endif
 
 	Q_strncpy (fs_rootdir, rootdir, sizeof (fs_rootdir));
 	Q_strncpy (fs_gamedir, gamedir, sizeof (fs_gamedir));
@@ -2142,18 +2165,22 @@ fs_offset_t FS_Write (file_t *file, const void *data, size_t datasize)
 
 /*
 ====================
-FS_Read
+FS_Read [FWGS, 01.11.23]
 
 Read up to "buffersize" bytes from a file
 ====================
 */
 fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 	{
-	fs_offset_t	count, done;
-	fs_offset_t	nb;
+	/*fs_offset_t	count, done;
+	fs_offset_t	nb;*/
+	fs_offset_t		done;
+	fs_offset_t		nb;
+	size_t			count;
 
 	// nothing to copy
-	if (buffersize == 0) return 1;
+	if (buffersize == 0)
+		return 1;
 
 	// Get rid of the ungetc character
 	if (file->ungetc != EOF)
@@ -2163,14 +2190,19 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 		file->ungetc = EOF;
 		done = 1;
 		}
-	else done = 0;
+	else
+		{
+		done = 0;
+		}
 
 	// first, we copy as many bytes as we can from "buff"
 	if (file->buff_ind < file->buff_len)
 		{
 		count = file->buff_len - file->buff_ind;
 
-		done += ((fs_offset_t)buffersize > count) ? count : (fs_offset_t)buffersize;
+		/*done += ((fs_offset_t)buffersize > count) ? count : (fs_offset_t)buffersize;*/
+		done += (buffersize > count) ? (fs_offset_t)count : (fs_offset_t)buffersize;
+
 		memcpy (buffer, &file->buff[file->buff_ind], done);
 		file->buff_ind += done;
 
@@ -2188,23 +2220,30 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 	// if we have a lot of data to get, put them directly into "buffer"
 	if (buffersize > sizeof (file->buff) / 2)
 		{
-		if (count > (fs_offset_t)buffersize)
-			count = (fs_offset_t)buffersize;
+		/*if (count > (fs_offset_t)buffersize)
+			count = (fs_offset_t)buffersize;*/
+		if (count > buffersize)
+			count = buffersize;
+
 		lseek (file->handle, file->offset + file->position, SEEK_SET);
-		nb = read (file->handle, &((byte *)buffer)[done], count);
+		/*nb = read (file->handle, &((byte *)buffer)[done], count);*/
+		nb = read (file->handle, (byte *)buffer + done, count);
 
 		if (nb > 0)
 			{
 			done += nb;
 			file->position += nb;
+
 			// purge cached data
 			FS_Purge (file);
 			}
 		}
 	else
 		{
-		if (count > (fs_offset_t)sizeof (file->buff))
-			count = (fs_offset_t)sizeof (file->buff);
+		/*if (count > (fs_offset_t)sizeof (file->buff))
+			count = (fs_offset_t)sizeof (file->buff);*/
+		if (count > sizeof (file->buff))
+			count = sizeof (file->buff);
 		lseek (file->handle, file->offset + file->position, SEEK_SET);
 		nb = read (file->handle, file->buff, count);
 
@@ -2946,7 +2985,8 @@ fs_interface_t g_engfuncs =
 		_Mem_Alloc,
 		_Mem_Realloc,
 		_Mem_Free,
-		_Platform_GetNativeObject_stub,	// [FWGS, 01.07.23]
+		/*_Platform_GetNativeObject_stub,	// [FWGS, 01.07.23]*/
+		Sys_GetNativeObject_stub,	// [FWGS, 01.11.23]
 	};
 
 static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)
@@ -2988,10 +3028,12 @@ static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)
 		Con_Reportf ("filesystem_stdio: custom memory allocation functions found\n");
 		}
 
-	// [FWGS, 01.07.23]
-	if (engfuncs->_Platform_GetNativeObject)
+	// [FWGS, 01.11.23]
+	/*if (engfuncs->_Platform_GetNativeObject)*/
+	if (engfuncs->_Sys_GetNativeObject)
 		{
-		g_engfuncs._Platform_GetNativeObject = engfuncs->_Platform_GetNativeObject;
+		/*g_engfuncs._Platform_GetNativeObject = engfuncs->_Platform_GetNativeObject;*/
+		g_engfuncs._Sys_GetNativeObject = engfuncs->_Sys_GetNativeObject;
 		Con_Reportf ("filesystem_stdio: custom platform-specific functions found\n");
 		}
 

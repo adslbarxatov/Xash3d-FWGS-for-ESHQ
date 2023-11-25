@@ -144,37 +144,7 @@ size_t Q_strncat (char *dst, const char *src, size_t size)
 	return (dlen + (s - src)); // count does not include NULL
 	}
 
-// [FWGS, 01.07.23]
-/*
-size_t Q_strncpy (char *dst, const char *src, size_t size)
-	{
-	register char *d = dst;
-	register const char *s = src;
-	register size_t	n = size;
-
-	if (!dst || !src || !size)
-		return 0;
-
-	// copy as many bytes as will fit
-	if (n != 0 && --n != 0)
-		{
-		do
-			{
-			if ((*d++ = *s++) == 0)
-				break;
-			} while (--n != 0);
-		}
-
-	// not enough room in dst, add NULL and traverse rest of src
-	if (n == 0)
-		{
-		if (size != 0)
-			*d = '\0'; // NULL-terminate dst
-		while (*s++);
-		}
-	return (s - src - 1); // count does not include NULL
-	}
-*/
+// [FWGS, 01.07.23] removed Q_strncpy
 
 int Q_atoi (const char *str)
 	{
@@ -716,11 +686,13 @@ void COM_ExtractFilePath (const char *path, char *dest)
 	{
 	const char *src = path + Q_strlen (path) - 1;
 
-	// back up until a \ or the start
-	while ((src != path) && !((*(src - 1) == '\\') || (*(src - 1) == '/')))
+	// [FWGS, 01.11.23] back up until a / or the start
+	/*while ((src != path) && !((*(src - 1) == '\\') || (*(src - 1) == '/')))*/
+	while ((src > path) && !(*(src - 1) == '\\' || *(src - 1) == '/'))
 		src--;
 
-	if (src != path)
+	/*if (src != path)*/
+	if (src > path)
 		{
 		memcpy (dest, path, src - path);
 		dest[src - path - 1] = 0; // cutoff backslash

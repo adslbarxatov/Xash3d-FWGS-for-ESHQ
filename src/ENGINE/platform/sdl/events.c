@@ -129,15 +129,18 @@ static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
 		return true;
 	return false;
 #else
-	if (SDL_GameControllerFromInstanceID (joyId))
+	// [FWGS, 01.11.23]
+	/*if (SDL_GameControllerFromInstanceID (joyId))*/
+	if (SDL_GameControllerFromInstanceID (joyId) != NULL)
 		return true;
+
 	return false;
 #endif
 	}
 
 /*
 =============
-SDLash_KeyEvent
+SDLash_KeyEvent [FWGS, 01.11.23]
 =============
 */
 static void SDLash_KeyEvent (SDL_KeyboardEvent key)
@@ -148,9 +151,10 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 #else
 	int keynum = key.keysym.sym;
 #endif
-	qboolean numLock = SDL_GetModState () & KMOD_NUM;
 
-	// [FWGS, 01.07.23]
+	/*qboolean numLock = SDL_GetModState () & KMOD_NUM;*/
+	qboolean numLock = FBitSet (SDL_GetModState (), KMOD_NUM);
+
 #if XASH_ANDROID
 	if ((keynum == SDL_SCANCODE_VOLUMEUP) || (keynum == SDL_SCANCODE_VOLUMEDOWN))
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
@@ -158,7 +162,8 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 	if (SDL_IsTextInputActive () && down && (cls.key_dest != key_game))
 		{
-		if (SDL_GetModState () & KMOD_CTRL)
+		/*if (SDL_GetModState () & KMOD_CTRL)*/
+		if (FBitSet (SDL_GetModState (), KMOD_CTRL))
 			{
 			if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
 				{
@@ -175,10 +180,9 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 		if (isprint (keynum))
 			{
-			if (SDL_GetModState () & KMOD_SHIFT)
-				{
+			/*if (SDL_GetModState () & KMOD_SHIFT)*/
+			if (FBitSet (SDL_GetModState (), KMOD_SHIFT))
 				keynum = Key_ToUpper (keynum);
-				}
 
 			CL_CharEvent (keynum);
 			return;
@@ -406,7 +410,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 				host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 				break;
 
-			// [FWGS, 01.04.23]
+				// [FWGS, 01.04.23]
 			case SDL_SCANCODE_PAUSE:
 				keynum = K_PAUSE;
 				break;
@@ -536,6 +540,7 @@ static void SDLash_InputEvent (SDL_TextInputEvent input)
 	}
 #endif
 
+// [FWGS, 01.11.23]
 static void SDLash_ActiveEvent (int gain)
 	{
 	if (gain)
@@ -548,7 +553,8 @@ static void SDLash_ActiveEvent (int gain)
 			SNDDMA_Activate (true);
 
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
-		if (vid_fullscreen.value)
+		/*if (vid_fullscreen.value)*/
+		if (vid_fullscreen.value == WINDOW_MODE_FULLSCREEN)
 			VID_SetMode ();
 		}
 	else
@@ -785,8 +791,9 @@ static void SDLash_EventFilter (SDL_Event *event)
 			switch (event->window.event)
 				{
 				case SDL_WINDOWEVENT_MOVED:
-					// [FWGS, 01.07.23]
-					if (!vid_fullscreen.value)
+					// [FWGS, 01.11.23]
+					/*if (!vid_fullscreen.value)*/
+					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
 						{
 						char val[32];
 
@@ -795,36 +802,52 @@ static void SDLash_EventFilter (SDL_Event *event)
 
 						Q_snprintf (val, sizeof (val), "%d", event->window.data2);
 						Cvar_DirectSet (&window_ypos, val);
+						Cvar_DirectSet (&vid_maximized, "0");
 						}
 					break;
 
 				case SDL_WINDOWEVENT_MINIMIZED:
 					host.status = HOST_SLEEP;
+					Cvar_DirectSet (&vid_maximized, "0");
 					VID_RestoreScreenResolution ();
 					break;
 
 				case SDL_WINDOWEVENT_RESTORED:
 					host.status = HOST_FRAME;
 					host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
-					if (vid_fullscreen.value)
+
+					/*if (vid_fullscreen.value)*/
+					Cvar_DirectSet (&vid_maximized, "0");
+					if (vid_fullscreen.value == WINDOW_MODE_FULLSCREEN)
 						VID_SetMode ();
 					break;
 
 				case SDL_WINDOWEVENT_FOCUS_GAINED:
 					SDLash_ActiveEvent (true);
 					break;
+
 				case SDL_WINDOWEVENT_FOCUS_LOST:
 					SDLash_ActiveEvent (false);
 					break;
 
 				case SDL_WINDOWEVENT_RESIZED:
-					{
+					/*{
 					if (vid_fullscreen.value)
 						break;
 
-					VID_SaveWindowSize (event->window.data1, event->window.data2);
+					VID_SaveWindowSize (event->window.data1, event->window.data2);*/
+					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
+						{
+						SDL_Window *wnd = SDL_GetWindowFromID (event->window.windowID);
+						VID_SaveWindowSize (event->window.data1, event->window.data2,
+							FBitSet (SDL_GetWindowFlags (wnd), SDL_WINDOW_MAXIMIZED) != 0);
+						}
 					break;
-					}
+
+				case SDL_WINDOWEVENT_MAXIMIZED:
+					Cvar_DirectSet (&vid_maximized, "1");
+					break;
+					/*}*/
 
 				default:
 					break;
@@ -858,13 +881,7 @@ void Platform_RunEvents (void)
 PSVita_InputUpdate ();
 #endif
 
-// [FWGS, 01.07.23]
-/*
-void *Platform_GetNativeObject (const char *name)
-	{
-	return NULL; // SDL don't have it
-	}
-*/
+// [FWGS, 01.07.23] removed Platform_GetNativeObject
 
 /*
 ========================

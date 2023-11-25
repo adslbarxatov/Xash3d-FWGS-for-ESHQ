@@ -19,24 +19,24 @@ GNU General Public License for more details.
 
 typedef struct
 	{
-	int		allocated[BLOCK_SIZE_MAX];
-	int		current_lightmap_texture;
-	msurface_t *dynamic_surfaces;
-	msurface_t *lightmap_surfaces[MAX_LIGHTMAPS];
+	int			allocated[BLOCK_SIZE_MAX];
+	int			current_lightmap_texture;
+	msurface_t	*dynamic_surfaces;
+	msurface_t	*lightmap_surfaces[MAX_LIGHTMAPS];
 	byte		lightmap_buffer[BLOCK_SIZE_MAX * BLOCK_SIZE_MAX * 4];
 	} gllightmapstate_t;
 
 static int		nColinElim; // stats
-static vec2_t		world_orthocenter;
-static vec2_t		world_orthohalf;
+static vec2_t	world_orthocenter;
+static vec2_t	world_orthohalf;
 static uint		r_blocklights[BLOCK_SIZE_MAX * BLOCK_SIZE_MAX * 3];
-static mextrasurf_t *fullbright_surfaces[MAX_TEXTURES];
-static mextrasurf_t *detail_surfaces[MAX_TEXTURES];
+static mextrasurf_t	*fullbright_surfaces[MAX_TEXTURES];
+static mextrasurf_t	*detail_surfaces[MAX_TEXTURES];
 static int		rtable[MOD_FRAMES][MOD_FRAMES];
-static qboolean		draw_alpha_surfaces = false;
-static qboolean		draw_fullbrights = false;
-static qboolean		draw_details = false;
-static msurface_t *skychain = NULL;
+static qboolean	draw_alpha_surfaces = false;
+static qboolean	draw_fullbrights = false;
+static qboolean	draw_details = false;
+static msurface_t	*skychain = NULL;
 static gllightmapstate_t	gl_lms;
 
 static void LM_UploadBlock (qboolean dynamic);
@@ -47,6 +47,7 @@ byte *Mod_GetCurrentVis (void)
 	{
 	if (gEngfuncs.drawFuncs->Mod_GetCurrentVis && tr.fCustomRendering)
 		return gEngfuncs.drawFuncs->Mod_GetCurrentVis ();
+
 	return RI.visbytes;
 	}
 
@@ -78,17 +79,19 @@ static void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
 		}
 	}
 
-static void SubdividePolygon_r (msurface_t *warpface, int numverts, float *verts)
+// [FWGS, 01.11.23]
+/*static void SubdividePolygon_r (msurface_t *warpface, int numverts, float *verts)*/
+static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int numverts, float *verts)
 	{
-	vec3_t		front[SUBDIVIDE_SIZE], back[SUBDIVIDE_SIZE];
-	mextrasurf_t *warpinfo = warpface->info;
-	float		dist[SUBDIVIDE_SIZE];
-	float		m, frac, s, t, *v;
-	int		i, j, k, f, b;
-	float		sample_size;
-	vec3_t		mins, maxs;
-	glpoly_t *poly;
-	model_t *loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();
+	vec3_t			front[SUBDIVIDE_SIZE], back[SUBDIVIDE_SIZE];
+	mextrasurf_t	*warpinfo = warpface->info;
+	float			dist[SUBDIVIDE_SIZE];
+	float			m, frac, s, t, *v;
+	int				i, j, k, f, b;
+	float			sample_size;
+	vec3_t			mins, maxs;
+	glpoly_t		*poly;
+	/*model_t			*loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();*/
 
 	if (numverts > (SUBDIVIDE_SIZE - 4))
 		gEngfuncs.Host_Error ("Mod_SubdividePolygon: too many vertexes on face ( %i )\n", numverts);
@@ -143,8 +146,10 @@ static void SubdividePolygon_r (msurface_t *warpface, int numverts, float *verts
 				}
 			}
 
-		SubdividePolygon_r (warpface, f, front[0]);
-		SubdividePolygon_r (warpface, b, back[0]);
+		/*SubdividePolygon_r (warpface, f, front[0]);
+		SubdividePolygon_r (warpface, b, back[0]);*/
+		SubdividePolygon_r (loadmodel, warpface, f, front[0]);
+		SubdividePolygon_r (loadmodel, warpface, b, back[0]);
 		return;
 		}
 
@@ -231,20 +236,21 @@ void GL_ResetFogColor (void)
 
 /*
 ================
-GL_SubdivideSurface
+GL_SubdivideSurface [FWGS, 01.11.23]
 
 Breaks a polygon up along axial 64 unit
 boundaries so that turbulent and sky warps
 can be done reasonably.
 ================
 */
-void GL_SubdivideSurface (msurface_t *fa)
+/*void GL_SubdivideSurface (msurface_t *fa)*/
+void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 	{
 	vec3_t	verts[SUBDIVIDE_SIZE];
-	int	numverts;
-	int	i, lindex;
-	float *vec;
-	model_t *loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();
+	int		numverts;
+	int		i, lindex;
+	float	*vec;
+	/*model_t	*loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();*/
 
 	// convert edges back to a normal polygon
 	numverts = 0;
@@ -252,8 +258,10 @@ void GL_SubdivideSurface (msurface_t *fa)
 		{
 		lindex = loadmodel->surfedges[fa->firstedge + i];
 
-		if (lindex > 0) vec = loadmodel->vertexes[loadmodel->edges[lindex].v[0]].position;
-		else vec = loadmodel->vertexes[loadmodel->edges[-lindex].v[1]].position;
+		if (lindex > 0)
+			vec = loadmodel->vertexes[loadmodel->edges[lindex].v[0]].position;
+		else
+			vec = loadmodel->vertexes[loadmodel->edges[-lindex].v[1]].position;
 		VectorCopy (vec, verts[numverts]);
 		numverts++;
 		}
@@ -261,7 +269,8 @@ void GL_SubdivideSurface (msurface_t *fa)
 	SetBits (fa->flags, SURF_DRAWTURB_QUADS); // predict state
 
 	// do subdivide
-	SubdividePolygon_r (fa, numverts, verts[0]);
+	/*SubdividePolygon_r (fa, numverts, verts[0]);*/
+	SubdividePolygon_r (loadmodel, fa, numverts, verts[0]);
 	}
 
 /*
@@ -894,9 +903,11 @@ void DrawGLPolyChain (glpoly_t *p, float soffset, float toffset)
 		}
 	}
 
-_inline qboolean R_HasLightmap (void)
+// [FWGS, 01.11.23]
+/*_inline qboolean R_HasLightmap (void)*/
+static qboolean R_HasLightmap (void)
 	{
-	if (r_fullbright->value || !WORLDMODEL->lightdata)	// [FWGS, 01.07.23]
+	if (r_fullbright->value || !WORLDMODEL->lightdata)
 		return false;
 
 	if (RI.currententity)
@@ -1142,14 +1153,14 @@ void R_RenderDetails (void)
 
 /*
 ================
-R_RenderBrushPoly
+R_RenderBrushPoly [FWGS, 01.11.23]
 ================
 */
 void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 	{
 	qboolean	is_dynamic = false;
-	int	maps;
-	texture_t *t;
+	int			maps;
+	texture_t	*t;
 
 	r_stats.c_world_polys++;
 
@@ -1158,13 +1169,19 @@ void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 
 	t = R_TextureAnimation (fa);
 
-	GL_Bind (XASH_TEXTURE0, t->gl_texturenum);
+	/*GL_Bind (XASH_TEXTURE0, t->gl_texturenum);*/
 
 	if (FBitSet (fa->flags, SURF_DRAWTURB))
 		{
+		R_UploadRipples (t);
+
 		// warp texture, no lightmaps
 		EmitWaterPolys (fa, (cull_type == CULL_BACKSIDE));
 		return;
+		}
+	else
+		{
+		GL_Bind (XASH_TEXTURE0, t->gl_texturenum);
 		}
 
 	if (t->fb_texturenum)
@@ -1174,7 +1191,7 @@ void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 		draw_fullbrights = true;
 		}
 
-	if (r_detailtextures.value)	// [FWGS, 01.07.23]
+	if (r_detailtextures.value)
 		{
 		if (glState.isFogEnabled)
 			{
@@ -1208,7 +1225,7 @@ void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 	if (RI.currententity->curstate.rendermode == kRenderNormal)
 		{
 		// batch decals to draw later
-		if (tr.num_draw_decals < MAX_DECAL_SURFS && fa->pdecals)
+		if ((tr.num_draw_decals < MAX_DECAL_SURFS) && fa->pdecals)
 			tr.draw_decals[tr.num_draw_decals++] = fa;
 		}
 	else
@@ -1221,7 +1238,7 @@ void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 		return; // no lightmaps anyway
 
 	// check for lightmap modification
-	for (maps = 0; maps < MAXLIGHTMAPS && fa->styles[maps] != 255; maps++)
+	for (maps = 0; (maps < MAXLIGHTMAPS) && (fa->styles[maps] != 255); maps++)
 		{
 		if (tr.lightstylevalue[fa->styles[maps]] != fa->cached_light[maps])
 			goto dynamic;
@@ -1436,7 +1453,8 @@ void R_DrawWaterSurfaces (void)
 			continue;
 
 		// set modulate mode explicitly
-		GL_Bind (XASH_TEXTURE0, t->gl_texturenum);
+		/*GL_Bind (XASH_TEXTURE0, t->gl_texturenum);*/
+		R_UploadRipples (t);
 
 		for (; s; s = s->texturechain)
 			EmitWaterPolys (s, false);
@@ -1491,7 +1509,8 @@ void R_SetRenderMode (cl_entity_t *e)
 			break;
 		case kRenderTransColor:
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			pglColor4ub (e->curstate.rendercolor.r, e->curstate.rendercolor.g, e->curstate.rendercolor.b, e->curstate.renderamt);
+			pglColor4ub (e->curstate.rendercolor.r, e->curstate.rendercolor.g, e->curstate.rendercolor.b,
+				e->curstate.renderamt);
 			pglTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			pglDisable (GL_TEXTURE_2D);
 			pglEnable (GL_BLEND);
@@ -1821,13 +1840,16 @@ void R_GenerateVBO (void)
 
 	R_ClearVBO ();
 
-	// [FWGS, 01.04.23] we do not want to write vbo code that does not use multitexture
+	/* [FWGS, 01.04.23] we do not want to write vbo code that does not use multitexture
 #if ALLOW_VBO
 	if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) ||
 		(glConfig.max_texture_units < 2))
 #else
 	if (1)
-#endif
+#endif*/
+	// [FWGS, 01.11.23]
+	if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) ||
+		(glConfig.max_texture_units < 2) || !gEngfuncs.Sys_CheckParm ("-gl-allow-vbo-dontuse"))
 		{
 		gEngfuncs.Cvar_FullSet ("gl_vbo", "0", FCVAR_READ_ONLY);
 		return;

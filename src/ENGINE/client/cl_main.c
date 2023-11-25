@@ -23,7 +23,7 @@ GNU General Public License for more details.
 #include "library.h"
 #include "vid_common.h"
 #include "pm_local.h"	// [FWGS, 01.04.23]
-#include "sequence.h"	// [FWGS, 01.05.23]
+/*#include "sequence.h"*/	// [FWGS, 01.11.23]
 
 #define MAX_TOTAL_CMDS				32
 #define MAX_CMD_BUFFER				8000
@@ -38,8 +38,13 @@ CVAR_DEFINE_AUTO (dev_overview, "0", 0,
 	"draw level in overview-mode");
 CVAR_DEFINE_AUTO (cl_resend, "6.0", 0,
 	"time to resend connect");
-CVAR_DEFINE_AUTO (cl_allow_download, "1", FCVAR_ARCHIVE,
+
+// [FWGS, 01.11.23]
+/*CVAR_DEFINE_AUTO (cl_allow_download, "1", FCVAR_ARCHIVE,
+	"allow to downloading resources from the server");*/
+CVAR_DEFINE (cl_allow_download, "cl_allowdownload", "1", FCVAR_ARCHIVE,
 	"allow to downloading resources from the server");
+
 CVAR_DEFINE_AUTO (cl_allow_upload, "1", FCVAR_ARCHIVE,
 	"allow to uploading resources to the server");
 CVAR_DEFINE_AUTO (cl_download_ingame, "1", FCVAR_ARCHIVE,
@@ -125,15 +130,24 @@ CVAR_DEFINE_AUTO (hud_utf8, "0", FCVAR_ARCHIVE,
 CVAR_DEFINE_AUTO (ui_renderworld, "0", FCVAR_ARCHIVE,
 	"render world when UI is visible");
 
-// [FWGS, 01.07.23] userinfo
-static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY,
+// [FWGS, 01.11.23] userinfo
+/*static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY,
 	"player name");
 static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE,
 	"player model ('player' is a singleplayer model)");
 static CVAR_DEFINE_AUTO (topcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
 	"player top color");
 static CVAR_DEFINE_AUTO (bottomcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
+	"player bottom color");*/
+static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
+	"player name");
+static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"player model ('player' is a singleplayer model)");
+static CVAR_DEFINE_AUTO (topcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"player top color");
+static CVAR_DEFINE_AUTO (bottomcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"player bottom color");
+
 CVAR_DEFINE_AUTO (rate, "3500", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"player network rate");
 
@@ -141,7 +155,9 @@ client_t		cl;
 client_static_t	cls;
 clgame_static_t	clgame;
 
-void CL_InternetServers_f (void);
+// [FWGS, 01.11.23]
+/*void CL_InternetServers_f (void);*/
+static void CL_SendMasterServerScanRequest (void);
 
 // ======================================================================
 int GAME_EXPORT CL_Active (void)
@@ -285,8 +301,9 @@ void CL_SignonReply (void)
 				CL_Disconnect ();
 			cl.proxy_redirect = false;
 
-			if (cls.demoplayback)	// [FWGS, 01.05.23]
-				Sequence_OnLevelLoad (clgame.mapname);
+			// [FWGS, 01.11.23]
+			/*if (cls.demoplayback)
+				Sequence_OnLevelLoad (clgame.mapname);*/
 			break;
 		}
 	}
@@ -431,9 +448,9 @@ void CL_ComputePacketLoss (void)
 		count++;
 		}
 
-	if (count <= 0) 
+	if (count <= 0)
 		cls.packet_loss = 0.0f;
-	else 
+	else
 		cls.packet_loss = (100.0f * (float)lost) / (float)count;
 	}
 
@@ -564,7 +581,7 @@ Transform user movement into overview adjust
 */
 qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 	{
-	ref_overview_t	*ov = &clgame.overView;
+	ref_overview_t *ov = &clgame.overView;
 	int		sign = 1;
 	float	size = world.size[!ov->rotated] / world.size[ov->rotated];
 	float	step = (2.0f / size) * host.realframetime;
@@ -577,12 +594,12 @@ qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 	if (ov->flZoom < 0.0f)
 		sign = -1;
 
-	if (cmd->upmove > 0.0f) 
+	if (cmd->upmove > 0.0f)
 		ov->zNear += step;
-	else if (cmd->upmove < 0.0f) 
+	else if (cmd->upmove < 0.0f)
 		ov->zNear -= step;
 
-	if (cmd->buttons & IN_JUMP) 
+	if (cmd->buttons & IN_JUMP)
 		ov->zFar += step;
 	else if (cmd->buttons & IN_DUCK)
 		ov->zFar -= step;
@@ -607,12 +624,12 @@ qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 			ov->origin[1] -= sign * step2;
 		}
 
-	if (cmd->buttons & IN_ATTACK) 
+	if (cmd->buttons & IN_ATTACK)
 		ov->flZoom += step;
 	else if (cmd->buttons & IN_ATTACK2)
 		ov->flZoom -= step;
 
-	if (ov->flZoom == 0.0f) 
+	if (ov->flZoom == 0.0f)
 		ov->flZoom = 0.0001f; // to prevent disivion by zero
 
 	return true;
@@ -655,7 +672,7 @@ CL_CreateCmd [FWGS, 01.04.23]
 void CL_CreateCmd (void)
 	{
 	usercmd_t	nullcmd, *cmd;
-	runcmd_t	*pcmd;
+	runcmd_t *pcmd;
 	vec3_t		angles;
 	qboolean	active;
 	int			input_override;
@@ -698,7 +715,7 @@ void CL_CreateCmd (void)
 
 	active = ((cls.signon == SIGNONS) && !cl.paused && !cls.demoplayback);
 	Platform_PreCreateMove ();
-	
+
 	// [FWGS, 01.04.23]
 	clgame.dllFuncs.CL_CreateMove (host.frametime, cmd, active);
 	IN_EngineAppendMove (host.frametime, cmd, active);
@@ -785,7 +802,7 @@ void CL_WritePacket (void)
 	// Determine number of backup commands to send along [FWGS, 01.04.23]
 	numbackup = bound (0, cl_cmdbackup.value, cls.legacymode ? MAX_LEGACY_BACKUP_CMDS : MAX_BACKUP_COMMANDS);
 
-	if (cls.state == ca_connected) 
+	if (cls.state == ca_connected)
 		numbackup = 0;
 
 	// clamp cmdrate [FWGS, 01.07.23]
@@ -823,7 +840,7 @@ void CL_WritePacket (void)
 		if ((host.realtime - cls.netchan.last_received) > CONNECTION_PROBLEM_TIME)
 			{
 			Con_NPrintf (1, "^3Warning:^1 Connection Problem^7\n");
-			Con_NPrintf (2, "^1Auto-disconnect in %.1f seconds^7", cl_timeout.value - 
+			Con_NPrintf (2, "^1Auto-disconnect in %.1f seconds^7", cl_timeout.value -
 				(host.realtime - cls.netchan.last_received));	// [FWGS, 01.04.23]
 			cl.validsequence = 0;
 			}
@@ -1070,8 +1087,8 @@ We have gotten a challenge from the server, so try and connect
 void CL_SendConnectPacket (void)
 	{
 	char		protinfo[MAX_INFO_STRING];
-	const char	*qport;
-	const char	*key;
+	const char *qport;
+	const char *key;
 	netadr_t	adr;
 
 	if (!NET_StringToAdr (cls.servername, &adr))
@@ -1081,7 +1098,7 @@ void CL_SendConnectPacket (void)
 		return;
 		}
 
-	if (adr.port == 0) 
+	if (adr.port == 0)
 		adr.port = MSG_BigShort (PORT_SERVER);
 	qport = Cvar_VariableString ("net_qport");
 	key = ID_GetMD5 ();
@@ -1105,7 +1122,7 @@ void CL_SendConnectPacket (void)
 
 		Info_SetValueForKeyf (protinfo, "d", sizeof (protinfo), "%d", input_devices);
 		Info_SetValueForKey (protinfo, "v", XASH_VERSION, sizeof (protinfo));
-		
+
 		// [FWGS, 01.04.23]
 		Info_SetValueForKeyf (protinfo, "b", sizeof (protinfo), "%d", Q_buildnum ());
 		Info_SetValueForKey (protinfo, "o", Q_buildos (), sizeof (protinfo));
@@ -1141,11 +1158,11 @@ void CL_SendConnectPacket (void)
 
 		Info_SetValueForKey (protinfo, "uuid", key, sizeof (protinfo));
 		Info_SetValueForKey (protinfo, "qport", qport, sizeof (protinfo));
-		
+
 		// [FWGS, 01.04.23]
 		Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", extensions);
 
-		Netchan_OutOfBandPrint (NS_CLIENT, adr, "connect %i %i \"%s\" \"%s\"\n", PROTOCOL_VERSION, 
+		Netchan_OutOfBandPrint (NS_CLIENT, adr, "connect %i %i \"%s\" \"%s\"\n", PROTOCOL_VERSION,
 			cls.challenge, protinfo, cls.userinfo);
 		Con_Printf ("Trying to connect by modern protocol\n");
 		}
@@ -1166,10 +1183,12 @@ void CL_CheckForResend (void)
 	net_gai_state_t res;	// [FWGS, 01.05.23]
 	qboolean bandwidthTest;	// [FWGS, 01.04.23]
 
+	// [FWGS, 01.11.23]
 	if (cls.internetservers_wait)
-		CL_InternetServers_f ();
+		CL_SendMasterServerScanRequest ();
+	/*CL_InternetServers_f ();*/
 
-	// if the local server is running and we aren't then connect
+// if the local server is running and we aren't then connect
 	if ((cls.state == ca_disconnected) && SV_Active ())
 		{
 		cls.signon = 0;
@@ -1216,7 +1235,7 @@ void CL_CheckForResend (void)
 		return;
 		}
 
-	if (adr.port == 0) 
+	if (adr.port == 0)
 		adr.port = MSG_BigShort (PORT_SERVER);
 
 	if (cls.connect_retry == CL_TEST_RETRIES_NORESPONCE)
@@ -1270,9 +1289,9 @@ void CL_CreateResourceList (void)
 	{
 	char		szFileName[MAX_OSPATH];
 	byte		rgucMD5_hash[16];
-	resource_t	*pNewResource;
+	resource_t *pNewResource;
 	int			nSize;
-	file_t		*fp;
+	file_t *fp;
 
 	HPAK_FlushHostQueue ();
 	cl.num_resources = 0;
@@ -1444,7 +1463,7 @@ void CL_ClearState (void)
 	MSG_Clear (&cls.netchan.message);
 	memset (&clgame.fade, 0, sizeof (clgame.fade));
 	memset (&clgame.shake, 0, sizeof (clgame.shake));
-	
+
 	// [FWGS, 01.04.23]
 	clgame.mapname[0] = '\0';
 	Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
@@ -1647,6 +1666,7 @@ CL_LocalServers_f
 void CL_LocalServers_f (void)
 	{
 	netadr_t	adr;
+	memset (&adr, 0, sizeof (adr));	// [FWGS, 01.11.23]
 
 	Con_Printf ("Scanning for servers on the local network area...\n");
 	NET_Config (true, true); // allow remote
@@ -1654,10 +1674,10 @@ void CL_LocalServers_f (void)
 	// send a broadcast packet
 	adr.type = NA_BROADCAST;
 	adr.port = MSG_BigShort (PORT_SERVER);
-	
+
 	// [FWGS, 01.04.23]
 	Netchan_OutOfBandPrint (NS_CLIENT, adr, "info %i", PROTOCOL_VERSION);
-	
+
 	adr.type = NA_MULTICAST_IP6;
 	Netchan_OutOfBandPrint (NS_CLIENT, adr, "info %i", PROTOCOL_VERSION);
 	}
@@ -1667,10 +1687,13 @@ void CL_LocalServers_f (void)
 CL_BuildMasterServerScanRequest [FWGS, 01.04.23]
 =================
 */
-size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat)
+/*size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat)*/
+static size_t NONNULL CL_BuildMasterServerScanRequest (char *buf, size_t size, uint32_t *key,
+	qboolean nat, const char *filter)
 	{
-	size_t remaining;
-	char *info;
+	size_t	remaining;
+	/*char *info;*/
+	char *info, temp[32];
 
 	if (unlikely (size < sizeof (MS_SCAN_REQUEST)))
 		return 0;
@@ -1680,32 +1703,62 @@ size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat)
 	info = buf + sizeof (MS_SCAN_REQUEST) - 1;
 	remaining = size - sizeof (MS_SCAN_REQUEST);
 
-	info[0] = 0;
+	/*info[0] = 0;*/
+	Q_strncpy (info, filter, remaining);
+	*key = COM_RandomLong (0, 0x7FFFFFFF);
 
+#ifndef XASH_ALL_SERVERS
 	Info_SetValueForKey (info, "gamedir", GI->gamefolder, remaining);
-	Info_SetValueForKey (info, "clver", XASH_VERSION, remaining); // let master know about client version
+#endif
+
+	Info_SetValueForKey (info, "clver", XASH_VERSION, remaining);	// let master know about client version
 	Info_SetValueForKey (info, "nat", nat ? "1" : "0", remaining);
+
+	Q_snprintf (temp, sizeof (temp), "%x", *key);
+	Info_SetValueForKey (info, "key", temp, remaining);
 
 	return sizeof (MS_SCAN_REQUEST) + Q_strlen (info);
 	}
 
 /*
 =================
-CL_InternetServers_f [FWGS, 01.04.23]
+CL_SendMasterServerScanRequest [FWGS, 01.11.23]
+=================
+*/
+static void CL_SendMasterServerScanRequest (void)
+	{
+	cls.internetservers_wait = NET_SendToMasters (NS_CLIENT,
+		cls.internetservers_query_len, cls.internetservers_query);
+	cls.internetservers_pending = true;
+	}
+
+/*
+=================
+CL_InternetServers_f [FWGS, 01.11.23]
 =================
 */
 void CL_InternetServers_f (void)
 	{
-	char		fullquery[512];
-	size_t		len;
+	/*char		fullquery[512];
+	size_t		len;*/
 	qboolean	nat = cl_nat.value != 0.0f;
+	uint32_t	key;
 
-	len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), nat);
+	/*len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), nat);*/
+	if ((Cmd_Argc () > 2) || ((Cmd_Argc () == 2) && !Info_IsValid (Cmd_Argv (1))))
+		{
+		Con_Printf (S_USAGE "internetservers [filter]\n");
+		return;
+		}
 
-	Con_Printf ("Scanning for servers on the internet area...\n");	
+	cls.internetservers_query_len = CL_BuildMasterServerScanRequest (
+		cls.internetservers_query, sizeof (cls.internetservers_query),
+		&cls.internetservers_key, nat, Cmd_Argv (1));
+
+	Con_Printf ("Scanning for servers on the internet area...\n");
 	NET_Config (true, true); // allow remote
 
-	cls.internetservers_wait = NET_SendToMasters (NS_CLIENT, len, fullquery); 
+	/*cls.internetservers_wait = NET_SendToMasters (NS_CLIENT, len, fullquery);
 	cls.internetservers_pending = true;
 
 	if (!cls.internetservers_wait)
@@ -1714,7 +1767,8 @@ void CL_InternetServers_f (void)
 		if (clgame.master_request != NULL)
 			memset (clgame.master_request, 0, sizeof (net_request_t));
 		clgame.request_type = NET_REQUEST_GAMEUI;
-		}
+		}*/
+	CL_SendMasterServerScanRequest ();
 	}
 
 /*
@@ -2012,8 +2066,8 @@ Responses to broadcasts, etc
 */
 void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	{
-	char		*args;
-	const char	*c;
+	char *args;
+	const char *c;
 	char		buf[MAX_SYSPATH];
 	int			len = sizeof (buf);
 	int			dataoffset = 0;
@@ -2137,7 +2191,8 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 				return;
 				}
 
-			Msg ("got testpacket, CRC mismatched 0x%08x should be 0x%08x, trying next fragment size %d\n", crcValue2, crcValue, cls.max_fragment_size >> 1);
+			Msg ("got testpacket, CRC mismatched 0x%08x should be 0x%08x, trying next fragment size %d\n",
+				crcValue2, crcValue, cls.max_fragment_size >> 1);
 
 			// trying the next size of packet
 			cls.connect_time = MAX_HEARTBEAT;
@@ -2242,6 +2297,25 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 			return;
 			}
 
+		// check the extra header [FWGS, 01.11.23]
+		if (MSG_ReadByte (msg) == 0x7f)
+			{
+			uint32_t key = MSG_ReadDword (msg);
+
+			if (cls.internetservers_key != key)
+				{
+				Con_Printf (S_WARN "unexpected server list packet from %s (invalid key)\n", NET_AdrToString (from));
+				return;
+				}
+
+			MSG_ReadByte (msg); // reserved byte
+			}
+		else
+			{
+			Con_Printf (S_WARN "invalid server list packet from %s (missing extra header)\n", NET_AdrToString (from));
+			return;
+			}
+
 		// serverlist got from masterserver
 		while (MSG_GetNumBitsLeft (msg) > 8)
 			{
@@ -2249,10 +2323,10 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 			servadr.port = MSG_ReadShort (msg);			// 2 bytes for Port
 			servadr.type = NA_IP;
 
-			// list is ends here
+			// list is ends here [FWGS, 01.11.23]
 			if (!servadr.port)
-				{
-				if (clgame.request_type == NET_REQUEST_CLIENT && clgame.master_request != NULL)
+				/*{
+				if ((clgame.request_type == NET_REQUEST_CLIENT) && (clgame.master_request != NULL))
 					{
 					net_request_t *nr = clgame.master_request;
 					net_adrlist_t *list, **prev;
@@ -2283,26 +2357,29 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 					memset (nr, 0, sizeof (*nr)); // done
 					clgame.request_type = NET_REQUEST_CANCEL;
 					clgame.master_request = NULL;
-					}
+					}*/
 				break;
-				}
 
-			if (clgame.request_type == NET_REQUEST_CLIENT && clgame.master_request != NULL)
-				{
-				net_request_t *nr = clgame.master_request;
-				net_adrlist_t *list;
+			/*}
 
-				// adding addresses into list
-				list = Z_Malloc (sizeof (*list));
-				list->remote_address = servadr;
-				list->next = nr->resp.response;
-				nr->resp.response = list;
-				}
-			else if (clgame.request_type == NET_REQUEST_GAMEUI)
-				{
-				NET_Config (true, false); // allow remote
-				Netchan_OutOfBandPrint (NS_CLIENT, servadr, "info %i", PROTOCOL_VERSION);
-				}
+		if ((clgame.request_type == NET_REQUEST_CLIENT) && (clgame.master_request != NULL))
+			{
+			net_request_t *nr = clgame.master_request;
+			net_adrlist_t *list;
+
+			// adding addresses into list
+			list = Z_Malloc (sizeof (*list));
+			list->remote_address = servadr;
+			list->next = nr->resp.response;
+			nr->resp.response = list;
+			}
+		else if (clgame.request_type == NET_REQUEST_GAMEUI)
+			{
+			NET_Config (true, false); // allow remote
+			Netchan_OutOfBandPrint (NS_CLIENT, servadr, "info %i", PROTOCOL_VERSION);
+			}*/
+			NET_Config (true, false); // allow remote
+			Netchan_OutOfBandPrint (NS_CLIENT, servadr, "info %i", PROTOCOL_VERSION);
 			}
 
 		if (cls.internetservers_pending)
@@ -2314,9 +2391,13 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	else if (clgame.dllFuncs.pfnConnectionlessPacket (&from, args, buf, &len))
 		{
 		// user out of band message (must be handled in CL_ConnectionlessPacket)
-		if (len > 0) Netchan_OutOfBand (NS_SERVER, from, len, (byte *)buf);
+		if (len > 0)
+			Netchan_OutOfBand (NS_SERVER, from, len, (byte *)buf);
 		}
-	else Con_DPrintf (S_ERROR "bad connectionless packet from %s:\n%s\n", NET_AdrToString (from), args);
+	else
+		{
+		Con_DPrintf (S_ERROR "bad connectionless packet from %s:\n%s\n", NET_AdrToString (from), args);
+		}
 	}
 
 /*
@@ -2351,24 +2432,30 @@ void CL_ReadNetMessage (void)
 
 	while (CL_GetMessage (net_message_buffer, &curSize))
 		{
-		if (cls.legacymode && *((int *)&net_message_buffer) == 0xFFFFFFFE)
+		// [FWGS, 01.11.23]
+		/*if (cls.legacymode && *((int *)&net_message_buffer) == 0xFFFFFFFE)*/
+		const int split_header = LittleLong (0xFFFFFFFE);
+		if (cls.legacymode && !memcmp (&split_header, net_message_buffer, sizeof (split_header)))
+			{
 			// Will rewrite existing packet by merged
 			if (!NetSplit_GetLong (&cls.netchan.netsplit, &net_from, net_message_buffer, &curSize))
 				continue;
+			}
 
 		MSG_Init (&net_message, "ServerData", net_message_buffer, curSize);
 
 		// check for connectionless packet (0xffffffff) first
-		if (MSG_GetMaxBytes (&net_message) >= 4 && *(int *)net_message.pData == -1)
+		if ((MSG_GetMaxBytes (&net_message) >= 4) && (*(int *)net_message.pData == -1))
 			{
 			CL_ConnectionlessPacket (net_from, &net_message);
 			continue;
 			}
 
 		// can't be a valid sequenced packet
-		if (cls.state < ca_connected) continue;
+		if (cls.state < ca_connected)
+			continue;
 
-		if (!cls.demoplayback && MSG_GetMaxBytes (&net_message) < 8)
+		if (!cls.demoplayback && (MSG_GetMaxBytes (&net_message) < 8))
 			{
 			Con_Printf (S_WARN "CL_ReadPackets: %s:runt packet\n", NET_AdrToString (net_from));
 			continue;
@@ -2387,8 +2474,11 @@ void CL_ReadNetMessage (void)
 		// run special handler for quake demos
 		if (cls.demoplayback == DEMO_QUAKE1)
 			CL_ParseQuakeMessage (&net_message, true);
-		else if (cls.legacymode) CL_ParseLegacyServerMessage (&net_message, true);
-		else CL_ParseServerMessage (&net_message, true);
+		else if (cls.legacymode)
+			CL_ParseLegacyServerMessage (&net_message, true);
+		else
+			CL_ParseServerMessage (&net_message, true);
+
 		cl.send_reply = true;
 		}
 
@@ -2396,7 +2486,7 @@ void CL_ReadNetMessage (void)
 	CL_SetSolidEntities ();
 
 	// check for fragmentation/reassembly related packets.
-	if (cls.state != ca_disconnected && Netchan_IncomingReady (&cls.netchan))
+	if ((cls.state != ca_disconnected) && Netchan_IncomingReady (&cls.netchan))
 		{
 		// process the incoming buffer(s)
 		if (Netchan_CopyNormalFragments (&cls.netchan, &net_message, &curSize))
@@ -2423,7 +2513,7 @@ void CL_ReadNetMessage (void)
 CL_ReadPackets
 
 Updates the local time and reads/handles messages
-on client net connection.
+on client net connection
 =================
 */
 void CL_ReadPackets (void)
@@ -2431,7 +2521,9 @@ void CL_ReadPackets (void)
 	// decide the simulation time
 	cl.oldtime = cl.time;
 
-	if (cls.demoplayback != DEMO_XASH3D && !cl.paused)
+	// [FWGS, 01.11.23]
+	/*if ((cls.demoplayback != DEMO_XASH3D) && !cl.paused)*/
+	if (!cl.paused)
 		cl.time += host.frametime;
 
 	// demo time
@@ -2439,15 +2531,14 @@ void CL_ReadPackets (void)
 		cls.demotime += host.frametime;
 
 	CL_ReadNetMessage ();
-
 	CL_ApplyAddAngle ();
 
 	// hot precache and downloading resources
-	if (cls.signon == SIGNONS && cl.lastresourcecheck < host.realtime)
+	if ((cls.signon == SIGNONS) && (cl.lastresourcecheck < host.realtime))
 		{
 		double checktime = Host_IsLocalGame () ? 0.1 : 1.0;
 
-		if (!cls.dl.custom && cl.resourcesneeded.pNext != &cl.resourcesneeded)
+		if (!cls.dl.custom && (cl.resourcesneeded.pNext != &cl.resourcesneeded))
 			{
 			// check resource for downloading and precache
 			CL_EstimateNeededResources ();
@@ -2539,8 +2630,8 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 	{
 	int			sound_len = sizeof (DEFAULT_SOUNDPATH) - 1;
 	byte		rgucMD5_hash[16];
-	const char	*pfilename;
-	resource_t	*p;
+	const char *pfilename;
+	resource_t *p;
 
 	if (COM_CheckString (filename) && successfully_received)
 		{
@@ -3279,7 +3370,7 @@ void CL_Init (void)
 	VID_Init ();	// init video
 	S_Init ();	// init sound
 	Voice_Init (VOICE_DEFAULT_CODEC, 3); // init voice
-	Sequence_Init ();	// [FWGS, 01.05.23]
+	/*Sequence_Init ();*/	// [FWGS, 01.11.23]
 
 	// unreliable buffer. unsed for unreliable commands and voice stream
 	MSG_Init (&cls.datagram, "cls.datagram", cls.datagram_buf, sizeof (cls.datagram_buf));

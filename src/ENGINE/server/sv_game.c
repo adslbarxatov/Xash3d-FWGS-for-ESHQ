@@ -3120,8 +3120,9 @@ void SV_SetStringArrayMode (qboolean dynamic)
 #endif
 	}
 
-// [FWGS, 01.04.23]
-#if XASH_64BIT && !XASH_WIN32 && !XASH_APPLE && !XASH_NSWITCH
+// [FWGS, 01.11.23]
+/*#if XASH_64BIT && !XASH_WIN32 && !XASH_APPLE && !XASH_NSWITCH*/
+#if XASH_64BIT && !XASH_WIN32 && !XASH_APPLE && !XASH_NSWITCH && !XASH_ANDROID
 #define USE_MMAP
 #include <sys/mman.h>
 #endif
@@ -3298,7 +3299,7 @@ static uint SV_ProcessString (char *dst, const char *src)
 
 /*
 =============
-SV_AllocString [FWGS, 01.07.23]
+SV_AllocString [FWGS, 01.11.23]
 
 allocate new engine string
 on 64bit platforms find in array string if deduplication enabled (default)
@@ -3313,7 +3314,17 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 	int		cmp;
 
 	if (svgame.physFuncs.pfnAllocString != NULL)
-		return svgame.physFuncs.pfnAllocString (szValue);
+		{
+		string_t i;
+		newString = Mem_Malloc (host.mempool, SV_ProcessString (NULL, szValue));
+
+		SV_ProcessString (newString, szValue);
+		i = svgame.physFuncs.pfnAllocString (newString);
+
+		Mem_Free (newString);
+		return i;
+		}
+		/*return svgame.physFuncs.pfnAllocString (szValue);*/
 
 #ifdef XASH_64BIT
 
@@ -5206,10 +5217,6 @@ void SV_UnloadProgs (void)
 
 	SV_DeactivateServer ();
 	Delta_Shutdown ();
-	// TODO: reenable this when
-	// SV_UnloadProgs will be disabled
-	// Mod_ClearUserData ();
-
 	SV_FreeStringPool ();
 
 	if (svgame.dllFuncs2.pfnGameShutdown != NULL)
@@ -5234,7 +5241,8 @@ void SV_UnloadProgs (void)
 
 	Mod_ResetStudioAPI ();
 
-	svs.game_library_loaded = false;
+	// [FWGS, 01.11.23]
+	/*svs.game_library_loaded = false;*/
 	COM_FreeLibrary (svgame.hInstance);
 	Mem_FreePool (&svgame.mempool);
 	memset (&svgame, 0, sizeof (svgame));
@@ -5252,7 +5260,15 @@ qboolean SV_LoadProgs (const char *name)
 	static playermove_t		gpMove;
 	edict_t *e;
 
-	if (svgame.hInstance) SV_UnloadProgs ();
+	if (svgame.hInstance)
+		{
+#if XASH_WIN32
+		SV_UnloadProgs ();
+#else
+		return true;
+#endif
+		}
+		/*SV_UnloadProgs ();*/
 
 	// fill it in
 	svgame.pmove = &gpMove;

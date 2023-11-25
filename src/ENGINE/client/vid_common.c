@@ -37,8 +37,15 @@ static CVAR_DEFINE_AUTO (vid_scale, "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"pixel scale");
 CVAR_DEFINE_AUTO (vid_highdpi, "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"enable High-DPI mode");
+
+// [FWGS, 01.11.23]
+/*CVAR_DEFINE (vid_fullscreen, "fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"enable fullscreen mode");*/
+CVAR_DEFINE_AUTO (vid_maximized, "0", FCVAR_RENDERINFO,
+	"window maximized state, read-only");
 CVAR_DEFINE (vid_fullscreen, "fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-	"enable fullscreen mode");
+	"fullscreen state (0 windowed, 1 fullscreen, 2 borderless)");
+
 CVAR_DEFINE (window_xpos, "_window_xpos", "-1", FCVAR_RENDERINFO,
 	"window position by horizontal");
 CVAR_DEFINE (window_ypos, "_window_ypos", "-1", FCVAR_RENDERINFO,
@@ -74,12 +81,12 @@ void VID_InitDefaultResolution (void)
 
 /*
 =================
-R_SaveVideoMode
+R_SaveVideoMode [FWGS, 01.11.23]
 =================
 */
-void R_SaveVideoMode (int w, int h, int render_w, int render_h)
+/*void R_SaveVideoMode (int w, int h, int render_w, int render_h)*/
+void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximized)
 	{
-	// [FWGS, 01.04.23]
 	if (!w || !h || !render_w || !render_h)
 		{
 		host.renderinfo_changed = false;
@@ -91,9 +98,9 @@ void R_SaveVideoMode (int w, int h, int render_w, int render_h)
 
 	Cvar_SetValue ("width", w);
 	Cvar_SetValue ("height", h);
+	Cvar_DirectSet (&vid_maximized, maximized ? "1" : "0");
 
-	// [FWGS, 01.04.23] immediately drop changed state or we may trigger
-	// video subsystem to reapply settings
+	// immediately drop changed state or we may trigger video subsystem to reapply settings
 	host.renderinfo_changed = false;
 
 	if ((refState.width == render_w) && (refState.height == render_h))
@@ -218,8 +225,9 @@ static void VID_Mode_f (void)
 			return;
 		}
 
-	// [FWGS, 01.07.23]
-	R_ChangeDisplaySettings (w, h, !!vid_fullscreen.value);
+	// [FWGS, 01.11.23]
+	/*R_ChangeDisplaySettings (w, h, !!vid_fullscreen.value);*/
+	R_ChangeDisplaySettings (w, h, bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1));
 	}
 
 // [FWGS, 01.07.23]
@@ -232,6 +240,7 @@ void VID_Init (void)
 	Cvar_RegisterVariable (&vid_rotate);
 	Cvar_RegisterVariable (&vid_scale);
 	Cvar_RegisterVariable (&vid_fullscreen);
+	Cvar_RegisterVariable (&vid_maximized);	// [FWGS, 01.11.23]
 	Cvar_RegisterVariable (&vid_brightness);
 	Cvar_RegisterVariable (&vid_gamma);
 	Cvar_RegisterVariable (&window_xpos);

@@ -200,6 +200,10 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 #endif
 		}
 
+	// [FWGS, 01.11.23] don't leave the user without cursor if they enabled m_ignore
+	if (m_ignore.value)
+		return;
+
 	if (oldstate == key_game)
 		IN_DeactivateMouse ();
 	else if (newstate == key_game)
@@ -218,6 +222,10 @@ void IN_CheckMouseState (qboolean active)
 #else
 	qboolean useRawInput = true; // always use SDL code
 #endif
+
+	// [FWGS, 01.11.23]
+	if (m_ignore.value)
+		return;
 
 	if (active && useRawInput && !host.mouse_visible && (cls.state == ca_active))
 		{

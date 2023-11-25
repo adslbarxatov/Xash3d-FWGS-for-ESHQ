@@ -1,6 +1,7 @@
 /*
 snd_wav.c - wav format load & save
 Copyright (C) 2010 Uncle Mike
+Copyright (C) 2023 FTEQW developers
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -13,6 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 
+#include <stddef.h>	// [FWGS, 01.11.23]
 #include "soundlib.h"
 
 static const byte *iff_data;
@@ -57,46 +59,68 @@ static int GetLittleLong (void)
 
 /*
 =================
-FindNextChunk [отменено FWGS, 01.05.23]
+FindNextChunk [FWGS, 01.11.23]
 =================
 */
-static void FindNextChunk (const char *name)
+/*static void FindNextChunk (const char *name)*/
+static void FindNextChunk (const char *filename, const char *name)
 	{
 	while (1)
 		{
-		iff_dataPtr = iff_lastChunk;
+		/*iff_dataPtr = iff_lastChunk;*/
+		ptrdiff_t remaining = iff_end - iff_lastChunk;
 
-		if (iff_dataPtr >= iff_end)
+		/*if (iff_dataPtr >= iff_end)*/
+		if (remaining < 8)
 			{
-			// didn't find the chunk
 			iff_dataPtr = NULL;
 			return;
 			}
 
-		iff_dataPtr += 4;
+		/*iff_dataPtr += 4;
+		iff_chunkLen = GetLittleLong ();*/
+		iff_dataPtr = iff_lastChunk + 4;
+		remaining -= 8;
 		iff_chunkLen = GetLittleLong ();
+
 		if (iff_chunkLen < 0)
 			{
 			iff_dataPtr = NULL;
 			return;
 			}
 
+		//
+		if (iff_chunkLen > remaining)
+			{
+			Con_DPrintf ("%s: '%s' truncated by %i bytes\n", __func__, filename, iff_chunkLen - remaining);
+			iff_chunkLen = remaining;
+			}
+		//
+		
+		remaining -= iff_chunkLen;
+
 		iff_dataPtr -= 8;
-		iff_lastChunk = iff_dataPtr + 8 + ((iff_chunkLen + 1) & ~1);
-		if (!Q_strncmp ((const char *)iff_dataPtr, name, 4))
+		/*iff_lastChunk = iff_dataPtr + 8 + ((iff_chunkLen + 1) & ~1);
+		if (!Q_strncmp ((const char *)iff_dataPtr, name, 4))*/
+		iff_lastChunk = iff_dataPtr + 8 + iff_chunkLen;
+		if ((iff_chunkLen & 1) && remaining)
+			iff_lastChunk++;
+		if (!Q_strncmp (iff_dataPtr, name, 4))
 			return;
 		}
 	}
 
 /*
 =================
-FindChunk
+FindChunk [FWGS, 01.11.23]
 =================
 */
-static void FindChunk (const char *name)
+/*static void FindChunk (const char *name)*/
+static void FindChunk (const char *filename, const char *name)
 	{
 	iff_lastChunk = iff_data;
-	FindNextChunk (name);
+	/*FindNextChunk (name);*/
+	FindNextChunk (filename, name);
 	}
 
 /*
@@ -134,7 +158,7 @@ qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_chunk)
 
 /*
 =============
-Sound_LoadWAV
+Sound_LoadWAV [FWGS, 01.11.23]
 =============
 */
 qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -142,14 +166,15 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	int	samples, fmt;
 	qboolean	mpeg_stream = false;
 
-	if (!buffer || filesize <= 0)
+	if (!buffer || (filesize <= 0))
 		return false;
 
 	iff_data = buffer;
 	iff_end = buffer + filesize;
 
 	// find "RIFF" chunk
-	FindChunk ("RIFF");
+	/*FindChunk ("RIFF");*/
+	FindChunk (name, "RIFF");
 
 	if (!(iff_dataPtr && !Q_strncmp ((const char *)iff_dataPtr + 8, "WAVE", 4)))
 		{
@@ -159,7 +184,8 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 	// get "fmt " chunk
 	iff_data = iff_dataPtr + 12;
-	FindChunk ("fmt ");
+	/*FindChunk ("fmt ");*/
+	FindChunk (name, "fmt ");
 
 	if (!iff_dataPtr)
 		{
@@ -204,13 +230,15 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	// get cue chunk
-	FindChunk ("cue ");
+	/*FindChunk ("cue ");*/
+	FindChunk (name, "cue ");
 
 	if (iff_dataPtr)
 		{
 		iff_dataPtr += 32;
 		sound.loopstart = GetLittleLong ();
-		FindNextChunk ("LIST"); // if the next chunk is a LIST chunk, look for a cue length marker
+		/*FindNextChunk ("LIST"); // if the next chunk is a LIST chunk, look for a cue length marker*/
+		FindNextChunk (name, "LIST");	// if the next chunk is a LIST chunk, look for a cue length marker
 
 		if (iff_dataPtr)
 			{
@@ -229,7 +257,8 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	// find data chunk
-	FindChunk ("data");
+	/*FindChunk ("data");*/
+	FindChunk (name, "data");
 
 	if (!iff_dataPtr)
 		{
@@ -307,19 +336,20 @@ Stream_OpenWAV
 */
 stream_t *Stream_OpenWAV (const char *filename)
 	{
-	stream_t *stream;
-	int 	last_chunk = 0;
-	char	chunkName[4];
-	int	iff_data;
-	file_t *file;
-	short	t;
+	stream_t	*stream;
+	int 		last_chunk = 0;
+	char		chunkName[4];
+	int			iff_data;
+	file_t		*file;
+	short		t;
 
 	if (!filename || !*filename)
 		return NULL;
 
 	// open
 	file = FS_Open (filename, "rb", false);
-	if (!file) return NULL;
+	if (!file)
+		return NULL;
 
 	// find "RIFF" chunk
 	if (!StreamFindNextChunk (file, "RIFF", &last_chunk))
@@ -361,12 +391,10 @@ stream_t *Stream_OpenWAV (const char *filename)
 	sound.channels = t;
 
 	FS_Read (file, &sound.rate, sizeof (int));
-
 	FS_Seek (file, 6, SEEK_CUR);
-
 	FS_Read (file, &t, sizeof (t));
+	
 	sound.width = t / 8;
-
 	sound.loopstart = 0;
 
 	// find data chunk
@@ -405,11 +433,15 @@ int Stream_ReadWAV (stream_t *stream, int bytes, void *buffer)
 	{
 	int	remaining;
 
-	if (!stream->file) return 0;	// invalid file
+	// invalid file
+	if (!stream->file)
+		return 0;
 
 	remaining = stream->size - stream->pos;
-	if (remaining <= 0) return 0;
-	if (bytes > remaining) bytes = remaining;
+	if (remaining <= 0)
+		return 0;
+	if (bytes > remaining)
+		bytes = remaining;
 
 	stream->pos += bytes;
 	FS_Read (stream->file, buffer, bytes);

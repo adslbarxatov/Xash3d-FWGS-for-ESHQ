@@ -37,7 +37,8 @@ CVAR_DEFINE_AUTO (r_wadtextures, "0", 0,
 CVAR_DEFINE_AUTO (r_showhull, "0", 0,
 	"draw collision hulls 1-3");
 
-model_t *loadmodel;
+// [FWGS, 01.11.23]
+/*model_t *loadmodel;*/
 
 /*
 ===============================================================================
@@ -51,8 +52,8 @@ Mod_Modellist_f
 */
 static void Mod_Modellist_f (void)
 	{
-	int	i, nummodels;
-	model_t *mod;
+	int		i, nummodels;
+	model_t	*mod;
 
 	Con_Printf ("\n");
 	Con_Printf ("-----------------------------------\n");
@@ -192,9 +193,7 @@ void Mod_Shutdown (void)
 
 /*
 ===============================================================================
-
-			MODELS MANAGEMENT
-
+MODELS MANAGEMENT
 ===============================================================================
 */
 /*
@@ -264,7 +263,7 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	ASSERT (mod != NULL);
 
 	// check if already loaded (or inline bmodel)
-	if (mod->mempool || mod->name[0] == '*')
+	if (mod->mempool || (mod->name[0] == '*'))
 		{
 		mod->needload = NL_PRESENT;
 		return mod;
@@ -277,7 +276,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	COM_FixSlashes (tempname);
 
 	buf = FS_LoadFile (tempname, &length, false);
-
 	if (!buf)
 		{
 		memset (mod, 0, sizeof (model_t));
@@ -288,10 +286,11 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 		return NULL;
 		}
 
+	// [FWGS, 01.11.23]
 	Con_Reportf ("loading %s\n", mod->name);
 	mod->needload = NL_PRESENT;
 	mod->type = mod_bad;
-	loadmodel = mod;
+	/*loadmodel = mod;*/
 
 	// call the apropriate loader
 	switch (*(uint *)buf)

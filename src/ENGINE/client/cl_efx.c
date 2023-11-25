@@ -1212,22 +1212,27 @@ void GAME_EXPORT R_Blood (const vec3_t org, const vec3_t ndir, int pcolor, int s
 
 /*
 ===============
-R_BloodStream
+R_BloodStream [FWGS, 01.11.23]
 
 particle spray 2
 ===============
 */
-void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t dir, int pcolor, int speed)
+/*void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t dir, int pcolor, int speed)*/
+void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t ndir, int pcolor, int speed)
 	{
 	particle_t	*p;
 	int			i, j;
 	float		arc;
 	int			accel = speed; // must be integer due to bug in GoldSrc
+	vec3_t		dir;
+
+	VectorNormalize2 (ndir, dir);
 
 	for (arc = 0.05f, i = 0; i < 100; i++)
 		{
 		p = R_AllocParticle (NULL);
-		if (!p) return;
+		if (!p)
+			return;
 
 		p->die = cl.time + 2.0f;
 		p->type = pt_vox_grav;

@@ -976,6 +976,10 @@ void R_RenderScene (void)
 	R_MarkLeaves ();
 	R_DrawFog ();
 
+	// [FWGS, 01.11.23]
+	if (RI.drawWorld)
+		R_AnimateRipples ();
+
 	R_CheckGLFog ();
 	R_DrawWorld ();
 	R_CheckFog ();
@@ -1128,13 +1132,16 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 
 /*
 ===============
-R_EndFrame [FWGS, 01.04.23]
+R_EndFrame [FWGS, 01.11.23]
 ===============
 */
 void R_EndFrame (void)
 	{
 #if XASH_PSVITA
 	VGL_ShimEndFrame ();
+#endif
+#if !defined(XASH_GL_STATIC)
+	GL2_ShimEndFrame ();
 #endif
 
 	// flush any remaining 2D bits

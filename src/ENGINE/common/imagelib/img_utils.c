@@ -82,9 +82,7 @@ static byte palette_hl[768] =
 
 /*
 =============================================================================
-
-	XASH3D LOAD IMAGE FORMATS
-
+XASH3D LOAD IMAGE FORMATS
 =============================================================================
 */
 // stub
@@ -105,14 +103,13 @@ static const loadpixformat_t load_game[] =
 	{ "%s%s.%s", "lmp", Image_LoadLMP, IL_HINT_NO },	// hl menu images (cached.wad etc)
 	{ "%s%s.%s", "fnt", Image_LoadFNT, IL_HINT_HL },	// hl console font (fonts.wad etc)
 	{ "%s%s.%s", "pal", Image_LoadPAL, IL_HINT_NO },	// install studio\sprite palette
+	{ "%s%s.%s", "ktx2", Image_LoadKTX2, IL_HINT_NO },	// [FWGS, 01.11.23] ktx2 for world and studio models
 	{ NULL, NULL, NULL, IL_HINT_NO }
 	};
 
 /*
 =============================================================================
-
-	XASH3D SAVE IMAGE FORMATS
-
+XASH3D SAVE IMAGE FORMATS
 =============================================================================
 */
 // stub
@@ -283,10 +280,12 @@ int Image_ComparePalette (const byte *pal)
 	return PAL_CUSTOM;
 	}
 
+// [FWGS, 01.11.23]
 void Image_SetPalette (const byte *pal, uint *d_table)
 	{
 	byte	rgba[4];
-	int	i;
+	uint	uirgba;	// TODO: palette looks byte-swapped on big-endian
+	int		i;
 
 	// setup palette
 	switch (image.d_rendermode)
@@ -298,9 +297,12 @@ void Image_SetPalette (const byte *pal, uint *d_table)
 				rgba[1] = pal[i * 3 + 1];
 				rgba[2] = pal[i * 3 + 2];
 				rgba[3] = 0xFF;
-				d_table[i] = *(uint *)rgba;
+				/*d_table[i] = *(uint *)rgba;*/
+				memcpy (&uirgba, rgba, sizeof (uirgba));
+				d_table[i] = uirgba;
 				}
 			break;
+
 		case LUMP_GRADIENT:
 			for (i = 0; i < 256; i++)
 				{
@@ -308,9 +310,12 @@ void Image_SetPalette (const byte *pal, uint *d_table)
 				rgba[1] = pal[766];
 				rgba[2] = pal[767];
 				rgba[3] = i;
-				d_table[i] = *(uint *)rgba;
+				/*d_table[i] = *(uint *)rgba;*/
+				memcpy (&uirgba, rgba, sizeof (uirgba));
+				d_table[i] = uirgba;
 				}
 			break;
+
 		case LUMP_MASKED:
 			for (i = 0; i < 255; i++)
 				{
@@ -318,10 +323,13 @@ void Image_SetPalette (const byte *pal, uint *d_table)
 				rgba[1] = pal[i * 3 + 1];
 				rgba[2] = pal[i * 3 + 2];
 				rgba[3] = 0xFF;
-				d_table[i] = *(uint *)rgba;
+				/*d_table[i] = *(uint *)rgba;*/
+				memcpy (&uirgba, rgba, sizeof (uirgba));
+				d_table[i] = uirgba;
 				}
 			d_table[255] = 0;
 			break;
+
 		case LUMP_EXTENDED:
 			for (i = 0; i < 256; i++)
 				{
@@ -329,7 +337,9 @@ void Image_SetPalette (const byte *pal, uint *d_table)
 				rgba[1] = pal[i * 4 + 1];
 				rgba[2] = pal[i * 4 + 2];
 				rgba[3] = pal[i * 4 + 3];
-				d_table[i] = *(uint *)rgba;
+				/*d_table[i] = *(uint *)rgba;*/
+				memcpy (&uirgba, rgba, sizeof (uirgba));
+				d_table[i] = uirgba;
 				}
 			break;
 		}
@@ -1448,4 +1458,45 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 	image.force_flags = 0;
 
 	return result;
+	}
+
+// [FWGS, 01.11.23] This codebase has too many copies of this function:
+// - ref_gl has one
+// - ref_vk has one
+// - ref_soft has one
+// - many more places probably have one too
+// TODO figure out how to make it available for ref_*
+size_t Image_ComputeSize (int type, int width, int height, int depth)
+	{
+	switch (type)
+		{
+		case PF_DXT1:
+		case PF_BC4_SIGNED:
+		case PF_BC4_UNSIGNED:
+			return (((width + 3) / 4) * ((height + 3) / 4) * depth * 8);
+
+		case PF_DXT3:
+		case PF_DXT5:
+		case PF_ATI2:
+		case PF_BC5_UNSIGNED:
+		case PF_BC5_SIGNED:
+		case PF_BC6H_SIGNED:
+		case PF_BC6H_UNSIGNED:
+		case PF_BC7_UNORM:
+		case PF_BC7_SRGB:
+			return (((width + 3) / 4) * ((height + 3) / 4) * depth * 16);
+
+		case PF_LUMINANCE:
+			return (width * height * depth);
+
+		case PF_BGR_24:
+		case PF_RGB_24:
+			return (width * height * depth * 3);
+
+		case PF_BGRA_32:
+		case PF_RGBA_32:
+			return (width * height * depth * 4);
+		}
+
+	return 0;
 	}

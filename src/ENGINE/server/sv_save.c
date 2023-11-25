@@ -2043,16 +2043,16 @@ void SV_ClearGameState (void)
 
 /*
 =============
-SV_ChangeLevel
+SV_ChangeLevel [FWGS, 01.11.23]
 =============
 */
 void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char *start, qboolean background)
 	{
-	char		level[MAX_QPATH];
-	char		oldlevel[MAX_QPATH];
-	char		_startspot[MAX_QPATH];
-	char *startspot = NULL;
-	SAVERESTOREDATA *pSaveData = NULL;
+	char	level[MAX_QPATH];
+	char	oldlevel[MAX_QPATH];
+	char	_startspot[MAX_QPATH];
+	char	*startspot = NULL;
+	SAVERESTOREDATA	*pSaveData = NULL;
 
 	if (sv.state != ss_active)
 		{
@@ -2062,12 +2062,15 @@ void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char
 
 	if (start)
 		{
-		Q_strncpy (_startspot, start, MAX_STRING);
+		/*Q_strncpy (_startspot, start, MAX_STRING);*/
+		Q_strncpy (_startspot, start, sizeof (_startspot));
 		startspot = _startspot;
 		}
 
-	Q_strncpy (level, mapname, MAX_STRING);
-	Q_strncpy (oldlevel, sv.name, MAX_STRING);
+	/*Q_strncpy (level, mapname, MAX_STRING);
+	Q_strncpy (oldlevel, sv.name, MAX_STRING);*/
+	Q_strncpy (level, mapname, sizeof (level));
+	Q_strncpy (oldlevel, sv.name, sizeof (oldlevel));
 
 	if (loadfromsavedgame)
 		{

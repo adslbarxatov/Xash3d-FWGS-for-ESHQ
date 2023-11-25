@@ -17,11 +17,11 @@ GNU General Public License for more details.
 #ifdef XASH_SDL
 #include <SDL.h>
 #endif
-#include <stdarg.h>  // va_args
-#include <errno.h> // errno
-#include <string.h> // strerror
+#include <stdarg.h>	// va_args
+#include <errno.h>	// errno
+#include <string.h>	// strerror
 #if !XASH_WIN32
-#include <unistd.h> // fork
+#include <unistd.h>	// fork
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -33,6 +33,7 @@ GNU General Public License for more details.
 #include "common.h"
 #include "base_cmd.h"
 #include "client.h"
+#include "server.h"	// [FWGS, 01.11.23]
 #include "netchan.h"
 #include "protocol.h"
 #include "mod_local.h"
@@ -85,9 +86,9 @@ void Sys_PrintUsage (void)
 		Q_buildos (), Q_buildarch (), Q_buildnum ());
 
 #if XASH_WIN32
-	#define XASH_EXE "(xash).exe"
+#define XASH_EXE "(xash).exe"
 #else
-	#define XASH_EXE "(xash)"
+#define XASH_EXE "(xash)"
 #endif
 
 #define O( x, y ) "  "x"  "y"\n"
@@ -126,6 +127,7 @@ void Sys_PrintUsage (void)
 		O ("-oldfont         ", "enable unused Quake font in Half-Life")
 		O ("-width <n>       ", "set window width")
 		O ("-height <n>      ", "set window height")
+		O ("-borderless      ", "run engine in fullscreen borderless mode")	// [FWGS, 01.11.23]
 		O ("-fullscreen      ", "run engine in fullscreen mode")
 		O ("-windowed        ", "run engine in windowed mode")
 		O ("-ref <name>      ", "use selected renderer dll")
@@ -137,6 +139,7 @@ void Sys_PrintUsage (void)
 		O ("-noenginejoy     ", "disable engine builtin joystick support")
 		O ("-noenginemouse   ", "disable engine builtin mouse support")
 		O ("-nosound         ", "disable sound output")
+		O ("-timedemo        ", "run timedemo and exit")	// [FWGS, 01.11.23]
 #endif
 		"\nPlatform-specific options:\n"
 #if !XASH_MOBILE_PLATFORM
@@ -147,7 +150,9 @@ void Sys_PrintUsage (void)
 		O ("-sdl_renderer <n>", "use alternative SDL_Renderer for software")
 #endif
 
-#if XASH_ANDROID
+		// [FWGS, 01.11.23]
+		/*#if XASH_ANDROID*/
+#if XASH_ANDROID && !XASH_SDL
 		O ("-nativeegl       ", "use native egl implementation. Use if screen does not update or black")
 #endif
 
@@ -167,7 +172,7 @@ void Sys_PrintUsage (void)
 		;
 #undef O
 
-// HACKHACK: pretty output in dedicated
+	// HACKHACK: pretty output in dedicated
 #if XASH_MESSAGEBOX != MSGBOX_STDERR
 	Platform_MessageBox (version_str, usage_str, false);
 #else
@@ -301,8 +306,8 @@ static int Host_CalcSleep (void)
 		case HOST_NOFOCUS:
 			if (SV_Active () && CL_IsInGame ())
 				return host_sleeptime.value;
-		
-		// fallthrough
+
+			// fallthrough
 		case HOST_SLEEP:
 			return 20;
 		}
@@ -609,7 +614,7 @@ double Host_CalcFPS (void)
 
 #if !XASH_DEDICATED
 	// NOTE: we should play demos with same fps as it was recorded
-	else if (CL_IsPlaybackDemo () || CL_IsRecordDemo ()) 
+	else if (CL_IsPlaybackDemo () || CL_IsRecordDemo ())
 		{
 		fps = CL_GetDemoFramerate ();
 		}
@@ -705,7 +710,7 @@ qboolean Host_FilterTime (float time)
 	// NOTE: allow only in singleplayer while demos are not active
 	if ((host_framerate.value > 0.0f) && Host_IsLocalGame () && !CL_IsPlaybackDemo () && !CL_IsRecordDemo ())
 		host.frametime = bound (MIN_FRAMETIME, host_framerate.value * scale, MAX_FRAMETIME);
-	else 
+	else
 		host.frametime = bound (MIN_FRAMETIME, host.frametime, MAX_FRAMETIME);
 
 	return true;
@@ -893,7 +898,7 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 	{
 	char	dev_level[4];
 	int		developer = DEFAULT_DEV;
-	const char	*baseDir;
+	const char *baseDir;
 	char	ticrate[16];
 	int		len;
 
@@ -1029,9 +1034,13 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 	else
 		{
 
+		// [FWGS, 01.11.23]
 #if TARGET_OS_IOS
-		const char *IOS_GetDocsDir ();
+		/*const char *IOS_GetDocsDir ();
+		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));*/
 		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));
+#elif XASH_ANDROID && XASH_SDL
+		Q_strncpy (host.rootdir, SDL_AndroidGetExternalStoragePath (), sizeof (host.rootdir));
 
 #elif XASH_PSVITA	// [FWGS, 01.04.23]
 		if (!PSVita_GetBasePath (host.rootdir, sizeof (host.rootdir)))
@@ -1040,14 +1049,29 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 			host.rootdir[0] = 0;
 			}
 
-// GetBasePath not impl'd in switch-sdl2
+		// [FWGS, 01.11.23] GetBasePath not impl'd in switch-sdl2
 #elif (XASH_SDL == 2) && !XASH_NSWITCH 
-		char *szBasePath;
+		/*char *szBasePath;
 
-		if (!(szBasePath = SDL_GetBasePath ()))
+		if (!(szBasePath = SDL_GetBasePath ()))*/
+		char *szBasePath = SDL_GetBasePath ();
+		if (szBasePath)
+			{
+			Q_strncpy (host.rootdir, szBasePath, sizeof (host.rootdir));
+			SDL_free (szBasePath);
+			}
+		else
+			{
+
+#if XASH_POSIX || XASH_WIN32
+			if (!getcwd (host.rootdir, sizeof (host.rootdir)))
+				Sys_Error ("couldn't determine current directory: %s, getcwd: %s", SDL_GetError (), strerror (errno));
+#else
 			Sys_Error ("couldn't determine current directory: %s", SDL_GetError ());
-		Q_strncpy (host.rootdir, szBasePath, sizeof (host.rootdir));
-		SDL_free (szBasePath);
+			/*Q_strncpy (host.rootdir, szBasePath, sizeof (host.rootdir));
+			SDL_free (szBasePath);*/
+#endif
+			}
 
 #else
 		if (!getcwd (host.rootdir, sizeof (host.rootdir)))
@@ -1059,7 +1083,7 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 		}
 
 #if XASH_WIN32	// [FWGS, 01.04.23]
-		COM_FixSlashes (host.rootdir);
+	COM_FixSlashes (host.rootdir);
 #endif
 
 	len = Q_strlen (host.rootdir);
@@ -1125,7 +1149,7 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 
 	if (FS_FileExists (va ("%s.rc", SI.basedirName), false))
 		Q_strncpy (SI.rcName, SI.basedirName, sizeof (SI.rcName));	// e.g. valve.rc
-	else 
+	else
 		Q_strncpy (SI.rcName, SI.exeName, sizeof (SI.rcName));	// e.g. quake.rc
 
 	Q_strncpy (host.gamefolder, GI->gamefolder, sizeof (host.gamefolder));
@@ -1137,7 +1161,7 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 
 	IN_Init ();
 	Key_Init ();
-	}
+		}
 
 void Host_FreeCommon (void)
 	{
@@ -1156,6 +1180,7 @@ Host_Main
 int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
 	{
 	static double	oldtime, newtime;
+	string			demoname;			// [FWGS, 01.11.23]
 	host.starttime = Sys_DoubleTime ();	// [FWGS, 01.04.23]
 	pChangeGame = func;					// may be NULL
 
@@ -1186,9 +1211,9 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	Cvar_Getf ("ver", FCVAR_READ_ONLY, "shows an engine version", "%i/%s (hw build %i)", PROTOCOL_VERSION,
 		XASH_COMPAT_VERSION, Q_buildnum_compat ());
 
-	Cvar_Getf ("host_ver", FCVAR_READ_ONLY, "detailed info about this build", 
+	Cvar_Getf ("host_ver", FCVAR_READ_ONLY, "detailed info about this build",
 		"%i " XASH_VERSION " %s %s %s", Q_buildnum (), Q_buildos (), Q_buildarch (), Q_buildcommit ());
-	Cvar_Getf ("host_lowmemorymode", FCVAR_READ_ONLY, 
+	Cvar_Getf ("host_lowmemorymode", FCVAR_READ_ONLY,
 		"indicates if engine compiled for low RAM consumption (0 - normal, 1 - low engine limits, 2 - low protocol limits)",
 		"%i", XASH_LOW_MEMORY);
 
@@ -1279,6 +1304,11 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	Cbuf_Execute ();
 
 	SCR_CheckStartupVids ();	// must be last
+
+	// [FWGS, 01.11.23]
+	if (Sys_GetParmFromCmdLine ("-timedemo", demoname))
+		Cbuf_AddTextf ("timedemo %s\n", demoname);
+
 	oldtime = Sys_DoubleTime () - 0.1;
 
 	// [FWGS, 01.04.23]
@@ -1316,17 +1346,21 @@ Host_Shutdown
 */
 void EXPORT Host_Shutdown (void)
 	{
-	if (host.shutdown_issued) return;
+	if (host.shutdown_issued)
+		return;
 	host.shutdown_issued = true;
 
-	if (host.status != HOST_ERR_FATAL) host.status = HOST_SHUTDOWN; // prepare host to normal shutdown
-	if (!host.change_game) Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));
+	if (host.status != HOST_ERR_FATAL)
+		host.status = HOST_SHUTDOWN; // prepare host to normal shutdown
+	if (!host.change_game)
+		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));
 
 #if !XASH_DEDICATED
 	if (host.type == HOST_NORMAL)
 		Host_WriteConfig ();
 #endif
 
+	SV_UnloadProgs ();	// [FWGS, 01.11.23]
 	SV_Shutdown ("Server shutdown\n");
 	SV_ShutdownFilter ();
 	CL_Shutdown ();

@@ -79,8 +79,15 @@ CVAR_DEFINE_AUTO (sv_logbans, "0", 0,
 	"print into the server log info about player bans");
 CVAR_DEFINE_AUTO (sv_allow_upload, "1", FCVAR_SERVER,
 	"allow uploading custom resources on a server");
-CVAR_DEFINE_AUTO (sv_allow_download, "1", FCVAR_SERVER,
+
+// [FWGS, 01.11.23]
+/*CVAR_DEFINE_AUTO (sv_allow_download, "1", FCVAR_SERVER,
+	"allow downloading custom resources to the client");*/
+CVAR_DEFINE (sv_allow_download, "sv_allowdownload", "1", FCVAR_SERVER,
 	"allow downloading custom resources to the client");
+static CVAR_DEFINE_AUTO (sv_allow_dlfile, "1", 0,
+	"compatibility cvar, does nothing");
+
 CVAR_DEFINE_AUTO (sv_uploadmax, "0.5", FCVAR_SERVER,
 	"max size to upload custom resources (500 kB as default)");
 CVAR_DEFINE_AUTO (sv_downloadurl, "", FCVAR_PROTECTED,
@@ -1082,6 +1089,7 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_unlagsamples);
 	Cvar_RegisterVariable (&sv_allow_upload);
 	Cvar_RegisterVariable (&sv_allow_download);
+	Cvar_RegisterVariable (&sv_allow_dlfile);	// [FWGS, 01.11.23]
 	Cvar_RegisterVariable (&sv_send_logos);
 	Cvar_RegisterVariable (&sv_send_resources);
 	Cvar_RegisterVariable (&sv_uploadmax);
@@ -1237,7 +1245,7 @@ void SV_FreeClients (void)
 
 /*
 ================
-SV_Shutdown
+SV_Shutdown [FWGS, 01.11.23]
 
 Called when each game quits,
 before Sys_Quit or Sys_Error
@@ -1252,7 +1260,10 @@ void SV_Shutdown (const char *finalmsg)
 		if (CL_IsPlaybackDemo ())
 			CL_Drop ();
 
+		/*SV_UnloadProgs ();*/
+#if XASH_WIN32
 		SV_UnloadProgs ();
+#endif
 		return;
 		}
 
@@ -1270,7 +1281,11 @@ void SV_Shutdown (const char *finalmsg)
 		NET_MasterShutdown ();
 
 	NET_Config (false, false);
+	/*SV_UnloadProgs ();*/
+	SV_DeactivateServer ();
+#if XASH_WIN32
 	SV_UnloadProgs ();
+#endif
 	CL_Drop ();
 
 	// free current level

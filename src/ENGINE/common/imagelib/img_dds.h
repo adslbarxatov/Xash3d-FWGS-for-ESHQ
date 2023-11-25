@@ -16,9 +16,7 @@ GNU General Public License for more details.
 #define IMG_DDS_H
 /*
 ========================================================================
-
 .DDS image format
-
 ========================================================================
 */
 #define DDSHEADER	((' '<<24)+('S'<<16)+('D'<<8)+'D') // little-endian "DDS "
@@ -33,6 +31,12 @@ GNU General Public License for more details.
 #define TYPE_ATI1	(('1'<<24)+('I'<<16)+('T'<<8)+'A') // little-endian "ATI1"
 #define TYPE_ATI2	(('2'<<24)+('I'<<16)+('T'<<8)+'A') // little-endian "ATI2"
 #define TYPE_RXGB	(('B'<<24)+('G'<<16)+('X'<<8)+'R') // little-endian "RXGB" doom3 normalmaps
+
+// [FWGS, 01.11.23]
+#define TYPE_BC5S (('S'<<24)+('5'<<16)+('C'<<8)+'B') // little-endian "BC5S"
+#define TYPE_BC4S (('S' << 24) + ('4' << 16) + ('C' << 8) + 'B') // little-endian "BC4S"
+#define TYPE_BC4U (('U' << 24) + ('4' << 16) + ('C' << 8) + 'B') // little-endian "BC4U"
+
 #define TYPE_$	(('\0'<<24)+('\0'<<16)+('\0'<<8)+'$') // little-endian "$"
 #define TYPE_o	(('\0'<<24)+('\0'<<16)+('\0'<<8)+'o') // little-endian "o"
 #define TYPE_p	(('\0'<<24)+('\0'<<16)+('\0'<<8)+'p') // little-endian "p"
@@ -257,4 +261,5 @@ typedef struct dds_s
 	dds_caps_t  dsCaps;
 	uint32_t    dwTextureStage;
 	} dds_t;
+
 #endif

@@ -642,7 +642,7 @@ static void GAME_EXPORT pfnFillRGBA (int x, int y, int width, int height, int r,
 pfnCvar_RegisterVariable [FWGS, 01.07.23]
 =============
 */
-static cvar_t * GAME_EXPORT pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
+static cvar_t *GAME_EXPORT pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
 	{
 	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (szName,
 		flags | FCVAR_GAMEUIDLL));
@@ -968,33 +968,38 @@ static char *pfnGetClipboardData (void)
 
 /*
 =========
-pfnCheckGameDll
+pfnCheckGameDll [FWGS, 01.11.23]
 =========
 */
 int GAME_EXPORT pfnCheckGameDll (void)
 	{
-	string dllpath;
+	/*string dllpath;
 	void *hInst;
 
-#if TARGET_OS_IPHONE
+	#if TARGET_OS_IPHONE
 	// loading server library drains too many ram
 	// so 512MB iPod Touch cannot even connect to
-	// to servers in cstrike
+	// to servers in cstrike*/
+#ifdef XASH_INTERNAL_GAMELIBS
 	return true;
-#endif
+	/*#endif*/
+#else
+	string dllpath;
 
 	if (svgame.hInstance)
 		return true;
 
 	COM_GetCommonLibraryPath (LIBRARY_SERVER, dllpath, sizeof (dllpath));
 
-	if ((hInst = COM_LoadLibrary (dllpath, true, false)) != NULL)
+	/*if ((hInst = COM_LoadLibrary (dllpath, true, false)) != NULL)
 		{
-		COM_FreeLibrary (hInst); // don't increase linker's reference counter
+		COM_FreeLibrary (hInst); // don't increase linker's reference counter*/
+	if (FS_FileExists (dllpath, false))
 		return true;
-		}
-	Con_Reportf (S_WARN "Could not load server library: %s\n", COM_GetLibraryError ());
+	/*}
+Con_Reportf (S_WARN "Could not load server library: %s\n", COM_GetLibraryError ());*/
 	return false;
+#endif
 	}
 
 /*
@@ -1014,7 +1019,7 @@ pfnHostEndGame
 */
 static void GAME_EXPORT pfnHostEndGame (const char *szFinalMessage)
 	{
-	if (!szFinalMessage) 
+	if (!szFinalMessage)
 		szFinalMessage = "";
 	Host_EndGame (false, "%s", szFinalMessage);
 	}

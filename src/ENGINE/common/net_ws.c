@@ -273,7 +273,7 @@ _inline int NET_NetadrIP6Compare (const netadr_t *a, const netadr_t *b)
 
 /*
 ====================
-NET_NetadrToSockadr
+NET_NetadrToSockadr [FWGS, 01.11.23]
 ====================
 */
 static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
@@ -289,13 +289,13 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 	else if (a->type == NA_IP)
 		{
 		((struct sockaddr_in *)s)->sin_family = AF_INET;
-		((struct sockaddr_in *)s)->sin_addr.s_addr = *(uint32_t *)&a->ip;
+		/*((struct sockaddr_in *)s)->sin_addr.s_addr = *(uint32_t *)&a->ip;*/
 		((struct sockaddr_in *)s)->sin_port = a->port;
+		((struct sockaddr_in *)s)->sin_addr.s_addr = a->ip4;
 		}
 	else if (a->type6 == NA_IP6)
 		{
 		struct in6_addr ip6;
-
 		NET_NetadrToIP6Bytes (ip6.s6_addr, a);
 
 		if (IN6_IS_ADDR_V4MAPPED (&ip6))
@@ -321,7 +321,7 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 
 /*
 ====================
-NET_SockadrToNetAdr
+NET_SockadrToNetAdr [FWGS, 01.11.23]
 ====================
 */
 static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
@@ -329,7 +329,8 @@ static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 	if (s->ss_family == AF_INET)
 		{
 		a->type = NA_IP;
-		*(int *)&a->ip = ((struct sockaddr_in *)s)->sin_addr.s_addr;
+		/**(int *)&a->ip = ((struct sockaddr_in *)s)->sin_addr.s_addr;*/
+		a->ip4 = ((struct sockaddr_in *)s)->sin_addr.s_addr;
 		a->port = ((struct sockaddr_in *)s)->sin_port;
 		}
 	else if (s->ss_family == AF_INET6)
@@ -457,9 +458,11 @@ static void NET_InitializeCriticalSections (void)
 #endif
 	}
 
+// [FWGS, 01.11.23]
 void NET_ResolveThread (void)
 	{
 	struct sockaddr_storage addr;
+	qboolean res;
 
 	RESOLVE_DBG ("[resolve thread] starting resolve for ");
 	RESOLVE_DBG (nsthread.hostname);
@@ -469,13 +472,17 @@ void NET_ResolveThread (void)
 	RESOLVE_DBG (" with gethostbyname\n");
 #endif
 
-	if (NET_GetHostByName (nsthread.hostname, nsthread.family, &addr))
+	/*if (NET_GetHostByName (nsthread.hostname, nsthread.family, &addr))*/
+	if ((res = NET_GetHostByName (nsthread.hostname, nsthread.family, &addr)))
 		RESOLVE_DBG ("[resolve thread] success\n");
 	else
 		RESOLVE_DBG ("[resolve thread] failed\n");
+
 	mutex_lock (&nsthread.mutexres);
 	nsthread.addr = addr;
 	nsthread.busy = false;
+	nsthread.result = res ? NET_EAI_OK : NET_EAI_NONAME;
+
 	RESOLVE_DBG ("[resolve thread] returning result\n");
 	mutex_unlock (&nsthread.mutexres);
 	RESOLVE_DBG ("[resolve thread] exiting thread\n");
@@ -484,7 +491,7 @@ void NET_ResolveThread (void)
 
 /*
 =============
-NET_StringToAdr [FWGS, 01.05.23]
+NET_StringToAdr [FWGS, 01.11.23]
 
 localhost
 idnewt
@@ -560,6 +567,7 @@ static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_stor
 				memset (&nsthread.addr, 0, sizeof (nsthread.addr));
 
 				detach_thread (nsthread.thread);
+				asyncfailed = false;
 				}
 			else
 				{
@@ -727,7 +735,7 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 
 /*
 ====================
-NET_AdrToString
+NET_AdrToString [FWGS, 01.11.23]
 ====================
 */
 const char *NET_AdrToString (const netadr_t a)
@@ -736,7 +744,9 @@ const char *NET_AdrToString (const netadr_t a)
 
 	if (a.type == NA_LOOPBACK)
 		return "loopback";
-	if (a.type6 == NA_IP6)
+
+	/*if (a.type6 == NA_IP6)*/
+	if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))
 		{
 		uint8_t ip6[16];
 
@@ -746,7 +756,6 @@ const char *NET_AdrToString (const netadr_t a)
 		return s;
 		}
 
-	// [FWGS, 01.05.23]
 	Q_snprintf (s, sizeof (s),
 		"%i.%i.%i.%i:%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3], ntohs (a.port));
 
@@ -755,7 +764,7 @@ const char *NET_AdrToString (const netadr_t a)
 
 /*
 ====================
-NET_BaseAdrToString
+NET_BaseAdrToString [FWGS, 01.11.23]
 ====================
 */
 const char *NET_BaseAdrToString (const netadr_t a)
@@ -764,7 +773,9 @@ const char *NET_BaseAdrToString (const netadr_t a)
 
 	if (a.type == NA_LOOPBACK)
 		return "loopback";
-	if (a.type6 == NA_IP6)
+
+	/*if (a.type6 == NA_IP6)*/
+	if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))
 		{
 		uint8_t ip6[16];
 
@@ -774,7 +785,6 @@ const char *NET_BaseAdrToString (const netadr_t a)
 		return s;
 		}
 
-	// [FWGS, 01.05.23]
 	Q_snprintf (s, sizeof (s),
 		"%i.%i.%i.%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3]);
 
@@ -1071,7 +1081,7 @@ qboolean NET_StringToAdr (const char *string, netadr_t *adr)
 	return NET_StringToAdrEx (string, adr, AF_UNSPEC);
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.11.23]
 net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)
 	{
 	struct sockaddr_storage s;
@@ -1081,7 +1091,8 @@ net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)
 	if (!Q_stricmp (string, "localhost") || !Q_stricmp (string, "loopback"))
 		{
 		adr->type = NA_LOOPBACK;
-		return true;
+		/*return true;*/
+		return NET_EAI_OK;
 		}
 
 	res = NET_StringToSockaddr (string, &s, true, AF_UNSPEC);
@@ -2133,7 +2144,7 @@ void NET_ClearLagData (qboolean bClient, qboolean bServer)
 
 /*
 ====================
-NET_Init [FWGS, 01.08.23]
+NET_Init [FWGS, 01.11.23]
 ====================
 */
 void NET_Init (void)
@@ -2156,8 +2167,8 @@ void NET_Init (void)
 	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_SERVER);
 	Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);
 
-	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_CLIENT);
-	Cvar_FullSet ("clientport", cmd, FCVAR_READ_ONLY);
+	/*Q_snprintf (cmd, sizeof (cmd), "%i", PORT_CLIENT);
+	Cvar_FullSet ("clientport", cmd, FCVAR_READ_ONLY);*/
 
 	// cvar equivalents for IPv6
 	Cvar_RegisterVariable (&net_ip6name);

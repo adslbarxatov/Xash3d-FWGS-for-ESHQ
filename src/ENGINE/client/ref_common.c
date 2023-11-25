@@ -26,6 +26,10 @@ CVAR_DEFINE_AUTO (r_showtree, "0", FCVAR_ARCHIVE,
 static CVAR_DEFINE_AUTO (r_refdll, "", FCVAR_RENDERINFO,
 	"choose renderer implementation, if supported");
 
+// [FWGS, 01.11.23]
+static CVAR_DEFINE_AUTO (r_refdll_loaded, "", FCVAR_READ_ONLY,
+	"currently loaded renderer");
+
 void R_GetTextureParms (int *w, int *h, int texnum)
 	{
 	if (w)
@@ -120,7 +124,8 @@ static void *pfnMod_Extradata (int type, model_t *m)
 	return NULL;
 	}
 
-static model_t *pfnMod_GetCurrentLoadingModel (void)
+// [FWGS, 01.11.23]
+/*static model_t *pfnMod_GetCurrentLoadingModel (void)
 	{
 	return loadmodel;
 	}
@@ -128,7 +133,7 @@ static model_t *pfnMod_GetCurrentLoadingModel (void)
 static void pfnMod_SetCurrentLoadingModel (model_t *m)
 	{
 	loadmodel = m;
-	}
+	}*/
 
 static void pfnGetPredictedOrigin (vec3_t v)
 	{
@@ -180,7 +185,7 @@ static entity_state_t *R_StudioGetPlayerState (int index)
 	return &cl.frames[cl.parsecountmod].playerstate[index];
 	}
 
-static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s **ppinterface, 
+static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s **ppinterface,
 	struct engine_studio_api_s *pstudio)
 	{
 	return clgame.dllFuncs.pfnGetStudioModelInterface ?
@@ -236,10 +241,10 @@ static qboolean R_DoResetGamma (void)
 static qboolean R_Init_Video_ (const int type)
 	{
 	host.apply_opengl_config = true;
-	
+
 	// [FWGS, 01.04.23]
 	Cbuf_AddTextf ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ());
-	
+
 	Cbuf_Execute ();
 	host.apply_opengl_config = false;
 
@@ -307,8 +312,10 @@ static ref_api_t gEngfuncs =
 		Mod_ForName,
 		pfnMod_Extradata,
 		CL_ModelHandle,
-		pfnMod_GetCurrentLoadingModel,
-		pfnMod_SetCurrentLoadingModel,
+
+		// [FWGS, 01.11.23]
+		/*pfnMod_GetCurrentLoadingModel,
+		pfnMod_SetCurrentLoadingModel,*/
 
 		CL_GetRemapInfoForEntity,
 		CL_AllocRemapInfo,
@@ -556,6 +563,8 @@ static qboolean R_LoadRenderer (const char *refopt)
 		return false;
 		}
 
+	// [FWGS, 01.11.23]
+	Cvar_FullSet ("r_refdll_loaded", refopt, FCVAR_READ_ONLY);
 	Con_Reportf ("Renderer %s initialized\n", refdll);
 
 	return true;
@@ -574,18 +583,22 @@ static void SetWidthAndHeightFromCommandLine (void)
 		return;
 		}
 
-	R_SaveVideoMode (width, height, width, height);
+	// [FWGS, 01.11.23]
+	R_SaveVideoMode (width, height, width, height, false);
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.11.23]
 static void SetFullscreenModeFromCommandLine (void)
 	{
-#if !XASH_MOBILE_PLATFORM
-	if (Sys_CheckParm ("-fullscreen"))
+	/*#if !XASH_MOBILE_PLATFORM
+		if (Sys_CheckParm ("-fullscreen"))*/
+	if (Sys_CheckParm ("-borderless"))
+		Cvar_DirectSet (&vid_fullscreen, "2");
+	else if (Sys_CheckParm ("-fullscreen"))
 		Cvar_DirectSet (&vid_fullscreen, "1");
 	else if (Sys_CheckParm ("-windowed"))
 		Cvar_DirectSet (&vid_fullscreen, "0");
-#endif
+	/*#endif*/
 	}
 
 // [FWGS, 01.05.23]
@@ -606,6 +619,12 @@ static void R_CollectRendererNames (void)
 		#if XASH_REF_GL4ES_ENABLED
 			"gl4es",
 		#endif
+
+		// [FWGS, 01.11.23]
+		#if XASH_REF_GLES3COMPAT_ENABLED
+			"gles3compat",
+		#endif
+
 		#if XASH_REF_SOFT_ENABLED
 			"soft",
 		#endif
@@ -626,6 +645,12 @@ static void R_CollectRendererNames (void)
 		#if XASH_REF_GL4ES_ENABLED
 			"GL4ES",
 		#endif
+
+		// [FWGS, 01.11.23]
+		#if XASH_REF_GLES3COMPAT_ENABLED
+			"GLES3 (gl2_shim)"
+		#endif
+
 		#if XASH_REF_SOFT_ENABLED
 			"Software",
 		#endif
@@ -650,6 +675,9 @@ qboolean R_Init (void)
 	Cvar_RegisterVariable (&gl_clear);
 	Cvar_RegisterVariable (&r_showtree);
 	Cvar_RegisterVariable (&r_refdll);
+
+	// [FWGS, 01.11.23]
+	Cvar_RegisterVariable (&r_refdll_loaded);
 
 	// cvars that are expected to exist
 	Cvar_Get ("r_speeds", "0", FCVAR_ARCHIVE,

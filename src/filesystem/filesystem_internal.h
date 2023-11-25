@@ -19,6 +19,11 @@ GNU General Public License for more details.
 #include "xash3d_types.h"
 #include "filesystem.h"
 
+// [FWGS, 01.11.23]
+#if XASH_ANDROID
+	#include <android/asset_manager.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 	{
@@ -28,6 +33,12 @@ typedef struct dir_s dir_t;		// [FWGS, 01.04.23]
 typedef struct zip_s zip_t;
 typedef struct pack_s pack_t;
 typedef struct wfile_s wfile_t;
+
+// [FWGS, 01.11.23]
+#if XASH_ANDROID
+	typedef struct android_assets_s android_assets_t;
+	// typedef struct android_saf_s android_saf_t;
+#endif
 
 #define FILE_BUFF_SIZE		(2048)
 
@@ -56,7 +67,8 @@ enum
 	SEARCHPATH_PAK,
 	SEARCHPATH_WAD,
 	SEARCHPATH_ZIP,
-	SEARCHPATH_PK3DIR,	// [FWGS, 01.07.23] it's actually a plain directory but it must behave like a ZIP archive
+	SEARCHPATH_PK3DIR,			// [FWGS, 01.07.23] it's actually a plain directory but it must behave like a ZIP archive
+	SEARCHPATH_ANDROID_ASSETS	// [FWGS, 01.11.23]
 	};
 
 typedef struct stringlist_s
@@ -64,7 +76,7 @@ typedef struct stringlist_s
 	// maxstrings changes as needed, causing reallocation of strings[] array
 	int		maxstrings;
 	int		numstrings;
-	char **strings;
+	char	**strings;
 	} stringlist_t;
 
 typedef struct searchpath_s
@@ -74,10 +86,15 @@ typedef struct searchpath_s
 	int     flags;
 	union
 		{
-		dir_t *dir;		// [FWGS, 01.04.23]
-		pack_t *pack;
-		wfile_t *wad;
-		zip_t *zip;
+		dir_t	*dir;		// [FWGS, 01.04.23]
+		pack_t	*pack;
+		wfile_t	*wad;
+		zip_t	*zip;
+
+// [FWGS, 01.11.23]
+#if XASH_ANDROID
+		android_assets_t * assets;
+#endif
 		};
 	struct searchpath_s *next;
 
@@ -128,7 +145,8 @@ extern const fs_archive_t g_archives[];		// [FWGS, 01.07.23]
 #define Con_DPrintf (*g_engfuncs._Con_DPrintf)
 #define Con_Reportf (*g_engfuncs._Con_Reportf)
 #define Sys_Error   (*g_engfuncs._Sys_Error)
-#define Platform_GetNativeObject (*g_engfuncs._Platform_GetNativeObject)	// [FWGS, 01.07.23]
+/*#define Platform_GetNativeObject (*g_engfuncs._Platform_GetNativeObject)	// [FWGS, 01.07.23]*/
+#define Sys_GetNativeObject (*g_engfuncs._Sys_GetNativeObject)	// [FWGS, 01.11.23]
 
 //
 // filesystem.c
@@ -178,10 +196,10 @@ qboolean FS_WriteFile (const char *filename, const void *data, fs_offset_t len);
 qboolean CRC32_File (dword *crcvalue, const char *filename);
 qboolean MD5_HashFile (byte digest[16], const char *pszFileName, uint seed[4]);
 
-// [FWGS, 01.04.23] stringlist ops
+// [FWGS, 01.11.23] stringlist ops
 void stringlistinit (stringlist_t *list);
 void stringlistfreecontents (stringlist_t *list);
-void stringlistappend (stringlist_t *list, char *text);
+void stringlistappend (stringlist_t *list, const char *text);
 void stringlistsort (stringlist_t *list);
 void listdirectory (stringlist_t *list, const char *path);
 
@@ -236,6 +254,12 @@ searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags);	// [FWGS, 01.
 searchpath_t *FS_AddDir_Fullpath (const char *path, int flags);	// [FWGS, 01.07.23]
 qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t len, qboolean createpath);
 void FS_InitDirectorySearchpath (searchpath_t *search, const char *path, int flags);
+
+//
+// [FWGS, 01.11.23] android.c
+//
+void FS_InitAndroid (void);
+searchpath_t *FS_AddAndroidAssets_Fullpath (const char *path, int flags);
 
 #ifdef __cplusplus
 	}

@@ -823,14 +823,14 @@ cl_font_t *Con_GetCurFont (void)
 
 /*
 ====================
-Con_DrawStringLen [FWGS, 01.04.23]
+Con_DrawStringLen [FWGS, 01.11.23]
 
 compute string width and height in screen pixels
 ====================
 */
 void GAME_EXPORT Con_DrawStringLen (const char *pText, int *length, int *height)
 	{
-	return CL_DrawStringLen (con.curFont, pText, length, height, FONT_DRAW_UTF8);
+	/*return*/ CL_DrawStringLen (con.curFont, pText, length, height, FONT_DRAW_UTF8);
 	}
 
 /*
@@ -1756,7 +1756,7 @@ int Con_DrawDebugLines (void)
 
 /*
 ================
-Con_DrawDebug
+Con_DrawDebug [FWGS, 01.11.23]
 
 Draws the debug messages (not passed to console history)
 ================
@@ -1764,14 +1764,19 @@ Draws the debug messages (not passed to console history)
 void Con_DrawDebug (void)
 	{
 	static double	timeStart;
-	string		dlstring;
-	int		x, y;
+	string			dlstring;
+	int				x, y;
 
 	if (scr_download.value != -1.0f)
 		{
+		int length;
 		Q_snprintf (dlstring, sizeof (dlstring), "Downloading [%d remaining]: ^2%s^7 %5.1f%% time %.f secs",
 			host.downloadcount, host.downloadfile, scr_download.value, Sys_DoubleTime () - timeStart);
-		x = refState.width - 500;
+		/*x = refState.width - 500;*/
+
+		Con_DrawStringLen (dlstring, &length, NULL);
+		length = Q_max (length, 500);
+		x = refState.width - length * 1.05f;
 		y = con.curFont->charHeight * 1.05f;
 		Con_DrawString (x, y, dlstring, g_color_table[7]);
 		}
@@ -1906,14 +1911,15 @@ Draws the console with the solid background
 */
 void Con_DrawSolidConsole (int lines)
 	{
-	int	i, x, y;
+	int		i, x, y;
 	float	fraction;
-	int	start;
-	int	stringLen, width = 0, charH;
+	int		start;
+	int		stringLen, width = 0, charH;
 	string	curbuild;
 	byte	color[4];
 
-	if (lines <= 0) return;
+	if (lines <= 0)
+		return;
 
 	// draw the background
 	ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
@@ -1922,6 +1928,7 @@ void Con_DrawSolidConsole (int lines)
 		ref.dllFuncs.R_DrawStretchPic (0, lines - refState.height, refState.width,
 			refState.height - refState.width * 3 / 4, 0, 0, 1, 1,
 			R_GetBuiltinTexture (REF_BLACK_TEXTURE));
+
 	ref.dllFuncs.R_DrawStretchPic (0, lines - refState.width * 3 / 4, refState.width,
 		refState.width * 3 / 4, 0, 0, 1, 1, con.background);
 
@@ -1986,7 +1993,7 @@ void Con_DrawSolidConsole (int lines)
 
 /*
 ==================
-Con_DrawConsole
+Con_DrawConsole [FWGS, 01.11.23]
 ==================
 */
 void Con_DrawConsole (void)
@@ -2000,7 +2007,8 @@ void Con_DrawConsole (void)
 
 	if ((cls.state == ca_connecting) || (cls.state == ca_connected))
 		{
-		if (!cl_allow_levelshots.value)
+		/*if (!cl_allow_levelshots.value)*/
+		if (!cl_allow_levelshots.value && !cls.timedemo)
 			{
 			if ((Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background")) &&
 				(cls.key_dest != key_console))
@@ -2012,7 +2020,8 @@ void Con_DrawConsole (void)
 			{
 			con.showlines = 0;
 
-			if (host_developer.value >= DEV_EXTENDED)
+			/*if (host_developer.value >= DEV_EXTENDED)*/
+			if ((host_developer.value >= DEV_EXTENDED) && !cls.timedemo)
 				Con_DrawNotify (); // draw notify lines
 			}
 		}
@@ -2027,12 +2036,14 @@ void Con_DrawConsole (void)
 				Key_SetKeyDest (key_console);
 				}
 			break;
+
 		case ca_connecting:
 		case ca_connected:
 		case ca_validate:
 			// force to show console always for -dev 3 and higher
 			Con_DrawSolidConsole (con.vislines);
 			break;
+
 		case ca_active:
 		case ca_cinematic:
 			if (Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background"))
@@ -2040,11 +2051,16 @@ void Con_DrawConsole (void)
 				if (cls.key_dest == key_console)
 					Con_DrawSolidConsole (refState.height);
 				}
+
+			// [FWGS, 01.11.23]
 			else
 				{
 				if (con.vislines)
 					Con_DrawSolidConsole (con.vislines);
-				else if (cls.state == ca_active && (cls.key_dest == key_game || cls.key_dest == key_message))
+
+				/*else if (cls.state == ca_active && (cls.key_dest == key_game || cls.key_dest == key_message))*/
+				else if ((cls.state == ca_active) && ((cls.key_dest == key_game) || (cls.key_dest == key_message)) &&
+					!cls.timedemo)
 					Con_DrawNotify (); // draw notify lines
 				}
 			break;

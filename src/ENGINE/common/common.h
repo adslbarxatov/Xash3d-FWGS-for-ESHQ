@@ -415,6 +415,7 @@ typedef void (*xcommand_t)(void);
 qboolean FS_LoadProgs (void);
 void FS_Init (void);
 void FS_Shutdown (void);
+void *FS_GetNativeObject (const char *obj);	// [FWGS, 01.11.23]
 
 // ESHQ: поддержка скриптов достижений
 #define ACHI_OLD_SCRIPT_FN	"achi2.cfg"
@@ -790,8 +791,11 @@ void SV_ShutdownGame (void);
 void SV_ExecLoadLevel (void);
 void SV_ExecLoadGame (void);
 void SV_ExecChangeLevel (void);
-void SV_InitGameProgs (void);
-void SV_FreeGameProgs (void);
+
+// [FWGS, 01.11.23]
+/*void SV_InitGameProgs (void);
+void SV_FreeGameProgs (void);*/
+
 void CL_WriteMessageHistory (void);
 void CL_SendCmd (void);
 void CL_Disconnect (void);

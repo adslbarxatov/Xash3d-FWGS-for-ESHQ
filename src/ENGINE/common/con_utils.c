@@ -1456,7 +1456,7 @@ void Host_WriteConfig (void)
 
 /*
 ===============
-Host_WriteServerConfig
+Host_WriteServerConfig [FWGS, 01.11.23]
 
 save serverinfo variables into server.cfg (using for dedicated server too)
 ===============
@@ -1468,7 +1468,7 @@ void GAME_EXPORT Host_WriteServerConfig (const char *name)
 
 	Q_snprintf (newconfigfile, MAX_STRING, "%s.new", name);
 
-	SV_InitGameProgs ();	// collect user variables
+	/*SV_InitGameProgs ();	// collect user variables*/
 
 	// FIXME: move this out until menu parser is done
 	CSCR_LoadDefaultCVars ("settings.scr");
@@ -1490,7 +1490,7 @@ void GAME_EXPORT Host_WriteServerConfig (const char *name)
 		Con_DPrintf (S_ERROR "Couldn't write %s.\n", name);
 		}
 
-	SV_FreeGameProgs ();	// release progs with all variables
+	/*SV_FreeGameProgs ();	// release progs with all variables*/
 	}
 
 /*

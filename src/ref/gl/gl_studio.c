@@ -120,10 +120,15 @@ typedef struct
 	uint			numelems;
 	} studio_draw_state_t;
 
-// [FWGS, 01.07.23] studio-related cvars
-static CVAR_DEFINE_AUTO (r_studio_sort_textures, "0", FCVAR_GLCONFIG, "change draw order for additive meshes");
+// [FWGS, 01.11.23] studio-related cvars
+/*static CVAR_DEFINE_AUTO (r_studio_sort_textures, "0", FCVAR_GLCONFIG, "change draw order for additive meshes");*/
+CVAR_DEFINE_AUTO (r_studio_sort_textures, "0", FCVAR_GLCONFIG,
+	"change draw order for additive meshes");
+CVAR_DEFINE_AUTO (r_studio_drawelements, "1", FCVAR_GLCONFIG,
+	"use glDrawElements for studiomodels");
+
 static cvar_t *cl_righthand = NULL;
-static CVAR_DEFINE_AUTO (r_studio_drawelements, "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels");
+/*static CVAR_DEFINE_AUTO (r_studio_drawelements, "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels");*/
 
 static r_studio_interface_t *pStudioDraw;
 static studio_draw_state_t	g_studio;		// global studio state
@@ -145,9 +150,9 @@ R_StudioInit
 */
 void R_StudioInit (void)
 	{
-	// [FWGS, 01.07.23]
+	/* [FWGS, 01.07.23]
 	gEngfuncs.Cvar_RegisterVariable (&r_studio_sort_textures);
-	gEngfuncs.Cvar_RegisterVariable (&r_studio_drawelements);
+	gEngfuncs.Cvar_RegisterVariable (&r_studio_drawelements);*/
 
 // [FWGS, 01.04.23]
 #if XASH_PSVITA
@@ -1858,9 +1863,9 @@ void R_StudioSetRenderamt (int iRenderamt)
 
 /*
 ===============
-R_StudioSetCullState
+R_StudioSetCullState [FWGS, 01.07.23]
 
-[FWGS, 01.07.23] doesn't set true for enable backculling (for left-hand viewmodel)
+doesn't set true for enable backculling (for left-hand viewmodel)
 ===============
 */
 void R_StudioSetCullState (int iCull)
@@ -1920,14 +1925,15 @@ static int R_StudioMeshCompare (const void *a, const void *b)
 
 /*
 ===============
-R_StudioDrawNormalMesh
+R_StudioDrawNormalMesh [FWGS, 01.11.23]
 
 generic path
 ===============
 */
-_inline void R_StudioDrawNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)
+/*_inline void R_StudioDrawNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)*/
+static void R_StudioDrawNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)
 	{
-	float *lv;
+	/*float *lv;*/
 	int	i;
 
 	while ((i = *(ptricmds++)))
@@ -1937,7 +1943,10 @@ _inline void R_StudioDrawNormalMesh (short *ptricmds, vec3_t *pstudionorms, floa
 			pglBegin (GL_TRIANGLE_FAN);
 			i = -i;
 			}
-		else pglBegin (GL_TRIANGLE_STRIP);
+		else
+			{
+			pglBegin (GL_TRIANGLE_STRIP);
+			}
 
 		for (; i > 0; i--, ptricmds += 4)
 			{
@@ -1953,14 +1962,15 @@ _inline void R_StudioDrawNormalMesh (short *ptricmds, vec3_t *pstudionorms, floa
 
 /*
 ===============
-R_StudioDrawNormalMesh
+R_StudioDrawFloatMesh [FWGS, 01.11.23]
 
 generic path
 ===============
 */
-_inline void R_StudioDrawFloatMesh (short *ptricmds, vec3_t *pstudionorms)
+/*_inline void R_StudioDrawFloatMesh (short *ptricmds, vec3_t *pstudionorms)*/
+static void R_StudioDrawFloatMesh (short *ptricmds, vec3_t *pstudionorms)
 	{
-	float *lv;
+	/*float *lv;*/
 	int	i;
 
 	while ((i = *(ptricmds++)))
@@ -1970,7 +1980,10 @@ _inline void R_StudioDrawFloatMesh (short *ptricmds, vec3_t *pstudionorms)
 			pglBegin (GL_TRIANGLE_FAN);
 			i = -i;
 			}
-		else pglBegin (GL_TRIANGLE_STRIP);
+		else
+			{
+			pglBegin (GL_TRIANGLE_STRIP);
+			}
 
 		for (; i > 0; i--, ptricmds += 4)
 			{
@@ -1985,15 +1998,16 @@ _inline void R_StudioDrawFloatMesh (short *ptricmds, vec3_t *pstudionorms)
 
 /*
 ===============
-R_StudioDrawNormalMesh
+R_StudioDrawChromeMesh [FWGS, 01.11.23]
 
 generic path
 ===============
 */
-_inline void R_StudioDrawChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)
+/*_inline void R_StudioDrawChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)*/
+static void R_StudioDrawChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)
 	{
-	float *lv, *av;
-	int	i, idx;
+	float	*lv, *av;
+	int		i, idx;
 	qboolean	glowShell = (scale > 0.0f) ? true : false;
 	vec3_t	vert;
 
@@ -2004,7 +2018,10 @@ _inline void R_StudioDrawChromeMesh (short *ptricmds, vec3_t *pstudionorms, floa
 			pglBegin (GL_TRIANGLE_FAN);
 			i = -i;
 			}
-		else pglBegin (GL_TRIANGLE_STRIP);
+		else
+			{
+			pglBegin (GL_TRIANGLE_STRIP);
+			}
 
 		for (; i > 0; i--, ptricmds += 4)
 			{
@@ -2034,8 +2051,9 @@ _inline void R_StudioDrawChromeMesh (short *ptricmds, vec3_t *pstudionorms, floa
 		}
 	}
 
-
-_inline int R_StudioBuildIndices (qboolean tri_strip, int vertexState)
+// [FWGS, 01.11.23]
+/*_inline int R_StudioBuildIndices (qboolean tri_strip, int vertexState)*/
+static int R_StudioBuildIndices (qboolean tri_strip, int vertexState)
 	{
 	// build in indices
 	if (vertexState++ < 3)
@@ -2073,16 +2091,17 @@ _inline int R_StudioBuildIndices (qboolean tri_strip, int vertexState)
 
 /*
 ===============
-R_StudioDrawNormalMesh
+R_StudioBuildArrayNormalMesh [FWGS, 01.11.23]
 
 generic path
 ===============
 */
-_inline void R_StudioBuildArrayNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)
+/*_inline void R_StudioBuildArrayNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)*/
+static void R_StudioBuildArrayNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)
 	{
-	float *lv;
-	int	i;
-	float alpha = tr.blend;
+	float	*lv;
+	int		i;
+	float	alpha = tr.blend;
 
 	while ((i = *(ptricmds++)))
 		{
@@ -2116,16 +2135,17 @@ _inline void R_StudioBuildArrayNormalMesh (short *ptricmds, vec3_t *pstudionorms
 
 /*
 ===============
-R_StudioDrawNormalMesh
+R_StudioBuildArrayFloatMesh [FWGS, 01.11.23]
 
 generic path
 ===============
 */
-_inline void R_StudioBuildArrayFloatMesh (short *ptricmds, vec3_t *pstudionorms)
+/*_inline void R_StudioBuildArrayFloatMesh (short *ptricmds, vec3_t *pstudionorms)*/
+static void R_StudioBuildArrayFloatMesh (short *ptricmds, vec3_t *pstudionorms)
 	{
-	float *lv;
-	int	i;
-	float alpha = tr.blend;
+	float	*lv;
+	int		i;
+	float	alpha = tr.blend;
 
 	while ((i = *(ptricmds++)))
 		{
@@ -2159,18 +2179,19 @@ _inline void R_StudioBuildArrayFloatMesh (short *ptricmds, vec3_t *pstudionorms)
 
 /*
 ===============
-R_StudioDrawNormalMesh
+R_StudioBuildArrayChromeMesh [FWGS, 01.11.23]
 
 generic path
 ===============
 */
-_inline void R_StudioBuildArrayChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)
+/*_inline void R_StudioBuildArrayChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)*/
+static void R_StudioBuildArrayChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)
 	{
-	float *lv, *av;
-	int	i, idx;
+	float		*lv, *av;
+	int			i, idx;
 	qboolean	glowShell = (scale > 0.0f) ? true : false;
-	vec3_t	vert;
-	float alpha = tr.blend;
+	vec3_t		vert;
+	float		alpha = tr.blend;
 
 	while ((i = *(ptricmds++)))
 		{
@@ -2221,7 +2242,9 @@ _inline void R_StudioBuildArrayChromeMesh (short *ptricmds, vec3_t *pstudionorms
 		}
 	}
 
-_inline void R_StudioDrawArrays (uint startverts, uint startelems)
+// [FWGS, 01.11.23]
+/*_inline void R_StudioDrawArrays (uint startverts, uint startelems)*/
+static void R_StudioDrawArrays (uint startverts, uint startelems)
 	{
 	pglEnableClientState (GL_VERTEX_ARRAY);
 	pglVertexPointer (3, GL_FLOAT, 12, g_studio.arrayverts);
@@ -2251,7 +2274,6 @@ _inline void R_StudioDrawArrays (uint startverts, uint startelems)
 /*
 ===============
 R_StudioDrawPoints
-
 ===============
 */
 static void R_StudioDrawPoints (void)
@@ -2367,6 +2389,18 @@ static void R_StudioDrawPoints (void)
 	// NOTE: rewind normals at start
 	pstudionorms = (vec3_t *)((byte *)m_pStudioHeader + m_pSubModel->normindex);
 
+	// [FWGS, 01.11.23] backface culling for left-handed weapons
+	if (R_AllowFlipViewModel (RI.currententity))
+		{
+		tr.fFlipViewModel = true;
+		GL_Cull (GL_NONE);
+		}
+	else
+		{
+		tr.fFlipViewModel = false;
+		GL_Cull (GL_FRONT);
+		}
+
 	for (j = 0; j < m_pSubModel->nummesh; j++)
 		{
 		float	oldblend = tr.blend;
@@ -2445,7 +2479,6 @@ static void R_StudioDrawPoints (void)
 /*
 ===============
 R_StudioDrawHulls
-
 ===============
 */
 static void R_StudioDrawHulls (void)
@@ -2498,7 +2531,6 @@ static void R_StudioDrawHulls (void)
 /*
 ===============
 R_StudioDrawAbsBBox
-
 ===============
 */
 static void R_StudioDrawAbsBBox (void)
@@ -2538,7 +2570,6 @@ static void R_StudioDrawAbsBBox (void)
 /*
 ===============
 R_StudioDrawBones
-
 ===============
 */
 static void R_StudioDrawBones (void)
@@ -2639,7 +2670,6 @@ static void R_StudioDrawAttachments (void)
 /*
 ===============
 R_StudioSetRemapColors
-
 ===============
 */
 static void R_StudioSetRemapColors (int newTop, int newBottom)
@@ -2661,7 +2691,6 @@ void R_StudioResetPlayerModels (void)
 /*
 ===============
 R_StudioSetupPlayerModel
-
 ===============
 */
 static model_t *R_StudioSetupPlayerModel (int index)
@@ -2719,7 +2748,8 @@ int R_GetEntityRenderMode (cl_entity_t *ent)
 
 	if (ent->player) // check it for real playermodel
 		model = R_StudioSetupPlayerModel (ent->curstate.number - 1);
-	else model = ent->model;
+	else
+		model = ent->model;
 
 	RI.currententity = oldent;
 
@@ -2752,7 +2782,6 @@ int R_GetEntityRenderMode (cl_entity_t *ent)
 /*
 ===============
 R_StudioClientEvents
-
 ===============
 */
 static void R_StudioClientEvents (void)
@@ -2841,7 +2870,6 @@ void R_StudioSetForceFaceFlags (int flags)
 /*
 ===============
 pfnStudioSetHeader
-
 ===============
 */
 void R_StudioSetHeader (studiohdr_t *pheader)
@@ -2853,7 +2881,6 @@ void R_StudioSetHeader (studiohdr_t *pheader)
 /*
 ===============
 R_StudioSetRenderModel
-
 ===============
 */
 void R_StudioSetRenderModel (model_t *model)
@@ -2864,7 +2891,6 @@ void R_StudioSetRenderModel (model_t *model)
 /*
 ===============
 R_StudioSetupRenderer
-
 ===============
 */
 static void R_StudioSetupRenderer (int rendermode)
@@ -2893,7 +2919,6 @@ static void R_StudioSetupRenderer (int rendermode)
 /*
 ===============
 R_StudioRestoreRenderer
-
 ===============
 */
 static void R_StudioRestoreRenderer (void)
@@ -2909,7 +2934,6 @@ static void R_StudioRestoreRenderer (void)
 /*
 ===============
 R_StudioSetChromeOrigin
-
 ===============
 */
 void R_StudioSetChromeOrigin (void)
@@ -2932,7 +2956,6 @@ static int pfnIsHardware (void)
 /*
 ===============
 R_StudioDrawPointsShadow
-
 ===============
 */
 static void R_StudioDrawPointsShadow (void)
@@ -3064,7 +3087,6 @@ static void GL_StudioDrawShadow (void)
 /*
 ====================
 StudioRenderFinal
-
 ====================
 */
 void R_StudioRenderFinal (void)
@@ -3150,7 +3172,6 @@ void R_StudioRenderFinal (void)
 /*
 ====================
 StudioRenderModel
-
 ====================
 */
 void R_StudioRenderModel (void)
@@ -3179,7 +3200,6 @@ void R_StudioRenderModel (void)
 /*
 ====================
 StudioEstimateGait
-
 ====================
 */
 void R_StudioEstimateGait (entity_state_t *pplayer)
@@ -3235,7 +3255,6 @@ void R_StudioEstimateGait (entity_state_t *pplayer)
 /*
 ====================
 StudioProcessGait
-
 ====================
 */
 void R_StudioProcessGait (entity_state_t *pplayer)
@@ -3249,7 +3268,8 @@ void R_StudioProcessGait (entity_state_t *pplayer)
 
 	dt = bound (0.0f, g_studio.frametime, 1.0f);
 
-	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + RI.currententity->curstate.sequence;
+	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) +
+		RI.currententity->curstate.sequence;
 
 	R_StudioPlayerBlend (pseqdesc, &iBlend, &RI.currententity->angles[PITCH]);
 
@@ -3310,7 +3330,6 @@ void R_StudioProcessGait (entity_state_t *pplayer)
 /*
 ===============
 R_StudioDrawPlayer
-
 ===============
 */
 static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
@@ -3453,7 +3472,6 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 /*
 ===============
 R_StudioDrawModel
-
 ===============
 */
 static int R_StudioDrawModel (int flags)
@@ -3690,12 +3708,12 @@ void R_DrawViewModel (void)
 	pglDepthRange (gldepthmin, gldepthmin + 0.3f * (gldepthmax - gldepthmin));
 	RI.currentmodel = RI.currententity->model;
 
-	// backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity))	// [FWGS, 01.07.23]
+	/* [FWGS, 01.07.23] backface culling for left-handed weapons
+	if (R_AllowFlipViewModel (RI.currententity))
 		{
 		tr.fFlipViewModel = true;
 		pglFrontFace (GL_CW);
-		}
+		}*/
 
 	switch (RI.currententity->model->type)
 		{
@@ -3711,12 +3729,12 @@ void R_DrawViewModel (void)
 	// restore depth range
 	pglDepthRange (gldepthmin, gldepthmax);
 
-	// backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity))	// [FWGS, 01.07.23]
+	/*[FWGS, 01.07.23] backface culling for left-handed weapons
+	if (R_AllowFlipViewModel (RI.currententity))
 		{
 		tr.fFlipViewModel = false;
 		pglFrontFace (GL_CCW);
-		}
+		}*/
 	}
 
 /*
@@ -3961,8 +3979,9 @@ void CL_InitStudioAPI (void)
 	// trying to grab them from client.dll
 	cl_righthand = gEngfuncs.pfnGetCvarPointer ("cl_righthand", 0);
 
-	if (cl_righthand == NULL)
-		cl_righthand = gEngfuncs.Cvar_Get ("cl_righthand", "0", FCVAR_ARCHIVE, "flip viewmodel (left to right)");
+	// [FWGS, 01.11.23]
+	/*if (cl_righthand == NULL)
+		cl_righthand = gEngfuncs.Cvar_Get ("cl_righthand", "0", FCVAR_ARCHIVE, "flip viewmodel (left to right)");*/
 
 	// Xash will be used internal StudioModelRenderer
 	if (gEngfuncs.pfnGetStudioModelInterface (STUDIO_INTERFACE_VERSION, &pStudioDraw, &gStudioAPI))

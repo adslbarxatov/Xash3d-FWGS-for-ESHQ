@@ -20,7 +20,7 @@ GNU General Public License for more details.
 #include "voice.h"
 #include <shellapi.h>	// ESHQ: поддержка вызова генератора карт ESRM
 #include "pm_local.h"	// [FWGS, 01.04.23]
-#include "sequence.h"	// [FWGS, 01.05.23]
+/*#include "sequence.h"*/	// [FWGS, 01.11.23]
 
 #if XASH_LOW_MEMORY != 2
 int SV_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
@@ -719,7 +719,7 @@ void SV_DeactivateServer (void)
 
 /*
 ==============
-SV_InitGame
+SV_InitGame [FWGS, 01.11.23]
 
 A brand new game has been started
 ==============
@@ -728,12 +728,12 @@ qboolean SV_InitGame (void)
 	{
 	string dllpath;
 
-	if (svs.game_library_loaded)
+	/*if (svs.game_library_loaded)*/
+	if (svgame.hInstance)
 		return true;
 
 	// first initialize?
 	COM_ResetLibraryError ();
-
 	COM_GetCommonLibraryPath (LIBRARY_SERVER, dllpath, sizeof (dllpath));
 
 	if (!SV_LoadProgs (dllpath))
@@ -743,7 +743,7 @@ qboolean SV_InitGame (void)
 		}
 
 	// client frames will be allocated in SV_ClientConnect
-	svs.game_library_loaded = true;
+	/*svs.game_library_loaded = true;*/
 	return true;
 	}
 
@@ -1059,8 +1059,12 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	if (svs.maxclients == 1) 
 		Cvar_SetValue ("sv_clienttrace", 1);
 
-	// [FWGS, 01.05.23] make sure what server name doesn't contain path and extension
-	COM_FileBase (mapname, sv.name, sizeof (sv.name));
+	/* [FWGS, 01.05.23] make sure what server name doesn't contain path and extension
+	COM_FileBase (mapname, sv.name, sizeof (sv.name));*/
+	
+	// [FWGS, 01.11.23] allow loading maps from subdirectories, strip extension anyway
+	Q_strncpy (sv.name, mapname, sizeof (sv.name));
+	COM_StripExtension (sv.name);
 
 	// precache and static commands can be issued during map initialization
 	Host_SetServerState (ss_loading);
@@ -1105,8 +1109,8 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 		SV_InitEdict (ent);
 		}
 
-	// [FWGS, 01.05.23]
-	Sequence_OnLevelLoad (sv.name);
+	// [FWGS, 01.11.23]
+	/*Sequence_OnLevelLoad (sv.name);*/
 
 	// heartbeats will always be sent to the id master
 	NET_MasterClear ();
@@ -1138,7 +1142,8 @@ int SV_GetMaxClients (void)
 	return svs.maxclients;
 	}
 
-void SV_InitGameProgs (void)
+// [FWGS, 01.11.23]
+/*void SV_InitGameProgs (void)
 	{
 	string dllpath;
 
@@ -1160,7 +1165,7 @@ void SV_FreeGameProgs (void)
 
 	// unload progs (free cvars and commands)
 	SV_UnloadProgs ();
-	}
+	}*/
 
 /*
 ================

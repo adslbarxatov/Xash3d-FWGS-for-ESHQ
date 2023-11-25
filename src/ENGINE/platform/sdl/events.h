@@ -20,14 +20,17 @@ GNU General Public License for more details.
 
 #include "platform/platform.h"
 
-// window management
+// [FWGS, 01.11.23] window management
 void VID_RestoreScreenResolution (void);
-qboolean  VID_CreateWindow (int width, int height, qboolean fullscreen);
+/*qboolean  VID_CreateWindow (int width, int height, qboolean fullscreen);*/
+qboolean  VID_CreateWindow (int width, int height, window_mode_t window_mode);
 void      VID_DestroyWindow (void);
 void GL_InitExtensions (void);
-// [FWGS, 01.05.23] удалены GL_CreateContext, GL_UpdateContext
 qboolean GL_DeleteContext (void);
-void VID_SaveWindowSize (int width, int height);
+/*void VID_SaveWindowSize (int width, int height);*/
+void VID_SaveWindowSize (int width, int height, qboolean maximized);
+
+// [FWGS, 01.05.23] удалены GL_CreateContext, GL_UpdateContext
 
 // joystick events
 extern SDL_Joystick *g_joy;

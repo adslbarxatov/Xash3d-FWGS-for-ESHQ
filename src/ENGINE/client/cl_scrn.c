@@ -757,6 +757,7 @@ void SCR_VidInit (void)
 
 	// restart console size
 	Con_VidInit ();
+	Touch_NotifyResize ();	// [FWGS, 01.11.23]
 	}
 
 /*

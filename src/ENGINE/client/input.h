@@ -76,6 +76,7 @@ void Touch_ResetDefaultButtons (void);
 int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy);
 void Touch_KeyEvent (int key, int down);
 qboolean Touch_WantVisibleCursor (void);	// [FWGS, 01.04.23]
+void Touch_NotifyResize (void);		// [FWGS, 01.11.23]
 
 //
 // in_joy.c

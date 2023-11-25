@@ -37,9 +37,14 @@ GNU General Public License for more details.
 
 // [FWGS, 01.04.23]
 #if XASH_PSVITA
-int VGL_ShimInit (void);
-void VGL_ShimShutdown (void);
-void VGL_ShimEndFrame (void);
+	int VGL_ShimInit (void);
+	void VGL_ShimShutdown (void);
+	void VGL_ShimEndFrame (void);
+#endif
+
+// [FWGS, 01.11.23]
+#if !defined(XASH_GL_STATIC)
+	#include "gl2_shim/gl2_shim.h"
 #endif
 
 #ifndef offsetof
@@ -305,11 +310,13 @@ void GL_CleanupAllTextureUnits (void);
 void GL_LoadIdentityTexMatrix (void);
 void GL_DisableAllTexGens (void);
 void GL_SetRenderMode (int mode);
+void GL_EnableTextureUnit (int tmu, qboolean enable);	// [FWGS, 01.11.23]
 void GL_TextureTarget (uint target);
 void GL_Cull (GLenum cull);
 void R_ShowTextures (void);
 void SCR_TimeRefresh_f (void);
 
+// 
 //
 // gl_beams.c
 //
@@ -369,6 +376,7 @@ void R_InitDlightTexture (void);
 void R_TextureList_f (void);
 void R_InitImages (void);
 void R_ShutdownImages (void);
+int GL_TexMemory (void);	// [FWGS, 01.11.23]
 
 //
 // gl_rlight.c
@@ -425,7 +433,11 @@ void R_MarkLeaves (void);
 void R_DrawWorld (void);
 void R_DrawWaterSurfaces (void);
 void R_DrawBrushModel (cl_entity_t *e);
-void GL_SubdivideSurface (msurface_t *fa);
+
+// [FWGS, 01.11.23]
+/*void GL_SubdivideSurface (msurface_t *fa);*/
+void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
+
 void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);
 void DrawGLPoly (glpoly_t *p, float xScale, float yScale);
 texture_t *R_TextureAnimation (msurface_t *s);
@@ -488,6 +500,13 @@ void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_DrawClouds (void);
 void EmitWaterPolys (msurface_t *warp, qboolean reverse);
+
+// [FWGS, 01.11.23]
+void R_InitRipples (void);
+void R_ResetRipples (void);
+void R_AnimateRipples (void);
+void R_UpdateRippleTexParams (void);
+void R_UploadRipples (texture_t * image);
 
 //
 // gl_vgui.c
@@ -561,7 +580,11 @@ void GL_CheckForErrors_ (const char *filename, const int fileline);
 const char *GL_ErrorString (int err);
 qboolean GL_Support (int r_ext);
 int GL_MaxTextureUnits (void);
-qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext);
+
+// [FWGS, 01.11.23]
+/*qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext);*/
+qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext, float minver);
+
 void GL_SetExtension (int r_ext, int enable);
 
 //
@@ -587,9 +610,7 @@ void TriCullFace (TRICULLSTYLE mode);
 
 /*
 =======================================================================
-
  GL STATE MACHINE
-
 =======================================================================
 */
 enum
@@ -617,6 +638,14 @@ enum
 	GL_DRAW_RANGEELEMENTS_EXT,
 	GL_TEXTURE_MULTISAMPLE,
 	GL_ARB_TEXTURE_COMPRESSION_BPTC,
+
+	// [FWGS, 01.11.23]
+	GL_SHADER_OBJECTS_EXT,
+	GL_ARB_VERTEX_ARRAY_OBJECT_EXT,
+	GL_BUFFER_STORAGE_EXT,
+	GL_MAP_BUFFER_RANGE_EXT,
+	GL_DRAW_RANGE_ELEMENTS_BASE_VERTEX_EXT,
+
 	GL_EXTCOUNT,		// must be last
 	};
 
@@ -662,6 +691,10 @@ typedef struct
 	int		depth_bits;
 	int		stencil_bits;
 	int		msaasamples;
+
+	// [FWGS, 01.11.23]
+	int version_major;
+	int version_minor;
 
 	gl_context_type_t	context;
 	gles_wrapper_t	wrapper;
@@ -736,6 +769,13 @@ extern convar_t r_traceglow;
 extern convar_t r_vbo;
 extern convar_t r_vbo_dlightmode;
 
+// [FWGS, 01.11.23]
+extern convar_t r_studio_sort_textures;
+extern convar_t r_studio_drawelements;
+extern convar_t r_ripple;
+extern convar_t r_ripple_updatetime;
+extern convar_t r_ripple_spawntime;
+
 //
 // engine shared convars
 //
@@ -754,4 +794,4 @@ DECLARE_ENGINE_SHARED_CVAR_LIST ();
 #define Mem_FreePool( pool ) gEngfuncs._Mem_FreePool( pool, __FILE__, __LINE__ )
 #define Mem_EmptyPool( pool ) gEngfuncs._Mem_EmptyPool( pool, __FILE__, __LINE__ )
 
-#endif // GL_LOCAL_H
+#endif

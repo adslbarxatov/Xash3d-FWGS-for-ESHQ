@@ -23,7 +23,8 @@ GNU General Public License for more details.
 
 #if XASH_EMSCRIPTEN
 #include <emscripten.h>
-#elif XASH_WIN32
+// [FWGS, 01.11.23]
+/*#elif XASH_WIN32
 extern "C"
 	{
 	// Enable NVIDIA High Performance Graphics while using Integrated Graphics.
@@ -31,7 +32,7 @@ extern "C"
 
 	// Enable AMD High Performance Graphics while using Integrated Graphics.
 	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
-	}
+	}*/
 #endif
 
 #define E_GAME	"XASH3D_GAME" // default env dir to start from
@@ -39,15 +40,21 @@ extern "C"
 #define XASH_GAMEDIR	"valve"
 #endif
 
-static char        szGameDir[128]; // safe place to keep gamedir
-static int         szArgc;
-static char **szArgv;
+// [FWGS, 01.11.23]
+#if XASH_WIN32
+	#error "Single-binary or dedicated builds aren't supported for Windows!"
+#endif
+
+static char		szGameDir[128]; // safe place to keep gamedir
+static int		szArgc;
+static char		**szArgv;
 
 static void Sys_ChangeGame (const char *progname)
 	{
-	// a1ba: may never be called within engine
+	// [FWGS, 01.11.23] a1ba: may never be called within engine
 	// if platform supports execv() function
-	Q_strncpy (szGameDir, progname, sizeof (szGameDir) - 1);
+	/*Q_strncpy (szGameDir, progname, sizeof (szGameDir) - 1);*/
+	Q_strncpy (szGameDir, progname, sizeof (szGameDir));
 	Host_Shutdown ();
 	exit (Host_Main (szArgc, szArgv, szGameDir, 1, &Sys_ChangeGame));
 	}
@@ -90,10 +97,11 @@ _inline int Sys_Start (void)
 	return ret;
 	}
 
-#if !XASH_WIN32
+// [FWGS, 01.11.23]
+/*#if !XASH_WIN32*/
 int main (int argc, char **argv)
 	{
-	// [FWGS, 01.05.23]
+// [FWGS, 01.05.23]
 #if XASH_PSVITA
 	
 	// inject -dev -console into args if required
@@ -109,7 +117,7 @@ int main (int argc, char **argv)
 	return Sys_Start ();
 	}
 
-#else
+/*#else
 
 int __stdcall WinMain (HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR cmdLine, int nShow)
 	{
@@ -141,4 +149,6 @@ int __stdcall WinMain (HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR cmdLine, int 
 	}
 #endif
 
-#endif
+#endif*/
+
+#endif // [FWGS, 01.11.23] SINGLE_BINARY

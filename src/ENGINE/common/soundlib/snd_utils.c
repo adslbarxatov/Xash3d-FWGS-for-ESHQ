@@ -37,9 +37,7 @@ static const loadwavfmt_t load_game[] =
 
 /*
 =============================================================================
-
-	XASH3D PROCESS STREAM FORMATS
-
+XASH3D PROCESS STREAM FORMATS
 =============================================================================
 */
 // stub
@@ -91,14 +89,20 @@ byte *Sound_Copy (size_t size)
 	return out;
 	}
 
+// [FWGS, 01.11.23]
 uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 	{
-	file_t *f;
-	wavehdr_t wav;
-	size_t    filesize;
-	uint      msecs;
+	string		name;
+	file_t		*f;
+	wavehdr_t	wav;
+	size_t		filesize;
+	uint		msecs;
 
-	f = FS_Open (filepath, "rb", false);
+	/*f = FS_Open (filepath, "rb", false);*/
+	Q_strncpy (name, filepath, sizeof (name));
+	COM_FixSlashes (name);
+	
+	f = FS_Open (name, "rb", false);
 	if (!f)
 		return 0;
 
@@ -114,12 +118,13 @@ uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 	FS_Close (f);
 
 	// is real wav file ?
-	if (wav.riff_id != RIFFHEADER || wav.wave_id != WAVEHEADER || wav.fmt_id != FORMHEADER)
+	if ((wav.riff_id != RIFFHEADER) || (wav.wave_id != WAVEHEADER) || (wav.fmt_id != FORMHEADER))
 		return 0;
 
 	if (wav.nAvgBytesPerSec >= 1000)
 		msecs = (uint)((float)filesize / ((float)wav.nAvgBytesPerSec / 1000.0f));
-	else msecs = (uint)(((float)filesize / (float)wav.nAvgBytesPerSec) * 1000.0f);
+	else
+		msecs = (uint)(((float)filesize / (float)wav.nAvgBytesPerSec) * 1000.0f);
 
 	return msecs;
 	}

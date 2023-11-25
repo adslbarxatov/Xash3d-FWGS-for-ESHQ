@@ -26,7 +26,7 @@ void CL_PlayVideo_f (void)
 	{
 	string	path;
 
-	if (Cmd_Argc () != 2 && Cmd_Argc () != 3)
+	if ((Cmd_Argc () != 2) && (Cmd_Argc () != 3))
 		{
 		Con_Printf (S_USAGE "movie <moviename> [full]\n");
 		return;
@@ -44,6 +44,7 @@ void CL_PlayVideo_f (void)
 			Q_snprintf (path, sizeof (path), "media/%s.avi", Cmd_Argv (1));
 			SCR_PlayCinematic (path);
 			break;
+
 		case 3:	// sequenced cinematics used this
 			SCR_PlayCinematic (Cmd_Argv (1));
 			break;
@@ -203,7 +204,7 @@ void CL_ScreenShot_f (void)
 			if (!CL_ScreenshotGetName (i, checkname, sizeof (checkname)))	// [FWGS, 01.05.23]
 				return;	// no namespace
 
-			if (!FS_FileExists (checkname, false))
+			if (!FS_FileExists (checkname, true))	// [FWGS, 01.11.23]
 				break;
 			}
 
@@ -243,7 +244,7 @@ void CL_SnapShot_f (void)
 			if (!CL_SnapshotGetName (i, checkname, sizeof (checkname)))	// [FWGS, 01.05.23]
 				return;	// no namespace
 
-			if (!FS_FileExists (checkname, false))
+			if (!FS_FileExists (checkname, true))	// [FWGS, 01.11.23]
 				break;
 			}
 

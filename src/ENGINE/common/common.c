@@ -22,7 +22,7 @@ GNU General Public License for more details.
 #include "const.h"
 #include "client.h"
 #include "library.h"
-#include "sequence.h"
+/*#include "sequence.h"*/	// [FWGS, 01.11.23]
 
 static const char *file_exts[] =
 	{
@@ -125,7 +125,7 @@ float GAME_EXPORT COM_RandomFloat (float flLow, float flHigh)
 	{
 	float	fl;
 
-	if (idum == 0) 
+	if (idum == 0)
 		COM_SetRandomSeed (0);
 
 	fl = fran1 (); // float in [0,1]
@@ -529,7 +529,6 @@ qboolean COM_ParseVector (char **pfile, float *v, size_t size)
 /*
 =============
 COM_FileSize
-
 =============
 */
 int GAME_EXPORT COM_FileSize (const char *filename)
@@ -540,7 +539,6 @@ int GAME_EXPORT COM_FileSize (const char *filename)
 /*
 =============
 COM_AddAppDirectoryToSearchPath
-
 =============
 */
 void GAME_EXPORT COM_AddAppDirectoryToSearchPath (const char *pszBaseDir, const char *appName)
@@ -857,56 +855,8 @@ void GAME_EXPORT pfnGetModelBounds (model_t *mod, float *mins, float *maxs)
 		}
 	}
 
-// [FWGS, 01.07.23]
-/*
-=============
-pfnCvar_RegisterServerVariable
-
-standard path to register game variable
-=============
-void GAME_EXPORT pfnCvar_RegisterServerVariable (cvar_t *variable)
-	{
-	if (variable != NULL)
-		SetBits (variable->flags, FCVAR_EXTDLL);
-	Cvar_RegisterVariable ((convar_t *)variable);
-	}
-
-/*
-=============
-pfnCvar_RegisterEngineVariable
-
-use with precaution: this cvar will NOT unlinked
-after game.dll is unloaded
-=============
-void GAME_EXPORT pfnCvar_RegisterEngineVariable (cvar_t *variable)
-	{
-	Cvar_RegisterVariable ((convar_t *)variable);
-	}
-
-/*
-=============
-pfnCvar_RegisterVariable [FWGS, 01.04.23]
-=============
-cvar_t *pfnCvar_RegisterClientVariable (const char *szName, const char *szValue, int flags)
-	{
-	// a1ba: try to mitigate outdated client.dll vulnerabilities
-	if (!Q_stricmp (szName, "motdfile"))
-		flags |= FCVAR_PRIVILEGED;
-
-	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_CLIENTDLL, Cvar_BuildAutoDescription (szName, flags |
-		FCVAR_CLIENTDLL));
-	}
-
-/*
-=============
-pfnCvar_RegisterVariable [FWGS, 01.04.23]
-=============
-cvar_t *pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
-	{
-	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (szName, flags |
-		FCVAR_GAMEUIDLL));
-	}
-*/
+// [FWGS, 01.07.23] removed pfnCvar_RegisterServerVariable, pfnCvar_RegisterEngineVariable,
+// pfnCvar_RegisterClientVariable, pfnCvar_RegisterGameUIVariable
 
 /*
 =============
@@ -935,7 +885,6 @@ void GAME_EXPORT pfnCVarDirectSet (cvar_t *var, const char *szValue)
 /*
 =============
 COM_CompareFileTime
-
 =============
 */
 int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare)
@@ -1097,7 +1046,7 @@ COMMON EXPORT STUBS
 
 /*
 =============
-pfnSequenceGet
+pfnSequenceGet [FWGS, 01.11.23]
 
 used by CS:CZ
 =============
@@ -1106,13 +1055,13 @@ void *GAME_EXPORT pfnSequenceGet (const char *fileName, const char *entryName)
 	{
 	Msg ("Sequence_Get: file %s, entry %s\n", fileName, entryName);
 
-
-	return Sequence_Get (fileName, entryName);
+	/*return Sequence_Get (fileName, entryName);*/
+	return NULL;
 	}
 
 /*
 =============
-pfnSequencePickSentence
+pfnSequencePickSentence [FWGS, 01.11.23]
 
 used by CS:CZ
 =============
@@ -1121,8 +1070,8 @@ void *GAME_EXPORT pfnSequencePickSentence (const char *groupName, int pickMethod
 	{
 	Msg ("Sequence_PickSentence: group %s, pickMethod %i\n", groupName, pickMethod);
 
-	return  Sequence_PickSentence (groupName, pickMethod, picked);
-
+	/*return  Sequence_PickSentence (groupName, pickMethod, picked);*/
+	return NULL;
 	}
 
 // [FWGS, 01.07.23] removed pfnIsCareerMatch, pfnRegisterTutorMessageShown

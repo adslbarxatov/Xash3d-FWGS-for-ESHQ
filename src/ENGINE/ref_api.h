@@ -119,7 +119,7 @@ enum
 	XASH_TEXTURE1,
 	XASH_TEXTURE2,
 	XASH_TEXTURE3,		// g-cont. 4 units should be enough
-	XASH_TEXTURE4,		// mittorn. bump+detail needs 5 for single-pass
+	/*XASH_TEXTURE4,		// mittorn. bump+detail needs 5 for single-pass*/	// [FWGS, 01.11.23]
 	MAX_TEXTURE_UNITS = 32	// can't access to all over units without GLSL or cg
 	};
 
@@ -327,8 +327,10 @@ typedef struct ref_api_s
 	model_t *(*Mod_ForName)(const char *name, qboolean crash, qboolean trackCRC);
 	void *(*Mod_Extradata)(int type, model_t *model);
 	struct model_s *(*pfnGetModelByIndex)(int index); // CL_ModelHandle
-	struct model_s *(*Mod_GetCurrentLoadingModel)(void); // loadmodel
-	void (*Mod_SetCurrentLoadingModel)(struct model_s *); // loadmodel
+
+	// [FWGS, 01.11.23]
+	/*struct model_s *(*Mod_GetCurrentLoadingModel)(void); // loadmodel
+	void (*Mod_SetCurrentLoadingModel)(struct model_s *); // loadmodel*/
 
 	// remap
 	struct remap_info_s *(*CL_GetRemapInfoForEntity)(cl_entity_t *e);
@@ -502,9 +504,10 @@ typedef struct ref_interface_s
 	void (*R_StudioLerpMovement)(cl_entity_t *e, double time, vec3_t origin, vec3_t angles);
 	void (*CL_InitStudioAPI)(void);
 
-	// bmodel
+	// [FWGS, 01.11.23] bmodel
 	void (*R_InitSkyClouds)(struct mip_s *mt, struct texture_s *tx, qboolean custom_palette);
-	void (*GL_SubdivideSurface)(msurface_t *fa);
+	/*void (*GL_SubdivideSurface)(msurface_t *fa);*/
+	void (*GL_SubdivideSurface)(model_t *mod, msurface_t *fa);
 	void (*CL_RunLightStyles)(void);
 
 	// sprites

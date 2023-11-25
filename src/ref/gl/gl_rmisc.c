@@ -20,14 +20,14 @@ GNU General Public License for more details.
 
 static void R_ParseDetailTextures (const char *filename)
 	{
-	byte *afile;
-	char *pfile;
+	byte	*afile;
+	char	*pfile;
 	string	token, texname;
 	string	detail_texname;
 	string	detail_path;
 	float	xScale, yScale;
-	texture_t *tex;
-	int	i;
+	texture_t	*tex;
+	int		i;
 
 	afile = gEngfuncs.fsapi->LoadFile (filename, NULL, false);
 	if (!afile)
@@ -91,7 +91,9 @@ static void R_ParseDetailTextures (const char *filename)
 			if (Q_stricmp (tex->name, texname))
 				continue;
 
-			tex->dt_texturenum = GL_LoadTexture (detail_path, NULL, 0, TF_FORCE_COLOR);
+			// [FWGS, 01.11.23]
+			/*tex->dt_texturenum = GL_LoadTexture (detail_path, NULL, 0, TF_FORCE_COLOR);*/
+			tex->dt_texturenum = GL_LoadTexture (detail_path, NULL, 0, TF_FORCE_COLOR | TF_NOFLIP_TGA);
 
 			// texture is loaded
 			if (tex->dt_texturenum)
@@ -159,7 +161,9 @@ void R_NewMap (void)
 	GL_BuildLightmaps ();
 	R_GenerateVBO ();
 
+	// [FWGS, 01.11.23]
+	R_ResetRipples ();
+
 	if (gEngfuncs.drawFuncs->R_NewMap != NULL)
 		gEngfuncs.drawFuncs->R_NewMap ();
-
 	}

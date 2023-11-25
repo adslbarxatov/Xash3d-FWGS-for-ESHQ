@@ -657,7 +657,8 @@ static void make_hull_windings (hull_t *hull, hull_model_t *model)
 	Con_Reportf ("%i hull polys\n", model->num_polys);
 	}
 
-void Mod_InitDebugHulls (void)
+// [FWGS, 01.11.23]
+void Mod_InitDebugHulls (model_t *loadmodel)
 	{
 	int	i;
 

@@ -60,7 +60,7 @@ qboolean Image_CheckDXT5Alpha (dds_t *hdr, byte *fin)
 		{
 		for (x = 0; x < hdr->dwWidth; x += 4)
 			{
-			if (y >= hdr->dwHeight || x >= hdr->dwWidth)
+			if ((y >= hdr->dwHeight) || (x >= hdr->dwWidth))
 				break;
 
 			alphamask = fin + 2;
@@ -104,6 +104,15 @@ void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 			{
 			switch (headerExt->dxgiFormat)
 				{
+				// [FWGS, 01.11.23]
+				case DXGI_FORMAT_BC4_TYPELESS:
+				case DXGI_FORMAT_BC4_UNORM:
+					image.type = PF_BC4_UNSIGNED;
+					break;
+				case DXGI_FORMAT_BC4_SNORM:
+					image.type = PF_BC4_SIGNED;
+					break;
+
 				case DXGI_FORMAT_BC6H_SF16:
 					image.type = PF_BC6H_SIGNED;
 					break;
@@ -112,10 +121,26 @@ void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 					image.type = PF_BC6H_UNSIGNED;
 					break;
 				case DXGI_FORMAT_BC7_UNORM:
-				case DXGI_FORMAT_BC7_UNORM_SRGB:
+
+				// [FWGS, 01.11.23]
+				/*case DXGI_FORMAT_BC7_UNORM_SRGB:*/
 				case DXGI_FORMAT_BC7_TYPELESS:
-					image.type = PF_BC7;
+					/*image.type = PF_BC7;*/
+					image.type = PF_BC7_UNORM;
 					break;
+				case DXGI_FORMAT_BC7_UNORM_SRGB:
+					image.type = PF_BC7_SRGB;
+					break;
+				case DXGI_FORMAT_BC5_TYPELESS:
+					image.type = PF_ATI2;
+					break;
+				case DXGI_FORMAT_BC5_UNORM:
+					image.type = PF_BC5_UNSIGNED;
+					break;
+				case DXGI_FORMAT_BC5_SNORM:
+					image.type = PF_BC5_SIGNED;
+					break;
+
 				default:
 					image.type = PF_UNKNOWN;
 					break;
@@ -143,6 +168,18 @@ void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 				case TYPE_ATI2:
 					image.type = PF_ATI2;
 					break;
+
+				// [FWGS, 01.11.23]
+				case TYPE_BC5S:
+					image.type = PF_BC5_SIGNED;
+					break;
+				case TYPE_BC4S:
+					image.type = PF_BC4_SIGNED;
+					break;
+				case TYPE_BC4U:
+					image.type = PF_BC4_UNSIGNED;
+					break;
+
 				default:
 					image.type = PF_UNKNOWN; // assume error
 					break;
@@ -188,7 +225,8 @@ void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 		image.num_mips = hdr->dwMipMapCount; // get actual mip count
 	}
 
-size_t Image_DXTGetLinearSize (int type, int width, int height, int depth)
+// [FWGS, 01.11.23]
+/*size_t Image_DXTGetLinearSize (int type, int width, int height, int depth)
 	{
 	switch (type)
 		{
@@ -207,7 +245,7 @@ size_t Image_DXTGetLinearSize (int type, int width, int height, int depth)
 		}
 
 	return 0;
-	}
+	}*/
 
 size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 	{
@@ -219,7 +257,10 @@ size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 		{
 		width = Q_max (1, (hdr->dwWidth >> i));
 		height = Q_max (1, (hdr->dwHeight >> i));
-		buffsize += Image_DXTGetLinearSize (image.type, width, height, image.depth);
+
+		// [FWGS, 01.11.23]
+		/*buffsize += Image_DXTGetLinearSize (image.type, width, height, image.depth);*/
+		buffsize += Image_ComputeSize (image.type, width, height, image.depth);
 		}
 
 	return buffsize;
@@ -255,7 +296,8 @@ uint Image_DXTCalcSize (const char *name, dds_t *hdr, size_t filesize)
 
 	if (filesize != buffsize) // main check
 		{
-		Con_DPrintf (S_WARN "Image_LoadDDS: (%s) probably corrupted (%i should be %lu)\n", name, buffsize, filesize);
+		// [FWGS, 01.11.23]
+		Con_DPrintf (S_WARN "Image_LoadDDS: (%s) probably corrupted (%zu should be %lu)\n", name, buffsize, filesize);
 		if (buffsize > filesize)
 			return false;
 		}
@@ -268,7 +310,9 @@ void Image_DXTAdjustVolume (dds_t *hdr)
 	if (hdr->dwDepth <= 1)
 		return;
 
-	hdr->dwLinearSize = Image_DXTGetLinearSize (image.type, hdr->dwWidth, hdr->dwHeight, hdr->dwDepth);
+	// [FWGS, 01.11.23]
+	/*hdr->dwLinearSize = Image_DXTGetLinearSize (image.type, hdr->dwWidth, hdr->dwHeight, hdr->dwDepth);*/
+	hdr->dwLinearSize = Image_ComputeSize (image.type, hdr->dwWidth, hdr->dwHeight, hdr->dwDepth);
 	hdr->dwFlags |= DDS_LINEARSIZE;
 	}
 
@@ -323,7 +367,9 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 	Image_DXTGetPixelFormat (&header, &header2); // and image type too :)
 	Image_DXTAdjustVolume (&header);
 
-	if (!Image_CheckFlag (IL_DDS_HARDWARE) && ImageDXT (image.type))
+	// [FWGS, 01.11.23]
+	/*if (!Image_CheckFlag (IL_DDS_HARDWARE) && ImageDXT (image.type))*/
+	if (!Image_CheckFlag (IL_DDS_HARDWARE) && ImageCompressed (image.type))
 		return false; // silently rejected
 
 	if (image.type == PF_UNKNOWN)
@@ -356,8 +402,15 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 				SetBits (image.flags, IMAGE_HAS_ALPHA);
 			else if (image.type == PF_DXT5 && Image_CheckDXT5Alpha (&header, fin))
 				SetBits (image.flags, IMAGE_HAS_ALPHA);
-			else if (image.type == PF_BC7)
+			
+			// [FWGS, 01.11.23]
+			/*else if (image.type == PF_BC7)
+				SetBits (image.flags, IMAGE_HAS_ALPHA);*/
+			else if (image.type == PF_BC5_SIGNED || image.type == PF_BC5_UNSIGNED)
 				SetBits (image.flags, IMAGE_HAS_ALPHA);
+			else if (image.type == PF_BC7_UNORM || image.type == PF_BC7_SRGB)
+				SetBits (image.flags, IMAGE_HAS_ALPHA);
+
 			if (!FBitSet (header.dsPixelFormat.dwFlags, DDS_LUMINANCE))
 				SetBits (image.flags, IMAGE_HAS_COLOR);
 			break;

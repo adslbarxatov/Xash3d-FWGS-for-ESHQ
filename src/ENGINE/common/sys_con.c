@@ -74,7 +74,7 @@ char *Sys_Input (void)
 			{
 			if (read (0, &line[len], 1) != 1)
 				break;
-			if (line[len] == '\n' || len > 1022)
+			if ((line[len] == '\n') || (len > 1022))
 				{
 				line[++len] = 0;
 				len = 0;
@@ -130,15 +130,16 @@ void Sys_InitLog (void)
 	{
 	const char *mode;
 
-	if (Sys_CheckParm ("-log") && host.allow_console != 0)
+	if (Sys_CheckParm ("-log") && (host.allow_console != 0))
 		{
 		s_ld.log_active = true;
 		Q_strncpy (s_ld.log_path, "engine.log", sizeof (s_ld.log_path));
 		}
 
-	if (host.change_game && host.type != HOST_DEDICATED)
+	if (host.change_game && (host.type != HOST_DEDICATED))
 		mode = "a";
-	else mode = "w";
+	else
+		mode = "w";
 
 	// create log if needed
 	if (s_ld.log_active)
@@ -154,7 +155,9 @@ void Sys_InitLog (void)
 		s_ld.logfileno = fileno (s_ld.logfile);
 
 		fprintf (s_ld.logfile, "=================================================================================\n");
-		fprintf (s_ld.logfile, "\t%s (build %i) started at %s\n", s_ld.title, Q_buildnum (), Q_timestamp (TIME_FULL));
+		/*fprintf (s_ld.logfile, "\t%s (build %i) started at %s\n", s_ld.title, Q_buildnum (), Q_timestamp (TIME_FULL));*/
+		fprintf (s_ld.logfile, "\t%s (build %i commit %s (%s-%s)) started at %s\n", s_ld.title, Q_buildnum (),
+			Q_buildcommit (), Q_buildos (), Q_buildarch (), Q_timestamp (TIME_FULL));
 		fprintf (s_ld.logfile, "=================================================================================\n");
 		}
 	}
@@ -169,12 +172,16 @@ void Sys_CloseLog (void)
 		case HOST_CRASHED:
 			Q_strncpy (event_name, "crashed", sizeof (event_name));
 			break;
+
 		case HOST_ERR_FATAL:
 			Q_strncpy (event_name, "stopped with error", sizeof (event_name));
 			break;
+
 		default:
-			if (!host.change_game) Q_strncpy (event_name, "stopped", sizeof (event_name));
-			else Q_strncpy (event_name, host.finalmsg, sizeof (event_name));
+			if (!host.change_game)
+				Q_strncpy (event_name, "stopped", sizeof (event_name));
+			else
+				Q_strncpy (event_name, host.finalmsg, sizeof (event_name));
 			break;
 		}
 
@@ -184,8 +191,11 @@ void Sys_CloseLog (void)
 		{
 		fprintf (s_ld.logfile, "\n");
 		fprintf (s_ld.logfile, "=================================================================================");
-		if (host.change_game) fprintf (s_ld.logfile, "\n\t%s (build %i) %s\n", s_ld.title, Q_buildnum (), event_name);
-		else fprintf (s_ld.logfile, "\n\t%s (build %i) %s at %s\n", s_ld.title, Q_buildnum (), event_name, Q_timestamp (TIME_FULL));
+		if (host.change_game)
+			fprintf (s_ld.logfile, "\n\t%s (build %i) %s\n", s_ld.title, Q_buildnum (), event_name);
+		else
+			fprintf (s_ld.logfile, "\n\t%s (build %i) %s at %s\n", s_ld.title, Q_buildnum (), event_name,
+				Q_timestamp (TIME_FULL));
 		fprintf (s_ld.logfile, "=================================================================================\n");
 
 		fclose (s_ld.logfile);
@@ -211,7 +221,8 @@ static void Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 
 	if (c == 7)
 		write (fd, esc, 4);
-	else write (fd, esc, 5);
+	else
+		write (fd, esc, 5);
 	}
 #else
 static void Sys_WriteEscapeSequenceForColorcode (int fd, int c) {}
@@ -312,7 +323,7 @@ void Sys_PrintLog (const char *pMsg)
 		return;
 		}
 
-	if (!lastchar || lastchar == '\n')
+	if (!lastchar || (lastchar == '\n'))
 		strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm);	// full time
 
 	// save last char to detect when line was not ended

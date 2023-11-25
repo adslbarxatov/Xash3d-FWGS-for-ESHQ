@@ -202,7 +202,7 @@ static int GL_RefGetParm (int parm, int arg)
 			arg = bound (0, arg, MAX_LIGHTMAPS - 1);
 			return tr.lightmapTextures[arg];
 
-		// [FWGS, 01.07.23]
+		// [FWGS, 01.11.23]
 		case PARM_TEX_TARGET:
 			glt = R_GetTexture (arg);
 			return glt->target;
@@ -212,6 +212,8 @@ static int GL_RefGetParm (int parm, int arg)
 		case PARM_TEX_FLAGS:
 			glt = R_GetTexture (arg);
 			return glt->flags;
+		case PARM_TEX_MEMORY:
+			return GL_TexMemory ();
 		case PARM_ACTIVE_TMU:
 			return glState.activeTMU;
 		case PARM_LIGHTSTYLEVALUE:
@@ -222,7 +224,7 @@ static int GL_RefGetParm (int parm, int arg)
 		case PARM_REBUILD_GAMMA:
 			return glConfig.softwareGammaUpdate;
 		case PARM_SURF_SAMPLESIZE:
-			if (arg >= 0 && arg < WORLDMODEL->numsurfaces)
+			if ((arg >= 0) && (arg < WORLDMODEL->numsurfaces))
 				return gEngfuncs.Mod_SampleSizeForFace (&WORLDMODEL->surfaces[arg]);
 			return LM_SAMPLE_SIZE;
 		case PARM_GL_CONTEXT_TYPE:
@@ -334,7 +336,7 @@ static void *GAME_EXPORT R_GetProcAddress (const char *name)
 	{
 #ifdef XASH_GL4ES
 	return gl4es_GetProcAddress (name);
-#else // TODO: other wrappers
+#else
 	return gEngfuncs.GL_GetProcAddress (name);
 #endif
 	}

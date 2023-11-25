@@ -2598,55 +2598,58 @@ dlight_t *CL_AllocElight (int key)
 /*
 ===============
 CL_DecayLights
-
 ===============
 */
 void CL_DecayLights (void)
 	{
-	dlight_t *dl;
+	dlight_t	*dl;
 	float	time;
-	int	i;
+	int		i;
 
 	time = cl.time - cl.oldtime;
 
 	for (i = 0, dl = cl_dlights; i < MAX_DLIGHTS; i++, dl++)
 		{
-		if (!dl->radius) continue;
+		if (!dl->radius)
+			continue;
 
 		dl->radius -= time * dl->decay;
-		if (dl->radius < 0) dl->radius = 0;
+		if (dl->radius < 0)
+			dl->radius = 0;
 
-		if (dl->die < cl.time || !dl->radius)
+		if ((dl->die < cl.time) || !dl->radius)
 			memset (dl, 0, sizeof (*dl));
 		}
 
 	for (i = 0, dl = cl_elights; i < MAX_ELIGHTS; i++, dl++)
 		{
-		if (!dl->radius) continue;
+		if (!dl->radius)
+			continue;
 
 		dl->radius -= time * dl->decay;
-		if (dl->radius < 0) dl->radius = 0;
+		if (dl->radius < 0)
+			dl->radius = 0;
 
-		if (dl->die < cl.time || !dl->radius)
+		if ((dl->die < cl.time) || !dl->radius)
 			memset (dl, 0, sizeof (*dl));
 		}
 	}
 
 dlight_t *CL_GetDynamicLight (int number)
 	{
-	Assert (number >= 0 && number < MAX_DLIGHTS);
+	Assert ((number >= 0) && (number < MAX_DLIGHTS));
 	return &cl_dlights[number];
 	}
 
 dlight_t *CL_GetEntityLight (int number)
 	{
-	Assert (number >= 0 && number < MAX_ELIGHTS);
+	Assert ((number >= 0) && (number < MAX_ELIGHTS));
 	return &cl_elights[number];
 	}
 
 /*
 ================
-CL_UpdateFlashlight
+CL_UpdateFlashlight [FWGS, 01.11.23]
 
 update client flashlight
 ================
@@ -2656,9 +2659,9 @@ void CL_UpdateFlashlight (cl_entity_t *ent)
 	vec3_t		forward, view_ofs;
 	vec3_t		vecSrc, vecEnd;
 	float		falloff;
-	pmtrace_t *trace;
-	cl_entity_t *hit;
-	dlight_t *dl;
+	pmtrace_t	trace;
+	cl_entity_t	*hit;
+	dlight_t	*dl;
 
 	if (ent->index == (cl.playernum + 1))
 		{
@@ -2688,19 +2691,20 @@ void CL_UpdateFlashlight (cl_entity_t *ent)
 	VectorAdd (ent->origin, view_ofs, vecSrc);
 	VectorMA (vecSrc, FLASHLIGHT_DISTANCE, forward, vecEnd);
 
-	trace = CL_VisTraceLine (vecSrc, vecEnd, PM_STUDIO_BOX);
+	/*trace = CL_VisTraceLine (vecSrc, vecEnd, PM_STUDIO_BOX);*/
+	trace = CL_TraceLine (vecSrc, vecEnd, PM_STUDIO_BOX);
 
 	// update flashlight endpos
 	dl = CL_AllocDlight (ent->index);
 
-	hit = CL_GetEntityByIndex (clgame.pmove->visents[trace->ent].info);
+	hit = CL_GetEntityByIndex (clgame.pmove->visents[trace.ent].info);
 	if (hit && hit->model && ((hit->model->type == mod_alias) || (hit->model->type == mod_studio)))
 		VectorCopy (hit->origin, dl->origin);
 	else 
-		VectorCopy (trace->endpos, dl->origin);
+		VectorCopy (trace.endpos, dl->origin);
 
 	// compute falloff
-	falloff = trace->fraction * FLASHLIGHT_DISTANCE;
+	falloff = trace.fraction * FLASHLIGHT_DISTANCE;
 	if (falloff < FLASHLIGHT_FALLOFF_THRESHOLD) 
 		falloff = 1.0f;
 	else 
@@ -2708,11 +2712,12 @@ void CL_UpdateFlashlight (cl_entity_t *ent)
 	falloff *= falloff;
 
 	// apply brigthness to dlight
-	dl->color.r = bound (0, falloff * 255, 255);
+	/*dl->color.r = bound (0, falloff * 255, 255);
 	dl->color.g = bound (0, falloff * 255, 255);
-	dl->color.b = bound (0, falloff * 255, 255);
-	dl->die = cl.time + 0.01f; // die on next frame
-	dl->radius = 110;	// ESHQ: улучшение фонарика
+	dl->color.b = bound (0, falloff * 255, 255);*/
+	dl->color.r = dl->color.g = dl->color.b = bound (0, falloff * 255, 255);
+	dl->die = cl.time + 0.01f;	// die on next frame
+	dl->radius = 110;			// ESHQ: улучшение фонарика
 	}
 
 /*
