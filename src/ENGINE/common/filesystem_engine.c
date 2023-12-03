@@ -175,6 +175,7 @@ ESHQ: поддержка достижений
 
 // ESHQ: состояние теперь хранится в памяти, чтобы постоянно не дёргать файл
 static unsigned int WAS_Level = 0, WAS_Code = 0;
+static unsigned int WAS_gravity = 0xFFFF, WAS_roomtype = 0xFFFF;
 
 // Метод запрашивает настройки из сохранённой конфигурации, обновляет их до нового формата
 // и контролирует их целостность.
@@ -190,12 +191,16 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	unsigned int gravity = (unsigned int)sv_gravity.value;
 	unsigned int roomtype = 0;
 	unsigned int newCode;
-	qboolean oldScript = false;
+	/*qboolean oldScript = false;*/
 
 	if (rt)
 		roomtype = (unsigned int)rt->value;
+	if (WAS_gravity == 0xFFFF)
+		WAS_gravity = gravity;
+	if (WAS_roomtype == 0xFFFF)
+		WAS_roomtype = roomtype;
 
-	// Чтение старого скрипта (ошибки игнорируются)
+	/* Чтение старого скрипта (ошибки игнорируются)
 	if (!WAS_Code && FS_FileExists (ACHI_OLD_SCRIPT_FN, 1))
 		{
 		f = FS_Open (ACHI_OLD_SCRIPT_FN, "r", false);
@@ -210,10 +215,10 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			FS_Rename (ACHI_OLD_SCRIPT_FN, ACHI_OLD_SCRIPT_FN ".bak");
 			oldScript = true;
 			}
-		}
+		}*/
 
 	// Чтение предыдущего состояния (ошибки игнорируются)
-	if (!WAS_Code && !FS_FileExists (ACHI_OLD_SCRIPT_FN, 1))
+	if (!WAS_Code /*&& !FS_FileExists (ACHI_OLD_SCRIPT_FN, 1)*/)
 		{
 		f = FS_Open (ACHI_SCRIPT_С, "r", false);
 		if (f)
@@ -227,11 +232,20 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 
 	// Проверочный код, позволяющий избежать постоянной перезаписи файла и повторного его исполнения
 	newCode = ((gravity >> 4) & 0x3F) | ((roomtype & 0x3F) << 8);
-	if (((NewLevel <= (int)WAS_Level) || (WAS_Level >= 3)) && (WAS_Code == newCode))
-		return;	// Уровень уже достигнут или является максимальным
-	WAS_Code = newCode;
 
-	// Условие для последующего повышения
+	// Уровень уже достигнут или является максимальным -и- проверочный код не изменился
+	if (((NewLevel <= (int)WAS_Level) || (WAS_Level >= 3)) && (WAS_Code == newCode))
+		return;	
+
+	// Попытка записать здесь приводила к тому, что в случае одномоментного или близкого к этому
+	// срабатывания обоих типов триггеров второй из них игнорировался из-за совпадения проверочного
+	// кода (он к этому моменту уже был актуальным). Поэтому изменение версии кода, хранящегося в памяти,
+	// теперь выполняется только в связке с режимом, в котором вызвана функция. Так проверочный код
+	// не сможет совпасть с вычисляемым в реальном времени вариантом, пока все проверяемые им команды
+	// не будут выполнены
+	/*WAS_Code = newCode;*/
+
+	// Условие для последующего повышения.
 	// int, потому что иначе при сравнении происходит приведение к uint
 	if ((NewLevel > (int)WAS_Level) && (WAS_Level < 3))
 		WAS_Level++;
@@ -247,7 +261,7 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 		}
 
 	// Достижения, зависящие от уровня
-	if ((Mode == 0) || oldScript)
+	if (/*(*/Mode == 0/*) || oldScript*/)
 		{
 		f = FS_Open (ACHI_SCRIPT_A, "w", false);
 		if (f)
@@ -269,7 +283,7 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 		}
 
 	// Гравитация
-	if ((Mode == 1) || oldScript)
+	if (/*(*/Mode == 1/*) || oldScript*/)
 		{
 		f = FS_Open (ACHI_SCRIPT_G, "w", false);
 		if (f)
@@ -282,10 +296,13 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			Cbuf_AddText (ACHI_EXEC_LINE_G);
 			Cbuf_Execute ();
 			}
+
+		WAS_gravity = gravity;
+		WAS_Code = ((WAS_gravity >> 4) & 0x3F) | ((WAS_roomtype & 0x3F) << 8);
 		}
 
 	// Тип помещения
-	if ((Mode == 2) || oldScript)
+	if (/*(*/Mode == 2/*) || oldScript*/)
 		{
 		f = FS_Open (ACHI_SCRIPT_R, "w", false);
 		if (f)
@@ -298,6 +315,9 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			Cbuf_AddText (ACHI_EXEC_LINE_R);
 			Cbuf_Execute ();
 			}
+
+		WAS_roomtype = roomtype;
+		WAS_Code = ((WAS_gravity >> 4) & 0x3F) | ((WAS_roomtype & 0x3F) << 8);
 		}
 
 	return;

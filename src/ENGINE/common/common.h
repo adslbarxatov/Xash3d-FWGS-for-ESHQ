@@ -418,7 +418,7 @@ void FS_Shutdown (void);
 void *FS_GetNativeObject (const char *obj);	// [FWGS, 01.11.23]
 
 // ESHQ: поддержка скриптов достижений
-#define ACHI_OLD_SCRIPT_FN	"achi2.cfg"
+/*#define ACHI_OLD_SCRIPT_FN	"achi2.cfg"*/
 
 #define ACHI_SCRIPT_С		"achi0.sc"
 #define ACHI_SCRIPT_G		"achi2.sc"
