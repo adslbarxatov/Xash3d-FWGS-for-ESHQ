@@ -2310,7 +2310,7 @@ static void R_StudioDrawPoints (void)
 	if (m_skinnum != 0) pskinref += (m_skinnum * m_pStudioHeader->numskinref);
 
 	if (FBitSet (m_pStudioHeader->flags, STUDIO_HAS_BONEWEIGHTS) && (m_pSubModel->blendvertinfoindex != 0) &&
-		m_pSubModel->blendnorminfoindex != 0)
+		(m_pSubModel->blendnorminfoindex != 0))
 		{
 		mstudioboneweight_t *pvertweight = (mstudioboneweight_t *)((byte *)m_pStudioHeader +
 			m_pSubModel->blendvertinfoindex);
