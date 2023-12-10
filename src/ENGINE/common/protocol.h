@@ -19,8 +19,8 @@ GNU General Public License for more details.
 #define PROTOCOL_VERSION		49
 
 // server to client
-#define svc_bad			0	// immediately crash client when received
-#define svc_nop			1	// does nothing
+#define svc_bad				0	// immediately crash client when received
+#define svc_nop				1	// does nothing
 #define svc_disconnect		2	// kick client from server
 #define svc_event			3	// playback event queue
 #define svc_changing		4	// changelevel by server request
@@ -32,16 +32,16 @@ GNU General Public License for more details.
 #define svc_setangle		10	// [angle angle angle] set the view angle to this absolute value
 #define svc_serverdata		11	// [int] protocol ...
 #define svc_lightstyle		12	// [index][pattern][float]
-#define svc_updateuserinfo		13	// [byte] playernum, [string] userinfo
+#define svc_updateuserinfo	13	// [byte] playernum, [string] userinfo
 #define svc_deltatable		14	// [table header][...]
 #define svc_clientdata		15	// [...]
 #define svc_resource		16	// [...] late-precached resource will be download in-game
 #define svc_pings			17	// [bit][idx][ping][packet_loss]
 #define svc_particle		18	// [float*3][char*3][byte][byte]
-#define svc_restoresound		19	// <see code>
+#define svc_restoresound	19	// <see code>
 #define svc_spawnstatic		20	// creates a static client entity
-#define svc_event_reliable		21	// playback event directly from message, not queue
-#define svc_spawnbaseline		22	// <see code>
+#define svc_event_reliable	21	// playback event directly from message, not queue
+#define svc_spawnbaseline	22	// <see code>
 #define svc_temp_entity		23	// <variable sized>
 #define svc_setpause		24	// [byte] 0 = unpaused, 1 = paused
 #define svc_signonnum		25	// [byte] used for the signon sequence
@@ -49,7 +49,7 @@ GNU General Public License for more details.
 // reserved
 // reserved
 // reserved
-#define svc_intermission		30	// empty message (event)
+#define svc_intermission	30	// empty message (event)
 #define svc_finale			31	// empty message (event)
 #define svc_cdtrack			32	// [string] trackname
 #define svc_restore			33	// [string] savename
@@ -59,40 +59,40 @@ GNU General Public License for more details.
 #define svc_roomtype		37	// [short] room type
 #define svc_addangle		38	// [angle] add angles when client turn on mover
 #define svc_usermessage		39	// [byte][byte][string] REG_USER_MSG stuff
-#define svc_packetentities		40	// [short][...]
+#define svc_packetentities	40	// [short][...]
 #define svc_deltapacketentities	41	// [short][byte][...]
 #define svc_choke			42	// just event
-#define svc_resourcelist		43	// [short][...]
-#define svc_deltamovevars		44	// [movevars_t]
-#define svc_resourcerequest		45	// <see code>
-#define svc_customization		46
-#define svc_crosshairangle		47	// [byte][byte]
+#define svc_resourcelist	43	// [short][...]
+#define svc_deltamovevars	44	// [movevars_t]
+#define svc_resourcerequest	45	// <see code>
+#define svc_customization	46
+#define svc_crosshairangle	47	// [byte][byte]
 #define svc_soundfade		48	// [float*4] sound fade parms
-#define svc_filetxferfailed		49	// [string]
+#define svc_filetxferfailed	49	// [string]
 #define svc_hltv			50	// sending from the game.dll
 #define svc_director		51	// <variable sized>
 #define svc_voiceinit		52	// <see code>
 #define svc_voicedata		53	// [byte][short][...]
-#define svc_deltapacketbones		54	// [short][byte][...]
+#define svc_deltapacketbones	54	// [short][byte][...]
 // reserved
-#define svc_resourcelocation		56	// [string]
+#define svc_resourcelocation	56	// [string]
 #define svc_querycvarvalue		57	// [string]
 #define svc_querycvarvalue2		58	// [string][int] (context)
-#define svc_exec				59	// [byte][...]
+#define svc_exec			59	// [byte][...]
 #define svc_lastmsg			59	// start user messages at this point
 
 // client to server
-#define clc_bad			0	// immediately drop client when received
-#define clc_nop			1
+#define clc_bad				0	// immediately drop client when received
+#define clc_nop				1
 #define clc_move			2	// [[usercmd_t]
 #define clc_stringcmd		3	// [string] message
 #define clc_delta			4	// [byte] sequence number, requests delta compression of message
-#define clc_resourcelist		5
+#define clc_resourcelist	5
 // reserved
-#define clc_fileconsistency		7
+#define clc_fileconsistency	7
 #define clc_voicedata		8
-#define clc_requestcvarvalue		9
-#define clc_requestcvarvalue2		10
+#define clc_requestcvarvalue	9
+#define clc_requestcvarvalue2	10
 #define clc_lastmsg			10	// end client messages
 
 #define MAX_VISIBLE_PACKET_BITS	11	// 2048 visible entities per frame (hl1 has 256)
@@ -143,12 +143,12 @@ GNU General Public License for more details.
 #define SND_SENTENCE		(1<<4)	// set if sound num is actually a sentence num
 #define SND_STOP			(1<<5)	// stop the sound
 #define SND_CHANGE_VOL		(1<<6)	// change sound vol
-#define SND_CHANGE_PITCH		(1<<7)	// change sound pitch
+#define SND_CHANGE_PITCH	(1<<7)	// change sound pitch
 #define SND_SPAWNING		(1<<8)	// we're spawning, used in some cases for ambients (not sent across network)
 #define SND_LOCALSOUND		(1<<9)	// not paused, not looped, for internal use
-#define SND_STOP_LOOPING		(1<<10)	// stop all looping sounds on the entity.
-#define SND_FILTER_CLIENT		(1<<11)	// don't send sound from local player if prediction was enabled
-#define SND_RESTORE_POSITION		(1<<12)	// passed playing position and the forced end
+#define SND_STOP_LOOPING	(1<<10)	// stop all looping sounds on the entity.
+#define SND_FILTER_CLIENT	(1<<11)	// don't send sound from local player if prediction was enabled
+#define SND_RESTORE_POSITION	(1<<12)	// passed playing position and the forced end
 
 // decal flags
 #define FDECAL_PERMANENT		0x01	// This decal should not be removed in favor of any new decals
@@ -161,7 +161,7 @@ GNU General Public License for more details.
 #define FDECAL_LOCAL_SPACE		0x80	// decal is in local space (any decal after serialization)
 
 // game type
-#define GAME_SINGLEPLAYER		0
+#define GAME_SINGLEPLAYER	0
 #define GAME_DEATHMATCH		1
 #define GAME_COOP			2
 #define GAME_TEAMPLAY		4
@@ -247,18 +247,18 @@ GNU General Public License for more details.
 #define U_ORIGIN3		(1<<3)
 #define U_ANGLE2		(1<<4)
 #define U_NOLERP		(1<<5)		// don't interpolate movement
-#define U_FRAME		(1<<6)
+#define U_FRAME			(1<<6)
 #define U_SIGNAL		(1<<7)		// just differentiates from other updates
 
 // svc_update can pass all of the fast update bits, plus more
 #define U_ANGLE1		(1<<8)
 #define U_ANGLE3		(1<<9)
-#define U_MODEL		(1<<10)
+#define U_MODEL			(1<<10)
 #define U_COLORMAP		(1<<11)
-#define U_SKIN		(1<<12)
+#define U_SKIN			(1<<12)
 #define U_EFFECTS		(1<<13)
 #define U_LONGENTITY	(1<<14)
-#define U_TRANS		(1<<15)		// nehahra
+#define U_TRANS			(1<<15)		// nehahra
 
 // clientdata flags
 #define SU_VIEWHEIGHT	(1<<0)

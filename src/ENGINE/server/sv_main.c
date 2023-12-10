@@ -27,6 +27,11 @@ CVAR_DEFINE_AUTO (sv_nat, "0", 0,
 	"enable NAT bypass for this server");
 CVAR_DEFINE_AUTO (sv_aim, "1", FCVAR_ARCHIVE | FCVAR_SERVER,
 	"auto aiming option");
+
+// [FWGS, 01.12.23]
+CVAR_DEFINE_AUTO (sv_allow_autoaim, "0", FCVAR_ARCHIVE | FCVAR_SERVER,
+	"auto aiming option (for HL25 compatibility)");
+
 CVAR_DEFINE_AUTO (sv_unlag, "1", 0,
 	"allow lag compensation on server-side");
 CVAR_DEFINE_AUTO (sv_maxunlag, "0.5", 0,
@@ -1040,6 +1045,7 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_fps);
 	Cvar_RegisterVariable (&showtriggers);
 	Cvar_RegisterVariable (&sv_aim);
+	Cvar_RegisterVariable (&sv_allow_autoaim);	// [FWGS, 01.12.23]
 	Cvar_RegisterVariable (&deathmatch);
 	Cvar_RegisterVariable (&coop);
 	Cvar_RegisterVariable (&teamplay);

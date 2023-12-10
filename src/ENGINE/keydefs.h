@@ -19,10 +19,10 @@
 //
 // these are the key numbers that should be passed to Key_Event
 //
-#define K_TAB		9
-#define K_ENTER		13
+#define K_TAB			9
+#define K_ENTER			13
 #define K_ESCAPE		27
-#define K_SPACE		32
+#define K_SPACE			32
 #define K_SCROLLOCK		70
 
 // normal keys should be passed as lowercased ascii
@@ -59,7 +59,7 @@
 #define K_KP_UPARROW	161
 #define K_KP_PGUP		162
 #define K_KP_LEFTARROW	163
-#define K_KP_5		164
+#define K_KP_5			164
 #define K_KP_RIGHTARROW	165
 #define K_KP_END		166
 #define K_KP_DOWNARROW	167

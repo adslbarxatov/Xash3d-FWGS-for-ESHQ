@@ -56,4 +56,4 @@ void R_UpdateRefState (void);
 
 extern triangleapi_t gTriApi;
 
-#endif // REF_COMMON_H
+#endif

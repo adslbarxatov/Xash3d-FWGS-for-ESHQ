@@ -1788,7 +1788,7 @@ static qboolean SV_Pause_f (sv_client_t *cl)
 	return true;
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.12.23]
 static qboolean SV_ShouldUpdateUserinfo (sv_client_t *cl)
 	{
 	qboolean allow = true;	// predict state
@@ -1797,6 +1797,9 @@ static qboolean SV_ShouldUpdateUserinfo (sv_client_t *cl)
 		return allow;
 
 	if (FBitSet (cl->flags, FCL_FAKECLIENT))
+		return allow;
+
+	if (Host_IsLocalGame ())
 		return allow;
 
 	// start from 1 second

@@ -42,11 +42,11 @@
 // physent_t
 typedef struct physent_s
 	{
-	char		name[32];		// Name of model, or "player" or "world".
+	char		name[32];		// Name of model, or "player" or "world"
 	int		player;
-	vec3_t		origin;		// Model's origin in world coordinates.
+	vec3_t		origin;		// Model's origin in world coordinates
 	struct model_s *model;		// only for bsp models
-	struct model_s *studiomodel;	// SOLID_BBOX, but studio clip intersections.
+	struct model_s *studiomodel;	// SOLID_BBOX, but studio clip intersections
 	vec3_t		mins, maxs;	// only for non-bsp models
 	int		info;		// For client or server to use to identify (index into edicts or cl_entities)
 	vec3_t		angles;		// rotated entities need this info for hull testing to work.

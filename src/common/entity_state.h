@@ -187,4 +187,4 @@ typedef struct local_state_s
 	weapon_data_t	weapondata[MAX_LOCAL_WEAPONS];
 } local_state_t;
 
-#endif//ENTITY_STATE_H
+#endif

@@ -19,10 +19,9 @@
 
 /*
 ==============================================================================
-
 STUDIO MODELS
 
-Studio models are position independent, so the cache manager can move them.
+Studio models are position independent, so the cache manager can move them
 ==============================================================================
 */
 

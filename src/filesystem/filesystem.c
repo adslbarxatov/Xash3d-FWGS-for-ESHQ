@@ -36,6 +36,7 @@ GNU General Public License for more details.
 #include <stdarg.h>
 // [FWGS, 01.05.23] удалена #include <sys/inotify.h>
 #include "port.h"
+#include "defaults.h"	// [FWGS, 01.12.23]
 #include "const.h"
 #include "crtlib.h"
 #include "crclib.h"
@@ -47,16 +48,16 @@ GNU General Public License for more details.
 
 #define FILE_COPY_SIZE		(1024 * 1024)
 
-fs_globals_t FI;
-qboolean      fs_ext_path = false;	// attempt to read\write from ./ or ../ pathes
-poolhandle_t  fs_mempool;
-char          fs_rodir[MAX_SYSPATH];
-char          fs_rootdir[MAX_SYSPATH];
+fs_globals_t	FI;
+qboolean		fs_ext_path = false;	// attempt to read\write from ./ or ../ pathes
+poolhandle_t	fs_mempool;
+char			fs_rodir[MAX_SYSPATH];
+char			fs_rootdir[MAX_SYSPATH];
 
 // [FWGS, 01.04.23] path that game allows to overwrite, delete and rename files (and create new of course)
 searchpath_t	*fs_writepath;
 
-static searchpath_t *fs_searchpaths = NULL;		// [FWGS, 01.07.23] chain
+static searchpath_t	*fs_searchpaths = NULL;		// [FWGS, 01.07.23] chain
 static char			fs_basedir[MAX_SYSPATH];	// base game directory
 static char			fs_gamedir[MAX_SYSPATH];	// game current directory
 // [FWGS, 01.05.23] удалена fs_caseinsensitive
@@ -628,7 +629,7 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 			}
 		}
 
-	// [FWGS, 01.07.23]
+	// [FWGS, 01.11.23]
 	if (GameInfo->noskills)
 		FS_Printf (f, "noskills\t\t\"%i\"\n", GameInfo->noskills);
 
@@ -641,7 +642,14 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 		FS_Printf (f, "autosave_aged_count\t\t%d\n", GameInfo->autosave_aged_count);
 #undef SAVE_AGED_COUNT
 
-	// always expose our extensions :)
+	// [FWGS, 01.12.23] HL25 compatibility
+	if (GameInfo->animated_title)
+		FS_Printf (f, "animated_title\t\t%i\n", GameInfo->animated_title);
+	
+	if (GameInfo->hd_background)
+		FS_Printf (f, "hd_background\t\t%i\n", GameInfo->hd_background);
+
+	// always expose our extensions
 	FS_Printf (f, "internal_vgui_support\t\t%s\n", GameInfo->internal_vgui_support ? "1" : "0");
 	FS_Printf (f, "render_picbutton_text\t\t%s\n", GameInfo->render_picbutton_text ? "1" : "0");
 	FS_Close (f);	// all done
@@ -674,7 +682,8 @@ void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir)
 	Q_strncpy (GameInfo->sp_entity, "info_player_start", sizeof (GameInfo->sp_entity));
 	Q_strncpy (GameInfo->mp_entity, "info_player_deathmatch", sizeof (GameInfo->mp_entity));
 
-	GameInfo->max_edicts = 1024;	// ESHQ: увеличено для ESRM
+	/*GameInfo->max_edicts = 1024;	// ESHQ: увеличено для ESRM*/
+	GameInfo->max_edicts = DEFAULT_MAX_EDICTS;	// [FWGS, 01.12.23] default value if not specified
 	GameInfo->max_tents = 500;
 	GameInfo->max_beams = 128;
 	GameInfo->max_particles = 4096;
@@ -844,6 +853,19 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			GameInfo->noskills = Q_atoi (token) ? true : false;	// [FWGS, 01.11.23]
 			}
 
+		// [FWGS, 01.12.23] valid for both
+		else if (!Q_stricmp (token, "hd_background"))
+			{
+			pfile = COM_ParseFile (pfile, token, sizeof (token));
+			GameInfo->hd_background = Q_atoi (token) ? true : false;
+			}
+
+		else if (!Q_stricmp (token, "animated_title"))
+			{
+			pfile = COM_ParseFile (pfile, token, sizeof (token));
+			GameInfo->animated_title = Q_atoi (token) ? true : false;
+			}
+			
 		// only for gameinfo
 		else if (isGameInfo)
 			{

@@ -67,7 +67,9 @@ void CL_PlayCDTrack_f (void)
 	static qboolean	looped = false;
 	static qboolean	enabled = true;
 
-	if (Cmd_Argc () < 2) return;
+	if (Cmd_Argc () < 2)
+		return;
+
 	command = Cmd_Argv (1);
 	pszTrack = Cmd_Argv (2);
 
@@ -81,10 +83,23 @@ void CL_PlayCDTrack_f (void)
 			track = bound (1, Q_atoi (Cmd_Argv (2)), MAX_CDTRACKS);
 			S_StartBackgroundTrack (clgame.cdtracks[track - 1], NULL, 0, false);
 			}
-		else S_StartBackgroundTrack (pszTrack, NULL, 0, true);
+		else
+			{
+			S_StartBackgroundTrack (pszTrack, NULL, 0, true);
+			}
+
 		paused = false;
 		looped = false;
 		}
+
+	// [FWGS, 01.12.23]
+	else if (!Q_stricmp (command, "playfile"))
+		{
+		S_StartBackgroundTrack (pszTrack, NULL, 0, true);
+		paused = false;
+		looped = false;
+		}
+
 	else if (!Q_stricmp (command, "loop"))
 		{
 		if (Q_isdigit (pszTrack))
@@ -92,20 +107,35 @@ void CL_PlayCDTrack_f (void)
 			track = bound (1, Q_atoi (Cmd_Argv (2)), MAX_CDTRACKS);
 			S_StartBackgroundTrack (clgame.cdtracks[track - 1], clgame.cdtracks[track - 1], 0, false);
 			}
-		else S_StartBackgroundTrack (pszTrack, pszTrack, 0, true);
+		else
+			{
+			S_StartBackgroundTrack (pszTrack, pszTrack, 0, true);
+			}
+
 		paused = false;
 		looped = true;
 		}
+
+	// [FWGS, 01.12.23]
+	else if (!Q_stricmp (command, "loopfile"))
+		{
+		S_StartBackgroundTrack (pszTrack, pszTrack, 0, true);
+		paused = false;
+		looped = true;
+		}
+
 	else if (!Q_stricmp (command, "pause"))
 		{
 		S_StreamSetPause (true);
 		paused = true;
 		}
+
 	else if (!Q_stricmp (command, "resume"))
 		{
 		S_StreamSetPause (false);
 		paused = false;
 		}
+
 	else if (!Q_stricmp (command, "stop"))
 		{
 		S_StopBackgroundTrack ();
@@ -113,14 +143,17 @@ void CL_PlayCDTrack_f (void)
 		looped = false;
 		track = 0;
 		}
+
 	else if (!Q_stricmp (command, "on"))
 		{
 		enabled = true;
 		}
+
 	else if (!Q_stricmp (command, "off"))
 		{
 		enabled = false;
 		}
+
 	else if (!Q_stricmp (command, "info"))
 		{
 		int	i, maxTrack;
@@ -131,13 +164,19 @@ void CL_PlayCDTrack_f (void)
 		Con_Printf ("%u tracks\n", maxTrack);
 		if (track)
 			{
-			if (paused) Con_Printf ("Paused %s track %u\n", looped ? "looping" : "playing", track);
-			else Con_Printf ("Currently %s track %u\n", looped ? "looping" : "playing", track);
+			if (paused)
+				Con_Printf ("Paused %s track %u\n", looped ? "looping" : "playing", track);
+			else
+				Con_Printf ("Currently %s track %u\n", looped ? "looping" : "playing", track);
 			}
+
 		Con_Printf ("Volume is %f\n", Cvar_VariableValue ("MP3Volume"));
 		return;
 		}
-	else Con_Printf ("%s: unknown command %s\n", Cmd_Argv (0), command);
+	else
+		{
+		Con_Printf ("%s: unknown command %s\n", Cmd_Argv (0), command);
+		}
 	}
 
 /*

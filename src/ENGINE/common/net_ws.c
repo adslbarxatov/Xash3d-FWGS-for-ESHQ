@@ -2246,9 +2246,11 @@ void NET_Shutdown (void)
 
 /*
 =================================================
-HTTP downloader
+HTTP downloader [FWGS, 01.12.23]
 =================================================
 */
+#define MAX_HTTP_BUFFER_SIZE	(BIT(13))
+
 typedef struct httpserver_s
 	{
 	char host[256];
@@ -2288,16 +2290,21 @@ typedef struct httpfile_s
 	enum connectionstate state;
 	qboolean process;
 
-	// query or response
-	char buf[BUFSIZ + 1];
-	int header_size, query_length, bytes_sent;
+	// [FWGS, 01.12.23] query or response
+	/*char buf[BUFSIZ + 1];*/
+	char buf[MAX_HTTP_BUFFER_SIZE + 1];
+	int header_size;
+	int query_length;
+	int bytes_sent;
 	} httpfile_t;
 
 static struct http_static_s
 	{
 	// file and server lists
-	httpfile_t *first_file, *last_file;
-	httpserver_t *first_server, *last_server;
+	httpfile_t		*first_file;
+	httpfile_t		*last_file;
+	httpserver_t	*first_server;
+	httpserver_t	*last_server;
 	} http;
 
 // [FWGS, 01.07.23]
@@ -2365,7 +2372,9 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 		// Called because there was no servers to download, free file now
 		if (http_autoremove.value == 1) // remove broken file
 			FS_Delete (incname);
-		else // autoremove disabled, keep file
+
+		// autoremove disabled, keep file
+		else
 			Con_Printf ("cannot download %s from any server. "
 				"You may remove %s now\n", file->path, incname); // Warn about trash file
 
@@ -2431,26 +2440,30 @@ static void HTTP_AutoClean (void)
 
 /*
 ===================
-HTTP_ProcessStream
+HTTP_ProcessStream [FWGS, 01.12.23]
 
 process incoming data
 ===================
 */
 static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 	{
-	char buf[BUFSIZ + 1];
+	/*char buf[BUFSIZ + 1];*/
+	char buf[sizeof (curfile->buf)];
 	char *begin = 0;
 	int res;
 
-	if (curfile->header_size >= BUFSIZ)
+	/*if (curfile->header_size >= BUFSIZ)*/
+	if (curfile->header_size >= sizeof (buf))
 		{
-		Con_Reportf (S_ERROR "Header to big\n");
+		/*Con_Reportf (S_ERROR "Header to big\n");*/
+		Con_Reportf (S_ERROR "Header too big, the size is %s\n", curfile->header_size);
 		HTTP_FreeFile (curfile, true);
 		return false;
 		}
 
 	// if we got there, we are receiving data
-	while ((res = recv (curfile->socket, buf, BUFSIZ - curfile->header_size, 0)) > 0)	
+	/*while ((res = recv (curfile->socket, buf, BUFSIZ - curfile->header_size, 0)) > 0)*/
+	while ((res = recv (curfile->socket, buf, sizeof (buf) - curfile->header_size, 0)) > 0)
 		{
 		curfile->blocktime = 0;
 
@@ -2463,7 +2476,8 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 			if (begin) // Got full header
 				{
 				int cutheadersize = begin - curfile->buf + 4; // after that begin of data
-				char *length;
+				/*char *length;*/
+				char *content_length_line;
 
 				Con_Reportf ("HTTP: Got response!\n");
 
@@ -2483,10 +2497,16 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 					}
 
 				// print size
-				length = Q_stristr (curfile->buf, "Content-Length: ");
-				if (length)
+				/*length = Q_stristr (curfile->buf, "Content-Length: ");
+				if (length)*/
+				content_length_line = Q_stristr (curfile->buf, "Content-Length: ");
+				if (content_length_line)
 					{
-					int size = Q_atoi (length += 16);
+					/*int size = Q_atoi (length += 16);*/
+					int size;
+					
+					content_length_line += sizeof ("Content-Length: ") - 1;
+					size = Q_atoi (content_length_line);
 
 					Con_Reportf ("HTTP: File size is %d\n", size);
 
@@ -2930,13 +2950,19 @@ void HTTP_AddCustomServer (const char *url)
 
 /*
 =======================
-HTTP_AddCustomServer_f
+HTTP_AddCustomServer_f [FWGS, 01.12.23]
 =======================
 */
 static void HTTP_AddCustomServer_f (void)
 	{
 	if (Cmd_Argc () == 2)
+		{
 		HTTP_AddCustomServer (Cmd_Argv (1));
+		}
+	else
+		{
+		Con_Printf (S_USAGE "http_addcustomserver <url>\n");
+		}
 	}
 
 /*

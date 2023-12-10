@@ -24,9 +24,7 @@ GNU General Public License for more details.
 
 /*
 ===============================================================================
-
 ENTITY AREA CHECKING
-
 ===============================================================================
 */
 #define MAX_TOTAL_ENT_LEAFS		128
@@ -52,9 +50,7 @@ int RankForContents (int contents);
 
 /*
 ===============================================================================
-
-	EVENTS QUEUE (hl1 events code)
-
+EVENTS QUEUE (hl1 events code)
 ===============================================================================
 */
 #include "event_api.h"

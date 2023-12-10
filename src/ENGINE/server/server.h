@@ -484,6 +484,10 @@ extern convar_t sv_userinfo_penalty_attempts;
 extern convar_t sv_fullupdate_penalty_time;
 extern convar_t sv_log_outofband;
 
+// [FWGS, 01.12.23]
+extern convar_t sv_allow_autoaim;
+extern convar_t sv_aim;
+
 // ===========================================================
 //
 // sv_main.c

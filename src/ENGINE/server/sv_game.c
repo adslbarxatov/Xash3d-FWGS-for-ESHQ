@@ -2357,6 +2357,7 @@ static void GAME_EXPORT pfnTraceModel (const float *v1, const float *v2, int hul
 		// even if our callbacks is not initialized
 		SV_CustomClipMoveToEntity (pent, v1, mins, maxs, v2, &trace);
 		}
+
 	else if (model && (model->type == mod_brush))
 		{
 		int oldmovetype = pent->v.movetype;
@@ -2369,6 +2370,7 @@ static void GAME_EXPORT pfnTraceModel (const float *v1, const float *v2, int hul
 		pent->v.movetype = oldmovetype;
 		pent->v.solid = oldsolid;
 		}
+
 	else
 		{
 		SV_ClipMoveToEntity (pent, v1, mins, maxs, v2, &trace);
@@ -2436,9 +2438,13 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 	if (tr.ent && ((tr.ent->v.takedamage == DAMAGE_AIM) || (ent->v.team <= 0) || (ent->v.team != tr.ent->v.team)))
 		return;
 
-	// try all possible entities
+	// [FWGS, 01.12.23] try all possible entities
 	VectorCopy (svgame.globals->v_forward, bestdir);
-	bestdist = Cvar_VariableValue ("sv_aim");
+	/*bestdist = Cvar_VariableValue ("sv_aim");*/
+	if (sv_allow_autoaim.value)
+		bestdist = sv_aim.value;
+	else
+		bestdist = 0;
 
 	check = EDICT_NUM (1); // start at first client
 	for (i = 1; i < svgame.numEntities; i++, check++)
@@ -5077,11 +5083,13 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 			pkvd[i].szValue = copystring (temp);
 			}
 #endif
-		if (!Q_strcmp (pkvd[i].szKeyName, "light"))
+
+		// [FWGS, 01.12.23]
+		/*if (!Q_strcmp (pkvd[i].szKeyName, "light"))
 			{
 			Mem_Free (pkvd[i].szKeyName);
 			pkvd[i].szKeyName = copystring ("light_level");
-			}
+			}*/
 
 		if (!pkvd[i].fHandled)
 			{

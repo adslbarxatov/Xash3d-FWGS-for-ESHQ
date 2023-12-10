@@ -1341,17 +1341,21 @@ HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags)
 
 /*
 =========
-pfnSPR_Load
+pfnSPR_Load [FWGS, 01.12.23]
+
+ function exported for support GoldSrc Monitor utility
 =========
 */
-static HLSPRITE GAME_EXPORT pfnSPR_Load (const char *szPicName)
+/*static HLSPRITE GAME_EXPORT pfnSPR_Load (const char *szPicName)*/
+HLSPRITE EXPORT pfnSPR_Load (const char *szPicName)
 	{
 	model_t *spr;
 
 	if ((spr = CL_LoadSpriteModel (szPicName, SPR_HUDSPRITE, 0)) == NULL)
 		return 0;
 
-	return (spr - clgame.sprites) + 1; // return index
+	// return index
+	return (spr - clgame.sprites) + 1;
 	}
 
 /*
@@ -1364,8 +1368,9 @@ static const model_t *CL_GetSpritePointer (HLSPRITE hSprite)
 	model_t *mod;
 	int index = hSprite - 1;
 
+	// bad image
 	if ((index < 0) || (index >= MAX_CLIENT_SPRITES))
-		return NULL; // bad image
+		return NULL;
 	mod = &clgame.sprites[index];
 
 	if (mod->needload == NL_NEEDS_LOADED)
@@ -1387,10 +1392,13 @@ static const model_t *CL_GetSpritePointer (HLSPRITE hSprite)
 
 /*
 =========
-pfnSPR_Frames
+pfnSPR_Frames [FWGS, 01.12.23]
+
+ function exported for support GoldSrc Monitor utility
 =========
 */
-static int GAME_EXPORT pfnSPR_Frames (HLSPRITE hPic)
+/*static int GAME_EXPORT pfnSPR_Frames (HLSPRITE hPic)*/
+int EXPORT pfnSPR_Frames (HLSPRITE hPic)
 	{
 	int	numFrames = 0;
 	ref.dllFuncs.R_GetSpriteParms (NULL, NULL, &numFrames, 0, CL_GetSpritePointer (hPic));

@@ -88,6 +88,6 @@ typedef struct customization_s
 
 #define FCUST_FROMHPAK		( 1<<0 )
 #define FCUST_WIPEDATA		( 1<<1 )
-#define FCUST_IGNOREINIT		( 1<<2 )
+#define FCUST_IGNOREINIT	( 1<<2 )
 
-#endif // CUSTOM_H
+#endif

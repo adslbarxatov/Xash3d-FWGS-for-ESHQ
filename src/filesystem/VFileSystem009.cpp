@@ -257,6 +257,14 @@ class CXashFS : public IVFileSystem009
 			return FS_FileTime (p, false);
 			}
 
+		// [FWGS, 01.12.23]
+		long int GetFileModificationTime (const char *path)
+			{
+			// TODO: properly reverse-engineer this
+			FixupPath (p, path);
+			return FS_FileTime (p, false);
+			}
+
 		// [FWGS, 01.05.23]
 		void FileTimeToString (char *p, int size, long int time) override
 			{

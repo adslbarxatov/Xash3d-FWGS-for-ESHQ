@@ -142,7 +142,8 @@ UI_AddTouchButtonToList
 send button parameters to menu
 =======================
 */
-void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command, unsigned char *color, int flags)
+void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command,
+	unsigned char *color, int flags)
 	{
 	if (gameui.dllFuncs2.pfnAddTouchButtonToList)
 		{
@@ -232,7 +233,8 @@ void UI_ConnectionProgress_Disconnect (void)
 		}
 	}
 
-void UI_ConnectionProgress_Download (const char *pszFileName, const char *pszServerName, const char *pszServerPath, int iCurrent, int iTotal, const char *comment)
+void UI_ConnectionProgress_Download (const char *pszFileName, const char *pszServerName,
+	const char *pszServerPath, int iCurrent, int iTotal, const char *comment)
 	{
 	if (!gameui.dllFuncs2.pfnConnectionProgress_Download)
 		return;
@@ -293,13 +295,14 @@ void UI_ConnectionProgress_ParseServerInfo (const char *server)
 static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, float width, float height)
 	{
 	static float	cin_time;
-	static int	last_frame = -1;
-	byte *cin_data = NULL;
-	movie_state_t *cin_state;
-	int		cin_frame;
+	static int		last_frame = -1;
+	byte			*cin_data = NULL;
+	movie_state_t	*cin_state;
+	int				cin_frame;
 	qboolean		redraw = false;
 
-	if (!gameui.drawLogo) return;
+	if (!gameui.drawLogo)
+		return;
 	cin_state = AVI_GetState (CIN_LOGO);
 
 	if (!AVI_IsActive (cin_state))
@@ -332,7 +335,7 @@ static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, flo
 		last_frame = -1;
 		}
 
-	if (width <= 0 || height <= 0)
+	if ((width <= 0) || (height <= 0))
 		{
 		// precache call, don't draw
 		cin_time = 0.0f;
@@ -398,6 +401,7 @@ void Host_Credits (void)
 	gameui.dllFuncs.pfnFinalCredits ();
 	}
 
+// [FWGS, 01.12.23]
 static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)
 	{
 	Q_strncpy (out->gamefolder, in->gamefolder, sizeof (out->gamefolder));
@@ -419,11 +423,22 @@ static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)
 	out->gamemode = in->gamemode;
 
 	if (in->nomodels)
-		out->flags |= GFL_NOMODELS;
+		SetBits (out->flags, GFL_NOMODELS);
+	/*out->flags |= GFL_NOMODELS;*/
+
 	if (in->noskills)
-		out->flags |= GFL_NOSKILLS;
+		SetBits (out->flags, GFL_NOSKILLS);
+	/*out->flags |= GFL_NOSKILLS;*/
+
 	if (in->render_picbutton_text)
-		out->flags |= GFL_RENDER_PICBUTTON_TEXT;
+		SetBits (out->flags, GFL_RENDER_PICBUTTON_TEXT);
+	
+	if (in->hd_background)
+		SetBits (out->flags, GFL_HD_BACKGROUND);
+
+	if (in->animated_title)
+		SetBits (out->flags, GFL_ANIMATED_TITLE);
+	/*out->flags |= GFL_RENDER_PICBUTTON_TEXT;*/
 	}
 
 // [FWGS, 01.04.23] удалена PIC_Scissor

@@ -37,4 +37,4 @@ struct pmtrace_s
 	int	hitgroup;
 	};
 
-#endif//PM_TRACE_H
+#endif

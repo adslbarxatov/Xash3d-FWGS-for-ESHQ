@@ -151,6 +151,8 @@ class IVFileSystem009 : public IBaseInterface
 		// linkage=_ZN11IFileSystem20OpenFromCacheForReadEPKcS1_S1_
 		virtual void AddSearchPathNoWrite (const char *, const char *) = 0;
 		// linkage=_ZN11IFileSystem20AddSearchPathNoWriteEPKcS1_
+		virtual long int GetFileModificationTime (const char *) = 0;	// [FWGS, 01.12.23]
+		// linkage=_ZN11IFileSystem23GetFileModificationTimeEPKc
 	};
 
 // [FWGS, 01.11.23]

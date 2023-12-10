@@ -16,13 +16,14 @@ GNU General Public License for more details.
 #ifndef GAMEINFO_H
 #define GAMEINFO_H
 
-#define GFL_NOMODELS	(1<<0)
-#define GFL_NOSKILLS	(1<<1)
+#define GFL_NOMODELS				(1<<0)
+#define GFL_NOSKILLS				(1<<1)
 #define GFL_RENDER_PICBUTTON_TEXT	(1<<2)	// FWGS
+#define GFL_HD_BACKGROUND			(1<<3)	// [FWGS, 01.12.23]
+#define GFL_ANIMATED_TITLE			(1<<4)	// [FWGS, 01.12.23]
 
 /*
 ========================================================================
-
 GAMEINFO stuff
 
 internal shared gameinfo structure (readonly for engine parts)
@@ -35,9 +36,9 @@ typedef struct
 	char		startmap[64];	// map to start singleplayer game
 	char		trainmap[64];	// map to start hazard course (if specified)
 	char		creditsmap[64];	// ESHQ: map to show credits (if specified)
-	char		title[64];	// Game Main Title
+	char		title[64];		// Game Main Title
 	char		version[14];	// game version (optional)
-	short		flags;		// game flags
+	short		flags;			// game flags
 
 	// about mod info
 	char		game_url[256];	// link to a developer's site
@@ -49,4 +50,4 @@ typedef struct
 	int			gamemode;
 	} GAMEINFO;
 
-#endif//GAMEINFO_H
+#endif

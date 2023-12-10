@@ -331,8 +331,11 @@ void Sys_RestoreCrashHandler (void)
 // [FWGS, 01.04.23]
 #elif XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
 
-// Posix signal handler
-#include <ucontext.h>
+// [FWGS, 01.12.23] Posix signal handler
+#ifndef XASH_OPENBSD
+	#include <ucontext.h>
+#endif
+
 #include <signal.h>
 #include <sys/mman.h>
 #include "library.h"

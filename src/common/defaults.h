@@ -52,30 +52,6 @@ SETUP BACKENDS DEFINITIONS
 			#endif
 		#endif
 
-/*	[FWGS, 01.07.23]
-	#elif XASH_ANDROID
-
-		// we are building for Android platform, use Android APIs
-		#ifndef XASH_VIDEO
-			#define XASH_VIDEO VIDEO_ANDROID
-		#endif
-
-		#ifndef XASH_INPUT
-			#define XASH_INPUT INPUT_ANDROID
-		#endif
-
-		#ifndef XASH_SOUND
-			#define XASH_SOUND SOUND_OPENSLES
-		#endif
-
-		#ifndef XASH_MESSAGEBOX
-			#define XASH_MESSAGEBOX MSGBOX_ANDROID
-		#endif
-
-		#define XASH_USE_EVDEV	1
-		#define XASH_DYNAMIC_DLADDR
-*/
-
 	#elif XASH_LINUX
 
 		// we are building for Linux without SDL2, can draw only to framebuffer yet
@@ -218,6 +194,11 @@ Default build-depended cvar and constant values
 
 #ifndef DEFAULT_FULLSCREEN
 	#define DEFAULT_FULLSCREEN "1"	// [FWGS, 01.07.23] must be a string
+#endif
+
+// [FWGS, 01.12.23]
+#ifndef DEFAULT_MAX_EDICTS
+	#define DEFAULT_MAX_EDICTS 1200 // was 900 before HL25
 #endif
 
 #endif

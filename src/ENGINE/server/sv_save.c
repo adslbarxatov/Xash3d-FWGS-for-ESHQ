@@ -991,9 +991,13 @@ static void ParseSaveTables (SAVERESTOREDATA *pSaveData, SAVE_HEADER *pHeader, i
 	// Re-base the savedata since we re-ordered the entity/table / restore fields
 	InitEntityTable (pSaveData, pSaveData->tableCount);
 
+	// [FWGS, 01.12.23]
 	for (i = 0; i < pSaveData->tableCount; i++)
-		svgame.dllFuncs.pfnSaveReadFields (pSaveData, "ETABLE", &pSaveData->pTable[i], gEntityTable, 
+		{
+		svgame.dllFuncs.pfnSaveReadFields (pSaveData, "ETABLE", &pSaveData->pTable[i], gEntityTable,
 			ARRAYSIZE (gEntityTable));
+		pSaveData->pTable[i].pent = NULL;
+		}
 
 	pSaveData->pBaseData = pSaveData->pCurrentData;
 	pSaveData->size = 0;

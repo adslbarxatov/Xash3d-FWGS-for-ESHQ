@@ -76,5 +76,4 @@ extern fs_globals_t *FI;
 #define FS_SysFileExists (*g_fsapi.SysFileExists)
 #define FS_GetDiskPath (*g_fsapi.GetDiskPath)
 
-
-#endif // FSCALLBACK_H
+#endif

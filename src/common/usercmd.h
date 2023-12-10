@@ -36,4 +36,4 @@ typedef struct usercmd_s
 	vec3_t		impact_position;
 } usercmd_t;
 
-#endif//USERCMD_H
+#endif

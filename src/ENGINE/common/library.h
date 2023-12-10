@@ -84,5 +84,4 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 // used by lib_win.c
 char *COM_GetMSVCName (const char *in_name);
 
-
 #endif

@@ -636,13 +636,16 @@ int WAI_PREFIX (getExecutablePath)(char *out, int capacity, int *dirname_length)
 			}
 		else
 			{
+			// [FWGS, 01.12.23]
 			const char *PATH = getenv ("PATH");
+			const char *begin;
+			size_t argv0_length;
 			if (!PATH)
 				break;
 
-			size_t argv0_length = strlen (argv[0]);
+			/*size_t*/ argv0_length = strlen (argv[0]);
+			/*const char **/ begin = PATH;
 
-			const char *begin = PATH;
 			while (1)
 				{
 				const char *separator = strchr (begin, ':');
