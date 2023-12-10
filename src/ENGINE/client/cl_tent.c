@@ -2649,7 +2649,7 @@ dlight_t *CL_GetEntityLight (int number)
 
 /*
 ================
-CL_UpdateFlashlight [FWGS, 01.11.23]
+CL_UpdateFlashlight [FWGS, 01.12.23]
 
 update client flashlight
 ================
@@ -2685,7 +2685,7 @@ void CL_UpdateFlashlight (cl_entity_t *ent)
 		if (ent->curstate.usehull == 1)
 			view_ofs[2] = 12.0f;	// VEC_DUCK_VIEW;
 		else 
-			view_ofs[2] = 28.0f;		// DEFAULT_VIEWHEIGHT
+			view_ofs[2] = 28.0f;	// DEFAULT_VIEWHEIGHT
 		}
 
 	VectorAdd (ent->origin, view_ofs, vecSrc);
@@ -2697,7 +2697,7 @@ void CL_UpdateFlashlight (cl_entity_t *ent)
 	// update flashlight endpos
 	dl = CL_AllocDlight (ent->index);
 
-	hit = CL_GetEntityByIndex (clgame.pmove->visents[trace.ent].info);
+	hit = CL_GetEntityByIndex (clgame.pmove->physents[trace.ent].info);
 	if (hit && hit->model && ((hit->model->type == mod_alias) || (hit->model->type == mod_studio)))
 		VectorCopy (hit->origin, dl->origin);
 	else 

@@ -487,7 +487,8 @@ void *Mod_LoadSingleSkin (model_t *loadmodel, daliasskintype_t *pskintype, int s
 	Q_snprintf (lumaname, sizeof (lumaname), "%s:luma%i", loadmodel->name, skinnum);
 	Q_snprintf (checkname, sizeof (checkname), "%s_%i.tga", loadmodel->name, skinnum);
 	if (!gEngfuncs.fsapi->FileExists (checkname, false) || (pic = gEngfuncs.FS_LoadImage (checkname, NULL, 0)) == NULL)
-		pic = Mod_CreateSkinData (loadmodel, (byte *)(pskintype + 1), m_pAliasHeader->skinwidth, m_pAliasHeader->skinheight);
+		pic = Mod_CreateSkinData (loadmodel, (byte *)(pskintype + 1), m_pAliasHeader->skinwidth,
+			m_pAliasHeader->skinheight);
 
 	m_pAliasHeader->gl_texturenum[skinnum][0] =
 		m_pAliasHeader->gl_texturenum[skinnum][1] =
@@ -519,7 +520,7 @@ void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype, int sk
 	int			i, j;
 	/*model_t		*loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();*/
 
-	// animating skin group.  yuck.
+	// animating skin group
 	pskintype++;
 	pinskingroup = (daliasskingroup_t *)pskintype;
 	pinskinintervals = (daliasskininterval_t *)(pinskingroup + 1);
@@ -592,7 +593,7 @@ Mod_CalcAliasBounds
 */
 void Mod_CalcAliasBounds (model_t *mod)
 	{
-	int	i, j, k;
+	int		i, j, k;
 	float	radius;
 	float	dist;
 	vec3_t	v;

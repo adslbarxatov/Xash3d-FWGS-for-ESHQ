@@ -2264,7 +2264,8 @@ static void R_StudioDrawArrays (uint startverts, uint startelems)
 			g_studio.numelems - startelems, GL_UNSIGNED_SHORT, &g_studio.arrayelems[startelems]);
 	else
 #endif
-		pglDrawElements (GL_TRIANGLES, g_studio.numelems - startelems, GL_UNSIGNED_SHORT, &g_studio.arrayelems[startelems]);
+		pglDrawElements (GL_TRIANGLES, g_studio.numelems - startelems, GL_UNSIGNED_SHORT,
+			&g_studio.arrayelems[startelems]);
 	pglDisableClientState (GL_VERTEX_ARRAY);
 	pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
 	if (!(g_nForceFaceFlags & STUDIO_NF_CHROME))
@@ -2308,10 +2309,13 @@ static void R_StudioDrawPoints (void)
 	pskinref = (short *)((byte *)m_pStudioHeader + m_pStudioHeader->skinindex);
 	if (m_skinnum != 0) pskinref += (m_skinnum * m_pStudioHeader->numskinref);
 
-	if (FBitSet (m_pStudioHeader->flags, STUDIO_HAS_BONEWEIGHTS) && m_pSubModel->blendvertinfoindex != 0 && m_pSubModel->blendnorminfoindex != 0)
+	if (FBitSet (m_pStudioHeader->flags, STUDIO_HAS_BONEWEIGHTS) && (m_pSubModel->blendvertinfoindex != 0) &&
+		m_pSubModel->blendnorminfoindex != 0)
 		{
-		mstudioboneweight_t *pvertweight = (mstudioboneweight_t *)((byte *)m_pStudioHeader + m_pSubModel->blendvertinfoindex);
-		mstudioboneweight_t *pnormweight = (mstudioboneweight_t *)((byte *)m_pStudioHeader + m_pSubModel->blendnorminfoindex);
+		mstudioboneweight_t *pvertweight = (mstudioboneweight_t *)((byte *)m_pStudioHeader +
+			m_pSubModel->blendvertinfoindex);
+		mstudioboneweight_t *pnormweight = (mstudioboneweight_t *)((byte *)m_pStudioHeader +
+			m_pSubModel->blendnorminfoindex);
 		matrix3x4		skinMat;
 
 		for (i = 0; i < m_pSubModel->numverts; i++)
