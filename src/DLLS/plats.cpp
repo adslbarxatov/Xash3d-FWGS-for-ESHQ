@@ -162,9 +162,17 @@ void CBasePlatTrain::Precache (void)
 			pev->noiseMoving = MAKE_STRING ("plats/talkmove2.wav");
 			break;
 		// ESHQ: поддержка новых звуков
-		case	14:		
+		case	14:
 			PRECACHE_SOUND ("plats/gravimover.wav");
 			pev->noiseMoving = MAKE_STRING ("plats/gravimover.wav");
+			break;
+		case	15:
+			PRECACHE_SOUND ("plats/elevmove4.wav");
+			pev->noiseMoving = MAKE_STRING ("plats/elevmove4.wav");
+			break;
+		case	16:
+			PRECACHE_SOUND ("plats/elevmove5.wav");
+			pev->noiseMoving = MAKE_STRING ("plats/elevmove5.wav");
 			break;
 		default:
 			pev->noiseMoving = MAKE_STRING ("common/null.wav");
@@ -210,13 +218,21 @@ void CBasePlatTrain::Precache (void)
 			pev->noiseArrived = MAKE_STRING ("plats/talkstop1.wav");
 			break;
 		// ESHQ: поддержка новых звуков
-		case	9:		
+		case	9:
 			PRECACHE_SOUND ("plats/platstop1.wav");
 			pev->noiseArrived = MAKE_STRING ("plats/platstop1.wav");
 			break;
 		case	10:
 			PRECACHE_SOUND ("plats/gravistop.wav");
 			pev->noiseArrived = MAKE_STRING ("plats/gravistop.wav");
+			break;
+		case	11:
+			PRECACHE_SOUND ("plats/elevstop4.wav");
+			pev->noiseArrived = MAKE_STRING ("plats/elevstop4.wav");
+			break;
+		case	12:
+			PRECACHE_SOUND ("plats/elevstop5.wav");
+			pev->noiseArrived = MAKE_STRING ("plats/elevstop5.wav");
 			break;
 
 		default:
