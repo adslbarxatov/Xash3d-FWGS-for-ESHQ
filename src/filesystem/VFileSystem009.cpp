@@ -1,4 +1,4 @@
-/*
+/***
 VFileSystem009.h - C++ interface for filesystem_stdio
 Copyright (C) 2022-2023 Xash3D FWGS contributors
 
@@ -11,7 +11,8 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
-*/
+***/
+
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
@@ -160,7 +161,6 @@ class CXashFS : public IVFileSystem009
 		// [FWGS, 01.11.23]
 		void RemoveFile (const char *path, const char *id) override
 			{
-			/*FS_Delete (path); // FS_Delete is aware of slashes*/
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
 			
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
@@ -562,8 +562,6 @@ extern "C" void EXPORT * CreateInterface (const char *interface, int *retval)
 		// return a copy, to disallow overriding
 		static fs_api_t copy = { 0 };
 
-		/*if (!copy.InitStdio)
-			memcpy (&copy, &g_api, sizeof (copy));*/
 		memcpy (&copy, &g_api, sizeof (copy));
 
 		if (retval)

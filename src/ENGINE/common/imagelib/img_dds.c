@@ -123,9 +123,7 @@ void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 				case DXGI_FORMAT_BC7_UNORM:
 
 				// [FWGS, 01.11.23]
-				/*case DXGI_FORMAT_BC7_UNORM_SRGB:*/
 				case DXGI_FORMAT_BC7_TYPELESS:
-					/*image.type = PF_BC7;*/
 					image.type = PF_BC7_UNORM;
 					break;
 				case DXGI_FORMAT_BC7_UNORM_SRGB:
@@ -225,27 +223,7 @@ void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 		image.num_mips = hdr->dwMipMapCount; // get actual mip count
 	}
 
-// [FWGS, 01.11.23]
-/*size_t Image_DXTGetLinearSize (int type, int width, int height, int depth)
-	{
-	switch (type)
-		{
-		case PF_DXT1: return (((width + 3) / 4) * ((height + 3) / 4) * depth * 8);
-		case PF_DXT3:
-		case PF_DXT5:
-		case PF_BC6H_SIGNED:
-		case PF_BC6H_UNSIGNED:
-		case PF_BC7:
-		case PF_ATI2: return (((width + 3) / 4) * ((height + 3) / 4) * depth * 16);
-		case PF_LUMINANCE: return (width * height * depth);
-		case PF_BGR_24:
-		case PF_RGB_24: return (width * height * depth * 3);
-		case PF_BGRA_32:
-		case PF_RGBA_32: return (width * height * depth * 4);
-		}
-
-	return 0;
-	}*/
+// [FWGS, 01.11.23] removed Image_DXTGetLinearSize
 
 size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 	{
@@ -259,7 +237,6 @@ size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 		height = Q_max (1, (hdr->dwHeight >> i));
 
 		// [FWGS, 01.11.23]
-		/*buffsize += Image_DXTGetLinearSize (image.type, width, height, image.depth);*/
 		buffsize += Image_ComputeSize (image.type, width, height, image.depth);
 		}
 
@@ -311,7 +288,6 @@ void Image_DXTAdjustVolume (dds_t *hdr)
 		return;
 
 	// [FWGS, 01.11.23]
-	/*hdr->dwLinearSize = Image_DXTGetLinearSize (image.type, hdr->dwWidth, hdr->dwHeight, hdr->dwDepth);*/
 	hdr->dwLinearSize = Image_ComputeSize (image.type, hdr->dwWidth, hdr->dwHeight, hdr->dwDepth);
 	hdr->dwFlags |= DDS_LINEARSIZE;
 	}
@@ -368,7 +344,6 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 	Image_DXTAdjustVolume (&header);
 
 	// [FWGS, 01.11.23]
-	/*if (!Image_CheckFlag (IL_DDS_HARDWARE) && ImageDXT (image.type))*/
 	if (!Image_CheckFlag (IL_DDS_HARDWARE) && ImageCompressed (image.type))
 		return false; // silently rejected
 
@@ -404,8 +379,6 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 				SetBits (image.flags, IMAGE_HAS_ALPHA);
 			
 			// [FWGS, 01.11.23]
-			/*else if (image.type == PF_BC7)
-				SetBits (image.flags, IMAGE_HAS_ALPHA);*/
 			else if (image.type == PF_BC5_SIGNED || image.type == PF_BC5_UNSIGNED)
 				SetBits (image.flags, IMAGE_HAS_ALPHA);
 			else if (image.type == PF_BC7_UNORM || image.type == PF_BC7_SRGB)

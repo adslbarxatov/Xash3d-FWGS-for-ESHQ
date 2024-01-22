@@ -145,7 +145,6 @@ extern const fs_archive_t g_archives[];		// [FWGS, 01.07.23]
 #define Con_DPrintf (*g_engfuncs._Con_DPrintf)
 #define Con_Reportf (*g_engfuncs._Con_Reportf)
 #define Sys_Error   (*g_engfuncs._Sys_Error)
-/*#define Platform_GetNativeObject (*g_engfuncs._Platform_GetNativeObject)	// [FWGS, 01.07.23]*/
 #define Sys_GetNativeObject (*g_engfuncs._Sys_GetNativeObject)	// [FWGS, 01.11.23]
 
 //

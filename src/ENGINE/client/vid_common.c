@@ -39,8 +39,6 @@ CVAR_DEFINE_AUTO (vid_highdpi, "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"enable High-DPI mode");
 
 // [FWGS, 01.11.23]
-/*CVAR_DEFINE (vid_fullscreen, "fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-	"enable fullscreen mode");*/
 CVAR_DEFINE_AUTO (vid_maximized, "0", FCVAR_RENDERINFO,
 	"window maximized state, read-only");
 CVAR_DEFINE (vid_fullscreen, "fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
@@ -84,7 +82,6 @@ void VID_InitDefaultResolution (void)
 R_SaveVideoMode [FWGS, 01.11.23]
 =================
 */
-/*void R_SaveVideoMode (int w, int h, int render_w, int render_h)*/
 void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximized)
 	{
 	if (!w || !h || !render_w || !render_h)
@@ -226,7 +223,6 @@ static void VID_Mode_f (void)
 		}
 
 	// [FWGS, 01.11.23]
-	/*R_ChangeDisplaySettings (w, h, !!vid_fullscreen.value);*/
 	R_ChangeDisplaySettings (w, h, bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1));
 	}
 

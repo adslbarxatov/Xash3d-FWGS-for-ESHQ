@@ -70,25 +70,13 @@ void PM_ShowClipBox (void)
 	PM_DrawBBox (pmove->player_mins[pmove->usehull], pmove->player_maxs[pmove->usehull], org, pmove->server ? 132 : 0, 0.1);
 
 	PM_ParticleLine (org, org, pmove->server ? 132 : 0, 0.1, 5.0);
-	/*
-		{
-			int i;
-			for ( i = 0; i < pmove->numphysent; i++ )
-			{
-				if ( pmove->physents[ i ].info >= 1 && pmove->physents[ i ].info <= 4 )
-				{
-					PM_DrawBBox( pmove->player_mins[pmove->usehull], pmove->player_maxs[pmove->usehull], pmove->physents[i].origin, 132, 0.1 );
-				}
-			}
-		}
-	*/
+
 #endif
 	}
 
 /*
 ===============
 PM_ParticleLine(vec3_t start, vec3_t end, int color, float life)
-
 ================
 */
 void PM_ParticleLine (vec3_t start, vec3_t end, int pcolor, float life, float vert)

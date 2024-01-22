@@ -1346,7 +1346,6 @@ pfnSPR_Load [FWGS, 01.12.23]
  function exported for support GoldSrc Monitor utility
 =========
 */
-/*static HLSPRITE GAME_EXPORT pfnSPR_Load (const char *szPicName)*/
 HLSPRITE EXPORT pfnSPR_Load (const char *szPicName)
 	{
 	model_t *spr;
@@ -1397,7 +1396,6 @@ pfnSPR_Frames [FWGS, 01.12.23]
  function exported for support GoldSrc Monitor utility
 =========
 */
-/*static int GAME_EXPORT pfnSPR_Frames (HLSPRITE hPic)*/
 int EXPORT pfnSPR_Frames (HLSPRITE hPic)
 	{
 	int	numFrames = 0;
@@ -3276,31 +3274,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	nr->resp.type = request;
 	nr->resp.remote_address = *remote_address;
 	nr->flags = flags;
-
-	// [FWGS, 01.11.23]
-	/*if (request == NETAPI_REQUEST_SERVERLIST)
-		{
-		// [FWGS, 01.04.23]
-		char fullquery[512];
-		size_t len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), false);
-
-		// make sure that port is specified
-		if (!nr->resp.remote_address.port)
-			nr->resp.remote_address.port = MSG_BigShort (PORT_MASTER);
-
-		// grab the list from the master server [FWGS, 01.05.23]
-		NET_SendPacket (NS_CLIENT, len, fullquery, nr->resp.remote_address);
-
-		clgame.request_type = NET_REQUEST_CLIENT;
-		clgame.master_request = nr; // holds the master request unitl the master acking
-		}
-	else
-		{
-		// local servers request
-		Q_snprintf (req, sizeof (req), "netinfo %i %i %i", PROTOCOL_VERSION, context, request);
-		Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "%s", req);
-		}
-	*/
 	
 	// local servers request
 	Q_snprintf (req, sizeof (req), "netinfo %i %i %i", PROTOCOL_VERSION, context, request);
@@ -3332,14 +3305,6 @@ static void GAME_EXPORT NetAPI_CancelRequest (int context)
 				}
 
 			// [FWGS, 01.11.23]
-			/*if ((clgame.net_requests[i].resp.type == NETAPI_REQUEST_SERVERLIST) &&
-				(&clgame.net_requests[i] == clgame.master_request))
-				{
-				if (clgame.request_type == NET_REQUEST_CLIENT)
-					clgame.request_type = NET_REQUEST_CANCEL;
-				clgame.master_request = NULL;
-				}*/
-
 			memset (&clgame.net_requests[i], 0, sizeof (net_request_t));
 			break;
 			}
@@ -3370,8 +3335,6 @@ void GAME_EXPORT NetAPI_CancelAllRequests (void)
 
 	// [FWGS, 01.11.23]
 	memset (clgame.net_requests, 0, sizeof (clgame.net_requests));
-	/*clgame.request_type = NET_REQUEST_CANCEL;
-	clgame.master_request = NULL;*/
 	}
 
 /*

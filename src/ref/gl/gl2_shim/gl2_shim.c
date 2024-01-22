@@ -978,11 +978,8 @@ static void APIENTRY GL2_End (void)
 	if (gl2wrap.prim == GL_QUADS)
 		{
 		GLuint flags = gl2wrap.cur_flags;
+
 		// enable alpha test and fog if needed
-		/*if( alpha_test_state )
-			SetBits( flags, BIT( GL2_FLAG_ALPHA_TEST ));
-		if( fogging )
-			SetBits( flags, BIT( GL2_FLAG_FOG ));*/
 		gl2wrap_quad.flags = flags;
 		gl2wrap_quad.active = 1;
 		return;
@@ -991,8 +988,11 @@ static void APIENTRY GL2_End (void)
 	GL2_FlushPrims ();
 	}
 
-static void (APIENTRY *rpglTexImage2D)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
-static void APIENTRY GL2_TexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
+static void (APIENTRY *rpglTexImage2D)(GLenum target, GLint level, GLint internalformat, GLsizei width,
+	GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+
+static void APIENTRY GL2_TexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width,
+	GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
 	{
 	void *data = (void *)pixels;
 	if (pixels && format == GL_RGBA && (

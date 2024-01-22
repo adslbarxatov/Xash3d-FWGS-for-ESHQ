@@ -788,11 +788,6 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 	float		s, t, os, ot;
 	glpoly_t	*p;
 	int			i;
-/*#ifndef XASH_GLES
-	const qboolean useQuads = FBitSet (warp->flags, SURF_DRAWTURB_QUADS);
-#else
-	const qboolean useQuads = false; // TODO: figure out why
-#endif*/
 	const qboolean	useQuads = FBitSet (warp->flags, SURF_DRAWTURB_QUADS) && glConfig.context == CONTEXT_TYPE_GL;
 
 	if (!warp->polys)
@@ -835,8 +830,6 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 			os = v[3];
 			ot = v[4];
 
-			/*s = os + r_turbsin[(int)((ot * 0.125f + gpGlobals->time) * TURBSCALE) & 255];
-			s *= (1.0f / SUBDIVIDE_SIZE);*/
 			if (!r_ripple.value)
 				{
 				s = os + r_turbsin[(int)((ot * 0.125f + gpGlobals->time) * TURBSCALE) & 255];
@@ -848,7 +841,6 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 				t = ot / g_ripple.texturescale;
 				}
 
-			/*t = ot + r_turbsin[(int)((os * 0.125f + gpGlobals->time) * TURBSCALE) & 255];*/
 			s *= (1.0f / SUBDIVIDE_SIZE);
 			t *= (1.0f / SUBDIVIDE_SIZE);
 
@@ -857,7 +849,8 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 
 			if (reverse)
 				v -= VERTEXSIZE;
-			else v += VERTEXSIZE;
+			else
+				v += VERTEXSIZE;
 			}
 
 		if (!useQuads)

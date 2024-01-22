@@ -20,7 +20,6 @@ GNU General Public License for more details.
 #include "voice.h"
 #include <shellapi.h>	// ESHQ: поддержка вызова генератора карт ESRM
 #include "pm_local.h"	// [FWGS, 01.04.23]
-/*#include "sequence.h"*/	// [FWGS, 01.11.23]
 
 #if XASH_LOW_MEMORY != 2
 int SV_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
@@ -728,7 +727,6 @@ qboolean SV_InitGame (void)
 	{
 	string dllpath;
 
-	/*if (svs.game_library_loaded)*/
 	if (svgame.hInstance)
 		return true;
 
@@ -743,7 +741,6 @@ qboolean SV_InitGame (void)
 		}
 
 	// client frames will be allocated in SV_ClientConnect
-	/*svs.game_library_loaded = true;*/
 	return true;
 	}
 
@@ -1058,9 +1055,6 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	// force normal player collisions for single player
 	if (svs.maxclients == 1) 
 		Cvar_SetValue ("sv_clienttrace", 1);
-
-	/* [FWGS, 01.05.23] make sure what server name doesn't contain path and extension
-	COM_FileBase (mapname, sv.name, sizeof (sv.name));*/
 	
 	// [FWGS, 01.11.23] allow loading maps from subdirectories, strip extension anyway
 	Q_strncpy (sv.name, mapname, sizeof (sv.name));
@@ -1109,9 +1103,6 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 		SV_InitEdict (ent);
 		}
 
-	// [FWGS, 01.11.23]
-	/*Sequence_OnLevelLoad (sv.name);*/
-
 	// heartbeats will always be sent to the id master
 	NET_MasterClear ();
 
@@ -1142,30 +1133,7 @@ int SV_GetMaxClients (void)
 	return svs.maxclients;
 	}
 
-// [FWGS, 01.11.23]
-/*void SV_InitGameProgs (void)
-	{
-	string dllpath;
-
-	// already loaded
-	if (svgame.hInstance)
-		return; 
-
-	COM_GetCommonLibraryPath (LIBRARY_SERVER, dllpath, sizeof (dllpath));
-
-	// just try to initialize
-	SV_LoadProgs (dllpath);
-	}
-
-void SV_FreeGameProgs (void)
-	{
-	// server is active
-	if (svs.initialized) 
-		return;	
-
-	// unload progs (free cvars and commands)
-	SV_UnloadProgs ();
-	}*/
+// [FWGS, 01.11.23] removed SV_InitGameProgs, SV_FreeGameProgs
 
 /*
 ================

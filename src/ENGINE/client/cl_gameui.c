@@ -424,11 +424,9 @@ static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)
 
 	if (in->nomodels)
 		SetBits (out->flags, GFL_NOMODELS);
-	/*out->flags |= GFL_NOMODELS;*/
 
 	if (in->noskills)
 		SetBits (out->flags, GFL_NOSKILLS);
-	/*out->flags |= GFL_NOSKILLS;*/
 
 	if (in->render_picbutton_text)
 		SetBits (out->flags, GFL_RENDER_PICBUTTON_TEXT);
@@ -438,7 +436,6 @@ static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)
 
 	if (in->animated_title)
 		SetBits (out->flags, GFL_ANIMATED_TITLE);
-	/*out->flags |= GFL_RENDER_PICBUTTON_TEXT;*/
 	}
 
 // [FWGS, 01.04.23] удалена PIC_Scissor
@@ -988,16 +985,8 @@ pfnCheckGameDll [FWGS, 01.11.23]
 */
 int GAME_EXPORT pfnCheckGameDll (void)
 	{
-	/*string dllpath;
-	void *hInst;
-
-	#if TARGET_OS_IPHONE
-	// loading server library drains too many ram
-	// so 512MB iPod Touch cannot even connect to
-	// to servers in cstrike*/
 #ifdef XASH_INTERNAL_GAMELIBS
 	return true;
-	/*#endif*/
 #else
 	string dllpath;
 
@@ -1006,13 +995,9 @@ int GAME_EXPORT pfnCheckGameDll (void)
 
 	COM_GetCommonLibraryPath (LIBRARY_SERVER, dllpath, sizeof (dllpath));
 
-	/*if ((hInst = COM_LoadLibrary (dllpath, true, false)) != NULL)
-		{
-		COM_FreeLibrary (hInst); // don't increase linker's reference counter*/
 	if (FS_FileExists (dllpath, false))
 		return true;
-	/*}
-Con_Reportf (S_WARN "Could not load server library: %s\n", COM_GetLibraryError ());*/
+
 	return false;
 #endif
 	}

@@ -53,17 +53,16 @@ static void FS_Path_f_ (void)
 
 static fs_interface_t fs_memfuncs =
 	{
-		Con_Printf,
-		Con_DPrintf,
-		Con_Reportf,
-		Sys_Error,
-		_Mem_AllocPool,
-		_Mem_FreePool,
-		_Mem_Alloc,
-		_Mem_Realloc,
-		_Mem_Free,
-		 /*Platform_GetNativeObject,	// [FWGS, 01.07.23]*/
-		Sys_GetNativeObject,	// [FWGS, 01.11.23]
+	Con_Printf,
+	Con_DPrintf,
+	Con_Reportf,
+	Sys_Error,
+	_Mem_AllocPool,
+	_Mem_FreePool,
+	_Mem_Alloc,
+	_Mem_Realloc,
+	_Mem_Free,
+	Sys_GetNativeObject,	// [FWGS, 01.11.23]
 	};
 
 // [FWGS, 01.05.23]
@@ -191,7 +190,6 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	unsigned int gravity = (unsigned int)sv_gravity.value;
 	unsigned int roomtype = 0;
 	unsigned int newCode;
-	/*qboolean oldScript = false;*/
 
 	if (rt)
 		roomtype = (unsigned int)rt->value;
@@ -200,25 +198,8 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	if (WAS_roomtype == 0xFFFF)
 		WAS_roomtype = roomtype;
 
-	/* Чтение старого скрипта (ошибки игнорируются)
-	if (!WAS_Code && FS_FileExists (ACHI_OLD_SCRIPT_FN, 1))
-		{
-		f = FS_Open (ACHI_OLD_SCRIPT_FN, "r", false);
-		if (f)
-			{
-			FS_Getc (f); FS_Getc (f);
-			WAS_Level = ((unsigned int)FS_Getc (f)) & 0x0F;
-			WAS_Code = ((unsigned int)FS_Getc (f) - 0x20) & 0x3F;
-			WAS_Code |= (((unsigned int)FS_Getc (f) - 0x20) & 0x3F) << 8;
-			FS_Close (f);
-
-			FS_Rename (ACHI_OLD_SCRIPT_FN, ACHI_OLD_SCRIPT_FN ".bak");
-			oldScript = true;
-			}
-		}*/
-
 	// Чтение предыдущего состояния (ошибки игнорируются)
-	if (!WAS_Code /*&& !FS_FileExists (ACHI_OLD_SCRIPT_FN, 1)*/)
+	if (!WAS_Code)
 		{
 		f = FS_Open (ACHI_SCRIPT_С, "r", false);
 		if (f)
@@ -243,7 +224,7 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	// теперь выполняется только в связке с режимом, в котором вызвана функция. Так проверочный код
 	// не сможет совпасть с вычисляемым в реальном времени вариантом, пока все проверяемые им команды
 	// не будут выполнены
-	/*WAS_Code = newCode;*/
+	// WAS_Code = newCode;
 
 	// Условие для последующего повышения.
 	// int, потому что иначе при сравнении происходит приведение к uint
@@ -261,7 +242,7 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 		}
 
 	// Достижения, зависящие от уровня
-	if (/*(*/Mode == 0/*) || oldScript*/)
+	if (Mode == 0)
 		{
 		f = FS_Open (ACHI_SCRIPT_A, "w", false);
 		if (f)
@@ -283,7 +264,7 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 		}
 
 	// Гравитация
-	if (/*(*/Mode == 1/*) || oldScript*/)
+	if (Mode == 1)
 		{
 		f = FS_Open (ACHI_SCRIPT_G, "w", false);
 		if (f)
@@ -302,7 +283,7 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 		}
 
 	// Тип помещения
-	if (/*(*/Mode == 2/*) || oldScript*/)
+	if (Mode == 2)
 		{
 		f = FS_Open (ACHI_SCRIPT_R, "w", false);
 		if (f)

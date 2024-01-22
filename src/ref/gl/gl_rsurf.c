@@ -80,7 +80,6 @@ static void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
 	}
 
 // [FWGS, 01.11.23]
-/*static void SubdividePolygon_r (msurface_t *warpface, int numverts, float *verts)*/
 static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int numverts, float *verts)
 	{
 	vec3_t			front[SUBDIVIDE_SIZE], back[SUBDIVIDE_SIZE];
@@ -91,7 +90,6 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 	float			sample_size;
 	vec3_t			mins, maxs;
 	glpoly_t		*poly;
-	/*model_t			*loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();*/
 
 	if (numverts > (SUBDIVIDE_SIZE - 4))
 		gEngfuncs.Host_Error ("Mod_SubdividePolygon: too many vertexes on face ( %i )\n", numverts);
@@ -146,8 +144,6 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 				}
 			}
 
-		/*SubdividePolygon_r (warpface, f, front[0]);
-		SubdividePolygon_r (warpface, b, back[0]);*/
 		SubdividePolygon_r (loadmodel, warpface, f, front[0]);
 		SubdividePolygon_r (loadmodel, warpface, b, back[0]);
 		return;
@@ -243,14 +239,12 @@ boundaries so that turbulent and sky warps
 can be done reasonably.
 ================
 */
-/*void GL_SubdivideSurface (msurface_t *fa)*/
 void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 	{
 	vec3_t	verts[SUBDIVIDE_SIZE];
 	int		numverts;
 	int		i, lindex;
 	float	*vec;
-	/*model_t	*loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();*/
 
 	// convert edges back to a normal polygon
 	numverts = 0;
@@ -269,7 +263,6 @@ void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 	SetBits (fa->flags, SURF_DRAWTURB_QUADS); // predict state
 
 	// do subdivide
-	/*SubdividePolygon_r (fa, numverts, verts[0]);*/
 	SubdividePolygon_r (loadmodel, fa, numverts, verts[0]);
 	}
 
@@ -904,7 +897,6 @@ void DrawGLPolyChain (glpoly_t *p, float soffset, float toffset)
 	}
 
 // [FWGS, 01.11.23]
-/*_inline qboolean R_HasLightmap (void)*/
 static qboolean R_HasLightmap (void)
 	{
 	if (r_fullbright->value || !WORLDMODEL->lightdata)
@@ -1168,9 +1160,6 @@ void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 		return; // already handled
 
 	t = R_TextureAnimation (fa);
-
-	/*GL_Bind (XASH_TEXTURE0, t->gl_texturenum);*/
-
 	if (FBitSet (fa->flags, SURF_DRAWTURB))
 		{
 		R_UploadRipples (t);
@@ -1453,7 +1442,6 @@ void R_DrawWaterSurfaces (void)
 			continue;
 
 		// set modulate mode explicitly
-		/*GL_Bind (XASH_TEXTURE0, t->gl_texturenum);*/
 		R_UploadRipples (t);
 
 		for (; s; s = s->texturechain)
@@ -1832,21 +1820,14 @@ Allocate memory for arrays, fill it with vertex attribs and upload to GPU
 */
 void R_GenerateVBO (void)
 	{
-	int numtextures = WORLDMODEL->numtextures;
-	int numlightmaps = gl_lms.current_lightmap_texture;
-	int k, len = 0;
-	vboarray_t *vbo;
-	uint maxindex = 0;
+	int			numtextures = WORLDMODEL->numtextures;
+	int			numlightmaps = gl_lms.current_lightmap_texture;
+	int			k, len = 0;
+	vboarray_t	*vbo;
+	uint		maxindex = 0;
 
 	R_ClearVBO ();
 
-	/* [FWGS, 01.04.23] we do not want to write vbo code that does not use multitexture
-#if ALLOW_VBO
-	if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) ||
-		(glConfig.max_texture_units < 2))
-#else
-	if (1)
-#endif*/
 	// [FWGS, 01.11.23]
 	if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) ||
 		(glConfig.max_texture_units < 2) || !gEngfuncs.Sys_CheckParm ("-gl-allow-vbo-dontuse"))

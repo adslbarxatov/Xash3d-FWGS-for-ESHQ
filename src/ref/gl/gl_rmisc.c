@@ -92,7 +92,6 @@ static void R_ParseDetailTextures (const char *filename)
 				continue;
 
 			// [FWGS, 01.11.23]
-			/*tex->dt_texturenum = GL_LoadTexture (detail_path, NULL, 0, TF_FORCE_COLOR);*/
 			tex->dt_texturenum = GL_LoadTexture (detail_path, NULL, 0, TF_FORCE_COLOR | TF_NOFLIP_TGA);
 
 			// texture is loaded

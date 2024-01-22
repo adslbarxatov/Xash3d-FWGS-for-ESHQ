@@ -364,9 +364,7 @@ typedef struct
 	qboolean		initialized;		// sv_init has completed
 	
 	// [FWGS, 01.11.23]
-	/*qboolean	game_library_loaded;	// is game library loaded in SV_InitGame*/
-	double		timestart;		// just for profiling
-
+	double	timestart;		// just for profiling
 	int		maxclients;		// server max clients
 
 	int		groupmask;

@@ -2440,7 +2440,6 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 
 	// [FWGS, 01.12.23] try all possible entities
 	VectorCopy (svgame.globals->v_forward, bestdir);
-	/*bestdist = Cvar_VariableValue ("sv_aim");*/
 	if (sv_allow_autoaim.value)
 		bestdist = sv_aim.value;
 	else
@@ -3127,7 +3126,6 @@ void SV_SetStringArrayMode (qboolean dynamic)
 	}
 
 // [FWGS, 01.11.23]
-/*#if XASH_64BIT && !XASH_WIN32 && !XASH_APPLE && !XASH_NSWITCH*/
 #if XASH_64BIT && !XASH_WIN32 && !XASH_APPLE && !XASH_NSWITCH && !XASH_ANDROID
 #define USE_MMAP
 #include <sys/mman.h>
@@ -3330,7 +3328,6 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 		Mem_Free (newString);
 		return i;
 		}
-		/*return svgame.physFuncs.pfnAllocString (szValue);*/
 
 #ifdef XASH_64BIT
 
@@ -5085,12 +5082,6 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 #endif
 
 		// [FWGS, 01.12.23]
-		/*if (!Q_strcmp (pkvd[i].szKeyName, "light"))
-			{
-			Mem_Free (pkvd[i].szKeyName);
-			pkvd[i].szKeyName = copystring ("light_level");
-			}*/
-
 		if (!pkvd[i].fHandled)
 			{
 			pkvd[i].szClassName = classname;
@@ -5250,7 +5241,6 @@ void SV_UnloadProgs (void)
 	Mod_ResetStudioAPI ();
 
 	// [FWGS, 01.11.23]
-	/*svs.game_library_loaded = false;*/
 	COM_FreeLibrary (svgame.hInstance);
 	Mem_FreePool (&svgame.mempool);
 	memset (&svgame, 0, sizeof (svgame));
@@ -5276,7 +5266,6 @@ qboolean SV_LoadProgs (const char *name)
 		return true;
 #endif
 		}
-		/*SV_UnloadProgs ();*/
 
 	// fill it in
 	svgame.pmove = &gpMove;

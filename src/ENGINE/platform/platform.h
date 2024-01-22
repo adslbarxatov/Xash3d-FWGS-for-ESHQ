@@ -66,7 +66,6 @@ void Platform_SetStatus (const char *status);
 	// [FWGS, 01.11.23]
 	void Android_Init (void);
 	void *Android_GetNativeObject (const char *name);
-	/*int Android_GetKeyboardHeight (void);*/
 #endif
 
 // [FWGS, 01.07.23]
@@ -147,17 +146,7 @@ static inline void Platform_Shutdown (void)
 #endif
 	}
 
-// [FWGS, 01.11.23]
-/*static inline void *Platform_GetNativeObject (const char *name)
-	{
-	void *ptr = NULL;
-
-#if XASH_ANDROID
-	ptr = Android_GetNativeObject (name);
-#endif
-
-	return ptr;
-	}*/
+// [FWGS, 01.11.23] removed Platform_GetNativeObject
 
 /*
 ==============================================================================
@@ -167,7 +156,6 @@ MOBILE API
 
 // [FWGS, 01.11.23]
 void Platform_Vibrate (float life, char flags);
-/*void *Platform_GetNativeObject (const char *name);*/
 
 /*
 ==============================================================================
@@ -224,9 +212,7 @@ void      R_Free_Video (void);
 qboolean  VID_SetMode (void);
 
 // [FWGS, 01.11.23]
-/*rserr_t   R_ChangeDisplaySettings (int width, int height, qboolean fullscreen);*/
 rserr_t   R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode);
-
 int       R_MaxVideoModes (void);
 struct vidmode_s *R_GetVideoMode (int num);
 void *GL_GetProcAddress (const char *name); // RenderAPI requirement

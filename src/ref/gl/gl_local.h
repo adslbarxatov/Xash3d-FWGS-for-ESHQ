@@ -435,7 +435,6 @@ void R_DrawWaterSurfaces (void);
 void R_DrawBrushModel (cl_entity_t *e);
 
 // [FWGS, 01.11.23]
-/*void GL_SubdivideSurface (msurface_t *fa);*/
 void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
 
 void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);
@@ -582,9 +581,7 @@ qboolean GL_Support (int r_ext);
 int GL_MaxTextureUnits (void);
 
 // [FWGS, 01.11.23]
-/*qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext);*/
 qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext, float minver);
-
 void GL_SetExtension (int r_ext, int enable);
 
 //

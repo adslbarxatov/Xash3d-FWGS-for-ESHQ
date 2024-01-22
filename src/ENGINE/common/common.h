@@ -381,8 +381,6 @@ void FS_Shutdown (void);
 void *FS_GetNativeObject (const char *obj);	// [FWGS, 01.11.23]
 
 // ESHQ: поддержка скриптов достижений
-/*#define ACHI_OLD_SCRIPT_FN	"achi2.cfg"*/
-
 #define ACHI_SCRIPT_С		"achi0.sc"
 #define ACHI_SCRIPT_G		"achi2.sc"
 #define ACHI_EXEC_LINE_G	"exec " ACHI_SCRIPT_G "\n"
@@ -754,11 +752,6 @@ void SV_ShutdownGame (void);
 void SV_ExecLoadLevel (void);
 void SV_ExecLoadGame (void);
 void SV_ExecChangeLevel (void);
-
-// [FWGS, 01.11.23]
-/*void SV_InitGameProgs (void);
-void SV_FreeGameProgs (void);*/
-
 void CL_WriteMessageHistory (void);
 void CL_SendCmd (void);
 void CL_Disconnect (void);

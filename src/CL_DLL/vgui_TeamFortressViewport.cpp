@@ -1471,18 +1471,6 @@ void TeamFortressViewport::UpdateSpectatorPanel ()
 
 		m_pSpectatorPanel->m_ExtraInfo->setText (szText);
 
-		/*
-		int timer = (int)( gHUD.m_roundTimer.m_flTimeEnd - gHUD.m_flTime );
-
-		if ( timer < 0 )
-			 timer	= 0;
-
-		_snprintf ( szText, 63, "%d:%02d\n", (timer / 60), (timer % 60) );
-
-		szText[63] = 0;
-
-		m_pSpectatorPanel->m_CurrentTime->setText( szText ); */
-
 		// update spectator panel
 		gViewPort->m_pSpectatorPanel->Update ();
 		}

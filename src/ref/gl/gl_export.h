@@ -1375,7 +1375,6 @@ APIENTRY_LINKAGE GLboolean GL_FUNCTION (glIsVertexArray)(GLuint array);
 APIENTRY_LINKAGE void GL_FUNCTION (glSwapInterval) (int interval);
 
 // [FWGS, 01.11.23]
-/*#if !defined( XASH_GLES ) && !defined( XASH_GL4ES )*/
 // arb shaders change in core
 APIENTRY_LINKAGE void GL_FUNCTION (glDeleteProgram)(GLuint program);
 APIENTRY_LINKAGE void GL_FUNCTION (glGetProgramiv)(GLuint program, GLenum e, GLuint * v);

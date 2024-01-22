@@ -98,7 +98,6 @@ uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 	size_t		filesize;
 	uint		msecs;
 
-	/*f = FS_Open (filepath, "rb", false);*/
 	Q_strncpy (name, filepath, sizeof (name));
 	COM_FixSlashes (name);
 	

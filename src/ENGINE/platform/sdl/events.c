@@ -130,7 +130,6 @@ static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
 	return false;
 #else
 	// [FWGS, 01.11.23]
-	/*if (SDL_GameControllerFromInstanceID (joyId))*/
 	if (SDL_GameControllerFromInstanceID (joyId) != NULL)
 		return true;
 
@@ -152,7 +151,6 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	int keynum = key.keysym.sym;
 #endif
 
-	/*qboolean numLock = SDL_GetModState () & KMOD_NUM;*/
 	qboolean numLock = FBitSet (SDL_GetModState (), KMOD_NUM);
 
 #if XASH_ANDROID
@@ -162,7 +160,6 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 	if (SDL_IsTextInputActive () && down && (cls.key_dest != key_game))
 		{
-		/*if (SDL_GetModState () & KMOD_CTRL)*/
 		if (FBitSet (SDL_GetModState (), KMOD_CTRL))
 			{
 			if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
@@ -180,7 +177,6 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 		if (isprint (keynum))
 			{
-			/*if (SDL_GetModState () & KMOD_SHIFT)*/
 			if (FBitSet (SDL_GetModState (), KMOD_SHIFT))
 				keynum = Key_ToUpper (keynum);
 
@@ -191,26 +187,16 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		}
 
 // ESHQ: спорная конструкция макроса, решили убрать
-/*#define DECLARE_KEY_RANGE(min,max,repl) \
-	if( keynum >= (min) && keynum <= (max) ) \
-	{ \
-		keynum = keynum - (min) + (repl); \
-	}*/
 
-	/*DECLARE_KEY_RANGE (SDL_SCANCODE_A, SDL_SCANCODE_Z, 'a')*/
 	if (keynum >= (SDL_SCANCODE_A) && keynum <= (SDL_SCANCODE_Z))
 		{
 		keynum = keynum - SDL_SCANCODE_A + 'a';
 		}
-	else
-	/*DECLARE_KEY_RANGE (SDL_SCANCODE_1, SDL_SCANCODE_9, '1')*/
-		if (keynum >= (SDL_SCANCODE_1) && keynum <= (SDL_SCANCODE_9))
+	else if (keynum >= (SDL_SCANCODE_1) && keynum <= (SDL_SCANCODE_9))
 		{
 		keynum = keynum - SDL_SCANCODE_1 + '1';
 		}
-	else
-	/*DECLARE_KEY_RANGE (SDL_SCANCODE_F1, SDL_SCANCODE_F12, K_F1)*/
-		if (keynum >= (SDL_SCANCODE_F1) && keynum <= (SDL_SCANCODE_F12))
+	else if (keynum >= (SDL_SCANCODE_F1) && keynum <= (SDL_SCANCODE_F12))
 		{
 		keynum = keynum - SDL_SCANCODE_F1 + K_F1;
 		}
@@ -566,7 +552,6 @@ static void SDLash_ActiveEvent (int gain)
 			SNDDMA_Activate (true);
 
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
-		/*if (vid_fullscreen.value)*/
 		if (vid_fullscreen.value == WINDOW_MODE_FULLSCREEN)
 			VID_SetMode ();
 		}
@@ -805,7 +790,6 @@ static void SDLash_EventFilter (SDL_Event *event)
 				{
 				case SDL_WINDOWEVENT_MOVED:
 					// [FWGS, 01.11.23]
-					/*if (!vid_fullscreen.value)*/
 					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
 						{
 						char val[32];
@@ -829,7 +813,6 @@ static void SDLash_EventFilter (SDL_Event *event)
 					host.status = HOST_FRAME;
 					host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 
-					/*if (vid_fullscreen.value)*/
 					Cvar_DirectSet (&vid_maximized, "0");
 					if (vid_fullscreen.value == WINDOW_MODE_FULLSCREEN)
 						VID_SetMode ();
@@ -844,11 +827,6 @@ static void SDLash_EventFilter (SDL_Event *event)
 					break;
 
 				case SDL_WINDOWEVENT_RESIZED:
-					/*{
-					if (vid_fullscreen.value)
-						break;
-
-					VID_SaveWindowSize (event->window.data1, event->window.data2);*/
 					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
 						{
 						SDL_Window *wnd = SDL_GetWindowFromID (event->window.windowID);
@@ -860,7 +838,6 @@ static void SDLash_EventFilter (SDL_Event *event)
 				case SDL_WINDOWEVENT_MAXIMIZED:
 					Cvar_DirectSet (&vid_maximized, "1");
 					break;
-					/*}*/
 
 				default:
 					break;

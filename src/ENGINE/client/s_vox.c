@@ -17,7 +17,6 @@ GNU General Public License for more details.
 #include "common.h"
 #include "sound.h"
 #include "const.h"
-/*#include "sequence.h"*/
 #include <ctype.h>
 
 static int cszrawsentences = 0;

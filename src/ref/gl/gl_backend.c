@@ -307,14 +307,11 @@ void GL_TextureTarget (uint target)
 
 	if (glState.currentTextureTargets[glState.activeTMU] != target)
 		{
-		/*if (glState.currentTextureTargets[glState.activeTMU] != GL_NONE)
-			pglDisable (glState.currentTextureTargets[glState.activeTMU]);*/
 		GL_EnableTextureUnit (glState.activeTMU, false);
 
 		glState.currentTextureTargets[glState.activeTMU] = target;
 		if (target != GL_NONE)
 			GL_EnableTextureUnit (glState.activeTMU, true);
-		/*pglEnable (glState.currentTextureTargets[glState.activeTMU]);*/
 		}
 	}
 

@@ -106,12 +106,9 @@ void GL_Bind (GLint tmu, GLenum texnum)
 	// [FWGS, 01.11.23]
 	if (glState.currentTextureTargets[tmu] != glTarget)
 		{
-		/*if (glState.currentTextureTargets[tmu] != GL_NONE)
-			pglDisable (glState.currentTextureTargets[tmu]);*/
 		GL_EnableTextureUnit (tmu, false);
 
 		glState.currentTextureTargets[tmu] = glTarget;
-		/*pglEnable (glState.currentTextureTargets[tmu]);*/
 		GL_EnableTextureUnit (tmu, true);
 		}
 
@@ -172,7 +169,6 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 	else if (FBitSet (tex->flags, TF_NOMIPMAP) || tex->numMips <= 1)
 		{
 		// [FWGS, 01.11.23]
-		/*if (FBitSet (tex->flags, TF_NEAREST) || (IsLightMap (tex) && gl_lightmap_nearest.value))*/
 		if (FBitSet (tex->flags, TF_NEAREST) || (IsLightMap (tex) && gl_lightmap_nearest.value) ||
 			((tex->flags == TF_SKYSIDE) && gl_texture_nearest.value))
 			{
@@ -402,7 +398,6 @@ static size_t GL_CalcImageSize (pixformat_t format, int width, int height, int d
 		case PF_BC6H_UNSIGNED:
 		
 		// [FWGS, 01.11.23]
-		/*case PF_BC7:*/
 		case PF_BC7_UNORM:
 		case PF_BC7_SRGB:
 		case PF_ATI2:
@@ -710,7 +705,6 @@ static void GL_SetTextureFormat (gl_texture_t *tex, pixformat_t format, int chan
 
 	Assert (tex != NULL);
 
-	/*if (ImageDXT (format))*/
 	if (ImageCompressed (format))
 		{
 		switch (format)
@@ -731,7 +725,6 @@ static void GL_SetTextureFormat (gl_texture_t *tex, pixformat_t format, int chan
 				tex->format = GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB;
 				break;
 			
-			/*case PF_BC7: tex->format = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB; break;*/
 			case PF_BC7_SRGB:
 			case PF_BC7_UNORM:
 				tex->format = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
@@ -1113,7 +1106,6 @@ static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLin
 		{
 
 // [FWGS, 01.11.23]
-/*#if !defined( XASH_GLES ) && !defined( XASH_GL4ES )*/
 #if !defined( XASH_GL_STATIC ) || (!defined( XASH_GLES ) && !defined( XASH_GL4ES ))
 		samplesCount = (GLsizei)gEngfuncs.pfnGetCvarFloat ("gl_msaa_samples");
 		switch (samplesCount)
@@ -1139,8 +1131,6 @@ static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLin
 	}
 
 // [FWGS, 01.11.23]
-/*static void GL_TextureImageDXT (gl_texture_t *tex, GLint side, GLint level, GLint width, GLint height,
-	GLint depth, size_t size, const void *data)*/
 static void GL_TextureImageCompressed (gl_texture_t *tex, GLint side, GLint level, GLint width, GLint height,
 	GLint depth, size_t size, const void *data)
 	{
@@ -1233,7 +1223,6 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 		}
 
 	// [FWGS, 01.11.23]
-	/*if ((pic->type == PF_BC6H_SIGNED) || (pic->type == PF_BC6H_UNSIGNED) || (pic->type == PF_BC7))*/
 	if ((pic->type == PF_BC6H_SIGNED) || (pic->type == PF_BC6H_UNSIGNED) || (pic->type == PF_BC7_UNORM) ||
 		(pic->type == PF_BC7_SRGB))
 		{
@@ -1277,7 +1266,6 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 			gEngfuncs.Host_Error ("GL_UploadTexture: %s image buffer overflow\n", tex->name);
 
 		// [FWGS, 01.11.23]
-		/*if (ImageDXT (pic->type))*/
 		if (ImageCompressed (pic->type))
 			{
 			for (j = 0; j < Q_max (1, pic->numMips); j++)
@@ -1287,7 +1275,6 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 				texsize = GL_CalcTextureSize (tex->format, width, height, tex->depth);
 				size = GL_CalcImageSize (pic->type, width, height, tex->depth);
 
-				/*GL_TextureImageDXT (tex, i, j, width, height, tex->depth, size, buf);*/
 				GL_TextureImageCompressed (tex, i, j, width, height, tex->depth, size, buf);
 				tex->size += texsize;
 				buf += size; // move pointer
@@ -1311,9 +1298,9 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 				tex->numMips++;
 
 				GL_CheckTexImageError (tex);
-
 				}
 			}
+
 		else // RGBA32
 			{
 			int mipCount = GL_CalcMipmapCount (tex, (buf != NULL));
@@ -1325,8 +1312,6 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 				data = buf;
 
 			// [FWGS, 01.11.23]
-			/*if (!ImageDXT (pic->type) && !FBitSet (tex->flags, TF_NOMIPMAP) &&
-				FBitSet (pic->flags, IMAGE_ONEBIT_ALPHA))*/
 			if (!ImageCompressed (pic->type) && !FBitSet (tex->flags, TF_NOMIPMAP) &&
 				FBitSet (pic->flags, IMAGE_ONEBIT_ALPHA))
 				data = GL_ApplyFilter (data, tex->width, tex->height);
@@ -1379,7 +1364,6 @@ static void GL_ProcessImage (gl_texture_t *tex, rgbdata_t *pic)
 	tex->encode = pic->encode; // share encode method
 
 	// [FWGS, 01.11.23]
-	/*if (ImageDXT (pic->type))*/
 	if (ImageCompressed (pic->type))
 		{
 		if (!pic->numMips)
@@ -1490,7 +1474,6 @@ static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 
 	// [FWGS, 01.11.23] copy initial params
 	Q_strncpy (tex->name, name, sizeof (tex->name));
-	/*if (FBitSet (flags, TF_SKYSIDE))*/
 	if (FBitSet (flags, TF_SKYSIDE) && (glConfig.context != CONTEXT_TYPE_GL_CORE))
 		{
 		tex->texnum = tr.skyboxbasenum++;
@@ -2004,7 +1987,6 @@ void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 		}
 
 	// [FWGS, 01.11.23]
-	/*if (ImageDXT (image->original->type))*/
 	if (ImageCompressed (image->original->type))
 		{
 		gEngfuncs.Con_Printf (S_ERROR "GL_ProcessTexture: can't process compressed texture %s\n", image->name);

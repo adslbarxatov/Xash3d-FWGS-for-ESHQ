@@ -37,9 +37,6 @@ CVAR_DEFINE_AUTO (r_wadtextures, "0", 0,
 CVAR_DEFINE_AUTO (r_showhull, "0", 0,
 	"draw collision hulls 1-3");
 
-// [FWGS, 01.11.23]
-/*model_t *loadmodel;*/
-
 /*
 ===============================================================================
 MOD COMMON UTILS
@@ -290,7 +287,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	Con_Reportf ("loading %s\n", mod->name);
 	mod->needload = NL_PRESENT;
 	mod->type = mod_bad;
-	/*loadmodel = mod;*/
 
 	// call the apropriate loader
 	switch (*(uint *)buf)

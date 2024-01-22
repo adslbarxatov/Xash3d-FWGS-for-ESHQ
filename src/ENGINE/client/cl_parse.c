@@ -1548,7 +1548,6 @@ void CL_SendConsistencyInfo (sizebuf_t *msg)
 			case force_exactfile:
 				// [FWGS, 01.11.23]
 				MD5_HashFile (md5, filename, NULL);
-				/*pc->value = *(int *)md5;*/
 				memcpy (&pc->value, md5, sizeof (pc->value));
 				LittleLongSW (pc->value);
 

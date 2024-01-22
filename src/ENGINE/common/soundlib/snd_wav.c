@@ -62,23 +62,18 @@ static int GetLittleLong (void)
 FindNextChunk [FWGS, 01.11.23]
 =================
 */
-/*static void FindNextChunk (const char *name)*/
 static void FindNextChunk (const char *filename, const char *name)
 	{
 	while (1)
 		{
-		/*iff_dataPtr = iff_lastChunk;*/
 		ptrdiff_t remaining = iff_end - iff_lastChunk;
 
-		/*if (iff_dataPtr >= iff_end)*/
 		if (remaining < 8)
 			{
 			iff_dataPtr = NULL;
 			return;
 			}
 
-		/*iff_dataPtr += 4;
-		iff_chunkLen = GetLittleLong ();*/
 		iff_dataPtr = iff_lastChunk + 4;
 		remaining -= 8;
 		iff_chunkLen = GetLittleLong ();
@@ -100,8 +95,6 @@ static void FindNextChunk (const char *filename, const char *name)
 		remaining -= iff_chunkLen;
 
 		iff_dataPtr -= 8;
-		/*iff_lastChunk = iff_dataPtr + 8 + ((iff_chunkLen + 1) & ~1);
-		if (!Q_strncmp ((const char *)iff_dataPtr, name, 4))*/
 		iff_lastChunk = iff_dataPtr + 8 + iff_chunkLen;
 		if ((iff_chunkLen & 1) && remaining)
 			iff_lastChunk++;
@@ -115,11 +108,9 @@ static void FindNextChunk (const char *filename, const char *name)
 FindChunk [FWGS, 01.11.23]
 =================
 */
-/*static void FindChunk (const char *name)*/
 static void FindChunk (const char *filename, const char *name)
 	{
 	iff_lastChunk = iff_data;
-	/*FindNextChunk (name);*/
 	FindNextChunk (filename, name);
 	}
 
@@ -173,7 +164,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	iff_end = buffer + filesize;
 
 	// find "RIFF" chunk
-	/*FindChunk ("RIFF");*/
 	FindChunk (name, "RIFF");
 
 	if (!(iff_dataPtr && !Q_strncmp ((const char *)iff_dataPtr + 8, "WAVE", 4)))
@@ -184,7 +174,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 	// get "fmt " chunk
 	iff_data = iff_dataPtr + 12;
-	/*FindChunk ("fmt ");*/
 	FindChunk (name, "fmt ");
 
 	if (!iff_dataPtr)
@@ -230,14 +219,12 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	// get cue chunk
-	/*FindChunk ("cue ");*/
 	FindChunk (name, "cue ");
 
 	if (iff_dataPtr)
 		{
 		iff_dataPtr += 32;
 		sound.loopstart = GetLittleLong ();
-		/*FindNextChunk ("LIST"); // if the next chunk is a LIST chunk, look for a cue length marker*/
 		FindNextChunk (name, "LIST");	// if the next chunk is a LIST chunk, look for a cue length marker
 
 		if (iff_dataPtr)
@@ -257,7 +244,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	// find data chunk
-	/*FindChunk ("data");*/
 	FindChunk (name, "data");
 
 	if (!iff_dataPtr)

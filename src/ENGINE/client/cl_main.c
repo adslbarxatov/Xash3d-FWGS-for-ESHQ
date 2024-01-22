@@ -23,7 +23,6 @@ GNU General Public License for more details.
 #include "library.h"
 #include "vid_common.h"
 #include "pm_local.h"	// [FWGS, 01.04.23]
-/*#include "sequence.h"*/	// [FWGS, 01.11.23]
 
 #define MAX_TOTAL_CMDS				32
 #define MAX_CMD_BUFFER				8000
@@ -40,11 +39,8 @@ CVAR_DEFINE_AUTO (cl_resend, "6.0", 0,
 	"time to resend connect");
 
 // [FWGS, 01.11.23]
-/*CVAR_DEFINE_AUTO (cl_allow_download, "1", FCVAR_ARCHIVE,
-	"allow to downloading resources from the server");*/
 CVAR_DEFINE (cl_allow_download, "cl_allowdownload", "1", FCVAR_ARCHIVE,
 	"allow to downloading resources from the server");
-
 CVAR_DEFINE_AUTO (cl_allow_upload, "1", FCVAR_ARCHIVE,
 	"allow to uploading resources to the server");
 CVAR_DEFINE_AUTO (cl_download_ingame, "1", FCVAR_ARCHIVE,
@@ -131,14 +127,6 @@ CVAR_DEFINE_AUTO (ui_renderworld, "0", FCVAR_ARCHIVE,
 	"render world when UI is visible");
 
 // [FWGS, 01.11.23] userinfo
-/*static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY,
-	"player name");
-static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE,
-	"player model ('player' is a singleplayer model)");
-static CVAR_DEFINE_AUTO (topcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
-	"player top color");
-static CVAR_DEFINE_AUTO (bottomcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
-	"player bottom color");*/
 static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
 	"player name");
 static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -147,7 +135,6 @@ static CVAR_DEFINE_AUTO (topcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_F
 	"player top color");
 static CVAR_DEFINE_AUTO (bottomcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"player bottom color");
-
 CVAR_DEFINE_AUTO (rate, "3500", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"player network rate");
 
@@ -156,7 +143,6 @@ client_static_t	cls;
 clgame_static_t	clgame;
 
 // [FWGS, 01.11.23]
-/*void CL_InternetServers_f (void);*/
 static void CL_SendMasterServerScanRequest (void);
 
 // ======================================================================
@@ -302,8 +288,6 @@ void CL_SignonReply (void)
 			cl.proxy_redirect = false;
 
 			// [FWGS, 01.11.23]
-			/*if (cls.demoplayback)
-				Sequence_OnLevelLoad (clgame.mapname);*/
 			break;
 		}
 	}
@@ -1186,9 +1170,8 @@ void CL_CheckForResend (void)
 	// [FWGS, 01.11.23]
 	if (cls.internetservers_wait)
 		CL_SendMasterServerScanRequest ();
-	/*CL_InternetServers_f ();*/
 
-// if the local server is running and we aren't then connect
+	// if the local server is running and we aren't then connect
 	if ((cls.state == ca_disconnected) && SV_Active ())
 		{
 		cls.signon = 0;
@@ -1687,13 +1670,11 @@ void CL_LocalServers_f (void)
 CL_BuildMasterServerScanRequest [FWGS, 01.04.23]
 =================
 */
-/*size_t CL_BuildMasterServerScanRequest (char *buf, size_t size, qboolean nat)*/
 static size_t NONNULL CL_BuildMasterServerScanRequest (char *buf, size_t size, uint32_t *key,
 	qboolean nat, const char *filter)
 	{
 	size_t	remaining;
-	/*char *info;*/
-	char *info, temp[32];
+	char	*info, temp[32];
 
 	if (unlikely (size < sizeof (MS_SCAN_REQUEST)))
 		return 0;
@@ -1703,7 +1684,6 @@ static size_t NONNULL CL_BuildMasterServerScanRequest (char *buf, size_t size, u
 	info = buf + sizeof (MS_SCAN_REQUEST) - 1;
 	remaining = size - sizeof (MS_SCAN_REQUEST);
 
-	/*info[0] = 0;*/
 	Q_strncpy (info, filter, remaining);
 	*key = COM_RandomLong (0, 0x7FFFFFFF);
 
@@ -1739,12 +1719,9 @@ CL_InternetServers_f [FWGS, 01.11.23]
 */
 void CL_InternetServers_f (void)
 	{
-	/*char		fullquery[512];
-	size_t		len;*/
 	qboolean	nat = cl_nat.value != 0.0f;
 	uint32_t	key;
 
-	/*len = CL_BuildMasterServerScanRequest (fullquery, sizeof (fullquery), nat);*/
 	if ((Cmd_Argc () > 2) || ((Cmd_Argc () == 2) && !Info_IsValid (Cmd_Argv (1))))
 		{
 		Con_Printf (S_USAGE "internetservers [filter]\n");
@@ -1758,16 +1735,6 @@ void CL_InternetServers_f (void)
 	Con_Printf ("Scanning for servers on the internet area...\n");
 	NET_Config (true, true); // allow remote
 
-	/*cls.internetservers_wait = NET_SendToMasters (NS_CLIENT, len, fullquery);
-	cls.internetservers_pending = true;
-
-	if (!cls.internetservers_wait)
-		{
-		// now we clearing the vgui request
-		if (clgame.master_request != NULL)
-			memset (clgame.master_request, 0, sizeof (net_request_t));
-		clgame.request_type = NET_REQUEST_GAMEUI;
-		}*/
 	CL_SendMasterServerScanRequest ();
 	}
 
@@ -2325,59 +2292,8 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 
 			// list is ends here [FWGS, 01.11.23]
 			if (!servadr.port)
-				/*{
-				if ((clgame.request_type == NET_REQUEST_CLIENT) && (clgame.master_request != NULL))
-					{
-					net_request_t *nr = clgame.master_request;
-					net_adrlist_t *list, **prev;
-
-					// setup the answer
-					nr->resp.remote_address = from;
-					nr->resp.error = NET_SUCCESS;
-					nr->resp.ping = host.realtime - nr->timesend;
-
-					if (nr->timeout <= host.realtime)
-						SetBits (nr->resp.error, NET_ERROR_TIMEOUT);
-
-					Con_Printf ("serverlist call: %s\n", NET_AdrToString (from));
-					nr->pfnFunc (&nr->resp);
-
-					// throw the list, now it will be stored in user area
-					prev = (net_adrlist_t **)&nr->resp.response;
-
-					while (1)
-						{
-						list = *prev;
-						if (!list) break;
-
-						// throw out any variables the game created
-						*prev = list->next;
-						Mem_Free (list);
-						}
-					memset (nr, 0, sizeof (*nr)); // done
-					clgame.request_type = NET_REQUEST_CANCEL;
-					clgame.master_request = NULL;
-					}*/
 				break;
 
-			/*}
-
-		if ((clgame.request_type == NET_REQUEST_CLIENT) && (clgame.master_request != NULL))
-			{
-			net_request_t *nr = clgame.master_request;
-			net_adrlist_t *list;
-
-			// adding addresses into list
-			list = Z_Malloc (sizeof (*list));
-			list->remote_address = servadr;
-			list->next = nr->resp.response;
-			nr->resp.response = list;
-			}
-		else if (clgame.request_type == NET_REQUEST_GAMEUI)
-			{
-			NET_Config (true, false); // allow remote
-			Netchan_OutOfBandPrint (NS_CLIENT, servadr, "info %i", PROTOCOL_VERSION);
-			}*/
 			NET_Config (true, false); // allow remote
 			Netchan_OutOfBandPrint (NS_CLIENT, servadr, "info %i", PROTOCOL_VERSION);
 			}
@@ -2433,7 +2349,6 @@ void CL_ReadNetMessage (void)
 	while (CL_GetMessage (net_message_buffer, &curSize))
 		{
 		// [FWGS, 01.11.23]
-		/*if (cls.legacymode && *((int *)&net_message_buffer) == 0xFFFFFFFE)*/
 		const int split_header = LittleLong (0xFFFFFFFE);
 		if (cls.legacymode && !memcmp (&split_header, net_message_buffer, sizeof (split_header)))
 			{
@@ -2522,7 +2437,6 @@ void CL_ReadPackets (void)
 	cl.oldtime = cl.time;
 
 	// [FWGS, 01.11.23]
-	/*if ((cls.demoplayback != DEMO_XASH3D) && !cl.paused)*/
 	if (!cl.paused)
 		cl.time += host.frametime;
 
@@ -3370,7 +3284,6 @@ void CL_Init (void)
 	VID_Init ();	// init video
 	S_Init ();	// init sound
 	Voice_Init (VOICE_DEFAULT_CODEC, 3); // init voice
-	/*Sequence_Init ();*/	// [FWGS, 01.11.23]
 
 	// unreliable buffer. unsed for unreliable commands and voice stream
 	MSG_Init (&cls.datagram, "cls.datagram", cls.datagram_buf, sizeof (cls.datagram_buf));

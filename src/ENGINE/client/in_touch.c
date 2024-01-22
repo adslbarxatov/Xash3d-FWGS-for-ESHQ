@@ -197,7 +197,6 @@ CVAR_DEFINE_AUTO (touch_emulate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 #define B(x) (button->x)
 #define SCR_W ((float)refState.width)
 #define SCR_H ((float)refState.height)
-/*#define TO_SCRN_Y(x) (refState.height * (x))*/
 #define TO_SCRN_Y(x) (refState.width * (x) * Touch_AspectRatio())
 #define TO_SCRN_X(x) (refState.width * (x))
 
@@ -267,7 +266,6 @@ static inline int Touch_ExportButtonToConfig (file_t *f, touch_button_t *button,
 	// [FWGS, 01.11.23]
 	if (keepAspect)
 		{
-		/*float aspect = (B (y2) - B (y1)) / ((B (x2) - B (x1)) / (SCR_H / SCR_W));*/
 		float aspect = (B (y2) - B (y1)) / ((B (x2) - B (x1)) / (Touch_AspectRatio ()));
 		FS_Printf (f, " %f\n", aspect);
 		}
@@ -452,7 +450,6 @@ static void Touch_GenerateCode_f (void)
 			SetBits (flags, TOUCH_FL_HIDE);
 
 		// [FWGS, 01.11.23]
-		/*aspect = (B (y2) - B (y1)) / ((B (x2) - B (x1)) / (SCR_H / SCR_W));*/
 		aspect = (B (y2) - B (y1)) / ((B (x2) - B (x1)) / (Touch_AspectRatio ()));
 		if (memcmp (&c, &B (color), sizeof (rgba_t)))
 			{
@@ -822,7 +819,6 @@ static void Touch_ReloadConfig_f (void)
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
 
 	// [FWGS, 01.11.23]
-	/*Cbuf_AddTextf ("exec %s\n", touch_config_file.string);*/
 	if (FS_FileExists (touch_config_file.string, true))
 		{
 		Cbuf_AddTextf ("exec \"%s\"\n", touch_config_file.string);
@@ -882,7 +878,6 @@ void Touch_AddClientButton (const char *name, const char *texture, const char *c
 	// [FWGS, 01.11.23]
 	if (round == round_aspect)
 		y2 = y1 + (x2 - x1) / (Touch_AspectRatio ()) * aspect;
-	/*y2 = y1 + (x2 - x1) * (SCR_W / SCR_H) * aspect;*/
 
 	button = Touch_AddButton (&touch.list_user, name, texture, command, x1, y1, x2, y2, color, true);
 	button->flags |= flags | TOUCH_FL_CLIENT | TOUCH_FL_NOEDIT;
@@ -910,7 +905,6 @@ static void Touch_LoadDefaults_f (void)
 				g_DefaultButtons[i].aspect + touch.swidth * 2 / SCR_H;
 			else
 				y2 = y1 + ((x2 - x1) / Touch_AspectRatio ()) * g_DefaultButtons[i].aspect;
-			/*y2 = y1 + (x2 - x1) * (SCR_W / SCR_H) * g_DefaultButtons[i].aspect;*/
 			}
 
 		IN_TouchCheckCoords (&x1, &y1, &x2, &y2);
@@ -1018,7 +1012,6 @@ static void Touch_AddButton_f (void)
 			{
 			if (B (texturefile)[0] != '#')
 				B (y2) = B (y1) + ((B (x2) - B (x1)) / Touch_AspectRatio ()) * aspect;
-			/*B (y2) = B (y1) + (B (x2) - B (x1)) * (SCR_W / SCR_H) * aspect;*/
 			B (aspect) = aspect;
 			}
 		}
@@ -1106,7 +1099,6 @@ static void Touch_DeleteProfile_f (void)
 // [FWGS, 01.11.23]
 static void Touch_InitEditor (void)
 	{
-	/*float x = 0.1f * (SCR_H / SCR_W);*/
 	float	x = 0.1f * (Touch_AspectRatio ());
 	float	y = 0.05f;
 	touch_button_t *temp;
@@ -1292,7 +1284,6 @@ void Touch_Init (void)
 	SDL_SetHint (SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
 	SDL_SetHint (SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
-	/*#else*/
 #elif defined(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH)
 	SDL_SetHint (SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
 #endif
@@ -1373,11 +1364,9 @@ static void Touch_DrawTexture (float x1, float y1, float x2, float y2, int textu
 
 // [FWGS, 01.11.23]
 #define GRID_COUNT_X ((int)touch_grid_count.value)
-/*#define GRID_COUNT_Y (((int)touch_grid_count.value) * SCR_H / SCR_W)*/
 #define GRID_COUNT_Y (((int)touch_grid_count.value) * Touch_AspectRatio())
 
 #define GRID_X (1.0f/GRID_COUNT_X)
-/*#define GRID_Y (SCR_W/SCR_H/GRID_COUNT_X)*/
 #define GRID_Y (1.0f/Touch_AspectRatio()/GRID_COUNT_X)
 
 #define GRID_ROUND_X(x) ((float)round( x * GRID_COUNT_X ) / GRID_COUNT_X)
@@ -1462,7 +1451,6 @@ static float Touch_DrawText (float x1, float y1, float x2, float y2, const char 
 			x1 += Touch_DrawCharacter (x1, y1, *s++, size);
 
 		// [FWGS, 01.11.23]
-		/*y1 += cls.creditsFont.charHeight / 1024.f * size / SCR_H * SCR_W;*/
 		y1 += cls.creditsFont.charHeight / 1024.f * size / Touch_AspectRatio ();
 
 		if (y1 >= maxy)
@@ -1572,8 +1560,6 @@ void Touch_Draw (void)
 		return;
 
 	// [FWGS, 01.11.23]
-	/*Touch_InitConfig ();*/
-
 	if ((cls.key_dest != key_game) && !touch_in_menu.value)
 		return;
 

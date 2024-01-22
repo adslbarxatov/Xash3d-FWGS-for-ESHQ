@@ -125,7 +125,6 @@ void SV_ParseConsistencyResponse (sv_client_t *cl, sizebuf_t *msg)
 			LittleLongSW (value);
 
 			// will be compare only first 4 bytes
-			/*if (value != *(int *)r->rgucMD5_hash)*/
 			if (memcmp (&value, r->rgucMD5_hash, 4))
 				badresindex = idx + 1;
 			}

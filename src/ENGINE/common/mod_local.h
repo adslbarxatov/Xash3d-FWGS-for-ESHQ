@@ -118,9 +118,6 @@ typedef struct world_static_s
 extern world_static_t	world;
 extern poolhandle_t     com_studiocache;
 
-// [FWGS, 01.11.23]
-/*extern model_t			*loadmodel;*/
-
 // [FWGS, 01.07.23]
 extern convar_t			mod_studiocache;
 extern convar_t			r_wadtextures;
@@ -170,7 +167,6 @@ void Mod_PrintWorldStats_f (void);
 // mod_dbghulls.c
 //
 // [FWGS, 01.11.23]
-/*void Mod_InitDebugHulls (void);*/
 void Mod_InitDebugHulls (model_t *mod);
 void Mod_CreatePolygonsForHull (int hullnum);
 void Mod_ReleaseHullPolygons (void);

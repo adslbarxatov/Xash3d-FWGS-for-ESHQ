@@ -155,7 +155,4 @@ class IVFileSystem009 : public IBaseInterface
 		// linkage=_ZN11IFileSystem23GetFileModificationTimeEPKc
 	};
 
-// [FWGS, 01.11.23]
-/*#define FILESYSTEM_INTERFACE_VERSION "VFileSystem009"	// never change this!*/
-
 #endif

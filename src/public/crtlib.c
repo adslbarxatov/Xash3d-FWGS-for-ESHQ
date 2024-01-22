@@ -687,11 +687,9 @@ void COM_ExtractFilePath (const char *path, char *dest)
 	const char *src = path + Q_strlen (path) - 1;
 
 	// [FWGS, 01.11.23] back up until a / or the start
-	/*while ((src != path) && !((*(src - 1) == '\\') || (*(src - 1) == '/')))*/
 	while ((src > path) && !(*(src - 1) == '\\' || *(src - 1) == '/'))
 		src--;
 
-	/*if (src != path)*/
 	if (src > path)
 		{
 		memcpy (dest, path, src - path);

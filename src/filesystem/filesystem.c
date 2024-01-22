@@ -682,7 +682,6 @@ void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir)
 	Q_strncpy (GameInfo->sp_entity, "info_player_start", sizeof (GameInfo->sp_entity));
 	Q_strncpy (GameInfo->mp_entity, "info_player_deathmatch", sizeof (GameInfo->mp_entity));
 
-	/*GameInfo->max_edicts = 1024;	// ESHQ: увеличено для ESRM*/
 	GameInfo->max_edicts = DEFAULT_MAX_EDICTS;	// [FWGS, 01.12.23] default value if not specified
 	GameInfo->max_tents = 500;
 	GameInfo->max_beams = 128;
@@ -827,7 +826,6 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 		else if (!Q_stricmp (token, "secure"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
-			/*GameInfo->secure = Q_atoi (token);*/
 			GameInfo->secure = Q_atoi (token) ? true : false;
 			}
 
@@ -835,7 +833,6 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 		else if (!Q_stricmp (token, "nomodels"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
-			/*GameInfo->nomodels = Q_atoi (token);*/
 			GameInfo->nomodels = Q_atoi (token) ? true : false;
 			}
 
@@ -849,7 +846,6 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 		else if (!Q_stricmp (token, "noskills"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
-			/*GameInfo->noskills = Q_atoi (token);*/
 			GameInfo->noskills = Q_atoi (token) ? true : false;	// [FWGS, 01.11.23]
 			}
 
@@ -935,7 +931,6 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			else if (!Q_stricmp (token, "render_picbutton_text"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
-				/*GameInfo->render_picbutton_text = Q_atoi (token);*/
 				GameInfo->render_picbutton_text = Q_atoi (token) ? true : false;
 				}
 
@@ -943,7 +938,6 @@ void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qbool
 			else if (!Q_stricmp (token, "internal_vgui_support"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
-				/*GameInfo->internal_vgui_support = Q_atoi (token);*/
 				GameInfo->internal_vgui_support = Q_atoi (token) ? true : false;
 				}
 
@@ -1500,7 +1494,6 @@ static void _Sys_Error (const char *fmt, ...)
 	}
 
 // [FWGS, 01.11.23]
-/*static void *_Platform_GetNativeObject_stub (const char *object)*/
 static void *Sys_GetNativeObject_stub (const char *object)
 	{
 	return NULL;
@@ -2194,8 +2187,6 @@ Read up to "buffersize" bytes from a file
 */
 fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 	{
-	/*fs_offset_t	count, done;
-	fs_offset_t	nb;*/
 	fs_offset_t		done;
 	fs_offset_t		nb;
 	size_t			count;
@@ -2221,8 +2212,6 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 	if (file->buff_ind < file->buff_len)
 		{
 		count = file->buff_len - file->buff_ind;
-
-		/*done += ((fs_offset_t)buffersize > count) ? count : (fs_offset_t)buffersize;*/
 		done += (buffersize > count) ? (fs_offset_t)count : (fs_offset_t)buffersize;
 
 		memcpy (buffer, &file->buff[file->buff_ind], done);
@@ -2242,13 +2231,10 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 	// if we have a lot of data to get, put them directly into "buffer"
 	if (buffersize > sizeof (file->buff) / 2)
 		{
-		/*if (count > (fs_offset_t)buffersize)
-			count = (fs_offset_t)buffersize;*/
 		if (count > buffersize)
 			count = buffersize;
 
 		lseek (file->handle, file->offset + file->position, SEEK_SET);
-		/*nb = read (file->handle, &((byte *)buffer)[done], count);*/
 		nb = read (file->handle, (byte *)buffer + done, count);
 
 		if (nb > 0)
@@ -2262,8 +2248,6 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 		}
 	else
 		{
-		/*if (count > (fs_offset_t)sizeof (file->buff))
-			count = (fs_offset_t)sizeof (file->buff);*/
 		if (count > sizeof (file->buff))
 			count = sizeof (file->buff);
 		lseek (file->handle, file->offset + file->position, SEEK_SET);
@@ -3007,7 +2991,6 @@ fs_interface_t g_engfuncs =
 		_Mem_Alloc,
 		_Mem_Realloc,
 		_Mem_Free,
-		/*_Platform_GetNativeObject_stub,	// [FWGS, 01.07.23]*/
 		Sys_GetNativeObject_stub,	// [FWGS, 01.11.23]
 	};
 
@@ -3051,10 +3034,8 @@ static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)
 		}
 
 	// [FWGS, 01.11.23]
-	/*if (engfuncs->_Platform_GetNativeObject)*/
 	if (engfuncs->_Sys_GetNativeObject)
 		{
-		/*g_engfuncs._Platform_GetNativeObject = engfuncs->_Platform_GetNativeObject;*/
 		g_engfuncs._Sys_GetNativeObject = engfuncs->_Sys_GetNativeObject;
 		Con_Reportf ("filesystem_stdio: custom platform-specific functions found\n");
 		}

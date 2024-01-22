@@ -412,9 +412,8 @@ Mod_CreateSkinData [FWGS, 01.11.23]
 rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 	{
 	static rgbdata_t	skin;
-	char		name[MAX_QPATH];
+	char	name[MAX_QPATH];
 	int		i;
-	/*model_t *loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();*/
 
 	skin.width = width;
 	skin.height = height;
@@ -439,7 +438,6 @@ rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 			}
 		}
 
-	/*COM_FileBase (loadmodel->name, name, sizeof (name));	// [FWGS, 01.05.23]*/
 	COM_FileBase (mod->name, name, sizeof (name));	// [FWGS, 01.11.23]
 
 	// for alias models only player can have remap textures
@@ -475,13 +473,11 @@ rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 	}
 
 // [FWGS, 01.11.23]
-/*void *Mod_LoadSingleSkin (daliasskintype_t *pskintype, int skinnum, int size)*/
 void *Mod_LoadSingleSkin (model_t *loadmodel, daliasskintype_t *pskintype, int skinnum, int size)
 	{
 	string		name, lumaname;
 	string		checkname;
 	rgbdata_t	*pic;
-	/*model_t *loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();*/
 
 	Q_snprintf (name, sizeof (name), "%s:frame%i", loadmodel->name, skinnum);
 	Q_snprintf (lumaname, sizeof (lumaname), "%s:luma%i", loadmodel->name, skinnum);
@@ -510,7 +506,6 @@ void *Mod_LoadSingleSkin (model_t *loadmodel, daliasskintype_t *pskintype, int s
 	}
 
 // [FWGS, 01.11.23]
-/*void *Mod_LoadGroupSkin (daliasskintype_t *pskintype, int skinnum, int size)*/
 void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype, int skinnum, int size)
 	{
 	daliasskininterval_t	*pinskinintervals;
@@ -518,7 +513,6 @@ void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype, int sk
 	string		name, lumaname;
 	rgbdata_t	*pic;
 	int			i, j;
-	/*model_t		*loadmodel = gEngfuncs.Mod_GetCurrentLoadingModel ();*/
 
 	// animating skin group
 	pskintype++;
@@ -558,7 +552,6 @@ void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype, int sk
 Mod_LoadAllSkins [FWGS, 01.11.23]
 ===============
 */
-/*void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype)*/
 void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *pskintype)
 	{
 	int	i, size;
@@ -571,14 +564,8 @@ void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *pskintype)
 	for (i = 0; i < numskins; i++)
 		{
 		if (pskintype->type == ALIAS_SKIN_SINGLE)
-			/*{
-			pskintype = (daliasskintype_t *)Mod_LoadSingleSkin (pskintype, i, size);
-			}*/
 			pskintype = (daliasskintype_t *)Mod_LoadSingleSkin (mod, pskintype, i, size);
 		else
-			/*{
-			pskintype = (daliasskintype_t *)Mod_LoadGroupSkin (pskintype, i, size);
-			}*/
 			pskintype = (daliasskintype_t *)Mod_LoadGroupSkin (mod, pskintype, i, size);
 		}
 
@@ -586,6 +573,7 @@ void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *pskintype)
 	}
 
 // =========================================================================
+
 /*
 =================
 Mod_CalcAliasBounds
@@ -687,7 +675,6 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 
 	// [FWGS, 01.11.23] load the skins
 	pskintype = (daliasskintype_t *)&pinmodel[1];
-	/*pskintype = Mod_LoadAllSkins (m_pAliasHeader->numskins, pskintype);*/
 	pskintype = Mod_LoadAllSkins (mod, m_pAliasHeader->numskins, pskintype);
 
 	// load base s and t vertices
@@ -734,7 +721,6 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	GL_MakeAliasModelDisplayLists (mod);
 
 	// [FWGS, 01.11.23] move the complete, relocatable alias model to the cache
-	/*gEngfuncs.Mod_GetCurrentLoadingModel ()->cache.data = m_pAliasHeader;*/
 	mod->cache.data = m_pAliasHeader;
 
 	// done

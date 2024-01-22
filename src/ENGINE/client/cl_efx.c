@@ -1217,7 +1217,6 @@ R_BloodStream [FWGS, 01.11.23]
 particle spray 2
 ===============
 */
-/*void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t dir, int pcolor, int speed)*/
 void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t ndir, int pcolor, int speed)
 	{
 	particle_t	*p;

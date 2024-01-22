@@ -86,8 +86,6 @@ CVAR_DEFINE_AUTO (sv_allow_upload, "1", FCVAR_SERVER,
 	"allow uploading custom resources on a server");
 
 // [FWGS, 01.11.23]
-/*CVAR_DEFINE_AUTO (sv_allow_download, "1", FCVAR_SERVER,
-	"allow downloading custom resources to the client");*/
 CVAR_DEFINE (sv_allow_download, "sv_allowdownload", "1", FCVAR_SERVER,
 	"allow downloading custom resources to the client");
 static CVAR_DEFINE_AUTO (sv_allow_dlfile, "1", 0,
@@ -1266,7 +1264,6 @@ void SV_Shutdown (const char *finalmsg)
 		if (CL_IsPlaybackDemo ())
 			CL_Drop ();
 
-		/*SV_UnloadProgs ();*/
 #if XASH_WIN32
 		SV_UnloadProgs ();
 #endif
@@ -1287,11 +1284,12 @@ void SV_Shutdown (const char *finalmsg)
 		NET_MasterShutdown ();
 
 	NET_Config (false, false);
-	/*SV_UnloadProgs ();*/
 	SV_DeactivateServer ();
+
 #if XASH_WIN32
 	SV_UnloadProgs ();
 #endif
+
 	CL_Drop ();
 
 	// free current level

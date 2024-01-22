@@ -83,10 +83,7 @@ static qboolean SV_CopyEdictToPhysEnt (physent_t *pe, edict_t *ed)
 		}
 	else
 		{
-		// [FWGS, 01.11.23]
-		/*// otherwise copy the classname
-		Q_strncpy (pe->name, STRING (ed->v.classname), sizeof (pe->name));*/
-		// otherwise copy the modelname
+		// [FWGS, 01.11.23] otherwise copy the modelname
 		Q_strncpy (pe->name, mod->name, sizeof (pe->name));
 		}
 

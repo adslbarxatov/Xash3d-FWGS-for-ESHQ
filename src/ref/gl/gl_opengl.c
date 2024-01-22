@@ -49,8 +49,6 @@ CVAR_DEFINE_AUTO (r_lockfrustum, "0", FCVAR_CHEAT,
 	"lock frustrum area at current point (cull test)");
 
 // [FWGS, 01.11.23]
-/*CVAR_DEFINE_AUTO (r_traceglow, "1", FCVAR_GLCONFIG,
-	"cull flares behind models");*/
 CVAR_DEFINE_AUTO (r_traceglow, "0", FCVAR_GLCONFIG,
 	"cull flares behind models");
 
@@ -537,7 +535,6 @@ int GL_MaxTextureUnits (void)
 GL_CheckExtension [FWGS, 01.11.23]
 =================
 */
-/*qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext)*/
 qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext, float minver)
 	{
 	const dllfunc_t *func;
@@ -565,7 +562,6 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 
 	extensions_string = glConfig.extensions_string;
 
-	/*if (((name[2] == '_') || (name[3] == '_')) && !Q_strstr (extensions_string, name))*/
 	if ((name[2] == '_' || name[3] == '_') && !Q_strstr (extensions_string, name) &&
 		((glver < minver) || (!minver || !glver)))
 		{
@@ -633,7 +629,6 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 				GL_SetExtension (r_ext, false);
 				}
 			}
-		/*GL_SetExtension (r_ext, false); // one or more functions are invalid, extension will be disabled*/
 		}
 #endif
 
@@ -827,7 +822,6 @@ void GL_InitExtensionsGLES (void)
 		switch (extid)
 			{
 			case GL_ARB_VERTEX_BUFFER_OBJECT_EXT:
-				/*GL_SetExtension (extid, true);*/
 				GL_CheckExtension ("vertex_buffer_object", vbofuncs, "gl_vertex_buffer_object", extid, 1.0);
 				break;
 
@@ -858,26 +852,22 @@ void GL_InitExtensionsGLES (void)
 				break;
 
 			case GL_TEXTURE_CUBEMAP_EXT:
-				/*if (GL_CheckExtension ("GL_OES_texture_cube_map", NULL, "gl_texture_cubemap", extid))*/
 				if (GL_CheckExtension ("GL_OES_texture_cube_map", NULL, "gl_texture_cubemap", extid, 0))
 					pglGetIntegerv (GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, &glConfig.max_cubemap_size);
 				break;
 
 			case GL_ANISOTROPY_EXT:
 				glConfig.max_texture_anisotropy = 0.0f;
-				/*if (GL_CheckExtension ("GL_EXT_texture_filter_anisotropic", NULL, "gl_ext_anisotropic_filter", extid))*/
 				if (GL_CheckExtension ("GL_EXT_texture_filter_anisotropic", NULL, "gl_ext_anisotropic_filter", extid, 0))
 					pglGetFloatv (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glConfig.max_texture_anisotropy);
 				break;
 
 			case GL_TEXTURE_LOD_BIAS:
-				/*if (GL_CheckExtension ("GL_EXT_texture_lod_bias", NULL, "gl_texture_mipmap_biasing", extid))*/
 				if (GL_CheckExtension ("GL_EXT_texture_lod_bias", NULL, "gl_texture_mipmap_biasing", extid, 0))
 					pglGetFloatv (GL_MAX_TEXTURE_LOD_BIAS_EXT, &glConfig.max_texture_lod_bias);
 				break;
 
 			case GL_ARB_TEXTURE_NPOT_EXT:
-				/*GL_CheckExtension ("GL_OES_texture_npot", NULL, "gl_texture_npot", extid);*/
 				GL_CheckExtension ("GL_OES_texture_npot", NULL, "gl_texture_npot", extid, 0);
 				break;
 
@@ -917,7 +907,6 @@ void GL_InitExtensionsGLES (void)
 
 			case GL_DEBUG_OUTPUT:
 				if (glw_state.extended)
-					/*GL_CheckExtension ("GL_KHR_debug", NULL, NULL, extid);*/
 					GL_CheckExtension ("GL_KHR_debug", debugoutputfuncs, "gl_debug_output", extid, 0);
 				else
 					GL_SetExtension (extid, false);
@@ -952,7 +941,6 @@ void GL_InitExtensionsGLES (void)
 void GL_InitExtensionsBigGL (void)
 	{
 	// intialize wrapper type
-	/*glConfig.context = CONTEXT_TYPE_GL;*/
 	glConfig.context = gEngfuncs.Sys_CheckParm ("-glcore") ? CONTEXT_TYPE_GL_CORE : CONTEXT_TYPE_GL;
 	glConfig.wrapper = GLES_WRAPPER_NONE;
 
@@ -984,7 +972,6 @@ void GL_InitExtensionsBigGL (void)
 
 	// multitexture
 	glConfig.max_texture_units = glConfig.max_texture_coords = glConfig.max_teximage_units = 1;
-	/*if (GL_CheckExtension ("GL_ARB_multitexture", multitexturefuncs, "gl_arb_multitexture", GL_ARB_MULTITEXTURE))*/
 	if (GL_CheckExtension ("GL_ARB_multitexture", multitexturefuncs, "gl_arb_multitexture", GL_ARB_MULTITEXTURE, 1.3f))
 		{
 		pglGetIntegerv (GL_MAX_TEXTURE_UNITS_ARB, &glConfig.max_texture_units);
@@ -994,7 +981,6 @@ void GL_InitExtensionsBigGL (void)
 		GL_SetExtension (GL_ARB_MULTITEXTURE, false);
 
 	// 3d texture support
-	/*if (GL_CheckExtension ("GL_EXT_texture3D", texture3dextfuncs, "gl_texture_3d", GL_TEXTURE_3D_EXT))*/
 	if (GL_CheckExtension ("GL_EXT_texture3D", texture3dextfuncs, "gl_texture_3d", GL_TEXTURE_3D_EXT, 2.0f))
 		{
 		pglGetIntegerv (GL_MAX_3D_TEXTURE_SIZE, &glConfig.max_3d_texture_size);
@@ -1007,25 +993,18 @@ void GL_InitExtensionsBigGL (void)
 		}
 
 	// 2d texture array support
-	/*if (GL_CheckExtension ("GL_EXT_texture_array", texture3dextfuncs, "gl_texture_2d_array", GL_TEXTURE_ARRAY_EXT))*/
 	if (GL_CheckExtension ("GL_EXT_texture_array", texture3dextfuncs, "gl_texture_2d_array", GL_TEXTURE_ARRAY_EXT, 0))
 		pglGetIntegerv (GL_MAX_ARRAY_TEXTURE_LAYERS_EXT, &glConfig.max_2d_texture_layers);
 
 	// cubemaps support
-	/*if (GL_CheckExtension ("GL_ARB_texture_cube_map", NULL, "gl_texture_cubemap", GL_TEXTURE_CUBEMAP_EXT))*/
 	if (GL_CheckExtension ("GL_ARB_texture_cube_map", NULL, "gl_texture_cubemap", GL_TEXTURE_CUBEMAP_EXT, 0))
 		{
 		pglGetIntegerv (GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, &glConfig.max_cubemap_size);
 
 		// check for seamless cubemaps too
-		/*GL_CheckExtension ("GL_ARB_seamless_cube_map", NULL, "gl_texture_cubemap_seamless", GL_ARB_SEAMLESS_CUBEMAP);*/
 		GL_CheckExtension ("GL_ARB_seamless_cube_map", NULL, "gl_texture_cubemap_seamless", GL_ARB_SEAMLESS_CUBEMAP, 0);
 		}
 
-	/*GL_CheckExtension ("GL_ARB_texture_non_power_of_two", NULL, "gl_texture_npot", GL_ARB_TEXTURE_NPOT_EXT);
-	GL_CheckExtension ("GL_ARB_texture_compression", texturecompressionfuncs, "gl_texture_dxt_compression", GL_TEXTURE_COMPRESSION_EXT);
-	if (!GL_CheckExtension ("GL_EXT_texture_edge_clamp", NULL, "gl_clamp_to_edge", GL_CLAMPTOEDGE_EXT))
-		GL_CheckExtension ("GL_SGIS_texture_edge_clamp", NULL, "gl_clamp_to_edge", GL_CLAMPTOEDGE_EXT);*/
 	GL_CheckExtension ("GL_ARB_texture_non_power_of_two", NULL, "gl_texture_npot", GL_ARB_TEXTURE_NPOT_EXT, 0);
 	GL_CheckExtension ("GL_ARB_texture_compression", texturecompressionfuncs, "gl_texture_dxt_compression",
 		GL_TEXTURE_COMPRESSION_EXT, 0);
@@ -1035,8 +1014,6 @@ void GL_InitExtensionsBigGL (void)
 		GL_CheckExtension ("GL_SGIS_texture_edge_clamp", NULL, "gl_clamp_to_edge", GL_CLAMPTOEDGE_EXT, 0);
 
 	glConfig.max_texture_anisotropy = 0.0f;
-	/*if (GL_CheckExtension ("GL_EXT_texture_filter_anisotropic", NULL, "gl_texture_anisotropic_filter",
-	GL_ANISOTROPY_EXT))*/
 	if (GL_CheckExtension ("GL_EXT_texture_filter_anisotropic", NULL, "gl_texture_anisotropic_filter",
 		GL_ANISOTROPY_EXT, 0))
 		pglGetFloatv (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glConfig.max_texture_anisotropy);
@@ -1046,22 +1023,11 @@ void GL_InitExtensionsBigGL (void)
 	if (glConfig.hardware_type != GLHW_INTEL)
 #endif
 		{
-		/*if (GL_CheckExtension ("GL_EXT_texture_lod_bias", NULL, "gl_texture_mipmap_biasing", GL_TEXTURE_LOD_BIAS))*/
 		if (GL_CheckExtension ("GL_EXT_texture_lod_bias", NULL, "gl_texture_mipmap_biasing", GL_TEXTURE_LOD_BIAS, 1.4))
 			pglGetFloatv (GL_MAX_TEXTURE_LOD_BIAS_EXT, &glConfig.max_texture_lod_bias);
 		}
 
-	/*GL_CheckExtension ("GL_ARB_texture_border_clamp", NULL, NULL, GL_CLAMP_TEXBORDER_EXT);*/
 	GL_CheckExtension ("GL_ARB_texture_border_clamp", NULL, NULL, GL_CLAMP_TEXBORDER_EXT, 2.0); // present in ES2
-
-	/*GL_CheckExtension ("GL_ARB_depth_texture", NULL, NULL, GL_DEPTH_TEXTURE);
-	GL_CheckExtension ("GL_ARB_texture_float", NULL, "gl_texture_float", GL_ARB_TEXTURE_FLOAT_EXT);
-	GL_CheckExtension ("GL_ARB_depth_buffer_float", NULL, "gl_texture_depth_float", GL_ARB_DEPTH_FLOAT_EXT);
-	GL_CheckExtension ("GL_EXT_gpu_shader4", NULL, NULL, GL_EXT_GPU_SHADER4); // don't confuse users
-	GL_CheckExtension ("GL_ARB_vertex_buffer_object", vbofuncs, "gl_vertex_buffer_object", GL_ARB_VERTEX_BUFFER_OBJECT_EXT);
-	GL_CheckExtension ("GL_ARB_texture_multisample", multisampletexfuncs, "gl_texture_multisample", GL_TEXTURE_MULTISAMPLE);
-	GL_CheckExtension ("GL_ARB_texture_compression_bptc", NULL, "gl_texture_bptc_compression", GL_ARB_TEXTURE_COMPRESSION_BPTC);
-	if (GL_CheckExtension ("GL_ARB_shading_language_100", NULL, NULL, GL_SHADER_GLSL100_EXT))*/
 
 	// missing in gles, check GL_OES_depth_texture
 	GL_CheckExtension ("GL_ARB_depth_texture", NULL, NULL, GL_DEPTH_TEXTURE, 1.4);
@@ -1116,16 +1082,11 @@ void GL_InitExtensionsBigGL (void)
 		}
 
 	// rectangle textures support
-	/*GL_CheckExtension ("GL_ARB_texture_rectangle", NULL, "gl_texture_rectangle", GL_TEXTURE_2D_RECT_EXT);*/
 	GL_CheckExtension ("GL_ARB_texture_rectangle", NULL, "gl_texture_rectangle", GL_TEXTURE_2D_RECT_EXT, 0);
 
-	/*if (!GL_CheckExtension ("glDrawRangeElements", drawrangeelementsfuncs, "gl_drawrangeelements",
-	GL_DRAW_RANGEELEMENTS_EXT))*/
 	if (!GL_CheckExtension ("glDrawRangeElements", drawrangeelementsfuncs, "gl_drawrangeelements",
 		GL_DRAW_RANGEELEMENTS_EXT, 0))
 		{
-		/*if (GL_CheckExtension ("glDrawRangeElementsEXT", drawrangeelementsextfuncs,
-			"gl_drawrangelements", GL_DRAW_RANGEELEMENTS_EXT))*/
 		if (GL_CheckExtension ("glDrawRangeElementsEXT", drawrangeelementsextfuncs, "gl_drawrangelements",
 			GL_DRAW_RANGEELEMENTS_EXT, 0))
 			{
@@ -1138,7 +1099,6 @@ void GL_InitExtensionsBigGL (void)
 	// this won't work without extended context
 	if (glw_state.extended)
 		GL_CheckExtension ("GL_ARB_debug_output", debugoutputfuncs, "gl_debug_output", GL_DEBUG_OUTPUT, 0);
-	/*GL_CheckExtension ("GL_ARB_debug_output", debugoutputfuncs, "gl_debug_output", GL_DEBUG_OUTPUT);*/
 
 // [FWGS, 01.07.23]
 #if XASH_PSVITA
@@ -1165,7 +1125,6 @@ void GL_InitExtensions (void)
 	GL_OnContextCreated ();
 
 	// initialize gl extensions
-	/*GL_CheckExtension ("OpenGL 1.1.0", opengl_110funcs, NULL, GL_OPENGL_110);*/
 	GL_CheckExtension ("OpenGL 1.1.0", opengl_110funcs, NULL, GL_OPENGL_110, 1.0);
 
 	// get our various GL strings
@@ -1407,8 +1366,6 @@ qboolean R_Init (void)
 		return false;
 		}
 
-	/*r_temppool = Mem_AllocPool ("Render Zone");*/
-
 	GL_SetDefaults ();
 	R_CheckVBO ();
 	R_InitImages ();
@@ -1506,7 +1463,6 @@ void GL_SetupAttributes (int safegl)
 	#ifdef XASH_NANOGL
 		gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_MAJOR_VERSION, 1);
 		gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_MINOR_VERSION, 1);
-		/*#elif defined( XASH_WES ) || defined( XASH_REGAL )*/
 	#else
 		gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_MAJOR_VERSION, 2);
 		gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_MINOR_VERSION, 0);
@@ -1527,7 +1483,6 @@ void GL_SetupAttributes (int safegl)
 		}
 	else
 		{
-		/*gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_PROFILE_MASK, REF_GL_CONTEXT_PROFILE_COMPATIBILITY);*/
 		if (!safegl)
 			{
 			gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_PROFILE_MASK, REF_GL_CONTEXT_PROFILE_COMPATIBILITY);

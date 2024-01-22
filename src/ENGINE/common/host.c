@@ -151,7 +151,6 @@ void Sys_PrintUsage (void)
 #endif
 
 		// [FWGS, 01.11.23]
-		/*#if XASH_ANDROID*/
 #if XASH_ANDROID && !XASH_SDL
 		O ("-nativeegl       ", "use native egl implementation. Use if screen does not update or black")
 #endif
@@ -1036,8 +1035,6 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 
 		// [FWGS, 01.11.23]
 #if TARGET_OS_IOS
-		/*const char *IOS_GetDocsDir ();
-		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));*/
 		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));
 #elif XASH_ANDROID && XASH_SDL
 		Q_strncpy (host.rootdir, SDL_AndroidGetExternalStoragePath (), sizeof (host.rootdir));
@@ -1051,9 +1048,6 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 
 		// [FWGS, 01.11.23] GetBasePath not impl'd in switch-sdl2
 #elif (XASH_SDL == 2) && !XASH_NSWITCH 
-		/*char *szBasePath;
-
-		if (!(szBasePath = SDL_GetBasePath ()))*/
 		char *szBasePath = SDL_GetBasePath ();
 		if (szBasePath)
 			{
@@ -1068,8 +1062,6 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 				Sys_Error ("couldn't determine current directory: %s, getcwd: %s", SDL_GetError (), strerror (errno));
 #else
 			Sys_Error ("couldn't determine current directory: %s", SDL_GetError ());
-			/*Q_strncpy (host.rootdir, szBasePath, sizeof (host.rootdir));
-			SDL_free (szBasePath);*/
 #endif
 			}
 

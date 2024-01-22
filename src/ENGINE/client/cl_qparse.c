@@ -709,15 +709,10 @@ static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	cl_entity_t		*ent;
 	int				newnum;
 
-	/*memset (&state, 0, sizeof (state));*/
 	newnum = MSG_ReadWord (msg); // entnum
 
 	if (newnum >= clgame.maxEntities)
 		Host_Error ("CL_AllocEdict: no free edicts\n");
-
-	/*ent = CL_EDICT_NUM (newnum);
-	memset (&ent->prevstate, 0, sizeof (ent->prevstate));
-	ent->index = newnum;*/
 
 	// parse baseline
 	memset (&state, 0, sizeof (state));
@@ -731,7 +726,6 @@ static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	state.angles[1] = MSG_ReadAngle (msg);
 	state.origin[2] = MSG_ReadCoord (msg);
 	state.angles[2] = MSG_ReadAngle (msg);
-	/*ent->player = CL_IsPlayerIndex (newnum);*/
 
 	ent = CL_EDICT_NUM (newnum);
 	ent->index = newnum;
@@ -755,7 +749,7 @@ static void CL_ParseQuakeTempEntity (sizebuf_t *msg)
 		MSG_WriteString (&msg_demo, MSG_ReadString (msg));
 
 	// TE_LIGHTNING1, TE_LIGHTNING2, TE_LIGHTNING3, TE_BEAM, TE_LIGHTNING4
-	if (type == 5 || type == 6 || type == 9 || type == 13 || type == 17)
+	if ((type == 5) || (type == 6) || (type == 9) || (type == 13) || (type == 17))
 		MSG_WriteWord (&msg_demo, MSG_ReadWord (msg));
 
 	// all temp ents have position at beginning

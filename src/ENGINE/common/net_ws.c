@@ -289,7 +289,6 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 	else if (a->type == NA_IP)
 		{
 		((struct sockaddr_in *)s)->sin_family = AF_INET;
-		/*((struct sockaddr_in *)s)->sin_addr.s_addr = *(uint32_t *)&a->ip;*/
 		((struct sockaddr_in *)s)->sin_port = a->port;
 		((struct sockaddr_in *)s)->sin_addr.s_addr = a->ip4;
 		}
@@ -472,7 +471,6 @@ void NET_ResolveThread (void)
 	RESOLVE_DBG (" with gethostbyname\n");
 #endif
 
-	/*if (NET_GetHostByName (nsthread.hostname, nsthread.family, &addr))*/
 	if ((res = NET_GetHostByName (nsthread.hostname, nsthread.family, &addr)))
 		RESOLVE_DBG ("[resolve thread] success\n");
 	else
@@ -745,7 +743,6 @@ const char *NET_AdrToString (const netadr_t a)
 	if (a.type == NA_LOOPBACK)
 		return "loopback";
 
-	/*if (a.type6 == NA_IP6)*/
 	if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))
 		{
 		uint8_t ip6[16];
@@ -774,7 +771,6 @@ const char *NET_BaseAdrToString (const netadr_t a)
 	if (a.type == NA_LOOPBACK)
 		return "loopback";
 
-	/*if (a.type6 == NA_IP6)*/
 	if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))
 		{
 		uint8_t ip6[16];
@@ -1091,7 +1087,6 @@ net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)
 	if (!Q_stricmp (string, "localhost") || !Q_stricmp (string, "loopback"))
 		{
 		adr->type = NA_LOOPBACK;
-		/*return true;*/
 		return NET_EAI_OK;
 		}
 
@@ -2167,9 +2162,6 @@ void NET_Init (void)
 	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_SERVER);
 	Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);
 
-	/*Q_snprintf (cmd, sizeof (cmd), "%i", PORT_CLIENT);
-	Cvar_FullSet ("clientport", cmd, FCVAR_READ_ONLY);*/
-
 	// cvar equivalents for IPv6
 	Cvar_RegisterVariable (&net_ip6name);
 	Cvar_RegisterVariable (&net_ip6hostport);
@@ -2291,7 +2283,6 @@ typedef struct httpfile_s
 	qboolean process;
 
 	// [FWGS, 01.12.23] query or response
-	/*char buf[BUFSIZ + 1];*/
 	char buf[MAX_HTTP_BUFFER_SIZE + 1];
 	int header_size;
 	int query_length;
@@ -2447,22 +2438,18 @@ process incoming data
 */
 static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 	{
-	/*char buf[BUFSIZ + 1];*/
 	char buf[sizeof (curfile->buf)];
 	char *begin = 0;
 	int res;
 
-	/*if (curfile->header_size >= BUFSIZ)*/
 	if (curfile->header_size >= sizeof (buf))
 		{
-		/*Con_Reportf (S_ERROR "Header to big\n");*/
 		Con_Reportf (S_ERROR "Header too big, the size is %s\n", curfile->header_size);
 		HTTP_FreeFile (curfile, true);
 		return false;
 		}
 
 	// if we got there, we are receiving data
-	/*while ((res = recv (curfile->socket, buf, BUFSIZ - curfile->header_size, 0)) > 0)*/
 	while ((res = recv (curfile->socket, buf, sizeof (buf) - curfile->header_size, 0)) > 0)
 		{
 		curfile->blocktime = 0;
@@ -2476,7 +2463,6 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 			if (begin) // Got full header
 				{
 				int cutheadersize = begin - curfile->buf + 4; // after that begin of data
-				/*char *length;*/
 				char *content_length_line;
 
 				Con_Reportf ("HTTP: Got response!\n");
@@ -2497,12 +2483,9 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 					}
 
 				// print size
-				/*length = Q_stristr (curfile->buf, "Content-Length: ");
-				if (length)*/
 				content_length_line = Q_stristr (curfile->buf, "Content-Length: ");
 				if (content_length_line)
 					{
-					/*int size = Q_atoi (length += 16);*/
 					int size;
 					
 					content_length_line += sizeof ("Content-Length: ") - 1;

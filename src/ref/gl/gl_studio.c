@@ -121,15 +121,12 @@ typedef struct
 	} studio_draw_state_t;
 
 // [FWGS, 01.11.23] studio-related cvars
-/*static CVAR_DEFINE_AUTO (r_studio_sort_textures, "0", FCVAR_GLCONFIG, "change draw order for additive meshes");*/
 CVAR_DEFINE_AUTO (r_studio_sort_textures, "0", FCVAR_GLCONFIG,
 	"change draw order for additive meshes");
 CVAR_DEFINE_AUTO (r_studio_drawelements, "1", FCVAR_GLCONFIG,
 	"use glDrawElements for studiomodels");
 
 static cvar_t *cl_righthand = NULL;
-/*static CVAR_DEFINE_AUTO (r_studio_drawelements, "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels");*/
-
 static r_studio_interface_t *pStudioDraw;
 static studio_draw_state_t	g_studio;		// global studio state
 
@@ -150,10 +147,6 @@ R_StudioInit
 */
 void R_StudioInit (void)
 	{
-	/* [FWGS, 01.07.23]
-	gEngfuncs.Cvar_RegisterVariable (&r_studio_sort_textures);
-	gEngfuncs.Cvar_RegisterVariable (&r_studio_drawelements);*/
-
 // [FWGS, 01.04.23]
 #if XASH_PSVITA
 	// don't do the same array-building work twice since that's what our FFP shim does anyway
@@ -1930,10 +1923,8 @@ R_StudioDrawNormalMesh [FWGS, 01.11.23]
 generic path
 ===============
 */
-/*_inline void R_StudioDrawNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)*/
 static void R_StudioDrawNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)
 	{
-	/*float *lv;*/
 	int	i;
 
 	while ((i = *(ptricmds++)))
@@ -1967,10 +1958,8 @@ R_StudioDrawFloatMesh [FWGS, 01.11.23]
 generic path
 ===============
 */
-/*_inline void R_StudioDrawFloatMesh (short *ptricmds, vec3_t *pstudionorms)*/
 static void R_StudioDrawFloatMesh (short *ptricmds, vec3_t *pstudionorms)
 	{
-	/*float *lv;*/
 	int	i;
 
 	while ((i = *(ptricmds++)))
@@ -2003,7 +1992,6 @@ R_StudioDrawChromeMesh [FWGS, 01.11.23]
 generic path
 ===============
 */
-/*_inline void R_StudioDrawChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)*/
 static void R_StudioDrawChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)
 	{
 	float	*lv, *av;
@@ -2052,7 +2040,6 @@ static void R_StudioDrawChromeMesh (short *ptricmds, vec3_t *pstudionorms, float
 	}
 
 // [FWGS, 01.11.23]
-/*_inline int R_StudioBuildIndices (qboolean tri_strip, int vertexState)*/
 static int R_StudioBuildIndices (qboolean tri_strip, int vertexState)
 	{
 	// build in indices
@@ -2096,7 +2083,6 @@ R_StudioBuildArrayNormalMesh [FWGS, 01.11.23]
 generic path
 ===============
 */
-/*_inline void R_StudioBuildArrayNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)*/
 static void R_StudioBuildArrayNormalMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t)
 	{
 	float	*lv;
@@ -2140,7 +2126,6 @@ R_StudioBuildArrayFloatMesh [FWGS, 01.11.23]
 generic path
 ===============
 */
-/*_inline void R_StudioBuildArrayFloatMesh (short *ptricmds, vec3_t *pstudionorms)*/
 static void R_StudioBuildArrayFloatMesh (short *ptricmds, vec3_t *pstudionorms)
 	{
 	float	*lv;
@@ -2184,7 +2169,6 @@ R_StudioBuildArrayChromeMesh [FWGS, 01.11.23]
 generic path
 ===============
 */
-/*_inline void R_StudioBuildArrayChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)*/
 static void R_StudioBuildArrayChromeMesh (short *ptricmds, vec3_t *pstudionorms, float s, float t, float scale)
 	{
 	float		*lv, *av;
@@ -2243,7 +2227,6 @@ static void R_StudioBuildArrayChromeMesh (short *ptricmds, vec3_t *pstudionorms,
 	}
 
 // [FWGS, 01.11.23]
-/*_inline void R_StudioDrawArrays (uint startverts, uint startelems)*/
 static void R_StudioDrawArrays (uint startverts, uint startelems)
 	{
 	pglEnableClientState (GL_VERTEX_ARRAY);
@@ -3712,13 +3695,6 @@ void R_DrawViewModel (void)
 	pglDepthRange (gldepthmin, gldepthmin + 0.3f * (gldepthmax - gldepthmin));
 	RI.currentmodel = RI.currententity->model;
 
-	/* [FWGS, 01.07.23] backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity))
-		{
-		tr.fFlipViewModel = true;
-		pglFrontFace (GL_CW);
-		}*/
-
 	switch (RI.currententity->model->type)
 		{
 		case mod_alias:
@@ -3732,13 +3708,6 @@ void R_DrawViewModel (void)
 
 	// restore depth range
 	pglDepthRange (gldepthmin, gldepthmax);
-
-	/*[FWGS, 01.07.23] backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity))
-		{
-		tr.fFlipViewModel = false;
-		pglFrontFace (GL_CCW);
-		}*/
 	}
 
 /*
@@ -3982,10 +3951,6 @@ void CL_InitStudioAPI (void)
 
 	// trying to grab them from client.dll
 	cl_righthand = gEngfuncs.pfnGetCvarPointer ("cl_righthand", 0);
-
-	// [FWGS, 01.11.23]
-	/*if (cl_righthand == NULL)
-		cl_righthand = gEngfuncs.Cvar_Get ("cl_righthand", "0", FCVAR_ARCHIVE, "flip viewmodel (left to right)");*/
 
 	// Xash will be used internal StudioModelRenderer
 	if (gEngfuncs.pfnGetStudioModelInterface (STUDIO_INTERFACE_VERSION, &pStudioDraw, &gStudioAPI))

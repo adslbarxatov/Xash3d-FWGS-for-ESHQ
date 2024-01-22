@@ -643,8 +643,8 @@ int WAI_PREFIX (getExecutablePath)(char *out, int capacity, int *dirname_length)
 			if (!PATH)
 				break;
 
-			/*size_t*/ argv0_length = strlen (argv[0]);
-			/*const char **/ begin = PATH;
+			argv0_length = strlen (argv[0]);
+			begin = PATH;
 
 			while (1)
 				{

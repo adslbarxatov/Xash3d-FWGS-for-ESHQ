@@ -1136,7 +1136,6 @@ void CL_FinishTimeDemo (void)
 		time = 1.0;
 
 	// [FWGS, 01.11.23]
-	/*Con_Printf ("%i frames %5.3f seconds %5.3f fps\n", frames, time, frames / time);*/
 	Con_Printf ("timedemo result: %i frames %5.3f seconds %5.3f fps\n", frames, time, frames / time);
 	
 	if (Sys_CheckParm ("-timedemo"))

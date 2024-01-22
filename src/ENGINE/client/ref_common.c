@@ -124,16 +124,7 @@ static void *pfnMod_Extradata (int type, model_t *m)
 	return NULL;
 	}
 
-// [FWGS, 01.11.23]
-/*static model_t *pfnMod_GetCurrentLoadingModel (void)
-	{
-	return loadmodel;
-	}
-
-static void pfnMod_SetCurrentLoadingModel (model_t *m)
-	{
-	loadmodel = m;
-	}*/
+// [FWGS, 01.11.23] removed pfnMod_GetCurrentLoadingModel, pfnMod_SetCurrentLoadingModel
 
 static void pfnGetPredictedOrigin (vec3_t v)
 	{
@@ -312,10 +303,6 @@ static ref_api_t gEngfuncs =
 		Mod_ForName,
 		pfnMod_Extradata,
 		CL_ModelHandle,
-
-		// [FWGS, 01.11.23]
-		/*pfnMod_GetCurrentLoadingModel,
-		pfnMod_SetCurrentLoadingModel,*/
 
 		CL_GetRemapInfoForEntity,
 		CL_AllocRemapInfo,
@@ -590,15 +577,12 @@ static void SetWidthAndHeightFromCommandLine (void)
 // [FWGS, 01.11.23]
 static void SetFullscreenModeFromCommandLine (void)
 	{
-	/*#if !XASH_MOBILE_PLATFORM
-		if (Sys_CheckParm ("-fullscreen"))*/
 	if (Sys_CheckParm ("-borderless"))
 		Cvar_DirectSet (&vid_fullscreen, "2");
 	else if (Sys_CheckParm ("-fullscreen"))
 		Cvar_DirectSet (&vid_fullscreen, "1");
 	else if (Sys_CheckParm ("-windowed"))
 		Cvar_DirectSet (&vid_fullscreen, "0");
-	/*#endif*/
 	}
 
 // [FWGS, 01.05.23]
