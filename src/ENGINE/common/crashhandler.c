@@ -392,10 +392,16 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 	pc = (void *)ucontext->uc_mcontext.mc_rip;
 	bp = (void **)ucontext->uc_mcontext.mc_rbp;
 	sp = (void **)ucontext->uc_mcontext.mc_rsp;
-#elif XASH_NETBSD	// [FWGS, 01.11.23]
-	pc = (void *)ucontext->uc_mcontext.__gregs[_REG_EIP];
+
+	// [FWGS, 01.02.24]
+#elif XASH_NETBSD
+	/*pc = (void *)ucontext->uc_mcontext.__gregs[_REG_EIP];
 	bp = (void **)ucontext->uc_mcontext.__gregs[_REG_EBP];
-	sp = (void **)ucontext->uc_mcontext.__gregs[_REG_ESP];
+	sp = (void **)ucontext->uc_mcontext.__gregs[_REG_ESP];*/
+	pc = (void *)ucontext->uc_mcontext.__gregs[_REG_RIP];
+	bp = (void **)ucontext->uc_mcontext.__gregs[_REG_RBP];
+	sp = (void **)ucontext->uc_mcontext.__gregs[_REG_RSP];
+
 #elif XASH_OPENBSD
 	pc = (void *)ucontext->sc_rip;
 	bp = (void **)ucontext->sc_rbp;

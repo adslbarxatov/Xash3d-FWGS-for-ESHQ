@@ -171,13 +171,13 @@ void Con_Clear_f (void)
 
 /*
 ================
-Con_SetColor [FWGS, 01.07.23]
+Con_SetColor [FWGS, 01.02.24]
 ================
 */
 static void Con_SetColor (void)
 	{
-	int r, g, b;
-	int num;
+	int	r, g, b;
+	int	num;
 
 	if (!FBitSet (con_color.flags, FCVAR_CHANGED))
 		return;
@@ -187,11 +187,15 @@ static void Con_SetColor (void)
 	switch (num)
 		{
 		case 1:
-			Con_DefaultColor (r, r, r);
+			/*Con_DefaultColor (r, r, r);*/
+			Con_DefaultColor (r, r, r, false);
 			break;
+
 		case 3:
-			Con_DefaultColor (r, g, b);
+			/*Con_DefaultColor (r, g, b);*/
+			Con_DefaultColor (r, g, b, false);
 			break;
+
 		default:
 			Cvar_DirectSet (&con_color, con_color.def_string);
 			break;
@@ -2302,16 +2306,26 @@ void Con_FastClose (void)
 
 /*
 =========
-Con_DefaultColor
+Con_DefaultColor [FWGS, 01.02.24]
 
 called from MainUI
 =========
 */
-void GAME_EXPORT Con_DefaultColor (int r, int g, int b)
+/*void GAME_EXPORT Con_DefaultColor (int r, int g, int b)*/
+void Con_DefaultColor (int r, int g, int b, qboolean gameui)
 	{
 	r = bound (0, r, 255);
 	g = bound (0, g, 255);
 	b = bound (0, b, 255);
+
+	// gameui wants to override console color... check if it's not default
+	if (gameui && ((g_color_table[7][0] != r) || (g_color_table[7][1] != g) || (g_color_table[7][2] != b)))
+		{
+		// yes, different from default orange, disable con_color
+		SetBits (con_color.flags, FCVAR_READ_ONLY);
+		ClearBits (con_color.flags, FCVAR_CHANGED);
+		}
+
 	MakeRGBA (g_color_table[7], r, g, b, 255);
 	}
 

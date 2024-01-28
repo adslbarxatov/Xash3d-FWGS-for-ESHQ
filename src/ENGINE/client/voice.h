@@ -53,6 +53,7 @@ typedef struct voice_state_s
 
 	qboolean initialized;
 	qboolean is_recording;
+	qboolean device_opened;	// [FWGS, 01.02.24]
 	double start_time;
 
 	voice_status_t local;
@@ -93,7 +94,10 @@ extern voice_state_t voice;
 void CL_AddVoiceToDatagram (void);
 
 void Voice_RegisterCvars (void);
-qboolean Voice_Init (const char *pszCodecName, int quality);
+
+/*qboolean Voice_Init (const char *pszCodecName, int quality);*/
+qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit);	// [FWGS, 01.02.24]
+
 void Voice_Idle (double frametime);
 qboolean Voice_IsRecording (void);
 void Voice_RecordStop (void);
@@ -102,4 +106,4 @@ void Voice_Disconnect (void);
 void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames);
 void Voice_StatusAck (voice_status_t *status, int playerIndex);
 
-#endif // VOICE_H
+#endif

@@ -152,7 +152,7 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 
 /*
 =============
-R_PushDlights [FWGS, 01.01.24]
+R_PushDlights [FWGS, 01.02.24]
 =============
 */
 void R_PushDlights (void)
@@ -162,35 +162,41 @@ void R_PushDlights (void)
 
 	tr.dlightframecount = tr.framecount;
 
-	/*RI.currententity = gEngfuncs.GetEntityByIndex (0);*/
+	/*RI.currententity = gEngfuncs.GetEntityByIndex (0);
+	*/
 	RI.currententity = CL_GetEntityByIndex (0);
 
-	if (RI.currententity)
-		RI.currentmodel = RI.currententity->model;
+	/*if (RI.currententity)
+		RI.currentmodel = RI.currententity->model;*/
+	// no world -- no dlights
+	if (!RI.currententity)
+		return;
+
+	RI.currentmodel = RI.currententity->model;
 
 	for (i = 0; i < MAX_DLIGHTS; i++, l++)
 		{
 		l = gEngfuncs.GetDynamicLight (i);
 
-		/*if (l->die < gpGlobals->time || !l->radius)*/
+		/*if (l->die < gpGlobals->time || !l->radius)
+		*/
 		if ((l->die < gp_cl->time) || !l->radius)
 			continue;
 
 		if (GL_FrustumCullSphere (&RI.frustum, l->origin, l->radius, 15))
 			continue;
 
-		if (RI.currententity)
-			R_MarkLights (l, 1 << i, RI.currentmodel->nodes);
+		/*if (RI.currententity)*/
+		R_MarkLights (l, 1 << i, RI.currentmodel->nodes);
 		}
 	}
 
-// [FWGS, 01.05.23] удалена R_CountDlights
-
+// [FWGS, 01.02.24]
 /*
 =============
 R_CountSurfaceDlights
 =============
-*/
+//
 int R_CountSurfaceDlights (msurface_t *surf)
 	{
 	int	i, numDlights = 0;
@@ -204,7 +210,7 @@ int R_CountSurfaceDlights (msurface_t *surf)
 		}
 
 	return numDlights;
-	}
+	}*/
 
 /*
 =======================================================================

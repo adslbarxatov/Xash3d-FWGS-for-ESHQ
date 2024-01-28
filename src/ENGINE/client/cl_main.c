@@ -3228,7 +3228,8 @@ void Host_ClientBegin (void)
 	CL_UpdateClientData ();
 
 	// if running the server locally, make intentions now
-	if (SV_Active ()) CL_SendCommand ();
+	if (SV_Active ())
+		CL_SendCommand ();
 	}
 
 /*
@@ -3247,7 +3248,8 @@ void Host_ClientFrame (void)
 
 	// if running the server remotely, send intentions now after
 	// the incoming messages have been read
-	if (!SV_Active ()) CL_SendCommand ();
+	if (!SV_Active ())
+		CL_SendCommand ();
 
 	clgame.dllFuncs.pfnFrame (host.frametime);
 
@@ -3310,10 +3312,12 @@ void CL_Init (void)
 		return; // nothing running on the client
 
 	CL_InitLocal ();
-
 	VID_Init ();	// init video
 	S_Init ();	// init sound
-	Voice_Init (VOICE_DEFAULT_CODEC, 3); // init voice
+
+	// [FWGS, 01.02.24]
+	/*Voice_Init (VOICE_DEFAULT_CODEC, 3); // init voice*/
+	Voice_Init (VOICE_DEFAULT_CODEC, 3, true);	// init voice (do not open the device)
 
 	// unreliable buffer. unsed for unreliable commands and voice stream
 	MSG_Init (&cls.datagram, "cls.datagram", cls.datagram_buf, sizeof (cls.datagram_buf));

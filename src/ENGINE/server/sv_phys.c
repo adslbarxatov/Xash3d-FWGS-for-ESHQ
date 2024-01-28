@@ -1857,8 +1857,12 @@ void SV_Physics (void)
 	// increase framecount
 	sv.framecount++;
 
+	// [FWGS, 01.02.24] figure out why this causes memory corruption
+#if 0 
 	// decrement svgame.numEntities if the highest number entities died
-	for (; EDICT_NUM (svgame.numEntities - 1)->free; svgame.numEntities--);
+	/*for (; EDICT_NUM (svgame.numEntities - 1)->free; svgame.numEntities--);*/
+	for (; (ent = EDICT_NUM (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);
+#endif
 	}
 
 /*

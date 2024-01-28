@@ -630,24 +630,25 @@ texture_t *R_TextureAnimation (msurface_t *s)
 
 /*
 ===============
-R_AddDynamicLights
+R_AddDynamicLights [FWGS, 01.02.24]
 ===============
 */
-void R_AddDynamicLights (msurface_t *surf)
+static void R_AddDynamicLights (msurface_t *surf)
 	{
-	float	dist, rad, minlight;
-	int		lnum, s, t, sd, td, smax, tmax;
-	float	sl, tl, sacc, tacc;
-	vec3_t	impact, origin_l;
+	float		dist, rad, minlight;
+	int			lnum, s, t, sd, td, smax, tmax;
+	float		sl, tl, sacc, tacc;
+	vec3_t		impact, origin_l;
 	mextrasurf_t	*info = surf->info;
-	int		sample_frac = 1.0;
-	float	sample_size;
+	int			sample_frac = 1.0;
+	float		sample_size;
 	mtexinfo_t	*tex;
 	dlight_t	*dl;
 	uint		*bl;
 
 	// no dlighted surfaces here
-	if (!R_CountSurfaceDlights (surf))
+	/*if (!R_CountSurfaceDlights (surf))*/
+	if (!surf->dlightbits)
 		return;
 
 	sample_size = gEngfuncs.Mod_SampleSizeForFace (surf);
@@ -706,7 +707,8 @@ void R_AddDynamicLights (msurface_t *surf)
 		for (t = 0, tacc = 0; t < tmax; t++, tacc += sample_size)
 			{
 			td = (tl - tacc) * sample_frac;
-			if (td < 0) td = -td;
+			if (td < 0)
+				td = -td;
 
 			for (s = 0, sacc = 0; s < smax; s++, sacc += sample_size, bl += 3)
 				{
@@ -719,7 +721,6 @@ void R_AddDynamicLights (msurface_t *surf)
 				else
 					dist = td + (sd >> 1);
 
-				// [FWGS, 01.01.24]
 				if (dist < minlight)
 					{
 					/*bl[0] += ((int)((rad - dist) * 256) * gEngfuncs.LightToTexGamma (dl->color.r)) / 256;
@@ -1081,8 +1082,9 @@ R_BlendLightmaps [FWGS, 01.01.24]
 */
 void R_BlendLightmaps (void)
 	{
-	msurface_t *surf, *newsurf = NULL;
-	int		i;
+	msurface_t	*surf;
+	msurface_t	*newsurf = NULL;
+	int			i;
 
 	if (!R_HasLightmap ())
 		return;

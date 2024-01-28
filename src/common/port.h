@@ -35,7 +35,8 @@ GNU General Public License for more details.
 	#define __cdecl
 	#define __stdcall
 	#define _inline	static inline
-	#define FORCEINLINE inline __attribute__((always_inline))
+	// [FWGS, 01.02.24]
+	/*#define FORCEINLINE inline __attribute__((always_inline))*/
 
 	#if XASH_POSIX
 		#include <unistd.h>
@@ -51,8 +52,6 @@ GNU General Public License for more details.
 		#else
 			#include <dlfcn.h>
 
-			// #define PATH_SPLITTER "/"
-
 			#define HAVE_DUP
 
 			#define O_BINARY	0
@@ -60,10 +59,6 @@ GNU General Public License for more details.
 
 		#define O_TEXT			0
 		#define _mkdir( x ) mkdir( x, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )
-
-	// #elif XASH_DOS4GW
-	//	#define PATH_SPLITTER "\\"
-
 	#endif
 
 	typedef void* HANDLE;
@@ -74,15 +69,15 @@ GNU General Public License for more details.
 		int x, y;
 	} POINT;
 
-#else // WIN32
+#else
 
-	// #define PATH_SPLITTER "\\"
-	#ifdef __MINGW32__
+	// [FWGS, 01.02.24]
+	/*#ifdef __MINGW32__
 		#define _inline static inline
 		#define FORCEINLINE inline __attribute__((always_inline))
 	#else
 		#define FORCEINLINE __forceinline
-	#endif
+	#endif*/
 
 	#define open _open
 	#define read _read
@@ -99,7 +94,7 @@ GNU General Public License for more details.
 	#define VGUI_S_DLL	"vguis." OS_LIB_EXT
 	#define VGUI_SUPPORT_DLL "../" VGUI_S_DLL
 	#define HAVE_DUP
-#endif //WIN32
+#endif
 
 #ifndef XASH_LOW_MEMORY
 #define XASH_LOW_MEMORY 0

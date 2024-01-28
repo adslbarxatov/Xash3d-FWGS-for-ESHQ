@@ -563,8 +563,9 @@ void SV_FreeOldEntities (void)
 			SV_FreeEdict (ent);
 		}
 
-	// decrement svgame.numEntities if the highest number entities died
-	for (; EDICT_NUM (svgame.numEntities - 1)->free; svgame.numEntities--);
+	// [FWGS, 01.02.24] decrement svgame.numEntities if the highest number entities died
+	/*for (; EDICT_NUM (svgame.numEntities - 1)->free; svgame.numEntities--);*/
+	for (; (ent = EDICT_NUM (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);
 	}
 
 /*

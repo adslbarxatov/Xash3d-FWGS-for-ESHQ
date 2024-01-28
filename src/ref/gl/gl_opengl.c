@@ -36,7 +36,7 @@ CVAR_DEFINE_AUTO (gl_stencilbits, "8", FCVAR_GLCONFIG | FCVAR_READ_ONLY,
 
 // [FWGS, 01.01.24]
 CVAR_DEFINE_AUTO (gl_overbright, "1", FCVAR_GLCONFIG,
-	"overbrights");
+	"enabled the overbright mode");
 
 CVAR_DEFINE_AUTO (r_lighting_extended, "1", FCVAR_GLCONFIG,
 	"allow to get lighting from world and bmodels");

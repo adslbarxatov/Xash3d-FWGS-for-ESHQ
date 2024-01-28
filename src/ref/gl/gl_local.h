@@ -406,7 +406,7 @@ void R_AnimateLight (void);
 void R_GetLightSpot (vec3_t lightspot);
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
 colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lightspot, vec3_t lightvec);
-int R_CountSurfaceDlights (msurface_t *surf);
+/*int R_CountSurfaceDlights (msurface_t *surf);*/	// [FWGS, 01.02.24]
 colorVec R_LightPoint (const vec3_t p0);
 
 //

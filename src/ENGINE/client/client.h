@@ -870,7 +870,9 @@ model_t *CL_LoadClientSprite (const char *filename);
 model_t *CL_LoadModel (const char *modelname, int *index);
 HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags);
 void SPR_AdjustSize (float *x, float *y, float *w, float *h);
-void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2);
+
+// [FWGS, 01.02.24]
+/*void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2);*/
 
 int CL_GetScreenInfo (SCREENINFO *pscrinfo);
 void CL_FillRGBA (int x, int y, int width, int height, int r, int g, int b, int a);
@@ -1108,9 +1110,9 @@ int Con_UtfProcessCharForce (int in);
 int Con_UtfMoveLeft (char *str, int pos);
 int Con_UtfMoveRight (char *str, int pos, int length);
 
-// [FWGS, 01.04.23] удалены Con_DrawStringLen, Con_DrawString, Con_DrawCharacter, Con_DrawCharacterLen
+/*void Con_DefaultColor (int r, int g, int b);*/
+void Con_DefaultColor (int r, int g, int b, qboolean gameui);	// [FWGS, 01.02.24]
 
-void Con_DefaultColor (int r, int g, int b);
 void Con_InvalidateFonts (void);
 cl_font_t *Con_GetCurFont (void);
 cl_font_t *Con_GetFont (int num);

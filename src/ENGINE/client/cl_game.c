@@ -355,21 +355,35 @@ void SPR_AdjustSize (float *x, float *y, float *w, float *h)
 	*h *= yscale;
 	}
 
-// [FWGS, 01.04.23]
-void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2)
+// [FWGS, 01.02.24]
+/*void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2)*/
+static void SPR_AdjustTexCoords (int texnum, float width, float height, float *s1, float *t1, float *s2, float *t2)
 	{
-	if (refState.width != clgame.scrInfo.iWidth)
+	/*if (refState.width != clgame.scrInfo.iWidth)*/
+	if (REF_GET_PARM (PARM_TEX_FILTERING, texnum))
 		{
-		// align to texel if scaling
+		/* align to texel if scaling
 		*s1 += 0.5f;
 		*s2 -= 0.5f;
-		}
+		}*/
+		if (refState.width != clgame.scrInfo.iWidth)
+			{
+			// align to texel if scaling
+			*s1 += 0.5f;
+			*s2 -= 0.5f;
+			}
 
-	if (refState.height != clgame.scrInfo.iHeight)
-		{
-		// align to texel if scaling
-		*t1 += 0.5f;
-		*t2 -= 0.5f;
+		/*if (refState.height != clgame.scrInfo.iHeight)
+			{
+			// align to texel if scaling
+			*t1 += 0.5f;
+			*t2 -= 0.5f;*/
+		if (refState.height != clgame.scrInfo.iHeight)
+			{
+			// align to texel if scaling
+			*t1 += 0.5f;
+			*t2 -= 0.5f;
+			}
 		}
 
 	*s1 /= width;
@@ -380,7 +394,7 @@ void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float
 
 /*
 ====================
-SPR_DrawGeneric [FWGS, 01.04.23]
+SPR_DrawGeneric [FWGS, 01.02.24]
 
 draw hudsprite routine
 ====================
@@ -388,7 +402,7 @@ draw hudsprite routine
 static void SPR_DrawGeneric (int frame, float x, float y, float width, float height, const wrect_t *prc)
 	{
 	float	s1, s2, t1, t2;
-	int	texnum;
+	int		texnum;
 
 	if ((width == -1) && (height == -1))
 		{
@@ -400,6 +414,8 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 		width = w;
 		height = h;
 		}
+
+	texnum = ref.dllFuncs.R_GetSpriteTexture (clgame.ds.pSprite, frame);
 
 	if (prc)
 		{
@@ -420,7 +436,8 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 		t1 = rc.top;
 		s2 = rc.right;
 		t2 = rc.bottom;
-		SPR_AdjustTexCoords (width, height, &s1, &t1, &s2, &t2);
+		/*SPR_AdjustTexCoords (width, height, &s1, &t1, &s2, &t2);*/
+		SPR_AdjustTexCoords (texnum, width, height, &s1, &t1, &s2, &t2);
 
 		width = rc.right - rc.left;
 		height = rc.bottom - rc.top;
@@ -437,7 +454,7 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 
 	// scale for screen sizes
 	SPR_AdjustSize (&x, &y, &width, &height);
-	texnum = ref.dllFuncs.R_GetSpriteTexture (clgame.ds.pSprite, frame);
+	/*texnum = ref.dllFuncs.R_GetSpriteTexture (clgame.ds.pSprite, frame);*/
 	ref.dllFuncs.Color4ub (clgame.ds.spriteColor[0], clgame.ds.spriteColor[1], clgame.ds.spriteColor[2],
 		clgame.ds.spriteColor[3]);
 	ref.dllFuncs.R_DrawStretchPic (x, y, width, height, s1, t1, s2, t2, texnum);
