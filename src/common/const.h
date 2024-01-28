@@ -735,6 +735,9 @@ enum
 	kRenderFxLeftPoliceLight,
 	kRenderFxRightPoliceLight,
 
+	// [FWGS, 01.01.24]
+	kRenderFxLightMultiplier,
+
 	kRenderFxEdge				// ESHQ: специальное значение, определяющее границу перечисления; должно быть в конце
 	};
 
@@ -747,16 +750,6 @@ typedef unsigned short	word;
 #if !(XASH_DL || XASH_FS)
 	#define Q_isspace(ch)	(ch < 32 || ch > 255)
 #endif
-
-/* [FWGS, 01.04.23]
-#undef true
-#undef false
-
-#ifndef __cplusplus
-typedef enum { false, true }	qboolean;
-#else
-typedef int qboolean;
-#endif*/
 
 typedef struct
 	{

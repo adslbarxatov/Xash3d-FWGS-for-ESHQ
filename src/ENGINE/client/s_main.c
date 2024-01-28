@@ -23,16 +23,16 @@ GNU General Public License for more details.
 #define SND_CLIP_DISTANCE		1000.0f
 
 dma_t		dma;
-poolhandle_t sndpool;
+poolhandle_t	sndpool;
 static soundfade_t	soundfade;
-channel_t   	channels[MAX_CHANNELS];
+channel_t   channels[MAX_CHANNELS];
 sound_t		ambient_sfx[NUM_AMBIENTS];
-rawchan_t *raw_channels[MAX_RAW_CHANNELS];
-qboolean		snd_ambient = false;
-qboolean		snd_fade_sequence = false;
+rawchan_t	*raw_channels[MAX_RAW_CHANNELS];
+qboolean	snd_ambient = false;
+qboolean	snd_fade_sequence = false;
 listener_t	s_listener;
-int		total_channels;
-int		soundtime;	// sample PAIRS
+int			total_channels;
+int			soundtime;		// sample PAIRS
 int   		paintedtime; 	// sample PAIRS
 
 static CVAR_DEFINE (s_volume, "volume", "0.7", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
@@ -666,7 +666,8 @@ void S_StartSound (const vec3_t pos, int ent, int chan, sound_t handle, float fv
 	// Init client entity mouth movement vars
 	SND_InitMouth (ent, chan);
 
-	for (ch_idx = NUM_AMBIENTS, check = channels + NUM_AMBIENTS; ch_idx < MAX_DYNAMIC_CHANNELS; ch_idx++, check++)
+	// [FWGS, 01.01.24]
+	/*for (ch_idx = NUM_AMBIENTS, check = channels + NUM_AMBIENTS; ch_idx < MAX_DYNAMIC_CHANNELS; ch_idx++, check++)
 		{
 		if (check == target_chan) continue;
 
@@ -678,7 +679,7 @@ void S_StartSound (const vec3_t pos, int ent, int chan, sound_t handle, float fv
 			S_SetSampleStart (check, sfx->cache, skip);
 			break;
 			}
-		}
+		}*/
 	}
 
 /*

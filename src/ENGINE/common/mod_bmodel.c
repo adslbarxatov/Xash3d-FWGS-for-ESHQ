@@ -974,12 +974,13 @@ static qboolean Mod_CheckWaterAlphaSupport (model_t *mod, dbspmodel_t *bmod)
 
 /*
 ==================
-Mod_SampleSizeForFace
+Mod_SampleSizeForFace [FWGS, 01.01.24]
 
 return the current lightmap resolution per face
 ==================
 */
-int Mod_SampleSizeForFace (msurface_t *surf)
+/*int Mod_SampleSizeForFace (msurface_t *surf)*/
+int Mod_SampleSizeForFace (const msurface_t *surf)
 	{
 	if (!surf || !surf->texinfo)
 		return LM_SAMPLE_SIZE;
@@ -3057,6 +3058,9 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, const byte *mod_base, qboolea
 
 	if (isworld)
 		{
+		// [FWGS, 01.01.24]
+		world.version = bmod->version;
+
 #if !XASH_DEDICATED
 		Mod_InitDebugHulls (mod);	// FIXME: build hulls for separate bmodels (shells, medkits etc)
 		world.deluxedata = bmod->deluxedata_out;	// deluxemap data pointer

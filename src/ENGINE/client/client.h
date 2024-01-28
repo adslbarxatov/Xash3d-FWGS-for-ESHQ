@@ -169,20 +169,43 @@ typedef struct
 	qboolean		custom;
 	} incomingtransfer_t;
 
-// the client_t structure is wiped completely
-// at every server map change
+// [FWGS, 01.01.24] the client_t structure is wiped completely at every server map change
 typedef struct
 	{
-	int		servercount;		// server identification for prespawns
-	int		validsequence;		// this is the sequence number of the last good
-	// world snapshot/update we got.  If this is 0, we can't
+	// ==== shared through RefAPI's ref_client_t ====
+
+	// this is the time value that the client is rendering at. always <= cls.realtime
+	// a lerp point for other data
+	double	time;
+
+	// previous cl.time, time-oldtime is used to decay light values and smooth step ups
+	double	oldtime;
+	int		viewentity;
+
+	// server state information
+	int		playernum;
+	int		maxclients;
+
+	int		nummodels;
+	model_t		*models[MAX_MODELS + 1];	// precached models (plus sentinel slot)
+
+	qboolean	paused;
+
+	vec3_t	simorg;	// predicted origin
+	// ==== shared through RefAPI's ref_client_t ===
+
+	int		servercount;	// server identification for prespawns
+
+	// this is the sequence number of the last good world snapshot/update we got. If this is 0, we can't
 	// render a frame yet
+	int		validsequence;
+
 	int		parsecount;		// server message counter
 	int		parsecountmod;		// modulo with network window
 
 	qboolean		video_prepped;		// false if on new level or new ref dll
 	qboolean		audio_prepped;		// false if on new level or new snd dll
-	qboolean		paused;
+	/*qboolean		paused;*/
 
 	int		delta_sequence;		// acknowledged sequence number
 
@@ -204,11 +227,13 @@ typedef struct
 	runcmd_t		commands[MULTIPLAYER_BACKUP];		// each mesage will send several old cmds
 	local_state_t	predicted_frames[MULTIPLAYER_BACKUP];	// local client state
 
+	/*
 	double		time;	// this is the time value that the client
 						// is rendering at.  always <= cls.realtime
 						// a lerp point for other data
 	double		oldtime;	// previous cl.time, time-oldtime is used
 							// to decay light values and smooth step ups
+	*/
 	double		timedelta;		// [FWGS, 01.04.23] floating delta between two updates
 
 	char		serverinfo[MAX_SERVERINFO_STRING];
@@ -222,7 +247,7 @@ typedef struct
 
 	// player final info
 	usercmd_t *cmd;			// cl.commands[outgoing_sequence].cmd
-	int		viewentity;
+	/*int		viewentity;*/
 	vec3_t		viewangles;
 	vec3_t		viewheight;
 	vec3_t		punchangle;
@@ -235,13 +260,15 @@ typedef struct
 	float		addangletotal;
 	float		prevaddangletotal;
 
-	// predicted origin and velocity
-	vec3_t		simorg;
+	/* predicted origin and velocity
+	vec3_t		simorg;*/
+
+	// predicted velocity
 	vec3_t		simvel;
 
-	// server state information
+	/* server state information
 	int		playernum;
-	int		maxclients;
+	int		maxclients;*/
 
 	entity_state_t	instanced_baseline[MAX_CUSTOM_BASELINES];
 	int		instanced_baseline_count;
@@ -250,8 +277,9 @@ typedef struct
 	char		event_precache[MAX_EVENTS][MAX_QPATH];
 	char		files_precache[MAX_CUSTOM][MAX_QPATH];
 	lightstyle_t	lightstyles[MAX_LIGHTSTYLES];
-	model_t *models[MAX_MODELS + 1];		// precached models (plus sentinel slot)
-	int		nummodels;
+	
+	/*model_t *models[MAX_MODELS + 1];		// precached models (plus sentinel slot)
+	int		nummodels;*/
 	int		numfiles;
 
 	consistency_t	consistency_list[MAX_MODELS];
@@ -697,6 +725,7 @@ extern convar_t rate;
 extern convar_t m_ignore;
 extern convar_t r_showtree;
 extern convar_t ui_renderworld;
+extern convar_t cl_fixmodelinterpolationartifacts;	// [FWGS, 01.01.24]
 
 // =============================================================================
 
@@ -1002,12 +1031,13 @@ void CL_SetIdealPitch (void);
 void CL_EmitEntities (void);
 
 //
-// cl_remap.c
+// cl_remap.c [FWGS, 01.01.24]
 //
 remap_info_t *CL_GetRemapInfoForEntity (cl_entity_t *e);
-void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor, int bottomcolor);
+/*void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor, int bottomcolor);
 void CL_FreeRemapInfo (remap_info_t *info);
-void CL_UpdateRemapInfo (cl_entity_t *ent, int topcolor, int bottomcolor);
+void CL_UpdateRemapInfo (cl_entity_t *ent, int topcolor, int bottomcolor);*/
+qboolean CL_EntitySetRemapColors (cl_entity_t *e, model_t *mod, int top, int bottom);
 void CL_ClearAllRemaps (void);
 
 //

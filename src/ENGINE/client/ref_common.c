@@ -30,6 +30,31 @@ static CVAR_DEFINE_AUTO (r_refdll, "", FCVAR_RENDERINFO,
 static CVAR_DEFINE_AUTO (r_refdll_loaded, "", FCVAR_READ_ONLY,
 	"currently loaded renderer");
 
+// [FWGS, 01.01.24] there is no need to expose whole host and cl structs into the renderer.
+// But we still need to update timings accurately as possible this looks horrible. But the
+// only other option would be passing four time pointers and then it's looks even worse
+// with dereferences everywhere
+#define STATIC_OFFSET_CHECK( s1, s2, field, base, msg ) \
+	STATIC_ASSERT( offsetof( s1, field ) == offsetof( s2, field ) - offsetof( s2, base ), msg )
+#define REF_CLIENT_CHECK( field ) \
+	STATIC_OFFSET_CHECK( ref_client_t, client_t, field, time, "broken ref_client_t offset" ); \
+	STATIC_ASSERT_( szchk_##__LINE__, sizeof(((ref_client_t *)0)->field ) == sizeof( cl.field ), "broken ref_client_t size" )
+#define REF_HOST_CHECK( field ) \
+	STATIC_OFFSET_CHECK( ref_host_t, host_parm_t, field, realtime, "broken ref_client_t offset" ); \
+	STATIC_ASSERT_( szchk_##__LINE__, sizeof(((ref_host_t *)0)->field ) == sizeof( host.field ), "broken ref_client_t size" )
+
+REF_CLIENT_CHECK (time);
+REF_CLIENT_CHECK (oldtime);
+REF_CLIENT_CHECK (viewentity);
+REF_CLIENT_CHECK (playernum);
+REF_CLIENT_CHECK (maxclients);
+REF_CLIENT_CHECK (models);
+REF_CLIENT_CHECK (paused);
+REF_CLIENT_CHECK (simorg);
+REF_HOST_CHECK (realtime);
+REF_HOST_CHECK (frametime);
+REF_HOST_CHECK (features);
+
 void R_GetTextureParms (int *w, int *h, int texnum)
 	{
 	if (w)
@@ -56,22 +81,23 @@ void GAME_EXPORT GL_FreeImage (const char *name)
 		ref.dllFuncs.GL_FreeTexture (texnum);
 	}
 
-void R_UpdateRefState (void)
+// [FWGS, 01.01.24]
+/*void R_UpdateRefState (void)
 	{
 	refState.time = cl.time;
 	refState.oldtime = cl.oldtime;
 	refState.realtime = host.realtime;
 	refState.frametime = host.frametime;
-	}
+	}*/
 
+// [FWGS, 01.01.24]
 void GL_RenderFrame (const ref_viewpass_t *rvp)
 	{
-	R_UpdateRefState ();
+	/*R_UpdateRefState ();*/
 
 	VectorCopy (rvp->vieworigin, refState.vieworg);
 	VectorCopy (rvp->viewangles, refState.viewangles);
 
-	// [FWGS, 01.04.23]
 	ref.dllFuncs.GL_RenderFrame (rvp);
 	}
 
@@ -80,10 +106,11 @@ static intptr_t pfnEngineGetParm (int parm, int arg)
 	return CL_RenderGetParm (parm, arg, false); // prevent recursion
 	}
 
-static world_static_t *pfnGetWorld (void)
+// [FWGS, 01.01.24]
+/*static world_static_t *pfnGetWorld (void)
 	{
 	return &world;
-	}
+	}*/
 
 static void pfnStudioEvent (const mstudioevent_t *event, const cl_entity_t *e)
 	{
@@ -126,20 +153,24 @@ static void *pfnMod_Extradata (int type, model_t *m)
 
 // [FWGS, 01.11.23] removed pfnMod_GetCurrentLoadingModel, pfnMod_SetCurrentLoadingModel
 
-static void pfnGetPredictedOrigin (vec3_t v)
+// [FWGS, 01.01.24]
+/*static void pfnGetPredictedOrigin (vec3_t v)
 	{
 	VectorCopy (cl.simorg, v);
-	}
+	}*/
 
-static color24 *pfnCL_GetPaletteColor (int color) // clgame.palette[color]
+// [FWGS, 01.01.24]
+/*static color24 *pfnCL_GetPaletteColor (int color) // clgame.palette[color]
 	{
 	return &clgame.palette[color];
-	}
+	}*/
 
 static void pfnCL_GetScreenInfo (int *width, int *height) // clgame.scrInfo, ptrs may be NULL
 	{
-	if (width) *width = clgame.scrInfo.iWidth;
-	if (height) *height = clgame.scrInfo.iHeight;
+	if (width)
+		*width = clgame.scrInfo.iWidth;
+	if (height)
+		*height = clgame.scrInfo.iHeight;
 	}
 
 static void pfnSetLocalLightLevel (int level)
@@ -184,10 +215,11 @@ static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s 
 		0;
 	}
 
-static poolhandle_t pfnImage_GetPool (void)
+// [FWGS, 01.01.24]
+/*static poolhandle_t pfnImage_GetPool (void)
 	{
 	return host.imagepool;
-	}
+	}*/
 
 static const bpc_desc_t *pfnImage_GetPFDesc (int idx)
 	{
@@ -209,13 +241,14 @@ static screenfade_t *pfnRefGetScreenFade (void)
 	return &clgame.fade;
 	}
 
+// [FWGS, 01.01.24]
 /*
 ===============
 R_DoResetGamma
 gamma will be reset for
 some type of screenshots
 ===============
-*/
+//
 static qboolean R_DoResetGamma (void)
 	{
 	switch (cls.scrshot_action)
@@ -227,7 +260,7 @@ static qboolean R_DoResetGamma (void)
 		default:
 			return false;
 		}
-	}
+	}*/
 
 static qboolean R_Init_Video_ (const int type)
 	{
@@ -276,16 +309,18 @@ static ref_api_t gEngfuncs =
 		Con_DrawString,
 		CL_DrawCenterPrint,
 
-		CL_GetLocalPlayer,
+		// [FWGS, 01.01.24]
+		/*CL_GetLocalPlayer,
 		CL_GetViewModel,
-		CL_GetEntityByIndex,
+		CL_GetEntityByIndex,*/
+
 		R_BeamGetEntity,
 		CL_GetWaterEntity,
 		CL_AddVisibleEntity,
 
 		Mod_SampleSizeForFace,
 		Mod_BoxVisible,
-		pfnGetWorld,
+		/*pfnGetWorld,*/
 		Mod_PointInLeaf,
 		Mod_CreatePolygonsForHull,
 
@@ -302,12 +337,15 @@ static ref_api_t gEngfuncs =
 
 		Mod_ForName,
 		pfnMod_Extradata,
-		CL_ModelHandle,
+
+		// [FWGS, 01.01.24]
+		/*CL_ModelHandle,*/
+		CL_EntitySetRemapColors,
 
 		CL_GetRemapInfoForEntity,
-		CL_AllocRemapInfo,
+		/*CL_AllocRemapInfo,
 		CL_FreeRemapInfo,
-		CL_UpdateRemapInfo,
+		CL_UpdateRemapInfo,*/
 
 		CL_ExtraUpdate,
 		Host_Error,
@@ -315,9 +353,12 @@ static ref_api_t gEngfuncs =
 		COM_RandomFloat,
 		COM_RandomLong,
 		pfnRefGetScreenFade,
-		CL_TextMessageGet,
+
+		// [FWGS, 01.01.24]
+		/*CL_TextMessageGet,
 		pfnGetPredictedOrigin,
-		pfnCL_GetPaletteColor,
+		pfnCL_GetPaletteColor,*/
+
 		pfnCL_GetScreenInfo,
 		pfnSetLocalLightLevel,
 		Sys_CheckParm,
@@ -351,9 +392,14 @@ static ref_api_t gEngfuncs =
 		SW_LockBuffer,
 		SW_UnlockBuffer,
 
-		BuildGammaTable,
+		// [FWGS, 01.01.24]
+		/*BuildGammaTable,*/
 		LightToTexGamma,
-		R_DoResetGamma,
+		/*R_DoResetGamma,*/
+		LightToTexGammaEx,
+		TextureToGamma,
+		ScreenGammaTable,
+		LinearGammaTable,
 
 		CL_GetLightStyle,
 		CL_GetDynamicLight,
@@ -362,12 +408,13 @@ static ref_api_t gEngfuncs =
 		GL_GetOverviewParms,
 		Sys_DoubleTime,
 
+		// [FWGS, 01.01.24]
 		pfnGetPhysent,
 		pfnTraceSurface,
-		PM_CL_TraceLine,	// [FWGS, 01.04.23]
+		PM_CL_TraceLine,
 		CL_VisTraceLine,
 		CL_TraceLine,
-		pfnGetMoveVars,
+		/*pfnGetMoveVars,*/
 
 		Image_AddCmdFlags,
 		Image_SetForceFlags,
@@ -379,7 +426,9 @@ static ref_api_t gEngfuncs =
 		FS_CopyImage,
 		FS_FreeImage,
 		Image_SetMDLPointer,
-		pfnImage_GetPool,
+
+		// [FWGS, 01.01.24]
+		/*pfnImage_GetPool,*/
 		pfnImage_GetPFDesc,
 
 		pfnDrawNormalTriangles,
@@ -462,7 +511,9 @@ static qboolean R_LoadProgs (const char *name)
 	// make local copy of engfuncs to prevent overwrite it with user dll
 	memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));
 
-	if (!GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState))
+	// [FWGS, 01.01.24]
+	/*if (!GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState))*/
+	if (GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState) != REF_API_VERSION)
 		{
 		COM_FreeLibrary (ref.hInstance);
 		Con_Reportf ("R_LoadProgs: can't init renderer API: wrong version\n");

@@ -18,18 +18,16 @@ GNU General Public License for more details.
 
 /*
 =================================================================
-
 AVI PLAYING
-
 =================================================================
 */
 
 static int		xres, yres;
-static float		video_duration;
-static float		cin_time;
+static float	video_duration;
+static float	cin_time;
 static int		cin_frame;
-static wavdata_t		cin_audio;
-static movie_state_t *cin_state;
+static wavdata_t	cin_audio;
+static movie_state_t	*cin_state;
 
 /*
 ==================
@@ -88,7 +86,8 @@ void SCR_CheckStartupVids (void)
 	char *pfile;
 	string	token;
 
-	if (Sys_CheckParm ("-nointro") || host_developer.value || cls.demonum != -1 || GameState->nextstate != STATE_RUNFRAME)
+	if (Sys_CheckParm ("-nointro") || host_developer.value || (cls.demonum != -1) ||
+		(GameState->nextstate != STATE_RUNFRAME))
 		{
 		// don't run movies where we in developer-mode
 		cls.movienum = -1;
@@ -180,7 +179,7 @@ qboolean SCR_DrawCinematic (void)
 	qboolean		redraw = false;
 	byte *frame = NULL;
 
-	if (!ref.initialized || cin_time <= 0.0f)
+	if (!ref.initialized || (cin_time <= 0.0f))
 		return false;
 
 	if (cin_frame != last_frame)
@@ -202,9 +201,9 @@ SCR_PlayCinematic
 */
 qboolean SCR_PlayCinematic (const char *arg)
 	{
-	string		path;
+	// [FWGS, 01.01.24]
+	/*string		path;*/
 	const char *fullpath;
-
 	fullpath = FS_GetDiskPath (arg, false);
 
 	if (FS_FileExists (arg, false) && !fullpath)

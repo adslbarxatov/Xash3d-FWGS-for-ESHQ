@@ -1105,12 +1105,13 @@ void CL_ClearWorld (void)
 	clgame.numStatics = 0;
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.01.24]
 void CL_InitEdicts (int maxclients)
 	{
 	Assert (clgame.entities == NULL);
 
-	if (!clgame.mempool) return; // Host_Error without client
+	if (!clgame.mempool)
+		return; // Host_Error without client
 
 #if XASH_LOW_MEMORY != 2
 	CL_UPDATE_BACKUP = (maxclients <= 1) ? SINGLEPLAYER_BACKUP : MULTIPLAYER_BACKUP;
@@ -1131,12 +1132,15 @@ void CL_InitEdicts (int maxclients)
 			clgame.maxRemapInfos);
 		}
 
-	ref.dllFuncs.R_ProcessEntData (true);
+	/*ref.dllFuncs.R_ProcessEntData (true);*/
+	ref.dllFuncs.R_ProcessEntData (true, clgame.entities, clgame.maxEntities);
 	}
 
+// [FWGS, 01.01.24]
 void CL_FreeEdicts (void)
 	{
-	ref.dllFuncs.R_ProcessEntData (false);
+	/*ref.dllFuncs.R_ProcessEntData (false);*/
+	ref.dllFuncs.R_ProcessEntData (false, NULL, 0);
 
 	if (clgame.entities)
 		Mem_Free (clgame.entities);
@@ -1190,7 +1194,7 @@ upload sprite frames
 */
 static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, uint type, uint texFlags)
 	{
-	byte *buf;
+	byte		*buf;
 	fs_offset_t	size;
 	qboolean	loaded;
 
@@ -1250,7 +1254,7 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 
 /*
 =============
-CL_LoadSpriteModel
+CL_LoadSpriteModel [FWGS, 01.01.24]
 
 some sprite models is exist only at client: HUD sprites,
 tent sprites or overview images
@@ -1259,12 +1263,13 @@ tent sprites or overview images
 static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFlags)
 	{
 	char	name[MAX_QPATH];
-	model_t *mod;
-	int	i;
+	model_t	*mod;
+	/*int		i;
 
 	// use high indices for client sprites
 	// for GoldSrc bug-compatibility
-	const int start = type != SPR_HUDSPRITE ? MAX_CLIENT_SPRITES / 2 : 0;
+	const int start = type != SPR_HUDSPRITE ? MAX_CLIENT_SPRITES / 2 : 0;*/
+	int		i, start;
 
 	if (!COM_CheckString (filename))
 		{
@@ -1275,7 +1280,8 @@ static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFla
 	Q_strncpy (name, filename, sizeof (name));
 	COM_FixSlashes (name);
 
-	for (i = 0, mod = clgame.sprites + start; i < MAX_CLIENT_SPRITES / 2; i++, mod++)
+	/*for (i = 0, mod = clgame.sprites + start; i < MAX_CLIENT_SPRITES / 2; i++, mod++)*/
+	for (i = 0, mod = clgame.sprites; i < MAX_CLIENT_SPRITES; i++, mod++)
 		{
 		if (!Q_stricmp (mod->name, name))
 			{
@@ -1291,9 +1297,17 @@ static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFla
 			}
 		}
 
-	// find a free model slot spot
-	for (i = 0, mod = clgame.sprites + start; i < MAX_CLIENT_SPRITES / 2; i++, mod++)
-		if (!mod->name[0]) break; // this is a valid spot
+	// Find a free model slot spot.
+	/*for (i = 0, mod = clgame.sprites + start; i < MAX_CLIENT_SPRITES / 2; i++, mod++)
+		if (!mod->name[0]) break; // this is a valid spot*/
+	// Use low indices only for HUD sprites for GoldSrc bug compatibility
+	start = type == SPR_HUDSPRITE ? 0 : MAX_CLIENT_SPRITES / 2;
+
+	for (i = 0, mod = &clgame.sprites[start]; i < MAX_CLIENT_SPRITES / 2; i++, mod++)
+		{
+		if (!mod->name[0])
+			break; // this is a valid spot
+		}
 
 	if (i == MAX_CLIENT_SPRITES / 2)
 		{

@@ -20,7 +20,7 @@ GNU General Public License for more details.
 static struct
 	{
 	int		renderMode;		// override kRenderMode from TriAPI
-	vec4_t		triRGBA;
+	vec4_t	triRGBA;
 	} ds;
 
 /*
@@ -45,17 +45,20 @@ void TriRenderMode (int mode)
 			pglDisable (GL_BLEND);
 			pglDepthMask (GL_TRUE);
 			break;
+
 		case kRenderTransAlpha:
 			pglEnable (GL_BLEND);
 			pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			pglDepthMask (GL_FALSE);
 			break;
+
 		case kRenderTransColor:
 		case kRenderTransTexture:
 			pglEnable (GL_BLEND);
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
+
 		case kRenderGlow:
 		case kRenderTransAdd:
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
@@ -79,24 +82,31 @@ void TriBegin (int mode)
 		case TRI_POINTS:
 			mode = GL_POINTS;
 			break;
+
 		case TRI_TRIANGLES:
 			mode = GL_TRIANGLES;
 			break;
+
 		case TRI_TRIANGLE_FAN:
 			mode = GL_TRIANGLE_FAN;
 			break;
+
 		case TRI_QUADS:
 			mode = GL_QUADS;
 			break;
+
 		case TRI_LINES:
 			mode = GL_LINES;
 			break;
+
 		case TRI_TRIANGLE_STRIP:
 			mode = GL_TRIANGLE_STRIP;
 			break;
+
 		case TRI_QUAD_STRIP:
 			mode = GL_QUAD_STRIP;
 			break;
+
 		case TRI_POLYGON:
 		default:
 			mode = GL_POLYGON;
@@ -235,7 +245,7 @@ int TriSpriteTexture (model_t *pSpriteModel, int frame)
 	if ((gl_texturenum = R_GetSpriteTexture (pSpriteModel, frame)) == 0)
 		return 0;
 
-	if (gl_texturenum <= 0 || gl_texturenum > MAX_TEXTURES)
+	if ((gl_texturenum <= 0) || (gl_texturenum > MAX_TEXTURES))
 		gl_texturenum = tr.defaultTexture;
 
 	GL_Bind (XASH_TEXTURE0, gl_texturenum);
@@ -266,7 +276,8 @@ void TriFog (float flFogColor[3], float flStart, float flEnd, int bOn)
 
 	if (RI.fogCustom)
 		pglEnable (GL_FOG);
-	else pglDisable (GL_FOG);
+	else
+		pglDisable (GL_FOG);
 
 	// [FWGS, 01.07.23] copy fog params
 	RI.fogColor[0] = flFogColor[0] / 255.0f;
@@ -332,6 +343,7 @@ void TriCullFace (TRICULLSTYLE mode)
 		case TRI_FRONT:
 			glMode = GL_FRONT;
 			break;
+
 		default:
 			glMode = GL_NONE;
 			break;
@@ -355,4 +367,3 @@ void TriBrightness (float brightness)
 
 	_TriColor4f (r, g, b, 1.0f);
 	}
-

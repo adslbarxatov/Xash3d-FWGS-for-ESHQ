@@ -73,23 +73,23 @@ STATIC_ASSERT (RIPPLES_TEXSIZE == 0x4000, "fix the algorithm to work with custom
 // [FWGS, 01.11.23]
 static struct
 	{
-	double time;
-	double oldtime;
+	double	time;
+	double	oldtime;
 
-	short *curbuf, *oldbuf;
-	short buf[2][RIPPLES_TEXSIZE];
-	qboolean update;
+	short	*curbuf, *oldbuf;
+	short	buf[2][RIPPLES_TEXSIZE];
+	qboolean	update;
 
-	uint32_t texture[RIPPLES_TEXSIZE];
-	int gl_texturenum;
-	int rippletexturenum;
-	float texturescale; // not all textures are 128x128, scale the texcoords down
+	uint32_t	texture[RIPPLES_TEXSIZE];
+	int		gl_texturenum;
+	int		rippletexturenum;
+	float	texturescale; // not all textures are 128x128, scale the texcoords down
 	} g_ripple;
 
 // [FWGS, 01.04.23]
 static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 	{
-	const char *skybox_ext[3] = { "dds", "tga", "bmp" };
+	const char	*skybox_ext[3] = { "dds", "tga", "bmp" };
 	int			i, j, num_checked_sides;
 	char		sidename[MAX_VA_STRING];
 
@@ -326,17 +326,18 @@ void R_ClearSkyBox (void)
 
 /*
 =================
-R_AddSkyBoxSurface
+R_AddSkyBoxSurface [FWGS, 01.01.24]
 =================
 */
 void R_AddSkyBoxSurface (msurface_t *fa)
 	{
-	vec3_t	verts[MAX_CLIP_VERTS];
-	glpoly_t *p;
-	float *v;
-	int	i;
+	vec3_t		verts[MAX_CLIP_VERTS];
+	glpoly_t	*p;
+	float		*v;
+	int			i;
 
-	if (ENGINE_GET_PARM (PARM_SKY_SPHERE) && fa->polys && !tr.fCustomSkybox)
+	/*if (ENGINE_GET_PARM (PARM_SKY_SPHERE) && fa->polys && !tr.fCustomSkybox)*/
+	if (FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && fa->polys && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX))
 		{
 		glpoly_t *p = fa->polys;
 
@@ -361,7 +362,7 @@ void R_AddSkyBoxSurface (msurface_t *fa)
 
 /*
 ==============
-R_UnloadSkybox
+R_UnloadSkybox [FWGS, 01.01.24]
 
 Unload previous skybox
 ==============
@@ -370,7 +371,7 @@ void R_UnloadSkybox (void)
 	{
 	int	i;
 
-	// [FWGS, 01.07.23] release old skybox
+	// release old skybox
 	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
 		{
 		if (!tr.skyboxTextures[i])
@@ -378,10 +379,11 @@ void R_UnloadSkybox (void)
 		GL_FreeTexture (tr.skyboxTextures[i]);
 		}
 
-	tr.skyboxbasenum = SKYBOX_BASE_NUM;	// [FWGS, 01.07.23] set skybox base (to let some mods load hi-res skyboxes)
+	tr.skyboxbasenum = SKYBOX_BASE_NUM;	// set skybox base (to let some mods load hi-res skyboxes)
 
 	memset (tr.skyboxTextures, 0, sizeof (tr.skyboxTextures));
-	tr.fCustomSkybox = false;
+	/*tr.fCustomSkybox = false;*/
+	ClearBits (tr.world->flags, FWORLD_CUSTOM_SKYBOX);
 	}
 
 /*
@@ -434,7 +436,7 @@ void R_DrawSkyBox (void)
 
 /*
 ===============
-R_SetupSky
+R_SetupSky [FWGS, 01.01.24]
 ===============
 */
 void R_SetupSky (const char *skyboxname)
@@ -484,7 +486,8 @@ void R_SetupSky (const char *skyboxname)
 
 	if (i == 6)
 		{
-		tr.fCustomSkybox = true;
+		/*tr.fCustomSkybox = true;*/
+		SetBits (tr.world->flags, FWORLD_CUSTOM_SKYBOX);
 		gEngfuncs.Con_DPrintf ("done\n");
 		return; // loaded
 		}
@@ -522,7 +525,7 @@ static void R_CloudVertex (float s, float t, int axis, vec3_t v)
 
 /*
 =============
-R_CloudTexCoord
+R_CloudTexCoord [FWGS, 01.01.24]
 =============
 */
 static void R_CloudTexCoord (vec3_t v, float speed, float *s, float *t)
@@ -530,7 +533,8 @@ static void R_CloudTexCoord (vec3_t v, float speed, float *s, float *t)
 	float	length, speedscale;
 	vec3_t	dir;
 
-	speedscale = gpGlobals->time * speed;
+	/*speedscale = gpGlobals->time * speed;*/
+	speedscale = gp_cl->time * speed;
 	speedscale -= (int)speedscale & ~127;
 
 	VectorSubtract (v, RI.vieworg, dir);
@@ -704,7 +708,7 @@ void R_InitSkyClouds (mip_t *mt, texture_t *tx, qboolean custom_palette)
 		}
 
 	// make sure what sky image is valid
-	if (!r_sky || !r_sky->palette || r_sky->type != PF_INDEXED_32 || r_sky->height == 0)
+	if (!r_sky || !r_sky->palette || (r_sky->type != PF_INDEXED_32) || (r_sky->height == 0))
 		{
 		gEngfuncs.Con_Reportf (S_ERROR "R_InitSky: unable to load sky texture %s\n", tx->name);
 		if (r_sky) gEngfuncs.FS_FreeImage (r_sky);
@@ -777,7 +781,7 @@ void R_InitSkyClouds (mip_t *mt, texture_t *tx, qboolean custom_palette)
 
 /*
 =============
-EmitWaterPolys [FWGS, 01.11.23]
+EmitWaterPolys [FWGS, 01.01.24]
 
 Does a water warp on the pre-fragmented glpoly_t chain
 =============
@@ -788,7 +792,7 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 	float		s, t, os, ot;
 	glpoly_t	*p;
 	int			i;
-	const qboolean	useQuads = FBitSet (warp->flags, SURF_DRAWTURB_QUADS) && glConfig.context == CONTEXT_TYPE_GL;
+	const qboolean	useQuads = FBitSet (warp->flags, SURF_DRAWTURB_QUADS) && (glConfig.context == CONTEXT_TYPE_GL);
 
 	if (!warp->polys)
 		return;
@@ -809,7 +813,8 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 		{
 		if (reverse)
 			v = p->verts[0] + (p->numverts - 1) * VERTEXSIZE;
-		else v = p->verts[0];
+		else
+			v = p->verts[0];
 
 		if (!useQuads)
 			pglBegin (GL_POLYGON);
@@ -818,8 +823,10 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 			{
 			if (waveHeight)
 				{
-				nv = r_turbsin[(int)(gpGlobals->time * 160.0f + v[1] + v[0]) & 255] + 8.0f;
-				nv = (r_turbsin[(int)(v[0] * 5.0f + gpGlobals->time * 171.0f - v[1]) & 255] + 8.0f) * 0.8f + nv;
+				/*nv = r_turbsin[(int)(gpGlobals->time * 160.0f + v[1] + v[0]) & 255] + 8.0f;
+				nv = (r_turbsin[(int)(v[0] * 5.0f + gpGlobals->time * 171.0f - v[1]) & 255] + 8.0f) * 0.8f + nv;*/
+				nv = r_turbsin[(int)(gp_cl->time * 160.0f + v[1] + v[0]) & 255] + 8.0f;
+				nv = (r_turbsin[(int)(v[0] * 5.0f + gp_cl->time * 171.0f - v[1]) & 255] + 8.0f) * 0.8f + nv;
 				nv = nv * waveHeight + v[2];
 				}
 			else
@@ -832,8 +839,10 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 
 			if (!r_ripple.value)
 				{
-				s = os + r_turbsin[(int)((ot * 0.125f + gpGlobals->time) * TURBSCALE) & 255];
-				t = ot + r_turbsin[(int)((os * 0.125f + gpGlobals->time) * TURBSCALE) & 255];
+				/*s = os + r_turbsin[(int)((ot * 0.125f + gpGlobals->time) * TURBSCALE) & 255];
+				t = ot + r_turbsin[(int)((os * 0.125f + gpGlobals->time) * TURBSCALE) & 255];*/
+				s = os + r_turbsin[(int)((ot * 0.125f + gp_cl->time) * TURBSCALE) & 255];
+				t = ot + r_turbsin[(int)((os * 0.125f + gp_cl->time) * TURBSCALE) & 255];
 				}
 			else
 				{
@@ -865,20 +874,21 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 
 /*
 ============================================================
-	HALF-LIFE SOFTWARE WATER
+HALF-LIFE SOFTWARE WATER
 ============================================================
 */
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.01.24]
 void R_ResetRipples (void)
 	{
 	g_ripple.curbuf = g_ripple.buf[0];
 	g_ripple.oldbuf = g_ripple.buf[1];
-	g_ripple.time = g_ripple.oldtime = gpGlobals->time - 0.1;
+	/*g_ripple.time = g_ripple.oldtime = gpGlobals->time - 0.1;*/
+	g_ripple.time = g_ripple.oldtime = gp_cl->time - 0.1;
 	memset (g_ripple.buf, 0, sizeof (g_ripple.buf));
 	}
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.01.24]
 void R_InitRipples (void)
 	{
 	rgbdata_t pic = { 0 };
@@ -893,6 +903,10 @@ void R_InitRipples (void)
 	memset (pic.buffer, 0, pic.size);
 
 	g_ripple.rippletexturenum = GL_LoadTextureInternal ("*rippletex", &pic, TF_NOMIPMAP);
+
+	// need to set proper tex params for TF_NOMIPMAP texture,
+	// as during upload it fails TF_NEAREST check and gets blurry even with gl_texture_nearest 1
+	R_UpdateRippleTexParams ();
 	}
 
 // [FWGS, 01.11.23]
@@ -948,17 +962,19 @@ static int MostSignificantBit (unsigned int v)
 #endif
 	}
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.01.24]
 void R_AnimateRipples (void)
 	{
-	double frametime = gpGlobals->time - g_ripple.time;
+	/*double frametime = gpGlobals->time - g_ripple.time;*/
+	double frametime = gp_cl->time - g_ripple.time;
 
 	g_ripple.update = r_ripple.value && frametime >= r_ripple_updatetime.value;
 
 	if (!g_ripple.update)
 		return;
 
-	g_ripple.time = gpGlobals->time;
+	/*g_ripple.time = gpGlobals->time;*/
+	g_ripple.time = gp_cl->time;
 
 	R_SwapBufs ();
 

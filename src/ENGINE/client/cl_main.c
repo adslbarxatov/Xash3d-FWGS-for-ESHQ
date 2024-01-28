@@ -126,6 +126,12 @@ CVAR_DEFINE_AUTO (hud_utf8, "0", FCVAR_ARCHIVE,
 CVAR_DEFINE_AUTO (ui_renderworld, "0", FCVAR_ARCHIVE,
 	"render world when UI is visible");
 
+// [FWGS, 01.01.24]
+static CVAR_DEFINE_AUTO (cl_maxframetime, "0", 0,
+	"set deadline timer for client rendering to catch freezes");
+CVAR_DEFINE_AUTO (cl_fixmodelinterpolationartifacts, "1", 0,
+	"try to fix up models interpolation on a moving platforms (monsters on trains for example)");
+
 // [FWGS, 01.11.23] userinfo
 static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
 	"player name");
@@ -650,7 +656,7 @@ void CL_UpdateClientData (void)
 
 /*
 =================
-CL_CreateCmd [FWGS, 01.04.23]
+CL_CreateCmd
 =================
 */
 void CL_CreateCmd (void)
@@ -675,13 +681,14 @@ void CL_CreateCmd (void)
 	CL_PushPMStates ();
 	CL_SetSolidPlayers (cl.playernum);
 
-	// message we are constructing
+	// [FWGS, 01.01.24] message we are constructing
 	i = cls.netchan.outgoing_sequence & CL_UPDATE_MASK;
 	pcmd = &cl.commands[i];
-	pcmd->processedfuncs = false;
+	/*pcmd->processedfuncs = false;*/
 
 	if (!cls.demoplayback)
 		{
+		pcmd->processedfuncs = false;
 		pcmd->senttime = host.realtime;
 		memset (&pcmd->cmd, 0, sizeof (pcmd->cmd));
 		pcmd->receivedtime = -1.0;
@@ -2283,14 +2290,28 @@ void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 			return;
 			}
 
-		// serverlist got from masterserver
+		// [FWGS, 01.01.24] serverlist got from masterserver
 		while (MSG_GetNumBitsLeft (msg) > 8)
 			{
-			MSG_ReadBytes (msg, servadr.ip, sizeof (servadr.ip));	// 4 bytes for IP
-			servadr.port = MSG_ReadShort (msg);			// 2 bytes for Port
-			servadr.type = NA_IP;
+			/*MSG_ReadBytes (msg, servadr.ip, sizeof (servadr.ip));	// 4 bytes for IP*/
+			uint8_t addr[16];
 
-			// list is ends here [FWGS, 01.11.23]
+			if (from.type6 == NA_IP6) // IPv6 master server only sends IPv6 addresses
+				{
+				MSG_ReadBytes (msg, addr, sizeof (addr));
+				NET_IP6BytesToNetadr (&servadr, addr);
+				servadr.type6 = NA_IP6;
+				}
+			else
+				{
+				MSG_ReadBytes (msg, servadr.ip, sizeof (servadr.ip)); // 4 bytes for IP
+				servadr.type = NA_IP;
+				}
+
+			servadr.port = MSG_ReadShort (msg);			// 2 bytes for Port
+			/*servadr.type = NA_IP;*/
+
+			// list is ends here
 			if (!servadr.port)
 				break;
 
@@ -2927,11 +2948,13 @@ void CL_Escape_f (void)
 		return;
 
 	// the final credits is running
-	if (UI_CreditsActive ()) return;
+	if (UI_CreditsActive ())
+		return;
 
 	if (cls.state == ca_cinematic)
 		SCR_NextMovie (); // jump to next movie
-	else UI_SetActiveMenu (true);
+	else
+		UI_SetActiveMenu (true);
 	}
 
 /*
@@ -3023,11 +3046,14 @@ void CL_InitLocal (void)
 		"last played demo");
 	Cvar_RegisterVariable (&ui_renderworld);
 
-	// these two added to shut up CS 1.5 about 'unknown' commands
+	// [FWGS, 01.01.24]
+	/* these two added to shut up CS 1.5 about 'unknown' commands
 	Cvar_Get ("lightgamma", "1", FCVAR_ARCHIVE,
 		"ambient lighting level (legacy, unused)");
 	Cvar_Get ("direct", "1", FCVAR_ARCHIVE,
-		"direct lighting level (legacy, unused)");
+		"direct lighting level (legacy, unused)");*/
+	Cvar_RegisterVariable (&cl_maxframetime);
+	Cvar_RegisterVariable (&cl_fixmodelinterpolationartifacts);
 
 	// server commands
 	Cmd_AddCommand ("noclip", NULL,
@@ -3214,6 +3240,10 @@ void Host_ClientFrame (void)
 	{
 	// if client is not active, do nothing
 	if (!cls.initialized) return;
+
+	// [FWGS, 01.01.24]
+	if ((cls.key_dest == key_game) && (cls.state == ca_active) && !Con_Visible ())
+		Platform_SetTimer (cl_maxframetime.value);
 
 	// if running the server remotely, send intentions now after
 	// the incoming messages have been read

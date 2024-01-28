@@ -575,7 +575,11 @@ qboolean SV_IsPlayerIndex (int idx);
 int SV_CalcPing (sv_client_t *cl);
 void SV_InitClientMove (void);
 void SV_UpdateServerInfo (void);
-void SV_EndRedirect (void);
+
+// [FWGS, 01.01.24]
+/*void SV_EndRedirect (void);*/
+void SV_EndRedirect (host_redirect_t *rd);
+
 void SV_RejectConnection (netadr_t from, const char *fmt, ...) _format (2);
 void SV_GetPlayerCount (int *clients, int *bots);	// [FWGS, 01.04.23]
 

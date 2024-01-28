@@ -19,6 +19,7 @@ GNU General Public License for more details.
 #include "cvardef.h"
 #include "gameinfo.h"
 #include "wrect.h"
+#include "xash3d_types.h"	// [FWGS, 01.01.24]
 
 // FWGS: a macro for mainui_cpp, indicating that mainui should be compiled for
 // Xash3D 1.0 interface
@@ -144,8 +145,9 @@ typedef struct ui_enginefuncs_s
 	void	(*pfnKeySetOverstrikeMode)(int fActive);
 	void *(*pfnKeyGetState)(const char *name);			// for mlook, klook etc
 
-	// engine memory manager
-	void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline);
+	// [FWGS, 01.01.24] engine memory manager
+	/*void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline);*/
+	void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void	(*pfnMemFree)(void *mem, const char *filename, const int fileline);
 
 	// collect info from engine

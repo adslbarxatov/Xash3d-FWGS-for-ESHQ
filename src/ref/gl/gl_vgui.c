@@ -76,9 +76,9 @@ Upload texture into video memory
 void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int width, int height)
 	{
 	rgbdata_t	r_image;
-	char	texName[32];
+	char		texName[32];
 
-	if (id <= 0 || id >= VGUI_MAX_TEXTURES)
+	if ((id <= 0) || (id >= VGUI_MAX_TEXTURES))
 		{
 		gEngfuncs.Con_DPrintf (S_ERROR "VGUI_UploadTexture: bad texture %i. Ignored\n", id);
 		return;
@@ -107,9 +107,9 @@ Create empty rgba texture and upload them into video memory
 void GAME_EXPORT VGUI_CreateTexture (int id, int width, int height)
 	{
 	rgbdata_t	r_image;
-	char	texName[32];
+	char		texName[32];
 
-	if (id <= 0 || id >= VGUI_MAX_TEXTURES)
+	if ((id <= 0) || (id >= VGUI_MAX_TEXTURES))
 		{
 		gEngfuncs.Con_Reportf (S_ERROR  "VGUI_CreateTexture: bad texture %i. Ignored\n", id);
 		return;
@@ -131,7 +131,8 @@ void GAME_EXPORT VGUI_CreateTexture (int id, int width, int height)
 
 void GAME_EXPORT VGUI_UploadTextureBlock (int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight)
 	{
-	if (id <= 0 || id >= VGUI_MAX_TEXTURES || g_textures[id] == 0 || g_textures[id] == tr.whiteTexture)
+	if ((id <= 0) || (id >= VGUI_MAX_TEXTURES) || (g_textures[id] == 0) ||
+		(g_textures[id] == tr.whiteTexture))
 		{
 		gEngfuncs.Con_Reportf (S_ERROR  "VGUI_UploadTextureBlock: bad texture %i. Ignored\n", id);
 		return;
@@ -171,7 +172,7 @@ void GAME_EXPORT VGUI_SetupDrawingImage (int *pColor)
 
 void GAME_EXPORT VGUI_BindTexture (int id)
 	{
-	if (id > 0 && id < VGUI_MAX_TEXTURES && g_textures[id])
+	if ((id > 0) && (id < VGUI_MAX_TEXTURES) && g_textures[id])
 		{
 		GL_Bind (XASH_TEXTURE0, g_textures[id]);
 		g_iBoundTexture = id;
@@ -193,16 +194,19 @@ returns wide and tall for currently binded texture
 */
 void GAME_EXPORT VGUI_GetTextureSizes (int *width, int *height)
 	{
-	gl_texture_t *glt;
-	int		texnum;
+	gl_texture_t	*glt;
+	int				texnum;
 
 	if (g_iBoundTexture)
 		texnum = g_textures[g_iBoundTexture];
-	else texnum = tr.defaultTexture;
+	else
+		texnum = tr.defaultTexture;
 
 	glt = R_GetTexture (texnum);
-	if (width) *width = glt->srcWidth;
-	if (height) *height = glt->srcHeight;
+	if (width)
+		*width = glt->srcWidth;
+	if (height)
+		*height = glt->srcHeight;
 	}
 
 /*
@@ -214,8 +218,10 @@ disable texturemode for fill rectangle
 */
 void GAME_EXPORT VGUI_EnableTexture (qboolean enable)
 	{
-	if (enable) pglEnable (GL_TEXTURE_2D);
-	else pglDisable (GL_TEXTURE_2D);
+	if (enable)
+		pglEnable (GL_TEXTURE_2D);
+	else
+		pglDisable (GL_TEXTURE_2D);
 	}
 
 /*

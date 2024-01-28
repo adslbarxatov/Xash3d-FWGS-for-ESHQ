@@ -25,12 +25,13 @@ GNU General Public License for more details.
 	     &pos->member != (head);				\
 	     pos = list_entry( pos->member.next, winding_t, member ))
 
-// REFTODO: rewrite in triapi
+// [FWGS, 01.01.24] rewrite in triapi
 void R_DrawWorldHull (void)
 	{
-	hull_model_t *hull = &WORLD->hull_models[0];
-	winding_t *poly;
-	int		i;
+	/*hull_model_t *hull = &WORLD->hull_models[0];*/
+	hull_model_t	*hull = &tr.world->hull_models[0];
+	winding_t		*poly;
+	int				i;
 
 	if (FBitSet (r_showhull->flags, FCVAR_CHANGED))
 		{
@@ -40,7 +41,6 @@ void R_DrawWorldHull (void)
 		ClearBits (r_showhull->flags, FCVAR_CHANGED);
 		}
 
-	// [FWGS, 01.07.23]
 	if (!r_showhull->value)
 		return;
 
@@ -58,23 +58,26 @@ void R_DrawWorldHull (void)
 	pglEnable (GL_TEXTURE_2D);
 	}
 
+// [FWGS, 01.01.24]
 void R_DrawModelHull (void)
 	{
 	hull_model_t	*hull;
 	winding_t		*poly;
 	int				i;
 
-	if (!r_showhull->value)	// [FWGS, 01.07.23]
+	if (!r_showhull->value)
 		return;
 
 	if (!RI.currentmodel || (RI.currentmodel->name[0] != '*'))
 		return;
 
 	i = atoi (RI.currentmodel->name + 1);
-	if ((i < 1) || (i >= WORLD->num_hull_models))
+	/*if ((i < 1) || (i >= WORLD->num_hull_models))*/
+	if ((i < 1) || (i >= tr.world->num_hull_models))
 		return;
 
-	hull = &WORLD->hull_models[i];
+	/*hull = &WORLD->hull_models[i];*/
+	hull = &tr.world->hull_models[i];
 
 	pglPolygonOffset (1.0f, 2.0);
 	pglEnable (GL_POLYGON_OFFSET_FILL);

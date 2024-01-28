@@ -374,8 +374,9 @@ void CL_WriteDemoHeader (const char *name)
 	demo.header.dem_protocol = DEMO_PROTOCOL;
 	demo.header.net_protocol = cls.legacymode ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION;
 	
-	// [FWGS, 01.07.23]
-	demo.header.host_fps = bound (MIN_FPS, host_maxfps.value, MAX_FPS);
+	// [FWGS, 01.01.24]
+	/*demo.header.host_fps = bound (MIN_FPS, host_maxfps.value, MAX_FPS);*/
+	demo.header.host_fps = host_maxfps.value ? bound (MIN_FPS, host_maxfps.value, MAX_FPS) : MAX_FPS;
 
 	Q_strncpy (demo.header.mapname, clgame.mapname, sizeof (demo.header.mapname));
 	Q_strncpy (demo.header.comment, clgame.maptitle, sizeof (demo.header.comment));
@@ -573,6 +574,9 @@ void CL_ReadDemoUserCmd (qboolean discard)
 
 		memset (&nullcmd, 0, sizeof (nullcmd));
 		MSG_Init (&buf, "UserCmd", data, sizeof (data));
+
+		// [FWGS, 01.01.24] a1ba: I have no proper explanation why
+		cmdnumber++;
 
 		pcmd = &cl.commands[cmdnumber & CL_UPDATE_MASK];
 		pcmd->processedfuncs = false;

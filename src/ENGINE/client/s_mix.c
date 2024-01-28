@@ -977,7 +977,6 @@ void MIX_UpsampleAllPaintbuffers (int end, int count)
 #endif
 
 	// mix raw samples from the video streams
-	// MIX_SetCurrentPaintbuffer (IROOMBUFFER);		// [FWGS, 01.04.23]
 	MIX_MixRawSamplesBuffer (end);
 
 	MIX_DeactivateAllPaintbuffers ();
@@ -1002,11 +1001,12 @@ void MIX_PaintChannels (int endtime)
 
 		// clear the all mix buffers
 		MIX_ClearAllPaintBuffers (count, false);
-
 		MIX_UpsampleAllPaintbuffers (end, count);
 
-		// process all sounds with DSP
-		DSP_Process (idsp_room, MIX_GetPFrontFromIPaint (IROOMBUFFER), count);
+		// [FWGS, 01.01.24] process all sounds with DSP
+		/*DSP_Process (idsp_room, MIX_GetPFrontFromIPaint (IROOMBUFFER), count);*/
+		if (cls.key_dest != key_menu)
+			DSP_Process (MIX_GetPFrontFromIPaint (IROOMBUFFER), count);
 
 		// add music or soundtrack from movie (no dsp)
 		MIX_MixPaintbuffers (IPAINTBUFFER, IROOMBUFFER, IPAINTBUFFER, count, S_GetMasterVolume ());

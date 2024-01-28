@@ -550,20 +550,22 @@ VID_CubemapShot
 */
 qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qboolean skyshot)
 	{
-	rgbdata_t *r_shot, *r_side;
-	byte *temp = NULL;
-	byte *buffer = NULL;
+	rgbdata_t	*r_shot, *r_side;
+	byte		*temp = NULL;
+	byte		*buffer = NULL;
 	string		basename;
-	int		i = 1, flags, result;
+	int			i = 1, flags, result;
 
 	if (!RI.drawWorld || !WORLDMODEL)
 		return false;
 
 	// make sure the specified size is valid
-	while (i < size) i <<= 1;
+	while (i < size)
+		i <<= 1;
 
-	if (i != size) return false;
-	if (size > gpGlobals->width || size > gpGlobals->height)
+	if (i != size)
+		return false;
+	if ((size > gpGlobals->width) || (size > gpGlobals->height))
 		return false;
 
 	// alloc space
@@ -573,9 +575,11 @@ qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qbo
 	r_side = Mem_Calloc (r_temppool, sizeof (rgbdata_t));
 
 	// use client vieworg
-	if (!vieworg) vieworg = RI.vieworg;
+	if (!vieworg)
+		vieworg = RI.vieworg;
 
-	R_CheckGamma ();
+	// [FWGS, 01.01.24]
+	/*R_CheckGamma ();*/
 
 	for (i = 0; i < 6; i++)
 		{

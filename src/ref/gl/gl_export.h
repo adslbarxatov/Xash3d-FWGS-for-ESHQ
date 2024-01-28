@@ -892,6 +892,12 @@ typedef float GLmatrix[16];
 #define WGL_SAMPLE_BUFFERS_ARB		0x2041
 #define WGL_SAMPLES_ARB			0x2042
 
+// [FWGS, 01.01.24]
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
+
 #if defined( XASH_GL_STATIC ) && !defined( REF_GL_KEEP_MANGLED_FUNCTIONS )
 #define GL_FUNCTION( name ) name
 #elif defined( XASH_GL_STATIC ) && defined( REF_GL_KEEP_MANGLED_FUNCTIONS )
@@ -1245,12 +1251,15 @@ APIENTRY_LINKAGE void GL_FUNCTION (glClientActiveTextureARB)(GLenum);
 APIENTRY_LINKAGE void GL_FUNCTION (glGetCompressedTexImage)(GLenum target, GLint lod, const GLvoid *data);
 APIENTRY_LINKAGE void GL_FUNCTION (glDrawRangeElements)(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indices);
 APIENTRY_LINKAGE void GL_FUNCTION (glDrawRangeElementsEXT)(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indices);
-APIENTRY_LINKAGE void GL_FUNCTION (glDrawElements)(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices);
+
+// [FWGS, 01.01.24]
+/*APIENTRY_LINKAGE void GL_FUNCTION (glDrawElements)(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices);
 APIENTRY_LINKAGE void GL_FUNCTION (glVertexPointer)(GLint size, GLenum type, GLsizei stride, const GLvoid *ptr);
 APIENTRY_LINKAGE void GL_FUNCTION (glNormalPointer)(GLenum type, GLsizei stride, const GLvoid *ptr);
 APIENTRY_LINKAGE void GL_FUNCTION (glColorPointer)(GLint size, GLenum type, GLsizei stride, const GLvoid *ptr);
 APIENTRY_LINKAGE void GL_FUNCTION (glTexCoordPointer)(GLint size, GLenum type, GLsizei stride, const GLvoid *ptr);
-APIENTRY_LINKAGE void GL_FUNCTION (glArrayElement)(GLint i);
+APIENTRY_LINKAGE void GL_FUNCTION (glArrayElement)(GLint i);*/
+
 APIENTRY_LINKAGE void GL_FUNCTION (glMultiTexCoord1f) (GLenum, GLfloat);
 APIENTRY_LINKAGE void GL_FUNCTION (glMultiTexCoord2f) (GLenum, GLfloat, GLfloat);
 APIENTRY_LINKAGE void GL_FUNCTION (glMultiTexCoord3f) (GLenum, GLfloat, GLfloat, GLfloat);
@@ -1308,7 +1317,10 @@ APIENTRY_LINKAGE void GL_FUNCTION (glGetActiveUniformARB)(GLhandleARB programObj
 APIENTRY_LINKAGE void GL_FUNCTION (glGetUniformfvARB)(GLhandleARB programObj, GLint location, GLfloat *params);
 APIENTRY_LINKAGE void GL_FUNCTION (glGetUniformivARB)(GLhandleARB programObj, GLint location, GLint *params);
 APIENTRY_LINKAGE void GL_FUNCTION (glGetShaderSourceARB)(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *source);
-APIENTRY_LINKAGE void GL_FUNCTION (glPolygonStipple)(const GLubyte *mask);
+
+// [FWGS, 01.01.24]
+/*APIENTRY_LINKAGE void GL_FUNCTION (glPolygonStipple)(const GLubyte *mask);*/
+
 APIENTRY_LINKAGE void GL_FUNCTION (glTexImage3D)(GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
 APIENTRY_LINKAGE void GL_FUNCTION (glTexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid *pixels);
 APIENTRY_LINKAGE void GL_FUNCTION (glCopyTexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
@@ -1733,12 +1745,15 @@ APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsiz
 #define pglGetCompressedTexImage glGetCompressedTexImage
 #define pglDrawRangeElements glDrawRangeElements
 #define pglDrawRangeElementsEXT glDrawRangeElementsEXT
-#define pglDrawElements glDrawElements
+
+// [FWGS, 01.01.24]
+/*#define pglDrawElements glDrawElements
 #define pglVertexPointer glVertexPointer
 #define pglNormalPointer glNormalPointer
 #define pglColorPointer glColorPointer
 #define pglTexCoordPointer glTexCoordPointer
-#define pglArrayElement glArrayElement
+#define pglArrayElement glArrayElement*/
+
 #define pglMultiTexCoord1f glMultiTexCoord1f
 #define pglMultiTexCoord2f glMultiTexCoord2f
 #define pglMultiTexCoord3f glMultiTexCoord3f
@@ -1796,7 +1811,10 @@ APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsiz
 #define pglGetUniformfvARB glGetUniformfvARB
 #define pglGetUniformivARB glGetUniformivARB
 #define pglGetShaderSourceARB glGetShaderSourceARB
-#define pglPolygonStipple glPolygonStipple
+
+// [FWGS, 01.01.24]
+/*#define pglPolygonStipple glPolygonStipple*/
+
 #define pglTexImage3D glTexImage3D
 #define pglTexSubImage3D glTexSubImage3D
 #define pglCopyTexSubImage3D glCopyTexSubImage3D
@@ -1860,6 +1878,11 @@ APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsiz
 #define pglGenVertexArrays glGenVertexArrays
 #define pglIsVertexArray glIsVertexArray
 #define pglSwapInterval glSwapInterval
+#endif
+
+// [FWGS, 01.01.24]
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
 #endif
 
 #endif

@@ -106,14 +106,17 @@ void Mod_FreeModel (model_t *mod)
 	if (!mod || !COM_CheckStringEmpty (mod->name))
 		return;
 
-	if (mod->type != mod_brush || mod->name[0] != '*')
+	if ((mod->type != mod_brush) || (mod->name[0] != '*'))
 		{
 		Mod_FreeUserData (mod);
 		Mem_FreePool (&mod->mempool);
 		}
 
-	if (mod->type == mod_brush && FBitSet (mod->flags, MODEL_WORLD))
+	if ((mod->type == mod_brush) && FBitSet (mod->flags, MODEL_WORLD))
 		{
+		// [FWGS, 01.01.24]
+		world.version = 0;
+
 		world.shadowdata = NULL;
 		world.deluxedata = NULL;
 		}

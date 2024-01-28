@@ -565,6 +565,28 @@ void Cvar_RegisterVariable (convar_t *var)
 #endif
 	}
 
+// [FWGS, 01.01.24]
+static qboolean Cvar_CanSet (const convar_t *cv)
+	{
+	if (FBitSet (cv->flags, FCVAR_READ_ONLY))
+		{
+		Con_Printf ("%s is read-only.\n", cv->name);
+		return false;
+		}
+
+	if (FBitSet (cv->flags, FCVAR_CHEAT) && !host.allow_cheats)
+		{
+		Con_Printf ("%s is cheat protected.\n", cv->name);
+		return false;
+		}
+
+	// just tell user about deferred changes
+	if (FBitSet (cv->flags, FCVAR_LATCH) && (SV_Active () || CL_Active ()))
+		Con_Printf ("%s will be changed upon restarting.\n", cv->name);
+
+	return true;
+	}
+
 /*
 ============
 Cvar_Set2 [FWGS, 01.04.23]
@@ -572,8 +594,8 @@ Cvar_Set2 [FWGS, 01.04.23]
 */
 static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	{
-	convar_t *var;
-	const char *pszValue;
+	convar_t	*var;
+	const char	*pszValue;
 	qboolean	dll_variable = false;
 	qboolean	force = false;
 
@@ -633,8 +655,9 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	if (dll_variable)
 		force = true;
 
+	// [FWGS, 01.01.24]
 	if (!force)
-		{
+		/*{
 		if (FBitSet (var->flags, FCVAR_READ_ONLY))
 			{
 			Con_Printf ("%s is read-only.\n", var->name);
@@ -643,13 +666,15 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 
 		if (FBitSet (var->flags, FCVAR_CHEAT) && !host.allow_cheats)
 			{
-			Con_Printf ("%s is cheat protected.\n", var->name);
+			Con_Printf ("%s is cheat protected.\n", var->name);*/
+		{
+		if (!Cvar_CanSet (var))
 			return var;
-			}
+		/*}
 
-		// just tell user about deferred changes
-		if (FBitSet (var->flags, FCVAR_LATCH) && (SV_Active () || CL_Active ()))
-			Con_Printf ("%s will be changed upon restarting.\n", var->name);
+	// just tell user about deferred changes
+	if (FBitSet (var->flags, FCVAR_LATCH) && (SV_Active () || CL_Active ()))
+		Con_Printf ("%s will be changed upon restarting.\n", var->name);*/
 		}
 
 	pszValue = Cvar_ValidateString (var, value);
@@ -699,11 +724,13 @@ void Cvar_DirectSet (convar_t *var, const char *value)
 			return; // how this possible?
 		}
 
-	if (FBitSet (var->flags, FCVAR_READ_ONLY))
+	// [FWGS, 01.01.24]
+	/*if (FBitSet (var->flags, FCVAR_READ_ONLY))
 		{
-		Con_Printf ("%s is read-only.\n", var->name);
+		Con_Printf ("%s is read-only.\n", var->name);*/
+	if (!Cvar_CanSet (var))
 		return;
-		}
+	/*	}
 
 	if (FBitSet (var->flags, FCVAR_CHEAT) && !host.allow_cheats)
 		{
@@ -713,7 +740,7 @@ void Cvar_DirectSet (convar_t *var, const char *value)
 
 	// just tell user about deferred changes
 	if (FBitSet (var->flags, FCVAR_LATCH) && (SV_Active () || CL_Active ()))
-		Con_Printf ("%s will be changed upon restarting.\n", var->name);
+		Con_Printf ("%s will be changed upon restarting.\n", var->name);*/
 
 	// check value
 	if (!value)
@@ -744,6 +771,25 @@ void Cvar_DirectSet (convar_t *var, const char *value)
 
 	// tell engine about changes
 	Cvar_Changed (var);
+	}
+
+/*
+============
+Cvar_DirectSetValue [FWGS, 01.01.24]
+
+functionally is the same as Cvar_SetValue but for direct cvar access
+============
+*/
+void Cvar_DirectSetValue (convar_t *var, float value)
+	{
+	char val[32];
+
+	if (fabs (value - (int)value) < 0.000001)
+		Q_snprintf (val, sizeof (val), "%d", (int)value);
+	else
+		Q_snprintf (val, sizeof (val), "%f", value);
+
+	Cvar_DirectSet (var, val);
 	}
 
 /*
@@ -1140,14 +1186,14 @@ void Cvar_Set_f (void)
 
 /*
 ============
-Cvar_SetGL_f
+Cvar_SetGL_f [FWGS, 01.01.24]
 
 As Cvar_Set, but also flags it as glconfig
 ============
 */
 void Cvar_SetGL_f (void)
 	{
-	convar_t *var;
+	/*convar_t *var;*/
 
 	if (Cmd_Argc () != 3)
 		{

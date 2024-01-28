@@ -1045,10 +1045,10 @@ static qboolean FS_ReadGameInfo (const char *filepath, const char *gamedir, game
 	char *afile;
 
 	afile = (char *)FS_LoadFile (filepath, NULL, false);
-	if (!afile) return false;
+	if (!afile)
+		return false;
 
 	FS_InitGameInfo (GameInfo, gamedir);
-
 	FS_ParseGenericGameInfo (GameInfo, afile, true);
 
 	Mem_Free (afile);
@@ -1110,7 +1110,7 @@ static qboolean FS_CheckForXashGameDir (const char *gamedir, qboolean direct)
 
 /*
 ================
-FS_ParseGameInfo [FWGS, 01.05.23]
+FS_ParseGameInfo [FWGS, 01.01.24]
 ================
 */
 static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
@@ -1138,16 +1138,21 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 		roGameInfoTime = FS_SysFileTime (gameinfo_ro);
 		rwGameInfoTime = FS_SysFileTime (gameinfo_path);
 
+		// if rodir's liblist.gam newer than rwdir's gameinfo.txt, then convert it
 		if (roLibListTime > rwGameInfoTime)
 			{
 			haveUpdate = FS_ConvertGameInfo (gamedir, gameinfo_path, liblist_ro);
 			}
+
+		// if rodir's gameinfo.txt newer than rwdir's gameinfo.txt, just copy the file
 		else if (roGameInfoTime > rwGameInfoTime)
 			{
-			fs_offset_t len;
-			char *afile_ro = (char *)FS_LoadDirectFile (gameinfo_ro, &len);
+			/*fs_offset_t len;
+			char *afile_ro = (char *)FS_LoadDirectFile (gameinfo_ro, &len);*/
+			file_t *ro, *rw;
+			fs_offset_t ro_size;
 
-			if (afile_ro)
+			/*if (afile_ro)
 				{
 				Con_DPrintf ("Copy rodir %s to rwdir %s\n", gameinfo_ro, gameinfo_path);
 
@@ -1155,14 +1160,30 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 
 				FS_WriteFile (gameinfo_path, afile_ro, len);
 				Mem_Free (afile_ro);
-				}
+				}*/
+				// read & write as binary to copy the exact file
+			ro = FS_SysOpen (gameinfo_ro, "rb");
+			rw = FS_SysOpen (gameinfo_path, "wb");
+
+			FS_Seek (ro, 0, SEEK_END);
+			ro_size = FS_Tell (ro);
+			FS_Seek (ro, 0, SEEK_SET);
+
+			FS_FileCopy (rw, ro, ro_size);
+
+			FS_Close (rw);
+			FS_Close (ro);
+
+			haveUpdate = true;
 			}
 
 		FS_AllowDirectPaths (false);
 		}
 
-	// if user change liblist.gam update the gameinfo.txt
-	if (FS_FileTime (liblist_path, false) > FS_FileTime (gameinfo_path, false))
+	// Do not update gameinfo.txt, if it was just copied from rodir's.
+	// If user change liblist.gam update the gameinfo.txt
+	/*if (FS_FileTime (liblist_path, false) > FS_FileTime (gameinfo_path, false))*/
+	if (!haveUpdate && (FS_FileTime (liblist_path, false) > FS_FileTime (gameinfo_path, false)))
 		FS_ConvertGameInfo (gamedir, gameinfo_path, liblist_path);
 
 	// force to create gameinfo for specified game if missing
@@ -1349,9 +1370,30 @@ static qboolean FS_CheckForCrypt (const char *dllname)
 	return (key == 0x12345678) ? true : false;
 	}
 
+// [FWGS, 01.01.24]
+static int FS_StripIdiotRelativePath (const char *dllname, const char *gamefolder)
+	{
+	string idiot_relpath;
+	int len;
+
+	if ((len = Q_snprintf (idiot_relpath, sizeof (idiot_relpath), "../%s/", gamefolder)) >= 4)
+		{
+		if (!Q_strnicmp (dllname, idiot_relpath, len))
+			return len;
+
+		// try backslashes
+		idiot_relpath[1] = '\\';
+		idiot_relpath[len - 1] = '\\';
+		if (!Q_strnicmp (dllname, idiot_relpath, len))
+			return len;
+		}
+
+	return 0;
+	}
+
 /*
 ==================
-FS_FindLibrary [FWGS, 01.08.23]
+FS_FindLibrary [FWGS, 01.01.24]
 
 search for library, assume index is valid
 ==================
@@ -1368,9 +1410,20 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 
 	fs_ext_path = directpath;
 
-	// HACKHACK remove absoulte path to valve folder
+	/* HACKHACK remove absoulte path to valve folder
 	if (!Q_strnicmp (dllname, "..\\valve\\", 9) || !Q_strnicmp (dllname, "../valve/", 9))
-		start += 9;
+		start += 9;*/
+	// HACKHACK remove relative path to game folder
+	if (!Q_strnicmp (dllname, "..", 2))
+		{
+		// some modders put relative path to themselves???
+		len = FS_StripIdiotRelativePath (dllname, GI->gamefolder);
+
+		// or put relative path to Half-Life game libs
+		if (len == 0)
+			len = FS_StripIdiotRelativePath (dllname, "valve");
+		start += len;
+		}
 
 	// replace all backward slashes
 	len = Q_strlen (dllname);
@@ -1699,8 +1752,8 @@ Internal function used to create a file_t and open the relevant non-packed file 
 */
 file_t *FS_SysOpen (const char *filepath, const char *mode)
 	{
-	file_t *file;
-	int	mod, opt;
+	file_t	*file;
+	int		mod, opt;
 	uint	ind;
 
 	// Parse the mode string
@@ -1763,8 +1816,12 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 		FS_BackupFileName (file, filepath, mod | opt);
 #endif
 
+	// [FWGS, 01.01.24]
 	if (file->handle < 0)
 		{
+		if (errno != ENOENT)
+			Con_Printf (S_ERROR "%s: can't open file %s: %s\n", __func__, filepath, strerror (errno));
+
 		Mem_Free (file);
 		return NULL;
 		}

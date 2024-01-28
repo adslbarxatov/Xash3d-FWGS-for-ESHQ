@@ -38,6 +38,12 @@ static CVAR_DEFINE_AUTO (con_fontnum, "-1", FCVAR_ARCHIVE,
 static CVAR_DEFINE_AUTO (con_color, "240 180 24", FCVAR_ARCHIVE,
 	"set a custom console color");
 
+// [FWGS, 01.01.24]
+static CVAR_DEFINE_AUTO (scr_drawversion, "1", FCVAR_ARCHIVE,
+	"draw version in menu or screenshots, doesn't affect console");
+static CVAR_DEFINE_AUTO (con_oldfont, "0", 0,
+	"use legacy font from gfx.wad, might be missing or broken");
+
 static int g_codepage = 0;
 static qboolean g_utf8 = false;
 
@@ -540,7 +546,7 @@ qboolean Con_FixedFont (void)
 
 /*
 ================
-Con_LoadConsoleFont [FWGS, 01.07.23]
+Con_LoadConsoleFont [FWGS, 01.01.24]
 
 INTERNAL RESOURCE
 ================
@@ -553,8 +559,9 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 	if (font->valid)
 		return;		// already loaded
 
-	// loading conchars
-	if (Sys_CheckParm ("-oldfont"))
+	/* loading conchars
+	if (Sys_CheckParm ("-oldfont"))*/
+	if (con_oldfont.value)
 		{
 		success = Con_LoadVariableWidthFont ("gfx/conchars.fnt", font, scale,
 			kRenderTransTexture, TF_FONT | TF_NEAREST);
@@ -847,7 +854,7 @@ int Con_DrawString (int x, int y, const char *string, rgba_t setColor)
 
 /*
 ================
-Con_Init [FWGS, 01.07.23]
+Con_Init [FWGS, 01.01.24]
 ================
 */
 void Con_Init (void)
@@ -864,6 +871,8 @@ void Con_Init (void)
 	Cvar_RegisterVariable (&con_fontscale);
 	Cvar_RegisterVariable (&con_fontnum);
 	Cvar_RegisterVariable (&con_color);
+	Cvar_RegisterVariable (&scr_drawversion);
+	Cvar_RegisterVariable (&con_oldfont);
 
 	// init the console buffer
 	con.bufsize = CON_TEXTSIZE;
@@ -2068,7 +2077,7 @@ void Con_DrawConsole (void)
 
 /*
 ==================
-Con_DrawVersion [FWGS, 01.07.23]
+Con_DrawVersion [FWGS, 01.01.24]
 
 Used by menu
 ==================
@@ -2076,32 +2085,50 @@ Used by menu
 void Con_DrawVersion (void)
 	{
 	// draws the current build
-	byte	*color = g_color_table[7];
+	byte *color = g_color_table[7];
 	int		stringLen, charH = 0;
 	int		start, height = refState.height;
-	qboolean	draw_version = false;
+	/*qboolean	draw_version = false;*/
 	string	curbuild;
 
-	switch (cls.scrshot_action)
-		{
-		case scrshot_normal:
-		case scrshot_snapshot:
-			draw_version = true;
-			break;
-		}
-
-	if (host.force_draw_version_time > host.realtime)
-		draw_version = true;
-	
-	if (((cls.key_dest != key_menu) && !draw_version) || (CL_IsDevOverviewMode () == 2) || net_graph.value)
+	/*switch (cls.scrshot_action)*/
+	if (!scr_drawversion.value || (CL_IsDevOverviewMode () == 2) || net_graph.value)
 		return;
 
-	if (draw_version)
-		Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)",
-			PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
+	if (cls.key_dest == key_menu)
+		{
+		/*case scrshot_normal:
+		case scrshot_snapshot:
+			draw_version = true;
+			break;*/
+		Q_snprintf (curbuild, sizeof (curbuild),
+			"v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
+		}
 	else
-		Q_snprintf (curbuild, MAX_STRING, "v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
-			Q_buildos (), Q_buildarch (), Q_buildnum ());
+		{
+		qboolean draw_version;
+
+		/*if (host.force_draw_version_time > host.realtime)
+			draw_version = true;*/
+		draw_version = (cls.scrshot_action == scrshot_normal) ||
+			(cls.scrshot_action == scrshot_snapshot) ||
+			(host.force_draw_version_time > host.realtime);
+
+		/*if (((cls.key_dest != key_menu) && !draw_version) || (CL_IsDevOverviewMode () == 2) || net_graph.value)
+			return;*/
+		if (!draw_version)
+			return;
+
+		/*if (draw_version)
+			Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)",
+				PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
+		else
+			Q_snprintf (curbuild, MAX_STRING, "v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
+				Q_buildos (), Q_buildarch (), Q_buildnum ());*/
+		Q_snprintf (curbuild, sizeof (curbuild),
+			XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION, Q_buildos (),
+			Q_buildarch (), Q_buildnum ());
+		}
 
 	Con_DrawStringLen (curbuild, &stringLen, &charH);
 	start = refState.width - stringLen * 1.05f;
@@ -2112,7 +2139,7 @@ void Con_DrawVersion (void)
 
 /*
 ==================
-Con_RunConsole [FWGS, 01.07.23]
+Con_RunConsole [FWGS, 01.01.24]
 
 Scroll it up or down
 ==================
@@ -2151,10 +2178,12 @@ void Con_RunConsole (void)
 			con.vislines = con.showlines;
 		}
 
-	if (FBitSet (con_charset.flags, FCVAR_CHANGED) ||
+	/*if (FBitSet (con_charset.flags, FCVAR_CHANGED) ||
 		FBitSet (con_fontscale.flags, FCVAR_CHANGED) ||
 		FBitSet (con_fontnum.flags, FCVAR_CHANGED) ||
-		FBitSet (cl_charset.flags, FCVAR_CHANGED))
+		FBitSet (cl_charset.flags, FCVAR_CHANGED))*/
+	if (FBitSet (con_charset.flags | con_fontscale.flags | con_fontnum.flags | cl_charset.flags |
+		con_oldfont.flags, FCVAR_CHANGED))
 		{
 		// update codepage parameters
 		if (!Q_stricmp (con_charset.string, "cp1251"))
@@ -2181,6 +2210,7 @@ void Con_RunConsole (void)
 		ClearBits (con_fontnum.flags, FCVAR_CHANGED);
 		ClearBits (con_fontscale.flags, FCVAR_CHANGED);
 		ClearBits (cl_charset.flags, FCVAR_CHANGED);
+		ClearBits (con_oldfont.flags, FCVAR_CHANGED);
 		}
 	}
 
@@ -2211,7 +2241,7 @@ void Con_CharEvent (int key)
 
 /*
 =========
-Con_VidInit
+Con_VidInit [FWGS, 01.01.24]
 
 INTERNAL RESOURCE
 =========
@@ -2224,8 +2254,12 @@ void Con_VidInit (void)
 		con.historyLoaded = true;
 		}
 
+	if (Sys_CheckParm ("-oldfont"))
+		Cvar_DirectSet (&con_oldfont, "1");
+
 	Con_LoadConchars ();
 	Con_CheckResize ();
+
 #if XASH_LOW_MEMORY
 	con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);
 #else

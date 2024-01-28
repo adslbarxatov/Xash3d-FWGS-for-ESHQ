@@ -1513,7 +1513,7 @@ static vec3_t	sv_pointColor;
 
 /*
 =================
-SV_RecursiveLightPoint
+SV_RecursiveLightPoint [FWGS, 01.01.24]
 =================
 */
 static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec3_t start, const vec3_t end)
@@ -1523,7 +1523,7 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 	float		ds, dt, s, t;
 	int			sample_size;
 	msurface_t	*surf;
-	mtexinfo_t	*tex;
+	/*mtexinfo_t	*tex;*/
 	mextrasurf_t	*info;
 	color24		*lm;
 	vec3_t		mid;
@@ -1558,7 +1558,7 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 		{
 		int	smax, tmax;
 
-		tex = surf->texinfo;
+		/*tex = surf->texinfo;*/
 		info = surf->info;
 
 		if (FBitSet (surf->flags, SURF_DRAWTILED))

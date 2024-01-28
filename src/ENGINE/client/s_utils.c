@@ -20,6 +20,8 @@ GNU General Public License for more details.
 #define ZERO_X_8( b )	(( b ) < 2 && ( b ) > -2 )
 #define ZERO_X_16( b )	(( b ) < 512 && ( b ) > -512 )
 
+// [FWGS, 01.01.24]
+/*
 // -----------------------------------------------------------------------------
 // Purpose: Search backward for a zero crossing starting at sample
 // Input  : sample - starting point
@@ -116,7 +118,10 @@ int S_ZeroCrossingBefore (wavdata_t *pWaveData, int sample)
 
 	return sample;
 	}
+*/
 
+// [FWGS, 01.01.24]
+/*
 // -----------------------------------------------------------------------------
 // Purpose: Search forward for a zero crossing
 // Input  : sample - starting point
@@ -213,6 +218,7 @@ int S_ZeroCrossingAfter (wavdata_t *pWaveData, int sample)
 
 	return sample;
 	}
+*/
 
 // -----------------------------------------------------------------------------
 // Purpose: wrap the position wrt looping
@@ -280,7 +286,8 @@ int S_GetOutputData (wavdata_t *pSource, void **pData, int samplePosition, int s
 	return sampleCount;
 	}
 
-// move the current position to newPosition
+// [FWGS, 01.01.24]
+/* move the current position to newPosition
 void S_SetSampleStart (channel_t *pChan, wavdata_t *pSource, int newPosition)
 	{
 	if (pSource)
@@ -288,8 +295,10 @@ void S_SetSampleStart (channel_t *pChan, wavdata_t *pSource, int newPosition)
 
 	pChan->pMixer.sample = newPosition;
 	}
+*/
 
-// end playback at newEndPosition
+// [FWGS, 01.01.24]
+/* end playback at newEndPosition
 void S_SetSampleEnd (channel_t *pChan, wavdata_t *pSource, int newEndPosition)
 	{
 	// forced end of zero means play the whole sample
@@ -304,3 +313,4 @@ void S_SetSampleEnd (channel_t *pChan, wavdata_t *pSource, int newEndPosition)
 
 	pChan->pMixer.forcedEndSample = newEndPosition;
 	}
+*/

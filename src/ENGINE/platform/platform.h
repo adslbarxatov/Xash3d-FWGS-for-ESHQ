@@ -38,9 +38,10 @@ qboolean Sys_DebuggerPresent (void);	// [FWGS, 01.04.23] optional, see Sys_Debug
 // [FWGS, 01.07.23]
 void Platform_SetStatus (const char *status);
 
-// [FWGS, 01.11.23] legacy iOS port functions
+// [FWGS, 01.01.24] legacy iOS port functions
 #if TARGET_OS_IOS
 	const char *IOS_GetDocsDir (void);
+	void IOS_LaunchDialog (void);
 #endif
 
 #if XASH_WIN32 || XASH_LINUX
@@ -94,9 +95,11 @@ void Platform_SetStatus (const char *status);
 	void DOS_Shutdown (void);
 #endif
 
+// [FWGS, 01.01.24]
 #if XASH_LINUX
 	void Linux_Init (void);
 	void Linux_Shutdown (void);
+	void Linux_SetTimer (float time);
 #endif
 
 // [FWGS, 01.07.23]
@@ -188,6 +191,14 @@ void Platform_SetClipboardText (const char *buffer);
 #if !XASH_SDL
 #define SDL_VERSION_ATLEAST( x, y, z ) 0
 #endif
+
+// [FWGS, 01.01.24]
+static void Platform_SetTimer (float time)
+	{
+#if XASH_LINUX
+	Linux_SetTimer (time);
+#endif
+	}
 
 /*
 ==============================================================================

@@ -46,10 +46,11 @@ extern convar_t window_xpos;
 extern convar_t window_ypos;
 extern convar_t gl_msaa_samples;
 
-void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximized);	// [FWGS, 01.11.23]
-void VID_SetDisplayTransform (int *render_w, int *render_h);	// [FWGS, 01.07.23]
+// [FWGS, 01.01.24]
+void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximized);
+void VID_SetDisplayTransform (int *render_w, int *render_h);
 void VID_CheckChanges (void);
 const char *VID_GetModeString (int vid_mode);
-void VID_StartupGamma (void);
+/*void VID_StartupGamma (void);*/
 
 #endif

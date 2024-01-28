@@ -22,8 +22,11 @@ GNU General Public License for more details.
 #include "gl4es/include/gl4esinit.h"
 #endif
 
-ref_api_t      gEngfuncs;
-ref_globals_t *gpGlobals;
+// [FWGS, 01.01.24]
+ref_api_t		gEngfuncs;
+ref_globals_t	*gpGlobals;
+ref_client_t	*gp_cl;
+ref_host_t		*gp_host;
 
 static void R_ClearScreen (void)
 	{
@@ -139,18 +142,21 @@ qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)
 		switch (mod->type)
 			{
 			case mod_studio:
-				// Mod_LoadStudioModel( mod, buf, loaded );
 				break;
+
 			case mod_sprite:
 				Mod_LoadSpriteModel (mod, buf, &loaded, mod->numtexinfo);
 				break;
+
 			case mod_alias:
 				Mod_LoadAliasModel (mod, buf, &loaded);
 				break;
+
 			case mod_brush:
-				// Mod_LoadBrushModel( mod, buf, loaded );
 				break;
-			default: gEngfuncs.Host_Error ("Mod_LoadModel: unsupported type %d\n", mod->type);
+
+			default:
+				gEngfuncs.Host_Error ("Mod_LoadModel: unsupported type %d\n", mod->type);
 			}
 		}
 
@@ -172,32 +178,42 @@ static int GL_RefGetParm (int parm, int arg)
 		case PARM_TEX_WIDTH:
 			glt = R_GetTexture (arg);
 			return glt->width;
+
 		case PARM_TEX_HEIGHT:
 			glt = R_GetTexture (arg);
 			return glt->height;
+
 		case PARM_TEX_SRC_WIDTH:
 			glt = R_GetTexture (arg);
 			return glt->srcWidth;
+
 		case PARM_TEX_SRC_HEIGHT:
 			glt = R_GetTexture (arg);
 			return glt->srcHeight;
+
 		case PARM_TEX_GLFORMAT:
 			glt = R_GetTexture (arg);
 			return glt->format;
+
 		case PARM_TEX_ENCODE:
 			glt = R_GetTexture (arg);
 			return glt->encode;
+
 		case PARM_TEX_MIPCOUNT:
 			glt = R_GetTexture (arg);
 			return glt->numMips;
+
 		case PARM_TEX_DEPTH:
 			glt = R_GetTexture (arg);
 			return glt->depth;
+
 		case PARM_TEX_SKYBOX:
-			Assert (arg >= 0 && arg < 6);
+			Assert ((arg >= 0) && (arg < 6));
 			return tr.skyboxTextures[arg];
+
 		case PARM_TEX_SKYTEXNUM:
 			return tr.skytexturenum;
+
 		case PARM_TEX_LIGHTMAP:
 			arg = bound (0, arg, MAX_LIGHTMAPS - 1);
 			return tr.lightmapTextures[arg];
@@ -206,35 +222,50 @@ static int GL_RefGetParm (int parm, int arg)
 		case PARM_TEX_TARGET:
 			glt = R_GetTexture (arg);
 			return glt->target;
+
 		case PARM_TEX_TEXNUM:
 			glt = R_GetTexture (arg);
 			return glt->texnum;
+
 		case PARM_TEX_FLAGS:
 			glt = R_GetTexture (arg);
 			return glt->flags;
+
 		case PARM_TEX_MEMORY:
 			return GL_TexMemory ();
+
 		case PARM_ACTIVE_TMU:
 			return glState.activeTMU;
+
 		case PARM_LIGHTSTYLEVALUE:
 			arg = bound (0, arg, MAX_LIGHTSTYLES - 1);
 			return tr.lightstylevalue[arg];
+
 		case PARM_MAX_IMAGE_UNITS:
 			return GL_MaxTextureUnits ();
+
 		case PARM_REBUILD_GAMMA:
 			return glConfig.softwareGammaUpdate;
+
 		case PARM_SURF_SAMPLESIZE:
 			if ((arg >= 0) && (arg < WORLDMODEL->numsurfaces))
 				return gEngfuncs.Mod_SampleSizeForFace (&WORLDMODEL->surfaces[arg]);
 			return LM_SAMPLE_SIZE;
+
 		case PARM_GL_CONTEXT_TYPE:
 			return glConfig.context;
+
 		case PARM_GLES_WRAPPER:
 			return glConfig.wrapper;
+
 		case PARM_STENCIL_ACTIVE:
 			return glState.stencilEnabled;
+
+		// [FWGS, 01.01.24]
 		case PARM_SKY_SPHERE:
-			return ENGINE_GET_PARM_ (parm, arg) && !tr.fCustomSkybox;
+			/*return ENGINE_GET_PARM_ (parm, arg) && !tr.fCustomSkybox;*/
+			return FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX);
+		
 		default:
 			return ENGINE_GET_PARM_ (parm, arg);
 		}
@@ -245,20 +276,25 @@ static void R_GetDetailScaleForTexture (int texture, float *xScale, float *yScal
 	{
 	gl_texture_t *glt = R_GetTexture (texture);
 
-	if (xScale) *xScale = glt->xscale;
-	if (yScale) *yScale = glt->yscale;
+	if (xScale)
+		*xScale = glt->xscale;
+	if (yScale)
+		*yScale = glt->yscale;
 	}
 
 static void R_GetExtraParmsForTexture (int texture, byte *red, byte *green, byte *blue, byte *density)
 	{
 	gl_texture_t *glt = R_GetTexture (texture);
 
-	if (red) *red = glt->fogParams[0];
-	if (green) *green = glt->fogParams[1];
-	if (blue) *blue = glt->fogParams[2];
-	if (density) *density = glt->fogParams[3];
+	if (red)
+		*red = glt->fogParams[0];
+	if (green)
+		*green = glt->fogParams[1];
+	if (blue)
+		*blue = glt->fogParams[2];
+	if (density)
+		*density = glt->fogParams[3];
 	}
-
 
 static void R_SetCurrentEntity (cl_entity_t *ent)
 	{
@@ -295,17 +331,32 @@ const byte *GL_TextureData (unsigned int texnum)
 	return NULL;
 	}
 
-void R_ProcessEntData (qboolean allocate)
+// [FWGS, 01.01.24]
+/*void R_ProcessEntData (qboolean allocate)*/
+void R_ProcessEntData (qboolean allocate, cl_entity_t *entities, unsigned int max_entities)
 	{
 	if (!allocate)
 		{
 		tr.draw_list->num_solid_entities = 0;
 		tr.draw_list->num_trans_entities = 0;
 		tr.draw_list->num_beam_entities = 0;
+		tr.max_entities = 0;
+		tr.entities = NULL;
+		}
+	else
+		{
+		tr.max_entities = max_entities;
+		tr.entities = entities;
 		}
 
 	if (gEngfuncs.drawFuncs->R_ProcessEntData)
 		gEngfuncs.drawFuncs->R_ProcessEntData (allocate);
+	}
+
+// [FWGS, 01.01.24]
+static void GAME_EXPORT R_Flush (unsigned int flags)
+	{
+	// stub
 	}
 
 qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_x, int offset_y, float scale_x, float scale_y)
@@ -323,7 +374,7 @@ qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_x, int 
 		ret = false;
 		}
 
-	if (scale_x != 1.0f || scale_y != 1.0f)
+	if ((scale_x != 1.0f) || (scale_y != 1.0f))
 		{
 		gEngfuncs.Con_Printf ("scale transform not supported\n");
 		ret = false;
@@ -348,154 +399,158 @@ static const char *R_GetConfigName (void)
 
 ref_interface_t gReffuncs =
 	{
-		R_Init,
-		R_Shutdown,
-		R_GetConfigName,
-		R_SetDisplayTransform,
+	R_Init,
+	R_Shutdown,
+	R_GetConfigName,
+	R_SetDisplayTransform,
 
-		GL_SetupAttributes,
-		GL_InitExtensions,
-		GL_ClearExtensions,
+	GL_SetupAttributes,
+	GL_InitExtensions,
+	GL_ClearExtensions,
 
-		R_BeginFrame,
-		R_RenderScene,
-		R_EndFrame,
-		R_PushScene,
-		R_PopScene,
-		GL_BackendStartFrame,
-		GL_BackendEndFrame,
+	// [FWGS, 01.01.24]
+	R_GammaChanged,
 
-		R_ClearScreen,
-		R_AllowFog,
-		GL_SetRenderMode,
+	R_BeginFrame,
+	R_RenderScene,
+	R_EndFrame,
+	R_PushScene,
+	R_PopScene,
+	GL_BackendStartFrame,
+	GL_BackendEndFrame,
 
-		R_AddEntity,
-		CL_AddCustomBeam,
-		R_ProcessEntData,
+	R_ClearScreen,
+	R_AllowFog,
+	GL_SetRenderMode,
 
-		R_ShowTextures,
+	R_AddEntity,
+	CL_AddCustomBeam,
+	R_ProcessEntData,
 
-		R_GetTextureOriginalBuffer,
-		GL_LoadTextureFromBuffer,
-		GL_ProcessTexture,
-		R_SetupSky,
+	// [FWGS, 01.01.24]
+	R_Flush,
+	R_ShowTextures,
 
-		R_Set2DMode,
-		R_DrawStretchRaw,
-		R_DrawStretchPic,
-		R_DrawTileClear,
-		CL_FillRGBA,
-		CL_FillRGBABlend,
-		R_WorldToScreen,
+	R_GetTextureOriginalBuffer,
+	GL_LoadTextureFromBuffer,
+	GL_ProcessTexture,
+	R_SetupSky,
 
-		VID_ScreenShot,
-		VID_CubemapShot,
+	R_Set2DMode,
+	R_DrawStretchRaw,
+	R_DrawStretchPic,
+	R_DrawTileClear,
+	CL_FillRGBA,
+	CL_FillRGBABlend,
+	R_WorldToScreen,
 
-		R_LightPoint,
+	VID_ScreenShot,
+	VID_CubemapShot,
 
-		R_DecalShoot,
-		R_DecalRemoveAll,
-		R_CreateDecalList,
-		R_ClearAllDecals,
+	R_LightPoint,
 
-		R_StudioEstimateFrame,
-		R_StudioLerpMovement,
-		CL_InitStudioAPI,
+	R_DecalShoot,
+	R_DecalRemoveAll,
+	R_CreateDecalList,
+	R_ClearAllDecals,
 
-		R_InitSkyClouds,
-		GL_SubdivideSurface,
-		CL_RunLightStyles,
+	R_StudioEstimateFrame,
+	R_StudioLerpMovement,
+	CL_InitStudioAPI,
 
-		R_GetSpriteParms,
-		R_GetSpriteTexture,
+	R_InitSkyClouds,
+	GL_SubdivideSurface,
+	CL_RunLightStyles,
 
-		Mod_LoadMapSprite,
-		Mod_ProcessRenderData,
-		Mod_StudioLoadTextures,
+	R_GetSpriteParms,
+	R_GetSpriteTexture,
 
-		CL_DrawParticles,
-		CL_DrawTracers,
-		CL_DrawBeams,
-		R_BeamCull,
+	Mod_LoadMapSprite,
+	Mod_ProcessRenderData,
+	Mod_StudioLoadTextures,
 
-		GL_RefGetParm,
-		R_GetDetailScaleForTexture,
-		R_GetExtraParmsForTexture,
-		R_GetFrameTime,
+	CL_DrawParticles,
+	CL_DrawTracers,
+	CL_DrawBeams,
+	R_BeamCull,
 
-		R_SetCurrentEntity,
-		R_SetCurrentModel,
+	GL_RefGetParm,
+	R_GetDetailScaleForTexture,
+	R_GetExtraParmsForTexture,
+	R_GetFrameTime,
 
-		GL_FindTexture,
-		GL_TextureName,
-		GL_TextureData,
-		GL_LoadTexture,
-		GL_CreateTexture,
-		GL_LoadTextureArray,
-		GL_CreateTextureArray,
-		GL_FreeTexture,
+	R_SetCurrentEntity,
+	R_SetCurrentModel,
 
-		DrawSingleDecal,
-		R_DecalSetupVerts,
-		R_EntityRemoveDecals,
+	GL_FindTexture,
+	GL_TextureName,
+	GL_TextureData,
+	GL_LoadTexture,
+	GL_CreateTexture,
+	GL_LoadTextureArray,
+	GL_CreateTextureArray,
+	GL_FreeTexture,
 
-		R_UploadStretchRaw,
+	DrawSingleDecal,
+	R_DecalSetupVerts,
+	R_EntityRemoveDecals,
 
-		GL_Bind,
-		GL_SelectTexture,
-		GL_LoadTexMatrixExt,
-		GL_LoadIdentityTexMatrix,
-		GL_CleanUpTextureUnits,
-		GL_TexGen,
-		GL_TextureTarget,
-		GL_SetTexCoordArrayMode,
-		GL_UpdateTexSize,
-		NULL,
-		NULL,
+	R_UploadStretchRaw,
 
-		CL_DrawParticlesExternal,
-		R_LightVec,
-		R_StudioGetTexture,
+	GL_Bind,
+	GL_SelectTexture,
+	GL_LoadTexMatrixExt,
+	GL_LoadIdentityTexMatrix,
+	GL_CleanUpTextureUnits,
+	GL_TexGen,
+	GL_TextureTarget,
+	GL_SetTexCoordArrayMode,
+	GL_UpdateTexSize,
+	NULL,
+	NULL,
 
-		R_RenderFrame,
-		Mod_SetOrthoBounds,
-		R_SpeedsMessage,
-		Mod_GetCurrentVis,
-		R_NewMap,
-		R_ClearScene,
-		R_GetProcAddress,
+	CL_DrawParticlesExternal,
+	R_LightVec,
+	R_StudioGetTexture,
 
-		TriRenderMode,
-		TriBegin,
-		TriEnd,
-		_TriColor4f,
-		_TriColor4ub,
-		TriTexCoord2f,
-		TriVertex3fv,
-		TriVertex3f,
-		TriFog,
-		R_ScreenToWorld,
-		TriGetMatrix,
-		TriFogParams,
-		TriCullFace,
+	R_RenderFrame,
+	Mod_SetOrthoBounds,
+	R_SpeedsMessage,
+	Mod_GetCurrentVis,
+	R_NewMap,
+	R_ClearScene,
+	R_GetProcAddress,
 
-		VGUI_DrawInit,
-		VGUI_DrawShutdown,
-		VGUI_SetupDrawingText,
-		VGUI_SetupDrawingRect,
-		VGUI_SetupDrawingImage,
-		VGUI_BindTexture,
-		VGUI_EnableTexture,
-		VGUI_CreateTexture,
-		VGUI_UploadTexture,
-		VGUI_UploadTextureBlock,
-		VGUI_DrawQuad,
-		VGUI_GetTextureSizes,
-		VGUI_GenerateTexture,
+	TriRenderMode,
+	TriBegin,
+	TriEnd,
+	_TriColor4f,
+	_TriColor4ub,
+	TriTexCoord2f,
+	TriVertex3fv,
+	TriVertex3f,
+	TriFog,
+	R_ScreenToWorld,
+	TriGetMatrix,
+	TriFogParams,
+	TriCullFace,
+	
+	VGUI_DrawInit,
+	VGUI_DrawShutdown,
+	VGUI_SetupDrawingText,
+	VGUI_SetupDrawingRect,
+	VGUI_SetupDrawingImage,
+	VGUI_BindTexture,
+	VGUI_EnableTexture,
+	VGUI_CreateTexture,
+	VGUI_UploadTexture,
+	VGUI_UploadTextureBlock,
+	VGUI_DrawQuad,
+	VGUI_GetTextureSizes,
+	VGUI_GenerateTexture,
 	};
 
-// [FWGS, 01.05.23] удалена GetRefHumanReadableName
-	
+// [FWGS, 01.01.24]
 int EXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals)
 	{
 	if (version != REF_API_VERSION)
@@ -505,6 +560,9 @@ int EXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, 
 	memcpy (funcs, &gReffuncs, sizeof (ref_interface_t));
 	memcpy (&gEngfuncs, engfuncs, sizeof (ref_api_t));
 	gpGlobals = globals;
+
+	gp_cl = (ref_client_t *)ENGINE_GET_PARM (PARM_GET_CLIENT_PTR);
+	gp_host = (ref_host_t *)ENGINE_GET_PARM (PARM_GET_HOST_PTR);
 
 	return REF_API_VERSION;
 	}

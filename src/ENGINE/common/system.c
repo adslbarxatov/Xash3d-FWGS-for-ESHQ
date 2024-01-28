@@ -20,20 +20,20 @@ GNU General Public License for more details.
 #include <errno.h>
 
 #ifdef XASH_SDL
-#include <SDL.h>
+	#include <SDL.h>
 #endif
 
 #if XASH_POSIX
-#include <unistd.h>
-#include <signal.h>
+	#include <unistd.h>
+	#include <signal.h>
 
-#if !XASH_ANDROID
-#include <pwd.h>
-#endif
+	#if !XASH_ANDROID
+		#include <pwd.h>
+	#endif
 #endif
 
 #if XASH_WIN32
-#include <process.h>
+	#include <process.h>
 #endif
 
 // [FWGS, 01.04.23]
@@ -388,7 +388,7 @@ void Sys_WaitForQuit (void)
 
 /*
 ================
-Sys_Warn [FWGS, 01.04.23]
+Sys_Warn [FWGS, 01.01.24]
 
 Just messagebox
 ================
@@ -406,12 +406,14 @@ void Sys_Warn (const char *format, ...)
 
 	Msg ("Sys_Warn: %s\n", text);
 	if (!Host_IsDedicated ()) // dedicated server should not hang on messagebox
-		MSGBOX (text);
+		Platform_MessageBox ("Xash Warning", text, false);
+
+	/*MSGBOX (text);*/
 	}
 
 /*
 ================
-Sys_Error
+Sys_Error [FWGS, 01.01.24]
 
 NOTE: we must prepare engine to shutdown
 before call this
@@ -422,7 +424,7 @@ void Sys_Error (const char *error, ...)
 	va_list	argptr;
 	char	text[MAX_PRINT_MSG];
 
-	// [FWGS, 01.04.23] enable cursor before debugger call
+	// enable cursor before debugger call
 	if (!Host_IsDedicated ())
 		Platform_SetCursorType (dc_arrow);
 
@@ -446,13 +448,16 @@ void Sys_Error (const char *error, ...)
 	if (!Host_IsDedicated ())
 		{
 #if XASH_SDL == 2
-		if (host.hWnd) SDL_HideWindow (host.hWnd);
+		if (host.hWnd)
+			SDL_HideWindow (host.hWnd);
 #endif
+
 #if XASH_WIN32
 		Wcon_ShowConsole (false);
 #endif
-		MSGBOX (text);
-		Sys_Print (text);	// [FWGS, 01.04.23]
+		/*MSGBOX (text);*/
+		Sys_Print (text);
+		Platform_MessageBox ("Xash Error", text, false);
 		}
 	else
 		{
@@ -567,7 +572,9 @@ void Sys_Print (const char *pMsg)
 
 	Sys_PrintLog (pMsg);
 
-	Rcon_Print (pMsg);
+	// [FWGS, 01.01.24]
+	/*Rcon_Print (pMsg);*/
+	Rcon_Print (&host.rd, pMsg);
 	}
 
 /*

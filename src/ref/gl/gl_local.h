@@ -34,6 +34,7 @@ GNU General Public License for more details.
 #include "common/cvar.h"	// [FWGS, 01.07.23]
 #include "gl_export.h"
 #include "wadfile.h"
+#include "common/mod_local.h"	// [FWGS, 01.01.24]
 
 // [FWGS, 01.04.23]
 #if XASH_PSVITA
@@ -60,33 +61,36 @@ GNU General Public License for more details.
 
 #include <stdio.h>
 
-// [FWGS, 01.07.23]
-#define WORLD (gEngfuncs.GetWorld())
+// [FWGS, 01.01.24]
+/*#define WORLD (gEngfuncs.GetWorld())
 #define WORLDMODEL (gEngfuncs.pfnGetModelByIndex( 1 ))
-#define MOVEVARS (gEngfuncs.pfnGetMoveVars())
+#define MOVEVARS (gEngfuncs.pfnGetMoveVars())*/
 
 // make mod_ref.h?
-#define LM_SAMPLE_SIZE	16
+#define LM_SAMPLE_SIZE		16
 
-extern poolhandle_t r_temppool;
+extern poolhandle_t			r_temppool;
 
-#define BLOCK_SIZE		tr.block_size	// lightmap blocksize
+#define BLOCK_SIZE			tr.block_size	// lightmap blocksize
 #define BLOCK_SIZE_DEFAULT	128		// for keep backward compatibility
-#define BLOCK_SIZE_MAX	1024
+#define BLOCK_SIZE_MAX		1024
 
-#define MAX_TEXTURES            8192	// a1ba: increased by users request
+#define MAX_TEXTURES		8192	// a1ba: increased by users request
 #define MAX_DETAIL_TEXTURES	256
-#define MAX_LIGHTMAPS	256
-#define SUBDIVIDE_SIZE	64
-#define MAX_DECAL_SURFS	4096
-#define MAX_DRAW_STACK	2		// normal view and menu view
+#define MAX_LIGHTMAPS		256
+#define SUBDIVIDE_SIZE		64
+#define MAX_DECAL_SURFS		4096
+#define MAX_DRAW_STACK		2		// normal view and menu view
 
-#define SHADEDOT_QUANT 	16		// precalculated dot products for quantized angles
-#define SHADE_LAMBERT	1.495f
+#define SHADEDOT_QUANT 		16		// precalculated dot products for quantized angles
+
+// [FWGS, 01.01.24]
+/*#define SHADE_LAMBERT	1.495f*/
+#define SHADE_LAMBERT		1.4953241
 #define DEFAULT_ALPHATEST	0.0f
 
 // refparams
-#define RP_NONE		0
+#define RP_NONE			0
 #define RP_ENVVIEW		BIT( 0 )	// used for cubemapshot
 #define RP_OLDVIEWLEAF	BIT( 1 )
 #define RP_CLIPPLANE	BIT( 2 )
@@ -94,10 +98,16 @@ extern poolhandle_t r_temppool;
 #define RP_NONVIEWERREF	(RP_ENVVIEW)
 #define R_ModelOpaque( rm )	( rm == kRenderNormal )
 #define R_StaticEntity( ent )	( VectorIsNull( ent->origin ) && VectorIsNull( ent->angles ))
-#define RP_LOCALCLIENT( e )	((e) != NULL && (e)->index == ENGINE_GET_PARM( PARM_PLAYER_INDEX ) && e->player )
+
+// [FWGS, 01.01.24]
+/*#define RP_LOCALCLIENT( e )	((e) != NULL && (e)->index == ENGINE_GET_PARM( PARM_PLAYER_INDEX ) && e->player )*/
+#define RP_LOCALCLIENT( e ) ((e) != NULL && (e)->index == ( gp_cl->playernum + 1 ) && e->player)
+
 #define RP_NORMALPASS()	( FBitSet( RI.params, RP_NONVIEWERREF ) == 0 )
 
-#define CL_IsViewEntityLocalPlayer() ( ENGINE_GET_PARM( PARM_VIEWENT_INDEX ) == ENGINE_GET_PARM( PARM_PLAYER_INDEX ) )
+// [FWGS, 01.01.24]
+/*#define CL_IsViewEntityLocalPlayer() ( ENGINE_GET_PARM( PARM_VIEWENT_INDEX ) == ENGINE_GET_PARM( PARM_PLAYER_INDEX ) )*/
+#define CL_IsViewEntityLocalPlayer() ( gp_cl->viewentity == ( gp_cl->playernum + 1 ))
 
 #define CULL_VISIBLE	0		// not culled
 #define CULL_BACKSIDE	1		// backside of transparent wall
@@ -147,24 +157,24 @@ typedef struct gltexture_s
 
 typedef struct
 	{
-	int		params;		// rendering parameters
+	int			params;		// rendering parameters
 
-	qboolean		drawWorld;	// ignore world for drawing PlayerModel
-	qboolean		isSkyVisible;	// sky is visible
-	qboolean		onlyClientDraw;	// disabled by client request
-	qboolean		drawOrtho;	// draw world as orthogonal projection
+	qboolean	drawWorld;	// ignore world for drawing PlayerModel
+	qboolean	isSkyVisible;	// sky is visible
+	qboolean	onlyClientDraw;	// disabled by client request
+	qboolean	drawOrtho;	// draw world as orthogonal projection
 
 	float		fov_x, fov_y;	// current view fov
 
-	cl_entity_t *currententity;
-	model_t *currentmodel;
-	cl_entity_t *currentbeam;	// same as above but for beams
+	cl_entity_t	*currententity;
+	model_t		*currentmodel;
+	cl_entity_t	*currentbeam;	// same as above but for beams
 
-	int		viewport[4];
+	int			viewport[4];
 	gl_frustum_t	frustum;
 
-	mleaf_t *viewleaf;
-	mleaf_t *oldviewleaf;
+	mleaf_t		*viewleaf;
+	mleaf_t		*oldviewleaf;
 	vec3_t		pvsorigin;
 	vec3_t		vieworg;		// locked vieworigin
 	vec3_t		viewangles;
@@ -179,29 +189,29 @@ typedef struct
 
 	float		farClip;
 
-	qboolean		fogCustom;
-	qboolean		fogEnabled;
-	qboolean		fogSkybox;
+	qboolean	fogCustom;
+	qboolean	fogEnabled;
+	qboolean	fogSkybox;
 	vec4_t		fogColor;
 	float		fogDensity;
 	float		fogStart;
 	float		fogEnd;
-	int		cached_contents;	// in water
-	int		cached_waterlevel;	// was in water
+	int			cached_contents;	// in water
+	int			cached_waterlevel;	// was in water
 
 	float		skyMins[2][SKYBOX_MAX_SIDES];
 	float		skyMaxs[2][SKYBOX_MAX_SIDES];
 
-	matrix4x4		objectMatrix;		// currententity matrix
-	matrix4x4		worldviewMatrix;		// modelview for world
-	matrix4x4		modelviewMatrix;		// worldviewMatrix * objectMatrix
+	matrix4x4	objectMatrix;		// currententity matrix
+	matrix4x4	worldviewMatrix;		// modelview for world
+	matrix4x4	modelviewMatrix;		// worldviewMatrix * objectMatrix
 
-	matrix4x4		projectionMatrix;
-	matrix4x4		worldviewProjectionMatrix;	// worldviewMatrix * projectionMatrix
+	matrix4x4	projectionMatrix;
+	matrix4x4	worldviewProjectionMatrix;	// worldviewMatrix * projectionMatrix
 	byte		visbytes[(MAX_MAP_LEAFS + 7) / 8];// actual PVS for current frame
 
 	float		viewplanedist;
-	mplane_t		clipPlane;
+	mplane_t	clipPlane;
 	} ref_instance_t;
 
 typedef struct
@@ -233,28 +243,29 @@ typedef struct
 
 	// entity lists
 	draw_list_t	draw_stack[MAX_DRAW_STACK];
-	int		draw_stack_pos;
-	draw_list_t *draw_list;
+	int			draw_stack_pos;
+	draw_list_t	*draw_list;
 
-	msurface_t *draw_decals[MAX_DECAL_SURFS];
-	int		num_draw_decals;
+	msurface_t	*draw_decals[MAX_DECAL_SURFS];
+	int			num_draw_decals;
 
 	// OpenGL matrix states
-	qboolean		modelviewIdentity;
+	qboolean	modelviewIdentity;
 
 	int		visframecount;	// PVS frame
 	int		dlightframecount;	// dynamic light frame
 	int		realframecount;	// not including viewpasses
 	int		framecount;
 
-	qboolean		ignore_lightgamma;
-	qboolean		fCustomRendering;
-	qboolean		fResetVis;
-	qboolean		fFlipViewModel;
+	// [FWGS, 01.01.24]
+	/*qboolean	ignore_lightgamma;*/
+	qboolean	fCustomRendering;
+	qboolean	fResetVis;
+	qboolean	fFlipViewModel;
 
 	byte		visbytes[(MAX_MAP_LEAFS + 7) / 8];	// member custom PVS
-	int		lightstylevalue[MAX_LIGHTSTYLES];	// value 0 - 65536
-	int		block_size;			// lightmap blocksize
+	int			lightstylevalue[MAX_LIGHTSTYLES];	// value 0 - 65536
+	int			block_size;			// lightmap blocksize
 
 	double		frametime;	// special frametime for multipass rendering (will set to 0 on a nextview)
 	float		blend;		// global blend value
@@ -262,7 +273,15 @@ typedef struct
 	// cull info
 	vec3_t		modelorg;		// relative to viewpoint
 
-	qboolean fCustomSkybox;
+	/*qboolean fCustomSkybox;*/
+	// [FWGS, 01.01.24] get from engine
+	world_static_t	*world;
+	cl_entity_t		*entities;
+	movevars_t		*movevars;
+	color24			*palette;
+	cl_entity_t		*viewent;
+
+	uint	max_entities;
 	} gl_globals_t;
 
 typedef struct
@@ -402,9 +421,10 @@ void R_TranslateForEntity (cl_entity_t *e);
 void R_RotateForEntity (cl_entity_t *e);
 void R_SetupGL (qboolean set_gl_state);
 void R_AllowFog (qboolean allowed);
+qboolean R_OpaqueEntity (cl_entity_t *ent);	// [FWGS, 01.01.24]
 void R_SetupFrustum (void);
 void R_FindViewLeaf (void);
-void R_CheckGamma (void);
+/*void R_CheckGamma (void);*/	// [FWGS, 01.01.24]
 void R_PushScene (void);
 void R_PopScene (void);
 void R_DrawFog (void);
@@ -433,10 +453,7 @@ void R_MarkLeaves (void);
 void R_DrawWorld (void);
 void R_DrawWaterSurfaces (void);
 void R_DrawBrushModel (cl_entity_t *e);
-
-// [FWGS, 01.11.23]
 void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
-
 void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);
 void DrawGLPoly (glpoly_t *p, float xScale, float yScale);
 texture_t *R_TextureAnimation (msurface_t *s);
@@ -449,6 +466,7 @@ void GL_ResetFogColor (void);
 void R_GenerateVBO (void);
 void R_ClearVBO (void);
 void R_AddDecalVBO (decal_t *pdecal, msurface_t *surf);
+void R_LightmapCoord (const vec3_t v, const msurface_t *surf, const float sample_size, vec2_t coords);	// [FWGS, 01.01.24]
 
 //
 // gl_rpart.c
@@ -456,7 +474,6 @@ void R_AddDecalVBO (decal_t *pdecal, msurface_t *surf);
 void CL_DrawParticlesExternal (const ref_viewpass_t *rvp, qboolean trans_pass, float frametime);
 void CL_DrawParticles (double frametime, particle_t *cl_active_particles, float partsize);
 void CL_DrawTracers (double frametime, particle_t *cl_active_tracers);
-
 
 //
 // gl_sprite.c
@@ -533,11 +550,12 @@ void GL_SetupAttributes (int safegl);
 void GL_OnContextCreated (void);
 void GL_InitExtensions (void);
 void GL_ClearExtensions (void);
-void VID_CheckChanges (void);
+/*void VID_CheckChanges (void);*/	// [FWGS, 01.01.24]
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
 void GL_FreeImage (const char *name);
 qboolean VID_ScreenShot (const char *filename, int shot_type);
 qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qboolean skyshot);
+void R_GammaChanged (qboolean do_reset_gamma);	// [FWGS, 01.01.24]
 void R_BeginFrame (qboolean clearScene);
 void R_RenderFrame (const struct ref_viewpass_s *vp);
 void R_EndFrame (void);
@@ -731,13 +749,38 @@ extern glconfig_t		glConfig;
 extern glstate_t		glState;
 // move to engine
 extern glwstate_t		glw_state;
-extern ref_api_t      gEngfuncs;
-extern ref_globals_t *gpGlobals;
+extern ref_api_t		gEngfuncs;
+extern ref_globals_t	*gpGlobals;
+
+// [FWGS, 01.01.24]
+extern ref_client_t		*gp_cl;
+extern ref_host_t		*gp_host;
 
 #define ENGINE_GET_PARM_ (*gEngfuncs.EngineGetParm)
 #define ENGINE_GET_PARM( parm ) ENGINE_GET_PARM_( ( parm ), 0 )
 
-// [FWGS, 01.07.23] renderer cvars
+// [FWGS, 01.01.24] helper funcs
+static inline cl_entity_t *CL_GetEntityByIndex (int index)
+	{
+	if (unlikely ((index < 0) || (index >= tr.max_entities) || !tr.entities))
+		return NULL;
+
+	return &tr.entities[index];
+	}
+
+// [FWGS, 01.01.24] helper funcs
+static inline model_t *CL_ModelHandle (int index)
+	{
+	if (unlikely ((index < 0) || (index >= gp_cl->nummodels)))
+		return NULL;
+
+	return gp_cl->models[index];
+	}
+
+// [FWGS, 01.01.24]
+#define WORLDMODEL (gp_cl->models[1])
+
+// renderer cvars
 extern convar_t gl_texture_anisotropy;
 extern convar_t gl_extensions;
 extern convar_t gl_check_errors;
@@ -753,7 +796,7 @@ extern convar_t gl_nosort;
 extern convar_t gl_test;	// cvar to testify new effects
 extern convar_t gl_msaa;
 extern convar_t gl_stencilbits;
-
+extern convar_t gl_overbright;	// [FWGS, 01.01.24]
 extern convar_t r_lighting_extended;
 extern convar_t r_lighting_ambient;
 extern convar_t r_studio_lambert;
@@ -765,8 +808,7 @@ extern convar_t r_lockfrustum;
 extern convar_t r_traceglow;
 extern convar_t r_vbo;
 extern convar_t r_vbo_dlightmode;
-
-// [FWGS, 01.11.23]
+extern convar_t r_vbo_detail;	// [FWGS, 01.01.24]
 extern convar_t r_studio_sort_textures;
 extern convar_t r_studio_drawelements;
 extern convar_t r_ripple;

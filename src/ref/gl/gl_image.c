@@ -18,20 +18,20 @@ GNU General Public License for more details.
 
 #define TEXTURES_HASH_SIZE	(MAX_TEXTURES >> 2)
 
-static gl_texture_t		gl_textures[MAX_TEXTURES];
-static gl_texture_t *gl_texturesHashTable[TEXTURES_HASH_SIZE];
-static uint		gl_numTextures;
+static gl_texture_t	gl_textures[MAX_TEXTURES];
+static gl_texture_t	*gl_texturesHashTable[TEXTURES_HASH_SIZE];
+static uint			gl_numTextures;
 
-static byte    dottexture[8][8] =
+static byte dottexture[8][8] =
 	{
-		  {0,1,1,0,0,0,0,0},
-		  {1,1,1,1,0,0,0,0},
-		  {1,1,1,1,0,0,0,0},
-		  {0,1,1,0,0,0,0,0},
-		  {0,0,0,0,0,0,0,0},
-		  {0,0,0,0,0,0,0,0},
-		  {0,0,0,0,0,0,0,0},
-		  {0,0,0,0,0,0,0,0},
+	{0,1,1,0,0,0,0,0},
+	{1,1,1,1,0,0,0,0},
+	{1,1,1,1,0,0,0,0},
+	{0,1,1,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
 	};
 
 #define IsLightMap( tex )	( FBitSet(( tex )->flags, TF_ATLAS_PAGE ))
@@ -1629,17 +1629,17 @@ int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags)
 
 /*
 ================
-GL_LoadTextureArray [FWGS, 01.04.23]
+GL_LoadTextureArray [FWGS, 01.01.24]
 ================
 */
 int GL_LoadTextureArray (const char **names, int flags)
 	{
-	rgbdata_t *pic, *src;
+	rgbdata_t	*pic, *src;
 	char		basename[256];
 	uint		numLayers = 0;
 	uint		picFlags = 0;
 	char		name[256];
-	gl_texture_t *tex;
+	gl_texture_t	*tex;
 	size_t		len = 0;
 	int			ret = 0;
 	uint		i, j;
@@ -1652,7 +1652,8 @@ int GL_LoadTextureArray (const char **names, int flags)
 		numLayers++;
 	name[0] = '\0';
 
-	if (numLayers <= 0) return 0;
+	if (numLayers <= 0)
+		return 0;
 
 	// create complexname from layer names
 	for (i = 0; i < numLayers - 1; i++)
@@ -1685,7 +1686,8 @@ int GL_LoadTextureArray (const char **names, int flags)
 		size_t	srcsize, dstsize, mipsize;
 
 		src = gEngfuncs.FS_LoadImage (names[i], NULL, 0);
-		if (!src) break; // coldn't find layer
+		if (!src)
+			break; // coldn't find layer
 
 		if (pic)
 			{
@@ -1727,11 +1729,13 @@ int GL_LoadTextureArray (const char **names, int flags)
 		else
 			{
 			// create new image
-			pic = Mem_Malloc (gEngfuncs.Image_GetPool (), sizeof (rgbdata_t));
+			/*pic = Mem_Malloc (gEngfuncs.Image_GetPool (), sizeof (rgbdata_t));*/
+			pic = Mem_Malloc (r_temppool, sizeof (rgbdata_t));
 			memcpy (pic, src, sizeof (rgbdata_t));
 
 			// expand pic buffer for all layers
-			pic->buffer = Mem_Malloc (gEngfuncs.Image_GetPool (), pic->size * numLayers);
+			/*pic->buffer = Mem_Malloc (gEngfuncs.Image_GetPool (), pic->size * numLayers);*/
+			pic->buffer = Mem_Malloc (r_temppool, pic->size * numLayers);
 			pic->depth = 0;
 			}
 
@@ -1741,6 +1745,7 @@ int GL_LoadTextureArray (const char **names, int flags)
 			{
 			int width = Q_max (1, (pic->width >> j));
 			int height = Q_max (1, (pic->height >> j));
+
 			mipsize = GL_CalcImageSize (pic->type, width, height, 1);
 			memcpy (pic->buffer + dstsize + mipsize * i, src->buffer + srcsize, mipsize);
 			dstsize += mipsize * numLayers;

@@ -1785,18 +1785,19 @@ static void SV_Physics_Entity (edict_t *ent)
 
 	// g-cont. don't alow free entities during loading because
 	// this produce a corrupted baselines
-	if (sv.state == ss_active && FBitSet (ent->v.flags, FL_KILLME))
+	if ((sv.state == ss_active) && FBitSet (ent->v.flags, FL_KILLME))
 		SV_FreeEdict (ent);
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.01.24]
 static void SV_RunLightStyles (void)
 	{
-	int i, ofs;
-	lightstyle_t *ls;
-	float scale;
+	int				i, ofs;
+	lightstyle_t	*ls;
+	float			scale;
 
-	scale = sv_lighting_modulate.value;
+	/*scale = sv_lighting_modulate.value;*/
+	scale = 1.0f;
 
 	// run lightstyles animation
 	for (i = 0, ls = sv.lightstyles; i < MAX_LIGHTSTYLES; i++, ls++)
@@ -2140,7 +2141,7 @@ static server_physics_api_t gPhysicsAPI =
 
 /*
 ===============
-SV_InitPhysicsAPI
+SV_InitPhysicsAPI [FWGS, 01.01.24]
 
 Initialize server external physics
 ===============
@@ -2159,18 +2160,21 @@ qboolean SV_InitPhysicsAPI (void)
 			if (svgame.physFuncs.SV_CheckFeatures != NULL)
 				{
 				// grab common engine features (it will be shared across the network)
-				host.features = svgame.physFuncs.SV_CheckFeatures ();
-				Host_PrintEngineFeatures ();
+				/*host.features = svgame.physFuncs.SV_CheckFeatures ();
+				Host_PrintEngineFeatures ();*/
+				Host_ValidateEngineFeatures (svgame.physFuncs.SV_CheckFeatures ());
 				}
 			return true;
 			}
 
 		// make sure what physic functions is cleared
 		memset (&svgame.physFuncs, 0, sizeof (svgame.physFuncs));
+		Host_ValidateEngineFeatures (0);
 
 		return false; // just tell user about problems
 		}
 
 	// physic interface is missed
+	Host_ValidateEngineFeatures (0);
 	return true;
 	}

@@ -51,14 +51,15 @@ sysinfo_t		SI;
 struct tests_stats_s tests_stats;
 #endif
 
+// [FWGS, 01.01.24]
 CVAR_DEFINE (host_developer, "developer", "0", FCVAR_FILTERABLE,
 	"engine is in development-mode");
-CVAR_DEFINE_AUTO (sys_timescale, "1.0", FCVAR_CHEAT | FCVAR_FILTERABLE,
+/*CVAR_DEFINE_AUTO (sys_timescale, "1.0", FCVAR_CHEAT | FCVAR_FILTERABLE,
+	"scale frame time");*/
+CVAR_DEFINE_AUTO (sys_timescale, "1.0", FCVAR_FILTERABLE,
 	"scale frame time");
 CVAR_DEFINE_AUTO (sys_ticrate, "100", 0,
 	"framerate in dedicated mode");
-
-// [FWGS, 01.07.23]
 static CVAR_DEFINE_AUTO (host_serverstate, "0", FCVAR_READ_ONLY,
 	"displays current server state");
 static CVAR_DEFINE_AUTO (host_gameloaded, "0", FCVAR_READ_ONLY,
@@ -73,7 +74,10 @@ static CVAR_DEFINE_AUTO (host_framerate, "0", FCVAR_FILTERABLE,
 	"locks frame timing to this value in seconds");
 static CVAR_DEFINE (host_sleeptime, "sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"milliseconds to sleep for each frame.higher values reduce fps accuracy");
-CVAR_DEFINE (con_gamemaps, "con_mapfilter", "1", FCVAR_ARCHIVE, "when true show only maps in game folder");
+static CVAR_DEFINE_AUTO (host_sleeptime_debug, "0", 0,
+	"print sleeps between frames");
+CVAR_DEFINE (con_gamemaps, "con_mapfilter", "1", FCVAR_ARCHIVE,
+	"when true show only maps in game folder");
 
 // [FWGS, 01.05.23]
 void Sys_PrintUsage (void)
@@ -198,25 +202,85 @@ void Host_ShutdownServer (void)
 
 /*
 ================
-Host_PrintEngineFeatures
+Host_PrintEngineFeatures [FWGS, 01.01.24]
 ================
 */
-void Host_PrintEngineFeatures (void)
+/*void Host_PrintEngineFeatures (void)*/
+static void Host_PrintEngineFeatures (int features)
 	{
-	if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
-		Con_Reportf ("^3EXT:^7 big world support enabled\n");
+	/*if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
+		Con_Reportf ("^3EXT:^7 big world support enabled\n");*/
+	struct
+		{
+		uint32_t mask;
+		const char *msg;
+		} features_str[] =
+			{
+			{ ENGINE_WRITE_LARGE_COORD, "Big World Support" },
+			{ ENGINE_QUAKE_COMPATIBLE, "Quake Compatibility" },
+			{ ENGINE_LOAD_DELUXEDATA, "Deluxemap Support" },
+			{ ENGINE_PHYSICS_PUSHER_EXT, "Improved MOVETYPE_PUSH" },
+			{ ENGINE_LARGE_LIGHTMAPS, "Large Lightmaps" },
+			{ ENGINE_COMPENSATE_QUAKE_BUG, "Stupid Quake Bug Compensation" },
+			{ ENGINE_IMPROVED_LINETRACE, "Improved Trace Line" },
+			{ ENGINE_COMPUTE_STUDIO_LERP, "Studio MOVETYPE_STEP Lerping" },
+			{ ENGINE_LINEAR_GAMMA_SPACE, "Linear Gamma Space" },
+			{ ENGINE_STEP_POSHISTORY_LERP, "MOVETYPE_STEP Position History Based Lerping" },
+			};
+		int i;
 
-	if (FBitSet (host.features, ENGINE_LOAD_DELUXEDATA))
-		Con_Reportf ("^3EXT:^7 deluxemap support enabled\n");
+	/*if (FBitSet (host.features, ENGINE_LOAD_DELUXEDATA))
+		Con_Reportf ("^3EXT:^7 deluxemap support enabled\n");*/
+		for (i = 0; i < ARRAYSIZE (features_str); i++)
+			{
+			if (FBitSet (features, features_str[i].mask))
+				Con_Reportf ("^3EXT:^7 %s is enabled\n", features_str[i].msg);
+			}
+	}
 
-	if (FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT))
-		Con_Reportf ("^3EXT:^7 Improved MOVETYPE_PUSH is used\n");
+/*if (FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT))
+	Con_Reportf ("^3EXT:^7 Improved MOVETYPE_PUSH is used\n");*/
 
-	if (FBitSet (host.features, ENGINE_LARGE_LIGHTMAPS))
-		Con_Reportf ("^3EXT:^7 Large lightmaps enabled\n");
+/*if (FBitSet (host.features, ENGINE_LARGE_LIGHTMAPS))
+	Con_Reportf ("^3EXT:^7 Large lightmaps enabled\n");*/
 
-	if (FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
-		Con_Reportf ("^3EXT:^7 Compensate quake bug enabled\n");
+/*
+==============
+Host_ValidateEngineFeatures [FWGS, 01.01.24]
+
+validate features bits and set host.features
+==============
+*/
+void Host_ValidateEngineFeatures (uint32_t features)
+	{
+	uint32_t mask = ENGINE_FEATURES_MASK;
+
+#if !HOST_DEDICATED
+	if (!Host_IsDedicated () && cls.legacymode)
+		mask = ENGINE_LEGACY_FEATURES_MASK;
+#endif
+
+	// don't allow unsupported bits
+	features &= mask;
+
+	// force bits for some games
+	if (!Q_stricmp (GI->gamefolder, "cstrike") || !Q_stricmp (GI->gamefolder, "czero"))
+		SetBits (features, ENGINE_STEP_POSHISTORY_LERP);
+
+	/*if (FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
+		Con_Reportf ("^3EXT:^7 Compensate quake bug enabled\n");*/
+
+		// print requested first
+	Host_PrintEngineFeatures (features);
+
+	// now warn about incompatible bits
+	if (FBitSet (features, ENGINE_STEP_POSHISTORY_LERP | ENGINE_COMPUTE_STUDIO_LERP) ==
+		(ENGINE_STEP_POSHISTORY_LERP | ENGINE_COMPUTE_STUDIO_LERP))
+		Con_Printf (S_WARN "%s: incompatible ENGINE_STEP_POSHISTORY_LERP and ENGINE_COMPUTE_STUDIO_LERP are enabled!\n",
+			__func__);
+
+	// finally set global variable
+	host.features = features;
 	}
 
 /*
@@ -646,61 +710,145 @@ Host_FilterTime [FWGS, 01.04.23]
 
 Returns false if the time is too short to run a frame
 ===================
-*/
-qboolean Host_FilterTime (float time)
-	{
-	static double	oldtime;
-	double fps, scale = sys_timescale.value;
+//
+qboolean Host_FilterTime (float time)*/
 
-	host.realtime += time * scale;
+// [FWGS, 01.01.24]
+static qboolean Host_Autosleep (double dt, double scale)
+	{
+	/*static double	oldtime;
+	double fps, scale = sys_timescale.value;*/
+	double targetframetime, fps;
+	int sleep;
+
+	/*host.realtime += time * scale;
+	*/
 	fps = Host_CalcFPS ();
 
-	// clamp the fps in multiplayer games
+	/* clamp the fps in multiplayer games
 	if (fps != 0.0)
 		{
 		static int sleeps;
 		double targetframetime;
-		int sleeptime = Host_CalcSleep ();
+		int sleeptime = Host_CalcSleep ();*/
+	if (fps <= 0)
+		return true;
 
-		// limit fps to withing tolerable range
-		fps = bound (MIN_FPS, fps, MAX_FPS);
+	// limit fps to withing tolerable range
+	fps = bound (MIN_FPS, fps, MAX_FPS);
 
-		if (Host_IsDedicated ())
-			targetframetime = (1.0 / (fps + 1.0));
-		else
-			targetframetime = (1.0 / fps);
+	if (Host_IsDedicated ())
+		targetframetime = (1.0 / (fps + 1.0));
+	else
+		targetframetime = (1.0 / fps);
 
-		if ((host.realtime - oldtime) < targetframetime * scale)
+	/*if ((host.realtime - oldtime) < targetframetime * scale)
+	*/
+	sleep = Host_CalcSleep ();
+
+	// no sleeps between frames, much simpler code
+	if (sleep == 0)
+		{
+		if (dt < targetframetime * scale)
+			return false;
+		}
+	else
+		{
+		static double timewindow; // allocate a time window for sleeps
+		static int counter; // for debug
+		static double realsleeptime;
+		const double sleeptime = sleep * 0.001;
+
+		if (dt < targetframetime * scale)
 			{
-			if ((sleeptime > 0) && (sleeps > 0))
+			/*if ((sleeptime > 0) && (sleeps > 0))
+			*/
+			// if we have allocated time window, try to sleep
+			if (timewindow > realsleeptime)
 				{
-				Sys_Sleep (sleeptime);
-				sleeps--;
+				/*Sys_Sleep (sleeptime);
+				sleeps--;*/
+
+				// Sys_Sleep isn't guaranteed to sleep an exact amount of milliseconds
+				// so we measure the real sleep time and use it to decrease the window
+				double t1 = Sys_DoubleTime (), t2;
+				Sys_Sleep (sleep); // in msec!
+
+				t2 = Sys_DoubleTime ();
+				realsleeptime = t2 - t1;
+
+				timewindow -= realsleeptime;
+
+				if (host_sleeptime_debug.value)
+					{
+					counter++;
+
+					Con_NPrintf (counter, "%d: %.4f %.4f", counter, timewindow, realsleeptime);
+					}
 				}
 
 			return false;
 			}
 
-		if ((sleeptime > 0) && (sleeps <= 0))
+		/*if ((sleeptime > 0) && (sleeps <= 0))
+		*/
+		// if we exhausted this time window, allocate a new one after new frame
+		if (timewindow <= realsleeptime)
 			{
-			if (host.status == HOST_FRAME)
+			/*if (host.status == HOST_FRAME)
 				{
 				// give few sleeps this frame with small margin
-				double targetsleeptime = targetframetime - host.pureframetime * 2;
+				double targetsleeptime = targetframetime - host.pureframetime * 2;*/
+			double targetsleeptime = targetframetime - host.pureframetime * 2;
 
-				// don't sleep if we can't keep up with the framerate
-				if (targetsleeptime > 0)
-					sleeps = targetsleeptime / (sleeptime * 0.001);
-				else
-					sleeps = 0;
-				}
+			/* don't sleep if we can't keep up with the framerate
+			if (targetsleeptime > 0)
+				sleeps = targetsleeptime / (sleeptime * 0.001);
 			else
+				sleeps = 0;
+			}
+		else*/
+			if (targetsleeptime > 0)
+				timewindow = targetsleeptime;
+			else
+				timewindow = 0;
+
+			// reset in case CPU was too busy
+			realsleeptime = sleeptime;
+
+			if (host_sleeptime_debug.value)
 				{
-				// always sleep at least once in minimized/nofocus state
-				sleeps = 1;
+				/* always sleep at least once in minimized/nofocus state
+				sleeps = 1;*/
+				counter = 0;
+
+				Con_NPrintf (0, "tgt = %.4f, pft = %.4f, wnd = %.4f", targetframetime, host.pureframetime, timewindow);
 				}
 			}
 		}
+
+	return true;
+	}
+
+/*
+===================
+Host_FilterTime [FWGS, 01.01.24]
+
+Returns false if the time is too short to run a frame
+===================
+*/
+qboolean Host_FilterTime (float time)
+	{
+	static double oldtime;
+	double dt;
+	double scale = sys_timescale.value;
+
+	host.realtime += time * scale;
+	dt = host.realtime - oldtime;
+
+	// clamp the fps in multiplayer games
+	if (!Host_Autosleep (dt, scale))
+		return false;
 
 	host.frametime = host.realtime - oldtime;
 	host.realframetime = bound (MIN_FRAMETIME, host.frametime, MAX_FRAMETIME);
@@ -781,12 +929,15 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 			}
 		else
 			{
-			MSGBOX2 (hosterror1);
+			// [FWGS, 01.01.24]
+			/*MSGBOX2 (hosterror1);*/
+			Platform_MessageBox ("Host Error", hosterror1, true);
 			}
 		}
 
 	// host is shutting down. don't invoke infinite loop
-	if (host.status == HOST_SHUTDOWN) return;
+	if (host.status == HOST_SHUTDOWN)
+		return;
 
 	if (recursive)
 		{
@@ -820,7 +971,8 @@ void Host_Error_f (void)
 	{
 	const char *error = Cmd_Argv (1);
 
-	if (!*error) error = "Invoked host error";
+	if (!*error)
+		error = "Invoked host error";
 	Host_Error ("%s\n", error);
 	}
 
@@ -828,7 +980,8 @@ void Sys_Error_f (void)
 	{
 	const char *error = Cmd_Argv (1);
 
-	if (!*error) error = "Invoked sys error";
+	if (!*error)
+		error = "Invoked sys error";
 	Sys_Error ("%s\n", error);
 	}
 
@@ -890,7 +1043,7 @@ static void Host_RunTests (int stage)
 
 /*
 =================
-Host_InitCommon
+Host_InitCommon [FWGS, 01.01.24]
 =================
 */
 void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)
@@ -899,7 +1052,8 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 	int		developer = DEFAULT_DEV;
 	const char *baseDir;
 	char	ticrate[16];
-	int		len;
+	/*int		len;*/
+	int		len, i;
 
 	// some commands may turn engine into infinite loop,
 	// e.g. xash.exe +game xash -game xash
@@ -965,8 +1119,10 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 	if (progname[0] == '#')
 		progname++;
 
+	// [FWGS, 01.01.24]
 	Q_strncpy (SI.exeName, progname, sizeof (SI.exeName));
-	Q_strncpy (SI.basedirName, progname, sizeof (SI.exeName));
+	/*Q_strncpy (SI.basedirName, progname, sizeof (SI.exeName));*/
+	Q_strncpy (SI.basedirName, progname, sizeof (SI.basedirName));
 
 	if (Host_IsDedicated ())
 		{
@@ -1124,9 +1280,12 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 		Con_Printf ("^3BUGCOMP^7: GoldSrc bug-compatibility enabled\n");
 		}
 
-	Cmd_AddCommand ("exec", Host_Exec_f, "execute a script file");
-	Cmd_AddCommand ("memlist", Host_MemStats_f, "prints memory pool information");
-	Cmd_AddRestrictedCommand ("userconfigd", Host_Userconfigd_f, "execute all scripts from userconfig.d");
+	Cmd_AddCommand ("exec", Host_Exec_f,
+		"execute a script file");
+	Cmd_AddCommand ("memlist", Host_MemStats_f,
+		"prints memory pool information");
+	Cmd_AddRestrictedCommand ("userconfigd", Host_Userconfigd_f,
+		"execute all scripts from userconfig.d");
 
 	Image_Init ();
 	Sound_Init ();
@@ -1139,12 +1298,41 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 	FS_LoadGameInfo (NULL);
 	Cvar_PostFSInit ();	// [FWGS, 01.04.23]
 
-	if (FS_FileExists (va ("%s.rc", SI.basedirName), false))
+	// [FWGS, 01.01.24]
+	/*if (FS_FileExists (va ("%s.rc", SI.basedirName), false))
 		Q_strncpy (SI.rcName, SI.basedirName, sizeof (SI.rcName));	// e.g. valve.rc
 	else
-		Q_strncpy (SI.rcName, SI.exeName, sizeof (SI.rcName));	// e.g. quake.rc
+		Q_strncpy (SI.rcName, SI.exeName, sizeof (SI.rcName));	// e.g. quake.rc*/
 
 	Q_strncpy (host.gamefolder, GI->gamefolder, sizeof (host.gamefolder));
+
+	for (i = 0; i < 3; i++)
+		{
+		const char *rcName;
+		switch (i)
+			{
+			// e.g. valve.rc
+			case 0:
+				rcName = SI.basedirName;
+				break;
+
+			// e.g. quake.rc
+			case 1:
+				rcName = SI.exeName;
+				break;
+
+			// e.g. game.rc (ran from default launcher)
+			case 2:
+				rcName = host.gamefolder;
+				break;
+			}
+
+		if (FS_FileExists (va ("%s.rc", rcName), false))
+			{
+			Q_strncpy (SI.rcName, rcName, sizeof (SI.rcName));
+			break;
+			}
+		}
 
 	Image_CheckPaletteQ1 ();
 	Host_InitDecals ();	// reload decals
@@ -1191,6 +1379,7 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	Cvar_RegisterVariable (&host_maxfps);
 	Cvar_RegisterVariable (&host_framerate);
 	Cvar_RegisterVariable (&host_sleeptime);
+	Cvar_RegisterVariable (&host_sleeptime_debug);	// [FWGS, 01.01.24]
 	Cvar_RegisterVariable (&host_gameloaded);
 	Cvar_RegisterVariable (&host_clientloaded);
 	Cvar_RegisterVariable (&host_limitlocal);
@@ -1333,11 +1522,13 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 
 /*
 =================
-Host_Shutdown
+Host_Shutdown [FWGS, 01.01.24]
 =================
 */
 void EXPORT Host_Shutdown (void)
 	{
+	qboolean error = host.status == HOST_ERR_FATAL;
+
 	if (host.shutdown_issued)
 		return;
 	host.shutdown_issued = true;
@@ -1348,7 +1539,8 @@ void EXPORT Host_Shutdown (void)
 		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));
 
 #if !XASH_DEDICATED
-	if (host.type == HOST_NORMAL)
+	/*if (host.type == HOST_NORMAL)*/
+	if ((host.type == HOST_NORMAL) && !error)
 		Host_WriteConfig ();
 #endif
 

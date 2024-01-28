@@ -139,8 +139,9 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 			return 1;
 #endif
 			return 0;
-		case PARM_SKY_SPHERE:
-			return FBitSet (world.flags, FWORLD_SKYSPHERE) && !FBitSet (world.flags, FWORLD_CUSTOM_SKYBOX);
+		// [FWGS, 01.01.24]
+		/*case PARM_SKY_SPHERE:
+			return FBitSet (world.flags, FWORLD_SKYSPHERE) && !FBitSet (world.flags, FWORLD_CUSTOM_SKYBOX);*/
 		case PARAM_GAMEPAUSED:
 			return cl.paused;
 		case PARM_CLIENT_INGAME:
@@ -187,26 +188,42 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 					return CL_IsThirdPerson ();
 				case PARM_QUAKE_COMPATIBLE:
 					return Host_IsQuakeCompatible ();
-				case PARM_PLAYER_INDEX:
+				// [FWGS, 01.01.24]
+				/*case PARM_PLAYER_INDEX:
 					return cl.playernum + 1;
 				case PARM_VIEWENT_INDEX:
-					return cl.viewentity;
+					return cl.viewentity;*/
 				case PARM_CONNSTATE:
 					return (int)cls.state;
 				case PARM_PLAYING_DEMO:
 					return cls.demoplayback;
 				case PARM_WATER_LEVEL:
 					return cl.local.waterlevel;
-				case PARM_MAX_CLIENTS:
-					return cl.maxclients;
+				// [FWGS, 01.01.24]
+				/*case PARM_MAX_CLIENTS:
+					return cl.maxclients;*/
 				case PARM_LOCAL_HEALTH:
 					return cl.local.health;
 				case PARM_LOCAL_GAME:
 					return Host_IsLocalGame ();
 				case PARM_NUMENTITIES:
 					return pfnNumberOfEntities ();
-				case PARM_NUMMODELS:
-					return cl.nummodels;
+
+				// [FWGS, 01.01.24]
+				/*case PARM_NUMMODELS:
+					return cl.nummodels;*/
+				case PARM_GET_CLIENT_PTR:
+					return (intptr_t)&cl.time; // with the offset
+				case PARM_GET_HOST_PTR:
+					return (intptr_t)&host.realtime; // with the offset
+				case PARM_GET_WORLD_PTR:
+					return (intptr_t)&world;
+				case PARM_GET_MOVEVARS_PTR:
+					return (intptr_t)&clgame.movevars;
+				case PARM_GET_PALETTE_PTR:
+					return (intptr_t)&clgame.palette;
+				case PARM_GET_VIEWENT_PTR:
+					return (intptr_t)&clgame.viewent;
 				}
 		}
 	return 0;

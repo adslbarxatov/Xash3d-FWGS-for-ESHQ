@@ -313,6 +313,9 @@ void SCR_MakeScreenShot (void)
 	else
 		viewsize = cl_envshot_size.value;
 
+	// [FWGS, 01.01.24]
+	V_CheckGamma ();
+
 	switch (cls.scrshot_action)
 		{
 		case scrshot_normal:

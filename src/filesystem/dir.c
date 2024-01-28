@@ -453,9 +453,10 @@ static void FS_Search_DIR (searchpath_t *search, stringlist_t *list, const char 
 	Mem_Free (basepath);
 	}
 
+// [FWGS, 01.01.24]
 static int FS_FileTime_DIR (searchpath_t *search, const char *filename)
 	{
-	int time;
+	/*int time;*/
 	char path[MAX_SYSPATH];
 
 	Q_snprintf (path, sizeof (path), "%s%s", search->filename, filename);

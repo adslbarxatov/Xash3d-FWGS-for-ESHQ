@@ -231,4 +231,15 @@ void CL_HudMessage (const char *pMessage)
 	{
 	}
 
+// [FWGS, 01.01.24]
+byte TextureToGamma (byte b)
+	{
+	return b;
+	}
+
+byte LightToTexGamma (byte b)
+	{
+	return b;
+	}
+
 #endif

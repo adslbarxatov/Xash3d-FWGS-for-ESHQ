@@ -238,15 +238,15 @@ CVAR_DEFINE_AUTO (sv_enttools_maxfire, "5", FCVAR_ARCHIVE | FCVAR_PROTECTED,
 CVAR_DEFINE (public_server, "public", "0", 0,
 	"change server type from private to public");
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.01.24]
 CVAR_DEFINE_AUTO (sv_novis, "0", 0,
 	"force to ignore server visibility");	// disable server culling entities by vis
 CVAR_DEFINE (sv_pausable, "pausable", "1", FCVAR_SERVER,
 	"allow players to pause or not");
 static CVAR_DEFINE_AUTO (timeout, "125", FCVAR_SERVER,
 	"connection timeout");	// seconds without any message
-CVAR_DEFINE (sv_lighting_modulate, "r_lighting_modulate", "0.6", FCVAR_ARCHIVE,
-	"lightstyles modulate scale");
+/*CVAR_DEFINE (sv_lighting_modulate, "r_lighting_modulate", "0.6", FCVAR_ARCHIVE,
+	"lightstyles modulate scale");*/
 CVAR_DEFINE (sv_maxclients, "maxplayers", "1", FCVAR_LATCH,
 	"server max capacity");
 CVAR_DEFINE_AUTO (sv_check_errors, "0", FCVAR_ARCHIVE,
@@ -1083,8 +1083,8 @@ void SV_Init (void)
 	// [FWGS, 01.05.23]
 	Cvar_RegisterVariable (&public_server);
 
-	// [FWGS, 01.07.23]
-	Cvar_RegisterVariable (&sv_lighting_modulate);
+	// [FWGS, 01.01.24]
+	/*Cvar_RegisterVariable (&sv_lighting_modulate);*/
 	Cvar_RegisterVariable (&sv_reconnect_limit);
 	Cvar_RegisterVariable (&sv_failuretime);
 	Cvar_RegisterVariable (&sv_unlag);
@@ -1093,7 +1093,7 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_unlagsamples);
 	Cvar_RegisterVariable (&sv_allow_upload);
 	Cvar_RegisterVariable (&sv_allow_download);
-	Cvar_RegisterVariable (&sv_allow_dlfile);	// [FWGS, 01.11.23]
+	Cvar_RegisterVariable (&sv_allow_dlfile);
 	Cvar_RegisterVariable (&sv_send_logos);
 	Cvar_RegisterVariable (&sv_send_resources);
 	Cvar_RegisterVariable (&sv_uploadmax);
@@ -1249,7 +1249,7 @@ void SV_FreeClients (void)
 
 /*
 ================
-SV_Shutdown [FWGS, 01.11.23]
+SV_Shutdown [FWGS, 01.01.24]
 
 Called when each game quits,
 before Sys_Quit or Sys_Error
@@ -1274,7 +1274,8 @@ void SV_Shutdown (const char *finalmsg)
 		Con_Printf ("%s", finalmsg);
 
 	// rcon will be disconnected
-	SV_EndRedirect ();
+	/*SV_EndRedirect ();*/
+	SV_EndRedirect (&host.rd);
 
 	if (svs.clients)
 		SV_FinalMessage (finalmsg, false);

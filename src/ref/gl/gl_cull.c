@@ -34,25 +34,14 @@ qboolean R_CullBox (const vec3_t mins, const vec3_t maxs)
 	}
 
 /*
-=================
-R_CullSphere [FWGS, 01.05.23]
-
-Returns true if the sphere is completely outside the frustum
-=================
-qboolean R_CullSphere (const vec3_t centre, const float radius)
-	{
-	return GL_FrustumCullSphere (&RI.frustum, centre, radius, 0);
-	}
-*/
-
-/*
 =============
-R_CullModel
+R_CullModel [FWGS, 01.01.24]
 =============
 */
 int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 	{
-	if (e == gEngfuncs.GetViewModel ())
+	/*if (e == gEngfuncs.GetViewModel ())*/
+	if (e == tr.viewent)
 		{
 		if (ENGINE_GET_PARM (PARM_DEV_OVERVIEW))
 			return 1;
@@ -86,8 +75,9 @@ int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
 	if (r_nocull.value)
 		return CULL_VISIBLE;
 
-	// world surfaces can be culled by vis frame too
-	if (RI.currententity == gEngfuncs.GetEntityByIndex (0) && surf->visframe != tr.framecount)
+	// [FWGS, 01.01.24] world surfaces can be culled by vis frame too
+	/*if (RI.currententity == gEngfuncs.GetEntityByIndex (0) && surf->visframe != tr.framecount)*/
+	if ((RI.currententity == CL_GetEntityByIndex (0)) && (surf->visframe != tr.framecount))
 		return CULL_VISFRAME;
 
 	// only static ents can be culled by frustum
@@ -98,16 +88,23 @@ int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
 		{
 		float	dist;
 
-		// can use normal.z for world (optimisation)
+		// [FWGS, 01.01.24] can use normal.z for world (optimisation)
 		if (RI.drawOrtho)
 			{
 			vec3_t	orthonormal;
 
-			if (e == gEngfuncs.GetEntityByIndex (0)) orthonormal[2] = surf->plane->normal[2];
-			else Matrix4x4_VectorRotate (RI.objectMatrix, surf->plane->normal, orthonormal);
+			/*if (e == gEngfuncs.GetEntityByIndex (0)) orthonormal[2] = surf->plane->normal[2];*/
+
+			if (e == CL_GetEntityByIndex (0))
+				orthonormal[2] = surf->plane->normal[2];
+			else
+				Matrix4x4_VectorRotate (RI.objectMatrix, surf->plane->normal, orthonormal);
 			dist = orthonormal[2];
 			}
-		else dist = PlaneDiff (tr.modelorg, surf->plane);
+		else
+			{
+			dist = PlaneDiff (tr.modelorg, surf->plane);
+			}
 
 		if (glState.faceCull == GL_FRONT)
 			{

@@ -20,15 +20,17 @@ GNU General Public License for more details.
 #include "vid_common.h"
 #include "platform/platform.h"
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.01.24]
 static CVAR_DEFINE (window_width, "width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen width");
 static CVAR_DEFINE (window_height, "height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen height");
-static CVAR_DEFINE (vid_brightness, "brightness", "0.0", FCVAR_ARCHIVE,
+
+/*static CVAR_DEFINE (vid_brightness, "brightness", "0.0", FCVAR_ARCHIVE,
 	"brightness factor");
 static CVAR_DEFINE (vid_gamma, "gamma", "2.5", FCVAR_ARCHIVE,
-	"gamma amount");
+	"gamma amount");*/
+
 static CVAR_DEFINE_AUTO (vid_mode, "0", FCVAR_RENDERINFO,
 	"current video mode index (used only for storage)");
 static CVAR_DEFINE_AUTO (vid_rotate, "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
@@ -51,11 +53,12 @@ CVAR_DEFINE (window_ypos, "_window_ypos", "-1", FCVAR_RENDERINFO,
 
 glwstate_t	glw_state;
 
+// [FWGS, 01.01.24]
 /*
 =================
 VID_StartupGamma
 =================
-*/
+//
 void VID_StartupGamma (void)
 	{
 	BuildGammaTable (vid_gamma.value, vid_brightness.value);
@@ -63,6 +66,7 @@ void VID_StartupGamma (void)
 	ClearBits (vid_brightness.flags, FCVAR_CHANGED);
 	ClearBits (vid_gamma.flags, FCVAR_CHANGED);
 	}
+*/
 
 /*
 =================
@@ -226,7 +230,7 @@ static void VID_Mode_f (void)
 	R_ChangeDisplaySettings (w, h, bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1));
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.01.24]
 void VID_Init (void)
 	{
 	Cvar_RegisterVariable (&window_width);
@@ -236,9 +240,9 @@ void VID_Init (void)
 	Cvar_RegisterVariable (&vid_rotate);
 	Cvar_RegisterVariable (&vid_scale);
 	Cvar_RegisterVariable (&vid_fullscreen);
-	Cvar_RegisterVariable (&vid_maximized);	// [FWGS, 01.11.23]
-	Cvar_RegisterVariable (&vid_brightness);
-	Cvar_RegisterVariable (&vid_gamma);
+	Cvar_RegisterVariable (&vid_maximized);
+	/*Cvar_RegisterVariable (&vid_brightness);
+	Cvar_RegisterVariable (&vid_gamma);*/
 	Cvar_RegisterVariable (&window_xpos);
 	Cvar_RegisterVariable (&window_ypos);
 
@@ -246,5 +250,6 @@ void VID_Init (void)
 	// but supported mode list is filled by backends, so numbers are not portable any more
 	Cmd_AddRestrictedCommand ("vid_setmode", VID_Mode_f, "display video mode");
 
-	R_Init (); // init renderer
+	V_Init ();	// init gamma
+	R_Init ();	// init renderer
 	}

@@ -24,7 +24,8 @@ GNU General Public License for more details.
 #include "sound.h"
 #include "input.h"
 
-#define STUDIO_INTERPOLATION_FIX
+// [FWGS, 01.01.24]
+/*#define STUDIO_INTERPOLATION_FIX*/
 
 /*
 ==================
@@ -45,24 +46,39 @@ FRAME INTERPOLATION
 */
 /*
 ==================
-CL_UpdatePositions
+CL_UpdatePositions [FWGS, 01.01.24]
 
 Store another position into interpolation circular buffer
 ==================
 */
 void CL_UpdatePositions (cl_entity_t *ent)
 	{
-	position_history_t *ph;
+	/*position_history_t *ph;*/
+	position_history_t *ph, *prev;
+	prev = &ent->ph[ent->current_position];
 
 	ent->current_position = (ent->current_position + 1) & HISTORY_MASK;
 	ph = &ent->ph[ent->current_position];
 	VectorCopy (ent->curstate.origin, ph->origin);
 	VectorCopy (ent->curstate.angles, ph->angles);
 
-	if (ent->model && (ent->model->type == mod_brush))
+	/*if (ent->model && (ent->model->type == mod_brush))
 		ph->animtime = ent->curstate.animtime;
 	else
-		ph->animtime = cl.time;
+		ph->animtime = cl.time;*/
+	ph->animtime = ent->curstate.animtime;
+
+	// a1ba: for some reason, this sometimes still may happen
+	// at this time, I'm not sure whether this bug happens in delta readwrite code
+	// or server just decides to go backwards and really sends these values
+	if (ph->animtime < prev->animtime)
+		{
+		// try to deduce real animtime by looking up the difference between
+		// server messages (cl.mtime is never modified ny the interpolation code)
+		float diff = Q_max (0, ent->curstate.msg_time - ent->prevstate.msg_time);
+
+		ph->animtime = prev->animtime + diff;
+		}
 	}
 
 /*
@@ -157,6 +173,13 @@ qboolean CL_EntityCustomLerp (cl_entity_t *e)
 		case MOVETYPE_FLY:
 		case MOVETYPE_COMPOUND:
 			return false;
+
+		// [FWGS, 01.01.24] ABSOLUTELY STUPID HACK TO ALLOW MONSTERS
+		// INTERPOLATION IN GRAVGUNMOD COOP
+		// MUST BE REMOVED ONCE WE REMOVE 48 PROTO SUPPORT
+		case MOVETYPE_TOSS:
+			if (cls.legacymode && e->model && e->model->type == mod_studio)
+				return false;
 		}
 
 	return true;
@@ -164,12 +187,13 @@ qboolean CL_EntityCustomLerp (cl_entity_t *e)
 
 /*
 ==================
-CL_ParametricMove
+CL_ParametricMove [FWGS, 01.01.24]
 
 check for parametrical moved entities
 ==================
 */
-qboolean CL_ParametricMove (cl_entity_t *ent)
+/*qboolean CL_ParametricMove (cl_entity_t *ent)*/
+static qboolean CL_ParametricMove (cl_entity_t *ent)
 	{
 	float	frac, dt, t;
 	vec3_t	delta;
@@ -340,16 +364,19 @@ void CL_ProcessEntityUpdate (cl_entity_t *ent)
 
 /*
 ==================
-CL_FindInterpolationUpdates
+CL_FindInterpolationUpdates [FWGS, 01.01.24]
 
 find two timestamps
 ==================
 */
-qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, float targettime, position_history_t **ph0, position_history_t **ph1)
+/*qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, float targettime, position_history_t **ph0,
+	position_history_t **ph1)*/
+static qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, double targettime, position_history_t **ph0,
+	position_history_t **ph1)
 	{
 	qboolean	extrapolate = true;
 	uint		i, i0, i1, imod;
-	float	at;
+	/*float		at;*/
 
 	imod = ent->current_position;
 	i0 = (imod - 0) & HISTORY_MASK;	// curpos (lerp end)
@@ -357,8 +384,11 @@ qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, float targettime, positi
 
 	for (i = 1; i < HISTORY_MAX - 1; i++)
 		{
-		at = ent->ph[(imod - i) & HISTORY_MASK].animtime;
-		if (at == 0.0f) break;
+		/*at = ent->ph[(imod - i) & HISTORY_MASK].animtime;
+		if (at == 0.0f) break;*/
+		double at = ent->ph[(imod - i) & HISTORY_MASK].animtime;
+		if (at == 0.0f)
+			break;
 
 		if (targettime > at)
 			{
@@ -378,20 +408,23 @@ qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, float targettime, positi
 
 /*
 ==================
-CL_PureOrigin
+CL_PureOrigin [FWGS, 01.01.24]
 
 non-local players interpolation
 ==================
 */
-void CL_PureOrigin (cl_entity_t *ent, float t, vec3_t outorigin, vec3_t outangles)
+/*void CL_PureOrigin (cl_entity_t *ent, float t, vec3_t outorigin, vec3_t outangles)*/
+static void CL_PureOrigin (cl_entity_t *ent, double t, vec3_t outorigin, vec3_t outangles)
 	{
-	qboolean		extrapolate;
-	float		t1, t0, frac;
-	position_history_t *ph0, *ph1;
-	vec3_t		delta;
+	/*qboolean		extrapolate;
+	float			t1, t0, frac;*/
+	double			t1, t0, frac;
+	position_history_t	*ph0, *ph1;
+	vec3_t			delta;
 
 	// NOTE: ph0 is next, ph1 is a prev
-	extrapolate = CL_FindInterpolationUpdates (ent, t, &ph0, &ph1);
+	/*extrapolate = CL_FindInterpolationUpdates (ent, t, &ph0, &ph1);*/
+	CL_FindInterpolationUpdates (ent, t, &ph0, &ph1);
 
 	if (!ph0 || !ph1)
 		return;
@@ -399,7 +432,8 @@ void CL_PureOrigin (cl_entity_t *ent, float t, vec3_t outorigin, vec3_t outangle
 	t0 = ph0->animtime;
 	t1 = ph1->animtime;
 
-	if (t0 != 0.0f)
+	/*if (t0 != 0.0f)*/
+	if (t0 != 0.0)
 		{
 		vec4_t	q, q1, q2;
 
@@ -407,9 +441,12 @@ void CL_PureOrigin (cl_entity_t *ent, float t, vec3_t outorigin, vec3_t outangle
 
 		if (!Q_equal (t0, t1))
 			frac = (t - t1) / (t0 - t1);
-		else frac = 1.0f;
+		else
+			frac = 1.0;
+		/*else frac = 1.0f;*/
 
-		frac = bound (0.0f, frac, 1.2f);
+		/*frac = bound (0.0f, frac, 1.2f);*/
+		frac = bound (0.0, frac, 1.2);
 
 		VectorMA (ph1->origin, frac, delta, outorigin);
 
@@ -428,16 +465,18 @@ void CL_PureOrigin (cl_entity_t *ent, float t, vec3_t outorigin, vec3_t outangle
 
 /*
 ==================
-CL_InterpolateModel
+CL_InterpolateModel [FWGS, 01.01.24]
 
 non-players interpolation
 ==================
 */
-int CL_InterpolateModel (cl_entity_t *e)
+/*int CL_InterpolateModel (cl_entity_t *e)*/
+static int CL_InterpolateModel (cl_entity_t *e)
 	{
 	position_history_t *ph0 = NULL, *ph1 = NULL;
 	vec3_t		origin, angles, delta;
-	float		t, t1, t2, frac;
+	/*float		t, t1, t2, frac;*/
+	double		t, t1, t2, frac;
 	vec4_t		q, q1, q2;
 
 	VectorCopy (e->curstate.origin, e->origin);
@@ -460,13 +499,13 @@ int CL_InterpolateModel (cl_entity_t *e)
 	if (cl.maxclients <= 1)
 		return 1;
 
-	if ((e->model->type == mod_brush) && !cl_bmodelinterp.value)	// [FWGS, 01.07.23]
+	if ((e->model->type == mod_brush) && !cl_bmodelinterp.value)
 		return 1;
 
 	if (cl.local.moving && (cl.local.onground == e->index))
 		return 1;
 
-	t = cl.time - cl_interp.value;	// [FWGS, 01.07.23]
+	t = cl.time - cl_interp.value;
 	CL_FindInterpolationUpdates (e, t, &ph0, &ph1);
 
 	if ((ph0 == NULL) || (ph1 == NULL))
@@ -485,9 +524,10 @@ int CL_InterpolateModel (cl_entity_t *e)
 		return 0;
 		}
 
-	// HACKHACK: workaround buggy position history animtime
+	/* HACKHACK: workaround buggy position history animtime
 	// going backward sometimes
-	if (Q_equal (t2, t1) || (t2 < t1))
+	if (Q_equal (t2, t1) || (t2 < t1))*/
+	if (Q_equal (t2, t1))
 		{
 		VectorCopy (ph0->origin, e->origin);
 		VectorCopy (ph0->angles, e->angles);
@@ -518,14 +558,15 @@ int CL_InterpolateModel (cl_entity_t *e)
 
 /*
 =============
-CL_ComputePlayerOrigin
+CL_ComputePlayerOrigin [FWGS, 01.01.24]
 
 interpolate non-local clients
 =============
 */
 void CL_ComputePlayerOrigin (cl_entity_t *ent)
 	{
-	float	targettime;
+	/*float	targettime;*/
+	double	targettime;
 	vec4_t	q, q1, q2;
 	vec3_t	origin;
 	vec3_t	angles;
@@ -533,7 +574,7 @@ void CL_ComputePlayerOrigin (cl_entity_t *ent)
 	if (!ent->player)
 		return;
 
-	if (cl_nointerp.value > 0.0f)	// [FWGS, 01.07.23]
+	if (cl_nointerp.value > 0.0f)
 		{
 		VectorCopy (ent->curstate.angles, ent->angles);
 		VectorCopy (ent->curstate.origin, ent->origin);
@@ -551,7 +592,7 @@ void CL_ComputePlayerOrigin (cl_entity_t *ent)
 		return;
 		}
 
-	targettime = cl.time - cl_interp.value;	// [FWGS, 01.07.23]
+	targettime = cl.time - cl_interp.value;
 	CL_PureOrigin (ent, targettime, origin, angles);
 
 	VectorCopy (angles, ent->angles);
@@ -1133,7 +1174,6 @@ void CL_LinkPlayers (frame_t *frame)
 /*
 ===============
 CL_LinkPacketEntities
-
 ===============
 */
 void CL_LinkPacketEntities (frame_t *frame)
@@ -1185,7 +1225,8 @@ void CL_LinkPacketEntities (frame_t *frame)
 
 		if (!parametric && ent->curstate.movetype != MOVETYPE_COMPOUND)
 			{
-			if (ent->curstate.animtime == ent->prevstate.animtime && !VectorCompare (ent->curstate.origin, ent->prevstate.origin))
+			if (ent->curstate.animtime == ent->prevstate.animtime && !VectorCompare (ent->curstate.origin,
+				ent->prevstate.origin))
 				ent->lastmove = cl.time + 0.2;
 
 			if (FBitSet (ent->curstate.eflags, EFLAG_SLERP))
@@ -1199,19 +1240,39 @@ void CL_LinkPacketEntities (frame_t *frame)
 						interpolate = true;
 					else ent->curstate.movetype = MOVETYPE_STEP;
 #else
+					// [FWGS, 01.01.24]
 					if (ent->lastmove >= cl.time)
 						{
+						float at = ent->curstate.animtime;
 						CL_ResetLatchedVars (ent, true);
+
+						if (cl_fixmodelinterpolationartifacts.value)
+							ent->latched.prevanimtime = ent->curstate.animtime = at;
+
 						VectorCopy (ent->curstate.origin, ent->latched.prevorigin);
 						VectorCopy (ent->curstate.angles, ent->latched.prevangles);
 
-						// disable step interpolation in client.dll
-						ent->curstate.movetype = MOVETYPE_NONE;
+						/* disable step interpolation in client.dll
+						ent->curstate.movetype = MOVETYPE_NONE;*/
+						if (!FBitSet (host.features, ENGINE_COMPUTE_STUDIO_LERP))
+							{
+							// disable step interpolation in client.dll
+							ent->curstate.movetype = MOVETYPE_NONE;
+							}
 						}
 					else
 						{
-						// restore step interpolation in client.dll
-						ent->curstate.movetype = MOVETYPE_STEP;
+						/* restore step interpolation in client.dll
+						ent->curstate.movetype = MOVETYPE_STEP;*/
+						if (FBitSet (host.features, ENGINE_COMPUTE_STUDIO_LERP))
+							{
+							interpolate = true;
+							}
+						else
+							{
+							// restore step interpolation in client.dll
+							ent->curstate.movetype = MOVETYPE_STEP;
+							}
 						}
 #endif
 					}
@@ -1236,7 +1297,13 @@ void CL_LinkPacketEntities (frame_t *frame)
 				if (!CL_InterpolateModel (ent))
 					continue;
 				}
-			else if (ent->curstate.movetype == MOVETYPE_STEP && !NET_IsLocalAddress (cls.netchan.remote_address))
+
+			// [FWGS, 01.01.24]
+			/*else if (ent->curstate.movetype == MOVETYPE_STEP && !NET_IsLocalAddress (cls.netchan.remote_address))*/
+			// a1ba: in GoldSrc this is done for cstrike and czero
+			// but let modders use this as an engine feature
+			else if (FBitSet (host.features, ENGINE_STEP_POSHISTORY_LERP) &&
+				(ent->curstate.movetype == MOVETYPE_STEP) && !NET_IsLocalAddress (cls.netchan.remote_address))
 				{
 				if (!CL_InterpolateModel (ent))
 					continue;

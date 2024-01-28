@@ -24,15 +24,15 @@ extern "C" {
 =======================================================================================================================
 Legend:
 
-INTERNAL RESOURCE			- function contain hardcoded path to resource that engine required (optional in most cases)
-OBSOLETE, UNUSED			- this function no longer used and leaved here for keep binary compatibility
+INTERNAL RESOURCE	- function contain hardcoded path to resource that engine required (optional in most cases)
+OBSOLETE, UNUSED	- this function no longer used and leaved here for keep binary compatibility
 TODO				- some functionality not impemented but planned
 FIXME				- code doesn't working properly in some rare cases
-HACKHACK				- unexpected behavior on some input params (or something like)
+HACKHACK			- unexpected behavior on some input params (or something like)
 BUGBUG				- code doesn't working properly in most cases!
-TESTTEST				- this code may be unstable and needs to be more tested
+TESTTEST			- this code may be unstable and needs to be more tested
 g-cont:				- notes from engine author
-XASH SPECIFIC			- sort of hack that works only in Xash3D not in GoldSrc
+XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 =======================================================================================================================
 */
 
@@ -300,10 +300,14 @@ typedef struct host_parm_s
 	int				argc;
 	char			**argv;
 
+	// [FWGS, 01.01.24]
+	// ==== shared through RefAPI's ref_host_t
 	double			realtime;		// host.curtime
 	double			frametime;		// time between engine frames
-	double			realframetime;	// for some system events, e.g. console animations
+	uint			features;		// custom features that enables by mod-maker request
+	// ==== shared through RefAPI's ref_host_t
 
+	double			realframetime;	// for some system events, e.g. console animations
 	uint			framecount;		// global framecount
 
 	// list of unique decal indexes
@@ -312,7 +316,7 @@ typedef struct host_parm_s
 	vec3_t			player_mins[MAX_MAP_HULLS];	// 4 hulls allowed
 	vec3_t			player_maxs[MAX_MAP_HULLS];	// 4 hulls allowed
 
-	void *hWnd;		// main window
+	void			*hWnd;				// main window
 	qboolean		allow_console;		// allow console in dev-mode or multiplayer game
 	qboolean		allow_console_init;	// initial value to allow the console
 	qboolean		key_overstrike;		// key overstrike mode
@@ -345,7 +349,8 @@ typedef struct host_parm_s
 	poolhandle_t	imagepool;		// imagelib mempool
 	poolhandle_t	soundpool;		// soundlib mempool
 
-	uint			features;		// custom features that enables by mod-maker request
+	// [FWGS, 01.01.24]
+	/*uint			features;		// custom features that enables by mod-maker request*/
 
 	// for IN_MouseMove() easy access
 	int				window_center_x;
@@ -427,11 +432,14 @@ void Cmd_ForwardToServer (void);
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len);
 
 //
-// zone.c
+// zone.c [FWGS, 01.01.24]
 //
 void Memory_Init (void);
-void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline);
-void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline);
+/*void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline);
+void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline);*/
+void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (3);
+void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (2);
+
 poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline);
 void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline);
 void _Mem_EmptyPool (poolhandle_t poolptr, const char *filename, int fileline);
@@ -560,7 +568,8 @@ qboolean Host_IsLocalGame (void);
 qboolean Host_IsLocalClient (void);
 void Host_ShutdownServer (void);
 void Host_Error (const char *error, ...) _format (1);
-void Host_PrintEngineFeatures (void);
+/*void Host_PrintEngineFeatures (void);*/
+void Host_ValidateEngineFeatures (uint32_t features);	// [FWGS, 01.01.24]
 void Host_Frame (float time);
 void Host_InitDecals (void);
 void Host_Credits (void);
@@ -800,7 +809,8 @@ void VID_Init (void);
 void UI_SetActiveMenu (qboolean fActive);
 void UI_ShowConnectionWarning (void);
 void Cmd_Null_f (void);
-void Rcon_Print (const char *pMsg);
+/*void Rcon_Print (const char *pMsg);*/
+void Rcon_Print (host_redirect_t *rd, const char *pMsg);	// [FWGS, 01.01.24]
 qboolean COM_ParseVector (char **pfile, float *v, size_t size);
 void COM_NormalizeAngles (vec3_t angles);
 int COM_FileSize (const char *filename);
@@ -816,9 +826,15 @@ int S_GetCurrentStaticSounds (soundlist_t *pout, int size);
 void S_StopBackgroundTrack (void);
 void S_StopAllSounds (qboolean ambient);
 
-// gamma routines
-void BuildGammaTable (float gamma, float brightness);
+// [FWGS, 01.01.24] gamma routines
+/*void BuildGammaTable (float gamma, float brightness);*/
 byte LightToTexGamma (byte b);
+byte TextureToGamma (byte);
+uint LightToTexGammaEx (uint);
+uint ScreenGammaTable (uint);
+uint LinearGammaTable (uint);
+void V_Init (void);
+void V_CheckGamma (void);
 
 //
 // identification.c

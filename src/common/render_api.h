@@ -228,12 +228,13 @@ typedef struct render_api_s
 	struct mstudiotex_s* (*StudioGetTexture)(struct cl_entity_s* e);
 	const struct ref_overview_s* (*GetOverviewParms)(void);
 	const char* (*GetFileByIndex)(int fileindex);
-	// 4529
+	// [FWGS, 01.12.22]
 	int			(*pfnSaveFile)(const char* filename, const void* data, int len);
 	void		(*R_Reserved0)(void);	// for potential interface expansion without broken compatibility
 
-	// static allocations
-	void* (*pfnMemAlloc)(size_t cb, const char* filename, const int fileline);
+	// [FWGS, 01.01.24] static allocations
+	/*void* (*pfnMemAlloc)(size_t cb, const char* filename, const int fileline);*/
+	void		*(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void		(*pfnMemFree)(void* mem, const char* filename, const int fileline);
 
 	// engine utils (not related with render API but placed here)

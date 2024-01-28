@@ -33,6 +33,11 @@ CVAR_DEFINE_AUTO (gl_msaa, "1", FCVAR_GLCONFIG,
 	"enable or disable multisample anti-aliasing");
 CVAR_DEFINE_AUTO (gl_stencilbits, "8", FCVAR_GLCONFIG | FCVAR_READ_ONLY,
 	"pixelformat stencil bits (0 - auto)");
+
+// [FWGS, 01.01.24]
+CVAR_DEFINE_AUTO (gl_overbright, "1", FCVAR_GLCONFIG,
+	"overbrights");
+
 CVAR_DEFINE_AUTO (r_lighting_extended, "1", FCVAR_GLCONFIG,
 	"allow to get lighting from world and bmodels");
 CVAR_DEFINE_AUTO (r_lighting_ambient, "0.3", FCVAR_GLCONFIG,
@@ -47,19 +52,19 @@ CVAR_DEFINE_AUTO (r_lockpvs, "0", FCVAR_CHEAT,
 	"lockpvs area at current point (pvs test)");
 CVAR_DEFINE_AUTO (r_lockfrustum, "0", FCVAR_CHEAT,
 	"lock frustrum area at current point (cull test)");
-
-// [FWGS, 01.11.23]
 CVAR_DEFINE_AUTO (r_traceglow, "0", FCVAR_GLCONFIG,
 	"cull flares behind models");
-
 CVAR_DEFINE_AUTO (gl_round_down, "2", FCVAR_GLCONFIG | FCVAR_READ_ONLY,
 	"round texture sizes to nearest POT value");
 CVAR_DEFINE (r_vbo, "gl_vbo", "0", FCVAR_ARCHIVE,
 	"draw world using VBO (known to be glitchy)");
+
+// [FWGS, 01.01.24]
+CVAR_DEFINE (r_vbo_detail, "gl_vbo_detail", "0", FCVAR_ARCHIVE,
+	"detail vbo mode (0: disable, 1: multipass, 2: singlepass, broken decal dlights)");
+
 CVAR_DEFINE (r_vbo_dlightmode, "gl_vbo_dlightmode", "1", FCVAR_ARCHIVE,
 	"vbo dlight rendering mode (0-1)");
-
-// [FWGS, 01.11.23]
 CVAR_DEFINE_AUTO (r_ripple, "0", FCVAR_GLCONFIG,
 	"enable software-like water texture ripple simulation");
 CVAR_DEFINE_AUTO (r_ripple_updatetime, "0.05", FCVAR_GLCONFIG,
@@ -937,7 +942,7 @@ void GL_InitExtensionsGLES (void)
 
 #else
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.01.24]
 void GL_InitExtensionsBigGL (void)
 	{
 	// intialize wrapper type
@@ -958,15 +963,16 @@ void GL_InitExtensionsBigGL (void)
 		glConfig.hardware_type = GLHW_RADEON;
 	else if (Q_stristr (glConfig.renderer_string, "intel"))
 		glConfig.hardware_type = GLHW_INTEL;
-	else glConfig.hardware_type = GLHW_GENERIC;
+	else
+		glConfig.hardware_type = GLHW_GENERIC;
 
 	// gl4es may be used system-wide
 	if (Q_stristr (glConfig.renderer_string, "gl4es"))
 		{
-		const char *vendor = (const char *)pglGetString (GL_VENDOR | 0x10000);
+		/*const char *vendor = (const char *)pglGetString (GL_VENDOR | 0x10000);
 		const char *renderer = (const char *)pglGetString (GL_RENDERER | 0x10000);
 		const char *version = (const char *)pglGetString (GL_VERSION | 0x10000);
-		const char *extensions = (const char *)pglGetString (GL_EXTENSIONS | 0x10000);
+		const char *extensions = (const char *)pglGetString (GL_EXTENSIONS | 0x10000);*/
 		glConfig.wrapper = GLES_WRAPPER_GL4ES;
 		}
 
@@ -1192,7 +1198,9 @@ void GL_InitExtensions (void)
 #endif
 
 	pglGetIntegerv (GL_MAX_TEXTURE_SIZE, &glConfig.max_2d_texture_size);
-	if (glConfig.max_2d_texture_size <= 0) glConfig.max_2d_texture_size = 256;
+	if (glConfig.max_2d_texture_size <= 0)
+		glConfig.max_2d_texture_size = 256;
+
 #ifndef XASH_GL4ES
 	// enable gldebug if allowed
 	if (GL_Support (GL_DEBUG_OUTPUT))
@@ -1249,7 +1257,7 @@ void GL_ClearExtensions (void)
 
 /*
 =================
-GL_InitCommands [FWGS, 01.07.23]
+GL_InitCommands [FWGS, 01.01.24]
 =================
 */
 void GL_InitCommands (void)
@@ -1264,14 +1272,11 @@ void GL_InitCommands (void)
 	gEngfuncs.Cvar_RegisterVariable (&r_lockpvs);
 	gEngfuncs.Cvar_RegisterVariable (&r_lockfrustum);
 	gEngfuncs.Cvar_RegisterVariable (&r_traceglow);
-
-	// [FWGS, 01.11.23]
 	gEngfuncs.Cvar_RegisterVariable (&r_studio_sort_textures);
 	gEngfuncs.Cvar_RegisterVariable (&r_studio_drawelements);
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple);
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple_updatetime);
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple_spawntime);
-
 	gEngfuncs.Cvar_RegisterVariable (&gl_extensions);
 	gEngfuncs.Cvar_RegisterVariable (&gl_texture_nearest);
 	gEngfuncs.Cvar_RegisterVariable (&gl_lightmap_nearest);
@@ -1286,6 +1291,7 @@ void GL_InitCommands (void)
 	gEngfuncs.Cvar_RegisterVariable (&gl_msaa);
 	gEngfuncs.Cvar_RegisterVariable (&gl_stencilbits);
 	gEngfuncs.Cvar_RegisterVariable (&gl_round_down);
+	gEngfuncs.Cvar_RegisterVariable (&gl_overbright);
 
 	// these cvar not used by engine but some mods requires this
 	gEngfuncs.Cvar_RegisterVariable (&gl_polyoffset);
@@ -1299,7 +1305,7 @@ void GL_InitCommands (void)
 
 /*
 ===============
-R_CheckVBO [FWGS, 01.07.23]
+R_CheckVBO [FWGS, 01.01.24]
 
 register VBO cvars and get default value
 ===============
@@ -1328,6 +1334,7 @@ static void R_CheckVBO (void)
 
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo);
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo_dlightmode);
+	gEngfuncs.Cvar_RegisterVariable (&r_vbo_detail);
 	}
 
 /*
@@ -1342,7 +1349,7 @@ void GL_RemoveCommands (void)
 
 /*
 ===============
-R_Init [FWGS, 01.11.23]
+R_Init [FWGS, 01.01.24]
 ===============
 */
 qboolean R_Init (void)
@@ -1365,6 +1372,12 @@ qboolean R_Init (void)
 		Mem_FreePool (&r_temppool);
 		return false;
 		}
+
+	// [FWGS, 01.01.24] see R_ProcessEntData for tr.entities initialization
+	tr.world = (struct world_static_s *)ENGINE_GET_PARM (PARM_GET_WORLD_PTR);
+	tr.movevars = (movevars_t *)ENGINE_GET_PARM (PARM_GET_MOVEVARS_PTR);
+	tr.palette = (color24 *)ENGINE_GET_PARM (PARM_GET_PALETTE_PTR);
+	tr.viewent = (cl_entity_t *)ENGINE_GET_PARM (PARM_GET_VIEWENT_PTR);
 
 	GL_SetDefaults ();
 	R_CheckVBO ();

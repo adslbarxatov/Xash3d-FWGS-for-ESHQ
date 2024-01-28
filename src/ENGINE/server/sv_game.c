@@ -4616,7 +4616,7 @@ static void GAME_EXPORT pfnForceUnmodified (FORCE_TYPE type, float *mins, float 
 
 /*
 =============
-pfnVoice_GetClientListening
+pfnVoice_GetClientListening [FWGS, 01.01.24]
 =============
 */
 static qboolean GAME_EXPORT pfnVoice_GetClientListening (int iReceiver, int iSender)
@@ -4624,7 +4624,8 @@ static qboolean GAME_EXPORT pfnVoice_GetClientListening (int iReceiver, int iSen
 	iReceiver -= 1;
 	iSender -= 1;
 
-	if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender > svs.maxclients))
+	/*if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender > svs.maxclients))*/
+	if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender >= svs.maxclients))
 		return false;
 
 	return (FBitSet (svs.clients[iSender].listeners, BIT (iReceiver)) != 0);
@@ -4632,7 +4633,7 @@ static qboolean GAME_EXPORT pfnVoice_GetClientListening (int iReceiver, int iSen
 
 /*
 =============
-pfnVoice_SetClientListening
+pfnVoice_SetClientListening [FWGS, 01.01.24]
 =============
 */
 static qboolean GAME_EXPORT pfnVoice_SetClientListening (int iReceiver, int iSender, qboolean bListen)
@@ -4640,7 +4641,8 @@ static qboolean GAME_EXPORT pfnVoice_SetClientListening (int iReceiver, int iSen
 	iReceiver -= 1;
 	iSender -= 1;
 
-	if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender > svs.maxclients))
+	/*if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender > svs.maxclients))*/
+	if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender >= svs.maxclients))
 		return false;
 
 	if (bListen) 

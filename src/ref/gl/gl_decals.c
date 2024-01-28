@@ -388,22 +388,22 @@ float *R_DecalVertsClip (decal_t *pDecal, msurface_t *surf, int texture, int *pV
 	return R_DoDecalSHClip (g_DecalClipVerts[0], pDecal, surf->polys->numverts, pVertCount);
 	}
 
-// Generate lighting coordinates at each vertex for decal vertices v[] on surface psurf
+// [FWGS, 01.01.24] Generate lighting coordinates at each vertex for decal vertices v[] on surface psurf
 static void R_DecalVertsLight (float *v, msurface_t *surf, int vertCount)
 	{
-	float		s, t;
+	/*float		s, t;
 	mtexinfo_t *tex;
-	mextrasurf_t *info = surf->info;
-	float		sample_size;
+	mextrasurf_t *info = surf->info;*/
+	float	sample_size;
 	int		j;
 
 	sample_size = gEngfuncs.Mod_SampleSizeForFace (surf);
-	tex = surf->texinfo;
+	/*tex = surf->texinfo;*/
 
 	for (j = 0; j < vertCount; j++, v += VERTEXSIZE)
 		{
 		// lightmap texture coordinates
-		s = DotProduct (v, info->lmvecs[0]) + info->lmvecs[0][3] - info->lightmapmins[0];
+		/*s = DotProduct (v, info->lmvecs[0]) + info->lmvecs[0][3] - info->lightmapmins[0];
 		s += surf->light_s * sample_size;
 		s += sample_size * 0.5f;
 		s /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->width;
@@ -414,7 +414,8 @@ static void R_DecalVertsLight (float *v, msurface_t *surf, int vertCount)
 		t /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->height;
 
 		v[5] = s;
-		v[6] = t;
+		v[6] = t;*/
+		R_LightmapCoord (v, surf, sample_size, &v[5]);
 		}
 	}
 
@@ -487,7 +488,7 @@ static decal_t *R_DecalIntersect (decalinfo_t *decalinfo, msurface_t *surf, int 
 					{
 					*pcount += 1;
 
-					if (!plast || flArea <= lastArea)
+					if (!plast || (flArea <= lastArea))
 						{
 						plast = pDecal;
 						lastArea = flArea;
@@ -752,12 +753,12 @@ static void R_DecalNode (model_t *model, mnode_t *node, decalinfo_t *decalinfo)
 void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale)
 	{
 	decalinfo_t	decalInfo;
-	cl_entity_t *ent = NULL;
-	model_t *model = NULL;
-	int		width, height;
-	hull_t *hull;
+	cl_entity_t	*ent = NULL;
+	model_t		*model = NULL;
+	int			width, height;
+	hull_t		*hull;
 
-	if (textureIndex <= 0 || textureIndex >= MAX_TEXTURES)
+	if ((textureIndex <= 0) || (textureIndex >= MAX_TEXTURES))
 		{
 		gEngfuncs.Con_Printf (S_ERROR "Decal has invalid texture!\n");
 		return;
@@ -765,17 +766,33 @@ void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos
 
 	if (entityIndex > 0)
 		{
-		ent = gEngfuncs.GetEntityByIndex (entityIndex);
+		/*ent = gEngfuncs.GetEntityByIndex (entityIndex);*/
+		ent = CL_GetEntityByIndex (entityIndex);
 
-		if (modelIndex > 0) model = gEngfuncs.pfnGetModelByIndex (modelIndex);
-		else if (ent != NULL) model = gEngfuncs.pfnGetModelByIndex (ent->curstate.modelindex);
-		else return;
+		/*if (modelIndex > 0) model = gEngfuncs.pfnGetModelByIndex (modelIndex);
+		else if (ent != NULL) model = gEngfuncs.pfnGetModelByIndex (ent->curstate.modelindex);*/
+
+		if (modelIndex > 0)
+			model = CL_ModelHandle (modelIndex);
+		else if (ent != NULL)
+			model = CL_ModelHandle (ent->curstate.modelindex);
+		else
+			return;
 		}
 	else if (modelIndex > 0)
-		model = gEngfuncs.pfnGetModelByIndex (modelIndex);
-	else model = WORLDMODEL;
+		{
+		model = CL_ModelHandle (modelIndex);
+		}
+	else
+		{
+		model = CL_ModelHandle (1);
+		}
 
-	if (!model) return;
+	/*model = gEngfuncs.pfnGetModelByIndex (modelIndex);
+	else model = WORLDMODEL;*/
+
+	if (!model)
+		return;
 
 	if (model->type != mod_brush)
 		{

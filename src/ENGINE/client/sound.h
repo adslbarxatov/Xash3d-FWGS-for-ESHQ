@@ -255,12 +255,13 @@ sound_t S_RegisterSound (const char *name);
 void S_FreeSound (sfx_t *sfx);
 void S_InitSounds (void);
 
-// s_dsp.c
+// s_dsp.c [FWGS, 01.01.24]
 void SX_Init (void);
 void SX_Free (void);
 void CheckNewDspPresets (void);
-void DSP_Process (int idsp, portable_samplepair_t *pbfront, int sampleCount);
-float DSP_GetGain (int idsp);
+/*void DSP_Process (int idsp, portable_samplepair_t *pbfront, int sampleCount);
+float DSP_GetGain (int idsp);*/
+void DSP_Process (portable_samplepair_t *pbfront, int sampleCount);
 void DSP_ClearState (void);
 
 qboolean S_Init (void);
@@ -303,14 +304,14 @@ void S_PrintBackgroundTrackState (void);
 void S_FadeMusicVolume (float fadePercent);
 
 //
-// s_utils.c
+// s_utils.c [FWGS, 01.01.24]
 //
 int S_ZeroCrossingAfter (wavdata_t *pWaveData, int sample);
 int S_ZeroCrossingBefore (wavdata_t *pWaveData, int sample);
-int S_ConvertLoopedPosition (wavdata_t *pSource, int samplePosition, qboolean use_loop);	// [FWGS, 01.04.23]
+int S_ConvertLoopedPosition (wavdata_t *pSource, int samplePosition, qboolean use_loop);
 int S_GetOutputData (wavdata_t *pSource, void **pData, int samplePosition, int sampleCount, qboolean use_loop);
-void S_SetSampleStart (channel_t *pChan, wavdata_t *pSource, int newPosition);
-void S_SetSampleEnd (channel_t *pChan, wavdata_t *pSource, int newEndPosition);
+/*void S_SetSampleStart (channel_t *pChan, wavdata_t *pSource, int newPosition);
+void S_SetSampleEnd (channel_t *pChan, wavdata_t *pSource, int newEndPosition);*/
 
 //
 // s_vox.c

@@ -28,13 +28,24 @@ GNU General Public License for more details.
 #include "r_efx.h"
 #include "com_image.h"
 #include "filesystem.h"
+#include "common/protocol.h"	// [FWGS, 01.01.24]
 
 // RefAPI changelog:
 // 1. Initial release
 // 2. FS functions are removed, instead we have full fs_api_t
 // 3. [FWGS, 01.04.23] SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
 // 4. [FWGS, 01.05.23] R_StudioEstimateFrame now has time argument
-#define REF_API_VERSION 4
+// 5. [FWGS, 01.01.24] Removed GetSomethingByIndex calls, renderers are supposed to cache pointer values
+// Removed previously unused calls
+// Simplified remapping calls
+// GetRefAPI is now expected to return REF_API_VERSION
+// 6. [FWGS, 01.01.24] Removed timing from ref_globals_t.
+// Renderers are supposed to migrate to ref_client_t/ref_host_t using PARM_GET_CLIENT_PTR and PARM_GET_HOST_PTR
+// Removed functions to get internal engine structions. Use PARM_GET_*_PTR instead.
+// 7. [FWGS, 01.01.24] Gamma fixes
+#define REF_API_VERSION 7
+
+/*#define REF_API_VERSION 4*/
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP)
@@ -85,14 +96,15 @@ typedef struct
 	int		cull;
 	} sortedface_t;
 
+// [FWGS, 01.01.24]
 typedef struct ref_globals_s
 	{
 	qboolean developer;
 
-	float time;    // cl.time
+	/*float time;    // cl.time
 	float oldtime; // cl.oldtime
 	double realtime; // host.realtime
-	double frametime; // host.frametime
+	double frametime; // host.frametime*/
 
 	// viewport width and height
 	int      width;
@@ -111,6 +123,28 @@ typedef struct ref_globals_s
 
 	int desktopBitsPixel;
 	} ref_globals_t;
+
+// [FWGS, 01.01.24]
+typedef struct ref_client_s
+	{
+	double	time;
+	double	oldtime;
+	int		viewentity;
+	int		playernum;
+	int		maxclients;
+	int		nummodels;
+	model_t	*models[MAX_MODELS + 1];
+	qboolean	paused;
+	vec3_t	simorg;
+	} ref_client_t;
+
+// [FWGS, 01.01.24]
+typedef struct ref_host_s
+	{
+	double	realtime;
+	double	frametime;
+	int		features;
+	} ref_host_t;
 
 enum
 	{
@@ -238,21 +272,30 @@ struct con_nprint_s;
 struct engine_studio_api_s;
 struct r_studio_interface_s;
 
+// [FWGS, 01.01.24]
 typedef enum
 	{
 	PARM_DEV_OVERVIEW = -1,
 	PARM_THIRDPERSON = -2,
 	PARM_QUAKE_COMPATIBLE = -3,
-	PARM_PLAYER_INDEX = -4, // cl.playernum + 1
-	PARM_VIEWENT_INDEX = -5, // cl.viewentity
+	/*PARM_PLAYER_INDEX = -4, // cl.playernum + 1
+	PARM_VIEWENT_INDEX = -5, // cl.viewentity*/
+	PARM_GET_CLIENT_PTR = -4, // ref_client_t
+	PARM_GET_HOST_PTR = -5, // ref_host_t
 	PARM_CONNSTATE = -6, // cls.state
 	PARM_PLAYING_DEMO = -7, // cls.demoplayback
 	PARM_WATER_LEVEL = -8, // cl.local.water_level
-	PARM_MAX_CLIENTS = -9, // cl.maxclients
+	/*PARM_MAX_CLIENTS = -9, // cl.maxclients
+	*/
+	PARM_GET_WORLD_PTR = -9, // world
 	PARM_LOCAL_HEALTH = -10, // cl.local.health
 	PARM_LOCAL_GAME = -11,
 	PARM_NUMENTITIES = -12, // local game only
-	PARM_NUMMODELS = -13, // cl.nummodels
+	/*PARM_NUMMODELS = -13, // cl.nummodels
+	*/
+	PARM_GET_MOVEVARS_PTR = -13, // clgame.movevars
+	PARM_GET_PALETTE_PTR = -14, // clgame.palette
+	PARM_GET_VIEWENT_PTR = -15, // clgame.viewent
 	} ref_parm_e;
 
 typedef struct ref_api_s
@@ -294,18 +337,21 @@ typedef struct ref_api_s
 	int (*Con_DrawString)(int x, int y, const char *string, rgba_t setColor);
 	void	(*CL_DrawCenterPrint)(void);
 
-	// entity management
-	struct cl_entity_s *(*GetLocalPlayer)(void);
+	// [FWGS, 01.01.24] entity management
+	/*struct cl_entity_s *(*GetLocalPlayer)(void);
 	struct cl_entity_s *(*GetViewModel)(void);
-	struct cl_entity_s *(*GetEntityByIndex)(int idx);
+	struct cl_entity_s *(*GetEntityByIndex)(int idx);*/
 	struct cl_entity_s *(*R_BeamGetEntity)(int index);
 	struct cl_entity_s *(*CL_GetWaterEntity)(const vec3_t p);
 	qboolean (*CL_AddVisibleEntity)(cl_entity_t *ent, int entityType);
 
-	// brushes
-	int (*Mod_SampleSizeForFace)(struct msurface_s *surf);
+	// [FWGS, 01.01.24] brushes
+	/*int (*Mod_SampleSizeForFace)(struct msurface_s *surf);
+	*/
+	int (*Mod_SampleSizeForFace)(const struct msurface_s *surf);
 	qboolean (*Mod_BoxVisible)(const vec3_t mins, const vec3_t maxs, const byte *visbits);
-	struct world_static_s *(*GetWorld)(void); // returns &world
+	/*struct world_static_s *(*GetWorld)(void); // returns &world
+	*/
 	mleaf_t *(*Mod_PointInLeaf)(const vec3_t p, mnode_t *node);
 	void (*Mod_CreatePolygonsForHull)(int hullnum);
 
@@ -322,27 +368,29 @@ typedef struct ref_api_s
 	struct model_s *(*GetDefaultSprite)(enum ref_defaultsprite_e spr);
 	void		(*R_StoreEfrags)(struct efrag_s **ppefrag, int framecount);// store efrags for static entities
 
-	// model management
+	// [FWGS, 01.01.24] model management
 	model_t *(*Mod_ForName)(const char *name, qboolean crash, qboolean trackCRC);
 	void *(*Mod_Extradata)(int type, model_t *model);
-	struct model_s *(*pfnGetModelByIndex)(int index); // CL_ModelHandle
+	/*struct model_s *(*pfnGetModelByIndex)(int index); // CL_ModelHandle
+	*/
 
-	// remap
+	// [FWGS, 01.01.24] remap
+	qboolean (*CL_EntitySetRemapColors)(cl_entity_t *e, model_t *mod, int top, int bottom);
 	struct remap_info_s *(*CL_GetRemapInfoForEntity)(cl_entity_t *e);
-	void (*CL_AllocRemapInfo)(cl_entity_t *entity, model_t *model, int topcolor, int bottomcolor);
+	/*void (*CL_AllocRemapInfo)(cl_entity_t *entity, model_t *model, int topcolor, int bottomcolor);
 	void (*CL_FreeRemapInfo)(struct remap_info_s *info);
-	void (*CL_UpdateRemapInfo)(cl_entity_t *entity, int topcolor, int bottomcolor);
+	void (*CL_UpdateRemapInfo)(cl_entity_t *entity, int topcolor, int bottomcolor);*/
 
-	// utils
+	// [FWGS, 01.01.24] utils
 	void  (*CL_ExtraUpdate)(void);
 	void  (*Host_Error)(const char *fmt, ...) _format (1);
 	void  (*COM_SetRandomSeed)(int lSeed);
 	float (*COM_RandomFloat)(float rmin, float rmax);
 	int   (*COM_RandomLong)(int rmin, int rmax);
 	struct screenfade_s *(*GetScreenFade)(void);
-	struct client_textmessage_s *(*pfnTextMessageGet)(const char *pName);
+	/*struct client_textmessage_s *(*pfnTextMessageGet)(const char *pName);
 	void (*GetPredictedOrigin)(vec3_t v);
-	color24 *(*CL_GetPaletteColor)(int color); // clgame.palette[color]
+	color24 *(*CL_GetPaletteColor)(int color); // clgame.palette[color]*/
 	void (*CL_GetScreenInfo)(int *width, int *height); // clgame.scrInfo, ptrs may be NULL
 	void (*SetLocalLightLevel)(int level); // cl.local.light_level
 	int (*Sys_CheckParm)(const char *flag);
@@ -356,12 +404,16 @@ typedef struct ref_api_s
 	int	(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface,
 		struct engine_studio_api_s *pstudio);
 
-	// memory
+	// [FWGS, 01.01.24] memory
 	poolhandle_t (*_Mem_AllocPool)(const char *name, const char *filename, int fileline);
 	void  (*_Mem_FreePool)(poolhandle_t *poolptr, const char *filename, int fileline);
-	void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline);
+	/*void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline);
 	void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename,
-		int fileline);
+		int fileline);*/
+	void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename,
+		int fileline) ALLOC_CHECK (2);
+	void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear,
+		const char *filename, int fileline) ALLOC_CHECK (3);
 	void  (*_Mem_Free)(void *data, const char *filename, int fileline);
 
 	// library management
@@ -386,10 +438,15 @@ typedef struct ref_api_s
 	void *(*SW_LockBuffer)(void);
 	void (*SW_UnlockBuffer)(void);
 
-	// gamma
-	void (*BuildGammaTable)(float lightgamma, float brightness);
+	// [FWGS, 01.01.24] gamma
+	/*void (*BuildGammaTable)(float lightgamma, float brightness);
 	byte (*LightToTexGamma)(byte color);	// software gamma support
-	qboolean (*R_DoResetGamma)(void);
+	qboolean (*R_DoResetGamma)(void);*/
+	byte (*LightToTexGamma)(byte); // software gamma support
+	uint (*LightToTexGammaEx)(uint); // software gamma support
+	byte (*TextureToGamma)(byte);
+	uint (*ScreenGammaTable)(uint);
+	uint (*LinearGammaTable)(uint);
 
 	// renderapi
 	lightstyle_t *(*GetLightStyle)(int number);
@@ -399,15 +456,16 @@ typedef struct ref_api_s
 	const struct ref_overview_s *(*GetOverviewParms)(void);
 	double		(*pfnTime)(void);				// Sys_DoubleTime
 
-	// event api
+	// [FWGS, 01.01.24] event api
 	struct physent_s *(*EV_GetPhysent)(int idx);
 	struct msurface_s *(*EV_TraceSurface)(int ground, float *vstart, float *vend);
 	struct pmtrace_s *(*PM_TraceLine)(float *start, float *end, int flags, int usehull, int ignore_pe);
 	struct pmtrace_s *(*EV_VisTraceLine)(float *start, float *end, int flags);
 	struct pmtrace_s (*CL_TraceLine)(vec3_t start, vec3_t end, int flags);
-	struct movevars_s *(*pfnGetMoveVars)(void);
+	/*struct movevars_s *(*pfnGetMoveVars)(void);
+	*/
 
-	// imagelib
+	// [FWGS, 01.01.24] imagelib
 	void (*Image_AddCmdFlags)(uint flags); // used to check if hardware dxt is supported
 	void (*Image_SetForceFlags)(uint flags);
 	void (*Image_ClearForceFlags)(void);
@@ -418,7 +476,8 @@ typedef struct ref_api_s
 	rgbdata_t *(*FS_CopyImage)(rgbdata_t *in);
 	void (*FS_FreeImage)(rgbdata_t *pack);
 	void (*Image_SetMDLPointer)(byte *p);
-	poolhandle_t (*Image_GetPool)(void);
+	/*poolhandle_t (*Image_GetPool)(void);
+	*/
 	const struct bpc_desc_s *(*Image_GetPFDesc)(int idx);
 
 	// client exports
@@ -446,6 +505,9 @@ typedef struct ref_interface_s
 	void (*GL_InitExtensions)(void);
 	void (*GL_ClearExtensions)(void);
 
+	// [FWGS, 01.01.24] scene rendering
+	void (*R_GammaChanged)(qboolean do_reset_gamma);
+
 	void (*R_BeginFrame)(qboolean clearScene);
 	void (*R_RenderScene)(void);
 	void (*R_EndFrame)(void);
@@ -458,9 +520,12 @@ typedef struct ref_interface_s
 	void (*R_AllowFog)(qboolean allow);
 	void (*GL_SetRenderMode)(int renderMode);
 
+	// [FWGS, 01.01.24]
 	qboolean (*R_AddEntity)(struct cl_entity_s *clent, int type);
 	void (*CL_AddCustomBeam)(cl_entity_t *pEnvBeam);
-	void	(*R_ProcessEntData)(qboolean allocate);
+	/*void	(*R_ProcessEntData)(qboolean allocate);*/
+	void (*R_ProcessEntData)(qboolean allocate, cl_entity_t *entities, unsigned int max_entities);
+	void (*R_Flush)(unsigned int flush_flags);
 
 	// debug
 	void (*R_ShowTextures)(void);
@@ -634,9 +699,12 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 // and must be retrieved by renderer side
 // sometimes it's done to standartize cvars to make it easier for users
 
+// [FWGS, 01.01.24]
 #define ENGINE_SHARED_CVAR_LIST( f ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_gamma, gamma ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_brightness, brightness ) \
+	ENGINE_SHARED_CVAR_NAME( f, v_lightgamma, lightgamma ) \
+	ENGINE_SHARED_CVAR_NAME( f, v_direct, direct ) \
 	ENGINE_SHARED_CVAR( f, r_showtextures ) \
 	ENGINE_SHARED_CVAR( f, r_speeds ) \
 	ENGINE_SHARED_CVAR( f, r_fullbright ) \
@@ -658,7 +726,6 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 	ENGINE_SHARED_CVAR( f, r_sprite_lighting ) \
 	ENGINE_SHARED_CVAR( f, r_drawviewmodel ) \
 	ENGINE_SHARED_CVAR( f, r_glowshellfreq ) \
-	ENGINE_SHARED_CVAR( f, r_lighting_modulate ) \
 
 #define DECLARE_ENGINE_SHARED_CVAR_LIST() \
 	ENGINE_SHARED_CVAR_LIST( DECLARE_ENGINE_SHARED_CVAR )

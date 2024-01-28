@@ -24,12 +24,28 @@ GNU General Public License for more details.
 #define ENGINE_LARGE_LIGHTMAPS		(1<<4)	// change lightmap sizes from 128x128 to 1024x1024
 #define ENGINE_COMPENSATE_QUAKE_BUG	(1<<5)	// compensate stupid quake bug (inverse pitch) for mods where this bug is fixed
 
-// 4529
+// [FWGS, 01.12.22]
 #define ENGINE_IMPROVED_LINETRACE	(1<<6)	// new traceline that tracing through alphatextures
 
 #define ENGINE_COMPUTE_STUDIO_LERP	(1<<7)	// enable MOVETYPE_STEP lerping back in engine
 
-// FWGS
+// [FWGS, 01.04.23]
 #define ENGINE_LINEAR_GAMMA_SPACE	(1<<8)	// disable influence of gamma/brightness cvars to textures/lightmaps, for mods with custom renderer
 
-#endif//FEATURES_H
+// [FWGS, 01.01.24]
+#define ENGINE_STEP_POSHISTORY_LERP (1U<<31) // enable MOVETYPE_STEP interpolation based on position history. Incompatible with ENGINE_COMPUTE_STUDIO_LERP!
+
+// [FWGS, 01.01.24] adjust the mask when features will be added or removed
+#define ENGINE_FEATURES_MASK \
+	( ENGINE_WRITE_LARGE_COORD \
+	| ENGINE_QUAKE_COMPATIBLE \
+	| ENGINE_LOAD_DELUXEDATA \
+	| ENGINE_PHYSICS_PUSHER_EXT \
+	| ENGINE_LARGE_LIGHTMAPS \
+	| ENGINE_COMPENSATE_QUAKE_BUG \
+	| ENGINE_IMPROVED_LINETRACE \
+	| ENGINE_COMPUTE_STUDIO_LERP \
+	| ENGINE_LINEAR_GAMMA_SPACE \
+	| ENGINE_STEP_POSHISTORY_LERP )
+
+#endif

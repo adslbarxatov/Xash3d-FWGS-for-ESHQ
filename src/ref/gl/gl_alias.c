@@ -406,7 +406,7 @@ void *Mod_LoadAliasGroup (void *pin, maliasframedesc_t *frame)
 
 /*
 ===============
-Mod_CreateSkinData [FWGS, 01.11.23]
+Mod_CreateSkinData [FWGS, 01.01.24]
 ===============
 */
 rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
@@ -423,7 +423,8 @@ rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 	skin.encode = DXT_ENCODE_DEFAULT;
 	skin.numMips = 1;
 	skin.buffer = data;
-	skin.palette = (byte *)gEngfuncs.CL_GetPaletteColor (0);
+	/*skin.palette = (byte *)gEngfuncs.CL_GetPaletteColor (0);*/
+	skin.palette = (byte *)tr.palette;
 	skin.size = width * height;
 
 	if (!gEngfuncs.Image_CustomPalette ())
@@ -757,14 +758,15 @@ ALIAS MODELS
 
 /*
 ===============
-R_AliasDynamicLight
+R_AliasDynamicLight [FWGS, 01.01.24]
 
 similar to R_StudioDynamicLight
 ===============
 */
 void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	{
-	movevars_t	*mv = gEngfuncs.pfnGetMoveVars ();
+	/*movevars_t	*mv = gEngfuncs.pfnGetMoveVars ();*/
+	movevars_t	*mv = tr.movevars;
 	vec3_t		lightDir, vecSrc, vecEnd;
 	vec3_t		origin, dist, finalLight;
 	float		add, radius, total;
@@ -801,7 +803,8 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 		msurface_t *psurf = NULL;
 		pmtrace_t		trace;
 
-		if (FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_WRITE_LARGE_COORD))
+		/*if (FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_WRITE_LARGE_COORD))*/
+		if (FBitSet (gp_host->features, ENGINE_WRITE_LARGE_COORD))
 			{
 			vecEnd[0] = origin[0] - mv->skyvec_x * 65536.0f;
 			vecEnd[1] = origin[1] - mv->skyvec_y * 65536.0f;
@@ -822,9 +825,12 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 			{
 			VectorSet (lightDir, mv->skyvec_x, mv->skyvec_y, mv->skyvec_z);
 
-			light.r = gEngfuncs.LightToTexGamma (bound (0, mv->skycolor_r, 255));
+			/*light.r = gEngfuncs.LightToTexGamma (bound (0, mv->skycolor_r, 255));
 			light.g = gEngfuncs.LightToTexGamma (bound (0, mv->skycolor_g, 255));
-			light.b = gEngfuncs.LightToTexGamma (bound (0, mv->skycolor_b, 255));
+			light.b = gEngfuncs.LightToTexGamma (bound (0, mv->skycolor_b, 255));*/
+			light.r = mv->skycolor_r;
+			light.g = mv->skycolor_g;
+			light.b = mv->skycolor_b;
 			}
 		}
 
@@ -890,7 +896,7 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 		{
 		dl = gEngfuncs.GetDynamicLight (lnum);
 
-		if (dl->die < g_alias.time || !r_dynamic->value)
+		if ((dl->die < g_alias.time) || !r_dynamic->value)
 			continue;
 
 		VectorSubtract (origin, dl->origin, dist);
@@ -909,9 +915,12 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 
 			VectorAdd (lightDir, dist, lightDir);
 
-			finalLight[0] += gEngfuncs.LightToTexGamma (dl->color.r) * (add / 256.0f) * 2.0f;
+			/*finalLight[0] += gEngfuncs.LightToTexGamma (dl->color.r) * (add / 256.0f) * 2.0f;
 			finalLight[1] += gEngfuncs.LightToTexGamma (dl->color.g) * (add / 256.0f) * 2.0f;
-			finalLight[2] += gEngfuncs.LightToTexGamma (dl->color.b) * (add / 256.0f) * 2.0f;
+			finalLight[2] += gEngfuncs.LightToTexGamma (dl->color.b) * (add / 256.0f) * 2.0f;*/
+			finalLight[0] += dl->color.r * (add / 256.0f);
+			finalLight[1] += dl->color.g * (add / 256.0f);
+			finalLight[2] += dl->color.b * (add / 256.0f);
 			}
 		}
 
@@ -964,7 +973,7 @@ void R_AliasSetupLighting (alight_t *plight)
 
 /*
 ===============
-R_AliasLighting
+R_AliasLighting [FWGS, 01.01.24]
 ===============
 */
 void R_AliasLighting (float *lv, const vec3_t normal)
@@ -995,26 +1004,30 @@ void R_AliasLighting (float *lv, const vec3_t normal)
 			illum -= g_alias.shadelight * lightcos;
 		}
 
-	illum = Q_max (illum, 0.0f);
+	/*illum = Q_max (illum, 0.0f);
 	illum = Q_min (illum, 255.0f);
-	*lv = illum * (1.0f / 255.0f);
+	*lv = illum * (1.0f / 255.0f);*/
+	illum = bound (0.0f, illum, 255.0f);
+
+	*lv = gEngfuncs.LightToTexGammaEx (illum * 4) / 1023.0f;
 	}
 
 /*
 ===============
-R_AliasSetRemapColors
-
+R_AliasSetRemapColors [FWGS, 01.01.24]
 ===============
 */
-void R_AliasSetRemapColors (int newTop, int newBottom)
+/*void R_AliasSetRemapColors (int newTop, int newBottom)*/
+static void R_AliasSetRemapColors (int newTop, int newBottom)
 	{
-	gEngfuncs.CL_AllocRemapInfo (RI.currententity, RI.currentmodel, newTop, newBottom);
+	/*gEngfuncs.CL_AllocRemapInfo (RI.currententity, RI.currentmodel, newTop, newBottom);
 
 	if (gEngfuncs.CL_GetRemapInfoForEntity (RI.currententity))
 		{
-		gEngfuncs.CL_UpdateRemapInfo (RI.currententity, newTop, newBottom);
+		gEngfuncs.CL_UpdateRemapInfo (RI.currententity, newTop, newBottom);*/
+	if (gEngfuncs.CL_EntitySetRemapColors (RI.currententity, RI.currentmodel, newTop, newBottom))
 		m_fDoRemap = true;
-		}
+	/*}*/
 	}
 
 /*
@@ -1025,11 +1038,11 @@ GL_DrawAliasFrame
 void GL_DrawAliasFrame (aliashdr_t *paliashdr)
 	{
 	float 		lv_tmp;
-	trivertex_t *verts0;
-	trivertex_t *verts1;
+	trivertex_t	*verts0;
+	trivertex_t	*verts1;
 	vec3_t		vert, norm;
-	int *order;
-	int		count;
+	int			*order;
+	int			count;
 
 	verts0 = verts1 = paliashdr->posedata;
 	verts0 += g_alias.oldpose * paliashdr->poseverts;
@@ -1040,7 +1053,8 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr)
 		{
 		// get the vertex count and primitive type
 		count = *order++;
-		if (!count) break; // done
+		if (!count)
+			break; // done
 
 		if (count < 0)
 			{
@@ -1066,10 +1080,12 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr)
 				}
 			order += 2;
 
-			VectorLerp (m_bytenormals[verts0->lightnormalindex], g_alias.lerpfrac, m_bytenormals[verts1->lightnormalindex], norm);
+			VectorLerp (m_bytenormals[verts0->lightnormalindex], g_alias.lerpfrac,
+				m_bytenormals[verts1->lightnormalindex], norm);
 			VectorNormalize (norm);
 			R_AliasLighting (&lv_tmp, norm);
-			pglColor4f (g_alias.lightcolor[0] * lv_tmp, g_alias.lightcolor[1] * lv_tmp, g_alias.lightcolor[2] * lv_tmp, tr.blend);
+			pglColor4f (g_alias.lightcolor[0] * lv_tmp, g_alias.lightcolor[1] * lv_tmp,
+				g_alias.lightcolor[2] * lv_tmp, tr.blend);
 			VectorLerp (verts0->v, g_alias.lerpfrac, verts1->v, vert);
 			pglVertex3fv (vert);
 			verts0++, verts1++;
@@ -1169,7 +1185,8 @@ void R_AliasLerpMovement (cl_entity_t *e)
 	// don't do it if the goalstarttime hasn't updated in a while.
 	// NOTE: Because we need to interpolate multiplayer characters, the interpolation time limit
 	// was increased to 1.0 s., which is 2x the max lag we are accounting for.
-	if (g_alias.interpolate && (g_alias.time < e->curstate.animtime + 1.0f) && (e->curstate.animtime != e->latched.prevanimtime))
+	if (g_alias.interpolate && (g_alias.time < e->curstate.animtime + 1.0f) &&
+		(e->curstate.animtime != e->latched.prevanimtime))
 		f = (g_alias.time - e->curstate.animtime) / (e->curstate.animtime - e->latched.prevanimtime);
 
 	if (ENGINE_GET_PARM (PARM_PLAYING_DEMO) == DEMO_QUAKE1)
@@ -1202,14 +1219,13 @@ void R_AliasLerpMovement (cl_entity_t *e)
 /*
 =================
 R_SetupAliasFrame
-
 =================
 */
 void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
 	{
-	int	newpose, oldpose;
-	int	newframe, oldframe;
-	int	numposes, cycle;
+	int		newpose, oldpose;
+	int		newframe, oldframe;
+	int		numposes, cycle;
 	float	interval;
 
 	oldframe = e->latched.prevframe;
@@ -1255,16 +1271,17 @@ void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
 
 /*
 ===============
-R_StudioDrawAbsBBox
+R_StudioDrawAbsBBox [FWGS, 01.01.24]
 ===============
 */
 static void R_AliasDrawAbsBBox (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 	{
 	vec3_t	p[8];
-	int	i;
+	int		i;
 
 	// looks ugly, skip
-	if ((r_drawentities->value != 5) || (e == gEngfuncs.GetViewModel ()))
+	/*if ((r_drawentities->value != 5) || (e == gEngfuncs.GetViewModel ()))*/
+	if ((r_drawentities->value != 5) || (e == tr.viewent))
 		return;
 
 	// compute a full bounding box
@@ -1330,23 +1347,22 @@ static void R_AliasDrawLightTrace (cl_entity_t *e)
 
 /*
 ================
-R_AliasSetupTimings
+R_AliasSetupTimings [FWGS, 01.01.24]
 
 init current time for a given model
 ================
 */
 static void R_AliasSetupTimings (void)
 	{
+	// synchronize with server time
 	if (RI.drawWorld)
-		{
-		// synchronize with server time
-		g_alias.time = gpGlobals->time;
-		}
+		/*g_alias.time = gpGlobals->time;*/
+		g_alias.time = gp_cl->time;
+
+	// menu stuff
 	else
-		{
-		// menu stuff
-		g_alias.time = gpGlobals->realtime;
-		}
+		/*g_alias.time = gpGlobals->realtime;*/
+		g_alias.time = gp_host->realtime;
 
 	m_fDoRemap = false;
 	}
@@ -1358,12 +1374,12 @@ R_DrawAliasModel
 */
 void R_DrawAliasModel (cl_entity_t *e)
 	{
-	model_t *clmodel;
+	model_t		*clmodel;
 	vec3_t		absmin, absmax;
-	remap_info_t *pinfo = NULL;
-	int		anim, skin;
-	alight_t		lighting;
-	player_info_t *playerinfo;
+	remap_info_t	*pinfo = NULL;
+	int			anim, skin;
+	alight_t	lighting;
+	player_info_t	*playerinfo;
 	vec3_t		dir, angles;
 
 	clmodel = RI.currententity->model;
@@ -1374,9 +1390,7 @@ void R_DrawAliasModel (cl_entity_t *e)
 	if (R_CullModel (e, absmin, absmax))
 		return;
 
-	//
 	// locate the proper data
-	//
 	m_pAliasHeader = (aliashdr_t *)gEngfuncs.Mod_Extradata (mod_alias, RI.currententity->model);
 	if (!m_pAliasHeader) return;
 
@@ -1388,7 +1402,9 @@ void R_DrawAliasModel (cl_entity_t *e)
 
 	R_AliasLerpMovement (e);
 
-	if (!FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_COMPENSATE_QUAKE_BUG))
+	// [FWGS, 01.01.24]
+	/*if (!FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_COMPENSATE_QUAKE_BUG))*/
+	if (!FBitSet (gp_host->features, ENGINE_COMPENSATE_QUAKE_BUG))
 		e->angles[PITCH] = -e->angles[PITCH]; // stupid quake bug
 
 	// don't rotate clients, only aim

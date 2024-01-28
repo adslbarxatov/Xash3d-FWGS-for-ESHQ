@@ -1098,27 +1098,27 @@ static qboolean Delta_CompareField (delta_t *pField, void *from, void *to, doubl
 
 /*
 =====================
-Delta_TestBaseline
+Delta_TestBaseline [FWGS, 01.01.24]
 
 compare baselines to find optimal
 =====================
 */
 int Delta_TestBaseline (entity_state_t *from, entity_state_t *to, qboolean player, double timebase)
 	{
-	delta_info_t *dt = NULL;
-	delta_t *pField;
-	int		i, countBits;
-	int		numChanges = 0;
+	delta_info_t	*dt = NULL;
+	delta_t			*pField;
+	int				i, countBits;
+	/*int		numChanges = 0;*/
 
 	countBits = MAX_ENTITY_BITS + 2;
 
 	if (to == NULL)
 		{
-		if (from == NULL) return 0;
+		if (from == NULL)
+			return 0;
 		return countBits;
 		}
 
-	// [FWGS, 01.07.23]
 	if (FBitSet (to->entityType, ENTITY_BEAM))
 		dt = Delta_FindStructByIndex (DT_CUSTOM_ENTITY_STATE_T);
 	else if (player)
@@ -1143,10 +1143,11 @@ int Delta_TestBaseline (entity_state_t *from, entity_state_t *to, qboolean playe
 
 		if (!Delta_CompareField (pField, from, to, timebase))
 			{
-			// strings are handled difference
+			// strings are handled differently
 			if (FBitSet (pField->flags, DT_STRING))
 				countBits += Q_strlen ((char *)((byte *)to + pField->offset)) * 8;
-			else countBits += pField->bits;
+			else
+				countBits += pField->bits;
 			}
 		}
 

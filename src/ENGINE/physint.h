@@ -31,30 +31,30 @@ GNU General Public License for more details.
 #define SERVER_ACTIVE		2
 
 // LUMP reading errors
-#define LUMP_LOAD_OK		0
-#define LUMP_LOAD_COULDNT_OPEN	1
+#define LUMP_LOAD_OK				0
+#define LUMP_LOAD_COULDNT_OPEN		1
 #define LUMP_LOAD_BAD_HEADER		2
 #define LUMP_LOAD_BAD_VERSION		3
-#define LUMP_LOAD_NO_EXTRADATA	4
+#define LUMP_LOAD_NO_EXTRADATA		4
 #define LUMP_LOAD_INVALID_NUM		5
-#define LUMP_LOAD_NOT_EXIST		6
+#define LUMP_LOAD_NOT_EXIST			6
 #define LUMP_LOAD_MEM_FAILED		7
-#define LUMP_LOAD_CORRUPTED		8
+#define LUMP_LOAD_CORRUPTED			8
 
 // LUMP saving errors
-#define LUMP_SAVE_OK		0
-#define LUMP_SAVE_COULDNT_OPEN	1
+#define LUMP_SAVE_OK				0
+#define LUMP_SAVE_COULDNT_OPEN		1
 #define LUMP_SAVE_BAD_HEADER		2
 #define LUMP_SAVE_BAD_VERSION		3
-#define LUMP_SAVE_NO_EXTRADATA	4
+#define LUMP_SAVE_NO_EXTRADATA		4
 #define LUMP_SAVE_INVALID_NUM		5
-#define LUMP_SAVE_ALREADY_EXIST	6
-#define LUMP_SAVE_NO_DATA		7
-#define LUMP_SAVE_CORRUPTED		8
+#define LUMP_SAVE_ALREADY_EXIST		6
+#define LUMP_SAVE_NO_DATA			7
+#define LUMP_SAVE_CORRUPTED			8
 
 typedef struct areanode_s
 	{
-	int		axis;		// -1 = leaf node
+	int			axis;		// -1 = leaf node
 	float		dist;
 	struct areanode_s *children[2];
 	link_t		trigger_edicts;
@@ -87,8 +87,9 @@ typedef struct server_physics_api_s
 	struct msurface_s *(*pfnTraceSurface)(edict_t *pTextureEntity, const float *v1, const float *v2);
 	const byte *(*pfnGetTextureData)(unsigned int texnum);
 
-	// static allocations
-	void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline);
+	// [FWGS, 01.01.24] static allocations
+	/*void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline);*/
+	void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void		(*pfnMemFree)(void *mem, const char *filename, const int fileline);
 
 	// trace & contents

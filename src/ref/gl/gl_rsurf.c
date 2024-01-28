@@ -62,10 +62,59 @@ void Mod_SetOrthoBounds (const float *mins, const float *maxs)
 	Vector2Subtract (maxs, world_orthocenter, world_orthohalf);
 	}
 
+// [FWGS, 01.01.24]
+void R_LightmapCoord (const vec3_t v, const msurface_t *surf, const float sample_size, vec2_t coords)
+	{
+	const mextrasurf_t *info = surf->info;
+	float s, t;
+
+	s = DotProduct (v, info->lmvecs[0]) + info->lmvecs[0][3] - info->lightmapmins[0];
+	s += surf->light_s * sample_size;
+	s += sample_size * 0.5f;
+	s /= BLOCK_SIZE * sample_size; //fa->texinfo->texture->width;
+
+	t = DotProduct (v, info->lmvecs[1]) + info->lmvecs[1][3] - info->lightmapmins[1];
+	t += surf->light_t * sample_size;
+	t += sample_size * 0.5f;
+	t /= BLOCK_SIZE * sample_size; //fa->texinfo->texture->width;
+
+	Vector2Set (coords, s, t);
+	}
+
+// [FWGS, 01.01.24]
+static void R_TextureCoord (const vec3_t v, const msurface_t *surf, vec2_t coords)
+	{
+	const mtexinfo_t *info = surf->texinfo;
+	float s, t;
+
+	s = DotProduct (v, info->vecs[0]);
+	t = DotProduct (v, info->vecs[1]);
+
+	if (!FBitSet (surf->flags, SURF_DRAWTURB))
+		{
+		s = (s + info->vecs[0][3]) / info->texture->width;
+		t = (t + info->vecs[1][3]) / info->texture->height;
+		}
+
+	Vector2Set (coords, s, t);
+	}
+
+// [FWGS, 01.01.24]
+static void R_GetEdgePosition (const model_t *mod, const msurface_t *fa, int i, vec3_t vec)
+	{
+	const int		lindex = mod->surfedges[fa->firstedge + i];
+	const medge_t	*pedges = mod->edges;
+
+	if (lindex > 0)
+		VectorCopy (mod->vertexes[pedges[lindex].v[0]].position, vec);
+	else
+		VectorCopy (mod->vertexes[pedges[-lindex].v[1]].position, vec);
+	}
+
 static void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
 	{
-	int	i, j;
-	float *v;
+	int		i, j;
+	float	*v;
 
 	ClearBounds (mins, maxs);
 
@@ -79,13 +128,14 @@ static void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
 		}
 	}
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.01.24]
 static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int numverts, float *verts)
 	{
 	vec3_t			front[SUBDIVIDE_SIZE], back[SUBDIVIDE_SIZE];
-	mextrasurf_t	*warpinfo = warpface->info;
+	/*mextrasurf_t	*warpinfo = warpface->info;*/
 	float			dist[SUBDIVIDE_SIZE];
-	float			m, frac, s, t, *v;
+	/*float			m, frac, s, t, *v;*/
+	float			m, frac, *v;
 	int				i, j, k, f, b;
 	float			sample_size;
 	vec3_t			mins, maxs;
@@ -130,7 +180,7 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 				b++;
 				}
 
-			if (dist[j] == 0 || dist[j + 1] == 0)
+			if ((dist[j] == 0) || (dist[j + 1] == 0))
 				continue;
 
 			if ((dist[j] > 0) != (dist[j + 1] > 0))
@@ -163,7 +213,7 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 		{
 		VectorCopy (verts, poly->verts[i]);
 
-		if (FBitSet (warpface->flags, SURF_DRAWTURB))
+		/*if (FBitSet (warpface->flags, SURF_DRAWTURB))
 			{
 			s = DotProduct (verts, warpface->texinfo->vecs[0]);
 			t = DotProduct (verts, warpface->texinfo->vecs[1]);
@@ -177,13 +227,14 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 			}
 
 		poly->verts[i][3] = s;
-		poly->verts[i][4] = t;
+		poly->verts[i][4] = t;*/
+		R_TextureCoord (verts, warpface, &poly->verts[i][3]);
 
 		// for speed reasons
 		if (!FBitSet (warpface->flags, SURF_DRAWTURB))
 			{
 			// lightmap texture coordinates
-			s = DotProduct (verts, warpinfo->lmvecs[0]) + warpinfo->lmvecs[0][3];
+			/*s = DotProduct (verts, warpinfo->lmvecs[0]) + warpinfo->lmvecs[0][3];
 			s -= warpinfo->lightmapmins[0];
 			s += warpface->light_s * sample_size;
 			s += sample_size * 0.5f;
@@ -196,31 +247,61 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 			t /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->height;
 
 			poly->verts[i][5] = s;
-			poly->verts[i][6] = t;
+			poly->verts[i][6] = t;*/
+			R_LightmapCoord (verts, warpface, sample_size, &poly->verts[i][5]);
 			}
 		}
 	}
 
-void GL_SetupFogColorForSurfaces (void)
+/*void GL_SetupFogColorForSurfaces (void)*/
+
+/*
+===============================
+GL_SetupFogColorForSurfaces [FWGS, 01.01.24]
+
+every render pass applies new fog layer, resulting in wrong fog color
+recalculate fog color for current pass count
+===============================
+*/
+void GL_SetupFogColorForSurfacesEx (int passes, float density, qboolean blend_lightmaps)
 	{
-	vec3_t	fogColor;
+	/*vec3_t	fogColor;*/
+	vec4_t	fogColor;
 	float	factor, div;
 
 	if (!glState.isFogEnabled)
 		return;
 
-	if (RI.currententity && RI.currententity->curstate.rendermode == kRenderTransTexture)
+	/*if (RI.currententity && (RI.currententity->curstate.rendermode == kRenderTransTexture))*/
+	if ((passes < 2) || (RI.currententity && (RI.currententity->curstate.rendermode == kRenderTransTexture)))
 		{
 		pglFogfv (GL_FOG_COLOR, RI.fogColor);
 		return;
 		}
 
-	div = (r_detailtextures.value) ? 2.0f : 1.0f;
-	factor = (r_detailtextures.value) ? 3.0f : 2.0f;
+	/*div = (r_detailtextures.value) ? 2.0f : 1.0f;
+	factor = (r_detailtextures.value) ? 3.0f : 2.0f;*/
+	div = passes - 1;
+	factor = passes;
+
 	fogColor[0] = pow (RI.fogColor[0] / div, (1.0f / factor));
 	fogColor[1] = pow (RI.fogColor[1] / div, (1.0f / factor));
 	fogColor[2] = pow (RI.fogColor[2] / div, (1.0f / factor));
+	fogColor[3] = 1.0f; // ignored but GL_FOG_COLOR requires vec4_t
+
+	// because of enabled blending in R_BlendLightmaps, need to scale down fog color
+	// but only during lightmap blending & without VBO (it takes another route)
+	if (blend_lightmaps && gl_overbright.value)
+		VectorScale (fogColor, 0.5f, fogColor);
+
 	pglFogfv (GL_FOG_COLOR, fogColor);
+	pglFogf (GL_FOG_DENSITY, RI.fogDensity * density);
+	}
+
+// [FWGS, 01.01.24]
+void GL_SetupFogColorForSurfaces (void)
+	{
+	GL_SetupFogColorForSurfacesEx (r_detailtextures.value ? 3 : 2, 1.0f, false);
 	}
 
 void GL_ResetFogColor (void)
@@ -232,7 +313,7 @@ void GL_ResetFogColor (void)
 
 /*
 ================
-GL_SubdivideSurface [FWGS, 01.11.23]
+GL_SubdivideSurface [FWGS, 01.01.24]
 
 Breaks a polygon up along axial 64 unit
 boundaries so that turbulent and sky warps
@@ -242,14 +323,17 @@ can be done reasonably.
 void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 	{
 	vec3_t	verts[SUBDIVIDE_SIZE];
-	int		numverts;
+	/*int		numverts;
 	int		i, lindex;
-	float	*vec;
+	float	*vec;*/
+	int		i;
 
 	// convert edges back to a normal polygon
-	numverts = 0;
+	/*numverts = 0;*/
 	for (i = 0; i < fa->numedges; i++)
-		{
+		R_GetEdgePosition (loadmodel, fa, i, verts[i]);
+
+	/*{
 		lindex = loadmodel->surfedges[fa->firstedge + i];
 
 		if (lindex > 0)
@@ -258,35 +342,37 @@ void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 			vec = loadmodel->vertexes[loadmodel->edges[-lindex].v[1]].position;
 		VectorCopy (vec, verts[numverts]);
 		numverts++;
-		}
+		}*/
 
 	SetBits (fa->flags, SURF_DRAWTURB_QUADS); // predict state
 
 	// do subdivide
-	SubdividePolygon_r (loadmodel, fa, numverts, verts[0]);
+	/*SubdividePolygon_r (loadmodel, fa, numverts, verts[0]);*/
+	SubdividePolygon_r (loadmodel, fa, fa->numedges, verts[0]);
 	}
 
 /*
 ================
-GL_BuildPolygonFromSurface
+GL_BuildPolygonFromSurface [FWGS, 01.01.24]
 ================
 */
 void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 	{
-	int		i, lindex, lnumverts;
+	/*int		i, lindex, lnumverts;
 	medge_t *pedges, *r_pedge;
-	mextrasurf_t *info = fa->info;
+	mextrasurf_t *info = fa->info;*/
+	int			i, lnumverts;
 	float		sample_size;
-	texture_t *tex;
-	gl_texture_t *glt;
-	float *vec;
-	float		s, t;
-	glpoly_t *poly;
+	texture_t	*tex;
+	gl_texture_t	*glt;
+	/*float *vec;
+	float		s, t;*/
+	glpoly_t	*poly;
 
 	if (!mod || !fa->texinfo || !fa->texinfo->texture)
 		return; // bad polygon ?
 
-	if (FBitSet (fa->flags, SURF_CONVEYOR) && fa->texinfo->texture->gl_texturenum != 0)
+	if (FBitSet (fa->flags, SURF_CONVEYOR) && (fa->texinfo->texture->gl_texturenum != 0))
 		{
 		glt = R_GetTexture (fa->texinfo->texture->gl_texturenum);
 		tex = fa->texinfo->texture;
@@ -300,7 +386,7 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 	sample_size = gEngfuncs.Mod_SampleSizeForFace (fa);
 
 	// reconstruct the polygon
-	pedges = mod->edges;
+	/*pedges = mod->edges;*/
 	lnumverts = fa->numedges;
 
 	// detach if already created, reconstruct again
@@ -317,7 +403,7 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 
 	for (i = 0; i < lnumverts; i++)
 		{
-		lindex = mod->surfedges[fa->firstedge + i];
+		/*lindex = mod->surfedges[fa->firstedge + i];
 
 		if (lindex > 0)
 			{
@@ -354,10 +440,13 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 		t /= BLOCK_SIZE * sample_size;	// fa->texinfo->texture->height;
 
 		poly->verts[i][5] = s;
-		poly->verts[i][6] = t;
+		poly->verts[i][6] = t;*/
+		R_GetEdgePosition (mod, fa, i, poly->verts[i]);
+		R_TextureCoord (poly->verts[i], fa, &poly->verts[i][3]);
+		R_LightmapCoord (poly->verts[i], fa, sample_size, &poly->verts[i][5]);
 		}
 
-	// [FWGS, 01.07.23] remove co-linear points - Ed
+	// remove co-linear points - Ed
 	if (!gl_keeptjunctions.value && !FBitSet (fa->flags, SURF_UNDERWATER))
 		{
 		for (i = 0; i < lnumverts; i++)
@@ -399,15 +488,15 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 
 /*
 ===============
-R_TextureAnim
+R_TextureAnim [FWGS, 01.01.24]
 
 Returns the proper texture for a given time and base texture, do not process random tiling
 ===============
 */
 texture_t *R_TextureAnim (texture_t *b)
 	{
-	texture_t *base = b;
-	int	count, reletive;
+	texture_t	*base = b;
+	int			count, reletive;
 
 	if (RI.currententity->curstate.frame)
 		{
@@ -428,20 +517,57 @@ texture_t *R_TextureAnim (texture_t *b)
 		// Quake1 textures uses 10 frames per second
 		if (FBitSet (R_GetTexture (base->gl_texturenum)->flags, TF_QUAKEPAL))
 			speed = 10;
-		else speed = 20;
+		else
+			speed = 20;
 
-		reletive = (int)(gpGlobals->time * speed) % base->anim_total;
+		/*reletive = (int)(gpGlobals->time * speed) % base->anim_total;*/
+		reletive = (int)(gp_cl->time * speed) % base->anim_total;
 		}
-
 
 	count = 0;
 
-	while (base->anim_min > reletive || base->anim_max <= reletive)
+	while ((base->anim_min > reletive) || (base->anim_max <= reletive))
 		{
 		base = base->anim_next;
 
-		if (!base || ++count > MOD_FRAMES)
+		if (!base || (++count > MOD_FRAMES))
 			return b;
+		}
+
+	return base;
+	}
+
+/*
+===============
+R_TextureRandomTiling [FWGS, 01.01.24]
+
+Returns the proper texture for a given surface without animation
+===============
+*/
+texture_t *R_TextureRandomTiling (msurface_t *s)
+	{
+	texture_t	*base = s->texinfo->texture;
+	int			count, reletive;
+
+	if (!base->anim_total)
+		return base;
+
+	if (base->name[0] == '-')
+		{
+		int tx = (int)((s->texturemins[0] + (base->width << 16)) / base->width) % MOD_FRAMES;
+		int ty = (int)((s->texturemins[1] + (base->height << 16)) / base->height) % MOD_FRAMES;
+
+		reletive = rtable[tx][ty] % base->anim_total;
+		}
+
+	count = 0;
+
+	while ((base->anim_min > reletive) || (base->anim_max <= reletive))
+		{
+		base = base->anim_next;
+
+		if (!base || (++count > MOD_FRAMES))
+			return s->texinfo->texture;
 		}
 
 	return base;
@@ -456,8 +582,8 @@ Returns the proper texture for a given time and surface
 */
 texture_t *R_TextureAnimation (msurface_t *s)
 	{
-	texture_t *base = s->texinfo->texture;
-	int	count, reletive;
+	texture_t	*base = s->texinfo->texture;
+	int			count, reletive;
 
 	if (RI.currententity && RI.currententity->curstate.frame)
 		{
@@ -482,18 +608,20 @@ texture_t *R_TextureAnimation (msurface_t *s)
 		// Quake1 textures uses 10 frames per second
 		if (FBitSet (R_GetTexture (base->gl_texturenum)->flags, TF_QUAKEPAL))
 			speed = 10;
-		else speed = 20;
+		else
+			speed = 20;
 
-		reletive = (int)(gpGlobals->time * speed) % base->anim_total;
+		/*reletive = (int)(gpGlobals->time * speed) % base->anim_total;*/
+		reletive = (int)(gp_cl->time * speed) % base->anim_total;
 		}
 
 	count = 0;
 
-	while (base->anim_min > reletive || base->anim_max <= reletive)
+	while ((base->anim_min > reletive) || (base->anim_max <= reletive))
 		{
 		base = base->anim_next;
 
-		if (!base || ++count > MOD_FRAMES)
+		if (!base || (++count > MOD_FRAMES))
 			return s->texinfo->texture;
 		}
 
@@ -507,16 +635,16 @@ R_AddDynamicLights
 */
 void R_AddDynamicLights (msurface_t *surf)
 	{
-	float		dist, rad, minlight;
+	float	dist, rad, minlight;
 	int		lnum, s, t, sd, td, smax, tmax;
-	float		sl, tl, sacc, tacc;
-	vec3_t		impact, origin_l;
-	mextrasurf_t *info = surf->info;
+	float	sl, tl, sacc, tacc;
+	vec3_t	impact, origin_l;
+	mextrasurf_t	*info = surf->info;
 	int		sample_frac = 1.0;
-	float		sample_size;
-	mtexinfo_t *tex;
-	dlight_t *dl;
-	uint *bl;
+	float	sample_size;
+	mtexinfo_t	*tex;
+	dlight_t	*dl;
+	uint		*bl;
 
 	// no dlighted surfaces here
 	if (!R_CountSurfaceDlights (surf))
@@ -591,11 +719,15 @@ void R_AddDynamicLights (msurface_t *surf)
 				else
 					dist = td + (sd >> 1);
 
+				// [FWGS, 01.01.24]
 				if (dist < minlight)
 					{
-					bl[0] += ((int)((rad - dist) * 256) * gEngfuncs.LightToTexGamma (dl->color.r)) / 256;
+					/*bl[0] += ((int)((rad - dist) * 256) * gEngfuncs.LightToTexGamma (dl->color.r)) / 256;
 					bl[1] += ((int)((rad - dist) * 256) * gEngfuncs.LightToTexGamma (dl->color.g)) / 256;
-					bl[2] += ((int)((rad - dist) * 256) * gEngfuncs.LightToTexGamma (dl->color.b)) / 256;
+					bl[2] += ((int)((rad - dist) * 256) * gEngfuncs.LightToTexGamma (dl->color.b)) / 256;*/
+					bl[0] += ((int)((rad - dist) * 256) * dl->color.r) / 256;
+					bl[1] += ((int)((rad - dist) * 256) * dl->color.g) / 256;
+					bl[2] += ((int)((rad - dist) * 256) * dl->color.b) / 256;
 					}
 				}
 			}
@@ -719,7 +851,7 @@ static void LM_UploadBlock (qboolean dynamic)
 
 /*
 =================
-R_BuildLightmap
+R_BuildLightmap [FWGS, 01.01.24]
 
 Combine and scale multiple lightmaps into the floating
 format in r_blocklights
@@ -728,31 +860,39 @@ format in r_blocklights
 static void R_BuildLightMap (msurface_t *surf, byte *dest, int stride, qboolean dynamic)
 	{
 	int		smax, tmax;
-	uint *bl, scale;
+	uint	*bl, scale;
 	int		i, map, size, s, t;
 	int		sample_size;
-	mextrasurf_t *info = surf->info;
-	color24 *lm;
+	mextrasurf_t	*info = surf->info;
+	color24	*lm;
+	int		lightscale;
 
 	sample_size = gEngfuncs.Mod_SampleSizeForFace (surf);
 	smax = (info->lightextents[0] / sample_size) + 1;
 	tmax = (info->lightextents[1] / sample_size) + 1;
 	size = smax * tmax;
 
-	lm = surf->samples;
+	if (gl_overbright.value)
+		lightscale = r_vbo.value ? 171 : 256;
+	else
+		lightscale = (pow (2.0f, 1.0f / v_lightgamma->value) * 256) + 0.5;
 
+	lm = surf->samples;
 	memset (r_blocklights, 0, sizeof (uint) * size * 3);
 
 	// add all the lightmaps
-	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255 && lm; map++)
+	for (map = 0; (map < MAXLIGHTMAPS) && (surf->styles[map] != 255) && lm; map++)
 		{
 		scale = tr.lightstylevalue[surf->styles[map]];
 
 		for (i = 0, bl = r_blocklights; i < size; i++, bl += 3, lm++)
 			{
-			bl[0] += gEngfuncs.LightToTexGamma (lm->r) * scale;
+			/*bl[0] += gEngfuncs.LightToTexGamma (lm->r) * scale;
 			bl[1] += gEngfuncs.LightToTexGamma (lm->g) * scale;
-			bl[2] += gEngfuncs.LightToTexGamma (lm->b) * scale;
+			bl[2] += gEngfuncs.LightToTexGamma (lm->b) * scale;*/
+			bl[0] += lm->r * scale;
+			bl[1] += lm->g * scale;
+			bl[2] += lm->b * scale;
 			}
 		}
 
@@ -768,9 +908,19 @@ static void R_BuildLightMap (msurface_t *surf, byte *dest, int stride, qboolean 
 		{
 		for (s = 0; s < smax; s++)
 			{
-			dest[0] = Q_min ((bl[0] >> 7), 255);
+			/*dest[0] = Q_min ((bl[0] >> 7), 255);
 			dest[1] = Q_min ((bl[1] >> 7), 255);
-			dest[2] = Q_min ((bl[2] >> 7), 255);
+			dest[2] = Q_min ((bl[2] >> 7), 255);*/
+			int i;
+			for (i = 0; i < 3; i++)
+				{
+				int t = bl[i] * lightscale >> 14;
+
+				if (t > 1023)
+					t = 1023;
+
+				dest[i] = gEngfuncs.LightToTexGammaEx (t) >> 2;
+				}
 			dest[3] = 255;
 
 			bl += 3;
@@ -781,7 +931,7 @@ static void R_BuildLightMap (msurface_t *surf, byte *dest, int stride, qboolean 
 
 /*
 ================
-DrawGLPoly
+DrawGLPoly [FWGS, 01.01.24]
 ================
 */
 void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
@@ -789,7 +939,7 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 	float	*v;
 	float	sOffset, sy;
 	float	tOffset, cy;
-	cl_entity_t *e = RI.currententity;
+	cl_entity_t	*e = RI.currententity;
 	int		i, hasScale = false;
 
 	if (!p) 
@@ -804,7 +954,8 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 		float	flRate, flAngle;
 		gl_texture_t *texture;
 
-		if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && (RI.currententity == gEngfuncs.GetEntityByIndex (0)))
+		/*if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && (RI.currententity == gEngfuncs.GetEntityByIndex (0)))*/
+		if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && (RI.currententity == CL_GetEntityByIndex (0)))
 			{
 			// same as doom speed
 			flConveyorSpeed = -35.0f;
@@ -822,8 +973,10 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 		flAngle = (flConveyorSpeed >= 0) ? 180 : 0;
 
 		SinCos (flAngle * (M_PI_F / 180.0f), &sy, &cy);
-		sOffset = gpGlobals->time * cy * flRate;
-		tOffset = gpGlobals->time * sy * flRate;
+		/*sOffset = gpGlobals->time * cy * flRate;
+		tOffset = gpGlobals->time * sy * flRate;*/
+		sOffset = gp_cl->time * cy * flRate;
+		tOffset = gp_cl->time * sy * flRate;
 
 		// make sure that we are positive
 		if (sOffset < 0.0f) 
@@ -870,7 +1023,7 @@ Render lightmaps
 */
 void DrawGLPolyChain (glpoly_t *p, float soffset, float toffset)
 	{
-	qboolean	dynamic = true;
+	qboolean dynamic = true;
 
 	if ((soffset == 0.0f) && (toffset == 0.0f))
 		dynamic = false;
@@ -923,7 +1076,7 @@ static qboolean R_HasLightmap (void)
 
 /*
 ================
-R_BlendLightmaps
+R_BlendLightmaps [FWGS, 01.01.24]
 ================
 */
 void R_BlendLightmaps (void)
@@ -934,9 +1087,9 @@ void R_BlendLightmaps (void)
 	if (!R_HasLightmap ())
 		return;
 
-	GL_SetupFogColorForSurfaces ();
+	/*GL_SetupFogColorForSurfaces ();*/
+	GL_SetupFogColorForSurfacesEx (r_detailtextures.value ? 3 : 2, 1.0f, true);
 
-	// [FWGS, 01.07.23]
 	if (!r_lightmap->value)
 		pglEnable (GL_BLEND);
 	else
@@ -947,7 +1100,17 @@ void R_BlendLightmaps (void)
 	pglDepthFunc (GL_EQUAL);
 
 	pglDisable (GL_ALPHA_TEST);
-	pglBlendFunc (GL_ZERO, GL_SRC_COLOR);
+	/*pglBlendFunc (GL_ZERO, GL_SRC_COLOR);*/
+	if (gl_overbright.value)
+		{
+		pglBlendFunc (GL_DST_COLOR, GL_SRC_COLOR);
+		pglColor4f (128.0f / 192.0f, 128.0f / 192.0f, 128.0f / 192.0f, 1.0f);
+		}
+	else
+		{
+		pglBlendFunc (GL_ZERO, GL_SRC_COLOR);
+		}
+
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	// render static lightmaps first
@@ -965,7 +1128,7 @@ void R_BlendLightmaps (void)
 			}
 		}
 
-	// [FWGS, 01.07.23] render dynamic lightmaps
+	// render dynamic lightmaps
 	if (r_dynamic->value)
 		{
 		LM_InitBlock ();
@@ -1095,30 +1258,41 @@ void R_RenderFullbrights (void)
 
 /*
 ================
-R_RenderDetails
+R_RenderDetails [FWGS, 01.01.24]
 ================
 */
-void R_RenderDetails (void)
+/*void R_RenderDetails (void)*/
+void R_RenderDetails (int passes)
 	{
-	gl_texture_t *glt;
-	mextrasurf_t *es, *p;
-	msurface_t *fa;
-	int		i;
+	gl_texture_t	*glt;
+	mextrasurf_t	*es, *p;
+	msurface_t		*fa;
+	int				i;
 
 	if (!draw_details)
 		return;
 
-	GL_SetupFogColorForSurfaces ();
+	/*GL_SetupFogColorForSurfaces ();*/
+	GL_SetupFogColorForSurfacesEx (passes, passes == 2 ? 0.5f : 1.0f, false);
 
 	pglEnable (GL_BLEND);
 	pglBlendFunc (GL_DST_COLOR, GL_SRC_COLOR);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	pglDepthFunc (GL_EQUAL);
+
+	/*pglDepthFunc (GL_EQUAL);*/
+	if (passes == 3)
+		pglDepthFunc (GL_EQUAL);
+	else
+		{
+		pglDepthFunc (GL_LEQUAL);
+		pglEnable (GL_POLYGON_OFFSET_FILL);
+		}
 
 	for (i = 1; i < MAX_TEXTURES; i++)
 		{
 		es = detail_surfaces[i];
-		if (!es) continue;
+		if (!es)
+			continue;
 
 		GL_Bind (XASH_TEXTURE0, i);
 
@@ -1136,6 +1310,7 @@ void R_RenderDetails (void)
 	pglDisable (GL_BLEND);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	pglDepthFunc (GL_LEQUAL);
+	pglDisable (GL_POLYGON_OFFSET_FILL);
 
 	draw_details = false;
 
@@ -1145,7 +1320,7 @@ void R_RenderDetails (void)
 
 /*
 ================
-R_RenderBrushPoly [FWGS, 01.11.23]
+R_RenderBrushPoly [FWGS, 01.01.24]
 ================
 */
 void R_RenderBrushPoly (msurface_t *fa, int cull_type)
@@ -1244,13 +1419,15 @@ dynamic:
 
 	if (is_dynamic)
 		{
-		if (((fa->styles[maps] >= 32) || (fa->styles[maps] == 0) || (fa->styles[maps] == 20)) &&
-			(fa->dlightframe != tr.framecount))
+		/*if (((fa->styles[maps] >= 32) || (fa->styles[maps] == 0) || (fa->styles[maps] == 20)) &&
+			(fa->dlightframe != tr.framecount))*/
+		if ((maps < MAXLIGHTMAPS) && ((fa->styles[maps] >= 32) || (fa->styles[maps] == 0) ||
+			(fa->styles[maps] == 20)) && (fa->dlightframe != tr.framecount))
 			{
 			byte		temp[132 * 132 * 4];
-			mextrasurf_t *info = fa->info;
-			int		sample_size;
-			int		smax, tmax;
+			mextrasurf_t	*info = fa->info;
+			int			sample_size;
+			int			smax, tmax;
 
 			sample_size = gEngfuncs.Mod_SampleSizeForFace (fa);
 			smax = (info->lightextents[0] / sample_size) + 1;
@@ -1282,14 +1459,14 @@ dynamic:
 
 /*
 ================
-R_DrawTextureChains
+R_DrawTextureChains [FWGS, 01.01.24]
 ================
 */
 void R_DrawTextureChains (void)
 	{
-	int		i;
-	msurface_t *s;
-	texture_t *t;
+	int			i;
+	msurface_t	*s;
+	texture_t	*t;
 
 	// make sure what color is reset
 	pglColor4ub (255, 255, 255, 255);
@@ -1298,10 +1475,12 @@ void R_DrawTextureChains (void)
 	GL_SetupFogColorForSurfaces ();
 
 	// restore worldmodel
-	RI.currententity = gEngfuncs.GetEntityByIndex (0);
+	/*RI.currententity = gEngfuncs.GetEntityByIndex (0);*/
+	RI.currententity = CL_GetEntityByIndex (0);
 	RI.currentmodel = RI.currententity->model;
 
-	if (ENGINE_GET_PARM (PARM_SKY_SPHERE))
+	/*if (ENGINE_GET_PARM (PARM_SKY_SPHERE))*/
+	if (FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX))
 		{
 		pglDisable (GL_TEXTURE_2D);
 		pglColor3f (1.0f, 1.0f, 1.0f);
@@ -1311,7 +1490,8 @@ void R_DrawTextureChains (void)
 	for (s = skychain; s != NULL; s = s->texturechain)
 		R_AddSkyBoxSurface (s);
 
-	if (ENGINE_GET_PARM (PARM_SKY_SPHERE))
+	/*if (ENGINE_GET_PARM (PARM_SKY_SPHERE))*/
+	if (FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX))
 		{
 		pglEnable (GL_TEXTURE_2D);
 		if (skychain)
@@ -1319,17 +1499,21 @@ void R_DrawTextureChains (void)
 		skychain = NULL;
 		}
 
+	R_DrawVBO (!r_fullbright->value && !!WORLDMODEL->lightdata, true);
+
 	for (i = 0; i < WORLDMODEL->numtextures; i++)
 		{
 		t = WORLDMODEL->textures[i];
-		if (!t) continue;
+		if (!t)
+			continue;
 
 		s = t->texturechain;
 
 		if (!s || (i == tr.skytexturenum))
 			continue;
 
-		if ((s->flags & SURF_DRAWTURB) && MOVEVARS->wateralpha < 1.0f)
+		/*if ((s->flags & SURF_DRAWTURB) && MOVEVARS->wateralpha < 1.0f)*/
+		if ((s->flags & SURF_DRAWTURB) && (tr.movevars->wateralpha < 1.0f))
 			continue;	// draw translucent water later
 
 		if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && FBitSet (s->flags, SURF_TRANSPARENT))
@@ -1346,14 +1530,14 @@ void R_DrawTextureChains (void)
 
 /*
 ================
-R_DrawAlphaTextureChains
+R_DrawAlphaTextureChains [FWGS, 01.01.24]
 ================
 */
 void R_DrawAlphaTextureChains (void)
 	{
-	int		i;
-	msurface_t *s;
-	texture_t *t;
+	int			i;
+	msurface_t	*s;
+	texture_t	*t;
 
 	if (!draw_alpha_surfaces)
 		return;
@@ -1372,7 +1556,8 @@ void R_DrawAlphaTextureChains (void)
 	GL_SetupFogColorForSurfaces ();
 
 	// restore worldmodel
-	RI.currententity = gEngfuncs.GetEntityByIndex (0);
+	/*RI.currententity = gEngfuncs.GetEntityByIndex (0);*/
+	RI.currententity = CL_GetEntityByIndex (0);
 	RI.currentmodel = RI.currententity->model;
 	RI.currententity->curstate.rendermode = kRenderTransAlpha;
 	draw_alpha_surfaces = false;
@@ -1380,7 +1565,8 @@ void R_DrawAlphaTextureChains (void)
 	for (i = 0; i < WORLDMODEL->numtextures; i++)
 		{
 		t = WORLDMODEL->textures[i];
-		if (!t) continue;
+		if (!t)
+			continue;
 
 		s = t->texturechain;
 
@@ -1400,7 +1586,7 @@ void R_DrawAlphaTextureChains (void)
 
 /*
 ================
-R_DrawWaterSurfaces
+R_DrawWaterSurfaces [FWGS, 01.01.24]
 ================
 */
 void R_DrawWaterSurfaces (void)
@@ -1413,11 +1599,13 @@ void R_DrawWaterSurfaces (void)
 		return;
 
 	// non-transparent water is already drawed
-	if (MOVEVARS->wateralpha >= 1.0f)
+	/*if (MOVEVARS->wateralpha >= 1.0f)*/
+	if (tr.movevars->wateralpha >= 1.0f)
 		return;
 
 	// restore worldmodel
-	RI.currententity = gEngfuncs.GetEntityByIndex (0);
+	/*RI.currententity = gEngfuncs.GetEntityByIndex (0);*/
+	RI.currententity = CL_GetEntityByIndex (0);
 	RI.currentmodel = RI.currententity->model;
 
 	// go back to the world matrix
@@ -1428,15 +1616,18 @@ void R_DrawWaterSurfaces (void)
 	pglDisable (GL_ALPHA_TEST);
 	pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	pglColor4f (1.0f, 1.0f, 1.0f, MOVEVARS->wateralpha);
+	/*pglColor4f (1.0f, 1.0f, 1.0f, MOVEVARS->wateralpha);*/
+	pglColor4f (1.0f, 1.0f, 1.0f, tr.movevars->wateralpha);
 
 	for (i = 0; i < WORLDMODEL->numtextures; i++)
 		{
 		t = WORLDMODEL->textures[i];
-		if (!t) continue;
+		if (!t)
+			continue;
 
 		s = t->texturechain;
-		if (!s) continue;
+		if (!s)
+			continue;
 
 		if (!FBitSet (s->flags, SURF_DRAWTURB))
 			continue;
@@ -1495,6 +1686,7 @@ void R_SetRenderMode (cl_entity_t *e)
 		case kRenderNormal:
 			pglColor4f (1.0f, 1.0f, 1.0f, 1.0f);
 			break;
+
 		case kRenderTransColor:
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			pglColor4ub (e->curstate.rendercolor.r, e->curstate.rendercolor.g, e->curstate.rendercolor.b,
@@ -1503,6 +1695,7 @@ void R_SetRenderMode (cl_entity_t *e)
 			pglDisable (GL_TEXTURE_2D);
 			pglEnable (GL_BLEND);
 			break;
+
 		case kRenderTransAdd:
 			pglTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
@@ -1517,6 +1710,7 @@ void R_SetRenderMode (cl_entity_t *e)
 			pglDepthMask (GL_FALSE);
 			pglEnable (GL_BLEND);
 			break;
+
 		case kRenderTransAlpha:
 			pglEnable (GL_ALPHA_TEST);
 			pglTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -1533,6 +1727,7 @@ void R_SetRenderMode (cl_entity_t *e)
 				}
 			pglAlphaFunc (GL_GREATER, 0.25f);
 			break;
+
 		default:
 			pglTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1545,21 +1740,21 @@ void R_SetRenderMode (cl_entity_t *e)
 
 /*
 =================
-R_DrawBrushModel
+R_DrawBrushModel [FWGS, 01.01.24]
 =================
 */
 void R_DrawBrushModel (cl_entity_t *e)
 	{
-	int		i, k, num_sorted;
-	vec3_t	origin_l, oldorigin;
-	int		old_rendermode;
-	vec3_t	mins, maxs;
-	int		cull_type;
+	int			i, k, num_sorted;
+	vec3_t		origin_l, oldorigin;
+	int			old_rendermode;
+	vec3_t		mins, maxs;
+	int			cull_type;
 	msurface_t	*psurf;
 	model_t		*clmodel;
 	qboolean	rotated;
 	dlight_t	*l;
-	qboolean	allow_vbo = r_vbo.value;	// [FWGS, 01.07.23]
+	qboolean	allow_vbo = r_vbo.value;
 
 	if (!RI.drawWorld)
 		return;
@@ -1603,15 +1798,18 @@ void R_DrawBrushModel (cl_entity_t *e)
 
 	e->visframe = tr.realframecount; // visible
 
-	if (rotated) Matrix4x4_VectorITransform (RI.objectMatrix, RI.cullorigin, tr.modelorg);
-	else VectorSubtract (RI.cullorigin, e->origin, tr.modelorg);
+	if (rotated)
+		Matrix4x4_VectorITransform (RI.objectMatrix, RI.cullorigin, tr.modelorg);
+	else
+		VectorSubtract (RI.cullorigin, e->origin, tr.modelorg);
 
 	// calculate dynamic lighting for bmodel
 	for (k = 0; k < MAX_DLIGHTS; k++)
 		{
 		l = gEngfuncs.GetDynamicLight (k);
 
-		if (l->die < gpGlobals->time || !l->radius)
+		/*if (l->die < gpGlobals->time || !l->radius)*/
+		if ((l->die < gp_cl->time) || !l->radius)
 			continue;
 
 		VectorCopy (l->origin, oldorigin); // save lightorigin
@@ -1623,7 +1821,7 @@ void R_DrawBrushModel (cl_entity_t *e)
 
 	// setup the rendermode
 	R_SetRenderMode (e);
-	GL_SetupFogColorForSurfaces ();
+	/*GL_SetupFogColorForSurfaces ();*/
 
 	if (e->curstate.rendermode == kRenderTransAdd)
 		{
@@ -1633,6 +1831,9 @@ void R_DrawBrushModel (cl_entity_t *e)
 
 	if ((e->curstate.rendermode == kRenderTransColor) || (e->curstate.rendermode == kRenderTransTexture))
 		allow_vbo = false;
+
+	if (!allow_vbo)
+		GL_SetupFogColorForSurfaces ();
 
 	psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
 	num_sorted = 0;
@@ -1666,7 +1867,7 @@ void R_DrawBrushModel (cl_entity_t *e)
 			}
 		}
 
-	// [FWGS, 01.07.23] sort faces if needs
+	// sort faces if needs
 	if (!FBitSet (clmodel->flags, MODEL_LIQUID) && (e->curstate.rendermode == kRenderTransTexture) &&
 		!gl_nosort.value)
 		qsort (gpGlobals->draw_surfaces, num_sorted, sizeof (sortedface_t), R_SurfaceCompare);
@@ -1684,7 +1885,9 @@ void R_DrawBrushModel (cl_entity_t *e)
 	GL_ResetFogColor ();
 	R_BlendLightmaps ();
 	R_RenderFullbrights ();
-	R_RenderDetails ();
+	
+	/*R_RenderDetails ();*/
+	R_RenderDetails (allow_vbo ? 2 : 3);
 
 	// restore fog here
 	if (e->curstate.rendermode == kRenderTransAdd)
@@ -1720,38 +1923,51 @@ typedef struct vbovertex_s
 #endif
 	} vbovertex_t;
 
-// store indexes for each texture
+// [FWGS, 01.01.24]
+#ifndef UINT_INDEX
+	typedef unsigned short vboindex_t;
+	#define VBOINDEX_MAX USHRT_MAX
+	#define GL_VBOINDEX_TYPE GL_UNSIGNED_SHORT
+#else
+	typedef unsigned int vboindex_t;
+	#define VBOINDEX_MAX UINT_MAX
+	#define GL_VBOINDEX_TYPE GL_UNSIGNED_INT
+#endif
+
+// [FWGS, 01.01.24] store indexes for each texture
 typedef struct vbotexture_s
 	{
-	unsigned short *indexarray; // index array (generated instead of texture chains)
-	uint curindex; // counter for index array
-	uint len; // maximum index array length
-	struct vbotexture_s *next; // if cannot fit into one array, allocate new one, as every array has own index space
-	msurface_t *dlightchain; // list of dlight surfaces
-	struct vboarray_s *vboarray; // debug
-	uint lightmaptexturenum;
+	/*unsigned short *indexarray; // index array (generated instead of texture chains)
+	*/
+	vboindex_t	*indexarray;	// index array (generated instead of texture chains)
+	uint		curindex;		// counter for index array
+	uint		len;			// maximum index array length
+	struct vbotexture_s	*next;	// if cannot fit into one array, allocate new one, as every array has own index space
+	msurface_t	*dlightchain;	// list of dlight surfaces
+	struct vboarray_s	*vboarray;	// debug
+	uint		lightmaptexturenum;
 	} vbotexture_t;
 
 // array list
 typedef struct vboarray_s
 	{
-	uint glindex; // glGenBuffers
-	int array_len; // allocation length
-	vbovertex_t *array; // vertex attrib array
-	struct vboarray_s *next; // split by 65536 vertices
+	uint		glindex;		// glGenBuffers
+	int			array_len;		// allocation length
+	vbovertex_t	*array;			// vertex attrib array
+	struct vboarray_s	*next;	// split by 65536 vertices
 	} vboarray_t;
 
 // every surface is linked to vbo texture
 typedef struct vbosurfdata_s
 	{
-	vbotexture_t *vbotexture;
-	uint texturenum;
-	uint startindex;
+	vbotexture_t	*vbotexture;
+	uint			texturenum;
+	uint			startindex;
 	} vbosurfdata_t;
 
 typedef struct vbodecal_s
 	{
-	int numVerts;
+	int	numVerts;
 	} vbodecal_t;
 
 #define DECAL_VERTS_MAX 32
@@ -1759,68 +1975,111 @@ typedef struct vbodecal_s
 
 typedef struct vbodecaldata_s
 	{
-	vbodecal_t decals[MAX_RENDER_DECALS];
-	vbovertex_t decalarray[MAX_RENDER_DECALS * DECAL_VERTS_CUT];
-	uint decalvbo;
-	msurface_t **lm;
+	vbodecal_t	decals[MAX_RENDER_DECALS];
+	vbovertex_t	decalarray[MAX_RENDER_DECALS * DECAL_VERTS_CUT];
+	uint		decalvbo;
+	msurface_t	**lm;
 	} vbodecaldata_t;
 
 // gl_decals.c
 extern decal_t	gDecalPool[MAX_RENDER_DECALS];
 
+// [FWGS, 01.01.24]
 struct vbo_static_s
 	{
 	// quickly free all allocations on map change
-	poolhandle_t mempool;
+	poolhandle_t	mempool;
 
 	// arays
-	vbodecaldata_t *decaldata; // array
-	vbotexture_t *textures; // array
-	vbosurfdata_t *surfdata; // array
-	vboarray_t *arraylist; // linked list
+	vbodecaldata_t	*decaldata;	// array
+	vbotexture_t	*textures;	// array
+	vbosurfdata_t	*surfdata;	// array
+	vboarray_t		*arraylist;	// linked list
 
 	// separate areay for dlights (build during draw)
-	unsigned short *dlight_index; // array
-	vec2_t *dlight_tc; // array
-	unsigned int dlight_vbo;
-	vbovertex_t decal_dlight[MAX_RENDER_DECALS * DECAL_VERTS_MAX];
-	unsigned int decal_dlight_vbo;
-	int decal_numverts[MAX_RENDER_DECALS * DECAL_VERTS_MAX];
+	/*unsigned short *dlight_index; // array
+	*/
+	vboindex_t		*dlight_index;	// array
+	vec2_t			*dlight_tc;		// array
+	unsigned int	dlight_vbo;
+	vbovertex_t		decal_dlight[MAX_RENDER_DECALS * DECAL_VERTS_MAX];
+	unsigned int	decal_dlight_vbo;
+	int				decal_numverts[MAX_RENDER_DECALS * DECAL_VERTS_MAX];
 
 	// prevent draining cpu on empty cycles
-	int minlightmap;
-	int maxlightmap;
-	int mintexture;
-	int maxtexture;
+	int	minlightmap;
+	int	maxlightmap;
+	int	mintexture;
+	int	maxtexture;
 
 	// never skip array splits
-	int minarraysplit_tex;
-	int maxarraysplit_tex;
-	int minarraysplit_lm;
-	int maxarraysplit_lm;
+	int	minarraysplit_tex;
+	int	maxarraysplit_tex;
+	int	minarraysplit_lm;
+	int	maxarraysplit_lm;
 	} vbos;
 
 struct multitexturestate_s
 	{
-	int tmu_gl; // texture tmu
-	int tmu_dt; // detail tmu
-	int tmu_lm; // lightmap tmu
-	qboolean details_enabled; // current texture has details
-	int lm; // current lightmap texture
-	qboolean skiptexture;
-	gl_texture_t *glt; // details scale
+	int			tmu_gl;		// texture tmu
+	int			tmu_dt;		// detail tmu
+	int			tmu_lm;		// lightmap tmu
+	qboolean	details_enabled;	// current texture has details
+	int			lm;			// current lightmap texture
+	qboolean	skiptexture;
+	gl_texture_t	*glt;	// details scale
 	} mtst;
+
+// [FWGS, 01.01.24]
+enum array_state_e
+	{
+	VBO_ARRAY_NONE,
+	VBO_ARRAY_STATIC,
+	VBO_ARRAY_DECAL,
+	VBO_ARRAY_DLIGHT,
+	VBO_ARRAY_DECAL_DLIGHT
+	};
+
+// [FWGS, 01.01.24]
+enum texture_state_e
+	{
+	VBO_TEXTURE_NONE,
+	VBO_TEXTURE_MAIN,
+	VBO_TEXTURE_DECAL
+	};
+
+// [FWGS, 01.01.24]
+enum lightmap_state_e
+	{
+	VBO_LIGHTMAP_NONE,
+	VBO_LIGHTMAP_STATIC,
+	VBO_LIGHTMAP_DYNAMIC
+	};
+
+// [FWGS, 01.01.24]
+static struct arraystate_s
+	{
+	enum array_state_e astate;
+	enum texture_state_e tstate;
+	enum lightmap_state_e lstate;
+	int itexture;
+	qboolean decal_mode;
+	} vboarray;
 
 /*
 ===================
-R_GenerateVBO
+R_GenerateVBO [FWGS, 01.01.24]
 
 Allocate memory for arrays, fill it with vertex attribs and upload to GPU
 ===================
 */
 void R_GenerateVBO (void)
 	{
-	int			numtextures = WORLDMODEL->numtextures;
+	/*int			numtextures = WORLDMODEL->numtextures;*/
+	model_t		*world = WORLDMODEL;
+	msurface_t	*surfaces = world->surfaces;
+	int			numsurfaces = world->numsurfaces;
+	int			numtextures = world->numtextures;
 	int			numlightmaps = gl_lms.current_lightmap_texture;
 	int			k, len = 0;
 	vboarray_t	*vbo;
@@ -1828,15 +2087,16 @@ void R_GenerateVBO (void)
 
 	R_ClearVBO ();
 
-	// [FWGS, 01.11.23]
+	/*if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) ||
+		(glConfig.max_texture_units < 2) || !gEngfuncs.Sys_CheckParm ("-gl-allow-vbo-dontuse"))*/
 	if (!GL_Support (GL_ARB_VERTEX_BUFFER_OBJECT_EXT) || !GL_Support (GL_ARB_MULTITEXTURE) ||
-		(glConfig.max_texture_units < 2) || !gEngfuncs.Sys_CheckParm ("-gl-allow-vbo-dontuse"))
+		(glConfig.max_texture_units < 2))
 		{
 		gEngfuncs.Cvar_FullSet ("gl_vbo", "0", FCVAR_READ_ONLY);
 		return;
 		}
 
-	// [FWGS, 01.07.23] save in config if enabled manually
+	// save in config if enabled manually
 	if (r_vbo.value)
 		r_vbo.flags |= FCVAR_ARCHIVE;
 
@@ -1866,24 +2126,36 @@ void R_GenerateVBO (void)
 			int i;
 			vbotexture_t *vbotex = &vbos.textures[k * numtextures + j];
 
-			for (i = 0; i < WORLDMODEL->numsurfaces; i++)
+			/*for (i = 0; i < WORLDMODEL->numsurfaces; i++)*/
+			for (i = 0; i < numsurfaces; i++)
 				{
-				msurface_t *surf = &WORLDMODEL->surfaces[i];
+				/*msurface_t *surf = &WORLDMODEL->surfaces[i];*/
+				msurface_t *surf = &surfaces[i];
 
-				if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS))
-					continue;
-
+				/*if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS))*/
 				if (surf->lightmaptexturenum != k)
 					continue;
 
-				if (R_TextureAnimation (surf) != WORLDMODEL->textures[j])
+				/*if (surf->lightmaptexturenum != k)*/
+				if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS))
 					continue;
 
-				if (vbo->array_len + surf->polys->numverts > USHRT_MAX)
+				/*if (R_TextureAnimation (surf) != WORLDMODEL->textures[j])*/
+				if (R_TextureAnimation (surf) != world->textures[j])
+					continue;
+
+				/*if (vbo->array_len + surf->polys->numverts > USHRT_MAX)*/
+				if (vbo->array_len + surf->polys->numverts > VBOINDEX_MAX)
 					{
+					vbotex->vboarray = vbo;
+
 					// generate new array and new vbotexture node
 					vbo->array = Mem_Calloc (vbos.mempool, sizeof (vbovertex_t) * vbo->array_len);
-					gEngfuncs.Con_Printf ("R_GenerateVBOs: allocated array of %d verts, texture %d\n", vbo->array_len, j);
+					/*gEngfuncs.Con_Printf ("R_GenerateVBOs: allocated array of %d verts, texture %d\n",
+					vbo->array_len, j);*/
+					gEngfuncs.Con_Printf ("R_GenerateVBOs: allocated array of %d verts, texture %d, lm %d\n",
+						vbo->array_len, j, k);
+
 					vbo->next = Mem_Calloc (vbos.mempool, sizeof (vboarray_t));
 					vbo = vbo->next;
 					vbotex->next = Mem_Calloc (vbos.mempool, sizeof (vbotexture_t));
@@ -1927,39 +2199,49 @@ void R_GenerateVBO (void)
 			vbotexture_t *vbotex = &vbos.textures[k * numtextures + j];
 
 			// preallocate index arrays
-			vbotex->indexarray = Mem_Calloc (vbos.mempool, sizeof (unsigned short) * 6 * vbotex->len);
+			/*vbotex->indexarray = Mem_Calloc (vbos.mempool, sizeof (unsigned short) * 6 * vbotex->len);
+			*/
+			vbotex->indexarray = Mem_Calloc (vbos.mempool, sizeof (*vbotex->indexarray) * 6 * vbotex->len);
 			vbotex->lightmaptexturenum = k;
 
 			if (maxindex < vbotex->len)
 				maxindex = vbotex->len;
 
-			for (i = 0; i < WORLDMODEL->numsurfaces; i++)
+			/*for (i = 0; i < WORLDMODEL->numsurfaces; i++)*/
+			for (i = 0; i < numsurfaces; i++)
 				{
-				msurface_t *surf = &WORLDMODEL->surfaces[i];
+				/*msurface_t *surf = &WORLDMODEL->surfaces[i];*/
+				msurface_t *surf = &surfaces[i];
 				int l;
 
-				if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS))
-					continue;
-
+				/*if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS))*/
 				if (surf->lightmaptexturenum != k)
 					continue;
 
-				if (R_TextureAnimation (surf) != WORLDMODEL->textures[j])
+				/*if (surf->lightmaptexturenum != k)*/
+				if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS))
+					continue;
+
+				/*if (R_TextureAnimation (surf) != WORLDMODEL->textures[j])*/
+				if (R_TextureAnimation (surf) != world->textures[j])
 					continue;
 
 				// switch to next array
-				if (len + surf->polys->numverts > USHRT_MAX)
+				/*if (len + surf->polys->numverts > USHRT_MAX)*/
+				if (len + surf->polys->numverts > VBOINDEX_MAX)
 					{
 					// upload last generated array
 					pglGenBuffersARB (1, &vbo->glindex);
 					pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
-					pglBufferDataARB (GL_ARRAY_BUFFER_ARB, vbo->array_len * sizeof (vbovertex_t), vbo->array, GL_STATIC_DRAW_ARB);
+					pglBufferDataARB (GL_ARRAY_BUFFER_ARB, vbo->array_len * sizeof (vbovertex_t),
+						vbo->array, GL_STATIC_DRAW_ARB);
 
 					ASSERT (len == vbo->array_len);
 
 					vbo = vbo->next;
 					vbotex = vbotex->next;
-					vbotex->indexarray = Mem_Calloc (vbos.mempool, sizeof (unsigned short) * 6 * vbotex->len);
+					/*vbotex->indexarray = Mem_Calloc (vbos.mempool, sizeof (unsigned short) * 6 * vbotex->len);*/
+					vbotex->indexarray = Mem_Calloc (vbos.mempool, sizeof (*vbotex->indexarray) * 6 * vbotex->len);
 					vbotex->lightmaptexturenum = k;
 
 					// calculate limits for dlights
@@ -1979,10 +2261,13 @@ void R_GenerateVBO (void)
 					vbo->array[len + l].gl_tc[1] = v[4];
 					vbo->array[len + l].lm_tc[0] = v[5];
 					vbo->array[len + l].lm_tc[1] = v[6];
+
 #ifdef NO_TEXTURE_MATRIX
-					if (WORLDMODEL->textures[j]->dt_texturenum)
+					/*if (WORLDMODEL->textures[j]->dt_texturenum)*/
+					if (world->textures[j]->dt_texturenum)
 						{
-						gl_texture_t *glt = R_GetTexture (WORLDMODEL->textures[j]->gl_texturenum);
+						/*gl_texture_t *glt = R_GetTexture (WORLDMODEL->textures[j]->gl_texturenum);*/
+						gl_texture_t *glt = R_GetTexture (world->textures[j]->gl_texturenum);
 						vbo->array[len + l].dt_tc[0] = v[3] * glt->xscale;
 						vbo->array[len + l].dt_tc[1] = v[4] * glt->yscale;
 						}
@@ -2008,21 +2293,27 @@ void R_GenerateVBO (void)
 		vbos.decaldata->decalarray, GL_DYNAMIC_DRAW_ARB);
 
 	// preallocate dlight arrays
-	vbos.dlight_index = Mem_Calloc (vbos.mempool, maxindex * sizeof (unsigned short) * 6);
+	/*vbos.dlight_index = Mem_Calloc (vbos.mempool, maxindex * sizeof (unsigned short) * 6);*/
+	vbos.dlight_index = Mem_Calloc (vbos.mempool, maxindex * sizeof (*vbos.dlight_index) * 6);
 
 	// select maximum possible length for dlight
-	vbos.dlight_tc = Mem_Calloc (vbos.mempool, sizeof (vec2_t) * (int)(vbos.arraylist->next ? USHRT_MAX + 1 :
+	/*vbos.dlight_tc = Mem_Calloc (vbos.mempool, sizeof (vec2_t) * (int)(vbos.arraylist->next ? USHRT_MAX + 1 :
+		vbos.arraylist->array_len + 1));*/
+	vbos.dlight_tc = Mem_Calloc (vbos.mempool, sizeof (vec2_t) * (int)(vbos.arraylist->next ? VBOINDEX_MAX + 1 :
 		vbos.arraylist->array_len + 1));
 
-	if (r_vbo_dlightmode.value)	// [FWGS, 01.07.23]
+	if (r_vbo_dlightmode.value)
 		{
 		pglGenBuffersARB (1, &vbos.dlight_vbo);
 		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
-		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (int)(vbos.arraylist->next ? USHRT_MAX + 1 :
-			vbos.arraylist->array_len + 1), vbos.dlight_tc, GL_STREAM_DRAW_ARB);
+		/*pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (int)(vbos.arraylist->next ? USHRT_MAX + 1 :
+			vbos.arraylist->array_len + 1), vbos.dlight_tc, GL_STREAM_DRAW_ARB);*/
+		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) *(int)(vbos.arraylist->next ? VBOINDEX_MAX + 1 :
+			vbos.arraylist->array_len + 1), NULL, GL_STREAM_DRAW_ARB);
 		pglGenBuffersARB (1, &vbos.decal_dlight_vbo);
 		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
-		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbos.decal_dlight), vbos.decal_dlight, GL_STREAM_DRAW_ARB);
+		/*pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbos.decal_dlight), vbos.decal_dlight, GL_STREAM_DRAW_ARB);*/
+		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbos.decal_dlight), NULL, GL_STREAM_DRAW_ARB);
 		}
 
 	// reset state
@@ -2039,9 +2330,9 @@ generate decal mesh and put it to array
 */
 void R_AddDecalVBO (decal_t *pdecal, msurface_t *surf)
 	{
-	int numVerts, i;
-	float *v;
-	int decalindex = pdecal - &gDecalPool[0];
+	int		numVerts, i;
+	float	*v;
+	int		decalindex = pdecal - &gDecalPool[0];
 
 	if (!vbos.decaldata)
 		return;
@@ -2099,18 +2390,19 @@ void R_ClearVBO (void)
 
 /*
 ===================
-R_DisableDetail
+R_DisableDetail [FWGS, 01.01.24]
 
 disable detail tmu
 ===================
 */
 static void R_DisableDetail (void)
 	{
-	if (mtst.details_enabled && mtst.tmu_dt != -1)
+	if (mtst.details_enabled && (mtst.tmu_dt != -1))
 		{
 		GL_SelectTexture (mtst.tmu_dt);
 		pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
 		pglDisable (GL_TEXTURE_2D);
+		pglMatrixMode (GL_TEXTURE);
 		pglLoadIdentity ();
 		}
 	}
@@ -2149,7 +2441,7 @@ static void R_EnableDetail (void)
 
 /*
 ==============
-R_SetLightmap
+R_SetLightmap [FWGS, 01.01.24]
 
 enable lightmap on current tmu
 ==============
@@ -2159,20 +2451,35 @@ static void R_SetLightmap (void)
 	if (mtst.skiptexture)
 		return;
 
-	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	if (gl_overbright.value)
+		{
+		pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+		pglTexEnvi (GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+		pglTexEnvi (GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+		pglTexEnvi (GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+		pglTexEnvi (GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, 2);
+		}
+	else
+		{
+		pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		}
+
 	pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
 	}
 
 /*
 ==============
-R_SetDecalMode
+R_SetDecalMode [FWGS, 01.01.24]
 
 When drawing decal, disable or restore bump and details
-set tmu to lightmap when enabled
 ==============
 */
 static void R_SetDecalMode (qboolean enable)
 	{
+	if (vboarray.decal_mode == enable)
+		return;
+	vboarray.decal_mode = enable;
+
 	// order is important to correctly rearrange TMUs
 	if (enable)
 		{
@@ -2188,7 +2495,7 @@ static void R_SetDecalMode (qboolean enable)
 
 /*
 ==============
-R_SetupVBOTexture
+R_SetupVBOTexture // [FWGS, 01.01.24]
 
 setup multitexture mode before drawing VBOs
 if tex is NULL, load texture by number
@@ -2202,7 +2509,7 @@ static texture_t *R_SetupVBOTexture (texture_t *tex, int number)
 	if (!tex)
 		tex = R_TextureAnim (WORLDMODEL->textures[number]);
 
-	if (r_detailtextures.value && tex->dt_texturenum && (mtst.tmu_dt != -1))	// [FWGS, 01.07.23]
+	if (r_detailtextures.value && tex->dt_texturenum && (mtst.tmu_dt != -1))
 		{
 		mtst.details_enabled = true;
 		GL_Bind (mtst.tmu_dt, tex->dt_texturenum);
@@ -2214,21 +2521,145 @@ static texture_t *R_SetupVBOTexture (texture_t *tex, int number)
 		R_DisableDetail ();
 		}
 
-	GL_Bind (mtst.tmu_gl, r_lightmap->value ? tr.whiteTexture : tex->gl_texturenum);	// [FWGS, 01.07.23]
+	GL_Bind (mtst.tmu_gl, r_lightmap->value ? tr.whiteTexture : tex->gl_texturenum);
+
+	if (number)
+		vboarray.itexture = number;
 	return tex;
+	}
+
+// [FWGS, 01.01.24]
+void R_SetupVBOArrayStatic (vboarray_t *vbo, qboolean drawlightmap, qboolean drawtextures)
+	{
+	if (vboarray.astate != VBO_ARRAY_STATIC)
+		{
+		// bind array
+		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
+		// dlights use same vertex array
+		if (vboarray.astate != VBO_ARRAY_DLIGHT)
+			{
+
+			pglEnableClientState (GL_VERTEX_ARRAY);
+			pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
+			}
+
+		// setup multitexture
+		if (drawtextures && vboarray.tstate != VBO_TEXTURE_MAIN)
+			{
+			GL_SelectTexture (mtst.tmu_gl = XASH_TEXTURE0);
+			pglEnable (GL_TEXTURE_2D);
+			pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
+			pglTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
+			vboarray.tstate = VBO_TEXTURE_MAIN;
+			}
+
+		if (drawlightmap && ((vboarray.lstate != VBO_LIGHTMAP_STATIC) || (vboarray.astate == VBO_ARRAY_DECAL)))
+			{
+			// set lightmap texenv
+			if (mtst.lm)
+				GL_Bind (mtst.tmu_lm = XASH_TEXTURE1, mtst.lm);
+			else
+				GL_SelectTexture (mtst.tmu_lm = XASH_TEXTURE1);
+
+			pglEnable (GL_TEXTURE_2D);
+			pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
+			R_SetLightmap ();
+			vboarray.lstate = VBO_LIGHTMAP_STATIC;
+			}
+
+		vboarray.astate = VBO_ARRAY_STATIC;
+		R_SetDecalMode (false);
+		}
+	}
+
+// [FWGS, 01.01.24]
+static void R_SetupVBOArrayDlight (vboarray_t *vbo, texture_t *texture)
+	{
+	if (vboarray.astate != VBO_ARRAY_DLIGHT)
+		{
+		if (vboarray.astate == VBO_ARRAY_DECAL_DLIGHT)
+			{
+			// bind array
+			pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
+			pglEnableClientState (GL_VERTEX_ARRAY);
+			pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
+			}
+
+		if ((vboarray.tstate != VBO_TEXTURE_MAIN) || (vboarray.astate == VBO_ARRAY_DECAL_DLIGHT))
+			{
+			R_SetupVBOTexture (texture, vboarray.itexture);
+			pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
+			vboarray.tstate = VBO_TEXTURE_MAIN;
+			}
+
+		GL_Bind (mtst.tmu_lm, tr.dlightTexture);
+		vboarray.lstate = VBO_LIGHTMAP_DYNAMIC;
+
+		// replace lightmap texcoord array by dlight array
+		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
+		if (vbos.dlight_vbo)
+			pglTexCoordPointer (2, GL_FLOAT, sizeof (float) * 2, 0);
+		else
+			pglTexCoordPointer (2, GL_FLOAT, sizeof (float) * 2, vbos.dlight_tc);
+
+		vboarray.astate = VBO_ARRAY_DLIGHT;
+		}
+	}
+
+#define SPARSE_DECALS_UPLOAD 0
+
+// [FWGS, 01.01.24]
+static void R_SetupVBOArrayDecalDlight (int decalcount)
+	{
+	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
+
+#if !SPARSE_DECALS_UPLOAD
+	pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * DECAL_VERTS_MAX * decalcount,
+		vbos.decal_dlight, GL_STREAM_DRAW_ARB);
+#endif
+
+	R_SetDecalMode (true);
+	GL_SelectTexture (mtst.tmu_lm);
+
+	if (vbos.decal_dlight_vbo)
+		{
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
+		GL_SelectTexture (mtst.tmu_gl);
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
+		pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
+		}
+	else
+		{
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), &vbos.decal_dlight[0].lm_tc);
+		GL_SelectTexture (mtst.tmu_gl);
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), &vbos.decal_dlight[0].gl_tc);
+		pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), &vbos.decal_dlight[0].pos);
+		}
+
+	vboarray.astate = VBO_ARRAY_DECAL_DLIGHT;
+	vboarray.tstate = VBO_TEXTURE_DECAL;
+	vboarray.lstate = VBO_LIGHTMAP_DYNAMIC;
 	}
 
 /*
 ===================
-R_AdditionalPasses
+R_AdditionalPasses [FWGS, 01.01.24]
 
 draw details when not enough tmus
 ===================
-*/
-static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray, texture_t *tex, qboolean resetvbo)
+static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray, texture_t *tex, qboolean resetvbo)*/
+
+// [FWGS, 01.01.24]
+static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray, texture_t *tex,
+	qboolean resetvbo, size_t offset)
 	{
+	if (!indexlen)
+		return;
+
 	// draw details in additional pass
-	if (r_detailtextures.value && (mtst.tmu_dt == -1) && tex->dt_texturenum)
+	/*if (r_detailtextures.value && (mtst.tmu_dt == -1) && tex->dt_texturenum)*/
+	if (r_detailtextures.value && (r_vbo_detail.value == 1) && (mtst.tmu_dt == -1) && tex->dt_texturenum)
 		{
 		gl_texture_t *glt = R_GetTexture (tex->gl_texturenum);
 
@@ -2245,7 +2676,8 @@ static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray,
 		if (resetvbo)
 			pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
 
-		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
+		/*pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));*/
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)(offset + offsetof (vbovertex_t, gl_tc)));
 
 		// apply scale
 		pglMatrixMode (GL_TEXTURE);
@@ -2255,22 +2687,33 @@ static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray,
 		// draw
 #if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
 		if (pglDrawRangeElements)
-			pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, indexlen, GL_UNSIGNED_SHORT, indexarray);
+			/*pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, indexlen, GL_UNSIGNED_SHORT, indexarray);*/
+			pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, indexlen, GL_VBOINDEX_TYPE, indexarray);
 		else
 #endif
-			pglDrawElements (GL_TRIANGLES, indexlen, GL_UNSIGNED_SHORT, indexarray);
+			/*pglDrawElements (GL_TRIANGLES, indexlen, GL_UNSIGNED_SHORT, indexarray);*/
+			pglDrawElements (GL_TRIANGLES, indexlen, GL_VBOINDEX_TYPE, indexarray);
 
 		// restore state
 		pglLoadIdentity ();
-		pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		/*pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		pglDisable (GL_BLEND);
 		GL_Bind (XASH_TEXTURE1, mtst.lm);
-		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));*/
 
 		GL_SelectTexture (XASH_TEXTURE1);
 		pglEnable (GL_TEXTURE_2D);
+		pglDisable (GL_BLEND);
+		vboarray.astate = VBO_ARRAY_NONE;
+		vboarray.tstate = VBO_TEXTURE_NONE;
+		vboarray.lstate = VBO_LIGHTMAP_NONE;
+
 		if (resetvbo)
-			pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);
+			R_SetupVBOArrayDlight (vbo, tex);
+		else
+			R_SetupVBOArrayStatic (vbo, true, true);
+
+		/*pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);*/
 		}
 	}
 
@@ -2281,18 +2724,35 @@ R_DrawLightmappedVBO
 Draw array for given vbotexture_t. build and draw dynamic lightmaps if present
 =====================
 */
-static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *texture, int lightmap, qboolean skiplighting)
+
+// [FWGS, 01.01.24]
+#define MINIMIZE_UPLOAD
+#define DISCARD_DLIGHTS
+
+/*static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *texture, int lightmap,
+qboolean skiplighting)*/
+
+// [FWGS, 01.01.24]
+static void R_DrawDlightedDecals (vboarray_t *vbo, msurface_t *newsurf, msurface_t *surf, int decalcount, texture_t *texture)
 	{
-#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
+	/*#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
 	if (pglDrawRangeElements)
 		pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, vbotex->curindex, GL_UNSIGNED_SHORT, vbotex->indexarray);
 	else
 #endif
-		pglDrawElements (GL_TRIANGLES, vbotex->curindex, GL_UNSIGNED_SHORT, vbotex->indexarray);
+		pglDrawElements (GL_TRIANGLES, vbotex->curindex, GL_UNSIGNED_SHORT, vbotex->indexarray);*/
+	msurface_t *decalsurf;
+	decal_t *pdecal;
+	int			decali = 0;
 
-	R_AdditionalPasses (vbo, vbotex->curindex, vbotex->indexarray, texture, false);
+	/*R_AdditionalPasses (vbo, vbotex->curindex, vbotex->indexarray, texture, false);*/
+	pglDepthMask (GL_FALSE);
+	pglEnable (GL_BLEND);
+	pglEnable (GL_POLYGON_OFFSET_FILL);
+	if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
+		pglDisable (GL_ALPHA_TEST);
 
-	// [FWGS, 01.07.23] draw debug lines
+	/* [FWGS, 01.07.23] draw debug lines
 	if (gl_wireframe.value && !skiplighting)
 		{
 		R_SetDecalMode (true);
@@ -2319,28 +2779,233 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 		vbotex->curindex = 0;
 		vbotex->dlightchain = NULL;
 		return;
+		}*/
+	R_SetupVBOArrayDecalDlight (decalcount);
+
+	/* draw dlights and dlighted decals
+	if (vbotex->dlightchain)*/
+	for (decalsurf = newsurf; (decali < decalcount) && (!surf || (decalsurf != surf)); decalsurf = decalsurf->info->lightmapchain)
+		{
+		/*unsigned short *dlightarray = vbos.dlight_index; // preallocated array
+		unsigned int dlightindex = 0;
+		msurface_t *surf, *newsurf;
+		int decalcount = 0;*/
+		for (pdecal = decalsurf->pdecals; pdecal; pdecal = pdecal->pnext)
+			{
+			gl_texture_t *glt;
+
+			if (!pdecal->texture)
+				continue;
+
+			/*GL_Bind (mtst.tmu_lm, tr.dlightTexture);*/
+			glt = R_GetTexture (pdecal->texture);
+
+			/* replace lightmap texcoord array by dlight array
+		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
+		if (vbos.dlight_vbo)
+			pglTexCoordPointer (2, GL_FLOAT, sizeof (float) * 2, 0);*/
+			GL_Bind (mtst.tmu_gl, pdecal->texture);
+
+			// normal HL decal with alpha-channel
+			if (glt->flags & TF_HAS_ALPHA)
+				{
+				// draw transparent decals with GL_MODULATE
+				if (glt->fogParams[3] > 230)
+					pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				else
+					pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+				pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				}
+			else
+				{
+				// color decal like detail texture. Base color is 127 127 127
+				pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+				pglBlendFunc (GL_DST_COLOR, GL_SRC_COLOR);
+				}
+
+			pglDrawArrays (GL_TRIANGLE_FAN, decali * DECAL_VERTS_MAX, vbos.decal_numverts[decali]);
+			decali++;
+			}
+
+		newsurf = surf;
 		}
 
+#if SPARSE_DECALS_UPLOAD
+	if (vbos.decal_dlight_vbo)
+		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbos.decal_dlight), NULL, GL_STREAM_DRAW_ARB);
+#endif
+
+	// restore states pointers for next dynamic lightmap
+	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	pglDepthMask (GL_TRUE);
+	pglDisable (GL_BLEND);
+	pglDisable (GL_POLYGON_OFFSET_FILL);
+	if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
+		pglEnable (GL_ALPHA_TEST);
+	R_SetDecalMode (false);
+	}
+
+// [FWGS, 01.01.24]
+static void R_FlushDlights (vboarray_t *vbo, int min_index, int max_index, int dlightindex, vboindex_t *dlightarray)
+	{
+	if (max_index == 0)
+		return;
+
+	if (vbos.dlight_vbo)
+		{
+#ifndef MINIMIZE_UPLOAD
+		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
+		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (max_index - min_index),
+			vbos.dlight_tc + min_index, GL_STREAM_DRAW_ARB);
+#endif
+		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
+		pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
+			offsetof (vbovertex_t, pos)));
+
+		GL_SelectTexture (mtst.tmu_gl);
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
+			offsetof (vbovertex_t, gl_tc)));
+
+		if (mtst.details_enabled && mtst.tmu_dt != -1)
+			{
+			GL_SelectTexture (mtst.tmu_dt);
+			pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
+				offsetof (vbovertex_t, gl_tc)));
+			}
+		}
+
+	GL_Bind (mtst.tmu_lm, tr.dlightTexture);
+
+#ifdef DISCARD_DLIGHTS
+	pglTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, BLOCK_SIZE, BLOCK_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+#endif
+
+	LM_UploadDynamicBlock ();
+
+#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
+	if (pglDrawRangeElements)
+		pglDrawRangeElements (GL_TRIANGLES, min_index, max_index, dlightindex, GL_VBOINDEX_TYPE, dlightarray);
+	else
+#endif
+		pglDrawElements (GL_TRIANGLES, dlightindex, GL_VBOINDEX_TYPE, dlightarray);
+	}
+
+// [FWGS, 01.01.24]
+static void R_AddSurfaceDecalsDlight (msurface_t *surf, int *pdecalcount)
+	{
+	decal_t *pdecal;
+	int decalcount = *pdecalcount;
+
+#if SPARSE_DECALS_UPLOAD
+	if (decalcount == 0)
+		{
+		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
+		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbos.decal_dlight), NULL, GL_STREAM_DRAW_ARB);
+		}
+#endif
+
+	for (pdecal = surf->pdecals; pdecal; pdecal = pdecal->pnext)
+		{
+		int decalindex = pdecal - &gDecalPool[0];
+		int numVerts = vbos.decaldata->decals[decalindex].numVerts;
+		int i;
+
+		if (numVerts == -1)
+			{
+			// build decal array
+			float *v = R_DecalSetupVerts (pdecal, surf, pdecal->texture, &numVerts);
+
+			for (i = 0; i < numVerts; i++, v += VERTEXSIZE)
+				{
+				VectorCopy (v, vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].pos);
+				vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[0] = v[3];
+				vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[1] = v[4];
+				vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[0] = v[5] -
+					(surf->light_s - surf->info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
+				vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[1] = v[6] -
+					(surf->light_t - surf->info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
+				}
+			}
+		else
+			/*pglTexCoordPointer (2, GL_FLOAT, sizeof (float) * 2, vbos.dlight_tc);*/
+			{
+			// copy from vbo
+			for (i = 0; i < numVerts; i++)
+				{
+				VectorCopy (vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].pos,
+					vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].pos);
+				vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[0] =
+					vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].gl_tc[0];
+				vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[1] =
+					vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].gl_tc[1];
+				vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[0] =
+					vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].lm_tc[0] -
+					(surf->light_s - surf->info->dlight_s) * (1.0f / (float)BLOCK_SIZE);
+				vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].lm_tc[1] =
+					vbos.decaldata->decalarray[decalindex * DECAL_VERTS_CUT + i].lm_tc[1] -
+					(surf->light_t - surf->info->dlight_t) * (1.0f / (float)BLOCK_SIZE);
+				}
+			}
+
+#if SPARSE_DECALS_UPLOAD
+		if (vbos.dlight_vbo)
+			{
+			pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
+			pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * decalcount * DECAL_VERTS_MAX,
+				sizeof (vbovertex_t) * numVerts, vbos.decal_dlight + decalcount * DECAL_VERTS_MAX);
+			}
+#endif
+
+		vbos.decal_numverts[decalcount] = numVerts;
+		decalcount++;
+		}
+	*pdecalcount = decalcount;
+	}
+
+// [FWGS, 01.01.24]
+static void R_DrawVBODlights (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *texture, int lightmap)
+	{
 	// draw dlights and dlighted decals
 	if (vbotex->dlightchain)
 		{
-		unsigned short *dlightarray = vbos.dlight_index; // preallocated array
+		vboindex_t *dlightarray = vbos.dlight_index; // preallocated array
 		unsigned int dlightindex = 0;
 		msurface_t *surf, *newsurf;
 		int decalcount = 0;
+		int min_index = 65536;
+		int max_index = 0;
 
-
-		GL_Bind (mtst.tmu_lm, tr.dlightTexture);
-
-		// replace lightmap texcoord array by dlight array
-		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
-		if (vbos.dlight_vbo)
-			pglTexCoordPointer (2, GL_FLOAT, sizeof (float) * 2, 0);
-		else
-			pglTexCoordPointer (2, GL_FLOAT, sizeof (float) * 2, vbos.dlight_tc);
+		R_SetupVBOArrayDlight (vbo, texture);
 
 		// clear the block
 		LM_InitBlock ();
+
+		if (vbos.dlight_vbo)
+			{
+			// calculate minimum indexbase
+			for (surf = newsurf = vbotex->dlightchain; surf; surf = surf->info->lightmapchain)
+				{
+				uint indexbase = vbos.surfdata[((char *)surf - (char *)WORLDMODEL->surfaces) / sizeof (*surf)].startindex;
+				if (min_index > indexbase)
+					min_index = indexbase;
+
+#ifdef MINIMIZE_UPLOAD
+				if (max_index < indexbase + surf->polys->numverts)
+					max_index = indexbase + surf->polys->numverts;
+#endif
+				}
+
+#ifdef MINIMIZE_UPLOAD
+			pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
+			pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (max_index - min_index), NULL, GL_STREAM_DRAW_ARB);
+#endif
+			}
+		else
+			{
+			min_index = 0;
+			max_index = vbo->array_len;
+			}
 
 		// accumulate indexes for every dlighted surface until dlight block full
 		for (surf = newsurf = vbotex->dlightchain; surf; surf = surf->info->lightmapchain)
@@ -2358,7 +3023,6 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 			smax = (info->lightextents[0] / sample_size) + 1;
 			tmax = (info->lightextents[1] / sample_size) + 1;
 
-
 			// find space for this surface and get offsets
 			if (LM_AllocBlock (smax, tmax, &info->dlight_s, &info->dlight_t))
 				{
@@ -2371,18 +3035,25 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 				{
 				// out of free block space. Draw all generated index array and clear it
 				// upload already generated block
-				LM_UploadDynamicBlock ();
+				/*LM_UploadDynamicBlock ();
 #if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
 				if (pglDrawRangeElements)
 					pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, dlightindex, GL_UNSIGNED_SHORT, dlightarray);
 				else
 #endif
-					pglDrawElements (GL_TRIANGLES, dlightindex, GL_UNSIGNED_SHORT, dlightarray);
+					pglDrawElements (GL_TRIANGLES, dlightindex, GL_UNSIGNED_SHORT, dlightarray);*/
+				R_FlushDlights (vbo, min_index, max_index, dlightindex, dlightarray);
 
-				// draw decals that lighted with this lightmap
-				if (decalcount)
+				/* draw decals that lighted with this lightmap
+				if (decalcount)*/
+				R_AdditionalPasses (vbo, dlightindex, dlightarray, texture, true, min_index * sizeof (vbovertex_t));
+
+#ifdef MINIMIZE_UPLOAD
+
+				// invalidate buffer to prevent blocking on SubData
+				if (vbos.dlight_vbo)
 					{
-					msurface_t *decalsurf;
+					/*msurface_t *decalsurf;
 					int decali = 0;
 
 					pglDepthMask (GL_FALSE);
@@ -2405,53 +3076,55 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 						GL_SelectTexture (mtst.tmu_gl);
 						pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), &vbos.decal_dlight[0].gl_tc);
 						pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), &vbos.decal_dlight[0].pos);
-						}
+						}*/
 
-					for (decalsurf = newsurf; (decali < decalcount) && (decalsurf != surf); decalsurf = decalsurf->info->lightmapchain)
-						{
-						for (pdecal = decalsurf->pdecals; pdecal; pdecal = pdecal->pnext)
+						/*for (decalsurf = newsurf; (decali < decalcount) && (decalsurf != surf); decalsurf = decalsurf->info->lightmapchain)
 							{
-							gl_texture_t *glt;
-
-							if (!pdecal->texture)
-								continue;
-
-							glt = R_GetTexture (pdecal->texture);
-
-							GL_Bind (mtst.tmu_gl, pdecal->texture);
-
-							// normal HL decal with alpha-channel
-							if (glt->flags & TF_HAS_ALPHA)
+							for (pdecal = decalsurf->pdecals; pdecal; pdecal = pdecal->pnext)
 								{
-								// draw transparent decals with GL_MODULATE
-								if (glt->fogParams[3] > 230)
-									pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-								else pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-								pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-								}
-							else
-								{
-								// color decal like detail texture. Base color is 127 127 127
-								pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-								pglBlendFunc (GL_DST_COLOR, GL_SRC_COLOR);
-								}
+								gl_texture_t *glt;
 
-							pglDrawArrays (GL_TRIANGLE_FAN, decali * DECAL_VERTS_MAX, vbos.decal_numverts[decali]);
-							decali++;
+								if (!pdecal->texture)
+									continue;
+
+								glt = R_GetTexture (pdecal->texture);
+
+								GL_Bind (mtst.tmu_gl, pdecal->texture);
+
+								// normal HL decal with alpha-channel
+								if (glt->flags & TF_HAS_ALPHA)
+									{
+									// draw transparent decals with GL_MODULATE
+									if (glt->fogParams[3] > 230)
+										pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+									else pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+									pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+									}
+								else
+									{
+									// color decal like detail texture. Base color is 127 127 127
+									pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+									pglBlendFunc (GL_DST_COLOR, GL_SRC_COLOR);
+									}
+
+								pglDrawArrays (GL_TRIANGLE_FAN, decali * DECAL_VERTS_MAX, vbos.decal_numverts[decali]);
+								decali++;
+								}
+							newsurf = surf;
+
 							}
-						newsurf = surf;
 
-						}
+						// restore states pointers for next dynamic lightmap
+						pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+						pglDepthMask (GL_TRUE);
+						pglDisable (GL_BLEND);
+						pglDisable (GL_POLYGON_OFFSET_FILL);
+						if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
+							pglEnable (GL_ALPHA_TEST);*/
 
-					// restore states pointers for next dynamic lightmap
-					pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-					pglDepthMask (GL_TRUE);
-					pglDisable (GL_BLEND);
-					pglDisable (GL_POLYGON_OFFSET_FILL);
-					if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
-						pglEnable (GL_ALPHA_TEST);
 					pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
-					R_SetDecalMode (false);
+
+					/*R_SetDecalMode (false);
 					GL_SelectTexture (mtst.tmu_lm);
 					if (vbos.dlight_vbo)
 						pglTexCoordPointer (2, GL_FLOAT, sizeof (float) * 2, 0);
@@ -2463,8 +3136,21 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 					R_SetupVBOTexture (texture, 0);
 					pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
 
-					decalcount = 0;
+					decalcount = 0;*/
+					pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (max_index - min_index),
+						NULL, GL_STREAM_DRAW_ARB);
 					}
+
+#else
+				if (vbos.dlight_vbo)
+					max_index = 0;
+#endif
+
+				// draw decals that lighted with this lightmap
+				if (decalcount)
+					R_DrawDlightedDecals (vbo, newsurf, surf, decalcount, texture);
+				decalcount = 0;
+				R_SetupVBOArrayDlight (vbo, texture);
 
 				// clear the block
 				LM_InitBlock ();
@@ -2492,23 +3178,37 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 
 			for (index = indexbase + 2; index < indexbase + surf->polys->numverts; index++)
 				{
-				dlightarray[dlightindex++] = indexbase;
+				/*dlightarray[dlightindex++] = indexbase;
 				dlightarray[dlightindex++] = index - 1;
-				dlightarray[dlightindex++] = index;
+				dlightarray[dlightindex++] = index;*/
+				dlightarray[dlightindex++] = indexbase - min_index;
+				dlightarray[dlightindex++] = index - 1 - min_index;
+				dlightarray[dlightindex++] = index - min_index;
+
 				vbos.dlight_tc[index][0] = surf->polys->verts[index - indexbase][5] - (surf->light_s - info->dlight_s) *
 					(1.0f / (float)BLOCK_SIZE);
 				vbos.dlight_tc[index][1] = surf->polys->verts[index - indexbase][6] - (surf->light_t - info->dlight_t) *
 					(1.0f / (float)BLOCK_SIZE);
 				}
 
+#ifndef MINIMIZE_UPLOAD
+			if (max_index < indexbase + surf->polys->numverts)
+				max_index = indexbase + surf->polys->numverts;
+#else
+
 			if (vbos.dlight_vbo)
 				{
 				pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
-				pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * indexbase, sizeof (vec2_t) * surf->polys->numverts, vbos.dlight_tc + indexbase);
+				/*pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * indexbase, sizeof (vec2_t) *
+					surf->polys->numverts, vbos.dlight_tc + indexbase);*/
+				pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (indexbase - min_index),
+					sizeof (vec2_t) * surf->polys->numverts, vbos.dlight_tc + indexbase);
 				}
 
+#endif
+
 			// if surface has decals, build decal array
-			for (pdecal = surf->pdecals; pdecal; pdecal = pdecal->pnext)
+			/*for (pdecal = surf->pdecals; pdecal; pdecal = pdecal->pnext)
 				{
 				int decalindex = pdecal - &gDecalPool[0];
 				int numVerts = vbos.decaldata->decals[decalindex].numVerts;
@@ -2517,9 +3217,11 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 				if (numVerts == -1)
 					{
 					// build decal array
-					float *v = R_DecalSetupVerts (pdecal, surf, pdecal->texture, &numVerts);
+					float *v = R_DecalSetupVerts (pdecal, surf, pdecal->texture, &numVerts);*/
+			R_AddSurfaceDecalsDlight (surf, &decalcount);
+			}
 
-					for (i = 0; i < numVerts; i++, v += VERTEXSIZE)
+		/*for (i = 0; i < numVerts; i++, v += VERTEXSIZE)
 						{
 						VectorCopy (v, vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].pos);
 						vbos.decal_dlight[decalcount * DECAL_VERTS_MAX + i].gl_tc[0] = v[3];
@@ -2554,29 +3256,96 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 					pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
 					pglBufferSubDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * decalcount * DECAL_VERTS_MAX,
 						sizeof (vbovertex_t) * numVerts, vbos.decal_dlight + decalcount * DECAL_VERTS_MAX);
-					}
+					}*/
+		if (dlightindex)
+			{
+			R_FlushDlights (vbo, min_index, max_index, dlightindex, dlightarray);
+			R_AdditionalPasses (vbo, dlightindex, dlightarray, texture, true, min_index * sizeof (vbovertex_t));
 
-				vbos.decal_numverts[decalcount] = numVerts;
-				decalcount++;
+			/*vbos.decal_numverts[decalcount] = numVerts;
+			decalcount++;*/
+
+			// draw remaining decals
+			if (decalcount)
+				{
+				R_DrawDlightedDecals (vbo, newsurf, NULL, decalcount, texture);
 				}
 			}
 
-		if (dlightindex)
+		/*if (dlightindex)*/
+		if (vbos.dlight_vbo)
 			{
-			// update block
-			LM_UploadDynamicBlock ();
+			/*// update block
+			LM_UploadDynamicBlock ();*/
 
-			// draw remaining array
+			// invalidate state to reset vertex array offset
+			vboarray.astate = VBO_ARRAY_NONE;
+			vboarray.tstate = VBO_TEXTURE_NONE;
+			vboarray.lstate = VBO_LIGHTMAP_NONE;
+			}
+		R_SetupVBOArrayStatic (vbo, true, true);
+		R_SetupVBOTexture (texture, vboarray.itexture);
+
+		// prepare to next frame
+		vbotex->dlightchain = NULL;
+		}
+	}
+
+/*
+=====================
+R_DrawLightmappedVBO [FWGS, 01.01.24]
+
+Draw array for given vbotexture_t. build and draw dynamic lightmaps if present
+=====================
+*/
+static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *texture, int lightmap,
+	qboolean skiplighting)
+	{
+	if (vbotex->curindex)
+		{
+#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN	// WebGL need to know array sizes
+		if (pglDrawRangeElements)
+			pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, vbotex->curindex, GL_VBOINDEX_TYPE,
+				vbotex->indexarray);
+		else
+#endif
+			pglDrawElements (GL_TRIANGLES, vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);
+
+		// draw debug lines
+		if (gl_wireframe.value && !skiplighting)
+			{
+			R_SetDecalMode (true);
+			pglDisable (GL_TEXTURE_2D);
+			GL_SelectTexture (XASH_TEXTURE0);
+			pglDisable (GL_TEXTURE_2D);
+			pglDisable (GL_DEPTH_TEST);
+
 #if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
 			if (pglDrawRangeElements)
-				pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, dlightindex, GL_UNSIGNED_SHORT, dlightarray);
+				pglDrawRangeElements (GL_LINES, 0, vbo->array_len, vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);
+			/*pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, dlightindex, GL_UNSIGNED_SHORT, dlightarray);*/
 			else
 #endif
-				pglDrawElements (GL_TRIANGLES, dlightindex, GL_UNSIGNED_SHORT, dlightarray);
+				/*pglDrawElements (GL_TRIANGLES, dlightindex, GL_UNSIGNED_SHORT, dlightarray);*/
+				pglDrawElements (GL_LINES, vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);
 
-			R_AdditionalPasses (vbo, dlightindex, dlightarray, texture, true);
+			pglEnable (GL_DEPTH_TEST);
+			pglEnable (GL_TEXTURE_2D);
+			GL_SelectTexture (XASH_TEXTURE1);
+			pglEnable (GL_TEXTURE_2D);
+			R_SetDecalMode (false);
+			}
+		}
 
-			// draw remaining decals
+	/*R_AdditionalPasses (vbo, dlightindex, dlightarray, texture, true);*/
+	if (skiplighting)
+		{
+		vbotex->curindex = 0;
+		vbotex->dlightchain = NULL;
+		return;
+		}
+
+	/* draw remaining decals
 			if (decalcount)
 				{
 				msurface_t *decalsurf;
@@ -2605,45 +3374,134 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 					}
 				for (decalsurf = newsurf; decali < decalcount && decalsurf; decalsurf = decalsurf->info->lightmapchain)
 					{
-					decal_t *pdecal;
+					decal_t *pdecal;*/
+	R_DrawVBODlights (vbo, vbotex, texture, lightmap);
 
-					for (pdecal = decalsurf->pdecals; pdecal; pdecal = pdecal->pnext)
+	/*for (pdecal = decalsurf->pdecals; pdecal; pdecal = pdecal->pnext)
 						{
-						gl_texture_t *glt;
+						gl_texture_t *glt;*/
+	R_AdditionalPasses (vbo, vbotex->curindex, vbotex->indexarray, texture, false, 0);
 
-						if (!pdecal->texture)
-							continue;
+	// prepare to next frame
+	vbotex->curindex = 0;
+	}
 
-						glt = R_GetTexture (pdecal->texture);
+/*if (!pdecal->texture)
+							continue;*/
 
-						GL_Bind (mtst.tmu_gl, pdecal->texture);
+// [FWGS, 01.01.24]
+void R_SetupVBOArrayDecal (qboolean drawlightmap)
+	{
+	// prepare for decal draw
+	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decaldata->decalvbo);
 
-						// normal HL decal with alpha-channel
-						if (glt->flags & TF_HAS_ALPHA)
-							{
-							// draw transparent decals with GL_MODULATE
-							if (glt->fogParams[3] > 230)
-								pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-							else pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-							pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-							}
-						else
-							{
-							// color decal like detail texture. Base color is 127 127 127
-							pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-							pglBlendFunc (GL_DST_COLOR, GL_SRC_COLOR);
-							}
+	// Set pointers to vbodecaldata->decalvbo
+	if (drawlightmap)
+		{
+		GL_SelectTexture (mtst.tmu_lm);
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
+		GL_SelectTexture (mtst.tmu_gl);
+		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
+		pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
+		}
 
-						pglDrawArrays (GL_TRIANGLE_FAN, decali * DECAL_VERTS_MAX, vbos.decal_numverts[decali]);
+	R_SetDecalMode (true);
+	vboarray.astate = VBO_ARRAY_DECAL;
+	vboarray.tstate = VBO_TEXTURE_DECAL;
+	}
 
-						decali++;
-						}
+/*glt = R_GetTexture (pdecal->texture);
 
-					}
+GL_Bind (mtst.tmu_gl, pdecal->texture);*/
 
-				// reset states
+// [FWGS, 01.01.24]
+void R_SetupVBOArrayDecalDyn (qboolean drawlightmap, float *v)
+	{
+	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);
+	pglVertexPointer (3, GL_FLOAT, VERTEXSIZE * 4, v);
+	pglTexCoordPointer (2, GL_FLOAT, VERTEXSIZE * 4, v + 3);
+
+	if (drawlightmap)
+		{
+		GL_SelectTexture (mtst.tmu_lm);
+		pglTexCoordPointer (2, GL_FLOAT, VERTEXSIZE * 4, v + 5);
+		}
+
+	R_SetDecalMode (true);
+	vboarray.astate = VBO_ARRAY_DECAL;
+	vboarray.tstate = VBO_TEXTURE_DECAL;
+
+	/* normal HL decal with alpha-channel
+	if (glt->flags & TF_HAS_ALPHA)
+		{
+		// draw transparent decals with GL_MODULATE
+		if (glt->fogParams[3] > 230)
+			pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		else pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+	else
+		{
+		// color decal like detail texture. Base color is 127 127 127
+		pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		pglBlendFunc (GL_DST_COLOR, GL_SRC_COLOR);*/
+	}
+
+/*pglDrawArrays (GL_TRIANGLE_FAN, decali * DECAL_VERTS_MAX, vbos.decal_numverts[decali]);
+*/
+
+// [FWGS, 01.01.24]
+static void R_DrawStaticDecals (vboarray_t *vbo, qboolean drawlightmap, int ilightmap)
+	{
+	int k = ilightmap;
+	msurface_t *lightmapchain;
+
+	/*decali++;
+	}*/
+	pglDepthMask (GL_FALSE);
+	pglEnable (GL_BLEND);
+	pglEnable (GL_POLYGON_OFFSET_FILL);
+	/*}*/
+
+	if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
+		pglDisable (GL_ALPHA_TEST);
+
+	R_SetupVBOArrayDecal (drawlightmap);
+
+	// all surfaces having decals and this lightmap
+	for (lightmapchain = vbos.decaldata->lm[k]; lightmapchain; lightmapchain = lightmapchain->info->lightmapchain)
+		{
+		decal_t *pdecal;
+
+		// all decals of surface
+		for (pdecal = lightmapchain->pdecals; pdecal; pdecal = pdecal->pnext)
+			{
+			gl_texture_t *glt;
+			int decalindex = pdecal - &gDecalPool[0];
+
+			if (!pdecal->texture)
+				continue;
+
+			glt = R_GetTexture (pdecal->texture);
+
+			GL_Bind (mtst.tmu_gl, pdecal->texture);
+
+			// normal HL decal with alpha-channel
+			if (glt->flags & TF_HAS_ALPHA)
+				{
+				// draw transparent decals with GL_MODULATE
+				if (glt->fogParams[3] > 230)
+					pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				else
+					pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+				pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				}
+			else
+				{
+				// color decal like detail texture. Base color is 127 127 127
 				pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-				pglDepthMask (GL_TRUE);
+				/*pglDepthMask (GL_TRUE);
 				pglDisable (GL_BLEND);
 				pglDisable (GL_POLYGON_OFFSET_FILL);
 				if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
@@ -2652,26 +3510,93 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 				R_SetDecalMode (false);
 				pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
 				R_SetupVBOTexture (texture, 0);
-				pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
+				pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));*/
+				pglBlendFunc (GL_DST_COLOR, GL_SRC_COLOR);
+				}
+
+			if (vbos.decaldata->decals[decalindex].numVerts == -1)
+				{
+				int numVerts;
+				float *v;
+
+				v = R_DecalSetupVerts (pdecal, lightmapchain, pdecal->texture, &numVerts);
+
+				// to many verts to keep in sparse array, so build it now
+				R_SetupVBOArrayDecalDyn (drawlightmap, v);
+
+				pglDrawArrays (GL_TRIANGLE_FAN, 0, numVerts);
+
+				R_SetupVBOArrayDecal (drawlightmap);
+				}
+
+			// just draw VBO
+			else
+				{
+				pglDrawArrays (GL_TRIANGLE_FAN, decalindex * DECAL_VERTS_CUT, vbos.decaldata->decals[decalindex].numVerts);
 				}
 			}
-
-		// restore static lightmap
-		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
-		GL_Bind (mtst.tmu_lm, tr.lightmapTextures[lightmap]);
-		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
-
-		// prepare to next frame
-		vbotex->dlightchain = NULL;
 		}
 
-	// prepare to next frame
-	vbotex->curindex = 0;
+	/* restore static lightmap
+	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
+	GL_Bind (mtst.tmu_lm, tr.lightmapTextures[lightmap]);
+	pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));*/
+
+	// prepare for next frame
+	vbos.decaldata->lm[k] = NULL;
+
+	/* prepare to next frame
+	vbotex->dlightchain = NULL;*/
+
+	// prepare for next texture
+	pglDepthMask (GL_TRUE);
+	pglDisable (GL_BLEND);
+	pglDisable (GL_POLYGON_OFFSET_FILL);
+
+	R_SetupVBOArrayStatic (vbo, drawlightmap, true);
+
+	if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
+		pglEnable (GL_ALPHA_TEST);
+	}
+
+// [FWGS, 01.01.24]
+void R_ClearVBOState (qboolean drawlightmap, qboolean drawtextures)
+	{
+	// restore states
+	R_DisableDetail ();
+
+	if (drawlightmap)
+		{
+		// reset states
+		GL_Bind (XASH_TEXTURE1, tr.defaultTexture); // force reset tmu in case we have only one lightmap
+		pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
+		pglDisable (GL_TEXTURE_2D);
+		if (drawtextures)
+			{
+			GL_SelectTexture (XASH_TEXTURE0);
+			pglEnable (GL_TEXTURE_2D);
+			}
+		}
+
+	/* prepare to next frame
+	vbotex->curindex = 0;*/
+
+	if (drawtextures)
+		pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
+
+	pglDisableClientState (GL_VERTEX_ARRAY);
+	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);
+
+	vboarray.astate = VBO_ARRAY_NONE;
+	vboarray.tstate = VBO_TEXTURE_NONE;
+	vboarray.lstate = VBO_LIGHTMAP_NONE;
+	vboarray.itexture = 0;
+	mtst.lm = 0;
 	}
 
 /*
 =====================
-R_DrawVBO
+R_DrawVBO [FWGS, 01.01.24]
 
 Draw generated index arrays
 =====================
@@ -2681,12 +3606,12 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 	int		numtextures = WORLDMODEL->numtextures;
 	int		numlightmaps = gl_lms.current_lightmap_texture;
 	int		k;
-	vboarray_t	*vbo = vbos.arraylist;
+	vboarray_t *vbo = vbos.arraylist;
 
-	if (!r_vbo.value)	// [FWGS, 01.07.23]
+	if (!r_vbo.value)
 		return;
 
-	// bind array
+	/* bind array
 	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
 	pglEnableClientState (GL_VERTEX_ARRAY);
 	pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
@@ -2708,10 +3633,14 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 		pglEnable (GL_TEXTURE_2D);
 		pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
 		R_SetLightmap ();
-		}
+		}*/
+
+	GL_SetupFogColorForSurfacesEx (1, 0.5f, false);
+	R_SetupVBOArrayStatic (vbo, drawlightmap, drawtextures);
 
 	mtst.skiptexture = !drawtextures;
-	mtst.tmu_dt = glConfig.max_texture_units > 2 ? XASH_TEXTURE2 : -1;
+	/*mtst.tmu_dt = glConfig.max_texture_units > 2 ? XASH_TEXTURE2 : -1;*/
+	mtst.tmu_dt = glConfig.max_texture_units > 2 && r_vbo_detail.value == 2 ? XASH_TEXTURE2 : -1;
 
 	// setup limits
 	if (vbos.minlightmap > vbos.minarraysplit_lm)
@@ -2730,7 +3659,7 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 	for (k = vbos.minlightmap; k < vbos.maxlightmap; k++)
 		{
 		int j;
-		msurface_t *lightmapchain;
+		/*msurface_t *lightmapchain;*/
 
 		if (drawlightmap)
 			{
@@ -2744,7 +3673,6 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 			if (!vbotex->vboarray)
 				continue;
 
-			// ASSERT( vbotex->vboarray == vbo );
 			if (vbotex->vboarray != vbo)
 				continue;
 
@@ -2760,36 +3688,46 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 			// if we need to switch to next array (only if map has >65536 vertices)
 			while (vbotex->next)
 				{
-
 				vbotex = vbotex->next;
 				vbo = vbo->next;
 
-				// bind new vertex and index arrays
+				vboarray.astate = VBO_ARRAY_NONE;	// invalidate
+				vboarray.tstate = VBO_TEXTURE_NONE;
+				vboarray.lstate = VBO_LIGHTMAP_NONE;
+
+				/* bind new vertex and index arrays
 				pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
 				pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
 
-				// update texcoord pointers
+				// update texcoord pointers*/
 				if (drawtextures)
 					{
-					tex = R_SetupVBOTexture (tex, 0);
-					pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
+					/*tex = R_SetupVBOTexture (tex, 0);
+					pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));*/
+					tex = R_SetupVBOTexture (tex, j);
 					}
+
+				// update texcoord pointers
+				R_SetupVBOArrayStatic (vbo, drawlightmap, drawtextures);
 
 				if (drawlightmap)
 					{
 					GL_Bind (mtst.tmu_lm, tr.lightmapTextures[k]);
-					pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
+					/*pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));*/
 					}
 
 				// draw new array
 				if ((vbotex->curindex || vbotex->dlightchain))
 					R_DrawLightmappedVBO (vbo, vbotex, tex, k, !drawlightmap);
+
+				vboarray.astate = VBO_ARRAY_NONE;	// invalidate
+				vboarray.tstate = VBO_TEXTURE_NONE;
 				}
 			}
 
 		if (drawtextures && drawlightmap && vbos.decaldata->lm[k])
 			{
-			// prepare for decal draw
+			/* prepare for decal draw
 			pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decaldata->decalvbo);
 			pglDepthMask (GL_FALSE);
 			pglEnable (GL_BLEND);
@@ -2869,44 +3807,45 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 						pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
 						pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
 						}
-					else // just draw VBO
-						pglDrawArrays (GL_TRIANGLE_FAN, decalindex * DECAL_VERTS_CUT, vbos.decaldata->decals[decalindex].numVerts);
-					}
-				}
+					else // just draw VBO */
+					/*pglDrawArrays (GL_TRIANGLE_FAN, decalindex * DECAL_VERTS_CUT, vbos.decaldata->decals[decalindex].numVerts);
+							}
+						}
 
-			// prepare for next frame
-			vbos.decaldata->lm[k] = NULL;
+					// prepare for next frame
+					vbos.decaldata->lm[k] = NULL;
 
-			// prepare for next texture
-			pglDepthMask (GL_TRUE);
-			pglDisable (GL_BLEND);
-			pglDisable (GL_POLYGON_OFFSET_FILL);
+					// prepare for next texture
+					pglDepthMask (GL_TRUE);
+					pglDisable (GL_BLEND);
+					pglDisable (GL_POLYGON_OFFSET_FILL);
 
-			// restore vbo
-			pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
-			pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
+					// restore vbo
+					pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
+					pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, pos));
 
-			// restore bump if needed
-			R_SetDecalMode (false);
+					// restore bump if needed
+					R_SetDecalMode (false);
 
-			// restore texture
-			GL_SelectTexture (mtst.tmu_gl);
-			pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
-			pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
+					// restore texture
+					GL_SelectTexture (mtst.tmu_gl);
+					pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
+					pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, gl_tc));
 
-			// restore lightmap
-			GL_SelectTexture (mtst.tmu_lm);
-			pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
+					// restore lightmap
+					GL_SelectTexture (mtst.tmu_lm);
+					pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
 
-			if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
-				pglEnable (GL_ALPHA_TEST);
+					if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
+						pglEnable (GL_ALPHA_TEST);*/
+			R_DrawStaticDecals (vbo, drawlightmap, k);
 			}
+
 		if (!drawtextures || !drawlightmap)
 			vbos.decaldata->lm[k] = NULL;
 		}
-	// ASSERT( !vbo->next );
 
-	// restore states
+	/* restore states
 	R_DisableDetail ();
 
 	if (drawlightmap)
@@ -2923,7 +3862,8 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 		}
 
 	if (drawtextures)
-		pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
+		pglDisableClientState (GL_TEXTURE_COORD_ARRAY);*/
+	R_ClearVBOState (drawlightmap, drawtextures);
 
 	mtst.details_enabled = false;
 
@@ -2932,13 +3872,13 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 	vbos.mintexture = INT_MAX;
 	vbos.maxtexture = 0;
 
-	pglDisableClientState (GL_VERTEX_ARRAY);
-	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);
+	/*pglDisableClientState (GL_VERTEX_ARRAY);
+	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);*/
 	}
 
 /*
 ================
-R_CheckLightMap
+R_CheckLightMap [FWGS, 01.01.24]
 
 update surface's lightmap if needed and return true if it is dynamic
 ================
@@ -2949,7 +3889,7 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 	qboolean is_dynamic = false;
 
 	// check for lightmap modification
-	for (maps = 0; maps < MAXLIGHTMAPS && fa->styles[maps] != 255; maps++)
+	for (maps = 0; (maps < MAXLIGHTMAPS) && (fa->styles[maps] != 255); maps++)
 		{
 		if (tr.lightstylevalue[fa->styles[maps]] != fa->cached_light[maps])
 			{
@@ -2959,23 +3899,26 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 		}
 
 	// already up to date
-	if (!is_dynamic && ((fa->dlightframe != tr.framecount) || (maps == MAXLIGHTMAPS)))
+	/*if (!is_dynamic && ((fa->dlightframe != tr.framecount) || (maps == MAXLIGHTMAPS)))*/
+	if (!is_dynamic && (fa->dlightframe != tr.framecount))
 		return false;
 
 	// build lightmap
-	if (((fa->styles[maps] >= 32) || (fa->styles[maps] == 0)) && (fa->dlightframe != tr.framecount))
+	/*if (((fa->styles[maps] >= 32) || (fa->styles[maps] == 0)) && (fa->dlightframe != tr.framecount))*/
+	if ((maps < MAXLIGHTMAPS) && ((fa->styles[maps] >= 32) || (fa->styles[maps] == 0)) &&
+		(fa->dlightframe != tr.framecount))
 		{
 		byte	temp[132 * 132 * 4];
-		int	smax, tmax;
-		int sample_size;
-		mextrasurf_t *info;
+		int		smax, tmax;
+		int		sample_size;
+		mextrasurf_t	*info;
 
 		info = fa->info;
 		sample_size = gEngfuncs.Mod_SampleSizeForFace (fa);
 		smax = (info->lightextents[0] / sample_size) + 1;
 		tmax = (info->lightextents[1] / sample_size) + 1;
 
-		if (smax < 132 && tmax < 132)
+		if ((smax < 132) && (tmax < 132))
 			{
 			R_BuildLightMap (fa, temp, smax * 4, true);
 			}
@@ -3001,6 +3944,7 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 		GL_SelectTexture (XASH_TEXTURE0);
 #endif
 		}
+
 	// add to dynamic chain
 	else
 		return true;
@@ -3009,7 +3953,7 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 	return false;
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.01.24]
 qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 	{
 	if (r_vbo.value && vbos.surfdata[surf - WORLDMODEL->surfaces].vbotexture)
@@ -3032,6 +3976,42 @@ qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 			vbos.mintexture = texturenum;
 
 		buildlightmap &= (!r_fullbright->value && !!WORLDMODEL->lightdata);
+
+		// draw details in regular way
+		if (r_vbo_detail.value == 0)
+			{
+			if (r_detailtextures.value && surf->texinfo && surf->texinfo)
+				{
+				texture_t *t = surf->texinfo->texture;
+
+				if (glState.isFogEnabled)
+					{
+					// don't apply detail textures for windows in the fog
+					if (RI.currententity->curstate.rendermode != kRenderTransTexture)
+						{
+						if (t->dt_texturenum)
+							{
+							surf->info->detailchain = detail_surfaces[t->dt_texturenum];
+							detail_surfaces[t->dt_texturenum] = surf->info;
+							}
+						else
+							{
+							// draw stub detail texture for underwater surfaces
+							surf->info->detailchain = detail_surfaces[tr.grayTexture];
+							detail_surfaces[tr.grayTexture] = surf->info;
+							}
+
+						draw_details = true;
+						}
+					}
+				else if (t->dt_texturenum)
+					{
+					surf->info->detailchain = detail_surfaces[t->dt_texturenum];
+					detail_surfaces[t->dt_texturenum] = surf->info;
+					draw_details = true;
+					}
+				}
+			}
 
 		if (buildlightmap && R_CheckLightMap (surf))
 			{
@@ -3059,8 +4039,13 @@ qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 				vbos.decaldata->lm[vbotex->lightmaptexturenum] = surf;
 				}
 			}
+
+		// now this path does not draw wapred surfaces, so count it as one poly
+		r_stats.c_world_polys++;
+
 		return true;
 		}
+
 	return false;
 	}
 
@@ -3354,21 +4339,20 @@ void R_DrawTriangleOutlines (void)
 
 /*
 =============
-R_DrawWorld
+R_DrawWorld [FWGS, 01.01.24]
 =============
 */
 void R_DrawWorld (void)
 	{
-	double	start, end;
+	double start, end;
 
 	// paranoia issues: when gl_renderer is "0" we need have something valid for currententity
 	// to prevent crashing until HeadShield drawing.
-	RI.currententity = gEngfuncs.GetEntityByIndex (0);
+	/*RI.currententity = gEngfuncs.GetEntityByIndex (0);*/
+	RI.currententity = CL_GetEntityByIndex (0);
 	
-	// [FWGS, 01.04.23]
 	if (!RI.currententity)
 		return;
-
 	RI.currentmodel = RI.currententity->model;
 
 	if (!RI.drawWorld || RI.onlyClientDraw)
@@ -3396,7 +4380,7 @@ void R_DrawWorld (void)
 	r_stats.t_world_node = end - start;
 
 	start = gEngfuncs.pfnTime ();
-	R_DrawVBO (!r_fullbright->value && !!WORLDMODEL->lightdata, true);	// [FWGS, 01.07.23]
+	/*R_DrawVBO (!r_fullbright->value && !!WORLDMODEL->lightdata, true);	// [FWGS, 01.07.23]*/
 
 	R_DrawTextureChains ();
 
@@ -3406,7 +4390,8 @@ void R_DrawWorld (void)
 		GL_ResetFogColor ();
 		R_BlendLightmaps ();
 		R_RenderFullbrights ();
-		R_RenderDetails ();
+		/*R_RenderDetails ();*/
+		R_RenderDetails (r_vbo.value ? 2 : 3);
 
 		if (skychain)
 			R_DrawSkyBox ();
@@ -3511,8 +4496,8 @@ void GL_CreateSurfaceLightmap (msurface_t *surf, model_t *loadmodel)
 	{
 	int		smax, tmax;
 	int		sample_size;
-	mextrasurf_t *info = surf->info;
-	byte *base;
+	mextrasurf_t	*info = surf->info;
+	byte	*base;
 
 	if (!loadmodel->lightdata)
 		return;
@@ -3544,7 +4529,7 @@ void GL_CreateSurfaceLightmap (msurface_t *surf, model_t *loadmodel)
 
 /*
 ==================
-GL_RebuildLightmaps
+GL_RebuildLightmaps [FWGS, 01.01.24]
 
 Rebuilds the lightmap texture
 when gamma is changed
@@ -3552,19 +4537,20 @@ when gamma is changed
 */
 void GL_RebuildLightmaps (void)
 	{
-	int	i, j;
-	model_t *m;
+	int		i, j;
+	model_t	*m;
 
 	if (!ENGINE_GET_PARM (PARM_CLIENT_ACTIVE))
 		return; // wait for worldmodel
 
-	ClearBits (vid_brightness->flags, FCVAR_CHANGED);
-	ClearBits (vid_gamma->flags, FCVAR_CHANGED);
+	/*ClearBits (vid_brightness->flags, FCVAR_CHANGED);
+	ClearBits (vid_gamma->flags, FCVAR_CHANGED);*/
 
 	// release old lightmaps
 	for (i = 0; i < MAX_LIGHTMAPS; i++)
 		{
-		if (!tr.lightmapTextures[i]) break;
+		if (!tr.lightmapTextures[i])
+			break;
 		GL_FreeTexture (tr.lightmapTextures[i]);
 		}
 
@@ -3576,12 +4562,14 @@ void GL_RebuildLightmaps (void)
 
 	LM_InitBlock ();
 
-	for (i = 0; i < ENGINE_GET_PARM (PARM_NUMMODELS); i++)
+	/*for (i = 0; i < ENGINE_GET_PARM (PARM_NUMMODELS); i++)*/
+	for (i = 0; i < gp_cl->nummodels; i++)
 		{
-		if ((m = gEngfuncs.pfnGetModelByIndex (i + 1)) == NULL)
+		/*if ((m = gEngfuncs.pfnGetModelByIndex (i + 1)) == NULL)*/
+		if ((m = CL_ModelHandle (i + 1)) == NULL)
 			continue;
 
-		if (m->name[0] == '*' || m->type != mod_brush)
+		if ((m->name[0] == '*') || (m->type != mod_brush))
 			continue;
 
 		for (j = 0; j < m->numsurfaces; j++)
@@ -3598,7 +4586,7 @@ void GL_RebuildLightmaps (void)
 
 /*
 ==================
-GL_BuildLightmaps
+GL_BuildLightmaps [FWGS, 01.01.24]
 
 Builds the lightmap texture
 with all the surfaces from all brush models
@@ -3606,8 +4594,8 @@ with all the surfaces from all brush models
 */
 void GL_BuildLightmaps (void)
 	{
-	int	i, j;
-	model_t *m;
+	int		i, j;
+	model_t	*m;
 
 	// release old lightmaps
 	for (i = 0; i < MAX_LIGHTMAPS; i++)
@@ -3620,9 +4608,11 @@ void GL_BuildLightmaps (void)
 	memset (&RI, 0, sizeof (RI));
 
 	// update the lightmap blocksize
-	if (FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_LARGE_LIGHTMAPS))
+	/*if (FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_LARGE_LIGHTMAPS))*/
+	if (FBitSet (gp_host->features, ENGINE_LARGE_LIGHTMAPS) || (tr.world->version == QBSP2_VERSION))
 		tr.block_size = BLOCK_SIZE_MAX;
-	else tr.block_size = BLOCK_SIZE_DEFAULT;
+	else
+		tr.block_size = BLOCK_SIZE_DEFAULT;
 
 	skychain = NULL;
 
@@ -3640,12 +4630,14 @@ void GL_BuildLightmaps (void)
 
 	LM_InitBlock ();
 
-	for (i = 0; i < ENGINE_GET_PARM (PARM_NUMMODELS); i++)
+	/*for (i = 0; i < ENGINE_GET_PARM (PARM_NUMMODELS); i++)*/
+	for (i = 0; i < gp_cl->nummodels; i++)
 		{
-		if ((m = gEngfuncs.pfnGetModelByIndex (i + 1)) == NULL)
+		/*if ((m = gEngfuncs.pfnGetModelByIndex (i + 1)) == NULL)*/
+		if ((m = CL_ModelHandle (i + 1)) == NULL)
 			continue;
 
-		if (m->name[0] == '*' || m->type != mod_brush)
+		if ((m->name[0] == '*') || (m->type != mod_brush))
 			continue;
 
 		for (j = 0; j < m->numsurfaces; j++)
@@ -3677,9 +4669,9 @@ void GL_BuildLightmaps (void)
 		gEngfuncs.drawFuncs->GL_BuildLightmaps ();
 		}
 
-	// now gamma and brightness are valid
+	/* now gamma and brightness are valid
 	ClearBits (vid_brightness->flags, FCVAR_CHANGED);
-	ClearBits (vid_gamma->flags, FCVAR_CHANGED);
+	ClearBits (vid_gamma->flags, FCVAR_CHANGED);*/
 	}
 
 void GL_InitRandomTable (void)

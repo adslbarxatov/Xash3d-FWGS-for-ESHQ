@@ -33,9 +33,7 @@ typedef struct
 
 /*
 ==============================================================
-
 FRACTAL NOISE
-
 ==============================================================
 */
 static float	rgNoise[NOISE_DIVISIONS + 1];	// global noise array
@@ -75,9 +73,7 @@ static void SineNoise (float *noise, int divs)
 
 /*
 ==============================================================
-
 BEAM MATHLIB
-
 ==============================================================
 */
 static void R_BeamComputePerpendicular (const vec3_t vecBeamDelta, vec3_t pPerp)
@@ -176,9 +172,7 @@ void CL_AddCustomBeam (cl_entity_t *pEnvBeam)
 
 /*
 ==============================================================
-
 BEAM DRAW METHODS
-
 ==============================================================
 */
 /*
@@ -188,7 +182,8 @@ R_DrawSegs
 general code for drawing beams
 ================
 */
-static void R_DrawSegs (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments, int flags)
+static void R_DrawSegs (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed,
+	int segments, int flags)
 	{
 	int	noiseIndex, noiseStep;
 	int	i, total_segs, segs_drawn;
@@ -605,10 +600,12 @@ void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 			}
 		}
 
+	// [FWGS, 01.01.24]
 	if (pnew)
 		{
 		VectorCopy (pbeam->source, pnew->org);
-		pnew->die = gpGlobals->time + pbeam->amplitude;
+		/*pnew->die = gpGlobals->time + pbeam->amplitude;*/
+		pnew->die = gp_cl->time + pbeam->amplitude;
 		VectorClear (pnew->vel);
 
 		pnew->next = particles;
@@ -617,9 +614,10 @@ void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 		}
 
 	// nothing to draw
-	if (!particles) return;
+	if (!particles)
+		return;
 
-	if (!pnew && div != 0)
+	if (!pnew && (div != 0))
 		{
 		VectorCopy (pbeam->source, delta);
 		TriWorldToScreen (pbeam->source, screenLast);
@@ -654,8 +652,10 @@ void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 	VectorMA (delta, pbeam->width, normal, last1);
 	VectorMA (delta, -pbeam->width, normal, last2);
 
+	// [FWGS, 01.01.24]
 	div = 1.0f / pbeam->amplitude;
-	fraction = (pbeam->die - gpGlobals->time) * div;
+	/*fraction = (pbeam->die - gpGlobals->time) * div;*/
+	fraction = (pbeam->die - gp_cl->time) * div;
 
 	vLast = 0.0f;
 	vStep = 1.0f;
@@ -671,6 +671,7 @@ void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 
 		// Transform point into screen space
 		TriWorldToScreen (particles->org, screen);
+
 		// Build world-space normal to screen-space direction vector
 		VectorSubtract (screen, screenLast, tmp);
 
@@ -686,14 +687,12 @@ void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 
 		vLast += vStep;	// Advance texture scroll (v axis only)
 
+		// [FWGS, 01.01.24]
 		if (particles->next != NULL)
-			{
-			fraction = (particles->die - gpGlobals->time) * div;
-			}
+			/*fraction = (particles->die - gpGlobals->time) * div;*/
+			fraction = (particles->die - gp_cl->time) * div;
 		else
-			{
 			fraction = 0.0;
-			}
 
 		TriBrightness (fraction);
 		TriTexCoord2f (0, 0);
@@ -864,16 +863,19 @@ static qboolean R_BeamComputePoint (int beamEnt, vec3_t pt)
 		return false;
 		}
 
-	// get attachment
+	// [FWGS, 01.01.24] get attachment
 	if (attach > 0)
 		VectorCopy (ent->attachment[attach - 1], pt);
-	else if (ent->index == ENGINE_GET_PARM (PARM_PLAYER_INDEX))
+	/*else if (ent->index == ENGINE_GET_PARM (PARM_PLAYER_INDEX))
 		{
 		vec3_t simorg;
 		gEngfuncs.GetPredictedOrigin (simorg);
 		VectorCopy (simorg, pt);
-		}
-	else VectorCopy (ent->origin, pt);
+		}*/
+	else if (ent->index == (gp_cl->playernum + 1))
+		VectorCopy (gp_cl->simorg, pt);
+	else
+		VectorCopy (ent->origin, pt);
 
 	return true;
 	}
@@ -907,6 +909,7 @@ qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
 		{
 		cl_entity_t *end = gEngfuncs.R_BeamGetEntity (pbeam->endEntity);
 
+		// [FWGS, 01.01.24]
 		if (R_BeamComputePoint (pbeam->endEntity, pbeam->target))
 			{
 			if (!pbeam->pFollowModel)
@@ -916,7 +919,8 @@ qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
 		else if (!FBitSet (pbeam->flags, FBEAM_FOREVER))
 			{
 			ClearBits (pbeam->flags, FBEAM_ENDENTITY);
-			pbeam->die = gpGlobals->time;
+			/*pbeam->die = gpGlobals->time;*/
+			pbeam->die = gp_cl->time;
 			return false;
 			}
 		else
@@ -933,23 +937,25 @@ qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
 
 /*
 ==============
-R_BeamDraw
+R_BeamDraw [FWGS, 01.01.24]
 
 Update beam vars and draw it
 ==============
 */
 void R_BeamDraw (BEAM *pbeam, float frametime)
 	{
-	model_t *model;
+	model_t	*model;
 	vec3_t	delta;
 
-	model = gEngfuncs.pfnGetModelByIndex (pbeam->modelIndex);
+	/*model = gEngfuncs.pfnGetModelByIndex (pbeam->modelIndex);*/
+	model = CL_ModelHandle (pbeam->modelIndex);
 	SetBits (pbeam->flags, FBEAM_ISACTIVE);
 
-	if (!model || model->type != mod_sprite)
+	if (!model || (model->type != mod_sprite))
 		{
 		pbeam->flags &= ~FBEAM_ISACTIVE; // force to ignore
-		pbeam->die = gpGlobals->time;
+		/*pbeam->die = gpGlobals->time;*/
+		pbeam->die = gp_cl->time;
 		return;
 		}
 
@@ -967,7 +973,8 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 		{
 		if (FBitSet (pbeam->flags, FBEAM_SINENOISE))
 			SineNoise (rgNoise, NOISE_DIVISIONS);
-		else FracNoise (rgNoise, NOISE_DIVISIONS);
+		else
+			FracNoise (rgNoise, NOISE_DIVISIONS);
 		}
 
 	// update end points
@@ -989,26 +996,27 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 
 		if (pbeam->amplitude >= 0.50f)
 			pbeam->segments = VectorLength (pbeam->delta) * 0.25f + 3.0f; // one per 4 pixels
-		else pbeam->segments = VectorLength (pbeam->delta) * 0.075f + 3.0f; // one per 16 pixels
+		else
+			pbeam->segments = VectorLength (pbeam->delta) * 0.075f + 3.0f; // one per 16 pixels
 		}
 
-	if (pbeam->type == TE_BEAMPOINTS && R_BeamCull (pbeam->source, pbeam->target, 0))
+	if ((pbeam->type == TE_BEAMPOINTS) && R_BeamCull (pbeam->source, pbeam->target, 0))
 		{
 		ClearBits (pbeam->flags, FBEAM_ISACTIVE);
 		return;
 		}
 
 	// don't draw really short or inactive beams
-	if (!FBitSet (pbeam->flags, FBEAM_ISACTIVE) || VectorLength (pbeam->delta) < 0.1f)
-		{
+	if (!FBitSet (pbeam->flags, FBEAM_ISACTIVE) || (VectorLength (pbeam->delta) < 0.1f))
 		return;
-		}
 
 	if (pbeam->flags & (FBEAM_FADEIN | FBEAM_FADEOUT))
 		{
 		// update life cycle
-		pbeam->t = pbeam->freq + (pbeam->die - gpGlobals->time);
-		if (pbeam->t != 0.0f) pbeam->t = 1.0f - pbeam->freq / pbeam->t;
+		/*pbeam->t = pbeam->freq + (pbeam->die - gpGlobals->time);*/
+		pbeam->t = pbeam->freq + (pbeam->die - gp_cl->time);
+		if (pbeam->t != 0.0f)
+			pbeam->t = 1.0f - pbeam->freq / pbeam->t;
 		}
 
 	if (pbeam->type == TE_BEAMHOSE)
@@ -1041,8 +1049,10 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 			if (flDistance > 30)
 				{
 				flDistance = 1.0f - ((flDistance - 30.0f) / 64.0f);
-				if (flDistance <= 0) flFade = 0;
-				else flFade *= pow (flDistance, 3);
+				if (flDistance <= 0)
+					flFade = 0;
+				else
+					flFade *= pow (flDistance, 3);
 				}
 
 			if (flFade < (1.0f / 255.0f))
@@ -1055,7 +1065,8 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 
 	TriRenderMode (FBitSet (pbeam->flags, FBEAM_SOLID) ? kRenderNormal : kRenderTransAdd);
 
-	if (!TriSpriteTexture (model, (int)(pbeam->frame + pbeam->frameRate * gpGlobals->time) % pbeam->frameCount))
+	/*if (!TriSpriteTexture (model, (int)(pbeam->frame + pbeam->frameRate * gpGlobals->time) % pbeam->frameCount))*/
+	if (!TriSpriteTexture (model, (int)(pbeam->frame + pbeam->frameRate * gp_cl->time) % pbeam->frameCount))
 		{
 		ClearBits (pbeam->flags, FBEAM_ISACTIVE);
 		return;
@@ -1067,7 +1078,7 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 
 		// XASH SPECIFIC: get brightness from head entity
 		pStart = gEngfuncs.R_BeamGetEntity (pbeam->startEntity);
-		if (pStart && pStart->curstate.rendermode != kRenderNormal)
+		if (pStart && (pStart->curstate.rendermode != kRenderNormal))
 			pbeam->brightness = CL_FxBlend (pStart) / 255.0f;
 		}
 
@@ -1075,7 +1086,8 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 		TriColor4f (pbeam->r, pbeam->g, pbeam->b, pbeam->t * pbeam->brightness);
 	else if (FBitSet (pbeam->flags, FBEAM_FADEOUT))
 		TriColor4f (pbeam->r, pbeam->g, pbeam->b, (1.0f - pbeam->t) * pbeam->brightness);
-	else TriColor4f (pbeam->r, pbeam->g, pbeam->b, pbeam->brightness);
+	else
+		TriColor4f (pbeam->r, pbeam->g, pbeam->b, pbeam->brightness);
 
 	switch (pbeam->type)
 		{
@@ -1086,6 +1098,7 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 				pbeam->speed, pbeam->segments);
 			TriEnd ();
 			break;
+
 		case TE_BEAMDISK:
 			GL_Cull (GL_NONE);
 			TriBegin (TRI_TRIANGLE_STRIP);
@@ -1093,6 +1106,7 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 				pbeam->speed, pbeam->segments);
 			TriEnd ();
 			break;
+
 		case TE_BEAMCYLINDER:
 			GL_Cull (GL_NONE);
 			TriBegin (TRI_TRIANGLE_STRIP);
@@ -1100,6 +1114,7 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 				pbeam->speed, pbeam->segments);
 			TriEnd ();
 			break;
+
 		case TE_BEAMPOINTS:
 		case TE_BEAMHOSE:
 			TriBegin (TRI_TRIANGLE_STRIP);
@@ -1107,11 +1122,13 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 				pbeam->speed, pbeam->segments, pbeam->flags);
 			TriEnd ();
 			break;
+
 		case TE_BEAMFOLLOW:
 			TriBegin (TRI_QUADS);
 			R_DrawBeamFollow (pbeam, frametime);
 			TriEnd ();
 			break;
+
 		case TE_BEAMRING:
 			GL_Cull (GL_NONE);
 			TriBegin (TRI_TRIANGLE_STRIP);
@@ -1143,7 +1160,7 @@ static void R_BeamSetAttributes (BEAM *pbeam, float r, float g, float b, float f
 
 /*
 ==============
-R_BeamSetup
+R_BeamSetup [FWGS, 01.01.24]
 
 generic function. all beams must be
 passed through this
@@ -1152,9 +1169,11 @@ passed through this
 static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, float life, float width,
 	float amplitude, float brightness, float speed)
 	{
-	model_t *sprite = gEngfuncs.pfnGetModelByIndex (modelIndex);
+	/*model_t *sprite = gEngfuncs.pfnGetModelByIndex (modelIndex);*/
+	model_t *sprite = CL_ModelHandle (modelIndex);
 
-	if (!sprite) return;
+	if (!sprite)
+		return;
 
 	pbeam->type = BEAM_POINTS;
 	pbeam->modelIndex = modelIndex;
@@ -1166,8 +1185,10 @@ static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, 
 	VectorCopy (end, pbeam->target);
 	VectorSubtract (end, start, pbeam->delta);
 
-	pbeam->freq = speed * gpGlobals->time;
-	pbeam->die = life + gpGlobals->time;
+	/*pbeam->freq = speed * gpGlobals->time;
+	pbeam->die = life + gpGlobals->time;*/
+	pbeam->freq = speed * gp_cl->time;
+	pbeam->die = life + gp_cl->time;
 	pbeam->amplitude = amplitude;
 	pbeam->brightness = brightness;
 	pbeam->width = width;
@@ -1176,7 +1197,7 @@ static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, 
 	if (amplitude >= 0.50f)
 		pbeam->segments = VectorLength (pbeam->delta) * 0.25f + 3.0f;	// one per 4 pixels
 	else
-		pbeam->segments = VectorLength (pbeam->delta) * 0.075f + 3.0f;		// one per 16 pixels
+		pbeam->segments = VectorLength (pbeam->delta) * 0.075f + 3.0f;	// one per 16 pixels
 
 	pbeam->pFollowModel = NULL;
 	pbeam->flags = 0;
@@ -1195,7 +1216,7 @@ void R_BeamDrawCustomEntity (cl_entity_t *ent)
 	float	amp = ent->curstate.body / 100.0f;
 	float	blend = CL_FxBlend (ent) / 255.0f;
 	float	r, g, b;
-	int	beamFlags;
+	int		beamFlags;
 
 	r = ent->curstate.rendercolor.r / 255.0f;
 	g = ent->curstate.rendercolor.g / 255.0f;
@@ -1223,15 +1244,18 @@ void R_BeamDrawCustomEntity (cl_entity_t *ent)
 				beam.endEntity = ent->curstate.skin;
 				}
 			break;
+
 		case BEAM_ENTS:
 			beam.type = TE_BEAMPOINTS;
 			SetBits (beam.flags, FBEAM_STARTENTITY | FBEAM_ENDENTITY);
 			beam.startEntity = ent->curstate.sequence;
 			beam.endEntity = ent->curstate.skin;
 			break;
+
 		case BEAM_HOSE:
 			beam.type = TE_BEAMHOSE;
 			break;
+
 		case BEAM_POINTS:
 			// already set up
 			break;
@@ -1299,7 +1323,9 @@ void CL_DrawBeams (int fTrans, BEAM *active_beams)
 		if (!fTrans && !FBitSet (pBeam->flags, FBEAM_SOLID))
 			continue;
 
-		R_BeamDraw (pBeam, gpGlobals->time - gpGlobals->oldtime);
+		// [FWGS, 01.01.24]
+		/*R_BeamDraw (pBeam, gpGlobals->time - gpGlobals->oldtime);*/
+		R_BeamDraw (pBeam, gp_cl->time - gp_cl->oldtime);
 		}
 
 	pglShadeModel (GL_FLAT);

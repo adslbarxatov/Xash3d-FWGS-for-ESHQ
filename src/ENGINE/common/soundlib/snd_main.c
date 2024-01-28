@@ -148,23 +148,24 @@ void FS_FreeSound (wavdata_t *pack)
 
 /*
 ================
-FS_OpenStream
+FS_OpenStream [FWGS, 01.01.24]
 
 open and reading basic info from sound stream
 ================
 */
 stream_t *FS_OpenStream (const char *filename)
 	{
-	const char *ext = COM_FileExtension (filename);
+	const char	*ext = COM_FileExtension (filename);
 	string		path, loadname;
-	qboolean		anyformat = true;
-	const streamfmt_t *format;
-	stream_t *stream;
+	qboolean	anyformat = true;
+	const streamfmt_t	*format;
+	/*stream_t *stream;*/
+	stream_t	*stream = NULL;
 
-	Sound_Reset (); // clear old streaminfo
+	// clear old streaminfo
+	Sound_Reset ();
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	// [FWGS, 01.04.23]
 	if (COM_CheckStringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
@@ -185,7 +186,6 @@ stream_t *FS_OpenStream (const char *filename)
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
-			// [FWGS, 01.05.23]
 			Q_snprintf (path, sizeof (path),
 				format->formatstring, loadname, "", format->ext);
 
@@ -197,9 +197,20 @@ stream_t *FS_OpenStream (const char *filename)
 			}
 		}
 
-	Con_Reportf ("FS_OpenStream: couldn't open \"%s\"\n", loadname);
+	/*Con_Reportf ("FS_OpenStream: couldn't open \"%s\"\n", loadname);*/
+	// compatibility with original Xash3D, try media/ folder
+	if (Q_strncmp (filename, "media/", sizeof ("media/") - 1))
+		{
+		Q_snprintf (loadname, sizeof (loadname), "media/%s", filename);
+		stream = FS_OpenStream (loadname);
+		}
+	else
+		{
+		Con_Reportf ("%s: couldn't open \"%s\" or \"%s\"\n", __func__, filename + 6, filename);
+		}
 
-	return NULL;
+	/*return NULL;*/
+	return stream;
 	}
 
 /*

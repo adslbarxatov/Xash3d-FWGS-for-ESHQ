@@ -912,7 +912,10 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 
 	background = MSG_ReadOneBit (msg);	
 	Q_strncpy (gamefolder, MSG_ReadString (msg), sizeof (gamefolder));
-	host.features = (uint)MSG_ReadLong (msg);
+	
+	// [FWGS, 01.01.24]
+	/*host.features = (uint)MSG_ReadLong (msg);*/
+	Host_ValidateEngineFeatures (MSG_ReadDword (msg));
 
 	if (!legacy)
 		{
@@ -1659,8 +1662,9 @@ void CL_RegisterResources (sizebuf_t *msg)
 
 			CL_ClearWorld ();
 
-			// update the ref state
-			R_UpdateRefState ();
+			// [FWGS, 01.01.24]
+			/* update the ref state
+			R_UpdateRefState ();*/
 
 			// tell rendering system we have a new set of models
 			ref.dllFuncs.R_NewMap ();

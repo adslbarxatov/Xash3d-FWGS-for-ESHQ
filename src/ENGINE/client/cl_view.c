@@ -356,8 +356,10 @@ qboolean V_PreRender (void)
 		return false;
 		}
 
-	ref.dllFuncs.R_BeginFrame (!cl.paused && (cls.state == ca_active));
+	// [FWGS, 01.01.24]
+	V_CheckGamma ();
 
+	ref.dllFuncs.R_BeginFrame (!cl.paused && (cls.state == ca_active));
 	GL_UpdateSwapInterval ();
 
 	return true;
@@ -419,7 +421,8 @@ void R_DrawLeafNode (float x, float y, float scale)
 	{
 	float downScale = scale * 0.25f;// * POINT_SIZE;
 
-	ref.dllFuncs.R_DrawStretchPic (x - downScale * 0.5f, y - downScale * 0.5f, downScale, downScale, 0, 0, 1, 1, R_GetBuiltinTexture (REF_PARTICLE_TEXTURE));
+	ref.dllFuncs.R_DrawStretchPic (x - downScale * 0.5f, y - downScale * 0.5f, downScale, downScale,
+		0, 0, 1, 1, R_GetBuiltinTexture (REF_PARTICLE_TEXTURE));
 	}
 
 void R_DrawNodeConnection (float x, float y, float x2, float y2)
@@ -548,5 +551,9 @@ void V_PostRender (void)
 
 	SCR_MakeScreenShot ();
 	ref.dllFuncs.R_AllowFog (true);
+
+	// [FWGS, 01.01.24]
+	Platform_SetTimer (0.0f);
+
 	ref.dllFuncs.R_EndFrame ();
 	}

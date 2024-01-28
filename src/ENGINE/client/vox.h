@@ -16,8 +16,10 @@ GNU General Public License for more details.
 #ifndef VOX_H
 #define VOX_H
 
-#define CVOXWORDMAX	64
-#define CVOXFILESENTENCEMAX 4096
+#define CVOXWORDMAX		64
+
+// [FWGS, 01.01.24]
+/*#define CVOXFILESENTENCEMAX 4096*/
 
 #define SENTENCE_INDEX		-99999	// unique sentence index
 

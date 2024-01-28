@@ -26,33 +26,42 @@ DYNAMIC LIGHTS
 */
 /*
 ==================
-CL_RunLightStyles
+CL_RunLightStyles [FWGS, 01.01.24]
 ==================
 */
 void CL_RunLightStyles (void)
 	{
-	int		i, k, flight, clight;
-	float		l, lerpfrac, backlerp;
-	float		frametime = (gpGlobals->time - gpGlobals->oldtime);
-	float		scale;
-	lightstyle_t *ls;
+	int				i, k, flight, clight;
+	float			l, lerpfrac, backlerp;
+	/*float		frametime = (gpGlobals->time - gpGlobals->oldtime);
+	float		scale;*/
+	float			frametime = (gp_cl->time - gp_cl->oldtime);
+	lightstyle_t	*ls;
 
-	if (!WORLDMODEL) return;
+	if (!WORLDMODEL)
+		return;
 
-	scale = r_lighting_modulate->value;
+	/*scale = r_lighting_modulate->value;*/
+	if (!WORLDMODEL->lightdata)
+		{
+		for (i = 0; i < MAX_LIGHTSTYLES; i++)
+			tr.lightstylevalue[i] = 256 * 256;
+		return;
+		}
 
 	// light animations
 	// 'm' is normal light, 'a' is no light, 'z' is double bright
 	for (i = 0; i < MAX_LIGHTSTYLES; i++)
 		{
 		ls = gEngfuncs.GetLightStyle (i);
-		if (!WORLDMODEL->lightdata)
+		/*if (!WORLDMODEL->lightdata)
 			{
 			tr.lightstylevalue[i] = 256 * 256;
 			continue;
-			}
+			}*/
 
-		if (!ENGINE_GET_PARM (PARAM_GAMEPAUSED) && frametime <= 0.1f)
+		/*if (!ENGINE_GET_PARM (PARAM_GAMEPAUSED) && frametime <= 0.1f)*/
+		if (!gp_cl->paused && (frametime <= 0.1f))
 			ls->time += frametime; // evaluate local time
 
 		flight = (int)Q_floor (ls->time * 10);
@@ -62,18 +71,21 @@ void CL_RunLightStyles (void)
 
 		if (!ls->length)
 			{
-			tr.lightstylevalue[i] = 256 * scale;
+			/*tr.lightstylevalue[i] = 256 * scale;*/
+			tr.lightstylevalue[i] = 256;
 			continue;
 			}
 		else if (ls->length == 1)
 			{
 			// single length style so don't bother interpolating
-			tr.lightstylevalue[i] = ls->map[0] * 22 * scale;
+			/*tr.lightstylevalue[i] = ls->map[0] * 22 * scale;*/
+			tr.lightstylevalue[i] = (ls->pattern[0] - 'a') * 22;
 			continue;
 			}
-		else if (!ls->interp || !cl_lightstyle_lerping->flags)	// [FWGS, 01.07.23]
+		else if (!ls->interp || !cl_lightstyle_lerping->flags)
 			{
-			tr.lightstylevalue[i] = ls->map[flight % ls->length] * 22 * scale;
+			/*tr.lightstylevalue[i] = ls->map[flight % ls->length] * 22 * scale;*/
+			tr.lightstylevalue[i] = (ls->pattern[flight % ls->length] - 'a') * 22;
 			continue;
 			}
 
@@ -86,7 +98,8 @@ void CL_RunLightStyles (void)
 		k = ls->map[clight % ls->length];
 		l += (float)(k * 22.0f) * lerpfrac;
 
-		tr.lightstylevalue[i] = (int)l * scale;
+		/*tr.lightstylevalue[i] = (int)l * scale;*/
+		tr.lightstylevalue[i] = (int)l;
 		}
 	}
 
@@ -139,17 +152,19 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 
 /*
 =============
-R_PushDlights
+R_PushDlights [FWGS, 01.01.24]
 =============
 */
 void R_PushDlights (void)
 	{
-	dlight_t *l;
-	int	i;
+	dlight_t	*l;
+	int			i;
 
 	tr.dlightframecount = tr.framecount;
 
-	RI.currententity = gEngfuncs.GetEntityByIndex (0);
+	/*RI.currententity = gEngfuncs.GetEntityByIndex (0);*/
+	RI.currententity = CL_GetEntityByIndex (0);
+
 	if (RI.currententity)
 		RI.currentmodel = RI.currententity->model;
 
@@ -157,7 +172,8 @@ void R_PushDlights (void)
 		{
 		l = gEngfuncs.GetDynamicLight (i);
 
-		if (l->die < gpGlobals->time || !l->radius)
+		/*if (l->die < gpGlobals->time || !l->radius)*/
+		if ((l->die < gp_cl->time) || !l->radius)
 			continue;
 
 		if (GL_FrustumCullSphere (&RI.frustum, l->origin, l->radius, 15))
@@ -207,19 +223,19 @@ R_RecursiveLightPoint
 static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f, float p2f, colorVec *cv,
 	const vec3_t start, const vec3_t end)
 	{
-	float		front, back, frac, midf;
-	int		i, map, side, size;
-	float		ds, dt, s, t;
-	int		sample_size;
-	color24 *lm, *dm;
-	mextrasurf_t *info;
-	msurface_t *surf;
-	mtexinfo_t *tex;
+	float			front, back, frac, midf;
+	int				i, map, side, size;
+	float			ds, dt, s, t;
+	int				sample_size;
+	color24			*lm, *dm;
+	mextrasurf_t	*info;
+	msurface_t		*surf;
+	mtexinfo_t		*tex;
 	matrix3x4		tbn;
-	vec3_t		mid;
+	vec3_t			mid;
 
 	// didn't hit anything
-	if (!node || node->contents < 0)
+	if (!node || (node->contents < 0))
 		{
 		cv->r = cv->g = cv->b = cv->a = 0;
 		return false;
@@ -265,13 +281,13 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 		s = DotProduct (mid, info->lmvecs[0]) + info->lmvecs[0][3];
 		t = DotProduct (mid, info->lmvecs[1]) + info->lmvecs[1][3];
 
-		if (s < info->lightmapmins[0] || t < info->lightmapmins[1])
+		if ((s < info->lightmapmins[0]) || (t < info->lightmapmins[1]))
 			continue;
 
 		ds = s - info->lightmapmins[0];
 		dt = t - info->lightmapmins[1];
 
-		if (ds > info->lightextents[0] || dt > info->lightextents[1])
+		if ((ds > info->lightextents[0]) || (dt > info->lightextents[1]))
 			continue;
 
 		cv->r = cv->g = cv->b = cv->a = 0;
@@ -299,15 +315,10 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 			else VectorCopy (surf->plane->normal, faceNormal);
 
 			// compute face TBN
-#if 1
 			Vector4Set (tbn[0], surf->info->lmvecs[0][0], surf->info->lmvecs[0][1], surf->info->lmvecs[0][2], 0.0f);
 			Vector4Set (tbn[1], -surf->info->lmvecs[1][0], -surf->info->lmvecs[1][1], -surf->info->lmvecs[1][2], 0.0f);
 			Vector4Set (tbn[2], faceNormal[0], faceNormal[1], faceNormal[2], 0.0f);
-#else
-			Vector4Set (tbn[0], surf->info->lmvecs[0][0], -surf->info->lmvecs[1][0], faceNormal[0], 0.0f);
-			Vector4Set (tbn[1], surf->info->lmvecs[0][1], -surf->info->lmvecs[1][1], faceNormal[1], 0.0f);
-			Vector4Set (tbn[2], surf->info->lmvecs[0][2], -surf->info->lmvecs[1][2], faceNormal[2], 0.0f);
-#endif
+
 			VectorNormalize (tbn[0]);
 			VectorNormalize (tbn[1]);
 			VectorNormalize (tbn[2]);
@@ -318,7 +329,8 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 			{
 			uint	scale = tr.lightstylevalue[surf->styles[map]];
 
-			if (tr.ignore_lightgamma)
+			// [FWGS, 01.01.24]
+			/*if (tr.ignore_lightgamma)
 				{
 				cv->r += lm->r * scale;
 				cv->g += lm->g * scale;
@@ -329,7 +341,11 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 				cv->r += gEngfuncs.LightToTexGamma (lm->r) * scale;
 				cv->g += gEngfuncs.LightToTexGamma (lm->g) * scale;
 				cv->b += gEngfuncs.LightToTexGamma (lm->b) * scale;
-				}
+				}*/
+			cv->r += lm->r * scale;
+			cv->g += lm->g * scale;
+			cv->b += lm->b * scale;
+
 			lm += size; // skip to next lightmap
 
 			if (dm != NULL)
@@ -361,12 +377,14 @@ check bspmodels to get light from
 */
 colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t lvec)
 	{
-	float	last_fraction;
-	int	i, maxEnts = 1;
+	float		last_fraction;
+	int			i, maxEnts = 1;
 	colorVec	light, cv;
 
-	if (lspot) VectorClear (lspot);
-	if (lvec) VectorClear (lvec);
+	if (lspot)
+		VectorClear (lspot);
+	if (lvec)
+		VectorClear (lvec);
 
 	if (WORLDMODEL && WORLDMODEL->lightdata)
 		{
@@ -388,7 +406,7 @@ colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot,
 			if (!pe)
 				break;
 
-			if (!pe->model || pe->model->type != mod_brush)
+			if (!pe->model || (pe->model->type != mod_brush))
 				continue; // skip non-bsp models
 
 			pnodes = &pe->model->nodes[pe->model->hulls[0].firstclipnode];
@@ -418,9 +436,15 @@ colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot,
 					VectorCopy (g_trace_lightspot, lspot);
 				if (lvec)
 					VectorNormalize2 (g_trace_lightvec, lvec);
-				light.r = Q_min ((cv.r >> 7), 255);
+
+				// [FWGS, 01.01.24]
+				/*light.r = Q_min ((cv.r >> 7), 255);
 				light.g = Q_min ((cv.g >> 7), 255);
-				light.b = Q_min ((cv.b >> 7), 255);
+				light.b = Q_min ((cv.b >> 7), 255);*/
+				light.r = Q_min ((cv.r >> 8), 255);
+				light.g = Q_min ((cv.g >> 8), 255);
+				light.b = Q_min ((cv.b >> 8), 255);
+
 				last_fraction = g_trace_fraction;
 
 				if ((light.r + light.g + light.b) != 0)

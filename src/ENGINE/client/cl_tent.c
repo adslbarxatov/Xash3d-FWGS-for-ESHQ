@@ -2649,12 +2649,13 @@ dlight_t *CL_GetEntityLight (int number)
 
 /*
 ================
-CL_UpdateFlashlight [FWGS, 01.12.23]
+CL_UpdateFlashlight [FWGS, 01.01.24]
 
 update client flashlight
 ================
 */
-void CL_UpdateFlashlight (cl_entity_t *ent)
+/*void CL_UpdateFlashlight (cl_entity_t *ent)*/
+static void CL_UpdateFlashlight (cl_entity_t *ent)
 	{
 	vec3_t		forward, view_ofs;
 	vec3_t		vecSrc, vecEnd;
@@ -2696,6 +2697,7 @@ void CL_UpdateFlashlight (cl_entity_t *ent)
 	// update flashlight endpos
 	dl = CL_AllocDlight (ent->index);
 
+	/*hit = CL_GetEntityByIndex (clgame.pmove->physents[trace.ent].info);*/
 	hit = CL_GetEntityByIndex (clgame.pmove->physents[trace.ent].info);
 	if (hit && hit->model && ((hit->model->type == mod_alias) || (hit->model->type == mod_studio)))
 		VectorCopy (hit->origin, dl->origin);
@@ -2716,62 +2718,129 @@ void CL_UpdateFlashlight (cl_entity_t *ent)
 	dl->radius = 110;			// ESHQ: улучшение фонарика
 	}
 
+// [FWGS, 01.01.24]
+static void R_EntityDimlight (cl_entity_t *ent, int key)
+	{
+	dlight_t *dl = CL_AllocDlight (key);
+
+	VectorCopy (ent->origin, dl->origin);
+	dl->color.r = dl->color.g = dl->color.b = 200;
+	dl->radius = COM_RandomFloat (200.0f, 231.0f);
+	dl->die = cl.time + 0.001;
+	}
+
+// [FWGS, 01.01.24]
+static void R_EntityLight (cl_entity_t *ent, int key)
+	{
+	dlight_t *dl = CL_AllocDlight (key);
+
+	VectorCopy (ent->origin, dl->origin);
+	dl->color.r = dl->color.g = dl->color.b = 100;
+	dl->radius = 200;
+	dl->die = cl.time + 0.001;
+
+	R_RocketFlare (ent->origin);
+	}
+
+// [FWGS, 01.01.24]
+static void R_EntityBrightlight (cl_entity_t *ent, int key, int radius)
+	{
+	dlight_t *dl = CL_AllocDlight (key);
+
+	VectorCopy (ent->origin, dl->origin);
+	dl->origin[2] += 16.0f;
+	dl->color.r = dl->color.g = dl->color.b = 250;
+
+	if (!radius)
+		dl->radius = COM_RandomFloat (400.0f, 431.0f);
+	else
+		dl->radius = 400;
+
+	dl->die = cl.time + 0.001;
+	}
+
 /*
 ================
-CL_AddEntityEffects
+CL_AddEntityEffects [FWGS, 01.01.24]
 
 apply various effects to entity origin or attachment
 ================
 */
 void CL_AddEntityEffects (cl_entity_t *ent)
 	{
-	// yellow flies effect 'monster stuck in the wall'
+	/* yellow flies effect 'monster stuck in the wall'
 	if (FBitSet (ent->curstate.effects, EF_BRIGHTFIELD) && !RP_LOCALCLIENT (ent))
-		R_EntityParticles (ent);
-
-	if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))
+		R_EntityParticles (ent);*/
+	// players have special set of effects, from CL_LinkPlayers
+	if (ent->player && (ent->index != cl.viewentity))
 		{
-		if (ent->player && !Host_IsQuakeCompatible ())
-			{
-			CL_UpdateFlashlight (ent);
-			}
-		else
-			{
-			dlight_t *dl = CL_AllocDlight (ent->index);
-			dl->color.r = dl->color.g = dl->color.b = 100;
-			dl->radius = COM_RandomFloat (200, 231);
-			VectorCopy (ent->origin, dl->origin);
-			dl->die = cl.time + 0.001;
-			}
-		}
+		if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))
+			R_EntityBrightlight (ent, ent->index /* 4 in GoldSrc */, 0);
 
-	if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))
+		/*if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))*/
+		if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))
+			R_EntityDimlight (ent, ent->index /* 4 in GoldSrc */);
+		}
+	else if (RP_LOCALCLIENT (ent))
+		{
+		/*if (ent->player && !Host_IsQuakeCompatible ())
+			{*/
+		// from CL_PlayerFlashlight
+		if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))
+			R_EntityBrightlight (ent, ent->index /* 1 in GoldSrc */, 400);
+		else if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))
+			CL_UpdateFlashlight (ent);
+		/*}
+	else
 		{
 		dlight_t *dl = CL_AllocDlight (ent->index);
+		dl->color.r = dl->color.g = dl->color.b = 100;
+		dl->radius = COM_RandomFloat (200, 231);
+		VectorCopy (ent->origin, dl->origin);
+		dl->die = cl.time + 0.001;
+		}*/
+		}
+
+	/*if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))*/
+	else
+		{
+		/*dlight_t *dl = CL_AllocDlight (ent->index);
 		dl->color.r = dl->color.g = dl->color.b = 250;
 		if (ent->player) dl->radius = 400; // don't flickering
 		else dl->radius = COM_RandomFloat (400, 431);
 		VectorCopy (ent->origin, dl->origin);
 		dl->die = cl.time + 0.001;
 		dl->origin[2] += 16.0f;
-		}
+		}*/
+		// from CL_LinkPacketEntities
+		if (FBitSet (ent->curstate.effects, EF_BRIGHTFIELD))
+			R_EntityParticles (ent);
 
-	// add light effect
-	if (FBitSet (ent->curstate.effects, EF_LIGHT))
-		{
-		dlight_t *dl = CL_AllocDlight (ent->index);
-		dl->color.r = dl->color.g = dl->color.b = 100;
-		VectorCopy (ent->origin, dl->origin);
-		R_RocketFlare (ent->origin);
-		dl->die = cl.time + 0.001;
-		dl->radius = 200;
+		/*// add light effect
+		if (FBitSet (ent->curstate.effects, EF_LIGHT))
+			{
+			dlight_t *dl = CL_AllocDlight (ent->index);
+			dl->color.r = dl->color.g = dl->color.b = 100;
+			VectorCopy (ent->origin, dl->origin);
+			R_RocketFlare (ent->origin);
+			dl->die = cl.time + 0.001;
+			dl->radius = 200;*/
+		if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))
+			R_EntityBrightlight (ent, ent->index, 0);
+
+		if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))
+			R_EntityDimlight (ent, ent->index);
+
+		if (FBitSet (ent->curstate.effects, EF_LIGHT))
+			R_EntityLight (ent, ent->curstate.number);
 		}
 
 	// studio models are handle muzzleflashes difference
-	if (FBitSet (ent->curstate.effects, EF_MUZZLEFLASH) && Mod_AliasExtradata (ent->model))
+	/*if (FBitSet (ent->curstate.effects, EF_MUZZLEFLASH) && Mod_AliasExtradata (ent->model))*/
+	if (FBitSet (ent->curstate.effects, EF_MUZZLEFLASH) && ent->model && (ent->model->type == mod_alias))
 		{
-		dlight_t *dl = CL_AllocDlight (ent->index);
-		vec3_t	fv;
+		dlight_t	*dl = CL_AllocDlight (ent->index);
+		vec3_t		fv;
 
 		ClearBits (ent->curstate.effects, EF_MUZZLEFLASH);
 		dl->color.r = dl->color.g = dl->color.b = 100;
@@ -2787,7 +2856,7 @@ void CL_AddEntityEffects (cl_entity_t *ent)
 
 /*
 ================
-CL_AddModelEffects
+CL_AddModelEffects [FWGS, 01.01.24]
 
 these effects will be enable by flag in model header
 ================
@@ -2797,15 +2866,19 @@ void CL_AddModelEffects (cl_entity_t *ent)
 	vec3_t	neworigin;
 	vec3_t	oldorigin;
 
-	if (!ent->model) return;
+	/*if (!ent->model) return;*/
+	if (!ent->model || ent->player)
+		return;
 
-	switch (ent->model->type)
+	/*switch (ent->model->type)
 		{
 		case mod_alias:
 		case mod_studio:
 			break;
 		default:	return;
-		}
+		}*/
+	if ((ent->model->type != mod_alias) && (ent->model->type != mod_studio))
+		return;
 
 	if (cls.demoplayback == DEMO_QUAKE1)
 		{
@@ -2826,18 +2899,23 @@ void CL_AddModelEffects (cl_entity_t *ent)
 	if (FBitSet (ent->model->flags, STUDIO_GIB))
 		R_RocketTrail (oldorigin, neworigin, 2);
 
-	if (FBitSet (ent->model->flags, STUDIO_ZOMGIB))
+	/*if (FBitSet (ent->model->flags, STUDIO_ZOMGIB))*/
+	else if (FBitSet (ent->model->flags, STUDIO_ZOMGIB))
 		R_RocketTrail (oldorigin, neworigin, 4);
 
-	if (FBitSet (ent->model->flags, STUDIO_TRACER))
+	/*if (FBitSet (ent->model->flags, STUDIO_TRACER))*/
+	else if (FBitSet (ent->model->flags, STUDIO_TRACER))
 		R_RocketTrail (oldorigin, neworigin, 3);
 
-	if (FBitSet (ent->model->flags, STUDIO_TRACER2))
+	/*if (FBitSet (ent->model->flags, STUDIO_TRACER2))*/
+	else if (FBitSet (ent->model->flags, STUDIO_TRACER2))
 		R_RocketTrail (oldorigin, neworigin, 5);
 
-	if (FBitSet (ent->model->flags, STUDIO_ROCKET))
+	/*if (FBitSet (ent->model->flags, STUDIO_ROCKET))*/
+	else if (FBitSet (ent->model->flags, STUDIO_ROCKET))
 		{
-		dlight_t *dl = CL_AllocDlight (ent->index);
+		/*dlight_t *dl = CL_AllocDlight (ent->index);*/
+		dlight_t *dl = CL_AllocDlight (ent->curstate.number);
 
 		dl->color.r = dl->color.g = dl->color.b = 200;
 		VectorCopy (ent->origin, dl->origin);
@@ -2853,10 +2931,12 @@ void CL_AddModelEffects (cl_entity_t *ent)
 		R_RocketTrail (oldorigin, neworigin, 0);
 		}
 
-	if (FBitSet (ent->model->flags, STUDIO_GRENADE))
+	/*if (FBitSet (ent->model->flags, STUDIO_GRENADE))*/
+	else if (FBitSet (ent->model->flags, STUDIO_GRENADE))
 		R_RocketTrail (oldorigin, neworigin, 1);
 
-	if (FBitSet (ent->model->flags, STUDIO_TRACER3))
+	/*if (FBitSet (ent->model->flags, STUDIO_TRACER3))*/
+	else if (FBitSet (ent->model->flags, STUDIO_TRACER3))
 		R_RocketTrail (oldorigin, neworigin, 6);
 	}
 

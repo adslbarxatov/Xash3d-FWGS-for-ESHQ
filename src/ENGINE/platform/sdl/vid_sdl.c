@@ -660,16 +660,19 @@ void VID_RestoreScreenResolution (void)
 #endif 
 	}
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.01.24]
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 static void VID_SetWindowIcon (SDL_Window *hWnd)
 	{
 	rgbdata_t *icon = NULL;
 	char iconpath[MAX_STRING];
-	const char *localIcoPath;
 
 	// ICO support only for Win32
 #if XASH_WIN32
+	const char *localIcoPath;
+
+/* ICO support only for Win32
+#if XASH_WIN32*/
 	if ((localIcoPath = FS_GetDiskPath (GI->iconpath, true)))
 		{
 		HICON ico = (HICON)LoadImage (NULL, localIcoPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
@@ -743,7 +746,7 @@ static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int y
 
 /*
 =================
-VID_CreateWindow [FWGS, 01.11.23]
+VID_CreateWindow [FWGS, 01.01.24]
 =================
 */
 qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
@@ -867,12 +870,11 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 				GL_SetupAttributes (); // re-choose attributes
 				}
 
-			VID_StartupGamma ();
+			/*VID_StartupGamma ();*/
 			}
 
 		if (!GL_UpdateContext ())
 			return false;
-
 		}
 
 #else

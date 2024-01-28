@@ -133,6 +133,9 @@ struct zip_s
 	zipfile_t *files;
 	};
 
+// [FWGS, 01.01.24]
+// #define ENABLE_CRC_CHECK // known to be buggy because of possible libpublic crc32 bug, disabled
+
 #ifdef XASH_REDUCE_FD
 static void FS_EnsureOpenZip (zip_t *zip)
 	{
@@ -420,19 +423,22 @@ static file_t *FS_OpenFile_ZIP (searchpath_t *search, const char *filename, cons
 
 /*
 ===========
-FS_LoadZIPFile [FWGS, 01.07.23]
+FS_LoadZIPFile [FWGS, 01.01.24]
 ===========
 */
 static byte *FS_LoadZIPFile (searchpath_t *search, const char *path, int pack_ind, fs_offset_t *sizeptr)
 	{
 	zipfile_t	*file;
-	int			index;
+	/*int			index;*/
 	byte		*compressed_buffer = NULL;
 	byte		*decompressed_buffer = NULL;
 	int			zlib_result = 0;
-	dword		test_crc, final_crc;
+	/*dword		test_crc, final_crc;*/
 	z_stream	decompress_stream;
 	size_t		c;
+#ifdef ENABLE_CRC_CHECK
+	dword test_crc, final_crc;
+#endif
 
 	if (sizeptr)
 		*sizeptr = 0;
@@ -454,6 +460,21 @@ static byte *FS_LoadZIPFile (searchpath_t *search, const char *path, int pack_in
 			Con_Reportf (S_ERROR "Zip_LoadFile: %s size doesn't match\n", file->name);
 			return NULL;
 			}
+
+		// [FWGS, 01.01.24]
+#ifdef ENABLE_CRC_CHECK
+		CRC32_Init (&test_crc);
+		CRC32_ProcessBuffer (&test_crc, decompressed_buffer, file->size);
+
+		final_crc = CRC32_Final (test_crc);
+
+		if (final_crc != file->crc32)
+			{
+			Con_Reportf (S_ERROR "Zip_LoadFile: %s file crc32 mismatch\n", file->name);
+			Mem_Free (decompressed_buffer);
+			return NULL;
+			}
+#endif
 
 		if (sizeptr)
 			*sizeptr = file->size;
@@ -496,9 +517,25 @@ static byte *FS_LoadZIPFile (searchpath_t *search, const char *path, int pack_in
 		zlib_result = inflate (&decompress_stream, Z_NO_FLUSH);
 		inflateEnd (&decompress_stream);
 
-		if (zlib_result == Z_OK || zlib_result == Z_STREAM_END)
+		if ((zlib_result == Z_OK) || (zlib_result == Z_STREAM_END))
 			{
 			Mem_Free (compressed_buffer); // finaly free compressed buffer
+
+			// [FWGS, 01.01.24]
+#if ENABLE_CRC_CHECK
+			CRC32_Init (&test_crc);
+			CRC32_ProcessBuffer (&test_crc, decompressed_buffer, file->size);
+
+			final_crc = CRC32_Final (test_crc);
+
+			if (final_crc != file->crc32)
+				{
+				Con_Reportf (S_ERROR "Zip_LoadFile: %s file crc32 mismatch\n", file->name);
+				Mem_Free (decompressed_buffer);
+				return NULL;
+				}
+#endif
+
 			if (sizeptr)
 				*sizeptr = file->size;
 
@@ -629,14 +666,15 @@ static void FS_Search_ZIP (searchpath_t *search, stringlist_t *list, const char 
 
 /*
 ===========
-FS_AddZip_Fullpath [FWGS, 01.07.23]
+FS_AddZip_Fullpath [FWGS, 01.01.24]
 ===========
 */
 searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags)
 	{
 	searchpath_t	*search;
 	zip_t			*zip;
-	int				i, errorcode = ZIP_LOAD_COULDNT_OPEN;
+	/*int				i, errorcode = ZIP_LOAD_COULDNT_OPEN;*/
+	int				errorcode = ZIP_LOAD_COULDNT_OPEN;
 
 	zip = FS_LoadZip (zipfile, &errorcode);
 	if (!zip)

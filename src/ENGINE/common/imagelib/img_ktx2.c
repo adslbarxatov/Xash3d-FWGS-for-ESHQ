@@ -25,40 +25,48 @@ static void Image_KTX2Format (uint32_t ktx2_format)
 			image.type = PF_BC4_UNSIGNED;
 			// 1 component for ref_gl
 			break;
+
 		case KTX2_FORMAT_BC4_SNORM_BLOCK:
 			image.type = PF_BC4_SIGNED;
 			// 1 component for ref_gl
 			break;
+
 		case KTX2_FORMAT_BC5_UNORM_BLOCK:
 			image.type = PF_BC5_UNSIGNED;
 			// 2 components for ref_gl
 			SetBits (image.flags, IMAGE_HAS_ALPHA);
 			break;
+
 		case KTX2_FORMAT_BC5_SNORM_BLOCK:
 			image.type = PF_BC5_SIGNED;
 			// 2 components for ref_gl
 			SetBits (image.flags, IMAGE_HAS_ALPHA);
 			break;
+
 		case KTX2_FORMAT_BC6H_UFLOAT_BLOCK:
 			image.type = PF_BC6H_UNSIGNED;
 			// 3 components for ref_gl
 			SetBits (image.flags, IMAGE_HAS_COLOR);
 			break;
+
 		case KTX2_FORMAT_BC6H_SFLOAT_BLOCK:
 			image.type = PF_BC6H_SIGNED;
 			// 3 components for ref_gl
 			SetBits (image.flags, IMAGE_HAS_COLOR);
 			break;
+
 		case KTX2_FORMAT_BC7_UNORM_BLOCK:
 			image.type = PF_BC7_UNORM;
 			// 4 components for ref_gl
 			SetBits (image.flags, IMAGE_HAS_COLOR | IMAGE_HAS_ALPHA);
 			break;
+
 		case KTX2_FORMAT_BC7_SRGB_BLOCK:
 			image.type = PF_BC7_SRGB;
 			// 4 components for ref_gl
 			SetBits (image.flags, IMAGE_HAS_COLOR | IMAGE_HAS_ALPHA);
 			break;
+
 		default:
 			image.type = PF_UNKNOWN;
 			break;
@@ -84,6 +92,13 @@ static qboolean Image_KTX2Parse (const ktx2_header_t *header, const byte *buffer
 	if (!Image_CheckFlag (IL_DDS_HARDWARE) && ImageCompressed (image.type))
 		{
 		Con_DPrintf (S_WARN "%s: has compressed format, but support is not advertized\n", __FUNCTION__);
+		return false;
+		}
+
+	// [FWGS, 01.01.24]
+	if (header->levelCount == 0)
+		{
+		Con_DPrintf (S_ERROR "%s: file has no mip levels\n", __FUNCTION__);
 		return false;
 		}
 
@@ -187,9 +202,12 @@ qboolean Image_LoadKTX2 (const char *name, const byte *buffer, fs_offset_t files
 			return false;
 
 		// If KTX2 to imagelib conversion failed, try passing the file as raw data.
-		// This is useful for ref_vk which can directly support hundreds of formats which we don't convert to pixformat_t here
+		// This is useful for ref_vk which can directly support hundreds of formats which we don't
+		// convert to pixformat_t here
 
-		Con_DPrintf (S_WARN "%s: (%s) could not be converted to supported imagelib format, passing as raw KTX2 data\n", __FUNCTION__, name);
+		Con_DPrintf (S_WARN "%s: (%s) could not be converted to supported imagelib format, passing as raw KTX2 data\n",
+			__FUNCTION__, name);
+
 		// This is a catch-all for ref_vk, which can do this format directly and natively
 		image.type = PF_KTX2_RAW;
 

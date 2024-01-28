@@ -21,17 +21,17 @@ GNU General Public License for more details.
 
 const char *clc_strings[clc_lastmsg + 1] =
 	{
-		"clc_bad",
-		"clc_nop",
-		"clc_move",
-		"clc_stringcmd",
-		"clc_delta",
-		"clc_resourcelist",
-		"clc_unused6",
-		"clc_fileconsistency",
-		"clc_voicedata",
-		"clc_cvarvalue",
-		"clc_cvarvalue2",
+	"clc_bad",
+	"clc_nop",
+	"clc_move",
+	"clc_stringcmd",
+	"clc_delta",
+	"clc_resourcelist",
+	"clc_unused6",
+	"clc_fileconsistency",
+	"clc_voicedata",
+	"clc_cvarvalue",
+	"clc_cvarvalue2",
 	};
 
 typedef struct ucmd_s
@@ -632,8 +632,10 @@ void SV_DropClient (sv_client_t *cl, qboolean crash)
 		Mem_Free (cl->frames); // release delta
 	cl->frames = NULL;
 
+	// [FWGS, 01.01.24]
 	if (NET_CompareBaseAdr (cl->netchan.remote_address, host.rd.address))
-		SV_EndRedirect ();
+		SV_EndRedirect (&host.rd);
+	/*SV_EndRedirect ();*/
 
 	// throw away any residual garbage in the channel.
 	Netchan_Clear (&cl->netchan);
@@ -666,12 +668,14 @@ void SV_DropClient (sv_client_t *cl, qboolean crash)
 
 /*
 ==============================================================================
-SVC COMMAND REDIRECT
+SVC COMMAND REDIRECT [FWGS, 01.01.24]
 ==============================================================================
 */
-void SV_BeginRedirect (netadr_t adr, rdtype_t target, char *buffer, size_t buffersize, void (*flush))
+/*void SV_BeginRedirect (netadr_t adr, rdtype_t target, char *buffer, size_t buffersize, void (*flush))*/
+static void SV_BeginRedirect (host_redirect_t *rd, netadr_t adr, rdtype_t target, char *buffer,
+	size_t buffersize, void (*flush))
 	{
-	if (!target || !buffer || !buffersize || !flush)
+	/*if (!target || !buffer || !buffersize || !flush)
 		return;
 
 	host.rd.target = target;
@@ -681,10 +685,20 @@ void SV_BeginRedirect (netadr_t adr, rdtype_t target, char *buffer, size_t buffe
 	host.rd.address = adr;
 	host.rd.buffer[0] = 0;
 	if (host.rd.lines == 0)
-		host.rd.lines = -1;
+		host.rd.lines = -1;*/
+	rd->target = target;
+	rd->buffer = buffer;
+	rd->buffersize = buffersize;
+	rd->flush = flush;
+	rd->address = adr;
+	rd->buffer[0] = 0;
+	if (rd->lines == 0)
+		rd->lines = -1;
 	}
 
-void SV_FlushRedirect (netadr_t adr, int dest, char *buf)
+// [FWGS, 01.01.24]
+/*void SV_FlushRedirect (netadr_t adr, int dest, char *buf)*/
+static void SV_FlushRedirect (netadr_t adr, int dest, char *buf)
 	{
 	if (sv.current_client && FBitSet (sv.current_client->flags, FCL_FAKECLIENT))
 		return;
@@ -696,7 +710,9 @@ void SV_FlushRedirect (netadr_t adr, int dest, char *buf)
 			break;
 
 		case RD_CLIENT:
-			if (!sv.current_client) return; // client not set
+			if (!sv.current_client)
+				return; // client not set
+
 			MSG_BeginServerCmd (&sv.current_client->netchan.message, svc_print);
 			MSG_WriteString (&sv.current_client->netchan.message, buf);
 			break;
@@ -707,45 +723,70 @@ void SV_FlushRedirect (netadr_t adr, int dest, char *buf)
 		}
 	}
 
-void SV_EndRedirect (void)
+// [FWGS, 01.01.24]
+/*void SV_EndRedirect (void)*/
+void SV_EndRedirect (host_redirect_t *rd)
 	{
-	if (host.rd.lines > 0)
+	/*if (host.rd.lines > 0)
+	*/
+	if (rd->lines > 0)
 		return;
 
-	if (host.rd.flush)
-		host.rd.flush (host.rd.address, host.rd.target, host.rd.buffer);
+	/*if (host.rd.flush)
+		host.rd.flush (host.rd.address, host.rd.target, host.rd.buffer);*/
+	if (rd->flush)
+		rd->flush (rd->address, rd->target, rd->buffer);
 
-	host.rd.target = 0;
+	/*host.rd.target = 0;
 	host.rd.buffer = NULL;
 	host.rd.buffersize = 0;
-	host.rd.flush = NULL;
+	host.rd.flush = NULL;*/
+	rd->target = RD_NONE;
+	rd->buffer = NULL;
+	rd->buffersize = 0;
+	rd->flush = NULL;
 	}
 
 /*
 ================
-Rcon_Print
+Rcon_Print [FWGS, 01.01.24]
 
 Print message to rcon buffer and send to rcon redirect target
 ================
 */
-void Rcon_Print (const char *pMsg)
+/*void Rcon_Print (const char *pMsg)*/
+void Rcon_Print (host_redirect_t *rd, const char *pMsg)
 	{
-	if (host.rd.target && host.rd.lines && host.rd.flush && host.rd.buffer)
+	/*if (host.rd.target && host.rd.lines && host.rd.flush && host.rd.buffer)
 		{
-		size_t len = Q_strncat (host.rd.buffer, pMsg, host.rd.buffersize);
+		size_t len = Q_strncat (host.rd.buffer, pMsg, host.rd.buffersize);*/
+	size_t len;
 
-		if (len && (host.rd.buffer[len - 1] == '\n'))
-			{
-			host.rd.flush (host.rd.address, host.rd.target, host.rd.buffer);
+	/*if (len && (host.rd.buffer[len - 1] == '\n'))
+		{
+		host.rd.flush (host.rd.address, host.rd.target, host.rd.buffer);*/
+	if (!rd->target || !rd->lines || !rd->flush || !rd->buffer)
+		return;
 
-			if (host.rd.lines > 0)
-				host.rd.lines--;
+	/*if (host.rd.lines > 0)
+		host.rd.lines--;*/
+	len = Q_strncat (rd->buffer, pMsg, rd->buffersize);
 
-			host.rd.buffer[0] = 0;
+	/*host.rd.buffer[0] = 0;*/
+	if (len && (rd->buffer[len - 1] == '\n'))
+		{
+		rd->flush (rd->address, rd->target, rd->buffer);
 
-			if (!host.rd.lines)
-				Msg ("End of redirection!\n");
-			}
+		/*if (!host.rd.lines)
+			Msg ("End of redirection!\n");
+		}*/
+		if (rd->lines > 0)
+			rd->lines--;
+
+		rd->buffer[0] = 0;
+
+		if (!rd->lines)
+			Msg ("End of redirection!\n");
 		}
 	}
 
@@ -1060,7 +1101,7 @@ qboolean Rcon_Validate (void)
 
 /*
 ===============
-SV_RemoteCommand [FWGS, 01.07.23]
+SV_RemoteCommand [FWGS, 01.01.24]
 
 A client issued an rcon command.
 Shift down the remaining args
@@ -1084,7 +1125,8 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 
 	if (Rcon_Validate ())
 		{
-		SV_BeginRedirect (from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);
+		/*SV_BeginRedirect (from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);*/
+		SV_BeginRedirect (&host.rd, from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);
 		remaining[0] = 0;
 
 		// [FWGS, 01.05.23]
@@ -1096,7 +1138,8 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 			}
 		
 		Cmd_ExecuteString (remaining);
-		SV_EndRedirect ();
+		/*SV_EndRedirect ();*/
+		SV_EndRedirect (&host.rd);
 		}
 	else
 		{

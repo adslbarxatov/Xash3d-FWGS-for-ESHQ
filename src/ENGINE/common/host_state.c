@@ -57,6 +57,9 @@ void COM_NewGame (char const *pMapName)
 	GameState->landmarkName[0] = 0;
 	GameState->loadGame = false;
 	GameState->newGame = true;
+
+	// [FWGS, 01.01.24] exit from current game
+	SV_ShutdownGame ();
 	}
 
 void COM_LoadLevel (char const *pMapName, qboolean background)
@@ -74,6 +77,9 @@ void COM_LoadLevel (char const *pMapName, qboolean background)
 	GameState->landmarkName[0] = 0;
 	GameState->loadGame = false;
 	GameState->newGame = false;
+
+	// [FWGS, 01.01.24] exit from current game
+	SV_ShutdownGame ();
 	}
 
 void COM_LoadGame (char const *pMapName)

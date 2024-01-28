@@ -511,7 +511,9 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 #ifdef XASH_SDL
 	SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
 #endif
-	MSGBOX (message);
+	// [FWGS, 01.01.24]
+	/*MSGBOX (message);*/
+	Platform_MessageBox ("Xash Error", message, false);
 
 	// log saved, now we can try to save configs and close log correctly, it may crash
 	if (host.type == HOST_NORMAL)
