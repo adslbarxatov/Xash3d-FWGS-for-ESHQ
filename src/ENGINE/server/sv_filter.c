@@ -264,9 +264,7 @@ static void SV_ShutdownIDFilter (void)
 
 /*
 =============================================================================
-
 CLIENT IP FILTER
-
 =============================================================================
 */
 
@@ -280,8 +278,8 @@ typedef struct ipfilter_s
 	} ipfilter_t;
 static ipfilter_t *ipfilter = NULL;
 
-// [FWGS, 01.04.23]
-static void SV_CleanExpiredIPFilters (void)
+// [FWGS, 01.02.24]
+/*static void SV_CleanExpiredIPFilters (void)
 	{
 	ipfilter_t *f, **back;
 
@@ -304,12 +302,12 @@ static void SV_CleanExpiredIPFilters (void)
 			back = &f->next;
 			}
 		}
-	}
+	}*/
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.02.24]
 static int SV_FilterToString (char *dest, size_t size, qboolean config, ipfilter_t *f)
 	{
-	const char *strformat;
+	/*const char *strformat;*/
 
 	if (config)
 		return Q_snprintf (dest, size, "addip 0 %s/%d\n", NET_AdrToString (f->adr), f->prefixlen);
@@ -345,7 +343,8 @@ static void SV_RemoveIPFilter (ipfilter_t *toremove, qboolean removeAll, qboolea
 	while (1)
 		{
 		f = *back;
-		if (!f) return;
+		if (!f)
+			return;
 
 		if (SV_IPFilterIncludesIPFilter (toremove, f))
 			{
@@ -371,13 +370,16 @@ static void SV_RemoveIPFilter (ipfilter_t *toremove, qboolean removeAll, qboolea
 		}
 	}
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.02.24]
 qboolean SV_CheckIP (netadr_t *adr)
 	{
-	ipfilter_t *entry = ipfilter;
+	ipfilter_t	*entry = ipfilter;
 
 	for (; entry; entry = entry->next)
 		{
+		if (entry->endTime && (host.realtime > entry->endTime))
+			continue;	// expired
+
 		switch (entry->adr.type6)
 			{
 			case NA_IP:
@@ -608,8 +610,8 @@ void SV_ShutdownFilter (void)
 
 #include "tests.h"
 
-// [FWGS, 01.04.23]
-void Test_StringToFilterAdr (void)
+// [FWGS, 01.02.24]
+static void Test_StringToFilterAdr (void)
 	{
 	ipfilter_t f1;
 	int i;
@@ -678,8 +680,8 @@ void Test_StringToFilterAdr (void)
 				}
 	}
 
-// [FWGS, 01.04.23]
-void Test_IPFilterIncludesIPFilter (void)
+// [FWGS, 01.02.24]
+static void Test_IPFilterIncludesIPFilter (void)
 	{
 	qboolean ret;
 	const char *adrs[] =

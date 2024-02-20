@@ -46,18 +46,18 @@ qboolean R_SpeedsMessage (char *out, size_t size)
 
 /*
 ==============
-R_Speeds_Printf
+R_Speeds_Printf [FWGS, 01.02.24]
 
 helper to print into r_speeds message
 ==============
 */
-void R_Speeds_Printf (const char *msg, ...)
+static void R_Speeds_Printf (const char *msg, ...)
 	{
 	va_list	argptr;
 	char	text[2048];
 
 	va_start (argptr, msg);
-	Q_vsnprintf (text, sizeof (text), msg, argptr);	// [FWGS, 01.05.23]
+	Q_vsnprintf (text, sizeof (text), msg, argptr);
 	va_end (argptr);
 
 	Q_strncat (r_speeds_msg, text, sizeof (r_speeds_msg));

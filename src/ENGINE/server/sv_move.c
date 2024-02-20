@@ -435,9 +435,9 @@ qboolean SV_MoveTest (edict_t *ent, vec3_t move, qboolean relink)
 		}
 	}
 
-qboolean SV_StepDirection (edict_t *ent, float yaw, float dist)
+static qboolean SV_StepDirection (edict_t *ent, float yaw, float dist)
 	{
-	int	ret;
+	int		ret;
 	float	cSin, cCos;
 	vec3_t	move;
 
@@ -451,7 +451,7 @@ qboolean SV_StepDirection (edict_t *ent, float yaw, float dist)
 	return ret;
 	}
 
-qboolean SV_FlyDirection (edict_t *ent, vec3_t move)
+static qboolean SV_FlyDirection (edict_t *ent, vec3_t move)
 	{
 	int	ret;
 
@@ -461,7 +461,7 @@ qboolean SV_FlyDirection (edict_t *ent, vec3_t move)
 	return ret;
 	}
 
-void SV_NewChaseDir (edict_t *actor, vec3_t destination, float dist)
+static void SV_NewChaseDir (edict_t *actor, vec3_t destination, float dist)
 	{
 	float	deltax, deltay;
 	float	tempdir, olddir, turnaround;
@@ -477,41 +477,44 @@ void SV_NewChaseDir (edict_t *actor, vec3_t destination, float dist)
 		d[1] = 0.0f;
 	else if (deltax < -10.0f)
 		d[1] = 180.0f;
-	else d[1] = -1;
+	else
+		d[1] = -1;
 
 	if (deltay < -10.0f)
 		d[2] = 270.0f;
 	else if (deltay > 10.0f)
 		d[2] = 90.0f;
-	else d[2] = -1.0f;
+	else
+		d[2] = -1.0f;
 
 	// try direct route
 	if (d[1] != -1.0f && d[2] != -1.0f)
 		{
 		if (d[1] == 0.0f)
 			tempdir = (d[2] == 90.0f) ? 45.0f : 315.0f;
-		else tempdir = (d[2] == 90.0f) ? 135.0f : 215.0f;
+		else
+			tempdir = (d[2] == 90.0f) ? 135.0f : 215.0f;
 
-		if (tempdir != turnaround && SV_StepDirection (actor, tempdir, dist))
+		if ((tempdir != turnaround) && SV_StepDirection (actor, tempdir, dist))
 			return;
 		}
 
 	// try other directions
-	if (COM_RandomLong (0, 1) != 0 || fabs (deltay) > fabs (deltax))
+	if ((COM_RandomLong (0, 1) != 0) || (fabs (deltay) > fabs (deltax)))
 		{
 		tempdir = d[1];
 		d[1] = d[2];
 		d[2] = tempdir;
 		}
 
-	if (d[1] != -1.0f && d[1] != turnaround && SV_StepDirection (actor, d[1], dist))
+	if ((d[1] != -1.0f) && (d[1] != turnaround) && SV_StepDirection (actor, d[1], dist))
 		return;
 
-	if (d[2] != -1.0f && d[2] != turnaround && SV_StepDirection (actor, d[2], dist))
+	if ((d[2] != -1.0f) && (d[2] != turnaround) && SV_StepDirection (actor, d[2], dist))
 		return;
 
 	// there is no direct path to the player, so pick another direction
-	if (olddir != -1.0f && SV_StepDirection (actor, olddir, dist))
+	if ((olddir != -1.0f) && SV_StepDirection (actor, olddir, dist))
 		return;
 
 	// fine, just run somewhere.
@@ -519,7 +522,7 @@ void SV_NewChaseDir (edict_t *actor, vec3_t destination, float dist)
 		{
 		for (tempdir = 0; tempdir <= 315.0f; tempdir += 45.0f)
 			{
-			if (tempdir != turnaround && SV_StepDirection (actor, tempdir, dist))
+			if ((tempdir != turnaround) && SV_StepDirection (actor, tempdir, dist))
 				return;
 			}
 		}
@@ -527,13 +530,13 @@ void SV_NewChaseDir (edict_t *actor, vec3_t destination, float dist)
 		{
 		for (tempdir = 315.0f; tempdir >= 0.0f; tempdir -= 45.0f)
 			{
-			if (tempdir != turnaround && SV_StepDirection (actor, tempdir, dist))
+			if ((tempdir != turnaround) && SV_StepDirection (actor, tempdir, dist))
 				return;
 			}
 		}
 
 	// we tried. run backwards. that ought to work...
-	if (turnaround != -1.0f && SV_StepDirection (actor, turnaround, dist))
+	if ((turnaround != -1.0f) && SV_StepDirection (actor, turnaround, dist))
 		return;
 
 	// well, we're stuck somehow.

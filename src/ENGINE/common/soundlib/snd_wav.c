@@ -119,10 +119,10 @@ static void FindChunk (const char *filename, const char *name)
 StreamFindNextChunk
 ============
 */
-qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_chunk)
+static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_chunk)
 	{
 	char	chunkName[4];
-	int	iff_chunk_len;
+	int		iff_chunk_len;
 
 	while (1)
 		{

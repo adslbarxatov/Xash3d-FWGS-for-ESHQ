@@ -186,7 +186,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 #endif
 		}
 
-// ESHQ: спорная конструкция макроса, решили убрать
+	// ESHQ: спорная конструкция макроса, решили убрать
 
 	if (keynum >= (SDL_SCANCODE_A) && keynum <= (SDL_SCANCODE_Z))
 		{

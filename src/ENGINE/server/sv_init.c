@@ -29,6 +29,17 @@ server_static_t	svs;	// persistant server info
 svgame_static_t	svgame;	// persistant game info
 
 /*
+==================
+Host_SetServerState [FWGS, 01.02.24]
+==================
+*/
+static void Host_SetServerState (int state)
+	{
+	Cvar_FullSet ("host_serverstate", va ("%i", state), FCVAR_READ_ONLY);
+	sv.state = state;
+	}
+
+/*
 ================
 SV_AddResource
 
@@ -57,10 +68,10 @@ SV_SendSingleResource
 hot precache on a flying
 ================
 */
-void SV_SendSingleResource (const char *name, resourcetype_t type, int index, byte flags)
+static void SV_SendSingleResource (const char *name, resourcetype_t type, int index, byte flags)
 	{
-	resource_t *pResource = &sv.resources[sv.num_resources];
-	int		nSize = 0;
+	resource_t	*pResource = &sv.resources[sv.num_resources];
+	int			nSize = 0;
 
 	if (!COM_CheckString (name))
 		return;
@@ -70,9 +81,11 @@ void SV_SendSingleResource (const char *name, resourcetype_t type, int index, by
 		case t_model:
 			nSize = (name[0] != '*') ? FS_FileSize (name, false) : 0;
 			break;
+
 		case t_sound:
 			nSize = FS_FileSize (va (DEFAULT_SOUNDPATH "%s", name), false);
 			break;
+
 		default:
 			nSize = FS_FileSize (name, false);
 			break;
@@ -93,7 +106,7 @@ register unique model for a server and client
 int SV_ModelIndex (const char *filename)
 	{
 	char	name[MAX_QPATH];
-	int	i;
+	int		i;
 
 	if (!COM_CheckString (filename))
 		return 0;
@@ -138,7 +151,7 @@ register unique sound for client
 int GAME_EXPORT SV_SoundIndex (const char *filename)
 	{
 	char	name[MAX_QPATH];
-	int	i;
+	int		i;
 
 	if (!COM_CheckString (filename))
 		return 0;
@@ -189,7 +202,7 @@ register network event for a server and client
 int SV_EventIndex (const char *filename)
 	{
 	char	name[MAX_QPATH];
-	int	i;
+	int		i;
 
 	if (!COM_CheckString (filename))
 		return 0;
@@ -231,7 +244,7 @@ register generic resourse for a server and client
 int GAME_EXPORT SV_GenericIndex (const char *filename)
 	{
 	char	name[MAX_QPATH];
-	int	i;
+	int		i;
 
 	if (!COM_CheckString (filename))
 		return 0;
@@ -287,12 +300,38 @@ static resourcetype_t SV_DetermineResourceType (const char *filename)
 		return t_generic;
 	}
 
-// [FWGS, 01.05.23]
-void SV_ReadResourceList (const char *filename)
+// [FWGS, 01.02.24]
+/*void SV_ReadResourceList (const char *filename)*/
+static const char *SV_GetResourceTypeName (resourcetype_t restype)
+	{
+	switch (restype)
+		{
+		case t_decal:
+			return "decal";
+		case t_eventscript:
+			return "eventscript";
+		case t_generic:
+			return "generic";
+		case t_model:
+			return "model";
+		case t_skin:
+			return "skin";
+		case t_sound:
+			return "sound";
+		case t_world:
+			return "world";
+
+		default:
+			return "unknown";
+		}
+	}
+
+// [FWGS, 01.02.24]
+static void SV_ReadResourceList (const char *filename)
 	{
 	string	token;
-	byte *afile;
-	char *pfile;
+	byte	*afile;
+	char	*pfile;
 	resourcetype_t	restype;
 
 	afile = FS_LoadFile (filename, NULL, false);
@@ -311,7 +350,8 @@ void SV_ReadResourceList (const char *filename)
 
 		COM_FixSlashes (token);
 		restype = SV_DetermineResourceType (token);
-		Con_DPrintf ("  %s (%s)\n", token, COM_GetResourceTypeName (restype));
+		/*Con_DPrintf ("  %s (%s)\n", token, COM_GetResourceTypeName (restype));*/
+		Con_DPrintf (" %s (%s)\n", token, SV_GetResourceTypeName (restype));
 
 		switch (restype)
 			{
@@ -341,7 +381,7 @@ SV_CreateGenericResources
 loads external resource list
 ================
 */
-void SV_CreateGenericResources (void)
+static void SV_CreateGenericResources (void)
 	{
 	string	filename;
 
@@ -360,11 +400,11 @@ SV_CreateResourceList
 add resources to common list
 ================
 */
-void SV_CreateResourceList (void)
+static void SV_CreateResourceList (void)
 	{
 	qboolean	ffirstsent = false;
-	int	i, nSize;
-	char *s;
+	int			i, nSize;
+	char		*s;
 
 	sv.num_resources = 0;
 
@@ -425,7 +465,7 @@ void SV_CreateResourceList (void)
 SV_WriteVoiceCodec
 ================
 */
-void SV_WriteVoiceCodec (sizebuf_t *msg)
+static void SV_WriteVoiceCodec (sizebuf_t *msg)
 	{
 	MSG_BeginServerCmd (msg, svc_voiceinit);
 	MSG_WriteString (msg, VOICE_DEFAULT_CODEC);
@@ -443,7 +483,7 @@ baseline will be transmitted
 INTERNAL RESOURCE
 ================
 */
-void SV_CreateBaseline (void)
+static void SV_CreateBaseline (void)
 	{
 	entity_state_t	nullstate, *base;
 	int		playermodel;
@@ -551,8 +591,8 @@ remove immediate entities
 */
 void SV_FreeOldEntities (void)
 	{
-	edict_t *ent;
-	int	i;
+	edict_t	*ent;
+	int		i;
 
 	// at end of frame kill all entities which supposed to it
 	for (i = svs.maxclients + 1; i < svgame.numEntities; i++)
@@ -577,10 +617,10 @@ activate server on changed map, run physics
 */
 void SV_ActivateServer (int runPhysics)
 	{
-	int		i, numFrames;
+	int			i, numFrames;
 	byte		msg_buf[MAX_INIT_MSG];
-	sizebuf_t		msg;
-	sv_client_t *cl;
+	sizebuf_t	msg;
+	sv_client_t	*cl;
 
 	if (!svs.initialized)
 		return;
@@ -779,7 +819,7 @@ SV_SetupClients
 determine the game type and prepare clients
 ================
 */
-void SV_SetupClients (void)
+static void SV_SetupClients (void)
 	{
 	qboolean	changed_maxclients = false;
 
@@ -813,6 +853,7 @@ void SV_SetupClients (void)
 
 	// feedback for cvar
 	Cvar_FullSet ("maxplayers", va ("%d", svs.maxclients), FCVAR_LATCH);
+
 #if XASH_LOW_MEMORY != 2
 	SV_UPDATE_BACKUP = (svs.maxclients == 1) ? SINGLEPLAYER_BACKUP : MULTIPLAYER_BACKUP;
 #endif
@@ -831,12 +872,13 @@ void SV_SetupClients (void)
 qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer)
 	{
 	char	headbuf[1024], buffer[1024];
-	int	i, num_bytes, lumplen;
-	int	version, hdr_size;
-	dheader_t *header;
-	file_t *f;
+	int		i, num_bytes, lumplen;
+	int		version, hdr_size;
+	dheader_t	*header;
+	file_t	*f;
 
-	if (!crcvalue) return false;
+	if (!crcvalue)
+		return false;
 
 	// always calc same checksum for singleplayer
 	if (multiplayer == false)
@@ -846,7 +888,8 @@ qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multipla
 		}
 
 	f = FS_Open (filename, "rb", false);
-	if (!f) return false;
+	if (!f)
+		return false;
 
 	// read version number
 	FS_Read (f, &version, sizeof (int));
@@ -871,6 +914,7 @@ qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multipla
 		case HLBSP_VERSION:
 		case QBSP2_VERSION:
 			break;
+
 		default:
 			FS_Close (f);
 			return false;
@@ -897,12 +941,12 @@ qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multipla
 				}
 
 			// file unexpected end ?
-			if (FS_Eof (f)) break;
+			if (FS_Eof (f))
+				break;
 			}
 		}
 
 	FS_Close (f);
-
 	return 1;
 	}
 
@@ -913,11 +957,11 @@ SV_GenerateTestPacket [FWGS, 01.07.23]
 */
 static void SV_GenerateTestPacket (void)
 	{
-	const int maxsize = FRAGMENT_MAX_SIZE;
-	uint32_t crc;
-	file_t *file;
-	byte *filepos;
-	int i, filesize;
+	const int	maxsize = FRAGMENT_MAX_SIZE;
+	uint32_t	crc;
+	file_t		*file;
+	byte		*filepos;
+	int			i, filesize;
 
 	// testpacket already generated once, exit
 	// testpacket and lookup table takes ~300k of memory

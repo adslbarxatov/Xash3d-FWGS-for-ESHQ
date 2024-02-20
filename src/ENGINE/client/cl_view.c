@@ -29,11 +29,11 @@ V_CalcViewRect
 calc frame rectangle (Quake1 style)
 ===============
 */
-void V_CalcViewRect (void)
+static void V_CalcViewRect (void)
 	{
 	qboolean	full = false;
-	int	sb_lines;
-	float	size;
+	int			sb_lines;
+	float		size;
 
 	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
 		{
@@ -47,7 +47,8 @@ void V_CalcViewRect (void)
 			sb_lines = 0;		// no status bar at all
 		else if (size >= 110.0f)
 			sb_lines = 24;		// no inventory
-		else sb_lines = 48;
+		else
+			sb_lines = 48;
 
 		if (scr_viewsize.value >= 100.0f)
 			{
@@ -95,10 +96,10 @@ void V_CalcViewRect (void)
 V_SetupViewModel
 ===============
 */
-void V_SetupViewModel (void)
+static void V_SetupViewModel (void)
 	{
-	cl_entity_t *view = &clgame.viewent;
-	player_info_t *info = &cl.players[cl.playernum];
+	cl_entity_t		*view = &clgame.viewent;
+	player_info_t	*info = &cl.players[cl.playernum];
 
 	if (!cl.local.weaponstarttime)
 		cl.local.weaponstarttime = cl.time;
@@ -125,7 +126,7 @@ void V_SetupViewModel (void)
 V_SetRefParams
 ===============
 */
-void V_SetRefParams (ref_params_t *fd)
+static void V_SetRefParams (ref_params_t *fd)
 	{
 	memset (fd, 0, sizeof (ref_params_t));
 
@@ -192,12 +193,12 @@ V_MergeOverviewRefdef
 merge refdef with overview settings
 ===============
 */
-void V_RefApplyOverview (ref_viewpass_t *rvp)
+static void V_RefApplyOverview (ref_viewpass_t *rvp)
 	{
-	ref_overview_t *ov = &clgame.overView;
-	float		aspect;
-	float		size_x, size_y;
-	vec2_t		mins, maxs;
+	ref_overview_t	*ov = &clgame.overView;
+	float	aspect;
+	float	size_x, size_y;
+	vec2_t	mins, maxs;
 
 	if (!CL_IsDevOverviewMode ())
 		return;
@@ -291,7 +292,7 @@ static void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, 
 V_GetRefParams
 =============
 */
-void V_GetRefParams (ref_params_t *fd, ref_viewpass_t *rvp)
+static void V_GetRefParams (ref_params_t *fd, ref_viewpass_t *rvp)
 	{
 	// part1: deniable updates
 	VectorCopy (fd->simvel, cl.simvel);
@@ -417,7 +418,7 @@ void V_RenderView (void)
 #define NODE_INTERVAL_X(x)	(x * 16.0f)
 #define NODE_INTERVAL_Y(x)	(x * 16.0f)
 
-void R_DrawLeafNode (float x, float y, float scale)
+static void R_DrawLeafNode (float x, float y, float scale)
 	{
 	float downScale = scale * 0.25f;// * POINT_SIZE;
 
@@ -425,7 +426,7 @@ void R_DrawLeafNode (float x, float y, float scale)
 		0, 0, 1, 1, R_GetBuiltinTexture (REF_PARTICLE_TEXTURE));
 	}
 
-void R_DrawNodeConnection (float x, float y, float x2, float y2)
+static void R_DrawNodeConnection (float x, float y, float x2, float y2)
 	{
 	ref.dllFuncs.Begin (TRI_LINES);
 	ref.dllFuncs.Vertex3f (x, y, 0);
@@ -433,7 +434,7 @@ void R_DrawNodeConnection (float x, float y, float x2, float y2)
 	ref.dllFuncs.End ();
 	}
 
-void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int shownodes, mleaf_t *viewleaf)
+static void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int shownodes, mleaf_t *viewleaf)
 	{
 	float	downScale = scale * 0.8f;
 
@@ -456,7 +457,8 @@ void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int shownodes, 
 				ref.dllFuncs.Color4f (1.0f, 1.0f, 1.0f, 1.0f);
 			else if (viewleaf && viewleaf == leaf)
 				ref.dllFuncs.Color4f (1.0f, 0.0f, 0.0f, 1.0f);
-			else ref.dllFuncs.Color4f (0.0f, 1.0f, 0.0f, 1.0f);
+			else
+				ref.dllFuncs.Color4f (0.0f, 1.0f, 0.0f, 1.0f);
 			R_DrawLeafNode (x, y, scale);
 			}
 		world.recursion_level--;
@@ -480,11 +482,11 @@ void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int shownodes, 
 	world.recursion_level--;
 	}
 
-void R_ShowTree (void)
+static void R_ShowTree (void)
 	{
 	float	x = (float)((refState.width - (int)POINT_SIZE) >> 1);
 	float	y = NODE_INTERVAL_Y (1.0f);
-	mleaf_t *viewleaf;
+	mleaf_t	*viewleaf;
 
 	// [FWGS, 01.07.23]
 	if (!cl.worldmodel || !r_showtree.value)

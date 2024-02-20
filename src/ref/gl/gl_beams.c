@@ -365,9 +365,9 @@ R_DrawTorus
 Draw beamtours
 ================
 */
-void R_DrawTorus (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
+static void R_DrawTorus (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
 	{
-	int	i, noiseIndex, noiseStep;
+	int		i, noiseIndex, noiseStep;
 	float	div, length, fraction, factor, vLast, vStep;
 	vec3_t	last1, last2, point, screen, screenLast, tmp, normal;
 
@@ -378,7 +378,8 @@ void R_DrawTorus (vec3_t source, vec3_t delta, float width, float scale, float f
 		segments = NOISE_DIVISIONS;
 
 	length = VectorLength (delta) * 0.01f;
-	if (length < 0.5f) length = 0.5f; // don't lose all of the noise/texture on short beams
+	if (length < 0.5f)
+		length = 0.5f; // don't lose all of the noise/texture on short beams
 
 	div = 1.0f / (segments - 1);
 
@@ -454,12 +455,12 @@ R_DrawDisk
 Draw beamdisk
 ================
 */
-void R_DrawDisk (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
+static void R_DrawDisk (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
 	{
 	float	div, length, fraction;
 	float	w, vLast, vStep;
 	vec3_t	point;
-	int	i;
+	int		i;
 
 	if (segments < 2)
 		return;
@@ -468,7 +469,8 @@ void R_DrawDisk (vec3_t source, vec3_t delta, float width, float scale, float fr
 		segments = NOISE_DIVISIONS;
 
 	length = VectorLength (delta) * 0.01f;
-	if (length < 0.5f) length = 0.5f;	// don't lose all of the noise/texture on short beams
+	if (length < 0.5f)
+		length = 0.5f;	// don't lose all of the noise/texture on short beams
 
 	div = 1.0f / (segments - 1);
 	vStep = length * div;		// Texture length texels per space pixel
@@ -512,12 +514,12 @@ R_DrawCylinder
 Draw beam cylinder
 ================
 */
-void R_DrawCylinder (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
+static void R_DrawCylinder (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
 	{
 	float	div, length, fraction;
 	float	vLast, vStep;
 	vec3_t	point;
-	int	i;
+	int		i;
 
 	if (segments < 2)
 		return;
@@ -526,7 +528,8 @@ void R_DrawCylinder (vec3_t source, vec3_t delta, float width, float scale, floa
 		segments = NOISE_DIVISIONS;
 
 	length = VectorLength (delta) * 0.01f;
-	if (length < 0.5f) length = 0.5f;	// don't lose all of the noise/texture on short beams
+	if (length < 0.5f)
+		length = 0.5f;	// don't lose all of the noise/texture on short beams
 
 	div = 1.0f / (segments - 1);
 	vStep = length * div;		// texture length texels per space pixel
@@ -569,9 +572,9 @@ R_DrawBeamFollow
 drawi followed beam
 ==============
 */
-void R_DrawBeamFollow (BEAM *pbeam, float frametime)
+static void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 	{
-	particle_t *pnew, *particles;
+	particle_t	*pnew, *particles;
 	float		fraction, div, vLast, vStep;
 	vec3_t		last1, last2, tmp, screen;
 	vec3_t		delta, screenLast, normal;
@@ -723,9 +726,9 @@ R_DrawRing
 Draw beamring
 ================
 */
-void R_DrawRing (vec3_t source, vec3_t delta, float width, float amplitude, float freq, float speed, int segments)
+static void R_DrawRing (vec3_t source, vec3_t delta, float width, float amplitude, float freq, float speed, int segments)
 	{
-	int	i, j, noiseIndex, noiseStep;
+	int		i, j, noiseIndex, noiseStep;
 	float	div, length, fraction, factor, vLast, vStep;
 	vec3_t	last1, last2, point, screen, screenLast;
 	vec3_t	tmp, normal, center, xaxis, yaxis;
@@ -741,7 +744,8 @@ void R_DrawRing (vec3_t source, vec3_t delta, float width, float amplitude, floa
 		segments = NOISE_DIVISIONS * 8;
 
 	length = VectorLength (delta) * 0.01f * M_PI_F;
-	if (length < 0.5f) length = 0.5f;		// Don't lose all of the noise/texture on short beams
+	if (length < 0.5f)
+		length = 0.5f;		// Don't lose all of the noise/texture on short beams
 
 	div = 1.0f / (segments - 1);
 
@@ -830,7 +834,7 @@ void R_DrawRing (vec3_t source, vec3_t delta, float width, float amplitude, floa
 		noiseIndex += noiseStep;
 		j--;
 
-		if (j == 0 && amplitude != 0)
+		if ((j == 0) && (amplitude != 0))
 			{
 			j = segments / 8;
 			FracNoise (rgNoise, NOISE_DIVISIONS);
@@ -847,14 +851,15 @@ compute attachment point for beam
 */
 static qboolean R_BeamComputePoint (int beamEnt, vec3_t pt)
 	{
-	cl_entity_t *ent;
-	int		attach;
+	cl_entity_t	*ent;
+	int			attach;
 
 	ent = gEngfuncs.R_BeamGetEntity (beamEnt);
 
 	if (beamEnt < 0)
 		attach = BEAMENT_ATTACHMENT (-beamEnt);
-	else attach = BEAMENT_ATTACHMENT (beamEnt);
+	else
+		attach = BEAMENT_ATTACHMENT (beamEnt);
 
 	if (!ent)
 		{
@@ -884,10 +889,10 @@ static qboolean R_BeamComputePoint (int beamEnt, vec3_t pt)
 ==============
 R_BeamRecomputeEndpoints
 
-Recomputes beam endpoints..
+Recomputes beam endpoints
 ==============
 */
-qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
+static qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
 	{
 	if (FBitSet (pbeam->flags, FBEAM_STARTENTITY))
 		{
@@ -937,12 +942,12 @@ qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
 
 /*
 ==============
-R_BeamDraw [FWGS, 01.01.24]
+R_BeamDraw [FWGS, 01.02.24]
 
 Update beam vars and draw it
 ==============
 */
-void R_BeamDraw (BEAM *pbeam, float frametime)
+static void R_BeamDraw (BEAM *pbeam, float frametime)
 	{
 	model_t	*model;
 	vec3_t	delta;
@@ -969,7 +974,7 @@ void R_BeamDraw (BEAM *pbeam, float frametime)
 		rgNoise[NOISE_DIVISIONS] = 0;
 		}
 
-	if (pbeam->amplitude != 0 && frametime != 0.0f)
+	if ((pbeam->amplitude != 0) && (frametime != 0.0f))
 		{
 		if (FBitSet (pbeam->flags, FBEAM_SINENOISE))
 			SineNoise (rgNoise, NOISE_DIVISIONS);
@@ -1210,7 +1215,7 @@ R_BeamDrawCustomEntity
 initialize beam from server entity
 ==============
 */
-void R_BeamDrawCustomEntity (cl_entity_t *ent)
+static void R_BeamDrawCustomEntity (cl_entity_t *ent)
 	{
 	BEAM	beam;
 	float	amp = ent->curstate.body / 100.0f;
@@ -1279,7 +1284,6 @@ void R_BeamDrawCustomEntity (cl_entity_t *ent)
 	R_BeamDraw (&beam, tr.frametime);
 	}
 
-
 /*
 ==============
 CL_DrawBeams
@@ -1289,8 +1293,8 @@ draw beam loop
 */
 void CL_DrawBeams (int fTrans, BEAM *active_beams)
 	{
-	BEAM *pBeam;
-	int	i, flags;
+	BEAM	*pBeam;
+	int		i, flags;
 
 	pglShadeModel (GL_SMOOTH);
 	pglDepthMask (fTrans ? GL_FALSE : GL_TRUE);

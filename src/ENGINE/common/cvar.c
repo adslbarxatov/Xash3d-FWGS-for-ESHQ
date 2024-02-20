@@ -197,9 +197,9 @@ Cvar_ValidateString
 deal with userinfo etc
 ============
 */
-const char *Cvar_ValidateString (convar_t *var, const char *value)
+static const char *Cvar_ValidateString (convar_t *var, const char *value)
 	{
-	const char *pszValue;
+	const char	*pszValue;
 	static char	szNew[MAX_STRING];
 
 	pszValue = value;
@@ -280,11 +280,11 @@ Cvar_UnlinkVar
 unlink the variable
 ============
 */
-int Cvar_UnlinkVar (const char *var_name, int group)
+static int Cvar_UnlinkVar (const char *var_name, int group)
 	{
-	int	count = 0;
-	convar_t **prev;
-	convar_t *var;
+	int			count = 0;
+	convar_t	**prev;
+	convar_t	*var;
 
 	prev = &cvar_vars;
 
@@ -704,7 +704,7 @@ Cvar_DirectSet
 way to change value for many cvars
 ============
 */
-void Cvar_DirectSet (convar_t *var, const char *value)
+void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	{
 	const char *pszValue;
 
@@ -1130,7 +1130,7 @@ Cvar_Toggle_f
 Toggles a cvar for easy single key binding
 ============
 */
-void Cvar_Toggle_f (void)
+static void Cvar_Toggle_f (void)
 	{
 	int	v;
 
@@ -1154,9 +1154,9 @@ Allows setting and defining of arbitrary cvars from console, even if they
 weren't declared in C code
 ============
 */
-void Cvar_Set_f (void)
+static void Cvar_Set_f (void)
 	{
-	int	i, c, l = 0, len;
+	int		i, c, l = 0, len;
 	char	combined[MAX_CMD_TOKENS];
 
 	c = Cmd_Argc ();
@@ -1186,15 +1186,13 @@ void Cvar_Set_f (void)
 
 /*
 ============
-Cvar_SetGL_f [FWGS, 01.01.24]
+Cvar_SetGL_f [FWGS, 01.02.24]
 
 As Cvar_Set, but also flags it as glconfig
 ============
 */
-void Cvar_SetGL_f (void)
+static void Cvar_SetGL_f (void)
 	{
-	/*convar_t *var;*/
-
 	if (Cmd_Argc () != 3)
 		{
 		Con_Printf (S_USAGE "setgl <variable> <value>\n");
@@ -1209,7 +1207,7 @@ void Cvar_SetGL_f (void)
 Cvar_Reset_f
 ============
 */
-void Cvar_Reset_f (void)
+static void Cvar_Reset_f (void)
 	{
 	if (Cmd_Argc () != 2)
 		{
@@ -1222,13 +1220,13 @@ void Cvar_Reset_f (void)
 
 /*
 ============
-Cvar_List_f [FWGS, 01.04.23]
+Cvar_List_f [FWGS, 01.02.24]
 ============
 */
-void Cvar_List_f (void)
+static void Cvar_List_f (void)
 	{
-	convar_t *var;
-	const char *match = NULL;
+	convar_t	*var;
+	const char	*match = NULL;
 	int			count = 0;
 	size_t		matchlen = 0;
 

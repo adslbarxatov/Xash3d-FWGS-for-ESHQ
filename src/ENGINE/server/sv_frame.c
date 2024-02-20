@@ -52,19 +52,19 @@ static int SV_EntityNumbers (const void *a, const void *b)
 /*
 =============
 SV_AddEntitiesToPacket
-
 =============
 */
-static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_frame_t *frame, sv_ents_t *ents, qboolean from_client)
+static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_frame_t *frame,
+	sv_ents_t *ents, qboolean from_client)
 	{
-	edict_t *ent;
-	byte *clientpvs;
-	byte *clientphs;
-	qboolean		fullvis = false;
-	sv_client_t *cl = NULL;
-	qboolean		player;
-	entity_state_t *state;
-	int		e;
+	edict_t		*ent;
+	byte		*clientpvs;
+	byte		*clientphs;
+	qboolean	fullvis = false;
+	sv_client_t	*cl = NULL;
+	qboolean	player;
+	entity_state_t	*state;
+	int			e;
 
 	// during an error shutdown message we may need to transmit
 	// the shutdown message after the server has shutdown, so
@@ -168,9 +168,7 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 
 /*
 =============================================================================
-
 Encode a client frame onto the network channel
-
 =============================================================================
 */
 /*
@@ -180,7 +178,8 @@ SV_FindBestBaseline
 trying to deltas with previous entities
 =============
 */
-int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **baseline, entity_state_t *to, client_frame_t *frame, qboolean player)
+static int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **baseline, entity_state_t *to,
+	client_frame_t *frame, qboolean player)
 	{
 	int	bestBitCount;
 	int	i, bitCount;
@@ -190,7 +189,7 @@ int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **baseline, 
 	bestfound = index;
 
 	// lookup backward for previous 64 states and try to interpret current delta as baseline
-	for (i = index - 1; bestBitCount > 0 && i >= 0 && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)
+	for (i = index - 1; (bestBitCount > 0) && (i >= 0) && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)
 		{
 		// don't worry about underflow in circular buffer
 		entity_state_t *test = &svs.packet_entities[(frame->first_entity + i) % svs.num_client_entities];
@@ -512,14 +511,13 @@ static void SV_EmitEvents (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 /*
 =============
 SV_EmitPings
-
 =============
 */
-void SV_EmitPings (sizebuf_t *msg)
+static void SV_EmitPings (sizebuf_t *msg)
 	{
-	sv_client_t *cl;
-	int		packet_loss;
-	int		i, ping;
+	sv_client_t	*cl;
+	int			packet_loss;
+	int			i, ping;
 
 	MSG_BeginServerCmd (msg, svc_pings);
 
@@ -544,18 +542,17 @@ void SV_EmitPings (sizebuf_t *msg)
 /*
 ==================
 SV_WriteClientdataToMessage
-
 ==================
 */
-void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
+static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 	{
 	clientdata_t	nullcd;
-	clientdata_t *from_cd, *to_cd;
+	clientdata_t	*from_cd, *to_cd;
 	weapon_data_t	nullwd;
-	weapon_data_t *from_wd, *to_wd;
-	client_frame_t *frame;
-	edict_t *clent;
-	int		i;
+	weapon_data_t	*from_wd, *to_wd;
+	client_frame_t	*frame;
+	edict_t			*clent;
+	int				i;
 
 	memset (&nullcd, 0, sizeof (nullcd));
 	frame = &cl->frames[cl->netchan.outgoing_sequence & SV_UPDATE_MASK];
@@ -576,6 +573,7 @@ void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 			MSG_BeginServerCmd (msg, svc_setangle);
 			MSG_WriteVec3Angles (msg, clent->v.angles);
 			break;
+
 		case 2:
 			MSG_BeginServerCmd (msg, svc_addangle);
 			MSG_WriteBitAngle (msg, clent->v.avelocity[YAW], 16);
@@ -593,8 +591,10 @@ void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 	MSG_BeginServerCmd (msg, svc_clientdata);
 	if (FBitSet (cl->flags, FCL_HLTV_PROXY)) return;	// don't send more nothing
 
-	if (cl->delta_sequence == -1) from_cd = &nullcd;
-	else from_cd = &cl->frames[cl->delta_sequence & SV_UPDATE_MASK].clientdata;
+	if (cl->delta_sequence == -1)
+		from_cd = &nullcd;
+	else
+		from_cd = &cl->frames[cl->delta_sequence & SV_UPDATE_MASK].clientdata;
 	to_cd = &frame->clientdata;
 
 	if (cl->delta_sequence == -1)
@@ -616,8 +616,10 @@ void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 
 		for (i = 0; i < MAX_LOCAL_WEAPONS; i++)
 			{
-			if (cl->delta_sequence == -1) from_wd = &nullwd;
-			else from_wd = &cl->frames[cl->delta_sequence & SV_UPDATE_MASK].weapondata[i];
+			if (cl->delta_sequence == -1)
+				from_wd = &nullwd;
+			else
+				from_wd = &cl->frames[cl->delta_sequence & SV_UPDATE_MASK].weapondata[i];
 			to_wd = &frame->weapondata[i];
 
 			MSG_WriteWeaponData (msg, from_wd, to_wd, sv.time, i);
@@ -631,13 +633,12 @@ void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 /*
 ==================
 SV_WriteEntitiesToClient
-
 ==================
 */
-void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
+static void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 	{
-	client_frame_t *frame;
-	entity_state_t *state;
+	client_frame_t		*frame;
+	entity_state_t		*state;
 	static sv_ents_t	frame_ents;
 	int		i, send_pings;
 
@@ -696,9 +697,7 @@ void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 
 /*
 ===============================================================================
-
 FRAME UPDATES
-
 ===============================================================================
 */
 /*
@@ -706,9 +705,9 @@ FRAME UPDATES
 SV_SendClientDatagram
 =======================
 */
-void SV_SendClientDatagram (sv_client_t *cl)
+static void SV_SendClientDatagram (sv_client_t *cl)
 	{
-	byte	msg_buf[MAX_DATAGRAM];
+	byte		msg_buf[MAX_DATAGRAM];
 	sizebuf_t	msg;
 
 	memset (msg_buf, 0, sizeof (msg_buf));	// [FWGS, 01.04.23]
@@ -753,7 +752,7 @@ void SV_SendClientDatagram (sv_client_t *cl)
 SV_UpdateUserInfo
 =======================
 */
-void SV_UpdateUserInfo (sv_client_t *cl)
+static void SV_UpdateUserInfo (sv_client_t *cl)
 	{
 	SV_FullClientUpdate (cl, &sv.reliable_datagram);
 	ClearBits (cl->flags, FCL_RESEND_USERINFO);
@@ -765,16 +764,16 @@ void SV_UpdateUserInfo (sv_client_t *cl)
 SV_UpdateToReliableMessages
 =======================
 */
-void SV_UpdateToReliableMessages (void)
+static void SV_UpdateToReliableMessages (void)
 	{
-	sv_client_t *cl;
-	int		i;
+	sv_client_t	*cl;
+	int			i;
 
 	// check for changes to be sent over the reliable streams to all clients
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
-		if (!cl->edict) continue;	// not in game yet
-
+		if (!cl->edict)
+			continue;	// not in game yet
 		if (cl->state != cs_spawned)
 			continue;
 
@@ -808,7 +807,7 @@ void SV_UpdateToReliableMessages (void)
 	// now send the reliable and server datagrams to all clients.
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
-		if (cl->state < cs_connected || FBitSet (cl->flags, FCL_FAKECLIENT))
+		if ((cl->state < cs_connected) || FBitSet (cl->flags, FCL_FAKECLIENT))
 			continue;	// reliables go to all connected or spawned
 
 		if (MSG_GetNumBytesWritten (&sv.reliable_datagram) < MSG_GetNumBytesLeft (&cl->netchan.message))
@@ -823,11 +822,12 @@ void SV_UpdateToReliableMessages (void)
 			{
 			if (MSG_GetNumBytesWritten (&sv.spec_datagram) < MSG_GetNumBytesLeft (&cl->datagram))
 				MSG_WriteBits (&cl->datagram, MSG_GetBuf (&sv.spec_datagram), MSG_GetNumBitsWritten (&sv.spec_datagram));
-			else Con_DPrintf (S_WARN "Ignoring spectator datagram for %s, would overflow\n", cl->name);
+			else
+				Con_DPrintf (S_WARN "Ignoring spectator datagram for %s, would overflow\n", cl->name);
 			}
 		}
 
-	// now clear the reliable and datagram buffers.
+	// now clear the reliable and datagram buffers
 	MSG_Clear (&sv.reliable_datagram);
 	MSG_Clear (&sv.spec_datagram);
 	MSG_Clear (&sv.datagram);

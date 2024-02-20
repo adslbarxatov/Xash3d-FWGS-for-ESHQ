@@ -79,8 +79,8 @@ static CVAR_DEFINE_AUTO (host_sleeptime_debug, "0", 0,
 CVAR_DEFINE (con_gamemaps, "con_mapfilter", "1", FCVAR_ARCHIVE,
 	"when true show only maps in game folder");
 
-// [FWGS, 01.05.23]
-void Sys_PrintUsage (void)
+// [FWGS, 01.02.24]
+static void Sys_PrintUsage (void)
 	{
 	string version_str;
 	const char *usage_str;
@@ -205,11 +205,8 @@ void Host_ShutdownServer (void)
 Host_PrintEngineFeatures [FWGS, 01.01.24]
 ================
 */
-/*void Host_PrintEngineFeatures (void)*/
 static void Host_PrintEngineFeatures (int features)
 	{
-	/*if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
-		Con_Reportf ("^3EXT:^7 big world support enabled\n");*/
 	struct
 		{
 		uint32_t mask;
@@ -229,20 +226,12 @@ static void Host_PrintEngineFeatures (int features)
 			};
 		int i;
 
-	/*if (FBitSet (host.features, ENGINE_LOAD_DELUXEDATA))
-		Con_Reportf ("^3EXT:^7 deluxemap support enabled\n");*/
 		for (i = 0; i < ARRAYSIZE (features_str); i++)
 			{
 			if (FBitSet (features, features_str[i].mask))
 				Con_Reportf ("^3EXT:^7 %s is enabled\n", features_str[i].msg);
 			}
 	}
-
-/*if (FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT))
-	Con_Reportf ("^3EXT:^7 Improved MOVETYPE_PUSH is used\n");*/
-
-/*if (FBitSet (host.features, ENGINE_LARGE_LIGHTMAPS))
-	Con_Reportf ("^3EXT:^7 Large lightmaps enabled\n");*/
 
 /*
 ==============
@@ -267,10 +256,7 @@ void Host_ValidateEngineFeatures (uint32_t features)
 	if (!Q_stricmp (GI->gamefolder, "cstrike") || !Q_stricmp (GI->gamefolder, "czero"))
 		SetBits (features, ENGINE_STEP_POSHISTORY_LERP);
 
-	/*if (FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
-		Con_Reportf ("^3EXT:^7 Compensate quake bug enabled\n");*/
-
-		// print requested first
+	// print requested first
 	Host_PrintEngineFeatures (features);
 
 	// now warn about incompatible bits
@@ -378,7 +364,7 @@ static int Host_CalcSleep (void)
 	return host_sleeptime.value;
 	}
 
-void Host_NewInstance (const char *name, const char *finalmsg)
+static void Host_NewInstance (const char *name, const char *finalmsg)
 	{
 	if (!pChangeGame)
 		return;
@@ -397,7 +383,7 @@ Host_ChangeGame_f
 Change game modification
 =================
 */
-void Host_ChangeGame_f (void)
+static void Host_ChangeGame_f (void)
 	{
 	int	i;
 
@@ -437,13 +423,13 @@ void Host_ChangeGame_f (void)
 Host_Exec_f
 ===============
 */
-void Host_Exec_f (void)
+static void Host_Exec_f (void)
 	{
-	string cfgpath;
-	byte *f;
-	char *txt;
+	string		cfgpath;
+	byte		*f;
+	char		*txt;
 	fs_offset_t	len;
-	const char *arg;
+	const char	*arg;
 
 	if (Cmd_Argc () != 2)
 		{
@@ -524,7 +510,7 @@ void Host_Exec_f (void)
 Host_MemStats_f
 ===============
 */
-void Host_MemStats_f (void)
+static void Host_MemStats_f (void)
 	{
 	switch (Cmd_Argc ())
 		{
@@ -544,10 +530,11 @@ void Host_MemStats_f (void)
 		}
 	}
 
-void Host_Minimize_f (void)
+static void Host_Minimize_f (void)
 	{
 #ifdef XASH_SDL
-	if (host.hWnd) SDL_MinimizeWindow (host.hWnd);
+	if (host.hWnd)
+		SDL_MinimizeWindow (host.hWnd);
 #endif
 	}
 
@@ -580,10 +567,10 @@ qboolean Host_IsLocalClient (void)
 Host_RegisterDecal
 =================
 */
-qboolean Host_RegisterDecal (const char *name, int *count)
+static qboolean Host_RegisterDecal (const char *name, int *count)
 	{
 	char	shortname[MAX_QPATH];
-	int	i;
+	int		i;
 
 	if (!COM_CheckString (name))
 		return 0;
@@ -614,10 +601,10 @@ qboolean Host_RegisterDecal (const char *name, int *count)
 Host_InitDecals
 =================
 */
-void Host_InitDecals (void)
+static void Host_InitDecals (void)
 	{
-	int	i, num_decals = 0;
-	search_t *t;
+	int			i, num_decals = 0;
+	search_t	*t;
 
 	// NOTE: only once resource without which engine can't continue work
 	if (!FS_FileExists ("gfx/conchars", false))
@@ -634,7 +621,8 @@ void Host_InitDecals (void)
 			break;
 		}
 
-	if (t) Mem_Free (t);
+	if (t)
+		Mem_Free (t);
 	Con_Reportf ("InitDecals: %i decals\n", num_decals);
 	}
 
@@ -645,7 +633,7 @@ Host_GetCommands
 Add them exactly as if they had been typed at the console
 ===================
 */
-void Host_GetCommands (void)
+static void Host_GetCommands (void)
 	{
 	char *cmd;
 
@@ -663,7 +651,7 @@ Host_CalcFPS
 compute actual FPS for various modes
 ===================
 */
-double Host_CalcFPS (void)
+static double Host_CalcFPS (void)
 	{
 	// ESHQ: при отмене vid_displayfrequency нулевое значение приводило к сбою в дальнейшем расчёте
 	// (для ГП IntelGPU). Но на nVidia оказалось, что установка значения 60 приводит к рваной картинке
@@ -703,15 +691,6 @@ double Host_CalcFPS (void)
 
 	return fps;
 	}
-
-/*
-===================
-Host_FilterTime [FWGS, 01.04.23]
-
-Returns false if the time is too short to run a frame
-===================
-//
-qboolean Host_FilterTime (float time)*/
 
 // [FWGS, 01.01.24]
 static qboolean Host_Autosleep (double dt, double scale)
@@ -837,7 +816,7 @@ Host_FilterTime [FWGS, 01.01.24]
 Returns false if the time is too short to run a frame
 ===================
 */
-qboolean Host_FilterTime (float time)
+static qboolean Host_FilterTime (float time)
 	{
 	static double oldtime;
 	double dt;
@@ -967,7 +946,7 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	Host_AbortCurrentFrame ();
 	}
 
-void Host_Error_f (void)
+static void Host_Error_f (void)
 	{
 	const char *error = Cmd_Argv (1);
 
@@ -976,7 +955,7 @@ void Host_Error_f (void)
 	Host_Error ("%s\n", error);
 	}
 
-void Sys_Error_f (void)
+static void Sys_Error_f (void)
 	{
 	const char *error = Cmd_Argv (1);
 
@@ -1000,10 +979,10 @@ static void Host_Crash_f (void)
 Host_Userconfigd_f
 =================
 */
-void Host_Userconfigd_f (void)
+static void Host_Userconfigd_f (void)
 	{
-	search_t *t;
-	int i;
+	search_t	*t;
+	int			i;
 
 	t = FS_Search ("userconfig.d/*.cfg", true, false);
 	if (!t)
@@ -1046,13 +1025,12 @@ static void Host_RunTests (int stage)
 Host_InitCommon [FWGS, 01.01.24]
 =================
 */
-void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)
+static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)
 	{
 	char	dev_level[4];
 	int		developer = DEFAULT_DEV;
 	const char *baseDir;
 	char	ticrate[16];
-	/*int		len;*/
 	int		len, i;
 
 	// some commands may turn engine into infinite loop,
@@ -1341,9 +1319,9 @@ void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bCha
 
 	IN_Init ();
 	Key_Init ();
-		}
+	}
 
-void Host_FreeCommon (void)
+static void Host_FreeCommon (void)
 	{
 	Image_Shutdown ();
 	Sound_Shutdown ();

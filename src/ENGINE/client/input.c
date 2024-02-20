@@ -113,10 +113,10 @@ void IN_LockInputDevices (qboolean lock)
 
 /*
 ===========
-IN_StartupMouse [FWGS, 01.07.23]
+IN_StartupMouse [FWGS, 01.02.24]
 ===========
 */
-void IN_StartupMouse (void)
+static void IN_StartupMouse (void)
 	{
 	Cvar_RegisterVariable (&m_ignore);
 	Cvar_RegisterVariable (&m_pitch);
@@ -210,20 +210,18 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		IN_ActivateMouse ();
 		}
 
-// [FWGS, 01.04.23]
-void IN_CheckMouseState (qboolean active)
+// [FWGS, 01.02.24]
+static void IN_CheckMouseState (qboolean active)
 	{
 	static qboolean s_bRawInput, s_bMouseGrab;
 
 #if XASH_WIN32
-	// [FWGS, 01.07.23]
 	qboolean useRawInput = (m_rawinput.value && clgame.client_dll_uses_sdl) ||
 		(clgame.dllFuncs.pfnLookEvent != NULL);
 #else
 	qboolean useRawInput = true; // always use SDL code
 #endif
 
-	// [FWGS, 01.11.23]
 	if (m_ignore.value)
 		return;
 
@@ -311,10 +309,10 @@ void IN_DeactivateMouse (void)
 
 /*
 ================
-IN_MouseMove [FWGS, 01.04.23]
+IN_MouseMove [FWGS, 01.02.24]
 ================
 */
-void IN_MouseMove (void)
+static void IN_MouseMove (void)
 	{
 	int x, y;
 
@@ -484,35 +482,35 @@ static void IN_JoyAppendMove (usercmd_t *cmd, float forwardmove, float sidemove)
 		moveflags |= F;
 		Cmd_ExecuteString ("+forward");
 		}
-	else if (forwardmove < 0.7f && (moveflags & F))
+	else if ((forwardmove < 0.7f) && (moveflags & F))
 		{
 		moveflags &= ~F;
 		Cmd_ExecuteString ("-forward");
 		}
 
-	if (forwardmove < -0.7f && !(moveflags & B))
+	if ((forwardmove < -0.7f) && !(moveflags & B))
 		{
 		moveflags |= B;
 		Cmd_ExecuteString ("+back");
 		}
-	else if (forwardmove > -0.7f && (moveflags & B))
+	else if ((forwardmove > -0.7f) && (moveflags & B))
 		{
 		moveflags &= ~B;
 		Cmd_ExecuteString ("-back");
 		}
 
-	if (sidemove > 0.9f && !(moveflags & R))
+	if ((sidemove > 0.9f) && !(moveflags & R))
 		{
 		moveflags |= R;
 		Cmd_ExecuteString ("+moveright");
 		}
-	else if (sidemove < 0.9f && (moveflags & R))
+	else if ((sidemove < 0.9f) && (moveflags & R))
 		{
 		moveflags &= ~R;
 		Cmd_ExecuteString ("-moveright");
 		}
 
-	if (sidemove < -0.9f && !(moveflags & L))
+	if ((sidemove < -0.9f) && !(moveflags & L))
 		{
 		moveflags |= L;
 		Cmd_ExecuteString ("+moveleft");
@@ -560,8 +558,8 @@ Called from cl_main.c after generating command in client
 */
 void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)
 	{
-	float forward, side, pitch, yaw;
-	usercmd_t *cmd = cmd1;
+	float		forward, side, pitch, yaw;
+	usercmd_t	*cmd = cmd1;
 
 	if (clgame.dllFuncs.pfnLookEvent)
 		return;
@@ -589,7 +587,7 @@ void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)
 		}
 	}
 
-void IN_Commands (void)
+static void IN_Commands (void)
 	{
 #if XASH_USE_EVDEV
 	IN_EvdevFrame ();

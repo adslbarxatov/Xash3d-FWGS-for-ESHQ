@@ -49,7 +49,7 @@ qboolean SCR_NextMovie (void)
 		return false; // don't play movies
 		}
 
-	if (!cls.movies[cls.movienum][0] || cls.movienum == MAX_MOVIES)
+	if (!cls.movies[cls.movienum][0] || (cls.movienum == MAX_MOVIES))
 		{
 		S_StopAllSounds (true);
 		SCR_StopCinematic ();
@@ -66,12 +66,13 @@ qboolean SCR_NextMovie (void)
 	return true;
 	}
 
-void SCR_CreateStartupVids (void)
+static void SCR_CreateStartupVids (void)
 	{
 	file_t *f;
 
 	f = FS_Open (DEFAULT_VIDEOLIST_PATH, "w", false);
-	if (!f) return;
+	if (!f)
+		return;
 
 	// make standard video playlist: sierra, valve
 	FS_Print (f, "media/sierra.avi\n");
@@ -81,9 +82,9 @@ void SCR_CreateStartupVids (void)
 
 void SCR_CheckStartupVids (void)
 	{
-	int	c = 0;
-	byte *afile;
-	char *pfile;
+	int		c = 0;
+	byte	*afile;
+	char	*pfile;
 	string	token;
 
 	if (Sys_CheckParm ("-nointro") || host_developer.value || (cls.demonum != -1) ||
@@ -99,10 +100,10 @@ void SCR_CheckStartupVids (void)
 		SCR_CreateStartupVids ();
 
 	afile = FS_LoadFile (DEFAULT_VIDEOLIST_PATH, NULL, false);
-	if (!afile) return; // something bad happens
+	if (!afile)
+		return; // something bad happens
 
 	pfile = (char *)afile;
-
 	while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
 		{
 		Q_strncpy (cls.movies[c], token, sizeof (cls.movies[0]));

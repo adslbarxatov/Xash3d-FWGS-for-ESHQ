@@ -80,9 +80,9 @@ int Q_buildnum_compat (void)
 
 /*
 ============
-Q_GetPlatformStringByID [FWGS, 01.04.23]
+Q_GetPlatformStringByID [FWGS, 01.02.24]
 
-Returns name of operating system by ID. Without any spaces.
+Returns name of operating system by ID. Without any spaces
 ============
 */
 const char *Q_PlatformStringByID (const int platform)
@@ -93,8 +93,8 @@ const char *Q_PlatformStringByID (const int platform)
 			return "win32";
 		case PLATFORM_ANDROID:
 			return "android";
-		case PLATFORM_LINUX_UNKNOWN:
-			return "linuxunkabi";
+		/*case PLATFORM_LINUX_UNKNOWN:
+			return "linuxunkabi";*/
 		case PLATFORM_LINUX:
 			return "linux";
 		case PLATFORM_APPLE:

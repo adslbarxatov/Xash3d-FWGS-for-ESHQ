@@ -281,7 +281,7 @@ int Image_ComparePalette (const byte *pal)
 	}
 
 // [FWGS, 01.01.24]
-void Image_SetPalette (const byte *pal, uint *d_table)
+static void Image_SetPalette (const byte *pal, uint *d_table)
 	{
 	byte	rgba[4];
 	uint	uirgba;	// TODO: palette looks byte-swapped on big-endian
@@ -537,10 +537,10 @@ void Image_PaletteHueReplace (byte *palSrc, int newHue, int start, int end, int 
 		}
 	}
 
-void Image_PaletteTranslate (byte *palSrc, int top, int bottom, int pal_size)
+static void Image_PaletteTranslate (byte *palSrc, int top, int bottom, int pal_size)
 	{
 	byte	dst[256], src[256];
-	int	i;
+	int		i;
 
 	pal_size = bound (3, pal_size, 4);
 	for (i = 0; i < 256; i++)
@@ -600,10 +600,10 @@ NOTE: must call Image_GetPaletteXXX before used
 */
 qboolean Image_Copy8bitRGBA (const byte *in, byte *out, int pixels)
 	{
-	int *iout = (int *)out;
-	byte *fin = (byte *)in;
-	byte *col;
-	int	i;
+	int		*iout = (int *)out;
+	byte	*fin = (byte *)in;
+	byte	*col;
+	int		i;
 
 	if (!in || !image.d_currentpal)
 		return false;
@@ -733,15 +733,15 @@ static void Image_Resample24LerpLine (const byte *in, byte *out, int inwidth, in
 		}
 	}
 
-void Image_Resample32Lerp (const void *indata, int inwidth, int inheight, void *outdata, int outwidth, int outheight)
+static void Image_Resample32Lerp (const void *indata, int inwidth, int inheight, void *outdata, int outwidth, int outheight)
 	{
-	const byte *inrow;
-	int	i, j, r, yi, oldy = 0, f, fstep, lerp, endy = (inheight - 1);
-	int	inwidth4 = inwidth * 4;
-	int	outwidth4 = outwidth * 4;
-	byte *out = (byte *)outdata;
-	byte *resamplerow1;
-	byte *resamplerow2;
+	const byte	*inrow;
+	int		i, j, r, yi, oldy = 0, f, fstep, lerp, endy = (inheight - 1);
+	int		inwidth4 = inwidth * 4;
+	int		outwidth4 = outwidth * 4;
+	byte	*out = (byte *)outdata;
+	byte	*resamplerow1;
+	byte	*resamplerow2;
 
 	fstep = (int)(inheight * 65536.0f / outheight);
 
@@ -841,11 +841,12 @@ void Image_Resample32Lerp (const void *indata, int inwidth, int inheight, void *
 	Mem_Free (resamplerow1);
 	}
 
-void Image_Resample32Nolerp (const void *indata, int inwidth, int inheight, void *outdata, int outwidth, int outheight)
+static void Image_Resample32Nolerp (const void *indata, int inwidth, int inheight, void *outdata,
+	int outwidth, int outheight)
 	{
-	int	i, j;
+	int		i, j;
 	uint	frac, fracstep;
-	int *inrow, *out = (int *)outdata; // relies on int being 4 bytes
+	int		*inrow, *out = (int *)outdata; // relies on int being 4 bytes
 
 	fracstep = inwidth * 0x10000 / outwidth;
 
@@ -880,15 +881,16 @@ void Image_Resample32Nolerp (const void *indata, int inwidth, int inheight, void
 		}
 	}
 
-void Image_Resample24Lerp (const void *indata, int inwidth, int inheight, void *outdata, int outwidth, int outheight)
+static void Image_Resample24Lerp (const void *indata, int inwidth, int inheight, void *outdata,
+	int outwidth, int outheight)
 	{
-	const byte *inrow;
-	int	i, j, r, yi, oldy, f, fstep, lerp, endy = (inheight - 1);
-	int	inwidth3 = inwidth * 3;
-	int	outwidth3 = outwidth * 3;
-	byte *out = (byte *)outdata;
-	byte *resamplerow1;
-	byte *resamplerow2;
+	const byte	*inrow;
+	int		i, j, r, yi, oldy, f, fstep, lerp, endy = (inheight - 1);
+	int		inwidth3 = inwidth * 3;
+	int		outwidth3 = outwidth * 3;
+	byte	*out = (byte *)outdata;
+	byte	*resamplerow1;
+	byte	*resamplerow2;
 
 	fstep = (int)(inheight * 65536.0f / outheight);
 
@@ -969,8 +971,10 @@ void Image_Resample24Lerp (const void *indata, int inwidth, int inheight, void *
 			if (yi != oldy)
 				{
 				inrow = (byte *)indata + inwidth3 * yi;
-				if (yi == oldy + 1) memcpy (resamplerow1, resamplerow2, outwidth3);
-				else Image_Resample24LerpLine (inrow, resamplerow1, inwidth, outwidth);
+				if (yi == oldy + 1)
+					memcpy (resamplerow1, resamplerow2, outwidth3);
+				else
+					Image_Resample24LerpLine (inrow, resamplerow1, inwidth, outwidth);
 				oldy = yi;
 				}
 
@@ -981,11 +985,12 @@ void Image_Resample24Lerp (const void *indata, int inwidth, int inheight, void *
 	Mem_Free (resamplerow1);
 	}
 
-void Image_Resample24Nolerp (const void *indata, int inwidth, int inheight, void *outdata, int outwidth, int outheight)
+static void Image_Resample24Nolerp (const void *indata, int inwidth, int inheight, void *outdata,
+	int outwidth, int outheight)
 	{
 	uint	frac, fracstep;
-	int	i, j, f, inwidth3 = inwidth * 3;
-	byte *inrow, *out = (byte *)outdata;
+	int		i, j, f, inwidth3 = inwidth * 3;
+	byte	*inrow, *out = (byte *)outdata;
 
 	fracstep = inwidth * 0x10000 / outwidth;
 
@@ -1047,12 +1052,13 @@ void Image_Resample24Nolerp (const void *indata, int inwidth, int inheight, void
 		}
 	}
 
-void Image_Resample8Nolerp (const void *indata, int inwidth, int inheight, void *outdata, int outwidth, int outheight)
+static void Image_Resample8Nolerp (const void *indata, int inwidth, int inheight, void *outdata,
+	int outwidth, int outheight)
 	{
-	int	i, j;
-	byte *in, *inrow;
+	int		i, j;
+	byte	*in, *inrow;
 	uint	frac, fracstep;
-	byte *out = (byte *)outdata;
+	byte	*out = (byte *)outdata;
 
 	in = (byte *)indata;
 	fracstep = inwidth * 0x10000 / outwidth;
@@ -1075,12 +1081,13 @@ void Image_Resample8Nolerp (const void *indata, int inwidth, int inheight, void 
 Image_Resample
 ================
 */
-byte *Image_ResampleInternal (const void *indata, int inwidth, int inheight, int outwidth, int outheight, int type, qboolean *resampled)
+byte *Image_ResampleInternal (const void *indata, int inwidth, int inheight, int outwidth, int outheight,
+	int type, qboolean *resampled)
 	{
 	qboolean	quality = Image_CheckFlag (IL_USE_LERPING);
 
 	// nothing to resample ?
-	if (inwidth == outwidth && inheight == outheight)
+	if ((inwidth == outwidth) && (inheight == outheight))
 		{
 		*resampled = false;
 		return (byte *)indata;
@@ -1094,18 +1101,21 @@ byte *Image_ResampleInternal (const void *indata, int inwidth, int inheight, int
 			image.tempbuffer = (byte *)Mem_Realloc (host.imagepool, image.tempbuffer, outwidth * outheight);
 			Image_Resample8Nolerp (indata, inwidth, inheight, image.tempbuffer, outwidth, outheight);
 			break;
+
 		case PF_RGB_24:
 		case PF_BGR_24:
 			image.tempbuffer = (byte *)Mem_Realloc (host.imagepool, image.tempbuffer, outwidth * outheight * 3);
 			if (quality) Image_Resample24Lerp (indata, inwidth, inheight, image.tempbuffer, outwidth, outheight);
 			else Image_Resample24Nolerp (indata, inwidth, inheight, image.tempbuffer, outwidth, outheight);
 			break;
+
 		case PF_RGBA_32:
 		case PF_BGRA_32:
 			image.tempbuffer = (byte *)Mem_Realloc (host.imagepool, image.tempbuffer, outwidth * outheight * 4);
 			if (quality) Image_Resample32Lerp (indata, inwidth, inheight, image.tempbuffer, outwidth, outheight);
 			else Image_Resample32Nolerp (indata, inwidth, inheight, image.tempbuffer, outwidth, outheight);
 			break;
+
 		default:
 			*resampled = false;
 			return (byte *)indata;
@@ -1186,10 +1196,10 @@ byte *Image_FlipInternal (const byte *in, word *srcwidth, word *srcheight, int t
 	return image.tempbuffer;
 	}
 
-byte *Image_CreateLumaInternal (byte *fin, int width, int height, int type, int flags)
+static byte *Image_CreateLumaInternal (byte *fin, int width, int height, int type, int flags)
 	{
-	byte *out;
-	int	i;
+	byte	*out;
+	int		i;
 
 	if (!FBitSet (flags, IMAGE_HAS_LUMA))
 		return (byte *)fin;
@@ -1202,6 +1212,7 @@ byte *Image_CreateLumaInternal (byte *fin, int width, int height, int type, int 
 			for (i = 0; i < width * height; i++)
 				*out++ = fin[i] >= 224 ? fin[i] : 0;
 			break;
+
 		default:
 			// another formats does ugly result :(
 			Con_Printf (S_ERROR "Image_MakeLuma: unsupported format %s\n", PFDesc[type].name);
@@ -1242,12 +1253,13 @@ Image_Decompress
 force to unpack any image to 32-bit buffer
 =============
 */
-qboolean Image_Decompress (const byte *data)
+static qboolean Image_Decompress (const byte *data)
 	{
-	byte *fin, *fout;
-	int	i, size;
+	byte	*fin, *fout;
+	int		i, size;
 
-	if (!data) return false;
+	if (!data)
+		return false;
 	fin = (byte *)data;
 
 	size = image.width * image.height * 4;
@@ -1261,15 +1273,22 @@ qboolean Image_Decompress (const byte *data)
 				{
 				if (image.flags & IMAGE_COLORINDEX)
 					Image_GetPaletteLMP (image.palette, LUMP_GRADIENT);
-				else Image_GetPaletteLMP (image.palette, LUMP_MASKED);
+				else
+					Image_GetPaletteLMP (image.palette, LUMP_MASKED);
 				}
-			else Image_GetPaletteLMP (image.palette, LUMP_NORMAL);
+			else
+				{
+				Image_GetPaletteLMP (image.palette, LUMP_NORMAL);
+				}
 			// intentionally fallthrough
+
 		case PF_INDEXED_32:
-			if (!image.d_currentpal) image.d_currentpal = (uint *)image.palette;
+			if (!image.d_currentpal)
+				image.d_currentpal = (uint *)image.palette;
 			if (!Image_Copy8bitRGBA (fin, fout, image.width * image.height))
 				return false;
 			break;
+
 		case PF_BGR_24:
 			for (i = 0; i < image.width * image.height; i++)
 				{
@@ -1279,6 +1298,7 @@ qboolean Image_Decompress (const byte *data)
 				fout[(i << 2) + 3] = 255;
 				}
 			break;
+
 		case PF_RGB_24:
 			for (i = 0; i < image.width * image.height; i++)
 				{
@@ -1288,6 +1308,7 @@ qboolean Image_Decompress (const byte *data)
 				fout[(i << 2) + 3] = 255;
 				}
 			break;
+
 		case PF_BGRA_32:
 			for (i = 0; i < image.width * image.height; i++)
 				{
@@ -1297,11 +1318,14 @@ qboolean Image_Decompress (const byte *data)
 				fout[i * 4 + 3] = fin[i * 4 + 3];
 				}
 			break;
+
 		case PF_RGBA_32:
 			// fast default case
 			memcpy (fout, fin, size);
 			break;
-		default: return false;
+
+		default:
+			return false;
 		}
 
 	// set new size
@@ -1310,7 +1334,7 @@ qboolean Image_Decompress (const byte *data)
 	return true;
 	}
 
-rgbdata_t *Image_DecompressInternal (rgbdata_t *pic)
+static rgbdata_t *Image_DecompressInternal (rgbdata_t *pic)
 	{
 	// quick case to reject unneeded conversions
 	if (pic->type == PF_RGBA_32)
@@ -1333,10 +1357,10 @@ rgbdata_t *Image_DecompressInternal (rgbdata_t *pic)
 	return pic;
 	}
 
-rgbdata_t *Image_LightGamma (rgbdata_t *pic)
+static rgbdata_t *Image_LightGamma (rgbdata_t *pic)
 	{
-	byte *in = (byte *)pic->buffer;
-	int	i;
+	byte	*in = (byte *)pic->buffer;
+	int		i;
 
 	if (pic->type != PF_RGBA_32)
 		return pic;
@@ -1351,7 +1375,7 @@ rgbdata_t *Image_LightGamma (rgbdata_t *pic)
 	return pic;
 	}
 
-qboolean Image_RemapInternal (rgbdata_t *pic, int topColor, int bottomColor)
+static qboolean Image_RemapInternal (rgbdata_t *pic, int topColor, int bottomColor)
 	{
 	if (!pic->palette)
 		return false;
@@ -1360,9 +1384,11 @@ qboolean Image_RemapInternal (rgbdata_t *pic, int topColor, int bottomColor)
 		{
 		case PF_INDEXED_24:
 			break;
+
 		case PF_INDEXED_32:
 			Image_ConvertPalTo24bit (pic);
 			break;
+
 		default:
 			return false;
 		}
@@ -1383,9 +1409,9 @@ qboolean Image_RemapInternal (rgbdata_t *pic, int topColor, int bottomColor)
 
 qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, float reserved)
 	{
-	rgbdata_t *pic = *pix;
+	rgbdata_t	*pic = *pix;
 	qboolean	result = true;
-	byte *out;
+	byte		*out;
 
 	// check for buffers
 	if (!pic || !pic->buffer)

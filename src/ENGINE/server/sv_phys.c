@@ -1958,14 +1958,15 @@ void SV_DrawOrthoTriangles (void)
 	}
 
 // [FWGS, 01.07.23] removed void SV_UpdateFogSettings
+
 /*
 ==================
-SV_GetLightStyle [FWGS, 01.07.23]
+SV_GetLightStyle [FWGS, 01.02.24]
 
 needs to get correct working SV_LightPoint
 ==================
 */
-const char *GAME_EXPORT SV_GetLightStyle (int style)
+static const char *GAME_EXPORT SV_GetLightStyle (int style)
 	{
 	if (style < 0)
 		style = 0;

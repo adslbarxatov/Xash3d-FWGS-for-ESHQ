@@ -30,12 +30,12 @@ static CVAR_DEFINE (v_direct, "direct", "0.9", 0,
 	"direct studio lighting");
 static CVAR_DEFINE (v_texgamma, "texgamma", "2.0", 0,
 	"texgamma amount");
-static CVAR_DEFINE (v_lightgamma, "lightgamma", "2.5", 0,
-	"lightgamma amount");
-static CVAR_DEFINE (v_brightness, "brightness", "0.0", FCVAR_ARCHIVE,
-	"brightness factor");
-static CVAR_DEFINE (v_gamma, "gamma", "2.5", FCVAR_ARCHIVE,
-	"gamma amount");
+static CVAR_DEFINE (v_lightgamma, "lightgamma", "1.1", 0,
+	"lightgamma amount");	// ESHQ
+static CVAR_DEFINE (v_brightness, "brightness", "1.0", FCVAR_ARCHIVE,
+	"brightness factor");	// ESHQ
+static CVAR_DEFINE (v_gamma, "gamma", "1.5", FCVAR_ARCHIVE,
+	"gamma amount");		// ESHQ
 
 static void BuildGammaTable (const float gamma, const float brightness, const float texgamma, const float lightgamma)
 	{
@@ -44,8 +44,8 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 
 	if (gamma != 0.0)
 		g1 = 1.0 / gamma;
-	else g1 = 0.4;
-
+	else
+		g1 = 0.4;
 	g2 = g1 * texgamma;
 
 	if (brightness <= 0.0)
@@ -86,13 +86,15 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 		}
 	}
 
+// [FWGS, 01.02.24]
 static void V_ValidateGammaCvars (void)
 	{
-	if (Host_IsLocalGame ())
-		return;
+	/*if (Host_IsLocalGame ())
+		return;*/
 
-	if (v_gamma.value < 1.8f)
-		Cvar_DirectSet (&v_gamma, "1.8");
+	// ESHQ: изменены значения в соответствии с оными по умолчанию
+	if (v_gamma.value < 1.5f)
+		Cvar_DirectSet (&v_gamma, "1.5");
 	else if (v_gamma.value > 3.0f)
 		Cvar_DirectSet (&v_gamma, "3");
 
@@ -101,13 +103,13 @@ static void V_ValidateGammaCvars (void)
 	else if (v_texgamma.value > 3.0f)
 		Cvar_DirectSet (&v_texgamma, "3");
 
-	if (v_lightgamma.value < 1.8f)
-		Cvar_DirectSet (&v_lightgamma, "1.8");
+	if (v_lightgamma.value < 1.1f)
+		Cvar_DirectSet (&v_lightgamma, "1.1");
 	else if (v_lightgamma.value > 3.0f)
 		Cvar_DirectSet (&v_lightgamma, "3");
 
-	if (v_brightness.value < 0.0f)
-		Cvar_DirectSet (&v_brightness, "0");
+	if (v_brightness.value < 0.5f)
+		Cvar_DirectSet (&v_brightness, "0.5");
 	else if (v_brightness.value > 2.0f)
 		Cvar_DirectSet (&v_brightness, "2");
 	}

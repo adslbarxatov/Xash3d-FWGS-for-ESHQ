@@ -50,8 +50,8 @@ static SDL_AudioDeviceID in_dev = 0;
 static SDL_AudioFormat sdl_format;
 static char sdl_backend_name[32];
 
-// [FWGS, 01.07.23]
-void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
+// [FWGS, 01.02.24]
+static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 	{
 	const int size = dma.samples << 1;
 	int pos;
@@ -132,7 +132,7 @@ qboolean SNDDMA_Init (void)
 		goto fail;
 		}
 
-	if (obtained.channels != 1 && obtained.channels != 2)
+	if ((obtained.channels != 1) && (obtained.channels != 2))
 		{
 		Con_Printf ("SDL audio channels %d unsupported.\n", obtained.channels);
 		goto fail;
@@ -144,6 +144,7 @@ qboolean SNDDMA_Init (void)
 	samplecount = s_samplecount.value;
 	if (!samplecount)
 		samplecount = 0x8000;
+
 	dma.samples = samplecount * obtained.channels;
 	dma.buffer = Z_Calloc (dma.samples * 2);
 	dma.samplepos = 0;
@@ -244,7 +245,7 @@ void SNDDMA_Activate (qboolean active)
 SDL_SoundInputCallback
 ===========
 */
-void SDL_SoundInputCallback (void *userdata, Uint8 *stream, int len)
+static void SDL_SoundInputCallback (void *userdata, Uint8 *stream, int len)
 	{
 	int size = Q_min (len, sizeof (voice.input_buffer) - voice.input_buffer_pos);
 
@@ -285,7 +286,8 @@ qboolean VoiceCapture_Init (void)
 		return false;
 		}
 
-	Con_Printf (S_NOTE "VoiceCapture_Init: capture device creation success (%i: %s)\n", in_dev, SDL_GetAudioDeviceName (in_dev, SDL_TRUE));
+	Con_Printf (S_NOTE "VoiceCapture_Init: capture device creation success (%i: %s)\n",
+		in_dev, SDL_GetAudioDeviceName (in_dev, SDL_TRUE));
 	return true;
 	}
 
@@ -313,8 +315,10 @@ qboolean VoiceCapture_Lock (qboolean lock)
 	if (SDLash_IsAudioError (in_dev))
 		return false;
 
-	if (lock) SDL_LockAudioDevice (in_dev);
-	else SDL_UnlockAudioDevice (in_dev);
+	if (lock)
+		SDL_LockAudioDevice (in_dev);
+	else
+		SDL_UnlockAudioDevice (in_dev);
 
 	return true;
 	}
@@ -332,4 +336,4 @@ void VoiceCapture_Shutdown (void)
 	SDL_CloseAudioDevice (in_dev);
 	}
 
-#endif // XASH_SOUND == SOUND_SDL
+#endif

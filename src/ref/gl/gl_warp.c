@@ -362,12 +362,12 @@ void R_AddSkyBoxSurface (msurface_t *fa)
 
 /*
 ==============
-R_UnloadSkybox [FWGS, 01.01.24]
+R_UnloadSkybox [FWGS, 01.02.24]
 
 Unload previous skybox
 ==============
 */
-void R_UnloadSkybox (void)
+static void R_UnloadSkybox (void)
 	{
 	int	i;
 
@@ -888,7 +888,7 @@ void R_ResetRipples (void)
 	memset (g_ripple.buf, 0, sizeof (g_ripple.buf));
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.02.24]
 void R_InitRipples (void)
 	{
 	rgbdata_t pic = { 0 };
@@ -902,11 +902,12 @@ void R_InitRipples (void)
 	pic.numMips = 1;
 	memset (pic.buffer, 0, pic.size);
 
-	g_ripple.rippletexturenum = GL_LoadTextureInternal ("*rippletex", &pic, TF_NOMIPMAP);
+	/*g_ripple.rippletexturenum = GL_LoadTextureInternal ("*rippletex", &pic, TF_NOMIPMAP);
 
 	// need to set proper tex params for TF_NOMIPMAP texture,
 	// as during upload it fails TF_NEAREST check and gets blurry even with gl_texture_nearest 1
-	R_UpdateRippleTexParams ();
+	R_UpdateRippleTexParams ();*/
+	g_ripple.rippletexturenum = GL_LoadTextureInternal ("*rippletex", &pic, TF_NOMIPMAP | TF_ALLOW_NEAREST);
 	}
 
 // [FWGS, 01.11.23]
@@ -994,8 +995,8 @@ void R_AnimateRipples (void)
 	R_RunRipplesAnimation (g_ripple.oldbuf, g_ripple.curbuf);
 	}
 
-// [FWGS, 01.11.23]
-void R_UpdateRippleTexParams (void)
+// [FWGS, 01.02.24]
+/*void R_UpdateRippleTexParams (void)
 	{
 	gl_texture_t *tex = R_GetTexture (g_ripple.rippletexturenum);
 
@@ -1011,17 +1012,17 @@ void R_UpdateRippleTexParams (void)
 		pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		pglTexParameteri (tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
-	}
+	}*/
 
 // [FWGS, 01.11.23]
 void R_UploadRipples (texture_t *image)
 	{
-	gl_texture_t *glt;
-	uint32_t *pixels;
-	int wbits, wmask, wshft;
+	gl_texture_t	*glt;
+	uint32_t		*pixels;
+	int		wbits, wmask, wshft;
 
 	// discard unuseful textures
-	if (!r_ripple.value || image->width > RIPPLES_CACHEWIDTH || image->width != image->height)
+	if (!r_ripple.value || (image->width > RIPPLES_CACHEWIDTH) || (image->width != image->height))
 		{
 		GL_Bind (XASH_TEXTURE0, image->gl_texturenum);
 		return;
@@ -1037,7 +1038,7 @@ void R_UploadRipples (texture_t *image)
 	GL_Bind (XASH_TEXTURE0, g_ripple.rippletexturenum);
 
 	// no updates this frame
-	if (!g_ripple.update && image->gl_texturenum == g_ripple.gl_texturenum)
+	if (!g_ripple.update && (image->gl_texturenum == g_ripple.gl_texturenum))
 		return;
 
 	g_ripple.gl_texturenum = image->gl_texturenum;

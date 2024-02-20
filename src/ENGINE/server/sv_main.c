@@ -245,8 +245,6 @@ CVAR_DEFINE (sv_pausable, "pausable", "1", FCVAR_SERVER,
 	"allow players to pause or not");
 static CVAR_DEFINE_AUTO (timeout, "125", FCVAR_SERVER,
 	"connection timeout");	// seconds without any message
-/*CVAR_DEFINE (sv_lighting_modulate, "r_lighting_modulate", "0.6", FCVAR_ARCHIVE,
-	"lightstyles modulate scale");*/
 CVAR_DEFINE (sv_maxclients, "maxplayers", "1", FCVAR_LATCH,
 	"server max capacity");
 CVAR_DEFINE_AUTO (sv_check_errors, "0", FCVAR_ARCHIVE,
@@ -291,7 +289,7 @@ SV_HasActivePlayers
 returns true if server have spawned players
 ================
 */
-qboolean SV_HasActivePlayers (void)
+static qboolean SV_HasActivePlayers (void)
 	{
 	int	i;
 
@@ -368,7 +366,8 @@ void SV_UpdateMovevars (qboolean initialize)
 	svgame.movevars.features = host.features; // just in case. not really need
 	svgame.movevars.entgravity = 1.0f;
 
-	if (initialize) return; // too early
+	if (initialize)
+		return; // too early
 
 	if (MSG_WriteDeltaMovevars (&sv.reliable_datagram, &svgame.oldmovevars, &svgame.movevars))
 		memcpy (&svgame.oldmovevars, &svgame.movevars, sizeof (movevars_t)); // oldstate changed
@@ -381,11 +380,11 @@ void SV_UpdateMovevars (qboolean initialize)
 SV_CheckCmdTimes
 =================
 */
-void SV_CheckCmdTimes (void)
+static void SV_CheckCmdTimes (void)
 	{
-	sv_client_t *cl;
+	sv_client_t		*cl;
 	static double	lastreset = 0;
-	float		diff;
+	float			diff;
 	int		i;
 
 	if (sv_fps.value != 0.0f)
@@ -411,9 +410,7 @@ void SV_CheckCmdTimes (void)
 			continue;
 
 		if (cl->connecttime == 0.0)
-			{
 			cl->connecttime = host.realtime;
-			}
 
 		diff = cl->connecttime + cl->cmdtime - host.realtime;
 
@@ -436,12 +433,12 @@ SV_ProcessFile
 process incoming file (customization)
 =================
 */
-void SV_ProcessFile (sv_client_t *cl, const char *filename)
+static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 	{
-	customization_t *pList;
-	resource_t *resource;
-	resource_t *next;
-	byte		md5[16];
+	customization_t	*pList;
+	resource_t		*resource;
+	resource_t		*next;
+	byte			md5[16];
 	qboolean		bFound;
 	qboolean		bError;
 
@@ -508,10 +505,10 @@ void SV_ProcessFile (sv_client_t *cl, const char *filename)
 SV_ReadPackets
 =================
 */
-void SV_ReadPackets (void)
+static void SV_ReadPackets (void)
 	{
-	sv_client_t *cl;
-	int		i, qport;
+	sv_client_t	*cl;
+	int			i, qport;
 	size_t		curSize;
 
 	while (NET_GetPacket (NS_SERVER, &net_from, net_message_buffer, &curSize))
@@ -519,7 +516,7 @@ void SV_ReadPackets (void)
 		MSG_Init (&net_message, "ClientPacket", net_message_buffer, curSize);
 
 		// check for connectionless packet (0xffffffff) first
-		if (MSG_GetMaxBytes (&net_message) >= 4 && *(int *)net_message.pData == -1)
+		if ((MSG_GetMaxBytes (&net_message) >= 4) && (*(int *)net_message.pData == -1))
 			{
 			if (!svs.initialized)
 				{
@@ -629,11 +626,11 @@ for a few seconds to make sure any final reliable message gets resent
 if necessary
 ==================
 */
-void SV_CheckTimeouts (void)
+static void SV_CheckTimeouts (void)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 	double		droppoint;
-	int		i, numclients = 0;
+	int			i, numclients = 0;
 
 	droppoint = host.realtime - timeout.value;
 
@@ -682,10 +679,10 @@ This has to be done before the world logic, because
 player processing happens outside RunWorldFrame
 ================
 */
-void SV_PrepWorldFrame (void)
+static void SV_PrepWorldFrame (void)
 	{
-	edict_t *ent;
-	int	i;
+	edict_t	*ent;
+	int		i;
 
 	for (i = 1; i < svgame.numEntities; i++)
 		{
@@ -704,7 +701,7 @@ void SV_PrepWorldFrame (void)
 SV_IsSimulating
 =================
 */
-qboolean SV_IsSimulating (void)
+static qboolean SV_IsSimulating (void)
 	{
 	if (sv.background && SV_Active () && CL_Active ())
 		{
@@ -734,7 +731,7 @@ qboolean SV_IsSimulating (void)
 SV_RunGameFrame
 =================
 */
-qboolean SV_RunGameFrame (void)
+static qboolean SV_RunGameFrame (void)
 	{
 	sv.simulating = SV_IsSimulating ();
 
@@ -743,7 +740,7 @@ qboolean SV_RunGameFrame (void)
 
 	if (sv_fps.value != 0.0f)
 		{
-		double		fps = (1.0 / (double)(sv_fps.value - 0.01f)); // FP issues
+		double	fps = (1.0 / (double)(sv_fps.value - 0.01f)); // FP issues
 		int		numFrames = 0;
 
 		while (sv.time_residual >= fps)
@@ -859,16 +856,17 @@ void Host_ServerFrame (void)
 	NET_MasterHeartbeat ();
 	}
 
+// [FWGS, 01.02.24]
 /*
 ==================
 Host_SetServerState
 ==================
-*/
+//
 void Host_SetServerState (int state)
 	{
 	Cvar_FullSet ("host_serverstate", va ("%i", state), FCVAR_READ_ONLY);
 	sv.state = state;
-	}
+	}*/
 
 // ============================================================================
 
@@ -1179,9 +1177,9 @@ to totally exit after returning from this function.
 void SV_FinalMessage (const char *message, qboolean reconnect)
 	{
 	byte		msg_buf[1024];
-	sv_client_t *cl;
-	sizebuf_t		msg;
-	int		i;
+	sv_client_t	*cl;
+	sizebuf_t	msg;
+	int			i;
 
 	MSG_Init (&msg, "FinalMessage", msg_buf, sizeof (msg_buf));
 
@@ -1226,7 +1224,7 @@ SV_FreeClients
 release server clients
 ================
 */
-void SV_FreeClients (void)
+static void SV_FreeClients (void)
 	{
 	if (svs.maxclients != 0)
 		{
@@ -1274,13 +1272,11 @@ void SV_Shutdown (const char *finalmsg)
 		Con_Printf ("%s", finalmsg);
 
 	// rcon will be disconnected
-	/*SV_EndRedirect ();*/
 	SV_EndRedirect (&host.rd);
 
 	if (svs.clients)
 		SV_FinalMessage (finalmsg, false);
 
-	// [FWGS, 01.05.23]
 	if (public_server.value && svs.maxclients != 1)
 		NET_MasterShutdown ();
 

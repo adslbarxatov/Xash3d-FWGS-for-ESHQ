@@ -332,11 +332,12 @@ void Info_RemovePrefixedKeys (char *start, char prefix)
 			s = start;
 			}
 
-		if (!*s) return;
+		if (!*s)
+			return;
 		}
 	}
 
-qboolean Info_IsKeyImportant (const char *key)
+static qboolean Info_IsKeyImportant (const char *key)
 	{
 	if (key[0] == '*')
 		return true;
@@ -361,14 +362,14 @@ qboolean Info_IsKeyImportant (const char *key)
 	return false;
 	}
 
-char *Info_FindLargestKey (char *s)
+static char *Info_FindLargestKey (char *s)
 	{
 	char	key[MAX_KV_SIZE];
 	char	value[MAX_KV_SIZE];
-	static	char largest_key[128];
-	int	largest_size = 0;
-	int	l, count;
-	char *o;
+	static char	largest_key[128];
+	int		largest_size = 0;
+	int		l, count;
+	char	*o;
 
 	*largest_key = 0;
 

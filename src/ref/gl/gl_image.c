@@ -72,6 +72,7 @@ static const char *GL_TargetToString (GLenum target)
 		case GL_TEXTURE_RECTANGLE_EXT:
 			return "Rect";
 		}
+
 	return "??";
 	}
 
@@ -82,8 +83,8 @@ GL_Bind
 */
 void GL_Bind (GLint tmu, GLenum texnum)
 	{
-	gl_texture_t *texture;
-	GLuint		glTarget;
+	gl_texture_t	*texture;
+	GLuint			glTarget;
 
 	// missed or invalid texture?
 	if ((texnum <= 0) || (texnum >= MAX_TEXTURES))
@@ -120,14 +121,38 @@ void GL_Bind (GLint tmu, GLenum texnum)
 	glState.currentTexturesIndex[tmu] = texnum;	// [FWGS, 01.07.23]
 	}
 
+// [FWGS, 01.02.24]
+qboolean GL_TextureFilteringEnabled (const gl_texture_t *tex)
+	{
+	if (FBitSet (tex->flags, TF_NEAREST))
+		return false;
+
+	if (FBitSet (tex->flags, TF_DEPTHMAP))
+		return true;
+
+	if (FBitSet (tex->flags, TF_NOMIPMAP) || (tex->numMips <= 1))
+		{
+		if (FBitSet (tex->flags, TF_ATLAS_PAGE))
+			return gl_lightmap_nearest.value == 0.0f;
+
+		if (FBitSet (tex->flags, TF_ALLOW_NEAREST))
+			return gl_texture_nearest.value == 0.0f;
+
+		return true;
+		}
+
+	return gl_texture_nearest.value == 0.0f;
+	}
+
 /*
 =================
-GL_ApplyTextureParams
+GL_ApplyTextureParams [FWGS, 01.02.24]
 =================
 */
 void GL_ApplyTextureParams (gl_texture_t *tex)
 	{
-	vec4_t	border = { 0.0f, 0.0f, 0.0f, 1.0f };
+	vec4_t		border = { 0.0f, 0.0f, 0.0f, 1.0f };
+	qboolean	nomipmap;
 
 	if (!glw_state.initialized)
 		return;
@@ -139,6 +164,19 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 		return;
 
 	// set texture filter
+	nomipmap = (tex->numMips <= 1) || FBitSet (tex->flags, TF_NOMIPMAP | TF_DEPTHMAP);
+	if (!GL_TextureFilteringEnabled (tex))
+		{
+		pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, nomipmap ? GL_NEAREST : GL_NEAREST_MIPMAP_NEAREST);
+		pglTexParameteri (tex->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+	else
+		{
+		pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, nomipmap ? GL_LINEAR : GL_LINEAR_MIPMAP_LINEAR);
+		pglTexParameteri (tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+
+	// texture filter
 	if (FBitSet (tex->flags, TF_DEPTHMAP))
 		{
 		if (!FBitSet (tex->flags, TF_NOCOMPARE))
@@ -149,9 +187,10 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 
 		if (FBitSet (tex->flags, TF_LUMINANCE))
 			pglTexParameteri (tex->target, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
-		else pglTexParameteri (tex->target, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
+		else
+			pglTexParameteri (tex->target, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
 
-		if (FBitSet (tex->flags, TF_NEAREST))
+		/*if (FBitSet (tex->flags, TF_NEAREST))
 			{
 			pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			pglTexParameteri (tex->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -160,15 +199,16 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 			{
 			pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			pglTexParameteri (tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			}
+			}*/
 
 		// allow max anisotropy as 1.0f on depth textures
 		if (GL_Support (GL_ANISOTROPY_EXT))
 			pglTexParameterf (tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
 		}
-	else if (FBitSet (tex->flags, TF_NOMIPMAP) || tex->numMips <= 1)
+	/*else if (FBitSet (tex->flags, TF_NOMIPMAP) || (tex->numMips <= 1))*/
+	else if (!FBitSet (tex->flags, TF_NOMIPMAP) && (tex->numMips > 1))
 		{
-		// [FWGS, 01.11.23]
+		/* [FWGS, 01.11.23]
 		if (FBitSet (tex->flags, TF_NEAREST) || (IsLightMap (tex) && gl_lightmap_nearest.value) ||
 			((tex->flags == TF_SKYSIDE) && gl_texture_nearest.value))
 			{
@@ -192,7 +232,7 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 			{
 			pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			pglTexParameteri (tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			}
+			}*/
 
 		// set texture anisotropy if available
 		if (GL_Support (GL_ANISOTROPY_EXT) && (tex->numMips > 1) && !FBitSet (tex->flags, TF_ALPHACONTRAST))
@@ -222,7 +262,7 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 		if (tex->target != GL_TEXTURE_1D)
 			pglTexParameteri (tex->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-		if (tex->target == GL_TEXTURE_3D || tex->target == GL_TEXTURE_CUBE_MAP_ARB)
+		if ((tex->target == GL_TEXTURE_3D) || (tex->target == GL_TEXTURE_CUBE_MAP_ARB))
 			pglTexParameteri (tex->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 
 		pglTexParameterfv (tex->target, GL_TEXTURE_BORDER_COLOR, border);
@@ -236,7 +276,7 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 			if (tex->target != GL_TEXTURE_1D)
 				pglTexParameteri (tex->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-			if (tex->target == GL_TEXTURE_3D || tex->target == GL_TEXTURE_CUBE_MAP_ARB)
+			if ((tex->target == GL_TEXTURE_3D) || (tex->target == GL_TEXTURE_CUBE_MAP_ARB))
 				pglTexParameteri (tex->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 			}
 		else
@@ -246,7 +286,7 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 			if (tex->target != GL_TEXTURE_1D)
 				pglTexParameteri (tex->target, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-			if (tex->target == GL_TEXTURE_3D || tex->target == GL_TEXTURE_CUBE_MAP_ARB)
+			if ((tex->target == GL_TEXTURE_3D) || (tex->target == GL_TEXTURE_CUBE_MAP_ARB))
 				pglTexParameteri (tex->target, GL_TEXTURE_WRAP_R, GL_CLAMP);
 			}
 		}
@@ -257,23 +297,25 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 		if (tex->target != GL_TEXTURE_1D)
 			pglTexParameteri (tex->target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		if (tex->target == GL_TEXTURE_3D || tex->target == GL_TEXTURE_CUBE_MAP_ARB)
+		if ((tex->target == GL_TEXTURE_3D) || (tex->target == GL_TEXTURE_CUBE_MAP_ARB))
 			pglTexParameteri (tex->target, GL_TEXTURE_WRAP_R, GL_REPEAT);
 		}
 	}
 
 /*
 =================
-GL_UpdateTextureParams
+GL_UpdateTextureParams [FWGS, 01.02.24]
 =================
 */
 static void GL_UpdateTextureParams (int iTexture)
 	{
-	gl_texture_t *tex = &gl_textures[iTexture];
+	gl_texture_t	*tex = &gl_textures[iTexture];
+	qboolean		nomipmap;
 
 	Assert (tex != NULL);
 
-	if (!tex->texnum) return; // free slot
+	if (!tex->texnum)
+		return; // free slot
 
 	GL_Bind (XASH_TEXTURE0, iTexture);
 
@@ -285,7 +327,7 @@ static void GL_UpdateTextureParams (int iTexture)
 	if (GL_Support (GL_TEXTURE_LOD_BIAS) && (tex->numMips > 1) && !FBitSet (tex->flags, TF_DEPTHMAP))
 		pglTexParameterf (tex->target, GL_TEXTURE_LOD_BIAS_EXT, gl_texture_lodbias.value);
 
-	if (IsLightMap (tex))
+	/*if (IsLightMap (tex))
 		{
 		if (gl_lightmap_nearest.value)
 			{
@@ -299,16 +341,20 @@ static void GL_UpdateTextureParams (int iTexture)
 			}
 		}
 
-	if (tex->numMips <= 1) return;
+	if (tex->numMips <= 1) return;*/
+	nomipmap = (tex->numMips <= 1) || FBitSet (tex->flags, TF_NOMIPMAP | TF_DEPTHMAP);
 
-	if (FBitSet (tex->flags, TF_NEAREST) || gl_texture_nearest.value)
+	/*if (FBitSet (tex->flags, TF_NEAREST) || gl_texture_nearest.value)*/
+	if (!GL_TextureFilteringEnabled (tex))
 		{
-		pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		/*pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);*/
+		pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, nomipmap ? GL_NEAREST : GL_NEAREST_MIPMAP_NEAREST);
 		pglTexParameteri (tex->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		}
 	else
 		{
-		pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		/*pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
+		pglTexParameteri (tex->target, GL_TEXTURE_MIN_FILTER, nomipmap ? GL_LINEAR : GL_LINEAR_MIPMAP_LINEAR);
 		pglTexParameteri (tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
 	}
@@ -347,8 +393,8 @@ void R_SetTextureParameters (void)
 	for (i = 0; i < gl_numTextures; i++)
 		GL_UpdateTextureParams (i);
 
-	// [FWGS, 01.11.23]
-	R_UpdateRippleTexParams ();
+	// [FWGS, 01.02.24]
+	/*R_UpdateRippleTexParams ();*/
 	}
 
 /*
@@ -913,12 +959,12 @@ GL_BoxFilter3x3
 box filter 3x3
 =================
 */
-void GL_BoxFilter3x3 (byte *out, const byte *in, int w, int h, int x, int y)
+static void GL_BoxFilter3x3 (byte *out, const byte *in, int w, int h, int x, int y)
 	{
 	int		r = 0, g = 0, b = 0, a = 0;
 	int		count = 0, acount = 0;
 	int		i, j, u, v;
-	const byte *pixel;
+	const byte	*pixel;
 
 	for (i = 0; i < 3; i++)
 		{
@@ -959,18 +1005,18 @@ GL_ApplyFilter
 Apply box-filter to 1-bit alpha
 =================
 */
-byte *GL_ApplyFilter (const byte *source, int width, int height)
+static byte *GL_ApplyFilter (const byte *source, int width, int height)
 	{
-	byte *in = (byte *)source;
-	byte *out = (byte *)source;
-	int	i;
+	byte	*in = (byte *)source;
+	byte	*out = (byte *)source;
+	int		i;
 
 	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) || glConfig.max_multisamples > 1)
 		return in;
 
 	for (i = 0; source && i < width * height; i++, in += 4)
 		{
-		if (in[0] == 0 && in[1] == 0 && in[2] == 0 && in[3] == 0)
+		if ((in[0] == 0) && (in[1] == 0) && (in[2] == 0) && (in[3] == 0))
 			GL_BoxFilter3x3 (in, source, width, height, i % width, i / width);
 		}
 
@@ -986,13 +1032,14 @@ Operates in place, quartering the size of the texture
 */
 static void GL_BuildMipMap (byte *in, int srcWidth, int srcHeight, int srcDepth, int flags)
 	{
-	byte *out = in;
-	int	instride = ALIGN (srcWidth * 4, 1);
-	int	mipWidth, mipHeight, outpadding;
-	int	row, x, y, z;
+	byte	*out = in;
+	int		instride = ALIGN (srcWidth * 4, 1);
+	int		mipWidth, mipHeight, outpadding;
+	int		row, x, y, z;
 	vec3_t	normal;
 
-	if (!in) return;
+	if (!in)
+		return;
 
 	mipWidth = Q_max (1, (srcWidth >> 1));
 	mipHeight = Q_max (1, (srcHeight >> 1));
@@ -1071,11 +1118,11 @@ static void GL_BuildMipMap (byte *in, int srcWidth, int srcHeight, int srcDepth,
 static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLint width, GLint height,
 	GLint depth, GLint type, const void *data)
 	{
-	GLuint	cubeTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB;
+	GLuint		cubeTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB;
 	qboolean	subImage = FBitSet (tex->flags, TF_IMG_UPLOADED);
-	GLenum	inFormat = gEngfuncs.Image_GetPFDesc (type)->glFormat;
-	GLint	dataType = GL_UNSIGNED_BYTE;
-	GLsizei	samplesCount = 0;
+	GLenum		inFormat = gEngfuncs.Image_GetPFDesc (type)->glFormat;
+	GLint		dataType = GL_UNSIGNED_BYTE;
+	GLsizei		samplesCount = 0;
 
 	Assert (tex != NULL);
 
@@ -1089,18 +1136,24 @@ static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLin
 
 	if (tex->target == GL_TEXTURE_1D)
 		{
-		if (subImage) pglTexSubImage1D (tex->target, level, 0, width, inFormat, dataType, data);
-		else pglTexImage1D (tex->target, level, tex->format, width, 0, inFormat, dataType, data);
+		if (subImage)
+			pglTexSubImage1D (tex->target, level, 0, width, inFormat, dataType, data);
+		else
+			pglTexImage1D (tex->target, level, tex->format, width, 0, inFormat, dataType, data);
 		}
 	else if (tex->target == GL_TEXTURE_CUBE_MAP_ARB)
 		{
-		if (subImage) pglTexSubImage2D (cubeTarget + side, level, 0, 0, width, height, inFormat, dataType, data);
-		else pglTexImage2D (cubeTarget + side, level, tex->format, width, height, 0, inFormat, dataType, data);
+		if (subImage)
+			pglTexSubImage2D (cubeTarget + side, level, 0, 0, width, height, inFormat, dataType, data);
+		else
+			pglTexImage2D (cubeTarget + side, level, tex->format, width, height, 0, inFormat, dataType, data);
 		}
-	else if (tex->target == GL_TEXTURE_3D || tex->target == GL_TEXTURE_2D_ARRAY_EXT)
+	else if ((tex->target == GL_TEXTURE_3D) || (tex->target == GL_TEXTURE_2D_ARRAY_EXT))
 		{
-		if (subImage) pglTexSubImage3D (tex->target, level, 0, 0, 0, width, height, depth, inFormat, dataType, data);
-		else pglTexImage3D (tex->target, level, tex->format, width, height, depth, 0, inFormat, dataType, data);
+		if (subImage)
+			pglTexSubImage3D (tex->target, level, 0, 0, 0, width, height, depth, inFormat, dataType, data);
+		else
+			pglTexImage3D (tex->target, level, tex->format, width, height, depth, 0, inFormat, dataType, data);
 		}
 	else if (tex->target == GL_TEXTURE_2D_MULTISAMPLE)
 		{
@@ -1125,8 +1178,10 @@ static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLin
 		}
 	else // 2D or RECT
 		{
-		if (subImage) pglTexSubImage2D (tex->target, level, 0, 0, width, height, inFormat, dataType, data);
-		else pglTexImage2D (tex->target, level, tex->format, width, height, 0, inFormat, dataType, data);
+		if (subImage)
+			pglTexSubImage2D (tex->target, level, 0, 0, width, height, inFormat, dataType, data);
+		else
+			pglTexImage2D (tex->target, level, tex->format, width, height, 0, inFormat, dataType, data);
 		}
 	}
 
@@ -1181,6 +1236,7 @@ show GL-errors on load images
 static void GL_CheckTexImageError (gl_texture_t *tex)
 	{
 	int	err;
+
 	Assert (tex != NULL);
 
 	// [FWGS, 01.07.23] catch possible errors
@@ -1408,7 +1464,7 @@ static void GL_ProcessImage (gl_texture_t *tex, rgbdata_t *pic)
 GL_CheckTexName
 ================
 */
-qboolean GL_CheckTexName (const char *name)
+static qboolean GL_CheckTexName (const char *name)
 	{
 	int len;
 
@@ -1434,8 +1490,8 @@ GL_TextureForName
 */
 static gl_texture_t *GL_TextureForName (const char *name)
 	{
-	gl_texture_t *tex;
-	uint		hash;
+	gl_texture_t	*tex;
+	uint			hash;
 
 	// find the texture in array
 	hash = COM_HashKey (name, TEXTURES_HASH_SIZE);
@@ -1456,8 +1512,8 @@ GL_AllocTexture
 */
 static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 	{
-	gl_texture_t *tex;
-	uint		i;
+	gl_texture_t	*tex;
+	uint			i;
 
 	// find a free texture_t slot
 	for (i = 0, tex = gl_textures; i < gl_numTextures; i++, tex++)
@@ -1506,8 +1562,8 @@ GL_DeleteTexture
 */
 static void GL_DeleteTexture (gl_texture_t *tex)
 	{
-	gl_texture_t **prev;
-	gl_texture_t *cur;
+	gl_texture_t	**prev;
+	gl_texture_t	*cur;
 
 	ASSERT (tex != NULL);
 
@@ -1557,9 +1613,9 @@ void GL_UpdateTexSize (int texnum, int width, int height, int depth)
 	{
 	int		i, j, texsize;
 	int		numSides;
-	gl_texture_t *tex;
+	gl_texture_t	*tex;
 
-	if (texnum <= 0 || texnum >= MAX_TEXTURES)
+	if ((texnum <= 0) || (texnum >= MAX_TEXTURES))
 		return;
 
 	tex = &gl_textures[texnum];
@@ -1586,9 +1642,9 @@ GL_LoadTexture
 */
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags)
 	{
-	gl_texture_t *tex;
-	rgbdata_t *pic;
-	uint		picFlags = 0;
+	gl_texture_t	*tex;
+	rgbdata_t		*pic;
+	uint			picFlags = 0;
 
 	if (!GL_CheckTexName (name))
 		return 0;
@@ -1841,7 +1897,7 @@ creates texture from buffer
 int GL_CreateTexture (const char *name, int width, int height, const void *buffer, texFlags_t flags)
 	{
 	qboolean	update = FBitSet (flags, TF_UPDATE) ? true : false;
-	int	datasize = 1;
+	int			datasize = 1;
 	rgbdata_t	r_empty;
 
 	if (FBitSet (flags, TF_ARB_16BIT))
@@ -1962,8 +2018,8 @@ GL_ProcessTexture
 */
 void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 	{
-	gl_texture_t *image;
-	rgbdata_t *pic;
+	gl_texture_t	*image;
+	rgbdata_t		*pic;
 	int		flags = 0;
 
 	if ((texnum <= 0) || (texnum >= MAX_TEXTURES))
@@ -2043,7 +2099,7 @@ GL_FakeImage
 */
 static rgbdata_t *GL_FakeImage (int width, int height, int depth, int flags)
 	{
-	static byte	data2D[1024]; // 16x16x4
+	static byte			data2D[1024]; // 16x16x4
 	static rgbdata_t	r_image;
 
 	// also use this for bad textures, but without alpha
@@ -2094,9 +2150,9 @@ GL_CreateInternalTextures
 */
 static void GL_CreateInternalTextures (void)
 	{
-	int	dx2, dy, d;
-	int	x, y;
-	rgbdata_t *pic;
+	int		dx2, dy, d;
+	int		x, y;
+	rgbdata_t	*pic;
 
 	// emo-texture from quake1
 	pic = GL_FakeImage (16, 16, 1, IMAGE_HAS_COLOR);
@@ -2107,7 +2163,8 @@ static void GL_CreateInternalTextures (void)
 			{
 			if ((y < 8) ^ (x < 8))
 				((uint *)pic->buffer)[y * 16 + x] = 0xFFFF00FF;
-			else ((uint *)pic->buffer)[y * 16 + x] = 0xFF000000;
+			else
+				((uint *)pic->buffer)[y * 16 + x] = 0xFF000000;
 			}
 		}
 
@@ -2122,7 +2179,8 @@ static void GL_CreateInternalTextures (void)
 			{
 			if (dottexture[x][y])
 				pic->buffer[(y * 8 + x) * 4 + 3] = 255;
-			else pic->buffer[(y * 8 + x) * 4 + 3] = 0;
+			else
+				pic->buffer[(y * 8 + x) * 4 + 3] = 0;
 			}
 		}
 
@@ -2158,7 +2216,7 @@ R_TextureList_f
 */
 void R_TextureList_f (void)
 	{
-	gl_texture_t *image;
+	gl_texture_t	*image;
 	int		i, texCount, bytes = 0;
 
 	gEngfuncs.Con_Printf ("\n");
@@ -2166,7 +2224,8 @@ void R_TextureList_f (void)
 
 	for (i = texCount = 0, image = gl_textures; i < gl_numTextures; i++, image++)
 		{
-		if (!image->texnum) continue;
+		if (!image->texnum)
+			continue;
 
 		bytes += image->size;
 		texCount++;
@@ -2321,7 +2380,8 @@ void R_TextureList_f (void)
 
 		if (image->flags & TF_NORMALMAP)
 			gEngfuncs.Con_Printf ("normal  ");
-		else gEngfuncs.Con_Printf ("diffuse ");
+		else
+			gEngfuncs.Con_Printf ("diffuse ");
 
 		switch (image->encode)
 			{
@@ -2354,6 +2414,7 @@ void R_TextureList_f (void)
 			gEngfuncs.Con_Printf ("border ");
 		else
 			gEngfuncs.Con_Printf ("repeat ");
+
 		gEngfuncs.Con_Printf ("   %d  ", image->depth);
 		gEngfuncs.Con_Printf ("  %s\n", image->name);
 		}
@@ -2399,7 +2460,7 @@ R_ShutdownImages
 */
 void R_ShutdownImages (void)
 	{
-	gl_texture_t *tex;
+	gl_texture_t	*tex;
 	int		i;
 
 	gEngfuncs.Cmd_RemoveCommand ("texturelist");

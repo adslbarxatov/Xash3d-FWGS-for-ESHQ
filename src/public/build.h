@@ -26,6 +26,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org/>
 */
+
 #pragma once
 #ifndef BUILD_H
 	#define BUILD_H
@@ -66,17 +67,17 @@ Then you can use another oneliner to query all variables:
 #undef XASH_FREEBSD
 #undef XASH_HAIKU
 #undef XASH_IOS
-#undef XASH_IRIX	// [FWGS, 01.04.23]
+#undef XASH_IRIX
 #undef XASH_JS
 #undef XASH_LINUX
-#undef XASH_LINUX_UNKNOWN	// [FWGS, 01.04.23]
+/*#undef XASH_LINUX_UNKNOWN*/	// [FWGS, 01.02.24]
 #undef XASH_LITTLE_ENDIAN
 #undef XASH_MIPS
 #undef XASH_MOBILE_PLATFORM
 #undef XASH_NETBSD
 #undef XASH_OPENBSD
 #undef XASH_POSIX
-#undef XASH_PPC		// [FWGS, 01.07.23]
+#undef XASH_PPC
 #undef XASH_RISCV
 #undef XASH_RISCV_DOUBLEFP
 #undef XASH_RISCV_SINGLEFP
@@ -84,8 +85,8 @@ Then you can use another oneliner to query all variables:
 #undef XASH_SERENITY
 #undef XASH_WIN32
 #undef XASH_X86
-#undef XASH_NSWITCH	// [FWGS, 01.04.23]
-#undef XASH_PSVITA	// [FWGS, 01.04.23]
+#undef XASH_NSWITCH
+#undef XASH_PSVITA
 
 //================================================================
 // PLATFORM DETECTION CODE
@@ -102,14 +103,16 @@ Then you can use another oneliner to query all variables:
 	#if defined __linux__
 		#if defined __ANDROID__
 			#define XASH_ANDROID 1
-		#else
+
+		// [FWGS, 01.02.24]
+		/*#else
 			#include <features.h>
 			
 			// if our system libc has features.h header
 			// try to detect it to not confuse other libcs with built with glibc game libraries
 			#if !defined __GLIBC__
 				#define XASH_LINUX_UNKNOWN 1
-			#endif
+			#endif*/
 
 		#endif
 
@@ -146,7 +149,6 @@ Then you can use another oneliner to query all variables:
 	#endif
 #endif
 
-/*#if XASH_ANDROID || defined XASH_IOS || defined XASH_NSWITCH || defined XASH_PSVITA*/
 // [FWGS, 01.07.23] XASH_SAILFISH is special: SailfishOS by itself is a normal GNU/Linux platform
 // It doesn't make sense to split it to separate platform
 // but we still need XASH_MOBILE_PLATFORM for the engine.
@@ -201,14 +203,11 @@ Then you can use another oneliner to query all variables:
 #elif defined __e2k__
 	#define XASH_64BIT 1
 	#define XASH_E2K 1
-
-// [FWGS, 01.07.23]
 #elif defined __PPC__ || defined __powerpc__
 	#define XASH_PPC 1
 	#if defined __PPC64__ || defined __powerpc64__
 		#define XASH_64BIT 1
 	#endif
-
 #elif defined _M_ARM // msvc
 	#define XASH_ARM 7
 	#define XASH_ARM_HARDFP 1

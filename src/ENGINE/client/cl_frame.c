@@ -51,9 +51,8 @@ CL_UpdatePositions [FWGS, 01.01.24]
 Store another position into interpolation circular buffer
 ==================
 */
-void CL_UpdatePositions (cl_entity_t *ent)
+static void CL_UpdatePositions (cl_entity_t *ent)
 	{
-	/*position_history_t *ph;*/
 	position_history_t *ph, *prev;
 	prev = &ent->ph[ent->current_position];
 
@@ -62,10 +61,6 @@ void CL_UpdatePositions (cl_entity_t *ent)
 	VectorCopy (ent->curstate.origin, ph->origin);
 	VectorCopy (ent->curstate.angles, ph->angles);
 
-	/*if (ent->model && (ent->model->type == mod_brush))
-		ph->animtime = ent->curstate.animtime;
-	else
-		ph->animtime = cl.time;*/
 	ph->animtime = ent->curstate.animtime;
 
 	// a1ba: for some reason, this sometimes still may happen
@@ -88,7 +83,7 @@ CL_ResetPositions
 Interpolation init or reset after teleporting
 ==================
 */
-void CL_ResetPositions (cl_entity_t *ent)
+static void CL_ResetPositions (cl_entity_t *ent)
 	{
 	position_history_t	store;
 
@@ -111,7 +106,7 @@ check for instant movement in case
 we don't want interpolate this
 ==================
 */
-qboolean CL_EntityTeleported (cl_entity_t *ent)
+static qboolean CL_EntityTeleported (cl_entity_t *ent)
 	{
 	float	len, maxlen;
 	vec3_t	delta;
@@ -132,7 +127,7 @@ CL_CompareTimestamps
 round-off floating errors
 ==================
 */
-qboolean CL_CompareTimestamps (float t1, float t2)
+static qboolean CL_CompareTimestamps (float t1, float t2)
 	{
 	int	iTime1 = t1 * 1000;
 	int	iTime2 = t2 * 1000;
@@ -147,9 +142,9 @@ CL_EntityIgnoreLerp
 some ents will be ignore lerping
 ==================
 */
-qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
+static qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
 	{
-	if (cl_nointerp.value > 0.0f)	// [FWGS, 01.07.23]
+	if (cl_nointerp.value > 0.0f)
 		return true;
 
 	if (e->model && (e->model->type == mod_alias))
@@ -163,7 +158,7 @@ qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
 CL_EntityCustomLerp
 ==================
 */
-qboolean CL_EntityCustomLerp (cl_entity_t *e)
+static qboolean CL_EntityCustomLerp (cl_entity_t *e)
 	{
 	switch (e->curstate.movetype)
 		{
@@ -178,7 +173,7 @@ qboolean CL_EntityCustomLerp (cl_entity_t *e)
 		// INTERPOLATION IN GRAVGUNMOD COOP
 		// MUST BE REMOVED ONCE WE REMOVE 48 PROTO SUPPORT
 		case MOVETYPE_TOSS:
-			if (cls.legacymode && e->model && e->model->type == mod_studio)
+			if (cls.legacymode && e->model && (e->model->type == mod_studio))
 				return false;
 		}
 
@@ -192,7 +187,6 @@ CL_ParametricMove [FWGS, 01.01.24]
 check for parametrical moved entities
 ==================
 */
-/*qboolean CL_ParametricMove (cl_entity_t *ent)*/
 static qboolean CL_ParametricMove (cl_entity_t *ent)
 	{
 	float	frac, dt, t;
@@ -230,9 +224,9 @@ static qboolean CL_ParametricMove (cl_entity_t *ent)
 CL_UpdateLatchedVars
 ====================
 */
-void CL_UpdateLatchedVars (cl_entity_t *ent)
+static void CL_UpdateLatchedVars (cl_entity_t *ent)
 	{
-	if (!ent->model || (ent->model->type != mod_alias && ent->model->type != mod_studio))
+	if (!ent->model || ((ent->model->type != mod_alias) && (ent->model->type != mod_studio)))
 		return; // below fields used only for alias and studio interpolation
 
 	VectorCopy (ent->prevstate.origin, ent->latched.prevorigin);
@@ -264,8 +258,8 @@ CL_GetStudioEstimatedFrame [FWGS, 01.05.23]
 */
 static float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
 	{
-	studiohdr_t *pstudiohdr;
-	mstudioseqdesc_t *pseqdesc;
+	studiohdr_t			*pstudiohdr;
+	mstudioseqdesc_t	*pseqdesc;
 	int		sequence;
 
 	if ((ent->model != NULL) && (ent->model->type == mod_studio))
@@ -290,7 +284,7 @@ CL_ResetLatchedVars
 */
 void CL_ResetLatchedVars (cl_entity_t *ent, qboolean full_reset)
 	{
-	if (!ent->model || (ent->model->type != mod_alias && ent->model->type != mod_studio))
+	if (!ent->model || ((ent->model->type != mod_alias) && (ent->model->type != mod_studio)))
 		return; // below fields used only for alias and studio interpolation
 
 	if (full_reset)
@@ -323,7 +317,7 @@ CL_ProcessEntityUpdate
 apply changes since new frame received
 ==================
 */
-void CL_ProcessEntityUpdate (cl_entity_t *ent)
+static void CL_ProcessEntityUpdate (cl_entity_t *ent)
 	{
 	qboolean	parametric;
 
@@ -333,10 +327,10 @@ void CL_ProcessEntityUpdate (cl_entity_t *ent)
 	if (FBitSet (ent->curstate.entityType, ENTITY_NORMAL))
 		COM_NormalizeAngles (ent->curstate.angles);
 
-	parametric = ent->curstate.starttime != 0.0f && ent->curstate.impacttime != 0.0f;
+	parametric = (ent->curstate.starttime != 0.0f) && (ent->curstate.impacttime != 0.0f);
 
 	// allow interpolation on bmodels too
-	if (ent->model && ent->model->type == mod_brush)
+	if (ent->model && (ent->model->type == mod_brush))
 		ent->curstate.animtime = ent->curstate.msg_time;
 
 	if (CL_EntityCustomLerp (ent) && !parametric)
@@ -369,14 +363,11 @@ CL_FindInterpolationUpdates [FWGS, 01.01.24]
 find two timestamps
 ==================
 */
-/*qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, float targettime, position_history_t **ph0,
-	position_history_t **ph1)*/
 static qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, double targettime, position_history_t **ph0,
 	position_history_t **ph1)
 	{
 	qboolean	extrapolate = true;
 	uint		i, i0, i1, imod;
-	/*float		at;*/
 
 	imod = ent->current_position;
 	i0 = (imod - 0) & HISTORY_MASK;	// curpos (lerp end)
@@ -384,8 +375,6 @@ static qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, double targettime
 
 	for (i = 1; i < HISTORY_MAX - 1; i++)
 		{
-		/*at = ent->ph[(imod - i) & HISTORY_MASK].animtime;
-		if (at == 0.0f) break;*/
 		double at = ent->ph[(imod - i) & HISTORY_MASK].animtime;
 		if (at == 0.0f)
 			break;
@@ -400,8 +389,10 @@ static qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, double targettime
 			}
 		}
 
-	if (ph0 != NULL) *ph0 = &ent->ph[i0];
-	if (ph1 != NULL) *ph1 = &ent->ph[i1];
+	if (ph0 != NULL)
+		*ph0 = &ent->ph[i0];
+	if (ph1 != NULL)
+		*ph1 = &ent->ph[i1];
 
 	return extrapolate;
 	}
@@ -413,11 +404,8 @@ CL_PureOrigin [FWGS, 01.01.24]
 non-local players interpolation
 ==================
 */
-/*void CL_PureOrigin (cl_entity_t *ent, float t, vec3_t outorigin, vec3_t outangles)*/
 static void CL_PureOrigin (cl_entity_t *ent, double t, vec3_t outorigin, vec3_t outangles)
 	{
-	/*qboolean		extrapolate;
-	float			t1, t0, frac;*/
 	double			t1, t0, frac;
 	position_history_t	*ph0, *ph1;
 	vec3_t			delta;
@@ -470,12 +458,10 @@ CL_InterpolateModel [FWGS, 01.01.24]
 non-players interpolation
 ==================
 */
-/*int CL_InterpolateModel (cl_entity_t *e)*/
 static int CL_InterpolateModel (cl_entity_t *e)
 	{
 	position_history_t *ph0 = NULL, *ph1 = NULL;
 	vec3_t		origin, angles, delta;
-	/*float		t, t1, t2, frac;*/
 	double		t, t1, t2, frac;
 	vec4_t		q, q1, q2;
 
@@ -565,7 +551,6 @@ interpolate non-local clients
 */
 void CL_ComputePlayerOrigin (cl_entity_t *ent)
 	{
-	/*float	targettime;*/
 	double	targettime;
 	vec4_t	q, q1, q2;
 	vec3_t	origin;
@@ -606,7 +591,7 @@ CL_ProcessPlayerState
 process player states after the new packet has received
 =================
 */
-void CL_ProcessPlayerState (int playerindex, entity_state_t *state)
+static void CL_ProcessPlayerState (int playerindex, entity_state_t *state)
 	{
 	entity_state_t *ps;
 
@@ -626,7 +611,7 @@ reset latched state if this frame entity was teleported
 or just EF_NOINTERP was set
 =================
 */
-void CL_ResetLatchedState (int pnum, frame_t *frame, cl_entity_t *ent)
+static void CL_ResetLatchedState (int pnum, frame_t *frame, cl_entity_t *ent)
 	{
 	if (CHECKVISBIT (frame->flags, pnum))
 		{
@@ -651,8 +636,8 @@ process player states after the new packet has received
 */
 void CL_ProcessPacket (frame_t *frame)
 	{
-	entity_state_t *state;
-	cl_entity_t *ent;
+	entity_state_t	*state;
+	cl_entity_t		*ent;
 	int		pnum;
 
 	for (pnum = 0; pnum < frame->num_entities; pnum++)
@@ -715,7 +700,7 @@ CL_FlushEntityPacket
 Read and ignore whole entity packet
 =================
 */
-void CL_FlushEntityPacket (sizebuf_t *msg)
+static void CL_FlushEntityPacket (sizebuf_t *msg)
 	{
 	int		newnum;
 	entity_state_t	from, to;
@@ -746,10 +731,10 @@ CL_DeltaEntity
 processing delta update
 =================
 */
-void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_state_t *old, qboolean has_update)
+static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_state_t *old, qboolean has_update)
 	{
-	cl_entity_t *ent;
-	entity_state_t *state;
+	cl_entity_t		*ent;
+	entity_state_t	*state;
 	qboolean		newent = (old) ? false : true;
 	int		pack = frame->num_entities;
 	int		delta_type = DELTA_ENTITY;
@@ -757,7 +742,8 @@ void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_state_t 
 
 	// alloc next slot to store update
 	state = &cls.packet_entities[cls.next_client_entities % cls.num_client_entities];
-	if (CL_IsPlayerIndex (newnum)) delta_type = DELTA_PLAYER;
+	if (CL_IsPlayerIndex (newnum))
+		delta_type = DELTA_PLAYER;
 
 	if ((newnum < 0) || (newnum >= clgame.maxEntities))
 		{
@@ -1071,7 +1057,7 @@ CL_LinkCustomEntity
 Add server beam to draw list
 =============
 */
-void CL_LinkCustomEntity (cl_entity_t *ent, entity_state_t *state)
+static void CL_LinkCustomEntity (cl_entity_t *ent, entity_state_t *state)
 	{
 	ent->curstate.movetype = state->modelindex; // !!!
 
@@ -1094,10 +1080,10 @@ Create visible entities in the correct position
 for all current players
 =============
 */
-void CL_LinkPlayers (frame_t *frame)
+static void CL_LinkPlayers (frame_t *frame)
 	{
-	entity_state_t *state;
-	cl_entity_t *ent;
+	entity_state_t	*state;
+	cl_entity_t		*ent;
 	int		i;
 
 	ent = CL_GetLocalPlayer ();
@@ -1168,7 +1154,8 @@ void CL_LinkPlayers (frame_t *frame)
 		}
 
 	// apply local player effects if entity is not added
-	if (cl.local.apply_effects) CL_AddEntityEffects (CL_GetLocalPlayer ());
+	if (cl.local.apply_effects)
+		CL_AddEntityEffects (CL_GetLocalPlayer ());
 	}
 
 /*
@@ -1176,13 +1163,13 @@ void CL_LinkPlayers (frame_t *frame)
 CL_LinkPacketEntities
 ===============
 */
-void CL_LinkPacketEntities (frame_t *frame)
+static void CL_LinkPacketEntities (frame_t *frame)
 	{
-	cl_entity_t *ent;
-	entity_state_t *state;
-	qboolean		parametric;
-	qboolean		interpolate;
-	int		i;
+	cl_entity_t		*ent;
+	entity_state_t	*state;
+	qboolean	parametric;
+	qboolean	interpolate;
+	int			i;
 
 	for (i = 0; i < frame->num_entities; i++)
 		{
@@ -1504,8 +1491,9 @@ qboolean CL_GetMovieSpatialization (rawchan_t *ch)
 	return true;
 	}
 
-void CL_ExtraUpdate (void)
+// [FWGS, 01.02.24]
+/*void CL_ExtraUpdate (void)
 	{
 	clgame.dllFuncs.IN_Accumulate ();
 	S_ExtraUpdate ();
-	}
+	}*/

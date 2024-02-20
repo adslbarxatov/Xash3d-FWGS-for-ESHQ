@@ -191,14 +191,18 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 	return true;
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.02.24]
 #if XASH_ENGINE_TESTS
+
+int EXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size);
+
 int EXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size)
 	{
 	memset (&sound, 0, sizeof (sound));
 	Sound_ParseID3Tag (Data, Size);
 	return 0;
 	}
+
 #endif
 
 /*
@@ -208,12 +212,12 @@ MPEG decompression
 */
 qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	void *mpeg;
+	void	*mpeg;
 	size_t	pos = 0;
 	size_t	bytesWrite = 0;
 	byte	out[OUTBUF_SIZE];
 	size_t	outsize, padsize;
-	int	ret;
+	int		ret;
 	wavinfo_t	sc;
 
 	// load the file
@@ -267,7 +271,7 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		int	size;
 
-		if (feed_mpeg_stream (mpeg, NULL, 0, out, &outsize) != MP3_OK && outsize <= 0)
+		if ((feed_mpeg_stream (mpeg, NULL, 0, out, &outsize) != MP3_OK) && (outsize <= 0))
 			{
 			const byte *data = buffer + pos;
 			int	bufsize;
@@ -275,7 +279,8 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 			// if there are no bytes remainig so we can decompress the new frame
 			if (pos + FRAME_SIZE > filesize)
 				bufsize = (filesize - pos);
-			else bufsize = FRAME_SIZE;
+			else
+				bufsize = FRAME_SIZE;
 			pos += bufsize;
 
 			if (feed_mpeg_stream (mpeg, data, bufsize, out, &outsize) != MP3_OK)
@@ -284,7 +289,8 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 
 		if (bytesWrite + outsize > sound.size)
 			size = (sound.size - bytesWrite);
-		else size = outsize;
+		else
+			size = outsize;
 
 		memcpy (&sound.wav[bytesWrite], out, size);
 		bytesWrite += size;
@@ -298,10 +304,10 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 
 /*
 =================
-FS_SeekEx [FWGS, 01.04.23]
+FS_SeekEx [FWGS, 01.02.24]
 =================
 */
-fs_offset_t FS_SeekEx (file_t *file, fs_offset_t offset, int whence)
+static fs_offset_t FS_SeekEx (file_t *file, fs_offset_t offset, int whence)
 	{
 	return (FS_Seek (file, offset, whence) == -1) ? -1 : FS_Tell (file);
 	}

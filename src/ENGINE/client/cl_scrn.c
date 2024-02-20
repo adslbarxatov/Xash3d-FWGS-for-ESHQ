@@ -271,11 +271,11 @@ VID_WriteOverviewScript
 Create overview script file
 ===============
 */
-void VID_WriteOverviewScript (void)
+static void VID_WriteOverviewScript (void)
 	{
-	ref_overview_t *ov = &clgame.overView;
-	string		filename;
-	file_t *f;
+	ref_overview_t	*ov = &clgame.overView;
+	string			filename;
+	file_t			*f;
 
 	Q_snprintf (filename, sizeof (filename), "overviews/%s.txt", clgame.mapname);
 
@@ -369,7 +369,7 @@ void SCR_MakeScreenShot (void)
 SCR_DrawPlaque
 ================
 */
-void SCR_DrawPlaque (void)
+static void SCR_DrawPlaque (void)
 	{
 	if ((cl_allow_levelshots.value && !cls.changelevel) || cl.background)
 		{
@@ -440,7 +440,7 @@ void SCR_EndLoadingPlaque (void)
 SCR_AddDirtyPoint
 =================
 */
-void SCR_AddDirtyPoint (int x, int y)
+static void SCR_AddDirtyPoint (int x, int y)
 	{
 	if (x < scr_dirty.x1) scr_dirty.x1 = x;
 	if (x > scr_dirty.x2) scr_dirty.x2 = x;
@@ -632,17 +632,19 @@ SCR_InstallParticlePalette
 INTERNAL RESOURCE
 ================
 */
-void SCR_InstallParticlePalette (void)
+static void SCR_InstallParticlePalette (void)
 	{
-	rgbdata_t *pic;
-	int	i;
+	rgbdata_t	*pic;
+	int			i;
 
 	// first check 'palette.lmp' then 'palette.pal'
 	pic = FS_LoadImage (DEFAULT_INTERNAL_PALETTE, NULL, 0);
-	if (!pic) pic = FS_LoadImage (DEFAULT_EXTERNAL_PALETTE, NULL, 0);
+	if (!pic)
+		pic = FS_LoadImage (DEFAULT_EXTERNAL_PALETTE, NULL, 0);
 
 	// NOTE: imagelib required this fakebuffer for loading internal palette
-	if (!pic) pic = FS_LoadImage ("#valve.pal", (byte *)&i, 768);
+	if (!pic)
+		pic = FS_LoadImage ("#valve.pal", (byte *)&i, 768);
 
 	if (pic)
 		{
@@ -668,7 +670,7 @@ void SCR_InstallParticlePalette (void)
 
 /*
 ================
-SCR_RegisterTextures
+SCR_RegisterTextures [FWGS, 01.02.24]
 
 INTERNAL RESOURCE
 ================
@@ -676,25 +678,35 @@ INTERNAL RESOURCE
 void SCR_RegisterTextures (void)
 	{
 	// register gfx.wad images
-
 	if (FS_FileExists ("gfx/paused.lmp", false))
-		cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/paused.lmp", NULL, 0, TF_IMAGE);
+		/*cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/paused.lmp", NULL, 0, TF_IMAGE);*/
+		cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/paused.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
+
 	else if (FS_FileExists ("gfx/pause.lmp", false))
-		cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/pause.lmp", NULL, 0, TF_IMAGE);
+		/*cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/pause.lmp", NULL, 0, TF_IMAGE);*/
+		cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/pause.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
 
 	if (FS_FileExists ("gfx/lambda.lmp", false))
 		{
 		if (cl_allow_levelshots.value)
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
+			/*cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
 		else 
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE);
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE);*/
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0,
+				TF_IMAGE | TF_LUMINANCE | TF_ALLOW_NEAREST);
+		else
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
 		}
 	else if (FS_FileExists ("gfx/loading.lmp", false))
 		{
 		if (cl_allow_levelshots.value)
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
+			/*cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
 		else 
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE);
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE);*/
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0,
+				TF_IMAGE | TF_LUMINANCE | TF_ALLOW_NEAREST);
+		else
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
 		}
 
 	cls.tileImage = ref.dllFuncs.GL_LoadTexture ("gfx/backtile.lmp", NULL, 0, TF_NOMIPMAP);
@@ -707,11 +719,10 @@ SCR_SizeUp_f
 Keybinding command
 =================
 */
-void SCR_SizeUp_f (void)
+static void SCR_SizeUp_f (void)
 	{
 	Cvar_SetValue ("viewsize", Q_min (scr_viewsize.value + 10, 120));
 	}
-
 
 /*
 =================
@@ -720,7 +731,7 @@ SCR_SizeDown_f
 Keybinding command
 =================
 */
-void SCR_SizeDown_f (void)
+static void SCR_SizeDown_f (void)
 	{
 	Cvar_SetValue ("viewsize", Q_max (scr_viewsize.value - 10, 30));
 	}

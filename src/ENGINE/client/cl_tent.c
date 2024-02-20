@@ -86,6 +86,9 @@ const char *cl_explode_sounds[] =
 		"weapons/explode5.wav",
 	};
 
+// [FWGS, 01.02.24]
+static void CL_PlayerDecal (int playerIndex, int textureIndex, int entityIndex, float *pos);
+
 /*
 ================
 CL_LoadClientSprites
@@ -146,7 +149,7 @@ client resources not precached by server
 void CL_AddClientResources (void)
 	{
 	char	filepath[MAX_QPATH];
-	int	i;
+	int		i;
 
 	// don't request resources from localhost or in quake-compatibility mode
 	if ((cl.maxclients <= 1) || Host_IsQuakeCompatible ())
@@ -189,7 +192,6 @@ void CL_AddClientResources (void)
 /*
 ================
 CL_InitTempents
-
 ================
 */
 void CL_InitTempEnts (void)
@@ -204,14 +206,14 @@ void CL_InitTempEnts (void)
 /*
 ================
 CL_ClearTempEnts
-
 ================
 */
 void CL_ClearTempEnts (void)
 	{
 	int	i;
 
-	if (!cl_tempents) return;
+	if (!cl_tempents)
+		return;
 
 	for (i = 0; i < GI->max_tents - 1; i++)
 		{
@@ -227,7 +229,6 @@ void CL_ClearTempEnts (void)
 /*
 ================
 CL_FreeTempEnts
-
 ================
 */
 void CL_FreeTempEnts (void)
@@ -244,7 +245,7 @@ CL_PrepareTEnt
 set default values
 ==============
 */
-void CL_PrepareTEnt (TEMPENTITY *pTemp, model_t *pmodel)
+static void CL_PrepareTEnt (TEMPENTITY *pTemp, model_t *pmodel)
 	{
 	int	frameCount = 0;
 	int	modelIndex = 0;
@@ -257,8 +258,10 @@ void CL_PrepareTEnt (TEMPENTITY *pTemp, model_t *pmodel)
 	pTemp->flags = FTENT_NONE;
 	pTemp->die = cl.time + 0.75f;
 
-	if (pmodel) frameCount = pmodel->numframes;
-	else pTemp->flags |= FTENT_NOMODEL;
+	if (pmodel)
+		frameCount = pmodel->numframes;
+	else
+		pTemp->flags |= FTENT_NOMODEL;
 
 	pTemp->entity.curstate.modelindex = modelIndex;
 	pTemp->entity.curstate.rendermode = kRenderNormal;
@@ -285,12 +288,12 @@ CL_TempEntPlaySound
 play collide sound
 ==============
 */
-void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
+static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 	{
-	float	fvol;
-	char	soundname[32];
+	float		fvol;
+	char		soundname[32];
 	qboolean	isshellcasing = false;
-	int	zvel;
+	int			zvel;
 
 	Assert (pTemp != NULL);
 
@@ -360,11 +363,13 @@ void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 
 		if (isshellcasing)
 			fvol *= Q_min (1.0f, ((float)zvel) / 350.0f);
-		else fvol *= Q_min (1.0f, ((float)zvel) / 450.0f);
+		else
+			fvol *= Q_min (1.0f, ((float)zvel) / 450.0f);
 
 		if (!COM_RandomLong (0, 3) && !isshellcasing)
 			pitch = COM_RandomLong (95, 105);
-		else pitch = PITCH_NORM;
+		else
+			pitch = PITCH_NORM;
 
 		handle = S_RegisterSound (soundname);
 
@@ -381,7 +386,7 @@ CL_TEntAddEntity
 add entity to renderlist
 ==============
 */
-int CL_TempEntAddEntity (cl_entity_t *pEntity)
+static int CL_TempEntAddEntity (cl_entity_t *pEntity)
 	{
 	vec3_t mins, maxs;
 
@@ -423,7 +428,8 @@ void CL_TempEntUpdate (void)
 	double	ft = cl.time - cl.oldtime;
 	float	gravity = clgame.movevars.gravity;
 
-	clgame.dllFuncs.pfnTempEntUpdate (ft, cl.time, gravity, &cl_free_tents, &cl_active_tents, CL_TempEntAddEntity, CL_TempEntPlaySound);
+	clgame.dllFuncs.pfnTempEntUpdate (ft, cl.time, gravity, &cl_free_tents, &cl_active_tents,
+		CL_TempEntAddEntity, CL_TempEntPlaySound);
 	}
 
 /*
@@ -433,7 +439,7 @@ CL_TEntAddEntity
 free the first low priority tempent it finds.
 ==============
 */
-qboolean CL_FreeLowPriorityTempEnt (void)
+static qboolean CL_FreeLowPriorityTempEnt (void)
 	{
 	TEMPENTITY *pActive = cl_active_tents;
 	TEMPENTITY *pPrev = NULL;
@@ -2429,9 +2435,7 @@ void CL_ParseTempEntity (sizebuf_t *msg)
 
 /*
 ==============================================================
-
 LIGHT STYLE MANAGEMENT
-
 ==============================================================
 */
 #define STYLE_LERPING_THRESHOLD	3.0f // because we wan't interpolate fast sequences (like on\off)
@@ -2441,19 +2445,19 @@ LIGHT STYLE MANAGEMENT
 CL_ClearLightStyles
 ================
 */
-void CL_ClearLightStyles (void)
+static void CL_ClearLightStyles (void)
 	{
 	memset (cl.lightstyles, 0, sizeof (cl.lightstyles));
 	}
 
 void CL_SetLightstyle (int style, const char *s, float f)
 	{
-	int		i, k;
-	lightstyle_t *ls;
-	float		val1, val2;
+	int				i, k;
+	lightstyle_t	*ls;
+	float			val1, val2;
 
 	Assert (s != NULL);
-	Assert (style >= 0 && style < MAX_LIGHTSTYLES);
+	Assert ((style >= 0) && (style < MAX_LIGHTSTYLES));
 
 	ls = &cl.lightstyles[style];
 
@@ -2486,9 +2490,7 @@ void CL_SetLightstyle (int style, const char *s, float f)
 
 /*
 ==============================================================
-
 DLIGHT MANAGEMENT
-
 ==============================================================
 */
 dlight_t	cl_dlights[MAX_DLIGHTS];
@@ -2499,7 +2501,7 @@ dlight_t	cl_elights[MAX_ELIGHTS];
 CL_ClearDlights
 ================
 */
-void CL_ClearDlights (void)
+static void CL_ClearDlights (void)
 	{
 	memset (cl_dlights, 0, sizeof (cl_dlights));
 	memset (cl_elights, 0, sizeof (cl_elights));
@@ -2508,7 +2510,6 @@ void CL_ClearDlights (void)
 /*
 ===============
 CL_AllocDlight
-
 ===============
 */
 dlight_t *CL_AllocDlight (int key)
@@ -2534,7 +2535,7 @@ dlight_t *CL_AllocDlight (int key)
 	// then look for anything else
 	for (i = 0, dl = cl_dlights; i < MAX_DLIGHTS; i++, dl++)
 		{
-		if (dl->die < cl.time && dl->key == 0)
+		if ((dl->die < cl.time) && (dl->key == 0))
 			{
 			memset (dl, 0, sizeof (*dl));
 			dl->key = key;
@@ -2553,7 +2554,6 @@ dlight_t *CL_AllocDlight (int key)
 /*
 ===============
 CL_AllocElight
-
 ===============
 */
 dlight_t *CL_AllocElight (int key)
@@ -2579,7 +2579,7 @@ dlight_t *CL_AllocElight (int key)
 	// then look for anything else
 	for (i = 0, dl = cl_elights; i < MAX_ELIGHTS; i++, dl++)
 		{
-		if (dl->die < cl.time && dl->key == 0)
+		if ((dl->die < cl.time) && (dl->key == 0))
 			{
 			memset (dl, 0, sizeof (*dl));
 			dl->key = key;
@@ -2603,8 +2603,8 @@ CL_DecayLights
 void CL_DecayLights (void)
 	{
 	dlight_t	*dl;
-	float	time;
-	int		i;
+	float		time;
+	int			i;
 
 	time = cl.time - cl.oldtime;
 
@@ -2768,63 +2768,30 @@ apply various effects to entity origin or attachment
 */
 void CL_AddEntityEffects (cl_entity_t *ent)
 	{
-	/* yellow flies effect 'monster stuck in the wall'
-	if (FBitSet (ent->curstate.effects, EF_BRIGHTFIELD) && !RP_LOCALCLIENT (ent))
-		R_EntityParticles (ent);*/
 	// players have special set of effects, from CL_LinkPlayers
 	if (ent->player && (ent->index != cl.viewentity))
 		{
 		if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))
-			R_EntityBrightlight (ent, ent->index /* 4 in GoldSrc */, 0);
+			R_EntityBrightlight (ent, ent->index, 0);
 
-		/*if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))*/
 		if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))
-			R_EntityDimlight (ent, ent->index /* 4 in GoldSrc */);
+			R_EntityDimlight (ent, ent->index);
 		}
 	else if (RP_LOCALCLIENT (ent))
 		{
-		/*if (ent->player && !Host_IsQuakeCompatible ())
-			{*/
 		// from CL_PlayerFlashlight
 		if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))
-			R_EntityBrightlight (ent, ent->index /* 1 in GoldSrc */, 400);
+			R_EntityBrightlight (ent, ent->index, 400);
 		else if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))
 			CL_UpdateFlashlight (ent);
-		/*}
-	else
-		{
-		dlight_t *dl = CL_AllocDlight (ent->index);
-		dl->color.r = dl->color.g = dl->color.b = 100;
-		dl->radius = COM_RandomFloat (200, 231);
-		VectorCopy (ent->origin, dl->origin);
-		dl->die = cl.time + 0.001;
-		}*/
 		}
 
-	/*if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))*/
 	else
 		{
-		/*dlight_t *dl = CL_AllocDlight (ent->index);
-		dl->color.r = dl->color.g = dl->color.b = 250;
-		if (ent->player) dl->radius = 400; // don't flickering
-		else dl->radius = COM_RandomFloat (400, 431);
-		VectorCopy (ent->origin, dl->origin);
-		dl->die = cl.time + 0.001;
-		dl->origin[2] += 16.0f;
-		}*/
 		// from CL_LinkPacketEntities
 		if (FBitSet (ent->curstate.effects, EF_BRIGHTFIELD))
 			R_EntityParticles (ent);
 
-		/*// add light effect
-		if (FBitSet (ent->curstate.effects, EF_LIGHT))
-			{
-			dlight_t *dl = CL_AllocDlight (ent->index);
-			dl->color.r = dl->color.g = dl->color.b = 100;
-			VectorCopy (ent->origin, dl->origin);
-			R_RocketFlare (ent->origin);
-			dl->die = cl.time + 0.001;
-			dl->radius = 200;*/
 		if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))
 			R_EntityBrightlight (ent, ent->index, 0);
 
@@ -2836,7 +2803,6 @@ void CL_AddEntityEffects (cl_entity_t *ent)
 		}
 
 	// studio models are handle muzzleflashes difference
-	/*if (FBitSet (ent->curstate.effects, EF_MUZZLEFLASH) && Mod_AliasExtradata (ent->model))*/
 	if (FBitSet (ent->curstate.effects, EF_MUZZLEFLASH) && ent->model && (ent->model->type == mod_alias))
 		{
 		dlight_t	*dl = CL_AllocDlight (ent->index);
@@ -2866,17 +2832,9 @@ void CL_AddModelEffects (cl_entity_t *ent)
 	vec3_t	neworigin;
 	vec3_t	oldorigin;
 
-	/*if (!ent->model) return;*/
 	if (!ent->model || ent->player)
 		return;
 
-	/*switch (ent->model->type)
-		{
-		case mod_alias:
-		case mod_studio:
-			break;
-		default:	return;
-		}*/
 	if ((ent->model->type != mod_alias) && (ent->model->type != mod_studio))
 		return;
 
@@ -2899,22 +2857,17 @@ void CL_AddModelEffects (cl_entity_t *ent)
 	if (FBitSet (ent->model->flags, STUDIO_GIB))
 		R_RocketTrail (oldorigin, neworigin, 2);
 
-	/*if (FBitSet (ent->model->flags, STUDIO_ZOMGIB))*/
 	else if (FBitSet (ent->model->flags, STUDIO_ZOMGIB))
 		R_RocketTrail (oldorigin, neworigin, 4);
 
-	/*if (FBitSet (ent->model->flags, STUDIO_TRACER))*/
 	else if (FBitSet (ent->model->flags, STUDIO_TRACER))
 		R_RocketTrail (oldorigin, neworigin, 3);
 
-	/*if (FBitSet (ent->model->flags, STUDIO_TRACER2))*/
 	else if (FBitSet (ent->model->flags, STUDIO_TRACER2))
 		R_RocketTrail (oldorigin, neworigin, 5);
 
-	/*if (FBitSet (ent->model->flags, STUDIO_ROCKET))*/
 	else if (FBitSet (ent->model->flags, STUDIO_ROCKET))
 		{
-		/*dlight_t *dl = CL_AllocDlight (ent->index);*/
 		dlight_t *dl = CL_AllocDlight (ent->curstate.number);
 
 		dl->color.r = dl->color.g = dl->color.b = 200;
@@ -2931,11 +2884,9 @@ void CL_AddModelEffects (cl_entity_t *ent)
 		R_RocketTrail (oldorigin, neworigin, 0);
 		}
 
-	/*if (FBitSet (ent->model->flags, STUDIO_GRENADE))*/
 	else if (FBitSet (ent->model->flags, STUDIO_GRENADE))
 		R_RocketTrail (oldorigin, neworigin, 1);
 
-	/*if (FBitSet (ent->model->flags, STUDIO_TRACER3))*/
 	else if (FBitSet (ent->model->flags, STUDIO_TRACER3))
 		R_RocketTrail (oldorigin, neworigin, 6);
 	}
@@ -2949,10 +2900,10 @@ if cl_testlights is set, create 32 lights models
 */
 void CL_TestLights (void)
 	{
-	int	i, j, numLights;
-	vec3_t	forward, right;
-	float	f, r;
-	dlight_t *dl;
+	int			i, j, numLights;
+	vec3_t		forward, right;
+	float		f, r;
+	dlight_t	*dl;
 
 	// [FWGS, 01.07.23]
 	if (!cl_testlights.value)
@@ -2981,9 +2932,7 @@ void CL_TestLights (void)
 
 /*
 ==============================================================
-
 DECAL MANAGEMENT
-
 ==============================================================
 */
 /*
@@ -3017,10 +2966,10 @@ CL_PlayerDecal
 spray custom colored decal (clan logo etc)
 ===============
 */
-void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, float *pos)
+static void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, float *pos)
 	{
 	int		textureIndex = 0;
-	customization_t *pCust = NULL;
+	customization_t	*pCust = NULL;
 
 	if (playernum < MAX_CLIENTS)
 		pCust = cl.players[playernum].customdata.pNext;
@@ -3109,9 +3058,7 @@ void GAME_EXPORT CL_DecalRemoveAll (int textureIndex)
 
 /*
 ==============================================================
-
 EFRAGS MANAGEMENT
-
 ==============================================================
 */
 efrag_t	cl_efrags[MAX_EFRAGS];
@@ -3171,4 +3118,3 @@ void CL_ClearEffects (void)
 	CL_ClearParticles ();
 	CL_ClearLightStyles ();
 	}
-

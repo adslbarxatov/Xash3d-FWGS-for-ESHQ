@@ -170,10 +170,10 @@ SV_ValidateMap
 check map for typically errors
 ==================
 */
-qboolean SV_ValidateMap (const char *pMapName, qboolean check_spawn)
+static qboolean SV_ValidateMap (const char *pMapName, qboolean check_spawn)
 	{
-	char *spawn_entity;
-	int	flags;
+	char	*spawn_entity;
+	int		flags;
 
 	// determine spawn entity classname
 	if (!check_spawn || ((int)sv_maxclients.value <= 1))
@@ -289,7 +289,7 @@ Goes directly to a given map without any savegame archiving.
 For development work
 ==================
 */
-void SV_Map_f (void)
+static void SV_Map_f (void)
 	{
 	char	mapname[MAX_QPATH];
 
@@ -317,12 +317,12 @@ SV_Maps_f
 Lists maps according to given substring
 ==================
 */
-void SV_Maps_f (void)
+static void SV_Maps_f (void)
 	{
-	const char *separator = "-------------------";
-	const char *argStr = Cmd_Argv (1); // Substr
-	int nummaps;
-	search_t *mapList;
+	const char	*separator = "-------------------";
+	const char	*argStr = Cmd_Argv (1); // Substr
+	int			nummaps;
+	search_t	*mapList;
 
 	if (Cmd_Argc () != 2)
 		{
@@ -351,7 +351,7 @@ SV_MapBackground_f
 Set background map (enable physics in menu)
 ==================
 */
-void SV_MapBackground_f (void)
+static void SV_MapBackground_f (void)
 	{
 	char	mapname[MAX_QPATH];
 
@@ -391,11 +391,11 @@ Change map for next in alpha-bethical ordering
 For development work
 ==================
 */
-void SV_NextMap_f (void)
+static void SV_NextMap_f (void)
 	{
 	char		nextmap[MAX_QPATH];
 	int			i, next;
-	search_t *t;
+	search_t	*t;
 
 	// [FWGS, 01.07.23]
 	t = FS_Search ("maps\\*.bsp", true, con_gamemaps.value);	// only in gamedir
@@ -443,7 +443,7 @@ void SV_NextMap_f (void)
 SV_NewGame_f
 ==============
 */
-void SV_NewGame_f (void)
+static void SV_NewGame_f (void)
 	{
 	if (Cmd_Argc () != 1)
 		{
@@ -459,7 +459,7 @@ void SV_NewGame_f (void)
 SV_HazardCourse_f
 ==============
 */
-void SV_HazardCourse_f (void)
+static void SV_HazardCourse_f (void)
 	{
 	if (Cmd_Argc () != 1)
 		{
@@ -502,7 +502,7 @@ void SV_Credits_f (void)
 SV_Load_f
 ==============
 */
-void SV_Load_f (void)
+static void SV_Load_f (void)
 	{
 	char	path[MAX_QPATH];
 
@@ -521,7 +521,7 @@ void SV_Load_f (void)
 SV_QuickLoad_f
 ==============
 */
-void SV_QuickLoad_f (void)
+static void SV_QuickLoad_f (void)
 	{
 	Cbuf_AddText ("echo Quick Loading...; wait; load quick");
 	}
@@ -531,7 +531,7 @@ void SV_QuickLoad_f (void)
 SV_Save_f [FWGS, 01.04.23]
 ==============
 */
-void SV_Save_f (void)
+static void SV_Save_f (void)
 	{
 	qboolean ret = false;
 
@@ -559,7 +559,7 @@ void SV_Save_f (void)
 SV_QuickSave_f
 ==============
 */
-void SV_QuickSave_f (void)
+static void SV_QuickSave_f (void)
 	{
 	Cbuf_AddText ("echo Quick Saving...; wait; save quick");
 	}
@@ -569,7 +569,7 @@ void SV_QuickSave_f (void)
 SV_DeleteSave_f
 ==============
 */
-void SV_DeleteSave_f (void)
+static void SV_DeleteSave_f (void)
 	{
 	if (Cmd_Argc () != 2)
 		{
@@ -587,7 +587,7 @@ void SV_DeleteSave_f (void)
 SV_AutoSave_f
 ==============
 */
-void SV_AutoSave_f (void)
+static void SV_AutoSave_f (void)
 	{
 	if (Cmd_Argc () != 1)
 		{
@@ -610,7 +610,7 @@ SV_Restart_f
 restarts current level
 ==================
 */
-void SV_Restart_f (void)
+static void SV_Restart_f (void)
 	{
 	// because restart can be multiple issued
 	if (sv.state != ss_active)
@@ -626,7 +626,7 @@ SV_Reload_f
 continue from latest savedgame
 ==================
 */
-void SV_Reload_f (void)
+static void SV_Reload_f (void)
 	{
 	// because reload can be multiple issued
 	if (GameState->nextstate != STATE_RUNFRAME)
@@ -643,7 +643,7 @@ SV_ChangeLevel_f
 classic change level
 ==================
 */
-void SV_ChangeLevel_f (void)
+static void SV_ChangeLevel_f (void)
 	{
 	if (Cmd_Argc () != 2)
 		{
@@ -661,7 +661,7 @@ SV_ChangeLevel2_f
 smooth change level
 ==================
 */
-void SV_ChangeLevel2_f (void)
+static void SV_ChangeLevel2_f (void)
 	{
 	if (Cmd_Argc () != 3)
 		{
@@ -679,7 +679,7 @@ SV_Kick_f [FWGS, 01.07.23]
 Kick a user off of the server
 ==================
 */
-void SV_Kick_f (void)
+static void SV_Kick_f (void)
 	{
 	sv_client_t		*cl;
 	const char		*param;
@@ -711,9 +711,9 @@ void SV_Kick_f (void)
 SV_EntPatch_f
 ==================
 */
-void SV_EntPatch_f (void)
+static void SV_EntPatch_f (void)
 	{
-	const char *mapname;
+	const char	*mapname;
 
 	if (Cmd_Argc () < 2)
 		{
@@ -727,7 +727,10 @@ void SV_EntPatch_f (void)
 			return;
 			}
 		}
-	else mapname = Cmd_Argv (1);
+	else
+		{
+		mapname = Cmd_Argv (1);
+		}
 
 	SV_WriteEntityPatch (mapname);
 	}
@@ -737,10 +740,10 @@ void SV_EntPatch_f (void)
 SV_Status_f
 ================
 */
-void SV_Status_f (void)
+static void SV_Status_f (void)
 	{
-	sv_client_t *cl;
-	int		i;
+	sv_client_t	*cl;
+	int			i;
 
 	if (!svs.clients || sv.background)
 		{
@@ -773,15 +776,20 @@ void SV_Status_f (void)
 
 		Con_Printf ("%s", cl->name);
 		l = 24 - Q_strlen (cl->name);
-		for (j = 0; j < l; j++) Con_Printf (" ");
+
+		for (j = 0; j < l; j++)
+			Con_Printf (" ");
 		Con_Printf ("%g ", (host.realtime - cl->netchan.last_received));
 		s = NET_BaseAdrToString (cl->netchan.remote_address);
 		Con_Printf ("%s", s);
 		l = 22 - Q_strlen (s);
-		for (j = 0; j < l; j++) Con_Printf (" ");
+
+		for (j = 0; j < l; j++)
+			Con_Printf (" ");
 		Con_Printf ("%5i", cl->netchan.qport);
 		Con_Printf ("\n");
 		}
+
 	Con_Printf ("\n");
 	}
 
@@ -790,9 +798,9 @@ void SV_Status_f (void)
 SV_ConSay_f
 ==================
 */
-void SV_ConSay_f (void)
+static void SV_ConSay_f (void)
 	{
-	const char *p;
+	const char	*p;
 	char		text[MAX_SYSPATH];
 
 	if (Cmd_Argc () < 2) return;
@@ -833,9 +841,9 @@ SV_ServerInfo_f
 Examine or change the serverinfo string
 ===========
 */
-void SV_ServerInfo_f (void)
+static void SV_ServerInfo_f (void)
 	{
-	convar_t *var;
+	convar_t	*var;
 
 	if (Cmd_Argc () == 1)
 		{
@@ -877,7 +885,7 @@ SV_LocalInfo_f
 Examine or change the localinfo string
 ===========
 */
-void SV_LocalInfo_f (void)
+static void SV_LocalInfo_f (void)
 	{
 	if (Cmd_Argc () == 1)
 		{
@@ -909,9 +917,9 @@ SV_ClientInfo_f
 Examine all a users info strings
 ===========
 */
-void SV_ClientInfo_f (void)
+static void SV_ClientInfo_f (void)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	if (Cmd_Argc () != 2)
 		{
@@ -925,7 +933,6 @@ void SV_ClientInfo_f (void)
 	Con_Printf ("userinfo\n");
 	Con_Printf ("--------\n");
 	Info_Print (cl->userinfo);
-
 	}
 
 /*
@@ -935,9 +942,9 @@ SV_ClientUserAgent_f
 Examine useragent strings
 ===========
 */
-void SV_ClientUserAgent_f (void)
+static void SV_ClientUserAgent_f (void)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	if (Cmd_Argc () != 2)
 		{
@@ -960,7 +967,7 @@ SV_KillServer_f
 Kick everyone off, possibly in preparation for a new game
 ===============
 */
-void SV_KillServer_f (void)
+static void SV_KillServer_f (void)
 	{
 	Host_ShutdownServer ();
 	}
@@ -972,9 +979,10 @@ SV_PlayersOnly_f
 disable plhysics but players
 ===============
 */
-void SV_PlayersOnly_f (void)
+static void SV_PlayersOnly_f (void)
 	{
-	if (!Cvar_VariableInteger ("sv_cheats")) return;
+	if (!Cvar_VariableInteger ("sv_cheats"))
+		return;
 
 	sv.playersonly ^= 1;
 
@@ -984,10 +992,9 @@ void SV_PlayersOnly_f (void)
 /*
 ===============
 SV_EdictUsage_f
-
 ===============
 */
-void SV_EdictUsage_f (void)
+static void SV_EdictUsage_f (void)
 	{
 	int	active;
 
@@ -1006,13 +1013,12 @@ void SV_EdictUsage_f (void)
 /*
 ===============
 SV_EntityInfo_f
-
 ===============
 */
-void SV_EntityInfo_f (void)
+static void SV_EntityInfo_f (void)
 	{
-	edict_t *ent;
-	int	i;
+	edict_t	*ent;
+	int		i;
 
 	if (sv.state != ss_active)
 		{
@@ -1053,7 +1059,7 @@ Rcon_Redirect_f
 Force redirect N lines of console output to client
 ================
 */
-void Rcon_Redirect_f (void)
+static void Rcon_Redirect_f (void)
 	{
 	int lines = 2000;
 

@@ -466,13 +466,13 @@ mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 
 /*
 ================
-R_GetSpriteFrameInterpolant [FWGS, 01.01.24]
+R_GetSpriteFrameInterpolant [FWGS, 01.02.24]
 
 NOTE: we using prevblending[0] and [1] for holds interval
 between frames where are we lerping
 ================
 */
-float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **oldframe, mspriteframe_t **curframe)
+static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **oldframe, mspriteframe_t **curframe)
 	{
 	msprite_t		*psprite;
 	mspritegroup_t	*pspritegroup;
@@ -668,7 +668,7 @@ R_CullSpriteModel
 Cull sprite model by bbox
 ================
 */
-qboolean R_CullSpriteModel (cl_entity_t *e, vec3_t origin)
+static qboolean R_CullSpriteModel (cl_entity_t *e, vec3_t origin)
 	{
 	vec3_t	sprite_mins, sprite_maxs;
 	float	scale = 1.0f;
@@ -700,9 +700,9 @@ Set sprite brightness factor
 */
 static float R_SpriteGlowBlend (vec3_t origin, int rendermode, int renderfx, float *pscale)
 	{
-	float	dist, brightness;
-	vec3_t	glowDist;
-	pmtrace_t *tr;
+	float		dist, brightness;
+	vec3_t		glowDist;
+	pmtrace_t	*tr;
 
 	VectorSubtract (origin, RI.vieworg, glowDist);
 	dist = VectorLength (glowDist);
@@ -733,7 +733,7 @@ R_SpriteOccluded
 Do occlusion test for glow-sprites
 ================
 */
-qboolean R_SpriteOccluded (cl_entity_t *e, vec3_t origin, float *pscale)
+static qboolean R_SpriteOccluded (cl_entity_t *e, vec3_t origin, float *pscale)
 	{
 	if (e->curstate.rendermode == kRenderGlow)
 		{

@@ -21,17 +21,17 @@ GNU General Public License for more details.
 
 typedef struct
 	{
-	qboolean		down;
-	qboolean		gamedown;
-	int		repeats;	// if > 1, it is autorepeating
-	const char *binding;
+	qboolean	down;
+	qboolean	gamedown;
+	int			repeats;	// if > 1, it is autorepeating
+	const char	*binding;
 	} enginekey_t;
 
 typedef struct keyname_s
 	{
-	const char *name;	// key name
-	int		keynum;	// key number
-	const char *binding;	// default bind
+	const char	*name;		// key name
+	int			keynum;		// key number
+	const char	*binding;	// default bind
 	} keyname_t;
 
 enginekey_t	keys[256];
@@ -319,10 +319,11 @@ Key_GetKey
 */
 int Key_GetKey (const char *pBinding)
 	{
-	int		 i, len;
-	const char *p;
+	int			i, len;
+	const char	*p;
 
-	if (!pBinding) return -1;
+	if (!pBinding)
+		return -1;
 
 	len = Q_strlen (pBinding);
 
@@ -348,7 +349,7 @@ int Key_GetKey (const char *pBinding)
 Key_Unbind_f
 ===================
 */
-void Key_Unbind_f (void)
+static void Key_Unbind_f (void)
 	{
 	int	b;
 
@@ -371,10 +372,10 @@ void Key_Unbind_f (void)
 
 /*
 ===================
-Key_Unbindall_f [FWGS, 01.04.23]
+Key_Unbindall_f [FWGS, 01.02.24]
 ===================
 */
-void Key_Unbindall_f (void)
+static void Key_Unbindall_f (void)
 	{
 	int	i;
 
@@ -391,13 +392,13 @@ void Key_Unbindall_f (void)
 
 /*
 ===================
-Key_Reset_f [FWGS, 01.04.23]
+Key_Reset_f [FWGS, 01.02.24]
 ===================
 */
-void Key_Reset_f (void)
+static void Key_Reset_f (void)
 	{
-	keyname_t *kn;
-	int	i;
+	keyname_t	*kn;
+	int			i;
 
 	// clear all keys first
 	for (i = 0; i < ARRAYSIZE (keys); i++)
@@ -416,10 +417,10 @@ void Key_Reset_f (void)
 Key_Bind_f
 ===================
 */
-void Key_Bind_f (void)
+static void Key_Bind_f (void)
 	{
 	char	cmd[1024];
-	int	i, c, b;
+	int		i, c, b;
 
 	c = Cmd_Argc ();
 
@@ -492,7 +493,7 @@ void Key_WriteBindings (file_t *f)
 Key_Bindlist_f
 ============
 */
-void Key_Bindlist_f (void)
+static void Key_Bindlist_f (void)
 	{
 	int	i;
 
@@ -520,12 +521,18 @@ void Key_Init (void)
 	keyname_t *kn;
 
 	// register our functions
-	Cmd_AddRestrictedCommand ("bind", Key_Bind_f, "binds a command to the specified key in bindmap");
-	Cmd_AddRestrictedCommand ("unbind", Key_Unbind_f, "removes a command on the specified key in bindmap");
-	Cmd_AddRestrictedCommand ("unbindall", Key_Unbindall_f, "removes all commands from all keys in bindmap");
-	Cmd_AddRestrictedCommand ("resetkeys", Key_Reset_f, "reset all keys to their default values");
-	Cmd_AddCommand ("bindlist", Key_Bindlist_f, "display current key bindings");
-	Cmd_AddCommand ("makehelp", Key_EnumCmds_f, "write help.txt that contains all console cvars and cmds");
+	Cmd_AddRestrictedCommand ("bind", Key_Bind_f,
+		"binds a command to the specified key in bindmap");
+	Cmd_AddRestrictedCommand ("unbind", Key_Unbind_f, 
+		"removes a command on the specified key in bindmap");
+	Cmd_AddRestrictedCommand ("unbindall", Key_Unbindall_f,
+		"removes all commands from all keys in bindmap");
+	Cmd_AddRestrictedCommand ("resetkeys", Key_Reset_f,
+		"reset all keys to their default values");
+	Cmd_AddCommand ("bindlist", Key_Bindlist_f,
+		"display current key bindings");
+	Cmd_AddCommand ("makehelp", Key_EnumCmds_f,
+		"write help.txt that contains all console cvars and cmds");
 
 	// setup default binding. "unbindall" from config.cfg will be reset it
 	for (kn = keynames; kn->name; kn++)
@@ -541,7 +548,7 @@ void Key_Init (void)
 Key_AddKeyCommands
 ===================
 */
-void Key_AddKeyCommands (int key, const char *kb, qboolean down)
+static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 	{
 	char	button[1024];
 	char	*buttonPtr;

@@ -21,7 +21,7 @@ GNU General Public License for more details.
 #include "shake.h"
 #include "hltv.h"
 #include "input.h"
-#include "server.h"	// [FWGS, 01.07.23]
+/*#include "server.h"	// [FWGS, 01.02.24]*/
 
 #if XASH_LOW_MEMORY != 2
 int CL_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
@@ -33,7 +33,7 @@ CL_UserMsgStub
 Default stub for missed callbacks
 ===============
 */
-int CL_UserMsgStub (const char *pszName, int iSize, void *pbuf)
+static int CL_UserMsgStub (const char *pszName, int iSize, void *pbuf)
 	{
 	return 1;
 	}
@@ -58,12 +58,12 @@ CL_ParseSoundPacket
 
 ==================
 */
-void CL_ParseSoundPacket (sizebuf_t *msg)
+static void CL_ParseSoundPacket (sizebuf_t *msg)
 	{
 	vec3_t	pos;
 	int 	chan, sound;
 	float 	volume, attn;
-	int	flags, pitch, entnum;
+	int		flags, pitch, entnum;
 	sound_t	handle = 0;
 
 	flags = MSG_ReadUBitLong (msg, MAX_SND_FLAGS_BITS);
@@ -124,7 +124,6 @@ void CL_ParseSoundPacket (sizebuf_t *msg)
 /*
 ==================
 CL_ParseRestoreSoundPacket
-
 ==================
 */
 void CL_ParseRestoreSoundPacket (sizebuf_t *msg)
@@ -132,9 +131,9 @@ void CL_ParseRestoreSoundPacket (sizebuf_t *msg)
 	vec3_t	pos;
 	int 	chan, sound;
 	float 	volume, attn;
-	int	flags, pitch, entnum;
+	int		flags, pitch, entnum;
 	double	samplePos, forcedEnd;
-	int	wordIndex;
+	int		wordIndex;
 	sound_t	handle = 0;
 
 	flags = MSG_ReadUBitLong (msg, MAX_SND_FLAGS_BITS);
@@ -227,7 +226,6 @@ void CL_ParseServerTime (sizebuf_t *msg)
 /*
 ==================
 CL_ParseSignon
-
 ==================
 */
 void CL_ParseSignon (sizebuf_t *msg)
@@ -248,7 +246,6 @@ void CL_ParseSignon (sizebuf_t *msg)
 /*
 ==================
 CL_ParseMovevars
-
 ==================
 */
 void CL_ParseMovevars (sizebuf_t *msg)
@@ -275,14 +272,13 @@ void CL_ParseMovevars (sizebuf_t *msg)
 /*
 ==================
 CL_ParseParticles
-
 ==================
 */
 void CL_ParseParticles (sizebuf_t *msg)
 	{
-	vec3_t		org, dir;
+	vec3_t	org, dir;
 	int		i, count, color;
-	float		life;
+	float	life;
 
 	MSG_ReadVec3Coord (msg, org);
 
@@ -318,11 +314,11 @@ CL_ParseStaticEntity
 static client entity
 ==================
 */
-void CL_ParseStaticEntity (sizebuf_t *msg)
+static void CL_ParseStaticEntity (sizebuf_t *msg)
 	{
 	int		i, newnum;
 	entity_state_t	from, to;
-	cl_entity_t *ent;
+	cl_entity_t		*ent;
 
 	memset (&from, 0, sizeof (from));
 	newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
@@ -366,7 +362,6 @@ void CL_ParseStaticEntity (sizebuf_t *msg)
 	R_AddEfrags (ent);	// add link
 	}
 
-
 /*
 ==================
 CL_WeaponAnim
@@ -382,14 +377,6 @@ void GAME_EXPORT CL_WeaponAnim (int iAnim, int body)
 	cl.local.weaponsequence = iAnim;
 	view->curstate.framerate = 1.0f;
 	view->curstate.body = body;
-
-#if 0	// g-cont. for GlowShell testing
-	view->curstate.renderfx = kRenderFxGlowShell;
-	view->curstate.rendercolor.r = 255;
-	view->curstate.rendercolor.g = 128;
-	view->curstate.rendercolor.b = 0;
-	view->curstate.renderamt = 150;
-#endif
 	}
 
 /*
@@ -400,10 +387,10 @@ CL_ParseStaticDecal
 void CL_ParseStaticDecal (sizebuf_t *msg)
 	{
 	vec3_t		origin;
-	int		decalIndex, entityIndex, modelIndex;
-	cl_entity_t *ent = NULL;
+	int			decalIndex, entityIndex, modelIndex;
+	cl_entity_t	*ent = NULL;
 	float		scale;
-	int		flags;
+	int			flags;
 
 	MSG_ReadVec3Coord (msg, origin);
 	decalIndex = MSG_ReadWord (msg);
@@ -445,7 +432,7 @@ qboolean CL_RequestMissingResources (void)
 	{
 	resource_t *p;
 
-	if (!cls.dl.doneregistering && (cls.dl.custom || cls.state == ca_validate))
+	if (!cls.dl.doneregistering && (cls.dl.custom || (cls.state == ca_validate)))
 		{
 		p = cl.resourcesneeded.pNext;
 
@@ -485,7 +472,7 @@ void CL_BatchResourceRequest (qboolean initialize)
 			continue;
 			}
 
-		if (cls.state == ca_active && !cl_download_ingame.value)
+		if ((cls.state == ca_active) && !cl_download_ingame.value)
 			{
 			Con_Printf ("skipping in game download of %s\n", p->szFileName);
 			CL_MoveToOnHandList (p);
@@ -501,9 +488,11 @@ void CL_BatchResourceRequest (qboolean initialize)
 					break;
 				CL_MoveToOnHandList (p);
 				break;
+
 			case t_skin:
 				CL_MoveToOnHandList (p);
 				break;
+
 			case t_decal:
 				if (!HPAK_GetDataPointer (CUSTOM_RES_PATH, p, NULL, NULL))
 					{
@@ -520,6 +509,7 @@ void CL_BatchResourceRequest (qboolean initialize)
 					}
 				CL_MoveToOnHandList (p);
 				break;
+
 			case t_generic:
 				if (!COM_IsSafeFileToDownload (p->szFileName))
 					{
@@ -531,6 +521,7 @@ void CL_BatchResourceRequest (qboolean initialize)
 					break;
 				CL_MoveToOnHandList (p);
 				break;
+
 			case t_world:
 				ASSERT (0);
 				break;
@@ -563,19 +554,21 @@ int CL_EstimateNeededResources (void)
 		switch (p->type)
 			{
 			case t_sound:
-				if (p->szFileName[0] != '*' && !FS_FileExists (va (DEFAULT_SOUNDPATH "%s", p->szFileName), false))
+				if ((p->szFileName[0] != '*') && !FS_FileExists (va (DEFAULT_SOUNDPATH "%s", p->szFileName), false))
 					{
 					SetBits (p->ucFlags, RES_WASMISSING);
 					nTotalSize += p->nDownloadSize;
 					}
 				break;
+
 			case t_model:
-				if (p->szFileName[0] != '*' && !FS_FileExists (p->szFileName, false))
+				if ((p->szFileName[0] != '*') && !FS_FileExists (p->szFileName, false))
 					{
 					SetBits (p->ucFlags, RES_WASMISSING);
 					nTotalSize += p->nDownloadSize;
 					}
 				break;
+
 			case t_skin:
 			case t_generic:
 			case t_eventscript:
@@ -585,6 +578,7 @@ int CL_EstimateNeededResources (void)
 					nTotalSize += p->nDownloadSize;
 					}
 				break;
+
 			case t_decal:
 				if (FBitSet (p->ucFlags, RES_CUSTOM))
 					{
@@ -592,6 +586,7 @@ int CL_EstimateNeededResources (void)
 					nTotalSize += p->nDownloadSize;
 					}
 				break;
+
 			case t_world:
 				ASSERT (0);
 				break;
@@ -631,7 +626,7 @@ static void CL_StartResourceDownloading (const char *pszMessage, qboolean bCusto
 	CL_BatchResourceRequest (!bCustom);
 	}
 
-customization_t *CL_PlayerHasCustomization (int nPlayerNum, resourcetype_t type)
+static customization_t *CL_PlayerHasCustomization (int nPlayerNum, resourcetype_t type)
 	{
 	customization_t *pList;
 
@@ -643,7 +638,7 @@ customization_t *CL_PlayerHasCustomization (int nPlayerNum, resourcetype_t type)
 	return NULL;
 	}
 
-void CL_RemoveCustomization (int nPlayerNum, customization_t *pRemove)
+static void CL_RemoveCustomization (int nPlayerNum, customization_t *pRemove)
 	{
 	customization_t *pList;
 	customization_t *pNext;
@@ -681,11 +676,11 @@ CL_ParseCustomization
 */
 void CL_ParseCustomization (sizebuf_t *msg)
 	{
-	customization_t *pExistingCustomization;
-	customization_t *pList;
+	customization_t	*pExistingCustomization;
+	customization_t	*pList;
 	qboolean		bFound;
-	resource_t *pRes;
-	int		i;
+	resource_t		*pRes;
+	int				i;
 
 	i = MSG_ReadByte (msg);
 	if (i >= MAX_CLIENTS)
@@ -769,7 +764,7 @@ CL_ParseResourceRequest
 void CL_ParseResourceRequest (sizebuf_t *msg)
 	{
 	byte	buffer[MAX_INIT_MSG];
-	int	i, arg, nStartIndex;
+	int		i, arg, nStartIndex;
 	sizebuf_t	sbuf;
 
 	MSG_Init (&sbuf, "ResourceBlock", buffer, sizeof (buffer));
@@ -812,11 +807,11 @@ CL_CreateCustomizationList
 loading custom decal for self
 ==================
 */
-void CL_CreateCustomizationList (void)
+static void CL_CreateCustomizationList (void)
 	{
-	resource_t *pResource;
-	player_info_t *pPlayer;
-	int		i;
+	resource_t		*pResource;
+	player_info_t	*pPlayer;
+	int				i;
 
 	pPlayer = &cl.players[cl.playernum];
 	pPlayer->customdata.pNext = NULL;
@@ -914,7 +909,6 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	Q_strncpy (gamefolder, MSG_ReadString (msg), sizeof (gamefolder));
 	
 	// [FWGS, 01.01.24]
-	/*host.features = (uint)MSG_ReadLong (msg);*/
 	Host_ValidateEngineFeatures (MSG_ReadDword (msg));
 
 	if (!legacy)
@@ -1036,14 +1030,14 @@ CL_ParseClientData
 */
 void CL_ParseClientData (sizebuf_t *msg)
 	{
-	float		parsecounttime;
-	int		i, j, command_ack;
-	clientdata_t *from_cd, *to_cd;
-	weapon_data_t *from_wd, *to_wd;
+	float			parsecounttime;
+	int				i, j, command_ack;
+	clientdata_t	*from_cd, *to_cd;
+	weapon_data_t	*from_wd, *to_wd;
 	weapon_data_t	nullwd[64];
 	clientdata_t	nullcd;
-	frame_t *frame;
-	int		idx;
+	frame_t			*frame;
+	int				idx;
 
 	// This is the last movement that the server ack'd
 	command_ack = cls.netchan.incoming_acknowledged;
@@ -1253,8 +1247,8 @@ CL_ParseLightStyle
 */
 void CL_ParseLightStyle (sizebuf_t *msg)
 	{
-	int		style;
-	const char *s;
+	int			style;
+	const char	*s;
 	float		f;
 
 	style = MSG_ReadByte (msg);
@@ -1325,9 +1319,9 @@ reading decals, etc.
 */
 void CL_ParseRestore (sizebuf_t *msg)
 	{
-	string		filename;
+	string	filename;
 	int		i, mapCount;
-	char *pMapName;
+	char	*pMapName;
 
 	// mapname.xv2
 	Q_strncpy (filename, MSG_ReadString (msg), sizeof (filename));
@@ -1352,8 +1346,8 @@ register new user message or update existing
 */
 void CL_RegisterUserMessage (sizebuf_t *msg)
 	{
-	char *pszName;
-	int	svc_num, size, bits;
+	char	*pszName;
+	int		svc_num, size, bits;
 
 	svc_num = MSG_ReadByte (msg);
 
@@ -1509,7 +1503,7 @@ void CL_UpdateUserPings (sizebuf_t *msg)
 		}
 	}
 
-void CL_SendConsistencyInfo (sizebuf_t *msg)
+static void CL_SendConsistencyInfo (sizebuf_t *msg)
 	{
 	qboolean	user_changed_diskfile;
 	vec3_t		mins, maxs;
@@ -1701,17 +1695,17 @@ void CL_RegisterResources (sizebuf_t *msg)
 		}
 	}
 
-void CL_ParseConsistencyInfo (sizebuf_t *msg)
+static void CL_ParseConsistencyInfo (sizebuf_t *msg)
 	{
 	int		lastcheck;
 	int		delta;
 	int		i;
 	int		isdelta;
-	resource_t *pResource;
-	resource_t *skip_crc_change;
+	resource_t	*pResource;
+	resource_t	*skip_crc_change;
 	int		skip;
-	consistency_t *pc;
-	byte		nullbuffer[32];
+	consistency_t	*pc;
+	byte	nullbuffer[32];
 
 	memset (nullbuffer, 0, 32);
 
@@ -1728,14 +1722,16 @@ void CL_ParseConsistencyInfo (sizebuf_t *msg)
 		{
 		isdelta = MSG_ReadOneBit (msg);
 
-		if (isdelta) delta = MSG_ReadUBitLong (msg, 5) + lastcheck;
-		else delta = MSG_ReadUBitLong (msg, MAX_MODEL_BITS);
+		if (isdelta)
+			delta = MSG_ReadUBitLong (msg, 5) + lastcheck;
+		else
+			delta = MSG_ReadUBitLong (msg, MAX_MODEL_BITS);
 
 		skip = delta - lastcheck;
 
 		for (i = 0; i < skip; i++)
 			{
-			if (pResource != skip_crc_change && Q_strstr (pResource->szFileName, "models/"))
+			if ((pResource != skip_crc_change) && Q_strstr (pResource->szFileName, "models/"))
 				Mod_NeedCRC (pResource->szFileName, false);
 			pResource = pResource->pNext;
 			}
@@ -1752,7 +1748,7 @@ void CL_ParseConsistencyInfo (sizebuf_t *msg)
 		pc->orig_index = delta;
 		pc->value = 0;
 
-		if (pResource->type == t_model && memcmp (nullbuffer, pResource->rguc_reserved, 32))
+		if ((pResource->type == t_model) && memcmp (nullbuffer, pResource->rguc_reserved, 32))
 			pc->check_type = pResource->rguc_reserved[0];
 
 		skip_crc_change = pResource;
@@ -1765,10 +1761,10 @@ void CL_ParseConsistencyInfo (sizebuf_t *msg)
 CL_ParseResourceList
 ==============
 */
-void CL_ParseResourceList (sizebuf_t *msg)
+static void CL_ParseResourceList (sizebuf_t *msg)
 	{
-	resource_t *pResource;
-	int		i, total;
+	resource_t	*pResource;
+	int			i, total;
 
 	total = MSG_ReadUBitLong (msg, MAX_RESOURCE_BITS);
 
@@ -1792,21 +1788,19 @@ void CL_ParseResourceList (sizebuf_t *msg)
 		}
 
 	CL_ParseConsistencyInfo (msg);
-
 	CL_StartResourceDownloading ("Verifying and downloading resources...\n", false);
 	}
 
 /*
 ==================
-CL_ParseVoiceInit
+CL_ParseVoiceInit [FWGS, 01.02.24]
 ==================
 */
-void CL_ParseVoiceInit (sizebuf_t *msg)
+static void CL_ParseVoiceInit (sizebuf_t *msg)
 	{
 	char *pszCodec = MSG_ReadString (msg);
 	int quality = MSG_ReadByte (msg);
 
-	// [FWGS, 01.02.24]
 	/*Voice_Init (pszCodec, quality);*/
 	Voice_Init (pszCodec, quality, false);	// init requested codec and the device
 	}
@@ -1816,10 +1810,10 @@ void CL_ParseVoiceInit (sizebuf_t *msg)
 CL_ParseVoiceData
 ==================
 */
-void CL_ParseVoiceData (sizebuf_t *msg)
+static void CL_ParseVoiceData (sizebuf_t *msg)
 	{
-	int size, idx, frames;
-	byte received[8192];
+	int		size, idx, frames;
+	byte	received[8192];
 
 	idx = MSG_ReadByte (msg) + 1;
 
@@ -1919,7 +1913,7 @@ sended from game.dll
 */
 void CL_ParseDirector (sizebuf_t *msg)
 	{
-	int	iSize = MSG_ReadByte (msg);
+	int		iSize = MSG_ReadByte (msg);
 	byte	pbuf[256];
 
 	// parse user message into buffer
@@ -1934,7 +1928,7 @@ CL_ParseScreenShake [FWGS, 01.05.23]
 Set screen shake
 ==============
 */
-void CL_ParseScreenShake (sizebuf_t *msg)
+static void CL_ParseScreenShake (sizebuf_t *msg)
 	{
 	float amplitude = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 12));
 	float duration = (float)(word)MSG_ReadShort (msg) * (1.0f / (float)(1 << 12));
@@ -1958,17 +1952,16 @@ CL_ParseScreenFade
 Set screen fade
 ==============
 */
-void CL_ParseScreenFade (sizebuf_t *msg)
+static void CL_ParseScreenFade (sizebuf_t *msg)
 	{
-	float		duration, holdTime;
-	screenfade_t *sf = &clgame.fade;
-	float		flScale;
+	float			duration, holdTime;
+	screenfade_t	*sf = &clgame.fade;
+	float			flScale;
 
 	duration = (float)MSG_ReadWord (msg);
 	holdTime = (float)MSG_ReadWord (msg);
 	sf->fadeFlags = MSG_ReadShort (msg);
 
-	// [FWGS, 01.04.23]
 	flScale = FBitSet (sf->fadeFlags, FFADE_LONGFADE) ? (1.0f / 256.0f) : (1.0f / 4096.0f);
 
 	sf->fader = MSG_ReadByte (msg);
@@ -1982,14 +1975,13 @@ void CL_ParseScreenFade (sizebuf_t *msg)
 	// calc fade speed
 	if (duration > 0)
 		{
-		// [FWGS, 01.04.23]
 		if (FBitSet (sf->fadeFlags, FFADE_OUT))
 			{
 			if (sf->fadeEnd)
 				sf->fadeSpeed = -(float)sf->fadealpha / sf->fadeEnd;
 
 			sf->fadeEnd += cl.time;
-			sf->fadeTotalEnd = sf->fadeEnd;	// [FWGS, 01.04.23]
+			sf->fadeTotalEnd = sf->fadeEnd;
 			sf->fadeReset += sf->fadeEnd;
 			}
 		else
@@ -2013,9 +2005,9 @@ and sent it back to the server
 */
 void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext)
 	{
-	const char *cvarName, *response;
-	convar_t *cvar;
-	int requestID;
+	const char	*cvarName, *response;
+	convar_t	*cvar;
+	int			requestID;
 
 	if (ext)
 		requestID = MSG_ReadLong (msg);
@@ -2059,11 +2051,11 @@ CL_ParseExec
 Exec map/class specific configs
 ==============
 */
-void CL_ParseExec (sizebuf_t *msg)
+static void CL_ParseExec (sizebuf_t *msg)
 	{
-	qboolean is_class;
-	int class_idx;
-	string mapname;
+	qboolean	is_class;
+	int			class_idx;
+	string		mapname;
 	const char *class_cfgs[] = {
 		"",
 		"exec scout.cfg\n",
@@ -2148,7 +2140,7 @@ handles all user messages
 void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 	{
 	byte	pbuf[MAX_USERMSG_LENGTH];
-	int	i, iSize;
+	int		i, iSize;
 
 	// NOTE: any user message is really parse at engine, not in client.dll
 	if ((svc_num <= svc_lastmsg) || (svc_num > (MAX_USER_MESSAGES + svc_lastmsg)))
@@ -2236,9 +2228,9 @@ dispatch messages
 void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 	{
 	size_t		bufStart, playerbytes;
-	int		cmd, param1, param2;
-	int		old_background;
-	const char *s;
+	int			cmd, param1, param2;
+	int			old_background;
+	const char	*s;
 
 	cls.starting_count = MSG_GetNumBytesRead (msg);	// updates each frame
 	CL_Parse_Debug (true);			// begin parsing

@@ -33,11 +33,11 @@ typedef struct
 	{
 	// console auto-complete
 	string		shortestMatch;
-	field_t *completionField;	// con.input or dedicated server fake field-line
-	const char *completionString;
-	const char *completionBuffer;
-	char *cmds[CON_MAXCMDS];
-	int		matchCount;
+	field_t		*completionField;	// con.input or dedicated server fake field-line
+	const char	*completionString;
+	const char	*completionBuffer;
+	char		*cmds[CON_MAXCMDS];
+	int			matchCount;
 	} con_autocomplete_t;
 
 static con_autocomplete_t		con;
@@ -54,10 +54,10 @@ Cmd_ListMaps
 */
 int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 	{
-	byte   buf[MAX_SYSPATH]; // 1 kb
-	file_t *f;
-	int i, nummaps;
-	string mapname, message, compiler, generator;
+	byte	buf[MAX_SYSPATH]; // 1 kb
+	file_t	*f;
+	int		i, nummaps;
+	string	mapname, message, compiler, generator;
 
 	for (i = 0, nummaps = 0; i < t->numfilenames; i++)
 		{
@@ -197,7 +197,7 @@ Cmd_GetMapList
 Prints or complete map filename
 =====================================
 */
-qboolean Cmd_GetMapList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetMapList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
 	string		matchbuf;
@@ -236,20 +236,22 @@ Cmd_GetDemoList
 Prints or complete demo filename
 =====================================
 */
-qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
+	search_t	*t;
 	string		matchbuf;
-	int		i, numdems;
+	int			i, numdems;
 
 	// lookup only in gamedir
 	t = FS_Search (va ("%s*.dem", s), true, true);
-	if (!t) return false;
+	if (!t)
+		return false;
 
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (t->numfilenames == 1) return true;
+	if (t->numfilenames == 1)
+		return true;
 
 	for (i = 0, numdems = 0; i < t->numfilenames; i++)
 		{
@@ -283,19 +285,21 @@ Cmd_GetMovieList
 Prints or complete movie filename
 =====================================
 */
-qboolean Cmd_GetMovieList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetMovieList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
+	search_t	*t;
 	string		matchbuf;
-	int		i, nummovies;
+	int			i, nummovies;
 
 	t = FS_Search (va ("media/%s*.avi", s), true, false);
-	if (!t) return false;
+	if (!t)
+		return false;
 
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (t->numfilenames == 1) return true;
+	if (t->numfilenames == 1)
+		return true;
 
 	for (i = 0, nummovies = 0; i < t->numfilenames; i++)
 		{
@@ -330,19 +334,21 @@ Cmd_GetMusicList
 Prints or complete background track filename
 =====================================
 */
-qboolean Cmd_GetMusicList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetMusicList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
+	search_t	*t;
 	string		matchbuf;
-	int		i, numtracks;
+	int			i, numtracks;
 
 	t = FS_Search (va ("media/%s*.*", s), true, false);
-	if (!t) return false;
+	if (!t)
+		return false;
 
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (t->numfilenames == 1) return true;
+	if (t->numfilenames == 1)
+		return true;
 
 	for (i = 0, numtracks = 0; i < t->numfilenames; i++)
 		{
@@ -380,18 +386,21 @@ Prints or complete savegame filename
 */
 qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
+	search_t	*t;
 	string		matchbuf;
-	int		i, numsaves;
+	int			i, numsaves;
 
 	t = FS_Search (va ("%s%s*.%s", DEFAULT_SAVE_DIRECTORY, s, DEFAULT_SAVE_EXTENSION), true, true);
+
 	// lookup only in gamedir
-	if (!t) return false;
+	if (!t)
+		return false;
 
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (t->numfilenames == 1) return true;
+	if (t->numfilenames == 1)
+		return true;
 
 	for (i = 0, numsaves = 0; i < t->numfilenames; i++)
 		{
@@ -426,11 +435,11 @@ Cmd_GetConfigList
 Prints or complete .cfg filename
 =====================================
 */
-qboolean Cmd_GetConfigList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetConfigList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
+	search_t	*t;
 	string		matchbuf;
-	int		i, numconfigs;
+	int			i, numconfigs;
 
 	t = FS_Search (va ("%s*.cfg", s), true, false);
 	if (!t)
@@ -439,7 +448,8 @@ qboolean Cmd_GetConfigList (const char *s, char *completedname, int length)
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (t->numfilenames == 1) return true;
+	if (t->numfilenames == 1)
+		return true;
 
 	for (i = 0, numconfigs = 0; i < t->numfilenames; i++)
 		{
@@ -474,20 +484,22 @@ Cmd_GetSoundList
 Prints or complete sound filename
 =====================================
 */
-qboolean Cmd_GetSoundList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
+	search_t	*t;
 	string		matchbuf;
-	int		i, numsounds;
+	int			i, numsounds;
 
 	t = FS_Search (va ("%s%s*.*", DEFAULT_SOUNDPATH, s), true, false);
-	if (!t) return false;
+	if (!t)
+		return false;
 
 	Q_strncpy (matchbuf, t->filenames[0] + sizeof (DEFAULT_SOUNDPATH) - 1, MAX_STRING);
 	COM_StripExtension (matchbuf);
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (t->numfilenames == 1) return true;
+	if (t->numfilenames == 1)
+		return true;
 
 	for (i = 0, numsounds = 0; i < t->numfilenames; i++)
 		{
@@ -526,20 +538,23 @@ Cmd_GetItemsList
 Prints or complete item classname (weapons only)
 =====================================
 */
-qboolean Cmd_GetItemsList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetItemsList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
+	search_t	*t;
 	string		matchbuf;
-	int		i, numitems;
+	int			i, numitems;
 
-	if (!clgame.itemspath[0]) return false; // not in game yet
+	if (!clgame.itemspath[0])
+		return false; // not in game yet
 	t = FS_Search (va ("%s/%s*.txt", clgame.itemspath, s), true, false);
-	if (!t) return false;
+	if (!t)
+		return false;
 
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (t->numfilenames == 1) return true;
+	if (t->numfilenames == 1)
+		return true;
 
 	for (i = 0, numitems = 0; i < t->numfilenames; i++)
 		{
@@ -573,12 +588,12 @@ Cmd_GetKeysList
 Autocomplete for bind command
 =====================================
 */
-qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 	{
-	size_t i, numkeys;
-	string keys[256];
-	string matchbuf;
-	int len;
+	size_t	i, numkeys;
+	string	keys[256];
+	string	matchbuf;
+	int		len;
 
 	// compare keys list with current keyword
 	len = Q_strlen (s);
@@ -618,12 +633,12 @@ qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 
 	return true;
 	}
-#endif // XASH_DEDICATED
+
+#endif
 
 /*
 ===============
 Con_AddCommandToList
-
 ===============
 */
 static void Con_AddCommandToList (const char *s, const char *unused1, const char *unused2, void *_autocompleteList)
@@ -658,11 +673,11 @@ Cmd_GetCommandsList
 Autocomplete for bind command
 =====================================
 */
-qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
 	{
-	size_t i;
-	string matchbuf;
-	con_autocomplete_t list; // local autocomplete list
+	size_t	i;
+	string	matchbuf;
+	con_autocomplete_t	list; // local autocomplete list
 
 	memset (&list, 0, sizeof (list));
 
@@ -718,7 +733,6 @@ qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
 	return true;
 	}
 
-
 /*
 =====================================
 Cmd_GetCustomList
@@ -726,11 +740,11 @@ Cmd_GetCustomList
 Prints or complete .HPK filenames
 =====================================
 */
-qboolean Cmd_GetCustomList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetCustomList (const char *s, char *completedname, int length)
 	{
-	search_t *t;
+	search_t	*t;
 	string		matchbuf;
-	int		i, numitems;
+	int			i, numitems;
 
 	t = FS_Search (va ("%s*.hpk", s), true, false);
 	if (!t) return false;
@@ -738,7 +752,8 @@ qboolean Cmd_GetCustomList (const char *s, char *completedname, int length)
 	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (t->numfilenames == 1) return true;
+	if (t->numfilenames == 1)
+		return true;
 
 	for (i = 0, numitems = 0; i < t->numfilenames; i++)
 		{
@@ -767,21 +782,21 @@ qboolean Cmd_GetCustomList (const char *s, char *completedname, int length)
 
 /*
 =====================================
-Cmd_GetGameList
+Cmd_GetGameList [FWGS, 01.02.24]
 
 Prints or complete gamedir name
 =====================================
 */
-qboolean Cmd_GetGamesList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length)
 	{
-	int	i, numgamedirs;
+	int		i, numgamedirs;
 	string	gamedirs[MAX_MODS];
 	string	matchbuf;
-	int	len;
+	int		len;
 
-	// stand-alone games doesn't have cmd "game"
+	/* stand-alone games doesn't have cmd "game"
 	if (!Cmd_Exists ("game"))
-		return false;
+		return false;*/
 
 	// compare gamelist with current keyword
 	len = Q_strlen (s);
@@ -792,11 +807,14 @@ qboolean Cmd_GetGamesList (const char *s, char *completedname, int length)
 			Q_strncpy (gamedirs[numgamedirs++], FI->games[i]->gamefolder, sizeof (gamedirs[0]));	// [FWGS, 01.05.23]
 		}
 
-	if (!numgamedirs) return false;
+	if (!numgamedirs)
+		return false;
 	Q_strncpy (matchbuf, gamedirs[0], MAX_STRING);
+
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
-	if (numgamedirs == 1) return true;
+	if (numgamedirs == 1)
+		return true;
 
 	for (i = 0; i < numgamedirs; i++)
 		{
@@ -825,12 +843,12 @@ Cmd_GetCDList
 Prints or complete CD command name
 =====================================
 */
-qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
+static qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 	{
-	int i, numcdcommands;
+	int		i, numcdcommands;
 	string	cdcommands[8];
 	string	matchbuf;
-	int	len;
+	int		len;
 
 	const char *cd_command[] =
 		{
@@ -881,7 +899,7 @@ qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 	return true;
 	}
 
-qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
+static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 	{
 	qboolean	use_filter = false;
 	byte		buf[MAX_SYSPATH];
@@ -1004,12 +1022,14 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			}
 		}
 
-	if (t) Mem_Free (t); // free search result
+	if (t)
+		Mem_Free (t); // free search result
 	size = Q_strlen (buffer);
 
 	if (!size)
 		{
-		if (buffer) Mem_Free (buffer);
+		if (buffer)
+			Mem_Free (buffer);
 
 		if (onlyingamedir)
 			return Cmd_CheckMapsList_R (fRefresh, false);
@@ -1019,7 +1039,8 @@ qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 	// write generated maps.lst
 	if (FS_WriteFile ("maps.lst", buffer, size))
 		{
-		if (buffer) Mem_Free (buffer);
+		if (buffer)
+			Mem_Free (buffer);
 		return true;
 		}
 	return false;
@@ -1089,7 +1110,7 @@ Autocomplete filename
 for various cmds
 ============
 */
-qboolean Cmd_AutocompleteName (const char *source, int arg, char *buffer, size_t bufsize)
+static qboolean Cmd_AutocompleteName (const char *source, int arg, char *buffer, size_t bufsize)
 	{
 	autocomplete_list_t *list;
 
@@ -1125,8 +1146,10 @@ static void Con_PrintCvarMatches (const char *s, const char *value, const char *
 	{
 	if (!Q_strnicmp (s, con.shortestMatch, Q_strlen (con.shortestMatch)))
 		{
-		if (COM_CheckString (m)) Con_Printf ("    %s (%s)   ^3\"%s\"\n", s, value, m);
-		else Con_Printf ("    %s  (%s)\n", s, value); // variable or command without description
+		if (COM_CheckString (m))
+			Con_Printf ("    %s (%s)   ^3\"%s\"\n", s, value, m);
+		else
+			Con_Printf ("    %s  (%s)\n", s, value); // variable or command without description
 		}
 	}
 
@@ -1177,10 +1200,10 @@ perform Tab expansion
 */
 void Con_CompleteCommand (field_t *field)
 	{
-	field_t	temp;
-	string	filename;
+	field_t		temp;
+	string		filename;
 	qboolean	nextcmd;
-	int	i;
+	int			i;
 
 	// setup the completion field
 	con.completionField = field;
@@ -1379,13 +1402,13 @@ static void Cmd_WriteHelp (const char *name, const char *unused, const char *des
 		FS_Printf (f, "%s \"%s\"\n", name, desc);
 	}
 
-void Cmd_WriteOpenGLVariables (file_t *f)
+static void Cmd_WriteOpenGLVariables (file_t *f)
 	{
 	Cvar_LookupVars (FCVAR_GLCONFIG, NULL, f, (setpair_t)Cmd_WriteOpenGLCvar);
 	}
 
 #if !XASH_DEDICATED
-void Host_FinalizeConfig (file_t *f, const char *config)
+static void Host_FinalizeConfig (file_t *f, const char *config)
 	{
 	string backup, newcfg;
 

@@ -37,7 +37,9 @@ converts the reletive tex coords to absolute
 */
 static uint fix_coord (vec_t in, uint width)
 	{
-	if (in > 0) return (uint)in % width;
+	if (in > 0)
+		return (uint)in % width;
+
 	return width - ((uint)fabs (in) % width);
 	}
 
@@ -48,19 +50,21 @@ SampleMiptex
 fence texture testing
 =============
 */
-int PM_SampleMiptex (const msurface_t *surf, const vec3_t point)
+static int PM_SampleMiptex (const msurface_t *surf, const vec3_t point)
 	{
-	mextrasurf_t *info = surf->info;
-	mfacebevel_t *fb = info->bevel;
-	int		contents;
+	mextrasurf_t	*info = surf->info;
+	mfacebevel_t	*fb = info->bevel;
+	int			contents;
 	vec_t		ds, dt;
-	int		x, y;
-	mtexinfo_t *tx;
-	texture_t *mt;
+	int			x, y;
+	mtexinfo_t	*tx;
+	texture_t	*mt;
 
 	// fill the default contents
-	if (fb) contents = fb->contents;
-	else contents = CONTENTS_SOLID;
+	if (fb)
+		contents = fb->contents;
+	else
+		contents = CONTENTS_SOLID;
 
 	if (!surf->texinfo || !surf->texinfo->texture)
 		return contents;
@@ -80,7 +84,8 @@ int PM_SampleMiptex (const msurface_t *surf, const vec3_t point)
 
 		data = ref.dllFuncs.R_GetTextureOriginalBuffer (mt->gl_texturenum);
 
-		if (!data) return contents; // original doesn't kept
+		if (!data)
+			return contents; // original doesn't kept
 
 		ds = DotProduct (point, tx->vecs[0]) + tx->vecs[0][3];
 		dt = DotProduct (point, tx->vecs[1]) + tx->vecs[1][3];
@@ -89,13 +94,13 @@ int PM_SampleMiptex (const msurface_t *surf, const vec3_t point)
 		x = fix_coord (ds, mt->width - 1);
 		y = fix_coord (dt, mt->height - 1);
 
-		ASSERT (x >= 0 && y >= 0);
+		ASSERT ((x >= 0) && (y >= 0));
 
 		if (data[(mt->width * y) + x] == 255)
 			return CONTENTS_EMPTY;
 		return CONTENTS_SOLID;
 		}
-#endif // !XASH_DEDICATED
+#endif
 
 	return contents;
 	}
@@ -103,15 +108,15 @@ int PM_SampleMiptex (const msurface_t *surf, const vec3_t point)
 /*
 ==================
 PM_RecursiveSurfCheck
-
 ==================
 */
 msurface_t *PM_RecursiveSurfCheck (model_t *mod, mnode_t *node, vec3_t p1, vec3_t p2)
 	{
 	float		t1, t2, frac;
-	int		i, side;
-	msurface_t *surf;
+	int			i, side;
+	msurface_t	*surf;
 	vec3_t		mid;
+
 loc0:
 	if (node->contents < 0)
 		return NULL;
@@ -186,15 +191,15 @@ assume physentity is valid
 */
 msurface_t *PM_TraceSurface (physent_t *pe, vec3_t start, vec3_t end)
 	{
-	matrix4x4		matrix;
-	model_t *bmodel;
-	hull_t *hull;
+	matrix4x4	matrix;
+	model_t		*bmodel;
+	hull_t		*hull;
 	vec3_t		start_l, end_l;
 	vec3_t		offset;
 
 	bmodel = pe->model;
 
-	if (!bmodel || bmodel->type != mod_brush)
+	if (!bmodel || (bmodel->type != mod_brush))
 		return NULL;
 
 	hull = &pe->model->hulls[0];
@@ -224,12 +229,12 @@ PM_TestLine_r
 optimized trace for light gathering
 ==================
 */
-int PM_TestLine_r (model_t *mod, mnode_t *node, vec_t p1f, vec_t p2f, const vec3_t start, const vec3_t stop, 
+static int PM_TestLine_r (model_t *mod, mnode_t *node, vec_t p1f, vec_t p2f, const vec3_t start, const vec3_t stop,
 	linetrace_t *trace)
 	{
 	float	front, back;
 	float	frac, midf;
-	int	i, r, side;
+	int		i, r, side;
 	vec3_t	mid;
 
 loc0:

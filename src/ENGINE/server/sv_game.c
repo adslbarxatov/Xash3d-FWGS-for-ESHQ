@@ -4897,7 +4897,8 @@ static enginefuncs_t gEngfuncs =
 		Delta_UnsetFieldByIndex,
 		pfnSetGroupMask,
 		pfnCreateInstancedBaseline,
-		pfnCVarDirectSet,
+		/*pfnCVarDirectSet,*/
+		(void *)Cvar_DirectSet,	// [FWGS, 01.02.24]
 		pfnForceUnmodified,
 		pfnGetPlayerStats,
 		Cmd_AddServerCommand,

@@ -358,7 +358,7 @@ static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 NET_GetHostByName
 ============
 */
-qboolean NET_GetHostByName (const char *hostname, int family, struct sockaddr_storage *addr)
+static qboolean NET_GetHostByName (const char *hostname, int family, struct sockaddr_storage *addr)
 	{
 #if defined HAVE_GETADDRINFO
 	struct addrinfo *ai = NULL, *cur;
@@ -413,12 +413,12 @@ static void NET_ResolveThread (void);
 #define detach_thread( x ) pthread_detach(x)
 #define mutex_t  pthread_mutex_t
 #define thread_t pthread_t
-void *NET_ThreadStart (void *unused)
+static void *NET_ThreadStart (void *unused)
 	{
 	NET_ResolveThread ();
 	return NULL;
 	}
-#else // WIN32
+#else
 #define mutex_lock EnterCriticalSection
 #define mutex_unlock LeaveCriticalSection
 #define detach_thread( x ) CloseHandle(x)
@@ -1001,6 +1001,7 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 
 	porta = ntohs (a->port);
 	portb = ntohs (b->port);
+
 	if (porta < portb)
 		portdiff = -1;
 	else if (porta > portb)
@@ -1014,6 +1015,7 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 			if ((addrdiff = NET_NetadrIP6Compare (a, b)))
 				return addrdiff;
 			// fallthrough
+
 		case NA_MULTICAST_IP6:
 			return portdiff;
 		}
@@ -1060,7 +1062,7 @@ idnewt
 192.246.40.70
 =============
 */
-qboolean NET_StringToAdrEx (const char *string, netadr_t *adr, int family)
+static qboolean NET_StringToAdrEx (const char *string, netadr_t *adr, int family)
 	{
 	struct sockaddr_storage s;
 
@@ -1380,14 +1382,14 @@ NET_GetLong
 receive long packet from network
 ==================
 */
-qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize)
+static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize)
 	{
 	int		i, sequence_number, offset;
-	SPLITPACKET *pHeader = (SPLITPACKET *)pData;
+	SPLITPACKET	*pHeader = (SPLITPACKET *)pData;
 	int		packet_number;
 	int		packet_count;
-	short		packet_id;
-	int body_size = splitsize - sizeof (SPLITPACKET);
+	short	packet_id;
+	int		body_size = splitsize - sizeof (SPLITPACKET);
 
 	if (body_size < 0)
 		return false;
@@ -1477,7 +1479,7 @@ queue normal and lagged packets
 */
 static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size_t *length)
 	{
-	byte		buf[NET_MAX_FRAGMENT];
+	byte	buf[NET_MAX_FRAGMENT];
 	int		ret, protocol;
 	int		net_socket;
 	WSAsize_t	addr_len;
@@ -1576,7 +1578,7 @@ NET_SendLong
 Fragment long packets, send short directly
 ==================
 */
-int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t len, int flags,
+static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t len, int flags,
 	const struct sockaddr_storage *to, size_t tolen, size_t splitsize)
 	{
 #ifdef NET_USE_FRAGMENTS
@@ -1824,10 +1826,13 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 
 		if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
 			NET_StringToSockaddr (net_iface, &addr, false, AF_INET);
-		else ((struct sockaddr_in *)&addr)->sin_addr.s_addr = INADDR_ANY;
+		else
+			((struct sockaddr_in *)&addr)->sin_addr.s_addr = INADDR_ANY;
 
-		if (port == PORT_ANY) ((struct sockaddr_in *)&addr)->sin_port = 0;
-		else ((struct sockaddr_in *)&addr)->sin_port = htons ((short)port);
+		if (port == PORT_ANY)
+			((struct sockaddr_in *)&addr)->sin_port = 0;
+		else
+			((struct sockaddr_in *)&addr)->sin_port = htons ((short)port);
 
 		if (NET_IsSocketError (bind (net_socket, (struct sockaddr *)&addr, sizeof (struct sockaddr_in))))
 			{
@@ -1917,13 +1922,13 @@ NET_GetLocalAddress
 Returns the servers' ip address as a string.
 ================
 */
-void NET_GetLocalAddress (void)
+static void NET_GetLocalAddress (void)
 	{
 	char		hostname[512];
 	char		buff[512];
 	struct sockaddr_storage	address;
-	WSAsize_t		namelen;
-	const char *net_addr_string;
+	WSAsize_t	namelen;
+	const char	*net_addr_string;
 
 	memset (&net_local, 0, sizeof (netadr_t));
 	memset (&net6_local, 0, sizeof (netadr_t));

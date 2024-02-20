@@ -17,11 +17,11 @@ GNU General Public License for more details.
 #include "xash3d_mathlib.h"
 #include "img_dds.h"
 
-qboolean Image_CheckDXT3Alpha (dds_t *hdr, byte *fin)
+static qboolean Image_CheckDXT3Alpha (dds_t *hdr, byte *fin)
 	{
 	word	sAlpha;
-	byte *alpha;
-	int	x, y, i, j;
+	byte	*alpha;
+	int		x, y, i, j;
 
 	for (y = 0; y < hdr->dwHeight; y += 4)
 		{
@@ -50,11 +50,11 @@ qboolean Image_CheckDXT3Alpha (dds_t *hdr, byte *fin)
 	return false;
 	}
 
-qboolean Image_CheckDXT5Alpha (dds_t *hdr, byte *fin)
+static qboolean Image_CheckDXT5Alpha (dds_t *hdr, byte *fin)
 	{
 	uint	bits, bitmask;
-	byte *alphamask;
-	int	x, y, i, j;
+	byte	*alphamask;
+	int		x, y, i, j;
 
 	for (y = 0; y < hdr->dwHeight; y += 4)
 		{
@@ -91,7 +91,7 @@ qboolean Image_CheckDXT5Alpha (dds_t *hdr, byte *fin)
 	return false;
 	}
 
-void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
+static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 	{
 	uint bits = hdr->dsPixelFormat.dwRGBBitCount;
 
@@ -225,10 +225,10 @@ void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 
 // [FWGS, 01.11.23] removed Image_DXTGetLinearSize
 
-size_t Image_DXTCalcMipmapSize (dds_t *hdr)
+static size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 	{
 	size_t	buffsize = 0;
-	int	i, width, height;
+	int		i, width, height;
 
 	// now correct buffer size
 	for (i = 0; i < Q_max (1, (hdr->dwMipMapCount)); i++)
@@ -243,12 +243,12 @@ size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 	return buffsize;
 	}
 
-uint Image_DXTCalcSize (const char *name, dds_t *hdr, size_t filesize)
+static uint Image_DXTCalcSize (const char *name, dds_t *hdr, size_t filesize)
 	{
-	size_t buffsize = 0;
-	int w = image.width;
-	int h = image.height;
-	int d = image.depth;
+	size_t	buffsize = 0;
+	int		w = image.width;
+	int		h = image.height;
+	int		d = image.depth;
 
 	if (hdr->dsCaps.dwCaps2 & DDS_CUBEMAP)
 		{
@@ -282,7 +282,7 @@ uint Image_DXTCalcSize (const char *name, dds_t *hdr, size_t filesize)
 	return buffsize;
 	}
 
-void Image_DXTAdjustVolume (dds_t *hdr)
+static void Image_DXTAdjustVolume (dds_t *hdr)
 	{
 	if (hdr->dwDepth <= 1)
 		return;
@@ -300,9 +300,9 @@ Image_LoadDDS
 qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	dds_t	header;
-	byte *fin;
+	byte	*fin;
 	int		headersOffset;
-	dds_header_dxt10_t header2;
+	dds_header_dxt10_t	header2;
 
 	if (filesize < sizeof (header))
 		return false;
@@ -336,9 +336,11 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 
 	if (header.dwFlags & DDS_DEPTH)
 		image.depth = header.dwDepth;
-	else image.depth = 1;
+	else
+		image.depth = 1;
 
-	if (!Image_ValidSize (name)) return false;
+	if (!Image_ValidSize (name))
+		return false;
 
 	Image_DXTGetPixelFormat (&header, &header2); // and image type too :)
 	Image_DXTAdjustVolume (&header);

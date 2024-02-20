@@ -222,13 +222,13 @@ Generate a list of trifans or strips
 for the model, which holds for all frames
 ================
 */
-void BuildTris (void)
+static void BuildTris (void)
 	{
-	int	len, bestlen, besttype = 0;
-	int	bestverts[1024];
-	int	besttris[1024];
-	int	type, startv;
-	int	i, j, k;
+	int		len, bestlen, besttype = 0;
+	int		bestverts[1024];
+	int		besttris[1024];
+	int		type, startv;
+	int		i, j, k;
 	float	s, t;
 
 	//
@@ -241,7 +241,8 @@ void BuildTris (void)
 	for (i = 0; i < m_pAliasHeader->numtris; i++)
 		{
 		// pick an unused triangle and start the trifan
-		if (g_used[i]) continue;
+		if (g_used[i])
+			continue;
 
 		bestlen = 0;
 		for (type = 0; type < 2; type++)
@@ -302,10 +303,10 @@ void BuildTris (void)
 GL_MakeAliasModelDisplayLists
 ================
 */
-void GL_MakeAliasModelDisplayLists (model_t *m)
+static void GL_MakeAliasModelDisplayLists (model_t *m)
 	{
-	trivertex_t *verts;
-	int		i, j;
+	trivertex_t	*verts;
+	int			i, j;
 
 	BuildTris ();
 
@@ -336,11 +337,11 @@ ALIAS MODELS
 Mod_LoadAliasFrame
 =================
 */
-void *Mod_LoadAliasFrame (void *pin, maliasframedesc_t *frame)
+static void *Mod_LoadAliasFrame (void *pin, maliasframedesc_t *frame)
 	{
-	daliasframe_t *pdaliasframe;
-	trivertex_t *pinframe;
-	int		i;
+	daliasframe_t	*pdaliasframe;
+	trivertex_t		*pinframe;
+	int				i;
 
 	pdaliasframe = (daliasframe_t *)pin;
 
@@ -368,12 +369,12 @@ void *Mod_LoadAliasFrame (void *pin, maliasframedesc_t *frame)
 Mod_LoadAliasGroup
 =================
 */
-void *Mod_LoadAliasGroup (void *pin, maliasframedesc_t *frame)
+static void *Mod_LoadAliasGroup (void *pin, maliasframedesc_t *frame)
 	{
-	daliasgroup_t *pingroup;
-	int		i, numframes;
-	daliasinterval_t *pin_intervals;
-	void *ptemp;
+	daliasgroup_t	*pingroup;
+	int				i, numframes;
+	daliasinterval_t	*pin_intervals;
+	void			*ptemp;
 
 	pingroup = (daliasgroup_t *)pin;
 	numframes = pingroup->numframes;
@@ -406,10 +407,10 @@ void *Mod_LoadAliasGroup (void *pin, maliasframedesc_t *frame)
 
 /*
 ===============
-Mod_CreateSkinData [FWGS, 01.01.24]
+Mod_CreateSkinData [FWGS, 01.02.24]
 ===============
 */
-rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
+static rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 	{
 	static rgbdata_t	skin;
 	char	name[MAX_QPATH];
@@ -439,7 +440,7 @@ rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 			}
 		}
 
-	COM_FileBase (mod->name, name, sizeof (name));	// [FWGS, 01.11.23]
+	COM_FileBase (mod->name, name, sizeof (name));
 
 	// for alias models only player can have remap textures
 	if ((mod != NULL) && !Q_stricmp (name, "player"))
@@ -454,11 +455,11 @@ rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 		mod->textures[i] = tx;
 
 		Q_strncpy (tx->name, "DM_Skin", sizeof (tx->name));
-		tx->anim_min = SHIRT_HUE_START; // topcolor start
-		tx->anim_max = SHIRT_HUE_END; // topcolor end
+		tx->anim_min = SHIRT_HUE_START;	// topcolor start
+		tx->anim_max = SHIRT_HUE_END;	// topcolor end
 
 		// bottomcolor start always equal is (topcolor end + 1)
-		tx->anim_total = PANTS_HUE_END;// bottomcolor end
+		tx->anim_total = PANTS_HUE_END;	// bottomcolor end
 
 		tx->width = width;
 		tx->height = height;
@@ -473,8 +474,8 @@ rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 	return gEngfuncs.FS_CopyImage (&skin);
 	}
 
-// [FWGS, 01.11.23]
-void *Mod_LoadSingleSkin (model_t *loadmodel, daliasskintype_t *pskintype, int skinnum, int size)
+// [FWGS, 01.02.24]
+static void *Mod_LoadSingleSkin (model_t *loadmodel, daliasskintype_t *pskintype, int skinnum, int size)
 	{
 	string		name, lumaname;
 	string		checkname;
@@ -506,8 +507,8 @@ void *Mod_LoadSingleSkin (model_t *loadmodel, daliasskintype_t *pskintype, int s
 	return ((byte *)(pskintype + 1) + size);
 	}
 
-// [FWGS, 01.11.23]
-void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype, int skinnum, int size)
+// [FWGS, 01.02.24]
+static void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype, int skinnum, int size)
 	{
 	daliasskininterval_t	*pinskinintervals;
 	daliasskingroup_t		*pinskingroup;
@@ -553,7 +554,7 @@ void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype, int sk
 Mod_LoadAllSkins [FWGS, 01.11.23]
 ===============
 */
-void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *pskintype)
+static void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *pskintype)
 	{
 	int	i, size;
 
@@ -580,7 +581,7 @@ void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *pskintype)
 Mod_CalcAliasBounds
 =================
 */
-void Mod_CalcAliasBounds (model_t *mod)
+static void Mod_CalcAliasBounds (model_t *mod)
 	{
 	int		i, j, k;
 	float	radius;
@@ -616,13 +617,13 @@ Mod_LoadAliasModel
 */
 void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
-	daliashdr_t *pinmodel;
-	stvert_t *pinstverts;
-	dtriangle_t *pintriangles;
-	daliasframetype_t *pframetype;
-	daliasskintype_t *pskintype;
-	int i, j, size;
-	char poolname[MAX_VA_STRING];
+	daliashdr_t		*pinmodel;
+	stvert_t		*pinstverts;
+	dtriangle_t		*pintriangles;
+	daliasframetype_t	*pframetype;
+	daliasskintype_t	*pskintype;
+	int		i, j, size;
+	char	poolname[MAX_VA_STRING];
 
 	if (loaded)
 		*loaded = false;
@@ -731,8 +732,8 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 
 void Mod_AliasUnloadTextures (void *data)
 	{
-	aliashdr_t *palias;
-	int		i, j;
+	aliashdr_t	*palias;
+	int			i, j;
 
 	palias = data;
 	if (!palias) return; // already freed
@@ -758,14 +759,13 @@ ALIAS MODELS
 
 /*
 ===============
-R_AliasDynamicLight [FWGS, 01.01.24]
+R_AliasDynamicLight [FWGS, 01.02.24]
 
 similar to R_StudioDynamicLight
 ===============
 */
-void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
+static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	{
-	/*movevars_t	*mv = gEngfuncs.pfnGetMoveVars ();*/
 	movevars_t	*mv = tr.movevars;
 	vec3_t		lightDir, vecSrc, vecEnd;
 	vec3_t		origin, dist, finalLight;
@@ -956,7 +956,7 @@ void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 R_AliasSetupLighting
 ===============
 */
-void R_AliasSetupLighting (alight_t *plight)
+static void R_AliasSetupLighting (alight_t *plight)
 	{
 	if (!m_pAliasHeader || !plight)
 		return;
@@ -973,10 +973,10 @@ void R_AliasSetupLighting (alight_t *plight)
 
 /*
 ===============
-R_AliasLighting [FWGS, 01.01.24]
+R_AliasLighting [FWGS, 01.02.24]
 ===============
 */
-void R_AliasLighting (float *lv, const vec3_t normal)
+static void R_AliasLighting (float *lv, const vec3_t normal)
 	{
 	float 	illum = g_alias.ambientlight;
 	float	r, lightcos;
@@ -1017,7 +1017,6 @@ void R_AliasLighting (float *lv, const vec3_t normal)
 R_AliasSetRemapColors [FWGS, 01.01.24]
 ===============
 */
-/*void R_AliasSetRemapColors (int newTop, int newBottom)*/
 static void R_AliasSetRemapColors (int newTop, int newBottom)
 	{
 	/*gEngfuncs.CL_AllocRemapInfo (RI.currententity, RI.currentmodel, newTop, newBottom);
@@ -1027,7 +1026,6 @@ static void R_AliasSetRemapColors (int newTop, int newBottom)
 		gEngfuncs.CL_UpdateRemapInfo (RI.currententity, newTop, newBottom);*/
 	if (gEngfuncs.CL_EntitySetRemapColors (RI.currententity, RI.currentmodel, newTop, newBottom))
 		m_fDoRemap = true;
-	/*}*/
 	}
 
 /*
@@ -1035,7 +1033,7 @@ static void R_AliasSetRemapColors (int newTop, int newBottom)
 GL_DrawAliasFrame
 =============
 */
-void GL_DrawAliasFrame (aliashdr_t *paliashdr)
+static void GL_DrawAliasFrame (aliashdr_t *paliashdr)
 	{
 	float 		lv_tmp;
 	trivertex_t	*verts0;
@@ -1100,15 +1098,15 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr)
 GL_DrawAliasShadow
 =============
 */
-void GL_DrawAliasShadow (aliashdr_t *paliashdr)
+static void GL_DrawAliasShadow (aliashdr_t *paliashdr)
 	{
-	trivertex_t *verts0;
-	trivertex_t *verts1;
+	trivertex_t	*verts0;
+	trivertex_t	*verts1;
 	float		vec_x, vec_y;
 	vec3_t		av, point;
-	int *order;
+	int			*order;
 	float		height;
-	int		count;
+	int			count;
 
 	if (FBitSet (RI.currententity->curstate.effects, EF_NOSHADOW))
 		return;
@@ -1175,10 +1173,9 @@ void GL_DrawAliasShadow (aliashdr_t *paliashdr)
 /*
 ====================
 R_AliasLerpMovement
-
 ====================
 */
-void R_AliasLerpMovement (cl_entity_t *e)
+static void R_AliasLerpMovement (cl_entity_t *e)
 	{
 	float	f = 1.0f;
 
@@ -1194,10 +1191,9 @@ void R_AliasLerpMovement (cl_entity_t *e)
 
 	g_alias.lerpfrac = bound (0.0f, f, 1.0f);
 
-	if (e->player || e->curstate.movetype != MOVETYPE_STEP)
+	if (e->player || (e->curstate.movetype != MOVETYPE_STEP))
 		return; // monsters only
 
-	// Con_Printf( "%4.2f %.2f %.2f\n", f, e->curstate.animtime, g_alias.time );
 	VectorLerp (e->latched.prevorigin, f, e->curstate.origin, e->origin);
 
 	if (!VectorCompareEpsilon (e->curstate.angles, e->latched.prevangles, ON_EPSILON))
@@ -1209,7 +1205,10 @@ void R_AliasLerpMovement (cl_entity_t *e)
 		QuaternionSlerp (q2, q1, f, q);
 		QuaternionAngle (q, e->angles);
 		}
-	else VectorCopy (e->curstate.angles, e->angles);
+	else
+		{
+		VectorCopy (e->curstate.angles, e->angles);
+		}
 
 	// NOTE: this completely over control about angles and don't broke interpolation
 	if (FBitSet (e->model->flags, ALIAS_ROTATE))
@@ -1221,7 +1220,7 @@ void R_AliasLerpMovement (cl_entity_t *e)
 R_SetupAliasFrame
 =================
 */
-void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
+static void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
 	{
 	int		newpose, oldpose;
 	int		newframe, oldframe;

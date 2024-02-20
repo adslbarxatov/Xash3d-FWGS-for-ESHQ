@@ -201,13 +201,14 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 	return false;
 	}
 
+// [FWGS, 01.02.24]
 /*
 ======================
 NetSplit_SendLong
 
 Send parts that are less or equal maxpacket
 ======================
-*/
+//
 void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, unsigned int maxpacket,
 	unsigned int id)
 	{
@@ -234,7 +235,7 @@ void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, u
 		NET_SendPacket (sock, size + NETSPLIT_HEADER_SIZE, &packet, to);
 		packet.index++;
 		}
-	}
+	}*/
 
 /*
 ===============
@@ -243,8 +244,8 @@ Netchan_Init [FWGS, 01.08.23]
 */
 void Netchan_Init (void)
 	{
-	char buf[32];
-	int	port;
+	char	buf[32];
+	int		port;
 
 	// pick a port value that should be nice and random
 	port = COM_RandomLong (1, 65535);
@@ -329,7 +330,6 @@ void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, voi
 /*
 ==============================
 Netchan_IncomingReady
-
 ==============================
 */
 qboolean Netchan_IncomingReady (netchan_t *chan)
@@ -369,11 +369,12 @@ qboolean Netchan_CanPacket (netchan_t *chan, qboolean choke)
 Netchan_UnlinkFragment
 ==============================
 */
-void Netchan_UnlinkFragment (fragbuf_t *buf, fragbuf_t **list)
+static void Netchan_UnlinkFragment (fragbuf_t *buf, fragbuf_t **list)
 	{
 	fragbuf_t *search;
 
-	if (!list) return;
+	if (!list)
+		return;
 
 	// at head of list
 	if (buf == *list)
@@ -406,7 +407,7 @@ void Netchan_UnlinkFragment (fragbuf_t *buf, fragbuf_t **list)
 Netchan_ClearFragbufs
 ==============================
 */
-void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
+static void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 	{
 	fragbuf_t *buf, *n;
 
@@ -432,7 +433,7 @@ void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 Netchan_ClearFragments
 ==============================
 */
-void Netchan_ClearFragments (netchan_t *chan)
+static void Netchan_ClearFragments (netchan_t *chan)
 	{
 	fragbufwaiting_t *wait, *next;
 	int		i;
@@ -458,7 +459,6 @@ void Netchan_ClearFragments (netchan_t *chan)
 /*
 ==============================
 Netchan_Clear
-
 ==============================
 */
 void Netchan_Clear (netchan_t *chan)
@@ -499,7 +499,7 @@ Sends an out-of-band datagram
 */
 void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data)
 	{
-	byte	send_buf[MAX_PRINT_MSG];
+	byte		send_buf[MAX_PRINT_MSG];
 	sizebuf_t	send;
 
 	// write the packet header
@@ -536,10 +536,10 @@ void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, .
 
 /*
 ==============================
-Netchan_AllocFragbuf [FWGS, 01.04.23]
+Netchan_AllocFragbuf [FWGS, 01.02.24]
 ==============================
 */
-fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
+static fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	{
 	fragbuf_t *buf;
 
@@ -555,7 +555,7 @@ fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 Netchan_AddFragbufToTail
 ==============================
 */
-void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
+static void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
 	{
 	fragbuf_t *p;
 
@@ -578,16 +578,16 @@ void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
 /*
 ==============================
 Netchan_UpdateFlow
-
 ==============================
 */
-void Netchan_UpdateFlow (netchan_t *chan)
+static void Netchan_UpdateFlow (netchan_t *chan)
 	{
 	float	faccumulatedtime = 0.0;
-	int	i, bytes = 0;
-	int	flow, start;
+	int		i, bytes = 0;
+	int		flow, start;
 
-	if (!chan) return;
+	if (!chan)
+		return;
 
 	for (flow = 0; flow < 2; flow++)
 		{
@@ -626,17 +626,20 @@ void Netchan_FragSend (netchan_t *chan)
 	fragbufwaiting_t *wait;
 	int		i;
 
-	if (!chan) return;
+	if (!chan)
+		return;
 
 	for (i = 0; i < MAX_STREAMS; i++)
 		{
 		// already something queued up, just leave in waitlist
-		if (chan->fragbufs[i]) continue;
+		if (chan->fragbufs[i])
+			continue;
 
 		wait = chan->waitlist[i];
 
 		// nothing to queue?
-		if (!wait) continue;
+		if (!wait)
+			continue;
 
 		chan->waitlist[i] = wait->next;
 
@@ -654,7 +657,6 @@ void Netchan_FragSend (netchan_t *chan)
 /*
 ==============================
 Netchan_AddBufferToList
-
 ==============================
 */
 void Netchan_AddBufferToList (fragbuf_t **pplist, fragbuf_t *pbuf)
@@ -699,24 +701,24 @@ void Netchan_AddBufferToList (fragbuf_t **pplist, fragbuf_t *pbuf)
 /*
 ==============================
 Netchan_CreateFragments_
-
 ==============================
 */
 static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 	{
-	fragbuf_t *buf;
-	int		chunksize;
-	int		remaining;
-	int		bytes, pos;
-	int		bufferid = 1;
-	fragbufwaiting_t *wait, *p;
+	fragbuf_t	*buf;
+	int			chunksize;
+	int			remaining;
+	int			bytes, pos;
+	int			bufferid = 1;
+	fragbufwaiting_t	*wait, *p;
 
 	if (MSG_GetNumBytesWritten (msg) == 0)
 		return;
 
 	if (chan->pfnBlockSize != NULL)
 		chunksize = chan->pfnBlockSize (chan->client, FRAGSIZE_FRAG);
-	else chunksize = FRAGMENT_MAX_SIZE; // fallback
+	else
+		chunksize = FRAGMENT_MAX_SIZE; // fallback
 
 	wait = (fragbufwaiting_t *)Mem_Calloc (net_mempool, sizeof (fragbufwaiting_t));
 
@@ -724,7 +726,7 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 		{
 		uint	uCompressedSize = 0;
 		uint	uSourceSize = MSG_GetNumBytesWritten (msg);
-		byte *pbOut = LZSS_Compress (msg->pData, uSourceSize, &uCompressedSize);
+		byte	*pbOut = LZSS_Compress (msg->pData, uSourceSize, &uCompressedSize);
 
 		if (pbOut && uCompressedSize > 0 && uCompressedSize < uSourceSize)
 			{
@@ -793,10 +795,10 @@ void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg)
 Netchan_FindBufferById
 ==============================
 */
-fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate)
+static fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate)
 	{
-	fragbuf_t *list = *pplist;
-	fragbuf_t *pnewbuf;
+	fragbuf_t	*list = *pplist;
+	fragbuf_t	*pnewbuf;
 
 	while (list)
 		{
@@ -822,11 +824,11 @@ fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate
 Netchan_CheckForCompletion
 ==============================
 */
-void Netchan_CheckForCompletion (netchan_t *chan, int stream, int intotalbuffers)
+static void Netchan_CheckForCompletion (netchan_t *chan, int stream, int intotalbuffers)
 	{
 	int	c, id;
 	int	size;
-	fragbuf_t *p;
+	fragbuf_t	*p;
 
 	size = 0;
 	c = 0;
@@ -860,7 +862,6 @@ void Netchan_CheckForCompletion (netchan_t *chan, int stream, int intotalbuffers
 /*
 ==============================
 Netchan_CreateFileFragmentsFromBuffer
-
 ==============================
 */
 void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filename, byte *pbuf, int size)
@@ -877,14 +878,15 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 
 	if (chan->pfnBlockSize != NULL)
 		chunksize = chan->pfnBlockSize (chan->client, FRAGSIZE_FRAG);
-	else chunksize = FRAGMENT_MAX_SIZE; // fallback
+	else
+		chunksize = FRAGMENT_MAX_SIZE; // fallback
 
 	if (!LZSS_IsCompressed (pbuf))
 		{
 		uint	uCompressedSize = 0;
-		byte *pbOut = LZSS_Compress (pbuf, size, &uCompressedSize);
+		byte	*pbOut = LZSS_Compress (pbuf, size, &uCompressedSize);
 
-		if (pbOut && uCompressedSize > 0 && uCompressedSize < size)
+		if (pbOut && (uCompressedSize > 0) && (uCompressedSize < size))
 			{
 			Con_DPrintf ("Compressing filebuffer (%s -> %s)\n", Q_memprint (size), Q_memprint (uCompressedSize));
 			memcpy (pbuf, pbOut, uCompressedSize);
@@ -1071,7 +1073,6 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 /*
 ==============================
 Netchan_FlushIncoming
-
 ==============================
 */
 void Netchan_FlushIncoming (netchan_t *chan, int stream)
@@ -1095,7 +1096,6 @@ void Netchan_FlushIncoming (netchan_t *chan, int stream)
 /*
 ==============================
 Netchan_CopyNormalFragments
-
 ==============================
 */
 qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *length)
@@ -1160,15 +1160,14 @@ qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *l
 /*
 ==============================
 Netchan_CopyFileFragments
-
 ==============================
 */
 qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 	{
 	char	filename[MAX_OSPATH];
-	int	nsize, pos;
-	byte *buffer;
-	fragbuf_t *p, *n;
+	int		nsize, pos;
+	byte	*buffer;
+	fragbuf_t	*p, *n;
 
 	if (!chan->incomingready[FRAG_FILE_STREAM])
 		return false;
@@ -1293,7 +1292,7 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 	return true;
 	}
 
-qboolean Netchan_Validate (netchan_t *chan, sizebuf_t *sb, qboolean *frag_message, uint *fragid,
+static qboolean Netchan_Validate (netchan_t *chan, sizebuf_t *sb, qboolean *frag_message, uint *fragid,
 	int *frag_offset, int *frag_length)
 	{
 	int	i, buffer, offset;

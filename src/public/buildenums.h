@@ -25,29 +25,29 @@ GNU General Public License for more details.
 //================================================================
 // OPERATING SYSTEM DEFINES
 //================================================================
-#define PLATFORM_WIN32      1
-#define PLATFORM_LINUX      2
-#define PLATFORM_FREEBSD    3
-#define PLATFORM_ANDROID    4
-#define PLATFORM_APPLE      5
-
-#define PLATFORM_NETBSD     6
-#define PLATFORM_OPENBSD    7
-#define PLATFORM_EMSCRIPTEN 8
-#define PLATFORM_DOS4GW     9
-#define PLATFORM_HAIKU      10
-#define PLATFORM_SERENITY   11
-#define PLATFORM_IRIX       12
-#define PLATFORM_NSWITCH    13
-#define PLATFORM_PSVITA     14
-#define PLATFORM_LINUX_UNKNOWN 15
+#define PLATFORM_WIN32			1
+#define PLATFORM_LINUX			2
+#define PLATFORM_FREEBSD		3
+#define PLATFORM_ANDROID		4
+#define PLATFORM_APPLE			5
+#define PLATFORM_NETBSD			6
+#define PLATFORM_OPENBSD		7
+#define PLATFORM_EMSCRIPTEN		8
+#define PLATFORM_DOS4GW			9
+#define PLATFORM_HAIKU			10
+#define PLATFORM_SERENITY		11
+#define PLATFORM_IRIX			12
+#define PLATFORM_NSWITCH		13
+#define PLATFORM_PSVITA			14
+/*#define PLATFORM_LINUX_UNKNOWN	15*/	// [FWGS, 01.02.24]
 
 #if XASH_WIN32
 	#define XASH_PLATFORM PLATFORM_WIN32
 #elif XASH_ANDROID
 	#define XASH_PLATFORM PLATFORM_ANDROID
-#elif XASH_LINUX_UNKNOWN
-	#define XASH_PLATFORM PLATFORM_LINUX_UNKNOWN
+// [FWGS, 01.02.24]
+/*#elif XASH_LINUX_UNKNOWN
+	#define XASH_PLATFORM PLATFORM_LINUX_UNKNOWN*/
 #elif XASH_LINUX
 	#define XASH_PLATFORM PLATFORM_LINUX
 #elif XASH_APPLE
@@ -103,7 +103,7 @@ GNU General Public License for more details.
 	#define XASH_ARCHITECTURE ARCHITECTURE_E2K
 #elif XASH_RISCV
 	#define XASH_ARCHITECTURE ARCHITECTURE_RISCV
-#elif XASH_PPC	// [FWGS, 01.07.23]
+#elif XASH_PPC
 	#define XASH_ARCHITECTURE ARCHITECTURE_PPC
 #else
 	#error
@@ -112,8 +112,8 @@ GNU General Public License for more details.
 //================================================================
 // ENDIANNESS DEFINES
 //================================================================
-#define ENDIANNESS_LITTLE  1
-#define ENDIANNESS_BIG     2
+#define ENDIANNESS_LITTLE	1
+#define ENDIANNESS_BIG		2
 
 #if XASH_LITTLE_ENDIAN
 	#define XASH_ENDIANNESS ENDIANNESS_LITTLE
@@ -128,29 +128,26 @@ GNU General Public License for more details.
 //================================================================
 #define BIT( n )		( 1U << ( n ))
 
-// [FWGS, 01.05.23]
-#define ARCH_ARM_VER_MASK   ( BIT( 5 ) - 1 )
-#define ARCH_ARM_VER_SHIFT  0
-#define ARCH_ARM_HARDFP     BIT (5)
-
-// [FWGS, 01.05.23]
-#define ARCH_RISCV_FP_SOFT   0
-#define ARCH_RISCV_FP_SINGLE 1
-#define ARCH_RISCV_FP_DOUBLE 2
+#define ARCH_ARM_VER_MASK		( BIT( 5 ) - 1 )
+#define ARCH_ARM_VER_SHIFT		0
+#define ARCH_ARM_HARDFP			BIT (5)
+#define ARCH_RISCV_FP_SOFT		0
+#define ARCH_RISCV_FP_SINGLE	1
+#define ARCH_RISCV_FP_DOUBLE	2
 
 #if XASH_ARCHITECTURE == ARCHITECTURE_ARM
 	#if XASH_ARM_HARDFP
-		#define XASH_ARCHITECTURE_ABI ( ARCH_ARM_HARDFP | XASH_ARM )	// [FWGS, 01.05.23]
+		#define XASH_ARCHITECTURE_ABI ( ARCH_ARM_HARDFP | XASH_ARM )
 	#else
 		#define XASH_ARCHITECTURE_ABI ( XASH_ARM )
 	#endif
 #elif XASH_ARCHITECTURE == ARCHITECTURE_RISCV
 	#if XASH_RISCV_SOFTFP
-		#define XASH_ARCHITECTURE_ABI ARCH_RISCV_FP_SOFT	// [FWGS, 01.05.23]
+		#define XASH_ARCHITECTURE_ABI ARCH_RISCV_FP_SOFT
 	#elif XASH_RISCV_SINGLEFP
-		#define XASH_ARCHITECTURE_ABI ARCH_RISCV_FP_SINGLE	// [FWGS, 01.05.23]
+		#define XASH_ARCHITECTURE_ABI ARCH_RISCV_FP_SINGLE
 	#elif XASH_RISCV_DOUBLEFP
-		#define XASH_ARCHITECTURE_ABI ARCH_RISCV_FP_DOUBLE	// [FWGS, 01.05.23]
+		#define XASH_ARCHITECTURE_ABI ARCH_RISCV_FP_DOUBLE
 	#else
 		#error
 	#endif

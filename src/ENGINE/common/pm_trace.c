@@ -106,7 +106,7 @@ To keep everything totally uniform, bounding boxes are turned into small
 BSP trees instead of being compared directly.
 ===================
 */
-hull_t *PM_HullForBox (const vec3_t mins, const vec3_t maxs)
+static hull_t *PM_HullForBox (const vec3_t mins, const vec3_t maxs)
 	{
 	pm_boxplanes[0].dist = maxs[0];
 	pm_boxplanes[1].dist = mins[0];
@@ -200,14 +200,15 @@ PM_HullForStudio
 generate multiple hulls as hitboxes
 ==================
 */
-hull_t *PM_HullForStudio (physent_t *pe, playermove_t *pmove, int *numhitboxes)
+static hull_t *PM_HullForStudio (physent_t *pe, playermove_t *pmove, int *numhitboxes)
 	{
 	vec3_t	size;
 
 	VectorSubtract (pmove->player_maxs[pmove->usehull], pmove->player_mins[pmove->usehull], size);
 	VectorScale (size, 0.5f, size);
 
-	return Mod_HullForStudio (pe->studiomodel, pe->frame, pe->sequence, pe->angles, pe->origin, size, pe->controller, pe->blending, numhitboxes, NULL);
+	return Mod_HullForStudio (pe->studiomodel, pe->frame, pe->sequence, pe->angles, pe->origin, size,
+		pe->controller, pe->blending, numhitboxes, NULL);
 	}
 
 /*

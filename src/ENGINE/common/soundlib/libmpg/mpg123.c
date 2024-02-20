@@ -15,6 +15,8 @@ GNU General Public License for more details.
 
 #include "mpg123.h"
 #include "sample.h"
+// [FWGS, 01.02.24]
+#include "libmpg.h"
 
 static int	initialized = 0;
 
@@ -83,7 +85,7 @@ mpg123_handle_t *mpg123_parnew (mpg123_parm_t *mp, int *error)
 	return fr;
 	}
 
-int mpg123_par (mpg123_parm_t *mp, enum mpg123_parms key, long val)
+static int mpg123_par (mpg123_parm_t *mp, enum mpg123_parms key, long val)
 	{
 	int	ret = MPG123_OK;
 
@@ -189,7 +191,7 @@ int mpg123_param (mpg123_handle_t *mh, enum mpg123_parms key, long val)
 		}
 	}
 
-int mpg123_close (mpg123_handle_t *mh)
+static int mpg123_close (mpg123_handle_t *mh)
 	{
 	if (mh == NULL)
 		return MPG123_BAD_HANDLE;
@@ -246,7 +248,8 @@ int mpg123_open_feed (mpg123_handle_t *mh)
 	return open_feed (mh);
 	}
 
-int mpg123_replace_reader_handle (mpg123_handle_t *mh, mpg_ssize_t (*fread)(void *, void *, size_t), mpg_off_t (*lseek)(void *, mpg_off_t, int), void(*fclose)(void *))
+int mpg123_replace_reader_handle (mpg123_handle_t *mh, mpg_ssize_t (*fread)(void *, void *, size_t),
+	mpg_off_t (*lseek)(void *, mpg_off_t, int), void(*fclose)(void *))
 	{
 	if (mh == NULL)
 		return MPG123_BAD_HANDLE;
@@ -263,10 +266,10 @@ int mpg123_replace_reader_handle (mpg123_handle_t *mh, mpg_ssize_t (*fread)(void
 // a) a new choice of decoder
 // b) a changed native format of the MPEG stream
 // ... calls are only valid after parsing some MPEG frame!
-int decode_update (mpg123_handle_t *mh)
+static int decode_update (mpg123_handle_t *mh)
 	{
 	long	native_rate;
-	int	b;
+	int		b;
 
 	if (mh->num < 0)
 		{
@@ -320,16 +323,16 @@ int decode_update (mpg123_handle_t *mh)
 	return 0;
 	}
 
-size_t mpg123_safe_buffer (void)
+static size_t mpg123_safe_buffer (void)
 	{
 	// real is the largest possible output
 	return sizeof (float) * 2 * 1152;
 	}
 
-size_t mpg123_outblock (mpg123_handle_t *mh)
+static size_t mpg123_outblock (mpg123_handle_t *mh)
 	{
 	// try to be helpful and never return zero output block size.
-	if (mh != NULL && mh->outblock > 0)
+	if ((mh != NULL) && (mh->outblock > 0))
 		return mh->outblock;
 	return mpg123_safe_buffer ();
 	}
@@ -376,7 +379,7 @@ static int get_next_frame (mpg123_handle_t *mh)
 		else if (b <= 0)
 			{
 			// more sophisticated error control?
-			if (b == 0 || (mh->rdat.filelen >= 0 && mh->rdat.filepos == mh->rdat.filelen))
+			if ((b == 0) || ((mh->rdat.filelen >= 0) && (mh->rdat.filepos == mh->rdat.filelen)))
 				{
 				// we simply reached the end.
 				mh->track_frames = mh->num + 1;
@@ -603,7 +606,8 @@ int mpg123_feed (mpg123_handle_t *mh, const byte *in, size_t size)
 	return MPG123_OK;
 	}
 
-int mpg123_decode (mpg123_handle_t *mh, const byte *inmemory, size_t inmemsize, byte *outmemory, size_t outmemsize, size_t *done)
+int mpg123_decode (mpg123_handle_t *mh, const byte *inmemory, size_t inmemsize, byte *outmemory,
+	size_t outmemsize, size_t *done)
 	{
 	int	ret = MPG123_OK;
 	size_t	mdone = 0;
@@ -697,7 +701,7 @@ int mpg123_getformat (mpg123_handle_t *mh, int *rate, int *channels, int *encodi
 	return MPG123_OK;
 	}
 
-int mpg123_scan (mpg123_handle_t *mh)
+static int mpg123_scan (mpg123_handle_t *mh)
 	{
 	mpg_off_t	track_frames = 0;
 	mpg_off_t	track_samples = 0;
@@ -713,8 +717,9 @@ int mpg123_scan (mpg123_handle_t *mh)
 		return MPG123_ERR;
 		}
 
-	// scan through the _whole_ file, since the current position is no count but computed assuming constant samples per frame.
-	// also, we can just keep the current buffer and seek settings. Just operate on input frames here.
+	// scan through the _whole_ file, since the current position is no count but computed assuming
+	// constant samples per frame. Also, we can just keep the current buffer and seek settings.
+	// Just operate on input frames here
 
 	b = init_track (mh); // mh->num >= 0 !!
 
@@ -963,8 +968,13 @@ const char *mpg123_plain_strerror (int errcode)
 		}
 	}
 
-const char *get_error (mpg123_handle_t *mh)
+// [FWGS, 01.02.24]
+const char *get_error (void *handle)
 	{
-	if (!mh) return mpg123_plain_strerror (MPG123_BAD_HANDLE);
+	mpg123_handle_t *mh = handle;
+
+	if (!mh)
+		return mpg123_plain_strerror (MPG123_BAD_HANDLE);
+
 	return mpg123_plain_strerror (mh->err);
 	}

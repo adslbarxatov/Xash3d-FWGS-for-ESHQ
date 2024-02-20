@@ -16,12 +16,12 @@ GNU General Public License for more details.
 #include "common.h"
 #include "server.h"
 
-void SV_CreateCustomizationList (sv_client_t *cl)
+static void SV_CreateCustomizationList (sv_client_t *cl)
 	{
-	resource_t *pResource;
-	customization_t *pList, *pCust;
+	resource_t		*pResource;
+	customization_t	*pList, *pCust;
 	qboolean		bFound;
-	int		nLumps;
+	int				nLumps;
 
 	cl->customdata.pNext = NULL;
 
@@ -51,7 +51,8 @@ void SV_CreateCustomizationList (sv_client_t *cl)
 				{
 				if (sv_allow_upload.value)
 					Con_Printf ("Ignoring invalid custom decal from %s\n", cl->name);
-				else Con_Printf ("Ignoring custom decal from %s\n", cl->name);
+				else
+					Con_Printf ("Ignoring custom decal from %s\n", cl->name);
 				}
 			}
 		else
@@ -61,7 +62,7 @@ void SV_CreateCustomizationList (sv_client_t *cl)
 		}
 	}
 
-qboolean SV_FileInConsistencyList (const char *filename, consistency_t **ppout)
+static qboolean SV_FileInConsistencyList (const char *filename, consistency_t **ppout)
 	{
 	int	i;
 
@@ -227,6 +228,7 @@ void SV_TransferConsistencyInfo (void)
 				case force_exactfile:
 					// only MD5 hash compare
 					break;
+
 				case force_model_samebounds:
 					if (!Mod_GetStudioBounds (filepath, mins, maxs))
 						Host_Error ("Mod_GetStudioBounds: couldn't get bounds for %s\n", filepath);
@@ -234,6 +236,7 @@ void SV_TransferConsistencyInfo (void)
 					memcpy (&pResource->rguc_reserved[0x0D], maxs, sizeof (maxs));
 					pResource->rguc_reserved[0] = pc->check_type;
 					break;
+
 				case force_model_specifybounds:
 					memcpy (&pResource->rguc_reserved[0x01], pc->mins, sizeof (pc->mins));
 					memcpy (&pResource->rguc_reserved[0x0D], pc->maxs, sizeof (pc->maxs));
@@ -247,12 +250,12 @@ void SV_TransferConsistencyInfo (void)
 	sv.num_consistency = total;
 	}
 
-void SV_SendConsistencyList (sv_client_t *cl, sizebuf_t *msg)
+static void SV_SendConsistencyList (sv_client_t *cl, sizebuf_t *msg)
 	{
 	int	i, lastcheck;
 	int	delta;
 
-	if (svs.maxclients == 1 || !sv_consistency.value || !sv.num_consistency || FBitSet (cl->flags, FCL_HLTV_PROXY))
+	if ((svs.maxclients == 1) || !sv_consistency.value || !sv.num_consistency || FBitSet (cl->flags, FCL_HLTV_PROXY))
 		{
 		ClearBits (cl->flags, FCL_FORCE_UNMODIFIED);
 		MSG_WriteOneBit (msg, 0);
@@ -289,13 +292,13 @@ void SV_SendConsistencyList (sv_client_t *cl, sizebuf_t *msg)
 	MSG_WriteOneBit (msg, 0);
 	}
 
-qboolean SV_CheckFile (sizebuf_t *msg, const char *filename)
+static qboolean SV_CheckFile (sizebuf_t *msg, const char *filename)
 	{
 	resource_t	p;
 
 	memset (&p, 0, sizeof (resource_t));
 
-	if (Q_strlen (filename) == 36 && !Q_strnicmp (filename, "!MD5", 4))
+	if ((Q_strlen (filename) == 36) && !Q_strnicmp (filename, "!MD5", 4))
 		{
 		COM_HexConvert (filename + 4, 32, p.rgucMD5_hash);
 
@@ -340,7 +343,7 @@ void SV_AddToResourceList (resource_t *pResource, resource_t *pList)
 	pList->pPrev = pResource;
 	}
 
-void SV_SendCustomization (sv_client_t *cl, int playernum, resource_t *pResource)
+static void SV_SendCustomization (sv_client_t *cl, int playernum, resource_t *pResource)
 	{
 	MSG_BeginServerCmd (&cl->netchan.message, svc_customization);
 	MSG_WriteByte (&cl->netchan.message, playernum);	// playernum
@@ -367,7 +370,7 @@ void SV_ClearResourceList (resource_t *pList)
 	resource_t *p;
 	resource_t *n;
 
-	for (p = pList->pNext; pList != p && p; p = n)
+	for (p = pList->pNext; (pList != p) && p; p = n)
 		{
 		n = p->pNext;
 
@@ -387,9 +390,9 @@ void SV_ClearResourceLists (sv_client_t *cl)
 
 int SV_EstimateNeededResources (sv_client_t *cl)
 	{
-	int		missing = 0;
-	int		size = 0;
-	resource_t *p;
+	int			missing = 0;
+	int			size = 0;
+	resource_t	*p;
 
 	for (p = cl->resourcesneeded.pNext; p != &cl->resourcesneeded; p = p->pNext)
 		{
@@ -413,15 +416,16 @@ int SV_EstimateNeededResources (sv_client_t *cl)
 	return size;
 	}
 
-void SV_Customization (sv_client_t *pClient, resource_t *pResource, qboolean bSkipPlayer)
+static void SV_Customization (sv_client_t *pClient, resource_t *pResource, qboolean bSkipPlayer)
 	{
-	int		i, nPlayerNumber = -1;
-	sv_client_t *cl;
+	int			i, nPlayerNumber = -1;
+	sv_client_t	*cl;
 
 	i = pClient - svs.clients;
 	if (i >= 0 && i < svs.maxclients)
 		nPlayerNumber = i;
-	else Host_Error ("Couldn't find player index for customization.\n");
+	else
+		Host_Error ("Couldn't find player index for customization.\n");
 
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
@@ -438,12 +442,12 @@ void SV_Customization (sv_client_t *pClient, resource_t *pResource, qboolean bSk
 		}
 	}
 
-void SV_PropagateCustomizations (sv_client_t *pHost)
+static void SV_PropagateCustomizations (sv_client_t *pHost)
 	{
-	customization_t *pCust;
-	resource_t *pResource;
-	sv_client_t *cl;
-	int		i;
+	customization_t	*pCust;
+	resource_t		*pResource;
+	sv_client_t		*cl;
+	int				i;
 
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
@@ -462,9 +466,9 @@ void SV_PropagateCustomizations (sv_client_t *pHost)
 		}
 	}
 
-void SV_RegisterResources (sv_client_t *pHost)
+static void SV_RegisterResources (sv_client_t *pHost)
 	{
-	resource_t *pResource;
+	resource_t	*pResource;
 
 	for (pResource = pHost->resourcesonhand.pNext; pResource != &pHost->resourcesonhand; pResource = pResource->pNext)
 		{
@@ -473,7 +477,7 @@ void SV_RegisterResources (sv_client_t *pHost)
 		}
 	}
 
-qboolean SV_UploadComplete (sv_client_t *cl)
+static qboolean SV_UploadComplete (sv_client_t *cl)
 	{
 	if (&cl->resourcesneeded != cl->resourcesneeded.pNext)
 		return false;
@@ -490,8 +494,8 @@ qboolean SV_UploadComplete (sv_client_t *cl)
 
 void SV_RequestMissingResources (void)
 	{
-	sv_client_t *cl;
-	int		i;
+	sv_client_t	*cl;
+	int			i;
 
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
@@ -506,7 +510,7 @@ void SV_RequestMissingResources (void)
 void SV_BatchUploadRequest (sv_client_t *cl)
 	{
 	string		filename;
-	resource_t *p, *n;
+	resource_t	*p, *n;
 
 	for (p = cl->resourcesneeded.pNext; p != &cl->resourcesneeded; p = n)
 		{
@@ -554,7 +558,10 @@ void SV_SendResource (resource_t *pResource, sizebuf_t *msg)
 		MSG_WriteOneBit (msg, 1);
 		MSG_WriteBytes (msg, pResource->rguc_reserved, sizeof (pResource->rguc_reserved));
 		}
-	else MSG_WriteOneBit (msg, 0);
+	else
+		{
+		MSG_WriteOneBit (msg, 0);
+		}
 	}
 
 void SV_SendResources (sv_client_t *cl, sizebuf_t *msg)

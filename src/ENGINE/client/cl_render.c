@@ -25,7 +25,7 @@ int R_FatPVS (const vec3_t org, float radius, byte *visbuffer, qboolean merge, q
 
 lightstyle_t *CL_GetLightStyle (int number)
 	{
-	Assert (number >= 0 && number < MAX_LIGHTSTYLES);
+	Assert ((number >= 0) && (number < MAX_LIGHTSTYLES));
 	return &cl.lightstyles[number];
 	}
 
@@ -54,7 +54,8 @@ static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamediron
 	{
 	static search_t *t = NULL;
 
-	if (t) Mem_Free (t); // release prev search
+	if (t)
+		Mem_Free (t); // release prev search
 
 	t = FS_Search (pattern, true, gamedironly);
 
@@ -64,7 +65,8 @@ static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamediron
 		return NULL;
 		}
 
-	if (numFiles) *numFiles = t->numfilenames;
+	if (numFiles)
+		*numFiles = t->numfilenames;
 	return t->filenames;
 	}
 
@@ -111,8 +113,10 @@ static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot,
 		}
 
 	// make request for envshot
-	if (skyshot) cls.scrshot_action = scrshot_skyshot;
-	else cls.scrshot_action = scrshot_envshot;
+	if (skyshot)
+		cls.scrshot_action = scrshot_skyshot;
+	else
+		cls.scrshot_action = scrshot_envshot;
 
 	// catch negative values
 	cls.envshot_viewsize = Q_max (0, shotsize);
@@ -123,7 +127,7 @@ static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot,
 CL_GenericHandle
 =============
 */
-const char *CL_GenericHandle (int fileindex)
+static const char *CL_GenericHandle (int fileindex)
 	{
 	if ((fileindex < 0) || (fileindex >= MAX_CUSTOM))
 		return 0;

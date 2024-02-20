@@ -51,7 +51,7 @@ COMMAND BUFFER
 Cbuf_Init
 ============
 */
-void Cbuf_Init (void)
+static void Cbuf_Init (void)
 	{
 	cmd_text.data = cmd_text_buf;
 	filteredcmd_text.data = filteredcmd_text_buf;
@@ -77,7 +77,7 @@ void Cbuf_Clear (void)
 Cbuf_GetSpace
 ============
 */
-void *Cbuf_GetSpace (cmdbuf_t *buf, int length)
+static void *Cbuf_GetSpace (cmdbuf_t *buf, int length)
 	{
 	void *data;
 
@@ -175,12 +175,12 @@ void Cbuf_InsertText (const char *text)
 Cbuf_Execute
 ============
 */
-void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged, int cmdsToExecute)
+static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged, int cmdsToExecute)
 	{
-	char *text;
+	char	*text;
 	char	line[MAX_CMD_LINE];
-	int	i, quotes;
-	char *comment;
+	int		i, quotes;
+	char	*comment;
 
 	while (buf->cursize)
 		{
@@ -217,7 +217,7 @@ void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged, int c
 					}
 				}
 
-			if (text[i] == '\n' || text[i] == '\r')
+			if ((text[i] == '\n') || (text[i] == '\r'))
 				break;
 			}
 
@@ -283,7 +283,7 @@ execute commandline
 void Cbuf_ExecStuffCmds (void)
 	{
 	char	build[MAX_CMD_LINE]; // this is for all commandline options combined (and is bounds checked)
-	int	i, j, l = 0;
+	int		i, j, l = 0;
 
 	// no reason to run the commandline arguments twice
 	if (!host.stuffcmds_pending)
@@ -354,7 +354,7 @@ hl.exe -dev 3 +map c1a0d
 hl.exe -nosound -game bshift
 ===============
 */
-void Cmd_StuffCmds_f (void)
+static void Cmd_StuffCmds_f (void)
 	{
 	host.stuffcmds_pending = true;
 	}
@@ -368,7 +368,7 @@ next frame.  This allows commands like:
 bind g "cmd use rocket ; +attack ; wait ; -attack ; cmd use blaster"
 ============
 */
-void Cmd_Wait_f (void)
+static void Cmd_Wait_f (void)
 	{
 	cmd_wait = true;
 	}
@@ -380,7 +380,7 @@ Cmd_Echo_f
 Just prints the rest of the line to the console
 ===============
 */
-void Cmd_Echo_f (void)
+static void Cmd_Echo_f (void)
 	{
 	int	i;
 
@@ -396,12 +396,12 @@ Cmd_Alias_f
 Creates a new command that executes a command string (possibly ; seperated)
 ===============
 */
-void Cmd_Alias_f (void)
+static void Cmd_Alias_f (void)
 	{
-	cmdalias_t *a;
+	cmdalias_t	*a;
 	char		cmd[MAX_CMD_LINE];
-	int		i, c;
-	const char *s;
+	int			i, c;
+	const char	*s;
 
 	if (Cmd_Argc () == 1)
 		{
@@ -473,9 +473,9 @@ Remove existing aliases
 */
 static void Cmd_UnAlias_f (void)
 	{
-	cmdalias_t *a, *p;
-	const char *s;
-	int		i;
+	cmdalias_t	*a, *p;
+	const char	*s;
+	int			i;
 
 	if (Cmd_Argc () == 1)
 		{
@@ -881,7 +881,7 @@ Cmd_If_f
 Compare and et condition bit if true
 ============
 */
-void Cmd_If_f (void)
+static void Cmd_If_f (void)
 	{
 	// reset bit first
 	cmd_condition &= ~BIT (cmd_condlevel);
@@ -942,7 +942,7 @@ Cmd_Else_f
 Invert condition bit
 ============
 */
-void Cmd_Else_f (void)
+static void Cmd_Else_f (void)
 	{
 	cmd_condition ^= BIT (cmd_condlevel);
 	}
@@ -1184,12 +1184,12 @@ void Cmd_ForwardToServer (void)
 Cmd_List_f
 ============
 */
-void Cmd_List_f (void)
+static void Cmd_List_f (void)
 	{
-	cmd_t *cmd;
-	int	i = 0;
+	cmd_t	*cmd;
+	int		i = 0;
 	size_t	matchlen = 0;
-	const char *match = NULL;
+	const char	*match = NULL;
 
 	if (Cmd_Argc () > 1)
 		{

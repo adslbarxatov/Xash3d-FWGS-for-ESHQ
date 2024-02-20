@@ -15,7 +15,6 @@ GNU General Public License for more details.
 
 #include "imagelib.h"
 
-
 #define netsize		256			// number of colours used
 #define prime1		499
 #define prime2		491
@@ -65,7 +64,7 @@ static int		bias[netsize];		// bias and freq arrays for learning
 static int		freq[netsize];
 static int		radpower[initrad];		// radpower for precomputation
 
-void initnet (byte *thepic, int len, int sample)
+static void initnet (byte *thepic, int len, int sample)
 	{
 	register int	i, *p;
 
@@ -83,7 +82,7 @@ void initnet (byte *thepic, int len, int sample)
 	}
 
 // Unbias network to give byte values 0..255 and record position i to prepare for sort
-void unbiasnet (void)
+static void unbiasnet (void)
 	{
 	int	i, j, temp;
 
@@ -103,9 +102,9 @@ void unbiasnet (void)
 	}
 
 // Insertion sort of network and building of netindex[0..255] (to do after unbias)
-void inxbuild (void)
+static void inxbuild (void)
 	{
-	register int *p, *q;
+	register int	*p, *q;
 	register int	i, j, smallpos, smallval;
 	int		previouscol, startpos;
 
@@ -160,12 +159,11 @@ void inxbuild (void)
 		netindex[j] = maxnetpos; // really 256
 	}
 
-
 // Search for BGR values 0..255 (after net is unbiased) and return colour index
-int inxsearch (int r, int g, int b)
+static int inxsearch (int r, int g, int b)
 	{
 	register int	i, j, dist, a, bestd;
-	register int *p;
+	register int	*p;
 	int		best;
 
 	bestd = 1000;	// biggest possible dist is 256 * 3
@@ -243,9 +241,9 @@ int inxsearch (int r, int g, int b)
 	}
 
 // Search for biased BGR values
-int contest (int r, int g, int b)
+static int contest (int r, int g, int b)
 	{
-	register int *p, *f, *n;
+	register int	*p, *f, *n;
 	register int	i, dist, a, biasdist, betafreq;
 	int		bestpos, bestbiaspos, bestd, bestbiasd;
 
@@ -298,7 +296,7 @@ int contest (int r, int g, int b)
 	}
 
 // Move neuron i towards biased (b,g,r) by factor alpha
-void altersingle (int alpha, int i, int r, int g, int b)
+static void altersingle (int alpha, int i, int r, int g, int b)
 	{
 	register int *n;
 
@@ -311,10 +309,10 @@ void altersingle (int alpha, int i, int r, int g, int b)
 	}
 
 // Move adjacent neurons by precomputed alpha*(1-((i-j)^2/[r]^2)) in radpower[|i-j|]
-void alterneigh (int rad, int i, int r, int g, int b)
+static void alterneigh (int rad, int i, int r, int g, int b)
 	{
 	register int	j, k, lo, hi, a;
-	register int *p, *q;
+	register int	*p, *q;
 
 	lo = i - rad;
 	if (lo < -1) lo = -1;
@@ -354,13 +352,13 @@ void alterneigh (int rad, int i, int r, int g, int b)
 	}
 
 // Main Learning Loop
-void learn (void)
+static void learn (void)
 	{
-	register byte *p;
+	register byte	*p;
 	register int	i, j, r, g, b;
 	int		radius, rad, alpha, step;
 	int		delta, samplepixels;
-	byte *lim;
+	byte	*lim;
 
 	alphadec = 30 + ((samplefac - 1) / 3);
 	p = thepicture;

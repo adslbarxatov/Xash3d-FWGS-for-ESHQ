@@ -46,6 +46,7 @@ static int CL_LoadFontTexture (const char *fontname, uint texFlags, int *width)
 	return tex;
 	}
 
+// [FWGS, 01.02.24]
 qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags)
 	{
 	int font_width, i;
@@ -60,7 +61,7 @@ qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float sc
 	font->type = FONT_FIXED;
 	font->valid = true;
 	font->scale = scale;
-	font->nearest = FBitSet (texFlags, TF_NEAREST);
+	/*font->nearest = FBitSet (texFlags, TF_NEAREST);*/
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (font_width / 16 * scale);
 
@@ -77,12 +78,13 @@ qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float sc
 	return true;
 	}
 
+// [FWGS, 01.02.24]
 qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags)
 	{
-	fs_offset_t length;
-	qfont_t src;
-	byte *pfile;
-	int font_width, i;
+	fs_offset_t	length;
+	qfont_t		src;
+	byte		*pfile;
+	int			font_width, i;
 
 	if (font->valid)
 		return true;
@@ -107,7 +109,7 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 	font->type = FONT_VARIABLE;
 	font->valid = true;
 	font->scale = scale;
-	font->nearest = FBitSet (texFlags, TF_NEAREST);
+	/*font->nearest = FBitSet (texFlags, TF_NEAREST);*/
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (src.rowheight * scale);
 
@@ -147,6 +149,7 @@ static int CL_CalcTabStop (const cl_font_t *font, int x)
 	return stop;
 	}
 
+// [FWGS, 01.02.24]
 int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *font, int flags)
 	{
 	wrect_t *rc;
@@ -180,7 +183,8 @@ int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *fon
 		return font->charWidths[number];
 
 	rc = &font->fontRc[number];
-	if (font->nearest || font->scale <= 1.0f)
+	/*if (font->nearest || font->scale <= 1.0f)*/
+	if ((font->scale <= 1.0f) || REF_GET_PARM (PARM_TEX_FILTERING, font->hFontTexture))
 		half = 0;
 
 	s1 = ((float)rc->left + half) / texw;

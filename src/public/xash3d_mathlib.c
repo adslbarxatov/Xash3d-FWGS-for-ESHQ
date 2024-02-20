@@ -621,12 +621,12 @@ make sure quaternions are within 180 degrees of one another,
 if not, reverse q
 ====================
 */
-void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
+static void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
 	{
 	// decide if one of the quaternions is backwards
 	float	a = 0.0f;
 	float	b = 0.0f;
-	int	i;
+	int		i;
 
 	for (i = 0; i < 4; i++)
 		{
@@ -651,10 +651,10 @@ void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
 QuaternionSlerpNoAlign
 ====================
 */
-void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec4_t qt)
+static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec4_t qt)
 	{
 	float	omega, cosom, sinom, sclp, sclq;
-	int	i;
+	int		i;
 
 	// 0.0 returns p, 1.0 return q.
 	cosom = p[0] * q[0] + p[1] * q[1] + p[2] * q[2] + p[3] * q[3];

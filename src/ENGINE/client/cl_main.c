@@ -95,6 +95,11 @@ CVAR_DEFINE_AUTO (hud_fontscale, "1.0", FCVAR_ARCHIVE | FCVAR_LATCH,
 	"scale hud font texture");
 CVAR_DEFINE_AUTO (hud_scale, "0", FCVAR_ARCHIVE | FCVAR_LATCH,
 	"scale hud at current resolution");
+
+// [FWGS, 01.02.24]
+CVAR_DEFINE_AUTO (hud_scale_minimal_width, "640", FCVAR_ARCHIVE | FCVAR_LATCH,
+	"if hud_scale results in a HUD virtual screen smaller than this value, it won't be applied");
+
 CVAR_DEFINE_AUTO (cl_solid_players, "1", 0,
 	"Make all players not solid (can't traceline them)");
 CVAR_DEFINE_AUTO (cl_updaterate, "20", FCVAR_USERINFO | FCVAR_ARCHIVE,
@@ -235,7 +240,7 @@ finalize connection process and begin new frame
 with new cls.state
 ===============
 */
-void CL_CheckClientState (void)
+static void CL_CheckClientState (void)
 	{
 	// first update is the pre-final signon stage
 	if (((cls.state == ca_connected) || (cls.state == ca_validate)) && (cls.signon == SIGNONS))
@@ -339,10 +344,10 @@ CL_DriftInterpolationAmount
 Drift interpolation value (this is used for server unlag system)
 ===============
 */
-int CL_DriftInterpolationAmount (int goal)
+static int CL_DriftInterpolationAmount (int goal)
 	{
 	float	fgoal, maxmove, diff;
-	int	msec;
+	int		msec;
 
 	fgoal = (float)goal / 1000.0f;
 
@@ -367,7 +372,7 @@ CL_ComputeClientInterpolationAmount
 Validate interpolation cvars, calc interpolation window
 ===============
 */
-void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
+static void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	{
 	const float epsilon = 0.001f; // to avoid float invalid comparision
 	float min_interp;
@@ -414,10 +419,10 @@ void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 CL_ComputePacketLoss
 =================
 */
-void CL_ComputePacketLoss (void)
+static void CL_ComputePacketLoss (void)
 	{
-	int	i, frm;
-	frame_t *frame;
+	int		i, frm;
+	frame_t	*frame;
 	int	count = 0;
 	int	lost = 0;
 
@@ -451,7 +456,7 @@ CL_UpdateFrameLerp
 */
 void CL_UpdateFrameLerp (void)
 	{
-	if (cls.state != ca_active || !cl.validsequence)
+	if ((cls.state != ca_active) || !cl.validsequence)
 		return;
 
 	// compute last interpolation amount
@@ -460,7 +465,7 @@ void CL_UpdateFrameLerp (void)
 	cl.commands[(cls.netchan.outgoing_sequence - 1) & CL_UPDATE_MASK].frame_lerp = cl.lerpFrac;
 	}
 
-void CL_FindInterpolatedAddAngle (float t, float *frac, pred_viewangle_t **prev, pred_viewangle_t **next)
+static void CL_FindInterpolatedAddAngle (float t, float *frac, pred_viewangle_t **prev, pred_viewangle_t **next)
 	{
 	int	i, i0, i1, imod;
 	float	at;
@@ -502,7 +507,7 @@ void CL_FindInterpolatedAddAngle (float t, float *frac, pred_viewangle_t **prev,
 	*frac = bound (0.0f, *frac, 1.0f);
 	}
 
-void CL_ApplyAddAngle (void)
+static void CL_ApplyAddAngle (void)
 	{
 	pred_viewangle_t *prev = NULL, *next = NULL;
 	float		addangletotal = 0.0f;
@@ -537,7 +542,7 @@ CL_ProcessShowTexturesCmds
 navigate around texture atlas
 ===============
 */
-qboolean CL_ProcessShowTexturesCmds (usercmd_t *cmd)
+static qboolean CL_ProcessShowTexturesCmds (usercmd_t *cmd)
 	{
 	static int	oldbuttons;
 	int			changed;
@@ -569,7 +574,7 @@ CL_ProcessOverviewCmds
 Transform user movement into overview adjust
 ===============
 */
-qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
+static qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 	{
 	ref_overview_t *ov = &clgame.overView;
 	int		sign = 1;
@@ -632,7 +637,7 @@ CL_UpdateClientData
 tell the client.dll about player origin, angles, fov, etc
 =================
 */
-void CL_UpdateClientData (void)
+static void CL_UpdateClientData (void)
 	{
 	client_data_t	cdat;
 
@@ -659,10 +664,10 @@ void CL_UpdateClientData (void)
 CL_CreateCmd
 =================
 */
-void CL_CreateCmd (void)
+static void CL_CreateCmd (void)
 	{
 	usercmd_t	nullcmd, *cmd;
-	runcmd_t *pcmd;
+	runcmd_t	*pcmd;
 	vec3_t		angles;
 	qboolean	active;
 	int			input_override;
@@ -674,7 +679,7 @@ void CL_CreateCmd (void)
 	// store viewangles in case it's will be freeze
 	VectorCopy (cl.viewangles, angles);
 	ms = bound (1, host.frametime * 1000, 255);
-	memset (&cmd, 0, sizeof (cmd));		// [FWGS, 01.04.23]: ?
+	memset (&cmd, 0, sizeof (cmd));
 	input_override = 0;
 
 	CL_SetSolidEntities ();
@@ -695,7 +700,6 @@ void CL_CreateCmd (void)
 		pcmd->heldback = false;
 		pcmd->sendsize = 0;
 
-		// [FWGS, 01.04.23]
 		cmd = &pcmd->cmd;
 		}
 	else
@@ -707,7 +711,6 @@ void CL_CreateCmd (void)
 	active = ((cls.signon == SIGNONS) && !cl.paused && !cls.demoplayback);
 	Platform_PreCreateMove ();
 
-	// [FWGS, 01.04.23]
 	clgame.dllFuncs.CL_CreateMove (host.frametime, cmd, active);
 	IN_EngineAppendMove (host.frametime, cmd, active);
 
@@ -770,7 +773,7 @@ Create and send the command packet to the server
 Including both the reliable commands and the usercmds
 ===================
 */
-void CL_WritePacket (void)
+static void CL_WritePacket (void)
 	{
 	sizebuf_t		buf;
 	qboolean		send_command = false;
@@ -965,7 +968,7 @@ CL_SendCommand
 Called every frame to builds and sends a command packet to the server.
 =================
 */
-void CL_SendCommand (void)
+static void CL_SendCommand (void)
 	{
 	// we create commands even if a demo is playing,
 	CL_CreateCmd ();
@@ -979,12 +982,12 @@ void CL_SendCommand (void)
 CL_BeginUpload_f
 ==================
 */
-void CL_BeginUpload_f (void)
+static void CL_BeginUpload_f (void)
 	{
-	const char *name;
+	const char	*name;
 	resource_t	custResource;
-	byte *buf = NULL;
-	int		size = 0;
+	byte		*buf = NULL;
+	int			size = 0;
 	byte		md5[16];
 
 	name = Cmd_Argv (1);
@@ -1075,11 +1078,11 @@ CL_SendConnectPacket
 We have gotten a challenge from the server, so try and connect
 ======================
 */
-void CL_SendConnectPacket (void)
+static void CL_SendConnectPacket (void)
 	{
 	char		protinfo[MAX_INFO_STRING];
-	const char *qport;
-	const char *key;
+	const char	*qport;
+	const char	*key;
 	netadr_t	adr;
 
 	if (!NET_StringToAdr (cls.servername, &adr))
@@ -1168,7 +1171,7 @@ CL_CheckForResend
 Resend a connect message if the last one has timed out
 =================
 */
-void CL_CheckForResend (void)
+static void CL_CheckForResend (void)
 	{
 	netadr_t adr;
 	net_gai_state_t res;	// [FWGS, 01.05.23]
@@ -1258,7 +1261,7 @@ void CL_CheckForResend (void)
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "getchallenge\n");
 	}
 
-resource_t *CL_AddResource (resourcetype_t type, const char *name, int size, qboolean bFatalIfMissing, int index)
+static resource_t *CL_AddResource (resourcetype_t type, const char *name, int size, qboolean bFatalIfMissing, int index)
 	{
 	resource_t *r = &cl.resourcelist[cl.num_resources];
 
@@ -1275,13 +1278,13 @@ resource_t *CL_AddResource (resourcetype_t type, const char *name, int size, qbo
 	return r;
 	}
 
-void CL_CreateResourceList (void)
+static void CL_CreateResourceList (void)
 	{
 	char		szFileName[MAX_OSPATH];
 	byte		rgucMD5_hash[16];
-	resource_t *pNewResource;
+	resource_t	*pNewResource;
 	int			nSize;
-	file_t *fp;
+	file_t		*fp;
 
 	HPAK_FlushHostQueue ();
 	cl.num_resources = 0;
@@ -1322,7 +1325,7 @@ void CL_CreateResourceList (void)
 CL_Connect_f
 ================
 */
-void CL_Connect_f (void)
+static void CL_Connect_f (void)
 	{
 	string	server;
 	qboolean legacyconnect = false;
@@ -1372,7 +1375,7 @@ Send the rest of the command line over as
 an unconnected command.
 =====================
 */
-void CL_Rcon_f (void)
+static void CL_Rcon_f (void)
 	{
 	char		message[1024];
 	netadr_t	to;
@@ -1483,7 +1486,7 @@ CL_SendDisconnectMessage
 Sends a disconnect message to the server
 =====================
 */
-void CL_SendDisconnectMessage (void)
+static void CL_SendDisconnectMessage (void)
 	{
 	sizebuf_t	buf;
 	byte	data[32];
@@ -1528,7 +1531,7 @@ CL_Reconnect
 build a request to reconnect client
 =====================
 */
-void CL_Reconnect (qboolean setup_netchan)
+static void CL_Reconnect (qboolean setup_netchan)
 	{
 	if (setup_netchan)
 		{
@@ -1653,7 +1656,7 @@ void CL_Crashed (void)
 CL_LocalServers_f
 =================
 */
-void CL_LocalServers_f (void)
+static void CL_LocalServers_f (void)
 	{
 	netadr_t	adr;
 	memset (&adr, 0, sizeof (adr));	// [FWGS, 01.11.23]
@@ -1721,10 +1724,10 @@ static void CL_SendMasterServerScanRequest (void)
 
 /*
 =================
-CL_InternetServers_f [FWGS, 01.11.23]
+CL_InternetServers_f [FWGS, 01.02.24]
 =================
 */
-void CL_InternetServers_f (void)
+static void CL_InternetServers_f (void)
 	{
 	qboolean	nat = cl_nat.value != 0.0f;
 	uint32_t	key;
@@ -1752,7 +1755,7 @@ CL_Reconnect_f
 The server is changing levels
 =================
 */
-void CL_Reconnect_f (void)
+static void CL_Reconnect_f (void)
 	{
 	if (cls.state == ca_disconnected)
 		return;
@@ -1789,7 +1792,7 @@ CL_FixupColorStringsForInfoString
 all the keys and values must be ends with ^7
 =================
 */
-void CL_FixupColorStringsForInfoString (const char *in, char *out)
+static void CL_FixupColorStringsForInfoString (const char *in, char *out)
 	{
 	qboolean	hasPrefix = false;
 	qboolean	endOfKeyVal = false;
@@ -1853,13 +1856,13 @@ CL_ParseStatusMessage
 Handle a reply from a info
 =================
 */
-void CL_ParseStatusMessage (netadr_t from, sizebuf_t *msg)
+static void CL_ParseStatusMessage (netadr_t from, sizebuf_t *msg)
 	{
 	static char	infostring[MAX_INFO_STRING + 8];
-	char *s = MSG_ReadString (msg);
-	int i;
-	const char *magic = ": wrong version\n";
-	size_t len = Q_strlen (s), magiclen = Q_strlen (magic);
+	char		*s = MSG_ReadString (msg);
+	int			i;
+	const char	*magic = ": wrong version\n";
+	size_t		len = Q_strlen (s), magiclen = Q_strlen (magic);
 
 	if ((len >= magiclen) && !Q_strcmp (s + len - magiclen, magic))
 		{
@@ -1902,7 +1905,7 @@ CL_ParseNETInfoMessage
 Handle a reply from a netinfo
 =================
 */
-void CL_ParseNETInfoMessage (netadr_t from, sizebuf_t *msg, const char *s)
+static void CL_ParseNETInfoMessage (netadr_t from, sizebuf_t *msg, const char *s)
 	{
 	net_request_t *nr;
 	static char	infostring[MAX_INFO_STRING + 8];
@@ -1957,7 +1960,7 @@ CL_ProcessNetRequests
 check for timeouts
 =================
 */
-void CL_ProcessNetRequests (void)
+static void CL_ProcessNetRequests (void)
 	{
 	net_request_t *nr;
 	int		i;
@@ -2038,10 +2041,10 @@ CL_ConnectionlessPacket
 Responses to broadcasts, etc
 =================
 */
-void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
+static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	{
-	char *args;
-	const char *c;
+	char		*args;
+	const char	*c;
 	char		buf[MAX_SYSPATH];
 	int			len = sizeof (buf);
 	int			dataoffset = 0;
@@ -2344,7 +2347,7 @@ CL_GetMessage
 Handles recording and playback of demos, on top of NET_ code
 ====================
 */
-int CL_GetMessage (byte *data, size_t *length)
+static int CL_GetMessage (byte *data, size_t *length)
 	{
 	if (cls.demoplayback)
 		{
@@ -2363,7 +2366,7 @@ int CL_GetMessage (byte *data, size_t *length)
 CL_ReadNetMessage
 =================
 */
-void CL_ReadNetMessage (void)
+static void CL_ReadNetMessage (void)
 	{
 	size_t	curSize;
 
@@ -2452,7 +2455,7 @@ Updates the local time and reads/handles messages
 on client net connection
 =================
 */
-void CL_ReadPackets (void)
+static void CL_ReadPackets (void)
 	{
 	// decide the simulation time
 	cl.oldtime = cl.time;
@@ -2511,7 +2514,7 @@ CL_CleanFileName
 Replace the displayed name for some resources
 ====================
 */
-const char *CL_CleanFileName (const char *filename)
+static const char *CL_CleanFileName (const char *filename)
 	{
 	if (COM_CheckString (filename) && (filename[0] == '!'))
 		return "customization";
@@ -2526,7 +2529,7 @@ CL_RegisterCustomization
 register custom resource for player
 ====================
 */
-void CL_RegisterCustomization (resource_t *resource)
+static void CL_RegisterCustomization (resource_t *resource)
 	{
 	qboolean		bFound = false;
 	customization_t *pList;
@@ -2565,8 +2568,8 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 	{
 	int			sound_len = sizeof (DEFAULT_SOUNDPATH) - 1;
 	byte		rgucMD5_hash[16];
-	const char *pfilename;
-	resource_t *p;
+	const char	*pfilename;
+	resource_t	*p;
 
 	if (COM_CheckString (filename) && successfully_received)
 		{
@@ -2729,7 +2732,7 @@ void CL_ServerCommand (qboolean reliable, const char *fmt, ...)
 CL_SetInfo_f
 ==============
 */
-void CL_SetInfo_f (void)
+static void CL_SetInfo_f (void)
 	{
 	convar_t *var;
 
@@ -2769,7 +2772,7 @@ void CL_SetInfo_f (void)
 CL_Physinfo_f
 ==============
 */
-void CL_Physinfo_f (void)
+static void CL_Physinfo_f (void)
 	{
 	Con_Printf ("Phys info settings:\n");
 	Info_Print (cls.physinfo);
@@ -2781,12 +2784,12 @@ qboolean CL_PrecacheResources (void)
 	resource_t *pRes;
 
 	// NOTE: world need to be loaded as first model
-	for (pRes = cl.resourcesonhand.pNext; pRes && pRes != &cl.resourcesonhand; pRes = pRes->pNext)
+	for (pRes = cl.resourcesonhand.pNext; pRes && (pRes != &cl.resourcesonhand); pRes = pRes->pNext)
 		{
 		if (FBitSet (pRes->ucFlags, RES_PRECACHED))
 			continue;
 
-		if (pRes->type != t_model || pRes->nIndex != WORLD_INDEX)
+		if ((pRes->type != t_model) || (pRes->nIndex != WORLD_INDEX))
 			continue;
 
 		cl.models[pRes->nIndex] = Mod_LoadWorld (pRes->szFileName, true);
@@ -2801,7 +2804,7 @@ qboolean CL_PrecacheResources (void)
 		if (FBitSet (pRes->ucFlags, RES_PRECACHED))
 			continue;
 
-		if (pRes->type == t_model && pRes->szFileName[0] == '*')
+		if ((pRes->type == t_model) && (pRes->szFileName[0] == '*'))
 			{
 			cl.models[pRes->nIndex] = Mod_ForName (pRes->szFileName, false, false);
 			cl.nummodels = Q_max (cl.nummodels, pRes->nIndex + 1);
@@ -2924,7 +2927,7 @@ CL_FullServerinfo_f
 Sent by server when serverinfo changes
 ==================
 */
-void CL_FullServerinfo_f (void)
+static void CL_FullServerinfo_f (void)
 	{
 	if (Cmd_Argc () != 2)
 		{
@@ -2942,7 +2945,7 @@ CL_Escape_f
 Escape to menu from game
 =================
 */
-void CL_Escape_f (void)
+static void CL_Escape_f (void)
 	{
 	if (cls.key_dest == key_menu)
 		return;
@@ -2962,7 +2965,7 @@ void CL_Escape_f (void)
 CL_InitLocal
 =================
 */
-void CL_InitLocal (void)
+static void CL_InitLocal (void)
 	{
 	cls.state = ca_disconnected;
 	cls.signon = 0;
@@ -3037,6 +3040,7 @@ void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_fixtimerate);
 	Cvar_RegisterVariable (&hud_fontscale);
 	Cvar_RegisterVariable (&hud_scale);
+	Cvar_RegisterVariable (&hud_scale_minimal_width);	// [FWGS, 01.02.24]
 
 	Cvar_Get ("cl_background", "0", FCVAR_READ_ONLY,
 		"indicate what background map is running");
@@ -3047,11 +3051,6 @@ void CL_InitLocal (void)
 	Cvar_RegisterVariable (&ui_renderworld);
 
 	// [FWGS, 01.01.24]
-	/* these two added to shut up CS 1.5 about 'unknown' commands
-	Cvar_Get ("lightgamma", "1", FCVAR_ARCHIVE,
-		"ambient lighting level (legacy, unused)");
-	Cvar_Get ("direct", "1", FCVAR_ARCHIVE,
-		"direct lighting level (legacy, unused)");*/
 	Cvar_RegisterVariable (&cl_maxframetime);
 	Cvar_RegisterVariable (&cl_fixmodelinterpolationartifacts);
 
@@ -3145,17 +3144,30 @@ void CL_InitLocal (void)
 	Cmd_AddRestrictedCommand ("exit", CL_Quit_f,
 		"quit from game");
 
-	Cmd_AddCommand ("screenshot", CL_ScreenShot_f,
+	// [FWGS, 01.02.24]
+	/*Cmd_AddCommand ("screenshot", CL_ScreenShot_f,
 		"takes a screenshot of the next rendered frame");
 	Cmd_AddCommand ("snapshot", CL_SnapShot_f,
 		"takes a snapshot of the next rendered frame");
 	Cmd_AddCommand ("envshot", CL_EnvShot_f,
 		"takes a six-sides cubemap shot with specified name");
 	Cmd_AddCommand ("skyshot", CL_SkyShot_f,
+		"takes a six-sides envmap (skybox) shot with specified name");*/
+	Cmd_AddCommand ("screenshot", CL_GenericShot_f,
+		"takes a screenshot of the next rendered frame");
+	Cmd_AddCommand ("snapshot", CL_GenericShot_f,
+		"takes a snapshot of the next rendered frame");
+	Cmd_AddCommand ("envshot", CL_GenericShot_f,
+		"takes a six-sides cubemap shot with specified name");
+	Cmd_AddCommand ("skyshot", CL_GenericShot_f,
 		"takes a six-sides envmap (skybox) shot with specified name");
+
 	Cmd_AddCommand ("levelshot", CL_LevelShot_f,
 		"same as \"screenshot\", used for create plaque images");
-	Cmd_AddCommand ("saveshot", CL_SaveShot_f,
+
+	/*Cmd_AddCommand ("saveshot", CL_SaveShot_f,
+		"used for create save previews with LoadGame menu");*/
+	Cmd_AddCommand ("saveshot", CL_GenericShot_f,
 		"used for create save previews with LoadGame menu");
 
 	Cmd_AddCommand ("connect", CL_Connect_f,
@@ -3178,7 +3190,7 @@ slowly adjuct client clock
 to smooth lag effect
 ==================
 */
-void CL_AdjustClock (void)
+static void CL_AdjustClock (void)
 	{
 	if ((cl.timedelta == 0.0f) || !cl_fixtimerate.value)
 		return;
@@ -3316,7 +3328,6 @@ void CL_Init (void)
 	S_Init ();	// init sound
 
 	// [FWGS, 01.02.24]
-	/*Voice_Init (VOICE_DEFAULT_CODEC, 3); // init voice*/
 	Voice_Init (VOICE_DEFAULT_CODEC, 3, true);	// init voice (do not open the device)
 
 	// unreliable buffer. unsed for unreliable commands and voice stream

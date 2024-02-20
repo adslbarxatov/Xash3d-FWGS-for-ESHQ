@@ -495,18 +495,17 @@ static void GL2_InitIncrementalBuffer (int i, GLuint size)
 		gl2wrap.attrbuf[i] = gl2wrap.mappings[i][0];
 	}
 
-
-qboolean GL2_InitProgs (void)
+static qboolean GL2_InitProgs (void)
 	{
 	static const GLuint precache_progs[] = {
-		BIT (GL2_ATTR_POS),                                                                                // out = ucolor
-		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0),                                                    // out = tex0 * ucolor
-		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_ATTR_COLOR),                            // out = tex0 * vcolor
-		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_FLAG_ALPHA_TEST),                       // out = tex0 * ucolor + FEAT_ALPHA_TEST
-		BIT (GL2_ATTR_POS) | BIT (GL2_FLAG_FOG),                                                          // out = ucolor + FEAT_FOG
-		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_FLAG_FOG),                              // out = tex0 * ucolor + FEAT_FOG
-		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_ATTR_COLOR) | BIT (GL2_FLAG_FOG),      // out = tex0 * vcolor + FEAT_FOG
-		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_FLAG_ALPHA_TEST) | BIT (GL2_FLAG_FOG), // out = tex0 * ucolor + FEAT_ALPHA_TEST + FEAT_FOG
+		BIT (GL2_ATTR_POS),															// out = ucolor
+		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0),								// out = tex0 * ucolor
+		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_ATTR_COLOR),		// out = tex0 * vcolor
+		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_FLAG_ALPHA_TEST),	// out = tex0 * ucolor + FEAT_ALPHA_TEST
+		BIT (GL2_ATTR_POS) | BIT (GL2_FLAG_FOG),									// out = ucolor + FEAT_FOG
+		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_FLAG_FOG),			// out = tex0 * ucolor + FEAT_FOG
+		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_ATTR_COLOR) | BIT (GL2_FLAG_FOG),		// out = tex0 * vcolor + FEAT_FOG
+		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_FLAG_ALPHA_TEST) | BIT (GL2_FLAG_FOG),	// out = tex0 * ucolor + FEAT_ALPHA_TEST + FEAT_FOG
 		};
 	const size_t precache_progs_count = sizeof (precache_progs) / sizeof (precache_progs[0]);
 	int i;

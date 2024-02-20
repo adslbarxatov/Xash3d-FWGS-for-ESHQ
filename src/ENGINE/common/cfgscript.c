@@ -52,7 +52,7 @@ CSCR_ExpectString
 Return true if next token is pExpext and skip it
 ===================
 */
-qboolean CSCR_ExpectString (parserstate_t *ps, const char *pExpect, qboolean skip, qboolean error)
+static qboolean CSCR_ExpectString (parserstate_t *ps, const char *pExpect, qboolean skip, qboolean error)
 	{
 	char *tmp = COM_ParseFile (ps->buf, ps->token, sizeof (ps->token));
 
@@ -62,8 +62,10 @@ qboolean CSCR_ExpectString (parserstate_t *ps, const char *pExpect, qboolean ski
 		return true;
 		}
 
-	if (skip) ps->buf = tmp;
-	if (error) Con_DPrintf (S_ERROR "Syntax error in %s: got \"%s\" instead of \"%s\"\n", ps->filename, ps->token, pExpect);
+	if (skip)
+		ps->buf = tmp;
+	if (error)
+		Con_DPrintf (S_ERROR "Syntax error in %s: got \"%s\" instead of \"%s\"\n", ps->filename, ps->token, pExpect);
 
 	return false;
 	}
@@ -75,7 +77,7 @@ CSCR_ParseType
 Determine script variable type
 ===================
 */
-cvartype_t CSCR_ParseType (parserstate_t *ps)
+static cvartype_t CSCR_ParseType (parserstate_t *ps)
 	{
 	int	i;
 
@@ -89,14 +91,12 @@ cvartype_t CSCR_ParseType (parserstate_t *ps)
 	return T_NONE;
 	}
 
-
-
 /*
 =========================
 CSCR_ParseSingleCvar
 =========================
 */
-qboolean CSCR_ParseSingleCvar (parserstate_t *ps, scrvardef_t *result)
+static qboolean CSCR_ParseSingleCvar (parserstate_t *ps, scrvardef_t *result)
 	{
 	// read the name
 	ps->buf = COM_ParseFile (ps->buf, result->name, sizeof (result->name));
@@ -119,6 +119,7 @@ qboolean CSCR_ParseSingleCvar (parserstate_t *ps, scrvardef_t *result)
 			if (!CSCR_ExpectString (ps, "}", false, true))
 				return false;
 			break;
+
 		case T_NUMBER:
 			// min
 			ps->buf = COM_ParseFile (ps->buf, ps->token, sizeof (ps->token));
@@ -131,16 +132,19 @@ qboolean CSCR_ParseSingleCvar (parserstate_t *ps, scrvardef_t *result)
 			if (!CSCR_ExpectString (ps, "}", false, true))
 				return false;
 			break;
+
 		case T_STRING:
 			if (!CSCR_ExpectString (ps, "}", false, true))
 				return false;
 			break;
+
 		case T_LIST:
 			while (!CSCR_ExpectString (ps, "}", true, false))
 				{
 				// read token for each item here
 				}
 			break;
+
 		default:
 			return false;
 		}
@@ -170,7 +174,7 @@ CSCR_ParseHeader
 Check version and seek to first cvar name
 ======================
 */
-qboolean CSCR_ParseHeader (parserstate_t *ps)
+static qboolean CSCR_ParseHeader (parserstate_t *ps)
 	{
 	if (!CSCR_ExpectString (ps, "VERSION", false, true))
 		return false;
@@ -215,9 +219,9 @@ static int CSCR_ParseFile (const char *scriptfilename,
 	{
 	parserstate_t	state = { 0 };
 	qboolean		success = false;
-	int		count = 0;
+	int				count = 0;
 	fs_offset_t		length = 0;
-	char *start;
+	char			*start;
 
 	state.filename = scriptfilename;
 	state.buf = start = (char *)FS_LoadFile (scriptfilename, &length, true);
@@ -249,14 +253,18 @@ static int CSCR_ParseFile (const char *scriptfilename,
 
 	if (COM_ParseFile (state.buf, state.token, sizeof (state.token)))
 		Con_DPrintf (S_ERROR "Got extra tokens!\n");
-	else success = true;
+	else
+		success = true;
+
 finish:
 	if (!success)
 		{
 		state.token[sizeof (state.token) - 1] = 0;
 		if (start && state.buf)
-			Con_DPrintf (S_ERROR "Parse error in %s, byte %d, token %s\n", scriptfilename, (int)(state.buf - start), state.token);
-		else Con_DPrintf (S_ERROR "Parse error in %s, token %s\n", scriptfilename, state.token);
+			Con_DPrintf (S_ERROR "Parse error in %s, byte %d, token %s\n", scriptfilename,
+				(int)(state.buf - start), state.token);
+		else
+			Con_DPrintf (S_ERROR "Parse error in %s, token %s\n", scriptfilename, state.token);
 		}
 
 	if (start) Mem_Free (start);
@@ -266,15 +274,16 @@ finish:
 
 static void CSCR_WriteVariableToFile (scrvardef_t *var, void *file)
 	{
-	file_t *cfg = (file_t *)file;
-	convar_t *cvar = Cvar_FindVar (var->name);
+	file_t		*cfg = (file_t *)file;
+	convar_t	*cvar = Cvar_FindVar (var->name);
 
 	if (cvar && !FBitSet (cvar->flags, FCVAR_SERVER | FCVAR_ARCHIVE))
 		{
 		// cvars will be placed in game.cfg and restored on map start
 		if (var->flags & FCVAR_USERINFO)
 			FS_Printf (cfg, "setinfo %s \"%s\"\n", var->name, cvar->string);
-		else FS_Printf (cfg, "%s \"%s\"\n", var->name, cvar->string);
+		else
+			FS_Printf (cfg, "%s \"%s\"\n", var->name, cvar->string);
 		}
 	}
 

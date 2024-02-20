@@ -36,7 +36,7 @@ static hash_pack_queue_t * gp_hpak_queue = NULL;
 static hpak_header_t hash_pack_header;
 static hpak_info_t hash_pack_info;
 
-const char *HPAK_TypeFromIndex (int type)
+static const char *HPAK_TypeFromIndex (int type)
 	{
 	switch (type)
 		{
@@ -107,7 +107,7 @@ void HPAK_FlushHostQueue (void)
 	gp_hpak_queue = NULL;
 	}
 
-void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *pData, file_t *fin)
+static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *pData, file_t *fin)
 	{
 	int			filelocation;
 	string		pakname;
@@ -925,17 +925,17 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	FS_Rename (save_path, read_path);
 	}
 
-void HPAK_List_f (void)
+static void HPAK_List_f (void)
 	{
-	int		nCurrent;
+	int				nCurrent;
 	hpak_header_t	header;
-	hpak_info_t	directory;
-	hpak_lump_t *entry;
-	string		lumpname;
-	string		pakname;
-	const char *type;
-	const char *size;
-	file_t *f;
+	hpak_info_t		directory;
+	hpak_lump_t		*entry;
+	string			lumpname;
+	string			pakname;
+	const char		*type;
+	const char		*size;
+	file_t			*f;
 
 	if (Cmd_Argc () != 2)
 		{
@@ -1005,21 +1005,21 @@ void HPAK_List_f (void)
 	FS_Close (f);
 	}
 
-void HPAK_Extract_f (void)
+static void HPAK_Extract_f (void)
 	{
-	int		nCurrent;
+	int				nCurrent;
 	hpak_header_t	header;
-	hpak_info_t	directory;
-	hpak_lump_t *entry;
-	string		lumpname;
-	string		pakname;
-	string		szFileOut;
-	int		nIndex;
-	byte *pData;
-	int		nDataSize;
-	const char *type;
-	const char *size;
-	file_t *f;
+	hpak_info_t		directory;
+	hpak_lump_t		*entry;
+	string			lumpname;
+	string			pakname;
+	string			szFileOut;
+	int				nIndex;
+	byte			*pData;
+	int				nDataSize;
+	const char		*type;
+	const char		*size;
+	file_t			*f;
 
 	if (Cmd_Argc () != 3)
 		{
@@ -1117,7 +1117,7 @@ void HPAK_Extract_f (void)
 	FS_Close (f);
 	}
 
-void HPAK_Remove_f (void)
+static void HPAK_Remove_f (void)
 	{
 	resource_t	resource;
 
@@ -1135,7 +1135,7 @@ void HPAK_Remove_f (void)
 		Con_DPrintf (S_ERROR "Could not locate resource %i in %s\n", Q_atoi (Cmd_Argv (2)), Cmd_Argv (1));
 	}
 
-void HPAK_Validate_f (void)
+static void HPAK_Validate_f (void)
 	{
 	if (Cmd_Argc () != 2)
 		{

@@ -581,10 +581,10 @@ COMMON ROUTINES
 Mod_DecompressPVS
 ===================
 */
-byte *Mod_DecompressPVS (const byte *in, int visbytes)
+static byte *Mod_DecompressPVS (const byte *in, int visbytes)
 	{
-	byte *out;
-	int	c;
+	byte	*out;
+	int		c;
 
 	out = g_visdata;
 

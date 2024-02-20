@@ -123,7 +123,7 @@ void COM_ChangeLevel (char const *pNewLevel, char const *pLandmarkName, qboolean
 	GameState->newGame = false;
 	}
 
-void Host_ShutdownGame (void)
+static void Host_ShutdownGame (void)
 	{
 	SV_ShutdownGame ();
 
@@ -133,13 +133,14 @@ void Host_ShutdownGame (void)
 		case STATE_LOAD_LEVEL:
 			Host_SetState (GameState->nextstate, true);
 			break;
+
 		default:
 			Host_SetState (STATE_RUNFRAME, true);
 			break;
 		}
 	}
 
-void Host_RunFrame (float time)
+static void Host_RunFrame (float time)
 	{
 	// at this time, we don't need to get events from OS on dedicated
 #if !XASH_DEDICATED
@@ -153,17 +154,21 @@ void Host_RunFrame (float time)
 		{
 		case STATE_RUNFRAME:
 			break;
+
 		case STATE_LOAD_GAME:
 		case STATE_LOAD_LEVEL:
 			SCR_BeginLoadingPlaque (GameState->backgroundMap);
 			// intentionally fallthrough
+
 		case STATE_GAME_SHUTDOWN:
 			Host_SetState (STATE_GAME_SHUTDOWN, false);
 			break;
+
 		case STATE_CHANGELEVEL:
 			SCR_BeginLoadingPlaque (GameState->backgroundMap);
 			Host_SetState (GameState->nextstate, true);
 			break;
+
 		default:
 			Host_SetState (STATE_RUNFRAME, true);
 			break;

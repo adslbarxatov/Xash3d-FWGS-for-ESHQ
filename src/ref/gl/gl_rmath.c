@@ -119,7 +119,7 @@ void Matrix4x4_ToArrayFloatGL (const matrix4x4 in, float out[16])
 
 // [FWGS, 01.05.23] удалена Matrix4x4_FromArrayFloatGL
 
-void Matrix4x4_CreateTranslate (matrix4x4 out, float x, float y, float z)
+static void Matrix4x4_CreateTranslate (matrix4x4 out, float x, float y, float z)
 	{
 	out[0][0] = 1.0f;
 	out[0][1] = 0.0f;
@@ -139,12 +139,14 @@ void Matrix4x4_CreateTranslate (matrix4x4 out, float x, float y, float z)
 	out[3][3] = 1.0f;
 	}
 
-void Matrix4x4_CreateRotate (matrix4x4 out, float angle, float x, float y, float z)
+static void Matrix4x4_CreateRotate (matrix4x4 out, float angle, float x, float y, float z)
 	{
 	float	len, c, s;
 
 	len = x * x + y * y + z * z;
-	if (len != 0.0f) len = 1.0f / sqrt (len);
+	if (len != 0.0f)
+		len = 1.0f / sqrt (len);
+
 	x *= len;
 	y *= len;
 	z *= len;

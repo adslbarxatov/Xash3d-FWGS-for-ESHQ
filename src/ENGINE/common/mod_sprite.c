@@ -17,10 +17,13 @@ GNU General Public License for more details.
 #include "common.h"
 #include "sprite.h"
 #include "studio.h"
-#if !XASH_DEDICATED
-#include "ref_common.h"
-#endif // XASH_DEDICATED
 
+#if !XASH_DEDICATED
+	#include "ref_common.h"
+#endif
+
+// [FWGS, 01.02.24]
+#include "mod_local.h"
 
 /*
 ====================

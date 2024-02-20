@@ -316,13 +316,15 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 		{
 		if (!(*func->func = Sys_GetProcAddress (dll, func->name)))
 			{
-			Q_snprintf (errorstring, sizeof (errorstring), "Sys_LoadLibrary: %s missing or invalid function (%s)\n", dll->name, func->name);
+			Q_snprintf (errorstring, sizeof (errorstring), "Sys_LoadLibrary: %s missing or invalid function (%s)\n",
+				dll->name, func->name);
 			goto error;
 			}
 		}
 	Con_Reportf (" - ok\n");
 
 	return true;
+
 error:
 	Con_Reportf (" - failed\n");
 	Sys_FreeLibrary (dll); // trying to free
@@ -352,7 +354,10 @@ qboolean Sys_FreeLibrary (dll_info_t *dll)
 		Con_Reportf ("Sys_FreeLibrary: hold %s for debugging\n", dll->name);
 		return false;
 		}
-	else Con_Reportf ("Sys_FreeLibrary: Unloading %s\n", dll->name);
+	else
+		{
+		Con_Reportf ("Sys_FreeLibrary: Unloading %s\n", dll->name);
+		}
 
 	COM_FreeLibrary (dll->link);
 	dll->link = NULL;
@@ -367,7 +372,7 @@ Sys_WaitForQuit
 wait for 'Esc' key will be hit
 ================
 */
-void Sys_WaitForQuit (void)
+static void Sys_WaitForQuit (void)
 	{
 #if XASH_WIN32
 	MSG	msg;

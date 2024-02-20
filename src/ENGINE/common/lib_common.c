@@ -122,9 +122,7 @@ dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath)
 
 /*
 =============================================================================
-
-	LIBRARY NAMING(see Documentation/library-naming.md for more info)
-
+LIBRARY NAMING(see Documentation/library-naming.md for more info)
 =============================================================================
 */
 
@@ -162,13 +160,13 @@ static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t s
 
 /*
 ==============
-COM_StripIntelSuffix [FWGS, 01.04.23]
+COM_StripIntelSuffix [FWGS, 01.02.24]
 
 Some modders use _i?86 suffix in game library name
 So strip it to follow library naming for non-Intel CPUs
 ==============
 */
-static void COM_StripIntelSuffix (char *out)
+static inline void COM_StripIntelSuffix (char *out)
 	{
 	char *suffix = Q_strrchr (out, '_');
 

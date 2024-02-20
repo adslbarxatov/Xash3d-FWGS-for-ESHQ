@@ -535,16 +535,18 @@ int GAME_EXPORT COM_FileSize (const char *filename)
 	return FS_FileSize (filename, false);
 	}
 
+// [FWGS, 01.02.24]
 /*
 =============
 COM_AddAppDirectoryToSearchPath
 =============
-*/
+//
 void GAME_EXPORT COM_AddAppDirectoryToSearchPath (const char *pszBaseDir, const char *appName)
 	{
 	FS_AddGameHierarchy (pszBaseDir, FS_NOWRITE_PATH);
-	}
+	}*/
 
+// [FWGS, 01.02.24]
 /*
 ===========
 COM_ExpandFilename [FWGS, 01.05.23]
@@ -552,7 +554,7 @@ COM_ExpandFilename [FWGS, 01.05.23]
 Finds the file in the search path, copies over the name with the full path name.
 This doesn't search in the pak file
 ===========
-*/
+//
 int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, int nameOutBufferSize)
 	{
 	char	result[MAX_SYSPATH];
@@ -574,7 +576,7 @@ int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, i
 		}
 
 	return 0;
-	}
+	}*/
 
 /*
 =============
@@ -603,7 +605,8 @@ void COM_TrimSpace (const char *source, char *dest)
 
 	if (length > 0)
 		memcpy (dest, source + start, length);
-	else length = 0;
+	else
+		length = 0;
 
 	// terminate the dest string
 	dest[length] = 0;
@@ -869,17 +872,18 @@ cvar_t *GAME_EXPORT pfnCVarGetPointer (const char *szVarName)
 	return (cvar_t *)Cvar_FindVar (szVarName);
 	}
 
+// [FWGS, 01.02.24]
 /*
 =============
 pfnCVarDirectSet
 
 allow to set cvar directly
 =============
-*/
+//
 void GAME_EXPORT pfnCVarDirectSet (cvar_t *var, const char *szValue)
 	{
 	Cvar_DirectSet ((convar_t *)var, szValue);
-	}
+	}*/
 
 /*
 =============
@@ -953,9 +957,9 @@ void GAME_EXPORT pfnGetGameDir (char *szGetGameDir)
 qboolean COM_IsSafeFileToDownload (const char *filename)
 	{
 	char		lwrfilename[4096];
-	const char *first, *last;
-	const char *ext;
-	int		i;
+	const char	*first, *last;
+	const char	*ext;
+	int			i;
 
 	if (!COM_CheckString (filename))
 		return false;
@@ -994,8 +998,8 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	return true;
 	}
 
-// [FWGS, 01.05.23]
-const char *COM_GetResourceTypeName (resourcetype_t restype)
+// [FWGS, 01.02.24]
+/*const char *COM_GetResourceTypeName (resourcetype_t restype)
 	{
 	switch (restype)
 		{
@@ -1017,7 +1021,7 @@ const char *COM_GetResourceTypeName (resourcetype_t restype)
 		default:
 			return "unknown";
 		}
-	}
+	}*/
 
 // [FWGS, 01.05.23]
 char *_copystring (poolhandle_t mempool, const char *s, const char *filename, int fileline)

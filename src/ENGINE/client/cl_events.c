@@ -39,7 +39,7 @@ CL_CalcPlayerVelocity
 compute velocity for a given client
 =============
 */
-void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
+static void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
 	{
 	clientdata_t *pcd;
 	vec3_t		delta;
@@ -76,7 +76,7 @@ void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
 CL_DescribeEvent
 =============
 */
-void CL_DescribeEvent (event_info_t *ei, int slot)
+static void CL_DescribeEvent (event_info_t *ei, int slot)
 	{
 	int				idx = (slot & 63) * 2;
 	con_nprint_t	info;
@@ -192,7 +192,7 @@ void CL_RegisterEvent (int lastnum, const char *szEvName, pfnEventHook func)
 CL_FireEvent
 =============
 */
-qboolean CL_FireEvent (event_info_t *ei, int slot)
+static qboolean CL_FireEvent (event_info_t *ei, int slot)
 	{
 	cl_user_event_t *ev;
 	const char *name;
@@ -281,11 +281,11 @@ CL_FindEvent
 find first empty event
 =============
 */
-event_info_t *CL_FindEmptyEvent (void)
+static event_info_t *CL_FindEmptyEvent (void)
 	{
-	int		i;
-	event_state_t *es;
-	event_info_t *ei;
+	int				i;
+	event_state_t	*es;
+	event_info_t	*ei;
 
 	es = &cl.events;
 
@@ -309,11 +309,11 @@ CL_FindEvent
 replace only unreliable events
 =============
 */
-event_info_t *CL_FindUnreliableEvent (void)
+static event_info_t *CL_FindUnreliableEvent (void)
 	{
-	event_state_t *es;
-	event_info_t *ei;
-	int		i;
+	event_state_t	*es;
+	event_info_t	*ei;
+	int				i;
 
 	es = &cl.events;
 
@@ -336,10 +336,9 @@ event_info_t *CL_FindUnreliableEvent (void)
 /*
 =============
 CL_QueueEvent
-
 =============
 */
-void CL_QueueEvent (int flags, int index, float delay, event_args_t *args)
+static void CL_QueueEvent (int flags, int index, float delay, event_args_t *args)
 	{
 	event_info_t *ei;
 
@@ -366,7 +365,6 @@ void CL_QueueEvent (int flags, int index, float delay, event_args_t *args)
 /*
 =============
 CL_ParseReliableEvent
-
 =============
 */
 void CL_ParseReliableEvent (sizebuf_t *msg)
@@ -395,7 +393,6 @@ void CL_ParseReliableEvent (sizebuf_t *msg)
 /*
 =============
 CL_ParseEvent
-
 =============
 */
 void CL_ParseEvent (sizebuf_t *msg)
@@ -419,7 +416,8 @@ void CL_ParseEvent (sizebuf_t *msg)
 
 		if (MSG_ReadOneBit (msg))
 			packet_index = MSG_ReadUBitLong (msg, cls.legacymode ? MAX_LEGACY_ENTITY_BITS : MAX_ENTITY_BITS);
-		else packet_index = -1;
+		else
+			packet_index = -1;
 
 		if (MSG_ReadOneBit (msg))
 			{
@@ -472,7 +470,6 @@ void CL_ParseEvent (sizebuf_t *msg)
 /*
 =============
 CL_PlaybackEvent
-
 =============
 */
 void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
@@ -484,7 +481,7 @@ void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word even
 		return;
 
 	// first check event for out of bounds
-	if (eventindex < 1 || eventindex >= MAX_EVENTS)
+	if ((eventindex < 1) || (eventindex >= MAX_EVENTS))
 		{
 		Con_DPrintf (S_ERROR "CL_PlaybackEvent: invalid eventindex %i\n", eventindex);
 		return;

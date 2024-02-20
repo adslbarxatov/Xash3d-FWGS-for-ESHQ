@@ -50,34 +50,38 @@ CL_PopPMStates
 */
 void GAME_EXPORT CL_PopPMStates (void)
 	{
-	if (!clgame.pushed) return;
+	if (!clgame.pushed)
+		return;
+
 	clgame.pmove->numphysent = clgame.oldphyscount;
 	clgame.pmove->numvisent = clgame.oldviscount;
 	clgame.pushed = false;
 	}
 
+// [FWGS, 01.02.24]
 /*
 =============
 CL_PushTraceBounds
 =============
-*/
+//
 void GAME_EXPORT CL_PushTraceBounds (int hullnum, const float *mins, const float *maxs)
 	{
 	hullnum = bound (0, hullnum, 3);
 	VectorCopy (mins, clgame.pmove->player_mins[hullnum]);
 	VectorCopy (maxs, clgame.pmove->player_maxs[hullnum]);
-	}
+	}*/
 
+// [FWGS, 01.02.24]
 /*
 =============
 CL_PopTraceBounds
 =============
-*/
+//
 void GAME_EXPORT CL_PopTraceBounds (void)
 	{
 	memcpy (clgame.pmove->player_mins, host.player_mins, sizeof (host.player_mins));
 	memcpy (clgame.pmove->player_maxs, host.player_maxs, sizeof (host.player_maxs));
-	}
+	}*/
 
 /*
 ===============
@@ -126,10 +130,10 @@ CL_SetIdealPitch
 */
 void CL_SetIdealPitch (void)
 	{
-	float	angleval, sinval, cosval;
-	int	i, j, step, dir, steps;
-	float	z[MAX_FORWARD];
-	vec3_t	top, bottom;
+	float		angleval, sinval, cosval;
+	int			i, j, step, dir, steps;
+	float		z[MAX_FORWARD];
+	vec3_t		top, bottom;
 	pmtrace_t	tr;
 
 	if (cl.local.onground == -1)
@@ -169,7 +173,7 @@ void CL_SetIdealPitch (void)
 		if (step > -ON_EPSILON && step < ON_EPSILON)
 			continue;
 
-		if (dir && (step - dir > ON_EPSILON || step - dir < -ON_EPSILON))
+		if (dir && ((step - dir > ON_EPSILON) || (step - dir < -ON_EPSILON)))
 			return; // mixed changes
 
 		steps++;
@@ -182,7 +186,8 @@ void CL_SetIdealPitch (void)
 		return;
 		}
 
-	if (steps < 2) return;
+	if (steps < 2)
+		return;
 	cl.local.idealpitch = -dir * cl_idealpitchscale.value;
 	}
 
@@ -196,7 +201,7 @@ we don't want interpolate this
 */
 static qboolean CL_PlayerTeleported (local_state_t *from, local_state_t *to)
 	{
-	int	len, maxlen;
+	int		len, maxlen;
 	vec3_t	delta;
 
 	VectorSubtract (to->playerstate.origin, from->playerstate.origin, delta);
@@ -270,16 +275,15 @@ This sets up the first phase.
 */
 void GAME_EXPORT CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient)
 	{
-	entity_state_t *state;
-	predicted_player_t *player;
-	cl_entity_t *ent;
+	entity_state_t		*state;
+	predicted_player_t	*player;
+	cl_entity_t			*ent;
 	int		i;
 
 	for (i = 0; i < MAX_CLIENTS; i++)
 		{
 		state = &cl.frames[cl.parsecountmod].playerstate[i];
 		player = &cls.predicted_players[i];
-
 		player->active = false;
 
 		if (state->messagenum != cl.parsecount)
@@ -365,7 +369,8 @@ static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboole
 		{
 		if (pe->solid != SOLID_BSP && (mod != NULL) && (mod->type == mod_studio))
 			pe->studiomodel = mod;
-		else pe->model = mod;
+		else
+			pe->model = mod;
 		}
 
 	// rare case: not solid entities in vistrace
@@ -417,14 +422,15 @@ CL_AddLinksToPmove
 collect solid entities
 ====================
 */
-void CL_AddLinksToPmove (frame_t *frame)
+static void CL_AddLinksToPmove (frame_t *frame)
 	{
-	entity_state_t *state;
-	model_t *model;
-	physent_t *pe;
+	entity_state_t	*state;
+	model_t			*model;
+	physent_t		*pe;
 	int		i;
 
-	if (!frame->valid) return;
+	if (!frame->valid)
+		return;
 
 	for (i = 0; i < frame->num_entities; i++)
 		{
@@ -449,18 +455,18 @@ void CL_AddLinksToPmove (frame_t *frame)
 			clgame.pmove->numvisent++;
 			}
 
-		if (state->solid == SOLID_TRIGGER || (state->solid == SOLID_NOT && state->skin >= CONTENTS_EMPTY))
+		if ((state->solid == SOLID_TRIGGER) || ((state->solid == SOLID_NOT) && (state->skin >= CONTENTS_EMPTY)))
 			continue;
 
 		// dead body
-		if (state->mins[2] == 0.0f && state->maxs[2] == 1.0f)
+		if ((state->mins[2] == 0.0f) && (state->maxs[2] == 1.0f))
 			continue;
 
 		// can't collide with zeroed hull
 		if (VectorIsNull (state->mins) && VectorIsNull (state->maxs))
 			continue;
 
-		if (state->solid == SOLID_NOT && state->skin == CONTENTS_LADDER)
+		if ((state->solid == SOLID_NOT) && (state->skin == CONTENTS_LADDER))
 			{
 			if (clgame.pmove->nummoveent >= MAX_MOVEENTS)
 				continue;
@@ -471,7 +477,7 @@ void CL_AddLinksToPmove (frame_t *frame)
 			}
 		else
 			{
-			if (!model->hulls[1].lastclipnode && model->type != mod_studio)
+			if (!model->hulls[1].lastclipnode && (model->type != mod_studio))
 				continue;
 
 			// reserve slots for all the clients
@@ -505,7 +511,9 @@ void CL_SetSolidEntities (void)
 	memset (clgame.pmove->visents, 0, sizeof (physent_t));
 
 	pe->model = cl.worldmodel;
-	if (pe->model) Q_strncpy (pe->name, pe->model->name, sizeof (pe->name));
+	if (pe->model)
+		Q_strncpy (pe->name, pe->model->name, sizeof (pe->name));
+
 	pe->takedamage = DAMAGE_YES;
 	pe->solid = SOLID_BSP;
 
@@ -579,17 +587,17 @@ void GAME_EXPORT CL_SetSolidPlayers (int playernum)
 /*
 =============
 CL_WaterEntity
-
 =============
 */
 int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 	{
-	physent_t *pe;
-	hull_t *hull;
+	physent_t	*pe;
+	hull_t		*hull;
 	vec3_t		test, offset;
-	int		i, oldhull;
+	int			i, oldhull;
 
-	if (!rgflPos) return -1;
+	if (!rgflPos)
+		return -1;
 
 	oldhull = clgame.pmove->usehull;
 
@@ -683,15 +691,17 @@ cl_entity_t *CL_GetWaterEntity (const float *rgflPos)
 	int	entnum;
 
 	entnum = CL_WaterEntity (rgflPos);
-	if (entnum <= 0) return NULL; // world or not water
+	if (entnum <= 0)
+		return NULL; // world or not water
 
 	return CL_GetEntityByIndex (entnum);
 	}
 
-int GAME_EXPORT CL_TestLine (const vec3_t start, const vec3_t end, int flags)
+// [FWGS, 01.02.24]
+/*int GAME_EXPORT CL_TestLine (const vec3_t start, const vec3_t end, int flags)
 	{
 	return PM_TestLineExt (clgame.pmove, clgame.pmove->physents, clgame.pmove->numphysent, start, end, flags);
-	}
+	}*/
 
 static int GAME_EXPORT pfnTestPlayerPosition (float *pos, pmtrace_t *ptrace)
 	{
@@ -829,8 +839,8 @@ void CL_InitClientMove (void)
 static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const usercmd_t *ucmd,
 	qboolean runfuncs, double time)
 	{
-	const entity_state_t *ps;
-	const clientdata_t *cd;
+	const entity_state_t	*ps;
+	const clientdata_t		*cd;
 
 	ps = &from->playerstate;
 	cd = &from->client;
@@ -914,11 +924,11 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	Q_strncpy (pmove->physinfo, cls.physinfo, MAX_INFO_STRING);
 	}
 
-// [FWGS, 01.04.23]
-const void CL_FinishPMove (const playermove_t *pmove, local_state_t *to)
+// [FWGS, 01.02.24]
+static const void CL_FinishPMove (const playermove_t *pmove, local_state_t *to)
 	{
-	entity_state_t *ps;
-	clientdata_t *cd;
+	entity_state_t	*ps;
+	clientdata_t	*cd;
 
 	ps = &to->playerstate;
 	cd = &to->client;
@@ -968,7 +978,7 @@ CL_RunUsercmd
 Runs prediction code for user cmd
 =================
 */
-void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u, qboolean runfuncs, double *time, 
+static void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u, qboolean runfuncs, double *time,
 	unsigned int random_seed)
 	{
 	usercmd_t cmd;

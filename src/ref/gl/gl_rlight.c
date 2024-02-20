@@ -33,8 +33,6 @@ void CL_RunLightStyles (void)
 	{
 	int				i, k, flight, clight;
 	float			l, lerpfrac, backlerp;
-	/*float		frametime = (gpGlobals->time - gpGlobals->oldtime);
-	float		scale;*/
 	float			frametime = (gp_cl->time - gp_cl->oldtime);
 	lightstyle_t	*ls;
 
@@ -331,7 +329,7 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 			dm = surf->info->deluxemap + Q_rint (dt) * smax + Q_rint (ds);
 			}
 
-		for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
+		for (map = 0; (map < MAXLIGHTMAPS) && (surf->styles[map] != 255); map++)
 			{
 			uint	scale = tr.lightstylevalue[surf->styles[map]];
 
@@ -359,7 +357,8 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 				vec3_t	srcNormal, lightNormal;
 				float	f = (1.0f / 128.0f);
 
-				VectorSet (srcNormal, ((float)dm->r - 128.0f) * f, ((float)dm->g - 128.0f) * f, ((float)dm->b - 128.0f) * f);
+				VectorSet (srcNormal, ((float)dm->r - 128.0f) * f, ((float)dm->g - 128.0f) * f,
+					((float)dm->b - 128.0f) * f);
 				Matrix3x4_VectorIRotate (tbn, srcNormal, lightNormal);		// turn to world space
 				VectorScale (lightNormal, (float)scale * -1.0f, lightNormal);	// turn direction from light
 				VectorAdd (g_trace_lightvec, lightNormal, g_trace_lightvec);
@@ -381,7 +380,7 @@ R_LightVec
 check bspmodels to get light from
 =================
 */
-colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t lvec)
+static colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t lvec)
 	{
 	float		last_fraction;
 	int			i, maxEnts = 1;

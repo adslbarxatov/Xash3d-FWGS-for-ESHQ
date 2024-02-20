@@ -189,10 +189,11 @@ int MSG_SeekToBit (sizebuf_t *sb, int bitPos, int whence)
 	return 0;
 	}
 
-void MSG_SeekToByte (sizebuf_t *sb, int bytePos)
+// [FWGS, 01.02.24]
+/*void MSG_SeekToByte (sizebuf_t *sb, int bytePos)
 	{
 	sb->iCurBit = bytePos << 3;
-	}
+	}*/
 
 void MSG_WriteOneBit (sizebuf_t *sb, int nValue)
 	{

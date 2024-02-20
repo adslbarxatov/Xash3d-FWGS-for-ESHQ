@@ -94,14 +94,14 @@ static void GAME_EXPORT CL_FillRGBABlend (float _x, float _y, float _w, float _h
 	pglDisable (GL_BLEND);
 	}
 
-void Mod_BrushUnloadTextures (model_t *mod)
+static void Mod_BrushUnloadTextures (model_t *mod)
 	{
 	int i;
 
 	for (i = 0; i < mod->numtextures; i++)
 		{
 		texture_t *tx = mod->textures[i];
-		if (!tx || tx->gl_texturenum == tr.defaultTexture)
+		if (!tx || (tx->gl_texturenum == tr.defaultTexture))
 			continue; // free slot
 
 		GL_FreeTexture (tx->gl_texturenum);    // main texture
@@ -109,7 +109,7 @@ void Mod_BrushUnloadTextures (model_t *mod)
 		}
 	}
 
-void Mod_UnloadTextures (model_t *mod)
+static void Mod_UnloadTextures (model_t *mod)
 	{
 	Assert (mod != NULL);
 
@@ -118,22 +118,26 @@ void Mod_UnloadTextures (model_t *mod)
 		case mod_studio:
 			Mod_StudioUnloadTextures (mod->cache.data);
 			break;
+
 		case mod_alias:
 			Mod_AliasUnloadTextures (mod->cache.data);
 			break;
+
 		case mod_brush:
 			Mod_BrushUnloadTextures (mod);
 			break;
+
 		case mod_sprite:
 			Mod_SpriteUnloadTextures (mod->cache.data);
 			break;
+
 		default:
 			ASSERT (0);
 			break;
 		}
 	}
 
-qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)
+static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)
 	{
 	qboolean loaded = true;
 
@@ -170,7 +174,7 @@ qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)
 	}
 
 // [FWGS, 01.02.24]
-static qboolean R_TextureFilteringEnabled (int arg)
+/*static qboolean R_TextureFilteringEnabled (int arg)
 	{
 	gl_texture_t *glt;
 
@@ -187,7 +191,7 @@ static qboolean R_TextureFilteringEnabled (int arg)
 		return gl_lightmap_nearest.value == 0.0f;
 
 	return gl_texture_nearest.value == 0.0f;
-	}
+	}*/
 
 static int GL_RefGetParm (int parm, int arg)
 	{
@@ -288,11 +292,17 @@ static int GL_RefGetParm (int parm, int arg)
 
 		// [FWGS, 01.02.24]
 		case PARM_TEX_FILTERING:
-			return R_TextureFilteringEnabled (arg);
+			if (arg < 0)
+				return gl_texture_nearest.value == 0.0f;
+
+			return GL_TextureFilteringEnabled (R_GetTexture (arg));
+
+		/*return R_TextureFilteringEnabled (arg);*/
 		
 		default:
 			return ENGINE_GET_PARM_ (parm, arg);
 		}
+
 	return 0;
 	}
 
@@ -346,7 +356,7 @@ static const char *GL_TextureName (unsigned int texnum)
 	return R_GetTexture (texnum)->name;
 	}
 
-const byte *GL_TextureData (unsigned int texnum)
+static const byte *GL_TextureData (unsigned int texnum)
 	{
 	rgbdata_t *pic = R_GetTexture (texnum)->original;
 
@@ -355,9 +365,8 @@ const byte *GL_TextureData (unsigned int texnum)
 	return NULL;
 	}
 
-// [FWGS, 01.01.24]
-/*void R_ProcessEntData (qboolean allocate)*/
-void R_ProcessEntData (qboolean allocate, cl_entity_t *entities, unsigned int max_entities)
+// [FWGS, 01.02.24]
+static void R_ProcessEntData (qboolean allocate, cl_entity_t *entities, unsigned int max_entities)
 	{
 	if (!allocate)
 		{
@@ -383,7 +392,8 @@ static void GAME_EXPORT R_Flush (unsigned int flags)
 	// stub
 	}
 
-qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_x, int offset_y, float scale_x, float scale_y)
+static qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_x, int offset_y,
+	float scale_x, float scale_y)
 	{
 	qboolean ret = true;
 	if (rotate > 0)
@@ -574,7 +584,9 @@ ref_interface_t gReffuncs =
 	VGUI_GenerateTexture,
 	};
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.02.24]
+int EXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals);
+
 int EXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals)
 	{
 	if (version != REF_API_VERSION)

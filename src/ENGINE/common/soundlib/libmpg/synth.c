@@ -25,11 +25,11 @@ GNU General Public License for more details.
 	else { *(samples) = REAL_TO_SHORT( sum ); }
 
 // main synth function, uses the plain dct64
-int synth_1to1 (float *bandPtr, int channel, mpg123_handle_t *fr, int final)
+static int synth_1to1 (float *bandPtr, int channel, mpg123_handle_t *fr, int final)
 	{
 	static const int	step = 2;
-	short *samples = (short *)(fr->buffer.data + fr->buffer.fill);
-	float *b0, **buf; // (*buf)[0x110];
+	short	*samples = (short *)(fr->buffer.data + fr->buffer.fill);
+	float	*b0, **buf; // (*buf)[0x110];
 	int		clip = 0;
 	int		bo1;
 
@@ -147,10 +147,10 @@ static int synth_stereo (float *bandPtr_l, float *bandPtr_r, mpg123_handle_t *fr
 	}
 
 // mono to stereo synth, wrapping over synth_1to1
-int synth_1to1_m2s (float *bandPtr, mpg123_handle_t *fr)
+static int synth_1to1_m2s (float *bandPtr, mpg123_handle_t *fr)
 	{
-	byte *samples = fr->buffer.data;
-	int	i, ret;
+	byte	*samples = fr->buffer.data;
+	int		i, ret;
 
 	ret = synth_1to1 (bandPtr, 0, fr, 1);
 	samples += fr->buffer.fill - BLOCK * sizeof (short);
@@ -165,13 +165,13 @@ int synth_1to1_m2s (float *bandPtr, mpg123_handle_t *fr)
 	}
 
 // mono synth, wrapping over synth_1to1
-int synth_1to1_mono (float *bandPtr, mpg123_handle_t *fr)
+static int synth_1to1_mono (float *bandPtr, mpg123_handle_t *fr)
 	{
 	short	samples_tmp[BLOCK];
-	short *tmp1 = samples_tmp;
-	byte *samples = fr->buffer.data;
-	int	pnt = fr->buffer.fill;
-	int	i, ret;
+	short	*tmp1 = samples_tmp;
+	byte	*samples = fr->buffer.data;
+	int		pnt = fr->buffer.fill;
+	int		i, ret;
 
 	// save buffer stuff, trick samples_tmp into there, decode, restore
 	fr->buffer.data = (byte *)samples_tmp;

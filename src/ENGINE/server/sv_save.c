@@ -754,7 +754,8 @@ release global save-restore buffer
 */
 static void SaveFinish (SAVERESTOREDATA *pSaveData)
 	{
-	if (!pSaveData) return;
+	if (!pSaveData)
+		return;
 
 	if (pSaveData->pTokens)
 		{
@@ -774,13 +775,14 @@ static void SaveFinish (SAVERESTOREDATA *pSaveData)
 	Mem_Free (pSaveData);
 	}
 
+// [FWGS, 01.02.24]
 /*
 =============
 DumpHashStrings
 
 debug thing
 =============
-*/
+//
 static void DumpHashStrings (SAVERESTOREDATA *pSaveData, const char *pMessage)
 	{
 	int	i, count = 0;
@@ -799,7 +801,7 @@ static void DumpHashStrings (SAVERESTOREDATA *pSaveData, const char *pMessage)
 			}
 		Con_Printf ("total %i actual %i\n", pSaveData->tokenCount, count);
 		}
-	}
+	}*/
 
 /*
 =============
@@ -810,8 +812,8 @@ write the stringtable into file
 */
 static char *StoreHashTable (SAVERESTOREDATA *pSaveData)
 	{
-	char *pTokenData = pSaveData->pCurrentData;
-	int	i;
+	char	*pTokenData = pSaveData->pCurrentData;
+	int		i;
 
 	// Write entity string token table
 	if (pSaveData->pTokens)
@@ -841,8 +843,8 @@ build the stringtable from buffer
 */
 static void BuildHashTable (SAVERESTOREDATA *pSaveData, file_t *pFile)
 	{
-	char *pszTokenList = pSaveData->pBaseData;
-	int	i;
+	char	*pszTokenList = pSaveData->pBaseData;
+	int		i;
 
 	// Parse the symbol table
 	if (pSaveData->tokenSize > 0)
@@ -872,10 +874,10 @@ i'm write it just for more readable code
 */
 static int GetClientDataSize (const char *level)
 	{
-	int	tokenCount, tokenSize;
-	int	size, id, version;
+	int		tokenCount, tokenSize;
+	int		size, id, version;
 	char	name[MAX_QPATH];
-	file_t *pFile;
+	file_t	*pFile;
 
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "2", level);
 
@@ -916,12 +918,12 @@ static SAVERESTOREDATA *LoadSaveData (const char *level)
 	{
 	int		tokenSize, tableCount;
 	int		size, tokenCount;
-	char		name[MAX_OSPATH];
+	char	name[MAX_OSPATH];
 	int		id, version;
 	int		clientSize;
-	SAVERESTOREDATA *pSaveData;
+	SAVERESTOREDATA	*pSaveData;
 	int		totalSize;
-	file_t *pFile;
+	file_t	*pFile;
 
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "1", level);
 	Con_Printf ("Loading game from %s...\n", name);

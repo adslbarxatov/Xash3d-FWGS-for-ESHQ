@@ -488,7 +488,7 @@ extern convar_t sv_aim;
 
 // ===========================================================
 //
-// sv_main.c
+// sv_main.c [FWGS, 01.02.24]
 //
 void SV_FinalMessage (const char *message, qboolean reconnect);
 void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) _format (2);	// [FWGS, 01.07.23]
@@ -498,25 +498,25 @@ int SV_ModelIndex (const char *name);
 int SV_SoundIndex (const char *name);
 int SV_EventIndex (const char *name);
 int SV_GenericIndex (const char *name);
-int SV_CalcPacketLoss (sv_client_t *cl);
-void SV_ExecuteUserCommand (char *s);
+/*int SV_CalcPacketLoss (sv_client_t *cl);
+void SV_ExecuteUserCommand (char *s);*/
 void SV_InitOperatorCommands (void);
 void SV_KillOperatorCommands (void);
 void SV_RemoteCommand (netadr_t from, sizebuf_t *msg);
-void SV_PrepWorldFrame (void);
-void SV_ProcessFile (sv_client_t *cl, const char *filename);
+/*void SV_PrepWorldFrame (void);
+void SV_ProcessFile (sv_client_t *cl, const char *filename);*/
 void SV_SendResource (resource_t *pResource, sizebuf_t *msg);
-void SV_SendResourceList (sv_client_t *cl);
+/*void SV_SendResourceList (sv_client_t *cl);*/
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg);
 qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent);
-void Host_SetServerState (int state);
+/*void Host_SetServerState (int state);
 qboolean SV_IsSimulating (void);
-void SV_FreeClients (void);
+void SV_FreeClients (void);*/
 
 //
-// sv_init.c
+// sv_init.c [FWGS, 01.02.24]
 //
-qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer);	// [FWGS, 01.07.23]
+/*qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer);	// [FWGS, 01.07.23]*/
 qboolean SV_InitGame (void);
 void SV_ActivateServer (int runPhysics);
 qboolean SV_SpawnServer (const char *server, const char *startspot, qboolean background);
@@ -544,18 +544,18 @@ float SV_VecToYaw (const vec3_t src);
 void SV_WaterMove (edict_t *ent);
 
 //
-// sv_send.c
+// sv_send.c [FWGS, 01.02.24]
 //
 void SV_SendClientMessages (void);
 void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) _format (2);
-void SV_BroadcastCommand (const char *fmt, ...) _format (1);
+/*void SV_BroadcastCommand (const char *fmt, ...) _format (1);*/
 
 //
-// sv_client.c
+// sv_client.c [FWGS, 01.02.24]
 //
-char *SV_StatusString (void);
+/*char *SV_StatusString (void);*/
 void SV_RefreshUserinfo (void);
-void SV_GetChallenge (netadr_t from);
+/*void SV_GetChallenge (netadr_t from);*/
 void SV_TogglePause (const char *msg);
 qboolean SV_ShouldUpdatePing (sv_client_t *cl);
 const char *SV_GetClientIDString (sv_client_t *cl);
@@ -565,29 +565,26 @@ void SV_FullClientUpdate (sv_client_t *cl, sizebuf_t *msg);
 void SV_FullUpdateMovevars (sv_client_t *cl, sizebuf_t *msg);
 void SV_GetPlayerStats (sv_client_t *cl, int *ping, int *packet_loss);
 void SV_SendServerdata (sizebuf_t *msg, sv_client_t *cl);
-void SV_ClientThink (sv_client_t *cl, usercmd_t *cmd);
+/*void SV_ClientThink (sv_client_t *cl, usercmd_t *cmd);*/
 void SV_ExecuteClientMessage (sv_client_t *cl, sizebuf_t *msg);
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg);
 edict_t *SV_FakeConnect (const char *netname);
-void SV_ExecuteClientCommand (sv_client_t *cl, const char *s);
+/*void SV_ExecuteClientCommand (sv_client_t *cl, const char *s);*/
 void SV_BuildReconnect (sizebuf_t *msg);
 qboolean SV_IsPlayerIndex (int idx);
 int SV_CalcPing (sv_client_t *cl);
-void SV_InitClientMove (void);
+/*void SV_InitClientMove (void);*/
 void SV_UpdateServerInfo (void);
-
-// [FWGS, 01.01.24]
 /*void SV_EndRedirect (void);*/
 void SV_EndRedirect (host_redirect_t *rd);
-
 void SV_RejectConnection (netadr_t from, const char *fmt, ...) _format (2);
 void SV_GetPlayerCount (int *clients, int *bots);	// [FWGS, 01.04.23]
 
 //
-// sv_cmds.c
+// sv_cmds.c [FWGS, 01.02.24]
 //
-void SV_Status_f (void);
-void SV_Newgame_f (void);
+/*void SV_Status_f (void);
+void SV_Newgame_f (void);*/
 void SV_InitHostCommands (void);
 
 //
@@ -606,20 +603,20 @@ void SV_TransferConsistencyInfo (void);
 void SV_RequestMissingResources (void);
 
 //
-// sv_filter.c
+// sv_filter.c [FWGS, 01.02.24]
 //
 void SV_InitFilter (void);
-void SV_ShutdownFilter (void);
+/*void SV_ShutdownFilter (void);*/
 qboolean SV_CheckIP (netadr_t *adr);
 qboolean SV_CheckID (const char *id);
 
 //
-// sv_frame.c
+// sv_frame.c [FWGS, 01.02.24]
 //
 void SV_InactivateClients (void);
 int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to);
-void SV_WriteFrameToClient (sv_client_t *client, sizebuf_t *msg);
-void SV_BuildClientFrame (sv_client_t *client);
+/*void SV_WriteFrameToClient (sv_client_t *client, sizebuf_t *msg);
+void SV_BuildClientFrame (sv_client_t *client);*/
 void SV_SkipUpdates (void);
 
 //
@@ -654,6 +651,7 @@ void SV_EmptyStringPool (void);
 void SV_PrintStr64Stats_f (void);
 #endif
 
+// [FWGS, 01.02.24]
 sv_client_t *SV_ClientFromEdict (const edict_t *pEdict, qboolean spawned_only);
 uint SV_MapIsValid (const char *filename, const char *spawn_entity, const char *landmark_name);
 void SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch);
@@ -665,10 +663,13 @@ void SV_UpdateBaseVelocity (edict_t *ent);
 void SV_RestartAmbientSounds (void);
 void SV_RestartDecals (void);
 void SV_RestartStaticEnts (void);
-int pfnDropToFloor (edict_t *e);	// [FWGS, 01.04.23]
+int pfnDropToFloor (edict_t *e);
 edict_t *SV_EdictNum (int n);
-void SV_SetModel (edict_t *ent, const char *name);	// [FWGS, 01.04.23]
-int pfnDecalIndex (const char *m);	// [FWGS, 01.07.23]
+void SV_SetModel (edict_t *ent, const char *name);
+int pfnDecalIndex (const char *m);
+void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int entityIndex, int modelIndex,
+	int flags, float scale);
+qboolean SV_RestoreCustomDecal (struct decallist_s *entry, edict_t *pEdict, qboolean adjacent);
 
 //
 // sv_log.c
@@ -691,13 +692,14 @@ void SV_InitSaveRestore (void);
 void SV_ClearGameState (void);
 
 //
-// sv_pmove.c [FWGS, 01.07.23]
+// sv_pmove.c [FWGS, 01.02.24]
 //
+void SV_InitClientMove (void);
 qboolean SV_PlayerIsFrozen (edict_t *pClient);
 void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed);
 
 //
-// sv_world.c
+// sv_world.c [FWGS, 01.02.24]
 //
 void SV_ClearWorld (void);
 void SV_UnlinkEdict (edict_t *ent);
@@ -705,7 +707,7 @@ void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t 
 	trace_t *trace);
 void SV_CustomClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, 
 	const vec3_t end, trace_t *trace);
-trace_t SV_TraceHull (edict_t *ent, int hullNum, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end);
+/*trace_t SV_TraceHull (edict_t *ent, int hullNum, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end);*/
 trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type,
 	edict_t *e, qboolean monsterclip);
 trace_t SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e);
