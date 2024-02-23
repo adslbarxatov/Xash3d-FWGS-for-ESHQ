@@ -116,7 +116,7 @@ void PlayLockSounds (entvars_t* pev, locksound_t* pls, int flocked, int fbutton)
 
 	if (flocked)
 		{
-		int fplaysound = (pls->sLockedSound && gpGlobals->time > pls->flwaitSound);
+		int fplaysound = (pls->sLockedSound && (gpGlobals->time > pls->flwaitSound));
 		int fplaysentence = (pls->sLockedSentence && !pls->bEOFLocked && gpGlobals->time > pls->flwaitSentence);
 		float fvol;
 
@@ -640,7 +640,7 @@ void CBaseDoor::DoorGoUp (void)
 	SetMoveDone (&CBaseDoor::DoorHitTop);
 	if (FClassnameIs (pev, "func_door_rotating"))		// !!! BUGBUG Triggered doors don't work with this yet
 		{
-		float	sign = 1.0;
+		float sign = 1.0;
 
 		if (m_hActivator != NULL)
 			{

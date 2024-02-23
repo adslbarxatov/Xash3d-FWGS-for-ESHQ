@@ -333,7 +333,7 @@ may use friction for smooth stopping
 static void SV_AngularMove (edict_t *ent, float frametime, float friction)
 	{
 	float	adjustment;
-	int	i;
+	int		i;
 
 	VectorMA (ent->v.angles, frametime, ent->v.avelocity, ent->v.angles);
 	if (friction == 0.0f)
@@ -367,7 +367,7 @@ use friction for smooth stopping
 */
 static void SV_LinearMove (edict_t *ent, float frametime, float friction)
 	{
-	int	i;
+	int		i;
 	float	adjustment;
 
 	VectorMA (ent->v.origin, frametime, ent->v.velocity, ent->v.origin);
@@ -654,7 +654,8 @@ static int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 		if (trace.plane.normal[2] == 0.0f)
 			{
 			blocked |= 2; // step
-			if (steptrace) *steptrace = trace; // save for player extrafriction
+			if (steptrace)
+				*steptrace = trace; // save for player extrafriction
 			}
 
 		// run the impact function
@@ -1492,6 +1493,7 @@ static void SV_Physics_Toss (edict_t *ent)
 		case MOVETYPE_BOUNCE:
 			SV_AngularMove (ent, sv.frametime, ent->v.friction);
 			break;
+
 		default:
 			SV_AngularMove (ent, sv.frametime, 0.0f);
 			break;
@@ -1530,7 +1532,8 @@ static void SV_Physics_Toss (edict_t *ent)
 		backoff = 2.0f - ent->v.friction;
 	else if (ent->v.movetype == MOVETYPE_BOUNCEMISSILE)
 		backoff = 2.0f;
-	else backoff = 1.0f;
+	else
+		backoff = 1.0f;
 
 	SV_ClipVelocity (ent->v.velocity, trace.plane.normal, ent->v.velocity, backoff);
 
@@ -1592,10 +1595,10 @@ static void SV_Physics_Step (edict_t *ent)
 	qboolean	inwater;
 	qboolean	wasonground;
 	qboolean	wasonmover;
-	vec3_t	mins, maxs;
-	vec3_t	point;
-	trace_t	trace;
-	int	x, y;
+	vec3_t		mins, maxs;
+	vec3_t		point;
+	trace_t		trace;
+	int			x, y;
 
 	SV_WaterMove (ent);
 	SV_CheckVelocity (ent);
@@ -1630,7 +1633,7 @@ static void SV_Physics_Step (edict_t *ent)
 
 		if ((wasonground || wasonmover) && ((ent->v.health > 0) || SV_CheckBottom (ent, MOVE_NORMAL)))
 			{
-			float *vel = ent->v.velocity;
+			float	*vel = ent->v.velocity;
 			float	control, speed, newspeed;
 			float	friction;
 
@@ -1645,8 +1648,8 @@ static void SV_Physics_Step (edict_t *ent)
 
 				control = (speed < sv_stopspeed.value) ? sv_stopspeed.value : speed;
 				newspeed = speed - (sv.frametime * control * friction);
-				if (newspeed < 0)
-					newspeed = 0;
+				if (newspeed < 0.0f)
+					newspeed = 0.0f;
 				newspeed /= speed;
 
 				vel[0] = vel[0] * newspeed;
@@ -1658,7 +1661,8 @@ static void SV_Physics_Step (edict_t *ent)
 		SV_CheckVelocity (ent);
 
 		SV_FlyMove (ent, sv.frametime, NULL);
-		if (ent->free) return;
+		if (ent->free)
+			return;
 
 		SV_CheckVelocity (ent);
 		VectorSubtract (ent->v.velocity, ent->v.basevelocity, ent->v.velocity);
@@ -1704,14 +1708,15 @@ static void SV_Physics_Step (edict_t *ent)
 			if ((trace.fraction < 1.0f || trace.startsolid) && SV_IsValidEdict (trace.ent))
 				{
 				SV_Impact (ent, trace.ent, &trace);
-				if (ent->free) return;
+				if (ent->free)
+					return;
 				}
 			}
 		}
 
-	if (!SV_RunThink (ent)) return;
+	if (!SV_RunThink (ent))
+		return;
 	SV_CheckWaterTransition (ent);
-
 	}
 
 /*

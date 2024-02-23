@@ -362,7 +362,7 @@ pev->origin traveling at flSpeed
 */
 void CBaseToggle::LinearMove (Vector vecDest, float flSpeed)
 	{
-	ASSERTSZ (flSpeed != 0, "LinearMove:  no speed is defined!");
+	ASSERTSZ (flSpeed != 0, "LinearMove: no speed is defined!");
 
 	m_vecFinalDest = vecDest;
 
@@ -415,7 +415,7 @@ AngularMove
 
 calculate pev->velocity and pev->nextthink to reach vecDest from
 pev->origin traveling at flSpeed
-Just like LinearMove, but rotational.
+Just like LinearMove, but rotational
 ===============
 */
 void CBaseToggle::AngularMove (Vector vecDestAngle, float flSpeed)

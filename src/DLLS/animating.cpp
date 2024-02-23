@@ -16,7 +16,7 @@
 
 ===== monsters.cpp ========================================================
 
-  Monster-related utility code
+ Monster-related utility code
 
 */
 

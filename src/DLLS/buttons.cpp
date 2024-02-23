@@ -443,10 +443,10 @@ void CBaseButton::Spawn ()
 
 	Precache ();
 
-	if (FBitSet (pev->spawnflags, SF_BUTTON_SPARK_IF_OFF))// this button should spark in OFF state
+	if (FBitSet (pev->spawnflags, SF_BUTTON_SPARK_IF_OFF))	// this button should spark in OFF state
 		{
 		SetThink (&CBaseButton::ButtonSpark);
-		pev->nextthink = gpGlobals->time + 0.5;// no hurry, make sure everything else spawns
+		pev->nextthink = gpGlobals->time + 0.5;	// no hurry, make sure everything else spawns
 		}
 
 	SetMovedir (pev);
@@ -482,8 +482,7 @@ void CBaseButton::Spawn ()
 	m_fRotating = FALSE;
 
 	// if the button is flagged for USE button activation only, take away it's touch function and add a use function
-
-	if (FBitSet (pev->spawnflags, SF_BUTTON_TOUCH_ONLY)) // touchable button
+	if (FBitSet (pev->spawnflags, SF_BUTTON_TOUCH_ONLY))	// touchable button
 		{
 		SetTouch (&CBaseButton::ButtonTouch);
 		}
@@ -502,18 +501,53 @@ char* ButtonSound (int sound)
 
 	switch (sound)
 		{
-		case 0: pszSound = "common/null.wav";        break;
-		case 1: pszSound = "buttons/button1.wav";	break;
-		case 2: pszSound = "buttons/button2.wav";	break;
-		case 3: pszSound = "buttons/button3.wav";	break;
-		case 4: pszSound = "buttons/button4.wav";	break;
-		case 5: pszSound = "buttons/button5.wav";	break;
-		case 6: pszSound = "buttons/button6.wav";	break;
-		case 7: pszSound = "buttons/button7.wav";	break;
-		case 8: pszSound = "buttons/button8.wav";	break;
-		case 9: pszSound = "buttons/button9.wav";	break;
-		case 10: pszSound = "buttons/button10.wav";	break;
-		case 11: pszSound = "buttons/button11.wav";	break;
+		case 0:
+			pszSound = "common/null.wav";
+			break;
+
+		case 1:
+			pszSound = "buttons/button1.wav";
+			break;
+
+		case 2:
+			pszSound = "buttons/button2.wav";
+			break;
+
+		case 3:
+			pszSound = "buttons/button3.wav";
+			break;
+
+		case 4:
+			pszSound = "buttons/button4.wav";
+			break;
+
+		case 5:
+			pszSound = "buttons/button5.wav";
+			break;
+
+		case 6:
+			pszSound = "buttons/button6.wav";
+			break;
+
+		case 7:
+			pszSound = "buttons/button7.wav";
+			break;
+
+		case 8:
+			pszSound = "buttons/button8.wav";
+			break;
+		case 9:
+			pszSound = "buttons/button9.wav";
+			break;
+
+		case 10:
+			pszSound = "buttons/button10.wav";
+			break;
+
+		case 11:
+			pszSound = "buttons/button11.wav";
+			break;
+
 		case 12:
 			if (RANDOM_LONG (0, 1))
 				pszSound = "buttons/latchlocked1.wav";
@@ -526,19 +560,35 @@ char* ButtonSound (int sound)
 				pszSound = "buttons/latchunlocked1.wav";
 			else
 				pszSound = "buttons/latchunlocked3.wav";
-		break;		
+			break;
 		
 		case 14: pszSound = "buttons/lightswitch2.wav"; 
 			break;
 
 		// next 6 slots reserved for any additional sliding button sounds we may add
-		case 21: pszSound = "buttons/lever1.wav";	break;
-		case 22: pszSound = "buttons/lever2.wav";	break;
-		case 23: pszSound = "buttons/lever3.wav";	break;
-		case 24: pszSound = "buttons/lever4.wav";	break;
-		case 25: pszSound = "buttons/lever5.wav";	break;
+		case 21:
+			pszSound = "buttons/lever1.wav";
+			break;
 
-		default: pszSound = "buttons/button9.wav";	break;
+		case 22:
+			pszSound = "buttons/lever2.wav";
+			break;
+
+		case 23:
+			pszSound = "buttons/lever3.wav";
+			break;
+
+		case 24:
+			pszSound = "buttons/lever4.wav";
+			break;
+
+		case 25:
+			pszSound = "buttons/lever5.wav";
+			break;
+
+		default:
+			pszSound = "buttons/button9.wav";
+			break;
 		}
 
 	return pszSound;
@@ -556,18 +606,23 @@ void DoSpark (entvars_t* pev, const Vector& location)
 		case 0: 
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark1.wav", flVolume, ATTN_SMALL);	
 			break;
+
 		case 1: 
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark2.wav", flVolume, ATTN_SMALL);	
 			break;
+
 		case 2: 
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark3.wav", flVolume, ATTN_SMALL);	
 			break;
+
 		case 3: 
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark4.wav", flVolume, ATTN_SMALL);	
 			break;
+
 		case 4: 
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark5.wav", flVolume, ATTN_SMALL);	
 			break;
+
 		case 5: 
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark6.wav", flVolume, ATTN_SMALL);	
 			break;
@@ -577,7 +632,7 @@ void DoSpark (entvars_t* pev, const Vector& location)
 void CBaseButton::ButtonSpark (void)
 	{
 	SetThink (&CBaseButton::ButtonSpark);
-	pev->nextthink = gpGlobals->time + (0.1 + RANDOM_FLOAT (0, 1.5));// spark again at random interval
+	pev->nextthink = gpGlobals->time + (0.1 + RANDOM_FLOAT (0, 1.5));	// spark again at random interval
 
 	DoSpark (pev, pev->mins);
 	}
@@ -664,9 +719,9 @@ void CBaseButton::ButtonTouch (CBaseEntity* pOther)
 // Starts the button moving "in/up"
 void CBaseButton::ButtonActivate ()
 	{
-	EMIT_SOUND (ENT (pev), CHAN_VOICE, (char*)STRING (pev->noise), 1, ATTN_MEDIUM);
-
-	if (!UTIL_IsMasterTriggered (m_sMaster, m_hActivator))
+	// ESHQ: развязан вызов звуков для заблокированных кнопок
+	if (!UTIL_IsMasterTriggered (m_sMaster, m_hActivator) ||
+		FStringNull (pev->target) && m_ls.sLockedSound)
 		{
 		// button is locked, play locked sound
 		PlayLockSounds (pev, &m_ls, TRUE, TRUE);
@@ -674,6 +729,8 @@ void CBaseButton::ButtonActivate ()
 		}
 	else
 		{
+		EMIT_SOUND (ENT (pev), CHAN_VOICE, (char *)STRING (pev->noise), 1, ATTN_MEDIUM);
+
 		// button is unlocked, play unlocked sound
 		PlayLockSounds (pev, &m_ls, FALSE, TRUE);
 		}

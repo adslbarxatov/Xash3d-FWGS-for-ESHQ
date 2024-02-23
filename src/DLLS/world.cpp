@@ -682,7 +682,7 @@ void CWorld::KeyValue (KeyValueData* pkvd)
 		}
 	else if (FStrEq (pkvd->szKeyName, "startdark"))
 		{
-		// UNDONE: This is a gross hack!!! The CVAR is NOT sent over the client/sever link
+		// UNDONE: This is a gross hack!!! The CVAR is NOT sent over the client / server link
 		// but it will work for single player
 		int flag = atoi (pkvd->szValue);
 		pkvd->fHandled = TRUE;
@@ -691,7 +691,7 @@ void CWorld::KeyValue (KeyValueData* pkvd)
 		}
 	else if (FStrEq (pkvd->szKeyName, "newunit"))
 		{
-		// Single player only.  Clear save directory if set
+		// Single player only. Clear save directory if set
 		if (atoi (pkvd->szValue))
 			CVAR_SET_FLOAT ("sv_newunit", 1);
 		pkvd->fHandled = TRUE;
@@ -711,13 +711,14 @@ void CWorld::KeyValue (KeyValueData* pkvd)
 	else if (FStrEq (pkvd->szKeyName, "defaultteam"))
 		{
 		if (atoi (pkvd->szValue))
-			{
 			pev->spawnflags |= SF_WORLD_FORCETEAM;
-			}
+
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseEntity::KeyValue (pkvd);
+		}
 	}
 
 // Xash3D physics interface

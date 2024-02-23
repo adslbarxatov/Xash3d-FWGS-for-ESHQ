@@ -662,7 +662,7 @@ static void SV_FinishPMove (playermove_t *pmove, sv_client_t *cl)
 	clent->v.effects = pmove->effects;
 	clent->v.bInDuck = pmove->bInDuck;
 
-	// ESHQ: поддержка собираемыхх объектов
+	// ESHQ: поддержка собираемых объектов
 	clent->v.collectedItems = pmove->collectedItems;
 
 	clent->v.flags = pmove->flags;

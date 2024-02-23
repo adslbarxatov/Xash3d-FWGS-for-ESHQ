@@ -1067,25 +1067,25 @@ void PM_Accelerate (vec3_t wishdir, float wishspeed, float accel)
 =====================
 PM_WalkMove
 
-Only used by players.  Moves along the ground when player is a MOVETYPE_WALK.
+Only used by players.  Moves along the ground when player is a MOVETYPE_WALK
 ======================
 */
 void PM_WalkMove ()
 	{
-	int			clip;
-	int			oldonground;
-	int i;
+	int		clip;
+	int		oldonground;
+	int		i;
 
-	vec3_t		wishvel;
-	float       spd;
-	float		fmove, smove;
-	vec3_t		wishdir;
-	float		wishspeed;
+	vec3_t	wishvel;
+	float	spd;
+	float	fmove, smove;
+	vec3_t	wishdir;
+	float	wishspeed;
 
-	vec3_t dest, start;
-	vec3_t original, originalvel;
-	vec3_t down, downvel;
-	float downdist, updist;
+	vec3_t	dest, start;
+	vec3_t	original, originalvel;
+	vec3_t	down, downvel;
+	float	downdist, updist;
 
 	pmtrace_t trace;
 
@@ -1125,7 +1125,9 @@ void PM_WalkMove ()
 
 	spd = Length (pmove->velocity);
 
-	if (spd < 1.0f)
+	// ESHQ: исправлен завышенный коэффициент, не пропускавший случаи с низким трением (например, лЄд Ц 5%)
+	// и не дававший полностью остановившемус€ игроку сдвинутьс€ с места без прыжка
+	if (spd < 0.1f)
 		{
 		VectorClear (pmove->velocity);
 		return;
@@ -1222,9 +1224,12 @@ usedown:
 		VectorCopy (down, pmove->origin);
 		VectorCopy (downvel, pmove->velocity);
 		}
-	else // copy z value from slide move
-		pmove->velocity[2] = downvel[2];
 
+	// copy z value from slide move
+	else
+		{
+		pmove->velocity[2] = downvel[2];
+		}
 	}
 
 /*
@@ -1236,11 +1241,11 @@ Handles both ground friction and water friction
 */
 void PM_Friction (void)
 	{
-	float *vel;
+	float	*vel;
 	float	speed, newspeed, control;
 	float	friction;
 	float	drop;
-	vec3_t newvel;
+	vec3_t	newvel;
 
 	// If we are in water jump cycle, don't apply friction
 	if (pmove->waterjumptime)
@@ -1254,17 +1259,15 @@ void PM_Friction (void)
 
 	// If too slow, return
 	if (speed < 0.1f)
-		{
 		return;
-		}
 
-	drop = 0;
+	drop = 0.0f;
 
 	// apply ground friction
 	if (pmove->onground != -1)  // On an entity that is the ground
 		{
-		vec3_t start, stop;
-		pmtrace_t trace;
+		vec3_t		start, stop;
+		pmtrace_t	trace;
 
 		start[0] = stop[0] = pmove->origin[0] + vel[0] / speed * 16;
 		start[1] = stop[1] = pmove->origin[1] + vel[1] / speed * 16;
@@ -1285,6 +1288,7 @@ void PM_Friction (void)
 		//  threshhold, bleed the theshold amount.
 		control = (speed < pmove->movevars->stopspeed) ?
 			pmove->movevars->stopspeed : speed;
+
 		// Add the amount to t'he drop amount.
 		drop += control * friction * pmove->frametime;
 		}
@@ -1307,8 +1311,8 @@ void PM_Friction (void)
 
 void PM_AirAccelerate (vec3_t wishdir, float wishspeed, float accel)
 	{
-	int			i;
-	float		addspeed, accelspeed, currentspeed, wishspd = wishspeed;
+	int		i;
+	float	addspeed, accelspeed, currentspeed, wishspd = wishspeed;
 
 	if (pmove->dead)
 		return;
@@ -1433,7 +1437,6 @@ void PM_WaterMove (void)
 /*
 ===================
 PM_AirMove
-
 ===================
 */
 void PM_AirMove (void)
@@ -1570,7 +1573,7 @@ PM_CatagorizePosition
 void PM_CatagorizePosition (void)
 	{
 	vec3_t		point;
-	pmtrace_t		tr;
+	pmtrace_t	tr;
 
 	// if the player hull point one unit down is solid, the player
 	// is on ground
@@ -1588,7 +1591,7 @@ void PM_CatagorizePosition (void)
 	point[1] = pmove->origin[1];
 	point[2] = pmove->origin[2] - 2;
 
-	if (pmove->velocity[2] > 180)   // Shooting up really fast.  Definitely not on ground.
+	if (pmove->velocity[2] > 180)   // Shooting up really fast. Definitely not on ground
 		{
 		pmove->onground = -1;
 		}
@@ -1608,7 +1611,7 @@ void PM_CatagorizePosition (void)
 			// Then we are not in water jump sequence
 			pmove->waterjumptime = 0;
 			// If we could make the move, drop us down that 1 pixel
-			if (pmove->waterlevel < 2 && !tr.startsolid && !tr.allsolid)
+			if ((pmove->waterlevel < 2) && !tr.startsolid && !tr.allsolid)
 				VectorCopy (tr.endpos, pmove->origin);
 			}
 
@@ -2353,8 +2356,6 @@ void PM_Physics_Toss ()
 
 		vel = DotProduct (pmove->velocity, pmove->velocity);
 
-		// Con_DPrintf("%f %f: %.0f %.0f %.0f\n", vel, trace.fraction, ent->velocity[0], ent->velocity[1], ent->velocity[2] );
-
 		if (vel < (30 * 30) || (pmove->movetype != MOVETYPE_BOUNCE && pmove->movetype != MOVETYPE_BOUNCEMISSILE))
 			{
 			pmove->onground = trace.ent;
@@ -2375,7 +2376,6 @@ void PM_Physics_Toss ()
 /*
 ====================
 PM_NoClip
-
 ====================
 */
 void PM_NoClip ()
@@ -2400,7 +2400,7 @@ void PM_NoClip ()
 	VectorMA (pmove->origin, pmove->frametime, wishvel, pmove->origin);
 
 	// Zero out the velocity so that we don't accumulate a huge downward velocity from
-	//  gravity, etc.
+	// gravity, etc.
 	VectorClear (pmove->velocity);
 
 	}
@@ -2711,7 +2711,6 @@ void PM_CheckFalling (void)
 /*
 =================
 PM_PlayWaterSounds
-
 =================
 */
 void PM_PlayWaterSounds (void)
@@ -2772,7 +2771,6 @@ float PM_CalcRoll (vec3_t angles, vec3_t velocity, float rollangle, float rollsp
 /*
 =============
 PM_DropPunchAngle
-
 =============
 */
 void PM_DropPunchAngle (vec3_t punchangle)
@@ -2788,7 +2786,6 @@ void PM_DropPunchAngle (vec3_t punchangle)
 /*
 ==============
 PM_CheckParamters
-
 ==============
 */
 void PM_CheckParamters (void)
@@ -2824,17 +2821,17 @@ void PM_CheckParamters (void)
 		pmove->cmd.upmove = 0;
 		}
 
-
 	PM_DropPunchAngle (pmove->punchangle);
 
-	// Take angles from command.
+	// Take angles from command
 	if (!pmove->dead)
 		{
 		VectorCopy (pmove->cmd.viewangles, v_angle);
 		VectorAdd (v_angle, pmove->punchangle, v_angle);
 
 		// Set up view angles.
-		pmove->angles[ROLL] = PM_CalcRoll (v_angle, pmove->velocity, pmove->movevars->rollangle, pmove->movevars->rollspeed) * 4;
+		pmove->angles[ROLL] = PM_CalcRoll (v_angle, pmove->velocity, pmove->movevars->rollangle,
+			pmove->movevars->rollspeed) * 4;
 		pmove->angles[PITCH] = v_angle[PITCH];
 		pmove->angles[YAW] = v_angle[YAW];
 		}
@@ -2845,16 +2842,11 @@ void PM_CheckParamters (void)
 
 	// Set dead player view_offset
 	if (pmove->dead)
-		{
 		pmove->view_ofs[2] = PM_DEAD_VIEWHEIGHT;
-		}
 
-	// Adjust client view angles to match values used on server.
+	// Adjust client view angles to match values used on server
 	if (pmove->angles[YAW] > 180.0f)
-		{
 		pmove->angles[YAW] -= 360.0f;
-		}
-
 	}
 
 void PM_ReduceTimers (void)
@@ -2892,7 +2884,7 @@ PlayerMove
 Returns with origin, angles, and velocity modified in place.
 
 Numtouch and touchindex[] will be set if any of the physents
-were contacted during the move.
+were contacted during the move
 =============
 */
 void PM_PlayerMove (qboolean server)
@@ -2930,9 +2922,7 @@ void PM_PlayerMove (qboolean server)
 	if ((pmove->movetype != MOVETYPE_NOCLIP) && (pmove->movetype != MOVETYPE_NONE))
 		{
 		if (PM_CheckStuck ())
-			{
 			return;  // Can't move, we're stuck
-			}
 		}
 
 	// Now that we are "unstuck", see where we are ( waterlevel and type, pmove->onground ).
@@ -2943,9 +2933,7 @@ void PM_PlayerMove (qboolean server)
 
 	// If we are not on ground, store off how fast we are moving down
 	if (pmove->onground == -1)
-		{
 		pmove->flFallVelocity = -pmove->velocity[2];
-		}
 
 	g_onladder = 0;
 
@@ -2954,13 +2942,10 @@ void PM_PlayerMove (qboolean server)
 		{
 		pLadder = PM_Ladder ();
 		if (pLadder)
-			{
 			g_onladder = 1;
-			}
 		}
 
 	PM_UpdateStepSound ();
-
 	PM_Duck ();
 
 	// Don't run ladder code if dead or on a train
@@ -2970,11 +2955,10 @@ void PM_PlayerMove (qboolean server)
 			{
 			PM_LadderMove (pLadder);
 			}
-		else if (pmove->movetype != MOVETYPE_WALK &&
-			pmove->movetype != MOVETYPE_NOCLIP)
+		else if ((pmove->movetype != MOVETYPE_WALK) && (pmove->movetype != MOVETYPE_NOCLIP))
 			{
 			// Clear ladder stuff unless player is noclipping
-			//  it will be set immediately again next frame if necessary
+			// it will be set immediately again next frame if necessary
 			pmove->movetype = MOVETYPE_WALK;
 			}
 		}
@@ -3005,7 +2989,6 @@ void PM_PlayerMove (qboolean server)
 			break;
 
 		case MOVETYPE_FLY:
-
 			PM_CheckWater ();
 
 			// Was jump button pressed?
@@ -3079,9 +3062,9 @@ void PM_PlayerMove (qboolean server)
 				// Get a final position
 				PM_CatagorizePosition ();
 				}
-			else
 
-				// Not underwater
+			// Not underwater
+			else
 				{
 				// Was jump button pressed?
 				if (pmove->cmd.buttons & IN_JUMP)
@@ -3097,14 +3080,14 @@ void PM_PlayerMove (qboolean server)
 					}
 
 				// Fricion is handled before we add in any base velocity. That way, if we are on a conveyor, 
-				//  we don't slow when standing still, relative to the conveyor.
+				// we don't slow when standing still, relative to the conveyor
 				if (pmove->onground != -1)
 					{
 					pmove->velocity[2] = 0.0;
 					PM_Friction ();
 					}
 
-				// Make sure velocity is valid.
+				// Make sure velocity is valid
 				PM_CheckVelocity ();
 
 				// Are we on ground now
@@ -3128,7 +3111,7 @@ void PM_PlayerMove (qboolean server)
 				// Make sure velocity is valid.
 				PM_CheckVelocity ();
 
-				// Add any remaining gravitational component.
+				// Add any remaining gravitational component
 				if (!PM_InWater ())
 					{
 					PM_FixupGravityVelocity ();
@@ -3136,9 +3119,7 @@ void PM_PlayerMove (qboolean server)
 
 				// If we are on ground, no downward velocity.
 				if (pmove->onground != -1)
-					{
 					pmove->velocity[2] = 0;
-					}
 
 				// See if we landed on the ground with enough force to play a landing sound
 				PM_CheckFalling ();

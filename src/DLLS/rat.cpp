@@ -138,7 +138,7 @@ void CRat::Spawn ()
 	pev->skin = RANDOM_LONG (0, 1);
 	m_fLightHacked = FALSE;
 	m_flLastLightLevel = -1;
-	m_iMode = RAT_SCARED_BY_LIGHT;	// ESHQ: принудительное обновление позиции
+	m_iMode = RAT_IDLE;	// ESHQ: принудительное обновление позиции
 	m_flNextSmellTime = gpGlobals->time;
 	}
 
