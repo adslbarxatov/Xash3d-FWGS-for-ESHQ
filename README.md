@@ -115,6 +115,8 @@ It was based on one of the newest versions of [Xash3d FWGS engine](https://githu
 
 51. Our cyclers are able to be broken (with specified health and explosion coefficients).
 
+52. Our `trigger_fog` can smoothly turn on / off the fog effect of the desired color and density.
+
 &nbsp;
 
 
