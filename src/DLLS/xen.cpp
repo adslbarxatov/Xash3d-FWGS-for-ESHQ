@@ -97,7 +97,8 @@ void CXenPLight::Spawn (void)
 	pev->nextthink = gpGlobals->time + 0.1;
 	pev->frame = RANDOM_FLOAT (0, 255);
 
-	m_pGlow = CSprite::SpriteCreate (XEN_PLANT_GLOW_SPRITE, pev->origin + Vector (0, 0, (pev->mins.z + pev->maxs.z) * 0.5), FALSE);
+	m_pGlow = CSprite::SpriteCreate (XEN_PLANT_GLOW_SPRITE, pev->origin +
+		Vector (0, 0, (pev->mins.z + pev->maxs.z) * 0.5), FALSE);
 	m_pGlow->SetTransparency (kRenderGlow, pev->rendercolor.x, pev->rendercolor.y, pev->rendercolor.z, 
 		pev->renderamt, pev->renderfx);
 	m_pGlow->SetAttachment (edict (), 1);

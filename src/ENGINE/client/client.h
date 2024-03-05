@@ -354,7 +354,7 @@ typedef struct
 #define FONT_DRAW_NOLF				BIT( 4 ) // ignore \n
 #define FONT_DRAW_RESETCOLORONLF	BIT( 5 ) // yet another flag to simulate consecutive Con_DrawString calls...
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.03.24]
 typedef struct
 	{
 	int			hFontTexture;		// handle to texture	
@@ -363,7 +363,8 @@ typedef struct
 	byte		charWidths[256];	// scaled widths
 	int			charHeight;			// scaled height
 	int			type;				// fixed width font or variable
-	int			rendermode;			// default rendermode
+	/*int		rendermode;			// default rendermode*/
+	convar_t	*rendermode;		// user-defined default rendermode
 	/*qboolean	nearest;			// nearest filtering enabled*/
 	qboolean	valid;				// all rectangles are valid
 	} cl_font_t;
@@ -707,12 +708,14 @@ extern convar_t cl_draw_beams;
 extern convar_t cl_clockreset;
 extern convar_t cl_fixtimerate;
 extern convar_t hud_fontscale;
+extern convar_t hud_fontrender;		// [FWGS, 01.03.24]
 extern convar_t hud_scale;
 extern convar_t hud_scale_minimal_width;	// [FWGS, 01.02.24]
 extern convar_t r_showtextures;
 extern convar_t cl_bmodelinterp;
 extern convar_t cl_lw;	// local weapons
 extern convar_t cl_charset;
+extern convar_t cl_trace_stufftext;		// [FWGS, 01.03.24]
 extern convar_t cl_trace_messages;
 extern convar_t cl_trace_events;
 extern convar_t hud_utf8;
@@ -836,12 +839,15 @@ word CL_EventIndex (const char *name);
 void CL_FireEvents (void);
 
 //
-// cl_font.c [FWGS, 01.04.23]
+// cl_font.c [FWGS, 01.03.24]
 //
 qboolean CL_FixedFont (cl_font_t *font);
-qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags);
-qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags);
+/*qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags);
+qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags);*/
+qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode, uint texFlags);
+qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode, uint texFlags);
 void CL_FreeFont (cl_font_t *font);
+void CL_SetFontRendermode (cl_font_t *font);
 int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *font, int flags);
 int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *font, int flags);
 void CL_DrawCharacterLen (cl_font_t *font, int number, int *width, int *height);

@@ -446,6 +446,13 @@ static void SV_ConnectClient (netadr_t from)
 
 	// parse some info from the info strings (this can override cl_updaterate)
 	Q_strncpy (newcl->userinfo, userinfo, sizeof (newcl->userinfo));
+
+	// [FWGS, 01.03.24]
+	newcl->fullupdate_next_calltime = 0;
+	newcl->userinfo_next_changetime = 0;
+	newcl->userinfo_penalty = 0;
+	newcl->userinfo_change_attempts = 0;
+
 	SV_UserinfoChanged (newcl);
 	SV_ClearResourceLists (newcl);
 
@@ -798,6 +805,7 @@ const char *SV_GetClientIDString (sv_client_t *cl)
 	return result;
 	}
 
+// [FWGS, 01.03.24]
 sv_client_t *SV_ClientById (int id)
 	{
 	sv_client_t	*cl;
@@ -805,7 +813,8 @@ sv_client_t *SV_ClientById (int id)
 
 	ASSERT (id >= 0);
 
-	for (i = 0, cl = svs.clients; i < svgame.globals->maxClients; i++, cl++)
+	/*for (i = 0, cl = svs.clients; i < svgame.globals->maxClients; i++, cl++)*/
+	for (i = 0, cl = svs.clients; cl && i < svgame.globals->maxClients; i++, cl++)
 		{
 		if (!cl->state)
 			continue;
@@ -817,6 +826,7 @@ sv_client_t *SV_ClientById (int id)
 	return NULL;
 	}
 
+// [FWGS, 01.03.24]
 sv_client_t *SV_ClientByName (const char *name)
 	{
 	sv_client_t	*cl;
@@ -825,7 +835,8 @@ sv_client_t *SV_ClientByName (const char *name)
 	if (!COM_CheckString (name))
 		return NULL;
 
-	for (i = 0, cl = svs.clients; i < svgame.globals->maxClients; i++, cl++)
+	/*for (i = 0, cl = svs.clients; i < svgame.globals->maxClients; i++, cl++)*/
+	for (i = 0, cl = svs.clients; cl && i < svgame.globals->maxClients; i++, cl++)
 		{
 		if (!cl->state)
 			continue;
@@ -3566,7 +3577,7 @@ static void SV_ParseCvarValue2 (sv_client_t *cl, sizebuf_t *msg)
 
 /*
 ===================
-SV_ParseVoiceData
+SV_ParseVoiceData [FWGS, 01.03.24]
 ===================
 */
 static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
@@ -3592,7 +3603,8 @@ static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 
 	MSG_ReadBytes (msg, received, size);
 
-	if (!sv_voiceenable.value)
+	/*if (!sv_voiceenable.value)*/
+	if (!sv_voiceenable.value || (svs.maxclients <= 1))
 		return;
 
 	for (i = 0, cur = svs.clients; i < svs.maxclients; i++, cur++)

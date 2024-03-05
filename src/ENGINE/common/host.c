@@ -79,7 +79,7 @@ static CVAR_DEFINE_AUTO (host_sleeptime_debug, "0", 0,
 CVAR_DEFINE (con_gamemaps, "con_mapfilter", "1", FCVAR_ARCHIVE,
 	"when true show only maps in game folder");
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.03.24]
 static void Sys_PrintUsage (void)
 	{
 	string version_str;
@@ -123,6 +123,7 @@ static void Sys_PrintUsage (void)
 		O ("-port6 <port>    ", "set IPv6 port")
 		O ("-clockwindow <cw>", "adjust clockwindow used to ignore client commands to prevent speed hacks")
 		"\nGame options:\n"
+		O ("-game <directory>", "set game directory to start engine with")
 		O ("-dll <path>      ", "override server DLL path")
 #if !XASH_DEDICATED
 		O ("-clientlib <path>", "override client DLL path")
@@ -1397,6 +1398,7 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 
 	HTTP_Init ();
 	ID_Init ();
+	SoundList_Init ();	// [FWGS, 01.03.24]
 
 	if (Host_IsDedicated ())
 		{
@@ -1526,6 +1528,7 @@ void EXPORT Host_Shutdown (void)
 	SV_Shutdown ("Server shutdown\n");
 	SV_ShutdownFilter ();
 	CL_Shutdown ();
+	SoundList_Shutdown ();	// [FWGS, 01.03.24]
 
 	Mod_Shutdown ();
 	NET_Shutdown ();

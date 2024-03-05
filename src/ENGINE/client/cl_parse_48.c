@@ -433,25 +433,34 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 			case svc_legacy_ambientsound:
 				CL_LegacyParseSoundPacket (msg, true);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
-
 				break;
+
 			case svc_time:
 				CL_ParseServerTime (msg);
 				break;
+
 			case svc_print:
 				Con_Printf ("%s", MSG_ReadString (msg));
 				break;
+
+			// [FWGS, 01.03.24]
 			case svc_stufftext:
 				s = MSG_ReadString (msg);
+				if (cl_trace_stufftext.value)
+					{
+					size_t len = Q_strlen (s);
+					Con_Printf ("Stufftext: %s%c", s, len && s[len - 1] == '\n' ? '\0' : '\n');
+					}
+
 #ifdef HACKS_RELATED_HLMODS
 				// disable Cry Of Fear antisave protection
 				if (!Q_strnicmp (s, "disconnect", 10) && cls.signon != SIGNONS)
 					break; // too early
 #endif
-
-				Con_Reportf ("Stufftext: %s", s);
+				/*Con_Reportf ("Stufftext: %s", s);*/
 				Cbuf_AddFilteredText (s);
 				break;
+
 			case svc_setangle:
 				CL_ParseSetAngle (msg);
 				break;

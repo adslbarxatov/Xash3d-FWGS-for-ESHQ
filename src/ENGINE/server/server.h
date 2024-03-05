@@ -532,6 +532,7 @@ void SV_CheckVelocity (edict_t *ent);
 qboolean SV_PlayerRunThink (edict_t *ent, float frametime, double time);
 void SV_Impact (edict_t *e1, edict_t *e2, trace_t *trace);
 void SV_FreeOldEntities (void);
+void SV_UpdateFogSettings (unsigned int packed_fog);
 
 //
 // sv_move.c

@@ -59,12 +59,13 @@ CVAR_DEFINE_AUTO (gl_round_down, "2", FCVAR_GLCONFIG | FCVAR_READ_ONLY,
 CVAR_DEFINE (r_vbo, "gl_vbo", "0", FCVAR_ARCHIVE,
 	"draw world using VBO (known to be glitchy)");
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.24]
 CVAR_DEFINE (r_vbo_detail, "gl_vbo_detail", "0", FCVAR_ARCHIVE,
 	"detail vbo mode (0: disable, 1: multipass, 2: singlepass, broken decal dlights)");
-
 CVAR_DEFINE (r_vbo_dlightmode, "gl_vbo_dlightmode", "1", FCVAR_ARCHIVE,
 	"vbo dlight rendering mode (0-1)");
+CVAR_DEFINE (r_vbo_overbrightmode, "gl_vbo_overbrightmode", "0", FCVAR_ARCHIVE,
+	"vbo overbright rendering mode (0-1)");
 CVAR_DEFINE_AUTO (r_ripple, "0", FCVAR_GLCONFIG,
 	"enable software-like water texture ripple simulation");
 CVAR_DEFINE_AUTO (r_ripple_updatetime, "0.05", FCVAR_GLCONFIG,
@@ -1307,7 +1308,7 @@ static void GL_InitCommands (void)
 
 /*
 ===============
-R_CheckVBO [FWGS, 01.01.24]
+R_CheckVBO [FWGS, 01.03.24]
 
 register VBO cvars and get default value
 ===============
@@ -1336,6 +1337,7 @@ static void R_CheckVBO (void)
 
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo);
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo_dlightmode);
+	gEngfuncs.Cvar_RegisterVariable (&r_vbo_overbrightmode);
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo_detail);
 	}
 

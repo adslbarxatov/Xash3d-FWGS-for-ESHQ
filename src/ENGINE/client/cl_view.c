@@ -503,7 +503,7 @@ static void R_ShowTree (void)
 
 /*
 ==================
-V_PostRender
+V_PostRender [FWGS, 01.03.24]
 ==================
 */
 void V_PostRender (void)
@@ -554,8 +554,8 @@ void V_PostRender (void)
 	SCR_MakeScreenShot ();
 	ref.dllFuncs.R_AllowFog (true);
 
-	// [FWGS, 01.01.24]
 	Platform_SetTimer (0.0f);
 
 	ref.dllFuncs.R_EndFrame ();
+	V_CheckGammaEnd ();
 	}

@@ -460,7 +460,7 @@ SV_CheckWater
 */
 static qboolean SV_CheckWater (edict_t *ent)
 	{
-	int	cont, truecont;
+	int		cont, truecont;
 	vec3_t	point;
 
 	point[0] = (ent->v.absmax[0] + ent->v.absmin[0]) * 0.5f;
@@ -472,7 +472,7 @@ static qboolean SV_CheckWater (edict_t *ent)
 	ent->v.waterlevel = 0;
 
 	cont = SV_PointContents (point);
-	if (cont <= CONTENTS_WATER && cont > CONTENTS_TRANSLUCENT)
+	if ((cont <= CONTENTS_WATER) && (cont > CONTENTS_TRANSLUCENT))
 		{
 		svs.groupmask = ent->v.groupinfo;
 		truecont = SV_TruePointContents (point);
@@ -487,7 +487,7 @@ static qboolean SV_CheckWater (edict_t *ent)
 			svs.groupmask = ent->v.groupinfo;
 			cont = SV_PointContents (point);
 
-			if (cont <= CONTENTS_WATER && cont > CONTENTS_TRANSLUCENT)
+			if ((cont <= CONTENTS_WATER) && (cont > CONTENTS_TRANSLUCENT))
 				{
 				ent->v.waterlevel = 2;
 
@@ -495,7 +495,7 @@ static qboolean SV_CheckWater (edict_t *ent)
 				svs.groupmask = ent->v.groupinfo;
 				cont = SV_PointContents (point);
 
-				if (cont <= CONTENTS_WATER && cont > CONTENTS_TRANSLUCENT)
+				if ((cont <= CONTENTS_WATER) && (cont > CONTENTS_TRANSLUCENT))
 					ent->v.waterlevel = 3;
 				}
 			}
@@ -506,7 +506,7 @@ static qboolean SV_CheckWater (edict_t *ent)
 			}
 
 		// Quake2 feature. Probably never was used in Half-Life...
-		if (truecont <= CONTENTS_CURRENT_0 && truecont >= CONTENTS_CURRENT_DOWN)
+		if ((truecont <= CONTENTS_CURRENT_0) && (truecont >= CONTENTS_CURRENT_DOWN))
 			{
 			float speed = 150.0f * ent->v.waterlevel / 3.0f;
 			const float *dir = current_table[CONTENTS_CURRENT_0 - truecont];
@@ -1365,13 +1365,13 @@ TOSS / BOUNCE
 */
 /*
 =============
-SV_CheckWaterTransition
+SV_CheckWaterTransition [FWGS, 01.03.24]
 =============
 */
 static void SV_CheckWaterTransition (edict_t *ent)
 	{
 	vec3_t	point;
-	int	cont;
+	int		cont;
 
 	point[0] = (ent->v.absmax[0] + ent->v.absmin[0]) * 0.5f;
 	point[1] = (ent->v.absmax[1] + ent->v.absmin[1]) * 0.5f;
@@ -1394,7 +1394,11 @@ static void SV_CheckWaterTransition (edict_t *ent)
 		if ((ent->v.watertype == CONTENTS_EMPTY) && (cont != CONTENTS_SKY))
 			{
 			// just crossed into water
-			SV_StartSound (ent, CHAN_AUTO, "player/pl_wade1.wav", 1.0f, ATTN_MEDIUM, 0, 100);
+			/*SV_StartSound (ent, CHAN_AUTO, "player/pl_wade1.wav", 1.0f, ATTN_MEDIUM, 0, 100);*/
+			const char *snd = SoundList_GetRandom (PlayerWaterEnter);
+			if (snd)
+				SV_StartSound (ent, CHAN_AUTO, snd, 1.0f, ATTN_MEDIUM, 0, 90);
+
 			ent->v.velocity[2] *= 0.5f;
 			}
 
@@ -1407,13 +1411,13 @@ static void SV_CheckWaterTransition (edict_t *ent)
 			svs.groupmask = ent->v.groupinfo;
 			cont = SV_PointContents (point);
 
-			if (cont <= CONTENTS_WATER && cont > CONTENTS_TRANSLUCENT)
+			if ((cont <= CONTENTS_WATER) && (cont > CONTENTS_TRANSLUCENT))
 				{
 				ent->v.waterlevel = 2;
 				VectorAdd (point, ent->v.view_ofs, point);
 				svs.groupmask = ent->v.groupinfo;
 				cont = SV_PointContents (point);
-				if (cont <= CONTENTS_WATER && cont > CONTENTS_TRANSLUCENT)
+				if ((cont <= CONTENTS_WATER) && (cont > CONTENTS_TRANSLUCENT))
 					ent->v.waterlevel = 3;
 				}
 			}
@@ -1429,7 +1433,10 @@ static void SV_CheckWaterTransition (edict_t *ent)
 		if ((ent->v.watertype != CONTENTS_EMPTY) && (ent->v.watertype != CONTENTS_SKY))
 			{
 			// just crossed into water
-			SV_StartSound (ent, CHAN_AUTO, "player/pl_wade2.wav", 1.0f, ATTN_MEDIUM, 0, 100);
+			/*SV_StartSound (ent, CHAN_AUTO, "player/pl_wade2.wav", 1.0f, ATTN_MEDIUM, 0, 100);*/
+			const char *snd = SoundList_GetRandom (PlayerWaterExit);
+			if (snd)
+				SV_StartSound (ent, CHAN_AUTO, snd, 1.0f, ATTN_MEDIUM, 0, 90);
 			}
 		ent->v.watertype = CONTENTS_EMPTY;
 		ent->v.waterlevel = 0;
@@ -1981,8 +1988,8 @@ static const char *GAME_EXPORT SV_GetLightStyle (int style)
 	return sv.lightstyles[style].pattern;
 	}
 
-// [FWGS, 01.07.23]
-static void GAME_EXPORT SV_UpdateFogSettings (unsigned int packed_fog)
+// ESHQ: поддержка тумана адаптирована для вызова через интерфейс
+/*static*/ void GAME_EXPORT SV_UpdateFogSettings (unsigned int packed_fog)
 	{
 	svgame.movevars.fog_settings = packed_fog;
 	host.movevars_changed = true; // force to transmit
@@ -2147,6 +2154,7 @@ static server_physics_api_t gPhysicsAPI =
 		COM_SaveFile,
 		pfnLoadImagePixels,
 		pfnGetModelName,
+		Sys_GetNativeObject,	// [FWGS, 01.03.24]
 	};
 
 /*

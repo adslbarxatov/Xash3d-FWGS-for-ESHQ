@@ -102,8 +102,8 @@ typedef uint64_t longtime_t;
 	#define NORETURN __attribute__((noreturn))
 	#define NONNULL __attribute__((nonnull))	// [FWGS, 01.11.23]
 	#define ALLOC_CHECK(x) __attribute__((alloc_size(x)))	// [FWGS, 01.01.24]
-	#define FORCEINLINE inline __attribute__((always_inline))	// [FWGS, 01.02.24]
-	#define NOINLINE __attribute__((noinline))	// [FWGS, 01.02.24]
+	/*#define FORCEINLINE inline __attribute__((always_inline))	// [FWGS, 01.03.24]
+	#define NOINLINE __attribute__((noinline))	// [FWGS, 01.03.24]*/
 
 #elif defined(_MSC_VER)
 	#define EXPORT		__declspec( dllexport )
@@ -112,8 +112,8 @@ typedef uint64_t longtime_t;
 	#define NORETURN
 	#define NONNULL	// [FWGS, 01.11.23]
 	#define ALLOC_CHECK(x)	// [FWGS, 01.01.24]
-	#define FORCEINLINE __forceinline	// [FWGS, 01.02.24]
-	#define NOINLINE __declspec( noinline )	// [FWGS, 01.02.24]
+	/*#define FORCEINLINE __forceinline	// [FWGS, 01.03.24]
+	#define NOINLINE __declspec( noinline )	// [FWGS, 01.03.24]*/
 
 #else
 	#define EXPORT
@@ -122,8 +122,8 @@ typedef uint64_t longtime_t;
 	#define NORETURN
 	#define NONNULL	// [FWGS, 01.11.23]
 	#define ALLOC_CHECK(x)	// [FWGS, 01.01.24]
-	#define FORCEINLINE	// [FWGS, 01.02.24]
-	#define NOINLINE	// [FWGS, 01.02.24]
+	/*#define FORCEINLINE	// [FWGS, 01.03.24]
+	#define NOINLINE	// [FWGS, 01.03.24]*/
 #endif
 
 #if ( __GNUC__ >= 3 )

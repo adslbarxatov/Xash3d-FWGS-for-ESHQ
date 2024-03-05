@@ -142,9 +142,15 @@ CVAR_DEFINE_AUTO (listipcfgfile, "listip.cfg", 0,
 CVAR_DEFINE_AUTO (mapchangecfgfile, "", 0,
 	"name of map change configuration file");
 
+// [FWGS, 01.03.24]
+CVAR_DEFINE_AUTO (disconcfgfile, "", 0,
+	"name of disconnect configuration file");
+CVAR_DEFINE_AUTO (_sv_override_scientist_mdl, "", 0,
+	"override default scientist model name (specially for HL25 Uplink maps)");
+
 // ESHQ: meat mode
 CVAR_DEFINE_AUTO (meat_mode, "0", FCVAR_ARCHIVE,
-	"allows bullets and electrical shocks to squash corpses");
+	"allows bullets and electrical shocks to squash corpses immediately");
 
 // physic-related variables
 CVAR_DEFINE_AUTO (sv_gravity, "800", FCVAR_MOVEVARS,
@@ -1126,6 +1132,9 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&bannedcfgfile);
 	Cvar_RegisterVariable (&listipcfgfile);
 	Cvar_RegisterVariable (&mapchangecfgfile);
+
+	Cvar_RegisterVariable (&disconcfgfile);	// [FWGS, 01.03.24]
+	Cvar_RegisterVariable (&_sv_override_scientist_mdl);	// [FWGS, 01.03.24]
 
 	Cvar_RegisterVariable (&sv_voiceenable);
 	Cvar_RegisterVariable (&sv_voicequality);

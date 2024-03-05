@@ -20,11 +20,11 @@ GNU General Public License for more details.
 #include "vid_common.h"
 #include "platform/platform.h"
 
-// [FWGS, 01.01.24]
-static CVAR_DEFINE (window_width, "width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+// [FWGS, 01.03.24]
+/*static CVAR_DEFINE (window_width, "width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen width");
 static CVAR_DEFINE (window_height, "height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-	"screen height");
+	"screen height");*/
 
 /*static CVAR_DEFINE (vid_brightness, "brightness", "0.0", FCVAR_ARCHIVE,
 	"brightness factor");
@@ -39,12 +39,15 @@ static CVAR_DEFINE_AUTO (vid_scale, "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"pixel scale");
 CVAR_DEFINE_AUTO (vid_highdpi, "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"enable High-DPI mode");
-
-// [FWGS, 01.11.23]
 CVAR_DEFINE_AUTO (vid_maximized, "0", FCVAR_RENDERINFO,
 	"window maximized state, read-only");
 CVAR_DEFINE (vid_fullscreen, "fullscreen", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"fullscreen state (0 windowed, 1 fullscreen, 2 borderless)");
+
+CVAR_DEFINE (window_width, "width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"screen width");
+CVAR_DEFINE (window_height, "height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"screen height");
 
 CVAR_DEFINE (window_xpos, "_window_xpos", "-1", FCVAR_RENDERINFO,
 	"window position by horizontal");

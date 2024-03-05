@@ -195,6 +195,9 @@ typedef struct fs_api_t
 	void (*Unused0)(void);
 	void *(*MountArchive_Fullpath)(const char *path, int flags);	// [FWGS, 01.07.23]
 	qboolean (*GetFullDiskPath)(char *buffer, size_t size, const char *name, qboolean gamedironly);
+	
+	// [FWGS, 01.03.24] like LoadFile but returns pointer that can be free'd using standard library function
+	byte *(*LoadFileMalloc)(const char *path, fs_offset_t *filesizeptr, qboolean gamedironly);
 	} fs_api_t;
 
 typedef struct fs_interface_t

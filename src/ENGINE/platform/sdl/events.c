@@ -697,12 +697,11 @@ static void SDLash_EventFilter (SDL_Event *event)
 				type = event_up;
 			else if (event->type == SDL_FINGERMOTION)
 				type = event_motion;
-			else break;
+			else
+				break;
 
-			/*
-			SDL sends coordinates in [0..width],[0..height] values
-			on some devices
-			*/
+			// SDL sends coordinates in [0..width],[0..height] values
+			// on some devices
 			if (!scale)
 				{
 				if ((event->tfinger.x > 0) && (event->tfinger.y > 0))
@@ -736,7 +735,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			break;
 			}
 
-			// IME
+		// IME
 		case SDL_TEXTINPUT:
 			SDLash_InputEvent (event->text);
 			break;
@@ -748,7 +747,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			Joy_RemoveEvent ();
 			break;
 
-			// GameController API
+		// GameController API
 		case SDL_CONTROLLERAXISMOTION:
 			{
 			if (!Joy_IsActive ())
@@ -826,8 +825,11 @@ static void SDLash_EventFilter (SDL_Event *event)
 					SDLash_ActiveEvent (false);
 					break;
 
+				// [FWGS, 01.03.24]
 				case SDL_WINDOWEVENT_RESIZED:
+#if !XASH_MOBILE_PLATFORM
 					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
+#endif
 						{
 						SDL_Window *wnd = SDL_GetWindowFromID (event->window.windowID);
 						VID_SaveWindowSize (event->window.data1, event->window.data2,

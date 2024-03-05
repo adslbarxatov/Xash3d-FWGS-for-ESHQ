@@ -72,6 +72,7 @@ typedef struct server_physics_api_s
 	areanode_t *(*pfnGetHeadnode)(void); // AABB tree for all physic entities
 	int		(*pfnServerState)(void);
 	void		(*pfnHost_Error)(const char *error, ...);	// cause Host Error
+
 	// ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT. INTERFACE VERSION IS FROZEN AT 6
 	struct triangleapi_s *pTriAPI;	// draw coliisions etc. Only for local system
 
@@ -108,9 +109,13 @@ typedef struct server_physics_api_s
 
 	// FS tools
 	int		(*pfnSaveFile)(const char *filename, const void *data, int len);
-	const byte *(*pfnLoadImagePixels)(const char *filename, int *width, int *height);
+	const byte	*(*pfnLoadImagePixels)(const char *filename, int *width, int *height);
 
-	const char *(*pfnGetModelName)(int modelindex);
+	/*const char *(*pfnGetModelName)(int modelindex);*/
+	const char	*(*pfnGetModelName)(int modelindex);
+
+	// [FWGS, 01.03.24] FWGS extension
+	void	*(*pfnGetNativeObject)(const char *object);
 	} server_physics_api_t;
 
 // physic callbacks

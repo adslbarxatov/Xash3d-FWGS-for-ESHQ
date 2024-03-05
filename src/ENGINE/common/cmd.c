@@ -525,11 +525,12 @@ typedef struct cmd_s
 	char *desc;
 	} cmd_t;
 
-static int		cmd_argc;
-static const char *cmd_args = NULL;
-static char *cmd_argv[MAX_CMD_TOKENS];
-static char		cmd_tokenized[MAX_CMD_BUFFER];	// will have 0 bytes inserted
-static cmd_t *cmd_functions;			// possible commands to execute
+// [FWGS, 01.03.24]
+static int			cmd_argc;
+static const char	*cmd_args = NULL;
+static char			*cmd_argv[MAX_CMD_TOKENS];
+/*static char		cmd_tokenized[MAX_CMD_BUFFER];	// will have 0 bytes inserted*/
+static cmd_t		*cmd_functions;			// possible commands to execute
 
 /*
 ============

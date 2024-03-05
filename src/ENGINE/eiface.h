@@ -306,18 +306,19 @@ typedef struct enginefuncs_s
 	// FWGS: added in 8279
 	edict_t *(*pfnPEntityOfEntIndexAllEntities)(int iEntIndex);
 
-	void (*pfnWriteAchievementsScript)(byte Mode, int NewLevel);	// ESHQ: добавление поддержки для достижений
-	char *(*pfnTextMessageGet)(const char *pName);			// ESHQ: поддержка извлечения текста из titles.txt
+	void	(*pfnWriteAchievementsScript)(byte Mode, int NewLevel);	// ESHQ: добавление поддержки для достижений
+	char	*(*pfnTextMessageGet)(const char *pName);				// ESHQ: поддержка извлечения текста из titles.txt
+	void	(*pfnUpdateFogSettings)(unsigned int packed_fog);		// ESHQ: поддержка тумана
 	} enginefuncs_t;
 // ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT. INTERFACE VERSION IS FROZEN AT 138
 
 // Passed to pfnKeyValue
 typedef struct KeyValueData_s
 	{
-	char *szClassName;	// in: entity classname
-	char *szKeyName;	// in: name of key
-	char *szValue;		// in: value of key
-	int		fHandled;	// FWGS: out: DLL sets to true if key-value pair was understood
+	char	*szClassName;	// in: entity classname
+	char	*szKeyName;		// in: name of key
+	char	*szValue;		// in: value of key
+	int		fHandled;		// FWGS: out: DLL sets to true if key-value pair was understood
 	} KeyValueData;
 
 typedef struct

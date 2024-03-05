@@ -462,19 +462,19 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 
 /*
 =============
-CL_DrawCenterPrint [FWGS, 01.04.23]
+CL_DrawCenterPrint [FWGS, 01.03.24]
 
 called each frame
 =============
 */
 void CL_DrawCenterPrint (void)
 	{
-	cl_font_t *font = Con_GetCurFont ();
-	char *pText;
-	int	i, j, x, y;
-	int	width, lineLength;
-	byte *colorDefault, line[MAX_LINELENGTH];
-	int	charWidth, charHeight;
+	cl_font_t	*font = Con_GetCurFont ();
+	char		*pText;
+	int			i, j, x, y;
+	int			width, lineLength;
+	byte		*colorDefault, line[MAX_LINELENGTH];
+	int			charWidth, charHeight;
 
 	if (!clgame.centerPrint.time)
 		return;
@@ -491,7 +491,8 @@ void CL_DrawCenterPrint (void)
 	pText = clgame.centerPrint.message;
 
 	CL_DrawCharacterLen (font, 0, NULL, &charHeight);
-	ref.dllFuncs.GL_SetRenderMode (font->rendermode);
+	/*ref.dllFuncs.GL_SetRenderMode (font->rendermode);*/
+	CL_SetFontRendermode (font);
 
 	for (i = 0; i < clgame.centerPrint.lines; i++)
 		{

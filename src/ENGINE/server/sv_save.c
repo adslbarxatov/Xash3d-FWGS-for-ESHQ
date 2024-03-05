@@ -46,16 +46,16 @@ typedef struct
 
 typedef struct
 	{
-	int	skillLevel;
-	int	entityCount;
-	int	connectionCount;
-	int	lightStyleCount;
+	int		skillLevel;
+	int		entityCount;
+	int		connectionCount;
+	int		lightStyleCount;
 	float	time;
 	char	mapName[32];
 	char	skyName[32];
-	int	skyColor_r;
-	int	skyColor_g;
-	int	skyColor_b;
+	int		skyColor_r;
+	int		skyColor_g;
+	int		skyColor_b;
 	float	skyVec_x;
 	float	skyVec_y;
 	float	skyVec_z;
@@ -63,13 +63,13 @@ typedef struct
 
 typedef struct
 	{
-	int	decalCount;	// render decals count
-	int	entityCount;	// static entity count
-	int	soundCount;	// sounds count
-	int	tempEntsCount;	// not used
+	int		decalCount;	// render decals count
+	int		entityCount;	// static entity count
+	int		soundCount;	// sounds count
+	int		tempEntsCount;	// not used
 	char	introTrack[64];
 	char	mainTrack[64];
-	int	trackPosition;
+	int		trackPosition;
 	short	viewentity;	// Xash3D added
 	float	wateralpha;
 	float	wateramp;		// world waves
@@ -77,7 +77,7 @@ typedef struct
 
 typedef struct
 	{
-	int	index;
+	int		index;
 	char	style[256];
 	float	time;
 	} SAVE_LIGHTSTYLE;
@@ -305,8 +305,8 @@ typically it writes world message and level time
 */
 static void SaveBuildComment (char *text, int maxlength)
 	{
-	string      comment;
-	const char *pName = NULL;
+	string		comment;
+	const char	*pName = NULL;
 
 	text[0] = '\0'; // clear
 
@@ -360,8 +360,8 @@ in save folder
 */
 static int DirectoryCount (const char *pPath)
 	{
-	int	count;
-	search_t *t;
+	int			count;
+	search_t	*t;
 
 	t = FS_Search (pPath, true, true);	// lookup only in gamedir
 	if (!t)
@@ -382,8 +382,8 @@ reserve space for ETABLE's
 */
 static void InitEntityTable (SAVERESTOREDATA *pSaveData, int entityCount)
 	{
-	ENTITYTABLE *pTable;
-	int		i;
+	ENTITYTABLE	*pTable;
+	int			i;
 
 	pSaveData->pTable = Mem_Calloc (host.mempool, sizeof (ENTITYTABLE) * entityCount);
 	pSaveData->tableCount = entityCount;
@@ -468,11 +468,11 @@ outside of world. Find them and remove
 */
 static int EntityInSolid (edict_t *pent)
 	{
-	edict_t *aiment = pent->v.aiment;
+	edict_t	*aiment = pent->v.aiment;
 	vec3_t	point;
 
 	// if you're attached to a client, always go through
-	if (pent->v.movetype == MOVETYPE_FOLLOW && SV_IsValidEdict (aiment) && FBitSet (aiment->v.flags, FL_CLIENT))
+	if ((pent->v.movetype == MOVETYPE_FOLLOW) && SV_IsValidEdict (aiment) && FBitSet (aiment->v.flags, FL_CLIENT))
 		return 0;
 
 	VectorAverage (pent->v.absmin, pent->v.absmax, point);
@@ -491,8 +491,8 @@ remove all the temp files xv1 - xv3
 */
 static void ClearSaveDir (void)
 	{
-	search_t *t;
-	int	i;
+	search_t	*t;
+	int			i;
 
 	// just delete all xv? files
 	t = FS_Search (DEFAULT_SAVE_DIRECTORY "*." EXTENDED_SAVE_EXTENSION "?", true, true);
@@ -551,7 +551,7 @@ static int IsValidSave (void)
 		return 0;
 		}
 
-	if (svs.clients && svs.clients[0].state == cs_spawned)
+	if (svs.clients && (svs.clients[0].state == cs_spawned))
 		{
 		edict_t *pl = svs.clients[0].edict;
 
@@ -572,7 +572,6 @@ static int IsValidSave (void)
 		}
 
 	Con_Printf ("Can't savegame without a client!\n");
-
 	return 0;
 	}
 
@@ -600,7 +599,7 @@ static void AgeSaveList (const char *pName, int count)
 #if !XASH_DEDICATED
 	// unloading the shot footprint
 	GL_FreeImage (newShot);
-#endif // XASH_DEDICATED
+#endif
 
 	while (count > 0)
 		{
@@ -626,7 +625,7 @@ static void AgeSaveList (const char *pName, int count)
 #if !XASH_DEDICATED
 		// unloading the oldshot footprint too
 		GL_FreeImage (oldShot);
-#endif // XASH_DEDICATED
+#endif
 
 		// scroll the name list down (e.g. rename quick04.sav to quick05.sav)
 		FS_Rename (oldName, newName);
@@ -645,9 +644,9 @@ put the xv1 - xv3 files into save file
 static void DirectoryCopy (const char *pPath, file_t *pFile)
 	{
 	char	szName[MAX_OSPATH];
-	int	i, fileSize;
-	file_t *pCopy;
-	search_t *t;
+	int		i, fileSize;
+	file_t	*pCopy;
+	search_t	*t;
 
 	t = FS_Search (pPath, true, true);
 	if (!t)
@@ -680,8 +679,8 @@ static void DirectoryExtract (file_t *pFile, int fileCount)
 	{
 	char	szName[MAX_OSPATH];
 	char	fileName[MAX_OSPATH];
-	int	i, fileSize;
-	file_t *pCopy;
+	int		i, fileSize;
+	file_t	*pCopy;
 
 	for (i = 0; i < fileCount; i++)
 		{
@@ -1038,8 +1037,8 @@ write out the list of entities that are no longer in the save file for this leve
 static void EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 	{
 	char	name[MAX_QPATH];
-	int	i, size = 0;
-	file_t *pFile;
+	int		i, size = 0;
+	file_t	*pFile;
 
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "3", level);
 
@@ -1075,8 +1074,8 @@ read the list of entities that are no longer in the save file for this level
 static void EntityPatchRead (SAVERESTOREDATA *pSaveData, const char *level)
 	{
 	char	name[MAX_QPATH];
-	int	i, size, entityId;
-	file_t *pFile;
+	int		i, size, entityId;
+	file_t	*pFile;
 
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "3", level);
 
@@ -1104,10 +1103,10 @@ restore decal\move across transition
 */
 static void RestoreDecal (SAVERESTOREDATA *pSaveData, decallist_t *entry, qboolean adjacent)
 	{
-	int	decalIndex, entityIndex = 0;
-	int	flags = entry->flags;
-	int	modelIndex = 0;
-	edict_t *pEdict;
+	int		decalIndex, entityIndex = 0;
+	int		flags = entry->flags;
+	int		modelIndex = 0;
+	edict_t	*pEdict;
 
 	// never move permanent decals
 	if (adjacent && FBitSet (flags, FDECAL_PERMANENT))
@@ -1132,7 +1131,7 @@ static void RestoreDecal (SAVERESTOREDATA *pSaveData, decallist_t *entry, qboole
 	decalIndex = pfnDecalIndex (entry->name);
 
 	// this can happens if brush entity from previous level was turned into world geometry
-	if (adjacent && entry->entityIndex != 0 && !SV_IsValidEdict (pEdict))
+	if (adjacent && (entry->entityIndex != 0) && !SV_IsValidEdict (pEdict))
 		{
 		vec3_t	testspot, testend;
 		trace_t	tr;
@@ -1177,8 +1176,8 @@ continue playing sound from saved position
 */
 static void RestoreSound (SAVERESTOREDATA *pSaveData, soundlist_t *snd)
 	{
-	edict_t *ent = EdictFromTable (pSaveData, snd->entnum);
-	int	flags = SND_RESTORE_POSITION;
+	edict_t	*ent = EdictFromTable (pSaveData, snd->entnum);
+	int		flags = SND_RESTORE_POSITION;
 
 	// this can happens if serialized map contain 4096 static decals...
 	if (MSG_GetNumBytesLeft (&sv.signon) < 36)
@@ -1207,13 +1206,13 @@ write out the list of premanent decals for this level
 static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int changelevel)
 	{
 	soundlist_t	soundInfo[MAX_CHANNELS];
-	sv_client_t *cl = svs.clients;
+	sv_client_t	*cl = svs.clients;
 	char		name[MAX_QPATH];
-	int		i, id, version;
-	char *pTokenData;
-	decallist_t *decalList;
+	int			i, id, version;
+	char		*pTokenData;
+	decallist_t	*decalList;
 	SAVE_CLIENT	header;
-	file_t *pFile;
+	file_t		*pFile;
 
 	// clearing the saving buffer to reuse
 	SaveClear (pSaveData);
@@ -1230,7 +1229,7 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 		header.decalCount = ref.dllFuncs.R_CreateDecalList (decalList);
 		}
 	else
-#endif // XASH_DEDICATED
+#endif
 		{
 		// we probably running a dedicated server
 		header.decalCount = 0;
@@ -1241,6 +1240,7 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 		{
 		// sounds won't going across transition
 		header.soundCount = S_GetCurrentDynamicSounds (soundInfo, MAX_CHANNELS);
+
 #if !XASH_DEDICATED
 		// music not reqiured to save position: it's just continue playing on a next level
 		S_StreamGetCurrentState (header.introTrack, header.mainTrack, &header.trackPosition);
@@ -1300,6 +1300,10 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 	FS_Write (pFile, &pSaveData->tokenSize, sizeof (int));
 	FS_Write (pFile, pTokenData, pSaveData->tokenSize);
 	FS_Write (pFile, pSaveData->pBaseData, pSaveData->size); // header and globals
+
+	// ESHQ: попробуем добавить метрики тумана сюда
+	FS_Write (pFile, &svgame.movevars.fog_settings, sizeof (int));
+
 	FS_Close (pFile);
 	}
 
@@ -1312,14 +1316,14 @@ read the list of decals and reapply them again
 */
 static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboolean changelevel, qboolean adjacent)
 	{
-	int		tokenCount, tokenSize;
-	int		i, size, id, version;
-	sv_client_t *cl = svs.clients;
+	int			tokenCount, tokenSize;
+	int			i, size, id, version;
+	sv_client_t	*cl = svs.clients;
 	char		name[MAX_QPATH];
 	soundlist_t	soundEntry;
 	decallist_t	decalEntry;
 	SAVE_CLIENT	header;
-	file_t *pFile;
+	file_t		*pFile;
 
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "2", level);
 
@@ -1356,6 +1360,10 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 	BuildHashTable (pSaveData, pFile);
 
 	FS_Read (pFile, pSaveData->pBaseData, size);
+
+	// ESHQ: попробуем добавить метрики тумана сюда
+	FS_Read (pFile, &svgame.movevars.fog_settings, sizeof (int));
+
 	FS_Close (pFile);
 
 	// Read the client header

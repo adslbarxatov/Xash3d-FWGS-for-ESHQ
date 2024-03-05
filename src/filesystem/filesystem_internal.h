@@ -106,8 +106,10 @@ typedef struct searchpath_s
 	int     (*pfnFindFile)(struct searchpath_s *search, const char *path, char *fixedname, size_t len);
 	void    (*pfnSearch)(struct searchpath_s *search, stringlist_t *list, const char *pattern, int caseinsensitive);
 
-	// [FWGS, 01.07.23]
-	byte *(*pfnLoadFile)(struct searchpath_s *search, const char *path, int pack_ind, fs_offset_t *filesize);
+	// [FWGS, 01.03.24]
+	/*byte *(*pfnLoadFile)(struct searchpath_s *search, const char *path, int pack_ind, fs_offset_t *filesize);*/
+	byte *(*pfnLoadFile)(struct searchpath_s *search, const char *path, int pack_ind, fs_offset_t *filesize,
+		void *(*pfnAlloc)(size_t), void (*pfnFree)(void *));
 	} searchpath_t;
 
 // [FWGS, 01.07.23]
@@ -188,6 +190,7 @@ qboolean FS_FileCopy (file_t *pOutput, file_t *pInput, int fileSize);
 
 // file buffer ops
 byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly);
+byte *FS_LoadFileMalloc (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly);	// [FWGS, 01.03.24]
 byte *FS_LoadDirectFile (const char *path, fs_offset_t *filesizeptr);
 qboolean FS_WriteFile (const char *filename, const void *data, fs_offset_t len);
 

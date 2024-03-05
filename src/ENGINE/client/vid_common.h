@@ -38,10 +38,12 @@ extern glwstate_t glw_state;
 #define VID_MIN_HEIGHT 200
 #define VID_MIN_WIDTH 320
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.03.24]
 extern convar_t vid_fullscreen;
 extern convar_t vid_maximized;
 extern convar_t vid_highdpi;
+extern convar_t window_width;
+extern convar_t window_height;
 extern convar_t window_xpos;
 extern convar_t window_ypos;
 extern convar_t gl_msaa_samples;

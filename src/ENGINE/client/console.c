@@ -29,6 +29,11 @@ static CVAR_DEFINE_AUTO (con_notifytime, "3", FCVAR_ARCHIVE,
 	"notify time to live");
 CVAR_DEFINE_AUTO (con_fontsize, "1", FCVAR_ARCHIVE,
 	"console font number (0, 1 or 2)");
+
+// [FWGS, 01.03.24]
+static CVAR_DEFINE_AUTO (con_fontrender, "2", FCVAR_ARCHIVE,
+	"console font render mode (0: additive, 1: holes, 2: trans)");
+
 static CVAR_DEFINE_AUTO (con_charset, "cp1251", FCVAR_ARCHIVE,
 	"console font charset (only cp1251 supported now)");
 static CVAR_DEFINE_AUTO (con_fontscale, "1.0", FCVAR_ARCHIVE,
@@ -554,23 +559,24 @@ qboolean Con_FixedFont (void)
 
 /*
 ================
-Con_LoadConsoleFont [FWGS, 01.02.24]
+Con_LoadConsoleFont [FWGS, 01.03.24]
 
 INTERNAL RESOURCE
 ================
 */
 static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 	{
-	qboolean success = false;
-	float scale = con_fontscale.value;
+	qboolean	success = false;
+	float		scale = con_fontscale.value;
 
 	if (font->valid)
 		return;		// already loaded
 
 	if (con_oldfont.value)
 		{
-		success = Con_LoadVariableWidthFont ("gfx/conchars.fnt", font, scale,
-			kRenderTransTexture, TF_FONT | TF_NEAREST);
+		/*success = Con_LoadVariableWidthFont ("gfx/conchars.fnt", font, scale,
+			kRenderTransTexture, TF_FONT | TF_NEAREST);*/
+		success = Con_LoadVariableWidthFont ("gfx/conchars.fnt", font, scale, &con_fontrender, TF_FONT | TF_NEAREST);
 		}
 	else
 		{
@@ -583,24 +589,27 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 			if (Q_snprintf (path, sizeof (path),
 				"font%i_%s.fnt", fontNumber, Cvar_VariableString ("con_charset")) > 0)
 				{
-				success = Con_LoadVariableWidthFont (path, font, scale,
-					kRenderTransTexture, TF_FONT | TF_NEAREST);
+				/*success = Con_LoadVariableWidthFont (path, font, scale,
+					kRenderTransTexture, TF_FONT | TF_NEAREST);*/
+				success = Con_LoadVariableWidthFont (path, font, scale, &con_fontrender, TF_FONT | TF_NEAREST);
 				}
 			}
 
 		if (!success)
 			{
 			Q_snprintf (path, sizeof (path), "fonts/font%i", fontNumber);
-			success = Con_LoadVariableWidthFont (path, font, scale, kRenderTransTexture, TF_FONT | TF_NEAREST);
+			/*success = Con_LoadVariableWidthFont (path, font, scale, kRenderTransTexture, TF_FONT | TF_NEAREST);*/
+			success = Con_LoadVariableWidthFont (path, font, scale, &con_fontrender, TF_FONT | TF_NEAREST);
 			}
 		}
 
 	if (!success)
 		{
 		// keep source to print directly into conback image
-		/*if (!Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransTexture, TF_FONT | TF_KEEP_SOURCE))*/
+		/*if (!Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransTexture, TF_FONT | TF_KEEP_SOURCE))
 		if (!Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransTexture,
-			TF_FONT | TF_NEAREST | TF_KEEP_SOURCE))
+			TF_FONT | TF_NEAREST | TF_KEEP_SOURCE))*/
+		if (!Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &con_fontrender, TF_FONT | TF_NEAREST | TF_KEEP_SOURCE))
 			Con_DPrintf (S_ERROR "failed to load console font\n");
 		}
 	}
@@ -862,7 +871,7 @@ int Con_DrawString (int x, int y, const char *string, rgba_t setColor)
 
 /*
 ================
-Con_Init [FWGS, 01.01.24]
+Con_Init [FWGS, 01.03.24]
 ================
 */
 void Con_Init (void)
@@ -877,6 +886,7 @@ void Con_Init (void)
 	Cvar_RegisterVariable (&con_fontsize);
 	Cvar_RegisterVariable (&con_charset);
 	Cvar_RegisterVariable (&con_fontscale);
+	Cvar_RegisterVariable (&con_fontrender);
 	Cvar_RegisterVariable (&con_fontnum);
 	Cvar_RegisterVariable (&con_color);
 	Cvar_RegisterVariable (&scr_drawversion);
@@ -2095,7 +2105,7 @@ Used by menu
 void Con_DrawVersion (void)
 	{
 	// draws the current build
-	byte *color = g_color_table[7];
+	byte	*color = g_color_table[7];
 	int		stringLen, charH = 0;
 	int		start, height = refState.height;
 	/*qboolean	draw_version = false;*/
@@ -2149,7 +2159,7 @@ void Con_DrawVersion (void)
 
 /*
 ==================
-Con_RunConsole [FWGS, 01.01.24]
+Con_RunConsole [FWGS, 01.03.24]
 
 Scroll it up or down
 ==================
@@ -2163,10 +2173,14 @@ void Con_RunConsole (void)
 	// decide on the destination height of the console
 	if (host.allow_console && (cls.key_dest == key_console))
 		{
+#if XASH_MOBILE_PLATFORM
+		con.showlines = refState.height; // always full screen on mobile devices
+#else
 		if ((cls.state < ca_active) || cl.first_frame)
-			con.showlines = refState.height;	// full screen
+			con.showlines = refState.height;		// full screen
 		else
 			con.showlines = (refState.height >> 1);	// half screen
+#endif
 		}
 	else
 		{
@@ -2251,7 +2265,9 @@ void Con_CharEvent (int key)
 
 /*
 =========
-Con_VidInit [FWGS, 01.01.24]
+Con_VidInit [FWGS, 01.03.24]
+
+// ESHQ: удалена поддержка фона консоли
 
 INTERNAL RESOURCE
 =========
@@ -2273,11 +2289,7 @@ void Con_VidInit (void)
 #if XASH_LOW_MEMORY
 	con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);
 #else
-	// ESHQ: удалена поддержка фона консоли
-
-	// missed console image will be replaced as gray background like X-Ray or Crysis
 	if ((con.background == R_GetBuiltinTexture (REF_DEFAULT_TEXTURE)) || (con.background == 0))
-		// ESHQ: цвет фона консоли
 		con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);
 #endif
 	}

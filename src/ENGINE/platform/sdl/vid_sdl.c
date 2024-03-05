@@ -578,17 +578,17 @@ void VID_SaveWindowSize (int width, int height, qboolean maximized)
 	R_SaveVideoMode (width, height, render_w, render_h, maximized);
 	}
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.03.24]
 static qboolean VID_SetScreenResolution (int width, int height, window_mode_t window_mode)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_DisplayMode got;
 	Uint32 wndFlags = 0;
 
-#if !XASH_APPLE
+/*#if !XASH_APPLE*/
 	if (vid_highdpi.value)
 		SetBits (wndFlags, SDL_WINDOW_ALLOW_HIGHDPI);
-#endif
+/*#endif*/
 
 	SDL_SetWindowBordered (host.hWnd, SDL_FALSE);
 	if (window_mode == WINDOW_MODE_BORDERLESS)
@@ -746,7 +746,7 @@ static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int y
 
 /*
 =================
-VID_CreateWindow [FWGS, 01.01.24]
+VID_CreateWindow [FWGS, 01.03.24]
 =================
 */
 qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
@@ -765,7 +765,7 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 	if (!glw_state.software)
 		SetBits (wndFlags, SDL_WINDOW_OPENGL);
 
-#if !XASH_MOBILE_PLATFORM
+/*#if !XASH_MOBILE_PLATFORM*/
 	if (window_mode == WINDOW_MODE_WINDOWED)
 		{
 		SDL_Rect r;
@@ -807,10 +807,10 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		SetBits (wndFlags, SDL_WINDOW_BORDERLESS);
 		xpos = ypos = 0;
 		}
-#else
+/*#else
 	SetBits (wndFlags, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_INPUT_GRABBED);
 	xpos = ypos = SDL_WINDOWPOS_UNDEFINED;
-#endif
+#endif*/
 
 	if (!VID_CreateWindowWithSafeGL (wndname, xpos, ypos, width, height, wndFlags))
 		return false;
@@ -819,7 +819,7 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 	if (FBitSet (SDL_GetWindowFlags (host.hWnd), SDL_WINDOW_MAXIMIZED | SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
 		SDL_GetWindowSize (host.hWnd, &width, &height);
 
-#if !XASH_MOBILE_PLATFORM
+/*#if !XASH_MOBILE_PLATFORM*/
 	if (window_mode != WINDOW_MODE_WINDOWED)
 		{
 		if (!VID_SetScreenResolution (width, height, window_mode))
@@ -830,7 +830,7 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		VID_RestoreScreenResolution ();
 		}
 
-#endif
+/*#endif*/
 
 	VID_SetWindowIcon (host.hWnd);
 	SDL_ShowWindow (host.hWnd);
@@ -1176,7 +1176,7 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 
 /*
 ==================
-VID_SetMode [FWGS, 01.11.23]
+VID_SetMode [FWGS, 01.03.24]
 
 Set the described video mode
 ==================
@@ -1210,6 +1210,14 @@ qboolean VID_SetMode (void)
 		iScreenHeight = 240;
 #endif
 		}
+
+#if XASH_MOBILE_PLATFORM
+	if (Q_strcmp (vid_fullscreen.string, DEFAULT_FULLSCREEN))
+		{
+		Cvar_DirectSet (&vid_fullscreen, DEFAULT_FULLSCREEN);
+		Con_Reportf (S_ERROR "VID_SetMode: windowed unavailable on this platform\n");
+		}
+#endif
 
 	if (!FBitSet (vid_fullscreen.flags, FCVAR_CHANGED))
 		Cvar_DirectSet (&vid_fullscreen, DEFAULT_FULLSCREEN);

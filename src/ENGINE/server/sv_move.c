@@ -33,11 +33,11 @@ is not a staircase.
 */
 qboolean SV_CheckBottom (edict_t *ent, int iMode)
 	{
-	vec3_t	mins, maxs, start, stop;
-	float	mid, bottom;
+	vec3_t		mins, maxs, start, stop;
+	float		mid, bottom;
 	qboolean	monsterClip;
-	trace_t	trace;
-	int	x, y;
+	trace_t		trace;
+	int			x, y;
 
 	monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
 	VectorAdd (ent->v.origin, ent->v.mins, mins);
@@ -61,6 +61,7 @@ qboolean SV_CheckBottom (edict_t *ent, int iMode)
 			}
 		}
 	return true; // we got out easy
+
 realcheck:
 	// check it for real...
 	start[2] = mins[2];
@@ -92,11 +93,12 @@ realcheck:
 
 			if (iMode == WALKMOVE_WORLDONLY)
 				trace = SV_MoveNoEnts (start, vec3_origin, vec3_origin, stop, MOVE_NOMONSTERS, ent);
-			else trace = SV_Move (start, vec3_origin, vec3_origin, stop, MOVE_NOMONSTERS, ent, monsterClip);
+			else
+				trace = SV_Move (start, vec3_origin, vec3_origin, stop, MOVE_NOMONSTERS, ent, monsterClip);
 
-			if (trace.fraction != 1.0f && trace.endpos[2] > bottom)
+			if ((trace.fraction != 1.0f) && (trace.endpos[2] > bottom))
 				bottom = trace.endpos[2];
-			if (trace.fraction == 1.0f || mid - trace.endpos[2] > svgame.movevars.stepsize)
+			if ((trace.fraction == 1.0f) || (mid - trace.endpos[2] > svgame.movevars.stepsize))
 				return false;
 			}
 		}
@@ -106,9 +108,9 @@ realcheck:
 void SV_WaterMove (edict_t *ent)
 	{
 	float	drownlevel;
-	int	waterlevel;
-	int	watertype;
-	int	flags;
+	int		waterlevel;
+	int		watertype;
+	int		flags;
 
 	if (ent->v.movetype == MOVETYPE_NOCLIP)
 		{
@@ -117,7 +119,7 @@ void SV_WaterMove (edict_t *ent)
 		}
 
 	// no watermove for monsters but pushables
-	if ((ent->v.flags & FL_MONSTER) && ent->v.health <= 0.0f)
+	if ((ent->v.flags & FL_MONSTER) && (ent->v.health <= 0.0f))
 		return;
 
 	drownlevel = (ent->v.deadflag == DEAD_NO) ? 3.0 : 1.0;
@@ -127,9 +129,9 @@ void SV_WaterMove (edict_t *ent)
 
 	if (!(flags & (FL_IMMUNE_WATER | FL_GODMODE)))
 		{
-		if (((flags & FL_SWIM) && waterlevel > drownlevel) || waterlevel <= drownlevel)
+		if (((flags & FL_SWIM) && (waterlevel > drownlevel)) || (waterlevel <= drownlevel))
 			{
-			if (ent->v.air_finished > sv.time && ent->v.pain_finished > sv.time)
+			if ((ent->v.air_finished > sv.time) && (ent->v.pain_finished > sv.time))
 				{
 				ent->v.dmg += 2;
 
@@ -150,9 +152,8 @@ void SV_WaterMove (edict_t *ent)
 		if (flags & FL_INWATER)
 			{
 			// leave the water
-			switch (COM_RandomLong (0, 3))
+			/*switch (COM_RandomLong (0, 3))
 				{
-				// ESHQ: исправление радиуса звука
 				case 0:
 					SV_StartSound (ent, CHAN_BODY, "player/pl_wade1.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
@@ -168,7 +169,11 @@ void SV_WaterMove (edict_t *ent)
 				case 3:
 					SV_StartSound (ent, CHAN_BODY, "player/pl_wade4.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
-				}
+				}*/
+			// ESHQ: исправление радиуса звука
+			const char *snd = SoundList_GetRandom (EntityWaterExit);
+			if (snd)
+				SV_StartSound (ent, CHAN_BODY, snd, 1.0f, ATTN_MEDIUM, 0, 100);
 
 			ent->v.flags = flags & ~FL_INWATER;
 			}
@@ -179,16 +184,17 @@ void SV_WaterMove (edict_t *ent)
 
 	if (watertype == CONTENTS_LAVA)
 		{
-		if ((!(flags & (FL_IMMUNE_LAVA | FL_GODMODE))) && ent->v.dmgtime < sv.time)
+		if ((!(flags & (FL_IMMUNE_LAVA | FL_GODMODE))) && (ent->v.dmgtime < sv.time))
 			{
 			if (ent->v.radsuit_finished < sv.time)
 				ent->v.dmgtime = sv.time + 0.2f;
-			else ent->v.dmgtime = sv.time + 1.0f;
+			else
+				ent->v.dmgtime = sv.time + 1.0f;
 			}
 		}
 	else if (watertype == CONTENTS_SLIME)
 		{
-		if ((!(flags & (FL_IMMUNE_SLIME | FL_GODMODE))) && ent->v.dmgtime < sv.time)
+		if ((!(flags & (FL_IMMUNE_SLIME | FL_GODMODE))) && (ent->v.dmgtime < sv.time))
 			{
 			if (ent->v.radsuit_finished < sv.time)
 				ent->v.dmgtime = sv.time + 1.0;
@@ -201,9 +207,8 @@ void SV_WaterMove (edict_t *ent)
 		if (watertype == CONTENTS_WATER)
 			{
 			// entering the water
-			switch (COM_RandomLong (0, 3))
+			/*switch (COM_RandomLong (0, 3))
 				{
-				// ESHQ: исправление радиуса звука
 				case 0:
 					SV_StartSound (ent, CHAN_BODY, "player/pl_wade1.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
@@ -216,7 +221,11 @@ void SV_WaterMove (edict_t *ent)
 				case 3:
 					SV_StartSound (ent, CHAN_BODY, "player/pl_wade4.wav", 1.0f, ATTN_MEDIUM, 0, 100);
 					break;
-				}
+				}*/
+			// ESHQ: исправление радиуса и высоты звука
+			const char *snd = SoundList_GetRandom (EntityWaterEnter);
+			if (snd)
+				SV_StartSound (ent, CHAN_BODY, snd, 1.0f, ATTN_MEDIUM, 0, 90);
 			}
 
 		ent->v.flags = flags | FL_INWATER;

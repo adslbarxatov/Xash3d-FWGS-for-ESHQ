@@ -590,17 +590,19 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 
 /*
 ===========
-W_ReadLump [FWGS, 01.07.23]
+W_ReadLump [FWGS, 01.03.24]
 
 reading lump into temp buffer
 ===========
 */
-static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, fs_offset_t *lumpsizeptr)
+/*static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, fs_offset_t *lumpsizeptr)*/
+static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, fs_offset_t *lumpsizeptr,
+	void *(*pfnAlloc)(size_t), void (*pfnFree)(void *))
 	{
-	const wfile_t *wad = search->wad;
-	const dlumpinfo_t * lump = &wad->lumps[pack_ind];
-	size_t	oldpos, size = 0;
-	byte *buf;
+	const wfile_t		*wad = search->wad;
+	const dlumpinfo_t	*lump = &wad->lumps[pack_ind];
+	size_t				oldpos, size = 0;
+	byte				*buf;
 
 	// assume error
 	if (lumpsizeptr)
@@ -619,19 +621,30 @@ static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, f
 		return NULL;
 		}
 
-	buf = (byte *)Mem_Malloc (wad->mempool, lump->disksize);
+	/*buf = (byte *)Mem_Malloc (wad->mempool, lump->disksize);*/
+	buf = (byte *)pfnAlloc (lump->disksize);
+	if (unlikely (!buf))
+		{
+		Con_Reportf (S_ERROR "%s: can't alloc %d bytes, no free memory\n", __func__, lump->disksize);
+		FS_Seek (wad->handle, oldpos, SEEK_SET);
+		return NULL;
+		}
+
 	size = FS_Read (wad->handle, buf, lump->disksize);
+	FS_Seek (wad->handle, oldpos, SEEK_SET);
 
 	if (size < lump->disksize)
 		{
 		Con_Reportf (S_WARN "W_ReadLump: %s is probably corrupted\n", lump->name);
-		FS_Seek (wad->handle, oldpos, SEEK_SET);
-		Mem_Free (buf);
+		/*FS_Seek (wad->handle, oldpos, SEEK_SET);
+		Mem_Free (buf);*/
+		pfnFree (buf);
 		return NULL;
 		}
 
-	if (lumpsizeptr) *lumpsizeptr = lump->disksize;
-	FS_Seek (wad->handle, oldpos, SEEK_SET);
+	if (lumpsizeptr)
+		*lumpsizeptr = lump->disksize;
+	/*FS_Seek (wad->handle, oldpos, SEEK_SET);*/
 
 	return buf;
 	}

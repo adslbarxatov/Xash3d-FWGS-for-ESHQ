@@ -655,37 +655,43 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 	FS_Close (f);	// all done
 	}
 
+// [FWGS, 01.03.24]
 static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir)
 	{
 	memset (GameInfo, 0, sizeof (*GameInfo));
 
 	// filesystem info
-	Q_strncpy (GameInfo->gamefolder, gamedir, sizeof (GameInfo->gamefolder));
+	/*Q_strncpy (GameInfo->gamefolder, gamedir, sizeof (GameInfo->gamefolder));
 	Q_strncpy (GameInfo->basedir, "valve", sizeof (GameInfo->basedir));
 	GameInfo->falldir[0] = 0;
-	Q_strncpy (GameInfo->startmap, "c0a0", sizeof (GameInfo->startmap));
+	Q_strncpy (GameInfo->startmap, "c0a0", sizeof (GameInfo->startmap));*/
 	
 	// ESHQ: отменена принудительная инициализация тренировочной карты
 
 	Q_strncpy (GameInfo->title, "New Game", sizeof (GameInfo->title));
-	GameInfo->version = 1.0f;
+	/*GameInfo->version = 1.0f;*/
 
 	// .dll pathes
+	Q_strncpy (GameInfo->gamefolder, gamedir, sizeof (GameInfo->gamefolder));
+	Q_strncpy (GameInfo->basedir, fs_basedir, sizeof (GameInfo->basedir));
+	Q_strncpy (GameInfo->sp_entity, "info_player_start", sizeof (GameInfo->sp_entity));
+	Q_strncpy (GameInfo->mp_entity, "info_player_deathmatch", sizeof (GameInfo->mp_entity));
+	Q_strncpy (GameInfo->startmap, "newmap", sizeof (GameInfo->startmap));
 	Q_strncpy (GameInfo->dll_path, "cl_dlls", sizeof (GameInfo->dll_path));
 	Q_strncpy (GameInfo->game_dll, "dlls/hl.dll", sizeof (GameInfo->game_dll));
 	Q_strncpy (GameInfo->game_dll_linux, "dlls/hl.so", sizeof (GameInfo->game_dll_linux));
 	Q_strncpy (GameInfo->game_dll_osx, "dlls/hl.dylib", sizeof (GameInfo->game_dll_osx));
-
-	// .ico path
+	/*// .ico path*/
 	Q_strncpy (GameInfo->iconpath, "game.ico", sizeof (GameInfo->iconpath));
 
-	Q_strncpy (GameInfo->sp_entity, "info_player_start", sizeof (GameInfo->sp_entity));
-	Q_strncpy (GameInfo->mp_entity, "info_player_deathmatch", sizeof (GameInfo->mp_entity));
+	/*Q_strncpy (GameInfo->sp_entity, "info_player_start", sizeof (GameInfo->sp_entity));
+	Q_strncpy (GameInfo->mp_entity, "info_player_deathmatch", sizeof (GameInfo->mp_entity));*/
 
 	GameInfo->max_edicts = DEFAULT_MAX_EDICTS;	// [FWGS, 01.12.23] default value if not specified
 	GameInfo->max_tents = 500;
 	GameInfo->max_beams = 128;
 	GameInfo->max_particles = 4096;
+	GameInfo->version = 1.0f;
 	}
 
 static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qboolean isGameInfo)
@@ -2553,20 +2559,39 @@ static void FS_Purge (file_t *file)
 	file->ungetc = EOF;
 	}
 
+// [FWGS, 01.03.24]
+static void *FS_CustomAlloc (size_t size)
+	{
+	return Mem_Malloc (fs_mempool, size);
+	}
+
+// [FWGS, 01.03.24]
+static void FS_CustomFree (void *data)
+	{
+	return Mem_Free (data);
+	}
+
 /*
 ============
-FS_LoadFile [FWGS, 01.07.23]
+FS_LoadFile [FWGS, 01.03.24]
 
 Filename are relative to the xash directory.
 Always appends a 0 byte
 ============
 */
-byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
+/*byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)*/
+static byte *FS_LoadFile_ (const char *path, fs_offset_t *filesizeptr, const qboolean gamedironly,
+	const qboolean custom_alloc)
 	{
 	searchpath_t	*search;
+	fs_offset_t		filesize;
 	file_t			*file;
+	byte			*buf;
 	char			netpath[MAX_SYSPATH];
 	int				pack_ind;
+
+	void *(*pfnAlloc)(size_t) = custom_alloc ? FS_CustomAlloc : malloc;
+	void (*pfnFree)(void *) = custom_alloc ? FS_CustomFree : free;
 
 	// some mappers used leading '/' or '\' in path to models or sounds
 	if (path[0] == '/' || path[0] == '\\')
@@ -2585,27 +2610,55 @@ byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamediro
 
 	// custom load file function for compressed files
 	if (search->pfnLoadFile)
-		return search->pfnLoadFile (search, netpath, pack_ind, filesizeptr);
+		return search->pfnLoadFile (search, netpath, pack_ind, filesizeptr, pfnAlloc, pfnFree);
+	/*return search->pfnLoadFile (search, netpath, pack_ind, filesizeptr);*/
 
 	file = search->pfnOpenFile (search, netpath, "rb", pack_ind);
 
-	if (file)
+	/*if (file)
 		{
 		fs_offset_t filesize = file->real_length;
-		byte *buf;
+		byte *buf;*/
+	if (!file) // TODO: indicate errors
+		return NULL;
 
-		buf = (byte *)Mem_Malloc (fs_mempool, filesize + 1);
-		buf[filesize] = '\0';
-		FS_Read (file, buf, filesize);
+	/*buf = (byte *)Mem_Malloc (fs_mempool, filesize + 1);
+	buf[filesize] = '\0';
+	FS_Read (file, buf, filesize);*/
+	filesize = file->real_length;
+	buf = (byte *)pfnAlloc (filesize + 1);
+
+	if (unlikely (!buf)) // TODO: indicate errors
+		{
+		Con_Reportf ("%s: can't alloc %d bytes, no free memory\n", __func__, filesize + 1);
 		FS_Close (file);
-
-		if (filesizeptr)
-			*filesizeptr = filesize;
-
-		return buf;
+		return NULL;
 		}
 
-	return NULL;
+	/*if (filesizeptr)
+		*filesizeptr = filesize;*/
+	buf[filesize] = '\0';
+	FS_Read (file, buf, filesize);
+	FS_Close (file);
+	if (filesizeptr)
+		*filesizeptr = filesize;
+
+	/*return buf;
+	}*/
+	return buf;
+	/*return NULL;*/
+	}
+
+// [FWGS, 01.03.24]
+byte *FS_LoadFileMalloc (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
+	{
+	return FS_LoadFile_ (path, filesizeptr, gamedironly, false);
+	}
+
+// [FWGS, 01.03.24]
+byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
+	{
+	return FS_LoadFile_ (path, filesizeptr, gamedironly, g_engfuncs._Mem_Alloc != _Mem_Alloc);
 	}
 
 qboolean CRC32_File (dword *crcvalue, const char *filename)
@@ -3103,63 +3156,66 @@ static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)
 
 fs_api_t g_api =
 	{
-		FS_InitStdio,
-		FS_ShutdownStdio,
+	FS_InitStdio,
+	FS_ShutdownStdio,
 
-		// search path utils
-		FS_Rescan,
-		FS_ClearSearchPath,
-		FS_AllowDirectPaths,
-		FS_AddGameDirectory,
-		FS_AddGameHierarchy,
-		FS_Search,
-		FS_SetCurrentDirectory,
-		FS_FindLibrary,
-		FS_Path_f,
+	// search path utils
+	FS_Rescan,
+	FS_ClearSearchPath,
+	FS_AllowDirectPaths,
+	FS_AddGameDirectory,
+	FS_AddGameHierarchy,
+	FS_Search,
+	FS_SetCurrentDirectory,
+	FS_FindLibrary,
+	FS_Path_f,
 
-		// gameinfo utils
-		FS_LoadGameInfo,
+	// gameinfo utils
+	FS_LoadGameInfo,
 
-		// file ops
-		FS_Open,
-		FS_Write,
-		FS_Read,
-		FS_Seek,
-		FS_Tell,
-		FS_Eof,
-		FS_Flush,
-		FS_Close,
-		FS_Gets,
-		FS_UnGetc,
-		FS_Getc,
-		FS_VPrintf,
-		FS_Printf,
-		FS_Print,
-		FS_FileLength,
-		FS_FileCopy,
+	// file ops
+	FS_Open,
+	FS_Write,
+	FS_Read,
+	FS_Seek,
+	FS_Tell,
+	FS_Eof,
+	FS_Flush,
+	FS_Close,
+	FS_Gets,
+	FS_UnGetc,
+	FS_Getc,
+	FS_VPrintf,
+	FS_Printf,
+	FS_Print,
+	FS_FileLength,
+	FS_FileCopy,
 
-		// file buffer ops
-		FS_LoadFile,
-		FS_LoadDirectFile,
-		FS_WriteFile,
+	// file buffer ops
+	FS_LoadFile,
+	FS_LoadDirectFile,
+	FS_WriteFile,
 
-		// file hashing
-		CRC32_File,
-		MD5_HashFile,
+	// file hashing
+	CRC32_File,
+	MD5_HashFile,
 
-		// filesystem ops
-		FS_FileExists,
-		FS_FileTime,
-		FS_FileSize,
-		FS_Rename,
-		FS_Delete,
-		FS_SysFileExists,
-		FS_GetDiskPath,
+	// filesystem ops
+	FS_FileExists,
+	FS_FileTime,
+	FS_FileSize,
+	FS_Rename,
+	FS_Delete,
+	FS_SysFileExists,
+	FS_GetDiskPath,
 		
-		// [FWGS, 01.07.23]
-		NULL,
-		(void *)FS_MountArchive_Fullpath,
-		FS_GetFullDiskPath,
+	// [FWGS, 01.07.23]
+	NULL,
+	(void *)FS_MountArchive_Fullpath,
+	FS_GetFullDiskPath,
+
+	// [FWGS, 01.03.24]
+	FS_LoadFileMalloc,
 	};
 
 // [FWGS, 01.02.24]

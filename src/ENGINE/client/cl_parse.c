@@ -1374,7 +1374,7 @@ void CL_RegisterUserMessage (sizebuf_t *msg)
 
 /*
 ================
-CL_UpdateUserinfo [FWGS, 01.04.23]
+CL_UpdateUserinfo [FWGS, 01.03.24]
 
 collect userinfo from all players
 ================
@@ -1390,10 +1390,14 @@ void CL_UpdateUserinfo (sizebuf_t *msg, qboolean legacy)
 	if (slot >= MAX_CLIENTS)
 		Host_Error ("CL_ParseServerMessage: svc_updateuserinfo >= MAX_CLIENTS\n");
 
+	player = &cl.players[slot];
+
 	if (!legacy)
 		id = MSG_ReadLong (msg);	// unique user ID
+	else
+		id = 0;		// bogus
 
-	player = &cl.players[slot];
+	/*player = &cl.players[slot];*/
 	active = MSG_ReadOneBit (msg) ? true : false;
 
 	if (active)
@@ -1416,6 +1420,10 @@ void CL_UpdateUserinfo (sizebuf_t *msg, qboolean legacy)
 
 		memset (player, 0, sizeof (*player));
 		}
+
+	// [FWGS, 01.03.24] in GoldSrc userinfo might be empty but userid is always sent as separate value
+	// thus avoids clean up even after client disconnect
+	player->userid = id;
 	}
 
 /*
@@ -2354,11 +2362,18 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 				Con_Printf ("%s", MSG_ReadString (msg));
 				break;
 
+			// [FWGS, 01.03.24]
 			case svc_stufftext:
 				s = MSG_ReadString (msg);
+				if (cl_trace_stufftext.value)
+					{
+					size_t len = Q_strlen (s);
+					Con_Printf ("Stufftext: %s%c", s, len && s[len - 1] == '\n' ? '\0' : '\n');
+					}
+
 #ifdef HACKS_RELATED_HLMODS
 				// disable Cry Of Fear antisave protection
-				if (!Q_strnicmp (s, "disconnect", 10) && cls.signon != SIGNONS)
+				if (!Q_strnicmp (s, "disconnect", 10) && (cls.signon != SIGNONS))
 					break; // too early
 #endif
 				Cbuf_AddFilteredText (s);

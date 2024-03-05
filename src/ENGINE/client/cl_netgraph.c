@@ -368,7 +368,7 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 	int packet_loss, int packet_choke, int graphtype)
 	{
 	static int	lastout;
-	cl_font_t *font = Con_GetFont (0);	// [FWGS, 01.04.23]
+	cl_font_t	*font = Con_GetFont (0);	// [FWGS, 01.04.23]
 	rgba_t		colors = { 0.9 * 255, 0.9 * 255, 0.7 * 255, 255 };
 	int			ptx = Q_max (x + w - NETGRAPH_LERP_HEIGHT - 1, 1);
 	int			pty = Q_max (rect.top + rect.bottom - NETGRAPH_LERP_HEIGHT - 3, 1);
@@ -394,8 +394,9 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 	// move rolling average
 	framerate = FRAMERATE_AVG_FRAC * host.frametime + (1.0f - FRAMERATE_AVG_FRAC) * framerate;
 
-	// [FWGS, 01.04.23]
-	ref.dllFuncs.GL_SetRenderMode (font->rendermode);
+	// [FWGS, 01.03.24]
+	/*ref.dllFuncs.GL_SetRenderMode (font->rendermode);*/
+	CL_SetFontRendermode (font);
 
 	if (framerate > 0.0f)
 		{

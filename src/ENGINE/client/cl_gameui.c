@@ -1211,21 +1211,23 @@ static char *pfnParseFileSafe (char *data, char *buf, const int size, unsigned i
 
 static ui_extendedfuncs_t gExtendedfuncs =
 	{
-		pfnEnableTextInput,
-		Con_UtfProcessChar,
-		Con_UtfMoveLeft,
-		Con_UtfMoveRight,
-		pfnGetRenderers,
-		Sys_DoubleTime,
-		pfnParseFileSafe,
-		NET_AdrToString,
-		NET_CompareAdrSort
+	pfnEnableTextInput,
+	Con_UtfProcessChar,
+	Con_UtfMoveLeft,
+	Con_UtfMoveRight,
+	pfnGetRenderers,
+	Sys_DoubleTime,
+	pfnParseFileSafe,
+	NET_AdrToString,
+	NET_CompareAdrSort,
+	Sys_GetNativeObject,	// [FWGS, 01.03.24]
 	};
 
 // [FWGS, 01.07.23]
 void UI_UnloadProgs (void)
 	{
-	if (!gameui.hInstance) return;
+	if (!gameui.hInstance)
+		return;
 
 	// deinitialize game
 	gameui.dllFuncs.pfnShutdown ();

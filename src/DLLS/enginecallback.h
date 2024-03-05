@@ -158,4 +158,6 @@ inline void *GET_PRIVATE (edict_t *pent)
 // ESHQ: поддержка достижений
 #define WRITE_ACHIEVEMENTS_SCRIPT	(*g_engfuncs.pfnWriteAchievementsScript)
 
+#define SETUP_FOG	(*g_engfuncs.pfnUpdateFogSettings)
+
 #endif

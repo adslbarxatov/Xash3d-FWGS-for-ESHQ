@@ -474,7 +474,7 @@ static void SV_WriteVoiceCodec (sizebuf_t *msg)
 
 /*
 ================
-SV_CreateBaseline
+SV_CreateBaseline [FWGS, 01.03.24]
 
 Entity baselines are used to compress the update messages
 to the clients -- only the fields that differ from the
@@ -490,7 +490,9 @@ static void SV_CreateBaseline (void)
 	int		delta_type;
 	int		entnum;
 
-	SV_WriteVoiceCodec (&sv.signon);
+	/*SV_WriteVoiceCodec (&sv.signon);*/
+	if (svs.maxclients > 1)
+		SV_WriteVoiceCodec (&sv.signon);
 
 	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
 		playermodel = SV_ModelIndex (DEFAULT_PLAYER_PATH_QUAKE);
@@ -708,19 +710,20 @@ void SV_ActivateServer (int runPhysics)
 	if (sv.ignored_world_decals)
 		Con_Printf (S_WARN "%i static decals was rejected due buffer overflow\n", sv.ignored_world_decals);
 
-	if (svs.maxclients > 1)
+	// [FWGS, 01.03.24]
+	/*if (svs.maxclients > 1)
 		{
 		const char *cycle = Cvar_VariableString ("mapchangecfgfile");
 
 		// [FWGS, 01.04.23]
 		if (COM_CheckString (cycle))
 			Cbuf_AddTextf ("exec %s\n", cycle);
-		}
+		}*/
 	}
 
 /*
 ================
-SV_DeactivateServer
+SV_DeactivateServer [FWGS, 01.03.24]
 
 deactivate server, free edicts, strings etc
 ================
@@ -728,6 +731,13 @@ deactivate server, free edicts, strings etc
 void SV_DeactivateServer (void)
 	{
 	int	i;
+	const char *cycle = Cvar_VariableString ("disconcfgfile");
+
+	if (COM_CheckString (cycle))
+		Cbuf_AddTextf ("exec %s\n", cycle);
+
+	if (COM_CheckStringEmpty (sv.name))
+		Cbuf_AddTextf ("exec maps/%s_unload.cfg\n", sv.name);
 
 	if (!svs.initialized || (sv.state == ss_dead))
 		return;
@@ -1013,7 +1023,7 @@ static void SV_GenerateTestPacket (void)
 
 /*
 ================
-SV_SpawnServer
+SV_SpawnServer [FWGS, 01.03.24]
 
 Change the server to a new map, taking all connected
 clients along with it
@@ -1021,15 +1031,18 @@ clients along with it
 */
 qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean background)
 	{
-	int	i, current_skill;
-	edict_t *ent;
+	/*int	i, current_skill;
+	edict_t *ent;*/
+	int			i, current_skill;
+	edict_t		*ent;
+	const char	*cycle;
 
 	SV_SetupClients ();
 
 	if (!SV_InitGame ())
 		return false;
 
-	// [FWGS, 01.04.23] unlock sv_cheats in local game
+	// unlock sv_cheats in local game
 	ClearBits (sv_cheats.flags, FCVAR_READ_ONLY);
 
 	svs.initialized = true;
@@ -1039,6 +1052,12 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	svs.timestart = Sys_DoubleTime ();
 	svs.spawncount++; // any partially connected client will be restarted
+
+	cycle = Cvar_VariableString ("mapchangecfgfile");
+	if (COM_CheckString (cycle))
+		Cbuf_AddTextf ("exec %s\n", cycle);
+
+	Cbuf_AddTextf ("exec maps/%s_load.cfg\n", mapname);
 
 	// let's not have any servers with no name
 	if (!COM_CheckString (hostname.string))

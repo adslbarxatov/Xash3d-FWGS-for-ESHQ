@@ -1224,9 +1224,11 @@ static edict_t *SV_AllocPrivateData (edict_t *ent, string_t className)
 
 		SpawnEdict = SV_GetEntityClass ("custom");
 
+		// [FWGS, 01.03.24]
 		if (!SpawnEdict)
 			{
-			Con_Printf (S_ERROR "No spawn function for %s\n", STRING (className));
+			/*Con_Printf (S_ERROR "No spawn function for %s\n", STRING (className));*/
+			Con_Printf (S_ERROR "No spawn function for \"%s\"\n", pszClassName);
 
 			// free entity immediately
 			SV_FreeEdict (ent);
@@ -4922,6 +4924,7 @@ static enginefuncs_t gEngfuncs =
 		pfnPEntityOfEntIndexAllEntities,
 		FS_WriteAchievementsScript,		// ESHQ: поддержка скриптов достижений
 		CL_TextMessageGet,				// ESHQ: поддержка текста из titles.txt
+		SV_UpdateFogSettings,			// ESHQ: поддержка скриптов достижений
 	};
 
 /*
@@ -5196,12 +5199,14 @@ void SV_SpawnEntities (const char *mapname)
 	Cvar_Reset ("sv_skyname");
 
 	ent = EDICT_NUM (0);
-	if (ent->free) SV_InitEdict (ent);
+	if (ent->free)
+		SV_InitEdict (ent);
+
 	ent->v.model = MAKE_STRING (sv.model_precache[1]);
 	ent->v.modelindex = WORLD_INDEX; // world model
 	ent->v.solid = SOLID_BSP;
 	ent->v.movetype = MOVETYPE_PUSH;
-	svgame.movevars.fog_settings = 0;
+	/*svgame.movevars.fog_settings = 0;*/	// ESHQ: поддержка тумана
 
 	svgame.globals->maxEntities = GI->max_edicts;
 	svgame.globals->mapname = MAKE_STRING (sv.name);

@@ -77,9 +77,9 @@ Image_LoadFNT
 qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	qfont_t		font;
-	const byte *pal, *fin;
+	const byte	*pal, *fin;
 	size_t		size;
-	int		numcolors;
+	int			numcolors;
 
 	if (image.hint == IL_HINT_Q1)
 		return false; // Quake1 doesn't have qfonts
@@ -112,7 +112,7 @@ qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesi
 	pal = fin + (image.width * image.height);
 	numcolors = *(short *)pal, pal += sizeof (short);
 
-	if (numcolors == 768 || numcolors == 256)
+	if ((numcolors == 768) || (numcolors == 256))
 		{
 		// g-cont. make sure that is didn't hit anything
 		Image_GetPaletteLMP (pal, LUMP_MASKED);
@@ -149,9 +149,9 @@ Image_LoadMDL
 */
 qboolean Image_LoadMDL (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	byte *fin;
-	size_t		pixels;
-	mstudiotexture_t *pin;
+	byte	*fin;
+	size_t	pixels;
+	mstudiotexture_t	*pin;
 	int		flags;
 
 	pin = (mstudiotexture_t *)buffer;
@@ -179,7 +179,10 @@ qboolean Image_LoadMDL (const char *name, const byte *buffer, fs_offset_t filesi
 			Image_GetPaletteLMP (pal, LUMP_MASKED);
 			image.flags |= IMAGE_HAS_ALPHA | IMAGE_ONEBIT_ALPHA;
 			}
-		else Image_GetPaletteLMP (fin + pixels, LUMP_NORMAL);
+		else
+			{
+			Image_GetPaletteLMP (fin + pixels, LUMP_NORMAL);
+			}
 		}
 	else
 		{
@@ -201,7 +204,7 @@ qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesi
 	{
 	dspriteframe_t	pin;	// identical for q1\hl sprites
 	qboolean		truecolor = false;
-	byte *fin;
+	byte			*fin;
 
 	if (image.hint == IL_HINT_HL)
 		{
@@ -267,9 +270,9 @@ Image_LoadLMP
 qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	lmp_t	lmp;
-	byte *fin, *pal;
-	int	rendermode;
-	int	i, pixels;
+	byte	*fin, *pal;
+	int		rendermode;
+	int		i, pixels;
 
 	if (filesize < sizeof (lmp))
 		return false;
@@ -354,17 +357,18 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 /*
 =============
-Image_LoadMIP
+Image_LoadMIP [FWGS, 01.03.24]
 =============
 */
 qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	mip_t	mip;
+	mip_t		mip;
 	qboolean	hl_texture;
-	byte *fin, *pal;
-	int	ofs[4], rendermode;
-	int	i, pixels, numcolors;
-	int	reflectivity[3] = { 0, 0, 0 };
+	byte		*fin, *pal;
+	int			ofs[4], rendermode;
+	int			i, pixels, numcolors;
+	/*int	reflectivity[3] = { 0, 0, 0 };*/
+	uint		reflectivity[3] = { 0, 0, 0 };
 
 	if (filesize < sizeof (mip))
 		return false;
@@ -385,8 +389,11 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		fin = (byte *)buffer + mip.offsets[0];
 		pal = (byte *)buffer + mip.offsets[0] + (((image.width * image.height) * 85) >> 6);
 		numcolors = *(short *)pal;
-		if (numcolors != 256) pal = NULL; // corrupted mip ?
-		else pal += sizeof (short); // skip colorsize
+		
+		if (numcolors != 256)
+			pal = NULL; // corrupted mip ?
+		else
+			pal += sizeof (short); // skip colorsize
 
 		hl_texture = true;
 

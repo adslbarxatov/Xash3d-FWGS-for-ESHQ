@@ -822,7 +822,7 @@ int S_GetCurrentStaticSounds (soundlist_t *pout, int size);
 void S_StopBackgroundTrack (void);
 void S_StopAllSounds (qboolean ambient);
 
-// [FWGS, 01.01.24] gamma routines
+// [FWGS, 01.03.24] gamma routines
 /*void BuildGammaTable (float gamma, float brightness);*/
 byte LightToTexGamma (byte b);
 byte TextureToGamma (byte);
@@ -831,6 +831,7 @@ uint ScreenGammaTable (uint);
 uint LinearGammaTable (uint);
 void V_Init (void);
 void V_CheckGamma (void);
+void V_CheckGammaEnd (void);
 
 //
 // identification.c
@@ -853,6 +854,33 @@ void NET_MasterClear (void);
 void NET_MasterShutdown (void);
 qboolean NET_GetMaster (netadr_t from, uint * challenge, double *last_heartbeat);
 
+//
+// sounds.c [FWGS, 01.03.24]
+//
+typedef enum soundlst_group_e
+	{
+	BouncePlayerShell = 0,
+	BounceWeaponShell,
+	BounceConcrete,
+	BounceGlass,
+	BounceMetal,
+	BounceFlesh,
+	BounceWood,
+	Ricochet,
+	Explode,
+	PlayerWaterEnter,
+	PlayerWaterExit,
+	EntityWaterEnter,
+	EntityWaterExit,
+
+	SoundList_Groups // must be last
+	} soundlst_group_t;
+
+int SoundList_Count (soundlst_group_t group);
+const char *SoundList_GetRandom (soundlst_group_t group);
+const char *SoundList_Get (soundlst_group_t group, int idx);
+void SoundList_Init (void);
+void SoundList_Shutdown (void);
 
 #ifdef REF_DLL
 	#error "common.h in ref_dll"

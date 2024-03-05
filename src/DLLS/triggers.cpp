@@ -1067,6 +1067,147 @@ void CTriggerSound::KeyValue (KeyValueData *pkvd)
 		}
 	}
 
+// ESHQ: brush entity для запуска тумана
+class CTriggerFog : public CBaseTrigger
+	{
+	public:
+		void Spawn (void);
+		void KeyValue (KeyValueData *pkvd);
+
+		// trigger_sound
+		void EXPORT MultiTouch_Fog (CBaseEntity *pOther);
+
+		virtual int	Save (CSave &save);
+		virtual int	Restore (CRestore &restore);
+
+		// trigger_sound
+		static	TYPEDESCRIPTION m_SaveData[];
+		unsigned char m_enablingMove;
+		/*unsigned char m_direction;*/
+		unsigned char m_currentEnablingGrade;
+	};
+
+LINK_ENTITY_TO_CLASS (trigger_fog, CTriggerFog);
+TYPEDESCRIPTION	CTriggerFog::m_SaveData[] =
+	{
+	DEFINE_FIELD (CTriggerFog, m_enablingMove, FIELD_CHARACTER),
+	/*DEFINE_FIELD (CTriggerFog, m_direction, FIELD_CHARACTER),*/
+	};
+IMPLEMENT_SAVERESTORE (CTriggerFog, CBaseTrigger);
+
+void CTriggerFog::Spawn (void)
+	{
+	// Общая инициализация
+	m_flWait = 1.0;
+	InitTrigger ();
+
+	/* Поиск направления с наибольшим линейным размером триггера
+	m_direction = 0x00;
+	if ((pev->size.x >= pev->size.y) && (pev->size.x >= pev->size.z))
+		m_direction = 0x01;
+	else if ((pev->size.y >= pev->size.x) && (pev->size.y >= pev->size.z))
+		m_direction = 0x02;
+	else // if ((y >= x) && (y >= z))
+		m_direction = 0x04;*/
+
+	SetTouch (&CTriggerFog::MultiTouch_Fog);
+	}
+
+void CTriggerFog::KeyValue (KeyValueData *pkvd)
+	{
+	if (FStrEq (pkvd->szKeyName, "enablingMove"))
+		{
+		m_enablingMove = atoi (pkvd->szValue);
+		if (m_enablingMove > 7)
+			m_enablingMove = 7;	// Выключение
+
+		pkvd->fHandled = TRUE;
+		}
+	else
+		{
+		CBaseTrigger::KeyValue (pkvd);
+		}
+	}
+
+void CTriggerFog::MultiTouch_Fog (CBaseEntity *pOther)
+	{
+	entvars_t *pevToucher;
+	/*qboolean enable = (m_enablingMove != 0);*/
+	float enablingGrade = 0.0f;	// От 0 до 1 включительно
+	unsigned int packed = 0;
+
+	// Only touch clients
+	pevToucher = pOther->pev;
+	if (!(pevToucher->flags & FL_CLIENT))
+		return;
+
+	// Определение пересечения
+	if ((m_enablingMove != 0) && (m_enablingMove != 7))
+		{
+		switch (m_enablingMove)
+			{
+			case 1:
+			case 2:
+				/*if (pevToucher->origin.x > (pev->absmin.x + pev->absmax.x) / 2.0f)
+					enable = (m_enablingMove == 0);*/
+				enablingGrade = (pevToucher->origin.x - pev->absmin.x) / (pev->absmax.x - pev->absmin.x);
+				break;
+
+			case 3:
+			case 4:
+				/*if (pevToucher->origin.y > (pev->absmin.y + pev->absmax.y) / 2.0f)
+					enable = (m_enablingMove == 0);*/
+				enablingGrade = (pevToucher->origin.y - pev->absmin.y) / (pev->absmax.y - pev->absmin.y);
+				break;
+
+			case 5:
+			case 6:
+				/*if (pevToucher->origin.z > (pev->absmin.z + pev->absmax.z) / 2.0f)
+					enable = (m_enablingMove == 0);*/
+				enablingGrade = (pevToucher->origin.z - pev->absmin.z) / (pev->absmax.z - pev->absmin.z);
+				break;
+			}
+
+		m_flWait = 0.01;	// Сверхкороткое время паузы до повтора для корректного переключения
+		}
+	else
+		{
+		m_flWait = 0.1;		// Стандартная пауза
+		}
+
+	// Активация
+	if (enablingGrade < 0.0f)
+		enablingGrade = 0.0f;
+	if (enablingGrade > 1.0f)
+		enablingGrade = 1.0f;
+	if (m_enablingMove % 2 == 1)
+		enablingGrade = 1.0f - enablingGrade;
+
+	if (m_enablingMove == 0)
+		{
+		packed = (0xFF & (int)pev->rendercolor.x) << 24;
+		packed |= (0xFF & (int)pev->rendercolor.y) << 16;
+		packed |= (0xFF & (int)pev->rendercolor.z) << 8;
+		packed |= (0xFF & (int)(pev->renderamt));
+		SETUP_FOG (packed);
+		}
+	else if ((int)(enablingGrade * 10.0f + 0.5f) != m_currentEnablingGrade)
+		{
+		m_currentEnablingGrade = (int)(enablingGrade * 10.0f + 0.5f);
+
+		packed = (0xFF & (int)pev->rendercolor.x) << 24;
+		packed |= (0xFF & (int)pev->rendercolor.y) << 16;
+		packed |= (0xFF & (int)pev->rendercolor.z) << 8;
+		packed |= (0xFF & (int)(pev->renderamt * enablingGrade));
+		SETUP_FOG (packed);
+		}
+	else if ((m_enablingMove == 7) || (enablingGrade < 0.05f))
+		{
+		SETUP_FOG (0x00000001);
+		}
+	}
+
+
 /*
 QUAKED trigger_once (.5 .5 .5) ? notouch
 Variable sized trigger. Triggers once, then removes itself.  You must set the key "target"
@@ -1113,8 +1254,8 @@ void CBaseTrigger::MultiTouch (CBaseEntity *pOther)
 // ESHQ: поддержка brush entity для замещения функционала env_sound
 void CTriggerSound::MultiTouch_Sound (CBaseEntity *pOther)
 	{
-	entvars_t *pevToucher;
-	float rt = m_flRoomtype;
+	entvars_t	*pevToucher;
+	float		rt = m_flRoomtype;
 
 	// Only touch clients
 	pevToucher = pOther->pev;
@@ -1313,7 +1454,8 @@ class CFireAndDie : public CBaseDelay
 		void Spawn (void);
 		void Precache (void);
 		void Think (void);
-		int ObjectCaps (void) { return CBaseDelay::ObjectCaps () | FCAP_FORCE_TRANSITION; }	// Always go across transitions
+		int ObjectCaps (void) { return CBaseDelay::ObjectCaps () | FCAP_FORCE_TRANSITION; }
+		// Always go across transitions
 	};
 LINK_ENTITY_TO_CLASS (fireanddie, CFireAndDie);
 
@@ -1365,6 +1507,7 @@ class CChangeLevel : public CBaseTrigger
 		int		m_changeTarget;
 		float	m_changeTargetDelay;
 	};
+
 LINK_ENTITY_TO_CLASS (trigger_changelevel, CChangeLevel);
 
 // Global Savedata for changelevel trigger
@@ -1896,7 +2039,8 @@ void CBaseTrigger::TeleportTouch (CBaseEntity *pOther)
 
 	if (pOther->IsPlayer ())
 		{
-		tmp.z -= pOther->pev->mins.z;// make origin adjustments in case the teleportee is a player. (origin in center, not at feet)
+		tmp.z -= pOther->pev->mins.z;
+		// make origin adjustments in case the teleportee is a player. (origin in center, not at feet)
 		}
 
 	tmp.z++;

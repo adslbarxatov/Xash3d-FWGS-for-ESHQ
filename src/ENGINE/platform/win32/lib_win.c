@@ -365,7 +365,7 @@ static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *dat
 	return importDesc;
 	}
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.03.24]
 static void ListMissingModules (dll_user_t *hInst)
 	{
 	PIMAGE_NT_HEADERS peHeader;
@@ -373,11 +373,17 @@ static void ListMissingModules (dll_user_t *hInst)
 	byte	*data;
 	char	buf[MAX_VA_STRING];
 
-	if (!hInst) 
+	/*if (!hInst) 
 		return;
 
 	data = FS_LoadFile (hInst->dllName, NULL, false);
 	if (!data) 
+		return;*/
+	if (!hInst || !g_fsapi.LoadFile)
+		return;
+
+	data = g_fsapi.LoadFile (hInst->dllName, NULL, false);
+	if (!data)
 		return;
 
 	importDesc = GetImportDescriptor (hInst->dllName, data, &peHeader);

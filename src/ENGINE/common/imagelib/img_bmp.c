@@ -19,16 +19,17 @@ GNU General Public License for more details.
 
 /*
 =============
-Image_LoadBMP
+Image_LoadBMP [FWGS, 01.03.24]
 =============
 */
 qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	byte		*buf_p, *pixbuf;
-	rgba_t		palette[256] = { 0 };	// [FWGS, 01.04.23]
+	rgba_t		palette[256] = { 0 };
 	int			i, columns, column, rows, row, bpp = 1;
 	int			cbPalBytes = 0, padSize = 0, bps = 0;
-	int			reflectivity[3] = { 0, 0, 0 };
+	/*int			reflectivity[3] = { 0, 0, 0 };*/
+	uint		reflectivity[3] = { 0, 0, 0 };
 	qboolean	load_qfont = false;
 	bmp_t		bhdr;
 	fs_offset_t	estimatedSize;
@@ -70,7 +71,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			filesize, bhdr.fileSize);
 		}
 
-	// [FWGS, 01.04.23] Bogus compression? Only non-compressed supported
+	// Bogus compression? Only non-compressed supported
 	if (bhdr.compression != BI_RGB)
 		{
 		if ((bhdr.bitsPerPixel != 32) || (bhdr.compression != BI_BITFIELDS))
@@ -188,7 +189,6 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			break;
 		}
 
-	// [FWGS, 01.04.23]
 	estimatedSize = (buf_p - buffer) + image.width * image.height * (bhdr.bitsPerPixel >> 3);
 	if (filesize < estimatedSize)
 		{
@@ -338,14 +338,14 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 	{
-	file_t *pfile = NULL;
-	size_t		total_size, cur_size;
-	rgba_t		rgrgbPalette[256];
-	dword		cbBmpBits;
-	byte *clipbuf = NULL;
-	byte *pb, *pbBmpBits;
-	dword		cbPalBytes;
-	dword		biTrueWidth;
+	file_t	*pfile = NULL;
+	size_t	total_size, cur_size;
+	rgba_t	rgrgbPalette[256];
+	dword	cbBmpBits;
+	byte	*clipbuf = NULL;
+	byte	*pb, *pbBmpBits;
+	dword	cbPalBytes;
+	dword	biTrueWidth;
 	int		pixel_size;
 	int		i, x, y;
 	bmp_t	hdr;

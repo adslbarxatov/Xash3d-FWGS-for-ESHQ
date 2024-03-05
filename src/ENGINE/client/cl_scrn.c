@@ -298,7 +298,7 @@ static void VID_WriteOverviewScript (void)
 
 /*
 ================
-SCR_MakeScreenShot
+SCR_MakeScreenShot [FWGS, 01.03.24]
 
 create a requested screenshot type
 ================
@@ -306,14 +306,16 @@ create a requested screenshot type
 void SCR_MakeScreenShot (void)
 	{
 	qboolean	iRet = false;
-	int	viewsize;
+	int			viewsize;
+
+	if (cls.scrshot_action == scrshot_inactive)
+		return;
 
 	if (cls.envshot_viewsize > 0)
 		viewsize = cls.envshot_viewsize;
 	else
 		viewsize = cl_envshot_size.value;
 
-	// [FWGS, 01.01.24]
 	V_CheckGamma ();
 
 	switch (cls.scrshot_action)
@@ -321,28 +323,35 @@ void SCR_MakeScreenShot (void)
 		case scrshot_normal:
 			iRet = ref.dllFuncs.VID_ScreenShot (cls.shotname, VID_SCREENSHOT);
 			break;
+
 		case scrshot_snapshot:
 			iRet = ref.dllFuncs.VID_ScreenShot (cls.shotname, VID_SNAPSHOT);
 			break;
+
 		case scrshot_plaque:
 			iRet = ref.dllFuncs.VID_ScreenShot (cls.shotname, VID_LEVELSHOT);
 			break;
+
 		case scrshot_savegame:
 			iRet = ref.dllFuncs.VID_ScreenShot (cls.shotname, VID_MINISHOT);
 			break;
+
 		case scrshot_envshot:
 			iRet = ref.dllFuncs.VID_CubemapShot (cls.shotname, viewsize, cls.envshot_vieworg, false);
 			break;
+
 		case scrshot_skyshot:
 			iRet = ref.dllFuncs.VID_CubemapShot (cls.shotname, viewsize, cls.envshot_vieworg, true);
 			break;
+
 		case scrshot_mapshot:
 			iRet = ref.dllFuncs.VID_ScreenShot (cls.shotname, VID_MAPSHOT);
 			if (iRet)
 				VID_WriteOverviewScript (); // store overview script too
 			break;
-		case scrshot_inactive:
-			return;
+
+		/*case scrshot_inactive:
+			return;*/
 		}
 
 	// report
@@ -554,18 +563,22 @@ void SCR_UpdateScreen (void)
 		case ca_disconnected:
 			Con_RunConsole ();
 			break;
+
 		case ca_connecting:
 		case ca_connected:
 		case ca_validate:
 			SCR_DrawPlaque ();
 			break;
+
 		case ca_active:
 			Con_RunConsole ();
 			V_RenderView ();
 			break;
+
 		case ca_cinematic:
 			SCR_DrawCinematic ();
 			break;
+
 		default:
 			Host_Error ("SCR_UpdateScreen: bad cls.state\n");
 			break;
@@ -585,10 +598,10 @@ INTERNAL RESOURCE
 */
 void SCR_LoadCreditsFont (void)
 	{
-	cl_font_t *const font = &cls.creditsFont;
-	qboolean success = false;
-	float scale = hud_fontscale.value;
-	dword crc = 0;
+	cl_font_t	*const font = &cls.creditsFont;
+	qboolean	success = false;
+	float		scale = hud_fontscale.value;
+	dword		crc = 0;
 
 	// replace default gfx.wad textures by current charset's font
 	if (!CRC32_File (&crc, "gfx.wad") || (crc == 0x49eb9f16))
@@ -599,15 +612,18 @@ void SCR_LoadCreditsFont (void)
 			"creditsfont_%s.fnt", Cvar_VariableString ("con_charset")) > 0)
 			{
 			if (FS_FileExists (charsetFnt, false))
-				success = Con_LoadVariableWidthFont (charsetFnt, font, scale, kRenderTransAdd, TF_FONT);
+				/*success = Con_LoadVariableWidthFont (charsetFnt, font, scale, kRenderTransAdd, TF_FONT);*/
+				success = Con_LoadVariableWidthFont (charsetFnt, font, scale, &hud_fontrender, TF_FONT);
 			}
 		}
 
 	if (!success)
-		success = Con_LoadVariableWidthFont ("gfx/creditsfont.fnt", font, scale, kRenderTransAdd, TF_FONT);
+		/*success = Con_LoadVariableWidthFont ("gfx/creditsfont.fnt", font, scale, kRenderTransAdd, TF_FONT);*/
+		success = Con_LoadVariableWidthFont ("gfx/creditsfont.fnt", font, scale, &hud_fontrender, TF_FONT);
 
 	if (!success)
-		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransAdd, TF_FONT);
+		/*success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransAdd, TF_FONT);*/
+		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT);
 
 	// copy font size for client.dll
 	if (success)

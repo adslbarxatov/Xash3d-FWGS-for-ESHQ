@@ -21,6 +21,7 @@ GNU General Public License for more details.
 //-----------------------------------------------------------------------------
 // Gamma conversion support
 //-----------------------------------------------------------------------------
+static qboolean gamma_rebuilt;	// [FWGS, 01.03.24]
 static byte	texgammatable[256];
 static uint	lightgammatable[1024];
 static uint	lineargammatable[1024];
@@ -86,7 +87,7 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 		}
 	}
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.03.24]
 static void V_ValidateGammaCvars (void)
 	{
 	/*if (Host_IsLocalGame ())
@@ -110,14 +111,17 @@ static void V_ValidateGammaCvars (void)
 
 	if (v_brightness.value < 0.5f)
 		Cvar_DirectSet (&v_brightness, "0.5");
-	else if (v_brightness.value > 2.0f)
-		Cvar_DirectSet (&v_brightness, "2");
+	/*else if (v_brightness.value > 2.0f)
+		Cvar_DirectSet (&v_brightness, "2");*/
+	else if (v_brightness.value > 3.0f)
+		Cvar_DirectSet (&v_brightness, "3");
 	}
 
+// [FWGS, 01.03.24]
 void V_CheckGamma (void)
 	{
 	static qboolean dirty = false;
-	qboolean notify_refdll = false;
+	/*qboolean notify_refdll = false;*/
 
 	// because these cvars were defined as archive
 	// but wasn't doing anything useful
@@ -143,20 +147,38 @@ void V_CheckGamma (void)
 		V_ValidateGammaCvars ();
 
 		dirty = false;
+		gamma_rebuilt = true;
 		BuildGammaTable (v_gamma.value, v_brightness.value, v_texgamma.value, v_lightgamma.value);
 
 		// force refdll to recalculate lightmaps
-		notify_refdll = true;
+		/*notify_refdll = true;*/
+		if (ref.initialized)
+			ref.dllFuncs.R_GammaChanged (false);
+		}
+	}
 
-		// unfortunately, recalculating textures isn't possible yet
+// [FWGS, 01.03.24]
+void V_CheckGammaEnd (void)
+	{
+	// don't reset changed flag if it was set during frame
+	// keep it for next frame
+	if (!gamma_rebuilt)
+		return;
+
+	gamma_rebuilt = false;
+
+	/*// unfortunately, recalculating textures isn't possible yet*/
+	// keep the flags until the end of frame so client.dll will catch these changes
+	if (FBitSet (v_texgamma.flags | v_lightgamma.flags | v_brightness.flags | v_gamma.flags, FCVAR_CHANGED))
+		{
 		ClearBits (v_texgamma.flags, FCVAR_CHANGED);
 		ClearBits (v_lightgamma.flags, FCVAR_CHANGED);
 		ClearBits (v_brightness.flags, FCVAR_CHANGED);
 		ClearBits (v_gamma.flags, FCVAR_CHANGED);
 		}
 
-	if (notify_refdll && ref.initialized)
-		ref.dllFuncs.R_GammaChanged (false);
+	/*if (notify_refdll && ref.initialized)
+		ref.dllFuncs.R_GammaChanged (false);*/
 	}
 
 void V_Init (void)

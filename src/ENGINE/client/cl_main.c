@@ -93,6 +93,11 @@ CVAR_DEFINE_AUTO (cl_fixtimerate, "7.5", FCVAR_ARCHIVE,
 	"time in msec to client clock adjusting");
 CVAR_DEFINE_AUTO (hud_fontscale, "1.0", FCVAR_ARCHIVE | FCVAR_LATCH,
 	"scale hud font texture");
+
+// [FWGS, 01.03.24]
+CVAR_DEFINE_AUTO (hud_fontrender, "0", FCVAR_ARCHIVE,
+	"hud font render mode (0: additive, 1: holes, 2: trans)");
+
 CVAR_DEFINE_AUTO (hud_scale, "0", FCVAR_ARCHIVE | FCVAR_LATCH,
 	"scale hud at current resolution");
 
@@ -120,10 +125,19 @@ CVAR_DEFINE_AUTO (cl_lw, "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
 	"enable client weapon predicting");
 CVAR_DEFINE_AUTO (cl_charset, "utf-8", FCVAR_ARCHIVE,
 	"1-byte charset to use (iconv style)");
+
+// [FWGS, 01.03.24]
+/*CVAR_DEFINE_AUTO (cl_trace_messages, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
+	"enable message names tracing (good for developers)");
+CVAR_DEFINE_AUTO (cl_trace_events, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
+	"enable events tracing (good for developers)");*/
+CVAR_DEFINE_AUTO (cl_trace_stufftext, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
+	"enable stufftext (server-to-client console commands) tracing (good for developers)");
 CVAR_DEFINE_AUTO (cl_trace_messages, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
 	"enable message names tracing (good for developers)");
 CVAR_DEFINE_AUTO (cl_trace_events, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
 	"enable events tracing (good for developers)");
+
 static CVAR_DEFINE_AUTO (cl_nat, "0", 0,
 	"show servers running under NAT");
 CVAR_DEFINE_AUTO (hud_utf8, "0", FCVAR_ARCHIVE,
@@ -2998,6 +3012,7 @@ static void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_charset);
 	Cvar_RegisterVariable (&hud_utf8);
 	Cvar_RegisterVariable (&rcon_address);
+	Cvar_RegisterVariable (&cl_trace_stufftext);	// [FWGS, 01.03.24]
 	Cvar_RegisterVariable (&cl_trace_messages);
 	Cvar_RegisterVariable (&cl_trace_events);
 
@@ -3039,6 +3054,7 @@ static void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_clockreset);
 	Cvar_RegisterVariable (&cl_fixtimerate);
 	Cvar_RegisterVariable (&hud_fontscale);
+	Cvar_RegisterVariable (&hud_fontrender);	// [FWGS, 01.03.24]
 	Cvar_RegisterVariable (&hud_scale);
 	Cvar_RegisterVariable (&hud_scale_minimal_width);	// [FWGS, 01.02.24]
 

@@ -653,17 +653,20 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 	if (node->children[0] && (node->children[0] != ignore))
 		{
 		tex = R_RecursiveFindWaterTexture (node->children[0], node, true);
-		if (tex) return tex;
+		if (tex)
+			return tex;
 		}
 
 	if (node->children[1] && (node->children[1] != ignore))
 		{
 		tex = R_RecursiveFindWaterTexture (node->children[1], node, true);
-		if (tex)	return tex;
+		if (tex)
+			return tex;
 		}
 
 	// for down recursion, return immediately
-	if (down) return NULL;
+	if (down)
+		return NULL;
 
 	// texture not found, step up if any
 	if (node->parent)
@@ -689,23 +692,30 @@ static void R_CheckFog (void)
 	int				i, cnt, count;
 
 	// quake global fog
-	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
+	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) || tr.movevars->fog_settings)
 		{
-		/*if (!MOVEVARS->fog_settings)*/
-		if (!tr.movevars->fog_settings)
+		// ESHQ: поддержка тумана
+		if ((unsigned int)tr.movevars->fog_settings <= 1)
 			{
 			if (pglIsEnabled (GL_FOG))
 				pglDisable (GL_FOG);
 
+			RI.fogColor[0] = 0.0f;
+			RI.fogColor[1] = 0.0f;
+			RI.fogColor[2] = 0.0f;
+			RI.fogDensity = 0.0f;
+
+			RI.fogStart = RI.fogEnd = 0.0f;
+			RI.fogColor[3] = 0.0f;
+			RI.fogCustom = false;
+			RI.fogSkybox = false;
+
 			RI.fogEnabled = false;
+			tr.movevars->fog_settings = 0;
 			return;
 			}
 
 		// quake-style global fog
-		/*RI.fogColor[0] = ((MOVEVARS->fog_settings & 0xFF000000) >> 24) / 255.0f;
-		RI.fogColor[1] = ((MOVEVARS->fog_settings & 0xFF0000) >> 16) / 255.0f;
-		RI.fogColor[2] = ((MOVEVARS->fog_settings & 0xFF00) >> 8) / 255.0f;
-		RI.fogDensity = ((MOVEVARS->fog_settings & 0xFF) / 255.0f) * 0.01f;*/
 		RI.fogColor[0] = ((tr.movevars->fog_settings & 0xFF000000) >> 24) / 255.0f;
 		RI.fogColor[1] = ((tr.movevars->fog_settings & 0xFF0000) >> 16) / 255.0f;
 		RI.fogColor[2] = ((tr.movevars->fog_settings & 0xFF00) >> 8) / 255.0f;
@@ -738,7 +748,7 @@ static void R_CheckFog (void)
 		}
 
 	ent = gEngfuncs.CL_GetWaterEntity (RI.vieworg);
-	if (ent && ent->model && ent->model->type == mod_brush && ent->curstate.skin < 0)
+	if (ent && ent->model && (ent->model->type == mod_brush) && (ent->curstate.skin < 0))
 		cnt = ent->curstate.skin;
 	else
 		cnt = RI.viewleaf->contents;
@@ -1038,7 +1048,7 @@ void R_GammaChanged (qboolean do_reset_gamma)
 		}
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.24]
 static void R_CheckGamma (void)
 	{
 	qboolean rebuild = false;
@@ -1049,10 +1059,13 @@ static void R_CheckGamma (void)
 		ClearBits (gl_overbright.flags, FCVAR_CHANGED);
 		}
 
-	if (gl_overbright.value && FBitSet (r_vbo.flags, FCVAR_CHANGED))
+	/*if (gl_overbright.value && FBitSet (r_vbo.flags, FCVAR_CHANGED))*/
+	if (gl_overbright.value && (FBitSet (r_vbo.flags, FCVAR_CHANGED) ||
+		FBitSet (r_vbo_overbrightmode.flags, FCVAR_CHANGED)))
 		{
 		rebuild = true;
 		ClearBits (r_vbo.flags, FCVAR_CHANGED);
+		ClearBits (r_vbo_overbrightmode.flags, FCVAR_CHANGED);
 		}
 
 	if (rebuild)
