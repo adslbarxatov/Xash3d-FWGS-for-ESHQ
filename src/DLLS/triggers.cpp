@@ -228,13 +228,9 @@ void CTriggerRelay::KeyValue (KeyValueData *pkvd)
 		CBaseDelay::KeyValue (pkvd);
 	}
 
-
 void CTriggerRelay::Spawn (void)
 	{
 	}
-
-
-
 
 void CTriggerRelay::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
@@ -264,7 +260,7 @@ class CMultiManager : public CBaseToggle
 		void EXPORT ManagerReport (void);
 #endif
 
-		BOOL		HasTarget (string_t targetname);
+		BOOL	HasTarget (string_t targetname);
 
 		int ObjectCaps (void) { return CBaseToggle::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
 
@@ -290,6 +286,7 @@ class CMultiManager : public CBaseToggle
 
 		CMultiManager *Clone (void);
 	};
+
 LINK_ENTITY_TO_CLASS (multi_manager, CMultiManager);
 
 // Global Savedata for multi_manager
@@ -357,7 +354,6 @@ void CMultiManager::Spawn (void)
 		}
 	}
 
-
 BOOL CMultiManager::HasTarget (string_t targetname)
 	{
 	for (int i = 0; i < m_cTargets; i++)
@@ -366,7 +362,6 @@ BOOL CMultiManager::HasTarget (string_t targetname)
 
 	return FALSE;
 	}
-
 
 // Designers were using this to fire targets that may or may not exist -- 
 // so I changed it to use the standard target fire code, made it a little simpler.
@@ -468,7 +463,6 @@ class CRenderFxManager : public CBaseEntity
 	};
 
 LINK_ENTITY_TO_CLASS (env_render, CRenderFxManager);
-
 
 void CRenderFxManager::Spawn (void)
 	{
@@ -2197,6 +2191,7 @@ class CTriggerGravity : public CBaseTrigger
 	public:
 		void Spawn (void);
 		void EXPORT GravityTouch (CBaseEntity *pOther);
+		void EXPORT GravityUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	};
 LINK_ENTITY_TO_CLASS (trigger_gravity, CTriggerGravity);
 
@@ -2204,6 +2199,7 @@ void CTriggerGravity::Spawn (void)
 	{
 	InitTrigger ();
 	SetTouch (&CTriggerGravity::GravityTouch);
+	SetUse (&CTriggerGravity::GravityUse);
 	}
 
 // ESHQ: возможность установки всеобщей гравитации
@@ -2235,6 +2231,12 @@ void CTriggerGravity::GravityTouch (CBaseEntity *pOther)
 			}
 		pOther->pev->gravity = 1.0f;
 		}
+	}
+
+// ESHQ: реализован вызов через имя
+void CTriggerGravity::GravityUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	{
+	GravityTouch (UTIL_PlayerByIndex (1));
 	}
 
 // this is a really bad idea
@@ -2333,19 +2335,19 @@ LINK_ENTITY_TO_CLASS (trigger_camera, CTriggerCamera);
 // Global Savedata for changelevel friction modifier
 TYPEDESCRIPTION	CTriggerCamera::m_SaveData[] =
 	{
-		DEFINE_FIELD (CTriggerCamera, m_hPlayer, FIELD_EHANDLE),
-		DEFINE_FIELD (CTriggerCamera, m_hTarget, FIELD_EHANDLE),
-		DEFINE_FIELD (CTriggerCamera, m_pentPath, FIELD_CLASSPTR),
-		DEFINE_FIELD (CTriggerCamera, m_sPath, FIELD_STRING),
-		DEFINE_FIELD (CTriggerCamera, m_flWait, FIELD_FLOAT),
-		DEFINE_FIELD (CTriggerCamera, m_flReturnTime, FIELD_TIME),
-		DEFINE_FIELD (CTriggerCamera, m_flStopTime, FIELD_TIME),
-		DEFINE_FIELD (CTriggerCamera, m_moveDistance, FIELD_FLOAT),
-		DEFINE_FIELD (CTriggerCamera, m_targetSpeed, FIELD_FLOAT),
-		DEFINE_FIELD (CTriggerCamera, m_initialSpeed, FIELD_FLOAT),
-		DEFINE_FIELD (CTriggerCamera, m_acceleration, FIELD_FLOAT),
-		DEFINE_FIELD (CTriggerCamera, m_deceleration, FIELD_FLOAT),
-		DEFINE_FIELD (CTriggerCamera, m_state, FIELD_INTEGER),
+	DEFINE_FIELD (CTriggerCamera, m_hPlayer, FIELD_EHANDLE),
+	DEFINE_FIELD (CTriggerCamera, m_hTarget, FIELD_EHANDLE),
+	DEFINE_FIELD (CTriggerCamera, m_pentPath, FIELD_CLASSPTR),
+	DEFINE_FIELD (CTriggerCamera, m_sPath, FIELD_STRING),
+	DEFINE_FIELD (CTriggerCamera, m_flWait, FIELD_FLOAT),
+	DEFINE_FIELD (CTriggerCamera, m_flReturnTime, FIELD_TIME),
+	DEFINE_FIELD (CTriggerCamera, m_flStopTime, FIELD_TIME),
+	DEFINE_FIELD (CTriggerCamera, m_moveDistance, FIELD_FLOAT),
+	DEFINE_FIELD (CTriggerCamera, m_targetSpeed, FIELD_FLOAT),
+	DEFINE_FIELD (CTriggerCamera, m_initialSpeed, FIELD_FLOAT),
+	DEFINE_FIELD (CTriggerCamera, m_acceleration, FIELD_FLOAT),
+	DEFINE_FIELD (CTriggerCamera, m_deceleration, FIELD_FLOAT),
+	DEFINE_FIELD (CTriggerCamera, m_state, FIELD_INTEGER),
 	};
 
 IMPLEMENT_SAVERESTORE (CTriggerCamera, CBaseDelay);

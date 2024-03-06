@@ -692,7 +692,8 @@ static void R_CheckFog (void)
 	int				i, cnt, count;
 
 	// quake global fog
-	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) || tr.movevars->fog_settings)
+	if ((ENGINE_GET_PARM (PARM_WATER_LEVEL) < 3) &&
+		(ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) || tr.movevars->fog_settings))
 		{
 		// ESHQ: поддержка тумана
 		if ((unsigned int)tr.movevars->fog_settings <= 1)
@@ -755,7 +756,7 @@ static void R_CheckFog (void)
 
 	RI.cached_waterlevel = ENGINE_GET_PARM (PARM_WATER_LEVEL);
 
-	// ESHQ: отменено дефектное исправление, выводящее туман из строя
+	// ESHQ: отменено дефектное исправление, выводящее подводный туман из строя
 	tex = NULL;
 
 	// check for water texture
