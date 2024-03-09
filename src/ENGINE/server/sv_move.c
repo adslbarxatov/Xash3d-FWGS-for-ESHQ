@@ -268,11 +268,11 @@ float SV_VecToYaw (const vec3_t src)
 
 qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 	{
-	int	i;
+	int		i;
 	trace_t	trace;
 	vec3_t	oldorg, neworg, end;
 	qboolean	monsterClip;
-	edict_t *enemy;
+	edict_t	*enemy;
 	float	dz;
 
 	VectorCopy (ent->v.origin, oldorg);
@@ -292,8 +292,10 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 				{
 				dz = ent->v.origin[2] - enemy->v.origin[2];
 
-				if (dz > 40.0f) neworg[2] -= 8.0f;
-				else if (dz < 30.0f) neworg[2] += 8.0f;
+				if (dz > 40.0f)
+					neworg[2] -= 8.0f;
+				else if (dz < 30.0f)
+					neworg[2] += 8.0f;
 				}
 
 			trace = SV_Move (ent->v.origin, ent->v.mins, ent->v.maxs, neworg, MOVE_NORMAL, ent, monsterClip);
@@ -308,7 +310,8 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 					return 0;
 
 				VectorCopy (trace.endpos, ent->v.origin);
-				if (relink) SV_LinkEdict (ent, true);
+				if (relink)
+					SV_LinkEdict (ent, true);
 
 				return 1;
 				}
@@ -336,7 +339,7 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 			neworg[2] -= dz;
 			trace = SV_Move (neworg, ent->v.mins, ent->v.maxs, end, MOVE_NORMAL, ent, monsterClip);
 
-			if (trace.allsolid != 0 || trace.startsolid != 0)
+			if ((trace.allsolid != 0) || (trace.startsolid != 0))
 				return 0;
 			}
 
@@ -345,7 +348,9 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 			if (ent->v.flags & FL_PARTIALGROUND)
 				{
 				VectorAdd (ent->v.origin, move, ent->v.origin);
-				if (relink) SV_LinkEdict (ent, true);
+				if (relink)
+					SV_LinkEdict (ent, true);
+
 				ent->v.flags &= ~FL_ONGROUND;
 				return 1;
 				}
@@ -403,7 +408,7 @@ qboolean SV_MoveTest (edict_t *ent, vec3_t move, qboolean relink)
 		neworg[2] -= temp;
 		trace = SV_MoveNoEnts (neworg, ent->v.mins, ent->v.maxs, end, MOVE_NORMAL, ent);
 
-		if (trace.allsolid != 0 || trace.startsolid != 0)
+		if ((trace.allsolid != 0) || (trace.startsolid != 0))
 			return 0;
 		}
 
@@ -412,7 +417,9 @@ qboolean SV_MoveTest (edict_t *ent, vec3_t move, qboolean relink)
 		if (ent->v.flags & FL_PARTIALGROUND)
 			{
 			VectorAdd (ent->v.origin, move, ent->v.origin);
-			if (relink) SV_LinkEdict (ent, true);
+			if (relink)
+				SV_LinkEdict (ent, true);
+
 			ent->v.flags &= ~FL_ONGROUND;
 			return 1;
 			}
@@ -426,7 +433,8 @@ qboolean SV_MoveTest (edict_t *ent, vec3_t move, qboolean relink)
 			{
 			if (ent->v.flags & FL_PARTIALGROUND)
 				{
-				if (relink) SV_LinkEdict (ent, true);
+				if (relink)
+					SV_LinkEdict (ent, true);
 				return 1;
 				}
 
@@ -437,7 +445,8 @@ qboolean SV_MoveTest (edict_t *ent, vec3_t move, qboolean relink)
 			{
 			ent->v.flags &= ~FL_PARTIALGROUND;
 			ent->v.groundentity = trace.ent;
-			if (relink) SV_LinkEdict (ent, true);
+			if (relink)
+				SV_LinkEdict (ent, true);
 
 			return 1;
 			}

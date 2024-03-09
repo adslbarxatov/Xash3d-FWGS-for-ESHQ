@@ -241,7 +241,7 @@ static void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const
 				svgame.pmove->numvisent++;
 			}
 
-		if (check->v.solid == SOLID_NOT && (check->v.skin == CONTENTS_NONE || check->v.modelindex == 0))
+		if ((check->v.solid == SOLID_NOT) && ((check->v.skin == CONTENTS_NONE) || (check->v.modelindex == 0)))
 			continue;
 
 		// ignore monsterclip brushes

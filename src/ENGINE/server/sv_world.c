@@ -1305,7 +1305,8 @@ static void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 SV_Move
 ==================
 */
-trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e, qboolean monsterclip)
+trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e,
+	qboolean monsterclip)
 	{
 	moveclip_t	clip;
 	vec3_t		trace_endpos;
@@ -1475,7 +1476,7 @@ trace_t SV_MoveToss (edict_t *tossent, edict_t *ignore)
 	vec3_t	original_angles;
 	vec3_t	original_avelocity;
 	trace_t	trace;
-	int	i;
+	int		i;
 
 	VectorCopy (tossent->v.origin, original_origin);
 	VectorCopy (tossent->v.velocity, original_velocity);
@@ -1492,7 +1493,8 @@ trace_t SV_MoveToss (edict_t *tossent, edict_t *ignore)
 		VectorAdd (tossent->v.origin, move, end);
 		trace = SV_Move (tossent->v.origin, tossent->v.mins, tossent->v.maxs, end, MOVE_NORMAL, tossent, false);
 		VectorCopy (trace.endpos, tossent->v.origin);
-		if (trace.fraction < 1.0f) break;
+		if (trace.fraction < 1.0f)
+			break;
 		}
 
 	VectorCopy (original_origin, tossent->v.origin);

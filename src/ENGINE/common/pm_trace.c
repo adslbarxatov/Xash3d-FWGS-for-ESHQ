@@ -88,8 +88,10 @@ void PM_InitBoxHull (void)
 		side = i & 1;
 
 		pm_boxclipnodes[i].children[side] = CONTENTS_EMPTY;
-		if (i != 5) pm_boxclipnodes[i].children[side ^ 1] = i + 1;
-		else pm_boxclipnodes[i].children[side ^ 1] = CONTENTS_SOLID;
+		if (i != 5)
+			pm_boxclipnodes[i].children[side ^ 1] = i + 1;
+		else
+			pm_boxclipnodes[i].children[side ^ 1] = CONTENTS_SOLID;
 
 		pm_boxplanes[i].type = i >> 1;
 		pm_boxplanes[i].normal[i >> 1] = 1.0f;
@@ -218,12 +220,13 @@ PM_RecursiveHullCheck
 */
 qboolean PM_RecursiveHullCheck (hull_t *hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, pmtrace_t *trace)
 	{
-	mclipnode_t *node;
-	mplane_t *plane;
+	mclipnode_t	*node;
+	mplane_t	*plane;
 	float		t1, t2;
 	float		frac, midf;
-	int		side;
+	int			side;
 	vec3_t		mid;
+
 loc0:
 	// check for empty
 	if (num < 0)
@@ -233,9 +236,13 @@ loc0:
 			trace->allsolid = false;
 			if (num == CONTENTS_EMPTY)
 				trace->inopen = true;
-			else trace->inwater = true;
+			else
+				trace->inwater = true;
 			}
-		else trace->startsolid = true;
+		else
+			{
+			trace->startsolid = true;
+			}
 		return true; // empty
 		}
 
@@ -247,7 +254,7 @@ loc0:
 		return true;
 		}
 
-	if (num < hull->firstclipnode || num > hull->lastclipnode)
+	if ((num < hull->firstclipnode) || (num > hull->lastclipnode))
 		Host_Error ("PM_RecursiveHullCheck: bad node number %i\n", num);
 
 	// find the point distances
@@ -257,13 +264,13 @@ loc0:
 	t1 = PlaneDiff (p1, plane);
 	t2 = PlaneDiff (p2, plane);
 
-	if (t1 >= 0.0f && t2 >= 0.0f)
+	if ((t1 >= 0.0f) && (t2 >= 0.0f))
 		{
 		num = node->children[0];
 		goto loc0;
 		}
 
-	if (t1 < 0.0f && t2 < 0.0f)
+	if ((t1 < 0.0f) && (t2 < 0.0f))
 		{
 		num = node->children[1];
 		goto loc0;
@@ -272,11 +279,15 @@ loc0:
 	// put the crosspoint DIST_EPSILON pixels on the near side
 	side = (t1 < 0.0f);
 
-	if (side) frac = (t1 + DIST_EPSILON) / (t1 - t2);
-	else frac = (t1 - DIST_EPSILON) / (t1 - t2);
+	if (side)
+		frac = (t1 + DIST_EPSILON) / (t1 - t2);
+	else
+		frac = (t1 - DIST_EPSILON) / (t1 - t2);
 
-	if (frac < 0.0f) frac = 0.0f;
-	if (frac > 1.0f) frac = 1.0f;
+	if (frac < 0.0f)
+		frac = 0.0f;
+	if (frac > 1.0f)
+		frac = 1.0f;
 
 	midf = p1f + (p2f - p1f) * frac;
 	VectorLerp (p1, frac, p2, mid);
@@ -331,18 +342,19 @@ loc0:
 	return false;
 	}
 
-pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int flags, int numents, physent_t *ents, int ignore_pe, pfnIgnore pmFilter)
+pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int flags, int numents,
+	physent_t *ents, int ignore_pe, pfnIgnore pmFilter)
 	{
-	physent_t *pe;
+	physent_t	*pe;
 	matrix4x4	matrix;
 	pmtrace_t	trace_bbox;
 	pmtrace_t	trace_hitbox;
 	pmtrace_t	trace_total;
-	vec3_t	offset, start_l, end_l;
-	vec3_t	temp, mins, maxs;
-	int	i, j, hullcount;
+	vec3_t		offset, start_l, end_l;
+	vec3_t		temp, mins, maxs;
+	int			i, j, hullcount;
 	qboolean	rotated, transform_bbox;
-	hull_t *hull = NULL;
+	hull_t		*hull = NULL;
 
 	memset (&trace_total, 0, sizeof (trace_total));
 	VectorCopy (end, trace_total.endpos);
@@ -353,7 +365,7 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 		{
 		pe = &ents[i];
 
-		if (i != 0 && (flags & PM_WORLD_ONLY))
+		if ((i != 0) && (flags & PM_WORLD_ONLY))
 			break;
 
 		// run custom user filter
@@ -368,13 +380,13 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 				continue;
 			}
 
-		if (pe->model != NULL && pe->solid == SOLID_NOT && pe->skin != CONTENTS_NONE)
+		if ((pe->model != NULL) && (pe->solid == SOLID_NOT) && (pe->skin != CONTENTS_NONE))
 			continue;
 
-		if ((flags & PM_GLASS_IGNORE) && pe->rendermode != kRenderNormal)
+		if ((flags & PM_GLASS_IGNORE) && (pe->rendermode != kRenderNormal))
 			continue;
 
-		if ((flags & PM_CUSTOM_IGNORE) && pe->solid == SOLID_CUSTOM)
+		if ((flags & PM_CUSTOM_IGNORE) && (pe->solid == SOLID_CUSTOM))
 			continue;
 
 		hullcount = 1;
@@ -421,40 +433,50 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 
 			}
 
-		if (pe->solid == SOLID_BSP && !VectorIsNull (pe->angles))
+		if ((pe->solid == SOLID_BSP) && !VectorIsNull (pe->angles))
 			rotated = true;
-		else rotated = false;
+		else
+			rotated = false;
 
 		if (FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT))
 			{
-			if ((check_angles (pe->angles[0]) || check_angles (pe->angles[2])) && pmove->usehull != 2)
+			if ((check_angles (pe->angles[0]) || check_angles (pe->angles[2])) && (pmove->usehull != 2))
 				transform_bbox = true;
-			else transform_bbox = false;
+			else
+				transform_bbox = false;
 			}
-		else transform_bbox = false;
+		else
+			{
+			transform_bbox = false;
+			}
 
 		if (rotated)
 			{
 			if (transform_bbox)
 				Matrix4x4_CreateFromEntity (matrix, pe->angles, pe->origin, 1.0f);
-			else Matrix4x4_CreateFromEntity (matrix, pe->angles, offset, 1.0f);
+			else
+				Matrix4x4_CreateFromEntity (matrix, pe->angles, offset, 1.0f);
 
 			Matrix4x4_VectorITransform (matrix, start, start_l);
 			Matrix4x4_VectorITransform (matrix, end, end_l);
 
 			if (transform_bbox)
 				{
-				World_TransformAABB (matrix, pmove->player_mins[pmove->usehull], pmove->player_maxs[pmove->usehull], mins, maxs);
+				World_TransformAABB (matrix, pmove->player_mins[pmove->usehull],
+					pmove->player_maxs[pmove->usehull], mins, maxs);
 				VectorSubtract (hull->clip_mins, mins, offset);	// calc new local offset
 
 				for (j = 0; j < 3; j++)
 					{
 					if (start_l[j] >= 0.0f)
 						start_l[j] -= offset[j];
-					else start_l[j] += offset[j];
+					else
+						start_l[j] += offset[j];
+
 					if (end_l[j] >= 0.0f)
 						end_l[j] -= offset[j];
-					else end_l[j] += offset[j];
+					else
+						end_l[j] += offset[j];
 					}
 				}
 			}
@@ -477,7 +499,8 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 			if (pmove->server || Host_IsLocalClient ())
 				SV_ClipPMoveToEntity (pe, start, mins, maxs, end, &trace_bbox);
 #if !XASH_DEDICATED
-			else CL_ClipPMoveToEntity (pe, start, mins, maxs, end, &trace_bbox);
+			else
+				CL_ClipPMoveToEntity (pe, start, mins, maxs, end, &trace_bbox);
 #endif
 			}
 		else if (hullcount == 1)
@@ -494,14 +517,18 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 
 				PM_RecursiveHullCheck (&hull[j], hull[j].firstclipnode, 0, 1, start_l, end_l, &trace_hitbox);
 
-				if (j == 0 || trace_hitbox.allsolid || trace_hitbox.startsolid || trace_hitbox.fraction < trace_bbox.fraction)
+				if ((j == 0) || trace_hitbox.allsolid || trace_hitbox.startsolid ||
+					(trace_hitbox.fraction < trace_bbox.fraction))
 					{
 					if (trace_bbox.startsolid)
 						{
 						trace_bbox = trace_hitbox;
 						trace_bbox.startsolid = true;
 						}
-					else trace_bbox = trace_hitbox;
+					else
+						{
+						trace_bbox = trace_hitbox;
+						}
 
 					last_hitgroup = j;
 					}
@@ -523,7 +550,8 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 			if (rotated)
 				{
 				VectorCopy (trace_bbox.plane.normal, temp);
-				Matrix4x4_TransformPositivePlane (matrix, temp, trace_bbox.plane.dist, trace_bbox.plane.normal, &trace_bbox.plane.dist);
+				Matrix4x4_TransformPositivePlane (matrix, temp, trace_bbox.plane.dist, trace_bbox.plane.normal,
+					&trace_bbox.plane.dist);
 				}
 			else
 				{
@@ -543,15 +571,17 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 
 int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, pfnIgnore pmFilter)
 	{
-	int	i, j, hullcount;
-	vec3_t	pos_l, offset;
-	hull_t *hull = NULL;
-	vec3_t	mins, maxs;
-	pmtrace_t trace;
-	physent_t *pe;
+	int			i, j, hullcount;
+	vec3_t		pos_l, offset;
+	hull_t		*hull = NULL;
+	vec3_t		mins, maxs;
+	pmtrace_t	trace;
+	physent_t	*pe;
 
-	trace = PM_PlayerTraceExt (pmove, pmove->origin, pmove->origin, 0, pmove->numphysent, pmove->physents, -1, pmFilter);
-	if (ptrace) *ptrace = trace;
+	trace = PM_PlayerTraceExt (pmove, pmove->origin, pmove->origin, 0, pmove->numphysent, pmove->physents,
+		-1, pmFilter);
+	if (ptrace)
+		*ptrace = trace;
 
 	for (i = 0; i < pmove->numphysent; i++)
 		{
@@ -564,7 +594,7 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 				continue;
 			}
 
-		if (pe->model != NULL && pe->solid == SOLID_NOT && pe->skin != CONTENTS_NONE)
+		if ((pe->model != NULL) && (pe->solid == SOLID_NOT) && (pe->skin != CONTENTS_NONE))
 			continue;
 
 		hullcount = 1;
@@ -594,45 +624,48 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 			}
 
 		// CM_TransformedPointContents :-)
-		if (pe->solid == SOLID_BSP && !VectorIsNull (pe->angles))
+		if ((pe->solid == SOLID_BSP) && !VectorIsNull (pe->angles))
 			{
 			qboolean	transform_bbox = false;
 			matrix4x4	matrix;
 
 			if (FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT))
 				{
-				if ((check_angles (pe->angles[0]) || check_angles (pe->angles[2])) && pmove->usehull != 2)
+				if ((check_angles (pe->angles[0]) || check_angles (pe->angles[2])) && (pmove->usehull != 2))
 					transform_bbox = true;
 				}
 
 			if (transform_bbox)
 				Matrix4x4_CreateFromEntity (matrix, pe->angles, pe->origin, 1.0f);
-			else Matrix4x4_CreateFromEntity (matrix, pe->angles, offset, 1.0f);
+			else
+				Matrix4x4_CreateFromEntity (matrix, pe->angles, offset, 1.0f);
 
 			Matrix4x4_VectorITransform (matrix, pos, pos_l);
 
 			if (transform_bbox)
 				{
-				World_TransformAABB (matrix, pmove->player_mins[pmove->usehull], pmove->player_maxs[pmove->usehull], mins, maxs);
+				World_TransformAABB (matrix, pmove->player_mins[pmove->usehull],
+					pmove->player_maxs[pmove->usehull], mins, maxs);
 				VectorSubtract (hull->clip_mins, mins, offset);	// calc new local offset
 
 				for (j = 0; j < 3; j++)
 					{
 					if (pos_l[j] >= 0.0f)
 						pos_l[j] -= offset[j];
-					else pos_l[j] += offset[j];
+					else
+						pos_l[j] += offset[j];
 					}
 				}
 			}
 		else
 			{
-			// offset the test point appropriately for this hull.
+			// offset the test point appropriately for this hull
 			VectorSubtract (pos, offset, pos_l);
 			}
 
 		if (pe->solid == SOLID_CUSTOM)
 			{
-			pmtrace_t	trace;
+			pmtrace_t trace;
 
 			PM_InitPMTrace (&trace, pos);
 
@@ -640,7 +673,8 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 			if (pmove->server || Host_IsLocalClient ())
 				SV_ClipPMoveToEntity (pe, pos, mins, maxs, pos, &trace);
 #if !XASH_DEDICATED
-			else CL_ClipPMoveToEntity (pe, pos, mins, maxs, pos, &trace);
+			else
+				CL_ClipPMoveToEntity (pe, pos, mins, maxs, pos, &trace);
 #endif
 
 			// if we inside the custom hull
@@ -668,7 +702,6 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 /*
 =============
 PM_TruePointContents
-
 =============
 */
 int PM_TruePointContents (playermove_t *pmove, const vec3_t p)
@@ -676,27 +709,22 @@ int PM_TruePointContents (playermove_t *pmove, const vec3_t p)
 	hull_t *hull = &pmove->physents[0].model->hulls[0];
 
 	if (hull)
-		{
 		return PM_HullPointContents (hull, hull->firstclipnode, p);
-		}
 	else
-		{
 		return CONTENTS_EMPTY;
-		}
 	}
 
 /*
 =============
 PM_PointContents
-
 =============
 */
 int PM_PointContents (playermove_t *pmove, const vec3_t p)
 	{
-	int	i, contents;
-	hull_t *hull;
-	vec3_t	test;
-	physent_t *pe;
+	int			i, contents;
+	hull_t		*hull;
+	vec3_t		test;
+	physent_t	*pe;
 
 	// sanity check
 	if (!p || !pmove->physents[0].model)
@@ -750,12 +778,12 @@ PM_TraceModel [FWGS, 01.04.23]
 */
 float PM_TraceModel (playermove_t *pmove, physent_t *pe, float *start, float *end, trace_t *trace)
 	{
-	int	old_usehull;
-	vec3_t	start_l, end_l;
-	vec3_t	offset, temp;
+	int			old_usehull;
+	vec3_t		start_l, end_l;
+	vec3_t		offset, temp;
 	qboolean	rotated;
 	matrix4x4	matrix;
-	hull_t *hull;
+	hull_t		*hull;
 
 	PM_InitTrace (trace, end);
 
@@ -818,7 +846,6 @@ pmtrace_t *PM_TraceLine (playermove_t *pmove, float *start, float *end, int flag
 		}
 
 	pmove->usehull = old_usehull;
-
 	return &tr;
 	}
 
@@ -843,7 +870,6 @@ pmtrace_t *PM_TraceLineEx (playermove_t *pmove, float *start, float *end, int fl
 		}
 
 	pmove->usehull = old_usehull;
-
 	return &tr;
 	}
 
@@ -878,7 +904,8 @@ int PM_PointContentsPmove (playermove_t *pmove, const float *p, int *truecontent
 	int	cont, truecont;
 
 	truecont = cont = PM_PointContents (pmove, p);
-	if (truecontents) *truecontents = truecont;
+	if (truecontents)
+		*truecontents = truecont;
 
 	if ((cont <= CONTENTS_CURRENT_0) && (cont >= CONTENTS_CURRENT_DOWN))
 		cont = CONTENTS_WATER;

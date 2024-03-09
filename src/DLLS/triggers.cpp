@@ -1079,6 +1079,7 @@ class CTriggerFog : public CBaseTrigger
 		unsigned char m_enablingMove;
 		/*unsigned char m_direction;*/
 		unsigned char m_currentEnablingGrade;
+		float m_multiplier;
 	};
 
 LINK_ENTITY_TO_CLASS (trigger_fog, CTriggerFog);
@@ -1129,6 +1130,8 @@ void CTriggerFog::MultiTouch_Fog (CBaseEntity *pOther)
 	/*qboolean enable = (m_enablingMove != 0);*/
 	float enablingGrade = 0.0f;	// От 0 до 1 включительно
 	unsigned int packed = 0;
+	float multiplier = 0.0f;
+	float size = 0.0f;
 
 	// Only touch clients
 	pevToucher = pOther->pev;
@@ -1142,23 +1145,20 @@ void CTriggerFog::MultiTouch_Fog (CBaseEntity *pOther)
 			{
 			case 1:
 			case 2:
-				/*if (pevToucher->origin.x > (pev->absmin.x + pev->absmax.x) / 2.0f)
-					enable = (m_enablingMove == 0);*/
-				enablingGrade = (pevToucher->origin.x - pev->absmin.x) / (pev->absmax.x - pev->absmin.x);
+				size = pev->absmax.x - pev->absmin.x;
+				enablingGrade = (pevToucher->origin.x - pev->absmin.x) / size;
 				break;
 
 			case 3:
 			case 4:
-				/*if (pevToucher->origin.y > (pev->absmin.y + pev->absmax.y) / 2.0f)
-					enable = (m_enablingMove == 0);*/
-				enablingGrade = (pevToucher->origin.y - pev->absmin.y) / (pev->absmax.y - pev->absmin.y);
+				size = pev->absmax.y - pev->absmin.y;
+				enablingGrade = (pevToucher->origin.y - pev->absmin.y) / size;
 				break;
 
 			case 5:
 			case 6:
-				/*if (pevToucher->origin.z > (pev->absmin.z + pev->absmax.z) / 2.0f)
-					enable = (m_enablingMove == 0);*/
-				enablingGrade = (pevToucher->origin.z - pev->absmin.z) / (pev->absmax.z - pev->absmin.z);
+				size = pev->absmax.z - pev->absmin.z;
+				enablingGrade = (pevToucher->origin.z - pev->absmin.z) / size;
 				break;
 			}
 
@@ -1169,14 +1169,7 @@ void CTriggerFog::MultiTouch_Fog (CBaseEntity *pOther)
 		m_flWait = 0.1;		// Стандартная пауза
 		}
 
-	// Активация
-	if (enablingGrade < 0.0f)
-		enablingGrade = 0.0f;
-	if (enablingGrade > 1.0f)
-		enablingGrade = 1.0f;
-	if (m_enablingMove % 2 == 1)
-		enablingGrade = 1.0f - enablingGrade;
-
+	// Отсечка случая обязательного включения, не нуждающегося в расчёте
 	if (m_enablingMove == 0)
 		{
 		packed = (0xFF & (int)pev->rendercolor.x) << 24;
@@ -1184,20 +1177,56 @@ void CTriggerFog::MultiTouch_Fog (CBaseEntity *pOther)
 		packed |= (0xFF & (int)pev->rendercolor.z) << 8;
 		packed |= (0xFF & (int)(pev->renderamt));
 		SETUP_FOG (packed);
+
+		return;
 		}
-	else if ((int)(enablingGrade * 10.0f + 0.5f) != m_currentEnablingGrade)
+
+	// Обработка случаев выхода за границы триггера и обратного движения
+	if (enablingGrade < 0.0f)
+		enablingGrade = 0.0f;
+	if (enablingGrade > 1.0f)
+		enablingGrade = 1.0f;
+	if (m_enablingMove % 2)
+		enablingGrade = 1.0f - enablingGrade;
+
+	// Отсечка случаев выключения
+	if ((m_enablingMove == 7) || (enablingGrade < 0.05f))
 		{
-		m_currentEnablingGrade = (int)(enablingGrade * 10.0f + 0.5f);
+		SETUP_FOG (0x00000001);
+		return;
+		}
+
+	// Расчёт множителя-дискретизатора
+	if (!m_multiplier)
+		{
+		float multiplier1 = 0.0f, multiplier2 = 0.0f;
+
+		multiplier1 = pev->renderamt / 4.0f;
+		if (multiplier1 < 10.0f)
+			multiplier1 = 10.0f;
+		if (multiplier1 > 64.0f)
+			multiplier1 = 64.0f;	// 10 <= m <= 64
+
+		multiplier2 = size / 8.0f;
+		if (multiplier2 < 10.0f)
+			multiplier2 = 10.0f;
+		if (multiplier2 > 100.0f)
+			multiplier2 = 100.0f;	// 10 <= m <= 100
+
+		m_multiplier = multiplier2 > multiplier1 ? multiplier2 : multiplier1;
+		}
+	multiplier = enablingGrade * m_multiplier + 0.5f;
+
+	// Задание неполной яркости в дискретном (не runtime) режиме
+	if ((int)multiplier != m_currentEnablingGrade)
+		{
+		m_currentEnablingGrade = (int)multiplier;
 
 		packed = (0xFF & (int)pev->rendercolor.x) << 24;
 		packed |= (0xFF & (int)pev->rendercolor.y) << 16;
 		packed |= (0xFF & (int)pev->rendercolor.z) << 8;
 		packed |= (0xFF & (int)(pev->renderamt * enablingGrade));
 		SETUP_FOG (packed);
-		}
-	else if ((m_enablingMove == 7) || (enablingGrade < 0.05f))
-		{
-		SETUP_FOG (0x00000001);
 		}
 	}
 
