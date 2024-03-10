@@ -621,7 +621,6 @@ static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
 
 #endif
 
-// ESHQ: исправляет дефект компиляции
 #if XASH_SDL && !XASH_DEDICATED
 
 /*

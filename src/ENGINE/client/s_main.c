@@ -849,7 +849,7 @@ void S_AmbientSound (const vec3_t pos, int ent, sound_t handle, float fvol, floa
 		// this is a sentence. link words to play in sequence.
 		// NOTE: sentence names stored in the cache lookup are
 		// prepended with a '!'. Sentence names stored in the
-		// sentence file do not have a leading '!'.
+		// sentence file do not have a leading '!'
 
 		// link all words and load the first word
 		VOX_LoadSound (ch, S_SkipSoundChar (sfx->name));

@@ -647,8 +647,8 @@ void GAME_EXPORT R_FizzEffect (cl_entity_t *pent, int modelIndex, int density)
 	SinCos (angle, &yspeed, &xspeed);
 
 	// ESHQ: запрещено боковое смещение для пузырей
-	xspeed = 0; // *= speed;
-	yspeed = 0; // *= speed;
+	xspeed = 0;
+	yspeed = 0;
 
 	for (i = 0; i < count; i++)
 		{

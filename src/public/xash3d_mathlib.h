@@ -212,9 +212,9 @@ static inline void ClearBounds (vec3_t mins, vec3_t maxs)
 // [FWGS, 01.01.24]
 static inline qboolean BoundsIntersect (const vec3_t mins1, const vec3_t maxs1, const vec3_t mins2, const vec3_t maxs2)
 	{
-	if (mins1[0] > maxs2[0] || mins1[1] > maxs2[1] || mins1[2] > maxs2[2])
+	if ((mins1[0] > maxs2[0]) || (mins1[1] > maxs2[1]) || (mins1[2] > maxs2[2]))
 		return false;
-	if (maxs1[0] < mins2[0] || maxs1[1] < mins2[1] || maxs1[2] < mins2[2])
+	if ((maxs1[0] < mins2[0]) || (maxs1[1] < mins2[1]) || (maxs1[2] < mins2[2]))
 		return false;
 	return true;
 	}
@@ -222,9 +222,9 @@ static inline qboolean BoundsIntersect (const vec3_t mins1, const vec3_t maxs1, 
 // [FWGS, 01.01.24]
 static inline qboolean BoundsAndSphereIntersect (const vec3_t mins, const vec3_t maxs, const vec3_t origin, float radius)
 	{
-	if (mins[0] > origin[0] + radius || mins[1] > origin[1] + radius || mins[2] > origin[2] + radius)
+	if ((mins[0] > origin[0] + radius) || (mins[1] > origin[1] + radius) || (mins[2] > origin[2] + radius))
 		return false;
-	if (maxs[0] < origin[0] - radius || maxs[1] < origin[1] - radius || maxs[2] < origin[2] - radius)
+	if ((maxs[0] < origin[0] - radius) || (maxs[1] < origin[1] - radius) || (maxs[2] < origin[2] - radius))
 		return false;
 	return true;
 	}

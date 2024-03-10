@@ -104,8 +104,10 @@ void SCR_DrawFPS (int height)
 		{
 		int	curfps = (int)(calc + 0.5f);
 
-		if (curfps < minfps) minfps = curfps;
-		if (curfps > maxfps) maxfps = curfps;
+		if (curfps < minfps)
+			minfps = curfps;
+		if (curfps > maxfps)
+			maxfps = curfps;
 
 		if (cl_showfps.value == 2)
 			Q_snprintf (fpsstring, sizeof (fpsstring), "fps: ^1%4i min, ^3%4i cur, ^2%4i max", minfps, curfps, maxfps);

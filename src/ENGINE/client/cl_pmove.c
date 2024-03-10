@@ -436,7 +436,7 @@ static void CL_AddLinksToPmove (frame_t *frame)
 		{
 		state = &cls.packet_entities[(frame->first_entity + i) % cls.num_client_entities];
 
-		if (state->number >= 1 && state->number <= cl.maxclients)
+		if ((state->number >= 1) && (state->number <= cl.maxclients))
 			continue;
 
 		if (!state->modelindex)
@@ -448,7 +448,7 @@ static void CL_AddLinksToPmove (frame_t *frame)
 		if ((state->owner != 0) && (state->owner == cl.playernum + 1))
 			continue;
 
-		if ((model->hulls[1].lastclipnode || model->type == mod_studio) && clgame.pmove->numvisent < MAX_PHYSENTS)
+		if ((model->hulls[1].lastclipnode || (model->type == mod_studio)) && (clgame.pmove->numvisent < MAX_PHYSENTS))
 			{
 			pe = &clgame.pmove->visents[clgame.pmove->numvisent];
 			CL_CopyEntityToPhysEnt (pe, state, true);

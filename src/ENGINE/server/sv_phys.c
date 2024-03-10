@@ -552,7 +552,7 @@ static int SV_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overboun
 	{
 	float	backoff;
 	float	change;
-	int	i, blocked;
+	int		i, blocked;
 
 	blocked = 0;
 	if (normal[2] > 0.0f)
@@ -567,7 +567,7 @@ static int SV_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overboun
 		change = normal[i] * backoff;
 		out[i] = in[i] - change;
 
-		if (out[i] > -1.0f && out[i] < 1.0f)
+		if ((out[i] > -1.0f) && (out[i] < 1.0f))
 			out[i] = 0.0f;
 		}
 
@@ -1517,7 +1517,8 @@ static void SV_Physics_Toss (edict_t *ent)
 	VectorSubtract (ent->v.velocity, ent->v.basevelocity, ent->v.velocity);
 
 	trace = SV_PushEntity (ent, move, vec3_origin, NULL, 0.0f);
-	if (ent->free) return;
+	if (ent->free)
+		return;
 
 	SV_CheckVelocity (ent);
 
@@ -1712,7 +1713,7 @@ static void SV_Physics_Step (edict_t *ent)
 			trace = SV_Move (ent->v.origin, ent->v.mins, ent->v.maxs, ent->v.origin, MOVE_NORMAL, ent, monsterClip);
 
 			// hentacle impact code
-			if ((trace.fraction < 1.0f || trace.startsolid) && SV_IsValidEdict (trace.ent))
+			if (((trace.fraction < 1.0f) || (trace.startsolid)) && SV_IsValidEdict (trace.ent))
 				{
 				SV_Impact (ent, trace.ent, &trace);
 				if (ent->free)

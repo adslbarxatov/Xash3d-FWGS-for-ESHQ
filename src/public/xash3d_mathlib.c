@@ -120,7 +120,8 @@ void RoundUpHullSize (vec3_t size)
 		float	result, value;
 
 		value = size[i];
-		if (value < 0.0f) negative = true;
+		if (value < 0.0f)
+			negative = true;
 		value = Q_ceil (fabs (value));
 		result = Q_ceil (size[i]);
 
@@ -166,7 +167,8 @@ int SignbitsForPlane (const vec3_t normal)
 	int	bits, i;
 
 	for (bits = i = 0; i < 3; i++)
-		if (normal[i] < 0.0f) bits |= 1 << i;
+		if (normal[i] < 0.0f)
+			bits |= 1 << i;
 	return bits;
 	}
 

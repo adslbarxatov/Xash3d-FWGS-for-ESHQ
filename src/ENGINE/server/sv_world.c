@@ -22,14 +22,14 @@ GNU General Public License for more details.
 typedef struct moveclip_s
 	{
 	vec3_t		boxmins, boxmaxs;	// enclose the test object along entire move
-	float *mins, *maxs;	// size of the moving object
+	float		*mins, *maxs;	// size of the moving object
 	vec3_t		mins2, maxs2;	// size when clipping against mosnters
-	const float *start, *end;
-	edict_t *passedict;
+	const float	*start, *end;
+	edict_t		*passedict;
 	trace_t		trace;
-	int		type;		// move type
-	qboolean		ignoretrans;
-	qboolean		monsterclip;
+	int			type;		// move type
+	qboolean	ignoretrans;
+	qboolean	monsterclip;
 	} moveclip_t;
 
 /*
@@ -66,8 +66,10 @@ static void SV_InitBoxHull (void)
 		side = i & 1;
 
 		box_clipnodes[i].children[side] = CONTENTS_EMPTY;
-		if (i != 5) box_clipnodes[i].children[side ^ 1] = i + 1;
-		else box_clipnodes[i].children[side ^ 1] = CONTENTS_SOLID;
+		if (i != 5)
+			box_clipnodes[i].children[side ^ 1] = i + 1;
+		else
+			box_clipnodes[i].children[side ^ 1] = CONTENTS_SOLID;
 
 		box_planes[i].type = i >> 1;
 		box_planes[i].normal[i >> 1] = 1;
@@ -100,7 +102,8 @@ static void SV_StudioPlayerBlend (mstudioseqdesc_t *pseqdesc, int *pBlend, float
 		{
 		if (pseqdesc->blendend[0] - pseqdesc->blendstart[0] < 0.1f) // catch qc error
 			*pBlend = 127;
-		else *pBlend = 255.0f * (*pBlend - pseqdesc->blendstart[0]) / (pseqdesc->blendend[0] - pseqdesc->blendstart[0]);
+		else
+			*pBlend = 255.0f * (*pBlend - pseqdesc->blendstart[0]) / (pseqdesc->blendend[0] - pseqdesc->blendstart[0]);
 		*pPitch = 0;
 		}
 	}
@@ -114,12 +117,12 @@ check clients only
 */
 static qboolean SV_CheckSphereIntersection (edict_t *ent, const vec3_t start, const vec3_t end)
 	{
-	int		i, sequence;
+	int			i, sequence;
 	float		radiusSquared;
 	vec3_t		traceOrg, traceDir;
-	studiohdr_t *pstudiohdr;
-	mstudioseqdesc_t *pseqdesc;
-	model_t *mod;
+	studiohdr_t	*pstudiohdr;
+	mstudioseqdesc_t	*pseqdesc;
+	model_t		*mod;
 
 	if (!FBitSet (ent->v.flags, FL_CLIENT | FL_FAKECLIENT))
 		return true;
@@ -131,7 +134,7 @@ static qboolean SV_CheckSphereIntersection (edict_t *ent, const vec3_t start, co
 		return true;
 
 	sequence = ent->v.sequence;
-	if (sequence < 0 || sequence >= pstudiohdr->numseq)
+	if ((sequence < 0) || (sequence >= pstudiohdr->numseq))
 		sequence = 0;
 
 	pseqdesc = (mstudioseqdesc_t *)((byte *)pstudiohdr + pstudiohdr->seqindex) + sequence;
@@ -404,7 +407,8 @@ static areanode_t *SV_CreateAreaNode (int depth, vec3_t mins, vec3_t maxs)
 	VectorSubtract (maxs, mins, size);
 	if (size[0] > size[1])
 		anode->axis = 0;
-	else anode->axis = 1;
+	else
+		anode->axis = 1;
 
 	anode->dist = 0.5f * (maxs[anode->axis] + mins[anode->axis]);
 	VectorCopy (mins, mins1);
@@ -823,13 +827,13 @@ eventually rotation) of the end points
 */
 void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, trace_t *trace)
 	{
-	hull_t *hull;
-	model_t *model;
+	hull_t	*hull;
+	model_t	*model;
 	vec3_t	start_l, end_l;
 	vec3_t	offset, temp;
-	int	last_hitgroup;
+	int		last_hitgroup;
 	trace_t	trace_hitbox;
-	int	i, j, hullcount;
+	int		i, j, hullcount;
 	qboolean	rotated, transform_bbox;
 	matrix4x4	matrix;
 
@@ -837,7 +841,7 @@ void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t 
 
 	model = SV_ModelHandle (ent->v.modelindex);
 
-	if (model && model->type == mod_studio)
+	if (model && (model->type == mod_studio))
 		{
 		hull = SV_HullForStudioModel (ent, mins, maxs, offset, &hullcount);
 		}
@@ -848,18 +852,23 @@ void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t 
 		}
 
 	// rotate start and end into the models frame of reference
-	if ((ent->v.solid == SOLID_BSP || ent->v.solid == SOLID_PORTAL) && !VectorIsNull (ent->v.angles))
+	if (((ent->v.solid == SOLID_BSP) || (ent->v.solid == SOLID_PORTAL)) && !VectorIsNull (ent->v.angles))
 		rotated = true;
-	else rotated = false;
+	else
+		rotated = false;
 
 	if (FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT))
 		{
 		// keep untransformed bbox less than 45 degress or train on subtransit.bsp will stop working
 		if ((check_angles (ent->v.angles[0]) || check_angles (ent->v.angles[2])) && !VectorIsNull (mins))
 			transform_bbox = true;
-		else transform_bbox = false;
+		else
+			transform_bbox = false;
 		}
-	else transform_bbox = false;
+	else
+		{
+		transform_bbox = false;
+		}
 
 	if (rotated)
 		{
@@ -867,7 +876,8 @@ void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t 
 
 		if (transform_bbox)
 			Matrix4x4_CreateFromEntity (matrix, ent->v.angles, ent->v.origin, 1.0f);
-		else Matrix4x4_CreateFromEntity (matrix, ent->v.angles, offset, 1.0f);
+		else
+			Matrix4x4_CreateFromEntity (matrix, ent->v.angles, offset, 1.0f);
 
 		Matrix4x4_VectorITransform (matrix, start, start_l);
 		Matrix4x4_VectorITransform (matrix, end, end_l);
@@ -881,10 +891,13 @@ void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t 
 				{
 				if (start_l[j] >= 0.0f)
 					start_l[j] -= offset[j];
-				else start_l[j] += offset[j];
+				else
+					start_l[j] += offset[j];
+
 				if (end_l[j] >= 0.0f)
 					end_l[j] -= offset[j];
-				else end_l[j] += offset[j];
+				else
+					end_l[j] += offset[j];
 				}
 			}
 		}
@@ -906,16 +919,21 @@ void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t 
 			{
 			PM_InitTrace (&trace_hitbox, end);
 
-			PM_RecursiveHullCheck (&hull[i], hull[i].firstclipnode, 0.0f, 1.0f, start_l, end_l, (pmtrace_t *)&trace_hitbox);
+			PM_RecursiveHullCheck (&hull[i], hull[i].firstclipnode, 0.0f, 1.0f, start_l, end_l,
+				(pmtrace_t *)&trace_hitbox);
 
-			if (i == 0 || trace_hitbox.allsolid || trace_hitbox.startsolid || trace_hitbox.fraction < trace->fraction)
+			if ((i == 0) || trace_hitbox.allsolid || trace_hitbox.startsolid ||
+				(trace_hitbox.fraction < trace->fraction))
 				{
 				if (trace->startsolid)
 					{
 					*trace = trace_hitbox;
 					trace->startsolid = true;
 					}
-				else *trace = trace_hitbox;
+				else
+					{
+					*trace = trace_hitbox;
+					}
 
 				last_hitgroup = i;
 				}
@@ -941,7 +959,7 @@ void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t 
 			}
 		}
 
-	if (trace->fraction < 1.0f || trace->startsolid)
+	if ((trace->fraction < 1.0f) || (trace->startsolid))
 		trace->ent = ent;
 	}
 
@@ -958,11 +976,11 @@ static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t
 	const vec3_t end, trace_t *trace)
 	{
 	vec4_t	planes[6];	// far, near, right, left, up, down
-	int	plane, k;
+	int		plane, k;
 	vec3_t	worldpos;
 	float	bestfrac;
-	int	hitplane;
-	model_t *model;
+	int		hitplane;
+	model_t	*model;
 	float	portalradius;
 
 	// only run this code if we impacted on the portal's parent.
@@ -1012,12 +1030,13 @@ static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t
 		else if (plane > 1)
 			{
 			// side planes get nearer with size
-			planes[plane][3] += 24; // DotProduct( nearest, planes[plane] );
+			planes[plane][3] += 24;
 			}
 
 		if (d - planes[plane][3] >= 0)
 			continue;	// endpos is inside
-		else return; // end is already outside
+		else
+			return;	// end is already outside
 		}
 
 	// yup, we're inside, the trace shouldn't end where it actually did
@@ -1047,7 +1066,7 @@ static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t
 
 	// if we cross the front of the portal, don't shorten the trace,
 	// that will artificially clip us
-	if (hitplane == 0 && trace->fraction > bestfrac)
+	if ((hitplane == 0) && (trace->fraction > bestfrac))
 		return;
 
 	// okay, elongate to clip to the portal hole properly.
@@ -1101,7 +1120,7 @@ static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 	trace_t	trace;
 	model_t *mod;
 
-	if (touch->v.groupinfo && SV_IsValidEdict (clip->passedict) && clip->passedict->v.groupinfo != 0)
+	if (touch->v.groupinfo && SV_IsValidEdict (clip->passedict) && (clip->passedict->v.groupinfo != 0))
 		{
 		if (svs.groupop == GROUP_OP_AND && !FBitSet (touch->v.groupinfo, clip->passedict->v.groupinfo))
 			return true;
@@ -1203,8 +1222,8 @@ Mins and maxs enclose the entire area swept by the move
 */
 static void SV_ClipToLinks (areanode_t *node, moveclip_t *clip)
 	{
-	link_t *l, *next;
-	edict_t *touch;
+	link_t	*l, *next;
+	edict_t	*touch;
 
 	// touch linked edicts
 	for (l = node->solid_edicts.next; l != &node->solid_edicts; l = next)
@@ -1218,7 +1237,8 @@ static void SV_ClipToLinks (areanode_t *node, moveclip_t *clip)
 		}
 
 	// recurse down both sides
-	if (node->axis == -1) return;
+	if (node->axis == -1)
+		return;
 
 	if (clip->boxmaxs[node->axis] > node->dist)
 		SV_ClipToLinks (node->children[0], clip);
@@ -1235,8 +1255,8 @@ Mins and maxs enclose the entire area swept by the move
 */
 static void SV_ClipToPortals (areanode_t *node, moveclip_t *clip)
 	{
-	link_t *l, *next;
-	edict_t *touch;
+	link_t	*l, *next;
+	edict_t	*touch;
 
 	// touch linked edicts
 	for (l = node->portal_edicts.next; l != &node->portal_edicts; l = next)
@@ -1250,7 +1270,8 @@ static void SV_ClipToPortals (areanode_t *node, moveclip_t *clip)
 		}
 
 	// recurse down both sides
-	if (node->axis == -1) return;
+	if (node->axis == -1)
+		return;
 
 	if (clip->boxmaxs[node->axis] > node->dist)
 		SV_ClipToPortals (node->children[0], clip);
@@ -1267,8 +1288,8 @@ Mins and maxs enclose the entire area swept by the move
 */
 static void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 	{
-	link_t *l, *next;
-	edict_t *touch;
+	link_t	*l, *next;
+	edict_t	*touch;
 	trace_t	trace;
 
 	for (l = node->solid_edicts.next; l != &node->solid_edicts; l = next)
@@ -1283,7 +1304,8 @@ static void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 		if (!BoundsIntersect (clip->boxmins, clip->boxmaxs, touch->v.absmin, touch->v.absmax))
 			continue;
 
-		if (clip->trace.allsolid) return;
+		if (clip->trace.allsolid)
+			return;
 
 		SV_ClipMoveToEntity (touch, clip->start, clip->mins, clip->maxs, clip->end, &trace);
 

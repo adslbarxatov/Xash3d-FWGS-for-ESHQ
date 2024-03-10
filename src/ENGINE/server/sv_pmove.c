@@ -303,10 +303,10 @@ SV_AddLaddersToPmove
 */
 static void SV_AddLaddersToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t pmove_maxs)
 	{
-	link_t *l, *next;
-	edict_t *check;
-	model_t *mod;
-	physent_t *pe;
+	link_t		*l, *next;
+	edict_t		*check;
+	model_t		*mod;
+	physent_t	*pe;
 
 	// get ladder edicts
 	for (l = node->solid_edicts.next; l != &node->solid_edicts; l = next)
@@ -314,13 +314,13 @@ static void SV_AddLaddersToPmove (areanode_t *node, const vec3_t pmove_mins, con
 		next = l->next;
 		check = EDICT_FROM_AREA (l);
 
-		if (check->v.solid != SOLID_NOT || check->v.skin != CONTENTS_LADDER)
+		if ((check->v.solid != SOLID_NOT) || (check->v.skin != CONTENTS_LADDER))
 			continue;
 
 		mod = SV_ModelHandle (check->v.modelindex);
 
 		// only brushes can have special contents
-		if (!mod || mod->type != mod_brush)
+		if (!mod || (mod->type != mod_brush))
 			continue;
 
 		if (!BoundsIntersect (pmove_mins, pmove_maxs, check->v.absmin, check->v.absmax))
@@ -335,7 +335,8 @@ static void SV_AddLaddersToPmove (areanode_t *node, const vec3_t pmove_mins, con
 		}
 
 	// recurse down both sides
-	if (node->axis == -1) return;
+	if (node->axis == -1)
+		return;
 
 	if (pmove_maxs[node->axis] > node->dist)
 		SV_AddLaddersToPmove (node->children[0], pmove_mins, pmove_maxs);
@@ -556,8 +557,8 @@ static void PM_CheckMovingGround (edict_t *ent, float frametime)
 static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd, const char *physinfo)
 	{
 	vec3_t	absmin, absmax;
-	edict_t *clent = cl->edict;
-	int	i;
+	edict_t	*clent = cl->edict;
+	int		i;
 
 	svgame.globals->frametime = (ucmd->msec * 0.001f);
 
@@ -590,7 +591,8 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	pmove->deadflag = clent->v.deadflag;
 	pmove->spectator = 0; // spectator physic all execute on client
 	pmove->movetype = clent->v.movetype;
-	if (pmove->multiplayer) pmove->onground = -1;
+	if (pmove->multiplayer)
+		pmove->onground = -1;
 	pmove->waterlevel = clent->v.waterlevel;
 	pmove->watertype = clent->v.watertype;
 	pmove->maxspeed = svgame.movevars.maxspeed;

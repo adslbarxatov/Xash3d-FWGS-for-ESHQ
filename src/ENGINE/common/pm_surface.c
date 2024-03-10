@@ -124,13 +124,13 @@ loc0:
 	t1 = PlaneDiff (p1, node->plane);
 	t2 = PlaneDiff (p2, node->plane);
 
-	if (t1 >= -FRAC_EPSILON && t2 >= -FRAC_EPSILON)
+	if ((t1 >= -FRAC_EPSILON) && (t2 >= -FRAC_EPSILON))
 		{
 		node = node->children[0];
 		goto loc0;
 		}
 
-	if (t1 < FRAC_EPSILON && t2 < FRAC_EPSILON)
+	if ((t1 < FRAC_EPSILON) && (t2 < FRAC_EPSILON))
 		{
 		node = node->children[1];
 		goto loc0;
@@ -252,13 +252,13 @@ loc0:
 	front = PlaneDiff (start, node->plane);
 	back = PlaneDiff (stop, node->plane);
 
-	if (front >= -FRAC_EPSILON && back >= -FRAC_EPSILON)
+	if ((front >= -FRAC_EPSILON) && (back >= -FRAC_EPSILON))
 		{
 		node = node->children[0];
 		goto loc0;
 		}
 
-	if (front < FRAC_EPSILON && back < FRAC_EPSILON)
+	if ((front < FRAC_EPSILON) && (back < FRAC_EPSILON))
 		{
 		node = node->children[1];
 		goto loc0;
@@ -324,12 +324,12 @@ loc0:
 int PM_TestLineExt (playermove_t *pmove, physent_t *ents, int numents, const vec3_t start, const vec3_t end, int flags)
 	{
 	linetrace_t	trace, trace_bbox;
-	matrix4x4		matrix;
-	hull_t *hull = NULL;
+	matrix4x4	matrix;
+	hull_t		*hull = NULL;
 	vec3_t		offset, start_l, end_l;
-	qboolean		rotated;
-	physent_t *pe;
-	int		i;
+	qboolean	rotated;
+	physent_t	*pe;
+	int			i;
 
 	trace.contents = CONTENTS_EMPTY;
 	trace.fraction = 1.0f;
@@ -342,7 +342,7 @@ int PM_TestLineExt (playermove_t *pmove, physent_t *ents, int numents, const vec
 		if (i != 0 && FBitSet (flags, PM_WORLD_ONLY))
 			break;
 
-		if (!pe->model || pe->model->type != mod_brush || pe->solid != SOLID_BSP)
+		if (!pe->model || (pe->model->type != mod_brush) || (pe->solid != SOLID_BSP))
 			continue;
 
 		if (FBitSet (flags, PM_GLASS_IGNORE) && pe->rendermode != kRenderNormal)
@@ -352,9 +352,10 @@ int PM_TestLineExt (playermove_t *pmove, physent_t *ents, int numents, const vec
 
 		hull = PM_HullForBsp (pe, pmove, offset);
 
-		if (pe->solid == SOLID_BSP && !VectorIsNull (pe->angles))
+		if ((pe->solid == SOLID_BSP) && !VectorIsNull (pe->angles))
 			rotated = true;
-		else rotated = false;
+		else
+			rotated = false;
 
 		if (rotated)
 			{
@@ -374,7 +375,7 @@ int PM_TestLineExt (playermove_t *pmove, physent_t *ents, int numents, const vec
 
 		PM_TestLine_r (pe->model, &pe->model->nodes[hull->firstclipnode], 0.0f, 1.0f, start_l, end_l, &trace_bbox);
 
-		if (trace_bbox.contents != CONTENTS_EMPTY || trace_bbox.fraction < trace.fraction)
+		if ((trace_bbox.contents != CONTENTS_EMPTY) || (trace_bbox.fraction < trace.fraction))
 			{
 			trace = trace_bbox;
 			}

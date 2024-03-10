@@ -1842,9 +1842,7 @@ void CBasePlayer::PreThink (void)
 	m_hEnemy = NULL;
 
 	if (m_afPhysicsFlags & PFLAG_ONBARNACLE)
-		{
 		pev->velocity = g_vecZero;
-		}
 	}
 
 /*

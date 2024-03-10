@@ -1937,7 +1937,6 @@ void CLadder::Precache (void)
 	pev->effects &= ~EF_NODRAW;
 	}
 
-
 void CLadder::Spawn (void)
 	{
 	Precache ();
