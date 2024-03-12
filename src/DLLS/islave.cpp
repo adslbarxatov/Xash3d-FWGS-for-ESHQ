@@ -146,20 +146,18 @@ int	CISlave::Classify (void)
 	return	CLASS_ALIEN_MILITARY;
 	}
 
-
 int CISlave::IRelationship (CBaseEntity* pTarget)
 	{
 	if ((pTarget->IsPlayer ()))
 		if ((pev->spawnflags & SF_MONSTER_WAIT_UNTIL_PROVOKED) && !(m_afMemory & bits_MEMORY_PROVOKED))
 			return R_NO;
+
 	return CBaseMonster::IRelationship (pTarget);
 	}
 
 
 void CISlave::CallForHelp (char* szClassname, float flDist, EHANDLE hEnemy, Vector& vecLocation)
 	{
-	// ALERT( at_aiconsole, "help " );
-
 	// skip ones not on my netname
 	if (FStringNull (pev->netname))
 		return;
@@ -212,7 +210,8 @@ void CISlave::PainSound (void)
 	{
 	if (RANDOM_LONG (0, 2) == 0)
 		{
-		EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pPainSounds[RANDOM_LONG (0, HLARRAYSIZE (pPainSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
+		EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pPainSounds[RANDOM_LONG (0, HLARRAYSIZE (pPainSounds) - 1)],
+			1.0, ATTN_MEDIUM, 0, m_voicePitch);
 		}
 	}
 
@@ -222,7 +221,8 @@ void CISlave::PainSound (void)
 
 void CISlave::DeathSound (void)
 	{
-	EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pDeathSounds[RANDOM_LONG (0, HLARRAYSIZE (pDeathSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
+	EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pDeathSounds[RANDOM_LONG (0, HLARRAYSIZE (pDeathSounds) - 1)],
+		1.0, ATTN_MEDIUM, 0, m_voicePitch);
 	}
 
 
@@ -247,7 +247,7 @@ void CISlave::Killed (entvars_t* pevAttacker, int iGib)
 
 // =========================================================
 // SetYawSpeed - allows each sequence to have a different
-// turn rate associated with it.
+// turn rate associated with it
 // =========================================================
 void CISlave::SetYawSpeed (void)
 	{
@@ -294,12 +294,14 @@ void CISlave::HandleAnimEvent (MonsterEvent_t* pEvent)
 					pHurt->pev->punchangle.x = 5;
 					}
 				// Play a random attack hit sound
-				EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pAttackHitSounds[RANDOM_LONG (0, HLARRAYSIZE (pAttackHitSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
+				EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pAttackHitSounds[RANDOM_LONG (0,
+					HLARRAYSIZE (pAttackHitSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
 				}
 			else
 				{
 				// Play a random attack miss sound
-				EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pAttackMissSounds[RANDOM_LONG (0, HLARRAYSIZE (pAttackMissSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
+				EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pAttackMissSounds[RANDOM_LONG (0,
+					HLARRAYSIZE (pAttackMissSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
 				}
 			}
 			break;
@@ -346,8 +348,8 @@ void CISlave::HandleAnimEvent (MonsterEvent_t* pEvent)
 				WRITE_BYTE (20 / pev->framerate);		// time * 10
 				WRITE_BYTE (0);		// decay * 0.1
 				MESSAGE_END ();
-
 				}
+
 			if (m_hDead != NULL)
 				{
 				WackBeam (-1, m_hDead);
@@ -361,7 +363,7 @@ void CISlave::HandleAnimEvent (MonsterEvent_t* pEvent)
 				}
 
 			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "debris/zap4.wav", 1, ATTN_MEDIUM, 0, 100 + m_iBeams * 10);
-			pev->skin = m_iBeams / 2;
+			/*pev->skin = m_iBeams / 2;*/	// ESHQ: что это?
 			}
 			break;
 
@@ -436,9 +438,7 @@ BOOL CISlave::CheckRangeAttack2 (float flDot, float flDist)
 	return FALSE;
 
 	if (m_flNextAttack > gpGlobals->time)
-		{
 		return FALSE;
-		}
 
 	m_hDead = NULL;
 	m_iBravery = 0;
@@ -500,12 +500,18 @@ void CISlave::Spawn ()
 	m_bloodColor = BLOOD_COLOR_GREEN;
 	pev->effects = 0;
 	pev->health = gSkillData.slaveHealth;
-	pev->view_ofs = Vector (0, 0, 64);// position of the eyes relative to monster's origin.
-	m_flFieldOfView = VIEW_FIELD_WIDE; // NOTE: we need a wide field of view so npc will notice player and say hello
+
+	// position of the eyes relative to monster's origin
+	pev->view_ofs = Vector (0, 0, 64);
+
+	// NOTE: we need a wide field of view so npc will notice player and say hello
+	m_flFieldOfView = VIEW_FIELD_WIDE;
 	m_MonsterState = MONSTERSTATE_NONE;
 	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_RANGE_ATTACK2 | bits_CAP_DOORS_GROUP;
 
 	m_voicePitch = RANDOM_LONG (85, 110);
+
+	pev->skin = RANDOM_LONG (0, 2);	// ESHQ: случайный цвет кожи
 
 	MonsterInit ();
 	}
@@ -825,8 +831,9 @@ void CISlave::ClearBeams ()
 			m_pBeam[i] = NULL;
 			}
 		}
+
 	m_iBeams = 0;
-	pev->skin = 0;
+	/*pev->skin = 0;*/	// ESHQ: что это?
 
 	STOP_SOUND (ENT (pev), CHAN_WEAPON, "debris/zap4.wav");
 	}

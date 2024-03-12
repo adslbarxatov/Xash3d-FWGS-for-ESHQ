@@ -136,7 +136,8 @@ int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
 	dword	maxAcceptable;
 	dword	n, x = lHigh - lLow + 1;
 
-	if (idum == 0) COM_SetRandomSeed (0);
+	if (idum == 0)
+		COM_SetRandomSeed (0);
 
 	if ((x <= 0) || (MAX_RANDOM_RANGE < x - 1))
 		return lLow;

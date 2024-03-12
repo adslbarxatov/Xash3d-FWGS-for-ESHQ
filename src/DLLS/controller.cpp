@@ -347,9 +347,15 @@ void CController::Spawn ()
 	pev->flags |= FL_FLY;
 	m_bloodColor = BLOOD_COLOR_GREEN;
 	pev->health = gSkillData.controllerHealth;
-	pev->view_ofs = Vector (0, 0, -2);// position of the eyes relative to monster's origin.
-	m_flFieldOfView = VIEW_FIELD_FULL;// indicates the width of this monster's forward view cone ( as a dotproduct result )
+
+	// position of the eyes relative to monster's origin
+	pev->view_ofs = Vector (0, 0, -2);
+
+	// indicates the width of this monster's forward view cone (as a dotproduct result)
+	m_flFieldOfView = VIEW_FIELD_FULL;
 	m_MonsterState = MONSTERSTATE_NONE;
+
+	pev->skin = RANDOM_LONG (0, 2);	// ESHQ: случайный цвет кожи
 
 	MonsterInit ();
 	}

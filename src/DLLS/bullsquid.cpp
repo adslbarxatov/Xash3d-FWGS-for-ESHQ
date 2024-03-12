@@ -105,9 +105,7 @@ void CSquidSpit::Animate (void)
 	if (pev->frame++)
 		{
 		if (pev->frame > m_maxFrame)
-			{
 			pev->frame = 0;
-			}
 		}
 	}
 
@@ -139,6 +137,7 @@ void CSquidSpit::Touch (CBaseEntity* pOther)
 		case 0:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "bullchicken/bc_spithit1.wav", 1, ATTN_MEDIUM, 0, iPitch);
 			break;
+
 		case 1:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "bullchicken/bc_spithit2.wav", 1, ATTN_MEDIUM, 0, iPitch);
 			break;
@@ -187,42 +186,48 @@ void CSquidSpit::Touch (CBaseEntity* pOther)
 class CBullsquid: public CBaseMonster
 	{
 	public:
-		void Spawn (void);
-		void Precache (void);
-		void SetYawSpeed (void);
-		int  ISoundMask (void);
-		int  Classify (void);
-		void HandleAnimEvent (MonsterEvent_t* pEvent);
-		void IdleSound (void);
-		void PainSound (void);
-		void DeathSound (void);
-		void AlertSound (void);
-		void AttackSound (void);
-		void StartTask (Task_t* pTask);
-		void RunTask (Task_t* pTask);
-		BOOL CheckMeleeAttack1 (float flDot, float flDist);
-		BOOL CheckMeleeAttack2 (float flDot, float flDist);
-		BOOL CheckRangeAttack1 (float flDot, float flDist);
-		void RunAI (void);
-		BOOL FValidateHintType (short sHint);
-		Schedule_t* GetSchedule (void);
-		Schedule_t* GetScheduleOfType (int Type);
-		int TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
-		int IRelationship (CBaseEntity* pTarget);
-		int IgnoreConditions (void);
-		MONSTERSTATE GetIdealState (void);
+	
+	void Spawn (void);
+	void Precache (void);
+	void SetYawSpeed (void);
+	int  ISoundMask (void);
+	int  Classify (void);
+	void HandleAnimEvent (MonsterEvent_t* pEvent);
+	void IdleSound (void);
+	void PainSound (void);
+	void DeathSound (void);
+	void AlertSound (void);
+	void AttackSound (void);
+	void StartTask (Task_t* pTask);
+	void RunTask (Task_t* pTask);
+	BOOL CheckMeleeAttack1 (float flDot, float flDist);
+	BOOL CheckMeleeAttack2 (float flDot, float flDist);
+	BOOL CheckRangeAttack1 (float flDot, float flDist);
+	void RunAI (void);
+	BOOL FValidateHintType (short sHint);
+	Schedule_t* GetSchedule (void);
+	Schedule_t* GetScheduleOfType (int Type);
+	int TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
+	int IRelationship (CBaseEntity* pTarget);
+	int IgnoreConditions (void);
+	MONSTERSTATE GetIdealState (void);
 
-		int	Save (CSave& save);
-		int Restore (CRestore& restore);
+	int	Save (CSave& save);
+	int Restore (CRestore& restore);
 
-		CUSTOM_SCHEDULES;
-		static TYPEDESCRIPTION m_SaveData[];
+	CUSTOM_SCHEDULES;
+	static TYPEDESCRIPTION m_SaveData[];
 
-		BOOL m_fCanThreatDisplay;// this is so the squid only does the "I see a headcrab!" dance one time. 
+	// this is so the squid only does the "I see a headcrab!" dance one time
+	BOOL m_fCanThreatDisplay;
 
-		float m_flLastHurtTime;// we keep track of this, because if something hurts a squid, it will forget about its love of headcrabs for a while.
-		float m_flNextSpitTime;// last time the bullsquid used the spit attack.
+	// we keep track of this, because if something hurts a squid, it will forget about its love of headcrabs for a while
+	float m_flLastHurtTime;
+
+	// last time the bullsquid used the spit attack
+	float m_flNextSpitTime;
 	};
+
 LINK_ENTITY_TO_CLASS (monster_bullchicken, CBullsquid);
 
 TYPEDESCRIPTION	CBullsquid::m_SaveData[] =
@@ -241,19 +246,15 @@ int CBullsquid::IgnoreConditions (void)
 	{
 	int iIgnore = CBaseMonster::IgnoreConditions ();
 
+	// haven't been hurt in 20 seconds, so let the squid care about stink
 	if (gpGlobals->time - m_flLastHurtTime <= 20)
-		{
-		// haven't been hurt in 20 seconds, so let the squid care about stink. 
 		iIgnore = bits_COND_SMELL | bits_COND_SMELL_FOOD;
-		}
 
 	if (m_hEnemy != NULL)
 		{
+		// (Unless after a tasty headcrab)
 		if (FClassnameIs (m_hEnemy->pev, "monster_headcrab"))
-			{
-			// (Unless after a tasty headcrab)
 			iIgnore = bits_COND_SMELL | bits_COND_SMELL_FOOD;
-			}
 		}
 
 	return iIgnore;
@@ -265,12 +266,10 @@ int CBullsquid::IgnoreConditions (void)
 // =========================================================
 int CBullsquid::IRelationship (CBaseEntity* pTarget)
 	{
+	// if squid has been hurt in the last 5 seconds, and is getting relationship for a headcrab, 
+	// tell squid to disregard crab
 	if ((gpGlobals->time - m_flLastHurtTime < 5) && FClassnameIs (pTarget->pev, "monster_headcrab"))
-		{
-		// if squid has been hurt in the last 5 seconds, and is getting relationship for a headcrab, 
-		// tell squid to disregard crab. 
 		return R_NO;
-		}
 
 	return CBaseMonster::IRelationship (pTarget);
 	}
@@ -295,17 +294,17 @@ int CBullsquid::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 			flDist = (pev->origin - m_Route[m_iRouteIndex].vecLocation).Length2D ();// reusing flDist. 
 
 			if (FTriangulate (pev->origin, m_Route[m_iRouteIndex].vecLocation, flDist * 0.5, m_hEnemy, &vecApex))
-				{
 				InsertWaypoint (vecApex, bits_MF_TO_DETOUR | bits_MF_DONT_SIMPLIFY);
-				}
 			}
 		}
 
+	// don't forget about headcrabs if it was a headcrab that hurt the squid
 	if (!FClassnameIs (pevAttacker, "monster_headcrab"))
-		{
-		// don't forget about headcrabs if it was a headcrab that hurt the squid.
 		m_flLastHurtTime = gpGlobals->time;
-		}
+
+	// ESHQ: иногда будет умирать с закрытыми глазами
+	if (RANDOM_LONG (0, 1) == 0)
+		pev->skin |= 0x1;
 
 	return CBaseMonster::TakeDamage (pevInflictor, pevAttacker, flDamage, bitsDamageType);
 	}
@@ -315,11 +314,9 @@ int CBullsquid::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 // =========================================================
 BOOL CBullsquid::CheckRangeAttack1 (float flDot, float flDist)
 	{
-	if (IsMoving () && flDist >= 512)
-		{
-		// squid will far too far behind if he stops running to spit at this distance from the enemy.
+	// squid will far too far behind if he stops running to spit at this distance from the enemy
+	if (IsMoving () && (flDist >= 512))
 		return FALSE;
-		}
 
 	if ((flDist > 64) && (flDist <= 784) && (flDot >= 0.5) && (gpGlobals->time >= m_flNextSpitTime))
 		{
@@ -330,16 +327,13 @@ BOOL CBullsquid::CheckRangeAttack1 (float flDot, float flDist)
 				return FALSE;
 			}
 
+		// don't spit again for a long time, resume chasing enemy
 		if (IsMoving ())
-			{
-			// don't spit again for a long time, resume chasing enemy
 			m_flNextSpitTime = gpGlobals->time + 5;
-			}
+
+		// not moving, so spit again pretty soon
 		else
-			{
-			// not moving, so spit again pretty soon
 			m_flNextSpitTime = gpGlobals->time + 0.5;
-			}
 
 		return TRUE;
 		}
@@ -384,15 +378,13 @@ BOOL CBullsquid::FValidateHintType (short sHint)
 
 	static short sSquidHints[] =
 		{
-			HINT_WORLD_HUMAN_BLOOD,
+		HINT_WORLD_HUMAN_BLOOD,
 		};
 
 	for (i = 0; i < HLARRAYSIZE (sSquidHints); i++)
 		{
 		if (sSquidHints[i] == sHint)
-			{
 			return TRUE;
-			}
 		}
 
 	ALERT (at_aiconsole, "Couldn't validate hint type");
@@ -406,7 +398,7 @@ BOOL CBullsquid::FValidateHintType (short sHint)
 // =========================================================
 int CBullsquid::ISoundMask (void)
 	{
-	return	bits_SOUND_WORLD |
+	return bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
 		bits_SOUND_CARCASS |
 		bits_SOUND_MEAT |
@@ -434,15 +426,19 @@ void CBullsquid::IdleSound (void)
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_idle1.wav", 1, SQUID_ATTN_SMALL);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_idle2.wav", 1, SQUID_ATTN_SMALL);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_idle3.wav", 1, SQUID_ATTN_SMALL);
 			break;
+
 		case 3:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_idle4.wav", 1, SQUID_ATTN_SMALL);
 			break;
+
 		case 4:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_idle5.wav", 1, SQUID_ATTN_SMALL);
 			break;
@@ -461,12 +457,15 @@ void CBullsquid::PainSound (void)
 		case 0:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "bullchicken/bc_pain1.wav", 1, ATTN_MEDIUM, 0, iPitch);
 			break;
+
 		case 1:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "bullchicken/bc_pain2.wav", 1, ATTN_MEDIUM, 0, iPitch);
 			break;
+
 		case 2:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "bullchicken/bc_pain3.wav", 1, ATTN_MEDIUM, 0, iPitch);
 			break;
+
 		case 3:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "bullchicken/bc_pain4.wav", 1, ATTN_MEDIUM, 0, iPitch);
 			break;
@@ -485,6 +484,7 @@ void CBullsquid::AlertSound (void)
 		case 0:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "bullchicken/bc_idle1.wav", 1, ATTN_MEDIUM, 0, iPitch);
 			break;
+
 		case 1:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "bullchicken/bc_idle2.wav", 1, ATTN_MEDIUM, 0, iPitch);
 			break;
@@ -584,10 +584,10 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 			}
 			break;
 
+		// SOUND HERE!
 		case BSQUID_AE_BITE:
 			{
-			// SOUND HERE!
-			CBaseEntity* pHurt = CheckTraceHullAttack (70, gSkillData.bullsquidDmgBite, DMG_SLASH);
+			CBaseEntity *pHurt = CheckTraceHullAttack (70, gSkillData.bullsquidDmgBite, DMG_SLASH);
 
 			if (pHurt)
 				{
@@ -610,11 +610,9 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 			}
 			break;
 
+		// close eye
 		case BSQUID_AE_BLINK:
-			{
-			// close eye
-			pev->skin = 1;
-			}
+			pev->skin |= 1;
 			break;
 
 		case BSQUID_AE_HOP:
@@ -623,9 +621,7 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 
 			// throw the squid up into the air on this frame
 			if (FBitSet (pev->flags, FL_ONGROUND))
-				{
 				pev->flags -= FL_ONGROUND;
-				}
 
 			// jump into air for 0.8 (24/30) seconds
 			pev->velocity.z += (0.625 * flGravity) * 0.5;
@@ -648,9 +644,11 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 					case 0: 
 						EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "bullchicken/bc_bite1.wav", 1, ATTN_MEDIUM, 0, iPitch);
 						break;
+
 					case 1: 
 						EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "bullchicken/bc_bite2.wav", 1, ATTN_MEDIUM, 0, iPitch);
 						break;
+
 					case 2: 
 						EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "bullchicken/bc_bite3.wav", 1, ATTN_MEDIUM, 0, iPitch);
 						break;
@@ -694,6 +692,8 @@ void CBullsquid::Spawn ()
 
 	m_fCanThreatDisplay = TRUE;
 	m_flNextSpitTime = gpGlobals->time;
+
+	pev->skin = RANDOM_LONG (0, 2) * 2;	// ESHQ: любой скин с открытым глазом
 
 	MonsterInit ();
 	}
@@ -754,9 +754,11 @@ void CBullsquid::DeathSound (void)
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_die1.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_die2.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_die3.wav", 1, ATTN_MEDIUM);
 			break;
@@ -773,9 +775,11 @@ void CBullsquid::AttackSound (void)
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "bullchicken/bc_attack1.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "bullchicken/bc_attack2.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "bullchicken/bc_attack3.wav", 1, ATTN_MEDIUM);
 			break;
@@ -791,24 +795,18 @@ void CBullsquid::RunAI (void)
 	// first, do base class stuff
 	CBaseMonster::RunAI ();
 
-	if (pev->skin != 0)
-		{
-		// close eye if it was open.
-		pev->skin = 0;
-		}
+	// close eye if it was open
+	if (pev->skin & 0x1)	// ESHQ: отключение младшего бита, отвечающего за моргание
+		pev->skin &= 0xE;
 
 	if (RANDOM_LONG (0, 39) == 0)
-		{
-		pev->skin = 1;
-		}
+		pev->skin |= 0x1;
 
-	if (m_hEnemy != NULL && m_Activity == ACT_RUN)
+	// chasing enemy. Sprint for last bit
+	if ((m_hEnemy != NULL) && (m_Activity == ACT_RUN))
 		{
-		// chasing enemy. Sprint for last bit
 		if ((pev->origin - m_hEnemy->pev->origin).Length2D () < SQUID_SPRINT_DIST)
-			{
 			pev->framerate = 1.25;
-			}
 		}
 	}
 
@@ -1039,29 +1037,24 @@ Schedule_t* CBullsquid::GetSchedule (void)
 		case MONSTERSTATE_ALERT:
 			{
 			if (HasConditions (bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE))
-				{
 				return GetScheduleOfType (SCHED_SQUID_HURTHOP);
-				}
 
 			if (HasConditions (bits_COND_SMELL_FOOD))
 				{
 				CSound* pSound;
-
 				pSound = PBestScent ();
 
+				// scent is behind or occluded
 				if (pSound && (!FInViewCone (&pSound->m_vecOrigin) || !FVisible (pSound->m_vecOrigin)))
-					{
-					// scent is behind or occluded
 					return GetScheduleOfType (SCHED_SQUID_SNIFF_AND_EAT);
-					}
 
-				// food is right out in the open. Just go get it.
+				// food is right out in the open. Just go get it
 				return GetScheduleOfType (SCHED_SQUID_EAT);
 				}
 
 			if (HasConditions (bits_COND_SMELL))
 				{
-				// there's something stinky. 
+				// there's something stinky
 				CSound* pSound;
 
 				pSound = PBestScent ();
@@ -1071,21 +1064,20 @@ Schedule_t* CBullsquid::GetSchedule (void)
 
 			break;
 			}
+
 		case MONSTERSTATE_COMBAT:
 			{
 			// dead enemy
+			// call base class, all code to handle dead enemies is centralized there
 			if (HasConditions (bits_COND_ENEMY_DEAD))
-				{
-				// call base class, all code to handle dead enemies is centralized there.
 				return CBaseMonster::GetSchedule ();
-				}
 
 			if (HasConditions (bits_COND_NEW_ENEMY))
 				{
 				if (m_fCanThreatDisplay && IRelationship (m_hEnemy) == R_HT)
 					{
 					// this means squid sees a headcrab!
-					m_fCanThreatDisplay = FALSE;// only do the headcrab dance once per lifetime.
+					m_fCanThreatDisplay = FALSE;// only do the headcrab dance once per lifetime
 					return GetScheduleOfType (SCHED_SQUID_SEECRAB);
 					}
 				else
@@ -1097,36 +1089,26 @@ Schedule_t* CBullsquid::GetSchedule (void)
 			if (HasConditions (bits_COND_SMELL_FOOD))
 				{
 				CSound* pSound;
-
 				pSound = PBestScent ();
 
+				// scent is behind or occluded
 				if (pSound && (!FInViewCone (&pSound->m_vecOrigin) || !FVisible (pSound->m_vecOrigin)))
-					{
-					// scent is behind or occluded
 					return GetScheduleOfType (SCHED_SQUID_SNIFF_AND_EAT);
-					}
 
-				// food is right out in the open. Just go get it.
+				// food is right out in the open. Just go get it
 				return GetScheduleOfType (SCHED_SQUID_EAT);
 				}
 
 			if (HasConditions (bits_COND_CAN_RANGE_ATTACK1))
-				{
 				return GetScheduleOfType (SCHED_RANGE_ATTACK1);
-				}
 
 			if (HasConditions (bits_COND_CAN_MELEE_ATTACK1))
-				{
 				return GetScheduleOfType (SCHED_MELEE_ATTACK1);
-				}
 
 			if (HasConditions (bits_COND_CAN_MELEE_ATTACK2))
-				{
 				return GetScheduleOfType (SCHED_MELEE_ATTACK2);
-				}
 
 			return GetScheduleOfType (SCHED_CHASE_ENEMY);
-
 			break;
 			}
 		}
@@ -1144,21 +1126,27 @@ Schedule_t* CBullsquid::GetScheduleOfType (int Type)
 		case SCHED_RANGE_ATTACK1:
 			return &slSquidRangeAttack1[0];
 			break;
+
 		case SCHED_SQUID_HURTHOP:
 			return &slSquidHurtHop[0];
 			break;
+
 		case SCHED_SQUID_SEECRAB:
 			return &slSquidSeeCrab[0];
 			break;
+
 		case SCHED_SQUID_EAT:
 			return &slSquidEat[0];
 			break;
+
 		case SCHED_SQUID_SNIFF_AND_EAT:
 			return &slSquidSniffAndEat[0];
 			break;
+
 		case SCHED_SQUID_WALLOW:
 			return &slSquidWallow[0];
 			break;
+
 		case SCHED_CHASE_ENEMY:
 			return &slSquidChaseEnemy[0];
 			break;
@@ -1187,9 +1175,11 @@ void CBullsquid::StartTask (Task_t* pTask)
 				case 0:
 					EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_attackgrowl1.wav", 1, ATTN_MEDIUM);
 					break;
+
 				case 1:
 					EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_attackgrowl2.wav", 1, ATTN_MEDIUM);
 					break;
+
 				case 2:
 					EMIT_SOUND (ENT (pev), CHAN_VOICE, "bullchicken/bc_attackgrowl3.wav", 1, ATTN_MEDIUM);
 					break;
@@ -1198,12 +1188,14 @@ void CBullsquid::StartTask (Task_t* pTask)
 			CBaseMonster::StartTask (pTask);
 			break;
 			}
+
 		case TASK_SQUID_HOPTURN:
 			{
 			SetActivity (ACT_HOP);
 			MakeIdealYaw (m_vecEnemyLKP);
 			break;
 			}
+
 		case TASK_GET_PATH_TO_ENEMY:
 			{
 			if (BuildRoute (m_hEnemy->pev->origin, bits_MF_TO_ENEMY, m_hEnemy))
@@ -1217,6 +1209,7 @@ void CBullsquid::StartTask (Task_t* pTask)
 				}
 			break;
 			}
+
 		default:
 			{
 			CBaseMonster::StartTask (pTask);
@@ -1243,6 +1236,7 @@ void CBullsquid::RunTask (Task_t* pTask)
 				}
 			break;
 			}
+
 		default:
 			{
 			CBaseMonster::RunTask (pTask);
@@ -1259,7 +1253,6 @@ void CBullsquid::RunTask (Task_t* pTask)
 MONSTERSTATE CBullsquid::GetIdealState (void)
 	{
 	int	iConditions;
-
 	iConditions = IScheduleFlags ();
 
 	// If no schedule conditions, the new ideal state is probably the reason we're in here.
@@ -1268,8 +1261,8 @@ MONSTERSTATE CBullsquid::GetIdealState (void)
 		case MONSTERSTATE_COMBAT:
 			// COMBAT goes to ALERT upon death of enemy
 			{
-			if (m_hEnemy != NULL && (iConditions & bits_COND_LIGHT_DAMAGE || iConditions & bits_COND_HEAVY_DAMAGE) &&
-				FClassnameIs (m_hEnemy->pev, "monster_headcrab"))
+			if ((m_hEnemy != NULL) && ((iConditions & bits_COND_LIGHT_DAMAGE) ||
+				(iConditions & bits_COND_HEAVY_DAMAGE)) && FClassnameIs (m_hEnemy->pev, "monster_headcrab"))
 				{
 				// if the squid has a headcrab enemy and something hurts it, 
 				// it's going to forget about the crab for a while

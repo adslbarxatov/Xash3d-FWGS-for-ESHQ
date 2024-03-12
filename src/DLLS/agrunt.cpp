@@ -589,6 +589,8 @@ void CAGrunt::Spawn ()
 
 	m_flNextSpeakTime = m_flNextWordTime = gpGlobals->time + 10 + RANDOM_LONG (0, 10);
 
+	pev->skin = RANDOM_LONG (0, 2);	// ESHQ: случайный цвет кожи
+
 	MonsterInit ();
 	}
 

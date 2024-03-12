@@ -645,7 +645,9 @@ void CNihilanth::MakeFriend (Vector vecStart)
 					{
 					CNode& node = WorldGraph.Node (iNode);
 					TraceResult tr;
-					UTIL_TraceHull (node.m_vecOrigin + Vector (0, 0, 36), node.m_vecOrigin + Vector (0, 0, 36), dont_ignore_monsters, human_hull, NULL, &tr);
+					UTIL_TraceHull (node.m_vecOrigin + Vector (0, 0, 36), node.m_vecOrigin + Vector (0, 0, 36),
+						dont_ignore_monsters, human_hull, NULL, &tr);
+
 					if (tr.fStartSolid == 0)
 						m_hFriend[i] = Create ("monster_alien_slave", node.m_vecOrigin, pev->angles);
 					}

@@ -301,6 +301,8 @@ void CHeadCrab::Spawn ()
 	m_flFieldOfView = 0.5;				
 	m_MonsterState = MONSTERSTATE_NONE;
 
+	pev->skin = RANDOM_LONG (0, 2);	// ESHQ: случайный цвет кожи
+
 	MonsterInit ();
 	}
 
@@ -477,6 +479,7 @@ class CBabyCrab: public CHeadCrab
 		virtual int GetVoicePitch (void) { return PITCH_NORM + RANDOM_LONG (40, 50); }
 		virtual float GetSoundVolue (void) { return 0.8; }
 	};
+
 LINK_ENTITY_TO_CLASS (monster_babycrab, CBabyCrab);
 
 void CBabyCrab::Spawn (void)

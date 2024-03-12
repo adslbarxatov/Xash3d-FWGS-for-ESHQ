@@ -35,9 +35,9 @@ extern CGraph WorldGraph;
 #define	HOUNDEYE_MAX_ATTACK_RADIUS		384
 #define	HOUNDEYE_SQUAD_BONUS			(float)1.1
 
-#define HOUNDEYE_EYE_FRAMES 4 // how many different switchable maps for the eye
+#define HOUNDEYE_EYE_FRAMES				3	// ESHQ: их было три, а не четыре
 
-#define HOUNDEYE_SOUND_STARTLE_VOLUME	128 // how loud a sound has to be to badly scare a sleeping houndeye
+#define HOUNDEYE_SOUND_STARTLE_VOLUME	128	// how loud a sound has to be to badly scare a sleeping houndeye
 
 // =========================================================
 // monster-specific tasks
@@ -310,9 +310,7 @@ void CHoundeye::HandleAnimEvent (MonsterEvent_t* pEvent)
 
 		case HOUND_AE_CLOSE_EYE:
 			if (!m_fDontBlink)
-				{
-				pev->skin = HOUNDEYE_EYE_FRAMES - 1;
-				}
+				pev->skin |= 0x3;	// ESHQ: полное закрытие
 			break;
 
 		default:
@@ -347,6 +345,8 @@ void CHoundeye::Spawn ()
 	m_fAsleep = FALSE;	// everyone spawns awake
 	m_fDontBlink = FALSE;
 	m_afCapability |= bits_CAP_SQUAD;
+
+	pev->skin = RANDOM_LONG (0, 2) * 4;	// ESHQ: случайный цвет кожи с открытым глазом
 
 	MonsterInit ();
 	}
@@ -697,49 +697,58 @@ void CHoundeye::StartTask (Task_t* pTask)
 			m_iTaskStatus = TASKSTATUS_COMPLETE;
 			break;
 			}
+
 		case TASK_HOUND_WAKE_UP:
 			{
 			m_fAsleep = FALSE; // signal that hound is standing again
 			m_iTaskStatus = TASKSTATUS_COMPLETE;
 			break;
 			}
+
 		case TASK_HOUND_OPEN_EYE:
 			{
 			m_fDontBlink = FALSE; // turn blinking back on and that code will automatically open the eye
 			m_iTaskStatus = TASKSTATUS_COMPLETE;
 			break;
 			}
+
 		case TASK_HOUND_CLOSE_EYE:
 			{
-			pev->skin = 0;
-			m_fDontBlink = TRUE; // tell blink code to leave the eye alone.
+			pev->skin &= 0xC;		// ESHQ: отключение нижних двух бит, отвечающих за веко
+			m_fDontBlink = TRUE;	// tell blink code to leave the eye alone.
 			break;
 			}
+
 		case TASK_HOUND_THREAT_DISPLAY:
 			{
 			m_IdealActivity = ACT_IDLE_ANGRY;
 			break;
 			}
+
 		case TASK_HOUND_HOP_BACK:
 			{
 			m_IdealActivity = ACT_LEAP;
 			break;
 			}
+
 		case TASK_RANGE_ATTACK1:
 			{
 			m_IdealActivity = ACT_RANGE_ATTACK1;
 			break;
 			}
+
 		case TASK_SPECIAL_ATTACK1:
 			{
 			m_IdealActivity = ACT_SPECIAL_ATTACK1;
 			break;
 			}
+
 		case TASK_GUARD:
 			{
 			m_IdealActivity = ACT_GUARD;
 			break;
 			}
+
 		default:
 			{
 			CSquadMonster::StartTask (pTask);
@@ -761,31 +770,29 @@ void CHoundeye::RunTask (Task_t* pTask)
 			ChangeYaw (pev->yaw_speed);
 
 			if (m_fSequenceFinished)
-				{
 				TaskComplete ();
-				}
 
 			break;
 			}
+
+		// ESHQ: перестроено под новую схему скинов
 		case TASK_HOUND_CLOSE_EYE:
 			{
-			if (pev->skin < HOUNDEYE_EYE_FRAMES - 1)
-				{
-				pev->skin++;
-				}
+			if ((pev->skin & 0x3) < 0x3)
+				pev->skin |= (1 << (pev->skin & 0x3));
 			break;
 			}
+
 		case TASK_HOUND_HOP_BACK:
 			{
 			if (m_fSequenceFinished)
-				{
 				TaskComplete ();
-				}
 			break;
 			}
+
 		case TASK_SPECIAL_ATTACK1:
 			{
-			pev->skin = RANDOM_LONG (0, HOUNDEYE_EYE_FRAMES - 1);
+			pev->skin |= RANDOM_LONG (0, HOUNDEYE_EYE_FRAMES - 1);	// ESHQ: скины 2 и 3 совпадают
 
 			MakeIdealYaw (m_vecEnemyLKP);
 			ChangeYaw (pev->yaw_speed);
@@ -825,23 +832,23 @@ void CHoundeye::RunTask (Task_t* pTask)
 // =========================================================
 void CHoundeye::PrescheduleThink (void)
 	{
+	int blink = 0;
+
 	// if the hound is mad and is running, make hunt noises.
 	if (m_MonsterState == MONSTERSTATE_COMBAT && m_Activity == ACT_RUN && RANDOM_FLOAT (0, 1) < 0.2)
-		{
 		WarnSound ();
-		}
 
 	// at random, initiate a blink if not already blinking or sleeping
+	blink = pev->skin & 0x3;
 	if (!m_fDontBlink)
 		{
-		if ((pev->skin == 0) && RANDOM_LONG (0, 0x7F) == 0)
-			{// start blinking!
-			pev->skin = HOUNDEYE_EYE_FRAMES - 1;
-			}
-		else if (pev->skin != 0)
-			{// already blinking
-			pev->skin--;
-			}
+		// start blinking!
+		if ((blink == 0) && (RANDOM_LONG (0, 0x7F) == 0))
+			pev->skin |= (HOUNDEYE_EYE_FRAMES - 1);		// ESHQ: скины 2 и 3 совпадают
+
+		// already blinking
+		else if (blink != 0)
+			pev->skin &= (blink > 0x1 ? 0xD : 0xE);
 		}
 
 	// if you are the leader, average the origins of each pack member to get an approximate center.
