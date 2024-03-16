@@ -522,6 +522,7 @@ void CBaseMonster::MonsterThink (void)
 			// and should return to our heaviest weighted idle (the subtle one)
 			iSequence = LookupActivityHeaviest (m_Activity);
 			}
+
 		if (iSequence != ACTIVITY_NOT_AVAILABLE)
 			{
 			// ESHQ: поддержка начального поведения
@@ -1188,7 +1189,8 @@ void CBaseMonster::SetActivity (Activity NewActivity)
 		if ((pev->sequence != iSequence) || !m_fSequenceLoops)
 			{
 			// don't reset frame between walk and run
-			if (!(m_Activity == ACT_WALK || m_Activity == ACT_RUN) || !(NewActivity == ACT_WALK || NewActivity == ACT_RUN))
+			if (!((m_Activity == ACT_WALK) || (m_Activity == ACT_RUN)) ||
+				!((NewActivity == ACT_WALK) || (NewActivity == ACT_RUN)))
 				pev->frame = 0;
 			}
 
@@ -1794,7 +1796,6 @@ void CBaseMonster::Move (float flInterval)
 		}
 	}
 
-
 BOOL CBaseMonster::ShouldAdvanceRoute (float flWaypointDist)
 	{
 	if (flWaypointDist <= MONSTER_CUT_CORNER_DIST)
@@ -1802,7 +1803,6 @@ BOOL CBaseMonster::ShouldAdvanceRoute (float flWaypointDist)
 
 	return FALSE;
 	}
-
 
 void CBaseMonster::MoveExecute (CBaseEntity* pTargetEnt, const Vector& vecDir, float flInterval)
 	{
@@ -1833,7 +1833,8 @@ void CBaseMonster::MonsterInit (void)
 	{
 	if (!g_pGameRules->FAllowMonsters ())
 		{
-		pev->flags |= FL_KILLME;		// Post this because some monster code modifies class data after calling this function
+		// Post this because some monster code modifies class data after calling this function
+		pev->flags |= FL_KILLME;
 		return;
 		}
 
@@ -1844,7 +1845,8 @@ void CBaseMonster::MonsterInit (void)
 	pev->max_health = pev->health;
 	pev->deadflag = DEAD_NO;
 	
-	m_IdealMonsterState = MONSTERSTATE_IDLE;// Assume monster will be idle, until proven otherwise
+	// Assume monster will be idle, until proven otherwise
+	m_IdealMonsterState = MONSTERSTATE_IDLE;
 	m_IdealActivity = ACT_IDLE;
 
 	SetBits (pev->flags, FL_MONSTER);

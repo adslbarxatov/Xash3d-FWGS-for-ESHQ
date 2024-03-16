@@ -1437,7 +1437,9 @@ void CTalkMonster::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CBaseMonster::KeyValue (pkvd);
+		}
 	}
 
 void CTalkMonster::Precache (void)

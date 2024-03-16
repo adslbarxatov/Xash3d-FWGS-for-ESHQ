@@ -99,7 +99,7 @@ class CTalkMonster: public CBaseMonster
 	{
 	public:
 		void			TalkInit (void);
-		CBaseEntity* FindNearestFriend (BOOL fPlayer);
+		CBaseEntity*	FindNearestFriend (BOOL fPlayer);
 		float			TargetDistance (void);
 		void			StopTalking (void) { SentenceStop (); }
 

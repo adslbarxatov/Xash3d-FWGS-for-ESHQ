@@ -270,6 +270,7 @@ void CCineMonster::PossessEntity (void)
 		m_saved_solid = pTarget->pev->solid;
 		m_saved_effects = pTarget->pev->effects;
 		pTarget->pev->effects |= pev->effects;
+
 		// ESHQ: разблокировка для выполнения задания
 		pTarget->pev->spawnflags &= ~SF_MONSTER_OWN_SEQUENCE;
 
@@ -307,9 +308,7 @@ void CCineMonster::PossessEntity (void)
 			{
 			StartSequence (pTarget, m_iszIdle, FALSE);
 			if (FStrEq (STRING (m_iszIdle), STRING (m_iszPlay)))
-				{
 				pTarget->pev->framerate = 0;
-				}
 			}
 		}
 	}
@@ -319,9 +318,9 @@ void CCineMonster::PossessEntity (void)
 void CCineAI::PossessEntity (void)
 	{
 	Schedule_t *pNewSchedule;
-
 	CBaseEntity *pEntity = m_hTargetEnt;
 	CBaseMonster *pTarget = NULL;
+
 	if (pEntity)
 		pTarget = pEntity->MyMonsterPointer ();
 
@@ -341,6 +340,7 @@ void CCineAI::PossessEntity (void)
 		m_saved_solid = pTarget->pev->solid;
 		m_saved_effects = pTarget->pev->effects;
 		pTarget->pev->effects |= pev->effects;
+
 		// ESHQ: разблокировка для выполнения задания
 		pTarget->pev->spawnflags &= ~SF_MONSTER_OWN_SEQUENCE;
 
@@ -369,9 +369,11 @@ void CCineAI::PossessEntity (void)
 				pTarget->pev->angles.y = pev->angles.y;
 				pTarget->m_scriptState = SCRIPT_WAIT;
 				m_startTime = gpGlobals->time + 1E6;
+
 				// UNDONE: Add a flag to do this so people can fixup physics after teleporting monsters
 				pTarget->pev->flags &= ~FL_ONGROUND;
 				break;
+
 			default:
 				ALERT (at_aiconsole, "aiscript:  invalid Move To Position value!");
 				break;

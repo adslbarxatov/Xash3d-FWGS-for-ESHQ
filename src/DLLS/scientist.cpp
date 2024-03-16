@@ -117,9 +117,9 @@ LINK_ENTITY_TO_CLASS (monster_scientist, CScientist);
 
 TYPEDESCRIPTION	CScientist::m_SaveData[] =
 	{
-		DEFINE_FIELD (CScientist, m_painTime, FIELD_TIME),
-		DEFINE_FIELD (CScientist, m_healTime, FIELD_TIME),
-		DEFINE_FIELD (CScientist, m_fearTime, FIELD_TIME),
+	DEFINE_FIELD (CScientist, m_painTime, FIELD_TIME),
+	DEFINE_FIELD (CScientist, m_healTime, FIELD_TIME),
+	DEFINE_FIELD (CScientist, m_fearTime, FIELD_TIME),
 	};
 
 IMPLEMENT_SAVERESTORE (CScientist, CTalkMonster);
@@ -377,9 +377,9 @@ Schedule_t	slScientistStartle[] =
 
 Task_t	tlFear[] =
 	{
-		{ TASK_STOP_MOVING,				(float)0					},
-		{ TASK_FACE_ENEMY,				(float)0					},
-		{ TASK_SAY_FEAR,				(float)0					},
+		{ TASK_STOP_MOVING,	(float)0		},
+		{ TASK_FACE_ENEMY,	(float)0		},
+		{ TASK_SAY_FEAR,	(float)0		},
 	};
 
 Schedule_t	slFear[] =
@@ -411,7 +411,6 @@ DEFINE_CUSTOM_SCHEDULES (CScientist)
 
 IMPLEMENT_CUSTOM_SCHEDULES (CScientist, CTalkMonster);
 
-
 void CScientist::DeclineFollowing (void)
 	{
 	Talk (10);
@@ -433,6 +432,7 @@ Activity CScientist::GetStoppedActivity (void)
 	{
 	if (m_hEnemy != NULL)
 		return ACT_EXCITED;
+
 	return CTalkMonster::GetStoppedActivity ();
 	}
 
@@ -469,6 +469,7 @@ void CScientist::StartTask (Task_t* pTask)
 				// нулевое значение)
 				PlaySentence ("SC_FEAR", 5, VOL_NORM, ATTN_MEDIUM);
 				}
+
 			TaskComplete ();
 			break;
 
@@ -481,16 +482,16 @@ void CScientist::StartTask (Task_t* pTask)
 			break;
 
 		case TASK_MOVE_TO_TARGET_RANGE_SCARED:
-			{
 			if ((m_hTargetEnt->pev->origin - pev->origin).Length () < 1)
+				{
 				TaskComplete ();
+				}
 			else
 				{
 				m_vecMoveGoal = m_hTargetEnt->pev->origin;
 				if (!MoveToTarget (ACT_WALK_SCARED, 0.5))
 					TaskFail ();
 				}
-			}
 			break;
 
 		default:
@@ -565,6 +566,7 @@ void CScientist::RunTask (Task_t* pTask)
 				ChangeYaw (pev->yaw_speed);
 				}
 			break;
+
 		default:
 			CTalkMonster::RunTask (pTask);
 			break;
@@ -586,21 +588,22 @@ int	CScientist::Classify (void)
 // =========================================================
 void CScientist::SetYawSpeed (void)
 	{
-	int ys;
-
-	ys = 90;
+	int ys = 90;
 
 	switch (m_Activity)
 		{
 		case ACT_IDLE:
 			ys = 120;
 			break;
+
 		case ACT_WALK:
 			ys = 180;
 			break;
+
 		case ACT_RUN:
 			ys = 150;
 			break;
+
 		case ACT_TURN_LEFT:
 		case ACT_TURN_RIGHT:
 			ys = 120;
@@ -621,6 +624,7 @@ void CScientist::HandleAnimEvent (MonsterEvent_t* pEvent)
 		case SCIENTIST_AE_HEAL:		// Heal my target (if within range)
 			Heal ();
 			break;
+
 		case SCIENTIST_AE_NEEDLEON:
 			{
 			int oldBody = pev->body;
@@ -628,6 +632,7 @@ void CScientist::HandleAnimEvent (MonsterEvent_t* pEvent)
 			// Видимо, список parts достигается путём переволнения списка body
 			}
 			break;
+
 		case SCIENTIST_AE_NEEDLEOFF:
 			{
 			int oldBody = pev->body;
@@ -663,10 +668,9 @@ void CScientist::Spawn (void)
 	// White hands
 	pev->skin = 0;
 
+	// -1 chooses a random head
 	if (pev->body == -1)
-		{// -1 chooses a random head
 		pev->body = RANDOM_LONG (0, NUM_SCIENTIST_HEADS - 1);	// pick a head, any head
-		}
 
 	// Luther is black, make his hands black
 	if (pev->body == HEAD_LUTHER)
@@ -733,18 +737,32 @@ void CScientist::TalkInit ()
 	// get voice for head
 	switch (pev->body % NUM_SCIENTIST_HEADS)
 		{
+		// glasses
 		default:
-		case HEAD_GLASSES:	m_voicePitch = 105; break;	// glasses
-		case HEAD_EINSTEIN: m_voicePitch = 100; break;	// einstein
-		case HEAD_LUTHER:	m_voicePitch = 95;  break;	// luther
-		case HEAD_SLICK:	m_voicePitch = 100; break;	// slick
+		case HEAD_GLASSES:
+			m_voicePitch = 105;
+			break;
+
+		// einstein
+		case HEAD_EINSTEIN:
+			m_voicePitch = 100;
+			break;
+
+		// luther
+		case HEAD_LUTHER:
+			m_voicePitch = 95;
+			break;
+
+		// slick
+		case HEAD_SLICK:
+			m_voicePitch = 100;
+			break;
 		}
 	}
 
 int CScientist::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
-
-	if (pevInflictor && pevInflictor->flags & FL_CLIENT)
+	if (pevInflictor && (pevInflictor->flags & FL_CLIENT))
 		{
 		Remember (bits_MEMORY_PROVOKED);
 		StopFollowing (TRUE);
@@ -783,21 +801,27 @@ void CScientist::PainSound (void)
 		case 0: 
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "scientist/sci_pain1.wav", 1, ATTN_MEDIUM, 0, GetVoicePitch ()); 
 			break;
+
 		case 1: 
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "scientist/sci_pain2.wav", 1, ATTN_MEDIUM, 0, GetVoicePitch ()); 
 			break;
+
 		case 2: 
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "scientist/sci_pain3.wav", 1, ATTN_MEDIUM, 0, GetVoicePitch ()); 
 			break;
+
 		case 3: 
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "scientist/sci_pain4.wav", 1, ATTN_MEDIUM, 0, GetVoicePitch ()); 
 			break;
+
 		case 4:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "scientist/sci_pain5.wav", 1, ATTN_MEDIUM, 0, GetVoicePitch ()); 
 			break;
+
 		case 5:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "scientist/sci_pain6.wav", 1, ATTN_MEDIUM, 0, GetVoicePitch ());
 			break;
+
 		case 6:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "scientist/sci_pain7.wav", 1, ATTN_MEDIUM, 0, GetVoicePitch ());
 			break;
@@ -821,12 +845,12 @@ void CScientist::Killed (entvars_t* pevAttacker, int iGib)
 void CScientist::SetActivity (Activity newActivity)
 	{
 	int	iSequence;
-
 	iSequence = LookupActivity (newActivity);
 
 	// Set to the desired anim, or default anim if the desired is not present
 	if (iSequence == ACTIVITY_NOT_AVAILABLE)
 		newActivity = ACT_IDLE;
+
 	CTalkMonster::SetActivity (newActivity);
 	}
 
@@ -907,19 +931,21 @@ Schedule_t* CScientist::GetSchedule (void)
 			if (pEnemy)
 				{
 				if (HasConditions (bits_COND_SEE_ENEMY))
+					{
 					m_fearTime = gpGlobals->time;
-				else if (DisregardEnemy (pEnemy))		// After 15 seconds of being hidden, return to alert
+					}
+
+				// After 15 seconds of being hidden, return to alert
+				else if (DisregardEnemy (pEnemy))
 					{
 					m_hEnemy = NULL;
 					pEnemy = NULL;
 					}
 				}
 
+			// flinch if hurt
 			if (HasConditions (bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE))
-				{
-				// flinch if hurt
 				return GetScheduleOfType (SCHED_SMALL_FLINCH);
-				}
 
 			// Cower when you hear something scary
 			if (HasConditions (bits_COND_HEAR_SOUND))
@@ -963,22 +989,32 @@ Schedule_t* CScientist::GetSchedule (void)
 					// If I'm already close enough to my target
 					if (TargetDistance () <= 128)
 						{
-						if (CanHeal ())	// Heal opportunistically
+						// Heal opportunistically
+						if (CanHeal ())
 							return slHeal;
-						if (HasConditions (bits_COND_CLIENT_PUSH))	// Player wants me to move
+
+						// Player wants me to move
+						if (HasConditions (bits_COND_CLIENT_PUSH))
 							return GetScheduleOfType (SCHED_MOVE_AWAY_FOLLOW);
 						}
-					return GetScheduleOfType (SCHED_TARGET_FACE);	// Just face and follow.
+
+					// Just face and follow
+					return GetScheduleOfType (SCHED_TARGET_FACE);
 					}
-				else	// UNDONE: When afraid, scientist won't move out of your way.  Keep This?  If not, write move away scared
+				else
 					{
-					if (HasConditions (bits_COND_NEW_ENEMY)) // I just saw something new and scary, react
-						return GetScheduleOfType (SCHED_FEAR);					// React to something scary
-					return GetScheduleOfType (SCHED_TARGET_FACE_SCARED);	// face and follow, but I'm scared!
+					// I just saw something new and scary, react
+					if (HasConditions (bits_COND_NEW_ENEMY))
+						// React to something scary
+						return GetScheduleOfType (SCHED_FEAR);
+
+					// face and follow, but I'm scared!
+					return GetScheduleOfType (SCHED_TARGET_FACE_SCARED);
 					}
 				}
 
-			if (HasConditions (bits_COND_CLIENT_PUSH))	// Player wants me to move
+			// Player wants me to move
+			if (HasConditions (bits_COND_CLIENT_PUSH))
 				return GetScheduleOfType (SCHED_MOVE_AWAY);
 
 			// try to say something about smells
@@ -986,15 +1022,20 @@ Schedule_t* CScientist::GetSchedule (void)
 			break;
 
 		case MONSTERSTATE_COMBAT:
+			// Point and scream!
 			if (HasConditions (bits_COND_NEW_ENEMY))
-				return slFear;					// Point and scream!
+				return slFear;
+
+			// Take Cover
 			if (HasConditions (bits_COND_SEE_ENEMY))
-				return slScientistCover;		// Take Cover
+				return slScientistCover;
 
+			// Cower and panic from the scary sound!
 			if (HasConditions (bits_COND_HEAR_SOUND))
-				return slTakeCoverFromBestSound;	// Cower and panic from the scary sound!
+				return slTakeCoverFromBestSound;
 
-			return slScientistCover;			// Run & Cower
+			// Run & Cower
+			return slScientistCover;
 			break;
 		}
 
@@ -1012,12 +1053,14 @@ MONSTERSTATE CScientist::GetIdealState (void)
 				if (IsFollowing ())
 					{
 					int relationship = IRelationship (m_hEnemy);
-					if (relationship != R_FR || relationship != R_HT && !HasConditions (bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE))
+					if ((relationship != R_FR) || (relationship != R_HT) &&
+						!HasConditions (bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE))
 						{
 						// Don't go to combat if you're following the player
 						m_IdealMonsterState = MONSTERSTATE_ALERT;
 						return m_IdealMonsterState;
 						}
+
 					StopFollowing (TRUE);
 					}
 				}
@@ -1034,13 +1077,15 @@ MONSTERSTATE CScientist::GetIdealState (void)
 			CBaseEntity* pEnemy = m_hEnemy;
 			if (pEnemy != NULL)
 				{
-				if (DisregardEnemy (pEnemy))		// After 15 seconds of being hidden, return to alert
+				// After 15 seconds of being hidden, return to alert
+				if (DisregardEnemy (pEnemy))
 					{
 					// Strip enemy when going to alert
 					m_IdealMonsterState = MONSTERSTATE_ALERT;
 					m_hEnemy = NULL;
 					return m_IdealMonsterState;
 					}
+
 				// Follow if only scared a little
 				if (m_hTargetEnt != NULL)
 					{
@@ -1054,7 +1099,6 @@ MONSTERSTATE CScientist::GetIdealState (void)
 					m_IdealMonsterState = MONSTERSTATE_COMBAT;
 					return m_IdealMonsterState;
 					}
-
 				}
 			}
 			break;
@@ -1065,8 +1109,8 @@ MONSTERSTATE CScientist::GetIdealState (void)
 
 BOOL CScientist::CanHeal (void)
 	{
-	if ((m_healTime > gpGlobals->time) || (m_hTargetEnt == NULL) || (m_hTargetEnt->pev->health > 
-		(m_hTargetEnt->pev->max_health * 0.5)))
+	if ((m_healTime > gpGlobals->time) || (m_hTargetEnt == NULL) ||
+		(m_hTargetEnt->pev->health > (m_hTargetEnt->pev->max_health * 0.5)))
 		return FALSE;
 
 	return TRUE;
@@ -1082,6 +1126,7 @@ void CScientist::Heal (void)
 		return;
 
 	m_hTargetEnt->TakeHealth (gSkillData.scientistHeal, DMG_GENERIC);
+
 	// Don't heal again for 1 minute
 	m_healTime = gpGlobals->time + 60;
 	}
@@ -1091,6 +1136,7 @@ int CScientist::FriendNumber (int arrayNumber)
 	static int array[3] = {1, 2, 0};
 	if (arrayNumber < 3)
 		return array[arrayNumber];
+
 	return arrayNumber;
 	}
 
@@ -1217,11 +1263,14 @@ void CSittingScientist::Spawn ()
 	pev->health = 50;
 
 	m_bloodColor = BLOOD_COLOR_RED;
-	m_flFieldOfView = VIEW_FIELD_WIDE; // indicates the width of this monster's forward view cone (as a dotproduct result)
+
+	// indicates the width of this monster's forward view cone (as a dotproduct result)
+	m_flFieldOfView = VIEW_FIELD_WIDE;
 
 	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD;
 
-	SetBits (pev->spawnflags, SF_MONSTER_PREDISASTER); // predisaster only!
+	// predisaster only!
+	SetBits (pev->spawnflags, SF_MONSTER_PREDISASTER);
 
 	if (pev->body == -1)
 		{// -1 chooses a random head
