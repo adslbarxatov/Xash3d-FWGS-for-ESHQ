@@ -266,6 +266,8 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "IC ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_makers"))
 		Q_strncat (cmdLine, "MM ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_barriers"))
+		Q_strncat (cmdLine, "BT ", MAX_QPATH);
 
 	else if (!rebuild)
 		return;
@@ -1138,6 +1140,8 @@ void SV_InitHostCommands (void)
 				"Disables / enables crates with items (weapons, bugs) for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_makers", SV_ESRM_Command,
 				"Disables / enables monster makers for the next map (flag, 0 / 1)");
+			Cmd_AddRestrictedCommand ("esrm_barriers", SV_ESRM_Command,
+				"Sets types of barriers between map sections for the next map (0 = glass, 1 = fabric, 2 = both)");
 
 			Cmd_AddRestrictedCommand ("esrm_enemies_list", SV_ESRM_Command,
 				"Enumerates the allowed enemies (the line of letters for [a]ssassins, [b]ullchickens, "
