@@ -92,12 +92,8 @@ typedef struct voice_state_s
 extern voice_state_t voice;
 
 void CL_AddVoiceToDatagram (void);
-
 void Voice_RegisterCvars (void);
-
-/*qboolean Voice_Init (const char *pszCodecName, int quality);*/
 qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit);	// [FWGS, 01.02.24]
-
 void Voice_Idle (double frametime);
 qboolean Voice_IsRecording (void);
 void Voice_RecordStop (void);

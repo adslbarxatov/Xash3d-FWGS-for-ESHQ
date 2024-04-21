@@ -125,16 +125,7 @@ void Con_Init (void)
 	{
 	}
 
-// [FWGS, 01.02.24]
-/*void R_ClearAllDecals (void)
-	{
-	}*/
-
-// [FWGS, 01.02.24]
-/*int R_CreateDecalList (struct decallist_s *pList)
-	{
-	return 0;
-	}*/
+// [FWGS, 01.02.24] удалены R_ClearAllDecals, R_CreateDecalList
 
 void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
 	{

@@ -47,7 +47,6 @@ static int CL_LoadFontTexture (const char *fontname, uint texFlags, int *width)
 	}
 
 // [FWGS, 01.03.24]
-/*qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags)*/
 static int CL_FontRenderMode (convar_t *fontrender)
 	{
 	switch ((int)fontrender->value)
@@ -92,7 +91,6 @@ qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float sc
 	font->type = FONT_FIXED;
 	font->valid = true;
 	font->scale = scale;
-	/*font->nearest = FBitSet (texFlags, TF_NEAREST);*/
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (font_width / 16 * scale);
 
@@ -110,8 +108,8 @@ qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float sc
 	}
 
 // [FWGS, 01.03.24]
-/*qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, int rendermode, uint texFlags)*/
-qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode, uint texFlags)
+qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode,
+	uint texFlags)
 	{
 	fs_offset_t	length;
 	qfont_t		src;
@@ -143,9 +141,7 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 
 	font->type = FONT_VARIABLE;
 	font->valid = true;
-	/*font->scale = scale;*/
 	font->scale = scale ? scale : 1.0f;
-	/*font->nearest = FBitSet (texFlags, TF_NEAREST);*/
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (src.rowheight * scale);
 
@@ -219,8 +215,6 @@ int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *fon
 		return font->charWidths[number];
 
 	rc = &font->fontRc[number];
-	/*if (font->nearest || font->scale <= 1.0f)
-	if ((font->scale <= 1.0f) || REF_GET_PARM (PARM_TEX_FILTERING, font->hFontTexture))*/
 	if ((font->scale <= 1.0f) || !REF_GET_PARM (PARM_TEX_FILTERING, font->hFontTexture))
 		half = 0;
 
@@ -235,7 +229,6 @@ int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *fon
 		SPR_AdjustSize (&x, &y, &w, &h);
 
 	if (!FBitSet (flags, FONT_DRAW_NORENDERMODE))
-		/*ref.dllFuncs.GL_SetRenderMode (font->rendermode);*/
 		CL_SetFontRendermode (font);
 
 	// don't apply color to fixed fonts it's already colored
@@ -262,7 +255,6 @@ int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *fon
 		Con_UtfProcessChar (0); // clear utf state
 
 	if (!FBitSet (flags, FONT_DRAW_NORENDERMODE))
-		/*ref.dllFuncs.GL_SetRenderMode (font->rendermode);*/
 		CL_SetFontRendermode (font);
 
 	Vector4Copy (color, current_color);

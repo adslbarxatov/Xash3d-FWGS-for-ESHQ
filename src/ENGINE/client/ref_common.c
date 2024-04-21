@@ -81,20 +81,11 @@ void GAME_EXPORT GL_FreeImage (const char *name)
 		ref.dllFuncs.GL_FreeTexture (texnum);
 	}
 
-// [FWGS, 01.01.24]
-/*void R_UpdateRefState (void)
-	{
-	refState.time = cl.time;
-	refState.oldtime = cl.oldtime;
-	refState.realtime = host.realtime;
-	refState.frametime = host.frametime;
-	}*/
+// [FWGS, 01.01.24] удалена R_UpdateRefState
 
 // [FWGS, 01.01.24]
 void GL_RenderFrame (const ref_viewpass_t *rvp)
 	{
-	/*R_UpdateRefState ();*/
-
 	VectorCopy (rvp->vieworigin, refState.vieworg);
 	VectorCopy (rvp->viewangles, refState.viewangles);
 
@@ -106,11 +97,7 @@ static intptr_t pfnEngineGetParm (int parm, int arg)
 	return CL_RenderGetParm (parm, arg, false); // prevent recursion
 	}
 
-// [FWGS, 01.01.24]
-/*static world_static_t *pfnGetWorld (void)
-	{
-	return &world;
-	}*/
+// [FWGS, 01.01.24] удалена pfnGetWorld
 
 static void pfnStudioEvent (const mstudioevent_t *event, const cl_entity_t *e)
 	{
@@ -151,19 +138,9 @@ static void *pfnMod_Extradata (int type, model_t *m)
 	return NULL;
 	}
 
-// [FWGS, 01.11.23] removed pfnMod_GetCurrentLoadingModel, pfnMod_SetCurrentLoadingModel
+// [FWGS, 01.11.23] удалены pfnMod_GetCurrentLoadingModel, pfnMod_SetCurrentLoadingModel
 
-// [FWGS, 01.01.24]
-/*static void pfnGetPredictedOrigin (vec3_t v)
-	{
-	VectorCopy (cl.simorg, v);
-	}*/
-
-// [FWGS, 01.01.24]
-/*static color24 *pfnCL_GetPaletteColor (int color) // clgame.palette[color]
-	{
-	return &clgame.palette[color];
-	}*/
+// [FWGS, 01.01.24] удалены pfnGetPredictedOrigin, pfnCL_GetPaletteColor
 
 // [FWGS, 01.02.24]
 static void CL_ExtraUpdate (void)
@@ -222,11 +199,7 @@ static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s 
 		0;
 	}
 
-// [FWGS, 01.01.24]
-/*static poolhandle_t pfnImage_GetPool (void)
-	{
-	return host.imagepool;
-	}*/
+// [FWGS, 01.01.24] удалена pfnImage_GetPool
 
 static const bpc_desc_t *pfnImage_GetPFDesc (int idx)
 	{
@@ -315,19 +288,12 @@ static ref_api_t gEngfuncs =
 		Con_DrawStringLen,
 		Con_DrawString,
 		CL_DrawCenterPrint,
-
-		// [FWGS, 01.01.24]
-		/*CL_GetLocalPlayer,
-		CL_GetViewModel,
-		CL_GetEntityByIndex,*/
-
 		R_BeamGetEntity,
 		CL_GetWaterEntity,
 		CL_AddVisibleEntity,
 
 		Mod_SampleSizeForFace,
 		Mod_BoxVisible,
-		/*pfnGetWorld,*/
 		Mod_PointInLeaf,
 		Mod_CreatePolygonsForHull,
 
@@ -344,15 +310,8 @@ static ref_api_t gEngfuncs =
 
 		Mod_ForName,
 		pfnMod_Extradata,
-
-		// [FWGS, 01.01.24]
-		/*CL_ModelHandle,*/
 		CL_EntitySetRemapColors,
-
 		CL_GetRemapInfoForEntity,
-		/*CL_AllocRemapInfo,
-		CL_FreeRemapInfo,
-		CL_UpdateRemapInfo,*/
 
 		CL_ExtraUpdate,
 		Host_Error,
@@ -360,11 +319,6 @@ static ref_api_t gEngfuncs =
 		COM_RandomFloat,
 		COM_RandomLong,
 		pfnRefGetScreenFade,
-
-		// [FWGS, 01.01.24]
-		/*CL_TextMessageGet,
-		pfnGetPredictedOrigin,
-		pfnCL_GetPaletteColor,*/
 
 		pfnCL_GetScreenInfo,
 		pfnSetLocalLightLevel,
@@ -400,9 +354,7 @@ static ref_api_t gEngfuncs =
 		SW_UnlockBuffer,
 
 		// [FWGS, 01.01.24]
-		/*BuildGammaTable,*/
 		LightToTexGamma,
-		/*R_DoResetGamma,*/
 		LightToTexGammaEx,
 		TextureToGamma,
 		ScreenGammaTable,
@@ -421,7 +373,6 @@ static ref_api_t gEngfuncs =
 		PM_CL_TraceLine,
 		CL_VisTraceLine,
 		CL_TraceLine,
-		/*pfnGetMoveVars,*/
 
 		Image_AddCmdFlags,
 		Image_SetForceFlags,
@@ -433,11 +384,7 @@ static ref_api_t gEngfuncs =
 		FS_CopyImage,
 		FS_FreeImage,
 		Image_SetMDLPointer,
-
-		// [FWGS, 01.01.24]
-		/*pfnImage_GetPool,*/
 		pfnImage_GetPFDesc,
-
 		pfnDrawNormalTriangles,
 		pfnDrawTransparentTriangles,
 		&clgame.drawFuncs,
@@ -519,7 +466,6 @@ static qboolean R_LoadProgs (const char *name)
 	memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));
 
 	// [FWGS, 01.01.24]
-	/*if (!GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState))*/
 	if (GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState) != REF_API_VERSION)
 		{
 		COM_FreeLibrary (ref.hInstance);

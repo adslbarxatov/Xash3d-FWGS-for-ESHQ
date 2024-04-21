@@ -579,8 +579,6 @@ qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qbo
 		vieworg = RI.vieworg;
 
 	// [FWGS, 01.01.24]
-	/*R_CheckGamma ();*/
-
 	for (i = 0; i < 6; i++)
 		{
 		// go into 3d mode

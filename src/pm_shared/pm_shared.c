@@ -1,4 +1,4 @@
-/***
+/*
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -3226,12 +3226,12 @@ void PM_CreateStuckTable (void)
 		}
 	}
 
-/***
+/*
 This module implements the shared player physics code between any particular game and
 the engine. The same PM_Move routine is built into the game .dll and the client .dll and is
 invoked by each side as appropriate. There should be no distinction, internally, between server
 and client. This will ensure that prediction behaves appropriately.
-***/
+*/
 
 void PM_Move (struct playermove_s *ppmove, int server)
 	{

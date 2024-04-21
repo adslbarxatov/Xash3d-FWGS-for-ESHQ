@@ -1,4 +1,4 @@
-/***
+/*
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -363,7 +363,8 @@ void CISlave::HandleAnimEvent (MonsterEvent_t* pEvent)
 				}
 
 			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "debris/zap4.wav", 1, ATTN_MEDIUM, 0, 100 + m_iBeams * 10);
-			/*pev->skin = m_iBeams / 2;*/	// ESHQ: что это?
+			// ESHQ: что это?
+			//pev->skin = m_iBeams / 2;
 			}
 			break;
 
@@ -833,7 +834,9 @@ void CISlave::ClearBeams ()
 		}
 
 	m_iBeams = 0;
-	/*pev->skin = 0;*/	// ESHQ: что это?
+
+	// ESHQ: что это?
+	//pev->skin = 0;
 
 	STOP_SOUND (ENT (pev), CHAN_WEAPON, "debris/zap4.wav");
 	}

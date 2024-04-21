@@ -17,10 +17,6 @@ GNU General Public License for more details.
 #define VOX_H
 
 #define CVOXWORDMAX		64
-
-// [FWGS, 01.01.24]
-/*#define CVOXFILESENTENCEMAX 4096*/
-
 #define SENTENCE_INDEX		-99999	// unique sentence index
 
 typedef struct voxword_s

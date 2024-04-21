@@ -585,10 +585,8 @@ static qboolean VID_SetScreenResolution (int width, int height, window_mode_t wi
 	SDL_DisplayMode got;
 	Uint32 wndFlags = 0;
 
-/*#if !XASH_APPLE*/
 	if (vid_highdpi.value)
 		SetBits (wndFlags, SDL_WINDOW_ALLOW_HIGHDPI);
-/*#endif*/
 
 	SDL_SetWindowBordered (host.hWnd, SDL_FALSE);
 	if (window_mode == WINDOW_MODE_BORDERLESS)
@@ -671,8 +669,6 @@ static void VID_SetWindowIcon (SDL_Window *hWnd)
 #if XASH_WIN32
 	const char *localIcoPath;
 
-/* ICO support only for Win32
-#if XASH_WIN32*/
 	if ((localIcoPath = FS_GetDiskPath (GI->iconpath, true)))
 		{
 		HICON ico = (HICON)LoadImage (NULL, localIcoPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
@@ -765,7 +761,6 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 	if (!glw_state.software)
 		SetBits (wndFlags, SDL_WINDOW_OPENGL);
 
-/*#if !XASH_MOBILE_PLATFORM*/
 	if (window_mode == WINDOW_MODE_WINDOWED)
 		{
 		SDL_Rect r;
@@ -807,10 +802,6 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		SetBits (wndFlags, SDL_WINDOW_BORDERLESS);
 		xpos = ypos = 0;
 		}
-/*#else
-	SetBits (wndFlags, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_INPUT_GRABBED);
-	xpos = ypos = SDL_WINDOWPOS_UNDEFINED;
-#endif*/
 
 	if (!VID_CreateWindowWithSafeGL (wndname, xpos, ypos, width, height, wndFlags))
 		return false;
@@ -819,7 +810,6 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 	if (FBitSet (SDL_GetWindowFlags (host.hWnd), SDL_WINDOW_MAXIMIZED | SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
 		SDL_GetWindowSize (host.hWnd, &width, &height);
 
-/*#if !XASH_MOBILE_PLATFORM*/
 	if (window_mode != WINDOW_MODE_WINDOWED)
 		{
 		if (!VID_SetScreenResolution (width, height, window_mode))
@@ -829,8 +819,6 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		{
 		VID_RestoreScreenResolution ();
 		}
-
-/*#endif*/
 
 	VID_SetWindowIcon (host.hWnd);
 	SDL_ShowWindow (host.hWnd);
@@ -869,8 +857,6 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 					return false;
 				GL_SetupAttributes (); // re-choose attributes
 				}
-
-			/*VID_StartupGamma ();*/
 			}
 
 		if (!GL_UpdateContext ())

@@ -356,16 +356,10 @@ void SPR_AdjustSize (float *x, float *y, float *w, float *h)
 	}
 
 // [FWGS, 01.02.24]
-/*void SPR_AdjustTexCoords (float width, float height, float *s1, float *t1, float *s2, float *t2)*/
 static void SPR_AdjustTexCoords (int texnum, float width, float height, float *s1, float *t1, float *s2, float *t2)
 	{
-	/*if (refState.width != clgame.scrInfo.iWidth)*/
 	if (REF_GET_PARM (PARM_TEX_FILTERING, texnum))
 		{
-		/* align to texel if scaling
-		*s1 += 0.5f;
-		*s2 -= 0.5f;
-		}*/
 		if (refState.width != clgame.scrInfo.iWidth)
 			{
 			// align to texel if scaling
@@ -373,11 +367,6 @@ static void SPR_AdjustTexCoords (int texnum, float width, float height, float *s
 			*s2 -= 0.5f;
 			}
 
-		/*if (refState.height != clgame.scrInfo.iHeight)
-			{
-			// align to texel if scaling
-			*t1 += 0.5f;
-			*t2 -= 0.5f;*/
 		if (refState.height != clgame.scrInfo.iHeight)
 			{
 			// align to texel if scaling
@@ -436,7 +425,6 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 		t1 = rc.top;
 		s2 = rc.right;
 		t2 = rc.bottom;
-		/*SPR_AdjustTexCoords (width, height, &s1, &t1, &s2, &t2);*/
 		SPR_AdjustTexCoords (texnum, width, height, &s1, &t1, &s2, &t2);
 
 		width = rc.right - rc.left;
@@ -454,7 +442,6 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 
 	// scale for screen sizes
 	SPR_AdjustSize (&x, &y, &width, &height);
-	/*texnum = ref.dllFuncs.R_GetSpriteTexture (clgame.ds.pSprite, frame);*/
 	ref.dllFuncs.Color4ub (clgame.ds.spriteColor[0], clgame.ds.spriteColor[1], clgame.ds.spriteColor[2],
 		clgame.ds.spriteColor[3]);
 	ref.dllFuncs.R_DrawStretchPic (x, y, width, height, s1, t1, s2, t2, texnum);
@@ -491,7 +478,6 @@ void CL_DrawCenterPrint (void)
 	pText = clgame.centerPrint.message;
 
 	CL_DrawCharacterLen (font, 0, NULL, &charHeight);
-	/*ref.dllFuncs.GL_SetRenderMode (font->rendermode);*/
 	CL_SetFontRendermode (font);
 
 	for (i = 0; i < clgame.centerPrint.lines; i++)
@@ -1150,14 +1136,12 @@ void CL_InitEdicts (int maxclients)
 			clgame.maxRemapInfos);
 		}
 
-	/*ref.dllFuncs.R_ProcessEntData (true);*/
 	ref.dllFuncs.R_ProcessEntData (true, clgame.entities, clgame.maxEntities);
 	}
 
 // [FWGS, 01.01.24]
 void CL_FreeEdicts (void)
 	{
-	/*ref.dllFuncs.R_ProcessEntData (false);*/
 	ref.dllFuncs.R_ProcessEntData (false, NULL, 0);
 
 	if (clgame.entities)
@@ -1650,7 +1634,6 @@ int GAME_EXPORT CL_GetScreenInfo (SCREENINFO *pscrinfo)
 	clgame.scrInfo.iSize = sizeof (clgame.scrInfo);
 	clgame.scrInfo.iFlags = SCRINFO_SCREENFLASH;
 
-	/*if (scale_factor && (scale_factor != 1.0f))*/
 	if (scale_factor && scale_factor != 1.0f)
 		{
 		float scaled_width = (float)refState.width / scale_factor;
@@ -1662,14 +1645,12 @@ int GAME_EXPORT CL_GetScreenInfo (SCREENINFO *pscrinfo)
 		{
 		clgame.scrInfo.iWidth = (float)refState.width / scale_factor;
 		clgame.scrInfo.iHeight = (float)refState.height / scale_factor;
-		/*clgame.scrInfo.iFlags |= SCRINFO_STRETCHED;*/
 		SetBits (clgame.scrInfo.iFlags, SCRINFO_STRETCHED);
 		}
 	else
 		{
 		clgame.scrInfo.iWidth = refState.width;
 		clgame.scrInfo.iHeight = refState.height;
-		/*clgame.scrInfo.iFlags &= ~SCRINFO_STRETCHED;*/
 		ClearBits (clgame.scrInfo.iFlags, SCRINFO_STRETCHED);
 		}
 

@@ -657,24 +657,9 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 
 	// [FWGS, 01.01.24]
 	if (!force)
-		/*{
-		if (FBitSet (var->flags, FCVAR_READ_ONLY))
-			{
-			Con_Printf ("%s is read-only.\n", var->name);
-			return var;
-			}
-
-		if (FBitSet (var->flags, FCVAR_CHEAT) && !host.allow_cheats)
-			{
-			Con_Printf ("%s is cheat protected.\n", var->name);*/
 		{
 		if (!Cvar_CanSet (var))
 			return var;
-		/*}
-
-	// just tell user about deferred changes
-	if (FBitSet (var->flags, FCVAR_LATCH) && (SV_Active () || CL_Active ()))
-		Con_Printf ("%s will be changed upon restarting.\n", var->name);*/
 		}
 
 	pszValue = Cvar_ValidateString (var, value);
@@ -725,22 +710,8 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 		}
 
 	// [FWGS, 01.01.24]
-	/*if (FBitSet (var->flags, FCVAR_READ_ONLY))
-		{
-		Con_Printf ("%s is read-only.\n", var->name);*/
 	if (!Cvar_CanSet (var))
 		return;
-	/*	}
-
-	if (FBitSet (var->flags, FCVAR_CHEAT) && !host.allow_cheats)
-		{
-		Con_Printf ("%s is cheat protected.\n", var->name);
-		return;
-		}
-
-	// just tell user about deferred changes
-	if (FBitSet (var->flags, FCVAR_LATCH) && (SV_Active () || CL_Active ()))
-		Con_Printf ("%s will be changed upon restarting.\n", var->name);*/
 
 	// check value
 	if (!value)

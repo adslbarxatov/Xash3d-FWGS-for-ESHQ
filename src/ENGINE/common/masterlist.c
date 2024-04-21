@@ -52,7 +52,6 @@ static net_gai_state_t NET_GetMasterHostByName (master_t * m)
 	if (res == NET_EAI_OK)
 		return res;
 	
-	/*m->adr.type = NA_UNUSED;*/
 	m->adr.type = 0;
 
 	if (res == NET_EAI_NONAME)
@@ -266,7 +265,6 @@ static void NET_AddMaster (const char *addr, qboolean save)
 	master->next = NULL;
 
 	// [FWGS, 01.01.24]
-	/*master->adr.type = NA_UNUSED;*/
 	master->adr.type = 0;
 
 	// link in
@@ -314,8 +312,8 @@ Display current master linked list
 */
 static void NET_ListMasters_f (void)
 	{
-	master_t *list;
-	int i;
+	master_t	*list;
+	int			i;
 
 	Msg ("Master servers\n=============\n");
 
@@ -324,7 +322,6 @@ static void NET_ListMasters_f (void)
 		{
 		Msg ("%d\t%s", i, list->address);
 		
-		/*if (list->adr.type != NA_UNUSED)*/
 		if (list->adr.type != 0)
 			Msg ("\t%s\n", NET_AdrToString (list->adr));
 		else

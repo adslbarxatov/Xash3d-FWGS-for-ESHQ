@@ -1012,7 +1012,6 @@ void MIX_PaintChannels (int endtime)
 		MIX_UpsampleAllPaintbuffers (end, count);
 
 		// [FWGS, 01.01.24] process all sounds with DSP
-		/*DSP_Process (idsp_room, MIX_GetPFrontFromIPaint (IROOMBUFFER), count);*/
 		if (cls.key_dest != key_menu)
 			DSP_Process (MIX_GetPFrontFromIPaint (IROOMBUFFER), count);
 

@@ -979,7 +979,6 @@ Mod_SampleSizeForFace [FWGS, 01.01.24]
 return the current lightmap resolution per face
 ==================
 */
-/*int Mod_SampleSizeForFace (msurface_t *surf)*/
 int Mod_SampleSizeForFace (const msurface_t *surf)
 	{
 	if (!surf || !surf->texinfo)

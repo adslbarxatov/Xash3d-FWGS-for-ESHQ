@@ -1,4 +1,4 @@
-/***
+/*
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -478,7 +478,7 @@ void WeaponsResource::SelectSlot (int iSlot, int fAdvance, int iDirection)
 					}
 
 			return;
-			/******************************************************************/
+			///////////////////
 			}
 		}
 	else
@@ -1198,7 +1198,7 @@ int CHudAmmo::DrawWList (float flTime)
 	}
 
 
-/***
+/*
 =================================
 GetSpriteList
 

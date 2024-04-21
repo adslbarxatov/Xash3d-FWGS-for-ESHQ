@@ -395,9 +395,6 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 
 	// [FWGS, 01.02.24]
 #elif XASH_NETBSD
-	/*pc = (void *)ucontext->uc_mcontext.__gregs[_REG_EIP];
-	bp = (void **)ucontext->uc_mcontext.__gregs[_REG_EBP];
-	sp = (void **)ucontext->uc_mcontext.__gregs[_REG_ESP];*/
 	pc = (void *)ucontext->uc_mcontext.__gregs[_REG_RIP];
 	bp = (void **)ucontext->uc_mcontext.__gregs[_REG_RBP];
 	sp = (void **)ucontext->uc_mcontext.__gregs[_REG_RSP];
@@ -518,7 +515,6 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 	SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
 #endif
 	// [FWGS, 01.01.24]
-	/*MSGBOX (message);*/
 	Platform_MessageBox ("Xash Error", message, false);
 
 	// log saved, now we can try to save configs and close log correctly, it may crash

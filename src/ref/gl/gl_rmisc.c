@@ -156,7 +156,6 @@ void R_NewMap (void)
 		}
 
 	// [FWGS, 01.01.24]
-	/*R_SetupSky (MOVEVARS->skyName);*/
 	R_SetupSky (tr.movevars->skyName);
 
 	GL_BuildLightmaps ();

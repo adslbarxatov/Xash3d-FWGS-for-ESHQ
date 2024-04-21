@@ -21,7 +21,6 @@ GNU General Public License for more details.
 #include "shake.h"
 #include "hltv.h"
 #include "input.h"
-/*#include "server.h"	// [FWGS, 01.02.24]*/
 
 #if XASH_LOW_MEMORY != 2
 int CL_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
@@ -1397,7 +1396,6 @@ void CL_UpdateUserinfo (sizebuf_t *msg, qboolean legacy)
 	else
 		id = 0;		// bogus
 
-	/*player = &cl.players[slot];*/
 	active = MSG_ReadOneBit (msg) ? true : false;
 
 	if (active)
@@ -1664,11 +1662,7 @@ void CL_RegisterResources (sizebuf_t *msg)
 
 			CL_ClearWorld ();
 
-			// [FWGS, 01.01.24]
-			/* update the ref state
-			R_UpdateRefState ();*/
-
-			// tell rendering system we have a new set of models
+			// [FWGS, 01.01.24] tell rendering system we have a new set of models
 			ref.dllFuncs.R_NewMap ();
 
 			// [FWGS, 01.05.23] check if this map must start from dark screen
@@ -1806,10 +1800,9 @@ CL_ParseVoiceInit [FWGS, 01.02.24]
 */
 static void CL_ParseVoiceInit (sizebuf_t *msg)
 	{
-	char *pszCodec = MSG_ReadString (msg);
-	int quality = MSG_ReadByte (msg);
+	char	*pszCodec = MSG_ReadString (msg);
+	int		quality = MSG_ReadByte (msg);
 
-	/*Voice_Init (pszCodec, quality);*/
 	Voice_Init (pszCodec, quality, false);	// init requested codec and the device
 	}
 

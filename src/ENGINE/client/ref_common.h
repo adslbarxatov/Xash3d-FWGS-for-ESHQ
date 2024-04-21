@@ -54,7 +54,6 @@ qboolean R_Init (void);
 void R_Shutdown (void);
 
 // [FWGS, 01.01.24]
-/*void R_UpdateRefState (void);*/
 extern triangleapi_t gTriApi;
 
 #endif

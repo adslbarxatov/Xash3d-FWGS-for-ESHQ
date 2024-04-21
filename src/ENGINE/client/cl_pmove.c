@@ -697,11 +697,7 @@ cl_entity_t *CL_GetWaterEntity (const float *rgflPos)
 	return CL_GetEntityByIndex (entnum);
 	}
 
-// [FWGS, 01.02.24]
-/*int GAME_EXPORT CL_TestLine (const vec3_t start, const vec3_t end, int flags)
-	{
-	return PM_TestLineExt (clgame.pmove, clgame.pmove->physents, clgame.pmove->numphysent, start, end, flags);
-	}*/
+// [FWGS, 01.02.24] удалена CL_TestLine
 
 static int GAME_EXPORT pfnTestPlayerPosition (float *pos, pmtrace_t *ptrace)
 	{

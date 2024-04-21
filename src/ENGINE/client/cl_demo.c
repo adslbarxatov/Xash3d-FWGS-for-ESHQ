@@ -378,7 +378,6 @@ static void CL_WriteDemoHeader (const char *name)
 	demo.header.net_protocol = cls.legacymode ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION;
 	
 	// [FWGS, 01.01.24]
-	/*demo.header.host_fps = bound (MIN_FPS, host_maxfps.value, MAX_FPS);*/
 	demo.header.host_fps = host_maxfps.value ? bound (MIN_FPS, host_maxfps.value, MAX_FPS) : MAX_FPS;
 
 	Q_strncpy (demo.header.mapname, clgame.mapname, sizeof (demo.header.mapname));

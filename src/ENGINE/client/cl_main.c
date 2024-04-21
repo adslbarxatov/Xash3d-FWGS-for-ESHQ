@@ -127,10 +127,6 @@ CVAR_DEFINE_AUTO (cl_charset, "utf-8", FCVAR_ARCHIVE,
 	"1-byte charset to use (iconv style)");
 
 // [FWGS, 01.03.24]
-/*CVAR_DEFINE_AUTO (cl_trace_messages, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
-	"enable message names tracing (good for developers)");
-CVAR_DEFINE_AUTO (cl_trace_events, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
-	"enable events tracing (good for developers)");*/
 CVAR_DEFINE_AUTO (cl_trace_stufftext, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
 	"enable stufftext (server-to-client console commands) tracing (good for developers)");
 CVAR_DEFINE_AUTO (cl_trace_messages, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
@@ -703,7 +699,6 @@ static void CL_CreateCmd (void)
 	// [FWGS, 01.01.24] message we are constructing
 	i = cls.netchan.outgoing_sequence & CL_UPDATE_MASK;
 	pcmd = &cl.commands[i];
-	/*pcmd->processedfuncs = false;*/
 
 	if (!cls.demoplayback)
 		{
@@ -2310,7 +2305,6 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		// [FWGS, 01.01.24] serverlist got from masterserver
 		while (MSG_GetNumBitsLeft (msg) > 8)
 			{
-			/*MSG_ReadBytes (msg, servadr.ip, sizeof (servadr.ip));	// 4 bytes for IP*/
 			uint8_t addr[16];
 
 			if (from.type6 == NA_IP6) // IPv6 master server only sends IPv6 addresses
@@ -2324,9 +2318,7 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 				MSG_ReadBytes (msg, servadr.ip, sizeof (servadr.ip)); // 4 bytes for IP
 				servadr.type = NA_IP;
 				}
-
 			servadr.port = MSG_ReadShort (msg);			// 2 bytes for Port
-			/*servadr.type = NA_IP;*/
 
 			// list is ends here
 			if (!servadr.port)
@@ -3161,14 +3153,6 @@ static void CL_InitLocal (void)
 		"quit from game");
 
 	// [FWGS, 01.02.24]
-	/*Cmd_AddCommand ("screenshot", CL_ScreenShot_f,
-		"takes a screenshot of the next rendered frame");
-	Cmd_AddCommand ("snapshot", CL_SnapShot_f,
-		"takes a snapshot of the next rendered frame");
-	Cmd_AddCommand ("envshot", CL_EnvShot_f,
-		"takes a six-sides cubemap shot with specified name");
-	Cmd_AddCommand ("skyshot", CL_SkyShot_f,
-		"takes a six-sides envmap (skybox) shot with specified name");*/
 	Cmd_AddCommand ("screenshot", CL_GenericShot_f,
 		"takes a screenshot of the next rendered frame");
 	Cmd_AddCommand ("snapshot", CL_GenericShot_f,
@@ -3177,20 +3161,14 @@ static void CL_InitLocal (void)
 		"takes a six-sides cubemap shot with specified name");
 	Cmd_AddCommand ("skyshot", CL_GenericShot_f,
 		"takes a six-sides envmap (skybox) shot with specified name");
-
 	Cmd_AddCommand ("levelshot", CL_LevelShot_f,
 		"same as \"screenshot\", used for create plaque images");
-
-	/*Cmd_AddCommand ("saveshot", CL_SaveShot_f,
-		"used for create save previews with LoadGame menu");*/
 	Cmd_AddCommand ("saveshot", CL_GenericShot_f,
 		"used for create save previews with LoadGame menu");
-
 	Cmd_AddCommand ("connect", CL_Connect_f,
 		"connect to a server by hostname");
 	Cmd_AddCommand ("reconnect", CL_Reconnect_f,
 		"reconnect to current level");
-
 	Cmd_AddCommand ("rcon", CL_Rcon_f,
 		"sends a command to the server console (rcon_password and rcon_address required)");
 	Cmd_AddCommand ("precache", CL_LegacyPrecache_f,

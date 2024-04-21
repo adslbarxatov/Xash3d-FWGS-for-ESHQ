@@ -1253,13 +1253,6 @@ APIENTRY_LINKAGE void GL_FUNCTION (glDrawRangeElements)(GLenum mode, GLuint star
 APIENTRY_LINKAGE void GL_FUNCTION (glDrawRangeElementsEXT)(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indices);
 
 // [FWGS, 01.01.24]
-/*APIENTRY_LINKAGE void GL_FUNCTION (glDrawElements)(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices);
-APIENTRY_LINKAGE void GL_FUNCTION (glVertexPointer)(GLint size, GLenum type, GLsizei stride, const GLvoid *ptr);
-APIENTRY_LINKAGE void GL_FUNCTION (glNormalPointer)(GLenum type, GLsizei stride, const GLvoid *ptr);
-APIENTRY_LINKAGE void GL_FUNCTION (glColorPointer)(GLint size, GLenum type, GLsizei stride, const GLvoid *ptr);
-APIENTRY_LINKAGE void GL_FUNCTION (glTexCoordPointer)(GLint size, GLenum type, GLsizei stride, const GLvoid *ptr);
-APIENTRY_LINKAGE void GL_FUNCTION (glArrayElement)(GLint i);*/
-
 APIENTRY_LINKAGE void GL_FUNCTION (glMultiTexCoord1f) (GLenum, GLfloat);
 APIENTRY_LINKAGE void GL_FUNCTION (glMultiTexCoord2f) (GLenum, GLfloat, GLfloat);
 APIENTRY_LINKAGE void GL_FUNCTION (glMultiTexCoord3f) (GLenum, GLfloat, GLfloat, GLfloat);
@@ -1319,8 +1312,6 @@ APIENTRY_LINKAGE void GL_FUNCTION (glGetUniformivARB)(GLhandleARB programObj, GL
 APIENTRY_LINKAGE void GL_FUNCTION (glGetShaderSourceARB)(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *source);
 
 // [FWGS, 01.01.24]
-/*APIENTRY_LINKAGE void GL_FUNCTION (glPolygonStipple)(const GLubyte *mask);*/
-
 APIENTRY_LINKAGE void GL_FUNCTION (glTexImage3D)(GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
 APIENTRY_LINKAGE void GL_FUNCTION (glTexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid *pixels);
 APIENTRY_LINKAGE void GL_FUNCTION (glCopyTexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
@@ -1747,13 +1738,6 @@ APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsiz
 #define pglDrawRangeElementsEXT glDrawRangeElementsEXT
 
 // [FWGS, 01.01.24]
-/*#define pglDrawElements glDrawElements
-#define pglVertexPointer glVertexPointer
-#define pglNormalPointer glNormalPointer
-#define pglColorPointer glColorPointer
-#define pglTexCoordPointer glTexCoordPointer
-#define pglArrayElement glArrayElement*/
-
 #define pglMultiTexCoord1f glMultiTexCoord1f
 #define pglMultiTexCoord2f glMultiTexCoord2f
 #define pglMultiTexCoord3f glMultiTexCoord3f
@@ -1813,8 +1797,6 @@ APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsiz
 #define pglGetShaderSourceARB glGetShaderSourceARB
 
 // [FWGS, 01.01.24]
-/*#define pglPolygonStipple glPolygonStipple*/
-
 #define pglTexImage3D glTexImage3D
 #define pglTexSubImage3D glTexSubImage3D
 #define pglCopyTexSubImage3D glCopyTexSubImage3D

@@ -259,8 +259,6 @@ void S_InitSounds (void);
 void SX_Init (void);
 void SX_Free (void);
 void CheckNewDspPresets (void);
-/*void DSP_Process (int idsp, portable_samplepair_t *pbfront, int sampleCount);
-float DSP_GetGain (int idsp);*/
 void DSP_Process (portable_samplepair_t *pbfront, int sampleCount);
 void DSP_ClearState (void);
 
@@ -310,8 +308,6 @@ int S_ZeroCrossingAfter (wavdata_t *pWaveData, int sample);
 int S_ZeroCrossingBefore (wavdata_t *pWaveData, int sample);
 int S_ConvertLoopedPosition (wavdata_t *pSource, int samplePosition, qboolean use_loop);
 int S_GetOutputData (wavdata_t *pSource, void **pData, int samplePosition, int sampleCount, qboolean use_loop);
-/*void S_SetSampleStart (channel_t *pChan, wavdata_t *pSource, int newPosition);
-void S_SetSampleEnd (channel_t *pChan, wavdata_t *pSource, int newEndPosition);*/
 
 //
 // s_vox.c

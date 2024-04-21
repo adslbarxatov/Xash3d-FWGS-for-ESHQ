@@ -1108,7 +1108,6 @@ int Delta_TestBaseline (entity_state_t *from, entity_state_t *to, qboolean playe
 	delta_info_t	*dt = NULL;
 	delta_t			*pField;
 	int				i, countBits;
-	/*int		numChanges = 0;*/
 
 	countBits = MAX_ENTITY_BITS + 2;
 

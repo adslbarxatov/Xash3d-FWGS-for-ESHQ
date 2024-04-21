@@ -107,7 +107,6 @@ typedef struct searchpath_s
 	void    (*pfnSearch)(struct searchpath_s *search, stringlist_t *list, const char *pattern, int caseinsensitive);
 
 	// [FWGS, 01.03.24]
-	/*byte *(*pfnLoadFile)(struct searchpath_s *search, const char *path, int pack_ind, fs_offset_t *filesize);*/
 	byte *(*pfnLoadFile)(struct searchpath_s *search, const char *path, int pack_ind, fs_offset_t *filesize,
 		void *(*pfnAlloc)(size_t), void (*pfnFree)(void *));
 	} searchpath_t;

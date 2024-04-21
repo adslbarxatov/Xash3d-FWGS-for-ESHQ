@@ -794,10 +794,6 @@ static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length
 	string	matchbuf;
 	int		len;
 
-	/* stand-alone games doesn't have cmd "game"
-	if (!Cmd_Exists ("game"))
-		return false;*/
-
 	// compare gamelist with current keyword
 	len = Q_strlen (s);
 

@@ -412,8 +412,6 @@ void Sys_Warn (const char *format, ...)
 	Msg ("Sys_Warn: %s\n", text);
 	if (!Host_IsDedicated ()) // dedicated server should not hang on messagebox
 		Platform_MessageBox ("Xash Warning", text, false);
-
-	/*MSGBOX (text);*/
 	}
 
 /*
@@ -460,7 +458,6 @@ void Sys_Error (const char *error, ...)
 #if XASH_WIN32
 		Wcon_ShowConsole (false);
 #endif
-		/*MSGBOX (text);*/
 		Sys_Print (text);
 		Platform_MessageBox ("Xash Error", text, false);
 		}
@@ -578,7 +575,6 @@ void Sys_Print (const char *pMsg)
 	Sys_PrintLog (pMsg);
 
 	// [FWGS, 01.01.24]
-	/*Rcon_Print (pMsg);*/
 	Rcon_Print (&host.rd, pMsg);
 	}
 

@@ -100,16 +100,8 @@ static mempool_t *Mem_FindPool (poolhandle_t poolptr)
 #endif
 
 // [FWGS, 01.03.24]
-/*void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)*/
 static inline void Mem_PoolAdd (mempool_t *pool, size_t size)
 	{
-	/*memheader_t *mem;
-	mempool_t *pool;
-
-	if (size <= 0)
-		return NULL;
-	if (!poolptr)
-		Sys_Error ("Mem_Alloc: pool == NULL (alloc at %s:%i)\n", filename, fileline);*/
 	pool->totalsize += size;
 	pool->realsize += sizeof (memheader_t) + size + sizeof (byte);
 	}
@@ -117,7 +109,6 @@ static inline void Mem_PoolAdd (mempool_t *pool, size_t size)
 // [FWGS, 01.03.24]
 static inline void Mem_PoolSubtract (mempool_t *pool, size_t size)
 	{
-	/*pool = Mem_FindPool (poolptr);*/
 	pool->totalsize -= size;
 	pool->realsize -= sizeof (memheader_t) + size + sizeof (byte);
 	}
@@ -125,7 +116,6 @@ static inline void Mem_PoolSubtract (mempool_t *pool, size_t size)
 // [FWGS, 01.03.24]
 static inline void Mem_PoolLinkAlloc (mempool_t *pool, memheader_t *mem)
 	{
-	/*pool->totalsize += size;*/
 	mem->next = pool->chain;
 	if (mem->next)
 		mem->next->prev = mem;
@@ -138,12 +128,6 @@ static inline void Mem_PoolLinkAlloc (mempool_t *pool, memheader_t *mem)
 // [FWGS, 01.03.24]
 static inline void Mem_PoolUnlinkAlloc (mempool_t *pool, memheader_t *mem)
 	{
-	/* big allocations are not clumped
-	pool->realsize += sizeof (memheader_t) + size + sizeof (size_t);
-	mem = (memheader_t *)Q_malloc (sizeof (memheader_t) + size + sizeof (size_t));
-	if (mem == NULL)
-	Sys_Error ("Mem_Alloc: out of memory (alloc at %s:%i)\n", filename, fileline);*/
-
 	if (mem->next)
 		mem->next->prev = mem->prev;
 
@@ -161,43 +145,19 @@ static inline void Mem_InitAlloc (memheader_t *mem, size_t size, const char *fil
 	mem->size = size;
 	mem->filename = filename;
 	mem->fileline = fileline;
-	/*mem->size = size;
-	mem->pool = pool;*/
 	mem->sentinel1 = MEMHEADER_SENTINEL1;
 
-	/* we have to use only a single byte for this sentinel, because it may not be aligned
-	// and some platforms can't use unaligned accesses*/
 	*((byte *)mem + sizeof (memheader_t) + mem->size) = MEMHEADER_SENTINEL2;
-
-	/* append to head of list
-	mem->next = pool->chain;
-	mem->prev = NULL;
-	pool->chain = mem;
-	if (mem->next) 
-		mem->next->prev = mem;
-	if (clear)
-		memset ((void *)((byte *)mem + sizeof (memheader_t)), 0, mem->size);
-
-	return (void *)((byte *)mem + sizeof (memheader_t));*/
 	}
 
 // [FWGS, 01.03.24]
 static const char *Mem_CheckFilename (const char *filename)
 	{
-	/*static const char *dummy = "<corrupted>\0";
-	const char *out = filename;
-	int		i;*/
 	static const char *dummy = "<corrupted>\0";
 
-	/*if (!COM_CheckString (out))*/
 	if (!COM_CheckString (filename))
 		return dummy;
 
-	/*for (i = 0; i < MAX_OSPATH; i++, out++)
-		{
-		if (*out == '\0')
-			return filename; // valid name
-		}*/
 	if (memchr (filename, '\0', MAX_OSPATH) != NULL)
 		return filename;
 
@@ -205,16 +165,12 @@ static const char *Mem_CheckFilename (const char *filename)
 	}
 
 // [FWGS, 01.03.24]
-/*static void Mem_FreeBlock (memheader_t *mem, const char *filename, int fileline)*/
 static qboolean Mem_CheckAllocHeader (const char *func, const memheader_t *mem, const char *filename, int fileline)
 	{
-	/*mempool_t *pool;*/
 	const char *memfilename;
 
 	if (mem->sentinel1 != MEMHEADER_SENTINEL1)
 		{
-		/*mem->filename = Mem_CheckFilename (mem->filename); // make sure what we don't crash var_args
-		Sys_Error ("Mem_Free: trashed header sentinel 1 (alloc at %s:%i, free at %s:%i)\n", mem->filename, mem->fileline, filename, fileline);*/
 		memfilename = Mem_CheckFilename (mem->filename);
 		Sys_Error ("%s: trashed header sentinel 1 (alloc at %s:%i, check at %s:%i)\n", func, memfilename,
 			mem->fileline, filename, fileline);
@@ -223,8 +179,6 @@ static qboolean Mem_CheckAllocHeader (const char *func, const memheader_t *mem, 
 
 	if (*((byte *)mem + sizeof (memheader_t) + mem->size) != MEMHEADER_SENTINEL2)
 		{
-		/*mem->filename = Mem_CheckFilename (mem->filename); // make sure what we don't crash var_args
-		Sys_Error ("Mem_Free: trashed header sentinel 2 (alloc at %s:%i, free at %s:%i)\n", mem->filename, mem->fileline, filename, fileline);*/
 		memfilename = Mem_CheckFilename (mem->filename); // make sure what we don't crash var_args
 		Sys_Error ("%s: trashed header sentinel 2 (alloc at %s:%i, check at %s:%i)\n", func, memfilename,
 			mem->fileline, filename, fileline);
@@ -244,7 +198,7 @@ static qboolean Mem_CheckPool (const char *func, const mempool_t *pool, const ch
 		return false;
 		}
 
-	if (pool->sentinel2 != MEMHEADER_SENTINEL1) /* ??? */
+	if (pool->sentinel2 != MEMHEADER_SENTINEL1)
 		{
 		Sys_Error ("%s: trashed pool sentinel 2 (allocpool at %s:%i, freepool at %s:%i)\n", func,
 			pool->filename, pool->fileline, filename, fileline);
@@ -305,29 +259,15 @@ static void Mem_FreeBlock (memheader_t *mem, const char *filename, int fileline)
 		return;
 		}
 
-	/*	Sys_Error ("Mem_Free: not allocated or double freed (free at %s:%i)\n", filename, fileline);
-
-	if (mem->prev)
-	mem->prev->next = mem->next;
-	else
-	pool->chain = mem->next;
-
-	if (mem->next)
-	mem->next->prev = mem->prev;*/
-
-	/*// memheader has been unlinked, do the actual free now
-	pool->totalsize -= mem->size;*/
 	Mem_PoolSubtract (pool, mem->size);
 	Mem_PoolUnlinkAlloc (pool, mem);
 
-	/*pool->realsize -= sizeof (memheader_t) + mem->size + sizeof (size_t);*/
 	Q_free (mem);
 	}
 
 // [FWGS, 01.03.24]
 void _Mem_Free (void *data, const char *filename, int fileline)
 	{
-	/*if (data == NULL) Sys_Error ("Mem_Free: data == NULL (called at %s:%i)\n", filename, fileline);*/
 	if (data == NULL)
 		{
 		Sys_Error ("Mem_Free: data == NULL (called at %s:%i)\n", filename, fileline);
@@ -338,14 +278,11 @@ void _Mem_Free (void *data, const char *filename, int fileline)
 	}
 
 // [FWGS, 01.03.24]
-/*void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline)*/
 void *_Mem_Realloc (poolhandle_t poolptr, void *data, size_t size, qboolean clear, const char *filename, int fileline)
 	{
-	/*memheader_t	*memhdr = NULL;
-	char		*nb;*/
-	memheader_t *mem;
+	memheader_t	*mem;
 	uintptr_t	oldmem;
-	mempool_t *pool;
+	mempool_t	*pool;
 	size_t		oldsize;
 
 	if (size <= 0)
@@ -384,29 +321,19 @@ void *_Mem_Realloc (poolhandle_t poolptr, void *data, size_t size, qboolean clea
 
 	pool = Mem_FindPool (poolptr);
 
-	/*if (size <= 0) return memptr; // no need to reallocate*/
 	oldmem = (uintptr_t)mem;
 	mem = realloc (mem, sizeof (memheader_t) + size + sizeof (byte));
 
-	/*if (memptr)*/
 	if (mem == NULL)
 		{
-		/*memhdr = (memheader_t *)((byte *)memptr - sizeof (memheader_t));
-		if (size == memhdr->size)
-			return memptr;*/
 		Sys_Error ("Mem_Realloc: out of memory (alloc size %s at %s:%i)\n", Q_memprint (size), filename, fileline);
 		return NULL;
 		}
 
-	/*nb = _Mem_Alloc (poolptr, size, clear, filename, fileline);*/
 	Mem_InitAlloc (mem, size, filename, fileline);
 
-	/*if (memptr) // first allocate?*/
 	if (size > oldsize)
 		{
-		/*size_t newsize = memhdr->size < size ? memhdr->size : size; // upper data can be trucnated!
-		memcpy (nb, memptr, newsize);
-		_Mem_Free (memptr, filename, fileline); // free unused old block*/
 		Mem_PoolAdd (pool, size - oldsize);
 
 		if (clear)
@@ -417,7 +344,6 @@ void *_Mem_Realloc (poolhandle_t poolptr, void *data, size_t size, qboolean clea
 		Mem_PoolSubtract (pool, oldsize - size);
 		}
 
-	/*return (void *)nb;*/
 	// if allocation was migrated from one pool to another
 	// (this is possible with original Mem_Realloc func)
 	if (unlikely (mem->pool != pool))
@@ -487,12 +413,6 @@ void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
 		if (*chainaddress != pool)
 			Sys_Error ("Mem_FreePool: pool already free (freepool at %s:%i)\n", filename, fileline);
 		
-		/*if (pool->sentinel1 != MEMHEADER_SENTINEL1)
-			Sys_Error ("Mem_FreePool: trashed pool sentinel 1 (allocpool at %s:%i, freepool at %s:%i)\n", 
-				pool->filename, pool->fileline, filename, fileline);
-		if (pool->sentinel2 != MEMHEADER_SENTINEL1) 
-			Sys_Error ("Mem_FreePool: trashed pool sentinel 2 (allocpool at %s:%i, freepool at %s:%i)\n", 
-				pool->filename, pool->fileline, filename, fileline);*/
 		Mem_CheckPool ("Mem_FreePool", pool, filename, fileline);
 		*chainaddress = pool->next;
 
@@ -513,12 +433,6 @@ void _Mem_EmptyPool (poolhandle_t poolptr, const char *filename, int fileline)
 	if (!poolptr)
 		Sys_Error ("Mem_EmptyPool: pool == NULL (emptypool at %s:%i)\n", filename, fileline);
 
-	/*if (pool->sentinel1 != MEMHEADER_SENTINEL1)
-		Sys_Error ("Mem_EmptyPool: trashed pool sentinel 1 (allocpool at %s:%i, emptypool at %s:%i)\n",
-			pool->filename, pool->fileline, filename, fileline);
-	if (pool->sentinel2 != MEMHEADER_SENTINEL1)
-		Sys_Error ("Mem_EmptyPool: trashed pool sentinel 2 (allocpool at %s:%i, emptypool at %s:%i)\n",
-			pool->filename, pool->fileline, filename, fileline);*/
 	Mem_CheckPool ("Mem_FreePool", pool, filename, fileline);
 
 	// free memory owned by the pool
@@ -538,7 +452,6 @@ static qboolean Mem_CheckAlloc (mempool_t *pool, void *data)
 			if (header == target)
 				return true;
 			}
-		/*if (header == target) return true;*/
 		}
 	else
 		{
@@ -561,35 +474,10 @@ Check pointer for memory [FWGS, 01.03.24]
 qboolean Mem_IsAllocatedExt (poolhandle_t poolptr, void *data)
 	{
 	mempool_t *pool = NULL;
-	/*if (poolptr)
-		pool = Mem_FindPool (poolptr);
-
-	return Mem_CheckAlloc (pool, data);
-	}*/
 
 	if (poolptr)
 		pool = Mem_FindPool (poolptr);
 
-	/*static void Mem_CheckHeaderSentinels (void *data, const char *filename, int fileline)
-	{
-	memheader_t *mem;
-
-	if (data == NULL)
-		Sys_Error ("Mem_CheckSentinels: data == NULL (sentinel check at %s:%i)\n", filename, fileline);
-
-	mem = (memheader_t *)((byte *)data - sizeof (memheader_t));
-
-	if (mem->sentinel1 != MEMHEADER_SENTINEL1)
-		{
-		mem->filename = Mem_CheckFilename (mem->filename); // make sure what we don't crash var_args
-		Sys_Error ("Mem_CheckSentinels: trashed header sentinel 1 (block allocated at %s:%i, sentinel check at %s:%i)\n", mem->filename, mem->fileline, filename, fileline);
-		}
-
-	if (*((byte *)mem + sizeof (memheader_t) + mem->size) != MEMHEADER_SENTINEL2)
-		{
-		mem->filename = Mem_CheckFilename (mem->filename); // make sure what we don't crash var_args
-		Sys_Error ("Mem_CheckSentinels: trashed header sentinel 2 (block allocated at %s:%i, sentinel check at %s:%i)\n", mem->filename, mem->fileline, filename, fileline);
-		}*/
 	return Mem_CheckAlloc (pool, data);
 	}
 
@@ -601,17 +489,10 @@ void _Mem_Check (const char *filename, int fileline)
 
 	for (pool = poolchain; pool; pool = pool->next)
 		Mem_CheckPool ("Mem_CheckSentinels", pool, filename, fileline);
-	/*{
-	if (pool->sentinel1 != MEMHEADER_SENTINEL1)
-		Sys_Error ("Mem_CheckSentinelsGlobal: trashed pool sentinel 1 (allocpool at %s:%i, sentinel check at %s:%i)\n", pool->filename, pool->fileline, filename, fileline);
-	if (pool->sentinel2 != MEMHEADER_SENTINEL1)
-		Sys_Error ("Mem_CheckSentinelsGlobal: trashed pool sentinel 2 (allocpool at %s:%i, sentinel check at %s:%i)\n", pool->filename, pool->fileline, filename, fileline);
-	}*/
 
 	for (pool = poolchain; pool; pool = pool->next)
 		for (mem = pool->chain; mem; mem = mem->next)
 			Mem_CheckAllocHeader ("Mem_CheckSentinels", mem, filename, fileline);
-	/*Mem_CheckHeaderSentinels ((void *)((byte *)mem + sizeof (memheader_t)), filename, fileline);*/
 	}
 
 void Mem_PrintStats (void)
@@ -639,7 +520,6 @@ void Mem_PrintList (size_t minallocationsize)
 
 	Mem_Check ();
 
-	/*Con_Printf ("memory pool list:\n""  ^3size                          name\n");*/
 	Con_Printf ("memory pool list:\n");
 	Con_Printf ("\t^3size\t\t\t\tname\n");
 
@@ -648,18 +528,14 @@ void Mem_PrintList (size_t minallocationsize)
 		long	changed_size = (long)pool->totalsize - (long)pool->lastchecksize;
 
 		// poolnames can contain color symbols, make sure what color is reset
-		/*if (changed_size != 0)*/
 		if ((pool->lastchecksize != 0) && (changed_size != 0))
 			{
 			char sign = (changed_size < 0) ? '-' : '+';
-			/*Con_Printf ("%10s (%10s actual) %s (^7%c%s change)\n", Q_memprint (pool->totalsize), Q_memprint (pool->realsize),
-				pool->name, sign, Q_memprint (abs (changed_size)));*/
 			Con_Printf ("%10s (%10s real)\t%s (^7%c%s change)\n", Q_memprint (pool->totalsize),
 				Q_memprint (pool->realsize), pool->name, sign, Q_memprint (abs (changed_size)));
 			}
 		else
 			{
-			/*Con_Printf ("%5s (%5s actual) %s\n", Q_memprint (pool->totalsize), Q_memprint (pool->realsize), pool->name);*/
 			Con_Printf ("%10s (%10s real)\t%s\n", Q_memprint (pool->totalsize), Q_memprint (pool->realsize), pool->name);
 			}
 

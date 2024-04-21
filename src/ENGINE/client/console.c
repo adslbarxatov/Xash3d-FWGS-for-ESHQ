@@ -158,8 +158,6 @@ typedef struct
 static console_t	con;
 
 // [FWGS, 01.02.24]
-/*void Con_ClearField (field_t *edit);
-void Field_CharEvent (field_t *edit, int ch);*/
 static void Con_ClearField (field_t *edit);
 static void Field_CharEvent (field_t *edit, int ch);
 static void Con_InvalidateFonts (void);
@@ -574,8 +572,6 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 
 	if (con_oldfont.value)
 		{
-		/*success = Con_LoadVariableWidthFont ("gfx/conchars.fnt", font, scale,
-			kRenderTransTexture, TF_FONT | TF_NEAREST);*/
 		success = Con_LoadVariableWidthFont ("gfx/conchars.fnt", font, scale, &con_fontrender, TF_FONT | TF_NEAREST);
 		}
 	else
@@ -589,8 +585,6 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 			if (Q_snprintf (path, sizeof (path),
 				"font%i_%s.fnt", fontNumber, Cvar_VariableString ("con_charset")) > 0)
 				{
-				/*success = Con_LoadVariableWidthFont (path, font, scale,
-					kRenderTransTexture, TF_FONT | TF_NEAREST);*/
 				success = Con_LoadVariableWidthFont (path, font, scale, &con_fontrender, TF_FONT | TF_NEAREST);
 				}
 			}
@@ -598,7 +592,6 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 		if (!success)
 			{
 			Q_snprintf (path, sizeof (path), "fonts/font%i", fontNumber);
-			/*success = Con_LoadVariableWidthFont (path, font, scale, kRenderTransTexture, TF_FONT | TF_NEAREST);*/
 			success = Con_LoadVariableWidthFont (path, font, scale, &con_fontrender, TF_FONT | TF_NEAREST);
 			}
 		}
@@ -606,9 +599,6 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 	if (!success)
 		{
 		// keep source to print directly into conback image
-		/*if (!Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransTexture, TF_FONT | TF_KEEP_SOURCE))
-		if (!Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransTexture,
-			TF_FONT | TF_NEAREST | TF_KEEP_SOURCE))*/
 		if (!Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &con_fontrender, TF_FONT | TF_NEAREST | TF_KEEP_SOURCE))
 			Con_DPrintf (S_ERROR "failed to load console font\n");
 		}
@@ -2108,43 +2098,26 @@ void Con_DrawVersion (void)
 	byte	*color = g_color_table[7];
 	int		stringLen, charH = 0;
 	int		start, height = refState.height;
-	/*qboolean	draw_version = false;*/
 	string	curbuild;
 
-	/*switch (cls.scrshot_action)*/
 	if (!scr_drawversion.value || (CL_IsDevOverviewMode () == 2) || net_graph.value)
 		return;
 
 	if (cls.key_dest == key_menu)
 		{
-		/*case scrshot_normal:
-		case scrshot_snapshot:
-			draw_version = true;
-			break;*/
 		Q_snprintf (curbuild, sizeof (curbuild),
 			"v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
 		}
 	else
 		{
 		qboolean draw_version;
-
-		/*if (host.force_draw_version_time > host.realtime)
-			draw_version = true;*/
 		draw_version = (cls.scrshot_action == scrshot_normal) ||
 			(cls.scrshot_action == scrshot_snapshot) ||
 			(host.force_draw_version_time > host.realtime);
 
-		/*if (((cls.key_dest != key_menu) && !draw_version) || (CL_IsDevOverviewMode () == 2) || net_graph.value)
-			return;*/
 		if (!draw_version)
 			return;
 
-		/*if (draw_version)
-			Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)",
-				PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
-		else
-			Q_snprintf (curbuild, MAX_STRING, "v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
-				Q_buildos (), Q_buildarch (), Q_buildnum ());*/
 		Q_snprintf (curbuild, sizeof (curbuild),
 			XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION, Q_buildos (),
 			Q_buildarch (), Q_buildnum ());
@@ -2202,10 +2175,6 @@ void Con_RunConsole (void)
 			con.vislines = con.showlines;
 		}
 
-	/*if (FBitSet (con_charset.flags, FCVAR_CHANGED) ||
-		FBitSet (con_fontscale.flags, FCVAR_CHANGED) ||
-		FBitSet (con_fontnum.flags, FCVAR_CHANGED) ||
-		FBitSet (cl_charset.flags, FCVAR_CHANGED))*/
 	if (FBitSet (con_charset.flags | con_fontscale.flags | con_fontnum.flags | cl_charset.flags |
 		con_oldfont.flags, FCVAR_CHANGED))
 		{
@@ -2329,7 +2298,6 @@ Con_DefaultColor [FWGS, 01.02.24]
 called from MainUI
 =========
 */
-/*void GAME_EXPORT Con_DefaultColor (int r, int g, int b)*/
 void Con_DefaultColor (int r, int g, int b, qboolean gameui)
 	{
 	r = bound (0, r, 255);

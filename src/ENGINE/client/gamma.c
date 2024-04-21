@@ -90,9 +90,6 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 // [FWGS, 01.03.24]
 static void V_ValidateGammaCvars (void)
 	{
-	/*if (Host_IsLocalGame ())
-		return;*/
-
 	// ESHQ: изменены значения в соответствии с оными по умолчанию
 	if (v_gamma.value < 1.5f)
 		Cvar_DirectSet (&v_gamma, "1.5");
@@ -111,8 +108,6 @@ static void V_ValidateGammaCvars (void)
 
 	if (v_brightness.value < 0.5f)
 		Cvar_DirectSet (&v_brightness, "0.5");
-	/*else if (v_brightness.value > 2.0f)
-		Cvar_DirectSet (&v_brightness, "2");*/
 	else if (v_brightness.value > 3.0f)
 		Cvar_DirectSet (&v_brightness, "3");
 	}
@@ -121,7 +116,6 @@ static void V_ValidateGammaCvars (void)
 void V_CheckGamma (void)
 	{
 	static qboolean dirty = false;
-	/*qboolean notify_refdll = false;*/
 
 	// because these cvars were defined as archive
 	// but wasn't doing anything useful
@@ -151,7 +145,6 @@ void V_CheckGamma (void)
 		BuildGammaTable (v_gamma.value, v_brightness.value, v_texgamma.value, v_lightgamma.value);
 
 		// force refdll to recalculate lightmaps
-		/*notify_refdll = true;*/
 		if (ref.initialized)
 			ref.dllFuncs.R_GammaChanged (false);
 		}
@@ -167,7 +160,6 @@ void V_CheckGammaEnd (void)
 
 	gamma_rebuilt = false;
 
-	/*// unfortunately, recalculating textures isn't possible yet*/
 	// keep the flags until the end of frame so client.dll will catch these changes
 	if (FBitSet (v_texgamma.flags | v_lightgamma.flags | v_brightness.flags | v_gamma.flags, FCVAR_CHANGED))
 		{
@@ -176,9 +168,6 @@ void V_CheckGammaEnd (void)
 		ClearBits (v_brightness.flags, FCVAR_CHANGED);
 		ClearBits (v_gamma.flags, FCVAR_CHANGED);
 		}
-
-	/*if (notify_refdll && ref.initialized)
-		ref.dllFuncs.R_GammaChanged (false);*/
 	}
 
 void V_Init (void)

@@ -201,7 +201,6 @@ void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, v
 void PlaneIntersect (const struct mplane_s *plane, const vec3_t p0, const vec3_t p1, vec3_t out);
 
 // [FWGS, 01.01.24]
-/*void ClearBounds (vec3_t mins, vec3_t maxs);*/
 static inline void ClearBounds (vec3_t mins, vec3_t maxs)
 	{
 	// make bogus range
@@ -230,8 +229,6 @@ static inline qboolean BoundsAndSphereIntersect (const vec3_t mins, const vec3_t
 	}
 
 void AddPointToBounds (const vec3_t v, vec3_t mins, vec3_t maxs);
-/*qboolean BoundsIntersect (const vec3_t mins1, const vec3_t maxs1, const vec3_t mins2, const vec3_t maxs2);
-qboolean BoundsAndSphereIntersect (const vec3_t mins, const vec3_t maxs, const vec3_t origin, float radius);*/
 qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared, const vec3_t vLinePt,
 	const vec3_t vLineDir);
 float RadiusFromBounds (const vec3_t mins, const vec3_t maxs);

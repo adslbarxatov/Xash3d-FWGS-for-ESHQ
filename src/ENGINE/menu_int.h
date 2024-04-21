@@ -146,7 +146,6 @@ typedef struct ui_enginefuncs_s
 	void *(*pfnKeyGetState)(const char *name);			// for mlook, klook etc
 
 	// [FWGS, 01.01.24] engine memory manager
-	/*void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline);*/
 	void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void	(*pfnMemFree)(void *mem, const char *filename, const int fileline);
 

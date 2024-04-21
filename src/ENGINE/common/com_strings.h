@@ -17,15 +17,6 @@ GNU General Public License for more details.
 #define COM_STRINGS_H
 
 // [FWGS, 01.03.24] default colored message headers
-/*#define S_NOTE			"^2Note:^7 "
-#define S_WARN			"^3Warning:^7 "
-#define S_ERROR			"^1Error:^7 "
-#define S_USAGE			"Usage: "
-#define S_USAGE_INDENT  "       "	// [FWGS, 01.04.23]
-
-#define S_OPENGL_NOTE		"^2OpenGL Note:^7 "
-#define S_OPENGL_WARN		"^3OpenGL Warning:^7 "
-#define S_OPENGL_ERROR		"^3OpenGL Error:^7 "*/
 #define S_BLACK		"^0"
 #define S_RED		"^1"
 #define S_GREEN		"^2"

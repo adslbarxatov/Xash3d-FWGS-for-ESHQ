@@ -173,25 +173,7 @@ static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte
 	return loaded;
 	}
 
-// [FWGS, 01.02.24]
-/*static qboolean R_TextureFilteringEnabled (int arg)
-	{
-	gl_texture_t *glt;
-
-	if (arg < 0)
-		return gl_texture_nearest.value == 0.0f;
-
-	glt = R_GetTexture (arg);
-
-	if (FBitSet (glt->flags, TF_NEAREST))
-		return false;
-
-	// lightmaps have special cvar
-	if (FBitSet (glt->flags, TF_ATLAS_PAGE))
-		return gl_lightmap_nearest.value == 0.0f;
-
-	return gl_texture_nearest.value == 0.0f;
-	}*/
+// [FWGS, 01.02.24] удалена R_TextureFilteringEnabled
 
 static int GL_RefGetParm (int parm, int arg)
 	{
@@ -287,7 +269,6 @@ static int GL_RefGetParm (int parm, int arg)
 
 		// [FWGS, 01.01.24]
 		case PARM_SKY_SPHERE:
-			/*return ENGINE_GET_PARM_ (parm, arg) && !tr.fCustomSkybox;*/
 			return FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX);
 
 		// [FWGS, 01.02.24]
@@ -297,8 +278,6 @@ static int GL_RefGetParm (int parm, int arg)
 
 			return GL_TextureFilteringEnabled (R_GetTexture (arg));
 
-		/*return R_TextureFilteringEnabled (arg);*/
-		
 		default:
 			return ENGINE_GET_PARM_ (parm, arg);
 		}

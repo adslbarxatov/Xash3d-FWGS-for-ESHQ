@@ -279,38 +279,9 @@ int S_GetOutputData (wavdata_t *pSource, void **pData, int samplePosition, int s
 
 	// if we are returning some samples, store the pointer
 	if (sampleCount)
-		{
 		*pData = pSource->buffer + samplePosition;
-		}
 
 	return sampleCount;
 	}
 
-// [FWGS, 01.01.24]
-/* move the current position to newPosition
-void S_SetSampleStart (channel_t *pChan, wavdata_t *pSource, int newPosition)
-	{
-	if (pSource)
-		newPosition = S_ZeroCrossingAfter (pSource, newPosition);
-
-	pChan->pMixer.sample = newPosition;
-	}
-*/
-
-// [FWGS, 01.01.24]
-/* end playback at newEndPosition
-void S_SetSampleEnd (channel_t *pChan, wavdata_t *pSource, int newEndPosition)
-	{
-	// forced end of zero means play the whole sample
-	if (!newEndPosition) newEndPosition = 1;
-
-	if (pSource)
-		newEndPosition = S_ZeroCrossingBefore (pSource, newEndPosition);
-
-	// past current position?  limit.
-	if (newEndPosition < pChan->pMixer.sample)
-		newEndPosition = pChan->pMixer.sample;
-
-	pChan->pMixer.forcedEndSample = newEndPosition;
-	}
-*/
+// [FWGS, 01.01.24] удалены S_SetSampleStart, S_SetSampleEnd

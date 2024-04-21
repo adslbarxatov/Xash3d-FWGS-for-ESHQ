@@ -1133,10 +1133,7 @@ static ui_enginefuncs_t gEngfuncs =
 		UI_DrawConsoleString,
 		UI_DrawSetTextColor,
 		Con_DrawStringLen,
-
-		/*Con_DefaultColor,*/
 		pfnCon_DefaultColor,	// [FWGS, 01.02.24]
-		
 		pfnGetPlayerModel,
 		pfnSetPlayerModel,
 		pfnClearScene,

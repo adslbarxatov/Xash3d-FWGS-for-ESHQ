@@ -202,11 +202,6 @@ void VOX_LoadWord (channel_t *ch)
 		end = 0;
 
 	// [FWGS, 01.01.24]
-	/*if (start)
-		S_SetSampleStart (ch, data, start * 0.01f * samples);
-
-	if (end)
-		S_SetSampleEnd (ch, data, end * 0.01f * samples);*/
 	S_TrimStartEndTimes (ch, data, start * 0.01f * samples, end * 0.01f * samples);
 	}
 

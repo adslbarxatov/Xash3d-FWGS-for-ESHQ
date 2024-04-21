@@ -457,7 +457,6 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 				if (!Q_strnicmp (s, "disconnect", 10) && cls.signon != SIGNONS)
 					break; // too early
 #endif
-				/*Con_Reportf ("Stufftext: %s", s);*/
 				Cbuf_AddFilteredText (s);
 				break;
 
@@ -667,11 +666,7 @@ void CL_LegacyPrecache_f (void)
 	if (clgame.entities)
 		clgame.entities->model = cl.worldmodel;
 
-	// [FWGS, 01.01.24]
-	/* update the ref state
-	R_UpdateRefState ();*/
-
-	// tell rendering system we have a new set of models
+	// [FWGS, 01.01.24] tell rendering system we have a new set of models
 	ref.dllFuncs.R_NewMap ();
 
 	CL_SetupOverviewParams ();

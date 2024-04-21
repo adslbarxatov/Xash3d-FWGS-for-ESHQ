@@ -40,7 +40,6 @@ R_CullModel [FWGS, 01.01.24]
 */
 int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 	{
-	/*if (e == gEngfuncs.GetViewModel ())*/
 	if (e == tr.viewent)
 		{
 		if (ENGINE_GET_PARM (PARM_DEV_OVERVIEW))
@@ -76,7 +75,6 @@ int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
 		return CULL_VISIBLE;
 
 	// [FWGS, 01.01.24] world surfaces can be culled by vis frame too
-	/*if (RI.currententity == gEngfuncs.GetEntityByIndex (0) && surf->visframe != tr.framecount)*/
 	if ((RI.currententity == CL_GetEntityByIndex (0)) && (surf->visframe != tr.framecount))
 		return CULL_VISFRAME;
 
@@ -92,8 +90,6 @@ int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
 		if (RI.drawOrtho)
 			{
 			vec3_t	orthonormal;
-
-			/*if (e == gEngfuncs.GetEntityByIndex (0)) orthonormal[2] = surf->plane->normal[2];*/
 
 			if (e == CL_GetEntityByIndex (0))
 				orthonormal[2] = surf->plane->normal[2];

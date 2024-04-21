@@ -1,4 +1,4 @@
-/***
+/*
 VFileSystem009.h - C++ interface for filesystem_stdio
 Copyright (C) 2022-2023 Xash3D FWGS contributors
 

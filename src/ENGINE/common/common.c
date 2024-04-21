@@ -734,7 +734,6 @@ COM_LoadFileForMe [FWGS, 01.03.24]
 byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 	{
 	string	name;
-	/*byte *file, *pfile;*/
 	byte	*pfile;
 	fs_offset_t	iLength;
 
@@ -748,22 +747,9 @@ byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 	Q_strncpy (name, filename, sizeof (name));
 	COM_FixSlashes (name);
 
-	/*pfile = FS_LoadFile (name, &iLength, false);*/
 	pfile = g_fsapi.LoadFileMalloc (name, &iLength, false);
 	if (pLength)
 		*pLength = (int)iLength;
-
-	/*if (pfile)
-		{
-		file = malloc (iLength + 1);
-		if (file != NULL)
-			{
-			memcpy (file, pfile, iLength);
-			file[iLength] = '\0';
-			}
-		Mem_Free (pfile);
-		pfile = file;
-		}*/
 
 	return pfile;
 	}
@@ -1001,30 +987,7 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	return true;
 	}
 
-// [FWGS, 01.02.24]
-/*const char *COM_GetResourceTypeName (resourcetype_t restype)
-	{
-	switch (restype)
-		{
-		case t_decal:
-			return "decal";
-		case t_eventscript:
-			return "eventscript";
-		case t_generic:
-			return "generic";
-		case t_model:
-			return "model";
-		case t_skin:
-			return "skin";
-		case t_sound:
-			return "sound";
-		case t_world:
-			return "world";
-
-		default:
-			return "unknown";
-		}
-	}*/
+// [FWGS, 01.02.24] удалена COM_GetResourceTypeName
 
 // [FWGS, 01.05.23]
 char *_copystring (poolhandle_t mempool, const char *s, const char *filename, int fileline)

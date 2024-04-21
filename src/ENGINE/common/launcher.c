@@ -14,12 +14,6 @@ GNU General Public License for more details.
 */
 
 // [FWGS, 01.01.24]
-/*#ifdef SINGLE_BINARY
-
-#include "build.h"
-#include "common.h"
-#ifdef XASH_SDLMAIN
-#include "SDL.h"*/
 #if XASH_ENABLE_MAIN
 #if XASH_SDLMAIN
 	#include <SDL.h>
@@ -57,10 +51,8 @@ static void Sys_ChangeGame (const char *progname)
 	}
 
 // [FWGS, 01.01.24]
-/*_inline int Sys_Start (void)*/
 static int Sys_Start (void)
 	{
-	/*int ret;*/
 	const char *game = getenv (E_GAME);
 
 	if (!game)
@@ -89,16 +81,9 @@ static int Sys_Start (void)
 
 	// [FWGS, 01.01.24]
 #elif XASH_IOS
-	/*{
-	void IOS_LaunchDialog (void);
-	IOS_LaunchDialog ();
-	}*/
 	IOS_LaunchDialog ();
 #endif
 
-	/*ret = Host_Main (szArgc, szArgv, game, 0, Sys_ChangeGame);
-
-	return ret;*/
 	return Host_Main (szArgc, szArgv, game, 0, Sys_ChangeGame);
 	}
 

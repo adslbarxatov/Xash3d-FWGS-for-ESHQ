@@ -21,16 +21,6 @@ GNU General Public License for more details.
 #include "platform/platform.h"
 
 // [FWGS, 01.03.24]
-/*static CVAR_DEFINE (window_width, "width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-	"screen width");
-static CVAR_DEFINE (window_height, "height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-	"screen height");*/
-
-/*static CVAR_DEFINE (vid_brightness, "brightness", "0.0", FCVAR_ARCHIVE,
-	"brightness factor");
-static CVAR_DEFINE (vid_gamma, "gamma", "2.5", FCVAR_ARCHIVE,
-	"gamma amount");*/
-
 static CVAR_DEFINE_AUTO (vid_mode, "0", FCVAR_RENDERINFO,
 	"current video mode index (used only for storage)");
 static CVAR_DEFINE_AUTO (vid_rotate, "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
@@ -244,8 +234,6 @@ void VID_Init (void)
 	Cvar_RegisterVariable (&vid_scale);
 	Cvar_RegisterVariable (&vid_fullscreen);
 	Cvar_RegisterVariable (&vid_maximized);
-	/*Cvar_RegisterVariable (&vid_brightness);
-	Cvar_RegisterVariable (&vid_gamma);*/
 	Cvar_RegisterVariable (&window_xpos);
 	Cvar_RegisterVariable (&window_ypos);
 

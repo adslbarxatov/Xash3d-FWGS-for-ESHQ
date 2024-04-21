@@ -83,7 +83,6 @@ struct dlight_s *CL_AllocDlight (int key);
 struct dlight_s *CL_AllocElight (int key);
 
 // [FWGS, 01.01.24]
-/*void CL_UpdateFlashlight (cl_entity_t *pEnt);*/
 void CL_AddEntityEffects (cl_entity_t *ent);
 void CL_AddModelEffects (cl_entity_t *ent);
 void CL_DecalShoot (int textureIndex, int entityIndex, int modelIndex, float *pos, int flags);

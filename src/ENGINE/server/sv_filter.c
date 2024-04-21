@@ -278,37 +278,11 @@ typedef struct ipfilter_s
 	} ipfilter_t;
 static ipfilter_t *ipfilter = NULL;
 
-// [FWGS, 01.02.24]
-/*static void SV_CleanExpiredIPFilters (void)
-	{
-	ipfilter_t *f, **back;
-
-	back = &ipfilter;
-	while (1)
-		{
-		f = *back;
-		if (!f) 
-			return;
-
-		if (f->endTime && host.realtime > f->endTime)
-			{
-			*back = f->next;
-			back = &f->next;
-
-			Mem_Free (f);
-			}
-		else
-			{
-			back = &f->next;
-			}
-		}
-	}*/
+// [FWGS, 01.02.24] удалена SV_CleanExpiredIPFilters
 
 // [FWGS, 01.02.24]
 static int SV_FilterToString (char *dest, size_t size, qboolean config, ipfilter_t *f)
 	{
-	/*const char *strformat;*/
-
 	if (config)
 		return Q_snprintf (dest, size, "addip 0 %s/%d\n", NET_AdrToString (f->adr), f->prefixlen);
 

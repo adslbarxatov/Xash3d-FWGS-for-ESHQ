@@ -184,33 +184,11 @@ void CL_PlayCDTrack_f (void)
 CL_ScreenshotGetName [FWGS, 01.02.24]
 ==================
 */
-/*static qboolean CL_ScreenshotGetName (int lastnum, char *filename, size_t size)*/
 static qboolean CL_ScreenshotGetName (const char *fmt, int lastnum, char *filename, size_t size)
 	{
 	if ((lastnum < 0) || (lastnum > 9999))
-		/*{
-		Con_Printf (S_ERROR "unable to write screenshot\n");
 		return false;
-		}
 
-	return (Q_snprintf (filename, size, "scrshots/%s_shot%04d.png", clgame.mapname, lastnum) > 0);
-	}
-
-//
-==================
-CL_SnapshotGetName [FWGS, 01.05.23]
-==================
-//
-static qboolean CL_SnapshotGetName (int lastnum, char *filename, size_t size)
-	{
-	if ((lastnum < 0) || (lastnum > 9999))
-		{
-		Con_Printf (S_ERROR "unable to write snapshot\n");
-		FS_AllowDirectPaths (false);*/
-		return false;
-		/*}*/
-
-	/*return (Q_snprintf (filename, size, "../%s_%04d.png", clgame.mapname, lastnum) > 0);*/
 	return (Q_snprintf (filename, size, fmt, clgame.mapname, lastnum) > 0);
 	}
 
@@ -389,18 +367,11 @@ void CL_LevelShot_f (void)
 	}
 
 // [FWGS, 01.02.24]
-/*
-==================
-CL_SaveShot_f*/
 static scrshot_t CL_GetScreenshotTypeFromString (const char *string)
 	{
 	if (!Q_stricmp (string, "snapshot"))
 		return scrshot_snapshot;
 
-	/*mini-pic in loadgame menu
-==================
-//
-void CL_SaveShot_f (void)*/
 	if (!Q_stricmp (string, "screenshot"))
 		return scrshot_normal;
 
@@ -419,7 +390,6 @@ void CL_SaveShot_f (void)*/
 // [FWGS, 01.02.24]
 void CL_GenericShot_f (void)
 	{
-	/*if (Cmd_Argc () < 2)*/
 	const char *argv0 = Cmd_Argv (0);
 	scrshot_t type;
 
@@ -427,8 +397,6 @@ void CL_GenericShot_f (void)
 
 	if ((type == scrshot_normal) || (type == scrshot_snapshot))
 		{
-		/*Con_Printf (S_USAGE "saveshot <savename>\n");
-		return;*/
 		if (CL_IsDevOverviewMode () == 1)
 			type = scrshot_mapshot;
 		}
@@ -441,8 +409,6 @@ void CL_GenericShot_f (void)
 			}
 		}
 
-	/*Q_snprintf (cls.shotname, sizeof (cls.shotname), DEFAULT_SAVE_DIRECTORY "%s.bmp", Cmd_Argv (1));
-	cls.scrshot_action = scrshot_savegame;	// build new frame for saveshot*/
 	switch (type)
 		{
 		case scrshot_envshot:

@@ -351,9 +351,6 @@ void SCR_MakeScreenShot (void)
 			if (iRet)
 				VID_WriteOverviewScript (); // store overview script too
 			break;
-
-		/*case scrshot_inactive:
-			return;*/
 		}
 
 	// report
@@ -614,17 +611,14 @@ void SCR_LoadCreditsFont (void)
 			"creditsfont_%s.fnt", Cvar_VariableString ("con_charset")) > 0)
 			{
 			if (FS_FileExists (charsetFnt, false))
-				/*success = Con_LoadVariableWidthFont (charsetFnt, font, scale, kRenderTransAdd, TF_FONT);*/
 				success = Con_LoadVariableWidthFont (charsetFnt, font, scale, &hud_fontrender, TF_FONT);
 			}
 		}
 
 	if (!success)
-		/*success = Con_LoadVariableWidthFont ("gfx/creditsfont.fnt", font, scale, kRenderTransAdd, TF_FONT);*/
 		success = Con_LoadVariableWidthFont ("gfx/creditsfont.fnt", font, scale, &hud_fontrender, TF_FONT);
 
 	if (!success)
-		/*success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, kRenderTransAdd, TF_FONT);*/
 		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT);
 
 	// copy font size for client.dll
@@ -697,19 +691,14 @@ void SCR_RegisterTextures (void)
 	{
 	// register gfx.wad images
 	if (FS_FileExists ("gfx/paused.lmp", false))
-		/*cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/paused.lmp", NULL, 0, TF_IMAGE);*/
 		cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/paused.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
 
 	else if (FS_FileExists ("gfx/pause.lmp", false))
-		/*cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/pause.lmp", NULL, 0, TF_IMAGE);*/
 		cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/pause.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
 
 	if (FS_FileExists ("gfx/lambda.lmp", false))
 		{
 		if (cl_allow_levelshots.value)
-			/*cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
-		else 
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE);*/
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0,
 				TF_IMAGE | TF_LUMINANCE | TF_ALLOW_NEAREST);
 		else
@@ -718,9 +707,6 @@ void SCR_RegisterTextures (void)
 	else if (FS_FileExists ("gfx/loading.lmp", false))
 		{
 		if (cl_allow_levelshots.value)
-			/*cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_LUMINANCE);
-		else 
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE);*/
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0,
 				TF_IMAGE | TF_LUMINANCE | TF_ALLOW_NEAREST);
 		else

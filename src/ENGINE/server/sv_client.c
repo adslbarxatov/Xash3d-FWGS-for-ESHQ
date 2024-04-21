@@ -639,7 +639,6 @@ void SV_DropClient (sv_client_t *cl, qboolean crash)
 	// [FWGS, 01.01.24]
 	if (NET_CompareBaseAdr (cl->netchan.remote_address, host.rd.address))
 		SV_EndRedirect (&host.rd);
-	/*SV_EndRedirect ();*/
 
 	// throw away any residual garbage in the channel.
 	Netchan_Clear (&cl->netchan);
@@ -738,29 +737,16 @@ Print message to rcon buffer and send to rcon redirect target
 */
 void Rcon_Print (host_redirect_t *rd, const char *pMsg)
 	{
-	/*if (host.rd.target && host.rd.lines && host.rd.flush && host.rd.buffer)
-		{
-		size_t len = Q_strncat (host.rd.buffer, pMsg, host.rd.buffersize);*/
 	size_t len;
 
-	/*if (len && (host.rd.buffer[len - 1] == '\n'))
-		{
-		host.rd.flush (host.rd.address, host.rd.target, host.rd.buffer);*/
 	if (!rd->target || !rd->lines || !rd->flush || !rd->buffer)
 		return;
 
-	/*if (host.rd.lines > 0)
-		host.rd.lines--;*/
 	len = Q_strncat (rd->buffer, pMsg, rd->buffersize);
 
-	/*host.rd.buffer[0] = 0;*/
 	if (len && (rd->buffer[len - 1] == '\n'))
 		{
 		rd->flush (rd->address, rd->target, rd->buffer);
-
-		/*if (!host.rd.lines)
-			Msg ("End of redirection!\n");
-		}*/
 		if (rd->lines > 0)
 			rd->lines--;
 
@@ -813,7 +799,6 @@ sv_client_t *SV_ClientById (int id)
 
 	ASSERT (id >= 0);
 
-	/*for (i = 0, cl = svs.clients; i < svgame.globals->maxClients; i++, cl++)*/
 	for (i = 0, cl = svs.clients; cl && i < svgame.globals->maxClients; i++, cl++)
 		{
 		if (!cl->state)
@@ -835,7 +820,6 @@ sv_client_t *SV_ClientByName (const char *name)
 	if (!COM_CheckString (name))
 		return NULL;
 
-	/*for (i = 0, cl = svs.clients; i < svgame.globals->maxClients; i++, cl++)*/
 	for (i = 0, cl = svs.clients; cl && i < svgame.globals->maxClients; i++, cl++)
 		{
 		if (!cl->state)
@@ -1112,7 +1096,6 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 
 	if (Rcon_Validate ())
 		{
-		/*SV_BeginRedirect (from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);*/
 		SV_BeginRedirect (&host.rd, from, RD_PACKET, outputbuf, sizeof (outputbuf) - 16, SV_FlushRedirect);
 		remaining[0] = 0;
 
@@ -1125,7 +1108,6 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 			}
 		
 		Cmd_ExecuteString (remaining);
-		/*SV_EndRedirect ();*/
 		SV_EndRedirect (&host.rd);
 		}
 	else
@@ -3603,7 +3585,6 @@ static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 
 	MSG_ReadBytes (msg, received, size);
 
-	/*if (!sv_voiceenable.value)*/
 	if (!sv_voiceenable.value || (svs.maxclients <= 1))
 		return;
 

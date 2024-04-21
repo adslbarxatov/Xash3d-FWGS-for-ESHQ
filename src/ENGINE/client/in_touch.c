@@ -2178,7 +2178,6 @@ int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx
 		// a1ba: this is absolutely horrible
 		if ((cls.key_dest == key_console) || (cls.key_dest == key_message))
 			{
-			/*if (type == event_down)		// [FWGS, 01.04.23] don't pop it again on event_up*/
 			static float x1 = 0.0f;
 			x1 += dx;
 

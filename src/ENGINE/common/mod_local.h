@@ -161,7 +161,6 @@ int Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lump
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node);
 
 // [FWGS, 01.01.24]
-/*int Mod_SampleSizeForFace (msurface_t *surf);*/
 int Mod_SampleSizeForFace (const msurface_t *surf);
 
 byte *Mod_GetPVSForPoint (const vec3_t p);

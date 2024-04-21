@@ -203,7 +203,6 @@ SCR_PlayCinematic
 qboolean SCR_PlayCinematic (const char *arg)
 	{
 	// [FWGS, 01.01.24]
-	/*string		path;*/
 	const char *fullpath;
 	fullpath = FS_GetDiskPath (arg, false);
 

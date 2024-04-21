@@ -60,7 +60,6 @@ R_OpaqueEntity [FWGS, 01.01.24]
 Opaque entity can be brush or studio model but sprite
 ===============
 */
-/*static qboolean R_OpaqueEntity (cl_entity_t *ent)*/
 qboolean R_OpaqueEntity (cl_entity_t *ent)
 	{
 	if (R_GetEntityRenderMode (ent) == kRenderNormal)
@@ -334,7 +333,6 @@ static float R_GetFarClip (void)
 	if (WORLDMODEL && RI.drawWorld)
 		return tr.movevars->zmax * 1.73f;
 
-	/*return MOVEVARS->zmax * 1.73f;*/
 	return 2048.0f;
 	}
 
@@ -350,10 +348,6 @@ void R_SetupFrustum (void)
 	// [FWGS, 01.01.24]
 	if (RP_NORMALPASS () && (ENGINE_GET_PARM (PARM_WATER_LEVEL) >= 3) && ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
 		{
-		/*RI.fov_x = atan (tan (DEG2RAD (RI.fov_x) / 2) * (0.97f + sin (gpGlobals->time * 1.5f) * 0.03f)) *
-			2 / (M_PI_F / 180.0f);
-		RI.fov_y = atan (tan (DEG2RAD (RI.fov_y) / 2) * (1.03f - sin (gpGlobals->time * 1.5f) * 0.03f)) *
-			2 / (M_PI_F / 180.0f);*/
 		RI.fov_x = atan (tan (DEG2RAD (RI.fov_x) / 2) * (0.97f + sin (gp_cl->time * 1.5f) * 0.03f)) *
 			2 / (M_PI_F / 180.0f);
 		RI.fov_y = atan (tan (DEG2RAD (RI.fov_y) / 2) * (1.03f - sin (gp_cl->time * 1.5f) * 0.03f)) *
@@ -449,7 +443,6 @@ void R_RotateForEntity (cl_entity_t *e)
 	{
 	float scale = 1.0f;
 
-	/*if (e == gEngfuncs.GetEntityByIndex (0))*/
 	if (e == CL_GetEntityByIndex (0))
 		{
 		R_LoadIdentity ();
@@ -476,7 +469,6 @@ void R_TranslateForEntity (cl_entity_t *e)
 	{
 	float scale = 1.0f;
 
-	/*if (e == gEngfuncs.GetEntityByIndex (0))*/
 	if (e == CL_GetEntityByIndex (0))
 		{
 		R_LoadIdentity ();
@@ -988,7 +980,6 @@ void R_RenderScene (void)
 	// frametime is valid only for normal pass
 	if (RP_NORMALPASS ())
 		tr.frametime = gp_cl->time - gp_cl->oldtime;
-		/*tr.frametime = gpGlobals->time - gpGlobals->oldtime;*/
 	else
 		tr.frametime = 0.0;
 
@@ -1028,21 +1019,15 @@ void R_CheckGamma (void)*/
 // [FWGS, 01.01.24]
 void R_GammaChanged (qboolean do_reset_gamma)
 	{
-	/*if (gEngfuncs.R_DoResetGamma ())*/
 	if (do_reset_gamma)
 		{
-		/* paranoia cubemaps uses this
-		gEngfuncs.BuildGammaTable (1.8f, 0.0f);*/
-
 		// paranoia cubemap rendering
 		if (gEngfuncs.drawFuncs->GL_BuildLightmaps)
 			gEngfuncs.drawFuncs->GL_BuildLightmaps ();
 		}
 
-	/*else if (FBitSet (vid_gamma->flags, FCVAR_CHANGED) || FBitSet (vid_brightness->flags, FCVAR_CHANGED))*/
 	else
 		{
-		/*gEngfuncs.BuildGammaTable (vid_gamma->value, vid_brightness->value);*/
 		glConfig.softwareGammaUpdate = true;
 		GL_RebuildLightmaps ();
 		glConfig.softwareGammaUpdate = false;
@@ -1060,7 +1045,6 @@ static void R_CheckGamma (void)
 		ClearBits (gl_overbright.flags, FCVAR_CHANGED);
 		}
 
-	/*if (gl_overbright.value && FBitSet (r_vbo.flags, FCVAR_CHANGED))*/
 	if (gl_overbright.value && (FBitSet (r_vbo.flags, FCVAR_CHANGED) ||
 		FBitSet (r_vbo_overbrightmode.flags, FCVAR_CHANGED)))
 		{
@@ -1247,22 +1231,18 @@ int CL_FxBlend (cl_entity_t *e)
 	switch (e->curstate.renderfx)
 		{
 		case kRenderFxPulseSlowWide:
-			/*blend = e->curstate.renderamt + 0x40 * sin (gpGlobals->time * 2 + offset);*/
 			blend = e->curstate.renderamt + 0x40 * sin (gp_cl->time * 2 + offset);
 			break;
 
 		case kRenderFxPulseFastWide:
-			/*blend = e->curstate.renderamt + 0x40 * sin (gpGlobals->time * 8 + offset);*/
 			blend = e->curstate.renderamt + 0x40 * sin (gp_cl->time * 8 + offset);
 			break;
 
 		case kRenderFxPulseSlow:
-			/*blend = e->curstate.renderamt + 0x10 * sin (gpGlobals->time * 2 + offset);*/
 			blend = e->curstate.renderamt + 0x10 * sin (gp_cl->time * 2 + offset);
 			break;
 
 		case kRenderFxPulseFast:
-			/*blend = e->curstate.renderamt + 0x10 * sin (gpGlobals->time * 8 + offset);*/
 			blend = e->curstate.renderamt + 0x10 * sin (gp_cl->time * 8 + offset);
 			break;
 
@@ -1311,7 +1291,6 @@ int CL_FxBlend (cl_entity_t *e)
 			break;
 
 		case kRenderFxStrobeSlow:
-			/*blend = 20 * sin (gpGlobals->time * 4 + offset);*/
 			blend = 20 * sin (gp_cl->time * 4 + offset);
 			if (blend < 0)
 				blend = 0;
@@ -1320,7 +1299,6 @@ int CL_FxBlend (cl_entity_t *e)
 			break;
 
 		case kRenderFxStrobeFast:
-			/*blend = 20 * sin (gpGlobals->time * 16 + offset);*/
 			blend = 20 * sin (gp_cl->time * 16 + offset);
 			if (blend < 0)
 				blend = 0;
@@ -1329,7 +1307,6 @@ int CL_FxBlend (cl_entity_t *e)
 			break;
 
 		case kRenderFxStrobeFaster:
-			/*blend = 20 * sin (gpGlobals->time * 36 + offset);*/
 			blend = 20 * sin (gp_cl->time * 36 + offset);
 			if (blend < 0)
 				blend = 0;
@@ -1338,7 +1315,6 @@ int CL_FxBlend (cl_entity_t *e)
 			break;
 
 		case kRenderFxFlickerSlow:
-			/*blend = 20 * (sin (gpGlobals->time * 2) + sin (gpGlobals->time * 17 + offset));*/
 			blend = 20 * (sin (gp_cl->time * 2) + sin (gp_cl->time * 17 + offset));
 			if (blend < 0)
 				blend = 0;
@@ -1347,7 +1323,6 @@ int CL_FxBlend (cl_entity_t *e)
 			break;
 
 		case kRenderFxFlickerFast:
-			/*blend = 20 * (sin (gpGlobals->time * 16) + sin (gpGlobals->time * 23 + offset));*/
 			blend = 20 * (sin (gp_cl->time * 16) + sin (gp_cl->time * 23 + offset));
 			if (blend < 0)
 				blend = 0;

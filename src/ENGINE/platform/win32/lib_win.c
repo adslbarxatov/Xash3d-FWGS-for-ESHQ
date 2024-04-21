@@ -373,12 +373,6 @@ static void ListMissingModules (dll_user_t *hInst)
 	byte	*data;
 	char	buf[MAX_VA_STRING];
 
-	/*if (!hInst) 
-		return;
-
-	data = FS_LoadFile (hInst->dllName, NULL, false);
-	if (!data) 
-		return;*/
 	if (!hInst || !g_fsapi.LoadFile)
 		return;
 

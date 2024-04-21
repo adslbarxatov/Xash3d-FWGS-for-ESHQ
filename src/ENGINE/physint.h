@@ -89,7 +89,6 @@ typedef struct server_physics_api_s
 	const byte *(*pfnGetTextureData)(unsigned int texnum);
 
 	// [FWGS, 01.01.24] static allocations
-	/*void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline);*/
 	void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void		(*pfnMemFree)(void *mem, const char *filename, const int fileline);
 
@@ -111,7 +110,6 @@ typedef struct server_physics_api_s
 	int		(*pfnSaveFile)(const char *filename, const void *data, int len);
 	const byte	*(*pfnLoadImagePixels)(const char *filename, int *width, int *height);
 
-	/*const char *(*pfnGetModelName)(int modelindex);*/
 	const char	*(*pfnGetModelName)(int modelindex);
 
 	// [FWGS, 01.03.24] FWGS extension

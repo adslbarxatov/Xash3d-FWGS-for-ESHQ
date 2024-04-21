@@ -111,119 +111,119 @@ typedef unsigned short	uint16_t;
 // enumeration of the message and error codes and returned by libmpg123 functions.
 enum mpg123_errors
 	{
-	MPG123_DONE = -12,	/**< Message: Track ended. Stop decoding. */
-	MPG123_NEW_FORMAT = -11,	/**< Message: Output format will be different on next call. Note that some libmpg123 versions between 1.4.3 and 1.8.0 insist on you calling mpg123_getformat() after getting this message code. Newer verisons behave like advertised: You have the chance to call mpg123_getformat(), but you can also just continue decoding and get your data. */
-	MPG123_NEED_MORE = -10,	/**< Message: For feed reader: "Feed me more!" (call mpg123_feed() or mpg123_decode() with some new input data). */
-	MPG123_ERR = -1,	/**< Generic Error */
-	MPG123_OK = 0,	/**< Success */
-	MPG123_BAD_OUTFORMAT, 	/**< Unable to set up output format! */
-	MPG123_BAD_CHANNEL,		/**< Invalid channel number specified. */
-	MPG123_BAD_RATE,		/**< Invalid sample rate specified.  */
-	MPG123_ERR_16TO8TABLE,	/**< Unable to allocate memory for 16 to 8 converter table! */
-	MPG123_BAD_PARAM,		/**< Bad parameter id! */
-	MPG123_BAD_BUFFER,		/**< Bad buffer given -- invalid pointer or too small size. */
-	MPG123_OUT_OF_MEM,		/**< Out of memory -- some malloc() failed. */
-	MPG123_NOT_INITIALIZED,	/**< You didn't initialize the library! */
-	MPG123_BAD_DECODER,		/**< Invalid decoder choice. */
-	MPG123_BAD_HANDLE,		/**< Invalid mpg123 handle. */
-	MPG123_NO_BUFFERS,		/**< Unable to initialize frame buffers (out of memory?). */
-	MPG123_BAD_RVA,		/**< Invalid RVA mode. */
-	MPG123_NO_GAPLESS,		/**< This build doesn't support gapless decoding. */
-	MPG123_NO_SPACE,		/**< Not enough buffer space. */
-	MPG123_BAD_TYPES,		/**< Incompatible numeric data types. */
-	MPG123_BAD_BAND,		/**< Bad equalizer band. */
-	MPG123_ERR_NULL,		/**< Null pointer given where valid storage address needed. */
-	MPG123_ERR_READER,		/**< Error reading the stream. */
-	MPG123_NO_SEEK_FROM_END,	/**< Cannot seek from end (end is not known). */
-	MPG123_BAD_WHENCE,		/**< Invalid 'whence' for seek function.*/
-	MPG123_NO_TIMEOUT,		/**< Build does not support stream timeouts. */
-	MPG123_BAD_FILE,		/**< File access error. */
-	MPG123_NO_SEEK,		/**< Seek not supported by stream. */
-	MPG123_NO_READER,		/**< No stream opened. */
-	MPG123_BAD_PARS,		/**< Bad parameter handle. */
-	MPG123_BAD_INDEX_PAR,	/**< Bad parameters to mpg123_index() and mpg123_set_index() */
-	MPG123_OUT_OF_SYNC,		/**< Lost track in bytestream and did not try to resync. */
-	MPG123_RESYNC_FAIL,		/**< Resync failed to find valid MPEG data. */
-	MPG123_NO_8BIT,		/**< No 8bit encoding possible. */
-	MPG123_BAD_ALIGN,		/**< Stack aligmnent error */
-	MPG123_NULL_BUFFER,		/**< NULL input buffer with non-zero size... */
-	MPG123_NO_RELSEEK,		/**< Relative seek not possible (screwed up file offset) */
-	MPG123_NULL_POINTER,	/**< You gave a null pointer somewhere where you shouldn't have. */
-	MPG123_BAD_KEY,		/**< Bad key value given. */
-	MPG123_NO_INDEX,		/**< No frame index in this build. */
-	MPG123_INDEX_FAIL,		/**< Something with frame index went wrong. */
-	MPG123_BAD_DECODER_SETUP,	/**< Something prevents a proper decoder setup */
-	MPG123_MISSING_FEATURE,	/**< This feature has not been built into libmpg123. */
-	MPG123_BAD_VALUE,		/**< A bad value has been given, somewhere. */
-	MPG123_LSEEK_FAILED,	/**< Low-level seek failed. */
-	MPG123_BAD_CUSTOM_IO,	/**< Custom I/O not prepared. */
-	MPG123_LFS_OVERFLOW,	/**< Offset value overflow during translation of large file API calls -- your client program cannot handle that large file. */
-	MPG123_INT_OVERFLOW		/**< Some integer overflow. */
+	MPG123_DONE = -12,		// < Message: Track ended. Stop decoding
+	MPG123_NEW_FORMAT = -11,	// < Message: Output format will be different on next call. Note that some libmpg123 versions between 1.4.3 and 1.8.0 insist on you calling mpg123_getformat() after getting this message code. Newer verisons behave like advertised: You have the chance to call mpg123_getformat(), but you can also just continue decoding and get your data
+	MPG123_NEED_MORE = -10,	// < Message: For feed reader: "Feed me more!" (call mpg123_feed() or mpg123_decode() with some new input data)
+	MPG123_ERR = -1,		// < Generic Error
+	MPG123_OK = 0,			// < Success
+	MPG123_BAD_OUTFORMAT, 	// < Unable to set up output format!
+	MPG123_BAD_CHANNEL,		// < Invalid channel number specified
+	MPG123_BAD_RATE,		// < Invalid sample rate specified
+	MPG123_ERR_16TO8TABLE,	// < Unable to allocate memory for 16 to 8 converter table!
+	MPG123_BAD_PARAM,		// < Bad parameter id!
+	MPG123_BAD_BUFFER,		// < Bad buffer given -- invalid pointer or too small size
+	MPG123_OUT_OF_MEM,		// < Out of memory -- some malloc() failed
+	MPG123_NOT_INITIALIZED,	// < You didn't initialize the library!
+	MPG123_BAD_DECODER,		// < Invalid decoder choice
+	MPG123_BAD_HANDLE,		// < Invalid mpg123 handle
+	MPG123_NO_BUFFERS,		// < Unable to initialize frame buffers (out of memory?)
+	MPG123_BAD_RVA,			// < Invalid RVA mode
+	MPG123_NO_GAPLESS,		// < This build doesn't support gapless decoding
+	MPG123_NO_SPACE,		// < Not enough buffer space
+	MPG123_BAD_TYPES,		// < Incompatible numeric data types
+	MPG123_BAD_BAND,		// < Bad equalizer band
+	MPG123_ERR_NULL,		// < Null pointer given where valid storage address needed
+	MPG123_ERR_READER,		// < Error reading the stream
+	MPG123_NO_SEEK_FROM_END,	// < Cannot seek from end (end is not known)
+	MPG123_BAD_WHENCE,		// < Invalid 'whence' for seek function
+	MPG123_NO_TIMEOUT,		// < Build does not support stream timeouts
+	MPG123_BAD_FILE,		// < File access error
+	MPG123_NO_SEEK,			// < Seek not supported by stream
+	MPG123_NO_READER,		// < No stream opened
+	MPG123_BAD_PARS,		// < Bad parameter handle
+	MPG123_BAD_INDEX_PAR,	// < Bad parameters to mpg123_index() and mpg123_set_index()
+	MPG123_OUT_OF_SYNC,		// < Lost track in bytestream and did not try to resync.
+	MPG123_RESYNC_FAIL,		// < Resync failed to find valid MPEG data.
+	MPG123_NO_8BIT,			// < No 8bit encoding possible.
+	MPG123_BAD_ALIGN,		// < Stack aligmnent error
+	MPG123_NULL_BUFFER,		// < NULL input buffer with non-zero size...
+	MPG123_NO_RELSEEK,		// < Relative seek not possible (screwed up file offset)
+	MPG123_NULL_POINTER,	// < You gave a null pointer somewhere where you shouldn't have.
+	MPG123_BAD_KEY,		// < Bad key value given.
+	MPG123_NO_INDEX,		// < No frame index in this build.
+	MPG123_INDEX_FAIL,		// < Something with frame index went wrong.
+	MPG123_BAD_DECODER_SETUP,	// < Something prevents a proper decoder setup
+	MPG123_MISSING_FEATURE,	// < This feature has not been built into libmpg123.
+	MPG123_BAD_VALUE,		// < A bad value has been given, somewhere.
+	MPG123_LSEEK_FAILED,	// < Low-level seek failed.
+	MPG123_BAD_CUSTOM_IO,	// < Custom I/O not prepared.
+	MPG123_LFS_OVERFLOW,	// < Offset value overflow during translation of large file API calls -- your client program cannot handle that large file.
+	MPG123_INT_OVERFLOW		// < Some integer overflow.
 	};
 
 // enumeration of the parameters types that it is possible to set/get.
 enum mpg123_parms
 	{
-	MPG123_VERBOSE = 0,		/**< set verbosity value for enabling messages to stderr, >= 0 makes sense (integer) */
-	MPG123_FLAGS,		/**< set all flags, p.ex val = MPG123_GAPLESS|MPG123_MONO_MIX (integer) */
-	MPG123_ADD_FLAGS,		/**< add some flags (integer) */
-	MPG123_FORCE_RATE,		/**< when value > 0, force output rate to that value (integer) */
-	MPG123_DOWN_SAMPLE,		/**< 0=native rate, 1=half rate, 2=quarter rate (integer) */
-	MPG123_RVA,		/**< one of the RVA choices above (integer) */
-	MPG123_DOWNSPEED,		/**< play a frame N times (integer) */
-	MPG123_UPSPEED,		/**< play every Nth frame (integer) */
-	MPG123_START_FRAME,		/**< start with this frame (skip frames before that, integer) */
-	MPG123_DECODE_FRAMES,	/**< decode only this number of frames (integer) */
-	MPG123_OUTSCALE,		/**< the scale for output samples (amplitude - integer according to mpg123 output format) */
-	MPG123_TIMEOUT,		/**< timeout for reading from a stream (not supported on win32, integer) */
-	MPG123_REMOVE_FLAGS,	/**< remove some flags (inverse of MPG123_ADD_FLAGS, integer) */
-	MPG123_RESYNC_LIMIT,	/**< Try resync on frame parsing for that many bytes or until end of stream (<0 ... integer). This can enlarge the limit for skipping junk on beginning, too (but not reduce it).  */
-	MPG123_INDEX_SIZE,		/**< Set the frame index size (if supported). Values <0 mean that the index is allowed to grow dynamically in these steps (in positive direction, of course) -- Use this when you really want a full index with every individual frame. */
-	MPG123_PREFRAMES,		/**< Decode/ignore that many frames in advance for layer 3. This is needed to fill bit reservoir after seeking, for example (but also at least one frame in advance is needed to have all "normal" data for layer 3). Give a positive integer value, please.*/
-	MPG123_FEEDPOOL,		/**< For feeder mode, keep that many buffers in a pool to avoid frequent malloc/free. The pool is allocated on mpg123_open_feed(). If you change this parameter afterwards, you can trigger growth and shrinkage during decoding. The default value could change any time. If you care about this, then set it. (integer) */
-	MPG123_FEEDBUFFER,		/**< Minimal size of one internal feeder buffer, again, the default value is subject to change. (integer) */
+	MPG123_VERBOSE = 0,		// < set verbosity value for enabling messages to stderr, >= 0 makes sense (integer)
+	MPG123_FLAGS,		// < set all flags, p.ex val = MPG123_GAPLESS|MPG123_MONO_MIX (integer)
+	MPG123_ADD_FLAGS,		// < add some flags (integer)
+	MPG123_FORCE_RATE,		// < when value > 0, force output rate to that value (integer)
+	MPG123_DOWN_SAMPLE,		// < 0=native rate, 1=half rate, 2=quarter rate (integer)
+	MPG123_RVA,		// < one of the RVA choices above (integer)
+	MPG123_DOWNSPEED,		// < play a frame N times (integer)
+	MPG123_UPSPEED,		// < play every Nth frame (integer)
+	MPG123_START_FRAME,		// < start with this frame (skip frames before that, integer)
+	MPG123_DECODE_FRAMES,	// < decode only this number of frames (integer)
+	MPG123_OUTSCALE,		// < the scale for output samples (amplitude - integer according to mpg123 output format)
+	MPG123_TIMEOUT,		// < timeout for reading from a stream (not supported on win32, integer)
+	MPG123_REMOVE_FLAGS,	// < remove some flags (inverse of MPG123_ADD_FLAGS, integer)
+	MPG123_RESYNC_LIMIT,	// < Try resync on frame parsing for that many bytes or until end of stream (<0 ... integer). This can enlarge the limit for skipping junk on beginning, too (but not reduce it). 
+	MPG123_INDEX_SIZE,		// < Set the frame index size (if supported). Values <0 mean that the index is allowed to grow dynamically in these steps (in positive direction, of course) -- Use this when you really want a full index with every individual frame.
+	MPG123_PREFRAMES,		// < Decode/ignore that many frames in advance for layer 3. This is needed to fill bit reservoir after seeking, for example (but also at least one frame in advance is needed to have all "normal" data for layer 3). Give a positive integer value, please.*/
+	MPG123_FEEDPOOL,		// < For feeder mode, keep that many buffers in a pool to avoid frequent malloc/free. The pool is allocated on mpg123_open_feed(). If you change this parameter afterwards, you can trigger growth and shrinkage during decoding. The default value could change any time. If you care about this, then set it. (integer)
+	MPG123_FEEDBUFFER,		// < Minimal size of one internal feeder buffer, again, the default value is subject to change. (integer)
 	};
 
 // flag bits for MPG123_FLAGS, use the usual binary or to combine.
 enum mpg123_param_flags
 	{
-	MPG123_FORCE_MONO = 0x7,		/**<     0111 Force some mono mode: This is a test bitmask for seeing if any mono forcing is active. */
-	MPG123_MONO_LEFT = 0x1,		/**<     0001 Force playback of left channel only.  */
-	MPG123_MONO_RIGHT = 0x2,		/**<     0010 Force playback of right channel only. */
-	MPG123_MONO_MIX = 0x4,		/**<     0100 Force playback of mixed mono.         */
-	MPG123_FORCE_STEREO = 0x8,		/**<     1000 Force stereo output.                  */
-	MPG123_QUIET = 0x20,		/**< 00100000 Suppress any printouts (overrules verbose).                    */
-	MPG123_GAPLESS = 0x40,		/**< 01000000 Enable gapless decoding (default on if libmpg123 has support). */
-	MPG123_NO_RESYNC = 0x80,		/**< 10000000 Disable resync stream after error.                             */
-	MPG123_SEEKBUFFER = 0x100,		/**< 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync). */
-	MPG123_FUZZY = 0x200,		/**< 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC) */
-	MPG123_IGNORE_STREAMLENGTH = 0x1000,	/**< 1000000000000 Ignore any stream length information contained in the stream, which can be contained in a 'TLEN' frame of an ID3v2 tag or a Xing tag */
-	MPG123_IGNORE_INFOFRAME = 0x4000,	/**< 100 0000 0000 0000 Do not parse the LAME/Xing info frame, treat it as normal MPEG data. */
-	MPG123_AUTO_RESAMPLE = 0x8000,	/**< 1000 0000 0000 0000 Allow automatic internal resampling of any kind (default on if supported). Especially when going lowlevel with replacing output buffer, you might want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE will override this. */
+	MPG123_FORCE_MONO = 0x7,		// <     0111 Force some mono mode: This is a test bitmask for seeing if any mono forcing is active.
+	MPG123_MONO_LEFT = 0x1,		// <     0001 Force playback of left channel only. 
+	MPG123_MONO_RIGHT = 0x2,		// <     0010 Force playback of right channel only.
+	MPG123_MONO_MIX = 0x4,		// <     0100 Force playback of mixed mono.        
+	MPG123_FORCE_STEREO = 0x8,		// <     1000 Force stereo output.                 
+	MPG123_QUIET = 0x20,		// < 00100000 Suppress any printouts (overrules verbose).                   
+	MPG123_GAPLESS = 0x40,		// < 01000000 Enable gapless decoding (default on if libmpg123 has support).
+	MPG123_NO_RESYNC = 0x80,		// < 10000000 Disable resync stream after error.                            
+	MPG123_SEEKBUFFER = 0x100,		// < 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync).
+	MPG123_FUZZY = 0x200,		// < 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC)
+	MPG123_IGNORE_STREAMLENGTH = 0x1000,	// < 1000000000000 Ignore any stream length information contained in the stream, which can be contained in a 'TLEN' frame of an ID3v2 tag or a Xing tag
+	MPG123_IGNORE_INFOFRAME = 0x4000,	// < 100 0000 0000 0000 Do not parse the LAME/Xing info frame, treat it as normal MPEG data.
+	MPG123_AUTO_RESAMPLE = 0x8000,	// < 1000 0000 0000 0000 Allow automatic internal resampling of any kind (default on if supported). Especially when going lowlevel with replacing output buffer, you might want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE will override this.
 	};
 
 // choices for MPG123_RVA
 enum mpg123_param_rva
 	{
-	MPG123_RVA_OFF = 0,		/**< RVA disabled (default).   */
-	MPG123_RVA_MIX = 1,		/**< Use mix/track/radio gain. */
-	MPG123_RVA_ALBUM = 2,		/**< Use album/audiophile gain */
-	MPG123_RVA_MAX = MPG123_RVA_ALBUM,	/**< The maximum RVA code, may increase in future. */
+	MPG123_RVA_OFF = 0,		// < RVA disabled (default).  
+	MPG123_RVA_MIX = 1,		// < Use mix/track/radio gain.
+	MPG123_RVA_ALBUM = 2,		// < Use album/audiophile gain
+	MPG123_RVA_MAX = MPG123_RVA_ALBUM,	// < The maximum RVA code, may increase in future.
 	};
 
 enum frame_state_flags
 	{
-	FRAME_ACCURATE = 0x1,		/**<     0001 Positions are considered accurate. */
-	FRAME_FRANKENSTEIN = 0x2,		/**<     0010 This stream is concatenated. */
-	FRAME_FRESH_DECODER = 0x4,		/**<     0100 Decoder is fleshly initialized. */
+	FRAME_ACCURATE = 0x1,		// <     0001 Positions are considered accurate.
+	FRAME_FRANKENSTEIN = 0x2,		// <     0010 This stream is concatenated.
+	FRAME_FRESH_DECODER = 0x4,		// <     0100 Decoder is fleshly initialized.
 	};
 
 // enumeration of the mode types of Variable Bitrate
 enum mpg123_vbr
 	{
-	MPG123_CBR = 0,			/**< Constant Bitrate Mode (default) */
-	MPG123_VBR,			/**< Variable Bitrate Mode */
-	MPG123_ABR			/**< Average Bitrate Mode */
+	MPG123_CBR = 0,			// < Constant Bitrate Mode (default)
+	MPG123_VBR,			// < Variable Bitrate Mode
+	MPG123_ABR			// < Average Bitrate Mode
 	};
 
 // Data structure for ID3v1 tags (the last 128 bytes of a file).
@@ -232,17 +232,17 @@ enum mpg123_vbr
 // It is your task to support ID3v1 only or ID3v1.1 ...
 typedef struct
 	{
-	char	tag[3];			/**< Always the string "TAG", the classic intro. */
-	char	title[30];		/**< Title string.  */
-	char	artist[30];		/**< Artist string. */
-	char	album[30];		/**< Album string. */
-	char	year[4];			/**< Year string. */
-	char	comment[30];		/**< Comment string. */
-	byte	genre;			/**< Genre index. */
+	char	tag[3];			// < Always the string "TAG", the classic intro.
+	char	title[30];		// < Title string. 
+	char	artist[30];		// < Artist string.
+	char	album[30];		// < Album string.
+	char	year[4];			// < Year string.
+	char	comment[30];		// < Comment string.
+	byte	genre;			// < Genre index.
 	} mpg123_id3v1;
 
-#define MPG123_ID3		0x3		/**< 0011 There is some ID3 info. Also matches 0010 or NEW_ID3. */
-#define MPG123_NEW_ID3	0x1		/**< 0001 There is ID3 info that changed since last call to mpg123_id3. */
+#define MPG123_ID3		0x3		// < 0011 There is some ID3 info. Also matches 0010 or NEW_ID3.
+#define MPG123_NEW_ID3	0x1		// < 0001 There is ID3 info that changed since last call to mpg123_id3.
 
 struct mpg123_handle_s
 	{

@@ -104,7 +104,6 @@ typedef struct
 	int			numlocallights;
 	int			lightage[MAXSTUDIOBONES];
 	dlight_t	*locallight[MAX_LOCALLIGHTS];
-	/*color24		locallightcolor[MAX_LOCALLIGHTS];*/
 	int			locallightcolor[MAX_LOCALLIGHTS][3];
 	vec4_t		lightpos[MAXSTUDIOVERTS][MAX_LOCALLIGHTS];
 	vec3_t		lightbonepos[MAXSTUDIOBONES][MAX_LOCALLIGHTS];
@@ -175,16 +174,12 @@ static void R_StudioSetupTimings (void)
 	if (RI.drawWorld)
 		{
 		// synchronize with server time
-		/*g_studio.time = gpGlobals->time;
-		g_studio.frametime = gpGlobals->time - gpGlobals->oldtime;*/
 		g_studio.time = gp_cl->time;
 		g_studio.frametime = gp_cl->time - gp_cl->oldtime;
 		}
 	else
 		{
 		// menu stuff
-		/*g_studio.time = gpGlobals->realtime;
-		g_studio.frametime = gpGlobals->frametime;*/
 		g_studio.time = gp_host->realtime;
 		g_studio.frametime = gp_host->frametime;
 		}
@@ -201,7 +196,6 @@ static qboolean R_AllowFlipViewModel (cl_entity_t *e)
 	{
 	if (cl_righthand && cl_righthand->value > 0)
 		{
-		/*if (e == gEngfuncs.GetViewModel ())*/
 		if (e == tr.viewent)
 			return true;
 		}
@@ -415,7 +409,6 @@ pfnGetViewEntity [FWGS, 01.01.24]
 */
 static cl_entity_t *pfnGetViewEntity (void)
 	{
-	/*return gEngfuncs.GetViewModel ();*/
 	return tr.viewent;
 	}
 
@@ -428,8 +421,6 @@ static void pfnGetEngineTimes (int *framecount, double *current, double *old)
 	{
 	if (framecount)
 		*framecount = tr.realframecount;
-	/*if (current) *current = gpGlobals->time;
-	if (old) *old = gpGlobals->oldtime;*/
 	if (current)
 		*current = gp_cl->time;
 	if (old)
@@ -600,15 +591,11 @@ static void R_StudioSetUpTransform (cl_entity_t *e)
 	VectorCopy (e->angles, angles);
 
 	// interpolate monsters position (moved into UpdateEntityFields by user request)
-	/*if ((e->curstate.movetype == MOVETYPE_STEP) &&
-	!FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_COMPUTE_STUDIO_LERP))*/
 	if ((e->curstate.movetype == MOVETYPE_STEP) && !FBitSet (gp_host->features, ENGINE_COMPUTE_STUDIO_LERP))
 		{
 		R_StudioLerpMovement (e, g_studio.time, origin, angles);
 		}
 
-	/*if (!FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_COMPENSATE_QUAKE_BUG))
-	*/
 	if (!FBitSet (gp_host->features, ENGINE_COMPENSATE_QUAKE_BUG))
 		angles[PITCH] = -angles[PITCH]; // stupid quake bug
 
@@ -1385,7 +1372,6 @@ static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 		msurface_t *psurf = NULL;
 		pmtrace_t		trace;
 
-		/*if (FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_WRITE_LARGE_COORD))*/
 		if (FBitSet (gp_host->features, ENGINE_WRITE_LARGE_COORD))
 			{
 			vecEnd[0] = origin[0] - mv->skyvec_x * 65536.0f;
@@ -1407,16 +1393,12 @@ static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 			{
 			VectorSet (lightDir, mv->skyvec_x, mv->skyvec_y, mv->skyvec_z);
 
-			/*light.r = gEngfuncs.LightToTexGamma (bound (0, mv->skycolor_r, 255));
-			light.g = gEngfuncs.LightToTexGamma (bound (0, mv->skycolor_g, 255));
-			light.b = gEngfuncs.LightToTexGamma (bound (0, mv->skycolor_b, 255));*/
 			light.r = mv->skycolor_r;
 			light.g = mv->skycolor_g;
 			light.b = mv->skycolor_b;
 			}
 		}
 
-	/*if ((light.r + light.g + light.b) < 16) // TESTTEST*/
 	if ((light.r + light.g + light.b) == 0)
 		{
 		colorVec	gcolor;
@@ -1505,9 +1487,6 @@ static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 
 			VectorAdd (lightDir, dist, lightDir);
 
-			/*finalLight[0] += gEngfuncs.LightToTexGamma (dl->color.r) * (add / 256.0f) * 2.0f;
-			finalLight[1] += gEngfuncs.LightToTexGamma (dl->color.g) * (add / 256.0f) * 2.0f;
-			finalLight[2] += gEngfuncs.LightToTexGamma (dl->color.b) * (add / 256.0f) * 2.0f;*/
 			finalLight[0] += dl->color.r * (add / 256.0f);
 			finalLight[1] += dl->color.g * (add / 256.0f);
 			finalLight[2] += dl->color.b * (add / 256.0f);
@@ -1518,7 +1497,6 @@ static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 		add = 0.6f;
 	else
 		add = bound (0.75f, v_direct->value, 1.0f);
-	/*add = 0.9f;*/
 
 	VectorScale (lightDir, add, lightDir);
 
@@ -1618,9 +1596,6 @@ static void R_StudioEntityLight (alight_t *lightinfo)
 
 			if (k != -1)
 				{
-				/*g_studio.locallightcolor[k].r = gEngfuncs.LightToTexGamma (el->color.r);
-				g_studio.locallightcolor[k].g = gEngfuncs.LightToTexGamma (el->color.g);
-				g_studio.locallightcolor[k].b = gEngfuncs.LightToTexGamma (el->color.b);*/
 				g_studio.locallightcolor[k][0] = gEngfuncs.LinearGammaTable (el->color.r << 2);
 				g_studio.locallightcolor[k][1] = gEngfuncs.LinearGammaTable (el->color.g << 2);
 				g_studio.locallightcolor[k][2] = gEngfuncs.LinearGammaTable (el->color.b << 2);
@@ -1719,7 +1694,6 @@ static void R_StudioLighting (float *lv, int bone, int flags, vec3_t normal)
 		}
 
 	illum = Q_min (illum, 255.0f);
-	/**lv = illum * (1.0f / 255.0f);*/
 	*lv = gEngfuncs.LightToTexGammaEx (illum * 4) / 1023.0f;
 	}
 
@@ -1739,7 +1713,6 @@ static void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], const vec3_t normal, 
 		return;
 		}
 
-	/*VectorCopy (color, finalLight);*/
 	VectorSet (finalLight, 0, 0, 0);
 
 	for (i = 0; i < g_studio.numlocallights; i++)
@@ -1765,11 +1738,6 @@ static void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], const vec3_t normal, 
 					light[i][3] = 0.0001f;
 				}
 
-			/*temp = Q_min (r * light[i][3] / 255.0f, 1.0f);
-
-			localLight[0] = (float)g_studio.locallightcolor[i].r * temp;
-			localLight[1] = (float)g_studio.locallightcolor[i].g * temp;
-			localLight[2] = (float)g_studio.locallightcolor[i].b * temp;*/
 			temp = r * light[i][3];
 
 			VectorAddScalar (g_studio.locallightcolor[i], temp, localLight);
@@ -1777,17 +1745,11 @@ static void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], const vec3_t normal, 
 			}
 		}
 
-	/*VectorScale (finalLight, 255.0f, finalLight);
-	*/
-
 	if (!VectorIsNull (finalLight))
 		{
 		for (i = 0; i < 3; i++)
 			{
 			float c = finalLight[i] + gEngfuncs.LinearGammaTable (color[i] * 1023.0f);
-			/*out[0] = Q_min ((int)(finalLight[0]), 255);
-			out[1] = Q_min ((int)(finalLight[1]), 255);
-			out[2] = Q_min ((int)(finalLight[2]), 255);*/
 			if (c > 1023.0f)
 				out[i] = 255;
 			else
@@ -1932,7 +1894,6 @@ static void R_StudioRenderShadow (int iSprite, float *p1, float *p2, float *p3, 
 	if (!p1 || !p2 || !p3 || !p4)
 		return;
 
-	/*if (TriSpriteTexture (gEngfuncs.pfnGetModelByIndex (iSprite), 0))*/
 	if (TriSpriteTexture (CL_ModelHandle (iSprite), 0))
 		{
 		TriRenderMode (kRenderTransAlpha);
@@ -2335,7 +2296,6 @@ static void R_StudioDrawPoints (void)
 	g_studio.numverts = g_studio.numelems = 0;
 
 	// safety bounding the skinnum
-	/*m_skinnum = bound (0, RI.currententity->curstate.skin, (m_pStudioHeader->numskinfamilies - 1));*/
 	m_skinnum = RI.currententity->curstate.skin;
 
 	ptexture = (mstudiotexture_t *)((byte *)m_pStudioHeader + m_pStudioHeader->textureindex);
@@ -2347,7 +2307,6 @@ static void R_StudioDrawPoints (void)
 	pstudionorms = (vec3_t *)((byte *)m_pStudioHeader + m_pSubModel->normindex);
 	pskinref = (short *)((byte *)m_pStudioHeader + m_pStudioHeader->skinindex);
 
-	/*if (m_skinnum != 0) pskinref += (m_skinnum * m_pStudioHeader->numskinref);*/
 	if ((m_skinnum > 0) && (m_skinnum < m_pStudioHeader->numskinfamilies))
 		pskinref += (m_skinnum * m_pStudioHeader->numskinref);
 
@@ -2587,7 +2546,6 @@ static void R_StudioDrawAbsBBox (void)
 	int		i;
 
 	// looks ugly, skip
-	/*if (RI.currententity == gEngfuncs.GetViewModel ())*/
 	if (RI.currententity == tr.viewent)
 		return;
 
@@ -2722,14 +2680,8 @@ R_StudioSetRemapColors [FWGS, 01.01.24]
 */
 static void R_StudioSetRemapColors (int newTop, int newBottom)
 	{
-	/*gEngfuncs.CL_AllocRemapInfo (RI.currententity, RI.currentmodel, newTop, newBottom);
-
-	if (gEngfuncs.CL_GetRemapInfoForEntity (RI.currententity))
-		{
-		gEngfuncs.CL_UpdateRemapInfo (RI.currententity, newTop, newBottom);*/
 	if (gEngfuncs.CL_EntitySetRemapColors (RI.currententity, RI.currentmodel, newTop, newBottom))
 		m_fDoRemap = true;
-		/*}*/
 	}
 
 void R_StudioResetPlayerModels (void)
@@ -2862,7 +2814,6 @@ static void R_StudioClientEvents (void)
 		ClearBits (e->curstate.effects, EF_MUZZLEFLASH);
 		VectorCopy (e->attachment[0], el->origin);
 		
-		/*el->die = gpGlobals->time + 0.05f;*/
 		el->die = gp_cl->time + 0.05f;
 		el->color.r = 255;
 		el->color.g = 192;
@@ -2880,7 +2831,6 @@ static void R_StudioClientEvents (void)
 
 	// [FWGS, 01.01.24]
 	end = R_StudioEstimateFrame (e, pseqdesc, g_studio.time);
-	/*start = end - e->curstate.framerate * gpGlobals->frametime * pseqdesc->fps;*/
 	start = end - e->curstate.framerate * gp_host->frametime * pseqdesc->fps;
 	pevent = (mstudioevent_t *)((byte *)m_pStudioHeader + pseqdesc->eventindex);
 
@@ -3410,7 +3360,6 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 
 	m_nPlayerIndex = pplayer->number - 1;
 
-	/*if (m_nPlayerIndex < 0 || m_nPlayerIndex >= ENGINE_GET_PARM (PARM_MAX_CLIENTS))*/
 	if ((m_nPlayerIndex < 0) || (m_nPlayerIndex >= gp_cl->maxclients))
 		return 0;
 
@@ -3480,7 +3429,6 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 		// copy attachments into global entity array
 		if (RI.currententity->index > 0)
 			{
-			/*cl_entity_t *ent = gEngfuncs.GetEntityByIndex (RI.currententity->index);*/
 			cl_entity_t *ent = CL_GetEntityByIndex (RI.currententity->index);
 			memcpy (ent->attachment, RI.currententity->attachment, sizeof (vec3_t) * 4);
 			}
@@ -3488,16 +3436,13 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 
 	if (flags & STUDIO_RENDER)
 		{
+		// show highest resolution multiplayer model
 		if (cl_himodels->value && (RI.currentmodel != RI.currententity->model))
-			{
-			// show highest resolution multiplayer model
 			RI.currententity->curstate.body = 255;
-			}
 
-		/*if (!(!gpGlobals->developer && ENGINE_GET_PARM (PARM_MAX_CLIENTS) == 1) && 
-			(RI.currentmodel == RI.currententity->model))*/
+		// force helmet
 		if (!(!gpGlobals->developer && (gp_cl->maxclients == 1)) && (RI.currentmodel == RI.currententity->model))
-			RI.currententity->curstate.body = 1; // force helmet
+			RI.currententity->curstate.body = 1;
 
 		lighting.plightvec = dir;
 		R_StudioDynamicLight (RI.currententity, &lighting);
@@ -3530,7 +3475,6 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 		if (pplayer->weaponmodel)
 			{
 			cl_entity_t	saveent = *RI.currententity;
-			/*model_t *pweaponmodel = gEngfuncs.pfnGetModelByIndex (pplayer->weaponmodel);*/
 			model_t *pweaponmodel = CL_ModelHandle (pplayer->weaponmodel);
 
 			m_pStudioHeader = (studiohdr_t *)gEngfuncs.Mod_Extradata (mod_studio, pweaponmodel);
@@ -3564,7 +3508,6 @@ static int R_StudioDrawModel (int flags)
 
 		if ((RI.currententity->curstate.renderamt <= 0) ||
 			(RI.currententity->curstate.renderamt > gp_cl->maxclients))
-			/*RI.currententity->curstate.renderamt > ENGINE_GET_PARM (PARM_MAX_CLIENTS))*/
 			return 0;
 
 		// get copy of player
@@ -3618,7 +3561,6 @@ static int R_StudioDrawModel (int flags)
 		// copy attachments into global entity array
 		if (RI.currententity->index > 0)
 			{
-			/*cl_entity_t *ent = gEngfuncs.GetEntityByIndex (RI.currententity->index);*/
 			cl_entity_t *ent = CL_GetEntityByIndex (RI.currententity->index);
 			memcpy (ent->attachment, RI.currententity->attachment, sizeof (vec3_t) * 4);
 			}
@@ -3651,7 +3593,6 @@ static int R_StudioDrawModel (int flags)
 R_StudioDrawModelInternal [FWGS, 01.01.24]
 =================
 */
-/*void R_StudioDrawModelInternal (cl_entity_t *e, int flags)*/
 static void R_StudioDrawModelInternal (cl_entity_t *e, int flags)
 	{
 	if (!RI.drawWorld)
@@ -3687,23 +3628,12 @@ void R_DrawStudioModel (cl_entity_t *e)
 		{
 		R_StudioDrawModelInternal (e, STUDIO_RENDER | STUDIO_EVENTS);
 		}
-	/*else*/
+
 	else if ((e->curstate.movetype == MOVETYPE_FOLLOW) && (e->curstate.aiment > 0))
 		{
-		/*if (e->curstate.movetype == MOVETYPE_FOLLOW && e->curstate.aiment > 0)
-			{
-			cl_entity_t *parent = gEngfuncs.GetEntityByIndex (e->curstate.aiment);*/
 		cl_entity_t *parent = CL_GetEntityByIndex (e->curstate.aiment), **entities;
 		uint i, num_entities;
 
-		/*if (parent && parent->model && (parent->model->type == mod_studio))
-				{
-				RI.currententity = parent;
-				R_StudioDrawModelInternal (RI.currententity, 0);
-				VectorCopy (parent->curstate.origin, e->curstate.origin);
-				VectorCopy (parent->origin, e->origin);
-				RI.currententity = e;
-				}*/
 		if (!parent || !parent->model || (parent->model->type != mod_studio))
 			return;
 
@@ -3759,14 +3689,12 @@ void R_RunViewmodelEvents (void)
 	if (!RP_NORMALPASS () || (ENGINE_GET_PARM (PARM_LOCAL_HEALTH) <= 0) || !CL_IsViewEntityLocalPlayer ())
 		return;
 
-	/*RI.currententity = gEngfuncs.GetViewModel ();*/
 	RI.currententity = tr.viewent;
 
 	if (!RI.currententity->model || (RI.currententity->model->type != mod_studio))
 		return;
 
 	R_StudioSetupTimings ();
-	/*gEngfuncs.GetPredictedOrigin (simorg);*/
 	VectorCopy (gp_cl->simorg, simorg);
 
 	for (i = 0; i < 4; i++)
@@ -3783,13 +3711,10 @@ R_GatherPlayerLight [FWGS, 01.01.24]
 */
 void R_GatherPlayerLight (void)
 	{
-	/*cl_entity_t *view = gEngfuncs.GetViewModel ();*/
 	cl_entity_t	*view = tr.viewent;
 	colorVec	c;
 
-	/*tr.ignore_lightgamma = true;*/
 	c = R_LightPoint (view->origin);
-	/*tr.ignore_lightgamma = false;*/
 	gEngfuncs.SetLocalLightLevel ((c.r + c.g + c.b) / 3);
 	}
 
@@ -3800,7 +3725,6 @@ R_DrawViewModel [FWGS, 01.01.24]
 */
 void R_DrawViewModel (void)
 	{
-	/*cl_entity_t *view = gEngfuncs.GetViewModel ();*/
 	cl_entity_t *view = tr.viewent;
 
 	R_GatherPlayerLight ();
@@ -3922,8 +3846,6 @@ static void R_StudioLoadTexture (model_t *mod, studiohdr_t *phdr, mstudiotexture
 	size = sizeof (mstudiotexture_t) + ptexture->width * ptexture->height + 768;
 
 	// [FWGS, 01.01.24]
-	/*if (FBitSet (ENGINE_GET_PARM (PARM_FEATURES), ENGINE_IMPROVED_LINETRACE) &&
-		FBitSet (ptexture->flags, STUDIO_NF_MASKED))*/
 	if (FBitSet (gp_host->features, ENGINE_IMPROVED_LINETRACE) &&
 		FBitSet (ptexture->flags, STUDIO_NF_MASKED))
 		flags |= TF_KEEP_SOURCE; // Paranoia2 texture alpha-tracing
@@ -3993,7 +3915,6 @@ void Mod_StudioUnloadTextures (void *data)
 // [FWGS, 01.01.24]
 static model_t *pfnModelHandle (int modelindex)
 	{
-	/*return gEngfuncs.pfnGetModelByIndex (modelindex);*/
 	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
 		return NULL;
 

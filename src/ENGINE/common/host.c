@@ -54,8 +54,6 @@ struct tests_stats_s tests_stats;
 // [FWGS, 01.01.24]
 CVAR_DEFINE (host_developer, "developer", "0", FCVAR_FILTERABLE,
 	"engine is in development-mode");
-/*CVAR_DEFINE_AUTO (sys_timescale, "1.0", FCVAR_CHEAT | FCVAR_FILTERABLE,
-	"scale frame time");*/
 CVAR_DEFINE_AUTO (sys_timescale, "1.0", FCVAR_FILTERABLE,
 	"scale frame time");
 CVAR_DEFINE_AUTO (sys_ticrate, "100", 0,
@@ -696,21 +694,10 @@ static double Host_CalcFPS (void)
 // [FWGS, 01.01.24]
 static qboolean Host_Autosleep (double dt, double scale)
 	{
-	/*static double	oldtime;
-	double fps, scale = sys_timescale.value;*/
-	double targetframetime, fps;
-	int sleep;
+	double	targetframetime, fps;
+	int		sleep;
 
-	/*host.realtime += time * scale;
-	*/
 	fps = Host_CalcFPS ();
-
-	/* clamp the fps in multiplayer games
-	if (fps != 0.0)
-		{
-		static int sleeps;
-		double targetframetime;
-		int sleeptime = Host_CalcSleep ();*/
 	if (fps <= 0)
 		return true;
 
@@ -722,8 +709,6 @@ static qboolean Host_Autosleep (double dt, double scale)
 	else
 		targetframetime = (1.0 / fps);
 
-	/*if ((host.realtime - oldtime) < targetframetime * scale)
-	*/
 	sleep = Host_CalcSleep ();
 
 	// no sleeps between frames, much simpler code
@@ -741,14 +726,9 @@ static qboolean Host_Autosleep (double dt, double scale)
 
 		if (dt < targetframetime * scale)
 			{
-			/*if ((sleeptime > 0) && (sleeps > 0))
-			*/
 			// if we have allocated time window, try to sleep
 			if (timewindow > realsleeptime)
 				{
-				/*Sys_Sleep (sleeptime);
-				sleeps--;*/
-
 				// Sys_Sleep isn't guaranteed to sleep an exact amount of milliseconds
 				// so we measure the real sleep time and use it to decrease the window
 				double t1 = Sys_DoubleTime (), t2;
@@ -770,24 +750,11 @@ static qboolean Host_Autosleep (double dt, double scale)
 			return false;
 			}
 
-		/*if ((sleeptime > 0) && (sleeps <= 0))
-		*/
 		// if we exhausted this time window, allocate a new one after new frame
 		if (timewindow <= realsleeptime)
 			{
-			/*if (host.status == HOST_FRAME)
-				{
-				// give few sleeps this frame with small margin
-				double targetsleeptime = targetframetime - host.pureframetime * 2;*/
 			double targetsleeptime = targetframetime - host.pureframetime * 2;
 
-			/* don't sleep if we can't keep up with the framerate
-			if (targetsleeptime > 0)
-				sleeps = targetsleeptime / (sleeptime * 0.001);
-			else
-				sleeps = 0;
-			}
-		else*/
 			if (targetsleeptime > 0)
 				timewindow = targetsleeptime;
 			else
@@ -798,10 +765,7 @@ static qboolean Host_Autosleep (double dt, double scale)
 
 			if (host_sleeptime_debug.value)
 				{
-				/* always sleep at least once in minimized/nofocus state
-				sleeps = 1;*/
 				counter = 0;
-
 				Con_NPrintf (0, "tgt = %.4f, pft = %.4f, wnd = %.4f", targetframetime, host.pureframetime, timewindow);
 				}
 			}
@@ -910,7 +874,6 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 		else
 			{
 			// [FWGS, 01.01.24]
-			/*MSGBOX2 (hosterror1);*/
 			Platform_MessageBox ("Host Error", hosterror1, true);
 			}
 		}
@@ -1100,7 +1063,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	// [FWGS, 01.01.24]
 	Q_strncpy (SI.exeName, progname, sizeof (SI.exeName));
-	/*Q_strncpy (SI.basedirName, progname, sizeof (SI.exeName));*/
 	Q_strncpy (SI.basedirName, progname, sizeof (SI.basedirName));
 
 	if (Host_IsDedicated ())
@@ -1278,11 +1240,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	Cvar_PostFSInit ();	// [FWGS, 01.04.23]
 
 	// [FWGS, 01.01.24]
-	/*if (FS_FileExists (va ("%s.rc", SI.basedirName), false))
-		Q_strncpy (SI.rcName, SI.basedirName, sizeof (SI.rcName));	// e.g. valve.rc
-	else
-		Q_strncpy (SI.rcName, SI.exeName, sizeof (SI.rcName));	// e.g. quake.rc*/
-
 	Q_strncpy (host.gamefolder, GI->gamefolder, sizeof (host.gamefolder));
 
 	for (i = 0; i < 3; i++)
@@ -1519,7 +1476,6 @@ void EXPORT Host_Shutdown (void)
 		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));
 
 #if !XASH_DEDICATED
-	/*if (host.type == HOST_NORMAL)*/
 	if ((host.type == HOST_NORMAL) && !error)
 		Host_WriteConfig ();
 #endif

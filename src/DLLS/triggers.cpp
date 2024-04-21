@@ -1,4 +1,4 @@
-/***
+/*
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -1077,7 +1077,6 @@ class CTriggerFog : public CBaseTrigger
 		// trigger_sound
 		static	TYPEDESCRIPTION m_SaveData[];
 		unsigned char m_enablingMove;
-		/*unsigned char m_direction;*/
 		unsigned char m_currentEnablingGrade;
 		float m_multiplier;
 	};
@@ -1086,7 +1085,6 @@ LINK_ENTITY_TO_CLASS (trigger_fog, CTriggerFog);
 TYPEDESCRIPTION	CTriggerFog::m_SaveData[] =
 	{
 	DEFINE_FIELD (CTriggerFog, m_enablingMove, FIELD_CHARACTER),
-	/*DEFINE_FIELD (CTriggerFog, m_direction, FIELD_CHARACTER),*/
 	};
 IMPLEMENT_SAVERESTORE (CTriggerFog, CBaseTrigger);
 
@@ -1095,15 +1093,6 @@ void CTriggerFog::Spawn (void)
 	// Îáùàÿ èíèöèàëèçàöèÿ
 	m_flWait = 1.0;
 	InitTrigger ();
-
-	/* Ïîèñê íàïğàâëåíèÿ ñ íàèáîëüøèì ëèíåéíûì ğàçìåğîì òğèããåğà
-	m_direction = 0x00;
-	if ((pev->size.x >= pev->size.y) && (pev->size.x >= pev->size.z))
-		m_direction = 0x01;
-	else if ((pev->size.y >= pev->size.x) && (pev->size.y >= pev->size.z))
-		m_direction = 0x02;
-	else // if ((y >= x) && (y >= z))
-		m_direction = 0x04;*/
 
 	SetTouch (&CTriggerFog::MultiTouch_Fog);
 	}
@@ -1126,12 +1115,11 @@ void CTriggerFog::KeyValue (KeyValueData *pkvd)
 
 void CTriggerFog::MultiTouch_Fog (CBaseEntity *pOther)
 	{
-	entvars_t *pevToucher;
-	/*qboolean enable = (m_enablingMove != 0);*/
-	float enablingGrade = 0.0f;	// Îò 0 äî 1 âêëş÷èòåëüíî
-	unsigned int packed = 0;
-	float multiplier = 0.0f;
-	float size = 0.0f;
+	entvars_t	*pevToucher;
+	float		enablingGrade = 0.0f;	// Îò 0 äî 1 âêëş÷èòåëüíî
+	unsigned int	packed = 0;
+	float		multiplier = 0.0f;
+	float		size = 0.0f;
 
 	// Only touch clients
 	pevToucher = pOther->pev;

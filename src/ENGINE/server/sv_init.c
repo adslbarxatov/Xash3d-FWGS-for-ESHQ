@@ -301,7 +301,6 @@ static resourcetype_t SV_DetermineResourceType (const char *filename)
 	}
 
 // [FWGS, 01.02.24]
-/*void SV_ReadResourceList (const char *filename)*/
 static const char *SV_GetResourceTypeName (resourcetype_t restype)
 	{
 	switch (restype)
@@ -350,7 +349,6 @@ static void SV_ReadResourceList (const char *filename)
 
 		COM_FixSlashes (token);
 		restype = SV_DetermineResourceType (token);
-		/*Con_DPrintf ("  %s (%s)\n", token, COM_GetResourceTypeName (restype));*/
 		Con_DPrintf (" %s (%s)\n", token, SV_GetResourceTypeName (restype));
 
 		switch (restype)
@@ -490,7 +488,6 @@ static void SV_CreateBaseline (void)
 	int		delta_type;
 	int		entnum;
 
-	/*SV_WriteVoiceCodec (&sv.signon);*/
 	if (svs.maxclients > 1)
 		SV_WriteVoiceCodec (&sv.signon);
 
@@ -606,7 +603,6 @@ void SV_FreeOldEntities (void)
 		}
 
 	// [FWGS, 01.02.24] decrement svgame.numEntities if the highest number entities died
-	/*for (; EDICT_NUM (svgame.numEntities - 1)->free; svgame.numEntities--);*/
 	for (; (ent = EDICT_NUM (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);
 	}
 
@@ -709,16 +705,6 @@ void SV_ActivateServer (int runPhysics)
 
 	if (sv.ignored_world_decals)
 		Con_Printf (S_WARN "%i static decals was rejected due buffer overflow\n", sv.ignored_world_decals);
-
-	// [FWGS, 01.03.24]
-	/*if (svs.maxclients > 1)
-		{
-		const char *cycle = Cvar_VariableString ("mapchangecfgfile");
-
-		// [FWGS, 01.04.23]
-		if (COM_CheckString (cycle))
-			Cbuf_AddTextf ("exec %s\n", cycle);
-		}*/
 	}
 
 /*
@@ -1031,8 +1017,6 @@ clients along with it
 */
 qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean background)
 	{
-	/*int	i, current_skill;
-	edict_t *ent;*/
 	int			i, current_skill;
 	edict_t		*ent;
 	const char	*cycle;

@@ -81,11 +81,10 @@ CL_CreateRawTextureFromPixels [FWGS, 01.01.24]
 Convert texture_t struct into mstudiotexture_t prototype
 ====================
 */
-/*byte *CL_CreateRawTextureFromPixels (texture_t *tx, size_t *size, int topcolor, int bottomcolor)*/
 static byte *CL_CreateRawTextureFromPixels (texture_t *tx, size_t *size, int topcolor, int bottomcolor)
 	{
 	static mstudiotexture_t	pin;
-	byte *pal;
+	byte	*pal;
 
 	Assert (size != NULL);
 	*size = sizeof (pin) + (tx->width * tx->height) + 768;
@@ -115,7 +114,6 @@ CL_DuplicateTexture [FWGS, 01.01.24]
 Dupliacte texture with remap pixels
 ====================
 */
-/*void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotexture_t *ptexture, int topcolor, int bottomcolor)*/
 static void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotexture_t *ptexture, int topcolor,
 	int bottomcolor)
 	{
@@ -160,7 +158,6 @@ CL_UpdateStudioTexture [FWGS, 01.01.24]
 Update texture top and bottom colors
 ====================
 */
-/*void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptexture, int topcolor, int bottomcolor)*/
 static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptexture, int topcolor, int bottomcolor)
 	{
 	rgbdata_t	*pic;
@@ -223,8 +220,8 @@ CL_UpdateAliasTexture [FWGS, 01.01.24]
 Update texture top and bottom colors
 ====================
 */
-/*void CL_UpdateAliasTexture (cl_entity_t *entity, unsigned short *texture, int skinnum, int topcolor, int bottomcolor)*/
-static void CL_UpdateAliasTexture (cl_entity_t *entity, unsigned short *texture, int skinnum, int topcolor, int bottomcolor)
+static void CL_UpdateAliasTexture (cl_entity_t *entity, unsigned short *texture, int skinnum, int topcolor,
+	int bottomcolor)
 	{
 	char		texname[MAX_QPATH];
 	rgbdata_t	skin, *pic;
@@ -330,7 +327,6 @@ Allocate new remap info per entity
 and make copy of remap textures
 ====================
 */
-/*void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor, int bottomcolor)*/
 static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor, int bottomcolor)
 	{
 	remap_info_t	*info;

@@ -24,9 +24,6 @@ GNU General Public License for more details.
 #include "sound.h"
 #include "input.h"
 
-// [FWGS, 01.01.24]
-/*#define STUDIO_INTERPOLATION_FIX*/
-
 /*
 ==================
 CL_IsPlayerIndex
@@ -411,7 +408,6 @@ static void CL_PureOrigin (cl_entity_t *ent, double t, vec3_t outorigin, vec3_t 
 	vec3_t			delta;
 
 	// NOTE: ph0 is next, ph1 is a prev
-	/*extrapolate = CL_FindInterpolationUpdates (ent, t, &ph0, &ph1);*/
 	CL_FindInterpolationUpdates (ent, t, &ph0, &ph1);
 
 	if (!ph0 || !ph1)
@@ -420,7 +416,6 @@ static void CL_PureOrigin (cl_entity_t *ent, double t, vec3_t outorigin, vec3_t 
 	t0 = ph0->animtime;
 	t1 = ph1->animtime;
 
-	/*if (t0 != 0.0f)*/
 	if (t0 != 0.0)
 		{
 		vec4_t	q, q1, q2;
@@ -431,9 +426,6 @@ static void CL_PureOrigin (cl_entity_t *ent, double t, vec3_t outorigin, vec3_t 
 			frac = (t - t1) / (t0 - t1);
 		else
 			frac = 1.0;
-		/*else frac = 1.0f;*/
-
-		/*frac = bound (0.0f, frac, 1.2f);*/
 		frac = bound (0.0, frac, 1.2);
 
 		VectorMA (ph1->origin, frac, delta, outorigin);
@@ -510,9 +502,6 @@ static int CL_InterpolateModel (cl_entity_t *e)
 		return 0;
 		}
 
-	/* HACKHACK: workaround buggy position history animtime
-	// going backward sometimes
-	if (Q_equal (t2, t1) || (t2 < t1))*/
 	if (Q_equal (t2, t1))
 		{
 		VectorCopy (ph0->origin, e->origin);
@@ -1239,8 +1228,6 @@ static void CL_LinkPacketEntities (frame_t *frame)
 						VectorCopy (ent->curstate.origin, ent->latched.prevorigin);
 						VectorCopy (ent->curstate.angles, ent->latched.prevangles);
 
-						/* disable step interpolation in client.dll
-						ent->curstate.movetype = MOVETYPE_NONE;*/
 						if (!FBitSet (host.features, ENGINE_COMPUTE_STUDIO_LERP))
 							{
 							// disable step interpolation in client.dll
@@ -1249,17 +1236,11 @@ static void CL_LinkPacketEntities (frame_t *frame)
 						}
 					else
 						{
-						/* restore step interpolation in client.dll
-						ent->curstate.movetype = MOVETYPE_STEP;*/
 						if (FBitSet (host.features, ENGINE_COMPUTE_STUDIO_LERP))
-							{
 							interpolate = true;
-							}
+						// restore step interpolation in client.dll
 						else
-							{
-							// restore step interpolation in client.dll
 							ent->curstate.movetype = MOVETYPE_STEP;
-							}
 						}
 #endif
 					}
@@ -1285,9 +1266,7 @@ static void CL_LinkPacketEntities (frame_t *frame)
 					continue;
 				}
 
-			// [FWGS, 01.01.24]
-			/*else if (ent->curstate.movetype == MOVETYPE_STEP && !NET_IsLocalAddress (cls.netchan.remote_address))*/
-			// a1ba: in GoldSrc this is done for cstrike and czero
+			// [FWGS, 01.01.24] a1ba: in GoldSrc this is done for cstrike and czero
 			// but let modders use this as an engine feature
 			else if (FBitSet (host.features, ENGINE_STEP_POSHISTORY_LERP) &&
 				(ent->curstate.movetype == MOVETYPE_STEP) && !NET_IsLocalAddress (cls.netchan.remote_address))
@@ -1491,9 +1470,4 @@ qboolean CL_GetMovieSpatialization (rawchan_t *ch)
 	return true;
 	}
 
-// [FWGS, 01.02.24]
-/*void CL_ExtraUpdate (void)
-	{
-	clgame.dllFuncs.IN_Accumulate ();
-	S_ExtraUpdate ();
-	}*/
+// [FWGS, 01.02.24] удалена CL_ExtraUpdate

@@ -61,11 +61,6 @@ GNU General Public License for more details.
 
 #include <stdio.h>
 
-// [FWGS, 01.01.24]
-/*#define WORLD (gEngfuncs.GetWorld())
-#define WORLDMODEL (gEngfuncs.pfnGetModelByIndex( 1 ))
-#define MOVEVARS (gEngfuncs.pfnGetMoveVars())*/
-
 // make mod_ref.h?
 #define LM_SAMPLE_SIZE		16
 
@@ -85,7 +80,6 @@ extern poolhandle_t			r_temppool;
 #define SHADEDOT_QUANT 		16		// precalculated dot products for quantized angles
 
 // [FWGS, 01.01.24]
-/*#define SHADE_LAMBERT	1.495f*/
 #define SHADE_LAMBERT		1.4953241
 #define DEFAULT_ALPHATEST	0.0f
 
@@ -100,13 +94,11 @@ extern poolhandle_t			r_temppool;
 #define R_StaticEntity( ent )	( VectorIsNull( ent->origin ) && VectorIsNull( ent->angles ))
 
 // [FWGS, 01.01.24]
-/*#define RP_LOCALCLIENT( e )	((e) != NULL && (e)->index == ENGINE_GET_PARM( PARM_PLAYER_INDEX ) && e->player )*/
 #define RP_LOCALCLIENT( e ) ((e) != NULL && (e)->index == ( gp_cl->playernum + 1 ) && e->player)
 
 #define RP_NORMALPASS()	( FBitSet( RI.params, RP_NONVIEWERREF ) == 0 )
 
 // [FWGS, 01.01.24]
-/*#define CL_IsViewEntityLocalPlayer() ( ENGINE_GET_PARM( PARM_VIEWENT_INDEX ) == ENGINE_GET_PARM( PARM_PLAYER_INDEX ) )*/
 #define CL_IsViewEntityLocalPlayer() ( gp_cl->viewentity == ( gp_cl->playernum + 1 ))
 
 #define CULL_VISIBLE	0		// not culled
@@ -258,7 +250,6 @@ typedef struct
 	int		framecount;
 
 	// [FWGS, 01.01.24]
-	/*qboolean	ignore_lightgamma;*/
 	qboolean	fCustomRendering;
 	qboolean	fResetVis;
 	qboolean	fFlipViewModel;
@@ -273,7 +264,6 @@ typedef struct
 	// cull info
 	vec3_t		modelorg;		// relative to viewpoint
 
-	/*qboolean fCustomSkybox;*/
 	// [FWGS, 01.01.24] get from engine
 	world_static_t	*world;
 	cl_entity_t		*entities;
@@ -407,7 +397,6 @@ void R_AnimateLight (void);
 void R_GetLightSpot (vec3_t lightspot);
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
 colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lightspot, vec3_t lightvec);
-/*int R_CountSurfaceDlights (msurface_t *surf);*/	// [FWGS, 01.02.24]
 colorVec R_LightPoint (const vec3_t p0);
 
 //
@@ -425,7 +414,6 @@ void R_AllowFog (qboolean allowed);
 qboolean R_OpaqueEntity (cl_entity_t *ent);	// [FWGS, 01.01.24]
 void R_SetupFrustum (void);
 void R_FindViewLeaf (void);
-/*void R_CheckGamma (void);*/	// [FWGS, 01.01.24]
 void R_PushScene (void);
 void R_PopScene (void);
 void R_DrawFog (void);
@@ -522,7 +510,6 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse);
 void R_InitRipples (void);
 void R_ResetRipples (void);
 void R_AnimateRipples (void);
-/*void R_UpdateRippleTexParams (void);*/
 void R_UploadRipples (texture_t * image);
 
 //
@@ -551,7 +538,6 @@ void GL_SetupAttributes (int safegl);
 void GL_OnContextCreated (void);
 void GL_InitExtensions (void);
 void GL_ClearExtensions (void);
-/*void VID_CheckChanges (void);*/	// [FWGS, 01.01.24]
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
 void GL_FreeImage (const char *name);
 qboolean VID_ScreenShot (const char *filename, int shot_type);

@@ -659,17 +659,11 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir)
 	{
 	memset (GameInfo, 0, sizeof (*GameInfo));
-
-	// filesystem info
-	/*Q_strncpy (GameInfo->gamefolder, gamedir, sizeof (GameInfo->gamefolder));
-	Q_strncpy (GameInfo->basedir, "valve", sizeof (GameInfo->basedir));
-	GameInfo->falldir[0] = 0;
-	Q_strncpy (GameInfo->startmap, "c0a0", sizeof (GameInfo->startmap));*/
 	
 	// ESHQ: отменена принудительная инициализация тренировочной карты
 
+	// filesystem info
 	Q_strncpy (GameInfo->title, "New Game", sizeof (GameInfo->title));
-	/*GameInfo->version = 1.0f;*/
 
 	// .dll pathes
 	Q_strncpy (GameInfo->gamefolder, gamedir, sizeof (GameInfo->gamefolder));
@@ -681,11 +675,7 @@ static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir)
 	Q_strncpy (GameInfo->game_dll, "dlls/hl.dll", sizeof (GameInfo->game_dll));
 	Q_strncpy (GameInfo->game_dll_linux, "dlls/hl.so", sizeof (GameInfo->game_dll_linux));
 	Q_strncpy (GameInfo->game_dll_osx, "dlls/hl.dylib", sizeof (GameInfo->game_dll_osx));
-	/*// .ico path*/
 	Q_strncpy (GameInfo->iconpath, "game.ico", sizeof (GameInfo->iconpath));
-
-	/*Q_strncpy (GameInfo->sp_entity, "info_player_start", sizeof (GameInfo->sp_entity));
-	Q_strncpy (GameInfo->mp_entity, "info_player_deathmatch", sizeof (GameInfo->mp_entity));*/
 
 	GameInfo->max_edicts = DEFAULT_MAX_EDICTS;	// [FWGS, 01.12.23] default value if not specified
 	GameInfo->max_tents = 500;
@@ -1154,21 +1144,10 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 		// if rodir's gameinfo.txt newer than rwdir's gameinfo.txt, just copy the file
 		else if (roGameInfoTime > rwGameInfoTime)
 			{
-			/*fs_offset_t len;
-			char *afile_ro = (char *)FS_LoadDirectFile (gameinfo_ro, &len);*/
 			file_t *ro, *rw;
 			fs_offset_t ro_size;
 
-			/*if (afile_ro)
-				{
-				Con_DPrintf ("Copy rodir %s to rwdir %s\n", gameinfo_ro, gameinfo_path);
-
-				haveUpdate = true;
-
-				FS_WriteFile (gameinfo_path, afile_ro, len);
-				Mem_Free (afile_ro);
-				}*/
-				// read & write as binary to copy the exact file
+			// read & write as binary to copy the exact file
 			ro = FS_SysOpen (gameinfo_ro, "rb");
 			rw = FS_SysOpen (gameinfo_path, "wb");
 
@@ -1189,7 +1168,6 @@ static qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo)
 
 	// Do not update gameinfo.txt, if it was just copied from rodir's.
 	// If user change liblist.gam update the gameinfo.txt
-	/*if (FS_FileTime (liblist_path, false) > FS_FileTime (gameinfo_path, false))*/
 	if (!haveUpdate && (FS_FileTime (liblist_path, false) > FS_FileTime (gameinfo_path, false)))
 		FS_ConvertGameInfo (gamedir, gameinfo_path, liblist_path);
 
@@ -1417,9 +1395,6 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 
 	fs_ext_path = directpath;
 
-	/* HACKHACK remove absoulte path to valve folder
-	if (!Q_strnicmp (dllname, "..\\valve\\", 9) || !Q_strnicmp (dllname, "../valve/", 9))
-		start += 9;*/
 	// HACKHACK remove relative path to game folder
 	if (!Q_strnicmp (dllname, "..", 2))
 		{
@@ -2579,7 +2554,6 @@ Filename are relative to the xash directory.
 Always appends a 0 byte
 ============
 */
-/*byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)*/
 static byte *FS_LoadFile_ (const char *path, fs_offset_t *filesizeptr, const qboolean gamedironly,
 	const qboolean custom_alloc)
 	{
@@ -2611,20 +2585,11 @@ static byte *FS_LoadFile_ (const char *path, fs_offset_t *filesizeptr, const qbo
 	// custom load file function for compressed files
 	if (search->pfnLoadFile)
 		return search->pfnLoadFile (search, netpath, pack_ind, filesizeptr, pfnAlloc, pfnFree);
-	/*return search->pfnLoadFile (search, netpath, pack_ind, filesizeptr);*/
 
 	file = search->pfnOpenFile (search, netpath, "rb", pack_ind);
-
-	/*if (file)
-		{
-		fs_offset_t filesize = file->real_length;
-		byte *buf;*/
 	if (!file) // TODO: indicate errors
 		return NULL;
 
-	/*buf = (byte *)Mem_Malloc (fs_mempool, filesize + 1);
-	buf[filesize] = '\0';
-	FS_Read (file, buf, filesize);*/
 	filesize = file->real_length;
 	buf = (byte *)pfnAlloc (filesize + 1);
 
@@ -2635,18 +2600,13 @@ static byte *FS_LoadFile_ (const char *path, fs_offset_t *filesizeptr, const qbo
 		return NULL;
 		}
 
-	/*if (filesizeptr)
-		*filesizeptr = filesize;*/
 	buf[filesize] = '\0';
 	FS_Read (file, buf, filesize);
 	FS_Close (file);
 	if (filesizeptr)
 		*filesizeptr = filesize;
 
-	/*return buf;
-	}*/
 	return buf;
-	/*return NULL;*/
 	}
 
 // [FWGS, 01.03.24]

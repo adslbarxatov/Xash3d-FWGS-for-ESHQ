@@ -595,7 +595,6 @@ W_ReadLump [FWGS, 01.03.24]
 reading lump into temp buffer
 ===========
 */
-/*static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, fs_offset_t *lumpsizeptr)*/
 static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, fs_offset_t *lumpsizeptr,
 	void *(*pfnAlloc)(size_t), void (*pfnFree)(void *))
 	{
@@ -621,7 +620,6 @@ static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, f
 		return NULL;
 		}
 
-	/*buf = (byte *)Mem_Malloc (wad->mempool, lump->disksize);*/
 	buf = (byte *)pfnAlloc (lump->disksize);
 	if (unlikely (!buf))
 		{
@@ -636,15 +634,12 @@ static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, f
 	if (size < lump->disksize)
 		{
 		Con_Reportf (S_WARN "W_ReadLump: %s is probably corrupted\n", lump->name);
-		/*FS_Seek (wad->handle, oldpos, SEEK_SET);
-		Mem_Free (buf);*/
 		pfnFree (buf);
 		return NULL;
 		}
 
 	if (lumpsizeptr)
 		*lumpsizeptr = lump->disksize;
-	/*FS_Seek (wad->handle, oldpos, SEEK_SET);*/
 
 	return buf;
 	}

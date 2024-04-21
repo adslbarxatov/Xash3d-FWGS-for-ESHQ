@@ -45,8 +45,6 @@ GNU General Public License for more details.
 // 7. [FWGS, 01.02.24] Gamma fixes
 #define REF_API_VERSION 7
 
-/*#define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP)
-#define TF_FONT		(TF_NOMIPMAP|TF_CLAMP)*/
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP|TF_ALLOW_NEAREST)
 #define TF_IMAGE	(TF_NOMIPMAP|TF_CLAMP)
@@ -232,7 +230,7 @@ enum
 	{
 	REF_GL_CONTEXT_PROFILE_CORE = 0x0001,
 	REF_GL_CONTEXT_PROFILE_COMPATIBILITY = 0x0002,
-	REF_GL_CONTEXT_PROFILE_ES = 0x0004 /**< GLX_CONTEXT_ES2_PROFILE_BIT_EXT */
+	REF_GL_CONTEXT_PROFILE_ES = 0x0004 // < GLX_CONTEXT_ES2_PROFILE_BIT_EXT
 	};
 
 // binary compatible with SDL and EGL_KHR_create_context(0x0007 mask)
@@ -333,9 +331,6 @@ typedef struct ref_api_s
 	void	(*CL_DrawCenterPrint)(void);
 
 	// [FWGS, 01.01.24] entity management
-	/*struct cl_entity_s *(*GetLocalPlayer)(void);
-	struct cl_entity_s *(*GetViewModel)(void);
-	struct cl_entity_s *(*GetEntityByIndex)(int idx);*/
 	struct cl_entity_s *(*R_BeamGetEntity)(int index);
 	struct cl_entity_s *(*CL_GetWaterEntity)(const vec3_t p);
 	qboolean (*CL_AddVisibleEntity)(cl_entity_t *ent, int entityType);
@@ -496,7 +491,6 @@ typedef struct ref_interface_s
 	// [FWGS, 01.01.24]
 	qboolean (*R_AddEntity)(struct cl_entity_s *clent, int type);
 	void (*CL_AddCustomBeam)(cl_entity_t *pEnvBeam);
-	/*void	(*R_ProcessEntData)(qboolean allocate);*/
 	void (*R_ProcessEntData)(qboolean allocate, cl_entity_t *entities, unsigned int max_entities);
 	void (*R_Flush)(unsigned int flush_flags);
 

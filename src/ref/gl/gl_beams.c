@@ -607,7 +607,6 @@ static void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 	if (pnew)
 		{
 		VectorCopy (pbeam->source, pnew->org);
-		/*pnew->die = gpGlobals->time + pbeam->amplitude;*/
 		pnew->die = gp_cl->time + pbeam->amplitude;
 		VectorClear (pnew->vel);
 
@@ -657,7 +656,6 @@ static void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 
 	// [FWGS, 01.01.24]
 	div = 1.0f / pbeam->amplitude;
-	/*fraction = (pbeam->die - gpGlobals->time) * div;*/
 	fraction = (pbeam->die - gp_cl->time) * div;
 
 	vLast = 0.0f;
@@ -692,7 +690,6 @@ static void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 
 		// [FWGS, 01.01.24]
 		if (particles->next != NULL)
-			/*fraction = (particles->die - gpGlobals->time) * div;*/
 			fraction = (particles->die - gp_cl->time) * div;
 		else
 			fraction = 0.0;
@@ -871,12 +868,6 @@ static qboolean R_BeamComputePoint (int beamEnt, vec3_t pt)
 	// [FWGS, 01.01.24] get attachment
 	if (attach > 0)
 		VectorCopy (ent->attachment[attach - 1], pt);
-	/*else if (ent->index == ENGINE_GET_PARM (PARM_PLAYER_INDEX))
-		{
-		vec3_t simorg;
-		gEngfuncs.GetPredictedOrigin (simorg);
-		VectorCopy (simorg, pt);
-		}*/
 	else if (ent->index == (gp_cl->playernum + 1))
 		VectorCopy (gp_cl->simorg, pt);
 	else
@@ -924,7 +915,6 @@ static qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
 		else if (!FBitSet (pbeam->flags, FBEAM_FOREVER))
 			{
 			ClearBits (pbeam->flags, FBEAM_ENDENTITY);
-			/*pbeam->die = gpGlobals->time;*/
 			pbeam->die = gp_cl->time;
 			return false;
 			}
@@ -952,14 +942,12 @@ static void R_BeamDraw (BEAM *pbeam, float frametime)
 	model_t	*model;
 	vec3_t	delta;
 
-	/*model = gEngfuncs.pfnGetModelByIndex (pbeam->modelIndex);*/
 	model = CL_ModelHandle (pbeam->modelIndex);
 	SetBits (pbeam->flags, FBEAM_ISACTIVE);
 
 	if (!model || (model->type != mod_sprite))
 		{
 		pbeam->flags &= ~FBEAM_ISACTIVE; // force to ignore
-		/*pbeam->die = gpGlobals->time;*/
 		pbeam->die = gp_cl->time;
 		return;
 		}
@@ -1018,7 +1006,6 @@ static void R_BeamDraw (BEAM *pbeam, float frametime)
 	if (pbeam->flags & (FBEAM_FADEIN | FBEAM_FADEOUT))
 		{
 		// update life cycle
-		/*pbeam->t = pbeam->freq + (pbeam->die - gpGlobals->time);*/
 		pbeam->t = pbeam->freq + (pbeam->die - gp_cl->time);
 		if (pbeam->t != 0.0f)
 			pbeam->t = 1.0f - pbeam->freq / pbeam->t;
@@ -1070,7 +1057,6 @@ static void R_BeamDraw (BEAM *pbeam, float frametime)
 
 	TriRenderMode (FBitSet (pbeam->flags, FBEAM_SOLID) ? kRenderNormal : kRenderTransAdd);
 
-	/*if (!TriSpriteTexture (model, (int)(pbeam->frame + pbeam->frameRate * gpGlobals->time) % pbeam->frameCount))*/
 	if (!TriSpriteTexture (model, (int)(pbeam->frame + pbeam->frameRate * gp_cl->time) % pbeam->frameCount))
 		{
 		ClearBits (pbeam->flags, FBEAM_ISACTIVE);
@@ -1174,7 +1160,6 @@ passed through this
 static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, float life, float width,
 	float amplitude, float brightness, float speed)
 	{
-	/*model_t *sprite = gEngfuncs.pfnGetModelByIndex (modelIndex);*/
 	model_t *sprite = CL_ModelHandle (modelIndex);
 
 	if (!sprite)
@@ -1190,8 +1175,6 @@ static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, 
 	VectorCopy (end, pbeam->target);
 	VectorSubtract (end, start, pbeam->delta);
 
-	/*pbeam->freq = speed * gpGlobals->time;
-	pbeam->die = life + gpGlobals->time;*/
 	pbeam->freq = speed * gp_cl->time;
 	pbeam->die = life + gp_cl->time;
 	pbeam->amplitude = amplitude;
@@ -1328,7 +1311,6 @@ void CL_DrawBeams (int fTrans, BEAM *active_beams)
 			continue;
 
 		// [FWGS, 01.01.24]
-		/*R_BeamDraw (pBeam, gpGlobals->time - gpGlobals->oldtime);*/
 		R_BeamDraw (pBeam, gp_cl->time - gp_cl->oldtime);
 		}
 

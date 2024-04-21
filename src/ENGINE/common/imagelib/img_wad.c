@@ -367,7 +367,6 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 	byte		*fin, *pal;
 	int			ofs[4], rendermode;
 	int			i, pixels, numcolors;
-	/*int	reflectivity[3] = { 0, 0, 0 };*/
 	uint		reflectivity[3] = { 0, 0, 0 };
 
 	if (filesize < sizeof (mip))

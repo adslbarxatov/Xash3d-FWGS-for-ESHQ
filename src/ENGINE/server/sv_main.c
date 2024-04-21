@@ -1088,7 +1088,6 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&public_server);
 
 	// [FWGS, 01.01.24]
-	/*Cvar_RegisterVariable (&sv_lighting_modulate);*/
 	Cvar_RegisterVariable (&sv_reconnect_limit);
 	Cvar_RegisterVariable (&sv_failuretime);
 	Cvar_RegisterVariable (&sv_unlag);

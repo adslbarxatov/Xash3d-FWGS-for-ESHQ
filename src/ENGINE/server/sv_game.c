@@ -1227,7 +1227,6 @@ static edict_t *SV_AllocPrivateData (edict_t *ent, string_t className)
 		// [FWGS, 01.03.24]
 		if (!SpawnEdict)
 			{
-			/*Con_Printf (S_ERROR "No spawn function for %s\n", STRING (className));*/
 			Con_Printf (S_ERROR "No spawn function for \"%s\"\n", pszClassName);
 
 			// free entity immediately
@@ -4626,7 +4625,6 @@ static qboolean GAME_EXPORT pfnVoice_GetClientListening (int iReceiver, int iSen
 	iReceiver -= 1;
 	iSender -= 1;
 
-	/*if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender > svs.maxclients))*/
 	if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender >= svs.maxclients))
 		return false;
 
@@ -4643,7 +4641,6 @@ static qboolean GAME_EXPORT pfnVoice_SetClientListening (int iReceiver, int iSen
 	iReceiver -= 1;
 	iSender -= 1;
 
-	/*if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender > svs.maxclients))*/
 	if ((iReceiver < 0) || (iReceiver >= svs.maxclients) || (iSender < 0) || (iSender >= svs.maxclients))
 		return false;
 
@@ -4899,7 +4896,6 @@ static enginefuncs_t gEngfuncs =
 		Delta_UnsetFieldByIndex,
 		pfnSetGroupMask,
 		pfnCreateInstancedBaseline,
-		/*pfnCVarDirectSet,*/
 		(void *)Cvar_DirectSet,	// [FWGS, 01.02.24]
 		pfnForceUnmodified,
 		pfnGetPlayerStats,
@@ -5206,7 +5202,6 @@ void SV_SpawnEntities (const char *mapname)
 	ent->v.modelindex = WORLD_INDEX; // world model
 	ent->v.solid = SOLID_BSP;
 	ent->v.movetype = MOVETYPE_PUSH;
-	/*svgame.movevars.fog_settings = 0;*/	// ESHQ: поддержка тумана
 
 	svgame.globals->maxEntities = GI->max_edicts;
 	svgame.globals->mapname = MAKE_STRING (sv.name);

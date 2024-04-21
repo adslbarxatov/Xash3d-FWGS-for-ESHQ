@@ -395,7 +395,6 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 	framerate = FRAMERATE_AVG_FRAC * host.frametime + (1.0f - FRAMERATE_AVG_FRAC) * framerate;
 
 	// [FWGS, 01.03.24]
-	/*ref.dllFuncs.GL_SetRenderMode (font->rendermode);*/
 	CL_SetFontRendermode (font);
 
 	if (framerate > 0.0f)
