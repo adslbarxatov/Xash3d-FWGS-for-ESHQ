@@ -1985,8 +1985,11 @@ static const char *GAME_EXPORT SV_GetLightStyle (int style)
 	}
 
 // ESHQ: поддержка тумана адаптирована для вызова через интерфейс
-void GAME_EXPORT SV_UpdateFogSettings (unsigned int packed_fog)
+unsigned int GAME_EXPORT SV_UpdateFogSettings (unsigned int packed_fog)
 	{
+	if (packed_fog == 0x02)
+		return svgame.movevars.fog_settings;
+
 	svgame.movevars.fog_settings = packed_fog;
 	host.movevars_changed = true; // force to transmit
 	}

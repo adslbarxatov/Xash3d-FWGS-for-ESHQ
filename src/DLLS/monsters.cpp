@@ -294,7 +294,11 @@ void CBaseMonster::Look (int iDistance)
 		{
 		CBaseEntity* pList[100];
 
-		Vector delta = Vector (iDistance, iDistance, iDistance);
+		// ESHQ: применение эффекта тумана к дальности видимости для врагов
+		float mult = 1.0f - (GET_FOG & 0xFF) / 255.0f;
+		mult = 128.0f + (float)(iDistance * pow ((double)mult, 1.75));
+
+		Vector delta = Vector (mult, mult, mult);
 
 		// Find only monsters/clients in box, NOT limited to PVS
 		int count = UTIL_EntitiesInBox (pList, 100, pev->origin - delta, pev->origin + delta, FL_CLIENT | FL_MONSTER);
@@ -302,9 +306,9 @@ void CBaseMonster::Look (int iDistance)
 			{
 			pSightEnt = pList[i];
 			// !!!temporarily only considering other monsters and clients, don't see prisoners
-			if (pSightEnt != this &&
+			if ((pSightEnt != this) &&
 				!FBitSet (pSightEnt->pev->spawnflags, SF_MONSTER_PRISONER) &&
-				pSightEnt->pev->health > 0)
+				(pSightEnt->pev->health > 0))
 				{
 				// the looker will want to consider this entity
 				// don't check anything else about an entity that can't be seen, or an entity that you don't care about.

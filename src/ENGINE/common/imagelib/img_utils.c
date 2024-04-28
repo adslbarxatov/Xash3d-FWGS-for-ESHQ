@@ -377,7 +377,7 @@ void Image_CheckPaletteQ1 (void)
 	{
 	rgbdata_t *pic = FS_LoadImage (DEFAULT_INTERNAL_PALETTE, NULL, 0);
 
-	if (pic && pic->size == 1024)
+	if (pic && (pic->size == 1024))
 		{
 		Image_ConvertPalTo24bit (pic);
 		if (Image_ComparePalette (pic->palette) == PAL_CUSTOM)

@@ -124,7 +124,7 @@ static void UI_Controls_GetKeyBindings (const char* command, int* twoKeys)
 		}
 
 	// swap keys if needed
-	if (twoKeys[0] != -1 && twoKeys[1] != -1)
+	if ((twoKeys[0] != -1) && (twoKeys[1] != -1))
 		{
 		int tempKey = twoKeys[1];
 		twoKeys[1] = twoKeys[0];
@@ -158,7 +158,8 @@ static void UI_Controls_ParseKeysList (void)
 
 	if (!afile)
 		{
-		for (; i < MAX_KEYS; i++) uiControls.keysDescriptionPtr[i] = NULL;
+		for (; i < MAX_KEYS; i++)
+			uiControls.keysDescriptionPtr[i] = NULL;
 		uiControls.keysList.itemNames = (const char**)uiControls.keysDescriptionPtr;
 
 		Con_Printf ("UI_Parse_KeysList: kb_act.lst not found\n");
@@ -209,14 +210,17 @@ static void UI_Controls_ParseKeysList (void)
 			// HACKHACK this color should be get from kb_keys.lst
 			if (!strnicmp (uiControls.firstKey[i], "MOUSE", 5))
 				sprintf (str, "^5%s^7", uiControls.firstKey[i]);	// cyan
-			else sprintf (str, "^3%s^7", uiControls.firstKey[i]);	// yellow
+			else
+				sprintf (str, "^3%s^7", uiControls.firstKey[i]);	// yellow
+
 			StringConcat (uiControls.keysDescription[i], str, KEY1_LENGTH);
 			StringConcat (uiControls.keysDescription[i], uiEmptyString, KEY1_LENGTH);
 
 			// HACKHACK this color should be get from kb_keys.lst
 			if (!strnicmp (uiControls.secondKey[i], "MOUSE", 5))
 				sprintf (str, "^5%s^7", uiControls.secondKey[i]);// cyan
-			else sprintf (str, "^3%s^7", uiControls.secondKey[i]);	// yellow
+			else
+				sprintf (str, "^3%s^7", uiControls.secondKey[i]);	// yellow
 
 			StringConcat (uiControls.keysDescription[i], str, KEY2_LENGTH);
 			StringConcat (uiControls.keysDescription[i], uiEmptyString, KEY2_LENGTH);
@@ -227,13 +231,14 @@ static void UI_Controls_ParseKeysList (void)
 
 	FREE_FILE (afile);
 
-	for (; i < MAX_KEYS; i++) uiControls.keysDescriptionPtr[i] = NULL;
+	for (; i < MAX_KEYS; i++)
+		uiControls.keysDescriptionPtr[i] = NULL;
 	uiControls.keysList.itemNames = (const char**)uiControls.keysDescriptionPtr;
 	}
 
 static void UI_PromptDialog (void)
 	{
-	// toggle main menu between active\inactive, show\hide quit dialog
+	// toggle main menu between active / inactive, show / hide quit dialog
 	uiControls.defaults.generic.flags ^= QMF_INACTIVE;
 	uiControls.advanced.generic.flags ^= QMF_INACTIVE;
 	uiControls.done.generic.flags ^= QMF_INACTIVE;
@@ -315,7 +320,7 @@ static const char* UI_Controls_KeyFunc (int key, int down)
 
 	if (uiControls.msgBox1.generic.flags & QMF_HIDDEN)
 		{
-		if (down && key == K_ESCAPE && uiControls.defaults.generic.flags & QMF_INACTIVE)
+		if (down && (key == K_ESCAPE) && uiControls.defaults.generic.flags & QMF_INACTIVE)
 			{
 			UI_ResetToDefaultsDialog ();
 			return uiSoundNull;

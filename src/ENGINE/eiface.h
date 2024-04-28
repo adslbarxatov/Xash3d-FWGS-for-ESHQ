@@ -308,7 +308,7 @@ typedef struct enginefuncs_s
 
 	void	(*pfnWriteAchievementsScript)(byte Mode, int NewLevel);	// ESHQ: добавление поддержки для достижений
 	char	*(*pfnTextMessageGet)(const char *pName);				// ESHQ: поддержка извлечения текста из titles.txt
-	void	(*pfnUpdateFogSettings)(unsigned int packed_fog);		// ESHQ: поддержка тумана
+	unsigned int	(*pfnUpdateFogSettings)(unsigned int packed_fog);		// ESHQ: поддержка тумана
 	} enginefuncs_t;
 // ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT. INTERFACE VERSION IS FROZEN AT 138
 

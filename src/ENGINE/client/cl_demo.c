@@ -1544,7 +1544,7 @@ void CL_PlayDemo_f (void)
 	FS_Seek (cls.demofile, demo.header.directory_offset, SEEK_SET);
 	FS_Read (cls.demofile, &demo.directory.numentries, sizeof (int));
 
-	if (demo.directory.numentries < 1 || demo.directory.numentries > 1024)
+	if ((demo.directory.numentries < 1) || (demo.directory.numentries > 1024))
 		{
 		Con_Printf (S_ERROR "demo had bogus # of directory entries: %i\n", demo.directory.numentries);
 		CL_DemoAborted ();

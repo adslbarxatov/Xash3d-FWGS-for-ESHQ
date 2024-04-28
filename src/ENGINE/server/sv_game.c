@@ -4920,7 +4920,7 @@ static enginefuncs_t gEngfuncs =
 		pfnPEntityOfEntIndexAllEntities,
 		FS_WriteAchievementsScript,		// ESHQ: поддержка скриптов достижений
 		CL_TextMessageGet,				// ESHQ: поддержка текста из titles.txt
-		SV_UpdateFogSettings,			// ESHQ: поддержка скриптов достижений
+		SV_UpdateFogSettings,			// ESHQ: поддержка тумана
 	};
 
 /*

@@ -83,7 +83,7 @@ typedef struct server_physics_api_s
 	void		(*Con_NPrintf)(int pos, const char *fmt, ...);
 	void		(*Con_NXPrintf)(struct con_nprint_s *info, const char *fmt, ...);
 	const char *(*pfnGetLightStyle)(int style); // read custom appreance for selected lightstyle
-	void		(*pfnUpdateFogSettings)(unsigned int packed_fog);
+	unsigned int	(*pfnUpdateFogSettings)(unsigned int packed_fog);
 	char **(*pfnGetFilesList)(const char *pattern, int *numFiles, int gamedironly);
 	struct msurface_s *(*pfnTraceSurface)(edict_t *pTextureEntity, const float *v1, const float *v2);
 	const byte *(*pfnGetTextureData)(unsigned int texnum);
