@@ -268,6 +268,8 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "MM ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_barriers"))
 		Q_strncat (cmdLine, "BT ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_fog"))
+		Q_strncat (cmdLine, "FC ", MAX_QPATH);
 
 	else if (!rebuild)
 		return;
@@ -1123,7 +1125,7 @@ void SV_InitHostCommands (void)
 				"Sets the gravity multiplier (x * 10%) for the next map (coeff, 1 - 20)");
 
 			Cmd_AddRestrictedCommand ("esrm_button", SV_ESRM_Command,
-				"Disables / enables the button mode for the next map (flag, 0 / 1)");
+				"Sets the button mode for the next map (0 = none, 1 = one button, 2 = two buttons)");
 			Cmd_AddRestrictedCommand ("esrm_sections", SV_ESRM_Command,
 				"Sets types of map sections for the next map (0 = all, 1 = only under sky, 2 = only inside)");
 			Cmd_AddRestrictedCommand ("esrm_two_floors", SV_ESRM_Command,
@@ -1136,6 +1138,8 @@ void SV_InitHostCommands (void)
 				"Disables / enables monster makers for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_barriers", SV_ESRM_Command,
 				"Sets types of barriers between map sections for the next map (0 = glass, 1 = fabric, 2 = both)");
+			Cmd_AddRestrictedCommand ("esrm_fog", SV_ESRM_Command,
+				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 0 - 10)");
 
 			Cmd_AddRestrictedCommand ("esrm_enemies_list", SV_ESRM_Command,
 				"Enumerates the allowed enemies (the line of letters for [a]ssassins, [b]ullchickens, "
