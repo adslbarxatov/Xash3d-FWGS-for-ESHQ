@@ -136,12 +136,14 @@ void S_StreamSetPause (int pause)
 
 /*
 =================
-S_StreamGetCurrentState
+S_StreamGetCurrentState [FWGS, 09.05.24]
 
 save\restore code
 =================
 */
-qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *position)
+/*qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *position)*/
+qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack,
+	size_t loopTrackSize, int *position)
 	{
 	if (!s_bgTrack.stream)
 		return false; // not active
@@ -149,15 +151,25 @@ qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *posi
 	if (currentTrack)
 		{
 		if (s_bgTrack.current[0])
-			Q_strncpy (currentTrack, s_bgTrack.current, MAX_STRING);
-		else Q_strncpy (currentTrack, "*", MAX_STRING); // no track
+			Q_strncpy (currentTrack, s_bgTrack.current, currentTrackSize);
+		else
+			Q_strncpy (currentTrack, "*", currentTrackSize); // no track
+
+			/*Q_strncpy (currentTrack, s_bgTrack.current, MAX_STRING);
+		else
+			Q_strncpy (currentTrack, "*", MAX_STRING); // no track*/
 		}
 
 	if (loopTrack)
 		{
 		if (s_bgTrack.loopName[0])
-			Q_strncpy (loopTrack, s_bgTrack.loopName, MAX_STRING);
-		else Q_strncpy (loopTrack, "*", MAX_STRING); // no track
+			Q_strncpy (loopTrack, s_bgTrack.loopName, loopTrackSize);
+		else
+			Q_strncpy (loopTrack, "*", loopTrackSize); // no track
+
+			/*Q_strncpy (loopTrack, s_bgTrack.loopName, MAX_STRING);
+		else
+			Q_strncpy (loopTrack, "*", MAX_STRING); // no track*/
 		}
 
 	if (position)

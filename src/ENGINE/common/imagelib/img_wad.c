@@ -357,7 +357,7 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 /*
 =============
-Image_LoadMIP [FWGS, 01.03.24]
+Image_LoadMIP [FWGS, 01.05.24]
 =============
 */
 qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -382,7 +382,7 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 	memcpy (ofs, mip.offsets, sizeof (ofs));
 	pixels = image.width * image.height;
 
-	if (image.hint != IL_HINT_Q1 && filesize >= (int)sizeof (mip) + ((pixels * 85) >> 6) + sizeof (short) + 768)
+	if ((image.hint != IL_HINT_Q1) && (filesize >= (int)sizeof (mip) + ((pixels * 85) >> 6) + sizeof (short) + 768))
 		{
 		// half-life 1.0.0.1 mip version with palette
 		fin = (byte *)buffer + mip.offsets[0];
@@ -400,7 +400,8 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		if (Q_strrchr (name, '{'))
 			{
 			// NOTE: decals with 'blue base' can be interpret as colored decals
-			if (!Image_CheckFlag (IL_LOAD_DECAL) || (pal[765] == 0 && pal[766] == 0 && pal[767] == 255))
+			/*if (!Image_CheckFlag (IL_LOAD_DECAL) || (pal[765] == 0 && pal[766] == 0 && pal[767] == 255))*/
+			if (!Image_CheckFlag (IL_LOAD_DECAL) || (pal && (pal[765] == 0) && (pal[766] == 0) && (pal[767] == 255)))
 				{
 				SetBits (image.flags, IMAGE_ONEBIT_ALPHA);
 				rendermode = LUMP_MASKED;
@@ -424,7 +425,7 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 			pal_type = Image_ComparePalette (pal);
 
 			// check for luma pixels (but ignore liquid textures because they have no lightmap)
-			if (mip.name[0] != '*' && mip.name[0] != '!' && pal_type == PAL_QUAKE1)
+			if ((mip.name[0] != '*') && (mip.name[0] != '!') && (pal_type == PAL_QUAKE1))
 				{
 				for (i = 0; i < image.width * image.height; i++)
 					{
@@ -458,10 +459,10 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 			{
 			for (i = 0; i < image.width * image.height; i++)
 				{
-				if (fin[i] > 224 && fin[i] != 255)
+				if ((fin[i] > 224) && (fin[i] != 255))
 					{
 					// don't apply luma to water surfaces because they have no lightmap
-					if (mip.name[0] != '*' && mip.name[0] != '!')
+					if ((mip.name[0] != '*') && (mip.name[0] != '!'))
 						image.flags |= IMAGE_HAS_LUMA;
 					break;
 					}
@@ -498,9 +499,10 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	// check for half-life water texture
-	if (hl_texture && (mip.name[0] == '!' || !Q_strnicmp (mip.name, "water", 5)))
+	/*if (hl_texture && (mip.name[0] == '!' || !Q_strnicmp (mip.name, "water", 5)))*/
+	if (pal != NULL)
 		{
-		// grab the fog color
+		/*// grab the fog color
 		image.fogParams[0] = pal[3 * 3 + 0];
 		image.fogParams[1] = pal[3 * 3 + 1];
 		image.fogParams[2] = pal[3 * 3 + 2];
@@ -513,22 +515,50 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		// grab the decal color
 		image.fogParams[0] = pal[255 * 3 + 0];
 		image.fogParams[1] = pal[255 * 3 + 1];
-		image.fogParams[2] = pal[255 * 3 + 2];
+		image.fogParams[2] = pal[255 * 3 + 2];*/
+		if (hl_texture && ((mip.name[0] == '!') || !Q_strnicmp (mip.name, "water", 5)))
+			{
+			// grab the fog color
+			image.fogParams[0] = pal[3 * 3 + 0];
+			image.fogParams[1] = pal[3 * 3 + 1];
+			image.fogParams[2] = pal[3 * 3 + 2];
 
-		// calc the decal reflectivity
+		/*// calc the decal reflectivity
 		image.fogParams[3] = VectorAvg (image.fogParams);
 		}
 	else if (pal != NULL)
 		{
 		// calc texture reflectivity
-		for (i = 0; i < 256; i++)
-			{
-			reflectivity[0] += pal[i * 3 + 0];
-			reflectivity[1] += pal[i * 3 + 1];
-			reflectivity[2] += pal[i * 3 + 2];
+		for (i = 0; i < 256; i++)*/
+		// grab the fog density
+			image.fogParams[3] = pal[4 * 3 + 0];
 			}
+		else if (hl_texture && (rendermode == LUMP_GRADIENT))
+			{
+			/*reflectivity[0] += pal[i * 3 + 0];
+			reflectivity[1] += pal[i * 3 + 1];
+			reflectivity[2] += pal[i * 3 + 2];*/
+			// grab the decal color
+			image.fogParams[0] = pal[255 * 3 + 0];
+			image.fogParams[1] = pal[255 * 3 + 1];
+			image.fogParams[2] = pal[255 * 3 + 2];
 
-		VectorDivide (reflectivity, 256, image.fogParams);
+			// calc the decal reflectivity
+			image.fogParams[3] = VectorAvg (image.fogParams);
+			}
+		else
+			{
+			// calc texture reflectivity
+			for (i = 0; i < 256; i++)
+				{
+				reflectivity[0] += pal[i * 3 + 0];
+				reflectivity[1] += pal[i * 3 + 1];
+				reflectivity[2] += pal[i * 3 + 2];
+				}
+
+			/*VectorDivide (reflectivity, 256, image.fogParams);*/
+			VectorDivide (reflectivity, 256, image.fogParams);
+			}
 		}
 
 	image.type = PF_INDEXED_32;	// 32-bit palete

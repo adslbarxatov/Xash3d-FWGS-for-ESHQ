@@ -36,12 +36,12 @@ typedef byte		rgb_t[3];		// unsigned byte colorpack
 typedef vec_t		matrix3x4[3][4];
 typedef vec_t		matrix4x4[4][4];
 
-// [FWGS, 01.04.23]
-#if XASH_64BIT
+// [FWGS, 01.05.24]
+/*#if XASH_64BIT*/
 	typedef uint32_t	poolhandle_t;
-#else
+/*#else
 	typedef void*		poolhandle_t;
-#endif
+#endif*/
 
 #undef true
 #undef false
@@ -68,11 +68,6 @@ typedef uint64_t longtime_t;
 #define BIT( n )		( 1U << ( n ))
 #define BIT64( n )		( 1ULL << ( n ))	// [FWGS, 01.11.23]
 
-// [FWGS, 01.01.24]
-/*#define GAMMA			( 2.2f )			// Valve Software gamma
-#define INVGAMMA		( 1.0f / 2.2f )		// back to 1.0
-#define TEXGAMMA		( 0.9f )			// compensate dim textures*/
-
 #define SetBits( iBitVector, bits )	((iBitVector) = (iBitVector) | (bits))
 #define ClearBits( iBitVector, bits )	((iBitVector) = (iBitVector) & ~(bits))
 #define FBitSet( iBitVector, bit )	((iBitVector) & (bit))
@@ -89,21 +84,25 @@ typedef uint64_t longtime_t;
 #define IsColorString( p )	( p && *( p ) == '^' && *(( p ) + 1) && *(( p ) + 1) >= '0' && *(( p ) + 1 ) <= '9' )
 #define ColorIndex( c )	((( c ) - '0' ) & 7 )
 
-#if defined(__GNUC__)
+// [FWGS, 01.05.24]
+/*#if defined(__GNUC__)
 	#ifdef __i386__
 		#define EXPORT __attribute__ ((visibility ("default"),force_align_arg_pointer))
-		#define GAME_EXPORT __attribute((force_align_arg_pointer))
+		#define GAME_EXPORT __attribute((force_align_arg_pointer))*/
+#if defined( __GNUC__ )
+	#if defined( __i386__ )
+		#define EXPORT __attribute__(( visibility( "default" ), force_align_arg_pointer ))
+		#define GAME_EXPORT __attribute(( force_align_arg_pointer ))
 	#else
-		#define EXPORT __attribute__ ((visibility ("default")))
+		/*#define EXPORT __attribute__ ((visibility ("default")))*/
+		#define EXPORT __attribute__(( visibility ( "default" )))
 		#define GAME_EXPORT
 	#endif
 
-	#define _format(x) __attribute__((format(printf, x, x+1)))
+	/*#define _format(x) __attribute__((format(printf, x, x+1)))
 	#define NORETURN __attribute__((noreturn))
 	#define NONNULL __attribute__((nonnull))	// [FWGS, 01.11.23]
 	#define ALLOC_CHECK(x) __attribute__((alloc_size(x)))	// [FWGS, 01.01.24]
-	/*#define FORCEINLINE inline __attribute__((always_inline))	// [FWGS, 01.03.24]
-	#define NOINLINE __attribute__((noinline))	// [FWGS, 01.03.24]*/
 
 #elif defined(_MSC_VER)
 	#define EXPORT		__declspec( dllexport )
@@ -111,40 +110,60 @@ typedef uint64_t longtime_t;
 	#define _format(x)
 	#define NORETURN
 	#define NONNULL	// [FWGS, 01.11.23]
-	#define ALLOC_CHECK(x)	// [FWGS, 01.01.24]
-	/*#define FORCEINLINE __forceinline	// [FWGS, 01.03.24]
-	#define NOINLINE __declspec( noinline )	// [FWGS, 01.03.24]*/
+	#define ALLOC_CHECK(x)	// [FWGS, 01.01.24]*/
+
+	#define NORETURN __attribute__(( noreturn ))
+	#define NONNULL __attribute__(( nonnull ))
+	#define _format( x ) __attribute__(( format( printf, x, x + 1 )))
+	#define ALLOC_CHECK( x ) __attribute__(( alloc_size( x )))
+	#define RENAME_SYMBOL( x ) asm( x )
+
 
 #else
-	#define EXPORT
+	/*#define EXPORT*/
+	#if defined( _MSC_VER )
+		#define EXPORT __declspec( dllexport )
+	#else
+		#define EXPORT
+	#endif
+
 	#define GAME_EXPORT
-	#define _format(x)
+	/*#define _format(x)*/
 	#define NORETURN
 	#define NONNULL	// [FWGS, 01.11.23]
-	#define ALLOC_CHECK(x)	// [FWGS, 01.01.24]
-	/*#define FORCEINLINE	// [FWGS, 01.03.24]
-	#define NOINLINE	// [FWGS, 01.03.24]*/
+
+	/*#define ALLOC_CHECK(x)	// [FWGS, 01.01.24]*/
+	#define _format( x )
+	#define ALLOC_CHECK( x )
+	#define RENAME_SYMBOL( x )
 #endif
 
+// [FWGS, 01.05.24]
 #if ( __GNUC__ >= 3 )
-	#define unlikely(x) __builtin_expect(x, 0)
-	#define likely(x)   __builtin_expect(x, 1)
+	/*#define unlikely(x) __builtin_expect(x, 0)
+	#define likely(x)   __builtin_expect(x, 1)*/
+	#define unlikely( x ) __builtin_expect( x, 0 )
+	#define likely( x ) __builtin_expect( x, 1 )
 #elif defined( __has_builtin )
 	#if __has_builtin( __builtin_expect )
-		#define unlikely(x) __builtin_expect(x, 0)
-		#define likely(x)   __builtin_expect(x, 1)
+		/*#define unlikely(x) __builtin_expect(x, 0)
+		#define likely(x)   __builtin_expect(x, 1)*/
+		#define unlikely( x ) __builtin_expect( x, 0 )
+		#define likely( x ) __builtin_expect( x, 1 )
 	#else
-		#define unlikely(x) (x)
-		#define likely(x)   (x)
+		/*#define unlikely(x) (x)
+		#define likely(x)   (x)*/
+		#define unlikely( x ) ( x )
+		#define likely( x ) ( x )
 	#endif
 #else
-	#define unlikely(x) (x)
-	#define likely(x)   (x)
+	/*#define unlikely(x) (x)
+	#define likely(x)   (x)*/
+	#define unlikely( x ) ( x )
+	#define likely( x ) ( x )
 #endif
 
 // [FWGS, 01.01.24]
-/*#if defined( static_assert ) // C11 static_assert
-	#define STATIC_ASSERT static_assert*/
 #if __STDC_VERSION__ >= 202311L || __cplusplus >= 201103L // C23 or C++ static_assert is a keyword
 	#define STATIC_ASSERT_( ignore, x, y ) static_assert( x, y )
 	#define STATIC_ASSERT static_assert
@@ -152,7 +171,6 @@ typedef uint64_t longtime_t;
 	#define STATIC_ASSERT_( ignore, x, y ) _Static_assert( x, y )
 	#define STATIC_ASSERT _Static_assert
 #else
-	/*#define STATIC_ASSERT( x, y ) extern int _static_assert_##__LINE__[( x ) ? 1 : -1]*/
 	#define STATIC_ASSERT_( id, x, y ) extern int id[( x ) ? 1 : -1]
 
 	// need these to correctly expand the line macro
@@ -198,9 +216,9 @@ typedef struct file_s	file_t;		// normal file
 typedef struct stream_s	stream_t;		// sound stream for background music playing
 typedef off_t fs_offset_t;
 #if XASH_WIN32
-typedef int fs_size_t; // return type of _read, _write funcs
+	typedef int fs_size_t; // return type of _read, _write funcs
 #else
-typedef ssize_t fs_size_t;
+	typedef ssize_t fs_size_t;
 #endif
 
 typedef struct dllfunc_s
@@ -234,7 +252,7 @@ typedef void *(*pfnCreateInterface_t)(const char *, int *);
 #endif
 
 #define MAX_OSPATH		260	// max length of a filesystem pathname
-#define CS_SIZE		64	// size of one config string
-#define CS_TIME		16	// size of time string
+#define CS_SIZE			64	// size of one config string
+#define CS_TIME			16	// size of time string
 
 #endif

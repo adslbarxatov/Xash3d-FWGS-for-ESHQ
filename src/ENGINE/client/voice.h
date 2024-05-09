@@ -30,8 +30,10 @@ typedef struct OpusCustomMode OpusCustomMode;
 
 #define VOICE_PCM_CHANNELS 1 // always mono
 
-// never change these parameters when using opuscustom
-#define VOICE_OPUS_CUSTOM_SAMPLERATE SOUND_44k
+// [FWGS, 09.05.24] never change these parameters when using opuscustom
+/*#define VOICE_OPUS_CUSTOM_SAMPLERATE SOUND_44k*/
+#define VOICE_OPUS_CUSTOM_SAMPLERATE 44100
+
 // must follow opus custom requirements
 // also be divisible with MAX_RAW_SAMPLES
 #define VOICE_OPUS_CUSTOM_FRAME_SIZE 1024
@@ -42,50 +44,57 @@ typedef struct OpusCustomMode OpusCustomMode;
 
 typedef struct voice_status_s
 	{
-	qboolean talking_ack;
-	double talking_timeout;
+	qboolean	talking_ack;
+	double		talking_timeout;
 	} voice_status_t;
 
 typedef struct voice_state_s
 	{
-	string codec;
-	int quality;
+	string		codec;
+	int			quality;
 
-	qboolean initialized;
-	qboolean is_recording;
-	qboolean device_opened;	// [FWGS, 01.02.24]
-	double start_time;
+	qboolean	initialized;
+	qboolean	is_recording;
+	qboolean	device_opened;	// [FWGS, 01.02.24]
+	double		start_time;
 
-	voice_status_t local;
-	voice_status_t players_status[MAX_CLIENTS];
+	voice_status_t	local;
+	voice_status_t	players_status[MAX_CLIENTS];
 
 	// opus stuff
-	OpusCustomMode *custom_mode;
-	OpusCustomEncoder *encoder;
-	OpusCustomDecoder *decoder;
+	OpusCustomMode		*custom_mode;
+	OpusCustomEncoder	*encoder;
+
+	// [FWGS, 01.05.24]
+	/*OpusCustomDecoder *decoder;*/
+	OpusCustomDecoder	*decoders[MAX_CLIENTS];
 
 	// audio info
-	uint width;
-	uint samplerate;
-	uint frame_size; // in samples
+	uint	width;
+	uint	samplerate;
+	uint	frame_size; // in samples
 
 	// buffers
-	byte input_buffer[MAX_RAW_SAMPLES];
-	byte output_buffer[MAX_RAW_SAMPLES];
-	byte decompress_buffer[MAX_RAW_SAMPLES];
-	fs_offset_t input_buffer_pos; // in bytes
+	byte	input_buffer[MAX_RAW_SAMPLES];
+
+	// [FWGS, 01.05.24]
+	/*byte output_buffer[MAX_RAW_SAMPLES];*/
+	byte	compress_buffer[MAX_RAW_SAMPLES];
+
+	byte		decompress_buffer[MAX_RAW_SAMPLES];
+	fs_offset_t	input_buffer_pos; // in bytes
 
 	// input from file
-	wavdata_t *input_file;
-	fs_offset_t input_file_pos; // in bytes
+	wavdata_t	*input_file;
+	fs_offset_t	input_file_pos; // in bytes
 
 	// automatic gain control
 	struct
 		{
-		int block_size;
-		float current_gain;
-		float next_gain;
-		float gain_multiplier;
+		int		block_size;
+		float	current_gain;
+		float	next_gain;
+		float	gain_multiplier;
 		} autogain;
 	} voice_state_t;
 

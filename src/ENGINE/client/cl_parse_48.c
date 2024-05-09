@@ -185,6 +185,7 @@ static void CL_LegacyPrecacheSound (sizebuf_t *msg)
 	cl.sound_index[soundIndex] = S_RegisterSound (cl.sound_precache[soundIndex]);
 	}
 
+// [FWGS, 09.05.24]
 static void CL_LegacyPrecacheModel (sizebuf_t *msg)
 	{
 	int		modelIndex;
@@ -195,7 +196,8 @@ static void CL_LegacyPrecacheModel (sizebuf_t *msg)
 	if ((modelIndex < 0) || (modelIndex >= MAX_MODELS))
 		Host_Error ("CL_PrecacheModel: bad modelindex %i\n", modelIndex);
 
-	Q_strncpy (model, MSG_ReadString (msg), MAX_STRING);
+	/*Q_strncpy (model, MSG_ReadString (msg), MAX_STRING);*/
+	Q_strncpy (model, MSG_ReadString (msg), sizeof (model));
 
 	// when we loading map all resources is precached sequentially
 	if ((modelIndex == 1) && !cl.worldmodel)
@@ -234,7 +236,7 @@ static void CL_LegacyPrecacheEvent (sizebuf_t *msg)
 #endif
 /*
 ==============
-CL_ParseResourceList
+CL_ParseResourceList [FWGS, 09.05.24]
 ==============
 */
 static void CL_LegacyParseResourceList (sizebuf_t *msg)
@@ -256,13 +258,13 @@ static void CL_LegacyParseResourceList (sizebuf_t *msg)
 	for (i = 0; i < reslist.rescount; i++)
 		{
 		reslist.restype[i] = MSG_ReadWord (msg);
-		Q_strncpy (reslist.resnames[i], MSG_ReadString (msg), MAX_QPATH);
+		/*Q_strncpy (reslist.resnames[i], MSG_ReadString (msg), MAX_QPATH);*/
+		Q_strncpy (reslist.resnames[i], MSG_ReadString (msg), sizeof (reslist.resnames[i]));
 		}
 
 	if (CL_IsPlaybackDemo ())
 		return;
 
-	// [FWGS, 01.11.23]
 	if (!cl_allow_download.value)
 		{
 		Con_DPrintf ("Refusing new resource, cl_allow_download set to 0\n");
@@ -294,8 +296,9 @@ static void CL_LegacyParseResourceList (sizebuf_t *msg)
 			path = reslist.resnames[i];
 			}
 
+		// already exists
 		if (FS_FileExists (path, false))
-			continue;	// already exists
+			continue;
 
 		host.downloadcount++;
 		HTTP_AddDownload (path, -1, true);
@@ -318,9 +321,9 @@ dispatch messages
 void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 	{
 	size_t		bufStart, playerbytes;
-	int		cmd, param1, param2;
-	int		old_background;
-	const char *s;
+	int			cmd, param1, param2;
+	int			old_background;
+	const char	*s;
 
 	cls.starting_count = MSG_GetNumBytesRead (msg);	// updates each frame
 	CL_Parse_Debug (true);			// begin parsing

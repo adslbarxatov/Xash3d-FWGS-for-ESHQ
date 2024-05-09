@@ -528,122 +528,121 @@ typedef struct
 	qboolean use_text_api;
 	} gameui_static_t;
 
+// [FWGS, 09.05.24]
 typedef struct
 	{
-	connstate_t	state;
+	connstate_t		state;
 	qboolean		initialized;
-	qboolean		changelevel;		// during changelevel
+	qboolean		changelevel;	// during changelevel
 	qboolean		changedemo;		// during changedemo
-	double		timestart;		// just for profiling
+	double			timestart;		// just for profiling
 
 	// screen rendering information
-	float		disable_screen;		// showing loading plaque between levels
+	float			disable_screen;	// showing loading plaque between levels
+	
 	// or changing rendering dlls
 	// if time gets > 30 seconds ahead, break it
-	qboolean		draw_changelevel;		// draw changelevel image 'Loading...'
-
+	qboolean		draw_changelevel;	// draw changelevel image 'Loading...'
 	keydest_t		key_dest;
+	poolhandle_t	mempool;		// client premamnent pool: edicts etc
 
-	poolhandle_t      mempool;			// client premamnent pool: edicts etc
+	/*netadr_t		hltv_listen_address;*/
 
-	netadr_t		hltv_listen_address;
-
-	int		signon;			// 0 to SIGNONS, for the signon sequence.
-	int		quakePort;		// a 16 bit value that allows quake servers
+	int				signon;			// 0 to SIGNONS, for the signon sequence
+	/*int				quakePort;		// a 16 bit value that allows quake servers
 	// to work around address translating routers
-	// g-cont. this port allow many copies of engine in multiplayer game
+	// g-cont. this port allow many copies of engine in multiplayer game*/
+	
 	// connection information
-
-	char		servername[MAX_QPATH];	// name of server from original connect
-	double		connect_time;		// for connection retransmits
-	int		max_fragment_size;		// we needs to test a real network bandwidth
-	int		connect_retry;		// how many times we send a connect packet to the server
-	qboolean		spectator;		// not a real player, just spectator
+	char			servername[MAX_QPATH];	// name of server from original connect
+	double			connect_time;			// for connection retransmits
+	int				max_fragment_size;		// we needs to test a real network bandwidth
+	int				connect_retry;			// how many times we send a connect packet to the server
+	qboolean		spectator;				// not a real player, just spectator
 
 	local_state_t	spectator_state;		// init as client startup
 
-	char		userinfo[MAX_INFO_STRING];
-	char		physinfo[MAX_INFO_STRING];	// read-only
+	char			userinfo[MAX_INFO_STRING];
+	char			physinfo[MAX_INFO_STRING];	// read-only
 
-	sizebuf_t		datagram;			// unreliable stuff. gets sent in CL_Move about cl_cmdrate times per second.
-	byte		datagram_buf[MAX_DATAGRAM];
+	sizebuf_t		datagram;			// unreliable stuff. gets sent in CL_Move about cl_cmdrate times per second
+	byte			datagram_buf[MAX_DATAGRAM];
 
 	netchan_t		netchan;
-	int		challenge;		// from the server to use for connecting
+	int				challenge;			// from the server to use for connecting
 
-	float		packet_loss;
-	double		packet_loss_recalc_time;
-	int		starting_count;		// message num readed bits
+	float			packet_loss;
+	double			packet_loss_recalc_time;
+	int				starting_count;		// message num readed bits
 
-	float		nextcmdtime;		// when can we send the next command packet?
-	int		lastoutgoingcommand;	// sequence number of last outgoing command
-	int		lastupdate_sequence;	// prediction stuff
+	float			nextcmdtime;		// when can we send the next command packet?
+	int				lastoutgoingcommand;	// sequence number of last outgoing command
+	int				lastupdate_sequence;	// prediction stuff
 
-	int		td_lastframe;		// to meter out one message a frame
-	int		td_startframe;		// host_framecount at start
-	double		td_starttime;		// realtime at second frame of timedemo
-	int		forcetrack;		// -1 = use normal cd track
+	int				td_lastframe;		// to meter out one message a frame
+	int				td_startframe;		// host_framecount at start
+	double			td_starttime;		// realtime at second frame of timedemo
+	int				forcetrack;			// -1 = use normal cd track
 
 	// game images
-	int		pauseIcon;		// draw 'paused' when game in-pause
-	int		tileImage;		// for draw any areas not covered by the refresh
-	int		loadingBar;		// 'loading' progress bar
+	int				pauseIcon;			// draw 'paused' when game in-pause
+	int				tileImage;			// for draw any areas not covered by the refresh
+	int				loadingBar;			// 'loading' progress bar
 	cl_font_t		creditsFont;		// shared creditsfont
 
-	float		latency;			// rolling average of frame latencey (receivedtime - senttime) values.
+	float			latency;			// rolling average of frame latencey (receivedtime - senttime) values.
 
-	int		num_client_entities;	// cl.maxclients * CL_UPDATE_BACKUP * MAX_PACKET_ENTITIES
-	int		next_client_entities;	// next client_entity to use
-	entity_state_t *packet_entities;		// [num_client_entities]
+	int				num_client_entities;	// cl.maxclients * CL_UPDATE_BACKUP * MAX_PACKET_ENTITIES
+	int				next_client_entities;	// next client_entity to use
+	entity_state_t	*packet_entities;		// [num_client_entities]
 
 	predicted_player_t	predicted_players[MAX_CLIENTS];
-	double		correction_time;
+	double			correction_time;
 
 	scrshot_t		scrshot_request;		// request for screen shot
-	scrshot_t		scrshot_action;		// in-action
-	const float *envshot_vieworg;		// envshot position
-	int		envshot_viewsize;		// override cvar
+	scrshot_t		scrshot_action;			// in-action
+	const float		*envshot_vieworg;		// envshot position
+	int				envshot_viewsize;		// override cvar
 	qboolean		envshot_disable_vis;	// disable VIS on server while makes an envshots
-	string		shotname;
+	string			shotname;
 
 	// download info
 	incomingtransfer_t	dl;
 
 	// demo loop control
-	int		demonum;			// -1 = don't play demos
-	int		olddemonum;		// restore playing
-	char		demos[MAX_DEMOS][MAX_QPATH];	// when not playing
+	int				demonum;						// -1 = don't play demos
+	int				olddemonum;						// restore playing
+	char			demos[MAX_DEMOS][MAX_QPATH];	// when not playing
 	qboolean		demos_pending;
 
 	// movie playlist
-	int		movienum;
-	string		movies[MAX_MOVIES];
+	int				movienum;
+	string			movies[MAX_MOVIES];
 
 	// demo recording info must be here, so it isn't clearing on level change
-	qboolean	demorecording;
-	int			demoplayback;
-	qboolean	demowaiting;		// don't record until a non-delta message is received
-	qboolean	timedemo;
-	string		demoname;			// for demo looping
-	double		demotime;			// recording time
-	qboolean	set_lastdemo;		// store name of last played demo into the cvar
+	qboolean		demorecording;
+	int				demoplayback;
+	qboolean		demowaiting;		// don't record until a non-delta message is received
+	qboolean		timedemo;
+	string			demoname;			// for demo looping
+	double			demotime;			// recording time
+	qboolean		set_lastdemo;		// store name of last played demo into the cvar
 
-	file_t		*demofile;
-	file_t		*demoheader;		// contain demo startup info in case we record a demo on this level
-	qboolean	internetservers_wait;	// internetservers is waiting for dns request
+	file_t			*demofile;
+	file_t			*demoheader;			// contain demo startup info in case we record a demo on this level
+	qboolean		internetservers_wait;	// internetservers is waiting for dns request
 	
-	// [FWGS, 01.11.23]
-	qboolean	internetservers_pending; // if true, clean master server pings
-	uint32_t	internetservers_key;       // compare key to validate master server reply
-	char		internetservers_query[512]; // cached query
-	uint32_t	internetservers_query_len;
+	qboolean		internetservers_pending;	// if true, clean master server pings
+	uint32_t		internetservers_key;		// compare key to validate master server reply
+	char			internetservers_query[512];	// cached query
+	uint32_t		internetservers_query_len;
 
 	// legacy mode support
-	qboolean legacymode;				// one-way 48 protocol compatibility
-	netadr_t legacyserver;
-	int extensions;
+	qboolean		legacymode;		// one-way 48 protocol compatibility
+	netadr_t		legacyserver;
+	int				extensions;
 
-	netadr_t serveradr;
+	netadr_t		serveradr;
 	} client_static_t;
 
 #ifdef __cplusplus

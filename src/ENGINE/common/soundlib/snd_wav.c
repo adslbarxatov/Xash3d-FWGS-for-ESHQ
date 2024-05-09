@@ -23,6 +23,12 @@ static const byte *iff_end;
 static const byte *iff_lastChunk;
 static int iff_chunkLen;
 
+// [FWGS, 01.05.24]
+static int IsFourCC (const byte *ptr, const byte *fourcc)
+	{
+	return 0 == memcmp (ptr, fourcc, 4);
+	}
+
 /*
 =================
 GetLittleShort
@@ -59,7 +65,7 @@ static int GetLittleLong (void)
 
 /*
 =================
-FindNextChunk [FWGS, 01.11.23]
+FindNextChunk [FWGS, 01.05.24]
 =================
 */
 static void FindNextChunk (const char *filename, const char *name)
@@ -84,21 +90,37 @@ static void FindNextChunk (const char *filename, const char *name)
 			return;
 			}
 
-		//
 		if (iff_chunkLen > remaining)
 			{
-			Con_DPrintf ("%s: '%s' truncated by %i bytes\n", __func__, filename, iff_chunkLen - remaining);
+			/*Con_DPrintf ("%s: '%s' truncated by %i bytes\n", __func__, filename, iff_chunkLen - remaining);
+			*/
+			// Only print this warning if selected chunk is truncated.
+			//
+			// Otherwise this warning becomes misleading because some idiot programs like
+			// CoolEdit (i.e. Adobe Audition) don't always respect pad byte. The file isn't
+			// actually truncated, it just can't be reliably parsed as a whole
+			if (IsFourCC (iff_lastChunk, "RIFF")
+				|| IsFourCC (iff_lastChunk, "fmt ")
+				|| IsFourCC (iff_lastChunk, "cue ")
+				|| IsFourCC (iff_lastChunk, "LIST")
+				|| IsFourCC (iff_lastChunk, "data"))
+				{
+				Con_DPrintf ("%s: '%s' truncated by %i bytes\n", __func__, filename, iff_chunkLen - remaining);
+				}
+
 			iff_chunkLen = remaining;
 			}
-		//
 		
 		remaining -= iff_chunkLen;
 
 		iff_dataPtr -= 8;
 		iff_lastChunk = iff_dataPtr + 8 + iff_chunkLen;
+		/*if ((iff_chunkLen & 1) && remaining)*/
 		if ((iff_chunkLen & 1) && remaining)
 			iff_lastChunk++;
-		if (!Q_strncmp (iff_dataPtr, name, 4))
+
+		/*if (!Q_strncmp (iff_dataPtr, name, 4))*/
+		if (IsFourCC (iff_dataPtr, name))
 			return;
 		}
 	}
@@ -116,7 +138,7 @@ static void FindChunk (const char *filename, const char *name)
 
 /*
 ============
-StreamFindNextChunk
+StreamFindNextChunk [FWGS, 01.05.24]
 ============
 */
 static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_chunk)
@@ -132,15 +154,21 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 			return false;	// didn't find the chunk
 
 		FS_Seek (file, 4, SEEK_CUR);
-		FS_Read (file, &iff_chunk_len, sizeof (iff_chunk_len));
+		/*FS_Read (file, &iff_chunk_len, sizeof (iff_chunk_len));*/
+		if (FS_Read (file, &iff_chunk_len, sizeof (iff_chunk_len)) != sizeof (iff_chunk_len))
+			return false;
+
 		if (iff_chunk_len < 0)
 			return false;	// didn't find the chunk
 
 		FS_Seek (file, -8, SEEK_CUR);
 		*last_chunk = FS_Tell (file) + 8 + ((iff_chunk_len + 1) & ~1);
-		FS_Read (file, chunkName, 4);
+		/*FS_Read (file, chunkName, 4);*/
+		if (FS_Read (file, chunkName, sizeof (chunkName)) != sizeof (chunkName))
+			return false;
 
-		if (!Q_strncmp (chunkName, name, 4))
+		/*if (!Q_strncmp (chunkName, name, 4))*/
+		if (IsFourCC (chunkName, name))
 			return true;
 		}
 
@@ -149,7 +177,7 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 
 /*
 =============
-Sound_LoadWAV [FWGS, 01.11.23]
+Sound_LoadWAV [FWGS, 09.05.24]
 =============
 */
 qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -166,7 +194,8 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// find "RIFF" chunk
 	FindChunk (name, "RIFF");
 
-	if (!(iff_dataPtr && !Q_strncmp ((const char *)iff_dataPtr + 8, "WAVE", 4)))
+	/*if (!(iff_dataPtr && !Q_strncmp ((const char *)iff_dataPtr + 8, "WAVE", 4)))*/
+	if (!iff_dataPtr || !IsFourCC (iff_dataPtr + 8, "WAVE"))
 		{
 		Con_DPrintf (S_ERROR "Sound_LoadWAV: %s missing 'RIFF/WAVE' chunks\n", name);
 		return false;
@@ -200,7 +229,7 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	sound.channels = GetLittleShort ();
-	if (sound.channels != 1 && sound.channels != 2)
+	if ((sound.channels != 1) && (sound.channels != 2))
 		{
 		Con_DPrintf (S_ERROR "Sound_LoadWAV: only mono and stereo WAV files supported (%s)\n", name);
 		return false;
@@ -210,9 +239,10 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	iff_dataPtr += 6;
 
 	sound.width = GetLittleShort () / 8;
-	if (mpeg_stream) sound.width = 2; // mp3 always 16bit
+	if (mpeg_stream)
+		sound.width = 2; // mp3 always 16bit
 
-	if (sound.width != 1 && sound.width != 2)
+	if ((sound.width != 1) && (sound.width != 2))
 		{
 		Con_DPrintf (S_ERROR "Sound_LoadWAV: only 8 and 16 bit WAV files supported (%s)\n", name);
 		return false;
@@ -225,11 +255,13 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		iff_dataPtr += 32;
 		sound.loopstart = GetLittleLong ();
+		SetBits (sound.flags, SOUND_LOOPED);
 		FindNextChunk (name, "LIST");	// if the next chunk is a LIST chunk, look for a cue length marker
 
 		if (iff_dataPtr)
 			{
-			if (!Q_strncmp ((const char *)iff_dataPtr + 28, "mark", 4))
+			/*if (!Q_strncmp ((const char *)iff_dataPtr + 28, "mark", 4))*/
+			if (IsFourCC (iff_dataPtr + 28, "mark"))
 				{
 				// this is not a proper parse, but it works with CoolEdit...
 				iff_dataPtr += 24;
@@ -239,7 +271,8 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 	else
 		{
-		sound.loopstart = -1;
+		/*sound.loopstart = -1;*/
+		sound.loopstart = 0;
 		sound.samples = 0;
 		}
 
@@ -317,7 +350,7 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 /*
 =================
-Stream_OpenWAV
+Stream_OpenWAV [FWGS, 01.05.24]
 =================
 */
 stream_t *Stream_OpenWAV (const char *filename)
@@ -345,8 +378,17 @@ stream_t *Stream_OpenWAV (const char *filename)
 		return NULL;
 		}
 
-	FS_Read (file, chunkName, 4);
-	if (!Q_strncmp (chunkName, "WAVE", 4))
+	/*FS_Read (file, chunkName, 4);
+	if (!Q_strncmp (chunkName, "WAVE", 4))*/
+	FS_Seek (file, 4, SEEK_CUR);
+	if (FS_Read (file, chunkName, 4) != 4)
+		{
+		Con_DPrintf (S_ERROR "%s: %s missing WAVE chunk, truncated\n", filename);
+		FS_Close (file);
+		return false;
+		}
+
+	if (!IsFourCC (chunkName, "WAVE"))
 		{
 		Con_DPrintf (S_ERROR "Stream_OpenWAV: %s missing WAVE chunk\n", filename);
 		FS_Close (file);
@@ -354,7 +396,8 @@ stream_t *Stream_OpenWAV (const char *filename)
 		}
 
 	// get "fmt " chunk
-	iff_data = FS_Tell (file) + 4;
+	/*iff_data = FS_Tell (file) + 4;*/
+	iff_data = FS_Tell (file);
 	last_chunk = iff_data;
 	if (!StreamFindNextChunk (file, "fmt ", &last_chunk))
 		{

@@ -42,6 +42,8 @@ NOTE: never change this structure because all dll descriptions in xash code
 writes into struct by offsets not names
 ========================================================================
 */
+extern int error_on_exit;	// [FWGS, 01.05.24]
+
 void Sys_Sleep (int msec);
 double Sys_DoubleTime (void);
 char *Sys_GetClipboardData (void);

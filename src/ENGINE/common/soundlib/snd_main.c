@@ -212,7 +212,7 @@ stream_t *FS_OpenStream (const char *filename)
 
 /*
 ================
-FS_StreamInfo
+FS_StreamInfo [FWGS, 09.05.24]
 
 get basic stream info
 ================
@@ -221,17 +221,21 @@ wavdata_t *FS_StreamInfo (stream_t *stream)
 	{
 	static wavdata_t	info;
 
-	if (!stream) return NULL;
+	if (!stream)
+		return NULL;
 
 	// fill structure
-	info.loopStart = -1;
+	/*info.loopStart = -1;*/
+	info.loopStart = 0;
 	info.rate = stream->rate;
 	info.width = stream->width;
 	info.channels = stream->channels;
 	info.flags = SOUND_STREAM;
 	info.size = stream->size;
 	info.buffer = NULL;
-	info.samples = 0;	// not actual for streams
+
+	// not actual for streams
+	info.samples = 0;
 	info.type = stream->type;
 
 	return &info;

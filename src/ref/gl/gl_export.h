@@ -23,12 +23,16 @@ GNU General Public License for more details.
 	#define APIENTRY_LINKAGE extern
 #endif
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.05.24]
 #if defined XASH_NANOGL || defined XASH_WES || defined XASH_REGAL
 	#define XASH_GLES
 	#define XASH_GL_STATIC
 	#define REF_GL_KEEP_MANGLED_FUNCTIONS
 #elif defined XASH_GLES3COMPAT
+	#ifdef SOFTFP_LINK
+		#undef APIENTRY
+		#define APIENTRY __attribute__((pcs("aapcs")))
+	#endif
 	#define XASH_GLES
 #endif
 

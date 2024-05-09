@@ -1758,7 +1758,7 @@ static void Mod_LoadSubmodels (model_t *mod, dbspmodel_t *bmod)
 
 /*
 =================
-Mod_LoadEntities [FWGS, 01.11.23]
+Mod_LoadEntities [FWGS, 09.05.24]
 =================
 */
 static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)
@@ -1777,7 +1777,7 @@ static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)
 
 		// world is check for entfile too
 		Q_strncpy (entfilename, mod->name, sizeof (entfilename));
-		COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));	// [FWGS, 01.05.23]
+		COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));
 
 		// make sure what entity patch is never than bsp
 		ft1 = FS_FileTime (mod->name, false);
@@ -1839,17 +1839,19 @@ static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)
 				{
 				char *pszWadFile;
 
-				Q_strncpy (wadstring, token, MAX_TOKEN - 2);
-				wadstring[MAX_TOKEN - 2] = 0;
+				/*Q_strncpy (wadstring, token, MAX_TOKEN - 2);
+				wadstring[MAX_TOKEN - 2] = 0;*/
+				Q_strncpy (wadstring, token, sizeof (wadstring) - 2);
+				wadstring[sizeof (wadstring) - 2] = 0;
 
 				if (!Q_strchr (wadstring, ';'))
-					Q_strncat (wadstring, ";", sizeof (wadstring));	// [FWGS, 01.05.23]
+					Q_strncat (wadstring, ";", sizeof (wadstring));
 
 				// parse wad pathes
 				for (pszWadFile = strtok (wadstring, ";"); pszWadFile != NULL; pszWadFile = strtok (NULL, ";"))
 					{
 					COM_FixSlashes (pszWadFile);
-					COM_FileBase (pszWadFile, token, sizeof (token));	// [FWGS, 01.05.23]
+					COM_FileBase (pszWadFile, token, sizeof (token));
 
 					// make sure what wad is really exist
 					if (FS_FileExists (va ("%s.wad", token), false))
@@ -1859,8 +1861,9 @@ static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)
 						bmod->wadlist.wadusage[num] = 0;
 						}
 
+					// too many wads
 					if (bmod->wadlist.count >= MAX_MAP_WADS)
-						break; // too many wads...
+						break;
 					}
 				}
 			else if (!Q_stricmp (keyname, "message"))
@@ -1870,7 +1873,9 @@ static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)
 			else if (!Q_stricmp (keyname, "generator") || !Q_stricmp (keyname, "_generator"))
 				Q_strncpy (world.generator, token, sizeof (world.generator));
 			}
-		return;	// all done
+
+		// all done
+		return;
 		}
 	}
 

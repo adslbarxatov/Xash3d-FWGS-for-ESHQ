@@ -28,7 +28,8 @@ extern "C"
 	{
 #endif // __cplusplus
 
-#define FS_API_VERSION				2						// [FWGS, 01.04.23]
+/*#define FS_API_VERSION				2					// [FWGS, 01.04.23]*/
+#define FS_API_VERSION					3					// [FWGS, 01.05.24] not stable yet!
 #define FS_API_CREATEINTERFACE_TAG		"XashFileSystem002" // [FWGS, 01.11.23] follow FS_API_VERSION!!!
 #define FILESYSTEM_INTERFACE_VERSION	"VFileSystem009"	// [FWGS, 01.11.23] never change this!
 
@@ -47,9 +48,9 @@ enum
 
 typedef struct
 	{
-	int	numfilenames;
-	char **filenames;
-	char *filenamesbuffer;
+	int		numfilenames;
+	char	**filenames;
+	char	*filenamesbuffer;
 	} search_t;
 
 typedef struct gameinfo_s
@@ -108,8 +109,8 @@ typedef struct gameinfo_s
 	int			autosave_aged_count; // min is 1, max is 99
 
 	// [FWGS, 01.12.23] HL25 compatibility keys
-	qboolean hd_background;
-	qboolean animated_title;
+	qboolean	hd_background;
+	qboolean	animated_title;
 	} gameinfo_t;
 
 typedef enum
@@ -119,19 +120,22 @@ typedef enum
 	GAME_MULTIPLAYER_ONLY
 	} gametype_t;
 
+// [FWGS, 01.05.24]
 typedef struct fs_dllinfo_t
 	{
-	string fullPath;
-	string shortPath;
-	qboolean encrypted;
-	qboolean custom_loader;
+	/*string fullPath;
+	string shortPath;*/
+	char		fullPath[2048];	// absolute disk path
+	string		shortPath;		// vfs path
+	qboolean	encrypted;
+	qboolean	custom_loader;
 	} fs_dllinfo_t;
 
 typedef struct fs_globals_t
 	{
-	gameinfo_t *GameInfo;	// current GameInfo
-	gameinfo_t *games[MAX_MODS];	// environment games (founded at each engine start)
-	int		numgames;
+	gameinfo_t	*GameInfo;	// current GameInfo
+	gameinfo_t	*games[MAX_MODS];	// environment games (founded at each engine start)
+	int			numgames;
 	} fs_globals_t;
 
 typedef void (*fs_event_callback_t)(const char *path);

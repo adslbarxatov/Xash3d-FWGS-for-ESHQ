@@ -636,7 +636,7 @@ static void R_CollectRendererNames (void)
 
 		// [FWGS, 01.11.23]
 		#if XASH_REF_GLES3COMPAT_ENABLED
-			"GLES3 (gl2_shim)"
+			"GLES3 (gl2_shim)",
 		#endif
 
 		#if XASH_REF_SOFT_ENABLED

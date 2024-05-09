@@ -947,9 +947,11 @@ static void Cmd_Else_f (void)
 	cmd_condition ^= BIT (cmd_condlevel);
 	}
 
+// [FWGS, 01.05.24]
 static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 	{
-	const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_" };
+	/*const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_" };*/
+	const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_", "joy_" };
 	int i;
 
 	// always allow local commands
@@ -978,7 +980,7 @@ static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 
 /*
 ============
-Cmd_ExecuteString
+Cmd_ExecuteString [FWGS, 09.05.24]
 
 A complete command line has been parsed, so try to execute it
 ============
@@ -994,7 +996,7 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 
 	cmd_condlevel = 0;
 
-	// [FWGS, 01.07.23] cvar value substitution
+	// cvar value substitution
 	if (cmd_scripting.value && isPrivileged)
 		{
 		while (*text)
@@ -1016,7 +1018,8 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 					*ptoken++ = *text++;
 				*ptoken = 0;
 
-				len += Q_strncpy (pcmd, Cvar_VariableString (token), MAX_CMD_LINE - len);
+				/*len += Q_strncpy (pcmd, Cvar_VariableString (token), MAX_CMD_LINE - len);*/
+				len += Q_strncpy (pcmd, Cvar_VariableString (token), sizeof (token) - len);
 				pcmd = command + len;
 
 				if (!*text) 
@@ -1118,7 +1121,7 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 			Cmd_ForwardToServer ();
 			}
 		else
-#endif // XASH_DEDICATED
+#endif
 			if (Cvar_VariableInteger ("host_gameloaded"))
 				{
 				Con_Printf (S_WARN "Unknown command \"%s\"\n", Cmd_Argv (0));

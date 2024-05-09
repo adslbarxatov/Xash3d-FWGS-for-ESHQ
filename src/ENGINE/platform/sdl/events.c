@@ -139,7 +139,7 @@ static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
 
 /*
 =============
-SDLash_KeyEvent [FWGS, 01.11.23]
+SDLash_KeyEvent [FWGS, 01.05.24]
 =============
 */
 static void SDLash_KeyEvent (SDL_KeyboardEvent key)
@@ -151,43 +151,68 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	int keynum = key.keysym.sym;
 #endif
 
-	qboolean numLock = FBitSet (SDL_GetModState (), KMOD_NUM);
+	/*qboolean numLock = FBitSet (SDL_GetModState (), KMOD_NUM);
+	*/
 
 #if XASH_ANDROID
 	if ((keynum == SDL_SCANCODE_VOLUMEUP) || (keynum == SDL_SCANCODE_VOLUMEDOWN))
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 #endif
 
-	if (SDL_IsTextInputActive () && down && (cls.key_dest != key_game))
+	/*if (SDL_IsTextInputActive () && down && (cls.key_dest != key_game))
+	*/
+	if (SDL_IsTextInputActive ())
 		{
-		if (FBitSet (SDL_GetModState (), KMOD_CTRL))
+		/*if (FBitSet (SDL_GetModState (), KMOD_CTRL))
+		*/
+		// this is how engine understands ctrl+c, ctrl+v and other hotkeys
+		if (down && (cls.key_dest != key_game))
 			{
-			if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
+			/*if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
+			*/
+			if (FBitSet (SDL_GetModState (), KMOD_CTRL))
 				{
-				keynum = keynum - SDL_SCANCODE_A + 1;
-				CL_CharEvent (keynum);
-				}
+				/*keynum = keynum - SDL_SCANCODE_A + 1;
+				CL_CharEvent (keynum);*/
+				if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
+					{
+					keynum = keynum - SDL_SCANCODE_A + 1;
+					CL_CharEvent (keynum);
+					}
+				/*}
 
-			return;
+				return;*/
+				return;
+				}
 			}
 
-#if !SDL_VERSION_ATLEAST( 2, 0, 0 )
+		/*#if !SDL_VERSION_ATLEAST( 2, 0, 0 )*/
+#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+
+		// ignore printable keys, they are coming through SDL_TEXTINPUT
+		if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
+			|| ((keynum >= SDL_SCANCODE_1) && (keynum <= SDL_SCANCODE_0))
+			|| ((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))
+			return;
+
+#else
+
 		if (keynum >= SDLK_KP0 && keynum <= SDLK_KP9)
 			keynum -= SDLK_KP0 + '0';
 
+		/*if (isprint (keynum))*/
 		if (isprint (keynum))
 			{
 			if (FBitSet (SDL_GetModState (), KMOD_SHIFT))
 				keynum = Key_ToUpper (keynum);
 
 			CL_CharEvent (keynum);
-			return;
+			/*return;*/
 			}
 #endif
 		}
 
 	// ESHQ: спорная конструкция макроса, решили убрать
-
 	if (keynum >= (SDL_SCANCODE_A) && keynum <= (SDL_SCANCODE_Z))
 		{
 		keynum = keynum - SDL_SCANCODE_A + 'a';
@@ -202,6 +227,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		}
 	else
 		{
+		qboolean numLock = FBitSet (SDL_GetModState (), KMOD_NUM);
 		switch (keynum)
 			{
 			case SDL_SCANCODE_GRAVE:
@@ -409,7 +435,6 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 				host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 				break;
 
-				// [FWGS, 01.04.23]
 			case SDL_SCANCODE_PAUSE:
 				keynum = K_PAUSE;
 				break;
@@ -430,7 +455,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			case SDL_SCANCODE_VOLUMEDOWN:
 			case SDL_SCANCODE_BRIGHTNESSDOWN:
 			case SDL_SCANCODE_BRIGHTNESSUP:
-			case SDL_SCANCODE_SELECT:	// [FWGS, 01.07.23]
+			case SDL_SCANCODE_SELECT:
 				return;
 
 #endif
@@ -522,6 +547,7 @@ static void SDLash_InputEvent (SDL_TextInputEvent input)
 	{
 	char *text;
 	VGui_ReportTextInput (input.text);
+
 	for (text = input.text; *text; text++)
 		{
 		int ch;
@@ -539,7 +565,7 @@ static void SDLash_InputEvent (SDL_TextInputEvent input)
 	}
 #endif
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.05.24]
 static void SDLash_ActiveEvent (int gain)
 	{
 	if (gain)
@@ -548,8 +574,8 @@ static void SDLash_ActiveEvent (int gain)
 		if (cls.key_dest == key_game)
 			IN_ActivateMouse ();
 
-		if (dma.initialized && snd_mute_losefocus.value)
-			SNDDMA_Activate (true);
+		/*if (dma.initialized && snd_mute_losefocus.value)
+			SNDDMA_Activate (true);*/
 
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 		if (vid_fullscreen.value == WINDOW_MODE_FULLSCREEN)
@@ -557,6 +583,7 @@ static void SDLash_ActiveEvent (int gain)
 		}
 	else
 		{
+
 #if TARGET_OS_IPHONE
 				{
 				// Keep running if ftp server enabled
@@ -568,10 +595,10 @@ static void SDLash_ActiveEvent (int gain)
 				if (cls.key_dest == key_game)
 					IN_DeactivateMouse ();
 
-				if (dma.initialized && snd_mute_losefocus.value)
-					SNDDMA_Activate (false);
+				/*if (dma.initialized && snd_mute_losefocus.value)
+					SNDDMA_Activate (false);*/
 
-				host.force_draw_version_time = host.realtime + 2.0;	// [FWGS, 01.07.23]
+				host.force_draw_version_time = host.realtime + 2.0;
 				VID_RestoreScreenResolution ();
 		}
 	}
@@ -734,7 +761,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			break;
 			}
 
-		// IME
+			// IME
 		case SDL_TEXTINPUT:
 			SDLash_InputEvent (event->text);
 			break;
@@ -746,7 +773,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 			Joy_RemoveEvent ();
 			break;
 
-		// GameController API
+			// GameController API
 		case SDL_CONTROLLERAXISMOTION:
 			{
 			if (!Joy_IsActive ())
@@ -824,7 +851,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 					SDLash_ActiveEvent (false);
 					break;
 
-				// [FWGS, 01.03.24]
+					// [FWGS, 01.03.24]
 				case SDL_WINDOWEVENT_RESIZED:
 #if !XASH_MOBILE_PLATFORM
 					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)

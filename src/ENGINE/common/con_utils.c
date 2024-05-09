@@ -479,7 +479,7 @@ static qboolean Cmd_GetConfigList (const char *s, char *completedname, int lengt
 
 /*
 =====================================
-Cmd_GetSoundList
+Cmd_GetSoundList [FWGS, 09.05.24]
 
 Prints or complete sound filename
 =====================================
@@ -494,7 +494,8 @@ static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length
 	if (!t)
 		return false;
 
-	Q_strncpy (matchbuf, t->filenames[0] + sizeof (DEFAULT_SOUNDPATH) - 1, MAX_STRING);
+	/*Q_strncpy (matchbuf, t->filenames[0] + sizeof (DEFAULT_SOUNDPATH) - 1, MAX_STRING);*/
+	Q_strncpy (matchbuf, t->filenames[0] + sizeof (DEFAULT_SOUNDPATH) - 1, sizeof (matchbuf));
 	COM_StripExtension (matchbuf);
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
@@ -508,7 +509,8 @@ static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length
 		if (Q_stricmp (ext, "wav") && Q_stricmp (ext, "mp3"))
 			continue;
 
-		Q_strncpy (matchbuf, t->filenames[i] + sizeof (DEFAULT_SOUNDPATH) - 1, MAX_STRING);
+		/*Q_strncpy (matchbuf, t->filenames[i] + sizeof (DEFAULT_SOUNDPATH) - 1, MAX_STRING);*/
+		Q_strncpy (matchbuf, t->filenames[i] + sizeof (DEFAULT_SOUNDPATH) - 1, sizeof (matchbuf));
 		COM_StripExtension (matchbuf);
 		Con_Printf ("%16s\n", matchbuf);
 		numsounds++;
@@ -782,7 +784,7 @@ static qboolean Cmd_GetCustomList (const char *s, char *completedname, int lengt
 
 /*
 =====================================
-Cmd_GetGameList [FWGS, 01.02.24]
+Cmd_GetGameList [FWGS, 01.05.24]
 
 Prints or complete gamedir name
 =====================================
@@ -800,12 +802,13 @@ static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length
 	for (i = 0, numgamedirs = 0; i < FI->numgames; i++)
 		{
 		if ((*s == '*') || !Q_strnicmp (FI->games[i]->gamefolder, s, len))
-			Q_strncpy (gamedirs[numgamedirs++], FI->games[i]->gamefolder, sizeof (gamedirs[0]));	// [FWGS, 01.05.23]
+			Q_strncpy (gamedirs[numgamedirs++], FI->games[i]->gamefolder, sizeof (gamedirs[0]));
 		}
 
 	if (!numgamedirs)
 		return false;
-	Q_strncpy (matchbuf, gamedirs[0], MAX_STRING);
+	/*Q_strncpy (matchbuf, gamedirs[0], MAX_STRING);*/
+	Q_strncpy (matchbuf, gamedirs[0], sizeof (matchbuf));
 
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
@@ -814,7 +817,8 @@ static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length
 
 	for (i = 0; i < numgamedirs; i++)
 		{
-		Q_strncpy (matchbuf, gamedirs[i], MAX_STRING);
+		/*Q_strncpy (matchbuf, gamedirs[i], MAX_STRING);*/
+		Q_strncpy (matchbuf, gamedirs[i], sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		}
 
@@ -834,7 +838,7 @@ static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length
 
 /*
 =====================================
-Cmd_GetCDList
+Cmd_GetCDList [FWGS, 09.05.24]
 
 Prints or complete CD command name
 =====================================
@@ -864,12 +868,14 @@ static qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 	for (i = 0, numcdcommands = 0; i < 8; i++)
 		{
 		if ((*s == '*') || !Q_strnicmp (cd_command[i], s, len))
-			Q_strncpy (cdcommands[numcdcommands++], cd_command[i], sizeof (cdcommands[0]));	// [FWGS, 01.05.23]
+			Q_strncpy (cdcommands[numcdcommands++], cd_command[i], sizeof (cdcommands[0]));
 		}
 
 	if (!numcdcommands)
 		return false;
-	Q_strncpy (matchbuf, cdcommands[0], MAX_STRING);
+	/*Q_strncpy (matchbuf, cdcommands[0], MAX_STRING);*/
+	Q_strncpy (matchbuf, cdcommands[0], sizeof (matchbuf));
+
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
 	if (numcdcommands == 1)
@@ -877,7 +883,8 @@ static qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 
 	for (i = 0; i < numcdcommands; i++)
 		{
-		Q_strncpy (matchbuf, cdcommands[i], MAX_STRING);
+		/*Q_strncpy (matchbuf, cdcommands[i], MAX_STRING);*/
+		Q_strncpy (matchbuf, cdcommands[i], sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		}
 
@@ -895,13 +902,14 @@ static qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 	return true;
 	}
 
+// [FWGS, 09.05.24]
 static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 	{
 	qboolean	use_filter = false;
 	byte		buf[MAX_SYSPATH];
 	string		mpfilter;
 	char		*buffer;
-	size_t		buffersize;	// [FWGS, 01.05.23]
+	size_t		buffersize;
 	string		result;
 	int			i, size;
 	search_t	*t;
@@ -911,7 +919,8 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 		return true; // exist
 
 	// setup mpfilter
-	size = Q_snprintf (mpfilter, sizeof (mpfilter), "maps/%s", GI->mp_filter);
+	/*size = Q_snprintf (mpfilter, sizeof (mpfilter), "maps/%s", GI->mp_filter);*/
+	Q_snprintf (mpfilter, sizeof (mpfilter), "maps/%s", GI->mp_filter);
 	t = FS_Search ("maps/*.bsp", false, onlyingamedir);
 
 	if (!t)
@@ -923,7 +932,6 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 		return false;
 		}
 
-	// [FWGS, 01.05.23]
 	buffersize = t->numfilenames * 2 * sizeof (result);
 	buffer = Mem_Calloc (host.mempool, buffersize);
 
@@ -931,9 +939,9 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 
 	for (i = 0; i < t->numfilenames; i++)
 		{
-		char *ents = NULL, *pfile;
+		char	*ents = NULL, *pfile;
 		int		lumpofs = 0, lumplen = 0;
-		string		mapname, message, entfilename;
+		string	mapname, message, entfilename;
 
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "bsp"))
 			continue;
@@ -942,31 +950,34 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			continue;
 
 		f = FS_Open (t->filenames[i], "rb", onlyingamedir);
-		COM_FileBase (t->filenames[i], mapname, sizeof (mapname));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], mapname, sizeof (mapname));
 
 		if (f)
 			{
-			int	num_spawnpoints = 0;
+			/*int	num_spawnpoints = 0;
 			dheader_t *header;
-			dlump_t entities;	// [FWGS, 01.04.23]
+			dlump_t entities;	// [FWGS, 01.04.23]*/
+			qboolean	have_spawnpoints = false;
+			/*dheader_t	*header;*/
+			dlump_t		entities;
 
 			memset (buf, 0, MAX_SYSPATH);
 			FS_Read (f, buf, MAX_SYSPATH);
-			header = (dheader_t *)buf;
+			/*header = (dheader_t *)buf;*/
 
-			// [FWGS, 01.04.23] check all the lumps and some other errors
+			// check all the lumps and some other errors
 			if (!Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
 				{
 				FS_Close (f);
 				continue;
 				}
 
-			// [FWGS, 01.04.23] after call Mod_TestBmodelLumps we gurantee what map is valid
+			// after call Mod_TestBmodelLumps we gurantee what map is valid
 			lumpofs = entities.fileofs;
 			lumplen = entities.filelen;
 
 			Q_strncpy (entfilename, t->filenames[i], sizeof (entfilename));
-			COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));	// [FWGS, 01.05.23]
+			COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));
 			ents = (char *)FS_LoadFile (entfilename, NULL, true);
 
 			if (!ents && (lumplen >= 10))
@@ -983,13 +994,25 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 				char		token[MAX_TOKEN];
 				qboolean	worldspawn = true;
 
-				Q_strncpy (message, "No Title", MAX_STRING);
+				/*Q_strncpy (message, "No Title", MAX_STRING);*/
+				Q_strncpy (message, "No Title", sizeof (message));
 				pfile = ents;
 
 				while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
 					{
 					if (token[0] == '}' && worldspawn)
+						{
 						worldspawn = false;
+
+						// if mod has mp_filter set up, then it's a mod that
+						// might not have valid mp_entity set in GI
+						// if mod is multiplayer only, assume all maps are valid
+						if (use_filter || (GI->gamemode == GAME_MULTIPLAYER_ONLY))
+							{
+							have_spawnpoints = true;
+							break;
+							}
+						}
 					else if (!Q_strcmp (token, "message") && worldspawn)
 						{
 						// get the message contents
@@ -998,20 +1021,31 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 					else if (!Q_strcmp (token, "classname"))
 						{
 						pfile = COM_ParseFile (pfile, token, sizeof (token));
-						if (!Q_strcmp (token, GI->mp_entity) || use_filter)
-							num_spawnpoints++;
+						/*if (!Q_strcmp (token, GI->mp_entity) || use_filter)
+							num_spawnpoints++;*/
+						if (!Q_strcmp (token, GI->mp_entity))
+							{
+							have_spawnpoints = true;
+							break;
+							}
 						}
-					if (num_spawnpoints)
+
+					/*if (num_spawnpoints)
+						break; // valid map*/
+					if (have_spawnpoints)
 						break; // valid map
 					}
+
 				Mem_Free (ents);
 				}
 
-			if (f) FS_Close (f);
+			if (f)
+				FS_Close (f);
 
-			if (num_spawnpoints)
+			/*if (num_spawnpoints)*/
+			if (have_spawnpoints)
 				{
-				// [FWGS, 01.05.23] format: mapname "maptitle"\n
+				// format: mapname "maptitle"\n
 				Q_snprintf (result, sizeof (result), "%s \"%s\"\n", mapname, message);
 				Q_strncat (buffer, result, buffersize); // add new string
 				}

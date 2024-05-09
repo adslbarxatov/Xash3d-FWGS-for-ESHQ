@@ -77,8 +77,9 @@ GNU General Public License for more details.
 
 #define DEFAULT_UPDATE_PAGE "https://github.com/FWGS/xash3d-fwgs/releases/latest"
 
-#define XASH_ENGINE_NAME "Xash3D FWGS"
-#define XASH_VERSION        "0.20" // engine current version
-#define XASH_COMPAT_VERSION "0.99" // version we are based on
+#define XASH_ENGINE_NAME	"Xash3D FWGS"
+#define XASH_DEDICATED_SERVER_NAME	"XashDS"	// [FWGS, 01.05.24]
+#define XASH_VERSION		"0.20"	// engine current version
+#define XASH_COMPAT_VERSION	"0.99"	// version we are based on
 
 #endif

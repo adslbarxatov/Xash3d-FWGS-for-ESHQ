@@ -274,15 +274,15 @@ static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 
 static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_length, byte *pOutputBuf, uint *pOutputSize)
 	{
-	byte *pStart = pOutputBuf; // allocate the output buffer, compressed buffer is expected to be less, caller will free
-	byte *pEnd = pStart + input_length - sizeof (lzss_header_t) - 8; // prevent compression failure
-	lzss_header_t *header = (lzss_header_t *)pStart;
-	byte *pOutput = pStart + sizeof (lzss_header_t);
-	const byte *pEncodedPosition = NULL;
-	byte *pLookAhead = pInput;
-	byte *pWindow = pInput;
+	byte	*pStart = pOutputBuf; // allocate the output buffer, compressed buffer is expected to be less, caller will free
+	byte	*pEnd = pStart + input_length - sizeof (lzss_header_t) - 8; // prevent compression failure
+	lzss_header_t	*header = (lzss_header_t *)pStart;
+	byte	*pOutput = pStart + sizeof (lzss_header_t);
+	const byte		*pEncodedPosition = NULL;
+	byte	*pLookAhead = pInput;
+	byte	*pWindow = pInput;
 	int		i, putCmdByte = 0;
-	byte *pCmdByte = NULL;
+	byte	*pCmdByte = NULL;
 
 	if (input_length <= sizeof (lzss_header_t) + 8)
 		return NULL;
@@ -390,11 +390,15 @@ static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_
 	return pStart;
 	}
 
+// [FWGS, 01.05.24]
 byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize)
 	{
-	byte *pStart = (byte *)malloc (inputLength);
-	byte *pFinal = NULL;
+	byte	*pStart = (byte *)malloc (inputLength);
+	byte	*pFinal = NULL;
 	lzss_state_t	state;
+
+	if (!pStart)
+		return NULL;
 
 	memset (&state, 0, sizeof (state));
 	state.window_size = LZSS_WINDOW_SIZE;

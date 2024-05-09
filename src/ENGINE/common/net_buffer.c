@@ -28,66 +28,97 @@ static uint32_t	ExtraMasks[32];
 
 const char *svc_strings[svc_lastmsg + 1] =
 	{
-		"svc_bad",
-		"svc_nop",
-		"svc_disconnect",
-		"svc_event",
-		"svc_changing",
-		"svc_setview",
-		"svc_sound",
-		"svc_time",
-		"svc_print",
-		"svc_stufftext",
-		"svc_setangle",
-		"svc_serverdata",
-		"svc_lightstyle",
-		"svc_updateuserinfo",
-		"svc_deltatable",
-		"svc_clientdata",
-		"svc_resource",
-		"svc_pings",
-		"svc_particle",
-		"svc_restoresound",
-		"svc_spawnstatic",
-		"svc_event_reliable",
-		"svc_spawnbaseline",
-		"svc_temp_entity",
-		"svc_setpause",
-		"svc_signonnum",
-		"svc_centerprint",
-		"svc_unused27",
-		"svc_unused28",
-		"svc_unused29",
-		"svc_intermission",
-		"svc_finale",
-		"svc_cdtrack",
-		"svc_restore",
-		"svc_cutscene",
-		"svc_weaponanim",
-		"svc_bspdecal",
-		"svc_roomtype",
-		"svc_addangle",
-		"svc_usermessage",
-		"svc_packetentities",
-		"svc_deltapacketentities",
-		"svc_choke",
-		"svc_resourcelist",
-		"svc_deltamovevars",
-		"svc_resourcerequest",
-		"svc_customization",
-		"svc_crosshairangle",
-		"svc_soundfade",
-		"svc_filetxferfailed",
-		"svc_hltv",
-		"svc_director",
-		"svc_voiceinit",
-		"svc_voicedata",
-		"svc_deltapacketbones",
-		"svc_unused55",
-		"svc_resourcelocation",
-		"svc_querycvarvalue",
-		"svc_querycvarvalue2",
-		"svc_exec",
+	"svc_bad",
+	"svc_nop",
+	"svc_disconnect",
+	"svc_event",
+	"svc_changing",
+	"svc_setview",
+	"svc_sound",
+	"svc_time",
+	"svc_print",
+	"svc_stufftext",
+	"svc_setangle",
+	"svc_serverdata",
+	"svc_lightstyle",
+	"svc_updateuserinfo",
+	"svc_deltatable",
+	"svc_clientdata",
+	"svc_resource",
+	"svc_pings",
+	"svc_particle",
+	"svc_restoresound",
+	"svc_spawnstatic",
+	"svc_event_reliable",
+	"svc_spawnbaseline",
+	"svc_temp_entity",
+	"svc_setpause",
+	"svc_signonnum",
+	"svc_centerprint",
+	"svc_unused27",
+	"svc_unused28",
+	"svc_unused29",
+	"svc_intermission",
+	"svc_finale",
+	"svc_cdtrack",
+	"svc_restore",
+	"svc_cutscene",
+	"svc_weaponanim",
+	"svc_bspdecal",
+	"svc_roomtype",
+	"svc_addangle",
+	"svc_usermessage",
+	"svc_packetentities",
+	"svc_deltapacketentities",
+	"svc_choke",
+	"svc_resourcelist",
+	"svc_deltamovevars",
+	"svc_resourcerequest",
+	"svc_customization",
+	"svc_crosshairangle",
+	"svc_soundfade",
+	"svc_filetxferfailed",
+	"svc_hltv",
+	"svc_director",
+	"svc_voiceinit",
+	"svc_voicedata",
+	"svc_deltapacketbones",
+	"svc_unused55",
+	"svc_resourcelocation",
+	"svc_querycvarvalue",
+	"svc_querycvarvalue2",
+	"svc_exec",
+	};
+
+const char *svc_legacy_strings[svc_lastmsg + 1] =
+	{
+	[svc_legacy_changing] = "svc_legacy_changing",
+	[svc_legacy_ambientsound] = "svc_legacy_ambientsound",
+	[svc_legacy_soundindex] = "svc_legacy_soundindex",
+	[svc_legacy_ambientsound] = "svc_legacy_ambientsound",
+	[svc_legacy_modelindex] = "svc_legacy_modelindex",
+	[svc_legacy_eventindex] = "svc_legacy_eventindex",
+	[svc_legacy_chokecount] = "svc_legacy_chokecount",
+	};
+
+// [FWGS, 01.05.24]
+const char *svc_goldsrc_strings[svc_lastmsg + 1] =
+	{
+	[svc_goldsrc_version] = "svc_goldsrc_version",
+	[svc_goldsrc_serverinfo] = "svc_goldsrc_serverinfo",
+	[svc_goldsrc_deltadescription] = "svc_goldsrc_deltadescription",
+	[svc_goldsrc_stopsound] = "svc_goldsrc_stopsound",
+	[svc_goldsrc_damage] = "svc_goldsrc_damage",
+	[svc_goldsrc_killedmonster] = "svc_goldsrc_killedmonster",
+	[svc_goldsrc_foundsecret] = "svc_goldsrc_foundsecret",
+	[svc_goldsrc_spawnstaticsound] = "svc_goldsrc_spawnstaticsound",
+	[svc_goldsrc_decalname] = "svc_goldsrc_decalname",
+	[svc_goldsrc_newusermsg] = "svc_goldsrc_newusermsg",
+	[svc_goldsrc_newmovevars] = "svc_goldsrc_newmovevars",
+	[svc_goldsrc_sendextrainfo] = "svc_goldsrc_sendextrainfo",
+	[svc_goldsrc_timescale] = "svc_goldsrc_timescale",
+	[svc_goldsrc_sendcvarvalue] = "svc_goldsrc_sendcvarvalue",
+	[svc_goldsrc_sendcvarvalue2] = "svc_goldsrc_sendcvarvalue2",
 	};
 
 void MSG_InitMasks (void)
@@ -110,14 +141,15 @@ void MSG_InitMasks (void)
 		ExtraMasks[maskBit] = (uint)BIT (maskBit) - 1;
 	}
 
-void MSG_InitExt (sizebuf_t *sb, const char *pDebugName, void *pData, int nBytes, int nMaxBits)
+// [FWGS, 01.05.24]
+/*void MSG_InitExt (sizebuf_t *sb, const char *pDebugName, void *pData, int nBytes, int nMaxBits)
 	{
 	MSG_StartWriting (sb, pData, nBytes, 0, nMaxBits);
 
 	sb->pDebugName = pDebugName;
-	}
+	}*/
 
-void MSG_StartWriting (sizebuf_t *sb, void *pData, int nBytes, int iStartBit, int nBits)
+/*void MSG_StartWriting (sizebuf_t *sb, void *pData, int nBytes, int iStartBit, int nBits)
 	{
 	// make sure it's dword aligned and padded
 	Assert (((uint32_t)pData & 3) == 0);	// [FWGS, 01.07.23]
@@ -137,7 +169,7 @@ void MSG_StartWriting (sizebuf_t *sb, void *pData, int nBytes, int iStartBit, in
 
 	sb->iCurBit = iStartBit;
 	sb->bOverflow = false;
-	}
+	}*/
 
 /*
 =======================
@@ -145,26 +177,26 @@ MSG_Clear
 
 for clearing overflowed buffer
 =======================
-*/
+//
 void MSG_Clear (sizebuf_t *sb)
 	{
 	sb->iCurBit = 0;
 	sb->bOverflow = false;
-	}
+	}*/
 
-static qboolean MSG_Overflow (sizebuf_t *sb, int nBits)
+/*static qboolean MSG_Overflow (sizebuf_t *sb, int nBits)
 	{
 	if (sb->iCurBit + nBits > sb->nDataBits)
 		sb->bOverflow = true;
 	return sb->bOverflow;
-	}
+	}*/
 
-qboolean MSG_CheckOverflow (sizebuf_t *sb)
+/*qboolean MSG_CheckOverflow (sizebuf_t *sb)
 	{
 	return MSG_Overflow (sb, 0);
-	}
+	}*/
 
-int MSG_SeekToBit (sizebuf_t *sb, int bitPos, int whence)
+/*int MSG_SeekToBit (sizebuf_t *sb, int bitPos, int whence)
 	{
 	// compute the file offset
 	switch (whence)
@@ -187,7 +219,7 @@ int MSG_SeekToBit (sizebuf_t *sb, int bitPos, int whence)
 	sb->iCurBit = bitPos;
 
 	return 0;
-	}
+	}*/
 
 // [FWGS, 01.02.24] удалена MSG_SeekToByte
 
@@ -700,7 +732,9 @@ qboolean MSG_ReadBytes (sizebuf_t *sb, void *pOut, int nBytes)
 	return MSG_ReadBits (sb, pOut, nBytes << 3);
 	}
 
-char *MSG_ReadStringExt (sizebuf_t *sb, qboolean bLine)
+// [FWGS, 01.05.24]
+/*char *MSG_ReadStringExt (sizebuf_t *sb, qboolean bLine)*/
+static char *MSG_ReadStringExt (sizebuf_t *sb, qboolean bLine)
 	{
 	static char	string[4096];
 	int		l = 0, c;
@@ -724,6 +758,18 @@ char *MSG_ReadStringExt (sizebuf_t *sb, qboolean bLine)
 		string[l] = 0; // terminator
 
 		return string;
+	}
+
+// [FWGS, 01.05.24]
+char *MSG_ReadString (sizebuf_t *sb)
+	{
+	return MSG_ReadStringExt (sb, false);
+	}
+
+// [FWGS, 01.05.24]
+char *MSG_ReadStringLine (sizebuf_t *sb)
+	{
+	return MSG_ReadStringExt (sb, true);
 	}
 
 void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove)

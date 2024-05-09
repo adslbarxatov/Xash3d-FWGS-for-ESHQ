@@ -18,15 +18,15 @@ GNU General Public License for more details.
 
 typedef struct master_s
 	{
-	struct master_s *next;
-	qboolean sent;	// [FWGS, 01.05.23] TODO: get rid of this internal state
-	qboolean save;
-	string address;
-	netadr_t adr; // temporary, rewritten after each send
+	struct master_s	*next;
+	qboolean	sent;	// [FWGS, 01.05.23] TODO: get rid of this internal state
+	qboolean	save;
+	string		address;
+	netadr_t	adr;	// temporary, rewritten after each send
 
 	// [FWGS, 01.05.23]
-	uint heartbeat_challenge;
-	double last_heartbeat;
+	uint		heartbeat_challenge;
+	double		last_heartbeat;
 	} master_t;
 
 // [FWGS, 01.05.23]
@@ -108,7 +108,7 @@ qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data)
 
 /*
 ========================
-NET_AnnounceToMaster [FWGS, 01.05.23]
+NET_AnnounceToMaster [FWGS, 01.05.24]
 ========================
 */
 static void NET_AnnounceToMaster (master_t *m)
@@ -122,7 +122,8 @@ static void NET_AnnounceToMaster (master_t *m)
 	MSG_WriteBytes (&msg, "q\xFF", 2);
 	MSG_WriteDword (&msg, m->heartbeat_challenge);
 
-	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&msg), MSG_GetBuf (&msg), m->adr);
+	/*NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&msg), MSG_GetBuf (&msg), m->adr);*/
+	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&msg), MSG_GetData (&msg), m->adr);
 	if (sv_verbose_heartbeats.value)
 		{
 		Con_Printf (S_NOTE "sent heartbeat to %s (%s, 0x%x)\n",
@@ -243,7 +244,7 @@ qboolean NET_IsMasterAdr (netadr_t adr)
 
 /*
 ========================
-NET_AddMaster
+NET_AddMaster [FWGS, 09.05.24]
 
 Add master to the list
 ========================
@@ -251,7 +252,6 @@ Add master to the list
 static void NET_AddMaster (const char *addr, qboolean save)
 	{
 	master_t *master, *last;
-
 	for (last = ml.list; last && last->next; last = last->next)
 		{
 		if (!Q_strcmp (last->address, addr)) // already exists
@@ -259,12 +259,11 @@ static void NET_AddMaster (const char *addr, qboolean save)
 		}
 
 	master = Mem_Malloc (host.mempool, sizeof (master_t));
-	Q_strncpy (master->address, addr, MAX_STRING);
+	/*Q_strncpy (master->address, addr, MAX_STRING);*/
+	Q_strncpy (master->address, addr, sizeof (master->address));
 	master->sent = false;
 	master->save = save;
 	master->next = NULL;
-
-	// [FWGS, 01.01.24]
 	master->adr.type = 0;
 
 	// link in

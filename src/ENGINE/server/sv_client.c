@@ -280,7 +280,7 @@ static int SV_FindEmptySlot (netadr_t from, int *pslot, sv_client_t **ppClient)
 
 /*
 ==================
-SV_ConnectClient
+SV_ConnectClient [FWGS, 09.05.24]
 
 A connection request that did not come from the master
 ==================
@@ -311,13 +311,15 @@ static void SV_ConnectClient (netadr_t from)
 		return;
 		}
 
-	challenge = Q_atoi (Cmd_Argv (2)); // get challenge
+	// get challenge
+	challenge = Q_atoi (Cmd_Argv (2));
 
 	// see if the challenge is valid (local clients don't need to challenge)
 	if (!SV_CheckChallenge (from, challenge))
 		return;
 
-	s = Cmd_Argv (3);	// protocol info
+	// protocol info
+	s = Cmd_Argv (3);
 
 	if (!Info_IsValid (s))
 		{
@@ -326,7 +328,6 @@ static void SV_ConnectClient (netadr_t from)
 		}
 
 	Q_strncpy (protinfo, s, sizeof (protinfo));
-
 	if (!SV_ProcessUserAgent (from, protinfo))
 		{
 		return;
@@ -351,7 +352,8 @@ static void SV_ConnectClient (netadr_t from)
 		return;
 		}
 
-	s = Cmd_Argv (4);	// user info
+	// user info
+	s = Cmd_Argv (4);
 
 	if ((Q_strlen (s) > MAX_INFO_STRING) || !Info_IsValid (s))
 		{
@@ -385,10 +387,10 @@ static void SV_ConnectClient (netadr_t from)
 		}
 
 	// A reconnecting client will re-use the slot found above when checking for reconnection.
-	// the slot will be wiped clean.
+	// the slot will be wiped clean
 	if (!reconnect)
 		{
-		// connect the client if there are empty slots.
+		// connect the client if there are empty slots
 		if (!SV_FindEmptySlot (from, &nClientSlot, &newcl))
 			return;
 		}
@@ -406,12 +408,15 @@ static void SV_ConnectClient (netadr_t from)
 	sv.current_client = newcl;
 	newcl->edict = EDICT_NUM ((newcl - svs.clients) + 1);
 	newcl->challenge = challenge; // save challenge for checksumming
-	if (newcl->frames) Mem_Free (newcl->frames);
+	if (newcl->frames)
+		Mem_Free (newcl->frames);
+
 	newcl->frames = (client_frame_t *)Z_Calloc (sizeof (client_frame_t) * SV_UPDATE_BACKUP);
 	newcl->userid = g_userid++;	// create unique userid
 	newcl->state = cs_connected;
 	newcl->extensions = extensions & (NET_EXT_SPLITSIZE);
-	Q_strncpy (newcl->useragent, protinfo, MAX_INFO_STRING);
+	/*Q_strncpy (newcl->useragent, protinfo, MAX_INFO_STRING);*/
+	Q_strncpy (newcl->useragent, protinfo, sizeof (newcl->useragent));
 
 	// reset viewentities (from previous level)
 	memset (newcl->viewentity, 0, sizeof (newcl->viewentity));
@@ -428,7 +433,7 @@ static void SV_ConnectClient (netadr_t from)
 	Q_strncpy (newcl->hashedcdkey, Info_ValueForKey (protinfo, "uuid"), 32);
 	newcl->hashedcdkey[32] = '\0';
 
-	// [FWGS, 01.04.23] build protinfo answer
+	// build protinfo answer
 	protinfo[0] = '\0';
 	Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", newcl->extensions);
 
@@ -447,7 +452,6 @@ static void SV_ConnectClient (netadr_t from)
 	// parse some info from the info strings (this can override cl_updaterate)
 	Q_strncpy (newcl->userinfo, userinfo, sizeof (newcl->userinfo));
 
-	// [FWGS, 01.03.24]
 	newcl->fullupdate_next_calltime = 0;
 	newcl->userinfo_next_changetime = 0;
 	newcl->userinfo_penalty = 0;
@@ -468,12 +472,12 @@ static void SV_ConnectClient (netadr_t from)
 	// if this was the first client on the server, or the last client
 	// the server can hold, send a heartbeat to the master.
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
-		if (cl->state >= cs_connected) count++;
+		if (cl->state >= cs_connected)
+			count++;
 
 	Log_Printf ("\"%s<%i><%i><>\" connected, address \"%s\"\n", newcl->name, newcl->userid, i, 
 		NET_AdrToString (newcl->netchan.remote_address));
 
-	// [FWGS, 01.05.23]
 	if ((count == 1) || (count == svs.maxclients))
 		NET_MasterClear ();
 	}
@@ -1730,9 +1734,10 @@ static qboolean SV_New_f (sv_client_t *cl)
 		return true;
 		}
 
-	// [FWGS, 01.04.23] server info string
+	// [FWGS, 01.05.24] server info string
 	MSG_BeginServerCmd (&msg, svc_stufftext);
-	MSG_WriteStringf (&msg, "fullserverinfo \"%s\"\n", SV_Serverinfo ());
+	/*MSG_WriteStringf (&msg, "fullserverinfo \"%s\"\n", SV_Serverinfo ());*/
+	MSG_WriteStringf (&msg, "fullserverinfo \"%s\"\n", svs.serverinfo);
 
 	// collect the info about all the players and send to me
 	for (i = 0, cur = svs.clients; i < svs.maxclients; i++, cur++)

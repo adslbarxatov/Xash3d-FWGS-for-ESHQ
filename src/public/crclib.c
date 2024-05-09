@@ -433,15 +433,16 @@ char *MD5_Print (byte hash[16])
 
 /*
 =================
-COM_HashKey [FWGS, 01.01.24]
+COM_HashKey [FWGS, 01.05.24]
 
 returns hash key for string
 =================
 */
 uint COM_HashKey (const char *string, uint hashSize)
 	{
-	int hashKey = 5381;
-	unsigned char i;
+	/*int hashKey = 5381;*/
+	uint	hashKey = 5381;
+	unsigned char	i;
 
 	while ((i = *string++))
 		{

@@ -1869,7 +1869,7 @@ void CL_ParseResLocation (sizebuf_t *msg)
 
 /*
 ==============
-CL_ParseHLTV
+CL_ParseHLTV [FWGS, 09.05.24]
 
 spectator message (hltv)
 sended from game.dll
@@ -1895,7 +1895,12 @@ void CL_ParseHLTV (sizebuf_t *msg)
 
 		case HLTV_LISTEN:
 			cls.signon = SIGNONS;
+#if 1
+			MSG_ReadString (msg);
+#else
 			NET_StringToAdr (MSG_ReadString (msg), &cls.hltv_listen_address);
+			NET_JoinGroup (cls.netchan.sock, cls.hltv_listen_address);
+#endif
 			SCR_EndLoadingPlaque ();
 			break;
 

@@ -32,6 +32,11 @@ CVAR_DEFINE_AUTO (voice_loopback, "0", FCVAR_PRIVILEGED,
 	"loopback voice back to the speaker");
 CVAR_DEFINE_AUTO (voice_scale, "1.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
 	"incoming voice volume scale");
+
+// [FWGS, 01.05.24]
+CVAR_DEFINE_AUTO (voice_transmit_scale, "1.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
+	"outcoming voice volume scale");
+
 CVAR_DEFINE_AUTO (voice_avggain, "0.5", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
 	"automatic voice gain control (average)");
 CVAR_DEFINE_AUTO (voice_maxgain, "5.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
@@ -39,7 +44,9 @@ CVAR_DEFINE_AUTO (voice_maxgain, "5.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
 CVAR_DEFINE_AUTO (voice_inputfromfile, "0", FCVAR_PRIVILEGED,
 	"input voice from voice_input.wav");
 
-static void Voice_ApplyGainAdjust (int16_t *samples, int count);
+// [FWGS, 01.05.24]
+/*static void Voice_ApplyGainAdjust (int16_t *samples, int count);*/
+static void Voice_ApplyGainAdjust (int16_t *samples, int count, float scale);
 
 /*
 ===============================================================================
@@ -53,12 +60,17 @@ OPUS INTEGRATION
 =========================
 Voice_InitOpusDecoder
 =========================
-*/
+//
 
-static qboolean Voice_InitOpusDecoder (void)
+static qboolean Voice_InitOpusDecoder (void)*/
+
+// [FWGS, 01.05.24]
+static qboolean Voice_InitCustomMode (void)
 	{
-	int err;
+	/*int err;*/
+	int err = 0;
 
+	/*voice.width = sizeof (opus_int16);*/
 	voice.width = sizeof (opus_int16);
 	voice.samplerate = VOICE_OPUS_CUSTOM_SAMPLERATE;
 	voice.frame_size = VOICE_OPUS_CUSTOM_FRAME_SIZE;
@@ -70,11 +82,31 @@ static qboolean Voice_InitOpusDecoder (void)
 		return false;
 		}
 
-	voice.decoder = opus_custom_decoder_create (voice.custom_mode, VOICE_PCM_CHANNELS, &err);
-	if (!voice.decoder)
+	/*voice.decoder = opus_custom_decoder_create (voice.custom_mode, VOICE_PCM_CHANNELS, &err);
+	if (!voice.decoder)*/
+	return true;
+	}
+
+/*
+=========================
+Voice_InitOpusDecoder [FWGS, 01.05.24]
+=========================
+*/
+static qboolean Voice_InitOpusDecoder (void)
+	{
+	int err = 0;
+
+	for (int i = 0; i < cl.maxclients; i++)
 		{
-		Con_Printf (S_ERROR "Can't create Opus encoder: %s\n", opus_strerror (err));
-		return false;
+		/*Con_Printf (S_ERROR "Can't create Opus encoder: %s\n", opus_strerror (err));
+		return false;*/
+		voice.decoders[i] = opus_custom_decoder_create (voice.custom_mode, VOICE_PCM_CHANNELS, &err);
+
+		if (!voice.decoders[i])
+			{
+			Con_Printf (S_ERROR "Can't create Opus decoder for %i: %s\n", i, opus_strerror (err));
+			return false;
+			}
 		}
 
 	return true;
@@ -82,12 +114,13 @@ static qboolean Voice_InitOpusDecoder (void)
 
 /*
 =========================
-Voice_InitOpusEncoder
+Voice_InitOpusEncoder [FWGS, 01.05.24]
 =========================
 */
 static qboolean Voice_InitOpusEncoder (int quality)
 	{
-	int err;
+	/*int err;*/
+	int err = 0;
 
 	voice.encoder = opus_custom_encoder_create (voice.custom_mode, VOICE_PCM_CHANNELS, &err);
 	if (!voice.encoder)
@@ -120,21 +153,27 @@ static qboolean Voice_InitOpusEncoder (int quality)
 
 /*
 =========================
-Voice_ShutdownOpusDecoder
+Voice_ShutdownOpusDecoder [FWGS, 01.05.24]
 =========================
 */
 static void Voice_ShutdownOpusDecoder (void)
 	{
-	if (voice.decoder)
+	/*if (voice.decoder)*/
+	for (int i = 0; i < MAX_CLIENTS; i++)
 		{
-		opus_custom_decoder_destroy (voice.decoder);
-		voice.decoder = NULL;
+		/*opus_custom_decoder_destroy (voice.decoder);
+		voice.decoder = NULL;*/
+		if (!voice.decoders[i])
+			continue;
+
+		opus_custom_decoder_destroy (voice.decoders[i]);
+		voice.decoders[i] = NULL;
 		}
 	}
 
 /*
 =========================
-Voice_ShutdownOpusEncoder
+Voice_ShutdownOpusEncoder [FWGS, 01.05.24]
 =========================
 */
 static void Voice_ShutdownOpusEncoder (void)
@@ -144,7 +183,11 @@ static void Voice_ShutdownOpusEncoder (void)
 		opus_custom_encoder_destroy (voice.encoder);
 		voice.encoder = NULL;
 		}
+	}
 
+// [FWGS, 01.05.24]
+static void Voice_ShutdownCustomMode (void)
+	{
 	if (voice.custom_mode)
 		{
 		opus_custom_mode_destroy (voice.custom_mode);
@@ -188,11 +231,10 @@ static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
 		{
 		int bytes;
 
+		// [FWGS, 01.05.24] adjust gain before encoding, but only for input from voice
 		if (!voice.input_file)
-			{
-			// adjust gain before encoding, but only for input from voice
-			Voice_ApplyGainAdjust ((opus_int16 *)(voice.input_buffer + ofs), voice.frame_size);
-			}
+			/*Voice_ApplyGainAdjust ((opus_int16 *)(voice.input_buffer + ofs), voice.frame_size);*/
+			Voice_ApplyGainAdjust ((opus_int16 *)(voice.input_buffer + ofs), voice.frame_size, voice_transmit_scale.value);
 
 		bytes = opus_custom_encode (voice.encoder, (const opus_int16 *)(voice.input_buffer + ofs),
 			voice.frame_size, out + size + sizeof (uint16_t), maxsize);
@@ -240,15 +282,17 @@ VOICE CHAT INTEGRATION
 
 /*
 =========================
-Voice_ApplyGainAdjust
+Voice_ApplyGainAdjust [FWGS, 01.05.24]
 =========================
 */
-static void Voice_ApplyGainAdjust (int16_t *samples, int count)
+/*static void Voice_ApplyGainAdjust (int16_t *samples, int count)*/
+static void Voice_ApplyGainAdjust (int16_t *samples, int count, float scale)
 	{
-	float gain, modifiedMax;
-	int average, adjustedSample, blockOffset = 0;
+	float	gain, modifiedMax;
+	/*int	average, adjustedSample, blockOffset = 0;*/
+	int		average, blockOffset = 0;
 
-	for (;; )
+	for (;;)
 		{
 		int i, localMax = 0, localSum = 0;
 		int blockSize = Q_min (count - (blockOffset + voice.autogain.block_size), voice.autogain.block_size);
@@ -267,8 +311,9 @@ static void Voice_ApplyGainAdjust (int16_t *samples, int count)
 			localSum += absSample;
 
 			gain = voice.autogain.current_gain + i * voice.autogain.gain_multiplier;
-			adjustedSample = Q_min (SHRT_MAX, Q_max ((int)(sample * gain), SHRT_MIN));
-			samples[blockOffset + i] = adjustedSample;
+			/*adjustedSample = Q_min (SHRT_MAX, Q_max ((int)(sample * gain), SHRT_MIN));
+			samples[blockOffset + i] = adjustedSample;*/
+			samples[blockOffset + i] = bound (SHRT_MIN, (int)(sample * gain), SHRT_MAX);
 			}
 
 		if (blockOffset % voice.autogain.block_size == 0)
@@ -276,11 +321,15 @@ static void Voice_ApplyGainAdjust (int16_t *samples, int count)
 			average = localSum / blockSize;
 			modifiedMax = average + (localMax - average) * voice_avggain.value;
 
-			voice.autogain.current_gain = voice.autogain.next_gain * voice_scale.value;
+			/*voice.autogain.current_gain = voice.autogain.next_gain * voice_scale.value;
 			voice.autogain.next_gain = Q_min ((float)SHRT_MAX / modifiedMax, voice_maxgain.value) * voice_scale.value;
 			voice.autogain.gain_multiplier = (voice.autogain.next_gain - voice.autogain.current_gain) / 
-				(voice.autogain.block_size - 1);
+				(voice.autogain.block_size - 1);*/
+			voice.autogain.current_gain = voice.autogain.next_gain * scale;
+			voice.autogain.next_gain = Q_min ((float)SHRT_MAX / modifiedMax, voice_maxgain.value) * scale;
+			voice.autogain.gain_multiplier = (voice.autogain.next_gain - voice.autogain.current_gain) / (blockSize - 1);
 			}
+
 		blockOffset += blockSize;
 		}
 	}
@@ -439,7 +488,7 @@ void Voice_Disconnect (void)
 
 /*
 =========================
-Voice_StartChannel
+Voice_StartChannel [FWGS, 01.05.24]
 
 Feed the decoded data to engine sound subsystem
 =========================
@@ -447,26 +496,30 @@ Feed the decoded data to engine sound subsystem
 static void Voice_StartChannel (uint samples, byte *data, int entnum)
 	{
 	SND_ForceInitMouth (entnum);
-	S_RawEntSamples (entnum, samples, voice.samplerate, voice.width, VOICE_PCM_CHANNELS, data, 255);
+	/*S_RawEntSamples (entnum, samples, voice.samplerate, voice.width, VOICE_PCM_CHANNELS, data, 255);*/
+	S_RawEntSamples (entnum, samples, voice.samplerate, voice.width, VOICE_PCM_CHANNELS, data,
+		bound (0, 255 * voice_scale.value, 255));
 	}
 
 /*
 =========================
-Voice_AddIncomingData
+Voice_AddIncomingData [FWGS, 01.05.24]
 
 Received encoded voice data, decode it
 =========================
 */
 void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames)
 	{
+	const int playernum = ent - 1;
 	int samples = 0;
 	int ofs = 0;
 
-	if (!voice.decoder)
+	/*if (!voice.decoder)*/
+	if ((playernum < 0) || (playernum >= cl.maxclients) || (!voice.decoders[playernum]))
 		return;
 
 	// decode frame by frame
-	for (;; )
+	for (;;)
 		{
 		int frame_samples;
 		uint16_t compressed_size;
@@ -483,7 +536,8 @@ void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames)
 			break;
 
 #ifdef OPUS
-		frame_samples = opus_custom_decode (voice.decoder, data + ofs, compressed_size,
+		/*frame_samples = opus_custom_decode (voice.decoder, data + ofs, compressed_size,*/
+		frame_samples = opus_custom_decode (voice.decoders[playernum], data + ofs, compressed_size,
 			(opus_int16 *)voice.decompress_buffer + samples, voice.frame_size);
 #endif
 
@@ -497,20 +551,21 @@ void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames)
 
 /*
 =========================
-CL_AddVoiceToDatagram
+CL_AddVoiceToDatagram [FWGS, 01.05.24]
 
 Encode our voice data and send it to server
 =========================
 */
 void CL_AddVoiceToDatagram (void)
 	{
-	uint size, frames = 0;
+	uint size = 0, frames = 0;
 
 	if ((cls.state != ca_active) || !Voice_IsRecording () || !voice.encoder)
 		return;
 
 #ifdef OPUS
-	size = Voice_GetOpusCompressedData (voice.output_buffer, sizeof (voice.output_buffer), &frames);
+	/*size = Voice_GetOpusCompressedData (voice.output_buffer, sizeof (voice.output_buffer), &frames);*/
+	size = Voice_GetOpusCompressedData (voice.compress_buffer, sizeof (voice.compress_buffer), &frames);
 #endif
 
 	if ((size > 0) && (MSG_GetNumBytesLeft (&cls.datagram) >= size + 32))
@@ -519,7 +574,8 @@ void CL_AddVoiceToDatagram (void)
 		MSG_WriteByte (&cls.datagram, voice_loopback.value != 0);
 		MSG_WriteByte (&cls.datagram, frames);
 		MSG_WriteShort (&cls.datagram, size);
-		MSG_WriteBytes (&cls.datagram, voice.output_buffer, size);
+		/*MSG_WriteBytes (&cls.datagram, voice.output_buffer, size);*/
+		MSG_WriteBytes (&cls.datagram, voice.compress_buffer, size);
 		}
 	}
 
@@ -535,6 +591,7 @@ void Voice_RegisterCvars (void)
 	Cvar_RegisterVariable (&voice_enable);
 	Cvar_RegisterVariable (&voice_loopback);
 	Cvar_RegisterVariable (&voice_scale);
+	Cvar_RegisterVariable (&voice_transmit_scale);	// [FWGS, 01.05.24]
 	Cvar_RegisterVariable (&voice_avggain);
 	Cvar_RegisterVariable (&voice_maxgain);
 	Cvar_RegisterVariable (&voice_inputfromfile);
@@ -542,7 +599,7 @@ void Voice_RegisterCvars (void)
 
 /*
 =========================
-Voice_Shutdown
+Voice_Shutdown [FWGS, 01.05.24]
 
 Completely shutdown the voice subsystem
 =========================
@@ -554,8 +611,10 @@ static void Voice_Shutdown (void)
 	Voice_RecordStop ();
 
 #ifdef OPUS
-	Voice_ShutdownOpusEncoder ();
+	/*Voice_ShutdownOpusEncoder ();*/
 	Voice_ShutdownOpusDecoder ();
+	Voice_ShutdownOpusEncoder ();
+	Voice_ShutdownCustomMode ();
 #endif
 
 	VoiceCapture_Shutdown ();
@@ -598,7 +657,7 @@ void Voice_Idle (double frametime)
 
 /*
 =========================
-Voice_Init [FWGS, 01.02.24]
+Voice_Init [FWGS, 01.05.24]
 
 Initialize the voice subsystem
 =========================
@@ -622,15 +681,18 @@ qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit)
 		voice.autogain.block_size = 128;
 
 #if OPUS
-		if (!Voice_InitOpusDecoder ())
-#endif
+		/*if (!Voice_InitOpusDecoder ())*/
+		if (!Voice_InitCustomMode ())
 			{
 			// no reason to init encoder and open audio device
 			// if we can't hear other players
-			Con_Printf (S_ERROR "Voice chat disabled.\n");
+			/*Con_Printf (S_ERROR "Voice chat disabled.\n");*/
 			Voice_Shutdown ();
 			return false;
 			}
+#else
+		return false;
+#endif
 
 		// we can hear others players, so it's fine to fail now
 		voice.initialized = true;
@@ -649,6 +711,18 @@ qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit)
 
 	if (!preinit)
 		{
+#if OPUS
+		Voice_ShutdownOpusDecoder ();
+		if (!Voice_InitOpusDecoder ())
+#endif
+			{
+			// no reason to init encoder and open audio device
+			// if we can't hear other players
+			Con_Printf (S_ERROR "Can't create decoders, voice chat is disabled.\n");
+			Voice_Shutdown ();
+			return false;
+			}
+
 		voice.device_opened = VoiceCapture_Init ();
 		if (!voice.device_opened)
 			Con_Printf (S_WARN "No microphone is available.\n");

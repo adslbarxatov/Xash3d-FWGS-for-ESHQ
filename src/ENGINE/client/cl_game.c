@@ -1465,12 +1465,13 @@ static void GAME_EXPORT pfnSPR_Set (HLSPRITE hPic, int r, int g, int b)
 
 /*
 =========
-pfnSPR_Draw
+pfnSPR_Draw [FWGS, 01.05.24]
 =========
 */
 static void GAME_EXPORT pfnSPR_Draw (int frame, int x, int y, const wrect_t *prc)
 	{
-	ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
+	/*ref.dllFuncs.GL_SetRenderMode (kRenderNormal);*/
+	ref.dllFuncs.GL_SetRenderMode (kRenderTransAlpha);
 	SPR_DrawGeneric (frame, x, y, -1, -1, prc);
 	}
 
@@ -1685,13 +1686,14 @@ static void GAME_EXPORT pfnSetCrosshair (HLSPRITE hspr, wrect_t rc, int r, int g
 
 /*
 =============
-pfnCvar_RegisterVariable [FWGS, 01.07.23]
+pfnCvar_RegisterVariable [FWGS, 01.05.24]
 =============
 */
 static cvar_t *GAME_EXPORT pfnCvar_RegisterClientVariable (const char *szName, const char *szValue, int flags)
 	{
 	// a1ba: try to mitigate outdated client.dll vulnerabilities
-	if (!Q_stricmp (szName, "motdfile"))
+	/*if (!Q_stricmp (szName, "motdfile"))*/
+	if (!Q_stricmp (szName, "motdfile") || !Q_stricmp (szName, "sensitivity"))
 		flags |= FCVAR_PRIVILEGED;
 
 	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_CLIENTDLL, Cvar_BuildAutoDescription (szName,
@@ -3859,7 +3861,7 @@ void CL_UnloadProgs (void)
 qboolean CL_LoadProgs (const char *name)
 	{
 	static playermove_t	gpMove;
-	const dllfunc_t *func;
+	const dllfunc_t		*func;
 	CL_EXPORT_FUNCS		GetClientAPI; // single export
 	qboolean			critical_exports = true;
 

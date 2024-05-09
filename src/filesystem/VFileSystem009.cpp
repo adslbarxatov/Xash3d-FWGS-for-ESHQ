@@ -336,7 +336,7 @@ class CXashFS : public IVFileSystem009
 			return;
 			}
 
-		// [FWGS, 01.05.23]
+		// [FWGS, 01.05.24]
 		const char *FindFirst (const char *pattern, FileFindHandle_t *handle, const char *id) override
 			{
 			CSearchState *state;
@@ -352,6 +352,12 @@ class CXashFS : public IVFileSystem009
 				return nullptr;
 
 			state = new CSearchState (&searchHead, search);
+			if (!state)
+				{
+				Mem_Free (search);
+				return nullptr;
+				}
+
 			*handle = state->handle;
 			return state->search->filenames[0];
 			}

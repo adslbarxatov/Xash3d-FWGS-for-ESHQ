@@ -147,6 +147,7 @@ class CLabelHeader: public Label
 			_gap += XRES (5);
 			}
 
+		// [FWGS, 01.05.24]
 		virtual void setText (const char* text)
 			{
 			// strip any non-alnum characters from the end
@@ -154,10 +155,9 @@ class CLabelHeader: public Label
 			strcpy (buf, text);
 
 			int len = strlen (buf);
-			while (len && Q_isspace (buf[--len]))
-				{
+			/*while (len && Q_isspace (buf[--len]))*/
+			while (len && Q_isspace (buf + --len))
 				buf[len] = 0;
-				}
 
 			CLabelHeader::setText (0, buf);
 			}

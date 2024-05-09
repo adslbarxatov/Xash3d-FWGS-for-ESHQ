@@ -33,10 +33,9 @@ double Platform_DoubleTime (void);
 void Platform_Sleep (int msec);
 void Platform_ShellExecute (const char *path, const char *parms);
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow);
-qboolean Sys_DebuggerPresent (void);	// [FWGS, 01.04.23] optional, see Sys_DebugBreak
-
-// [FWGS, 01.07.23]
+/*qboolean Sys_DebuggerPresent (void);	// [FWGS, 01.04.23] optional, see Sys_DebugBreak*/
 void Platform_SetStatus (const char *status);
+qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 
 // [FWGS, 01.01.24] legacy iOS port functions
 #if TARGET_OS_IOS
@@ -67,6 +66,10 @@ void Platform_SetStatus (const char *status);
 	// [FWGS, 01.11.23]
 	void Android_Init (void);
 	void *Android_GetNativeObject (const char *name);
+
+	// [FWGS, 01.05.24]
+	int Android_GetKeyboardHeight (void);
+	void Android_Shutdown (void);
 #endif
 
 // [FWGS, 01.07.23]
@@ -129,6 +132,16 @@ static inline void Platform_Init (void)
 #endif
 	}
 
+// [FWGS, 01.05.24]
+static inline qboolean Sys_DebuggerPresent (void)
+	{
+#if XASH_LINUX || XASH_WIN32
+	return Platform_DebuggerPresent ();
+#else
+	return false;
+#endif
+	}
+
 // [FWGS, 01.07.23]
 static inline void Platform_Shutdown (void)
 	{
@@ -183,13 +196,13 @@ int Platform_GetClipboardText (char *buffer, size_t size);
 void Platform_SetClipboardText (const char *buffer);
 
 #if XASH_SDL == 12
-#define SDL_SetWindowGrab( wnd, state ) SDL_WM_GrabInput( (state) )
-#define SDL_MinimizeWindow( wnd ) SDL_WM_IconifyWindow()
-#define SDL_IsTextInputActive() host.textmode
+	#define SDL_SetWindowGrab( wnd, state ) SDL_WM_GrabInput( (state) )
+	#define SDL_MinimizeWindow( wnd ) SDL_WM_IconifyWindow()
+	#define SDL_IsTextInputActive() host.textmode
 #endif
 
 #if !XASH_SDL
-#define SDL_VERSION_ATLEAST( x, y, z ) 0
+	#define SDL_VERSION_ATLEAST( x, y, z ) 0
 #endif
 
 // [FWGS, 01.02.24]
@@ -262,5 +275,101 @@ qboolean VoiceCapture_Init (void);
 void VoiceCapture_Shutdown (void);
 qboolean VoiceCapture_Activate (qboolean activate);
 qboolean VoiceCapture_Lock (qboolean lock);
+
+// [FWGS, 01.05.24] this allows to make break in current line, without entering libc code.
+// libc built with -fomit-frame-pointer may just eat stack frame (hello, glibc), making
+// entering libc even more useless. calling syscalls directly allows to make break like
+// if it was asm("int $3") on x86
+#if XASH_LINUX && XASH_X86
+
+	#define INLINE_RAISE(x) asm volatile( "int $3;" );
+	#define INLINE_NANOSLEEP1() // nothing!
+
+#elif XASH_LINUX && XASH_ARM && !XASH_64BIT
+
+	#define INLINE_RAISE(x) do \
+	{ \
+	int raise_pid = getpid(); \
+	int raise_tid = gettid(); \
+	int raise_sig = (x); \
+	__asm__ volatile ( \
+	"mov r7,#268\n\t" \
+	"mov r0,%0\n\t" \
+	"mov r1,%1\n\t" \
+	"mov r2,%2\n\t" \
+	"svc 0\n\t" \
+	: \
+	: "r"(raise_pid), "r"(raise_tid), "r"(raise_sig) \
+	: "r0", "r1", "r2", "r7", "memory" \
+	); \
+	} while( 0 )
+
+#define INLINE_NANOSLEEP1() do \
+	{ \
+	struct timespec ns_t1 = {1, 0}; \
+	struct timespec ns_t2 = {0, 0}; \
+	__asm__ volatile ( \
+	"mov r7,#162\n\t" \
+	"mov r0,%0\n\t" \
+	"mov r1,%1\n\t" \
+	"svc 0\n\t" \
+	: \
+	: "r"(&ns_t1), "r"(&ns_t2) \
+	: "r0", "r1", "r7", "memory" \
+	); \
+	} while( 0 )
+
+#elif XASH_LINUX && XASH_ARM && XASH_64BIT
+
+	#define INLINE_RAISE(x) do \
+	{ \
+	int raise_pid = getpid(); \
+	int raise_tid = gettid(); \
+	int raise_sig = (x); \
+	__asm__ volatile ( \
+	"mov x8,#131\n\t" \
+	"mov x0,%0\n\t" \
+	"mov x1,%1\n\t" \
+	"mov x2,%2\n\t" \
+	"svc 0\n\t" \
+	: \
+	: "r"(raise_pid), "r"(raise_tid), "r"(raise_sig) \
+	: "x0", "x1", "x2", "x8", "memory", "cc" \
+	); \
+	} while( 0 )
+
+#define INLINE_NANOSLEEP1() do \
+	{ \
+	struct timespec ns_t1 = {1, 0}; \
+	struct timespec ns_t2 = {0, 0}; \
+	__asm__ volatile ( \
+	"mov x8,#101\n\t" \
+	"mov x0,%0\n\t" \
+	"mov x1,%1\n\t" \
+	"svc 0\n\t" \
+	: \
+	: "r"(&ns_t1), "r"(&ns_t2) \
+	: "x0", "x1", "x8", "memory", "cc" \
+	); \
+	} while( 0 )
+
+#elif XASH_LINUX
+	#ifdef __NR_tgkill
+		#define INLINE_RAISE(x) syscall( __NR_tgkill, getpid(), gettid(), x )
+	#else // __NR_tgkill
+		#define INLINE_RAISE(x) raise(x)
+	#endif // __NR_tgkill
+
+	#define INLINE_NANOSLEEP1() do \
+	{ \
+	struct timespec ns_t1 = {1, 0}; \
+	struct timespec ns_t2 = {0, 0}; \
+	nanosleep( &ns_t1, &ns_t2 ); \
+	} while( 0 )
+
+#else
+	#define INLINE_RAISE(x) raise(x)
+	#define INLINE_NANOSLEEP1() sleep(1)
+#endif
 
 #endif

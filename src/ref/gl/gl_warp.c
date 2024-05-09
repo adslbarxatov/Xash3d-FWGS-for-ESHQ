@@ -981,12 +981,13 @@ void R_AnimateRipples (void)
 
 // [FWGS, 01.02.24] удалена R_UpdateRippleTexParams
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.05.24]
 void R_UploadRipples (texture_t *image)
 	{
 	gl_texture_t	*glt;
 	uint32_t		*pixels;
 	int		wbits, wmask, wshft;
+	int		y;
 
 	// discard unuseful textures
 	if (!r_ripple.value || (image->width > RIPPLES_CACHEWIDTH) || (image->width != image->height))
@@ -1024,11 +1025,14 @@ void R_UploadRipples (texture_t *image)
 	wshft = 7 - wbits;
 	wmask = image->width - 1;
 
-	for (int y = 0; y < image->height; y++)
+	/*for (int y = 0; y < image->height; y++)*/
+	for (y = 0; y < image->height; y++)
 		{
 		int ry = y << (7 + wshft);
+		int x;
 
-		for (int x = 0; x < image->width; x++)
+		/*for (int x = 0; x < image->width; x++)*/
+		for (x = 0; x < image->width; x++)
 			{
 			int rx = x << wshft;
 			int val = g_ripple.curbuf[ry + rx] >> 4;

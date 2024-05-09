@@ -16,15 +16,16 @@ GNU General Public License for more details.
 #include "common.h"
 #include "server.h"
 
+// [FWGS, 01.05.24]
 void Log_Open (void)
 	{
 	time_t		ltime;
-	struct tm *today;
+	struct tm	*today;
 	char		szFileBase[MAX_OSPATH];
 	char		szTestFile[MAX_OSPATH];
-	file_t *fp = NULL;
-	const char *temp;
-	int		i;
+	file_t		*fp = NULL;
+	const char	*temp;
+	int			i;
 
 	if (!svs.log.active)
 		return;
@@ -72,11 +73,11 @@ void Log_Open (void)
 		return;
 		}
 
-	// [FWGS, 01.04.23]
 	if (fp)
 		svs.log.file = fp;
 	Log_Printf ("Log file started (file \"%s\") (game \"%s\") (version \"%i/" XASH_VERSION "/%d\")\n",
-		szTestFile, Info_ValueForKey (SV_Serverinfo (), "*gamedir"), PROTOCOL_VERSION, Q_buildnum ());
+		szTestFile, Info_ValueForKey (svs.serverinfo, "*gamedir"), PROTOCOL_VERSION, Q_buildnum ());
+	/*szTestFile, Info_ValueForKey (SV_Serverinfo (), "*gamedir"), PROTOCOL_VERSION, Q_buildnum ());*/
 	}
 
 void Log_Close (void)
@@ -101,10 +102,10 @@ void Log_Printf (const char *fmt, ...)
 	{
 	va_list		argptr;
 	static char	string[1024];
-	char *p;
+	char		*p;
 	time_t		ltime;
-	struct tm *today;
-	int		len;
+	struct tm	*today;
+	int			len;
 
 	if (!svs.log.active)
 		return;
@@ -163,9 +164,9 @@ SV_SetLogAddress_f [FWGS, 01.07.23]
 */
 void SV_SetLogAddress_f (void)
 	{
-	const char *s;
-	int port;
-	string addr;
+	const char	*s;
+	int			port;
+	string		addr;
 
 	if (svs.log.net_log && (Cmd_Argc () == 2) && !Q_strcmp (Cmd_Argv (1), "off"))
 		{

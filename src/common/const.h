@@ -747,9 +747,10 @@ typedef unsigned short	word;
 
 #include "xash3d_types.h"
 
-#if !(XASH_DL || XASH_FS)
+// [FWGS, 01.05.24]
+/*#if !(XASH_DL || XASH_FS)
 	#define Q_isspace(ch)	(ch < 32 || ch > 255)
-#endif
+#endif*/
 
 typedef struct
 	{

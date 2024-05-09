@@ -32,15 +32,15 @@ qboolean		s_registering = false;
 
 /*
 =================
-S_SoundList_f
+S_SoundList_f [FWGS, 09.05.24]
 =================
 */
 void S_SoundList_f (void)
 	{
-	sfx_t *sfx;
-	wavdata_t *sc;
-	int		i, totalSfx = 0;
-	int		totalSize = 0;
+	sfx_t		*sfx;
+	wavdata_t	*sc;
+	int			i, totalSfx = 0;
+	int			totalSize = 0;
 
 	for (i = 0, sfx = s_knownSfx; i < s_numSfx; i++, sfx++)
 		{
@@ -52,12 +52,15 @@ void S_SoundList_f (void)
 			{
 			totalSize += sc->size;
 
-			if (sc->loopStart >= 0)
+			/*if (sc->loopStart >= 0)
 				Con_Printf ("L");
 			else 
+				Con_Printf (" ");*/
+			if (FBitSet (sc->flags, SOUND_LOOPED))
+				Con_Printf ("L");
+			else
 				Con_Printf (" ");
 
-			// [FWGS, 01.04.23]
 			if ((sfx->name[0] == '*') || !Q_strncmp (sfx->name, DEFAULT_SOUNDPATH, sizeof (DEFAULT_SOUNDPATH) - 1))
 				Con_Printf (" (%2db) %s : %s\n", sc->width * 8, Q_memprint (sc->size), sfx->name);
 			else 
@@ -76,8 +79,8 @@ void S_SoundList_f (void)
 // return true if char 'c' is one of 1st 2 characters in pch
 qboolean S_TestSoundChar (const char *pch, char c)
 	{
-	char *pcht = (char *)pch;
-	int	i;
+	char	*pcht = (char *)pch;
+	int		i;
 
 	if (!pch || !*pch)
 		return false;
@@ -105,7 +108,7 @@ char *S_SkipSoundChar (const char *pch)
 
 /*
 =================
-S_CreateDefaultSound
+S_CreateDefaultSound [FWGS, 09.05.24]
 =================
 */
 static wavdata_t *S_CreateDefaultSound (void)
@@ -116,7 +119,8 @@ static wavdata_t *S_CreateDefaultSound (void)
 
 	sc->width = 2;
 	sc->channels = 1;
-	sc->loopStart = -1;
+	/*sc->loopStart = -1;*/
+	sc->loopStart = 0;
 	sc->rate = SOUND_DMA_SPEED;
 	sc->samples = SOUND_DMA_SPEED;
 	sc->size = sc->samples * sc->width * sc->channels;
@@ -127,14 +131,15 @@ static wavdata_t *S_CreateDefaultSound (void)
 
 /*
 =================
-S_LoadSound
+S_LoadSound [FWGS, 09.05.24]
 =================
 */
 wavdata_t *S_LoadSound (sfx_t *sfx)
 	{
 	wavdata_t *sc = NULL;
 
-	if (!sfx) return NULL;
+	if (!sfx)
+		return NULL;
 
 	// see if still in memory
 	if (sfx->cache)
@@ -147,21 +152,24 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 	if (Q_stricmp (sfx->name, "*default"))
 		{
 		// load it from disk
-		if (s_warn_late_precache.value > 0 && CL_Active ())
+		if ((s_warn_late_precache.value > 0) && CL_Active ())
 			Con_Printf (S_WARN "S_LoadSound: late precache of %s\n", sfx->name);
 
 		if (sfx->name[0] == '*')
 			sc = FS_LoadSound (sfx->name + 1, NULL, 0);
-		else sc = FS_LoadSound (sfx->name, NULL, 0);
+		else
+			sc = FS_LoadSound (sfx->name, NULL, 0);
 		}
 
-	if (!sc) sc = S_CreateDefaultSound ();
+	if (!sc)
+		sc = S_CreateDefaultSound ();
 
 	if (sc->rate < SOUND_11k) // some bad sounds
 		Sound_Process (&sc, SOUND_11k, sc->width, SOUND_RESAMPLE);
-	else if (sc->rate > SOUND_11k && sc->rate < SOUND_22k) // some bad sounds
+	else if ((sc->rate > SOUND_11k) && (sc->rate < SOUND_22k))	// some bad sounds
 		Sound_Process (&sc, SOUND_22k, sc->width, SOUND_RESAMPLE);
-	else if (sc->rate > SOUND_22k && sc->rate <= SOUND_32k) // some bad sounds
+	/*else if (sc->rate > SOUND_22k && sc->rate <= SOUND_32k) // some bad sounds*/
+	else if ((sc->rate > SOUND_22k) && (sc->rate < SOUND_44k))	// some bad sounds
 		Sound_Process (&sc, SOUND_44k, sc->width, SOUND_RESAMPLE);
 
 	sfx->cache = sc;
@@ -174,13 +182,12 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 // =======================================================================
 /*
 ==================
-S_FindName
-
+S_FindName [FWGS, 09.05.24]
 ==================
 */
 sfx_t *S_FindName (const char *pname, int *pfInCache)
 	{
-	sfx_t *sfx;
+	sfx_t	*sfx;
 	uint	i, hash;
 	string	name;
 
@@ -205,7 +212,7 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 				*pfInCache = (sfx->cache != NULL) ? true : false;
 				}
 
-			// [FWGS, 01.04.23] prolonge registration
+			// prolonge registration
 			sfx->servercount = cl.servercount;
 			return sfx;
 			}
@@ -225,10 +232,11 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 
 	sfx = &s_knownSfx[i];
 	memset (sfx, 0, sizeof (*sfx));
-	if (pfInCache) *pfInCache = false;
-	Q_strncpy (sfx->name, name, MAX_STRING);
-	
-	// [FWGS, 01.04.23]
+	if (pfInCache)
+		*pfInCache = false;
+
+	/*Q_strncpy (sfx->name, name, MAX_STRING);*/
+	Q_strncpy (sfx->name, name, sizeof (sfx->name));
 	sfx->servercount = cl.servercount;
 	sfx->hashValue = COM_HashKey (sfx->name, MAX_SFX_HASH);
 
@@ -276,7 +284,6 @@ void S_FreeSound (sfx_t *sfx)
 /*
 =====================
 S_BeginRegistration
-
 =====================
 */
 void S_BeginRegistration (void)
@@ -301,13 +308,12 @@ void S_BeginRegistration (void)
 /*
 =====================
 S_EndRegistration
-
 =====================
 */
 void S_EndRegistration (void)
 	{
-	sfx_t *sfx;
-	int	i;
+	sfx_t	*sfx;
+	int		i;
 
 	if (!s_registering || !dma.initialized)
 		return;
@@ -377,7 +383,7 @@ sfx_t *S_GetSfxByHandle (sound_t handle)
 	if (handle == SENTENCE_INDEX)
 		return S_FindName (s_sentenceImmediateName, NULL);
 
-	if (handle < 0 || handle >= s_numSfx)
+	if ((handle < 0) || (handle >= s_numSfx))
 		return NULL;
 
 	return &s_knownSfx[handle];
@@ -385,13 +391,14 @@ sfx_t *S_GetSfxByHandle (sound_t handle)
 
 /*
 =================
-S_InitSounds
+S_InitSounds [FWGS, 09.05.24]
 =================
 */
 void S_InitSounds (void)
 	{
 	// create unused 0-entry
-	Q_strncpy (s_knownSfx->name, "*default", MAX_QPATH);
+	/*Q_strncpy (s_knownSfx->name, "*default", MAX_QPATH);*/
+	Q_strncpy (s_knownSfx->name, "*default", sizeof (s_knownSfx->name));
 	s_knownSfx->hashValue = COM_HashKey (s_knownSfx->name, MAX_SFX_HASH);
 	s_knownSfx->hashNext = s_sfxHashList[s_knownSfx->hashValue];
 	s_sfxHashList[s_knownSfx->hashValue] = s_knownSfx;
@@ -406,8 +413,8 @@ S_FreeSounds
 */
 void S_FreeSounds (void)
 	{
-	sfx_t *sfx;
-	int	i;
+	sfx_t	*sfx;
+	int		i;
 
 	if (!dma.initialized)
 		return;

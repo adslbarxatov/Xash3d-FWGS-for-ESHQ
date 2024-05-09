@@ -646,7 +646,7 @@ static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, f
 
 /*
 ===========
-FS_AddWad_Fullpath [FWGS, 01.07.23]
+FS_AddWad_Fullpath [FWGS, 01.05.24]
 ===========
 */
 searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags)
@@ -677,6 +677,7 @@ searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags)
 	search->pfnSearch = FS_Search_WAD;
 	search->pfnLoadFile = W_ReadLump;
 
-	Con_Reportf ("Adding wadfile: %s (%i files)\n", wadfile, wad->numlumps);
+	/*Con_Reportf ("Adding wadfile: %s (%i files)\n", wadfile, wad->numlumps);*/
+	Con_Reportf ("Adding WAD: %s (%i files)\n", wadfile, wad->numlumps);
 	return search;
 	}

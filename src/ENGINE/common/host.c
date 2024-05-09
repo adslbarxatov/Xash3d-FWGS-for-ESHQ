@@ -77,6 +77,36 @@ static CVAR_DEFINE_AUTO (host_sleeptime_debug, "0", 0,
 CVAR_DEFINE (con_gamemaps, "con_mapfilter", "1", FCVAR_ARCHIVE,
 	"when true show only maps in game folder");
 
+// [FWGS, 01.05.24]
+typedef struct feature_message_s
+	{
+	uint32_t	mask;
+	const char	*msg;
+	const char	*arg;
+	} feature_message_t;
+
+// [FWGS, 01.05.24]
+static feature_message_t bugcomp_features[] =
+	{
+	{ BUGCOMP_PENTITYOFENTINDEX_FLAG, "pfnPEntityOfEntIndex bugfix revert", "peoei" },
+	{ BUGCOMP_MESSAGE_REWRITE_FACILITY_FLAG, "GoldSrc Message Rewrite Facility", "gsmrf" },
+	};
+
+// [FWGS, 01.05.24]
+static feature_message_t engine_features[] =
+	{
+	{ ENGINE_WRITE_LARGE_COORD, "Big World Support" },
+	{ ENGINE_QUAKE_COMPATIBLE, "Quake Compatibility" },
+	{ ENGINE_LOAD_DELUXEDATA, "Deluxemap Support" },
+	{ ENGINE_PHYSICS_PUSHER_EXT, "Improved MOVETYPE_PUSH" },
+	{ ENGINE_LARGE_LIGHTMAPS, "Large Lightmaps" },
+	{ ENGINE_COMPENSATE_QUAKE_BUG, "Stupid Quake Bug Compensation" },
+	{ ENGINE_IMPROVED_LINETRACE, "Improved Trace Line" },
+	{ ENGINE_COMPUTE_STUDIO_LERP, "Studio MOVETYPE_STEP Lerping" },
+	{ ENGINE_LINEAR_GAMMA_SPACE, "Linear Gamma Space" },
+	{ ENGINE_STEP_POSHISTORY_LERP, "MOVETYPE_STEP Position History Based Lerping" },
+	};
+
 // [FWGS, 01.03.24]
 static void Sys_PrintUsage (void)
 	{
@@ -93,6 +123,7 @@ static void Sys_PrintUsage (void)
 #define XASH_EXE "(xash)"
 #endif
 
+// [FWGS, 01.05.24]
 #define O( x, y ) "  "x"  "y"\n"
 
 	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
@@ -101,12 +132,13 @@ static void Sys_PrintUsage (void)
 		O ("-log             ", "write log to \"engine.log\"")
 		O ("-nowriteconfig   ", "disable config save")
 		O ("-noch            ", "disable crashhandler")
-#if XASH_WIN32 // !!!!
+#if XASH_WIN32
 		O ("-minidumps       ", "enable writing minidumps when game is crashed")
 #endif
 		O ("-rodir <path>    ", "set read-only base directory")
-		O ("-bugcomp         ", "enable precise bug compatibility. Will break games that don't require it")
-		O ("                 ", "Refer to engine documentation for more info")
+		O ("-bugcomp [opts] ", "enable precise bug compatibility")
+		O (" ", "will break games that don't require it")
+		O (" ", "refer to engine documentation for more info")
 		O ("-disablehelp     ", "disable this message")
 #if !XASH_DEDICATED
 		O ("-dedicated       ", "run engine in dedicated mode")
@@ -119,7 +151,8 @@ static void Sys_PrintUsage (void)
 		O ("-noip6           ", "disable IPv6")
 		O ("-ip6 <ip>        ", "set IPv6 address")
 		O ("-port6 <port>    ", "set IPv6 port")
-		O ("-clockwindow <cw>", "adjust clockwindow used to ignore client commands to prevent speed hacks")
+		O ("-clockwindow <cw>", "adjust clockwindow used to ignore client commands")
+		O (" ", "to prevent speed hacks")
 		"\nGame options:\n"
 		O ("-game <directory>", "set game directory to start engine with")
 		O ("-dll <path>      ", "override server DLL path")
@@ -153,7 +186,6 @@ static void Sys_PrintUsage (void)
 		O ("-sdl_renderer <n>", "use alternative SDL_Renderer for software")
 #endif
 
-		// [FWGS, 01.11.23]
 #if XASH_ANDROID && !XASH_SDL
 		O ("-nativeegl       ", "use native egl implementation. Use if screen does not update or black")
 #endif
@@ -201,12 +233,13 @@ void Host_ShutdownServer (void)
 
 /*
 ================
-Host_PrintEngineFeatures [FWGS, 01.01.24]
+Host_PrintEngineFeatures [FWGS, 01.05.24]
 ================
 */
-static void Host_PrintEngineFeatures (int features)
+/*static void Host_PrintEngineFeatures (int features)*/
+static void Host_PrintFeatures (uint32_t flags, const char *s, feature_message_t *features, size_t size)
 	{
-	struct
+	/*struct
 		{
 		uint32_t mask;
 		const char *msg;
@@ -223,18 +256,22 @@ static void Host_PrintEngineFeatures (int features)
 			{ ENGINE_LINEAR_GAMMA_SPACE, "Linear Gamma Space" },
 			{ ENGINE_STEP_POSHISTORY_LERP, "MOVETYPE_STEP Position History Based Lerping" },
 			};
-		int i;
+		int i;*/
+	size_t i;
 
-		for (i = 0; i < ARRAYSIZE (features_str); i++)
-			{
-			if (FBitSet (features, features_str[i].mask))
-				Con_Reportf ("^3EXT:^7 %s is enabled\n", features_str[i].msg);
-			}
+	/*for (i = 0; i < ARRAYSIZE (features_str); i++)*/
+	for (i = 0; i < size; i++)
+		{
+		/*if (FBitSet (features, features_str[i].mask))
+			Con_Reportf ("^3EXT:^7 %s is enabled\n", features_str[i].msg);*/
+		if (FBitSet (flags, features[i].mask))
+			Con_Printf ("^3%s:^7 %s is enabled\n", s, features[i].msg);
+		}
 	}
 
 /*
 ==============
-Host_ValidateEngineFeatures [FWGS, 01.01.24]
+Host_ValidateEngineFeatures [FWGS, 01.05.24]
 
 validate features bits and set host.features
 ==============
@@ -256,7 +293,8 @@ void Host_ValidateEngineFeatures (uint32_t features)
 		SetBits (features, ENGINE_STEP_POSHISTORY_LERP);
 
 	// print requested first
-	Host_PrintEngineFeatures (features);
+	/*Host_PrintEngineFeatures (features);*/
+	Host_PrintFeatures (features, "EXT", engine_features, ARRAYSIZE (engine_features));
 
 	// now warn about incompatible bits
 	if (FBitSet (features, ENGINE_STEP_POSHISTORY_LERP | ENGINE_COMPUTE_STUDIO_LERP) ==
@@ -839,21 +877,22 @@ void Host_Frame (float time)
 
 /*
 =================
-Host_Error
+Host_Error [FWGS, 09.05.24]
 =================
 */
 void GAME_EXPORT Host_Error (const char *error, ...)
 	{
-	static char	hosterror1[MAX_SYSPATH];
-	static char	hosterror2[MAX_SYSPATH];
+	static char		hosterror1[MAX_SYSPATH];
+	static char		hosterror2[MAX_SYSPATH];
 	static qboolean	recursive = false;
-	va_list		argptr;
+	va_list			argptr;
 
 	va_start (argptr, error);
-	Q_vsnprintf (hosterror1, sizeof (hosterror1), error, argptr);	// [FWGS, 01.05.23]
+	Q_vsnprintf (hosterror1, sizeof (hosterror1), error, argptr);
 	va_end (argptr);
 
-	CL_WriteMessageHistory (); // before Q_error call
+	// before Q_error call
+	CL_WriteMessageHistory ();
 
 	if (host.framecount < 3)
 		{
@@ -873,7 +912,6 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 			}
 		else
 			{
-			// [FWGS, 01.01.24]
 			Platform_MessageBox ("Host Error", hosterror1, true);
 			}
 		}
@@ -889,16 +927,20 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 		}
 
 	recursive = true;
-	Q_strncpy (hosterror2, hosterror1, MAX_SYSPATH);
-	host.errorframe = host.framecount; // to avoid multply calls per frame
-	Q_snprintf (host.finalmsg, sizeof (host.finalmsg), "Server crashed: %s", hosterror1);	// [FWGS, 01.05.23]
+	/*Q_strncpy (hosterror2, hosterror1, MAX_SYSPATH);*/
+	Q_strncpy (hosterror2, hosterror1, sizeof (hosterror2));
+
+	// to avoid multply calls per frame
+	host.errorframe = host.framecount;
+	Q_snprintf (host.finalmsg, sizeof (host.finalmsg), "Server crashed: %s", hosterror1);
 
 	// clearing cmd buffer to prevent execute any commands
 	COM_InitHostState ();
 	Cbuf_Clear ();
 
+	// drop clients
 	Host_ShutdownServer ();
-	CL_Drop (); // drop clients
+	CL_Drop ();
 
 	// recreate world if needs
 	CL_ClearEdicts ();
@@ -960,7 +1002,7 @@ static void Host_Userconfigd_f (void)
 
 #if XASH_ENGINE_TESTS
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.05.24]
 static void Host_RunTests (int stage)
 	{
 	switch (stage)
@@ -979,14 +1021,63 @@ static void Host_RunTests (int stage)
 			TEST_LIST_1_CLIENT;
 #endif
 			Msg ("Done! %d passed, %d failed\n", tests_stats.passed, tests_stats.failed);
+			error_on_exit = tests_stats.failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 			Sys_Quit ();
 		}
 	}
 #endif
 
+// [FWGS, 01.05.24]
+static uint32_t Host_CheckBugcomp (void)
+	{
+	const char	*prev, *next;
+	uint32_t	flags = 0;
+	string		args, arg;
+	size_t		i;
+
+	if (!Sys_CheckParm ("-bugcomp"))
+		return 0;
+
+	if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha (args[0]))
+		{
+		for (prev = args, next = Q_strchrnul (prev, '+'); ; prev = next + 1, next = Q_strchrnul (prev, '+'))
+			{
+			Q_strncpy (arg, prev, next - prev + 1);
+			for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+				{
+				if (!Q_stricmp (bugcomp_features[i].arg, arg))
+					{
+					SetBits (flags, bugcomp_features[i].mask);
+					break;
+					}
+				}
+
+			if (i == ARRAYSIZE (bugcomp_features))
+				{
+				Con_Printf (S_ERROR "Unknown bugcomp flag %s\n", arg);
+				Con_Printf ("Valid flags are:\n");
+				for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+					Con_Printf ("\t%s: %s\n", bugcomp_features[i].arg, bugcomp_features[i].msg);
+				}
+
+			if (!*next)
+				break;
+			}
+		}
+	else
+		{
+		// no argument specified -bugcomp just enables everything
+		flags = -1;
+		}
+
+	Host_PrintFeatures (flags, "BUGCOMP", bugcomp_features, ARRAYSIZE (bugcomp_features));
+	return flags;
+	}
+
+
 /*
 =================
-Host_InitCommon [FWGS, 01.01.24]
+Host_InitCommon [FWGS, 01.05.24]
 =================
 */
 static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)
@@ -1020,10 +1111,10 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	Memory_Init (); // init memory subsystem
 
 	host.mempool = Mem_AllocPool ("Zone Engine");
-	host.allow_console = DEFAULT_ALLOWCONSOLE;	// [FWGS, 01.04.23]
+	host.allow_console = DEFAULT_ALLOWCONSOLE;
 
 	// HACKHACK: Quake console is always allowed
-	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake")))	// [FWGS, 01.04.23]
+	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake")))
 		host.allow_console = true;
 
 	if (Sys_CheckParm ("-dev"))
@@ -1061,7 +1152,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	if (progname[0] == '#')
 		progname++;
 
-	// [FWGS, 01.01.24]
 	Q_strncpy (SI.exeName, progname, sizeof (SI.exeName));
 	Q_strncpy (SI.basedirName, progname, sizeof (SI.basedirName));
 
@@ -1081,12 +1171,12 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	// member console allowing
 	host.allow_console_init = host.allow_console;
 
-	if (Sys_CheckParm ("-bugcomp"))
+	/*if (Sys_CheckParm ("-bugcomp"))
 		{
 		// add argument check here when we add other levels
 		// of bugcompatibility
 		host.bugcomp = BUGCOMP_GOLDSRC;
-		}
+		}*/
 
 	// get default screen res
 	VID_InitDefaultResolution ();
@@ -1130,20 +1220,19 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	else
 		{
 
-		// [FWGS, 01.11.23]
 #if TARGET_OS_IOS
 		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));
 #elif XASH_ANDROID && XASH_SDL
 		Q_strncpy (host.rootdir, SDL_AndroidGetExternalStoragePath (), sizeof (host.rootdir));
 
-#elif XASH_PSVITA	// [FWGS, 01.04.23]
+#elif XASH_PSVITA
 		if (!PSVita_GetBasePath (host.rootdir, sizeof (host.rootdir)))
 			{
 			Sys_Error ("couldn't find xash3d data directory");
 			host.rootdir[0] = 0;
 			}
 
-		// [FWGS, 01.11.23] GetBasePath not impl'd in switch-sdl2
+		// GetBasePath not impl'd in switch-sdl2
 #elif (XASH_SDL == 2) && !XASH_NSWITCH 
 		char *szBasePath = SDL_GetBasePath ();
 		if (szBasePath)
@@ -1171,7 +1260,7 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 #endif
 		}
 
-#if XASH_WIN32	// [FWGS, 01.04.23]
+#if XASH_WIN32
 	COM_FixSlashes (host.rootdir);
 #endif
 
@@ -1181,7 +1270,7 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		host.rootdir[len - 1] = 0;
 
 	// get readonly root. The order is: check for arg, then env.
-	// if still not got it, rodir is disabled.
+	// if still not got it, rodir is disabled
 	host.rodir[0] = '\0';
 	if (!Sys_GetParmFromCmdLine ("-rodir", host.rodir))
 		{
@@ -1191,7 +1280,7 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 			Q_strncpy (host.rodir, roDir, sizeof (host.rodir));
 		}
 
-#if XASH_WIN32	// [FWGS, 01.04.23]
+#if XASH_WIN32
 	COM_FixSlashes (host.rootdir);
 #endif
 
@@ -1208,18 +1297,23 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	FS_LoadProgs ();
 
-	// [FWGS, 01.07.23] TODO: this function will cause engine to stop in case of fail
+	// TODO: this function will cause engine to stop in case of fail
 	// when it will have an option to return string error, restore Sys_Error
 	FS_SetCurrentDirectory (host.rootdir);
 
 	FS_Init ();
 	Sys_InitLog ();
 
-	// print bugcompatibility level here, after log was initialized
+	/*// print bugcompatibility level here, after log was initialized
 	if (host.bugcomp == BUGCOMP_GOLDSRC)
 		{
 		Con_Printf ("^3BUGCOMP^7: GoldSrc bug-compatibility enabled\n");
-		}
+		}*/
+
+	// print current developer level to simplify processing users feedback
+	if (developer > 0)
+		Con_Printf ("Developer level: ^3%i\n", developer);
+	host.bugcomp = Host_CheckBugcomp ();
 
 	Cmd_AddCommand ("exec", Host_Exec_f,
 		"execute a script file");
@@ -1237,9 +1331,8 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 #endif
 
 	FS_LoadGameInfo (NULL);
-	Cvar_PostFSInit ();	// [FWGS, 01.04.23]
+	Cvar_PostFSInit ();
 
-	// [FWGS, 01.01.24]
 	Q_strncpy (host.gamefolder, GI->gamefolder, sizeof (host.gamefolder));
 
 	for (i = 0; i < 3; i++)
@@ -1429,15 +1522,19 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 
 	oldtime = Sys_DoubleTime () - 0.1;
 
-	// [FWGS, 01.04.23]
 	if (Host_IsDedicated ())
 		{
 		// in dedicated server input system can't set HOST_FRAME status
 		// so set it here as we're finished initializing
 		host.status = HOST_FRAME;
 
+		// [FWGS, 01.05.24] FIXME: implement autocomplete on *nix
 		if (GameState->nextstate == STATE_RUNFRAME)
+#if XASH_WIN32
 			Con_Printf ("Type 'map <mapname>' to start game... (TAB-autocomplete is working too)\n");
+#else
+			Con_Printf ("Type 'map <mapname>' to start game...\n");
+#endif
 
 		// execute server.cfg after commandline
 		// so we have a chance to set servercfgfile

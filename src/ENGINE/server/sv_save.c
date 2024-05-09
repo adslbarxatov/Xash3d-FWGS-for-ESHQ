@@ -636,16 +636,16 @@ static void AgeSaveList (const char *pName, int count)
 
 /*
 =============
-DirectoryCopy
+DirectoryCopy [FWGS, 09.05.24]
 
 put the xv1 - xv3 files into save file
 =============
 */
 static void DirectoryCopy (const char *pPath, file_t *pFile)
 	{
-	char	szName[MAX_OSPATH];
-	int		i, fileSize;
-	file_t	*pCopy;
+	char		szName[MAX_OSPATH];
+	int			i, fileSize;
+	file_t		*pCopy;
 	search_t	*t;
 
 	t = FS_Search (pPath, true, true);
@@ -657,8 +657,11 @@ static void DirectoryCopy (const char *pPath, file_t *pFile)
 		pCopy = FS_Open (t->filenames[i], "rb", true);
 		fileSize = FS_FileLength (pCopy);
 
-		memset (szName, 0, sizeof (szName)); // clearing the string to prevent garbage in output file
-		Q_strncpy (szName, COM_FileWithoutPath (t->filenames[i]), MAX_OSPATH);
+		// clearing the string to prevent garbage in output file
+		memset (szName, 0, sizeof (szName));
+		/*Q_strncpy (szName, COM_FileWithoutPath (t->filenames[i]), MAX_OSPATH);*/
+		Q_strncpy (szName, COM_FileWithoutPath (t->filenames[i]), sizeof (szName));
+
 		FS_Write (pFile, szName, MAX_OSPATH);
 		FS_Write (pFile, &fileSize, sizeof (int));
 		FS_FileCopy (pFile, pCopy, fileSize);
@@ -1198,7 +1201,7 @@ static void RestoreSound (SAVERESTOREDATA *pSaveData, soundlist_t *snd)
 
 /*
 =============
-SaveClientState
+SaveClientState [FWGS, 09.05.24]
 
 write out the list of premanent decals for this level
 =============
@@ -1243,7 +1246,9 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 
 #if !XASH_DEDICATED
 		// music not reqiured to save position: it's just continue playing on a next level
-		S_StreamGetCurrentState (header.introTrack, header.mainTrack, &header.trackPosition);
+		/*S_StreamGetCurrentState (header.introTrack, header.mainTrack, &header.trackPosition);*/
+		S_StreamGetCurrentState (header.introTrack, sizeof (header.introTrack), header.mainTrack,
+			sizeof (header.mainTrack), &header.trackPosition);
 #endif
 		}
 
@@ -1286,7 +1291,8 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 
 	// output to disk
 	if ((pFile = FS_Open (name, "wb", true)) == NULL)
-		return; // something bad is happens
+		// something bad is happens
+		return;
 
 	version = CLIENT_SAVEGAME_VERSION;
 	id = SAVEGAME_HEADER;
@@ -1301,7 +1307,7 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 	FS_Write (pFile, pTokenData, pSaveData->tokenSize);
 	FS_Write (pFile, pSaveData->pBaseData, pSaveData->size); // header and globals
 
-	// ESHQ: попробуем добавить метрики тумана сюда
+	// ESHQ: параметры тумана
 	FS_Write (pFile, &svgame.movevars.fog_settings, sizeof (int));
 
 	FS_Close (pFile);
@@ -1361,7 +1367,7 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 
 	FS_Read (pFile, pSaveData->pBaseData, size);
 
-	// ESHQ: попробуем добавить метрики тумана сюда
+	// ESHQ: параметры тумана
 	FS_Read (pFile, &svgame.movevars.fog_settings, sizeof (int));
 
 	FS_Close (pFile);
@@ -1442,9 +1448,9 @@ alloc private data for restored entities
 */
 static void CreateEntitiesInRestoreList (SAVERESTOREDATA *pSaveData, int levelMask, qboolean create_world)
 	{
-	int		i, active;
-	ENTITYTABLE *pTable;
-	edict_t *pent;
+	int			i, active;
+	ENTITYTABLE	*pTable;
+	edict_t		*pent;
 
 	// create entity list
 	if (svgame.physFuncs.pfnCreateEntitiesInRestoreList != NULL)
@@ -1462,9 +1468,10 @@ static void CreateEntitiesInRestoreList (SAVERESTOREDATA *pSaveData, int levelMa
 				{
 				if (!create_world)
 					active = FBitSet (pTable->flags, levelMask) ? 1 : 0;
-				else active = 1;
+				else
+					active = 1;
 
-				if (pTable->id == 0 && create_world) // worldspawn
+				if ((pTable->id == 0) && create_world) // worldspawn
 					{
 					pent = EDICT_NUM (0);
 					SV_InitEdict (pent);
@@ -2123,14 +2130,14 @@ void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char
 
 /*
 =============
-SV_LoadGame
+SV_LoadGame [FWGS, 01.05.24]
 =============
 */
 qboolean SV_LoadGame (const char *pPath)
 	{
-	qboolean		validload = false;
+	qboolean	validload = false;
 	GAME_HEADER	gameHeader;
-	file_t *pFile;
+	file_t		*pFile;
 	uint		flags;
 
 	if (Host_IsDedicated ())
@@ -2167,7 +2174,8 @@ qboolean SV_LoadGame (const char *pPath)
 		if (validload)
 			{
 			// now check for map problems
-			flags = SV_MapIsValid (gameHeader.mapName, GI->sp_entity, NULL);
+			/*flags = SV_MapIsValid (gameHeader.mapName, GI->sp_entity, NULL);*/
+			flags = SV_MapIsValid (gameHeader.mapName, NULL);
 
 			if (FBitSet (flags, MAP_INVALID_VERSION))
 				{
@@ -2291,17 +2299,17 @@ const char *SV_GetLatestSave (void)
 
 /*
 ==================
-SV_GetSaveComment
+SV_GetSaveComment [FWGS, 01.05.24]
 
 check savegame for valid
 ==================
 */
 int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 	{
-	int	i, tag, size, nNumberOfFields, nFieldSize, tokenSize, tokenCount;
-	char *pData, *pSaveData, *pFieldName, **pTokenList;
+	int		i, tag, size, nNumberOfFields, nFieldSize, tokenSize, tokenCount;
+	char	*pData, *pSaveData, *pFieldName, **pTokenList;
 	string	mapName, description;
-	file_t *f;
+	file_t	*f;
 
 	if ((f = FS_Open (savename, "rb", true)) == NULL)
 		{
@@ -2359,7 +2367,7 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		return 0;
 		}
 
-	if (tokenSize < 0 || tokenSize > SAVE_HEAPSIZE)
+	if ((tokenSize < 0) || (tokenSize > SAVE_HEAPSIZE))
 		{
 		Q_strncpy (comment, "<corrupted hashtable>", MAX_STRING);
 		FS_Close (f);
@@ -2395,8 +2403,11 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 	if (Q_stricmp (pFieldName, "GameHeader"))
 		{
 		Q_strncpy (comment, "<missing GameHeader>", MAX_STRING);
-		if (pTokenList) Mem_Free (pTokenList);
-		if (pSaveData) Mem_Free (pSaveData);
+		if (pTokenList)
+			Mem_Free (pTokenList);
+		if (pSaveData)
+			Mem_Free (pSaveData);
+
 		FS_Close (f);
 		return 0;
 		}
@@ -2436,8 +2447,10 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		}
 
 	// delete the string table we allocated
-	if (pTokenList) Mem_Free (pTokenList);
-	if (pSaveData) Mem_Free (pSaveData);
+	if (pTokenList)
+		Mem_Free (pTokenList);
+	if (pSaveData)
+		Mem_Free (pSaveData);
 	FS_Close (f);
 
 	// at least mapname should be filled
@@ -2449,18 +2462,17 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		uint		flags;
 
 		// now check for map problems
-		flags = SV_MapIsValid (mapName, GI->sp_entity, NULL);
+		/*flags = SV_MapIsValid (mapName, GI->sp_entity, NULL);*/
+		flags = SV_MapIsValid (mapName, NULL);
 
 		if (FBitSet (flags, MAP_INVALID_VERSION))
 			{
-			// [FWGS, 01.04.23]
 			Q_snprintf (comment, MAX_STRING, "<map %s has invalid format>", mapName);
 			return 0;
 			}
 
 		if (!FBitSet (flags, MAP_IS_EXIST))
 			{
-			// [FWGS, 01.04.23]
 			Q_snprintf (comment, MAX_STRING, "<map %s is missed>", mapName);
 			return 0;
 			}
@@ -2468,7 +2480,7 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		fileTime = FS_FileTime (savename, true);
 		file_tm = localtime (&fileTime);
 
-		// [FWGS, 01.04.23] split comment to sections
+		// split comment to sections
 		if (Q_strstr (savename, "quick"))
 			Q_snprintf (comment, CS_SIZE, "[quick]%s", description);
 

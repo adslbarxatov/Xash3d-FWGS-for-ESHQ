@@ -883,7 +883,7 @@ Schedule_t slFaceScript[] =
 
 // =========================================================
 // Cower - this is what is usually done when attempts
-// to escape danger fail.
+// to escape danger fail
 // =========================================================
 Task_t	tlCower[] =
 	{

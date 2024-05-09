@@ -17,7 +17,7 @@ GNU General Public License for more details.
 #include "const.h"
 #include <math.h>
 #include <stdarg.h>
-#include <ctype.h>
+/*#include <ctype.h>*/	// [FWGS, 01.05.24]
 #include <time.h>
 #include <stdio.h>	// ESHQ: чего?
 #include "crtlib.h"
@@ -40,7 +40,8 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 	*out = '\0';
 	}
 
-qboolean Q_isdigit (const char *str)
+// [FWGS, 01.05.24]
+/*qboolean Q_isdigit (const char *str)
 	{
 	if (str && *str)
 		{
@@ -50,9 +51,10 @@ qboolean Q_isdigit (const char *str)
 			return true;
 		}
 	return false;
-	}
+	}*/
 
-qboolean Q_isspace (const char *str)
+// [FWGS, 01.05.24]
+/*qboolean Q_isspace (const char *str)
 	{
 	if (str && *str)
 		{
@@ -62,7 +64,7 @@ qboolean Q_isspace (const char *str)
 			return true;
 		}
 	return false;
-	}
+	}*/
 
 size_t Q_colorstr (const char *string)
 	{
@@ -87,7 +89,8 @@ size_t Q_colorstr (const char *string)
 	return len;
 	}
 
-char Q_toupper (const char in)
+// [FWGS, 01.05.24]
+/*char Q_toupper (const char in)
 	{
 	char out;
 
@@ -97,9 +100,10 @@ char Q_toupper (const char in)
 		out = in;
 
 	return out;
-	}
+	}*/
 
-char Q_tolower (const char in)
+// [FWGS, 01.05.24]
+/*char Q_tolower (const char in)
 	{
 	char out;
 
@@ -109,9 +113,10 @@ char Q_tolower (const char in)
 		out = in;
 
 	return out;
-	}
+	}*/
 
-size_t Q_strncat (char *dst, const char *src, size_t size)
+// [FWGS, 01.05.24]
+/*size_t Q_strncat (char *dst, const char *src, size_t size)
 	{
 	register char *d = dst;
 	register const char *s = src;
@@ -142,29 +147,34 @@ size_t Q_strncat (char *dst, const char *src, size_t size)
 
 	*d = '\0';
 	return (dlen + (s - src)); // count does not include NULL
-	}
+	}*/
 
 // [FWGS, 01.07.23] removed Q_strncpy
 
 int Q_atoi (const char *str)
 	{
-	int val = 0;
-	int c, sign;
+	int	val = 0;
+	int	c, sign;
 
-	if (!str) return 0;
+	if (!str)
+		return 0;
 
 	// check for empty charachters in string
-	while (str && *str == ' ')
+	while (str && (*str == ' '))
 		str++;
 
-	if (!str) return 0;
+	if (!str)
+		return 0;
 
 	if (*str == '-')
 		{
 		sign = -1;
 		str++;
 		}
-	else sign = 1;
+	else
+		{
+		sign = 1;
+		}
 
 	// check for hex
 	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
@@ -202,15 +212,17 @@ int Q_atoi (const char *str)
 float Q_atof (const char *str)
 	{
 	double	val = 0;
-	int	c, sign, decimal, total;
+	int		c, sign, decimal, total;
 
-	if (!str) return 0.0f;
+	if (!str)
+		return 0.0f;
 
 	// check for empty charachters in string
-	while (str && *str == ' ')
+	while (str && (*str == ' '))
 		str++;
 
-	if (!str) return 0.0f;
+	if (!str)
+		return 0.0f;
 
 	if (*str == '-')
 		{
@@ -223,21 +235,26 @@ float Q_atof (const char *str)
 		}
 
 	// check for hex
-	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X'))
+	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
 		{
 		str += 2;
 		while (1)
 			{
 			c = *str++;
-			if (c >= '0' && c <= '9') val = (val * 16) + c - '0';
-			else if (c >= 'a' && c <= 'f') val = (val * 16) + c - 'a' + 10;
-			else if (c >= 'A' && c <= 'F') val = (val * 16) + c - 'A' + 10;
-			else return val * sign;
+			if ((c >= '0') && (c <= '9'))
+				val = (val * 16) + c - '0';
+			else if ((c >= 'a') && (c <= 'f'))
+				val = (val * 16) + c - 'a' + 10;
+			else if ((c >= 'A') && (c <= 'F'))
+				val = (val * 16) + c - 'A' + 10;
+			else
+				return val * sign;
 			}
 		}
 
 	// check for character
-	if (str[0] == '\'') return sign * str[1];
+	if (str[0] == '\'')
+		return sign * str[1];
 
 	// assume decimal
 	decimal = -1;
@@ -252,7 +269,7 @@ float Q_atof (const char *str)
 			continue;
 			}
 
-		if (c < '0' || c > '9')
+		if ((c < '0') || (c > '9'))
 			break;
 		val = val * 10 + c - '0';
 		total++;
@@ -270,15 +287,18 @@ float Q_atof (const char *str)
 	return val * sign;
 	}
 
+// [FWGS, 01.05.24]
 void Q_atov (float *vec, const char *str, size_t siz)
 	{
-	string	buffer;
-	char *pstr, *pfront;
-	int	j;
+	/*string	buffer;
+	char	*pstr, *pfront;*/
+	const char	*pstr, *pfront;
+	int		j;
 
-	Q_strncpy (buffer, str, sizeof (buffer));
+	/*Q_strncpy (buffer, str, sizeof (buffer));*/
 	memset (vec, 0, sizeof (vec_t) * siz);
-	pstr = pfront = buffer;
+	/*pstr = pfront = buffer;*/
+	pstr = pfront = str;
 
 	for (j = 0; j < siz; j++)
 		{
@@ -299,25 +319,27 @@ static qboolean Q_starcmp (const char *pattern, const char *text)
 	char		c, c1;
 	const char *p = pattern, *t = text;
 
-	while ((c = *p++) == '?' || c == '*')
+	while ((c = *p++) == '?' || (c == '*'))
 		{
-		if (c == '?' && *t++ == '\0')
+		if ((c == '?') && (*t++ == '\0'))
 			return false;
 		}
 
-	if (c == '\0') return true;
+	if (c == '\0')
+		return true;
 
 	for (c1 = ((c == '\\') ? *p : c); ; )
 		{
-		if (Q_tolower (*t) == c1 && Q_stricmpext (p - 1, t))
+		if ((Q_tolower (*t) == c1) && Q_stricmpext (p - 1, t))
 			return true;
-		if (*t++ == '\0') return false;
+		if (*t++ == '\0')
+			return false;
 		}
 	}
 
 qboolean Q_strnicmpext (const char *pattern, const char *text, size_t minimumlength)
 	{
-	size_t  i = 0;
+	size_t	i = 0;
 	char	c;
 
 	while ((c = *pattern++) != '\0')
@@ -344,6 +366,7 @@ qboolean Q_strnicmpext (const char *pattern, const char *text, size_t minimumlen
 					return false;
 			}
 		}
+
 	return (*text == '\0') || (i == minimumlength);
 	}
 
@@ -389,18 +412,22 @@ const char *Q_timestamp (int format)
 			// Build the full timestamp (ex: "Apr03 2007 [23:31.55]");
 			strftime (timestring, sizeof (timestring), "%b%d %Y [%H:%M.%S]", crt_tm);
 			break;
+
 		case TIME_DATE_ONLY:
 			// Build the date stamp only (ex: "Apr03 2007");
 			strftime (timestring, sizeof (timestring), "%b%d %Y", crt_tm);
 			break;
+
 		case TIME_TIME_ONLY:
 			// Build the time stamp only (ex: "23:31.55");
 			strftime (timestring, sizeof (timestring), "%H:%M.%S", crt_tm);
 			break;
+
 		case TIME_NO_SECONDS:
 			// Build the time stamp exclude seconds (ex: "13:46");
 			strftime (timestring, sizeof (timestring), "%H:%M", crt_tm);
 			break;
+
 		case TIME_YEAR_ONLY:
 			// Build the date stamp year only (ex: "2006");
 			strftime (timestring, sizeof (timestring), "%Y", crt_tm);
@@ -409,18 +436,22 @@ const char *Q_timestamp (int format)
 			// Build a timestamp that can use for filename (ex: "Nov2006-26 (19.14.28)");
 			strftime (timestring, sizeof (timestring), "%b%Y-%d_%H.%M.%S", crt_tm);
 			break;
-		default: return NULL;
+
+		default:
+			return NULL;
 		}
 
 	Q_strncpy (timestamp, timestring, sizeof (timestamp));
-
 	return timestamp;
 	}
 
-#if !defined( HAVE_STRCASESTR )
+// [FWGS, 01.05.24]
+/*#if !defined( HAVE_STRCASESTR )*/
+#if !HAVE_STRCASESTR
+
 char *Q_stristr (const char *string, const char *string2)
 	{
-	int	c;
+	int		c;
 	size_t	len;
 
 	if (!string || !string2)

@@ -669,7 +669,7 @@ static void FS_Search_ZIP (searchpath_t *search, stringlist_t *list, const char 
 
 /*
 ===========
-FS_AddZip_Fullpath [FWGS, 01.01.24]
+FS_AddZip_Fullpath [FWGS, 01.05.24]
 ===========
 */
 searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags)
@@ -700,6 +700,7 @@ searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags)
 	search->pfnSearch = FS_Search_ZIP;
 	search->pfnLoadFile = FS_LoadZIPFile;
 
-	Con_Reportf ("Adding zipfile: %s (%i files)\n", zipfile, zip->numfiles);
+	/*Con_Reportf ("Adding zipfile: %s (%i files)\n", zipfile, zip->numfiles);*/
+	Con_Reportf ("Adding ZIP: %s (%i files)\n", zipfile, zip->numfiles);
 	return search;
 	}

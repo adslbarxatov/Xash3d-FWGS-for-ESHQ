@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 */
 
@@ -20,7 +20,10 @@ extern poolhandle_t sndpool;
 
 #include "xash3d_mathlib.h"
 
-// sound engine rate defines
+// [FWGS, 09.05.24] some platforms might need this
+#define XASH_AUDIO_CD_QUALITY 1
+
+/*// sound engine rate defines
 #define SOUND_DMA_SPEED		44100	// hardware playback rate
 #define SOUND_11k			11025	// 11khz sample rate
 #define SOUND_16k			16000	// 16khz sample rate
@@ -37,103 +40,158 @@ extern poolhandle_t sndpool;
 #define FIX(a)			(((int)(a)) << FIX_BITS)
 #define FIX_INTPART(a)		(((int)(a)) >> FIX_BITS)
 #define FIX_FRACTION(a,b)		(FIX(a)/(b))
-#define FIX_FRACPART(a)		((a) & FIX_MASK)
+#define FIX_FRACPART(a)		((a) & FIX_MASK)*/
 
-// NOTE: clipped sound at 32760 to avoid overload
-#define CLIP( x )			(( x ) > 32760 ? 32760 : (( x ) < -32760 ? -32760 : ( x )))
+// [FWGS, 09.05.24]
+#if XASH_AUDIO_CD_QUALITY
+	#define SOUND_11k	11025	// 11khz sample rate
+	#define SOUND_22k	22050	// 22khz sample rate
+	#define SOUND_44k	44100	// 44khz sample rate
+#else
+	#define SOUND_11k	12000	// 11khz sample rate
+	#define SOUND_22k	24000	// 22khz sample rate
+	#define SOUND_44k	48000	// 44khz sample rate
+#endif
+
+#define SOUND_DMA_SPEED	SOUND_44k	// hardware playback rate
+
+// [FWGS, 09.05.24] NOTE: clipped sound at 32760 to avoid overload
+/*#define CLIP( x )			(( x ) > 32760 ? 32760 : (( x ) < -32760 ? -32760 : ( x )))
 
 #define PAINTBUFFER_SIZE	1024	// 44k: was 512
 #define PAINTBUFFER			(g_curpaintbuffer)
-#define CPAINTBUFFERS		3
+#define CPAINTBUFFERS		3*/
+#define CLIP( x ) (( x ) > 32760 ? 32760 : (( x ) < -32760 ? -32760 : ( x )))
 
-// sound mixing buffer
+// [FWGS, 09.05.24]
+/*// sound mixing buffer
 #define CPAINTFILTERMEM		3
-#define CPAINTFILTERS		4	// maximum number of consecutive upsample passes per paintbuffer
+#define CPAINTFILTERS		4	// maximum number of consecutive upsample passes per paintbuffer*/
+#define PAINTBUFFER_SIZE	1024	// 44k: was 512
 
+// [FWGS, 09.05.24]
+/*#define S_RAW_SOUND_IDLE_SEC			10	// time interval for idling raw sound before it's freed
+#define S_RAW_SOUND_BACKGROUNDTRACK		-2
+#define S_RAW_SOUND_SOUNDTRACK			-1
+#define S_RAW_SAMPLES_PRECISION_BITS	14
+
+#define CIN_FRAMETIME		(1.0f / 30.0f)*/
 #define S_RAW_SOUND_IDLE_SEC			10	// time interval for idling raw sound before it's freed
 #define S_RAW_SOUND_BACKGROUNDTRACK		-2
 #define S_RAW_SOUND_SOUNDTRACK			-1
 #define S_RAW_SAMPLES_PRECISION_BITS	14
 
-#define CIN_FRAMETIME		(1.0f / 30.0f)
-
+// [FWGS, 09.05.24]
 typedef struct
 	{
-	int			left;
-	int			right;
+	/*int			left;
+	int			right;*/
+	int left;
+	int right;
 	} portable_samplepair_t;
 
-typedef struct
+/*typedef struct
 	{
 	qboolean				factive;	// if true, mix to this paintbuffer using flags
 	portable_samplepair_t	*pbuf;	// front stereo mix buffer, for 2 or 4 channel mixing
 	int						ifilter;	// current filter memory buffer to use for upsampling pass
 	portable_samplepair_t	fltmem[CPAINTFILTERS][CPAINTFILTERMEM];
-	} paintbuffer_t;
+	} paintbuffer_t;*/
 
+// [FWGS, 09.05.24]
 typedef struct sfx_s
 	{
+	/*char		name[MAX_QPATH];
+	wavdata_t	*cache;*/
 	char		name[MAX_QPATH];
 	wavdata_t	*cache;
 
-	int			servercount;
+	/*int			servercount;
 	uint		hashValue;
+	struct sfx_s	*hashNext;*/
+	int				servercount;
+	uint			hashValue;
 	struct sfx_s	*hashNext;
 	} sfx_t;
 
-extern portable_samplepair_t	paintbuffer[];
+/*extern portable_samplepair_t	paintbuffer[];
 extern portable_samplepair_t	roombuffer[];
 extern portable_samplepair_t	temppaintbuffer[];
 extern portable_samplepair_t	*g_curpaintbuffer;
-extern paintbuffer_t			paintbuffers[];
+extern paintbuffer_t			paintbuffers[];*/
 
-// structure used for fading in and out client sound volume
+// [FWGS, 09.05.24] structure used for fading in and out client sound volume
 typedef struct
 	{
-	float		initial_percent;
+	/*float		initial_percent;
 	float		percent;  	// how far to adjust client's volume down by.
 	float		starttime;	// GetHostTime() when we started adjusting volume
 	float		fadeouttime;	// # of seconds to get to faded out state
 	float		holdtime;		// # of seconds to hold
-	float		fadeintime;	// # of seconds to restore
+	float		fadeintime;	// # of seconds to restore*/
+	float	initial_percent;
+	float	percent;		// how far to adjust client's volume down by.
+	float	starttime;		// GetHostTime() when we started adjusting volume
+	float	fadeouttime;	// # of seconds to get to faded out state
+	float	holdtime;		// # of seconds to hold
+	float	fadeintime;		// # of seconds to restore
 	} soundfade_t;
 
+// [FWGS, 09.05.24]
 typedef struct
 	{
-	float		percent;
+	/*float		percent;*/
+	float percent;
 	} musicfade_t;
 
+// [FWGS, 09.05.24]
 typedef struct snd_format_s
 	{
-	unsigned int	speed;
+	/*unsigned int	speed;
 	unsigned int	width;
-	unsigned int	channels;
+	unsigned int	channels;*/
+	uint speed;
+	byte width;
+	byte channels;
 	} snd_format_t;
 
+// [FWGS, 09.05.24]
 typedef struct
 	{
-	snd_format_t	format;
+	/*snd_format_t	format;
 	int				samples;		// mono samples in buffer
 	int				samplepos;	// in mono samples
 	byte			*buffer;
 	qboolean		initialized;	// sound engine is active
+	const char		*backendName;*/
+	snd_format_t	format;
+	int				samples;		// mono samples in buffer
+	int				samplepos;		// in mono samples
+	qboolean		initialized;	// sound engine is active
+	byte			*buffer;
 	const char		*backendName;
 	} dma_t;
 
 #include "vox.h"
 
+// [FWGS, 09.05.24]
 typedef struct
 	{
-	double		sample;
+	/*double		sample;
 
 	wavdata_t	*pData;
 	double 		forcedEndSample;
+	qboolean	finished;*/
+	double		sample;
+	wavdata_t	*pData;
+	double		forcedEndSample;
 	qboolean	finished;
 	} mixer_t;
 
+// [FWGS, 09.05.24]
 typedef struct rawchan_s
 	{
-	int			entnum;
+	/*int			entnum;
 	int			master_vol;
 	int			leftvol;		// 0-255 left volume
 	int			rightvol;		// 0-255 right volume
@@ -143,12 +201,25 @@ typedef struct rawchan_s
 	wavdata_t			sound_info;	// advance play position
 	float			oldtime;		// catch time jumps
 	size_t			max_samples;	// buffer length
+	portable_samplepair_t	rawsamples[1];	// variable sized*/
+	int			entnum;
+	int			master_vol;
+	int			leftvol;	// 0-255 left volume
+	int			rightvol;	// 0-255 right volume
+	float		dist_mult;	// distance multiplier (attenuation/clipK)
+	vec3_t		origin;		// only use if fixed_origin is set
+	volatile uint	s_rawend;
+	float		oldtime;	// catch time jumps
+	wavdata_t	sound_info;	// advance play position
+	size_t		max_samples;	// buffer length
+
 	portable_samplepair_t	rawsamples[1];	// variable sized
 	} rawchan_t;
 
+// [FWGS, 09.05.24]
 typedef struct channel_s
 	{
-	char		name[16];		// keept sentence name
+	/*char		name[16];		// keept sentence name
 	sfx_t *sfx;		// sfx number
 
 	int		leftvol;		// 0-255 left volume
@@ -165,17 +236,39 @@ typedef struct channel_s
 	qboolean		use_loop;		// don't loop default and local sounds
 	qboolean		staticsound;	// use origin instead of fetching entnum's origin
 	qboolean		localsound;	// it's a local menu sound (not looped, not paused)
+	mixer_t		pMixer;*/
+	char	name[16];	// keep sentence name
+	sfx_t	*sfx;		// sfx number
+
+	int		leftvol;	// 0-255 left volume
+	int		rightvol;	// 0-255 right volume
+
+	int		entnum;		// entity soundsource
+	int		entchannel;	// sound channel (CHAN_STREAM, CHAN_VOICE, etc.)
+	vec3_t	origin;		// only use if fixed_origin is set
+	float	dist_mult;	// distance multiplier (attenuation/clipK)
+	int		master_vol;	// 0-255 master volume
+	int		basePitch;	// base pitch percent (100% is normal pitch playback)
+	float	pitch;		// real-time pitch after any modulation or shift by dynamic data
+	qboolean	use_loop;		// don't loop default and local sounds
+	qboolean	staticsound;	// use origin instead of fetching entnum's origin
+	qboolean	localsound;		// it's a local menu sound (not looped, not paused)
 	mixer_t		pMixer;
 
 	// sentence mixer
-	int		wordIndex;
+	/*int		wordIndex;
 	mixer_t *currentWord;	// NULL if sentence is finished
-	voxword_t		words[CVOXWORDMAX];
+	voxword_t		words[CVOXWORDMAX];*/
+	qboolean	isSentence;		// bit indicating sentence
+	int			wordIndex;
+	mixer_t		*currentWord;	// NULL if sentence is finished
+	voxword_t	words[CVOXWORDMAX];
 	} channel_t;
 
+// [FWGS, 09.05.24]
 typedef struct
 	{
-	vec3_t		origin;		// simorg + view_ofs
+	/*vec3_t		origin;		// simorg + view_ofs
 	vec3_t		velocity;
 	vec3_t		forward;
 	vec3_t		right;
@@ -192,20 +285,42 @@ typedef struct
 	qboolean		inmenu;		// listener in-menu ?
 	qboolean		paused;
 	qboolean		streaming;	// playing AVI-file
-	qboolean		stream_paused;	// pause only background track
+	qboolean		stream_paused;	// pause only background track*/
+	vec3_t		origin;		// simorg + view_ofs
+	vec3_t		forward;
+	vec3_t		right;
+	vec3_t		up;
+
+	int			entnum;
+	int			waterlevel;
+
+	// ESHQ: поддержка собираемых объектов
+	int			collectedItems;
+
+	float		frametime;	// used for sound fade
+	qboolean	active;
+	qboolean	inmenu;		// listener in-menu ?
+	qboolean	paused;
+	qboolean	streaming;	// playing AVI-file
+	qboolean	stream_paused;	// pause only background track
 	} listener_t;
 
+// [FWGS, 09.05.24]
 typedef struct
 	{
-	string		current;		// a currently playing track
+	/*string		current;		// a currently playing track
 	string		loopName;		// may be empty
 	stream_t *stream;
-	int		source;		// may be game, menu, etc
+	int		source;		// may be game, menu, etc*/
+	string		current;	// a currently playing track
+	string		loopName;	// may be empty
+	stream_t	*stream;
+	int			source;		// may be game, menu, etc
 	} bg_track_t;
 
 // ====================================================================
 
-#define MAX_DYNAMIC_CHANNELS	(60 + NUM_AMBIENTS)
+/*#define MAX_DYNAMIC_CHANNELS	(60 + NUM_AMBIENTS)
 #define MAX_CHANNELS			384		// ESHQ: принудительное увеличение
 #define MAX_RAW_CHANNELS		48
 #define MAX_RAW_SAMPLES			8192
@@ -223,10 +338,28 @@ extern dma_t	dma;
 
 extern convar_t	s_musicvolume;
 extern convar_t	s_lerping;
-extern convar_t	s_test;		// cvar to testify new effects
-extern convar_t s_samplecount;
-extern convar_t snd_mute_losefocus;
-extern convar_t s_warn_late_precache;
+extern convar_t	s_test;		// cvar to testify new effects*/
+#define MAX_DYNAMIC_CHANNELS	(60 + NUM_AMBIENTS)
+#define MAX_CHANNELS		384	// ESHQ: принудительное увеличение
+#define MAX_RAW_CHANNELS	48
+#define MAX_RAW_SAMPLES		8192
+
+extern sound_t		ambient_sfx[NUM_AMBIENTS];
+extern qboolean		snd_ambient;
+extern channel_t	channels[MAX_CHANNELS];
+extern rawchan_t	*raw_channels[MAX_RAW_CHANNELS];
+extern int			total_channels;
+extern int			paintedtime;
+extern int			soundtime;
+extern listener_t	s_listener;
+extern int			idsp_room;
+extern dma_t		dma;
+extern convar_t		s_musicvolume;
+extern convar_t		s_lerping;
+extern convar_t		s_test;		// cvar to test new effects
+extern convar_t		s_samplecount;
+/*extern convar_t snd_mute_losefocus;*/
+extern convar_t		s_warn_late_precache;
 
 void S_InitScaletable (void);
 wavdata_t *S_LoadSound (sfx_t *sfx);
@@ -293,11 +426,11 @@ void SND_CloseMouth (channel_t *ch);
 void SND_ForceCloseMouth (int entnum);
 
 //
-// s_stream.c
+// s_stream.c [FWGS, 09.05.24]
 //
 void S_StreamSoundTrack (void);
 void S_StreamBackgroundTrack (void);
-qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *position);
+/*qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *position);*/
 void S_PrintBackgroundTrackState (void);
 void S_FadeMusicVolume (float fadePercent);
 

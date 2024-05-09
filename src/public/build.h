@@ -70,7 +70,6 @@ Then you can use another oneliner to query all variables:
 #undef XASH_IRIX
 #undef XASH_JS
 #undef XASH_LINUX
-/*#undef XASH_LINUX_UNKNOWN*/	// [FWGS, 01.02.24]
 #undef XASH_LITTLE_ENDIAN
 #undef XASH_MIPS
 #undef XASH_MOBILE_PLATFORM
@@ -88,6 +87,10 @@ Then you can use another oneliner to query all variables:
 #undef XASH_NSWITCH
 #undef XASH_PSVITA
 
+#include "..\\Ver.h"
+#define XASH_BUILD_COMMIT	ESHQ_V1
+#define XASH_BUILD_BRANCH	"master_branch"
+
 //================================================================
 // PLATFORM DETECTION CODE
 //================================================================
@@ -103,17 +106,6 @@ Then you can use another oneliner to query all variables:
 	#if defined __linux__
 		#if defined __ANDROID__
 			#define XASH_ANDROID 1
-
-		// [FWGS, 01.02.24]
-		/*#else
-			#include <features.h>
-			
-			// if our system libc has features.h header
-			// try to detect it to not confuse other libcs with built with glibc game libraries
-			#if !defined __GLIBC__
-				#define XASH_LINUX_UNKNOWN 1
-			#endif*/
-
 		#endif
 
 		#define XASH_LINUX 1

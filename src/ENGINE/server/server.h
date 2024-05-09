@@ -42,9 +42,12 @@ extern int SV_UPDATE_BACKUP;
 #define SVF_SKIPLOCALHOST		BIT( 0 )
 #define SVF_MERGE_VISIBILITY	BIT( 1 )	// we are do portal pass
 
-// mapvalid flags
-#define MAP_IS_EXIST		BIT( 0 )
+// [FWGS, 01.05.24] mapvalid flags
+/*#define MAP_IS_EXIST		BIT( 0 )
 #define MAP_HAS_SPAWNPOINT	BIT( 1 )
+#define MAP_HAS_LANDMARK	BIT( 2 )
+#define MAP_INVALID_VERSION	BIT( 3 )*/
+#define MAP_IS_EXIST		BIT( 0 )
 #define MAP_HAS_LANDMARK	BIT( 2 )
 #define MAP_INVALID_VERSION	BIT( 3 )
 
@@ -55,10 +58,11 @@ extern int SV_UPDATE_BACKUP;
 #define GROUP_OP_NAND	1
 
 #ifdef NDEBUG
-#define SV_IsValidEdict( e )	( e && !e->free )
+	#define SV_IsValidEdict( e )	( e && !e->free )
 #else
-#define SV_IsValidEdict( e )	SV_CheckEdict( e, __FILE__, __LINE__ )
+	#define SV_IsValidEdict( e )	SV_CheckEdict( e, __FILE__, __LINE__ )
 #endif
+
 #define NUM_FOR_EDICT(e)	((int)((edict_t *)(e) - svgame.edicts))
 #define EDICT_NUM( num )	SV_EdictNum( num )
 #define STRING( offset )	SV_GetString( offset )
@@ -327,36 +331,41 @@ typedef struct
 typedef struct
 	{
 	// user messages stuff
-	const char *msg_name;		// just for debug
+	const char	*msg_name;		// just for debug
 	sv_user_message_t	msg[MAX_USER_MESSAGES];	// user messages array
 	int		msg_size_index;		// write message size at this pos in bitbuf
 	int		msg_realsize;		// left in bytes
-	int		msg_index;		// for debug messages
+	int		msg_index;			// for debug messages
 	int		msg_dest;			// msg destination ( MSG_ONE, MSG_ALL etc )
-	qboolean		msg_started;		// to avoid recursive included messages
-	edict_t *msg_ent;			// user message member entity
-	vec3_t		msg_org;			// user message member origin
+
+	// [FWGS, 01.05.24]
+	int		msg_rewrite_index;
+	int		msg_rewrite_pos;
+
+	qboolean	msg_started;	// to avoid recursive included messages
+	edict_t		*msg_ent;		// user message member entity
+	vec3_t		msg_org;		// user message member origin
 	qboolean	msg_trace;		// trace this message
 
-	void *hInstance;		// pointer to game.dll
-	edict_t *edicts;			// solid array of server entities
+	void	*hInstance;			// pointer to game.dll
+	edict_t	*edicts;			// solid array of server entities
 	int		numEntities;		// actual entities count
 
-	movevars_t	movevars;			// movement variables curstate
-	movevars_t	oldmovevars;		// movement variables oldstate
-	playermove_t *pmove;			// pmove state
-	sv_interp_t	interp[MAX_CLIENTS];	// interpolate clients
-	sv_pushed_t	pushed[MAX_PUSHED_ENTS];	// no reason to keep array for all edicts
+	movevars_t		movevars;			// movement variables curstate
+	movevars_t		oldmovevars;		// movement variables oldstate
+	playermove_t	*pmove;				// pmove state
+	sv_interp_t		interp[MAX_CLIENTS];		// interpolate clients
+	sv_pushed_t		pushed[MAX_PUSHED_ENTS];	// no reason to keep array for all edicts
 	// 256 it should be enough for any game situation
 
-	globalvars_t *globals;			// server globals
+	globalvars_t	*globals;			// server globals
 
 	DLL_FUNCTIONS	dllFuncs;			// dll exported funcs
 	NEW_DLL_FUNCTIONS	dllFuncs2;		// new dll exported funcs (may be NULL)
 	physics_interface_t	physFuncs;		// physics interface functions (Xash3D extension)
 
-	poolhandle_t mempool;			// server premamnent pool: edicts etc
-	poolhandle_t stringspool;		// for engine strings
+	poolhandle_t	mempool;			// server premamnent pool: edicts etc
+	poolhandle_t	stringspool;		// for engine strings
 	} svgame_static_t;
 
 typedef struct
@@ -396,10 +405,15 @@ typedef struct
 
 // =============================================================================
 
-extern	server_static_t	svs;			// persistant server info
+// [FWGS, 01.05.24]
+/*extern	server_static_t	svs;			// persistant server info
 extern	server_t		sv;			// local server
 extern	svgame_static_t	svgame;			// persistant game info
-extern	areanode_t	sv_areanodes[];		// AABB dynamic tree
+extern	areanode_t	sv_areanodes[];		// AABB dynamic tree*/
+extern server_static_t svs RENAME_SYMBOL ("svs_");	// persistant server info
+extern server_t sv RENAME_SYMBOL ("sv_");			// local server
+extern svgame_static_t svgame;		// persistant game info
+extern areanode_t sv_areanodes[];	// AABB dynamic tree
 
 extern convar_t		mp_logecho;
 extern convar_t		mp_logfile;
@@ -488,11 +502,12 @@ extern convar_t sv_aim;
 
 // ===========================================================
 //
-// sv_main.c [FWGS, 01.02.24]
+// sv_main.c [FWGS, 01.05.24]
 //
 void SV_FinalMessage (const char *message, qboolean reconnect);
-void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) _format (2);	// [FWGS, 01.07.23]
-void SV_DropClient (sv_client_t *cl, qboolean crash);
+void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) _format (2);
+/*void SV_DropClient (sv_client_t *cl, qboolean crash);*/
+void SV_DropClient (sv_client_t *cl, qboolean crash) RENAME_SYMBOL ("SV_DropClient_");
 void SV_UpdateMovevars (qboolean initialize);
 int SV_ModelIndex (const char *name);
 int SV_SoundIndex (const char *name);
@@ -627,13 +642,15 @@ const char *SV_GetString (string_t iString);
 void SV_SetStringArrayMode (qboolean dynamic);
 void SV_EmptyStringPool (void);
 
-#ifdef XASH_64BIT
+// [FWGS, 01.05.24]
+/*#ifdef XASH_64BIT*/
 void SV_PrintStr64Stats_f (void);
-#endif
+/*#endif*/
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.05.24]
 sv_client_t *SV_ClientFromEdict (const edict_t *pEdict, qboolean spawned_only);
-uint SV_MapIsValid (const char *filename, const char *spawn_entity, const char *landmark_name);
+/*uint SV_MapIsValid (const char *filename, const char *spawn_entity, const char *landmark_name);*/
+uint SV_MapIsValid (const char *filename, const char *landmark_name);
 void SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch);
 edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname);
 qboolean SV_CreateStaticEntity (struct sizebuf_s *msg, int index);
@@ -644,12 +661,20 @@ void SV_RestartAmbientSounds (void);
 void SV_RestartDecals (void);
 void SV_RestartStaticEnts (void);
 int pfnDropToFloor (edict_t *e);
-edict_t *SV_EdictNum (int n);
+/*edict_t *SV_EdictNum (int n);*/
 void SV_SetModel (edict_t *ent, const char *name);
 int pfnDecalIndex (const char *m);
 void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int entityIndex, int modelIndex,
 	int flags, float scale);
 qboolean SV_RestoreCustomDecal (struct decallist_s *entry, edict_t *pEdict, qboolean adjacent);
+
+// [FWGS, 01.05.24]
+static inline edict_t *SV_EdictNum (int n)
+	{
+	if (likely ((n >= 0) && (n < GI->max_edicts)))
+		return &svgame.edicts[n];
+	return NULL;
+	}
 
 //
 // sv_log.c

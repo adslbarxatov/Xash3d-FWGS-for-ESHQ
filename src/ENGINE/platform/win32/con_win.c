@@ -480,7 +480,7 @@ void Wcon_WinPrint (const char *pMsg)
 
 /*
 ================
-Con_CreateConsole
+Con_CreateConsole [FWGS, 01.05.24]
 
 create win32 console
 ================
@@ -490,20 +490,22 @@ void Wcon_CreateConsole (void)
 	if (Sys_CheckParm ("-log"))
 		s_wcd.log_active = true;
 
-	// [FWGS, 01.04.23]
 	if (host.type == HOST_NORMAL)
 		{
-		Q_strncpy (s_wcd.title, "Xash3D " XASH_VERSION, sizeof (s_wcd.title));
+		/*Q_strncpy (s_wcd.title, "Xash3D " XASH_VERSION, sizeof (s_wcd.title));*/
+		Q_strncpy (s_wcd.title, XASH_ENGINE_NAME " " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));
 		}
-	else // dedicated console
+
+	// dedicated console
+	else
 		{
-		Q_strncpy (s_wcd.title, "XashDS " XASH_VERSION, sizeof (s_wcd.title));
+		/*Q_strncpy (s_wcd.title, "XashDS " XASH_VERSION, sizeof (s_wcd.title));*/
+		Q_strncpy (s_wcd.title, XASH_DEDICATED_SERVER_NAME " " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "dedicated.log", sizeof (s_wcd.log_path));
 		s_wcd.log_active = true;	// always make log
 		}
 
-	// [FWGS, 01.05.23]
 	s_wcd.attached = (AttachConsole (ATTACH_PARENT_PROCESS) != 0);
 	if (s_wcd.attached)
 		{
@@ -531,7 +533,6 @@ void Wcon_CreateConsole (void)
 		return;
 		}
 
-	// [FWGS, 01.05.23]
 	if (!s_wcd.attached)
 		{
 		SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);

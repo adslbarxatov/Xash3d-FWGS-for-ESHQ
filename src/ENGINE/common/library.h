@@ -18,20 +18,23 @@ GNU General Public License for more details.
 
 #define MAX_LIBRARY_EXPORTS		4096
 
+// [FWGS, 01.05.24]
 typedef struct dll_user_s
 	{
-	void *hInstance;		// instance handle
-	qboolean	custom_loader;		// a bit who indicated loader type
+	void		*hInstance;		// instance handle
+	qboolean	custom_loader;	// a bit who indicated loader type
 	qboolean	encrypted;		// dll is crypted (some client.dll in HL, CS etc)
-	char	dllName[32];		// for debug messages
-	string	fullPath, shortPath;	// actual dll paths
+	char		dllName[32];	// for debug messages
+	/*string		fullPath, shortPath;	// actual dll paths*/
+	char		fullPath[2048];
+	string		shortPath;		// actual dll paths
 
 	// ordinals stuff, valid only on Win32
-	word *ordinals;
-	dword *funcs;
-	char *names[MAX_LIBRARY_EXPORTS];	// max 4096 exports supported
-	int	num_ordinals;		// actual exports count
-	uintptr_t	funcBase;			// base offset
+	word		*ordinals;
+	dword		*funcs;
+	char		*names[MAX_LIBRARY_EXPORTS];	// max 4096 exports supported
+	int			num_ordinals;	// actual exports count
+	uintptr_t	funcBase;		// base offset
 	} dll_user_t;
 
 dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath);

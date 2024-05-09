@@ -625,7 +625,7 @@ static void GL_SetTextureDimensions (gl_texture_t *tex, int width, int height, i
 
 /*
 ===============
-GL_SetTextureTarget
+GL_SetTextureTarget [FWGS, 01.05.24]
 ===============
 */
 static void GL_SetTextureTarget (gl_texture_t *tex, rgbdata_t *pic)
@@ -641,19 +641,24 @@ static void GL_SetTextureTarget (gl_texture_t *tex, rgbdata_t *pic)
 	pic->numMips = Q_max (1, pic->numMips);
 
 	// trying to determine texture type
-	if (pic->width > 1 && pic->height <= 1)
+#ifndef XASH_GLES
+	if ((pic->width > 1) && (pic->height <= 1))
 		tex->target = GL_TEXTURE_1D;
-	else if (FBitSet (pic->flags, IMAGE_CUBEMAP))
+	/*else if (FBitSet (pic->flags, IMAGE_CUBEMAP))*/
+	else
+#endif // just skip first condition
+		if (FBitSet (pic->flags, IMAGE_CUBEMAP))
 		tex->target = GL_TEXTURE_CUBE_MAP_ARB;
-	else if (FBitSet (pic->flags, IMAGE_MULTILAYER) && pic->depth >= 1)
+	else if (FBitSet (pic->flags, IMAGE_MULTILAYER) && (pic->depth >= 1))
 		tex->target = GL_TEXTURE_2D_ARRAY_EXT;
-	else if (pic->width > 1 && pic->height > 1 && pic->depth > 1)
+	else if ((pic->width > 1) && (pic->height > 1) && (pic->depth > 1))
 		tex->target = GL_TEXTURE_3D;
 	else if (FBitSet (tex->flags, TF_RECTANGLE))
 		tex->target = GL_TEXTURE_RECTANGLE_EXT;
 	else if (FBitSet (tex->flags, TF_MULTISAMPLE))
 		tex->target = GL_TEXTURE_2D_MULTISAMPLE;
-	else tex->target = GL_TEXTURE_2D; // default case
+	else
+		tex->target = GL_TEXTURE_2D; // default case
 
 	// check for hardware support
 	if ((tex->target == GL_TEXTURE_CUBE_MAP_ARB) && !GL_Support (GL_TEXTURE_CUBEMAP_EXT))
@@ -1389,11 +1394,12 @@ static void GL_ProcessImage (gl_texture_t *tex, rgbdata_t *pic)
 			tex->original = gEngfuncs.FS_CopyImage (pic); // because current pic will be expanded to rgba
 
 		// we need to expand image into RGBA buffer
-		if (pic->type == PF_INDEXED_24 || pic->type == PF_INDEXED_32)
+		if ((pic->type == PF_INDEXED_24) || (pic->type == PF_INDEXED_32))
 			img_flags |= IMAGE_FORCE_RGBA;
 
 		// processing image before uploading (force to rgba, make luma etc)
-		if (pic->buffer) gEngfuncs.Image_Process (&pic, 0, 0, img_flags, 0);
+		if (pic->buffer)
+			gEngfuncs.Image_Process (&pic, 0, 0, img_flags, 0);
 
 		if (FBitSet (tex->flags, TF_LUMINANCE))
 			ClearBits (pic->flags, IMAGE_HAS_COLOR);
@@ -1498,7 +1504,7 @@ static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 
 /*
 ================
-GL_DeleteTexture
+GL_DeleteTexture [FWGS, 01.05.24]
 ================
 */
 static void GL_DeleteTexture (gl_texture_t *tex)
@@ -1532,6 +1538,22 @@ static void GL_DeleteTexture (gl_texture_t *tex)
 			break;
 			}
 		prev = &cur->nextHash;
+		}
+
+	// invalidate texture units state cache
+	for (int i = 0; i < MAX_TEXTURE_UNITS; i++)
+		{
+		if (glState.currentTextures[i] == tex->texnum)
+			{
+			if (glState.currentTextureTargets[i] != GL_NONE)
+				{
+				GL_SelectTexture (i);
+				pglDisable (glState.currentTextureTargets[i]);
+				}
+			glState.currentTextureTargets[i] = GL_NONE;
+			glState.currentTextures[i] = -1;
+			glState.currentTexturesIndex[i] = 0;
+			}
 		}
 
 	// release source

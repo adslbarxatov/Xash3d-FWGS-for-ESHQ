@@ -76,8 +76,9 @@ const fs_archive_t g_archives[] =
 // [FWGS, 01.07.23] special fs_archive_t for plain directories
 static const fs_archive_t g_directory_archive = { NULL, SEARCHPATH_PLAIN, FS_AddDir_Fullpath, false };
 
-// [FWGS, 01.11.23]
-#ifdef XASH_ANDROID
+// [FWGS, 01.05.24]
+/*#ifdef XASH_ANDROID*/
+#if XASH_ANDROID
 static const fs_archive_t g_android_archive =
 	{ NULL, SEARCHPATH_ANDROID_ASSETS, FS_AddAndroidAssets_Fullpath, false };
 #endif
@@ -381,7 +382,7 @@ static searchpath_t *FS_MountArchive_Fullpath (const char *file, int flags)
 
 /*
 ================
-FS_AddGameDirectory [FWGS, 01.11.23]
+FS_AddGameDirectory [FWGS, 01.05.24]
 
 Sets fs_writepath, adds the directory to the head of the path,
 then loads and adds pak1.pak pak2.pak...
@@ -420,7 +421,8 @@ void FS_AddGameDirectory (const char *dir, uint flags)
 
 	stringlistfreecontents (&list);
 
-#ifdef XASH_ANDROID
+/*#ifdef XASH_ANDROID*/
+#if XASH_ANDROID
 	FS_AddArchive_Fullpath (&g_android_archive, dir, flags);
 #endif
 
@@ -1378,7 +1380,7 @@ static int FS_StripIdiotRelativePath (const char *dllname, const char *gamefolde
 
 /*
 ==================
-FS_FindLibrary [FWGS, 01.01.24]
+FS_FindLibrary [FWGS, 01.05.24]
 
 search for library, assume index is valid
 ==================
@@ -1441,11 +1443,19 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 
 	dllInfo->encrypted = FS_CheckForCrypt (dllInfo->shortPath);
 
-	// [FWGS, 01.04.23]
 	if ((index >= 0) && !dllInfo->encrypted && search)
 		{
-		Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath),
-			"%s%s", search->filename, dllInfo->shortPath);
+		/*Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath),
+			"%s%s", search->filename, dllInfo->shortPath);*/
+
+		// gamedll might resolve it's own path using dladdr()
+		// combine it with engine returned path to gamedir
+		// it might lead to double gamedir like this
+		// - valve/valve/dlls/hl.so
+		// instead of expected
+		// - valve/dlls/hl.so
+		Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath), "%s/%s%s", fs_rootdir,
+			search->filename, dllInfo->shortPath);
 		dllInfo->custom_loader = false;	// we can loading from disk and use normal debugging
 		}
 	else
@@ -1471,8 +1481,9 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 			dllInfo->custom_loader = false;
 			}
 		}
-	fs_ext_path = false; // always reset direct paths
 
+	// always reset direct paths
+	fs_ext_path = false;
 	return true;
 	}
 
@@ -1536,7 +1547,7 @@ static void *Sys_GetNativeObject_stub (const char *object)
 
 /*
 ================
-FS_Init [FWGS, 01.11.23]
+FS_Init [FWGS, 01.05.24]
 ================
 */
 qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const char *basedir, const char *gamedir,
@@ -1550,7 +1561,8 @@ qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const c
 
 	FS_InitMemory ();
 
-#ifdef XASH_ANDROID
+/*#ifdef XASH_ANDROID*/
+#if XASH_ANDROID
 	FS_InitAndroid ();
 #endif
 
@@ -2435,7 +2447,7 @@ int FS_Gets (file_t *file, char *string, size_t bufsize)
 		c = FS_Getc (file);
 
 		if (c != '\n')
-			FS_UnGetc (file, (char)c);
+			FS_UnGetc (file, c);
 		}
 
 	return c;

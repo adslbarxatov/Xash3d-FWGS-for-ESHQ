@@ -82,6 +82,7 @@ static void FS_UnloadProgs (void)
 #define FILESYSTEM_STDIO_DLL "FS." OS_LIB_EXT
 #endif
 
+// [FWGS, 01.05.24]
 qboolean FS_LoadProgs (void)
 	{
 	const char *name = FILESYSTEM_STDIO_DLL;
@@ -91,33 +92,38 @@ qboolean FS_LoadProgs (void)
 
 	if (!fs_hInstance)
 		{
-		Host_Error ("FS_LoadProgs: can't load filesystem library %s: %s\n", name, COM_GetLibraryError ());
+		/*Host_Error ("FS_LoadProgs: can't load filesystem library %s: %s\n", name, COM_GetLibraryError ());*/
+		Host_Error ("%s: can't load filesystem library %s: %s\n", __func__, name, COM_GetLibraryError ());
 		return false;
 		}
 
 	if (!(GetFSAPI = (FSAPI)COM_GetProcAddress (fs_hInstance, GET_FS_API)))
 		{
 		FS_UnloadProgs ();
-		Host_Error ("FS_LoadProgs: can't find GetFSAPI entry point in %s\n", name);
+		/*Host_Error ("FS_LoadProgs: can't find GetFSAPI entry point in %s\n", name);*/
+		Host_Error ("%s: can't find GetFSAPI entry point in %s\n", __func__, name);
 		return false;
 		}
 
-	if (!GetFSAPI (FS_API_VERSION, &g_fsapi, &FI, &fs_memfuncs))
+	/*if (!GetFSAPI (FS_API_VERSION, &g_fsapi, &FI, &fs_memfuncs))*/
+	if (GetFSAPI (FS_API_VERSION, &g_fsapi, &FI, &fs_memfuncs) != FS_API_VERSION)
 		{
 		FS_UnloadProgs ();
-		Host_Error ("FS_LoadProgs: can't initialize filesystem API: wrong version\n");
+		/*Host_Error ("FS_LoadProgs: can't initialize filesystem API: wrong version\n");*/
+		Host_Error ("%s: can't initialize filesystem API: wrong version\n", __func__);
 		return false;
 		}
 
-	// [FWGS, 01.11.23]
 	if (!(fs_pfnCreateInterface = (pfnCreateInterface_t)COM_GetProcAddress (fs_hInstance, "CreateInterface")))
 		{
 		FS_UnloadProgs ();
-		Host_Error ("FS_LoadProgs: can't find CreateInterface entry point in %s\n", name);
+		/*Host_Error ("FS_LoadProgs: can't find CreateInterface entry point in %s\n", name);*/
+		Host_Error ("%s: can't find CreateInterface entry point in %s\n", __func__, name);
 		return false;
 		}
 
-	Con_DPrintf ("FS_LoadProgs: filesystem_stdio successfully loaded\n");
+	/*Con_DPrintf ("FS_LoadProgs: filesystem_stdio successfully loaded\n");*/
+	Con_DPrintf ("%s: filesystem_stdio successfully loaded\n", __func__);
 	return true;
 	}
 

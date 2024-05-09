@@ -165,23 +165,25 @@ static sv_client_t *SV_SetPlayer (void)
 
 /*
 ==================
-SV_ValidateMap
+SV_ValidateMap [FWGS, 01.05.24]
 
 check map for typically errors
 ==================
 */
-static qboolean SV_ValidateMap (const char *pMapName, qboolean check_spawn)
+/*static qboolean SV_ValidateMap (const char *pMapName, qboolean check_spawn)*/
+static qboolean SV_ValidateMap (const char *pMapName)
 	{
-	char	*spawn_entity;
+	/*char	*spawn_entity;*/
 	int		flags;
 
-	// determine spawn entity classname
+	/*// determine spawn entity classname
 	if (!check_spawn || ((int)sv_maxclients.value <= 1))
 		spawn_entity = GI->sp_entity;
 	else
 		spawn_entity = GI->mp_entity;
 
-	flags = SV_MapIsValid (pMapName, spawn_entity, NULL);
+	flags = SV_MapIsValid (pMapName, spawn_entity, NULL);*/
+	flags = SV_MapIsValid (pMapName, NULL);
 
 	if (FBitSet (flags, MAP_INVALID_VERSION))
 		{
@@ -195,11 +197,11 @@ static qboolean SV_ValidateMap (const char *pMapName, qboolean check_spawn)
 		return false;
 		}
 
-	if (check_spawn && !FBitSet (flags, MAP_HAS_SPAWNPOINT))
+	/*if (check_spawn && !FBitSet (flags, MAP_HAS_SPAWNPOINT))
 		{
 		Con_Printf (S_ERROR "map %s doesn't have a valid spawnpoint\n", pMapName);
 		return false;
-		}
+		}*/
 
 	return true;
 	}
@@ -289,7 +291,7 @@ void SV_ESRM_Command (void)
 
 /*
 ==================
-SV_Map_f
+SV_Map_f [FWGS, 01.05.24]
 
 Goes directly to a given map without any savegame archiving.
 For development work
@@ -309,7 +311,8 @@ static void SV_Map_f (void)
 	Q_strncpy (mapname, Cmd_Argv (1), sizeof (mapname));
 	COM_StripExtension (mapname);
 
-	if (!SV_ValidateMap (mapname, true))
+	/*if (!SV_ValidateMap (mapname, true))*/
+	if (!SV_ValidateMap (mapname))
 		return;
 
 	Cvar_DirectSet (&sv_hostmap, mapname);
@@ -352,7 +355,7 @@ static void SV_Maps_f (void)
 
 /*
 ==================
-SV_MapBackground_f
+SV_MapBackground_f [FWGS, 01.05.24]
 
 Set background map (enable physics in menu)
 ==================
@@ -378,7 +381,8 @@ static void SV_MapBackground_f (void)
 	Q_strncpy (mapname, Cmd_Argv (1), sizeof (mapname));
 	COM_StripExtension (mapname);
 
-	if (!SV_ValidateMap (mapname, false))
+	/*if (!SV_ValidateMap (mapname, false))*/
+	if (!SV_ValidateMap (mapname))
 		return;
 
 	// background map is always run as singleplayer
@@ -391,9 +395,9 @@ static void SV_MapBackground_f (void)
 
 /*
 ==================
-SV_NextMap_f
+SV_NextMap_f [FWGS, 01.05.24]
 
-Change map for next in alpha-bethical ordering
+Change map for next in alpha-bethical ordering.
 For development work
 ==================
 */
@@ -403,7 +407,6 @@ static void SV_NextMap_f (void)
 	int			i, next;
 	search_t	*t;
 
-	// [FWGS, 01.07.23]
 	t = FS_Search ("maps\\*.bsp", true, con_gamemaps.value);	// only in gamedir
 	if (!t)
 		t = FS_Search ("maps/*.bsp", true, con_gamemaps.value);	// only in gamedir
@@ -421,16 +424,17 @@ static void SV_NextMap_f (void)
 		if (Q_stricmp (ext, "bsp"))
 			continue;
 
-		COM_FileBase (t->filenames[i], nextmap, sizeof (nextmap));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], nextmap, sizeof (nextmap));
 		if (Q_stricmp (sv_hostmap.string, nextmap))
 			continue;
 
 		next = (i + 1) % t->numfilenames;
-		COM_FileBase (t->filenames[next], nextmap, sizeof (nextmap));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[next], nextmap, sizeof (nextmap));
 		Cvar_DirectSet (&sv_hostmap, nextmap);
 
 		// found current point, check for valid
-		if (SV_ValidateMap (nextmap, true))
+		/*if (SV_ValidateMap (nextmap, true))*/
+		if (SV_ValidateMap (nextmap))
 			{
 			// found and valid
 			COM_LoadLevel (nextmap, false);
@@ -643,14 +647,17 @@ static void SV_Reload_f (void)
 
 /*
 ==================
-SV_ChangeLevel_f
+SV_ChangeLevel_f [FWGS, 01.05.24]
 
 classic change level
 ==================
 */
 static void SV_ChangeLevel_f (void)
 	{
-	if (Cmd_Argc () != 2)
+	/*if (Cmd_Argc () != 2)*/
+
+	 // allow extra arguments, for compatibility
+	if (Cmd_Argc () < 2)
 		{
 		Con_Printf (S_USAGE "changelevel <mapname>\n");
 		return;
@@ -661,20 +668,30 @@ static void SV_ChangeLevel_f (void)
 
 /*
 ==================
-SV_ChangeLevel2_f
+SV_ChangeLevel2_f [FWGS, 01.05.24]
 
 smooth change level
 ==================
 */
 static void SV_ChangeLevel2_f (void)
 	{
-	if (Cmd_Argc () != 3)
+	/*if (Cmd_Argc () != 3)*/
+
+	// allow extra arguments, for compatibility
+	if (Cmd_Argc () < 2)
 		{
-		Con_Printf (S_USAGE "changelevel2 <mapname> <landmark>\n");
+		/*Con_Printf (S_USAGE "changelevel2 <mapname> <landmark>\n");*/
+		Con_Printf (S_USAGE "changelevel2 <mapname> [landmark]\n");
 		return;
 		}
 
-	SV_QueueChangeLevel (Cmd_Argv (1), Cmd_Argv (2));
+	/*SV_QueueChangeLevel (Cmd_Argv (1), Cmd_Argv (2));*/
+
+	// with single argument, behaves like usual changelevel
+	if (Cmd_Argc () == 2)
+		SV_QueueChangeLevel (Cmd_Argv (1), NULL);
+	else
+		SV_QueueChangeLevel (Cmd_Argv (1), Cmd_Argv (2));
 	}
 
 /*
@@ -800,7 +817,7 @@ static void SV_Status_f (void)
 
 /*
 ==================
-SV_ConSay_f
+SV_ConSay_f [FWGS, 09.05.24]
 ==================
 */
 static void SV_ConSay_f (void)
@@ -817,7 +834,8 @@ static void SV_ConSay_f (void)
 		}
 
 	p = Cmd_Args ();
-	Q_strncpy (text, *p == '"' ? p + 1 : p, MAX_SYSPATH);
+	/*Q_strncpy (text, *p == '"' ? p + 1 : p, MAX_SYSPATH);*/
+	Q_strncpy (text, *p == '"' ? p + 1 : p, sizeof (text));
 
 	if (*p == '"')
 		{
@@ -841,7 +859,7 @@ static void SV_Heartbeat_f (void)
 
 /*
 ===========
-SV_ServerInfo_f
+SV_ServerInfo_f [FWGS, 01.05.24]
 
 Examine or change the serverinfo string
 ===========
@@ -880,7 +898,8 @@ static void SV_ServerInfo_f (void)
 		}
 
 	Info_SetValueForStarKey (svs.serverinfo, Cmd_Argv (1), Cmd_Argv (2), MAX_SERVERINFO_STRING);
-	SV_BroadcastCommand ("fullserverinfo \"%s\"\n", SV_Serverinfo ());
+	/*SV_BroadcastCommand ("fullserverinfo \"%s\"\n", SV_Serverinfo ());*/
+	SV_BroadcastCommand ("fullserverinfo \"%s\"\n", svs.serverinfo);
 	}
 
 /*
@@ -1185,6 +1204,7 @@ void SV_InitOperatorCommands (void)
 	Cmd_AddCommand ("redirect", Rcon_Redirect_f, "force enable rcon redirection");
 	Cmd_AddCommand ("logaddress", SV_SetLogAddress_f, "sets address and port for remote logging host");
 	Cmd_AddCommand ("log", SV_ServerLog_f, "enables logging to file");
+	Cmd_AddCommand ("str64stats", SV_PrintStr64Stats_f, "print engine pool string statistics");	// [FWGS, 01.05.24]
 
 	if (host.type == HOST_NORMAL)
 		{
@@ -1223,6 +1243,7 @@ void SV_KillOperatorCommands (void)
 	Cmd_RemoveCommand ("redirect");	// [FWGS, 01.07.23]
 	Cmd_RemoveCommand ("logaddress");
 	Cmd_RemoveCommand ("log");
+	Cmd_RemoveCommand ("str64stats");	// [FWGS, 01.05.24]
 
 	if (host.type == HOST_NORMAL)
 		{

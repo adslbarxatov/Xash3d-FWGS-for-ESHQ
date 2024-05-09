@@ -40,23 +40,25 @@ typedef struct streamfmt_s
 	void (*freefunc)(stream_t *stream);
 	} streamfmt_t;
 
+// [FWGS, 09.05.24]
 typedef struct sndlib_s
 	{
-	const loadwavfmt_t *loadformats;
-	const streamfmt_t *streamformat;	// music stream
+	const loadwavfmt_t	*loadformats;
+	const streamfmt_t	*streamformat;	// music stream
 
 	// current sound state
 	int		type;		// sound type
 	int		rate;		// num samples per second (e.g. 11025 - 11 khz)
 	int		width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
-	int		channels;		// num channels (1 - mono, 2 - stereo)
-	int		loopstart;	// start looping from
-	uint		samples;		// total samplecount in sound
-	uint		flags;		// additional sound flags
-	size_t		size;		// sound unpacked size (for bounds checking)
-	byte *wav;		// sound pointer (see sound_type for details)
+	int		channels;	// num channels (1 - mono, 2 - stereo)
+	/*int		loopstart;	// start looping from*/
+	uint	loopstart;	// start looping from
+	uint	samples;	// total samplecount in sound
+	uint	flags;		// additional sound flags
+	size_t	size;		// sound unpacked size (for bounds checking)
+	byte	*wav;		// sound pointer (see sound_type for details)
 
-	byte *tempbuffer;	// for convert operations
+	byte	*tempbuffer;	// for convert operations
 	int		cmd_flags;
 	} sndlib_t;
 

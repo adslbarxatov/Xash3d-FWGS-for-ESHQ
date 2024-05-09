@@ -55,9 +55,9 @@ static dtriangle_t	g_triangles[MAXALIASTRIS];
 static stvert_t	g_stverts[MAXALIASVERTS];
 static int	g_used[8192];
 
-// a pose is a single set of vertexes. a frame may be
-// an animating sequence of poses
-int		g_posenum;
+// [FWGS, 01.05.24] a pose is a single set of vertexes. a frame may be an animating sequence of poses
+/*int		g_posenum;*/
+static int	g_posenum;
 
 // the command list holds counts and s/t values that are valid for
 // every frame

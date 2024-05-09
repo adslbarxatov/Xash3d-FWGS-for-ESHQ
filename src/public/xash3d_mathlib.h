@@ -74,7 +74,12 @@ GNU General Public License for more details.
 
 #define Q_min( a, b )	(((a) < (b)) ? (a) : (b))
 #define Q_max( a, b )	(((a) > (b)) ? (a) : (b))
-#define Q_equal( a, b ) (((a) > ((b) - EQUAL_EPSILON)) && ((a) < ((b) + EQUAL_EPSILON)))
+
+// [FWGS, 01.05.24]
+/*#define Q_equal( a, b ) (((a) > ((b) - EQUAL_EPSILON)) && ((a) < ((b) + EQUAL_EPSILON)))*/
+#define Q_equal_e( a, b, e ) (((a) > ((b) - (e))) && ((a) < ((b) + (e))))
+#define Q_equal( a, b ) Q_equal_e( a, b, EQUAL_EPSILON )
+
 #define Q_recip( a )	((float)(1.0f / (float)(a)))
 #define Q_floor( a )	((float)(int)(a))
 #define Q_ceil( a )		((float)(int)((a) + 1))
@@ -191,7 +196,6 @@ void RoundUpHullSize (vec3_t size);
 int SignbitsForPlane (const vec3_t normal);
 int PlaneTypeForNormal (const vec3_t normal);
 int NearestPOW (int value, qboolean roundDown);
-// [FWGS, 01.07.23]
 float VectorNormalizeLength2 (const vec3_t v, vec3_t out);
 qboolean VectorCompareEpsilon (const vec3_t vec1, const vec3_t vec2, vec_t epsilon);
 void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up);

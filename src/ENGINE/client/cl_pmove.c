@@ -831,7 +831,7 @@ void CL_InitClientMove (void)
 	clgame.dllFuncs.pfnPlayerMoveInit (clgame.pmove);
 	}
 
-// [FWGS, 01.04.23]
+// [FWGS, 09.05.24]
 static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const usercmd_t *ucmd,
 	qboolean runfuncs, double time)
 	{
@@ -843,13 +843,14 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 
 	pmove->player_index = ps->number - 1;
 
-	// [FWGS, 01.01.24] a1ba: workaround bug on old protocol where the server refuse to send
-	// our local player in delta.cl.playernum, in theory, must be equal to our local player
-	// index anyway this might not be a real solution, since everything else will be bogus
-	// but we need to properly run prediction and avoid potential memory corruption either
-	// debug this, or remove when old protocol will be dropped!!!
+	// a1ba: workaround bug where the server refuse to send our local player in delta
+	// cl.playernum, in theory, must be equal to our local player index anyway
+	//
+	// this might not be a real solution, since everything else will be bogus
+	// but we need to properly run prediction and avoid potential memory corruption
 	if (pmove->player_index < 0)
-		{
+		pmove->player_index = bound (0, cl.playernum, cl.maxclients - 1);
+		/*{
 		if (cls.legacymode)
 			{
 			pmove->player_index = bound (0, cl.playernum, cl.maxclients - 1);
@@ -859,7 +860,7 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 			// if this happens, record a demo and send it to a1ba
 			Host_Error ("%s: ps->number == %d\n", __func__, ps->number);
 			}
-		}
+		}*/
 
 	pmove->multiplayer = (cl.maxclients > 1);
 	pmove->runfuncs = runfuncs;
@@ -873,7 +874,6 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	VectorCopy (cd->view_ofs, pmove->view_ofs);
 	VectorClear (pmove->movedir);
 	
-	// [FWGS, 01.04.23]
 	pmove->flDuckTime = (float)cd->flDuckTime;
 	pmove->bInDuck = cd->bInDuck;
 	pmove->usehull = ps->usehull;
@@ -883,7 +883,9 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	pmove->flSwimTime = (float)cd->flSwimTime;
 
 	VectorCopy (cd->punchangle, pmove->punchangle);
-	pmove->flNextPrimaryAttack = 0.0f; // not used by PM_ code
+
+	// not used by PM_ code
+	pmove->flNextPrimaryAttack = 0.0f;
 	pmove->effects = ps->effects;
 	pmove->flags = cd->flags;
 	pmove->gravity = ps->gravity;
@@ -915,9 +917,12 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	VectorCopy (cd->vuser2, pmove->vuser2);
 	VectorCopy (cd->vuser3, pmove->vuser3);
 	VectorCopy (cd->vuser4, pmove->vuser4);
-	pmove->cmd = *ucmd;	// copy current cmds
 
-	Q_strncpy (pmove->physinfo, cls.physinfo, MAX_INFO_STRING);
+	// copy current cmds
+	pmove->cmd = *ucmd;
+
+	/*Q_strncpy (pmove->physinfo, cls.physinfo, MAX_INFO_STRING);*/
+	Q_strncpy (pmove->physinfo, cls.physinfo, sizeof (pmove->physinfo));
 	}
 
 // [FWGS, 01.02.24]

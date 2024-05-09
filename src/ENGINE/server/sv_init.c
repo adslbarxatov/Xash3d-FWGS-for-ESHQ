@@ -948,7 +948,7 @@ qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multipla
 
 /*
 ================
-SV_GenerateTestPacket [FWGS, 01.07.23]
+SV_GenerateTestPacket [FWGS, 01.05.24]
 ================
 */
 static void SV_GenerateTestPacket (void)
@@ -962,11 +962,15 @@ static void SV_GenerateTestPacket (void)
 	// testpacket already generated once, exit
 	// testpacket and lookup table takes ~300k of memory
 	// disable for low memory mode
-	if (svs.testpacket_buf || (XASH_LOW_MEMORY >= 0))
+
+	/*if (svs.testpacket_buf || (XASH_LOW_MEMORY >= 0))*/
+	if (svs.testpacket_buf || (XASH_LOW_MEMORY > 0))
 		return;
 
 	// don't need in singleplayer with full client
-	if (svs.maxclients <= 1 && !Host_IsDedicated ())
+
+	/*if (svs.maxclients <= 1 && !Host_IsDedicated ())*/
+	if (svs.maxclients <= 1)
 		return;
 
 	file = FS_Open ("gfx.wad", "rb", false);
@@ -995,7 +999,9 @@ static void SV_GenerateTestPacket (void)
 
 	// now generate checksums lookup table
 	svs.testpacket_crcs = Mem_Malloc (host.mempool, sizeof (*svs.testpacket_crcs) * svs.testpacket_filelen);
-	crc = 0; // intentional omit of CRC32_Init because of the client
+
+	// intentional omit of CRC32_Init because of the client
+	crc = 0;
 
 	// TODO: shrink to minimum!
 	for (i = 0; i < svs.testpacket_filelen; i++)

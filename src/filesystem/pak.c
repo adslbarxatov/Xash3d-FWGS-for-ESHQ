@@ -315,7 +315,7 @@ static void FS_Close_PAK (searchpath_t *search)
 
 /*
 ================
-FS_AddPak_Fullpath [FWGS, 01.01.24]
+FS_AddPak_Fullpath [FWGS, 01.05.24]
 
 Adds the given pack to the search path.
 The pack type is autodetected by the file extension.
@@ -355,6 +355,7 @@ searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags)
 	search->pfnFindFile = FS_FindFile_PAK;
 	search->pfnSearch = FS_Search_PAK;
 
-	Con_Reportf ("Adding pakfile: %s (%i files)\n", pakfile, pak->numfiles);
+	/*Con_Reportf ("Adding pakfile: %s (%i files)\n", pakfile, pak->numfiles);*/
+	Con_Reportf ("Adding PAK: %s (%i files)\n", pakfile, pak->numfiles);
 	return search;
 	}

@@ -2175,25 +2175,22 @@ void CBasePlayer::SetSuitUpdate (char* name, int fgroup, int iNoRepeatTime)
 	int isentence;
 	int iempty = -1;
 
-
 	// Ignore suit updates if no suit
 	if (!(pev->weapons & (1 << WEAPON_SUIT)))
 		return;
 
+	// due to static channel design, etc. We don't play HEV sounds in multiplayer right now
 	if (g_pGameRules->IsMultiplayer ())
-		{
-		// due to static channel design, etc. We don't play HEV sounds in multiplayer right now.
 		return;
-		}
 
 	// if name == NULL, then clear out the queue
-
 	if (!name)
 		{
 		for (i = 0; i < CSUITPLAYLIST; i++)
 			m_rgSuitPlayList[i] = 0;
 		return;
 		}
+
 	// get sentence or group number
 	if (!fgroup)
 		{
@@ -2202,8 +2199,10 @@ void CBasePlayer::SetSuitUpdate (char* name, int fgroup, int iNoRepeatTime)
 			return;
 		}
 	else
+		{
 		// mark group number as negative
 		isentence = -SENTENCEG_GetIndex (name);
+		}
 
 	// check norepeat list - this list lets us cancel
 	// the playback of words or sentences that have already
@@ -2259,7 +2258,6 @@ void CBasePlayer::SetSuitUpdate (char* name, int fgroup, int iNoRepeatTime)
 		else
 			m_flSuitUpdate = gpGlobals->time + SUITUPDATETIME;
 		}
-
 	}
 
 /*
@@ -2757,7 +2755,7 @@ void CBasePlayer::Spawn (void)
 		ALERT (at_console, "Couldn't alloc player sound slot!\n");
 		}
 
-	m_fNoPlayerSound = FALSE;// normal sound behavior.
+	m_fNoPlayerSound = FALSE;	// normal sound behavior
 
 	m_pLastItem = NULL;
 	m_fInitHUD = TRUE;
@@ -2775,7 +2773,6 @@ void CBasePlayer::Spawn (void)
 		}
 
 	m_lastx = m_lasty = 0;
-
 	m_flNextChatTime = gpGlobals->time;
 
 	g_pGameRules->PlayerSpawn (this);
@@ -2846,8 +2843,8 @@ int CBasePlayer::Restore (CRestore& restore)
 		return 0;
 
 	int status = restore.ReadFields ("PLAYER", this, m_playerSaveData, HLARRAYSIZE (m_playerSaveData));
-
 	SAVERESTOREDATA* pSaveData = (SAVERESTOREDATA*)gpGlobals->pSaveData;
+
 	// landmark isn't present
 	if (!pSaveData->fUseLandmark)
 		{
@@ -2888,6 +2885,9 @@ int CBasePlayer::Restore (CRestore& restore)
 	m_flNextAttack = UTIL_WeaponTimeBase ();
 #endif
 
+	// ESHQ: прогрузка состояния в интерфейс
+	PassFlashlightStatus ();
+
 	return status;
 	}
 
@@ -2896,7 +2896,6 @@ void CBasePlayer::SelectNextItem (int iItem)
 	CBasePlayerItem* pItem;
 
 	pItem = m_rgpPlayerItems[iItem];
-
 	if (!pItem)
 		return;
 
@@ -2989,14 +2988,10 @@ void CBasePlayer::SelectItem (const char* pstr)
 void CBasePlayer::SelectLastItem (void)
 	{
 	if (!m_pLastItem)
-		{
 		return;
-		}
 
 	if (m_pActiveItem && !m_pActiveItem->CanHolster ())
-		{
 		return;
-		}
 
 	ResetAutoaim ();
 
@@ -3021,9 +3016,7 @@ BOOL CBasePlayer::HasWeapons (void)
 	for (i = 0; i < MAX_ITEM_TYPES; i++)
 		{
 		if (m_rgpPlayerItems[i])
-			{
 			return TRUE;
-			}
 		}
 
 	return FALSE;
@@ -3035,7 +3028,8 @@ void CBasePlayer::SelectPrevItem (int iItem)
 
 const char* CBasePlayer::TeamID (void)
 	{
-	if (pev == NULL)		// Not fully connected yet
+	// Not fully connected yet
+	if (pev == NULL)
 		return "";
 
 	// return their team name
@@ -3165,7 +3159,7 @@ CBaseEntity* FindEntityForward (CBaseEntity* pMe)
 	UTIL_MakeVectors (pMe->pev->v_angle);
 	UTIL_TraceLine (pMe->pev->origin + pMe->pev->view_ofs, pMe->pev->origin + pMe->pev->view_ofs + 
 		gpGlobals->v_forward * 8192, dont_ignore_monsters, pMe->edict (), &tr);
-	if (tr.flFraction != 1.0 && !FNullEnt (tr.pHit))
+	if ((tr.flFraction != 1.0) && !FNullEnt (tr.pHit))
 		{
 		CBaseEntity* pHit = CBaseEntity::Instance (tr.pHit);
 		return pHit;

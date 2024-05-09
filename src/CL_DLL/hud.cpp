@@ -43,9 +43,7 @@ class CHLVoiceStatusHelper: public IVoiceStatusHelper
 				int iTeam = g_PlayerExtraInfo[entindex].teamnumber;
 
 				if (iTeam < 0)
-					{
 					iTeam = 0;
-					}
 
 				iTeam = iTeam % iNumberOfTeamColors;
 
@@ -402,8 +400,6 @@ void CHud::VidInit (void)
 	// ----------
 	// Load Sprites
 	// ---------
-	// m_hsprFont = LoadSprite("sprites/%d_font.spr");
-
 	m_hsprLogo = 0;
 	m_hsprCursor = 0;
 

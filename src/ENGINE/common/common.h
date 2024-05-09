@@ -269,14 +269,20 @@ typedef struct
 	double		forcedEnd;
 	} soundlist_t;
 
+// [FWGS, 01.05.24]
 typedef enum bugcomp_e
 	{
-	// default mode, we assume that user dlls are not relying on engine bugs
-	BUGCOMP_OFF,
+	/*// default mode, we assume that user dlls are not relying on engine bugs
+	BUGCOMP_OFF,*/
+	// reverts fix for pfnPEntityOfEntIndex for bug compatibility with GoldSrc
+	BUGCOMP_PENTITYOFENTINDEX_FLAG = BIT (0),
 
-	// GoldSrc mode, user dlls are relying on GoldSrc specific bugs
+	/*// GoldSrc mode, user dlls are relying on GoldSrc specific bugs
 	// but fixing them may break regular Xash games
-	BUGCOMP_GOLDSRC,
+	BUGCOMP_GOLDSRC,*/
+	// rewrites mod's attempts to write GoldSrc-specific messages into Xash protocol
+	// (new wrappers are added by request)
+	BUGCOMP_MESSAGE_REWRITE_FACILITY_FLAG = BIT (1),
 	} bugcomp_t;
 
 typedef struct host_parm_s
@@ -356,7 +362,9 @@ typedef struct host_parm_s
 	struct decallist_s	*decalList;	// used for keep decals, when renderer is restarted or changed
 	int				numdecals;
 
-	bugcomp_t		bugcomp;		// bug compatibility level, for very "special" games
+	// [FWGS, 01.05.24]
+	/*bugcomp_t		bugcomp;		// bug compatibility level, for very "special" games*/
+	uint32_t		bugcomp;
 
 	double			starttime;		// [FWGS, 01.04.23] measure time to first frame
 	double			pureframetime;	// [FWGS, 01.04.23] count of sleeps can be inserted between frames
@@ -487,29 +495,32 @@ typedef enum
 	WF_TOTALCOUNT,	// must be last
 	} sndformat_t;
 
-// soundlib global settings
+// [FWGS, 09.05.24]
+/*// soundlib global settings
 typedef enum
 	{
 	SL_USE_LERPING = BIT (0),		// lerping sounds during resample
 	SL_KEEP_8BIT = BIT (1),		// don't expand 8bit sounds automatically up to 16 bit
 	SL_ALLOW_OVERWRITE = BIT (2),		// allow to overwrite stored sounds
-	} slFlags_t;
+	} slFlags_t;*/
 
-// wavdata output flags
+// [FWGS, 09.05.24] wavdata output flags
 typedef enum
 	{
 	// wavdata->flags
-	SOUND_LOOPED = BIT (0),	// this is looped sound (contain cue markers)
-	SOUND_STREAM = BIT (1),	// this is a streaminfo, not a real sound
+	SOUND_LOOPED =		BIT (0),	// this is looped sound (contain cue markers)
+	SOUND_STREAM =		BIT (1),	// this is a streaminfo, not a real sound
 
 	// Sound_Process manipulation flags
-	SOUND_RESAMPLE = BIT (12),	// resample sound to specified rate
-	SOUND_CONVERT16BIT = BIT (13),	// change sound resolution from 8 bit to 16
+	/*SOUND_RESAMPLE = BIT (12),	// resample sound to specified rate
+	SOUND_CONVERT16BIT = BIT (13),	// change sound resolution from 8 bit to 16*/
+	SOUND_RESAMPLE =	BIT (12),	// resample sound to specified rate
 	} sndFlags_t;
 
+// [FWGS, 09.05.24]
 typedef struct
 	{
-	word	rate;		// num samples per second (e.g. 11025 - 11 khz)
+	/*word	rate;		// num samples per second (e.g. 11025 - 11 khz)
 	byte	width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
 	byte	channels;	// num channels (1 - mono, 2 - stereo)
 	int	loopStart;		// offset at this point sound will be looping while playing more than only once
@@ -517,6 +528,15 @@ typedef struct
 	uint	type;		// compression type
 	uint	flags;		// misc sound flags
 	byte *buffer;		// sound buffer
+	size_t	size;		// for bounds checking*/
+	word	rate;		// num samples per second (e.g. 11025 - 11 khz)
+	byte	width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
+	byte	channels;	// num channels (1 - mono, 2 - stereo)
+	uint	loopStart;	// offset at this point sound will be looping while playing more than only once
+	uint	samples;	// total samplecount in wav
+	uint	type;		// compression type
+	uint	flags;		// misc sound flags
+	byte	*buffer;	// sound buffer
 	size_t	size;		// for bounds checking
 	} wavdata_t;
 
@@ -705,7 +725,8 @@ void Log_Printf (const char *fmt, ...) _format (1);
 void SV_BroadcastCommand (const char *fmt, ...) _format (1);
 void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) _format (2);
 void CL_ClearStaticEntities (void);
-qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *position);
+/*qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *position);*/
+qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack, size_t loopTrackSize, int *position);	  // [FWGS, 09.05.24]
 void CL_ServerCommand (qboolean reliable, const char *fmt, ...) _format (2);
 void CL_HudMessage (const char *pMessage);
 const char *CL_MsgInfo (int cmd);

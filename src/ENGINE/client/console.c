@@ -1146,25 +1146,27 @@ EDIT FIELDS
 */
 /*
 ================
-Con_ClearField
+Con_ClearField [FWGS, 01.05.24]
 ================
 */
 static void Con_ClearField (field_t *edit)
 	{
-	memset (edit->buffer, 0, MAX_STRING);
+	/*memset (edit->buffer, 0, MAX_STRING);*/
+	memset (edit->buffer, 0, sizeof (edit->buffer));
 	edit->cursor = 0;
 	edit->scroll = 0;
 	}
 
 /*
 ================
-Field_Set
+Field_Set [FWGS, 09.05.24]
 ================
 */
 static void Field_Set (field_t *f, const char *string)
 	{
 	f->scroll = 0;
-	f->cursor = Q_strncpy (f->buffer, string, MAX_STRING);
+	/*f->cursor = Q_strncpy (f->buffer, string, MAX_STRING);*/
+	f->cursor = Q_strncpy (f->buffer, string, sizeof (f->buffer));
 	}
 
 /*
@@ -1319,21 +1321,26 @@ static void Field_CharEvent (field_t *edit, int ch)
 
 	if (host.key_overstrike)
 		{
-		if (edit->cursor == MAX_STRING - 1) return;
+		if (edit->cursor == MAX_STRING - 1)
+			return;
 		edit->buffer[edit->cursor] = ch;
 		edit->cursor++;
 		}
 	else
 		{
 		// insert mode
-		if (len == MAX_STRING - 1) return; // all full
+		if (len == MAX_STRING - 1)
+			return; // all full
+
 		memmove (edit->buffer + edit->cursor + 1, edit->buffer + edit->cursor, len + 1 - edit->cursor);
 		edit->buffer[edit->cursor] = ch;
 		edit->cursor++;
 		}
 
-	if (edit->cursor >= edit->widthInChars) edit->scroll++;
-	if (edit->cursor == len + 1) edit->buffer[edit->cursor] = 0;
+	if (edit->cursor >= edit->widthInChars)
+		edit->scroll++;
+	if (edit->cursor == len + 1)
+		edit->buffer[edit->cursor] = 0;
 	}
 
 /*
@@ -1464,56 +1471,93 @@ static void Con_HistoryAppend (con_history_t *self, field_t *from)
 	self->line = ++self->next;
 	}
 
+// [FWGS, 01.05.24]
 static void Con_LoadHistory (con_history_t *self)
 	{
-	const byte *aFile = FS_LoadFile ("console_history.txt", NULL, true);
+	/*const byte *aFile = FS_LoadFile ("console_history.txt", NULL, true);
 	const char *pLine, *pFile;
-	int i, len;
-	field_t *f;
+	int i, len;*/
+	field_t	*f;
+	file_t	*fd;
+	int		i;
 
-	if (!aFile)
+	fd = FS_Open ("console_history.txt", "rb", true);
+	/*if (!aFile)
+	*/
+	if (!fd)
 		return;
 
-	for (pFile = pLine = (char *)aFile; *pFile; pFile++)
+	/*for (pFile = pLine = (char *)aFile; *pFile; pFile++)
+	*/
+	while (!FS_Eof (fd))
 		{
-		if (*pFile != '\n')
+		/*if (*pFile != '\n')
 			continue;
 
 		Con_ClearField (&self->lines[self->next]);
 
-		len = Q_min (pFile - pLine + 1, sizeof (f->buffer));
+		len = Q_min (pFile - pLine + 1, sizeof (f->buffer));*/
 		f = &self->lines[self->next % CON_HISTORY];
+		Con_ClearField (f);
+
 		f->widthInChars = con.linewidth;
-		f->cursor = len - 1;
+		/*f->cursor = len - 1;
 		Q_strncpy (f->buffer, pLine, len);
 
-		self->next++;
+		self->next++;*/
+		
+		FS_Gets (fd, f->buffer, sizeof (f->buffer));
+		f->cursor = Q_strlen (f->buffer);
 
-		pLine = pFile + 1;
+		// skip empty lines
+		if (f->cursor == 0)
+			continue;
+
+		/*pLine = pFile + 1;
+		*/
+				
+		// skip repeating lines
+		if (self->next > 0)
+			{
+			field_t *prev;
+			prev = &self->lines[(self->next - 1) % CON_HISTORY];
+			if (!Q_stricmp (prev->buffer, f->buffer))
+				continue;
+			}
+
+		self->next++;
 		}
+
+	FS_Close (fd);
 
 	for (i = self->next; i < CON_HISTORY; i++)
 		{
-		Con_ClearField (&self->lines[i]);
-		self->lines[i].widthInChars = con.linewidth;
+		/*Con_ClearField (&self->lines[i]);
+		self->lines[i].widthInChars = con.linewidth;*/
+		f = &self->lines[i];
+
+		Con_ClearField (f);
+		f->widthInChars = con.linewidth;
 		}
 
 	self->line = self->next;
 	}
 
+// [FWGS, 01.05.24]
 static void Con_SaveHistory (con_history_t *self)
 	{
-	int historyStart = self->next - CON_HISTORY, i;
-	file_t *f;
+	int		historyStart = self->next - CON_HISTORY, i;
+	file_t	*f;
 
-	// [FWGS, 01.05.23] do not save history if nothing was executed
+	// do not save history if nothing was executed
 	if (self->next == 0)
 		return;
 
 	if (historyStart < 0)
 		historyStart = 0;
 
-	f = FS_Open ("console_history.txt", "w", true);
+	/*f = FS_Open ("console_history.txt", "w", true);*/
+	f = FS_Open ("console_history.txt", "wb", true);
 
 	for (i = historyStart; i < self->next; i++)
 		FS_Printf (f, "%s\n", self->lines[i % CON_HISTORY].buffer);

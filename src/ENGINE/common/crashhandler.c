@@ -514,14 +514,16 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 #ifdef XASH_SDL
 	SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
 #endif
-	// [FWGS, 01.01.24]
+
+	// [FWGS, 01.05.24]
+	host.crashed = true;
 	Platform_MessageBox ("Xash Error", message, false);
 
 	// log saved, now we can try to save configs and close log correctly, it may crash
 	if (host.type == HOST_NORMAL)
 		CL_Crashed ();
 	host.status = HOST_CRASHED;
-	host.crashed = true;
+	/*host.crashed = true;*/
 
 	Sys_Quit ();
 	}

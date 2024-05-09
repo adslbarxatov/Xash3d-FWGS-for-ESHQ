@@ -55,7 +55,7 @@ void R_AllowFog (qboolean allowed)
 
 /*
 ===============
-R_OpaqueEntity [FWGS, 01.01.24]
+R_OpaqueEntity [FWGS, 01.05.24]
 
 Opaque entity can be brush or studio model but sprite
 ===============
@@ -63,7 +63,18 @@ Opaque entity can be brush or studio model but sprite
 qboolean R_OpaqueEntity (cl_entity_t *ent)
 	{
 	if (R_GetEntityRenderMode (ent) == kRenderNormal)
-		return true;
+		{
+		switch (ent->curstate.renderfx)
+			{
+			case kRenderFxNone:
+			case kRenderFxDeadPlayer:
+			case kRenderFxLightMultiplier:
+			case kRenderFxExplode:
+				return true;
+			}
+		}
+	
+	/*return true;*/
 	return false;
 	}
 

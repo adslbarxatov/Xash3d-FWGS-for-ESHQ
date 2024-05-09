@@ -19,6 +19,11 @@ GNU General Public License for more details.
 #include <stdlib.h>
 #include <errno.h>
 
+// [FWGS, 01.05.24]
+#if _MSC_VER
+	#include <intrin.h>
+#endif
+
 #ifdef XASH_SDL
 	#include <SDL.h>
 #endif
@@ -50,7 +55,9 @@ GNU General Public License for more details.
 #include "library.h"
 #include "whereami.h"
 
-qboolean	error_on_exit = false;	// arg for exit();
+// [FWGS, 01.05.24] arg for exit()
+/*qboolean	error_on_exit = false;	// arg for exit();*/
+int error_on_exit = 0;
 
 /*
 ================
@@ -64,23 +71,34 @@ double GAME_EXPORT Sys_DoubleTime (void)
 
 /*
 ================
-Sys_DebugBreak [FWGS, 01.04.23]
+Sys_DebugBreak [FWGS, 01.05.24]
 ================
 */
 void Sys_DebugBreak (void)
 	{
-#if XASH_LINUX || ( XASH_WIN32 && !XASH_64BIT )
+/*#if XASH_LINUX || ( XASH_WIN32 && !XASH_64BIT )
+*/
 	
 #if _MSC_VER
-	if (Sys_DebuggerPresent ())
+	/*if (Sys_DebuggerPresent ())
 		_asm { int 3 }
-#elif XASH_X86
+	#elif XASH_X86
 	if (Sys_DebuggerPresent ())
 		asm volatile("int $3;");
-#else
+	#else
 	if (Sys_DebuggerPresent ())
 		raise (SIGINT);
-#endif
+	#endif*/
+	if (Sys_DebuggerPresent ())
+		__debugbreak ();
+#else
+	if (Sys_DebuggerPresent ())
+		{
+		INLINE_RAISE (SIGINT);
+
+		// sometimes signal comes with delay, let it interrupt nanosleep
+		INLINE_NANOSLEEP1 ();
+		}
 #endif
 	}
 
@@ -156,46 +174,55 @@ const char *Sys_GetCurrentUser (void)
 /*
 ==================
 Sys_ParseCommandLine
-
 ==================
 */
 void Sys_ParseCommandLine (int argc, char **argv)
 	{
-	const char *blank = "censored";
+	const char	*blank = "censored";
 	int		i;
 
 	host.argc = argc;
 	host.argv = argv;
 
-	if (!host.change_game) return;
+	if (!host.change_game)
+		return;
 
 	for (i = 0; i < host.argc; i++)
 		{
 		// we don't want to return to first game
-		if (!Q_stricmp ("-game", host.argv[i])) host.argv[i] = (char *)blank;
+		if (!Q_stricmp ("-game", host.argv[i]))
+			host.argv[i] = (char *)blank;
+
 		// probably it's timewaster, because engine rejected second change
-		else if (!Q_stricmp ("+game", host.argv[i])) host.argv[i] = (char *)blank;
+		else if (!Q_stricmp ("+game", host.argv[i]))
+			host.argv[i] = (char *)blank;
+
 		// you sure that map exists in new game?
-		else if (!Q_stricmp ("+map", host.argv[i])) host.argv[i] = (char *)blank;
+		else if (!Q_stricmp ("+map", host.argv[i]))
+			host.argv[i] = (char *)blank;
+
 		// just stupid action
-		else if (!Q_stricmp ("+load", host.argv[i])) host.argv[i] = (char *)blank;
+		else if (!Q_stricmp ("+load", host.argv[i]))
+			host.argv[i] = (char *)blank;
+
 		// changelevel beetwen games? wow it's great idea!
-		else if (!Q_stricmp ("+changelevel", host.argv[i])) host.argv[i] = (char *)blank;
+		else if (!Q_stricmp ("+changelevel", host.argv[i]))
+			host.argv[i] = (char *)blank;
 		}
 	}
 
 /*
 ==================
 Sys_MergeCommandLine
-
 ==================
 */
 void Sys_MergeCommandLine (void)
 	{
-	const char *blank = "censored";
+	const char	*blank = "censored";
 	int		i;
 
-	if (!host.change_game) return;
+	if (!host.change_game)
+		return;
 
 	for (i = 0; i < host.argc; i++)
 		{
@@ -251,7 +278,7 @@ qboolean Sys_GetIntFromCmdLine (const char *argName, int *out)
 	{
 	int argIndex = Sys_CheckParm (argName);
 
-	if (argIndex < 1 || argIndex + 1 >= host.argc || !host.argv[argIndex + 1])
+	if ((argIndex < 1) || (argIndex + 1 >= host.argc) || !host.argv[argIndex + 1])
 		{
 		*out = 0;
 		return false;
@@ -282,12 +309,14 @@ void Sys_SendKeyEvents (void)
 // =======================================================================
 qboolean Sys_LoadLibrary (dll_info_t *dll)
 	{
-	const dllfunc_t *func;
+	const dllfunc_t	*func;
 	string		errorstring;
 
 	// check errors
-	if (!dll) return false;	// invalid desc
-	if (dll->link) return true;	// already loaded
+	if (!dll)
+		return false;	// invalid desc
+	if (dll->link)
+		return true;	// already loaded
 
 	if (!dll->name || !*dll->name)
 		return false; // nothing to load
@@ -328,8 +357,10 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 error:
 	Con_Reportf (" - failed\n");
 	Sys_FreeLibrary (dll); // trying to free
-	if (dll->crash) Sys_Error ("%s", errorstring);
-	else Con_Reportf (S_ERROR  "%s", errorstring);
+	if (dll->crash)
+		Sys_Error ("%s", errorstring);
+	else
+		Con_Reportf (S_ERROR  "%s", errorstring);
 
 	return false;
 	}
@@ -386,14 +417,17 @@ static void Sys_WaitForQuit (void)
 			TranslateMessage (&msg);
 			DispatchMessage (&msg);
 			}
-		else Sys_Sleep (20);
+		else
+			{
+			Sys_Sleep (20);
+			}
 		}
 #endif
 	}
 
 /*
 ================
-Sys_Warn [FWGS, 01.01.24]
+Sys_Warn [FWGS, 01.05.24]
 
 Just messagebox
 ================
@@ -408,15 +442,18 @@ void Sys_Warn (const char *format, ...)
 	va_end (argptr);
 
 	Sys_DebugBreak ();
-
 	Msg ("Sys_Warn: %s\n", text);
-	if (!Host_IsDedicated ()) // dedicated server should not hang on messagebox
-		Platform_MessageBox ("Xash Warning", text, false);
+
+	// dedicated server should not hang on messagebox
+	if (!Host_IsDedicated ())
+		Platform_MessageBox ("Xash Warning", text, true);
+
+	/*Platform_MessageBox ("Xash Warning", text, false);*/
 	}
 
 /*
 ================
-Sys_Error [FWGS, 01.01.24]
+Sys_Error [FWGS, 01.05.24]
 
 NOTE: we must prepare engine to shutdown
 before call this
@@ -439,7 +476,9 @@ void Sys_Error (const char *error, ...)
 	if (host.change_game) 
 		Sys_Sleep (200);
 
-	error_on_exit = true;
+	/*error_on_exit = true;*/
+	error_on_exit = 1;
+
 	host.status = HOST_ERR_FATAL;
 	va_start (argptr, error);
 	Q_vsnprintf (text, MAX_PRINT_MSG, error, argptr);
@@ -459,7 +498,8 @@ void Sys_Error (const char *error, ...)
 		Wcon_ShowConsole (false);
 #endif
 		Sys_Print (text);
-		Platform_MessageBox ("Xash Error", text, false);
+		/*Platform_MessageBox ("Xash Error", text, false);*/
+		Platform_MessageBox ("Xash Error", text, true);
 		}
 	else
 		{
@@ -517,12 +557,12 @@ void Sys_Print (const char *pMsg)
 
 #if XASH_WIN32
 	{
-	const char *msg;
+	const char	*msg;
 	static char	buffer[MAX_PRINT_MSG];
 	static char	logbuf[MAX_PRINT_MSG];
-	char *b = buffer;
-	char *c = logbuf;
-	int		i = 0;
+	char		*b = buffer;
+	char		*c = logbuf;
+	int			i = 0;
 
 	// if the message is REALLY long, use just the last portion of it
 	if (Q_strlen (pMsg) > sizeof (buffer) - 1)
@@ -690,7 +730,7 @@ void *Sys_GetNativeObject (const char *obj)
 	// Backend should consider that obj is case-sensitive
 #if XASH_ANDROID
 	ptr = Android_GetNativeObject (obj);
-#endif // XASH_ANDROID
+#endif
 
 	return ptr;
 	}

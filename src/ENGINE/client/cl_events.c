@@ -182,8 +182,9 @@ void CL_RegisterEvent (int lastnum, const char *szEvName, pfnEventHook func)
 
 	ev = clgame.events[lastnum];
 
-	// NOTE: ev->index will be set later
-	Q_strncpy (ev->name, szEvName, MAX_QPATH);
+	// [FWGS, 09.05.24] NOTE: ev->index will be set later
+	/*Q_strncpy (ev->name, szEvName, MAX_QPATH);*/
+	Q_strncpy (ev->name, szEvName, sizeof (ev->name));
 	ev->func = func;
 	}
 
@@ -194,9 +195,9 @@ CL_FireEvent
 */
 static qboolean CL_FireEvent (event_info_t *ei, int slot)
 	{
-	cl_user_event_t *ev;
-	const char *name;
-	int		i, idx;
+	cl_user_event_t	*ev;
+	const char		*name;
+	int				i, idx;
 
 	if (!ei || !ei->index)
 		return false;

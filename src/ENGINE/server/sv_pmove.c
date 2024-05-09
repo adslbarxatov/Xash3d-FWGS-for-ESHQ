@@ -554,6 +554,7 @@ static void PM_CheckMovingGround (edict_t *ent, float frametime)
 	ClearBits (ent->v.flags, FL_BASEVELOCITY);
 	}
 
+// [FWGS, 09.05.24]
 static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd, const char *physinfo)
 	{
 	vec3_t	absmin, absmax;
@@ -613,10 +614,13 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	VectorCopy (clent->v.vuser2, pmove->vuser2);
 	VectorCopy (clent->v.vuser3, pmove->vuser3);
 	VectorCopy (clent->v.vuser4, pmove->vuser4);
-	pmove->cmd = *ucmd;	// setup current cmds
+
+	// setup current cmds
+	pmove->cmd = *ucmd;
 	pmove->runfuncs = true;
 
-	Q_strncpy (pmove->physinfo, physinfo, MAX_INFO_STRING);
+	/*Q_strncpy (pmove->physinfo, physinfo, MAX_INFO_STRING);*/
+	Q_strncpy (pmove->physinfo, physinfo, sizeof (pmove->physinfo));
 
 	// setup physents
 	pmove->numvisent = 0;
@@ -995,7 +999,8 @@ void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 	// copy player buttons
 	clent->v.button = ucmd->buttons;
 	clent->v.light_level = ucmd->lightlevel;
-	if (ucmd->impulse) clent->v.impulse = ucmd->impulse;
+	if (ucmd->impulse)
+		clent->v.impulse = ucmd->impulse;
 
 	if (ucmd->impulse == 204)
 		{

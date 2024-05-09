@@ -151,10 +151,13 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 		{
 		case ARCHITECTURE_AMD64:
 			return "amd64";
+
 		case ARCHITECTURE_X86:
 			return "i386";
+
 		case ARCHITECTURE_E2K:
 			return "e2k";
+
 		case ARCHITECTURE_JS:
 			return "javascript";
 
@@ -166,6 +169,7 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 			return endianness == ENDIANNESS_LITTLE ?
 				(is64 ? "mips64el" : "mipsel") :
 				(is64 ? "mips64" : "mips");
+
 		case ARCHITECTURE_ARM:
 			// no support for big endian ARM here
 			if (endianness == ENDIANNESS_LITTLE)
@@ -192,6 +196,7 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 					}
 				}
 			break;
+
 		case ARCHITECTURE_RISCV:
 			// [FWGS, 01.05.23]
 			switch (abi)
@@ -236,20 +241,31 @@ const char *Q_buildarch (void)
 
 /*
 =============
-Q_buildcommit
+Q_buildcommit [FWGS, 01.05.24]
 
-Returns a short hash of current commit in VCS as string.
+Returns a short hash of current commit in VCS as string
 XASH_BUILD_COMMIT must be passed in quotes
-
-if XASH_BUILD_COMMIT is not defined,
-Q_buildcommit will identify this build as "notset"
 =============
 */
 const char *Q_buildcommit (void)
 	{
-#ifdef XASH_BUILD_COMMIT
+	/*#ifdef XASH_BUILD_COMMIT
+	*/
 	return XASH_BUILD_COMMIT;
-#else
+	/*#else
 	return "notset";
-#endif
+	#endif*/
+	}
+
+/*
+=============
+Q_buildbranch [FWGS, 01.05.24]
+
+Returns current branch name in VCS as string
+XASH_BUILD_BRANCH must be passed in quotes
+=============
+*/
+const char *Q_buildbranch (void)
+	{
+	return XASH_BUILD_BRANCH;
 	}

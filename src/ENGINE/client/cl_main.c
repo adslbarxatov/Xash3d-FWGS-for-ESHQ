@@ -28,7 +28,7 @@ GNU General Public License for more details.
 #define MAX_CMD_BUFFER				8000
 #define CONNECTION_PROBLEM_TIME		15.0	// 15 seconds
 #define CL_CONNECTION_RETRIES		10
-#define CL_TEST_RETRIES_NORESPONCE	3		// [FWGS, 01.04.23]
+/*#define CL_TEST_RETRIES_NORESPONCE	3		// [FWGS, 01.04.23]*/
 #define CL_TEST_RETRIES				5
 
 CVAR_DEFINE_AUTO (mp_decals, "300", FCVAR_ARCHIVE,
@@ -37,8 +37,6 @@ CVAR_DEFINE_AUTO (dev_overview, "0", 0,
 	"draw level in overview-mode");
 CVAR_DEFINE_AUTO (cl_resend, "6.0", 0,
 	"time to resend connect");
-
-// [FWGS, 01.11.23]
 CVAR_DEFINE (cl_allow_download, "cl_allowdownload", "1", FCVAR_ARCHIVE,
 	"allow to downloading resources from the server");
 CVAR_DEFINE_AUTO (cl_allow_upload, "1", FCVAR_ARCHIVE,
@@ -49,14 +47,10 @@ CVAR_DEFINE_AUTO (cl_logofile, "lambda", FCVAR_ARCHIVE,
 	"player logo name");
 CVAR_DEFINE_AUTO (cl_logocolor, "orange", FCVAR_ARCHIVE,
 	"player logo color");
-
-// [FWGS, 01.04.23]
 CVAR_DEFINE_AUTO (cl_logoext, "bmp", FCVAR_ARCHIVE,
 	"temporary cvar to tell engine which logo must be packed");
 CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE,
 	"test network bandwith before connection");
-
-// [FWGS, 01.07.23]
 CVAR_DEFINE (cl_draw_particles, "r_drawparticles", "1", FCVAR_CHEAT,
 	"render particles");
 CVAR_DEFINE (cl_draw_tracers, "r_drawtracers", "1", FCVAR_CHEAT,
@@ -93,18 +87,12 @@ CVAR_DEFINE_AUTO (cl_fixtimerate, "7.5", FCVAR_ARCHIVE,
 	"time in msec to client clock adjusting");
 CVAR_DEFINE_AUTO (hud_fontscale, "1.0", FCVAR_ARCHIVE | FCVAR_LATCH,
 	"scale hud font texture");
-
-// [FWGS, 01.03.24]
 CVAR_DEFINE_AUTO (hud_fontrender, "0", FCVAR_ARCHIVE,
 	"hud font render mode (0: additive, 1: holes, 2: trans)");
-
 CVAR_DEFINE_AUTO (hud_scale, "0", FCVAR_ARCHIVE | FCVAR_LATCH,
 	"scale hud at current resolution");
-
-// [FWGS, 01.02.24]
 CVAR_DEFINE_AUTO (hud_scale_minimal_width, "640", FCVAR_ARCHIVE | FCVAR_LATCH,
 	"if hud_scale results in a HUD virtual screen smaller than this value, it won't be applied");
-
 CVAR_DEFINE_AUTO (cl_solid_players, "1", 0,
 	"Make all players not solid (can't traceline them)");
 CVAR_DEFINE_AUTO (cl_updaterate, "20", FCVAR_USERINFO | FCVAR_ARCHIVE,
@@ -125,29 +113,22 @@ CVAR_DEFINE_AUTO (cl_lw, "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
 	"enable client weapon predicting");
 CVAR_DEFINE_AUTO (cl_charset, "utf-8", FCVAR_ARCHIVE,
 	"1-byte charset to use (iconv style)");
-
-// [FWGS, 01.03.24]
 CVAR_DEFINE_AUTO (cl_trace_stufftext, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
 	"enable stufftext (server-to-client console commands) tracing (good for developers)");
 CVAR_DEFINE_AUTO (cl_trace_messages, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
 	"enable message names tracing (good for developers)");
 CVAR_DEFINE_AUTO (cl_trace_events, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
 	"enable events tracing (good for developers)");
-
 static CVAR_DEFINE_AUTO (cl_nat, "0", 0,
 	"show servers running under NAT");
 CVAR_DEFINE_AUTO (hud_utf8, "0", FCVAR_ARCHIVE,
 	"Use utf-8 encoding for hud text");
 CVAR_DEFINE_AUTO (ui_renderworld, "0", FCVAR_ARCHIVE,
 	"render world when UI is visible");
-
-// [FWGS, 01.01.24]
 static CVAR_DEFINE_AUTO (cl_maxframetime, "0", 0,
 	"set deadline timer for client rendering to catch freezes");
 CVAR_DEFINE_AUTO (cl_fixmodelinterpolationartifacts, "1", 0,
 	"try to fix up models interpolation on a moving platforms (monsters on trains for example)");
-
-// [FWGS, 01.11.23] userinfo
 static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
 	"player name");
 static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -1175,18 +1156,34 @@ static void CL_SendConnectPacket (void)
 
 /*
 =================
-CL_CheckForResend
+CL_GetTestFragmentSize [FWGS, 01.05.24]
+
+Returns bandwidth test fragment size
+=================
+*/
+static int CL_GetTestFragmentSize (void)
+	{
+	const int fragmentSizes[CL_TEST_RETRIES] = { 64000, 32000, 10666, 5200, 1400 };
+	if ((cls.connect_retry >= 0) && (cls.connect_retry < CL_TEST_RETRIES))
+		return bound (FRAGMENT_MIN_SIZE, fragmentSizes[cls.connect_retry], FRAGMENT_MAX_SIZE);
+	else
+		return FRAGMENT_MIN_SIZE;
+	}
+
+/*
+=================
+CL_CheckForResend [FWGS, 01.05.24]
 
 Resend a connect message if the last one has timed out
 =================
 */
 static void CL_CheckForResend (void)
 	{
-	netadr_t adr;
-	net_gai_state_t res;	// [FWGS, 01.05.23]
-	qboolean bandwidthTest;	// [FWGS, 01.04.23]
+	netadr_t		adr;
+	net_gai_state_t	res;
+	float			resendTime;
+	qboolean		bandwidthTest;
 
-	// [FWGS, 01.11.23]
 	if (cls.internetservers_wait)
 		CL_SendMasterServerScanRequest ();
 
@@ -1212,18 +1209,22 @@ static void CL_CheckForResend (void)
 	else if (cl_resend.value > CL_MAX_RESEND_TIME)
 		Cvar_SetValue ("cl_resend", CL_MAX_RESEND_TIME);
 
-	if ((host.realtime - cls.connect_time) < cl_resend.value)
+	/*if ((host.realtime - cls.connect_time) < cl_resend.value)*/
+	bandwidthTest = !cls.legacymode && cl_test_bandwidth.value && (cls.connect_retry <= CL_TEST_RETRIES);
+	resendTime = bandwidthTest ? 1.0f : cl_resend.value;
+
+	if ((host.realtime - cls.connect_time) < resendTime)
 		return;
 
 	res = NET_StringToAdrNB (cls.servername, &adr);
 
-	if (res == NET_EAI_NONAME)	// [FWGS, 01.05.23]
+	if (res == NET_EAI_NONAME)
 		{
 		CL_Disconnect ();
 		return;
 		}
 
-	if (res == NET_EAI_AGAIN)	// [FWGS, 01.05.23]
+	if (res == NET_EAI_AGAIN)
 		{
 		cls.connect_time = MAX_HEARTBEAT;
 		return;
@@ -1240,10 +1241,14 @@ static void CL_CheckForResend (void)
 	if (adr.port == 0)
 		adr.port = MSG_BigShort (PORT_SERVER);
 
-	if (cls.connect_retry == CL_TEST_RETRIES_NORESPONCE)
+	/*if (cls.connect_retry == CL_TEST_RETRIES_NORESPONCE)*/
+	if (cls.connect_retry == CL_TEST_RETRIES)
 		{
 		// too many fails use default connection method
-		Con_Printf ("hi-speed connection is failed, use default method\n");
+		/*Con_Printf ("hi-speed connection is failed, use default method\n");*/
+		Con_Printf ("Bandwidth test failed, fallback to default connecting method\n");
+		Con_Printf ("Connecting to %s... (retry #%i)\n", cls.servername, cls.connect_retry + 1);
+
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "getchallenge\n");
 		Cvar_SetValue ("cl_dlmax", FRAGMENT_MIN_SIZE);
 		cls.connect_time = host.realtime;
@@ -1251,18 +1256,23 @@ static void CL_CheckForResend (void)
 		return;
 		}
 
-	// [FWGS, 01.04.23]
-	bandwidthTest = !cls.legacymode && cl_test_bandwidth.value;
+	/*bandwidthTest = !cls.legacymode && cl_test_bandwidth.value;*/
 	cls.serveradr = adr;
-	cls.max_fragment_size = Q_min (FRAGMENT_MAX_SIZE, cls.max_fragment_size / (cls.connect_retry + 1));
+	/*cls.max_fragment_size = Q_min (FRAGMENT_MAX_SIZE, cls.max_fragment_size / (cls.connect_retry + 1));*/
+	cls.max_fragment_size = CL_GetTestFragmentSize ();
+
 	cls.connect_time = host.realtime;	// for retransmit requests
 	cls.connect_retry++;
 
 	if (bandwidthTest)
-		Con_Printf ("Connecting to %s... [retry #%i, max fragment size %i]\n", cls.servername,
+		/*Con_Printf ("Connecting to %s... [retry #%i, max fragment size %i]\n", cls.servername,
+			cls.connect_retry, cls.max_fragment_size);*/
+		Con_Printf ("Connecting to %s... (retry #%i, fragment size %i)\n", cls.servername,
 			cls.connect_retry, cls.max_fragment_size);
+
 	else
-		Con_Printf ("Connecting to %s... [retry #%i]\n", cls.servername, cls.connect_retry);
+		/*Con_Printf ("Connecting to %s... [retry #%i]\n", cls.servername, cls.connect_retry);*/
+		Con_Printf ("Connecting to %s... (retry #%i)\n", cls.servername, cls.connect_retry);
 
 	if (bandwidthTest)
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, "bandwidth %i %i\n", PROTOCOL_VERSION, cls.max_fragment_size);

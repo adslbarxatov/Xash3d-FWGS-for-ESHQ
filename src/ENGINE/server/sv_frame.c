@@ -761,7 +761,7 @@ static void SV_UpdateUserInfo (sv_client_t *cl)
 
 /*
 =======================
-SV_UpdateToReliableMessages
+SV_UpdateToReliableMessages [FWGS, 01.05.24]
 =======================
 */
 static void SV_UpdateToReliableMessages (void)
@@ -777,7 +777,7 @@ static void SV_UpdateToReliableMessages (void)
 		if (cl->state != cs_spawned)
 			continue;
 
-		if (FBitSet (cl->flags, FCL_RESEND_USERINFO) && cl->next_sendinfotime <= host.realtime)
+		if (FBitSet (cl->flags, FCL_RESEND_USERINFO) && (cl->next_sendinfotime <= host.realtime))
 			{
 			if (MSG_GetNumBytesLeft (&sv.reliable_datagram) >= (Q_strlen (cl->userinfo) + 6))
 				SV_UpdateUserInfo (cl);
@@ -790,38 +790,47 @@ static void SV_UpdateToReliableMessages (void)
 			}
 		}
 
-	// clear the server datagram if it overflowed.
+	// clear the server datagram if it overflowed
 	if (MSG_CheckOverflow (&sv.datagram))
 		{
 		Con_DPrintf (S_ERROR "sv.datagram overflowed!\n");
 		MSG_Clear (&sv.datagram);
 		}
 
-	// clear the server datagram if it overflowed.
+	// clear the server datagram if it overflowed
 	if (MSG_CheckOverflow (&sv.spec_datagram))
 		{
 		Con_DPrintf (S_ERROR "sv.spec_datagram overflowed!\n");
 		MSG_Clear (&sv.spec_datagram);
 		}
 
-	// now send the reliable and server datagrams to all clients.
+	// now send the reliable and server datagrams to all clients
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
 		if ((cl->state < cs_connected) || FBitSet (cl->flags, FCL_FAKECLIENT))
 			continue;	// reliables go to all connected or spawned
 
 		if (MSG_GetNumBytesWritten (&sv.reliable_datagram) < MSG_GetNumBytesLeft (&cl->netchan.message))
-			MSG_WriteBits (&cl->netchan.message, MSG_GetBuf (&sv.reliable_datagram), MSG_GetNumBitsWritten (&sv.reliable_datagram));
-		else Netchan_CreateFragments (&cl->netchan, &sv.reliable_datagram);
+			MSG_WriteBits (&cl->netchan.message, MSG_GetData (&sv.reliable_datagram),
+				MSG_GetNumBitsWritten (&sv.reliable_datagram));
+			/*MSG_WriteBits (&cl->netchan.message, MSG_GetBuf (&sv.reliable_datagram),
+				MSG_GetNumBitsWritten (&sv.reliable_datagram));*/
+		else
+			Netchan_CreateFragments (&cl->netchan, &sv.reliable_datagram);
 
 		if (MSG_GetNumBytesWritten (&sv.datagram) < MSG_GetNumBytesLeft (&cl->datagram))
-			MSG_WriteBits (&cl->datagram, MSG_GetBuf (&sv.datagram), MSG_GetNumBitsWritten (&sv.datagram));
-		else Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow\n", cl->name);
+			MSG_WriteBits (&cl->datagram, MSG_GetData (&sv.datagram), MSG_GetNumBitsWritten (&sv.datagram));
+			/*MSG_WriteBits (&cl->datagram, MSG_GetBuf (&sv.datagram), MSG_GetNumBitsWritten (&sv.datagram));*/
+		else
+			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow\n", cl->name);
 
 		if (FBitSet (cl->flags, FCL_HLTV_PROXY))
 			{
 			if (MSG_GetNumBytesWritten (&sv.spec_datagram) < MSG_GetNumBytesLeft (&cl->datagram))
-				MSG_WriteBits (&cl->datagram, MSG_GetBuf (&sv.spec_datagram), MSG_GetNumBitsWritten (&sv.spec_datagram));
+				MSG_WriteBits (&cl->datagram, MSG_GetData (&sv.spec_datagram),
+					MSG_GetNumBitsWritten (&sv.spec_datagram));
+				/*MSG_WriteBits (&cl->datagram, MSG_GetBuf (&sv.spec_datagram),
+					MSG_GetNumBitsWritten (&sv.spec_datagram));*/
 			else
 				Con_DPrintf (S_WARN "Ignoring spectator datagram for %s, would overflow\n", cl->name);
 			}

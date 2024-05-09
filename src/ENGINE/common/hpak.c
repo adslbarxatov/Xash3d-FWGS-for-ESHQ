@@ -395,7 +395,7 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	FS_Rename (dstname, srcname);
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.05.24]
 static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean delete)
 	{
 	file_t		*f;
@@ -416,13 +416,14 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 		return true;
 
 	Q_strncpy (pakname, filename, sizeof (pakname));
-	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));	// [FWGS, 01.05.23]
+	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 
-	// [FWGS, 01.04.23]
 	f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
-		Con_DPrintf (S_ERROR "Couldn't find %s.\n", pakname);
+		/*Con_DPrintf (S_ERROR "Couldn't find %s.\n", pakname);*/
+		if (!quiet)
+			Con_DPrintf (S_ERROR "Couldn't find %s.\n", pakname);
 		return true;
 		}
 
@@ -436,7 +437,7 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 		FS_Close (f);
 
 		if (delete)
-			FS_Delete (pakname);	// [FWGS, 01.05.23]
+			FS_Delete (pakname);
 		return false;
 		}
 
@@ -449,7 +450,7 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 		FS_Close (f);
 
 		if (delete)
-			FS_Delete (pakname);	// [FWGS, 01.05.23]
+			FS_Delete (pakname);
 		return false;
 		}
 
@@ -464,7 +465,6 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 
 	for (i = 0; i < num_lumps; i++)
 		{
-		// [FWGS, 01.04.23]
 		if ((dataDir[i].disksize < HPAK_ENTRY_MIN_SIZE) || (dataDir[i].disksize > HPAK_ENTRY_MAX_SIZE))
 			{
 			// odd max size
@@ -474,7 +474,7 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 			FS_Close (f);
 
 			if (delete)
-				FS_Delete (pakname);	// [FWGS, 01.05.23]
+				FS_Delete (pakname);
 			return false;
 			}
 
@@ -489,7 +489,6 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 
 		pRes = &dataDir[i].resource;
 
-		// [FWGS, 01.05.23]
 		if (!quiet)
 			{
 			Con_Printf ("%i:      %s %s %s:   ", i, HPAK_TypeFromIndex (pRes->type),
@@ -506,7 +505,7 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 				FS_Close (f);
 
 				if (delete)
-					FS_Delete (pakname);	// [FWGS, 01.05.23]
+					FS_Delete (pakname);
 				return false;
 				}
 			else

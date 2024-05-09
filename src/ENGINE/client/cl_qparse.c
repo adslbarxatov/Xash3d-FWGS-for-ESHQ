@@ -174,7 +174,7 @@ static void CL_ParseQuakeSound (sizebuf_t *msg)
 
 /*
 ==================
-CL_ParseQuakeServerInfo
+CL_ParseQuakeServerInfo [FWGS, 09.05.24]
 ==================
 */
 static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
@@ -187,7 +187,8 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	Con_Reportf ("Serverdata packet received.\n");
 	cls.timestart = Sys_DoubleTime ();
 
-	cls.demowaiting = false;	// server is changed
+	// server is changed
+	cls.demowaiting = false;
 
 	// wipe the client_t struct
 	if (!cls.changelevel && !cls.changedemo)
@@ -210,7 +211,8 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	clgame.maxEntities = GI->max_edicts;
 	clgame.maxEntities = bound (600, clgame.maxEntities, MAX_EDICTS);
 	clgame.maxModels = MAX_MODELS;
-	Q_strncpy (clgame.maptitle, MSG_ReadString (msg), MAX_STRING);
+	/*Q_strncpy (clgame.maptitle, MSG_ReadString (msg), MAX_STRING);*/
+	Q_strncpy (clgame.maptitle, MSG_ReadString (msg), sizeof (clgame.maptitle));
 
 	// Re-init hud video, especially if we changed game directories
 	clgame.dllFuncs.pfnVidInit ();
@@ -231,13 +233,11 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		// loading user settings
 		CSCR_LoadDefaultCVars ("user.scr");
 
-		// [FWGS, 01.07.23]
 		if (r_decals.value > mp_decals.value)
 			Cvar_DirectSet (&r_decals, mp_decals.string);
 		}
 	else
 		{
-		// [FWGS, 01.07.23]
 		Cvar_DirectSet (&r_decals, NULL);
 		}
 
@@ -304,14 +304,20 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	// get splash name
 	if (cls.demoplayback && (cls.demonum != -1))
 		Cvar_Set ("cl_levelshot_name", va ("levelshots/%s_%s", cls.demoname, refState.wideScreen ? "16x9" : "4x3"));
-	else Cvar_Set ("cl_levelshot_name", va ("levelshots/%s_%s", clgame.mapname, refState.wideScreen ? "16x9" : "4x3"));
-	Cvar_SetValue ("scr_loading", 0.0f); // reset progress bar
+	else
+		Cvar_Set ("cl_levelshot_name", va ("levelshots/%s_%s", clgame.mapname, refState.wideScreen ? "16x9" : "4x3"));
+	
+	// reset progress bar
+	Cvar_SetValue ("scr_loading", 0.0f);
 
 	if ((cl_allow_levelshots.value && !cls.changelevel) || cl.background)
 		{
+		// render a black screen
 		if (!FS_FileExists (va ("%s.bmp", cl_levelshot_name.string), true))
-			Cvar_Set ("cl_levelshot_name", "*black"); // render a black screen
-		cls.scrshot_request = scrshot_plaque; // request levelshot even if exist (check filetime)
+			Cvar_Set ("cl_levelshot_name", "*black");
+
+		// request levelshot even if exist (check filetime)
+		cls.scrshot_request = scrshot_plaque;
 		}
 
 	memset (&clgame.movevars, 0, sizeof (clgame.movevars));
@@ -330,7 +336,9 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	clgame.entities->curstate.scale = 0.0f;
 	clgame.movevars.waveHeight = 0.0f;
 	clgame.movevars.zmax = 14172.0f;	// 8192 * 1.74
-	clgame.movevars.gravity = 800.0f;	// quake doesn't write gravity in demos
+
+	// quake doesn't write gravity in demos
+	clgame.movevars.gravity = 800.0f;
 	clgame.movevars.maxvelocity = 2000.0f;
 
 	memcpy (&clgame.oldmovevars, &clgame.movevars, sizeof (movevars_t));
