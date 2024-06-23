@@ -249,8 +249,10 @@ void SV_ESRM_Command (void)
 
 	else if (strstr (Cmd_Argv (0), "esrm_walls"))
 		Q_strncat (cmdLine, "WD ", MAX_QPATH);
-	else if (strstr (Cmd_Argv (0), "esrm_light"))
-		Q_strncat (cmdLine, "LG ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_inlight"))
+		Q_strncat (cmdLine, "LI ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_outlight"))
+		Q_strncat (cmdLine, "LO ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_crates"))
 		Q_strncat (cmdLine, "CD ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_gravity"))
@@ -274,6 +276,8 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "FC ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_items_on_2nd_floor"))
 		Q_strncat (cmdLine, "SF ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_water"))
+		Q_strncat (cmdLine, "WL ", MAX_QPATH);
 
 	else if (!rebuild)
 		return;
@@ -1138,8 +1142,10 @@ void SV_InitHostCommands (void)
 				"Sets the items density for the next map (coeff, 1 - 8)");
 			Cmd_AddRestrictedCommand ("esrm_walls", SV_ESRM_Command,
 				"Sets the walls density for the next map (coeff, 1 - 12)");
-			Cmd_AddRestrictedCommand ("esrm_light", SV_ESRM_Command,
-				"Sets the lighting intensity for the next map (coeff, 1 - 6)");
+			Cmd_AddRestrictedCommand ("esrm_inlight", SV_ESRM_Command,
+				"Affects the quantity of enabled lamp lights (coeff, 1 - 10)");
+			Cmd_AddRestrictedCommand ("esrm_outlight", SV_ESRM_Command,
+				"Affects outdoor brightness and the type of sky (coeff, 1 - 6)");
 			Cmd_AddRestrictedCommand ("esrm_crates", SV_ESRM_Command,
 				"Sets the crates density for the next map (coeff, 1 - 5)");
 			Cmd_AddRestrictedCommand ("esrm_gravity", SV_ESRM_Command,
@@ -1161,6 +1167,8 @@ void SV_InitHostCommands (void)
 				"Sets types of barriers between map sections for the next map (0 = glass, 1 = fabric, 2 = both)");
 			Cmd_AddRestrictedCommand ("esrm_fog", SV_ESRM_Command,
 				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 0 - 10)");
+			Cmd_AddRestrictedCommand ("esrm_water", SV_ESRM_Command,
+				"Sets the water level (x * 5%) for the next map (coeff, 0 - 9)");
 			Cmd_AddRestrictedCommand ("esrm_items_on_2nd_floor", SV_ESRM_Command,
 				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");
 
