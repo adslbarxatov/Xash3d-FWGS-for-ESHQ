@@ -1152,9 +1152,9 @@ void SV_InitHostCommands (void)
 				"Sets the gravity multiplier (x * 10%) for the next map (coeff, 1 - 20)");
 
 			Cmd_AddRestrictedCommand ("esrm_button", SV_ESRM_Command,
-				"Sets the button mode for the next map (0 = none, 1 = one button, 2 = two buttons)");
+				"Sets the button mode for the next map (1 = none, 2 = one button, 3 = two buttons)");
 			Cmd_AddRestrictedCommand ("esrm_sections", SV_ESRM_Command,
-				"Sets types of map sections for the next map (0 = all, 1 = only under sky, 2 = only inside)");
+				"Sets types of map sections for the next map (1 = all, 2 = only under sky, 3 = only inside)");
 			Cmd_AddRestrictedCommand ("esrm_two_floors", SV_ESRM_Command,
 				"Disables / enables the two floors mode for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_expl_crates", SV_ESRM_Command,
@@ -1164,17 +1164,17 @@ void SV_InitHostCommands (void)
 			Cmd_AddRestrictedCommand ("esrm_makers", SV_ESRM_Command,
 				"Disables / enables monster makers for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_barriers", SV_ESRM_Command,
-				"Sets types of barriers between map sections for the next map (0 = glass, 1 = fabric, 2 = both)");
+				"Sets types of barriers between map sections for the next map (1 = glass, 2 = fabric, 3 = both)");
 			Cmd_AddRestrictedCommand ("esrm_fog", SV_ESRM_Command,
-				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 0 - 10)");
+				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 1[0%] - 11[100%])");
 			Cmd_AddRestrictedCommand ("esrm_water", SV_ESRM_Command,
-				"Sets the water level (x * 5%) for the next map (coeff, 0 - 9)");
+				"Sets the water level multiplier (x * 5%) for the next map (coeff, 1[0%] - 10[45%])");
 			Cmd_AddRestrictedCommand ("esrm_items_on_2nd_floor", SV_ESRM_Command,
 				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");
 
 			Cmd_AddRestrictedCommand ("esrm_enemies_list", SV_ESRM_Command,
 				"Enumerates the allowed enemies (the line of letters for [a]ssassins, [b]ullchickens, "
-				"[c]ontrollers, hound[e]yes, human [g]runts, [h]eadcrabs, trip[m]ines, bar[n]acles, "
+				"[c]ontrollers, hound[e]yes, human [g]runts, [h]eadcrabs, [l]eeches, trip[m]ines, bar[n]acles, "
 				"alien g[r]unts, alien [s]laves, [t]urrets and [z]ombies");
 			Cmd_AddRestrictedCommand ("esrm_items_list", SV_ESRM_Command,
 				"Enumerates the allowed items (the line of letters for health[k]its, [b]atteries, [g]renades, "
@@ -1182,7 +1182,9 @@ void SV_InitHostCommands (void)
 				"9 mm A[R]s, sh[o]tguns, R[P]Gs, [t]ripmines, s[n]arks, [e]gons and [a]xes");
 
 			Cmd_AddRestrictedCommand ("esrm_rebuild", SV_ESRM_Command,
-				"Forces the rebuilding of the next map. Settings will be applied right after the next teleportation, but the compilation may take one or two minutes (you'll be unable to teleport there during the process)");
+				"Forces the rebuilding of the next map. Settings will be applied right after the next teleportation, "
+				"but the compilation may take one or two minutes (you'll be unable to teleport there during "
+				"the process)");
 			}
 		}
 	}

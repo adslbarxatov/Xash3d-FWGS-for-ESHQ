@@ -2228,23 +2228,28 @@ void CTriggerGravity::GravityTouch (CBaseEntity *pOther)
 		return;
 
 	// ESHQ: возможность установки всеобщей гравитации
+	// 27.06.24 – наконец-таки побеждено!
+
+	// Гравитация на игроке
 	if (pev->gravity < 80.0f)
 		{
 		pOther->pev->gravity = pev->gravity;
 		}
+
+	// Гравитация всего пространства
 	else
 		{
+		// Один раз
 		if (!g_psv_gravity)
-			{
-			// Один раз
 			g_psv_gravity = CVAR_GET_POINTER ("sv_gravity");
 
-			if (g_psv_gravity)
-				{
-				g_psv_gravity->value = pev->gravity;
-				WRITE_ACHIEVEMENTS_SCRIPT (1, -1);	// Запись настроек в конфигурацию игры
-				}
+		// Запись настроек в конфигурацию игры
+		if (g_psv_gravity)
+			{
+			g_psv_gravity->value = pev->gravity;
+			WRITE_ACHIEVEMENTS_SCRIPT (1, -1);
 			}
+
 		pOther->pev->gravity = 1.0f;
 		}
 	}

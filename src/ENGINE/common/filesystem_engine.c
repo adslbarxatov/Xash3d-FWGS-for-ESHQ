@@ -179,13 +179,15 @@ ESHQ: поддержка достижений
 */
 
 // ESHQ: состояние теперь хранится в памяти, чтобы постоянно не дёргать файл
-static unsigned int WAS_Level = 0, WAS_Code = 0;
-static unsigned int WAS_gravity = 0xFFFF, WAS_roomtype = 0xFFFF;
+static unsigned int WAS_Level = 0, WAS_Code_Gr = 0, WAS_Code_Rt;
+/*static unsigned int WAS_gravity = 0xFFFF, WAS_roomtype = 0xFFFF;*/
+static unsigned char WAS_entered = 0;
 
 // Метод запрашивает настройки из сохранённой конфигурации, обновляет их до нового формата
 // и контролирует их целостность.
 // Режимы: 0 - достижения, 1 - гравитация, 2 - тип помещения
 // Новый уровень учитывается только в режиме 0
+
 void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	{
 	// Переменные
@@ -195,34 +197,64 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	convar_t *rt = Cvar_FindVar ("room_type");
 	unsigned int gravity = (unsigned int)sv_gravity.value;
 	unsigned int roomtype = 0;
-	unsigned int newCode;
+	/*unsigned int newCode;*/
+
+	// Защита от двойного входа
+	if (WAS_entered)
+		return;
+	WAS_entered = 1;
 
 	if (rt)
 		roomtype = (unsigned int)rt->value;
-	if (WAS_gravity == 0xFFFF)
+	/*if (WAS_gravity == 0xFFFF)
 		WAS_gravity = gravity;
 	if (WAS_roomtype == 0xFFFF)
-		WAS_roomtype = roomtype;
+		WAS_roomtype = roomtype;*/
 
 	// Чтение предыдущего состояния (ошибки игнорируются)
-	if (!WAS_Code)
+	if (!WAS_Code_Gr)
 		{
 		f = FS_Open (ACHI_SCRIPT_С, "r", false);
 		if (f)
 			{
 			WAS_Level = ((unsigned int)FS_Getc (f)) & 0x0F;
-			WAS_Code = ((unsigned int)FS_Getc (f) - 0x20) & 0x3F;
-			WAS_Code |= (((unsigned int)FS_Getc (f) - 0x20) & 0x3F) << 8;
+			WAS_Code_Gr = ((unsigned int)FS_Getc (f) - 0x20) & 0x3F;
+			WAS_Code_Rt |= ((unsigned int)FS_Getc (f) - 0x20) & 0x3F;
 			FS_Close (f);
 			}
 		}
 
 	// Проверочный код, позволяющий избежать постоянной перезаписи файла и повторного его исполнения
-	newCode = ((gravity >> 4) & 0x3F) | ((roomtype & 0x3F) << 8);
+	/*newCode = ((gravity >> 4) & 0x3F) | ((roomtype & 0x3F) << 8);*/
 
 	// Уровень уже достигнут или является максимальным -и- проверочный код не изменился
-	if (((NewLevel <= (int)WAS_Level) || (WAS_Level >= 3)) && (WAS_Code == newCode))
-		return;	
+	/*if (((NewLevel <= (int)WAS_Level) || (WAS_Level >= 3)) && (WAS_Code_Gr == newCode_Gr))*/
+	switch (Mode)
+		{
+		case 0:
+			if ((NewLevel <= (int)WAS_Level) || (WAS_Level >= 3))
+				{
+				WAS_entered = 0;
+				return;
+				}
+			break;
+
+		case 1:
+			if (WAS_Code_Gr == ((gravity >> 4) & 0x3F))
+				{
+				WAS_entered = 0;
+				return;
+				}
+			break;
+
+		case 2:
+			if (WAS_Code_Rt == roomtype & 0x3F)
+				{
+				WAS_entered = 0;
+				return;
+				}
+			break;
+		}
 
 	// Попытка записать здесь приводила к тому, что в случае одномоментного или близкого к этому
 	// срабатывания обоих типов триггеров второй из них игнорировался из-за совпадения проверочного
@@ -284,8 +316,8 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			Cbuf_Execute ();
 			}
 
-		WAS_gravity = gravity;
-		WAS_Code = ((WAS_gravity >> 4) & 0x3F) | ((WAS_roomtype & 0x3F) << 8);
+		/*WAS_gravity = gravity;*/
+		WAS_Code_Gr = (gravity >> 4) & 0x3F;
 		}
 
 	// Тип помещения
@@ -303,9 +335,10 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			Cbuf_Execute ();
 			}
 
-		WAS_roomtype = roomtype;
-		WAS_Code = ((WAS_gravity >> 4) & 0x3F) | ((WAS_roomtype & 0x3F) << 8);
+		/*WAS_roomtype = roomtype;*/
+		WAS_Code_Rt = roomtype & 0x3F;
 		}
 
+	WAS_entered = 0;
 	return;
 	}
