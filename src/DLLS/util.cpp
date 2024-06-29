@@ -1464,13 +1464,10 @@ float UTIL_WaterLevel (const Vector &position, float minz, float maxz)
 		{
 		midUp.z = minz + diff / 2.0;
 		if (UTIL_PointContents (midUp) == CONTENTS_WATER)
-			{
 			minz = midUp.z;
-			}
 		else
-			{
 			maxz = midUp.z;
-			}
+			
 		diff = maxz - minz;
 		}
 

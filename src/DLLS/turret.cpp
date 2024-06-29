@@ -221,7 +221,9 @@ void CBaseTurret::KeyValue (KeyValueData* pkvd)
 		FStrEq (pkvd->szKeyName, "value1") ||
 		FStrEq (pkvd->szKeyName, "value2") ||
 		FStrEq (pkvd->szKeyName, "value3"))
+		{
 		pkvd->fHandled = TRUE;
+		}
 	else
 		{
 		CBaseMonster::KeyValue (pkvd);
@@ -279,7 +281,7 @@ void CTurret::Spawn ()
 
 	CBaseTurret::Spawn ();
 
-	m_iRetractHeight = 16;
+	m_iRetractHeight = 16;	// ESHQ: требуется исключение проваливания в пушку
 	m_iDeployHeight = 32;
 	m_iMinPitch = -15;
 	UTIL_SetSize (pev, Vector (-32, -32, -m_iRetractHeight), Vector (32, 32, m_iRetractHeight));
@@ -311,7 +313,7 @@ void CMiniTurret::Spawn ()
 	pev->view_ofs.z = 12.75;
 
 	CBaseTurret::Spawn ();
-	m_iRetractHeight = 16;
+	m_iRetractHeight = 12;	// ESHQ: требуется исключение проваливания в пушку
 	m_iDeployHeight = 32;
 	m_iMinPitch = -15;
 	UTIL_SetSize (pev, Vector (-16, -16, -m_iRetractHeight), Vector (16, 16, m_iRetractHeight));
@@ -387,11 +389,9 @@ void CBaseTurret::TurretUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_
 		{
 		pev->nextthink = gpGlobals->time + 0.1; // turn on delay
 
-		// if the turret is flagged as an autoactivate turret, re-enable it's ability open self.
+		// if the turret is flagged as an autoactivate turret, re-enable it's ability open self
 		if (pev->spawnflags & SF_MONSTER_TURRET_AUTOACTIVATE)
-			{
 			m_iAutoStart = TRUE;
-			}
 
 		SetThink (&CBaseTurret::Deploy);
 		}
@@ -447,7 +447,7 @@ void CBaseTurret::ActiveThink (void)
 	pev->nextthink = gpGlobals->time + 0.1;
 	StudioFrameAdvance ();
 
-	if ((!m_iOn) || (m_hEnemy == NULL))
+	if (!m_iOn || (m_hEnemy == NULL))
 		{
 		m_hEnemy = NULL;
 		m_flLastSight = gpGlobals->time + m_flMaxWait;
@@ -627,20 +627,17 @@ void CBaseTurret::Deploy (void)
 
 	if (m_fSequenceFinished)
 		{
-		pev->maxs.z = m_iDeployHeight;
+		// ESHQ: слишком поздно
+		/*pev->maxs.z = m_iDeployHeight;
 		pev->mins.z = -m_iDeployHeight;
-		UTIL_SetSize (pev, pev->mins, pev->maxs);
+		UTIL_SetSize (pev, pev->mins, pev->maxs);*/
 
 		m_vecCurAngles.x = 0;
 
 		if (m_iOrientation == 1)
-			{
 			m_vecCurAngles.y = UTIL_AngleMod (pev->angles.y + 180);
-			}
 		else
-			{
 			m_vecCurAngles.y = UTIL_AngleMod (pev->angles.y);
-			}
 
 		SetTurretAnim (TURRET_ANIM_SPIN);
 		pev->framerate = 0;
@@ -681,6 +678,7 @@ void CBaseTurret::Retire (void)
 			pev->maxs.z = m_iRetractHeight;
 			pev->mins.z = -m_iRetractHeight;
 			UTIL_SetSize (pev, pev->mins, pev->maxs);
+
 			if (m_iAutoStart)
 				{
 				SetThink (&CBaseTurret::AutoSearchThink);
@@ -867,7 +865,6 @@ void CBaseTurret::AutoSearchThink (void)
 		}
 
 	// Acquire Target
-
 	if (m_hEnemy == NULL)
 		{
 		Look (TURRET_RANGE);
@@ -876,6 +873,11 @@ void CBaseTurret::AutoSearchThink (void)
 
 	if (m_hEnemy != NULL)
 		{
+		// ESHQ: более корректное расположение
+		pev->maxs.z = m_iDeployHeight;
+		pev->mins.z = -m_iDeployHeight;
+		UTIL_SetSize (pev, pev->mins, pev->maxs);
+
 		SetThink (&CBaseTurret::Deploy);
 		EMIT_SOUND (ENT (pev), CHAN_BODY, "turret/tu_alert.wav", TURRET_MACHINE_VOLUME, ATTN_MEDIUM);
 		}
@@ -957,7 +959,6 @@ void CBaseTurret::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector ve
 		}
 
 	// ESHQ: pev->takedamage работает неправильно
-
 	AddMultiDamage (pevAttacker, this, flDamage, bitsDamageType);
 	}
 
@@ -965,7 +966,6 @@ void CBaseTurret::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector ve
 int CBaseTurret::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
 	// ESHQ: pev->takedamage работает неправильно
-
 	if (!m_iOn)
 		flDamage /= 10.0;
 

@@ -63,10 +63,11 @@ class CLeech: public CBaseMonster
 				}
 			}
 
+		// ESHQ: увеличенная пиявка
 		void SetObjectCollisionBox (void)
 			{
 			pev->absmin = pev->origin + Vector (-8, -8, 0);
-			pev->absmax = pev->origin + Vector (8, 8, 2);
+			pev->absmax = pev->origin + Vector (8, 8, 1);
 			}
 
 		void AttackSound (void);
@@ -94,9 +95,8 @@ class CLeech: public CBaseMonster
 		static const char* pAlertSounds[];
 
 	private:
-		// UNDONE: Remove unused boid vars, do group behavior
-		float	m_flTurning;// is this boid turning?
-		BOOL	m_fPathBlocked;// TRUE if there is an obstacle ahead
+		float	m_flTurning;	// is this boid turning?
+		BOOL	m_fPathBlocked;	// TRUE if there is an obstacle ahead
 		float	m_flAccelerate;
 		float	m_obstacle;
 		float	m_top;
@@ -153,9 +153,12 @@ void CLeech::Spawn (void)
 	{
 	Precache ();
 	SET_MODEL (ENT (pev), "models/leech.mdl");
-	UTIL_SetSize (pev, Vector (-1, -1, 0), Vector (1, 1, 2));
 
-	// Don't push the minz down too much or the water check will fail because this entity is really point-sized
+	// ESHQ: увеличенная пиявка
+	UTIL_SetSize (pev, Vector (-2, -2, 0), Vector (2, 2, 1));
+
+	// Don't push the minz down too much or the water.
+	// Check will fail because this entity is really point-sized
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_FLY;
 	SetBits (pev->flags, FL_SWIM);
@@ -185,7 +188,6 @@ void CLeech::RecalculateWaterlevel (void)
 	{
 	// Calculate boundaries
 	Vector vecTest = pev->origin - Vector (0, 0, 400);
-
 	TraceResult tr;
 
 	UTIL_TraceLine (pev->origin, vecTest, missile, edict (), &tr);
@@ -211,6 +213,7 @@ void CLeech::SwitchLeechState (void)
 		{
 		m_hEnemy = NULL;
 		SetState (MONSTERSTATE_IDLE);
+
 		// We may be up against the player, so redo the side checks
 		m_sideTime = 0;
 		}
@@ -218,7 +221,8 @@ void CLeech::SwitchLeechState (void)
 		{
 		Look (m_flDistLook);
 		CBaseEntity* pEnemy = BestVisibleEnemy ();
-		if (pEnemy && pEnemy->pev->waterlevel != 0)
+
+		if (pEnemy && (pEnemy->pev->waterlevel != 0))
 			{
 			m_hEnemy = pEnemy;
 			SetState (MONSTERSTATE_COMBAT);
@@ -295,9 +299,11 @@ void CLeech::HandleAnimEvent (MonsterEvent_t* pEvent)
 				face = face.Normalize ();
 
 
-				if (DotProduct (dir, face) > 0.9)		// Only take damage if the leech is facing the prey
+				// Only take damage if the leech is facing the prey
+				if (DotProduct (dir, face) > 0.9)
 					pEnemy->TakeDamage (pev, pev, gSkillData.leechDmgBite, DMG_SLASH);
 				}
+
 			m_stateTime -= 2;
 			break;
 
@@ -363,6 +369,7 @@ float CLeech::ObstacleDistance (CBaseEntity* pTarget)
 		// Didn't hit either side, so stop testing for another 0.5 - 1 seconds
 		m_sideTime = gpGlobals->time + RANDOM_FLOAT (0.5, 1);
 		}
+
 	return 1.0;
 	}
 
@@ -387,7 +394,7 @@ void CLeech::DeadThink (void)
 	pev->nextthink = gpGlobals->time + 0.1;
 
 	// Apply damage velocity, but keep out of the walls
-	if (pev->velocity.x != 0 || pev->velocity.y != 0)
+	if ((pev->velocity.x != 0) || (pev->velocity.y != 0))
 		{
 		TraceResult tr;
 
@@ -400,7 +407,6 @@ void CLeech::DeadThink (void)
 			}
 		}
 	}
-
 
 
 void CLeech::UpdateMotion (void)
@@ -446,7 +452,7 @@ void CLeech::UpdateMotion (void)
 	// bank
 	pev->avelocity.z = -(pev->angles.z + (pev->avelocity.y * 0.25));
 
-	if (m_MonsterState == MONSTERSTATE_COMBAT && HasConditions (bits_COND_CAN_MELEE_ATTACK1))
+	if ((m_MonsterState == MONSTERSTATE_COMBAT) && HasConditions (bits_COND_CAN_MELEE_ATTACK1))
 		m_IdealActivity = ACT_MELEE_ATTACK1;
 
 	// Out of water check
@@ -472,32 +478,10 @@ void CLeech::UpdateMotion (void)
 		}
 
 	if (m_Activity != m_IdealActivity)
-		{
 		SetActivity (m_IdealActivity);
-		}
+
 	float flInterval = StudioFrameAdvance ();
 	DispatchAnimEvents (flInterval);
-
-#if DEBUG_BEAMS
-	if (!m_pb)
-		m_pb = CBeam::BeamCreate ("sprites/laserbeam.spr", 5);
-	if (!m_pt)
-		m_pt = CBeam::BeamCreate ("sprites/laserbeam.spr", 5);
-	m_pb->PointsInit (pev->origin, pev->origin + gpGlobals->v_forward * LEECH_CHECK_DIST);
-	m_pt->PointsInit (pev->origin, pev->origin - gpGlobals->v_right * (pev->avelocity.y * 0.25));
-	if (m_fPathBlocked)
-		{
-		float color = m_obstacle * 30;
-		if (m_obstacle == 1.0)
-			color = 0;
-		if (color > 255)
-			color = 255;
-		m_pb->SetColor (255, (int)color, (int)color);
-		}
-	else
-		m_pb->SetColor (255, 255, 0);
-	m_pt->SetColor (0, 0, 255);
-#endif
 	}
 
 
@@ -517,7 +501,9 @@ void CLeech::SwimThink (void)
 		return;
 		}
 	else
+		{
 		pev->nextthink = gpGlobals->time + 0.1;
+		}
 
 	targetSpeed = LEECH_SWIM_SPEED;
 
@@ -538,15 +524,18 @@ void CLeech::SwimThink (void)
 				{
 				// Chase the enemy's eyes
 				m_height = pTarget->pev->origin.z + pTarget->pev->view_ofs.z - 5;
+
 				// Clip to viable water area
 				if (m_height < m_bottom)
 					m_height = m_bottom;
 				else if (m_height > m_top)
 					m_height = m_top;
+
 				Vector location = pTarget->pev->origin - pev->origin;
 				location.z += (pTarget->pev->view_ofs.z);
 				if (location.Length () < 40)
 					SetConditions (bits_COND_CAN_MELEE_ATTACK1);
+
 				// Turn towards target ent
 				targetYaw = UTIL_VecToYaw (location);
 
@@ -569,15 +558,14 @@ void CLeech::SwimThink (void)
 				m_height = 0.5 * m_height + 0.5 * newHeight;
 				m_zTime = gpGlobals->time + RANDOM_FLOAT (1, 4);
 				}
+
 			if (RANDOM_LONG (0, 100) < 10)
 				targetYaw = RANDOM_LONG (-30, 30);
 			pTarget = NULL;
-			// oldorigin test
+
+			// If leech didn't move, there must be something blocking it, so try to turn
 			if ((pev->origin - pev->oldorigin).Length () < 1)
-				{
-				// If leech didn't move, there must be something blocking it, so try to turn
 				m_sideTime = 0;
-				}
 
 			break;
 		}
@@ -590,11 +578,9 @@ void CLeech::SwimThink (void)
 	// is the way ahead clear?
 	if (m_obstacle == 1.0)
 		{
-		// if the leech is turning, stop the trend.
+		// if the leech is turning, stop the trend
 		if (m_flTurning != 0)
-			{
 			m_flTurning = 0;
-			}
 
 		m_fPathBlocked = FALSE;
 		pev->speed = UTIL_Approach (targetSpeed, pev->speed, LEECH_SWIM_ACCEL * LEECH_FRAMETIME);
@@ -604,12 +590,15 @@ void CLeech::SwimThink (void)
 	else
 		{
 		m_obstacle = 1.0 / m_obstacle;
+
 		// IF we get this far in the function, the leader's path is blocked!
 		m_fPathBlocked = TRUE;
 
-		if (m_flTurning == 0)// something in the way and leech is not already turning to avoid
+		// something in the way and leech is not already turning to avoid
+		if (m_flTurning == 0)
 			{
 			Vector vecTest;
+
 			// measure clearance on left and right to pick the best dir to turn
 			vecTest = pev->origin + (gpGlobals->v_right * LEECH_SIZEX) + (gpGlobals->v_forward * LEECH_CHECK_DIST);
 			UTIL_TraceLine (pev->origin, vecTest, missile, edict (), &tr);
@@ -621,14 +610,17 @@ void CLeech::SwimThink (void)
 
 			// turn left, right or random depending on clearance ratio
 			float delta = (flRightSide - flLeftSide);
-			if (delta > 0.1 || (delta > -0.1 && RANDOM_LONG (0, 100) < 50))
+			if ((delta > 0.1) || ((delta > -0.1) && (RANDOM_LONG (0, 100) < 50)))
 				m_flTurning = -LEECH_TURN_RATE;
 			else
 				m_flTurning = LEECH_TURN_RATE;
 			}
-		pev->speed = UTIL_Approach (-(LEECH_SWIM_SPEED * 0.5), pev->speed, LEECH_SWIM_DECEL * LEECH_FRAMETIME * m_obstacle);
+
+		pev->speed = UTIL_Approach (-(LEECH_SWIM_SPEED * 0.5), pev->speed, LEECH_SWIM_DECEL *
+			LEECH_FRAMETIME * m_obstacle);
 		pev->velocity = gpGlobals->v_forward * pev->speed;
 		}
+
 	pev->ideal_yaw = m_flTurning + targetYaw;
 	UpdateMotion ();
 	}
@@ -659,7 +651,14 @@ void CLeech::Killed (entvars_t* pevAttacker, int iGib)
 		SetActivity (ACT_DIESIMPLE);
 		}
 	else
+		{
 		SetActivity (ACT_DIEFORWARD);
+		}
+
+	// ESHQ: поддержка trigger_target
+	pev->deadflag = DEAD_DYING;
+	FCheckAITrigger ();
+	pev->deadflag = DEAD_NO;
 
 	pev->movetype = MOVETYPE_TOSS;
 	pev->takedamage = DAMAGE_NO;
