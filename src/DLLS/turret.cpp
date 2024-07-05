@@ -313,7 +313,7 @@ void CMiniTurret::Spawn ()
 	pev->view_ofs.z = 12.75;
 
 	CBaseTurret::Spawn ();
-	m_iRetractHeight = 12;	// ESHQ: требуется исключение проваливания в пушку
+	m_iRetractHeight = 16;	// ESHQ: требуется исключение проваливания в пушку
 	m_iDeployHeight = 32;
 	m_iMinPitch = -15;
 	UTIL_SetSize (pev, Vector (-16, -16, -m_iRetractHeight), Vector (16, 16, m_iRetractHeight));
