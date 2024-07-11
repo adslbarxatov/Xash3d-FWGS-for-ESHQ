@@ -1,4 +1,4 @@
-/*
+/***
 cl_tent.c - temp entity effects management
 Copyright (C) 2009 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -24,11 +24,11 @@ GNU General Public License for more details.
 #include "wadfile.h"	// acess decal size
 #include "sound.h"
 
-/*
+/***
 ==============================================================
 TEMPENTS MANAGEMENT
 ==============================================================
-*/
+***/
 #define FLASHLIGHT_DISTANCE				1000	// ESHQ: дистанция фонарика уменьшена
 #define FLASHLIGHT_FALLOFF_THRESHOLD	300.0f
 #define SHARD_VOLUME		12.0f	// on shard ever n^3 units
@@ -61,13 +61,13 @@ const char *cl_default_sprites[] =
 // [FWGS, 01.02.24]
 static void CL_PlayerDecal (int playerIndex, int textureIndex, int entityIndex, float *pos);
 
-/*
+/***
 ================
 CL_LoadClientSprites
 
 INTERNAL RESOURCE
 ================
-*/
+***/
 void CL_LoadClientSprites (void)
 	{
 	cl_sprite_muzzleflash[0] = CL_LoadClientSprite (cl_default_sprites[0]);
@@ -80,13 +80,13 @@ void CL_LoadClientSprites (void)
 	cl_sprite_shell = CL_LoadClientSprite (cl_default_sprites[6]);
 	}
 
-/*
+/***
 ================
 CL_AddClientResource
 
 add client-side resource to list
 ================
-*/
+***/
 void CL_AddClientResource (const char *filename, int type)
 	{
 	resource_t *p, *pResource;
@@ -111,13 +111,13 @@ void CL_AddClientResource (const char *filename, int type)
 	CL_AddToResourceList (pResource, &cl.resourcesneeded);
 	}
 
-/*
+/***
 ================
 CL_AddClientResources [FWGS, 01.03.24]
 
 client resources not precached by server
 ================
-*/
+***/
 void CL_AddClientResources (void)
 	{
 	const char	*snd;
@@ -162,11 +162,11 @@ void CL_AddClientResources (void)
 	}
 
 
-/*
+/***
 ================
 CL_InitTempents
 ================
-*/
+***/
 void CL_InitTempEnts (void)
 	{
 	cl_tempents = Mem_Calloc (cls.mempool, sizeof (TEMPENTITY) * GI->max_tents);
@@ -176,11 +176,11 @@ void CL_InitTempEnts (void)
 	CL_LoadClientSprites ();
 	}
 
-/*
+/***
 ================
 CL_ClearTempEnts
 ================
-*/
+***/
 void CL_ClearTempEnts (void)
 	{
 	int	i;
@@ -199,11 +199,11 @@ void CL_ClearTempEnts (void)
 	cl_active_tents = NULL;
 	}
 
-/*
+/***
 ================
 CL_FreeTempEnts
 ================
-*/
+***/
 void CL_FreeTempEnts (void)
 	{
 	if (cl_tempents)
@@ -211,13 +211,13 @@ void CL_FreeTempEnts (void)
 	cl_tempents = NULL;
 	}
 
-/*
+/***
 ==============
 CL_PrepareTEnt
 
 set default values
 ==============
-*/
+***/
 static void CL_PrepareTEnt (TEMPENTITY *pTemp, model_t *pmodel)
 	{
 	int	frameCount = 0;
@@ -254,13 +254,13 @@ static void CL_PrepareTEnt (TEMPENTITY *pTemp, model_t *pmodel)
 	pTemp->entity.curstate.scale = 1.0f;
 	}
 
-/*
+/***
 ==============
 CL_TempEntPlaySound [FWGS, 01.03.24]
 
 play collide sound
 ==============
-*/
+***/
 static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 	{
 	float		fvol;
@@ -355,13 +355,13 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 		}
 	}
 
-/*
+/***
 ==============
 CL_TEntAddEntity
 
 add entity to renderlist
 ==============
-*/
+***/
 static int CL_TempEntAddEntity (cl_entity_t *pEntity)
 	{
 	vec3_t mins, maxs;
@@ -391,14 +391,14 @@ static int CL_TempEntAddEntity (cl_entity_t *pEntity)
 	return 0;
 	}
 
-/*
+/***
 ==============
 CL_AddTempEnts
 
 temp-entities will be added on a user-side
 setup client callback
 ==============
-*/
+***/
 void CL_TempEntUpdate (void)
 	{
 	double	ft = cl.time - cl.oldtime;
@@ -408,13 +408,13 @@ void CL_TempEntUpdate (void)
 		CL_TempEntAddEntity, CL_TempEntPlaySound);
 	}
 
-/*
+/***
 ==============
 CL_TEntAddEntity
 
 free the first low priority tempent it finds.
 ==============
-*/
+***/
 static qboolean CL_FreeLowPriorityTempEnt (void)
 	{
 	TEMPENTITY *pActive = cl_active_tents;
@@ -442,13 +442,13 @@ static qboolean CL_FreeLowPriorityTempEnt (void)
 	return false;
 	}
 
-/*
+/***
 ==============
 CL_TempEntAlloc
 
 alloc normal\low priority tempentity
 ==============
-*/
+***/
 TEMPENTITY *CL_TempEntAlloc (const vec3_t org, model_t *pmodel)
 	{
 	TEMPENTITY *pTemp;
@@ -473,13 +473,13 @@ TEMPENTITY *CL_TempEntAlloc (const vec3_t org, model_t *pmodel)
 	return pTemp;
 	}
 
-/*
+/***
 ==============
 CL_TempEntAllocHigh
 
 alloc high priority tempentity
 ==============
-*/
+***/
 TEMPENTITY *CL_TempEntAllocHigh (const vec3_t org, model_t *pmodel)
 	{
 	TEMPENTITY *pTemp;
@@ -514,25 +514,25 @@ TEMPENTITY *CL_TempEntAllocHigh (const vec3_t org, model_t *pmodel)
 	return pTemp;
 	}
 
-/*
+/***
 ==============
 CL_TempEntAlloc
 
 alloc normal priority tempentity with no model
 ==============
-*/
+***/
 TEMPENTITY *CL_TempEntAllocNoModel (const vec3_t org)
 	{
 	return CL_TempEntAlloc (org, NULL);
 	}
 
-/*
+/***
 ==============
 CL_TempEntAlloc
 
 custom tempentity allocation
 ==============
-*/
+***/
 TEMPENTITY *GAME_EXPORT CL_TempEntAllocCustom (const vec3_t org, model_t *model, int high, 
 	void (*pfn)(TEMPENTITY *, float, float))
 	{
@@ -557,20 +557,20 @@ TEMPENTITY *GAME_EXPORT CL_TempEntAllocCustom (const vec3_t org, model_t *model,
 	return pTemp;
 	}
 
-/*
+/***
 ==============================================================
 
 	EFFECTS BASED ON TEMPENTS (presets)
 
 ==============================================================
-*/
-/*
+***/
+/***
 ==============
 R_FizzEffect
 
 Create a fizz effect
 ==============
-*/
+***/
 void GAME_EXPORT R_FizzEffect (cl_entity_t *pent, int modelIndex, int density)
 	{
 	TEMPENTITY *pTemp;
@@ -628,13 +628,13 @@ void GAME_EXPORT R_FizzEffect (cl_entity_t *pent, int modelIndex, int density)
 		}
 	}
 
-/*
+/***
 ==============
 R_Bubbles
 
 Create bubbles
 ==============
-*/
+***/
 void GAME_EXPORT R_Bubbles (const vec3_t mins, const vec3_t maxs, float height, int modelIndex, int count, float speed)
 	{
 	TEMPENTITY *pTemp;
@@ -674,13 +674,13 @@ void GAME_EXPORT R_Bubbles (const vec3_t mins, const vec3_t maxs, float height, 
 		}
 	}
 
-/*
+/***
 ==============
 R_BubbleTrail
 
 Create bubble trail
 ==============
-*/
+***/
 void GAME_EXPORT R_BubbleTrail (const vec3_t start, const vec3_t end, float height, int modelIndex, int count, float speed)
 	{
 	TEMPENTITY *pTemp;
@@ -719,13 +719,13 @@ void GAME_EXPORT R_BubbleTrail (const vec3_t start, const vec3_t end, float heig
 		}
 	}
 
-/*
+/***
 ==============
 R_AttachTentToPlayer
 
 Attaches entity to player
 ==============
-*/
+***/
 void GAME_EXPORT R_AttachTentToPlayer (int client, int modelIndex, float zoffset, float life)
 	{
 	TEMPENTITY *pTemp;
@@ -775,13 +775,13 @@ void GAME_EXPORT R_AttachTentToPlayer (int client, int modelIndex, float zoffset
 	pTemp->entity.curstate.frame = 0;
 	}
 
-/*
+/***
 ==============
 R_KillAttachedTents
 
 Detach entity from player
 ==============
-*/
+***/
 void GAME_EXPORT R_KillAttachedTents (int client)
 	{
 	int	i;
@@ -806,13 +806,13 @@ void GAME_EXPORT R_KillAttachedTents (int client)
 		}
 	}
 
-/*
+/***
 ==============
 R_RicochetSprite
 
 Create ricochet sprite
 ==============
-*/
+***/
 void GAME_EXPORT R_RicochetSprite (const vec3_t pos, model_t *pmodel, float duration, float scale)
 	{
 	TEMPENTITY *pTemp;
@@ -832,13 +832,13 @@ void GAME_EXPORT R_RicochetSprite (const vec3_t pos, model_t *pmodel, float dura
 	pTemp->entity.angles[ROLL] = 45.0f * COM_RandomLong (0, 7);
 	}
 
-/*
+/***
 ==============
 R_RocketFlare
 
 Create rocket flare
 ==============
-*/
+***/
 void GAME_EXPORT R_RocketFlare (const vec3_t pos)
 	{
 	TEMPENTITY *pTemp;
@@ -858,13 +858,13 @@ void GAME_EXPORT R_RocketFlare (const vec3_t pos)
 	pTemp->entity.curstate.effects = EF_NOINTERP;
 	}
 
-/*
+/***
 ==============
 R_MuzzleFlash
 
 Do muzzleflash
 ==============
-*/
+***/
 void GAME_EXPORT R_MuzzleFlash (const vec3_t pos, int type)
 	{
 	TEMPENTITY *pTemp;
@@ -896,14 +896,14 @@ void GAME_EXPORT R_MuzzleFlash (const vec3_t pos, int type)
 	CL_TempEntAddEntity (&pTemp->entity);
 	}
 
-/*
+/***
 ==============
 R_BloodSprite
 
 Create a high priority blood sprite
 and some blood drops. This is high-priority tent
 ==============
-*/
+***/
 void GAME_EXPORT R_BloodSprite (const vec3_t org, int colorIndex, int modelIndex, int modelIndex2, float size)
 	{
 	model_t *pModel, *pModel2;
@@ -983,13 +983,13 @@ void GAME_EXPORT R_BloodSprite (const vec3_t org, int colorIndex, int modelIndex
 		}
 	}
 
-/*
+/***
 ==============
 R_BreakModel
 
 Create a shards
 ==============
-*/
+***/
 void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t dir, float random, 
 	float life, int count, int modelIndex, char flags)
 	{
@@ -1075,13 +1075,13 @@ void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t
 		}
 	}
 
-/*
+/***
 ==============
 R_TempModel
 
 Create a temp model with gravity, sounds and fadeout
 ==============
-*/
+***/
 TEMPENTITY *R_TempModel (const vec3_t pos, const vec3_t dir, const vec3_t angles, float life, int modelIndex, int soundtype)
 	{
 	// alloc a new tempent
@@ -1126,13 +1126,13 @@ TEMPENTITY *R_TempModel (const vec3_t pos, const vec3_t dir, const vec3_t angles
 	return pTemp;
 	}
 
-/*
+/***
 ==============
 R_DefaultSprite
 
 Create an animated sprite
 ==============
-*/
+***/
 TEMPENTITY *R_DefaultSprite (const vec3_t pos, int spriteIndex, float framerate)
 	{
 	TEMPENTITY *pTemp;
@@ -1162,13 +1162,13 @@ TEMPENTITY *R_DefaultSprite (const vec3_t pos, int spriteIndex, float framerate)
 	return pTemp;
 	}
 
-/*
+/***
 ===============
 R_SparkShower
 
 Create an animated moving sprite
 ===============
-*/
+***/
 void GAME_EXPORT R_SparkShower (const vec3_t pos)
 	{
 	TEMPENTITY *pTemp;
@@ -1187,13 +1187,13 @@ void GAME_EXPORT R_SparkShower (const vec3_t pos)
 	pTemp->die = cl.time + 0.5;
 	}
 
-/*
+/***
 ===============
 R_TempSprite
 
 Create an animated moving sprite
 ===============
-*/
+***/
 TEMPENTITY *R_TempSprite (vec3_t pos, const vec3_t dir, float scale, int modelIndex, int rendermode,
 	int renderfx, float a, float life, int flags)
 	{
@@ -1228,13 +1228,13 @@ TEMPENTITY *R_TempSprite (vec3_t pos, const vec3_t dir, float scale, int modelIn
 	return pTemp;
 	}
 
-/*
+/***
 ===============
 R_Sprite_Explode [FWGS, 01.05.23]
 
 apply params for exploding sprite
 ===============
-*/
+***/
 void GAME_EXPORT R_Sprite_Explode (TEMPENTITY *pTemp, float scale, int flags)
 	{
 	qboolean noadditive, drawalpha, rotate;
@@ -1261,13 +1261,13 @@ void GAME_EXPORT R_Sprite_Explode (TEMPENTITY *pTemp, float scale, int flags)
 	pTemp->entity.curstate.rendercolor.b = 0;
 	}
 
-/*
+/***
 ===============
 R_Sprite_Smoke
 
 apply params for smoke sprite
 ===============
-*/
+***/
 void GAME_EXPORT R_Sprite_Smoke (TEMPENTITY *pTemp, float scale)
 	{
 	int	iColor;
@@ -1285,13 +1285,13 @@ void GAME_EXPORT R_Sprite_Smoke (TEMPENTITY *pTemp, float scale)
 	pTemp->entity.curstate.scale = scale;
 	}
 
-/*
+/***
 ===============
 R_Spray
 
 Throws a shower of sprites or models
 ===============
-*/
+***/
 void GAME_EXPORT R_Spray (const vec3_t pos, const vec3_t dir, int modelIndex, int count, int speed, int spread, int rendermode)
 	{
 	TEMPENTITY *pTemp;
@@ -1351,26 +1351,26 @@ void GAME_EXPORT R_Spray (const vec3_t pos, const vec3_t dir, int modelIndex, in
 		}
 	}
 
-/*
+/***
 ===============
 R_Sprite_Spray
 
 Spray of alpha sprites
 ===============
-*/
+***/
 void GAME_EXPORT R_Sprite_Spray (const vec3_t pos, const vec3_t dir, int modelIndex, int count, int speed, int spread)
 	{
 	R_Spray (pos, dir, modelIndex, count, speed, spread, kRenderGlow);
 	}
 
-/*
+/***
 ===============
 R_Sprite_Trail
 
 Line of moving glow sprites with gravity,
 fadeout, and collisions
 ===============
-*/
+***/
 void GAME_EXPORT R_Sprite_Trail (int type, vec3_t start, vec3_t end, int modelIndex, int count, float life, float size, float amp, int renderamt, float speed)
 	{
 	TEMPENTITY *pTemp;
@@ -1416,13 +1416,13 @@ void GAME_EXPORT R_Sprite_Trail (int type, vec3_t start, vec3_t end, int modelIn
 		}
 	}
 
-/*
+/***
 ===============
 R_FunnelSprite
 
 Create a funnel effect with custom sprite
 ===============
-*/
+***/
 void GAME_EXPORT R_FunnelSprite (const vec3_t org, int modelIndex, int reverse)
 	{
 	TEMPENTITY *pTemp;
@@ -1477,26 +1477,26 @@ void GAME_EXPORT R_FunnelSprite (const vec3_t org, int modelIndex, int reverse)
 		}
 	}
 
-/*
+/***
 ===============
 R_SparkEffect
 
 Create a streaks + ricochet sprite
 ===============
-*/
+***/
 void GAME_EXPORT R_SparkEffect (const vec3_t pos, int count, int velocityMin, int velocityMax)
 	{
 	R_RicochetSprite (pos, cl_sprite_ricochet, 0.1f, COM_RandomFloat (0.5f, 1.0f));
 	R_SparkStreaks (pos, count, velocityMin, velocityMax);
 	}
 
-/*
+/***
 ==============
 R_RicochetSoundByName [FWGS, 01.03.24]
 
 Make a random ricochet sound
 ==============
-*/
+***/
 static void R_RicochetSoundByName (const vec3_t pos, const char *name)
 	{
 	sound_t handle;
@@ -1521,13 +1521,13 @@ void GAME_EXPORT R_RicochetSound (const vec3_t pos)
 		R_RicochetSoundByName (pos, name);
 	}
 
-/*
+/***
 ==============
 R_Projectile
 
 Create an projectile entity
 ==============
-*/
+***/
 void GAME_EXPORT R_Projectile (const vec3_t origin, const vec3_t velocity, int modelIndex, int life,
 	int owner, void (*hitcallback)(TEMPENTITY *, pmtrace_t *))
 	{
@@ -1572,13 +1572,13 @@ void GAME_EXPORT R_Projectile (const vec3_t origin, const vec3_t velocity, int m
 	pTemp->die = cl.time + life;
 	}
 
-/*
+/***
 ==============
 R_TempSphereModel
 
 Spherical shower of models, picks from set
 ==============
-*/
+***/
 void GAME_EXPORT R_TempSphereModel (const vec3_t pos, float speed, float life, int count, int modelIndex)
 	{
 	TEMPENTITY	*pTemp;
@@ -1621,13 +1621,13 @@ void GAME_EXPORT R_TempSphereModel (const vec3_t pos, float speed, float life, i
 		}
 	}
 
-/*
+/***
 ==============
 R_Explosion [FWGS, 01.03.24]
 
 Create an explosion (scale is magnitude)
 ==============
-*/
+***/
 void GAME_EXPORT R_Explosion (vec3_t pos, int model, float scale, float framerate, int flags)
 	{
 	sound_t	hSound;
@@ -1692,13 +1692,13 @@ void GAME_EXPORT R_Explosion (vec3_t pos, int model, float scale, float framerat
 		}
 	}
 
-/*
+/***
 ==============
 R_PlayerSprites
 
 Create a particle smoke around player
 ==============
-*/
+***/
 void GAME_EXPORT R_PlayerSprites (int client, int modelIndex, int count, int size)
 	{
 	TEMPENTITY	*pTemp;
@@ -1757,13 +1757,13 @@ void GAME_EXPORT R_PlayerSprites (int client, int modelIndex, int count, int siz
 		}
 	}
 
-/*
+/***
 ==============
 R_FireField
 
 Makes a field of fire
 ==============
-*/
+***/
 void GAME_EXPORT R_FireField (float *org, int radius, int modelIndex, int count, int flags, float life)
 	{
 	TEMPENTITY	*pTemp;
@@ -1832,13 +1832,13 @@ void GAME_EXPORT R_FireField (float *org, int radius, int modelIndex, int count,
 		}
 	}
 
-/*
+/***
 ==============
 R_MultiGunshot
 
 Client version of shotgun shot
 ==============
-*/
+***/
 void GAME_EXPORT R_MultiGunshot (const vec3_t org, const vec3_t dir, const vec3_t noise, int count,
 	int decalCount, int *decalIndices)
 	{
@@ -1890,13 +1890,13 @@ void GAME_EXPORT R_MultiGunshot (const vec3_t org, const vec3_t dir, const vec3_
 		}
 	}
 
-/*
+/***
 ==============
 R_Sprite_WallPuff
 
 Create a wallpuff
 ==============
-*/
+***/
 void GAME_EXPORT R_Sprite_WallPuff (TEMPENTITY *pTemp, float scale)
 	{
 	if (!pTemp)
@@ -1910,13 +1910,13 @@ void GAME_EXPORT R_Sprite_WallPuff (TEMPENTITY *pTemp, float scale)
 	pTemp->die = cl.time + 0.01f;
 	}
 
-/*
+/***
 ==============
 CL_ParseTempEntity [FWGS, 01.03.24]
 
 handle temp-entity messages
 ==============
-*/
+***/
 void CL_ParseTempEntity (sizebuf_t *msg)
 	{
 	sizebuf_t	buf;
@@ -2488,18 +2488,18 @@ void CL_ParseTempEntity (sizebuf_t *msg)
 		Con_DPrintf (S_WARN "ParseTempEntity: overflow TE message %i\n", type);
 	}
 
-/*
+/***
 ==============================================================
 LIGHT STYLE MANAGEMENT
 ==============================================================
-*/
+***/
 #define STYLE_LERPING_THRESHOLD	3.0f // because we wan't interpolate fast sequences (like on\off)
 
-/*
+/***
 ================
 CL_ClearLightStyles
 ================
-*/
+***/
 static void CL_ClearLightStyles (void)
 	{
 	memset (cl.lightstyles, 0, sizeof (cl.lightstyles));
@@ -2543,30 +2543,30 @@ void CL_SetLightstyle (int style, const char *s, float f)
 	Con_Reportf ("Lightstyle %i (%s), interp %s\n", style, ls->pattern, ls->interp ? "Yes" : "No");
 	}
 
-/*
+/***
 ==============================================================
 DLIGHT MANAGEMENT
 ==============================================================
-*/
+***/
 dlight_t	cl_dlights[MAX_DLIGHTS];
 dlight_t	cl_elights[MAX_ELIGHTS];
 
-/*
+/***
 ================
 CL_ClearDlights
 ================
-*/
+***/
 static void CL_ClearDlights (void)
 	{
 	memset (cl_dlights, 0, sizeof (cl_dlights));
 	memset (cl_elights, 0, sizeof (cl_elights));
 	}
 
-/*
+/***
 ===============
 CL_AllocDlight
 ===============
-*/
+***/
 dlight_t *CL_AllocDlight (int key)
 	{
 	dlight_t *dl;
@@ -2606,11 +2606,11 @@ dlight_t *CL_AllocDlight (int key)
 	return dl;
 	}
 
-/*
+/***
 ===============
 CL_AllocElight
 ===============
-*/
+***/
 dlight_t *CL_AllocElight (int key)
 	{
 	dlight_t *dl;
@@ -2650,11 +2650,11 @@ dlight_t *CL_AllocElight (int key)
 	return dl;
 	}
 
-/*
+/***
 ===============
 CL_DecayLights
 ===============
-*/
+***/
 void CL_DecayLights (void)
 	{
 	dlight_t	*dl;
@@ -2702,13 +2702,13 @@ dlight_t *CL_GetEntityLight (int number)
 	return &cl_elights[number];
 	}
 
-/*
+/***
 ================
 CL_UpdateFlashlight [FWGS, 01.01.24]
 
 update client flashlight
 ================
-*/
+***/
 static void CL_UpdateFlashlight (cl_entity_t *ent)
 	{
 	vec3_t		forward, view_ofs;
@@ -2812,13 +2812,13 @@ static void R_EntityBrightlight (cl_entity_t *ent, int key, int radius)
 	dl->die = cl.time + 0.001;
 	}
 
-/*
+/***
 ================
 CL_AddEntityEffects [FWGS, 01.01.24]
 
 apply various effects to entity origin or attachment
 ================
-*/
+***/
 void CL_AddEntityEffects (cl_entity_t *ent)
 	{
 	// players have special set of effects, from CL_LinkPlayers
@@ -2873,13 +2873,13 @@ void CL_AddEntityEffects (cl_entity_t *ent)
 		}
 	}
 
-/*
+/***
 ================
 CL_AddModelEffects [FWGS, 01.01.24]
 
 these effects will be enable by flag in model header
 ================
-*/
+***/
 void CL_AddModelEffects (cl_entity_t *ent)
 	{
 	vec3_t	neworigin;
@@ -2944,13 +2944,13 @@ void CL_AddModelEffects (cl_entity_t *ent)
 		R_RocketTrail (oldorigin, neworigin, 6);
 	}
 
-/*
+/***
 ================
 CL_TestLights
 
 if cl_testlights is set, create 32 lights models
 ================
-*/
+***/
 void CL_TestLights (void)
 	{
 	int			i, j, numLights;
@@ -2983,42 +2983,42 @@ void CL_TestLights (void)
 		}
 	}
 
-/*
+/***
 ==============================================================
 DECAL MANAGEMENT
 ==============================================================
-*/
-/*
+***/
+/***
 ===============
 CL_FireCustomDecal
 
 custom temporary decal
 ===============
-*/
+***/
 void GAME_EXPORT CL_FireCustomDecal (int textureIndex, int entityIndex, int modelIndex, float *pos, int flags, float scale)
 	{
 	ref.dllFuncs.R_DecalShoot (textureIndex, entityIndex, modelIndex, pos, flags, scale);
 	}
 
-/*
+/***
 ===============
 CL_DecalShoot
 
 normal temporary decal
 ===============
-*/
+***/
 void GAME_EXPORT CL_DecalShoot (int textureIndex, int entityIndex, int modelIndex, float *pos, int flags)
 	{
 	CL_FireCustomDecal (textureIndex, entityIndex, modelIndex, pos, flags, 1.0f);
 	}
 
-/*
+/***
 ===============
 CL_PlayerDecal
 
 spray custom colored decal (clan logo etc)
 ===============
-*/
+***/
 static void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, float *pos)
 	{
 	int		textureIndex = 0;
@@ -3052,13 +3052,13 @@ static void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, flo
 	CL_DecalShoot (textureIndex, entityIndex, 0, pos, FDECAL_CUSTOM);
 	}
 
-/*
+/***
 ===============
 CL_DecalIndexFromName
 
 get decal global index from decalname
 ===============
-*/
+***/
 int GAME_EXPORT CL_DecalIndexFromName (const char *name)
 	{
 	int	i;
@@ -3075,13 +3075,13 @@ int GAME_EXPORT CL_DecalIndexFromName (const char *name)
 	return 0; // invalid decal
 	}
 
-/*
+/***
 ===============
 CL_DecalIndex
 
 get texture index from decal global index
 ===============
-*/
+***/
 int GAME_EXPORT CL_DecalIndex (int id)
 	{
 	id = bound (0, id, MAX_DECALS - 1);
@@ -3096,31 +3096,31 @@ int GAME_EXPORT CL_DecalIndex (int id)
 	return cl.decal_index[id];
 	}
 
-/*
+/***
 ===============
 CL_DecalRemoveAll
 
 remove all decals with specified texture
 ===============
-*/
+***/
 void GAME_EXPORT CL_DecalRemoveAll (int textureIndex)
 	{
 	int id = bound (0, textureIndex, MAX_DECALS - 1);
 	ref.dllFuncs.R_DecalRemoveAll (cl.decal_index[id]);
 	}
 
-/*
+/***
 ==============================================================
 EFRAGS MANAGEMENT
 ==============================================================
-*/
+***/
 efrag_t	cl_efrags[MAX_EFRAGS];
 
-/*
+/***
 ==============
 CL_ClearEfrags
 ==============
-*/
+***/
 void CL_ClearEfrags (void)
 	{
 	int	i;
@@ -3134,13 +3134,13 @@ void CL_ClearEfrags (void)
 	clgame.free_efrags[i].entnext = NULL;
 	}
 
-/*
+/***
 =======================
 R_ClearStaticEntities
 
 e.g. by demo request
 =======================
-*/
+***/
 void CL_ClearStaticEntities (void)
 	{
 	int	i;
@@ -3157,11 +3157,11 @@ void CL_ClearStaticEntities (void)
 	CL_ClearEfrags ();
 	}
 
-/*
+/***
 ==============
 CL_ClearEffects
 ==============
-*/
+***/
 void CL_ClearEffects (void)
 	{
 	CL_ClearEfrags ();
@@ -3171,3 +3171,4 @@ void CL_ClearEffects (void)
 	CL_ClearParticles ();
 	CL_ClearLightStyles ();
 	}
+

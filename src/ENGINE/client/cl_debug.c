@@ -1,4 +1,4 @@
-/*
+/***
 cl_debug.c - server message debugging
 Copyright (C) 2018 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -53,7 +53,6 @@ const char *CL_MsgInfo (int cmd)
 	if ((cmd >= 0) && (cmd <= svc_lastmsg))
 		{
 		// [FWGS, 01.05.24] get engine message name
-		/*Q_strncpy (sz, svc_strings[cmd], sizeof (sz));*/
 		const char *svc_string = NULL;
 
 		if (cls.legacymode)
@@ -80,25 +79,25 @@ const char *CL_MsgInfo (int cmd)
 	return sz;
 	}
 
-/*
+/***
 =====================
 CL_Parse_Debug
 
 enable message debugging
 =====================
-*/
+***/
 void CL_Parse_Debug (qboolean enable)
 	{
 	cls_message_debug.parsing = enable;
 	}
 
-/*
+/***
 =====================
 CL_Parse_RecordCommand
 
 record new message params into debug buffer
 =====================
-*/
+***/
 void CL_Parse_RecordCommand (int cmd, int startoffset)
 	{
 	int	slot;
@@ -111,11 +110,11 @@ void CL_Parse_RecordCommand (int cmd, int startoffset)
 	cls_message_debug.oldcmd[slot].frame_number = host.framecount;
 	}
 
-/*
+/***
 =====================
 CL_ResetFrame
 =====================
-*/
+***/
 void CL_ResetFrame (frame_t *frame)
 	{
 	memset (&frame->graphdata, 0, sizeof (netbandwidthgraph_t));
@@ -126,13 +125,13 @@ void CL_ResetFrame (frame_t *frame)
 	frame->time = cl.mtime[0];
 	}
 
-/*
+/***
 =====================
 CL_WriteErrorMessage
 
 write net_message into buffer.dat for debugging
 =====================
-*/
+***/
 static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 	{
 	const char *buffer_file = "buffer.dat";
@@ -149,13 +148,13 @@ static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 	Con_Printf ("Wrote erroneous message to %s\n", buffer_file);
 	}
 
-/*
+/***
 =====================
 CL_WriteMessageHistory
 
 list last 32 messages for debugging net troubleshooting
 =====================
-*/
+***/
 void CL_WriteMessageHistory (void)
 	{
 	oldcmd_t *old, *failcommand;

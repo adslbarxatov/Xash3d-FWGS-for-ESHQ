@@ -1,4 +1,4 @@
-/*
+/***
 avi_stub.c - playing AVI files (stub)
 Copyright (C) 2018 a1batross
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "build.h"
 #if !XASH_WIN32

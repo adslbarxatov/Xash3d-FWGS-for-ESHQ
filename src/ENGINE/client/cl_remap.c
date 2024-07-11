@@ -1,4 +1,4 @@
-/*
+/***
 gl_remap.c - remap model textures
 Copyright (C) 2011 Uncle Mike
 
@@ -11,19 +11,19 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
 #include "studio.h"
 
-/*
+/***
 ====================
 CL_GetRemapInfoForEntity
 
 Returns remapinfo slot for specified entity
 ====================
-*/
+***/
 remap_info_t *CL_GetRemapInfoForEntity (cl_entity_t *e)
 	{
 	if (!e) return NULL;
@@ -34,13 +34,13 @@ remap_info_t *CL_GetRemapInfoForEntity (cl_entity_t *e)
 	return clgame.remap_info[e->curstate.number];
 	}
 
-/*
+/***
 ====================
 CL_CmpStudioTextures [FWGS, 01.08.23]
 
 return true if equal
 ====================
-*/
+***/
 static qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, remap_info_t *remap)
 	{
 	int	i;
@@ -74,13 +74,13 @@ static qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, remap_i
 	return true;
 	}
 
-/*
+/***
 ====================
 CL_CreateRawTextureFromPixels [FWGS, 01.01.24]
 
 Convert texture_t struct into mstudiotexture_t prototype
 ====================
-*/
+***/
 static byte *CL_CreateRawTextureFromPixels (texture_t *tx, size_t *size, int topcolor, int bottomcolor)
 	{
 	static mstudiotexture_t	pin;
@@ -107,13 +107,13 @@ static byte *CL_CreateRawTextureFromPixels (texture_t *tx, size_t *size, int top
 	return (byte *)&pin;
 	}
 
-/*
+/***
 ====================
 CL_DuplicateTexture [FWGS, 01.01.24]
 
 Dupliacte texture with remap pixels
 ====================
-*/
+***/
 static void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotexture_t *ptexture, int topcolor,
 	int bottomcolor)
 	{
@@ -151,13 +151,13 @@ static void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotex
 	memcpy (pal, paletteBackup, 768);
 	}
 
-/*
+/***
 ====================
 CL_UpdateStudioTexture [FWGS, 01.01.24]
 
 Update texture top and bottom colors
 ====================
-*/
+***/
 static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptexture, int topcolor, int bottomcolor)
 	{
 	rgbdata_t	*pic;
@@ -213,13 +213,13 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 	Assert (index == ptexture->index);
 	}
 
-/*
+/***
 ====================
 CL_UpdateAliasTexture [FWGS, 01.01.24]
 
 Update texture top and bottom colors
 ====================
-*/
+***/
 static void CL_UpdateAliasTexture (cl_entity_t *entity, unsigned short *texture, int skinnum, int topcolor,
 	int bottomcolor)
 	{
@@ -253,13 +253,13 @@ static void CL_UpdateAliasTexture (cl_entity_t *entity, unsigned short *texture,
 	ref.dllFuncs.GL_ProcessTexture (*texture, -1.0f, topcolor, bottomcolor);
 	}
 
-/*
+/***
 ====================
 CL_FreeRemapInfo [FWGS, 01.01.24]
 
 Release remap info per entity
 ====================
-*/
+***/
 static void CL_FreeRemapInfo (remap_info_t *info)
 	{
 	int i;
@@ -282,13 +282,13 @@ static void CL_FreeRemapInfo (remap_info_t *info)
 	Mem_Free (info); // release struct
 	}
 
-/*
+/***
 ====================
 CL_UpdateRemapInfo [FWGS, 01.01.24]
 
 Update all remaps per entity
 ====================
-*/
+***/
 static void CL_UpdateRemapInfo (cl_entity_t *entity, int topcolor, int bottomcolor)
 	{
 	remap_info_t	*info;
@@ -319,14 +319,14 @@ static void CL_UpdateRemapInfo (cl_entity_t *entity, int topcolor, int bottomcol
 	info->bottomcolor = bottomcolor;
 	}
 
-/*
+/***
 ====================
 CL_AllocRemapInfo [FWGS, 01.01.24]
 
 Allocate new remap info per entity
 and make copy of remap textures
 ====================
-*/
+***/
 static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor, int bottomcolor)
 	{
 	remap_info_t	*info;
@@ -439,79 +439,15 @@ static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor
 	info->model = model;
 	}
 
-// [FWGS, 01.01.24]
-/*
-====================
-CL_UpdateRemapInfo
+// [FWGS, 01.01.24] removed CL_UpdateRemapInfo, CL_FreeRemapInfo
 
-Update all remaps per entity
-====================
-//
-void CL_UpdateRemapInfo (cl_entity_t *entity, int topcolor, int bottomcolor)
-	{
-	remap_info_t *info;
-	int		i;
-
-	i = (entity == &clgame.viewent) ? clgame.maxEntities : entity->curstate.number;
-	info = clgame.remap_info[i];
-	if (!info) return; // no remap info
-
-	if (info->topcolor == topcolor && info->bottomcolor == bottomcolor)
-		return; // values is valid
-
-	for (i = 0; i < info->numtextures; i++)
-		{
-		if (info->ptexture != NULL)
-			{
-			if (FBitSet (info->ptexture[i].flags, STUDIO_NF_COLORMAP))
-				CL_UpdateStudioTexture (entity, &info->ptexture[i], topcolor, bottomcolor);
-			}
-		else CL_UpdateAliasTexture (entity, &info->textures[i], i, topcolor, bottomcolor);
-		}
-
-	info->topcolor = topcolor;
-	info->bottomcolor = bottomcolor;
-	}
-*/
-
-// [FWGS, 01.01.24]
-/*
-====================
-CL_FreeRemapInfo
-
-Release remap info per entity
-====================
-//
-void CL_FreeRemapInfo (remap_info_t *info)
-	{
-	int	i;
-
-	Assert (info != NULL);
-
-	// release all colormap texture copies
-	for (i = 0; i < info->numtextures; i++)
-		{
-		if (info->ptexture != NULL)
-			{
-			if (FBitSet (info->ptexture[i].flags, STUDIO_NF_COLORMAP))
-				ref.dllFuncs.GL_FreeTexture (info->ptexture[i].index);
-			}
-
-		if (info->textures[i] != 0)
-			ref.dllFuncs.GL_FreeTexture (info->textures[i]);
-		}
-
-	Mem_Free (info); // release struct
-	}
-*/
-
-/*
+/***
 ====================
 CL_ClearAllRemaps
 
 Release all remap infos
 ====================
-*/
+***/
 void CL_ClearAllRemaps (void)
 	{
 	int	i;
@@ -528,11 +464,11 @@ void CL_ClearAllRemaps (void)
 	clgame.remap_info = NULL;
 	}
 
-/*
+/***
 =============
 CL_EntitySetRemapColors [FWGS, 01.01.24]
 =============
-*/
+***/
 qboolean CL_EntitySetRemapColors (cl_entity_t *e, model_t *mod, int top, int bottom)
 	{
 	CL_AllocRemapInfo (e, mod, top, bottom);

@@ -1,4 +1,4 @@
-/*
+/***
 cl_demo.c - demo record & playback
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -110,14 +110,14 @@ struct
 // [FWGS, 01.02.24]
 static qboolean CL_NextDemo (void);
 
-/*
+/***
 ====================
 CL_StartupDemoHeader
 
 spooling demo header in case
 we record a demo on this level
 ====================
-*/
+***/
 void CL_StartupDemoHeader (void)
 	{
 	if (cls.demoheader)
@@ -137,13 +137,13 @@ void CL_StartupDemoHeader (void)
 	Con_Printf ("Spooling demo header.\n");
 	}
 
-/*
+/***
 ====================
 CL_CloseDemoHeader
 
 close demoheader file on engine shutdown
 ====================
-*/
+***/
 void CL_CloseDemoHeader (void)
 	{
 	if (!cls.demoheader)
@@ -152,37 +152,37 @@ void CL_CloseDemoHeader (void)
 	FS_Close (cls.demoheader);
 	}
 
-/*
+/***
 ====================
 CL_GetDemoRecordClock
 
 write time while demo is recording
 ====================
-*/
+***/
 static float CL_GetDemoRecordClock (void)
 	{
 	return cl.mtime[0];
 	}
 
-/*
+/***
 ====================
 CL_GetDemoPlaybackClock
 
 overwrite host.realtime
 ====================
-*/
+***/
 static float CL_GetDemoPlaybackClock (void)
 	{
 	return host.realtime + host.frametime;
 	}
 
-/*
+/***
 ====================
 CL_GetDemoFramerate
 
 overwrite host.frametime
 ====================
-*/
+***/
 double CL_GetDemoFramerate (void)
 	{
 	if (cls.timedemo)
@@ -191,13 +191,13 @@ double CL_GetDemoFramerate (void)
 	return bound (MIN_FPS, demo.header.host_fps, MAX_FPS);
 	}
 
-/*
+/***
 ====================
 CL_WriteDemoCmdHeader
 
 Writes the demo command header and time-delta
 ====================
-*/
+***/
 static void CL_WriteDemoCmdHeader (byte cmd, file_t *file)
 	{
 	float	dt;
@@ -213,13 +213,13 @@ static void CL_WriteDemoCmdHeader (byte cmd, file_t *file)
 	FS_Write (file, &dt, sizeof (float));
 	}
 
-/*
+/***
 ====================
 CL_WriteDemoJumpTime
 
 Update level time on a next level
 ====================
-*/
+***/
 void CL_WriteDemoJumpTime (void)
 	{
 	if (cls.demowaiting || !cls.demofile)
@@ -232,13 +232,13 @@ void CL_WriteDemoJumpTime (void)
 	CL_WriteDemoCmdHeader (dem_jumptime, cls.demofile);
 	}
 
-/*
+/***
 ====================
 CL_WriteDemoUserCmd
 
 Writes the current user cmd
 ====================
-*/
+***/
 void CL_WriteDemoUserCmd (int cmdnumber)
 	{
 	sizebuf_t	buf;
@@ -263,14 +263,14 @@ void CL_WriteDemoUserCmd (int cmdnumber)
 	FS_Write (cls.demofile, data, bytes);
 	}
 
-/*
+/***
 ====================
 CL_WriteDemoSequence
 
 Save state of cls.netchan sequences
 so that we can play the demo correctly.
 ====================
-*/
+***/
 static void CL_WriteDemoSequence (file_t *file)
 	{
 	Assert (file != NULL);
@@ -284,29 +284,32 @@ static void CL_WriteDemoSequence (file_t *file)
 	FS_Write (file, &cls.netchan.last_reliable_sequence, sizeof (int));
 	}
 
-/*
+/***
 ====================
 CL_WriteDemoMessage
 
 Dumps the current net message, prefixed by the length
 ====================
-*/
+***/
 void CL_WriteDemoMessage (qboolean startup, int start, sizebuf_t *msg)
 	{
-	file_t *file = startup ? cls.demoheader : cls.demofile;
-	int	swlen;
+	file_t	*file = startup ? cls.demoheader : cls.demofile;
+	int		swlen;
 	byte	c;
 
-	if (!file) return;
+	if (!file)
+		return;
 
 	// past the start but not recording a demo.
 	if (!startup && !cls.demorecording)
 		return;
 
 	swlen = MSG_GetNumBytesWritten (msg) - start;
-	if (swlen <= 0) return;
+	if (swlen <= 0)
+		return;
 
-	if (!startup) demo.framecount++;
+	if (!startup)
+		demo.framecount++;
 
 	// demo playback should read this as an incoming message.
 	c = (cls.state != ca_active) ? dem_norewind : dem_read;
@@ -321,13 +324,13 @@ void CL_WriteDemoMessage (qboolean startup, int start, sizebuf_t *msg)
 	FS_Write (file, MSG_GetData (msg) + start, swlen);
 	}
 
-/*
+/***
 ====================
 CL_WriteDemoUserMessage
 
 Dumps the user message (demoaction)
 ====================
-*/
+***/
 void CL_WriteDemoUserMessage (const byte *buffer, size_t size)
 	{
 	if (!cls.demorecording || cls.demowaiting)
@@ -345,13 +348,13 @@ void CL_WriteDemoUserMessage (const byte *buffer, size_t size)
 	FS_Write (cls.demofile, buffer, size);
 	}
 
-/*
+/***
 ====================
 CL_WriteDemoHeader
 
 Write demo header
 ====================
-*/
+***/
 static void CL_WriteDemoHeader (const char *name)
 	{
 	int	copysize;
@@ -436,13 +439,13 @@ static void CL_WriteDemoHeader (const char *name)
 	Cbuf_Execute ();
 	}
 
-/*
+/***
 =================
 CL_StopRecord
 
 finish recording demo
 =================
-*/
+***/
 static void CL_StopRecord (void)
 	{
 	int		i, curpos;
@@ -491,11 +494,11 @@ static void CL_StopRecord (void)
 	cls.demotime = 0.0;
 	}
 
-/*
+/***
 =================
 CL_DrawDemoRecording
 =================
-*/
+***/
 void CL_DrawDemoRecording (void)
 	{
 	char	string[64];
@@ -514,18 +517,18 @@ void CL_DrawDemoRecording (void)
 	Con_DrawString ((refState.width - len) >> 1, refState.height >> 4, string, color);
 	}
 
-/*
+/***
 =======================================================================
 CLIENT SIDE DEMO PLAYBACK
 =======================================================================
-*/
-/*
+***/
+/***
 =================
 CL_ReadDemoCmdHeader
 
 read the demo command [FWGS, 01.02.24]
 =================
-*/
+***/
 static qboolean CL_ReadDemoCmdHeader (byte *cmd, float *dt)
 	{
 	// read the command
@@ -546,14 +549,14 @@ static qboolean CL_ReadDemoCmdHeader (byte *cmd, float *dt)
 	return true;
 	}
 
-/*
+/***
 =================
 CL_ReadDemoUserCmd
 
 read the demo usercmd for predicting
 and smooth movement during playback the demo
 =================
-*/
+***/
 static void CL_ReadDemoUserCmd (qboolean discard)
 	{
 	byte	data[1024];
@@ -612,13 +615,13 @@ static void CL_ReadDemoUserCmd (qboolean discard)
 		}
 	}
 
-/*
+/***
 =================
 CL_ReadDemoSequence
 
 read netchan sequences
 =================
-*/
+***/
 static void CL_ReadDemoSequence (qboolean discard)
 	{
 	int	incoming_sequence;
@@ -649,11 +652,11 @@ static void CL_ReadDemoSequence (qboolean discard)
 	cls.netchan.last_reliable_sequence = last_reliable_sequence;
 	}
 
-/*
+/***
 =================
 CL_DemoStartPlayback [FWGS, 01.02.24]
 =================
-*/
+***/
 static void CL_DemoStartPlayback (int mode)
 	{
 	if (cls.changedemo)
@@ -693,11 +696,11 @@ static void CL_DemoStartPlayback (int mode)
 	cl.last_command_ack = -1;
 	}
 
-/*
+/***
 =================
 CL_DemoAborted
 =================
-*/
+***/
 static void CL_DemoAborted (void)
 	{
 	if (cls.demofile)
@@ -713,11 +716,11 @@ static void CL_DemoAborted (void)
 	Cvar_DirectSet (&v_dark, "0");	// [FWGS, 01.07.23]
 	}
 
-/*
+/***
 =================
 CL_DemoCompleted
 =================
-*/
+***/
 void CL_DemoCompleted (void)
 	{
 	if (cls.demonum != -1)
@@ -731,14 +734,14 @@ void CL_DemoCompleted (void)
 	Cvar_DirectSet (&v_dark, "0");	// [FWGS, 01.07.23]
 	}
 
-/*
+/***
 =================
 CL_DemoMoveToNextSection
 
 returns true on success, false on failure
 g-cont. probably captain obvious mode is ON
 =================
-*/
+***/
 static qboolean CL_DemoMoveToNextSection (void)
 	{
 	if (++demo.entryIndex >= demo.directory.numentries)
@@ -805,13 +808,13 @@ static qboolean CL_ReadRawNetworkData (byte *buffer, size_t *length)
 	return true;
 	}
 
-/*
+/***
 =================
 CL_DemoReadMessageQuake
 
 reads demo data and write it to client
 =================
-*/
+***/
 static qboolean CL_DemoReadMessageQuake (byte *buffer, size_t *length)
 	{
 	vec3_t		viewangles;
@@ -898,13 +901,13 @@ static qboolean CL_DemoReadMessageQuake (byte *buffer, size_t *length)
 	return true;
 	}
 
-/*
+/***
 =================
 CL_DemoReadMessage
 
 reads demo data and write it to client
 =================
-*/
+***/
 qboolean CL_DemoReadMessage (byte *buffer, size_t *length)
 	{
 	size_t		curpos = 0, lastpos = 0;
@@ -1077,14 +1080,14 @@ static void CL_DemoFindInterpolatedViewAngles (float t, float *frac, demoangle_t
 	*frac = bound (0.0f, *frac, 1.0f);
 	}
 
-/*
+/***
 ==============
 CL_DemoInterpolateAngles
 
 We can predict or inpolate player movement with standed client code
 but viewangles interpolate here
 ==============
-*/
+***/
 void CL_DemoInterpolateAngles (void)
 	{
 	demoangle_t *prev = NULL, *next = NULL;
@@ -1123,13 +1126,13 @@ void CL_DemoInterpolateAngles (void)
 		}
 	}
 
-/*
+/***
 ==============
 CL_FinishTimeDemo
 
 show stats
 ==============
-*/
+***/
 static void CL_FinishTimeDemo (void)
 	{
 	int		frames;
@@ -1150,13 +1153,13 @@ static void CL_FinishTimeDemo (void)
 		CL_Quit_f ();
 	}
 
-/*
+/***
 ==============
 CL_StopPlayback
 
 Called when a demo file runs out, or the user starts a game
 ==============
-*/
+***/
 void CL_StopPlayback (void)
 	{
 	if (!cls.demoplayback) return;
@@ -1204,21 +1207,22 @@ void CL_StopPlayback (void)
 		}
 	}
 
-/*
+/***
 ==================
 CL_GetDemoComment
 ==================
-*/
+***/
 int GAME_EXPORT CL_GetDemoComment (const char *demoname, char *comment)
 	{
-	file_t *demfile;
+	file_t			*demfile;
 	demoheader_t	demohdr;
 	demodirectory_t	directory;
-	demoentry_t	entry;
-	float		playtime = 0.0f;
-	int		i;
+	demoentry_t		entry;
+	float			playtime = 0.0f;
+	int				i;
 
-	if (!comment) return false;
+	if (!comment)
+		return false;
 
 	demfile = FS_Open (demoname, "rb", false);
 	if (!demfile)
@@ -1274,13 +1278,13 @@ int GAME_EXPORT CL_GetDemoComment (const char *demoname, char *comment)
 	return true;
 	}
 
-/*
+/***
 ==================
 CL_NextDemo
 
 Called when a demo finishes
 ==================
-*/
+***/
 static qboolean CL_NextDemo (void)
 	{
 	char str[MAX_QPATH];
@@ -1307,13 +1311,13 @@ static qboolean CL_NextDemo (void)
 	return true;
 	}
 
-/*
+/***
 ==================
 CL_CheckStartupDemos
 
 queue demos loop after movie playing
 ==================
-*/
+***/
 void CL_CheckStartupDemos (void)
 	{
 	if (!cls.demos_pending)
@@ -1337,11 +1341,11 @@ void CL_CheckStartupDemos (void)
 	CL_NextDemo ();
 	}
 
-/*
+/***
 ==================
 CL_DemoGetName [FWGS, 01.07.23]
 ==================
-*/
+***/
 static void CL_DemoGetName (int lastnum, char *filename, size_t size)
 	{
 	if ((lastnum < 0) || (lastnum > 9999))
@@ -1354,14 +1358,14 @@ static void CL_DemoGetName (int lastnum, char *filename, size_t size)
 	Q_snprintf (filename, size, "demo%04d", lastnum);
 	}
 
-/*
+/***
 ====================
 CL_Record_f
 
 record <demoname>
 Begins recording a demo from the current position
 ====================
-*/
+***/
 void CL_Record_f (void)
 	{
 	string		demoname, demopath;
@@ -1437,13 +1441,13 @@ void CL_Record_f (void)
 	CL_WriteDemoHeader (demopath);
 	}
 
-/*
+/***
 ====================
 CL_PlayDemo_f
 
 playdemo <demoname>
 ====================
-*/
+***/
 void CL_PlayDemo_f (void)
 	{
 	char	filename[MAX_QPATH];
@@ -1573,13 +1577,13 @@ void CL_PlayDemo_f (void)
 	// begin a playback demo
 	}
 
-/*
+/***
 ====================
 CL_TimeDemo_f
 
 timedemo <demoname>
 ====================
-*/
+***/
 void CL_TimeDemo_f (void)
 	{
 	CL_PlayDemo_f ();
@@ -1592,11 +1596,11 @@ void CL_TimeDemo_f (void)
 	cls.td_lastframe = -1;		// get a new message this frame
 	}
 
-/*
+/***
 ==================
 CL_StartDemos_f
 ==================
-*/
+***/
 void CL_StartDemos_f (void)
 	{
 	int	i, c;
@@ -1621,13 +1625,13 @@ void CL_StartDemos_f (void)
 	cls.demos_pending = true;
 	}
 
-/*
+/***
 ==================
 CL_Demos_f
 
 Return to looping demos
 ==================
-*/
+***/
 void CL_Demos_f (void)
 	{
 	if (cls.key_dest != key_menu)
@@ -1648,13 +1652,13 @@ void CL_Demos_f (void)
 	}
 
 
-/*
+/***
 ====================
 CL_Stop_f
 
 stop any client activity
 ====================
-*/
+***/
 void CL_Stop_f (void)
 	{
 	// stop all

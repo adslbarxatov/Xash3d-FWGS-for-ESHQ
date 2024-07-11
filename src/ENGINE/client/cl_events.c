@@ -1,4 +1,4 @@
-/*
+/****
 cl_events.c - client-side event system implementation
 Copyright (C) 2011 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -19,11 +19,11 @@ GNU General Public License for more details.
 #include "net_encode.h"
 #include "con_nprint.h"
 
-/*
+/***
 ===============
 CL_ResetEvent
 ===============
-*/
+***/
 void CL_ResetEvent (event_info_t *ei)
 	{
 	ei->index = 0;
@@ -32,13 +32,13 @@ void CL_ResetEvent (event_info_t *ei)
 	ei->flags = 0;
 	}
 
-/*
+/***
 =============
 CL_CalcPlayerVelocity
 
 compute velocity for a given client
 =============
-*/
+***/
 static void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
 	{
 	clientdata_t *pcd;
@@ -71,11 +71,11 @@ static void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
 		}
 	}
 
-/*
+/***
 =============
 CL_DescribeEvent
 =============
-*/
+***/
 static void CL_DescribeEvent (event_info_t *ei, int slot)
 	{
 	int				idx = (slot & 63) * 2;
@@ -115,11 +115,11 @@ static void CL_DescribeEvent (event_info_t *ei, int slot)
 		ei->args.fparam1, ei->args.fparam2);
 	}
 
-/*
+/***
 =============
 CL_SetEventIndex
 =============
-*/
+***/
 void CL_SetEventIndex (const char *szEvName, int ev_index)
 	{
 	cl_user_event_t *ev;
@@ -142,11 +142,11 @@ void CL_SetEventIndex (const char *szEvName, int ev_index)
 		}
 	}
 
-/*
+/***
 =============
 CL_EventIndex
 =============
-*/
+***/
 word CL_EventIndex (const char *name)
 	{
 	word	i;
@@ -162,11 +162,11 @@ word CL_EventIndex (const char *name)
 	return 0;
 	}
 
-/*
+/***
 =============
 CL_RegisterEvent
 =============
-*/
+***/
 void CL_RegisterEvent (int lastnum, const char *szEvName, pfnEventHook func)
 	{
 	cl_user_event_t *ev;
@@ -183,16 +183,15 @@ void CL_RegisterEvent (int lastnum, const char *szEvName, pfnEventHook func)
 	ev = clgame.events[lastnum];
 
 	// [FWGS, 09.05.24] NOTE: ev->index will be set later
-	/*Q_strncpy (ev->name, szEvName, MAX_QPATH);*/
 	Q_strncpy (ev->name, szEvName, sizeof (ev->name));
 	ev->func = func;
 	}
 
-/*
+/***
 =============
 CL_FireEvent
 =============
-*/
+***/
 static qboolean CL_FireEvent (event_info_t *ei, int slot)
 	{
 	cl_user_event_t	*ev;
@@ -243,13 +242,13 @@ static qboolean CL_FireEvent (event_info_t *ei, int slot)
 	return false;
 	}
 
-/*
+/***
 =============
 CL_FireEvents
 
 called right before draw frame
 =============
-*/
+***/
 void CL_FireEvents (void)
 	{
 	event_state_t	*es;
@@ -275,13 +274,13 @@ void CL_FireEvents (void)
 		}
 	}
 
-/*
+/***
 =============
 CL_FindEvent
 
 find first empty event
 =============
-*/
+***/
 static event_info_t *CL_FindEmptyEvent (void)
 	{
 	int				i;
@@ -303,13 +302,13 @@ static event_info_t *CL_FindEmptyEvent (void)
 	return NULL;
 	}
 
-/*
+/***
 =============
 CL_FindEvent
 
 replace only unreliable events
 =============
-*/
+***/
 static event_info_t *CL_FindUnreliableEvent (void)
 	{
 	event_state_t	*es;
@@ -334,11 +333,11 @@ static event_info_t *CL_FindUnreliableEvent (void)
 	return NULL;
 	}
 
-/*
+/***
 =============
 CL_QueueEvent
 =============
-*/
+***/
 static void CL_QueueEvent (int flags, int index, float delay, event_args_t *args)
 	{
 	event_info_t *ei;
@@ -363,11 +362,11 @@ static void CL_QueueEvent (int flags, int index, float delay, event_args_t *args
 	ei->args = *args;
 	}
 
-/*
+/***
 =============
 CL_ParseReliableEvent
 =============
-*/
+***/
 void CL_ParseReliableEvent (sizebuf_t *msg)
 	{
 	int		event_index;
@@ -391,11 +390,11 @@ void CL_ParseReliableEvent (sizebuf_t *msg)
 	}
 
 
-/*
+/***
 =============
 CL_ParseEvent
 =============
-*/
+***/
 void CL_ParseEvent (sizebuf_t *msg)
 	{
 	int		event_index;
@@ -468,11 +467,11 @@ void CL_ParseEvent (sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 =============
 CL_PlaybackEvent
 =============
-*/
+***/
 void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2)
 	{
@@ -516,3 +515,4 @@ void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word even
 
 	CL_QueueEvent (flags, eventindex, delay, &args);
 	}
+

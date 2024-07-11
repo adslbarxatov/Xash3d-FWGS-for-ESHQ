@@ -1,4 +1,4 @@
-/*
+/***
 cl_scrn.c - refresh screen
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -53,11 +53,11 @@ typedef struct
 static dirty_t	scr_dirty, scr_old_dirty[2];
 static qboolean	scr_init = false;
 
-/*
+/***
 ==============
 SCR_DrawFPS
 ==============
-*/
+***/
 void SCR_DrawFPS (int height)
 	{
 	float			calc;
@@ -120,13 +120,13 @@ void SCR_DrawFPS (int height)
 	Con_DrawString (refState.width - offset - 4, height, fpsstring, color);
 	}
 
-/*
+/***
 ==============
 SCR_DrawPos
 
 Draw local player position, angles and velocity
 ==============
-*/
+***/
 void SCR_DrawPos (void)
 	{
 	static char     msg[MAX_SYSPATH];
@@ -155,13 +155,13 @@ void SCR_DrawPos (void)
 	Con_DrawString (refState.width / 2, 4, msg, color);
 	}
 
-/*
+/***
 ==============
 SCR_NetSpeeds
 
 same as r_speeds but for network channel
 ==============
-*/
+***/
 void SCR_NetSpeeds (void)
 	{
 	static char	msg[MAX_SYSPATH];
@@ -223,11 +223,11 @@ void SCR_NetSpeeds (void)
 	CL_DrawString (x, y, msg, color, font, FONT_DRAW_RESETCOLORONLF);
 	}
 
-/*
+/***
 ================
 SCR_RSpeeds
 ================
-*/
+***/
 void SCR_RSpeeds (void)
 	{
 	char msg[2048];
@@ -250,13 +250,13 @@ void SCR_RSpeeds (void)
 		}
 	}
 
-/*
+/***
 ================
 SCR_MakeLevelShot
 
 creates levelshot at next frame
 ================
-*/
+***/
 void SCR_MakeLevelShot (void)
 	{
 	if (cls.scrshot_request != scrshot_plaque)
@@ -266,13 +266,13 @@ void SCR_MakeLevelShot (void)
 	Cbuf_AddText ("levelshot\n");
 	}
 
-/*
+/***
 ===============
 VID_WriteOverviewScript
 
 Create overview script file
 ===============
-*/
+***/
 static void VID_WriteOverviewScript (void)
 	{
 	ref_overview_t	*ov = &clgame.overView;
@@ -298,13 +298,13 @@ static void VID_WriteOverviewScript (void)
 	FS_Close (f);
 	}
 
-/*
+/***
 ================
 SCR_MakeScreenShot [FWGS, 01.03.24]
 
 create a requested screenshot type
 ================
-*/
+***/
 void SCR_MakeScreenShot (void)
 	{
 	qboolean	iRet = false;
@@ -372,11 +372,11 @@ void SCR_MakeScreenShot (void)
 	cls.shotname[0] = '\0';
 	}
 
-/*
+/***
 ================
 SCR_DrawPlaque
 ================
-*/
+***/
 static void SCR_DrawPlaque (void)
 	{
 	if ((cl_allow_levelshots.value && !cls.changelevel) || cl.background)
@@ -389,11 +389,11 @@ static void SCR_DrawPlaque (void)
 		}
 	}
 
-/*
+/***
 ================
 SCR_BeginLoadingPlaque
 ================
-*/
+***/
 void SCR_BeginLoadingPlaque (qboolean is_background)
 	{
 	float	oldclear = 0;;
@@ -432,22 +432,22 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 		gl_clear.value = oldclear;
 	}
 
-/*
+/***
 ================
 SCR_EndLoadingPlaque
 ================
-*/
+***/
 void SCR_EndLoadingPlaque (void)
 	{
 	cls.disable_screen = 0.0f;
 	Con_ClearNotify ();
 	}
 
-/*
+/***
 =================
 SCR_AddDirtyPoint
 =================
-*/
+***/
 static void SCR_AddDirtyPoint (int x, int y)
 	{
 	if (x < scr_dirty.x1) scr_dirty.x1 = x;
@@ -456,22 +456,22 @@ static void SCR_AddDirtyPoint (int x, int y)
 	if (y > scr_dirty.y2) scr_dirty.y2 = y;
 	}
 
-/*
+/***
 ================
 SCR_DirtyScreen
 ================
-*/
+***/
 void SCR_DirtyScreen (void)
 	{
 	SCR_AddDirtyPoint (0, 0);
 	SCR_AddDirtyPoint (refState.width - 1, refState.height - 1);
 	}
 
-/*
+/***
 ================
 SCR_TileClear
 ================
-*/
+***/
 void SCR_TileClear (void)
 	{
 	int	i, top, bottom, left, right;
@@ -545,14 +545,14 @@ void SCR_TileClear (void)
 		}
 	}
 
-/*
+/***
 ==================
 SCR_UpdateScreen
 
 This is called every frame, and can also be called explicitly to flush
 text to the screen.
 ==================
-*/
+***/
 void SCR_UpdateScreen (void)
 	{
 	if (!V_PreRender ()) return;
@@ -588,13 +588,13 @@ void SCR_UpdateScreen (void)
 
 // [FWGS, 01.04.23] удалены SCR_LoadFixedWidthFont, SCR_LoadVariableWidthFont
 
-/*
+/***
 ================
 SCR_LoadCreditsFont [FWGS, 01.04.23]
 
 INTERNAL RESOURCE
 ================
-*/
+***/
 void SCR_LoadCreditsFont (void)
 	{
 	cl_font_t	*const font = &cls.creditsFont;
@@ -637,13 +637,13 @@ void SCR_LoadCreditsFont (void)
 		}
 	}
 
-/*
+/***
 ================
 SCR_InstallParticlePalette
 
 INTERNAL RESOURCE
 ================
-*/
+***/
 static void SCR_InstallParticlePalette (void)
 	{
 	rgbdata_t	*pic;
@@ -680,13 +680,13 @@ static void SCR_InstallParticlePalette (void)
 		}
 	}
 
-/*
+/***
 ================
 SCR_RegisterTextures [FWGS, 01.02.24]
 
 INTERNAL RESOURCE
 ================
-*/
+***/
 void SCR_RegisterTextures (void)
 	{
 	// register gfx.wad images
@@ -716,35 +716,35 @@ void SCR_RegisterTextures (void)
 	cls.tileImage = ref.dllFuncs.GL_LoadTexture ("gfx/backtile.lmp", NULL, 0, TF_NOMIPMAP);
 	}
 
-/*
+/***
 =================
 SCR_SizeUp_f
 
 Keybinding command
 =================
-*/
+***/
 static void SCR_SizeUp_f (void)
 	{
 	Cvar_SetValue ("viewsize", Q_min (scr_viewsize.value + 10, 120));
 	}
 
-/*
+/***
 =================
 SCR_SizeDown_f
 
 Keybinding command
 =================
-*/
+***/
 static void SCR_SizeDown_f (void)
 	{
 	Cvar_SetValue ("viewsize", Q_max (scr_viewsize.value - 10, 30));
 	}
 
-/*
+/***
 ==================
 SCR_VidInit
 ==================
-*/
+***/
 void SCR_VidInit (void)
 	{
 	if (!ref.initialized)	// don't call VidInit too soon
@@ -778,11 +778,11 @@ void SCR_VidInit (void)
 	Touch_NotifyResize ();	// [FWGS, 01.11.23]
 	}
 
-/*
+/***
 ==================
 SCR_Init [FWGS, 01.07.23]
 ==================
-*/
+***/
 void SCR_Init (void)
 	{
 	if (scr_init)
@@ -849,3 +849,4 @@ void SCR_Shutdown (void)
 
 	scr_init = false;
 	}
+

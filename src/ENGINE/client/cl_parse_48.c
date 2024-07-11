@@ -1,4 +1,4 @@
-/*
+/***
 cl_parse.c - parse a message received from the server
 Copyright (C) 2008 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -22,13 +22,13 @@ GNU General Public License for more details.
 #include "hltv.h"
 #include "input.h"
 
-/*
+/***
 ==================
 CL_ParseStaticEntity
 
 static client entity
 ==================
-*/
+***/
 static void CL_LegacyParseStaticEntity (sizebuf_t *msg)
 	{
 	int		i;
@@ -155,21 +155,18 @@ static void CL_LegacyParseSoundPacket (sizebuf_t *msg, qboolean is_ambient)
 
 	// g-cont. sound and ambient sound have only difference with channel
 	if (is_ambient)
-		{
 		S_AmbientSound (pos, entnum, handle, volume, attn, pitch, flags);
-		}
 	else
-		{
 		S_StartSound (pos, entnum, chan, handle, volume, attn, pitch, flags);
-		}
 	}
-/*
+
+/***
 ================
 CL_PrecacheSound
 
 prceache sound from server
 ================
-*/
+***/
 static void CL_LegacyPrecacheSound (sizebuf_t *msg)
 	{
 	int	soundIndex;
@@ -196,7 +193,6 @@ static void CL_LegacyPrecacheModel (sizebuf_t *msg)
 	if ((modelIndex < 0) || (modelIndex >= MAX_MODELS))
 		Host_Error ("CL_PrecacheModel: bad modelindex %i\n", modelIndex);
 
-	/*Q_strncpy (model, MSG_ReadString (msg), MAX_STRING);*/
 	Q_strncpy (model, MSG_ReadString (msg), sizeof (model));
 
 	// when we loading map all resources is precached sequentially
@@ -234,11 +230,12 @@ static void CL_LegacyPrecacheEvent (sizebuf_t *msg)
 #elif XASH_LOW_MEMORY == 1
 	#define MAX_LEGACY_RESOURCES 512
 #endif
-/*
+
+/***
 ==============
 CL_ParseResourceList [FWGS, 09.05.24]
 ==============
-*/
+***/
 static void CL_LegacyParseResourceList (sizebuf_t *msg)
 	{
 	int	i = 0;
@@ -258,7 +255,6 @@ static void CL_LegacyParseResourceList (sizebuf_t *msg)
 	for (i = 0; i < reslist.rescount; i++)
 		{
 		reslist.restype[i] = MSG_ReadWord (msg);
-		/*Q_strncpy (reslist.resnames[i], MSG_ReadString (msg), MAX_QPATH);*/
 		Q_strncpy (reslist.resnames[i], MSG_ReadString (msg), sizeof (reslist.resnames[i]));
 		}
 
@@ -311,13 +307,13 @@ static void CL_LegacyParseResourceList (sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 =====================
 CL_ParseLegacyServerMessage
 
 dispatch messages
 =====================
-*/
+***/
 void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)
 	{
 	size_t		bufStart, playerbytes;

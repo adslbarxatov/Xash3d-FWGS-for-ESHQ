@@ -1,4 +1,4 @@
-/*
+/***
 client.h - primary header for client
 Copyright (C) 2009 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #ifndef CLIENT_H
 #define CLIENT_H
@@ -226,13 +226,6 @@ typedef struct
 	runcmd_t		commands[MULTIPLAYER_BACKUP];		// each mesage will send several old cmds
 	local_state_t	predicted_frames[MULTIPLAYER_BACKUP];	// local client state
 
-	/*
-	double		time;	// this is the time value that the client
-						// is rendering at.  always <= cls.realtime
-						// a lerp point for other data
-	double		oldtime;	// previous cl.time, time-oldtime is used
-							// to decay light values and smooth step ups
-	*/
 	double		timedelta;		// [FWGS, 01.04.23] floating delta between two updates
 
 	char		serverinfo[MAX_SERVERINFO_STRING];
@@ -286,12 +279,12 @@ typedef struct
 	int lostpackets;		// count lost packets and show dialog in menu
 	} client_t;
 
-/*
+/***
 ==================================================================
 the client_static_t structure is persistant through an arbitrary number
 of server connections
 ==================================================================
-*/
+***/
 typedef enum
 	{
 	scrshot_inactive,
@@ -546,12 +539,7 @@ typedef struct
 	keydest_t		key_dest;
 	poolhandle_t	mempool;		// client premamnent pool: edicts etc
 
-	/*netadr_t		hltv_listen_address;*/
-
 	int				signon;			// 0 to SIGNONS, for the signon sequence
-	/*int				quakePort;		// a 16 bit value that allows quake servers
-	// to work around address translating routers
-	// g-cont. this port allow many copies of engine in multiplayer game*/
 	
 	// connection information
 	char			servername[MAX_QPATH];	// name of server from original connect

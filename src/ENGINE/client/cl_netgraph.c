@@ -1,4 +1,4 @@
-/*
+/***
 cl_netgraph.c - Draw Net statistics (borrowed from Xash3D SDL code)
 Copyright (C) 2016 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -79,13 +79,13 @@ static float		packet_choke;
 static float		framerate = 0.0;
 static int		maxmsgbytes = 0;
 
-/*
+/***
 ==========
 NetGraph_DrawRect
 
 NetGraph_FillRGBA shortcut
 ==========
-*/
+***/
 static void NetGraph_DrawRect (wrect_t *rect, byte colors[4])
 	{
 	ref.dllFuncs.Color4ub (colors[0], colors[1], colors[2], colors[3]);	// color for this quad
@@ -96,13 +96,13 @@ static void NetGraph_DrawRect (wrect_t *rect, byte colors[4])
 	ref.dllFuncs.Vertex3f (rect->left, rect->top + rect->bottom, 0);
 	}
 
-/*
+/***
 ==========
 NetGraph_AtEdge
 
 edge detect
 ==========
-*/
+***/
 static qboolean NetGraph_AtEdge (int x, int width)
 	{
 	if (x > 3)
@@ -114,13 +114,13 @@ static qboolean NetGraph_AtEdge (int x, int width)
 	return true;
 	}
 
-/*
+/***
 ==========
 NetGraph_InitColors
 
 init netgraph colors
 ==========
-*/
+***/
 static void NetGraph_InitColors (void)
 	{
 	byte	mincolor[2][3];
@@ -169,13 +169,13 @@ static void NetGraph_InitColors (void)
 		}
 	}
 
-/*
+/***
 ==========
 NetGraph_GetFrameData
 
 get frame data info, like chokes, packet losses, also update graph, packet and cmdinfo
 ==========
-*/
+***/
 static void NetGraph_GetFrameData (float *latency, int *latency_count)
 	{
 	int		i, choke_count = 0, loss_count = 0;
@@ -252,11 +252,11 @@ static void NetGraph_GetFrameData (float *latency, int *latency_count)
 	packet_choke = PACKETCHOKE_AVG_FRAC * packet_choke + (1.0f - PACKETCHOKE_AVG_FRAC) * choke;
 	}
 
-/*
+/***
 ===========
 NetGraph_DrawTimes
 ===========
-*/
+***/
 static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 	{
 	int	i, j, extrap_point = NETGRAPH_LERP_HEIGHT / 3, a, h;
@@ -330,11 +330,11 @@ static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 		}
 	}
 
-/*
+/***
 ===========
 NetGraph_DrawHatches
 ===========
-*/
+***/
 static void NetGraph_DrawHatches (int x, int y)
 	{
 	int		ystep = (int)(10.0f / net_scale.value);
@@ -359,11 +359,11 @@ static void NetGraph_DrawHatches (int x, int y)
 		}
 	}
 
-/*
+/***
 ===========
 NetGraph_DrawTextFields
 ===========
-*/
+***/
 static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int count, float avg,
 	int packet_loss, int packet_choke, int graphtype)
 	{
@@ -443,11 +443,11 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 	CL_DrawStringf (font, ptx, last_y, colors, FONT_DRAW_NORENDERMODE, "%i/s", (int)cl_updaterate.value);
 	}
 
-/*
+/***
 ===========
 NetGraph_DrawDataSegment
 ===========
-*/
+***/
 static int NetGraph_DrawDataSegment (wrect_t *fill, int bytes, byte r, byte g, byte b, byte a)
 	{
 	float	h = bytes / net_scale.value;
@@ -468,13 +468,13 @@ static int NetGraph_DrawDataSegment (wrect_t *fill, int bytes, byte r, byte g, b
 	return 0;
 	}
 
-/*
+/***
 ===========
 NetGraph_ColorForHeight
 
 color based on packet latency
 ===========
-*/
+***/
 static void NetGraph_ColorForHeight (struct packet_latency_t *packet, byte color[4], int *ping)
 	{
 	switch (packet->latency)
@@ -507,11 +507,11 @@ static void NetGraph_ColorForHeight (struct packet_latency_t *packet, byte color
 		}
 	}
 
-/*
+/***
 ===========
 NetGraph_DrawDataUsage
 ===========
-*/
+***/
 static void NetGraph_DrawDataUsage (int x, int y, int w, int graphtype)
 	{
 	int	a, i, h, lastvalidh = 0, ping;
@@ -620,11 +620,11 @@ static void NetGraph_DrawDataUsage (int x, int y, int w, int graphtype)
 		NetGraph_DrawHatches (x, y - net_graphheight.value - 1);
 	}
 
-/*
+/***
 ===========
 NetGraph_GetScreenPos
 ===========
-*/
+***/
 static void NetGraph_GetScreenPos (wrect_t *rect, int *w, int *x, int *y)
 	{
 	rect->left = rect->top = 0;
@@ -652,11 +652,11 @@ static void NetGraph_GetScreenPos (wrect_t *rect, int *w, int *x, int *y)
 	*y = rect->bottom + rect->top - NETGRAPH_LERP_HEIGHT - 5;
 	}
 
-/*
+/***
 ===========
 SCR_DrawNetGraph
 ===========
-*/
+***/
 void SCR_DrawNetGraph (void)
 	{
 	wrect_t	rect;
@@ -723,3 +723,4 @@ void CL_InitNetgraph (void)
 	packet_loss = packet_choke = 0.0;
 	NetGraph_InitColors ();
 	}
+

@@ -1,4 +1,4 @@
-/*
+/***
 cl_frame.c - client world snapshot
 Copyright (C) 2008 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -24,30 +24,30 @@ GNU General Public License for more details.
 #include "sound.h"
 #include "input.h"
 
-/*
+/***
 ==================
 CL_IsPlayerIndex
 
 detect player entity
 ==================
-*/
+***/
 qboolean CL_IsPlayerIndex (int idx)
 	{
 	return ((idx >= 1) && (idx <= cl.maxclients));
 	}
 
-/*
+/***
 =========================================================================
 FRAME INTERPOLATION
 =========================================================================
-*/
-/*
+***/
+/***
 ==================
 CL_UpdatePositions [FWGS, 01.01.24]
 
 Store another position into interpolation circular buffer
 ==================
-*/
+***/
 static void CL_UpdatePositions (cl_entity_t *ent)
 	{
 	position_history_t *ph, *prev;
@@ -73,13 +73,13 @@ static void CL_UpdatePositions (cl_entity_t *ent)
 		}
 	}
 
-/*
+/***
 ==================
 CL_ResetPositions
 
 Interpolation init or reset after teleporting
 ==================
-*/
+***/
 static void CL_ResetPositions (cl_entity_t *ent)
 	{
 	position_history_t	store;
@@ -95,14 +95,14 @@ static void CL_ResetPositions (cl_entity_t *ent)
 	memcpy (&ent->ph[0], &store, sizeof (position_history_t));
 	}
 
-/*
+/***
 ==================
 CL_EntityTeleported
 
 check for instant movement in case
 we don't want interpolate this
 ==================
-*/
+***/
 static qboolean CL_EntityTeleported (cl_entity_t *ent)
 	{
 	float	len, maxlen;
@@ -117,13 +117,13 @@ static qboolean CL_EntityTeleported (cl_entity_t *ent)
 	return (len > maxlen);
 	}
 
-/*
+/***
 ==================
 CL_CompareTimestamps
 
 round-off floating errors
 ==================
-*/
+***/
 static qboolean CL_CompareTimestamps (float t1, float t2)
 	{
 	int	iTime1 = t1 * 1000;
@@ -132,13 +132,13 @@ static qboolean CL_CompareTimestamps (float t1, float t2)
 	return ((iTime1 - iTime2) <= 1);
 	}
 
-/*
+/***
 ==================
 CL_EntityIgnoreLerp
 
 some ents will be ignore lerping
 ==================
-*/
+***/
 static qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
 	{
 	if (cl_nointerp.value > 0.0f)
@@ -150,11 +150,11 @@ static qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
 	return (e->curstate.movetype == MOVETYPE_NONE) ? true : false;
 	}
 
-/*
+/***
 ==================
 CL_EntityCustomLerp
 ==================
-*/
+***/
 static qboolean CL_EntityCustomLerp (cl_entity_t *e)
 	{
 	switch (e->curstate.movetype)
@@ -177,13 +177,13 @@ static qboolean CL_EntityCustomLerp (cl_entity_t *e)
 	return true;
 	}
 
-/*
+/***
 ==================
 CL_ParametricMove [FWGS, 01.01.24]
 
 check for parametrical moved entities
 ==================
-*/
+***/
 static qboolean CL_ParametricMove (cl_entity_t *ent)
 	{
 	float	frac, dt, t;
@@ -216,11 +216,11 @@ static qboolean CL_ParametricMove (cl_entity_t *ent)
 	return true;
 	}
 
-/*
+/***
 ====================
 CL_UpdateLatchedVars
 ====================
-*/
+***/
 static void CL_UpdateLatchedVars (cl_entity_t *ent)
 	{
 	if (!ent->model || ((ent->model->type != mod_alias) && (ent->model->type != mod_studio)))
@@ -248,11 +248,11 @@ static void CL_UpdateLatchedVars (cl_entity_t *ent)
 		clgame.drawFuncs.CL_UpdateLatchedVars (ent, false);
 	}
 
-/*
+/***
 ====================
 CL_GetStudioEstimatedFrame [FWGS, 01.05.23]
 ====================
-*/
+***/
 static float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
 	{
 	studiohdr_t			*pstudiohdr;
@@ -274,11 +274,11 @@ static float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
 	return 0;
 	}
 
-/*
+/***
 ====================
 CL_ResetLatchedVars
 ====================
-*/
+***/
 void CL_ResetLatchedVars (cl_entity_t *ent, qboolean full_reset)
 	{
 	if (!ent->model || ((ent->model->type != mod_alias) && (ent->model->type != mod_studio)))
@@ -307,13 +307,13 @@ void CL_ResetLatchedVars (cl_entity_t *ent, qboolean full_reset)
 		clgame.drawFuncs.CL_UpdateLatchedVars (ent, true);
 	}
 
-/*
+/***
 ==================
 CL_ProcessEntityUpdate
 
 apply changes since new frame received
 ==================
-*/
+***/
 static void CL_ProcessEntityUpdate (cl_entity_t *ent)
 	{
 	qboolean	parametric;
@@ -353,13 +353,13 @@ static void CL_ProcessEntityUpdate (cl_entity_t *ent)
 	VectorCopy (ent->origin, ent->attachment[3]);
 	}
 
-/*
+/***
 ==================
 CL_FindInterpolationUpdates [FWGS, 01.01.24]
 
 find two timestamps
 ==================
-*/
+***/
 static qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, double targettime, position_history_t **ph0,
 	position_history_t **ph1)
 	{
@@ -394,13 +394,13 @@ static qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, double targettime
 	return extrapolate;
 	}
 
-/*
+/***
 ==================
 CL_PureOrigin [FWGS, 01.01.24]
 
 non-local players interpolation
 ==================
-*/
+***/
 static void CL_PureOrigin (cl_entity_t *ent, double t, vec3_t outorigin, vec3_t outangles)
 	{
 	double			t1, t0, frac;
@@ -443,13 +443,13 @@ static void CL_PureOrigin (cl_entity_t *ent, double t, vec3_t outorigin, vec3_t 
 		}
 	}
 
-/*
+/***
 ==================
 CL_InterpolateModel [FWGS, 01.01.24]
 
 non-players interpolation
 ==================
-*/
+***/
 static int CL_InterpolateModel (cl_entity_t *e)
 	{
 	position_history_t *ph0 = NULL, *ph1 = NULL;
@@ -531,13 +531,13 @@ static int CL_InterpolateModel (cl_entity_t *e)
 	return 1;
 	}
 
-/*
+/***
 =============
 CL_ComputePlayerOrigin [FWGS, 01.01.24]
 
 interpolate non-local clients
 =============
-*/
+***/
 void CL_ComputePlayerOrigin (cl_entity_t *ent)
 	{
 	double	targettime;
@@ -573,13 +573,13 @@ void CL_ComputePlayerOrigin (cl_entity_t *ent)
 	VectorCopy (origin, ent->origin);
 	}
 
-/*
+/***
 =================
 CL_ProcessPlayerState
 
 process player states after the new packet has received
 =================
-*/
+***/
 static void CL_ProcessPlayerState (int playerindex, entity_state_t *state)
 	{
 	entity_state_t *ps;
@@ -592,14 +592,14 @@ static void CL_ProcessPlayerState (int playerindex, entity_state_t *state)
 	clgame.dllFuncs.pfnProcessPlayerState (ps, state);
 	}
 
-/*
+/***
 =================
 CL_ResetLatchedState
 
 reset latched state if this frame entity was teleported
 or just EF_NOINTERP was set
 =================
-*/
+***/
 static void CL_ResetLatchedState (int pnum, frame_t *frame, cl_entity_t *ent)
 	{
 	if (CHECKVISBIT (frame->flags, pnum))
@@ -616,13 +616,13 @@ static void CL_ResetLatchedState (int pnum, frame_t *frame, cl_entity_t *ent)
 		}
 	}
 
-/*
+/***
 =================
 CL_ProcessPacket
 
 process player states after the new packet has received
 =================
-*/
+***/
 void CL_ProcessPacket (frame_t *frame)
 	{
 	entity_state_t	*state;
@@ -658,11 +658,11 @@ void CL_ProcessPacket (frame_t *frame)
 		}
 	}
 
-/*
+/***
 =========================================================================
 FRAME PARSING
 =========================================================================
-*/
+***/
 
 // [FWGS, 01.05.23]
 static qboolean CL_ParseEntityNumFromPacket (sizebuf_t *msg, int *newnum)
@@ -682,13 +682,13 @@ static qboolean CL_ParseEntityNumFromPacket (sizebuf_t *msg, int *newnum)
 
 	return true;
 	}
-/*
+/***
 =================
 CL_FlushEntityPacket
 
 Read and ignore whole entity packet
 =================
-*/
+***/
 static void CL_FlushEntityPacket (sizebuf_t *msg)
 	{
 	int		newnum;
@@ -713,13 +713,13 @@ static void CL_FlushEntityPacket (sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 =================
 CL_DeltaEntity
 
 processing delta update
 =================
-*/
+***/
 static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_state_t *old, qboolean has_update)
 	{
 	cl_entity_t		*ent;
@@ -770,14 +770,14 @@ static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_s
 	frame->num_entities++;
 	}
 
-/*
+/***
 ==================
 CL_ParsePacketEntities
 
 An svc_packetentities has just been parsed, deal with the
 rest of the data stream.
 ==================
-*/
+***/
 int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 	{
 	frame_t *newframe, *oldframe;
@@ -970,18 +970,18 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 	return playerbytes;
 	}
 
-/*
+/***
 ==========================================================================
 INTERPOLATE BETWEEN FRAMES TO GET RENDERING PARMS
 ==========================================================================
-*/
-/*
+***/
+/***
 =============
 CL_AddVisibleEntity
 
 all the visible entities should pass this filter
 =============
-*/
+***/
 qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 	{
 	qboolean draw_player = true;	// [FWGS, 01.05.23]
@@ -1039,13 +1039,13 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 	return true;
 	}
 
-/*
+/***
 =============
 CL_LinkCustomEntity
 
 Add server beam to draw list
 =============
-*/
+***/
 static void CL_LinkCustomEntity (cl_entity_t *ent, entity_state_t *state)
 	{
 	ent->curstate.movetype = state->modelindex; // !!!
@@ -1061,14 +1061,14 @@ static void CL_LinkCustomEntity (cl_entity_t *ent, entity_state_t *state)
 	CL_AddVisibleEntity (ent, ET_BEAM);
 	}
 
-/*
+/***
 =============
 CL_LinkPlayers
 
 Create visible entities in the correct position
 for all current players
 =============
-*/
+***/
 static void CL_LinkPlayers (frame_t *frame)
 	{
 	entity_state_t	*state;
@@ -1147,11 +1147,11 @@ static void CL_LinkPlayers (frame_t *frame)
 		CL_AddEntityEffects (CL_GetLocalPlayer ());
 	}
 
-/*
+/***
 ===============
 CL_LinkPacketEntities
 ===============
-*/
+***/
 static void CL_LinkPacketEntities (frame_t *frame)
 	{
 	cl_entity_t		*ent;
@@ -1327,13 +1327,13 @@ static void CL_LinkPacketEntities (frame_t *frame)
 		}
 	}
 
-/*
+/***
 ===============
 CL_MoveThirdpersonCamera
 
 think thirdperson
 ===============
-*/
+***/
 void CL_MoveThirdpersonCamera (void)
 	{
 	if (cls.state == ca_disconnected || cls.state == ca_cinematic)
@@ -1343,14 +1343,14 @@ void CL_MoveThirdpersonCamera (void)
 	clgame.dllFuncs.CAM_Think ();
 	}
 
-/*
+/***
 ===============
 CL_EmitEntities
 
 add visible entities to refresh list
 process frame interpolation etc
 ===============
-*/
+***/
 void CL_EmitEntities (void)
 	{
 	if (cl.paused) return; // don't waste time
@@ -1399,13 +1399,13 @@ void CL_EmitEntities (void)
 	CL_TestLights ();
 	}
 
-/*
+/***
 ==========================================================================
 
 SOUND ENGINE IMPLEMENTATION
 
 ==========================================================================
-*/
+***/
 qboolean CL_GetEntitySpatialization (channel_t *ch)
 	{
 	cl_entity_t *ent;
@@ -1471,3 +1471,4 @@ qboolean CL_GetMovieSpatialization (rawchan_t *ch)
 	}
 
 // [FWGS, 01.02.24] удалена CL_ExtraUpdate
+

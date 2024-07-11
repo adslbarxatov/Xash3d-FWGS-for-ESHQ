@@ -1,4 +1,4 @@
-/*
+/***
 cdll_exp.h - exports for client
 Copyright (C) 2013 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #ifndef CDLL_EXP_H
 #define CDLL_EXP_H

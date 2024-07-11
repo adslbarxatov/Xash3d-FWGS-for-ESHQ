@@ -1,4 +1,4 @@
-/*
+/***
 cl_qparse.c - parse a message received from the Quake demo
 Copyright (C) 2018 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -43,24 +43,24 @@ static char	cmd_buf[8192];
 static char	msg_buf[8192];
 static sizebuf_t	msg_demo;
 
-/*
+/***
 ==================
 CL_DispatchQuakeMessage
 ==================
-*/
+***/
 static void CL_DispatchQuakeMessage (const char *name)
 	{
 	CL_DispatchUserMessage (name, msg_demo.iCurBit >> 3, msg_demo.pData);
 	MSG_Clear (&msg_demo); // don't forget to clear buffer
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeStats
 
 redirect to qwrap->client
 ==================
-*/
+***/
 static void CL_ParseQuakeStats (sizebuf_t *msg)
 	{
 	MSG_WriteByte (&msg_demo, MSG_ReadByte (msg));	// stat num
@@ -68,14 +68,14 @@ static void CL_ParseQuakeStats (sizebuf_t *msg)
 	CL_DispatchQuakeMessage ("Stats");
 	}
 
-/*
+/***
 ==================
 CL_EntityTeleported
 
 check for instant movement in case
 we don't want interpolate this
 ==================
-*/
+***/
 static qboolean CL_QuakeEntityTeleported (cl_entity_t *ent, entity_state_t *newstate)
 	{
 	float	len, maxlen;
@@ -90,13 +90,13 @@ static qboolean CL_QuakeEntityTeleported (cl_entity_t *ent, entity_state_t *news
 	return (len > maxlen);
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeStats
 
 redirect to qwrap->client
 ==================
-*/
+***/
 static int CL_UpdateQuakeStats (sizebuf_t *msg, int statnum, qboolean has_update)
 	{
 	int 	value = 0;
@@ -116,28 +116,28 @@ static int CL_UpdateQuakeStats (sizebuf_t *msg, int statnum, qboolean has_update
 	return value;
 	}
 
-/*
+/***
 ==================
 CL_UpdateQuakeGameMode
 
 redirect to qwrap->client
 ==================
-*/
+***/
 static void CL_UpdateQuakeGameMode (int gamemode)
 	{
 	MSG_WriteByte (&msg_demo, gamemode);
 	CL_DispatchQuakeMessage ("GameMode");
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeSound
 ==================
-*/
+***/
 static void CL_ParseQuakeSound (sizebuf_t *msg)
 	{
 	int 	channel, sound;
-	int	flags, entnum;
+	int		flags, entnum;
 	float 	volume, attn;
 	sound_t	handle;
 	vec3_t	pos;
@@ -172,11 +172,11 @@ static void CL_ParseQuakeSound (sizebuf_t *msg)
 	S_StartSound (pos, entnum, channel, handle, volume, attn, PITCH_NORM, flags);
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeServerInfo [FWGS, 09.05.24]
 ==================
-*/
+***/
 static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	{
 	resource_t *pResource;
@@ -211,7 +211,6 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	clgame.maxEntities = GI->max_edicts;
 	clgame.maxEntities = bound (600, clgame.maxEntities, MAX_EDICTS);
 	clgame.maxModels = MAX_MODELS;
-	/*Q_strncpy (clgame.maptitle, MSG_ReadString (msg), MAX_STRING);*/
 	Q_strncpy (clgame.maptitle, MSG_ReadString (msg), sizeof (clgame.maptitle));
 
 	// Re-init hud video, especially if we changed game directories
@@ -277,7 +276,9 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		pResource->type = t_model;
 
 		Q_strncpy (pResource->szFileName, pResName, sizeof (pResource->szFileName));
-		if (i == 1) Q_strncpy (clgame.mapname, pResName, sizeof (clgame.mapname));
+		if (i == 1)
+			Q_strncpy (clgame.mapname, pResName, sizeof (clgame.mapname));
+
 		pResource->nDownloadSize = -1;
 		pResource->nIndex = i;
 
@@ -344,11 +345,11 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	memcpy (&clgame.oldmovevars, &clgame.movevars, sizeof (movevars_t));
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeClientData
 ==================
-*/
+***/
 static void CL_ParseQuakeClientData (sizebuf_t *msg)
 	{
 	int	i, bits = MSG_ReadWord (msg);
@@ -417,7 +418,7 @@ static void CL_ParseQuakeClientData (sizebuf_t *msg)
 	CL_UpdateQuakeStats (msg, STAT_ACTIVEWEAPON, true);
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeEntityData
 
@@ -425,7 +426,7 @@ Parse an entity update message from the server
 If an entities model or origin changes from frame to frame, it must be
 relinked.  Other attributes can change without relinking.
 ==================
-*/
+***/
 static void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 	{
 	int				i, newnum, pack;
@@ -586,11 +587,11 @@ static void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 	frame->num_entities++;
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeParticles
 ==================
-*/
+***/
 static void CL_ParseQuakeParticle (sizebuf_t *msg)
 	{
 	int	count, color;
@@ -608,11 +609,11 @@ static void CL_ParseQuakeParticle (sizebuf_t *msg)
 	R_RunParticleEffect (org, dir, color, count);
 	}
 
-/*
+/***
 ===================
 CL_ParseQuakeStaticSound
 ===================
-*/
+***/
 static void CL_ParseQuakeStaticSound (sizebuf_t *msg)
 	{
 	int		sound_num;
@@ -627,13 +628,13 @@ static void CL_ParseQuakeStaticSound (sizebuf_t *msg)
 	S_StartSound (org, 0, CHAN_STATIC, cl.sound_index[sound_num], vol, attn, PITCH_NORM, 0);
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeDamage
 
 redirect to qwrap->client
 ==================
-*/
+***/
 static void CL_ParseQuakeDamage (sizebuf_t *msg)
 	{
 	MSG_WriteByte (&msg_demo, MSG_ReadByte (msg));	// armor
@@ -644,11 +645,11 @@ static void CL_ParseQuakeDamage (sizebuf_t *msg)
 	CL_DispatchQuakeMessage ("Damage");
 	}
 
-/*
+/***
 ===================
 CL_ParseQuakeStaticEntity
 ===================
-*/
+***/
 static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	{
 	entity_state_t	state;
@@ -707,11 +708,11 @@ static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	R_AddEfrags (ent);	// add link
 	}
 
-/*
+/***
 ===================
 CL_ParseQuakeBaseline [FWGS, 01.11.23]
 ===================
-*/
+***/
 static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	{
 	entity_state_t	state;
@@ -743,11 +744,11 @@ static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	memcpy (&ent->prevstate, &state, sizeof (entity_state_t));
 	}
 
-/*
+/***
 ===================
 CL_ParseQuakeTempEntity
 ===================
-*/
+***/
 static void CL_ParseQuakeTempEntity (sizebuf_t *msg)
 	{
 	int	type = MSG_ReadByte (msg);
@@ -789,13 +790,13 @@ static void CL_ParseQuakeTempEntity (sizebuf_t *msg)
 	CL_DispatchQuakeMessage ("TempEntity");
 	}
 
-/*
+/***
 ===================
 CL_ParseQuakeSignon
 
 very important message
 ===================
-*/
+***/
 static void CL_ParseQuakeSignon (sizebuf_t *msg)
 	{
 	int	i = MSG_ReadByte (msg);
@@ -804,13 +805,13 @@ static void CL_ParseQuakeSignon (sizebuf_t *msg)
 	Con_Reportf ("CL_Signon: %d\n", i);
 	}
 
-/*
+/***
 ==================
 CL_ParseNehahraShowLMP
 
 redirect to qwrap->client
 ==================
-*/
+***/
 static void CL_ParseNehahraShowLMP (sizebuf_t *msg)
 	{
 	MSG_WriteString (&msg_demo, MSG_ReadString (msg));
@@ -820,24 +821,24 @@ static void CL_ParseNehahraShowLMP (sizebuf_t *msg)
 	CL_DispatchQuakeMessage ("Stats");
 	}
 
-/*
+/***
 ==================
 CL_ParseNehahraHideLMP
 
 redirect to qwrap->client
 ==================
-*/
+***/
 static void CL_ParseNehahraHideLMP (sizebuf_t *msg)
 	{
 	MSG_WriteString (&msg_demo, MSG_ReadString (msg));
 	CL_DispatchQuakeMessage ("Stats");
 	}
 
-/*
+/***
 ==================
 CL_QuakeStuffText
 ==================
-*/
+***/
 static void CL_QuakeStuffText (const char *text)
 	{
 	Q_strncat (cmd_buf, text, sizeof (cmd_buf));
@@ -847,11 +848,11 @@ static void CL_QuakeStuffText (const char *text)
 	Cbuf_AddText (text);
 	}
 
-/*
+/***
 ==================
 CL_QuakeExecStuff
 ==================
-*/
+***/
 static void CL_QuakeExecStuff (void)
 	{
 	char	*text = cmd_buf;
@@ -902,11 +903,11 @@ static void CL_QuakeExecStuff (void)
 	cmd_buf[0] = '\0';
 	}
 
-/*
+/***
 ==================
 CL_ParseQuakeMessage
 ==================
-*/
+***/
 void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)
 	{
 	int		cmd, param1, param2;

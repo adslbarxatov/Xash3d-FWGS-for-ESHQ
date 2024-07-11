@@ -1,4 +1,4 @@
-/*
+/***
 cl_cmds.c - client console commnds
 Copyright (C) 2007 Uncle Mike
 
@@ -11,17 +11,17 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 #include "common.h"
 #include "client.h"
 
-/*
+/***
 ====================
 CL_PlayVideo_f
 
 movie <moviename>
 ====================
-*/
+***/
 void CL_PlayVideo_f (void)
 	{
 	string	path;
@@ -51,13 +51,13 @@ void CL_PlayVideo_f (void)
 		}
 	}
 
-/*
+/***
 ===============
 CL_PlayCDTrack_f
 
 Emulate audio-cd system
 ===============
-*/
+***/
 void CL_PlayCDTrack_f (void)
 	{
 	const char *command;
@@ -179,11 +179,11 @@ void CL_PlayCDTrack_f (void)
 		}
 	}
 
-/*
+/***
 ==================
 CL_ScreenshotGetName [FWGS, 01.02.24]
 ==================
-*/
+***/
 static qboolean CL_ScreenshotGetName (const char *fmt, int lastnum, char *filename, size_t size)
 	{
 	if ((lastnum < 0) || (lastnum > 9999))
@@ -192,143 +192,21 @@ static qboolean CL_ScreenshotGetName (const char *fmt, int lastnum, char *filena
 	return (Q_snprintf (filename, size, fmt, clgame.mapname, lastnum) > 0);
 	}
 
-/*
+/***
 ==============================================================================
 SCREEN SHOTS
 ==============================================================================
-*/
+***/
 
-// [FWGS, 01.02.24]
-/*
-==================
-CL_ScreenShot_f
+// [FWGS, 01.02.24] removed CL_ScreenShot_f, CL_SnapShot_f, CL_EnvShot_f, CL_SkyShot_f
 
-normal screenshot
-==================
-//
-void CL_ScreenShot_f (void)
-	{
-	int	i;
-	string	checkname;
-
-	if (CL_IsDevOverviewMode () == 1)
-		{
-		// special case for write overview image and script file
-		Q_snprintf (cls.shotname, sizeof (cls.shotname), "overviews/%s.bmp", clgame.mapname);
-		cls.scrshot_action = scrshot_mapshot; // build new frame for mapshot
-		}
-	else
-		{
-		// scan for a free filename
-		for (i = 0; i < 9999; i++)
-			{
-			if (!CL_ScreenshotGetName (i, checkname, sizeof (checkname)))	// [FWGS, 01.05.23]
-				return;	// no namespace
-
-			if (!FS_FileExists (checkname, true))	// [FWGS, 01.11.23]
-				break;
-			}
-
-		Q_strncpy (cls.shotname, checkname, sizeof (cls.shotname));
-		cls.scrshot_action = scrshot_normal; // build new frame for screenshot
-		}
-
-	cls.envshot_vieworg = NULL; // no custom view
-	cls.envshot_viewsize = 0;
-	}
-
-//
-==================
-CL_SnapShot_f
-
-save screenshots into root dir
-==================
-//
-void CL_SnapShot_f (void)
-	{
-	int	i;
-	string	checkname;
-
-	if (CL_IsDevOverviewMode () == 1)
-		{
-		// special case for write overview image and script file
-		Q_snprintf (cls.shotname, sizeof (cls.shotname), "overviews/%s.bmp", clgame.mapname);
-		cls.scrshot_action = scrshot_mapshot; // build new frame for mapshot
-		}
-	else
-		{
-		FS_AllowDirectPaths (true);
-
-		// scan for a free filename
-		for (i = 0; i < 9999; i++)
-			{
-			if (!CL_SnapshotGetName (i, checkname, sizeof (checkname)))	// [FWGS, 01.05.23]
-				return;	// no namespace
-
-			if (!FS_FileExists (checkname, true))	// [FWGS, 01.11.23]
-				break;
-			}
-
-		FS_AllowDirectPaths (false);
-		Q_strncpy (cls.shotname, checkname, sizeof (cls.shotname));
-		cls.scrshot_action = scrshot_snapshot; // build new frame for screenshot
-		}
-
-	cls.envshot_vieworg = NULL; // no custom view
-	cls.envshot_viewsize = 0;
-	}
-
-//
-==================
-CL_EnvShot_f
-
-cubemap view
-==================
-//
-void CL_EnvShot_f (void)
-	{
-	if (Cmd_Argc () < 2)
-		{
-		Con_Printf (S_USAGE "envshot <shotname>\n");
-		return;
-		}
-
-	Q_snprintf (cls.shotname, sizeof (cls.shotname), "gfx/env/%s", Cmd_Argv (1));	// [FWGS, 01.05.23]
-
-	cls.scrshot_action = scrshot_envshot;	// build new frame for envshot
-	cls.envshot_vieworg = NULL; // no custom view
-	cls.envshot_viewsize = 0;
-	}
-
-//
-==================
-CL_SkyShot_f
-
-skybox view
-==================
-//
-void CL_SkyShot_f (void)
-	{
-	if (Cmd_Argc () < 2)
-		{
-		Con_Printf (S_USAGE "skyshot <shotname>\n");
-		return;
-		}
-
-	Q_snprintf (cls.shotname, sizeof (cls.shotname), "gfx/env/%s", Cmd_Argv (1));	// [FWGS, 01.05.23]
-
-	cls.scrshot_action = scrshot_skyshot;	// build new frame for skyshot
-	cls.envshot_vieworg = NULL; // no custom view
-	cls.envshot_viewsize = 0;
-	}*/
-
-/*
+/***
 ==================
 CL_LevelShot_f
 
 splash logo while map is loading
 ==================
-*/
+***/
 void CL_LevelShot_f (void)
 	{
 	size_t	ft1, ft2;
@@ -471,12 +349,11 @@ void CL_GenericShot_f (void)
 	cls.envshot_viewsize = 0;
 	}
 
-/*
+/***
 ==============
 CL_DeleteDemo_f
-
 ==============
-*/
+***/
 void CL_DeleteDemo_f (void)
 	{
 	if (Cmd_Argc () != 2)
@@ -495,13 +372,13 @@ void CL_DeleteDemo_f (void)
 	FS_Delete (va ("%s.dem", Cmd_Argv (1)));
 	}
 
-/*
+/***
 =================
 CL_SetSky_f
 
 Set a specified skybox (only for local clients)
 =================
-*/
+***/
 void CL_SetSky_f (void)
 	{
 	if (Cmd_Argc () < 2)
@@ -513,25 +390,24 @@ void CL_SetSky_f (void)
 	ref.dllFuncs.R_SetupSky (Cmd_Argv (1));
 	}
 
-/*
+/***
 =============
 SCR_Viewpos_f
 
 viewpos (level-designer helper)
 =============
-*/
+***/
 void SCR_Viewpos_f (void)
 	{
 	Con_Printf ("org ( %g %g %g )\n", refState.vieworg[0], refState.vieworg[1], refState.vieworg[2]);
 	Con_Printf ("ang ( %g %g %g )\n", refState.viewangles[0], refState.viewangles[1], refState.viewangles[2]);
 	}
 
-/*
+/***
 =============
 CL_WavePlayLen_f
-
 =============
-*/
+***/
 void CL_WavePlayLen_f (void)
 	{
 	const char *name;

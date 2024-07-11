@@ -1,4 +1,4 @@
-/*
+/***
 cl_video.c - avi video player
 Copyright (C) 2009 Uncle Mike
 
@@ -11,16 +11,16 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
 
-/*
+/***
 =================================================================
 AVI PLAYING
 =================================================================
-*/
+***/
 
 static int		xres, yres;
 static float	video_duration;
@@ -29,14 +29,14 @@ static int		cin_frame;
 static wavdata_t	cin_audio;
 static movie_state_t	*cin_state;
 
-/*
+/***
 ==================
 SCR_NextMovie
 
 Called when a demo or cinematic finishes
 If the "nextmovie" cvar is set, that command will be issued
 ==================
-*/
+***/
 qboolean SCR_NextMovie (void)
 	{
 	string	str;
@@ -123,11 +123,11 @@ void SCR_CheckStartupVids (void)
 	Cbuf_Execute ();
 	}
 
-/*
+/***
 ==================
 SCR_RunCinematic
 ==================
-*/
+***/
 void SCR_RunCinematic (void)
 	{
 	if (cls.state != ca_cinematic)
@@ -166,14 +166,14 @@ void SCR_RunCinematic (void)
 	cin_frame = AVI_GetVideoFrameNumber (cin_state, cin_time);
 	}
 
-/*
+/***
 ==================
 SCR_DrawCinematic
 
 Returns true if a cinematic is active, meaning the view rendering
 should be skipped
 ==================
-*/
+***/
 qboolean SCR_DrawCinematic (void)
 	{
 	static int	last_frame = -1;
@@ -195,11 +195,11 @@ qboolean SCR_DrawCinematic (void)
 	return true;
 	}
 
-/*
+/***
 ==================
 SCR_PlayCinematic
 ==================
-*/
+***/
 qboolean SCR_PlayCinematic (const char *arg)
 	{
 	// [FWGS, 01.01.24]
@@ -259,11 +259,11 @@ wavdata_t *SCR_GetMovieInfo (void)
 	return NULL;
 	}
 
-/*
+/***
 ==================
 SCR_StopCinematic
 ==================
-*/
+***/
 void SCR_StopCinematic (void)
 	{
 	if (cls.state != ca_cinematic)
@@ -279,22 +279,22 @@ void SCR_StopCinematic (void)
 	UI_SetActiveMenu (true);
 	}
 
-/*
+/***
 ==================
 SCR_InitCinematic
 ==================
-*/
+***/
 void SCR_InitCinematic (void)
 	{
 	AVI_Initailize ();
 	cin_state = AVI_GetState (CIN_MAIN);
 	}
 
-/*
+/***
 ==================
 SCR_FreeCinematic
 ==================
-*/
+***/
 void SCR_FreeCinematic (void)
 	{
 	movie_state_t *cin_state;

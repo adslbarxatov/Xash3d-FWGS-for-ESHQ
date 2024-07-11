@@ -8,11 +8,11 @@
 #include "pm_local.h"
 #define PART_SIZE	Q_max(0.5f, cl_draw_particles.value)	// [FWGS, 01.07.23]
 
-/*
+/***
 ==============================================================
 PARTICLES MANAGEMENT
 ==============================================================
-*/
+***/
 // particle ramps
 static int ramp1[8] = { 0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61 };
 static int ramp2[8] = { 0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66 };
@@ -31,13 +31,13 @@ particle_t *cl_particles = NULL;	// particle pool
 static vec3_t	cl_avelocities[NUMVERTEXNORMALS];
 static float	cl_lasttimewarn = 0.0f;
 
-/*
+/***
 ================
 R_LookupColor
 
 find nearest color in particle palette
 ================
-*/
+***/
 short GAME_EXPORT R_LookupColor (byte r, byte g, byte b)
 	{
 	int	i, best;
@@ -66,24 +66,24 @@ short GAME_EXPORT R_LookupColor (byte r, byte g, byte b)
 	return best;
 	}
 
-/*
+/***
 ================
 R_GetPackedColor
 
 in hardware mode does nothing
 ================
-*/
+***/
 void GAME_EXPORT R_GetPackedColor (short *packed, short color)
 	{
 	if (packed)
 		*packed = 0;
 	}
 
-/*
+/***
 ================
 CL_InitParticles
 ================
-*/
+***/
 void CL_InitParticles (void)
 	{
 	int	i;
@@ -105,11 +105,11 @@ void CL_InitParticles (void)
 	Cvar_RegisterVariable (&traceroffset);
 	}
 
-/*
+/***
 ================
 CL_ClearParticles
 ================
-*/
+***/
 void CL_ClearParticles (void)
 	{
 	int	i;
@@ -127,11 +127,11 @@ void CL_ClearParticles (void)
 	cl_particles[GI->max_particles - 1].next = NULL;
 	}
 
-/*
+/***
 ================
 CL_FreeParticles
 ================
-*/
+***/
 void CL_FreeParticles (void)
 	{
 	if (cl_particles)
@@ -141,13 +141,13 @@ void CL_FreeParticles (void)
 
 // [FWGS, 01.05.23] удалена CL_FreeParticle
 
-/*
+/***
 ================
 CL_AllocParticleFast
 
 unconditionally give new particle pointer from cl_free_particles
 ================
-*/
+***/
 particle_t *CL_AllocParticleFast (void)
 	{
 	particle_t *p = NULL;
@@ -161,13 +161,13 @@ particle_t *CL_AllocParticleFast (void)
 	return p;
 	}
 
-/*
+/***
 ================
 R_AllocParticle
 
 can return NULL if particles is out
 ================
-*/
+***/
 particle_t *GAME_EXPORT R_AllocParticle (void (*callback)(particle_t *, float))
 	{
 	particle_t *p;
@@ -213,13 +213,13 @@ particle_t *GAME_EXPORT R_AllocParticle (void (*callback)(particle_t *, float))
 	return p;
 	}
 
-/*
+/***
 ================
 R_AllocTracer
 
 can return NULL if particles is out
 ================
-*/
+***/
 static particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life)
 	{
 	particle_t *p;
@@ -258,28 +258,29 @@ static particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life
 
 	return p;
 	}
-/*
+
+/***
 ==============================================================
 VIEWBEAMS MANAGEMENT
 ==============================================================
-*/
+***/
 BEAM *cl_active_beams;
 BEAM *cl_free_beams;
 BEAM *cl_viewbeams = NULL;		// beams pool
 
-/*
+/***
 ==============================================================
 BEAM ALLOCATE & PROCESSING
 ==============================================================
-*/
+***/
 
-/*
+/***
 ==============
 R_BeamSetAttributes
 
 set beam attributes
 ==============
-*/
+***/
 static void R_BeamSetAttributes (BEAM *pbeam, float r, float g, float b, float framerate, int startFrame)
 	{
 	pbeam->frame = (float)startFrame;
@@ -289,11 +290,11 @@ static void R_BeamSetAttributes (BEAM *pbeam, float r, float g, float b, float f
 	pbeam->b = b;
 	}
 
-/*
+/***
 ==============
 R_BeamAlloc
 ==============
-*/
+***/
 static BEAM *R_BeamAlloc (void)
 	{
 	BEAM *pBeam;
@@ -311,11 +312,11 @@ static BEAM *R_BeamAlloc (void)
 	return pBeam;
 	}
 
-/*
+/***
 ==============
 R_BeamFree
 ==============
-*/
+***/
 static void R_BeamFree (BEAM *pBeam)
 	{
 	// free particles that have died off
@@ -326,22 +327,22 @@ static void R_BeamFree (BEAM *pBeam)
 	cl_free_beams = pBeam;
 	}
 
-/*
+/***
 ================
 CL_InitViewBeams
 ================
-*/
+***/
 void CL_InitViewBeams (void)
 	{
 	cl_viewbeams = Mem_Calloc (cls.mempool, sizeof (BEAM) * GI->max_beams);
 	CL_ClearViewBeams ();
 	}
 
-/*
+/***
 ================
 CL_ClearViewBeams
 ================
-*/
+***/
 void CL_ClearViewBeams (void)
 	{
 	int	i;
@@ -358,11 +359,11 @@ void CL_ClearViewBeams (void)
 	cl_viewbeams[GI->max_beams - 1].next = NULL;
 	}
 
-/*
+/***
 ================
 CL_FreeViewBeams
 ================
-*/
+***/
 void CL_FreeViewBeams (void)
 	{
 	if (cl_viewbeams)
@@ -370,14 +371,14 @@ void CL_FreeViewBeams (void)
 	cl_viewbeams = NULL;
 	}
 
-/*
+/***
 ==============
 R_BeamGetEntity
 
 extract entity number from index
 handle user entities
 ==============
-*/
+***/
 cl_entity_t *R_BeamGetEntity (int index)
 	{
 	if (index < 0)
@@ -385,11 +386,11 @@ cl_entity_t *R_BeamGetEntity (int index)
 	return CL_GetEntityByIndex (BEAMENT_ENTITY (index));
 	}
 
-/*
+/***
 ==============
 CL_KillDeadBeams
 ==============
-*/
+***/
 void CL_KillDeadBeams (cl_entity_t *pDeadEntity)
 	{
 	BEAM *pbeam;
@@ -447,13 +448,13 @@ void CL_KillDeadBeams (cl_entity_t *pDeadEntity)
 	cl_active_beams = pnewlist;
 	}
 
-/*
+/***
 ===============
 CL_ReadLineFile_f
 
 Optimized version of pointfile - use beams instead of particles
 ===============
-*/
+***/
 void CL_ReadLineFile_f (void)
 	{
 	byte	*afile;
@@ -531,27 +532,27 @@ void CL_ReadLineFile_f (void)
 	else Con_Printf ("map %s has no leaks!\n", clgame.mapname);
 	}
 
-/*
+/***
 ==============
 R_BeamSprite
 
 Create a beam with sprite at the end
 Valve legacy
 ==============
-*/
+***/
 static void CL_BeamSprite (vec3_t start, vec3_t end, int beamIndex, int spriteIndex)
 	{
 	R_BeamPoints (start, end, beamIndex, 0.01f, 0.4f, 0, COM_RandomFloat (0.5f, 0.655f), 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
 	R_TempSprite (end, vec3_origin, 0.1f, spriteIndex, kRenderTransAdd, kRenderFxNone, 0.35f, 0.01f, 0.0f);
 	}
 
-/*
+/***
 ==============
 R_BeamSetup
 
 generic function. all beams must be passed through this
 ==============
-*/
+***/
 static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, float life, float width,
 	float amplitude, float brightness, float speed)
 	{
@@ -586,13 +587,13 @@ static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, 
 	pbeam->flags = 0;
 	}
 
-/*
+/***
 ==============
 CL_BeamAttemptToDie
 
 Check for expired beams
 ==============
-*/
+***/
 static qboolean CL_BeamAttemptToDie (BEAM *pBeam)
 	{
 	Assert (pBeam != NULL);
@@ -614,14 +615,14 @@ static qboolean CL_BeamAttemptToDie (BEAM *pBeam)
 	return true;
 	}
 
-/*
+/***
 ==============
 R_BeamKill
 
 Remove beam attached to specified entity
 and all particle trails (if this is a beamfollow)
 ==============
-*/
+***/
 void GAME_EXPORT R_BeamKill (int deadEntity)
 	{
 	cl_entity_t *pDeadEntity;
@@ -632,13 +633,13 @@ void GAME_EXPORT R_BeamKill (int deadEntity)
 	CL_KillDeadBeams (pDeadEntity);
 	}
 
-/*
+/***
 ==============
 CL_ParseViewBeam
 
 handle beam messages
 ==============
-*/
+***/
 void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 	{
 	vec3_t	start, end;
@@ -777,13 +778,13 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 	}
 
 
-/*
+/***
 ==============
 R_BeamEnts
 
 Create beam between two ents
 ==============
-*/
+***/
 BEAM *GAME_EXPORT R_BeamEnts (int startEnt, int endEnt, int modelIndex, float life, float width, float amplitude, float brightness,
 	float speed, int startFrame, float framerate, float r, float g, float b)
 	{
@@ -822,13 +823,13 @@ BEAM *GAME_EXPORT R_BeamEnts (int startEnt, int endEnt, int modelIndex, float li
 	return pbeam;
 	}
 
-/*
+/***
 ==============
 R_BeamPoints
 
 Create beam between two points
 ==============
-*/
+***/
 BEAM *GAME_EXPORT R_BeamPoints (vec3_t start, vec3_t end, int modelIndex, float life, float width, float amplitude,
 	float brightness, float speed, int startFrame, float framerate, float r, float g, float b)
 	{
@@ -853,13 +854,13 @@ BEAM *GAME_EXPORT R_BeamPoints (vec3_t start, vec3_t end, int modelIndex, float 
 	return pbeam;
 	}
 
-/*
+/***
 ==============
 R_BeamCirclePoints
 
 Create beam cicrle
 ==============
-*/
+***/
 BEAM *GAME_EXPORT R_BeamCirclePoints (int type, vec3_t start, vec3_t end, int modelIndex, float life, float width,
 	float amplitude, float brightness, float speed, int startFrame, float framerate, float r, float g, float b)
 	{
@@ -873,13 +874,13 @@ BEAM *GAME_EXPORT R_BeamCirclePoints (int type, vec3_t start, vec3_t end, int mo
 	return pbeam;
 	}
 
-/*
+/***
 ==============
 R_BeamEntPoint
 
 Create beam between entity and point
 ==============
-*/
+***/
 BEAM *GAME_EXPORT R_BeamEntPoint (int startEnt, vec3_t end, int modelIndex, float life, float width, float amplitude,
 	float brightness, float speed, int startFrame, float framerate, float r, float g, float b)
 	{
@@ -913,13 +914,13 @@ BEAM *GAME_EXPORT R_BeamEntPoint (int startEnt, vec3_t end, int modelIndex, floa
 	return pbeam;
 	}
 
-/*
+/***
 ==============
 R_BeamRing
 
 Create beam between two ents
 ==============
-*/
+***/
 BEAM *GAME_EXPORT R_BeamRing (int startEnt, int endEnt, int modelIndex, float life, float width, float amplitude,
 	float brightness, float speed, int startFrame, float framerate, float r, float g, float b)
 	{
@@ -950,13 +951,13 @@ BEAM *GAME_EXPORT R_BeamRing (int startEnt, int endEnt, int modelIndex, float li
 	return pbeam;
 	}
 
-/*
+/***
 ==============
 R_BeamFollow
 
 Create beam following with entity
 ==============
-*/
+***/
 BEAM *GAME_EXPORT R_BeamFollow (int startEnt, int modelIndex, float life, float width, float r, float g,
 	float b, float brightness)
 	{
@@ -981,13 +982,13 @@ BEAM *GAME_EXPORT R_BeamFollow (int startEnt, int modelIndex, float life, float 
 	}
 
 
-/*
+/***
 ==============
 R_BeamLightning
 
 template for new beams
 ==============
-*/
+***/
 BEAM *GAME_EXPORT R_BeamLightning (vec3_t start, vec3_t end, int modelIndex, float life, float width,
 	float amplitude, float brightness, float speed)
 	{
@@ -1005,13 +1006,13 @@ BEAM *GAME_EXPORT R_BeamLightning (vec3_t start, vec3_t end, int modelIndex, flo
 	return pbeam;
 	}
 
-/*
+/***
 ===============
 R_EntityParticles
 
 set EF_BRIGHTFIELD effect
 ===============
-*/
+***/
 void GAME_EXPORT R_EntityParticles (cl_entity_t *ent)
 	{
 	float		angle;
@@ -1042,11 +1043,11 @@ void GAME_EXPORT R_EntityParticles (cl_entity_t *ent)
 		}
 	}
 
-/*
+/***
 ===============
 R_ParticleExplosion
 ===============
-*/
+***/
 void GAME_EXPORT R_ParticleExplosion (const vec3_t org)
 	{
 	particle_t *p;
@@ -1072,11 +1073,11 @@ void GAME_EXPORT R_ParticleExplosion (const vec3_t org)
 		}
 	}
 
-/*
+/***
 ===============
 R_ParticleExplosion2
 ===============
-*/
+***/
 void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int colorLength)
 	{
 	int			i, j;
@@ -1108,11 +1109,11 @@ void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int col
 		}
 	}
 
-/*
+/***
 ===============
 R_BlobExplosion
 ===============
-*/
+***/
 void GAME_EXPORT R_BlobExplosion (const vec3_t org)
 	{
 	particle_t *p;
@@ -1149,13 +1150,13 @@ void GAME_EXPORT R_BlobExplosion (const vec3_t org)
 		}
 	}
 
-/*
+/***
 ===============
 ParticleEffect
 
 PARTICLE_EFFECT on server
 ===============
-*/
+***/
 void GAME_EXPORT R_RunParticleEffect (const vec3_t org, const vec3_t dir, int color, int count)
 	{
 	particle_t *p;
@@ -1182,13 +1183,13 @@ void GAME_EXPORT R_RunParticleEffect (const vec3_t org, const vec3_t dir, int co
 		}
 	}
 
-/*
+/***
 ===============
 R_Blood
 
 particle spray
 ===============
-*/
+***/
 void GAME_EXPORT R_Blood (const vec3_t org, const vec3_t ndir, int pcolor, int speed)
 	{
 	vec3_t		pos, dir, vec;
@@ -1218,13 +1219,13 @@ void GAME_EXPORT R_Blood (const vec3_t org, const vec3_t ndir, int pcolor, int s
 		}
 	}
 
-/*
+/***
 ===============
 R_BloodStream [FWGS, 01.11.23]
 
 particle spray 2
 ===============
-*/
+***/
 void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t ndir, int pcolor, int speed)
 	{
 	particle_t	*p;
@@ -1300,11 +1301,11 @@ void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t ndir, int pcolor,
 		}
 	}
 
-/*
+/***
 ===============
 R_LavaSplash
 ===============
-*/
+***/
 void GAME_EXPORT R_LavaSplash (const vec3_t org)
 	{
 	particle_t	*p;
@@ -1341,11 +1342,11 @@ void GAME_EXPORT R_LavaSplash (const vec3_t org)
 		}
 	}
 
-/*
+/***
 ===============
 R_ParticleBurst
 ===============
-*/
+***/
 void GAME_EXPORT R_ParticleBurst (const vec3_t org, int size, int color, float life)
 	{
 	particle_t	*p;
@@ -1373,11 +1374,11 @@ void GAME_EXPORT R_ParticleBurst (const vec3_t org, int size, int color, float l
 		}
 	}
 
-/*
+/***
 ===============
 R_LargeFunnel
 ===============
-*/
+***/
 void GAME_EXPORT R_LargeFunnel (const vec3_t org, int reverse)
 	{
 	particle_t	*p;
@@ -1419,11 +1420,11 @@ void GAME_EXPORT R_LargeFunnel (const vec3_t org, int reverse)
 		}
 	}
 
-/*
+/***
 ===============
 R_TeleportSplash
 ===============
-*/
+***/
 void GAME_EXPORT R_TeleportSplash (const vec3_t org)
 	{
 	particle_t	*p;
@@ -1460,11 +1461,11 @@ void GAME_EXPORT R_TeleportSplash (const vec3_t org)
 		}
 	}
 
-/*
+/***
 ===============
 R_RocketTrail
 ===============
-*/
+***/
 void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 	{
 	vec3_t		vec, right, up;
@@ -1578,11 +1579,11 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 		}
 	}
 
-/*
+/***
 ================
 R_ParticleLine
 ================
-*/
+***/
 void GAME_EXPORT R_ParticleLine (const vec3_t start, const vec3_t end, byte r, byte g, byte b, float life)
 	{
 	int	pcolor;
@@ -1591,11 +1592,11 @@ void GAME_EXPORT R_ParticleLine (const vec3_t start, const vec3_t end, byte r, b
 	PM_ParticleLine (start, end, pcolor, life, 0);
 	}
 
-/*
+/***
 ================
 R_ParticleBox
 ================
-*/
+***/
 void GAME_EXPORT R_ParticleBox (const vec3_t absmin, const vec3_t absmax, byte r, byte g, byte b, float life)
 	{
 	vec3_t	mins, maxs;
@@ -1611,11 +1612,11 @@ void GAME_EXPORT R_ParticleBox (const vec3_t absmin, const vec3_t absmax, byte r
 	PM_DrawBBox (mins, maxs, origin, pcolor, life);
 	}
 
-/*
+/***
 ================
 R_ShowLine
 ================
-*/
+***/
 void GAME_EXPORT R_ShowLine (const vec3_t start, const vec3_t end)
 	{
 	vec3_t		dir, org;
@@ -1642,11 +1643,11 @@ void GAME_EXPORT R_ShowLine (const vec3_t start, const vec3_t end)
 		}
 	}
 
-/*
+/***
 ===============
 R_BulletImpactParticles
 ===============
-*/
+***/
 void GAME_EXPORT R_BulletImpactParticles (const vec3_t pos)
 	{
 	int			i, quantity;
@@ -1685,11 +1686,11 @@ void GAME_EXPORT R_BulletImpactParticles (const vec3_t pos)
 		}
 	}
 
-/*
+/***
 ===============
 R_FlickerParticles
 ===============
-*/
+***/
 void GAME_EXPORT R_FlickerParticles (const vec3_t org)
 	{
 	particle_t	*p;
@@ -1711,13 +1712,13 @@ void GAME_EXPORT R_FlickerParticles (const vec3_t org)
 		}
 	}
 
-/*
+/***
 ===============
 R_StreakSplash
 
 create a splash of streaks
 ===============
-*/
+***/
 void GAME_EXPORT R_StreakSplash (const vec3_t pos, const vec3_t dir, int color, int count, float speed,
 	int velocityMin, int velocityMax)
 	{
@@ -1739,13 +1740,13 @@ void GAME_EXPORT R_StreakSplash (const vec3_t pos, const vec3_t dir, int color, 
 		}
 	}
 
-/*
+/***
 ===============
 R_DebugParticle
 
 just for debug purposes
 ===============
-*/
+***/
 void R_DebugParticle (const vec3_t pos, byte r, byte g, byte b)
 	{
 	particle_t *p;
@@ -1758,13 +1759,13 @@ void R_DebugParticle (const vec3_t pos, byte r, byte g, byte b)
 	p->die = cl.time + 0.01f;
 	}
 
-/*
+/***
 ===============
 CL_Particle
 
 pmove debugging particle
 ===============
-*/
+***/
 void CL_Particle (const vec3_t org, int color, float life, int zpos, int zvel)
 	{
 	particle_t *p;
@@ -1780,11 +1781,11 @@ void CL_Particle (const vec3_t org, int color, float life, int zpos, int zvel)
 	p->color = color;
 	}
 
-/*
+/***
 ===============
 R_TracerEffect
 ===============
-*/
+***/
 void GAME_EXPORT R_TracerEffect (const vec3_t start, const vec3_t end)
 	{
 	vec3_t	pos, vel, dir;
@@ -1805,11 +1806,11 @@ void GAME_EXPORT R_TracerEffect (const vec3_t start, const vec3_t end)
 	R_AllocTracer (pos, vel, len / speed);
 	}
 
-/*
+/***
 ===============
 R_UserTracerParticle
 ===============
-*/
+***/
 void GAME_EXPORT R_UserTracerParticle (float *org, float *vel, float life, int colorIndex, float length,
 	byte deathcontext, void (*deathfunc)(particle_t *p))
 	{
@@ -1827,25 +1828,25 @@ void GAME_EXPORT R_UserTracerParticle (float *org, float *vel, float life, int c
 		}
 	}
 
-/*
+/***
 ===============
 R_TracerParticles
 
 allow more customization
 ===============
-*/
+***/
 particle_t *R_TracerParticles (float *org, float *vel, float life)
 	{
 	return R_AllocTracer (org, vel, life);
 	}
 
-/*
+/***
 ===============
 R_SparkStreaks
 
 create a streak tracers
 ===============
-*/
+***/
 void GAME_EXPORT R_SparkStreaks (const vec3_t pos, int count, int velocityMin, int velocityMax)
 	{
 	particle_t *p;
@@ -1867,13 +1868,13 @@ void GAME_EXPORT R_SparkStreaks (const vec3_t pos, int count, int velocityMin, i
 		}
 	}
 
-/*
+/***
 ===============
 R_Implosion
 
 make implosion tracers
 ===============
-*/
+***/
 void GAME_EXPORT R_Implosion (const vec3_t end, float radius, int count, float life)
 	{
 	float		dist = (radius / 100.0f);
@@ -1900,13 +1901,13 @@ void GAME_EXPORT R_Implosion (const vec3_t end, float radius, int count, float l
 		}
 	}
 
-/*
+/***
 ==============
 R_FreeDeadParticles
 
 Free particles that time has expired
 ==============
-*/
+***/
 void R_FreeDeadParticles (particle_t **ppparticles)
 	{
 	particle_t *p, *kill;
@@ -1949,11 +1950,11 @@ void R_FreeDeadParticles (particle_t **ppparticles)
 		}
 	}
 
-/*
+/***
 ===============
 CL_ReadPointFile_f
 ===============
-*/
+***/
 void CL_ReadPointFile_f (void)
 	{
 	byte *afile;
@@ -2166,3 +2167,4 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 			break;
 		}
 	}
+

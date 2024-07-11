@@ -1,4 +1,4 @@
-/*
+/***
 avi.h -- common avi support header
 Copyright (C) 2018 a1batross, Uncle Mike
 
@@ -11,7 +11,8 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
+
 #ifndef AVI_H
 #define AVI_H
 

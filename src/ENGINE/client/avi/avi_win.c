@@ -1,4 +1,4 @@
-/*
+/***
 avi_win.c - playing AVI files (based on original AVIKit code, Win32 version)
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "build.h"
 #if XASH_WIN32
@@ -654,17 +654,16 @@ movie_state_t *AVI_GetState (int num)
 	return &avi[num];
 	}
 
-/*
+/***
 =============
 AVIKit user interface
-
 =============
-*/
+***/
 movie_state_t *AVI_LoadVideo (const char *filename, qboolean load_audio)
 	{
-	movie_state_t *Avi;
-	string		path;
-	const char *fullpath;
+	movie_state_t	*Avi;
+	string			path;
+	const char		*fullpath;
 
 	// fast reject
 	if (!avi_initialized)

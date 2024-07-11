@@ -1,4 +1,4 @@
-/*
+/***
 common.c - misc functions used by dlls'
 Copyright (C) 2008 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #if defined( ALLOCA_H )
 #include ALLOCA_H
@@ -158,7 +158,7 @@ int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
 		return lLow + (n % x);
 	}
 
-/*
+/***
 ============
 va [FWGS, 01.04.23]
 
@@ -166,7 +166,7 @@ does a varargs printf into a temp buffer,
 so I don't need to have varargs versions
 of all text functions.
 ============
-*/
+***/
 char *va (const char *format, ...)
 	{
 	va_list		argptr;
@@ -182,11 +182,11 @@ char *va (const char *format, ...)
 	return s;
 	}
 
-/*
+/***
 ===============================================================================
 LZSS Compression
 ===============================================================================
-*/
+***/
 #define LZSS_ID		(('S'<<24)|('S'<<16)|('Z'<<8)|('L'))
 #define LZSS_LOOKSHIFT	4
 #define LZSS_WINDOW_SIZE	4096
@@ -465,14 +465,13 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput)
 	return totalBytes;
 	}
 
-/*
+/***
 ==============
 COM_IsWhiteSpace
 
 interpret symbol as whitespace
 ==============
-*/
-
+***/
 static int COM_IsWhiteSpace (char space)
 	{
 	if (space == ' ' || space == '\t' || space == '\r' || space == '\n')
@@ -480,12 +479,11 @@ static int COM_IsWhiteSpace (char space)
 	return 0;
 	}
 
-/*
+/***
 ================
 COM_ParseVector
-
 ================
-*/
+***/
 qboolean COM_ParseVector (char **pfile, float *v, size_t size)
 	{
 	string	token;
@@ -530,67 +528,26 @@ qboolean COM_ParseVector (char **pfile, float *v, size_t size)
 	return false;
 	}
 
-/*
+/***
 =============
 COM_FileSize
 =============
-*/
+***/
 int GAME_EXPORT COM_FileSize (const char *filename)
 	{
 	return FS_FileSize (filename, false);
 	}
 
-// [FWGS, 01.02.24]
-/*
-=============
-COM_AddAppDirectoryToSearchPath
-=============
-//
-void GAME_EXPORT COM_AddAppDirectoryToSearchPath (const char *pszBaseDir, const char *appName)
-	{
-	FS_AddGameHierarchy (pszBaseDir, FS_NOWRITE_PATH);
-	}*/
+// [FWGS, 01.02.24] removed COM_AddAppDirectoryToSearchPath, COM_ExpandFilename
 
-// [FWGS, 01.02.24]
-/*
-===========
-COM_ExpandFilename [FWGS, 01.05.23]
-
-Finds the file in the search path, copies over the name with the full path name.
-This doesn't search in the pak file
-===========
-//
-int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, int nameOutBufferSize)
-	{
-	char	result[MAX_SYSPATH];
-
-	if (!COM_CheckString (fileName) || !nameOutBuffer || (nameOutBufferSize <= 0))
-		return 0;
-
-	// filename examples:
-	// media\sierra.avi - D:\Xash3D\valve\media\sierra.avi
-	// models\barney.mdl - D:\Xash3D\bshift\models\barney.mdl
-	if (g_fsapi.GetFullDiskPath (result, sizeof (result), fileName, false))
-		{
-		// check for enough room
-		if (Q_strlen (result) > nameOutBufferSize)
-			return 0;
-
-		Q_strncpy (nameOutBuffer, result, nameOutBufferSize);
-		return 1;
-		}
-
-	return 0;
-	}*/
-
-/*
+/***
 =============
 COM_TrimSpace
 
 trims all whitespace from the front
 and end of a string
 =============
-*/
+***/
 void COM_TrimSpace (const char *source, char *dest)
 	{
 	int	start, end, length;
@@ -617,13 +574,13 @@ void COM_TrimSpace (const char *source, char *dest)
 	dest[length] = 0;
 	}
 
-/*
+/***
 ==================
 COM_Nibble
 
 Returns the 4 bit nibble for a hex character
 ==================
-*/
+***/
 static byte COM_Nibble (char c)
 	{
 	if ((c >= '0') && (c <= '9'))
@@ -638,18 +595,18 @@ static byte COM_Nibble (char c)
 	return '0';
 	}
 
-/*
+/***
 ==================
 COM_HexConvert
 
 Converts pszInput Hex string to nInputLength/2 binary
 ==================
-*/
+***/
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput)
 	{
-	const char *pIn;
-	byte *p = pOutput;
-	int		i;
+	const char	*pIn;
+	byte		*p = pOutput;
+	int			i;
 
 
 	for (i = 0; i < nInputLength; i += 2)
@@ -660,11 +617,11 @@ void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput)
 		}
 	}
 
-/*
+/***
 =============
 COM_MemFgets
 =============
-*/
+***/
 char *GAME_EXPORT COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize)
 	{
 	int	i, last, stop;
@@ -712,13 +669,13 @@ char *GAME_EXPORT COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char
 	return NULL;
 	}
 
-/*
+/***
 ====================
 Cache_Check
 
 consistency check
 ====================
-*/
+***/
 void *GAME_EXPORT Cache_Check (poolhandle_t mempool, cache_user_t *c)
 	{
 	if (!c->data)
@@ -730,15 +687,15 @@ void *GAME_EXPORT Cache_Check (poolhandle_t mempool, cache_user_t *c)
 	return c->data;
 	}
 
-/*
+/***
 =============
 COM_LoadFileForMe [FWGS, 01.03.24]
 =============
-*/
+***/
 byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 	{
-	string	name;
-	byte	*pfile;
+	string		name;
+	byte		*pfile;
 	fs_offset_t	iLength;
 
 	if (!COM_CheckString (filename))
@@ -758,22 +715,21 @@ byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 	return pfile;
 	}
 
-/*
+/***
 =============
 COM_LoadFile
 =============
-*/
+***/
 byte *GAME_EXPORT COM_LoadFile (const char *filename, int usehunk, int *pLength)
 	{
 	return COM_LoadFileForMe (filename, pLength);
 	}
 
-/*
+/***
 =============
 COM_SaveFile
-
 =============
-*/
+***/
 int GAME_EXPORT COM_SaveFile (const char *filename, const void *data, int len)
 	{
 	// check for empty filename
@@ -787,21 +743,21 @@ int GAME_EXPORT COM_SaveFile (const char *filename, const void *data, int len)
 	return FS_WriteFile (filename, data, len);
 	}
 
-/*
+/***
 =============
 COM_FreeFile
 =============
-*/
+***/
 void GAME_EXPORT COM_FreeFile (void *buffer)
 	{
 	free (buffer);
 	}
 
-/*
+/***
 =============
 COM_NormalizeAngles
 =============
-*/
+***/
 void COM_NormalizeAngles (vec3_t angles)
 	{
 	int i;
@@ -815,11 +771,11 @@ void COM_NormalizeAngles (vec3_t angles)
 		}
 	}
 
-/*
+/***
 =============
 pfnGetModelType
 =============
-*/
+***/
 int GAME_EXPORT pfnGetModelType (model_t *mod)
 	{
 	if (!mod)
@@ -827,11 +783,11 @@ int GAME_EXPORT pfnGetModelType (model_t *mod)
 	return mod->type;
 	}
 
-/*
+/***
 =============
 pfnGetModelBounds
 =============
-*/
+***/
 void GAME_EXPORT pfnGetModelBounds (model_t *mod, float *mins, float *maxs)
 	{
 	if (mod)
@@ -853,36 +809,25 @@ void GAME_EXPORT pfnGetModelBounds (model_t *mod, float *mins, float *maxs)
 // [FWGS, 01.07.23] removed pfnCvar_RegisterServerVariable, pfnCvar_RegisterEngineVariable,
 // pfnCvar_RegisterClientVariable, pfnCvar_RegisterGameUIVariable
 
-/*
+/***
 =============
 pfnCVarGetPointer
 
 can return NULL
 =============
-*/
+***/
 cvar_t *GAME_EXPORT pfnCVarGetPointer (const char *szVarName)
 	{
 	return (cvar_t *)Cvar_FindVar (szVarName);
 	}
 
-// [FWGS, 01.02.24]
-/*
-=============
-pfnCVarDirectSet
+// [FWGS, 01.02.24] removed pfnCVarDirectSet
 
-allow to set cvar directly
-=============
-//
-void GAME_EXPORT pfnCVarDirectSet (cvar_t *var, const char *szValue)
-	{
-	Cvar_DirectSet ((convar_t *)var, szValue);
-	}*/
-
-/*
+/***
 =============
 COM_CompareFileTime
 =============
-*/
+***/
 int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare)
 	{
 	int	bRet = 0;
@@ -904,11 +849,11 @@ int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename
 	return bRet;
 	}
 
-/*
+/***
 =============
 COM_CheckParm
 =============
-*/
+***/
 int GAME_EXPORT COM_CheckParm (char *parm, char **ppnext)
 	{
 	int	i = Sys_CheckParm (parm);
@@ -924,21 +869,21 @@ int GAME_EXPORT COM_CheckParm (char *parm, char **ppnext)
 	return i;
 	}
 
-/*
+/***
 =============
 pfnTime
 =============
-*/
+***/
 float GAME_EXPORT pfnTime (void)
 	{
 	return (float)Sys_DoubleTime ();
 	}
 
-/*
+/***
 =============
 pfnGetGameDir [FWGS, 01.05.23]
 =============
-*/
+***/
 void GAME_EXPORT pfnGetGameDir (char *szGetGameDir)
 	{
 	if (!szGetGameDir)
@@ -1011,19 +956,19 @@ char *_copystring (poolhandle_t mempool, const char *s, const char *filename, in
 	return b;
 	}
 
-/*
+/***
 ======================
 COMMON EXPORT STUBS
 ======================
-*/
+***/
 
-/*
+/***
 =============
 pfnSequenceGet [FWGS, 01.11.23]
 
 used by CS:CZ
 =============
-*/
+***/
 void *GAME_EXPORT pfnSequenceGet (const char *fileName, const char *entryName)
 	{
 	Msg ("Sequence_Get: file %s, entry %s\n", fileName, entryName);
@@ -1031,13 +976,13 @@ void *GAME_EXPORT pfnSequenceGet (const char *fileName, const char *entryName)
 	return NULL;
 	}
 
-/*
+/***
 =============
 pfnSequencePickSentence [FWGS, 01.11.23]
 
 used by CS:CZ
 =============
-*/
+***/
 void *GAME_EXPORT pfnSequencePickSentence (const char *groupName, int pickMethod, int *picked)
 	{
 	Msg ("Sequence_PickSentence: group %s, pickMethod %i\n", groupName, pickMethod);
@@ -1047,47 +992,47 @@ void *GAME_EXPORT pfnSequencePickSentence (const char *groupName, int pickMethod
 
 // [FWGS, 01.07.23] removed pfnIsCareerMatch, pfnRegisterTutorMessageShown
 
-/*
+/***
 =============
 pfnIsCareerMatch [FWGS, 01.07.23]
 
 only exists in PlayStation version
 =============
-*/
+***/
 int GAME_EXPORT pfnIsCareerMatch (void)
 	{
 	return 0;
 	}
 
-/*
+/***
 =============
 pfnProcessTutorMessageDecayBuffer
 
 only exists in PlayStation version
 =============
-*/
+***/
 void GAME_EXPORT pfnProcessTutorMessageDecayBuffer (int *buffer, int bufferLength)
 	{
 	}
 
-/*
+/***
 =============
 pfnConstructTutorMessageDecayBuffer
 
 only exists in PlayStation version
 =============
-*/
+***/
 void GAME_EXPORT pfnConstructTutorMessageDecayBuffer (int *buffer, int bufferLength)
 	{
 	}
 
-/*
+/***
 =============
 pfnResetTutorMessageDecayData
 
 only exists in PlayStation version
 =============
-*/
+***/
 void GAME_EXPORT pfnResetTutorMessageDecayData (void)
 	{
 	}

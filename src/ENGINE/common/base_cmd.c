@@ -1,4 +1,4 @@
-/*
+/***
 base_cmd.c - command & cvar hashmap. Insipred by Doom III
 Copyright (C) 2016 a1batross
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "base_cmd.h"
@@ -20,7 +20,6 @@ GNU General Public License for more details.
 #define HASH_SIZE 128 // 128 * 4 * 4 == 2048 bytes
 
 // [FWGS, 01.05.24]
-/*typedef struct base_command_hashmap_s*/
 typedef struct base_command_hashmap_s base_command_hashmap_t;
 
 struct base_command_hashmap_s
@@ -31,22 +30,17 @@ struct base_command_hashmap_s
 	char name[1];	// key for searching
 	};
 
-	/*base_command_t *basecmd;	// base command: cvar, alias or command
-	const char *name;		// key for searching
-	base_command_type_e				type;		// type for faster searching
-	struct base_command_hashmap_s *next;
-	} base_command_hashmap_t;*/
 static base_command_hashmap_t *hashed_cmds[HASH_SIZE];
 
 #define BaseCmd_HashKey(x) COM_HashKey(name, HASH_SIZE)
 
-/*
+/***
 ============
 BaseCmd_FindInBucket
 
 Find base command in bucket
 ============
-*/
+***/
 static base_command_hashmap_t *BaseCmd_FindInBucket (base_command_hashmap_t *bucket, base_command_type_e type,
 	const char *name)
 	{
@@ -57,25 +51,25 @@ static base_command_hashmap_t *BaseCmd_FindInBucket (base_command_hashmap_t *buc
 	return i;
 	}
 
-/*
+/***
 ============
 BaseCmd_GetBucket
 
 Get bucket which contain basecmd by given name
 ============
-*/
+***/
 static base_command_hashmap_t *BaseCmd_GetBucket (const char *name)
 	{
 	return hashed_cmds[COM_HashKey (name, HASH_SIZE)];
 	}
 
-/*
+/***
 ============
 BaseCmd_Find
 
 Find base command in hashmap
 ============
-*/
+***/
 base_command_t *BaseCmd_Find (base_command_type_e type, const char *name)
 	{
 	base_command_hashmap_t *base = BaseCmd_GetBucket (name);
@@ -86,13 +80,13 @@ base_command_t *BaseCmd_Find (base_command_type_e type, const char *name)
 	return NULL;
 	}
 
-/*
+/***
 ============
 BaseCmd_Find
 
 Find every type of base command and write into arguments
 ============
-*/
+***/
 void BaseCmd_FindAll (const char *name, base_command_t **cmd, base_command_t **alias, base_command_t **cvar)
 	{
 	base_command_hashmap_t *base = BaseCmd_GetBucket (name);
@@ -124,24 +118,22 @@ void BaseCmd_FindAll (const char *name, base_command_t **cmd, base_command_t **a
 
 	}
 
-/*
+/***
 ============
 BaseCmd_Insert [FWGS, 01.05.24]
 
 Add new typed base command to hashmap
 ============
-*/
+***/
 void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const char *name)
 	{
 	base_command_hashmap_t *elem, *cur, *find;
 	uint hash = BaseCmd_HashKey (name);
 	size_t len = Q_strlen (name);
 
-	/*elem = Z_Malloc (sizeof (base_command_hashmap_t));*/
 	elem = Z_Malloc (sizeof (base_command_hashmap_t) + len);
 	elem->basecmd = basecmd;
 	elem->type = type;
-	/*elem->name = name;*/
 	Q_strncpy (elem->name, name, len + 1);
 
 	// link the variable in alphanumerical order
@@ -157,13 +149,13 @@ void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const ch
 	elem->next = find;
 	}
 
-/*
+/***
 ============
 BaseCmd_Remove [FWGS, 01.04.23]
 
 Remove base command from hashmap
 ============
-*/
+***/
 void BaseCmd_Remove (base_command_type_e type, const char *name)
 	{
 	uint hash = BaseCmd_HashKey (name);
@@ -187,24 +179,23 @@ void BaseCmd_Remove (base_command_type_e type, const char *name)
 	Z_Free (i);
 	}
 
-/*
+/***
 ============
 BaseCmd_Init
 
 initialize base command hashmap system
 ============
-*/
+***/
 void BaseCmd_Init (void)
 	{
 	memset (hashed_cmds, 0, sizeof (hashed_cmds));
 	}
 
-/*
+/***
 ============
 BaseCmd_Stats_f
-
 ============
-*/
+***/
 void BaseCmd_Stats_f (void)
 	{
 	int i, minsize = 99999, maxsize = -1, empty = 0;
@@ -253,13 +244,13 @@ static void BaseCmd_CheckCvars (const char *key, const char *value, const void *
 		}
 	}
 
-/*
+/***
 ============
 BaseCmd_Stats_f [FWGS, 01.04.23]
 
 testing order matches cbuf execute
 ============
-*/
+***/
 void BaseCmd_Test_f (void)
 	{
 	basecmd_test_stats_t stats;

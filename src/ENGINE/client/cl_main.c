@@ -1,4 +1,4 @@
-/*
+/***
 cl_main.c - client main loop
 Copyright (C) 2009 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -28,7 +28,6 @@ GNU General Public License for more details.
 #define MAX_CMD_BUFFER				8000
 #define CONNECTION_PROBLEM_TIME		15.0	// 15 seconds
 #define CL_CONNECTION_RETRIES		10
-/*#define CL_TEST_RETRIES_NORESPONCE	3		// [FWGS, 01.04.23]*/
 #define CL_TEST_RETRIES				5
 
 CVAR_DEFINE_AUTO (mp_decals, "300", FCVAR_ARCHIVE,
@@ -223,14 +222,14 @@ int CL_IsDevOverviewMode (void)
 	return 0;
 	}
 
-/*
+/***
 ===============
 CL_CheckClientState
 
 finalize connection process and begin new frame
 with new cls.state
 ===============
-*/
+***/
 static void CL_CheckClientState (void)
 	{
 	// first update is the pre-final signon stage
@@ -263,13 +262,13 @@ int CL_GetFragmentSize (void *unused, fragsize_t mode)
 	return cl_upmax.value;
 	}
 
-/*
+/***
 =====================
 CL_SignonReply
 
 An svc_signonnum has been received, perform a client side setup
 =====================
-*/
+***/
 void CL_SignonReply (void)
 	{
 	// g-cont. my favorite message :-)
@@ -296,14 +295,14 @@ void CL_SignonReply (void)
 
 // [FWGS, 01.04.23] удалена CL_LerpInterval
 
-/*
+/***
 ===============
 CL_LerpPoint [FWGS, 01.04.23]
 
 Determines the fraction between the last two messages that the objects
 should be put at
 ===============
-*/
+***/
 static float CL_LerpPoint (void)
 	{
 	double f = cl_serverframetime ();
@@ -328,13 +327,13 @@ static float CL_LerpPoint (void)
 	return frac;
 	}
 
-/*
+/***
 ===============
 CL_DriftInterpolationAmount
 
 Drift interpolation value (this is used for server unlag system)
 ===============
-*/
+***/
 static int CL_DriftInterpolationAmount (int goal)
 	{
 	float	fgoal, maxmove, diff;
@@ -356,13 +355,13 @@ static int CL_DriftInterpolationAmount (int goal)
 	return msec;
 	}
 
-/*
+/***
 ===============
 CL_ComputeClientInterpolationAmount
 
 Validate interpolation cvars, calc interpolation window
 ===============
-*/
+***/
 static void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	{
 	const float epsilon = 0.001f; // to avoid float invalid comparision
@@ -405,11 +404,11 @@ static void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	cmd->lerp_msec = CL_DriftInterpolationAmount (interpolation_time * 1000);
 	}
 
-/*
+/***
 =================
 CL_ComputePacketLoss
 =================
-*/
+***/
 static void CL_ComputePacketLoss (void)
 	{
 	int		i, frm;
@@ -440,11 +439,11 @@ static void CL_ComputePacketLoss (void)
 		cls.packet_loss = (100.0f * (float)lost) / (float)count;
 	}
 
-/*
+/***
 =================
 CL_UpdateFrameLerp
 =================
-*/
+***/
 void CL_UpdateFrameLerp (void)
 	{
 	if ((cls.state != ca_active) || !cl.validsequence)
@@ -521,18 +520,18 @@ static void CL_ApplyAddAngle (void)
 	}
 
 
-/*
+/***
 =======================================================================
 CLIENT MOVEMENT COMMUNICATION
 =======================================================================
-*/
-/*
+***/
+/***
 ===============
 CL_ProcessShowTexturesCmds
 
 navigate around texture atlas
 ===============
-*/
+***/
 static qboolean CL_ProcessShowTexturesCmds (usercmd_t *cmd)
 	{
 	static int	oldbuttons;
@@ -558,13 +557,13 @@ static qboolean CL_ProcessShowTexturesCmds (usercmd_t *cmd)
 	return true;
 	}
 
-/*
+/***
 ===============
 CL_ProcessOverviewCmds
 
 Transform user movement into overview adjust
 ===============
-*/
+***/
 static qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 	{
 	ref_overview_t *ov = &clgame.overView;
@@ -621,13 +620,13 @@ static qboolean CL_ProcessOverviewCmds (usercmd_t *cmd)
 	return true;
 	}
 
-/*
+/***
 =================
 CL_UpdateClientData
 
 tell the client.dll about player origin, angles, fov, etc
 =================
-*/
+***/
 static void CL_UpdateClientData (void)
 	{
 	client_data_t	cdat;
@@ -650,11 +649,11 @@ static void CL_UpdateClientData (void)
 		}
 	}
 
-/*
+/***
 =================
 CL_CreateCmd
 =================
-*/
+***/
 static void CL_CreateCmd (void)
 	{
 	usercmd_t	nullcmd, *cmd;
@@ -755,14 +754,14 @@ void CL_WriteUsercmd (sizebuf_t *msg, int from, int to)
 	MSG_WriteDeltaUsercmd (msg, f, t);
 	}
 
-/*
+/***
 ===================
 CL_WritePacket
 
 Create and send the command packet to the server
 Including both the reliable commands and the usercmds
 ===================
-*/
+***/
 static void CL_WritePacket (void)
 	{
 	sizebuf_t		buf;
@@ -951,13 +950,13 @@ static void CL_WritePacket (void)
 	Netchan_UpdateProgress (&cls.netchan);
 	}
 
-/*
+/***
 =================
 CL_SendCommand
 
 Called every frame to builds and sends a command packet to the server.
 =================
-*/
+***/
 static void CL_SendCommand (void)
 	{
 	// we create commands even if a demo is playing,
@@ -967,11 +966,11 @@ static void CL_SendCommand (void)
 	CL_WritePacket ();
 	}
 
-/*
+/***
 ==================
 CL_BeginUpload_f
 ==================
-*/
+***/
 static void CL_BeginUpload_f (void)
 	{
 	const char	*name;
@@ -1036,24 +1035,24 @@ static void CL_BeginUpload_f (void)
 		}
 	}
 
-/*
+/***
 ==================
 CL_Quit_f
 ==================
-*/
+***/
 void CL_Quit_f (void)
 	{
 	CL_Disconnect ();
 	Sys_Quit ();
 	}
 
-/*
+/***
 ================
 CL_Drop
 
 Called after an Host_Error was thrown
 ================
-*/
+***/
 void CL_Drop (void)
 	{
 	if (!cls.initialized)
@@ -1061,13 +1060,13 @@ void CL_Drop (void)
 	CL_Disconnect ();
 	}
 
-/*
+/***
 =======================
 CL_SendConnectPacket
 
 We have gotten a challenge from the server, so try and connect
 ======================
-*/
+***/
 static void CL_SendConnectPacket (void)
 	{
 	char		protinfo[MAX_INFO_STRING];
@@ -1154,13 +1153,13 @@ static void CL_SendConnectPacket (void)
 	cls.timestart = Sys_DoubleTime ();
 	}
 
-/*
+/***
 =================
 CL_GetTestFragmentSize [FWGS, 01.05.24]
 
 Returns bandwidth test fragment size
 =================
-*/
+***/
 static int CL_GetTestFragmentSize (void)
 	{
 	const int fragmentSizes[CL_TEST_RETRIES] = { 64000, 32000, 10666, 5200, 1400 };
@@ -1170,13 +1169,13 @@ static int CL_GetTestFragmentSize (void)
 		return FRAGMENT_MIN_SIZE;
 	}
 
-/*
+/***
 =================
 CL_CheckForResend [FWGS, 01.05.24]
 
 Resend a connect message if the last one has timed out
 =================
-*/
+***/
 static void CL_CheckForResend (void)
 	{
 	netadr_t		adr;
@@ -1209,7 +1208,6 @@ static void CL_CheckForResend (void)
 	else if (cl_resend.value > CL_MAX_RESEND_TIME)
 		Cvar_SetValue ("cl_resend", CL_MAX_RESEND_TIME);
 
-	/*if ((host.realtime - cls.connect_time) < cl_resend.value)*/
 	bandwidthTest = !cls.legacymode && cl_test_bandwidth.value && (cls.connect_retry <= CL_TEST_RETRIES);
 	resendTime = bandwidthTest ? 1.0f : cl_resend.value;
 
@@ -1241,11 +1239,9 @@ static void CL_CheckForResend (void)
 	if (adr.port == 0)
 		adr.port = MSG_BigShort (PORT_SERVER);
 
-	/*if (cls.connect_retry == CL_TEST_RETRIES_NORESPONCE)*/
 	if (cls.connect_retry == CL_TEST_RETRIES)
 		{
 		// too many fails use default connection method
-		/*Con_Printf ("hi-speed connection is failed, use default method\n");*/
 		Con_Printf ("Bandwidth test failed, fallback to default connecting method\n");
 		Con_Printf ("Connecting to %s... (retry #%i)\n", cls.servername, cls.connect_retry + 1);
 
@@ -1256,22 +1252,17 @@ static void CL_CheckForResend (void)
 		return;
 		}
 
-	/*bandwidthTest = !cls.legacymode && cl_test_bandwidth.value;*/
 	cls.serveradr = adr;
-	/*cls.max_fragment_size = Q_min (FRAGMENT_MAX_SIZE, cls.max_fragment_size / (cls.connect_retry + 1));*/
 	cls.max_fragment_size = CL_GetTestFragmentSize ();
 
 	cls.connect_time = host.realtime;	// for retransmit requests
 	cls.connect_retry++;
 
 	if (bandwidthTest)
-		/*Con_Printf ("Connecting to %s... [retry #%i, max fragment size %i]\n", cls.servername,
-			cls.connect_retry, cls.max_fragment_size);*/
 		Con_Printf ("Connecting to %s... (retry #%i, fragment size %i)\n", cls.servername,
 			cls.connect_retry, cls.max_fragment_size);
 
 	else
-		/*Con_Printf ("Connecting to %s... [retry #%i]\n", cls.servername, cls.connect_retry);*/
 		Con_Printf ("Connecting to %s... (retry #%i)\n", cls.servername, cls.connect_retry);
 
 	if (bandwidthTest)
@@ -1339,11 +1330,11 @@ static void CL_CreateResourceList (void)
 	FS_Close (fp);
 	}
 
-/*
+/***
 ================
 CL_Connect_f
 ================
-*/
+***/
 static void CL_Connect_f (void)
 	{
 	string	server;
@@ -1386,14 +1377,14 @@ static void CL_Connect_f (void)
 	cls.signon = 0;
 	}
 
-/*
+/***
 =====================
 CL_Rcon_f
 
 Send the rest of the command line over as
 an unconnected command.
 =====================
-*/
+***/
 static void CL_Rcon_f (void)
 	{
 	char		message[1024];
@@ -1448,11 +1439,11 @@ static void CL_Rcon_f (void)
 	}
 
 
-/*
+/***
 =====================
 CL_ClearState
 =====================
-*/
+***/
 void CL_ClearState (void)
 	{
 	int	i;
@@ -1498,13 +1489,13 @@ void CL_ClearState (void)
 	HTTP_ClearCustomServers ();
 	}
 
-/*
+/***
 =====================
 CL_SendDisconnectMessage
 
 Sends a disconnect message to the server
 =====================
-*/
+***/
 static void CL_SendDisconnectMessage (void)
 	{
 	sizebuf_t	buf;
@@ -1543,13 +1534,13 @@ int CL_GetSplitSize (void)
 	return cl_dlmax.value;
 	}
 
-/*
+/***
 =====================
 CL_Reconnect
 
 build a request to reconnect client
 =====================
-*/
+***/
 static void CL_Reconnect (qboolean setup_netchan)
 	{
 	if (setup_netchan)
@@ -1600,7 +1591,7 @@ static void CL_Reconnect (qboolean setup_netchan)
 	CL_StartupDemoHeader ();
 	}
 
-/*
+/***
 =====================
 CL_Disconnect
 
@@ -1608,7 +1599,7 @@ Goes from a connected state to full screen console state
 Sends a disconnect message to the server
 This is also called on Host_Error, so it shouldn't cause any errors
 =====================
-*/
+***/
 void CL_Disconnect (void)
 	{
 	cls.legacymode = false;
@@ -1670,11 +1661,11 @@ void CL_Crashed (void)
 	Host_WriteConfig ();	// write config
 	}
 
-/*
+/***
 =================
 CL_LocalServers_f
 =================
-*/
+***/
 static void CL_LocalServers_f (void)
 	{
 	netadr_t	adr;
@@ -1694,11 +1685,11 @@ static void CL_LocalServers_f (void)
 	Netchan_OutOfBandPrint (NS_CLIENT, adr, "info %i", PROTOCOL_VERSION);
 	}
 
-/*
+/***
 =================
 CL_BuildMasterServerScanRequest [FWGS, 01.04.23]
 =================
-*/
+***/
 static size_t NONNULL CL_BuildMasterServerScanRequest (char *buf, size_t size, uint32_t *key,
 	qboolean nat, const char *filter)
 	{
@@ -1729,11 +1720,11 @@ static size_t NONNULL CL_BuildMasterServerScanRequest (char *buf, size_t size, u
 	return sizeof (MS_SCAN_REQUEST) + Q_strlen (info);
 	}
 
-/*
+/***
 =================
 CL_SendMasterServerScanRequest [FWGS, 01.11.23]
 =================
-*/
+***/
 static void CL_SendMasterServerScanRequest (void)
 	{
 	cls.internetservers_wait = NET_SendToMasters (NS_CLIENT,
@@ -1741,11 +1732,11 @@ static void CL_SendMasterServerScanRequest (void)
 	cls.internetservers_pending = true;
 	}
 
-/*
+/***
 =================
 CL_InternetServers_f [FWGS, 01.02.24]
 =================
-*/
+***/
 static void CL_InternetServers_f (void)
 	{
 	qboolean	nat = cl_nat.value != 0.0f;
@@ -1767,13 +1758,13 @@ static void CL_InternetServers_f (void)
 	CL_SendMasterServerScanRequest ();
 	}
 
-/*
+/***
 =================
 CL_Reconnect_f
 
 The server is changing levels
 =================
-*/
+***/
 static void CL_Reconnect_f (void)
 	{
 	if (cls.state == ca_disconnected)
@@ -1804,13 +1795,13 @@ static void CL_Reconnect_f (void)
 		}
 	}
 
-/*
+/***
 =================
 CL_FixupColorStringsForInfoString
 
 all the keys and values must be ends with ^7
 =================
-*/
+***/
 static void CL_FixupColorStringsForInfoString (const char *in, char *out)
 	{
 	qboolean	hasPrefix = false;
@@ -1868,13 +1859,13 @@ static void CL_FixupColorStringsForInfoString (const char *in, char *out)
 	*out = '\0';
 	}
 
-/*
+/***
 =================
 CL_ParseStatusMessage
 
 Handle a reply from a info
 =================
-*/
+***/
 static void CL_ParseStatusMessage (netadr_t from, sizebuf_t *msg)
 	{
 	static char	infostring[MAX_INFO_STRING + 8];
@@ -1917,13 +1908,13 @@ static void CL_ParseStatusMessage (netadr_t from, sizebuf_t *msg)
 	UI_AddServerToList (from, infostring);
 	}
 
-/*
+/***
 =================
 CL_ParseNETInfoMessage
 
 Handle a reply from a netinfo
 =================
-*/
+***/
 static void CL_ParseNETInfoMessage (netadr_t from, sizebuf_t *msg, const char *s)
 	{
 	net_request_t *nr;
@@ -1972,13 +1963,13 @@ static void CL_ParseNETInfoMessage (netadr_t from, sizebuf_t *msg, const char *s
 		}
 	}
 
-/*
+/***
 =================
 CL_ProcessNetRequests
 
 check for timeouts
 =================
-*/
+***/
 static void CL_ProcessNetRequests (void)
 	{
 	net_request_t *nr;
@@ -2003,13 +1994,13 @@ static void CL_ProcessNetRequests (void)
 	}
 
 // ===================================================================
-/*
+/***
 ===============
 CL_SetupOverviewParams
 
 Get initial overview values
 ===============
-*/
+***/
 void CL_SetupOverviewParams (void)
 	{
 	ref_overview_t *ov = &clgame.overView;
@@ -2041,25 +2032,25 @@ void CL_SetupOverviewParams (void)
 		}
 	}
 
-/*
+/***
 =================
 CL_IsFromConnectingServer
 
 Used for connectionless packets, when netchan may not be ready.
 =================
-*/
+***/
 static qboolean CL_IsFromConnectingServer (netadr_t from)
 	{
 	return NET_IsLocalAddress (from) || NET_CompareAdr (cls.serveradr, from);
 	}
 
-/*
+/***
 =================
 CL_ConnectionlessPacket
 
 Responses to broadcasts, etc
 =================
-*/
+***/
 static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	{
 	char		*args;
@@ -2356,13 +2347,13 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 ====================
 CL_GetMessage
 
 Handles recording and playback of demos, on top of NET_ code
 ====================
-*/
+***/
 static int CL_GetMessage (byte *data, size_t *length)
 	{
 	if (cls.demoplayback)
@@ -2377,11 +2368,11 @@ static int CL_GetMessage (byte *data, size_t *length)
 	return false;
 	}
 
-/*
+/***
 =================
 CL_ReadNetMessage
 =================
-*/
+***/
 static void CL_ReadNetMessage (void)
 	{
 	size_t	curSize;
@@ -2463,14 +2454,14 @@ static void CL_ReadNetMessage (void)
 	CL_ProcessNetRequests ();
 	}
 
-/*
+/***
 =================
 CL_ReadPackets
 
 Updates the local time and reads/handles messages
 on client net connection
 =================
-*/
+***/
 static void CL_ReadPackets (void)
 	{
 	// decide the simulation time
@@ -2523,13 +2514,13 @@ static void CL_ReadPackets (void)
 		}
 	}
 
-/*
+/***
 ====================
 CL_CleanFileName
 
 Replace the displayed name for some resources
 ====================
-*/
+***/
 static const char *CL_CleanFileName (const char *filename)
 	{
 	if (COM_CheckString (filename) && (filename[0] == '!'))
@@ -2538,13 +2529,13 @@ static const char *CL_CleanFileName (const char *filename)
 	return filename;
 	}
 
-/*
+/***
 ====================
 CL_RegisterCustomization
 
 register custom resource for player
 ====================
-*/
+***/
 static void CL_RegisterCustomization (resource_t *resource)
 	{
 	qboolean		bFound = false;
@@ -2572,14 +2563,14 @@ static void CL_RegisterCustomization (resource_t *resource)
 		}
 	}
 
-/*
+/***
 ====================
 CL_ProcessFile
 
 A file has been received via the fragmentation/reassembly layer, put it in the right spot and
  see if we have finished downloading files.
 ====================
-*/
+***/
 void CL_ProcessFile (qboolean successfully_received, const char *filename)
 	{
 	int			sound_len = sizeof (DEFAULT_SOUNDPATH) - 1;
@@ -2711,13 +2702,13 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 		}
 	}
 
-/*
+/***
 ====================
 CL_ServerCommand
 
 send command to a server
 ====================
-*/
+***/
 void CL_ServerCommand (qboolean reliable, const char *fmt, ...)
 	{
 	char		string[MAX_SYSPATH];
@@ -2743,11 +2734,11 @@ void CL_ServerCommand (qboolean reliable, const char *fmt, ...)
 	}
 
 // =============================================================================
-/*
+/***
 ==============
 CL_SetInfo_f
 ==============
-*/
+***/
 static void CL_SetInfo_f (void)
 	{
 	convar_t *var;
@@ -2783,11 +2774,11 @@ static void CL_SetInfo_f (void)
 		}
 	}
 
-/*
+/***
 ==============
 CL_Physinfo_f
 ==============
-*/
+***/
 static void CL_Physinfo_f (void)
 	{
 	Con_Printf ("Phys info settings:\n");
@@ -2936,13 +2927,13 @@ qboolean CL_PrecacheResources (void)
 	return true;
 	}
 
-/*
+/***
 ==================
 CL_FullServerinfo_f
 
 Sent by server when serverinfo changes
 ==================
-*/
+***/
 static void CL_FullServerinfo_f (void)
 	{
 	if (Cmd_Argc () != 2)
@@ -2954,13 +2945,13 @@ static void CL_FullServerinfo_f (void)
 	Q_strncpy (cl.serverinfo, Cmd_Argv (1), sizeof (cl.serverinfo));
 	}
 
-/*
+/***
 =================
 CL_Escape_f
 
 Escape to menu from game
 =================
-*/
+***/
 static void CL_Escape_f (void)
 	{
 	if (cls.key_dest == key_menu)
@@ -2976,11 +2967,11 @@ static void CL_Escape_f (void)
 		UI_SetActiveMenu (true);
 	}
 
-/*
+/***
 =================
 CL_InitLocal
 =================
-*/
+***/
 static void CL_InitLocal (void)
 	{
 	cls.state = ca_disconnected;
@@ -3186,14 +3177,14 @@ static void CL_InitLocal (void)
 	}
 
 // ============================================================================
-/*
+/***
 ==================
 CL_AdjustClock
 
 slowly adjuct client clock
 to smooth lag effect
 ==================
-*/
+***/
 static void CL_AdjustClock (void)
 	{
 	if ((cl.timedelta == 0.0f) || !cl_fixtimerate.value)
@@ -3224,11 +3215,11 @@ static void CL_AdjustClock (void)
 		}
 	}
 
-/*
+/***
 ==================
 Host_ClientBegin
 ==================
-*/
+***/
 void Host_ClientBegin (void)
 	{
 	// exec console commands
@@ -3248,11 +3239,11 @@ void Host_ClientBegin (void)
 		CL_SendCommand ();
 	}
 
-/*
+/***
 ==================
 Host_ClientFrame
 ==================
-*/
+***/
 void Host_ClientFrame (void)
 	{
 	// if client is not active, do nothing
@@ -3315,11 +3306,11 @@ void Host_ClientFrame (void)
 
 // ============================================================================
 
-/*
+/***
 ====================
 CL_Init
 ====================
-*/
+***/
 void CL_Init (void)
 	{
 	string libpath;
@@ -3347,11 +3338,11 @@ void CL_Init (void)
 	cls.demonum = -1;
 	}
 
-/*
+/***
 ===============
 CL_Shutdown
 ===============
-*/
+***/
 void CL_Shutdown (void)
 	{
 	Con_Printf ("CL_Shutdown()\n");
@@ -3385,3 +3376,4 @@ void CL_Shutdown (void)
 
 	Con_Shutdown ();
 	}
+

@@ -1,4 +1,4 @@
-/*
+/***
 cl_pmove.c - client-side player physic
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -28,11 +28,11 @@ GNU General Public License for more details.
 
 // [FWGS, 01.04.23] удалена CL_ClearPhysEnts
 
-/*
+/***
 =============
 CL_PushPMStates
 =============
-*/
+***/
 void GAME_EXPORT CL_PushPMStates (void)
 	{
 	if (clgame.pushed)
@@ -43,11 +43,11 @@ void GAME_EXPORT CL_PushPMStates (void)
 	clgame.pushed = true;
 	}
 
-/*
+/***
 =============
 CL_PopPMStates
 =============
-*/
+***/
 void GAME_EXPORT CL_PopPMStates (void)
 	{
 	if (!clgame.pushed)
@@ -59,7 +59,7 @@ void GAME_EXPORT CL_PopPMStates (void)
 	}
 
 // [FWGS, 01.02.24]
-/*
+/***
 =============
 CL_PushTraceBounds
 =============
@@ -72,7 +72,7 @@ void GAME_EXPORT CL_PushTraceBounds (int hullnum, const float *mins, const float
 	}*/
 
 // [FWGS, 01.02.24]
-/*
+/***
 =============
 CL_PopTraceBounds
 =============
@@ -83,11 +83,11 @@ void GAME_EXPORT CL_PopTraceBounds (void)
 	memcpy (clgame.pmove->player_maxs, host.player_maxs, sizeof (host.player_maxs));
 	}*/
 
-/*
+/***
 ===============
 CL_IsPredicted
 ===============
-*/
+***/
 qboolean CL_IsPredicted (void)
 	{
 	if (cl_nopred.value || cl.intermission)
@@ -99,21 +99,21 @@ qboolean CL_IsPredicted (void)
 	return true;
 	}
 
-/*
+/***
 ===============
 CL_SetLastUpdate
 ===============
-*/
+***/
 void CL_SetLastUpdate (void)
 	{
 	cls.lastupdate_sequence = cls.netchan.incoming_sequence;
 	}
 
-/*
+/***
 ===============
 CL_RedoPrediction
 ===============
-*/
+***/
 void CL_RedoPrediction (void)
 	{
 	if (cls.netchan.incoming_sequence != cls.lastupdate_sequence)
@@ -123,11 +123,11 @@ void CL_RedoPrediction (void)
 		}
 	}
 
-/*
+/***
 ===============
 CL_SetIdealPitch
 ===============
-*/
+***/
 void CL_SetIdealPitch (void)
 	{
 	float		angleval, sinval, cosval;
@@ -191,14 +191,14 @@ void CL_SetIdealPitch (void)
 	cl.local.idealpitch = -dir * cl_idealpitchscale.value;
 	}
 
-/*
+/***
 ==================
 CL_PlayerTeleported [FWGS, 01.04.23]
 
 check for instant movement in case
 we don't want interpolate this
 ==================
-*/
+***/
 static qboolean CL_PlayerTeleported (local_state_t *from, local_state_t *to)
 	{
 	int		len, maxlen;
@@ -213,11 +213,11 @@ static qboolean CL_PlayerTeleported (local_state_t *from, local_state_t *to)
 	return (len > maxlen);
 	}
 
-/*
+/***
 ===================
 CL_CheckPredictionError
 ===================
-*/
+***/
 void CL_CheckPredictionError (void)
 	{
 	int			frame, cmd;
@@ -262,7 +262,7 @@ void CL_CheckPredictionError (void)
 		}
 	}
 
-/*
+/***
 =============
 CL_SetUpPlayerPrediction
 
@@ -272,7 +272,7 @@ Players are predicted twice, first without clipping other players,
 then with clipping against them.
 This sets up the first phase.
 =============
-*/
+***/
 void GAME_EXPORT CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient)
 	{
 	entity_state_t		*state;
@@ -415,13 +415,13 @@ static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboole
 	VectorCopy (state->vuser4, pe->vuser4);
 	}
 
-/*
+/***
 ====================
 CL_AddLinksToPmove
 
 collect solid entities
 ====================
-*/
+***/
 static void CL_AddLinksToPmove (frame_t *frame)
 	{
 	entity_state_t	*state;
@@ -491,13 +491,13 @@ static void CL_AddLinksToPmove (frame_t *frame)
 		}
 	}
 
-/*
+/***
 ===============
 CL_SetSolidEntities
 
 Builds all the pmove physents for the current frame
 ===============
-*/
+***/
 void CL_SetSolidEntities (void)
 	{
 	physent_t *pe = clgame.pmove->physents;
@@ -524,7 +524,7 @@ void CL_SetSolidEntities (void)
 	CL_AddLinksToPmove (&cl.frames[cl.parsecountmod]);
 	}
 
-/*
+/***
 ===============
 CL_SetSolidPlayers
 
@@ -533,7 +533,7 @@ Note that CL_SetUpPlayerPrediction() must be called first!
 pmove must be setup with world and solid entity hulls before calling
 (via CL_PredictMove)
 ===============
-*/
+***/
 void GAME_EXPORT CL_SetSolidPlayers (int playernum)
 	{
 	entity_state_t		*state;
@@ -584,11 +584,11 @@ void GAME_EXPORT CL_SetSolidPlayers (int playernum)
 		}
 	}
 
-/*
+/***
 =============
 CL_WaterEntity
 =============
-*/
+***/
 int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 	{
 	physent_t	*pe;
@@ -639,13 +639,13 @@ int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 	return -1;
 	}
 
-/*
+/***
 =============
 CL_TraceLine
 
 a simple engine traceline
 =============
-*/
+***/
 pmtrace_t CL_TraceLine (vec3_t start, vec3_t end, int flags)
 	{
 	int	old_usehull;
@@ -659,13 +659,13 @@ pmtrace_t CL_TraceLine (vec3_t start, vec3_t end, int flags)
 	return tr;
 	}
 
-/*
+/***
 =============
 CL_VisTraceLine
 
 trace by visible objects (thats can be non-solid)
 =============
-*/
+***/
 pmtrace_t *CL_VisTraceLine (vec3_t start, vec3_t end, int flags)
 	{
 	int		old_usehull;
@@ -679,13 +679,13 @@ pmtrace_t *CL_VisTraceLine (vec3_t start, vec3_t end, int flags)
 	return &tr;
 	}
 
-/*
+/***
 =============
 CL_GetWaterEntity
 
 returns water brush where inside pos
 =============
-*/
+***/
 cl_entity_t *CL_GetWaterEntity (const float *rgflPos)
 	{
 	int	entnum;
@@ -766,11 +766,11 @@ static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehu
 	return PM_TraceLineEx (clgame.pmove, start, end, flags, usehull, pmFilter);
 	}
 
-/*
+/***
 ===============
 CL_InitClientMove
 ===============
-*/
+***/
 void CL_InitClientMove (void)
 	{
 	int	i;
@@ -850,17 +850,6 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	// but we need to properly run prediction and avoid potential memory corruption
 	if (pmove->player_index < 0)
 		pmove->player_index = bound (0, cl.playernum, cl.maxclients - 1);
-		/*{
-		if (cls.legacymode)
-			{
-			pmove->player_index = bound (0, cl.playernum, cl.maxclients - 1);
-			}
-		else
-			{
-			// if this happens, record a demo and send it to a1ba
-			Host_Error ("%s: ps->number == %d\n", __func__, ps->number);
-			}
-		}*/
 
 	pmove->multiplayer = (cl.maxclients > 1);
 	pmove->runfuncs = runfuncs;
@@ -920,8 +909,6 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 
 	// copy current cmds
 	pmove->cmd = *ucmd;
-
-	/*Q_strncpy (pmove->physinfo, cls.physinfo, MAX_INFO_STRING);*/
 	Q_strncpy (pmove->physinfo, cls.physinfo, sizeof (pmove->physinfo));
 	}
 
@@ -972,13 +959,13 @@ static const void CL_FinishPMove (const playermove_t *pmove, local_state_t *to)
 	VectorCopy (pmove->vuser4, cd->vuser4);
 	}
 
-/*
+/***
 =================
 CL_RunUsercmd
 
 Runs prediction code for user cmd
 =================
-*/
+***/
 static void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u, qboolean runfuncs, double *time,
 	unsigned int random_seed)
 	{
@@ -1024,13 +1011,13 @@ static void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u,
 	}
 
 
-/*
+/***
 =================
 CL_MoveSpectatorCamera
 
 spectator movement code
 =================
-*/
+***/
 void CL_MoveSpectatorCamera (void)
 	{
 	double	time = cl.time;
@@ -1048,13 +1035,13 @@ void CL_MoveSpectatorCamera (void)
 	VectorCopy (cls.spectator_state.client.view_ofs, cl.viewheight);
 	}
 
-/*
+/***
 =================
 CL_PredictMovement [FWGS, 01.04.23]
 
 Sets cl.predicted.origin and cl.predicted.angles
 =================
-*/
+***/
 void CL_PredictMovement (qboolean repredicting)
 	{
 	runcmd_t	*to_cmd = NULL, *from_cmd;
@@ -1262,3 +1249,4 @@ void CL_PredictMovement (qboolean repredicting)
 	VectorCopy (cl.simorg, cl.local.lastorigin);
 	cl.local.repredicting = false;
 	}
+

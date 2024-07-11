@@ -1,4 +1,4 @@
-/*
+/***
 com_strings.h - all paths to external resources that hardcoded into engine
 Copyright (C) 2018 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #ifndef COM_STRINGS_H
 #define COM_STRINGS_H

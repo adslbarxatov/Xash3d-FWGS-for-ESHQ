@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -20,7 +20,7 @@
 #include STDINT_H
 #include "synctype.h"
 
-/*
+/***
 ==============================================================================
 ALIAS MODELS
 

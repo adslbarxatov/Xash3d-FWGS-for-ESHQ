@@ -1,4 +1,4 @@
-/*
+/***
 common.h - definitions common between client and server
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #ifndef COMMON_H
 #define COMMON_H
@@ -20,7 +20,7 @@ GNU General Public License for more details.
 extern "C" {
 #endif
 
-/*
+/***
 =======================================================================================================================
 Legend:
 
@@ -34,7 +34,7 @@ TESTTEST			- this code may be unstable and needs to be more tested
 g-cont:				- notes from engine author
 XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 =======================================================================================================================
-*/
+***/
 
 #include "port.h"
 
@@ -166,18 +166,18 @@ extern convar_t	sys_timescale;
 extern convar_t	cl_filterstuffcmd;
 extern convar_t	rcon_password;
 
-/*
+/***
 ==============================================================
 HOST INTERFACE
 ==============================================================
-*/
-/*
+***/
+/***
 ========================================================================
 GAMEINFO stuff
 
 internal shared gameinfo structure (readonly for engine parts)
 ========================================================================
-*/
+***/
 typedef struct sysinfo_s
 	{
 	string		exeName;		// exe.filename
@@ -272,14 +272,9 @@ typedef struct
 // [FWGS, 01.05.24]
 typedef enum bugcomp_e
 	{
-	/*// default mode, we assume that user dlls are not relying on engine bugs
-	BUGCOMP_OFF,*/
 	// reverts fix for pfnPEntityOfEntIndex for bug compatibility with GoldSrc
 	BUGCOMP_PENTITYOFENTINDEX_FLAG = BIT (0),
 
-	/*// GoldSrc mode, user dlls are relying on GoldSrc specific bugs
-	// but fixing them may break regular Xash games
-	BUGCOMP_GOLDSRC,*/
 	// rewrites mod's attempts to write GoldSrc-specific messages into Xash protocol
 	// (new wrappers are added by request)
 	BUGCOMP_MESSAGE_REWRITE_FACILITY_FLAG = BIT (1),
@@ -363,7 +358,6 @@ typedef struct host_parm_s
 	int				numdecals;
 
 	// [FWGS, 01.05.24]
-	/*bugcomp_t		bugcomp;		// bug compatibility level, for very "special" games*/
 	uint32_t		bugcomp;
 
 	double			starttime;		// [FWGS, 01.04.23] measure time to first frame
@@ -480,13 +474,13 @@ void Image_ClearForceFlags (void);
 void Image_SetMDLPointer (byte *p);
 void Image_CheckPaletteQ1 (void);
 
-/*
+/***
 ========================================================================
 internal sound format
 
 typically expanded to wav buffer
 ========================================================================
-*/
+***/
 typedef enum
 	{
 	WF_UNKNOWN = 0,
@@ -494,15 +488,6 @@ typedef enum
 	WF_MPGDATA,
 	WF_TOTALCOUNT,	// must be last
 	} sndformat_t;
-
-// [FWGS, 09.05.24]
-/*// soundlib global settings
-typedef enum
-	{
-	SL_USE_LERPING = BIT (0),		// lerping sounds during resample
-	SL_KEEP_8BIT = BIT (1),		// don't expand 8bit sounds automatically up to 16 bit
-	SL_ALLOW_OVERWRITE = BIT (2),		// allow to overwrite stored sounds
-	} slFlags_t;*/
 
 // [FWGS, 09.05.24] wavdata output flags
 typedef enum
@@ -512,23 +497,12 @@ typedef enum
 	SOUND_STREAM =		BIT (1),	// this is a streaminfo, not a real sound
 
 	// Sound_Process manipulation flags
-	/*SOUND_RESAMPLE = BIT (12),	// resample sound to specified rate
-	SOUND_CONVERT16BIT = BIT (13),	// change sound resolution from 8 bit to 16*/
 	SOUND_RESAMPLE =	BIT (12),	// resample sound to specified rate
 	} sndFlags_t;
 
 // [FWGS, 09.05.24]
 typedef struct
 	{
-	/*word	rate;		// num samples per second (e.g. 11025 - 11 khz)
-	byte	width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
-	byte	channels;	// num channels (1 - mono, 2 - stereo)
-	int	loopStart;		// offset at this point sound will be looping while playing more than only once
-	int	samples;		// total samplecount in wav
-	uint	type;		// compression type
-	uint	flags;		// misc sound flags
-	byte *buffer;		// sound buffer
-	size_t	size;		// for bounds checking*/
 	word	rate;		// num samples per second (e.g. 11025 - 11 khz)
 	byte	width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
 	byte	channels;	// num channels (1 - mono, 2 - stereo)
@@ -590,11 +564,11 @@ void COM_LoadGame (char const *pSaveFileName);
 void COM_ChangeLevel (char const *pNewLevel, char const *pLandmarkName, qboolean background);
 void COM_Frame (float time);
 
-/*
+/***
 ==============================================================
 CLIENT / SERVER SYSTEMS
 ==============================================================
-*/
+***/
 void CL_Init (void);
 void CL_Shutdown (void);
 void Host_ClientBegin (void);
@@ -607,11 +581,11 @@ void SV_ShutdownFilter (void);
 void Host_ServerFrame (void);
 qboolean SV_Active (void);
 
-/*
+/***
 ==============================================================
 SHARED ENGFUNCS [FWGS, 01.02.24]
 ==============================================================
-*/
+***/
 char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize);
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput);
 int COM_SaveFile (const char *filename, const void *data, int len);
@@ -649,11 +623,11 @@ void pfnConstructTutorMessageDecayBuffer (int *buffer, int buflen);
 void pfnProcessTutorMessageDecayBuffer (int *buffer, int bufferLength);
 void pfnResetTutorMessageDecayData (void);
 
-/*
+/***
 ==============================================================
 MISC COMMON FUNCTIONS
 ==============================================================
-*/
+***/
 #define Z_Malloc( size )		Mem_Malloc( host.mempool, size )
 #define Z_Calloc( size )		Mem_Calloc( host.mempool, size )
 #define Z_Realloc( ptr, size )	Mem_Realloc( host.mempool, ptr, size )
@@ -725,7 +699,6 @@ void Log_Printf (const char *fmt, ...) _format (1);
 void SV_BroadcastCommand (const char *fmt, ...) _format (1);
 void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) _format (2);
 void CL_ClearStaticEntities (void);
-/*qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *position);*/
 qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack, size_t loopTrackSize, int *position);	  // [FWGS, 09.05.24]
 void CL_ServerCommand (qboolean reliable, const char *fmt, ...) _format (2);
 void CL_HudMessage (const char *pMessage);

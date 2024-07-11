@@ -1,4 +1,4 @@
-/*
+/***
 cl_render.c - RenderAPI loader & implementation
 Copyright (C) 2019 a1batross
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -45,11 +45,11 @@ static void R_Mem_Free (void *mem, const char *filename, const int fileline)
 	_Mem_Free (mem, filename, fileline);
 	}
 
-/*
+/***
 =========
 pfnGetFilesList
 =========
-*/
+***/
 static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
 	{
 	static search_t *t = NULL;
@@ -82,11 +82,11 @@ static uint pfnFileBufferCRC32 (const void *buffer, const int length)
 	return CRC32_Final (modelCRC);
 	}
 
-/*
+/***
 =================
 R_EnvShot
 =================
-*/
+***/
 static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot, int shotsize)
 	{
 	static vec3_t viewPoint;
@@ -122,11 +122,11 @@ static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot,
 	cls.envshot_viewsize = Q_max (0, shotsize);
 	}
 
-/*
+/***
 =============
 CL_GenericHandle
 =============
-*/
+***/
 static const char *CL_GenericHandle (int fileindex)
 	{
 	if ((fileindex < 0) || (fileindex >= MAX_CUSTOM))
@@ -333,13 +333,13 @@ static void R_FillRenderAPIFromRef (render_api_t *to, const ref_interface_t *fro
 	to->GL_GetProcAddress = from->R_GetProcAddress;
 	}
 
-/*
+/***
 ===============
 R_InitRenderAPI
 
 Initialize client external rendering
 ===============
-*/
+***/
 qboolean R_InitRenderAPI (void)
 	{
 	// make sure what render functions is cleared

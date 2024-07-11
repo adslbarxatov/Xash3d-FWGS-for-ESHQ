@@ -1,4 +1,4 @@
-/*
+/***
 cmd.c - script command processing module
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -40,17 +40,17 @@ static qboolean	cmd_currentCommandIsPrivileged;
 
 static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPrivileged);
 
-/*
+/***
 =============================================================================
 COMMAND BUFFER
 =============================================================================
-*/
+***/
 
-/*
+/***
 ============
 Cbuf_Init
 ============
-*/
+***/
 static void Cbuf_Init (void)
 	{
 	cmd_text.data = cmd_text_buf;
@@ -60,11 +60,11 @@ static void Cbuf_Init (void)
 	filteredcmd_text.cursize = cmd_text.cursize = 0;
 	}
 
-/*
+/***
 ============
 Cbuf_Clear
 ============
-*/
+***/
 void Cbuf_Clear (void)
 	{
 	memset (cmd_text.data, 0, cmd_text.maxsize);
@@ -72,11 +72,11 @@ void Cbuf_Clear (void)
 	cmd_text.cursize = filteredcmd_text.cursize = 0;
 	}
 
-/*
+/***
 ============
 Cbuf_GetSpace
 ============
-*/
+***/
 static void *Cbuf_GetSpace (cmdbuf_t *buf, int length)
 	{
 	void *data;
@@ -106,13 +106,13 @@ static void Cbuf_AddTextToBuffer (cmdbuf_t *buf, const char *text)
 	memcpy (Cbuf_GetSpace (buf, l), text, l);
 	}
 
-/*
+/***
 ============
 Cbuf_AddText
 
 Adds command text at the end of the buffer
 ============
-*/
+***/
 void Cbuf_AddText (const char *text)
 	{
 	Cbuf_AddTextToBuffer (&cmd_text, text);
@@ -131,24 +131,24 @@ void Cbuf_AddTextf (const char *fmt, ...)
 	Cbuf_AddText (buf);
 	}
 
-/*
+/***
 ============
 Cbuf_AddFilteredText
 ============
-*/
+***/
 void Cbuf_AddFilteredText (const char *text)
 	{
 	Cbuf_AddTextToBuffer (&filteredcmd_text, text);
 	}
 
-/*
+/***
 ============
 Cbuf_InsertText
 
 Adds command text immediately after the current command
 Adds a \n to the text
 ============
-*/
+***/
 static void Cbuf_InsertTextToBuffer (cmdbuf_t *buf, const char *text)
 	{
 	int	l = Q_strlen (text);
@@ -170,11 +170,11 @@ void Cbuf_InsertText (const char *text)
 	Cbuf_InsertTextToBuffer (&cmd_text, text);
 	}
 
-/*
+/***
 ============
 Cbuf_Execute
 ============
-*/
+***/
 static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged, int cmdsToExecute)
 	{
 	char	*text;
@@ -259,11 +259,11 @@ static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged
 		}
 	}
 
-/*
+/***
 ============
 Cbuf_Execute
 ============
-*/
+***/
 void Cbuf_Execute (void)
 	{
 	Cbuf_ExecuteCommandsFromBuffer (&cmd_text, true, -1);
@@ -273,13 +273,13 @@ void Cbuf_Execute (void)
 	Cbuf_ExecuteCommandsFromBuffer (&filteredcmd_text, false, -1);
 	}
 
-/*
+/***
 ===============
 Cbuf_ExecStuffCmds
 
 execute commandline
 ===============
-*/
+***/
 void Cbuf_ExecStuffCmds (void)
 	{
 	char	build[MAX_CMD_LINE]; // this is for all commandline options combined (and is bounds checked)
@@ -334,17 +334,17 @@ void Cbuf_ExecStuffCmds (void)
 	host.stuffcmds_pending = false;
 	}
 
-/*
+/***
 ==============================================================================
 SCRIPT COMMANDS
 ==============================================================================
-*/
+***/
 qboolean Cmd_CurrentCommandIsPrivileged (void)
 	{
 	return cmd_currentCommandIsPrivileged;
 	}
 
-/*
+/***
 ===============
 Cmd_StuffCmds_f
 
@@ -353,13 +353,13 @@ Commands lead with a +, and continue until a - or another +
 hl.exe -dev 3 +map c1a0d
 hl.exe -nosound -game bshift
 ===============
-*/
+***/
 static void Cmd_StuffCmds_f (void)
 	{
 	host.stuffcmds_pending = true;
 	}
 
-/*
+/***
 ============
 Cmd_Wait_f
 
@@ -367,19 +367,19 @@ Causes execution of the remainder of the command buffer to be delayed until
 next frame.  This allows commands like:
 bind g "cmd use rocket ; +attack ; wait ; -attack ; cmd use blaster"
 ============
-*/
+***/
 static void Cmd_Wait_f (void)
 	{
 	cmd_wait = true;
 	}
 
-/*
+/***
 ===============
 Cmd_Echo_f
 
 Just prints the rest of the line to the console
 ===============
-*/
+***/
 static void Cmd_Echo_f (void)
 	{
 	int	i;
@@ -389,13 +389,13 @@ static void Cmd_Echo_f (void)
 	Con_Printf ("\n");
 	}
 
-/*
+/***
 ===============
 Cmd_Alias_f
 
 Creates a new command that executes a command string (possibly ; seperated)
 ===============
-*/
+***/
 static void Cmd_Alias_f (void)
 	{
 	cmdalias_t	*a;
@@ -464,13 +464,13 @@ static void Cmd_Alias_f (void)
 	a->value = copystring (cmd);
 	}
 
-/*
+/***
 ===============
 Cmd_UnAlias_f
 
 Remove existing aliases
 ===============
-*/
+***/
 static void Cmd_UnAlias_f (void)
 	{
 	cmdalias_t	*a, *p;
@@ -511,11 +511,11 @@ static void Cmd_UnAlias_f (void)
 		}
 	}
 
-/*
+/***
 =============================================================================
 COMMAND EXECUTION
 =============================================================================
-*/
+***/
 typedef struct cmd_s
 	{
 	struct cmd_s *next;
@@ -531,21 +531,21 @@ static const char	*cmd_args = NULL;
 static char			*cmd_argv[MAX_CMD_TOKENS];
 static cmd_t		*cmd_functions;			// possible commands to execute
 
-/*
+/***
 ============
 Cmd_Argc
 ============
-*/
+***/
 int GAME_EXPORT Cmd_Argc (void)
 	{
 	return cmd_argc;
 	}
 
-/*
+/***
 ============
 Cmd_Argv
 ============
-*/
+***/
 const char *GAME_EXPORT Cmd_Argv (int arg)
 	{
 	if ((uint)arg >= cmd_argc)
@@ -553,64 +553,64 @@ const char *GAME_EXPORT Cmd_Argv (int arg)
 	return cmd_argv[arg];
 	}
 
-/*
+/***
 ============
 Cmd_Args
 ============
-*/
+***/
 const char *GAME_EXPORT Cmd_Args (void)
 	{
 	return cmd_args;
 	}
 
 
-/*
+/***
 ===========================
 Client exports
 ===========================
-*/
+***/
 
-/*
+/***
 ============
 Cmd_AliasGetList
 ============
-*/
+***/
 cmdalias_t *GAME_EXPORT Cmd_AliasGetList (void)
 	{
 	return cmd_alias;
 	}
 
-/*
+/***
 ============
 Cmd_GetList
 ============
-*/
+***/
 cmd_t *GAME_EXPORT Cmd_GetFirstFunctionHandle (void)
 	{
 	return cmd_functions;
 	}
 
-/*
+/***
 ============
 Cmd_GetNext
 ============
-*/
+***/
 cmd_t *GAME_EXPORT Cmd_GetNextFunctionHandle (cmd_t *cmd)
 	{
 	return (cmd) ? cmd->next : NULL;
 	}
 
-/*
+/***
 ============
 Cmd_GetName
 ============
-*/
+***/
 const char *GAME_EXPORT Cmd_GetName (cmd_t *cmd)
 	{
 	return cmd->name;
 	}
 
-/*
+/***
 ============
 Cmd_TokenizeString
 
@@ -619,7 +619,7 @@ The text is copied to a seperate buffer and 0 characters
 are inserted in the apropriate place, The argv array
 will point into this temporary buffer.
 ============
-*/
+***/
 void Cmd_TokenizeString (const char *text)
 	{
 	char	cmd_token[MAX_CMD_BUFFER];
@@ -668,11 +668,11 @@ void Cmd_TokenizeString (const char *text)
 		}
 	}
 
-/*
+/***
 ============
 Cmd_AddCommandEx
 ============
-*/
+***/
 static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcommand_t function,
 	const char *cmd_desc, int iFlags)
 	{
@@ -721,42 +721,42 @@ static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcomman
 	return 1;
 	}
 
-/*
+/***
 ============
 Cmd_AddCommand
 ============
-*/
+***/
 void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
 	Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, cmd_desc, 0);
 	}
 
 
-/*
+/***
 ============
 Cmd_AddRestrictedCommand
 ============
-*/
+***/
 void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
 	Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, cmd_desc, CMD_PRIVILEGED);
 	}
 
-/*
+/***
 ============
 Cmd_AddServerCommand
 ============
-*/
+***/
 void GAME_EXPORT Cmd_AddServerCommand (const char *cmd_name, xcommand_t function)
 	{
 	Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "server command", CMD_SERVERDLL);
 	}
 
-/*
+/***
 ============
 Cmd_AddClientCommand
 ============
-*/
+***/
 int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
 	{
 	int flags = CMD_CLIENTDLL;
@@ -770,31 +770,31 @@ int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
 	return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "client command", flags);
 	}
 
-/*
+/***
 ============
 Cmd_AddGameUICommand
 ============
-*/
+***/
 int GAME_EXPORT Cmd_AddGameUICommand (const char *cmd_name, xcommand_t function)
 	{
 	return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "gameui command", CMD_GAMEUIDLL);
 	}
 
-/*
+/***
 ============
 Cmd_AddRefCommand
 ============
-*/
+***/
 int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description)
 	{
 	return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, description, CMD_REFDLL);
 	}
 
-/*
+/***
 ============
 Cmd_RemoveCommand
 ============
-*/
+***/
 void GAME_EXPORT Cmd_RemoveCommand (const char *cmd_name)
 	{
 	cmd_t *cmd, **back;
@@ -829,11 +829,11 @@ void GAME_EXPORT Cmd_RemoveCommand (const char *cmd_name)
 		}
 	}
 
-/*
+/***
 ============
 Cmd_LookupCmds
 ============
-*/
+***/
 void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback)
 	{
 	cmd_t *cmd;
@@ -853,11 +853,11 @@ void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback)
 		callback (alias->name, alias->value, buffer, ptr);
 	}
 
-/*
+/***
 ============
 Cmd_Exists
 ============
-*/
+***/
 qboolean Cmd_Exists (const char *cmd_name)
 	{
 #if defined(XASH_HASHED_VARS)
@@ -874,13 +874,13 @@ qboolean Cmd_Exists (const char *cmd_name)
 #endif
 	}
 
-/*
+/***
 ============
 Cmd_If_f
 
 Compare and et condition bit if true
 ============
-*/
+***/
 static void Cmd_If_f (void)
 	{
 	// reset bit first
@@ -935,13 +935,13 @@ static void Cmd_If_f (void)
 		}
 	}
 
-/*
+/***
 ============
 Cmd_Else_f
 
 Invert condition bit
 ============
-*/
+***/
 static void Cmd_Else_f (void)
 	{
 	cmd_condition ^= BIT (cmd_condlevel);
@@ -950,7 +950,6 @@ static void Cmd_Else_f (void)
 // [FWGS, 01.05.24]
 static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 	{
-	/*const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_" };*/
 	const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_", "joy_" };
 	int i;
 
@@ -978,13 +977,13 @@ static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 	return true;
 	}
 
-/*
+/***
 ============
 Cmd_ExecuteString [FWGS, 09.05.24]
 
 A complete command line has been parsed, so try to execute it
 ============
-*/
+***/
 static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPrivileged)
 	{
 	cmd_t		*cmd = NULL;
@@ -1018,7 +1017,6 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 					*ptoken++ = *text++;
 				*ptoken = 0;
 
-				/*len += Q_strncpy (pcmd, Cvar_VariableString (token), MAX_CMD_LINE - len);*/
 				len += Q_strncpy (pcmd, Cvar_VariableString (token), sizeof (token) - len);
 				pcmd = command + len;
 
@@ -1134,7 +1132,7 @@ void Cmd_ExecuteString (const char *text)
 	Cmd_ExecuteStringWithPrivilegeCheck (text, true);
 	}
 
-/*
+/***
 ===================
 Cmd_ForwardToServer
 
@@ -1142,7 +1140,7 @@ adds the current command line as a clc_stringcmd to the client message.
 things like godmode, noclip, etc, are commands directed to the server,
 so when they are typed in at the console, they will need to be forwarded.
 ===================
-*/
+***/
 #if !XASH_DEDICATED
 void Cmd_ForwardToServer (void)
 	{
@@ -1182,11 +1180,11 @@ void Cmd_ForwardToServer (void)
 
 #endif
 
-/*
+/***
 ============
 Cmd_List_f
 ============
-*/
+***/
 static void Cmd_List_f (void)
 	{
 	cmd_t	*cmd;
@@ -1215,13 +1213,13 @@ static void Cmd_List_f (void)
 	Con_Printf ("%i commands\n", i);
 	}
 
-/*
+/***
 ============
 Cmd_Unlink
 
 unlink all commands with specified flag
 ============
-*/
+***/
 void Cmd_Unlink (int group)
 	{
 	cmd_t *cmd;
@@ -1346,24 +1344,24 @@ static void Cmd_Apropos_f (void)
 	}
 
 
-/*
+/***
 ============
 Cmd_Null_f
 
 null function for some cmd stubs
 ============
-*/
+***/
 void Cmd_Null_f (void)
 	{
 	}
 
-/*
+/***
 ==========
 Cmd_Escape
 
 inserts escape sequences
 ==========
-*/
+***/
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len)
 	{
 	int c;
@@ -1389,11 +1387,11 @@ void Cmd_Escape (char *newCommand, const char *oldCommand, int len)
 	*newCommand++ = 0;
 	}
 
-/*
+/***
 ============
 Cmd_Init
 ============
-*/
+***/
 void Cmd_Init (void)
 	{
 	Cbuf_Init ();
@@ -1500,3 +1498,4 @@ void Test_RunCmd (void)
 	Cmd_RemoveCommand ("test_privileged");
 	}
 #endif
+

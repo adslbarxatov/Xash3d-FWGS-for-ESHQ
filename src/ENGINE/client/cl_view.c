@@ -1,4 +1,4 @@
-/*
+/***
 cl_view.c - player rendering positioning
 Copyright (C) 2009 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -22,13 +22,13 @@ GNU General Public License for more details.
 #include "input.h" // touch
 #include "platform/platform.h" // GL_UpdateSwapInterval
 
-/*
+/***
 ===============
 V_CalcViewRect
 
 calc frame rectangle (Quake1 style)
 ===============
-*/
+***/
 static void V_CalcViewRect (void)
 	{
 	qboolean	full = false;
@@ -91,11 +91,11 @@ static void V_CalcViewRect (void)
 
 	}
 
-/*
+/***
 ===============
 V_SetupViewModel
 ===============
-*/
+***/
 static void V_SetupViewModel (void)
 	{
 	cl_entity_t		*view = &clgame.viewent;
@@ -121,11 +121,11 @@ static void V_SetupViewModel (void)
 		}
 	}
 
-/*
+/***
 ===============
 V_SetRefParams
 ===============
-*/
+***/
 static void V_SetRefParams (ref_params_t *fd)
 	{
 	memset (fd, 0, sizeof (ref_params_t));
@@ -186,13 +186,13 @@ static void V_SetRefParams (ref_params_t *fd)
 	fd->nextView = 0;		// reset nextview
 	}
 
-/*
+/***
 ===============
 V_MergeOverviewRefdef
 
 merge refdef with overview settings
 ===============
-*/
+***/
 static void V_RefApplyOverview (ref_viewpass_t *rvp)
 	{
 	ref_overview_t	*ov = &clgame.overView;
@@ -240,11 +240,11 @@ static void V_RefApplyOverview (ref_viewpass_t *rvp)
 	ref.dllFuncs.GL_OrthoBounds (mins, maxs);
 	}
 
-/*
+/***
 ====================
 V_CalcFov [FWGS, 01.05.23]
 ====================
-*/
+***/
 static float V_CalcFov (float *fov_x, float width, float height)
 	{
 	float	x, half_fov_y;
@@ -258,11 +258,11 @@ static float V_CalcFov (float *fov_x, float width, float height)
 	return RAD2DEG (half_fov_y) * 2;
 	}
 
-/*
+/***
 ====================
 V_AdjustFov [FWGS, 01.05.23]
 ====================
-*/
+***/
 static void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x)
 	{
 	float x, y;
@@ -287,11 +287,11 @@ static void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, 
 		*fov_y = y;
 	}
 
-/*
+/***
 =============
 V_GetRefParams
 =============
-*/
+***/
 static void V_GetRefParams (ref_params_t *fd, ref_viewpass_t *rvp)
 	{
 	// part1: deniable updates
@@ -332,11 +332,11 @@ static void V_GetRefParams (ref_params_t *fd, ref_viewpass_t *rvp)
 	SetBits (rvp->flags, RF_DRAW_WORLD);
 	}
 
-/*
+/***
 ==================
 V_PreRender
 ==================
-*/
+***/
 qboolean V_PreRender (void)
 	{
 	// too early
@@ -368,11 +368,11 @@ qboolean V_PreRender (void)
 
 // ============================================================================
 
-/*
+/***
 ==================
 V_RenderView
 ==================
-*/
+***/
 void V_RenderView (void)
 	{
 	// HACKHACK: make ref params static [FWGS, 01.08.23]
@@ -501,11 +501,11 @@ static void R_ShowTree (void)
 	Con_NPrintf (0, "max recursion %d\n", world.max_recursion);
 	}
 
-/*
+/***
 ==================
 V_PostRender [FWGS, 01.03.24]
 ==================
-*/
+***/
 void V_PostRender (void)
 	{
 	static double	oldtime;

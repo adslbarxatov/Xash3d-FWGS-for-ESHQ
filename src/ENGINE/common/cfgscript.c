@@ -1,4 +1,4 @@
-/*
+/***
 cfgscript.c - "Valve script" parsing routines
 Copyright (C) 2016 mittorn
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 
@@ -45,13 +45,13 @@ typedef struct scrvardef_s
 	qboolean		fHandled;
 	} scrvardef_t;
 
-/*
+/***
 ===================
 CSCR_ExpectString
 
 Return true if next token is pExpext and skip it
 ===================
-*/
+***/
 static qboolean CSCR_ExpectString (parserstate_t *ps, const char *pExpect, qboolean skip, qboolean error)
 	{
 	char *tmp = COM_ParseFile (ps->buf, ps->token, sizeof (ps->token));
@@ -70,13 +70,13 @@ static qboolean CSCR_ExpectString (parserstate_t *ps, const char *pExpect, qbool
 	return false;
 	}
 
-/*
+/***
 ===================
 CSCR_ParseType
 
 Determine script variable type
 ===================
-*/
+***/
 static cvartype_t CSCR_ParseType (parserstate_t *ps)
 	{
 	int	i;
@@ -91,11 +91,11 @@ static cvartype_t CSCR_ParseType (parserstate_t *ps)
 	return T_NONE;
 	}
 
-/*
+/***
 =========================
 CSCR_ParseSingleCvar
 =========================
-*/
+***/
 static qboolean CSCR_ParseSingleCvar (parserstate_t *ps, scrvardef_t *result)
 	{
 	// read the name
@@ -167,13 +167,13 @@ static qboolean CSCR_ParseSingleCvar (parserstate_t *ps, scrvardef_t *result)
 	return true;
 	}
 
-/*
+/***
 ======================
 CSCR_ParseHeader
 
 Check version and seek to first cvar name
 ======================
-*/
+***/
 static qboolean CSCR_ParseHeader (parserstate_t *ps)
 	{
 	if (!CSCR_ExpectString (ps, "VERSION", false, true))
@@ -206,14 +206,14 @@ static qboolean CSCR_ParseHeader (parserstate_t *ps)
 	return true;
 	}
 
-/*
+/***
 ==============
 CSCR_ParseFile
 
 generic scr parser
 will callback on each scrvardef_t
 ==============
-*/
+***/
 static int CSCR_ParseFile (const char *scriptfilename,
 	void (*callback)(scrvardef_t *var, void *), void *userdata)
 	{
@@ -287,13 +287,13 @@ static void CSCR_WriteVariableToFile (scrvardef_t *var, void *file)
 		}
 	}
 
-/*
+/***
 ======================
 CSCR_WriteGameCVars
 
 Print all cvars declared in script to game.cfg file
 ======================
-*/
+***/
 int CSCR_WriteGameCVars (file_t *cfg, const char *scriptfilename)
 	{
 	return CSCR_ParseFile (scriptfilename, CSCR_WriteVariableToFile, cfg);
@@ -305,13 +305,13 @@ static void CSCR_RegisterVariable (scrvardef_t *var, void *unused)
 		Cvar_Get (var->name, var->value, var->flags | FCVAR_TEMPORARY, var->desc);
 	}
 
-/*
+/***
 ======================
 CSCR_LoadDefaultCVars
 
 Register all cvars declared in config file and set default values
 ======================
-*/
+***/
 int CSCR_LoadDefaultCVars (const char *scriptfilename)
 	{
 	return CSCR_ParseFile (scriptfilename, CSCR_RegisterVariable, NULL);

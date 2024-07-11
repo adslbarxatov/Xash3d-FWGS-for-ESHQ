@@ -1,4 +1,4 @@
-/*
+/***
 gl_refrag.c - store entity fragments
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "entity_types.h"
@@ -20,11 +20,11 @@ GNU General Public License for more details.
 #include "client.h"
 #include "xash3d_mathlib.h"
 
-/*
+/***
 ===============================================================================
 ENTITY FRAGMENT FUNCTIONS
 ===============================================================================
-*/
+***/
 
 static efrag_t **lastlink;
 static mnode_t *r_pefragtopnode;
@@ -33,11 +33,11 @@ static cl_entity_t *r_addent;
 
 // [FWGS, 01.05.23] удалена R_RemoveEfrags
 
-/*
+/***
 ===================
 R_SplitEntityOnNode
 ===================
-*/
+***/
 static void R_SplitEntityOnNode (mnode_t *node)
 	{
 	efrag_t *ef;
@@ -85,19 +85,22 @@ static void R_SplitEntityOnNode (mnode_t *node)
 		{
 		// split on this plane
 		// if this is the first splitter of this bmodel, remember it
-		if (!r_pefragtopnode) r_pefragtopnode = node;
+		if (!r_pefragtopnode)
+			r_pefragtopnode = node;
 		}
 
 	// recurse down the contacted sides
-	if (sides & 1) R_SplitEntityOnNode (node->children[0]);
-	if (sides & 2) R_SplitEntityOnNode (node->children[1]);
+	if (sides & 1)
+		R_SplitEntityOnNode (node->children[0]);
+	if (sides & 2)
+		R_SplitEntityOnNode (node->children[1]);
 	}
 
-/*
+/***
 ===========
 R_AddEfrags
 ===========
-*/
+***/
 void R_AddEfrags (cl_entity_t *ent)
 	{
 	matrix3x4	transform;
@@ -125,12 +128,11 @@ void R_AddEfrags (cl_entity_t *ent)
 	ent->topnode = r_pefragtopnode;
 	}
 
-/*
+/***
 ================
 R_StoreEfrags
-
 ================
-*/
+***/
 void R_StoreEfrags (efrag_t **ppefrag, int framecount)
 	{
 	cl_entity_t *pent;

@@ -1,4 +1,4 @@
-/*
+/***
 cl_menu.c - menu dlls interaction
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -135,13 +135,13 @@ qboolean UI_IsVisible (void)
 	return gameui.dllFuncs.pfnIsVisible ();
 	}
 
-/*
+/***
 =======================
 UI_AddTouchButtonToList
 
 send button parameters to menu
 =======================
-*/
+***/
 void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command,
 	unsigned char *color, int flags)
 	{
@@ -151,13 +151,13 @@ void UI_AddTouchButtonToList (const char *name, const char *texture, const char 
 		}
 	}
 
-/*
+/***
 =================
 UI_ResetPing
 
 notify gameui dll about latency reset
 =================
-*/
+***/
 void UI_ResetPing (void)
 	{
 	if (gameui.dllFuncs2.pfnResetPing)
@@ -166,13 +166,13 @@ void UI_ResetPing (void)
 		}
 	}
 
-/*
+/***
 =================
 UI_ShowConnectionWarning
 
 show connection warning dialog implemented by gameui dll
 =================
-*/
+***/
 void UI_ShowConnectionWarning (void)
 	{
 	if (cls.state != ca_connected)
@@ -193,13 +193,13 @@ void UI_ShowConnectionWarning (void)
 	}
 
 
-/*
+/***
 =================
 UI_ShowConnectionWarning
 
 show update dialog
 =================
-*/
+***/
 void UI_ShowUpdateDialog (qboolean preferStore)
 	{
 	if (gameui.dllFuncs2.pfnShowUpdateDialog)
@@ -210,13 +210,13 @@ void UI_ShowUpdateDialog (qboolean preferStore)
 	Con_Printf (S_WARN "This version is not supported anymore. To continue, install latest engine version\n");
 	}
 
-/*
+/***
 =================
 UI_ShowConnectionWarning
 
 show message box
 =================
-*/
+***/
 void UI_ShowMessageBox (const char *text)
 	{
 	if (gameui.dllFuncs2.pfnShowMessageBox)
@@ -440,13 +440,13 @@ static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)
 
 // [FWGS, 01.04.23] удалена PIC_Scissor
 
-/*
+/***
 ====================
 PIC_DrawGeneric
 
 draw hudsprite routine
 ====================
-*/
+***/
 static void PIC_DrawGeneric (float x, float y, float width, float height, const wrect_t *prc)
 	{
 	float	s1, s2, t1, t2;
@@ -489,16 +489,16 @@ static void PIC_DrawGeneric (float x, float y, float width, float height, const 
 	ref.dllFuncs.Color4ub (255, 255, 255, 255);
 	}
 
-/*
+/***
 ===============================================================================
 MainUI Builtin Functions
 ===============================================================================
-*/
-/*
+***/
+/***
 =========
 pfnPIC_Load
 =========
-*/
+***/
 static HIMAGE GAME_EXPORT pfnPIC_Load (const char *szPicName, const byte *image_buf, int image_size, int flags)
 	{
 	HIMAGE	tx;
@@ -519,11 +519,11 @@ static HIMAGE GAME_EXPORT pfnPIC_Load (const char *szPicName, const byte *image_
 	return tx;
 	}
 
-/*
+/***
 =========
 pfnPIC_Width
 =========
-*/
+***/
 static int GAME_EXPORT pfnPIC_Width (HIMAGE hPic)
 	{
 	int	picWidth;
@@ -533,11 +533,11 @@ static int GAME_EXPORT pfnPIC_Width (HIMAGE hPic)
 	return picWidth;
 	}
 
-/*
+/***
 =========
 pfnPIC_Height
 =========
-*/
+***/
 static int GAME_EXPORT pfnPIC_Height (HIMAGE hPic)
 	{
 	int	picHeight;
@@ -547,11 +547,11 @@ static int GAME_EXPORT pfnPIC_Height (HIMAGE hPic)
 	return picHeight;
 	}
 
-/*
+/***
 =========
 pfnPIC_Set
 =========
-*/
+***/
 static void GAME_EXPORT pfnPIC_Set (HIMAGE hPic, int r, int g, int b, int a)
 	{
 	gameui.ds.gl_texturenum = hPic;
@@ -562,55 +562,55 @@ static void GAME_EXPORT pfnPIC_Set (HIMAGE hPic, int r, int g, int b, int a)
 	ref.dllFuncs.Color4ub (r, g, b, a);
 	}
 
-/*
+/***
 =========
 pfnPIC_Draw
 =========
-*/
+***/
 static void GAME_EXPORT pfnPIC_Draw (int x, int y, int width, int height, const wrect_t *prc)
 	{
 	ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
 	PIC_DrawGeneric (x, y, width, height, prc);
 	}
 
-/*
+/***
 =========
 pfnPIC_DrawTrans
 =========
-*/
+***/
 static void GAME_EXPORT pfnPIC_DrawTrans (int x, int y, int width, int height, const wrect_t *prc)
 	{
 	ref.dllFuncs.GL_SetRenderMode (kRenderTransTexture);
 	PIC_DrawGeneric (x, y, width, height, prc);
 	}
 
-/*
+/***
 =========
 pfnPIC_DrawHoles
 =========
-*/
+***/
 static void GAME_EXPORT pfnPIC_DrawHoles (int x, int y, int width, int height, const wrect_t *prc)
 	{
 	ref.dllFuncs.GL_SetRenderMode (kRenderTransAlpha);
 	PIC_DrawGeneric (x, y, width, height, prc);
 	}
 
-/*
+/***
 =========
 pfnPIC_DrawAdditive
 =========
-*/
+***/
 static void GAME_EXPORT pfnPIC_DrawAdditive (int x, int y, int width, int height, const wrect_t *prc)
 	{
 	ref.dllFuncs.GL_SetRenderMode (kRenderTransAdd);
 	PIC_DrawGeneric (x, y, width, height, prc);
 	}
 
-/*
+/***
 =========
 pfnPIC_EnableScissor [FWGS, 01.04.23]
 =========
-*/
+***/
 static void GAME_EXPORT pfnPIC_EnableScissor (int x, int y, int width, int height)
 	{
 	// check bounds
@@ -622,21 +622,21 @@ static void GAME_EXPORT pfnPIC_EnableScissor (int x, int y, int width, int heigh
 	CL_EnableScissor (&gameui.ds.scissor, x, y, width, height);
 	}
 
-/*
+/***
 =========
 pfnPIC_DisableScissor [FWGS, 01.04.23]
 =========
-*/
+***/
 static void GAME_EXPORT pfnPIC_DisableScissor (void)
 	{
 	CL_DisableScissor (&gameui.ds.scissor);
 	}
 
-/*
+/***
 =============
 pfnFillRGBA
 =============
-*/
+***/
 static void GAME_EXPORT pfnFillRGBA (int x, int y, int width, int height, int r, int g, int b, int a)
 	{
 	r = bound (0, r, 255);
@@ -649,22 +649,22 @@ static void GAME_EXPORT pfnFillRGBA (int x, int y, int width, int height, int r,
 	ref.dllFuncs.Color4ub (255, 255, 255, 255);
 	}
 
-/*
+/***
 =============
 pfnCvar_RegisterVariable [FWGS, 01.07.23]
 =============
-*/
+***/
 static cvar_t *GAME_EXPORT pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
 	{
 	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_GAMEUIDLL, Cvar_BuildAutoDescription (szName,
 		flags | FCVAR_GAMEUIDLL));
 	}
 
-/*
+/***
 =============
 pfnClientCmd
 =============
-*/
+***/
 static void GAME_EXPORT pfnClientCmd (int exec_now, const char *szCmdString)
 	{
 	if (!szCmdString || !szCmdString[0])
@@ -677,24 +677,24 @@ static void GAME_EXPORT pfnClientCmd (int exec_now, const char *szCmdString)
 	if (exec_now) Cbuf_Execute ();
 	}
 
-/*
+/***
 =============
 pfnPlaySound
 =============
-*/
+***/
 static void GAME_EXPORT pfnPlaySound (const char *szSound)
 	{
 	if (!COM_CheckString (szSound)) return;
 	S_StartLocalSound (szSound, VOL_NORM, false);
 	}
 
-/*
+/***
 =============
 pfnDrawCharacter
 
 quakefont draw character
 =============
-*/
+***/
 static void GAME_EXPORT pfnDrawCharacter (int ix, int iy, int iwidth, int iheight, int ch, int ulRGBA, HIMAGE hFont)
 	{
 	rgba_t	color;
@@ -733,13 +733,13 @@ static void GAME_EXPORT pfnDrawCharacter (int ix, int iy, int iwidth, int iheigh
 	ref.dllFuncs.Color4ub (255, 255, 255, 255);
 	}
 
-/*
+/***
 =============
 UI_DrawConsoleString
 
 drawing string like a console string
 =============
-*/
+***/
 static int GAME_EXPORT UI_DrawConsoleString (int x, int y, const char *string)
 	{
 	int	drawLen;
@@ -752,13 +752,13 @@ static int GAME_EXPORT UI_DrawConsoleString (int x, int y, const char *string)
 	return (x + drawLen); // exclude color prexfixes
 	}
 
-/*
+/***
 =============
 pfnDrawSetTextColor
 
 set color for anything
 =============
-*/
+***/
 static void GAME_EXPORT UI_DrawSetTextColor (int r, int g, int b, int alpha)
 	{
 	// bound color and convert to byte
@@ -768,51 +768,51 @@ static void GAME_EXPORT UI_DrawSetTextColor (int r, int g, int b, int alpha)
 	gameui.ds.textColor[3] = alpha;
 	}
 
-/*
+/***
 ====================
 pfnGetPlayerModel
 
 for drawing playermodel previews
 ====================
-*/
+***/
 static cl_entity_t *GAME_EXPORT pfnGetPlayerModel (void)
 	{
 	return &gameui.playermodel;
 	}
 
-/*
+/***
 ====================
 pfnSetPlayerModel
 
 for drawing playermodel previews
 ====================
-*/
+***/
 static void GAME_EXPORT pfnSetPlayerModel (cl_entity_t *ent, const char *path)
 	{
 	ent->model = Mod_ForName (path, false, false);
 	ent->curstate.modelindex = MAX_MODELS; // unreachable index
 	}
 
-/*
+/***
 ====================
 pfnClearScene
 
 for drawing playermodel previews
 ====================
-*/
+***/
 static void GAME_EXPORT pfnClearScene (void)
 	{
 	ref.dllFuncs.R_PushScene ();
 	ref.dllFuncs.R_ClearScene ();
 	}
 
-/*
+/***
 ====================
 pfnRenderScene
 
 for drawing playermodel previews
 ====================
-*/
+***/
 static void GAME_EXPORT pfnRenderScene (const ref_viewpass_t *rvp)
 	{
 	ref_viewpass_t copy;
@@ -832,13 +832,13 @@ static void GAME_EXPORT pfnRenderScene (const ref_viewpass_t *rvp)
 	ref.dllFuncs.R_PopScene ();
 	}
 
-/*
+/***
 ====================
 pfnAddEntity
 
 adding player model into visible list
 ====================
-*/
+***/
 static int GAME_EXPORT pfnAddEntity (int entityType, cl_entity_t *ent)
 	{
 	if (!ref.dllFuncs.R_AddEntity (ent, entityType))
@@ -847,49 +847,49 @@ static int GAME_EXPORT pfnAddEntity (int entityType, cl_entity_t *ent)
 	return true;
 	}
 
-/*
+/***
 ====================
 pfnClientJoin [FWGS, 01.04.23]
 
 send client connect
 ====================
-*/
+***/
 static void GAME_EXPORT pfnClientJoin (const netadr_t adr)
 	{
 	Cbuf_AddTextf ("connect %s\n", NET_AdrToString (adr));
 	}
 
-/*
+/***
 ====================
 pfnKeyGetOverstrikeMode
 
 get global key overstrike state
 ====================
-*/
+***/
 static int GAME_EXPORT pfnKeyGetOverstrikeMode (void)
 	{
 	return host.key_overstrike;
 	}
 
-/*
+/***
 ====================
 pfnKeySetOverstrikeMode
 
 set global key overstrike mode
 ====================
-*/
+***/
 static void GAME_EXPORT pfnKeySetOverstrikeMode (int fActive)
 	{
 	host.key_overstrike = fActive;
 	}
 
-/*
+/***
 ====================
 pfnKeyGetState
 
 returns kbutton struct if found
 ====================
-*/
+***/
 static void *pfnKeyGetState (const char *name)
 	{
 	if (clgame.dllFuncs.KB_Find)
@@ -897,31 +897,31 @@ static void *pfnKeyGetState (const char *name)
 	return NULL;
 	}
 
-/*
+/***
 =========
 pfnMemAlloc
 =========
-*/
+***/
 static void *pfnMemAlloc (size_t cb, const char *filename, const int fileline)
 	{
 	return _Mem_Alloc (gameui.mempool, cb, true, filename, fileline);
 	}
 
-/*
+/***
 =========
 pfnMemFree
 =========
-*/
+***/
 static void GAME_EXPORT pfnMemFree (void *mem, const char *filename, const int fileline)
 	{
 	_Mem_Free (mem, filename, fileline);
 	}
 
-/*
+/***
 =========
 pfnGetGameInfo
 =========
-*/
+***/
 static int GAME_EXPORT pfnGetGameInfo (GAMEINFO *pgameinfo)
 	{
 	if (!pgameinfo)
@@ -931,24 +931,24 @@ static int GAME_EXPORT pfnGetGameInfo (GAMEINFO *pgameinfo)
 	return 1;
 	}
 
-/*
+/***
 =========
 pfnGetGamesList
 =========
-*/
+***/
 static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
 	{
 	if (numGames) *numGames = FI->numgames;
 	return gameui.modsInfo;
 	}
 
-/*
+/***
 =========
 pfnGetFilesList
 
 release prev search on a next call
 =========
-*/
+***/
 static char **GAME_EXPORT pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
 	{
 	static search_t *t = NULL;
@@ -966,23 +966,23 @@ static char **GAME_EXPORT pfnGetFilesList (const char *pattern, int *numFiles, i
 	return t->filenames;
 	}
 
-/*
+/***
 =========
 pfnGetClipboardData
 
 pointer must be released in call place
 =========
-*/
+***/
 static char *pfnGetClipboardData (void)
 	{
 	return Sys_GetClipboardData ();
 	}
 
-/*
+/***
 =========
 pfnCheckGameDll [FWGS, 01.02.24]
 =========
-*/
+***/
 static int GAME_EXPORT pfnCheckGameDll (void)
 	{
 #ifdef XASH_INTERNAL_GAMELIBS
@@ -1002,21 +1002,21 @@ static int GAME_EXPORT pfnCheckGameDll (void)
 #endif
 	}
 
-/*
+/***
 =========
 pfnChangeInstance
 =========
-*/
+***/
 static void GAME_EXPORT pfnChangeInstance (const char *newInstance, const char *szFinalMessage)
 	{
 	Con_Reportf (S_ERROR "ChangeInstance menu call is deprecated!\n");
 	}
 
-/*
+/***
 =========
 pfnHostEndGame
 =========
-*/
+***/
 static void GAME_EXPORT pfnHostEndGame (const char *szFinalMessage)
 	{
 	if (!szFinalMessage)
@@ -1024,11 +1024,11 @@ static void GAME_EXPORT pfnHostEndGame (const char *szFinalMessage)
 	Host_EndGame (false, "%s", szFinalMessage);
 	}
 
-/*
+/***
 =========
 pfnStartBackgroundTrack
 =========
-*/
+***/
 static void GAME_EXPORT pfnStartBackgroundTrack (const char *introTrack, const char *mainTrack)
 	{
 	S_StartBackgroundTrack (introTrack, mainTrack, 0, false);
@@ -1039,11 +1039,11 @@ static void GAME_EXPORT GL_ProcessTexture (int texnum, float gamma, int topColor
 	ref.dllFuncs.GL_ProcessTexture (texnum, gamma, topColor, bottomColor);
 	}
 
-/*
+/***
 =================
 UI_ShellExecute
 =================
-*/
+***/
 static void GAME_EXPORT UI_ShellExecute (const char *path, const char *parms, int shouldExit)
 	{
 	Platform_ShellExecute (path, parms);
@@ -1052,37 +1052,37 @@ static void GAME_EXPORT UI_ShellExecute (const char *path, const char *parms, in
 		Sys_Quit ();
 	}
 
-/*
+/***
 ==============
 pfnParseFile
 
 legacy wrapper
 ==============
-*/
+***/
 static char *pfnParseFile (char *buf, char *token)
 	{
 	return COM_ParseFile (buf, token, INT_MAX);
 	}
 
-/*
+/***
 =============
 pfnFileExists
 
 legacy wrapper
 =============
-*/
+***/
 static int pfnFileExists (const char *path, int gamedironly)
 	{
 	return FS_FileExists (path, gamedironly);
 	}
 
-/*
+/***
 =============
 pfnDelete
 
 legacy wrapper
 =============
-*/
+***/
 static int pfnDelete (const char *path)
 	{
 	return FS_Delete (path);
@@ -1356,3 +1356,4 @@ qboolean UI_LoadProgs (void)
 
 	return true;
 	}
+
