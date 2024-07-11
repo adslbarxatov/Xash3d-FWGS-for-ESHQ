@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -14,9 +14,9 @@
 ****/
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
-/*
+/***
 	h_tentacle.cpp - silo of death tentacle monster (half life)
-*/
+***/
 
 #include	"extdll.h"
 #include	"util.h"

@@ -1,4 +1,4 @@
-/*
+/***
 zip.c - ZIP support for filesystem
 Copyright (C) 2019 Mr0maks
 Copyright (C) 2022 Alibek Omarov
@@ -12,7 +12,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -59,10 +59,10 @@ typedef struct zip_header_s
 	uint16_t	extrafield_len;
 	} zip_header_t;
 
-/*
+/***
   in zip64 comp and uncompr size == 0xffffffff remeber this
   compressed and uncompress filesize stored in extra field
-*/
+***/
 
 typedef struct zip_header_extra_s
 	{
@@ -155,11 +155,11 @@ static void FS_EnsureOpenZip (zip_t *zip)
 static void FS_EnsureOpenZip (zip_t *zip) {}
 #endif
 
-/*
+/***
 ============
 FS_CloseZIP
 ============
-*/
+***/
 static void FS_CloseZIP (zip_t *zip)
 	{
 	if (zip->files)
@@ -173,31 +173,31 @@ static void FS_CloseZIP (zip_t *zip)
 	Mem_Free (zip);
 	}
 
-/*
+/***
 ============
 FS_Close_ZIP
 ============
-*/
+***/
 static void FS_Close_ZIP (searchpath_t *search)
 	{
 	FS_CloseZIP (search->zip);
 	}
 
-/*
+/***
 ============
 FS_SortZip
 ============
-*/
+***/
 static int FS_SortZip (const void *a, const void *b)
 	{
 	return Q_stricmp (((zipfile_t *)a)->name, ((zipfile_t *)b)->name);
 	}
 
-/*
+/***
 ============
 FS_LoadZip
 ============
-*/
+***/
 static zip_t *FS_LoadZip (const char *zipfile, int *error)
 	{
 	int		  numpackfiles = 0, i;
@@ -399,13 +399,13 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 	return zip;
 	}
 
-/*
+/***
 ===========
 FS_OpenZipFile
 
 Open a packed file using its package file descriptor
 ===========
-*/
+***/
 static file_t *FS_OpenFile_ZIP (searchpath_t *search, const char *filename, const char *mode, int pack_ind)
 	{
 	zipfile_t *pfile;
@@ -421,11 +421,11 @@ static file_t *FS_OpenFile_ZIP (searchpath_t *search, const char *filename, cons
 	return FS_OpenHandle (search->filename, search->zip->handle, pfile->offset, pfile->size);
 	}
 
-/*
+/***
 ===========
 FS_LoadZIPFile [FWGS, 01.03.24]
 ===========
-*/
+***/
 static byte *FS_LoadZIPFile (searchpath_t *search, const char *path, int pack_ind, fs_offset_t *sizeptr,
 	void *(*pfnAlloc)(size_t), void (*pfnFree)(void *))
 	{
@@ -565,31 +565,31 @@ static byte *FS_LoadZIPFile (searchpath_t *search, const char *path, int pack_in
 	return NULL;
 	}
 
-/*
+/***
 ===========
 FS_FileTime_ZIP
 ===========
-*/
+***/
 static int FS_FileTime_ZIP (searchpath_t *search, const char *filename)
 	{
 	return search->zip->filetime;
 	}
 
-/*
+/***
 ===========
 FS_PrintInfo_ZIP
 ===========
-*/
+***/
 static void FS_PrintInfo_ZIP (searchpath_t *search, char *dst, size_t size)
 	{
 	Q_snprintf (dst, size, "%s (%i files)", search->filename, search->zip->numfiles);
 	}
 
-/*
+/***
 ===========
 FS_FindFile_ZIP
 ===========
-*/
+***/
 static int FS_FindFile_ZIP (searchpath_t *search, const char *path, char *fixedname, size_t len)
 	{
 	int	left, right, middle;
@@ -622,11 +622,11 @@ static int FS_FindFile_ZIP (searchpath_t *search, const char *path, char *fixedn
 	return -1;
 	}
 
-/*
+/***
 ===========
 FS_Search_ZIP
 ===========
-*/
+***/
 static void FS_Search_ZIP (searchpath_t *search, stringlist_t *list, const char *pattern, int caseinsensitive)
 	{
 	string temp;
@@ -667,11 +667,11 @@ static void FS_Search_ZIP (searchpath_t *search, stringlist_t *list, const char 
 		}
 	}
 
-/*
+/***
 ===========
 FS_AddZip_Fullpath [FWGS, 01.05.24]
 ===========
-*/
+***/
 searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags)
 	{
 	searchpath_t	*search;
@@ -700,7 +700,6 @@ searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags)
 	search->pfnSearch = FS_Search_ZIP;
 	search->pfnLoadFile = FS_LoadZIPFile;
 
-	/*Con_Reportf ("Adding zipfile: %s (%i files)\n", zipfile, zip->numfiles);*/
 	Con_Reportf ("Adding ZIP: %s (%i files)\n", zipfile, zip->numfiles);
 	return search;
 	}

@@ -1,4 +1,4 @@
-/*
+/***
 gl_local.h - renderer local declarations
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #ifndef GL_LOCAL_H
 #define GL_LOCAL_H
@@ -610,11 +610,11 @@ void TriGetMatrix (const int pname, float *matrix);
 void TriFogParams (float flDensity, int iFogSkybox);
 void TriCullFace (TRICULLSTYLE mode);
 
-/*
+/***
 =======================================================================
  GL STATE MACHINE
 =======================================================================
-*/
+***/
 enum
 	{
 	GL_OPENGL_110 = 0,		// base

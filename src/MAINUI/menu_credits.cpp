@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -49,11 +48,11 @@ typedef struct
 
 static uiCredits_t		uiCredits;
 
-/*
+/***
 =================
 UI_Credits_DrawFunc
 =================
-*/
+***/
 static void UI_Credits_DrawFunc (void)
 	{
 	int	i, y;
@@ -106,11 +105,11 @@ static void UI_Credits_DrawFunc (void)
 		UI_PopMenu ();
 	}
 
-/*
+/***
 =================
 UI_Credits_KeyFunc
 =================
-*/
+***/
 static const char* UI_Credits_KeyFunc (int key, int down)
 	{
 	if (!down) 
@@ -124,11 +123,11 @@ static const char* UI_Credits_KeyFunc (int key, int down)
 	return uiSoundNull;
 	}
 
-/*
+/***
 =================
 UI_Credits_Init
 =================
-*/
+***/
 static void UI_Credits_Init (void)
 	{
 	uiCredits.menu.drawFunc = UI_Credits_DrawFunc;
@@ -203,21 +202,21 @@ int UI_CreditsActive (void)
 	return uiCredits.active && uiCredits.finalCredits;
 	}
 
-/*
+/***
 =================
 UI_Credits_Precache
 =================
-*/
+***/
 void UI_Credits_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	}
 
-/*
+/***
 =================
 UI_Credits_Menu
 =================
-*/
+***/
 void UI_Credits_Menu (void)
 	{
 	UI_Credits_Precache ();

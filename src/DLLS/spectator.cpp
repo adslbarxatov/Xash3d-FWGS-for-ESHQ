@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -24,12 +24,12 @@
 #include	"monsters.h"
 #include	"spectator.h"
 
-/*
+/***
 ===========
 SpectatorConnect
 called when a spectator connects to a server
 ============
-*/
+***/
 void CBaseSpectator::SpectatorConnect (void)
 	{
 	pev->flags = FL_SPECTATOR;
@@ -39,24 +39,24 @@ void CBaseSpectator::SpectatorConnect (void)
 	m_pGoalEnt = NULL;
 	}
 
-/*
+/***
 ===========
 SpectatorDisconnect
 
 called when a spectator disconnects from a server
 ============
-*/
+***/
 void CBaseSpectator::SpectatorDisconnect (void)
 	{
 	}
 
-/*
+/***
 ================
 SpectatorImpulseCommand
 
 Called by SpectatorThink if the spectator entered an impulse
 ================
-*/
+***/
 void CBaseSpectator::SpectatorImpulseCommand (void)
 	{
 	static edict_t* pGoal = NULL;
@@ -109,13 +109,13 @@ void CBaseSpectator::SpectatorImpulseCommand (void)
 	pev->impulse = 0;
 	}
 
-/*
+/***
 ================
 SpectatorThink
 
 Called every frame after physics are run
 ================
-*/
+***/
 void  CBaseSpectator::SpectatorThink (void)
 	{
 	if (!(pev->flags & FL_SPECTATOR))
@@ -130,14 +130,14 @@ void  CBaseSpectator::SpectatorThink (void)
 		SpectatorImpulseCommand ();
 	}
 
-/*
+/***
 ===========
 Spawn
 
-  Called when spectator is initialized:
-  UNDONE:  Is this actually being called because spectators are not allocated in normal fashion?
+Called when spectator is initialized:
+UNDONE:  Is this actually being called because spectators are not allocated in normal fashion?
 ============
-*/
+***/
 void CBaseSpectator::Spawn ()
 	{
 	pev->flags = FL_SPECTATOR;

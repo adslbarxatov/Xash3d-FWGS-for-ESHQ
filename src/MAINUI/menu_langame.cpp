@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -93,11 +92,11 @@ static void UI_PromptDialog (void)
 	uiLanGame.yes.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_LanGame_KeyFunc
 =================
-*/
+***/
 static const char *UI_LanGame_KeyFunc (int key, int down)
 	{
 	if (down && (key == K_ESCAPE) && !(uiLanGame.dlgMessage1.generic.flags & QMF_HIDDEN))
@@ -108,11 +107,11 @@ static const char *UI_LanGame_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiLanGame.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_LanGame_GetGamesList
 =================
-*/
+***/
 static void UI_LanGame_GetGamesList (void)
 	{
 	int		i;
@@ -169,11 +168,11 @@ static void UI_LanGame_GetGamesList (void)
 		uiLanGame.joinGame.generic.flags &= ~QMF_GRAYED;
 	}
 
-/*
+/***
 =================
 UI_LanGame_JoinGame
 =================
-*/
+***/
 static void UI_LanGame_JoinGame (void)
 	{
 	if (!strlen (uiLanGame.gameDescription[uiLanGame.gameList.curItem]))
@@ -182,11 +181,11 @@ static void UI_LanGame_JoinGame (void)
 	CLIENT_JOIN (uiStatic.serverAddresses[uiLanGame.gameList.curItem]);
 	}
 
-/*
+/***
 =================
 UI_Background_Ownerdraw
 =================
-*/
+***/
 static void UI_Background_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -208,11 +207,11 @@ static void UI_Background_Ownerdraw (void *self)
 		}
 	}
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -220,11 +219,11 @@ static void UI_MsgBox_Ownerdraw (void *self)
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
 
-/*
+/***
 =================
 UI_LanGame_Callback
 =================
-*/
+***/
 static void UI_LanGame_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -262,11 +261,11 @@ static void UI_LanGame_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_LanGame_Init
 =================
-*/
+***/
 static void UI_LanGame_Init (void)
 	{
 	memset (&uiLanGame, 0, sizeof (uiLanGame_t));
@@ -477,22 +476,22 @@ static void UI_LanGame_Init (void)
 	uiLanGame.refreshTime = uiStatic.realTime + 500; // delay before update 0.5 sec
 	}
 
-/*
+/***
 =================
 UI_LanGame_Precache
 =================
-*/
+***/
 void UI_LanGame_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_LanGame_Menu
 =================
-*/
+***/
 void UI_LanGame_Menu (void)
 	{
 	if (gMenu.m_gameinfo.gamemode == GAME_SINGLEPLAYER_ONLY)

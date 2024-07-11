@@ -49,11 +49,11 @@ const char *legs_bones[] =
 	{ "Bip01 R Foot" },
 	};
 
-/*
+/***
 ====================
 Init
 ====================
-*/
+***/
 void CStudioModelRenderer::Init (void)
 	{
 	// Set up some variables shared with engine
@@ -72,12 +72,11 @@ void CStudioModelRenderer::Init (void)
 	m_protationmatrix = (float (*)[3][4])IEngineStudio.StudioGetRotationMatrix ();
 	}
 
-/*
+/***
 ====================
 CStudioModelRenderer
-
 ====================
-*/
+***/
 CStudioModelRenderer::CStudioModelRenderer (void)
 	{
 	m_fDoInterp = 1;
@@ -100,21 +99,20 @@ CStudioModelRenderer::CStudioModelRenderer (void)
 	m_pRenderModel = NULL;
 	}
 
-/*
+/***
 ====================
 ~CStudioModelRenderer
-
 ====================
-*/
+***/
 CStudioModelRenderer::~CStudioModelRenderer (void)
 	{
 	}
 
-/*
+/***
 ====================
 StudioCalcBoneAdj
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioCalcBoneAdj (float dadt, float *adj, const byte *pcontroller1, const byte *pcontroller2, byte mouthopen)
 	{
 	int					i, j;
@@ -175,12 +173,13 @@ void CStudioModelRenderer::StudioCalcBoneAdj (float dadt, float *adj, const byte
 		}
 	}
 
-/*
+/***
 ====================
 StudioCalcBoneQuaterion
 ====================
-*/
-void CStudioModelRenderer::StudioCalcBoneQuaterion (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, float *q)
+***/
+void CStudioModelRenderer::StudioCalcBoneQuaterion (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim,
+	float *adj, float *q)
 	{
 	int					j, k;
 	vec4_t				q1, q2;
@@ -260,12 +259,13 @@ void CStudioModelRenderer::StudioCalcBoneQuaterion (int frame, float s, mstudiob
 		}
 	}
 
-/*
+/***
 ====================
 StudioCalcBonePosition
 ====================
-*/
-void CStudioModelRenderer::StudioCalcBonePosition (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim, float *adj, float *pos)
+***/
+void CStudioModelRenderer::StudioCalcBonePosition (int frame, float s, mstudiobone_t *pbone, mstudioanim_t *panim,
+	float *adj, float *pos)
 	{
 	int					j, k;
 	mstudioanimvalue_t *panimvalue;
@@ -323,11 +323,11 @@ void CStudioModelRenderer::StudioCalcBonePosition (int frame, float s, mstudiobo
 		}
 	}
 
-/*
+/***
 ====================
 StudioSlerpBones
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioSlerpBones (vec4_t q1[], float pos1[][3], vec4_t q2[], float pos2[][3], float s)
 	{
 	int			i;
@@ -352,11 +352,11 @@ void CStudioModelRenderer::StudioSlerpBones (vec4_t q1[], float pos1[][3], vec4_
 		}
 	}
 
-/*
+/***
 ====================
 StudioGetAnim
 ====================
-*/
+***/
 mstudioanim_t *CStudioModelRenderer::StudioGetAnim (model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc)
 	{
 	mstudioseqgroup_t *pseqgroup;
@@ -385,11 +385,11 @@ mstudioanim_t *CStudioModelRenderer::StudioGetAnim (model_t *m_pSubModel, mstudi
 	return (mstudioanim_t *)((byte *)paSequences[pseqdesc->seqgroup].data + pseqdesc->animindex);
 	}
 
-/*
+/***
 ====================
 StudioPlayerBlend
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioPlayerBlend (mstudioseqdesc_t *pseqdesc, int *pBlend, float *pPitch)
 	{
 	// calc up/down pointing
@@ -414,11 +414,11 @@ void CStudioModelRenderer::StudioPlayerBlend (mstudioseqdesc_t *pseqdesc, int *p
 		}
 	}
 
-/*
+/***
 ====================
 StudioSetUpTransform
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 	{
 	int				i;
@@ -534,12 +534,11 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 	(*m_protationmatrix)[2][3] = modelpos[2];
 	}
 
-/*
+/***
 ====================
 StudioEstimateInterpolant
-
 ====================
-*/
+***/
 float CStudioModelRenderer::StudioEstimateInterpolant (void)
 	{
 	float dadt = 1.0;
@@ -555,13 +554,13 @@ float CStudioModelRenderer::StudioEstimateInterpolant (void)
 	return dadt;
 	}
 
-/*
+/***
 ====================
 StudioCalcRotations
-
 ====================
-*/
-void CStudioModelRenderer::StudioCalcRotations (float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc, mstudioanim_t *panim, float f)
+***/
+void CStudioModelRenderer::StudioCalcRotations (float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc,
+	mstudioanim_t *panim, float f)
 	{
 	int					i;
 	int					frame;
@@ -621,11 +620,11 @@ void CStudioModelRenderer::StudioCalcRotations (float pos[][3], vec4_t *q, mstud
 		pos[pseqdesc->motionbone][2] += s * pseqdesc->linearmovement[2];
 	}
 
-/*
+/***
 ====================
 Studio_FxTransform
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioFxTransform (cl_entity_t *ent, float transform[3][4])
 	{
 	switch (ent->curstate.renderfx)
@@ -665,11 +664,11 @@ void CStudioModelRenderer::StudioFxTransform (cl_entity_t *ent, float transform[
 		}
 	}
 
-/*
+/***
 ====================
 StudioEstimateFrame
 ====================
-*/
+***/
 float CStudioModelRenderer::StudioEstimateFrame (mstudioseqdesc_t *pseqdesc)
 	{
 	double				dfdt, f;
@@ -727,11 +726,11 @@ float CStudioModelRenderer::StudioEstimateFrame (mstudioseqdesc_t *pseqdesc)
 	return f;
 	}
 
-/*
+/***
 ====================
 StudioSetupBones
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioSetupBones (void)
 	{
 	int					i, j;
@@ -910,11 +909,11 @@ void CStudioModelRenderer::StudioSetupBones (void)
 		}
 	}
 
-/*
+/***
 ====================
 StudioSaveBones
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioSaveBones (void)
 	{
 	int		i;
@@ -932,11 +931,11 @@ void CStudioModelRenderer::StudioSaveBones (void)
 		}
 	}
 
-/*
+/***
 ====================
 StudioMergeBones
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioMergeBones (model_t *m_pSubModel)
 	{
 	int					i, j;
@@ -1016,11 +1015,11 @@ void CStudioModelRenderer::StudioMergeBones (model_t *m_pSubModel)
 		}
 	}
 
-/*
+/***
 ====================
 StudioDrawModel
 ====================
-*/
+***/
 int CStudioModelRenderer::StudioDrawModel (int flags)
 	{
 	alight_t lighting;
@@ -1128,11 +1127,11 @@ int CStudioModelRenderer::StudioDrawModel (int flags)
 	return 1;
 	}
 
-/*
+/***
 ====================
 StudioEstimateGait
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioEstimateGait (entity_state_t *pplayer)
 	{
 	float dt;
@@ -1198,12 +1197,11 @@ void CStudioModelRenderer::StudioEstimateGait (entity_state_t *pplayer)
 		}
 	}
 
-/*
+/***
 ====================
 StudioProcessGait
-
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioProcessGait (entity_state_t *pplayer)
 	{
 	mstudioseqdesc_t *pseqdesc;
@@ -1296,11 +1294,11 @@ void CStudioModelRenderer::StudioProcessGait (entity_state_t *pplayer)
 		m_pPlayerInfo->gaitframe += pseqdesc->numframes;
 	}
 
-/*
+/***
 ====================
 StudioDrawPlayer
 ====================
-*/
+***/
 int CStudioModelRenderer::StudioDrawPlayer (int flags, entity_state_t *pplayer)
 	{
 	alight_t lighting;
@@ -1459,11 +1457,11 @@ int CStudioModelRenderer::StudioDrawPlayer (int flags, entity_state_t *pplayer)
 	return 1;
 	}
 
-/*
+/***
 ====================
 StudioCalcAttachments
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioCalcAttachments (void)
 	{
 	int i;
@@ -1483,11 +1481,11 @@ void CStudioModelRenderer::StudioCalcAttachments (void)
 		}
 	}
 
-/*
+/***
 ====================
 StudioRenderModel
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioRenderModel (void)
 	{
 	IEngineStudio.SetChromeOrigin ();
@@ -1520,11 +1518,11 @@ void CStudioModelRenderer::StudioRenderModel (void)
 		}
 	}
 
-/*
+/***
 ====================
 StudioRenderFinal_Software
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioRenderFinal_Software (void)
 	{
 	int i;
@@ -1564,11 +1562,11 @@ void CStudioModelRenderer::StudioRenderFinal_Software (void)
 	IEngineStudio.RestoreRenderer ();
 	}
 
-/*
+/***
 ====================
 StudioRenderFinal_Hardware
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioRenderFinal_Hardware (void)
 	{
 	int i;
@@ -1618,11 +1616,11 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware (void)
 	IEngineStudio.RestoreRenderer ();
 	}
 
-/*
+/***
 ====================
 StudioRenderFinal
 ====================
-*/
+***/
 void CStudioModelRenderer::StudioRenderFinal (void)
 	{
 	if (IEngineStudio.IsHardware ())

@@ -1,4 +1,4 @@
-/*
+/***
 gl_backend.c - rendering backend
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 
 #include "gl_local.h"
@@ -20,11 +20,11 @@ GNU General Public License for more details.
 char			r_speeds_msg[MAX_SYSPATH];
 ref_speeds_t	r_stats;	// r_speeds counters
 
-/*
+/***
 ===============
 R_SpeedsMessage
 ===============
-*/
+***/
 qboolean R_SpeedsMessage (char *out, size_t size)
 	{
 	if (gEngfuncs.drawFuncs->R_SpeedsMessage != NULL)
@@ -44,13 +44,13 @@ qboolean R_SpeedsMessage (char *out, size_t size)
 	return true;
 	}
 
-/*
+/***
 ==============
 R_Speeds_Printf [FWGS, 01.02.24]
 
 helper to print into r_speeds message
 ==============
-*/
+***/
 static void R_Speeds_Printf (const char *msg, ...)
 	{
 	va_list	argptr;
@@ -63,21 +63,21 @@ static void R_Speeds_Printf (const char *msg, ...)
 	Q_strncat (r_speeds_msg, text, sizeof (r_speeds_msg));
 	}
 
-/*
+/***
 ==============
 GL_BackendStartFrame
 ==============
-*/
+***/
 void GL_BackendStartFrame (void)
 	{
 	r_speeds_msg[0] = '\0';
 	}
 
-/*
+/***
 ==============
 GL_BackendEndFrame
 ==============
-*/
+***/
 void GL_BackendEndFrame (void)
 	{
 	mleaf_t *curleaf;
@@ -128,11 +128,11 @@ void GL_BackendEndFrame (void)
 
 // [FWGS, 01.05.23] удалена GL_LoadTexMatrix
 
-/*
+/***
 =================
 GL_LoadTexMatrixExt
 =================
-*/
+***/
 void GL_LoadTexMatrixExt (const float *glmatrix)
 	{
 	Assert (glmatrix != NULL);
@@ -141,11 +141,11 @@ void GL_LoadTexMatrixExt (const float *glmatrix)
 	glState.texIdentityMatrix[glState.activeTMU] = false;
 	}
 
-/*
+/***
 =================
 GL_LoadMatrix
 =================
-*/
+***/
 void GL_LoadMatrix (const matrix4x4 source)
 	{
 	GLfloat	dest[16];
@@ -154,11 +154,11 @@ void GL_LoadMatrix (const matrix4x4 source)
 	pglLoadMatrixf (dest);
 	}
 
-/*
+/***
 =================
 GL_LoadIdentityTexMatrix
 =================
-*/
+***/
 void GL_LoadIdentityTexMatrix (void)
 	{
 	if (glState.texIdentityMatrix[glState.activeTMU])
@@ -169,18 +169,19 @@ void GL_LoadIdentityTexMatrix (void)
 	glState.texIdentityMatrix[glState.activeTMU] = true;
 	}
 
-/*
+/***
 =================
 GL_SelectTexture
 =================
-*/
+***/
 void GL_SelectTexture (GLint tmu)
 	{
 	if (!GL_Support (GL_ARB_MULTITEXTURE))
 		return;
 
 	// don't allow negative texture units
-	if (tmu < 0) return;
+	if (tmu < 0)
+		return;
 
 	if (tmu >= GL_MaxTextureUnits ())
 		{
@@ -202,11 +203,11 @@ void GL_SelectTexture (GLint tmu)
 		}
 	}
 
-/*
+/***
 ==============
 GL_DisableAllTexGens
 ==============
-*/
+***/
 void GL_DisableAllTexGens (void)
 	{
 	GL_TexGen (GL_S, 0);
@@ -215,11 +216,11 @@ void GL_DisableAllTexGens (void)
 	GL_TexGen (GL_Q, 0);
 	}
 
-/*
+/***
 ==============
 GL_CleanUpTextureUnits
 ==============
-*/
+***/
 void GL_CleanUpTextureUnits (int last)
 	{
 	int	i;
@@ -242,11 +243,11 @@ void GL_CleanUpTextureUnits (int last)
 		}
 	}
 
-/*
+/***
 ==============
 GL_CleanupAllTextureUnits
 ==============
-*/
+***/
 void GL_CleanupAllTextureUnits (void)
 	{
 	if (!glw_state.initialized) return;
@@ -255,11 +256,11 @@ void GL_CleanupAllTextureUnits (void)
 	GL_CleanUpTextureUnits (0);
 	}
 
-/*
+/***
 =================
 GL_MultiTexCoord2f
 =================
-*/
+***/
 void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t)
 	{
 	if (!GL_Support (GL_ARB_MULTITEXTURE))
@@ -271,11 +272,11 @@ void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t)
 		pglMultiTexCoord2f (texture + GL_TEXTURE0_ARB, s, t);
 	}
 
-/*
+/***
 ====================
 GL_EnableTextureUnit [FWGS, 01.11.23]
 ====================
-*/
+***/
 void GL_EnableTextureUnit (int tmu, qboolean enable)
 	{
 	// only enable fixed-function pipeline units
@@ -292,11 +293,11 @@ void GL_EnableTextureUnit (int tmu, qboolean enable)
 		}
 	}
 
-/*
+/***
 =================
 GL_TextureTarget [FWGS, 01.11.23]
 =================
-*/
+***/
 void GL_TextureTarget (uint target)
 	{
 	if ((glState.activeTMU < 0) || (glState.activeTMU >= GL_MaxTextureUnits ()))
@@ -315,11 +316,11 @@ void GL_TextureTarget (uint target)
 		}
 	}
 
-/*
+/***
 =================
 GL_TexGen
 =================
-*/
+***/
 void GL_TexGen (GLenum coord, GLenum mode)
 	{
 	int	tmu = Q_min (glConfig.max_texture_coords, glState.activeTMU);
@@ -365,11 +366,11 @@ void GL_TexGen (GLenum coord, GLenum mode)
 		}
 	}
 
-/*
+/***
 =================
 GL_SetTexCoordArrayMode
 =================
-*/
+***/
 void GL_SetTexCoordArrayMode (GLenum mode)
 	{
 	int	tmu = Q_min (glConfig.max_texture_coords, glState.activeTMU);
@@ -393,11 +394,11 @@ void GL_SetTexCoordArrayMode (GLenum mode)
 		}
 	}
 
-/*
+/***
 =================
 GL_Cull
 =================
-*/
+***/
 void GL_Cull (GLenum cull)
 	{
 	if (!cull)
@@ -448,13 +449,11 @@ void GL_SetRenderMode (int mode)
 		}
 	}
 
-/*
+/***
 ==============================================================================
-
 SCREEN SHOTS
-
 ==============================================================================
-*/
+***/
 // used for 'env' and 'sky' shots
 typedef struct envmap_s
 	{
@@ -543,11 +542,11 @@ qboolean VID_ScreenShot (const char *filename, int shot_type)
 	return result;
 	}
 
-/*
+/***
 =================
 VID_CubemapShot
 =================
-*/
+***/
 qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qboolean skyshot)
 	{
 	rgbdata_t	*r_shot, *r_side;
@@ -629,14 +628,14 @@ qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qbo
 
 // =======================================================
 
-/*
+/***
 ===============
 R_ShowTextures
 
 Draw all the images to the screen, on top of whatever
 was there.  This is used to test for texture thrashing.
 ===============
-*/
+***/
 void R_ShowTextures (void)
 	{
 	gl_texture_t	*image;
@@ -748,13 +747,13 @@ rebuild_page:
 	pglFinish ();
 	}
 
-/*
+/***
 ================
 SCR_TimeRefresh_f
 
 timerefresh [noflip]
 ================
-*/
+***/
 void SCR_TimeRefresh_f (void)
 	{
 	int	i;

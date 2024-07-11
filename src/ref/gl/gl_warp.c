@@ -1,4 +1,4 @@
-/*
+/***
 gl_warp.c - sky and water polygons
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 
 #include "gl_local.h"
@@ -177,11 +177,11 @@ static void DrawSkyPolygon (int nump, vec3_t vecs)
 		}
 	}
 
-/*
+/***
 ==============
 ClipSkyPolygon
 ==============
-*/
+***/
 static void ClipSkyPolygon (int nump, vec3_t vecs, int stage)
 	{
 	const float *norm;
@@ -308,11 +308,11 @@ static void MakeSkyVec (float s, float t, int axis)
 	pglVertex3fv (v);
 	}
 
-/*
+/***
 ==============
 R_ClearSkyBox
 ==============
-*/
+***/
 void R_ClearSkyBox (void)
 	{
 	int	i;
@@ -324,11 +324,11 @@ void R_ClearSkyBox (void)
 		}
 	}
 
-/*
+/***
 =================
 R_AddSkyBoxSurface [FWGS, 01.01.24]
 =================
-*/
+***/
 void R_AddSkyBoxSurface (msurface_t *fa)
 	{
 	vec3_t		verts[MAX_CLIP_VERTS];
@@ -359,13 +359,13 @@ void R_AddSkyBoxSurface (msurface_t *fa)
 		}
 	}
 
-/*
+/***
 ==============
 R_UnloadSkybox [FWGS, 01.02.24]
 
 Unload previous skybox
 ==============
-*/
+***/
 static void R_UnloadSkybox (void)
 	{
 	int	i;
@@ -384,11 +384,11 @@ static void R_UnloadSkybox (void)
 	ClearBits (tr.world->flags, FWORLD_CUSTOM_SKYBOX);
 	}
 
-/*
+/***
 ==============
 R_DrawSkybox
 ==============
-*/
+***/
 void R_DrawSkyBox (void)
 	{
 	int	i;
@@ -432,11 +432,11 @@ void R_DrawSkyBox (void)
 	R_LoadIdentity ();
 	}
 
-/*
+/***
 ===============
 R_SetupSky [FWGS, 01.01.24]
 ===============
-*/
+***/
 void R_SetupSky (const char *skyboxname)
 	{
 	char	loadname[MAX_STRING];
@@ -496,11 +496,11 @@ void R_SetupSky (const char *skyboxname)
 // ==============================================================================
 // RENDER CLOUDS
 // ==============================================================================
-/*
+/***
 ==============
 R_CloudVertex
 ==============
-*/
+***/
 static void R_CloudVertex (float s, float t, int axis, vec3_t v)
 	{
 	int	j, k, farclip;
@@ -520,11 +520,11 @@ static void R_CloudVertex (float s, float t, int axis, vec3_t v)
 		}
 	}
 
-/*
+/***
 =============
 R_CloudTexCoord [FWGS, 01.01.24]
 =============
-*/
+***/
 static void R_CloudTexCoord (vec3_t v, float speed, float *s, float *t)
 	{
 	float	length, speedscale;
@@ -543,11 +543,11 @@ static void R_CloudTexCoord (vec3_t v, float speed, float *s, float *t)
 	*t = (speedscale + dir[1] * length) * (1.0f / 128.0f);
 	}
 
-/*
+/***
 ===============
 R_CloudDrawPoly
 ===============
-*/
+***/
 static void R_CloudDrawPoly (glpoly_t *p)
 	{
 	float	s, t;
@@ -581,11 +581,11 @@ static void R_CloudDrawPoly (glpoly_t *p)
 	pglDisable (GL_BLEND);
 	}
 
-/*
+/***
 ==============
 R_CloudRenderSide
 ==============
-*/
+***/
 static void R_CloudRenderSide (int axis)
 	{
 	vec3_t	verts[4];
@@ -637,13 +637,13 @@ static void R_CloudRenderSide (int axis)
 		}
 	}
 
-/*
+/***
 ==============
 R_DrawClouds
 
 Quake-style clouds
 ==============
-*/
+***/
 void R_DrawClouds (void)
 	{
 	int	i;
@@ -669,13 +669,13 @@ void R_DrawClouds (void)
 		pglFogf (GL_FOG_DENSITY, RI.fogDensity);
 	}
 
-/*
+/***
 =============
 R_InitSkyClouds
 
 A sky texture is 256*128, with the right side being a masked overlay
 ==============
-*/
+***/
 void R_InitSkyClouds (mip_t *mt, texture_t *tx, qboolean custom_palette)
 	{
 	rgbdata_t	r_temp, *r_sky;
@@ -775,13 +775,13 @@ void R_InitSkyClouds (mip_t *mt, texture_t *tx, qboolean custom_palette)
 	Mem_Free (trans);
 	}
 
-/*
+/***
 =============
 EmitWaterPolys [FWGS, 01.01.24]
 
 Does a water warp on the pre-fragmented glpoly_t chain
 =============
-*/
+***/
 void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 	{
 	float		*v, nv, waveHeight;
@@ -864,11 +864,11 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 	GL_SetupFogColorForSurfaces ();
 	}
 
-/*
+/***
 ============================================================
 HALF-LIFE SOFTWARE WATER
 ============================================================
-*/
+***/
 
 // [FWGS, 01.01.24]
 void R_ResetRipples (void)
@@ -1025,13 +1025,11 @@ void R_UploadRipples (texture_t *image)
 	wshft = 7 - wbits;
 	wmask = image->width - 1;
 
-	/*for (int y = 0; y < image->height; y++)*/
 	for (y = 0; y < image->height; y++)
 		{
 		int ry = y << (7 + wshft);
 		int x;
 
-		/*for (int x = 0; x < image->width; x++)*/
 		for (x = 0; x < image->width; x++)
 			{
 			int rx = x << wshft;

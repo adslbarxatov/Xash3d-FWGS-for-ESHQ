@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -15,8 +15,7 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+***/
 
 
 // ui_menu.c -- main menu interface
@@ -73,13 +72,13 @@ int g_iColorTable[8] =
 	0xFFFFFFFF, // white
 	};
 
-	/*
-	=================
-	UI_ScaleCoords
+/***
+=================
+UI_ScaleCoords
 
-	Any parameter can be NULL if you don't want it
-	=================
-	*/
+Any parameter can be NULL if you don't want it
+=================
+***/
 void UI_ScaleCoords (int *x, int *y, int *w, int *h)
 	{
 	if (x) *x *= uiStatic.scaleX;
@@ -88,11 +87,11 @@ void UI_ScaleCoords (int *x, int *y, int *w, int *h)
 	if (h) *h *= uiStatic.scaleY;
 	}
 
-	/*
-	=================
-	UI_CursorInRect
-	=================
-	*/
+/***
+=================
+UI_CursorInRect
+=================
+***/
 int UI_CursorInRect (int x, int y, int w, int h)
 	{
 	if (uiStatic.cursorX < x)
@@ -106,11 +105,11 @@ int UI_CursorInRect (int x, int y, int w, int h)
 	return TRUE;
 	}
 
-	/*
-	=================
-	UI_DrawPic
-	=================
-	*/
+/***
+=================
+UI_DrawPic
+=================
+***/
 void UI_DrawPic (int x, int y, int width, int height, const int color, const char *pic)
 	{
 	HIMAGE hPic = PIC_Load (pic);
@@ -122,11 +121,11 @@ void UI_DrawPic (int x, int y, int width, int height, const int color, const cha
 	PIC_Draw (x, y, width, height);
 	}
 
-	/*
-	=================
-	UI_DrawPicAdditive
-	=================
-	*/
+/***
+=================
+UI_DrawPicAdditive
+=================
+***/
 void UI_DrawPicAdditive (int x, int y, int width, int height, const int color, const char *pic)
 	{
 	HIMAGE hPic = PIC_Load (pic);
@@ -138,11 +137,11 @@ void UI_DrawPicAdditive (int x, int y, int width, int height, const int color, c
 	PIC_DrawAdditive (x, y, width, height);
 	}
 
-	/*
-	=================
-	UI_FillRect
-	=================
-	*/
+/***
+=================
+UI_FillRect
+=================
+***/
 void UI_FillRect (int x, int y, int width, int height, const int color)
 	{
 	int r, g, b, a;
@@ -151,11 +150,11 @@ void UI_FillRect (int x, int y, int width, int height, const int color)
 	FillRGBA (x, y, width, height, r, g, b, a);
 	}
 
-	/*
-	=================
-	UI_DrawRectangleExt
-	=================
-	*/
+/***
+=================
+UI_DrawRectangleExt
+=================
+***/
 void UI_DrawRectangleExt (int in_x, int in_y, int in_w, int in_h, const int color, int outlineWidth)
 	{
 	int	x, y, w, h;
@@ -193,11 +192,11 @@ void UI_DrawRectangleExt (int in_x, int in_y, int in_w, int in_h, const int colo
 	UI_FillRect (x, y, w, h, color);
 	}
 
-	/*
-	=================
-	UI_DrawString
-	=================
-	*/
+/***
+=================
+UI_DrawString
+=================
+***/
 void UI_DrawString (int x, int y, int w, int h, const char *string, const int color, int forceColor, int charW, 
 	int charH, int justify, int shadow)
 	{
@@ -281,11 +280,11 @@ void UI_DrawString (int x, int y, int w, int h, const char *string, const int co
 		}
 	}
 
-	/*
-	=================
-	UI_DrawMouseCursor
-	=================
-	*/
+/***
+=================
+UI_DrawMouseCursor
+=================
+***/
 void UI_DrawMouseCursor (void)
 	{
 	menuCommon_s *item;
@@ -321,11 +320,11 @@ void UI_DrawMouseCursor (void)
 	SET_CURSOR (hCursor);
 	}
 
-	/*
-	=================
-	UI_DrawBackground_Callback
-	=================
-	*/
+/***
+=================
+UI_DrawBackground_Callback
+=================
+***/
 void UI_DrawBackground_Callback (void *self)
 	{
 	if (!uiStatic.m_fHaveSteamBackground)
@@ -363,11 +362,11 @@ void UI_DrawBackground_Callback (void *self)
 		}
 	}
 
-	/*
-	=================
-	UI_LoadSteamBackground
-	=================
-	*/
+/***
+=================
+UI_LoadSteamBackground
+=================
+***/
 bool UI_LoadSteamBackground (void)
 	{
 	char *afile = NULL, *pfile;
@@ -435,11 +434,11 @@ cleanup:
 	return loaded;
 	}
 
-	/*
-	=================
-	UI_LoadBackgroundImage
-	=================
-	*/
+/***
+=================
+UI_LoadBackgroundImage
+=================
+***/
 void UI_LoadBackgroundImage (void)
 	{
 	if (UI_LoadSteamBackground ())
@@ -459,21 +458,21 @@ void UI_LoadBackgroundImage (void)
 		}
 	}
 
-	/*
-	=================
-	UI_StartSound
-	=================
-	*/
+/***
+=================
+UI_StartSound
+=================
+***/
 void UI_StartSound (const char *sound)
 	{
 	PLAY_SOUND (sound);
 	}
 
-/*
+/***
 =================
 UI_AddItem
 =================
-*/
+***/
 void UI_AddItem (menuFramework_s *menu, void *item)
 	{
 	menuCommon_s *generic = (menuCommon_s *)item;
@@ -517,11 +516,11 @@ void UI_AddItem (menuFramework_s *menu, void *item)
 		}
 	}
 
-	/*
-	=================
-	UI_CursorMoved
-	=================
-	*/
+/***
+=================
+UI_CursorMoved
+=================
+***/
 void UI_CursorMoved (menuFramework_s *menu)
 	{
 	void (*callback)(void *self, int event);
@@ -542,11 +541,11 @@ void UI_CursorMoved (menuFramework_s *menu)
 		}
 	}
 
-	/*
-	=================
-	UI_SetCursor
-	=================
-	*/
+/***
+=================
+UI_SetCursor
+=================
+***/
 void UI_SetCursor (menuFramework_s *menu, int cursor)
 	{
 	if (((menuCommon_s *)(menu->items[cursor]))->flags & (QMF_GRAYED | QMF_INACTIVE | QMF_HIDDEN))
@@ -558,11 +557,11 @@ void UI_SetCursor (menuFramework_s *menu, int cursor)
 	UI_CursorMoved (menu);
 	}
 
-	/*
-	=================
-	UI_SetCursorToItem
-	=================
-	*/
+/***
+=================
+UI_SetCursorToItem
+=================
+***/
 void UI_SetCursorToItem (menuFramework_s *menu, void *item)
 	{
 	for (int i = 0; i < menu->numItems; i++)
@@ -575,11 +574,11 @@ void UI_SetCursorToItem (menuFramework_s *menu, void *item)
 		}
 	}
 
-	/*
-	=================
-	UI_ItemAtCursor
-	=================
-	*/
+/***
+=================
+UI_ItemAtCursor
+=================
+***/
 void *UI_ItemAtCursor (menuFramework_s *menu)
 	{
 	if (menu->cursor < 0 || menu->cursor >= menu->numItems)
@@ -592,14 +591,14 @@ void *UI_ItemAtCursor (menuFramework_s *menu)
 	return menu->items[menu->cursor];
 	}
 
-	/*
-	=================
-	UI_AdjustCursor
+/***
+=================
+UI_AdjustCursor
 
-	This functiont takes the given menu, the direction, and attempts to
-	adjust the menu's cursor so that it's at the next available slot
-	=================
-	*/
+This functiont takes the given menu, the direction, and attempts to
+adjust the menu's cursor so that it's at the next available slot
+=================
+***/
 void UI_AdjustCursor (menuFramework_s *menu, int dir)
 	{
 	menuCommon_s *item;
@@ -644,11 +643,11 @@ wrap:
 		}
 	}
 
-/*
+/***
 =================
 UI_DrawMenu
 =================
-*/
+***/
 void UI_DrawMenu (menuFramework_s *menu)
 	{
 	static long	statusFadeTime;
@@ -727,11 +726,11 @@ void UI_DrawMenu (menuFramework_s *menu)
 	else statusFadeTime = uiStatic.realTime;
 	}
 
-	/*
-	=================
-	UI_DefaultKey
-	=================
-	*/
+/***
+=================
+UI_DefaultKey
+=================
+***/
 const char *UI_DefaultKey (menuFramework_s *menu, int key, int down)
 	{
 	const char *sound = NULL;
@@ -840,11 +839,11 @@ const char *UI_DefaultKey (menuFramework_s *menu, int key, int down)
 	return sound;
 	}
 
-	/*
-	=================
-	UI_ActivateItem
-	=================
-	*/
+/***
+=================
+UI_ActivateItem
+=================
+***/
 const char *UI_ActivateItem (menuFramework_s *menu, menuCommon_s *item)
 	{
 	if (item->callback)
@@ -857,11 +856,11 @@ const char *UI_ActivateItem (menuFramework_s *menu, menuCommon_s *item)
 	return 0;
 	}
 
-	/*
-	=================
-	UI_RefreshServerList
-	=================
-	*/
+/***
+=================
+UI_RefreshServerList
+=================
+***/
 void UI_RefreshServerList (void)
 	{
 	uiStatic.numServers = 0;
@@ -871,11 +870,11 @@ void UI_RefreshServerList (void)
 	CLIENT_COMMAND (FALSE, "localservers\n");
 	}
 
-	/*
-	=================
-	UI_RefreshInternetServerList
-	=================
-	*/
+/***
+=================
+UI_RefreshInternetServerList
+=================
+***/
 void UI_RefreshInternetServerList (void)
 	{
 	uiStatic.numServers = 0;
@@ -885,11 +884,11 @@ void UI_RefreshInternetServerList (void)
 	CLIENT_COMMAND (FALSE, "internetservers\n");
 	}
 
-	/*
-	=================
-	UI_StartBackGroundMap
-	=================
-	*/
+/***
+=================
+UI_StartBackGroundMap
+=================
+***/
 bool UI_StartBackGroundMap (void)
 	{
 	static bool	first = TRUE;
@@ -914,13 +913,13 @@ bool UI_StartBackGroundMap (void)
 	return TRUE;
 	}
 
-	// =====================================================================
+// =====================================================================
 
-	/*
-	=================
-	UI_CloseMenu
-	=================
-	*/
+/***
+=================
+UI_CloseMenu
+=================
+***/
 void UI_CloseMenu (void)
 	{
 	uiStatic.menuActive = NULL;
@@ -938,11 +937,11 @@ void UI_CloseMenu (void)
 	KEY_SetDest (KEY_GAME);
 	}
 
-	/*
-	=================
-	UI_PushMenu
-	=================
-	*/
+/***
+=================
+UI_PushMenu
+=================
+***/
 void UI_PushMenu (menuFramework_s *menu)
 	{
 	int		i;
@@ -989,11 +988,11 @@ void UI_PushMenu (menuFramework_s *menu)
 		}
 	}
 
-	/*
-	=================
-	UI_PopMenu
-	=================
-	*/
+/***
+=================
+UI_PopMenu
+=================
+***/
 void UI_PopMenu (void)
 	{
 	UI_StartSound (uiSoundOut);
@@ -1031,11 +1030,11 @@ void UI_PopMenu (void)
 
 	// =====================================================================
 
-/*
+/***
 =================
 UI_UpdateMenu
 =================
-*/
+***/
 void UI_UpdateMenu (float flTime)
 	{
 	if (!uiStatic.initialized)
@@ -1099,11 +1098,11 @@ void UI_UpdateMenu (float flTime)
 		}
 	}
 
-	/*
-	=================
-	UI_KeyEvent
-	=================
-	*/
+/***
+=================
+UI_KeyEvent
+=================
+***/
 void UI_KeyEvent (int key, int down)
 	{
 	const char *sound;
@@ -1126,11 +1125,11 @@ void UI_KeyEvent (int key, int down)
 		UI_StartSound (sound);
 	}
 
-	/*
-	=================
-	UI_CharEvent
-	=================
-	*/
+/***
+=================
+UI_CharEvent
+=================
+***/
 void UI_CharEvent (int key)
 	{
 	menuFramework_s *menu;
@@ -1163,11 +1162,11 @@ void UI_CharEvent (int key)
 		}
 	}
 
-	/*
-	=================
-	UI_MouseMove
-	=================
-	*/
+/***
+=================
+UI_MouseMove
+=================
+***/
 void UI_MouseMove (int x, int y)
 	{
 	int		i;
@@ -1245,11 +1244,11 @@ void UI_MouseMove (int x, int y)
 		}
 	}
 
-	/*
-	=================
-	UI_SetActiveMenu
-	=================
-	*/
+/***
+=================
+UI_SetActiveMenu
+=================
+***/
 void UI_SetActiveMenu (int fActive)
 	{
 	if (!uiStatic.initialized)
@@ -1273,11 +1272,11 @@ void UI_SetActiveMenu (int fActive)
 		}
 	}
 
-	/*
-	=================
-	UI_AddServerToList
-	=================
-	*/
+/***
+=================
+UI_AddServerToList
+=================
+***/
 void UI_AddServerToList (netadr_t adr, const char *info)
 	{
 	int	i;
@@ -1299,20 +1298,20 @@ void UI_AddServerToList (netadr_t adr, const char *info)
 			return;
 		}
 
-		// add it to the list
+	// add it to the list
 	uiStatic.updateServers = true; // info has been updated
 	uiStatic.serverAddresses[uiStatic.numServers] = adr;
 	strncpy (uiStatic.serverNames[uiStatic.numServers], info, sizeof (uiStatic.serverNames[uiStatic.numServers]));
 	uiStatic.numServers++;
 	}
 
-	/*
-	=================
-	UI_IsVisible
+/***
+=================
+UI_IsVisible
 
-	Some systems may need to know if it is visible or not
-	=================
-	*/
+Some systems may need to know if it is visible or not
+=================
+***/
 int UI_IsVisible (void)
 	{
 	if (!uiStatic.initialized)
@@ -1343,11 +1342,11 @@ int UI_MouseInRect (void)
 	return uiStatic.mouseInRect;
 	}
 
-	/*
-	=================
-	UI_Precache
-	=================
-	*/
+/***
+=================
+UI_Precache
+=================
+***/
 void UI_Precache (void)
 	{
 	if (!uiStatic.initialized)
@@ -1503,11 +1502,11 @@ static void UI_LoadBackgroundMapList (void)
 	FREE_FILE (afile);
 	}
 
-	/*
-	=================
-	UI_VidInit
-	=================
-	*/
+/***
+=================
+UI_VidInit
+=================
+***/
 int UI_VidInit (void)
 	{
 	UI_Precache ();
@@ -1556,11 +1555,11 @@ int UI_VidInit (void)
 	return 1;
 	}
 
-	/*
-	=================
-	UI_Init
-	=================
-	*/
+/***
+=================
+UI_Init
+=================
+***/
 void UI_Init (void)
 	{
 		// register our cvars and commands
@@ -1602,11 +1601,11 @@ void UI_Init (void)
 	UI_InitTitleAnim ();
 	}
 
-	/*
-	=================
-	UI_Shutdown
-	=================
-	*/
+/***
+=================
+UI_Shutdown
+=================
+***/
 void UI_Shutdown (void)
 	{
 	if (!uiStatic.initialized)

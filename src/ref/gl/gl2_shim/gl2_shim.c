@@ -1,4 +1,4 @@
-/*
+/***
 gl2_shim.c - GL CORE/ES2+ FFP emulation
 Copyright (C) 2023 mittorn, fgsfds
 
@@ -11,9 +11,9 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
-/*
+/***
 based on vglshim, as it has almost all needed for using glbegins on gles
 BufStorage mode should work similar to vglshim with vitagl's DRAW_SPEEDHACK
 as it uses gpu-mapped in similar way
@@ -29,12 +29,11 @@ Limitations:
 5. Textures are enabled with texcoord attribs, not glEnable (can be changed, but who cares?)
 6. Begin/End limited to 8192 vertices. It is possible to support more, but need change glVertex logic to split drawcals, which may make it slower
 7. Textures internalformat ignored except of removing alpha from RGB textures
-*/
+***/
 
 #include "..\\gl_local.h"
 #ifndef XASH_GL_STATIC
 #include "gl2_shim.h"
-/*#include <malloc.h>*/	// [FWGS, 01.05.24]
 
 #define MAX_SHADERLEN 4096
 // increase this when adding more attributes
@@ -385,7 +384,6 @@ static gl2wrap_prog_t *GL2_GetProg (const GLuint flags)
 			if (gl2wrap_config.vao_mandatory || gl2wrap_config.incremental)
 				{
 				int j;
-				/*for (int j = 0; j < gl2wrap_config.cycle_buffers; j++)*/
 				for (j = 0; j < gl2wrap_config.cycle_buffers; j++)
 					{
 					pglBindVertexArray (prog->vao_begin[j]);
@@ -487,7 +485,6 @@ static void GL2_InitIncrementalBuffer (int i, GLuint size)
 		gl2wrap.mappings[i] = Mem_Calloc (r_temppool, gl2wrap_config.cycle_buffers * sizeof (void *));
 	pglGenBuffersARB (gl2wrap_config.cycle_buffers, gl2wrap.attrbufobj[i]);
 
-	/*for (int j = 0; j < gl2wrap_config.cycle_buffers; j++)*/
 	for (j = 0; j < gl2wrap_config.cycle_buffers; j++)
 		{
 		rpglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap.attrbufobj[i][j]);
@@ -644,7 +641,6 @@ int GL2_ShimInit (void)
 				pglGenBuffersARB (gl2wrap_config.cycle_buffers, gl2wrap.attrbufobj[i]);
 				if (gl2wrap_config.supports_mapbuffer)
 					{
-					/*for (int j = 0; j < gl2wrap_config.cycle_buffers; j++)*/
 					int j;
 
 					for (j = 0; j < gl2wrap_config.cycle_buffers; j++)
@@ -806,7 +802,7 @@ static void APIENTRY GL2_Begin (GLenum prim)
 	SetBits (gl2wrap.cur_flags, BIT (GL2_ATTR_POS));
 	}
 
-/*
+/***
 ==============================
 UpdateIncrementalBuffer
 
@@ -814,7 +810,7 @@ glBufferStorage allows to write directly without mapping buffer every time befor
 This allows keep VAO unchanged and fastly build needed pipeline in driver for every program variant
 When buffer storage not supported, we still may use cached VAO, but map/unmap it every time writing new data
 ==============================
-*/
+***/
 static void GL2_UpdateIncrementalBuffer (gl2wrap_prog_t *prog, int count)
 	{
 	int i;
@@ -939,13 +935,14 @@ static void GL2_FlushPrims (void)
 			rpglDrawArrays (GL_TRIANGLE_FAN, startindex, count);
 		else if (pglDrawRangeElementsBaseVertex)
 			{
-			/*
-			 * OpenGL deprecated QUADS, but made some workarounds availiable
-			 * idea: bound static index array that will repeat 0 1 2 0 2 3 4 5 6 4 6 7...
-			 * sequence and draw source arrays. But our array may have different offset
-			 * When DrawRangeElementsBaseVertex unavailiable, we need build 4 different index arrays (as sequence have period 4)
-			 * or just put 0-4 offset when it's availiable
-			 * */
+			/***
+			OpenGL deprecated QUADS, but made some workarounds availiable
+			idea: bound static index array that will repeat 0 1 2 0 2 3 4 5 6 4 6 7...
+			sequence and draw source arrays. But our array may have different offset
+			When DrawRangeElementsBaseVertex unavailiable, we need build 4 different
+			index arrays (as sequence have period 4)
+			or just put 0-4 offset when it's availiable
+			***/
 			pglBindBufferARB (GL_ELEMENT_ARRAY_BUFFER_ARB, gl2wrap.triquads_ibo[0]);
 			pglDrawRangeElementsBaseVertex (GL_TRIANGLES, startindex, startindex + count,
 				Q_min (count / 4 * 6, TRIQUADS_SIZE * 6 - startindex), GL_UNSIGNED_SHORT,
@@ -1237,14 +1234,11 @@ static void APIENTRY GL2_Disable (GLenum e)
 		rpglDisable (e);
 	}
 
-/*
+/***
 ===========================
-
 Limited matrix emulation
-
 ===========================
-*/
-
+***/
 static void APIENTRY GL2_MatrixMode (GLenum m)
 	{
 	//	if( gl2wrap_matrix.mode == m )
@@ -1351,13 +1345,11 @@ static void APIENTRY GL2_DepthRange (GLdouble zFar, GLdouble zNear)
 	}
 #endif
 
-/*
+/***
 =====================
-
 Array drawing
-
 =====================
-*/
+***/
 typedef struct gl2wrap_arraypointer_s
 	{
 	const void *userptr;
@@ -1434,14 +1426,14 @@ static void APIENTRY GL2_DisableClientState (GLenum array)
 	}
 
 
-/*
+/***
 ===========================
 UploadBufferData
 
 Dumb buffer upload
 Used when uploading very large buffers or when persistent/incremental buffers disabled (MapBuffer unavailiable?)
 ===========================
- */
+***/
 static void GL2_UploadBufferData (gl2wrap_prog_t *prog, int size, GLuint start, GLuint end, int stride, int attr)
 	{
 	if (!gl2wrap_arrays.ptr[attr].vbo_fb)
@@ -1454,14 +1446,15 @@ static void GL2_UploadBufferData (gl2wrap_prog_t *prog, int size, GLuint start, 
 	pglBufferDataARB (GL_ARRAY_BUFFER_ARB, end * stride, gl2wrap_arrays.ptr[attr].userptr, GL_STREAM_DRAW_ARB);
 	pglVertexAttribPointerARB (prog->attridx[attr], gl2wrap_arrays.ptr[attr].size, gl2wrap_arrays.ptr[attr].type, attr == GL2_ATTR_COLOR, gl2wrap_arrays.ptr[attr].stride, 0);
 	}
-/*
+
+/***
 ===========================
 UpdatePersistentArrayBuffer
 
 Persistent array always mapped to stream_pointer with BufferStorage
 just memcopy it into and flush when overflowed
 ===========================
- */
+***/
 static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int offset, GLuint start, GLuint end, int stride, int attr)
 	{
 	if (gl2wrap_arrays.stream_counter + size > GL2_MAX_VERTS * 64)
@@ -1483,13 +1476,13 @@ static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int
 	gl2wrap_arrays.stream_counter += size;
 	}
 
-/*
+/***
 ===========================
 UpdateIncrementalArrayBuffer
 
 Like persistent buffer, but map every time when copying data when BufferStorage unavailiable
 ===========================
- */
+***/
 static void GL2_UpdateIncrementalArrayBuffer (gl2wrap_prog_t *prog, int size, int offset, GLuint start, GLuint end, int stride, int attr)
 	{
 	void *mem;
@@ -1513,13 +1506,13 @@ static void GL2_UpdateIncrementalArrayBuffer (gl2wrap_prog_t *prog, int size, in
 	gl2wrap_arrays.stream_counter += size;
 	}
 
-/*
+/***
 ===========================
 AllocArrayPersistenStorage
 
 Prepare BufferStorage
 ===========================
- */
+***/
 static void GL2_AllocArrayPersistenStorage (void)
 	{
 	GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
@@ -1557,7 +1550,7 @@ static void GL2_FreeArrays (void)
 	}
 
 
-/*
+/***
 ======================
 SetupArrays [FWGS, 01.05.24]
 
@@ -1565,7 +1558,7 @@ If vao usage mandatory, use persistent/incremental buffers when possible
 else just set client pointers to default VAO
 Usage of client pointers is forbidden with non-default VAO and unavailiable in Core
 ======================
-*/
+***/
 static void GL2_SetupArrays (GLuint start, GLuint end)
 	{
 	gl2wrap_prog_t	*prog;
@@ -1595,7 +1588,6 @@ static void GL2_SetupArrays (GLuint start, GLuint end)
 		pglBindVertexArray (gl2wrap_arrays.vao_dynamic);
 		}
 
-	/*for (int i = 0; i < GL2_ATTR_MAX; i++)*/
 	for (i = 0; i < GL2_ATTR_MAX; i++)
 		{
 		if (prog->attridx[i] < 0)

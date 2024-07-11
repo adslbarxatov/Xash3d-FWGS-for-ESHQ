@@ -1,4 +1,4 @@
-/*
+/***
 gl_rmain.c - renderer main loop
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
@@ -53,13 +53,13 @@ void R_AllowFog (qboolean allowed)
 		}
 	}
 
-/*
+/***
 ===============
 R_OpaqueEntity [FWGS, 01.05.24]
 
 Opaque entity can be brush or studio model but sprite
 ===============
-*/
+***/
 qboolean R_OpaqueEntity (cl_entity_t *ent)
 	{
 	if (R_GetEntityRenderMode (ent) == kRenderNormal)
@@ -74,17 +74,16 @@ qboolean R_OpaqueEntity (cl_entity_t *ent)
 			}
 		}
 	
-	/*return true;*/
 	return false;
 	}
 
-/*
+/***
 ===============
 R_TransEntityCompare
 
 Sorting translucent entities by rendermode then by distance
 ===============
-*/
+***/
 static int R_TransEntityCompare (const void *a, const void *b)
 	{
 	cl_entity_t *ent1, *ent2;
@@ -138,14 +137,14 @@ static int R_TransEntityCompare (const void *a, const void *b)
 	return 0;
 	}
 
-/*
+/***
 ===============
 R_WorldToScreen
 
 Convert a given point from world into screen space
 Returns true if we behind to screen
 ===============
-*/
+***/
 int R_WorldToScreen (const vec3_t point, vec3_t screen)
 	{
 	matrix4x4	worldToScreen;
@@ -156,9 +155,12 @@ int R_WorldToScreen (const vec3_t point, vec3_t screen)
 		return true;
 
 	Matrix4x4_Copy (worldToScreen, RI.worldviewProjectionMatrix);
-	screen[0] = worldToScreen[0][0] * point[0] + worldToScreen[0][1] * point[1] + worldToScreen[0][2] * point[2] + worldToScreen[0][3];
-	screen[1] = worldToScreen[1][0] * point[0] + worldToScreen[1][1] * point[1] + worldToScreen[1][2] * point[2] + worldToScreen[1][3];
-	w = worldToScreen[3][0] * point[0] + worldToScreen[3][1] * point[1] + worldToScreen[3][2] * point[2] + worldToScreen[3][3];
+	screen[0] = worldToScreen[0][0] * point[0] + worldToScreen[0][1] * point[1] + worldToScreen[0][2] *
+		point[2] + worldToScreen[0][3];
+	screen[1] = worldToScreen[1][0] * point[0] + worldToScreen[1][1] * point[1] + worldToScreen[1][2] *
+		point[2] + worldToScreen[1][3];
+	w = worldToScreen[3][0] * point[0] + worldToScreen[3][1] * point[1] + worldToScreen[3][2] * point[2] +
+		worldToScreen[3][3];
 	screen[2] = 0.0f; // just so we have something valid here
 
 	if (w < 0.001f)
@@ -176,13 +178,13 @@ int R_WorldToScreen (const vec3_t point, vec3_t screen)
 	return behind;
 	}
 
-/*
+/***
 ===============
 R_ScreenToWorld
 
 Convert a given point from screen into world space
 ===============
-*/
+***/
 void R_ScreenToWorld (const vec3_t screen, vec3_t point)
 	{
 	matrix4x4	screenToWorld;
@@ -193,18 +195,22 @@ void R_ScreenToWorld (const vec3_t screen, vec3_t point)
 
 	Matrix4x4_Invert_Full (screenToWorld, RI.worldviewProjectionMatrix);
 
-	point[0] = screen[0] * screenToWorld[0][0] + screen[1] * screenToWorld[0][1] + screen[2] * screenToWorld[0][2] + screenToWorld[0][3];
-	point[1] = screen[0] * screenToWorld[1][0] + screen[1] * screenToWorld[1][1] + screen[2] * screenToWorld[1][2] + screenToWorld[1][3];
-	point[2] = screen[0] * screenToWorld[2][0] + screen[1] * screenToWorld[2][1] + screen[2] * screenToWorld[2][2] + screenToWorld[2][3];
-	w = screen[0] * screenToWorld[3][0] + screen[1] * screenToWorld[3][1] + screen[2] * screenToWorld[3][2] + screenToWorld[3][3];
+	point[0] = screen[0] * screenToWorld[0][0] + screen[1] * screenToWorld[0][1] + screen[2] *
+		screenToWorld[0][2] + screenToWorld[0][3];
+	point[1] = screen[0] * screenToWorld[1][0] + screen[1] * screenToWorld[1][1] + screen[2] *
+		screenToWorld[1][2] + screenToWorld[1][3];
+	point[2] = screen[0] * screenToWorld[2][0] + screen[1] * screenToWorld[2][1] + screen[2] *
+		screenToWorld[2][2] + screenToWorld[2][3];
+	w = screen[0] * screenToWorld[3][0] + screen[1] * screenToWorld[3][1] + screen[2] *
+		screenToWorld[3][2] + screenToWorld[3][3];
 	if (w != 0.0f) VectorScale (point, (1.0f / w), point);
 	}
 
-/*
+/***
 ===============
 R_PushScene
 ===============
-*/
+***/
 void R_PushScene (void)
 	{
 	if (++tr.draw_stack_pos >= MAX_DRAW_STACK)
@@ -213,11 +219,11 @@ void R_PushScene (void)
 	tr.draw_list = &tr.draw_stack[tr.draw_stack_pos];
 	}
 
-/*
+/***
 ===============
 R_PopScene
 ===============
-*/
+***/
 void R_PopScene (void)
 	{
 	if (--tr.draw_stack_pos < 0)
@@ -225,11 +231,11 @@ void R_PopScene (void)
 	tr.draw_list = &tr.draw_stack[tr.draw_stack_pos];
 	}
 
-/*
+/***
 ===============
 R_ClearScene
 ===============
-*/
+***/
 void R_ClearScene (void)
 	{
 	tr.draw_list->num_solid_entities = 0;
@@ -241,11 +247,11 @@ void R_ClearScene (void)
 		gEngfuncs.drawFuncs->R_ClearScene ();
 	}
 
-/*
+/***
 ===============
 R_AddEntity
 ===============
-*/
+***/
 qboolean R_AddEntity (struct cl_entity_s *clent, int type)
 	{
 	if (!r_drawentities->value)
@@ -294,11 +300,11 @@ qboolean R_AddEntity (struct cl_entity_s *clent, int type)
 	return true;
 	}
 
-/*
+/***
 =============
 R_Clear
 =============
-*/
+***/
 static void R_Clear (int bitMask)
 	{
 	int	bits;
@@ -334,11 +340,11 @@ static void R_Clear (int bitMask)
 	}
 
 // =============================================================================
-/*
+/***
 ===============
 R_GetFarClip [FWGS, 01.01.24]
 ===============
-*/
+***/
 static float R_GetFarClip (void)
 	{
 	if (WORLDMODEL && RI.drawWorld)
@@ -347,11 +353,11 @@ static float R_GetFarClip (void)
 	return 2048.0f;
 	}
 
-/*
+/***
 ===============
 R_SetupFrustum
 ===============
-*/
+***/
 void R_SetupFrustum (void)
 	{
 	const ref_overview_t *ov = gEngfuncs.GetOverviewParms ();
@@ -383,11 +389,11 @@ void R_SetupFrustum (void)
 	// NOTE: we ignore nearplane here (mirrors only)
 	}
 
-/*
+/***
 =============
 R_SetupProjectionMatrix
 =============
-*/
+***/
 static void R_SetupProjectionMatrix (matrix4x4 m)
 	{
 	GLfloat	xMin, xMax, yMin, yMax, zNear, zFar;
@@ -413,11 +419,11 @@ static void R_SetupProjectionMatrix (matrix4x4 m)
 	Matrix4x4_CreateProjection (m, xMax, xMin, yMax, yMin, zNear, zFar);
 	}
 
-/*
+/***
 =============
 R_SetupModelviewMatrix
 =============
-*/
+***/
 static void R_SetupModelviewMatrix (matrix4x4 m)
 	{
 	Matrix4x4_CreateModelview (m);
@@ -427,11 +433,11 @@ static void R_SetupModelviewMatrix (matrix4x4 m)
 	Matrix4x4_ConcatTranslate (m, -RI.vieworg[0], -RI.vieworg[1], -RI.vieworg[2]);
 	}
 
-/*
+/***
 =============
 R_LoadIdentity
 =============
-*/
+***/
 void R_LoadIdentity (void)
 	{
 	if (tr.modelviewIdentity)
@@ -445,11 +451,11 @@ void R_LoadIdentity (void)
 	tr.modelviewIdentity = true;
 	}
 
-/*
+/***
 =============
 R_RotateForEntity [FWGS, 01.01.24]
 =============
-*/
+***/
 void R_RotateForEntity (cl_entity_t *e)
 	{
 	float scale = 1.0f;
@@ -471,11 +477,11 @@ void R_RotateForEntity (cl_entity_t *e)
 	tr.modelviewIdentity = false;
 	}
 
-/*
+/***
 =============
 R_TranslateForEntity [FWGS, 01.01.24]
 =============
-*/
+***/
 void R_TranslateForEntity (cl_entity_t *e)
 	{
 	float scale = 1.0f;
@@ -497,22 +503,22 @@ void R_TranslateForEntity (cl_entity_t *e)
 	tr.modelviewIdentity = false;
 	}
 
-/*
+/***
 ===============
 R_FindViewLeaf
 ===============
-*/
+***/
 void R_FindViewLeaf (void)
 	{
 	RI.oldviewleaf = RI.viewleaf;
 	RI.viewleaf = gEngfuncs.Mod_PointInLeaf (RI.pvsorigin, WORLDMODEL->nodes);
 	}
 
-/*
+/***
 ===============
 R_SetupFrame
 ===============
-*/
+***/
 static void R_SetupFrame (void)
 	{
 	// setup viewplane dist
@@ -535,11 +541,11 @@ static void R_SetupFrame (void)
 		}
 	}
 
-/*
+/***
 =============
 R_SetupGL
 =============
-*/
+***/
 void R_SetupGL (qboolean set_gl_state)
 	{
 	R_SetupModelviewMatrix (RI.worldviewMatrix);
@@ -594,25 +600,25 @@ void R_SetupGL (qboolean set_gl_state)
 	pglColor4f (1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
-/*
+/***
 =============
 R_EndGL
 =============
-*/
+***/
 static void R_EndGL (void)
 	{
 	if (RI.params & RP_CLIPPLANE)
 		pglDisable (GL_CLIP_PLANE0);
 	}
 
-/*
+/***
 =============
 R_RecursiveFindWaterTexture
 
 using to find source waterleaf with
 watertexture to grab fog values from it
 =============
-*/
+***/
 static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mnode_t *ignore, qboolean down)
 	{
 	gl_texture_t *tex = NULL;
@@ -679,7 +685,7 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 	return NULL;
 	}
 
-/*
+/***
 =============
 R_CheckFog [FWGS, 01.01.24]
 
@@ -687,7 +693,7 @@ check for underwater fog
 Using backward recursion to find waterline leaf
 from underwater leaf (idea: XaeroX)
 =============
-*/
+***/
 static void R_CheckFog (void)
 	{
 	cl_entity_t		*ent;
@@ -795,14 +801,14 @@ static void R_CheckFog (void)
 	RI.fogSkybox = true;
 	}
 
-/*
+/***
 =============
 R_CheckGLFog
 
 special condition for Spirit 1.9
 that used direct calls of glFog-functions
 =============
-*/
+***/
 static void R_CheckGLFog (void)
 	{
 #ifdef HACKS_RELATED_HLMODS
@@ -815,11 +821,11 @@ static void R_CheckGLFog (void)
 #endif
 	}
 
-/*
+/***
 =============
 R_DrawFog
 =============
-*/
+***/
 void R_DrawFog (void)
 	{
 	if (!RI.fogEnabled)
@@ -836,11 +842,11 @@ void R_DrawFog (void)
 	pglHint (GL_FOG_HINT, GL_NICEST);
 	}
 
-/*
+/***
 =============
 R_DrawEntitiesOnList
 =============
-*/
+***/
 static void R_DrawEntitiesOnList (void)
 	{
 	int	i;
@@ -976,13 +982,13 @@ static void R_DrawEntitiesOnList (void)
 	GL_CheckForErrors ();
 	}
 
-/*
+/***
 ================
 R_RenderScene [FWGS, 01.01.24]
 
 R_SetupRefParams must be called right before
 ================
-*/
+***/
 void R_RenderScene (void)
 	{
 	if (!WORLDMODEL && RI.drawWorld)
@@ -1019,13 +1025,6 @@ void R_RenderScene (void)
 	R_DrawWaterSurfaces ();
 	R_EndGL ();
 	}
-
-/*
-===============
-R_CheckGamma
-===============
-//
-void R_CheckGamma (void)*/
 
 // [FWGS, 01.01.24]
 void R_GammaChanged (qboolean do_reset_gamma)
@@ -1068,11 +1067,11 @@ static void R_CheckGamma (void)
 		R_GammaChanged (false);
 	}
 
-/*
+/***
 ===============
 R_BeginFrame
 ===============
-*/
+***/
 void R_BeginFrame (qboolean clearScene)
 	{
 	glConfig.softwareGammaUpdate = false;	// in case of possible fails
@@ -1098,13 +1097,13 @@ void R_BeginFrame (qboolean clearScene)
 	gEngfuncs.CL_ExtraUpdate ();
 	}
 
-/*
+/***
 ===============
 R_SetupRefParams
 
 set initial params for renderer
 ===============
-*/
+***/
 void R_SetupRefParams (const ref_viewpass_t *rvp)
 	{
 	RI.params = RP_NONE;
@@ -1131,11 +1130,11 @@ void R_SetupRefParams (const ref_viewpass_t *rvp)
 	VectorCopy (rvp->vieworigin, RI.pvsorigin);
 	}
 
-/*
+/***
 ===============
 R_RenderFrame [FWGS, 01.07.23]
 ===============
-*/
+***/
 void R_RenderFrame (const ref_viewpass_t *rvp)
 	{
 	if (r_norefresh->value)
@@ -1180,11 +1179,11 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 	return;
 	}
 
-/*
+/***
 ===============
 R_EndFrame [FWGS, 01.11.23]
 ===============
-*/
+***/
 void R_EndFrame (void)
 	{
 #if XASH_PSVITA
@@ -1199,11 +1198,11 @@ void R_EndFrame (void)
 	gEngfuncs.GL_SwapBuffers ();
 	}
 
-/*
+/***
 ===============
 R_DrawCubemapView
 ===============
-*/
+***/
 void R_DrawCubemapView (const vec3_t origin, const vec3_t angles, int size)
 	{
 	ref_viewpass_t rvp;
@@ -1226,11 +1225,11 @@ void R_DrawCubemapView (const vec3_t origin, const vec3_t angles, int size)
 	RI.viewleaf = NULL;		// force markleafs next frame
 	}
 
-/*
+/***
 ===============
 CL_FxBlend [FWGS, 01.01.24]
 ===============
-*/
+***/
 int CL_FxBlend (cl_entity_t *e)
 	{
 	int		blend = 0;

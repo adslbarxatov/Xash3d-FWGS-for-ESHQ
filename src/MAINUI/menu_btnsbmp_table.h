@@ -1,4 +1,4 @@
-/*
+/***
 menu_btnsbmp_table.h - btns_main layout
 Copyright (C) 2011 CrazyRussian
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef MENU_BTNSBMP_TABLE_H
 #define MENU_BTNSBMP_TABLE_H

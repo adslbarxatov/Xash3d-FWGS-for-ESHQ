@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== buttons.cpp ========================================================
 
   button-related code
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -409,7 +409,7 @@ int CBaseButton::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, fl
 	return 0;
 	}
 
-/*
+/***
 QUAKED func_button (0 .5 .8) ?
 When a button is touched, it moves some distance in the direction of it's angle,
 triggers all of it's targets, waits some time, then returns to it's original position
@@ -426,7 +426,7 @@ where it can be triggered again.
 1) wooden clunk
 2) metallic click
 3) in-out
-*/
+***/
 LINK_ENTITY_TO_CLASS (func_button, CBaseButton);
 
 void CBaseButton::Spawn ()

@@ -67,7 +67,7 @@ void VectorAngles (const float* forward, float* angles);
 
 extern engine_studio_api_t IEngineStudio;
 
-/*
+/***
 The view is allowed to move slightly from it's true position for bobbing,
 but if it exceeds 8 pixels linear distance (spherical, not box), the list of
 entities sent from the server may not include everything in the pvs, especially
@@ -160,12 +160,12 @@ float V_CalcBob (struct ref_params_s* pparams)
 
 	}
 
-/*
+/***
 ===============
 V_CalcRoll
 Used by view and sv_user
 ===============
-*/
+***/
 float V_CalcRoll (vec3_t angles, vec3_t velocity, float rollangle, float rollspeed)
 	{
 	float   sign;
@@ -220,16 +220,16 @@ void V_StopPitchDrift (void)
 	pd.pitchvel = 0;
 	}
 
-/*
+/***
 ===============
 V_DriftPitch
 
 Moves the client pitch angle towards idealpitch sent by the server.
 
 If the user is adjusting pitch manually, either with lookup/lookdown,
-mlook and mouse, or klook and keyboard, pitch drifting is constantly stopped.
+mlook and mouse, or klook and keyboard, pitch drifting is constantly stopped
 ===============
-*/
+***/
 void V_DriftPitch (struct ref_params_s* pparams)
 	{
 	float delta, move;
@@ -286,17 +286,17 @@ void V_DriftPitch (struct ref_params_s* pparams)
 		}
 	}
 
-/*
+/***
 ==============================================================================
 						VIEW RENDERING
 ==============================================================================
-*/
+***/
 
-/*
+/***
 ==================
 V_CalcGunAngle
 ==================
-*/
+***/
 void V_CalcGunAngle (struct ref_params_s* pparams)
 	{
 	cl_entity_t* viewent;
@@ -317,13 +317,13 @@ void V_CalcGunAngle (struct ref_params_s* pparams)
 	VectorCopy (viewent->angles, viewent->latched.prevangles);
 	}
 
-/*
+/***
 ==============
 V_AddIdle
 
 Idle swaying
 ==============
-*/
+***/
 void V_AddIdle (struct ref_params_s* pparams)
 	{
 	pparams->viewangles[ROLL] += v_idlescale * sin (pparams->time * v_iroll_cycle.value) * v_iroll_level.value;
@@ -331,13 +331,13 @@ void V_AddIdle (struct ref_params_s* pparams)
 	pparams->viewangles[YAW] += v_idlescale * sin (pparams->time * v_iyaw_cycle.value) * v_iyaw_level.value;
 	}
 
-/*
+/***
 ==============
 V_CalcViewRoll
 
 Roll is induced by movement and damage
 ==============
-*/
+***/
 void V_CalcViewRoll (struct ref_params_s* pparams)
 	{
 	float		side;
@@ -360,11 +360,11 @@ void V_CalcViewRoll (struct ref_params_s* pparams)
 		}
 	}
 
-/*
+/***
 ==================
 V_CalcIntermissionRefdef
 ==================
-*/
+***/
 void V_CalcIntermissionRefdef (struct ref_params_s* pparams)
 	{
 	cl_entity_t* ent, * view;
@@ -416,12 +416,11 @@ typedef struct
 	int CurrentAngle;
 	} viewinterp_t;
 
-/*
+/***
 ==================
 V_CalcRefdef
-
 ==================
-*/
+***/
 void V_CalcNormalRefdef (struct ref_params_s* pparams)
 	{
 	cl_entity_t* ent, * view;
@@ -1308,11 +1307,11 @@ int V_FindViewModelByWeaponModel (int weaponindex)
 		}
 	}
 
-/*
+/***
 ==================
 V_CalcSpectatorRefdef
 ==================
-*/
+***/
 void V_CalcSpectatorRefdef (struct ref_params_s* pparams)
 	{
 	static vec3_t			velocity (0.0f, 0.0f, 0.0f);
@@ -1494,11 +1493,11 @@ void DLLEXPORT V_CalcRefdef (struct ref_params_s* pparams)
 		}
 	}
 
-/*
+/***
 =============
 V_DropPunchAngle
 =============
-*/
+***/
 void V_DropPunchAngle (float frametime, float* ev_punchangle)
 	{
 	float	len;
@@ -1509,23 +1508,23 @@ void V_DropPunchAngle (float frametime, float* ev_punchangle)
 	VectorScale (ev_punchangle, len, ev_punchangle);
 	}
 
-/*
+/***
 =============
 V_PunchAxis
 
 Client side punch effect
 =============
-*/
+***/
 void V_PunchAxis (int axis, float punch)
 	{
 	ev_punchangle[axis] = punch;
 	}
 
-/*
+/***
 =============
 V_Init
 =============
-*/
+***/
 void V_Init (void)
 	{
 	gEngfuncs.pfnAddCommand ("centerview", V_StartPitchDrift);
@@ -1548,11 +1547,11 @@ void V_Init (void)
 #if defined( TRACE_TEST )
 
 extern float in_fov;
-/*
+/***
 ====================
 CalcFov
 ====================
-*/
+***/
 float CalcFov (float fov_x, float width, float height)
 	{
 	float	a;

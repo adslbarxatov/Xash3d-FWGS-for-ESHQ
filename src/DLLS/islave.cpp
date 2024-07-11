@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -616,14 +616,6 @@ IMPLEMENT_CUSTOM_SCHEDULES (CISlave, CSquadMonster);
 Schedule_t* CISlave::GetSchedule (void)
 	{
 	ClearBeams ();
-
-	/*
-		if (pev->spawnflags)
-		{
-			pev->spawnflags = 0;
-			return GetScheduleOfType( SCHED_RELOAD );
-		}
-	*/
 
 	if (HasConditions (bits_COND_HEAR_SOUND))
 		{

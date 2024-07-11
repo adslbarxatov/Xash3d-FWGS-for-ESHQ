@@ -1,4 +1,4 @@
-/*
+/***
 gl_decals.c - decal paste and rendering
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 
@@ -470,13 +470,13 @@ static decal_t *R_DecalIntersect (decalinfo_t *decalinfo, msurface_t *surf, int 
 	return plast;
 	}
 
-/*
+/***
 ====================
 R_DecalCreatePoly
 
 creates mesh for decal on first rendering
 ====================
-*/
+***/
 static glpoly_t *R_DecalCreatePoly (decalinfo_t *decalinfo, decal_t *pdecal, msurface_t *surf)
 	{
 	int			lnumverts;
@@ -1063,11 +1063,11 @@ void DrawDecalsBatch (void)
 	tr.num_draw_decals = 0;
 	}
 
-/*
+/***
 =============================================================
 DECALS SERIALIZATION
 =============================================================
-*/
+***/
 static qboolean R_DecalUnProject (decal_t *pdecal, decallist_t *entry)
 	{
 	if (!pdecal || !(pdecal->psurface))
@@ -1184,13 +1184,13 @@ int R_CreateDecalList (decallist_t *pList)
 	return total;
 	}
 
-/*
+/***
 ===============
 R_DecalRemoveAll
 
 remove all decals with specified texture
 ===============
-*/
+***/
 void R_DecalRemoveAll (int textureIndex)
 	{
 	decal_t	*pdecal;
@@ -1212,13 +1212,13 @@ void R_DecalRemoveAll (int textureIndex)
 		}
 	}
 
-/*
+/***
 ===============
 R_EntityRemoveDecals
 
 remove all decals from specified entity
 ===============
-*/
+***/
 void R_EntityRemoveDecals (model_t *mod)
 	{
 	msurface_t	*psurf;
@@ -1236,14 +1236,14 @@ void R_EntityRemoveDecals (model_t *mod)
 		}
 	}
 
-/*
+/***
 ===============
 R_ClearAllDecals
 
 remove all decals from anything
 used for full decals restart
 ===============
-*/
+***/
 void R_ClearAllDecals (void)
 	{
 	decal_t	*pdecal;

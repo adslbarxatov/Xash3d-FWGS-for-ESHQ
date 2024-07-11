@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -69,13 +69,13 @@ CTripmine g_Tripmine;
 CSqueak g_Snark;
 
 
-/*
+/***
 ======================
 AlertMessage
 
 Print debug messages to console
 ======================
-*/
+***/
 void AlertMessage (ALERT_TYPE atype, char* szFmt, ...)
 	{
 	va_list		argptr;
@@ -101,14 +101,14 @@ void LoadVModel (char* szViewModel, CBasePlayer* m_pPlayer)
 	gEngfuncs.CL_LoadModel (szViewModel, &m_pPlayer->pev->viewmodel);
 	}
 
-/*
+/***
 =====================
 HUD_PrepEntity
 
 Links the raw entity to an entvars_s holder.  If a player is passed in as the owner, then
 we set up the m_pPlayer field.
 =====================
-*/
+***/
 void HUD_PrepEntity (CBaseEntity* pEntity, CBasePlayer* pWeaponOwner)
 	{
 	memset (&ev[num_ents], 0, sizeof (entvars_t));
@@ -129,23 +129,23 @@ void HUD_PrepEntity (CBaseEntity* pEntity, CBasePlayer* pWeaponOwner)
 		}
 	}
 
-/*
+/***
 =====================
 CBaseEntity :: Killed
 
 If weapons code "kills" an entity, just set its effects to EF_NODRAW
 =====================
-*/
+***/
 void CBaseEntity::Killed (entvars_t* pevAttacker, int iGib)
 	{
 	pev->effects |= EF_NODRAW;
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon :: DefaultReload
 =====================
-*/
+***/
 BOOL CBasePlayerWeapon::DefaultReload (int iClipSize, int iAnim, float fDelay, int body)
 	{
 
@@ -168,11 +168,11 @@ BOOL CBasePlayerWeapon::DefaultReload (int iClipSize, int iAnim, float fDelay, i
 	return TRUE;
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon :: CanDeploy
 =====================
-*/
+***/
 BOOL CBasePlayerWeapon::CanDeploy (void)
 	{
 	BOOL bHasAmmo = 0;
@@ -203,12 +203,11 @@ BOOL CBasePlayerWeapon::CanDeploy (void)
 	return TRUE;
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon :: DefaultDeploy
-
 =====================
-*/
+***/
 BOOL CBasePlayerWeapon::DefaultDeploy (char* szViewModel, char* szWeaponModel, int iAnim, char* szAnimExt, 
 	int skiplocal, int	body)
 	{
@@ -225,12 +224,11 @@ BOOL CBasePlayerWeapon::DefaultDeploy (char* szViewModel, char* szWeaponModel, i
 	return TRUE;
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon :: PlayEmptySound
-
 =====================
-*/
+***/
 BOOL CBasePlayerWeapon::PlayEmptySound (void)
 	{
 	if (m_iPlayEmptySound)
@@ -239,27 +237,27 @@ BOOL CBasePlayerWeapon::PlayEmptySound (void)
 		m_iPlayEmptySound = 0;
 		return 0;
 		}
+
 	return 0;
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon :: ResetEmptySound
-
 =====================
-*/
+***/
 void CBasePlayerWeapon::ResetEmptySound (void)
 	{
 	m_iPlayEmptySound = 1;
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon::Holster
 
 Put away weapon
 =====================
-*/
+***/
 void CBasePlayerWeapon::Holster (int skiplocal)	// == 0
 	{
 	m_fInReload = FALSE; // cancel any reload in progress
@@ -267,13 +265,13 @@ void CBasePlayerWeapon::Holster (int skiplocal)	// == 0
 	m_pPlayer->pev->viewmodel = 0;
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon::SendWeaponAnim
 
 Animate weapon model
 =====================
-*/
+***/
 void CBasePlayerWeapon::SendWeaponAnim (int iAnim, int skiplocal, int body)
 	{
 	m_pPlayer->pev->weaponanim = iAnim;
@@ -281,14 +279,15 @@ void CBasePlayerWeapon::SendWeaponAnim (int iAnim, int skiplocal, int body)
 	HUD_SendWeaponAnim (iAnim, body, 0);
 	}
 
-/*
+/***
 =====================
 CBaseEntity::FireBulletsPlayer
 
 Only produces random numbers to match the server ones.
 =====================
-*/
-Vector CBaseEntity::FireBulletsPlayer (ULONG cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t* pevAttacker, int shared_rand)
+***/
+Vector CBaseEntity::FireBulletsPlayer (ULONG cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread,
+	float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t* pevAttacker, int shared_rand)
 	{
 	float x, y, z;
 
@@ -307,8 +306,10 @@ Vector CBaseEntity::FireBulletsPlayer (ULONG cShots, Vector vecSrc, Vector vecDi
 			{
 			// Use player's random seed.
 			// get circular gaussian spread
-			x = UTIL_SharedRandomFloat (shared_rand + iShot, -0.5, 0.5) + UTIL_SharedRandomFloat (shared_rand + (1 + iShot), -0.5, 0.5);
-			y = UTIL_SharedRandomFloat (shared_rand + (2 + iShot), -0.5, 0.5) + UTIL_SharedRandomFloat (shared_rand + (3 + iShot), -0.5, 0.5);
+			x = UTIL_SharedRandomFloat (shared_rand + iShot, -0.5, 0.5) + UTIL_SharedRandomFloat (shared_rand +
+				(1 + iShot), -0.5, 0.5);
+			y = UTIL_SharedRandomFloat (shared_rand + (2 + iShot), -0.5, 0.5) + UTIL_SharedRandomFloat (shared_rand +
+				(3 + iShot), -0.5, 0.5);
 			z = x * x + y * y;
 			}
 
@@ -317,36 +318,25 @@ Vector CBaseEntity::FireBulletsPlayer (ULONG cShots, Vector vecSrc, Vector vecDi
 	return Vector (x * vecSpread.x, y * vecSpread.y, 0.0);
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon::ItemPostFrame
 
 Handles weapon firing, reloading, etc.
 =====================
-*/
+***/
 void CBasePlayerWeapon::ItemPostFrame (void)
 	{
 	if ((m_fInReload) && (m_pPlayer->m_flNextAttack <= 0.0))
 		{
-#if 0 // FIXME, need ammo on client to make this work right
-		// complete the reload. 
-		int j = min (iMaxClip () - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);
-
-		// Add them to the clip
-		m_iClip += j;
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= j;
-#else	
 		m_iClip += 10;
-#endif
 		m_fInReload = FALSE;
 		}
 
 	if ((m_pPlayer->pev->button & IN_ATTACK2) && (m_flNextSecondaryAttack <= 0.0))
 		{
 		if (pszAmmo2 () && !m_pPlayer->m_rgAmmo[SecondaryAmmoIndex ()])
-			{
 			m_fFireOnEmpty = TRUE;
-			}
 
 		SecondaryAttack ();
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
@@ -354,9 +344,7 @@ void CBasePlayerWeapon::ItemPostFrame (void)
 	else if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0))
 		{
 		if ((m_iClip == 0 && pszAmmo1 ()) || (iMaxClip () == -1 && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex ()]))
-			{
 			m_fFireOnEmpty = TRUE;
-			}
 
 		PrimaryAttack ();
 		}
@@ -389,13 +377,13 @@ void CBasePlayerWeapon::ItemPostFrame (void)
 		}
 	}
 
-/*
+/***
 =====================
 CBasePlayer::SelectItem
 
-  Switch weapons
+Switch weapons
 =====================
-*/
+***/
 void CBasePlayer::SelectItem (const char* pstr)
 	{
 	if (!pstr)
@@ -422,12 +410,11 @@ void CBasePlayer::SelectItem (const char* pstr)
 		}
 	}
 
-/*
+/***
 =====================
 CBasePlayer::SelectLastItem
-
 =====================
-*/
+***/
 void CBasePlayer::SelectLastItem (void)
 	{
 	if (!m_pLastItem)
@@ -449,12 +436,11 @@ void CBasePlayer::SelectLastItem (void)
 	m_pActiveItem->Deploy ();
 	}
 
-/*
+/***
 =====================
 CBasePlayer::Killed
-
 =====================
-*/
+***/
 void CBasePlayer::Killed (entvars_t* pevAttacker, int iGib)
 	{
 	// Holster weapon immediately, to allow it to cleanup
@@ -464,12 +450,11 @@ void CBasePlayer::Killed (entvars_t* pevAttacker, int iGib)
 	g_irunninggausspred = false;
 	}
 
-/*
+/***
 =====================
 CBasePlayer::Spawn
-
 =====================
-*/
+***/
 void CBasePlayer::Spawn (void)
 	{
 	if (m_pActiveItem)
@@ -478,27 +463,29 @@ void CBasePlayer::Spawn (void)
 	g_irunninggausspred = false;
 	}
 
-/*
+/***
 =====================
 UTIL_TraceLine
 
-Don't actually trace, but act like the trace didn't hit anything.
+Don't actually trace, but act like the trace didn't hit anything
 =====================
-*/
-void UTIL_TraceLine (const Vector& vecStart, const Vector& vecEnd, IGNORE_MONSTERS igmon, edict_t* pentIgnore, TraceResult* ptr)
+***/
+void UTIL_TraceLine (const Vector& vecStart, const Vector& vecEnd, IGNORE_MONSTERS igmon, edict_t* pentIgnore,
+	TraceResult* ptr)
 	{
 	memset (ptr, 0, sizeof (*ptr));
 	ptr->flFraction = 1.0;
 	}
 
-/*
+/***
 =====================
 UTIL_ParticleBox
 
 For debugging, draw a box around a player made out of particles
 =====================
-*/
-void UTIL_ParticleBox (CBasePlayer* player, float* mins, float* maxs, float life, unsigned char r, unsigned char g, unsigned char b)
+***/
+void UTIL_ParticleBox (CBasePlayer* player, float* mins, float* maxs, float life, unsigned char r,
+	unsigned char g, unsigned char b)
 	{
 	int i;
 	vec3_t mmin, mmax;
@@ -512,13 +499,13 @@ void UTIL_ParticleBox (CBasePlayer* player, float* mins, float* maxs, float life
 	gEngfuncs.pEfxAPI->R_ParticleBox ((float*)&mmin, (float*)&mmax, 5.0, 0, 255, 0);
 	}
 
-/*
+/***
 =====================
 UTIL_ParticleBoxes
 
 For debugging, draw boxes for other collidable players
 =====================
-*/
+***/
 void UTIL_ParticleBoxes (void)
 	{
 	int idx;
@@ -553,25 +540,26 @@ void UTIL_ParticleBoxes (void)
 	gEngfuncs.pEventAPI->EV_PopPMStates ();
 	}
 
-/*
+/***
 =====================
 UTIL_ParticleLine
 
 For debugging, draw a line made out of particles
 =====================
-*/
-void UTIL_ParticleLine (CBasePlayer* player, float* start, float* end, float life, unsigned char r, unsigned char g, unsigned char b)
+***/
+void UTIL_ParticleLine (CBasePlayer* player, float* start, float* end, float life, unsigned char r,
+	unsigned char g, unsigned char b)
 	{
 	gEngfuncs.pEfxAPI->R_ParticleLine (start, end, r, g, b, life);
 	}
 
-/*
+/***
 =====================
 CBasePlayerWeapon::PrintState
 
 For debugging, print out state variables to log file
 =====================
-*/
+***/
 void CBasePlayerWeapon::PrintState (void)
 	{
 	COM_Log ("c:\\hl.log", "%.4f ", gpGlobals->time);
@@ -581,13 +569,13 @@ void CBasePlayerWeapon::PrintState (void)
 	COM_Log ("c:\\hl.log", "%i ", m_iClip);
 	}
 
-/*
+/***
 =====================
 HUD_InitClientWeapons
 
-Set up weapons, player and functions needed to run weapons code client-side.
+Set up weapons, player and functions needed to run weapons code client-side
 =====================
-*/
+***/
 void HUD_InitClientWeapons (void)
 	{
 	static int initialized = 0;
@@ -640,13 +628,13 @@ void HUD_InitClientWeapons (void)
 	HUD_PrepEntity (&g_Snark, &player);
 	}
 
-/*
+/***
 =====================
 HUD_GetLastOrg
 
-Retruns the last position that we stored for egon beam endpoint.
+Retruns the last position that we stored for egon beam endpoint
 =====================
-*/
+***/
 void HUD_GetLastOrg (float* org)
 	{
 	int i;
@@ -658,13 +646,13 @@ void HUD_GetLastOrg (float* org)
 		}
 	}
 
-/*
+/***
 =====================
 HUD_SetLastOrg
 
-Remember our exact predicted origin so we can draw the egon to the right position.
+Remember our exact predicted origin so we can draw the egon to the right position
 =====================
-*/
+***/
 void HUD_SetLastOrg (void)
 	{
 	int i;
@@ -676,13 +664,13 @@ void HUD_SetLastOrg (void)
 		}
 	}
 
-/*
+/***
 =====================
 HUD_WeaponsPostThink
 
 Run Weapon firing code on client
 =====================
-*/
+***/
 void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cmd, double time, unsigned int random_seed)
 	{
 	int i;
@@ -1058,18 +1046,19 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 	g_finalstate = NULL;
 	}
 
-/*
+/***
 =====================
 HUD_PostRunCmd
 
 Client calls this during prediction, after it has moved the player and updated any info changed into to->
 time is the current client clock based on prediction
 cmd is the command that caused the movement, etc
-runfuncs is 1 if this is the first time we've predicted this command.  If so, sounds and effects should play, otherwise, they should
-be ignored
+runfuncs is 1 if this is the first time we've predicted this command.  If so, sounds and effects should play,
+otherwise, they should be ignored
 =====================
-*/
-void _DLLEXPORT HUD_PostRunCmd (struct local_state_s* from, struct local_state_s* to, struct usercmd_s* cmd, int runfuncs, double time, unsigned int random_seed)
+***/
+void _DLLEXPORT HUD_PostRunCmd (struct local_state_s* from, struct local_state_s* to, struct usercmd_s* cmd,
+	int runfuncs, double time, unsigned int random_seed)
 	{
 	g_runfuncs = runfuncs;
 

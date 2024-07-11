@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -822,54 +822,8 @@ void CHalfLifeMultiplay::DeathNotice (CBasePlayer* pVictim, entvars_t* pKiller, 
 	WRITE_LONG (7 | DRC_FLAG_DRAMATIC);   // eventflags (priority and flags)
 	MESSAGE_END ();
 
-	//  Print a standard message
-		// TODO: make this go direct to console
-	return; // just remove for now
-/*
-	char	szText[ 128 ];
-
-	if ( pKiller->flags & FL_MONSTER )
-	{
-		// killed by a monster
-		strcpy ( szText, STRING( pVictim->pev->netname ) );
-		strcat ( szText, " was killed by a monster.\n" );
-		return;
-	}
-
-	if ( pKiller == pVictim->pev )
-	{
-		strcpy ( szText, STRING( pVictim->pev->netname ) );
-		strcat ( szText, " commited suicide.\n" );
-	}
-	else if ( pKiller->flags & FL_CLIENT )
-	{
-		strcpy ( szText, STRING( pKiller->netname ) );
-
-		strcat( szText, " : " );
-		strcat( szText, killer_weapon_name );
-		strcat( szText, " : " );
-
-		strcat ( szText, STRING( pVictim->pev->netname ) );
-		strcat ( szText, "\n" );
-	}
-	else if ( FClassnameIs ( pKiller, "worldspawn" ) )
-	{
-		strcpy ( szText, STRING( pVictim->pev->netname ) );
-		strcat ( szText, " fell or drowned or something.\n" );
-	}
-	else if ( pKiller->solid == SOLID_BSP )
-	{
-		strcpy ( szText, STRING( pVictim->pev->netname ) );
-		strcat ( szText, " was mooshed.\n" );
-	}
-	else
-	{
-		strcpy ( szText, STRING( pVictim->pev->netname ) );
-		strcat ( szText, " died mysteriously.\n" );
-	}
-
-	UTIL_ClientPrintAll( szText );
-*/
+	// just remove for now
+	return;
 	}
 
 // =========================================================
@@ -1168,13 +1122,13 @@ typedef struct mapcycle_s
 	struct mapcycle_item_s* next_item;
 	} mapcycle_t;
 
-/*
+/***
 ==============
 DestroyMapCycle
 
 Clean up memory used by mapcycle when switching it
 ==============
-*/
+***/
 void DestroyMapCycle (mapcycle_t* cycle)
 	{
 	mapcycle_item_t* p, * n, * start;
@@ -1198,13 +1152,13 @@ void DestroyMapCycle (mapcycle_t* cycle)
 
 static char com_token[1500];
 
-/*
+/***
 ==============
 COM_Parse
 
 Parse a token out of a string
 ==============
-*/
+***/
 char* COM_Parse (char* data)
 	{
 	int             c;
@@ -1275,13 +1229,13 @@ skipwhite:
 		return data;
 	}
 
-/*
+/***
 ==============
 COM_TokenWaiting
 
 Returns 1 if additional data is waiting to be processed on this line
 ==============
-*/
+***/
 int COM_TokenWaiting (char* buffer)
 	{
 	char* p;
@@ -1300,14 +1254,14 @@ int COM_TokenWaiting (char* buffer)
 
 
 
-/*
+/***
 ==============
 ReloadMapCycleFile
 
 
 Parses mapcycle.txt file into mapcycle_t structure
 ==============
-*/
+***/
 int ReloadMapCycleFile (char* filename, mapcycle_t* cycle)
 	{
 	char szBuffer[MAX_RULE_BUFFER];
@@ -1429,13 +1383,13 @@ int ReloadMapCycleFile (char* filename, mapcycle_t* cycle)
 	return 1;
 	}
 
-/*
+/***
 ==============
 CountPlayers
 
 Determine the current # of active players on the server for map cycling logic
 ==============
-*/
+***/
 int CountPlayers (void)
 	{
 	int	num = 0;
@@ -1453,14 +1407,14 @@ int CountPlayers (void)
 	return num;
 	}
 
-/*
+/***
 ==============
 ExtractCommandString
 
 Parse commands/key value pairs to issue right after map xxx command is issued on server
  level transition
 ==============
-*/
+***/
 void ExtractCommandString (char* s, char* szCommand)
 	{
 	// Now make rules happen
@@ -1508,13 +1462,13 @@ void ExtractCommandString (char* s, char* szCommand)
 		}
 	}
 
-/*
+/***
 ==============
 ChangeLevel
 
 Server is changing to a new level, check mapcycle.txt for map name and setup info
 ==============
-*/
+***/
 void CHalfLifeMultiplay::ChangeLevel (void)
 	{
 	static char szPreviousMapCycleFile[256];

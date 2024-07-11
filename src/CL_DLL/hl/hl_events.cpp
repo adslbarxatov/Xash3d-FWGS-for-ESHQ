@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -42,7 +42,7 @@ extern "C"
 	void EV_TrainPitchAdjust (struct event_args_s* args);
 	}
 
-/*
+/***
 ======================
 Game_HookEvents
 
@@ -54,7 +54,7 @@ Associate script file name with callback functions.  Callback's must be extern "
 
 That was what we were going to do, but we ran out of time...oh well.
 ======================
-*/
+***/
 void Game_HookEvents (void)
 	{
 	gEngfuncs.pfnHookEvent ("events/glock1.sc", EV_FireGlock1);

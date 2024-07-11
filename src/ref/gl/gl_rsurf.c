@@ -1,4 +1,4 @@
-/*
+/***
 gl_rsurf.c - surface-related refresh code
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
@@ -222,14 +222,14 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 		}
 	}
 
-/*
+/***
 ===============================
 GL_SetupFogColorForSurfaces [FWGS, 01.02.24]
 
 every render pass applies new fog layer, resulting in wrong fog color
 recalculate fog color for current pass count
 ===============================
-*/
+***/
 static void GL_SetupFogColorForSurfacesEx (int passes, float density, qboolean blend_lightmaps)
 	{
 	vec4_t	fogColor;
@@ -274,7 +274,7 @@ void GL_ResetFogColor (void)
 		pglFogfv (GL_FOG_COLOR, RI.fogColor);
 	}
 
-/*
+/***
 ================
 GL_SubdivideSurface [FWGS, 01.01.24]
 
@@ -282,7 +282,7 @@ Breaks a polygon up along axial 64 unit
 boundaries so that turbulent and sky warps
 can be done reasonably.
 ================
-*/
+***/
 void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 	{
 	vec3_t	verts[SUBDIVIDE_SIZE];
@@ -298,11 +298,11 @@ void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 	SubdividePolygon_r (loadmodel, fa, fa->numedges, verts[0]);
 	}
 
-/*
+/***
 ================
 GL_BuildPolygonFromSurface [FWGS, 01.01.24]
 ================
-*/
+***/
 void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 	{
 	int			i, lnumverts;
@@ -389,13 +389,13 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 	}
 
 
-/*
+/***
 ===============
 R_TextureAnim [FWGS, 01.02.24]
 
 Returns the proper texture for a given time and base texture, do not process random tiling
 ===============
-*/
+***/
 static texture_t *R_TextureAnim (texture_t *b)
 	{
 	texture_t	*base = b;
@@ -439,50 +439,15 @@ static texture_t *R_TextureAnim (texture_t *b)
 	return base;
 	}
 
-// [FWGS, 01.02.24]
-/*
-===============
-R_TextureRandomTiling
+// [FWGS, 01.02.24] removed R_TextureRandomTiling
 
-Returns the proper texture for a given surface without animation
-===============
-//
-texture_t *R_TextureRandomTiling (msurface_t *s)
-	{
-	texture_t	*base = s->texinfo->texture;
-	int			count, reletive;
-
-	if (!base->anim_total)
-		return base;
-
-	if (base->name[0] == '-')
-		{
-		int tx = (int)((s->texturemins[0] + (base->width << 16)) / base->width) % MOD_FRAMES;
-		int ty = (int)((s->texturemins[1] + (base->height << 16)) / base->height) % MOD_FRAMES;
-
-		reletive = rtable[tx][ty] % base->anim_total;
-		}
-
-	count = 0;
-
-	while ((base->anim_min > reletive) || (base->anim_max <= reletive))
-		{
-		base = base->anim_next;
-
-		if (!base || (++count > MOD_FRAMES))
-			return s->texinfo->texture;
-		}
-
-	return base;
-	}*/
-
-/*
+/***
 ===============
 R_TextureAnimation
 
 Returns the proper texture for a given time and surface
 ===============
-*/
+***/
 texture_t *R_TextureAnimation (msurface_t *s)
 	{
 	texture_t	*base = s->texinfo->texture;
@@ -530,11 +495,11 @@ texture_t *R_TextureAnimation (msurface_t *s)
 	return base;
 	}
 
-/*
+/***
 ===============
 R_AddDynamicLights [FWGS, 01.02.24]
 ===============
-*/
+***/
 static void R_AddDynamicLights (msurface_t *surf)
 	{
 	float		dist, rad, minlight;
@@ -633,11 +598,11 @@ static void R_AddDynamicLights (msurface_t *surf)
 		}
 	}
 
-/*
+/***
 ================
 R_SetCacheState
 ================
-*/
+***/
 static void R_SetCacheState (msurface_t *surf)
 	{
 	int	maps;
@@ -648,11 +613,11 @@ static void R_SetCacheState (msurface_t *surf)
 		}
 	}
 
-/*
+/***
 =============================================================================
 LIGHTMAP ALLOCATION
 =============================================================================
-*/
+***/
 static void LM_InitBlock (void)
 	{
 	memset (gl_lms.allocated, 0, sizeof (gl_lms.allocated));
@@ -748,14 +713,14 @@ static void LM_UploadBlock (qboolean dynamic)
 		}
 	}
 
-/*
+/***
 =================
 R_BuildLightmap [FWGS, 01.03.24]
 
 Combine and scale multiple lightmaps into the floating
 format in r_blocklights
 =================
-*/
+***/
 static void R_BuildLightMap (msurface_t *surf, byte *dest, int stride, qboolean dynamic)
 	{
 	int		smax, tmax;
@@ -822,11 +787,11 @@ static void R_BuildLightMap (msurface_t *surf, byte *dest, int stride, qboolean 
 		}
 	}
 
-/*
+/***
 ================
 DrawGLPoly [FWGS, 01.01.24]
 ================
-*/
+***/
 void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 	{
 	float	*v;
@@ -904,13 +869,13 @@ void DrawGLPoly (glpoly_t *p, float xScale, float yScale)
 		GL_SetupFogColorForSurfaces ();
 	}
 
-/*
+/***
 ================
 DrawGLPolyChain
 
 Render lightmaps
 ================
-*/
+***/
 static void DrawGLPolyChain (glpoly_t *p, float soffset, float toffset)
 	{
 	qboolean dynamic = true;
@@ -964,11 +929,11 @@ static qboolean R_HasLightmap (void)
 	return true;
 	}
 
-/*
+/***
 ================
 R_BlendLightmaps [FWGS, 01.01.24]
 ================
-*/
+***/
 static void R_BlendLightmaps (void)
 	{
 	msurface_t	*surf;
@@ -1103,11 +1068,11 @@ static void R_BlendLightmaps (void)
 	GL_ResetFogColor ();
 	}
 
-/*
+/***
 ================
 R_RenderFullbrights
 ================
-*/
+***/
 static void R_RenderFullbrights (void)
 	{
 	mextrasurf_t	*es, *p;
@@ -1146,11 +1111,11 @@ static void R_RenderFullbrights (void)
 	R_AllowFog (true);
 	}
 
-/*
+/***
 ================
 R_RenderDetails [FWGS, 01.02.24]
 ================
-*/
+***/
 static void R_RenderDetails (int passes)
 	{
 	gl_texture_t	*glt;
@@ -1205,11 +1170,11 @@ static void R_RenderDetails (int passes)
 	GL_ResetFogColor ();
 	}
 
-/*
+/***
 ================
 R_RenderBrushPoly [FWGS, 01.02.24]
 ================
-*/
+***/
 static void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 	{
 	qboolean	is_dynamic = false;
@@ -1342,11 +1307,11 @@ dynamic:
 		}
 	}
 
-/*
+/***
 ================
 R_DrawTextureChains [FWGS, 01.02.24]
 ================
-*/
+***/
 static void R_DrawTextureChains (void)
 	{
 	int			i;
@@ -1409,11 +1374,11 @@ static void R_DrawTextureChains (void)
 		}
 	}
 
-/*
+/***
 ================
 R_DrawAlphaTextureChains [FWGS, 01.01.24]
 ================
-*/
+***/
 void R_DrawAlphaTextureChains (void)
 	{
 	int			i;
@@ -1464,11 +1429,11 @@ void R_DrawAlphaTextureChains (void)
 	pglAlphaFunc (GL_GREATER, DEFAULT_ALPHATEST);
 	}
 
-/*
+/***
 ================
 R_DrawWaterSurfaces [FWGS, 01.01.24]
 ================
-*/
+***/
 void R_DrawWaterSurfaces (void)
 	{
 	int		i;
@@ -1525,13 +1490,13 @@ void R_DrawWaterSurfaces (void)
 	pglColor4ub (255, 255, 255, 255);
 	}
 
-/*
+/***
 =================
 R_SurfaceCompare
 
 compare translucent surfaces
 =================
-*/
+***/
 static int R_SurfaceCompare (const void *a, const void *b)
 	{
 	msurface_t	*surf1, *surf2;
@@ -1615,11 +1580,11 @@ static void R_SetRenderMode (cl_entity_t *e)
 		}
 	}
 
-/*
+/***
 =================
 R_DrawBrushModel [FWGS, 01.01.24]
 =================
-*/
+***/
 void R_DrawBrushModel (cl_entity_t *e)
 	{
 	int			i, k, num_sorted;
@@ -1777,16 +1742,15 @@ void R_DrawBrushModel (cl_entity_t *e)
 	R_LoadIdentity ();	// restore worldmatrix
 	}
 
-/*
+/***
 ==============================
 VBO
-==============================
-*/
-/*
+
 Build arrays (vboarray_t) for all map geometry on map load.
 Store index base for every surface (vbosurfdata_t) to build index arrays
-For each texture build index arrays (vbotexture_t) every frame.
-*/
+For each texture build index arrays (vbotexture_t) every frame
+==============================
+***/
 // vertex attribs
 typedef struct vbovertex_s
 	{
@@ -1937,13 +1901,13 @@ static struct arraystate_s
 	qboolean decal_mode;
 	} vboarray;
 
-/*
+/***
 ===================
 R_GenerateVBO [FWGS, 01.01.24]
 
 Allocate memory for arrays, fill it with vertex attribs and upload to GPU
 ===================
-*/
+***/
 void R_GenerateVBO (void)
 	{
 	model_t		*world = WORLDMODEL;
@@ -2164,13 +2128,13 @@ void R_GenerateVBO (void)
 	mtst.tmu_gl = XASH_TEXTURE0;
 	}
 
-/*
+/***
 ==============
 R_AddDecalVBO
 
 generate decal mesh and put it to array
 ==============
-*/
+***/
 void R_AddDecalVBO (decal_t *pdecal, msurface_t *surf)
 	{
 	int		numVerts, i;
@@ -2200,13 +2164,13 @@ void R_AddDecalVBO (decal_t *pdecal, msurface_t *surf)
 	vbos.decaldata->decals[decalindex].numVerts = numVerts;
 	}
 
-/*
+/***
 =============
 R_ClearVBO
 
 free all vbo data
 =============
-*/
+***/
 void R_ClearVBO (void)
 	{
 	vboarray_t *vbo;
@@ -2231,13 +2195,13 @@ void R_ClearVBO (void)
 	}
 
 
-/*
+/***
 ===================
 R_DisableDetail [FWGS, 01.01.24]
 
 disable detail tmu
 ===================
-*/
+***/
 static void R_DisableDetail (void)
 	{
 	if (mtst.details_enabled && (mtst.tmu_dt != -1))
@@ -2250,13 +2214,13 @@ static void R_DisableDetail (void)
 		}
 	}
 
-/*
+/***
 ===================
 R_EnableDetail
 
 enable detail tmu if availiable
 ===================
-*/
+***/
 static void R_EnableDetail (void)
 	{
 	if (mtst.details_enabled && mtst.tmu_dt != -1)
@@ -2282,13 +2246,13 @@ static void R_EnableDetail (void)
 		}
 	}
 
-/*
+/***
 ==============
 R_SetLightmap [FWGS, 01.03.24]
 
 enable lightmap on current tmu
 ==============
-*/
+***/
 static void R_SetLightmap (void)
 	{
 	if (mtst.skiptexture)
@@ -2331,13 +2295,13 @@ static void R_SetLightmap (void)
 	pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)offsetof (vbovertex_t, lm_tc));
 	}
 
-/*
+/***
 ==============
 R_SetDecalMode [FWGS, 01.01.24]
 
 When drawing decal, disable or restore bump and details
 ==============
-*/
+***/
 static void R_SetDecalMode (qboolean enable)
 	{
 	if (vboarray.decal_mode == enable)
@@ -2357,14 +2321,14 @@ static void R_SetDecalMode (qboolean enable)
 
 	}
 
-/*
+/***
 ==============
 R_SetupVBOTexture // [FWGS, 01.01.24]
 
 setup multitexture mode before drawing VBOs
 if tex is NULL, load texture by number
 ==============
-*/
+***/
 static texture_t *R_SetupVBOTexture (texture_t *tex, int number)
 	{
 	if (mtst.skiptexture)
@@ -2507,14 +2471,6 @@ static void R_SetupVBOArrayDecalDlight (int decalcount)
 	vboarray.lstate = VBO_LIGHTMAP_DYNAMIC;
 	}
 
-/*
-===================
-R_AdditionalPasses [FWGS, 01.01.24]
-
-draw details when not enough tmus
-===================
-static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray, texture_t *tex, qboolean resetvbo)*/
-
 // [FWGS, 01.01.24]
 static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray, texture_t *tex,
 	qboolean resetvbo, size_t offset)
@@ -2570,14 +2526,6 @@ static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray,
 			R_SetupVBOArrayStatic (vbo, true, true);
 		}
 	}
-
-/*
-=====================
-R_DrawLightmappedVBO
-
-Draw array for given vbotexture_t. build and draw dynamic lightmaps if present
-=====================
-*/
 
 // [FWGS, 01.01.24]
 #define MINIMIZE_UPLOAD
@@ -2944,13 +2892,13 @@ static void R_DrawVBODlights (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *
 		}
 	}
 
-/*
+/***
 =====================
 R_DrawLightmappedVBO [FWGS, 01.01.24]
 
 Draw array for given vbotexture_t. build and draw dynamic lightmaps if present
 =====================
-*/
+***/
 static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *texture, int lightmap,
 	qboolean skiplighting)
 	{
@@ -3161,13 +3109,13 @@ static void R_ClearVBOState (qboolean drawlightmap, qboolean drawtextures)
 	mtst.lm = 0;
 	}
 
-/*
+/***
 =====================
 R_DrawVBO [FWGS, 01.01.24]
 
 Draw generated index arrays
 =====================
-*/
+***/
 void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 	{
 	int		numtextures = WORLDMODEL->numtextures;
@@ -3271,13 +3219,13 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 	vbos.maxtexture = 0;
 	}
 
-/*
+/***
 ================
 R_CheckLightMap [FWGS, 01.01.24]
 
 update surface's lightmap if needed and return true if it is dynamic
 ================
-*/
+***/
 static qboolean R_CheckLightMap (msurface_t *fa)
 	{
 	int			maps;
@@ -3442,16 +3390,16 @@ qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 	return false;
 	}
 
-/*
+/***
 =============================================================
 WORLD MODEL
 =============================================================
-*/
-/*
+***/
+/***
 ================
 R_RecursiveWorldNode
 ================
-*/
+***/
 static void R_RecursiveWorldNode (mnode_t *node, uint clipflags)
 	{
 	int			i, clipped;
@@ -3542,13 +3490,13 @@ loc0:
 	goto loc0;
 	}
 
-/*
+/***
 ================
 R_CullNodeTopView
 
 cull node by user rectangle (simple scissor)
 ================
-*/
+***/
 static qboolean R_CullNodeTopView (mnode_t *node)
 	{
 	vec2_t	delta, size;
@@ -3565,11 +3513,11 @@ static qboolean R_CullNodeTopView (mnode_t *node)
 	return (fabs (delta[0]) > size[0]) || (fabs (delta[1]) > size[1]);
 	}
 
-/*
+/***
 ================
 R_DrawTopViewLeaf
 ================
-*/
+***/
 static void R_DrawTopViewLeaf (mleaf_t *pleaf, uint clipflags)
 	{
 	msurface_t	**mark, *surf;
@@ -3602,11 +3550,11 @@ static void R_DrawTopViewLeaf (mleaf_t *pleaf, uint clipflags)
 	r_stats.c_world_leafs++;
 	}
 
-/*
+/***
 ================
 R_DrawWorldTopView
 ================
-*/
+***/
 static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 	{
 	int			i, c, clipped;
@@ -3674,11 +3622,11 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 		} while (node);
 	}
 
-/*
+/***
 =============
 R_DrawTriangleOutlines
 =============
-*/
+***/
 static void R_DrawTriangleOutlines (void)
 	{
 	int			i, j;
@@ -3731,11 +3679,11 @@ static void R_DrawTriangleOutlines (void)
 	pglEnable (GL_TEXTURE_2D);
 	}
 
-/*
+/***
 =============
 R_DrawWorld [FWGS, 01.01.24]
 =============
-*/
+***/
 void R_DrawWorld (void)
 	{
 	double start, end;
@@ -3797,13 +3745,13 @@ void R_DrawWorld (void)
 	R_DrawWorldHull ();
 	}
 
-/*
+/***
 ===============
 R_MarkLeaves
 
 Mark the leaves and nodes that are in the PVS for the current leaf
 ===============
-*/
+***/
 void R_MarkLeaves (void)
 	{
 	qboolean	novis = false;
@@ -3877,11 +3825,11 @@ void R_MarkLeaves (void)
 		}
 	}
 
-/*
+/***
 ========================
 GL_CreateSurfaceLightmap
 ========================
-*/
+***/
 static void GL_CreateSurfaceLightmap (msurface_t *surf, model_t *loadmodel)
 	{
 	int		smax, tmax;
@@ -3917,14 +3865,14 @@ static void GL_CreateSurfaceLightmap (msurface_t *surf, model_t *loadmodel)
 	R_BuildLightMap (surf, base, BLOCK_SIZE * 4, false);
 	}
 
-/*
+/***
 ==================
 GL_RebuildLightmaps [FWGS, 01.01.24]
 
 Rebuilds the lightmap texture
 when gamma is changed
 ==================
-*/
+***/
 void GL_RebuildLightmaps (void)
 	{
 	int		i, j;
@@ -3969,14 +3917,14 @@ void GL_RebuildLightmaps (void)
 		}
 	}
 
-/*
+/***
 ==================
 GL_BuildLightmaps [FWGS, 01.01.24]
 
 Builds the lightmap texture
 with all the surfaces from all brush models
 ==================
-*/
+***/
 void GL_BuildLightmaps (void)
 	{
 	int		i, j;

@@ -1,4 +1,4 @@
-/*
+/***
 gl_draw.c - orthogonal drawing stuff
 Copyright (C) 2010 Uncle Mike
 
@@ -11,15 +11,15 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 
-/*
+/***
 =============
 R_GetImageParms
 =============
-*/
+***/
 void R_GetTextureParms (int *w, int *h, int texnum)
 	{
 	gl_texture_t *glt;
@@ -29,14 +29,13 @@ void R_GetTextureParms (int *w, int *h, int texnum)
 	if (h) *h = glt->srcHeight;
 	}
 
-/*
+/***
 =============
 R_GetSpriteParms
 
-same as GetImageParms but used
-for sprite models
+same as GetImageParms but used for sprite models
 =============
-*/
+***/
 void R_GetSpriteParms (int *frameWidth, int *frameHeight, int *numFrames, int currentFrame, const model_t *pSprite)
 	{
 	mspriteframe_t *pFrame;
@@ -57,11 +56,11 @@ int R_GetSpriteTexture (const model_t *m_pSpriteModel, int frame)
 	return R_GetSpriteFrame (m_pSpriteModel, frame, 0.0f)->gl_texturenum;
 	}
 
-/*
+/***
 =============
 R_DrawStretchPic
 =============
-*/
+***/
 void R_DrawStretchPic (float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum)
 	{
 	GL_Bind (XASH_TEXTURE0, texnum);
@@ -81,14 +80,14 @@ void R_DrawStretchPic (float x, float y, float w, float h, float s1, float t1, f
 	pglEnd ();
 	}
 
-/*
+/***
 =============
 Draw_TileClear
 
 This repeats a 64*64 tile graphic to fill the screen around a sized down
 refresh window.
 =============
-*/
+***/
 void R_DrawTileClear (int texnum, int x, int y, int w, int h)
 	{
 	float		tw, th;
@@ -114,11 +113,11 @@ void R_DrawTileClear (int texnum, int x, int y, int w, int h)
 	pglEnd ();
 	}
 
-/*
+/***
 =============
 R_DrawStretchRaw
 =============
-*/
+***/
 void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, const byte *data, qboolean dirty)
 	{
 	byte *raw = NULL;
@@ -186,11 +185,11 @@ void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, c
 	pglEnd ();
 	}
 
-/*
+/***
 =============
 R_UploadStretchRaw
 =============
-*/
+***/
 void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height, const byte *data)
 	{
 	byte *raw = NULL;
@@ -233,11 +232,11 @@ void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height,
 	GL_ApplyTextureParams (tex);
 	}
 
-/*
+/***
 ===============
 R_Set2DMode
 ===============
-*/
+***/
 void R_Set2DMode (qboolean enable)
 	{
 	if (enable)

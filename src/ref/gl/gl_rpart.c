@@ -1,4 +1,4 @@
-/*
+/***
 cl_part.c - particles and tracers
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "r_efx.h"
@@ -38,13 +38,13 @@ static color24 gTracerColors[] =
 	{ 255, 120, 70 },	// Darker red streaks (garg)
 	};
 
-/*
+/***
 ================
 CL_DrawParticles [FWGS, 01.01.24]
 
 update particle color, position, free expired and draw it
 ================
-*/
+***/
 void CL_DrawParticles (double frametime, particle_t *cl_active_particles, float partsize)
 	{
 	particle_t	*p;
@@ -111,13 +111,13 @@ void CL_DrawParticles (double frametime, particle_t *cl_active_particles, float 
 	pglDepthMask (GL_TRUE);
 	}
 
-/*
+/***
 ================
 CL_CullTracer
 
 check tracer bbox
 ================
-*/
+***/
 static qboolean CL_CullTracer (particle_t *p, const vec3_t start, const vec3_t end)
 	{
 	vec3_t	mins, maxs;
@@ -148,13 +148,13 @@ static qboolean CL_CullTracer (particle_t *p, const vec3_t start, const vec3_t e
 	return R_CullBox (mins, maxs);
 	}
 
-/*
+/***
 ================
 CL_DrawTracers [FWGS, 01.01.24]
 
 update tracer color, position, free expired and draw it
 ================
-*/
+***/
 void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 	{
 	float		scale, atten, gravity;
@@ -274,13 +274,13 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 	pglDepthMask (GL_TRUE);
 	}
 
-/*
+/***
 ===============
 CL_DrawParticlesExternal
 
 allow to draw effects from custom renderer
 ===============
-*/
+***/
 void CL_DrawParticlesExternal (const ref_viewpass_t *rvp, qboolean trans_pass, float frametime)
 	{
 	ref_instance_t	oldRI = RI;

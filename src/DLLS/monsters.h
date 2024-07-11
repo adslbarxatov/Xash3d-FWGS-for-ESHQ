@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -16,7 +16,7 @@
 #include "skill.h"
 #define MONSTERS_H
 
-/*
+/***
 ===== monsters.h ========================================================
   Header file for monster-related utility code
 */
@@ -120,18 +120,18 @@ enum
 	AITRIGGER_SEEPLAYER_UNCONDITIONAL,
 	AITRIGGER_SEEPLAYER_NOT_IN_COMBAT,
 	};
-/*
-		0 : "No Trigger"
-		1 : "See Player"
-		2 : "Take Damage"
-		3 : "50% Health Remaining"
-		4 : "Death"
-		5 : "Squad Member Dead"
-		6 : "Squad Leader Dead"
-		7 : "Hear World"
-		8 : "Hear Player"
-		9 : "Hear Combat"
-*/
+/***
+	0 : "No Trigger"
+	1 : "See Player"
+	2 : "Take Damage"
+	3 : "50% Health Remaining"
+	4 : "Death"
+	5 : "Squad Member Dead"
+	6 : "Squad Leader Dead"
+	7 : "Hear World"
+	8 : "Hear Player"
+	9 : "Hear Combat"
+***/
 
 // A gib is a chunk of a body, or a piece of wood/metal/rocks/etc.
 class CGib: public CBaseEntity

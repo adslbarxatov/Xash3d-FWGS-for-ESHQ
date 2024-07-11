@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -33,13 +33,13 @@ extern "C"
 	void DLLEXPORT Demo_ReadBuffer (int size, unsigned char* buffer);
 	}
 
-/*
+/***
 =====================
 Demo_WriteBuffer
 
 Write some data to the demo stream
 =====================
-*/
+***/
 void Demo_WriteBuffer (int type, int size, unsigned char* buffer)
 	{
 	int pos = 0;
@@ -53,13 +53,13 @@ void Demo_WriteBuffer (int type, int size, unsigned char* buffer)
 	gEngfuncs.pDemoAPI->WriteBuffer (size + sizeof (int), buf);
 	}
 
-/*
+/***
 =====================
 Demo_ReadBuffer
 
 Engine wants us to parse some data from the demo stream
 =====================
-*/
+***/
 void DLLEXPORT Demo_ReadBuffer (int size, unsigned char* buffer)
 	{
 	int type;

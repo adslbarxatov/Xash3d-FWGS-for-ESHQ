@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -53,11 +52,11 @@ typedef struct
 
 static uiVidOptions_t	uiVidOptions;
 
-/*
+/***
 =================
 UI_VidOptions_GetConfig
 =================
-*/
+***/
 static void UI_VidOptions_GetConfig (void)
 	{
 	uiVidOptions.screenSize.curValue = RemapVal (CVAR_GET_FLOAT ("viewsize"), 30.0f, 120.0f, 0.0f, 1.0f);
@@ -69,11 +68,11 @@ static void UI_VidOptions_GetConfig (void)
 	UI_ScaleCoords (NULL, NULL, &uiVidOptions.outlineWidth, NULL);
 	}
 
-/*
+/***
 =================
 UI_VidOptions_UpdateConfig
 =================
-*/
+***/
 static void UI_VidOptions_UpdateConfig (void)
 	{
 	CVAR_SET_FLOAT ("viewsize", RemapVal (uiVidOptions.screenSize.curValue, 0.0f, 1.0f, 30.0f, 120.0f));
@@ -89,11 +88,11 @@ static void UI_VidOptions_SetConfig (void)
 	CVAR_SET_FLOAT ("gamma", RemapVal (uiVidOptions.gammaIntensity.curValue, 0.0f, 1.0f, 1.8f, 3.0f));
 	}
 
-/*
+/***
 =================
 UI_VidOptions_Ownerdraw
 =================
-*/
+***/
 static void UI_VidOptions_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -130,11 +129,11 @@ static void UI_VidOptions_Ownerdraw (void *self)
 	UI_DrawRectangleExt (item->x, item->y, item->width, item->height, color, uiVidOptions.outlineWidth);
 	}
 
-/*
+/***
 =================
 UI_VidOptions_Callback
 =================
-*/
+***/
 static void UI_VidOptions_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -157,11 +156,11 @@ static void UI_VidOptions_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_VidOptions_Init
 =================
-*/
+***/
 static void UI_VidOptions_Init (void)
 	{
 	memset (&uiVidOptions, 0, sizeof (uiVidOptions_t));
@@ -274,22 +273,22 @@ static void UI_VidOptions_Init (void)
 	UI_AddItem (&uiVidOptions.menu, (void *)&uiVidOptions.testImage);
 	}
 
-/*
+/***
 =================
 UI_VidOptions_Precache
 =================
-*/
+***/
 void UI_VidOptions_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_VidOptions_Menu
 =================
-*/
+***/
 void UI_VidOptions_Menu (void)
 	{
 	UI_VidOptions_Precache ();

@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,10 +12,10 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 ===== mortar.cpp ========================================================
   the "LaBuznik" mortar device
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"

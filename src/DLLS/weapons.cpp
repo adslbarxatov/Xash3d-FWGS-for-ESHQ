@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== weapons.cpp ========================================================
 
   functions governing the selection/use of weapons for players
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -74,12 +74,12 @@ int MaxAmmoCarry (int iszName)
 	return -1;
 	}
 
-/*
+/***
 ==============================================================================
 MULTI-DAMAGE
 Collects multiple small damages into a single damage
 ==============================================================================
-*/
+***/
 
 // ClearMultiDamage - resets the global multi damage accumulator
 void ClearMultiDamage (void)
@@ -124,11 +124,11 @@ void AddMultiDamage (entvars_t* pevInflictor, CBaseEntity* pEntity, float flDama
 	gMultiDamage.amount += flDamage;
 	}
 
-/*
+/***
 ================
 SpawnBlood
 ================
-*/
+***/
 void SpawnBlood (Vector vecSpot, int bloodColor, float flDamage)
 	{
 	UTIL_BloodDrips (vecSpot, g_vecAttackDir, bloodColor, (int)flDamage);

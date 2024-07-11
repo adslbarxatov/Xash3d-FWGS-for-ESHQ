@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -79,11 +78,11 @@ typedef struct
 
 static uiMain_t		uiMain;
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void* self)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -91,11 +90,11 @@ static void UI_MsgBox_Ownerdraw (void* self)
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
 
-/*
+/***
 =================
 UI_Background_Ownerdraw
 =================
-*/
+***/
 static void UI_Background_Ownerdraw (void* self)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -169,11 +168,11 @@ static void UI_PromptDialog (void)
 	uiMain.yes.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_Main_KeyFunc
 =================
-*/
+***/
 static const char* UI_Main_KeyFunc (int key, int down)
 	{
 	if (down && key == K_ESCAPE)
@@ -198,11 +197,11 @@ static const char* UI_Main_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiMain.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_Main_ActivateFunc
 =================
-*/
+***/
 static void UI_Main_ActivateFunc (void)
 	{
 	// ESHQ: отменено изменение положения кнопки консоли
@@ -210,11 +209,11 @@ static void UI_Main_ActivateFunc (void)
 		uiMain.resumeGame.generic.flags |= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_Main_HazardCourse
 =================
-*/
+***/
 static void UI_Main_HazardCourse (void)
 	{
 	if (CVAR_GET_FLOAT ("host_serverstate") && CVAR_GET_FLOAT ("maxplayers") > 1)
@@ -231,12 +230,12 @@ static void UI_Main_HazardCourse (void)
 	CLIENT_COMMAND (FALSE, "hazardcourse\n");
 	}
 
-/*
+/***
 =================
 UI_Main_Credits
 ESHQ: изменено для поддержки титров
 =================
-*/
+***/
 static void UI_Main_Credits (void)
 	{
 	if (CVAR_GET_FLOAT ("host_serverstate") && CVAR_GET_FLOAT ("maxplayers") > 1)
@@ -253,11 +252,11 @@ static void UI_Main_Credits (void)
 	CLIENT_COMMAND (FALSE, "credits\n");
 	}
 
-/*
+/***
 =================
 UI_Main_Callback
 =================
-*/
+***/
 static void UI_Main_Callback (void* self, int event)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -353,11 +352,11 @@ static void UI_Main_Callback (void* self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_Main_Init
 =================
-*/
+***/
 static void UI_Main_Init (void)
 	{
 	bool bTrainMap;
@@ -626,11 +625,11 @@ static void UI_Main_Init (void)
 	UI_AddItem (&uiMain.menu, (void*)&uiMain.yes);
 	}
 
-/*
+/***
 =================
 UI_Main_Precache
 =================
-*/
+***/
 void UI_Main_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
@@ -645,11 +644,11 @@ void UI_Main_Precache (void)
 	PRECACHE_LOGO ("logo.avi");
 	}
 
-/*
+/***
 =================
 UI_Main_Menu
 =================
-*/
+***/
 void UI_Main_Menu (void)
 	{
 	UI_Main_Precache ();

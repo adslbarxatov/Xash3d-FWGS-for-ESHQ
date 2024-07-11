@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,10 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
-
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 // ui_qmenu.c -- Quake menu framework
 
@@ -131,11 +129,11 @@ char* StringCopy (const char* input)
 	return out;
 	}
 
-/*
+/***
 ============
 COM_CompareSaves
 ============
-*/
+***/
 int COM_CompareSaves (const void** a, const void** b)
 	{
 	char* file1, * file2;
@@ -150,12 +148,13 @@ int COM_CompareSaves (const void** a, const void** b)
 	return bResult;
 	}
 
-/*
+/***
 ============
 COM_FileBase
+
+Extracts the base name of a file (no path, no extension, assumes '/' as path separator)
 ============
-*/
-// Extracts the base name of a file (no path, no extension, assumes '/' as path separator)
+***/
 void COM_FileBase (const char* in, char* out)
 	{
 	int len, start, end;
@@ -192,14 +191,14 @@ void COM_FileBase (const char* in, char* out)
 	out[len] = 0;
 	}
 
-/*
+/***
 ===============
 Info_ValueForKey
 
 Searches the string for the given
 key and returns the associated value, or an empty string.
 ===============
-*/
+***/
 char* Info_ValueForKey (const char* s, const char* key)
 	{
 	static	char value[MAX_INFO_STRING];
@@ -241,11 +240,11 @@ char* Info_ValueForKey (const char* s, const char* key)
 		}
 	}
 
-/*
+/***
 ===================
 Key_GetKey
 ===================
-*/
+***/
 int KEY_GetKey (const char* binding)
 	{
 	const char* b;
@@ -264,11 +263,11 @@ int KEY_GetKey (const char* binding)
 	return -1;
 	}
 
-/*
+/***
 ================
 UI_FadeAlpha
 ================
-*/
+***/
 int UI_FadeAlpha (int starttime, int endtime)
 	{
 	int	time, fade_time;
@@ -315,11 +314,11 @@ void UI_UtilSetupPicButton (menuPicButton_s* pic, int ID)
 		pic->generic.flags |= QMF_ACT_ONRELEASE;
 	}
 
-/*
+/***
 =================
 UI_ScrollList_Init
 =================
-*/
+***/
 void UI_ScrollList_Init (menuScrollList_s* sl)
 	{
 	if (!sl->generic.name) sl->generic.name = "";
@@ -380,11 +379,11 @@ void UI_ScrollList_Init (menuScrollList_s* sl)
 	UI_ScaleCoords (&sl->generic.x, &sl->generic.y, &sl->generic.width, &sl->generic.height);
 	}
 
-/*
+/***
 =================
 UI_ScrollList_Key
 =================
-*/
+***/
 const char* UI_ScrollList_Key (menuScrollList_s* sl, int key, int down)
 	{
 	const char* sound = 0;
@@ -558,11 +557,11 @@ const char* UI_ScrollList_Key (menuScrollList_s* sl, int key, int down)
 	return sound;
 	}
 
-/*
+/***
 =================
 UI_ScrollList_Draw
 =================
-*/
+***/
 void UI_ScrollList_Draw (menuScrollList_s* sl)
 	{
 	int	justify;
@@ -826,11 +825,11 @@ void UI_ScrollList_Draw (menuScrollList_s* sl)
 	PIC_DisableScissor ();
 	}
 
-/*
+/***
 =================
 UI_SpinControl_Init
 =================
-*/
+***/
 void UI_SpinControl_Init (menuSpinControl_s* sc)
 	{
 	if (!sc->generic.name) sc->generic.name = "";	// this is also the text displayed
@@ -879,11 +878,11 @@ void UI_SpinControl_Init (menuSpinControl_s* sc)
 	UI_ScaleCoords (&sc->generic.x, &sc->generic.y, &sc->generic.width, &sc->generic.height);
 	}
 
-/*
+/***
 =================
 UI_SpinControl_Key
 =================
-*/
+***/
 const char* UI_SpinControl_Key (menuSpinControl_s* sc, int key, int down)
 	{
 	const char* sound = 0;
@@ -983,11 +982,11 @@ const char* UI_SpinControl_Key (menuSpinControl_s* sc, int key, int down)
 	return sound;
 	}
 
-/*
+/***
 =================
 UI_SpinControl_Draw
 =================
-*/
+***/
 void UI_SpinControl_Draw (menuSpinControl_s* sc)
 	{
 	int	justify;
@@ -1095,11 +1094,11 @@ void UI_SpinControl_Draw (menuSpinControl_s* sc)
 		}
 	}
 
-/*
+/***
 =================
 UI_Slider_Init
 =================
-*/
+***/
 void UI_Slider_Init (menuSlider_s* sl)
 	{
 	if (!sl->generic.name) sl->generic.name = "";	// this is also the text displayed
@@ -1149,11 +1148,11 @@ void UI_Slider_Init (menuSlider_s* sl)
 	sl->numSteps = ((sl->maxValue - sl->minValue) / sl->range) + 1;
 	}
 
-/*
+/***
 =================
 UI_Slider_Key
 =================
-*/
+***/
 const char* UI_Slider_Key (menuSlider_s* sl, int key, int down)
 	{
 	int	sliderX;
@@ -1200,11 +1199,11 @@ const char* UI_Slider_Key (menuSlider_s* sl, int key, int down)
 	return uiSoundNull;
 	}
 
-/*
+/***
 =================
 UI_Slider_Draw
 =================
-*/
+***/
 void UI_Slider_Draw (menuSlider_s* sl)
 	{
 	int	justify;
@@ -1248,11 +1247,11 @@ void UI_Slider_Draw (menuSlider_s* sl)
 		sl->generic.name, uiColorHelp, true, sl->generic.charWidth, sl->generic.charHeight, justify, shadow);
 	}
 
-/*
+/***
 =================
 UI_CheckBox_Init
 =================
-*/
+***/
 void UI_CheckBox_Init (menuCheckBox_s* cb)
 	{
 	if (!cb->generic.name) cb->generic.name = "";
@@ -1291,11 +1290,11 @@ void UI_CheckBox_Init (menuCheckBox_s* cb)
 	UI_ScaleCoords (&cb->generic.x, &cb->generic.y, &cb->generic.width, &cb->generic.height);
 	}
 
-/*
+/***
 =================
 UI_CheckBox_Key
 =================
-*/
+***/
 const char* UI_CheckBox_Key (menuCheckBox_s* cb, int key, int down)
 	{
 	const char* sound = 0;
@@ -1348,11 +1347,11 @@ const char* UI_CheckBox_Key (menuCheckBox_s* cb, int key, int down)
 	return sound;
 	}
 
-/*
+/***
 =================
 UI_CheckBox_Draw
 =================
-*/
+***/
 void UI_CheckBox_Draw (menuCheckBox_s* cb)
 	{
 	int	justify;
@@ -1440,11 +1439,11 @@ void UI_CheckBox_Draw (menuCheckBox_s* cb)
 		}
 	}
 
-/*
+/***
 =================
 UI_Field_Init
 =================
-*/
+***/
 void UI_Field_Init (menuField_s* f)
 	{
 	if (!f->generic.name) f->generic.name = "";
@@ -1485,11 +1484,11 @@ void UI_Field_Init (menuField_s* f)
 	f->cursor = strlen (f->buffer);
 	}
 
-/*
+/***
 ================
 UI_Field_Paste
 ================
-*/
+***/
 void UI_Field_Paste (void)
 	{
 	char* str;
@@ -1505,11 +1504,11 @@ void UI_Field_Paste (void)
 	FREE (str);
 	}
 
-/*
+/***
 ================
 UI_Field_Clear
 ================
-*/
+***/
 void UI_Field_Clear (menuField_s* f)
 	{
 	memset (f->buffer, 0, UI_MAX_FIELD_LINE);
@@ -1517,11 +1516,11 @@ void UI_Field_Clear (menuField_s* f)
 	f->scroll = 0;
 	}
 
-/*
+/***
 =================
 UI_Field_Key
 =================
-*/
+***/
 const char* UI_Field_Key (menuField_s* f, int key, int down)
 	{
 	int	len;
@@ -1595,11 +1594,11 @@ const char* UI_Field_Key (menuField_s* f, int key, int down)
 	return 0;
 	}
 
-/*
+/***
 =================
 UI_Field_Char
 =================
-*/
+***/
 void UI_Field_Char (menuField_s* f, int key)
 	{
 	int	len;
@@ -1678,11 +1677,11 @@ void UI_Field_Char (menuField_s* f, int key)
 		f->generic.callback (f, QM_CHANGED);
 	}
 
-/*
+/***
 =================
 UI_Field_Draw
 =================
-*/
+***/
 void UI_Field_Draw (menuField_s* f)
 	{
 	int	justify;
@@ -1826,11 +1825,11 @@ void UI_Field_Draw (menuField_s* f)
 		}
 	}
 
-/*
+/***
 =================
 UI_Action_Init
 =================
-*/
+***/
 void UI_Action_Init (menuAction_s* a)
 	{
 	if (!a->generic.name) a->generic.name = ""; // this is also the text displayed
@@ -1879,11 +1878,11 @@ void UI_Action_Init (menuAction_s* a)
 	UI_ScaleCoords (&a->generic.x, &a->generic.y, &a->generic.width, &a->generic.height);
 	}
 
-/*
+/***
 =================
 UI_Action_Key
 =================
-*/
+***/
 const char* UI_Action_Key (menuAction_s* a, int key, int down)
 	{
 	const char* sound = 0;
@@ -1934,11 +1933,11 @@ const char* UI_Action_Key (menuAction_s* a, int key, int down)
 	return sound;
 	}
 
-/*
+/***
 =================
 UI_Action_Draw
 =================
-*/
+***/
 void UI_Action_Draw (menuAction_s* a)
 	{
 	int	justify;
@@ -2016,11 +2015,11 @@ void UI_Action_Draw (menuAction_s* a)
 			a->generic.color, false, a->generic.charWidth, a->generic.charHeight, justify, shadow);
 	}
 
-/*
+/***
 =================
 UI_Bitmap_Init
 =================
-*/
+***/
 void UI_Bitmap_Init (menuBitmap_s* b)
 	{
 	if (!b->generic.name) b->generic.name = "";
@@ -2030,11 +2029,11 @@ void UI_Bitmap_Init (menuBitmap_s* b)
 	UI_ScaleCoords (&b->generic.x, &b->generic.y, &b->generic.width, &b->generic.height);
 	}
 
-/*
+/***
 =================
 UI_Bitmap_Key
 =================
-*/
+***/
 const char* UI_Bitmap_Key (menuBitmap_s* b, int key, int down)
 	{
 	const char* sound = 0;
@@ -2081,11 +2080,11 @@ const char* UI_Bitmap_Key (menuBitmap_s* b, int key, int down)
 	return sound;
 	}
 
-/*
+/***
 =================
 UI_Bitmap_Draw
 =================
-*/
+***/
 void UI_Bitmap_Draw (menuBitmap_s* b)
 	{
 	if (b->generic.id == ID_BACKGROUND)	// background is always 0!
@@ -2149,11 +2148,11 @@ void UI_Bitmap_Draw (menuBitmap_s* b)
 		UI_DrawPic (b->generic.x, b->generic.y, b->generic.width, b->generic.height, b->generic.color, b->pic);
 	}
 
-/*
+/***
 =================
 UI_PicButton_Init
 =================
-*/
+***/
 void UI_PicButton_Init (menuPicButton_s* pb)
 	{
 	if (!pb->generic.name) pb->generic.name = "";
@@ -2193,11 +2192,11 @@ void UI_PicButton_Init (menuPicButton_s* pb)
 	UI_ScaleCoords (NULL, NULL, &pb->generic.charWidth, &pb->generic.charHeight);
 	}
 
-/*
+/***
 =================
 UI_PicButton_Key
 =================
-*/
+***/
 const char* UI_PicButton_Key (menuPicButton_s* b, int key, int down)
 	{
 	const char* sound = 0;
@@ -2246,11 +2245,11 @@ const char* UI_PicButton_Key (menuPicButton_s* b, int key, int down)
 	return sound;
 	}
 
-/*
+/***
 =================
 UI_PicButton_Draw
 =================
-*/
+***/
 void UI_PicButton_Draw (menuPicButton_s* item)
 	{
 	int state = BUTTON_NOFOCUS;

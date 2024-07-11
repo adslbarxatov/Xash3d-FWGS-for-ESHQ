@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,9 +12,9 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
   h_ai.cpp - halflife specific ai code
-*/
+***/
 
 #include	"extdll.h"
 #include	"util.h"

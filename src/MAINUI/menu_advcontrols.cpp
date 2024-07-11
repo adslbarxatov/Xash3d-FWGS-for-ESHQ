@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -15,8 +15,7 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -61,11 +60,11 @@ typedef struct
 
 static uiAdvControls_t	uiAdvControls;
 
-/*
+/***
 =================
 UI_AdvControls_UpdateConfig
 =================
-*/
+***/
 static void UI_AdvControls_UpdateConfig (void)
 	{
 	if (uiAdvControls.invertMouse.enabled && CVAR_GET_FLOAT ("m_pitch") > 0)
@@ -106,11 +105,11 @@ static void UI_AdvControls_UpdateConfig (void)
 		}
 	}
 
-/*
+/***
 =================
 UI_AdvControls_GetConfig
 =================
-*/
+***/
 static void UI_AdvControls_GetConfig (void)
 	{
 	kbutton_t *mlook;
@@ -154,11 +153,11 @@ static void UI_AdvControls_GetConfig (void)
 		}
 	}
 
-/*
+/***
 =================
 UI_AdvControls_Callback
 =================
-*/
+***/
 static void UI_AdvControls_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -196,11 +195,11 @@ static void UI_AdvControls_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_AdvControls_Init
 =================
-*/
+***/
 static void UI_AdvControls_Init (void)
 	{
 	memset (&uiAdvControls, 0, sizeof (uiAdvControls_t));
@@ -371,22 +370,22 @@ static void UI_AdvControls_Init (void)
 	UI_AddItem (&uiAdvControls.menu, (void *)&uiAdvControls.sensitivity);
 	}
 
-/*
+/***
 =================
 UI_AdvControls_Precache
 =================
-*/
+***/
 void UI_AdvControls_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_AdvControls_Menu
 =================
-*/
+***/
 void UI_AdvControls_Menu (void)
 	{
 	UI_AdvControls_Precache ();

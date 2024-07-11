@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -79,11 +78,11 @@ typedef struct
 
 static uiCreateGame_t	uiCreateGame;
 
-/*
+/***
 =================
 UI_CreateGame_Begin
 =================
-*/
+***/
 static void UI_CreateGame_Begin (void)
 	{
 	char *pMapName = uiCreateGame.mapName[uiCreateGame.mapsList.curItem];
@@ -149,11 +148,11 @@ static void UI_PromptDialog (void)
 	uiCreateGame.yes.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_CreateGame_KeyFunc
 =================
-*/
+***/
 static const char *UI_CreateGame_KeyFunc (int key, int down)
 	{
 	if (down && key == K_ESCAPE && !(uiCreateGame.dlgMessage1.generic.flags & QMF_HIDDEN))
@@ -164,11 +163,11 @@ static const char *UI_CreateGame_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiCreateGame.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -176,11 +175,11 @@ static void UI_MsgBox_Ownerdraw (void *self)
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
 
-/*
+/***
 =================
 UI_CreateGame_GetMapsList
 =================
-*/
+***/
 static void UI_CreateGame_GetMapsList (void)
 	{
 	char *afile;
@@ -217,11 +216,11 @@ static void UI_CreateGame_GetMapsList (void)
 	FREE_FILE (afile);
 	}
 
-/*
+/***
 =================
 UI_CreateGame_Callback
 =================
-*/
+***/
 static void UI_CreateGame_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -259,11 +258,11 @@ static void UI_CreateGame_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_CreateGame_Init
 =================
-*/
+***/
 static void UI_CreateGame_Init (void)
 	{
 	memset (&uiCreateGame, 0, sizeof (uiCreateGame_t));
@@ -494,22 +493,22 @@ static void UI_CreateGame_Init (void)
 	UI_AddItem (&uiCreateGame.menu, (void *)&uiCreateGame.yes);
 	}
 
-/*
+/***
 =================
 UI_CreateGame_Precache
 =================
-*/
+***/
 void UI_CreateGame_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_CreateGame_Menu
 =================
-*/
+***/
 void UI_CreateGame_Menu (void)
 	{
 	if (gMenu.m_gameinfo.gamemode == GAME_SINGLEPLAYER_ONLY)

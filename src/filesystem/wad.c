@@ -1,4 +1,4 @@
-/*
+/***
 wad.c - WAD support for filesystem
 Copyright (C) 2003-2006 Mathieu Olivier
 Copyright (C) 2000-2007 DarkPlaces contributors
@@ -14,7 +14,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -30,7 +30,7 @@ GNU General Public License for more details.
 #include "common/com_strings.h"
 #include "wadfile.h"
 
-/*
+/***
 ========================================================================
 .WAD archive format	(WhereAllData - WAD)
 
@@ -45,7 +45,7 @@ file_3:	byte[dwadinfo_t[num]->disksize]
 file_n:	byte[dwadinfo_t[num]->disksize]
 infotable	dlumpinfo_t[dwadinfo_t->numlumps]
 ========================================================================
-*/
+***/
 #define WAD3_NAMELEN	16
 #define HINT_NAMELEN	5	// e.g. _mask, _norm
 #define MAX_FILES_IN_WAD	65535	// real limit as above <2Gb size not a lumpcount
@@ -108,13 +108,13 @@ static const wadtype_t wad_types[7] =
 	{ NULL,  TYP_NONE		}
 	};
 
-/*
+/***
 ===========
 W_TypeFromExt
 
 Extracts file type from extension
 ===========
-*/
+***/
 static signed char W_TypeFromExt (const char *lumpname)
 	{
 	const char *ext = COM_FileExtension (lumpname);
@@ -132,13 +132,13 @@ static signed char W_TypeFromExt (const char *lumpname)
 	return TYP_NONE;
 	}
 
-/*
+/***
 ===========
 W_ExtFromType
 
 Convert type to extension
 ===========
-*/
+***/
 static const char *W_ExtFromType (signed char lumptype)
 	{
 	const wadtype_t *type;
@@ -155,13 +155,13 @@ static const char *W_ExtFromType (signed char lumptype)
 	return "";
 	}
 
-/*
+/***
 ===========
 W_FindLump
 
 Serach for already existed lump
 ===========
-*/
+***/
 static dlumpinfo_t *W_FindLump (wfile_t *wad, const char *name, const signed char matchtype)
 	{
 	int	left, right;
@@ -200,14 +200,14 @@ static dlumpinfo_t *W_FindLump (wfile_t *wad, const char *name, const signed cha
 	return NULL;
 	}
 
-/*
+/***
 ====================
 W_AddFileToWad
 
 Add a file to the list of files contained into a package
 and sort LAT in alpha-bethical order
 ====================
-*/
+***/
 static dlumpinfo_t *W_AddFileToWad (const char *wadfile, const char *name, wfile_t *wad, dlumpinfo_t *newlump)
 	{
 	int		left, right;
@@ -250,13 +250,13 @@ static dlumpinfo_t *W_AddFileToWad (const char *wadfile, const char *name, wfile
 	return plump;
 	}
 
-/*
+/***
 ===========
 FS_CloseWAD
 
 finalize wad or just close
 ===========
-*/
+***/
 static void FS_CloseWAD (wfile_t *wad)
 	{
 	Mem_FreePool (&wad->mempool);
@@ -265,33 +265,33 @@ static void FS_CloseWAD (wfile_t *wad)
 	Mem_Free (wad); // free himself
 	}
 
-/*
+/***
 ===========
 FS_Close_WAD
 ===========
-*/
+***/
 static void FS_Close_WAD (searchpath_t *search)
 	{
 	FS_CloseWAD (search->wad);
 	}
 
-/*
+/***
 ===========
 FS_OpenFile_WAD
 ===========
-*/
+***/
 static file_t *FS_OpenFile_WAD (searchpath_t *search, const char *filename, const char *mode, int pack_ind)
 	{
 	return NULL;
 	}
 
-/*
+/***
 ===========
 W_Open
 
 open the wad for reading & writing
 ===========
-*/
+***/
 static wfile_t *W_Open (const char *filename, int *error)
 	{
 	wfile_t *wad = (wfile_t *)Mem_Calloc (fs_mempool, sizeof (wfile_t));
@@ -422,31 +422,31 @@ static wfile_t *W_Open (const char *filename, int *error)
 	return wad;
 	}
 
-/*
+/***
 ===========
 FS_FileTime_WAD
 ===========
-*/
+***/
 static int FS_FileTime_WAD (searchpath_t *search, const char *filename)
 	{
 	return search->wad->filetime;
 	}
 
-/*
+/***
 ===========
 FS_PrintInfo_WAD
 ===========
-*/
+***/
 static void FS_PrintInfo_WAD (searchpath_t *search, char *dst, size_t size)
 	{
 	Q_snprintf (dst, size, "%s (%i files)", search->filename, search->wad->numlumps);
 	}
 
-/*
+/***
 ===========
 FS_FindFile_WAD
 ===========
-*/
+***/
 static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedname, size_t len)
 	{
 	dlumpinfo_t		*lump;
@@ -498,11 +498,11 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 	return -1;
 	}
 
-/*
+/***
 ===========
 FS_Search_WAD
 ===========
-*/
+***/
 static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char *pattern, int caseinsensitive)
 	{
 	string		wadpattern, wadname, temp2;
@@ -588,13 +588,13 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 
 // [FWGS, 01.07.23] removed FS_AddWad_Fullpath
 
-/*
+/***
 ===========
 W_ReadLump [FWGS, 01.03.24]
 
 reading lump into temp buffer
 ===========
-*/
+***/
 static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, fs_offset_t *lumpsizeptr,
 	void *(*pfnAlloc)(size_t), void (*pfnFree)(void *))
 	{
@@ -644,11 +644,11 @@ static byte *W_ReadLump (searchpath_t *search, const char *path, int pack_ind, f
 	return buf;
 	}
 
-/*
+/***
 ===========
 FS_AddWad_Fullpath [FWGS, 01.05.24]
 ===========
-*/
+***/
 searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags)
 	{
 	searchpath_t	*search;
@@ -677,7 +677,6 @@ searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags)
 	search->pfnSearch = FS_Search_WAD;
 	search->pfnLoadFile = W_ReadLump;
 
-	/*Con_Reportf ("Adding wadfile: %s (%i files)\n", wadfile, wad->numlumps);*/
 	Con_Reportf ("Adding WAD: %s (%i files)\n", wadfile, wad->numlumps);
 	return search;
 	}

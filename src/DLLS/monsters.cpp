@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-/*
+/***
 
 ===== monsters.cpp ========================================================
 
   Monster-related utility code
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -1328,7 +1328,7 @@ int CBaseMonster::CheckLocalMove (const Vector& vecStart, const Vector& vecEnd, 
 			iReturn = LOCALMOVE_INVALID_DONT_TRIANGULATE;
 		}
 
-	/*
+#ifdef SHOW_MONSTER_MOVE
 	// uncommenting this block will draw a line representing the nearest legal move
 	WRITE_BYTE(MSG_BROADCAST, SVC_TEMPENTITY);
 	WRITE_BYTE(MSG_BROADCAST, TE_SHOWLINE);
@@ -1338,7 +1338,7 @@ int CBaseMonster::CheckLocalMove (const Vector& vecStart, const Vector& vecEnd, 
 	WRITE_COORD(MSG_BROADCAST, vecStart.x);
 	WRITE_COORD(MSG_BROADCAST, vecStart.y);
 	WRITE_COORD(MSG_BROADCAST, vecStart.z);
-	*/
+#endif
 
 	// since we've actually moved the monster during the check, undo the move.
 	UTIL_SetOrigin (pev, vecStartPos);
@@ -1492,7 +1492,7 @@ BOOL CBaseMonster::BuildRoute (const Vector& vecGoal, int iMoveFlag, CBaseEntity
 		m_Route[1].vecLocation = vecGoal;
 		m_Route[1].iType = iMoveFlag | bits_MF_IS_GOAL;
 
-		/*
+#ifdef SHOW_MONSTER_MOVE
 		WRITE_BYTE(MSG_BROADCAST, SVC_TEMPENTITY);
 		WRITE_BYTE(MSG_BROADCAST, TE_SHOWLINE);
 		WRITE_COORD(MSG_BROADCAST, vecApex.x );
@@ -1501,7 +1501,7 @@ BOOL CBaseMonster::BuildRoute (const Vector& vecGoal, int iMoveFlag, CBaseEntity
 		WRITE_COORD(MSG_BROADCAST, vecApex.x );
 		WRITE_COORD(MSG_BROADCAST, vecApex.y );
 		WRITE_COORD(MSG_BROADCAST, vecApex.z + 128 );
-		*/
+#endif
 
 		RouteSimplify (pTarget);
 		return TRUE;
@@ -2011,26 +2011,38 @@ int CBaseMonster::TaskIsRunning (void)
 int CBaseMonster::IRelationship (CBaseEntity* pTarget)
 	{
 	static int iEnemy[14][14] =
-		{			 //   NONE	 MACH	 PLYR	 HPASS	 HMIL	 AMIL	 HASS	 AMONST	APREY	 APRED	 INSECT	PLRALY	PBWPN	ABWPN
-		/*NONE*/		{ R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO,	R_NO,	R_NO	},
-		/*MACHINE*/		{ R_NO	,R_NO	,R_DL	,R_DL	,R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_DL,	R_DL,	R_DL	},
-		/*PLAYER*/		{ R_NO	,R_DL	,R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO,	R_DL,	R_DL	},
+		{
+		// NONE	 MACH	 PLYR	 HPASS	 HMIL	 AMIL	 HASS	 AMONST	APREY	 APRED	 INSECT	PLRALY	PBWPN	ABWPN
+		
+		// NONE
+		{ R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO,	R_NO,	R_NO	},
+		// MACHINE
+		{ R_NO	,R_NO	,R_DL	,R_DL	,R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_DL,	R_DL,	R_DL	},
+		// PLAYER
+		{ R_NO	,R_DL	,R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO,	R_DL,	R_DL	},
 		// ESHQ: новое поведение для некоторых типов
-		/*HUMANPASSIVE*/{ R_NO	,R_NO	,R_AL	,R_AL	,R_HT	,R_FR	,R_HT	,R_HT	,R_DL	,R_FR	,R_NO	,R_AL,	R_NO,	R_NO	},
-		/*HUMANMILITAR*/{ R_NO	,R_NO	,R_DL	,R_DL	,R_NO	,R_HT	,R_HT	,R_DL	,R_DL	,R_DL	,R_NO	,R_HT,	R_NO,	R_NO	},
-		/*ALIENMILITAR*/{ R_NO	,R_DL	,R_DL	,R_DL	,R_HT	,R_NO	,R_HT	,R_NO	,R_NO	,R_NO	,R_NO	,R_DL,	R_NO,	R_NO	},
-		/*HUMANASSASSIN*/{ R_NO	,R_HT	,R_DL	,R_HT	,R_HT	,R_HT	,R_NO	,R_NO	,R_NO	,R_DL	,R_NO	,R_HT,	R_NO,	R_NO	},
-
-		/*ALIENMONSTER*/{ R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_DL,	R_NO,	R_NO	},
-
-		/*ALIENPREY */	{ R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO	,R_NO	,R_NO	,R_FR	,R_NO	,R_DL,	R_NO,	R_NO	},
-		/*ALIENPREDATO*/{ R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_NO	,R_DL	,R_NO	,R_HT	,R_DL	,R_NO	,R_DL,	R_NO,	R_NO	},
-
-		/*INSECT*/		{ R_FR	,R_FR	,R_FR	,R_FR	,R_FR	,R_NO	,R_FR	,R_FR	,R_FR	,R_FR	,R_NO	,R_FR,	R_NO,	R_NO	},
-		/*PLAYERALLY*/	{ R_NO	,R_DL	,R_AL	,R_AL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO,	R_NO,	R_NO	},
-		/*PBIOWEAPON*/	{ R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_DL,	R_NO,	R_DL	},
-
-		/*ABIOWEAPON*/	{ R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_AL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO	,R_DL,	R_DL,	R_NO	}
+		// HUMANPASSIVE
+		{ R_NO	,R_NO	,R_AL	,R_AL	,R_HT	,R_FR	,R_HT	,R_HT	,R_DL	,R_FR	,R_NO	,R_AL,	R_NO,	R_NO	},
+		// HUMANMILITAR
+		{ R_NO	,R_NO	,R_DL	,R_DL	,R_NO	,R_HT	,R_HT	,R_DL	,R_DL	,R_DL	,R_NO	,R_HT,	R_NO,	R_NO	},
+		// ALIENMILITAR
+		{ R_NO	,R_DL	,R_DL	,R_DL	,R_HT	,R_NO	,R_HT	,R_NO	,R_NO	,R_NO	,R_NO	,R_DL,	R_NO,	R_NO	},
+		// HUMANASSASSIN
+		{ R_NO	,R_HT	,R_DL	,R_HT	,R_HT	,R_HT	,R_NO	,R_NO	,R_NO	,R_DL	,R_NO	,R_HT,	R_NO,	R_NO	},
+		// ALIENMONSTER
+		{ R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_DL,	R_NO,	R_NO	},
+		// ALIENPREY (теперь атакует турели)
+		{ R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO	,R_NO	,R_NO	,R_FR	,R_NO	,R_DL,	R_NO,	R_NO	},
+		// ALIENPREDATOR (теперь атакует турели)
+		{ R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_DL	,R_NO	,R_HT	,R_DL	,R_NO	,R_DL,	R_NO,	R_NO	},
+		// INSECT
+		{ R_FR	,R_FR	,R_FR	,R_FR	,R_FR	,R_NO	,R_FR	,R_FR	,R_FR	,R_FR	,R_NO	,R_FR,	R_NO,	R_NO	},
+		// PLAYERALLY
+		{ R_NO	,R_DL	,R_AL	,R_AL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO,	R_NO,	R_NO	},
+		// PBIOWEAPON
+		{ R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_DL,	R_NO,	R_DL	},
+		// ABIOWEAPON
+		{ R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_AL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO	,R_DL,	R_DL,	R_NO	}
 		};
 
 	return iEnemy[Classify ()][pTarget->Classify ()];
@@ -2116,7 +2128,7 @@ BOOL CBaseMonster::FindCover (Vector vecThreat, Vector vecViewOffset, float flMi
 					{
 					if (FValidateCover (node.m_vecOrigin) && MoveToLocation (ACT_RUN, 0, node.m_vecOrigin))
 						{
-						/*
+#ifdef SHOW_MONSTER_MOVE
 						MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 							WRITE_BYTE( TE_SHOWLINE);
 
@@ -2128,7 +2140,7 @@ BOOL CBaseMonster::FindCover (Vector vecThreat, Vector vecViewOffset, float flMi
 							WRITE_COORD( vecLookersOffset.y );
 							WRITE_COORD( vecLookersOffset.z );
 						MESSAGE_END();
-						*/
+#endif
 
 						return TRUE;
 						}

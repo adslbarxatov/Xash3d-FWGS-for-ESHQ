@@ -1,4 +1,4 @@
-/*
+/***
 matrixlib.c - internal matrixlib
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "port.h"
 #include "xash3d_types.h"
@@ -26,11 +26,11 @@ const matrix3x4 m_matrix3x4_identity =
 	{ 0, 0, 1, 0 },	// ROLL	[up]     , org[2]
 	};
 
-/*
+/***
 ========================================================================
 Matrix3x4 operations
 ========================================================================
-*/
+***/
 void Matrix3x4_VectorTransform (const matrix3x4 in, const float v[3], float out[3])
 	{
 	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2] + in[0][3];
@@ -81,22 +81,7 @@ void Matrix3x4_ConcatTransforms (matrix3x4 out, const matrix3x4 in1, const matri
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
 
-// [FWGS, 01.07.23]
-/*
-void Matrix3x4_SetOrigin (matrix3x4 out, float x, float y, float z)
-	{
-	out[0][3] = x;
-	out[1][3] = y;
-	out[2][3] = z;
-	}
-
-void Matrix3x4_OriginFromMatrix (const matrix3x4 in, float *out)
-	{
-	out[0] = in[0][3];
-	out[1] = in[1][3];
-	out[2] = in[2][3];
-	}
-*/
+// [FWGS, 01.07.23] removed Matrix3x4_SetOrigin, Matrix3x4_OriginFromMatrix
 
 void Matrix3x4_AnglesFromMatrix (const matrix3x4 in, vec3_t out)
 	{
@@ -220,11 +205,11 @@ void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_
 
 // [FWGS, 01.05.23] удалены Matrix3x4_TransformPositivePlane, Matrix3x4_Invert_Simple, Matrix3x4_Transpose
 
-/*
+/***
 ==================
 Matrix3x4_TransformAABB
 ==================
-*/
+***/
 void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const vec3_t maxs,
 	vec3_t absmin, vec3_t absmax)
 	{
@@ -251,11 +236,11 @@ const matrix4x4 m_matrix4x4_identity =
 	{ 0, 0, 0, 1 },	// ORIGIN
 	};
 
-/*
+/***
 ========================================================================
 Matrix4x4 operations
 ========================================================================
-*/
+***/
 void Matrix4x4_VectorTransform (const matrix4x4 in, const float v[3], float out[3])
 	{
 	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2] + in[0][3];

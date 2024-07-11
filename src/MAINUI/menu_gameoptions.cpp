@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -62,11 +61,11 @@ typedef struct
 static uiGameOptions_t	uiGameOptions;
 static uiGameValues_t	uiGameInitial;
 
-/*
+/***
 =================
 UI_GameOptions_UpdateConfig
 =================
-*/
+***/
 static void UI_GameOptions_UpdateConfig (void)
 	{
 	static char	fpsText[8];
@@ -79,11 +78,11 @@ static void UI_GameOptions_UpdateConfig (void)
 	CVAR_SET_FLOAT ("fps_max", uiGameOptions.maxFPS.curValue);
 	}
 
-/*
+/***
 =================
 UI_GameOptions_DiscardChanges
 =================
-*/
+***/
 static void UI_GameOptions_DiscardChanges (void)
 	{
 	CVAR_SET_FLOAT ("cl_righthand", uiGameInitial.hand);
@@ -91,11 +90,11 @@ static void UI_GameOptions_DiscardChanges (void)
 	CVAR_SET_FLOAT ("fps_max", uiGameInitial.maxFPS);
 	}
 
-/*
+/***
 =================
 UI_GameOptions_KeyFunc
 =================
-*/
+***/
 static const char *UI_GameOptions_KeyFunc (int key, int down)
 	{
 	if (down && key == K_ESCAPE)
@@ -103,11 +102,11 @@ static const char *UI_GameOptions_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiGameOptions.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_GameOptions_GetConfig
 =================
-*/
+***/
 static void UI_GameOptions_GetConfig (void)
 	{
 	uiGameInitial.maxFPS = uiGameOptions.maxFPS.curValue = CVAR_GET_FLOAT ("fps_max");
@@ -121,11 +120,11 @@ static void UI_GameOptions_GetConfig (void)
 	UI_GameOptions_UpdateConfig ();
 	}
 
-/*
+/***
 =================
 UI_GameOptions_Callback
 =================
-*/
+***/
 static void UI_GameOptions_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -162,11 +161,11 @@ static void UI_GameOptions_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_GameOptions_Init
 =================
-*/
+***/
 static void UI_GameOptions_Init (void)
 	{
 	memset (&uiGameInitial, 0, sizeof (uiGameValues_t));
@@ -290,22 +289,22 @@ static void UI_GameOptions_Init (void)
 	UI_AddItem (&uiGameOptions.menu, (void *)&uiGameOptions.allowDownload);
 	}
 
-/*
+/***
 =================
 UI_GameOptions_Precache
 =================
-*/
+***/
 void UI_GameOptions_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_GameOptions_Menu
 =================
-*/
+***/
 void UI_GameOptions_Menu (void)
 	{
 	UI_GameOptions_Precache ();

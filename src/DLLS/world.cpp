@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== world.cpp ========================================================
 
   precaches and defs for entities and other data that must always be available.
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -101,11 +101,11 @@ DLL_DECALLIST gDecals[] = {
 	{ "{fdl", 0 },			// DECAL_FDL
 	};
 
-/*
+/***
 ==============================================================================
 BODY QUE
 ==============================================================================
-*/
+***/
 
 #define SF_DECAL_NOTINDEATHMATCH		2048
 

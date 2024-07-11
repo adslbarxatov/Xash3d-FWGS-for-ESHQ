@@ -1,4 +1,4 @@
-/*
+/***
 filesystem.h - engine FS
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
@@ -28,7 +28,6 @@ extern "C"
 	{
 #endif // __cplusplus
 
-/*#define FS_API_VERSION				2					// [FWGS, 01.04.23]*/
 #define FS_API_VERSION					3					// [FWGS, 01.05.24] not stable yet!
 #define FS_API_CREATEINTERFACE_TAG		"XashFileSystem002" // [FWGS, 01.11.23] follow FS_API_VERSION!!!
 #define FILESYSTEM_INTERFACE_VERSION	"VFileSystem009"	// [FWGS, 01.11.23] never change this!
@@ -123,8 +122,6 @@ typedef enum
 // [FWGS, 01.05.24]
 typedef struct fs_dllinfo_t
 	{
-	/*string fullPath;
-	string shortPath;*/
 	char		fullPath[2048];	// absolute disk path
 	string		shortPath;		// vfs path
 	qboolean	encrypted;

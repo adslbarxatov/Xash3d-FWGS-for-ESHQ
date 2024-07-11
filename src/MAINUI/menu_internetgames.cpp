@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -93,11 +92,11 @@ static void UI_PromptDialog (void)
 	uiInternetGames.yes.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_InternetGames_KeyFunc
 =================
-*/
+***/
 static const char *UI_InternetGames_KeyFunc (int key, int down)
 	{
 	if (down && (key == K_ESCAPE) && !(uiInternetGames.dlgMessage1.generic.flags & QMF_HIDDEN))
@@ -108,11 +107,11 @@ static const char *UI_InternetGames_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiInternetGames.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_InternetGames_GetGamesList
 =================
-*/
+***/
 static void UI_InternetGames_GetGamesList (void)
 	{
 	int		i;
@@ -172,11 +171,11 @@ static void UI_InternetGames_GetGamesList (void)
 		uiInternetGames.joinGame.generic.flags &= ~QMF_GRAYED;
 	}
 
-/*
+/***
 =================
 UI_InternetGames_JoinGame
 =================
-*/
+***/
 static void UI_InternetGames_JoinGame (void)
 	{
 	if (!strlen (uiInternetGames.gameDescription[uiInternetGames.gameList.curItem]))
@@ -185,11 +184,11 @@ static void UI_InternetGames_JoinGame (void)
 	CLIENT_JOIN (uiStatic.serverAddresses[uiInternetGames.gameList.curItem]);
 	}
 
-/*
+/***
 =================
 UI_Background_Ownerdraw
 =================
-*/
+***/
 static void UI_Background_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -211,11 +210,11 @@ static void UI_Background_Ownerdraw (void *self)
 		}
 	}
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -223,11 +222,11 @@ static void UI_MsgBox_Ownerdraw (void *self)
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
 
-/*
+/***
 =================
 UI_InternetGames_Callback
 =================
-*/
+***/
 static void UI_InternetGames_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -265,11 +264,11 @@ static void UI_InternetGames_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_InternetGames_Init
 =================
-*/
+***/
 static void UI_InternetGames_Init (void)
 	{
 	memset (&uiInternetGames, 0, sizeof (uiInternetGames_t));
@@ -480,22 +479,22 @@ static void UI_InternetGames_Init (void)
 	uiInternetGames.refreshTime = uiStatic.realTime + 500; // delay before update 0.5 sec
 	}
 
-/*
+/***
 =================
 UI_InternetGames_Precache
 =================
-*/
+***/
 void UI_InternetGames_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_InternetGames_Menu
 =================
-*/
+***/
 void UI_InternetGames_Menu (void)
 	{
 	if (gMenu.m_gameinfo.gamemode == GAME_SINGLEPLAYER_ONLY)

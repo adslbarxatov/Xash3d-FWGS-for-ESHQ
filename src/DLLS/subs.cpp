@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== subs.cpp ========================================================
 
   frequently used global functions
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -153,7 +153,7 @@ void CBaseDelay::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-/*
+/***
 ==============================
 SUB_UseTargets
 
@@ -167,7 +167,7 @@ Search for (string)targetname in all entities that
 match (string)self.target and call their .use function (if they have one)
 
 ==============================
-*/
+***/
 void CBaseEntity::SUB_UseTargets (CBaseEntity* pActivator, USE_TYPE useType, float value)
 	{
 	// fire targets
@@ -260,10 +260,10 @@ void CBaseDelay::SUB_UseTargets (CBaseEntity* pActivator, USE_TYPE useType, floa
 		FireTargets (STRING (pev->target), pActivator, this, useType, value);
 	}
 
-/*
+/***
 QuakeEd only writes a single float for angles (bad idea), so up and down are
 just constant angles
-*/
+***/
 void SetMovedir (entvars_t* pev)
 	{
 	if (pev->angles == Vector (0, -1, 0))
@@ -352,14 +352,14 @@ void CBaseToggle::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-/*
+/***
 =============
 LinearMove
 
 calculate pev->velocity and pev->nextthink to reach vecDest from
 pev->origin traveling at flSpeed
 ===============
-*/
+***/
 void CBaseToggle::LinearMove (Vector vecDest, float flSpeed)
 	{
 	ASSERTSZ (flSpeed != 0, "LinearMove: no speed is defined!");
@@ -387,11 +387,11 @@ void CBaseToggle::LinearMove (Vector vecDest, float flSpeed)
 	pev->velocity = vecDestDelta / flTravelTime;
 	}
 
-/*
+/***
 ============
 After moving, set origin to exact final destination, call "move done" function
 ============
-*/
+***/
 void CBaseToggle::LinearMoveDone (void)
 	{
 	UTIL_SetOrigin (pev, m_vecFinalDest);
@@ -409,7 +409,7 @@ BOOL CBaseToggle::IsLockedByMaster (void)
 	return FALSE;
 	}
 
-/*
+/***
 =============
 AngularMove
 
@@ -417,7 +417,7 @@ calculate pev->velocity and pev->nextthink to reach vecDest from
 pev->origin traveling at flSpeed
 Just like LinearMove, but rotational
 ===============
-*/
+***/
 void CBaseToggle::AngularMove (Vector vecDestAngle, float flSpeed)
 	{
 	ASSERTSZ (flSpeed != 0, "AngularMove: no speed is defined!");
@@ -444,11 +444,11 @@ void CBaseToggle::AngularMove (Vector vecDestAngle, float flSpeed)
 	pev->avelocity = vecDestDelta / flTravelTime;
 	}
 
-/*
+/***
 ============
 After rotating, set angle to exact final angle, call "move done" function
 ============
-*/
+***/
 void CBaseToggle::AngularMoveDone (void)
 	{
 	pev->angles = m_vecFinalAngle;
@@ -490,13 +490,13 @@ float CBaseToggle::AxisDelta (int flags, const Vector& angle1, const Vector& ang
 	return angle1.y - angle2.y;
 	}
 
-/*
+/***
 =============
 FEntIsVisible
 
 returns TRUE if the passed entity is visible to caller, even if not infront ()
 =============
-*/
+***/
 BOOL FEntIsVisible (entvars_t* pev, entvars_t* pevTarget)
 	{
 	Vector vecSpot1 = pev->origin + pev->view_ofs;

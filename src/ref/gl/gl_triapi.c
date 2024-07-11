@@ -1,4 +1,4 @@
-/*
+/***
 gl_triapi.c - TriAPI draw methods
 Copyright (C) 2011 Uncle Mike
 Copyright (C) 2019 a1batross
@@ -12,7 +12,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "const.h"
@@ -23,18 +23,18 @@ static struct
 	vec4_t	triRGBA;
 	} ds;
 
-/*
+/***
 ===============================================================
 TRIAPI IMPLEMENTATION
 ===============================================================
-*/
-/*
+***/
+/***
 =============
 TriRenderMode
 
 set rendermode
 =============
-*/
+***/
 void TriRenderMode (int mode)
 	{
 	ds.renderMode = mode;
@@ -68,13 +68,13 @@ void TriRenderMode (int mode)
 		}
 	}
 
-/*
+/***
 =============
 TriBegin
 
 begin triangle sequence
 =============
-*/
+***/
 void TriBegin (int mode)
 	{
 	switch (mode)
@@ -116,43 +116,43 @@ void TriBegin (int mode)
 	pglBegin (mode);
 	}
 
-/*
+/***
 =============
 TriEnd
 
 draw triangle sequence
 =============
-*/
+***/
 void TriEnd (void)
 	{
 	pglEnd ();
 	}
 
-/*
+/***
 =============
 _TriColor4f
 =============
-*/
+***/
 void _TriColor4f (float r, float g, float b, float a)
 	{
 	pglColor4f (r, g, b, a);
 	}
 
-/*
+/***
 =============
 _TriColor4f
 =============
-*/
+***/
 void _TriColor4ub (byte r, byte g, byte b, byte a)
 	{
 	pglColor4ub (r, g, b, a);
 	}
 
-/*
+/***
 =============
 TriColor4ub
 =============
-*/
+***/
 void TriColor4ub (byte r, byte g, byte b, byte a)
 	{
 	ds.triRGBA[0] = r * (1.0f / 255.0f);
@@ -163,11 +163,11 @@ void TriColor4ub (byte r, byte g, byte b, byte a)
 	_TriColor4f (ds.triRGBA[0], ds.triRGBA[1], ds.triRGBA[2], 1.0f);
 	}
 
-/*
+/***
 =================
 TriColor4f
 =================
-*/
+***/
 void TriColor4f (float r, float g, float b, float a)
 	{
 	if (ds.renderMode == kRenderTransAlpha)
@@ -180,43 +180,43 @@ void TriColor4f (float r, float g, float b, float a)
 	ds.triRGBA[3] = a;
 	}
 
-/*
+/***
 =============
 TriTexCoord2f
 =============
-*/
+***/
 void TriTexCoord2f (float u, float v)
 	{
 	pglTexCoord2f (u, v);
 	}
 
-/*
+/***
 =============
 TriVertex3fv
 =============
-*/
+***/
 void TriVertex3fv (const float *v)
 	{
 	pglVertex3fv (v);
 	}
 
-/*
+/***
 =============
 TriVertex3f
 =============
-*/
+***/
 void TriVertex3f (float x, float y, float z)
 	{
 	pglVertex3f (x, y, z);
 	}
 
-/*
+/***
 =============
 TriWorldToScreen
 
 convert world coordinates (x,y,z) into screen (x, y)
 =============
-*/
+***/
 int TriWorldToScreen (const float *world, float *screen)
 	{
 	int	retval;
@@ -231,13 +231,13 @@ int TriWorldToScreen (const float *world, float *screen)
 	return retval;
 	}
 
-/*
+/***
 =============
 TriSpriteTexture
 
 bind current texture
 =============
-*/
+***/
 int TriSpriteTexture (model_t *pSpriteModel, int frame)
 	{
 	int	gl_texturenum;
@@ -253,13 +253,13 @@ int TriSpriteTexture (model_t *pSpriteModel, int frame)
 	return 1;
 	}
 
-/*
+/***
 =============
 TriFog
 
 enables global fog on the level
 =============
-*/
+***/
 void TriFog (float flFogColor[3], float flStart, float flEnd, int bOn)
 	{
 	// overrided by internal fog
@@ -304,36 +304,34 @@ void TriFog (float flFogColor[3], float flStart, float flEnd, int bOn)
 	pglHint (GL_FOG_HINT, GL_NICEST);
 	}
 
-/*
+/***
 =============
 TriGetMatrix
 
 very strange export
 =============
-*/
+***/
 void TriGetMatrix (const int pname, float *matrix)
 	{
 	pglGetFloatv (pname, matrix);
 	}
 
-/*
+/***
 =============
 TriForParams
-
 =============
-*/
+***/
 void TriFogParams (float flDensity, int iFogSkybox)
 	{
 	RI.fogDensity = flDensity;
 	RI.fogSkybox = iFogSkybox;
 	}
 
-/*
+/***
 =============
 TriCullFace
-
 =============
-*/
+***/
 void TriCullFace (TRICULLSTYLE mode)
 	{
 	int glMode;
@@ -352,11 +350,11 @@ void TriCullFace (TRICULLSTYLE mode)
 	GL_Cull (glMode);
 	}
 
-/*
+/***
 =============
 TriBrightness
 =============
-*/
+***/
 void TriBrightness (float brightness)
 	{
 	float	r, g, b;

@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== combat.cpp ========================================================
 
   functions dealing with damage infliction & death
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -621,11 +621,11 @@ void CBaseMonster::CallGibMonster (void)
 	}
 
 
-/*
+/***
 ============
 Killed
 ============
-*/
+***/
 void CBaseMonster::Killed (entvars_t* pevAttacker, int iGib)
 	{
 	unsigned int	cCount = 0;
@@ -846,7 +846,7 @@ int CBaseMonster::TakeHealth (float flHealth, int bitsDamageType)
 	return CBaseEntity::TakeHealth (flHealth, bitsDamageType);
 	}
 
-/*
+/***
 ============
 TakeDamage
 
@@ -861,7 +861,7 @@ When a monster is poisoned via an arrow etc it takes all the poison damage at on
 
 GLOBALS ASSUMED SET:  g_iSkillLevel
 ============
-*/
+***/
 int CBaseMonster::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 	{
 	float	flTake;
@@ -1284,11 +1284,11 @@ BOOL CBaseEntity::FVisible (const Vector& vecOrigin)
 		return TRUE;
 	}
 
-/*
+/***
 ================
 TraceAttack
 ================
-*/
+***/
 void CBaseEntity::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType)
 	{
 	Vector vecOrigin = ptr->vecEndPos - vecDir * 4;
@@ -1347,16 +1347,17 @@ void CBaseMonster::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector v
 		}
 	}
 
-/*
+/***
 ================
 FireBullets
 
 Go to the trouble of combining multiple pellets into a single damage call.
 
-This version is used by Monsters.
+This version is used by Monsters
 ================
-*/
-void CBaseEntity::FireBullets (ULONG cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t* pevAttacker)
+***/
+void CBaseEntity::FireBullets (ULONG cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread,
+	float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t* pevAttacker)
 	{
 	static int tracerCount;
 	int tracer;
@@ -1479,15 +1480,15 @@ void CBaseEntity::FireBullets (ULONG cShots, Vector vecSrc, Vector vecDirShootin
 	}
 
 
-/*
+/***
 ================
 FireBullets
 
 Go to the trouble of combining multiple pellets into a single damage call.
 
-This version is used by Players, uses the random seed generator to sync client and server side shots.
+This version is used by Players, uses the random seed generator to sync client and server side shots
 ================
-*/
+***/
 Vector CBaseEntity::FireBulletsPlayer (ULONG cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, 
 	float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t* pevAttacker, int shared_rand)
 	{

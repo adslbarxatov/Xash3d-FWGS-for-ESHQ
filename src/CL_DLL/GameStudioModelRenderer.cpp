@@ -37,11 +37,11 @@ extern engine_studio_api_t IEngineStudio;
 
 // The renderer object, created on the stack.
 CGameStudioModelRenderer g_StudioRenderer;
-/*
+/***
 ====================
 CGameStudioModelRenderer
 ====================
-*/
+***/
 CGameStudioModelRenderer::CGameStudioModelRenderer (void)
 	{
 	}
@@ -50,33 +50,31 @@ CGameStudioModelRenderer::CGameStudioModelRenderer (void)
 // Hooks to class implementation
 // =============================
 
-/*
+/***
 ====================
 R_StudioDrawPlayer
 ====================
-*/
+***/
 int R_StudioDrawPlayer (int flags, entity_state_t* pplayer)
 	{
 	return g_StudioRenderer.StudioDrawPlayer (flags, pplayer);
 	}
 
-/*
+/***
 ====================
 R_StudioDrawModel
-
 ====================
-*/
+***/
 int R_StudioDrawModel (int flags)
 	{
 	return g_StudioRenderer.StudioDrawModel (flags);
 	}
 
-/*
+/***
 ====================
 R_StudioInit
-
 ====================
-*/
+***/
 void R_StudioInit (void)
 	{
 	g_StudioRenderer.Init ();
@@ -90,15 +88,16 @@ r_studio_interface_t studio =
 		R_StudioDrawPlayer,
 	};
 
-/*
+/***
 ====================
 HUD_GetStudioModelInterface
 
 Export this function for the engine to use the studio renderer class to render objects.
 ====================
-*/
+***/
 #define DLLEXPORT __declspec( dllexport )
-extern "C" int DLLEXPORT HUD_GetStudioModelInterface (int version, struct r_studio_interface_s** ppinterface, struct engine_studio_api_s* pstudio)
+extern "C" int DLLEXPORT HUD_GetStudioModelInterface (int version, struct r_studio_interface_s** ppinterface,
+	struct engine_studio_api_s* pstudio)
 	{
 	if (version != STUDIO_INTERFACE_VERSION)
 		return 0;

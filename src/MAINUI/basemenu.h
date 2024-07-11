@@ -1,4 +1,4 @@
-/*
+/***
 basemenu.h - menu basic header
 Copyright (C) 2010 Uncle Mike
 

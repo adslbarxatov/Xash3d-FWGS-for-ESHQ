@@ -1,4 +1,4 @@
-/*
+/***
 xash3d_mathlib.h - base math functions
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #ifndef XASH3D_MATHLIB_H
 #define XASH3D_MATHLIB_H
@@ -76,7 +76,6 @@ GNU General Public License for more details.
 #define Q_max( a, b )	(((a) > (b)) ? (a) : (b))
 
 // [FWGS, 01.05.24]
-/*#define Q_equal( a, b ) (((a) > ((b) - EQUAL_EPSILON)) && ((a) < ((b) + EQUAL_EPSILON)))*/
 #define Q_equal_e( a, b, e ) (((a) > ((b) - (e))) && ((a) < ((b) + (e))))
 #define Q_equal( a, b ) Q_equal_e( a, b, EQUAL_EPSILON )
 

@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,7 +12,7 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-/*
+/***
 ===== turret.cpp ========================================================
 */
 
@@ -627,10 +627,7 @@ void CBaseTurret::Deploy (void)
 
 	if (m_fSequenceFinished)
 		{
-		// ESHQ: слишком поздно
-		/*pev->maxs.z = m_iDeployHeight;
-		pev->mins.z = -m_iDeployHeight;
-		UTIL_SetSize (pev, pev->mins, pev->maxs);*/
+		// ESHQ: изменение коллизии здесь было слишком поздним, перенесено
 
 		m_vecCurAngles.x = 0;
 

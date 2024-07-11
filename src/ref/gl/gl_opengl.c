@@ -372,7 +372,7 @@ static dllfunc_t shaderobjectsfuncs[] =
 	};
 
 
-/*
+/***
 ==================
 Even if *ARB functions may work in GL driver in Core context,
 renderdoc completely ignores this calls, so we cannot workaround this
@@ -382,7 +382,7 @@ it historicaly related to ARB_shader_object extension, not GL2+ functions
 and all shader code from XashXT/ancient xash3d uses it too
 Commented out lines left there intentionally to prevent usage on core/gles
 ==================
-*/
+***/
 
 static dllfunc_t shaderobjectsfuncs_gles[] =
 	{
@@ -466,13 +466,13 @@ static dllfunc_t multitexturefuncs_es2[] =
 
 #endif
 
-/*
+/***
 ========================
 DebugCallback
 
 For ARB_debug_output
 ========================
-*/
+***/
 static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLuint severity, GLint length,
 	const GLcharARB *message, GLvoid *userParam)
 	{
@@ -496,11 +496,11 @@ static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLui
 		}
 	}
 
-/*
+/***
 =================
 GL_SetExtension
 =================
-*/
+***/
 void GL_SetExtension (int r_ext, int enable)
 	{
 	if (r_ext >= 0 && r_ext < GL_EXTCOUNT)
@@ -509,11 +509,11 @@ void GL_SetExtension (int r_ext, int enable)
 		gEngfuncs.Con_Printf (S_ERROR "GL_SetExtension: invalid extension %d\n", r_ext);
 	}
 
-/*
+/***
 =================
 GL_Support
 =================
-*/
+***/
 qboolean GL_Support (int r_ext)
 	{
 	if (r_ext >= 0 && r_ext < GL_EXTCOUNT)
@@ -523,11 +523,11 @@ qboolean GL_Support (int r_ext)
 	return false;
 	}
 
-/*
+/***
 =================
 GL_MaxTextureUnits
 =================
-*/
+***/
 int GL_MaxTextureUnits (void)
 	{
 	if (GL_Support (GL_SHADER_GLSL100_EXT))
@@ -536,16 +536,16 @@ int GL_MaxTextureUnits (void)
 	return glConfig.max_texture_units;
 	}
 
-/*
+/***
 =================
 GL_CheckExtension [FWGS, 01.11.23]
 =================
-*/
+***/
 qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext, float minver)
 	{
-	const dllfunc_t *func;
-	cvar_t *parm = NULL;
-	const char *extensions_string;
+	const dllfunc_t	*func;
+	cvar_t			*parm = NULL;
+	const char		*extensions_string;
 	char			desc[MAX_VA_STRING];
 	float			glver = (float)glConfig.version_major + glConfig.version_minor / 10.0f;
 
@@ -648,13 +648,13 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 	return false;
 	}
 
-/*
+/***
 ==============
 GL_GetProcAddress
 
 defined just for nanogl/glwes, so it don't link to SDL2 directly, nor use dlsym
 ==============
-*/
+***/
 void GAME_EXPORT *GL_GetProcAddress (const char *name);	// [FWGS, 01.02.24] keep defined for nanogl/wes
 
 void GAME_EXPORT *GL_GetProcAddress (const char *name)
@@ -662,11 +662,11 @@ void GAME_EXPORT *GL_GetProcAddress (const char *name)
 	return gEngfuncs.GL_GetProcAddress (name);
 	}
 
-/*
+/***
 ===============
 GL_SetDefaultTexState
 ===============
-*/
+***/
 static void GL_SetDefaultTexState (void)
 	{
 
@@ -683,11 +683,11 @@ static void GL_SetDefaultTexState (void)
 		}
 	}
 
-/*
+/***
 ===============
 GL_SetDefaultState
 ===============
-*/
+***/
 static void GL_SetDefaultState (void)
 	{
 	memset (&glState, 0, sizeof (glState));
@@ -698,11 +698,11 @@ static void GL_SetDefaultState (void)
 	tr.draw_stack_pos = 0;
 	}
 
-/*
+/***
 ===============
 GL_SetDefaults
 ===============
-*/
+***/
 static void GL_SetDefaults (void)
 	{
 	pglFinish ();
@@ -743,11 +743,11 @@ static void GL_SetDefaults (void)
 	}
 
 
-/*
+/***
 =================
 R_RenderInfo_f [FWGS, 01.02.24]
 =================
-*/
+***/
 static void R_RenderInfo_f (void)
 	{
 	gEngfuncs.Con_Printf ("\n");
@@ -1252,11 +1252,11 @@ void GL_ClearExtensions (void)
 
 // =======================================================================
 
-/*
+/***
 =================
 GL_InitCommands [FWGS, 01.02.24]
 =================
-*/
+***/
 static void GL_InitCommands (void)
 	{
 	RETRIEVE_ENGINE_SHARED_CVAR_LIST ();
@@ -1300,13 +1300,13 @@ static void GL_InitCommands (void)
 	gEngfuncs.Cmd_AddCommand ("timerefresh", SCR_TimeRefresh_f, "turn quickly and print rendering statistcs");
 	}
 
-/*
+/***
 ===============
 R_CheckVBO [FWGS, 01.03.24]
 
 register VBO cvars and get default value
 ===============
-*/
+***/
 static void R_CheckVBO (void)
 	{
 	qboolean disable = false;
@@ -1335,21 +1335,21 @@ static void R_CheckVBO (void)
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo_detail);
 	}
 
-/*
+/***
 =================
 GL_RemoveCommands
 =================
-*/
+***/
 static void GL_RemoveCommands (void)
 	{
 	gEngfuncs.Cmd_RemoveCommand ("r_info");
 	}
 
-/*
+/***
 ===============
 R_Init [FWGS, 01.01.24]
 ===============
-*/
+***/
 qboolean R_Init (void)
 	{
 	if (glw_state.initialized)
@@ -1389,11 +1389,11 @@ qboolean R_Init (void)
 	return true;
 	}
 
-/*
+/***
 ===============
 R_Shutdown [FWGS, 01.11.23]
 ===============
-*/
+***/
 void R_Shutdown (void)
 	{
 	if (!glw_state.initialized)
@@ -1416,12 +1416,12 @@ void R_Shutdown (void)
 	gEngfuncs.R_Free_Video ();
 	}
 
-/*
+/***
 =================
 GL_ErrorString
 convert errorcode to string
 =================
-*/
+***/
 const char *GL_ErrorString (int err)
 	{
 	switch (err)
@@ -1443,11 +1443,11 @@ const char *GL_ErrorString (int err)
 		}
 	}
 
-/*
+/***
 =================
 GL_CheckForErrors
 =================
-*/
+***/
 void GL_CheckForErrors_ (const char *filename, const int fileline)
 	{
 	int	err;

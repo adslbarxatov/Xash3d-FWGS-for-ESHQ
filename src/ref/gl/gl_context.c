@@ -1,4 +1,4 @@
-/*
+/***
 vid_sdl.c - SDL vid component
 Copyright (C) 2018 a1batross
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 // GL API function pointers, if any, reside in this translation unit
 #define APIENTRY_LINKAGE
@@ -44,11 +44,11 @@ static const byte *R_GetTextureOriginalBuffer (unsigned int idx)
 	return glt->original->buffer;
 	}
 
-/*
+/***
 =============
 CL_FillRGBA
 =============
-*/
+***/
 static void CL_FillRGBA (float _x, float _y, float _w, float _h, int r, int g, int b, int a)
 	{
 	pglDisable (GL_TEXTURE_2D);
@@ -69,11 +69,11 @@ static void CL_FillRGBA (float _x, float _y, float _w, float _h, int r, int g, i
 	pglDisable (GL_BLEND);
 	}
 
-/*
+/***
 =============
 pfnFillRGBABlend
 =============
-*/
+***/
 static void GAME_EXPORT CL_FillRGBABlend (float _x, float _y, float _w, float _h, int r, int g, int b, int a)
 	{
 	pglDisable (GL_TEXTURE_2D);

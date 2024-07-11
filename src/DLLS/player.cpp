@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== player.cpp ========================================================
 
   functions dealing with the player
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -356,12 +356,12 @@ void CBasePlayer::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector ve
 		}
 	}
 
-/*
+/***
 	Take some damage.
 	NOTE: each call to TakeDamage with bitsDamageType set to a time-based damage
 	type will cause the damage time countdown to be reset.  Thus the ongoing effects of poison, radiation
 	etc are implemented with subsequent calls to TakeDamage using DMG_GENERIC.
-*/
+***/
 
 #define ARMOR_RATIO	 0.2	// Armor Takes 80% of the damage
 #define ARMOR_BONUS  0.5	// Each Point of Armor is work 1/x points of health
@@ -824,13 +824,15 @@ void CBasePlayer::RemoveAllItems (BOOL removeSuit)
 	MESSAGE_END ();
 	}
 
-/*
- * GLOBALS ASSUMED SET:  g_ulModelIndexPlayer
- *
- * ENTITY_METHOD(PlayerDie)
- */
-entvars_t* g_pevLastInflictor;  // Set in combat.cpp.  Used to pass the damage inflictor for death messages.
-								// Better solution:  Add as parameter to all Killed() functions.
+/***
+* GLOBALS ASSUMED SET:  g_ulModelIndexPlayer
+*
+* ENTITY_METHOD(PlayerDie)
+***/
+
+// Set in combat.cpp.  Used to pass the damage inflictor for death messages.
+// Better solution:  Add as parameter to all Killed() functions
+entvars_t *g_pevLastInflictor;
 
 void CBasePlayer::Killed (entvars_t* pevAttacker, int iGib)
 	{
@@ -1079,13 +1081,13 @@ void CBasePlayer::SetAnimation (PLAYER_ANIM playerAnim)
 	ResetSequenceInfo ();
 	}
 
-/*
+/***
 ===========
 TabulateAmmo
 This function is used to find and store
 all the ammo we have into the ammo vars
 ============
-*/
+***/
 void CBasePlayer::TabulateAmmo ()
 	{
 	ammo_9mm = AmmoInventory (GetAmmoIndex ("9mm"));
@@ -1098,11 +1100,11 @@ void CBasePlayer::TabulateAmmo ()
 	ammo_hornets = AmmoInventory (GetAmmoIndex ("Hornets"));
 	}
 
-/*
+/***
 ===========
 WaterMove
 ============
-*/
+***/
 #define AIRTIME	12		// lung full of air lasts this many seconds
 
 void CBasePlayer::WaterMove ()
@@ -1845,7 +1847,7 @@ void CBasePlayer::PreThink (void)
 		pev->velocity = g_vecZero;
 	}
 
-/*
+/***
 Time based Damage works as follows:
 	1) There are several types of timebased damage:
 
@@ -1889,7 +1891,7 @@ Time based Damage works as follows:
 		Radiation Shower	- Immediate stop to radiation damage, acid/chemical or fire damage.
 
 
-*/
+***/
 
 // If player is taking time based damage, continue doing damage to player -
 // this simulates the effect of being poisoned, gassed, dosed with radiation etc -
@@ -1997,7 +1999,7 @@ void CBasePlayer::CheckTimeBasedDamage ()
 		}
 	}
 
-/*
+/***
 THE POWER SUIT
 
 The Suit provides 3 main functions: Protection, Notification and Augmentation.
@@ -2062,7 +2064,7 @@ Things powered by the battery
 	Alien Shield
 		Augments armor. Reduces Armor drain by one half
 
-*/
+***/
 
 // if in range of radiation source, ping geiger counter
 
@@ -2096,13 +2098,13 @@ void CBasePlayer::UpdateGeigerCounter (void)
 
 	}
 
-/*
+/***
 ================
 CheckSuitUpdate
 
 Play suit update if it's time
 ================
-*/
+***/
 
 #define SUITUPDATETIME	3.5
 #define SUITFIRSTUPDATETIME 0.1
@@ -2260,7 +2262,7 @@ void CBasePlayer::SetSuitUpdate (char* name, int fgroup, int iNoRepeatTime)
 		}
 	}
 
-/*
+/***
 ================
 CheckPowerups
 
@@ -2268,7 +2270,7 @@ Check for turning off powerups
 
 GLOBALS ASSUMED SET:  g_ulModelIndexPlayer
 ================
-*/
+***/
 static void
 CheckPowerups (entvars_t* pev)
 	{
@@ -2586,7 +2588,7 @@ BOOL IsSpawnPointValid (CBaseEntity* pPlayer, CBaseEntity* pSpot)
 DLL_GLOBAL CBaseEntity* g_pLastSpawn;
 inline int FNullEnt (CBaseEntity* ent) { return (ent == NULL) || FNullEnt (ent->edict ()); }
 
-/*
+/***
 ============
 EntSelectSpawnPoint
 
@@ -2594,7 +2596,7 @@ Returns the entity to spawn at
 
 USES AND SETS GLOBAL g_pLastSpawn
 ============
-*/
+***/
 edict_t* EntSelectSpawnPoint (CBaseEntity* pPlayer)
 	{
 	CBaseEntity* pSpot;
@@ -3221,7 +3223,7 @@ void CBasePlayer::PassFlashlightStatus (void)
 	MESSAGE_END ();
 	}
 
-/*
+/***
 ===============
 ForceClientDllUpdate
 
@@ -3229,7 +3231,7 @@ When recording a demo, we need to have the server tell us the entire client stat
 so that the client side .dll can behave correctly.
 Reset stuff so that the state is transmitted.
 ===============
-*/
+***/
 void CBasePlayer::ForceClientDllUpdate (void)
 	{
 	m_iClientHealth = -1;
@@ -3244,11 +3246,11 @@ void CBasePlayer::ForceClientDllUpdate (void)
 	UpdateClientData ();
 	}
 
-/*
+/***
 ============
 ImpulseCommands
 ============
-*/
+***/
 extern float g_flWeaponCheat;
 
 void CBasePlayer::ImpulseCommands ()
@@ -3706,13 +3708,13 @@ int CBasePlayer::GiveAmmo (int iCount, char* szName, int iMax)
 	}
 
 
-/*
+/***
 ============
 ItemPreFrame
 
 Called every frame by the player PreThink
 ============
-*/
+***/
 void CBasePlayer::ItemPreFrame ()
 	{
 #if defined( CLIENT_WEAPONS )
@@ -3731,13 +3733,13 @@ void CBasePlayer::ItemPreFrame ()
 	}
 
 
-/*
+/***
 ============
 ItemPostFrame
 
 Called every frame by the player PostThink
 ============
-*/
+***/
 void CBasePlayer::ItemPostFrame ()
 	{
 	static int fInSelect = FALSE;
@@ -3814,7 +3816,7 @@ void CBasePlayer::SendAmmoUpdate (void)
 		}
 	}
 
-/*
+/***
 =========================================================
 	UpdateClientData
 
@@ -3824,7 +3826,7 @@ Also called at start of demo recording and playback by
 ForceClientDllUpdate to ensure the demo gets messages
 reflecting all of the HUD state info.
 =========================================================
-*/
+***/
 void CBasePlayer::UpdateClientData (void)
 	{
 	if (m_fInitHUD)
@@ -4337,14 +4339,14 @@ void CBasePlayer::ResetAutoaim ()
 	m_fOnTarget = FALSE;
 	}
 
-/*
+/***
 =============
 SetCustomDecalFrames
 
-  UNDONE:  Determine real frame limit, 8 is a placeholder.
-  Note:  -1 means no custom frames present.
+UNDONE:  Determine real frame limit, 8 is a placeholder.
+Note:  -1 means no custom frames present
 =============
-*/
+***/
 void CBasePlayer::SetCustomDecalFrames (int nFrames)
 	{
 	if (nFrames > 0 &&
@@ -4354,13 +4356,13 @@ void CBasePlayer::SetCustomDecalFrames (int nFrames)
 		m_nCustomSprayFrames = -1;
 	}
 
-/*
+/***
 =============
 GetCustomDecalFrames
 
-  Returns the # of custom frames this player's custom clan logo contains.
+Returns the # of custom frames this player's custom clan logo contains
 =============
-*/
+***/
 int CBasePlayer::GetCustomDecalFrames (void)
 	{
 	return m_nCustomSprayFrames;

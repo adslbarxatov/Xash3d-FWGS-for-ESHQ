@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -72,17 +72,18 @@ void UpdateBeams (void)
 	if (pBeam2)
 		{
 		pBeam2->target = tr.endpos;
-		pBeam2->die = gEngfuncs.GetClientTime () + 0.1; // We keep it alive just a little bit forward in the future, just in case.
+		pBeam2->die = gEngfuncs.GetClientTime () + 0.1;
+		// We keep it alive just a little bit forward in the future, just in case
 		}
 	}
 
-/*
+/***
 =====================
 Game_AddObjects
 
 Add game specific, client-side objects here
 =====================
-*/
+***/
 void Game_AddObjects (void)
 	{
 	if (pBeam && pBeam2)

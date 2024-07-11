@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,10 +12,10 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 ===== plats.cpp ========================================================
   spawn, think, and touch functions for trains, etc
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -278,7 +278,7 @@ class CPlatTrigger: public CBaseEntity
 		CFuncPlat* m_pPlatform;
 	};
 
-/*
+/***
 QUAKED func_plat (0 .5 .8) ? PLAT_LOW_TRIGGER
 speed	default 150
 
@@ -293,7 +293,7 @@ being implicitly determined by the model's height.
 Set "sounds" to one of the following:
 1) base fast
 2) chain slow
-*/
+***/
 
 void CFuncPlat::Setup (void)
 	{
@@ -824,7 +824,7 @@ void CFuncTrain::Activate (void)
 		}
 	}
 
-/*
+/***
 QUAKED func_train (0 .5 .8) ?
 Trains are moving platforms that players can ride.
 The targets origin specifies the min point of the train at each corner.
@@ -834,7 +834,7 @@ speed	default 100
 dmg		default	2
 sounds
 1) ratchet metal
-*/
+***/
 
 void CFuncTrain::Spawn (void)
 	{
@@ -1435,7 +1435,7 @@ CFuncTrackTrain* CFuncTrackTrain::Instance (edict_t* pent)
 	return NULL;
 	}
 
-/*
+/***
 QUAKED func_train (0 .5 .8) ?
 Trains are moving platforms that players can ride.
 The targets origin specifies the min point of the train at each corner.
@@ -1445,7 +1445,7 @@ speed	default 100
 dmg		default	2
 sounds
 1) ratchet metal
-*/
+***/
 void CFuncTrackTrain::Spawn (void)
 	{
 	if (pev->speed == 0)

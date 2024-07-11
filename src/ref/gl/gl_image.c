@@ -1,4 +1,4 @@
-/*
+/***
 gl_image.c - texture uploading and processing
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "crclib.h"
@@ -35,24 +35,24 @@ static byte dottexture[8][8] =
 	};
 
 #define IsLightMap( tex )	( FBitSet(( tex )->flags, TF_ATLAS_PAGE ))
-/*
+/***
 =================
 R_GetTexture
 
 acess to array elem
 =================
-*/
+***/
 gl_texture_t *R_GetTexture (GLenum texnum)
 	{
 	ASSERT ((texnum >= 0) && (texnum < MAX_TEXTURES));
 	return &gl_textures[texnum];
 	}
 
-/*
+/***
 =================
 GL_TargetToString
 =================
-*/
+***/
 static const char *GL_TargetToString (GLenum target)
 	{
 	switch (target)
@@ -76,11 +76,11 @@ static const char *GL_TargetToString (GLenum target)
 	return "??";
 	}
 
-/*
+/***
 =================
 GL_Bind
 =================
-*/
+***/
 void GL_Bind (GLint tmu, GLenum texnum)
 	{
 	gl_texture_t	*texture;
@@ -144,11 +144,11 @@ qboolean GL_TextureFilteringEnabled (const gl_texture_t *tex)
 	return gl_texture_nearest.value == 0.0f;
 	}
 
-/*
+/***
 =================
 GL_ApplyTextureParams [FWGS, 01.02.24]
 =================
-*/
+***/
 void GL_ApplyTextureParams (gl_texture_t *tex)
 	{
 	vec4_t		border = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -264,11 +264,11 @@ void GL_ApplyTextureParams (gl_texture_t *tex)
 		}
 	}
 
-/*
+/***
 =================
 GL_UpdateTextureParams [FWGS, 01.02.24]
 =================
-*/
+***/
 static void GL_UpdateTextureParams (int iTexture)
 	{
 	gl_texture_t	*tex = &gl_textures[iTexture];
@@ -303,11 +303,11 @@ static void GL_UpdateTextureParams (int iTexture)
 		}
 	}
 
-/*
+/***
 =================
 R_SetTextureParameters
 =================
-*/
+***/
 void R_SetTextureParameters (void)
 	{
 	int	i;
@@ -338,11 +338,11 @@ void R_SetTextureParameters (void)
 		GL_UpdateTextureParams (i);
 	}
 
-/*
+/***
 ================
 GL_CalcTextureSamples
 ================
-*/
+***/
 static int GL_CalcTextureSamples (int flags)
 	{
 	if (FBitSet (flags, IMAGE_HAS_COLOR))
@@ -351,11 +351,11 @@ static int GL_CalcTextureSamples (int flags)
 	return FBitSet (flags, IMAGE_HAS_ALPHA) ? 2 : 1;
 	}
 
-/*
+/***
 ==================
 GL_CalcImageSize
 ==================
-*/
+***/
 static size_t GL_CalcImageSize (pixformat_t format, int width, int height, int depth)
 	{
 	size_t	size = 0;
@@ -395,11 +395,11 @@ static size_t GL_CalcImageSize (pixformat_t format, int width, int height, int d
 	return size;
 	}
 
-/*
+/***
 ==================
 GL_CalcTextureSize
 ==================
-*/
+***/
 static size_t GL_CalcTextureSize (GLenum format, int width, int height, int depth)
 	{
 	size_t	size = 0;
@@ -531,11 +531,11 @@ static int GL_CalcMipmapCount (gl_texture_t *tex, qboolean haveBuffer)
 	return mipcount + 1;
 	}
 
-/*
+/***
 ================
 GL_SetTextureDimensions
 ================
-*/
+***/
 static void GL_SetTextureDimensions (gl_texture_t *tex, int width, int height, int depth)
 	{
 	int	maxTextureSize = 0;
@@ -623,11 +623,11 @@ static void GL_SetTextureDimensions (gl_texture_t *tex, int width, int height, i
 	tex->depth = Q_max (1, depth);
 	}
 
-/*
+/***
 ===============
 GL_SetTextureTarget [FWGS, 01.05.24]
 ===============
-*/
+***/
 static void GL_SetTextureTarget (gl_texture_t *tex, rgbdata_t *pic)
 	{
 	Assert (pic != NULL);
@@ -644,7 +644,6 @@ static void GL_SetTextureTarget (gl_texture_t *tex, rgbdata_t *pic)
 #ifndef XASH_GLES
 	if ((pic->width > 1) && (pic->height <= 1))
 		tex->target = GL_TEXTURE_1D;
-	/*else if (FBitSet (pic->flags, IMAGE_CUBEMAP))*/
 	else
 #endif // just skip first condition
 		if (FBitSet (pic->flags, IMAGE_CUBEMAP))
@@ -685,11 +684,11 @@ static void GL_SetTextureTarget (gl_texture_t *tex, rgbdata_t *pic)
 		tex->target = GL_NONE;
 	}
 
-/*
+/***
 ===============
 GL_SetTextureFormat [FWGS, 01.11.23]
 ===============
-*/
+***/
 static void GL_SetTextureFormat (gl_texture_t *tex, pixformat_t format, int channelMask)
 	{
 	qboolean	haveColor = (channelMask & IMAGE_HAS_COLOR);
@@ -806,13 +805,13 @@ static void GL_SetTextureFormat (gl_texture_t *tex, pixformat_t format, int chan
 		}
 	}
 
-/*
+/***
 =================
 GL_ResampleTexture
 
 Assume input buffer is RGBA
 =================
-*/
+***/
 byte *GL_ResampleTexture (const byte *source, int inWidth, int inHeight, int outWidth, int outHeight, qboolean isNormalMap)
 	{
 	uint		frac, fracStep;
@@ -898,13 +897,13 @@ byte *GL_ResampleTexture (const byte *source, int inWidth, int inHeight, int out
 	return scaledImage;
 	}
 
-/*
+/***
 =================
 GL_BoxFilter3x3
 
 box filter 3x3
 =================
-*/
+***/
 static void GL_BoxFilter3x3 (byte *out, const byte *in, int w, int h, int x, int y)
 	{
 	int		r = 0, g = 0, b = 0, a = 0;
@@ -944,13 +943,13 @@ static void GL_BoxFilter3x3 (byte *out, const byte *in, int w, int h, int x, int
 	out[2] = b / acount;
 	}
 
-/*
+/***
 =================
 GL_ApplyFilter
 
 Apply box-filter to 1-bit alpha
 =================
-*/
+***/
 static byte *GL_ApplyFilter (const byte *source, int width, int height)
 	{
 	byte	*in = (byte *)source;
@@ -969,13 +968,13 @@ static byte *GL_ApplyFilter (const byte *source, int width, int height)
 	return out;
 	}
 
-/*
+/***
 =================
 GL_BuildMipMap
 
 Operates in place, quartering the size of the texture
 =================
-*/
+***/
 static void GL_BuildMipMap (byte *in, int srcWidth, int srcHeight, int srcDepth, int flags)
 	{
 	byte	*out = in;
@@ -1172,13 +1171,13 @@ static void GL_TextureImageCompressed (gl_texture_t *tex, GLint side, GLint leve
 #endif
 	}
 
-/*
+/***
 ===============
 GL_CheckTexImageError
 
 show GL-errors on load images
 ===============
-*/
+***/
 static void GL_CheckTexImageError (gl_texture_t *tex)
 	{
 	int	err;
@@ -1191,13 +1190,13 @@ static void GL_CheckTexImageError (gl_texture_t *tex)
 			tex->name, GL_TargetToString (tex->target));
 	}
 
-/*
+/***
 ===============
 GL_UploadTexture
 
 upload texture into video memory
 ===============
-*/
+***/
 static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 	{
 	byte		*buf, *data;
@@ -1346,13 +1345,13 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 	return true;
 	}
 
-/*
+/***
 ===============
 GL_ProcessImage
 
 do specified actions on pixels
 ===============
-*/
+***/
 static void GL_ProcessImage (gl_texture_t *tex, rgbdata_t *pic)
 	{
 	uint	img_flags = 0;
@@ -1406,11 +1405,11 @@ static void GL_ProcessImage (gl_texture_t *tex, rgbdata_t *pic)
 		}
 	}
 
-/*
+/***
 ================
 GL_CheckTexName
 ================
-*/
+***/
 static qboolean GL_CheckTexName (const char *name)
 	{
 	int len;
@@ -1430,11 +1429,11 @@ static qboolean GL_CheckTexName (const char *name)
 	return true;
 	}
 
-/*
+/***
 ================
 GL_TextureForName
 ================
-*/
+***/
 static gl_texture_t *GL_TextureForName (const char *name)
 	{
 	gl_texture_t	*tex;
@@ -1452,11 +1451,11 @@ static gl_texture_t *GL_TextureForName (const char *name)
 	return NULL;
 	}
 
-/*
+/***
 ================
 GL_AllocTexture
 ================
-*/
+***/
 static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 	{
 	gl_texture_t	*tex;
@@ -1502,11 +1501,11 @@ static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 	return tex;
 	}
 
-/*
+/***
 ================
 GL_DeleteTexture [FWGS, 01.05.24]
 ================
-*/
+***/
 static void GL_DeleteTexture (gl_texture_t *tex)
 	{
 	gl_texture_t	**prev;
@@ -1565,13 +1564,13 @@ static void GL_DeleteTexture (gl_texture_t *tex)
 	memset (tex, 0, sizeof (*tex));
 	}
 
-/*
+/***
 ================
 GL_UpdateTexSize
 
 recalc image room
 ================
-*/
+***/
 void GL_UpdateTexSize (int texnum, int width, int height, int depth)
 	{
 	int		i, j, texsize;
@@ -1598,11 +1597,11 @@ void GL_UpdateTexSize (int texnum, int width, int height, int depth)
 		}
 	}
 
-/*
+/***
 ================
 GL_LoadTexture
 ================
-*/
+***/
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags)
 	{
 	gl_texture_t	*tex;
@@ -1646,11 +1645,11 @@ int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags)
 	return tex - gl_textures;
 	}
 
-/*
+/***
 ================
 GL_LoadTextureArray [FWGS, 01.01.24]
 ================
-*/
+***/
 int GL_LoadTextureArray (const char **names, int flags)
 	{
 	rgbdata_t	*pic, *src;
@@ -1805,11 +1804,11 @@ int GL_LoadTextureArray (const char **names, int flags)
 	return tex - gl_textures;
 	}
 
-/*
+/***
 ================
 GL_LoadTextureFromBuffer
 ================
-*/
+***/
 int GL_LoadTextureFromBuffer (const char *name, rgbdata_t *pic, texFlags_t flags, qboolean update)
 	{
 	gl_texture_t *tex;
@@ -1848,13 +1847,13 @@ int GL_LoadTextureFromBuffer (const char *name, rgbdata_t *pic, texFlags_t flags
 	return (tex - gl_textures);
 	}
 
-/*
+/***
 ================
 GL_CreateTexture
 
 creates texture from buffer
 ================
-*/
+***/
 int GL_CreateTexture (const char *name, int width, int height, const void *buffer, texFlags_t flags)
 	{
 	qboolean	update = FBitSet (flags, TF_UPDATE) ? true : false;
@@ -1895,13 +1894,13 @@ int GL_CreateTexture (const char *name, int width, int height, const void *buffe
 	return GL_LoadTextureFromBuffer (name, &r_empty, flags, update);
 	}
 
-/*
+/***
 ================
 GL_CreateTextureArray
 
 creates texture array from buffer
 ================
-*/
+***/
 int GL_CreateTextureArray (const char *name, int width, int height, int depth, const void *buffer, texFlags_t flags)
 	{
 	rgbdata_t	r_empty;
@@ -1939,11 +1938,11 @@ int GL_CreateTextureArray (const char *name, int width, int height, int depth, c
 	return GL_LoadTextureInternal (name, &r_empty, flags);
 	}
 
-/*
+/***
 ================
 GL_FindTexture
 ================
-*/
+***/
 int GL_FindTexture (const char *name)
 	{
 	gl_texture_t *tex;
@@ -1958,11 +1957,11 @@ int GL_FindTexture (const char *name)
 	return 0;
 	}
 
-/*
+/***
 ================
 GL_FreeTexture
 ================
-*/
+***/
 void GL_FreeTexture (GLenum texnum)
 	{
 	// number 0 it's already freed
@@ -1972,11 +1971,11 @@ void GL_FreeTexture (GLenum texnum)
 	GL_DeleteTexture (&gl_textures[texnum]);
 	}
 
-/*
+/***
 ================
 GL_ProcessTexture
 ================
-*/
+***/
 void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 	{
 	gl_texture_t	*image;
@@ -2030,14 +2029,14 @@ void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 	gEngfuncs.FS_FreeImage (pic);
 	}
 
-/*
+/***
 ================
 GL_TexMemory
 - re-added [FWGS, 01.11.23]
 - has been removed [FWGS, 01.05.23]
 return size of all uploaded textures
 ================
-*/
+***/
 int GL_TexMemory (void)
 	{
 	int i, total = 0;
@@ -2048,16 +2047,16 @@ int GL_TexMemory (void)
 	return total;
 	}
 
-/*
+/***
 ==============================================================================
 INTERNAL TEXTURES
 ==============================================================================
-*/
-/*
+***/
+/***
 ==================
 GL_FakeImage
 ==================
-*/
+***/
 static rgbdata_t *GL_FakeImage (int width, int height, int depth, int flags)
 	{
 	static byte			data2D[1024]; // 16x16x4
@@ -2082,11 +2081,11 @@ static rgbdata_t *GL_FakeImage (int width, int height, int depth, int flags)
 	return &r_image;
 	}
 
-/*
+/***
 ==================
 R_InitDlightTexture
 ==================
-*/
+***/
 void R_InitDlightTexture (void)
 	{
 	rgbdata_t	r_image;
@@ -2104,11 +2103,11 @@ void R_InitDlightTexture (void)
 	tr.dlightTexture = GL_LoadTextureInternal ("*dlight", &r_image, TF_NOMIPMAP | TF_CLAMP | TF_ATLAS_PAGE);
 	}
 
-/*
+/***
 ==================
 GL_CreateInternalTextures
 ==================
-*/
+***/
 static void GL_CreateInternalTextures (void)
 	{
 	int		dx2, dy, d;
@@ -2170,11 +2169,11 @@ static void GL_CreateInternalTextures (void)
 	tr.cinTexture = GL_LoadTextureInternal ("*cintexture", pic, TF_NOMIPMAP | TF_CLAMP);
 	}
 
-/*
+/***
 ===============
 R_TextureList_f
 ===============
-*/
+***/
 void R_TextureList_f (void)
 	{
 	gl_texture_t	*image;
@@ -2386,11 +2385,11 @@ void R_TextureList_f (void)
 	gEngfuncs.Con_Printf ("\n");
 	}
 
-/*
+/***
 ===============
 R_InitImages
 ===============
-*/
+***/
 void R_InitImages (void)
 	{
 	memset (gl_textures, 0, sizeof (gl_textures));
@@ -2414,11 +2413,11 @@ void R_InitImages (void)
 	gEngfuncs.Cmd_AddCommand ("texturelist", R_TextureList_f, "display loaded textures list");
 	}
 
-/*
+/***
 ===============
 R_ShutdownImages
 ===============
-*/
+***/
 void R_ShutdownImages (void)
 	{
 	gl_texture_t	*tex;

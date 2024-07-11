@@ -197,12 +197,6 @@ static qboolean SV_ValidateMap (const char *pMapName)
 		return false;
 		}
 
-	/*if (check_spawn && !FBitSet (flags, MAP_HAS_SPAWNPOINT))
-		{
-		Con_Printf (S_ERROR "map %s doesn't have a valid spawnpoint\n", pMapName);
-		return false;
-		}*/
-
 	return true;
 	}
 
@@ -1166,9 +1160,9 @@ void SV_InitHostCommands (void)
 			Cmd_AddRestrictedCommand ("esrm_barriers", SV_ESRM_Command,
 				"Sets types of barriers between map sections for the next map (1 = glass, 2 = fabric, 3 = both)");
 			Cmd_AddRestrictedCommand ("esrm_fog", SV_ESRM_Command,
-				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 1[0%] - 11[100%])");
+				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 0[0%] - 10[100%])");
 			Cmd_AddRestrictedCommand ("esrm_water", SV_ESRM_Command,
-				"Sets the water level multiplier (x * 5%) for the next map (coeff, 1[0%] - 10[45%])");
+				"Sets the water level multiplier (x * 5%) for the next map (coeff, 0[0%] - 9[45%])");
 			Cmd_AddRestrictedCommand ("esrm_items_on_2nd_floor", SV_ESRM_Command,
 				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");
 

@@ -11,15 +11,15 @@
 #pragma once
 #endif
 
-/*
+/***
 ====================
 CGameStudioModelRenderer
 ====================
-*/
+***/
 class CGameStudioModelRenderer: public CStudioModelRenderer
 	{
 	public:
 		CGameStudioModelRenderer (void);
 	};
 
-#endif // GAMESTUDIOMODELRENDERER_H
+#endif

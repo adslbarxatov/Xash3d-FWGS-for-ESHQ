@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== triggers.cpp ========================================================
 
   spawn and use functions for editor-placed triggers
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -513,11 +513,11 @@ class CBaseTrigger : public CBaseToggle
 
 LINK_ENTITY_TO_CLASS (trigger, CBaseTrigger);
 
-/*
+/***
 ================
 InitTrigger
 ================
-*/
+***/
 void CBaseTrigger::InitTrigger ()
 	{
 	// trigger angles are used for one-way touches.  An angle of 0 is assumed
@@ -959,7 +959,7 @@ void CBaseTrigger::HurtTouch (CBaseEntity *pOther)
 		}
 	}
 
-/*
+/***
 QUAKED trigger_multiple (.5 .5 .5) ? notouch
 Variable sized repeatable trigger.  Must be targeted at one or more entities.
 If "health" is set, the trigger must be killed to activate each time.
@@ -974,7 +974,7 @@ sounds
 4)
 NEW
 if a trigger has a NETNAME, that NETNAME will become the TARGET of the triggered object.
-*/
+***/
 class CTriggerMultiple : public CBaseTrigger
 	{
 	public:
@@ -1219,7 +1219,7 @@ void CTriggerFog::MultiTouch_Fog (CBaseEntity *pOther)
 	}
 
 
-/*
+/***
 QUAKED trigger_once (.5 .5 .5) ? notouch
 Variable sized trigger. Triggers once, then removes itself.  You must set the key "target"
 to the name of another object in the level that has a matching
@@ -1233,7 +1233,7 @@ sounds
 2)      beep beep
 3)      large switch
 4)
-*/
+***/
 class CTriggerOnce : public CTriggerMultiple
 	{
 	public:
@@ -1414,13 +1414,13 @@ void CBaseTrigger::CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	ActivateMultiTrigger (m_hActivator, -1);
 	}
 
-/*
+/***
 QUAKED trigger_counter (.5 .5 .5) ? nomessage
 Acts as an intermediary for an action that takes multiple inputs.
 If nomessage is not set, it will print "1 more.. " etc when triggered and
 "sequence complete" when finished.  After the counter has been triggered "cTriggersLeft"
 times (default 2), it will fire all of it's targets and remove itself.
-*/
+***/
 class CTriggerCounter : public CBaseTrigger
 	{
 	public:
@@ -1565,11 +1565,11 @@ void CChangeLevel::KeyValue (KeyValueData *pkvd)
 		}
 	}
 
-/*
+/***
 QUAKED trigger_changelevel (0.5 0.5 0.5) ? NO_INTERMISSION
 When the player touches this, he gets sent to the map listed in the "map" variable. Unless the NO_INTERMISSION flag
 is set, the view will go to the info_intermission spot and display stats.
-*/
+***/
 void CChangeLevel::Spawn (void)
 	{
 	if (FStrEq (m_szMapName, ""))
@@ -1857,10 +1857,10 @@ int CChangeLevel::ChangeList (LEVELLIST *pLevelList, int maxList)
 	return count;
 	}
 
-/*
+/***
 go to the next level for deathmatch
 only called if a time or frag limit has expired
-*/
+***/
 void NextLevel (void)
 	{
 	edict_t *pent;

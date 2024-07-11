@@ -1,4 +1,4 @@
-/*
+/***
 crtlib.c - internal stdlib
 Copyright (C) 2011 Uncle Mike
 
@@ -17,7 +17,6 @@ GNU General Public License for more details.
 #include "const.h"
 #include <math.h>
 #include <stdarg.h>
-/*#include <ctype.h>*/	// [FWGS, 01.05.24]
 #include <time.h>
 #include <stdio.h>	// ESHQ: чего?
 #include "crtlib.h"
@@ -40,31 +39,7 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 	*out = '\0';
 	}
 
-// [FWGS, 01.05.24]
-/*qboolean Q_isdigit (const char *str)
-	{
-	if (str && *str)
-		{
-		while (isdigit (*str))
-			str++;
-		if (!*str)
-			return true;
-		}
-	return false;
-	}*/
-
-// [FWGS, 01.05.24]
-/*qboolean Q_isspace (const char *str)
-	{
-	if (str && *str)
-		{
-		while (isspace (*str))
-			str++;
-		if (!*str)
-			return true;
-		}
-	return false;
-	}*/
+// [FWGS, 01.05.24] removed Q_isdigit, Q_isspace
 
 size_t Q_colorstr (const char *string)
 	{
@@ -89,65 +64,7 @@ size_t Q_colorstr (const char *string)
 	return len;
 	}
 
-// [FWGS, 01.05.24]
-/*char Q_toupper (const char in)
-	{
-	char out;
-
-	if ((in >= 'a') && (in <= 'z'))
-		out = in + 'A' - 'a';
-	else
-		out = in;
-
-	return out;
-	}*/
-
-// [FWGS, 01.05.24]
-/*char Q_tolower (const char in)
-	{
-	char out;
-
-	if ((in >= 'A') && (in <= 'Z'))
-		out = in + 'a' - 'A';
-	else
-		out = in;
-
-	return out;
-	}*/
-
-// [FWGS, 01.05.24]
-/*size_t Q_strncat (char *dst, const char *src, size_t size)
-	{
-	register char *d = dst;
-	register const char *s = src;
-	register size_t	n = size;
-	size_t dlen;
-
-	if (!dst || !src || !size)
-		return 0;
-
-	// find the end of dst and adjust bytes left but don't go past end
-	while ((n-- != 0) && (*d != '\0'))
-		d++;
-	dlen = d - dst;
-	n = size - dlen;
-
-	if (n == 0)
-		return (dlen + Q_strlen (s));
-
-	while (*s != '\0')
-		{
-		if (n != 1)
-			{
-			*d++ = *s;
-			n--;
-			}
-		s++;
-		}
-
-	*d = '\0';
-	return (dlen + (s - src)); // count does not include NULL
-	}*/
+// [FWGS, 01.05.24] removed Q_toupper, Q_tolower, Q_strncat
 
 // [FWGS, 01.07.23] removed Q_strncpy
 
@@ -290,14 +207,10 @@ float Q_atof (const char *str)
 // [FWGS, 01.05.24]
 void Q_atov (float *vec, const char *str, size_t siz)
 	{
-	/*string	buffer;
-	char	*pstr, *pfront;*/
 	const char	*pstr, *pfront;
 	int		j;
 
-	/*Q_strncpy (buffer, str, sizeof (buffer));*/
 	memset (vec, 0, sizeof (vec_t) * siz);
-	/*pstr = pfront = buffer;*/
 	pstr = pfront = str;
 
 	for (j = 0; j < siz; j++)
@@ -446,7 +359,6 @@ const char *Q_timestamp (int format)
 	}
 
 // [FWGS, 01.05.24]
-/*#if !defined( HAVE_STRCASESTR )*/
 #if !HAVE_STRCASESTR
 
 char *Q_stristr (const char *string, const char *string2)
@@ -618,14 +530,14 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 
 // [FWGS, 01.04.23] удалена va
 
-/*
+/***
 ============
 COM_FileBase [FWGS, 01.05.23]
 
 Extracts the base name of a file (no path, no extension, assumes '/' as path separator).
 a1ba: adapted and simplified version from QuakeSpasm
 ============
-*/
+***/
 void COM_FileBase (const char *in, char *out, size_t size)
 	{
 	const char *dot, *slash, *s;
@@ -657,11 +569,11 @@ void COM_FileBase (const char *in, char *out, size_t size)
 	out[len] = 0;
 	}
 
-/*
+/***
 ============
 COM_FileExtension
 ============
-*/
+***/
 const char *COM_FileExtension (const char *in)
 	{
 	const char *separator, *backslash, *colon, *dot;
@@ -685,11 +597,11 @@ const char *COM_FileExtension (const char *in)
 	return dot + 1;
 	}
 
-/*
+/***
 ============
 COM_FileWithoutPath
 ============
-*/
+***/
 const char *COM_FileWithoutPath (const char *in)
 	{
 	const char *separator, *backslash, *colon;
@@ -708,11 +620,11 @@ const char *COM_FileWithoutPath (const char *in)
 	return separator ? separator + 1 : in;
 	}
 
-/*
+/***
 ============
 COM_ExtractFilePath
 ============
-*/
+***/
 void COM_ExtractFilePath (const char *path, char *dest)
 	{
 	const char *src = path + Q_strlen (path) - 1;
@@ -732,11 +644,11 @@ void COM_ExtractFilePath (const char *path, char *dest)
 		}
 	}
 
-/*
+/***
 ============
 COM_StripExtension
 ============
-*/
+***/
 void COM_StripExtension (char *path)
 	{
 	size_t	length;
@@ -757,11 +669,11 @@ void COM_StripExtension (char *path)
 		path[length] = 0;
 	}
 
-/*
+/***
 ==================
 COM_DefaultExtension [FWGS, 01.05.23]
 ==================
-*/
+***/
 void COM_DefaultExtension (char *path, const char *extension, size_t size)
 	{
 	const char *src;
@@ -783,22 +695,22 @@ void COM_DefaultExtension (char *path, const char *extension, size_t size)
 	Q_strncpy (&path[len], extension, size - len);
 	}
 
-/*
+/***
 ==================
 COM_ReplaceExtension [FWGS, 01.05.23]
 ==================
-*/
+***/
 void COM_ReplaceExtension (char *path, const char *extension, size_t size)
 	{
 	COM_StripExtension (path);
 	COM_DefaultExtension (path, extension, size);
 	}
 
-/*
+/***
 ============
 COM_RemoveLineFeed
 ============
-*/
+***/
 void COM_RemoveLineFeed (char *str)
 	{
 	while (*str != '\0')
@@ -810,13 +722,13 @@ void COM_RemoveLineFeed (char *str)
 		}
 	}
 
-/*
+/***
 ============
 COM_FixSlashes [FWGS, 01.04.23]
 
 Changes all '\' characters into '/' characters, in place
 ============
-*/
+***/
 void COM_FixSlashes (char *pname)
 	{
 	for (; *pname; pname++)
@@ -826,11 +738,11 @@ void COM_FixSlashes (char *pname)
 		}
 	}
 
-/*
+/***
 ============
 COM_PathSlashFix [FWGS, 01.05.23]
 ============
-*/
+***/
 void COM_PathSlashFix (char *path)
 	{
 	size_t	len;
@@ -844,11 +756,11 @@ void COM_PathSlashFix (char *path)
 		}
 	}
 
-/*
+/***
 ============
 COM_Hex2Char
 ============
-*/
+***/
 char COM_Hex2Char (uint8_t hex)
 	{
 	if ((hex >= 0x0) && (hex <= 0x9))
@@ -859,11 +771,11 @@ char COM_Hex2Char (uint8_t hex)
 	return (char)hex;
 	}
 
-/*
+/***
 ============
 COM_Hex2String
 ============
-*/
+***/
 void COM_Hex2String (uint8_t hex, char *str)
 	{
 	*str++ = COM_Hex2Char (hex >> 4);
@@ -871,13 +783,13 @@ void COM_Hex2String (uint8_t hex, char *str)
 	*str = '\0';
 	}
 
-/*
+/***
 ==============
 COM_IsSingleChar
 
 interpert this character as single
 ==============
-*/
+***/
 static int COM_IsSingleChar (unsigned int flags, char c)
 	{
 	if ((c == '{') || (c == '}') || (c == '\'') || (c == ','))
@@ -892,13 +804,13 @@ static int COM_IsSingleChar (unsigned int flags, char c)
 	return false;
 	}
 
-/*
+/***
 ==============
 COM_ParseFile
 
 text parser
 ==============
-*/
+***/
 char *COM_ParseFileSafe (char *data, char *token, const int size, unsigned int flags, int *plen, qboolean *quoted)
 	{
 	int	c, len = 0;

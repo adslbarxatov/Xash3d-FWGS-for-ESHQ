@@ -1,4 +1,4 @@
-/*
+/***
 gl_cull.c - render culling routines
 Copyright (C) 2010 Uncle Mike
 
@@ -11,33 +11,33 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "entity_types.h"
 
-/*
+/***
 =============================================================
 FRUSTUM AND PVS CULLING
 =============================================================
-*/
-/*
+***/
+/***
 =================
 R_CullBox
 
 Returns true if the box is completely outside the frustum
 =================
-*/
+***/
 qboolean R_CullBox (const vec3_t mins, const vec3_t maxs)
 	{
 	return GL_FrustumCullBox (&RI.frustum, mins, maxs, 0);
 	}
 
-/*
+/***
 =============
 R_CullModel [FWGS, 01.01.24]
 =============
-*/
+***/
 int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 	{
 	if (e == tr.viewent)
@@ -57,13 +57,13 @@ int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 	return 0;
 	}
 
-/*
+/***
 =================
 R_CullSurface
 
 cull invisible surfaces
 =================
-*/
+***/
 int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
 	{
 	cl_entity_t *e = RI.currententity;

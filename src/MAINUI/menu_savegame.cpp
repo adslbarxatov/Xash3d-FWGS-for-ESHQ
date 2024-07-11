@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -78,11 +77,11 @@ typedef struct
 
 static uiSaveGame_t		uiSaveGame;
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void* self)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -104,11 +103,11 @@ static void UI_DeleteDialog (void)
 	uiSaveGame.yes.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_SaveGame_KeyFunc
 =================
-*/
+***/
 static const char* UI_SaveGame_KeyFunc (int key, int down)
 	{
 	if (down && (key == K_ESCAPE) && uiSaveGame.save.generic.flags & QMF_INACTIVE)
@@ -119,11 +118,11 @@ static const char* UI_SaveGame_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiSaveGame.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_SaveGame_GetGameList
 =================
-*/
+***/
 static void UI_SaveGame_GetGameList (void)
 	{
 	char	comment[256];
@@ -218,11 +217,11 @@ static void UI_SaveGame_GetGameList (void)
 		uiSaveGame.remove.generic.flags &= ~QMF_GRAYED;
 	}
 
-/*
+/***
 =================
 UI_SaveGame_Callback
 =================
-*/
+***/
 static void UI_SaveGame_Callback (void* self, int event)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -288,11 +287,11 @@ static void UI_SaveGame_Callback (void* self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_SaveGame_Ownerdraw
 =================
-*/
+***/
 static void UI_SaveGame_Ownerdraw (void* self)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -329,11 +328,11 @@ static void UI_SaveGame_Ownerdraw (void* self)
 		}
 	}
 
-/*
+/***
 =================
 UI_SaveGame_Init
 =================
-*/
+***/
 static void UI_SaveGame_Init (void)
 	{
 	memset (&uiSaveGame, 0, sizeof (uiSaveGame_t));
@@ -500,31 +499,30 @@ static void UI_SaveGame_Init (void)
 	UI_AddItem (&uiSaveGame.menu, (void*)&uiSaveGame.yes);
 	}
 
-/*
+/***
 =================
 UI_SaveGame_Precache
 =================
-*/
+***/
 void UI_SaveGame_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_SaveGame_Menu
 =================
-*/
+***/
 void UI_SaveGame_Menu (void)
 	{
+	// completely ignore save\load menus for multiplayer_only
 	if (gMenu.m_gameinfo.gamemode == GAME_MULTIPLAYER_ONLY)
-		{
-		// completely ignore save\load menus for multiplayer_only
 		return;
-		}
 
-	if (!CheckGameDll ()) return;
+	if (!CheckGameDll ())
+		return;
 
 	UI_SaveGame_Precache ();
 	UI_SaveGame_Init ();

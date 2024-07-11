@@ -1,4 +1,4 @@
-/*
+/***
 gl_beams.c - beams rendering
 Copyright (C) 2009 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "r_efx.h"
@@ -31,11 +31,11 @@ typedef struct
 	float	width;
 	} beamseg_t;
 
-/*
+/***
 ==============================================================
 FRACTAL NOISE
 ==============================================================
-*/
+***/
 static float	rgNoise[NOISE_DIVISIONS + 1];	// global noise array
 
 // freq2 += step * 0.1;
@@ -71,11 +71,11 @@ static void SineNoise (float *noise, int divs)
 	}
 
 
-/*
+/***
 ==============================================================
 BEAM MATHLIB
 ==============================================================
-*/
+***/
 static void R_BeamComputePerpendicular (const vec3_t vecBeamDelta, vec3_t pPerp)
 	{
 	// direction in worldspace of the center of the beam
@@ -103,13 +103,13 @@ static void R_BeamComputeNormal (const vec3_t vStartPos, const vec3_t vNextPos, 
 	}
 
 
-/*
+/***
 ==============
 R_BeamCull
 
 Cull the beam by bbox
 ==============
-*/
+***/
 qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly)
 	{
 	vec3_t	mins, maxs;
@@ -147,13 +147,13 @@ qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly)
 	return true;
 	}
 
-/*
+/***
 ================
 CL_AddCustomBeam
 
 Add the beam that encoded as custom entity
 ================
-*/
+***/
 void CL_AddCustomBeam (cl_entity_t *pEnvBeam)
 	{
 	if (tr.draw_list->num_beam_entities >= MAX_VISIBLE_PACKET)
@@ -170,18 +170,18 @@ void CL_AddCustomBeam (cl_entity_t *pEnvBeam)
 	}
 
 
-/*
+/***
 ==============================================================
 BEAM DRAW METHODS
 ==============================================================
-*/
-/*
+***/
+/***
 ================
 R_DrawSegs
 
 general code for drawing beams
 ================
-*/
+***/
 static void R_DrawSegs (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed,
 	int segments, int flags)
 	{
@@ -358,13 +358,13 @@ static void R_DrawSegs (vec3_t source, vec3_t delta, float width, float scale, f
 		}
 	}
 
-/*
+/***
 ================
 R_DrawTorus
 
 Draw beamtours
 ================
-*/
+***/
 static void R_DrawTorus (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
 	{
 	int		i, noiseIndex, noiseStep;
@@ -448,13 +448,13 @@ static void R_DrawTorus (vec3_t source, vec3_t delta, float width, float scale, 
 		}
 	}
 
-/*
+/***
 ================
 R_DrawDisk
 
 Draw beamdisk
 ================
-*/
+***/
 static void R_DrawDisk (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
 	{
 	float	div, length, fraction;
@@ -507,13 +507,13 @@ static void R_DrawDisk (vec3_t source, vec3_t delta, float width, float scale, f
 		}
 	}
 
-/*
+/***
 ================
 R_DrawCylinder
 
 Draw beam cylinder
 ================
-*/
+***/
 static void R_DrawCylinder (vec3_t source, vec3_t delta, float width, float scale, float freq, float speed, int segments)
 	{
 	float	div, length, fraction;
@@ -565,13 +565,13 @@ static void R_DrawCylinder (vec3_t source, vec3_t delta, float width, float scal
 		}
 	}
 
-/*
+/***
 ==============
 R_DrawBeamFollow
 
 drawi followed beam
 ==============
-*/
+***/
 static void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 	{
 	particle_t	*pnew, *particles;
@@ -716,13 +716,13 @@ static void R_DrawBeamFollow (BEAM *pbeam, float frametime)
 		}
 	}
 
-/*
+/***
 ================
 R_DrawRing
 
 Draw beamring
 ================
-*/
+***/
 static void R_DrawRing (vec3_t source, vec3_t delta, float width, float amplitude, float freq, float speed, int segments)
 	{
 	int		i, j, noiseIndex, noiseStep;
@@ -839,13 +839,13 @@ static void R_DrawRing (vec3_t source, vec3_t delta, float width, float amplitud
 		}
 	}
 
-/*
+/***
 ==============
 R_BeamComputePoint
 
 compute attachment point for beam
 ==============
-*/
+***/
 static qboolean R_BeamComputePoint (int beamEnt, vec3_t pt)
 	{
 	cl_entity_t	*ent;
@@ -876,13 +876,13 @@ static qboolean R_BeamComputePoint (int beamEnt, vec3_t pt)
 	return true;
 	}
 
-/*
+/***
 ==============
 R_BeamRecomputeEndpoints
 
 Recomputes beam endpoints
 ==============
-*/
+***/
 static qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
 	{
 	if (FBitSet (pbeam->flags, FBEAM_STARTENTITY))
@@ -930,13 +930,13 @@ static qboolean R_BeamRecomputeEndpoints (BEAM *pbeam)
 	}
 
 
-/*
+/***
 ==============
 R_BeamDraw [FWGS, 01.02.24]
 
 Update beam vars and draw it
 ==============
-*/
+***/
 static void R_BeamDraw (BEAM *pbeam, float frametime)
 	{
 	model_t	*model;
@@ -1133,13 +1133,13 @@ static void R_BeamDraw (BEAM *pbeam, float frametime)
 	r_stats.c_view_beams_count++;
 	}
 
-/*
+/***
 ==============
 R_BeamSetAttributes
 
 set beam attributes
 ==============
-*/
+***/
 static void R_BeamSetAttributes (BEAM *pbeam, float r, float g, float b, float framerate, int startFrame)
 	{
 	pbeam->frame = (float)startFrame;
@@ -1149,14 +1149,14 @@ static void R_BeamSetAttributes (BEAM *pbeam, float r, float g, float b, float f
 	pbeam->b = b;
 	}
 
-/*
+/***
 ==============
 R_BeamSetup [FWGS, 01.01.24]
 
 generic function. all beams must be
 passed through this
 ==============
-*/
+***/
 static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, float life, float width,
 	float amplitude, float brightness, float speed)
 	{
@@ -1191,13 +1191,13 @@ static void R_BeamSetup (BEAM *pbeam, vec3_t start, vec3_t end, int modelIndex, 
 	pbeam->flags = 0;
 	}
 
-/*
+/***
 ==============
 R_BeamDrawCustomEntity
 
 initialize beam from server entity
 ==============
-*/
+***/
 static void R_BeamDrawCustomEntity (cl_entity_t *ent)
 	{
 	BEAM	beam;
@@ -1267,13 +1267,13 @@ static void R_BeamDrawCustomEntity (cl_entity_t *ent)
 	R_BeamDraw (&beam, tr.frametime);
 	}
 
-/*
+/***
 ==============
 CL_DrawBeams
 
 draw beam loop
 ==============
-*/
+***/
 void CL_DrawBeams (int fTrans, BEAM *active_beams)
 	{
 	BEAM	*pBeam;

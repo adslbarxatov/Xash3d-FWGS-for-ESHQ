@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -51,11 +50,11 @@ typedef struct
 
 static uiSaveLoad_t	uiSaveLoad;
 
-/*
+/***
 =================
 UI_SaveLoad_Callback
 =================
-*/
+***/
 static void UI_SaveLoad_Callback (void* self, int event)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -77,11 +76,11 @@ static void UI_SaveLoad_Callback (void* self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_SaveLoad_Init
 =================
-*/
+***/
 static void UI_SaveLoad_Init (void)
 	{
 	memset (&uiSaveLoad, 0, sizeof (uiSaveLoad_t));
@@ -178,29 +177,27 @@ static void UI_SaveLoad_Init (void)
 	UI_AddItem (&uiSaveLoad.menu, (void*)&uiSaveLoad.hintMessage);
 	}
 
-/*
+/***
 =================
 UI_SaveLoad_Precache
 =================
-*/
+***/
 void UI_SaveLoad_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_SaveLoad_Menu
 =================
-*/
+***/
 void UI_SaveLoad_Menu (void)
 	{
+	// completely ignore save\load menus for multiplayer_only
 	if (gMenu.m_gameinfo.gamemode == GAME_MULTIPLAYER_ONLY)
-		{
-		// completely ignore save\load menus for multiplayer_only
 		return;
-		}
 
 	UI_SaveLoad_Precache ();
 	UI_SaveLoad_Init ();

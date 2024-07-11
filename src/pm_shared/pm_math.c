@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -184,7 +184,7 @@ void NormalizeAngles (float* angles)
 		}
 	}
 
-/*
+/***
 ===================
 InterpolateAngles
 
@@ -192,7 +192,7 @@ Interpolate Euler angles.
 FIXME:  Use Quaternions to avoid discontinuities
 Frac is 0.0 to 1.0 ( i.e., should probably be clamped, but doesn't have to be )
 ===================
-*/
+***/
 void InterpolateAngles (float* start, float* end, float* output, float frac)
 	{
 	int i;
@@ -224,12 +224,11 @@ void InterpolateAngles (float* start, float* end, float* output, float frac)
 	}
 
 
-/*
+/***
 ===================
 AngleBetweenVectors
-
 ===================
-*/
+***/
 float AngleBetweenVectors (const vec3_t v1, const vec3_t v2)
 	{
 	float angle;

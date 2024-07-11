@@ -11,12 +11,11 @@
 #pragma once
 #endif
 
-/*
+/***
 ====================
 CStudioModelRenderer
-
 ====================
-*/
+***/
 class CStudioModelRenderer
 	{
 	public:

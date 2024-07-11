@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -61,11 +60,11 @@ typedef struct
 
 static uiOptions_t		uiOptions;
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -88,11 +87,11 @@ static void UI_CheckUpdatesDialog (void)
 	uiOptions.yes.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_Options_KeyFunc
 =================
-*/
+***/
 static const char *UI_Options_KeyFunc (int key, int down)
 	{
 	if (down && (key == K_ESCAPE) && (uiOptions.done.generic.flags & QMF_INACTIVE))
@@ -103,11 +102,11 @@ static const char *UI_Options_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiOptions.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_Options_Callback
 =================
-*/
+***/
 static void UI_Options_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -141,11 +140,11 @@ static void UI_Options_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_Options_Init
 =================
-*/
+***/
 static void UI_Options_Init (void)
 	{
 	memset (&uiOptions, 0, sizeof (uiOptions_t));
@@ -295,22 +294,22 @@ static void UI_Options_Init (void)
 	UI_AddItem (&uiOptions.menu, (void *)&uiOptions.yes);
 	}
 
-/*
+/***
 =================
 UI_Options_Precache
 =================
-*/
+***/
 void UI_Options_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_Options_Menu
 =================
-*/
+***/
 void UI_Options_Menu (void)
 	{
 	UI_Options_Precache ();

@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -52,11 +51,11 @@ typedef struct
 
 static uiMultiPlayer_t	uiMultiPlayer;
 
-/*
+/***
 =================
 UI_MultiPlayer_Callback
 =================
-*/
+***/
 static void UI_MultiPlayer_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -87,11 +86,11 @@ static void UI_MultiPlayer_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_MultiPlayer_Init
 =================
-*/
+***/
 static void UI_MultiPlayer_Init (void)
 	{
 	memset (&uiMultiPlayer, 0, sizeof (uiMultiPlayer_t));
@@ -212,22 +211,22 @@ static void UI_MultiPlayer_Init (void)
 	UI_AddItem (&uiMultiPlayer.menu, (void *)&uiMultiPlayer.done);
 	}
 
-/*
+/***
 =================
 UI_MultiPlayer_Precache
 =================
-*/
+***/
 void UI_MultiPlayer_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_MultiPlayer_Menu
 =================
-*/
+***/
 void UI_MultiPlayer_Menu (void)
 	{
 	if (gMenu.m_gameinfo.gamemode == GAME_SINGLEPLAYER_ONLY)

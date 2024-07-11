@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -97,11 +96,11 @@ static void UI_ResetToDefaultsDialog (void)
 	uiControls.no.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_Controls_GetKeyBindings
 =================
-*/
+***/
 static void UI_Controls_GetKeyBindings (const char* command, int* twoKeys)
 	{
 	int		i, count = 0;
@@ -309,11 +308,11 @@ static void UI_Controls_ResetKeysList (void)
 	UI_Controls_RestartMenu ();
 	}
 
-/*
+/***
 =================
 UI_Controls_KeyFunc
 =================
-*/
+***/
 static const char* UI_Controls_KeyFunc (int key, int down)
 	{
 	char	cmd[128];
@@ -398,11 +397,11 @@ static const char* UI_Controls_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiControls.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void* self)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -410,11 +409,11 @@ static void UI_MsgBox_Ownerdraw (void* self)
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
 
-/*
+/***
 =================
 UI_Controls_Callback
 =================
-*/
+***/
 static void UI_Controls_Callback (void* self, int event)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -441,11 +440,11 @@ static void UI_Controls_Callback (void* self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_Controls_Init
 =================
-*/
+***/
 static void UI_Controls_Init (void)
 	{
 	memset (&uiControls, 0, sizeof (uiControls_t));
@@ -651,22 +650,22 @@ static void UI_Controls_Init (void)
 	UI_AddItem (&uiControls.menu, (void*)&uiControls.yes);
 	}
 
-/*
+/***
 =================
 UI_Controls_Precache
 =================
-*/
+***/
 void UI_Controls_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_Controls_Menu
 =================
-*/
+***/
 void UI_Controls_Menu (void)
 	{
 	UI_Controls_Precache ();

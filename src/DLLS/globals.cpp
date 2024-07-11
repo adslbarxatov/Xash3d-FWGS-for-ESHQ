@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,7 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== globals.cpp ========================================================
 
@@ -21,7 +21,7 @@
   Source files that need them should "extern ..." declare each
   variable, to better document what globals they care about.
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"

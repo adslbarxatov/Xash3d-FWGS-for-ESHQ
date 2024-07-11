@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -509,13 +509,13 @@ int PM_MapTextureTypeStepType (char chTextureType)
 		}
 	}
 
-/*
+/***
 ====================
 PM_CatagorizeTextureType
 
 Determine texture info for the texture we are standing on.
 ====================
-*/
+***/
 void PM_CatagorizeTextureType (void)
 	{
 	vec3_t start, end;
@@ -694,13 +694,13 @@ void PM_UpdateStepSound (void)
 		}
 	}
 
-/*
+/***
 ================
 PM_AddToTouched
 
 Add's the trace result to touch list, if contact is not already in list.
 ================
-*/
+***/
 qboolean PM_AddToTouched (pmtrace_t tr, vec3_t impactvelocity)
 	{
 	int i;
@@ -722,13 +722,13 @@ qboolean PM_AddToTouched (pmtrace_t tr, vec3_t impactvelocity)
 	return true;
 	}
 
-/*
+/***
 ================
 PM_CheckVelocity
 
-See if the player has a bogus velocity value.
+See if the player has a bogus velocity value
 ================
-*/
+***/
 void PM_CheckVelocity ()
 	{
 	int i;
@@ -762,7 +762,7 @@ void PM_CheckVelocity ()
 		}
 	}
 
-/*
+/***
 ==================
 PM_ClipVelocity
 
@@ -771,7 +771,7 @@ returns the blocked flags:
 0x01 == floor
 0x02 == step / wall
 ==================
-*/
+***/
 int PM_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overbounce)
 	{
 	float	backoff;
@@ -825,7 +825,6 @@ void PM_AddCorrectGravity ()
 	PM_CheckVelocity ();
 	}
 
-
 void PM_FixupGravityVelocity ()
 	{
 	float	ent_gravity;
@@ -844,13 +843,13 @@ void PM_FixupGravityVelocity ()
 	PM_CheckVelocity ();
 	}
 
-/*
+/***
 ============
 PM_FlyMove
 
 The basic solid body movement clip that slides along multiple planes
 ============
-*/
+***/
 int PM_FlyMove (void)
 	{
 	int			bumpcount, numbumps;
@@ -1026,11 +1025,11 @@ int PM_FlyMove (void)
 	return blocked;
 	}
 
-/*
+/***
 ==============
 PM_Accelerate
 ==============
-*/
+***/
 void PM_Accelerate (vec3_t wishdir, float wishspeed, float accel)
 	{
 	int			i;
@@ -1068,13 +1067,13 @@ void PM_Accelerate (vec3_t wishdir, float wishspeed, float accel)
 		}
 	}
 
-/*
+/***
 =====================
 PM_WalkMove
 
-Only used by players.  Moves along the ground when player is a MOVETYPE_WALK
+Only used by players. Moves along the ground when player is a MOVETYPE_WALK
 ======================
-*/
+***/
 void PM_WalkMove ()
 	{
 	int		clip;
@@ -1237,13 +1236,13 @@ usedown:
 		}
 	}
 
-/*
+/***
 ==================
 PM_Friction
 
 Handles both ground friction and water friction
 ==================
-*/
+***/
 void PM_Friction (void)
 	{
 	float	*vel;
@@ -1348,12 +1347,11 @@ void PM_AirAccelerate (vec3_t wishdir, float wishspeed, float accel)
 		}
 	}
 
-/*
+/***
 ===================
 PM_WaterMove
-
 ===================
-*/
+***/
 void PM_WaterMove (void)
 	{
 	int		i;
@@ -1439,11 +1437,11 @@ void PM_WaterMove (void)
 	}
 
 
-/*
+/***
 ===================
 PM_AirMove
 ===================
-*/
+***/
 void PM_AirMove (void)
 	{
 	int			i;
@@ -1496,13 +1494,13 @@ qboolean PM_InWater (void)
 	return (pmove->waterlevel > 1);
 	}
 
-/*
+/***
 =============
 PM_CheckWater
 
-Sets pmove->waterlevel and pmove->watertype values.
+Sets pmove->waterlevel and pmove->watertype values
 =============
-*/
+***/
 qboolean PM_CheckWater ()
 	{
 	vec3_t	point;
@@ -1571,11 +1569,11 @@ qboolean PM_CheckWater ()
 	return pmove->waterlevel > 1;
 	}
 
-/*
+/***
 =============
 PM_CatagorizePosition
 =============
-*/
+***/
 void PM_CatagorizePosition (void)
 	{
 	vec3_t		point;
@@ -1632,14 +1630,14 @@ void PM_CatagorizePosition (void)
 		}
 	}
 
-/*
+/***
 =================
 PM_GetRandomStuckOffsets
 
 When a player is stuck, it's costly to try and unstick them
 Grab a test offset for the player based on a passed in index
 =================
-*/
+***/
 int PM_GetRandomStuckOffsets (int nIndex, int server, vec3_t offset)
 	{
 	// Last time we did a full
@@ -1656,7 +1654,7 @@ void PM_ResetStuckOffsets (int nIndex, int server)
 	rgStuckLast[nIndex][server] = 0;
 	}
 
-/*
+/***
 =================
 NudgePosition
 
@@ -1664,7 +1662,7 @@ If pmove->origin is in a solid position,
 try nudging slightly on all axis to
 allow for the cut precision of the net coordinates
 =================
-*/
+***/
 #define PM_CHECKSTUCK_MINTIME 0.05  // Don't check again too quickly.
 
 int PM_CheckStuck (void)
@@ -1775,11 +1773,11 @@ int PM_CheckStuck (void)
 	return 1;
 	}
 
-/*
+/***
 ===============
 PM_SpectatorMove
 ===============
-*/
+***/
 void PM_SpectatorMove (void)
 	{
 	float	speed, drop, friction, control, newspeed;
@@ -1900,14 +1898,14 @@ void PM_SpectatorMove (void)
 		}
 	}
 
-/*
+/***
 ==================
 PM_SplineFraction
 
 Use for ease-in, ease-out style interpolation (accel/decel)
-Used by ducking code.
+Used by ducking code
 ==================
-*/
+***/
 float PM_SplineFraction (float value, float scale)
 	{
 	float valueSquared;
@@ -2222,11 +2220,11 @@ void PM_WaterJump (void)
 	pmove->velocity[1] = pmove->movedir[1];
 	}
 
-/*
+/***
 ============
 PM_AddGravity
 ============
-*/
+***/
 void PM_AddGravity ()
 	{
 	float	ent_gravity;
@@ -2242,13 +2240,14 @@ void PM_AddGravity ()
 	pmove->basevelocity[2] = 0;
 	PM_CheckVelocity ();
 	}
-/*
+
+/***
 ============
 PM_PushEntity
 
 Does not change the entities velocity at all
 ============
-*/
+***/
 pmtrace_t PM_PushEntity (vec3_t push)
 	{
 	pmtrace_t	trace;
@@ -2269,13 +2268,13 @@ pmtrace_t PM_PushEntity (vec3_t push)
 	return trace;
 	}
 
-/*
+/***
 ============
 PM_Physics_Toss()
 
 Dead player flying through air., e.g.
 ============
-*/
+***/
 void PM_Physics_Toss ()
 	{
 	pmtrace_t	trace;
@@ -2371,11 +2370,11 @@ void PM_Physics_Toss ()
 	PM_CheckWater ();
 	}
 
-/*
+/***
 ====================
 PM_NoClip
 ====================
-*/
+***/
 void PM_NoClip ()
 	{
 	int			i;
@@ -2437,11 +2436,11 @@ void PM_PreventMegaBunnyJumping (void)
 	VectorScale (pmove->velocity, fraction, pmove->velocity); // Crop it down!
 	}
 
-/*
+/***
 =============
 PM_Jump
 =============
-*/
+***/
 void PM_Jump (void)
 	{
 	int i;
@@ -2572,15 +2571,15 @@ void PM_Jump (void)
 	// Decay it for simulation
 	PM_FixupGravityVelocity ();
 
-	// Flag that we jumped.
+	// Flag that we jumped
 	pmove->oldbuttons |= IN_JUMP;	// don't jump again until released
 	}
 
-/*
+/***
 =============
 PM_CheckWaterJump
 =============
-*/
+***/
 #define WJ_HEIGHT 8
 void PM_CheckWaterJump (void)
 	{
@@ -2700,11 +2699,11 @@ void PM_CheckFalling (void)
 		pmove->flFallVelocity = 0;
 	}
 
-/*
+/***
 =================
 PM_PlayWaterSounds
 =================
-*/
+***/
 void PM_PlayWaterSounds (void)
 	{
 	// Did we enter or leave water?
@@ -2729,11 +2728,11 @@ void PM_PlayWaterSounds (void)
 		}
 	}
 
-/*
+/***
 ===============
 PM_CalcRoll
 ===============
-*/
+***/
 float PM_CalcRoll (vec3_t angles, vec3_t velocity, float rollangle, float rollspeed)
 	{
 	float   sign;
@@ -2759,11 +2758,11 @@ float PM_CalcRoll (vec3_t angles, vec3_t velocity, float rollangle, float rollsp
 	return side * sign;
 	}
 
-/*
+/***
 =============
 PM_DropPunchAngle
 =============
-*/
+***/
 void PM_DropPunchAngle (vec3_t punchangle)
 	{
 	float	len;
@@ -2774,11 +2773,11 @@ void PM_DropPunchAngle (vec3_t punchangle)
 	VectorScale (punchangle, len, punchangle);
 	}
 
-/*
+/***
 ==============
 PM_CheckParamters
 ==============
-*/
+***/
 void PM_CheckParamters (void)
 	{
 	float	spd;
@@ -2865,7 +2864,7 @@ void PM_ReduceTimers (void)
 		}
 	}
 
-/*
+/***
 =============
 PlayerMove
 
@@ -2874,7 +2873,7 @@ Returns with origin, angles, and velocity modified in place.
 Numtouch and touchindex[] will be set if any of the physents
 were contacted during the move
 =============
-*/
+***/
 void PM_PlayerMove (qboolean server)
 	{
 	physent_t *pLadder = NULL;
@@ -3226,13 +3225,12 @@ void PM_CreateStuckTable (void)
 		}
 	}
 
-/*
+/***
 This module implements the shared player physics code between any particular game and
 the engine. The same PM_Move routine is built into the game .dll and the client .dll and is
 invoked by each side as appropriate. There should be no distinction, internally, between server
-and client. This will ensure that prediction behaves appropriately.
-*/
-
+and client. This will ensure that prediction behaves appropriately
+***/
 void PM_Move (struct playermove_s *ppmove, int server)
 	{
 	assert (pm_shared_initialized);

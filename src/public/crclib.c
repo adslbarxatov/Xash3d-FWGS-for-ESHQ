@@ -1,4 +1,4 @@
-/*
+/***
 crclib.c - generate crc stuff
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "crclib.h"
 #include "crtlib.h"
@@ -154,13 +154,13 @@ void GAME_EXPORT CRC32_ProcessBuffer (uint32_t *pulCRC, const void *pBuffer, int
 	*pulCRC = ulCrc;
 	}
 
-/*
+/***
 ====================
 CRC32_BlockSequence
 
 For proxy protecting
 ====================
-*/
+***/
 byte CRC32_BlockSequence (byte *base, int length, int sequence)
 	{
 	uint32_t	CRC;
@@ -191,13 +191,13 @@ byte CRC32_BlockSequence (byte *base, int length, int sequence)
 
 void MD5Transform (uint buf[4], const uint in[16]);
 
-/*
+/***
 ==================
 MD5Init
 
 Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious initialization constants
 ==================
-*/
+***/
 void MD5Init (MD5Context_t *ctx)
 	{
 	ctx->buf[0] = 0x67452301;
@@ -209,13 +209,13 @@ void MD5Init (MD5Context_t *ctx)
 	ctx->bits[1] = 0;
 	}
 
-/*
+/***
 ===================
 MD5Update
 
 Update context to reflect the concatenation of another buffer full of bytes
 ===================
-*/
+***/
 void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 	{
 	uint	t;
@@ -260,14 +260,14 @@ void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 	memcpy (ctx->in, buf, len);
 	}
 
-/*
+/***
 ===============
 MD5Final
 
 Final wrapup - pad to 64-byte boundary with the bit pattern
 1 0* (64-bit count of bits processed, MSB-first)
 ===============
-*/
+***/
 void MD5Final (byte digest[16], MD5Context_t *ctx)
 	{
 	uint	count;
@@ -319,7 +319,7 @@ void MD5Final (byte digest[16], MD5Context_t *ctx)
 // this is the central step in the MD5 algorithm.
 #define MD5STEP( f, w, x, y, z, data, s )	( w += f( x, y, z ) + data,  w = w << s|w >> (32 - s), w += x )
 
-/*
+/***
 =================
 MD5Transform
 
@@ -327,7 +327,7 @@ The core of the MD5 algorithm, this alters an existing MD5 hash to
 reflect the addition of 16 longwords of new data.  MD5Update blocks
 the data and converts bytes into longwords for this routine.
 =================
-*/
+***/
 void MD5Transform (uint buf[4], const uint in[16])
 	{
 	register uint	a, b, c, d;
@@ -411,13 +411,13 @@ void MD5Transform (uint buf[4], const uint in[16])
 	buf[3] += d;
 	}
 
-/*
+/***
 =================
 MD5_Print
 
 transform hash to hexadecimal printable symbols
 =================
-*/
+***/
 char *MD5_Print (byte hash[16])
 	{
 	static char	szReturn[64];
@@ -431,16 +431,15 @@ char *MD5_Print (byte hash[16])
 	return szReturn;
 	}
 
-/*
+/***
 =================
 COM_HashKey [FWGS, 01.05.24]
 
 returns hash key for string
 =================
-*/
+***/
 uint COM_HashKey (const char *string, uint hashSize)
 	{
-	/*int hashKey = 5381;*/
 	uint	hashKey = 5381;
 	unsigned char	i;
 

@@ -1,4 +1,4 @@
-/*
+/***
 pak.c - PAK support for filesystem
 Copyright (C) 2007 Uncle Mike
 Copyright (C) 2022 Alibek Omarov
@@ -12,7 +12,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "build.h"
 #include <sys/types.h>
@@ -28,13 +28,14 @@ GNU General Public License for more details.
 #include "crtlib.h"
 #include "common/com_strings.h"
 
-/*
+/***
 ========================================================================
 PAK FILES
 
 The .pak files are just a linear collapse of a directory tree
 ========================================================================
-*/
+***/
+
 // header
 #define IDPACKV1HEADER	(('K'<<24)+('C'<<16)+('A'<<8)+'P')	// little-endian "PACK"
 
@@ -71,11 +72,11 @@ struct pack_s
 	dpackfile_t files[1];	// flexible
 	};
 
-/*
+/***
 ====================
 FS_SortPak
 ====================
-*/
+***/
 static int FS_SortPak (const void *_a, const void *_b)
 	{
 	const dpackfile_t *a = _a, *b = _b;
@@ -83,7 +84,7 @@ static int FS_SortPak (const void *_a, const void *_b)
 	return Q_stricmp (a->name, b->name);
 	}
 
-/*
+/***
 =================
 FS_LoadPackPAK
 
@@ -92,7 +93,7 @@ Takes an explicit (not game tree related) path to a pak file.
 Loads the header and directory, adding the files at the beginning
 of the list so they override previous pack files.
 =================
-*/
+***/
 static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
 	{
 	dpackheader_t	header;
@@ -182,13 +183,13 @@ static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
 	return pack;
 	}
 
-/*
+/***
 ===========
 FS_OpenPackedFile
 
 Open a packed file using its package file descriptor
 ===========
-*/
+***/
 static file_t *FS_OpenFile_PAK (searchpath_t *search, const char *filename, const char *mode, int pack_ind)
 	{
 	dpackfile_t *pfile;
@@ -198,11 +199,11 @@ static file_t *FS_OpenFile_PAK (searchpath_t *search, const char *filename, cons
 	return FS_OpenHandle (search->filename, search->pack->handle, pfile->filepos, pfile->filelen);
 	}
 
-/*
+/***
 ===========
 FS_FindFile_PAK
 ===========
-*/
+***/
 static int FS_FindFile_PAK (searchpath_t *search, const char *path, char *fixedname, size_t len)
 	{
 	int	left, right, middle;
@@ -235,11 +236,11 @@ static int FS_FindFile_PAK (searchpath_t *search, const char *path, char *fixedn
 	return -1;
 	}
 
-/*
+/***
 ===========
 FS_Search_PAK
 ===========
-*/
+***/
 static void FS_Search_PAK (searchpath_t *search, stringlist_t *list, const char *pattern, int caseinsensitive)
 	{
 	string temp;
@@ -280,31 +281,31 @@ static void FS_Search_PAK (searchpath_t *search, stringlist_t *list, const char 
 		}
 	}
 
-/*
+/***
 ===========
 FS_FileTime_PAK
 ===========
-*/
+***/
 static int FS_FileTime_PAK (searchpath_t *search, const char *filename)
 	{
 	return search->pack->filetime;
 	}
 
-/*
+/***
 ===========
 FS_PrintInfo_PAK
 ===========
-*/
+***/
 static void FS_PrintInfo_PAK (searchpath_t *search, char *dst, size_t size)
 	{
 	Q_snprintf (dst, size, "%s (%i files)", search->filename, search->pack->numfiles);
 	}
 
-/*
+/***
 ===========
 FS_Close_PAK
 ===========
-*/
+***/
 static void FS_Close_PAK (searchpath_t *search)
 	{
 	if (search->pack->handle >= 0)
@@ -313,7 +314,7 @@ static void FS_Close_PAK (searchpath_t *search)
 	}
 
 
-/*
+/***
 ================
 FS_AddPak_Fullpath [FWGS, 01.05.24]
 
@@ -326,7 +327,7 @@ search path or if it was already included.
 If keep_plain_dirs is set, the pack will be added AFTER the first sequence of
 plain directories
 ================
-*/
+***/
 searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags)
 	{
 	searchpath_t	*search;
@@ -355,7 +356,6 @@ searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags)
 	search->pfnFindFile = FS_FindFile_PAK;
 	search->pfnSearch = FS_Search_PAK;
 
-	/*Con_Reportf ("Adding pakfile: %s (%i files)\n", pakfile, pak->numfiles);*/
 	Con_Reportf ("Adding PAK: %s (%i files)\n", pakfile, pak->numfiles);
 	return search;
 	}

@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== bmodels.cpp ========================================================
 
   spawn, think, and use functions for entities that use brush models
 
-*/
+***/
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"

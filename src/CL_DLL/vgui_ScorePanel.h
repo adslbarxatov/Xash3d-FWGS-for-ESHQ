@@ -155,7 +155,6 @@ class CLabelHeader: public Label
 			strcpy (buf, text);
 
 			int len = strlen (buf);
-			/*while (len && Q_isspace (buf[--len]))*/
 			while (len && Q_isspace (buf + --len))
 				buf[len] = 0;
 

@@ -1,4 +1,4 @@
-/*
+/***
 xash3d_mathlib.c - internal mathlib
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 #include "port.h"
 #include "xash3d_types.h"
 #include "const.h"
@@ -42,11 +42,11 @@ const float m_bytenormals[NUMVERTEXNORMALS][3] =
 	#include "anorms.h"
 	};
 
-/*
+/***
 =================
 anglemod
 =================
-*/
+***/
 float anglemod (float a)
 	{
 	a = (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
@@ -103,13 +103,13 @@ float HalfToFloat (word h)
 	return UintAsFloat (f);	// [FWGS, 01.04.23]
 	}
 
-/*
+/***
 =================
 RoundUpHullSize
 
 round the hullsize to nearest 'right' value
 =================
-*/
+***/
 void RoundUpHullSize (vec3_t size)
 	{
 	int	i, j;
@@ -155,13 +155,13 @@ void RoundUpHullSize (vec3_t size)
 		}
 	}
 
-/*
+/***
 =================
 SignbitsForPlane
 
 fast box on planeside test
 =================
-*/
+***/
 int SignbitsForPlane (const vec3_t normal)
 	{
 	int	bits, i;
@@ -172,11 +172,11 @@ int SignbitsForPlane (const vec3_t normal)
 	return bits;
 	}
 
-/*
+/***
 =================
 PlaneTypeForNormal
 =================
-*/
+***/
 int PlaneTypeForNormal (const vec3_t normal)
 	{
 	if (normal[0] == 1.0f)
@@ -190,11 +190,11 @@ int PlaneTypeForNormal (const vec3_t normal)
 
 // [FWGS, 01.05.23] Удалена PlanesGetIntersectionPoint
 
-/*
+/***
 =================
 NearestPOW
 =================
-*/
+***/
 int NearestPOW (int value, qboolean roundDown)
 	{
 	int	n = 1;
@@ -212,32 +212,13 @@ int NearestPOW (int value, qboolean roundDown)
 	return n;
 	}
 
-// [FWGS, 01.07.23] remap a value in the range [A,B] to [C,D]
-/*
-float RemapVal (float val, float A, float B, float C, float D)
-	{
-	return C + (D - C) * (val - A) / (B - A);
-	}
+// [FWGS, 01.05.24] removed RemapVal, ApproachVal
 
-float ApproachVal (float target, float value, float speed)
-	{
-	float	delta = target - value;
-
-	if (delta > speed)
-		value += speed;
-	else if (delta < -speed)
-		value -= speed;
-	else value = target;
-
-	return value;
-	}
-*/
-
-/*
+/***
 =================
 rsqrt
 =================
-*/
+***/
 float rsqrt (float number)
 	{
 	int	i;
@@ -255,34 +236,13 @@ float rsqrt (float number)
 	return y;
 	}
 
-// [FWGS, 01.07.23] SinCos
-/*
-void SinCos (float radians, float *sine, float *cosine)
-	{
-#if _MSC_VER == 1200
-	_asm
-		{
-		fld	dword ptr[radians]
-		fsincos
+// [FWGS, 01.05.24] removed SinCos
 
-		mov edx, dword ptr[cosine]
-		mov eax, dword ptr[sine]
-
-		fstp dword ptr[edx]
-		fstp dword ptr[eax]
-		}
-#else
-	*sine = sin (radians);
-	*cosine = cos (radians);
-#endif
-	}
-*/
-
-/*
+/***
 ==============
 VectorCompareEpsilon
 ==============
-*/
+***/
 qboolean VectorCompareEpsilon (const vec3_t vec1, const vec3_t vec2, vec_t epsilon)
 	{
 	vec_t	ax, ay, az;
@@ -329,11 +289,11 @@ void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up)
 	VectorNormalize (up);
 	}
 
-/*
+/***
 =================
 AngleVectors
 =================
-*/
+***/
 void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 	{
 	float	sr, sp, sy, cr, cp, cy;
@@ -364,11 +324,11 @@ void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right
 		}
 	}
 
-/*
+/***
 =================
 VectorAngles
 =================
-*/
+***/
 void GAME_EXPORT VectorAngles (const float *forward, float *angles)
 	{
 	float	tmp, yaw, pitch;
@@ -403,11 +363,11 @@ void GAME_EXPORT VectorAngles (const float *forward, float *angles)
 	VectorSet (angles, pitch, yaw, 0);
 	}
 
-/*
+/***
 =================
 VectorsAngles
 =================
-*/
+***/
 void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, vec3_t angles)
 	{
 	float	pitch, cpitch, yaw, roll;
@@ -438,24 +398,13 @@ void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, v
 // bounds operations
 //
 
-// [FWGS, 01.01.24]
-/*
-=================
-ClearBounds
-=================
-//
-void ClearBounds (vec3_t mins, vec3_t maxs)
-	{
-	// make bogus range
-	mins[0] = mins[1] = mins[2] = 999999.0f;
-	maxs[0] = maxs[1] = maxs[2] = -999999.0f;
-	}*/
+// [FWGS, 01.05.24] removed ClearBounds
 
-/*
+/***
 =================
 AddPointToBounds
 =================
-*/
+***/
 void AddPointToBounds (const vec3_t v, vec3_t mins, vec3_t maxs)
 	{
 	float	val;
@@ -469,11 +418,11 @@ void AddPointToBounds (const vec3_t v, vec3_t mins, vec3_t maxs)
 		}
 	}
 
-/*
+/***
 =================
 ExpandBounds (not used anywhere?)
 =================
-*/
+***/
 void ExpandBounds (vec3_t mins, vec3_t maxs, float offset)
 	{
 	mins[0] -= offset;
@@ -484,41 +433,13 @@ void ExpandBounds (vec3_t mins, vec3_t maxs, float offset)
 	maxs[2] += offset;
 	}
 
-// [FWGS, 01.01.24]
-/*
-=================
-BoundsIntersect
-=================
-//
-qboolean BoundsIntersect (const vec3_t mins1, const vec3_t maxs1, const vec3_t mins2, const vec3_t maxs2)
-	{
-	if (mins1[0] > maxs2[0] || mins1[1] > maxs2[1] || mins1[2] > maxs2[2])
-		return false;
-	if (maxs1[0] < mins2[0] || maxs1[1] < mins2[1] || maxs1[2] < mins2[2])
-		return false;
-	return true;
-	}*/
+// [FWGS, 01.05.24] removed BoundsIntersect, BoundsAndSphereIntersect
 
-// [FWGS, 01.01.24]
-/*
-=================
-BoundsAndSphereIntersect
-=================
-//
-qboolean BoundsAndSphereIntersect (const vec3_t mins, const vec3_t maxs, const vec3_t origin, float radius)
-	{
-	if (mins[0] > origin[0] + radius || mins[1] > origin[1] + radius || mins[2] > origin[2] + radius)
-		return false;
-	if (maxs[0] < origin[0] - radius || maxs[1] < origin[1] - radius || maxs[2] < origin[2] - radius)
-		return false;
-	return true;
-	}*/
-
-/*
+/***
 =================
 SphereIntersect
 =================
-*/
+***/
 qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared, const vec3_t vLinePt,
 	const vec3_t vLineDir)
 	{
@@ -538,14 +459,14 @@ qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared
 	return true;
 	}
 
-/*
+/***
 =================
 PlaneIntersect
 
 find point where ray
 was intersect with plane
 =================
-*/
+***/
 void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, vec3_t out)
 	{
 	float distToPlane = PlaneDiff (p0, plane);
@@ -555,11 +476,11 @@ void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, ve
 	VectorMA (p0, sect, p1, out);
 	}
 
-/*
+/***
 =================
 RadiusFromBounds
 =================
-*/
+***/
 float RadiusFromBounds (const vec3_t mins, const vec3_t maxs)
 	{
 	vec3_t	corner;
@@ -575,11 +496,11 @@ float RadiusFromBounds (const vec3_t mins, const vec3_t maxs)
 //
 // studio utils
 //
-/*
+/***
 ====================
 AngleQuaternion
 ====================
-*/
+***/
 void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean studio)
 	{
 	float	sr, sp, sy, cr, cp, cy;
@@ -603,11 +524,11 @@ void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean studio)
 	q[3] = cr * cp * cy + sr * sp * sy; // W
 	}
 
-/*
+/***
 ====================
 QuaternionAngle
 ====================
-*/
+***/
 void QuaternionAngle (const vec4_t q, vec3_t angles)
 	{
 	matrix3x4	mat;
@@ -615,14 +536,14 @@ void QuaternionAngle (const vec4_t q, vec3_t angles)
 	Matrix3x4_AnglesFromMatrix (mat, angles);
 	}
 
-/*
+/***
 ====================
 QuaternionAlign
 
 make sure quaternions are within 180 degrees of one another,
 if not, reverse q
 ====================
-*/
+***/
 static void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
 	{
 	// decide if one of the quaternions is backwards
@@ -648,11 +569,11 @@ static void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
 		}
 	}
 
-/*
+/***
 ====================
 QuaternionSlerpNoAlign
 ====================
-*/
+***/
 static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec4_t qt)
 	{
 	float	omega, cosom, sinom, sclp, sclq;
@@ -697,13 +618,13 @@ static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec
 		}
 	}
 
-/*
+/***
 ====================
 QuaternionSlerp
 
 Quaternion sphereical linear interpolation
 ====================
-*/
+***/
 void QuaternionSlerp (const vec4_t p, const vec4_t q, float t, vec4_t qt)
 	{
 	vec4_t	q2;
@@ -715,59 +636,15 @@ void QuaternionSlerp (const vec4_t p, const vec4_t q, float t, vec4_t qt)
 	QuaternionSlerpNoAlign (p, q2, t, qt);
 	}
 
-/*
-====================
-V_CalcFov [FWGS, 01.05.23]
-====================
-float V_CalcFov (float *fov_x, float width, float height)
-	{
-	float	x, half_fov_y;
+// [FWGS, 01.05.24] removed V_CalcFov, V_AdjustFov
 
-	if (*fov_x < 1.0f || *fov_x > 179.0f)
-		*fov_x = 90.0f; // default value
-
-	x = width / tan (DEG2RAD (*fov_x) * 0.5f);
-	half_fov_y = atan (height / x);
-
-	return RAD2DEG (half_fov_y) * 2;
-	}
-
-/*
-====================
-V_AdjustFov
-====================
-void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x)
-	{
-	float x, y;
-
-	if (width * 3 == 4 * height || width * 4 == height * 5)
-		{
-		// 4:3 or 5:4 ratio
-		return;
-		}
-
-	if (lock_x)
-		{
-		*fov_y = 2 * atan ((width * 3) / (height * 4) * tan (*fov_y * M_PI_F / 360.0f * 0.5f)) * 360 / M_PI_F;
-		return;
-		}
-
-	y = V_CalcFov (fov_x, 640, 480);
-	x = *fov_x;
-
-	*fov_x = V_CalcFov (&y, height, width);
-	if (*fov_x < x) *fov_x = x;
-	else *fov_y = y;
-	}
-	*/
-
-/*
+/***
 ==================
 BoxOnPlaneSide
 
 Returns 1, 2, or 1 + 2
 ==================
-*/
+***/
 int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p)
 	{
 	float	dist1, dist2;
@@ -822,11 +699,11 @@ int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p)
 	return sides;
 	}
 
-/*
+/***
 ====================
 StudioSlerpBones [FWGS, 01.04.23]
 ====================
-*/
+***/
 void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_t q2[], const float pos2[][3], float s)
 	{
 	int	i;
@@ -840,11 +717,11 @@ void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_
 		}
 	}
 
-/*
+/***
 ====================
 StudioCalcBoneQuaternion [FWGS, 01.04.23]
 ====================
-*/
+***/
 void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, 
 	const float *adj, vec4_t q)
 	{
@@ -928,11 +805,11 @@ void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone,
 		}
 	}
 
-/*
+/***
 ====================
 StudioCalcBonePosition [FWGS, 01.04.23]
 ====================
-*/
+***/
 void R_StudioCalcBonePosition (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, 
 	const float *adj, vec3_t pos)
 	{

@@ -144,11 +144,11 @@ DWORD		joy_numbuttons;
 
 static JOYINFOEX	ji;
 
-/*
+/***
 ===========
 Force_CenterView_f
 ===========
-*/
+***/
 void Force_CenterView_f (void)
 	{
 	vec3_t viewangles;
@@ -161,11 +161,11 @@ void Force_CenterView_f (void)
 		}
 	}
 
-/*
+/***
 ===========
 IN_ActivateMouse
 ===========
-*/
+***/
 void DLLEXPORT IN_ActivateMouse (void)
 	{
 	if (mouseinitialized)
@@ -176,11 +176,11 @@ void DLLEXPORT IN_ActivateMouse (void)
 		}
 	}
 
-/*
+/***
 ===========
 IN_DeactivateMouse
 ===========
-*/
+***/
 void DLLEXPORT IN_DeactivateMouse (void)
 	{
 	if (mouseinitialized)
@@ -192,11 +192,11 @@ void DLLEXPORT IN_DeactivateMouse (void)
 		}
 	}
 
-/*
+/***
 ===========
 IN_StartupMouse
 ===========
-*/
+***/
 void IN_StartupMouse (void)
 	{
 	if (gEngfuncs.CheckParm ("-nomouse", NULL))
@@ -227,48 +227,48 @@ void IN_StartupMouse (void)
 	mouse_buttons = MOUSE_BUTTON_COUNT;
 	}
 
-/*
+/***
 ===========
 IN_Shutdown
 ===========
-*/
+***/
 void IN_Shutdown (void)
 	{
 	IN_DeactivateMouse ();
 	}
 
-/*
+/***
 ===========
 IN_GetMousePos
 
 Ask for mouse position from engine
 ===========
-*/
+***/
 void IN_GetMousePos (int* mx, int* my)
 	{
 	gEngfuncs.GetMousePosition (mx, my);
 	}
 
-/*
+/***
 ===========
 IN_ResetMouse
 
 FIXME: Call through to engine?
 ===========
-*/
+***/
 void IN_ResetMouse (void)
 	{
 	SetCursorPos (gEngfuncs.GetWindowCenterX (), gEngfuncs.GetWindowCenterY ());
 	}
 
-/*
+/***
 ===========
 IN_MouseEvent
 ===========
-*/
+***/
 void DLLEXPORT IN_MouseEvent (int mstate)
 	{
-	int		i;
+	int i;
 
 	if (iMouseInUse || g_iVisibleMouse)
 		return;
@@ -292,11 +292,11 @@ void DLLEXPORT IN_MouseEvent (int mstate)
 	mouse_oldbuttonstate = mstate;
 	}
 
-/*
+/***
 ===========
 IN_MouseMove
 ===========
-*/
+***/
 void IN_MouseMove (float frametime, usercmd_t* cmd)
 	{
 	int		mx, my;
@@ -382,11 +382,11 @@ void IN_MouseMove (float frametime, usercmd_t* cmd)
 	gEngfuncs.SetViewAngles ((float*)viewangles);
 	}
 
-/*
+/***
 ===========
 IN_Accumulate
 ===========
-*/
+***/
 void DLLEXPORT IN_Accumulate (void)
 	{
 	// only accumulate mouse if we are not moving the camera with the mouse
@@ -405,11 +405,11 @@ void DLLEXPORT IN_Accumulate (void)
 		}
 	}
 
-/*
+/***
 ===================
 IN_ClearStates
 ===================
-*/
+***/
 void DLLEXPORT IN_ClearStates (void)
 	{
 	if (!mouseactive)
@@ -420,11 +420,11 @@ void DLLEXPORT IN_ClearStates (void)
 	mouse_oldbuttonstate = 0;
 	}
 
-/*
+/***
 ===============
 IN_StartupJoystick
 ===============
-*/
+***/
 void IN_StartupJoystick (void)
 	{
 	int			numdevs;
@@ -486,11 +486,11 @@ void IN_StartupJoystick (void)
 	joy_advancedinit = 0;
 	}
 
-/*
+/***
 ===========
 RawValuePointer
 ===========
-*/
+***/
 PDWORD RawValuePointer (int axis)
 	{
 	switch (axis)
@@ -512,11 +512,11 @@ PDWORD RawValuePointer (int axis)
 	return &ji.dwXpos;
 	}
 
-/*
+/***
 ===========
 Joy_AdvancedUpdate_f
 ===========
-*/
+***/
 void Joy_AdvancedUpdate_f (void)
 	{
 
@@ -583,11 +583,11 @@ void Joy_AdvancedUpdate_f (void)
 		}
 	}
 
-/*
+/***
 ===========
 IN_Commands
 ===========
-*/
+***/
 void IN_Commands (void)
 	{
 	int		i, key_index;
@@ -651,11 +651,11 @@ void IN_Commands (void)
 		}
 	}
 
-/*
+/***
 ===============
 IN_ReadJoystick
 ===============
-*/
+***/
 int IN_ReadJoystick (void)
 	{
 
@@ -685,11 +685,11 @@ int IN_ReadJoystick (void)
 		}
 	}
 
-/*
+/***
 ===========
 IN_JoyMove
 ===========
-*/
+***/
 void IN_JoyMove (float frametime, usercmd_t* cmd)
 	{
 	float	speed, aspeed;
@@ -857,11 +857,11 @@ void IN_JoyMove (float frametime, usercmd_t* cmd)
 	gEngfuncs.SetViewAngles ((float*)viewangles);
 	}
 
-/*
+/***
 ===========
 IN_Move
 ===========
-*/
+***/
 void IN_Move (float frametime, usercmd_t* cmd)
 	{
 	if (!iMouseInUse && mouseactive)
@@ -872,11 +872,11 @@ void IN_Move (float frametime, usercmd_t* cmd)
 	IN_JoyMove (frametime, cmd);
 	}
 
-/*
+/***
 ===========
 IN_Init
 ===========
-*/
+***/
 void IN_Init (void)
 	{
 	m_filter = gEngfuncs.pfnRegisterVariable ("m_filter", "0", FCVAR_ARCHIVE);

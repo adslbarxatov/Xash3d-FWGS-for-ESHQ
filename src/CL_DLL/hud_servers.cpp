@@ -30,13 +30,13 @@ static int	context_id;
 
 static CHudServers* g_pServers = NULL;
 
-/*
+/***
 ===================
 ListResponse
 
 Callback from engine
 ===================
-*/
+***/
 void NET_CALLBACK ListResponse (struct net_response_s* response)
 	{
 	if (g_pServers)
@@ -45,13 +45,13 @@ void NET_CALLBACK ListResponse (struct net_response_s* response)
 		}
 	}
 
-/*
+/***
 ===================
 ServerResponse
 
 Callback from engine
 ===================
-*/
+***/
 void NET_CALLBACK ServerResponse (struct net_response_s* response)
 	{
 	if (g_pServers)
@@ -60,13 +60,13 @@ void NET_CALLBACK ServerResponse (struct net_response_s* response)
 		}
 	}
 
-/*
+/***
 ===================
 PingResponse
 
 Callback from engine
 ===================
-*/
+***/
 void NET_CALLBACK PingResponse (struct net_response_s* response)
 	{
 	if (g_pServers)
@@ -75,40 +75,37 @@ void NET_CALLBACK PingResponse (struct net_response_s* response)
 		}
 	}
 
-/*
+/***
 ===================
 RulesResponse
 
 Callback from engine
 ===================
-*/
+***/
 void NET_CALLBACK RulesResponse (struct net_response_s* response)
 	{
 	if (g_pServers)
-		{
 		g_pServers->RulesResponse (response);
-		}
 	}
-/*
+
+/***
 ===================
 PlayersResponse
 
 Callback from engine
 ===================
-*/
+***/
 void NET_CALLBACK PlayersResponse (struct net_response_s* response)
 	{
 	if (g_pServers)
-		{
 		g_pServers->PlayersResponse (response);
-		}
 	}
-/*
+
+/***
 ===================
 ListResponse
-
 ===================
-*/
+***/
 void CHudServers::ListResponse (struct net_response_s *response)
 	{
 	request_t *list;
@@ -146,12 +143,11 @@ void CHudServers::ListResponse (struct net_response_s *response)
 	m_nActiveQueries = 0;
 	}
 
-/*
+/***
 ===================
 ServerResponse
-
 ===================
-*/
+***/
 void CHudServers::ServerResponse (struct net_response_s* response)
 	{
 	char* szresponse;
@@ -197,12 +193,11 @@ void CHudServers::ServerResponse (struct net_response_s* response)
 		}
 	}
 
-/*
+/***
 ===================
 PingResponse
-
 ===================
-*/
+***/
 void CHudServers::PingResponse (struct net_response_s* response)
 	{
 	char sz[32];
@@ -222,12 +217,11 @@ void CHudServers::PingResponse (struct net_response_s* response)
 		}
 	}
 
-/*
+/***
 ===================
 RulesResponse
-
 ===================
-*/
+***/
 void CHudServers::RulesResponse (struct net_response_s* response)
 	{
 	char* szresponse;
@@ -250,12 +244,11 @@ void CHudServers::RulesResponse (struct net_response_s* response)
 		}
 	}
 
-/*
+/***
 ===================
 PlayersResponse
-
 ===================
-*/
+***/
 void CHudServers::PlayersResponse (struct net_response_s* response)
 	{
 	char* szresponse;
@@ -278,13 +271,13 @@ void CHudServers::PlayersResponse (struct net_response_s* response)
 		}
 	}
 
-/*
+/***
 ===================
 CompareServers
 
 Return 1 if p1 is "less than" p2, 0 otherwise
 ===================
-*/
+***/
 int	CHudServers::CompareServers (server_t* p1, server_t* p2)
 	{
 	const char* n1, * n2;
@@ -311,12 +304,11 @@ int	CHudServers::CompareServers (server_t* p1, server_t* p2)
 	return 0;
 	}
 
-/*
+/***
 ===================
 AddServer
-
 ===================
-*/
+***/
 void CHudServers::AddServer (server_t** ppList, server_t* p)
 	{
 	server_t* list;
@@ -364,12 +356,11 @@ void CHudServers::AddServer (server_t** ppList, server_t* p)
 		}
 	}
 
-/*
+/***
 ===================
 Think
-
 ===================
-*/
+***/
 void CHudServers::Think (double time)
 	{
 	m_fElapsed += time;
@@ -392,12 +383,11 @@ void CHudServers::Think (double time)
 	m_nActiveQueries = 0;
 	}
 
-/*
+/***
 ===================
 QueryThink
-
 ===================
-*/
+***/
 void CHudServers::QueryThink (void)
 	{
 	request_t* p;
@@ -445,13 +435,13 @@ void CHudServers::QueryThink (void)
 		}
 	}
 
-/*
+/***
 ==================
 ServerListSize
 
 # of servers in active query and in pending to be queried lists
 ==================
-*/
+***/
 int	CHudServers::ServerListSize (void)
 	{
 	int c = 0;
@@ -474,13 +464,13 @@ int	CHudServers::ServerListSize (void)
 	return c;
 	}
 
-/*
+/***
 ===================
 FindRequest
 
 Look up a request by context id
 ===================
-*/
+***/
 CHudServers::request_t* CHudServers::FindRequest (int context, request_t* pList)
 	{
 	request_t* p;
@@ -495,13 +485,13 @@ CHudServers::request_t* CHudServers::FindRequest (int context, request_t* pList)
 	return NULL;
 	}
 
-/*
+/***
 ===================
 RemoveServerFromList
 
 Remote, but don't delete, item from *ppList
 ===================
-*/
+***/
 void CHudServers::RemoveServerFromList (request_t** ppList, request_t* item)
 	{
 	request_t* p, * n;
@@ -524,12 +514,11 @@ void CHudServers::RemoveServerFromList (request_t** ppList, request_t* item)
 	*ppList = newlist;
 	}
 
-/*
+/***
 ===================
 ClearRequestList
-
 ===================
-*/
+***/
 void CHudServers::ClearRequestList (request_t** ppList)
 	{
 	request_t* p, * n;
@@ -547,12 +536,11 @@ void CHudServers::ClearRequestList (request_t** ppList)
 	*ppList = NULL;
 	}
 
-/*
+/***
 ===================
 ClearServerList
-
 ===================
-*/
+***/
 void CHudServers::ClearServerList (server_t** ppList)
 	{
 	server_t* p, * n;
@@ -677,13 +665,13 @@ void CHudServers::SortServers (const char* fieldname)
 	delete[] pSortArray;
 	}
 
-/*
+/***
 ===================
 GetServer
 
 Return particular server
 ===================
-*/
+***/
 CHudServers::server_t* CHudServers::GetServer (int server)
 	{
 	int c = 0;
@@ -701,13 +689,13 @@ CHudServers::server_t* CHudServers::GetServer (int server)
 	return NULL;
 	}
 
-/*
+/***
 ===================
 GetServerInfo
 
 Return info ( key/value ) string for particular server
 ===================
-*/
+***/
 char* CHudServers::GetServerInfo (int server)
 	{
 	server_t* p = GetServer (server);
@@ -718,13 +706,13 @@ char* CHudServers::GetServerInfo (int server)
 	return NULL;
 	}
 
-/*
+/***
 ===================
 CancelRequest
 
 Kill all pending requests in engine
 ===================
-*/
+***/
 void CHudServers::CancelRequest (void)
 	{
 	m_nRequesting = 0;
@@ -734,20 +722,20 @@ void CHudServers::CancelRequest (void)
 	NET_API->CancelAllRequests ();
 	}
 
-/*
+/***
 ==================
 LoadMasterAddresses
 
 Loads the master server addresses from file and into the passed in array
 ==================
-*/
+***/
 int CHudServers::LoadMasterAddresses (int maxservers, int* count, netadr_t* padr)
 	{
 	int			i;
 	char		szMaster[256];
 	char		szMasterFile[256];
-	char* pbuffer = NULL;
-	char* pstart = NULL;
+	char		*pbuffer = NULL;
+	char		*pstart = NULL;
 	netadr_t	adr;
 	char		szAdr[64];
 	int			nPort;
@@ -867,13 +855,13 @@ finish_master:
 	return (nCount > 0) ? 1 : 0;
 	}
 
-/*
+/***
 ===================
 RequestList
 
 Request list of game servers from master
 ===================
-*/
+***/
 void CHudServers::RequestList (void)
 	{
 	m_nRequesting = 1;
@@ -997,24 +985,23 @@ int CHudServers::isQuerying ()
 	}
 
 
-/*
+/***
 ===================
 GetServerCount
 
 Return number of servers in browser list
 ===================
-*/
+***/
 int CHudServers::GetServerCount (void)
 	{
 	return m_nServerCount;
 	}
 
-/*
+/***
 ===================
 CHudServers
-
 ===================
-*/
+***/
 CHudServers::CHudServers (void)
 	{
 	m_nRequesting = 0;
@@ -1034,12 +1021,11 @@ CHudServers::CHudServers (void)
 	m_pPlayersRequest = NULL;
 	}
 
-/*
+/***
 ===================
 ~CHudServers
-
 ===================
-*/
+***/
 CHudServers::~CHudServers (void)
 	{
 	ClearRequestList (&m_pActiveList);
@@ -1072,12 +1058,11 @@ CHudServers::~CHudServers (void)
 // PUBLIC APIs
 // ===========================
 
-/*
+/***
 ===================
 ServersGetCount
-
 ===================
-*/
+***/
 int	ServersGetCount (void)
 	{
 	if (g_pServers)
@@ -1096,12 +1081,11 @@ int	ServersIsQuerying (void)
 	return 0;
 	}
 
-/*
+/***
 ===================
 ServersGetInfo
-
 ===================
-*/
+***/
 const char* ServersGetInfo (int server)
 	{
 	if (g_pServers)
@@ -1120,12 +1104,11 @@ void SortServers (const char* fieldname)
 		}
 	}
 
-/*
+/***
 ===================
 ServersShutdown
-
 ===================
-*/
+***/
 void ServersShutdown (void)
 	{
 	if (g_pServers)
@@ -1135,12 +1118,11 @@ void ServersShutdown (void)
 		}
 	}
 
-/*
+/***
 ===================
 ServersInit
-
 ===================
-*/
+***/
 void ServersInit (void)
 	{
 	// Kill any previous instance
@@ -1149,12 +1131,11 @@ void ServersInit (void)
 	g_pServers = new CHudServers ();
 	}
 
-/*
+/***
 ===================
 ServersThink
-
 ===================
-*/
+***/
 void ServersThink (double time)
 	{
 	if (g_pServers)
@@ -1163,12 +1144,11 @@ void ServersThink (double time)
 		}
 	}
 
-/*
+/***
 ===================
 ServersCancel
-
 ===================
-*/
+***/
 void ServersCancel (void)
 	{
 	if (g_pServers)
@@ -1178,12 +1158,11 @@ void ServersCancel (void)
 	}
 
 // Requests
-/*
+/***
 ===================
 ServersList
-
 ===================
-*/
+***/
 void ServersList (void)
 	{
 	if (g_pServers)

@@ -42,12 +42,12 @@ extern "C"
 	struct cl_entity_s DLLEXPORT *HUD_GetUserEntity (int index);
 	}
 
-/*
+/***
 ========================
 HUD_AddEntity
 	Return 0 to filter entity from visible list for rendering
 ========================
-*/
+***/
 int DLLEXPORT HUD_AddEntity (int type, struct cl_entity_s *ent, const char *modelname)
 	{
 	switch (type)
@@ -77,7 +77,7 @@ int DLLEXPORT HUD_AddEntity (int type, struct cl_entity_s *ent, const char *mode
 	return 1;
 	}
 
-/*
+/***
 =========================
 HUD_TxferLocalOverrides
 
@@ -85,7 +85,7 @@ The server sends us our origin with extra precision as part of the clientdata st
 playerstate update in entity_state_t.  In order for these overrides to eventually get to the appropriate playerstate
 structure, we need to copy them into the state structure at this point.
 =========================
-*/
+***/
 void DLLEXPORT HUD_TxferLocalOverrides (struct entity_state_s *state, const struct clientdata_s *client)
 	{
 	VectorCopy (client->origin, state->origin);
@@ -103,14 +103,14 @@ void DLLEXPORT HUD_TxferLocalOverrides (struct entity_state_s *state, const stru
 	state->iuser4 = client->iuser4;
 	}
 
-/*
+/***
 =========================
 HUD_ProcessPlayerState
 
 We have received entity_state_t for this player over the network.  We need to copy appropriate fields to the
 playerstate structure
 =========================
-*/
+***/
 void DLLEXPORT HUD_ProcessPlayerState (struct entity_state_s *dst, const struct entity_state_s *src)
 	{
 	// Copy in network data
@@ -167,7 +167,7 @@ void DLLEXPORT HUD_ProcessPlayerState (struct entity_state_s *dst, const struct 
 		}
 	}
 
-/*
+/***
 =========================
 HUD_TxferPredictionData
 
@@ -176,8 +176,9 @@ Because we can predict an arbitrary number of frames before the server responds 
  up through 10 of those frames, so we need to copy persistent client-side only state from the 10th predicted frame to the slot the server
  update is occupying.
 =========================
-*/
-void DLLEXPORT HUD_TxferPredictionData (struct entity_state_s *ps, const struct entity_state_s *pps, struct clientdata_s *pcd, const struct clientdata_s *ppcd, struct weapon_data_s *wd, const struct weapon_data_s *pwd)
+***/
+void DLLEXPORT HUD_TxferPredictionData (struct entity_state_s *ps, const struct entity_state_s *pps,
+	struct clientdata_s *pcd, const struct clientdata_s *ppcd, struct weapon_data_s *wd, const struct weapon_data_s *pwd)
 	{
 	ps->oldbuttons = pps->oldbuttons;
 	ps->flFallVelocity = pps->flFallVelocity;
@@ -357,13 +358,13 @@ void CL_UpdateLaserSpot (void)
 	m_pLaserSpot->die = gEngfuncs.GetClientTime () + 0.1f;
 	}
 
-/*
+/***
 =========================
 HUD_CreateEntities
 
 Gives us a chance to add additional entities to the render this frame
 =========================
-*/
+***/
 void DLLEXPORT HUD_CreateEntities (void)
 	{
 	// e.g., create a persistent cl_entity_t somewhere.
@@ -382,14 +383,14 @@ void DLLEXPORT HUD_CreateEntities (void)
 	GetClientVoiceMgr ()->CreateEntities ();
 	}
 
-/*
+/***
 =========================
 HUD_StudioEvent
 
 The entity's studio model description indicated an event was
 fired during this frame, handle the event by it's tag ( e.g., muzzleflash, sound )
 =========================
-*/
+***/
 void DLLEXPORT HUD_StudioEvent (const struct mstudioevent_s *event, const struct cl_entity_s *entity)
 	{
 	switch (event->event)
@@ -419,25 +420,27 @@ void DLLEXPORT HUD_StudioEvent (const struct mstudioevent_s *event, const struct
 		}
 	}
 
-/*
+/***
 =================
 CL_UpdateTEnts
 
 Simulation and cleanup of temporary entities
+
+// Simulation time
+// Absolute time on client
+// True gravity on client
+// List of freed temporary ents
+// List
 =================
-*/
-void DLLEXPORT HUD_TempEntUpdate (
-	double frametime,   // Simulation time
-	double client_time, // Absolute time on client
-	double cl_gravity,  // True gravity on client
-	TEMPENTITY **ppTempEntFree,   // List of freed temporary ents
-	TEMPENTITY **ppTempEntActive, // List 
+***/
+void DLLEXPORT HUD_TempEntUpdate (	double frametime,	double client_time,	double cl_gravity,
+	TEMPENTITY **ppTempEntFree,	TEMPENTITY **ppTempEntActive,
 	int		(*Callback_AddVisibleEntity)(cl_entity_t *pEntity),
 	void	(*Callback_TempEntPlaySound)(TEMPENTITY *pTemp, float damp))
 	{
-	static int gTempEntFrame = 0;
+	static int	gTempEntFrame = 0;
 	int			i;
-	TEMPENTITY *pTemp, *pnext, *pprev;
+	TEMPENTITY	*pTemp, *pnext, *pprev;
 	float		freq, gravity, gravitySlow, life, fastFreq;
 
 	// Nothing to simulate
@@ -602,11 +605,6 @@ void DLLEXPORT HUD_TempEntUpdate (
 					pTemp->entity.curstate.frame = pTemp->entity.curstate.frame - (int)(pTemp->entity.curstate.frame);
 					}
 				}
-			// Experiment
-#if 0
-			if (pTemp->flags & FTENT_SCALE)
-				pTemp->entity.curstate.framerate += 20.0 * (frametime / pTemp->entity.curstate.framerate);
-#endif
 
 			if (pTemp->flags & FTENT_ROTATE)
 				{
@@ -629,7 +627,8 @@ void DLLEXPORT HUD_TempEntUpdate (
 
 					gEngfuncs.pEventAPI->EV_SetTraceHull (2);
 
-					gEngfuncs.pEventAPI->EV_PlayerTrace (pTemp->entity.prevstate.origin, pTemp->entity.origin, PM_STUDIO_BOX, -1, &pmtrace);
+					gEngfuncs.pEventAPI->EV_PlayerTrace (pTemp->entity.prevstate.origin, pTemp->entity.origin,
+						PM_STUDIO_BOX, -1, &pmtrace);
 
 
 					if (pmtrace.fraction != 1)
@@ -654,7 +653,8 @@ void DLLEXPORT HUD_TempEntUpdate (
 
 					gEngfuncs.pEventAPI->EV_SetTraceHull (2);
 
-					gEngfuncs.pEventAPI->EV_PlayerTrace (pTemp->entity.prevstate.origin, pTemp->entity.origin, PM_STUDIO_BOX | PM_WORLD_ONLY, -1, &pmtrace);
+					gEngfuncs.pEventAPI->EV_PlayerTrace (pTemp->entity.prevstate.origin, pTemp->entity.origin,
+						PM_STUDIO_BOX | PM_WORLD_ONLY, -1, &pmtrace);
 
 					if (pmtrace.fraction != 1)
 						{
@@ -696,7 +696,8 @@ void DLLEXPORT HUD_TempEntUpdate (
 							if (pTemp->entity.baseline.origin[2] <= 0 && pTemp->entity.baseline.origin[2] >= gravity * 3)
 								{
 								damp = 0;		// Stop
-								pTemp->flags &= ~(FTENT_ROTATE | FTENT_GRAVITY | FTENT_SLOWGRAVITY | FTENT_COLLIDEWORLD | FTENT_SMOKETRAIL);
+								pTemp->flags &= ~(FTENT_ROTATE | FTENT_GRAVITY | FTENT_SLOWGRAVITY | FTENT_COLLIDEWORLD |
+									FTENT_SMOKETRAIL);
 								pTemp->entity.angles[0] = 0;
 								pTemp->entity.angles[2] = 0;
 								}
@@ -737,7 +738,7 @@ void DLLEXPORT HUD_TempEntUpdate (
 				}
 
 
-			if ((pTemp->flags & FTENT_FLICKER) && gTempEntFrame == pTemp->entity.curstate.effects)
+			if ((pTemp->flags & FTENT_FLICKER) && (gTempEntFrame == pTemp->entity.curstate.effects))
 				{
 				dlight_t *dl = gEngfuncs.pEfxAPI->CL_AllocDlight (0);
 				VectorCopy (pTemp->entity.origin, dl->origin);
@@ -787,7 +788,7 @@ finish:
 	gEngfuncs.pEventAPI->EV_PopPMStates ();
 	}
 
-/*
+/***
 =================
 HUD_GetUserEntity
 
@@ -797,7 +798,7 @@ If you specify negative numbers for beam start and end point entities, then
 
 Indices must start at 1, not zero.
 =================
-*/
+***/
 cl_entity_t DLLEXPORT *HUD_GetUserEntity (int index)
 	{
 #if defined( BEAM_TEST )

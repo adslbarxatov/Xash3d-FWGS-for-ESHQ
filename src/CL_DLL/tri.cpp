@@ -27,13 +27,13 @@ extern "C"
 
 #if defined( TEST_IT )
 
-/*
+/***
 =================
 Draw_Triangles
 
 Example routine.  Draws a sprite offset from the player origin.
 =================
-*/
+***/
 void Draw_Triangles (void)
 	{
 	cl_entity_t* player;
@@ -90,13 +90,13 @@ void Draw_Triangles (void)
 
 #endif
 
-/*
+/***
 =================
 HUD_DrawNormalTriangles
 
 Non-transparent triangles-- add them here
 =================
-*/
+***/
 void DLLEXPORT HUD_DrawNormalTriangles (void)
 	{
 
@@ -106,13 +106,13 @@ void DLLEXPORT HUD_DrawNormalTriangles (void)
 #endif
 	}
 
-/*
+/***
 =================
 HUD_DrawTransparentTriangles
 
 Render any triangles with transparent rendermode needs here
 =================
-*/
+***/
 void DLLEXPORT HUD_DrawTransparentTriangles (void)
 	{
 #if defined( TEST_IT )

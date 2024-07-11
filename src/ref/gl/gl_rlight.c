@@ -1,4 +1,4 @@
-/*
+/***
 gl_rlight.c - dynamic and static lights
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "pm_local.h"
@@ -19,16 +19,16 @@ GNU General Public License for more details.
 #include "xash3d_mathlib.h"
 #include "ref_params.h"
 
-/*
+/***
 =============================================================================
 DYNAMIC LIGHTS
 =============================================================================
-*/
-/*
+***/
+/***
 ==================
 CL_RunLightStyles [FWGS, 01.01.24]
 ==================
-*/
+***/
 void CL_RunLightStyles (void)
 	{
 	int				i, k, flight, clight;
@@ -89,11 +89,11 @@ void CL_RunLightStyles (void)
 		}
 	}
 
-/*
+/***
 =============
 R_MarkLights
 =============
-*/
+***/
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 	{
 	float		dist;
@@ -136,11 +136,11 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 	R_MarkLights (light, bit, node->children[1]);
 	}
 
-/*
+/***
 =============
 R_PushDlights [FWGS, 01.02.24]
 =============
-*/
+***/
 void R_PushDlights (void)
 	{
 	dlight_t	*l;
@@ -171,20 +171,20 @@ void R_PushDlights (void)
 
 // [FWGS, 01.02.24] удалена R_CountSurfaceDlights
 
-/*
+/***
 =======================================================================
 AMBIENT LIGHTING
 =======================================================================
-*/
+***/
 static vec3_t	g_trace_lightspot;
 static vec3_t	g_trace_lightvec;
 static float	g_trace_fraction;
 
-/*
+/***
 =================
 R_RecursiveLightPoint
 =================
-*/
+***/
 static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f, float p2f, colorVec *cv,
 	const vec3_t start, const vec3_t end)
 	{
@@ -322,13 +322,13 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 	return R_RecursiveLightPoint (model, node->children[!side], midf, p2f, cv, mid, end);
 	}
 
-/*
+/***
 =================
 R_LightVec
 
 check bspmodels to get light from
 =================
-*/
+***/
 static colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t lvec)
 	{
 	float		last_fraction;
@@ -412,13 +412,13 @@ static colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t
 	return light;
 	}
 
-/*
+/***
 =================
 R_LightVec
 
 check bspmodels to get light from
 =================
-*/
+***/
 colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t lvec)
 	{
 	colorVec	light = R_LightVecInternal (start, end, lspot, lvec);
@@ -434,13 +434,13 @@ colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t 
 	return light;
 	}
 
-/*
+/***
 =================
 R_LightPoint
 
 light from floor
 =================
-*/
+***/
 colorVec R_LightPoint (const vec3_t p0)
 	{
 	vec3_t	p1;

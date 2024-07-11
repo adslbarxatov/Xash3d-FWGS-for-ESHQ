@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -529,12 +529,13 @@ int CHud::MsgFunc_Logo (const char* pszName, int iSize, void* pbuf)
 
 float g_lastFOV = 0.0;
 
-/*
+/***
 ============
 COM_FileBase
+
+Extracts the base name of a file (no path, no extension, assumes '/' as path separator)
 ============
-*/
-// Extracts the base name of a file (no path, no extension, assumes '/' as path separator)
+***/
 void COM_FileBase (const char* in, char* out)
 	{
 	int len, start, end;
@@ -570,12 +571,11 @@ void COM_FileBase (const char* in, char* out)
 	out[len] = 0;
 	}
 
-/*
+/***
 =================
 HUD_IsGame
-
 =================
-*/
+***/
 int HUD_IsGame (const char* game)
 	{
 	const char* gamedir;
@@ -592,13 +592,13 @@ int HUD_IsGame (const char* game)
 	return 0;
 	}
 
-/*
+/***
 =====================
 HUD_GetFOV
 
 Returns last FOV
 =====================
-*/
+***/
 float HUD_GetFOV (void)
 	{
 	if (gEngfuncs.pDemoAPI->IsRecording ())

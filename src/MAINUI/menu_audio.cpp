@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -62,11 +61,11 @@ typedef struct
 
 static uiAudio_t		uiAudio;
 
-/*
+/***
 =================
 UI_Audio_GetConfig
 =================
-*/
+***/
 static void UI_Audio_GetConfig (void)
 	{
 	uiAudio.soundVolume.curValue = CVAR_GET_FLOAT ("volume");
@@ -85,11 +84,11 @@ static void UI_Audio_GetConfig (void)
 	uiAudioInitial.suitVolume = uiAudio.suitVolume.curValue;
 	}
 
-/*
+/***
 =================
 UI_Audio_SetConfig
 =================
-*/
+***/
 static void UI_Audio_SetConfig (void)
 	{
 	CVAR_SET_FLOAT ("volume", uiAudio.soundVolume.curValue);
@@ -99,11 +98,11 @@ static void UI_Audio_SetConfig (void)
 	CVAR_SET_FLOAT ("dsp_off", uiAudio.noDSP.enabled);
 	}
 
-/*
+/***
 =================
 UI_Audio_UpdateConfig
 =================
-*/
+***/
 static void UI_Audio_UpdateConfig (void)
 	{
 	CVAR_SET_FLOAT ("volume", uiAudio.soundVolume.curValue);
@@ -113,11 +112,11 @@ static void UI_Audio_UpdateConfig (void)
 	CVAR_SET_FLOAT ("dsp_off", uiAudio.noDSP.enabled);
 	}
 
-/*
+/***
 =================
 UI_Audio_Callback
 =================
-*/
+***/
 static void UI_Audio_Callback (void* self, int event)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -150,11 +149,11 @@ static void UI_Audio_Callback (void* self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_Audio_Init
 =================
-*/
+***/
 static void UI_Audio_Init (void)
 	{
 	memset (&uiAudio, 0, sizeof (uiAudio_t));
@@ -285,22 +284,22 @@ static void UI_Audio_Init (void)
 	UI_AddItem (&uiAudio.menu, (void*)&uiAudio.noDSP);
 	}
 
-/*
+/***
 =================
 UI_Audio_Precache
 =================
-*/
+***/
 void UI_Audio_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_Audio_Menu
 =================
-*/
+***/
 void UI_Audio_Menu (void)
 	{
 	UI_Audio_Precache ();

@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== bmodels.cpp ========================================================
 
   spawn, think, and use functions for entities that use brush models
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -331,7 +331,7 @@ void CFuncRotating::KeyValue (KeyValueData* pkvd)
 		CBaseEntity::KeyValue (pkvd);
 	}
 
-/*
+/***
 QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS
 You need to have an origin brush as part of this entity.  The
 center of that brush will be
@@ -343,7 +343,7 @@ check either the X_AXIS or Y_AXIS box to change that.
 "dmg"	damage to inflict when blocked (2 default)
 
 REVERSE will cause the it to rotate in the opposite direction.
-*/
+***/
 
 void CFuncRotating::Spawn ()
 	{

@@ -1,4 +1,4 @@
-/*
+/***
 build.c - returns a engine build number
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "crtlib.h"
 #include "buildenums.h"		// [FWGS, 01.04.23]
@@ -46,13 +46,13 @@ int Q_buildnum_date (const char *date)
 	return b;
 	}
 
-/*
+/***
 ===============
 Q_buildnum [FWGS, 01.05.23]
 
 returns days since Apr 1 2015
 ===============
-*/
+***/
 int Q_buildnum (void)
 	{
 	static int b = 0;
@@ -63,7 +63,7 @@ int Q_buildnum (void)
 	return b;
 	}
 
-/*
+/***
 =============
 Q_buildnum_compat
 
@@ -71,20 +71,20 @@ Returns a Xash3D build number. This is left for compability with original Xash3D
 IMPORTANT: this value must be changed ONLY after updating to newer Xash3D base
 IMPORTANT: this value must be acquired through "build" cvar
 =============
-*/
+***/
 int Q_buildnum_compat (void)
 	{
 	// do not touch this! Only author of Xash3D can increase buildnumbers!
 	return 4529;
 	}
 
-/*
+/***
 ============
 Q_GetPlatformStringByID [FWGS, 01.02.24]
 
 Returns name of operating system by ID. Without any spaces
 ============
-*/
+***/
 const char *Q_PlatformStringByID (const int platform)
 	{
 	switch (platform)
@@ -123,25 +123,25 @@ const char *Q_PlatformStringByID (const int platform)
 	return "unknown";
 	}
 
-/*
+/***
 ============
 Q_buildos [FWGS, 01.04.23]
 
 Shortcut for Q_buildos_
 ============
-*/
+***/
 const char *Q_buildos (void)
 	{
 	return Q_PlatformStringByID (XASH_PLATFORM);
 	}
 
-/*
+/***
 ============
 Q_ArchitectureStringByID [FWGS, 01.04.23]
 
 Returns name of the architecture by it's ID. Without any spaces.
 ============
-*/
+***/
 const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int endianness, const qboolean is64)
 	{
 	// I don't want to change this function prototype
@@ -217,13 +217,13 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 		(endianness == ENDIANNESS_LITTLE ? "unknown64be" : "unknownbe");
 	}
 
-/*
+/***
 ============
 Q_buildarch
 
 Returns current name of the architecture. Without any spaces.
 ============
-*/
+***/
 const char *Q_buildarch (void)
 	{
 	return Q_ArchitectureStringByID (
@@ -239,32 +239,27 @@ const char *Q_buildarch (void)
 	);
 	}
 
-/*
+/***
 =============
 Q_buildcommit [FWGS, 01.05.24]
 
 Returns a short hash of current commit in VCS as string
 XASH_BUILD_COMMIT must be passed in quotes
 =============
-*/
+***/
 const char *Q_buildcommit (void)
 	{
-	/*#ifdef XASH_BUILD_COMMIT
-	*/
 	return XASH_BUILD_COMMIT;
-	/*#else
-	return "notset";
-	#endif*/
 	}
 
-/*
+/***
 =============
 Q_buildbranch [FWGS, 01.05.24]
 
 Returns current branch name in VCS as string
 XASH_BUILD_BRANCH must be passed in quotes
 =============
-*/
+***/
 const char *Q_buildbranch (void)
 	{
 	return XASH_BUILD_BRANCH;

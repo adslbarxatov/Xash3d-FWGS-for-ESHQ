@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,13 +12,13 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 ===== util.cpp ========================================================
 
   Utility code.  Really not optional after all.
 
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -75,11 +75,11 @@ void U_Srand (unsigned int seed)
 	glSeed = seed_table[seed & 0xff];
 	}
 
-/*
+/***
 =====================
 UTIL_SharedRandomLong
 =====================
-*/
+***/
 int UTIL_SharedRandomLong (unsigned int seed, int low, int high)
 	{
 	unsigned int range;
@@ -104,11 +104,11 @@ int UTIL_SharedRandomLong (unsigned int seed, int low, int high)
 		}
 	}
 
-/*
+/***
 =====================
 UTIL_SharedRandomFloat
 =====================
-*/
+***/
 float UTIL_SharedRandomFloat (unsigned int seed, float low, float high)
 	{
 	unsigned int range;
@@ -1259,7 +1259,7 @@ void UTIL_DecalTrace (TraceResult *pTrace, int decalNumber)
 	MESSAGE_END ();
 	}
 
-/*
+/***
 ==============
 UTIL_PlayerDecalTrace
 
@@ -1267,7 +1267,7 @@ A player is trying to apply his custom decal for the spray can.
 Tell connected clients to display it, or use the default spray can decal
 if the custom can't be loaded.
 ==============
-*/
+***/
 void UTIL_PlayerDecalTrace (TraceResult *pTrace, int playernum, int decalNumber, BOOL bIsCustom)
 	{
 	int index;
@@ -1382,10 +1382,6 @@ void UTIL_StringToVector (float *pVector, const char *pString)
 		}
 	if (j < 2)
 		{
-		/*
-		ALERT( at_error, "Bad field in entity!! %s:%s == \"%s\"\n",
-			pkvd->szClassName, pkvd->szKeyName, pkvd->szValue );
-		*/
 		for (j = j + 1; j < 3; j++)
 			pVector[j] = 0;
 		}

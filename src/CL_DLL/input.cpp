@@ -76,7 +76,7 @@ cvar_t* cl_yawspeed;
 cvar_t* cl_pitchspeed;
 cvar_t* cl_anglespeedkey;
 cvar_t* cl_vsmoothing;
-/*
+/***
 ===============================================================================
 
 KEY BUTTONS
@@ -95,7 +95,7 @@ state bit 1 is edge triggered on the up to down transition
 state bit 2 is edge triggered on the down to up transition
 
 ===============================================================================
-*/
+***/
 
 kbutton_t	in_mlook;
 kbutton_t	in_klook;
@@ -132,7 +132,7 @@ typedef struct kblist_s
 
 kblist_t* g_kbkeys = NULL;
 
-/*
+/***
 ============
 KB_ConvertString
 
@@ -140,7 +140,7 @@ Removes references to +use and replaces them with the keyname in the output stri
  a binding is unfound, then the original text is retained.
 NOTE:  Only works for text with +word in it.
 ============
-*/
+***/
 int KB_ConvertString (char* in, char** ppout)
 	{
 	char sz[4096];
@@ -210,13 +210,13 @@ int KB_ConvertString (char* in, char** ppout)
 	return 1;
 	}
 
-/*
+/***
 ============
 KB_Find
 
 Allows the engine to get a kbutton_t directly ( so it can check +mlook state, etc ) for saving out to .cfg files
 ============
-*/
+***/
 struct kbutton_s DLLEXPORT* KB_Find (const char* name)
 	{
 	kblist_t* p;
@@ -231,13 +231,13 @@ struct kbutton_s DLLEXPORT* KB_Find (const char* name)
 	return NULL;
 	}
 
-/*
+/***
 ============
 KB_Add
 
 Add a kbutton_t * to the list of pointers the engine can retrieve via KB_Find
 ============
-*/
+***/
 void KB_Add (const char* name, kbutton_t* pkb)
 	{
 	kblist_t* p;
@@ -258,13 +258,13 @@ void KB_Add (const char* name, kbutton_t* pkb)
 	g_kbkeys = p;
 	}
 
-/*
+/***
 ============
 KB_Init
 
 Add kbutton_t definitions that the engine can query if needed
 ============
-*/
+***/
 void KB_Init (void)
 	{
 	g_kbkeys = NULL;
@@ -274,13 +274,13 @@ void KB_Init (void)
 	KB_Add ("in_jlook", &in_jlook);
 	}
 
-/*
+/***
 ============
 KB_Shutdown
 
 Clear kblist
 ============
-*/
+***/
 void KB_Shutdown (void)
 	{
 	kblist_t* p, * n;
@@ -294,11 +294,11 @@ void KB_Shutdown (void)
 	g_kbkeys = NULL;
 	}
 
-/*
+/***
 ============
 KeyDown
 ============
-*/
+***/
 void KeyDown (kbutton_t* b)
 	{
 	int		k;
@@ -327,11 +327,11 @@ void KeyDown (kbutton_t* b)
 	b->state |= 1 + 2;	// down + impulse down
 	}
 
-/*
+/***
 ============
 KeyUp
 ============
-*/
+***/
 void KeyUp (kbutton_t* b)
 	{
 	int		k;
@@ -365,13 +365,13 @@ void KeyUp (kbutton_t* b)
 	b->state |= 4; 		// impulse up
 	}
 
-/*
+/***
 ============
 HUD_Key_Event
 
 Return 1 to allow engine to process the key, otherwise, act on it as needed
 ============
-*/
+***/
 int DLLEXPORT HUD_Key_Event (int down, int keynum, const char* pszCurrentBinding)
 	{
 	if (gViewPort)
@@ -539,7 +539,7 @@ void IN_MLookUp (void)
 		}
 	}
 
-/*
+/***
 ===============
 CL_KeyState
 
@@ -548,7 +548,7 @@ Returns 0.25 if a key was pressed and released during the frame,
 0 if held then released, and
 1.0 if held for the entire time
 ===============
-*/
+***/
 float CL_KeyState (kbutton_t* key)
 	{
 	float		val = 0.0;
@@ -595,13 +595,13 @@ float CL_KeyState (kbutton_t* key)
 	return val;
 	}
 
-/*
+/***
 ================
 CL_AdjustAngles
 
 Moves the local angle positions
 ================
-*/
+***/
 void CL_AdjustAngles (float frametime, float* viewangles)
 	{
 	float	speed;
@@ -650,7 +650,7 @@ void CL_AdjustAngles (float frametime, float* viewangles)
 		viewangles[ROLL] = -50;
 	}
 
-/*
+/***
 ================
 CL_CreateMove
 
@@ -658,7 +658,7 @@ Send the intended movement message to the server
 if active == 1 then we are 1) not playing back demos ( where our commands are ignored ) and
 2 ) we have finished signing on to server
 ================
-*/
+***/
 void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s* cmd, int active)
 	{
 	float spd;
@@ -769,26 +769,26 @@ void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s* cmd, int active
 		}
 	}
 
-/*
+/***
 ============
 CL_IsDead
 
 Returns 1 if health is <= 0
 ============
-*/
+***/
 int	CL_IsDead (void)
 	{
 	return (gHUD.m_Health.m_iHealth <= 0) ? 1 : 0;
 	}
 
-/*
+/***
 ============
 CL_ButtonBits
 
 Returns appropriate button info for keyboard and mouse state
 Set bResetState to 1 to clear old state info
 ============
-*/
+***/
 int CL_ButtonBits (int bResetState)
 	{
 	int bits = 0;
@@ -895,12 +895,11 @@ int CL_ButtonBits (int bResetState)
 	return bits;
 	}
 
-/*
+/***
 ============
 CL_ResetButtonBits
-
 ============
-*/
+***/
 void CL_ResetButtonBits (int bits)
 	{
 	int bitsNew = CL_ButtonBits (0) ^ bits;
@@ -921,11 +920,11 @@ void CL_ResetButtonBits (int bits)
 		}
 	}
 
-/*
+/***
 ============
 InitInput
 ============
-*/
+***/
 void InitInput (void)
 	{
 	gEngfuncs.pfnAddCommand ("+moveup", IN_UpDown);
@@ -1012,11 +1011,11 @@ void InitInput (void)
 	V_Init ();
 	}
 
-/*
+/***
 ============
 ShutdownInput
 ============
-*/
+***/
 void ShutdownInput (void)
 	{
 	IN_Shutdown ();

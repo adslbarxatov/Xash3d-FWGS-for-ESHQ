@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -78,11 +77,11 @@ typedef struct
 
 static uiLoadGame_t		uiLoadGame;
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void* self)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -104,11 +103,11 @@ static void UI_DeleteDialog (void)
 	uiLoadGame.yes.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_LoadGame_KeyFunc
 =================
-*/
+***/
 static const char* UI_LoadGame_KeyFunc (int key, int down)
 	{
 	if (down && key == K_ESCAPE && uiLoadGame.load.generic.flags & QMF_INACTIVE)
@@ -119,11 +118,11 @@ static const char* UI_LoadGame_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiLoadGame.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_LoadGame_GetGameList
 =================
-*/
+***/
 static void UI_LoadGame_GetGameList (void)
 	{
 	char	comment[256];
@@ -190,11 +189,11 @@ static void UI_LoadGame_GetGameList (void)
 		uiLoadGame.remove.generic.flags &= ~QMF_GRAYED;
 	}
 
-/*
+/***
 =================
 UI_LoadGame_Callback
 =================
-*/
+***/
 static void UI_LoadGame_Callback (void* self, int event)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -257,11 +256,11 @@ static void UI_LoadGame_Callback (void* self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_LoadGame_Ownerdraw
 =================
-*/
+***/
 static void UI_LoadGame_Ownerdraw (void* self)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -299,11 +298,11 @@ static void UI_LoadGame_Ownerdraw (void* self)
 		}
 	}
 
-/*
+/***
 =================
 UI_LoadGame_Init
 =================
-*/
+***/
 static void UI_LoadGame_Init (void)
 	{
 	memset (&uiLoadGame, 0, sizeof (uiLoadGame_t));
@@ -470,22 +469,22 @@ static void UI_LoadGame_Init (void)
 	UI_AddItem (&uiLoadGame.menu, (void*)&uiLoadGame.yes);
 	}
 
-/*
+/***
 =================
 UI_LoadGame_Precache
 =================
-*/
+***/
 void UI_LoadGame_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_LoadGame_Menu
 =================
-*/
+***/
 void UI_LoadGame_Menu (void)
 	{
 	if (gMenu.m_gameinfo.gamemode == GAME_MULTIPLAYER_ONLY)

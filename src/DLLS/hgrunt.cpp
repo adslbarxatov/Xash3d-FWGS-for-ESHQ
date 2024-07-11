@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -19,11 +19,11 @@
 // =========================================================
 // Hit groups!	
 // =========================================================
-/*
+/***
   1 - Head
   2 - Stomach
   3 - Gun
-*/
+***/
 
 #include	"extdll.h"
 #include	"plane.h"
@@ -1339,12 +1339,6 @@ Task_t tlGruntSignalSuppress[] =
 		{ TASK_FACE_ENEMY,					(float)0				},
 		{ TASK_GRUNT_CHECK_FIRE,			(float)0				},
 		{ TASK_RANGE_ATTACK1,				(float)0				},
-		/*{ TASK_FACE_ENEMY,					(float)0				},
-		{ TASK_GRUNT_CHECK_FIRE,			(float)0				},
-		{ TASK_RANGE_ATTACK1,				(float)0				},
-		{ TASK_FACE_ENEMY,					(float)0				},
-		{ TASK_GRUNT_CHECK_FIRE,			(float)0				},
-		{ TASK_RANGE_ATTACK1,				(float)0				},/**/
 	};
 
 Schedule_t slGruntSignalSuppress[] =
@@ -1376,12 +1370,6 @@ Task_t	tlGruntSuppress[] =
 		{ TASK_FACE_ENEMY,			(float)0					},
 		{ TASK_GRUNT_CHECK_FIRE,	(float)0					},
 		{ TASK_RANGE_ATTACK1,		(float)0					},
-		/*{ TASK_FACE_ENEMY,			(float)0					},
-		{ TASK_GRUNT_CHECK_FIRE,	(float)0					},
-		{ TASK_RANGE_ATTACK1,		(float)0					},
-		{ TASK_FACE_ENEMY,			(float)0					},
-		{ TASK_GRUNT_CHECK_FIRE,	(float)0					},
-		{ TASK_RANGE_ATTACK1,		(float)0					},/**/
 	};
 
 Schedule_t	slGruntSuppress[] =

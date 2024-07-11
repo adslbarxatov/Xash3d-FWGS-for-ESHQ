@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,7 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 
 Class Hierachy
 
@@ -723,7 +723,7 @@ template <class T> T* GetClassPtr (T* a)
 	return a;
 	}
 
-/*
+/***
 bit_PUSHBRUSH_DATA | bit_TOGGLE_DATA
 bit_MONSTER_DATA
 bit_DELAY_DATA
@@ -744,7 +744,7 @@ EOFFSET
 env_sound_data
 env_sound_data
 push_trigger_data
-*/
+***/
 
 #define TRACER_FREQ		4			// Tracers fire every 4 bullets
 

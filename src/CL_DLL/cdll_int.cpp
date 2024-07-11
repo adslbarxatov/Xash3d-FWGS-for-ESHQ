@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -43,7 +43,7 @@ void InitInput (void);
 void EV_HookEvents (void);
 void IN_Commands (void);
 
-/*
+/***
 ==========================
 Initialize
 
@@ -69,7 +69,7 @@ extern "C"
 	void	DLLEXPORT HUD_DirectorMessage (int iSize, void* pbuf);
 	}
 
-/*
+/***
 ================================
 HUD_GetHullBounds
 
@@ -102,7 +102,7 @@ int DLLEXPORT HUD_GetHullBounds (int hullnumber, float* mins, float* maxs)
 	return iret;
 	}
 
-/*
+/***
 ================================
 HUD_ConnectionlessPacket
 
@@ -155,7 +155,7 @@ int DLLEXPORT Initialize (cl_enginefunc_t* pEnginefuncs, int iVersion)
 	return 1;
 	}
 
-/*
+/***
 ==========================
 HUD_VidInit
 
@@ -173,7 +173,7 @@ int DLLEXPORT HUD_VidInit (void)
 	return 1;
 	}
 
-/*
+/***
 ==========================
 HUD_Init
 
@@ -190,7 +190,7 @@ void DLLEXPORT HUD_Init (void)
 	Scheme_Init ();
 	}
 
-/*
+/***
 ==========================
 HUD_Redraw
 
@@ -206,7 +206,7 @@ int DLLEXPORT HUD_Redraw (float time, int intermission)
 	return 1;
 	}
 
-/*
+/***
 ==========================
 HUD_UpdateClientData
 
@@ -226,7 +226,7 @@ int DLLEXPORT HUD_UpdateClientData (client_data_t* pcldata, float flTime)
 	return gHUD.UpdateClientData (pcldata, flTime);
 	}
 
-/*
+/***
 ==========================
 HUD_Reset
 
@@ -239,7 +239,7 @@ void DLLEXPORT HUD_Reset (void)
 	gHUD.VidInit ();
 	}
 
-/*
+/***
 ==========================
 HUD_Frame
 
@@ -254,7 +254,7 @@ void DLLEXPORT HUD_Frame (double time)
 	GetClientVoiceMgr ()->Frame (time);
 	}
 
-/*
+/***
 ==========================
 HUD_VoiceStatus
 
@@ -266,7 +266,7 @@ void DLLEXPORT HUD_VoiceStatus (int entindex, qboolean bTalking)
 	GetClientVoiceMgr ()->UpdateSpeakerStatus (entindex, bTalking);
 	}
 
-/*
+/***
 ==========================
 HUD_DirectorEvent
 

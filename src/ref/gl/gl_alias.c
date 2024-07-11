@@ -1,4 +1,4 @@
-/*
+/***
 gl_alias.c - alias model renderer
 Copyright (C) 2017 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
 #include "const.h"
@@ -43,11 +43,11 @@ typedef struct
 
 static alias_draw_state_t	g_alias;		// global alias state
 
-/*
+/***
 =================================================================
 ALIAS MODEL DISPLAY LIST GENERATION
 =================================================================
-*/
+***/
 static qboolean	m_fDoRemap;
 static aliashdr_t *m_pAliasHeader;
 static trivertex_t *g_poseverts[MAXALIASFRAMES];
@@ -56,7 +56,6 @@ static stvert_t	g_stverts[MAXALIASVERTS];
 static int	g_used[8192];
 
 // [FWGS, 01.05.24] a pose is a single set of vertexes. a frame may be an animating sequence of poses
-/*int		g_posenum;*/
 static int	g_posenum;
 
 // the command list holds counts and s/t values that are valid for
@@ -73,22 +72,22 @@ static int	g_stripverts[128];
 static int	g_striptris[128];
 static int	g_stripcount;
 
-/*
+/***
 ====================
 R_StudioInit
 ====================
-*/
+***/
 void R_AliasInit (void)
 	{
 	g_alias.interpolate = true;
 	m_fDoRemap = false;
 	}
 
-/*
+/***
 ================
 StripLength
 ================
-*/
+***/
 static int StripLength (int starttri, int startv)
 	{
 	int		m1, m2, j, k;
@@ -150,11 +149,11 @@ done:
 	return g_stripcount;
 	}
 
-/*
+/***
 ===========
 FanLength
 ===========
-*/
+***/
 static int FanLength (int starttri, int startv)
 	{
 	int		m1, m2, j, k;
@@ -214,14 +213,14 @@ done:
 	return g_stripcount;
 	}
 
-/*
+/***
 ================
 BuildTris
 
 Generate a list of trifans or strips
 for the model, which holds for all frames
 ================
-*/
+***/
 static void BuildTris (void)
 	{
 	int		len, bestlen, besttype = 0;
@@ -298,11 +297,11 @@ static void BuildTris (void)
 	g_commands[g_numcommands++] = 0; // end of list marker
 	}
 
-/*
+/***
 ================
 GL_MakeAliasModelDisplayLists
 ================
-*/
+***/
 static void GL_MakeAliasModelDisplayLists (model_t *m)
 	{
 	trivertex_t	*verts;
@@ -327,16 +326,16 @@ static void GL_MakeAliasModelDisplayLists (model_t *m)
 		}
 	}
 
-/*
+/***
 ==============================================================================
 ALIAS MODELS
 ==============================================================================
-*/
-/*
+***/
+/***
 =================
 Mod_LoadAliasFrame
 =================
-*/
+***/
 static void *Mod_LoadAliasFrame (void *pin, maliasframedesc_t *frame)
 	{
 	daliasframe_t	*pdaliasframe;
@@ -364,11 +363,11 @@ static void *Mod_LoadAliasFrame (void *pin, maliasframedesc_t *frame)
 	return (void *)pinframe;
 	}
 
-/*
+/***
 =================
 Mod_LoadAliasGroup
 =================
-*/
+***/
 static void *Mod_LoadAliasGroup (void *pin, maliasframedesc_t *frame)
 	{
 	daliasgroup_t	*pingroup;
@@ -405,11 +404,11 @@ static void *Mod_LoadAliasGroup (void *pin, maliasframedesc_t *frame)
 	return ptemp;
 	}
 
-/*
+/***
 ===============
 Mod_CreateSkinData [FWGS, 01.02.24]
 ===============
-*/
+***/
 static rgbdata_t *Mod_CreateSkinData (model_t *mod, byte *data, int width, int height)
 	{
 	static rgbdata_t	skin;
@@ -548,11 +547,11 @@ static void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype,
 	return pskintype;
 	}
 
-/*
+/***
 ===============
 Mod_LoadAllSkins [FWGS, 01.11.23]
 ===============
-*/
+***/
 static void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *pskintype)
 	{
 	int	i, size;
@@ -575,11 +574,11 @@ static void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *psk
 
 // =========================================================================
 
-/*
+/***
 =================
 Mod_CalcAliasBounds
 =================
-*/
+***/
 static void Mod_CalcAliasBounds (model_t *mod)
 	{
 	int		i, j, k;
@@ -609,11 +608,11 @@ static void Mod_CalcAliasBounds (model_t *mod)
 	mod->radius = sqrt (radius);
 	}
 
-/*
+/***
 =================
 Mod_LoadAliasModel
 =================
-*/
+***/
 void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
 	daliashdr_t		*pinmodel;
@@ -750,19 +749,19 @@ void Mod_AliasUnloadTextures (void *data)
 		}
 	}
 
-/*
+/***
 =============================================================
 ALIAS MODELS
 =============================================================
-*/
+***/
 
-/*
+/***
 ===============
 R_AliasDynamicLight [FWGS, 01.02.24]
 
 similar to R_StudioDynamicLight
 ===============
-*/
+***/
 static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	{
 	movevars_t	*mv = tr.movevars;
@@ -943,11 +942,11 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	VectorNormalize2 (lightDir, plight->plightvec);
 	}
 
-/*
+/***
 ===============
 R_AliasSetupLighting
 ===============
-*/
+***/
 static void R_AliasSetupLighting (alight_t *plight)
 	{
 	if (!m_pAliasHeader || !plight)
@@ -963,11 +962,11 @@ static void R_AliasSetupLighting (alight_t *plight)
 	VectorNormalize (g_alias.lightvec_local);
 	}
 
-/*
+/***
 ===============
 R_AliasLighting [FWGS, 01.02.24]
 ===============
-*/
+***/
 static void R_AliasLighting (float *lv, const vec3_t normal)
 	{
 	float 	illum = g_alias.ambientlight;
@@ -1000,22 +999,22 @@ static void R_AliasLighting (float *lv, const vec3_t normal)
 	*lv = gEngfuncs.LightToTexGammaEx (illum * 4) / 1023.0f;
 	}
 
-/*
+/***
 ===============
 R_AliasSetRemapColors [FWGS, 01.01.24]
 ===============
-*/
+***/
 static void R_AliasSetRemapColors (int newTop, int newBottom)
 	{
 	if (gEngfuncs.CL_EntitySetRemapColors (RI.currententity, RI.currentmodel, newTop, newBottom))
 		m_fDoRemap = true;
 	}
 
-/*
+/***
 =============
 GL_DrawAliasFrame
 =============
-*/
+***/
 static void GL_DrawAliasFrame (aliashdr_t *paliashdr)
 	{
 	float 		lv_tmp;
@@ -1076,11 +1075,11 @@ static void GL_DrawAliasFrame (aliashdr_t *paliashdr)
 		}
 	}
 
-/*
+/***
 =============
 GL_DrawAliasShadow
 =============
-*/
+***/
 static void GL_DrawAliasShadow (aliashdr_t *paliashdr)
 	{
 	trivertex_t	*verts0;
@@ -1153,18 +1152,18 @@ static void GL_DrawAliasShadow (aliashdr_t *paliashdr)
 		pglDisable (GL_STENCIL_TEST);
 	}
 
-/*
+/***
 ====================
 R_AliasLerpMovement
 ====================
-*/
+***/
 static void R_AliasLerpMovement (cl_entity_t *e)
 	{
 	float	f = 1.0f;
 
 	// don't do it if the goalstarttime hasn't updated in a while.
 	// NOTE: Because we need to interpolate multiplayer characters, the interpolation time limit
-	// was increased to 1.0 s., which is 2x the max lag we are accounting for.
+	// was increased to 1.0 s., which is 2x the max lag we are accounting for
 	if (g_alias.interpolate && (g_alias.time < e->curstate.animtime + 1.0f) &&
 		(e->curstate.animtime != e->latched.prevanimtime))
 		f = (g_alias.time - e->curstate.animtime) / (e->curstate.animtime - e->latched.prevanimtime);
@@ -1198,11 +1197,11 @@ static void R_AliasLerpMovement (cl_entity_t *e)
 		e->angles[1] = anglemod (100.0f * g_alias.time);
 	}
 
-/*
+/***
 =================
 R_SetupAliasFrame
 =================
-*/
+***/
 static void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
 	{
 	int		newpose, oldpose;
@@ -1251,11 +1250,11 @@ static void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
 	GL_DrawAliasFrame (paliashdr);
 	}
 
-/*
+/***
 ===============
 R_StudioDrawAbsBBox [FWGS, 01.01.24]
 ===============
-*/
+***/
 static void R_AliasDrawAbsBBox (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 	{
 	vec3_t	p[8];
@@ -1326,13 +1325,13 @@ static void R_AliasDrawLightTrace (cl_entity_t *e)
 		}
 	}
 
-/*
+/***
 ================
 R_AliasSetupTimings [FWGS, 01.01.24]
 
 init current time for a given model
 ================
-*/
+***/
 static void R_AliasSetupTimings (void)
 	{
 	// synchronize with server time
@@ -1346,11 +1345,11 @@ static void R_AliasSetupTimings (void)
 	m_fDoRemap = false;
 	}
 
-/*
+/***
 =================
 R_DrawAliasModel
 =================
-*/
+***/
 void R_DrawAliasModel (cl_entity_t *e)
 	{
 	model_t		*clmodel;

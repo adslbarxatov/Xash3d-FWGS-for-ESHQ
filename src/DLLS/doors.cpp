@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,9 +12,9 @@
 *   without written permission from Valve LLC.
 *
 ****/
-/*
+/***
 ===== doors.cpp ========================================================
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -247,7 +247,7 @@ void CBaseDoor::KeyValue (KeyValueData* pkvd)
 		}
 	}
 
-/*
+/***
 QUAKED func_door (0 .5 .8) ? START_OPEN x DOOR_DONT_LINK TOGGLE
 if two doors touch, they are assumed to be connected and operate as a unit.
 
@@ -271,7 +271,7 @@ touch or takedamage doors).
 2)      base
 3)      stone chain
 4)      screechy metal
-*/
+***/
 
 LINK_ENTITY_TO_CLASS (func_door, CBaseDoor);
 
@@ -780,7 +780,7 @@ void CBaseDoor::Blocked (CBaseEntity* pOther)
 		}
 	}
 
-/*
+/***
 QUAKED FuncRotDoorSpawn (0 .5 .8) ? START_OPEN REVERSE
 DOOR_DONT_LINK TOGGLE X_AXIS Y_AXIS
 if two doors touch, they are assumed to be connected and operate as
@@ -818,7 +818,7 @@ button or trigger field activates the door.
 2)	base
 3)	stone chain
 4)	screechy metal
-*/
+***/
 class CRotDoor: public CBaseDoor
 	{
 	public:

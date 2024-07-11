@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -114,13 +114,13 @@ MONSTERSTATE CBaseMonster::GetIdealState (void)
 		{
 		case MONSTERSTATE_IDLE:
 
-			/*
+			/***
 			IDLE goes to ALERT upon hearing a sound
 			-IDLE goes to ALERT upon being injured
 			IDLE goes to ALERT upon seeing food
 			-IDLE goes to COMBAT upon sighting an enemy
 			IDLE goes to HUNT upon smelling food
-			*/
+			***/
 			{
 			if (iConditions & bits_COND_NEW_ENEMY)
 				{
@@ -159,11 +159,11 @@ MONSTERSTATE CBaseMonster::GetIdealState (void)
 			break;
 			}
 		case MONSTERSTATE_ALERT:
-			/*
+			/***
 			ALERT goes to IDLE upon becoming bored
 			-ALERT goes to COMBAT upon sighting an enemy
 			ALERT goes to HUNT upon hearing a noise
-			*/
+			***/
 			{
 			if (iConditions & (bits_COND_NEW_ENEMY | bits_COND_SEE_ENEMY))
 				{
@@ -181,10 +181,10 @@ MONSTERSTATE CBaseMonster::GetIdealState (void)
 			break;
 			}
 		case MONSTERSTATE_COMBAT:
-			/*
+			/***
 			COMBAT goes to HUNT upon losing sight of enemy
 			COMBAT goes to ALERT upon death of enemy
-			*/
+			***/
 			{
 			if (m_hEnemy == NULL)
 				{
@@ -195,12 +195,12 @@ MONSTERSTATE CBaseMonster::GetIdealState (void)
 			break;
 			}
 		case MONSTERSTATE_HUNT:
-			/*
+			/***
 			HUNT goes to ALERT upon seeing food
 			HUNT goes to ALERT upon being injured
 			HUNT goes to IDLE if goal touched
 			HUNT goes to COMBAT upon seeing enemy
-			*/
+			***/
 			{
 			break;
 			}

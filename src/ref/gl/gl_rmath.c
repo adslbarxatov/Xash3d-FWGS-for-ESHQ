@@ -1,4 +1,4 @@
-/*
+/***
 gl_rmath.c - renderer mathlib
 Copyright (C) 2010 Uncle Mike
 
@@ -11,16 +11,16 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
 
-/*
+/***
 ========================================================================
 Matrix4x4 operations (private to renderer)
 ========================================================================
-*/
+***/
 void Matrix4x4_Concat (matrix4x4 out, const matrix4x4 in1, const matrix4x4 in2)
 	{
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0] + in1[0][3] * in2[3][0];
@@ -41,13 +41,13 @@ void Matrix4x4_Concat (matrix4x4 out, const matrix4x4 in1, const matrix4x4 in2)
 	out[3][3] = in1[3][0] * in2[0][3] + in1[3][1] * in2[1][3] + in1[3][2] * in2[2][3] + in1[3][3] * in2[3][3];
 	}
 
-/*
+/***
 ================
 Matrix4x4_CreateProjection
 
 NOTE: produce quake style world orientation
 ================
-*/
+***/
 void Matrix4x4_CreateProjection (matrix4x4 out, float xMax, float xMin, float yMax, float yMin, float zNear, float zFar)
 	{
 	out[0][0] = (2.0f * zNear) / (xMax - xMin);
@@ -78,13 +78,13 @@ void Matrix4x4_CreateOrtho (matrix4x4 out, float xLeft, float xRight, float yBot
 	out[2][3] = -(zFar + zNear) / (zFar - zNear);
 	}
 
-/*
+/***
 ================
 Matrix4x4_CreateModelview
 
 NOTE: produce quake style world orientation
 ================
-*/
+***/
 void Matrix4x4_CreateModelview (matrix4x4 out)
 	{
 	out[0][0] = out[1][1] = out[2][2] = 0.0f;

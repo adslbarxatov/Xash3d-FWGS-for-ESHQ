@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -12,9 +12,9 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
-/*
+/***
 ===== scripted.cpp ========================================================
-*/
+***/
 
 #include "extdll.h"
 #include "util.h"
@@ -33,17 +33,18 @@
 #include "scripted.h"
 #include "defaultai.h"
 
-/*
+/***
 classname "scripted_sequence"
 targetname "me" - there can be more than one with the same name, and they act in concert
 target "the_entity_I_want_to_start_playing" or "class entity_classname" will pick the closest inactive scientist
 play "name_of_sequence"
 idle "name of idle sequence to play before starting"
-donetrigger "whatever" - can be any other triggerable entity such as another sequence, train, door, or a special case like "die" or "remove"
+donetrigger "whatever" - can be any other triggerable entity such as another sequence, train, door, or a special
+case like "die" or "remove"
 moveto - if set the monster first moves to this nodes position
 range # - only search this far to find the target
 spawnflags - (stop if blocked, stop if player seen)
-*/
+***/
 
 // Cache user-entity-field values until spawn is called.
 void CCineMonster::KeyValue (KeyValueData *pkvd)

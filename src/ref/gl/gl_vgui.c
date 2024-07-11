@@ -1,4 +1,4 @@
-/*
+/***
 gl_vgui.c - OpenGL vgui draw methods
 Copyright (C) 2011 Uncle Mike
 Copyright (C) 2019 a1batross
@@ -12,7 +12,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "gl_local.h"
 
@@ -22,26 +22,26 @@ static int	g_textures[VGUI_MAX_TEXTURES];
 static int	g_textureId = 0;
 static int	g_iBoundTexture;
 
-/*
+/***
 ================
 VGUI_DrawInit
 
 Startup VGUI backend
 ================
-*/
+***/
 void GAME_EXPORT VGUI_DrawInit (void)
 	{
 	memset (g_textures, 0, sizeof (g_textures));
 	g_textureId = g_iBoundTexture = 0;
 	}
 
-/*
+/***
 ================
 VGUI_DrawShutdown
 
 Release all textures
 ================
-*/
+***/
 void GAME_EXPORT VGUI_DrawShutdown (void)
 	{
 	int	i;
@@ -52,13 +52,13 @@ void GAME_EXPORT VGUI_DrawShutdown (void)
 		}
 	}
 
-/*
+/***
 ================
 VGUI_GenerateTexture
 
 generate unique texture number
 ================
-*/
+***/
 int GAME_EXPORT VGUI_GenerateTexture (void)
 	{
 	if (++g_textureId >= VGUI_MAX_TEXTURES)
@@ -66,13 +66,13 @@ int GAME_EXPORT VGUI_GenerateTexture (void)
 	return g_textureId;
 	}
 
-/*
+/***
 ================
 VGUI_UploadTexture
 
 Upload texture into video memory
 ================
-*/
+***/
 void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int width, int height)
 	{
 	rgbdata_t	r_image;
@@ -97,13 +97,13 @@ void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int width, int 
 	g_textures[id] = GL_LoadTextureInternal (texName, &r_image, TF_IMAGE);
 	}
 
-/*
+/***
 ================
 VGUI_CreateTexture
 
 Create empty rgba texture and upload them into video memory
 ================
-*/
+***/
 void GAME_EXPORT VGUI_CreateTexture (int id, int width, int height)
 	{
 	rgbdata_t	r_image;
@@ -185,13 +185,13 @@ void GAME_EXPORT VGUI_BindTexture (int id)
 		}
 	}
 
-/*
+/***
 ================
 VGUI_GetTextureSizes
 
 returns wide and tall for currently binded texture
 ================
-*/
+***/
 void GAME_EXPORT VGUI_GetTextureSizes (int *width, int *height)
 	{
 	gl_texture_t	*glt;
@@ -209,13 +209,13 @@ void GAME_EXPORT VGUI_GetTextureSizes (int *width, int *height)
 		*height = glt->srcHeight;
 	}
 
-/*
+/***
 ================
 VGUI_EnableTexture
 
 disable texturemode for fill rectangle
 ================
-*/
+***/
 void GAME_EXPORT VGUI_EnableTexture (qboolean enable)
 	{
 	if (enable)
@@ -224,13 +224,13 @@ void GAME_EXPORT VGUI_EnableTexture (qboolean enable)
 		pglDisable (GL_TEXTURE_2D);
 	}
 
-/*
+/***
 ================
 VGUI_DrawQuad
 
 generic method to fill rectangle
 ================
-*/
+***/
 void GAME_EXPORT VGUI_DrawQuad (const vpoint_t *ul, const vpoint_t *lr)
 	{
 	int width, height;

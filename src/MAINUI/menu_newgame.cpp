@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -63,11 +62,11 @@ typedef struct
 
 static uiNewGame_t	uiNewGame;
 
-/*
+/***
 =================
 UI_NewGame_StartGame
 =================
-*/
+***/
 static void UI_NewGame_StartGame (float skill)
 	{
 	if (CVAR_GET_FLOAT ("host_serverstate") && CVAR_GET_FLOAT ("maxplayers") > 1)
@@ -107,11 +106,11 @@ static void UI_PromptDialog (float skill)
 	uiNewGame.yes.generic.flags ^= QMF_HIDDEN;
 	}
 
-/*
+/***
 =================
 UI_NewGame_KeyFunc
 =================
-*/
+***/
 static const char *UI_NewGame_KeyFunc (int key, int down)
 	{
 	if (down && (key == K_ESCAPE) && !(uiNewGame.dlgMessage1.generic.flags & QMF_HIDDEN))
@@ -122,11 +121,11 @@ static const char *UI_NewGame_KeyFunc (int key, int down)
 	return UI_DefaultKey (&uiNewGame.menu, key, down);
 	}
 
-/*
+/***
 =================
 UI_NewGame_Callback
 =================
-*/
+***/
 static void UI_NewGame_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -157,11 +156,11 @@ static void UI_NewGame_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_MsgBox_Ownerdraw
 =================
-*/
+***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -169,11 +168,11 @@ static void UI_MsgBox_Ownerdraw (void *self)
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
 
-/*
+/***
 =================
 UI_NewGame_Init
 =================
-*/
+***/
 static void UI_NewGame_Init (void)
 	{
 	memset (&uiNewGame, 0, sizeof (uiNewGame_t));
@@ -291,22 +290,22 @@ static void UI_NewGame_Init (void)
 	UI_AddItem (&uiNewGame.menu, (void *)&uiNewGame.yes);
 	}
 
-/*
+/***
 =================
 UI_NewGame_Precache
 =================
-*/
+***/
 void UI_NewGame_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_NewGame_Menu
 =================
-*/
+***/
 void UI_NewGame_Menu (void)
 	{
 	// completely ignore save/load menus for multiplayer_only

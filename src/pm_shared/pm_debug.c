@@ -1,4 +1,4 @@
-/*
+/***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 *
@@ -74,11 +74,11 @@ void PM_ShowClipBox (void)
 #endif
 	}
 
-/*
+/***
 ===============
 PM_ParticleLine(vec3_t start, vec3_t end, int color, float life)
 ================
-*/
+***/
 void PM_ParticleLine (vec3_t start, vec3_t end, int pcolor, float life, float vert)
 	{
 	float linestep = 2.0f;
@@ -105,12 +105,11 @@ void PM_ParticleLine (vec3_t start, vec3_t end, int pcolor, float life, float ve
 
 	}
 
-/*
+/***
 ================
 PM_DrawRectangle(vec3_t tl, vec3_t br)
-
 ================
-*/
+***/
 void PM_DrawRectangle (vec3_t tl, vec3_t bl, vec3_t tr, vec3_t br, int pcolor, float life)
 	{
 	PM_ParticleLine (tl, bl, pcolor, life, 0);
@@ -119,12 +118,11 @@ void PM_DrawRectangle (vec3_t tl, vec3_t bl, vec3_t tr, vec3_t br, int pcolor, f
 	PM_ParticleLine (tr, tl, pcolor, life, 0);
 	}
 
-/*
+/***
 ================
 PM_DrawPhysEntBBox(int num)
-
 ================
-*/
+***/
 void PM_DrawPhysEntBBox (int num, int pcolor, float life)
 	{
 	physent_t* pe;
@@ -209,19 +207,17 @@ void PM_DrawPhysEntBBox (int num, int pcolor, float life)
 		}
 	}
 
-/*
+/***
 ================
 PM_DrawBBox(vec3_t mins, vec3_t maxs, vec3_t origin, int pcolor, float life)
-
 ================
-*/
+***/
 void PM_DrawBBox (vec3_t mins, vec3_t maxs, vec3_t origin, int pcolor, float life)
 	{
-	int j;
-
-	vec3_t tmp;
-	vec3_t		p[8];
-	float gap = BOX_GAP;
+	int		j;
+	vec3_t	tmp;
+	vec3_t	p[8];
+	float	gap = BOX_GAP;
 
 	for (j = 0; j < 8; j++)
 		{
@@ -247,16 +243,16 @@ void PM_DrawBBox (vec3_t mins, vec3_t maxs, vec3_t origin, int pcolor, float lif
 
 #ifndef DEDICATED
 
-/*
+/***
 ================
 PM_ViewEntity
 
 Shows a particle trail from player to entity in crosshair.
 Shows particles at that entities bbox
 
-Tries to shoot a ray out by about 128 units.
+Tries to shoot a ray out by about 128 units
 ================
-*/
+***/
 void PM_ViewEntity (void)
 	{
 	vec3_t forward, right, up;

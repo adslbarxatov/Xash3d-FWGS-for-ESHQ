@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "mathlib.h"
 #include "extdll.h"
@@ -76,13 +75,13 @@ static uiPlayerSetup_t	uiPlayerSetup;
 static HIMAGE		playerImage = 0;	// keep actual
 static char		lastImage[256];
 
-/*
+/***
 =================
 UI_PlayerSetup_CalcFov
 
 assume refdef is valid
 =================
-*/
+***/
 static void UI_PlayerSetup_CalcFov (ref_viewpass_t* rvp)
 	{
 	rvp->fov_x = 40.0f;
@@ -91,11 +90,11 @@ static void UI_PlayerSetup_CalcFov (ref_viewpass_t* rvp)
 	rvp->fov_y = RAD2DEG (half_fov_y) * 2;
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_FindModels
 =================
-*/
+***/
 static void UI_PlayerSetup_FindModels (void)
 	{
 	char	name[256], path[256];
@@ -124,11 +123,11 @@ static void UI_PlayerSetup_FindModels (void)
 		}
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_GetConfig
 =================
-*/
+***/
 static void UI_PlayerSetup_GetConfig (void)
 	{
 	int	i;
@@ -164,11 +163,11 @@ static void UI_PlayerSetup_GetConfig (void)
 		uiPlayerSetup.showModels.enabled = 1;
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_SetConfig
 =================
-*/
+***/
 static void UI_PlayerSetup_SetConfig (void)
 	{
 	CVAR_SET_STRING ("name", uiPlayerSetup.name.buffer);
@@ -179,11 +178,11 @@ static void UI_PlayerSetup_SetConfig (void)
 	CVAR_SET_FLOAT ("ui_showmodels", uiPlayerSetup.showModels.enabled);
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_UpdateConfig
 =================
-*/
+***/
 static void UI_PlayerSetup_UpdateConfig (void)
 	{
 	char	path[256], name[256];
@@ -255,11 +254,11 @@ static void UI_PlayerSetup_UpdateConfig (void)
 		}
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_Callback
 =================
-*/
+***/
 static void UI_PlayerSetup_Callback (void* self, int event)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -297,11 +296,11 @@ static void UI_PlayerSetup_Callback (void* self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_Ownerdraw
 =================
-*/
+***/
 static void UI_PlayerSetup_Ownerdraw (void* self)
 	{
 	menuCommon_s* item = (menuCommon_s*)self;
@@ -330,11 +329,11 @@ static void UI_PlayerSetup_Ownerdraw (void* self)
 		}
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_Init
 =================
-*/
+***/
 static void UI_PlayerSetup_Init (void)
 	{
 	int addFlags = 0;
@@ -551,22 +550,22 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.ent->player = true; // yes, draw me as playermodel
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_Precache
 =================
-*/
+***/
 void UI_PlayerSetup_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_PlayerSetup_Menu
 =================
-*/
+***/
 void UI_PlayerSetup_Menu (void)
 	{
 	if (gMenu.m_gameinfo.gamemode == GAME_SINGLEPLAYER_ONLY)

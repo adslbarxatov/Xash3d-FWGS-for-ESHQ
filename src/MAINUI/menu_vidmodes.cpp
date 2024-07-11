@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 #include "extdll.h"
 #include "basemenu.h"
@@ -56,11 +55,11 @@ typedef struct
 
 static uiVidModes_t	uiVidModes;
 
-/*
+/***
 =================
 UI_VidModes_GetModesList
 =================
-*/
+***/
 static void UI_VidModes_GetConfig (void)
 	{
 	int i;
@@ -83,11 +82,11 @@ static void UI_VidModes_GetConfig (void)
 		uiVidModes.vsync.enabled = 1;
 	}
 
-/*
+/***
 =================
 UI_VidModes_SetConfig
 =================
-*/
+***/
 static void UI_VidOptions_SetConfig (void)
 	{
 	CVAR_SET_FLOAT ("vid_mode", uiVidModes.vidList.curItem);
@@ -95,21 +94,21 @@ static void UI_VidOptions_SetConfig (void)
 	CVAR_SET_FLOAT ("gl_vsync", uiVidModes.vsync.enabled);
 	}
 
-/*
+/***
 =================
 UI_VidModes_UpdateConfig
 =================
-*/
+***/
 static void UI_VidOptions_UpdateConfig (void)
 	{
 	CVAR_SET_FLOAT ("gl_vsync", uiVidModes.vsync.enabled);
 	}
 
-/*
+/***
 =================
 UI_VidModes_Callback
 =================
-*/
+***/
 static void UI_VidModes_Callback (void *self, int event)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
@@ -146,11 +145,11 @@ static void UI_VidModes_Callback (void *self, int event)
 		}
 	}
 
-/*
+/***
 =================
 UI_VidModes_Init
 =================
-*/
+***/
 static void UI_VidModes_Init (void)
 	{
 	memset (&uiVidModes, 0, sizeof (uiVidModes_t));
@@ -260,22 +259,22 @@ static void UI_VidModes_Init (void)
 	UI_AddItem (&uiVidModes.menu, (void *)&uiVidModes.vidList);
 	}
 
-/*
+/***
 =================
 UI_VidModes_Precache
 =================
-*/
+***/
 void UI_VidModes_Precache (void)
 	{
 	PIC_Load (ART_BACKGROUND);
 	PIC_Load (ART_BANNER);
 	}
 
-/*
+/***
 =================
 UI_VidModes_Menu
 =================
-*/
+***/
 void UI_VidModes_Menu (void)
 	{
 	UI_VidModes_Precache ();

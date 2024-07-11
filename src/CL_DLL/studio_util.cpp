@@ -12,12 +12,11 @@
 #include "com_model.h"
 #include "studio_util.h"
 
-/*
+/***
 ====================
 AngleMatrix
-
 ====================
-*/
+***/
 void AngleMatrix (const float* angles, float (*matrix)[4])
 	{
 	float		angle;
@@ -48,12 +47,11 @@ void AngleMatrix (const float* angles, float (*matrix)[4])
 	matrix[2][3] = 0.0;
 	}
 
-/*
+/***
 ====================
 VectorCompare
-
 ====================
-*/
+***/
 int VectorCompare (const float* v1, const float* v2)
 	{
 	int		i;
@@ -65,12 +63,11 @@ int VectorCompare (const float* v1, const float* v2)
 	return 1;
 	}
 
-/*
+/***
 ====================
 CrossProduct
-
 ====================
-*/
+***/
 void CrossProduct (const float* v1, const float* v2, float* cross)
 	{
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
@@ -78,12 +75,11 @@ void CrossProduct (const float* v1, const float* v2, float* cross)
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
 	}
 
-/*
+/***
 ====================
 VectorTransform
-
 ====================
-*/
+***/
 void VectorTransform (const float* in1, float in2[3][4], float* out)
 	{
 	out[0] = DotProduct (in1, in2[0]) + in2[0][3];
@@ -91,12 +87,11 @@ void VectorTransform (const float* in1, float in2[3][4], float* out)
 	out[2] = DotProduct (in1, in2[2]) + in2[2][3];
 	}
 
-/*
+/***
 ================
 ConcatTransforms
-
 ================
-*/
+***/
 void ConcatTransforms (float in1[3][4], float in2[3][4], float out[3][4])
 	{
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
@@ -127,12 +122,11 @@ void ConcatTransforms (float in1[3][4], float in2[3][4], float out[3][4])
 
 // angles index are not the same as ROLL, PITCH, YAW
 
-/*
+/***
 ====================
 AngleQuaternion
-
 ====================
-*/
+***/
 void AngleQuaternion (float* angles, vec4_t quaternion)
 	{
 	float		angle;
@@ -155,12 +149,11 @@ void AngleQuaternion (float* angles, vec4_t quaternion)
 	quaternion[3] = cr * cp * cy + sr * sp * sy; // W
 	}
 
-/*
+/***
 ====================
 QuaternionSlerp
-
 ====================
-*/
+***/
 void QuaternionSlerp (vec4_t p, vec4_t q, float t, vec4_t qt)
 	{
 	int i;
@@ -218,12 +211,11 @@ void QuaternionSlerp (vec4_t p, vec4_t q, float t, vec4_t qt)
 		}
 	}
 
-/*
+/***
 ====================
 QuaternionMatrix
-
 ====================
-*/
+***/
 void QuaternionMatrix (vec4_t quaternion, float (*matrix)[4])
 	{
 	matrix[0][0] = 1.0 - 2.0 * quaternion[1] * quaternion[1] - 2.0 * quaternion[2] * quaternion[2];
@@ -239,12 +231,11 @@ void QuaternionMatrix (vec4_t quaternion, float (*matrix)[4])
 	matrix[2][2] = 1.0 - 2.0 * quaternion[0] * quaternion[0] - 2.0 * quaternion[1] * quaternion[1];
 	}
 
-/*
+/***
 ====================
 MatrixCopy
-
 ====================
-*/
+***/
 void MatrixCopy (float in[3][4], float out[3][4])
 	{
 	memcpy (out, in, sizeof (float) * 3 * 4);
