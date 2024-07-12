@@ -1,4 +1,4 @@
-/*
+/***
 sv_log.c - server logging in multiplayer
 Copyright (C) 2017 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -77,7 +77,6 @@ void Log_Open (void)
 		svs.log.file = fp;
 	Log_Printf ("Log file started (file \"%s\") (game \"%s\") (version \"%i/" XASH_VERSION "/%d\")\n",
 		szTestFile, Info_ValueForKey (svs.serverinfo, "*gamedir"), PROTOCOL_VERSION, Q_buildnum ());
-	/*szTestFile, Info_ValueForKey (SV_Serverinfo (), "*gamedir"), PROTOCOL_VERSION, Q_buildnum ());*/
 	}
 
 void Log_Close (void)
@@ -91,13 +90,13 @@ void Log_Close (void)
 	svs.log.file = NULL;
 	}
 
-/*
+/***
 ==================
 Log_Printf
 
 Prints a frag log message to the server's frag log file, console, and possible a UDP port.
 ==================
-*/
+***/
 void Log_Printf (const char *fmt, ...)
 	{
 	va_list		argptr;
@@ -142,11 +141,11 @@ static void Log_PrintServerCvar (const char *var_name, const char *var_value, co
 	Log_Printf ("Server cvar \"%s\" = \"%s\"\n", var_name, var_value);
 	}
 
-/*
+/***
 ==================
 Log_PrintServerVars
 ==================
-*/
+***/
 void Log_PrintServerVars (void)
 	{
 	if (!svs.log.active)
@@ -157,11 +156,11 @@ void Log_PrintServerVars (void)
 	Log_Printf ("Server cvars end\n");
 	}
 
-/*
+/***
 ====================
 SV_SetLogAddress_f [FWGS, 01.07.23]
 ====================
-*/
+***/
 void SV_SetLogAddress_f (void)
 	{
 	const char	*s;
@@ -213,11 +212,11 @@ void SV_SetLogAddress_f (void)
 	Con_Printf ("logaddress: %s\n", NET_AdrToString (svs.log.net_address));
 	}
 
-/*
+/***
 ====================
 SV_ServerLog_f
 ====================
-*/
+***/
 void SV_ServerLog_f (void)
 	{
 	if (Cmd_Argc () != 2)

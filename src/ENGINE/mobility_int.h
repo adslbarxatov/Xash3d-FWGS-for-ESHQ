@@ -1,4 +1,4 @@
-/*
+/***
 mobility_int.h - interface between engine and client for mobile platforms
 Copyright (C) 2015 a1batross
 
@@ -26,7 +26,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org/>
-*/
+***/
 
 #pragma once
 #ifndef MOBILITY_INT_H

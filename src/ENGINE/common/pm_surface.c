@@ -1,4 +1,4 @@
-/*
+/***
 pm_surface.c - surface tracing
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "xash3d_mathlib.h"
@@ -28,13 +28,13 @@ typedef struct
 	msurface_t *surface;
 	} linetrace_t;
 
-/*
+/***
 ==============
 fix_coord
 
 converts the reletive tex coords to absolute
 ==============
-*/
+***/
 static uint fix_coord (vec_t in, uint width)
 	{
 	if (in > 0)
@@ -43,13 +43,13 @@ static uint fix_coord (vec_t in, uint width)
 	return width - ((uint)fabs (in) % width);
 	}
 
-/*
+/***
 =============
 SampleMiptex
 
 fence texture testing
 =============
-*/
+***/
 static int PM_SampleMiptex (const msurface_t *surf, const vec3_t point)
 	{
 	mextrasurf_t	*info = surf->info;
@@ -105,11 +105,11 @@ static int PM_SampleMiptex (const msurface_t *surf, const vec3_t point)
 	return contents;
 	}
 
-/*
+/***
 ==================
 PM_RecursiveSurfCheck
 ==================
-*/
+***/
 msurface_t *PM_RecursiveSurfCheck (model_t *mod, mnode_t *node, vec3_t p1, vec3_t p2)
 	{
 	float		t1, t2, frac;
@@ -181,14 +181,14 @@ loc0:
 	return PM_RecursiveSurfCheck (mod, node->children[side ^ 1], mid, p2);
 	}
 
-/*
+/***
 ==================
 PM_TraceTexture
 
 find the face where the traceline hit
 assume physentity is valid
 ==================
-*/
+***/
 msurface_t *PM_TraceSurface (physent_t *pe, vec3_t start, vec3_t end)
 	{
 	matrix4x4	matrix;
@@ -222,13 +222,13 @@ msurface_t *PM_TraceSurface (physent_t *pe, vec3_t start, vec3_t end)
 
 // [FWGS, 01.04.23] удалена PM_TraceTexture
 
-/*
+/***
 ==================
 PM_TestLine_r
 
 optimized trace for light gathering
 ==================
-*/
+***/
 static int PM_TestLine_r (model_t *mod, mnode_t *node, vec_t p1f, vec_t p2f, const vec3_t start, const vec3_t stop,
 	linetrace_t *trace)
 	{

@@ -1,4 +1,4 @@
-/*
+/***
 net_buffer.c - network bitbuffer io functions
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "protocol.h"
@@ -141,85 +141,8 @@ void MSG_InitMasks (void)
 		ExtraMasks[maskBit] = (uint)BIT (maskBit) - 1;
 	}
 
-// [FWGS, 01.05.24]
-/*void MSG_InitExt (sizebuf_t *sb, const char *pDebugName, void *pData, int nBytes, int nMaxBits)
-	{
-	MSG_StartWriting (sb, pData, nBytes, 0, nMaxBits);
-
-	sb->pDebugName = pDebugName;
-	}*/
-
-/*void MSG_StartWriting (sizebuf_t *sb, void *pData, int nBytes, int iStartBit, int nBits)
-	{
-	// make sure it's dword aligned and padded
-	Assert (((uint32_t)pData & 3) == 0);	// [FWGS, 01.07.23]
-
-	sb->pDebugName = "Unnamed";
-	sb->pData = (byte *)pData;
-
-	if (nBits == -1)
-		{
-		sb->nDataBits = nBytes << 3;
-		}
-	else
-		{
-		Assert (nBits <= nBytes * 8);
-		sb->nDataBits = nBits;
-		}
-
-	sb->iCurBit = iStartBit;
-	sb->bOverflow = false;
-	}*/
-
-/*
-=======================
-MSG_Clear
-
-for clearing overflowed buffer
-=======================
-//
-void MSG_Clear (sizebuf_t *sb)
-	{
-	sb->iCurBit = 0;
-	sb->bOverflow = false;
-	}*/
-
-/*static qboolean MSG_Overflow (sizebuf_t *sb, int nBits)
-	{
-	if (sb->iCurBit + nBits > sb->nDataBits)
-		sb->bOverflow = true;
-	return sb->bOverflow;
-	}*/
-
-/*qboolean MSG_CheckOverflow (sizebuf_t *sb)
-	{
-	return MSG_Overflow (sb, 0);
-	}*/
-
-/*int MSG_SeekToBit (sizebuf_t *sb, int bitPos, int whence)
-	{
-	// compute the file offset
-	switch (whence)
-		{
-		case SEEK_CUR:
-			bitPos += sb->iCurBit;
-			break;
-		case SEEK_SET:
-			break;
-		case SEEK_END:
-			bitPos += sb->nDataBits;
-			break;
-		default:
-			return -1;
-		}
-
-	if ((bitPos < 0) || (bitPos > sb->nDataBits))
-		return -1;
-
-	sb->iCurBit = bitPos;
-
-	return 0;
-	}*/
+// [FWGS, 01.05.24] removed MSG_InitExt, MSG_StartWriting, MSG_Clear,
+// MSG_Overflow, MSG_CheckOverflow, MSG_SeekToBit
 
 // [FWGS, 01.02.24] удалена MSG_SeekToByte
 
@@ -279,13 +202,13 @@ void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 		}
 	}
 
-/*
+/***
 =======================
 MSG_WriteSBitLong
 
 sign bit comes first
 =======================
-*/
+***/
 void MSG_WriteSBitLong (sizebuf_t *sb, int data, int numbits)
 	{
 	// do we have a valid # of bits to encode with?
@@ -733,7 +656,6 @@ qboolean MSG_ReadBytes (sizebuf_t *sb, void *pOut, int nBytes)
 	}
 
 // [FWGS, 01.05.24]
-/*char *MSG_ReadStringExt (sizebuf_t *sb, qboolean bLine)*/
 static char *MSG_ReadStringExt (sizebuf_t *sb, qboolean bLine)
 	{
 	static char	string[4096];

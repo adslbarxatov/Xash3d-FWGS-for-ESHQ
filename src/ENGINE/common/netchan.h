@@ -1,4 +1,4 @@
-/*
+/***
 netchan.h - net channel abstraction layer
 Copyright (C) 2007 Uncle Mike
 
@@ -10,17 +10,17 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef NET_MSG_H
 #define NET_MSG_H
 
-/*
+/***
 ==========================================================
 ELEMENTS COMMUNICATED ACROSS THE NET
 ==========================================================
-*/
+***/
 #include "crtlib.h"
 #include "net_buffer.h"
 
@@ -145,11 +145,11 @@ typedef struct netsplit_s
 qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *length);
 
 
-/*
+/***
 ==============================================================
 NET
 ==============================================================
-*/
+***/
 #define MAX_FLOWS			2
 
 #define FLOW_OUTGOING		0

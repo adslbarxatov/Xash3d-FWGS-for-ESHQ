@@ -1,4 +1,4 @@
-/*
+/***
 net_chan.c - network channel
 Copyright (C) 2008 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "netchan.h"
@@ -33,7 +33,7 @@ GNU General Public License for more details.
 void Netchan_FlushIncoming (netchan_t *chan, int stream);
 void Netchan_AddBufferToList (fragbuf_t **pplist, fragbuf_t *pbuf);
 
-/*
+/***
 packet header ( size in bits )
 -------------
 31	sequence
@@ -83,7 +83,7 @@ If there is no information that needs to be transfered on a given frame,
 such as during the connection stage while waiting for the client to load,
 then a packet only needs to be delivered if there is something in the
 unacknowledged reliable
-*/
+***/
 
 // [FWGS, 01.07.23]
 CVAR_DEFINE_AUTO (net_showpackets, "0", 0,
@@ -107,20 +107,20 @@ const char *ns_strings[NS_COUNT] =
 		"Server",
 	};
 
-/*
+/***
 =================================
 NETWORK PACKET SPLIT
 =================================
-*/
+***/
 
-/*
+/***
 ======================
 NetSplit_GetLong
 
 Collect fragmrnts with signature 0xFFFFFFFE to single packet
 return true when got full packet
 ======================
-*/
+***/
 qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *length)
 	{
 	netsplit_packet_t *packet = (netsplit_packet_t *)data;
@@ -202,7 +202,7 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 	}
 
 // [FWGS, 01.02.24]
-/*
+/***
 ======================
 NetSplit_SendLong
 
@@ -237,11 +237,11 @@ void NetSplit_SendLong (netsrc_t sock, size_t length, void *data, netadr_t to, u
 		}
 	}*/
 
-/*
+/***
 ===============
 Netchan_Init [FWGS, 01.08.23]
 ===============
-*/
+***/
 void Netchan_Init (void)
 	{
 	char	buf[32];
@@ -284,13 +284,13 @@ void Netchan_ReportFlow (netchan_t *chan)
 	Con_DPrintf ("Signon network traffic:  %s from server, %s to server\n", incoming, outgoing);
 	}
 
-/*
+/***
 ==============
 Netchan_IsLocal
 
 detect a loopback message
 ==============
-*/
+***/
 qboolean Netchan_IsLocal (netchan_t *chan)
 	{
 	if (!NET_IsActive () || NET_IsLocalAddress (chan->remote_address))
@@ -299,13 +299,13 @@ qboolean Netchan_IsLocal (netchan_t *chan)
 	return false;
 	}
 
-/*
+/***
 ==============
 Netchan_Setup
 
 called to open a channel to a remote system
 ==============
-*/
+***/
 void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client,
 	int (*pfnBlockSize)(void *, fragsize_t mode))
 	{
@@ -327,11 +327,11 @@ void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, voi
 	MSG_Init (&chan->message, "NetData", chan->message_buf, sizeof (chan->message_buf));
 	}
 
-/*
+/***
 ==============================
 Netchan_IncomingReady
 ==============================
-*/
+***/
 qboolean Netchan_IncomingReady (netchan_t *chan)
 	{
 	int	i;
@@ -345,13 +345,13 @@ qboolean Netchan_IncomingReady (netchan_t *chan)
 	return false;
 	}
 
-/*
+/***
 ===============
 Netchan_CanPacket [FWGS, 01.07.23]
 
 Returns true if the bandwidth choke isn't active
 ================
-*/
+***/
 qboolean Netchan_CanPacket (netchan_t *chan, qboolean choke)
 	{
 	// never choke loopback packets
@@ -364,11 +364,11 @@ qboolean Netchan_CanPacket (netchan_t *chan, qboolean choke)
 	return chan->cleartime < host.realtime ? true : false;
 	}
 
-/*
+/***
 ==============================
 Netchan_UnlinkFragment
 ==============================
-*/
+***/
 static void Netchan_UnlinkFragment (fragbuf_t *buf, fragbuf_t **list)
 	{
 	fragbuf_t *search;
@@ -402,11 +402,11 @@ static void Netchan_UnlinkFragment (fragbuf_t *buf, fragbuf_t **list)
 		}
 	}
 
-/*
+/***
 ==============================
 Netchan_ClearFragbufs
 ==============================
-*/
+***/
 static void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 	{
 	fragbuf_t *buf, *n;
@@ -428,11 +428,11 @@ static void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 	*ppbuf = NULL;
 	}
 
-/*
+/***
 ==============================
 Netchan_ClearFragments
 ==============================
-*/
+***/
 static void Netchan_ClearFragments (netchan_t *chan)
 	{
 	fragbufwaiting_t *wait, *next;
@@ -456,11 +456,11 @@ static void Netchan_ClearFragments (netchan_t *chan)
 		}
 	}
 
-/*
+/***
 ==============================
 Netchan_Clear
 ==============================
-*/
+***/
 void Netchan_Clear (netchan_t *chan)
 	{
 	int	i;
@@ -490,13 +490,13 @@ void Netchan_Clear (netchan_t *chan)
 	memset (chan->flow, 0, sizeof (chan->flow));
 	}
 
-/*
+/***
 ===============
 Netchan_OutOfBand
 
 Sends an out-of-band datagram
 ================
-*/
+***/
 void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data)
 	{
 	byte		send_buf[MAX_PRINT_MSG];
@@ -515,13 +515,13 @@ void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data)
 		}
 	}
 
-/*
+/***
 ===============
 Netchan_OutOfBandPrint
 
 Sends a text message in an out-of-band datagram
 ================
-*/
+***/
 void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...)
 	{
 	char	string[MAX_PRINT_MSG];
@@ -534,11 +534,11 @@ void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, .
 	Netchan_OutOfBand (net_socket, adr, Q_strlen (string), (byte *)string);
 	}
 
-/*
+/***
 ==============================
 Netchan_AllocFragbuf [FWGS, 01.02.24]
 ==============================
-*/
+***/
 static fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	{
 	fragbuf_t *buf;
@@ -550,11 +550,11 @@ static fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	return buf;
 	}
 
-/*
+/***
 ==============================
 Netchan_AddFragbufToTail
 ==============================
-*/
+***/
 static void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
 	{
 	fragbuf_t *p;
@@ -575,11 +575,11 @@ static void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
 		}
 	}
 
-/*
+/***
 ==============================
 Netchan_UpdateFlow
 ==============================
-*/
+***/
 static void Netchan_UpdateFlow (netchan_t *chan)
 	{
 	float	faccumulatedtime = 0.0;
@@ -614,13 +614,13 @@ static void Netchan_UpdateFlow (netchan_t *chan)
 		}
 	}
 
-/*
+/***
 ==============================
 Netchan_FragSend
 
 Fragmentation buffer is full and user is prepared to send
 ==============================
-*/
+***/
 void Netchan_FragSend (netchan_t *chan)
 	{
 	fragbufwaiting_t *wait;
@@ -654,11 +654,11 @@ void Netchan_FragSend (netchan_t *chan)
 		}
 	}
 
-/*
+/***
 ==============================
 Netchan_AddBufferToList
 ==============================
-*/
+***/
 void Netchan_AddBufferToList (fragbuf_t **pplist, fragbuf_t *pbuf)
 	{
 	// Find best slot
@@ -698,11 +698,11 @@ void Netchan_AddBufferToList (fragbuf_t **pplist, fragbuf_t *pbuf)
 	pprev->next = pbuf;
 	}
 
-/*
+/***
 ==============================
 Netchan_CreateFragments_
 ==============================
-*/
+***/
 static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 	{
 	fragbuf_t	*buf;
@@ -773,11 +773,11 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 ==============================
 Netchan_CreateFragments
 ==============================
-*/
+***/
 void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg)
 	{
 	// always queue any pending reliable data ahead of the fragmentation buffer
@@ -790,11 +790,11 @@ void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg)
 	Netchan_CreateFragments_ (chan, msg);
 	}
 
-/*
+/***
 ==============================
 Netchan_FindBufferById
 ==============================
-*/
+***/
 static fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean allocate)
 	{
 	fragbuf_t	*list = *pplist;
@@ -819,11 +819,11 @@ static fragbuf_t *Netchan_FindBufferById (fragbuf_t **pplist, int id, qboolean a
 	return pnewbuf;
 	}
 
-/*
+/***
 ==============================
 Netchan_CheckForCompletion
 ==============================
-*/
+***/
 static void Netchan_CheckForCompletion (netchan_t *chan, int stream, int intotalbuffers)
 	{
 	int	c, id;
@@ -859,11 +859,11 @@ static void Netchan_CheckForCompletion (netchan_t *chan, int stream, int intotal
 		chan->incomingready[stream] = true;
 	}
 
-/*
+/***
 ==============================
 Netchan_CreateFileFragmentsFromBuffer
 ==============================
-*/
+***/
 void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filename, byte *pbuf, int size)
 	{
 	int		chunksize;
@@ -950,11 +950,11 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 		}
 	}
 
-/*
+/***
 ==============================
 Netchan_CreateFileFragments
 ==============================
-*/
+***/
 int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	{
 	int		chunksize;
@@ -1070,11 +1070,11 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	return 1;
 	}
 
-/*
+/***
 ==============================
 Netchan_FlushIncoming
 ==============================
-*/
+***/
 void Netchan_FlushIncoming (netchan_t *chan, int stream)
 	{
 	fragbuf_t *p, *n;
@@ -1093,11 +1093,11 @@ void Netchan_FlushIncoming (netchan_t *chan, int stream)
 	chan->incomingready[stream] = false;
 	}
 
-/*
+/***
 ==============================
 Netchan_CopyNormalFragments
 ==============================
-*/
+***/
 qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *length)
 	{
 	size_t	size = 0;
@@ -1157,11 +1157,11 @@ qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *l
 	return true;
 	}
 
-/*
+/***
 ==============================
 Netchan_CopyFileFragments
 ==============================
-*/
+***/
 qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 	{
 	char	filename[MAX_OSPATH];
@@ -1324,11 +1324,11 @@ static qboolean Netchan_Validate (netchan_t *chan, sizebuf_t *sb, qboolean *frag
 	return true;
 	}
 
-/*
+/***
 ==============================
 Netchan_UpdateProgress
 ==============================
-*/
+***/
 void Netchan_UpdateProgress (netchan_t *chan)
 	{
 #if !XASH_DEDICATED
@@ -1411,7 +1411,7 @@ void Netchan_UpdateProgress (netchan_t *chan)
 #endif
 	}
 
-/*
+/***
 ===============
 Netchan_TransmitBits
 
@@ -1420,7 +1420,7 @@ transmition / retransmition of the reliable messages.
 
 A 0 length will still generate a packet and deal with the reliable messages.
 ================
-*/
+***/
 void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 	{
 	byte	send_buf[NET_MAX_MESSAGE];
@@ -1728,14 +1728,14 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 
 // [FWGS, 01.05.23] удалена Netchan_Transmit
 
-/*
+/***
 =================
 Netchan_Process
 
 called when the current net_message is from remote_address
 modifies net_message so that it points to the packet payload
 =================
-*/
+***/
 qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 	{
 	uint	sequence, sequence_ack;
@@ -1910,3 +1910,4 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 
 	return true;
 	}
+

@@ -1,4 +1,4 @@
-/*
+/***
 net.h - WinSock to BSD sockets wrap
 Copyright (C) 2022 a1batross
 
@@ -10,8 +10,9 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #ifndef NET_H
 #define NET_H
 

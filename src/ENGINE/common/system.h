@@ -1,4 +1,4 @@
-/*
+/***
 system.h - platform dependent code
 Copyright (C) 2011 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef SYSTEM_H
 #define SYSTEM_H
@@ -33,7 +33,7 @@ extern "C" {
 // [FWGS, 01.01.24]
 #define ASSERT( exp )	if(!( exp )) Sys_Error( "assert failed at %s:%i\n", __FILE__, __LINE__ )
 
-/*
+/***
 ========================================================================
 internal dll's loader
 
@@ -41,7 +41,7 @@ two main types - native dlls and other win32 libraries will be recognized automa
 NOTE: never change this structure because all dll descriptions in xash code
 writes into struct by offsets not names
 ========================================================================
-*/
+***/
 extern int error_on_exit;	// [FWGS, 01.05.24]
 
 void Sys_Sleep (int msec);

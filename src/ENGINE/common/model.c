@@ -1,4 +1,4 @@
-/*
+/***
 model.c - modelloader
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,9 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #include "common.h"
 #include "mod_local.h"
 #include "sprite.h"
@@ -37,16 +38,16 @@ CVAR_DEFINE_AUTO (r_wadtextures, "0", 0,
 CVAR_DEFINE_AUTO (r_showhull, "0", 0,
 	"draw collision hulls 1-3");
 
-/*
+/***
 ===============================================================================
 MOD COMMON UTILS
 ===============================================================================
-*/
-/*
+***/
+/***
 ================
 Mod_Modellist_f
 ================
-*/
+***/
 static void Mod_Modellist_f (void)
 	{
 	int		i, nummodels;
@@ -68,11 +69,11 @@ static void Mod_Modellist_f (void)
 	Con_Printf ("\n");
 	}
 
-/*
+/***
 ================
 Mod_FreeUserData
 ================
-*/
+***/
 static void Mod_FreeUserData (model_t *mod)
 	{
 	// ignore submodels and freed models
@@ -95,11 +96,11 @@ static void Mod_FreeUserData (model_t *mod)
 #endif
 	}
 
-/*
+/***
 ================
 Mod_FreeModel
 ================
-*/
+***/
 void Mod_FreeModel (model_t *mod)
 	{
 	// already freed?
@@ -124,16 +125,16 @@ void Mod_FreeModel (model_t *mod)
 	memset (mod, 0, sizeof (*mod));
 	}
 
-/*
+/***
 ===============================================================================
 MODEL INITIALIZE / SHUTDOWN
 ===============================================================================
-*/
-/*
+***/
+/***
 ================
 Mod_Init
 ================
-*/
+***/
 void Mod_Init (void)
 	{
 	com_studiocache = Mem_AllocPool ("Studio Cache");
@@ -150,11 +151,11 @@ void Mod_Init (void)
 	Mod_InitStudioHull ();
 	}
 
-/*
+/***
 ================
 Mod_FreeAll
 ================
-*/
+***/
 void Mod_FreeAll (void)
 	{
 	int	i;
@@ -167,11 +168,11 @@ void Mod_FreeAll (void)
 	mod_numknown = 0;
 	}
 
-/*
+/***
 ================
 Mod_ClearUserData
 ================
-*/
+***/
 void Mod_ClearUserData (void)
 	{
 	int	i;
@@ -180,34 +181,34 @@ void Mod_ClearUserData (void)
 		Mod_FreeUserData (&mod_known[i]);
 	}
 
-/*
+/***
 ================
 Mod_Shutdown
 ================
-*/
+***/
 void Mod_Shutdown (void)
 	{
 	Mod_FreeAll ();
 	Mem_FreePool (&com_studiocache);
 	}
 
-/*
+/***
 ===============================================================================
 MODELS MANAGEMENT
 ===============================================================================
-*/
-/*
+***/
+/***
 ==================
 Mod_FindName
 
 never return NULL
 ==================
-*/
+***/
 model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 	{
 	char	modname[MAX_QPATH];
-	model_t *mod;
-	int	i;
+	model_t	*mod;
+	int		i;
 
 	Q_strncpy (modname, filename, sizeof (modname));
 
@@ -245,13 +246,13 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 	return mod;
 	}
 
-/*
+/***
 ==================
 Mod_LoadModel
 
 Loads a model into the cache
 ==================
-*/
+***/
 model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	{
 	char		tempname[MAX_QPATH];
@@ -374,14 +375,14 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 
 	return mod;
 	}
-
-/*
+	
+/***
 ==================
 Mod_ForName
 
 Loads in a model for the given name
 ==================
-*/
+***/
 model_t *Mod_ForName (const char *name, qboolean crash, qboolean trackCRC)
 	{
 	model_t *mod;
@@ -393,13 +394,13 @@ model_t *Mod_ForName (const char *name, qboolean crash, qboolean trackCRC)
 	return Mod_LoadModel (mod, crash);
 	}
 
-/*
+/***
 ==================
 Mod_PurgeStudioCache
 
 free studio cache on change level
 ==================
-*/
+***/
 static void Mod_PurgeStudioCache (void)
 	{
 	int	i;
@@ -427,13 +428,13 @@ static void Mod_PurgeStudioCache (void)
 	Mod_ClearStudioCache ();
 	}
 
-/*
+/***
 ==================
 Mod_LoadWorld
 
 Loads in the map and all submodels
 ==================
-*/
+***/
 model_t *Mod_LoadWorld (const char *name, qboolean preload)
 	{
 	model_t *pworld;
@@ -456,13 +457,13 @@ model_t *Mod_LoadWorld (const char *name, qboolean preload)
 	return pworld;
 	}
 
-/*
+/***
 ==================
 Mod_FreeUnused
 
 Purge all unused models
 ==================
-*/
+***/
 void Mod_FreeUnused (void)
 	{
 	model_t *mod;
@@ -476,19 +477,16 @@ void Mod_FreeUnused (void)
 		}
 	}
 
-/*
+/***
 ===============================================================================
-
-			MODEL ROUTINES
-
+MODEL ROUTINES
 ===============================================================================
-*/
-/*
+***/
+/***
 ===============
 Mod_Calloc
-
 ===============
-*/
+***/
 void *Mod_Calloc (int number, size_t size)
 	{
 	cache_user_t *cu;
@@ -500,28 +498,26 @@ void *Mod_Calloc (int number, size_t size)
 	return cu;
 	}
 
-/*
+/***
 ===============
 Mod_CacheCheck
-
 ===============
-*/
+***/
 void *Mod_CacheCheck (cache_user_t *c)
 	{
 	return Cache_Check (com_studiocache, c);
 	}
 
-/*
+/***
 ===============
 Mod_LoadCacheFile
-
 ===============
-*/
+***/
 void Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	{
-	char	modname[MAX_QPATH];
+	char		modname[MAX_QPATH];
 	fs_offset_t	size;
-	byte *buf;
+	byte		*buf;
 
 	Assert (cu != NULL);
 
@@ -538,25 +534,24 @@ void Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	Mem_Free (buf);
 	}
 
-/*
+/***
 ===============
 Mod_AliasExtradata
-
 ===============
-*/
+***/
 void *Mod_AliasExtradata (model_t *mod)
 	{
-	if (mod && mod->type == mod_alias)
+	if (mod && (mod->type == mod_alias))
 		return mod->cache.data;
+
 	return NULL;
 	}
 
-/*
+/***
 ===============
 Mod_StudioExtradata
-
 ===============
-*/
+***/
 void *Mod_StudioExtradata (model_t *mod)
 	{
 	if (mod && mod->type == mod_studio)
@@ -564,16 +559,15 @@ void *Mod_StudioExtradata (model_t *mod)
 	return NULL;
 	}
 
-/*
+/***
 ==================
 Mod_ValidateCRC
-
 ==================
-*/
+***/
 qboolean Mod_ValidateCRC (const char *name, CRC32_t crc)
 	{
-	model_info_t *p;
-	model_t *mod;
+	model_info_t	*p;
+	model_t			*mod;
 
 	mod = Mod_FindName (name, true);
 	p = &mod_crcinfo[mod - mod_known];
@@ -585,16 +579,15 @@ qboolean Mod_ValidateCRC (const char *name, CRC32_t crc)
 	return false;
 	}
 
-/*
+/***
 ==================
 Mod_NeedCRC
-
 ==================
-*/
+***/
 void Mod_NeedCRC (const char *name, qboolean needCRC)
 	{
-	model_t *mod;
-	model_info_t *p;
+	model_t			*mod;
+	model_info_t	*p;
 
 	mod = Mod_FindName (name, true);
 	p = &mod_crcinfo[mod - mod_known];

@@ -1,4 +1,4 @@
-/*
+/***
 world.c - common worldtrace routines
 Copyright (C) 2009 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "world.h"
@@ -30,45 +30,43 @@ const char *et_name[] =
 		"fragmented",
 	};
 
-/*
+/***
 ===============================================================================
-
-	ENTITY LINKING
-
+ENTITY LINKING
 ===============================================================================
-*/
-/*
+***/
+/***
 ===============
 ClearLink
 
 ClearLink is used for new headnodes
 ===============
-*/
+***/
 void ClearLink (link_t *l)
 	{
 	l->prev = l->next = l;
 	}
 
-/*
+/***
 ===============
 RemoveLink
 
 remove link from chain
 ===============
-*/
+***/
 void RemoveLink (link_t *l)
 	{
 	l->next->prev = l->prev;
 	l->prev->next = l->next;
 	}
 
-/*
+/***
 ===============
 InsertLinkBefore
 
 kept trigger and solid entities seperate
 ===============
-*/
+***/
 void InsertLinkBefore (link_t *l, link_t *before)
 	{
 	l->next = before;
@@ -77,11 +75,11 @@ void InsertLinkBefore (link_t *l, link_t *before)
 	l->next->prev = l;
 	}
 
-/*
+/***
 ==================
 World_MoveBounds
 ==================
-*/
+***/
 void World_MoveBounds (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, vec3_t boxmins, vec3_t boxmaxs)
 	{
 	int	i;
@@ -118,11 +116,11 @@ trace_t World_CombineTraces (trace_t *cliptrace, trace_t *trace, edict_t *touch)
 	return *cliptrace;
 	}
 
-/*
+/***
 ==================
 World_TransformAABB
 ==================
-*/
+***/
 void World_TransformAABB (matrix4x4 transform, const vec3_t mins, const vec3_t maxs, vec3_t outmins, vec3_t outmaxs)
 	{
 	vec3_t	p1, p2;
@@ -165,13 +163,13 @@ void World_TransformAABB (matrix4x4 transform, const vec3_t mins, const vec3_t m
 		}
 	}
 
-/*
+/***
 ==================
 RankForContents
 
 Used for determine contents priority
 ==================
-*/
+***/
 int RankForContents (int contents)
 	{
 	switch (contents)

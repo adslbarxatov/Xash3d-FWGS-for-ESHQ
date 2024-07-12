@@ -1,4 +1,4 @@
-/*
+/***
 pm_debug.c - player move debugging code
 Copyright (C) 2017 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "xash3d_mathlib.h"
@@ -23,13 +23,13 @@ GNU General Public License for more details.
 // expand debugging BBOX particle hulls by this many units.
 #define BOX_GAP	0.0f
 
-/*
+/***
 ===============
 PM_ParticleLine
 
 draw line from particles
 ================
-*/
+***/
 void PM_ParticleLine (const vec3_t start, const vec3_t end, int pcolor, float life, float zvel)
 	{
 #if !XASH_DEDICATED
@@ -50,12 +50,11 @@ void PM_ParticleLine (const vec3_t start, const vec3_t end, int pcolor, float li
 #endif // XASH_DEDICATED
 	}
 
-/*
+/***
 ================
 PM_DrawRectangle
-
 ================
-*/
+***/
 static void PM_DrawRectangle (const vec3_t tl, const vec3_t bl, const vec3_t tr, const vec3_t br, int pcolor, float life)
 	{
 	PM_ParticleLine (tl, bl, pcolor, life, 0);
@@ -64,12 +63,11 @@ static void PM_DrawRectangle (const vec3_t tl, const vec3_t bl, const vec3_t tr,
 	PM_ParticleLine (tr, tl, pcolor, life, 0);
 	}
 
-/*
+/***
 ================
 PM_DrawBBox
-
 ================
-*/
+***/
 void PM_DrawBBox (const vec3_t mins, const vec3_t maxs, const vec3_t origin, int pcolor, float life)
 	{
 #if !XASH_DEDICATED
@@ -91,5 +89,5 @@ void PM_DrawBBox (const vec3_t mins, const vec3_t maxs, const vec3_t origin, int
 		{
 		PM_DrawRectangle (p[boxpnt[i][1]], p[boxpnt[i][0]], p[boxpnt[i][2]], p[boxpnt[i][3]], pcolor, life);
 		}
-#endif // XASH_DEDICATED
+#endif
 	}

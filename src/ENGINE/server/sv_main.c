@@ -1,4 +1,4 @@
-/*
+/***
 sv_main.c - server main loop
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -288,13 +288,13 @@ CVAR_DEFINE_AUTO (sv_log_outofband, "0", FCVAR_ARCHIVE,
 	"log out of band messages, can be useful for server admins and for engine debugging");
 
 // ============================================================================
-/*
+/***
 ================
 SV_HasActivePlayers
 
 returns true if server have spawned players
 ================
-*/
+***/
 static qboolean SV_HasActivePlayers (void)
 	{
 	int	i;
@@ -311,14 +311,14 @@ static qboolean SV_HasActivePlayers (void)
 	return false;
 	}
 
-/*
+/***
 ===================
 SV_UpdateMovevars
 
 check movevars for changes every frame
 send updates to client if changed
 ===================
-*/
+***/
 void SV_UpdateMovevars (qboolean initialize)
 	{
 	if (sv.state == ss_dead)
@@ -381,11 +381,11 @@ void SV_UpdateMovevars (qboolean initialize)
 	host.movevars_changed = false;
 	}
 
-/*
+/***
 =================
 SV_CheckCmdTimes
 =================
-*/
+***/
 static void SV_CheckCmdTimes (void)
 	{
 	sv_client_t		*cl;
@@ -432,13 +432,13 @@ static void SV_CheckCmdTimes (void)
 		}
 	}
 
-/*
+/***
 =================
 SV_ProcessFile
 
 process incoming file (customization)
 =================
-*/
+***/
 static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 	{
 	customization_t	*pList;
@@ -506,11 +506,11 @@ static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 	if (bError) Con_Printf (S_ERROR "parsing custom decal from %s\n", cl->name);
 	}
 
-/*
+/***
 =================
 SV_ReadPackets
 =================
-*/
+***/
 static void SV_ReadPackets (void)
 	{
 	sv_client_t	*cl;
@@ -619,7 +619,7 @@ static void SV_ReadPackets (void)
 	sv.current_client = NULL;
 	}
 
-/*
+/***
 ==================
 SV_CheckTimeouts
 
@@ -631,7 +631,7 @@ When a client is normally dropped, the sv_client_t goes into a zombie state
 for a few seconds to make sure any final reliable message gets resent
 if necessary
 ==================
-*/
+***/
 static void SV_CheckTimeouts (void)
 	{
 	sv_client_t	*cl;
@@ -677,14 +677,14 @@ static void SV_CheckTimeouts (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_PrepWorldFrame
 
 This has to be done before the world logic, because
 player processing happens outside RunWorldFrame
 ================
-*/
+***/
 static void SV_PrepWorldFrame (void)
 	{
 	edict_t	*ent;
@@ -702,11 +702,11 @@ static void SV_PrepWorldFrame (void)
 		svgame.physFuncs.pfnPrepWorldFrame ();
 	}
 
-/*
+/***
 =================
 SV_IsSimulating
 =================
-*/
+***/
 static qboolean SV_IsSimulating (void)
 	{
 	if (sv.background && SV_Active () && CL_Active ())
@@ -732,11 +732,11 @@ static qboolean SV_IsSimulating (void)
 	return false;
 	}
 
-/*
+/***
 =================
 SV_RunGameFrame
 =================
-*/
+***/
 static qboolean SV_RunGameFrame (void)
 	{
 	sv.simulating = SV_IsSimulating ();
@@ -812,11 +812,11 @@ static void SV_UpdateStatusLine (void)
 #endif
 	}
 
-/*
+/***
 ==================
 Host_ServerFrame
 ==================
-*/
+***/
 void Host_ServerFrame (void)
 	{
 	// [FWGS, 01.07.23] update dedicated server status line in console
@@ -862,19 +862,7 @@ void Host_ServerFrame (void)
 	NET_MasterHeartbeat ();
 	}
 
-// [FWGS, 01.02.24]
-/*
-==================
-Host_SetServerState
-==================
-//
-void Host_SetServerState (int state)
-	{
-	Cvar_FullSet ("host_serverstate", va ("%i", state), FCVAR_READ_ONLY);
-	sv.state = state;
-	}*/
-
-// ============================================================================
+// [FWGS, 01.02.24] removed Host_SetServerState
 
 // [FWGS, 01.05.23] удалены Master_Add, Master_Heartbeat, Master_Shutdown
 
@@ -930,13 +918,13 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	NET_SendPacket (NS_SERVER, Q_strlen (s), s, from);
 	}
 
-/*
+/***
 ====================
 SV_ProcessUserAgent
 
 send error message and return false on wrong input devices
 ====================
-*/
+***/
 qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 	{
 	const char *input_devices_str = Info_ValueForKey (useragent, "d");
@@ -994,13 +982,13 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 
 // ============================================================================
 
-/*
+/***
 ===============
 SV_Init
 
 Only called at startup, not for each game
 ===============
-*/
+***/
 void SV_Init (void)
 	{
 	string	versionString;
@@ -1172,7 +1160,7 @@ void SV_Init (void)
 	SV_InitGame ();
 	}
 
-/*
+/***
 ==================
 SV_FinalMessage
 
@@ -1181,7 +1169,7 @@ connected clients before the server goes down.  The messages are sent immediatel
 not just stuck on the outgoing message list, because the server is going
 to totally exit after returning from this function.
 ==================
-*/
+***/
 void SV_FinalMessage (const char *message, qboolean reconnect)
 	{
 	byte		msg_buf[1024];
@@ -1225,13 +1213,13 @@ void SV_FinalMessage (const char *message, qboolean reconnect)
 			Netchan_TransmitBits (&cl->netchan, MSG_GetNumBitsWritten (&msg), MSG_GetData (&msg));
 	}
 
-/*
+/***
 ================
 SV_FreeClients
 
 release server clients
 ================
-*/
+***/
 static void SV_FreeClients (void)
 	{
 	if (svs.maxclients != 0)
@@ -1253,14 +1241,13 @@ static void SV_FreeClients (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_Shutdown [FWGS, 01.01.24]
 
-Called when each game quits,
-before Sys_Quit or Sys_Error
+Called when each game quits, before Sys_Quit or Sys_Error
 ================
-*/
+***/
 void SV_Shutdown (const char *finalmsg)
 	{
 	// already freed

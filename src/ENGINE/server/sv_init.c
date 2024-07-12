@@ -1,4 +1,4 @@
-/*
+/***
 sv_init.c - server initialize operations
 Copyright (C) 2009 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -28,24 +28,24 @@ server_t		sv;		// local server
 server_static_t	svs;	// persistant server info
 svgame_static_t	svgame;	// persistant game info
 
-/*
+/***
 ==================
 Host_SetServerState [FWGS, 01.02.24]
 ==================
-*/
+***/
 static void Host_SetServerState (int state)
 	{
 	Cvar_FullSet ("host_serverstate", va ("%i", state), FCVAR_READ_ONLY);
 	sv.state = state;
 	}
 
-/*
+/***
 ================
 SV_AddResource
 
 generic method to put the resources into array
 ================
-*/
+***/
 static void SV_AddResource (resourcetype_t type, const char *name, int size, byte flags, int index)
 	{
 	resource_t *pResource = &sv.resources[sv.num_resources];
@@ -61,13 +61,13 @@ static void SV_AddResource (resourcetype_t type, const char *name, int size, byt
 	pResource->type = type;
 	}
 
-/*
+/***
 ================
 SV_SendSingleResource
 
 hot precache on a flying
 ================
-*/
+***/
 static void SV_SendSingleResource (const char *name, resourcetype_t type, int index, byte flags)
 	{
 	resource_t	*pResource = &sv.resources[sv.num_resources];
@@ -96,13 +96,13 @@ static void SV_SendSingleResource (const char *name, resourcetype_t type, int in
 	SV_SendResource (pResource, &sv.reliable_datagram);
 	}
 
-/*
+/***
 ================
 SV_ModelIndex
 
 register unique model for a server and client
 ================
-*/
+***/
 int SV_ModelIndex (const char *filename)
 	{
 	char	name[MAX_QPATH];
@@ -141,13 +141,13 @@ int SV_ModelIndex (const char *filename)
 	return i;
 	}
 
-/*
+/***
 ================
 SV_SoundIndex
 
 register unique sound for client
 ================
-*/
+***/
 int GAME_EXPORT SV_SoundIndex (const char *filename)
 	{
 	char	name[MAX_QPATH];
@@ -192,13 +192,13 @@ int GAME_EXPORT SV_SoundIndex (const char *filename)
 	return i;
 	}
 
-/*
+/***
 ================
 SV_EventIndex
 
 register network event for a server and client
 ================
-*/
+***/
 int SV_EventIndex (const char *filename)
 	{
 	char	name[MAX_QPATH];
@@ -234,13 +234,13 @@ int SV_EventIndex (const char *filename)
 	return i;
 	}
 
-/*
+/***
 ================
 SV_GenericIndex
 
 register generic resourse for a server and client
 ================
-*/
+***/
 int GAME_EXPORT SV_GenericIndex (const char *filename)
 	{
 	char	name[MAX_QPATH];
@@ -276,13 +276,13 @@ int GAME_EXPORT SV_GenericIndex (const char *filename)
 	return i;
 	}
 
-/*
+/***
 ================
 SV_ModelHandle
 
 get model by handle
 ================
-*/
+***/
 model_t *GAME_EXPORT SV_ModelHandle (int modelindex)
 	{
 	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
@@ -372,13 +372,13 @@ static void SV_ReadResourceList (const char *filename)
 	Mem_Free (afile);
 	}
 
-/*
+/***
 ================
 SV_CreateGenericResources
 
 loads external resource list
 ================
-*/
+***/
 static void SV_CreateGenericResources (void)
 	{
 	string	filename;
@@ -391,13 +391,13 @@ static void SV_CreateGenericResources (void)
 	SV_ReadResourceList ("reslist.txt");
 	}
 
-/*
+/***
 ================
 SV_CreateResourceList
 
 add resources to common list
 ================
-*/
+***/
 static void SV_CreateResourceList (void)
 	{
 	qboolean	ffirstsent = false;
@@ -458,11 +458,11 @@ static void SV_CreateResourceList (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_WriteVoiceCodec
 ================
-*/
+***/
 static void SV_WriteVoiceCodec (sizebuf_t *msg)
 	{
 	MSG_BeginServerCmd (msg, svc_voiceinit);
@@ -470,7 +470,7 @@ static void SV_WriteVoiceCodec (sizebuf_t *msg)
 	MSG_WriteByte (msg, (int)sv_voicequality.value);
 	}
 
-/*
+/***
 ================
 SV_CreateBaseline [FWGS, 01.03.24]
 
@@ -480,7 +480,7 @@ baseline will be transmitted
 
 INTERNAL RESOURCE
 ================
-*/
+***/
 static void SV_CreateBaseline (void)
 	{
 	entity_state_t	nullstate, *base;
@@ -581,13 +581,13 @@ static void SV_CreateBaseline (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_FreeOldEntities
 
 remove immediate entities
 ================
-*/
+***/
 void SV_FreeOldEntities (void)
 	{
 	edict_t	*ent;
@@ -606,13 +606,13 @@ void SV_FreeOldEntities (void)
 	for (; (ent = EDICT_NUM (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);
 	}
 
-/*
+/***
 ================
 SV_ActivateServer
 
 activate server on changed map, run physics
 ================
-*/
+***/
 void SV_ActivateServer (int runPhysics)
 	{
 	int			i, numFrames;
@@ -707,13 +707,13 @@ void SV_ActivateServer (int runPhysics)
 		Con_Printf (S_WARN "%i static decals was rejected due buffer overflow\n", sv.ignored_world_decals);
 	}
 
-/*
+/***
 ================
 SV_DeactivateServer [FWGS, 01.03.24]
 
 deactivate server, free edicts, strings etc
 ================
-*/
+***/
 void SV_DeactivateServer (void)
 	{
 	int	i;
@@ -753,13 +753,13 @@ void SV_DeactivateServer (void)
 	svgame.globals->mapname = 0;
 	}
 
-/*
+/***
 ==============
 SV_InitGame [FWGS, 01.11.23]
 
 A brand new game has been started
 ==============
-*/
+***/
 qboolean SV_InitGame (void)
 	{
 	string dllpath;
@@ -781,13 +781,13 @@ qboolean SV_InitGame (void)
 	return true;
 	}
 
-/*
+/***
 ==============
 SV_ShutdownGame
 
 prepare to close server
 ==============
-*/
+***/
 void SV_ShutdownGame (void)
 	{
 	if (!GameState->loadGame)
@@ -808,13 +808,13 @@ void SV_ShutdownGame (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_SetupClients
 
 determine the game type and prepare clients
 ================
-*/
+***/
 static void SV_SetupClients (void)
 	{
 	qboolean	changed_maxclients = false;
@@ -946,11 +946,11 @@ qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multipla
 	return 1;
 	}
 
-/*
+/***
 ================
 SV_GenerateTestPacket [FWGS, 01.05.24]
 ================
-*/
+***/
 static void SV_GenerateTestPacket (void)
 	{
 	const int	maxsize = FRAGMENT_MAX_SIZE;
@@ -963,13 +963,10 @@ static void SV_GenerateTestPacket (void)
 	// testpacket and lookup table takes ~300k of memory
 	// disable for low memory mode
 
-	/*if (svs.testpacket_buf || (XASH_LOW_MEMORY >= 0))*/
 	if (svs.testpacket_buf || (XASH_LOW_MEMORY > 0))
 		return;
 
 	// don't need in singleplayer with full client
-
-	/*if (svs.maxclients <= 1 && !Host_IsDedicated ())*/
 	if (svs.maxclients <= 1)
 		return;
 
@@ -1013,14 +1010,14 @@ static void SV_GenerateTestPacket (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_SpawnServer [FWGS, 01.03.24]
 
 Change the server to a new map, taking all connected
 clients along with it
 ================
-*/
+***/
 qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean background)
 	{
 	int			i, current_skill;
@@ -1189,13 +1186,13 @@ int SV_GetMaxClients (void)
 
 // [FWGS, 01.11.23] removed SV_InitGameProgs, SV_FreeGameProgs
 
-/*
+/***
 ================
 SV_ExecLoadLevel
 
 State machine exec new map
 ================
-*/
+***/
 void SV_ExecLoadLevel (void)
 	{
 	SV_SetStringArrayMode (false);
@@ -1206,13 +1203,13 @@ void SV_ExecLoadLevel (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_ExecLoadGame
 
 State machine exec load saved game
 ================
-*/
+***/
 void SV_ExecLoadGame (void)
 	{
 	if (SV_SpawnServer (GameState->levelName, NULL, false))
@@ -1223,13 +1220,13 @@ void SV_ExecLoadGame (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_ExecChangeLevel
 
 State machine exec changelevel path
 ================
-*/
+***/
 void SV_ExecChangeLevel (void)
 	{
 	SV_ChangeLevel (GameState->loadGame, GameState->levelName, GameState->landmarkName, GameState->backgroundMap);

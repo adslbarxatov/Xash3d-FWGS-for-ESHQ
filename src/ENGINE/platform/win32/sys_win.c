@@ -1,4 +1,4 @@
-/*
+/***
 sys_win.c - win32 system utils
 Copyright (C) 2018 a1batross
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "platform/platform.h"
 #include "menu_int.h"
@@ -42,7 +42,6 @@ void Platform_Sleep (int msec)
 #endif
 
 // [FWGS, 01.05.24]
-/*qboolean Sys_DebuggerPresent (void)*/
 qboolean Platform_DebuggerPresent (void)
 	{
 	return IsDebuggerPresent ();

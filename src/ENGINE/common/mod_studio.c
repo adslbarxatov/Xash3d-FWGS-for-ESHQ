@@ -1,4 +1,4 @@
-/*
+/***
 sv_studio.c - server studio utilities
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -60,11 +60,11 @@ static int			cache_current;
 static int			cache_current_hull;
 static int			cache_current_plane;
 
-/*
+/***
 ====================
 Mod_InitStudioHull
 ====================
-*/
+***/
 void Mod_InitStudioHull (void)
 	{
 	int	i, side;
@@ -92,16 +92,16 @@ void Mod_InitStudioHull (void)
 		}
 	}
 
-/*
+/***
 ===============================================================================
 STUDIO MODELS CACHE
 ===============================================================================
-*/
-/*
+***/
+/***
 ====================
 ClearStudioCache
 ====================
-*/
+***/
 void Mod_ClearStudioCache (void)
 	{
 	memset (cache_studio, 0, sizeof (cache_studio));
@@ -110,11 +110,11 @@ void Mod_ClearStudioCache (void)
 	cache_current = 0;
 	}
 
-/*
+/***
 ====================
 AddToStudioCache [FWGS, 01.04.23]
 ====================
-*/
+***/
 static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, 
 	byte *pcontroller, byte *pblending, model_t *model, hull_t *hull, int numhitboxes)
 	{
@@ -148,11 +148,11 @@ static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3
 	pCache->numhitboxes = numhitboxes;
 	}
 
-/*
+/***
 ====================
 CheckStudioCache [FWGS, 01.04.23]
 ====================
-*/
+***/
 static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin,
 	vec3_t size, byte *controller, byte *blending)
 	{
@@ -193,16 +193,16 @@ static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int se
 	return NULL;
 	}
 
-/*
+/***
 ===============================================================================
 STUDIO MODELS TRACING
 ===============================================================================
-*/
-/*
+***/
+/***
 ====================
 SetStudioHullPlane [FWGS, 01.04.23]
 ====================
-*/
+***/
 static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offset, const vec3_t size)
 	{
 	mplane_t *pl = &studio_planes[planenum];
@@ -222,13 +222,13 @@ static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offs
 		pl->dist += DotProductFabs (pl->normal, size);
 	}
 
-/*
+/***
 ====================
 HullForStudio
 
 NOTE: pEdict may be NULL
 ====================
-*/
+***/
 hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin, 
 	vec3_t size, byte *pcontroller, byte *pblending, int *numhitboxes, edict_t *pEdict)
 	{
@@ -298,16 +298,16 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 	return studio_hull;
 	}
 
-/*
+/***
 ===============================================================================
 STUDIO MODELS SETUP BONES
 ===============================================================================
-*/
-/*
+***/
+/***
 ====================
 StudioCalcBoneAdj
 ====================
-*/
+***/
 static void Mod_StudioCalcBoneAdj (float *adj, const byte *pcontroller)
 	{
 	int			i, j;
@@ -354,11 +354,11 @@ static void Mod_StudioCalcBoneAdj (float *adj, const byte *pcontroller)
 		}
 	}
 
-/*
+/***
 ====================
 StudioCalcRotations
 ====================
-*/
+***/
 static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *pcontroller, float pos[][3],
 	vec4_t *q, mstudioseqdesc_t *pseqdesc, mstudioanim_t *panim, float f)
 	{
@@ -406,11 +406,11 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 
 // [FWGS, 01.04.23] удалены R_StudioCalcBoneQuaternion, R_StudioCalcBonePosition, R_StudioSlerpBones
 
-/*
+/***
 ====================
 StudioGetAnim
 ====================
-*/
+***/
 void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc)
 	{
 	mstudioseqgroup_t *pseqgroup;
@@ -458,13 +458,13 @@ void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstud
 	return ((byte *)paSequences[pseqdesc->seqgroup].data + pseqdesc->animindex);
 	}
 
-/*
+/***
 ====================
 StudioSetupBones
 
 NOTE: pEdict is unused
 ====================
-*/
+***/
 static void SV_StudioSetupBones (model_t *pModel, float frame, int sequence, const vec3_t angles, const vec3_t origin,
 	const byte *pcontroller, const byte *pblending, int iBone, const edict_t *pEdict)
 	{
@@ -562,11 +562,11 @@ static void SV_StudioSetupBones (model_t *pModel, float frame, int sequence, con
 		}
 	}
 
-/*
+/***
 ====================
 StudioGetAttachment
 ====================
-*/
+***/
 void Mod_StudioGetAttachment (const edict_t *e, int iAtt, float *origin, float *angles)
 	{
 	mstudioattachment_t *pAtt;
@@ -612,11 +612,11 @@ void Mod_StudioGetAttachment (const edict_t *e, int iAtt, float *origin, float *
 		Matrix3x4_AnglesFromMatrix (worldPose, angles);
 	}
 
-/*
+/***
 ====================
 GetBonePosition
 ====================
-*/
+***/
 void Mod_GetBonePosition (const edict_t *e, int iBone, float *origin, float *angles)
 	{
 	model_t *mod;
@@ -635,21 +635,21 @@ void Mod_GetBonePosition (const edict_t *e, int iBone, float *origin, float *ang
 		Matrix3x4_AnglesFromMatrix (studio_bones[iBone], angles);
 	}
 
-/*
+/***
 ====================
 HitgroupForStudioHull
 ====================
-*/
+***/
 int Mod_HitgroupForStudioHull (int index)
 	{
 	return studio_hull_hitgroup[index];
 	}
 
-/*
+/***
 ====================
 StudioBoundVertex [FWGS, 01.04.23]
 ====================
-*/
+***/
 static void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, const vec3_t vertex)
 	{
 	if ((*numverts) == 0)
@@ -659,11 +659,11 @@ static void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, cons
 	(*numverts)++;
 	}
 
-/*
+/***
 ====================
 StudioAccumulateBoneVerts [FWGS, 01.04.23]
 ====================
-*/
+***/
 static void Mod_StudioAccumulateBoneVerts (vec3_t mins, vec3_t maxs, int *numverts, vec3_t bone_mins, 
 	vec3_t bone_maxs, int *numbones)
 	{
@@ -684,11 +684,11 @@ static void Mod_StudioAccumulateBoneVerts (vec3_t mins, vec3_t maxs, int *numver
 	*numbones = 0;
 	}
 
-/*
+/***
 ====================
 StudioComputeBounds
 ====================
-*/
+***/
 void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences)
 	{
 	int		i, j, k, numseq;
@@ -760,11 +760,11 @@ void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean i
 	VectorCopy (bone_maxs, maxs);
 	}
 
-/*
+/***
 ====================
 Mod_GetStudioBounds
 ====================
-*/
+***/
 qboolean Mod_GetStudioBounds (const char *name, vec3_t mins, vec3_t maxs)
 	{
 	int	result = false;
@@ -788,13 +788,13 @@ qboolean Mod_GetStudioBounds (const char *name, vec3_t mins, vec3_t maxs)
 	return result;
 	}
 
-/*
+/***
 ===============
 Mod_StudioTexName
 
 extract texture filename from modelname
 ===============
-*/
+***/
 const char *Mod_StudioTexName (const char *modname)
 	{
 	static char	texname[MAX_QPATH];
@@ -806,13 +806,13 @@ const char *Mod_StudioTexName (const char *modname)
 	return texname;
 	}
 
-/*
+/***
 ================
 Mod_StudioBodyVariations
 
 calc studio body variations
 ================
-*/
+***/
 static int Mod_StudioBodyVariations (model_t *mod)
 	{
 	studiohdr_t *pstudiohdr;
@@ -832,11 +832,11 @@ static int Mod_StudioBodyVariations (model_t *mod)
 	return count;
 	}
 
-/*
+/***
 =================
 R_StudioLoadHeader [FWGS, 01.04.23]
 =================
-*/
+***/
 static studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
 	{
 	byte *pin;
@@ -859,11 +859,11 @@ static studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
 	return (studiohdr_t *)buffer;
 	}
 
-/*
+/***
 =================
 Mod_LoadStudioModel [FWGS, 01.11.23]
 =================
-*/
+***/
 void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
 	char poolname[MAX_VA_STRING];
@@ -993,13 +993,13 @@ static server_studio_api_t gStudioAPI =
 		Mod_StudioExtradata,
 	};
 
-/*
+/***
 ===============
 Mod_InitStudioAPI
 
 Initialize server studio (blending interface)
 ===============
-*/
+***/
 void Mod_InitStudioAPI (void)
 	{
 	static STUDIOAPI	pBlendIface;
@@ -1017,13 +1017,13 @@ void Mod_InitStudioAPI (void)
 	pBlendAPI = &gBlendAPI;
 	}
 
-/*
+/***
 ===============
 Mod_ResetStudioAPI
 
 Returns to default callbacks
 ===============
-*/
+***/
 void Mod_ResetStudioAPI (void)
 	{
 	pBlendAPI = &gBlendAPI;

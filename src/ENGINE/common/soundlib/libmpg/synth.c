@@ -1,4 +1,4 @@
-/*
+/***
 synth.c - compact version of famous library mpg123
 Copyright (C) 2017 Uncle Mike
 
@@ -10,14 +10,14 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "mpg123.h"
 #include "sample.h"
 
-#define BACKPEDAL	0x10	// we use autoincrement and thus need this re-adjustment for window/b0.
-#define BLOCK	0x40	// one decoding block is 64 samples.
+#define BACKPEDAL	0x10	// we use autoincrement and thus need this re-adjustment for window/b0
+#define BLOCK		0x40	// one decoding block is 64 samples
 
 #define WRITE_SHORT_SAMPLE( samples, sum, clip ) \
 	if(( sum ) > 32767.0f ) { *(samples) = 0x7fff; (clip)++; } \

@@ -1,4 +1,4 @@
-/*
+/***
 s_dsp.c - digital signal processing algorithms for audio FX
 Copyright (C) 2009 Uncle Mike
 Copyright (C) 2016-2024 Alibek Omarov
@@ -11,8 +11,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "client.h"
@@ -220,11 +220,11 @@ static int		rgsxlp[MAXLP];
 
 static void SX_Profiling_f (void);
 
-/*
+/***
 ============
 SX_ReloadRoomFX [FWGS, 01.07.23]
 ============
-*/
+***/
 static void SX_ReloadRoomFX (void)
 	{
 	SetBits (sxste_delay.flags, FCVAR_CHANGED);
@@ -233,13 +233,13 @@ static void SX_ReloadRoomFX (void)
 	SetBits (room_type.flags, FCVAR_CHANGED);
 	}
 
-/*
+/***
 ============
 SX_Init [FWGS, 01.07.23]
 
 Starts sound crackling system
 ============
-*/
+***/
 void SX_Init (void)
 	{
 	memset (rgsxdly, 0, sizeof (rgsxdly));
@@ -274,13 +274,13 @@ void SX_Init (void)
 	SX_ReloadRoomFX ();
 	}
 
-/*
+/***
 ===========
 DLY_Free
 
 Free memory allocated for DSP
 ===========
-*/
+***/
 static void DLY_Free (int idelay)
 	{
 	Assert ((idelay >= 0) && (idelay < MAXDLY));
@@ -292,13 +292,13 @@ static void DLY_Free (int idelay)
 		}
 	}
 
-/*
+/***
 ==========
 SX_Shutdown
 
 Stop DSP processor
 ==========
-*/
+***/
 void SX_Free (void)
 	{
 	int	i;
@@ -309,14 +309,13 @@ void SX_Free (void)
 	Cmd_RemoveCommand ("dsp_profile");
 	}
 
-
-/*
+/***
 ===========
 DLY_Init
 
 Initialize dly
 ===========
-*/
+***/
 static int DLY_Init (int idelay, float delay)
 	{
 	dly_t *cur;
@@ -345,13 +344,13 @@ static int DLY_Init (int idelay, float delay)
 	return 1;
 	}
 
-/*
+/***
 ============
 DLY_MovePointer [FWGS, 01.01.24]
 
 Checks overflow and moves pointer
 ============
-*/
+***/
 static void DLY_MovePointer (dly_t *dly)
 	{
 	if (++dly->idelayinput >= dly->cdelaysamplesmax)
@@ -361,13 +360,13 @@ static void DLY_MovePointer (dly_t *dly)
 		dly->idelayoutput = 0;
 	}
 
-/*
+/***
 =============
 DLY_CheckNewStereoDelayVal
 
 Update stereo processor settings if we are in new room
 =============
-*/
+***/
 static void DLY_CheckNewStereoDelayVal (void)
 	{
 	dly_t *const	dly = &rgsxdly[STEREODLY];
@@ -409,13 +408,13 @@ static void DLY_CheckNewStereoDelayVal (void)
 		}
 	}
 
-/*
+/***
 =============
 DLY_DoStereoDelay
 
 Do stereo processing
 =============
-*/
+***/
 static void DLY_DoStereoDelay (int count)
 	{
 	int				delay, samplexf;
@@ -474,13 +473,13 @@ static void DLY_DoStereoDelay (int count)
 		}
 	}
 
-/*
+/***
 =============
 DLY_CheckNewDelayVal
 
 Update delay processor settings if we are in new room
 =============
-*/
+***/
 static void DLY_CheckNewDelayVal (void)
 	{
 	float			delay = sxdly_delay.value;
@@ -520,13 +519,13 @@ static void DLY_CheckNewDelayVal (void)
 	dly->delayfeedback = 255 * sxdly_feedback.value;
 	}
 
-/*
+/***
 =============
 DLY_DoDelay
 
 Do delay processing
 =============
-*/
+***/
 static void DLY_DoDelay (int count)
 	{
 	dly_t *const	dly = &rgsxdly[MONODLY];
@@ -571,13 +570,13 @@ static void DLY_DoDelay (int count)
 		}
 	}
 
-/*
+/***
 ===========
 RVB_SetUpDly
 
 Set up dly for reverb
 ===========
-*/
+***/
 static void RVB_SetUpDly (int pos, float delay, int kmod)
 	{
 	int	samples;
@@ -607,13 +606,13 @@ static void RVB_SetUpDly (int pos, float delay, int kmod)
 
 	}
 
-/*
+/***
 ===========
 RVB_CheckNewReverbVal
 
 Update reverb settings if we are in new room
 ===========
-*/
+***/
 static void RVB_CheckNewReverbVal (void)
 	{
 	dly_t *const	dly1 = &rgsxdly[REVERBPOS];
@@ -638,13 +637,13 @@ static void RVB_CheckNewReverbVal (void)
 	dly1->delayfeedback = dly2->delayfeedback = (int)(255 * sxrvb_feedback.value);
 	}
 
-/*
+/***
 ===========
 RVB_DoReverbForOneDly
 
 Do reverberation for one dly
 ===========
-*/
+***/
 static int RVB_DoReverbForOneDly (dly_t *dly, const int vlr, const portable_samplepair_t *samplepair)
 	{
 	int	delay;
@@ -712,13 +711,13 @@ static int RVB_DoReverbForOneDly (dly_t *dly, const int vlr, const portable_samp
 
 	}
 
-/*
+/***
 ===========
 RVB_DoReverb
 
 Do reverberation processing
 ===========
-*/
+***/
 static void RVB_DoReverb (int count)
 	{
 	dly_t *const	dly1 = &rgsxdly[REVERBPOS];
@@ -746,13 +745,13 @@ static void RVB_DoReverb (int count)
 		}
 	}
 
-/*
+/***
 ===========
 RVB_DoAMod
 
 Do amplification modulation processing
 ===========
-*/
+***/
 static void RVB_DoAMod (int count)
 	{
 	portable_samplepair_t *paint = paintto;
@@ -819,13 +818,13 @@ static void RVB_DoAMod (int count)
 		}
 	}
 
-/*
+/***
 ===========
 DSP_Process [FWGS, 01.01.24]
 
 (xash dsp interface)
 ===========
-*/
+***/
 void DSP_Process (portable_samplepair_t *pbfront, int sampleCount)
 	{
 	if (dsp_off.value || !sampleCount)
@@ -840,26 +839,26 @@ void DSP_Process (portable_samplepair_t *pbfront, int sampleCount)
 	DLY_DoStereoDelay (sampleCount);
 	}
 
-/*
+/***
 ===========
 DSP_ClearState
 
 (xash dsp interface)
 ===========
-*/
+***/
 void DSP_ClearState (void)
 	{
 	// ESHQ: удалено обнуление room_type, поскольку теперь её установка выполняется скриптом ачивок
 	SX_ReloadRoomFX ();
 	}
 
-/*
+/***
 ===========
 CheckNewDspPresets
 
 (xash dsp interface)
 ===========
-*/
+***/
 void CheckNewDspPresets (void)
 	{
 	if (dsp_off.value != 0.0f)

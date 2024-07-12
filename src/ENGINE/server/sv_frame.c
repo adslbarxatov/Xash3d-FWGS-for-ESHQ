@@ -1,4 +1,4 @@
-/*
+/***
 sv_frame.c - server world snapshot
 Copyright (C) 2008 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -28,11 +28,11 @@ typedef struct
 int	c_fullsend;	// just a debug counter
 int	c_notsend;
 
-/*
+/***
 =======================
 SV_EntityNumbers
 =======================
-*/
+***/
 static int SV_EntityNumbers (const void *a, const void *b)
 	{
 	int	ent1, ent2;
@@ -49,11 +49,11 @@ static int SV_EntityNumbers (const void *a, const void *b)
 	return 1;
 	}
 
-/*
+/***
 =============
 SV_AddEntitiesToPacket
 =============
-*/
+***/
 static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_frame_t *frame,
 	sv_ents_t *ents, qboolean from_client)
 	{
@@ -166,18 +166,18 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 		}
 	}
 
-/*
+/***
 =============================================================================
 Encode a client frame onto the network channel
 =============================================================================
-*/
-/*
+***/
+/***
 =============
 SV_FindBestBaseline
 
 trying to deltas with previous entities
 =============
-*/
+***/
 static int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **baseline, entity_state_t *to,
 	client_frame_t *frame, qboolean player)
 	{
@@ -212,13 +212,13 @@ static int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **bas
 	return index - bestfound;
 	}
 
-/*
+/***
 =============
 SV_FindBestBaselineForStatic
 
 trying to deltas with previous static entities
 =============
-*/
+***/
 int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to)
 	{
 	int	bestBitCount;
@@ -249,13 +249,13 @@ int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_s
 	return index - bestfound;
 	}
 
-/*
+/***
 =============
 SV_EmitPacketEntities
 
 Writes a delta update of an entity_state_t list to the message->
 =============
-*/
+***/
 static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 	{
 	entity_state_t *oldent, *newent;
@@ -386,12 +386,11 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 	MSG_WriteUBitLong (msg, LAST_EDICT, MAX_ENTITY_BITS); // end of packetentities
 	}
 
-/*
+/***
 =============
 SV_EmitEvents
-
 =============
-*/
+***/
 static void SV_EmitEvents (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 	{
 	event_state_t *es;
@@ -508,11 +507,11 @@ static void SV_EmitEvents (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 =============
 SV_EmitPings
 =============
-*/
+***/
 static void SV_EmitPings (sizebuf_t *msg)
 	{
 	sv_client_t	*cl;
@@ -539,11 +538,11 @@ static void SV_EmitPings (sizebuf_t *msg)
 	MSG_WriteOneBit (msg, 0);
 	}
 
-/*
+/***
 ==================
 SV_WriteClientdataToMessage
 ==================
-*/
+***/
 static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 	{
 	clientdata_t	nullcd;
@@ -630,11 +629,11 @@ static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 	MSG_WriteOneBit (msg, 0);
 	}
 
-/*
+/***
 ==================
 SV_WriteEntitiesToClient
 ==================
-*/
+***/
 static void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 	{
 	client_frame_t		*frame;
@@ -695,16 +694,16 @@ static void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 	if (send_pings) SV_EmitPings (msg);
 	}
 
-/*
+/***
 ===============================================================================
 FRAME UPDATES
 ===============================================================================
-*/
-/*
+***/
+/***
 =======================
 SV_SendClientDatagram
 =======================
-*/
+***/
 static void SV_SendClientDatagram (sv_client_t *cl)
 	{
 	byte		msg_buf[MAX_DATAGRAM];
@@ -747,11 +746,11 @@ static void SV_SendClientDatagram (sv_client_t *cl)
 	Netchan_TransmitBits (&cl->netchan, MSG_GetNumBitsWritten (&msg), MSG_GetData (&msg));
 	}
 
-/*
+/***
 =======================
 SV_UpdateUserInfo
 =======================
-*/
+***/
 static void SV_UpdateUserInfo (sv_client_t *cl)
 	{
 	SV_FullClientUpdate (cl, &sv.reliable_datagram);
@@ -759,11 +758,11 @@ static void SV_UpdateUserInfo (sv_client_t *cl)
 	cl->next_sendinfotime = host.realtime + 1.0;
 	}
 
-/*
+/***
 =======================
 SV_UpdateToReliableMessages [FWGS, 01.05.24]
 =======================
-*/
+***/
 static void SV_UpdateToReliableMessages (void)
 	{
 	sv_client_t	*cl;
@@ -813,14 +812,11 @@ static void SV_UpdateToReliableMessages (void)
 		if (MSG_GetNumBytesWritten (&sv.reliable_datagram) < MSG_GetNumBytesLeft (&cl->netchan.message))
 			MSG_WriteBits (&cl->netchan.message, MSG_GetData (&sv.reliable_datagram),
 				MSG_GetNumBitsWritten (&sv.reliable_datagram));
-			/*MSG_WriteBits (&cl->netchan.message, MSG_GetBuf (&sv.reliable_datagram),
-				MSG_GetNumBitsWritten (&sv.reliable_datagram));*/
 		else
 			Netchan_CreateFragments (&cl->netchan, &sv.reliable_datagram);
 
 		if (MSG_GetNumBytesWritten (&sv.datagram) < MSG_GetNumBytesLeft (&cl->datagram))
 			MSG_WriteBits (&cl->datagram, MSG_GetData (&sv.datagram), MSG_GetNumBitsWritten (&sv.datagram));
-			/*MSG_WriteBits (&cl->datagram, MSG_GetBuf (&sv.datagram), MSG_GetNumBitsWritten (&sv.datagram));*/
 		else
 			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow\n", cl->name);
 
@@ -829,8 +825,6 @@ static void SV_UpdateToReliableMessages (void)
 			if (MSG_GetNumBytesWritten (&sv.spec_datagram) < MSG_GetNumBytesLeft (&cl->datagram))
 				MSG_WriteBits (&cl->datagram, MSG_GetData (&sv.spec_datagram),
 					MSG_GetNumBitsWritten (&sv.spec_datagram));
-				/*MSG_WriteBits (&cl->datagram, MSG_GetBuf (&sv.spec_datagram),
-					MSG_GetNumBitsWritten (&sv.spec_datagram));*/
 			else
 				Con_DPrintf (S_WARN "Ignoring spectator datagram for %s, would overflow\n", cl->name);
 			}
@@ -842,11 +836,11 @@ static void SV_UpdateToReliableMessages (void)
 	MSG_Clear (&sv.datagram);
 	}
 
-/*
+/***
 =======================
 SV_SendClientMessages
 =======================
-*/
+***/
 void SV_SendClientMessages (void)
 	{
 	sv_client_t *cl;
@@ -939,13 +933,13 @@ void SV_SendClientMessages (void)
 
 // [FWGS, 01.05.23] удалена SV_SendMessagesToAll
 
-/*
+/***
 =======================
 SV_SkipUpdates
 
 used before changing level
 =======================
-*/
+***/
 void SV_SkipUpdates (void)
 	{
 	sv_client_t *cl;
@@ -963,13 +957,13 @@ void SV_SkipUpdates (void)
 		}
 	}
 
-/*
+/***
 =======================
 SV_InactivateClients
 
 Purpose: Prepare for level transition, etc.
 =======================
-*/
+***/
 void SV_InactivateClients (void)
 	{
 	int		i;

@@ -1,4 +1,4 @@
-/*
+/***
 vgui_draw.c - vgui draw methods
 Copyright (C) 2011 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 // [FWGS, 01.04.23]
 
@@ -195,11 +195,11 @@ static struct
 		return false;
 		}
 
-	/*
+	/***
 	================
 	VGui_Startup
 	================
-	*/
+	***/
 	void VGui_Startup (int width, int height)
 		{
 		// vgui not initialized from both support and client modules, skip
@@ -225,15 +225,13 @@ static struct
 			vgui.dllFuncs.Startup (width, height);
 		}
 
-
-
-	/*
+	/***
 	================
 	VGui_Shutdown
 
 	Unload vgui_support library and call VGui_Shutdown
 	================
-	*/
+	***/
 	void VGui_Shutdown (void)
 		{
 		if (vgui.dllFuncs.Shutdown)

@@ -1,4 +1,4 @@
-/*
+/***
 sv_client.c - client interactions
 Copyright (C) 2008 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "const.h"
@@ -44,11 +44,11 @@ static int	g_userid = 1;
 static void SV_UserinfoChanged (sv_client_t *cl);	// [FWGS, 01.07.23]
 static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s);	// [FWGS, 01.02.24]
 
-/*
+/***
 =================
 SV_GetPlayerCount [FWGS, 01.04.23]
 =================
-*/
+***/
 void SV_GetPlayerCount (int *players, int *bots)
 	{
 	int i;
@@ -72,7 +72,7 @@ void SV_GetPlayerCount (int *players, int *bots)
 		}
 	}
 
-/*
+/***
 =================
 SV_GetChallenge
 
@@ -82,7 +82,7 @@ We do this to prevent denial of service attacks that
 flood the server with invalid connection IPs.  With a
 challenge, they must give a valid IP address.
 =================
-*/
+***/
 static void SV_GetChallenge (netadr_t from)
 	{
 	int		i, oldest = 0;
@@ -160,13 +160,13 @@ static int SV_GetFragmentSize (void *pcl, fragsize_t mode)
 	return cl_frag_size - HEADER_BYTES;
 	}
 
-/*
+/***
 ================
 SV_RejectConnection
 
 Rejects connection request and sends back a message
 ================
-*/
+***/
 void SV_RejectConnection (netadr_t from, const char *fmt, ...)
 	{
 	char	text[1024];
@@ -182,14 +182,14 @@ void SV_RejectConnection (netadr_t from, const char *fmt, ...)
 	Netchan_OutOfBandPrint (NS_SERVER, from, "disconnect\n");
 	}
 
-/*
+/***
 ================
 SV_FailDownload
 
 for some reasons file can't be downloaded
 tell the client about this problem
 ================
-*/
+***/
 static void SV_FailDownload (sv_client_t *cl, const char *filename)
 	{
 	if (!COM_CheckString (filename))
@@ -199,13 +199,13 @@ static void SV_FailDownload (sv_client_t *cl, const char *filename)
 	MSG_WriteString (&cl->netchan.message, filename);
 	}
 
-/*
+/***
 ================
 SV_CheckChallenge
 
 Make sure connecting client is not spoofing
 ================
-*/
+***/
 static int SV_CheckChallenge (netadr_t from, int challenge)
 	{
 	int	i;
@@ -233,13 +233,13 @@ static int SV_CheckChallenge (netadr_t from, int challenge)
 	return 1;
 	}
 
-/*
+/***
 ================
 SV_CheckIPRestrictions
 
 Determine if client is outside appropriate address range
 ================
-*/
+***/
 static int SV_CheckIPRestrictions (netadr_t from)
 	{
 	if (sv_lan.value)
@@ -251,14 +251,14 @@ static int SV_CheckIPRestrictions (netadr_t from)
 	return 1;
 	}
 
-/*
+/***
 ================
 SV_FindEmptySlot
 
 Get slot # and set client_t pointer for player, if possible
 We don't do this search on a "reconnect, we just reuse the slot
 ================
-*/
+***/
 static int SV_FindEmptySlot (netadr_t from, int *pslot, sv_client_t **ppClient)
 	{
 	sv_client_t	*cl;
@@ -278,13 +278,13 @@ static int SV_FindEmptySlot (netadr_t from, int *pslot, sv_client_t **ppClient)
 	return 0;
 	}
 
-/*
+/***
 ==================
 SV_ConnectClient [FWGS, 09.05.24]
 
 A connection request that did not come from the master
 ==================
-*/
+***/
 static void SV_ConnectClient (netadr_t from)
 	{
 	char		userinfo[MAX_INFO_STRING];
@@ -415,7 +415,6 @@ static void SV_ConnectClient (netadr_t from)
 	newcl->userid = g_userid++;	// create unique userid
 	newcl->state = cs_connected;
 	newcl->extensions = extensions & (NET_EXT_SPLITSIZE);
-	/*Q_strncpy (newcl->useragent, protinfo, MAX_INFO_STRING);*/
 	Q_strncpy (newcl->useragent, protinfo, sizeof (newcl->useragent));
 
 	// reset viewentities (from previous level)
@@ -482,13 +481,13 @@ static void SV_ConnectClient (netadr_t from)
 		NET_MasterClear ();
 	}
 
-/*
+/***
 ==================
 SV_FakeConnect
 
 A connection request that came from the game module
 ==================
-*/
+***/
 edict_t *GAME_EXPORT SV_FakeConnect (const char *netname)
 	{
 	char		userinfo[MAX_INFO_STRING];
@@ -554,13 +553,13 @@ edict_t *GAME_EXPORT SV_FakeConnect (const char *netname)
 	return cl->edict;
 	}
 
-/*
+/***
 ==================
 SV_Kick_f [FWGS, 01.07.23]
 
 Kick a user off of the server
 ==================
-*/
+***/
 void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...)
 	{
 	const char *clientId;
@@ -602,7 +601,7 @@ void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...)
 	SV_DropClient (cl, false);
 	}
 
-/*
+/***
 =====================
 SV_DropClient
 
@@ -610,7 +609,7 @@ Called when the player is totally leaving the server, either willingly
 or unwillingly.  This is NOT called if the entire server is quiting
 or crashing.
 =====================
-*/
+***/
 void SV_DropClient (sv_client_t *cl, qboolean crash)
 	{
 	int	i;
@@ -673,11 +672,11 @@ void SV_DropClient (sv_client_t *cl, qboolean crash)
 		NET_MasterClear ();
 	}
 
-/*
+/***
 ==============================================================================
 SVC COMMAND REDIRECT [FWGS, 01.01.24]
 ==============================================================================
-*/
+***/
 static void SV_BeginRedirect (host_redirect_t *rd, netadr_t adr, rdtype_t target, char *buffer,
 	size_t buffersize, void (*flush))
 	{
@@ -732,13 +731,13 @@ void SV_EndRedirect (host_redirect_t *rd)
 	rd->flush = NULL;
 	}
 
-/*
+/***
 ================
 Rcon_Print [FWGS, 01.01.24]
 
 Print message to rcon buffer and send to rcon redirect target
 ================
-*/
+***/
 void Rcon_Print (host_redirect_t *rd, const char *pMsg)
 	{
 	size_t len;
@@ -761,13 +760,13 @@ void Rcon_Print (host_redirect_t *rd, const char *pMsg)
 		}
 	}
 
-/*
+/***
 ===============
 SV_GetClientIDString
 
 Returns a pointer to a static char for most likely only printing.
 ===============
-*/
+***/
 const char *SV_GetClientIDString (sv_client_t *cl)
 	{
 	static char	result[MAX_QPATH];
@@ -836,11 +835,11 @@ sv_client_t *SV_ClientByName (const char *name)
 	return NULL;
 	}
 
-/*
+/***
 ================
 SV_TestBandWidth [FWGS, 01.02.24]
 ================
-*/
+***/
 static void SV_TestBandWidth (netadr_t from)
 	{
 	const int	version = Q_atoi (Cmd_Argv (1));
@@ -878,24 +877,24 @@ static void SV_TestBandWidth (netadr_t from)
 	NET_SendPacket (NS_SERVER, packetsize, MSG_GetData (&svs.testpacket), from);
 	}
 
-/*
+/***
 ================
 SV_Ack
 ================
-*/
+***/
 static void SV_Ack (netadr_t from)
 	{
 	Con_Printf ("ping %s\n", NET_AdrToString (from));
 	}
 
-/*
+/***
 ================
 SV_Info [FWGS, 01.04.23]
 
 Responds with short info for broadcast scans
 The second parameter should be the current protocol version number.
 ================
-*/
+***/
 static void SV_Info (netadr_t from, int protocolVersion)
 	{
 	char	s[512];
@@ -945,13 +944,13 @@ static void SV_Info (netadr_t from, int protocolVersion)
 	Netchan_OutOfBandPrint (NS_SERVER, from, "info\n%s", s);
 	}
 
-/*
+/***
 ================
 SV_BuildNetAnswer
 
 Responds with long info for local and broadcast requests
 ================
-*/
+***/
 static void SV_BuildNetAnswer (netadr_t from)
 	{
 	char	string[MAX_INFO_STRING];
@@ -1048,23 +1047,23 @@ static void SV_BuildNetAnswer (netadr_t from)
 		}
 	}
 
-/*
+/***
 ================
 SV_Ping
 
 Just responds with an acknowledgement
 ================
-*/
+***/
 static void SV_Ping (netadr_t from)
 	{
 	Netchan_OutOfBandPrint (NS_SERVER, from, "ack");
 	}
 
-/*
+/***
 ================
 Rcon_Validate
 ================
-*/
+***/
 static qboolean Rcon_Validate (void)
 	{
 	if (!COM_CheckString (rcon_password.string))
@@ -1074,7 +1073,7 @@ static qboolean Rcon_Validate (void)
 	return true;
 	}
 
-/*
+/***
 ===============
 SV_RemoteCommand [FWGS, 01.01.24]
 
@@ -1082,7 +1081,7 @@ A client issued an rcon command.
 Shift down the remaining args
 Redirect all printfs
 ===============
-*/
+***/
 void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 	{
 	static char		outputbuf[2048];
@@ -1120,13 +1119,13 @@ void SV_RemoteCommand (netadr_t from, sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 ===================
 SV_CalcPing
 
 recalc ping on current client
 ===================
-*/
+***/
 int SV_CalcPing (sv_client_t *cl)
 	{
 	float			ping = 0;
@@ -1168,13 +1167,13 @@ int SV_CalcPing (sv_client_t *cl)
 	return 0;
 	}
 
-/*
+/***
 ===================
 SV_EstablishTimeBase
 
 Finangles latency and the like
 ===================
-*/
+***/
 static void SV_EstablishTimeBase (sv_client_t *cl, usercmd_t *cmds, int dropped, int numbackup, int numcmds)
 	{
 	double	runcmd_time = 0.0;
@@ -1202,13 +1201,13 @@ static void SV_EstablishTimeBase (sv_client_t *cl, usercmd_t *cmds, int dropped,
 	cl->timebase = sv.time + sv.frametime - runcmd_time;
 	}
 
-/*
+/***
 ===================
 SV_CalcClientTime
 
 compute latency for client
 ===================
-*/
+***/
 static float SV_CalcClientTime (sv_client_t *cl)
 	{
 	float	minping, maxping;
@@ -1261,13 +1260,13 @@ static float SV_CalcClientTime (sv_client_t *cl)
 	return 0.0f;
 	}
 
-/*
+/***
 ===================
 SV_FullClientUpdate
 
 Writes all update values to a bitbuf
 ===================
-*/
+***/
 void SV_FullClientUpdate (sv_client_t *cl, sizebuf_t *msg)
 	{
 	char			info[MAX_INFO_STRING];
@@ -1306,11 +1305,11 @@ void SV_FullClientUpdate (sv_client_t *cl, sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 ===================
 SV_RefreshUserinfo
 ===================
-*/
+***/
 void SV_RefreshUserinfo (void)
 	{
 	sv_client_t	*cl;
@@ -1323,14 +1322,14 @@ void SV_RefreshUserinfo (void)
 		}
 	}
 
-/*
+/***
 ===================
 SV_FullUpdateMovevars
 
 this is send all movevars values when client connected
 otherwise see code SV_UpdateMovevars()
 ===================
-*/
+***/
 void SV_FullUpdateMovevars (sv_client_t *cl, sizebuf_t *msg)
 	{
 	movevars_t	nullmovevars;
@@ -1339,14 +1338,14 @@ void SV_FullUpdateMovevars (sv_client_t *cl, sizebuf_t *msg)
 	MSG_WriteDeltaMovevars (msg, &nullmovevars, &svgame.movevars);
 	}
 
-/*
+/***
 ===================
 SV_ShouldUpdatePing
 
 determine should we recalculate
 ping times now
 ===================
-*/
+***/
 qboolean SV_ShouldUpdatePing (sv_client_t *cl)
 	{
 	if (FBitSet (cl->flags, FCL_HLTV_PROXY))
@@ -1362,11 +1361,11 @@ qboolean SV_ShouldUpdatePing (sv_client_t *cl)
 	return FBitSet (cl->lastcmd.buttons, IN_SCORE) ? true : false;
 	}
 
-/*
+/***
 ===================
 SV_IsPlayerIndex
 ===================
-*/
+***/
 qboolean SV_IsPlayerIndex (int idx)
 	{
 	if ((idx > 0) && (idx <= svs.maxclients))
@@ -1374,7 +1373,7 @@ qboolean SV_IsPlayerIndex (int idx)
 	return false;
 	}
 
-/*
+/***
 ===================
 SV_GetPlayerStats
 
@@ -1382,7 +1381,7 @@ This function and its static vars track some of the networking
 conditions.  I haven't bothered to trace it beyond that, because
 this fucntion sucks pretty badly.
 ===================
-*/
+***/
 void SV_GetPlayerStats (sv_client_t *cl, int *ping, int *packet_loss)
 	{
 	static int	last_ping[MAX_CLIENTS];
@@ -1404,14 +1403,14 @@ void SV_GetPlayerStats (sv_client_t *cl, int *ping, int *packet_loss)
 		*packet_loss = last_loss[i];
 	}
 
-/*
+/***
 ===========
 PutClientInServer
 
 Called when a player connects to a server or respawns in
 a deathmatch
 ============
-*/
+***/
 static void SV_PutClientInServer (sv_client_t *cl)
 	{
 	static byte	msg_buf[MAX_INIT_MSG + 0x200];	// MAX_INIT_MSG + some space
@@ -1545,13 +1544,13 @@ static void SV_PutClientInServer (sv_client_t *cl)
 		}
 	}
 
-/*
+/***
 ===========
 SV_UpdateClientView
 
 Resend the client viewentity (used for demos)
 ============
-*/
+***/
 static void SV_UpdateClientView (sv_client_t *cl)
 	{
 	int	viewEnt;
@@ -1565,11 +1564,11 @@ static void SV_UpdateClientView (sv_client_t *cl)
 	MSG_WriteWord (&cl->netchan.message, viewEnt);
 	}
 
-/*
+/***
 ==================
 SV_TogglePause
 ==================
-*/
+***/
 void SV_TogglePause (const char *msg)
 	{
 	if (sv.background) return;
@@ -1584,13 +1583,13 @@ void SV_TogglePause (const char *msg)
 	MSG_WriteOneBit (&sv.reliable_datagram, sv.paused);
 	}
 
-/*
+/***
 ================
 SV_SendReconnect
 
 Tell all the clients that the server is changing levels
 ================
-*/
+***/
 void SV_BuildReconnect (sizebuf_t *msg)
 	{
 	MSG_BeginServerCmd (msg, svc_stufftext);
@@ -1598,7 +1597,7 @@ void SV_BuildReconnect (sizebuf_t *msg)
 	}
 
 // [FWGS, 01.07.23] SV_WriteDeltaDescriptionToClient
-/*
+/***
 ==================
 SV_WriteDeltaDescriptionToClient
 
@@ -1619,14 +1618,14 @@ void SV_WriteDeltaDescriptionToClient (sizebuf_t *msg)
 	}
 */
 
-/*
+/***
 ================
 SV_SendServerdata
 
 Sends the first message from the server to a connected client.
 This will be sent on the initial connection and upon each server load.
 ================
-*/
+***/
 void SV_SendServerdata (sizebuf_t *msg, sv_client_t *cl)
 	{
 	string	message;
@@ -1685,19 +1684,19 @@ void SV_SendServerdata (sizebuf_t *msg, sv_client_t *cl)
 		}
 	}
 
-/*
+/***
 ============================================================
 CLIENT COMMAND EXECUTION
 ============================================================
-*/
-/*
+***/
+/***
 ================
 SV_New_f
 
 Sends the first message from the server to a connected client.
 This will be sent on the initial connection and upon each server load.
 ================
-*/
+***/
 static qboolean SV_New_f (sv_client_t *cl)
 	{
 	byte		msg_buf[MAX_INIT_MSG];
@@ -1736,7 +1735,6 @@ static qboolean SV_New_f (sv_client_t *cl)
 
 	// [FWGS, 01.05.24] server info string
 	MSG_BeginServerCmd (&msg, svc_stufftext);
-	/*MSG_WriteStringf (&msg, "fullserverinfo \"%s\"\n", SV_Serverinfo ());*/
 	MSG_WriteStringf (&msg, "fullserverinfo \"%s\"\n", svs.serverinfo);
 
 	// collect the info about all the players and send to me
@@ -1756,37 +1754,37 @@ static qboolean SV_New_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 =================
 SV_Disconnect_f
 
 The client is going to disconnect, so remove the connection immediately
 =================
-*/
+***/
 static qboolean SV_Disconnect_f (sv_client_t *cl)
 	{
 	SV_DropClient (cl, false);
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_ShowServerinfo_f
 
 Dumps the serverinfo info string
 ==================
-*/
+***/
 static qboolean SV_ShowServerinfo_f (sv_client_t *cl)
 	{
 	Info_Print (svs.serverinfo);
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_Pause_f
 ==================
-*/
+***/
 static qboolean SV_Pause_f (sv_client_t *cl)
 	{
 	string	message;
@@ -1863,14 +1861,14 @@ static qboolean SV_ShouldUpdateUserinfo (sv_client_t *cl)
 	return allow;
 	}
 
-/*
+/***
 =================
 SV_UserinfoChanged
 
 Pull specific info from a newly changed userinfo string
 into a more C freindly form.
 =================
-*/
+***/
 static void SV_UserinfoChanged (sv_client_t *cl)
 	{
 	int			i, dupc = 1;
@@ -1983,11 +1981,11 @@ static void SV_UserinfoChanged (sv_client_t *cl)
 	ent->v.netname = MAKE_STRING (cl->name);
 	}
 
-/*
+/***
 ==================
 SV_UpdateUserinfo_f
 ==================
-*/
+***/
 static qboolean SV_UpdateUserinfo_f (sv_client_t *cl)
 	{
 	Q_strncpy (cl->userinfo, Cmd_Argv (1), sizeof (cl->userinfo));
@@ -1997,11 +1995,11 @@ static qboolean SV_UpdateUserinfo_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_SetInfo_f
 ==================
-*/
+***/
 static qboolean SV_SetInfo_f (sv_client_t *cl)
 	{
 	Info_SetValueForKey (cl->userinfo, Cmd_Argv (1), Cmd_Argv (2), MAX_INFO_STRING);
@@ -2011,11 +2009,11 @@ static qboolean SV_SetInfo_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_Noclip_f
 ==================
-*/
+***/
 static qboolean SV_Noclip_f (sv_client_t *cl)
 	{
 	edict_t *pEntity = cl->edict;
@@ -2037,11 +2035,11 @@ static qboolean SV_Noclip_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_Godmode_f
 ==================
-*/
+***/
 static qboolean SV_Godmode_f (sv_client_t *cl)
 	{
 	edict_t *pEntity = cl->edict;
@@ -2059,11 +2057,11 @@ static qboolean SV_Godmode_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_Notarget_f
 ==================
-*/
+***/
 static qboolean SV_Notarget_f (sv_client_t *cl)
 	{
 	edict_t *pEntity = cl->edict;
@@ -2081,11 +2079,11 @@ static qboolean SV_Notarget_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_Kill_f
 ==================
-*/
+***/
 static qboolean SV_Kill_f (sv_client_t *cl)
 	{
 	if (!SV_IsValidEdict (cl->edict))
@@ -2108,11 +2106,11 @@ static qboolean SV_Kill_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_SendRes_f
 ==================
-*/
+***/
 static qboolean SV_SendRes_f (sv_client_t *cl)
 	{
 	byte		buffer[MAX_INIT_MSG];
@@ -2136,11 +2134,11 @@ static qboolean SV_SendRes_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_DownloadFile_f
 ==================
-*/
+***/
 static qboolean SV_DownloadFile_f (sv_client_t *cl)
 	{
 	const char *name;
@@ -2233,11 +2231,11 @@ static qboolean SV_DownloadFile_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_Spawn_f
 ==================
-*/
+***/
 static qboolean SV_Spawn_f (sv_client_t *cl)
 	{
 	if (cl->state != cs_connected)
@@ -2262,11 +2260,11 @@ static qboolean SV_Spawn_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_Begin_f
 ==================
-*/
+***/
 static qboolean SV_Begin_f (sv_client_t *cl)
 	{
 	if (cl->state != cs_connected)
@@ -2278,11 +2276,11 @@ static qboolean SV_Begin_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_SendBuildInfo_f [FWGS, 01.04.23]
 ==================
-*/
+***/
 static qboolean SV_SendBuildInfo_f (sv_client_t *cl)
 	{
 	SV_ClientPrintf (cl, "Server running " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
@@ -2290,11 +2288,11 @@ static qboolean SV_SendBuildInfo_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_GetCrossEnt [FWGS, 01.04.23]
 ==================
-*/
+***/
 static edict_t *SV_GetCrossEnt (edict_t *player)
 	{
 	edict_t	*ent = EDICT_NUM (1);
@@ -2391,11 +2389,11 @@ static edict_t *SV_GetCrossEnt (edict_t *player)
 	return closest;
 	}
 
-/*
+/***
 ==================
 SV_EntFindSingle [FWGS, 01.04.23]
 ==================
-*/
+***/
 static edict_t *SV_EntFindSingle (sv_client_t *cl, const char *pattern)
 	{
 	edict_t *ent = NULL;
@@ -2457,13 +2455,13 @@ static edict_t *SV_EntFindSingle (sv_client_t *cl, const char *pattern)
 	return ent;
 	}
 
-/*
+/***
 ===============
 SV_EntList_f [FWGS, 01.04.23]
 
 Print list of entities to client
 ===============
-*/
+***/
 static qboolean SV_EntList_f (sv_client_t *cl)
 	{
 	vec3_t	borigin;
@@ -2510,13 +2508,13 @@ static qboolean SV_EntList_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ===============
 SV_EntInfo_f [FWGS, 01.04.23]
 
 Print specified entity information to client
 ===============
-*/
+***/
 static qboolean SV_EntInfo_f (sv_client_t *cl)
 	{
 	edict_t	*ent = NULL;
@@ -2575,13 +2573,13 @@ static qboolean SV_EntInfo_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ===============
 SV_EntFire_f [FWGS, 01.04.23]
 
 Perform some actions
 ===============
-*/
+***/
 static qboolean SV_EntFire_f (sv_client_t *cl)
 	{
 	edict_t		*ent = NULL;
@@ -2912,11 +2910,11 @@ static qboolean SV_EntFire_f (sv_client_t *cl)
 	return true;
 	}
 
-/*
+/***
 ===============
 SV_EntSendVars [FWGS, 01.04.23]
 ===============
-*/
+***/
 static void SV_EntSendVars (sv_client_t *cl, edict_t *ent)
 	{
 	if (!ent)
@@ -2937,13 +2935,13 @@ static void SV_EntSendVars (sv_client_t *cl, edict_t *ent)
 	MSG_WriteString (&cl->netchan.message, "ent_getvars_cb\n"); // why do we need this?
 	}
 
-/*
+/***
 ===============
 SV_EntCreate_f [FWGS, 01.04.23]
 
 Create new entity with specified name
 ===============
-*/
+***/
 static qboolean SV_EntCreate_f (sv_client_t *cl)
 	{
 	edict_t		*ent = NULL;
@@ -3147,11 +3145,11 @@ ucmd_t enttoolscmds[] =
 
 // [FWGS, 01.07.23] Удалена SV_TSourceEngineQuery
 
-/*
+/***
 ==================
 SV_ExecuteUserCommand [FWGS, 01.02.24]
 ==================
-*/
+***/
 static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 	{
 	ucmd_t *u;
@@ -3220,7 +3218,7 @@ static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 		}
 	}
 
-/*
+/***
 =================
 SV_ConnectionlessPacket
 
@@ -3229,7 +3227,7 @@ characters to distinguish it from a game channel.
 Clients that are in the game can still send
 connectionless packets
 =================
-*/
+***/
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	{
 	char		*args;
@@ -3299,7 +3297,7 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 ==================
 SV_ParseClientMove
 
@@ -3310,7 +3308,7 @@ in dropped packets can be recovered.
 On very fast clients, there may be multiple usercmd packed into
 each of the backup packets.
 ==================
-*/
+***/
 static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
 	{
 	client_frame_t	*frame;
@@ -3435,13 +3433,13 @@ static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 ===================
 SV_ParseResourceList
 
 Parse resource list
 ===================
-*/
+***/
 static void SV_ParseResourceList (sv_client_t *cl, sizebuf_t *msg)
 	{
 	int			totalsize;
@@ -3524,13 +3522,13 @@ static void SV_ParseResourceList (sv_client_t *cl, sizebuf_t *msg)
 	SV_BatchUploadRequest (cl);
 	}
 
-/*
+/***
 ===================
 SV_ParseCvarValue
 
 Parse a requested value from client cvar
 ===================
-*/
+***/
 static void SV_ParseCvarValue (sv_client_t *cl, sizebuf_t *msg)
 	{
 	const char *value = MSG_ReadString (msg);
@@ -3540,13 +3538,13 @@ static void SV_ParseCvarValue (sv_client_t *cl, sizebuf_t *msg)
 	Con_Reportf ("Cvar query response: name:%s, value:%s\n", cl->name, value);
 	}
 
-/*
+/***
 ===================
 SV_ParseCvarValue2
 
 Parse a requested value from client cvar
 ===================
-*/
+***/
 static void SV_ParseCvarValue2 (sv_client_t *cl, sizebuf_t *msg)
 	{
 	string	name, value;
@@ -3562,11 +3560,11 @@ static void SV_ParseCvarValue2 (sv_client_t *cl, sizebuf_t *msg)
 		name, value);
 	}
 
-/*
+/***
 ===================
 SV_ParseVoiceData [FWGS, 01.03.24]
 ===================
-*/
+***/
 static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 	{
 	char		received[4096];
@@ -3621,13 +3619,13 @@ static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 		}
 	}
 
-/*
+/***
 ===================
 SV_ExecuteClientMessage
 
 Parse a client packet
 ===================
-*/
+***/
 void SV_ExecuteClientMessage (sv_client_t *cl, sizebuf_t *msg)
 	{
 	qboolean		move_issued = false;
@@ -3718,3 +3716,4 @@ void SV_ExecuteClientMessage (sv_client_t *cl, sizebuf_t *msg)
 			}
 		}
 	}
+

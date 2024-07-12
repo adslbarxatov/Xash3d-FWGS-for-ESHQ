@@ -1,4 +1,4 @@
-/*
+/***
 soundlib.h - engine sound lib
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef SOUNDLIB_H
 #define SOUNDLIB_H
@@ -51,7 +51,6 @@ typedef struct sndlib_s
 	int		rate;		// num samples per second (e.g. 11025 - 11 khz)
 	int		width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
 	int		channels;	// num channels (1 - mono, 2 - stereo)
-	/*int		loopstart;	// start looping from*/
 	uint	loopstart;	// start looping from
 	uint	samples;	// total samplecount in sound
 	uint	flags;		// additional sound flags
@@ -81,13 +80,11 @@ struct stream_s
 	int		buffsize;	// cached buffer size
 	};
 
-/*
+/***
 ========================================================================
-
 .WAV sound format
-
 ========================================================================
-*/
+***/
 
 #define RIFFHEADER		(('F'<<24)+('F'<<16)+('I'<<8)+'R') // little-endian "RIFF"
 #define WAVEHEADER		(('E'<<24)+('V'<<16)+('A'<<8)+'W') // little-endian "WAVE"

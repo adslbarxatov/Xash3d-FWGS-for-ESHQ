@@ -1,4 +1,4 @@
-/*
+/***
 mod_dbghulls.c - loading & handling world and brushmodels
 Copyright (C) 2016 Uncle Mike
 
@@ -10,8 +10,9 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #include "common.h"
 #include "client.h"
 #include "mod_local.h"
@@ -102,12 +103,12 @@ static void winding_reverse (winding_t *w)
 		}
 	}
 
-/*
- * winding_shrink
- *
- * Takes an over-allocated winding and allocates a new winding with just the
- * required number of points. The input winding is freed.
- */
+/***
+winding_shrink
+
+Takes an over-allocated winding and allocates a new winding with just the
+required number of points. The input winding is freed
+***/
 static winding_t *winding_shrink (winding_t *w)
 	{
 	winding_t *neww = winding_alloc (w->numpoints);
@@ -117,17 +118,17 @@ static winding_t *winding_shrink (winding_t *w)
 	return neww;
 	}
 
-/*
+/***
 ====================
 winding_for_plane
 ====================
-*/
+***/
 static winding_t *winding_for_plane (const mplane_t *p)
 	{
 	vec3_t	org, vright, vup;
-	int	i, axis;
+	int		i, axis;
 	vec_t	max, v;
-	winding_t *w;
+	winding_t	*w;
 
 	// find the major axis
 	max = -BOGUS_RANGE;
@@ -184,12 +185,12 @@ static winding_t *winding_for_plane (const mplane_t *p)
 	return w;
 	}
 
-/*
- * ===========================
- * Helper for for the clipping functions
- *  (winding_clip, winding_split)
- * ===========================
- */
+/***
+===========================
+Helper for for the clipping functions
+(winding_clip, winding_split)
+===========================
+***/
 static void CalcSides (const winding_t *in, const mplane_t *split, int *sides, vec_t *dists, int counts[3], vec_t epsilon)
 	{
 	const vec_t *p;
@@ -244,16 +245,16 @@ static void PushToPlaneAxis (vec_t *v, const mplane_t *p)
 	v[t] = (p->dist - p->normal[(t + 1) % 3] * v[(t + 1) % 3] - p->normal[(t + 2) % 3] * v[(t + 2) % 3]) / p->normal[t];
 	}
 
-/*
+/***
 ==================
 winding_clip
 
 Clips the winding to the plane, returning the new winding on 'side'.
 Frees the input winding.
 If keepon is true, an exactly on-plane winding will be saved, otherwise
-  it will be clipped away.
+it will be clipped away
 ==================
-*/
+***/
 static winding_t *winding_clip (winding_t *in, const mplane_t *split, qboolean keepon, int side, vec_t epsilon)
 	{
 	vec_t *dists;
@@ -348,16 +349,16 @@ out_free:
 	return neww;
 	}
 
-/*
+/***
 ==================
 winding_split
 
 Splits a winding by a plane, producing one or two windings.  The
 original winding is not damaged or freed.  If only on one side, the
 returned winding will be the input winding.  If on both sides, two
-new windings will be created.
+new windings will be created
 ==================
-*/
+***/
 static void winding_split (winding_t *in, const mplane_t *split, winding_t **pfront, winding_t **pback)
 	{
 	vec_t *dists;
@@ -462,10 +463,10 @@ out_free:
 	free (sides);
 	}
 
-/*
- * This is a stack of the clipnodes we have traversed
- * "sides" indicates which side we went down each time
- */
+/***
+This is a stack of the clipnodes we have traversed
+"sides" indicates which side we went down each time
+***/
 static mclipnode_t *node_stack[MAX_CLIPNODE_DEPTH];
 static int	side_stack[MAX_CLIPNODE_DEPTH];
 static uint	node_stack_depth;

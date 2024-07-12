@@ -1,4 +1,4 @@
-/*
+/***
 vid_sdl.c - SDL vid component
 Copyright (C) 2018 a1batross
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #if !XASH_DEDICATED
 #include <SDL.h>
@@ -446,11 +446,11 @@ static qboolean WIN_SetWindowIcon (HICON ico)
 
 #endif
 
-/*
+/***
 =================
 GL_GetProcAddress [FWGS, 01.04.23]
 =================
-*/
+***/
 void *GL_GetProcAddress (const char *name)
 	{
 	void *func = SDL_GL_GetProcAddress (name);
@@ -485,11 +485,11 @@ void *GL_GetProcAddress (const char *name)
 	return func;
 	}
 
-/*
+/***
 ===============
 GL_UpdateSwapInterval [FWGS, 01.11.23]
 ===============
-*/
+***/
 void GL_UpdateSwapInterval (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -510,11 +510,11 @@ void GL_UpdateSwapInterval (void)
 #endif
 	}
 
-/*
+/***
 =================
 GL_DeleteContext
 =================
-*/
+***/
 qboolean GL_DeleteContext (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -527,11 +527,11 @@ qboolean GL_DeleteContext (void)
 	return false;
 	}
 
-/*
+/***
 =================
 GL_CreateContext [FWGS, 01.05.23]
 =================
-*/
+***/
 static qboolean GL_CreateContext (void)
 	{
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -545,11 +545,11 @@ static qboolean GL_CreateContext (void)
 	return true;
 	}
 
-/*
+/***
 =================
 GL_UpdateContext [FWGS, 01.11.23]
 =================
-*/
+***/
 static qboolean GL_UpdateContext (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -740,11 +740,11 @@ static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int y
 	return true;
 	}
 
-/*
+/***
 =================
 VID_CreateWindow [FWGS, 01.03.24]
 =================
-*/
+***/
 qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 	{
 	string wndname;
@@ -882,11 +882,11 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 	return true;
 	}
 
-/*
+/***
 =================
 VID_DestroyWindow
 =================
-*/
+***/
 void VID_DestroyWindow (void)
 	{
 	GL_DeleteContext ();
@@ -906,16 +906,16 @@ void VID_DestroyWindow (void)
 		}
 	}
 
-/*
+/***
 ==================
 GL_SetupAttributes
 ==================
-*/
+***/
 static void GL_SetupAttributes (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_GL_ResetAttributes ();
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#endif
 
 	ref.dllFuncs.GL_SetupAttributes (glw_state.safe);
 	}
@@ -1015,11 +1015,11 @@ int GL_GetAttribute (int attr, int *val)
 #define EGL_LIB NULL
 #endif
 
-/*
+/***
 ==================
 R_Init_Video
 ==================
-*/
+***/
 qboolean R_Init_Video (const int type)
 	{
 	string safe;
@@ -1160,13 +1160,13 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 	return rserr_ok;
 	}
 
-/*
+/***
 ==================
 VID_SetMode [FWGS, 01.03.24]
 
 Set the described video mode
 ==================
-*/
+***/
 qboolean VID_SetMode (void)
 	{
 	int		iScreenWidth, iScreenHeight;
@@ -1247,11 +1247,11 @@ qboolean VID_SetMode (void)
 	return true;
 	}
 
-/*
+/***
 ==================
 R_Free_Video
 ==================
-*/
+***/
 void R_Free_Video (void)
 	{
 	GL_DeleteContext ();

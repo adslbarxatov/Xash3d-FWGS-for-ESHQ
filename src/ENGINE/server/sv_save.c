@@ -1,4 +1,4 @@
-/*
+/***
 sv_save.c - save\restore implementation
 Copyright (C) 2008 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -21,13 +21,13 @@ GNU General Public License for more details.
 #include "sound.h"		// S_GetDynamicSounds
 #include "ref_common.h" // decals
 
-/*
+/***
 ==============================================================================
 SAVE FILE
 
 half-life implementation of saverestore system
 ==============================================================================
-*/
+***/
 #define SAVEFILE_HEADER		(('V'<<24)+('L'<<16)+('A'<<8)+'V')	// little-endian "VALV"
 #define SAVEGAME_HEADER		(('V'<<24)+('A'<<16)+('S'<<8)+'J')	// little-endian "JSAV"
 #define SAVEGAME_VERSION		0x0071				// Version 0.71 GoldSrc compatible
@@ -295,14 +295,14 @@ struct
 		{ "ba_outro", "#BA_OUTRO" },
 		};
 
-/*
+/***
 =============
 SaveBuildComment
 
 build commentary for each savegame
 typically it writes world message and level time
 =============
-*/
+***/
 static void SaveBuildComment (char *text, int maxlength)
 	{
 	string		comment;
@@ -350,14 +350,14 @@ static void SaveBuildComment (char *text, int maxlength)
 	Q_snprintf (text, maxlength, "%-64.64s %02d:%02d", pName, (int)(sv.time / 60.0), (int)fmod (sv.time, 60.0));
 	}
 
-/*
+/***
 =============
 DirectoryCount
 
 counting all the files with xv1 - xv3 extension
 in save folder
 =============
-*/
+***/
 static int DirectoryCount (const char *pPath)
 	{
 	int			count;
@@ -373,13 +373,13 @@ static int DirectoryCount (const char *pPath)
 	return count;
 	}
 
-/*
+/***
 =============
 InitEntityTable
 
 reserve space for ETABLE's
 =============
-*/
+***/
 static void InitEntityTable (SAVERESTOREDATA *pSaveData, int entityCount)
 	{
 	ENTITYTABLE	*pTable;
@@ -397,13 +397,13 @@ static void InitEntityTable (SAVERESTOREDATA *pSaveData, int entityCount)
 		}
 	}
 
-/*
+/***
 =============
 EntryInTable
 
 check level in transition list
 =============
-*/
+***/
 static int EntryInTable (SAVERESTOREDATA *pSaveData, const char *pMapName, int index)
 	{
 	int	i;
@@ -417,13 +417,13 @@ static int EntryInTable (SAVERESTOREDATA *pSaveData, const char *pMapName, int i
 	return -1;
 	}
 
-/*
+/***
 =============
 EdictFromTable
 
 get edict from table
 =============
-*/
+***/
 static edict_t *EdictFromTable (SAVERESTOREDATA *pSaveData, int entityIndex)
 	{
 	if (pSaveData && pSaveData->pTable)
@@ -435,13 +435,13 @@ static edict_t *EdictFromTable (SAVERESTOREDATA *pSaveData, int entityIndex)
 	return NULL;
 	}
 
-/*
+/***
 =============
 LandmarkOrigin
 
 find global offset for a given landmark
 =============
-*/
+***/
 static void LandmarkOrigin (SAVERESTOREDATA *pSaveData, vec3_t output, const char *pLandmarkName)
 	{
 	int	i;
@@ -458,14 +458,14 @@ static void LandmarkOrigin (SAVERESTOREDATA *pSaveData, vec3_t output, const cha
 	VectorClear (output);
 	}
 
-/*
+/***
 =============
 EntityInSolid
 
 some moved edicts on a next level cause stuck
 outside of world. Find them and remove
 =============
-*/
+***/
 static int EntityInSolid (edict_t *pent)
 	{
 	edict_t	*aiment = pent->v.aiment;
@@ -481,14 +481,14 @@ static int EntityInSolid (edict_t *pent)
 	return (SV_PointContents (point) == CONTENTS_SOLID);
 	}
 
-/*
+/***
 =============
 ClearSaveDir
 
 remove all the temp files xv1 - xv3
 (it will be extracted again from another save file)
 =============
-*/
+***/
 static void ClearSaveDir (void)
 	{
 	search_t	*t;
@@ -505,13 +505,13 @@ static void ClearSaveDir (void)
 	Mem_Free (t);
 	}
 
-/*
+/***
 =============
 IsValidSave
 
 savegame is allowed?
 =============
-*/
+***/
 static int IsValidSave (void)
 	{
 	if (!svs.initialized || (sv.state != ss_active))
@@ -575,13 +575,13 @@ static int IsValidSave (void)
 	return 0;
 	}
 
-/*
+/***
 =============
 AgeSaveList
 
 scroll the name list down
 =============
-*/
+***/
 static void AgeSaveList (const char *pName, int count)
 	{
 	char	newName[MAX_OSPATH], oldName[MAX_OSPATH];
@@ -634,13 +634,13 @@ static void AgeSaveList (const char *pName, int count)
 		}
 	}
 
-/*
+/***
 =============
 DirectoryCopy [FWGS, 09.05.24]
 
 put the xv1 - xv3 files into save file
 =============
-*/
+***/
 static void DirectoryCopy (const char *pPath, file_t *pFile)
 	{
 	char		szName[MAX_OSPATH];
@@ -659,7 +659,6 @@ static void DirectoryCopy (const char *pPath, file_t *pFile)
 
 		// clearing the string to prevent garbage in output file
 		memset (szName, 0, sizeof (szName));
-		/*Q_strncpy (szName, COM_FileWithoutPath (t->filenames[i]), MAX_OSPATH);*/
 		Q_strncpy (szName, COM_FileWithoutPath (t->filenames[i]), sizeof (szName));
 
 		FS_Write (pFile, szName, MAX_OSPATH);
@@ -671,13 +670,13 @@ static void DirectoryCopy (const char *pPath, file_t *pFile)
 	Mem_Free (t);
 	}
 
-/*
+/***
 =============
 DirectoryExtract
 
 extract the xv1 - xv3 files from the save file
 =============
-*/
+***/
 static void DirectoryExtract (file_t *pFile, int fileCount)
 	{
 	char	szName[MAX_OSPATH];
@@ -699,13 +698,13 @@ static void DirectoryExtract (file_t *pFile, int fileCount)
 		}
 	}
 
-/*
+/***
 =============
 SaveInit
 
 initialize global save-restore buffer
 =============
-*/
+***/
 static SAVERESTOREDATA *SaveInit (int size, int tokenCount)
 	{
 	SAVERESTOREDATA *pSaveData;
@@ -726,13 +725,13 @@ static SAVERESTOREDATA *SaveInit (int size, int tokenCount)
 	return pSaveData;
 	}
 
-/*
+/***
 =============
 SaveClear
 
 clearing buffer for reuse
 =============
-*/
+***/
 static void SaveClear (SAVERESTOREDATA *pSaveData)
 	{
 	memset (pSaveData->pTokens, 0, pSaveData->tokenCount * sizeof (char *));
@@ -747,13 +746,13 @@ static void SaveClear (SAVERESTOREDATA *pSaveData)
 	svgame.globals->pSaveData = pSaveData;
 	}
 
-/*
+/***
 =============
 SaveFinish
 
 release global save-restore buffer
 =============
-*/
+***/
 static void SaveFinish (SAVERESTOREDATA *pSaveData)
 	{
 	if (!pSaveData)
@@ -778,7 +777,7 @@ static void SaveFinish (SAVERESTOREDATA *pSaveData)
 	}
 
 // [FWGS, 01.02.24]
-/*
+/***
 =============
 DumpHashStrings
 
@@ -805,13 +804,13 @@ static void DumpHashStrings (SAVERESTOREDATA *pSaveData, const char *pMessage)
 		}
 	}*/
 
-/*
+/***
 =============
 StoreHashTable
 
 write the stringtable into file
 =============
-*/
+***/
 static char *StoreHashTable (SAVERESTOREDATA *pSaveData)
 	{
 	char	*pTokenData = pSaveData->pCurrentData;
@@ -836,13 +835,13 @@ static char *StoreHashTable (SAVERESTOREDATA *pSaveData)
 	return pTokenData;
 	}
 
-/*
+/***
 =============
 BuildHashTable
 
 build the stringtable from buffer
 =============
-*/
+***/
 static void BuildHashTable (SAVERESTOREDATA *pSaveData, file_t *pFile)
 	{
 	char	*pszTokenList = pSaveData->pBaseData;
@@ -866,14 +865,14 @@ static void BuildHashTable (SAVERESTOREDATA *pSaveData, file_t *pFile)
 	pSaveData->pCurrentData = pSaveData->pBaseData;
 	}
 
-/*
+/***
 =============
 GetClientDataSize
 
 g-cont: this routine is redundant
 i'm write it just for more readable code
 =============
-*/
+***/
 static int GetClientDataSize (const char *level)
 	{
 	int		tokenCount, tokenSize;
@@ -908,14 +907,14 @@ static int GetClientDataSize (const char *level)
 	return (size + tokenSize);
 	}
 
-/*
+/***
 =============
 LoadSaveData
 
 fill the save resore buffer
 parse hash strings
 =============
-*/
+***/
 static SAVERESTOREDATA *LoadSaveData (const char *level)
 	{
 	int		tokenSize, tableCount;
@@ -980,13 +979,13 @@ static SAVERESTOREDATA *LoadSaveData (const char *level)
 	return pSaveData;
 	}
 
-/*
+/***
 =============
 ParseSaveTables
 
 reading global data, setup ETABLE's
 =============
-*/
+***/
 static void ParseSaveTables (SAVERESTOREDATA *pSaveData, SAVE_HEADER *pHeader, int updateGlobals)
 	{
 	SAVE_LIGHTSTYLE	light;
@@ -1029,14 +1028,14 @@ static void ParseSaveTables (SAVERESTOREDATA *pSaveData, SAVE_HEADER *pHeader, i
 		}
 	}
 
-/*
+/***
 =============
 EntityPatchWrite
 
 write out the list of entities that are no longer in the save file for this level
 (they've been moved to another level)
 =============
-*/
+***/
 static void EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 	{
 	char	name[MAX_QPATH];
@@ -1066,14 +1065,14 @@ static void EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 	FS_Close (pFile);
 	}
 
-/*
+/***
 =============
 EntityPatchRead
 
 read the list of entities that are no longer in the save file for this level
 (they've been moved to another level)
 =============
-*/
+***/
 static void EntityPatchRead (SAVERESTOREDATA *pSaveData, const char *level)
 	{
 	char	name[MAX_QPATH];
@@ -1097,13 +1096,13 @@ static void EntityPatchRead (SAVERESTOREDATA *pSaveData, const char *level)
 	FS_Close (pFile);
 	}
 
-/*
+/***
 =============
 RestoreDecal
 
 restore decal\move across transition
 =============
-*/
+***/
 static void RestoreDecal (SAVERESTOREDATA *pSaveData, decallist_t *entry, qboolean adjacent)
 	{
 	int		decalIndex, entityIndex = 0;
@@ -1170,13 +1169,13 @@ static void RestoreDecal (SAVERESTOREDATA *pSaveData, decallist_t *entry, qboole
 		}
 	}
 
-/*
+/***
 =============
 RestoreSound
 
 continue playing sound from saved position
 =============
-*/
+***/
 static void RestoreSound (SAVERESTOREDATA *pSaveData, soundlist_t *snd)
 	{
 	edict_t	*ent = EdictFromTable (pSaveData, snd->entnum);
@@ -1199,13 +1198,13 @@ static void RestoreSound (SAVERESTOREDATA *pSaveData, soundlist_t *snd)
 		}
 	}
 
-/*
+/***
 =============
 SaveClientState [FWGS, 09.05.24]
 
 write out the list of premanent decals for this level
 =============
-*/
+***/
 static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int changelevel)
 	{
 	soundlist_t	soundInfo[MAX_CHANNELS];
@@ -1246,7 +1245,6 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 
 #if !XASH_DEDICATED
 		// music not reqiured to save position: it's just continue playing on a next level
-		/*S_StreamGetCurrentState (header.introTrack, header.mainTrack, &header.trackPosition);*/
 		S_StreamGetCurrentState (header.introTrack, sizeof (header.introTrack), header.mainTrack,
 			sizeof (header.mainTrack), &header.trackPosition);
 #endif
@@ -1313,13 +1311,13 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 	FS_Close (pFile);
 	}
 
-/*
+/***
 =============
 LoadClientState
 
 read the list of decals and reapply them again
 =============
-*/
+***/
 static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboolean changelevel, qboolean adjacent)
 	{
 	int			tokenCount, tokenSize;
@@ -1439,13 +1437,13 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 		}
 	}
 
-/*
+/***
 =============
 CreateEntitiesInRestoreList
 
 alloc private data for restored entities
 =============
-*/
+***/
 static void CreateEntitiesInRestoreList (SAVERESTOREDATA *pSaveData, int levelMask, qboolean create_world)
 	{
 	int			i, active;
@@ -1499,13 +1497,13 @@ static void CreateEntitiesInRestoreList (SAVERESTOREDATA *pSaveData, int levelMa
 		}
 	}
 
-/*
+/***
 =============
 SaveGameState
 
 save current game state
 =============
-*/
+***/
 static SAVERESTOREDATA *SaveGameState (int changelevel)
 	{
 	char		name[MAX_QPATH];
@@ -1652,13 +1650,13 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 	return pSaveData;
 	}
 
-/*
+/***
 =============
 LoadGameState
 
 load current game state
 =============
-*/
+***/
 static int LoadGameState (char const *level, qboolean changelevel)
 	{
 	SAVERESTOREDATA *pSaveData;
@@ -1721,13 +1719,13 @@ static int LoadGameState (char const *level, qboolean changelevel)
 	return 1;
 	}
 
-/*
+/***
 =============
 SaveGameSlot [FWGS, 01.04.23]
 
 do a save game
 =============
-*/
+***/
 static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	{
 	char	hlPath[MAX_QPATH];
@@ -1803,13 +1801,13 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	return true;
 	}
 
-/*
+/***
 =============
 SaveReadHeader
 
 read header of save file
 =============
-*/
+***/
 static int SaveReadHeader (file_t *pFile, GAME_HEADER *pHeader)
 	{
 	int		tokenCount, tokenSize;
@@ -1856,13 +1854,13 @@ static int SaveReadHeader (file_t *pFile, GAME_HEADER *pHeader)
 	return 1;
 	}
 
-/*
+/***
 =============
 CreateEntityTransitionList
 
 moving edicts to another level
 =============
-*/
+***/
 static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask)
 	{
 	int		i, movedCount;
@@ -1951,13 +1949,13 @@ static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask
 	return movedCount;
 	}
 
-/*
+/***
 =============
 LoadAdjacentEnts
 
 loading edicts from adjacency levels
 =============
-*/
+***/
 static void LoadAdjacentEnts (const char *pOldLevel, const char *pLandmarkName)
 	{
 	SAVE_HEADER	header;
@@ -2035,25 +2033,25 @@ static void LoadAdjacentEnts (const char *pOldLevel, const char *pLandmarkName)
 		Host_Error ("Level transition ERROR\nCan't find connection to %s from %s\n", pOldLevel, sv.name);
 	}
 
-/*
+/***
 =============
 SV_LoadGameState
 
 loading entities from the savegame
 =============
-*/
+***/
 int SV_LoadGameState (char const *level)
 	{
 	return LoadGameState (level, false);
 	}
 
-/*
+/***
 =============
 SV_ClearGameState
 
 clear current game state
 =============
-*/
+***/
 void SV_ClearGameState (void)
 	{
 	ClearSaveDir ();
@@ -2062,11 +2060,11 @@ void SV_ClearGameState (void)
 		svgame.dllFuncs.pfnResetGlobalState ();
 	}
 
-/*
+/***
 =============
 SV_ChangeLevel [FWGS, 01.11.23]
 =============
-*/
+***/
 void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char *start, qboolean background)
 	{
 	char	level[MAX_QPATH];
@@ -2128,11 +2126,11 @@ void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char
 		}
 	}
 
-/*
+/***
 =============
 SV_LoadGame [FWGS, 01.05.24]
 =============
-*/
+***/
 qboolean SV_LoadGame (const char *pPath)
 	{
 	qboolean	validload = false;
@@ -2174,7 +2172,6 @@ qboolean SV_LoadGame (const char *pPath)
 		if (validload)
 			{
 			// now check for map problems
-			/*flags = SV_MapIsValid (gameHeader.mapName, GI->sp_entity, NULL);*/
 			flags = SV_MapIsValid (gameHeader.mapName, NULL);
 
 			if (FBitSet (flags, MAP_INVALID_VERSION))
@@ -2206,11 +2203,11 @@ qboolean SV_LoadGame (const char *pPath)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_SaveGame [FWGS, 01.04.23]
 ==================
-*/
+***/
 qboolean SV_SaveGame (const char *pName)
 	{
 	char	comment[80];
@@ -2256,13 +2253,13 @@ qboolean SV_SaveGame (const char *pName)
 	return SaveGameSlot (savename, comment);	// [FWGS, 01.04.23]
 	}
 
-/*
+/***
 ==================
 SV_GetLatestSave
 
 used for reload game after player death
 ==================
-*/
+***/
 const char *SV_GetLatestSave (void)
 	{
 	static char	savename[MAX_QPATH];
@@ -2297,13 +2294,13 @@ const char *SV_GetLatestSave (void)
 	return NULL;
 	}
 
-/*
+/***
 ==================
 SV_GetSaveComment [FWGS, 01.05.24]
 
 check savegame for valid
 ==================
-*/
+***/
 int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 	{
 	int		i, tag, size, nNumberOfFields, nFieldSize, tokenSize, tokenCount;
@@ -2462,7 +2459,6 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		uint		flags;
 
 		// now check for map problems
-		/*flags = SV_MapIsValid (mapName, GI->sp_entity, NULL);*/
 		flags = SV_MapIsValid (mapName, NULL);
 
 		if (FBitSet (flags, MAP_INVALID_VERSION))
@@ -2508,3 +2504,4 @@ void SV_InitSaveRestore (void)
 	{
 	pfnSaveGameComment = COM_GetProcAddress (svgame.hInstance, "SV_SaveGameComment");
 	}
+

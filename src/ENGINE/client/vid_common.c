@@ -1,4 +1,4 @@
-/*
+/***
 vid_common.c - common vid component
 Copyright (C) 2018 a1batross, Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "client.h"
@@ -46,26 +46,13 @@ CVAR_DEFINE (window_ypos, "_window_ypos", "-1", FCVAR_RENDERINFO,
 
 glwstate_t	glw_state;
 
-// [FWGS, 01.01.24]
-/*
-=================
-VID_StartupGamma
-=================
-//
-void VID_StartupGamma (void)
-	{
-	BuildGammaTable (vid_gamma.value, vid_brightness.value);
-	Con_Reportf ("VID_StartupGamma: gamma %g brightness %g\n", vid_gamma.value, vid_brightness.value);
-	ClearBits (vid_brightness.flags, FCVAR_CHANGED);
-	ClearBits (vid_gamma.flags, FCVAR_CHANGED);
-	}
-*/
+// [FWGS, 01.05.24] removed VID_StartupGamma
 
-/*
+/***
 =================
 VID_InitDefaultResolution
 =================
-*/
+***/
 void VID_InitDefaultResolution (void)
 	{
 	// we need to have something valid here
@@ -74,11 +61,11 @@ void VID_InitDefaultResolution (void)
 	refState.height = 480;
 	}
 
-/*
+/***
 =================
 R_SaveVideoMode [FWGS, 01.11.23]
 =================
-*/
+***/
 void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximized)
 	{
 	if (!w || !h || !render_w || !render_h)
@@ -112,11 +99,11 @@ void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximiz
 	SCR_VidInit (); // tell client.dll that vid_mode has changed
 	}
 
-/*
+/***
 =================
 VID_GetModeString
 =================
-*/
+***/
 const char *VID_GetModeString (int vid_mode)
 	{
 	vidmode_t *vidmode;
@@ -129,13 +116,13 @@ const char *VID_GetModeString (int vid_mode)
 	return vidmode->desc;
 	}
 
-/*
+/***
 ==================
 VID_CheckChanges
 
 check vid modes and fullscreen
 ==================
-*/
+***/
 void VID_CheckChanges (void)
 	{
 	if (FBitSet (cl_allow_levelshots.flags, FCVAR_CHANGED))
@@ -155,13 +142,13 @@ void VID_CheckChanges (void)
 		}
 	}
 
-/*
+/***
 ===============
 VID_SetDisplayTransform [FWGS, 01.07.23]
 
 notify ref dll about screen transformations
 ===============
-*/
+***/
 void VID_SetDisplayTransform (int *render_w, int *render_h)
 	{
 	uint rotate = vid_rotate.value;

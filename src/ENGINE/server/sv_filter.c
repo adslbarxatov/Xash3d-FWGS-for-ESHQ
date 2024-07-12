@@ -1,4 +1,4 @@
-/*
+/***
 sv_filter.c - server ID/IP filter
 Copyright (C) 2017 a1batross
 
@@ -10,19 +10,19 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
 
 // [FWGS, 01.04.23] удалена ipfilter_s
 
-/*
+/***
 =============================================================================
 PLAYER ID FILTER
 =============================================================================
-*/
+***/
 typedef struct cidfilter_s
 	{
 	float endTime;
@@ -262,11 +262,11 @@ static void SV_ShutdownIDFilter (void)
 	cidfilter = NULL;
 	}
 
-/*
+/***
 =============================================================================
 CLIENT IP FILTER
 =============================================================================
-*/
+***/
 
 // [FWGS, 01.04.23]
 typedef struct ipfilter_s

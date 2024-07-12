@@ -1,4 +1,4 @@
-/*
+/***
 s_main.c - sound engine
 Copyright (C) 2009 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "sound.h"
@@ -53,8 +53,6 @@ static CVAR_DEFINE_AUTO (s_combine_sounds, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE
 	"combine channels with same sounds");
 
 // [FWGS, 01.05.24]
-/*CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
-	"silence the audio when game window loses focus");*/
 static CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"silence the audio when game window loses focus");
 
@@ -65,16 +63,16 @@ CVAR_DEFINE_AUTO (s_samplecount, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 CVAR_DEFINE_AUTO (s_warn_late_precache, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
 	"warn about late precached sounds on client-side");
 
-/*
+/***
 =============================================================================
 SOUNDS PROCESSING
 =============================================================================
-*/
-/*
+***/
+/***
 =================
 S_GetMasterVolume [FWGS, 09.05.24]
 =================
-*/
+***/
 float S_GetMasterVolume (void)
 	{
 	float	scale = 1.0f;
@@ -96,11 +94,11 @@ float S_GetMasterVolume (void)
 	return s_volume.value * scale;
 	}
 
-/*
+/***
 =================
 S_FadeClientVolume
 =================
-*/
+***/
 void S_FadeClientVolume (float fadePercent, float fadeOutSeconds, float holdTime, float fadeInSeconds)
 	{
 	soundfade.starttime = cl.mtime[0];
@@ -110,11 +108,11 @@ void S_FadeClientVolume (float fadePercent, float fadeOutSeconds, float holdTime
 	soundfade.fadeintime = fadeInSeconds;
 	}
 
-/*
+/***
 =================
 S_IsClient
 =================
-*/
+***/
 static qboolean S_IsClient (int entnum)
 	{
 	return (entnum == s_listener.entnum);
@@ -125,11 +123,11 @@ static qboolean S_IsClient (int entnum)
 // next request to play a sound.  If sound is a
 // word in a sentence, release the sentence.
 // Works for static, dynamic, sentence and stream sounds
-/*
+/***
 =================
 S_FreeChannel
 =================
-*/
+***/
 void S_FreeChannel (channel_t *ch)
 	{
 	ch->sfx = NULL;
@@ -143,11 +141,11 @@ void S_FreeChannel (channel_t *ch)
 	SND_CloseMouth (ch);
 	}
 
-/*
+/***
 =================
 S_UpdateSoundFade
 =================
-*/
+***/
 static void S_UpdateSoundFade (void)
 	{
 	float	f, totaltime, elapsed;
@@ -198,7 +196,7 @@ static void S_UpdateSoundFade (void)
 		}
 	}
 
-/*
+/***
 =================
 SND_FStreamIsPlaying
 
@@ -206,7 +204,7 @@ Select a channel from the dynamic channel allocation area.  For the given entity
 override any other sound playing on the same channel (see code comments below for
 exceptions).
 =================
-*/
+***/
 static qboolean SND_FStreamIsPlaying (sfx_t *sfx)
 	{
 	int	ch_idx;
@@ -220,13 +218,13 @@ static qboolean SND_FStreamIsPlaying (sfx_t *sfx)
 	return false;
 	}
 
-/*
+/***
 =================
 SND_GetChannelTimeLeft [FWGS, 01.04.23]
 
 TODO: this function needs to be removed after whole sound subsystem rewrite
 =================
-*/
+***/
 static int SND_GetChannelTimeLeft (const channel_t *ch)
 	{
 	int remaining;
@@ -280,7 +278,7 @@ static int SND_GetChannelTimeLeft (const channel_t *ch)
 	return remaining;
 	}
 
-/*
+/***
 =================
 SND_PickDynamicChannel [FWGS, 09.05.24]
 
@@ -288,7 +286,7 @@ Select a channel from the dynamic channel allocation area.  For the given entity
 override any other sound playing on the same channel (see code comments below for
 exceptions).
 =================
-*/
+***/
 channel_t *SND_PickDynamicChannel (int entnum, int channel, sfx_t *sfx, qboolean *ignore)
 	{
 	int	ch_idx;
@@ -346,7 +344,6 @@ channel_t *SND_PickDynamicChannel (int entnum, int channel, sfx_t *sfx, qboolean
 		// don't restart looping sounds for the same entity
 		wavdata_t *sc = channels[first_to_die].sfx->cache;
 
-		/*if (sc && sc->loopStart != -1)*/
 		if (sc && FBitSet (sc->flags, SOUND_LOOPED))
 			{
 			channel_t *ch = &channels[first_to_die];
@@ -368,7 +365,7 @@ channel_t *SND_PickDynamicChannel (int entnum, int channel, sfx_t *sfx, qboolean
 	return &channels[first_to_die];
 	}
 
-/*
+/***
 =====================
 SND_PickStaticChannel
 
@@ -377,7 +374,7 @@ channel.  Only fails if we're at max_channels (128!!!) or if
 we're trying to allocate a channel for a stream sound that is
 already playing.
 =====================
-*/
+***/
 channel_t *SND_PickStaticChannel (const vec3_t pos, sfx_t *sfx)
 	{
 	channel_t	*ch = NULL;
@@ -414,7 +411,7 @@ channel_t *SND_PickStaticChannel (const vec3_t pos, sfx_t *sfx)
 	return ch;
 	}
 
-/*
+/***
 =================
 S_AlterChannel
 
@@ -425,7 +422,7 @@ sfx contains a sentence name, shut off the sentence.
 returns TRUE if sound was altered,
 returns FALSE if sound was not found (sound is not playing)
 =================
-*/
+***/
 static int S_AlterChannel (int entnum, int channel, sfx_t *sfx, int vol, int pitch, int flags)
 	{
 	channel_t	*ch;
@@ -478,11 +475,11 @@ static int S_AlterChannel (int entnum, int channel, sfx_t *sfx, int vol, int pit
 	return false;
 	}
 
-/*
+/***
 =================
 S_SpatializeChannel
 =================
-*/
+***/
 static void S_SpatializeChannel (int *left_vol, int *right_vol, int master_vol, float gain, float dot, float dist)
 	{
 	float	lscale, rscale, scale;
@@ -501,11 +498,11 @@ static void S_SpatializeChannel (int *left_vol, int *right_vol, int master_vol, 
 	*left_vol = bound (0, *left_vol, 255);
 	}
 
-/*
+/***
 =================
 SND_Spatialize [FWGS, 09.05.24]
 =================
-*/
+***/
 static void SND_Spatialize (channel_t *ch)
 	{
 	vec3_t		source_vec;
@@ -523,7 +520,6 @@ static void SND_Spatialize (channel_t *ch)
 
 	pSource = ch->sfx->cache;
 
-	/*if (ch->use_loop && pSource && (pSource->loopStart != -1))*/
 	if (ch->use_loop && pSource && FBitSet (pSource->flags, SOUND_LOOPED))
 		looping = true;
 
@@ -555,7 +551,7 @@ static void SND_Spatialize (channel_t *ch)
 	VOX_SetChanVol (ch);
 	}
 
-/*
+/***
 ====================
 S_StartSound [FWGS, 09.05.24]
 
@@ -570,7 +566,7 @@ if the looping sound starts out of range, or is bumped from the buffer by anothe
 it will never be restarted.  Use StartStaticSound (pass CHAN_STATIC to EMIT_SOUND or
 SV_StartSound
 ====================
-*/
+***/
 void S_StartSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn, int pitch, int flags)
 	{
 	wavdata_t	*pSource;
@@ -670,7 +666,6 @@ void S_StartSound (const vec3_t pos, int ent, int chan, sound_t handle, float fv
 	if (!target_chan->leftvol && !target_chan->rightvol)
 		{
 		// looping sounds don't use this optimization because they should stick around until they're killed
-		/*if (!sfx->cache || sfx->cache->loopStart == -1)*/
 		if (!sfx->cache || !FBitSet (sfx->cache->flags, SOUND_LOOPED))
 			{
 			// if this is a streaming sound, play the whole thing
@@ -686,13 +681,13 @@ void S_StartSound (const vec3_t pos, int ent, int chan, sound_t handle, float fv
 	SND_InitMouth (ent, chan);
 	}
 
-/*
+/***
 ====================
 S_RestoreSound
 
 Restore a sound effect for the given entity on the given channel
 ====================
-*/
+***/
 void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn, 
 	int pitch, int flags, double sample, double end, int wordIndex)
 	{
@@ -793,7 +788,7 @@ void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float 
 	SND_InitMouth (ent, chan);
 	}
 
-/*
+/***
 =================
 S_AmbientSound
 
@@ -806,7 +801,7 @@ Pitch changes playback pitch of wave by % above or below 100.  Ignored if pitch 
 
 NOTE: volume is 0.0 - 1.0 and attenuation is 0.0 - 1.0 when passed in.
 =================
-*/
+***/
 void S_AmbientSound (const vec3_t pos, int ent, sound_t handle, float fvol, float attn, int pitch, int flags)
 	{
 	channel_t *ch;
@@ -891,11 +886,11 @@ void S_AmbientSound (const vec3_t pos, int ent, sound_t handle, float fvol, floa
 	SND_Spatialize (ch);
 	}
 
-/*
+/***
 ==================
 S_StartLocalSound
 ==================
-*/
+***/
 void S_StartLocalSound (const char *name, float volume, qboolean reliable)
 	{
 	sound_t	sfxHandle;
@@ -911,13 +906,13 @@ void S_StartLocalSound (const char *name, float volume, qboolean reliable)
 	S_StartSound (NULL, s_listener.entnum, channel, sfxHandle, volume, ATTN_EVERYWHERE, PITCH_NORM, flags);
 	}
 
-/*
+/***
 ==================
 S_GetCurrentStaticSounds [FWGS, 09.05.24]
 
 grab all static sounds playing at current channel
 ==================
-*/
+***/
 int S_GetCurrentStaticSounds (soundlist_t *pout, int size)
 	{
 	int	sounds_left = size;
@@ -939,7 +934,6 @@ int S_GetCurrentStaticSounds (soundlist_t *pout, int size)
 			VectorCopy (channels[i].origin, pout->origin);
 			pout->volume = (float)channels[i].master_vol / 255.0f;
 			pout->attenuation = channels[i].dist_mult * SND_CLIP_DISTANCE;
-			/*pout->looping = (channels[i].use_loop && channels[i].sfx->cache->loopStart != -1);*/
 			pout->looping = (channels[i].use_loop && FBitSet (channels[i].sfx->cache->flags, SOUND_LOOPED));
 			pout->pitch = channels[i].basePitch;
 			pout->channel = channels[i].entchannel;
@@ -955,13 +949,13 @@ int S_GetCurrentStaticSounds (soundlist_t *pout, int size)
 	return (size - sounds_left);
 	}
 
-/*
+/***
 ==================
 S_GetCurrentStaticSounds [FWGS, 09.05.24]
 
 grab all static sounds playing at current channel
 ==================
-*/
+***/
 int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
 	{
 	int	sounds_left = size;
@@ -976,7 +970,6 @@ int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
 		if (!channels[i].sfx || !channels[i].sfx->name[0] || !Q_stricmp (channels[i].sfx->name, "*default"))
 			continue;
 
-		/*looped = (channels[i].use_loop && channels[i].sfx->cache->loopStart != -1);*/
 		looped = (channels[i].use_loop && FBitSet (channels[i].sfx->cache->flags, SOUND_LOOPED));
 
 		// never serialize static looped sounds. It will be restoring in game code
@@ -1006,11 +999,11 @@ int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
 	return (size - sounds_left);
 	}
 
-/*
+/***
 ===================
 S_InitAmbientChannels
 ===================
-*/
+***/
 static void S_InitAmbientChannels (void)
 	{
 	int			ambient_channel;
@@ -1028,11 +1021,11 @@ static void S_InitAmbientChannels (void)
 		}
 	}
 
-/*
+/***
 ===================
 S_UpdateAmbientSounds
 ===================
-*/
+***/
 static void S_UpdateAmbientSounds (void)
 	{
 	mleaf_t		*leaf;
@@ -1091,16 +1084,16 @@ static void S_UpdateAmbientSounds (void)
 		}
 	}
 
-/*
+/***
 =============================================================================
 SOUND STREAM RAW SAMPLES
 =============================================================================
-*/
-/*
+***/
+/***
 ===================
 S_FindRawChannel
 ===================
-*/
+***/
 rawchan_t *S_FindRawChannel (int entnum, qboolean create)
 	{
 	int			i, free;
@@ -1161,11 +1154,11 @@ rawchan_t *S_FindRawChannel (int entnum, qboolean create)
 	return ch;
 	}
 
-/*
+/***
 ===================
 S_RawSamplesStereo
 ===================
-*/
+***/
 static uint S_RawSamplesStereo (portable_samplepair_t *rawsamples, uint rawend, uint max_samples,
 	uint samples, uint rate, word width, word channels, const byte *data)
 	{
@@ -1228,11 +1221,11 @@ static uint S_RawSamplesStereo (portable_samplepair_t *rawsamples, uint rawend, 
 	return rawend;
 	}
 
-/*
+/***
 ===================
 S_RawEntSamples
 ===================
-*/
+***/
 void S_RawEntSamples (int entnum, uint samples, uint rate, word width, word channels, const byte *data, int snd_vol)
 	{
 	rawchan_t *ch;
@@ -1249,11 +1242,11 @@ void S_RawEntSamples (int entnum, uint samples, uint rate, word width, word chan
 	ch->leftvol = ch->rightvol = snd_vol;
 	}
 
-/*
+/***
 ===================
 S_RawSamples
 ===================
-*/
+***/
 void S_RawSamples (uint samples, uint rate, word width, word channels, const byte *data, int entnum)
 	{
 	int	snd_vol = 128;
@@ -1264,11 +1257,11 @@ void S_RawSamples (uint samples, uint rate, word width, word channels, const byt
 	S_RawEntSamples (entnum, samples, rate, width, channels, data, snd_vol);
 	}
 
-/*
+/***
 ===================
 S_PositionedRawSamples
 ===================
-*/
+***/
 void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float synctime)
 	{
 	int		bufferSamples;
@@ -1346,13 +1339,13 @@ void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float sy
 
 // [FWGS, 01.05.23] удалены S_GetRawSamplesLength, S_ClearRawChannel
 
-/*
+/***
 ===================
 S_FreeIdleRawChannels
 
 Free raw channel that have been idling for too long.
 ===================
-*/
+***/
 static void S_FreeIdleRawChannels (void)
 	{
 	int	i;
@@ -1378,11 +1371,11 @@ static void S_FreeIdleRawChannels (void)
 		}
 	}
 
-/*
+/***
 ===================
 S_ClearRawChannels
 ===================
-*/
+***/
 static void S_ClearRawChannels (void)
 	{
 	int	i;
@@ -1397,11 +1390,11 @@ static void S_ClearRawChannels (void)
 		}
 	}
 
-/*
+/***
 ===================
 S_SpatializeRawChannels
 ===================
-*/
+***/
 static void S_SpatializeRawChannels (void)
 	{
 	int	i;
@@ -1450,11 +1443,11 @@ static void S_SpatializeRawChannels (void)
 		}
 	}
 
-/*
+/***
 ===================
 S_FreeRawChannels
 ===================
-*/
+***/
 static void S_FreeRawChannels (void)
 	{
 	int	i;
@@ -1471,11 +1464,11 @@ static void S_FreeRawChannels (void)
 
 // =============================================================================
 
-/*
+/***
 ==================
 S_ClearBuffer
 ==================
-*/
+***/
 static void S_ClearBuffer (void)
 	{
 	S_ClearRawChannels ();
@@ -1487,13 +1480,13 @@ static void S_ClearBuffer (void)
 	MIX_ClearAllPaintBuffers (PAINTBUFFER_SIZE, true);
 	}
 
-/*
+/***
 ==================
 S_StopSound
 
 stop all sounds for entity on a channel.
 ==================
-*/
+***/
 void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
 	{
 	sfx_t *sfx;
@@ -1503,11 +1496,11 @@ void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
 	S_AlterChannel (entnum, channel, sfx, 0, 0, SND_STOP);
 	}
 
-/*
+/***
 ==================
 S_StopAllSounds
 ==================
-*/
+***/
 void S_StopAllSounds (qboolean ambient)
 	{
 	int	i;
@@ -1537,7 +1530,7 @@ void S_StopAllSounds (qboolean ambient)
 	memset (&soundfade, 0, sizeof (soundfade));
 	}
 
-/*
+/***
 ==============
 S_GetSoundtime
 
@@ -1545,7 +1538,7 @@ update global soundtime
 
 (was part of platform code)
 ===============
-*/
+***/
 static int S_GetSoundtime (void)
 	{
 	static int buffers, oldsamplepos;
@@ -1611,13 +1604,13 @@ static void S_UpdateChannels (void)
 	SNDDMA_Submit ();
 	}
 
-/*
+/***
 =================
 S_ExtraUpdate
 
 Don't let sound skip if going slow
 =================
-*/
+***/
 void S_ExtraUpdate (void)
 	{
 	if (!dma.initialized)
@@ -1625,13 +1618,13 @@ void S_ExtraUpdate (void)
 	S_UpdateChannels ();
 	}
 
-/*
+/***
 ============
 S_UpdateFrame
 
 update listener position
 ============
-*/
+***/
 void S_UpdateFrame (struct ref_viewpass_s *rvp)
 	{
 	if (!FBitSet (rvp->flags, RF_DRAW_WORLD) || FBitSet (rvp->flags, RF_ONLY_CLIENTDRAW))
@@ -1642,13 +1635,13 @@ void S_UpdateFrame (struct ref_viewpass_s *rvp)
 	s_listener.entnum = rvp->viewentity; // can be camera entity too
 	}
 
-/*
+/***
 ============
 SND_UpdateSound [FWGS, 09.05.24]
 
 Called once each time through the main loop
 ============
-*/
+***/
 void SND_UpdateSound (void)
 	{
 	int				i, j, total;
@@ -1665,7 +1658,6 @@ void SND_UpdateSound (void)
 	// release raw-channels that no longer used more than 10 secs
 	S_FreeIdleRawChannels ();
 
-	/*VectorCopy (cl.simvel, s_listener.velocity);*/
 	s_listener.frametime = (cl.time - cl.oldtime);
 	s_listener.waterlevel = cl.local.waterlevel;
 	s_listener.active = CL_IsInGame ();
@@ -1764,11 +1756,11 @@ void SND_UpdateSound (void)
 	S_UpdateChannels ();
 	}
 
-/*
+/***
 ===============================================================================
 console functions
 ===============================================================================
-*/
+***/
 static void S_Play_f (void)
 	{
 	if (Cmd_Argc () == 1)
@@ -1845,11 +1837,11 @@ static void S_SayReliable_f (void)
 	S_Say (Cmd_Argv (1), true);
 	}
 
-/*
+/***
 =================
 S_Music_f
 =================
-*/
+***/
 static void S_Music_f (void)
 	{
 	int	c = Cmd_Argc ();
@@ -1913,21 +1905,21 @@ static void S_Music_f (void)
 		}
 	}
 
-/*
+/***
 =================
 S_StopSound_f
 =================
-*/
+***/
 static void S_StopSound_f (void)
 	{
 	S_StopAllSounds (true);
 	}
 
-/*
+/***
 =================
 S_SoundFade_f
 =================
-*/
+***/
 static void S_SoundFade_f (void)
 	{
 	int		c = Cmd_Argc ();
@@ -1940,11 +1932,11 @@ static void S_SoundFade_f (void)
 	snd_fade_sequence = true;
 	}
 
-/*
+/***
 =================
 S_SoundInfo_f
 =================
-*/
+***/
 void S_SoundInfo_f (void)
 	{
 	Con_Printf ("Audio backend: %s\n", dma.backendName);
@@ -1957,11 +1949,11 @@ void S_SoundInfo_f (void)
 	S_PrintBackgroundTrackState ();
 	}
 
-/*
+/***
 =================
 S_VoiceRecordStart_f
 =================
-*/
+***/
 static void S_VoiceRecordStart_f (void)
 	{
 	if ((cls.state != ca_active) || cls.legacymode)
@@ -1970,11 +1962,11 @@ static void S_VoiceRecordStart_f (void)
 	Voice_RecordStart ();
 	}
 
-/*
+/***
 =================
 S_VoiceRecordStop_f
 =================
-*/
+***/
 static void S_VoiceRecordStop_f (void)
 	{
 	if ((cls.state != ca_active) || !Voice_IsRecording ())
@@ -1984,11 +1976,11 @@ static void S_VoiceRecordStop_f (void)
 	Voice_RecordStop ();
 	}
 
-/*
+/***
 ================
 S_Init
 ================
-*/
+***/
 qboolean S_Init (void)
 	{
 	if (Sys_CheckParm ("-nosound"))
@@ -2076,3 +2068,4 @@ void S_Shutdown (void)
 	MIX_FreeAllPaintbuffers ();
 	Mem_FreePool (&sndpool);
 	}
+

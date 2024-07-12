@@ -805,18 +805,18 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 
 #elif defined(__sgi) 	// [FWGS, 01.07.23]
 
-/*
- * These functions are stubbed for now to get the code compiling.
- * In the future it may be possible to get these working in some way.
- * Current ideas are checking the working directory for a binary with
- * the same executed name and reading links, or worst case just searching
- * through the entirety of the filesystem that's readable by the user.
- *
- * I'm not sure it's actually possible to find the absolute path via a
- * direct method on IRIX. Its implementation of /proc is a fairly barebones
- * SVR4 implementation. Other UNIXes (e.g. Solaris) have extensions to /proc
- * that make finding the absolute path possible but these don't exist on IRIX.
- */
+/***
+These functions are stubbed for now to get the code compiling.
+In the future it may be possible to get these working in some way.
+Current ideas are checking the working directory for a binary with
+the same executed name and reading links, or worst case just searching
+through the entirety of the filesystem that's readable by the user.
+
+I'm not sure it's actually possible to find the absolute path via a
+direct method on IRIX. Its implementation of /proc is a fairly barebones
+SVR4 implementation. Other UNIXes (e.g. Solaris) have extensions to /proc
+that make finding the absolute path possible but these don't exist on IRIX
+***/
 
 WAI_FUNCSPEC
 int WAI_PREFIX (getExecutablePath)(char *out, int capacity, int *dirname_length)

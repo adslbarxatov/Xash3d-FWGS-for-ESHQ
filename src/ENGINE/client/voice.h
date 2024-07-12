@@ -1,4 +1,4 @@
-/*
+/***
 voice.h - voice chat implementation
 Copyright (C) 2022 Velaron
 Copyright (C) 2022 SNMetamorph
@@ -11,8 +11,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef VOICE_H
 #define VOICE_H
@@ -31,7 +31,6 @@ typedef struct OpusCustomMode OpusCustomMode;
 #define VOICE_PCM_CHANNELS 1 // always mono
 
 // [FWGS, 09.05.24] never change these parameters when using opuscustom
-/*#define VOICE_OPUS_CUSTOM_SAMPLERATE SOUND_44k*/
 #define VOICE_OPUS_CUSTOM_SAMPLERATE 44100
 
 // must follow opus custom requirements
@@ -66,7 +65,6 @@ typedef struct voice_state_s
 	OpusCustomEncoder	*encoder;
 
 	// [FWGS, 01.05.24]
-	/*OpusCustomDecoder *decoder;*/
 	OpusCustomDecoder	*decoders[MAX_CLIENTS];
 
 	// audio info
@@ -78,7 +76,6 @@ typedef struct voice_state_s
 	byte	input_buffer[MAX_RAW_SAMPLES];
 
 	// [FWGS, 01.05.24]
-	/*byte output_buffer[MAX_RAW_SAMPLES];*/
 	byte	compress_buffer[MAX_RAW_SAMPLES];
 
 	byte		decompress_buffer[MAX_RAW_SAMPLES];

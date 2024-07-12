@@ -1,4 +1,4 @@
-/*
+/***
 sv_game.c - gamedll interaction
 Copyright (C) 2008 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -39,13 +39,7 @@ static vec3_t viewPoint[MAX_CLIENTS];
 typedef void (__cdecl *LINK_ENTITY_FUNC)(entvars_t *pev);
 typedef void (__stdcall *GIVEFNPTRSTODLL)(enginefuncs_t *engfuncs, globalvars_t *pGlobals);
 
-// [FWGS, 01.05.24]
-/*edict_t *SV_EdictNum (int n)
-	{
-	if ((n >= 0) && (n < GI->max_edicts))
-		return svgame.edicts + n;
-	return NULL;
-	}*/
+// [FWGS, 01.05.24] removed SV_EdictNum
 
 #ifndef NDEBUG
 qboolean SV_CheckEdict (const edict_t *e, const char *file, const int line)
@@ -86,13 +80,13 @@ static edict_t *SV_PEntityOfEntIndex (const int iEntIndex, const qboolean allent
 	}
 
 
-/*
+/***
 =============
 EntvarsDescription
 
 entavrs table for FindEntityByString
 =============
-*/
+***/
 static TYPEDESCRIPTION gEntvarsDescription[] =
 	{
 		DEFINE_ENTITY_FIELD (classname, FIELD_STRING),
@@ -110,13 +104,13 @@ static TYPEDESCRIPTION gEntvarsDescription[] =
 		DEFINE_ENTITY_FIELD (noise3, FIELD_SOUNDNAME),
 	};
 
-/*
+/***
 =============
 SV_GetEntvarsDescription
 
 entavrs table for FindEntityByString
 =============
-*/
+***/
 static TYPEDESCRIPTION *SV_GetEntvarsDescirption (int number)
 	{
 	if ((number < 0) || (number >= ENTVARS_COUNT))
@@ -124,13 +118,13 @@ static TYPEDESCRIPTION *SV_GetEntvarsDescirption (int number)
 	return &gEntvarsDescription[number];
 	}
 
-/*
+/***
 =============
 SV_SysError
 
 tell the game.dll about system error
 =============
-*/
+***/
 void SV_SysError (const char *error_string)
 	{
 	Log_Printf ("FATAL ERROR (shutting down): %s\n", error_string);
@@ -139,20 +133,20 @@ void SV_SysError (const char *error_string)
 		svgame.dllFuncs.pfnSys_Error (error_string);
 	}
 
-/*
+/***
 =============
 SV_Serverinfo
 
 get server infostring
 =============
-*/
+***/
 char *SV_Serverinfo (void)
 	{
 	return svs.serverinfo;
 	}
 
 // [FWGS, 01.05.24]
-/*
+/***
 =============
 SV_LocalInfo
 
@@ -164,13 +158,13 @@ static char *SV_Localinfo (void)
 	return svs.localinfo;
 	}*/
 
-/*
+/***
 =============
 SV_AngleMod
 
 do modulo on entity angles
 =============
-*/
+***/
 static float SV_AngleMod (float ideal, float current, float speed)
 	{
 	float	move;
@@ -207,13 +201,13 @@ static float SV_AngleMod (float ideal, float current, float speed)
 	return anglemod (current + move);
 	}
 
-/*
+/***
 =============
 SV_SetMinMaxSize
 
 update entity bounds, relink into world
 =============
-*/
+***/
 void SV_SetMinMaxSize (edict_t *e, const float *mins, const float *maxs, qboolean relink)
 	{
 	int	i;
@@ -239,13 +233,13 @@ void SV_SetMinMaxSize (edict_t *e, const float *mins, const float *maxs, qboolea
 		SV_LinkEdict (e, false);
 	}
 
-/*
+/***
 =============
 SV_CopyTraceToGlobal
 
 each trace will share their result into global state
 =============
-*/
+***/
 void SV_CopyTraceToGlobal (trace_t *trace)
 	{
 	svgame.globals->trace_allsolid = trace->allsolid;
@@ -265,17 +259,16 @@ void SV_CopyTraceToGlobal (trace_t *trace)
 		svgame.globals->trace_ent = svgame.edicts;
 	}
 
-/*
+/***
 ==============
 SV_SetModel [FWGS, 01.05.24]
 ==============
-*/
+***/
 void GAME_EXPORT SV_SetModel (edict_t *ent, const char *modelname)
 	{
-	char		name[MAX_QPATH];
-	/*qboolean	found = false;*/
-	model_t		*mod;
-	int			i = 1;
+	char	name[MAX_QPATH];
+	model_t	*mod;
+	int		i = 1;
 
 	if (!SV_IsValidEdict (ent))
 		{
@@ -323,13 +316,13 @@ void GAME_EXPORT SV_SetModel (edict_t *ent, const char *modelname)
 		SV_SetMinMaxSize (ent, vec3_origin, vec3_origin, true);
 	}
 
-/*
+/***
 =============
 SV_ConvertTrace
 
 convert trace_t to TraceResult
 =============
-*/
+***/
 static void SV_ConvertTrace (TraceResult *dst, trace_t *src)
 	{
 	if (!src || !dst) 
@@ -350,13 +343,13 @@ static void SV_ConvertTrace (TraceResult *dst, trace_t *src)
 	svgame.globals->trace_flags = 0;
 	}
 
-/*
+/***
 =============
 SV_CheckClientVisiblity
 
 Check visibility through client camera, portal camera, etc
 =============
-*/
+***/
 static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 	{
 	int	i, clientnum;
@@ -397,7 +390,7 @@ static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 	return false;
 	}
 
-/*
+/***
 =================
 SV_Multicast
 
@@ -410,7 +403,7 @@ MSG_ALL	same as broadcast (origin can be NULL)
 MSG_PVS	send to clients potentially visible from org
 MSG_PHS	send to clients potentially audible from org
 =================
-*/
+***/
 static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboolean usermessage, qboolean filter)
 	{
 	byte *mask = NULL;
@@ -526,25 +519,25 @@ static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboo
 	return numsends; // just for debug
 	}
 
-/*
+/***
 =======================
 SV_GetReliableDatagram
 
 Get shared reliable buffer
 =======================
-*/
+***/
 static sizebuf_t *SV_GetReliableDatagram (void)
 	{
 	return &sv.reliable_datagram;
 	}
 
-/*
+/***
 =======================
 SV_RestoreCustomDecal
 
 Let the user spawn decal in game code
 =======================
-*/
+***/
 qboolean SV_RestoreCustomDecal (decallist_t *entry, edict_t *pEdict, qboolean adjacent)
 	{
 	if (svgame.physFuncs.pfnRestoreDecal != NULL)
@@ -559,13 +552,13 @@ qboolean SV_RestoreCustomDecal (decallist_t *entry, edict_t *pEdict, qboolean ad
 	return false;
 	}
 
-/*
+/***
 =======================
 SV_CreateDecal
 
 NOTE: static decals only accepted when game is loading
 =======================
-*/
+***/
 void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int entityIndex, int modelIndex, 
 	int flags, float scale)
 	{
@@ -590,13 +583,13 @@ void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int en
 	MSG_WriteWord (msg, scale * 4096);
 	}
 
-/*
+/***
 =======================
 SV_CreateStaticEntity
 
 NOTE: static entities only accepted when game is loading
 =======================
-*/
+***/
 qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	{
 	entity_state_t	nullstate, *baseline;
@@ -640,13 +633,13 @@ qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	return true;
 	}
 
-/*
+/***
 =================
 SV_RestartStaticEnts
 
 Write all the static ents into demo
 =================
-*/
+***/
 void SV_RestartStaticEnts (void)
 	{
 	int	i;
@@ -659,11 +652,11 @@ void SV_RestartStaticEnts (void)
 		SV_CreateStaticEntity (&sv.reliable_datagram, i);
 	}
 
-/*
+/***
 =================
 SV_StartMusic [FWGS, 01.07.23]
 =================
-*/
+***/
 static void SV_StartMusic (const char *curtrack, const char *looptrack, int position)
 	{
 	MSG_BeginServerCmd (&sv.multicast, svc_stufftext);
@@ -671,13 +664,13 @@ static void SV_StartMusic (const char *curtrack, const char *looptrack, int posi
 	SV_Multicast (MSG_ALL, NULL, NULL, false, false);
 	}
 
-/*
+/***
 =================
 SV_RestartAmbientSounds [FWGS, 09.05.24]
 
 Write ambient sounds into demo
 =================
-*/
+***/
 void SV_RestartAmbientSounds (void)
 	{
 	soundlist_t	soundInfo[256];
@@ -704,7 +697,6 @@ void SV_RestartAmbientSounds (void)
 
 #if !XASH_DEDICATED
 	// restart soundtrack
-	/*if (S_StreamGetCurrentState (curtrack, looptrack, &position))*/
 	if (S_StreamGetCurrentState (curtrack, sizeof (curtrack), looptrack, sizeof (looptrack), &position))
 		{
 		SV_StartMusic (curtrack, looptrack, position);
@@ -712,13 +704,13 @@ void SV_RestartAmbientSounds (void)
 #endif
 	}
 
-/*
+/***
 =================
 SV_RestartDecals
 
 Write all the decals into demo
 =================
-*/
+***/
 void SV_RestartDecals (void)
 	{
 	decallist_t	*entry;
@@ -774,13 +766,13 @@ void SV_RestartDecals (void)
 	host.numdecals = 0;
 	}
 
-/*
+/***
 ==============
 SV_BoxInPVS
 
 check brush boxes in fat pvs
 ==============
-*/
+***/
 qboolean GAME_EXPORT SV_BoxInPVS (const vec3_t org, const vec3_t absmin, const vec3_t absmax)
 	{
 	if (!Mod_BoxVisible (absmin, absmax, Mod_GetPVSForPoint (org)))
@@ -788,18 +780,17 @@ qboolean GAME_EXPORT SV_BoxInPVS (const vec3_t org, const vec3_t absmin, const v
 	return true;
 	}
 
-/*
+/***
 =============
 SV_ChangeLevel [FWGS, 01.05.24]
 
 Issue changing level
 =============
-*/
+***/
 void SV_QueueChangeLevel (const char *level, const char *landname)
 	{
 	uint	flags, smooth = false;
 	char	mapname[MAX_QPATH];
-	/*char	*spawn_entity;*/
 
 	// hold mapname to other place
 	Q_strncpy (mapname, level, sizeof (mapname));
@@ -808,13 +799,6 @@ void SV_QueueChangeLevel (const char *level, const char *landname)
 	if (COM_CheckString (landname))
 		smooth = true;
 
-	/*// determine spawn entity classname
-	if (svs.maxclients == 1)
-		spawn_entity = GI->sp_entity;
-	else
-		spawn_entity = GI->mp_entity;
-
-	flags = SV_MapIsValid (mapname, spawn_entity, landname);*/
 	flags = SV_MapIsValid (mapname, landname);
 
 	if (FBitSet (flags, MAP_INVALID_VERSION))
@@ -850,15 +834,6 @@ void SV_QueueChangeLevel (const char *level, const char *landname)
 		return;
 		}
 
-	/*if (!smooth && !FBitSet (flags, MAP_HAS_SPAWNPOINT))
-		{
-		if (sv_validate_changelevel.value)
-			{
-			Con_Printf (S_ERROR "changelevel: %s doesn't have a valid spawnpoint. Ignored.\n", mapname);
-			return;
-			}
-		}*/
-
 	// bad changelevel position invoke enables in one-way transition
 	if (sv.framecount < 15)
 		{
@@ -878,19 +853,18 @@ void SV_QueueChangeLevel (const char *level, const char *landname)
 		COM_ChangeLevel (mapname, NULL, sv.background);		// Classic Quake changlevel
 	}
 
-/*
+/***
 ==============
 SV_WriteEntityPatch [FWGS, 01.05.24]
 
 Create entity patch for selected map
 ==============
-*/
+***/
 void SV_WriteEntityPatch (const char *filename)
 	{
 	int			lumpofs = 0, lumplen = 0;
 	byte		buf[MAX_TOKEN]; // 1 kb
 	string		bspfilename;
-	/*dheader_t	*header;*/
 	dlump_t		entities;
 	file_t		*f;
 
@@ -902,7 +876,6 @@ void SV_WriteEntityPatch (const char *filename)
 
 	memset (buf, 0, MAX_TOKEN);
 	FS_Read (f, buf, MAX_TOKEN);
-	/*header = (dheader_t *)buf;*/
 
 	// check all the lumps and some other errors
 	if (!Mod_TestBmodelLumps (f, bspfilename, buf, true, &entities))
@@ -931,20 +904,19 @@ void SV_WriteEntityPatch (const char *filename)
 	FS_Close (f);
 	}
 
-/*
+/***
 ==============
 SV_ReadEntityScript [FWGS, 01.05.24]
 
 pfnMapIsValid use this
 ==============
-*/
+***/
 static char *SV_ReadEntityScript (const char *filename, int *flags)
 	{
 	string		bspfilename, entfilename;
 	int			lumpofs = 0, lumplen = 0;
 	byte		buf[MAX_TOKEN];
 	char		*ents = NULL;
-	/*dheader_t	*header;*/
 	dlump_t		entities;
 	size_t		ft1, ft2;
 	file_t		*f;
@@ -959,7 +931,6 @@ static char *SV_ReadEntityScript (const char *filename, int *flags)
 	SetBits (*flags, MAP_IS_EXIST);
 	memset (buf, 0, MAX_TOKEN);
 	FS_Read (f, buf, MAX_TOKEN);
-	/*header = (dheader_t *)buf;*/
 
 	// check all the lumps and some other errors
 	if (!Mod_TestBmodelLumps (f, bspfilename, buf, (host_developer.value) ? false : true, &entities))
@@ -997,14 +968,13 @@ static char *SV_ReadEntityScript (const char *filename, int *flags)
 	return ents;
 	}
 
-/*
+/***
 ==============
 SV_MapIsValid [FWGS, 01.05.24]
 
 Validate map
 ==============
-*/
-/*uint SV_MapIsValid (const char *filename, const char *spawn_entity, const char *landmark_name)*/
+***/
 uint SV_MapIsValid (const char *filename, const char *landmark_name)
 	{
 	uint	flags = 0;
@@ -1021,15 +991,9 @@ uint SV_MapIsValid (const char *filename, const char *landmark_name)
 
 		need_landmark = COM_CheckString (landmark_name);
 
-		/*// g-cont. in-dev mode we can entering on map even without "info_player_start"
-		if (!need_landmark && host_developer.value)*/
 		if (!need_landmark)
 			{
-			/* // not transition */
 			Mem_Free (ents);
-
-			/* // skip spawnpoint checks in devmode
-			return (flags | MAP_HAS_SPAWNPOINT);*/
 			return flags;
 			}
 
@@ -1037,20 +1001,6 @@ uint SV_MapIsValid (const char *filename, const char *landmark_name)
 
 		while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
 			{
-			/*if (!Q_strcmp (token, "classname"))
-				{
-				// check classname for spawn entity
-				pfile = COM_ParseFile (pfile, check_name, sizeof (check_name));
-				if (!Q_strcmp (spawn_entity, check_name))
-					{
-					SetBits (flags, MAP_HAS_SPAWNPOINT);
-
-					// we already find landmark, stop the parsing
-					if (need_landmark && FBitSet (flags, MAP_HAS_LANDMARK))
-						break;
-					}
-				}
-			else if (need_landmark && !Q_strcmp (token, "targetname"))*/
 			if (!Q_strcmp (token, "targetname"))
 				{
 				// check targetname for landmark entity
@@ -1060,9 +1010,6 @@ uint SV_MapIsValid (const char *filename, const char *landmark_name)
 					{
 					// we found landmark, stop the parsing
 					SetBits (flags, MAP_HAS_LANDMARK);
-
-					/* // we already find spawnpoint, stop the parsing
-					if (FBitSet (flags, MAP_HAS_SPAWNPOINT))*/
 					break;
 					}
 				}
@@ -1074,13 +1021,13 @@ uint SV_MapIsValid (const char *filename, const char *landmark_name)
 	return flags;
 	}
 
-/*
+/***
 ==============
 SV_FreePrivateData
 
 release private edict memory
 ==============
-*/
+***/
 static void GAME_EXPORT SV_FreePrivateData (edict_t *pEdict)
 	{
 	if (!pEdict || !pEdict->pvPrivateData)
@@ -1096,13 +1043,13 @@ static void GAME_EXPORT SV_FreePrivateData (edict_t *pEdict)
 	pEdict->pvPrivateData = NULL;
 	}
 
-/*
+/***
 ==============
 SV_InitEdict
 
 clear edict for reuse
 ==============
-*/
+***/
 void SV_InitEdict (edict_t *pEdict)
 	{
 	Assert (pEdict != NULL);
@@ -1117,13 +1064,13 @@ void SV_InitEdict (edict_t *pEdict)
 	pEdict->free = false;
 	}
 
-/*
+/***
 ==============
 SV_FreeEdict
 
 unlink edict from world and free it
 ==============
-*/
+***/
 void SV_FreeEdict (edict_t *pEdict)
 	{
 	Assert (pEdict != NULL);
@@ -1155,13 +1102,13 @@ void SV_FreeEdict (edict_t *pEdict)
 	pEdict->free = true;
 	}
 
-/*
+/***
 ==============
 SV_AllocEdict
 
 allocate new or reuse existing
 ==============
-*/
+***/
 edict_t *GAME_EXPORT SV_AllocEdict (void)
 	{
 	edict_t *e;
@@ -1189,20 +1136,20 @@ edict_t *GAME_EXPORT SV_AllocEdict (void)
 	return e;
 	}
 
-/*
+/***
 ==============
 SV_GetEntityClass
 
 get pointer for entity class
 ==============
-*/
+***/
 static LINK_ENTITY_FUNC SV_GetEntityClass (const char *pszClassName)
 	{
 	// allocate edict private memory (passed by dlls)
 	return (LINK_ENTITY_FUNC)COM_GetProcAddress (svgame.hInstance, pszClassName);
 	}
 
-/*
+/***
 ==============
 SV_AllocPrivateData [FWGS, 01.05.24]
 
@@ -1211,8 +1158,7 @@ allocate private data for a given edict.
 - if customentity is not NULL, will be set to true if "custom" export
 was used to create this entity
 ==============
-*/
-/*static edict_t *SV_AllocPrivateData (edict_t *ent, string_t className)*/
+***/
 static edict_t *SV_AllocPrivateData (edict_t *ent, string_t className, qboolean *customentity)
 	{
 	const char	*pszClassName;
@@ -1240,7 +1186,6 @@ static edict_t *SV_AllocPrivateData (edict_t *ent, string_t className, qboolean 
 		if (svgame.physFuncs.SV_CreateEntity && (svgame.physFuncs.SV_CreateEntity (ent, pszClassName) != -1))
 			return ent;
 
-		/*SpawnEdict = SV_GetEntityClass ("custom");*/
 		if (customentity)
 			{
 			SpawnEdict = SV_GetEntityClass ("custom");
@@ -1256,41 +1201,31 @@ static edict_t *SV_AllocPrivateData (edict_t *ent, string_t className, qboolean 
 
 			return NULL;
 			}
-
-		/* // it's a custom entity but not a beam!
-		SetBits (ent->v.flags, FL_CUSTOMENTITY);*/
 		}
 
 	SpawnEdict (&ent->v);
 	return ent;
 	}
 
-/*
+/***
 ==============
 SV_CreateNamedEntity [FWGS, 01.05.24]
 
 create specified entity, alloc private data
 ==============
-*/
+***/
 edict_t *SV_CreateNamedEntity (edict_t *ent, string_t className)
 	{
-	/*edict_t *ed = SV_AllocPrivateData (ent, className);
-
-	// for some reasons this flag should be immediately cleared
-	if (ed)
-		ClearBits (ed->v.flags, FL_CUSTOMENTITY);
-
-	return ed;*/
 	return SV_AllocPrivateData (ent, className, NULL);
 	}
 
-/*
+/***
 ==============
 SV_FreeEdicts
 
 release all the edicts from server
 ==============
-*/
+***/
 void SV_FreeEdicts (void)
 	{
 	int	i = 0;
@@ -1305,13 +1240,13 @@ void SV_FreeEdicts (void)
 		}
 	}
 
-/*
+/***
 ==============
 SV_PlaybackReliableEvent
 
 reliable event is must be delivered always
 ==============
-*/
+***/
 static void SV_PlaybackReliableEvent (sizebuf_t *msg, word eventindex, float delay, event_args_t *args)
 	{
 	event_args_t nullargs;
@@ -1337,13 +1272,13 @@ static void SV_PlaybackReliableEvent (sizebuf_t *msg, word eventindex, float del
 	MSG_WriteDeltaEvent (msg, &nullargs, args);
 	}
 
-/*
+/***
 ==============
 SV_ClassName
 
 template to get edict classname
 ==============
-*/
+***/
 const char *SV_ClassName (const edict_t *e)
 	{
 	if (!e) 
@@ -1354,13 +1289,13 @@ const char *SV_ClassName (const edict_t *e)
 	return STRING (e->v.classname);
 	}
 
-/*
+/***
 ==============
 SV_IsValidCmd
 
 command validation
 ==============
-*/
+***/
 static qboolean SV_IsValidCmd (const char *pCmd)
 	{
 	size_t	len = Q_strlen (pCmd);
@@ -1371,13 +1306,13 @@ static qboolean SV_IsValidCmd (const char *pCmd)
 	return false;
 	}
 
-/*
+/***
 ==============
 SV_ClientFromEdict
 
 get edict that attached to the client structure
 ==============
-*/
+***/
 sv_client_t *SV_ClientFromEdict (const edict_t *pEdict, qboolean spawned_only)
 	{
 	int	i;
@@ -1399,16 +1334,16 @@ sv_client_t *SV_ClientFromEdict (const edict_t *pEdict, qboolean spawned_only)
 	return (svs.clients + i);
 	}
 
-/*
+/***
 ===============================================================================
 Game Builtin Functions
 ===============================================================================
-*/
-/*
+***/
+/***
 =========
 pfnPrecacheModel
 =========
-*/
+***/
 static int GAME_EXPORT pfnPrecacheModel (const char *s)
 	{
 	qboolean	optional = false;
@@ -1432,7 +1367,7 @@ static int GAME_EXPORT pfnPrecacheModel (const char *s)
 	}
 
 // pfnSetModel [FWGS, 01.07.23]
-/*
+/***
 =================
 pfnSetModel
 =================
@@ -1442,11 +1377,11 @@ void GAME_EXPORT pfnSetModel (edict_t *e, const char *m)
 	}
 */
 
-/*
+/***
 =================
 pfnModelIndex
 =================
-*/
+***/
 static int GAME_EXPORT pfnModelIndex (const char *m)
 	{
 	char	name[MAX_QPATH];
@@ -1470,11 +1405,11 @@ static int GAME_EXPORT pfnModelIndex (const char *m)
 	return 0;
 	}
 
-/*
+/***
 =================
 pfnModelFrames
 =================
-*/
+***/
 static int GAME_EXPORT pfnModelFrames (int modelIndex)
 	{
 	model_t *pmodel = SV_ModelHandle (modelIndex);
@@ -1484,11 +1419,11 @@ static int GAME_EXPORT pfnModelFrames (int modelIndex)
 	return 1;
 	}
 
-/*
+/***
 =================
 pfnSetSize
 =================
-*/
+***/
 static void GAME_EXPORT pfnSetSize (edict_t *e, const float *rgflMin, const float *rgflMax)
 	{
 	if (!SV_IsValidEdict (e))
@@ -1497,11 +1432,11 @@ static void GAME_EXPORT pfnSetSize (edict_t *e, const float *rgflMin, const floa
 	SV_SetMinMaxSize (e, rgflMin, rgflMax, true);
 	}
 
-/*
+/***
 =================
 pfnChangeLevel
 =================
-*/
+***/
 static void GAME_EXPORT pfnChangeLevel (const char *level, const char *landmark)
 	{
 	static uint	last_spawncount = 0;
@@ -1534,43 +1469,43 @@ static void GAME_EXPORT pfnChangeLevel (const char *level, const char *landmark)
 	SV_QueueChangeLevel (level, landname);
 	}
 
-/*
+/***
 =================
 pfnGetSpawnParms
 
 OBSOLETE, UNUSED
 =================
-*/
+***/
 static void GAME_EXPORT pfnGetSpawnParms (edict_t *ent)
 	{
 	}
 
-/*
+/***
 =================
 pfnSaveSpawnParms
 
 OBSOLETE, UNUSED
 =================
-*/
+***/
 static void GAME_EXPORT pfnSaveSpawnParms (edict_t *ent)
 	{
 	}
 
-/*
+/***
 =================
 pfnVecToYaw
 =================
-*/
+***/
 static float GAME_EXPORT pfnVecToYaw (const float *rgflVector)
 	{
 	return SV_VecToYaw (rgflVector);
 	}
 
-/*
+/***
 =================
 pfnMoveToOrigin
 =================
-*/
+***/
 static void GAME_EXPORT pfnMoveToOrigin (edict_t *ent, const float *pflGoal, float dist, int iMoveType)
 	{
 	if (!pflGoal || !SV_IsValidEdict (ent))
@@ -1579,11 +1514,11 @@ static void GAME_EXPORT pfnMoveToOrigin (edict_t *ent, const float *pflGoal, flo
 	SV_MoveToOrigin (ent, pflGoal, dist, iMoveType);
 	}
 
-/*
+/***
 ==============
 pfnChangeYaw
 ==============
-*/
+***/
 static void GAME_EXPORT pfnChangeYaw (edict_t *ent)
 	{
 	if (!SV_IsValidEdict (ent))
@@ -1592,11 +1527,11 @@ static void GAME_EXPORT pfnChangeYaw (edict_t *ent)
 	ent->v.angles[YAW] = SV_AngleMod (ent->v.ideal_yaw, ent->v.angles[YAW], ent->v.yaw_speed);
 	}
 
-/*
+/***
 ==============
 pfnChangePitch
 ==============
-*/
+***/
 static void GAME_EXPORT pfnChangePitch (edict_t *ent)
 	{
 	if (!SV_IsValidEdict (ent))
@@ -1605,11 +1540,11 @@ static void GAME_EXPORT pfnChangePitch (edict_t *ent)
 	ent->v.angles[PITCH] = SV_AngleMod (ent->v.idealpitch, ent->v.angles[PITCH], ent->v.pitch_speed);
 	}
 
-/*
+/***
 =========
 SV_FindEntityByString
 =========
-*/
+***/
 static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszField, const char *pszValue)
 	{
 	int		index = 0, e = 0;
@@ -1664,13 +1599,13 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 	return svgame.edicts;
 	}
 
-/*
+/***
 =========
 SV_FindGlobalEntity
 
 ripped out from the hl.dll
 =========
-*/
+***/
 edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname)
 	{
 	edict_t *pent = SV_FindEntityByString (NULL, "globalname", STRING (globalname));
@@ -1685,13 +1620,13 @@ edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname)
 	return pent;
 	}
 
-/*
+/***
 ==============
 pfnGetEntityIllum
 
 returns averaged lightvalue for entity
 ==============
-*/
+***/
 static int GAME_EXPORT pfnGetEntityIllum (edict_t *pEnt)
 	{
 	if (!SV_IsValidEdict (pEnt))
@@ -1700,13 +1635,13 @@ static int GAME_EXPORT pfnGetEntityIllum (edict_t *pEnt)
 	return SV_LightForEntity (pEnt);
 	}
 
-/*
+/***
 =================
 pfnFindEntityInSphere
 
 find the entity in sphere
 =================
-*/
+***/
 static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, float flRadius)
 	{
 	float	distSquared;
@@ -1751,13 +1686,13 @@ static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, f
 	return svgame.edicts;
 	}
 
-/*
+/***
 =================
 SV_CheckClientPVS
 
 build the new client PVS
 =================
-*/
+***/
 static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 	{
 	byte		*pvs;
@@ -1820,11 +1755,11 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 	return i;
 	}
 
-/*
+/***
 =================
 pfnFindClientInPVS
 =================
-*/
+***/
 static edict_t *GAME_EXPORT pfnFindClientInPVS (edict_t *pEdict)
 	{
 	edict_t		*pClient;
@@ -1879,11 +1814,11 @@ static edict_t *GAME_EXPORT pfnFindClientInPVS (edict_t *pEdict)
 	return svgame.edicts;
 	}
 
-/*
+/***
 =================
 pfnEntitiesInPVS
 =================
-*/
+***/
 static edict_t *pfnEntitiesInPVS (edict_t *pview)
 	{
 	edict_t *pchain, *ptest;
@@ -1918,23 +1853,23 @@ static edict_t *pfnEntitiesInPVS (edict_t *pview)
 	return pchain;
 	}
 
-/*
+/***
 ==============
 pfnMakeVectors
 ==============
-*/
+***/
 static void GAME_EXPORT pfnMakeVectors (const float *rgflVector)
 	{
 	AngleVectors (rgflVector, svgame.globals->v_forward, svgame.globals->v_right, svgame.globals->v_up);
 	}
 
-/*
+/***
 ==============
 pfnRemoveEntity
 
 free edict private mem, unlink physics etc
 ==============
-*/
+***/
 static void GAME_EXPORT pfnRemoveEntity (edict_t *e)
 	{
 	if (!SV_IsValidEdict (e))
@@ -1950,23 +1885,23 @@ static void GAME_EXPORT pfnRemoveEntity (edict_t *e)
 	SV_FreeEdict (e);
 	}
 
-/*
+/***
 ==============
 pfnCreateNamedEntity
 ==============
-*/
+***/
 static edict_t *GAME_EXPORT pfnCreateNamedEntity (string_t className)
 	{
 	return SV_CreateNamedEntity (NULL, className);
 	}
 
-/*
+/***
 =============
 pfnMakeStatic
 
 move entity to client
 =============
-*/
+***/
 static void GAME_EXPORT pfnMakeStatic (edict_t *ent)
 	{
 	entity_state_t *state;
@@ -1986,13 +1921,13 @@ static void GAME_EXPORT pfnMakeStatic (edict_t *ent)
 	SetBits (ent->v.flags, FL_KILLME);
 	}
 
-/*
+/***
 =============
 pfnEntIsOnFloor
 
 legacy builtin
 =============
-*/
+***/
 static int GAME_EXPORT pfnEntIsOnFloor (edict_t *e)
 	{
 	if (!SV_IsValidEdict (e))
@@ -2001,11 +1936,11 @@ static int GAME_EXPORT pfnEntIsOnFloor (edict_t *e)
 	return SV_CheckBottom (e, MOVE_NORMAL);
 	}
 
-/*
+/***
 ===============
 pfnDropToFloor
 ===============
-*/
+***/
 int GAME_EXPORT pfnDropToFloor (edict_t *e)
 	{
 	qboolean	monsterClip;
@@ -2035,11 +1970,11 @@ int GAME_EXPORT pfnDropToFloor (edict_t *e)
 	return 1;
 	}
 
-/*
+/***
 ===============
 pfnWalkMove
 ===============
-*/
+***/
 static int GAME_EXPORT pfnWalkMove (edict_t *ent, float yaw, float dist, int iMode)
 	{
 	vec3_t	move;
@@ -2065,11 +2000,11 @@ static int GAME_EXPORT pfnWalkMove (edict_t *ent, float yaw, float dist, int iMo
 	return 0;
 	}
 
-/*
+/***
 =================
 pfnSetOrigin
 =================
-*/
+***/
 static void GAME_EXPORT pfnSetOrigin (edict_t *e, const float *rgflOrigin)
 	{
 	if (!SV_IsValidEdict (e))
@@ -2079,11 +2014,11 @@ static void GAME_EXPORT pfnSetOrigin (edict_t *e, const float *rgflOrigin)
 	SV_LinkEdict (e, false);
 	}
 
-/*
+/***
 =================
 SV_BuildSoundMsg
 =================
-*/
+***/
 int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample, int vol, float attn, 
 	int flags, int pitch, const vec3_t pos)
 	{
@@ -2204,11 +2139,11 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 	return 1;
 	}
 
-/*
+/***
 =================
 SV_StartSound
 =================
-*/
+***/
 void GAME_EXPORT SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn,
 	int flags, int pitch)
 	{
@@ -2242,11 +2177,11 @@ void GAME_EXPORT SV_StartSound (edict_t *ent, int chan, const char *sample, floa
 		SV_Multicast (msg_dest, origin, NULL, false, filter);
 	}
 
-/*
+/***
 =================
 pfnEmitAmbientSound
 =================
-*/
+***/
 static void GAME_EXPORT pfnEmitAmbientSound (edict_t *ent, float *pos, const char *sample, float vol, float attn,
 	int flags, int pitch)
 	{
@@ -2269,11 +2204,11 @@ static void GAME_EXPORT pfnEmitAmbientSound (edict_t *ent, float *pos, const cha
 
 // удалена SV_StartMusic [FWGS, 01.07.23]
 
-/*
+/***
 =================
 pfnTraceLine
 =================
-*/
+***/
 static void GAME_EXPORT pfnTraceLine (const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip,
 	TraceResult *ptr)
 	{
@@ -2285,11 +2220,11 @@ static void GAME_EXPORT pfnTraceLine (const float *v1, const float *v2, int fNoM
 	SV_ConvertTrace (ptr, &trace);
 	}
 
-/*
+/***
 =================
 pfnTraceToss
 =================
-*/
+***/
 static void GAME_EXPORT pfnTraceToss (edict_t *pent, edict_t *pentToIgnore, TraceResult *ptr)
 	{
 	trace_t	trace;
@@ -2301,11 +2236,11 @@ static void GAME_EXPORT pfnTraceToss (edict_t *pent, edict_t *pentToIgnore, Trac
 	SV_ConvertTrace (ptr, &trace);
 	}
 
-/*
+/***
 =================
 pfnTraceHull
 =================
-*/
+***/
 static void GAME_EXPORT pfnTraceHull (const float *v1, const float *v2, int fNoMonsters, int hullNumber,
 	edict_t *pentToSkip, TraceResult *ptr)
 	{
@@ -2319,11 +2254,11 @@ static void GAME_EXPORT pfnTraceHull (const float *v1, const float *v2, int fNoM
 	SV_ConvertTrace (ptr, &trace);
 	}
 
-/*
+/***
 =============
 pfnTraceMonsterHull
 =============
-*/
+***/
 static int GAME_EXPORT pfnTraceMonsterHull (edict_t *pEdict, const float *v1, const float *v2, int fNoMonsters,
 	edict_t *pentToSkip, TraceResult *ptr)
 	{
@@ -2342,11 +2277,11 @@ static int GAME_EXPORT pfnTraceMonsterHull (edict_t *pEdict, const float *v1, co
 	return false;
 	}
 
-/*
+/***
 =============
 pfnTraceModel
 =============
-*/
+***/
 static void GAME_EXPORT pfnTraceModel (const float *v1, const float *v2, int hullNumber,
 	edict_t *pent, TraceResult *ptr)
 	{
@@ -2392,13 +2327,13 @@ static void GAME_EXPORT pfnTraceModel (const float *v1, const float *v2, int hul
 	SV_ConvertTrace (ptr, &trace);
 	}
 
-/*
+/***
 =============
 pfnTraceTexture
 
 returns texture basename
 =============
-*/
+***/
 static const char *pfnTraceTexture (edict_t *pTextureEntity, const float *v1, const float *v2)
 	{
 	if (!SV_IsValidEdict (pTextureEntity))
@@ -2407,25 +2342,25 @@ static const char *pfnTraceTexture (edict_t *pTextureEntity, const float *v1, co
 	return SV_TraceTexture (pTextureEntity, v1, v2);
 	}
 
-/*
+/***
 =============
 pfnTraceSphere
 
 OBSOLETE, UNUSED
 =============
-*/
+***/
 static void GAME_EXPORT pfnTraceSphere (const float *v1, const float *v2, int fNoMonsters, float radius,
 	edict_t *pentToSkip, TraceResult *ptr)
 	{
 	}
 
-/*
+/***
 =============
 pfnGetAimVector
 
 NOTE: speed is unused
 =============
-*/
+***/
 static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflReturn)
 	{
 	edict_t	*check;
@@ -2496,11 +2431,11 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 	VectorCopy (bestdir, rgflReturn);
 	}
 
-/*
+/***
 =========
 pfnServerCommand
 =========
-*/
+***/
 static void GAME_EXPORT pfnServerCommand (const char *str)
 	{
 	if (!SV_IsValidCmd (str))
@@ -2509,21 +2444,21 @@ static void GAME_EXPORT pfnServerCommand (const char *str)
 		Cbuf_AddText (str);
 	}
 
-/*
+/***
 =========
 pfnServerExecute [FWGS, 01.04.23]
 =========
-*/
+***/
 static void GAME_EXPORT pfnServerExecute (void)
 	{
 	Cbuf_Execute ();
 	}
 
-/*
+/***
 =========
 pfnClientCommand
 =========
-*/
+***/
 void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...) _format (2);
 void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...)
 	{
@@ -2558,13 +2493,13 @@ void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...)
 		}
 	}
 
-/*
+/***
 =================
 pfnParticleEffect
 
 Make sure the event gets sent to all clients
 =================
-*/
+***/
 static void GAME_EXPORT pfnParticleEffect (const float *org, const float *dir, float color, float count)
 	{
 	int	v;
@@ -2585,11 +2520,11 @@ static void GAME_EXPORT pfnParticleEffect (const float *org, const float *dir, f
 	MSG_WriteByte (&sv.datagram, 0); // z-vel
 	}
 
-/*
+/***
 ===============
 pfnLightStyle
 ===============
-*/
+***/
 static void GAME_EXPORT pfnLightStyle (int style, const char *val)
 	{
 	if (style < 0)
@@ -2602,13 +2537,13 @@ static void GAME_EXPORT pfnLightStyle (int style, const char *val)
 	SV_SetLightStyle (style, val, 0.0f); // set correct style
 	}
 
-/*
+/***
 =================
 pfnDecalIndex
 
 register decal name on client
 =================
-*/
+***/
 int GAME_EXPORT pfnDecalIndex (const char *m)
 	{
 	int	i;
@@ -2684,11 +2619,11 @@ static qboolean SV_RewriteMessage (void)
 	return false;
 	}
 
-/*
+/***
 =============
 pfnMessageBegin [FWGS, 01.05.24]
 =============
-*/
+***/
 static void GAME_EXPORT pfnMessageBegin (int msg_dest, int msg_num, const float *pOrigin, edict_t *ed)
 	{
 	int	i, iSize;
@@ -2704,9 +2639,6 @@ static void GAME_EXPORT pfnMessageBegin (int msg_dest, int msg_num, const float 
 
 	if (msg_num <= svc_lastmsg)
 		{
-		/*svgame.msg_index = -msg_num; // this is a system message
-		svgame.msg_name = svc_strings[msg_num];*/
-
 		// check if we should rewrite this message into something else...
 		if (SV_CanRewriteMessage (msg_num))
 			{
@@ -2778,11 +2710,11 @@ static void GAME_EXPORT pfnMessageBegin (int msg_dest, int msg_num, const float 
 		Con_Printf ("^3%s( %i, %s )\n", __FUNCTION__, msg_dest, svgame.msg_name);
 	}
 
-/*
+/***
 =============
 pfnMessageEnd [FWGS, 01.05.24]
 =============
-*/
+***/
 static void GAME_EXPORT pfnMessageEnd (void)
 	{
 	const char	*name = "Unknown";
@@ -2888,9 +2820,6 @@ static void GAME_EXPORT pfnMessageEnd (void)
 	// update some messages in case their was format was changed and we want to keep backward compatibility
 	if (svgame.msg_index < 0)
 		{
-		/*int	svc_msg = abs (svgame.msg_index);
-
-		if (((svc_msg == svc_finale) || (svc_msg == svc_cutscene)) && svgame.msg_realsize == 0)*/
 		if (((svgame.msg_index == -svc_finale) || (svgame.msg_index == -svc_cutscene)) &&
 			(svgame.msg_realsize == 0))
 			MSG_WriteChar (&sv.multicast, 0); // write null string
@@ -2906,11 +2835,11 @@ static void GAME_EXPORT pfnMessageEnd (void)
 		Con_Printf ("^3%s()\n", __FUNCTION__);
 	}
 
-/*
+/***
 =============
 pfnWriteByte
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteByte (int iValue)
 	{
 	if (iValue == -1)
@@ -2923,11 +2852,11 @@ static void GAME_EXPORT pfnWriteByte (int iValue)
 	svgame.msg_realsize++;
 	}
 
-/*
+/***
 =============
 pfnWriteChar
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteChar (int iValue)
 	{
 	MSG_WriteChar (&sv.multicast, (signed char)iValue);
@@ -2937,11 +2866,11 @@ static void GAME_EXPORT pfnWriteChar (int iValue)
 	svgame.msg_realsize++;
 	}
 
-/*
+/***
 =============
 pfnWriteShort
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteShort (int iValue)
 	{
 	MSG_WriteShort (&sv.multicast, (short)iValue);
@@ -2951,11 +2880,11 @@ static void GAME_EXPORT pfnWriteShort (int iValue)
 	svgame.msg_realsize += 2;
 	}
 
-/*
+/***
 =============
 pfnWriteLong
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteLong (int iValue)
 	{
 	MSG_WriteLong (&sv.multicast, iValue);
@@ -2965,13 +2894,13 @@ static void GAME_EXPORT pfnWriteLong (int iValue)
 	svgame.msg_realsize += 4;
 	}
 
-/*
+/***
 =============
 pfnWriteAngle
 
 this is low-res angle
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteAngle (float flValue)
 	{
 	int	iAngle = ((int)((flValue) * 256 / 360) & 255);
@@ -2983,11 +2912,11 @@ static void GAME_EXPORT pfnWriteAngle (float flValue)
 	svgame.msg_realsize += 1;
 	}
 
-/*
+/***
 =============
 pfnWriteCoord
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteCoord (float flValue)
 	{
 	MSG_WriteCoord (&sv.multicast, flValue);
@@ -2999,11 +2928,11 @@ static void GAME_EXPORT pfnWriteCoord (float flValue)
 
 // [FWGS, 01.07.23] удалена pfnWriteBytes
 
-/*
+/***
 =============
 pfnWriteString [FWGS, 01.07.23]
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteString (const char *src)
 	{
 	MSG_WriteString (&sv.multicast, src);
@@ -3014,11 +2943,11 @@ static void GAME_EXPORT pfnWriteString (const char *src)
 	svgame.msg_realsize += Q_strlen (src) + 1;
 	}
 
-/*
+/***
 =============
 pfnWriteEntity
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteEntity (int iValue)
 	{
 	if ((iValue < 0) || (iValue >= svgame.numEntities))
@@ -3030,28 +2959,27 @@ static void GAME_EXPORT pfnWriteEntity (int iValue)
 	svgame.msg_realsize += 2;
 	}
 
-/*
+/***
 =============
 pfnCvar_RegisterServerVariable [FWGS, 01.07.23]
 
 standard path to register game variable
 =============
-*/
+***/
 static void GAME_EXPORT pfnCvar_RegisterServerVariable (cvar_t *variable)
 	{
 	if (variable != NULL)
 		{
 		SetBits (variable->flags, FCVAR_EXTDLL);
-		/*Cvar_RegisterVariable ((convar_t *)variable);*/
 		Cvar_RegisterVariable ((convar_t *)variable);
 		}
 	}
 
-/*
+/***
 =============
 pfnAlertMessage
 =============
-*/
+***/
 static void pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...) _format (2);
 static void GAME_EXPORT pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...)
 	{
@@ -3099,24 +3027,24 @@ static void GAME_EXPORT pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...)
 		}
 	}
 
-/*
+/***
 =============
 pfnEngineFprintf [FWGS, 01.07.23]
 
 OBSOLETE, UNUSED
 =============
-*/
+***/
 static void GAME_EXPORT pfnEngineFprintf (FILE *pfile, char *szFmt, ...)
 	{
 	}
 
-/*
+/***
 =============
 pfnBuildSoundMsg
 
 Customizable sound message
 =============
-*/
+***/
 static void GAME_EXPORT pfnBuildSoundMsg (edict_t *pSource, int chan, const char *samp, float fvol, float attn,
 	int fFlags, int pitch, int msg_dest, int msg_type, const float *pOrigin, edict_t *pSend)
 	{
@@ -3125,11 +3053,11 @@ static void GAME_EXPORT pfnBuildSoundMsg (edict_t *pSource, int chan, const char
 	pfnMessageEnd ();
 	}
 
-/*
+/***
 =============
 pfnPvAllocEntPrivateData
 =============
-*/
+***/
 static void *GAME_EXPORT pfnPvAllocEntPrivateData (edict_t *pEdict, long cb)
 	{
 	Assert (pEdict != NULL);
@@ -3144,13 +3072,13 @@ static void *GAME_EXPORT pfnPvAllocEntPrivateData (edict_t *pEdict, long cb)
 	return pEdict->pvPrivateData;
 	}
 
-/*
+/***
 =============
 pfnPvEntPrivateData
 
 we already have copy of this function in 'enginecallback.h' :-)
 =============
-*/
+***/
 static void *GAME_EXPORT pfnPvEntPrivateData (edict_t *pEdict)
 	{
 	if (pEdict)
@@ -3178,13 +3106,13 @@ static struct str64_s
 	} str64;
 #endif
 
-/*
+/***
 ==================
 SV_EmptyStringPool
 
 Free strings on server stop. Reset string pointer on 64 bits
 ==================
-*/
+***/
 void SV_EmptyStringPool (void)
 	{
 #ifdef XASH_64BIT
@@ -3200,7 +3128,7 @@ void SV_EmptyStringPool (void)
 #endif
 	}
 
-/*
+/***
 ===============
 SV_SetStringArrayMode
 
@@ -3208,7 +3136,7 @@ use different arrays on 64 bit platforms
 set dynamic after complete server spawn
 this helps not to lose strings that belongs to static game part
 ===============
-*/
+***/
 void SV_SetStringArrayMode (qboolean dynamic)
 	{
 #ifdef XASH_64BIT
@@ -3229,7 +3157,7 @@ void SV_SetStringArrayMode (qboolean dynamic)
 #include <sys/mman.h>
 #endif
 
-/*
+/***
 ==================
 SV_AllocStringPool
 
@@ -3238,7 +3166,7 @@ alloc string array near the server library on 64bit platforms if possible
 alloc string array somewhere if not (MAKE_STRING will not work. Always call ALLOC_STRING instead, or crash)
 this case need patched game dll with MAKE_STRING checking ptrdiff size
 ==================
-*/
+***/
 static void SV_AllocStringPool (void)
 	{
 #ifdef XASH_64BIT
@@ -3346,14 +3274,14 @@ static void SV_FreeStringPool (void)
 #endif
 	}
 
-/*
+/***
 ============
 SV_ProcessString [FWGS, 01.07.23]
 
 Process newly allocated string
 pass NULL pointer to dst to get required length incl. null terminator
 ============
-*/
+***/
 static uint SV_ProcessString (char *dst, const char *src)
 	{
 	const char *p;
@@ -3408,7 +3336,7 @@ static uint SV_ProcessString (char *dst, const char *src)
 	return i;
 	}
 
-/*
+/***
 =============
 SV_AllocString [FWGS, 01.05.24]
 
@@ -3417,7 +3345,7 @@ on 64bit platforms find in array string if deduplication enabled (default)
 if not found, add to array
 use -str64dup to disable deduplication, -str64alloc to set array size
 =============
-*/
+***/
 string_t GAME_EXPORT SV_AllocString (const char *szValue)
 	{
 	char	*newString = NULL;
@@ -3488,18 +3416,8 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 	}
 
 // [FWGS, 01.05.24]
-/*#ifdef XASH_64BIT*/
 void SV_PrintStr64Stats_f (void)
 	{
-	/*Msg ("====================\n");
-	Msg ("64 bit string pool statistics\n");
-	Msg ("====================\n");
-	Msg ("string array size: %lu\n", str64.maxstringarray);
-	Msg ("total alloc %lu\n", str64.totalalloc);
-	Msg ("maximum array usage: %lu\n", str64.maxalloc);
-	Msg ("overflow counter: %lu\n", str64.numoverflows);
-	Msg ("dup string counter: %lu\n", str64.numdups);
-	}*/
 #ifdef XASH_64BIT
 	Con_Printf ("====================\n");
 	Con_Printf ("64 bit string pool statistics\n");
@@ -3514,13 +3432,13 @@ void SV_PrintStr64Stats_f (void)
 #endif
 	}
 
-/*
+/***
 =============
 SV_MakeString
 
 make constant string
 =============
-*/
+***/
 string_t SV_MakeString (const char *szValue)
 	{
 	if (svgame.physFuncs.pfnMakeString != NULL)
@@ -3538,11 +3456,11 @@ string_t SV_MakeString (const char *szValue)
 #endif
 	}
 
-/*
+/***
 =============
 SV_GetString
 =============
-*/
+***/
 const char *GAME_EXPORT SV_GetString (string_t iString)
 	{
 	if (svgame.physFuncs.pfnGetString != NULL)
@@ -3550,11 +3468,11 @@ const char *GAME_EXPORT SV_GetString (string_t iString)
 	return (svgame.globals->pStringBase + iString);
 	}
 
-/*
+/***
 =============
 pfnGetVarsOfEnt
 =============
-*/
+***/
 static entvars_t *GAME_EXPORT pfnGetVarsOfEnt (edict_t *pEdict)
 	{
 	if (pEdict)
@@ -3562,31 +3480,31 @@ static entvars_t *GAME_EXPORT pfnGetVarsOfEnt (edict_t *pEdict)
 	return NULL;
 	}
 
-/*
+/***
 =============
 pfnPEntityOfEntOffset
 =============
-*/
+***/
 static edict_t *GAME_EXPORT pfnPEntityOfEntOffset (int iEntOffset)
 	{
 	return (edict_t *)((byte *)svgame.edicts + iEntOffset);
 	}
 
-/*
+/***
 =============
 pfnEntOffsetOfPEntity
 =============
-*/
+***/
 static int GAME_EXPORT pfnEntOffsetOfPEntity (const edict_t *pEdict)
 	{
 	return (byte *)pEdict - (byte *)svgame.edicts;
 	}
 
-/*
+/***
 =============
 pfnIndexOfEdict
 =============
-*/
+***/
 int GAME_EXPORT pfnIndexOfEdict (const edict_t *pEdict)
 	{
 	int	number;
@@ -3599,38 +3517,34 @@ int GAME_EXPORT pfnIndexOfEdict (const edict_t *pEdict)
 	return number;
 	}
 
-/*
+/***
 =============
 pfnPEntityOfEntIndex [FWGS, 01.05.24]
 =============
-*/
-/*static edict_t *pfnPEntityOfEntIndex (int iEntIndex)*/
+***/
 static edict_t *pfnPEntityOfEntIndexBroken (int iEntIndex)
 	{
 	// have to be bug-compatible with GoldSrc in this function
-	/*if (host.bugcomp == BUGCOMP_GOLDSRC)
-		return SV_PEntityOfEntIndex (iEntIndex, false);
-	return SV_PEntityOfEntIndex (iEntIndex, true);*/
 	return SV_PEntityOfEntIndex (iEntIndex, false);
 	}
 
-/*
+/***
 =============
 pfnPEntityOfEntIndexAllEntities
 =============
-*/
+***/
 static edict_t *GAME_EXPORT pfnPEntityOfEntIndexAllEntities (int iEntIndex)
 	{
 	return SV_PEntityOfEntIndex (iEntIndex, true);
 	}
 
-/*
+/***
 =============
 pfnFindEntityByVars
 
 debug thing
 =============
-*/
+***/
 static edict_t *GAME_EXPORT pfnFindEntityByVars (entvars_t *pvars)
 	{
 	edict_t	*pEdict;
@@ -3651,13 +3565,13 @@ static edict_t *GAME_EXPORT pfnFindEntityByVars (entvars_t *pvars)
 	return NULL;
 	}
 
-/*
+/***
 =============
 pfnGetModelPtr
 
 returns pointer to a studiomodel
 =============
-*/
+***/
 static void *pfnGetModelPtr (edict_t *pEdict)
 	{
 	model_t *mod;
@@ -3669,11 +3583,11 @@ static void *pfnGetModelPtr (edict_t *pEdict)
 	return Mod_StudioExtradata (mod);
 	}
 
-/*
+/***
 =============
 SV_SendUserReg
 =============
-*/
+***/
 void SV_SendUserReg (sizebuf_t *msg, sv_user_message_t *user)
 	{
 	MSG_BeginServerCmd (msg, svc_usermessage);
@@ -3682,11 +3596,11 @@ void SV_SendUserReg (sizebuf_t *msg, sv_user_message_t *user)
 	MSG_WriteString (msg, user->name);
 	}
 
-/*
+/***
 =============
 pfnRegUserMsg
 =============
-*/
+***/
 static int GAME_EXPORT pfnRegUserMsg (const char *pszName, int iSize)
 	{
 	int	i;
@@ -3738,22 +3652,22 @@ static int GAME_EXPORT pfnRegUserMsg (const char *pszName, int iSize)
 	return svgame.msg[i].number;
 	}
 
-/*
+/***
 =============
 pfnAnimationAutomove
 
 OBSOLETE, UNUSED
 =============
-*/
+***/
 static void GAME_EXPORT pfnAnimationAutomove (const edict_t *pEdict, float flTime)
 	{
 	}
 
-/*
+/***
 =============
 pfnGetBonePosition
 =============
-*/
+***/
 static void GAME_EXPORT pfnGetBonePosition (const edict_t *pEdict, int iBone, float *rgflOrigin, float *rgflAngles)
 	{
 	if (!SV_IsValidEdict (pEdict))
@@ -3761,31 +3675,31 @@ static void GAME_EXPORT pfnGetBonePosition (const edict_t *pEdict, int iBone, fl
 	Mod_GetBonePosition (pEdict, iBone, rgflOrigin, rgflAngles);
 	}
 
-/*
+/***
 =============
 pfnFunctionFromName
 =============
-*/
+***/
 static void *GAME_EXPORT pfnFunctionFromName (const char *pName)
 	{
 	return COM_FunctionFromName_SR (svgame.hInstance, pName);
 	}
 
-/*
+/***
 =============
 pfnNameForFunction
 =============
-*/
+***/
 static const char *GAME_EXPORT pfnNameForFunction (void *function)
 	{
 	return COM_NameForFunction (svgame.hInstance, function);
 	}
 
-/*
+/***
 =============
 pfnClientPrintf
 =============
-*/
+***/
 static void GAME_EXPORT pfnClientPrintf (edict_t *pEdict, PRINT_TYPE ptype, const char *szMsg)
 	{
 	sv_client_t *client;
@@ -3812,13 +3726,13 @@ static void GAME_EXPORT pfnClientPrintf (edict_t *pEdict, PRINT_TYPE ptype, cons
 		}
 	}
 
-/*
+/***
 =============
 pfnServerPrint
 
 print to the server console
 =============
-*/
+***/
 static void GAME_EXPORT pfnServerPrint (const char *szMsg)
 	{
 	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
@@ -3827,11 +3741,11 @@ static void GAME_EXPORT pfnServerPrint (const char *szMsg)
 		Con_Printf ("%s", szMsg);
 	}
 
-/*
+/***
 =============
 pfnGetAttachment
 =============
-*/
+***/
 static void GAME_EXPORT pfnGetAttachment (const edict_t *pEdict, int iAttachment, float *rgflOrigin, float *rgflAngles)
 	{
 	if (!SV_IsValidEdict (pEdict))
@@ -3839,11 +3753,11 @@ static void GAME_EXPORT pfnGetAttachment (const edict_t *pEdict, int iAttachment
 	Mod_StudioGetAttachment (pEdict, iAttachment, rgflOrigin, rgflAngles);
 	}
 
-/*
+/***
 =============
 pfnCrosshairAngle
 =============
-*/
+***/
 static void GAME_EXPORT pfnCrosshairAngle (const edict_t *pClient, float pitch, float yaw)
 	{
 	sv_client_t *client;
@@ -3865,11 +3779,11 @@ static void GAME_EXPORT pfnCrosshairAngle (const edict_t *pClient, float pitch, 
 	MSG_WriteChar (&client->netchan.message, yaw * 5);
 	}
 
-/*
+/***
 =============
 pfnSetView
 =============
-*/
+***/
 static void GAME_EXPORT pfnSetView (const edict_t *pClient, const edict_t *pViewent)
 	{
 	sv_client_t *client;
@@ -3901,75 +3815,72 @@ static void GAME_EXPORT pfnSetView (const edict_t *pClient, const edict_t *pView
 	MSG_WriteWord (&client->netchan.message, viewEnt);
 	}
 
-/*
+/***
 =============
 pfnStaticDecal
 =============
-*/
+***/
 static void GAME_EXPORT pfnStaticDecal (const float *origin, int decalIndex, int entityIndex, int modelIndex)
 	{
 	SV_CreateDecal (&sv.signon, origin, decalIndex, entityIndex, modelIndex, FDECAL_PERMANENT, 1.0f);
 	}
 
-/*
+/***
 =============
 pfnIsDedicatedServer
 =============
-*/
+***/
 static int GAME_EXPORT pfnIsDedicatedServer (void)
 	{
 	return Host_IsDedicated ();
 	}
 
-/*
+/***
 =============
 pfnGetPlayerWONId
 
 OBSOLETE, UNUSED
 =============
-*/
+***/
 static uint GAME_EXPORT pfnGetPlayerWONId (edict_t *e)
 	{
 	return (uint)-1;
 	}
 
-/*
+/***
 =============
 pfnIsMapValid [FWGS, 01.05.24]
 
 vaild map must contain one info_player_deatchmatch
 =============
-*/
+***/
 int GAME_EXPORT pfnIsMapValid (char *filename)
 	{
-	/*uint	flags = SV_MapIsValid (filename, GI->mp_entity, NULL);*/
 	uint flags = SV_MapIsValid (filename, NULL);
-
-	/*if (FBitSet (flags, MAP_IS_EXIST) && FBitSet (flags, MAP_HAS_SPAWNPOINT))*/
 	if (FBitSet (flags, MAP_IS_EXIST))
 		return true;
 
 	return false;
 	}
 
-/*
+/***
 =============
 pfnCvar_RegisterEngineVariable [FWGS, 01.07.23]
 
 use with precaution: this cvar will NOT unlinked
 after game.dll is unloaded
 =============
-*/
+***/
 static void GAME_EXPORT pfnCvar_RegisterEngineVariable (cvar_t *variable)
 	{
 	Cvar_RegisterVariable ((convar_t *)variable);
 	}
 
-/*
+/***
 =============
 pfnFadeClientVolume
 =============
-*/
+***/
 static void GAME_EXPORT pfnFadeClientVolume (const edict_t *pEdict, int fadePercent, int fadeOutSeconds,
 	int holdTime, int fadeInSeconds)
 	{
@@ -3988,13 +3899,13 @@ static void GAME_EXPORT pfnFadeClientVolume (const edict_t *pEdict, int fadePerc
 	MSG_WriteByte (&cl->netchan.message, fadeInSeconds);
 	}
 
-/*
+/***
 =============
 pfnSetClientMaxspeed
 
 fakeclients can be changed speed to
 =============
-*/
+***/
 static void GAME_EXPORT pfnSetClientMaxspeed (const edict_t *pEdict, float fNewMaxspeed)
 	{
 	sv_client_t *cl;
@@ -4010,11 +3921,11 @@ static void GAME_EXPORT pfnSetClientMaxspeed (const edict_t *pEdict, float fNewM
 	cl->edict->v.maxspeed = fNewMaxspeed;
 	}
 
-/*
+/***
 =============
 pfnRunPlayerMove
 =============
-*/
+***/
 static void GAME_EXPORT pfnRunPlayerMove (edict_t *pClient, const float *viewangles, float fmove, float smove,
 	float upmove, word buttons, byte impulse, byte msec)
 	{
@@ -4050,13 +3961,13 @@ static void GAME_EXPORT pfnRunPlayerMove (edict_t *pClient, const float *viewang
 	sv.current_client = oldcl;
 	}
 
-/*
+/***
 =============
 pfnNumberOfEntities
 
 returns actual entity count
 =============
-*/
+***/
 int GAME_EXPORT pfnNumberOfEntities (void)
 	{
 	int	i, total = 0;
@@ -4071,11 +3982,11 @@ int GAME_EXPORT pfnNumberOfEntities (void)
 	return total;
 	}
 
-/*
+/***
 =============
 pfnGetInfoKeyBuffer [FWGS, 01.05.24]
 =============
-*/
+***/
 static char *GAME_EXPORT pfnGetInfoKeyBuffer (edict_t *e)
 	{
 	sv_client_t *cl;
@@ -4083,12 +3994,10 @@ static char *GAME_EXPORT pfnGetInfoKeyBuffer (edict_t *e)
 	// NULL passes localinfo
 	if (!SV_IsValidEdict (e))
 		return svs.localinfo;
-	/*return SV_Localinfo ();*/
 
 	// world passes serverinfo
 	if (e == svgame.edicts)
 		return svs.serverinfo;
-	/*return SV_Serverinfo ();*/
 
 	// userinfo for specified edict
 	if ((cl = SV_ClientFromEdict (e, false)) != NULL)
@@ -4097,11 +4006,11 @@ static char *GAME_EXPORT pfnGetInfoKeyBuffer (edict_t *e)
 	return (char *)""; // assume error
 	}
 
-/*
+/***
 =============
 pfnSetValueForKey
 =============
-*/
+***/
 static void GAME_EXPORT pfnSetValueForKey (char *infobuffer, char *key, char *value)
 	{
 	if (infobuffer == svs.localinfo)
@@ -4112,11 +4021,11 @@ static void GAME_EXPORT pfnSetValueForKey (char *infobuffer, char *key, char *va
 		Con_Printf (S_ERROR "can't set client keys with SetValueForKey\n");
 	}
 
-/*
+/***
 =============
 pfnSetClientKeyValue
 =============
-*/
+***/
 static void GAME_EXPORT pfnSetClientKeyValue (int clientIndex, char *infobuffer, char *key, char *value)
 	{
 	sv_client_t *cl;
@@ -4140,11 +4049,11 @@ static void GAME_EXPORT pfnSetClientKeyValue (int clientIndex, char *infobuffer,
 	cl->next_sendinfotime = 0.0;	// send immediately
 	}
 
-/*
+/***
 =============
 pfnGetPhysicsKeyValue
 =============
-*/
+***/
 static const char *GAME_EXPORT pfnGetPhysicsKeyValue (const edict_t *pClient, const char *key)
 	{
 	sv_client_t *cl;
@@ -4159,11 +4068,11 @@ static const char *GAME_EXPORT pfnGetPhysicsKeyValue (const edict_t *pClient, co
 	return Info_ValueForKey (cl->physinfo, key);
 	}
 
-/*
+/***
 =============
 pfnSetPhysicsKeyValue
 =============
-*/
+***/
 static void GAME_EXPORT pfnSetPhysicsKeyValue (const edict_t *pClient, const char *key, const char *value)
 	{
 	sv_client_t *cl;
@@ -4178,11 +4087,11 @@ static void GAME_EXPORT pfnSetPhysicsKeyValue (const edict_t *pClient, const cha
 	Info_SetValueForKey (cl->physinfo, key, value, MAX_INFO_STRING);
 	}
 
-/*
+/***
 =============
 pfnGetPhysicsInfoString
 =============
-*/
+***/
 static const char *GAME_EXPORT pfnGetPhysicsInfoString (const edict_t *pClient)
 	{
 	sv_client_t *cl;
@@ -4197,24 +4106,24 @@ static const char *GAME_EXPORT pfnGetPhysicsInfoString (const edict_t *pClient)
 	return cl->physinfo;
 	}
 
-/*
+/***
 =============
 pfnPrecacheEvent
 
 register or returns already registered event id
 a type of event is ignored at this moment
 =============
-*/
+***/
 static word GAME_EXPORT pfnPrecacheEvent (int type, const char *psz)
 	{
 	return (word)SV_EventIndex (psz);
 	}
 
-/*
+/***
 =============
 pfnPlaybackEvent
 =============
-*/
+***/
 void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2)
 	{
@@ -4412,11 +4321,11 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 		}
 	}
 
-/*
+/***
 =============
 pfnGetCurrentPlayer [FWGS, 01.07.23]
 =============
-*/
+***/
 static int GAME_EXPORT pfnGetCurrentPlayer (void)
 	{
 	int idx = sv.current_client - svs.clients;
@@ -4426,14 +4335,14 @@ static int GAME_EXPORT pfnGetCurrentPlayer (void)
 	return idx;
 	}
 
-/*
+/***
 =============
 pfnSetFatPVS [FWGS, 01.07.23]
 
 The client will interpolate the view position,
 so we can't use a single PVS point
 =============
-*/
+***/
 static byte *GAME_EXPORT pfnSetFatPVS (const float *org)
 	{
 	qboolean	fullvis = false;
@@ -4480,14 +4389,14 @@ static byte *GAME_EXPORT pfnSetFatPVS (const float *org)
 	return fatpvs;
 	}
 
-/*
+/***
 =============
 pfnSetFatPAS [FWGS, 01.07.23]
 
 The client will interpolate the hear position,
 so we can't use a single PHS point
 =============
-*/
+***/
 byte *pfnSetFatPAS (const float *org)
 	{
 	qboolean	fullvis = false;
@@ -4531,11 +4440,11 @@ byte *pfnSetFatPAS (const float *org)
 	return fatphs;
 	}
 
-/*
+/***
 =============
 pfnCheckVisibility
 =============
-*/
+***/
 static int GAME_EXPORT pfnCheckVisibility (const edict_t *ent, byte *pset)
 	{
 	int	i, leafnum;
@@ -4582,11 +4491,11 @@ static int GAME_EXPORT pfnCheckVisibility (const edict_t *ent, byte *pset)
 		}
 	}
 
-/*
+/***
 =============
 pfnCanSkipPlayer
 =============
-*/
+***/
 static int GAME_EXPORT pfnCanSkipPlayer (const edict_t *player)
 	{
 	sv_client_t *cl;
@@ -4598,7 +4507,7 @@ static int GAME_EXPORT pfnCanSkipPlayer (const edict_t *player)
 	}
 
 // [FWGS, 01.07.23] pfnGetCurrentPlayer
-/*
+/***
 =============
 pfnGetCurrentPlayer
 =============
@@ -4613,22 +4522,22 @@ int GAME_EXPORT pfnGetCurrentPlayer (void)
 	}
 */
 
-/*
+/***
 =============
 pfnSetGroupMask
 =============
-*/
+***/
 static void GAME_EXPORT pfnSetGroupMask (int mask, int op)
 	{
 	svs.groupmask = mask;
 	svs.groupop = op;
 	}
 
-/*
+/***
 =============
 pfnCreateInstancedBaseline
 =============
-*/
+***/
 static int GAME_EXPORT pfnCreateInstancedBaseline (int classname, struct entity_state_s *baseline)
 	{
 	if (!baseline || (sv.num_instanced >= MAX_CUSTOM_BASELINES))
@@ -4642,11 +4551,11 @@ static int GAME_EXPORT pfnCreateInstancedBaseline (int classname, struct entity_
 	return sv.num_instanced;
 	}
 
-/*
+/***
 =============
 pfnEndSection
 =============
-*/
+***/
 static void GAME_EXPORT pfnEndSection (const char *pszSection)
 	{
 	if (!Q_stricmp ("oem_end_credits", pszSection))
@@ -4655,11 +4564,11 @@ static void GAME_EXPORT pfnEndSection (const char *pszSection)
 		Cbuf_AddText ("\ndisconnect\n");
 	}
 
-/*
+/***
 =============
 pfnGetPlayerUserId
 =============
-*/
+***/
 static int GAME_EXPORT pfnGetPlayerUserId (edict_t *e)
 	{
 	sv_client_t *cl;
@@ -4669,11 +4578,11 @@ static int GAME_EXPORT pfnGetPlayerUserId (edict_t *e)
 	return cl->userid;
 	}
 
-/*
+/***
 =============
 pfnGetPlayerStats
 =============
-*/
+***/
 static void GAME_EXPORT pfnGetPlayerStats (const edict_t *pClient, int *ping, int *packet_loss)
 	{
 	sv_client_t *cl;
@@ -4692,11 +4601,11 @@ static void GAME_EXPORT pfnGetPlayerStats (const edict_t *pClient, int *ping, in
 		*ping = cl->latency * 1000;
 	}
 
-/*
+/***
 =============
 pfnForceUnmodified
 =============
-*/
+***/
 static void GAME_EXPORT pfnForceUnmodified (FORCE_TYPE type, float *mins, float *maxs, const char *filename)
 	{
 	consistency_t *pc;
@@ -4744,11 +4653,11 @@ static void GAME_EXPORT pfnForceUnmodified (FORCE_TYPE type, float *mins, float 
 		}
 	}
 
-/*
+/***
 =============
 pfnVoice_GetClientListening [FWGS, 01.01.24]
 =============
-*/
+***/
 static qboolean GAME_EXPORT pfnVoice_GetClientListening (int iReceiver, int iSender)
 	{
 	iReceiver -= 1;
@@ -4760,11 +4669,11 @@ static qboolean GAME_EXPORT pfnVoice_GetClientListening (int iReceiver, int iSen
 	return (FBitSet (svs.clients[iSender].listeners, BIT (iReceiver)) != 0);
 	}
 
-/*
+/***
 =============
 pfnVoice_SetClientListening [FWGS, 01.01.24]
 =============
-*/
+***/
 static qboolean GAME_EXPORT pfnVoice_SetClientListening (int iReceiver, int iSender, qboolean bListen)
 	{
 	iReceiver -= 1;
@@ -4781,7 +4690,7 @@ static qboolean GAME_EXPORT pfnVoice_SetClientListening (int iReceiver, int iSen
 	return true;
 	}
 
-/*
+/***
 =============
 pfnGetPlayerAuthId
 
@@ -4789,19 +4698,19 @@ These function must returns cd-key hashed value
 but Xash3D currently doesn't have any security checks
 return nullstring for now
 =============
-*/
+***/
 static const char *GAME_EXPORT pfnGetPlayerAuthId (edict_t *e)
 	{
 	return SV_GetClientIDString (SV_ClientFromEdict (e, false));
 	}
 
-/*
+/***
 =============
 pfnQueryClientCvarValue
 
 request client cvar value
 =============
-*/
+***/
 static void GAME_EXPORT pfnQueryClientCvarValue (const edict_t *player, const char *cvarName)
 	{
 	sv_client_t *cl;
@@ -4822,13 +4731,13 @@ static void GAME_EXPORT pfnQueryClientCvarValue (const edict_t *player, const ch
 		}
 	}
 
-/*
+/***
 =============
 pfnQueryClientCvarValue2
 
 request client cvar value (bugfixed)
 =============
-*/
+***/
 static void GAME_EXPORT pfnQueryClientCvarValue2 (const edict_t *player, const char *cvarName, int requestID)
 	{
 	sv_client_t *cl;
@@ -4850,36 +4759,36 @@ static void GAME_EXPORT pfnQueryClientCvarValue2 (const edict_t *player, const c
 		}
 	}
 
-/*
+/***
 =============
 pfnEngineStub
 
 extended iface stubs
 =============
-*/
+***/
 static int GAME_EXPORT pfnGetLocalizedStringLength (const char *label)
 	{
 	return 0;
 	}
 
-/*
+/***
 =============
 pfnRegisterTutorMessageShown [FWGS, 01.07.23]
 
 only exists in PlayStation version
 =============
-*/
+***/
 static void GAME_EXPORT pfnRegisterTutorMessageShown (int mid)
 	{
 	}
 
-/*
+/***
 =============
 pfnGetTimesTutorMessageShown [FWGS, 01.07.23]
 
 only exists in PlayStation version
 =============
-*/
+***/
 static int GAME_EXPORT pfnGetTimesTutorMessageShown (int mid)
 	{
 	return 0;
@@ -5062,23 +4971,19 @@ static void SV_FreeKeyValueStrings (KeyValueData *kvd, int numpairs)
 		}
 	}
 
-/*
+/***
 ====================
 SV_ParseEdict [FWGS, 01.05.24]
 
 Parses an edict out of the given string, returning the new position
 ed should be a properly initialized empty edict
 ====================
-*/
+***/
 static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 	{
 	KeyValueData	pkvd[256]; // per one entity
-	/*qboolean		adjust_origin = false;*/
 	qboolean		adjust_origin = false, customentity;
 	int				i, numpairs = 0;
-	/*char			*classname = NULL;
-	char			token[2048];
-	vec3_t			origin;*/
 	const char		*classname = NULL;
 
 	// go through all the dictionary pairs
@@ -5089,32 +4994,21 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 		int		len;
 
 		// parse key
-		/*if ((*pfile = COM_ParseFile (*pfile, token, sizeof (token))) == NULL)*/
 		if ((*pfile = COM_ParseFile (*pfile, keyname, sizeof (keyname))) == NULL)
 			Host_Error ("ED_ParseEdict: EOF without closing brace\n");
 
-		/*if (token[0] == '}')
-			break; // end of desc
-
-		Q_strncpy (keyname, token, sizeof (keyname));*/
 		if (keyname[0] == '}')
 			break; // end of desc
 
 		// parse value
-		/*if ((*pfile = COM_ParseFile (*pfile, token, sizeof (token))) == NULL)*/
 		if ((*pfile = COM_ParseFile (*pfile, value, sizeof (value))) == NULL)
 			Host_Error ("ED_ParseEdict: EOF without closing brace\n");
 
-		/*if (token[0] == '}')*/
 		if (value[0] == '}')
 			Host_Error ("ED_ParseEdict: closing brace without data\n");
 
-		/* // ignore attempts to set key ""
-		if (!keyname[0]) continue;*/
-
 		// ignore attempts to set empty key or value
 		// "wad" field is already handled
-		/*if (!Q_strcmp (keyname, "wad"))*/
 		if (!keyname[0] || !value[0] || !Q_strcmp (keyname, "wad"))
 			continue;
 
@@ -5122,9 +5016,6 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 		// utility comments and are immediately discarded by engine
 		if (FBitSet (world.flags, FWORLD_SKYSPHERE) && (keyname[0] == '_'))
 			continue;
-
-		/* // ignore attempts to set value ""
-		if (!token[0]) continue;*/
 
 		// classname must be first
 		if (!Q_strcmp (keyname, "classname"))
@@ -5163,15 +5054,10 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 		// create keyvalue strings
 		pkvd[numpairs].szClassName = (char *)""; // unknown at this moment
 		pkvd[numpairs].szKeyName = copystring (keyname);
-		/*pkvd[numpairs].szValue = copystring (token);*/
 		pkvd[numpairs].szValue = copystring (value);
 		pkvd[numpairs].fHandled = false;
 		numpairs++;
 
-		/*if (!Q_strcmp (keyname, "classname") && (classname == NULL))
-			classname = copystring (pkvd[numpairs].szValue);
-		if (++numpairs >= 256)
-			break;*/
 		if (numpairs > ARRAYSIZE (pkvd))
 			{
 			if (classname)
@@ -5185,41 +5071,21 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 	if (classname == NULL)
 		{
 		// release allocated strings
-		/*for (i = 0; i < numpairs; i++)
-			{
-			Mem_Free (pkvd[i].szKeyName);
-			Mem_Free (pkvd[i].szValue);
-			}*/
 		SV_FreeKeyValueStrings (pkvd, numpairs);
 		return false;
 		}
 
-	/*ent = SV_AllocPrivateData (ent, ALLOC_STRING (classname));*/
 	ent = SV_AllocPrivateData (ent, ent->v.classname, &customentity);
 
 	if (!SV_IsValidEdict (ent) || FBitSet (ent->v.flags, FL_KILLME))
 		{
 		// release allocated strings
-		/*for (i = 0; i < numpairs; i++)
-			{
-			Mem_Free (pkvd[i].szKeyName);
-			Mem_Free (pkvd[i].szValue);
-			}*/
 		SV_FreeKeyValueStrings (pkvd, numpairs);
 		return false;
 		}
 
-	/*if (FBitSet (ent->v.flags, FL_CUSTOMENTITY))*/
 	if (customentity)
 		{
-		/*if (numpairs < 256)
-			{
-			pkvd[numpairs].szClassName = (char *)"custom";
-			pkvd[numpairs].szKeyName = (char *)"customclass";
-			pkvd[numpairs].szValue = classname;
-			pkvd[numpairs].fHandled = false;
-			numpairs++;
-			}*/
 		KeyValueData kvd = {
 			.szClassName = (char *)"custom",
 			.szKeyName = (char *)"customclass",
@@ -5227,8 +5093,6 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 			.fHandled = false
 			};
 
-		/* // clear it now - no longer used
-		ClearBits (ent->v.flags, FL_CUSTOMENTITY);*/
 		svgame.dllFuncs.pfnKeyValue (ent, &kvd);
 		// no fHandled check, GoldSrc behavior
 		}
@@ -5263,8 +5127,6 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 
 			if (flYawAngle >= 0.0f)
 				{
-				/*char temp[MAX_VA_STRING];*/
-
 				Q_snprintf (temp, sizeof (temp), "%g %g %g", ent->v.angles[0], flYawAngle, ent->v.angles[2]);
 				pkvd[i].szValue = copystring (temp);
 				}
@@ -5285,12 +5147,8 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 				}
 			}
 
-		/*#ifdef HACKS_RELATED_HLMODS*/
 		if (adjust_origin && !Q_strcmp (pkvd[i].szKeyName, "origin"))
 			{
-			/*// [FWGS, 01.04.23]
-			char temp[MAX_VA_STRING];
-			char *pstart = pkvd[i].szValue;*/
 			char *pstart = pkvd[i].szValue;
 			vec3_t origin;
 
@@ -5301,30 +5159,13 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 			pkvd[i].szValue = copystring (temp);
 			}
 
-		/*#endif
-
-		// [FWGS, 01.12.23]
-		if (!pkvd[i].fHandled)
-			{
-			pkvd[i].szClassName = classname;
-			svgame.dllFuncs.pfnKeyValue (ent, &pkvd[i]);
-			}*/
-
-		/* // no reason to keep this data
-		if (Mem_IsAllocatedExt (host.mempool, pkvd[i].szKeyName))
-			Mem_Free (pkvd[i].szKeyName);*/
 		// do not leak memory if game overwritten these pointers
 		keyname = pkvd[i].szKeyName;
 		value = pkvd[i].szValue;
 
-		/*if (Mem_IsAllocatedExt (host.mempool, pkvd[i].szValue))
-			Mem_Free (pkvd[i].szValue);
-		}*/
 		pkvd[i].szClassName = (char *)classname;
 		svgame.dllFuncs.pfnKeyValue (ent, &pkvd[i]);
 
-		/*if (Mem_IsAllocatedExt (host.mempool, classname))
-			Mem_Free (classname);*/
 		Mem_Free (keyname);
 		Mem_Free (value);
 		}
@@ -5332,7 +5173,7 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 	return true;
 	}
 
-/*
+/***
 ================
 SV_LoadFromFile
 
@@ -5343,7 +5184,7 @@ number references out of order.
 Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file
 ================
-*/
+***/
 static void SV_LoadFromFile (const char *mapname, char *entities)
 	{
 	char		token[2048];
@@ -5396,14 +5237,14 @@ static void SV_LoadFromFile (const char *mapname, char *entities)
 	VectorClear (svgame.edicts->v.angles);
 	}
 
-/*
+/***
 ==============
 SpawnEntities
 
 Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
-*/
+***/
 void SV_SpawnEntities (const char *mapname)
 	{
 	edict_t *ent;
@@ -5448,7 +5289,6 @@ void SV_UnloadProgs (void)
 
 	SV_DeactivateServer ();
 	Delta_Shutdown ();
-	/*SV_FreeStringPool ();*/
 
 	if (svgame.dllFuncs2.pfnGameShutdown != NULL)
 		svgame.dllFuncs2.pfnGameShutdown ();
@@ -5571,7 +5411,6 @@ qboolean SV_LoadProgs (const char *name)
 		{
 		if (!GetEntityAPI2 (&svgame.dllFuncs, &version))
 			{
-			/*Con_Printf (S_WARN "SV_LoadProgs: interface version %i should be %i\n", INTERFACE_VERSION, version);*/
 			if (INTERFACE_VERSION != version)
 				Con_Printf (S_WARN "SV_LoadProgs: interface version %i should be %i\n", INTERFACE_VERSION, version);
 
@@ -5655,3 +5494,4 @@ int pfnGetCurrentDuckState (void)
 	{
 	return (svgame.pmove->flags & FL_DUCKING);
 	}
+

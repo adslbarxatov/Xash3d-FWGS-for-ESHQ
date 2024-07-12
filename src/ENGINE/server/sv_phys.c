@@ -1,4 +1,4 @@
-/*
+/***
 sv_phys.c - server physic
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -25,7 +25,7 @@ typedef int (*PHYSICAPI)(int, server_physics_api_t *, physics_interface_t *);
 extern triangleapi_t gTriApi;
 #endif
 
-/*
+/***
 pushmove objects do not obey gravity, and do not interact with each other or trigger fields,
 but block normal movement and push normal objects when they move.
 
@@ -38,8 +38,9 @@ crates are SOLID_BBOX and MOVETYPE_TOSS
 walking monsters are SOLID_BBOX and MOVETYPE_STEP
 flying/floating monsters are SOLID_BBOX and MOVETYPE_FLY
 
-solid_edge items only clip against bsp models.
-*/
+solid_edge items only clip against bsp models
+***/
+
 #define MOVE_EPSILON	0.01f
 #define MAX_CLIP_PLANES	5
 
@@ -53,16 +54,16 @@ static const vec3_t current_table[] =
 	{ 0,  0, -1}
 	};
 
-/*
+/***
 ===============================================================================
 Utility functions
 ===============================================================================
-*/
-/*
+***/
+/***
 ================
 SV_CheckAllEnts
 ================
-*/
+***/
 static void SV_CheckAllEnts (void)
 	{
 	static double	nextcheck;
@@ -110,11 +111,11 @@ static void SV_CheckAllEnts (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_CheckVelocity
 ================
-*/
+***/
 void SV_CheckVelocity (edict_t *ent)
 	{
 	float	wishspd;
@@ -153,11 +154,11 @@ void SV_CheckVelocity (edict_t *ent)
 		}
 	}
 
-/*
+/***
 ================
 SV_UpdateBaseVelocity
 ================
-*/
+***/
 void SV_UpdateBaseVelocity (edict_t *ent)
 	{
 	if (ent->v.flags & FL_ONGROUND)
@@ -182,13 +183,13 @@ void SV_UpdateBaseVelocity (edict_t *ent)
 		}
 	}
 
-/*
+/***
 ============
 SV_TestEntityPosition [FWGS, 01.07.23]
 
 returns true if the entity is in solid currently
 ============
-*/
+***/
 static qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker)
 	{
 	qboolean monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
@@ -215,7 +216,7 @@ static qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker)
 	return trace.startsolid;
 	}
 
-/*
+/***
 =============
 SV_RunThink
 
@@ -224,7 +225,7 @@ function will be called, because it is called before any movement is done
 in a frame.  Not used for pushmove objects, because they must be exact.
 Returns false if the entity removed itself.
 =============
-*/
+***/
 static qboolean SV_RunThink (edict_t *ent)
 	{
 	float	thinktime;
@@ -249,7 +250,7 @@ static qboolean SV_RunThink (edict_t *ent)
 	return !ent->free;
 	}
 
-/*
+/***
 =============
 SV_PlayerRunThink
 
@@ -258,7 +259,7 @@ function will be called, because it is called before any movement is done
 in a frame.  Not used for pushmove objects, because they must be exact.
 Returns false if the entity removed itself.
 =============
-*/
+***/
 qboolean SV_PlayerRunThink (edict_t *ent, float frametime, double time)
 	{
 	float	thinktime;
@@ -287,13 +288,13 @@ qboolean SV_PlayerRunThink (edict_t *ent, float frametime, double time)
 	return !ent->free;
 	}
 
-/*
+/***
 ==================
 SV_Impact
 
 Two entities have touched, so run their touch functions
 ==================
-*/
+***/
 void SV_Impact (edict_t *e1, edict_t *e2, trace_t *trace)
 	{
 	svgame.globals->time = sv.time;
@@ -323,13 +324,13 @@ void SV_Impact (edict_t *e1, edict_t *e2, trace_t *trace)
 		}
 	}
 
-/*
+/***
 =============
 SV_AngularMove
 
 may use friction for smooth stopping
 =============
-*/
+***/
 static void SV_AngularMove (edict_t *ent, float frametime, float friction)
 	{
 	float	adjustment;
@@ -358,13 +359,13 @@ static void SV_AngularMove (edict_t *ent, float frametime, float friction)
 		}
 	}
 
-/*
+/***
 =============
 SV_LinearMove
 
 use friction for smooth stopping
 =============
-*/
+***/
 static void SV_LinearMove (edict_t *ent, float frametime, float friction)
 	{
 	int		i;
@@ -393,13 +394,13 @@ static void SV_LinearMove (edict_t *ent, float frametime, float friction)
 		}
 	}
 
-/*
+/***
 =============
 SV_RecursiveWaterLevel
 
 recursively recalculating the middle
 =============
-*/
+***/
 static float SV_RecursiveWaterLevel (vec3_t origin, float out, float in, int count)
 	{
 	vec3_t	point;
@@ -416,13 +417,13 @@ static float SV_RecursiveWaterLevel (vec3_t origin, float out, float in, int cou
 	return SV_RecursiveWaterLevel (origin, offset, in, count);
 	}
 
-/*
+/***
 =============
 SV_Submerged
 
 determine how deep the entity is
 =============
-*/
+***/
 static float SV_Submerged (edict_t *ent)
 	{
 	float	start, bottom;
@@ -453,11 +454,11 @@ static float SV_Submerged (edict_t *ent)
 	return 0.0f;
 	}
 
-/*
+/***
 =============
 SV_CheckWater
 =============
-*/
+***/
 static qboolean SV_CheckWater (edict_t *ent)
 	{
 	int		cont, truecont;
@@ -518,13 +519,13 @@ static qboolean SV_CheckWater (edict_t *ent)
 	return (ent->v.waterlevel > 1);
 	}
 
-/*
+/***
 =============
 SV_CheckMover
 
 test thing (applies the friction to pushables while standing on moving platform)
 =============
-*/
+***/
 static qboolean SV_CheckMover (edict_t *ent)
 	{
 	edict_t *gnd = ent->v.groundentity;
@@ -541,13 +542,13 @@ static qboolean SV_CheckMover (edict_t *ent)
 	return true;
 	}
 
-/*
+/***
 ==================
 SV_ClipVelocity
 
 Slide off of the impacting object
 ==================
-*/
+***/
 static int SV_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overbounce)
 	{
 	float	backoff;
@@ -574,12 +575,12 @@ static int SV_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overboun
 	return blocked;
 	}
 
-/*
+/***
 ===============================================================================
 FLYING MOVEMENT CODE
 ===============================================================================
-*/
-/*
+***/
+/***
 ============
 SV_FlyMove
 
@@ -590,7 +591,7 @@ Returns the clipflags if the velocity was modified (hit something solid)
 2 = wall / step
 4 = dead stop
 ============
-*/
+***/
 static int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 	{
 	int		i, j, numplanes, bumpcount, blocked;
@@ -730,11 +731,11 @@ static int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 	return blocked;
 	}
 
-/*
+/***
 ============
 SV_AddGravity
 ============
-*/
+***/
 static void SV_AddGravity (edict_t *ent)
 	{
 	float	ent_gravity;
@@ -755,18 +756,18 @@ static void SV_AddGravity (edict_t *ent)
 
 // [FWGS, 01.05.23] удалена SV_AddHalfGravity
 
-/*
+/***
 ===============================================================================
 PUSHMOVE
 ===============================================================================
-*/
-/*
+***/
+/***
 ============
 SV_AllowPushRotate
 
 Allows to change entity yaw?
 ============
-*/
+***/
 static qboolean SV_AllowPushRotate (edict_t *ent)
 	{
 	model_t *mod;
@@ -784,13 +785,13 @@ static qboolean SV_AllowPushRotate (edict_t *ent)
 	return false;
 	}
 
-/*
+/***
 ============
 SV_PushEntity
 
 Does not change the entities velocity at all
 ============
-*/
+***/
 static trace_t SV_PushEntity (edict_t *ent, const vec3_t lpush, const vec3_t apush, int *blocked, float flDamage)
 	{
 	trace_t		trace;
@@ -849,13 +850,13 @@ static trace_t SV_PushEntity (edict_t *ent, const vec3_t lpush, const vec3_t apu
 	return trace;
 	}
 
-/*
+/***
 ============
 SV_CanPushed
 
 filter entities for push
 ============
-*/
+***/
 static qboolean SV_CanPushed (edict_t *ent)
 	{
 	// filter movetypes to collide with
@@ -871,13 +872,13 @@ static qboolean SV_CanPushed (edict_t *ent)
 	return true;
 	}
 
-/*
+/***
 ============
 SV_CanBlock
 
 allow entity to block pusher?
 ============
-*/
+***/
 static qboolean SV_CanBlock (edict_t *ent)
 	{
 	if (ent->v.mins[0] == ent->v.maxs[0])
@@ -894,11 +895,11 @@ static qboolean SV_CanBlock (edict_t *ent)
 	return true;
 	}
 
-/*
+/***
 ============
 SV_PushMove
 ============
-*/
+***/
 static edict_t *SV_PushMove (edict_t *pusher, float movetime)
 	{
 	int		i, e, block;
@@ -1010,11 +1011,11 @@ static edict_t *SV_PushMove (edict_t *pusher, float movetime)
 	return NULL;
 	}
 
-/*
+/***
 ============
 SV_PushRotate
 ============
-*/
+***/
 static edict_t *SV_PushRotate (edict_t *pusher, float movetime)
 	{
 	int		i, e, block, oldsolid;
@@ -1147,11 +1148,11 @@ static edict_t *SV_PushRotate (edict_t *pusher, float movetime)
 	return NULL;
 	}
 
-/*
+/***
 ================
 SV_Physics_Pusher
 ================
-*/
+***/
 static void SV_Physics_Pusher (edict_t *ent)
 	{
 	float	oldtime, oldtime2;
@@ -1225,13 +1226,13 @@ static void SV_Physics_Pusher (edict_t *ent)
 		}
 	}
 
-/*
+/***
 =============
 SV_Physics_Follow
 
 just copy angles and origin of parent
 =============
-*/
+***/
 static void SV_Physics_Follow (edict_t *ent)
 	{
 	edict_t *parent;
@@ -1254,13 +1255,13 @@ static void SV_Physics_Follow (edict_t *ent)
 	SV_LinkEdict (ent, true);
 	}
 
-/*
+/***
 =============
 SV_Physics_Compound
 
 a glue two entities together
 =============
-*/
+***/
 static void SV_Physics_Compound (edict_t *ent)
 	{
 	edict_t *parent;
@@ -1336,13 +1337,13 @@ static void SV_Physics_Compound (edict_t *ent)
 	VectorCopy (parent->v.angles, ent->v.avelocity);
 	}
 
-/*
+/***
 =============
 SV_PhysicsNoclip
 
 A moving object that doesn't obey physics
 =============
-*/
+***/
 static void SV_Physics_Noclip (edict_t *ent)
 	{
 	// regular thinking
@@ -1358,16 +1359,16 @@ static void SV_Physics_Noclip (edict_t *ent)
 	SV_LinkEdict (ent, false);
 	}
 
-/*
+/***
 ==============================================================================
 TOSS / BOUNCE
 ==============================================================================
-*/
-/*
+***/
+/***
 =============
 SV_CheckWaterTransition [FWGS, 01.03.24]
 =============
-*/
+***/
 static void SV_CheckWaterTransition (edict_t *ent)
 	{
 	vec3_t	point;
@@ -1441,13 +1442,13 @@ static void SV_CheckWaterTransition (edict_t *ent)
 		}
 	}
 
-/*
+/***
 =============
 SV_Physics_Toss
 
 Toss, bounce, and fly movement.  When onground, do nothing
 =============
-*/
+***/
 static void SV_Physics_Toss (edict_t *ent)
 	{
 	trace_t	trace;
@@ -1580,12 +1581,12 @@ static void SV_Physics_Toss (edict_t *ent)
 	SV_CheckWaterTransition (ent);
 	}
 
-/*
+/***
 ===============================================================================
 STEPPING MOVEMENT
 ===============================================================================
-*/
-/*
+***/
+/***
 =============
 SV_Physics_Step
 
@@ -1595,7 +1596,7 @@ all movement is done with discrete steps.
 This is also used for objects that have become still on the ground, but
 will fall if the floor is pulled out from under them
 =============
-*/
+***/
 static void SV_Physics_Step (edict_t *ent)
 	{
 	qboolean	inwater;
@@ -1725,13 +1726,13 @@ static void SV_Physics_Step (edict_t *ent)
 	SV_CheckWaterTransition (ent);
 	}
 
-/*
+/***
 =============
 SV_PhysicsNone
 
 Non moving objects can only think
 =============
-*/
+***/
 static void SV_Physics_None (edict_t *ent)
 	{
 	SV_RunThink (ent);
@@ -1823,11 +1824,11 @@ static void SV_RunLightStyles (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_Physics
 ================
-*/
+***/
 void SV_Physics (void)
 	{
 	edict_t *ent;
@@ -1873,61 +1874,61 @@ void SV_Physics (void)
 #endif
 	}
 
-/*
+/***
 ================
 SV_GetServerTime
 
 Inplementation for new physics interface
 ================
-*/
+***/
 static double GAME_EXPORT SV_GetServerTime (void)
 	{
 	return sv.time;
 	}
 
-/*
+/***
 ================
 SV_GetFrameTime
 
 Inplementation for new physics interface
 ================
-*/
+***/
 static double GAME_EXPORT SV_GetFrameTime (void)
 	{
 	return sv.frametime;
 	}
 
-/*
+/***
 ================
 SV_GetHeadNode
 
 Inplementation for new physics interface
 ================
-*/
+***/
 static areanode_t *GAME_EXPORT SV_GetHeadNode (void)
 	{
 	return sv_areanodes;
 	}
 
-/*
+/***
 ================
 SV_ServerState
 
 Inplementation for new physics interface
 ================
-*/
+***/
 static int GAME_EXPORT SV_ServerState (void)
 	{
 	return sv.state;
 	}
 
-/*
+/***
 ================
 SV_DrawDebugTriangles
 
 Called from renderer for debug purposes
 ================
-*/
+***/
 void SV_DrawDebugTriangles (void)
 	{
 	if (host.type != HOST_NORMAL)
@@ -1946,13 +1947,13 @@ void SV_DrawDebugTriangles (void)
 		}
 	}
 
-/*
+/***
 ================
 SV_DrawOrthoTriangles
 
 Called from renderer for debug purposes
 ================
-*/
+***/
 void SV_DrawOrthoTriangles (void)
 	{
 	if (host.type != HOST_NORMAL)
@@ -1967,13 +1968,13 @@ void SV_DrawOrthoTriangles (void)
 
 // [FWGS, 01.07.23] removed void SV_UpdateFogSettings
 
-/*
+/***
 ==================
 SV_GetLightStyle [FWGS, 01.02.24]
 
 needs to get correct working SV_LightPoint
 ==================
-*/
+***/
 static const char *GAME_EXPORT SV_GetLightStyle (int style)
 	{
 	if (style < 0)
@@ -1994,11 +1995,11 @@ unsigned int GAME_EXPORT SV_UpdateFogSettings (unsigned int packed_fog)
 	host.movevars_changed = true; // force to transmit
 	}
 
-/*
+/***
 =========
 pfnGetFilesList
 =========
-*/
+***/
 static char **GAME_EXPORT pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
 	{
 	static search_t *t = NULL;
@@ -2032,11 +2033,11 @@ static void GAME_EXPORT pfnMem_Free (void *mem, const char *filename, const int 
 	_Mem_Free (mem, filename, fileline);
 	}
 
-/*
+/***
 =============
 pfnPointContents
 =============
-*/
+***/
 static int GAME_EXPORT pfnPointContents (const float *pos, int groupmask)
 	{
 	int	oldmask, cont;
@@ -2061,11 +2062,11 @@ static trace_t GAME_EXPORT SV_MoveNormal (const vec3_t start, vec3_t mins, vec3_
 	return SV_Move (start, mins, maxs, end, type, e, false);
 	}
 
-/*
+/***
 =============
 pfnWriteBytes [FWGS, 01.07.23]
 =============
-*/
+***/
 static void GAME_EXPORT pfnWriteBytes (const byte *bytes, int count)
 	{
 	MSG_WriteBytes (&sv.multicast, bytes, count);
@@ -2156,13 +2157,13 @@ static server_physics_api_t gPhysicsAPI =
 		Sys_GetNativeObject,	// [FWGS, 01.03.24]
 	};
 
-/*
+/***
 ===============
 SV_InitPhysicsAPI [FWGS, 01.01.24]
 
 Initialize server external physics
 ===============
-*/
+***/
 qboolean SV_InitPhysicsAPI (void)
 	{
 	static PHYSICAPI	pPhysIface;
@@ -2195,3 +2196,4 @@ qboolean SV_InitPhysicsAPI (void)
 	Host_ValidateEngineFeatures (0);
 	return true;
 	}
+

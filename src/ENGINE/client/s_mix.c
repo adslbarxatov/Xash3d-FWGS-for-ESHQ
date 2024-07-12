@@ -1,4 +1,4 @@
-/*
+/***
 s_mix.c - portable code to mix sounds
 Copyright (C) 2009 Uncle Mike
 
@@ -10,17 +10,14 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "sound.h"
 #include "client.h"
 
 // [FWGS, 09.05.24]
-/*#define IPAINTBUFFER	0
-#define IROOMBUFFER		1
-#define ISTREAMBUFFER	2*/
 enum
 	{
 	IPAINTBUFFER = 0,
@@ -30,9 +27,6 @@ enum
 	};
 
 // [FWGS, 09.05.24]
-/*#define FILTERTYPE_NONE		0
-#define FILTERTYPE_LINEAR	1
-#define FILTERTYPE_CUBIC	2*/
 enum
 	{
 	FILTERTYPE_NONE = 0,
@@ -43,9 +37,6 @@ enum
 #define CCHANVOLUMES	2
 
 // [FWGS, 09.05.24]
-/*#define SND_SCALE_BITS		7
-#define SND_SCALE_SHIFT		(8 - SND_SCALE_BITS)
-#define SND_SCALE_LEVELS	(1 << SND_SCALE_BITS)*/
 #define SND_SCALE_BITS		7
 #define SND_SCALE_SHIFT		( 8 - SND_SCALE_BITS )
 #define SND_SCALE_LEVELS	( 1 << SND_SCALE_BITS )
@@ -53,13 +44,6 @@ enum
 // [FWGS, 09.05.24] sound mixing buffer
 #define CPAINTFILTERMEM		3
 #define CPAINTFILTERS		4	// maximum number of consecutive upsample passes per paintbuffer
-/*portable_samplepair_t	*g_curpaintbuffer;
-portable_samplepair_t	streambuffer[(PAINTBUFFER_SIZE + 1)];
-portable_samplepair_t	paintbuffer[(PAINTBUFFER_SIZE + 1)];
-portable_samplepair_t	roombuffer[(PAINTBUFFER_SIZE + 1)];
-portable_samplepair_t	facingbuffer[(PAINTBUFFER_SIZE + 1)];
-portable_samplepair_t	temppaintbuffer[(PAINTBUFFER_SIZE + 1)];
-paintbuffer_t			paintbuffers[CPAINTBUFFERS];*/
 
 // [FWGS, 09.05.24] fixed point stuff for real-time resampling
 #define FIX_BITS 28
@@ -69,7 +53,6 @@ paintbuffer_t			paintbuffers[CPAINTBUFFERS];*/
 #define FIX( a ) (((int)( a )) << FIX_BITS )
 #define FIX_INTPART( a ) (((int)( a )) >> FIX_BITS )
 #define FIX_FRACPART( a ) (( a ) & FIX_MASK )
-/*int		snd_scaletable[SND_SCALE_LEVELS][256];*/
 
 // [FWGS, 09.05.24]
 typedef struct
@@ -100,11 +83,11 @@ void S_InitScaletable (void)
 		}
 	}
 
-/*
+/***
 ===================
 S_TransferPaintBuffer [FWGS, 09.05.24]
 ===================
-*/
+***/
 static void S_TransferPaintBuffer (int endtime)
 	{
 	int		*snd_p, snd_linear_count;
@@ -114,7 +97,6 @@ static void S_TransferPaintBuffer (int endtime)
 	dword	*pbuf;
 
 	pbuf = (dword *)dma.buffer;
-	/*snd_p = (int *)PAINTBUFFER;*/
 	snd_p = (int *)g_curpaintbuffer;
 	lpaintedtime = paintedtime;
 	sampleMask = ((dma.samples >> 1) - 1);
@@ -165,7 +147,6 @@ static void S_TransferPaintBuffer (int endtime)
 
 // [FWGS, 09.05.24] Activate a paintbuffer.  All active paintbuffers are mixed in parallel within
 // MIX_MixChannelsToPaintbuffer, according to flags
-/*_inline void MIX_ActivatePaintbuffer (int ipaintbuffer)*/
 static void MIX_ActivatePaintbuffer (int ipaintbuffer)
 	{
 	Assert (ipaintbuffer < CPAINTBUFFERS);
@@ -175,7 +156,6 @@ static void MIX_ActivatePaintbuffer (int ipaintbuffer)
 // [FWGS, 01.05.23] удалена MIX_DeactivatePaintbuffer
 
 // [FWGS, 09.05.24]
-/*_inline void MIX_SetCurrentPaintbuffer (int ipaintbuffer)*/
 static void MIX_SetCurrentPaintbuffer (int ipaintbuffer)
 	{
 	Assert (ipaintbuffer < CPAINTBUFFERS);
@@ -184,7 +164,6 @@ static void MIX_SetCurrentPaintbuffer (int ipaintbuffer)
 	}
 
 // [FWGS, 09.05.24]
-/*_inline int MIX_GetCurrentPaintbufferIndex (void)*/
 static int MIX_GetCurrentPaintbufferIndex (void)
 	{
 	int	i;
@@ -198,7 +177,6 @@ static int MIX_GetCurrentPaintbufferIndex (void)
 	}
 
 // [FWGS, 09.05.24]
-/*_inline paintbuffer_t *MIX_GetCurrentPaintbufferPtr (void)*/
 static paintbuffer_t *MIX_GetCurrentPaintbufferPtr (void)
 	{
 	int	ipaint = MIX_GetCurrentPaintbufferIndex ();
@@ -208,7 +186,6 @@ static paintbuffer_t *MIX_GetCurrentPaintbufferPtr (void)
 	}
 
 // [FWGS, 09.05.24] Don't mix into any paintbuffers
-/*_inline void MIX_DeactivateAllPaintbuffers (void)*/
 static void MIX_DeactivateAllPaintbuffers (void)
 	{
 	int	i;
@@ -218,7 +195,6 @@ static void MIX_DeactivateAllPaintbuffers (void)
 	}
 
 // [FWGS, 09.05.24] set upsampling filter indexes back to 0
-/*_inline void MIX_ResetPaintbufferFilterCounters (void)*/
 static void MIX_ResetPaintbufferFilterCounters (void)
 	{
 	int	i;
@@ -230,7 +206,6 @@ static void MIX_ResetPaintbufferFilterCounters (void)
 // [FWGS, 01.05.23] удалена MIX_ResetPaintbufferFilterCounter
 
 // [FWGS, 09.05.24] return pointer to front paintbuffer pbuf, given index
-/*_inline portable_samplepair_t *MIX_GetPFrontFromIPaint (int ipaintbuffer)*/
 static portable_samplepair_t *MIX_GetPFrontFromIPaint (int ipaintbuffer)
 	{
 	Assert (ipaintbuffer < CPAINTBUFFERS);
@@ -238,7 +213,6 @@ static portable_samplepair_t *MIX_GetPFrontFromIPaint (int ipaintbuffer)
 	}
 
 // [FWGS, 09.05.24]
-/*_inline paintbuffer_t *MIX_GetPPaintFromIPaint (int ipaint)*/
 static paintbuffer_t *MIX_GetPPaintFromIPaint (int ipaint)
 	{
 	Assert (ipaint < CPAINTBUFFERS);
@@ -264,11 +238,11 @@ void MIX_InitAllPaintbuffers (void)
 	MIX_SetCurrentPaintbuffer (IPAINTBUFFER);
 	}
 
-/*
+/***
 ===============================================================================
 CHANNEL MIXING
 ===============================================================================
-*/
+***/
 static void S_PaintMonoFrom8 (portable_samplepair_t *pbuf, int *volume, byte *pData, int outCount)
 	{
 	int	*lscale, *rscale;
@@ -625,7 +599,6 @@ static void MIX_MixChannelsToPaintbuffer (int endtime, int rate, int outputRate)
 				{
 				// play, playvol
 				}
-			/*else if ((s_listener.inmenu || s_listener.paused) && !ch->localsound)*/
 			else if ((s_listener.inmenu || s_listener.paused) && !ch->localsound && local)
 				{
 				// play only local sounds, keep pause for other
@@ -655,7 +628,6 @@ static void MIX_MixChannelsToPaintbuffer (int endtime, int rate, int outputRate)
 				bZeroVolume = true;
 			}
 
-		/*if (!pSource || (bZeroVolume && (pSource->loopStart == -1)))*/
 		if (!pSource || (bZeroVolume && !FBitSet (pSource->flags, SOUND_LOOPED)))
 			{
 			if (!pSource)
@@ -712,8 +684,6 @@ static void MIX_MixChannelsToPaintbuffer (int endtime, int rate, int outputRate)
 	}
 
 // [FWGS, 09.05.24] pass in index -1...count+2, return pointer to source sample in either paintbuffer or delay buffer
-/*_inline portable_samplepair_t *S_GetNextpFilter (int i, portable_samplepair_t *pbuffer,
-	portable_samplepair_t *pfiltermem)*/
 static portable_samplepair_t *S_GetNextpFilter (int i, portable_samplepair_t *pbuffer, portable_samplepair_t *pfiltermem)
 	{
 	// The delay buffer is assumed to precede the paintbuffer by 6 duplicated samples

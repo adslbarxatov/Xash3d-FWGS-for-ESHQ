@@ -1,4 +1,4 @@
-/*
+/***
 sys_con.c - stdout and log
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #if XASH_WIN32
@@ -102,11 +102,11 @@ void Sys_DestroyConsole (void)
 #endif
 	}
 
-/*
+/***
 ===============================================================================
 SYSTEM LOG
 ===============================================================================
-*/
+***/
 int Sys_LogFileNo (void)
 	{
 	return s_ld.logfileno;
@@ -154,17 +154,11 @@ void Sys_InitLog (void)
 
 		if (!s_ld.logfile)
 			{
-			/*Con_Reportf (S_ERROR  "Sys_InitLog: can't create log file %s: %s\n", s_ld.log_path, strerror (errno));*/
 			Con_Reportf (S_ERROR "Sys_InitLog: can't create log file %s: %s\n", s_ld.log_path, strerror (errno));
 			return;
 			}
 
 		s_ld.logfileno = fileno (s_ld.logfile);
-
-		/*fprintf (s_ld.logfile, "=================================================================================\n");
-		fprintf (s_ld.logfile, "\t%s (build %i commit %s (%s-%s)) started at %s\n", s_ld.title, Q_buildnum (),
-			Q_buildcommit (), Q_buildos (), Q_buildarch (), Q_timestamp (TIME_FULL));
-		fprintf (s_ld.logfile, "=================================================================================\n");*/
 
 		// fit to 80 columns for easier read on standard terminal
 		fputs ("================================================================================\n",
@@ -206,14 +200,6 @@ void Sys_CloseLog (void)
 
 	if (s_ld.logfile)
 		{
-		/*fprintf (s_ld.logfile, "\n");
-		fprintf (s_ld.logfile, "=================================================================================");
-		if (host.change_game)
-			fprintf (s_ld.logfile, "\n\t%s (build %i) %s\n", s_ld.title, Q_buildnum (), event_name);
-		else
-			fprintf (s_ld.logfile, "\n\t%s (build %i) %s at %s\n", s_ld.title, Q_buildnum (), event_name,
-				Q_timestamp (TIME_FULL));
-		fprintf (s_ld.logfile, "=================================================================================\n");*/
 		fputc ('\n', s_ld.logfile);
 		fputs ("================================================================================\n",
 			s_ld.logfile);
@@ -358,16 +344,16 @@ void Sys_PrintLog (const char *pMsg)
 	Sys_FlushLogfile ();
 	}
 
-/*
+/***
 =============================================================================
 CONSOLE PRINT
 =============================================================================
-*/
-/*
+***/
+/***
 =============
 Con_Printf [FWGS, 01.05.24]
 =============
-*/
+***/
 void GAME_EXPORT Con_Printf (const char *szFmt, ...)
 	{
 	static char	buffer[MAX_PRINT_MSG];
@@ -378,7 +364,6 @@ void GAME_EXPORT Con_Printf (const char *szFmt, ...)
 		return;
 
 	va_start (args, szFmt);
-	/*Q_vsnprintf (buffer, sizeof (buffer), szFmt, args);*/
 	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
 	va_end (args);
 
@@ -388,11 +373,11 @@ void GAME_EXPORT Con_Printf (const char *szFmt, ...)
 		Sys_Print ("\n");
 	}
 
-/*
+/***
 =============
 Con_DPrintf [FWGS, 01.05.24]
 =============
-*/
+***/
 void GAME_EXPORT Con_DPrintf (const char *szFmt, ...)
 	{
 	static char	buffer[MAX_PRINT_MSG];
@@ -403,7 +388,6 @@ void GAME_EXPORT Con_DPrintf (const char *szFmt, ...)
 		return;
 
 	va_start (args, szFmt);
-	/*Q_vsnprintf (buffer, sizeof (buffer), szFmt, args);*/
 	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
 	va_end (args);
 
@@ -416,11 +400,11 @@ void GAME_EXPORT Con_DPrintf (const char *szFmt, ...)
 		Sys_Print ("\n");
 	}
 
-/*
+/***
 =============
 Con_Reportf [FWGS, 01.05.24]
 =============
-*/
+***/
 void Con_Reportf (const char *szFmt, ...)
 	{
 	static char	buffer[MAX_PRINT_MSG];
@@ -431,7 +415,6 @@ void Con_Reportf (const char *szFmt, ...)
 		return;
 
 	va_start (args, szFmt);
-	/*Q_vsnprintf (buffer, sizeof (buffer), szFmt, args);*/
 	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
 	va_end (args);
 

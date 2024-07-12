@@ -1,4 +1,4 @@
-/*
+/***
 pm_trace.c - pmove player trace code
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "xash3d_mathlib.h"
@@ -64,14 +64,14 @@ void PM_ClearPhysEnts (playermove_t *pmove)
 	pmove->numtouch = 0;
 	}
 
-/*
+/***
 ===================
 PM_InitBoxHull
 
 Set up the planes and clipnodes so that the six floats of a bounding box
 can just be stored out and get a proper hull_t structure.
 ===================
-*/
+***/
 void PM_InitBoxHull (void)
 	{
 	int	i, side;
@@ -100,14 +100,14 @@ void PM_InitBoxHull (void)
 
 	}
 
-/*
+/***
 ===================
 PM_HullForBox
 
 To keep everything totally uniform, bounding boxes are turned into small
 BSP trees instead of being compared directly.
 ===================
-*/
+***/
 static hull_t *PM_HullForBox (const vec3_t mins, const vec3_t maxs)
 	{
 	pm_boxplanes[0].dist = maxs[0];
@@ -136,11 +136,11 @@ void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
 	VectorCopy (in->plane.normal, out->plane.normal);
 	}
 
-/*
+/***
 ==================
 PM_HullPointContents
 ==================
-*/
+***/
 int GAME_EXPORT PM_HullPointContents (hull_t *hull, int num, const vec3_t p)
 	{
 	mplane_t *plane;
@@ -156,13 +156,13 @@ int GAME_EXPORT PM_HullPointContents (hull_t *hull, int num, const vec3_t p)
 	return num;
 	}
 
-/*
+/***
 ==================
 PM_HullForBsp
 
 assume physent is valid
 ==================
-*/
+***/
 hull_t *PM_HullForBsp (physent_t *pe, playermove_t *pmove, float *offset)
 	{
 	hull_t *hull;
@@ -195,13 +195,13 @@ hull_t *PM_HullForBsp (physent_t *pe, playermove_t *pmove, float *offset)
 	return hull;
 	}
 
-/*
+/***
 ==================
 PM_HullForStudio
 
 generate multiple hulls as hitboxes
 ==================
-*/
+***/
 static hull_t *PM_HullForStudio (physent_t *pe, playermove_t *pmove, int *numhitboxes)
 	{
 	vec3_t	size;
@@ -213,11 +213,11 @@ static hull_t *PM_HullForStudio (physent_t *pe, playermove_t *pmove, int *numhit
 		pe->controller, pe->blending, numhitboxes, NULL);
 	}
 
-/*
+/***
 ==================
 PM_RecursiveHullCheck
 ==================
-*/
+***/
 qboolean PM_RecursiveHullCheck (hull_t *hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, pmtrace_t *trace)
 	{
 	mclipnode_t	*node;
@@ -699,11 +699,11 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 	return -1; // didn't hit anything
 	}
 
-/*
+/***
 =============
 PM_TruePointContents
 =============
-*/
+***/
 int PM_TruePointContents (playermove_t *pmove, const vec3_t p)
 	{
 	hull_t *hull = &pmove->physents[0].model->hulls[0];
@@ -714,11 +714,11 @@ int PM_TruePointContents (playermove_t *pmove, const vec3_t p)
 		return CONTENTS_EMPTY;
 	}
 
-/*
+/***
 =============
 PM_PointContents
 =============
-*/
+***/
 int PM_PointContents (playermove_t *pmove, const vec3_t p)
 	{
 	int			i, contents;
@@ -771,11 +771,11 @@ int PM_PointContents (playermove_t *pmove, const vec3_t p)
 	return contents;
 	}
 
-/*
+/***
 =============
 PM_TraceModel [FWGS, 01.04.23]
 =============
-*/
+***/
 float PM_TraceModel (playermove_t *pmove, physent_t *pe, float *start, float *end, trace_t *trace)
 	{
 	int			old_usehull;

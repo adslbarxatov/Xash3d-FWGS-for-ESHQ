@@ -63,13 +63,13 @@ void R_GetTextureParms (int *w, int *h, int texnum)
 		*h = REF_GET_PARM (PARM_TEX_HEIGHT, texnum);
 	}
 
-/*
+/***
 ================
 GL_FreeImage
 
 Frees image by name
 ================
-*/
+***/
 void GAME_EXPORT GL_FreeImage (const char *name)
 	{
 	int	texnum;
@@ -162,11 +162,11 @@ static void pfnSetLocalLightLevel (int level)
 	cl.local.light_level = level;
 	}
 
-/*
+/***
 ===============
 pfnPlayerInfo
 ===============
-*/
+***/
 static player_info_t *pfnPlayerInfo (int index)
 	{
 	if (index == -1) // special index for menu
@@ -178,11 +178,11 @@ static player_info_t *pfnPlayerInfo (int index)
 	return &cl.players[index];
 	}
 
-/*
+/***
 ===============
 pfnGetPlayerState
 ===============
-*/
+***/
 static entity_state_t *R_StudioGetPlayerState (int index)
 	{
 	if ((index < 0) || (index >= cl.maxclients))
@@ -221,26 +221,7 @@ static screenfade_t *pfnRefGetScreenFade (void)
 	return &clgame.fade;
 	}
 
-// [FWGS, 01.01.24]
-/*
-===============
-R_DoResetGamma
-gamma will be reset for
-some type of screenshots
-===============
-//
-static qboolean R_DoResetGamma (void)
-	{
-	switch (cls.scrshot_action)
-		{
-		case scrshot_envshot:
-		case scrshot_skyshot:
-			return true;
-
-		default:
-			return false;
-		}
-	}*/
+// [FWGS, 01.01.24] removed R_DoResetGamma
 
 static qboolean R_Init_Video_ (const int type)
 	{

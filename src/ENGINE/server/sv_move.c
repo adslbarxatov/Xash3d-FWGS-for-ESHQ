@@ -1,4 +1,4 @@
-/*
+/***
 sv_move.c - monsters movement
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "xash3d_mathlib.h"
@@ -22,15 +22,14 @@ GNU General Public License for more details.
 #define MOVE_NORMAL		0	// normal move in the direction monster is facing
 #define MOVE_STRAFE		1	// moves in direction specified, no matter which way monster is facing
 
-/*
+/***
 =============
 SV_CheckBottom
 
 Returns false if any part of the bottom of the entity is off an edge that
-is not a staircase.
-
+is not a staircase
 =============
-*/
+***/
 qboolean SV_CheckBottom (edict_t *ent, int iMode)
 	{
 	vec3_t		mins, maxs, start, stop;
@@ -203,13 +202,13 @@ void SV_WaterMove (edict_t *ent)
 		}
 	}
 
-/*
+/***
 =============
 SV_VecToYaw
 
 converts dir to yaw
 =============
-*/
+***/
 float SV_VecToYaw (const vec3_t src)
 	{
 	float yaw;

@@ -1,4 +1,4 @@
-/*
+/***
 snd_main.c - load & save various sound formats
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "soundlib.h"
 
@@ -47,13 +47,13 @@ static wavdata_t *SoundPack (void)
 	return pack;
 	}
 
-/*
+/***
 ================
 FS_LoadSound
 
 loading and unpack to wav any known sound
 ================
-*/
+***/
 wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 	{
 	const char *ext = COM_FileExtension (filename);
@@ -130,13 +130,13 @@ load_internal:
 	return NULL;
 	}
 
-/*
+/***
 ================
 Sound_FreeSound
 
 free WAV buffer
 ================
-*/
+***/
 void FS_FreeSound (wavdata_t *pack)
 	{
 	if (!pack)
@@ -146,13 +146,13 @@ void FS_FreeSound (wavdata_t *pack)
 	Mem_Free (pack);
 	}
 
-/*
+/***
 ================
 FS_OpenStream [FWGS, 01.01.24]
 
 open and reading basic info from sound stream
 ================
-*/
+***/
 stream_t *FS_OpenStream (const char *filename)
 	{
 	const char	*ext = COM_FileExtension (filename);
@@ -210,13 +210,13 @@ stream_t *FS_OpenStream (const char *filename)
 	return stream;
 	}
 
-/*
+/***
 ================
 FS_StreamInfo [FWGS, 09.05.24]
 
 get basic stream info
 ================
-*/
+***/
 wavdata_t *FS_StreamInfo (stream_t *stream)
 	{
 	static wavdata_t	info;
@@ -225,7 +225,6 @@ wavdata_t *FS_StreamInfo (stream_t *stream)
 		return NULL;
 
 	// fill structure
-	/*info.loopStart = -1;*/
 	info.loopStart = 0;
 	info.rate = stream->rate;
 	info.width = stream->width;
@@ -241,13 +240,13 @@ wavdata_t *FS_StreamInfo (stream_t *stream)
 	return &info;
 	}
 
-/*
+/***
 ================
 FS_ReadStream
 
 extract stream as wav-data and put into buffer, move file pointer
 ================
-*/
+***/
 int FS_ReadStream (stream_t *stream, int bytes, void *buffer)
 	{
 	if (!stream || !stream->format || !stream->format->readfunc)
@@ -259,13 +258,13 @@ int FS_ReadStream (stream_t *stream, int bytes, void *buffer)
 	return stream->format->readfunc (stream, bytes, buffer);
 	}
 
-/*
+/***
 ================
 FS_GetStreamPos
 
 get stream position (in bytes)
 ================
-*/
+***/
 int FS_GetStreamPos (stream_t *stream)
 	{
 	if (!stream || !stream->format || !stream->format->getposfunc)
@@ -274,13 +273,13 @@ int FS_GetStreamPos (stream_t *stream)
 	return stream->format->getposfunc (stream);
 	}
 
-/*
+/***
 ================
 FS_SetStreamPos
 
 set stream position (in bytes)
 ================
-*/
+***/
 int FS_SetStreamPos (stream_t *stream, int newpos)
 	{
 	if (!stream || !stream->format || !stream->format->setposfunc)
@@ -289,13 +288,13 @@ int FS_SetStreamPos (stream_t *stream, int newpos)
 	return stream->format->setposfunc (stream, newpos);
 	}
 
-/*
+/***
 ================
 FS_FreeStream
 
 close sound stream
 ================
-*/
+***/
 void FS_FreeStream (stream_t *stream)
 	{
 	if (!stream || !stream->format || !stream->format->freefunc)

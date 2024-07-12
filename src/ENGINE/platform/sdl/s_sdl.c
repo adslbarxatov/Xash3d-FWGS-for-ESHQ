@@ -1,4 +1,4 @@
-/*
+/***
 s_backend.c - sound hardware output
 Copyright (C) 2009 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "platform/platform.h"
@@ -39,12 +39,12 @@ GNU General Public License for more details.
 	#define SDLash_IsAudioError( x ) (( x ) == 0)
 #endif
 
-/*
+/***
 =======================================================================
 Global variables. Must be visible to window-procedure function
 so it can unlock and free the data block after it has been played.
 =======================================================================
-*/
+***/
 static int sdl_dev;
 static SDL_AudioDeviceID in_dev = 0;
 static SDL_AudioFormat sdl_format;
@@ -87,14 +87,14 @@ static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 		dma.samplepos = 0;
 	}
 
-/*
+/***
 ==================
 SNDDMA_Init [FWGS, 01.07.23]
 
 Try to find a sound device to mix for.
-Returns false if nothing is found.
+Returns false if nothing is found
 ==================
-*/
+***/
 qboolean SNDDMA_Init (void)
 	{
 	SDL_AudioSpec desired, obtained;
@@ -166,38 +166,38 @@ fail:
 	}
 
 
-/*
+/***
 ==============
 SNDDMA_BeginPainting [FWGS, 01.07.23]
 
 Makes sure dma.buffer is valid
 ===============
-*/
+***/
 void SNDDMA_BeginPainting (void)
 	{
 	SDL_LockAudioDevice (sdl_dev);
 	}
 
-/*
+/***
 ==============
 SNDDMA_Submit [FWGS, 01.07.23]
 
 Send sound to device if buffer isn't really the dma buffer
 Also unlocks the dsound buffer
 ===============
-*/
+***/
 void SNDDMA_Submit (void)
 	{
 	SDL_UnlockAudioDevice (sdl_dev);
 	}
 
-/*
+/***
 ==============
 SNDDMA_Shutdown
 
 Reset the sound device for exiting
 ===============
-*/
+***/
 void SNDDMA_Shutdown (void)
 	{
 	Con_Printf ("Shutting down audio.\n");
@@ -224,14 +224,14 @@ void SNDDMA_Shutdown (void)
 		}
 	}
 
-/*
+/***
 ===========
 SNDDMA_Activate
 Called when the main window gains or loses focus.
 The window have been destroyed and recreated
-between a deactivate and an activate.
+between a deactivate and an activate
 ===========
-*/
+***/
 void SNDDMA_Activate (qboolean active)
 	{
 	if (!dma.initialized)
@@ -240,11 +240,11 @@ void SNDDMA_Activate (qboolean active)
 	SDL_PauseAudioDevice (sdl_dev, !active);
 	}
 
-/*
+/***
 ===========
 SDL_SoundInputCallback
 ===========
-*/
+***/
 static void SDL_SoundInputCallback (void *userdata, Uint8 *stream, int len)
 	{
 	int size = Q_min (len, sizeof (voice.input_buffer) - voice.input_buffer_pos);
@@ -257,11 +257,11 @@ static void SDL_SoundInputCallback (void *userdata, Uint8 *stream, int len)
 	voice.input_buffer_pos += size;
 	}
 
-/*
+/***
 ===========
 VoiceCapture_Init
 ===========
-*/
+***/
 qboolean VoiceCapture_Init (void)
 	{
 	SDL_AudioSpec wanted, spec;
@@ -291,11 +291,11 @@ qboolean VoiceCapture_Init (void)
 	return true;
 	}
 
-/*
+/***
 ===========
 VoiceCapture_Activate
 ===========
-*/
+***/
 qboolean VoiceCapture_Activate (qboolean activate)
 	{
 	if (SDLash_IsAudioError (in_dev))
@@ -305,11 +305,11 @@ qboolean VoiceCapture_Activate (qboolean activate)
 	return true;
 	}
 
-/*
+/***
 ===========
 VoiceCapture_Lock
 ===========
-*/
+***/
 qboolean VoiceCapture_Lock (qboolean lock)
 	{
 	if (SDLash_IsAudioError (in_dev))
@@ -323,11 +323,11 @@ qboolean VoiceCapture_Lock (qboolean lock)
 	return true;
 	}
 
-/*
+/***
 ==========
 VoiceCapture_Shutdown
 ==========
-*/
+***/
 void VoiceCapture_Shutdown (void)
 	{
 	if (SDLash_IsAudioError (in_dev))

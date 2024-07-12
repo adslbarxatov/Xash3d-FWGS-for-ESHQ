@@ -1,4 +1,4 @@
-/*
+/***
 s_vox.c - npc sentences
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 // [FWGS, 01.11.23]
 #include "common.h"
@@ -288,24 +288,6 @@ static const char *VOX_LookupString (const char *pszin)
 	// check if we are an immediate sentence
 	if (*pszin == '#')
 		{
-		/*
-		// Q_atoi is too smart and allows negative values
-		// so check with Q_isdigit beforehand
-		if (Q_isdigit (pszin + 1))
-			{
-			sentenceEntry_s *sentenceEntry;
-			i = Q_atoi (pszin + 1);
-			if ((sentenceEntry = Sequence_GetSentenceByIndex (i)))
-				return sentenceEntry->data;
-			return NULL;	// [FWGS, 01.05.23]
-			}
-		else
-			{
-			// immediate sentence, probably coming from "speak" command
-			return pszin + 1;
-			}
-		*/
-		
 		// immediate sentence, probably coming from "speak" command
 		return pszin + 1;
 		}

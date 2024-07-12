@@ -1,4 +1,4 @@
-/*
+/***
 sys_win.c - platform dependent code
 Copyright (C) 2011 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "xash3d_mathlib.h"
@@ -56,39 +56,26 @@ GNU General Public License for more details.
 #include "whereami.h"
 
 // [FWGS, 01.05.24] arg for exit()
-/*qboolean	error_on_exit = false;	// arg for exit();*/
 int error_on_exit = 0;
 
-/*
+/***
 ================
 Sys_DoubleTime
 ================
-*/
+***/
 double GAME_EXPORT Sys_DoubleTime (void)
 	{
 	return Platform_DoubleTime ();
 	}
 
-/*
+/***
 ================
 Sys_DebugBreak [FWGS, 01.05.24]
 ================
-*/
+***/
 void Sys_DebugBreak (void)
 	{
-/*#if XASH_LINUX || ( XASH_WIN32 && !XASH_64BIT )
-*/
-	
 #if _MSC_VER
-	/*if (Sys_DebuggerPresent ())
-		_asm { int 3 }
-	#elif XASH_X86
-	if (Sys_DebuggerPresent ())
-		asm volatile("int $3;");
-	#else
-	if (Sys_DebuggerPresent ())
-		raise (SIGINT);
-	#endif*/
 	if (Sys_DebuggerPresent ())
 		__debugbreak ();
 #else
@@ -103,13 +90,13 @@ void Sys_DebugBreak (void)
 	}
 
 #if !XASH_DEDICATED
-/*
+/***
 ================
 Sys_GetClipboardData
 
 create buffer, that contain clipboard
 ================
-*/
+***/
 char *Sys_GetClipboardData (void)
 	{
 	static char data[1024];
@@ -120,15 +107,15 @@ char *Sys_GetClipboardData (void)
 
 	return data;
 	}
-#endif // XASH_DEDICATED
+#endif
 
-/*
+/***
 ================
 Sys_Sleep
 
 freeze application for some time
 ================
-*/
+***/
 void Sys_Sleep (int msec)
 	{
 	if (!msec)
@@ -138,13 +125,13 @@ void Sys_Sleep (int msec)
 	Platform_Sleep (msec);
 	}
 
-/*
+/***
 ================
 Sys_GetCurrentUser
 
 returns username for current profile
 ================
-*/
+***/
 const char *Sys_GetCurrentUser (void)
 	{
 #if XASH_WIN32
@@ -171,11 +158,11 @@ const char *Sys_GetCurrentUser (void)
 	return "Player";
 	}
 
-/*
+/***
 ==================
 Sys_ParseCommandLine
 ==================
-*/
+***/
 void Sys_ParseCommandLine (int argc, char **argv)
 	{
 	const char	*blank = "censored";
@@ -211,11 +198,11 @@ void Sys_ParseCommandLine (int argc, char **argv)
 		}
 	}
 
-/*
+/***
 ==================
 Sys_MergeCommandLine
 ==================
-*/
+***/
 void Sys_MergeCommandLine (void)
 	{
 	const char	*blank = "censored";
@@ -232,14 +219,14 @@ void Sys_MergeCommandLine (void)
 		}
 	}
 
-/*
+/***
 ================
 Sys_CheckParm
 
 Returns the position (1 to argc-1) in the program's argument list
 where the given parameter apears, or 0 if not present
 ================
-*/
+***/
 int Sys_CheckParm (const char *parm)
 	{
 	int	i;
@@ -255,13 +242,13 @@ int Sys_CheckParm (const char *parm)
 	return 0;
 	}
 
-/*
+/***
 ================
 Sys_GetParmFromCmdLine
 
 Returns the argument for specified parm
 ================
-*/
+***/
 qboolean _Sys_GetParmFromCmdLine (const char *parm, char *out, size_t size)
 	{
 	int	argc = Sys_CheckParm (parm);
@@ -396,13 +383,13 @@ qboolean Sys_FreeLibrary (dll_info_t *dll)
 	return true;
 	}
 
-/*
+/***
 ================
 Sys_WaitForQuit
 
 wait for 'Esc' key will be hit
 ================
-*/
+***/
 static void Sys_WaitForQuit (void)
 	{
 #if XASH_WIN32
@@ -425,13 +412,13 @@ static void Sys_WaitForQuit (void)
 #endif
 	}
 
-/*
+/***
 ================
 Sys_Warn [FWGS, 01.05.24]
 
 Just messagebox
 ================
-*/
+***/
 void Sys_Warn (const char *format, ...)
 	{
 	va_list	argptr;
@@ -447,18 +434,16 @@ void Sys_Warn (const char *format, ...)
 	// dedicated server should not hang on messagebox
 	if (!Host_IsDedicated ())
 		Platform_MessageBox ("Xash Warning", text, true);
-
-	/*Platform_MessageBox ("Xash Warning", text, false);*/
 	}
 
-/*
+/***
 ================
 Sys_Error [FWGS, 01.05.24]
 
 NOTE: we must prepare engine to shutdown
 before call this
 ================
-*/
+***/
 void Sys_Error (const char *error, ...)
 	{
 	va_list	argptr;
@@ -476,7 +461,6 @@ void Sys_Error (const char *error, ...)
 	if (host.change_game) 
 		Sys_Sleep (200);
 
-	/*error_on_exit = true;*/
 	error_on_exit = 1;
 
 	host.status = HOST_ERR_FATAL;
@@ -498,7 +482,6 @@ void Sys_Error (const char *error, ...)
 		Wcon_ShowConsole (false);
 #endif
 		Sys_Print (text);
-		/*Platform_MessageBox ("Xash Error", text, false);*/
 		Platform_MessageBox ("Xash Error", text, true);
 		}
 	else
@@ -528,24 +511,24 @@ void my_exit (int ret)
 	}
 #endif
 
-/*
+/***
 ================
 Sys_Quit
 ================
-*/
+***/
 void Sys_Quit (void)
 	{
 	Host_Shutdown ();
 	exit (error_on_exit);
 	}
 
-/*
+/***
 ================
 Sys_Print
 
 print into window console
 ================
-*/
+***/
 void Sys_Print (const char *pMsg)
 	{
 #if !XASH_DEDICATED
@@ -618,7 +601,7 @@ void Sys_Print (const char *pMsg)
 	Rcon_Print (&host.rd, pMsg);
 	}
 
-/*
+/***
 ==================
 Sys_NewInstance [FWGS, 01.04.23]
 
@@ -628,7 +611,7 @@ Here we restart engine with new -game parameter
 but since engine will be unloaded during this call
 it explicitly doesn't use internal allocation or string copy utils
 ==================
-*/
+***/
 qboolean Sys_NewInstance (const char *gamedir)
 	{
 #if XASH_NSWITCH
@@ -709,13 +692,13 @@ qboolean Sys_NewInstance (const char *gamedir)
 	return false;
 	}
 
-/*
+/***
 ==================
 Sys_GetNativeObject [FWGS, 01.11.23]
 
 Get platform-specific native object
 ==================
-*/
+***/
 void *Sys_GetNativeObject (const char *obj)
 	{
 	void *ptr;

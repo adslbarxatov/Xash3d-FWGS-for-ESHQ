@@ -1,4 +1,4 @@
-/*
+/***
 s_stream.c - sound streaming
 Copyright (C) 2009 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "sound.h"
@@ -20,11 +20,11 @@ GNU General Public License for more details.
 static bg_track_t		s_bgTrack;
 static musicfade_t		musicfade;	// controlled by game dlls
 
-/*
+/***
 =================
 S_PrintBackgroundTrackState
 =================
-*/
+***/
 void S_PrintBackgroundTrackState (void)
 	{
 	Con_Printf ("BackgroundTrack: ");
@@ -39,21 +39,21 @@ void S_PrintBackgroundTrackState (void)
 		Con_Printf ("not playing\n");
 	}
 
-/*
+/***
 =================
 S_FadeMusicVolume
 =================
-*/
+***/
 void S_FadeMusicVolume (float fadePercent)
 	{
 	musicfade.percent = bound (0.0f, fadePercent, 100.0f);
 	}
 
-/*
+/***
 =================
 S_GetMusicVolume
 =================
-*/
+***/
 float S_GetMusicVolume (void)
 	{
 	float	scale = 1.0f;
@@ -67,11 +67,11 @@ float S_GetMusicVolume (void)
 	return s_musicvolume.value * scale;
 	}
 
-/*
+/***
 =================
 S_StartBackgroundTrack
 =================
-*/
+***/
 void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int position, qboolean fullpath)
 	{
 	S_StopBackgroundTrack ();
@@ -107,11 +107,11 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 		FS_SetStreamPos (s_bgTrack.stream, position);
 	}
 
-/*
+/***
 =================
 S_StopBackgroundTrack
 =================
-*/
+***/
 void S_StopBackgroundTrack (void)
 	{
 	s_listener.stream_paused = false;
@@ -124,24 +124,23 @@ void S_StopBackgroundTrack (void)
 	memset (&musicfade, 0, sizeof (musicfade));
 	}
 
-/*
+/***
 =================
 S_StreamSetPause
 =================
-*/
+***/
 void S_StreamSetPause (int pause)
 	{
 	s_listener.stream_paused = pause;
 	}
 
-/*
+/***
 =================
 S_StreamGetCurrentState [FWGS, 09.05.24]
 
 save\restore code
 =================
-*/
-/*qboolean S_StreamGetCurrentState (char *currentTrack, char *loopTrack, int *position)*/
+***/
 qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack,
 	size_t loopTrackSize, int *position)
 	{
@@ -154,10 +153,6 @@ qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, c
 			Q_strncpy (currentTrack, s_bgTrack.current, currentTrackSize);
 		else
 			Q_strncpy (currentTrack, "*", currentTrackSize); // no track
-
-			/*Q_strncpy (currentTrack, s_bgTrack.current, MAX_STRING);
-		else
-			Q_strncpy (currentTrack, "*", MAX_STRING); // no track*/
 		}
 
 	if (loopTrack)
@@ -166,10 +161,6 @@ qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, c
 			Q_strncpy (loopTrack, s_bgTrack.loopName, loopTrackSize);
 		else
 			Q_strncpy (loopTrack, "*", loopTrackSize); // no track
-
-			/*Q_strncpy (loopTrack, s_bgTrack.loopName, MAX_STRING);
-		else
-			Q_strncpy (loopTrack, "*", MAX_STRING); // no track*/
 		}
 
 	if (position)
@@ -178,11 +169,11 @@ qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, c
 	return true;
 	}
 
-/*
+/***
 =================
 S_StreamBackgroundTrack
 =================
-*/
+***/
 void S_StreamBackgroundTrack (void)
 	{
 	int	bufferSamples;
@@ -271,24 +262,25 @@ void S_StreamBackgroundTrack (void)
 		}
 	}
 
-/*
+/***
 =================
 S_StartStreaming
 =================
-*/
+***/
 void S_StartStreaming (void)
 	{
 	if (!dma.initialized)
 		return;
+
 	// begin streaming movie soundtrack
 	s_listener.streaming = true;
 	}
 
-/*
+/***
 =================
 S_StopStreaming
 =================
-*/
+***/
 void S_StopStreaming (void)
 	{
 	if (!dma.initialized)
@@ -296,11 +288,11 @@ void S_StopStreaming (void)
 	s_listener.streaming = false;
 	}
 
-/*
+/***
 =================
 S_StreamSoundTrack
 =================
-*/
+***/
 void S_StreamSoundTrack (void)
 	{
 	int	bufferSamples;

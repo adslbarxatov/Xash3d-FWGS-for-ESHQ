@@ -1,4 +1,4 @@
-/*
+/***
 sv_pmove.c - server-side player physic
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -199,18 +199,18 @@ static void SV_GetTrueMinMax (sv_client_t *cl, int edictnum, vec3_t mins, vec3_t
 		}
 	}
 
-/*
+/***
 ====================
 SV_AddLinksToPmove
 
 collect solid entities
 ====================
-*/
+***/
 static void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t pmove_maxs)
 	{
-	link_t	*l, *next;
-	edict_t	*check, *pl;
-	vec3_t	mins, maxs;
+	link_t		*l, *next;
+	edict_t		*check, *pl;
+	vec3_t		mins, maxs;
 	physent_t	*pe;
 
 	pl = EDICT_NUM (svgame.pmove->player_index + 1);
@@ -296,11 +296,11 @@ static void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const
 		SV_AddLinksToPmove (node->children[1], pmove_mins, pmove_maxs);
 	}
 
-/*
+/***
 ====================
 SV_AddLaddersToPmove
 ====================
-*/
+***/
 static void SV_AddLaddersToPmove (areanode_t *node, const vec3_t pmove_mins, const vec3_t pmove_maxs)
 	{
 	link_t		*l, *next;
@@ -470,11 +470,11 @@ static struct msurface_s *GAME_EXPORT pfnTraceSurface (int ground, float *vstart
 	return PM_TraceSurfacePmove (svgame.pmove, ground, vstart, vend);
 	}
 
-/*
+/***
 ===============
 SV_InitClientMove
 ===============
-*/
+***/
 void SV_InitClientMove (void)
 	{
 	int	i;
@@ -619,7 +619,6 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	pmove->cmd = *ucmd;
 	pmove->runfuncs = true;
 
-	/*Q_strncpy (pmove->physinfo, physinfo, MAX_INFO_STRING);*/
 	Q_strncpy (pmove->physinfo, physinfo, sizeof (pmove->physinfo));
 
 	// setup physents
@@ -929,17 +928,17 @@ static void SV_RestoreMoveInterpolant (sv_client_t *cl)
 		}
 	}
 
-/*
+/***
 ===========
 SV_RunCmd [FWGS, 01.07.23]
 ===========
-*/
+***/
 void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 	{
-	edict_t *clent, *touch;
+	edict_t		*clent, *touch;
 	double		frametime;
 	int			i, oldmsec;
-	pmtrace_t *pmtrace;
+	pmtrace_t	*pmtrace;
 	trace_t		trace;
 	vec3_t		oldvel;
 	usercmd_t	cmd;

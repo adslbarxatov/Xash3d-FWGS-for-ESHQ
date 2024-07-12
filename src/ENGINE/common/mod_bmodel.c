@@ -1,4 +1,4 @@
-/*
+/***
 mod_bmodel.c - loading & handling world and brushmodels
 Copyright (C) 2016 Uncle Mike
 
@@ -10,8 +10,9 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #include "common.h"
 #include "mod_local.h"
 #include "sprite.h"
@@ -206,11 +207,11 @@ static mlumpinfo_t		extlumps[EXTRA_LUMPS] =
 	{ LUMP_SHADOWMAP, 0, MAX_MAP_LIGHTING / 3, sizeof (byte), -1, "shadowmap", USE_EXTRAHEADER, (const void **)&srcmodel.shadowdata, &srcmodel.shadowdatasize },
 	};
 
-/*
+/***
 ===============================================================================
 Static helper functions
 ===============================================================================
-*/
+***/
 // [FWGS, 01.05.23]
 static mip_t *Mod_GetMipTexForTexture (dbspmodel_t *bmod, int i)
 	{
@@ -336,18 +337,18 @@ static void Mod_CreateDefaultTexture (model_t *mod, texture_t **texture)
 #endif
 	}
 
-/*
+/***
 ===============================================================================
 MAP PROCESSING
 ===============================================================================
-*/
-/*
+***/
+/***
 =================
 Mod_LoadLump
 
 generic loader
 =================
-*/
+***/
 static void Mod_LoadLump (const byte *in, mlumpinfo_t *info, mlumpstat_t *stat, int flags)
 	{
 	int	version = ((dheader_t *)in)->version;
@@ -479,11 +480,11 @@ static void Mod_LoadLump (const byte *in, mlumpinfo_t *info, mlumpstat_t *stat, 
 	if (info->count) *info->count = numelems;
 	}
 
-/*
+/***
 ================
 Mod_ArrayUsage
 ================
-*/
+***/
 static int Mod_ArrayUsage (const char *szItem, int items, int maxitems, int itemsize)
 	{
 	float	percentage = maxitems ? (items * 100.0f / maxitems) : 0.0f;
@@ -501,11 +502,11 @@ static int Mod_ArrayUsage (const char *szItem, int items, int maxitems, int item
 	return items * itemsize;
 	}
 
-/*
+/***
 ================
 Mod_GlobUsage
 ================
-*/
+***/
 static int Mod_GlobUsage (const char *szItem, int itemstorage, int maxstorage)
 	{
 	float	percentage = maxstorage ? (itemstorage * 100.0f / maxstorage) : 0.0f;
@@ -523,13 +524,13 @@ static int Mod_GlobUsage (const char *szItem, int itemstorage, int maxstorage)
 	return itemstorage;
 	}
 
-/*
+/***
 =============
 Mod_PrintWorldStats_f
 
 Dumps info about world
 =============
-*/
+***/
 void Mod_PrintWorldStats_f (void)
 	{
 	int	i, totalmemory = 0;
@@ -571,16 +572,16 @@ void Mod_PrintWorldStats_f (void)
 	Con_Printf ("map editor: ^2%s\n", world.generator[0] ? world.generator : "unknown");
 	}
 
-/*
+/***
 ===============================================================================
 COMMON ROUTINES
 ===============================================================================
-*/
-/*
+***/
+/***
 ===================
 Mod_DecompressPVS
 ===================
-*/
+***/
 static byte *Mod_DecompressPVS (const byte *in, int visbytes)
 	{
 	byte	*out;
@@ -620,11 +621,11 @@ static byte *Mod_DecompressPVS (const byte *in, int visbytes)
 		return g_visdata;
 	}
 
-/*
+/***
 ==================
 Mod_PointInLeaf
 ==================
-*/
+***/
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node)
 	{
 	Assert (node != NULL);
@@ -640,14 +641,14 @@ mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node)
 	return NULL;
 	}
 
-/*
+/***
 ==================
 Mod_GetPVSForPoint
 
 Returns PVS data for a given point
 NOTE: can return NULL
 ==================
-*/
+***/
 byte *Mod_GetPVSForPoint (const vec3_t p)
 	{
 	mnode_t *node;
@@ -672,11 +673,11 @@ byte *Mod_GetPVSForPoint (const vec3_t p)
 	return NULL;
 	}
 
-/*
+/***
 ==================
 Mod_FatPVS_RecursiveBSPNode
 ==================
-*/
+***/
 static void Mod_FatPVS_RecursiveBSPNode (const vec3_t org, float radius, byte *visbuffer, int visbytes, mnode_t *node)
 	{
 	int	i;
@@ -707,14 +708,14 @@ static void Mod_FatPVS_RecursiveBSPNode (const vec3_t org, float radius, byte *v
 		}
 	}
 
-/*
+/***
 ==================
 Mod_FatPVS_RecursiveBSPNode
 
 Calculates a PVS that is the inclusive or of all leafs
 within radius pixels of the given point.
 ==================
-*/
+***/
 int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis)
 	{
 	int	bytes = world.visbytes;
@@ -740,13 +741,13 @@ int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, q
 	return bytes;
 	}
 
-/*
+/***
 ======================================================================
 
 LEAF LISTING
 
 ======================================================================
-*/
+***/
 static void Mod_BoxLeafnums_r (leaflist_t *ll, mnode_t *node)
 	{
 	int	sides;
@@ -792,11 +793,11 @@ static void Mod_BoxLeafnums_r (leaflist_t *ll, mnode_t *node)
 		}
 	}
 
-/*
+/***
 ==================
 Mod_BoxLeafnums
 ==================
-*/
+***/
 static int Mod_BoxLeafnums (const vec3_t mins, const vec3_t maxs, int *list, int listsize, int *topnode)
 	{
 	leaflist_t	ll;
@@ -818,14 +819,14 @@ static int Mod_BoxLeafnums (const vec3_t mins, const vec3_t maxs, int *list, int
 	return ll.count;
 	}
 
-/*
+/***
 =============
 Mod_BoxVisible
 
 Returns true if any leaf in boxspace
 is potentially visible
 =============
-*/
+***/
 qboolean Mod_BoxVisible (const vec3_t mins, const vec3_t maxs, const byte *visbits)
 	{
 	int	leafList[MAX_BOX_LEAFS];
@@ -844,11 +845,11 @@ qboolean Mod_BoxVisible (const vec3_t mins, const vec3_t maxs, const byte *visbi
 	return false;
 	}
 
-/*
+/***
 =============
 Mod_HeadnodeVisible
 =============
-*/
+***/
 qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf)
 	{
 	if (!node || node->contents == CONTENTS_SOLID)
@@ -873,13 +874,13 @@ qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf)
 	return false;
 	}
 
-/*
+/***
 =================
 Mod_FindModelOrigin
 
 routine to detect bmodels with origin-brush
 =================
-*/
+***/
 static void Mod_FindModelOrigin (const char *entities, const char *modelname, vec3_t origin)
 	{
 	char	*pfile;
@@ -936,14 +937,14 @@ static void Mod_FindModelOrigin (const char *entities, const char *modelname, ve
 		}
 	}
 
-/*
+/***
 ==================
 Mod_CheckWaterAlphaSupport [FWGS, 01.11.23]
 
 converted maps potential may don't
 support water transparency
 ==================
-*/
+***/
 static qboolean Mod_CheckWaterAlphaSupport (model_t *mod, dbspmodel_t *bmod)
 	{
 	mleaf_t		*leaf;
@@ -972,13 +973,13 @@ static qboolean Mod_CheckWaterAlphaSupport (model_t *mod, dbspmodel_t *bmod)
 	return false;
 	}
 
-/*
+/***
 ==================
 Mod_SampleSizeForFace [FWGS, 01.01.24]
 
 return the current lightmap resolution per face
 ==================
-*/
+***/
 int Mod_SampleSizeForFace (const msurface_t *surf)
 	{
 	if (!surf || !surf->texinfo)
@@ -997,13 +998,13 @@ int Mod_SampleSizeForFace (const msurface_t *surf)
 	return LM_SAMPLE_SIZE;
 	}
 
-/*
+/***
 ==================
 Mod_GetFaceContents
 
 determine face contents by name
 ==================
-*/
+***/
 static int Mod_GetFaceContents (const char *name)
 	{
 	if (!Q_strnicmp (name, "SKY", 3))
@@ -1024,13 +1025,13 @@ static int Mod_GetFaceContents (const char *name)
 	return CONTENTS_SOLID;
 	}
 
-/*
+/***
 ==================
 Mod_GetFaceContents
 
 determine face contents by name
 ==================
-*/
+***/
 static mvertex_t *Mod_GetVertexByNumber (model_t *mod, int surfedge)
 	{
 	int	lindex;
@@ -1050,13 +1051,13 @@ static mvertex_t *Mod_GetVertexByNumber (model_t *mod, int surfedge)
 		}
 	}
 
-/*
+/***
 ==================
 Mod_MakeNormalAxial
 
 remove jitter from near-axial normals
 ==================
-*/
+***/
 static void Mod_MakeNormalAxial (vec3_t normal)
 	{
 	int	i, type;
@@ -1076,13 +1077,13 @@ static void Mod_MakeNormalAxial (vec3_t normal)
 		}
 	}
 
-/*
+/***
 ==================
 Mod_LightMatrixFromTexMatrix
 
 compute lightmap matrix based on texture matrix
 ==================
-*/
+***/
 static void Mod_LightMatrixFromTexMatrix (const mtexinfo_t *tx, float lmvecs[2][4])
 	{
 	float	lmscale = LM_SAMPLE_SIZE;
@@ -1124,13 +1125,13 @@ static void Mod_LightMatrixFromTexMatrix (const mtexinfo_t *tx, float lmvecs[2][
 	lmvecs[1][3] = -lmscale * 0.5f;
 	}
 
-/*
+/***
 =================
 Mod_CalcSurfaceExtents [FWGS, 01.11.23]
 
 Fills in surf->texturemins[] and surf->extents[]
 =================
-*/
+***/
 static void Mod_CalcSurfaceExtents (model_t *mod, msurface_t *surf)
 	{
 	// this place is VERY critical to precision
@@ -1209,13 +1210,13 @@ static void Mod_CalcSurfaceExtents (model_t *mod, msurface_t *surf)
 		}
 	}
 
-/*
+/***
 =================
 Mod_CalcSurfaceBounds [FWGS, 01.11.23]
 
 fills in surf->mins and surf->maxs
 =================
-*/
+***/
 static void Mod_CalcSurfaceBounds (model_t *mod, msurface_t *surf)
 	{
 	int	i, e;
@@ -1240,11 +1241,11 @@ static void Mod_CalcSurfaceBounds (model_t *mod, msurface_t *surf)
 	VectorAverage (surf->info->mins, surf->info->maxs, surf->info->origin);
 	}
 
-/*
+/***
 =================
 Mod_CreateFaceBevels [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf)
 	{
 	vec3_t		delta, edgevec;
@@ -1302,11 +1303,11 @@ static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf)
 		}
 	}
 
-/*
+/***
 =================
 Mod_SetParent
 =================
-*/
+***/
 static void Mod_SetParent (mnode_t *node, mnode_t *parent)
 	{
 	node->parent = parent;
@@ -1316,11 +1317,11 @@ static void Mod_SetParent (mnode_t *node, mnode_t *parent)
 	Mod_SetParent (node->children[1], node);
 	}
 
-/*
+/***
 ==================
 CountClipNodes_r
 ==================
-*/
+***/
 static void CountClipNodes_r (mclipnode_t *src, hull_t *hull, int nodenum)
 	{
 	// leaf?
@@ -1335,11 +1336,11 @@ static void CountClipNodes_r (mclipnode_t *src, hull_t *hull, int nodenum)
 	CountClipNodes_r (src, hull, src[nodenum].children[1]);
 	}
 
-/*
+/***
 ==================
 CountClipNodes32_r
 ==================
-*/
+***/
 static void CountClipNodes32_r (dclipnode32_t *src, hull_t *hull, int nodenum)
 	{
 	// leaf?
@@ -1354,11 +1355,11 @@ static void CountClipNodes32_r (dclipnode32_t *src, hull_t *hull, int nodenum)
 	CountClipNodes32_r (src, hull, src[nodenum].children[1]);
 	}
 
-/*
+/***
 ==================
 RemapClipNodes_r
 ==================
-*/
+***/
 static int RemapClipNodes_r (dclipnode32_t *srcnodes, hull_t *hull, int nodenum)
 	{
 	dclipnode32_t	*src;
@@ -1386,13 +1387,13 @@ static int RemapClipNodes_r (dclipnode32_t *srcnodes, hull_t *hull, int nodenum)
 	return c;
 	}
 
-/*
+/***
 =================
 Mod_MakeHull0 [FWGS, 01.11.23]
 
 Duplicate the drawing hull structure as a clipping hull
 =================
-*/
+***/
 static void Mod_MakeHull0 (model_t *mod)
 	{
 	mnode_t		*in, *child;
@@ -1424,11 +1425,11 @@ static void Mod_MakeHull0 (model_t *mod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_SetupHull
 =================
-*/
+***/
 static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, poolhandle_t mempool, int headnode, int hullnum)
 	{
 	hull_t *hull = &mod->hulls[hullnum];
@@ -1481,11 +1482,11 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, poolhandle_t mempool
 	RemapClipNodes_r (bmod->clipnodes_out, hull, headnode);
 	}
 
-/*
+/***
 =================
 Mod_LoadColoredLighting [FWGS, 01.11.23]
 =================
-*/
+***/
 static qboolean Mod_LoadColoredLighting (model_t *mod, dbspmodel_t *bmod)
 	{
 	char		modelname[64];
@@ -1533,11 +1534,11 @@ static qboolean Mod_LoadColoredLighting (model_t *mod, dbspmodel_t *bmod)
 	return true;
 	}
 
-/*
+/***
 =================
 Mod_LoadDeluxemap [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadDeluxemap (model_t *mod, dbspmodel_t *bmod)
 	{
 	char		modelname[64];
@@ -1586,14 +1587,14 @@ static void Mod_LoadDeluxemap (model_t *mod, dbspmodel_t *bmod)
 	Mem_Free (in);
 	}
 
-/*
+/***
 =================
 Mod_SetupSubmodels [FWGS, 01.11.23]
 
 duplicate the basic information
 for embedded submodels
 =================
-*/
+***/
 static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 	{
 	qboolean		colored = false;
@@ -1693,16 +1694,16 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 		Mem_Free (bmod->clipnodes_out);
 	}
 
-/*
+/***
 ===============================================================================
 MAP LOADING
 ===============================================================================
-*/
-/*
+***/
+/***
 =================
 Mod_LoadSubmodels [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadSubmodels (model_t *mod, dbspmodel_t *bmod)
 	{
 	dmodel_t	*in, *out;
@@ -1756,11 +1757,11 @@ static void Mod_LoadSubmodels (model_t *mod, dbspmodel_t *bmod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_LoadEntities [FWGS, 09.05.24]
 =================
-*/
+***/
 static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)
 	{
 	byte	*entpatch = NULL;
@@ -1839,8 +1840,6 @@ static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)
 				{
 				char *pszWadFile;
 
-				/*Q_strncpy (wadstring, token, MAX_TOKEN - 2);
-				wadstring[MAX_TOKEN - 2] = 0;*/
 				Q_strncpy (wadstring, token, sizeof (wadstring) - 2);
 				wadstring[sizeof (wadstring) - 2] = 0;
 
@@ -1879,11 +1878,11 @@ static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_LoadPlanes [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadPlanes (model_t *mod, dbspmodel_t *bmod)
 	{
 	dplane_t	*in;
@@ -1913,11 +1912,11 @@ static void Mod_LoadPlanes (model_t *mod, dbspmodel_t *bmod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_LoadVertexes [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadVertexes (model_t *mod, dbspmodel_t *bmod)
 	{
 	dvertex_t	*in;
@@ -1951,11 +1950,11 @@ static void Mod_LoadVertexes (model_t *mod, dbspmodel_t *bmod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_LoadEdges [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadEdges (model_t *mod, dbspmodel_t *bmod)
 	{
 	medge_t	*out;
@@ -1986,11 +1985,11 @@ static void Mod_LoadEdges (model_t *mod, dbspmodel_t *bmod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_LoadSurfEdges [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadSurfEdges (model_t *mod, dbspmodel_t *bmod)
 	{
 	mod->surfedges = Mem_Malloc (mod->mempool, bmod->numsurfedges * sizeof (dsurfedge_t));
@@ -1998,11 +1997,11 @@ static void Mod_LoadSurfEdges (model_t *mod, dbspmodel_t *bmod)
 	mod->numsurfedges = bmod->numsurfedges;
 	}
 
-/*
+/***
 =================
 Mod_LoadMarkSurfaces [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadMarkSurfaces (model_t *mod, dbspmodel_t *bmod)
 	{
 	msurface_t	**out;
@@ -2050,11 +2049,11 @@ static qboolean Mod_LooksLikeWaterTexture (const char *name)
 	return false;
 	}
 
-/*
+/***
 =================
 Mod_LoadTextureData [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureIndex)
 	{
 #if !XASH_DEDICATED
@@ -2338,11 +2337,11 @@ static void Mod_SequenceAllAnimatedTextures (model_t *mod)
 		Mod_SequenceAnimatedTexture (mod, i);
 	}
 	
-/*
+/***
 =================
 Mod_LoadTextures [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadTextures (model_t *mod, dbspmodel_t *bmod)
 	{
 	dmiptexlump_t *lump;
@@ -2371,11 +2370,11 @@ static void Mod_LoadTextures (model_t *mod, dbspmodel_t *bmod)
 	Mod_SequenceAllAnimatedTextures (mod);
 	}
 
-/*
+/***
 =================
 Mod_LoadTexInfo [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadTexInfo (model_t *mod, dbspmodel_t *bmod)
 	{
 	mfaceinfo_t	*fout, *faceinfo;
@@ -2419,11 +2418,11 @@ static void Mod_LoadTexInfo (model_t *mod, dbspmodel_t *bmod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_LoadSurfaces [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 	{
 	int	test_lightsize = -1;
@@ -2576,11 +2575,11 @@ static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_LoadNodes [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadNodes (model_t *mod, dbspmodel_t *bmod)
 	{
 	mnode_t	*out;
@@ -2645,11 +2644,11 @@ static void Mod_LoadNodes (model_t *mod, dbspmodel_t *bmod)
 	Mod_SetParent (mod->nodes, NULL);
 	}
 
-/*
+/***
 =================
 Mod_LoadLeafs [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadLeafs (model_t *mod, dbspmodel_t *bmod)
 	{
 	mleaf_t	*out;
@@ -2754,11 +2753,11 @@ static void Mod_LoadLeafs (model_t *mod, dbspmodel_t *bmod)
 		SetBits (world.flags, FWORLD_WATERALPHA);
 	}
 
-/*
+/***
 =================
 Mod_LoadClipnodes [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadClipnodes (model_t *mod, dbspmodel_t *bmod)
 	{
 	dclipnode32_t	*out;
@@ -2801,22 +2800,22 @@ static void Mod_LoadClipnodes (model_t *mod, dbspmodel_t *bmod)
 	mod->numclipnodes = bmod->numclipnodes;
 	}
 
-/*
+/***
 =================
 Mod_LoadVisibility [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadVisibility (model_t *mod, dbspmodel_t *bmod)
 	{
 	mod->visdata = Mem_Malloc (mod->mempool, bmod->visdatasize);
 	memcpy (mod->visdata, bmod->visdata, bmod->visdatasize);
 	}
 
-/*
+/***
 =================
 Mod_LoadLightVecs [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadLightVecs (model_t *mod, dbspmodel_t *bmod)
 	{
 	if (bmod->deluxdatasize != bmod->lightdatasize)
@@ -2834,11 +2833,11 @@ static void Mod_LoadLightVecs (model_t *mod, dbspmodel_t *bmod)
 	memcpy (bmod->deluxedata_out, bmod->deluxdata, bmod->deluxdatasize);
 	}
 
-/*
+/***
 =================
 Mod_LoadShadowmap [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadShadowmap (model_t *mod, dbspmodel_t *bmod)
 	{
 	if (bmod->shadowdatasize != (bmod->lightdatasize / 3))
@@ -2853,11 +2852,11 @@ static void Mod_LoadShadowmap (model_t *mod, dbspmodel_t *bmod)
 	memcpy (bmod->shadowdata_out, bmod->shadowdata, bmod->shadowdatasize);
 	}
 
-/*
+/***
 =================
 Mod_LoadLighting [FWGS, 01.11.23]
 =================
-*/
+***/
 static void Mod_LoadLighting (model_t *mod, dbspmodel_t *bmod)
 	{
 	int			i, lightofs;
@@ -2933,24 +2932,24 @@ static void Mod_LoadLighting (model_t *mod, dbspmodel_t *bmod)
 		}
 	}
 
-/*
+/***
 =================
 Mod_LumpLooksLikeEntities [FWGS, 01.04.23]
 =================
-*/
+***/
 static int Mod_LumpLooksLikeEntities (const char *lump, const size_t lumplen)
 	{
 	// look for "classname" string
 	return Q_memmem (lump, lumplen, "\"classname\"", sizeof ("\"classname\"") - 1) != NULL ? 1 : 0;
 	}
 
-/*
+/***
 =================
 Mod_LoadBmodelLumps [FWGS, 01.11.23]
 
 loading and processing bmodel
 =================
-*/
+***/
 static qboolean Mod_LoadBmodelLumps (model_t *mod, const byte *mod_base, qboolean isworld)
 	{
 	const dheader_t		*header = (const dheader_t *)mod_base;
@@ -3123,14 +3122,14 @@ static int Mod_LumpLooksLikeEntitiesFile (file_t *f, const dlump_t *l, int flags
 	return ret;
 	}
 
-/*
+/***
 =================
 Mod_TestBmodelLumps [FWGS, 01.04.23]
 
 check for possible errors
 return real entities lump (for bshift swapped lumps)
 =================
-*/
+***/
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities)
 	{
 	const dheader_t *header = (const dheader_t *)mod_base;
@@ -3227,11 +3226,11 @@ qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base,
 	return true;
 	}
 
-/*
+/***
 =================
 Mod_LoadBrushModel [FWGS, 01.11.23]
 =================
-*/
+***/
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
 	char poolname[MAX_VA_STRING];
@@ -3255,13 +3254,13 @@ void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded)
 		*loaded = true;	// all done
 	}
 
-/*
+/***
 ==================
 Mod_CheckLump
 
 check lump for existing
 ==================
-*/
+***/
 int GAME_EXPORT Mod_CheckLump (const char *filename, const int lump, int *lumpsize)
 	{
 	file_t		*f = FS_Open (filename, "rb", false);
@@ -3315,13 +3314,13 @@ int GAME_EXPORT Mod_CheckLump (const char *filename, const int lump, int *lumpsi
 	return LUMP_LOAD_OK;
 	}
 
-/*
+/***
 ==================
 Mod_ReadLump
 
 reading random lump by user request
 ==================
-*/
+***/
 int GAME_EXPORT Mod_ReadLump (const char *filename, const int lump, void **lumpdata, int *lumpsize)
 	{
 	file_t		*f = FS_Open (filename, "rb", false);
@@ -3397,14 +3396,14 @@ int GAME_EXPORT Mod_ReadLump (const char *filename, const int lump, void **lumpd
 	return LUMP_LOAD_OK;
 	}
 
-/*
+/***
 ==================
 Mod_SaveLump
 
 writing lump by user request
 only empty lumps is allows
 ==================
-*/
+***/
 int GAME_EXPORT Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lumpsize)
 	{
 	byte		buffer[sizeof (dheader_t) + sizeof (dextrahdr_t)];
@@ -3491,3 +3490,4 @@ int GAME_EXPORT Mod_SaveLump (const char *filename, const int lump, void *lumpda
 	FS_Close (f);
 	return LUMP_SAVE_OK;
 	}
+

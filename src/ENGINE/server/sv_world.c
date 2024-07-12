@@ -1,4 +1,4 @@
-/*
+/***
 sv_world.c - world query functions
 Copyright (C) 2008 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -32,24 +32,24 @@ typedef struct moveclip_s
 	qboolean	monsterclip;
 	} moveclip_t;
 
-/*
+/***
 ===============================================================================
 HULL BOXES
 ===============================================================================
-*/
+***/
 
 static hull_t	box_hull;
 static mclipnode_t	box_clipnodes[6];
 static mplane_t	box_planes[6];
 
-/*
+/***
 ===================
 SV_InitBoxHull
 
 Set up the planes and clipnodes so that the six floats of a bounding box
 can just be stored out and get a proper hull_t structure.
 ===================
-*/
+***/
 static void SV_InitBoxHull (void)
 	{
 	int	i, side;
@@ -78,11 +78,11 @@ static void SV_InitBoxHull (void)
 
 	}
 
-/*
+/***
 ====================
 StudioPlayerBlend
 ====================
-*/
+***/
 static void SV_StudioPlayerBlend (mstudioseqdesc_t *pseqdesc, int *pBlend, float *pPitch)
 	{
 	// calc up/down pointing
@@ -108,13 +108,13 @@ static void SV_StudioPlayerBlend (mstudioseqdesc_t *pseqdesc, int *pBlend, float
 		}
 	}
 
-/*
+/***
 ====================
 SV_CheckSphereIntersection
 
 check clients only
 ====================
-*/
+***/
 static qboolean SV_CheckSphereIntersection (edict_t *ent, const vec3_t start, const vec3_t end)
 	{
 	int			i, sequence;
@@ -150,14 +150,14 @@ static qboolean SV_CheckSphereIntersection (edict_t *ent, const vec3_t start, co
 	}
 
 
-/*
+/***
 ===================
 SV_HullForBox
 
 To keep everything totally uniform, bounding boxes are turned into small
 BSP trees instead of being compared directly.
 ===================
-*/
+***/
 static hull_t *SV_HullForBox (const vec3_t mins, const vec3_t maxs)
 	{
 	box_planes[0].dist = maxs[0];
@@ -172,13 +172,13 @@ static hull_t *SV_HullForBox (const vec3_t mins, const vec3_t maxs)
 
 // [FWGS, 01.05.23] удалена SV_HullAutoSelect
 
-/*
+/***
 ==================
 SV_HullForBsp
 
 forcing to select BSP hull
 ==================
-*/
+***/
 static hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs, vec3_t offset)
 	{
 	hull_t *hull;
@@ -248,7 +248,7 @@ static hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs
 	return hull;
 	}
 
-/*
+/***
 ================
 SV_HullForEntity
 
@@ -257,7 +257,7 @@ size.
 Offset is filled in to contain the adjustment that must be added to the
 testing object's origin to get a point to use with the returned hull.
 ================
-*/
+***/
 static hull_t *SV_HullForEntity (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t offset)
 	{
 	hull_t *hull;
@@ -285,11 +285,11 @@ static hull_t *SV_HullForEntity (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t 
 	return hull;
 	}
 
-/*
+/***
 ====================
 SV_HullForStudioModel
 ====================
-*/
+***/
 static hull_t *SV_HullForStudioModel (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t offset, int *numhitboxes)
 	{
 	qboolean	useComplexHull;
@@ -368,22 +368,22 @@ static hull_t *SV_HullForStudioModel (edict_t *ent, vec3_t mins, vec3_t maxs, ve
 	return SV_HullForEntity (ent, mins, maxs, offset);
 	}
 
-/*
+/***
 ===============================================================================
 ENTITY AREA CHECKING
 ===============================================================================
-*/
+***/
 static int	iTouchLinkSemaphore = 0;	// prevent recursion when SV_TouchLinks is active
 areanode_t	sv_areanodes[AREA_NODES];
 static int	sv_numareanodes;
 
-/*
+/***
 ===============
 SV_CreateAreaNode
 
 builds a uniformly subdivided tree for the given world size
 ===============
-*/
+***/
 static areanode_t *SV_CreateAreaNode (int depth, vec3_t mins, vec3_t maxs)
 	{
 	areanode_t *anode;
@@ -423,11 +423,11 @@ static areanode_t *SV_CreateAreaNode (int depth, vec3_t mins, vec3_t maxs)
 	return anode;
 	}
 
-/*
+/***
 ===============
 SV_ClearWorld
 ===============
-*/
+***/
 void SV_ClearWorld (void)
 	{
 	int	i;
@@ -448,11 +448,11 @@ void SV_ClearWorld (void)
 	SV_CreateAreaNode (0, sv.worldmodel->mins, sv.worldmodel->maxs);
 	}
 
-/*
+/***
 ===============
 SV_UnlinkEdict
 ===============
-*/
+***/
 void SV_UnlinkEdict (edict_t *ent)
 	{
 	// not linked in anywhere
@@ -463,11 +463,11 @@ void SV_UnlinkEdict (edict_t *ent)
 	ent->area.next = NULL;
 	}
 
-/*
+/***
 ====================
 SV_TouchLinks
 ====================
-*/
+***/
 static void SV_TouchLinks (edict_t *ent, areanode_t *node)
 	{
 	link_t	*l, *next;
@@ -549,11 +549,11 @@ static void SV_TouchLinks (edict_t *ent, areanode_t *node)
 		SV_TouchLinks (ent, node->children[1]);
 	}
 
-/*
+/***
 ===============
 SV_FindTouchedLeafs
 ===============
-*/
+***/
 static void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)
 	{
 	int	sides;
@@ -591,11 +591,11 @@ static void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)
 	if (sides & 2) SV_FindTouchedLeafs (ent, node->children[1], headnode);
 	}
 
-/*
+/***
 ===============
 SV_LinkEdict
 ===============
-*/
+***/
 void GAME_EXPORT SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 	{
 	areanode_t *node;
@@ -670,11 +670,11 @@ void GAME_EXPORT SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 		}
 	}
 
-/*
+/***
 ===============================================================================
 POINT TESTING IN HULLS
 ===============================================================================
-*/
+***/
 static void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 	{
 	link_t *l, *next;
@@ -744,11 +744,11 @@ static void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 		SV_WaterLinks (origin, pCont, node->children[1]);
 	}
 
-/*
+/***
 =============
 SV_TruePointContents
 =============
-*/
+***/
 int SV_TruePointContents (const vec3_t p)
 	{
 	int	cont;
@@ -765,11 +765,11 @@ int SV_TruePointContents (const vec3_t p)
 	return cont;
 	}
 
-/*
+/***
 =============
 SV_PointContents
 =============
-*/
+***/
 int GAME_EXPORT SV_PointContents (const vec3_t p)
 	{
 	int cont = SV_TruePointContents (p);
@@ -780,7 +780,7 @@ int GAME_EXPORT SV_PointContents (const vec3_t p)
 	}
 
 // [FWGS, 01.07.23] SV_TestEntityPosition
-/*
+/***
 ============
 SV_TestEntityPosition
 
@@ -812,19 +812,19 @@ qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker)
 	}
 */
 
-/*
+/***
 ===============================================================================
 LINE TESTING IN HULLS
 ===============================================================================
-*/
-/*
+***/
+/***
 ==================
 SV_ClipMoveToEntity
 
 Handles selection or creation of a clipping hull, and offseting (and
 eventually rotation) of the end points
 ==================
-*/
+***/
 void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, trace_t *trace)
 	{
 	hull_t	*hull;
@@ -963,7 +963,7 @@ void SV_ClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t 
 		trace->ent = ent;
 	}
 
-/*
+/***
 ==================
 SV_PortalCSG
 
@@ -971,7 +971,7 @@ a portal is flush with a world surface behind it. this causes problems. namely t
 if the bsp behind it prevents out origin from getting through. so if the trace was clipped and ended infront of the portal,
 continue the trace to the edges of the portal cutout instead
 ==================
-*/
+***/
 static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t trace_maxs, const vec3_t start,
 	const vec3_t end, trace_t *trace)
 	{
@@ -1082,14 +1082,14 @@ static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t
 		}
 	}
 
-/*
+/***
 ==================
 SV_CustomClipMoveToEntity
 
 A part of physics engine implementation
 or custom physics implementation
 ==================
-*/
+***/
 void SV_CustomClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
 	trace_t *trace)
 	{
@@ -1108,13 +1108,13 @@ void SV_CustomClipMoveToEntity (edict_t *ent, const vec3_t start, vec3_t mins, v
 		}
 	}
 
-/*
+/***
 ====================
 SV_ClipToEntity
 
 generic clip function
 ====================
-*/
+***/
 static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 	{
 	trace_t	trace;
@@ -1213,13 +1213,13 @@ static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 	return true;
 	}
 
-/*
+/***
 ====================
 SV_ClipToLinks
 
 Mins and maxs enclose the entire area swept by the move
 ====================
-*/
+***/
 static void SV_ClipToLinks (areanode_t *node, moveclip_t *clip)
 	{
 	link_t	*l, *next;
@@ -1246,13 +1246,13 @@ static void SV_ClipToLinks (areanode_t *node, moveclip_t *clip)
 		SV_ClipToLinks (node->children[1], clip);
 	}
 
-/*
+/***
 ====================
 SV_ClipToPortals
 
 Mins and maxs enclose the entire area swept by the move
 ====================
-*/
+***/
 static void SV_ClipToPortals (areanode_t *node, moveclip_t *clip)
 	{
 	link_t	*l, *next;
@@ -1279,13 +1279,13 @@ static void SV_ClipToPortals (areanode_t *node, moveclip_t *clip)
 		SV_ClipToPortals (node->children[1], clip);
 	}
 
-/*
+/***
 ====================
 SV_ClipToWorldBrush
 
 Mins and maxs enclose the entire area swept by the move
 ====================
-*/
+***/
 static void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 	{
 	link_t	*l, *next;
@@ -1322,11 +1322,11 @@ static void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 		SV_ClipToWorldBrush (node->children[1], clip);
 	}
 
-/*
+/***
 ==================
 SV_Move
 ==================
-*/
+***/
 trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e,
 	qboolean monsterclip)
 	{
@@ -1378,19 +1378,13 @@ trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
 	return clip.trace;
 	}
 
-// [FWGS, 01.07.23] SV_MoveNormal
-/*
-trace_t SV_MoveNormal (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e)
-	{
-	return SV_Move (start, mins, maxs, end, type, e, false);
-	}
-*/
+// [FWGS, 01.05.24] removed SV_MoveNormal
 
-/*
+/***
 ==================
 SV_MoveNoEnts
 ==================
-*/
+***/
 trace_t GAME_EXPORT SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e)
 	{
 	moveclip_t	clip;
@@ -1430,14 +1424,14 @@ trace_t GAME_EXPORT SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs,
 	return clip.trace;
 	}
 
-/*
+/***
 ==================
 SV_TraceSurface
 
 find the face where the traceline hit
 assume pTextureEntity is valid
 ==================
-*/
+***/
 msurface_t *GAME_EXPORT SV_TraceSurface (edict_t *ent, const vec3_t start, const vec3_t end)
 	{
 	matrix4x4	matrix;
@@ -1466,14 +1460,14 @@ msurface_t *GAME_EXPORT SV_TraceSurface (edict_t *ent, const vec3_t start, const
 	return PM_RecursiveSurfCheck (bmodel, &bmodel->nodes[hull->firstclipnode], start_l, end_l);
 	}
 
-/*
+/***
 ==================
 SV_TraceTexture
 
 find the face where the traceline hit
 assume pTextureEntity is valid
 ==================
-*/
+***/
 const char *SV_TraceTexture (edict_t *ent, const vec3_t start, const vec3_t end)
 	{
 	msurface_t *surf = SV_TraceSurface (ent, start, end);
@@ -1484,11 +1478,11 @@ const char *SV_TraceTexture (edict_t *ent, const vec3_t start, const vec3_t end)
 	return surf->texinfo->texture->name;
 	}
 
-/*
+/***
 ==================
 SV_MoveToss
 ==================
-*/
+***/
 trace_t SV_MoveToss (edict_t *tossent, edict_t *ignore)
 	{
 	float 	gravity;
@@ -1527,19 +1521,19 @@ trace_t SV_MoveToss (edict_t *tossent, edict_t *ignore)
 	return trace;
 	}
 
-/*
+/***
 ===============================================================================
 LIGHTING INFO
 ===============================================================================
-*/
+***/
 
 static vec3_t	sv_pointColor;
 
-/*
+/***
 =================
 SV_RecursiveLightPoint [FWGS, 01.01.24]
 =================
-*/
+***/
 static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec3_t start, const vec3_t end)
 	{
 	float		front, back, scale, frac;
@@ -1628,36 +1622,15 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 	return SV_RecursiveLightPoint (model, node->children[!side], mid, end);
 	}
 
-// [FWGS, 01.07.23] SV_RunLightStyles
-/*
-void SV_RunLightStyles (void)
-	{
-	int		i, ofs;
-	lightstyle_t *ls;
-	float		scale;
+// [FWGS, 01.05.24] removed SV_RunLightStyles
 
-	scale = sv_lighting_modulate->value;
-
-	// run lightstyles animation
-	for (i = 0, ls = sv.lightstyles; i < MAX_LIGHTSTYLES; i++, ls++)
-		{
-		ls->time += sv.frametime;
-		ofs = (ls->time * 10);
-
-		if (ls->length == 0) ls->value = scale; // disable this light
-		else if (ls->length == 1) ls->value = (ls->map[0] / 12.0f) * scale;
-		else ls->value = (ls->map[ofs % ls->length] / 12.0f) * scale;
-		}
-	}
-*/
-
-/*
+/***
 ==================
 SV_SetLightStyle
 
 needs to get correct working SV_LightPoint
 ==================
-*/
+***/
 void SV_SetLightStyle (int style, const char *s, float f)
 	{
 	int	j, k;
@@ -1682,7 +1655,7 @@ void SV_SetLightStyle (int style, const char *s, float f)
 	}
 
 // [FWGS, 01.07.23] SV_GetLightStyle
-/*
+/***
 ==================
 SV_GetLightStyle
 
@@ -1698,13 +1671,13 @@ const char *SV_GetLightStyle (int style)
 	}
 */
 
-/*
+/***
 ==================
 SV_LightForEntity
 
 grab the ambient lighting color for current point
 ==================
-*/
+***/
 int SV_LightForEntity (edict_t *pEdict)
 	{
 	vec3_t	start, end;
@@ -1728,3 +1701,4 @@ int SV_LightForEntity (edict_t *pEdict)
 
 	return VectorAvg (sv_pointColor);
 	}
+

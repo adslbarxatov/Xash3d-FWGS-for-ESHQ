@@ -1,4 +1,4 @@
-/*
+/***
 world.h - shared world routines
 Copyright (C) 2009 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef WORLD_H
 #define WORLD_H
@@ -22,11 +22,11 @@ GNU General Public License for more details.
 
 #define CONTENTS_NONE	0	// no custom contents specified
 
-/*
+/***
 ===============================================================================
 ENTITY AREA CHECKING
 ===============================================================================
-*/
+***/
 #define MAX_TOTAL_ENT_LEAFS		128
 #define AREA_NODES			32
 #define AREA_DEPTH			4
@@ -48,11 +48,11 @@ int RankForContents (int contents);
 
 #define check_angles( x )	( (int)x == 90 || (int)x == 180 || (int)x == 270 || (int)x == -90 || (int)x == -180 || (int)x == -270 )
 
-/*
+/***
 ===============================================================================
 EVENTS QUEUE (hl1 events code)
 ===============================================================================
-*/
+***/
 #include "event_api.h"
 #include "event_args.h"
 

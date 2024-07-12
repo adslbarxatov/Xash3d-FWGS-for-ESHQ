@@ -1,4 +1,4 @@
-/*
+/***
 s_load.c - sounds managment
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"		// [FWGS, 01.04.23]
@@ -30,11 +30,11 @@ static sfx_t	*s_sfxHashList[MAX_SFX_HASH];
 static string	s_sentenceImmediateName;	// keep dummy sentence name
 qboolean		s_registering = false;
 
-/*
+/***
 =================
 S_SoundList_f [FWGS, 09.05.24]
 =================
-*/
+***/
 void S_SoundList_f (void)
 	{
 	sfx_t		*sfx;
@@ -52,10 +52,6 @@ void S_SoundList_f (void)
 			{
 			totalSize += sc->size;
 
-			/*if (sc->loopStart >= 0)
-				Con_Printf ("L");
-			else 
-				Con_Printf (" ");*/
 			if (FBitSet (sc->flags, SOUND_LOOPED))
 				Con_Printf ("L");
 			else
@@ -106,11 +102,11 @@ char *S_SkipSoundChar (const char *pch)
 	return pcht;
 	}
 
-/*
+/***
 =================
 S_CreateDefaultSound [FWGS, 09.05.24]
 =================
-*/
+***/
 static wavdata_t *S_CreateDefaultSound (void)
 	{
 	wavdata_t *sc;
@@ -119,7 +115,6 @@ static wavdata_t *S_CreateDefaultSound (void)
 
 	sc->width = 2;
 	sc->channels = 1;
-	/*sc->loopStart = -1;*/
 	sc->loopStart = 0;
 	sc->rate = SOUND_DMA_SPEED;
 	sc->samples = SOUND_DMA_SPEED;
@@ -129,11 +124,11 @@ static wavdata_t *S_CreateDefaultSound (void)
 	return sc;
 	}
 
-/*
+/***
 =================
 S_LoadSound [FWGS, 09.05.24]
 =================
-*/
+***/
 wavdata_t *S_LoadSound (sfx_t *sfx)
 	{
 	wavdata_t *sc = NULL;
@@ -168,7 +163,6 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 		Sound_Process (&sc, SOUND_11k, sc->width, SOUND_RESAMPLE);
 	else if ((sc->rate > SOUND_11k) && (sc->rate < SOUND_22k))	// some bad sounds
 		Sound_Process (&sc, SOUND_22k, sc->width, SOUND_RESAMPLE);
-	/*else if (sc->rate > SOUND_22k && sc->rate <= SOUND_32k) // some bad sounds*/
 	else if ((sc->rate > SOUND_22k) && (sc->rate < SOUND_44k))	// some bad sounds
 		Sound_Process (&sc, SOUND_44k, sc->width, SOUND_RESAMPLE);
 
@@ -180,11 +174,11 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 // =======================================================================
 // Load a sound
 // =======================================================================
-/*
+/***
 ==================
 S_FindName [FWGS, 09.05.24]
 ==================
-*/
+***/
 sfx_t *S_FindName (const char *pname, int *pfInCache)
 	{
 	sfx_t	*sfx;
@@ -235,7 +229,6 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 	if (pfInCache)
 		*pfInCache = false;
 
-	/*Q_strncpy (sfx->name, name, MAX_STRING);*/
 	Q_strncpy (sfx->name, name, sizeof (sfx->name));
 	sfx->servercount = cl.servercount;
 	sfx->hashValue = COM_HashKey (sfx->name, MAX_SFX_HASH);
@@ -247,11 +240,11 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 	return sfx;
 	}
 
-/*
+/***
 ==================
 S_FreeSound
 ==================
-*/
+***/
 void S_FreeSound (sfx_t *sfx)
 	{
 	sfx_t *hashSfx;
@@ -281,11 +274,11 @@ void S_FreeSound (sfx_t *sfx)
 	memset (sfx, 0, sizeof (*sfx));
 	}
 
-/*
+/***
 =====================
 S_BeginRegistration
 =====================
-*/
+***/
 void S_BeginRegistration (void)
 	{
 	int	i;
@@ -305,11 +298,11 @@ void S_BeginRegistration (void)
 	s_registering = true;
 	}
 
-/*
+/***
 =====================
 S_EndRegistration
 =====================
-*/
+***/
 void S_EndRegistration (void)
 	{
 	sfx_t	*sfx;
@@ -339,11 +332,11 @@ void S_EndRegistration (void)
 	s_registering = false;
 	}
 
-/*
+/***
 ==================
 S_RegisterSound [FWGS, 01.04.23]
 ==================
-*/
+***/
 sound_t S_RegisterSound (const char *name)
 	{
 	sfx_t *sfx;
@@ -389,15 +382,14 @@ sfx_t *S_GetSfxByHandle (sound_t handle)
 	return &s_knownSfx[handle];
 	}
 
-/*
+/***
 =================
 S_InitSounds [FWGS, 09.05.24]
 =================
-*/
+***/
 void S_InitSounds (void)
 	{
 	// create unused 0-entry
-	/*Q_strncpy (s_knownSfx->name, "*default", MAX_QPATH);*/
 	Q_strncpy (s_knownSfx->name, "*default", sizeof (s_knownSfx->name));
 	s_knownSfx->hashValue = COM_HashKey (s_knownSfx->name, MAX_SFX_HASH);
 	s_knownSfx->hashNext = s_sfxHashList[s_knownSfx->hashValue];
@@ -406,11 +398,11 @@ void S_InitSounds (void)
 	s_numSfx = 1;
 	}
 
-/*
+/***
 =================
 S_FreeSounds
 =================
-*/
+***/
 void S_FreeSounds (void)
 	{
 	sfx_t	*sfx;

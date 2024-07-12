@@ -1,4 +1,4 @@
-/*
+/***
 platform.h - common platform-dependent function defines
 Copyright (C) 2018 a1batross
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #pragma once
 #ifndef PLATFORM_H
@@ -23,17 +23,16 @@ GNU General Public License for more details.
 #include "cursor_type.h"
 #include "key_modifiers.h"
 
-/*
+/***
 ==============================================================================
 SYSTEM UTILS
 ==============================================================================
-*/
+***/
 
 double Platform_DoubleTime (void);
 void Platform_Sleep (int msec);
 void Platform_ShellExecute (const char *path, const char *parms);
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow);
-/*qboolean Sys_DebuggerPresent (void);	// [FWGS, 01.04.23] optional, see Sys_DebugBreak*/
 void Platform_SetStatus (const char *status);
 qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 
@@ -164,20 +163,20 @@ static inline void Platform_Shutdown (void)
 
 // [FWGS, 01.11.23] removed Platform_GetNativeObject
 
-/*
+/***
 ==============================================================================
 MOBILE API
 ==============================================================================
-*/
+***/
 
 // [FWGS, 01.11.23]
 void Platform_Vibrate (float life, char flags);
 
-/*
+/***
 ==============================================================================
 INPUT
 ==============================================================================
-*/
+***/
 // Gamepad support
 int Platform_JoyInit (int numjoy); // returns number of connected gamepads, negative if error
 // Text input
@@ -213,11 +212,11 @@ static inline void Platform_SetTimer (float time)
 #endif
 	}
 
-/*
+/***
 ==============================================================================
 WINDOW MANAGEMENT
 ==============================================================================
-*/
+***/
 typedef enum
 	{
 	rserr_ok,
@@ -259,11 +258,11 @@ void IN_EvdevMove (float *yaw, float *pitch);
 void IN_EvdevFrame (void);
 #endif
 
-/*
+/***
 ==============================================================================
 AUDIO INPUT/OUTPUT
 ==============================================================================
-*/
+***/
 // initializes cycling through a DMA buffer and returns information on it
 qboolean SNDDMA_Init (void);
 void SNDDMA_Shutdown (void);

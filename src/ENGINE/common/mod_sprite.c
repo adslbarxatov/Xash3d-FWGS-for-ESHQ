@@ -1,4 +1,4 @@
-/*
+/***
 mod_sprite.c - sprite loading
 Copyright (C) 2010 Uncle Mike
 Copyright (C) 2019 a1batross
@@ -11,8 +11,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "sprite.h"
@@ -25,13 +25,13 @@ GNU General Public License for more details.
 // [FWGS, 01.02.24]
 #include "mod_local.h"
 
-/*
+/***
 ====================
 Mod_LoadSpriteModel
 
 load sprite model
 ====================
-*/
+***/
 void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags)
 	{
 	dsprite_q1_t	*pinq1;

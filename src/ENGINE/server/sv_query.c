@@ -1,4 +1,4 @@
-/*
+/***
 sv_query.c - Source-engine like server querying
 Copyright (C) 2023 jeefo
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "server.h"
@@ -27,11 +27,11 @@ GNU General Public License for more details.
 
 #define SOURCE_QUERY_CONNECTIONLESS -1
 
-/*
+/***
 ==================
 SV_SourceQuery_Details [FWGS, 01.01.24]
 ==================
-*/
+***/
 static void SV_SourceQuery_Details (netadr_t from)
 	{
 	sizebuf_t	buf;
@@ -75,17 +75,17 @@ static void SV_SourceQuery_Details (netadr_t from)
 	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);
 	}
 
-/*
+/***
 ==================
 SV_SourceQuery_Rules
 ==================
-*/
+***/
 static void SV_SourceQuery_Rules (netadr_t from)
 	{
-	sizebuf_t buf;
-	char answer[1024 * 8];
-	cvar_t *cvar;
-	int cvar_count = 0;
+	sizebuf_t	buf;
+	char	answer[1024 * 8];
+	cvar_t	*cvar;
+	int		cvar_count = 0;
 
 	for (cvar = Cvar_GetList (); cvar; cvar = cvar->next)
 		{
@@ -116,11 +116,11 @@ static void SV_SourceQuery_Rules (netadr_t from)
 	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);
 	}
 
-/*
+/***
 ==================
 SV_SourceQuery_Players
 ==================
-*/
+***/
 static void SV_SourceQuery_Players (netadr_t from)
 	{
 	sizebuf_t buf;
@@ -156,11 +156,11 @@ static void SV_SourceQuery_Players (netadr_t from)
 	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);
 	}
 
-/*
+/***
 ==================
 SV_SourceQuery_HandleConnnectionlessPacket
 ==================
-*/
+***/
 qboolean SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from)
 	{
 	int request = c[0];

@@ -1,4 +1,4 @@
-/*
+/***
 ref_common.h - Xash3D render dll API
 Copyright (C) 2019 a1batross
 
@@ -10,8 +10,9 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #pragma once
 #if !defined REF_COMMON_H && !defined REF_DLL
 #define REF_COMMON_H
@@ -19,23 +20,17 @@ GNU General Public License for more details.
 #include "ref_api.h"
 
 // [FWGS, 09.05.24]
-/*#define RP_LOCALCLIENT( e )	((e) != NULL && (e)->index == ( cl.playernum + 1 ) && e->player )*/
 #define RP_LOCALCLIENT( e ) ((e) != NULL && (e)->index == ( cl.playernum + 1 ) && e->player )
 
 // [FWGS, 09.05.24]
 struct ref_state_s
 	{
-	/*qboolean	initialized;
-	HINSTANCE	hInstance;*/
 	HINSTANCE	hInstance;
 	qboolean	initialized;
 	int			numRenderers;
 	ref_interface_t	dllFuncs;
 
 	// depends on build configuration
-	/*int			numRenderers;
-	const char	**shortNames;
-	const char	**readableNames;*/
 	const char	**shortNames;
 	const char	**readableNames;
 	};
@@ -53,8 +48,6 @@ void R_GetTextureParms (int *w, int *h, int texnum);
 void GL_RenderFrame (const struct ref_viewpass_s *rvp);
 
 // [FWGS, 01.05.24] common engine and renderer cvars
-/*extern convar_t r_decals;
-extern convar_t r_adjust_fov;*/
 extern convar_t r_decals;
 extern convar_t r_adjust_fov;
 extern convar_t gl_clear;

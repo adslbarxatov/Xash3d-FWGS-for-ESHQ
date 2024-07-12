@@ -1,4 +1,4 @@
-/*
+/***
 snd_mp3.c - mp3 format loading and streaming
 Copyright (C) 2010 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "soundlib.h"
 #include "libmpg/libmpg.h"
@@ -207,11 +207,11 @@ int EXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size)
 
 #endif
 
-/*
+/***
 =================================================================
 MPEG decompression [FWGS, 09.05.24]
 =================================================================
-*/
+***/
 qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	void	*mpeg;
@@ -244,7 +244,6 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 	sound.channels = sc.channels;
 	sound.rate = sc.rate;
 	sound.width = 2; // always 16-bit PCM
-	/*sound.loopstart = -1;*/
 	sound.size = (sound.channels * sound.rate * sound.width) * (sc.playtime / 1000); // in bytes
 	padsize = sound.size % FRAME_SIZE;
 	pos += FRAME_SIZE; // evaluate pos
@@ -252,7 +251,6 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 	if (!Sound_ParseID3Tag (buffer, filesize))
 		{
 		Con_DPrintf (S_WARN "Sound_LoadMPG: (%s) failed to extract LOOP_START tag\n", name);
-		/*sound.loopstart = -1;*/
 		}
 
 	if (!sound.size)
@@ -303,27 +301,27 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 	return true;
 	}
 
-/*
+/***
 =================
 FS_SeekEx [FWGS, 01.02.24]
 =================
-*/
+***/
 static fs_offset_t FS_SeekEx (file_t *file, fs_offset_t offset, int whence)
 	{
 	return (FS_Seek (file, offset, whence) == -1) ? -1 : FS_Tell (file);
 	}
 
-/*
+/***
 =================
 Stream_OpenMPG
 =================
-*/
+***/
 stream_t *Stream_OpenMPG (const char *filename)
 	{
-	stream_t *stream;
-	void *mpeg;
-	file_t *file;
-	int	ret;
+	stream_t	*stream;
+	void		*mpeg;
+	file_t		*file;
+	int			ret;
 	wavinfo_t	sc;
 
 	file = FS_Open (filename, "rb", false);
@@ -368,13 +366,13 @@ stream_t *Stream_OpenMPG (const char *filename)
 	return stream;
 	}
 
-/*
+/***
 =================
 Stream_ReadMPG
 
 assume stream is valid
 =================
-*/
+***/
 int Stream_ReadMPG (stream_t *stream, int needBytes, void *buffer)
 	{
 	// buffer handling
@@ -416,13 +414,13 @@ int Stream_ReadMPG (stream_t *stream, int needBytes, void *buffer)
 	return 0;
 	}
 
-/*
+/***
 =================
 Stream_SetPosMPG
 
 assume stream is valid
 =================
-*/
+***/
 int Stream_SetPosMPG (stream_t *stream, int newpos)
 	{
 	if (set_stream_pos (stream->ptr, newpos) != -1)
@@ -436,25 +434,25 @@ int Stream_SetPosMPG (stream_t *stream, int newpos)
 	return false;
 	}
 
-/*
+/***
 =================
 Stream_GetPosMPG
 
 assume stream is valid
 =================
-*/
+***/
 int Stream_GetPosMPG (stream_t *stream)
 	{
 	return get_stream_pos (stream->ptr);
 	}
 
-/*
+/***
 =================
 Stream_FreeMPG
 
 assume stream is valid
 =================
-*/
+***/
 void Stream_FreeMPG (stream_t *stream)
 	{
 	if (stream->ptr)

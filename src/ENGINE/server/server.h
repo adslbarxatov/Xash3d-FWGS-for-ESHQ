@@ -1,4 +1,4 @@
-/*
+/***
 server.h - primary header for server
 Copyright (C) 2009 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef SERVER_H
 #define SERVER_H
@@ -43,10 +43,6 @@ extern int SV_UPDATE_BACKUP;
 #define SVF_MERGE_VISIBILITY	BIT( 1 )	// we are do portal pass
 
 // [FWGS, 01.05.24] mapvalid flags
-/*#define MAP_IS_EXIST		BIT( 0 )
-#define MAP_HAS_SPAWNPOINT	BIT( 1 )
-#define MAP_HAS_LANDMARK	BIT( 2 )
-#define MAP_INVALID_VERSION	BIT( 3 )*/
 #define MAP_IS_EXIST		BIT( 0 )
 #define MAP_HAS_LANDMARK	BIT( 2 )
 #define MAP_INVALID_VERSION	BIT( 3 )
@@ -275,7 +271,7 @@ typedef struct sv_client_s
 	int    userinfo_change_attempts;
 	} sv_client_t;
 
-/*
+/***
 =============================================================================
  a client can leave the server in one of four ways:
  dropping properly by quiting or disconnecting
@@ -283,7 +279,8 @@ typedef struct sv_client_s
  getting kicked off by the server operator
  a program error, like an overflowed reliable buffer
 =============================================================================
-*/
+***/
+
 // MAX_CHALLENGES is made large to prevent a denial
 // of service attack that could cycle all of them
 // out before legitimate users connected
@@ -406,10 +403,6 @@ typedef struct
 // =============================================================================
 
 // [FWGS, 01.05.24]
-/*extern	server_static_t	svs;			// persistant server info
-extern	server_t		sv;			// local server
-extern	svgame_static_t	svgame;			// persistant game info
-extern	areanode_t	sv_areanodes[];		// AABB dynamic tree*/
 extern server_static_t svs RENAME_SYMBOL ("svs_");	// persistant server info
 extern server_t sv RENAME_SYMBOL ("sv_");			// local server
 extern svgame_static_t svgame;		// persistant game info
@@ -506,7 +499,6 @@ extern convar_t sv_aim;
 //
 void SV_FinalMessage (const char *message, qboolean reconnect);
 void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) _format (2);
-/*void SV_DropClient (sv_client_t *cl, qboolean crash);*/
 void SV_DropClient (sv_client_t *cl, qboolean crash) RENAME_SYMBOL ("SV_DropClient_");
 void SV_UpdateMovevars (qboolean initialize);
 int SV_ModelIndex (const char *name);
@@ -643,13 +635,10 @@ void SV_SetStringArrayMode (qboolean dynamic);
 void SV_EmptyStringPool (void);
 
 // [FWGS, 01.05.24]
-/*#ifdef XASH_64BIT*/
 void SV_PrintStr64Stats_f (void);
-/*#endif*/
 
 // [FWGS, 01.05.24]
 sv_client_t *SV_ClientFromEdict (const edict_t *pEdict, qboolean spawned_only);
-/*uint SV_MapIsValid (const char *filename, const char *spawn_entity, const char *landmark_name);*/
 uint SV_MapIsValid (const char *filename, const char *landmark_name);
 void SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch);
 edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname);
@@ -661,7 +650,6 @@ void SV_RestartAmbientSounds (void);
 void SV_RestartDecals (void);
 void SV_RestartStaticEnts (void);
 int pfnDropToFloor (edict_t *e);
-/*edict_t *SV_EdictNum (int n);*/
 void SV_SetModel (edict_t *ent, const char *name);
 int pfnDecalIndex (const char *m);
 void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int entityIndex, int modelIndex,

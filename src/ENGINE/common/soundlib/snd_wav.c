@@ -1,4 +1,4 @@
-/*
+/***
 snd_wav.c - wav format load & save
 Copyright (C) 2010 Uncle Mike
 Copyright (C) 2023 FTEQW developers
@@ -11,8 +11,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include <stddef.h>	// [FWGS, 01.11.23]
 #include "soundlib.h"
@@ -29,11 +29,11 @@ static int IsFourCC (const byte *ptr, const byte *fourcc)
 	return 0 == memcmp (ptr, fourcc, 4);
 	}
 
-/*
+/***
 =================
 GetLittleShort
 =================
-*/
+***/
 static short GetLittleShort (void)
 	{
 	short	val = 0;
@@ -45,11 +45,11 @@ static short GetLittleShort (void)
 	return val;
 	}
 
-/*
+/***
 =================
 GetLittleLong
 =================
-*/
+***/
 static int GetLittleLong (void)
 	{
 	int	val = 0;
@@ -63,11 +63,11 @@ static int GetLittleLong (void)
 	return val;
 	}
 
-/*
+/***
 =================
 FindNextChunk [FWGS, 01.05.24]
 =================
-*/
+***/
 static void FindNextChunk (const char *filename, const char *name)
 	{
 	while (1)
@@ -92,8 +92,6 @@ static void FindNextChunk (const char *filename, const char *name)
 
 		if (iff_chunkLen > remaining)
 			{
-			/*Con_DPrintf ("%s: '%s' truncated by %i bytes\n", __func__, filename, iff_chunkLen - remaining);
-			*/
 			// Only print this warning if selected chunk is truncated.
 			//
 			// Otherwise this warning becomes misleading because some idiot programs like
@@ -115,32 +113,30 @@ static void FindNextChunk (const char *filename, const char *name)
 
 		iff_dataPtr -= 8;
 		iff_lastChunk = iff_dataPtr + 8 + iff_chunkLen;
-		/*if ((iff_chunkLen & 1) && remaining)*/
 		if ((iff_chunkLen & 1) && remaining)
 			iff_lastChunk++;
 
-		/*if (!Q_strncmp (iff_dataPtr, name, 4))*/
 		if (IsFourCC (iff_dataPtr, name))
 			return;
 		}
 	}
 
-/*
+/***
 =================
 FindChunk [FWGS, 01.11.23]
 =================
-*/
+***/
 static void FindChunk (const char *filename, const char *name)
 	{
 	iff_lastChunk = iff_data;
 	FindNextChunk (filename, name);
 	}
 
-/*
+/***
 ============
 StreamFindNextChunk [FWGS, 01.05.24]
 ============
-*/
+***/
 static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_chunk)
 	{
 	char	chunkName[4];
@@ -154,7 +150,6 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 			return false;	// didn't find the chunk
 
 		FS_Seek (file, 4, SEEK_CUR);
-		/*FS_Read (file, &iff_chunk_len, sizeof (iff_chunk_len));*/
 		if (FS_Read (file, &iff_chunk_len, sizeof (iff_chunk_len)) != sizeof (iff_chunk_len))
 			return false;
 
@@ -163,11 +158,9 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 
 		FS_Seek (file, -8, SEEK_CUR);
 		*last_chunk = FS_Tell (file) + 8 + ((iff_chunk_len + 1) & ~1);
-		/*FS_Read (file, chunkName, 4);*/
 		if (FS_Read (file, chunkName, sizeof (chunkName)) != sizeof (chunkName))
 			return false;
 
-		/*if (!Q_strncmp (chunkName, name, 4))*/
 		if (IsFourCC (chunkName, name))
 			return true;
 		}
@@ -175,11 +168,11 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 	return false;
 	}
 
-/*
+/***
 =============
 Sound_LoadWAV [FWGS, 09.05.24]
 =============
-*/
+***/
 qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	int	samples, fmt;
@@ -194,7 +187,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// find "RIFF" chunk
 	FindChunk (name, "RIFF");
 
-	/*if (!(iff_dataPtr && !Q_strncmp ((const char *)iff_dataPtr + 8, "WAVE", 4)))*/
 	if (!iff_dataPtr || !IsFourCC (iff_dataPtr + 8, "WAVE"))
 		{
 		Con_DPrintf (S_ERROR "Sound_LoadWAV: %s missing 'RIFF/WAVE' chunks\n", name);
@@ -260,7 +252,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 		if (iff_dataPtr)
 			{
-			/*if (!Q_strncmp ((const char *)iff_dataPtr + 28, "mark", 4))*/
 			if (IsFourCC (iff_dataPtr + 28, "mark"))
 				{
 				// this is not a proper parse, but it works with CoolEdit...
@@ -271,7 +262,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 	else
 		{
-		/*sound.loopstart = -1;*/
 		sound.loopstart = 0;
 		sound.samples = 0;
 		}
@@ -348,11 +338,11 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	return true;
 	}
 
-/*
+/***
 =================
 Stream_OpenWAV [FWGS, 01.05.24]
 =================
-*/
+***/
 stream_t *Stream_OpenWAV (const char *filename)
 	{
 	stream_t	*stream;
@@ -378,8 +368,6 @@ stream_t *Stream_OpenWAV (const char *filename)
 		return NULL;
 		}
 
-	/*FS_Read (file, chunkName, 4);
-	if (!Q_strncmp (chunkName, "WAVE", 4))*/
 	FS_Seek (file, 4, SEEK_CUR);
 	if (FS_Read (file, chunkName, 4) != 4)
 		{
@@ -396,7 +384,6 @@ stream_t *Stream_OpenWAV (const char *filename)
 		}
 
 	// get "fmt " chunk
-	/*iff_data = FS_Tell (file) + 4;*/
 	iff_data = FS_Tell (file);
 	last_chunk = iff_data;
 	if (!StreamFindNextChunk (file, "fmt ", &last_chunk))
@@ -451,13 +438,13 @@ stream_t *Stream_OpenWAV (const char *filename)
 	return stream;
 	}
 
-/*
+/***
 =================
 Stream_ReadWAV
 
 assume stream is valid
 =================
-*/
+***/
 int Stream_ReadWAV (stream_t *stream, int bytes, void *buffer)
 	{
 	int	remaining;
@@ -478,13 +465,13 @@ int Stream_ReadWAV (stream_t *stream, int bytes, void *buffer)
 	return bytes;
 	}
 
-/*
+/***
 =================
 Stream_SetPosWAV
 
 assume stream is valid
 =================
-*/
+***/
 int Stream_SetPosWAV (stream_t *stream, int newpos)
 	{
 	// NOTE: stream->pos it's real file position without header size
@@ -497,25 +484,25 @@ int Stream_SetPosWAV (stream_t *stream, int newpos)
 	return false;
 	}
 
-/*
+/***
 =================
 Stream_GetPosWAV
 
 assume stream is valid
 =================
-*/
+***/
 int Stream_GetPosWAV (stream_t *stream)
 	{
 	return stream->pos;
 	}
 
-/*
+/***
 =================
 Stream_FreeWAV
 
 assume stream is valid
 =================
-*/
+***/
 void Stream_FreeWAV (stream_t *stream)
 	{
 	if (stream->file)

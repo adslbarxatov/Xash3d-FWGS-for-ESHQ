@@ -1,4 +1,4 @@
-/*
+/***
 net_ws.c - win network interface
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "client.h" // ConnectionProgress
@@ -144,11 +144,11 @@ static CVAR_DEFINE (net_ip6clientport, "ip6_clientport", "0", FCVAR_READ_ONLY,
 static CVAR_DEFINE_AUTO (net6_address, "0", FCVAR_PRIVILEGED | FCVAR_READ_ONLY,
 	"contain local IPv6 address of current client");
 
-/*
+/***
 ====================
 NET_ErrorString [FWGS, 01.01.24]
 ====================
-*/
+***/
 static char *NET_ErrorString (void)
 	{
 #if XASH_WIN32
@@ -259,11 +259,11 @@ static int NET_NetadrIP6Compare (const netadr_t *a, const netadr_t *b)
 	return memcmp (a->ip6, b->ip6, sizeof (a->ip6));
 	}
 
-/*
+/***
 ====================
 NET_NetadrToSockadr [FWGS, 01.11.23]
 ====================
-*/
+***/
 static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 	{
 	memset (s, 0, sizeof (*s));
@@ -306,11 +306,11 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 		}
 	}
 
-/*
+/***
 ====================
 NET_SockadrToNetAdr [FWGS, 01.11.23]
 ====================
-*/
+***/
 static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 	{
 	if (s->ss_family == AF_INET)
@@ -332,11 +332,11 @@ static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 		}
 	}
 
-/*
+/***
 ============
 NET_GetHostByName
 ============
-*/
+***/
 static qboolean NET_GetHostByName (const char *hostname, int family, struct sockaddr_storage *addr)
 	{
 #if defined HAVE_GETADDRINFO
@@ -474,7 +474,7 @@ void NET_ResolveThread (void)
 	}
 #endif 
 
-/*
+/***
 =============
 NET_StringToAdr [FWGS, 01.11.23]
 
@@ -484,7 +484,7 @@ idnewt:28000
 192.246.40.70
 192.246.40.70:28000
 =============
-*/
+***/
 static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sadr,
 	qboolean nonblocking, int family)
 	{
@@ -607,11 +607,11 @@ static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_stor
 	return NET_EAI_OK;
 	}
 
-/*
+/***
 ====================
 NET_StringToFilterAdr
 ====================
-*/
+***/
 qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 	{
 	char copy[128], *temp;
@@ -718,11 +718,11 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 	return true;
 	}
 
-/*
+/***
 ====================
 NET_AdrToString [FWGS, 01.11.23]
 ====================
-*/
+***/
 const char *NET_AdrToString (const netadr_t a)
 	{
 	static char s[64];
@@ -746,11 +746,11 @@ const char *NET_AdrToString (const netadr_t a)
 	return s;
 	}
 
-/*
+/***
 ====================
 NET_BaseAdrToString [FWGS, 01.11.23]
 ====================
-*/
+***/
 const char *NET_BaseAdrToString (const netadr_t a)
 	{
 	static char s[64];
@@ -774,13 +774,13 @@ const char *NET_BaseAdrToString (const netadr_t a)
 	return s;
 	}
 
-/*
+/***
 ===================
 NET_CompareBaseAdr
 
 Compares without the port
 ===================
-*/
+***/
 qboolean NET_CompareBaseAdr (const netadr_t a, const netadr_t b)
 	{
 	if (a.type6 != b.type6)
@@ -801,13 +801,13 @@ qboolean NET_CompareBaseAdr (const netadr_t a, const netadr_t b)
 	return false;
 	}
 
-/*
+/***
 ====================
 NET_CompareClassBAdr
 
 Compare local masks
 ====================
-*/
+***/
 qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b)
 	{
 	if (a.type6 != b.type6)
@@ -831,13 +831,13 @@ qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b)
 	return false;
 	}
 
-/*
+/***
 ====================
 NET_CompareAdrByMask
 
 Checks if adr is a part of subnet
 ====================
-*/
+***/
 qboolean NET_CompareAdrByMask (const netadr_t a, const netadr_t b, uint prefixlen)
 	{
 	if ((a.type6 != b.type6) || (a.type == NA_LOOPBACK))
@@ -885,13 +885,13 @@ qboolean NET_CompareAdrByMask (const netadr_t a, const netadr_t b, uint prefixle
 	return false;
 	}
 
-/*
+/***
 ====================
 NET_IsReservedAdr
 
 Check for reserved ip's
 ====================
-*/
+***/
 qboolean NET_IsReservedAdr (netadr_t a)
 	{
 	if (a.type == NA_LOOPBACK)
@@ -930,13 +930,13 @@ qboolean NET_IsReservedAdr (netadr_t a)
 	return false;
 	}
 
-/*
+/***
 ====================
 NET_CompareAdr
 
 Compare full address
 ====================
-*/
+***/
 qboolean NET_CompareAdr (const netadr_t a, const netadr_t b)
 	{
 	if (a.type6 != b.type6)
@@ -962,14 +962,14 @@ qboolean NET_CompareAdr (const netadr_t a, const netadr_t b)
 	return false;
 	}
 
-/*
+/***
 ====================
 NET_CompareAdrSort
 
 Network address sorting comparator
 guaranteed to return -1, 0 or 1
 ====================
-*/
+***/
 int NET_CompareAdrSort (const void *_a, const void *_b)
 	{
 	const netadr_t *a = _a, *b = _b;
@@ -1023,24 +1023,24 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 	return 0;
 	}
 
-/*
+/***
 ====================
 NET_IsLocalAddress
 ====================
-*/
+***/
 qboolean NET_IsLocalAddress (netadr_t adr)
 	{
 	return (adr.type == NA_LOOPBACK) ? true : false;
 	}
 
-/*
+/***
 =============
 NET_StringToAdr
 
 idnewt
 192.246.40.70
 =============
-*/
+***/
 static qboolean NET_StringToAdrEx (const char *string, netadr_t *adr, int family)
 	{
 	struct sockaddr_storage s;
@@ -1086,16 +1086,16 @@ net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)
 	return res;
 	}
 
-/*
+/***
 =============================================================================
 LOOPBACK BUFFERS FOR LOCAL PLAYER
 =============================================================================
-*/
-/*
+***/
+/***
 ====================
 NET_GetLoopPacket
 ====================
-*/
+***/
 static qboolean NET_GetLoopPacket (netsrc_t sock, netadr_t *from, byte *data, size_t *length)
 	{
 	net_loopback_t *loop;
@@ -1123,11 +1123,11 @@ static qboolean NET_GetLoopPacket (netsrc_t sock, netadr_t *from, byte *data, si
 	return true;
 	}
 
-/*
+/***
 ====================
 NET_SendLoopPacket
 ====================
-*/
+***/
 static void NET_SendLoopPacket (netsrc_t sock, size_t length, const void *data, netadr_t to)
 	{
 	net_loopback_t *loop;
@@ -1142,29 +1142,29 @@ static void NET_SendLoopPacket (netsrc_t sock, size_t length, const void *data, 
 	loop->msgs[i].datalen = length;
 	}
 
-/*
+/***
 ====================
 NET_ClearLoopback
 ====================
-*/
+***/
 static void NET_ClearLoopback (void)
 	{
 	net.loopbacks[0].send = net.loopbacks[0].get = 0;
 	net.loopbacks[1].send = net.loopbacks[1].get = 0;
 	}
 
-/*
+/***
 =============================================================================
 LAG & LOSS SIMULATION SYSTEM (network debugging)
 =============================================================================
-*/
-/*
+***/
+/***
 ==================
 NET_RemoveFromPacketList
 
 double linked list remove entry
 ==================
-*/
+***/
 static void NET_RemoveFromPacketList (packetlag_t *p)
 	{
 	p->prev->next = p->next;
@@ -1173,13 +1173,13 @@ static void NET_RemoveFromPacketList (packetlag_t *p)
 	p->next = NULL;
 	}
 
-/*
+/***
 ==================
 NET_ClearLaggedList
 
 double linked list remove queue
 ==================
-*/
+***/
 static void NET_ClearLaggedList (packetlag_t *list)
 	{
 	packetlag_t *p, *n;
@@ -1205,13 +1205,13 @@ static void NET_ClearLaggedList (packetlag_t *list)
 	list->next = list;
 	}
 
-/*
+/***
 ==================
 NET_AddToLagged
 
 add lagged packet to stream
 ==================
-*/
+***/
 static void NET_AddToLagged (netsrc_t sock, packetlag_t *list, packetlag_t *packet, netadr_t *from,
 	size_t length, const void *data, float timestamp)
 	{
@@ -1233,13 +1233,13 @@ static void NET_AddToLagged (netsrc_t sock, packetlag_t *list, packetlag_t *pack
 	memcpy (&packet->from, from, sizeof (netadr_t));
 	}
 
-/*
+/***
 ==================
 NET_AdjustLag
 
 adjust time to next fake lag
 ==================
-*/
+***/
 static void NET_AdjustLag (void)
 	{
 	static double	lasttime = 0.0;
@@ -1271,13 +1271,13 @@ static void NET_AdjustLag (void)
 		}
 	}
 
-/*
+/***
 ==================
 NET_LagPacket
 
 add fake lagged packet into rececived message
 ==================
-*/
+***/
 static qboolean NET_LagPacket (qboolean newdata, netsrc_t sock, netadr_t *from, size_t *length, void *data)
 	{
 	packetlag_t *pNewPacketLag;
@@ -1354,13 +1354,13 @@ static qboolean NET_LagPacket (qboolean newdata, netsrc_t sock, netadr_t *from, 
 	return true;
 	}
 
-/*
+/***
 ==================
 NET_GetLong
 
 receive long packet from network
 ==================
-*/
+***/
 static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize)
 	{
 	int		i, sequence_number, offset;
@@ -1449,13 +1449,13 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 	return false;
 	}
 
-/*
+/***
 ==================
 NET_QueuePacket
 
 queue normal and lagged packets
 ==================
-*/
+***/
 static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size_t *length)
 	{
 	byte	buf[NET_MAX_FRAGMENT];
@@ -1530,13 +1530,13 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 	return NET_LagPacket (false, sock, from, length, data);
 	}
 
-/*
+/***
 ==================
 NET_GetPacket
 
 Never called by the game logic, just the system event queing
 ==================
-*/
+***/
 qboolean NET_GetPacket (netsrc_t sock, netadr_t *from, byte *data, size_t *length)
 	{
 	if (!data || !length)
@@ -1550,13 +1550,13 @@ qboolean NET_GetPacket (netsrc_t sock, netadr_t *from, byte *data, size_t *lengt
 		return NET_QueuePacket (sock, from, data, length);
 	}
 
-/*
+/***
 ==================
 NET_SendLong
 
 Fragment long packets, send short directly
 ==================
-*/
+***/
 static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t len, int flags,
 	const struct sockaddr_storage *to, size_t tolen, size_t splitsize)
 	{
@@ -1620,11 +1620,11 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 		}
 	}
 
-/*
+/***
 ==================
 NET_SendPacketEx
 ==================
-*/
+***/
 void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t to, size_t splitsize)
 	{
 	int		ret;
@@ -1684,11 +1684,11 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 		}
 	}
 
-/*
+/***
 ==================
 NET_SendPacket
 ==================
-*/
+***/
 void NET_SendPacket (netsrc_t sock, size_t length, const void *data, netadr_t to)
 	{
 	NET_SendPacketEx (sock, length, data, to, 0);
@@ -1696,11 +1696,11 @@ void NET_SendPacket (netsrc_t sock, size_t length, const void *data, netadr_t to
 
 // [FWGS, 01.05.23] удалены NET_BufferToBufferCompress, NET_BufferToBufferDecompress
 
-/*
+/***
 ====================
 NET_IPSocket
 ====================
-*/
+***/
 static int NET_IPSocket (const char *net_iface, int port, int family)
 	{
 	struct sockaddr_storage	addr = { 0 };
@@ -1824,11 +1824,11 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 	return net_socket;
 	}
 
-/*
+/***
 ====================
 NET_OpenIP
 ====================
-*/
+***/
 static void NET_OpenIP (qboolean change_port, int *sockets, const char *net_iface, int hostport,
 	int clientport, int family)
 	{
@@ -1894,13 +1894,13 @@ static void NET_OpenIP (qboolean change_port, int *sockets, const char *net_ifac
 	return;
 	}
 
-/*
+/***
 ================
 NET_GetLocalAddress
 
 Returns the servers' ip address as a string.
 ================
-*/
+***/
 static void NET_GetLocalAddress (void)
 	{
 	char		hostname[512];
@@ -1982,13 +1982,13 @@ static void NET_GetLocalAddress (void)
 		}
 	}
 
-/*
+/***
 ====================
 NET_Config
 
 A single player game will only use the loopback code
 ====================
-*/
+***/
 void NET_Config (qboolean multiplayer, qboolean changeport)
 	{
 	static qboolean	bFirst = true;
@@ -2061,35 +2061,35 @@ void NET_Config (qboolean multiplayer, qboolean changeport)
 	net.configured = multiplayer ? true : false;
 	}
 
-/*
+/***
 ====================
 NET_IsConfigured
 
 Is winsock ip initialized?
 ====================
-*/
+***/
 qboolean NET_IsConfigured (void)
 	{
 	return net.configured;
 	}
 
-/*
+/***
 ====================
 NET_IsActive
 ====================
-*/
+***/
 qboolean NET_IsActive (void)
 	{
 	return net.initialized;
 	}
 
-/*
+/***
 ====================
 NET_Sleep
 
 sleeps msec or until net socket is ready
 ====================
-*/
+***/
 void NET_Sleep (int msec)
 	{
 #ifndef XASH_NO_NETWORK
@@ -2114,13 +2114,13 @@ void NET_Sleep (int msec)
 #endif
 	}
 
-/*
+/***
 ====================
 NET_ClearLagData
 
 clear fakelag list
 ====================
-*/
+***/
 void NET_ClearLagData (qboolean bClient, qboolean bServer)
 	{
 	if (bClient)
@@ -2129,11 +2129,11 @@ void NET_ClearLagData (qboolean bClient, qboolean bServer)
 		NET_ClearLaggedList (&net.lagdata[NS_SERVER]);
 	}
 
-/*
+/***
 ====================
 NET_Init [FWGS, 01.11.23]
 ====================
-*/
+***/
 void NET_Init (void)
 	{
 	char	cmd[64];
@@ -2209,11 +2209,11 @@ void NET_Init (void)
 	Con_Reportf ("Base networking initialized.\n");
 	}
 
-/*
+/***
 ====================
 NET_Shutdown
 ====================
-*/
+***/
 void NET_Shutdown (void)
 	{
 	if (!net.initialized)
@@ -2228,11 +2228,11 @@ void NET_Shutdown (void)
 	net.initialized = false;
 	}
 
-/*
+/***
 =================================================
 HTTP downloader [FWGS, 01.12.23]
 =================================================
-*/
+***/
 #define MAX_HTTP_BUFFER_SIZE	(BIT(13))
 
 typedef struct httpserver_s
@@ -2300,11 +2300,11 @@ static CVAR_DEFINE_AUTO (http_timeout, "45", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 static CVAR_DEFINE_AUTO (http_maxconnections, "4", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"maximum http connection number");
 
-/*
+/***
 ========================
 HTTP_ClearCustomServers
 ========================
-*/
+***/
 void HTTP_ClearCustomServers (void)
 	{
 	if (http.first_file)
@@ -2319,13 +2319,13 @@ void HTTP_ClearCustomServers (void)
 		}
 	}
 
-/*
+/***
 ==============
 HTTP_FreeFile
 
 Skip to next server/file
 ==============
-*/
+***/
 static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 	{
 	char incname[256];
@@ -2381,13 +2381,13 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 	file->state = HTTP_FREE;
 	}
 
-/*
+/***
 ===================
 HTTP_AutoClean
 
 remove files with HTTP_FREE state from list
 ===================
-*/
+***/
 static void HTTP_AutoClean (void)
 	{
 	httpfile_t *curfile, *prevfile = 0;
@@ -2421,13 +2421,13 @@ static void HTTP_AutoClean (void)
 	http.last_file = prevfile;
 	}
 
-/*
+/***
 ===================
 HTTP_ProcessStream [FWGS, 01.12.23]
 
 process incoming data
 ===================
-*/
+***/
 static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 	{
 	char buf[sizeof (curfile->buf)];
@@ -2556,7 +2556,7 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 	return true;
 	}
 
-/*
+/***
 ==============
 HTTP_Run
 
@@ -2788,13 +2788,13 @@ void HTTP_Run (void)
 	HTTP_AutoClean ();
 	}
 
-/*
+/***
 ===================
 HTTP_AddDownload
 
 Add new download to end of queue
 ===================
-*/
+***/
 void HTTP_AddDownload (const char *path, int size, qboolean process)
 	{
 	httpfile_t *httpfile = Z_Calloc (sizeof (httpfile_t));
@@ -2827,13 +2827,13 @@ void HTTP_AddDownload (const char *path, int size, qboolean process)
 	httpfile->process = process;
 	}
 
-/*
+/***
 ===============
 HTTP_Download_f
 
 Console wrapper
 ===============
-*/
+***/
 static void HTTP_Download_f (void)
 	{
 	if (Cmd_Argc () < 2)
@@ -2845,11 +2845,11 @@ static void HTTP_Download_f (void)
 	HTTP_AddDownload (Cmd_Argv (1), -1, false);
 	}
 
-/*
+/***
 ==============
 HTTP_ParseURL
 ==============
-*/
+***/
 static httpserver_t *HTTP_ParseURL (const char *url)
 	{
 	httpserver_t *server;
@@ -2903,11 +2903,11 @@ static httpserver_t *HTTP_ParseURL (const char *url)
 	return server;
 	}
 
-/*
+/***
 =======================
 HTTP_AddCustomServer
 =======================
-*/
+***/
 void HTTP_AddCustomServer (const char *url)
 	{
 	httpserver_t *server = HTTP_ParseURL (url);
@@ -2923,11 +2923,11 @@ void HTTP_AddCustomServer (const char *url)
 	http.first_server = server;
 	}
 
-/*
+/***
 =======================
 HTTP_AddCustomServer_f [FWGS, 01.12.23]
 =======================
-*/
+***/
 static void HTTP_AddCustomServer_f (void)
 	{
 	if (Cmd_Argc () == 2)
@@ -2940,13 +2940,13 @@ static void HTTP_AddCustomServer_f (void)
 		}
 	}
 
-/*
+/***
 ============
 HTTP_Clear_f
 
 Clear all queue
 ============
-*/
+***/
 static void HTTP_Clear_f (void)
 	{
 	http.last_file = NULL;
@@ -2967,13 +2967,13 @@ static void HTTP_Clear_f (void)
 		}
 	}
 
-/*
+/***
 ==============
 HTTP_Cancel_f
 
 Stop current download, skip to next file
 ==============
-*/
+***/
 static void HTTP_Cancel_f (void)
 	{
 	if (!http.first_file)
@@ -2983,26 +2983,26 @@ static void HTTP_Cancel_f (void)
 	HTTP_FreeFile (http.first_file, true);
 	}
 
-/*
+/***
 =============
 HTTP_Skip_f
 
 Stop current download, skip to next server
 =============
-*/
+***/
 static void HTTP_Skip_f (void)
 	{
 	if (http.first_file)
 		HTTP_FreeFile (http.first_file, true);
 	}
 
-/*
+/***
 =============
 HTTP_List_f
 
 Print all pending downloads to console
 =============
-*/
+***/
 static void HTTP_List_f (void)
 	{
 	httpfile_t *file = http.first_file;
@@ -3020,13 +3020,13 @@ static void HTTP_List_f (void)
 		}
 	}
 
-/*
+/***
 ================
 HTTP_ResetProcessState
 
 When connected to new server, all old files should not increase counter
 ================
-*/
+***/
 void HTTP_ResetProcessState (void)
 	{
 	httpfile_t *file = http.first_file;
@@ -3038,11 +3038,11 @@ void HTTP_ResetProcessState (void)
 		}
 	}
 
-/*
+/***
 =============
 HTTP_Init
 =============
-*/
+***/
 void HTTP_Init (void)
 	{
 	char *serverfile, *line, token[1024];
@@ -3090,11 +3090,11 @@ void HTTP_Init (void)
 		}
 	}
 
-/*
+/***
 ====================
 HTTP_Shutdown
 ====================
-*/
+***/
 void HTTP_Shutdown (void)
 	{
 	HTTP_Clear_f ();
@@ -3109,3 +3109,4 @@ void HTTP_Shutdown (void)
 
 	http.last_server = NULL;
 	}
+

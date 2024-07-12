@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,9 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+***/
 
 
 0.000000, 0.098165, 0.196270, 0.294259, 0.392069, 0.489643, 0.586920, 0.683850,
