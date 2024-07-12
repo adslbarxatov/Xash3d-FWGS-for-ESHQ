@@ -1,4 +1,4 @@
-/*
+/***
 keys.c - console key events
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "input.h"
@@ -151,11 +151,11 @@ static CVAR_DEFINE_AUTO (osk_enable, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 static CVAR_DEFINE_AUTO (key_rotate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"rotate arrow keys (0-3)");
 
-/*
+/***
 ===================
 Key_IsDown
 ===================
-*/
+***/
 int GAME_EXPORT Key_IsDown (int keynum)
 	{
 	if (keynum == -1)
@@ -165,7 +165,7 @@ int GAME_EXPORT Key_IsDown (int keynum)
 
 // [FWGS, 01.05.23] удалена Key_IsBind
 
-/*
+/***
 ===================
 Key_StringToKeynum
 
@@ -177,7 +177,7 @@ the K_* names are matched up.
 
 to be configured even if they don't have defined names.
 ===================
-*/
+***/
 int Key_StringToKeynum (const char *str)
 	{
 	keyname_t *kn;
@@ -231,14 +231,14 @@ int Key_StringToKeynum (const char *str)
 	return -1;
 	}
 
-/*
+/***
 ===================
 Key_KeynumToString
 
 Returns a string (either a single ascii char, a K_* name, or a 0x11 hex string) for the
 given keynum.
 ===================
-*/
+***/
 const char *Key_KeynumToString (int keynum)
 	{
 	keyname_t *kn;
@@ -278,11 +278,11 @@ const char *Key_KeynumToString (int keynum)
 	return tinystr;
 	}
 
-/*
+/***
 ===================
 Key_SetBinding
 ===================
-*/
+***/
 void GAME_EXPORT Key_SetBinding (int keynum, const char *binding)
 	{
 	if (keynum == -1)
@@ -300,11 +300,11 @@ void GAME_EXPORT Key_SetBinding (int keynum, const char *binding)
 	}
 
 
-/*
+/***
 ===================
 Key_GetBinding
 ===================
-*/
+***/
 const char *Key_GetBinding (int keynum)
 	{
 	if (keynum == -1)
@@ -312,11 +312,11 @@ const char *Key_GetBinding (int keynum)
 	return keys[keynum].binding;
 	}
 
-/*
+/***
 ===================
 Key_GetKey
 ===================
-*/
+***/
 int Key_GetKey (const char *pBinding)
 	{
 	int			i, len;
@@ -344,11 +344,11 @@ int Key_GetKey (const char *pBinding)
 	return -1;
 	}
 
-/*
+/***
 ===================
 Key_Unbind_f
 ===================
-*/
+***/
 static void Key_Unbind_f (void)
 	{
 	int	b;
@@ -370,11 +370,11 @@ static void Key_Unbind_f (void)
 	Key_SetBinding (b, "");
 	}
 
-/*
+/***
 ===================
 Key_Unbindall_f [FWGS, 01.02.24]
 ===================
-*/
+***/
 static void Key_Unbindall_f (void)
 	{
 	int	i;
@@ -390,11 +390,11 @@ static void Key_Unbindall_f (void)
 	Key_SetBinding (K_START_BUTTON, "escape");
 	}
 
-/*
+/***
 ===================
 Key_Reset_f [FWGS, 01.02.24]
 ===================
-*/
+***/
 static void Key_Reset_f (void)
 	{
 	keyname_t	*kn;
@@ -412,11 +412,11 @@ static void Key_Reset_f (void)
 		Key_SetBinding (kn->keynum, kn->binding);
 	}
 
-/*
+/***
 ===================
 Key_Bind_f
 ===================
-*/
+***/
 static void Key_Bind_f (void)
 	{
 	char	cmd[1024];
@@ -461,13 +461,13 @@ static void Key_Bind_f (void)
 	Key_SetBinding (b, cmd);
 	}
 
-/*
+/***
 ============
 Key_WriteBindings
 
 Writes lines containing "bind key value"
 ============
-*/
+***/
 void Key_WriteBindings (file_t *f)
 	{
 	int	i;
@@ -488,11 +488,11 @@ void Key_WriteBindings (file_t *f)
 		}
 	}
 
-/*
+/***
 ============
 Key_Bindlist_f
 ============
-*/
+***/
 static void Key_Bindlist_f (void)
 	{
 	int	i;
@@ -506,16 +506,16 @@ static void Key_Bindlist_f (void)
 		}
 	}
 
-/*
+/***
 ==============================================================================
 LINE TYPING INTO THE CONSOLE
 ==============================================================================
-*/
-/*
+***/
+/***
 ===================
 Key_Init
 ===================
-*/
+***/
 void Key_Init (void)
 	{
 	keyname_t *kn;
@@ -543,11 +543,11 @@ void Key_Init (void)
 	Cvar_RegisterVariable (&key_rotate);
 	}
 
-/*
+/***
 ===================
 Key_AddKeyCommands
 ===================
-*/
+***/
 static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 	{
 	char	button[1024];
@@ -592,13 +592,13 @@ static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 		}
 	}
 
-/*
+/***
 ===================
 Key_IsAllowedAutoRepeat
 
 List of keys that allows auto-repeat
 ===================
-*/
+***/
 static qboolean Key_IsAllowedAutoRepeat (int key)
 	{
 	if (cls.key_dest != key_game)
@@ -660,13 +660,13 @@ static int Key_Rotate (int key)
 	}
 
 
-/*
+/***
 ===================
 Key_Event
 
 Called by the system for both key up and key down events
 ===================
-*/
+***/
 void GAME_EXPORT Key_Event (int key, int down)
 	{
 	const char *kb;
@@ -826,11 +826,11 @@ void GAME_EXPORT Key_Event (int key, int down)
 		}
 	}
 
-/*
+/***
 ================
 Key_EnableTextInput [FWGS, 01.07.23]
 ================
-*/
+***/
 void Key_EnableTextInput (qboolean enable, qboolean force)
 	{
 	if (osk_enable.value)
@@ -847,11 +847,11 @@ void Key_EnableTextInput (qboolean enable, qboolean force)
 	host.textmode = enable;
 	}
 
-/*
+/***
 =========
 Key_SetKeyDest
 =========
-*/
+***/
 void GAME_EXPORT Key_SetKeyDest (int key_dest)
 	{
 	IN_ToggleClientMouse (key_dest, cls.key_dest);
@@ -886,11 +886,11 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 		}
 	}
 
-/*
+/***
 ===================
 Key_ClearStates
 ===================
-*/
+***/
 void GAME_EXPORT Key_ClearStates (void)
 	{
 	int	i;
@@ -912,13 +912,13 @@ void GAME_EXPORT Key_ClearStates (void)
 		clgame.dllFuncs.IN_ClearStates ();
 	}
 
-/*
+/***
 ===================
 CL_CharEvent
 
 Normal keyboard characters, already shifted / capslocked / etc
 ===================
-*/
+***/
 void CL_CharEvent (int key)
 	{
 	// the console key should never be used as a char
@@ -941,13 +941,13 @@ void CL_CharEvent (int key)
 		}
 	}
 
-/*
+/***
 ============
 Key_ToUpper
 
 A helper function if platform input doesn't support text mode properly
 ============
-*/
+***/
 int Key_ToUpper (int keynum)
 	{
 	keynum = Q_toupper (keynum);
@@ -963,7 +963,7 @@ int Key_ToUpper (int keynum)
 	return keynum;
 	}
 
-/*
+/***
 On-screen keyboard:
 
 4 lines with 13 buttons each
@@ -982,7 +982,7 @@ Our layout:
 +--+--+--+--+--+--+--+--+--+--+--+--+--+
 |SH|z |x |c |v |b |n |m |, |. |/ |SP|EN| 3
 +--+--+--+--+--+--+--+--+--+--+--+--+--+
-*/
+***/
 
 #define MAX_OSK_ROWS 13
 #define MAX_OSK_LINES 4
@@ -991,10 +991,6 @@ enum
 	{
 	OSK_DEFAULT = 0,
 	OSK_UPPER, // on caps, shift
-	/*
-	OSK_RUSSIAN,
-	OSK_RUSSIAN_UPPER,
-	*/
 	OSK_LAST
 	};
 
@@ -1145,13 +1141,13 @@ static qboolean OSK_KeyEvent (int key, int down)
 	return true;
 	}
 
-/*
+/***
 =============
 Joy_EnableTextInput
 
 Enables built-in IME
 =============
-*/
+***/
 static void OSK_EnableTextInput (qboolean enable, qboolean force)
 	{
 	qboolean old = osk.enable;
@@ -1171,13 +1167,13 @@ static void OSK_EnableTextInput (qboolean enable, qboolean force)
 #define X_STEP 0.05625
 #define Y_STEP 0.0825
 
-/*
+/***
 ============
 Joy_DrawSymbolButton [FWGS, 01.04.23]
 
 Draw button with symbol on it
 ============
-*/
+***/
 static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float height)
 	{
 	cl_font_t *font = Con_GetCurFont ();
@@ -1198,13 +1194,13 @@ static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float
 		symb, color, font, 0);
 	}
 
-/*
+/***
 =============
 Joy_DrawSpecialButton [FWGS, 01.04.23]
 
 Draw special button, like shift, enter or esc
 =============
-*/
+***/
 static void OSK_DrawSpecialButton (const char *name, float x, float y, float width, float height)
 	{
 	byte color[] = { 0, 255, 0, 255 };
@@ -1214,13 +1210,13 @@ static void OSK_DrawSpecialButton (const char *name, float x, float y, float wid
 	}
 
 
-/*
+/***
 =============
 Joy_DrawOnScreenKeyboard
 
 Draw on screen keyboard, if enabled
 =============
-*/
+***/
 void OSK_Draw (void)
 	{
 	const char **curlayout = osk_keylayout[osk.curlayout]; // shortcut :)
@@ -1246,3 +1242,4 @@ void OSK_Draw (void)
 		for (x = X_START, i = 0; i < MAX_OSK_ROWS; i++, x += X_STEP)
 			OSK_DrawSymbolButton (curlayout[j][i], x, y, X_STEP, Y_STEP);
 	}
+

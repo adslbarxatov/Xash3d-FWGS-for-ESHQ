@@ -1,4 +1,4 @@
-/*
+/***
 img_tga.c - tga format load & save
 Copyright (C) 2007 Uncle Mike
 
@@ -11,17 +11,17 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "imagelib.h"
 #include "xash3d_mathlib.h"
 #include "img_tga.h"
 
-/*
+/***
 =============
 Image_LoadTGA [FWGS, 01.03.24]
 =============
-*/
+***/
 qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	int	i	, columns, rows, row_inc, row, col;
@@ -230,11 +230,11 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 	return true;
 	}
 
-/*
+/***
 =============
 Image_SaveTGA
 =============
-*/
+***/
 qboolean Image_SaveTGA (const char *name, rgbdata_t *pix)
 	{
 	int				y, outsize, pixel_size;

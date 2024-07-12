@@ -1,4 +1,4 @@
-/*
+/***
 touch.c - touchscreen support prototype
 Copyright (C) 2015-2018 mittorn
 
@@ -10,8 +10,9 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #include "common.h"
 #include "input.h"
 #include "client.h"
@@ -234,14 +235,14 @@ static void Touch_ConfigAspectRatio_f (void)
 	touch.config_aspect_ratio = Q_atof (Cmd_Argv (1));
 	}
 
-/*
+/***
 ==========================
 Touch_ExportButtonToConfig
 
 writes button data to config
 returns 0 on success, non-zero on error
 ==========================
-*/
+***/
 static inline int Touch_ExportButtonToConfig (file_t *f, touch_button_t *button, qboolean keepAspect)
 	{
 	string newCommand;
@@ -277,13 +278,13 @@ static inline int Touch_ExportButtonToConfig (file_t *f, touch_button_t *button,
 	return 0;
 	}
 
-/*
+/***
 =================
 Touch_DumpConfig [FWGS, 01.02.24]
 
 Dump config to file
 =================
-*/
+***/
 static qboolean Touch_DumpConfig (const char *name, const char *profilename)
 	{
 	file_t *f;
@@ -351,13 +352,13 @@ static qboolean Touch_DumpConfig (const char *name, const char *profilename)
 	return true;
 	}
 
-/*
+/***
 =================
 Touch_WriteConfig
 
 save current touch configuration
 =================
-*/
+***/
 void Touch_WriteConfig (void)
 	{
 	file_t *f;
@@ -384,13 +385,13 @@ void Touch_WriteConfig (void)
 		}
 	}
 
-/*
+/***
 =================
 Touch_ExportConfig_f
 
 export current touch configuration into profile
 =================
-*/
+***/
 static void Touch_ExportConfig_f (void)
 	{
 	const char *name;
@@ -421,13 +422,13 @@ static void Touch_ExportConfig_f (void)
 	Touch_DumpConfig (name, profilename);
 	}
 
-/*
+/***
 =================
 Touch_GenerateCode_f
 
 export current touch configuration into C code
 =================
-*/
+***/
 static void Touch_GenerateCode_f (void)
 	{
 	touch_button_t *button;
@@ -1320,11 +1321,11 @@ static void Touch_InitConfig (void)
 	touch.config_loaded = true;
 	}
 
-/*
+/***
 ============================================================================
 TOUCH CONTROLS RENDERING
 ============================================================================
-*/
+***/
 
 static qboolean Touch_IsVisible (touch_button_t *button)
 	{

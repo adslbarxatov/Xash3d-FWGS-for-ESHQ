@@ -1,4 +1,4 @@
-/*
+/***
 index.h - compact version of famous library mpg123
 Copyright (C) 2017 Uncle Mike
 
@@ -10,23 +10,23 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef INDEX_H
 #define INDEX_H
 
 typedef struct frame_index_s
 	{
-	mpg_off_t *data;	// actual data, the frame positions
-	mpg_off_t	step;	// advancement in frame number per index point
-	mpg_off_t	next;	// frame offset supposed to come next into the index
-	size_t	size;	// total number of possible entries
-	size_t	fill;	// number of used entries
-	size_t	grow_size;// if > 0: index allowed to grow on need with these steps, instead of lowering resolution
+	mpg_off_t	*data;		// actual data, the frame positions
+	mpg_off_t	step;		// advancement in frame number per index point
+	mpg_off_t	next;		// frame offset supposed to come next into the index
+	size_t		size;		// total number of possible entries
+	size_t		fill;		// number of used entries
+	size_t		grow_size;	// if > 0: index allowed to grow on need with these steps, instead of lowering resolution
 	} frame_index_t;
 
-// the condition for a framenum to be appended to the index.
+// the condition for a framenum to be appended to the index
 #define FI_NEXT( fi, framenum )	((fi).size && framenum == (fi).next)
 
 // initialize stuff, set things to zero and NULL...

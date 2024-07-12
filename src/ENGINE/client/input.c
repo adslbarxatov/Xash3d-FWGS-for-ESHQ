@@ -1,4 +1,4 @@
-/*
+/***
 input.c - win32 input devices
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "input.h"
@@ -56,13 +56,13 @@ static CVAR_DEFINE_AUTO (cl_backspeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | 
 static CVAR_DEFINE_AUTO (cl_sidespeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 	"Default side move speed");
 
-/*
+/***
 ================
 IN_CollectInputDevices
 
 Returns a bit mask representing connected devices or, at least, enabled
 ================
-*/
+***/
 uint IN_CollectInputDevices (void)
 	{
 	uint ret = 0;
@@ -85,14 +85,14 @@ uint IN_CollectInputDevices (void)
 	return ret;
 	}
 
-/*
+/***
 =================
 IN_LockInputDevices [FWGS, 01.07.23]
 
 tries to lock any possibilty to connect another input device after
 player is connected to the server
 =================
-*/
+***/
 void IN_LockInputDevices (qboolean lock)
 	{
 	extern convar_t joy_enable; // private to input system
@@ -111,11 +111,11 @@ void IN_LockInputDevices (qboolean lock)
 		}
 	}
 
-/*
+/***
 ===========
 IN_StartupMouse [FWGS, 01.02.24]
 ===========
-*/
+***/
 static void IN_StartupMouse (void)
 	{
 	Cvar_RegisterVariable (&m_ignore);
@@ -136,13 +136,13 @@ void GAME_EXPORT IN_SetCursor (void *hCursor)
 	{
 	}
 
-/*
+/***
 ===========
 IN_MouseSavePos
 
 Save mouse pos before state change e.g. changelevel
 ===========
-*/
+***/
 void IN_MouseSavePos (void)
 	{
 	if (!in_mouseactive)
@@ -152,13 +152,13 @@ void IN_MouseSavePos (void)
 	in_mouse_savedpos = true;
 	}
 
-/*
+/***
 ===========
 IN_MouseRestorePos
 
 Restore right position for background
 ===========
-*/
+***/
 void IN_MouseRestorePos (void)
 	{
 	if (!in_mouse_savedpos)
@@ -169,13 +169,13 @@ void IN_MouseRestorePos (void)
 	in_mouse_savedpos = false;
 	}
 
-/*
+/***
 ===========
 IN_ToggleClientMouse [FWGS, 01.07.23]
 
 Called when key_dest is changed
 ===========
-*/
+***/
 void IN_ToggleClientMouse (int newstate, int oldstate)
 	{
 	if (newstate == oldstate)
@@ -271,13 +271,13 @@ static void IN_CheckMouseState (qboolean active)
 		}
 	}
 
-/*
+/***
 ===========
 IN_ActivateMouse
 
 Called when the window gains focus or changes in some way
 ===========
-*/
+***/
 void IN_ActivateMouse (void)
 	{
 	if (!in_mouseinitialized)
@@ -289,13 +289,13 @@ void IN_ActivateMouse (void)
 	in_mouseactive = true;
 	}
 
-/*
+/***
 ===========
 IN_DeactivateMouse
 
 Called when the window loses focus
 ===========
-*/
+***/
 void IN_DeactivateMouse (void)
 	{
 	if (!in_mouseinitialized)
@@ -307,11 +307,11 @@ void IN_DeactivateMouse (void)
 	in_mouseactive = false;
 	}
 
-/*
+/***
 ================
 IN_MouseMove [FWGS, 01.02.24]
 ================
-*/
+***/
 static void IN_MouseMove (void)
 	{
 	int x, y;
@@ -334,11 +334,11 @@ static void IN_MouseMove (void)
 	UI_MouseMove (x, y);
 	}
 
-/*
+/***
 ===========
 IN_MouseEvent [FWGS, 01.04.23]
 ===========
-*/
+***/
 void IN_MouseEvent (int key, int down)
 	{
 	if (!in_mouseinitialized)
@@ -372,13 +372,13 @@ void IN_MouseEvent (int key, int down)
 		}
 	}
 
-/*
+/***
 ==============
 IN_MWheelEvent [FWGS, 01.04.23]
 
 direction is negative for wheel down, otherwise wheel up
 ==============
-*/
+***/
 void IN_MWheelEvent (int y)
 	{
 	int b = y > 0 ? K_MWHEELUP : K_MWHEELDOWN;
@@ -389,11 +389,11 @@ void IN_MWheelEvent (int y)
 	Key_Event (b, false);
 	}
 
-/*
+/***
 ===========
 IN_Shutdown
 ===========
-*/
+***/
 void IN_Shutdown (void)
 	{
 	IN_DeactivateMouse ();
@@ -405,11 +405,11 @@ void IN_Shutdown (void)
 	Touch_Shutdown ();
 	}
 
-/*
+/***
 ===========
 IN_Init
 ===========
-*/
+***/
 void IN_Init (void)
 	{
 	// [FWGS, 01.07.23]
@@ -429,16 +429,15 @@ void IN_Init (void)
 		}
 	}
 
-/*
+/***
 ================
 IN_JoyMove
 
 Common function for engine joystick movement
 
-	-1 < forwardmove < 1,	-1 < sidemove < 1
-
+-1 < forwardmove < 1,	-1 < sidemove < 1
 ================
-*/
+***/
 
 #define F (1U << 0)	// Forward
 #define B (1U << 1)	// Back
@@ -549,13 +548,13 @@ static void IN_CollectInput (float *forward, float *side, float *pitch, float *y
 
 		}
 
-/*
+/***
 ================
 IN_EngineAppendMove
 
 Called from cl_main.c after generating command in client
 ================
-*/
+***/
 void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)
 	{
 	float		forward, side, pitch, yaw;
@@ -613,13 +612,13 @@ static void IN_Commands (void)
 	IN_CheckMouseState (in_mouseactive);
 	}
 
-/*
+/***
 ==================
 Host_InputFrame
 
 Called every frame, even if not generating commands
 ==================
-*/
+***/
 void Host_InputFrame (void)
 	{
 	Sys_SendKeyEvents ();

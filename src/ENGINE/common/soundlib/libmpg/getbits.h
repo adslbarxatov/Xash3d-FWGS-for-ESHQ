@@ -1,4 +1,4 @@
-/*
+/***
 getbits.h - compact version of famous library mpg123
 Copyright (C) 2017 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #ifndef GETBITS_H
 #define GETBITS_H

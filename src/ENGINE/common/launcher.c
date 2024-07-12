@@ -1,4 +1,4 @@
-/*
+/***
 launcher.c - direct xash3d launcher
 Copyright (C) 2015 Mittorn
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 // [FWGS, 01.01.24]
 #if XASH_ENABLE_MAIN

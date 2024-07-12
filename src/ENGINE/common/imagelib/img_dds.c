@@ -1,4 +1,4 @@
-/*
+/***
 img_dds.c - dds format load
 Copyright (C) 2015 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "imagelib.h"
 #include "xash3d_mathlib.h"
@@ -292,11 +292,11 @@ static void Image_DXTAdjustVolume (dds_t *hdr)
 	hdr->dwFlags |= DDS_LINEARSIZE;
 	}
 
-/*
+/***
 =============
 Image_LoadDDS
 =============
-*/
+***/
 qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	dds_t	header;

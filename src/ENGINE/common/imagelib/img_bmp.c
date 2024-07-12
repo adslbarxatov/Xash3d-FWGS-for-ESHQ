@@ -1,4 +1,4 @@
-/*
+/***
 img_bmp.c - bmp format load & save
 Copyright (C) 2007 Uncle Mike
 
@@ -11,17 +11,17 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "imagelib.h"
 #include "xash3d_mathlib.h"
 #include "img_bmp.h"
 
-/*
+/***
 =============
 Image_LoadBMP [FWGS, 01.03.24]
 =============
-*/
+***/
 qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	byte		*buf_p, *pixbuf;

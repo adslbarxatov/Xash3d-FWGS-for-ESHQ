@@ -1,4 +1,4 @@
-/*
+/***
 img_png.c - png format load & save
 Copyright (C) 2019 Andrey Akhmichin
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "miniz.h"
 #include "imagelib.h"
@@ -35,11 +35,11 @@ static const char idat_sign[] = { 'I', 'D', 'A', 'T' };
 static const char iend_sign[] = { 'I', 'E', 'N', 'D' };
 static const int  iend_crc32 = 0xAE426082;
 
-/*
+/***
 =============
 Image_LoadPNG [FWGS, 01.04.23]
 =============
-*/
+***/
 qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	int		ret;
@@ -525,11 +525,11 @@ qboolean Image_LoadPNG (const char *name, const byte *buffer, fs_offset_t filesi
 	return true;
 	}
 
-/*
+/***
 =============
 Image_SavePNG
 =============
-*/
+***/
 qboolean Image_SavePNG (const char *name, rgbdata_t *pix)
 	{
 	int			ret;

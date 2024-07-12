@@ -1,4 +1,4 @@
-/*
+/***
 masterlist.c - multi-master list
 Copyright (C) 2018 mittorn
 
@@ -10,8 +10,9 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #include "common.h"
 #include "netchan.h"
 #include "server.h"	// [FWGS, 01.05.23] 
@@ -40,11 +41,11 @@ static CVAR_DEFINE_AUTO (sv_verbose_heartbeats, "0", 0, "print every heartbeat t
 
 #define HEARTBEAT_SECONDS ((sv_nat.value > 0.0f) ? 60.0f : 300.0f)   // 1 or 5 minutes
 
-/*
+/***
 ========================
 NET_GetMasterHostByName [FWGS, 01.01.24]
 ========================
-*/
+***/
 static net_gai_state_t NET_GetMasterHostByName (master_t * m)
 	{
 	net_gai_state_t res = NET_StringToAdrNB (m->address, &m->adr);
@@ -60,14 +61,14 @@ static net_gai_state_t NET_GetMasterHostByName (master_t * m)
 	return res;
 	}
 
-/*
+/***
 ========================
 NET_SendToMasters [FWGS, 01.05.23]
 
 Send request to all masterservers list
 return true if would block
 ========================
-*/
+***/
 qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data)
 	{
 	master_t *list;
@@ -106,11 +107,11 @@ qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data)
 	return wait;
 	}
 
-/*
+/***
 ========================
 NET_AnnounceToMaster [FWGS, 01.05.24]
 ========================
-*/
+***/
 static void NET_AnnounceToMaster (master_t *m)
 	{
 	sizebuf_t msg;
@@ -122,7 +123,6 @@ static void NET_AnnounceToMaster (master_t *m)
 	MSG_WriteBytes (&msg, "q\xFF", 2);
 	MSG_WriteDword (&msg, m->heartbeat_challenge);
 
-	/*NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&msg), MSG_GetBuf (&msg), m->adr);*/
 	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&msg), MSG_GetData (&msg), m->adr);
 	if (sv_verbose_heartbeats.value)
 		{
@@ -131,11 +131,11 @@ static void NET_AnnounceToMaster (master_t *m)
 		}
 	}
 
-/*
+/***
 ========================
 NET_AnnounceToMaster [FWGS, 01.05.23]
 ========================
-*/
+***/
 void NET_MasterClear (void)
 	{
 	master_t *m;
@@ -144,16 +144,16 @@ void NET_MasterClear (void)
 		m->last_heartbeat = MAX_HEARTBEAT;
 	}
 
-/*
+/***
 ========================
 NET_MasterHeartbeat [FWGS, 01.05.23]
 ========================
-*/
+***/
 void NET_MasterHeartbeat (void)
 	{
 	master_t *m;
 
-	if ((!public_server.value && !sv_nat.value) || svs.maxclients == 1)
+	if ((!public_server.value && !sv_nat.value) || (svs.maxclients == 1))
 		return; // only public servers send heartbeats
 
 	for (m = ml.list; m; m = m->next)
@@ -181,25 +181,25 @@ void NET_MasterHeartbeat (void)
 		}
 	}
 
-/*
+/***
 =================
 NET_MasterShutdown [FWGS, 01.05.23]
 
 Informs all masters that this server is going down
 (ignored by master servers in current implementation)
 =================
-*/
+***/
 void NET_MasterShutdown (void)
 	{
 	NET_Config (true, false); // allow remote
 	while (NET_SendToMasters (NS_SERVER, 2, "\x62\x0A"));
 	}
 
-/*
+/***
 ========================
 NET_GetMasterFromAdr [FWGS, 01.05.23]
 ========================
-*/
+***/
 static master_t *NET_GetMasterFromAdr (netadr_t adr)
 	{
 	master_t *master;
@@ -213,11 +213,11 @@ static master_t *NET_GetMasterFromAdr (netadr_t adr)
 	return NULL;
 	}
 
-/*
+/***
 ========================
 NET_GetMaster [FWGS, 01.05.23]
 ========================
-*/
+***/
 qboolean NET_GetMaster (netadr_t from, uint *challenge, double *last_heartbeat)
 	{
 	master_t *m;
@@ -232,23 +232,23 @@ qboolean NET_GetMaster (netadr_t from, uint *challenge, double *last_heartbeat)
 	return m != NULL;
 	}
 
-/*
+/***
 ========================
 NET_IsMasterAdr [FWGS, 01.05.23]
 ========================
-*/
+***/
 qboolean NET_IsMasterAdr (netadr_t adr)
 	{
 	return NET_GetMasterFromAdr (adr) != NULL;
 	}
 
-/*
+/***
 ========================
 NET_AddMaster [FWGS, 09.05.24]
 
 Add master to the list
 ========================
-*/
+***/
 static void NET_AddMaster (const char *addr, qboolean save)
 	{
 	master_t *master, *last;
@@ -259,7 +259,6 @@ static void NET_AddMaster (const char *addr, qboolean save)
 		}
 
 	master = Mem_Malloc (host.mempool, sizeof (master_t));
-	/*Q_strncpy (master->address, addr, MAX_STRING);*/
 	Q_strncpy (master->address, addr, sizeof (master->address));
 	master->sent = false;
 	master->save = save;
@@ -285,13 +284,13 @@ static void NET_AddMaster_f (void)
 	ml.modified = true; // save config
 	}
 
-/*
+/***
 ========================
 NET_ClearMasters
 
 Clear master list
 ========================
-*/
+***/
 static void NET_ClearMasters_f (void)
 	{
 	while (ml.list)
@@ -302,13 +301,13 @@ static void NET_ClearMasters_f (void)
 		}
 	}
 
-/*
+/***
 ========================
 NET_ListMasters_f
 
 Display current master linked list
 ========================
-*/
+***/
 static void NET_ListMasters_f (void)
 	{
 	master_t	*list;
@@ -328,13 +327,13 @@ static void NET_ListMasters_f (void)
 		}
 	}
 
-/*
+/***
 ========================
 NET_LoadMasters
 
 Load master server list from xashcomm.lst
 ========================
-*/
+***/
 static void NET_LoadMasters (void)
 	{
 	byte *afile;
@@ -367,13 +366,13 @@ static void NET_LoadMasters (void)
 	ml.modified = false;
 	}
 
-/*
+/***
 ========================
 NET_SaveMasters
 
 Save master server list to xashcomm.lst, except for default
 ========================
-*/
+***/
 void NET_SaveMasters (void)
 	{
 	file_t *f;
@@ -402,13 +401,13 @@ void NET_SaveMasters (void)
 	FS_Close (f);
 	}
 
-/*
+/***
 ========================
 NET_InitMasters
 
 Initialize master server list
 ========================
-*/
+***/
 void NET_InitMasters (void)
 	{
 	Cmd_AddRestrictedCommand ("addmaster", NET_AddMaster_f, "add address to masterserver list");

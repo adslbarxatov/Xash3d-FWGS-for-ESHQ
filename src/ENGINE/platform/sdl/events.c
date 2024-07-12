@@ -1,4 +1,4 @@
-/*
+/***
 events.c - SDL event system handlers
 Copyright (C) 2015-2017 a1batross
 
@@ -11,7 +11,8 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
+
 #if defined( XASH_SDL ) && !XASH_DEDICATED
 #include <SDL.h>
 #include <ctype.h>
@@ -137,11 +138,11 @@ static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
 #endif
 	}
 
-/*
+/***
 =============
 SDLash_KeyEvent [FWGS, 01.05.24]
 =============
-*/
+***/
 static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	{
 	int down = key.state != SDL_RELEASED;
@@ -151,42 +152,27 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	int keynum = key.keysym.sym;
 #endif
 
-	/*qboolean numLock = FBitSet (SDL_GetModState (), KMOD_NUM);
-	*/
-
 #if XASH_ANDROID
 	if ((keynum == SDL_SCANCODE_VOLUMEUP) || (keynum == SDL_SCANCODE_VOLUMEDOWN))
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 #endif
 
-	/*if (SDL_IsTextInputActive () && down && (cls.key_dest != key_game))
-	*/
 	if (SDL_IsTextInputActive ())
 		{
-		/*if (FBitSet (SDL_GetModState (), KMOD_CTRL))
-		*/
 		// this is how engine understands ctrl+c, ctrl+v and other hotkeys
 		if (down && (cls.key_dest != key_game))
 			{
-			/*if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
-			*/
 			if (FBitSet (SDL_GetModState (), KMOD_CTRL))
 				{
-				/*keynum = keynum - SDL_SCANCODE_A + 1;
-				CL_CharEvent (keynum);*/
 				if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
 					{
 					keynum = keynum - SDL_SCANCODE_A + 1;
 					CL_CharEvent (keynum);
 					}
-				/*}
-
-				return;*/
 				return;
 				}
 			}
 
-		/*#if !SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 
 		// ignore printable keys, they are coming through SDL_TEXTINPUT
@@ -200,14 +186,12 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		if (keynum >= SDLK_KP0 && keynum <= SDLK_KP9)
 			keynum -= SDLK_KP0 + '0';
 
-		/*if (isprint (keynum))*/
 		if (isprint (keynum))
 			{
 			if (FBitSet (SDL_GetModState (), KMOD_SHIFT))
 				keynum = Key_ToUpper (keynum);
 
 			CL_CharEvent (keynum);
-			/*return;*/
 			}
 #endif
 		}
@@ -479,11 +463,11 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 // [FWGS, 01.04.23] удалена SDLash_MouseKey
 
-/*
+/***
 =============
 SDLash_MouseEvent [FWGS, 01.04.23]
 =============
-*/
+***/
 static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 	{
 	int down;
@@ -537,11 +521,11 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 		}
 	}
 
-/*
+/***
 =============
 SDLash_InputEvent
 =============
-*/
+***/
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 static void SDLash_InputEvent (SDL_TextInputEvent input)
 	{
@@ -574,9 +558,6 @@ static void SDLash_ActiveEvent (int gain)
 		if (cls.key_dest == key_game)
 			IN_ActivateMouse ();
 
-		/*if (dma.initialized && snd_mute_losefocus.value)
-			SNDDMA_Activate (true);*/
-
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 		if (vid_fullscreen.value == WINDOW_MODE_FULLSCREEN)
 			VID_SetMode ();
@@ -594,9 +575,6 @@ static void SDLash_ActiveEvent (int gain)
 				host.status = HOST_NOFOCUS;
 				if (cls.key_dest == key_game)
 					IN_DeactivateMouse ();
-
-				/*if (dma.initialized && snd_mute_losefocus.value)
-					SNDDMA_Activate (false);*/
 
 				host.force_draw_version_time = host.realtime + 2.0;
 				VID_RestoreScreenResolution ();
@@ -650,11 +628,11 @@ static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
 
 #if XASH_SDL && !XASH_DEDICATED
 
-/*
+/***
 =============
 SDLash_EventFilter
 =============
-*/
+***/
 static void SDLash_EventFilter (SDL_Event *event)
 	{
 	switch (event->type)
@@ -881,11 +859,11 @@ static void SDLash_EventFilter (SDL_Event *event)
 		}
 	}
 
-/*
+/***
 =============
 SDLash_RunEvents
 =============
-*/
+***/
 void Platform_RunEvents (void)
 	{
 	SDL_Event event;
@@ -901,13 +879,13 @@ PSVita_InputUpdate ();
 
 // [FWGS, 01.07.23] removed Platform_GetNativeObject
 
-/*
+/***
 ========================
 Platform_PreCreateMove [FWGS, 01.07.23]
 
 this should disable mouse look on client when m_ignore enabled
 ========================
-*/
+***/
 void Platform_PreCreateMove (void)
 	{
 	if (m_ignore.value)

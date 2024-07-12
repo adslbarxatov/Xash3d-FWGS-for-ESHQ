@@ -1,4 +1,4 @@
-/*
+/***
 img_ktx2.h - ktx2 format reference
 Copyright (C) 2023 Provod
 
@@ -10,8 +10,9 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #ifndef IMG_KTX2_H
 #define IMG_KTX2_H
 
@@ -19,13 +20,6 @@ GNU General Public License for more details.
 
 #define KTX2_IDENTIFIER_SIZE 12
 #define KTX2_IDENTIFIER "\xABKTX 20\xBB\r\n\x1A\n"
-
-/*
-static const char k_ktx2_identifier[KTX2_IDENTIFIER_SIZE] =
-{
-  '\xAB', 'K', 'T', 'X', ' ', '2', '0', '\xBB', '\r', '\n', '\x1A', '\n'
-};
-*/
 
 typedef struct
 	{

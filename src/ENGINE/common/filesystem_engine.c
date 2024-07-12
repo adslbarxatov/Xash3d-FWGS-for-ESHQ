@@ -1,4 +1,4 @@
-/*
+/***
 filesystem.c - game filesystem based on DP fs
 Copyright (C) 2007 Uncle Mike
 Copyright (C) 2003-2006 Mathieu Olivier
@@ -14,8 +14,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "library.h"
@@ -92,7 +92,6 @@ qboolean FS_LoadProgs (void)
 
 	if (!fs_hInstance)
 		{
-		/*Host_Error ("FS_LoadProgs: can't load filesystem library %s: %s\n", name, COM_GetLibraryError ());*/
 		Host_Error ("%s: can't load filesystem library %s: %s\n", __func__, name, COM_GetLibraryError ());
 		return false;
 		}
@@ -100,16 +99,13 @@ qboolean FS_LoadProgs (void)
 	if (!(GetFSAPI = (FSAPI)COM_GetProcAddress (fs_hInstance, GET_FS_API)))
 		{
 		FS_UnloadProgs ();
-		/*Host_Error ("FS_LoadProgs: can't find GetFSAPI entry point in %s\n", name);*/
 		Host_Error ("%s: can't find GetFSAPI entry point in %s\n", __func__, name);
 		return false;
 		}
 
-	/*if (!GetFSAPI (FS_API_VERSION, &g_fsapi, &FI, &fs_memfuncs))*/
 	if (GetFSAPI (FS_API_VERSION, &g_fsapi, &FI, &fs_memfuncs) != FS_API_VERSION)
 		{
 		FS_UnloadProgs ();
-		/*Host_Error ("FS_LoadProgs: can't initialize filesystem API: wrong version\n");*/
 		Host_Error ("%s: can't initialize filesystem API: wrong version\n", __func__);
 		return false;
 		}
@@ -117,21 +113,19 @@ qboolean FS_LoadProgs (void)
 	if (!(fs_pfnCreateInterface = (pfnCreateInterface_t)COM_GetProcAddress (fs_hInstance, "CreateInterface")))
 		{
 		FS_UnloadProgs ();
-		/*Host_Error ("FS_LoadProgs: can't find CreateInterface entry point in %s\n", name);*/
 		Host_Error ("%s: can't find CreateInterface entry point in %s\n", __func__, name);
 		return false;
 		}
 
-	/*Con_DPrintf ("FS_LoadProgs: filesystem_stdio successfully loaded\n");*/
 	Con_DPrintf ("%s: filesystem_stdio successfully loaded\n", __func__);
 	return true;
 	}
 
-/*
+/***
 ================
 FS_Init [FWGS, 01.05.23]
 ================
-*/
+***/
 void FS_Init (void)
 	{
 	int		i;
@@ -157,11 +151,11 @@ void FS_Init (void)
 		SI.clientlib[0] = 0;
 	}
 
-/*
+/***
 ================
 FS_Shutdown [FWGS, 01.05.23]
 ================
-*/
+***/
 void FS_Shutdown (void)
 	{
 	if (g_fsapi.ShutdownStdio)
@@ -172,15 +166,14 @@ void FS_Shutdown (void)
 	FS_UnloadProgs ();
 	}
 
-/*
+/***
 ================
 ESHQ: поддержка достижений
 ================
-*/
+***/
 
 // ESHQ: состояние теперь хранится в памяти, чтобы постоянно не дёргать файл
 static unsigned int WAS_Level = 0, WAS_Code_Gr = 0, WAS_Code_Rt;
-/*static unsigned int WAS_gravity = 0xFFFF, WAS_roomtype = 0xFFFF;*/
 static unsigned char WAS_entered = 0;
 
 // Метод запрашивает настройки из сохранённой конфигурации, обновляет их до нового формата
@@ -197,7 +190,6 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	convar_t *rt = Cvar_FindVar ("room_type");
 	unsigned int gravity = (unsigned int)sv_gravity.value;
 	unsigned int roomtype = 0;
-	/*unsigned int newCode;*/
 
 	// Защита от двойного входа
 	if (WAS_entered)
@@ -206,10 +198,6 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 
 	if (rt)
 		roomtype = (unsigned int)rt->value;
-	/*if (WAS_gravity == 0xFFFF)
-		WAS_gravity = gravity;
-	if (WAS_roomtype == 0xFFFF)
-		WAS_roomtype = roomtype;*/
 
 	// Чтение предыдущего состояния (ошибки игнорируются)
 	if (!WAS_Code_Gr)
@@ -224,11 +212,7 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			}
 		}
 
-	// Проверочный код, позволяющий избежать постоянной перезаписи файла и повторного его исполнения
-	/*newCode = ((gravity >> 4) & 0x3F) | ((roomtype & 0x3F) << 8);*/
-
-	// Уровень уже достигнут или является максимальным -и- проверочный код не изменился
-	/*if (((NewLevel <= (int)WAS_Level) || (WAS_Level >= 3)) && (WAS_Code_Gr == newCode_Gr))*/
+	// Обработка в зависимости от режима вызова
 	switch (Mode)
 		{
 		case 0:
@@ -316,7 +300,6 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			Cbuf_Execute ();
 			}
 
-		/*WAS_gravity = gravity;*/
 		WAS_Code_Gr = (gravity >> 4) & 0x3F;
 		}
 
@@ -335,7 +318,6 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			Cbuf_Execute ();
 			}
 
-		/*WAS_roomtype = roomtype;*/
 		WAS_Code_Rt = roomtype & 0x3F;
 		}
 

@@ -1,4 +1,4 @@
-/*
+/***
 img_mip.c - hl1 and q1 image mips
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "imagelib.h"
 #include "xash3d_mathlib.h"
@@ -20,11 +20,11 @@ GNU General Public License for more details.
 #include "sprite.h"
 #include "qfont.h"
 
-/*
+/***
 ============
 Image_LoadPAL
 ============
-*/
+***/
 qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	int	rendermode = LUMP_NORMAL;
@@ -69,11 +69,11 @@ qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesi
 	return true;
 	}
 
-/*
+/***
 ============
 Image_LoadFNT
 ============
-*/
+***/
 qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	qfont_t		font;
@@ -129,24 +129,24 @@ qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesi
 	return Image_AddIndexedImageToPack (fin, image.width, image.height);
 	}
 
-/*
+/***
 ======================
 Image_SetMDLPointer
 
 Transfer buffer pointer before Image_LoadMDL
 ======================
-*/
+***/
 static void *g_mdltexdata;
 void Image_SetMDLPointer (byte *p)
 	{
 	g_mdltexdata = p;
 	}
 
-/*
+/***
 ============
 Image_LoadMDL
 ============
-*/
+***/
 qboolean Image_LoadMDL (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	byte	*fin;
@@ -195,11 +195,11 @@ qboolean Image_LoadMDL (const char *name, const byte *buffer, fs_offset_t filesi
 	return Image_AddIndexedImageToPack (fin, image.width, image.height);
 	}
 
-/*
+/***
 ============
 Image_LoadSPR
 ============
-*/
+***/
 qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	dspriteframe_t	pin;	// identical for q1\hl sprites
@@ -262,11 +262,11 @@ qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesi
 	return Image_AddIndexedImageToPack (fin, image.width, image.height);
 	}
 
-/*
+/***
 ============
 Image_LoadLMP
 ============
-*/
+***/
 qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	lmp_t	lmp;
@@ -355,11 +355,11 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 	return Image_AddIndexedImageToPack (fin, image.width, image.height);
 	}
 
-/*
+/***
 =============
 Image_LoadMIP [FWGS, 01.05.24]
 =============
-*/
+***/
 qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	mip_t		mip;
@@ -400,7 +400,6 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		if (Q_strrchr (name, '{'))
 			{
 			// NOTE: decals with 'blue base' can be interpret as colored decals
-			/*if (!Image_CheckFlag (IL_LOAD_DECAL) || (pal[765] == 0 && pal[766] == 0 && pal[767] == 255))*/
 			if (!Image_CheckFlag (IL_LOAD_DECAL) || (pal && (pal[765] == 0) && (pal[766] == 0) && (pal[767] == 255)))
 				{
 				SetBits (image.flags, IMAGE_ONEBIT_ALPHA);
@@ -499,23 +498,8 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	// check for half-life water texture
-	/*if (hl_texture && (mip.name[0] == '!' || !Q_strnicmp (mip.name, "water", 5)))*/
 	if (pal != NULL)
 		{
-		/*// grab the fog color
-		image.fogParams[0] = pal[3 * 3 + 0];
-		image.fogParams[1] = pal[3 * 3 + 1];
-		image.fogParams[2] = pal[3 * 3 + 2];
-
-		// grab the fog density
-		image.fogParams[3] = pal[4 * 3 + 0];
-		}
-	else if (hl_texture && (rendermode == LUMP_GRADIENT))
-		{
-		// grab the decal color
-		image.fogParams[0] = pal[255 * 3 + 0];
-		image.fogParams[1] = pal[255 * 3 + 1];
-		image.fogParams[2] = pal[255 * 3 + 2];*/
 		if (hl_texture && ((mip.name[0] == '!') || !Q_strnicmp (mip.name, "water", 5)))
 			{
 			// grab the fog color
@@ -523,21 +507,11 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 			image.fogParams[1] = pal[3 * 3 + 1];
 			image.fogParams[2] = pal[3 * 3 + 2];
 
-		/*// calc the decal reflectivity
-		image.fogParams[3] = VectorAvg (image.fogParams);
-		}
-	else if (pal != NULL)
-		{
-		// calc texture reflectivity
-		for (i = 0; i < 256; i++)*/
-		// grab the fog density
+			// grab the fog density
 			image.fogParams[3] = pal[4 * 3 + 0];
 			}
 		else if (hl_texture && (rendermode == LUMP_GRADIENT))
 			{
-			/*reflectivity[0] += pal[i * 3 + 0];
-			reflectivity[1] += pal[i * 3 + 1];
-			reflectivity[2] += pal[i * 3 + 2];*/
 			// grab the decal color
 			image.fogParams[0] = pal[255 * 3 + 0];
 			image.fogParams[1] = pal[255 * 3 + 1];
@@ -556,7 +530,6 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 				reflectivity[2] += pal[i * 3 + 2];
 				}
 
-			/*VectorDivide (reflectivity, 256, image.fogParams);*/
 			VectorDivide (reflectivity, 256, image.fogParams);
 			}
 		}

@@ -1,4 +1,4 @@
-/*
+/***
 sys_con.c - win32 dedicated and developer console
 Copyright (C) 2007 Uncle Mike
 
@@ -11,16 +11,16 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "xash3d_mathlib.h"
 
-/*
+/***
 ===============================================================================
 WIN32 CONSOLE
 ===============================================================================
-*/
+***/
 
 // console defines
 #define COMMAND_HISTORY	64	// system console keep more commands than game console
@@ -443,19 +443,19 @@ static char *Wcon_KeyEvent (int key, WCHAR character)
 	return NULL;
 	}
 
-/*
+/***
 ===============================================================================
 WIN32 IO
 ===============================================================================
-*/
+***/
 
-/*
+/***
 ================
 Con_WinPrint
 
 print into window console
 ================
-*/
+***/
 void Wcon_WinPrint (const char *pMsg)
 	{
 	int nLen;
@@ -478,13 +478,13 @@ void Wcon_WinPrint (const char *pMsg)
 		Wcon_UpdateStatusLine ();
 	}
 
-/*
+/***
 ================
 Con_CreateConsole [FWGS, 01.05.24]
 
 create win32 console
 ================
-*/
+***/
 void Wcon_CreateConsole (void)
 	{
 	if (Sys_CheckParm ("-log"))
@@ -492,7 +492,6 @@ void Wcon_CreateConsole (void)
 
 	if (host.type == HOST_NORMAL)
 		{
-		/*Q_strncpy (s_wcd.title, "Xash3D " XASH_VERSION, sizeof (s_wcd.title));*/
 		Q_strncpy (s_wcd.title, XASH_ENGINE_NAME " " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));
 		}
@@ -500,7 +499,6 @@ void Wcon_CreateConsole (void)
 	// dedicated console
 	else
 		{
-		/*Q_strncpy (s_wcd.title, "XashDS " XASH_VERSION, sizeof (s_wcd.title));*/
 		Q_strncpy (s_wcd.title, XASH_DEDICATED_SERVER_NAME " " XASH_VERSION, sizeof (s_wcd.title));
 		Q_strncpy (s_wcd.log_path, "dedicated.log", sizeof (s_wcd.log_path));
 		s_wcd.log_active = true;	// always make log
@@ -555,13 +553,13 @@ void Wcon_CreateConsole (void)
 		}
 	}
 
-/*
+/***
 ================
 Con_InitConsoleCommands
 
 register console commands (dedicated only)
 ================
-*/
+***/
 void Wcon_InitConsoleCommands (void)
 	{
 	if (host.type != HOST_DEDICATED)
@@ -570,13 +568,13 @@ void Wcon_InitConsoleCommands (void)
 	Cmd_AddCommand ("clear", Wcon_Clear_f, "clear console history");
 	}
 
-/*
+/***
 ================
 Con_DestroyConsole [FWGS, 01.05.23]
 
 destroy win32 console
 ================
-*/
+***/
 void Wcon_DestroyConsole (void)
 	{
 	// last text message into console or log
@@ -608,13 +606,13 @@ void Wcon_DestroyConsole (void)
 		CloseHandle (host.hMutex);
 	}
 
-/*
+/***
 ================
 Con_Input
 
 returned input text
 ================
-*/
+***/
 char *Wcon_Input (void)
 	{
 	DWORD i;	// [FWGS, 01.05.23]
@@ -652,13 +650,13 @@ char *Wcon_Input (void)
 	return NULL;
 	}
 
-/*
+/***
 ================
 Platform_SetStatus [FWGS, 01.07.23]
 
 set server status string in console
 ================
-*/
+***/
 void Platform_SetStatus (const char *pStatus)
 	{
 	if (s_wcd.attached)

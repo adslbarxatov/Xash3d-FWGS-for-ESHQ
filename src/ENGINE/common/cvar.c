@@ -1,4 +1,4 @@
-/*
+/***
 cvar.c - dynamic variable tracking
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include <math.h>	// fabs...
 #include "common.h"
@@ -55,23 +55,23 @@ static cvar_filter_quirks_t *cvar_active_filter_quirks = NULL;
 
 CVAR_DEFINE_AUTO (cl_filterstuffcmd, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "filter commands coming from server");
 
-/*
+/***
 ============
 Cvar_GetList
 ============
-*/
+***/
 cvar_t *GAME_EXPORT Cvar_GetList (void)
 	{
 	return (cvar_t *)cvar_vars;
 	}
 
-/*
+/***
 ============
 Cvar_FindVar
 
 find the specified variable by name
 ============
-*/
+***/
 convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 	{
 #if defined(XASH_HASHED_VARS)
@@ -95,13 +95,13 @@ convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 #endif
 	}
 
-/*
+/***
 ============
 Cvar_BuildAutoDescription [FWGS, 01.04.23]
 
 build cvar auto description that based on the setup flags
 ============
-*/
+***/
 const char *Cvar_BuildAutoDescription (const char *szName, int flags)
 	{
 	static char	desc[256];
@@ -140,13 +140,13 @@ const char *Cvar_BuildAutoDescription (const char *szName, int flags)
 	return desc;
 	}
 
-/*
+/***
 ============
 Cvar_UpdateInfo
 
 deal with userinfo etc
 ============
-*/
+***/
 static qboolean Cvar_UpdateInfo (convar_t *var, const char *value, qboolean notify)
 	{
 	if (FBitSet (var->flags, FCVAR_USERINFO))
@@ -154,8 +154,6 @@ static qboolean Cvar_UpdateInfo (convar_t *var, const char *value, qboolean noti
 		if (Host_IsDedicated ())
 			{
 			// g-cont. this is a very strange behavior...
-			/*Info_SetValueForKey (SV_Serverinfo (), var->name, value, MAX_SERVERINFO_STRING),
-				SV_BroadcastCommand ("fullserverinfo \"%s\"\n", SV_Serverinfo ());*/
 			char *info = SV_Serverinfo ();
 
 			Info_SetValueForKey (info, var->name, value, MAX_SERVERINFO_STRING),
@@ -195,13 +193,13 @@ static qboolean Cvar_UpdateInfo (convar_t *var, const char *value, qboolean noti
 	return true;
 	}
 
-/*
+/***
 ============
 Cvar_ValidateString
 
 deal with userinfo etc
 ============
-*/
+***/
 static const char *Cvar_ValidateString (convar_t *var, const char *value)
 	{
 	const char	*pszValue;
@@ -260,11 +258,11 @@ static const char *Cvar_ValidateString (convar_t *var, const char *value)
 	return pszValue;
 	}
 
-/*
+/***
 ============
 Cvar_ValidateVarName [FWGS, 01.04.23]
 ============
-*/
+***/
 static qboolean Cvar_ValidateVarName (const char *s, qboolean isvalue)
 	{
 	if (!s)
@@ -278,13 +276,13 @@ static qboolean Cvar_ValidateVarName (const char *s, qboolean isvalue)
 	return true;
 	}
 
-/*
+/***
 ============
 Cvar_UnlinkVar
 
 unlink the variable
 ============
-*/
+***/
 static int Cvar_UnlinkVar (const char *var_name, int group)
 	{
 	int			count = 0;
@@ -334,13 +332,13 @@ static int Cvar_UnlinkVar (const char *var_name, int group)
 	return count;
 	}
 
-/*
+/***
 ============
 Cvar_Changed
 
 Tell the engine parts about cvar changing
 ============
-*/
+***/
 static void Cvar_Changed (convar_t *var)
 	{
 	Assert (var != NULL);
@@ -362,11 +360,11 @@ static void Cvar_Changed (convar_t *var)
 		host.allow_cheats = Q_atoi (var->string);
 	}
 
-/*
+/***
 ============
 Cvar_LookupVars
 ============
-*/
+***/
 void Cvar_LookupVars (int checkbit, void *buffer, void *ptr, setpair_t callback)
 	{
 	convar_t *var;
@@ -394,14 +392,14 @@ void Cvar_LookupVars (int checkbit, void *buffer, void *ptr, setpair_t callback)
 		}
 	}
 
-/*
+/***
 ============
 Cvar_Get
 
 If the variable already exists, the value will not be set
 The flags will be or'ed in if the variable exists.
 ============
-*/
+***/
 convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *var_desc)
 	{
 	convar_t *cur, *find, *var;
@@ -486,11 +484,11 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 	return var;
 	}
 
-/*
+/***
 ============
 Cvar_Getf [FWGS, 01.04.23]
 ============
-*/
+***/
 convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, const char *format, ...)
 	{
 	char value[MAX_VA_STRING];
@@ -503,13 +501,13 @@ convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, c
 	return Cvar_Get (var_name, value, flags, description);
 	}
 
-/*
+/***
 ============
 Cvar_RegisterVariable
 
 Adds a freestanding variable to the variable list.
 ============
-*/
+***/
 void Cvar_RegisterVariable (convar_t *var)
 	{
 	convar_t *cur, *find, *dup;
@@ -592,11 +590,11 @@ static qboolean Cvar_CanSet (const convar_t *cv)
 	return true;
 	}
 
-/*
+/***
 ============
 Cvar_Set2 [FWGS, 01.04.23]
 ============
-*/
+***/
 static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	{
 	convar_t	*var;
@@ -687,13 +685,13 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	return var;
 	}
 
-/*
+/***
 ============
 Cvar_DirectSet
 
 way to change value for many cvars
 ============
-*/
+***/
 void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	{
 	const char *pszValue;
@@ -749,13 +747,13 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	Cvar_Changed (var);
 	}
 
-/*
+/***
 ============
 Cvar_DirectSetValue [FWGS, 01.01.24]
 
 functionally is the same as Cvar_SetValue but for direct cvar access
 ============
-*/
+***/
 void Cvar_DirectSetValue (convar_t *var, float value)
 	{
 	char val[32];
@@ -768,13 +766,13 @@ void Cvar_DirectSetValue (convar_t *var, float value)
 	Cvar_DirectSet (var, val);
 	}
 
-/*
+/***
 ============
 Cvar_FullSet
 
 can set any protected cvars
 ============
-*/
+***/
 void Cvar_FullSet (const char *var_name, const char *value, int flags)
 	{
 	convar_t *var = Cvar_FindVar (var_name);
@@ -794,11 +792,11 @@ void Cvar_FullSet (const char *var_name, const char *value, int flags)
 	Cvar_Changed (var);
 	}
 
-/*
+/***
 ============
 Cvar_Set
 ============
-*/
+***/
 void GAME_EXPORT Cvar_Set (const char *var_name, const char *value)
 	{
 	convar_t *var;
@@ -822,11 +820,11 @@ void GAME_EXPORT Cvar_Set (const char *var_name, const char *value)
 	Cvar_DirectSet (var, value);
 	}
 
-/*
+/***
 ============
 Cvar_SetValue
 ============
-*/
+***/
 void GAME_EXPORT Cvar_SetValue (const char *var_name, float value)
 	{
 	char	val[32];
@@ -838,21 +836,21 @@ void GAME_EXPORT Cvar_SetValue (const char *var_name, float value)
 	Cvar_Set (var_name, val);
 	}
 
-/*
+/***
 ============
 Cvar_Reset
 ============
-*/
+***/
 void Cvar_Reset (const char *var_name)
 	{
 	Cvar_Set (var_name, NULL);
 	}
 
-/*
+/***
 ============
 Cvar_VariableValue
 ============
-*/
+***/
 float GAME_EXPORT Cvar_VariableValue (const char *var_name)
 	{
 	convar_t *var;
@@ -870,11 +868,11 @@ float GAME_EXPORT Cvar_VariableValue (const char *var_name)
 	return Q_atof (var->string);
 	}
 
-/*
+/***
 ============
 Cvar_VariableInteger
 ============
-*/
+***/
 int Cvar_VariableInteger (const char *var_name)
 	{
 	convar_t *var;
@@ -885,11 +883,11 @@ int Cvar_VariableInteger (const char *var_name)
 	return Q_atoi (var->string);
 	}
 
-/*
+/***
 ============
 Cvar_VariableString
 ============
-*/
+***/
 const char *Cvar_VariableString (const char *var_name)
 	{
 	convar_t *var;
@@ -907,11 +905,11 @@ const char *Cvar_VariableString (const char *var_name)
 	return var->string;
 	}
 
-/*
+/***
 ============
 Cvar_Exists
 ============
-*/
+***/
 qboolean Cvar_Exists (const char *var_name)
 	{
 	if (Cvar_FindVar (var_name))
@@ -919,13 +917,13 @@ qboolean Cvar_Exists (const char *var_name)
 	return false;
 	}
 
-/*
+/***
 ============
 Cvar_SetCheatState
 
 Any testing variables will be reset to the safe values
 ============
-*/
+***/
 void Cvar_SetCheatState (void)
 	{
 	convar_t *var;
@@ -945,13 +943,13 @@ void Cvar_SetCheatState (void)
 		}
 	}
 
-/*
+/***
 ============
 Cvar_SetGL
 
 As Cvar_Set, but also flags it as glconfig
 ============
-*/
+***/
 static void Cvar_SetGL (const char *name, const char *value)
 	{
 	convar_t *var = Cvar_FindVar (name);
@@ -968,7 +966,6 @@ static void Cvar_SetGL (const char *name, const char *value)
 // [FWGS, 01.05.24]
 static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	{
-	/*const char *prefixes[] = { "cl_", "gl_", "m_", "r_", "hud_" };*/
 	const char *prefixes[] = { "cl_", "gl_", "m_", "r_", "hud_", "joy_" };
 	int i;
 
@@ -1024,13 +1021,13 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	return true;
 	}
 
-/*
+/***
 ============
 Cvar_Command
 
 Handles variable inspection and changing from the console
 ============
-*/
+***/
 qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged)
 	{
 	// special case for setup opengl configuration
@@ -1082,14 +1079,14 @@ qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged)
 		}
 	}
 
-/*
+/***
 ============
 Cvar_WriteVariables
 
 Writes lines containing "variable value" for all variables
 with the specified flag set to true.
 ============
-*/
+***/
 void Cvar_WriteVariables (file_t *f, int group)
 	{
 	convar_t *var;
@@ -1101,13 +1098,13 @@ void Cvar_WriteVariables (file_t *f, int group)
 		}
 	}
 
-/*
+/***
 ============
 Cvar_Toggle_f
 
 Toggles a cvar for easy single key binding
 ============
-*/
+***/
 static void Cvar_Toggle_f (void)
 	{
 	int	v;
@@ -1124,14 +1121,14 @@ static void Cvar_Toggle_f (void)
 	Cvar_Set (Cmd_Argv (1), v ? "1" : "0");
 	}
 
-/*
+/***
 ============
 Cvar_Set_f [FWGS, 01.04.23]
 
 Allows setting and defining of arbitrary cvars from console, even if they
 weren't declared in C code
 ============
-*/
+***/
 static void Cvar_Set_f (void)
 	{
 	int		i, c, l = 0, len;
@@ -1162,13 +1159,13 @@ static void Cvar_Set_f (void)
 	Cvar_Set2 (Cmd_Argv (1), combined);
 	}
 
-/*
+/***
 ============
 Cvar_SetGL_f [FWGS, 01.02.24]
 
 As Cvar_Set, but also flags it as glconfig
 ============
-*/
+***/
 static void Cvar_SetGL_f (void)
 	{
 	if (Cmd_Argc () != 3)
@@ -1180,11 +1177,11 @@ static void Cvar_SetGL_f (void)
 	Cvar_SetGL (Cmd_Argv (1), Cmd_Argv (2));
 	}
 
-/*
+/***
 ============
 Cvar_Reset_f
 ============
-*/
+***/
 static void Cvar_Reset_f (void)
 	{
 	if (Cmd_Argc () != 2)
@@ -1196,11 +1193,11 @@ static void Cvar_Reset_f (void)
 	Cvar_Reset (Cmd_Argv (1));
 	}
 
-/*
+/***
 ============
 Cvar_List_f [FWGS, 01.02.24]
 ============
-*/
+***/
 static void Cvar_List_f (void)
 	{
 	convar_t	*var;
@@ -1240,13 +1237,13 @@ static void Cvar_List_f (void)
 	Con_Printf ("\n%i cvars\n", count);
 	}
 
-/*
+/***
 ============
 Cvar_Unlink
 
 unlink all cvars with specified flag
 ============
-*/
+***/
 void Cvar_Unlink (int group)
 	{
 	int	count;
@@ -1264,13 +1261,13 @@ void Cvar_Unlink (int group)
 	Con_Reportf ("unlink %i cvars\n", count);
 	}
 
-/*
+/***
 ============
 Cvar_Init [FWGS, 01.07.23]
 
 Reads in all archived cvars
 ============
-*/
+***/
 void Cvar_Init (void)
 	{
 	cvar_vars = NULL;
@@ -1292,11 +1289,11 @@ void Cvar_Init (void)
 		"display all console variables beginning with the specified prefix");
 	}
 
-/*
+/***
 ============
 Cvar_PostFSInit [FWGS, 01.04.23]
 ============
-*/
+***/
 void Cvar_PostFSInit (void)
 	{
 	int i;
@@ -1359,3 +1356,4 @@ void Test_RunCvar (void)
 	}
 
 #endif
+

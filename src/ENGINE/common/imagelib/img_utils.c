@@ -1,4 +1,4 @@
-/*
+/***
 img_utils.c - image common tools
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "imagelib.h"
 #include "xash3d_mathlib.h"
@@ -80,11 +80,12 @@ static byte palette_hl[768] =
 	147,255,247,199,255,255,255,159,91,83
 	};
 
-/*
+/***
 =============================================================================
 XASH3D LOAD IMAGE FORMATS
 =============================================================================
-*/
+***/
+
 // stub
 static const loadpixformat_t load_null[] =
 	{
@@ -107,11 +108,12 @@ static const loadpixformat_t load_game[] =
 	{ NULL, NULL, NULL, IL_HINT_NO }
 	};
 
-/*
+/***
 =============================================================================
 XASH3D SAVE IMAGE FORMATS
 =============================================================================
-*/
+***/
+
 // stub
 static const savepixformat_t save_null[] =
 	{
@@ -176,21 +178,21 @@ byte *Image_Copy (size_t size)
 	return out;
 	}
 
-/*
+/***
 =================
 Image_CustomPalette
 =================
-*/
+***/
 qboolean Image_CustomPalette (void)
 	{
 	return image.custom_palette;
 	}
 
-/*
+/***
 =================
 Image_CheckFlag
 =================
-*/
+***/
 qboolean Image_CheckFlag (int bit)
 	{
 	if (FBitSet (image.force_flags, bit))
@@ -202,31 +204,31 @@ qboolean Image_CheckFlag (int bit)
 	return false;
 	}
 
-/*
+/***
 =================
 Image_SetForceFlags
 =================
-*/
+***/
 void Image_SetForceFlags (uint flags)
 	{
 	SetBits (image.force_flags, flags);
 	}
 
-/*
+/***
 =================
 Image_ClearForceFlags
 =================
-*/
+***/
 void Image_ClearForceFlags (void)
 	{
 	image.force_flags = 0;
 	}
 
-/*
+/***
 =================
 Image_AddCmdFlags
 =================
-*/
+***/
 void Image_AddCmdFlags (uint flags)
 	{
 	SetBits (image.cmd_flags, flags);
@@ -264,11 +266,11 @@ qboolean Image_LumpValidSize (const char *name)
 	return true;
 	}
 
-/*
+/***
 =============
 Image_ComparePalette
 =============
-*/
+***/
 int Image_ComparePalette (const byte *pal)
 	{
 	if (pal == NULL)
@@ -588,13 +590,13 @@ void Image_CopyParms (rgbdata_t *src)
 	memcpy (image.fogParams, src->fogParams, sizeof (image.fogParams));
 	}
 
-/*
+/***
 ============
 Image_Copy8bitRGBA
 
 NOTE: must call Image_GetPaletteXXX before used
 ============
-*/
+***/
 qboolean Image_Copy8bitRGBA (const byte *in, byte *out, int pixels)
 	{
 	int		*iout = (int *)out;
@@ -1073,11 +1075,11 @@ static void Image_Resample8Nolerp (const void *indata, int inwidth, int inheight
 		}
 	}
 
-/*
+/***
 ================
 Image_Resample
 ================
-*/
+***/
 byte *Image_ResampleInternal (const void *indata, int inwidth, int inheight, int outwidth, int outheight,
 	int type, qboolean *resampled)
 	{
@@ -1122,11 +1124,11 @@ byte *Image_ResampleInternal (const void *indata, int inwidth, int inheight, int
 	return image.tempbuffer;
 	}
 
-/*
+/***
 ================
 Image_Flip
 ================
-*/
+***/
 byte *Image_FlipInternal (const byte *in, word *srcwidth, word *srcheight, int type, int flags)
 	{
 	int	i, x, y;
@@ -1243,13 +1245,13 @@ qboolean Image_AddIndexedImageToPack (const byte *in, int width, int height)
 	return true;
 	}
 
-/*
+/***
 =============
 Image_Decompress
 
 force to unpack any image to 32-bit buffer
 =============
-*/
+***/
 static qboolean Image_Decompress (const byte *data)
 	{
 	byte	*fin, *fout;

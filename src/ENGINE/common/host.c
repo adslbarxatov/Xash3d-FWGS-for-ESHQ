@@ -1,4 +1,4 @@
-/*
+/***
 host.c - dedicated and normal host
 Copyright (C) 2007 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "build.h"
 #ifdef XASH_SDL
@@ -231,51 +231,29 @@ void Host_ShutdownServer (void)
 	SV_Shutdown ("Server was killed\n");
 	}
 
-/*
+/***
 ================
 Host_PrintEngineFeatures [FWGS, 01.05.24]
 ================
-*/
-/*static void Host_PrintEngineFeatures (int features)*/
+***/
 static void Host_PrintFeatures (uint32_t flags, const char *s, feature_message_t *features, size_t size)
 	{
-	/*struct
-		{
-		uint32_t mask;
-		const char *msg;
-		} features_str[] =
-			{
-			{ ENGINE_WRITE_LARGE_COORD, "Big World Support" },
-			{ ENGINE_QUAKE_COMPATIBLE, "Quake Compatibility" },
-			{ ENGINE_LOAD_DELUXEDATA, "Deluxemap Support" },
-			{ ENGINE_PHYSICS_PUSHER_EXT, "Improved MOVETYPE_PUSH" },
-			{ ENGINE_LARGE_LIGHTMAPS, "Large Lightmaps" },
-			{ ENGINE_COMPENSATE_QUAKE_BUG, "Stupid Quake Bug Compensation" },
-			{ ENGINE_IMPROVED_LINETRACE, "Improved Trace Line" },
-			{ ENGINE_COMPUTE_STUDIO_LERP, "Studio MOVETYPE_STEP Lerping" },
-			{ ENGINE_LINEAR_GAMMA_SPACE, "Linear Gamma Space" },
-			{ ENGINE_STEP_POSHISTORY_LERP, "MOVETYPE_STEP Position History Based Lerping" },
-			};
-		int i;*/
 	size_t i;
 
-	/*for (i = 0; i < ARRAYSIZE (features_str); i++)*/
 	for (i = 0; i < size; i++)
 		{
-		/*if (FBitSet (features, features_str[i].mask))
-			Con_Reportf ("^3EXT:^7 %s is enabled\n", features_str[i].msg);*/
 		if (FBitSet (flags, features[i].mask))
 			Con_Printf ("^3%s:^7 %s is enabled\n", s, features[i].msg);
 		}
 	}
 
-/*
+/***
 ==============
 Host_ValidateEngineFeatures [FWGS, 01.05.24]
 
 validate features bits and set host.features
 ==============
-*/
+***/
 void Host_ValidateEngineFeatures (uint32_t features)
 	{
 	uint32_t mask = ENGINE_FEATURES_MASK;
@@ -293,7 +271,6 @@ void Host_ValidateEngineFeatures (uint32_t features)
 		SetBits (features, ENGINE_STEP_POSHISTORY_LERP);
 
 	// print requested first
-	/*Host_PrintEngineFeatures (features);*/
 	Host_PrintFeatures (features, "EXT", engine_features, ARRAYSIZE (engine_features));
 
 	// now warn about incompatible bits
@@ -306,11 +283,11 @@ void Host_ValidateEngineFeatures (uint32_t features)
 	host.features = features;
 	}
 
-/*
+/***
 ==============
 Host_IsQuakeCompatible
 ==============
-*/
+***/
 qboolean Host_IsQuakeCompatible (void)
 	{
 	// feature set
@@ -326,11 +303,11 @@ qboolean Host_IsQuakeCompatible (void)
 	return false;
 	}
 
-/*
+/***
 ================
 Host_EndGame
 ================
-*/
+***/
 void Host_EndGame (qboolean abort, const char *message, ...)
 	{
 	va_list		argptr;
@@ -357,23 +334,23 @@ void Host_EndGame (qboolean abort, const char *message, ...)
 		Host_AbortCurrentFrame ();
 	}
 
-/*
+/***
 ================
 Host_AbortCurrentFrame
 
 aborts the current host frame and goes on with the next one
 ================
-*/
+***/
 void Host_AbortCurrentFrame (void)
 	{
 	longjmp (host.abortframe, 1);
 	}
 
-/*
+/***
 ==================
 Host_CalcSleep [FWGS, 01.07.23]
 ==================
-*/
+***/
 static int Host_CalcSleep (void)
 	{
 #ifndef XASH_DEDICATED
@@ -413,13 +390,13 @@ static void Host_NewInstance (const char *name, const char *finalmsg)
 		pChangeGame (name); // call from hl.exe
 	}
 
-/*
+/***
 =================
 Host_ChangeGame_f
 
 Change game modification
 =================
-*/
+***/
 static void Host_ChangeGame_f (void)
 	{
 	int	i;
@@ -455,11 +432,11 @@ static void Host_ChangeGame_f (void)
 		}
 	}
 
-/*
+/***
 ===============
 Host_Exec_f
 ===============
-*/
+***/
 static void Host_Exec_f (void)
 	{
 	string		cfgpath;
@@ -542,11 +519,11 @@ static void Host_Exec_f (void)
 	Mem_Free (txt);
 	}
 
-/*
+/***
 ===============
 Host_MemStats_f
 ===============
-*/
+***/
 static void Host_MemStats_f (void)
 	{
 	switch (Cmd_Argc ())
@@ -575,13 +552,13 @@ static void Host_Minimize_f (void)
 #endif
 	}
 
-/*
+/***
 =================
 Host_IsLocalGame
 
 singleplayer game detect
 =================
-*/
+***/
 qboolean Host_IsLocalGame (void)
 	{
 	if (SV_Active ())
@@ -599,11 +576,11 @@ qboolean Host_IsLocalClient (void)
 	return false;
 	}
 
-/*
+/***
 =================
 Host_RegisterDecal
 =================
-*/
+***/
 static qboolean Host_RegisterDecal (const char *name, int *count)
 	{
 	char	shortname[MAX_QPATH];
@@ -633,11 +610,11 @@ static qboolean Host_RegisterDecal (const char *name, int *count)
 	return true;
 	}
 
-/*
+/***
 =================
 Host_InitDecals
 =================
-*/
+***/
 static void Host_InitDecals (void)
 	{
 	int			i, num_decals = 0;
@@ -663,13 +640,13 @@ static void Host_InitDecals (void)
 	Con_Reportf ("InitDecals: %i decals\n", num_decals);
 	}
 
-/*
+/***
 ===================
 Host_GetCommands
 
 Add them exactly as if they had been typed at the console
 ===================
-*/
+***/
 static void Host_GetCommands (void)
 	{
 	char *cmd;
@@ -681,13 +658,13 @@ static void Host_GetCommands (void)
 		}
 	}
 
-/*
+/***
 ===================
 Host_CalcFPS
 
 compute actual FPS for various modes
 ===================
-*/
+***/
 static double Host_CalcFPS (void)
 	{
 	// ESHQ: при отмене vid_displayfrequency нулевое значение приводило к сбою в дальнейшем расчёте
@@ -812,13 +789,13 @@ static qboolean Host_Autosleep (double dt, double scale)
 	return true;
 	}
 
-/*
+/***
 ===================
 Host_FilterTime [FWGS, 01.01.24]
 
 Returns false if the time is too short to run a frame
 ===================
-*/
+***/
 static qboolean Host_FilterTime (float time)
 	{
 	static double oldtime;
@@ -845,11 +822,11 @@ static qboolean Host_FilterTime (float time)
 	return true;
 	}
 
-/*
+/***
 =================
 Host_Frame [FWGS, 01.04.23]
 =================
-*/
+***/
 void Host_Frame (float time)
 	{
 	double t1, t2;
@@ -875,11 +852,11 @@ void Host_Frame (float time)
 	host.framecount++;
 	}
 
-/*
+/***
 =================
 Host_Error [FWGS, 09.05.24]
 =================
-*/
+***/
 void GAME_EXPORT Host_Error (const char *error, ...)
 	{
 	static char		hosterror1[MAX_SYSPATH];
@@ -927,7 +904,6 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 		}
 
 	recursive = true;
-	/*Q_strncpy (hosterror2, hosterror1, MAX_SYSPATH);*/
 	Q_strncpy (hosterror2, hosterror1, sizeof (hosterror2));
 
 	// to avoid multply calls per frame
@@ -970,21 +946,21 @@ static void Sys_Error_f (void)
 	Sys_Error ("%s\n", error);
 	}
 
-/*
+/***
 =================
 Host_Crash_f
 =================
-*/
+***/
 static void Host_Crash_f (void)
 	{
 	*(volatile int *)0 = 0xffffffff;
 	}
 
-/*
+/***
 =================
 Host_Userconfigd_f
 =================
-*/
+***/
 static void Host_Userconfigd_f (void)
 	{
 	search_t	*t;
@@ -1075,11 +1051,11 @@ static uint32_t Host_CheckBugcomp (void)
 	}
 
 
-/*
+/***
 =================
 Host_InitCommon [FWGS, 01.05.24]
 =================
-*/
+***/
 static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)
 	{
 	char	dev_level[4];
@@ -1170,13 +1146,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	// member console allowing
 	host.allow_console_init = host.allow_console;
-
-	/*if (Sys_CheckParm ("-bugcomp"))
-		{
-		// add argument check here when we add other levels
-		// of bugcompatibility
-		host.bugcomp = BUGCOMP_GOLDSRC;
-		}*/
 
 	// get default screen res
 	VID_InitDefaultResolution ();
@@ -1304,12 +1273,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	FS_Init ();
 	Sys_InitLog ();
 
-	/*// print bugcompatibility level here, after log was initialized
-	if (host.bugcomp == BUGCOMP_GOLDSRC)
-		{
-		Con_Printf ("^3BUGCOMP^7: GoldSrc bug-compatibility enabled\n");
-		}*/
-
 	// print current developer level to simplify processing users feedback
 	if (developer > 0)
 		Con_Printf ("Developer level: ^3%i\n", developer);
@@ -1381,11 +1344,11 @@ static void Host_FreeCommon (void)
 	FS_Shutdown ();
 	}
 
-/*
+/***
 =================
 Host_Main
 =================
-*/
+***/
 int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
 	{
 	static double	oldtime, newtime;
@@ -1554,11 +1517,11 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	return 0;
 	}
 
-/*
+/***
 =================
 Host_Shutdown [FWGS, 01.01.24]
 =================
-*/
+***/
 void EXPORT Host_Shutdown (void)
 	{
 	qboolean error = host.status == HOST_ERR_FATAL;

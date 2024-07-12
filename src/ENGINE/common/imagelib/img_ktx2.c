@@ -1,4 +1,4 @@
-/*
+/***
 img_ktx2.c - ktx2 format load
 Copyright (C) 2023 Provod
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "imagelib.h"
 #include "xash3d_mathlib.h"
@@ -135,7 +135,6 @@ static qboolean Image_KTX2Parse (const ktx2_header_t *header, const byte *buffer
 
 	memcpy (&index, buffer + KTX2_IDENTIFIER_SIZE + sizeof (ktx2_header_t), sizeof (index));
 
-	/*for (int mip = 0; mip < header->levelCount; ++mip)*/
 	for (mip = 0; mip < header->levelCount; ++mip)
 		{
 		const uint32_t width = Q_max (1, (header->pixelWidth >> mip));
@@ -165,7 +164,6 @@ static qboolean Image_KTX2Parse (const ktx2_header_t *header, const byte *buffer
 	image.rgba = Mem_Malloc (host.imagepool, image.size);
 	memcpy (image.rgba, buffer, image.size);
 
-	/*for (int mip = 0, cursor = 0; mip < header->levelCount; ++mip)*/
 	for (mip = 0, cursor = 0; mip < header->levelCount; ++mip)
 		{
 		ktx2_level_t level;

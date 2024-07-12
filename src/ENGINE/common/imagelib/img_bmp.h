@@ -1,4 +1,4 @@
-/*
+/***
 img_bmp.h - bmp format reference
 Copyright (C) 2007 Uncle Mike
 
@@ -14,13 +14,11 @@ GNU General Public License for more details.
 */
 #ifndef IMG_BMP_H
 #define IMG_BMP_H
-/*
+/***
 ========================================================================
-
 .BMP image format
-
 ========================================================================
-*/
+***/
 
 #define BI_FILE_HEADER_SIZE 14
 #define BI_SIZE 40 // size of bitmap info header

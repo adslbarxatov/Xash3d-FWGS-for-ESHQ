@@ -165,22 +165,22 @@ static void Con_InvalidateFonts (void);
 static void Con_LoadHistory (con_history_t *self);
 static void Con_SaveHistory (con_history_t *self);
 
-/*
+/***
 ================
 Con_Clear_f
 ================
-*/
+***/
 static void Con_Clear_f (void)
 	{
 	con.lines_count = 0;
 	con.backscroll = 0; // go to end
 	}
 
-/*
+/***
 ================
 Con_SetColor [FWGS, 01.02.24]
 ================
-*/
+***/
 static void Con_SetColor (void)
 	{
 	int	r, g, b;
@@ -209,11 +209,11 @@ static void Con_SetColor (void)
 	ClearBits (con_color.flags, FCVAR_CHANGED);
 	}
 
-/*
+/***
 ================
 Con_ClearNotify
 ================
-*/
+***/
 void Con_ClearNotify (void)
 	{
 	int	i;
@@ -222,11 +222,11 @@ void Con_ClearNotify (void)
 		CON_LINES (i).addtime = 0.0;
 	}
 
-/*
+/***
 ================
 Con_ClearTyping
 ================
-*/
+***/
 static void Con_ClearTyping (void)
 	{
 	Con_ClearField (&con.input);
@@ -237,11 +237,11 @@ static void Con_ClearTyping (void)
 
 // [FWGS, 01.05.23] удалена Con_StringLength
 
-/*
+/***
 ================
 Con_MessageMode_f
 ================
-*/
+***/
 static void Con_MessageMode_f (void)
 	{
 	g_messagemode_privileged = Cmd_CurrentCommandIsPrivileged ();
@@ -254,11 +254,11 @@ static void Con_MessageMode_f (void)
 	Key_SetKeyDest (key_message);
 	}
 
-/*
+/***
 ================
 Con_MessageMode2_f
 ================
-*/
+***/
 static void Con_MessageMode2_f (void)
 	{
 	g_messagemode_privileged = Cmd_CurrentCommandIsPrivileged ();
@@ -267,11 +267,11 @@ static void Con_MessageMode2_f (void)
 	Key_SetKeyDest (key_message);
 	}
 
-/*
+/***
 ================
 Con_ToggleConsole_f
 ================
-*/
+***/
 void Con_ToggleConsole_f (void)
 	{
 	if (!host.allow_console || UI_CreditsActive ())
@@ -300,11 +300,11 @@ void Con_ToggleConsole_f (void)
 		}
 	}
 
-/*
+/***
 ================
 Con_SetTimes_f
 ================
-*/
+***/
 static void Con_SetTimes_f (void)
 	{
 	int	newtimes;
@@ -319,7 +319,7 @@ static void Con_SetTimes_f (void)
 	con.num_times = bound (CON_TIMES, newtimes, CON_MAX_TIMES);
 	}
 
-/*
+/***
 ================
 Con_FixTimes
 
@@ -327,7 +327,7 @@ Notifies the console code about the current time
 (and shifts back times of other entries when the time
 went backwards)
 ================
-*/
+***/
 static void Con_FixTimes (void)
 	{
 	double	diff;
@@ -344,13 +344,13 @@ static void Con_FixTimes (void)
 		CON_LINES (i).addtime += diff;
 	}
 
-/*
+/***
 ================
 Con_DeleteLine
 
 Deletes the first line from the console history.
 ================
-*/
+***/
 static void Con_DeleteLine (void)
 	{
 	if (con.lines_count == 0)
@@ -359,13 +359,13 @@ static void Con_DeleteLine (void)
 	con.lines_first = (con.lines_first + 1) % con.maxlines;
 	}
 
-/*
+/***
 ================
 Con_DeleteLastLine
 
 Deletes the last line from the console history.
 ================
-*/
+***/
 static void Con_DeleteLastLine (void)
 	{
 	if (con.lines_count == 0)
@@ -373,14 +373,14 @@ static void Con_DeleteLastLine (void)
 	con.lines_count--;
 	}
 
-/*
+/***
 ================
 Con_BytesLeft
 
 Checks if there is space for a line of the given length, and if yes, returns a
 pointer to the start of such a space, and NULL otherwise.
 ================
-*/
+***/
 static char *Con_BytesLeft (int length)
 	{
 	if (length > con.bufsize)
@@ -418,13 +418,13 @@ static char *Con_BytesLeft (int length)
 		}
 	}
 
-/*
+/***
 ================
 Con_AddLine
 
 Appends a given string as a new line to the console.
 ================
-*/
+***/
 static void Con_AddLine (const char *line, int length, qboolean newline)
 	{
 	char *putpos;
@@ -464,13 +464,13 @@ static void Con_AddLine (const char *line, int length, qboolean newline)
 		}
 	}
 
-/*
+/***
 ================
 Con_CheckResize
 
 If the line width has changed, reformat the buffer.
 ================
-*/
+***/
 static void Con_CheckResize (void)
 	{
 	int	charWidth = 8;
@@ -495,73 +495,73 @@ static void Con_CheckResize (void)
 		con.history.lines[i].widthInChars = con.linewidth;
 	}
 
-/*
+/***
 ================
 Con_PageUp
 ================
-*/
+***/
 void Con_PageUp (int lines)
 	{
 	con.backscroll += abs (lines);
 	}
 
-/*
+/***
 ================
 Con_PageDown
 ================
-*/
+***/
 void Con_PageDown (int lines)
 	{
 	con.backscroll -= abs (lines);
 	}
 
-/*
+/***
 ================
 Con_Top
 ================
-*/
+***/
 static void Con_Top (void)
 	{
 	con.backscroll = CON_MAXLINES;
 	}
 
-/*
+/***
 ================
 Con_Bottom
 ================
-*/
+***/
 void Con_Bottom (void)
 	{
 	con.backscroll = 0;
 	}
 
-/*
+/***
 ================
 Con_Visible
 ================
-*/
+***/
 int GAME_EXPORT Con_Visible (void)
 	{
 	return (con.vislines > 0);
 	}
 
-/*
+/***
 ================
 Con_FixedFont [FWGS, 01.04.23]
 ================
-*/
+***/
 qboolean Con_FixedFont (void)
 	{
 	return CL_FixedFont (con.curFont);
 	}
 
-/*
+/***
 ================
 Con_LoadConsoleFont [FWGS, 01.03.24]
 
 INTERNAL RESOURCE
 ================
-*/
+***/
 static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 	{
 	qboolean	success = false;
@@ -604,11 +604,11 @@ static void Con_LoadConsoleFont (int fontNumber, cl_font_t *font)
 		}
 	}
 
-/*
+/***
 ================
 Con_LoadConchars
 ================
-*/
+***/
 static void Con_LoadConchars (void)
 	{
 	int	i, fontSize;
@@ -646,13 +646,13 @@ int table_cp1251[64] = {
 	0x0451, 0x2116, 0x0454, 0x00BB, 0x0458, 0x0405, 0x0455, 0x0457
 	};
 
-/*
+/***
 ============================
 Con_UtfProcessChar
 
 Convert utf char to current font's single-byte encoding
 ============================
-*/
+***/
 int Con_UtfProcessCharForce (int in)
 	{
 	static int m = -1, k = 0;	// multibyte state
@@ -735,13 +735,13 @@ int GAME_EXPORT Con_UtfProcessChar (int in)
 	else
 		return Con_UtfProcessCharForce (in);
 	}
-/*
+/***
 =================
 Con_UtfMoveLeft
 
 get position of previous printful char
 =================
-*/
+***/
 int Con_UtfMoveLeft (char *str, int pos)
 	{
 	int i, k = 0;
@@ -761,13 +761,13 @@ int Con_UtfMoveLeft (char *str, int pos)
 	return k;
 	}
 
-/*
+/***
 =================
 Con_UtfMoveRight
 
 get next of previous printful char
 =================
-*/
+***/
 int Con_UtfMoveRight (char *str, int pos, int length)
 	{
 	int i;
@@ -812,11 +812,11 @@ static void Con_DrawCharToConback (int num, const byte *conchars, byte *dest)
 // [FWGS, 01.07.23] удалены Con_TextAdjustSize, Con_DrawGenericChar, Con_SetFont,
 // Con_RestoreFont, Con_DrawCharacter
 
-/*
+/***
 ====================
 Con_GetFont [FWGS, 01.04.23]
 ====================
-*/
+***/
 cl_font_t *Con_GetFont (int num)
 	{
 	num = bound (0, num, CON_NUMFONTS - 1);
@@ -825,45 +825,45 @@ cl_font_t *Con_GetFont (int num)
 
 // [FWGS, 01.07.23] Удалена Con_DrawCharacterLen
 
-/*
+/***
 ====================
 Con_GetCurFont [FWGS, 01.04.23]
 ====================
-*/
+***/
 cl_font_t *Con_GetCurFont (void)
 	{
 	return con.curFont;
 	}
 
-/*
+/***
 ====================
 Con_DrawStringLen [FWGS, 01.11.23]
 
 compute string width and height in screen pixels
 ====================
-*/
+***/
 void GAME_EXPORT Con_DrawStringLen (const char *pText, int *length, int *height)
 	{
 	CL_DrawStringLen (con.curFont, pText, length, height, FONT_DRAW_UTF8);
 	}
 
-/*
+/***
 ====================
 Con_DrawString [FWGS, 01.04.23]
 
 client version of routine
 ====================
-*/
+***/
 int Con_DrawString (int x, int y, const char *string, rgba_t setColor)
 	{
 	return CL_DrawString (x, y, string, setColor, con.curFont, FONT_DRAW_UTF8);
 	}
 
-/*
+/***
 ================
 Con_Init [FWGS, 01.03.24]
 ================
-*/
+***/
 void Con_Init (void)
 	{
 	// dedicated server already have console
@@ -908,11 +908,11 @@ void Con_Init (void)
 	Con_Printf ("Console initialized.\n");
 	}
 
-/*
+/***
 ================
 Con_Shutdown
 ================
-*/
+***/
 void Con_Shutdown (void)
 	{
 	con.initialized = false;
@@ -928,7 +928,7 @@ void Con_Shutdown (void)
 	Con_SaveHistory (&con.history);
 	}
 
-/*
+/***
 ================
 Con_Print
 
@@ -936,7 +936,7 @@ Handles cursor positioning, line wrapping, etc
 All console printing must go through this in order to be displayed
 If no console is visible, the notify window will pop up.
 ================
-*/
+***/
 void Con_Print (const char *txt)
 	{
 	static int	cr_pending = 0;
@@ -1024,13 +1024,13 @@ void Con_Print (const char *txt)
 		}
 	}
 
-/*
+/***
 ================
 Con_NPrint
 
 Draw a single debug line with specified height
 ================
-*/
+***/
 void GAME_EXPORT Con_NPrintf (int idx, const char *fmt, ...)
 	{
 	va_list	args;
@@ -1051,13 +1051,13 @@ void GAME_EXPORT Con_NPrintf (int idx, const char *fmt, ...)
 	con.draw_notify = true;
 	}
 
-/*
+/***
 ================
 Con_NXPrint
 
 Draw a single debug line with specified height, color and time to live
 ================
-*/
+***/
 void GAME_EXPORT Con_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 	{
 	va_list	args;
@@ -1082,13 +1082,13 @@ void GAME_EXPORT Con_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 	con.draw_notify = true;
 	}
 
-/*
+/***
 ================
 UI_NPrint
 
 Draw a single debug line with specified height (menu version)
 ================
-*/
+***/
 void GAME_EXPORT UI_NPrintf (int idx, const char *fmt, ...)
 	{
 	va_list	args;
@@ -1109,13 +1109,13 @@ void GAME_EXPORT UI_NPrintf (int idx, const char *fmt, ...)
 	con.draw_notify = true;
 	}
 
-/*
+/***
 ================
 UI_NXPrint
 
 Draw a single debug line with specified height, color and time to live (menu version)
 ================
-*/
+***/
 void GAME_EXPORT UI_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 	{
 	va_list	args;
@@ -1139,41 +1139,39 @@ void GAME_EXPORT UI_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 	con.draw_notify = true;
 	}
 
-/*
+/***
 =============================================================================
 EDIT FIELDS
 =============================================================================
-*/
-/*
+***/
+/***
 ================
 Con_ClearField [FWGS, 01.05.24]
 ================
-*/
+***/
 static void Con_ClearField (field_t *edit)
 	{
-	/*memset (edit->buffer, 0, MAX_STRING);*/
 	memset (edit->buffer, 0, sizeof (edit->buffer));
 	edit->cursor = 0;
 	edit->scroll = 0;
 	}
 
-/*
+/***
 ================
 Field_Set [FWGS, 09.05.24]
 ================
-*/
+***/
 static void Field_Set (field_t *f, const char *string)
 	{
 	f->scroll = 0;
-	/*f->cursor = Q_strncpy (f->buffer, string, MAX_STRING);*/
 	f->cursor = Q_strncpy (f->buffer, string, sizeof (f->buffer));
 	}
 
-/*
+/***
 ================
 Field_Paste
 ================
-*/
+***/
 static void Field_Paste (field_t *edit)
 	{
 	char	*cbd;
@@ -1189,18 +1187,18 @@ static void Field_Paste (field_t *edit)
 		Field_CharEvent (edit, cbd[i]);
 	}
 
-/*
+/***
 =================
 Field_GoTo
 =================
-*/
+***/
 static void Field_GoTo (field_t *edit, int pos)
 	{
 	edit->cursor = pos;
 	edit->scroll = Q_max (0, edit->cursor - edit->widthInChars);
 	}
 
-/*
+/***
 =================
 Field_KeyDownEvent
 
@@ -1209,7 +1207,7 @@ in-game talk, and menu fields
 
 Key events are used for non-printable characters, others are gotten from char events.
 =================
-*/
+***/
 static void Field_KeyDownEvent (field_t *edit, int key)
 	{
 	int	len;
@@ -1277,11 +1275,11 @@ static void Field_KeyDownEvent (field_t *edit, int key)
 		}
 	}
 
-/*
+/***
 ==================
 Field_CharEvent
 ==================
-*/
+***/
 static void Field_CharEvent (field_t *edit, int ch)
 	{
 	int	len;
@@ -1343,11 +1341,11 @@ static void Field_CharEvent (field_t *edit, int ch)
 		edit->buffer[edit->cursor] = 0;
 	}
 
-/*
+/***
 ==================
 Field_DrawInputLine
 ==================
-*/
+***/
 static void Field_DrawInputLine (int x, int y, field_t *edit)
 	{
 	int		len, cursorChar;
@@ -1406,16 +1404,16 @@ static void Field_DrawInputLine (int x, int y, field_t *edit)
 		CL_DrawCharacter (x + curPos, y, '_', colorDefault, con.curFont, 0);
 	}
 
-/*
+/***
 =============================================================================
 CONSOLE HISTORY HANDLING
 =============================================================================
-*/
-/*
+***/
+/***
 ===================
 Con_HistoryUp
 ===================
-*/
+***/
 static void Con_HistoryUp (con_history_t *self, field_t *in)
 	{
 	if (self->line == self->next)
@@ -1427,11 +1425,11 @@ static void Con_HistoryUp (con_history_t *self, field_t *in)
 	*in = self->lines[self->line % CON_HISTORY];
 	}
 
-/*
+/***
 ===================
 Con_HistoryDown
 ===================
-*/
+***/
 static void Con_HistoryDown (con_history_t *self, field_t *in)
 	{
 	self->line = Q_min (self->next, self->line + 1);
@@ -1441,11 +1439,11 @@ static void Con_HistoryDown (con_history_t *self, field_t *in)
 		*in = self->lines[self->line % CON_HISTORY];
 	}
 
-/*
+/***
 ===================
 Con_HistoryAppend
 ===================
-*/
+***/
 static void Con_HistoryAppend (con_history_t *self, field_t *from)
 	{
 	int prevLine = Q_max (0, self->line - 1);
@@ -1474,37 +1472,20 @@ static void Con_HistoryAppend (con_history_t *self, field_t *from)
 // [FWGS, 01.05.24]
 static void Con_LoadHistory (con_history_t *self)
 	{
-	/*const byte *aFile = FS_LoadFile ("console_history.txt", NULL, true);
-	const char *pLine, *pFile;
-	int i, len;*/
 	field_t	*f;
 	file_t	*fd;
 	int		i;
 
 	fd = FS_Open ("console_history.txt", "rb", true);
-	/*if (!aFile)
-	*/
 	if (!fd)
 		return;
 
-	/*for (pFile = pLine = (char *)aFile; *pFile; pFile++)
-	*/
 	while (!FS_Eof (fd))
 		{
-		/*if (*pFile != '\n')
-			continue;
-
-		Con_ClearField (&self->lines[self->next]);
-
-		len = Q_min (pFile - pLine + 1, sizeof (f->buffer));*/
 		f = &self->lines[self->next % CON_HISTORY];
 		Con_ClearField (f);
 
 		f->widthInChars = con.linewidth;
-		/*f->cursor = len - 1;
-		Q_strncpy (f->buffer, pLine, len);
-
-		self->next++;*/
 		
 		FS_Gets (fd, f->buffer, sizeof (f->buffer));
 		f->cursor = Q_strlen (f->buffer);
@@ -1512,9 +1493,6 @@ static void Con_LoadHistory (con_history_t *self)
 		// skip empty lines
 		if (f->cursor == 0)
 			continue;
-
-		/*pLine = pFile + 1;
-		*/
 				
 		// skip repeating lines
 		if (self->next > 0)
@@ -1532,8 +1510,6 @@ static void Con_LoadHistory (con_history_t *self)
 
 	for (i = self->next; i < CON_HISTORY; i++)
 		{
-		/*Con_ClearField (&self->lines[i]);
-		self->lines[i].widthInChars = con.linewidth;*/
 		f = &self->lines[i];
 
 		Con_ClearField (f);
@@ -1556,27 +1532,25 @@ static void Con_SaveHistory (con_history_t *self)
 	if (historyStart < 0)
 		historyStart = 0;
 
-	/*f = FS_Open ("console_history.txt", "w", true);*/
 	f = FS_Open ("console_history.txt", "wb", true);
-
 	for (i = historyStart; i < self->next; i++)
 		FS_Printf (f, "%s\n", self->lines[i % CON_HISTORY].buffer);
 
 	FS_Close (f);
 	}
 
-/*
+/***
 =============================================================================
 CONSOLE LINE EDITING
 =============================================================================
-*/
-/*
+***/
+/***
 ====================
 Key_Console
 
 Handles history and console scrollback
 ====================
-*/
+***/
 void Key_Console (int key)
 	{
 	// ctrl-L clears screen
@@ -1704,13 +1678,13 @@ void Key_Console (int key)
 	Field_KeyDownEvent (&con.input, key);
 	}
 
-/*
+/***
 ================
 Key_Message
 
 In game talk message
 ================
-*/
+***/
 void Key_Message (int key)
 	{
 	char	buffer[MAX_SYSPATH];
@@ -1744,18 +1718,18 @@ void Key_Message (int key)
 	Field_KeyDownEvent (&con.chat, key);
 	}
 
-/*
+/***
 ==============================================================================
 DRAWING
 ==============================================================================
-*/
-/*
+***/
+/***
 ================
 Con_DrawInput
 
 The input line scrolls horizontally if typing goes beyond the right edge
 ================
-*/
+***/
 static void Con_DrawInput (int lines)
 	{
 	int	y;
@@ -1771,13 +1745,13 @@ static void Con_DrawInput (int lines)
 	Field_DrawInputLine (con.curFont->charWidths[' '] * 2, y, &con.input);
 	}
 
-/*
+/***
 ================
 Con_DrawDebugLines [FWGS, 01.04.23]
 
 Custom debug messages
 ================
-*/
+***/
 static int Con_DrawDebugLines (void)
 	{
 	notify_t	*notify = con.notify;
@@ -1816,13 +1790,13 @@ static int Con_DrawDebugLines (void)
 	return count;
 	}
 
-/*
+/***
 ================
 Con_DrawDebug [FWGS, 01.11.23]
 
 Draws the debug messages (not passed to console history)
 ================
-*/
+***/
 void Con_DrawDebug (void)
 	{
 	static double	timeStart;
@@ -1856,13 +1830,13 @@ void Con_DrawDebug (void)
 		}
 	}
 
-/*
+/***
 ================
 Con_DrawNotify
 
 Draws the last few lines of output transparently over the game top
 ================
-*/
+***/
 static void Con_DrawNotify (void)
 	{
 	double	time = cl.time;
@@ -1907,7 +1881,7 @@ static void Con_DrawNotify (void)
 	ref.dllFuncs.Color4ub (255, 255, 255, 255);
 	}
 
-/*
+/***
 ================
 Con_DrawConsoleLine
 
@@ -1915,7 +1889,7 @@ Draws a line of the console; returns its height in lines.
 If alpha is 0, the line is not drawn, but still wrapped and its height
 returned.
 ================
-*/
+***/
 static int Con_DrawConsoleLine (int y, int lineno)
 	{
 	con_lineinfo_t *li = &CON_LINES (lineno);
@@ -1933,14 +1907,14 @@ static int Con_DrawConsoleLine (int y, int lineno)
 	return con.curFont->charHeight;
 	}
 
-/*
+/***
 ================
 Con_LastVisibleLine
 
 Calculates the last visible line index and how much to show
 of it based on con.backscroll
 ================
-*/
+***/
 static void Con_LastVisibleLine (int *lastline)
 	{
 	int	i, lines_seen = 0;
@@ -1964,13 +1938,13 @@ static void Con_LastVisibleLine (int *lastline)
 	con.backscroll = lines_seen - 1;
 	}
 
-/*
+/***
 ================
 Con_DrawSolidConsole
 
 Draws the console with the solid background
 ================
-*/
+***/
 static void Con_DrawSolidConsole (int lines)
 	{
 	int		i, x, y;
@@ -2053,11 +2027,11 @@ static void Con_DrawSolidConsole (int lines)
 	ref.dllFuncs.Color4ub (255, 255, 255, 255);
 	}
 
-/*
+/***
 ==================
 Con_DrawConsole [FWGS, 01.11.23]
 ==================
-*/
+***/
 void Con_DrawConsole (void)
 	{
 	// never draw console when changelevel in-progress
@@ -2129,13 +2103,13 @@ void Con_DrawConsole (void)
 		SCR_DrawFPS (4);
 	}
 
-/*
+/***
 ==================
 Con_DrawVersion [FWGS, 01.01.24]
 
 Used by menu
 ==================
-*/
+***/
 void Con_DrawVersion (void)
 	{
 	// draws the current build
@@ -2174,13 +2148,13 @@ void Con_DrawVersion (void)
 	Con_DrawString (start, height, curbuild, color);
 	}
 
-/*
+/***
 ==================
 Con_RunConsole [FWGS, 01.03.24]
 
 Scroll it up or down
 ==================
-*/
+***/
 void Con_RunConsole (void)
 	{
 	float	lines_per_frame;
@@ -2251,18 +2225,18 @@ void Con_RunConsole (void)
 		}
 	}
 
-/*
+/***
 ==============================================================================
 CONSOLE INTERFACE
 ==============================================================================
-*/
-/*
+***/
+/***
 ================
 Con_CharEvent
 
 Console input
 ================
-*/
+***/
 void Con_CharEvent (int key)
 	{
 	// distribute the key down event to the apropriate handler
@@ -2276,7 +2250,7 @@ void Con_CharEvent (int key)
 		}
 	}
 
-/*
+/***
 =========
 Con_VidInit [FWGS, 01.03.24]
 
@@ -2284,7 +2258,7 @@ Con_VidInit [FWGS, 01.03.24]
 
 INTERNAL RESOURCE
 =========
-*/
+***/
 void Con_VidInit (void)
 	{
 	if (!con.historyLoaded)
@@ -2307,11 +2281,11 @@ void Con_VidInit (void)
 #endif
 	}
 
-/*
+/***
 =========
 Con_InvalidateFonts [FWGS, 01.04.23]
 =========
-*/
+***/
 void Con_InvalidateFonts (void)
 	{
 	int i;
@@ -2320,13 +2294,13 @@ void Con_InvalidateFonts (void)
 	con.curFont = NULL;
 	}
 
-/*
+/***
 =========
 Con_FastClose
 
 immediately close the console
 =========
-*/
+***/
 void Con_FastClose (void)
 	{
 	Con_ClearField (&con.input);
@@ -2335,13 +2309,13 @@ void Con_FastClose (void)
 	con.vislines = 0;
 	}
 
-/*
+/***
 =========
 Con_DefaultColor [FWGS, 01.02.24]
 
 called from MainUI
 =========
-*/
+***/
 void Con_DefaultColor (int r, int g, int b, qboolean gameui)
 	{
 	r = bound (0, r, 255);
@@ -2403,3 +2377,4 @@ void Test_RunCon (void)
 	}
 
 #endif
+

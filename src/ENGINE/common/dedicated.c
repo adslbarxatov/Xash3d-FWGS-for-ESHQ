@@ -1,4 +1,4 @@
-/*
+/***
 dedicated.c - stubs for dedicated server
 Copyright (C) 2018 a1batross, mittorn
 
@@ -11,7 +11,8 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
+
 #if XASH_DEDICATED
 #include "common.h"
 #include "xash3d_mathlib.h"
@@ -191,13 +192,7 @@ void GAME_EXPORT Con_NXPrintf (struct  con_nprint_s *info, const char *fmt, ...)
 	{
 	}
 
-// [FWGS, 01.07.23]
-/*
-const byte *GL_TextureData (unsigned int texnum)
-	{
-	return NULL;
-	}
-*/
+// [FWGS, 01.05.24] removed GL_TextureData
 
 void SCR_CheckStartupVids (void)
 	{

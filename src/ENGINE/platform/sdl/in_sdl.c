@@ -1,4 +1,4 @@
-/*
+/***
 vid_sdl.c - SDL input component
 Copyright (C) 2018 a1batross
 
@@ -11,7 +11,8 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
+
 #if !XASH_DEDICATED
 #include <SDL.h>
 
@@ -35,11 +36,11 @@ static struct
 	} cursors;
 #endif
 
-/*
+/***
 =============
 Platform_GetMousePos [FWGS, 01.03.24]
 =============
-*/
+***/
 void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 	{
 	SDL_GetMouseState (x, y);
@@ -57,21 +58,21 @@ void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 		}
 	}
 
-/*
+/***
 =============
 Platform_SetMousePos
 ============
-*/
+***/
 void GAME_EXPORT Platform_SetMousePos (int x, int y)
 	{
 	SDL_WarpMouseInWindow (host.hWnd, x, y);
 	}
 
-/*
+/***
 ========================
 Platform_MouseMove
 ========================
-*/
+***/
 void Platform_MouseMove (float *x, float *y)
 	{
 	int m_x, m_y;
@@ -80,11 +81,11 @@ void Platform_MouseMove (float *x, float *y)
 	*y = (float)m_y;
 	}
 
-/*
+/***
 =============
 Platform_GetClipobardText
 =============
-*/
+***/
 int Platform_GetClipboardText (char *buffer, size_t size)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -110,11 +111,11 @@ int Platform_GetClipboardText (char *buffer, size_t size)
 	return 0;
 	}
 
-/*
+/***
 =============
 Platform_SetClipobardText
 =============
-*/
+***/
 void Platform_SetClipboardText (const char *buffer)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -122,11 +123,11 @@ void Platform_SetClipboardText (const char *buffer)
 #endif
 	}
 
-/*
+/***
 =============
 Platform_Vibrate [FWGS, 01.07.23]
 =============
-*/
+***/
 void Platform_Vibrate (float time, char flags)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 9 )
@@ -138,11 +139,11 @@ void Platform_Vibrate (float time, char flags)
 // [FWGS, 01.04.23]
 #if !XASH_PSVITA
 
-/*
+/***
 =============
 SDLash_EnableTextInput
 =============
-*/
+***/
 void Platform_EnableTextInput (qboolean enable)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -152,11 +153,11 @@ void Platform_EnableTextInput (qboolean enable)
 
 #endif
 
-/*
+/***
 =============
 SDLash_JoyInit_Old
 =============
-*/
+***/
 static int SDLash_JoyInit_Old (int numjoy)
 	{
 	int num;
@@ -218,11 +219,12 @@ static int SDLash_JoyInit_Old (int numjoy)
 	}
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-/*
+
+/***
 =============
 SDLash_JoyInit_New
 =============
-*/
+***/
 static int SDLash_JoyInit_New (int numjoy)
 	{
 	int count, numJoysticks, i;
@@ -247,11 +249,11 @@ static int SDLash_JoyInit_New (int numjoy)
 	}
 #endif
 
-/*
+/***
 =============
 Platform_JoyInit
 =============
-*/
+***/
 int Platform_JoyInit (int numjoy)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -259,15 +261,16 @@ int Platform_JoyInit (int numjoy)
 	// SDL_GameController is preferred
 	if (!Sys_CheckParm ("-sdl_joy_old_api"))
 		return SDLash_JoyInit_New (numjoy);
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#endif
+
 	return SDLash_JoyInit_Old (numjoy);
 	}
 
-/*
+/***
 ========================
 SDLash_InitCursors
 ========================
-*/
+***/
 void SDLash_InitCursors (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -292,11 +295,11 @@ void SDLash_InitCursors (void)
 #endif
 	}
 
-/*
+/***
 ========================
 SDLash_FreeCursors
 ========================
-*/
+***/
 void SDLash_FreeCursors (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -313,11 +316,11 @@ void SDLash_FreeCursors (void)
 #endif
 	}
 
-/*
+/***
 ========================
 Platform_SetCursorType [FWGS, 01.04.23]
 ========================
-*/
+***/
 void Platform_SetCursorType (VGUI_DefaultCursor type)
 	{
 	qboolean visible;
@@ -368,11 +371,11 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 #endif
 	}
 
-/*
+/***
 ========================
 Platform_GetKeyModifiers
 ========================
-*/
+***/
 key_modifier_t Platform_GetKeyModifiers (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )

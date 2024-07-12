@@ -1,18 +1,17 @@
-/*
-	dct64.c: DCT64, the plain C version
+/***
+dct64.c: DCT64, the plain C version
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.org
-	initially written by Michael Hipp
-*/
+copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+see COPYING and AUTHORS files in distribution or http://mpg123.org
+initially written by Michael Hipp
+***/
 
-/*
- * Discrete Cosine Transform (DCT) for subband synthesis
- *
- * -funroll-loops (for gcc) will remove the loops for better performance
- * using loops in the source-code enhances readabillity
- *
- */
+/***
+Discrete Cosine Transform (DCT) for subband synthesis
+
+-funroll-loops (for gcc) will remove the loops for better performance
+using loops in the source-code enhances readabillity
+***/
 
 #include "mpg123.h"
 

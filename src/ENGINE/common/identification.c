@@ -1,4 +1,4 @@
-/*
+/***
 identification.c - unique id generation
 Copyright (C) 2017 mittorn
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include <fcntl.h>
@@ -21,12 +21,12 @@ GNU General Public License for more details.
 static char id_md5[33];
 static char id_customid[MAX_STRING];
 
-/*
+/***
 ==========================================================
 simple 64-bit one-hash-func bloom filter
 should be enough to determine if device exist in identifier
 ==========================================================
-*/
+***/
 typedef uint64_t bloomfilter_t;
 
 static bloomfilter_t id;
@@ -86,11 +86,11 @@ qboolean BloomFilter_ContainsString (bloomfilter_t filter, const char *str)
 	return (filter & value) == value;
 	}
 
-/*
+/***
 =============================================
 IDENTIFICATION
 =============================================
-*/
+***/
 #define MAXBITS_GEN 30
 #define MAXBITS_CHECK MAXBITS_GEN + 6
 
@@ -605,12 +605,11 @@ const char *ID_GetMD5 (void)
 	return id_md5;
 	}
 
-/*
+/***
 ===============
 ID_SetCustomClientID
-
 ===============
-*/
+***/
 void GAME_EXPORT ID_SetCustomClientID (const char *id)
 	{
 	if (!id)

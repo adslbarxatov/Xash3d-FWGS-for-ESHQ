@@ -1,4 +1,4 @@
-/*
+/***
 lib_win.c - win32 dynamic library loading
 Copyright (C) 2008 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 
@@ -34,11 +34,11 @@ static DWORD GetOffsetByRVA (DWORD rva, PIMAGE_NT_HEADERS nt_header)
 	return (rva - sect_header->VirtualAddress + sect_header->PointerToRawData);
 	}
 
-/*
+/***
 ---------------------------------------------------------------
 Name for function stuff
 ---------------------------------------------------------------
-*/
+***/
 static void FsGetString (file_t *f, char *str)
 	{
 	char	ch;
@@ -452,13 +452,13 @@ qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname
 	return FALSE;
 	}
 
-/*
+/***
 ================
 COM_LoadLibrary [FWGS, 01.04.23]
 
 smart dll loader - can loading dlls from pack or wad files
 ================
-*/
+***/
 void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean directpath)
 	{
 	dll_user_t *hInst;

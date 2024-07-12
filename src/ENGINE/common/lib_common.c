@@ -1,4 +1,4 @@
-/*
+/***
 lib_common.c - common dynamic library code
 Copyright (C) 2018 Flying With Gauss
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "library.h"
@@ -120,11 +120,11 @@ dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath)
 	return p;
 	}
 
-/*
+/***
 =============================================================================
-LIBRARY NAMING(see Documentation/library-naming.md for more info)
+LIBRARY NAMING (see Documentation/library-naming.md for more info)
 =============================================================================
-*/
+***/
 
 static void COM_GenerateCommonLibraryName (const char *name, const char *ext, char *out, size_t size)
 	{
@@ -137,13 +137,13 @@ static void COM_GenerateCommonLibraryName (const char *name, const char *ext, ch
 #endif
 	}
 
-/*
+/***
 ==============
 COM_GenerateClientLibraryPath
 
 Generates platform-unique and compatible name for client libraries
 ==============
-*/
+***/
 static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t size)
 	{
 #ifdef XASH_INTERNAL_GAMELIBS // assuming library loader knows where to get libraries
@@ -158,14 +158,14 @@ static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t s
 #endif
 	}
 
-/*
+/***
 ==============
 COM_StripIntelSuffix [FWGS, 01.02.24]
 
 Some modders use _i?86 suffix in game library name
 So strip it to follow library naming for non-Intel CPUs
 ==============
-*/
+***/
 static inline void COM_StripIntelSuffix (char *out)
 	{
 	char *suffix = Q_strrchr (out, '_');
@@ -174,13 +174,13 @@ static inline void COM_StripIntelSuffix (char *out)
 		*suffix = 0;
 	}
 
-/*
+/***
 ==============
 COM_GenerateServerLibraryPath
 
 Generates platform-unique and compatible name for server library
 ==============
-*/
+***/
 static void COM_GenerateServerLibraryPath (char *out, size_t size)
 	{
 #ifdef XASH_INTERNAL_GAMELIBS // assuming library loader knows where to get libraries
@@ -216,13 +216,13 @@ static void COM_GenerateServerLibraryPath (char *out, size_t size)
 	}
 
 
-/*
+/***
 ==============
 COM_GetCommonLibraryPath
 
 Generates platform-unique and compatible name for server library
 ==============
-*/
+***/
 void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t size)
 	{
 	switch (eLibType)
@@ -253,11 +253,11 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 		}
 	}
 
-/*
+/***
 =============================================================================
 C++ MANGLE CONVERSION
 =============================================================================
-*/
+***/
 #define MAX_NESTED_NAMESPACES 16	// MSVC limit
 
 static EFunctionMangleType COM_DetectMangleType (const char *str)

@@ -1,4 +1,4 @@
-/*
+/***
 hpak.c - custom user package to send other clients
 Copyright (C) 2010 Uncle Mike
 
@@ -10,14 +10,15 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #ifndef HPAK_H
 #define HPAK_H
 
 #include "custom.h"
 
-/*
+/***
 ========================================================================
 .HPK archive format	(Hash PAK - HPK)
 
@@ -32,7 +33,7 @@ file_3:	byte[dwadinfo_t[num]->disksize]
 file_n:	byte[dwadinfo_t[num]->disksize]
 infotable	dlumpinfo_t[dwadinfo_t->numlumps]
 ========================================================================
-*/
+***/
 
 #define IDHPAKHEADER	(('K'<<24)+('A'<<16)+('P'<<8)+'H') // little-endian "HPAK"
 #define IDHPAK_VERSION	1

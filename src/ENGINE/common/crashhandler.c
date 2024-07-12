@@ -1,4 +1,4 @@
-/*
+/***
 crashhandler.c - advanced crashhandler
 Copyright (C) 2016 Mittorn
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 // [FWGS, 01.04.23]
 #ifndef _GNU_SOURCE
@@ -20,13 +20,13 @@ GNU General Public License for more details.
 
 #include "common.h"
 
-/*
+/***
 ================
 Sys_Crash [FWGS, 01.04.23]
 
 Crash handler, called from system
 ================
-*/
+***/
 #if XASH_WIN32
 #if DBGHELP
 
@@ -523,7 +523,6 @@ static void Sys_Crash (int signal, siginfo_t *si, void *context)
 	if (host.type == HOST_NORMAL)
 		CL_Crashed ();
 	host.status = HOST_CRASHED;
-	/*host.crashed = true;*/
 
 	Sys_Quit ();
 	}

@@ -1,4 +1,4 @@
-/*
+/***
 hpak.c - custom user package to send other clients
 Copyright (C) 2010 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "hpak.h"
@@ -421,7 +421,6 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 	f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
-		/*Con_DPrintf (S_ERROR "Couldn't find %s.\n", pakname);*/
 		if (!quiet)
 			Con_DPrintf (S_ERROR "Couldn't find %s.\n", pakname);
 		return true;

@@ -1,4 +1,4 @@
-/*
+/***
 img_tga.h - tga format reference
 Copyright (C) 2007 Uncle Mike
 
@@ -10,17 +10,18 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
+
 #ifndef IMG_TGA_H
 #define IMG_TGA_H
-/*
-========================================================================
 
+/***
+========================================================================
 .TGA image format	(Truevision Targa)
-
 ========================================================================
-*/
+***/
+
 #pragma pack( push, 1 )
 typedef struct tga_s
 	{

@@ -1,4 +1,4 @@
-/*
+/***
 cursor_type.h - enumeration of possible mouse cursor types
 Copyright (C) 2022 FWGS Team
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #pragma once
 #ifndef CURSOR_TYPE_H

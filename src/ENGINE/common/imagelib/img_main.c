@@ -1,4 +1,4 @@
-/*
+/***
 img_main.c - load & save various image formats
 Copyright (C) 2007 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include <math.h>
 #include "imagelib.h"
@@ -157,11 +157,11 @@ static rgbdata_t *ImagePack (void)
 	return pack;
 	}
 
-/*
+/***
 ================
 FS_AddSideToPack [FWGS, 01.04.23]
 ================
-*/
+***/
 static qboolean FS_AddSideToPack (int adjust_flags)
 	{
 	byte *out, *flipped;
@@ -293,13 +293,13 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 	return Image_ProbeLoad_ (fmt, name, suffix, override_hint);
 	}
 
-/*
+/***
 ================
 FS_LoadImage [FWGS, 01.05.23]
 
 loading and unpack to rgba any known image
 ================
-*/
+***/
 rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 	{
 	const char *ext = COM_FileExtension (filename);
@@ -379,13 +379,13 @@ load_internal:
 	return NULL;
 	}
 
-/*
+/***
 ================
 Image_Save
 
 writes image as any known format
 ================
-*/
+***/
 qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 	{
 	const char	*ext = COM_FileExtension (filename);
@@ -483,13 +483,13 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 	return false;
 	}
 
-/*
+/***
 ================
 Image_FreeImage
 
 free RGBA buffer
 ================
-*/
+***/
 void FS_FreeImage (rgbdata_t *pack)
 	{
 	if (!pack)
@@ -501,13 +501,13 @@ void FS_FreeImage (rgbdata_t *pack)
 	Mem_Free (pack);
 	}
 
-/*
+/***
 ================
 FS_CopyImage
 
 make an image copy
 ================
-*/
+***/
 rgbdata_t *FS_CopyImage (rgbdata_t *in)
 	{
 	rgbdata_t *out;

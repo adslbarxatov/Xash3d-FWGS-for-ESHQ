@@ -1,4 +1,4 @@
-/*
+/***
 library.h - custom dlls loader
 Copyright (C) 2008 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef LIBRARY_H
 #define LIBRARY_H
@@ -25,7 +25,6 @@ typedef struct dll_user_s
 	qboolean	custom_loader;	// a bit who indicated loader type
 	qboolean	encrypted;		// dll is crypted (some client.dll in HL, CS etc)
 	char		dllName[32];	// for debug messages
-	/*string		fullPath, shortPath;	// actual dll paths*/
 	char		fullPath[2048];
 	string		shortPath;		// actual dll paths
 

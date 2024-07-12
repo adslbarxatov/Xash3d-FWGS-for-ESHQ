@@ -1,4 +1,4 @@
-/*
+/***
 infostring.c - network info strings
 Copyright (C) 2008 Uncle Mike
 
@@ -10,25 +10,25 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 
 #define MAX_KV_SIZE		128
 
-/*
+/***
 =======================================================================
 INFOSTRING STUFF
 =======================================================================
-*/
-/*
+***/
+/***
 ===============
 Info_Print
 
 printing current key-value pair
 ===============
-*/
+***/
 void Info_Print (const char *s)
 	{
 	char	key[MAX_KV_SIZE];
@@ -81,21 +81,22 @@ void Info_Print (const char *s)
 		}
 	}
 
-/*
+/***
 ==============
 Info_IsValid
 
 check infostring for potential problems
 ==============
-*/
+***/
 qboolean Info_IsValid (const char *s)
 	{
 	char	key[MAX_KV_SIZE];
 	char	value[MAX_KV_SIZE];
-	int	count;
-	char *o;
+	int		count;
+	char	*o;
 
-	if (*s == '\\') s++;
+	if (*s == '\\')
+		s++;
 
 	while (*s)
 		{
@@ -131,23 +132,24 @@ qboolean Info_IsValid (const char *s)
 	}
 
 #if !XASH_DEDICATED
-/*
+
+/***
 ==============
 Info_WriteVars
-
 ==============
-*/
+***/
 void Info_WriteVars (file_t *f)
 	{
-	char *s = CL_Userinfo ();
-	char	pkey[MAX_SERVERINFO_STRING];
-	static	char value[4][MAX_SERVERINFO_STRING]; // use two buffers so compares work without stomping on each other
-	static	int valueindex;
-	convar_t *pcvar;
-	char *o;
+	char		*s = CL_Userinfo ();
+	char		pkey[MAX_SERVERINFO_STRING];
+	static char	value[4][MAX_SERVERINFO_STRING]; // use two buffers so compares work without stomping on each other
+	static int	valueindex;
+	convar_t	*pcvar;
+	char		*o;
 
 	valueindex = (valueindex + 1) % 4;
-	if (*s == '\\') s++;
+	if (*s == '\\')
+		s++;
 
 	while (1)
 		{
@@ -180,14 +182,14 @@ void Info_WriteVars (file_t *f)
 	}
 #endif // XASH_DEDICATED
 
-/*
+/***
 ===============
 Info_ValueForKey
 
 Searches the string for the given
-key and returns the associated value, or an empty string.
+key and returns the associated value, or an empty string
 ===============
-*/
+***/
 const char *GAME_EXPORT Info_ValueForKey (const char *s, const char *key)
 	{
 	char	pkey[MAX_KV_SIZE];

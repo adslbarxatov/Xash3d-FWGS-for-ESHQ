@@ -1,4 +1,4 @@
-/*
+/***
 con_utils.c - console helpers
 Copyright (C) 2008 Uncle Mike
 
@@ -11,7 +11,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-*/
+***/
 
 #include "common.h"
 #include "client.h"
@@ -42,16 +42,16 @@ typedef struct
 
 static con_autocomplete_t		con;
 
-/*
+/***
 =======================================================================
 FILENAME AUTOCOMPLETION
 =======================================================================
-*/
-/*
+***/
+/***
 =====================================
 Cmd_ListMaps
 =====================================
-*/
+***/
 int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 	{
 	byte	buf[MAX_SYSPATH]; // 1 kb
@@ -190,13 +190,13 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 	return nummaps;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetMapList
 
 Prints or complete map filename
 =====================================
-*/
+***/
 static qboolean Cmd_GetMapList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -229,13 +229,13 @@ static qboolean Cmd_GetMapList (const char *s, char *completedname, int length)
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetDemoList
 
 Prints or complete demo filename
 =====================================
-*/
+***/
 static qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -278,13 +278,13 @@ static qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetMovieList
 
 Prints or complete movie filename
 =====================================
-*/
+***/
 static qboolean Cmd_GetMovieList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -327,13 +327,13 @@ static qboolean Cmd_GetMovieList (const char *s, char *completedname, int length
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetMusicList
 
 Prints or complete background track filename
 =====================================
-*/
+***/
 static qboolean Cmd_GetMusicList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -377,13 +377,13 @@ static qboolean Cmd_GetMusicList (const char *s, char *completedname, int length
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetSavesList
 
 Prints or complete savegame filename
 =====================================
-*/
+***/
 qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -428,13 +428,13 @@ qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetConfigList
 
 Prints or complete .cfg filename
 =====================================
-*/
+***/
 static qboolean Cmd_GetConfigList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -477,13 +477,13 @@ static qboolean Cmd_GetConfigList (const char *s, char *completedname, int lengt
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetSoundList [FWGS, 09.05.24]
 
 Prints or complete sound filename
 =====================================
-*/
+***/
 static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -494,7 +494,6 @@ static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length
 	if (!t)
 		return false;
 
-	/*Q_strncpy (matchbuf, t->filenames[0] + sizeof (DEFAULT_SOUNDPATH) - 1, MAX_STRING);*/
 	Q_strncpy (matchbuf, t->filenames[0] + sizeof (DEFAULT_SOUNDPATH) - 1, sizeof (matchbuf));
 	COM_StripExtension (matchbuf);
 	if (completedname && length)
@@ -509,7 +508,6 @@ static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length
 		if (Q_stricmp (ext, "wav") && Q_stricmp (ext, "mp3"))
 			continue;
 
-		/*Q_strncpy (matchbuf, t->filenames[i] + sizeof (DEFAULT_SOUNDPATH) - 1, MAX_STRING);*/
 		Q_strncpy (matchbuf, t->filenames[i] + sizeof (DEFAULT_SOUNDPATH) - 1, sizeof (matchbuf));
 		COM_StripExtension (matchbuf);
 		Con_Printf ("%16s\n", matchbuf);
@@ -533,13 +531,13 @@ static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length
 	}
 
 #if !XASH_DEDICATED
-/*
+/***
 =====================================
 Cmd_GetItemsList
 
 Prints or complete item classname (weapons only)
 =====================================
-*/
+***/
 static qboolean Cmd_GetItemsList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -583,13 +581,13 @@ static qboolean Cmd_GetItemsList (const char *s, char *completedname, int length
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetKeysList
 
 Autocomplete for bind command
 =====================================
-*/
+***/
 static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 	{
 	size_t	i, numkeys;
@@ -638,11 +636,11 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 
 #endif
 
-/*
+/***
 ===============
 Con_AddCommandToList
 ===============
-*/
+***/
 static void Con_AddCommandToList (const char *s, const char *unused1, const char *unused2, void *_autocompleteList)
 	{
 	con_autocomplete_t *list = (con_autocomplete_t *)_autocompleteList;
@@ -658,23 +656,23 @@ static void Con_AddCommandToList (const char *s, const char *unused1, const char
 	list->cmds[list->matchCount++] = copystring (s);
 	}
 
-/*
+/***
 =================
 Con_SortCmds
 =================
-*/
+***/
 static int Con_SortCmds (const void *arg1, const void *arg2)
 	{
 	return Q_stricmp (*(const char **)arg1, *(const char **)arg2);
 	}
 
-/*
+/***
 =====================================
 Cmd_GetCommandsList
 
 Autocomplete for bind command
 =====================================
-*/
+***/
 static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
 	{
 	size_t	i;
@@ -735,13 +733,13 @@ static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int len
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetCustomList
 
 Prints or complete .HPK filenames
 =====================================
-*/
+***/
 static qboolean Cmd_GetCustomList (const char *s, char *completedname, int length)
 	{
 	search_t	*t;
@@ -782,13 +780,13 @@ static qboolean Cmd_GetCustomList (const char *s, char *completedname, int lengt
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetGameList [FWGS, 01.05.24]
 
 Prints or complete gamedir name
 =====================================
-*/
+***/
 static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length)
 	{
 	int		i, numgamedirs;
@@ -807,7 +805,6 @@ static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length
 
 	if (!numgamedirs)
 		return false;
-	/*Q_strncpy (matchbuf, gamedirs[0], MAX_STRING);*/
 	Q_strncpy (matchbuf, gamedirs[0], sizeof (matchbuf));
 
 	if (completedname && length)
@@ -817,7 +814,6 @@ static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length
 
 	for (i = 0; i < numgamedirs; i++)
 		{
-		/*Q_strncpy (matchbuf, gamedirs[i], MAX_STRING);*/
 		Q_strncpy (matchbuf, gamedirs[i], sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		}
@@ -836,13 +832,13 @@ static qboolean Cmd_GetGamesList (const char *s, char *completedname, int length
 	return true;
 	}
 
-/*
+/***
 =====================================
 Cmd_GetCDList [FWGS, 09.05.24]
 
 Prints or complete CD command name
 =====================================
-*/
+***/
 static qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 	{
 	int		i, numcdcommands;
@@ -873,7 +869,6 @@ static qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 
 	if (!numcdcommands)
 		return false;
-	/*Q_strncpy (matchbuf, cdcommands[0], MAX_STRING);*/
 	Q_strncpy (matchbuf, cdcommands[0], sizeof (matchbuf));
 
 	if (completedname && length)
@@ -883,7 +878,6 @@ static qboolean Cmd_GetCDList (const char *s, char *completedname, int length)
 
 	for (i = 0; i < numcdcommands; i++)
 		{
-		/*Q_strncpy (matchbuf, cdcommands[i], MAX_STRING);*/
 		Q_strncpy (matchbuf, cdcommands[i], sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		}
@@ -919,7 +913,6 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 		return true; // exist
 
 	// setup mpfilter
-	/*size = Q_snprintf (mpfilter, sizeof (mpfilter), "maps/%s", GI->mp_filter);*/
 	Q_snprintf (mpfilter, sizeof (mpfilter), "maps/%s", GI->mp_filter);
 	t = FS_Search ("maps/*.bsp", false, onlyingamedir);
 
@@ -954,16 +947,11 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 
 		if (f)
 			{
-			/*int	num_spawnpoints = 0;
-			dheader_t *header;
-			dlump_t entities;	// [FWGS, 01.04.23]*/
 			qboolean	have_spawnpoints = false;
-			/*dheader_t	*header;*/
 			dlump_t		entities;
 
 			memset (buf, 0, MAX_SYSPATH);
 			FS_Read (f, buf, MAX_SYSPATH);
-			/*header = (dheader_t *)buf;*/
 
 			// check all the lumps and some other errors
 			if (!Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
@@ -994,7 +982,6 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 				char		token[MAX_TOKEN];
 				qboolean	worldspawn = true;
 
-				/*Q_strncpy (message, "No Title", MAX_STRING);*/
 				Q_strncpy (message, "No Title", sizeof (message));
 				pfile = ents;
 
@@ -1021,8 +1008,6 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 					else if (!Q_strcmp (token, "classname"))
 						{
 						pfile = COM_ParseFile (pfile, token, sizeof (token));
-						/*if (!Q_strcmp (token, GI->mp_entity) || use_filter)
-							num_spawnpoints++;*/
 						if (!Q_strcmp (token, GI->mp_entity))
 							{
 							have_spawnpoints = true;
@@ -1030,8 +1015,6 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 							}
 						}
 
-					/*if (num_spawnpoints)
-						break; // valid map*/
 					if (have_spawnpoints)
 						break; // valid map
 					}
@@ -1042,7 +1025,6 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			if (f)
 				FS_Close (f);
 
-			/*if (num_spawnpoints)*/
 			if (have_spawnpoints)
 				{
 				// format: mapname "maptitle"\n
@@ -1113,13 +1095,13 @@ autocomplete_list_t cmd_list[] =
 	{ NULL }, // termiantor
 	};
 
-/*
+/***
 ===============
 Cmd_CheckName [FWGS, 01.04.23]
 
 compare first argument with string
 ===============
-*/
+***/
 static qboolean Cmd_CheckName (const char *name)
 	{
 	const char *p = Cmd_Argv (0);
@@ -1132,14 +1114,14 @@ static qboolean Cmd_CheckName (const char *name)
 	return false;
 	}
 
-/*
+/***
 ============
 Cmd_AutocompleteName
 
 Autocomplete filename
 for various cmds
 ============
-*/
+***/
 static qboolean Cmd_AutocompleteName (const char *source, int arg, char *buffer, size_t bufsize)
 	{
 	autocomplete_list_t *list;
@@ -1153,11 +1135,11 @@ static qboolean Cmd_AutocompleteName (const char *source, int arg, char *buffer,
 	return false;
 	}
 
-/*
+/***
 ===============
 Con_PrintCmdMatches
 ===============
-*/
+***/
 static void Con_PrintCmdMatches (const char *s, const char *unused1, const char *m, void *unused2)
 	{
 	if (!Q_strnicmp (s, con.shortestMatch, Q_strlen (con.shortestMatch)))
@@ -1167,11 +1149,11 @@ static void Con_PrintCmdMatches (const char *s, const char *unused1, const char 
 		}
 	}
 
-/*
+/***
 ===============
 Con_PrintCvarMatches
 ===============
-*/
+***/
 static void Con_PrintCvarMatches (const char *s, const char *value, const char *m, void *unused2)
 	{
 	if (!Q_strnicmp (s, con.shortestMatch, Q_strlen (con.shortestMatch)))
@@ -1183,11 +1165,11 @@ static void Con_PrintCvarMatches (const char *s, const char *value, const char *
 		}
 	}
 
-/*
+/***
 ===============
 Con_ConcatRemaining
 ===============
-*/
+***/
 static void Con_ConcatRemaining (const char *src, const char *start)
 	{
 	const char *arg;
@@ -1221,13 +1203,13 @@ static void Con_ConcatRemaining (const char *src, const char *start)
 	Q_strncat (con.completionField->buffer, arg, sizeof (con.completionField->buffer));
 	}
 
-/*
+/***
 ===============
 Con_CompleteCommand
 
 perform Tab expansion
 ===============
-*/
+***/
 void Con_CompleteCommand (field_t *field)
 	{
 	field_t		temp;
@@ -1344,13 +1326,13 @@ void Con_CompleteCommand (field_t *field)
 		}
 	}
 
-/*
+/***
 =========
 Cmd_AutoComplete
 
 NOTE: input string must be equal or longer than MAX_STRING
 =========
-*/
+***/
 void Cmd_AutoComplete (char *complete_string)
 	{
 	field_t	input;
@@ -1371,12 +1353,12 @@ void Cmd_AutoComplete (char *complete_string)
 		Q_strncpy (complete_string, input.buffer, sizeof (input.buffer));
 	}
 
-/*
+/***
 ============
 Cmd_AutoCompleteClear
 
 ============
-*/
+***/
 void Cmd_AutoCompleteClear (void)
 	{
 	int i;
@@ -1394,14 +1376,14 @@ void Cmd_AutoCompleteClear (void)
 	con.matchCount = 0;
 	}
 
-/*
+/***
 ============
 Cmd_WriteVariables
 
 Appends lines containing "set variable value" for all variables
 with the archive flag set to true.
 ============
-*/
+***/
 static void Cmd_WriteOpenGLCvar (const char *name, const char *string, const char *desc, void *f)
 	{
 	if (!COM_CheckString (desc))
@@ -1452,13 +1434,13 @@ static void Host_FinalizeConfig (file_t *f, const char *config)
 	FS_Rename (newcfg, config);
 	}
 
-/*
+/***
 ===============
 Host_WriteConfig
 
 Writes key bindings and archived cvars to config.cfg
 ===============
-*/
+***/
 void Host_WriteConfig (void)
 	{
 	kbutton_t *mlook = NULL;
@@ -1507,13 +1489,13 @@ void Host_WriteConfig (void)
 	NET_SaveMasters ();
 	}
 
-/*
+/***
 ===============
 Host_WriteServerConfig [FWGS, 01.11.23]
 
 save serverinfo variables into server.cfg (using for dedicated server too)
 ===============
-*/
+***/
 void GAME_EXPORT Host_WriteServerConfig (const char *name)
 	{
 	file_t *f;
@@ -1542,13 +1524,13 @@ void GAME_EXPORT Host_WriteServerConfig (const char *name)
 		}
 	}
 
-/*
+/***
 ===============
 Host_WriteOpenGLConfig
 
 save opengl variables into opengl.cfg
 ===============
-*/
+***/
 void Host_WriteOpenGLConfig (void)
 	{
 	string name;
@@ -1579,13 +1561,13 @@ void Host_WriteOpenGLConfig (void)
 		}
 	}
 
-/*
+/***
 ===============
 Host_WriteVideoConfig
 
 save render variables into video.cfg
 ===============
-*/
+***/
 void Host_WriteVideoConfig (void)
 	{
 	file_t *f;
@@ -1646,3 +1628,4 @@ void Key_EnumCmds_f (void)
 
 	FS_AllowDirectPaths (false);
 	}
+

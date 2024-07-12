@@ -1,4 +1,4 @@
-/*
+/***
 joyinput.c - joystick common input code
 
 Copyright (C) 2016 a1batross
@@ -11,8 +11,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #include "common.h"
 #include "input.h"
@@ -82,23 +82,23 @@ static CVAR_DEFINE_AUTO (joy_index, "0", FCVAR_READ_ONLY,
 CVAR_DEFINE_AUTO (joy_enable, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable joystick");
 
-/*
+/***
 ============
 Joy_IsActive
 ============
-*/
+***/
 qboolean Joy_IsActive (void)
 	{
 	return joy_found.value && joy_enable.value;
 	}
 
-/*
+/***
 ============
 Joy_HatMotionEvent
 
 DPad events
 ============
-*/
+***/
 void Joy_HatMotionEvent (byte hat, byte value)
 	{
 	struct
@@ -132,11 +132,11 @@ void Joy_HatMotionEvent (byte hat, byte value)
 			}
 	}
 
-/*
+/***
 =============
 Joy_ProcessTrigger
 =============
-*/
+***/
 static void Joy_ProcessTrigger (const engineAxis_t engineAxis, short value)
 	{
 	int trigButton = 0, trigThreshold = 0;
@@ -211,11 +211,11 @@ static int Joy_GetHatValueForAxis (const engineAxis_t engineAxis)
 	return 0;
 	}
 
-/*
+/***
 =============
 Joy_ProcessStick
 =============
-*/
+***/
 static void Joy_ProcessStick (const engineAxis_t engineAxis, short value)
 	{
 	int deadzone = 0;
@@ -263,13 +263,13 @@ static void Joy_ProcessStick (const engineAxis_t engineAxis, short value)
 		}
 	}
 
-/*
+/***
 =============
 Joy_AxisMotionEvent
 
 Axis events
 =============
-*/
+***/
 void Joy_AxisMotionEvent (byte axis, short value)
 	{
 	if (!joy_found.value)
@@ -299,24 +299,24 @@ void Joy_KnownAxisMotionEvent (engineAxis_t engineAxis, short value)
 		Joy_ProcessStick (engineAxis, value);
 	}
 
-/*
+/***
 =============
 Joy_BallMotionEvent
 
 Trackball events. UNDONE
 =============
-*/
+***/
 void Joy_BallMotionEvent (byte ball, short xrel, short yrel)
 	{
 	}
 
-/*
+/***
 =============
 Joy_ButtonEvent
 
 Button events
 =============
-*/
+***/
 void Joy_ButtonEvent (byte button, byte down)
 	{
 	if (!joy_found.value)
@@ -339,39 +339,39 @@ void Joy_ButtonEvent (byte button, byte down)
 	Key_Event (button, down);
 	}
 
-/*
+/***
 =============
 Joy_RemoveEvent
 
 Called when joystick is removed. For future expansion
 =============
-*/
+***/
 void Joy_RemoveEvent (void)
 	{
 	if (joy_found.value)
 		Cvar_FullSet ("joy_found", "0", FCVAR_READ_ONLY);
 	}
 
-/*
+/***
 =============
 Joy_RemoveEvent
 
 Called when joystick is removed. For future expansion
 =============
-*/
+***/
 void Joy_AddEvent (void)
 	{
 	if (joy_enable.value && !joy_found.value)
 		Cvar_FullSet ("joy_found", "1", FCVAR_READ_ONLY);
 	}
 
-/*
+/***
 =============
 Joy_FinalizeMove
 
 Append movement from axis. Called everyframe
 =============
-*/
+***/
 void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 	{
 	if (!Joy_IsActive ())
@@ -413,13 +413,13 @@ void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 #endif
 	}
 
-/*
+/***
 =============
 Joy_Init [FWGS, 01.07.23]
 
 Main init procedure
 =============
-*/
+***/
 void Joy_Init (void)
 	{
 	Cvar_RegisterVariable (&joy_pitch);
@@ -459,13 +459,13 @@ void Joy_Init (void)
 	joy_initialized = true;		// [FWGS, 01.05.23]
 	}
 
-/*
+/***
 ===========
 Joy_Shutdown [FWGS, 01.05.23]
 
 Shutdown joystick code
 ===========
-*/
+***/
 void Joy_Shutdown (void)
 	{
 	if (joy_initialized)
