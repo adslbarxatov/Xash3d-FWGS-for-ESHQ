@@ -117,8 +117,8 @@ class CAmbientGeneric : public CBaseEntity
 		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 		void Precache (void);
-		void EXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-		void EXPORT RampThink (void);
+		void HLEXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT RampThink (void);
 		void InitModulationParms (void);
 
 		virtual int		Save (CSave &save);
@@ -1800,8 +1800,8 @@ class CSpeaker : public CBaseEntity
 		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
 		void Precache (void);
-		void EXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-		void EXPORT SpeakerThink (void);
+		void HLEXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT SpeakerThink (void);
 
 		virtual int		Save (CSave &save);
 		virtual int		Restore (CRestore &restore);

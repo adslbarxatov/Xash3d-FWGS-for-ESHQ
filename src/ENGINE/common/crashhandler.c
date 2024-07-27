@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 // [FWGS, 01.04.23]
@@ -79,9 +79,12 @@ static int Sys_ModuleName (HANDLE process, char *name, void *address, int len)
 	return Q_snprintf (name, len, "???");
 	}
 
+// [FWGS, 01.07.24]
 static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	{
-	char message[1024];
+	/*char message[1024];*/
+	char message[8192]; // match *nix Sys_Crash
+
 	int len = 0;
 	size_t i;
 	HANDLE process = GetCurrentProcess ();
@@ -130,9 +133,29 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	stackframe.AddrBStore.Mode = AddrModeFlat;
 	stackframe.AddrStack.Offset = context.IntSp;
 	stackframe.AddrStack.Mode = AddrModeFlat;
+#elif _M_ARM
+	image = IMAGE_FILE_MACHINE_ARMNT;
+	stackframe.AddrPC.Offset = context.Pc;
+	stackframe.AddrPC.Mode = AddrModeFlat;
+	stackframe.AddrFrame.Offset = context.R11;
+	stackframe.AddrFrame.Mode = AddrModeFlat;
+	stackframe.AddrStack.Offset = context.Sp;
+	stackframe.AddrStack.Mode = AddrModeFlat;
+#elif _M_ARM64
+	image = IMAGE_FILE_MACHINE_ARM64;
+	stackframe.AddrPC.Offset = context.Pc;
+	stackframe.AddrPC.Mode = AddrModeFlat;
+	stackframe.AddrFrame.Offset = context.Fp;
+	stackframe.AddrFrame.Mode = AddrModeFlat;
+	stackframe.AddrStack.Offset = context.Sp;
+	stackframe.AddrStack.Mode = AddrModeFlat;
 #elif
 #error
 #endif
+
+	len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
+		Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());
+
 	len += Q_snprintf (message + len, 1024 - len, "Sys_Crash: address %p, code %p\n",
 		pInfo->ExceptionRecord->ExceptionAddress, (void *)pInfo->ExceptionRecord->ExceptionCode);
 	if (SymGetLineFromAddr64 (process, (DWORD64)pInfo->ExceptionRecord->ExceptionAddress, &dline, &line))
@@ -256,6 +279,8 @@ static qboolean Sys_WriteMinidump (PEXCEPTION_POINTERS exceptionInfo, MINIDUMP_T
 #endif
 
 LPTOP_LEVEL_EXCEPTION_FILTER       oldFilter;
+
+// [FWGS, 01.07.24]
 static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 	{
 	// save config
@@ -264,7 +289,10 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 		// check to avoid recursive call
 		host.crashed = true;
 
-// [FWGS, 01.04.23]
+#ifdef XASH_SDL
+		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
+#endif
+
 #if DBGHELP
 		Sys_StackTrace (pInfo);
 #else
@@ -277,7 +305,6 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 		else
 			host.status = HOST_CRASHED;
 
-// [FWGS, 01.04.23]
 #if DBGHELP
 	if (Sys_CheckParm ("-minidumps"))
 		{
@@ -315,11 +342,12 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 	return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
+// [FWGS, 01.07.24]
 void Sys_SetupCrashHandler (void)
 	{
 	SetErrorMode (SEM_FAILCRITICALERRORS);	// no abort/retry/fail errors
 	oldFilter = SetUnhandledExceptionFilter (Sys_Crash);
-	host.hInst = GetModuleHandle (NULL);
+	/*host.hInst = GetModuleHandle (NULL);*/
 	}
 
 void Sys_RestoreCrashHandler (void)

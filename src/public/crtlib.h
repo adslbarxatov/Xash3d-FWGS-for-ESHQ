@@ -1,4 +1,4 @@
-/*
+/***
 crtlib.h - internal stdlib
 Copyright (C) 2011 Uncle Mike
 
@@ -10,8 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+GNU General Public License for more details
+***/
 
 #ifndef STDLIB_H
 #define STDLIB_H
@@ -43,6 +43,11 @@ enum
 #define PFILE_TOKEN_MAX_LENGTH		1024
 #define PFILE_FS_TOKEN_MAX_LENGTH	512
 
+// [FWGS, 01.07.24]
+#ifdef __cplusplus
+#define restrict
+#endif
+
 //
 // build.c
 //
@@ -64,16 +69,6 @@ const char *Q_buildbranch (void);
 void Q_strnlwr (const char *in, char *out, size_t size_out);
 #define Q_strlen( str ) (( str ) ? strlen(( str )) : 0 )
 size_t Q_colorstr (const char *string);
-/*char Q_toupper (const char in);
-char Q_tolower (const char in);
-
-size_t Q_strncat (char *dst, const char *src, size_t siz);
-qboolean Q_isdigit (const char *str);
-
-#if XASH_DL || XASH_FS	// [FWGS, 01.04.23]
-	qboolean Q_isspace (const char *str);
-#endif*/
-
 int Q_atoi (const char *str);
 float Q_atof (const char *str);
 void Q_atov (float *vec, const char *str, size_t siz);
@@ -82,22 +77,24 @@ void Q_atov (float *vec, const char *str, size_t siz);
 qboolean Q_stricmpext (const char *pattern, const char *text);
 qboolean Q_strnicmpext (const char *pattern, const char *text, size_t minimumlen);
 const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *needle, size_t needlelen);
+void Q_memor (byte *XASH_RESTRICT dst, const byte *XASH_RESTRICT src, size_t len);	// [FWGS, 01.07.24]
 const char *Q_timestamp (int format);
 int Q_vsnprintf (char *buffer, size_t buffersize, const char *format, va_list args);
 int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) _format (3);
 
-#define Q_strpbrk strpbrk	// [FWGS, 01.04.23]
+#define Q_strpbrk strpbrk
 void COM_StripColors (const char *in, char *out);
 #define Q_memprint( val ) Q_pretifymem( val, 2 )
 char *Q_pretifymem (float value, int digitsafterdecimal);
-void COM_FileBase (const char *in, char *out, size_t size);	// [FWGS, 01.05.23]
+void COM_FileBase (const char *in, char *out, size_t size);
 const char *COM_FileExtension (const char *in);
-void COM_DefaultExtension (char *path, const char *extension, size_t size);	// [FWGS, 01.05.23]
-void COM_ReplaceExtension (char *path, const char *extension, size_t size);	// [FWGS, 01.05.23]
+void COM_DefaultExtension (char *path, const char *extension, size_t size);
+void COM_ReplaceExtension (char *path, const char *extension, size_t size);
 void COM_ExtractFilePath (const char *path, char *dest);
 const char *COM_FileWithoutPath (const char *in);
 void COM_StripExtension (char *path);
-void COM_RemoveLineFeed (char *str);
+/*void COM_RemoveLineFeed (char *str);*/
+void COM_RemoveLineFeed (char *str, size_t bufsize);	// [FWGS, 01.07.24]
 void COM_FixSlashes (char *pname);
 void COM_PathSlashFix (char *path);
 char COM_Hex2Char (uint8_t hex);
@@ -175,9 +172,6 @@ static inline qboolean Q_isspace (const char *str)
 // [FWGS, 01.05.24]
 static inline int Q_strcmp (const char *s1, const char *s2)
 	{
-	/*return unlikely (!s1) ?
-		(!s2 ? 0 : -1) :
-		(unlikely (!s2) ? 1 : strcmp (s1, s2));*/
 	if (likely (s1 && s2))
 		return strcmp (s1, s2);
 	return (s1 ? 1 : 0) - (s2 ? 1 : 0);
@@ -186,9 +180,6 @@ static inline int Q_strcmp (const char *s1, const char *s2)
 // [FWGS, 01.05.24]
 static inline int Q_strncmp (const char *s1, const char *s2, size_t n)
 	{
-	/*return unlikely (!s1) ?
-		(!s2 ? 0 : -1) :
-		(unlikely (!s2) ? 1 : strncmp (s1, s2, n));*/
 	if (likely (s1 && s2))
 		return strncmp (s1, s2, n);
 	return (s1 ? 1 : 0) - (s2 ? 1 : 0);
@@ -197,15 +188,10 @@ static inline int Q_strncmp (const char *s1, const char *s2, size_t n)
 // [FWGS, 01.05.24]
 static inline char *Q_strstr (const char *s1, const char *s2)
 	{
-	/*return unlikely (!s1 || !s2) ? NULL : (char *)strstr (s1, s2);
-	*/
 	if (likely (s1 && s2))
 		return (char *)strstr (s1, s2);
 	return NULL;
 	}
-
-/*// [FWGS, 01.07.23] Q_strncpy is the same as strlcpy
-static inline size_t Q_strncpy (char *dst, const char *src, size_t siz)*/
 
 // [FWGS, 01.05.24] libc extensions, be careful what to enable or what not
 static inline size_t Q_strncpy (char *dst, const char *src, size_t size)
@@ -220,18 +206,14 @@ static inline size_t Q_strncpy (char *dst, const char *src, size_t size)
 
 	size_t len;
 
-	/*if (unlikely (!dst || !src || !siz))*/
 	if (unlikely (!dst || !src || !size))
 		return 0;
 
 	len = strlen (src);
-	/*if (len + 1 > siz) // check if truncate*/
 
 	// check if truncate
 	if (len + 1 > size)
 		{
-		/*memcpy (dst, src, siz - 1);
-		dst[siz - 1] = 0;*/
 		memcpy (dst, src, size - 1);
 		dst[size - 1] = 0;
 		}
@@ -271,10 +253,6 @@ static inline size_t Q_strncat (char *dst, const char *src, size_t size)
 	dlen = d - dst;
 	n = size - dlen;
 
-	/*#if XASH_WIN32
-	#define strcasecmp stricmp
-	#define strncasecmp strnicmp
-	#endif*/
 	if (n == 0)
 		return(dlen + Q_strlen (s));
 
@@ -301,9 +279,6 @@ static inline size_t Q_strncat (char *dst, const char *src, size_t size)
 
 static inline int Q_stricmp (const char *s1, const char *s2)
 	{
-	/*return unlikely (!s1) ?
-		(!s2 ? 0 : -1) :
-		(unlikely (!s2) ? 1 : strcasecmp (s1, s2));*/
 	if (likely (s1 && s2))
 		{
 #if HAVE_STRICMP
@@ -326,9 +301,6 @@ int Q_stricmp (const char *s1, const char *s2);
 
 static inline int Q_strnicmp (const char *s1, const char *s2, size_t n)
 	{
-	/*return unlikely (!s1) ?
-		(!s2 ? 0 : -1) :
-		(unlikely (!s2) ? 1 : strncasecmp (s1, s2, n));*/
 	if (likely (s1 && s2))
 		{
 #if HAVE_STRICMP
@@ -339,10 +311,6 @@ static inline int Q_strnicmp (const char *s1, const char *s2, size_t n)
 		}
 	return (s1 ? 1 : 0) - (s2 ? 1 : 0);
 	}
-
-/*#if defined( HAVE_STRCASESTR )
-#if XASH_WIN32
-#define strcasestr stristr*/
 
 #else
 
@@ -355,7 +323,6 @@ int Q_strnicmp (const char *s1, const char *s2, size_t n);
 
 static inline char *Q_stristr (const char *s1, const char *s2)
 	{
-	/*return unlikely (!s1 || !s2) ? NULL : (char *)strcasestr (s1, s2);*/
 	if (likely (s1 && s2))
 		return (char *)strcasestr (s1, s2);
 	return NULL;
@@ -368,7 +335,6 @@ static inline char *Q_stristr (const char *s1, const char *s2)
 #endif
 
 // [FWGS, 01.05.24]
-/*#if defined( HAVE_STRCHRNUL )*/
 #if HAVE_STRCHRNUL
 
 	#define Q_strchrnul strchrnul

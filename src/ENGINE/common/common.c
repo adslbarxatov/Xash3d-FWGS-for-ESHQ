@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #if defined( ALLOCA_H )
@@ -23,18 +23,33 @@ GNU General Public License for more details.
 #include "client.h"
 #include "library.h"
 
+// [FWGS, 01.07.24]
 static const char *file_exts[] =
 	{
-		"cfg",
-		"lst",
-		"exe",
-		"vbs",
-		"com",
-		"bat",
-		"dll",
-		"ini",
-		"log",
-		"sys",
+	/*"cfg",
+	"lst",
+	"exe",
+	"vbs",
+	"com",
+	"bat",
+	"dll",
+	"ini",
+	"log",
+	"sys",*/
+
+	// ban text files that don't make sense as resource
+	"cfg", "lst", "ini", "log",
+
+	// ban Windows code
+	"exe", "vbs", "com", "bat",
+	"dll", "sys", "ps1",
+
+	// ban common unix code
+	// NOTE: in unix anything can be executed as long it has access flag
+	"so", "sh", "dylib",
+
+	// ban mobile archives
+	"apk", "ipa",
 	};
 
 #ifdef _DEBUG
@@ -46,7 +61,7 @@ void DBG_AssertFunction (qboolean fExpr, const char *szExpr, const char *szFile,
 		Con_DPrintf (S_ERROR "ASSERT FAILED:\n %s \n(%s@%d)\n%s\n", szExpr, szFile, szLine, szMessage);
 	else Con_DPrintf (S_ERROR "ASSERT FAILED:\n %s \n(%s@%d)\n", szExpr, szFile, szLine);
 	}
-#endif	// DEBUG
+#endif
 
 static int idum = 0;
 
@@ -892,6 +907,7 @@ void GAME_EXPORT pfnGetGameDir (char *szGetGameDir)
 	Q_strncpy (szGetGameDir, GI->gamefolder, sizeof (GI->gamefolder));
 	}
 
+// [FWGS, 01.07.24]
 qboolean COM_IsSafeFileToDownload (const char *filename)
 	{
 	char		lwrfilename[4096];
@@ -902,7 +918,11 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	if (!COM_CheckString (filename))
 		return false;
 
-	if (!Q_strncmp (filename, "!MD5", 4))
+	/*if (!Q_strncmp (filename, "!MD5", 4))*/
+	ext = COM_FileExtension (lwrfilename);
+
+	// only allow extensionless files that start with !MD5
+	if (!Q_strncmp (filename, "!MD5", 4) && (ext[0] == 0))
 		return true;
 
 	Q_strnlwr (filename, lwrfilename, sizeof (lwrfilename));
@@ -925,7 +945,7 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	if (Q_strlen (first) != 4)
 		return false;
 
-	ext = COM_FileExtension (lwrfilename);
+	/*ext = COM_FileExtension (lwrfilename);*/
 
 	for (i = 0; i < ARRAYSIZE (file_exts); i++)
 		{
@@ -958,35 +978,33 @@ char *_copystring (poolhandle_t mempool, const char *s, const char *filename, in
 
 /***
 ======================
-COMMON EXPORT STUBS
+COMMON EXPORTED STUBS
 ======================
 ***/
 
 /***
 =============
-pfnSequenceGet [FWGS, 01.11.23]
+pfnSequenceGet
 
 used by CS:CZ
 =============
 ***/
 void *GAME_EXPORT pfnSequenceGet (const char *fileName, const char *entryName)
 	{
-	Msg ("Sequence_Get: file %s, entry %s\n", fileName, entryName);
-
+	Msg ("%s: file %s, entry %s\n", __func__, fileName, entryName);	// [FWGS, 01.07.24]
 	return NULL;
 	}
 
 /***
 =============
-pfnSequencePickSentence [FWGS, 01.11.23]
+pfnSequencePickSentence
 
 used by CS:CZ
 =============
 ***/
 void *GAME_EXPORT pfnSequencePickSentence (const char *groupName, int pickMethod, int *picked)
 	{
-	Msg ("Sequence_PickSentence: group %s, pickMethod %i\n", groupName, pickMethod);
-
+	Msg ("%s: group %s, pickMethod %i\n", __func__, groupName, pickMethod);	// [FWGS, 01.07.24]
 	return NULL;
 	}
 

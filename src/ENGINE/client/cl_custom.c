@@ -71,18 +71,29 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		return true;
 		}
 
-	if (cl.downloadUrl[0])
+	// [FWGS, 01.07.24]
+	/*if (cl.downloadUrl[0])
+	*/
+	host.downloadcount++;
+
+	if (cl.http_download)
 		{
 		HTTP_AddDownload (filepath, pResource->nDownloadSize, true);
-		host.downloadcount++;
-		return false;
+		/*host.downloadcount++;
+		return false;*/
 		}
 
-	MSG_BeginClientCmd (msg, clc_stringcmd);
+	/*MSG_BeginClientCmd (msg, clc_stringcmd);
 	
 	// [FWGS, 01.04.23]
 	MSG_WriteStringf (msg, "dlfile %s", filepath);
-	host.downloadcount++;
+	host.downloadcount++;*/
+	else
+		{
+		MSG_BeginClientCmd (msg, clc_stringcmd);
+		MSG_WriteStringf (msg, "dlfile %s", filepath);
+		}
+
 
 	return false;
 	}
@@ -107,7 +118,7 @@ void CL_AddToResourceList (resource_t *pResource, resource_t *pList)
 void CL_RemoveFromResourceList (resource_t *pResource)
 	{
 	if ((pResource->pPrev == NULL) || (pResource->pNext == NULL))
-		Host_Error ("mislinked resource in CL_RemoveFromResourceList\n");
+		Host_Error ("mislinked resource in %s\n", __func__);	// [FWGS, 01.07.24]
 
 	if ((pResource->pNext == pResource) || (pResource->pPrev == pResource))
 		Host_Error ("attempt to free last entry in list.\n");
@@ -122,7 +133,7 @@ void CL_MoveToOnHandList (resource_t *pResource)
 	{
 	if (!pResource)
 		{
-		Con_Reportf ("Null resource passed to CL_MoveToOnHandList\n");
+		Con_Reportf ("Null resource passed to %s\n", __func__);	// [FWGS, 01.07.24]
 		return;
 		}
 
@@ -134,7 +145,7 @@ static void CL_ClearResourceList (resource_t *pList)
 	{
 	resource_t *p, *n;
 
-	for (p = pList->pNext; p != pList && p; p = n)
+	for (p = pList->pNext; (p != pList) && p; p = n)
 		{
 		n = p->pNext;
 

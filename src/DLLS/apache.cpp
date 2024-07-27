@@ -46,12 +46,12 @@ class CApache: public CBaseMonster
 		pev->absmax = pev->origin + Vector (300, 300, 8);
 		}
 
-	void EXPORT HuntThink (void);
-	void EXPORT FlyTouch (CBaseEntity* pOther);
-	void EXPORT CrashTouch (CBaseEntity* pOther);
-	void EXPORT DyingThink (void);
-	void EXPORT StartupUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-	void EXPORT NullThink (void);
+	void HLEXPORT HuntThink (void);
+	void HLEXPORT FlyTouch (CBaseEntity* pOther);
+	void HLEXPORT CrashTouch (CBaseEntity* pOther);
+	void HLEXPORT DyingThink (void);
+	void HLEXPORT StartupUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+	void HLEXPORT NullThink (void);
 
 	void ShowDamage (void);
 	void Flight (void);
@@ -862,14 +862,12 @@ void CApache::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir
 		}
 	}
 
-
-
 class CApacheHVR: public CGrenade
 	{
 	void Spawn (void);
 	void Precache (void);
-	void EXPORT IgniteThink (void);
-	void EXPORT AccelerateThink (void);
+	void HLEXPORT IgniteThink (void);
+	void HLEXPORT AccelerateThink (void);
 
 	int		Save (CSave& save);
 	int		Restore (CRestore& restore);

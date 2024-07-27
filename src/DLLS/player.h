@@ -270,7 +270,7 @@ class CBasePlayer: public CBaseMonster
 		void SendAmmoUpdate (void);
 
 		void WaterMove (void);
-		void EXPORT PlayerDeathThink (void);
+		void HLEXPORT PlayerDeathThink (void);
 		void PlayerUse (void);
 
 		void CheckSuitUpdate ();

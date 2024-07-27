@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -40,7 +40,7 @@ void R_SpriteInit (void)
 
 /***
 ====================
-R_SpriteLoadFrame [FWGS, 01.05.24]
+R_SpriteLoadFrame
 
 upload a single frame
 ====================
@@ -49,16 +49,16 @@ static const byte *R_SpriteLoadFrame (model_t *mod, const void *pin, mspritefram
 	{
 	dspriteframe_t	pinframe;
 	mspriteframe_t	*pspriteframe;
-	int			gl_texturenum = 0;
-	char		texname[128];
-	int			bytes = 1;
+	int		gl_texturenum = 0;
+	char	texname[128];
+	int		bytes = 1;
 
 	memcpy (&pinframe, pin, sizeof (dspriteframe_t));
 
 	if (sprite_version == SPRITE_VERSION_32)
 		bytes = 4;
 
-	// build uinque frame name
+	// [FWGS, 01.07.24] build uinque frame name
 	if (FBitSet (mod->flags, MODEL_CLIENT)) // it's a HUD sprite
 		{
 		Q_snprintf (texname, sizeof (texname), "#HUD/%s(%s:%i%i).spr", sprite_name, group_suffix, num / 10, num % 10);
@@ -66,8 +66,25 @@ static const byte *R_SpriteLoadFrame (model_t *mod, const void *pin, mspritefram
 		}
 	else
 		{
-		Q_snprintf (texname, sizeof (texname), "#%s(%s:%i%i).spr", sprite_name, group_suffix, num / 10, num % 10);
-		gl_texturenum = GL_LoadTexture (texname, pin, pinframe.width * pinframe.height * bytes, r_texFlags);
+		/*Q_snprintf (texname, sizeof (texname), "#%s(%s:%i%i).spr", sprite_name, group_suffix, num / 10, num % 10);
+		gl_texturenum = GL_LoadTexture (texname, pin, pinframe.width * pinframe.height * bytes, r_texFlags);*/
+
+		// partial HD-textures support
+		if (Mod_AllowMaterials ())
+			{
+			if (R_SearchForTextureReplacement (texname, sizeof (texname), sprite_name, "materials/%s/%s%i%i.tga",
+				sprite_name, group_suffix, num / 10, num % 10))
+				{
+				gl_texturenum = GL_LoadTexture (texname, NULL, 0, r_texFlags);
+				R_TextureReplacementReport (sprite_name, gl_texturenum, texname);
+				}
+			}
+
+		if (gl_texturenum == 0)
+			{
+			Q_snprintf (texname, sizeof (texname), "#%s(%s:%i%i).spr", sprite_name, group_suffix, num / 10, num % 10);
+			gl_texturenum = GL_LoadTexture (texname, pin, pinframe.width * pinframe.height * bytes, r_texFlags);
+			}
 		}
 
 	// setup frame description
@@ -177,9 +194,11 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 			case SPR_INDEXALPHA:
 				pal = gEngfuncs.FS_LoadImage ("#gradient.pal", src, 768);
 				break;
+
 			case SPR_ALPHTEST:
 				pal = gEngfuncs.FS_LoadImage ("#masked.pal", src, 768);
 				break;
+
 			default:
 				pal = gEngfuncs.FS_LoadImage ("#normal.pal", src, 768);
 				break;
@@ -190,7 +209,8 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 		}
 	else
 		{
-		gEngfuncs.Con_DPrintf (S_ERROR "%s has wrong number of palette colors %i (should be 256)\n", mod->name, *numi);
+		gEngfuncs.Con_DPrintf (S_ERROR "%s has wrong number of palette colors %i (should be 256)\n",
+			mod->name, *numi);
 		return;
 		}
 
@@ -211,17 +231,20 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 			{
 			case FRAME_SINGLE:
 				Q_strncpy (group_suffix, "frame", sizeof (group_suffix));
-				pframetype = R_SpriteLoadFrame (mod, pframetype + sizeof (dframetype_t), &psprite->frames[i].frameptr, i);
+				pframetype = R_SpriteLoadFrame (mod, pframetype + sizeof (dframetype_t),
+					&psprite->frames[i].frameptr, i);
 				break;
 
 			case FRAME_GROUP:
 				Q_strncpy (group_suffix, "group", sizeof (group_suffix));
-				pframetype = R_SpriteLoadGroup (mod, pframetype + sizeof (dframetype_t), &psprite->frames[i].frameptr, i);
+				pframetype = R_SpriteLoadGroup (mod, pframetype + sizeof (dframetype_t),
+					&psprite->frames[i].frameptr, i);
 				break;
 
 			case FRAME_ANGLED:
 				Q_strncpy (group_suffix, "angle", sizeof (group_suffix));
-				pframetype = R_SpriteLoadGroup (mod, pframetype + sizeof (dframetype_t), &psprite->frames[i].frameptr, i);
+				pframetype = R_SpriteLoadGroup (mod, pframetype + sizeof (dframetype_t),
+					&psprite->frames[i].frameptr, i);
 				break;
 			}
 
@@ -436,8 +459,9 @@ mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 		}
 	else if (frame >= psprite->numframes)
 		{
+		// [FWGS, 01.07.24]
 		if (frame > psprite->numframes)
-			gEngfuncs.Con_Printf (S_WARN "R_GetSpriteFrame: no such frame %d (%s)\n", frame, pModel->name);
+			gEngfuncs.Con_Printf (S_WARN "%s: no such frame %d (%s)\n", __func__, frame, pModel->name);
 		frame = psprite->numframes - 1;
 		}
 
@@ -477,7 +501,7 @@ mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 
 /***
 ================
-R_GetSpriteFrameInterpolant [FWGS, 01.02.24]
+R_GetSpriteFrameInterpolant
 
 NOTE: we using prevblending[0] and [1] for holds interval
 between frames where are we lerping
@@ -487,10 +511,10 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 	{
 	msprite_t		*psprite;
 	mspritegroup_t	*pspritegroup;
-	int				i, j, numframes, frame;
-	float			lerpFrac, time, jtime, jinterval;
-	float			*pintervals, fullinterval, targettime;
-	int				m_fDoInterp;
+	int		i, j, numframes, frame;
+	float	lerpFrac, time, jtime, jinterval;
+	float	*pintervals, fullinterval, targettime;
+	int		m_fDoInterp;
 
 	psprite = ent->model->cache.data;
 	frame = (int)ent->curstate.frame;
@@ -505,7 +529,8 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 		}
 	else if (frame >= psprite->numframes)
 		{
-		gEngfuncs.Con_Reportf (S_WARN "R_GetSpriteFrameInterpolant: no such frame %d (%s)\n", frame, ent->model->name);
+		// [FWGS, 01.07.24]
+		gEngfuncs.Con_Reportf (S_WARN "%s: no such frame %d (%s)\n", __func__, frame, ent->model->name);
 		frame = psprite->numframes - 1;
 		}
 
@@ -519,7 +544,6 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 				// this can be happens when rendering switched between single and angled frames
 				// or change model on replace delta-entity
 				ent->latched.prevblending[0] = ent->latched.prevblending[1] = frame;
-
 				ent->latched.sequencetime = gp_cl->time;
 				lerpFrac = 1.0f;
 				}
@@ -800,7 +824,9 @@ static qboolean R_SpriteHasLightmap (cl_entity_t *e, int texFormat)
 	if (texFormat != SPR_ALPHTEST)
 		return false;
 
-	if (e->curstate.effects & EF_FULLBRIGHT)
+	// [FWGS, 01.07.24]
+	/*if (e->curstate.effects & EF_FULLBRIGHT)*/
+	if (FBitSet (e->curstate.effects, EF_FULLBRIGHT))
 		return false;
 
 	if (e->curstate.renderamt <= 127)
@@ -952,8 +978,10 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		color2[1] = (float)lightColor.g * (1.0f / 255.0f);
 		color2[2] = (float)lightColor.b * (1.0f / 255.0f);
 
-		// NOTE: sprites with 'lightmap' looks ugly when alpha func is GL_GREATER 0.0
-		pglAlphaFunc (GL_GREATER, 0.5f);
+		// [FWGS, 01.07.24] NOTE: sprites with 'lightmap' looks ugly when alpha func is GL_GREATER 0.0
+		// NOTE: make them easier to see with 0.3333, was 0.5 in original
+		pglAlphaFunc (GL_GREATER, 1.0f / 3.0f);
+		/*pglAlphaFunc (GL_GREATER, 0.5f);*/
 		}
 
 	if (R_SpriteAllowLerping (e, psprite))

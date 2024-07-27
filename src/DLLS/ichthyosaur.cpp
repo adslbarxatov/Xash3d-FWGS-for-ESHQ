@@ -67,8 +67,8 @@ class CIchthyosaur: public CFlyingMonster
 		void Killed (entvars_t* pevAttacker, int iGib);
 		void BecomeDead (void);
 
-		void EXPORT CombatUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-		void EXPORT BiteTouch (CBaseEntity* pOther);
+		void HLEXPORT CombatUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT BiteTouch (CBaseEntity* pOther);
 
 		void  StartTask (Task_t* pTask);
 		void  RunTask (Task_t* pTask);

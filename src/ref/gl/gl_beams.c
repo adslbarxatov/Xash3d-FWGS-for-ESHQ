@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -858,9 +858,10 @@ static qboolean R_BeamComputePoint (int beamEnt, vec3_t pt)
 	else
 		attach = BEAMENT_ATTACHMENT (beamEnt);
 
+	// [FWGS, 01.07.24]
 	if (!ent)
 		{
-		gEngfuncs.Con_DPrintf (S_ERROR "R_BeamComputePoint: invalid entity %i\n", BEAMENT_ENTITY (beamEnt));
+		gEngfuncs.Con_DPrintf (S_ERROR "%s: invalid entity %i\n", __func__, BEAMENT_ENTITY (beamEnt));
 		VectorClear (pt);
 		return false;
 		}

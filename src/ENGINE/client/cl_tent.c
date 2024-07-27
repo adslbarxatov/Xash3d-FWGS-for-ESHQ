@@ -1912,7 +1912,7 @@ void GAME_EXPORT R_Sprite_WallPuff (TEMPENTITY *pTemp, float scale)
 
 /***
 ==============
-CL_ParseTempEntity [FWGS, 01.03.24]
+CL_ParseTempEntity [FWGS, 01.07.24]
 
 handle temp-entity messages
 ==============
@@ -1943,7 +1943,7 @@ void CL_ParseTempEntity (sizebuf_t *msg)
 
 	// this will probably be fatal anyway
 	if (iSize > sizeof (pbuf))
-		Con_Printf (S_ERROR "%s: Temp buffer overflow!\n", __FUNCTION__);
+		Con_Printf (S_ERROR "%s: Temp buffer overflow!\n", __func__);
 
 	// parse user message into buffer
 	MSG_ReadBytes (msg, pbuf, iSize);
@@ -2479,13 +2479,13 @@ void CL_ParseTempEntity (sizebuf_t *msg)
 			break;
 
 		default:
-			Con_DPrintf (S_ERROR "ParseTempEntity: illegible TE message %i\n", type);
+			Con_DPrintf (S_ERROR "%s: illegible TE message %i\n", __func__, type);	// [FWGS, 01.07.24]
 			break;
 		}
 
 	// throw warning
 	if (MSG_CheckOverflow (&buf))
-		Con_DPrintf (S_WARN "ParseTempEntity: overflow TE message %i\n", type);
+		Con_DPrintf (S_WARN "%s: overflow TE message %i\n", __func__, type);	// [FWGS, 01.07.24]
 	}
 
 /***
@@ -2569,8 +2569,8 @@ CL_AllocDlight
 ***/
 dlight_t *CL_AllocDlight (int key)
 	{
-	dlight_t *dl;
-	int	i;
+	dlight_t	*dl;
+	int			i;
 
 	// first look for an exact key match
 	if (key)
@@ -2613,8 +2613,8 @@ CL_AllocElight
 ***/
 dlight_t *CL_AllocElight (int key)
 	{
-	dlight_t *dl;
-	int	i;
+	dlight_t	*dl;
+	int			i;
 
 	// first look for an exact key match
 	if (key)
@@ -3014,7 +3014,7 @@ void GAME_EXPORT CL_DecalShoot (int textureIndex, int entityIndex, int modelInde
 
 /***
 ===============
-CL_PlayerDecal
+CL_PlayerDecal [FWGS, 01.07.24]
 
 spray custom colored decal (clan logo etc)
 ===============
@@ -3033,16 +3033,34 @@ static void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, flo
 			{
 			if (!pCust->nUserData1)
 				{
-				// [FWGS, 01.04.23]
-				int sprayTextureIndex;
-				char decalname[MAX_VA_STRING];
+				/*int sprayTextureIndex;*/
+				char	decalname[MAX_VA_STRING];
+				int		width, height;
 
 				Q_snprintf (decalname, sizeof (decalname), "player%dlogo%d", playernum, customIndex);
-				sprayTextureIndex = ref.dllFuncs.GL_FindTexture (decalname);
-				if (sprayTextureIndex != 0)
-					ref.dllFuncs.GL_FreeTexture (sprayTextureIndex);
+				/*sprayTextureIndex = ref.dllFuncs.GL_FindTexture (decalname);
+				if (sprayTextureIndex != 0)*/
+				textureIndex = ref.dllFuncs.GL_FindTexture (decalname);
+				if (textureIndex != 0)
+					ref.dllFuncs.GL_FreeTexture (textureIndex);
 
 				pCust->nUserData1 = GL_LoadTextureInternal (decalname, pCust->pInfo, TF_DECAL);
+
+				width = REF_GET_PARM (PARM_TEX_WIDTH, pCust->nUserData1);
+				height = REF_GET_PARM (PARM_TEX_HEIGHT, pCust->nUserData1);
+
+				if ((width > cl_logomaxdim.value) || (height > cl_logomaxdim.value))
+					{
+					/*ref.dllFuncs.GL_FreeTexture (sprayTextureIndex);*/
+					double scale = cl_logomaxdim.value / Q_max (width, height);
+					width = round (width * scale);
+					height = round (height * scale);
+
+					// default custom decal from HL1
+					ref.dllFuncs.R_OverrideTextureSourceSize (pCust->nUserData1, width, height);
+					}
+
+				/*pCust->nUserData1 = GL_LoadTextureInternal (decalname, pCust->pInfo, TF_DECAL);*/
 				}
 
 			textureIndex = pCust->nUserData1;
@@ -3067,17 +3085,18 @@ int GAME_EXPORT CL_DecalIndexFromName (const char *name)
 		return 0;
 
 	// look through the loaded sprite name list for SpriteName
-	for (i = 1; i < MAX_DECALS && host.draw_decals[i][0]; i++)
+	for (i = 1; (i < MAX_DECALS) && host.draw_decals[i][0]; i++)
 		{
 		if (!Q_stricmp (name, host.draw_decals[i]))
 			return i;
 		}
+
 	return 0; // invalid decal
 	}
 
 /***
 ===============
-CL_DecalIndex
+CL_DecalIndex [FWGS, 01.07.24]
 
 get texture index from decal global index
 ===============
@@ -3088,8 +3107,53 @@ int GAME_EXPORT CL_DecalIndex (int id)
 
 	if (cl.decal_index[id] == 0)
 		{
+		int gl_texturenum = 0;
+
 		Image_SetForceFlags (IL_LOAD_DECAL);
-		cl.decal_index[id] = ref.dllFuncs.GL_LoadTexture (host.draw_decals[id], NULL, 0, TF_DECAL);
+		/*cl.decal_index[id] = ref.dllFuncs.GL_LoadTexture (host.draw_decals[id], NULL, 0, TF_DECAL);*/
+		if (Mod_AllowMaterials ())
+			{
+			string decalname;
+
+			if (Q_snprintf (decalname, sizeof (decalname), "materials/decals/%s.tga", host.draw_decals[id]) > 0)
+				{
+				if (g_fsapi.FileExists (decalname, false))
+					{
+					gl_texturenum = ref.dllFuncs.GL_LoadTexture (decalname, NULL, 0, TF_DECAL);
+					if (host_allow_materials.value == 2.0f)
+						Con_Printf ("Looking for %s decal replacement...%s (%s)\n", host.draw_decals[id],
+							gl_texturenum != 0 ? S_GREEN "OK" : S_RED "FAIL", decalname);
+					}
+				else if (host_allow_materials.value == 2.0f)
+					{
+					Con_Printf ("Looking for %s decal replacement..." S_YELLOW "MISS (%s)\n",
+						host.draw_decals[id], decalname);
+					}
+				}
+			else if (host_allow_materials.value == 2.0f)
+				{
+				Con_Printf ("Looking for %s decal replacement..." S_YELLOW "MISS (overflow)\n",
+					host.draw_decals[id]);
+				}
+
+			if (gl_texturenum)
+				{
+				byte *fin;
+
+				Q_snprintf (decalname, sizeof (decalname), "decals.wad/%s", host.draw_decals[id]);
+				if ((fin = g_fsapi.LoadFile (decalname, NULL, false)) != NULL)
+					{
+					mip_t *mip = (mip_t *)fin;
+					ref.dllFuncs.R_OverrideTextureSourceSize (gl_texturenum, mip->width, mip->height);
+					Mem_Free (fin);
+					}
+				}
+			}
+
+		if (!gl_texturenum)
+			gl_texturenum = ref.dllFuncs.GL_LoadTexture (host.draw_decals[id], NULL, 0, TF_DECAL);
+
+		cl.decal_index[id] = gl_texturenum;
 		Image_ClearForceFlags ();
 		}
 

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -25,10 +25,11 @@ GNU General Public License for more details.
 	     &pos->member != (head);				\
 	     pos = list_entry( pos->member.next, winding_t, member ))
 
-// [FWGS, 01.01.24] rewrite in triapi
+// [FWGS, 01.07.24] rewrite in triapi
 void R_DrawWorldHull (void)
 	{
-	hull_model_t	*hull = &tr.world->hull_models[0];
+	/*hull_model_t	*hull = &tr.world->hull_models[0];*/
+	hull_model_t	*hull;
 	winding_t		*poly;
 	int				i;
 
@@ -43,6 +44,7 @@ void R_DrawWorldHull (void)
 	if (!r_showhull->value)
 		return;
 
+	hull = &tr.world->hull_models[0];
 	pglDisable (GL_TEXTURE_2D);
 
 	list_for_each_entry (poly, &hull->polys, chain)

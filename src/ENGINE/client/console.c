@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -21,6 +21,7 @@ GNU General Public License for more details.
 #include "qfont.h"
 #include "wadfile.h"
 #include "input.h"
+#include "utflib.h"			// [FWGS, 01.07.24]
 
 // [FWGS, 01.07.23]
 static CVAR_DEFINE_AUTO (scr_conspeed, "600", FCVAR_ARCHIVE,
@@ -49,9 +50,9 @@ static CVAR_DEFINE_AUTO (scr_drawversion, "1", FCVAR_ARCHIVE,
 static CVAR_DEFINE_AUTO (con_oldfont, "0", 0,
 	"use legacy font from gfx.wad, might be missing or broken");
 
+// [FWGS, 01.07.24]
 static int g_codepage = 0;
-static qboolean g_utf8 = false;
-
+/*static qboolean g_utf8 = false;*/
 static qboolean g_messagemode_privileged = true;
 
 #define CON_TIMES		4	// notify lines
@@ -59,6 +60,7 @@ static qboolean g_messagemode_privileged = true;
 #define COLOR_DEFAULT	'7'
 #define CON_HISTORY		64
 #define MAX_DBG_NOTIFY	128
+
 #if XASH_LOW_MEMORY
 #define CON_NUMFONTS	1		// do not load different font textures
 #define CON_TEXTSIZE	32768	// max scrollback buffer characters in console (32 kb)
@@ -68,6 +70,7 @@ static qboolean g_messagemode_privileged = true;
 #define CON_TEXTSIZE	1048576	// max scrollback buffer characters in console (1 Mb)
 #define CON_MAXLINES	16384	// max scrollback buffer lines in console
 #endif
+
 #define CON_LINES( i )	(con.lines[(con.lines_first + (i)) % con.maxlines])
 #define CON_LINES_COUNT	con.lines_count
 #define CON_LINES_LAST()	CON_LINES( CON_LINES_COUNT - 1 )
@@ -634,7 +637,8 @@ static void Con_LoadConchars (void)
 	con.curFont = &con.chars[fontSize];
 	}
 
-// CP1251 table
+// [FWGS, 01.07.24]
+/*// CP1251 table
 int table_cp1251[64] = {
 	0x0402, 0x0403, 0x201A, 0x0453, 0x201E, 0x2026, 0x2020, 0x2021,
 	0x20AC, 0x2030, 0x0409, 0x2039, 0x040A, 0x040C, 0x040B, 0x040F,
@@ -644,29 +648,32 @@ int table_cp1251[64] = {
 	0x0401, 0x00A9, 0x0404, 0x00AB, 0x00AC, 0x00AD, 0x00AE, 0x0407,
 	0x00B0, 0x00B1, 0x0406, 0x0456, 0x0491, 0x00B5, 0x00B6, 0x00B7,
 	0x0451, 0x2116, 0x0454, 0x00BB, 0x0458, 0x0405, 0x0455, 0x0457
-	};
+	};*/
 
 /***
 ============================
-Con_UtfProcessChar
+Con_UtfProcessChar [FWGS, 01.07.24]
 
 Convert utf char to current font's single-byte encoding
 ============================
 ***/
 int Con_UtfProcessCharForce (int in)
 	{
-	static int m = -1, k = 0;	// multibyte state
-	static int uc = 0;			// unicode char
+	/*static int m = -1, k = 0;	// multibyte state
+	static int uc = 0;			// unicode char*/
+	// TODO: get rid of global state where possible
+	static utfstate_t state = { 0 };
 
-	if (!in)
+	/*if (!in)
 		{
 		m = -1;
 		k = 0;
 		uc = 0;
 		return 0;
-		}
+		}*/
+	int ch = Q_DecodeUTF8 (&state, in);
 
-	// Get character length
+	/*// Get character length
 	if (m == -1)
 		{
 		uc = 0;
@@ -720,36 +727,52 @@ int Con_UtfProcessCharForce (int in)
 			{
 			if (uc < 255)
 				return uc;
-			}
+			}*/
+	if (g_codepage == 1251)
+		return Q_UnicodeToCP1251 (ch);
+	if (g_codepage == 1252)
+		return Q_UnicodeToCP1252 (ch);
 
-		// not implemented yet
+	/*// not implemented yet
 		return '?';
 		}
-	return 0;
+	return 0;*/
+	// not implemented yet
+	return '?';
 	}
 
+// [FWGS, 01.07.24]
 int GAME_EXPORT Con_UtfProcessChar (int in)
 	{
-	if (!g_utf8)
+	/*if (!g_utf8)*/
+	if (!cls.accept_utf8) // incoming character is not a UTF-8 sequence
 		return in;
-	else
-		return Con_UtfProcessCharForce (in);
+	
+	/*else
+	return Con_UtfProcessCharForce (in);*/
+	// otherwise, decode it and convert to selected codepage
+	return Con_UtfProcessCharForce (in);
 	}
 /***
 =================
-Con_UtfMoveLeft
+Con_UtfMoveLeft [FWGS, 01.07.24]
 
 get position of previous printful char
 =================
 ***/
 int Con_UtfMoveLeft (char *str, int pos)
 	{
-	int i, k = 0;
+	/*int i, k = 0;
 	
-	if (!g_utf8)
+	if (!g_utf8)*/
+	utfstate_t state = { 0 };
+	int k = 0;
+	int i;
+
+	if (!cls.accept_utf8) // incoming character is not a UTF-8 sequence
 		return pos - 1;
 	
-	Con_UtfProcessChar (0);
+	/*Con_UtfProcessChar (0);
 	if (pos == 1)
 		return 0;
 
@@ -757,31 +780,49 @@ int Con_UtfMoveLeft (char *str, int pos)
 		if (Con_UtfProcessChar ((unsigned char)str[i]))
 			k = i + 1;
 
-	Con_UtfProcessChar (0);
+	Con_UtfProcessChar (0);*/
+	if (pos == 1)
+		return 0;
+
+	for (i = 0; i < pos - 1; i++)
+		{
+		if (Q_DecodeUTF8 (&state, (byte)str[i]))
+			k = i + 1;
+		}
+
 	return k;
 	}
 
 /***
 =================
-Con_UtfMoveRight
+Con_UtfMoveRight [FWGS, 01.07.24]
 
 get next of previous printful char
 =================
 ***/
 int Con_UtfMoveRight (char *str, int pos, int length)
 	{
+	utfstate_t state = { 0 };
 	int i;
-	if (!g_utf8)
+
+	/*if (!g_utf8)
+	*/
+	// incoming character is not a UTF-8 sequence
+	if (!cls.accept_utf8)
 		return pos + 1;
 
-	Con_UtfProcessChar (0);
+	/*Con_UtfProcessChar (0);
+	*/
 	for (i = pos; i <= length; i++)
 		{
-		if (Con_UtfProcessChar ((unsigned char)str[i]))
+		/*if (Con_UtfProcessChar ((unsigned char)str[i]))
+			return i + 1;*/
+		if (Q_DecodeUTF8 (&state, (byte)str[i]))
 			return i + 1;
 		}
 
-	Con_UtfProcessChar (0);
+	/*Con_UtfProcessChar (0);
+	return pos + 1;*/
 	return pos + 1;
 	}
 
@@ -930,7 +971,7 @@ void Con_Shutdown (void)
 
 /***
 ================
-Con_Print
+Con_Print [FWGS, 01.07.24]
 
 Handles cursor positioning, line wrapping, etc
 All console printing must go through this in order to be displayed
@@ -939,13 +980,13 @@ If no console is visible, the notify window will pop up.
 ***/
 void Con_Print (const char *txt)
 	{
-	static int	cr_pending = 0;
-	static char	buf[MAX_PRINT_MSG];
+	static int		cr_pending = 0;
+	static char		buf[MAX_PRINT_MSG];
 	qboolean		norefresh = false;
-	static int	lastlength = 0;
-	static qboolean	inupdate;
-	static int	bufpos = 0;
-	int		c, mask = 0;
+	static int		lastlength = 0;
+	/*static qboolean	inupdate;*/
+	static int		bufpos = 0;
+	int				c, mask = 0;
 
 	// client not running
 	if (!con.initialized || !con.buffer)
@@ -979,17 +1020,20 @@ void Con_Print (const char *txt)
 			{
 			case '\0':
 				break;
+
 			case '\r':
 				Con_AddLine (buf, bufpos, true);
 				lastlength = CON_LINES_LAST ().length;
 				cr_pending = 1;
 				bufpos = 0;
 				break;
+
 			case '\n':
 				Con_AddLine (buf, bufpos, true);
 				lastlength = CON_LINES_LAST ().length;
 				bufpos = 0;
 				break;
+
 			default:
 				buf[bufpos++] = c | mask;
 				if ((bufpos >= sizeof (buf) - 1) || bufpos >= (con.linewidth - 1))
@@ -1026,7 +1070,29 @@ void Con_Print (const char *txt)
 
 /***
 ================
-Con_NPrint
+Con_NXPrintfv [FWGS, 01.07.24]
+
+Draw a single debug line with specified height, color and time to live
+================
+***/
+static void Con_NXPrintfv (keydest_t key_dest, const con_nprint_t *info, const char *fmt, va_list va)
+	{
+	if ((info->index < 0) || (info->index >= ARRAYSIZE (con.notify)))
+		return;
+
+	Q_vsnprintf (con.notify[info->index].szNotify, sizeof (con.notify[info->index].szNotify), fmt, va);
+
+	// setup values
+	con.notify[info->index].key_dest = key_dest;
+	con.notify[info->index].expire = host.realtime + info->time_to_live;
+	MakeRGBA (con.notify[info->index].color, (byte)(info->color[0] * 255), (byte)(info->color[1] * 255),
+		(byte)(info->color[2] * 255), 255);
+	con.draw_notify = true;
+	}
+
+/***
+================
+Con_NPrint [FWGS, 01.07.24]
 
 Draw a single debug line with specified height
 ================
@@ -1035,25 +1101,33 @@ void GAME_EXPORT Con_NPrintf (int idx, const char *fmt, ...)
 	{
 	va_list	args;
 
-	if ((idx < 0) || (idx >= MAX_DBG_NOTIFY))
+	/*if ((idx < 0) || (idx >= MAX_DBG_NOTIFY))
 		return;
 
-	memset (con.notify[idx].szNotify, 0, MAX_STRING);
+	memset (con.notify[idx].szNotify, 0, MAX_STRING);*/
+	con_nprint_t info =
+		{
+		.index = idx,
+		.time_to_live = 4.0f,
+		.color = { 1.0f, 1.0f, 1.0f },
+		};
 
 	va_start (args, fmt);
-	Q_vsnprintf (con.notify[idx].szNotify, MAX_STRING, fmt, args);
+	/*Q_vsnprintf (con.notify[idx].szNotify, MAX_STRING, fmt, args);
+	*/
+	Con_NXPrintfv (key_game, &info, fmt, args);
 	va_end (args);
 
-	// reset values
+	/*// reset values
 	con.notify[idx].key_dest = key_game;
 	con.notify[idx].expire = host.realtime + 4.0f;
 	MakeRGBA (con.notify[idx].color, 255, 255, 255, 255);
-	con.draw_notify = true;
+	con.draw_notify = true;*/
 	}
 
 /***
 ================
-Con_NXPrint
+Con_NXPrint [FWGS, 01.07.24]
 
 Draw a single debug line with specified height, color and time to live
 ================
@@ -1065,26 +1139,28 @@ void GAME_EXPORT Con_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 	if (!info)
 		return;
 
-	if ((info->index < 0) || (info->index >= MAX_DBG_NOTIFY))
+	/*if ((info->index < 0) || (info->index >= MAX_DBG_NOTIFY))
 		return;
 
-	memset (con.notify[info->index].szNotify, 0, MAX_STRING);
+	memset (con.notify[info->index].szNotify, 0, MAX_STRING);*/
 
 	va_start (args, fmt);
-	Q_vsnprintf (con.notify[info->index].szNotify, MAX_STRING, fmt, args);
+	/*Q_vsnprintf (con.notify[info->index].szNotify, MAX_STRING, fmt, args);
+	*/
+	Con_NXPrintfv (key_game, info, fmt, args);
 	va_end (args);
 
-	// setup values
+	/*// setup values
 	con.notify[info->index].key_dest = key_game;
 	con.notify[info->index].expire = host.realtime + info->time_to_live;
 	MakeRGBA (con.notify[info->index].color, (byte)(info->color[0] * 255), (byte)(info->color[1] * 255),
 		(byte)(info->color[2] * 255), 255);
-	con.draw_notify = true;
+	con.draw_notify = true;*/
 	}
 
 /***
 ================
-UI_NPrint
+UI_NPrint [FWGS, 01.07.24]
 
 Draw a single debug line with specified height (menu version)
 ================
@@ -1093,25 +1169,34 @@ void GAME_EXPORT UI_NPrintf (int idx, const char *fmt, ...)
 	{
 	va_list	args;
 
-	if ((idx < 0) || (idx >= MAX_DBG_NOTIFY))
+	/*if ((idx < 0) || (idx >= MAX_DBG_NOTIFY))
 		return;
 
-	memset (con.notify[idx].szNotify, 0, MAX_STRING);
+	memset (con.notify[idx].szNotify, 0, MAX_STRING);*/
+
+	con_nprint_t info =
+		{
+		.index = idx,
+		.time_to_live = 4.0f,
+		.color = { 1.0f, 1.0f, 1.0f },
+		};
 
 	va_start (args, fmt);
-	Q_vsnprintf (con.notify[idx].szNotify, MAX_STRING, fmt, args);
+	/*Q_vsnprintf (con.notify[idx].szNotify, MAX_STRING, fmt, args);
+	*/
+	Con_NXPrintfv (key_menu, &info, fmt, args);
 	va_end (args);
 
-	// reset values
+	/*// reset values
 	con.notify[idx].key_dest = key_menu;
 	con.notify[idx].expire = host.realtime + 4.0f;
 	MakeRGBA (con.notify[idx].color, 255, 255, 255, 255);
-	con.draw_notify = true;
+	con.draw_notify = true;*/
 	}
 
 /***
 ================
-UI_NXPrint
+UI_NXPrint [FWGS, 01.07.24]
 
 Draw a single debug line with specified height, color and time to live (menu version)
 ================
@@ -1120,23 +1205,26 @@ void GAME_EXPORT UI_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 	{
 	va_list	args;
 
-	if (!info) return;
-
-	if ((info->index < 0) || (info->index >= MAX_DBG_NOTIFY))
+	if (!info)
 		return;
 
-	memset (con.notify[info->index].szNotify, 0, MAX_STRING);
+	/*if ((info->index < 0) || (info->index >= MAX_DBG_NOTIFY))
+		return;
+
+	memset (con.notify[info->index].szNotify, 0, MAX_STRING);*/
 
 	va_start (args, fmt);
-	Q_vsnprintf (con.notify[info->index].szNotify, MAX_STRING, fmt, args);
+	/*Q_vsnprintf (con.notify[info->index].szNotify, MAX_STRING, fmt, args);
+	*/
+	Con_NXPrintfv (key_menu, info, fmt, args);
 	va_end (args);
 
-	// setup values
+	/*// setup values
 	con.notify[info->index].key_dest = key_menu;
 	con.notify[info->index].expire = host.realtime + info->time_to_live;
 	MakeRGBA (con.notify[info->index].color, (byte)(info->color[0] * 255), (byte)(info->color[1] * 255),
 		(byte)(info->color[2] * 255), 255);
-	con.draw_notify = true;
+	con.draw_notify = true;*/
 	}
 
 /***
@@ -1368,7 +1456,8 @@ static void Field_DrawInputLine (int x, int y, field_t *edit)
 		if (edit->scroll + drawLen > len)
 			{
 			edit->scroll = len - drawLen;
-			if (edit->scroll < 0) edit->scroll = 0;
+			if (edit->scroll < 0)
+				edit->scroll = 0;
 			}
 
 		prestep = edit->scroll;
@@ -1519,7 +1608,7 @@ static void Con_LoadHistory (con_history_t *self)
 	self->line = self->next;
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.07.24]
 static void Con_SaveHistory (con_history_t *self)
 	{
 	int		historyStart = self->next - CON_HISTORY, i;
@@ -1534,7 +1623,16 @@ static void Con_SaveHistory (con_history_t *self)
 
 	f = FS_Open ("console_history.txt", "wb", true);
 	for (i = historyStart; i < self->next; i++)
-		FS_Printf (f, "%s\n", self->lines[i % CON_HISTORY].buffer);
+		{
+		const char *s = self->lines[i % CON_HISTORY].buffer;
+
+		// HACKHACK: don't save lines that have something that looks like a password
+		if (Q_stristr (s, "password") || Q_stristr (s, "_pw"))
+			continue;
+
+		FS_Printf (f, "%s\n", s);
+		}
+	/*FS_Printf (f, "%s\n", self->lines[i % CON_HISTORY].buffer);*/
 
 	FS_Close (f);
 	}
@@ -1573,18 +1671,20 @@ void Key_Console (int key)
 		// echo to console
 		Con_Printf (">%s\n", con.input.buffer);
 
-		// copy line to history buffer
+		// Copy line to history buffer.
+		// [FWGS, 01.07.24] Just in case, remove all CR and LF characters pushing it to the history.
+		// Not sure how they get even added in the first place
+		COM_RemoveLineFeed (con.input.buffer, sizeof (con.input.buffer));
 		Con_HistoryAppend (&con.history, &con.input);
 
 		Con_ClearField (&con.input);
 		con.input.widthInChars = con.linewidth;
 		Con_Bottom ();
 
+		// force an update, because the command may take some time
 		if (cls.state == ca_disconnected)
-			{
-			// force an update, because the command may take some time
 			SCR_UpdateScreen ();
-			}
+
 		return;
 		}
 
@@ -2150,7 +2250,7 @@ void Con_DrawVersion (void)
 
 /***
 ==================
-Con_RunConsole [FWGS, 01.03.24]
+Con_RunConsole [FWGS, 01.07.24]
 
 Scroll it up or down
 ==================
@@ -2213,7 +2313,8 @@ void Con_RunConsole (void)
 			g_codepage = 1252;
 			}
 
-		g_utf8 = !Q_stricmp (cl_charset.string, "utf-8");
+		/*g_utf8 = !Q_stricmp (cl_charset.string, "utf-8");*/
+		cls.accept_utf8 = !Q_stricmp (cl_charset.string, "utf-8");
 		Con_InvalidateFonts ();
 		Con_LoadConchars ();
 
@@ -2241,18 +2342,43 @@ void Con_CharEvent (int key)
 	{
 	// distribute the key down event to the apropriate handler
 	if (cls.key_dest == key_console)
-		{
 		Field_CharEvent (&con.input, key);
-		}
 	else if (cls.key_dest == key_message)
-		{
 		Field_CharEvent (&con.chat, key);
+	}
+
+// [FWGS, 01.07.24]
+static int Con_LoadSimpleConback (const char *name, int flags)
+	{
+	const char *paths[] = {
+		"gfx/shell/%s.dds",
+		"gfx/shell/%s.bmp",
+		"gfx/shell/%s.tga",
+		"cached/%s640",
+		"cached/%s",
+		};
+	size_t i;
+
+	for (i = 0; i < ARRAYSIZE (paths); i++)
+		{
+		string path;
+
+		Q_snprintf (path, sizeof (path), paths[i], name);
+		if (g_fsapi.FileExists (path, false))
+			{
+			int gl_texturenum = ref.dllFuncs.GL_LoadTexture (path, NULL, 0, flags);
+
+			if (gl_texturenum)
+				return gl_texturenum;
+			}
 		}
+
+	return 0;
 	}
 
 /***
 =========
-Con_VidInit [FWGS, 01.03.24]
+Con_VidInit [FWGS, 01.07.24]
 
 // ESHQ: удалена поддержка фона консоли
 
@@ -2274,8 +2400,11 @@ void Con_VidInit (void)
 	Con_CheckResize ();
 
 #if XASH_LOW_MEMORY
-	con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);
+	/*con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);*/
+	con.background = R_GetBuiltinTexture (REF_GRAY_TEXTURE);
 #else
+	//con.background = Con_LoadSimpleConback (host.allow_console ? "conback" : "loading", flags);
+
 	if ((con.background == R_GetBuiltinTexture (REF_DEFAULT_TEXTURE)) || (con.background == 0))
 		con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);
 #endif
@@ -2377,4 +2506,3 @@ void Test_RunCon (void)
 	}
 
 #endif
-

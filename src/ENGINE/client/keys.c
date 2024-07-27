@@ -545,7 +545,7 @@ void Key_Init (void)
 
 /***
 ===================
-Key_AddKeyCommands
+Key_AddKeyCommands [FWGS, 01.07.24]
 ===================
 ***/
 static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
@@ -566,7 +566,7 @@ static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 			*buttonPtr = '\0';
 			if (button[0] == '+')
 				{
-				// [FWGS, 01.05.23] button commands add keynum as a parm
+				// button commands add keynum as a parm
 				if (down)
 					Q_snprintf (cmd, sizeof (cmd), "%s %i\n", button, key);
 				else
@@ -582,7 +582,8 @@ static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 				}
 
 			buttonPtr = button;
-			while (((kb[i] <= ' ') || (kb[i] == ';')) && (kb[i] != 0))
+			/*while (((kb[i] <= ' ') || (kb[i] == ';')) && (kb[i] != 0))*/
+			while (((((byte)kb[i]) <= ' ') || (kb[i] == ';')) && (kb[i] != 0))
 				i++;
 			}
 
@@ -662,7 +663,7 @@ static int Key_Rotate (int key)
 
 /***
 ===================
-Key_Event
+Key_Event [FWGS, 01.07.24]
 
 Called by the system for both key up and key down events
 ===================
@@ -691,6 +692,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 		return;
 		}
 #endif
+
 	// distribute the key down event to the apropriate handler
 	if ((cls.key_dest == key_game) && (down || keys[key].gamedown))
 		{
@@ -706,7 +708,9 @@ void GAME_EXPORT Key_Event (int key, int down)
 				keys[key].gamedown = false;
 				keys[key].repeats = 0;
 				}
-			return; // handled in client.dll
+
+			return;
+			// handled in client.dll
 			}
 		}
 
@@ -743,7 +747,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 		return;
 		}
 
-	// [FWGS, 01.07.23] escape is always handled special
+	// escape is always handled special
 	if ((key == K_ESCAPE) && down)
 		{
 		switch (cls.key_dest)
@@ -785,11 +789,13 @@ void GAME_EXPORT Key_Event (int key, int down)
 	if (cls.key_dest == key_menu)
 		{
 		// only non printable keys passed
-		if (!gameui.use_text_api)
+		/*if (!gameui.use_text_api)*/
+		if (!gameui.use_extended_api)
 			Key_EnableTextInput (true, false);
 		
 		// pass printable chars for old menus
-		if (!gameui.use_text_api && !host.textmode && down && (key >= 32) && (key <= 'z'))
+		/*if (!gameui.use_text_api && !host.textmode && down && (key >= 32) && (key <= 'z'))*/
+		if (!gameui.use_extended_api && !host.textmode && down && (key >= 32) && (key <= 'z'))
 			{
 			if (Key_IsDown (K_SHIFT))
 				key += 'A' - 'a';
@@ -881,7 +887,7 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 			break;
 
 		default:
-			Host_Error ("Key_SetKeyDest: wrong destination (%i)\n", key_dest);
+			Host_Error ("%s: wrong destination (%i)\n", __func__, key_dest);	// [FWGS, 01.07.24]
 			break;
 		}
 	}
@@ -926,7 +932,7 @@ void CL_CharEvent (int key)
 
 	if (cls.key_dest == key_console && !Con_Visible ())
 		{
-		if ((char)key == '`' || (char)key == '?')
+		if (((char)key == '`') || ((char)key == '?'))
 			return; // don't pass '`' when we open the console
 		}
 
@@ -1032,9 +1038,9 @@ struct osk_s
 		} curbutton;
 	} osk;
 
+// [FWGS, 01.07.24]
 static qboolean OSK_KeyEvent (int key, int down)
 	{
-	// [FWGS, 01.07.23]
 	if (!osk.enable || !osk_enable.value)
 		return false;
 
@@ -1051,6 +1057,7 @@ static qboolean OSK_KeyEvent (int key, int down)
 			osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];
 			return true;
 			}
+
 		return false;
 		}
 
@@ -1063,6 +1070,7 @@ static qboolean OSK_KeyEvent (int key, int down)
 					osk.sending = true;
 					Key_Event (K_ENTER, down);
 					break;
+
 				case OSK_SHIFT:
 					if (!down)
 						break;
@@ -1075,17 +1083,22 @@ static qboolean OSK_KeyEvent (int key, int down)
 					osk.shift = true;
 					osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];
 					break;
+
 				case OSK_BACKSPACE:
-					Key_Event (K_BACKSPACE, down); break;
+					Key_Event (K_BACKSPACE, down);
+					break;
+
 				case OSK_TAB:
-					Key_Event (K_TAB, down); break;
+					Key_Event (K_TAB, down);
+					break;
+
 				default:
 					{
 					int ch;
 
 					if (!down)
 						{
-						if (osk.shift && osk.curlayout & 1)
+						if (osk.shift && (osk.curlayout & 1))
 							osk.curlayout--;
 
 						osk.shift = false;
@@ -1093,22 +1106,29 @@ static qboolean OSK_KeyEvent (int key, int down)
 						break;
 						}
 
-					if (!Q_stricmp (cl_charset.string, "utf-8"))
+					/*if (!Q_stricmp (cl_charset.string, "utf-8"))
 						ch = (unsigned char)osk.curbutton.val;
 					else
-						ch = Con_UtfProcessCharForce ((unsigned char)osk.curbutton.val);
+						ch = Con_UtfProcessCharForce ((unsigned char)osk.curbutton.val);*/
+					ch = (byte)osk.curbutton.val;
+
+					// do not pass UTF-8 sequence into the engine, convert it here
+					if (!cls.accept_utf8)
+						ch = Con_UtfProcessCharForce (ch);
 
 					if (!ch)
 						break;
 
-					Con_CharEvent (ch);
+					/*Con_CharEvent (ch);
 					if (cls.key_dest == key_menu)
-						UI_CharEvent (ch);
+						UI_CharEvent (ch);*/
+					CL_CharEvent (ch);
 
 					break;
 					}
 				}
 			break;
+
 		case K_UPARROW:
 			if (down && --osk.curbutton.y < 0)
 				{
@@ -1117,6 +1137,7 @@ static qboolean OSK_KeyEvent (int key, int down)
 				return true;
 				}
 			break;
+
 		case K_DOWNARROW:
 			if (down && ++osk.curbutton.y >= MAX_OSK_LINES)
 				{
@@ -1125,14 +1146,17 @@ static qboolean OSK_KeyEvent (int key, int down)
 				return true;
 				}
 			break;
+
 		case K_LEFTARROW:
 			if (down && --osk.curbutton.x < 0)
 				osk.curbutton.x = MAX_OSK_ROWS - 1;
 			break;
+
 		case K_RIGHTARROW:
 			if (down && ++osk.curbutton.x >= MAX_OSK_ROWS)
 				osk.curbutton.x = 0;
 			break;
+
 		default:
 			return false;
 		}

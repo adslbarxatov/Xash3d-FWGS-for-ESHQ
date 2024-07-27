@@ -350,7 +350,8 @@ static void GAME_EXPORT pfnParticle (const float *origin, int color, float life,
 
 	if (!origin)
 		{
-		Con_Reportf (S_ERROR  "SV_StartParticle: NULL origin. Ignored\n");
+		// [FWGS, 01.07.24]
+		Con_Reportf (S_ERROR "%s: NULL origin. Ignored\n", __func__);
 		return;
 		}
 
@@ -424,23 +425,29 @@ static void GAME_EXPORT pfnPlaySound (int channel, const char *sample, float vol
 	edict_t *ent;
 
 	ent = EDICT_NUM (svgame.pmove->player_index + 1);
-	if (!SV_IsValidEdict (ent)) return;
+	if (!SV_IsValidEdict (ent))
+		return;
 
 	SV_StartSound (ent, channel, sample, volume, attenuation, fFlags | SND_FILTER_CLIENT, pitch);
 	}
 
+// [FWGS, 01.07.24]
 static void GAME_EXPORT pfnPlaybackEventFull (int flags, int clientindex, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2)
 	{
 	edict_t *ent;
-
 	ent = EDICT_NUM (clientindex + 1);
-	if (!SV_IsValidEdict (ent)) return;
 
-	if (Host_IsDedicated ())
+	if (!SV_IsValidEdict (ent))
+		return;
+
+	/*if (Host_IsDedicated ())
 		flags |= FEV_NOTHOST; // no local clients for dedicated server
 
-	SV_PlaybackEventFull (flags, ent, eventindex,
+	SV_PlaybackEventFull (flags, ent, eventindex,*/
+
+	// GoldSrc always sets FEV_NOTHOST in PMove version of this function
+	SV_PlaybackEventFull (flags | FEV_NOTHOST, ent, eventindex,
 		delay, origin, angles,
 		fparam1, fparam2,
 		iparam1, iparam2,
@@ -458,13 +465,11 @@ static int GAME_EXPORT pfnTestPlayerPositionEx (float *pos, pmtrace_t *ptrace, p
 	return PM_TestPlayerPosition (svgame.pmove, pos, ptrace, pmFilter);
 	}
 
-// [FWGS, 01.04.23]
 static pmtrace_t *GAME_EXPORT pfnTraceLineEx (float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
 	{
 	return PM_TraceLineEx (svgame.pmove, start, end, flags, usehull, pmFilter);
 	}
 
-// [FWGS, 01.04.23]
 static struct msurface_s *GAME_EXPORT pfnTraceSurface (int ground, float *vstart, float *vend)
 	{
 	return PM_TraceSurfacePmove (svgame.pmove, ground, vstart, vend);

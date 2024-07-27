@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "imagelib.h"
@@ -19,7 +19,7 @@ GNU General Public License for more details.
 
 /***
 =============
-Image_LoadBMP [FWGS, 01.03.24]
+Image_LoadBMP [FWGS, 01.07.24]
 =============
 ***/
 qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -35,8 +35,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 	if (filesize < sizeof (bhdr))
 		{
-		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (header)\n", 
-			name, filesize, sizeof (bhdr));
+		Con_Reportf (S_ERROR "%s: %s have incorrect file size %li should be greater than %zu (header)\n",
+			__func__, name, (long)filesize, sizeof (bhdr));
 		return false;
 		}
 
@@ -52,13 +52,14 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 	if (memcmp (bhdr.id, "BM", 2))
 		{
-		Con_DPrintf (S_ERROR "Image_LoadBMP: only Windows-style BMP files supported (%s)\n", name);
+		Con_DPrintf (S_ERROR "%s: only Windows-style BMP files supported (%s)\n", __func__, name);
 		return false;
 		}
 
 	if (!((bhdr.bitmapHeaderSize == 40) || (bhdr.bitmapHeaderSize == 108) || (bhdr.bitmapHeaderSize == 124)))
 		{
-		Con_DPrintf (S_ERROR "Image_LoadBMP: %s have non-standard header size %i\n", name, bhdr.bitmapHeaderSize);
+		Con_DPrintf (S_ERROR "%s: %s have non-standard header size %i\n", __func__,
+			name, bhdr.bitmapHeaderSize);
 		return false;
 		}
 
@@ -66,8 +67,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	if (bhdr.fileSize != filesize)
 		{
 		// Sweet Half-Life issues. splash.bmp have bogus filesize
-		Con_Reportf (S_WARN "Image_LoadBMP: %s have incorrect file size %li should be %i\n", name, 
-			filesize, bhdr.fileSize);
+		Con_Reportf (S_WARN "%s: %s have incorrect file size %li should be %i\n", __func__, name,
+			(long)filesize, bhdr.fileSize);
 		}
 
 	// Bogus compression? Only non-compressed supported
@@ -75,7 +76,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		if ((bhdr.bitsPerPixel != 32) || (bhdr.compression != BI_BITFIELDS))
 			{
-			Con_DPrintf (S_ERROR "Image_LoadBMP: only uncompressed BMP files supported (%s)\n", name);
+			Con_DPrintf (S_ERROR "%s: only uncompressed BMP files supported (%s)\n", __func__, name);
 			return false;
 			}
 		}
@@ -115,8 +116,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	estimatedSize = (buf_p - buffer) + cbPalBytes;
 	if (filesize < estimatedSize)
 		{
-		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (palette)\n", 
-			name, filesize, estimatedSize);
+		Con_Reportf (S_ERROR "%s: %s have incorrect file size %li should be greater than %li (palette)\n",
+			__func__, name, (long)filesize, (long)estimatedSize);
 		return false;
 		}
 
@@ -197,8 +198,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			image.palette = NULL;
 			}
 
-		Con_Reportf (S_ERROR "Image_LoadBMP: %s have incorrect file size %li should be greater than %li (pixels)\n", 
-			name, filesize, estimatedSize);
+		Con_Reportf (S_ERROR "%s: %s have incorrect file size %li should be greater than %li (pixels)\n",
+			__func__, name, (long)filesize, (long)estimatedSize);
 		return false;
 		}
 
@@ -214,7 +215,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			{
 			byte	red, green, blue, alpha;
 			word	shortPixel;
-			int	c, k, palIndex;
+			int		c, k, palIndex;
 
 			switch (bhdr.bitsPerPixel)
 				{
@@ -232,6 +233,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 							break;
 						}
 					break;
+
 				case 4:
 					alpha = *buf_p++;
 					palIndex = alpha >> 4;
@@ -249,7 +251,9 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 						*pixbuf++ = blue = palette[palIndex][0];
 						*pixbuf++ = palette[palIndex][3];
 						}
-					if (++column == columns) break;
+					if (++column == columns)
+						break;
+
 					palIndex = alpha & 0x0F;
 					if (load_qfont)
 						{
@@ -266,6 +270,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 						*pixbuf++ = palette[palIndex][3];
 						}
 					break;
+
 				case 8:
 					palIndex = *buf_p++;
 					red = palette[palIndex][2];
@@ -285,6 +290,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 						*pixbuf++ = alpha;
 						}
 					break;
+
 				case 16:
 					shortPixel = *(word *)buf_p, buf_p += 2;
 					*pixbuf++ = blue = (shortPixel & (31 << 10)) >> 7;
@@ -292,6 +298,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 					*pixbuf++ = red = (shortPixel & (31)) << 3;
 					*pixbuf++ = 0xff;
 					break;
+
 				case 24:
 					blue = *buf_p++;
 					green = *buf_p++;
@@ -301,6 +308,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 					*pixbuf++ = blue;
 					*pixbuf++ = 0xFF;
 					break;
+
 				case 32:
 					blue = *buf_p++;
 					green = *buf_p++;
@@ -312,19 +320,21 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 					*pixbuf++ = alpha;
 					if (alpha != 255) image.flags |= IMAGE_HAS_ALPHA;
 					break;
+
 				default:
 					Mem_Free (image.palette);
 					Mem_Free (image.rgba);
 					return false;
 				}
 
-			if (red != green || green != blue)
+			if ((red != green) || (green != blue))
 				image.flags |= IMAGE_HAS_COLOR;
 
 			reflectivity[0] += red;
 			reflectivity[1] += green;
 			reflectivity[2] += blue;
 			}
+
 		buf_p += padSize;	// actual only for 4-bit bmps
 		}
 
@@ -363,18 +373,22 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 		case PF_INDEXED_32:
 			pixel_size = 1;
 			break;
+
 		case PF_RGB_24:
 			pixel_size = 3;
 			break;
+
 		case PF_RGBA_32:
 			pixel_size = 4;
 			break;
+
 		default:
 			return false;
 		}
 
 	pfile = FS_Open (name, "wb", false);
-	if (!pfile) return false;
+	if (!pfile)
+		return false;
 
 	// NOTE: align transparency column will sucessfully removed
 	// after create sprite or lump image, it's just standard requiriments
@@ -419,7 +433,8 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 			// some viewers e.g. fimg.exe can show alpha-chanell for it
 			if (pix->type == PF_INDEXED_32)
 				rgrgbPalette[i][3] = *pb++;
-			else rgrgbPalette[i][3] = 0;
+			else
+				rgrgbPalette[i][3] = 0;
 			}
 
 		// write palette

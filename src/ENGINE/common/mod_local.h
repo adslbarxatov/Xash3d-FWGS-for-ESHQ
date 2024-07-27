@@ -32,9 +32,13 @@ GNU General Public License for more details
 
 #define REFPVS_RADIUS		2.0f	// radius for rendering
 #define FATPVS_RADIUS		8.0f	// FatPVS use radius smaller than the FatPHS
-#define FATPHS_RADIUS		16.0f
 
-#define WORLD_INDEX			(1)	// world index is always 1
+// [FWGS, 01.07.24] see SV_AddToFatPAS in GoldSrc
+/*#define FATPHS_RADIUS		16.0f*/
+#define FATPHS_RADIUS		8.0f
+
+// world index is always 1
+#define WORLD_INDEX			(1)
 
 typedef struct consistency_s
 	{
@@ -82,11 +86,10 @@ typedef struct
 	uint		num_polys;
 	} hull_model_t;
 
-
 typedef struct world_static_s
 	{
 	qboolean	loading;		// true if worldmodel is loading
-	int			flags;		// misc flags
+	int			flags;			// misc flags
 
 	// mapstats info
 	char		message[2048];	// just for debug
@@ -105,7 +108,7 @@ typedef struct world_static_s
 	size_t		fatbytes;		// fatpvs size
 
 	// world bounds
-	vec3_t		mins;		// real accuracy world bounds
+	vec3_t		mins;			// real accuracy world bounds
 	vec3_t		maxs;
 	vec3_t		size;
 
@@ -114,7 +117,11 @@ typedef struct world_static_s
 	int		max_recursion;
 
 	// [FWGS, 01.01.24] BSP version
-	uint32_t version;
+	uint32_t	version;
+
+	// [FWGS, 01.07.24] Potentially Hearable Set
+	byte		*compressed_phs;
+	size_t		*phsofs;
 	} world_static_t;
 
 #ifndef REF_DLL
@@ -148,21 +155,19 @@ void Mod_NeedCRC (const char *name, qboolean needCRC);
 void Mod_FreeUnused (void);
 
 //
-// mod_bmodel.c
+// mod_bmodel.c [FWGS, 01.07.24]
 //
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);
 qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf);
-int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis);
+/*int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis);*/
+int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis, qboolean false);
 qboolean Mod_BoxVisible (const vec3_t mins, const vec3_t maxs, const byte *visbits);
 int Mod_CheckLump (const char *filename, const int lump, int *lumpsize);
 int Mod_ReadLump (const char *filename, const int lump, void **lumpdata, int *lumpsize);
 int Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lumpsize);
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node);
-
-// [FWGS, 01.01.24]
 int Mod_SampleSizeForFace (const msurface_t *surf);
-
 byte *Mod_GetPVSForPoint (const vec3_t p);
 void Mod_UnloadBrushModel (model_t *mod);
 void Mod_PrintWorldStats_f (void);

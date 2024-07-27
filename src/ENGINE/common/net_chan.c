@@ -85,21 +85,27 @@ then a packet only needs to be delivered if there is something in the
 unacknowledged reliable
 ***/
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.07.24]
 CVAR_DEFINE_AUTO (net_showpackets, "0", 0,
 	"show network packets");
-CVAR_DEFINE_AUTO (net_chokeloop, "0", 0,
+/*CVAR_DEFINE_AUTO (net_chokeloop, "0", 0,
 	"apply bandwidth choke to loopback packets");
 CVAR_DEFINE_AUTO (net_showdrop, "0", 0,
 	"show packets that are dropped");
 CVAR_DEFINE_AUTO (net_qport, "0", FCVAR_READ_ONLY,
+	"current quake netport");*/
+static CVAR_DEFINE_AUTO (net_chokeloop, "0", 0,
+	"apply bandwidth choke to loopback packets");
+static CVAR_DEFINE_AUTO (net_showdrop, "0", 0,
+	"show packets that are dropped");
+static CVAR_DEFINE_AUTO (net_qport, "0", FCVAR_READ_ONLY,
 	"current quake netport");
 
-int	net_drop;
+int			net_drop;
 netadr_t	net_from;
 sizebuf_t	net_message;
-static poolhandle_t net_mempool;
-byte	net_message_buffer[NET_MAX_MESSAGE];
+static poolhandle_t		net_mempool;
+byte		net_message_buffer[NET_MAX_MESSAGE];
 
 const char *ns_strings[NS_COUNT] =
 	{
@@ -123,8 +129,8 @@ return true when got full packet
 ***/
 qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *length)
 	{
-	netsplit_packet_t *packet = (netsplit_packet_t *)data;
-	netsplit_chain_packet_t *p;
+	netsplit_packet_t		*packet = (netsplit_packet_t *)data;
+	netsplit_chain_packet_t	*p;
 
 	if (*length <= NETSPLIT_HEADER_SIZE)
 		return false;
@@ -138,11 +144,11 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 	// no packets with this id received
 	if (packet->id != p->id)
 		{
-		// warn if previous packet not received
+		// [FWGS, 01.07.24] warn if previous packet not received
 		if (p->received < p->count)
 			{
 			UI_ShowConnectionWarning ();
-			Con_Reportf (S_WARN "NetSplit_GetLong: lost packet %d\n", p->id);
+			Con_Reportf (S_WARN "%s: lost packet %d\n", __func__, p->id);
 			}
 
 		p->id = packet->id;
@@ -151,10 +157,10 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 		memset (p->recieved_v, 0, 32);
 		}
 
-	// use bool vector to detect dup packets
+	// [FWGS, 01.07.24] use bool vector to detect dup packets
 	if (p->recieved_v[packet->index >> 5] & (1 << (packet->index & 31)))
 		{
-		Con_Reportf (S_WARN "NetSplit_GetLong: dup packet from %s\n", NET_AdrToString (*from));
+		Con_Reportf (S_WARN "%s: dup packet from %s\n", __func__, NET_AdrToString (*from));
 		return false;
 		}
 
@@ -163,17 +169,18 @@ qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *l
 	// mark as received
 	p->recieved_v[packet->index >> 5] |= 1 << (packet->index & 31);
 
-	// prevent overflow
+	// [FWGS, 01.07.24] prevent overflow
 	if (packet->part * packet->index > NET_MAX_PAYLOAD)
 		{
-		Con_Reportf (S_WARN "NetSplit_GetLong: packet out fo bounds from %s (part %d index %d)\n",
+		Con_Reportf (S_WARN "%s: packet out fo bounds from %s (part %d index %d)\n", __func__,
 			NET_AdrToString (*from), packet->part, packet->index);
 		return false;
 		}
 
+	// [FWGS, 01.07.24]
 	if (packet->length > NET_MAX_PAYLOAD)
 		{
-		Con_Reportf (S_WARN "NetSplit_GetLong: packet out fo bounds from %s (length %d)\n",
+		Con_Reportf (S_WARN "%s: packet out fo bounds from %s (length %d)\n", __func__,
 			NET_AdrToString (*from), packet->length);
 		return false;
 		}
@@ -918,7 +925,6 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 
 			// send a bit less on first package
 			send -= MSG_GetNumBytesWritten (&buf->frag_message);
-
 			firstfragment = false;
 			}
 
@@ -952,7 +958,7 @@ void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filenam
 
 /***
 ==============================
-Netchan_CreateFileFragments
+Netchan_CreateFileFragments [FWGS, 01.07.24]
 ==============================
 ***/
 int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
@@ -962,13 +968,22 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	int		remaining;
 	int		bufferid = 1;
 	fs_offset_t	filesize = 0;
-	char	compressedfilename[MAX_OSPATH];
+	/*char	compressedfilename[MAX_OSPATH];*/
 	int		compressedFileTime;
 	int		fileTime;
-	qboolean		firstfragment = true;
-	qboolean		bCompressed = false;
-	fragbufwaiting_t *wait, *p;
-	fragbuf_t *buf;
+	qboolean	firstfragment = true;
+	qboolean	bCompressed = false;
+	fragbufwaiting_t	*wait, *p;
+	fragbuf_t	*buf;
+
+	char compressedfilename[sizeof (buf->filename) + 5];
+
+	// shouldn't be critical, but just in case
+	if (Q_strlen (filename) > sizeof (buf->filename) - 1)
+		{
+		Con_Printf (S_WARN "Unable to transfer %s due to path length overflow\n", filename);
+		return 0;
+		}
 
 	if ((filesize = FS_FileSize (filename, false)) <= 0)
 		{
@@ -981,8 +996,9 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	else
 		chunksize = FRAGMENT_MAX_SIZE; // fallback
 
-	Q_strncpy (compressedfilename, filename, sizeof (compressedfilename));
-	COM_ReplaceExtension (compressedfilename, ".ztmp", sizeof (compressedfilename));	// [FWGS, 01.05.23]
+	/*Q_strncpy (compressedfilename, filename, sizeof (compressedfilename));
+	COM_ReplaceExtension (compressedfilename, ".ztmp", sizeof (compressedfilename));	// [FWGS, 01.05.23]*/
+	Q_snprintf (compressedfilename, sizeof (compressedfilename), "%s.ztmp", filename);
 	compressedFileTime = FS_FileTime (compressedfilename, false);
 	fileTime = FS_FileTime (filename, false);
 
@@ -1563,18 +1579,24 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 				if (pbuf->isfile && !pbuf->isbuffer)
 					{
 					byte	filebuffer[NET_MAX_FRAGMENT];
-					file_t *file;
+					file_t	*file;
 
+					// [FWGS, 01.07.24]
 					if (pbuf->iscompressed)
 						{
-						char compressedfilename[MAX_OSPATH];
+						/*char compressedfilename[MAX_OSPATH];*/
+						char compressedfilename[sizeof (pbuf->filename) + 5];
 
-						Q_strncpy (compressedfilename, pbuf->filename, sizeof (compressedfilename));
+						/*Q_strncpy (compressedfilename, pbuf->filename, sizeof (compressedfilename));
 						// [FWGS, 01.05.23]
-						COM_ReplaceExtension (compressedfilename, ".ztmp", sizeof (compressedfilename));
+						COM_ReplaceExtension (compressedfilename, ".ztmp", sizeof (compressedfilename));*/
+						Q_snprintf (compressedfilename, sizeof (compressedfilename), "%s.ztmp", pbuf->filename);
 						file = FS_Open (compressedfilename, "rb", false);
 						}
-					else file = FS_Open (pbuf->filename, "rb", false);
+					else
+						{
+						file = FS_Open (pbuf->filename, "rb", false);
+						}
 
 					FS_Seek (file, pbuf->foffset, SEEK_SET);
 					FS_Read (file, filebuffer, pbuf->size);
@@ -1627,9 +1649,10 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 	MSG_WriteLong (&send, w1);
 	MSG_WriteLong (&send, w2);
 
-	// send the qport if we are a client
+	// [FWGS, 01.07.24] send the qport if we are a client
 	if (chan->sock == NS_CLIENT)
-		MSG_WriteWord (&send, Cvar_VariableInteger ("net_qport"));
+		MSG_WriteWord (&send, (int)net_qport.value);
+	/*MSG_WriteWord (&send, Cvar_VariableInteger ("net_qport"));*/
 
 	if (send_reliable && send_reliable_fragment)
 		{
@@ -1662,14 +1685,15 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 		if (chan->pfnBlockSize)
 			maxsize = chan->pfnBlockSize (chan->client, FRAGSIZE_UNRELIABLE);
 
+		// [FWGS, 01.07.24]
 		if (((MSG_GetNumBytesWritten (&send) + length) >> 3) <= maxsize)
 			MSG_WriteBits (&send, data, length);
 		else
-			Con_Printf (S_WARN "Netchan_Transmit: unreliable message overflow: %d\n", MSG_GetNumBytesWritten (&send));
+			Con_Printf (S_WARN "%s: unreliable message overflow: %d\n", __func__, MSG_GetNumBytesWritten (&send));
 		}
 
 	// deal with packets that are too small for some networks
-	if (MSG_GetNumBytesWritten (&send) < 16 && !NET_IsLocalAddress (chan->remote_address))
+	if ((MSG_GetNumBytesWritten (&send) < 16) && !NET_IsLocalAddress (chan->remote_address))
 		// packet too small for some networks
 		{
 		// go ahead and pad a full 16 extra bytes -- this only happens during authentication / signon
@@ -1704,7 +1728,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 			chan->remote_address, splitsize);
 		}
 
-	if (SV_Active () && sv_lan.value && sv_lan_rate.value > 1000.0f)
+	if (SV_Active () && sv_lan.value && (sv_lan_rate.value > 1000.0f))
 		fRate = 1.0f / sv_lan_rate.value;
 	else
 		fRate = 1.0f / chan->rate;
@@ -1730,7 +1754,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 
 /***
 =================
-Netchan_Process
+Netchan_Process [FWGS, 01.07.24]
 
 called when the current net_message is from remote_address
 modifies net_message so that it points to the packet payload
@@ -1747,8 +1771,8 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 	qboolean	message_contains_fragments;
 	int		i, qport, statId;
 
-	if (!CL_IsPlaybackDemo () && !NET_CompareAdr (net_from, chan->remote_address))
-		return false;
+	/*if (!CL_IsPlaybackDemo () && !NET_CompareAdr (net_from, chan->remote_address))
+		return false;*/
 
 	// get sequence numbers
 	MSG_Clear (msg);
@@ -1910,4 +1934,3 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 
 	return true;
 	}
-

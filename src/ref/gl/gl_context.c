@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 // GL API function pointers, if any, reside in this translation unit
@@ -160,7 +160,8 @@ static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte
 				break;
 
 			default:
-				gEngfuncs.Host_Error ("Mod_LoadModel: unsupported type %d\n", mod->type);
+				// [FWGS, 01.07.24]
+				gEngfuncs.Host_Error ("%s: unsupported type %d\n", __func__, mod->type);
 			}
 		}
 
@@ -253,10 +254,11 @@ static int GL_RefGetParm (int parm, int arg)
 		case PARM_REBUILD_GAMMA:
 			return glConfig.softwareGammaUpdate;
 
-		case PARM_SURF_SAMPLESIZE:
+		// [FWGS, 01.07.24]
+		/*case PARM_SURF_SAMPLESIZE:
 			if ((arg >= 0) && (arg < WORLDMODEL->numsurfaces))
 				return gEngfuncs.Mod_SampleSizeForFace (&WORLDMODEL->surfaces[arg]);
-			return LM_SAMPLE_SIZE;
+			return LM_SAMPLE_SIZE;*/
 
 		case PARM_GL_CONTEXT_TYPE:
 			return glConfig.context;
@@ -267,9 +269,9 @@ static int GL_RefGetParm (int parm, int arg)
 		case PARM_STENCIL_ACTIVE:
 			return glState.stencilEnabled;
 
-		// [FWGS, 01.01.24]
-		case PARM_SKY_SPHERE:
-			return FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX);
+		// [FWGS, 01.07.24]
+		/*case PARM_SKY_SPHERE:
+			return FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX);*/
 
 		// [FWGS, 01.02.24]
 		case PARM_TEX_FILTERING:
@@ -371,6 +373,38 @@ static void GAME_EXPORT R_Flush (unsigned int flags)
 	// stub
 	}
 
+/***
+=============
+R_SetSkyCloudsTextures [FWGS, 01.07.24]
+
+Quake sky cloud texture was processed by the engine,
+remember them for easier access during rendering
+==============
+***/
+static void GAME_EXPORT R_SetSkyCloudsTextures (int solidskyTexture, int alphaskyTexture)
+	{
+	tr.solidskyTexture = solidskyTexture;
+	tr.alphaskyTexture = alphaskyTexture;
+	}
+
+/***
+===============
+R_SetupSky [FWGS, 01.07.24]
+===============
+***/
+static void GAME_EXPORT R_SetupSky (int *skyboxTextures)
+	{
+	int i;
+
+	R_UnloadSkybox ();
+
+	if (!skyboxTextures)
+		return;
+
+	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
+		tr.skyboxTextures[i] = skyboxTextures[i];
+	}
+
 static qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_x, int offset_y,
 	float scale_x, float scale_y)
 	{
@@ -396,6 +430,39 @@ static qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_
 	return ret;
 	}
 
+// [FWGS, 01.07.24]
+static void GAME_EXPORT VGUI_UploadTextureBlock (int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight)
+	{
+	pglTexSubImage2D (GL_TEXTURE_2D, 0, drawX, drawY, blockWidth, blockHeight, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+	}
+
+// [FWGS, 01.07.24]
+static void GAME_EXPORT VGUI_SetupDrawing (qboolean rect)
+	{
+	pglEnable (GL_BLEND);
+	pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if (rect)
+		{
+		pglDisable (GL_ALPHA_TEST);
+		}
+	else
+		{
+		pglEnable (GL_ALPHA_TEST);
+		pglAlphaFunc (GL_GREATER, 0.0f);
+		pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		}
+	}
+
+// [FWGS, 01.07.24]
+static void GAME_EXPORT R_OverrideTextureSourceSize (unsigned int texnum, uint srcWidth, uint srcHeight)
+	{
+	gl_texture_t *tx = R_GetTexture (texnum);
+
+	tx->srcWidth = srcWidth;
+	tx->srcHeight = srcHeight;
+	}
+
 static void *GAME_EXPORT R_GetProcAddress (const char *name)
 	{
 #ifdef XASH_GL4ES
@@ -410,20 +477,18 @@ static const char *R_GetConfigName (void)
 	return "opengl";
 	}
 
-ref_interface_t gReffuncs =
+// [FWGS, 01.07.24]
+/*ref_interface_t gReffuncs =*/
+static ref_interface_t gReffuncs =
 	{
 	R_Init,
 	R_Shutdown,
 	R_GetConfigName,
 	R_SetDisplayTransform,
-
 	GL_SetupAttributes,
 	GL_InitExtensions,
 	GL_ClearExtensions,
-
-	// [FWGS, 01.01.24]
 	R_GammaChanged,
-
 	R_BeginFrame,
 	R_RenderScene,
 	R_EndFrame,
@@ -431,24 +496,18 @@ ref_interface_t gReffuncs =
 	R_PopScene,
 	GL_BackendStartFrame,
 	GL_BackendEndFrame,
-
 	R_ClearScreen,
 	R_AllowFog,
 	GL_SetRenderMode,
-
 	R_AddEntity,
 	CL_AddCustomBeam,
 	R_ProcessEntData,
-
-	// [FWGS, 01.01.24]
 	R_Flush,
 	R_ShowTextures,
-
 	R_GetTextureOriginalBuffer,
 	GL_LoadTextureFromBuffer,
 	GL_ProcessTexture,
 	R_SetupSky,
-
 	R_Set2DMode,
 	R_DrawStretchRaw,
 	R_DrawStretchPic,
@@ -456,45 +515,37 @@ ref_interface_t gReffuncs =
 	CL_FillRGBA,
 	CL_FillRGBABlend,
 	R_WorldToScreen,
-
 	VID_ScreenShot,
 	VID_CubemapShot,
-
 	R_LightPoint,
-
 	R_DecalShoot,
 	R_DecalRemoveAll,
 	R_CreateDecalList,
 	R_ClearAllDecals,
-
 	R_StudioEstimateFrame,
 	R_StudioLerpMovement,
 	CL_InitStudioAPI,
 
-	R_InitSkyClouds,
+	/*R_InitSkyClouds,*/
+	R_SetSkyCloudsTextures,
+	
 	GL_SubdivideSurface,
 	CL_RunLightStyles,
-
 	R_GetSpriteParms,
 	R_GetSpriteTexture,
-
 	Mod_LoadMapSprite,
 	Mod_ProcessRenderData,
 	Mod_StudioLoadTextures,
-
 	CL_DrawParticles,
 	CL_DrawTracers,
 	CL_DrawBeams,
 	R_BeamCull,
-
 	GL_RefGetParm,
 	R_GetDetailScaleForTexture,
 	R_GetExtraParmsForTexture,
 	R_GetFrameTime,
-
 	R_SetCurrentEntity,
 	R_SetCurrentModel,
-
 	GL_FindTexture,
 	GL_TextureName,
 	GL_TextureData,
@@ -503,13 +554,13 @@ ref_interface_t gReffuncs =
 	GL_LoadTextureArray,
 	GL_CreateTextureArray,
 	GL_FreeTexture,
+	
+	R_OverrideTextureSourceSize,
 
 	DrawSingleDecal,
 	R_DecalSetupVerts,
 	R_EntityRemoveDecals,
-
 	R_UploadStretchRaw,
-
 	GL_Bind,
 	GL_SelectTexture,
 	GL_LoadTexMatrixExt,
@@ -521,11 +572,9 @@ ref_interface_t gReffuncs =
 	GL_UpdateTexSize,
 	NULL,
 	NULL,
-
 	CL_DrawParticlesExternal,
 	R_LightVec,
 	R_StudioGetTexture,
-
 	R_RenderFrame,
 	Mod_SetOrthoBounds,
 	R_SpeedsMessage,
@@ -533,7 +582,6 @@ ref_interface_t gReffuncs =
 	R_NewMap,
 	R_ClearScene,
 	R_GetProcAddress,
-
 	TriRenderMode,
 	TriBegin,
 	TriEnd,
@@ -547,8 +595,8 @@ ref_interface_t gReffuncs =
 	TriGetMatrix,
 	TriFogParams,
 	TriCullFace,
-	
-	VGUI_DrawInit,
+
+	/*VGUI_DrawInit,
 	VGUI_DrawShutdown,
 	VGUI_SetupDrawingText,
 	VGUI_SetupDrawingRect,
@@ -556,17 +604,19 @@ ref_interface_t gReffuncs =
 	VGUI_BindTexture,
 	VGUI_EnableTexture,
 	VGUI_CreateTexture,
-	VGUI_UploadTexture,
+	VGUI_UploadTexture,*/
+	VGUI_SetupDrawing,
+
 	VGUI_UploadTextureBlock,
-	VGUI_DrawQuad,
+	/*VGUI_DrawQuad,
 	VGUI_GetTextureSizes,
-	VGUI_GenerateTexture,
+	VGUI_GenerateTexture,*/
 	};
 
 // [FWGS, 01.02.24]
-int EXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals);
+int HLEXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals);
 
-int EXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals)
+int HLEXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals)
 	{
 	if (version != REF_API_VERSION)
 		return 0;

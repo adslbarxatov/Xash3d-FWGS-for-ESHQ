@@ -56,17 +56,16 @@ loading and unpack to wav any known sound
 ***/
 wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 	{
-	const char *ext = COM_FileExtension (filename);
+	const char	*ext = COM_FileExtension (filename);
 	string		path, loadname;
-	qboolean		anyformat = true;
-	fs_offset_t		filesize = 0;
-	const loadwavfmt_t *format;
-	byte *f;
+	qboolean	anyformat = true;
+	fs_offset_t	filesize = 0;
+	const loadwavfmt_t	*format;
+	byte		*f;
 
 	Sound_Reset (); // clear old sounddata
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	// [FWGS, 01.04.23]
 	if (COM_CheckStringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
@@ -91,7 +90,6 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
-			// [FWGS, 01.05.23]
 			Q_snprintf (path, sizeof (path),
 				format->formatstring, loadname, "", format->ext);
 
@@ -124,8 +122,9 @@ load_internal:
 			}
 		}
 
+	// [FWGS, 01.07.24]
 	if (filename[0] != '#')
-		Con_DPrintf (S_WARN "FS_LoadSound: couldn't load \"%s\"\n", loadname);
+		Con_DPrintf (S_WARN "%s: couldn't load \"%s\"\n", __func__, loadname);
 
 	return NULL;
 	}
@@ -307,9 +306,9 @@ void FS_FreeStream (stream_t *stream)
 
 // [FWGS, 01.02.24]
 #define IMPLEMENT_SOUNDLIB_FUZZ_TARGET( export, target ) \
-int EXPORT export( const uint8_t *Data, size_t Size ); \
-int EXPORT export( const uint8_t *Data, size_t Size ) \
-{ \
+int HLEXPORT export( const uint8_t *Data, size_t Size ); \
+int HLEXPORT export( const uint8_t *Data, size_t Size ) \
+	{ \
 	wavdata_t *wav; \
 	host.type = HOST_NORMAL; \
 	Memory_Init(); \
@@ -321,7 +320,7 @@ int EXPORT export( const uint8_t *Data, size_t Size ) \
 	} \
 	Sound_Shutdown(); \
 	return 0; \
-} \
+	} \
 
 IMPLEMENT_SOUNDLIB_FUZZ_TARGET (Fuzz_Sound_LoadMPG, Sound_LoadMPG)
 IMPLEMENT_SOUNDLIB_FUZZ_TARGET (Fuzz_Sound_LoadWAV, Sound_LoadWAV)

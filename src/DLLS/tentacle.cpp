@@ -53,14 +53,13 @@ class CTentacle: public CBaseMonster
 			pev->absmax = pev->origin + Vector (400, 400, 850);
 			}
 
-		void EXPORT Cycle (void);
-		void EXPORT CommandUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-		void EXPORT Start (void);
-		void EXPORT DieThink (void);
+		void HLEXPORT Cycle (void);
+		void HLEXPORT CommandUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT Start (void);
+		void HLEXPORT DieThink (void);
 
-		void EXPORT Test (void);
-
-		void EXPORT HitTouch (CBaseEntity* pOther);
+		void HLEXPORT Test (void);
+		void HLEXPORT HitTouch (CBaseEntity* pOther);
 
 		float HearingSensitivity (void) { return 2.0; };
 

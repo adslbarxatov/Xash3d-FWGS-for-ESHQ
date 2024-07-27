@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*
+*	This product contains software technology licensed from Id
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -19,31 +19,33 @@
 #include "netadr.h"
 
 #define NETAPI_REQUEST_SERVERLIST		( 0 )  // Doesn't need a remote address
-#define NETAPI_REQUEST_PING			( 1 )
+#define NETAPI_REQUEST_PING				( 1 )
 #define NETAPI_REQUEST_RULES			( 2 )
-#define NETAPI_REQUEST_PLAYERS		( 3 )
-#define NETAPI_REQUEST_DETAILS		( 4 )
+#define NETAPI_REQUEST_PLAYERS			( 3 )
+#define NETAPI_REQUEST_DETAILS			( 4 )
 
 // Set this flag for things like broadcast requests, etc. where the engine should not
 // kill the request hook after receiving the first response
 #define FNETAPI_MULTIPLE_RESPONSE		( 1<<0 )
+#define FNETAPI_LEGACY_PROTOCOL			( 1<<1 )	// [FWGS, 01.07.24] xash3d-fwgs extension
 
 struct net_response_s;	// FWGS
-typedef void (*net_api_response_func_t) ( struct net_response_s *response );
+typedef void (*net_api_response_func_t) (struct net_response_s *response);
 
-#define NET_SUCCESS				( 0 )
+#define NET_SUCCESS					( 0 )
 #define NET_ERROR_TIMEOUT			( 1<<0 )
-#define NET_ERROR_PROTO_UNSUPPORTED		( 1<<1 )
+#define NET_ERROR_PROTO_UNSUPPORTED	( 1<<1 )
 #define NET_ERROR_UNDEFINED			( 1<<2 )
+#define NET_ERROR_FORBIDDEN			( 1<<3 )	// [FWGS, 01.07.24] xash3d-fwgs extension
 
 typedef struct net_adrlist_s
-{
-	struct net_adrlist_s	*next;
-	netadr_t			remote_address;
-} net_adrlist_t;
+	{
+	struct net_adrlist_s *next;
+	netadr_t	remote_address;
+	} net_adrlist_t;
 
 typedef struct net_response_s
-{
+	{
 	// NET_SUCCESS or an error code
 	int		error;
 	// Context ID
@@ -58,13 +60,13 @@ typedef struct net_response_s
 	// WARNING:  You must copy this buffer in the callback function, because it is freed
 	// by the engine right after the call!!!!
 	// ALSO: For NETAPI_REQUEST_SERVERLIST requests, this will be a pointer to a linked list of net_adrlist_t's
-	void		*response;
-} net_response_t;
+	void *response;
+	} net_response_t;
 
 typedef struct net_status_s
-{
+	{
 	// Connected to remote server?  1 == yes, 0 otherwise
-	int		connected; 
+	int		connected;
 	// Client's IP address
 	netadr_t		local_address;
 	// Address of remote server
@@ -77,22 +79,22 @@ typedef struct net_status_s
 	double		connection_time;
 	// Rate setting ( for incoming data )
 	double		rate;
-} net_status_t;
+	} net_status_t;
 
 typedef struct net_api_s
-{
+	{
 	// APIs
-	void		(*InitNetworking)( void );
-	void		(*Status )( struct net_status_s *status );
-	void		(*SendRequest)( int context, int request, int flags, double timeout, struct netadr_s *remote_address, net_api_response_func_t response );
-	void		(*CancelRequest)( int context );
-	void		(*CancelAllRequests)( void );
-	const char		*(*AdrToString)( struct netadr_s *a );	// FWGS
-	int		( *CompareAdr)( struct netadr_s *a, struct netadr_s *b );
-	int		( *StringToAdr)( char *s, struct netadr_s *a );
-	const char	*(*ValueForKey)( const char *s, const char *key );
-	void		(*RemoveKey)( char *s, const char *key );
-	void		(*SetValueForKey)( char *s, const char *key, const char *value, int maxsize );
-} net_api_t;
+	void	(*InitNetworking)(void);
+	void	(*Status)(struct net_status_s *status);
+	void	(*SendRequest)(int context, int request, int flags, double timeout, struct netadr_s *remote_address, net_api_response_func_t response);
+	void	(*CancelRequest)(int context);
+	void	(*CancelAllRequests)(void);
+	const char *(*AdrToString)(struct netadr_s *a);	// FWGS
+	int		(*CompareAdr)(struct netadr_s *a, struct netadr_s *b);
+	int		(*StringToAdr)(char *s, struct netadr_s *a);
+	const char *(*ValueForKey)(const char *s, const char *key);
+	void	(*RemoveKey)(char *s, const char *key);
+	void	(*SetValueForKey)(char *s, const char *key, const char *value, int maxsize);
+	} net_api_t;
 
-#endif//NET_APIH
+#endif

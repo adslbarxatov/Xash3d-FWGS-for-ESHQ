@@ -373,28 +373,36 @@ static void WIN_SetDPIAwareness (void)
 			// I hope SDL don't handle WM_DPICHANGED message
 			HRESULT hResult = pSetProcessDpiAwareness (XASH_SYSTEM_DPI_AWARE);
 
+			// [FWGS, 01.07.24]
 			if (hResult == S_OK)
 				{
-				Con_Reportf ("SetDPIAwareness: Success\n");
+				Con_Reportf ("%s: Success\n", __func__);
 				bSuccess = TRUE;
 				}
-			else if (hResult == E_INVALIDARG) Con_Reportf ("SetDPIAwareness: Invalid argument\n");
-			else if (hResult == E_ACCESSDENIED) Con_Reportf ("SetDPIAwareness: Access Denied\n");
+			else if (hResult == E_INVALIDARG)
+				{
+				Con_Reportf ("%s: Invalid argument\n", __func__);
+				}
+			else if (hResult == E_ACCESSDENIED)
+				{
+				Con_Reportf ("%s: Access Denied\n", __func__);
+				}
 			}
 		else
 			{
-			Con_Reportf ("SetDPIAwareness: Can't get SetProcessDpiAwareness\n");
+			Con_Reportf ("%s: Can't get SetProcessDpiAwareness\n", __func__);
 			}
 		FreeLibrary (hModule);
 		}
 	else
 		{
-		Con_Reportf ("SetDPIAwareness: Can't load shcore.dll\n");
+		Con_Reportf ("%s: Can't load shcore.dll\n", __func__);
 		}
 
+	// [FWGS, 01.07.24]
 	if (!bSuccess)
 		{
-		Con_Reportf ("SetDPIAwareness: Trying SetProcessDPIAware...\n");
+		Con_Reportf ("%s: Trying SetProcessDPIAware...\n", __func__);
 
 		if ((hModule = LoadLibrary ("user32.dll")))
 			{
@@ -405,23 +413,23 @@ static void WIN_SetDPIAwareness (void)
 
 				if (hResult)
 					{
-					Con_Reportf ("SetDPIAwareness: Success\n");
+					Con_Reportf ("%s: Success\n", __func__);
 					bSuccess = TRUE;
 					}
 				else
 					{
-					Con_Reportf ("SetDPIAwareness: fail\n");
+					Con_Reportf ("%s: fail\n", __func__);
 					}
 				}
 			else
 				{
-				Con_Reportf ("SetDPIAwareness: Can't get SetProcessDPIAware\n");
+				Con_Reportf ("%s: Can't get SetProcessDPIAware\n", __func__);
 				}
 			FreeLibrary (hModule);
 			}
 		else
 			{
-			Con_Reportf ("SetDPIAwareness: Can't load user32.dll\n");
+			Con_Reportf ("%s: Can't load user32.dll\n", __func__);
 			}
 		}
 	}
@@ -448,7 +456,7 @@ static qboolean WIN_SetWindowIcon (HICON ico)
 
 /***
 =================
-GL_GetProcAddress [FWGS, 01.04.23]
+GL_GetProcAddress
 =================
 ***/
 void *GL_GetProcAddress (const char *name)
@@ -479,8 +487,9 @@ void *GL_GetProcAddress (const char *name)
 		func = dlsym (NULL, name);
 #endif
 
+	// [FWGS, 01.07.24]
 	if (!func)
-		Con_Reportf (S_ERROR "GL_GetProcAddress failed for %s\n", name);
+		Con_Reportf (S_ERROR "%s failed for %s\n", __func__, name);
 
 	return func;
 	}
@@ -529,7 +538,7 @@ qboolean GL_DeleteContext (void)
 
 /***
 =================
-GL_CreateContext [FWGS, 01.05.23]
+GL_CreateContext [FWGS, 01.07.24]
 =================
 ***/
 static qboolean GL_CreateContext (void)
@@ -537,7 +546,7 @@ static qboolean GL_CreateContext (void)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	if ((glw_state.context = SDL_GL_CreateContext (host.hWnd)) == NULL)
 		{
-		Con_Reportf (S_ERROR "GL_CreateContext: %s\n", SDL_GetError ());
+		Con_Reportf (S_ERROR "%s: %s\n", __func__, SDL_GetError ());
 		return GL_DeleteContext ();
 		}
 #endif
@@ -547,7 +556,7 @@ static qboolean GL_CreateContext (void)
 
 /***
 =================
-GL_UpdateContext [FWGS, 01.11.23]
+GL_UpdateContext [FWGS, 01.07.24]
 =================
 ***/
 static qboolean GL_UpdateContext (void)
@@ -555,7 +564,7 @@ static qboolean GL_UpdateContext (void)
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	if (SDL_GL_MakeCurrent (host.hWnd, glw_state.context) < 0)
 		{
-		Con_Reportf (S_ERROR "GL_UpdateContext: %s\n", SDL_GetError ());
+		Con_Reportf (S_ERROR "%s: %s\n", __func__, SDL_GetError ());
 		return GL_DeleteContext ();
 		}
 #endif
@@ -658,7 +667,7 @@ void VID_RestoreScreenResolution (void)
 #endif 
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.07.24]
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 static void VID_SetWindowIcon (SDL_Window *hWnd)
 	{
@@ -667,7 +676,8 @@ static void VID_SetWindowIcon (SDL_Window *hWnd)
 
 	// ICO support only for Win32
 #if XASH_WIN32
-	const char *localIcoPath;
+	const char	*localIcoPath;
+	HINSTANCE	hInst = GetModuleHandle (NULL);
 
 	if ((localIcoPath = FS_GetDiskPath (GI->iconpath, true)))
 		{
@@ -700,13 +710,13 @@ static void VID_SetWindowIcon (SDL_Window *hWnd)
 
 // ICO support only for Win32
 #if XASH_WIN32
-	WIN_SetWindowIcon (LoadIcon (host.hInst, MAKEINTRESOURCE (101)));
+	/*WIN_SetWindowIcon (LoadIcon (host.hInst, MAKEINTRESOURCE (101)));*/
+	WIN_SetWindowIcon (LoadIcon (hInst, MAKEINTRESOURCE (101)));
 #endif
 	}
 
 #endif
 
-// [FWGS, 01.11.23]
 static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int ypos, int w, int h, uint32_t flags)
 	{
 	while ((glw_state.safe >= SAFE_NO) && (glw_state.safe < SAFE_LAST))
@@ -721,7 +731,8 @@ static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int y
 		if (host.hWnd)
 			break;
 
-		Con_Reportf (S_ERROR "VID_CreateWindow: couldn't create '%s' with safegl level %d: %s\n",
+		// [FWGS, 01.07.24]
+		Con_Reportf (S_ERROR "%s: couldn't create '%s' with safegl level %d: %s\n", __func__,
 			wndname, glw_state.safe, SDL_GetError ());
 
 		glw_state.safe++;
@@ -742,7 +753,7 @@ static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int y
 
 /***
 =================
-VID_CreateWindow [FWGS, 01.03.24]
+VID_CreateWindow
 =================
 ***/
 qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
@@ -775,7 +786,8 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		if (SDL_GetDisplayBounds (0, &r) < 0)
 #endif
 			{
-			Con_Reportf (S_ERROR "VID_CreateWindow: SDL_GetDisplayBounds failed: %s\n", SDL_GetError ());
+			// [FWGS, 01.07.24]
+			Con_Reportf (S_ERROR "%s: SDL_GetDisplayBounds failed: %s\n", __func__, SDL_GetError ());
 			xpos = SDL_WINDOWPOS_CENTERED;
 			ypos = SDL_WINDOWPOS_CENTERED;
 			}
@@ -865,7 +877,9 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 
 #else
 
+	// [FWGS, 01.07.24]
 	Uint32 flags = 0;
+	Q_strncpy (wndname, GI->title, sizeof (wndname));
 
 	if (window_mode != WINDOW_MODE_WINDOWED)
 		SetBits (flags, SDL_FULLSCREEN | SDL_HWSURFACE);
@@ -1100,7 +1114,6 @@ qboolean R_Init_Video (const int type)
 	return true;
 	}
 
-// [FWGS, 01.11.23]
 rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -1121,8 +1134,9 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 
 #endif
 
+	// [FWGS, 01.07.24]
 	refState.fullScreen = window_mode != WINDOW_MODE_WINDOWED;
-	Con_Reportf ("R_ChangeDisplaySettings: Setting video mode to %dx%d %s\n", width, height,
+	Con_Reportf ("%s: Setting video mode to %dx%d %s\n", __func__, width, height,
 		refState.fullScreen ? "fullscreen" : "windowed");
 
 	if (!host.hWnd)
@@ -1162,7 +1176,7 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 
 /***
 ==================
-VID_SetMode [FWGS, 01.03.24]
+VID_SetMode
 
 Set the described video mode
 ==================
@@ -1198,10 +1212,11 @@ qboolean VID_SetMode (void)
 		}
 
 #if XASH_MOBILE_PLATFORM
+	// [FWGS, 01.07.24]
 	if (Q_strcmp (vid_fullscreen.string, DEFAULT_FULLSCREEN))
 		{
 		Cvar_DirectSet (&vid_fullscreen, DEFAULT_FULLSCREEN);
-		Con_Reportf (S_ERROR "VID_SetMode: windowed unavailable on this platform\n");
+		Con_Reportf (S_ERROR "%s: windowed unavailable on this platform\n", __func__);
 		}
 #endif
 
@@ -1221,10 +1236,13 @@ qboolean VID_SetMode (void)
 		}
 	else
 		{
+		// [FWGS, 01.07.24]
 		if (err == rserr_invalid_fullscreen)
 			{
 			Cvar_DirectSet (&vid_fullscreen, "0");
-			Con_Reportf (S_ERROR  "VID_SetMode: fullscreen unavailable in this mode\n");
+			/*Con_Reportf (S_ERROR  "VID_SetMode: fullscreen unavailable in this mode\n");
+			Sys_Warn ("fullscreen unavailable in this mode!");*/
+			Con_Reportf (S_ERROR "%s: fullscreen unavailable in this mode\n", __func__);
 			Sys_Warn ("fullscreen unavailable in this mode!");
 
 			if ((err = R_ChangeDisplaySettings (iScreenWidth, iScreenHeight, WINDOW_MODE_WINDOWED)) == rserr_ok)
@@ -1232,18 +1250,21 @@ qboolean VID_SetMode (void)
 			}
 		else if (err == rserr_invalid_mode)
 			{
-			Con_Reportf (S_ERROR  "VID_SetMode: invalid mode\n");
+			Con_Reportf (S_ERROR "%s: invalid mode\n", __func__);
 			Sys_Warn ("invalid mode, engine will run in %dx%d", sdlState.prev_width, sdlState.prev_height);
 			}
 
-		// try setting it back to something safe
+		// [FWGS, 01.07.24] try setting it back to something safe
 		if ((err = R_ChangeDisplaySettings (sdlState.prev_width, sdlState.prev_height, false)) != rserr_ok)
 			{
-			Con_Reportf (S_ERROR  "VID_SetMode: could not revert to safe mode\n");
+			/*Con_Reportf (S_ERROR  "VID_SetMode: could not revert to safe mode\n");
+			Sys_Warn ("could not revert to safe mode!");*/
+			Con_Reportf (S_ERROR "%s: could not revert to safe mode\n", __func__);
 			Sys_Warn ("could not revert to safe mode!");
 			return false;
 			}
 		}
+
 	return true;
 	}
 

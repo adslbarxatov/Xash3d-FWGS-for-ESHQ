@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "imagelib.h"
@@ -104,11 +104,11 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 			{
 			switch (headerExt->dxgiFormat)
 				{
-				// [FWGS, 01.11.23]
 				case DXGI_FORMAT_BC4_TYPELESS:
 				case DXGI_FORMAT_BC4_UNORM:
 					image.type = PF_BC4_UNSIGNED;
 					break;
+
 				case DXGI_FORMAT_BC4_SNORM:
 					image.type = PF_BC4_SIGNED;
 					break;
@@ -116,25 +116,29 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 				case DXGI_FORMAT_BC6H_SF16:
 					image.type = PF_BC6H_SIGNED;
 					break;
+
 				case DXGI_FORMAT_BC6H_UF16:
 				case DXGI_FORMAT_BC6H_TYPELESS:
 					image.type = PF_BC6H_UNSIGNED;
 					break;
-				case DXGI_FORMAT_BC7_UNORM:
 
-				// [FWGS, 01.11.23]
+				case DXGI_FORMAT_BC7_UNORM:
 				case DXGI_FORMAT_BC7_TYPELESS:
 					image.type = PF_BC7_UNORM;
 					break;
+
 				case DXGI_FORMAT_BC7_UNORM_SRGB:
 					image.type = PF_BC7_SRGB;
 					break;
+
 				case DXGI_FORMAT_BC5_TYPELESS:
 					image.type = PF_ATI2;
 					break;
+
 				case DXGI_FORMAT_BC5_UNORM:
 					image.type = PF_BC5_UNSIGNED;
 					break;
+
 				case DXGI_FORMAT_BC5_SNORM:
 					image.type = PF_BC5_SIGNED;
 					break;
@@ -151,29 +155,35 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 				case TYPE_DXT1:
 					image.type = PF_DXT1;
 					break;
+
 				case TYPE_DXT2:
 					image.flags &= ~IMAGE_HAS_ALPHA; // alpha is already premultiplied by color
 					// intentionally fallthrough
+
 				case TYPE_DXT3:
 					image.type = PF_DXT3;
 					break;
+
 				case TYPE_DXT4:
 					image.flags &= ~IMAGE_HAS_ALPHA; // alpha is already premultiplied by color
 					// intentionally fallthrough
+
 				case TYPE_DXT5:
 					image.type = PF_DXT5;
 					break;
+
 				case TYPE_ATI2:
 					image.type = PF_ATI2;
 					break;
 
-				// [FWGS, 01.11.23]
 				case TYPE_BC5S:
 					image.type = PF_BC5_SIGNED;
 					break;
+
 				case TYPE_BC4S:
 					image.type = PF_BC4_SIGNED;
 					break;
+
 				case TYPE_BC4U:
 					image.type = PF_BC4_UNSIGNED;
 					break;
@@ -202,12 +212,15 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 				case 32:
 					image.type = PF_BGRA_32;
 					break;
+
 				case 24:
 					image.type = PF_BGR_24;
 					break;
+
 				case 8:
 					image.type = PF_LUMINANCE;
 					break;
+
 				default:
 					image.type = PF_UNKNOWN;
 					break;
@@ -273,8 +286,9 @@ static uint Image_DXTCalcSize (const char *name, dds_t *hdr, size_t filesize)
 
 	if (filesize != buffsize) // main check
 		{
-		// [FWGS, 01.11.23]
-		Con_DPrintf (S_WARN "Image_LoadDDS: (%s) probably corrupted (%zu should be %lu)\n", name, buffsize, filesize);
+		// [FWGS, 01.07.24]
+		Con_DPrintf (S_WARN "%s: (%s) probably corrupted (%zu should be %zu)\n", __func__,
+			name, buffsize, filesize);
 		if (buffsize > filesize)
 			return false;
 		}
@@ -309,18 +323,21 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 
 	memcpy (&header, buffer, sizeof (header));
 
+	// it's not a dds file, just skip it
 	if (header.dwIdent != DDSHEADER)
-		return false; // it's not a dds file, just skip it
+		return false;
 
-	if (header.dwSize != sizeof (header) - sizeof (uint)) // size of the structure (minus MagicNum)
+	// [FWGS, 01.07.24] size of the structure (minus MagicNum)
+	if (header.dwSize != sizeof (header) - sizeof (uint))
 		{
-		Con_DPrintf (S_ERROR "Image_LoadDDS: (%s) have corrupted header\n", name);
+		Con_DPrintf (S_ERROR "%s: (%s) have corrupted header\n", __func__, name);
 		return false;
 		}
 
-	if (header.dsPixelFormat.dwSize != sizeof (dds_pixf_t)) // size of the structure
+	// [FWGS, 01.07.24] size of the structure
+	if (header.dsPixelFormat.dwSize != sizeof (dds_pixf_t))
 		{
-		Con_DPrintf (S_ERROR "Image_LoadDDS: (%s) have corrupt pixelformat header\n", name);
+		Con_DPrintf (S_ERROR "%s: (%s) have corrupt pixelformat header\n", __func__, name);
 		return false;
 		}
 
@@ -342,21 +359,25 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 	if (!Image_ValidSize (name))
 		return false;
 
-	Image_DXTGetPixelFormat (&header, &header2); // and image type too :)
+	// and image type too :)
+	Image_DXTGetPixelFormat (&header, &header2);
 	Image_DXTAdjustVolume (&header);
 
-	// [FWGS, 01.11.23]
+	// silently rejected
 	if (!Image_CheckFlag (IL_DDS_HARDWARE) && ImageCompressed (image.type))
-		return false; // silently rejected
+		return false;
 
+	// [FWGS, 01.07.24]
 	if (image.type == PF_UNKNOWN)
 		{
-		Con_DPrintf (S_ERROR "Image_LoadDDS: (%s) has unrecognized type\n", name);
+		Con_DPrintf (S_ERROR "%s: (%s) has unrecognized type\n", __func__, name);
 		return false;
 		}
 
 	image.size = Image_DXTCalcSize (name, &header, filesize - headersOffset);
-	if (image.size == 0) return false; // just in case
+	if (image.size == 0)
+		return false; // just in case
+
 	fin = (byte *)(buffer + headersOffset);
 
 	// copy an encode method
@@ -367,6 +388,7 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 		case DXT_ENCODE_COLOR_YCoCg:
 			SetBits (image.flags, IMAGE_HAS_COLOR);
 			break;
+
 		case DXT_ENCODE_NORMAL_AG_ORTHO:
 		case DXT_ENCODE_NORMAL_AG_STEREO:
 		case DXT_ENCODE_NORMAL_AG_PARABOLOID:
@@ -374,13 +396,12 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 		case DXT_ENCODE_NORMAL_AG_AZIMUTHAL:
 			SetBits (image.flags, IMAGE_HAS_COLOR);
 			break;
+
 		default:	// check for real alpha-pixels
 			if (image.type == PF_DXT3 && Image_CheckDXT3Alpha (&header, fin))
 				SetBits (image.flags, IMAGE_HAS_ALPHA);
 			else if (image.type == PF_DXT5 && Image_CheckDXT5Alpha (&header, fin))
 				SetBits (image.flags, IMAGE_HAS_ALPHA);
-			
-			// [FWGS, 01.11.23]
 			else if (image.type == PF_BC5_SIGNED || image.type == PF_BC5_UNSIGNED)
 				SetBits (image.flags, IMAGE_HAS_ALPHA);
 			else if (image.type == PF_BC7_UNORM || image.type == PF_BC7_SRGB)

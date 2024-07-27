@@ -255,7 +255,7 @@ class CFuncPlat: public CBasePlatTrain
 		virtual void Blocked (CBaseEntity* pOther);
 
 
-		void EXPORT PlatUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT PlatUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 		void	EXPORT CallGoDown (void) { GoDown (); }
 		void	EXPORT CallHitTop (void) { HitTop (); }
@@ -618,8 +618,8 @@ class CFuncTrain: public CBasePlatTrain
 		void KeyValue (KeyValueData* pkvd);
 
 
-		void EXPORT Wait (void);
-		void EXPORT Next (void);
+		void HLEXPORT Wait (void);
+		void HLEXPORT Next (void);
 		virtual int	Save (CSave& save);
 		virtual int	Restore (CRestore& restore);
 		static	TYPEDESCRIPTION m_SaveData[];
@@ -1532,7 +1532,7 @@ class CFuncTrainControls: public CBaseEntity
 	public:
 		virtual int	ObjectCaps (void) { return CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
 		void Spawn (void);
-		void EXPORT Find (void);
+		void HLEXPORT Find (void);
 	};
 LINK_ENTITY_TO_CLASS (func_traincontrols, CFuncTrainControls);
 

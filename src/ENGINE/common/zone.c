@@ -80,16 +80,16 @@ typedef struct mempool_s
 	char		name[64];		// name of the pool
 	} mempool_t;
 
-static mempool_t *poolchain = NULL; // critical stuff
-static size_t poolcount = 0;
+static mempool_t	*poolchain = NULL; // critical stuff
+static size_t		poolcount = 0;
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.07.24]
 static mempool_t *Mem_FindPool (poolhandle_t poolptr)
 	{
 	if (likely ((poolptr > 0) && (poolptr <= poolcount)))
 		return &poolchain[poolptr - 1];
 
-	Sys_Error ("%s: not allocated or double freed pool %d", __FUNCTION__, poolptr);
+	Sys_Error ("%s: not allocated or double freed pool %d", __func__, poolptr);
 
 	return NULL;
 	}
@@ -252,19 +252,18 @@ static void Mem_FreeBlock (memheader_t *mem, const char *filename, int fileline)
 	Q_free (mem);
 	}
 
-// [FWGS, 01.03.24]
+// [FWGS, 01.07.24]
 void _Mem_Free (void *data, const char *filename, int fileline)
 	{
 	if (data == NULL)
 		{
-		Sys_Error ("Mem_Free: data == NULL (called at %s:%i)\n", filename, fileline);
+		Sys_Error ("%s: data == NULL (called at %s:%i)\n", __func__, filename, fileline);
 		return;
 		}
 
 	Mem_FreeBlock ((memheader_t *)((byte *)data - sizeof (memheader_t)), filename, fileline);
 	}
 
-// [FWGS, 01.05.24]
 void *_Mem_Realloc (poolhandle_t poolptr, void *data, size_t size, qboolean clear, const char *filename, int fileline)
 	{
 	memheader_t	*mem;
@@ -275,9 +274,10 @@ void *_Mem_Realloc (poolhandle_t poolptr, void *data, size_t size, qboolean clea
 	if (size <= 0)
 		return data; // no need to reallocate
 
+	// [FWGS, 01.07.24]
 	if (unlikely (!poolptr))
 		{
-		Sys_Error ("Mem_Realloc: pool == NULL (alloc at %s:%i)\n", filename, fileline);
+		Sys_Error ("%s: pool == NULL (alloc at %s:%i)\n", __func__, filename, fileline);
 		return NULL;
 		}
 
@@ -289,10 +289,13 @@ void *_Mem_Realloc (poolhandle_t poolptr, void *data, size_t size, qboolean clea
 	if (!Mem_CheckAllocHeader ("Mem_Realloc", mem, filename, fileline))
 		return NULL;
 
+	// [FWGS, 01.07.24]
 	if (unlikely (mem->poolptr != poolptr))
 		{
-		Sys_Error ("Mem_Realloc: pool migration is not allowed (alloc at %s:%i, realloc at %s:%i)\n",
-			Mem_CheckFilename (mem->filename), mem->fileline, filename, fileline);
+		/*Sys_Error ("Mem_Realloc: pool migration is not allowed (alloc at %s:%i, realloc at %s:%i)\n",
+			Mem_CheckFilename (mem->filename), mem->fileline, filename, fileline);*/
+		Sys_Error ("%s: pool migration is not allowed (alloc at %s:%i, realloc at %s:%i)\n",
+			__func__, Mem_CheckFilename (mem->filename), mem->fileline, filename, fileline);
 		return NULL;
 		}
 
@@ -304,9 +307,11 @@ void *_Mem_Realloc (poolhandle_t poolptr, void *data, size_t size, qboolean clea
 	oldmem = (uintptr_t)mem;
 	mem = Q_realloc (mem, sizeof (memheader_t) + size + sizeof (byte));
 
+	// [FWGS, 01.07.24]
 	if (mem == NULL)
 		{
-		Sys_Error ("Mem_Realloc: out of memory (alloc size %s at %s:%i)\n", Q_memprint (size), filename, fileline);
+		Sys_Error ("%s: out of memory (alloc size %s at %s:%i)\n", __func__,
+			Q_memprint (size), filename, fileline);
 		return NULL;
 		}
 
@@ -352,7 +357,6 @@ static poolhandle_t Mem_InitPool (mempool_t *pool, const char *name, const char 
 	return Mem_PoolIndex (pool);
 	}
 
-// [FWGS, 01.05.24]
 poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline)
 	{
 	mempool_t	*pool;
@@ -364,10 +368,11 @@ poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int filelin
 			return Mem_InitPool (pool, name, filename, fileline);
 		}
 
+	// [FWGS, 01.07.24]
 	pool = (mempool_t *)Q_realloc (poolchain, sizeof (*poolchain) * (poolcount + 1));
 	if (pool == NULL)
 		{
-		Sys_Error ("Mem_AllocPool: out of memory (allocpool at %s:%i)\n", filename, fileline);
+		Sys_Error ("%s: out of memory (allocpool at %s:%i)\n", __func__, filename, fileline);
 		return 0;
 		}
 
@@ -376,7 +381,6 @@ poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int filelin
 	return Mem_InitPool (pool, name, filename, fileline);
 	}
 
-// [FWGS, 01.05.24]
 void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
 	{
 	mempool_t	*pool;
@@ -385,7 +389,8 @@ void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
 		{
 		if (!pool->filename)
 			{
-			Sys_Error ("Mem_FreePool: pool already free (freepool at %s:%i)\n", filename, fileline);
+			// [FWGS, 01.07.24]
+			Sys_Error ("%s: pool already free (freepool at %s:%i)\n", __func__, filename, fileline);
 			*poolptr = 0;
 			return;
 			}
@@ -403,13 +408,13 @@ void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
 		}
 	}
 
-// [FWGS, 01.05.24]
 void _Mem_EmptyPool (poolhandle_t poolptr, const char *filename, int fileline)
 	{
 	mempool_t	*pool;
 	if (unlikely (!poolptr))
 		{
-		Sys_Error ("Mem_EmptyPool: pool == NULL (emptypool at %s:%i)\n", filename, fileline);
+		// [FWGS, 01.07.24]
+		Sys_Error ("%s: pool == NULL (emptypool at %s:%i)\n", __func__, filename, fileline);
 		return;
 		}
 
@@ -478,7 +483,6 @@ void _Mem_Check (const char *filename, int fileline)
 			Mem_CheckAllocHeader ("Mem_CheckSentinels", mem, filename, fileline);
 	}
 
-// [FWGS, 01.05.24]
 void Mem_PrintStats (void)
 	{
 	size_t		count = 0, size = 0, realsize = 0, i;
@@ -495,7 +499,8 @@ void Mem_PrintStats (void)
 		realsize += pool->realsize;
 		}
 
-	Con_Printf ("^3%lu^7 memory pools, totalling: ^1%s\n", count, Q_memprint (size));
+	// [FWGS, 01.07.24]
+	Con_Printf ("^3%zu^7 memory pools, totalling: ^1%s\n", count, Q_memprint (size));
 	Con_Printf ("total allocated size: ^1%s\n", Q_memprint (realsize));
 	}
 

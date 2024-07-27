@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -480,12 +480,13 @@ void Wcon_WinPrint (const char *pMsg)
 
 /***
 ================
-Con_CreateConsole [FWGS, 01.05.24]
+Con_CreateConsole [FWGS, 01.07.24]
 
 create win32 console
 ================
 ***/
-void Wcon_CreateConsole (void)
+/*void Wcon_CreateConsole (void)*/
+void Wcon_CreateConsole (qboolean con_showalways)
 	{
 	if (Sys_CheckParm ("-log"))
 		s_wcd.log_active = true;
@@ -536,7 +537,8 @@ void Wcon_CreateConsole (void)
 		SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);
 
 		// show console if needed
-		if (host.con_showalways)
+		/*if (host.con_showalways)*/
+		if (con_showalways)
 			{
 			// make console visible
 			ShowWindow (s_wcd.hWnd, SW_SHOWDEFAULT);
@@ -570,7 +572,7 @@ void Wcon_InitConsoleCommands (void)
 
 /***
 ================
-Con_DestroyConsole [FWGS, 01.05.23]
+Con_DestroyConsole [FWGS, 01.07.24]
 
 destroy win32 console
 ================
@@ -578,7 +580,7 @@ destroy win32 console
 void Wcon_DestroyConsole (void)
 	{
 	// last text message into console or log
-	Con_Reportf ("Sys_FreeLibrary: Unloading xash.dll\n");
+	Con_Reportf ("%s: Unloading xash.dll\n", __func__);
 
 	Sys_CloseLog ();
 
@@ -601,9 +603,9 @@ void Wcon_DestroyConsole (void)
 
 	FreeConsole ();
 
-	// place it here in case Sys_Crash working properly
+	/*// place it here in case Sys_Crash working properly
 	if (host.hMutex)
-		CloseHandle (host.hMutex);
+		CloseHandle (host.hMutex);*/
 	}
 
 /***

@@ -52,8 +52,10 @@ static CVAR_DEFINE (s_ambient_fade, "ambient_fade", "1000", FCVAR_ARCHIVE | FCVA
 static CVAR_DEFINE_AUTO (s_combine_sounds, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
 	"combine channels with same sounds");
 
-// [FWGS, 01.05.24]
-static CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+// [FWGS, 01.07.24]
+/*static CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"silence the audio when game window loses focus");*/
+CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"silence the audio when game window loses focus");
 
 CVAR_DEFINE_AUTO (s_test, "0", 0, 
@@ -70,7 +72,7 @@ SOUNDS PROCESSING
 ***/
 /***
 =================
-S_GetMasterVolume [FWGS, 09.05.24]
+S_GetMasterVolume [FWGS, 01.07.24]
 =================
 ***/
 float S_GetMasterVolume (void)
@@ -81,9 +83,9 @@ float S_GetMasterVolume (void)
 	if ((host.status == HOST_NOFOCUS) && (snd_mute_losefocus.value != 0.0f))
 		return 0.0f;
 
-	// mute sounds in menu when it's not transparent and we're in multiplayer
+	/*// mute sounds in menu when it's not transparent and we're in multiplayer
 	if (s_listener.inmenu && !ui_renderworld.value && !Host_IsLocalGame ())
-		return 0.0f;
+		return 0.0f;*/
 
 	if (!s_listener.inmenu && (soundfade.percent != 0))
 		{
@@ -400,7 +402,7 @@ channel_t *SND_PickStaticChannel (const vec3_t pos, sfx_t *sfx)
 		// no empty slots, alloc a new static sound channel
 		if (total_channels == MAX_CHANNELS)
 			{
-			Con_DPrintf (S_ERROR "S_PickStaticChannel: no free channels\n");
+			Con_DPrintf (S_ERROR "%s: no free channels\n", __func__);	// [FWGS, 01.07.24]
 			return NULL;
 			}
 

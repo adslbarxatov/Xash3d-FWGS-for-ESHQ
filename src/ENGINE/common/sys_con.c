@@ -95,8 +95,9 @@ char *Sys_Input (void)
 
 void Sys_DestroyConsole (void)
 	{
-	// last text message into console or log
-	Con_Reportf ("Sys_DestroyConsole: Exiting!\n");
+	// [FWGS, 01.07.24] last text message into console or log
+	Con_Reportf ("%s: Exiting!\n", __func__);
+
 #if XASH_WIN32
 	Wcon_DestroyConsole ();
 #endif

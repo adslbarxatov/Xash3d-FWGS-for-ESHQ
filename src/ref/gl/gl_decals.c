@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -73,8 +73,10 @@ static void R_DecalUnlink (decal_t *pdecal)
 			}
 		else
 			{
+			// [FWGS, 01.07.24]
 			tmp = pdecal->psurface->pdecals;
-			if (!tmp) gEngfuncs.Host_Error ("R_DecalUnlink: bad decal list\n");
+			if (!tmp)
+				gEngfuncs.Host_Error ("%s: bad decal list\n", __func__);
 
 			while (tmp->pnext)
 				{

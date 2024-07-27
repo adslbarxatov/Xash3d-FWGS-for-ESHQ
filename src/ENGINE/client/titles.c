@@ -66,7 +66,7 @@ static int IsEndOfText (const char *pText)
 
 static int IsWhiteSpace (char space)
 	{
-	if (space == ' ' || space == '\t' || space == '\r' || space == '\n')
+	if ((space == ' ') || (space == '\t') || (space == '\r') || (space == '\n'))
 		return 1;
 	return 0;
 	}
@@ -250,7 +250,7 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 
 				if (IsEndOfText (trim))
 					{
-					Con_Reportf ("TextMessage: unexpected '}' found, line %d\n", lineNumber);
+					Con_Reportf ("%s: unexpected '}' found, line %d\n", __func__, lineNumber);	// [FWGS, 01.07.24]
 					return;
 					}
 
@@ -265,7 +265,7 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 					// save name on name heap
 					if (lastNamePos + length > 32768)
 						{
-						Con_Reportf ("TextMessage: error while parsing!\n");
+						Con_Reportf ("%s: error while parsing!\n", __func__);	// [FWGS, 01.07.24]
 						return;
 						}
 
@@ -289,7 +289,7 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 					}
 				if (IsStartOfText (trim))
 					{
-					Con_Reportf ("TextMessage: unexpected '{' found, line %d\n", lineNumber);
+					Con_Reportf ("%s: unexpected '{' found, line %d\n", __func__, lineNumber);	// [FWGS, 01.07.24]
 					return;
 					}
 				break;
@@ -305,7 +305,7 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 			}
 		}
 
-	Con_Reportf ("TextMessage: parsed %d text messages\n", messageCount);
+	Con_Reportf ("%s: parsed %d text messages\n", __func__, messageCount);	// [FWGS, 01.07.24]
 	nameHeapSize = lastNamePos;
 	textHeapSize = 0;
 
@@ -348,7 +348,7 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 		}
 
 	if ((pCurrentText - (char *)clgame.titles) != (textHeapSize + nameHeapSize + messageSize))
-		Con_DPrintf (S_ERROR "TextMessage: overflow text message buffer!\n");
+		Con_DPrintf (S_ERROR "%s: overflow text message buffer!\n", __func__);	// [FWGS, 01.07.24]
 
 	clgame.numTitles = messageCount;
 	}

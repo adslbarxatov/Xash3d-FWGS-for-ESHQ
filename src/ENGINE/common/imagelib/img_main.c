@@ -295,16 +295,16 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 
 /***
 ================
-FS_LoadImage [FWGS, 01.05.23]
+FS_LoadImage
 
 loading and unpack to rgba any known image
 ================
 ***/
 rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 	{
-	const char *ext = COM_FileExtension (filename);
+	const char	*ext = COM_FileExtension (filename);
 	string		loadname;
-	int i;
+	int			i;
 	
 	const loadpixformat_t *extfmt;
 	const cubepack_t *cmap;
@@ -370,8 +370,9 @@ load_internal:
 			return ImagePack ();
 		}
 
+	// [FWGS, 01.07.24]
 	if (loadname[0] != '#')
-		Con_Reportf (S_WARN "FS_LoadImage: couldn't load \"%s\"\n", loadname);
+		Con_Reportf (S_WARN "%s: couldn't load \"%s\"\n", __func__, loadname);
 
 	// clear any force flags
 	image.force_flags = 0;
@@ -623,8 +624,8 @@ void Test_RunImagelib (void)
 // [FWGS, 01.02.24]
 #define IMPLEMENT_IMAGELIB_FUZZ_TARGET( export, target ) \
 int export( const uint8_t *Data, size_t Size ); \
-int EXPORT export( const uint8_t *Data, size_t Size ) \
-{ \
+int HLEXPORT export( const uint8_t *Data, size_t Size ) \
+	{ \
 	rgbdata_t *rgb; \
 	host.type = HOST_NORMAL; \
 	Memory_Init(); \
@@ -636,7 +637,7 @@ int EXPORT export( const uint8_t *Data, size_t Size ) \
 	} \
 	Image_Shutdown(); \
 	return 0; \
-} \
+	} \
 
 IMPLEMENT_IMAGELIB_FUZZ_TARGET (Fuzz_Image_LoadBMP, Image_LoadBMP)
 IMPLEMENT_IMAGELIB_FUZZ_TARGET (Fuzz_Image_LoadPNG, Image_LoadPNG)

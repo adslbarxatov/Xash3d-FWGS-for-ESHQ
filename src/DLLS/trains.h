@@ -67,7 +67,7 @@ class CPathTrack: public CPointEntity
 
 		static	TYPEDESCRIPTION m_SaveData[];
 #if PATH_SPARKLE_DEBUG
-		void EXPORT Sparkle (void);
+		void HLEXPORT Sparkle (void);
 #endif
 
 		float		m_length;
@@ -87,10 +87,10 @@ class CFuncTrackTrain: public CBaseEntity
 		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		void KeyValue (KeyValueData* pkvd);
 
-		void EXPORT Next (void);
-		void EXPORT Find (void);
-		void EXPORT NearestPath (void);
-		void EXPORT DeadEnd (void);
+		void HLEXPORT Next (void);
+		void HLEXPORT Find (void);
+		void HLEXPORT NearestPath (void);
+		void HLEXPORT DeadEnd (void);
 
 		void		NextThink (float thinkTime, BOOL alwaysThink);
 

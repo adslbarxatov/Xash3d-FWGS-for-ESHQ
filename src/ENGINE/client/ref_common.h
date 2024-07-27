@@ -45,7 +45,9 @@ void R_GetTextureParms (int *w, int *h, int texnum);
 #define GL_UpdateTextureInternal( name, pic, flags ) ref.dllFuncs.GL_LoadTextureFromBuffer( (name), (pic), (flags), true )
 #define R_GetBuiltinTexture( name ) ref.dllFuncs.GL_LoadTexture( (name), 0, 0, 0 )
 
+// [FWGS, 01.07.24]
 void GL_RenderFrame (const struct ref_viewpass_s *rvp);
+void R_SetupSky (const char *name);
 
 // [FWGS, 01.05.24] common engine and renderer cvars
 extern convar_t r_decals;
@@ -55,7 +57,8 @@ extern convar_t gl_clear;
 qboolean R_Init (void);
 void R_Shutdown (void);
 
-// [FWGS, 01.01.24]
-extern triangleapi_t gTriApi;
+// [FWGS, 01.07.24]
+/*// [FWGS, 01.01.24]
+extern triangleapi_t gTriApi;*/
 
 #endif

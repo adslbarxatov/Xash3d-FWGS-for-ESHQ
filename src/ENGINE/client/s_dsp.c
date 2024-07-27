@@ -163,9 +163,14 @@ static const sx_preset_t rgsxpre_hlalpha052[] =
 
 static const sx_preset_t *ptable = rgsxpre;
 
-// [FWGS, 01.07.23] cvars
+// [FWGS, 01.07.24] cvars
+/*static CVAR_DEFINE_AUTO (dsp_off, "0", FCVAR_ARCHIVE,
+	"disable DSP processing");*/
 static CVAR_DEFINE_AUTO (dsp_off, "0", FCVAR_ARCHIVE,
-	"disable DSP processing");
+	"disable DSP processing (deprecated)");
+static CVAR_DEFINE_AUTO (room_off, "0", FCVAR_ARCHIVE,
+	"disable DSP processing (GoldSrc compatible cvar)");
+
 static CVAR_DEFINE_AUTO (dsp_coeff_table, "0", FCVAR_ARCHIVE,
 	"select DSP coefficient table: 0 for release or 1 for alpha 0.52");
 static CVAR_DEFINE_AUTO (room_type, "0", 0,
@@ -175,17 +180,17 @@ static CVAR_DEFINE (roomwater_type, "waterroom_type", "14", 0,
 static CVAR_DEFINE (hisound, "room_hires", "2", FCVAR_ARCHIVE,
 	"dsp quality. 1 for 22k, 2 for 44k(recommended) and 3 for 96k");
 
-// [FWGS, 01.07.23] underwater/special fx modulations
+// underwater/special fx modulations
 static CVAR_DEFINE (sxmod_mod, "room_mod", "0", 0,
 	"stereo amptitude modulation for room");
 static CVAR_DEFINE (sxmod_lowpass, "room_lp", "0", 0,
 	"for water fx, lowpass for entire room");
 
-// [FWGS, 01.07.23] stereo delay(no feedback)
+// stereo delay (no feedback)
 static CVAR_DEFINE (sxste_delay, "room_left", "0", 0,
 	"left channel delay time");
 
-// [FWGS, 01.07.23] mono reverb
+// mono reverb
 static CVAR_DEFINE (sxrvb_lp, "room_rvblp", "1", 0,
 	"reverb: low pass filtering level");
 static CVAR_DEFINE (sxrvb_feedback, "room_refl", "0", 0,
@@ -193,7 +198,7 @@ static CVAR_DEFINE (sxrvb_feedback, "room_refl", "0", 0,
 static CVAR_DEFINE (sxrvb_size, "room_size", "0", 0,
 	"reverb: initial reflection size");
 
-// [FWGS, 01.07.23] mono delay
+// mono delay
 static CVAR_DEFINE (sxdly_lp, "room_dlylp", "1", 0,
 	"mono delay: low pass filtering level");
 static CVAR_DEFINE (sxdly_feedback, "room_feedback", "0.2", 0,
@@ -201,12 +206,11 @@ static CVAR_DEFINE (sxdly_feedback, "room_feedback", "0.2", 0,
 static CVAR_DEFINE (sxdly_delay, "room_delay", "0.8", 0,
 	"mono delay: delay time");
 
-// [FWGS, 01.07.23]
 static int	idsp_dma_speed;
 int			idsp_room;
 static int	room_typeprev;
 
-// [FWGS, 01.07.23] routines
+// routines
 static int	sxamodl, sxamodr;		// amplitude modulation values
 static int	sxamodlt, sxamodrt;		// modulation targets
 static int	sxmod1cur, sxmod2cur;
@@ -235,7 +239,7 @@ static void SX_ReloadRoomFX (void)
 
 /***
 ============
-SX_Init [FWGS, 01.07.23]
+SX_Init [FWGS, 01.07.24]
 
 Starts sound crackling system
 ============
@@ -251,11 +255,12 @@ void SX_Init (void)
 	Cvar_RegisterVariable (&hisound);
 
 	sxhires = 2;
-
 	sxmod1cur = sxmod1 = 350 * (idsp_dma_speed / SOUND_11k);
 	sxmod2cur = sxmod2 = 450 * (idsp_dma_speed / SOUND_11k);
 
 	Cvar_RegisterVariable (&dsp_off);
+	Cvar_RegisterVariable (&room_off);
+
 	Cvar_RegisterVariable (&dsp_coeff_table);
 	Cvar_RegisterVariable (&roomwater_type);
 	Cvar_RegisterVariable (&room_type);
@@ -820,14 +825,15 @@ static void RVB_DoAMod (int count)
 
 /***
 ===========
-DSP_Process [FWGS, 01.01.24]
+DSP_Process [FWGS, 01.07.24]
 
 (xash dsp interface)
 ===========
 ***/
 void DSP_Process (portable_samplepair_t *pbfront, int sampleCount)
 	{
-	if (dsp_off.value || !sampleCount)
+	/*if (dsp_off.value || !sampleCount)*/
+	if (dsp_off.value || room_off.value || !sampleCount)
 		return;
 
 	// preset is already installed by CheckNewDspPresets
@@ -854,26 +860,31 @@ void DSP_ClearState (void)
 
 /***
 ===========
-CheckNewDspPresets
+CheckNewDspPresets [FWGS, 01.07.24]
 
 (xash dsp interface)
 ===========
 ***/
 void CheckNewDspPresets (void)
 	{
-	if (dsp_off.value != 0.0f)
+	/*if (dsp_off.value != 0.0f)*/
+	if (dsp_off.value || room_off.value)
 		return;
 
 	if (FBitSet (dsp_coeff_table.flags, FCVAR_CHANGED))
 		{
 		switch ((int)dsp_coeff_table.value)
 			{
-			case 0: // release
+			// release
+			case 0:
 				ptable = rgsxpre;
 				break;
-			case 1: // alpha
+
+			// alpha
+			case 1:
 				ptable = rgsxpre_hlalpha052;
 				break;
+
 			default:
 				ptable = rgsxpre;
 				break;

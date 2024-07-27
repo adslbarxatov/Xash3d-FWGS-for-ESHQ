@@ -2277,7 +2277,7 @@ class CHGruntRepel: public CBaseMonster
 	public:
 		void Spawn (void);
 		void Precache (void);
-		void EXPORT RepelUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT RepelUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		int m_iSpriteTexture;	// Don't save, precache
 	};
 

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -3499,7 +3499,7 @@ R_StudioDrawModel [FWGS, 01.01.24]
 static int R_StudioDrawModel (int flags)
 	{
 	alight_t	lighting;
-	vec3_t	dir;
+	vec3_t		dir;
 
 	if (RI.currententity->curstate.renderfx == kRenderFxDeadPlayer)
 		{
@@ -3530,7 +3530,6 @@ static int R_StudioDrawModel (int flags)
 		}
 
 	R_StudioSetHeader ((studiohdr_t *)gEngfuncs.Mod_Extradata (mod_studio, RI.currentmodel));
-
 	R_StudioSetUpTransform (RI.currententity);
 
 	if (flags & STUDIO_RENDER)
@@ -3612,9 +3611,23 @@ static void R_StudioDrawModelInternal (cl_entity_t *e, int flags)
 		}
 	}
 
+// [FWGS, 01.07.24]
+static cl_entity_t *R_FindParentEntity (cl_entity_t *e, cl_entity_t **entities, uint num_entities)
+	{
+	uint i;
+
+	for (i = 0; i < num_entities; i++)
+		{
+		if (entities[i]->index == e->curstate.aiment)
+			return entities[i];
+		}
+
+	return NULL;
+	}
+
 /***
 =================
-R_DrawStudioModel [FWGS, 01.01.24]
+R_DrawStudioModel [FWGS, 01.07.24]
 =================
 ***/
 void R_DrawStudioModel (cl_entity_t *e)
@@ -3629,15 +3642,18 @@ void R_DrawStudioModel (cl_entity_t *e)
 		R_StudioDrawModelInternal (e, STUDIO_RENDER | STUDIO_EVENTS);
 		}
 
-	else if ((e->curstate.movetype == MOVETYPE_FOLLOW) && (e->curstate.aiment > 0))
+	/*else if ((e->curstate.movetype == MOVETYPE_FOLLOW) && (e->curstate.aiment > 0))
+	*/
+	else if (e->curstate.movetype == MOVETYPE_FOLLOW)
 		{
-		cl_entity_t *parent = CL_GetEntityByIndex (e->curstate.aiment), **entities;
-		uint i, num_entities;
+		/*cl_entity_t *parent = CL_GetEntityByIndex (e->curstate.aiment), **entities;
+		uint i, num_entities;*/
+		cl_entity_t *parent = CL_GetEntityByIndex (e->curstate.aiment);
 
 		if (!parent || !parent->model || (parent->model->type != mod_studio))
 			return;
 
-		if (R_OpaqueEntity (parent))
+		/*if (R_OpaqueEntity (parent))
 			{
 			entities = tr.draw_list->solid_entities;
 			num_entities = tr.draw_list->num_solid_entities;
@@ -3646,21 +3662,28 @@ void R_DrawStudioModel (cl_entity_t *e)
 			{
 			entities = tr.draw_list->trans_entities;
 			num_entities = tr.draw_list->num_solid_entities;
-			}
+			}*/
+		parent = R_FindParentEntity (e, tr.draw_list->solid_entities, tr.draw_list->num_solid_entities);
 
-		for (i = 0; i < num_entities; i++)
+		/*for (i = 0; i < num_entities; i++)
 			{
 			if ((*entities)[i].index != e->curstate.aiment)
-				continue;
+				continue;*/
+		if (!parent)
+			parent = R_FindParentEntity (e, tr.draw_list->trans_entities, tr.draw_list->num_trans_entities);
 
-			RI.currententity = &(*entities)[i];
+		/*RI.currententity = &(*entities)[i];*/
+		if (parent)
+			{
+			RI.currententity = parent;
+
 			R_StudioDrawModelInternal (RI.currententity, 0);
 			VectorCopy (RI.currententity->curstate.origin, e->curstate.origin);
 			VectorCopy (RI.currententity->origin, e->origin);
 			RI.currententity = e;
 
 			R_StudioDrawModelInternal (e, STUDIO_RENDER | STUDIO_EVENTS);
-			break;
+			/*break;*/
 			}
 		}
 	else
@@ -3770,7 +3793,7 @@ void R_DrawViewModel (void)
 
 /***
 ====================
-R_StudioLoadTexture
+R_StudioLoadTexture [FWGS, 01.07.24]
 
 load model texture with unique name
 ====================
@@ -3781,6 +3804,7 @@ static void R_StudioLoadTexture (model_t *mod, studiohdr_t *phdr, mstudiotexture
 	int			flags = 0;
 	char		texname[128], name[128], mdlname[128];
 	texture_t	*tx = NULL;
+	qboolean	load_external = false;
 
 	if (ptexture->flags & STUDIO_NF_NORMALMAP)
 		flags |= (TF_NORMALMAP);
@@ -3835,34 +3859,53 @@ static void R_StudioLoadTexture (model_t *mod, studiohdr_t *phdr, mstudiotexture
 		}
 
 	Q_strncpy (mdlname, mod->name, sizeof (mdlname));
-	COM_FileBase (ptexture->name, name, sizeof (name));	// [FWGS, 01.05.23]
+	COM_FileBase (ptexture->name, name, sizeof (name));
 	COM_StripExtension (mdlname);
 
 	if (FBitSet (ptexture->flags, STUDIO_NF_NOMIPS))
 		SetBits (flags, TF_NOMIPMAP);
 
-	// NOTE: replace index with pointer to start of imagebuffer, ImageLib expected it
+	/*// NOTE: replace index with pointer to start of imagebuffer, ImageLib expected it
 	gEngfuncs.Image_SetMDLPointer ((byte *)phdr + ptexture->index);
-	size = sizeof (mstudiotexture_t) + ptexture->width * ptexture->height + 768;
+	size = sizeof (mstudiotexture_t) + ptexture->width * ptexture->height + 768;*/
 
-	// [FWGS, 01.01.24]
 	if (FBitSet (gp_host->features, ENGINE_IMPROVED_LINETRACE) &&
 		FBitSet (ptexture->flags, STUDIO_NF_MASKED))
 		flags |= TF_KEEP_SOURCE; // Paranoia2 texture alpha-tracing
 
-	// build the texname
+	/*// build the texname
 	Q_snprintf (texname, sizeof (texname), "#%s/%s.mdl", mdlname, name);
-	ptexture->index = GL_LoadTexture (texname, (byte *)ptexture, size, flags);
+	ptexture->index = GL_LoadTexture (texname, (byte *)ptexture, size, flags);*/
+
+	// NOTE: colormaps must have the palette for properly work. Ignore them
+	if (Mod_AllowMaterials () && !FBitSet (ptexture->flags, STUDIO_NF_COLORMAP))
+		{
+		if (R_SearchForTextureReplacement (texname, sizeof (texname), mdlname, "materials/%s/%s.tga", mdlname, name))
+			{
+			int gl_texturenum = GL_LoadTexture (texname, NULL, 0, flags);
+			R_TextureReplacementReport (mdlname, gl_texturenum, texname);
+			if ((load_external = gl_texturenum != 0))
+				ptexture->index = gl_texturenum;
+			}
+		}
+
+	if (!load_external)
+		{
+		// NOTE: replace index with pointer to start of imagebuffer, ImageLib expected it
+		gEngfuncs.Image_SetMDLPointer ((byte *)phdr + ptexture->index);
+		size = sizeof (mstudiotexture_t) + ptexture->width * ptexture->height + 768;
+
+		// build the texname
+		Q_snprintf (texname, sizeof (texname), "#%s/%s.mdl", mdlname, name);
+		ptexture->index = GL_LoadTexture (texname, (byte *)ptexture, size, flags);
+		}
 
 	if (!ptexture->index)
-		{
 		ptexture->index = tr.defaultTexture;
-		}
+
+	// duplicate texnum for easy acess
 	else if (tx)
-		{
-		// duplicate texnum for easy acess
 		tx->gl_texturenum = ptexture->index;
-		}
 	}
 
 /***

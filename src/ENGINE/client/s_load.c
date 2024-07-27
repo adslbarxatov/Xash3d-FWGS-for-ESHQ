@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -126,7 +126,7 @@ static wavdata_t *S_CreateDefaultSound (void)
 
 /***
 =================
-S_LoadSound [FWGS, 09.05.24]
+S_LoadSound [FWGS, 01.07.24]
 =================
 ***/
 wavdata_t *S_LoadSound (sfx_t *sfx)
@@ -147,8 +147,10 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 	if (Q_stricmp (sfx->name, "*default"))
 		{
 		// load it from disk
-		if ((s_warn_late_precache.value > 0) && CL_Active ())
-			Con_Printf (S_WARN "S_LoadSound: late precache of %s\n", sfx->name);
+		/*if ((s_warn_late_precache.value > 0) && CL_Active ())
+			Con_Printf (S_WARN "S_LoadSound: late precache of %s\n", sfx->name);*/
+		if ((s_warn_late_precache.value > 0) && (cls.state == ca_active))
+			Con_Printf (S_WARN "%s: late precache of %s\n", __func__, sfx->name);
 
 		if (sfx->name[0] == '*')
 			sc = FS_LoadSound (sfx->name + 1, NULL, 0);
@@ -167,7 +169,6 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 		Sound_Process (&sc, SOUND_44k, sc->width, SOUND_RESAMPLE);
 
 	sfx->cache = sc;
-
 	return sfx->cache;
 	}
 

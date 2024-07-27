@@ -832,8 +832,8 @@ class CScriptedSentence : public CBaseToggle
 
 		void KeyValue (KeyValueData *pkvd);
 		void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-		void EXPORT FindThink (void);
-		void EXPORT DelayThink (void);
+		void HLEXPORT FindThink (void);
+		void HLEXPORT DelayThink (void);
 		int	 ObjectCaps (void) { return (CBaseToggle::ObjectCaps () & ~FCAP_ACROSS_TRANSITION); }
 
 		virtual int		Save (CSave &save);

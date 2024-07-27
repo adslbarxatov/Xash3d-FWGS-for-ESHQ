@@ -67,25 +67,25 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 //  bytes will be stripped by the networking channel layer
 #define NET_MAX_MESSAGE		PAD_NUMBER(( NET_MAX_PAYLOAD + HEADER_BYTES ), 16 )
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.07.24]
 #define MASTERSERVER_ADR		"mentality.rip:27010"
-#define MASTERSERVER_ADR_TEST	"mentality.rip:27011"
+/*#define MASTERSERVER_ADR_TEST	"mentality.rip:27011"*/
 #define MS_SCAN_REQUEST			"1\xFF" "0.0.0.0:0\0"
 
-#define PORT_MASTER			27010
-#define PORT_CLIENT			27005
-#define PORT_SERVER			27015
+#define PORT_MASTER		27010
+#define PORT_CLIENT		27005
+#define PORT_SERVER		27015
 
 #define MULTIPLAYER_BACKUP		64	// how many data slots to use when in multiplayer (must be power of 2)
 #define SINGLEPLAYER_BACKUP		16	// same for single player
-#define CMD_BACKUP			64	// allow a lot of command backups for very fast systems
-#define CMD_MASK			(CMD_BACKUP - 1)
+#define CMD_BACKUP				64	// allow a lot of command backups for very fast systems
+#define CMD_MASK				(CMD_BACKUP - 1)
 #define NUM_PACKET_ENTITIES		256	// 170 Mb for multiplayer with 32 players
-#define MAX_CUSTOM_BASELINES		64
-#define NET_LEGACY_EXT_SPLIT		(1U<<1)
-#define NETSPLIT_BACKUP 8
-#define NETSPLIT_BACKUP_MASK (NETSPLIT_BACKUP - 1)
-#define NETSPLIT_HEADER_SIZE 18
+#define MAX_CUSTOM_BASELINES	64
+#define NET_LEGACY_EXT_SPLIT	(1U<<1)
+#define NETSPLIT_BACKUP			8
+#define NETSPLIT_BACKUP_MASK	(NETSPLIT_BACKUP - 1)
+#define NETSPLIT_HEADER_SIZE	18
 
 #if XASH_LOW_MEMORY == 2
 #undef MULTIPLAYER_BACKUP

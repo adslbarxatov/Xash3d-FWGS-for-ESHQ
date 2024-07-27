@@ -121,6 +121,28 @@ const char *svc_goldsrc_strings[svc_lastmsg + 1] =
 	[svc_goldsrc_sendcvarvalue2] = "svc_goldsrc_sendcvarvalue2",
 	};
 
+// [FWGS, 01.07.24]
+const char *svc_quake_strings[svc_lastmsg + 1] =
+	{
+	[svc_updatestat] = "svc_quake_updatestat",
+	[svc_version] = "svc_quake_version",
+	[svc_updatename] = "svc_quake_updatename",
+	[svc_updatefrags] = "svc_quake_updatefrags",
+	[svc_stopsound] = "svc_quake_stopsound",
+	[svc_updatecolors] = "svc_quake_updatecolors",
+	[svc_damage] = "svc_quake_damage",
+	[svc_spawnbinary] = "svc_quake_spawnbinary",
+	[svc_killedmonster] = "svc_quake_killedmonster",
+	[svc_foundsecret] = "svc_quake_foundsecret",
+	[svc_spawnstaticsound] = "svc_quake_spawnstaticsound",
+	[svc_sellscreen] = "svc_quake_sellscreen",
+	[svc_showlmp] = "svc_quake_showlmp",
+	[svc_hidelmp] = "svc_quake_hidelmp",
+	[svc_skybox] = "svc_quake_skybox",
+	[svc_skyboxsize] = "svc_quake_skyboxsize",
+	[svc_fog] = "svc_quake_fog",
+	};
+
 void MSG_InitMasks (void)
 	{
 	uint	startbit, endbit;
@@ -150,8 +172,10 @@ void MSG_WriteOneBit (sizebuf_t *sb, int nValue)
 	{
 	if (!MSG_Overflow (sb, 1))
 		{
-		if (nValue) sb->pData[sb->iCurBit >> 3] |= BIT (sb->iCurBit & 7);
-		else sb->pData[sb->iCurBit >> 3] &= ~BIT (sb->iCurBit & 7);
+		if (nValue)
+			sb->pData[sb->iCurBit >> 3] |= BIT (sb->iCurBit & 7);
+		else
+			sb->pData[sb->iCurBit >> 3] &= ~BIT (sb->iCurBit & 7);
 
 		sb->iCurBit++;
 		}
@@ -232,13 +256,14 @@ void MSG_WriteBitLong (sizebuf_t *sb, uint data, int numbits, qboolean bSigned)
 	{
 	if (bSigned)
 		MSG_WriteSBitLong (sb, (int)data, numbits);
-	else MSG_WriteUBitLong (sb, data, numbits);
+	else
+		MSG_WriteUBitLong (sb, data, numbits);
 	}
 
 qboolean MSG_WriteBits (sizebuf_t *sb, const void *pData, int nBits)
 	{
-	byte *pOut = (byte *)pData;
-	int	nBitsLeft = nBits;
+	byte	*pOut = (byte *)pData;
+	int		nBitsLeft = nBits;
 
 	// [FWGS, 01.07.23] get output dword-aligned
 	while ((((uint32_t)pOut & 3) != 0) && (nBitsLeft >= 8))
@@ -279,7 +304,7 @@ qboolean MSG_WriteBits (sizebuf_t *sb, const void *pData, int nBits)
 void MSG_WriteBitAngle (sizebuf_t *sb, float fAngle, int numbits)
 	{
 	uint	mask, shift;
-	int	d;
+	int		d;
 
 	// clamp the angle before receiving
 	fAngle = fmod (fAngle, 360.0f);

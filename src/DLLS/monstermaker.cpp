@@ -37,9 +37,9 @@ class CMonsterMaker : public CBaseMonster
 		void Spawn (void);
 		void Precache (void);
 		void KeyValue (KeyValueData *pkvd);
-		void EXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-		void EXPORT CyclicUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-		void EXPORT MakerThink (void);
+		void HLEXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT CyclicUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT MakerThink (void);
 		void DeathNotice (entvars_t *pevChild);
 		// monster maker children use this to tell the monster maker that they have died
 

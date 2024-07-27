@@ -40,10 +40,10 @@ class CRoach : public CBaseMonster
 		void Spawn (void);
 		void Precache (void);
 		void SetYawSpeed (void);
-		void EXPORT MonsterThink (void);
+		void HLEXPORT MonsterThink (void);
 		void Move (float flInterval);
 		void PickNewDest (int iCondition);
-		void EXPORT Touch (CBaseEntity *pOther);
+		void HLEXPORT Touch (CBaseEntity *pOther);
 		void Killed (entvars_t *pevAttacker, int iGib);
 
 		float	m_flLastLightLevel;

@@ -267,9 +267,7 @@ qboolean VoiceCapture_Init (void)
 	SDL_AudioSpec wanted, spec;
 
 	if (!SDLash_IsAudioError (in_dev))
-		{
 		VoiceCapture_Shutdown ();
-		}
 
 	SDL_zero (wanted);
 	wanted.freq = voice.samplerate;
@@ -280,14 +278,17 @@ qboolean VoiceCapture_Init (void)
 
 	in_dev = SDL_OpenAudioDevice (NULL, SDL_TRUE, &wanted, &spec, 0);
 
+	// [FWGS, 01.07.24]
 	if (SDLash_IsAudioError (in_dev))
 		{
-		Con_Printf ("VoiceCapture_Init: error creating capture device (%s)\n", SDL_GetError ());
+		Con_Printf ("%s: error creating capture device (%s)\n", __func__, SDL_GetError ());
 		return false;
 		}
 
-	Con_Printf (S_NOTE "VoiceCapture_Init: capture device creation success (%i: %s)\n",
-		in_dev, SDL_GetAudioDeviceName (in_dev, SDL_TRUE));
+	// [FWGS, 01.07.24]
+	Con_Printf (S_NOTE "%s: capture device creation success (%i: %s)\n", __func__, in_dev,
+		SDL_GetAudioDeviceName (in_dev, SDL_TRUE));
+
 	return true;
 	}
 

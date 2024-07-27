@@ -188,7 +188,7 @@ class CFuncIllusionary: public CBaseToggle
 	{
 	public:
 		void Spawn (void);
-		void EXPORT SloshTouch (CBaseEntity* pOther);
+		void HLEXPORT SloshTouch (CBaseEntity* pOther);
 		// ESHQ
 		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		void KeyValue (KeyValueData* pkvd);
@@ -259,12 +259,12 @@ class CFuncRotating: public CBaseEntity
 		// basic functions
 		void Spawn (void);
 		void Precache (void);
-		void EXPORT SpinUp (void);
-		void EXPORT SpinDown (void);
+		void HLEXPORT SpinUp (void);
+		void HLEXPORT SpinDown (void);
 		void KeyValue (KeyValueData* pkvd);
-		void EXPORT HurtTouch (CBaseEntity* pOther);
-		void EXPORT RotatingUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-		void EXPORT Rotate (void);
+		void HLEXPORT HurtTouch (CBaseEntity* pOther);
+		void HLEXPORT RotatingUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT Rotate (void);
 		void RampPitchVol (int fUp);
 		void Blocked (CBaseEntity* pOther);
 		virtual int	ObjectCaps (void) { return CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }

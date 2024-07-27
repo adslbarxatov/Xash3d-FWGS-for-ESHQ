@@ -22,22 +22,22 @@ GNU General Public License for more details.
 #include "hltv.h"
 #include "input.h"
 
-#define STAT_HEALTH		0
-#define STAT_FRAGS		1
-#define STAT_WEAPON		2
-#define STAT_AMMO		3
-#define STAT_ARMOR		4
+#define STAT_HEALTH			0
+#define STAT_FRAGS			1
+#define STAT_WEAPON			2
+#define STAT_AMMO			3
+#define STAT_ARMOR			4
 #define STAT_WEAPONFRAME	5
-#define STAT_SHELLS		6
-#define STAT_NAILS		7
-#define STAT_ROCKETS	8
-#define STAT_CELLS		9
+#define STAT_SHELLS			6
+#define STAT_NAILS			7
+#define STAT_ROCKETS		8
+#define STAT_CELLS			9
 #define STAT_ACTIVEWEAPON	10
 #define STAT_TOTALSECRETS	11
 #define STAT_TOTALMONSTERS	12
-#define STAT_SECRETS	13		// bumped on client side by svc_foundsecret
-#define STAT_MONSTERS	14		// bumped by svc_killedmonster
-#define MAX_STATS		32
+#define STAT_SECRETS		13	// bumped on client side by svc_foundsecret
+#define STAT_MONSTERS		14	// bumped by svc_killedmonster
+#define MAX_STATS			32
 
 static char	cmd_buf[8192];
 static char	msg_buf[8192];
@@ -647,10 +647,11 @@ static void CL_ParseQuakeDamage (sizebuf_t *msg)
 
 /***
 ===================
-CL_ParseQuakeStaticEntity
+CL_ParseStaticEntity [FWGS, 01.07.24]
 ===================
 ***/
-static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
+/*static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)*/
+static void CL_ParseStaticEntity (sizebuf_t *msg)
 	{
 	entity_state_t	state;
 	cl_entity_t		*ent;
@@ -672,7 +673,7 @@ static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	i = clgame.numStatics;
 	if (i >= MAX_STATIC_ENTITIES)
 		{
-		Con_Printf (S_ERROR "CL_ParseStaticEntity: static entities limit exceeded!\n");
+		Con_Printf (S_ERROR "%s: static entities limit exceeded!\n", __func__);
 		return;
 		}
 
@@ -710,7 +711,7 @@ static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 
 /***
 ===================
-CL_ParseQuakeBaseline [FWGS, 01.11.23]
+CL_ParseQuakeBaseline [FWGS, 01.07.24]
 ===================
 ***/
 static void CL_ParseQuakeBaseline (sizebuf_t *msg)
@@ -722,7 +723,7 @@ static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	newnum = MSG_ReadWord (msg); // entnum
 
 	if (newnum >= clgame.maxEntities)
-		Host_Error ("CL_AllocEdict: no free edicts\n");
+		Host_Error ("%s: no free edicts\n", __func__);
 
 	// parse baseline
 	memset (&state, 0, sizeof (state));
@@ -768,7 +769,7 @@ static void CL_ParseQuakeTempEntity (sizebuf_t *msg)
 	MSG_WriteCoord (&msg_demo, MSG_ReadCoord (msg));
 
 	// TE_LIGHTNING1, TE_LIGHTNING2, TE_LIGHTNING3, TE_BEAM, TE_EXPLOSION3, TE_LIGHTNING4
-	if (type == 5 || type == 6 || type == 9 || type == 13 || type == 16 || type == 17)
+	if ((type == 5) || (type == 6) || (type == 9) || (type == 13) || (type == 16) || (type == 17))
 		{
 		// write endpos for beams
 		MSG_WriteCoord (&msg_demo, MSG_ReadCoord (msg));
@@ -801,8 +802,10 @@ static void CL_ParseQuakeSignon (sizebuf_t *msg)
 	{
 	int	i = MSG_ReadByte (msg);
 
-	if (i == 3) cls.signon = SIGNONS - 1;
-	Con_Reportf ("CL_Signon: %d\n", i);
+	if (i == 3)
+		cls.signon = SIGNONS - 1;
+
+	Con_Reportf ("%s: %d\n", __func__, i);	// [FWGS, 01.07.24]
 	}
 
 /***
@@ -865,8 +868,9 @@ static void CL_QuakeExecStuff (void)
 
 	while (1)
 		{
-		// skip whitespace up to a /n
-		while (*text && ((byte)*text) <= ' ' && *text != '\r' && *text != '\n')
+		// [FWGS, 01.07.24] skip whitespace up to a /n
+		/*while (*text && ((byte)*text) <= ' ' && *text != '\r' && *text != '\n')*/
+		while (*text && (((byte)*text) <= ' ') && (*text != '\r') && (*text != '\n'))
 			text++;
 
 		if ((*text == '\n') || (*text == '\r'))
@@ -905,22 +909,23 @@ static void CL_QuakeExecStuff (void)
 
 /***
 ==================
-CL_ParseQuakeMessage
+CL_ParseQuakeMessage [FWGS, 01.07.24]
 ==================
 ***/
-void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)
+/*void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)*/
+void CL_ParseQuakeMessage (sizebuf_t *msg)
 	{
-	int		cmd, param1, param2;
+	int			cmd, param1, param2;
 	size_t		bufStart;
-	const char *str;
+	const char	*str;
 
-	cls.starting_count = MSG_GetNumBytesRead (msg);	// updates each frame
-	CL_Parse_Debug (true);			// begin parsing
+	/*cls.starting_count = MSG_GetNumBytesRead (msg);	// updates each frame
+	CL_Parse_Debug (true);			// begin parsing*/
 
 	// init excise buffer
 	MSG_Init (&msg_demo, "UserMsg", msg_buf, sizeof (msg_buf));
 
-	if (normal_message)
+	/*if (normal_message)
 		{
 		// assume no entity/player update this packet
 		if (cls.state == ca_active)
@@ -932,14 +937,14 @@ void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)
 			{
 			CL_ResetFrame (&cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK]);
 			}
-		}
+		}*/
 
 	// parse the message
 	while (1)
 		{
 		if (MSG_CheckOverflow (msg))
 			{
-			Host_Error ("CL_ParseServerMessage: overflow!\n");
+			Host_Error ("%s: overflow!\n", __func__);	// [FWGS, 01.07.24]
 			return;
 			}
 
@@ -968,119 +973,150 @@ void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)
 			case svc_nop:
 				// this does nothing
 				break;
+
 			case svc_disconnect:
 				CL_DemoCompleted ();
 				break;
+
 			case svc_updatestat:
 				CL_ParseQuakeStats (msg);
 				break;
+
 			case svc_version:
 				param1 = MSG_ReadLong (msg);
 				if (param1 != PROTOCOL_VERSION_QUAKE)
 					Host_Error ("Server is protocol %i instead of %i\n", param1, PROTOCOL_VERSION_QUAKE);
 				break;
+
 			case svc_setview:
 				CL_ParseViewEntity (msg);
 				break;
+
 			case svc_sound:
 				CL_ParseQuakeSound (msg);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_time:
 				Cbuf_AddText ("\n"); // new frame was started
 				CL_ParseServerTime (msg);
 				break;
+
 			case svc_print:
 				str = MSG_ReadString (msg);
 				Con_Printf ("%s%s", str, *str == 2 ? "\n" : "");
 				break;
+
 			case svc_stufftext:
 				CL_QuakeStuffText (MSG_ReadString (msg));
 				break;
+
 			case svc_setangle:
 				cl.viewangles[0] = MSG_ReadAngle (msg);
 				cl.viewangles[1] = MSG_ReadAngle (msg);
 				cl.viewangles[2] = MSG_ReadAngle (msg);
 				break;
+
 			case svc_serverdata:
 				Cbuf_Execute (); // make sure any stuffed commands are done
 				CL_ParseQuakeServerInfo (msg);
 				break;
+
 			case svc_lightstyle:
 				param1 = MSG_ReadByte (msg);
 				str = MSG_ReadString (msg);
 				CL_SetLightstyle (param1, str, cl.mtime[0]);
 				break;
+
 			case svc_updatename:
 				param1 = MSG_ReadByte (msg);
 				Q_strncpy (cl.players[param1].name, MSG_ReadString (msg), sizeof (cl.players[0].name));
 				Q_strncpy (cl.players[param1].model, "player", sizeof (cl.players[0].name));
 				break;
+
 			case svc_updatefrags:
 				param1 = MSG_ReadByte (msg);
 				param2 = MSG_ReadShort (msg);
 				// HACKHACK: store frags into spectator
 				cl.players[param1].spectator = param2;
 				break;
+
 			case svc_clientdata:
 				CL_ParseQuakeClientData (msg);
 				cl.frames[cl.parsecountmod].graphdata.client += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_stopsound:
 				param1 = MSG_ReadWord (msg);
 				S_StopSound (param1 >> 3, param1 & 7, NULL);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_updatecolors:
 				param1 = MSG_ReadByte (msg);
 				param2 = MSG_ReadByte (msg);
 				cl.players[param1].topcolor = param2 & 0xF;
 				cl.players[param1].bottomcolor = (param2 & 0xF0) >> 4;
 				break;
+
 			case svc_particle:
 				CL_ParseQuakeParticle (msg);
 				break;
+
 			case svc_damage:
 				CL_ParseQuakeDamage (msg);
 				break;
+
 			case svc_spawnstatic:
-				CL_ParseQuakeStaticEntity (msg);
+				/*CL_ParseQuakeStaticEntity (msg);*/
+				CL_ParseStaticEntity (msg);
 				break;
+
 			case svc_spawnbinary:
 				// never used in Quake
 				break;
 			case svc_spawnbaseline:
 				CL_ParseQuakeBaseline (msg);
 				break;
+
 			case svc_temp_entity:
 				CL_ParseQuakeTempEntity (msg);
 				cl.frames[cl.parsecountmod].graphdata.tentities += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
+
 			case svc_setpause:
 				cl.paused = MSG_ReadByte (msg);
 				break;
+
 			case svc_signonnum:
 				CL_ParseQuakeSignon (msg);
 				break;
+
 			case svc_centerprint:
 				str = MSG_ReadString (msg);
 				CL_DispatchUserMessage ("HudText", Q_strlen (str), (void *)str);
 				break;
+
 			case svc_killedmonster:
 				CL_DispatchQuakeMessage ("KillMonster"); // just an event
 				break;
+
 			case svc_foundsecret:
 				CL_DispatchQuakeMessage ("FoundSecret"); // just an event
 				break;
+
 			case svc_spawnstaticsound:
 				CL_ParseQuakeStaticSound (msg);
 				break;
+
 			case svc_intermission:
 				cl.intermission = 1;
 				break;
+
 			case svc_finale:
 				CL_ParseFinaleCutscene (msg, 2);
 				break;
+
 			case svc_cdtrack:
 				param1 = MSG_ReadByte (msg);
 				param1 = bound (0, param1, MAX_CDTRACKS - 1); // tracknum
@@ -1090,24 +1126,31 @@ void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)
 					S_StartBackgroundTrack (clgame.cdtracks[cls.forcetrack], clgame.cdtracks[cls.forcetrack], 0, false);
 				else S_StartBackgroundTrack (clgame.cdtracks[param1], clgame.cdtracks[param2], 0, false);
 				break;
+
 			case svc_sellscreen:
 				Cmd_ExecuteString ("help");	// open quake menu
 				break;
+
 			case svc_cutscene:
 				CL_ParseFinaleCutscene (msg, 3);
 				break;
+
 			case svc_hidelmp:
 				CL_ParseNehahraHideLMP (msg);
 				break;
+
 			case svc_showlmp:
 				CL_ParseNehahraShowLMP (msg);
 				break;
+
 			case svc_skybox:
 				Q_strncpy (clgame.movevars.skyName, MSG_ReadString (msg), sizeof (clgame.movevars.skyName));
 				break;
+
 			case svc_skyboxsize:
 				MSG_ReadCoord (msg); // obsolete
 				break;
+
 			case svc_fog:
 				if (MSG_ReadByte (msg))
 					{
@@ -1130,14 +1173,15 @@ void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)
 					clgame.movevars.fog_settings = 0;
 					}
 				break;
+
 			default:
-				Host_Error ("CL_ParseServerMessage: Illegible server message\n");
+				Host_Error ("%s: Illegible server message\n", __func__);
 				break;
 			}
 		}
 
-	cl.frames[cl.parsecountmod].graphdata.msgbytes += MSG_GetNumBytesRead (msg) - cls.starting_count;
-	CL_Parse_Debug (false); // done
+	/*cl.frames[cl.parsecountmod].graphdata.msgbytes += MSG_GetNumBytesRead (msg) - cls.starting_count;
+	CL_Parse_Debug (false); // done*/
 
 	// now process packet.
 	CL_ProcessPacket (&cl.frames[cl.parsecountmod]);

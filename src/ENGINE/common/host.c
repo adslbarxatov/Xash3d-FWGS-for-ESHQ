@@ -10,30 +10,36 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "build.h"
+
 #ifdef XASH_SDL
-#include <SDL.h>
+	#include <SDL.h>
 #endif
 #include <stdarg.h>	// va_args
-#include <errno.h>	// errno
-#include <string.h>	// strerror
+
+// [FWGS, 01.07.24]
+/*#include <errno.h>	// errno
+#include <string.h>	// strerror*/
 #if !XASH_WIN32
-#include <unistd.h>	// fork
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+	#include <unistd.h>	// fork
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <fcntl.h>
 #endif
+
 #if XASH_EMSCRIPTEN
-#include <emscripten/emscripten.h>
+	#include <emscripten/emscripten.h>
 #endif
-#include <errno.h>
+
+// [FWGS, 01.07.24]
+/*#include <errno.h>*/
 #include "common.h"
 #include "base_cmd.h"
 #include "client.h"
-#include "server.h"	// [FWGS, 01.11.23]
+#include "server.h"
 #include "netchan.h"
 #include "protocol.h"
 #include "mod_local.h"
@@ -43,21 +49,26 @@ GNU General Public License for more details.
 #include "render_api.h"	// decallist_t
 #include "tests.h"
 
+// [FWGS, 01.07.24]
 pfnChangeGame	pChangeGame = NULL;
 host_parm_t		host;	// host parms
-sysinfo_t		SI;
+/*sysinfo_t		SI;*/
 
 #ifdef XASH_ENGINE_TESTS
 struct tests_stats_s tests_stats;
 #endif
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.07.24]
 CVAR_DEFINE (host_developer, "developer", "0", FCVAR_FILTERABLE,
 	"engine is in development-mode");
 CVAR_DEFINE_AUTO (sys_timescale, "1.0", FCVAR_FILTERABLE,
 	"scale frame time");
-CVAR_DEFINE_AUTO (sys_ticrate, "100", 0,
+
+/*CVAR_DEFINE_AUTO (sys_ticrate, "100", 0,
+	"framerate in dedicated mode");*/
+CVAR_DEFINE_AUTO (sys_ticrate, "100", FCVAR_SERVER,
 	"framerate in dedicated mode");
+
 static CVAR_DEFINE_AUTO (host_serverstate, "0", FCVAR_READ_ONLY,
 	"displays current server state");
 static CVAR_DEFINE_AUTO (host_gameloaded, "0", FCVAR_READ_ONLY,
@@ -74,6 +85,10 @@ static CVAR_DEFINE (host_sleeptime, "sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILT
 	"milliseconds to sleep for each frame.higher values reduce fps accuracy");
 static CVAR_DEFINE_AUTO (host_sleeptime_debug, "0", 0,
 	"print sleeps between frames");
+
+CVAR_DEFINE_AUTO (host_allow_materials, "0", FCVAR_LATCH | FCVAR_ARCHIVE,
+	"allow texture replacements from materials/ folder");
+
 CVAR_DEFINE (con_gamemaps, "con_mapfilter", "1", FCVAR_ARCHIVE,
 	"when true show only maps in game folder");
 
@@ -107,23 +122,30 @@ static feature_message_t engine_features[] =
 	{ ENGINE_STEP_POSHISTORY_LERP, "MOVETYPE_STEP Position History Based Lerping" },
 	};
 
-// [FWGS, 01.03.24]
-static void Sys_PrintUsage (void)
+// [FWGS, 01.07.24]
+/*static void Sys_PrintUsage (void)*/
+static void Sys_PrintUsage (const char *exename)
 	{
-	string version_str;
-	const char *usage_str;
+	string		version_str;
+	const char	*usage_str;
 
 	Q_snprintf (version_str, sizeof (version_str),
 		XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
 		Q_buildos (), Q_buildarch (), Q_buildnum ());
 
-#if XASH_WIN32
-#define XASH_EXE "(xash).exe"
+/*#if XASH_WIN32
+	#define XASH_EXE "(xash).exe"*/
+#if XASH_MESSAGEBOX != MSGBOX_STDERR
+	#if XASH_WIN32
+		#define XASH_EXE "(xash).exe"
+	#else
+		#define XASH_EXE "(xash)"
+	#endif
 #else
-#define XASH_EXE "(xash)"
+	/*#define XASH_EXE "(xash)"*/
+	#define XASH_EXE "%s"
 #endif
 
-// [FWGS, 01.05.24]
 #define O( x, y ) "  "x"  "y"\n"
 
 	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
@@ -210,7 +232,9 @@ static void Sys_PrintUsage (void)
 #if XASH_MESSAGEBOX != MSGBOX_STDERR
 	Platform_MessageBox (version_str, usage_str, false);
 #else
-	fprintf (stderr, "%s\n%s", version_str, usage_str);
+	/*fprintf (stderr, "%s\n%s", version_str, usage_str);*/
+	fprintf (stderr, "%s\n", version_str);
+	fprintf (stderr, usage_str, exename);
 #endif
 
 	Sys_Quit ();
@@ -334,31 +358,34 @@ void Host_EndGame (qboolean abort, const char *message, ...)
 		Host_AbortCurrentFrame ();
 	}
 
+// [FWGS, 01.07.24] removed Host_AbortCurrentFrame
 /***
 ================
 Host_AbortCurrentFrame
 
 aborts the current host frame and goes on with the next one
 ================
-***/
+/
 void Host_AbortCurrentFrame (void)
 	{
 	longjmp (host.abortframe, 1);
-	}
+	}*/
 
 /***
 ==================
-Host_CalcSleep [FWGS, 01.07.23]
+Host_CalcSleep [FWGS, 01.07.24]
 ==================
 ***/
 static int Host_CalcSleep (void)
 	{
-#ifndef XASH_DEDICATED
+	/*
+	ifndef XASH_DEDICATED
 	// never sleep in timedemo for benchmarking purposes
 	// also don't sleep with vsync for less lag
 	if (CL_IsTimeDemo () || gl_vsync.value)
 		return 0;
-#endif
+	endif
+	*/
 
 	// let the dedicated server some sleep
 	if (Host_IsDedicated ())
@@ -434,7 +461,7 @@ static void Host_ChangeGame_f (void)
 
 /***
 ===============
-Host_Exec_f
+Host_Exec_f [FWGS, 01.07.24]
 ===============
 ***/
 static void Host_Exec_f (void)
@@ -443,7 +470,7 @@ static void Host_Exec_f (void)
 	byte		*f;
 	char		*txt;
 	fs_offset_t	len;
-	const char	*arg;
+	/*const char	*arg;*/
 
 	if (Cmd_Argc () != 2)
 		{
@@ -451,7 +478,9 @@ static void Host_Exec_f (void)
 		return;
 		}
 
-	arg = Cmd_Argv (1);
+	/*arg = Cmd_Argv (1);*/
+	Q_strncpy (cfgpath, Cmd_Argv (1), sizeof (cfgpath));
+	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath)); // append as default
 
 #ifndef XASH_DEDICATED
 	if (!Cmd_CurrentCommandIsPrivileged ())
@@ -464,7 +493,7 @@ static void Host_Exec_f (void)
 			};
 
 		int i;
-		char temp[MAX_VA_STRING];	// [FWGS, 01.04.23]
+		char temp[MAX_VA_STRING];
 		qboolean allow = false;
 
 		Q_snprintf (temp, sizeof (temp), "%s.cfg", clgame.mapname);
@@ -472,7 +501,8 @@ static void Host_Exec_f (void)
 
 		for (i = 0; i < ARRAYSIZE (unprivilegedWhitelist); i++)
 			{
-			if (!Q_strcmp (arg, unprivilegedWhitelist[i]))
+			/*if (!Q_strcmp (arg, unprivilegedWhitelist[i]))*/
+			if (!Q_strcmp (cfgpath, unprivilegedWhitelist[i]))
 				{
 				allow = true;
 				break;
@@ -481,13 +511,14 @@ static void Host_Exec_f (void)
 
 		if (!allow)
 			{
-			Con_Printf ("exec %s: not privileged or in whitelist\n", arg);
+			/*Con_Printf ("exec %s: not privileged or in whitelist\n", arg);*/
+			Con_Printf ("exec %s: not privileged or in whitelist\n", cfgpath);
 			return;
 			}
 		}
 #endif
 
-	if (!Q_stricmp ("game.cfg", arg))
+	/*if (!Q_stricmp ("game.cfg", arg))
 		{
 		// don't execute game.cfg in singleplayer
 		if (SV_GetMaxClients () == 1)
@@ -495,7 +526,11 @@ static void Host_Exec_f (void)
 		}
 
 	Q_strncpy (cfgpath, arg, sizeof (cfgpath));
-	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath)); // [FWGS, 01.05.23] append as default
+	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath)); // [FWGS, 01.05.23] append as default*/
+
+	// don't execute game.cfg in singleplayer
+	if ((SV_GetMaxClients () == 1) && !Q_stricmp ("game.cfg", cfgpath))
+		return;
 
 	f = FS_LoadFile (cfgpath, &len, false);
 	if (!f)
@@ -504,17 +539,23 @@ static void Host_Exec_f (void)
 		return;
 		}
 
-	if (!Q_stricmp ("config.cfg", arg))
+	/*if (!Q_stricmp ("config.cfg", arg))*/
+	if (!Q_stricmp ("config.cfg", cfgpath))
 		host.config_executed = true;
 
 	// adds \n\0 at end of the file
 	txt = Z_Calloc (len + 2);
 	memcpy (txt, f, len);
-	Q_strncat (txt, "\n", len + 2);
+
+	/*Q_strncat (txt, "\n", len + 2);*/
+	txt[len] = '\n';
+	txt[len + 1] = '\0';
 	Mem_Free (f);
 
 	if (!host.apply_game_config)
-		Con_Printf ("execing %s\n", arg);
+		Con_Printf ("execing %s\n", Cmd_Argv (1));
+	/*Con_Printf ("execing %s\n", arg);*/
+
 	Cbuf_InsertText (txt);
 	Mem_Free (txt);
 	}
@@ -552,29 +593,30 @@ static void Host_Minimize_f (void)
 #endif
 	}
 
-/***
+// [FWGS, 01.07.24] removed Host_IsLocalGame, Host_IsLocalClient
+/*
 =================
 Host_IsLocalGame
 
 singleplayer game detect
 =================
-***/
+/
 qboolean Host_IsLocalGame (void)
 	{
 	if (SV_Active ())
 		return (SV_GetMaxClients () == 1) ? true : false;
 
 	return (CL_GetMaxClients () == 1) ? true : false;
-	}
+	}*/
 
-qboolean Host_IsLocalClient (void)
+/*qboolean Host_IsLocalClient (void)
 	{
 	// only the local client have the active server
 	if (CL_Initialized () && SV_Initialized ())
 		return true;
 
 	return false;
-	}
+	}*/
 
 /***
 =================
@@ -591,7 +633,7 @@ static qboolean Host_RegisterDecal (const char *name, int *count)
 
 	COM_FileBase (name, shortname, sizeof (shortname));	// [FWGS, 01.05.23]
 
-	for (i = 1; i < MAX_DECALS && host.draw_decals[i][0]; i++)
+	for (i = 1; (i < MAX_DECALS) && host.draw_decals[i][0]; i++)
 		{
 		if (!Q_stricmp (host.draw_decals[i], shortname))
 			return true;
@@ -612,7 +654,7 @@ static qboolean Host_RegisterDecal (const char *name, int *count)
 
 /***
 =================
-Host_InitDecals
+Host_InitDecals [FWGS, 01.07.24]
 =================
 ***/
 static void Host_InitDecals (void)
@@ -620,9 +662,9 @@ static void Host_InitDecals (void)
 	int			i, num_decals = 0;
 	search_t	*t;
 
-	// NOTE: only once resource without which engine can't continue work
+	/*// NOTE: only once resource without which engine can't continue work
 	if (!FS_FileExists ("gfx/conchars", false))
-		Sys_Error ("W_LoadWadFile: couldn't load gfx.wad\n");
+		Sys_Error ("W_LoadWadFile: couldn't load gfx.wad\n");*/
 
 	memset (host.draw_decals, 0, sizeof (host.draw_decals));
 
@@ -637,7 +679,7 @@ static void Host_InitDecals (void)
 
 	if (t)
 		Mem_Free (t);
-	Con_Reportf ("InitDecals: %i decals\n", num_decals);
+	Con_Reportf ("%s: %i decals\n", __func__, num_decals);
 	}
 
 /***
@@ -660,7 +702,7 @@ static void Host_GetCommands (void)
 
 /***
 ===================
-Host_CalcFPS
+Host_CalcFPS [FWGS, 01.07.24]
 
 compute actual FPS for various modes
 ===================
@@ -672,6 +714,7 @@ static double Host_CalcFPS (void)
 	// без возможности определить источник проблемы (FPS по команде cl_showfps стабилен)
 	double fps = 0.0;
 
+	/*if (Host_IsDedicated ())*/
 	if (Host_IsDedicated ())
 		{
 		fps = sys_ticrate.value;
@@ -686,13 +729,11 @@ static double Host_CalcFPS (void)
 
 	else if (Host_IsLocalGame ())
 		{
-		// [FWGS, 01.07.23]
 		if (!gl_vsync.value)
 			fps = host_maxfps.value;
 		}
 	else
 		{
-		// [FWGS, 01.07.23]
 		if (!gl_vsync.value)
 			{
 			fps = host_maxfps.value;
@@ -791,12 +832,13 @@ static qboolean Host_Autosleep (double dt, double scale)
 
 /***
 ===================
-Host_FilterTime [FWGS, 01.01.24]
+Host_FilterTime [FWGS, 01.07.24]
 
 Returns false if the time is too short to run a frame
 ===================
 ***/
-static qboolean Host_FilterTime (float time)
+/*static qboolean Host_FilterTime (float time)*/
+static qboolean Host_FilterTime (double time)
 	{
 	static double oldtime;
 	double dt;
@@ -824,12 +866,14 @@ static qboolean Host_FilterTime (float time)
 
 /***
 =================
-Host_Frame [FWGS, 01.04.23]
+Host_Frame [FWGS, 01.07.24]
 =================
 ***/
-void Host_Frame (float time)
+/*void Host_Frame (float time)*/
+void Host_Frame (double time)
 	{
-	double t1, t2;
+	/*double t1, t2;*/
+	double t1;
 
 	// decide the simulation time
 	if (!Host_FilterTime (time))
@@ -846,15 +890,16 @@ void Host_Frame (float time)
 	Host_ClientFrame ();	// client frame
 	HTTP_Run ();			// both server and client
 
-	t2 = Sys_DoubleTime ();
-	host.pureframetime = t2 - t1;
+	/*t2 = Sys_DoubleTime ();
+	host.pureframetime = t2 - t1;*/
 
 	host.framecount++;
+	host.pureframetime = Sys_DoubleTime () - t1;
 	}
 
 /***
 =================
-Host_Error [FWGS, 09.05.24]
+Host_Error [FWGS, 01.07.24]
 =================
 ***/
 void GAME_EXPORT Host_Error (const char *error, ...)
@@ -873,11 +918,11 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 
 	if (host.framecount < 3)
 		{
-		Sys_Error ("Host_InitError: %s", hosterror1);
+		Sys_Error ("%sInit: %s", __func__, hosterror1);
 		}
 	else if (host.framecount == host.errorframe)
 		{
-		Sys_Error ("Host_MultiError: %s", hosterror2);
+		Sys_Error ("%sMulti: %s", __func__, hosterror2);
 		}
 	else
 		{
@@ -885,7 +930,7 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 			{
 			UI_SetActiveMenu (false);
 			Key_SetKeyDest (key_console);
-			Con_Printf ("Host_Error: %s", hosterror1);
+			Con_Printf ("%s: %s", __func__, hosterror1);
 			}
 		else
 			{
@@ -899,7 +944,7 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 
 	if (recursive)
 		{
-		Con_Printf ("Host_RecursiveError: %s", hosterror2);
+		Con_Printf ("%sRecursive: %s", __func__, hosterror2);
 		Sys_Error ("%s", hosterror1);
 		}
 
@@ -1050,48 +1095,82 @@ static uint32_t Host_CheckBugcomp (void)
 	return flags;
 	}
 
+// [FWGS, 01.07.24]
+static void Host_DetermineExecutableName (char *out, size_t size)
+	{
+#if XASH_WIN32
+	char temp[MAX_SYSPATH];
+
+	if (GetModuleFileName (NULL, temp, sizeof (temp)))
+		COM_FileBase (temp, out, size);
+#else
+	if (host.argc > 0)
+		COM_FileBase (host.argv[0], out, size);
+	else
+		Q_strncpy (out, "xash", size);
+#endif
+	}
 
 /***
 =================
-Host_InitCommon [FWGS, 01.05.24]
+Host_InitCommon [FWGS, 01.07.24]
 =================
 ***/
-static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)
+/*static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)*/
+static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame,
+	char *exename, size_t exename_size)
 	{
-	char	dev_level[4];
+	/*char	dev_level[4];
 	int		developer = DEFAULT_DEV;
 	const char *baseDir;
 	char	ticrate[16];
-	int		len, i;
+	int		len, i;*/
+	const char	*basedir = (progname[0] == '#') ? (progname + 1) : progname;
+	char		dev_level[4], ticrate[16];
+	int			developer = DEFAULT_DEV;
 
 	// some commands may turn engine into infinite loop,
 	// e.g. xash.exe +game xash -game xash
 	// so we clear all cmd_args, but leave dbg states as well
 	Sys_ParseCommandLine (argc, argv);
 
+	Host_DetermineExecutableName (exename, exename_size);
+
+	/*if (!Sys_CheckParm ("-disablehelp"))*/
 	if (!Sys_CheckParm ("-disablehelp"))
 		{
+		/*if (Sys_CheckParm ("-help") || Sys_CheckParm ("-h") || Sys_CheckParm ("--help"))
+			Sys_PrintUsage ();*/
 		if (Sys_CheckParm ("-help") || Sys_CheckParm ("-h") || Sys_CheckParm ("--help"))
-			Sys_PrintUsage ();
+			Sys_PrintUsage (exename);
 		}
 
+	/*if (!Sys_CheckParm ("-noch"))*/
 	if (!Sys_CheckParm ("-noch"))
 		Sys_SetupCrashHandler ();
 
+#if XASH_DLL_LOADER
 	host.enabledll = !Sys_CheckParm ("-nodll");
+#endif
 
 	host.change_game = bChangeGame || Sys_CheckParm ("-changegame");
 	host.config_executed = false;
-	host.status = HOST_INIT; // initialzation started
+	host.status = HOST_INIT;	// initialzation started
+
+	host.type = HOST_DEDICATED;	// predict state
+#ifndef XASH_DEDICATED
+	if (!Sys_CheckParm ("-dedicated"))
+		host.type = HOST_NORMAL;
+#endif
 
 	Memory_Init (); // init memory subsystem
 
 	host.mempool = Mem_AllocPool ("Zone Engine");
 	host.allow_console = DEFAULT_ALLOWCONSOLE;
 
-	// HACKHACK: Quake console is always allowed
+	/*// HACKHACK: Quake console is always allowed
 	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_stricmp (SI.exeName, "quake")))
-		host.allow_console = true;
+		host.allow_console = true;*/
 
 	if (Sys_CheckParm ("-dev"))
 		{
@@ -1113,16 +1192,16 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		}
 #endif
 
-	host.con_showalways = true;
+	/*host.con_showalways = true;
 
-#if XASH_DEDICATED
+if XASH_DEDICATED
 	host.type = HOST_DEDICATED; // predict state
-#else
+else
 	if (Sys_CheckParm ("-dedicated") || (progname[0] == '#'))
 		host.type = HOST_DEDICATED;
 	else
 		host.type = HOST_NORMAL;
-#endif
+endif
 
 	// set default gamedir
 	if (progname[0] == '#')
@@ -1133,16 +1212,18 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	if (Host_IsDedicated ())
 		{
-		Sys_MergeCommandLine ();
+		Sys_MergeCommandLine ();*/
 
+	// always enable console for Quake
+	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_strnicmp (exename, "quake", 5)))
 		host.allow_console = true;
-		}
+	/*}
 	else
 		{
 		// don't show console as default
 		if (developer <= DEV_NORMAL)
 			host.con_showalways = false;
-		}
+	}*/
 
 	// member console allowing
 	host.allow_console_init = host.allow_console;
@@ -1171,13 +1252,15 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		Cvar_SetValue ("sys_ticrate", fps);
 		}
 
-	Con_Init (); // early console running to catch all the messages
+	// early console running to catch all the messages
+	Con_Init ();
 
 #if XASH_ENGINE_TESTS
 	if (Sys_CheckParm ("-runtests"))
 		Host_RunTests (0);
 #endif
 
+	/*
 	Platform_Init ();
 
 	baseDir = getenv ("XASH3D_BASEDIR");
@@ -1189,12 +1272,12 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	else
 		{
 
-#if TARGET_OS_IOS
+	if TARGET_OS_IOS
 		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));
-#elif XASH_ANDROID && XASH_SDL
+	elif XASH_ANDROID && XASH_SDL
 		Q_strncpy (host.rootdir, SDL_AndroidGetExternalStoragePath (), sizeof (host.rootdir));
 
-#elif XASH_PSVITA
+	elif XASH_PSVITA
 		if (!PSVita_GetBasePath (host.rootdir, sizeof (host.rootdir)))
 			{
 			Sys_Error ("couldn't find xash3d data directory");
@@ -1202,7 +1285,7 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 			}
 
 		// GetBasePath not impl'd in switch-sdl2
-#elif (XASH_SDL == 2) && !XASH_NSWITCH 
+	elif (XASH_SDL == 2) && !XASH_NSWITCH 
 		char *szBasePath = SDL_GetBasePath ();
 		if (szBasePath)
 			{
@@ -1212,26 +1295,26 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		else
 			{
 
-#if XASH_POSIX || XASH_WIN32
+	if XASH_POSIX || XASH_WIN32
 			if (!getcwd (host.rootdir, sizeof (host.rootdir)))
 				Sys_Error ("couldn't determine current directory: %s, getcwd: %s", SDL_GetError (), strerror (errno));
-#else
+	else
 			Sys_Error ("couldn't determine current directory: %s", SDL_GetError ());
-#endif
+	endif
 			}
 
-#else
+	else
 		if (!getcwd (host.rootdir, sizeof (host.rootdir)))
 			{
 			Sys_Error ("couldn't determine current directory: %s", strerror (errno));
 			host.rootdir[0] = 0;
 			}
-#endif
+	endif
 		}
 
-#if XASH_WIN32
+	if XASH_WIN32
 	COM_FixSlashes (host.rootdir);
-#endif
+	endif
 
 	len = Q_strlen (host.rootdir);
 
@@ -1249,9 +1332,9 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 			Q_strncpy (host.rodir, roDir, sizeof (host.rodir));
 		}
 
-#if XASH_WIN32
+	if XASH_WIN32
 	COM_FixSlashes (host.rootdir);
-#endif
+	endif
 
 	len = Q_strlen (host.rodir);
 
@@ -1270,7 +1353,9 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	// when it will have an option to return string error, restore Sys_Error
 	FS_SetCurrentDirectory (host.rootdir);
 
-	FS_Init ();
+	FS_Init ();*/
+	Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED));
+	FS_Init (basedir);
 	Sys_InitLog ();
 
 	// print current developer level to simplify processing users feedback
@@ -1296,7 +1381,7 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	FS_LoadGameInfo (NULL);
 	Cvar_PostFSInit ();
 
-	Q_strncpy (host.gamefolder, GI->gamefolder, sizeof (host.gamefolder));
+	/*Q_strncpy (host.gamefolder, GI->gamefolder, sizeof (host.gamefolder));
 
 	for (i = 0; i < 3; i++)
 		{
@@ -1318,16 +1403,23 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 				rcName = host.gamefolder;
 				break;
 			}
-
-		if (FS_FileExists (va ("%s.rc", rcName), false))
-			{
-			Q_strncpy (SI.rcName, rcName, sizeof (SI.rcName));
-			break;
-			}
-		}
-
+	*/
 	Image_CheckPaletteQ1 ();
-	Host_InitDecals ();	// reload decals
+
+	/*if (FS_FileExists (va ("%s.rc", rcName), false))
+		{
+		Q_strncpy (SI.rcName, rcName, sizeof (SI.rcName));
+		break;
+		}
+	}*/
+
+	// NOTE: only once resource without which engine can't continue work
+	if (!FS_FileExists ("gfx/conchars", false))
+		Sys_Error ("%s: couldn't load gfx.wad\n", __func__);
+
+	// reload decals
+	/*Image_CheckPaletteQ1 ();*/
+	Host_InitDecals ();
 
 	HPAK_Init ();
 
@@ -1346,17 +1438,20 @@ static void Host_FreeCommon (void)
 
 /***
 =================
-Host_Main
+Host_Main [FWGS, 01.07.24]
 =================
 ***/
-int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
+int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
 	{
 	static double	oldtime, newtime;
-	string			demoname;			// [FWGS, 01.11.23]
-	host.starttime = Sys_DoubleTime ();	// [FWGS, 01.04.23]
-	pChangeGame = func;					// may be NULL
+	/*string			demoname;			// [FWGS, 01.11.23]*/
+	string			demoname, exename;
 
-	Host_InitCommon (argc, argv, progname, bChangeGame);
+	host.starttime = Sys_DoubleTime ();
+	pChangeGame = func;		// may be NULL
+
+	/*Host_InitCommon (argc, argv, progname, bChangeGame);*/
+	Host_InitCommon (argc, argv, progname, bChangeGame, exename, sizeof (exename));
 
 	// init commands and vars
 	if (host_developer.value >= DEV_EXTENDED)
@@ -1366,20 +1461,19 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		Cmd_AddRestrictedCommand ("crash", Host_Crash_f, "a way to force a bus error for development reasons");
 		}
 
-	// [FWGS, 01.07.23]
+	Cvar_RegisterVariable (&host_allow_materials);
+
 	Cvar_RegisterVariable (&host_serverstate);
 	Cvar_RegisterVariable (&host_maxfps);
 	Cvar_RegisterVariable (&host_framerate);
 	Cvar_RegisterVariable (&host_sleeptime);
-	Cvar_RegisterVariable (&host_sleeptime_debug);	// [FWGS, 01.01.24]
+	Cvar_RegisterVariable (&host_sleeptime_debug);
 	Cvar_RegisterVariable (&host_gameloaded);
 	Cvar_RegisterVariable (&host_clientloaded);
 	Cvar_RegisterVariable (&host_limitlocal);
 	Cvar_RegisterVariable (&con_gamemaps);
-
 	Cvar_RegisterVariable (&sys_timescale);
 
-	// [FWGS, 01.07.23]
 	Cvar_Getf ("buildnum", FCVAR_READ_ONLY, "returns a current build number", "%i", Q_buildnum_compat ());
 	Cvar_Getf ("ver", FCVAR_READ_ONLY, "shows an engine version", "%i/%s (hw build %i)", PROTOCOL_VERSION,
 		XASH_COMPAT_VERSION, Q_buildnum_compat ());
@@ -1411,13 +1505,16 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 
 	HTTP_Init ();
 	ID_Init ();
-	SoundList_Init ();	// [FWGS, 01.03.24]
+	SoundList_Init ();
 
 	if (Host_IsDedicated ())
 		{
 #ifdef _WIN32
 		Wcon_InitConsoleCommands ();
 #endif
+
+		// disable texture replacements for dedicated
+		Cvar_FullSet ("host_allow_materials", "0", FCVAR_READ_ONLY);
 
 		Cmd_AddRestrictedCommand ("quit", Sys_Quit, "quit the game");
 		Cmd_AddRestrictedCommand ("exit", Sys_Quit, "quit the game");
@@ -1427,8 +1524,10 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		Cmd_AddRestrictedCommand ("minimize", Host_Minimize_f, "minimize main window to tray");
 		}
 
-	HPAK_CheckIntegrity (CUSTOM_RES_PATH);	// [FWGS, 01.05.23]
+	/*HPAK_CheckIntegrity (CUSTOM_RES_PATH);	// [FWGS, 01.05.23]*/
 	host.errorframe = 0;
+	if (progname[0] == '#')
+		progname++;
 
 	// post initializations
 	switch (host.type)
@@ -1437,8 +1536,14 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 #ifdef _WIN32
 			Wcon_ShowConsole (false); // hide console
 #endif
-			// [FWGS, 01.04.23] execute startup config and cmdline
-			Cbuf_AddTextf ("exec %s.rc\n", SI.rcName);
+			// execute startup config and cmdline
+			/*Cbuf_AddTextf ("exec %s.rc\n", SI.rcName);*/
+			if (FS_FileExists (va ("%s.rc", progname), false)) // e.g. valve.rc
+				Cbuf_AddTextf ("exec %s.rc", progname);
+			else if (FS_FileExists (va ("%s.rc", exename), false)) // e.g. quake.rc
+				Cbuf_AddTextf ("exec %s.rc", exename);
+			else if (FS_FileExists (va ("%s.rc", GI->gamefolder), false)) // e.g. game.rc (ran from default launcher)
+				Cbuf_AddTextf ("exec %s.rc", GI->gamefolder);
 			Cbuf_Execute ();
 
 			if (!host.config_executed)
@@ -1479,7 +1584,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 
 	SCR_CheckStartupVids ();	// must be last
 
-	// [FWGS, 01.11.23]
 	if (Sys_GetParmFromCmdLine ("-timedemo", demoname))
 		Cbuf_AddTextf ("timedemo %s\n", demoname);
 
@@ -1491,7 +1595,7 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		// so set it here as we're finished initializing
 		host.status = HOST_FRAME;
 
-		// [FWGS, 01.05.24] FIXME: implement autocomplete on *nix
+		// FIXME: implement autocomplete on *nix
 		if (GameState->nextstate == STATE_RUNFRAME)
 #if XASH_WIN32
 			Con_Printf ("Type 'map <mapname>' to start game... (TAB-autocomplete is working too)\n");
@@ -1504,6 +1608,9 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		Cbuf_AddTextf ("exec %s\n", Cvar_VariableString ("servercfgfile"));
 		Cbuf_Execute ();
 		}
+
+	// check after all configs were executed
+	HPAK_CheckIntegrity (hpk_custom_file.string);
 
 	// main window message loop
 	while (!host.crashed)
@@ -1522,7 +1629,7 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 Host_Shutdown [FWGS, 01.01.24]
 =================
 ***/
-void EXPORT Host_Shutdown (void)
+void HLEXPORT Host_Shutdown (void)
 	{
 	qboolean error = host.status == HOST_ERR_FATAL;
 

@@ -566,9 +566,11 @@ static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_stor
 					asyncfailed = false;
 					return NET_EAI_AGAIN;
 					}
-				else // failed to create thread
+
+				// [FWGS, 01.07.24] failed to create thread
+				else
 					{
-					Con_Reportf (S_ERROR "NET_StringToSockaddr: failed to create thread!\n");
+					Con_Reportf (S_ERROR "%s: failed to create thread!\n", __func__);
 					nsthread.busy = false;
 					}
 				}
@@ -954,11 +956,12 @@ qboolean NET_CompareAdr (const netadr_t a, const netadr_t b)
 
 	if (a.type6 == NA_IP6)
 		{
-		if (a.port == b.port && !NET_NetadrIP6Compare (&a, &b))
+		if ((a.port == b.port) && !NET_NetadrIP6Compare (&a, &b))
 			return true;
 		}
 
-	Con_DPrintf (S_ERROR "NET_CompareAdr: bad address type\n");
+	// [FWGS, 01.07.24]
+	Con_DPrintf (S_ERROR "%s: bad address type\n", __func__);
 	return false;
 	}
 
@@ -1422,7 +1425,8 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 		}
 	else
 		{
-		Con_DPrintf ("NET_GetLong: Ignoring duplicated split packet %i of %i ( %i bytes )\n",
+		// [FWGS, 01.07.24]
+		Con_DPrintf ("%s: Ignoring duplicated split packet %i of %i ( %i bytes )\n", __func__,
 			packet_number + 1, packet_count, size);
 		}
 
@@ -1470,8 +1474,13 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 		{
 		switch (protocol)
 			{
-			case 0: net_socket = net.ip_sockets[sock]; break;
-			case 1: net_socket = net.ip6_sockets[sock]; break;
+			case 0:
+				net_socket = net.ip_sockets[sock];
+				break;
+
+			case 1:
+				net_socket = net.ip6_sockets[sock];
+				break;
 			}
 
 		if (!NET_IsSocketValid (net_socket))
@@ -1489,22 +1498,23 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 				// Transfer data
 				memcpy (data, buf, ret);
 				*length = ret;
+
 #if !XASH_DEDICATED
 				if (CL_LegacyMode ())
 					return NET_LagPacket (true, sock, from, length, data);
 
 				// check for split message
-				if (sock == NS_CLIENT && *(int *)data == NET_HEADER_SPLITPACKET)
-					{
+				if ((sock == NS_CLIENT) && (*(int *)data == NET_HEADER_SPLITPACKET))
 					return NET_GetLong (data, ret, length, CL_GetSplitSize ());
-					}
 #endif
+
 				// lag the packet, if needed
 				return NET_LagPacket (true, sock, from, length, data);
 				}
 			else
 				{
-				Con_Reportf ("NET_QueuePacket: oversize packet from %s\n", NET_AdrToString (*from));
+				// [FWGS, 01.07.24]
+				Con_Reportf ("%s: oversize packet from %s\n", __func__, NET_AdrToString (*from));
 				}
 			}
 		else
@@ -1519,9 +1529,10 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 				case WSAEMSGSIZE:
 				case WSAETIMEDOUT:
 					break;
-				default:	// let's continue even after errors
-					Con_DPrintf (S_ERROR "NET_QueuePacket: %s from %s\n", NET_ErrorString (),
-						NET_AdrToString (*from));
+
+				default:
+					// [FWGS, 01.07.24] let's continue even after errors
+					Con_DPrintf (S_ERROR "%s: %s from %s\n", __func__, NET_ErrorString (), NET_AdrToString (*from));
 					break;
 				}
 			}
@@ -1564,11 +1575,11 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 	// do we need to break this packet up?
 	if (splitsize > sizeof (SPLITPACKET) && sock == NS_SERVER && len > splitsize)
 		{
-		char		packet[SPLITPACKET_MAX_SIZE];
+		char	packet[SPLITPACKET_MAX_SIZE];
 		int		total_sent, size, packet_count;
 		int		ret, packet_number;
-		int body_size = splitsize - sizeof (SPLITPACKET);
-		SPLITPACKET *pPacket;
+		int		body_size = splitsize - sizeof (SPLITPACKET);
+		SPLITPACKET		*pPacket;
 
 		net.sequence_number++;
 		if (net.sequence_number <= 0)
@@ -1629,7 +1640,7 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 	{
 	int		ret;
 	struct sockaddr_storage	addr = { 0 };
-	SOCKET		net_socket = 0;
+	SOCKET	net_socket = 0;
 
 	if (!net.initialized || (to.type == NA_LOOPBACK))
 		{
@@ -1650,11 +1661,11 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 		}
 	else
 		{
-		Host_Error ("NET_SendPacket: bad address type %i (%i)\n", to.type, to.type6);
+		// [FWGS, 01.07.24]
+		Host_Error ("%s: bad address type %i (%i)\n", __func__, to.type, to.type6);
 		}
 
 	NET_NetadrToSockadr (&to, &addr);
-
 	ret = NET_SendLong (sock, net_socket, data, length, 0, &addr, NET_SockAddrLen (&addr), splitsize);
 
 	if (NET_IsSocketError (ret))
@@ -1669,18 +1680,13 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 		if (err == WSAEADDRNOTAVAIL && ((to.type == NA_BROADCAST) || (to.type6 == NA_MULTICAST_IP6)))
 			return;
 
+		// [FWGS, 01.07.24]
 		if (Host_IsDedicated ())
-			{
-			Con_DPrintf (S_ERROR "NET_SendPacket: %s to %s\n", NET_ErrorString (), NET_AdrToString (to));
-			}
+			Con_DPrintf (S_ERROR "%s: %s to %s\n", __func__, NET_ErrorString (), NET_AdrToString (to));
 		else if ((err == WSAEADDRNOTAVAIL) || (err == WSAENOBUFS))
-			{
-			Con_DPrintf (S_ERROR "NET_SendPacket: %s to %s\n", NET_ErrorString (), NET_AdrToString (to));
-			}
+			Con_DPrintf (S_ERROR "%s: %s to %s\n", __func__, NET_ErrorString (), NET_AdrToString (to));
 		else
-			{
-			Con_Printf (S_ERROR "NET_SendPacket: %s to %s\n", NET_ErrorString (), NET_AdrToString (to));
-			}
+			Con_Printf (S_ERROR "%s: %s to %s\n", __func__, NET_ErrorString (), NET_AdrToString (to));
 		}
 	}
 
@@ -1705,18 +1711,19 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 	{
 	struct sockaddr_storage	addr = { 0 };
 	int		err, net_socket;
-	uint		optval = 1;
-	dword		_true = 1;
-	int pfamily = PF_INET;
+	uint	optval = 1;
+	dword	_true = 1;
+	int		pfamily = PF_INET;
 
 	if (family == AF_INET6)
 		pfamily = PF_INET6;
 
+	// [FWGS, 01.07.24]
 	if (NET_IsSocketError ((net_socket = socket (pfamily, SOCK_DGRAM, IPPROTO_UDP))))
 		{
 		err = WSAGetLastError ();
 		if (err != WSAEAFNOSUPPORT)
-			Con_DPrintf (S_WARN "NET_UDPSocket: port: %d socket: %s\n", port, NET_ErrorString ());
+			Con_DPrintf (S_WARN "%s: port: %d socket: %s\n", __func__, port, NET_ErrorString ());
 		return INVALID_SOCKET;
 		}
 
@@ -1724,21 +1731,24 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 		{
 		struct timeval timeout;
 
-		Con_DPrintf (S_WARN "NET_UDPSocket: port: %d ioctl FIONBIO: %s\n", port, NET_ErrorString ());
+		// [FWGS, 01.07.24]
+		Con_DPrintf (S_WARN "%s: port: %d ioctl FIONBIO: %s\n", __func__, port, NET_ErrorString ());
+
 		// try timeout instead of NBIO
 		timeout.tv_sec = timeout.tv_usec = 0;
 		setsockopt (net_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof (timeout));
 		}
 
-	// make it broadcast capable
+	// [FWGS, 01.07.24] make it broadcast capable
 	if (NET_IsSocketError (setsockopt (net_socket, SOL_SOCKET, SO_BROADCAST, (char *)&_true, sizeof (_true))))
 		{
-		Con_DPrintf (S_WARN "NET_UDPSocket: port: %d setsockopt SO_BROADCAST: %s\n", port, NET_ErrorString ());
+		Con_DPrintf (S_WARN "%s: port: %d setsockopt SO_BROADCAST: %s\n", __func__, port, NET_ErrorString ());
 		}
 
+	// [FWGS, 01.07.24]
 	if (NET_IsSocketError (setsockopt (net_socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&optval, sizeof (optval))))
 		{
-		Con_DPrintf (S_WARN "NET_UDPSocket: port: %d setsockopt SO_REUSEADDR: %s\n", port, NET_ErrorString ());
+		Con_DPrintf (S_WARN "%s: port: %d setsockopt SO_REUSEADDR: %s\n", __func__, port, NET_ErrorString ());
 		closesocket (net_socket);
 		return INVALID_SOCKET;
 		}
@@ -1747,31 +1757,37 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 
 	if (family == AF_INET6)
 		{
+		// [FWGS, 01.07.24]
 		if (NET_IsSocketError (setsockopt (net_socket, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&_true, sizeof (_true))))
 			{
-			Con_DPrintf (S_WARN "NET_UDPSocket: port: %d setsockopt IPV6_V6ONLY: %s\n", port, NET_ErrorString ());
+			Con_DPrintf (S_WARN "%s: port: %d setsockopt IPV6_V6ONLY: %s\n", __func__, port, NET_ErrorString ());
 			closesocket (net_socket);
 			return INVALID_SOCKET;
 			}
 
 		if (Sys_CheckParm ("-loopback"))
 			{
+			// [FWGS, 01.07.24]
 			if (NET_IsSocketError (setsockopt (net_socket, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (char *)&_true,
 				sizeof (_true))))
-				Con_DPrintf (S_WARN "NET_UDPSocket: port %d setsockopt IPV6_MULTICAST_LOOP: %s\n", port,
-					NET_ErrorString ());
+				Con_DPrintf (S_WARN "%s: port %d setsockopt IPV6_MULTICAST_LOOP: %s\n", __func__,
+					port, NET_ErrorString ());
 			}
 
 		if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
 			NET_StringToSockaddr (net_iface, &addr, false, AF_INET6);
-		else memcpy (((struct sockaddr_in6 *)&addr)->sin6_addr.s6_addr, &in6addr_any, sizeof (struct in6_addr));
+		else
+			memcpy (((struct sockaddr_in6 *)&addr)->sin6_addr.s6_addr, &in6addr_any, sizeof (struct in6_addr));
 
-		if (port == PORT_ANY) ((struct sockaddr_in6 *)&addr)->sin6_port = 0;
-		else ((struct sockaddr_in6 *)&addr)->sin6_port = htons ((short)port);
+		if (port == PORT_ANY)
+			((struct sockaddr_in6 *)&addr)->sin6_port = 0;
+		else
+			((struct sockaddr_in6 *)&addr)->sin6_port = htons ((short)port);
 
+		// [FWGS, 01.07.24]
 		if (NET_IsSocketError (bind (net_socket, (struct sockaddr *)&addr, sizeof (struct sockaddr_in6))))
 			{
-			Con_DPrintf (S_WARN "NET_UDPSocket: port: %d bind6: %s\n", port, NET_ErrorString ());
+			Con_DPrintf (S_WARN "%s: port: %d bind6: %s\n", __func__, port, NET_ErrorString ());
 			closesocket (net_socket);
 			return INVALID_SOCKET;
 			}
@@ -1786,10 +1802,11 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 			if (NET_IsSocketError (setsockopt (net_socket, IPPROTO_IP, IP_TOS, (const char *)&optval,
 				sizeof (optval))))
 				{
+				// [FWGS, 01.07.24]
 				err = WSAGetLastError ();
 				if (err != WSAENOPROTOOPT)
-					Con_Printf (S_WARN "NET_UDPSocket: port: %d  setsockopt IP_TOS: %s\n", port,
-						NET_ErrorString ());
+					Con_Printf (S_WARN "%s: port: %d setsockopt IP_TOS: %s\n", __func__, port, NET_ErrorString ());
+
 				closesocket (net_socket);
 				return INVALID_SOCKET;
 				}
@@ -1797,10 +1814,11 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 
 		if (Sys_CheckParm ("-loopback"))
 			{
+			// [FWGS, 01.07.24]
 			if (NET_IsSocketError (setsockopt (net_socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&_true,
 				sizeof (_true))))
-				Con_DPrintf (S_WARN "NET_UDPSocket: port %d setsockopt IP_MULTICAST_LOOP: %s\n", port,
-					NET_ErrorString ());
+				Con_DPrintf (S_WARN "%s: port %d setsockopt IP_MULTICAST_LOOP: %s\n", __func__,
+					port, NET_ErrorString ());
 			}
 
 		if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
@@ -1813,9 +1831,10 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 		else
 			((struct sockaddr_in *)&addr)->sin_port = htons ((short)port);
 
+		// [FWGS, 01.07.24]
 		if (NET_IsSocketError (bind (net_socket, (struct sockaddr *)&addr, sizeof (struct sockaddr_in))))
 			{
-			Con_DPrintf (S_WARN "NET_UDPSocket: port: %d bind: %s\n", port, NET_ErrorString ());
+			Con_DPrintf (S_WARN "%s: port: %d bind: %s\n", __func__, port, NET_ErrorString ());
 			closesocket (net_socket);
 			return INVALID_SOCKET;
 			}
@@ -1832,7 +1851,10 @@ NET_OpenIP
 static void NET_OpenIP (qboolean change_port, int *sockets, const char *net_iface, int hostport,
 	int clientport, int family)
 	{
+	// [FWGS, 01.07.24]
 	int port;
+	/*qboolean sv_nat = Cvar_VariableInteger ("sv_nat");
+	qboolean cl_nat = Cvar_VariableInteger ("cl_nat");*/
 	qboolean sv_nat = Cvar_VariableInteger ("sv_nat");
 	qboolean cl_nat = Cvar_VariableInteger ("cl_nat");
 
@@ -2423,20 +2445,21 @@ static void HTTP_AutoClean (void)
 
 /***
 ===================
-HTTP_ProcessStream [FWGS, 01.12.23]
+HTTP_ProcessStream [FWGS, 01.07.24]
 
 process incoming data
 ===================
 ***/
 static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 	{
-	char buf[sizeof (curfile->buf)];
-	char *begin = 0;
-	int res;
+	char	buf[sizeof (curfile->buf)];
+	char	*begin = 0;
+	int		res;
 
 	if (curfile->header_size >= sizeof (buf))
 		{
-		Con_Reportf (S_ERROR "Header too big, the size is %s\n", curfile->header_size);
+		/*Con_Reportf (S_ERROR "Header too big, the size is %s\n", curfile->header_size);*/
+		Con_Reportf (S_ERROR "Header too big, the size is %d\n", curfile->header_size);
 		HTTP_FreeFile (curfile, true);
 		return false;
 		}
@@ -2457,7 +2480,7 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 				int cutheadersize = begin - curfile->buf + 4; // after that begin of data
 				char *content_length_line;
 
-				Con_Reportf ("HTTP: Got response!\n");
+				/*Con_Reportf ("HTTP: Got response!\n");*/
 
 				if (!Q_strstr (curfile->buf, "200 OK"))
 					{
@@ -2483,10 +2506,12 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 					content_length_line += sizeof ("Content-Length: ") - 1;
 					size = Q_atoi (content_length_line);
 
-					Con_Reportf ("HTTP: File size is %d\n", size);
+					/*Con_Reportf ("HTTP: File size is %d\n", size);*/
+					Con_Reportf ("HTTP: Got 200 OK! File size is %d\n", size);
 
 					if ((curfile->size != -1) && (curfile->size != size)) // check size if specified, not used
-						Con_Reportf (S_WARN "Server reports wrong file size!\n");
+						Con_Reportf (S_WARN "Server reports wrong file size for %s!\n", curfile->path);
+					/*Con_Reportf (S_WARN "Server reports wrong file size!\n");*/
 
 					curfile->size = size;
 					curfile->header_size = 0;
@@ -2563,14 +2588,14 @@ HTTP_Run
 Download next file block of each active file
 Call every frame
 ==============
-	*/
+***/
 void HTTP_Run (void)
 	{
-	httpfile_t *curfile;
-	int iActiveCount = 0;
-	int iProgressCount = 0;
-	float flProgress = 0;
-	qboolean fResolving = false;
+	httpfile_t	*curfile;
+	int		iActiveCount = 0;
+	int		iProgressCount = 0;
+	float	flProgress = 0;
+	qboolean	fResolving = false;
 
 	for (curfile = http.first_file; curfile; curfile = curfile->next)
 		{
@@ -2597,10 +2622,10 @@ void HTTP_Run (void)
 			Q_snprintf (name, sizeof (name), "downloaded/%s.incomplete", curfile->path);
 
 			curfile->file = FS_Open (name, "wb", true);
-
 			if (!curfile->file)
 				{
-				Con_Printf (S_ERROR "cannot open %s!\n", name);
+				// [FWGS, 01.07.24]
+				Con_Printf (S_ERROR "HTTP: cannot open %s!\n", name);
 				HTTP_FreeFile (curfile, true);
 				break;
 				}
@@ -2613,7 +2638,6 @@ void HTTP_Run (void)
 			}
 
 		iActiveCount++;
-
 		if (curfile->state < HTTP_SOCKET) // Socket is not created
 			{
 			dword mode;

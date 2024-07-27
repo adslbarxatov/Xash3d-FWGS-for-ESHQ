@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "imagelib.h"
@@ -19,7 +19,7 @@ GNU General Public License for more details.
 
 /***
 =============
-Image_LoadTGA [FWGS, 01.03.24]
+Image_LoadTGA
 =============
 ***/
 qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -60,22 +60,30 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 
 	if ((targa_header.image_type == 1) || (targa_header.image_type == 9))
 		{
-		// uncompressed colormapped image
+		// [FWGS, 01.07.24] uncompressed colormapped image
 		if (targa_header.pixel_size != 8)
 			{
-			Con_DPrintf (S_ERROR "Image_LoadTGA: (%s) Only 8 bit images supported for type 1 and 9\n", name);
+			Con_DPrintf (S_ERROR "%s: (%s) Only 8 bit images supported for type 1 and 9\n",
+				__func__, name);
 			return false;
 			}
+
+		// [FWGS, 01.07.24]
 		if (targa_header.colormap_length != 256)
 			{
-			Con_DPrintf (S_ERROR "Image_LoadTGA: (%s) Only 8 bit colormaps are supported for type 1 and 9\n", name);
+			Con_DPrintf (S_ERROR "%s: (%s) Only 8 bit colormaps are supported for type 1 and 9\n",
+				__func__, name);
 			return false;
 			}
+
+		// [FWGS, 01.07.24]
 		if (targa_header.colormap_index)
 			{
-			Con_DPrintf (S_ERROR "Image_LoadTGA: (%s) colormap_index is not supported for type 1 and 9\n", name);
+			Con_DPrintf (S_ERROR "%s: (%s) colormap_index is not supported for type 1 and 9\n",
+				__func__, name);
 			return false;
 			}
+
 		if (targa_header.colormap_size == 24)
 			{
 			for (i = 0; i < targa_header.colormap_length; i++)
@@ -98,25 +106,29 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 		else
 			{
-			Con_DPrintf (S_ERROR "Image_LoadTGA: (%s) only 24 and 32 bit colormaps are supported for type 1 and 9\n", name);
+			// [FWGS, 01.07.24]
+			Con_DPrintf (S_ERROR "%s: (%s) only 24 and 32 bit colormaps are supported for type 1 and 9\n",
+				__func__, name);
 			return false;
 			}
 		}
 	else if ((targa_header.image_type == 2) || (targa_header.image_type == 10))
 		{
-		// uncompressed or RLE compressed RGB
+		// [FWGS, 01.07.24] uncompressed or RLE compressed RGB
 		if ((targa_header.pixel_size != 32) && (targa_header.pixel_size != 24))
 			{
-			Con_DPrintf (S_ERROR "Image_LoadTGA: (%s) Only 32 or 24 bit images supported for type 2 and 10\n", name);
+			Con_DPrintf (S_ERROR "%s: (%s) Only 32 or 24 bit images supported for type 2 and 10\n",
+				__func__, name);
 			return false;
 			}
 		}
 	else if ((targa_header.image_type == 3) || (targa_header.image_type == 11))
 		{
-		// uncompressed greyscale
+		// [FWGS, 01.07.24] uncompressed greyscale
 		if ((targa_header.pixel_size != 8) && (targa_header.pixel_size != 16))
 			{
-			Con_DPrintf (S_ERROR "Image_LoadTGA: (%s) Only 8 bit images supported for type 3 and 11\n", name);
+			Con_DPrintf (S_ERROR "%s: (%s) Only 8 bit images supported for type 3 and 11\n",
+				__func__, name);
 			return false;
 			}
 		}

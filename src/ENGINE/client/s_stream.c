@@ -51,14 +51,18 @@ void S_FadeMusicVolume (float fadePercent)
 
 /***
 =================
-S_GetMusicVolume
+S_GetMusicVolume [FWGS, 01.07.24]
 =================
 ***/
 float S_GetMusicVolume (void)
 	{
-	float	scale = 1.0f;
+	float scale = 1.0f;
 
-	if (!s_listener.inmenu && musicfade.percent != 0)
+	// we return zero volume to keep sounds running
+	if ((host.status == HOST_NOFOCUS) && (snd_mute_losefocus.value != 0.0f))
+		return 0.0f;
+
+	if (!s_listener.inmenu && (musicfade.percent != 0))
 		{
 		scale = bound (0.0f, musicfade.percent / 100.0f, 1.0f);
 		scale = 1.0f - scale;

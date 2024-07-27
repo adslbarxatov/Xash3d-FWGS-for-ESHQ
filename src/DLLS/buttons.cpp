@@ -1253,20 +1253,20 @@ void CEnvSpark::KeyValue (KeyValueData* pkvd)
 		CBaseEntity::KeyValue (pkvd);
 	}
 
-void EXPORT CEnvSpark::SparkThink (void)
+void HLEXPORT CEnvSpark::SparkThink (void)
 	{
 	pev->nextthink = gpGlobals->time + 0.1 + RANDOM_FLOAT (0, m_flDelay);
 	DoSpark (pev, pev->origin);
 	}
 
-void EXPORT CEnvSpark::SparkStart (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void HLEXPORT CEnvSpark::SparkStart (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
 	SetUse (&CEnvSpark::SparkStop);
 	SetThink (&CEnvSpark::SparkThink);
 	pev->nextthink = gpGlobals->time + (0.1 + RANDOM_FLOAT (0, m_flDelay));
 	}
 
-void EXPORT CEnvSpark::SparkStop (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+void HLEXPORT CEnvSpark::SparkStop (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
 	SetUse (&CEnvSpark::SparkStart);
 	SetThink (NULL);

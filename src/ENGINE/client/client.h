@@ -215,23 +215,25 @@ typedef struct
 	int		last_incoming_sequence;
 
 	qboolean		send_reply;
-	qboolean		background;		// not real game, just a background
+	qboolean		background;			// not real game, just a background
 	qboolean		first_frame;		// first rendering frame
 	qboolean		proxy_redirect;		// spectator stuff
 	qboolean		skip_interp;		// skip interpolation this frame
 
-	uint		checksum;			// for catching cheater maps
+	uint			checksum;			// for catching cheater maps
 
-	frame_t		frames[MULTIPLAYER_BACKUP];		// alloced on svc_serverdata
+	frame_t			frames[MULTIPLAYER_BACKUP];		// alloced on svc_serverdata
 	runcmd_t		commands[MULTIPLAYER_BACKUP];		// each mesage will send several old cmds
 	local_state_t	predicted_frames[MULTIPLAYER_BACKUP];	// local client state
 
-	double		timedelta;		// [FWGS, 01.04.23] floating delta between two updates
+	double			timedelta;			// [FWGS, 01.04.23] floating delta between two updates
 
-	char		serverinfo[MAX_SERVERINFO_STRING];
+	char			serverinfo[MAX_SERVERINFO_STRING];
 	player_info_t	players[MAX_CLIENTS];	// collected info about all other players include himself
-	double		lastresourcecheck;
-	string		downloadUrl;
+	double			lastresourcecheck;
+
+	/*string		downloadUrl;*/
+	qboolean		http_download;		// [FWGS, 01.07.24]
 	event_state_t	events;
 
 	// predicting stuff but not only...
@@ -247,36 +249,37 @@ typedef struct
 	vec3_t		crosshairangle;
 
 	pred_viewangle_t	predicted_angle[ANGLE_BACKUP];// accumulate angles from server
-	int		angle_position;
+	int			angle_position;
 	float		addangletotal;
 	float		prevaddangletotal;
 
 	// predicted velocity
 	vec3_t		simvel;
 	entity_state_t	instanced_baseline[MAX_CUSTOM_BASELINES];
-	int		instanced_baseline_count;
+	int			instanced_baseline_count;
 
 	char		sound_precache[MAX_SOUNDS][MAX_QPATH];
 	char		event_precache[MAX_EVENTS][MAX_QPATH];
 	char		files_precache[MAX_CUSTOM][MAX_QPATH];
 	lightstyle_t	lightstyles[MAX_LIGHTSTYLES];
-	int		numfiles;
+	int			numfiles;
 
 	consistency_t	consistency_list[MAX_MODELS];
-	int		num_consistency;
+	int				num_consistency;
 
-	qboolean		need_force_consistency_response;
+	qboolean	need_force_consistency_response;
 	resource_t	resourcesonhand;
 	resource_t	resourcesneeded;
 	resource_t	resourcelist[MAX_RESOURCES];
-	int		num_resources;
+	int			num_resources;
 
-	short		sound_index[MAX_SOUNDS];
-	short		decal_index[MAX_DECALS];
+	short	sound_index[MAX_SOUNDS];
+	short	decal_index[MAX_DECALS];
 
-	model_t *worldmodel;	// pointer to world
+	model_t	*worldmodel;	// pointer to world
 
-	int lostpackets;		// count lost packets and show dialog in menu
+	int		lostpackets;		// count lost packets and show dialog in menu
+	double	frametime_remainder;	// [FWGS, 01.07.24]
 	} client_t;
 
 /***
@@ -301,10 +304,19 @@ typedef enum
 typedef enum
 	{
 	CL_LOADING = 1,	// draw loading progress-bar
-	CL_ACTIVE,	// draw normal hud
-	CL_PAUSED,	// pause when active
+	CL_ACTIVE,		// draw normal hud
+	CL_PAUSED,		// pause when active
 	CL_CHANGELEVEL,	// draw 'loading' during changelevel
 	} scrstate_t;
+
+// [FWGS, 01.07.24]
+typedef enum
+	{
+	PROTO_CURRENT = 0,	// Xash3D 49
+	PROTO_LEGACY = 1,	// Xash3D 48
+	PROTO_QUAKE = 2,	// Quake 15
+	PROTO_GOLDSRC = 3,	// GoldSrc 48
+	} connprotocol_t;
 
 typedef struct
 	{
@@ -497,28 +509,30 @@ typedef struct
 	qboolean client_dll_uses_sdl;
 	} clgame_static_t;
 
+// [FWGS, 01.07.24]
 typedef struct
 	{
 	void *hInstance;					// pointer to client.dll
 	UI_FUNCTIONS	dllFuncs;			// dll exported funcs
-	UI_EXTENDED_FUNCTIONS dllFuncs2;	// fwgs extension
-	poolhandle_t      mempool;			// client edicts pool
+	UI_EXTENDED_FUNCTIONS	dllFuncs2;	// fwgs extension
+	poolhandle_t	mempool;			// client edicts pool
 
-	cl_entity_t	playermodel;			// uiPlayerSetup drawing model
+	cl_entity_t		playermodel;		// uiPlayerSetup drawing model
 	player_info_t	playerinfo;			// local playerinfo
 
 	gameui_draw_t	ds;					// draw2d stuff (menu images)
 	GAMEINFO		gameInfo;			// current gameInfo
-	GAMEINFO *modsInfo[MAX_MODS];		// simplified gameInfo for MainUI
+	GAMEINFO		*modsInfo[MAX_MODS];	// simplified gameInfo for MainUI
 
-	ui_globalvars_t *globals;
+	ui_globalvars_t	*globals;
 
 	qboolean		drawLogo;			// set to TRUE if logo.avi missed or corrupted
-	int		logo_xres;
-	int		logo_yres;
-	float		logo_length;
+	int				logo_xres;
+	int				logo_yres;
+	float			logo_length;
 
-	qboolean use_text_api;
+	/*qboolean use_text_api;*/
+	qboolean		use_extended_api;
 	} gameui_static_t;
 
 // [FWGS, 09.05.24]
@@ -625,19 +639,25 @@ typedef struct
 	char			internetservers_query[512];	// cached query
 	uint32_t		internetservers_query_len;
 
-	// legacy mode support
+	/*// legacy mode support
 	qboolean		legacymode;		// one-way 48 protocol compatibility
-	netadr_t		legacyserver;
+	netadr_t		legacyserver;*/
+	
+	// [FWGS, 01.07.24] multiprotocol support
+	connprotocol_t	legacymode;
 	int				extensions;
 
 	netadr_t		serveradr;
+
+	// [FWGS, 01.07.24] do we accept utf8 as input
+	qboolean		accept_utf8;
 	} client_static_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-	extern client_t		cl;
+	extern client_t			cl;
 	extern client_static_t	cls;
 	extern clgame_static_t	clgame;
 	extern gameui_static_t	gameui;
@@ -650,16 +670,17 @@ extern "C" {
 // cvars
 //
 extern convar_t	mp_decals;
-extern convar_t	cl_logofile;
-extern convar_t	cl_logocolor;
-extern convar_t	cl_allow_download;
-extern convar_t	cl_allow_upload;
-extern convar_t	cl_download_ingame;
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.07.24]
+/*extern convar_t	cl_logofile;
+extern convar_t	cl_logocolor;*/
+extern convar_t cl_logomaxdim;
+extern convar_t	cl_allow_download;
+/*extern convar_t	cl_allow_upload;*/
+extern convar_t	cl_download_ingame;
 extern convar_t cl_nopred;
 extern convar_t cl_timeout;
-extern convar_t cl_nodelta;
+/*extern convar_t cl_nodelta;*/
 extern convar_t cl_interp;
 extern convar_t cl_nointerp;
 extern convar_t cl_showerror;
@@ -672,22 +693,22 @@ extern convar_t cl_updaterate;
 extern convar_t cl_solid_players;
 extern convar_t cl_idealpitchscale;
 extern convar_t cl_allow_levelshots;
-extern convar_t cl_lightstyle_lerping;
+/*extern convar_t cl_lightstyle_lerping;*/
 extern convar_t cl_draw_particles;
 extern convar_t cl_draw_tracers;
 extern convar_t cl_levelshot_name;
 extern convar_t cl_draw_beams;
 extern convar_t cl_clockreset;
-extern convar_t cl_fixtimerate;
+/*extern convar_t cl_fixtimerate;*/
 extern convar_t hud_fontscale;
-extern convar_t hud_fontrender;		// [FWGS, 01.03.24]
+extern convar_t hud_fontrender;
 extern convar_t hud_scale;
-extern convar_t hud_scale_minimal_width;	// [FWGS, 01.02.24]
+extern convar_t hud_scale_minimal_width;
 extern convar_t r_showtextures;
 extern convar_t cl_bmodelinterp;
 extern convar_t cl_lw;	// local weapons
 extern convar_t cl_charset;
-extern convar_t cl_trace_stufftext;		// [FWGS, 01.03.24]
+extern convar_t cl_trace_stufftext;
 extern convar_t cl_trace_messages;
 extern convar_t cl_trace_events;
 extern convar_t hud_utf8;
@@ -701,7 +722,7 @@ extern convar_t rate;
 extern convar_t m_ignore;
 extern convar_t r_showtree;
 extern convar_t ui_renderworld;
-extern convar_t cl_fixmodelinterpolationartifacts;	// [FWGS, 01.01.24]
+extern convar_t cl_fixmodelinterpolationartifacts;
 
 // =============================================================================
 
@@ -846,25 +867,26 @@ qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *
 	float *v0, float *u1, float *v1);
 struct cl_entity_s *CL_GetEntityByIndex (int index);
 
+// [FWGS, 01.07.24]
 _inline cl_entity_t *CL_EDICT_NUM (int n)
 	{
 	if (!clgame.entities)
 		{
-		Host_Error ("CL_EDICT_NUM: clgame.entities is NULL\n");
+		Host_Error ("%s: clgame.entities is NULL\n", __func__);
 		return NULL;
 		}
 
 	if ((n >= 0) && (n < clgame.maxEntities))
 		return clgame.entities + n;
 
-	Host_Error ("CL_EDICT_NUM: bad number %i\n", n);
+	Host_Error ("%s: bad number %i\n", __func__, n);
 	return NULL;
 	}
 
 //
 // cl_parse.c
 //
-// [FWGS, 01.07.23]
+// [FWGS, 01.07.24]
 void CL_ParseSetAngle (sizebuf_t *msg);
 void CL_ParseServerData (sizebuf_t * msg, qboolean legacy);
 void CL_ParseLightStyle (sizebuf_t * msg);
@@ -889,9 +911,10 @@ void CL_ParseFileTransferFailed (sizebuf_t * msg);
 void CL_ParseHLTV (sizebuf_t * msg);
 void CL_ParseDirector (sizebuf_t * msg);
 void CL_ParseResLocation (sizebuf_t * msg);
-void CL_ParseCvarValue (sizebuf_t * msg, const qboolean ext);
-
-void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message);
+/*void CL_ParseCvarValue (sizebuf_t * msg, const qboolean ext);
+void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message);*/
+void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext, const connprotocol_t proto);
+void CL_ParseServerMessage (sizebuf_t *msg);
 
 // [FWGS, 01.02.24]
 void CL_ParseTempEntity (sizebuf_t *msg);
@@ -907,13 +930,14 @@ void CL_BatchResourceRequest (qboolean initialize);
 int CL_EstimateNeededResources (void);
 
 //
-// cl_parse_48.c [FWGS, 01.07.23]
+// cl_parse_48.c [FWGS, 01.07.24]
 //
-void CL_ParseLegacyServerMessage (sizebuf_t * msg, qboolean normal_message);
+/*void CL_ParseLegacyServerMessage (sizebuf_t * msg, qboolean normal_message);*/
+void CL_ParseLegacyServerMessage (sizebuf_t *msg);
 void CL_LegacyPrecache_f (void);
 
 //
-// cl_scrn.c [FWGS, 01.02.24]
+// cl_scrn.c [FWGS, 01.07.24]
 //
 void SCR_VidInit (void);
 void SCR_TileClear (void);
@@ -927,6 +951,7 @@ void SCR_NetSpeeds (void);
 void SCR_RSpeeds (void);
 void SCR_DrawFPS (int height);
 void SCR_DrawPos (void);
+void SCR_DrawEnts (void);
 
 //
 // cl_netgraph.c
@@ -937,7 +962,6 @@ void SCR_DrawNetGraph (void);
 //
 // cl_view.c
 //
-
 void V_Init (void);
 void V_Shutdown (void);
 qboolean V_PreRender (void);
@@ -966,9 +990,10 @@ void CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient);
 void CL_SetIdealPitch (void);
 
 //
-// cl_qparse.c
+// cl_qparse.c [FWGS, 01.07.24]
 //
-void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message);
+/*void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message);*/
+void CL_ParseQuakeMessage (sizebuf_t *msg);
 
 //
 // cl_frame.c [FWGS, 01.02.24]
@@ -1041,7 +1066,7 @@ void CL_ThinkParticle (double frametime, particle_t *p);
 void CL_ReadLineFile_f (void);
 
 //
-// console.c [FWGS, 01.02.24]
+// console.c [FWGS, 01.07.24]
 //
 extern convar_t con_fontsize;
 int Con_Visible (void);
@@ -1061,7 +1086,7 @@ int Con_UtfMoveRight (char *str, int pos, int length);
 void Con_DefaultColor (int r, int g, int b, qboolean gameui);
 cl_font_t *Con_GetCurFont (void);
 cl_font_t *Con_GetFont (int num);
-void Con_DrawCharacterLen (int number, int *width, int *height);
+/*void Con_DrawCharacterLen (int number, int *width, int *height);*/
 int Con_DrawString (int x, int y, const char *string, rgba_t setColor);				// legacy, use cl_font.c
 void GAME_EXPORT Con_DrawStringLen (const char *pText, int *length, int *height);	// legacy, use cl_font.c
 
@@ -1097,7 +1122,7 @@ void SND_UpdateSound (void);
 void S_ExtraUpdate (void);
 
 //
-// cl_gameui.c [FWGS, 01.02.24]
+// cl_gameui.c [FWGS, 01.07.24]
 //
 void UI_UnloadProgs (void);
 qboolean UI_LoadProgs (void);
@@ -1115,7 +1140,8 @@ qboolean UI_MouseInRect (void);
 qboolean UI_IsVisible (void);
 void UI_ResetPing (void);
 void UI_ShowUpdateDialog (qboolean preferStore);
-void UI_ShowMessageBox (const char *text);
+/*void UI_ShowMessageBox (const char *text);*/
+qboolean UI_ShowMessageBox (const char *text);
 void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command, unsigned char *color,
 	int flags);
 void UI_ConnectionProgress_Disconnect (void);
@@ -1169,6 +1195,9 @@ void Key_EnableTextInput (qboolean enable, qboolean force);
 int Key_ToUpper (int key);
 void OSK_Draw (void);
 
+// [FWGS, 01.07.24]
 extern rgba_t g_color_table[8];
+extern triangleapi_t gTriApi;
+extern net_api_t gNetApi;
 
 #endif

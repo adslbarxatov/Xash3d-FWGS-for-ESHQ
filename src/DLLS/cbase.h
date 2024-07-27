@@ -57,9 +57,9 @@ CBaseEntity
 #define EXPORT
 #endif
 
-extern "C" EXPORT int GetEntityAPI (DLL_FUNCTIONS * pFunctionTable, int interfaceVersion);
-extern "C" EXPORT int GetEntityAPI2 (DLL_FUNCTIONS * pFunctionTable, int* interfaceVersion);
-extern "C" EXPORT int Server_GetPhysicsInterface (int iVersion, server_physics_api_t * pfuncsFromEngine, 
+extern "C" HLEXPORT int GetEntityAPI (DLL_FUNCTIONS * pFunctionTable, int interfaceVersion);
+extern "C" HLEXPORT int GetEntityAPI2 (DLL_FUNCTIONS * pFunctionTable, int* interfaceVersion);
+extern "C" HLEXPORT int Server_GetPhysicsInterface (int iVersion, server_physics_api_t * pfuncsFromEngine,
 	physics_interface_t * pFunctionTable);
 
 extern int DispatchSpawn (edict_t* pent);
@@ -231,11 +231,11 @@ class CBaseEntity
 		void UpdateOnRemove (void);
 
 		// common member functions
-		void EXPORT SUB_Remove (void);
-		void EXPORT SUB_DoNothing (void);
-		void EXPORT SUB_StartFadeOut (void);
-		void EXPORT SUB_FadeOut (void);
-		void EXPORT SUB_CallUseToggle (void) { this->Use (this, this, USE_TOGGLE, 0); }
+		void HLEXPORT SUB_Remove (void);
+		void HLEXPORT SUB_DoNothing (void);
+		void HLEXPORT SUB_StartFadeOut (void);
+		void HLEXPORT SUB_FadeOut (void);
+		void HLEXPORT SUB_CallUseToggle (void) { this->Use (this, this, USE_TOGGLE, 0); }
 		int			ShouldToggle (USE_TYPE useType, BOOL currentState);
 		void		FireBullets (ULONG	cShots, Vector  vecSrc, Vector	vecDirShooting, Vector	vecSpread, float flDistance, int iBulletType, int iTracerFreq = 4, int iDamage = 0, entvars_t* pevAttacker = NULL);
 		Vector		FireBulletsPlayer (ULONG	cShots, Vector  vecSrc, Vector	vecDirShooting, Vector	vecSpread, float flDistance, int iBulletType, int iTracerFreq = 4, int iDamage = 0, entvars_t* pevAttacker = NULL, int shared_rand = 0);
@@ -411,7 +411,7 @@ class CMultiSource: public CPointEntity
 		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		int	ObjectCaps (void) { return (CPointEntity::ObjectCaps () | FCAP_MASTER); }
 		BOOL IsTriggered (CBaseEntity* pActivator);
-		void EXPORT Register (void);
+		void HLEXPORT Register (void);
 		virtual int		Save (CSave& save);
 		virtual int		Restore (CRestore& restore);
 
@@ -438,7 +438,7 @@ class CBaseDelay: public CBaseEntity
 		static	TYPEDESCRIPTION m_SaveData[];
 		// common member functions
 		void SUB_UseTargets (CBaseEntity* pActivator, USE_TYPE useType, float value);
-		void EXPORT DelayThink (void);
+		void HLEXPORT DelayThink (void);
 	};
 
 class CBaseAnimating: public CBaseDelay
@@ -522,9 +522,9 @@ class CBaseToggle: public CBaseAnimating
 
 		// common member functions
 		void LinearMove (Vector	vecDest, float flSpeed);
-		void EXPORT LinearMoveDone (void);
+		void HLEXPORT LinearMoveDone (void);
 		void AngularMove (Vector vecDestAngle, float flSpeed);
-		void EXPORT AngularMoveDone (void);
+		void HLEXPORT AngularMoveDone (void);
 		BOOL IsLockedByMaster (void);
 
 		static float		AxisValue (int flags, const Vector& angles);
@@ -664,13 +664,13 @@ class CBaseButton: public CBaseToggle
 		void ButtonActivate ();
 		void SparkSoundCache (void);
 
-		void EXPORT ButtonShot (void);
-		void EXPORT ButtonTouch (CBaseEntity* pOther);
-		void EXPORT ButtonSpark (void);
-		void EXPORT TriggerAndWait (void);
-		void EXPORT ButtonReturn (void);
-		void EXPORT ButtonBackHome (void);
-		void EXPORT ButtonUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT ButtonShot (void);
+		void HLEXPORT ButtonTouch (CBaseEntity* pOther);
+		void HLEXPORT ButtonSpark (void);
+		void HLEXPORT TriggerAndWait (void);
+		void HLEXPORT ButtonReturn (void);
+		void HLEXPORT ButtonBackHome (void);
+		void HLEXPORT ButtonUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		virtual int		TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
 		virtual int		Save (CSave& save);
 		virtual int		Restore (CRestore& restore);

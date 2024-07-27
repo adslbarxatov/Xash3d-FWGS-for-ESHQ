@@ -946,9 +946,25 @@ qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multipla
 	return 1;
 	}
 
+// [FWGS, 01.07.24]
+void SV_FreeTestPacket (void)
+	{
+	if (svs.testpacket_buf)
+		{
+		Mem_Free (svs.testpacket_buf);
+		svs.testpacket_buf = NULL;
+		}
+
+	if (svs.testpacket_crcs)
+		{
+		Mem_Free (svs.testpacket_crcs);
+		svs.testpacket_crcs = NULL;
+		}
+	}
+
 /***
 ================
-SV_GenerateTestPacket [FWGS, 01.05.24]
+SV_GenerateTestPacket [FWGS, 01.07.24]
 ================
 ***/
 static void SV_GenerateTestPacket (void)
@@ -957,7 +973,14 @@ static void SV_GenerateTestPacket (void)
 	uint32_t	crc;
 	file_t		*file;
 	byte		*filepos;
-	int			i, filesize;
+	/*int			i, filesize;*/
+	int			i;
+
+	if (!sv_allow_testpacket.value)
+		{
+		SV_FreeTestPacket ();
+		return;
+		}
 
 	// testpacket already generated once, exit
 	// testpacket and lookup table takes ~300k of memory
@@ -1079,8 +1102,10 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	current_skill = bound (0, current_skill, 3);
 	Cvar_SetValue ("skill", (float)current_skill);
 
-	// [FWGS, 01.05.23] enforce hpk_maxsize
-	HPAK_CheckSize (CUSTOM_RES_PATH);
+	/*// [FWGS, 01.05.23] enforce hpk_maxsize
+	HPAK_CheckSize (CUSTOM_RES_PATH);*/
+	// [FWGS, 01.07.24] enforce hpk_max_size
+	HPAK_CheckSize (hpk_custom_file.string);
 
 	// force normal player collisions for single player
 	if (svs.maxclients == 1)

@@ -10,12 +10,13 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
 #include "custom.h"
 #include "ref_common.h"
+#include "hpak.h"	// [FWGS, 01.07.24] be aware of HPK limits
 
 // [FWGS, 01.04.23]
 static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
@@ -77,14 +78,16 @@ void COM_ClearCustomizationList (customization_t *pHead, qboolean bCleanDecals)
 	pHead->pNext = NULL;
 	}
 
+// [FWGS, 01.07.24]
 qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResource, int playernumber, 
 	int flags, customization_t **pOut, int *nLumps)
 	{
 	qboolean		bError = false;
 	fs_offset_t		checksize = 0;
-	customization_t *pCust;
+	customization_t	*pCust;
 
-	if (pOut) *pOut = NULL;
+	if (pOut)
+		*pOut = NULL;
 
 	pCust = Z_Calloc (sizeof (customization_t));
 	pCust->resource = *pResource;
@@ -96,7 +99,8 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 
 	if (FBitSet (flags, FCUST_FROMHPAK))
 		{
-		if (!HPAK_GetDataPointer (CUSTOM_RES_PATH, pResource, (byte **)&pCust->pBuffer, NULL))
+		/*if (!HPAK_GetDataPointer (CUSTOM_RES_PATH, pResource, (byte **)&pCust->pBuffer, NULL))*/
+		if (!HPAK_GetDataPointer (hpk_custom_file.string, pResource, (byte **)&pCust->pBuffer, NULL))
 			bError = true;
 		}
 	else
@@ -109,20 +113,22 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 	if (bError)
 		goto CustomizationError;
 
-	if (FBitSet (pCust->resource.ucFlags, RES_CUSTOM) && pCust->resource.type == t_decal)
+	if (FBitSet (pCust->resource.ucFlags, RES_CUSTOM) && (pCust->resource.type == t_decal))
 		{
 		pCust->resource.playernum = playernumber;
 
-		// [FWGS, 01.04.23]
 		if (CustomDecal_Validate (pResource->szFileName, pCust->pBuffer, pResource->nDownloadSize))
 			{
 			if (!FBitSet (flags, FCUST_IGNOREINIT))
 				{
-				if ((pResource->nDownloadSize >= (1 * 1024)) && (pResource->nDownloadSize <= (128 * 1024)))
+				/*if ((pResource->nDownloadSize >= (1 * 1024)) && (pResource->nDownloadSize <= (128 * 1024)))*/
+				if ((pResource->nDownloadSize >= HPAK_ENTRY_MIN_SIZE) &&
+					(pResource->nDownloadSize <= HPAK_ENTRY_MAX_SIZE))
 					{
 					pCust->bTranslated = true;
 					pCust->nUserData1 = 0;
-					pCust->nUserData2 = 1;
+					/*pCust->nUserData2 = 1;*/
+					pCust->nUserData2 = 7;
 
 					if (!FBitSet (flags, FCUST_WIPEDATA))
 						pCust->pInfo = CustomDecal_LoadImage (pResource->szFileName, pCust->pBuffer, 

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef FILESYSTEM_H
@@ -35,12 +35,13 @@ extern "C"
 // search path flags
 enum
 	{
-	FS_STATIC_PATH = BIT (0),		// FS_ClearSearchPath will be ignore this path
-	FS_NOWRITE_PATH = BIT (1),		// default behavior - last added gamedir set as writedir. This flag disables it
-	FS_GAMEDIR_PATH = BIT (2),		// just a marker for gamedir path
-	FS_CUSTOM_PATH = BIT (3),		// gamedir but with custom/mod data
-	FS_GAMERODIR_PATH = BIT (4),	// gamedir but read-only
-	FS_SKIP_ARCHIVED_WADS = BIT (5),// [FWGS, 01.07.23] don't mount wads inside archives automatically
+	FS_STATIC_PATH =		BIT (0),	// FS_ClearSearchPath will be ignore this path
+	FS_NOWRITE_PATH =		BIT (1),	// default behavior - last added gamedir set as writedir. This flag disables it
+	FS_GAMEDIR_PATH =		BIT (2),	// just a marker for gamedir path
+	FS_CUSTOM_PATH =		BIT (3),	// gamedir but with custom/mod data
+	FS_GAMERODIR_PATH =		BIT (4),	// gamedir but read-only
+	FS_SKIP_ARCHIVED_WADS =	BIT (5),	// [FWGS, 01.07.23] don't mount wads inside archives automatically
+	FS_LOAD_PACKED_WAD =	BIT (6),	// [FWGS, 01.07.24] this wad is packed inside other archive
 
 	FS_GAMEDIRONLY_SEARCH_FLAGS = FS_GAMEDIR_PATH | FS_CUSTOM_PATH | FS_GAMERODIR_PATH
 	};
@@ -119,13 +120,16 @@ typedef enum
 	GAME_MULTIPLAYER_ONLY
 	} gametype_t;
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.07.24]
 typedef struct fs_dllinfo_t
 	{
 	char		fullPath[2048];	// absolute disk path
 	string		shortPath;		// vfs path
-	qboolean	encrypted;
-	qboolean	custom_loader;
+	/*qboolean	encrypted;
+	qboolean	custom_loader;*/
+	qboolean	encrypted;		// do we need encrypted DLL loader?
+	qboolean	custom_loader;	// do we need memory DLL loader?
+
 	} fs_dllinfo_t;
 
 typedef struct fs_globals_t
@@ -193,8 +197,11 @@ typedef struct fs_api_t
 	qboolean (*SysFileExists)(const char *path);	// [FWGS, 01.04.23]
 	const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
 	
-	void (*Unused0)(void);
-	void *(*MountArchive_Fullpath)(const char *path, int flags);	// [FWGS, 01.07.23]
+	// [FWGS, 01.07.24]
+	/*void (*Unused0)(void);
+	void *(*MountArchive_Fullpath)(const char *path, int flags);	// [FWGS, 01.07.23]*/
+	const char *(*ArchivePath)(file_t *f); // returns path to archive from which file was opened or "plain"
+	void *(*MountArchive_Fullpath)(const char *path, int flags); // mounts the archive by path, if supported
 	qboolean (*GetFullDiskPath)(char *buffer, size_t size, const char *name, qboolean gamedironly);
 	
 	// [FWGS, 01.03.24] like LoadFile but returns pointer that can be free'd using standard library function

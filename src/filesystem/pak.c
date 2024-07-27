@@ -11,7 +11,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "build.h"
@@ -64,12 +64,14 @@ typedef struct
 #define PAK_LOAD_NO_FILES		5
 #define PAK_LOAD_CORRUPTED		6
 
+// [FWGS, 01.07.24]
 struct pack_s
 	{
-	int		handle;
-	int		numfiles;
-	time_t		filetime;	// common for all packed files
-	dpackfile_t files[1];	// flexible
+	/*int		handle;*/
+	file_t		*handle;
+	int			numfiles;
+	/*time_t		filetime;	// common for all packed files*/
+	dpackfile_t	files[1];	// flexible
 	};
 
 /***
@@ -86,7 +88,7 @@ static int FS_SortPak (const void *_a, const void *_b)
 
 /***
 =================
-FS_LoadPackPAK
+FS_LoadPackPAK [FWGS, 01.07.24]
 
 Takes an explicit (not game tree related) path to a pak file.
 
@@ -97,28 +99,37 @@ of the list so they override previous pack files.
 static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
 	{
 	dpackheader_t	header;
-	int				packhandle;
+	/*int			packhandle;*/
+	file_t			*packhandle;
 	int				numpackfiles;
 	pack_t			*pack;
 	fs_size_t		c;
 
-	packhandle = open (packfile, O_RDONLY | O_BINARY);
+	// TODO: use FS_Open to allow PK3 to be included into other archives
+	// Currently, it doesn't work with rodir due to FS_FindFile logic
+	packhandle = FS_SysOpen (packfile, "rb");
+	/*packhandle = open (packfile, O_RDONLY | O_BINARY);*/
 
-	if (packhandle < 0)
+	/*if (packhandle < 0)*/
+	if (packhandle == NULL)
 		{
 		Con_Reportf ("%s couldn't open: %s\n", packfile, strerror (errno));
-		if (error) *error = PAK_LOAD_COULDNT_OPEN;
+		if (error)
+			*error = PAK_LOAD_COULDNT_OPEN;
 		return NULL;
 		}
 
-	c = read (packhandle, (void *)&header, sizeof (header));
+	/*c = read (packhandle, (void *)&header, sizeof (header));*/
+	c = FS_Read (packhandle, (void *)&header, sizeof (header));
 
 	if ((c != sizeof (header)) || (header.ident != IDPACKV1HEADER))
 		{
 		Con_Reportf ("%s is not a packfile. Ignored.\n", packfile);
 		if (error) 
 			*error = PAK_LOAD_BAD_HEADER;
-		close (packhandle);
+
+		/*close (packhandle);*/
+		FS_Close (packhandle);
 		return NULL;
 		}
 
@@ -127,18 +138,21 @@ static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
 		Con_Reportf (S_ERROR "%s has an invalid directory size. Ignored.\n", packfile);
 		if (error) 
 			*error = PAK_LOAD_BAD_FOLDERS;
-		close (packhandle);
+
+		/*close (packhandle);*/
+		FS_Close (packhandle);
 		return NULL;
 		}
 
 	numpackfiles = header.dirlen / sizeof (dpackfile_t);
-
 	if (numpackfiles > MAX_FILES_IN_PACK)
 		{
 		Con_Reportf (S_ERROR "%s has too many files ( %i ). Ignored.\n", packfile, numpackfiles);
 		if (error) 
 			*error = PAK_LOAD_TOO_MANY_FILES;
-		close (packhandle);
+
+		/*close (packhandle);*/
+		FS_Close (packhandle);
 		return NULL;
 		}
 
@@ -147,26 +161,31 @@ static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
 		Con_Reportf ("%s has no files. Ignored.\n", packfile);
 		if (error) 
 			*error = PAK_LOAD_NO_FILES;
-		close (packhandle);
+
+		/*close (packhandle);*/
+		FS_Close (packhandle);
 		return NULL;
 		}
 
 	pack = (pack_t *)Mem_Calloc (fs_mempool, sizeof (pack_t) + sizeof (dpackfile_t) * (numpackfiles - 1));
-	lseek (packhandle, header.dirofs, SEEK_SET);
+	/*lseek (packhandle, header.dirofs, SEEK_SET);*/
+	FS_Seek (packhandle, header.dirofs, SEEK_SET);
 
-	if (header.dirlen != read (packhandle, (void *)pack->files, header.dirlen))
+	/*if (header.dirlen != read (packhandle, (void *)pack->files, header.dirlen))*/
+	if (header.dirlen != FS_Read (packhandle, (void *)pack->files, header.dirlen))
 		{
 		Con_Reportf ("%s is an incomplete PAK, not loading\n", packfile);
 		if (error)
 			*error = PAK_LOAD_CORRUPTED;
-		close (packhandle);
+
+		/*close (packhandle);*/
+		FS_Close (packhandle);
 		Mem_Free (pack);
 		return NULL;
 		}
 
 	// TODO: validate directory?
-
-	pack->filetime = FS_SysFileTime (packfile);
+	/*pack->filetime = FS_SysFileTime (packfile);*/
 	pack->handle = packhandle;
 	pack->numfiles = numpackfiles;
 	qsort (pack->files, pack->numfiles, sizeof (pack->files[0]), FS_SortPak);
@@ -185,7 +204,7 @@ static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
 
 /***
 ===========
-FS_OpenPackedFile
+FS_OpenPackedFile [FWGS, 01.07.24]
 
 Open a packed file using its package file descriptor
 ===========
@@ -193,10 +212,10 @@ Open a packed file using its package file descriptor
 static file_t *FS_OpenFile_PAK (searchpath_t *search, const char *filename, const char *mode, int pack_ind)
 	{
 	dpackfile_t *pfile;
-
 	pfile = &search->pack->files[pack_ind];
 
-	return FS_OpenHandle (search->filename, search->pack->handle, pfile->filepos, pfile->filelen);
+	/*return FS_OpenHandle (search->filename, search->pack->handle, pfile->filepos, pfile->filelen);*/
+	return FS_OpenHandle (search, search->pack->handle->handle, pfile->filepos, pfile->filelen);
 	}
 
 /***
@@ -243,9 +262,9 @@ FS_Search_PAK
 ***/
 static void FS_Search_PAK (searchpath_t *search, stringlist_t *list, const char *pattern, int caseinsensitive)
 	{
-	string temp;
-	const char *slash, *backslash, *colon, *separator;
-	int j, i;
+	string		temp;
+	const char	*slash, *backslash, *colon, *separator;
+	int			j, i;
 
 	for (i = 0; i < search->pack->numfiles; i++)
 		{
@@ -283,40 +302,49 @@ static void FS_Search_PAK (searchpath_t *search, stringlist_t *list, const char 
 
 /***
 ===========
-FS_FileTime_PAK
+FS_FileTime_PAK [FWGS, 01.07.24]
 ===========
 ***/
 static int FS_FileTime_PAK (searchpath_t *search, const char *filename)
 	{
-	return search->pack->filetime;
+	/*return search->pack->filetime;*/
+	return search->pack->handle->filetime;
 	}
 
 /***
 ===========
-FS_PrintInfo_PAK
+FS_PrintInfo_PAK [FWGS, 01.07.24]
 ===========
 ***/
 static void FS_PrintInfo_PAK (searchpath_t *search, char *dst, size_t size)
 	{
-	Q_snprintf (dst, size, "%s (%i files)", search->filename, search->pack->numfiles);
+	/*Q_snprintf (dst, size, "%s (%i files)", search->filename, search->pack->numfiles);*/
+	if (search->pack->handle->searchpath)
+		Q_snprintf (dst, size, "%s (%i files)" S_CYAN " from %s" S_DEFAULT, search->filename,
+			search->pack->numfiles, search->pack->handle->searchpath->filename);
+	else
+		Q_snprintf (dst, size, "%s (%i files)", search->filename, search->pack->numfiles);
 	}
 
 /***
 ===========
-FS_Close_PAK
+FS_Close_PAK [FWGS, 01.07.24]
 ===========
 ***/
 static void FS_Close_PAK (searchpath_t *search)
 	{
-	if (search->pack->handle >= 0)
-		close (search->pack->handle);
+	/*if (search->pack->handle >= 0)
+		close (search->pack->handle);*/
+	if (search->pack->handle != NULL)
+		FS_Close (search->pack->handle);
+
 	Mem_Free (search->pack);
 	}
 
 
 /***
 ================
-FS_AddPak_Fullpath [FWGS, 01.05.24]
+FS_AddPak_Fullpath [FWGS, 01.07.24]
 
 Adds the given pack to the search path.
 The pack type is autodetected by the file extension.
@@ -324,8 +352,8 @@ The pack type is autodetected by the file extension.
 Returns true if the file was successfully added to the
 search path or if it was already included.
 
-If keep_plain_dirs is set, the pack will be added AFTER the first sequence of
-plain directories
+If keep_plain_dirs is set, the pack will be added AFTER
+the first sequence of plain directories
 ================
 ***/
 searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags)
@@ -338,7 +366,7 @@ searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags)
 	if (!pak)
 		{
 		if (errorcode != PAK_LOAD_NO_FILES)
-			Con_Reportf (S_ERROR "FS_AddPak_Fullpath: unable to load pak \"%s\"\n", pakfile);
+			Con_Reportf (S_ERROR "%s: unable to load pak \"%s\"\n", __func__, pakfile);
 
 		return NULL;
 		}

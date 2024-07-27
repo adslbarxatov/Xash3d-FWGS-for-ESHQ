@@ -37,16 +37,16 @@ class CGrenade: public CBaseMonster
 
 		void Explode (Vector vecSrc, Vector vecAim);
 		void Explode (TraceResult* pTrace, int bitsDamageType);
-		void EXPORT Smoke (void);
+		void HLEXPORT Smoke (void);
 
-		void EXPORT BounceTouch (CBaseEntity* pOther);
-		void EXPORT SlideTouch (CBaseEntity* pOther);
-		void EXPORT ExplodeTouch (CBaseEntity* pOther);
-		void EXPORT DangerSoundThink (void);
-		void EXPORT PreDetonate (void);
-		void EXPORT Detonate (void);
-		void EXPORT DetonateUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-		void EXPORT TumbleThink (void);
+		void HLEXPORT BounceTouch (CBaseEntity* pOther);
+		void HLEXPORT SlideTouch (CBaseEntity* pOther);
+		void HLEXPORT ExplodeTouch (CBaseEntity* pOther);
+		void HLEXPORT DangerSoundThink (void);
+		void HLEXPORT PreDetonate (void);
+		void HLEXPORT Detonate (void);
+		void HLEXPORT DetonateUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT TumbleThink (void);
 
 		virtual void BounceSound (void);
 		virtual int	BloodColor (void) { return DONT_BLEED; }
@@ -223,11 +223,11 @@ class CBasePlayerItem: public CBaseAnimating
 
 		virtual int AddToPlayer (CBasePlayer* pPlayer);	// return TRUE if the item you want the item added to the player inventory
 		virtual int AddDuplicate (CBasePlayerItem* pItem) { return FALSE; }	// return TRUE if you want your duplicate removed from world
-		void EXPORT DestroyItem (void);
-		void EXPORT DefaultTouch (CBaseEntity* pOther);	// default weapon touch
-		void EXPORT FallThink (void);// when an item is first spawned, this think is run to determine when the object has hit the ground.
-		void EXPORT Materialize (void);// make a weapon visible and tangible
-		void EXPORT AttemptToMaterialize (void);  // the weapon desires to become visible and tangible, if the game rules allow for it
+		void HLEXPORT DestroyItem (void);
+		void HLEXPORT DefaultTouch (CBaseEntity* pOther);	// default weapon touch
+		void HLEXPORT FallThink (void);// when an item is first spawned, this think is run to determine when the object has hit the ground.
+		void HLEXPORT Materialize (void);// make a weapon visible and tangible
+		void HLEXPORT AttemptToMaterialize (void);  // the weapon desires to become visible and tangible, if the game rules allow for it
 		CBaseEntity* Respawn (void);// copy a weapon
 		void FallInit (void);
 		void CheckRespawn (void);
@@ -365,11 +365,11 @@ class CBasePlayerAmmo: public CBaseEntity
 	{
 	public:
 		virtual void Spawn (void);
-		void EXPORT DefaultTouch (CBaseEntity* pOther); // default weapon touch
+		void HLEXPORT DefaultTouch (CBaseEntity* pOther); // default weapon touch
 		virtual BOOL AddAmmo (CBaseEntity* pOther) { return TRUE; };
 
 		CBaseEntity* Respawn (void);
-		void EXPORT Materialize (void);
+		void HLEXPORT Materialize (void);
 	};
 
 extern DLL_GLOBAL	short	g_sModelIndexLaser;// holds the index for the laser beam
@@ -445,7 +445,7 @@ class CWeaponBox: public CBaseEntity
 	void SetObjectCollisionBox (void);
 
 	public:
-		void EXPORT Kill (void);
+		void HLEXPORT Kill (void);
 		int		Save (CSave& save);
 		int		Restore (CRestore& restore);
 		static	TYPEDESCRIPTION m_SaveData[];
@@ -506,8 +506,8 @@ class CCrowbar: public CBasePlayerWeapon
 		void Spawn (void);
 		void Precache (void);
 		int iItemSlot (void) { return 1; }
-		void EXPORT SwingAgain (void);
-		void EXPORT Smack (void);
+		void HLEXPORT SwingAgain (void);
+		void HLEXPORT Smack (void);
 		int GetItemInfo (ItemInfo* p);
 
 		void PrimaryAttack (void);
@@ -536,7 +536,7 @@ class CAxe : public CBasePlayerWeapon
 		void Spawn (void);
 		void Precache (void);
 		int iItemSlot (void) { return 1; }
-		void EXPORT Smack (void);
+		void HLEXPORT Smack (void);
 		int GetItemInfo (ItemInfo *p);
 
 		void PrimaryAttack (void);
@@ -703,7 +703,7 @@ class CLaserSpot: public CBaseEntity
 
 	public:
 		void Suspend (float flSuspendTime);
-		void EXPORT Revive (void);
+		void HLEXPORT Revive (void);
 		void Killed (entvars_t* pevAttacker, int iGib);
 		static CLaserSpot* CreateSpot (edict_t* pOwner);
 	};
@@ -762,9 +762,9 @@ class CRpgRocket: public CGrenade
 		static	TYPEDESCRIPTION m_SaveData[];
 		void Spawn (void);
 		void Precache (void);
-		void EXPORT FollowThink (void);
-		void EXPORT IgniteThink (void);
-		void EXPORT RocketTouch (CBaseEntity* pOther);
+		void HLEXPORT FollowThink (void);
+		void HLEXPORT IgniteThink (void);
+		void HLEXPORT RocketTouch (CBaseEntity* pOther);
 		static CRpgRocket* CreateRpgRocket (Vector vecOrigin, Vector vecAngles, CBaseEntity* pOwner, CRpg* pLauncher);
 
 		int m_iTrail;

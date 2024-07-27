@@ -8,6 +8,9 @@
 struct ref_state_s ref;
 ref_globals_t refState;
 
+// [FWGS, 01.07.24]
+static const char *r_skyBoxSuffix[SKYBOX_MAX_SIDES] = { "rt", "bk", "lf", "ft", "up", "dn" };
+
 // [FWGS, 01.07.23]
 CVAR_DEFINE_AUTO (gl_vsync, "0", FCVAR_ARCHIVE,
 	"enable vertical syncronization");
@@ -65,11 +68,112 @@ void R_GetTextureParms (int *w, int *h, int texnum)
 
 /***
 ================
-GL_FreeImage
+GL_FreeImage*/
 
-Frees image by name
+// [FWGS, 01.07.24]
+static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_STRING])
+	{
+	static const char *skybox_ext[3] = { "dds", "tga", "bmp" };
+	static const char *skybox_delim[2] = { "", "_" }; // no space for HL style, underscore for Q1 style
+	int i;
+
+	// search for skybox images
+	for (i = 0; i < ARRAYSIZE (skybox_ext); i++)
+		{
+		int j;
+
+		for (j = 0; j < ARRAYSIZE (skybox_delim); j++)
+			{
+			int k, num_checked_sides = 0;
+
+			for (k = 0; k < SKYBOX_MAX_SIDES; k++)
+				{
+				char sidename[MAX_VA_STRING];
+
+				Q_snprintf (sidename, sizeof (sidename), "%s%s%s.%s", name, skybox_delim[j], r_skyBoxSuffix[k],
+					skybox_ext[i]);
+				if (g_fsapi.FileExists (sidename, false))
+					{
+					Q_strncpy (out[k], sidename, sizeof (out[k]));
+					num_checked_sides++;
+					}
+				}
+
+			if (num_checked_sides == SKYBOX_MAX_SIDES)
+				return true; // image exists
+			}
+		}
+
+	return false;
+	}
+
+// [FWGS, 01.07.24]
+void R_SetupSky (const char *name)
+	{
+	string	loadname;
+	char	sidenames[SKYBOX_MAX_SIDES][MAX_STRING];
+	int		skyboxTextures[SKYBOX_MAX_SIDES] = { 0 };
+	int		i, len;
+	qboolean	result;
+
+	if (!COM_CheckString (name))
+		{
+		ref.dllFuncs.R_SetupSky (NULL); // unload skybox
+		return;
+		}
+
+	Q_snprintf (loadname, sizeof (loadname), "gfx/env/%s", name);
+	COM_StripExtension (loadname);
+
+	// kill the underline suffix to find them manually later
+	len = Q_strlen (loadname);
+
+	if (loadname[len - 1] == '_')
+		loadname[len - 1] = '\0';
+	result = CheckSkybox (loadname, sidenames);
+
+	// to prevent infinite recursion if default skybox was missed
+	if (!result && Q_stricmp (name, DEFAULT_SKYBOX_NAME))
+		{
+		Con_Reportf (S_WARN "missed or incomplete skybox '%s'\n", name);
+		R_SetupSky (DEFAULT_SKYBOX_NAME); // force to default
+		return;
+		}
+
+	ref.dllFuncs.R_SetupSky (NULL); // unload skybox
+	Con_DPrintf ("SKY: ");
+
+	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
+		{
+		skyboxTextures[i] = ref.dllFuncs.GL_LoadTexture (sidenames[i], NULL, 0, TF_CLAMP | TF_SKY);
+
+		if (!skyboxTextures[i])
+			break;
+
+		Con_DPrintf ("%s%s%s", name, r_skyBoxSuffix[i], i != 5 ? ", " : ". ");
+		}
+
+	if (i == SKYBOX_MAX_SIDES)
+		{
+		SetBits (world.flags, FWORLD_CUSTOM_SKYBOX);
+		Con_DPrintf ("done\n");
+		ref.dllFuncs.R_SetupSky (skyboxTextures);
+		return; // loaded
+		}
+
+	Con_DPrintf ("^2failed\n");
+	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
+		{
+		if (skyboxTextures[i])
+			ref.dllFuncs.GL_FreeTexture (skyboxTextures[i]);
+		}
+	}
+
+/*Frees image by name
 ================
 ***/
+
+// [FWGS, 01.07.24]
 void GAME_EXPORT GL_FreeImage (const char *name)
 	{
 	int	texnum;
@@ -112,10 +216,12 @@ static model_t *pfnGetDefaultSprite (enum ref_defaultsprite_e spr)
 		{
 		case REF_DOT_SPRITE:
 			return cl_sprite_dot;
+
 		case REF_CHROME_SPRITE:
 			return cl_sprite_shell;
+
 		default:
-			Host_Error ("GetDefaultSprite: unknown sprite %d\n", spr);
+			Host_Error ("%s: unknown sprite %d\n", __func__, spr);	// [FWGS, 01.07.24]
 		}
 
 	return NULL;
@@ -127,14 +233,18 @@ static void *pfnMod_Extradata (int type, model_t *m)
 		{
 		case mod_alias:
 			return Mod_AliasExtradata (m);
+
 		case mod_studio:
 			return Mod_StudioExtradata (m);
+
 		case mod_sprite: // fallthrough
 		case mod_brush:
 			return NULL;
+
 		default:
-			Host_Error ("Mod_Extradata: unknown type %d\n", type);
+			Host_Error ("%s: unknown type %d\n", __func__, type);	// [FWGS, 01.07.24]
 		}
+
 	return NULL;
 	}
 
@@ -417,9 +527,10 @@ static void CL_FillTriAPIFromRef (triangleapi_t *dst, const ref_interface_t *src
 	dst->FogParams = src->FogParams;
 	}
 
+// [FWGS, 01.07.24]
 static qboolean R_LoadProgs (const char *name)
 	{
-	extern triangleapi_t gTriApi;
+	/*extern triangleapi_t gTriApi;*/
 	static ref_api_t gpEngfuncs;
 	REFAPI GetRefAPI; // single export
 
@@ -429,7 +540,7 @@ static qboolean R_LoadProgs (const char *name)
 	if (!(ref.hInstance = COM_LoadLibrary (name, false, true)))
 		{
 		FS_AllowDirectPaths (false);
-		Con_Reportf ("R_LoadProgs: can't load renderer library %s: %s\n", name, COM_GetLibraryError ());
+		Con_Reportf ("%s: can't load renderer library %s: %s\n", __func__, name, COM_GetLibraryError ());
 		return false;
 		}
 
@@ -438,7 +549,7 @@ static qboolean R_LoadProgs (const char *name)
 	if (!(GetRefAPI = (REFAPI)COM_GetProcAddress (ref.hInstance, GET_REF_API)))
 		{
 		COM_FreeLibrary (ref.hInstance);
-		Con_Reportf ("R_LoadProgs: can't find GetRefAPI entry point in %s\n", name);
+		Con_Reportf ("%s: can't find GetRefAPI entry point in %s\n", __func__, name);
 		ref.hInstance = NULL;
 		return false;
 		}
@@ -446,11 +557,10 @@ static qboolean R_LoadProgs (const char *name)
 	// make local copy of engfuncs to prevent overwrite it with user dll
 	memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));
 
-	// [FWGS, 01.01.24]
 	if (GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState) != REF_API_VERSION)
 		{
 		COM_FreeLibrary (ref.hInstance);
-		Con_Reportf ("R_LoadProgs: can't init renderer API: wrong version\n");
+		Con_Reportf ("%s: can't init renderer API: wrong version\n", __func__);
 		ref.hInstance = NULL;
 		return false;
 		}
@@ -460,7 +570,7 @@ static qboolean R_LoadProgs (const char *name)
 	if (!ref.dllFuncs.R_Init ())
 		{
 		COM_FreeLibrary (ref.hInstance);
-		Con_Reportf ("R_LoadProgs: can't init renderer!\n");
+		Con_Reportf ("%s: can't init renderer!\n", __func__);	//, ref.dllFuncs.R_GetInitError() );
 		ref.hInstance = NULL;
 		return false;
 		}

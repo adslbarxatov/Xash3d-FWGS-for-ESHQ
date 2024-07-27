@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 */
 #include "port.h"
 #include "xash3d_types.h"
@@ -22,13 +22,14 @@ GNU General Public License for more details.
 #include "crtlib.h"
 #include "xash3d_mathlib.h"
 
-// [FWGS, 01.05.23] удалена Q_strnupr
-
+// [FWGS, 01.07.24]
 void Q_strnlwr (const char *in, char *out, size_t size_out)
 	{
-	if (size_out == 0) return;
+	/*if (size_out == 0)
+		return;*/
+	size_t len, i;
 
-	while (*in && (size_out > 1))
+	/*while (*in && (size_out > 1))
 		{
 		if ((*in >= 'A') && (*in <= 'Z'))
 			*out++ = *in++ + 'a' - 'A';
@@ -36,29 +37,39 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 			*out++ = *in++;
 		size_out--;
 		}
-	*out = '\0';
+	*out = '\0';*/
+	len = Q_strncpy (out, in, size_out);
+
+	for (i = 0; i < len; i++)
+		out[i] = Q_tolower (out[i]);
 	}
 
 // [FWGS, 01.05.24] removed Q_isdigit, Q_isspace
 
+// [FWGS, 01.07.24]
 size_t Q_colorstr (const char *string)
 	{
-	size_t len;
-	const char *p;
+	/*size_t len;
+	const char *p;*/
+	const char *p = string;
+	size_t len = 0;
 
-	if (!string) return 0;
+	/*if (!string) return 0;*/
+	if (!string)
+		return len;
 
-	len = 0;
+	/*len = 0;
 	p = string;
-	while (*p)
+	while (*p)*/
+	while ((p = Q_strchr (p, '^')))
 		{
 		if (IsColorString (p))
 			{
 			len += 2;
 			p += 2;
-			continue;
+			/*continue;*/
 			}
-		p++;
+		/*p++;*/
 		}
 
 	return len;
@@ -66,21 +77,60 @@ size_t Q_colorstr (const char *string)
 
 // [FWGS, 01.05.24] removed Q_toupper, Q_tolower, Q_strncat
 
-// [FWGS, 01.07.23] removed Q_strncpy
+// [FWGS, 01.07.24]
+static int Q_atoi_hex (int sign, const char *str)
+	{
+	int c, val = 0;
 
+	str += 2;
+	while (1)
+		{
+		c = *str++;
+		if (c >= '0' && c <= '9')
+			val = (val << 4) + c - '0';
+		else if (c >= 'a' && c <= 'f')
+			val = (val << 4) + c - 'a' + 10;
+		else if (c >= 'A' && c <= 'F')
+			val = (val << 4) + c - 'A' + 10;
+		else
+			return val * sign;
+		}
+	}
+
+// [FWGS, 01.07.24]
+static int Q_atoi_character (int sign, const char *str)
+	{
+	return sign * str[1];
+	}
+
+// [FWGS, 01.07.24]
+static const char *Q_atoi_strip_whitespace (const char *str)
+	{
+	while (str && (*str == ' '))
+		str++;
+
+	return str;
+	}
+
+// [FWGS, 01.07.24]
 int Q_atoi (const char *str)
 	{
 	int	val = 0;
 	int	c, sign;
 
-	if (!str)
+	/*if (!str)
+		return 0;*/
+	if (!COM_CheckString (str))
 		return 0;
 
-	// check for empty charachters in string
+	/*// check for empty charachters in string
 	while (str && (*str == ' '))
-		str++;
+		str++;*/
+	str = Q_atoi_strip_whitespace (str);
 
-	if (!str)
+	/*if (!str)
+		return 0;*/
+	if (!COM_CheckString (str))
 		return 0;
 
 	if (*str == '-')
@@ -95,7 +145,9 @@ int Q_atoi (const char *str)
 
 	// check for hex
 	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
-		{
+		return Q_atoi_hex (sign, str);
+
+	/*{
 		str += 2;
 		while (1)
 			{
@@ -109,11 +161,12 @@ int Q_atoi (const char *str)
 			else
 				return val * sign;
 			}
-		}
+		}*/
 
 	// check for character
 	if (str[0] == '\'')
-		return sign * str[1];
+		return Q_atoi_character (sign, str);
+	/*return sign * str[1];*/
 
 	// assume decimal
 	while (1)
@@ -121,25 +174,33 @@ int Q_atoi (const char *str)
 		c = *str++;
 		if ((c < '0') || (c > '9'))
 			return val * sign;
+
 		val = val * 10 + c - '0';
 		}
+
 	return 0;
 	}
 
+// [FWGS, 01.07.24]
 float Q_atof (const char *str)
 	{
 	double	val = 0;
 	int		c, sign, decimal, total;
 
-	if (!str)
-		return 0.0f;
+	/*if (!str)
+		return 0.0f;*/
+	if (!COM_CheckString (str))
+		return 0;
 
-	// check for empty charachters in string
+	/*// check for empty charachters in string
 	while (str && (*str == ' '))
-		str++;
+		str++;*/
+	str = Q_atoi_strip_whitespace (str);
 
-	if (!str)
-		return 0.0f;
+	/*if (!str)
+		return 0.0f;*/
+	if (!COM_CheckString (str))
+		return 0;
 
 	if (*str == '-')
 		{
@@ -153,7 +214,9 @@ float Q_atof (const char *str)
 
 	// check for hex
 	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
-		{
+		return Q_atoi_hex (sign, str);
+
+	/*{
 		str += 2;
 		while (1)
 			{
@@ -167,11 +230,13 @@ float Q_atof (const char *str)
 			else
 				return val * sign;
 			}
-		}
+		}*/
 
 	// check for character
+	/*if (str[0] == '\'')
+		return sign * str[1];*/
 	if (str[0] == '\'')
-		return sign * str[1];
+		return Q_atoi_character (sign, str);
 
 	// assume decimal
 	decimal = -1;
@@ -204,13 +269,14 @@ float Q_atof (const char *str)
 	return val * sign;
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.07.24]
 void Q_atov (float *vec, const char *str, size_t siz)
 	{
 	const char	*pstr, *pfront;
 	int		j;
 
-	memset (vec, 0, sizeof (vec_t) * siz);
+	/*memset (vec, 0, sizeof (vec_t) * siz);*/
+	memset (vec, 0, sizeof (*vec) * siz);
 	pstr = pfront = str;
 
 	for (j = 0; j < siz; j++)
@@ -307,6 +373,14 @@ const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *need
 		}
 
 	return NULL;
+	}
+
+// [FWGS, 01.07.24]
+void Q_memor (byte *XASH_RESTRICT dst, const byte *XASH_RESTRICT src, size_t len)
+	{
+	size_t i;
+	for (i = 0; i < len; i++) // msvc likes to optimize this loop form
+		dst[i] |= src[i];
 	}
 
 const char *Q_timestamp (int format)
@@ -434,13 +508,13 @@ int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...)
 	return result;
 	}
 
-// [FWGS, 01.05.23] удалена Q_sprintf
-// [FWGS, 01.04.23] удалена Q_strpbrk
-
+// [FWGS, 01.07.24]
 void COM_StripColors (const char *in, char *out)
 	{
+	/*while (*in)*/
 	while (*in)
 		{
+		/*if (IsColorString (in))*/
 		if (IsColorString (in))
 			in += 2;
 		else
@@ -449,35 +523,41 @@ void COM_StripColors (const char *in, char *out)
 	*out = '\0';
 	}
 
-// [FWGS, 01.05.23] удалена Q_hashkey
-
+// [FWGS, 01.07.24]
 char *Q_pretifymem (float value, int digitsafterdecimal)
 	{
 	static char	output[8][32];
 	static int	current;
-	float		onekb = 1024.0f;
+	/*float		onekb = 1024.0f;
 	float		onemb = onekb * onekb;
-	char		suffix[8];
-	char *out = output[current];
-	char		val[32], *i, *o, *dot;
-	int			pos;
+	char		suffix[8];*/
+	const float	onekb = 1024.0f;
+	const float	onemb = onekb * onekb;
+	const char	*suffix;
+
+	char	*out = output[current];
+	char	val[32], *i, *o, *dot;
+	int		pos;
 
 	current = (current + 1) & (8 - 1);
 
-	// [FWGS, 01.04.23] first figure out which bin to use
+	// first figure out which bin to use
 	if (value > onemb)
 		{
 		value /= onemb;
-		Q_strncpy (suffix, " Mb", sizeof (suffix));
+		/*Q_strncpy (suffix, " Mb", sizeof (suffix));*/
+		suffix = " Mb";
 		}
 	else if (value > onekb)
 		{
 		value /= onekb;
-		Q_strncpy (suffix, " Kb", sizeof (suffix));
+		/*Q_strncpy (suffix, " Kb", sizeof (suffix));*/
+		suffix = " Kb";
 		}
 	else
 		{
-		Q_strncpy (suffix, " bytes", sizeof (suffix));
+		suffix = " bytes";
+		/*Q_strncpy (suffix, " bytes", sizeof (suffix));*/
 		}
 
 	// clamp to >= 0
@@ -492,7 +572,7 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 		{
 		char fmt[32];
 
-		// [FWGS, 01.05.23] otherwise, create a format string for the decimals
+		// otherwise, create a format string for the decimals
 		Q_snprintf (fmt, sizeof (fmt), "%%.%if%s", digitsafterdecimal, suffix);
 		Q_snprintf (val, sizeof (val), fmt, (double)value);
 		}
@@ -501,7 +581,7 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	i = val;
 	o = out;
 
-	// [FWGS, 01.04.23] search for decimal or if it was integral, find the space after the raw number
+	// search for decimal or if it was integral, find the space after the raw number
 	dot = Q_strchr (i, '.');
 	if (!dot)
 		dot = Q_strchr (i, ' ');
@@ -527,8 +607,6 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 
 	return out;
 	}
-
-// [FWGS, 01.04.23] удалена va
 
 /***
 ============
@@ -676,8 +754,8 @@ COM_DefaultExtension [FWGS, 01.05.23]
 ***/
 void COM_DefaultExtension (char *path, const char *extension, size_t size)
 	{
-	const char *src;
-	size_t len;
+	const char	*src;
+	size_t		len;
 
 	// if path doesn't have a .EXT, append extension
 	// (extension should include the .)
@@ -708,33 +786,39 @@ void COM_ReplaceExtension (char *path, const char *extension, size_t size)
 
 /***
 ============
-COM_RemoveLineFeed
+COM_RemoveLineFeed [FWGS, 01.07.24]
 ============
 ***/
-void COM_RemoveLineFeed (char *str)
+/*void COM_RemoveLineFeed (char *str)*/
+void COM_RemoveLineFeed (char *str, size_t bufsize)
 	{
-	while (*str != '\0')
+	/*while (*str != '\0')*/
+	size_t i;
+
+	for (i = 0; (i < bufsize) && (*str != '\0'); i++, str++)
 		{
 		if ((*str == '\r') || (*str == '\n'))
 			*str = '\0';
 
-		++str;
+		/*++str;*/
 		}
 	}
 
 /***
 ============
-COM_FixSlashes [FWGS, 01.04.23]
+COM_FixSlashes [FWGS, 01.07.24]
 
 Changes all '\' characters into '/' characters, in place
 ============
 ***/
 void COM_FixSlashes (char *pname)
 	{
-	for (; *pname; pname++)
+	/*for (; *pname; pname++)*/
+	while ((pname = Q_strchr (pname, '\\')))
 		{
-		if (*pname == '\\')
-			*pname = '/';
+		/*if (*pname == '\\')
+			*pname = '/';*/
+		*pname = '/';
 		}
 	}
 

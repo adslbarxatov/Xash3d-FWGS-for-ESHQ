@@ -28,7 +28,8 @@ static DWORD GetOffsetByRVA (DWORD rva, PIMAGE_NT_HEADERS nt_header)
 
 	for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++, sect_header++)
 		{
-		if (rva >= sect_header->VirtualAddress && rva < sect_header->VirtualAddress + sect_header->Misc.VirtualSize)
+		if ((rva >= sect_header->VirtualAddress) &&
+			(rva < sect_header->VirtualAddress + sect_header->Misc.VirtualSize))
 			break;
 		}
 	return (rva - sect_header->VirtualAddress + sect_header->PointerToRawData);
@@ -54,10 +55,13 @@ static void FreeNameFuncGlobals (dll_user_t *hInst)
 	{
 	int	i;
 
-	if (!hInst) return;
+	if (!hInst)
+		return;
 
-	if (hInst->ordinals) Mem_Free (hInst->ordinals);
-	if (hInst->funcs) Mem_Free (hInst->funcs);
+	if (hInst->ordinals)
+		Mem_Free (hInst->ordinals);
+	if (hInst->funcs)
+		Mem_Free (hInst->funcs);
 
 	for (i = 0; i < hInst->num_ordinals; i++)
 		{
@@ -72,26 +76,27 @@ static void FreeNameFuncGlobals (dll_user_t *hInst)
 
 qboolean LibraryLoadSymbols (dll_user_t *hInst)
 	{
-	file_t *f;
+	file_t		*f;
 	string		errorstring;
-	IMAGE_DOS_HEADER	dos_header;
+	IMAGE_DOS_HEADER		dos_header;
 	LONG		nt_signature;
-	IMAGE_FILE_HEADER   pe_header;
+	IMAGE_FILE_HEADER		pe_header;
 	IMAGE_SECTION_HEADER	section_header;
-	qboolean		rdata_found;
-	IMAGE_OPTIONAL_HEADER   optional_header;
+	qboolean	rdata_found;
+	IMAGE_OPTIONAL_HEADER	optional_header;
 	long		rdata_delta = 0;
-	IMAGE_EXPORT_DIRECTORY  export_directory;
+	IMAGE_EXPORT_DIRECTORY	export_directory;
 	long		name_offset;
 	long		exports_offset;
 	long		ordinal_offset;
 	long		function_offset;
 	string		function_name;
-	dword *p_Names = NULL;
-	int		i, index;
+	dword		*p_Names = NULL;
+	int			i, index;
 
 	// can only be done for loaded libraries
-	if (!hInst) return false;
+	if (!hInst)
+		return false;
 
 	for (i = 0; i < hInst->num_ordinals; i++)
 		hInst->names[i] = NULL;
@@ -301,60 +306,71 @@ qboolean LibraryLoadSymbols (dll_user_t *hInst)
 
 table_error:
 	// cleanup
-	if (f) FS_Close (f);
-	if (p_Names) Mem_Free (p_Names);
+	if (f)
+		FS_Close (f);
+	if (p_Names)
+		Mem_Free (p_Names);
+
 	FreeNameFuncGlobals (hInst);
-	Con_Printf (S_ERROR "LoadLibrary: %s\n", errorstring);
+	Con_Printf (S_ERROR "%s: %s\n", __func__, errorstring);	// [FWGS, 01.07.24]
 
 	return false;
 	}
 
+// [FWGS, 01.07.24]
 static const char *GetLastErrorAsString (void)
 	{
-	DWORD errorcode;
-	static string errormessage;
+	const DWORD	fm_flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK;
+	DWORD		errorcode;
+	wchar_t		wide_errormessage[256];
+	static string	errormessage;
 
 	errorcode = GetLastError ();
-	if (!errorcode) return "";
+	/*if (!errorcode) return "";
 
 	FormatMessageA (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 		NULL, errorcode, MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPSTR)&errormessage, sizeof (errormessage), NULL);
+		(LPSTR)&errormessage, sizeof (errormessage), NULL);*/
+	if (!errorcode)
+		return "";
+
+	FormatMessageW (fm_flags, NULL, errorcode, 0, wide_errormessage, ARRAYSIZE (wide_errormessage), NULL);
+	Q_UTF16ToUTF8 (errormessage, sizeof (errormessage), wide_errormessage, ARRAYSIZE (wide_errormessage));
 
 	return errormessage;
 	}
 
 static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *data, PIMAGE_NT_HEADERS *peheader)
 	{
-	PIMAGE_DOS_HEADER dosHeader;
-	PIMAGE_NT_HEADERS peHeader;
-	PIMAGE_DATA_DIRECTORY importDir;
-	PIMAGE_IMPORT_DESCRIPTOR importDesc;
+	PIMAGE_DOS_HEADER		dosHeader;
+	PIMAGE_NT_HEADERS		peHeader;
+	PIMAGE_DATA_DIRECTORY	importDir;
+	PIMAGE_IMPORT_DESCRIPTOR	importDesc;
 
 	if (!data)
 		{
-		Con_Printf (S_ERROR "%s: couldn't load %s\n", __FUNCTION__, name);
+		Con_Printf (S_ERROR "%s: couldn't load %s\n", __func__, name);	// [FWGS, 01.07.24]
 		return NULL;
 		}
 
 	dosHeader = (PIMAGE_DOS_HEADER)data;
 	if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
 		{
-		Con_Printf (S_ERROR "%s: %s is not a valid executable file\n", __FUNCTION__, name);
+		Con_Printf (S_ERROR "%s: %s is not a valid executable file\n", __func__, name);	// [FWGS, 01.07.24]
 		return NULL;
 		}
 
 	peHeader = (PIMAGE_NT_HEADERS)(data + dosHeader->e_lfanew);
 	if (peHeader->Signature != IMAGE_NT_SIGNATURE)
 		{
-		Con_Printf (S_ERROR "%s: %s is missing a PE header\n", __FUNCTION__, name);
+		Con_Printf (S_ERROR "%s: %s is missing a PE header\n", __func__, name);	// [FWGS, 01.07.24]
 		return NULL;
 		}
 
 	importDir = &peHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
 	if (importDir->Size <= 0)
 		{
-		Con_Printf (S_ERROR "%s: %s has no dependencies\n", __FUNCTION__, name);
+		Con_Printf (S_ERROR "%s: %s has no dependencies\n", __func__, name);	// [FWGS, 01.07.24]
 		return NULL;
 		}
 
@@ -368,8 +384,8 @@ static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *dat
 // [FWGS, 01.03.24]
 static void ListMissingModules (dll_user_t *hInst)
 	{
-	PIMAGE_NT_HEADERS peHeader;
-	PIMAGE_IMPORT_DESCRIPTOR importDesc;
+	PIMAGE_NT_HEADERS	peHeader;
+	PIMAGE_IMPORT_DESCRIPTOR	importDesc;
 	byte	*data;
 	char	buf[MAX_VA_STRING];
 
@@ -532,20 +548,25 @@ void *COM_GetProcAddress (void *hInstance, const char *name)
 	return (void *)GetProcAddress (hInst->hInstance, name);
 	}
 
+// [FWGS, 01.07.24]
 void COM_FreeLibrary (void *hInstance)
 	{
 	dll_user_t *hInst = (dll_user_t *)hInstance;
 
+	// already freed
 	if (!hInst || !hInst->hInstance)
-		return; // already freed
+		return;
 
 	if (host.status == HOST_CRASHED)
 		{
 		// we need to hold down all modules, while MSVC can find error
-		Con_Reportf ("Sys_FreeLibrary: hold %s for debugging\n", hInst->dllName);
+		Con_Reportf ("%s: hold %s for debugging\n", __func__, hInst->dllName);
 		return;
 		}
-	else Con_Reportf ("Sys_FreeLibrary: Unloading %s\n", hInst->dllName);
+	else
+		{
+		Con_Reportf ("%s: Unloading %s\n", __func__, hInst->dllName);
+		}
 
 #if XASH_X86
 	if (hInst->custom_loader)
@@ -562,7 +583,9 @@ void COM_FreeLibrary (void *hInstance)
 
 	if (hInst->num_ordinals)
 		FreeNameFuncGlobals (hInst);
-	Mem_Free (hInst);	// done
+
+	// done
+	Mem_Free (hInst);
 	}
 
 void *COM_FunctionFromName (void *hInstance, const char *pName)

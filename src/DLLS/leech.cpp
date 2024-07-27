@@ -48,8 +48,8 @@ class CLeech: public CBaseMonster
 		void Spawn (void);
 		void Precache (void);
 
-		void EXPORT SwimThink (void);
-		void EXPORT DeadThink (void);
+		void HLEXPORT SwimThink (void);
+		void HLEXPORT DeadThink (void);
 		void Touch (CBaseEntity* pOther)
 			{
 			if (pOther->IsPlayer ())

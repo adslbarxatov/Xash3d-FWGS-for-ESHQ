@@ -110,9 +110,45 @@ struct
 // [FWGS, 01.02.24]
 static qboolean CL_NextDemo (void);
 
+// [FWGS, 01.07.24]
+static int CL_GetDemoNetProtocol (connprotocol_t proto)
+	{
+	switch (proto)
+		{
+		case PROTO_CURRENT:
+			return PROTOCOL_VERSION;
+		case PROTO_LEGACY:
+			return PROTOCOL_LEGACY_VERSION;
+		case PROTO_QUAKE:
+			return PROTOCOL_VERSION_QUAKE;
+		case PROTO_GOLDSRC:
+			return PROTOCOL_GOLDSRC_VERSION;
+		}
+
+	return PROTOCOL_VERSION;
+	}
+
+// [FWGS, 01.07.24]
+static connprotocol_t CL_GetProtocolFromDemo (int net_protocol)
+	{
+	switch (net_protocol)
+		{
+		case PROTOCOL_VERSION:
+			return PROTO_CURRENT;
+		case PROTOCOL_LEGACY_VERSION:
+			return PROTO_LEGACY;
+		case PROTOCOL_VERSION_QUAKE:
+			return PROTO_QUAKE;
+		case PROTOCOL_GOLDSRC_VERSION:
+			return PROTO_GOLDSRC;
+		}
+
+	return PROTO_CURRENT;
+	}
+
 /***
 ====================
-CL_StartupDemoHeader
+CL_StartupDemoHeader [FWGS, 01.07.24]
 
 spooling demo header in case
 we record a demo on this level
@@ -120,12 +156,12 @@ we record a demo on this level
 ***/
 void CL_StartupDemoHeader (void)
 	{
-	if (cls.demoheader)
+	/*if (cls.demoheader)
 		{
 		FS_Close (cls.demoheader);
-		}
+		}*/
+	CL_CloseDemoHeader ();
 
-	// Note: this is replacing tmpfile()
 	cls.demoheader = FS_Open ("demoheader.tmp", "w+b", true);
 
 	if (!cls.demoheader)
@@ -376,9 +412,11 @@ static void CL_WriteDemoHeader (const char *name)
 
 	memset (&demo.header, 0, sizeof (demo.header));
 
+	// [FWGS, 01.07.24]
 	demo.header.id = IDEMOHEADER;
 	demo.header.dem_protocol = DEMO_PROTOCOL;
-	demo.header.net_protocol = cls.legacymode ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION;
+	/*demo.header.net_protocol = cls.legacymode ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION;*/
+	demo.header.net_protocol = CL_GetDemoNetProtocol (cls.legacymode);
 	
 	// [FWGS, 01.01.24]
 	demo.header.host_fps = host_maxfps.value ? bound (MIN_FPS, host_maxfps.value, MAX_FPS) : MAX_FPS;
@@ -399,8 +437,11 @@ static void CL_WriteDemoHeader (const char *name)
 	demo.entry->playback_time = 0.0f;			// startup takes 0 time
 	demo.entry->offset = FS_Tell (cls.demofile);	// position for this chunk
 
-	// finish off the startup info.
+	// finish off the startup info
 	CL_WriteDemoCmdHeader (dem_stop, cls.demoheader);
+
+	// [FWGS, 01.07.24]
+	FS_Flush (cls.demoheader);
 
 	// now copy the stuff we cached from the server
 	copysize = savepos = FS_Tell (cls.demoheader);
@@ -1514,6 +1555,9 @@ void CL_PlayDemo_f (void)
 
 		if (neg)
 			cls.forcetrack = -cls.forcetrack;
+
+		// [FWGS, 01.07.24]
+		cls.legacymode = PROTO_QUAKE;
 		CL_DemoStartPlayback (DEMO_QUAKE1);
 		return; // quake demo is started
 		}
@@ -1570,9 +1614,12 @@ void CL_PlayDemo_f (void)
 
 	CL_DemoStartPlayback (DEMO_XASH3D);
 
+	// [FWGS, 01.07.24] must be after DemoStartPlayback, as CL_Disconnect_f resets the protocol
+	cls.legacymode = CL_GetProtocolFromDemo (demo.header.net_protocol);
+
 	// g-cont. is this need?
 	Q_strncpy (cls.servername, demoname, sizeof (cls.servername));
-	cls.legacymode = demo.header.net_protocol == PROTOCOL_LEGACY_VERSION;
+	/*cls.legacymode = demo.header.net_protocol == PROTOCOL_LEGACY_VERSION;*/
 
 	// begin a playback demo
 	}
@@ -1614,7 +1661,7 @@ void CL_StartDemos_f (void)
 	c = Cmd_Argc () - 1;
 	if (c > MAX_DEMOS)
 		{
-		Con_DPrintf (S_WARN "Host_StartDemos: max %i demos in demoloop\n", MAX_DEMOS);
+		Con_DPrintf (S_WARN "%s: max %i demos in demoloop\n", __func__, MAX_DEMOS);	// [FWGS, 01.07.24]
 		c = MAX_DEMOS;
 		}
 

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 
@@ -21,7 +21,8 @@ GNU General Public License for more details.
 #define MAX_CLIP_VERTS		128 // skybox clip vertices
 #define TURBSCALE			( 256.0f / ( M_PI2 ))
 
-static const char *r_skyBoxSuffix[SKYBOX_MAX_SIDES] = { "rt", "bk", "lf", "ft", "up", "dn" };
+// [FWGS, 01.07.24]
+/*static const char *r_skyBoxSuffix[SKYBOX_MAX_SIDES] = { "rt", "bk", "lf", "ft", "up", "dn" };*/
 static const int r_skyTexOrder[SKYBOX_MAX_SIDES] = { 0, 2, 1, 3, 4, 5 };
 static const vec3_t skyclip[SKYBOX_MAX_SIDES] =
 	{
@@ -86,8 +87,8 @@ static struct
 	float	texturescale; // not all textures are 128x128, scale the texcoords down
 	} g_ripple;
 
-// [FWGS, 01.04.23]
-static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
+// [FWGS, 01.07.24] removed CheckSkybox
+/*static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 	{
 	const char	*skybox_ext[3] = { "dds", "tga", "bmp" };
 	int			i, j, num_checked_sides;
@@ -132,11 +133,11 @@ static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
 		}
 
 	return false;
-	}
+	}*/
 
 static void DrawSkyPolygon (int nump, vec3_t vecs)
 	{
-	int	i, j, axis;
+	int		i, j, axis;
 	float	s, t, dv, *vp;
 	vec3_t	v, av;
 
@@ -154,7 +155,8 @@ static void DrawSkyPolygon (int nump, vec3_t vecs)
 		axis = (v[0] < 0) ? 1 : 0;
 	else if (av[1] > av[2] && av[1] > av[0])
 		axis = (v[1] < 0) ? 3 : 2;
-	else axis = (v[2] < 0) ? 5 : 4;
+	else
+		axis = (v[2] < 0) ? 5 : 4;
 
 	// project new texture coords
 	for (i = 0; i < nump; i++, vecs += 3)
@@ -162,7 +164,8 @@ static void DrawSkyPolygon (int nump, vec3_t vecs)
 		j = vec_to_st[axis][2];
 		dv = (j > 0) ? vecs[j - 1] : -vecs[-j - 1];
 
-		if (dv == 0.0f) continue;
+		if (dv == 0.0f)
+			continue;
 
 		j = vec_to_st[axis][0];
 		s = (j < 0) ? -vecs[-j - 1] / dv : vecs[j - 1] / dv;
@@ -184,8 +187,8 @@ ClipSkyPolygon
 ***/
 static void ClipSkyPolygon (int nump, vec3_t vecs, int stage)
 	{
-	const float *norm;
-	float *v, d, e;
+	const float	*norm;
+	float		*v, d, e;
 	qboolean	front, back;
 	float		dists[MAX_CLIP_VERTS + 1];
 	int			sides[MAX_CLIP_VERTS + 1];
@@ -193,8 +196,10 @@ static void ClipSkyPolygon (int nump, vec3_t vecs, int stage)
 	int			newc[2];
 	int			i, j;
 
+	// [FWGS, 01.07.24]
 	if (nump > MAX_CLIP_VERTS)
-		gEngfuncs.Host_Error ("ClipSkyPolygon: MAX_CLIP_VERTS\n");
+		gEngfuncs.Host_Error ("%s: MAX_CLIP_VERTS\n", __func__);
+
 loc1:
 	if (stage == 6)
 		{
@@ -361,12 +366,13 @@ void R_AddSkyBoxSurface (msurface_t *fa)
 
 /***
 ==============
-R_UnloadSkybox [FWGS, 01.02.24]
+R_UnloadSkybox [FWGS, 01.07.24]
 
 Unload previous skybox
 ==============
 ***/
-static void R_UnloadSkybox (void)
+/*static void R_UnloadSkybox (void)*/
+void R_UnloadSkybox (void)
 	{
 	int	i;
 
@@ -432,11 +438,12 @@ void R_DrawSkyBox (void)
 	R_LoadIdentity ();
 	}
 
-/***
+// [FWGS, 01.07.24] removed R_SetupSky
+/*
 ===============
 R_SetupSky [FWGS, 01.01.24]
 ===============
-***/
+/
 void R_SetupSky (const char *skyboxname)
 	{
 	char	loadname[MAX_STRING];
@@ -491,7 +498,7 @@ void R_SetupSky (const char *skyboxname)
 
 	gEngfuncs.Con_DPrintf ("^2failed\n");
 	R_UnloadSkybox ();
-	}
+	}*/
 
 // ==============================================================================
 // RENDER CLOUDS
@@ -588,12 +595,12 @@ R_CloudRenderSide
 ***/
 static void R_CloudRenderSide (int axis)
 	{
-	vec3_t	verts[4];
-	float	di, qi, dj, qj;
-	vec3_t	vup, vright;
-	vec3_t	temp, temp2;
+	vec3_t		verts[4];
+	float		di, qi, dj, qj;
+	vec3_t		vup, vright;
+	vec3_t		temp, temp2;
 	glpoly_t	p[1];
-	int	i, j;
+	int			i, j;
 
 	R_CloudVertex (-1.0f, -1.0f, axis, verts[0]);
 	R_CloudVertex (-1.0f, 1.0f, axis, verts[1]);
@@ -669,13 +676,14 @@ void R_DrawClouds (void)
 		pglFogf (GL_FOG_DENSITY, RI.fogDensity);
 	}
 
-/***
+// [FWGS, 01.07.24] removed R_InitSkyClouds
+/*
 =============
 R_InitSkyClouds
 
 A sky texture is 256*128, with the right side being a masked overlay
 ==============
-***/
+/
 void R_InitSkyClouds (mip_t *mt, texture_t *tx, qboolean custom_palette)
 	{
 	rgbdata_t	r_temp, *r_sky;
@@ -773,7 +781,7 @@ void R_InitSkyClouds (mip_t *mt, texture_t *tx, qboolean custom_palette)
 	// clean up
 	gEngfuncs.FS_FreeImage (r_sky);
 	Mem_Free (trans);
-	}
+	}*/
 
 /***
 =============

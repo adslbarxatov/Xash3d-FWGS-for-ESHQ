@@ -138,9 +138,9 @@ class CGib: public CBaseEntity
 	{
 	public:
 		void Spawn (const char* szGibModel);
-		void EXPORT BounceGibTouch (CBaseEntity* pOther);
-		void EXPORT StickyGibTouch (CBaseEntity* pOther);
-		void EXPORT WaitTillLand (void);
+		void HLEXPORT BounceGibTouch (CBaseEntity* pOther);
+		void HLEXPORT StickyGibTouch (CBaseEntity* pOther);
+		void HLEXPORT WaitTillLand (void);
 		void		LimitVelocity (void);
 
 		virtual int	ObjectCaps (void) { return (CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION) | FCAP_DONT_SAVE; }

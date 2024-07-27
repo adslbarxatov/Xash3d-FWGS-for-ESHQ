@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -143,10 +143,11 @@ void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, c
 		raw = (byte *)data;
 		}
 
+	// [FWGS, 01.07.24]
 	if (cols > glConfig.max_2d_texture_size)
-		gEngfuncs.Host_Error ("R_DrawStretchRaw: size %i exceeds hardware limits\n", cols);
+		gEngfuncs.Host_Error ("%s: size %i exceeds hardware limits\n", __func__, cols);
 	if (rows > glConfig.max_2d_texture_size)
-		gEngfuncs.Host_Error ("R_DrawStretchRaw: size %i exceeds hardware limits\n", rows);
+		gEngfuncs.Host_Error ("%s: size %i exceeds hardware limits\n", __func__, rows);
 
 	pglDisable (GL_BLEND);
 	pglDisable (GL_ALPHA_TEST);
@@ -218,10 +219,11 @@ void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height,
 		raw = (byte *)data;
 		}
 
+	// [FWGS, 01.07.24]
 	if (cols > glConfig.max_2d_texture_size)
-		gEngfuncs.Host_Error ("R_UploadStretchRaw: size %i exceeds hardware limits\n", cols);
+		gEngfuncs.Host_Error ("%s: size %i exceeds hardware limits\n", __func__, cols);
 	if (rows > glConfig.max_2d_texture_size)
-		gEngfuncs.Host_Error ("R_UploadStretchRaw: size %i exceeds hardware limits\n", rows);
+		gEngfuncs.Host_Error ("%s: size %i exceeds hardware limits\n", __func__, rows);
 
 	tex = R_GetTexture (texture);
 	GL_Bind (GL_KEEP_UNIT, texture);

@@ -706,7 +706,7 @@ static void CL_FlushEntityPacket (sizebuf_t *msg)
 			break; // done
 
 		if (MSG_CheckOverflow (msg))
-			Host_Error ("CL_FlushEntityPacket: overflow\n");
+			Host_Error ("%s: overflow\n", __func__);	// [FWGS, 01.07.24]
 
 		MSG_ReadDeltaEntity (msg, &from, &to, newnum, CL_IsPlayerIndex (newnum) ? DELTA_PLAYER : DELTA_ENTITY,
 			cl.mtime[0]);
@@ -736,7 +736,7 @@ static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_s
 
 	if ((newnum < 0) || (newnum >= clgame.maxEntities))
 		{
-		Con_DPrintf (S_ERROR "CL_DeltaEntity: invalid newnum: %d\n", newnum);
+		Con_DPrintf (S_ERROR "%s: invalid newnum: %d\n", __func__, newnum);	// [FWGS, 01.07.24]
 		if (has_update)
 			MSG_ReadDeltaEntity (msg, old, state, newnum, delta_type, cl.mtime[0]);
 		return;
@@ -876,7 +876,7 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 			break; // done
 
 		if (MSG_CheckOverflow (msg))
-			Host_Error ("CL_ParsePacketEntities: overflow\n");
+			Host_Error ("%s: overflow\n", __func__);	// [FWGS, 01.07.24]
 		player = CL_IsPlayerIndex (newnum);
 
 		while (oldnum < newnum)
@@ -945,8 +945,8 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)
 		}
 
 	if (newframe->num_entities != count && newframe->num_entities != 0)
-		Con_Reportf (S_WARN "CL_Parse%sPacketEntities: (%i should be %i)\n", delta ? "Delta" : "", 
-			newframe->num_entities, count);
+		Con_Reportf (S_WARN "%s%s: (%i should be %i)\n", __func__, delta ? "Delta" : "",
+			newframe->num_entities, count);	// [FWGS, 01.07.24]
 
 	if (!newframe->valid)
 		return playerbytes; // frame is not valid but message was parsed
@@ -1176,7 +1176,7 @@ static void CL_LinkPacketEntities (frame_t *frame)
 
 		if (!ent)
 			{
-			Con_Reportf (S_ERROR "CL_LinkPacketEntity: bad entity %i\n", state->number);
+			Con_Reportf (S_ERROR "%s: bad entity %i\n", __func__, state->number);	// [FWGS, 01.07.24]
 			continue;
 			}
 

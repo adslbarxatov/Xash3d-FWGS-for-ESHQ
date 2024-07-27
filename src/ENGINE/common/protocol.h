@@ -276,9 +276,10 @@ GNU General Public License for more details
 #define SU_ARMOR		(1<<13)
 #define SU_WEAPON		(1<<14)
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.07.24]
 extern const char *svc_strings[svc_lastmsg + 1];
 extern const char *svc_legacy_strings[svc_lastmsg + 1];
+extern const char *svc_quake_strings[svc_lastmsg + 1];
 extern const char *svc_goldsrc_strings[svc_lastmsg + 1];
 extern const char *clc_strings[clc_lastmsg + 1];
 

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include <math.h>	// fabs...
@@ -142,7 +142,7 @@ const char *Cvar_BuildAutoDescription (const char *szName, int flags)
 
 /***
 ============
-Cvar_UpdateInfo
+Cvar_UpdateInfo [FWGS, 01.07.24]
 
 deal with userinfo etc
 ============
@@ -167,8 +167,9 @@ static qboolean Cvar_UpdateInfo (convar_t *var, const char *value, qboolean noti
 				return false; // failed to change value
 
 			// time to update server copy of userinfo
-			CL_ServerCommand (true, "setinfo \"%s\" \"%s\"\n", var->name, value);
-			CL_LegacyUpdateInfo ();
+			/*CL_ServerCommand (true, "setinfo \"%s\" \"%s\"\n", var->name, value);
+			CL_LegacyUpdateInfo ();*/
+			CL_UpdateInfo (var->name, value);
 			}
 #endif
 		}
@@ -804,16 +805,15 @@ void GAME_EXPORT Cvar_Set (const char *var_name, const char *value)
 	if (!var_name)
 		{
 		// there is an error in C code if this happens
-		Con_Printf ("Cvar_Set: passed NULL variable name\n");
+		Con_Printf ("%s: passed NULL variable name\n", __func__);	// [FWGS, 01.07.24]
 		return;
 		}
 
 	var = Cvar_FindVar (var_name);
-
 	if (!var)
 		{
 		// there is an error in C code if this happens
-		Con_Printf ("Cvar_Set: variable '%s' not found\n", var_name);
+		Con_Printf ("%s: variable '%s' not found\n", __func__, var_name);	// [FWGS, 01.07.24]
 		return;
 		}
 
@@ -831,7 +831,8 @@ void GAME_EXPORT Cvar_SetValue (const char *var_name, float value)
 
 	if (fabs (value - (int)value) < 0.000001)
 		Q_snprintf (val, sizeof (val), "%d", (int)value);
-	else Q_snprintf (val, sizeof (val), "%f", value);
+	else
+		Q_snprintf (val, sizeof (val), "%f", value);
 
 	Cvar_Set (var_name, val);
 	}
@@ -858,12 +859,13 @@ float GAME_EXPORT Cvar_VariableValue (const char *var_name)
 	if (!var_name)
 		{
 		// there is an error in C code if this happens
-		Con_Printf ("Cvar_VariableValue: passed NULL variable name\n");
+		Con_Printf ("%s: passed NULL variable name\n", __func__);	// [FWGS, 01.07.24]
 		return 0.0f;
 		}
 
 	var = Cvar_FindVar (var_name);
-	if (!var) return 0.0f;
+	if (!var)
+		return 0.0f;
 
 	return Q_atof (var->string);
 	}
@@ -878,7 +880,8 @@ int Cvar_VariableInteger (const char *var_name)
 	convar_t *var;
 
 	var = Cvar_FindVar (var_name);
-	if (!var) return 0;
+	if (!var)
+		return 0;
 
 	return Q_atoi (var->string);
 	}
@@ -895,12 +898,13 @@ const char *Cvar_VariableString (const char *var_name)
 	if (!var_name)
 		{
 		// there is an error in C code if this happens
-		Con_Printf ("Cvar_VariableString: passed NULL variable name\n");
+		Con_Printf ("%s: passed NULL variable name\n", __func__);	// [FWGS, 01.07.24]
 		return "";
 		}
 
 	var = Cvar_FindVar (var_name);
-	if (!var) return "";
+	if (!var)
+		return "";
 
 	return var->string;
 	}
@@ -963,10 +967,11 @@ static void Cvar_SetGL (const char *name, const char *value)
 	Cvar_FullSet (name, value, FCVAR_GLCONFIG);
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.07.24]
 static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	{
-	const char *prefixes[] = { "cl_", "gl_", "m_", "r_", "hud_", "joy_" };
+	/*const char *prefixes[] = { "cl_", "gl_", "m_", "r_", "hud_", "joy_" };*/
+	const char *prefixes[] = { "cl_", "gl_", "m_", "r_", "hud_", "joy_", "con_", "scr_" };
 	int i;
 
 	if (isPrivileged)
@@ -978,7 +983,7 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	if (cl_filterstuffcmd.value <= 0.0f)
 		return true;
 
-	// [FWGS, 01.04.23] check if game-specific filter exceptions should be applied
+	// check if game-specific filter exceptions should be applied
 #ifdef HACKS_RELATED_HLMODS
 	if (cvar_active_filter_quirks)
 		{

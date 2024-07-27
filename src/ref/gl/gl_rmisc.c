@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -119,19 +119,17 @@ void R_NewMap (void)
 
 	R_StudioResetPlayerModels ();
 
-	// [FWGS, 01.07.23] upload detailtextures
+	// upload detailtextures
 	if (r_detailtextures.value)
 		{
 		string	mapname, filepath;
 
 		Q_strncpy (mapname, WORLDMODEL->name, sizeof (mapname));
 		COM_StripExtension (mapname);
-		Q_snprintf (filepath, sizeof (filepath), "%s_detail.txt", mapname);	// [FWGS, 01.05.23]
+		Q_snprintf (filepath, sizeof (filepath), "%s_detail.txt", mapname);
 
 		R_ParseDetailTextures (filepath);
 		}
-
-	// [FWGS, 01.05.23] удалена поддержка переменной v_dark
 
 	// clear out efrags in case the level hasn't been reloaded
 	for (i = 0; i < WORLDMODEL->numleafs; i++)
@@ -155,13 +153,11 @@ void R_NewMap (void)
 		tx->texturechain = NULL;
 		}
 
-	// [FWGS, 01.01.24]
-	R_SetupSky (tr.movevars->skyName);
+	// [FWGS, 01.07.24]
+	/*R_SetupSky (tr.movevars->skyName);*/
 
 	GL_BuildLightmaps ();
 	R_GenerateVBO ();
-
-	// [FWGS, 01.11.23]
 	R_ResetRipples ();
 
 	if (gEngfuncs.drawFuncs->R_NewMap != NULL)

@@ -66,7 +66,6 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 		if (f) return f;
 		}
 
-// [FWGS, 01.04.23]
 #elif _MSC_VER
 	// TODO: COM_ConvertToLocalPlatform doesn't support MSVC yet
 	// also custom loader strips always MSVC mangling, so Win32
@@ -80,18 +79,22 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 	return COM_FunctionFromName (hInstance, pName);
 	}
 
+// [FWGS, 01.07.24]
 const char *COM_OffsetNameForFunction (void *function)
 	{
 	static string sname;
-	Q_snprintf (sname, MAX_STRING, "ofs:%lu", (size_t)((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
-	Con_Reportf ("COM_OffsetNameForFunction %s\n", sname);
+	/*Q_snprintf (sname, MAX_STRING, "ofs:%lu", (size_t)((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
+	Con_Reportf ("COM_OffsetNameForFunction %s\n", sname);*/
+
+	Q_snprintf (sname, MAX_STRING, "ofs:%zu", ((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
+	Con_Reportf ("%s: %s\n", __func__, sname);
 	return sname;
 	}
 
 dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath)
 	{
-	dll_user_t *p;
-	fs_dllinfo_t dllInfo;
+	dll_user_t		*p;
+	fs_dllinfo_t	dllInfo;
 
 	// no fs loaded yet, but let engine find fs
 	if (!g_fsapi.FindLibrary)
@@ -218,7 +221,7 @@ static void COM_GenerateServerLibraryPath (char *out, size_t size)
 
 /***
 ==============
-COM_GetCommonLibraryPath
+COM_GetCommonLibraryPath [FWGS, 01.07.24]
 
 Generates platform-unique and compatible name for server library
 ==============
@@ -232,21 +235,26 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 			break;
 
 		case LIBRARY_CLIENT:
-			if (SI.clientlib[0])
-				Q_strncpy (out, SI.clientlib, size);
+			/*if (SI.clientlib[0])*/
+			if (COM_CheckStringEmpty (host.clientlib))
+				Q_strncpy (out, host.clientlib, size);
+			/*Q_strncpy (out, SI.clientlib, size);*/
+
 			else
 				COM_GenerateClientLibraryPath ("client", out, size);
 			break;
 
 		case LIBRARY_SERVER:
-			if (SI.gamedll[0])
-				Q_strncpy (out, SI.gamedll, size);
+			/*if (SI.gamedll[0])*/
+			if (COM_CheckStringEmpty (host.gamedll))
+				Q_strncpy (out, host.gamedll, size);
+			/*Q_strncpy (out, SI.gamedll, size);*/
+
 			else
 				COM_GenerateServerLibraryPath (out, size);
 			break;
 
 		default:
-			// [FWGS, 01.04.23]
 			ASSERT (0);
 			out[0] = 0;
 			break;
@@ -308,15 +316,14 @@ char *COM_GetMSVCName (const char *in_name)
 
 static char *COM_GetItaniumName (const char *const in_name)
 	{
-	static string out_name;
-	const char *f = in_name;
-	string symbols[16];
-	uint len = 0;
-	int i;
-	int remaining;
+	static string	out_name;
+	const char		*f = in_name;
+	string			symbols[16];
+	uint	len = 0;
+	int		i;
+	int		remaining;
 
 	remaining = Q_strlen (f);
-
 	if (remaining < 3)
 		goto invalid_format;
 
@@ -351,9 +358,10 @@ static char *COM_GetItaniumName (const char *const in_name)
 			goto invalid_format;
 		}
 
+	// [FWGS, 01.07.24]
 	if (i == MAX_NESTED_NAMESPACES)
 		{
-		Con_DPrintf ("%s: too much nested namespaces: %s\n", __FUNCTION__, in_name);
+		Con_DPrintf ("%s: too much nested namespaces: %s\n", __func__, in_name);
 		return NULL;
 		}
 
@@ -367,17 +375,18 @@ static char *COM_GetItaniumName (const char *const in_name)
 	return out_name;
 
 invalid_format:
-	Con_DPrintf ("%s: invalid format: %s\n", __FUNCTION__, in_name);
+	// [FWGS, 01.07.24]
+	Con_DPrintf ("%s: invalid format: %s\n", __func__, in_name);
 	return NULL;
 	}
 
 char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, size_t *numfuncs)
 	{
-	string symbols[MAX_NESTED_NAMESPACES], temp, temp2;
-	const char *prev;
-	const char *postfix[3];
-	int i = 0;
-	char **ret;
+	string		symbols[MAX_NESTED_NAMESPACES], temp, temp2;
+	const char	*prev;
+	const char	*postfix[3];
+	int			i = 0;
+	char		**ret;
 
 	// TODO:
 	if (to == MANGLE_MSVC)
@@ -390,6 +399,7 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 			postfix[1] = "EP11CBaseEntity";
 			postfix[2] = "EP11CBaseEntityS1_8USE_TYPEf";
 			break;
+
 		default:
 			ASSERT (0);
 			return NULL;
@@ -408,16 +418,16 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 			len = (uint)Q_strlen (prev);
 		Q_strncpy (symbols[i], prev, Q_min (len + 1, sizeof (symbols[i])));
 
-		// [FWGS, 01.04.23]
 		if (!at)
 			break;
 
 		prev = at + 1;
 		}
 
+	// [FWGS, 01.07.24]
 	if (i == MAX_NESTED_NAMESPACES)
 		{
-		Con_DPrintf ("%s: too much nested namespaces: %s\n", __FUNCTION__, from);
+		Con_DPrintf ("%s: too much nested namespaces: %s\n", __func__, from);
 		return NULL;
 		}
 

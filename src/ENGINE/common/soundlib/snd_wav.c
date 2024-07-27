@@ -92,7 +92,7 @@ static void FindNextChunk (const char *filename, const char *name)
 
 		if (iff_chunkLen > remaining)
 			{
-			// Only print this warning if selected chunk is truncated.
+			// [FWGS, 01.07.24] Only print this warning if selected chunk is truncated.
 			//
 			// Otherwise this warning becomes misleading because some idiot programs like
 			// CoolEdit (i.e. Adobe Audition) don't always respect pad byte. The file isn't
@@ -103,7 +103,7 @@ static void FindNextChunk (const char *filename, const char *name)
 				|| IsFourCC (iff_lastChunk, "LIST")
 				|| IsFourCC (iff_lastChunk, "data"))
 				{
-				Con_DPrintf ("%s: '%s' truncated by %i bytes\n", __func__, filename, iff_chunkLen - remaining);
+				Con_DPrintf ("%s: '%s' truncated by %zi bytes\n", __func__, filename, iff_chunkLen - remaining);
 				}
 
 			iff_chunkLen = remaining;
@@ -170,12 +170,12 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 
 /***
 =============
-Sound_LoadWAV [FWGS, 09.05.24]
+Sound_LoadWAV
 =============
 ***/
 qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	int	samples, fmt;
+	int			samples, fmt;
 	qboolean	mpeg_stream = false;
 
 	if (!buffer || (filesize <= 0))
@@ -187,9 +187,10 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// find "RIFF" chunk
 	FindChunk (name, "RIFF");
 
+	// [FWGS, 01.07.24]
 	if (!iff_dataPtr || !IsFourCC (iff_dataPtr + 8, "WAVE"))
 		{
-		Con_DPrintf (S_ERROR "Sound_LoadWAV: %s missing 'RIFF/WAVE' chunks\n", name);
+		Con_DPrintf (S_ERROR "%s: %s missing 'RIFF/WAVE' chunks\n", __func__, name);
 		return false;
 		}
 
@@ -197,9 +198,10 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	iff_data = iff_dataPtr + 12;
 	FindChunk (name, "fmt ");
 
+	// [FWGS, 01.07.24]
 	if (!iff_dataPtr)
 		{
-		Con_DPrintf (S_ERROR "Sound_LoadWAV: %s missing 'fmt ' chunk\n", name);
+		Con_DPrintf (S_ERROR "%s: %s missing 'fmt ' chunk\n", __func__, name);
 		return false;
 		}
 
@@ -210,7 +212,8 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		if (fmt != 85)
 			{
-			Con_DPrintf (S_ERROR "Sound_LoadWAV: %s not a microsoft PCM format\n", name);
+			// [FWGS, 01.07.24]
+			Con_DPrintf (S_ERROR "%s: %s not a Microsoft PCM format\n", __func__, name);
 			return false;
 			}
 		else
@@ -220,10 +223,11 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 		}
 
+	// [FWGS, 01.07.24]
 	sound.channels = GetLittleShort ();
 	if ((sound.channels != 1) && (sound.channels != 2))
 		{
-		Con_DPrintf (S_ERROR "Sound_LoadWAV: only mono and stereo WAV files supported (%s)\n", name);
+		Con_DPrintf (S_ERROR "%s: only mono and stereo WAV files supported (%s)\n", __func__, name);
 		return false;
 		}
 
@@ -234,9 +238,10 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	if (mpeg_stream)
 		sound.width = 2; // mp3 always 16bit
 
+	// [FWGS, 01.07.24]
 	if ((sound.width != 1) && (sound.width != 2))
 		{
-		Con_DPrintf (S_ERROR "Sound_LoadWAV: only 8 and 16 bit WAV files supported (%s)\n", name);
+		Con_DPrintf (S_ERROR "%s: only 8 and 16 bit WAV files supported (%s)\n", __func__, name);
 		return false;
 		}
 
@@ -269,9 +274,10 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// find data chunk
 	FindChunk (name, "data");
 
+	// [FWGS, 01.07.24]
 	if (!iff_dataPtr)
 		{
-		Con_DPrintf (S_ERROR "Sound_LoadWAV: %s missing 'data' chunk\n", name);
+		Con_DPrintf (S_ERROR "%s: %s missing 'data' chunk\n", __func__, name);
 		return false;
 		}
 
@@ -282,15 +288,20 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		if (samples < sound.samples)
 			{
-			Con_DPrintf (S_ERROR "Sound_LoadWAV: %s has a bad loop length\n", name);
+			// [FWGS, 01.07.24]
+			Con_DPrintf (S_ERROR "%s: %s has a bad loop length\n", __func__, name);
 			return false;
 			}
 		}
-	else sound.samples = samples;
+	else
+		{
+		sound.samples = samples;
+		}
 
+	// [FWGS, 01.07.24]
 	if (sound.samples <= 0)
 		{
-		Con_Reportf (S_ERROR "Sound_LoadWAV: file with %i samples (%s)\n", sound.samples, name);
+		Con_Reportf (S_ERROR "%s: file with %i samples (%s)\n", __func__, sound.samples, name);
 		return false;
 		}
 
@@ -360,10 +371,10 @@ stream_t *Stream_OpenWAV (const char *filename)
 	if (!file)
 		return NULL;
 
-	// find "RIFF" chunk
+	// [FWGS, 01.07.24] find "RIFF" chunk
 	if (!StreamFindNextChunk (file, "RIFF", &last_chunk))
 		{
-		Con_DPrintf (S_ERROR "Stream_OpenWAV: %s missing RIFF chunk\n", filename);
+		Con_DPrintf (S_ERROR "%s: %s missing RIFF chunk\n", __func__, filename);
 		FS_Close (file);
 		return NULL;
 		}
@@ -371,14 +382,16 @@ stream_t *Stream_OpenWAV (const char *filename)
 	FS_Seek (file, 4, SEEK_CUR);
 	if (FS_Read (file, chunkName, 4) != 4)
 		{
-		Con_DPrintf (S_ERROR "%s: %s missing WAVE chunk, truncated\n", filename);
+		// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: %s missing WAVE chunk, truncated\n", __func__, filename);
 		FS_Close (file);
 		return false;
 		}
 
+	// [FWGS, 01.07.24]
 	if (!IsFourCC (chunkName, "WAVE"))
 		{
-		Con_DPrintf (S_ERROR "Stream_OpenWAV: %s missing WAVE chunk\n", filename);
+		Con_DPrintf (S_ERROR "%s: %s missing WAVE chunk\n", __func__, filename);
 		FS_Close (file);
 		return NULL;
 		}
@@ -388,7 +401,8 @@ stream_t *Stream_OpenWAV (const char *filename)
 	last_chunk = iff_data;
 	if (!StreamFindNextChunk (file, "fmt ", &last_chunk))
 		{
-		Con_DPrintf (S_ERROR "Stream_OpenWAV: %s missing 'fmt ' chunk\n", filename);
+		// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: %s missing 'fmt ' chunk\n", __func__, filename);
 		FS_Close (file);
 		return NULL;
 		}
@@ -398,7 +412,8 @@ stream_t *Stream_OpenWAV (const char *filename)
 	FS_Read (file, &t, sizeof (t));
 	if (t != 1)
 		{
-		Con_DPrintf (S_ERROR "Stream_OpenWAV: %s not a microsoft PCM format\n", filename);
+		// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: %s not a Microsoft PCM format\n", __func__, filename);
 		FS_Close (file);
 		return NULL;
 		}
@@ -413,11 +428,11 @@ stream_t *Stream_OpenWAV (const char *filename)
 	sound.width = t / 8;
 	sound.loopstart = 0;
 
-	// find data chunk
+	// [FWGS, 01.07.24] find data chunk
 	last_chunk = iff_data;
 	if (!StreamFindNextChunk (file, "data", &last_chunk))
 		{
-		Con_DPrintf (S_ERROR "Stream_OpenWAV: %s missing 'data' chunk\n", filename);
+		Con_DPrintf (S_ERROR "%s: %s missing 'data' chunk\n", __func__, filename);
 		FS_Close (file);
 		return NULL;
 		}

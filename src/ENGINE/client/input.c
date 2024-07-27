@@ -17,6 +17,7 @@ GNU General Public License for more details.
 #include "input.h"
 #include "client.h"
 #include "vgui_draw.h"
+#include "cursor_type.h"	// [FWGS, 01.07.24]
 
 #if XASH_SDL
 #include <SDL.h>
@@ -132,9 +133,10 @@ static void IN_StartupMouse (void)
 	in_mouseinitialized = true;
 	}
 
-void GAME_EXPORT IN_SetCursor (void *hCursor)
+// [FWGS, 01.07.24] removed IN_SetCursor
+/*void GAME_EXPORT IN_SetCursor (void *hCursor)
 	{
-	}
+	}*/
 
 /***
 ===========
@@ -476,7 +478,7 @@ static void IN_JoyAppendMove (usercmd_t *cmd, float forwardmove, float sidemove)
 		moveflags |= S;
 		}
 
-	if (forwardmove > 0.7f && !(moveflags & F))
+	if ((forwardmove > 0.7f) && !(moveflags & F))
 		{
 		moveflags |= F;
 		Cmd_ExecuteString ("+forward");

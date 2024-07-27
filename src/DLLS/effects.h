@@ -43,8 +43,8 @@ class CSprite: public CPointEntity
 				flags = FCAP_DONT_SAVE;
 			return (CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION) | flags;
 			}
-		void EXPORT AnimateThink (void);
-		void EXPORT ExpandThink (void);
+		void HLEXPORT AnimateThink (void);
+		void HLEXPORT ExpandThink (void);
 		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		void Animate (float frames);
 		void Expand (float scaleSpeed, float fadeSpeed);
@@ -85,7 +85,7 @@ class CSprite: public CPointEntity
 			pev->nextthink = gpGlobals->time;
 			}
 
-		void EXPORT AnimateUntilDead (void);
+		void HLEXPORT AnimateUntilDead (void);
 
 		virtual int		Save (CSave& save);
 		virtual int		Restore (CRestore& restore);
@@ -110,7 +110,7 @@ class CBeam: public CBaseEntity
 			return (CBaseEntity::ObjectCaps () & ~FCAP_ACROSS_TRANSITION) | flags;
 			}
 
-		void EXPORT TriggerTouch (CBaseEntity* pOther);
+		void HLEXPORT TriggerTouch (CBaseEntity* pOther);
 
 		// These functions are here to show the way beams are encoded as entities.
 		// Encoding beams as entities simplifies their management in the client/server architecture

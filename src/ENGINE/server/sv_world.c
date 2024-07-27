@@ -362,10 +362,56 @@ static hull_t *SV_HullForStudioModel (edict_t *ent, vec3_t mins, vec3_t maxs, ve
 			}
 		}
 
-	if (hull) return hull;
+	if (hull)
+		return hull;
 
 	*numhitboxes = 1;
 	return SV_HullForEntity (ent, mins, maxs, offset);
+	}
+
+/***
+===============================================================================
+ENTITY LINKING
+===============================================================================
+***/
+/***
+===============
+ClearLink [FWGS, 01.07.24]
+
+ClearLink is used for new headnodes
+===============
+***/
+static void ClearLink (link_t *l)
+	{
+	l->prev = l->next = l;
+	}
+
+/***
+===============
+RemoveLink [FWGS, 01.07.24]
+
+remove link from chain
+===============
+***/
+static void RemoveLink (link_t *l)
+	{
+	l->next->prev = l->prev;
+	l->prev->next = l->next;
+	}
+
+/***
+===============
+InsertLinkBefore [FWGS, 01.07.24]
+
+kept trigger and solid entities seperate
+===============
+***/
+static void InsertLinkBefore (link_t *l, link_t *before)
+	{
+	l->next = before;
+	l->prev = before->prev;
+	l->prev->next = l;
+	l->next->prev = l;
 	}
 
 /***

@@ -10,9 +10,10 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
+#include <stdarg.h>		// [FWGS, 01.07.24]
 #include "gl_local.h"
 #include "crclib.h"
 
@@ -86,13 +87,14 @@ void GL_Bind (GLint tmu, GLenum texnum)
 	gl_texture_t	*texture;
 	GLuint			glTarget;
 
-	// missed or invalid texture?
+	// [FWGS, 01.07.24] missed or invalid texture?
 	if ((texnum <= 0) || (texnum >= MAX_TEXTURES))
 		{
 		if (texnum != 0)
-			gEngfuncs.Con_DPrintf (S_ERROR "GL_Bind: invalid texturenum %d\n", texnum);
+			gEngfuncs.Con_DPrintf (S_ERROR "%s: invalid texturenum %d\n", __func__, texnum);
 		texnum = tr.defaultTexture;
 		}
+
 	if (tmu != GL_KEEP_UNIT)
 		GL_SelectTexture (tmu);
 	else
@@ -413,6 +415,7 @@ static size_t GL_CalcTextureSize (GLenum format, int width, int height, int dept
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 			size = (((width + 3) >> 2) * ((height + 3) >> 2) * 8) * depth;
 			break;
+
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
 		case GL_COMPRESSED_RED_GREEN_RGTC2_EXT:
@@ -424,50 +427,63 @@ static size_t GL_CalcTextureSize (GLenum format, int width, int height, int dept
 		case GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB:
 			size = (((width + 3) >> 2) * ((height + 3) >> 2) * 16) * depth;
 			break;
+
 		case GL_RGBA8:
 		case GL_RGBA:
 			size = width * height * depth * 4;
 			break;
+
 		case GL_RGB8:
 		case GL_RGB:
 			size = width * height * depth * 3;
 			break;
+
 		case GL_RGB5:
 			size = (width * height * depth * 3) / 2;
 			break;
+
 		case GL_RGBA4:
 			size = (width * height * depth * 4) / 2;
 			break;
+
 		case GL_INTENSITY:
 		case GL_LUMINANCE:
 		case GL_INTENSITY8:
 		case GL_LUMINANCE8:
 			size = (width * height * depth);
 			break;
+
 		case GL_LUMINANCE_ALPHA:
 		case GL_LUMINANCE8_ALPHA8:
 			size = width * height * depth * 2;
 			break;
+
 		case GL_R8:
 			size = width * height * depth;
 			break;
+
 		case GL_RG8:
 			size = width * height * depth * 2;
 			break;
+
 		case GL_R16:
 			size = width * height * depth * 2;
 			break;
+
 		case GL_RG16:
 			size = width * height * depth * 4;
 			break;
+
 		case GL_R16F:
 		case GL_LUMINANCE16F_ARB:
 			size = width * height * depth * 2;	// half-floats
 			break;
+
 		case GL_R32F:
 		case GL_LUMINANCE32F_ARB:
 			size = width * height * depth * 4;
 			break;
+
 		case GL_RG16F:
 		case GL_LUMINANCE_ALPHA16F_ARB:
 			size = width * height * depth * 4;
@@ -476,29 +492,38 @@ static size_t GL_CalcTextureSize (GLenum format, int width, int height, int dept
 		case GL_LUMINANCE_ALPHA32F_ARB:
 			size = width * height * depth * 8;
 			break;
+
 		case GL_RGB16F_ARB:
 			size = width * height * depth * 6;
 			break;
+
 		case GL_RGBA16F_ARB:
 			size = width * height * depth * 8;
 			break;
+
 		case GL_RGB32F_ARB:
 			size = width * height * depth * 12;
 			break;
+
 		case GL_RGBA32F_ARB:
 			size = width * height * depth * 16;
 			break;
+
 		case GL_DEPTH_COMPONENT16:
 			size = width * height * depth * 2;
 			break;
+
 		case GL_DEPTH_COMPONENT24:
 			size = width * height * depth * 3;
 			break;
+
 		case GL_DEPTH_COMPONENT32F:
 			size = width * height * depth * 4;
 			break;
+
 		default:
-			gEngfuncs.Host_Error ("GL_CalcTextureSize: bad texture internal format (%u)\n", format);
+			// [FWGS, 01.07.24]
+			gEngfuncs.Host_Error ("%s: bad texture internal format (%u)\n", __func__, format);
 			break;
 		}
 
@@ -1216,20 +1241,21 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 
 	GL_SetTextureTarget (tex, pic); // must be first
 
-	// make sure what target is correct
+	// [FWGS, 01.07.24] make sure what target is correct
 	if (tex->target == GL_NONE)
 		{
-		gEngfuncs.Con_DPrintf (S_ERROR "GL_UploadTexture: %s is not supported by your hardware\n", tex->name);
+		gEngfuncs.Con_DPrintf (S_ERROR "%s: %s is not supported by your hardware\n", __func__, tex->name);
 		return false;
 		}
 
-	// [FWGS, 01.11.23]
+	// [FWGS, 01.07.24]
 	if ((pic->type == PF_BC6H_SIGNED) || (pic->type == PF_BC6H_UNSIGNED) || (pic->type == PF_BC7_UNORM) ||
 		(pic->type == PF_BC7_SRGB))
 		{
 		if (!GL_Support (GL_ARB_TEXTURE_COMPRESSION_BPTC))
 			{
-			gEngfuncs.Con_DPrintf (S_ERROR "GL_UploadTexture: BC6H/BC7 compression formats is not supported by your hardware\n");
+			gEngfuncs.Con_DPrintf (S_ERROR "%s: BC6H/BC7 compression formats is not supported by your hardware\n",
+				__func__);
 			return false;
 			}
 		}
@@ -1242,10 +1268,10 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 	tex->fogParams[2] = pic->fogParams[2];
 	tex->fogParams[3] = pic->fogParams[3];
 
+	// [FWGS, 01.07.24] will be resampled, just tell me for debug targets
 	if ((pic->width * pic->height) & 3)
 		{
-		// will be resampled, just tell me for debug targets
-		gEngfuncs.Con_Reportf ("GL_UploadTexture: %s s&3 [%d x %d]\n", tex->name, pic->width, pic->height);
+		gEngfuncs.Con_Reportf ("%s: %s s&3 [%d x %d]\n", __func__, tex->name, pic->width, pic->height);
 		}
 
 	buf = pic->buffer;
@@ -1262,9 +1288,9 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 
 	for (i = 0; i < numSides; i++)
 		{
-		// track the buffer bounds
-		if (buf != NULL && buf >= bufend)
-			gEngfuncs.Host_Error ("GL_UploadTexture: %s image buffer overflow\n", tex->name);
+		// [FWGS, 01.07.24] track the buffer bounds
+		if ((buf != NULL) && (buf >= bufend))
+			gEngfuncs.Host_Error ("%s: %s image buffer overflow\n", __func__, tex->name);
 
 		// [FWGS, 01.11.23]
 		if (ImageCompressed (pic->type))
@@ -1453,26 +1479,40 @@ static gl_texture_t *GL_TextureForName (const char *name)
 
 /***
 ================
-GL_AllocTexture
+GL_AllocTexture [FWGS, 01.07.24]
 ================
 ***/
 static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 	{
-	gl_texture_t	*tex;
+	/*gl_texture_t	*tex;
 	uint			i;
 
 	// find a free texture_t slot
 	for (i = 0, tex = gl_textures; i < gl_numTextures; i++, tex++)
-		if (!tex->name[0]) break;
+		if (!tex->name[0]) break;*/
+	const qboolean	skyboxhack = FBitSet (flags, TF_SKYSIDE) && glConfig.context != CONTEXT_TYPE_GL_CORE;
+	gl_texture_t	*tex = NULL;
+	GLuint			texnum = 1;
 
-	if (i == gl_numTextures)
+	/*if (i == gl_numTextures)
+	*/
+	if (!skyboxhack)
 		{
-		if (gl_numTextures == MAX_TEXTURES)
+		/*if (gl_numTextures == MAX_TEXTURES)
 			gEngfuncs.Host_Error ("GL_AllocTexture: MAX_TEXTURES limit exceeds\n");
-		gl_numTextures++;
+		gl_numTextures++;*/
+		// keep generating new texture names to avoid collision with predefined skybox objects
+		do
+			{
+			pglGenTextures (1, &texnum);
+			} while ((texnum >= SKYBOX_BASE_NUM) && (texnum <= SKYBOX_BASE_NUM + SKYBOX_MAX_SIDES));
+		}
+	else
+		{
+		texnum = tr.skyboxbasenum;
 		}
 
-	tex = &gl_textures[i];
+	/*tex = &gl_textures[i];
 
 	// [FWGS, 01.11.23] copy initial params
 	Q_strncpy (tex->name, name, sizeof (tex->name));
@@ -1482,16 +1522,49 @@ static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 		}
 
 	// [FWGS, 01.07.23] keep generating new texture names to avoid collision with predefined skybox objects
+	else*/
+
+	// try to match texture slot and texture handle because of buggy games
+	if ((texnum >= MAX_TEXTURES) || (gl_textures[texnum].texnum != 0))
+		{
+		/*do
+		*/
+		// find a free texture_t slot
+		uint i;
+
+		for (i = 0; i < MAX_TEXTURES; i++)
+			{
+			/*pglGenTextures (1, &tex->texnum);*/
+			if (gl_textures[i].texnum)
+				continue;
+
+			tex = &gl_textures[i];
+			break;
+
+			}
+			/*while ((tex->texnum >= SKYBOX_BASE_NUM) &&
+				(tex->texnum <= SKYBOX_BASE_NUM + SKYBOX_MAX_SIDES));*/
+		}
 	else
 		{
-		do
-			{
-			pglGenTextures (1, &tex->texnum);
-			} while ((tex->texnum >= SKYBOX_BASE_NUM) &&
-				(tex->texnum <= SKYBOX_BASE_NUM + SKYBOX_MAX_SIDES));
+		tex = &gl_textures[texnum];
 		}
 
+	if (tex == NULL)
+		{
+		gEngfuncs.Host_Error ("%s: MAX_TEXTURES limit exceeds\n", __func__);
+		return NULL;
+		}
+
+	// copy initial params
+	Q_strncpy (tex->name, name, sizeof (tex->name));
+	tex->texnum = texnum;
 	tex->flags = flags;
+
+	// increase counter
+	gl_numTextures = Q_max ((tex - gl_textures) + 1, gl_numTextures);
+	if (skyboxhack)
+		tr.skyboxbasenum++;
 
 	// add to hash table
 	tex->hashValue = COM_HashKey (name, TEXTURES_HASH_SIZE);
@@ -1503,7 +1576,7 @@ static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 
 /***
 ================
-GL_DeleteTexture [FWGS, 01.05.24]
+GL_DeleteTexture
 ================
 ***/
 static void GL_DeleteTexture (gl_texture_t *tex)
@@ -1516,10 +1589,11 @@ static void GL_DeleteTexture (gl_texture_t *tex)
 	// already freed?
 	if (!tex->texnum) return;
 
-	// debug
+	// [FWGS, 01.07.24] debug
 	if (!tex->name[0])
 		{
-		gEngfuncs.Con_Printf (S_ERROR "GL_DeleteTexture: trying to free unnamed texture with texnum %i\n", tex->texnum);
+		gEngfuncs.Con_Printf (S_ERROR "%s: trying to free unnamed texture with texnum %i\n",
+			__func__, tex->texnum);
 		return;
 		}
 
@@ -1709,26 +1783,27 @@ int GL_LoadTextureArray (const char **names, int flags)
 
 		if (pic)
 			{
-			// mixed mode: DXT + RGB
+			// [FWGS, 01.07.24] mixed mode: DXT + RGB
 			if (pic->type != src->type)
 				{
-				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch image format for %s and %s\n",
-					names[0], names[i]);
+				gEngfuncs.Con_Printf (S_ERROR "%s: mismatch image format for %s and %s\n",
+					__func__, names[0], names[i]);
 				break;
 				}
 
-			// different mipcount
+			// [FWGS, 01.07.24] different mipcount
 			if (pic->numMips != src->numMips)
 				{
-				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch mip count for %s and %s\n",
-					names[0], names[i]);
+				gEngfuncs.Con_Printf (S_ERROR "%s: mismatch mip count for %s and %s\n",
+					__func__, names[0], names[i]);
 				break;
 				}
 
+			// [FWGS, 01.07.24]
 			if (pic->encode != src->encode)
 				{
-				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch custom encoding for %s and %s\n",
-					names[0], names[i]);
+				gEngfuncs.Con_Printf (S_ERROR "%s: mismatch custom encoding for %s and %s\n",
+					__func__, names[0], names[i]);
 				break;
 				}
 
@@ -1737,10 +1812,11 @@ int GL_LoadTextureArray (const char **names, int flags)
 				(pic->height != src->height)))
 				gEngfuncs.Image_Process (&src, pic->width, pic->height, IMAGE_RESAMPLE, 0.0f);
 
+			// [FWGS, 01.07.24]
 			if (pic->size != src->size)
 				{
-				gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: mismatch image size for %s and %s\n",
-					names[0], names[i]);
+				gEngfuncs.Con_Printf (S_ERROR "%s: mismatch image size for %s and %s\n",
+					__func__, names[0], names[i]);
 				break;
 				}
 			}
@@ -1774,11 +1850,13 @@ int GL_LoadTextureArray (const char **names, int flags)
 		pic->depth++;
 		}
 
-	// there were errors
+	// [FWGS, 01.07.24] there were errors
 	if (!pic || (pic->depth != numLayers))
 		{
-		gEngfuncs.Con_Printf (S_ERROR "GL_LoadTextureArray: not all layers were loaded. Texture array is not created\n");
-		if (pic) gEngfuncs.FS_FreeImage (pic);
+		gEngfuncs.Con_Printf (S_ERROR "%s: not all layers were loaded. Texture array is not created\n", __func__);
+		if (pic)
+			gEngfuncs.FS_FreeImage (pic);
+
 		return 0;
 		}
 
@@ -1797,8 +1875,8 @@ int GL_LoadTextureArray (const char **names, int flags)
 		return 0;
 		}
 
-	GL_ApplyTextureParams (tex); // update texture filter, wrap etc
-	gEngfuncs.FS_FreeImage (pic); // release source texture
+	GL_ApplyTextureParams (tex);	// update texture filter, wrap etc
+	gEngfuncs.FS_FreeImage (pic);	// release source texture
 
 	// NOTE: always return texnum as index in array or engine will stop work !!!
 	return tex - gl_textures;
@@ -1821,12 +1899,14 @@ int GL_LoadTextureFromBuffer (const char *name, rgbdata_t *pic, texFlags_t flags
 		return (tex - gl_textures);
 
 	// couldn't loading image
-	if (!pic) return 0;
+	if (!pic)
+		return 0;
 
+	// [FWGS, 01.07.24]
 	if (update)
 		{
 		if (tex == NULL)
-			gEngfuncs.Host_Error ("GL_LoadTextureFromBuffer: couldn't find texture %s for update\n", name);
+			gEngfuncs.Host_Error ("%s: couldn't find texture %s for update\n", __func__, name);
 		SetBits (tex->flags, flags);
 		}
 	else
@@ -1997,20 +2077,22 @@ void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor)
 		}
 	else
 		{
-		gEngfuncs.Con_Printf (S_ERROR "GL_ProcessTexture: bad operation for %s\n", image->name);
+		// [FWGS, 01.07.24]
+		gEngfuncs.Con_Printf (S_ERROR "%s: bad operation for %s\n", __func__, image->name);
 		return;
 		}
 
+	// [FWGS, 01.07.24]
 	if (!image->original)
 		{
-		gEngfuncs.Con_Printf (S_ERROR "GL_ProcessTexture: no input data for %s\n", image->name);
+		gEngfuncs.Con_Printf (S_ERROR "%s: no input data for %s\n", __func__, image->name);
 		return;
 		}
 
-	// [FWGS, 01.11.23]
+	// [FWGS, 01.07.24]
 	if (ImageCompressed (image->original->type))
 		{
-		gEngfuncs.Con_Printf (S_ERROR "GL_ProcessTexture: can't process compressed texture %s\n", image->name);
+		gEngfuncs.Con_Printf (S_ERROR "%s: can't process compressed texture %s\n", __func__, image->name);
 		return;
 		}
 
@@ -2433,4 +2515,41 @@ void R_ShutdownImages (void)
 	memset (gl_texturesHashTable, 0, sizeof (gl_texturesHashTable));
 	memset (gl_textures, 0, sizeof (gl_textures));
 	gl_numTextures = 0;
+	}
+
+// [FWGS, 01.07.24]
+void R_TextureReplacementReport (const char *modelname, int gl_texturenum, const char *foundpath)
+	{
+	if (host_allow_materials->value != 2.0f)
+		return;
+
+	if (gl_texturenum > 0)
+		gEngfuncs.Con_Printf ("Looking for %s tex replacement..." S_GREEN "OK (%s)\n", modelname, foundpath);
+	else if (gl_texturenum < 0)
+		gEngfuncs.Con_Printf ("Looking for %s tex replacement..." S_YELLOW "MISS (%s)\n", modelname, foundpath);
+	else
+		gEngfuncs.Con_Printf ("Looking for %s tex replacement..." S_RED "FAIL (%s)\n", modelname, foundpath);
+	}
+
+// [FWGS, 01.07.24]
+qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...)
+	{
+	va_list ap;
+	int ret;
+
+	va_start (ap, fmt);
+	ret = Q_vsnprintf (out, size, fmt, ap);
+	va_end (ap);
+
+	if (ret < 0)
+		{
+		R_TextureReplacementReport (modelname, -1, "overflow");
+		return false;
+		}
+
+	if (gEngfuncs.fsapi->FileExists (out, false))
+		return true;
+
+	R_TextureReplacementReport (modelname, -1, out);
+	return false;
 	}

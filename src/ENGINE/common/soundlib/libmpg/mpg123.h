@@ -33,6 +33,7 @@ typedef struct mpg123_handle_s	mpg123_handle_t;
 #include "fmt123.h"
 #define STDINT_H	<stdint.h>	// [FWGS, 01.04.23]
 #include STDINT_H
+#include "xash3d_types.h"		// [FWGS, 01.07.24]
 
 #ifndef FALSE
 #define FALSE 0
@@ -50,9 +51,11 @@ typedef unsigned char	byte;
 typedef unsigned short	word;
 typedef unsigned long	ulong;
 typedef unsigned int	uint;
-typedef long		mpg_off_t;
+/*typedef long		mpg_off_t;*/
+typedef fs_offset_t mpg_off_t;	// [FWGS, 01.07.24]
 
-#ifdef _MSC_VER // a1ba: MSVC6 don't have ssize_t
+// a1ba: MSVC6 don't have ssize_t
+#ifdef _MSC_VER
 typedef long		mpg_ssize_t;
 #else
 typedef ssize_t		mpg_ssize_t;

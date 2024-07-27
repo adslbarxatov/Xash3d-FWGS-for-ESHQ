@@ -40,7 +40,7 @@ class CFuncMortarField: public CBaseToggle
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
-		void EXPORT FieldUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT FieldUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 		int m_iszXController;
 		int m_iszYController;
@@ -187,9 +187,7 @@ class CMortar: public CGrenade
 	public:
 		void Spawn (void);
 		void Precache (void);
-
-		void EXPORT MortarExplode (void);
-
+		void HLEXPORT MortarExplode (void);
 		int m_spriteTexture;
 	};
 

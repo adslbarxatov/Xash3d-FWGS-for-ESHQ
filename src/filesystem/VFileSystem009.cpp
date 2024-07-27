@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include <string.h>
@@ -388,7 +388,7 @@ class CXashFS : public IVFileSystem009
 			return IsDirectory (state->search->filenames[state->index]);
 			}
 
-		// [FWGS, 01.05.23]
+		// [FWGS, 01.07.24]
 		void FindClose (FileFindHandle_t handle) override
 			{
 			CSearchState *prev;
@@ -399,7 +399,7 @@ class CXashFS : public IVFileSystem009
 
 			if (i == nullptr)
 				{
-				Con_DPrintf ("FindClose: Can't find search state by handle %d\n", handle);
+				Con_DPrintf ("%s: Can't find search state by handle %d\n", __func__, handle);
 				return;
 				}
 
@@ -554,7 +554,7 @@ class CXashFS : public IVFileSystem009
 	} g_VFileSystem009;
 
 // [FWGS, 01.11.23]
-extern "C" void EXPORT * CreateInterface (const char *interface, int *retval)
+extern "C" void HLEXPORT * CreateInterface (const char *interface, int *retval)
 	{
 	if (!Q_strcmp (interface, FILESYSTEM_INTERFACE_VERSION))
 		{

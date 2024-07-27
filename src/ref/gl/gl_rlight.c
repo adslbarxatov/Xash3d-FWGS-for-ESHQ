@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -138,13 +138,13 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 
 /***
 =============
-R_PushDlights [FWGS, 01.02.24]
+R_PushDlights [FWGS, 01.07.24]
 =============
 ***/
 void R_PushDlights (void)
 	{
-	dlight_t	*l;
-	int			i;
+	/*dlight_t	*l;*/
+	int		i;
 
 	tr.dlightframecount = tr.framecount;
 	RI.currententity = CL_GetEntityByIndex (0);
@@ -155,9 +155,11 @@ void R_PushDlights (void)
 
 	RI.currentmodel = RI.currententity->model;
 
-	for (i = 0; i < MAX_DLIGHTS; i++, l++)
+	/*for (i = 0; i < MAX_DLIGHTS; i++, l++)*/
+	for (i = 0; i < MAX_DLIGHTS; i++)
 		{
-		l = gEngfuncs.GetDynamicLight (i);
+		/*l = gEngfuncs.GetDynamicLight (i);*/
+		dlight_t *l = gEngfuncs.GetDynamicLight (i);
 
 		if ((l->die < gp_cl->time) || !l->radius)
 			continue;

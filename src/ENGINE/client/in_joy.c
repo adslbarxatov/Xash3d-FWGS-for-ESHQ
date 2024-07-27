@@ -154,7 +154,7 @@ static void Joy_ProcessTrigger (const engineAxis_t engineAxis, short value)
 			break;
 
 		default:
-			Con_Reportf (S_ERROR  "Joy_ProcessTrigger: invalid axis = %i", engineAxis);
+			Con_Reportf (S_ERROR "%s: invalid axis = %i\n", __func__, engineAxis);	// [FWGS, 01.07.24]
 			break;
 		}
 
@@ -239,11 +239,11 @@ static void Joy_ProcessStick (const engineAxis_t engineAxis, short value)
 			break;
 
 		default:
-			Con_Reportf (S_ERROR  "Joy_ProcessStick: invalid axis = %i", engineAxis);
+			Con_Reportf (S_ERROR "%s: invalid axis = %i\n", __func__, engineAxis);	// [FWGS, 01.07.24]
 			break;
 		}
 
-	if (value < deadzone && value > -deadzone)
+	if ((value < deadzone) && (value > -deadzone))
 		value = 0; // caught new event in deadzone, fill it with zero(no motion)
 
 	// update axis values
@@ -252,7 +252,8 @@ static void Joy_ProcessStick (const engineAxis_t engineAxis, short value)
 
 	// fwd/side axis simulate hat movement
 	if (((engineAxis == JOY_AXIS_SIDE) || (engineAxis == JOY_AXIS_FWD)) &&
-		(CL_IsInMenu () || CL_IsInConsole ()))
+		((cls.key_dest == key_menu) || (cls.key_dest == key_console)))
+		/*(CL_IsInMenu () || CL_IsInConsole ()))*/
 		{
 		int val = 0;
 

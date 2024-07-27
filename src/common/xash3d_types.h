@@ -37,11 +37,7 @@ typedef vec_t		matrix3x4[3][4];
 typedef vec_t		matrix4x4[4][4];
 
 // [FWGS, 01.05.24]
-/*#if XASH_64BIT*/
-	typedef uint32_t	poolhandle_t;
-/*#else
-	typedef void*		poolhandle_t;
-#endif*/
+typedef uint32_t	poolhandle_t;
 
 #undef true
 #undef false
@@ -84,81 +80,62 @@ typedef uint64_t longtime_t;
 #define IsColorString( p )	( p && *( p ) == '^' && *(( p ) + 1) && *(( p ) + 1) >= '0' && *(( p ) + 1 ) <= '9' )
 #define ColorIndex( c )	((( c ) - '0' ) & 7 )
 
-// [FWGS, 01.05.24]
-/*#if defined(__GNUC__)
-	#ifdef __i386__
-		#define EXPORT __attribute__ ((visibility ("default"),force_align_arg_pointer))
-		#define GAME_EXPORT __attribute((force_align_arg_pointer))*/
+// [FWGS, 01.07.24]
 #if defined( __GNUC__ )
 	#if defined( __i386__ )
-		#define EXPORT __attribute__(( visibility( "default" ), force_align_arg_pointer ))
+		#define HLEXPORT __attribute__(( visibility( "default" ), force_align_arg_pointer ))
 		#define GAME_EXPORT __attribute(( force_align_arg_pointer ))
 	#else
-		/*#define EXPORT __attribute__ ((visibility ("default")))*/
-		#define EXPORT __attribute__(( visibility ( "default" )))
+		#define HLEXPORT __attribute__(( visibility ( "default" )))
 		#define GAME_EXPORT
 	#endif
-
-	/*#define _format(x) __attribute__((format(printf, x, x+1)))
-	#define NORETURN __attribute__((noreturn))
-	#define NONNULL __attribute__((nonnull))	// [FWGS, 01.11.23]
-	#define ALLOC_CHECK(x) __attribute__((alloc_size(x)))	// [FWGS, 01.01.24]
-
-#elif defined(_MSC_VER)
-	#define EXPORT		__declspec( dllexport )
-	#define GAME_EXPORT
-	#define _format(x)
-	#define NORETURN
-	#define NONNULL	// [FWGS, 01.11.23]
-	#define ALLOC_CHECK(x)	// [FWGS, 01.01.24]*/
 
 	#define NORETURN __attribute__(( noreturn ))
 	#define NONNULL __attribute__(( nonnull ))
 	#define _format( x ) __attribute__(( format( printf, x, x + 1 )))
 	#define ALLOC_CHECK( x ) __attribute__(( alloc_size( x )))
+	#define NO_ASAN __attribute__(( no_sanitize( "address" )))
 	#define RENAME_SYMBOL( x ) asm( x )
 
 
 #else
-	/*#define EXPORT*/
 	#if defined( _MSC_VER )
-		#define EXPORT __declspec( dllexport )
+		#define HLEXPORT __declspec( dllexport )
+		#define NO_ASAN __declspec( no_sanitize_address )
 	#else
-		#define EXPORT
+		#define HLEXPORT
+		#define NO_ASAN
 	#endif
 
 	#define GAME_EXPORT
-	/*#define _format(x)*/
 	#define NORETURN
 	#define NONNULL	// [FWGS, 01.11.23]
 
-	/*#define ALLOC_CHECK(x)	// [FWGS, 01.01.24]*/
 	#define _format( x )
 	#define ALLOC_CHECK( x )
 	#define RENAME_SYMBOL( x )
 #endif
 
-// [FWGS, 01.05.24]
-#if ( __GNUC__ >= 3 )
-	/*#define unlikely(x) __builtin_expect(x, 0)
-	#define likely(x)   __builtin_expect(x, 1)*/
+// [FWGS, 01.07.24]
+/*#if ( __GNUC__ >= 3 )*/
+#if __GNUC__ >= 3
 	#define unlikely( x ) __builtin_expect( x, 0 )
 	#define likely( x ) __builtin_expect( x, 1 )
 #elif defined( __has_builtin )
-	#if __has_builtin( __builtin_expect )
-		/*#define unlikely(x) __builtin_expect(x, 0)
-		#define likely(x)   __builtin_expect(x, 1)*/
+	/*#if __has_builtin( __builtin_expect )
 		#define unlikely( x ) __builtin_expect( x, 0 )
 		#define likely( x ) __builtin_expect( x, 1 )
 	#else
-		/*#define unlikely(x) (x)
-		#define likely(x)   (x)*/
 		#define unlikely( x ) ( x )
-		#define likely( x ) ( x )
+		#define likely( x ) ( x )*/
+	#if __has_builtin( __builtin_expect ) // this must be after defined() check
+		#define unlikely( x ) __builtin_expect( x, 0 )
+		#define likely( x ) __builtin_expect( x, 1 )
 	#endif
-#else
-	/*#define unlikely(x) (x)
-	#define likely(x)   (x)*/
+	/*#else*/
+#endif
+
+#if !defined( unlikely ) || !defined( likely )
 	#define unlikely( x ) ( x )
 	#define likely( x ) ( x )
 #endif
@@ -177,6 +154,15 @@ typedef uint64_t longtime_t;
 	#define STATIC_ASSERT_3( line, x, y ) STATIC_ASSERT_( static_assert_ ## line, x, y )
 	#define STATIC_ASSERT_2( line, x, y ) STATIC_ASSERT_3( line, x, y )
 	#define STATIC_ASSERT( x, y ) STATIC_ASSERT_2( __LINE__, x, y )
+#endif
+
+// [FWGS, 01.07.24] [ESHQ: где-то есть проблема с переключением, принудительно выставлен __restrict]
+#if !defined( __cplusplus ) && __STDC_VERSION__ >= 199101L && false	// not C++ and C99 or newer
+	#define XASH_RESTRICT restrict
+#elif _MSC_VER || __GNUC__ || __clang__ // compiler-specific extensions
+	#define XASH_RESTRICT __restrict
+#else
+	#define XASH_RESTRICT // nothing
 #endif
 
 #ifdef XASH_BIG_ENDIAN
@@ -208,9 +194,12 @@ _inline float LittleFloat (float f)
 #define LittleFloat(x) (x)
 #endif
 
-
-typedef unsigned int	dword;
-typedef unsigned int	uint;
+// [FWGS, 01.07.24]
+/*typedef unsigned int	dword;
+typedef unsigned int	uint;*/
+typedef unsigned int dword;
+typedef unsigned int uint;
+typedef unsigned long ulong;
 typedef char		string[MAX_STRING];
 typedef struct file_s	file_t;		// normal file
 typedef struct stream_s	stream_t;		// sound stream for background music playing
@@ -229,10 +218,10 @@ typedef struct dllfunc_s
 
 typedef struct dll_info_s
 	{
-	const char *name;	// name of library
-	const dllfunc_t *fcts;	// list of dll exports
+	const char		*name;	// name of library
+	const dllfunc_t	*fcts;	// list of dll exports
 	qboolean		crash;	// crash if dll not found
-	void *link;	// hinstance of loading library
+	void			*link;	// hinstance of loading library
 	} dll_info_t;
 
 typedef void (*setpair_t)(const char *key, const void *value, const void *buffer, void *numpairs);

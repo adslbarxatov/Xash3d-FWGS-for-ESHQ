@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -128,7 +128,6 @@ static void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
 		}
 	}
 
-// [FWGS, 01.01.24]
 static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int numverts, float *verts)
 	{
 	vec3_t			front[SUBDIVIDE_SIZE], back[SUBDIVIDE_SIZE];
@@ -139,8 +138,9 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 	vec3_t			mins, maxs;
 	glpoly_t		*poly;
 
+	// [FWGS, 01.07.24]
 	if (numverts > (SUBDIVIDE_SIZE - 4))
-		gEngfuncs.Host_Error ("Mod_SubdividePolygon: too many vertexes on face ( %i )\n", numverts);
+		gEngfuncs.Host_Error ("%s: too many vertexes on face ( %i )\n", __func__, numverts);
 
 	sample_size = gEngfuncs.Mod_SampleSizeForFace (warpface);
 	BoundPoly (numverts, verts, mins, maxs);
@@ -708,8 +708,9 @@ static void LM_UploadBlock (qboolean dynamic)
 		r_lightmap.buffer = gl_lms.lightmap_buffer;
 		tr.lightmapTextures[i] = GL_LoadTextureInternal (lmName, &r_lightmap, TF_NOMIPMAP | TF_ATLAS_PAGE);
 
+		// [FWGS, 01.07.24]
 		if (++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS)
-			gEngfuncs.Host_Error ("AllocBlock: full\n");
+			gEngfuncs.Host_Error ("%s: full\n", __func__);
 		}
 	}
 
@@ -1975,10 +1976,10 @@ void R_GenerateVBO (void)
 					{
 					vbotex->vboarray = vbo;
 
-					// generate new array and new vbotexture node
+					// [FWGS, 01.07.24] generate new array and new vbotexture node
 					vbo->array = Mem_Calloc (vbos.mempool, sizeof (vbovertex_t) * vbo->array_len);
-					gEngfuncs.Con_Printf ("R_GenerateVBOs: allocated array of %d verts, texture %d, lm %d\n",
-						vbo->array_len, j, k);
+					gEngfuncs.Con_Printf ("%s: allocated array of %d verts, texture %d, lm %d\n",
+						__func__, vbo->array_len, j, k);
 
 					vbo->next = Mem_Calloc (vbos.mempool, sizeof (vboarray_t));
 					vbo = vbo->next;
@@ -2005,9 +2006,9 @@ void R_GenerateVBO (void)
 			}
 		}
 
-	// allocate last array
+	// [FWGS, 01.07.24] allocate last array
 	vbo->array = Mem_Calloc (vbos.mempool, sizeof (vbovertex_t) * vbo->array_len);
-	gEngfuncs.Con_Printf ("R_GenerateVBOs: allocated array of %d verts\n", vbo->array_len);
+	gEngfuncs.Con_Printf ("%s: allocated array of %d verts\n", __func__, vbo->array_len);
 
 	// switch to list begin
 	vbo = vbos.arraylist;
@@ -2815,9 +2816,9 @@ static void R_DrawVBODlights (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *
 				LM_InitBlock ();
 				dlightindex = 0;
 
-				// try upload the block now
+				// [FWGS, 01.07.24] try upload the block now
 				if (!LM_AllocBlock (smax, tmax, &info->dlight_s, &info->dlight_t))
-					gEngfuncs.Host_Error ("AllocBlock: full\n");
+					gEngfuncs.Host_Error ("%s: full\n", __func__);
 
 				base = gl_lms.lightmap_buffer;
 				base += (info->dlight_t * BLOCK_SIZE + info->dlight_s) * 4;
@@ -3807,7 +3808,8 @@ void R_MarkLeaves (void)
 		novis = true;
 
 	gEngfuncs.R_FatPVS (RI.pvsorigin, REFPVS_RADIUS, RI.visbytes, FBitSet (RI.params, RP_OLDVIEWLEAF), novis);
-	if (force && !novis) gEngfuncs.R_FatPVS (test, REFPVS_RADIUS, RI.visbytes, true, novis);
+	if (force && !novis)
+		gEngfuncs.R_FatPVS (test, REFPVS_RADIUS, RI.visbytes, true, novis);
 
 	for (i = 0; i < WORLDMODEL->numleafs; i++)
 		{
@@ -3852,8 +3854,9 @@ static void GL_CreateSurfaceLightmap (msurface_t *surf, model_t *loadmodel)
 		LM_UploadBlock (false);
 		LM_InitBlock ();
 
+		// [FWGS, 01.07.24]
 		if (!LM_AllocBlock (smax, tmax, &surf->light_s, &surf->light_t))
-			gEngfuncs.Host_Error ("AllocBlock: full\n");
+			gEngfuncs.Host_Error ("%s: full\n", __func__);
 		}
 
 	surf->lightmaptexturenum = gl_lms.current_lightmap_texture;

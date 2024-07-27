@@ -78,7 +78,7 @@ class CHeadCrab: public CBaseMonster
 		void RunTask (Task_t* pTask);
 		void StartTask (Task_t* pTask);
 		void SetYawSpeed (void);
-		void EXPORT LeapTouch (CBaseEntity* pOther);
+		void HLEXPORT LeapTouch (CBaseEntity* pOther);
 		Vector Center (void);
 		Vector BodyTarget (const Vector& posSrc);
 		void PainSound (void);

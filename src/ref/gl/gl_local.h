@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef GL_LOCAL_H
@@ -110,9 +110,9 @@ extern poolhandle_t			r_temppool;
 #define HACKS_RELATED_HLMODS		
 // some HL-mods works differently under Xash and can't be fixed without some hacks at least at current time
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.07.24]
 #define SKYBOX_BASE_NUM		5800	// set skybox base (to let some mods load hi-res skyboxes)
-#define SKYBOX_MAX_SIDES	6		// box can only have 6 sides
+/*#define SKYBOX_MAX_SIDES	6		// box can only have 6 sides*/
 
 typedef struct gltexture_s
 	{
@@ -302,6 +302,9 @@ extern float		gldepthmin, gldepthmax;
 #define r_numEntities	(tr.draw_list->num_solid_entities + tr.draw_list->num_trans_entities)
 #define r_numStatics	(r_stats.c_client_ents)
 
+// [FWGS, 01.07.24]
+#define Mod_AllowMaterials() (host_allow_materials->value && !FBitSet( gp_host->features, ENGINE_DISABLE_HDTEXTURES ))
+
 //
 // gl_backend.c
 //
@@ -387,6 +390,10 @@ void R_TextureList_f (void);
 void R_InitImages (void);
 void R_ShutdownImages (void);
 int GL_TexMemory (void);	// [FWGS, 01.11.23]
+
+// [FWGS, 01.07.24]
+qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...) _format (4);
+void R_TextureReplacementReport (const char *modelname, int gl_texturenum, const char *foundpath);
 
 //
 // gl_rlight.c
@@ -497,22 +504,23 @@ void R_DrawAliasModel (cl_entity_t *e);
 void R_AliasInit (void);
 
 //
-// gl_warp.c
+// gl_warp.c [FWGS, 01.07.24]
 //
-void R_InitSkyClouds (mip_t *mt, struct texture_s *tx, qboolean custom_palette);
+/*void R_InitSkyClouds (mip_t *mt, struct texture_s *tx, qboolean custom_palette);*/
 void R_AddSkyBoxSurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_DrawClouds (void);
-void EmitWaterPolys (msurface_t *warp, qboolean reverse);
+void R_UnloadSkybox (void);
 
-// [FWGS, 01.02.24]
+void EmitWaterPolys (msurface_t *warp, qboolean reverse);
 void R_InitRipples (void);
 void R_ResetRipples (void);
 void R_AnimateRipples (void);
 void R_UploadRipples (texture_t * image);
 
-//
+// [FWGS, 01.07.24]
+/*//
 // gl_vgui.c
 //
 void VGUI_DrawInit (void);
@@ -527,7 +535,7 @@ void VGUI_UploadTexture (int id, const char *buffer, int width, int height);
 void VGUI_UploadTextureBlock (int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);
 void VGUI_DrawQuad (const vpoint_t *ul, const vpoint_t *lr);
 void VGUI_GetTextureSizes (int *width, int *height);
-int VGUI_GenerateTexture (void);
+int VGUI_GenerateTexture (void);*/
 
 //
 // renderer exports
@@ -552,7 +560,7 @@ void R_GetSpriteParms (int *frameWidth, int *frameHeight, int *numFrames, int cu
 void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, const byte *data, qboolean dirty);
 void R_DrawStretchPic (float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum);
 qboolean R_SpeedsMessage (char *out, size_t size);
-void R_SetupSky (const char *skyboxname);
+/*void R_SetupSky (const char *skyboxname);*/	// [FWGS, 01.07.24]
 qboolean R_CullBox (const vec3_t mins, const vec3_t maxs);
 int R_WorldToScreen (const vec3_t point, vec3_t screen);
 void R_ScreenToWorld (const vec3_t screen, vec3_t point);

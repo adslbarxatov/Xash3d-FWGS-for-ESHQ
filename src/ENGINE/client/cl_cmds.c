@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 #include "common.h"
 #include "client.h"
@@ -374,7 +374,7 @@ void CL_DeleteDemo_f (void)
 
 /***
 =================
-CL_SetSky_f
+CL_SetSky_f [FWGS, 01.07.24]
 
 Set a specified skybox (only for local clients)
 =================
@@ -387,7 +387,8 @@ void CL_SetSky_f (void)
 		return;
 		}
 
-	ref.dllFuncs.R_SetupSky (Cmd_Argv (1));
+	/*ref.dllFuncs.R_SetupSky (Cmd_Argv (1));*/
+	R_SetupSky (Cmd_Argv (1));
 	}
 
 /***

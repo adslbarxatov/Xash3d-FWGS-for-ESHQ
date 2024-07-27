@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef XASH3D_MATHLIB_H
@@ -21,7 +21,6 @@ GNU General Public License for more details.
 #include <tgmath.h>
 #endif
 
-// [FWGS, 01.04.23]
 #include "build.h"
 #include "xash3d_types.h"
 #include "const.h"
@@ -75,8 +74,9 @@ GNU General Public License for more details.
 #define Q_min( a, b )	(((a) < (b)) ? (a) : (b))
 #define Q_max( a, b )	(((a) > (b)) ? (a) : (b))
 
-// [FWGS, 01.05.24]
-#define Q_equal_e( a, b, e ) (((a) > ((b) - (e))) && ((a) < ((b) + (e))))
+// [FWGS, 01.07.24]
+/*#define Q_equal_e( a, b, e ) (((a) > ((b) - (e))) && ((a) < ((b) + (e))))*/
+#define Q_equal_e( a, b, e ) (((a) >= ((b) - (e))) && ((a) <= ((b) + (e))))
 #define Q_equal( a, b ) Q_equal_e( a, b, EQUAL_EPSILON )
 
 #define Q_recip( a )	((float)(1.0f / (float)(a)))
@@ -85,7 +85,6 @@ GNU General Public License for more details.
 #define Q_round( x, y )	(floor( x / y + 0.5f ) * y )
 #define Q_rint(x)		((x) < 0.0f ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
 
-// [FWGS, 01.04.23]
 #ifdef XASH_IRIX
 #undef isnan
 #endif

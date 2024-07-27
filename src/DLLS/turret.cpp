@@ -49,7 +49,7 @@ class CBaseTurret: public CBaseMonster
 		void Spawn (void);
 		virtual void Precache (void);
 		void KeyValue (KeyValueData* pkvd);
-		void EXPORT TurretUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT TurretUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 		virtual void TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
 		virtual int	 TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
@@ -60,18 +60,18 @@ class CBaseTurret: public CBaseMonster
 
 		// Think functions
 
-		void EXPORT ActiveThink (void);
-		void EXPORT SearchThink (void);
-		void EXPORT AutoSearchThink (void);
-		void EXPORT TurretDeath (void);
+		void HLEXPORT ActiveThink (void);
+		void HLEXPORT SearchThink (void);
+		void HLEXPORT AutoSearchThink (void);
+		void HLEXPORT TurretDeath (void);
 
-		virtual void EXPORT SpinDownCall (void) { m_iSpin = 0; }
-		virtual void EXPORT SpinUpCall (void) { m_iSpin = 1; }
+		virtual void HLEXPORT SpinDownCall (void) { m_iSpin = 0; }
+		virtual void HLEXPORT SpinUpCall (void) { m_iSpin = 1; }
 
-		void EXPORT Deploy (void);
-		void EXPORT Retire (void);
+		void HLEXPORT Deploy (void);
+		void HLEXPORT Retire (void);
 
-		void EXPORT Initialize (void);
+		void HLEXPORT Initialize (void);
 
 		virtual void Ping (void);
 		virtual void EyeOn (void);
@@ -1098,8 +1098,8 @@ class CSentry: public CBaseTurret
 		// other functions
 		void Shoot (Vector& vecSrc, Vector& vecDirToEnemy);
 		int TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
-		void EXPORT SentryTouch (CBaseEntity* pOther);
-		void EXPORT SentryDeath (void);
+		void HLEXPORT SentryTouch (CBaseEntity* pOther);
+		void HLEXPORT SentryDeath (void);
 	};
 
 LINK_ENTITY_TO_CLASS (monster_sentry, CSentry);

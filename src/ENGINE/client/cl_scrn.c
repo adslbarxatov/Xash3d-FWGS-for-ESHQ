@@ -20,6 +20,7 @@ GNU General Public License for more details.
 #include "input.h"
 #include "library.h"
 
+// [FWGS, 01.07.24]
 CVAR_DEFINE_AUTO (scr_centertime, "2.5", 0,
 	"centerprint hold time");
 CVAR_DEFINE_AUTO (scr_loading, "0", 0,
@@ -28,8 +29,12 @@ CVAR_DEFINE_AUTO (scr_download, "-1", 0,
 	"downloading bar progress");
 CVAR_DEFINE (scr_viewsize, "viewsize", "120", FCVAR_ARCHIVE,
 	"screen size (quake only)");
-CVAR_DEFINE_AUTO (cl_testlights, "0", 0,
+
+/*CVAR_DEFINE_AUTO (cl_testlights, "0", 0,
+	"test dynamic lights");*/
+CVAR_DEFINE_AUTO (cl_testlights, "0", FCVAR_CHEAT,
 	"test dynamic lights");
+
 CVAR_DEFINE (cl_allow_levelshots, "allow_levelshots", "0", FCVAR_ARCHIVE,
 	"allow engine to use indivdual levelshots instead of 'loading' image");
 CVAR_DEFINE_AUTO (cl_levelshot_name, "*black", 0,
@@ -44,6 +49,8 @@ static CVAR_DEFINE_AUTO (cl_showfps, "0", FCVAR_ARCHIVE,
 	"show client fps");
 static CVAR_DEFINE_AUTO (cl_showpos, "0", FCVAR_ARCHIVE,
 	"show local player position and velocity");
+static CVAR_DEFINE_AUTO (cl_showents, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
+	"show entities information (largely undone)");
 
 typedef struct
 	{
@@ -122,22 +129,24 @@ void SCR_DrawFPS (int height)
 
 /***
 ==============
-SCR_DrawPos
+SCR_DrawPos [FWGS, 01.07.24]
 
 Draw local player position, angles and velocity
 ==============
 ***/
 void SCR_DrawPos (void)
 	{
-	static char     msg[MAX_SYSPATH];
-	float speed;
-	cl_entity_t *ent;
-	rgba_t color;
+	static char	msg[MAX_SYSPATH];
+	float		speed;
+	cl_entity_t	*ent;
+	rgba_t		color;
 
 	if ((cls.state != ca_active) || !cl_showpos.value || cl.background)
 		return;
 
-	ent = CL_GetLocalPlayer ();
+	/*ent = CL_GetLocalPlayer ();*/
+	ent = CL_EDICT_NUM (cl.playernum + 1);
+
 	speed = VectorLength (cl.simvel);
 
 	Q_snprintf (msg, MAX_SYSPATH,
@@ -153,6 +162,67 @@ void SCR_DrawPos (void)
 
 	MakeRGBA (color, 255, 255, 255, 255);
 	Con_DrawString (refState.width / 2, 4, msg, color);
+	}
+
+/*
+==============
+SCR_DrawEnts [FWGS, 01.07.24]
+==============
+*/
+void SCR_DrawEnts (void)
+	{
+	rgba_t	color = { 255, 255, 255, 255 };
+	int		i;
+
+	if ((cls.state != ca_active) || !cl_showents.value || ((cl.maxclients > 1) && !cls.demoplayback))
+		return;
+
+	// this probably better hook CL_AddVisibleEntities
+	// as entities might get added by client.dll
+	for (i = 0; i < clgame.maxEntities; i++)
+		{
+		const cl_entity_t *ent = &clgame.entities[i];
+		string msg;
+		vec3_t screen, pos;
+
+		if (ent->curstate.messagenum != cl.parsecount)
+			continue;
+
+		VectorCopy (ent->origin, pos);
+
+		if (ent->model != NULL)
+			{
+			vec3_t v;
+
+			// simple model type filter
+			if (cl_showents.value > 1)
+				{
+				if (ent->model->type != (modtype_t)(cl_showents.value - 2))
+					continue;
+				}
+
+			VectorAverage (ent->model->mins, ent->model->maxs, v);
+			VectorAdd (pos, v, pos);
+			}
+
+		if (!ref.dllFuncs.WorldToScreen (pos, screen))
+			{
+			Q_snprintf (msg, sizeof (msg),
+				"entity %d\n"
+				"model %s\n"
+				"movetype %d\n",
+				ent->index,
+				ent->model ? ent->model->name : "(null)",
+				ent->curstate.movetype);
+
+			screen[0] = 0.5f * screen[0] * refState.width;
+			screen[1] = -0.5f * screen[1] * refState.height;
+			screen[0] += 0.5f * refState.width;
+			screen[1] += 0.5f * refState.height;
+
+			Con_DrawString (screen[0], screen[1], msg, color);
+			}
+		}
 	}
 
 /***
@@ -407,7 +477,7 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	if (CL_IsInMenu () && !cls.changedemo && !is_background)
 		{
 		UI_SetActiveMenu (false);
-		if (cls.state == ca_disconnected && !((GameState->curstate == STATE_RUNFRAME) &&
+		if ((cls.state == ca_disconnected) && !((GameState->curstate == STATE_RUNFRAME) &&
 			(GameState->nextstate != STATE_RUNFRAME)))
 			SCR_UpdateScreen ();
 		}
@@ -423,6 +493,7 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 
 	if (is_background) 
 		IN_MouseSavePos ();
+
 	cls.draw_changelevel = !is_background;
 	SCR_UpdateScreen ();
 	cls.disable_screen = host.realtime;
@@ -550,12 +621,13 @@ void SCR_TileClear (void)
 SCR_UpdateScreen
 
 This is called every frame, and can also be called explicitly to flush
-text to the screen.
+text to the screen
 ==================
 ***/
 void SCR_UpdateScreen (void)
 	{
-	if (!V_PreRender ()) return;
+	if (!V_PreRender ())
+		return;
 
 	switch (cls.state)
 		{
@@ -579,7 +651,7 @@ void SCR_UpdateScreen (void)
 			break;
 
 		default:
-			Host_Error ("SCR_UpdateScreen: bad cls.state\n");
+			Host_Error ("%s: bad cls.state\n", __func__);	// [FWGS, 01.07.24]
 			break;
 		}
 
@@ -780,7 +852,7 @@ void SCR_VidInit (void)
 
 /***
 ==================
-SCR_Init [FWGS, 01.07.23]
+SCR_Init [FWGS, 01.07.24]
 ==================
 ***/
 void SCR_Init (void)
@@ -800,6 +872,9 @@ void SCR_Init (void)
 	Cvar_RegisterVariable (&net_speeds);
 	Cvar_RegisterVariable (&cl_showfps);
 	Cvar_RegisterVariable (&cl_showpos);
+#ifdef _DEBUG
+	Cvar_RegisterVariable (&cl_showents);
+#endif
 
 	// register our commands
 	Cmd_AddCommand ("skyname", CL_SetSky_f,
@@ -849,4 +924,3 @@ void SCR_Shutdown (void)
 
 	scr_init = false;
 	}
-

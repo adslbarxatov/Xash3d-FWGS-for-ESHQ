@@ -1195,7 +1195,9 @@ byte *Image_FlipInternal (const byte *in, word *srcwidth, word *srcheight, int t
 	return image.tempbuffer;
 	}
 
-static byte *Image_CreateLumaInternal (byte *fin, int width, int height, int type, int flags)
+// [FWGS, 01.07.24]
+/*static byte *Image_CreateLumaInternal (byte *fin, int width, int height, int type, int flags)*/
+static byte *Image_MakeLuma (byte *fin, int width, int height, int type, int flags)
 	{
 	byte	*out;
 	int		i;
@@ -1214,7 +1216,7 @@ static byte *Image_CreateLumaInternal (byte *fin, int width, int height, int typ
 
 		default:
 			// another formats does ugly result :(
-			Con_Printf (S_ERROR "Image_MakeLuma: unsupported format %s\n", PFDesc[type].name);
+			Con_Printf (S_ERROR "%s: unsupported format %s\n", __func__, PFDesc[type].name);
 			return (byte *)fin;
 		}
 
@@ -1233,12 +1235,15 @@ qboolean Image_AddIndexedImageToPack (const byte *in, int width, int height)
 
 	image.size = mipsize;
 
-	if (expand_to_rgba) image.size *= 4;
-	else Image_CopyPalette32bit ();
+	if (expand_to_rgba)
+		image.size *= 4;
+	else
+		Image_CopyPalette32bit ();
 
 	// reallocate image buffer
 	image.rgba = Mem_Malloc (host.imagepool, image.size);
-	if (!expand_to_rgba) memcpy (image.rgba, in, image.size);
+	if (!expand_to_rgba)
+		memcpy (image.rgba, in, image.size);
 	else if (!Image_Copy8bitRGBA (in, image.rgba, mipsize))
 		return false; // probably pallette not installed
 
@@ -1426,10 +1431,14 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 		return false; // no operation specfied
 		}
 
+	// [FWGS, 01.07.24]
 	if (FBitSet (flags, IMAGE_MAKE_LUMA))
 		{
-		out = Image_CreateLumaInternal (pic->buffer, pic->width, pic->height, pic->type, pic->flags);
-		if (pic->buffer != out) memcpy (pic->buffer, image.tempbuffer, pic->size);
+		/*out = Image_CreateLumaInternal (pic->buffer, pic->width, pic->height, pic->type, pic->flags);*/
+		out = Image_MakeLuma (pic->buffer, pic->width, pic->height, pic->type, pic->flags);
+
+		if (pic->buffer != out)
+			memcpy (pic->buffer, image.tempbuffer, pic->size);
 		ClearBits (pic->flags, IMAGE_HAS_LUMA);
 		}
 

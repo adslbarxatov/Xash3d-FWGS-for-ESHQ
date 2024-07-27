@@ -55,7 +55,7 @@ qboolean Sys_LoadLibrary (dll_info_t *dll);
 void *Sys_GetProcAddress (dll_info_t *dll, const char *name);
 qboolean Sys_FreeLibrary (dll_info_t *dll);
 void Sys_ParseCommandLine (int argc, char **argv);
-void Sys_MergeCommandLine (void);
+/*void Sys_MergeCommandLine (void);*/	// [FWGS, 01.07.24]
 void Sys_SetupCrashHandler (void);
 void Sys_RestoreCrashHandler (void);
 void Sys_DebugBreak (void);	// [FWGS, 01.04.23]

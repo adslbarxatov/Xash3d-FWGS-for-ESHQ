@@ -46,6 +46,19 @@ static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s);	// [FWGS, 
 
 /***
 =================
+SV_HavePassword [FWGS, 01.07.24]
+=================
+***/
+qboolean SV_HavePassword (void)
+	{
+	if (COM_CheckStringEmpty (sv_password.string) && Q_stricmp (sv_password.string, "none"))
+		return true;
+
+	return false;
+	}
+
+/***
+=================
 SV_GetPlayerCount [FWGS, 01.04.23]
 =================
 ***/
@@ -74,7 +87,7 @@ void SV_GetPlayerCount (int *players, int *bots)
 
 /***
 =================
-SV_GetChallenge
+SV_GetChallenge [FWGS, 01.07.24]
 
 Returns a challenge number that can be used
 in a subsequent client_connect command.
@@ -106,7 +119,8 @@ static void SV_GetChallenge (netadr_t from)
 	if (i == MAX_CHALLENGES)
 		{
 		// this is the first time this client has asked for a challenge
-		svs.challenges[oldest].challenge = (COM_RandomLong (0, 0xFFFF) << 16) | COM_RandomLong (0, 0xFFFF);
+		/*svs.challenges[oldest].challenge = (COM_RandomLong (0, 0xFFFF) << 16) | COM_RandomLong (0, 0xFFFF);*/
+		svs.challenges[oldest].challenge = (COM_RandomLong (0, 0x7FFF) << 16) | COM_RandomLong (0, 0xFFFF);
 		svs.challenges[oldest].adr = from;
 		svs.challenges[oldest].time = host.realtime;
 		svs.challenges[oldest].connected = false;
@@ -363,12 +377,18 @@ static void SV_ConnectClient (netadr_t from)
 
 	Q_strncpy (userinfo, s, sizeof (userinfo));
 
-	// check connection password (don't verify local client)
-	if (!NET_IsLocalAddress (from) && sv_password.string[0] && Q_stricmp (sv_password.string, 
-		Info_ValueForKey (userinfo, "password")))
+	// [FWGS, 01.07.24] check connection password (don't verify local client)
+	/*if (!NET_IsLocalAddress (from) && sv_password.string[0] && Q_stricmp (sv_password.string, 
+		Info_ValueForKey (userinfo, "password")))*/
+	if (!NET_IsLocalAddress (from) && SV_HavePassword ())
 		{
-		SV_RejectConnection (from, "invalid password\n");
-		return;
+		/*SV_RejectConnection (from, "invalid password\n");
+		return;*/
+		if (Q_stricmp (sv_password.string, Info_ValueForKey (userinfo, "password")))
+			{
+			SV_RejectConnection (from, "invalid password\n");
+			return;
+			}
 		}
 
 	// if there is already a slot for this ip, reuse it
@@ -509,11 +529,15 @@ edict_t *GAME_EXPORT SV_FakeConnect (const char *netname)
 
 	userinfo[0] = '\0';
 
-	// setup fake client params
-	Info_SetValueForKey (userinfo, "name", netname, MAX_INFO_STRING);
+	// [FWGS, 01.07.24] setup fake client params
+	/*Info_SetValueForKey (userinfo, "name", netname, MAX_INFO_STRING);
 	Info_SetValueForKey (userinfo, "model", "gordon", MAX_INFO_STRING);
 	Info_SetValueForKey (userinfo, "topcolor", "1", MAX_INFO_STRING);
-	Info_SetValueForKey (userinfo, "bottomcolor", "1", MAX_INFO_STRING);
+	Info_SetValueForKey (userinfo, "bottomcolor", "1", MAX_INFO_STRING);*/
+	Info_SetValueForKey (userinfo, "name", netname, sizeof (userinfo));
+	Info_SetValueForKey (userinfo, "model", "gordon", sizeof (userinfo));
+	Info_SetValueForKey (userinfo, "topcolor", "1", sizeof (userinfo));
+	Info_SetValueForKey (userinfo, "bottomcolor", "1", sizeof (userinfo));
 
 	// build a new connection
 	// accept the new client
@@ -690,7 +714,7 @@ static void SV_BeginRedirect (host_redirect_t *rd, netadr_t adr, rdtype_t target
 		rd->lines = -1;
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.07.24]
 static void SV_FlushRedirect (netadr_t adr, int dest, char *buf)
 	{
 	if (sv.current_client && FBitSet (sv.current_client->flags, FCL_FAKECLIENT))
@@ -711,7 +735,7 @@ static void SV_FlushRedirect (netadr_t adr, int dest, char *buf)
 			break;
 
 		case RD_NONE:
-			Con_Printf (S_ERROR "SV_FlushRedirect: %s: invalid destination\n", NET_AdrToString (adr));
+			Con_Printf (S_ERROR "%s: %s: invalid destination\n", __func__, NET_AdrToString (adr));
 			break;
 		}
 	}
@@ -837,7 +861,7 @@ sv_client_t *SV_ClientByName (const char *name)
 
 /***
 ================
-SV_TestBandWidth [FWGS, 01.02.24]
+SV_TestBandWidth
 ================
 ***/
 static void SV_TestBandWidth (netadr_t from)
@@ -854,8 +878,10 @@ static void SV_TestBandWidth (netadr_t from)
 		return;
 		}
 
-	// quickly reject invalid packets
-	if (!svs.testpacket_buf || (packetsize <= FRAGMENT_MIN_SIZE) || (packetsize > FRAGMENT_MAX_SIZE))
+	// [FWGS, 01.07.24] quickly reject invalid packets
+	/*if (!svs.testpacket_buf ||*/
+	if (!sv_allow_testpacket.value || !svs.testpacket_buf ||
+		(packetsize <= FRAGMENT_MIN_SIZE) || (packetsize > FRAGMENT_MAX_SIZE))
 		{
 		// skip the test and just get challenge
 		SV_GetChallenge (from);
@@ -889,10 +915,10 @@ static void SV_Ack (netadr_t from)
 
 /***
 ================
-SV_Info [FWGS, 01.04.23]
+SV_Info [FWGS, 01.07.24]
 
-Responds with short info for broadcast scans
-The second parameter should be the current protocol version number.
+Responds with short info for broadcast scans.
+The second parameter should be the current protocol version number
 ================
 ***/
 static void SV_Info (netadr_t from, int protocolVersion)
@@ -913,7 +939,7 @@ static void SV_Info (netadr_t from, int protocolVersion)
 		{
 		int count, bots, remaining;
 		char temp[sizeof (s)];
-		qboolean have_password = COM_CheckStringEmpty (sv_password.string);
+		/*qboolean have_password = COM_CheckStringEmpty (sv_password.string);*/
 
 		SV_GetPlayerCount (&count, &bots);
 
@@ -926,7 +952,8 @@ static void SV_Info (netadr_t from, int protocolVersion)
 		Info_SetValueForKeyf (s, "numcl", sizeof (s), "%i", count);
 		Info_SetValueForKeyf (s, "maxcl", sizeof (s), "%i", svs.maxclients);
 		Info_SetValueForKey (s, "gamedir", GI->gamefolder, sizeof (s));
-		Info_SetValueForKey (s, "password", have_password ? "1" : "0", sizeof (s));
+		/*Info_SetValueForKey (s, "password", have_password ? "1" : "0", sizeof (s));*/
+		Info_SetValueForKey (s, "password", SV_HavePassword () ? "1" : "0", sizeof (s));
 
 		// write host last so we can try to cut off too long hostnames
 		remaining = sizeof (s) - Q_strlen (s) - sizeof ("\\host\\") - 1;
@@ -946,16 +973,23 @@ static void SV_Info (netadr_t from, int protocolVersion)
 
 /***
 ================
-SV_BuildNetAnswer
+SV_BuildNetAnswer [FWGS, 01.07.24]
 
 Responds with long info for local and broadcast requests
 ================
 ***/
 static void SV_BuildNetAnswer (netadr_t from)
 	{
-	char	string[MAX_INFO_STRING];
+	/*char	string[MAX_INFO_STRING];
 	int		version, context, type;
-	int		i, count = 0;
+	int		i, count = 0;*/
+	const cvar_t *cv;
+	char	string[4096];
+	int		version;
+	int		context;
+	int		type;
+	int		count = 0;
+	int		i;
 
 	// ignore in single player
 	if ((svs.maxclients == 1) || !svs.initialized)
@@ -964,19 +998,21 @@ static void SV_BuildNetAnswer (netadr_t from)
 	version = Q_atoi (Cmd_Argv (1));
 	context = Q_atoi (Cmd_Argv (2));
 	type = Q_atoi (Cmd_Argv (3));
+	string[0] = 0;
 
 	if (version != PROTOCOL_VERSION)
 		{
-		// handle the unsupported protocol
+		/*// handle the unsupported protocol
 		string[0] = '\0';
-		Info_SetValueForKey (string, "neterror", "protocol", MAX_INFO_STRING);
+		Info_SetValueForKey (string, "neterror", "protocol", MAX_INFO_STRING);*/
 
 		// send error unsupported protocol
+		Info_SetValueForKey (string, "neterror", "protocol", sizeof (string));
 		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
 		return;
 		}
 
-	if (type == NETAPI_REQUEST_PING)
+	/*if (type == NETAPI_REQUEST_PING)
 		{
 		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, "");
 		}
@@ -987,64 +1023,126 @@ static void SV_BuildNetAnswer (netadr_t from)
 		}
 
 	// [FWGS, 01.04.23]
-	else if (type == NETAPI_REQUEST_PLAYERS)
+	else if (type == NETAPI_REQUEST_PLAYERS)*/
+	switch (type)
 		{
-		size_t len = 0;
-		string[0] = '\0';
+		/*size_t len = 0;
+		string[0] = '\0';*/
+		case NETAPI_REQUEST_PING:
+			break;
 
-		for (i = 0; i < svs.maxclients; i++)
-			{
-			if (svs.clients[i].state >= cs_connected)
+		case NETAPI_REQUEST_RULES:
+			for (cv = Cvar_GetList (); cv; cv = cv->next)
 				{
-				int ret;
-				edict_t *ed = svs.clients[i].edict;
-				float time = host.realtime - svs.clients[i].connection_started;
+				if (!FBitSet (cv->flags, FCVAR_SERVER))
+					continue;
 
-				ret = Q_snprintf (&string[len], sizeof (string) - len, "%c\\%s\\%i\\%f\\", count,
-					svs.clients[i].name, (int)ed->v.frags, time);
+				if (FBitSet (cv->flags, FCVAR_PROTECTED))
+					{
+					if (COM_CheckStringEmpty (cv->string) && Q_stricmp (cv->string, "none"))
+						Info_SetValueForKey (string, cv->name, "1", sizeof (string));
+					else
+						Info_SetValueForKey (string, cv->name, "0", sizeof (string));
+					}
+				else
+					{
+					Info_SetValueForKey (string, cv->name, cv->string, sizeof (string));
+					}
+				/*for (i = 0; i < svs.maxclients; i++)
+				*/
+				count++;
+				}
 
-				if (ret == -1)
+			Info_SetValueForKeyf (string, "rules", sizeof (string), "%i", count);
+			break;
+
+		case NETAPI_REQUEST_PLAYERS:
+			if (!sv_expose_player_list.value || SV_HavePassword ())
+				{
+				/*if (svs.clients[i].state >= cs_connected)
+				*/
+				Info_SetValueForKey (string, "neterror", "forbidden", sizeof (string));
+				}
+			else
+				{
+				for (i = 0; i < svs.maxclients; i++)
+					{
+					/*int ret;
+					edict_t *ed = svs.clients[i].edict;
+					float time = host.realtime - svs.clients[i].connection_started;
+
+					ret = Q_snprintf (&string[len], sizeof (string) - len, "%c\\%s\\%i\\%f\\", count,
+					svs.clients[i].name, (int)ed->v.frags, time);*/
+					const sv_client_t *cl = &svs.clients[i];
+
+					/*if (ret == -1)
 					{
 					Con_DPrintf (S_WARN "SV_BuildNetAnswer: NETAPI_REQUEST_PLAYERS: buffer overflow!\n");
 					break;
+					}*/
+					if (cl->state < cs_connected)
+						continue;
+
+					Info_SetValueForKey (string, va ("p%iname", count), cl->name, sizeof (string));
+					Info_SetValueForKeyf (string, va ("p%ifrags", count), sizeof (string), "%i",
+						(int)cl->edict->v.frags);
+					Info_SetValueForKeyf (string, va ("p%itime", count), sizeof (string), "%f",
+						host.realtime - cl->connection_started);
+
+					/*len += ret;
+					*/
+					count++;
 					}
-
-				len += ret;
-				count++;
+				/*}
+				// send playernames
+				Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
 				}
+				else if (type == NETAPI_REQUEST_DETAILS)
+				{*/
+				Info_SetValueForKeyf (string, "players", sizeof (string), "%i", count);
+				}
+			break;
+
+		case NETAPI_REQUEST_DETAILS:
+			for (i = 0; i < svs.maxclients; i++)
+				{
+				if (svs.clients[i].state >= cs_connected)
+					count++;
+				}
+
+			/*string[0] = '\0';
+			Info_SetValueForKey (string, "hostname", hostname.string, MAX_INFO_STRING);
+			Info_SetValueForKey (string, "gamedir", GI->gamefolder, MAX_INFO_STRING);
+
+			// [FWGS, 01.04.23]
+			Info_SetValueForKeyf (string, "current", MAX_INFO_STRING, "%i", count);
+			Info_SetValueForKeyf (string, "max", MAX_INFO_STRING, "%i", svs.maxclients);
+			Info_SetValueForKey (string, "map", sv.name, MAX_INFO_STRING);
+
+			// send serverinfo
+			Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
 			}
+			else
+			{
+			string[0] = '\0';
+			Info_SetValueForKey (string, "neterror", "undefined", MAX_INFO_STRING);*/
+			// should match SV_SourceQuery_Details
+			Info_SetValueForKey (string, "hostname", hostname.string, sizeof (string));
+			Info_SetValueForKey (string, "gamedir", GI->gamefolder, sizeof (string));
+			Info_SetValueForKeyf (string, "current", sizeof (string), "%i", count);
+			Info_SetValueForKeyf (string, "max", sizeof (string), "%i", svs.maxclients);
+			Info_SetValueForKey (string, "map", sv.name, sizeof (string));
+			break;
 
-		// send playernames
-		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
+		default:
+			// send error undefined request type
+			/*Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
+			*/
+			Info_SetValueForKey (string, "neterror", "undefined", sizeof (string));
+			break;
 		}
 
-	else if (type == NETAPI_REQUEST_DETAILS)
-		{
-		for (i = 0; i < svs.maxclients; i++)
-			if (svs.clients[i].state >= cs_connected)
-				count++;
-
-		string[0] = '\0';
-		Info_SetValueForKey (string, "hostname", hostname.string, MAX_INFO_STRING);
-		Info_SetValueForKey (string, "gamedir", GI->gamefolder, MAX_INFO_STRING);
-		
-		// [FWGS, 01.04.23]
-		Info_SetValueForKeyf (string, "current", MAX_INFO_STRING, "%i", count);
-		Info_SetValueForKeyf (string, "max", MAX_INFO_STRING, "%i", svs.maxclients);
-		Info_SetValueForKey (string, "map", sv.name, MAX_INFO_STRING);
-
-		// send serverinfo
-		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
-		}
-
-	else
-		{
-		string[0] = '\0';
-		Info_SetValueForKey (string, "neterror", "undefined", MAX_INFO_STRING);
-
-		// send error undefined request type
-		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
-		}
+	Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
 	}
 
 /***
@@ -1814,7 +1912,6 @@ static qboolean SV_Pause_f (sv_client_t *cl)
 	return true;
 	}
 
-// [FWGS, 01.12.23]
 static qboolean SV_ShouldUpdateUserinfo (sv_client_t *cl)
 	{
 	qboolean allow = true;	// predict state
@@ -1837,27 +1934,28 @@ static qboolean SV_ShouldUpdateUserinfo (sv_client_t *cl)
 	// he seems to be spammer, so just increase change attempts
 	if (host.realtime < cl->userinfo_next_changetime + cl->userinfo_penalty * sv_userinfo_penalty_multiplier.value)
 		{
-		// player changes userinfo too quick! ignore!
+		// [FWGS, 01.07.24] player changes userinfo too quick! ignore!
 		if (host.realtime < cl->userinfo_next_changetime)
 			{
-			Con_Reportf ("SV_ShouldUpdateUserinfo: ignore userinfo update for %s: penalty %f, attempts %i\n",
-				cl->name, cl->userinfo_penalty, cl->userinfo_change_attempts);
+			/*Con_Reportf ("SV_ShouldUpdateUserinfo: ignore userinfo update for %s: penalty %f, attempts %i\n",
+				cl->name, cl->userinfo_penalty, cl->userinfo_change_attempts);*/
+			Con_Reportf ("%s: ignore userinfo update for %s: penalty %f, attempts %i\n",
+				__func__, cl->name, cl->userinfo_penalty, cl->userinfo_change_attempts);
 			allow = false;
 			}
 
 		cl->userinfo_change_attempts++;
 		}
 
-	// they spammed too fast, increase penalty
+	// [FWGS, 01.07.24] they spammed too fast, increase penalty
 	if (cl->userinfo_change_attempts > sv_userinfo_penalty_attempts.value)
 		{
-		Con_Reportf ("SV_ShouldUpdateUserinfo: penalty set %f for %s\n", cl->userinfo_penalty, cl->name);
+		Con_Reportf ("%s: penalty set %f for %s\n", __func__, cl->userinfo_penalty, cl->name);
 		cl->userinfo_penalty *= sv_userinfo_penalty_multiplier.value;
 		cl->userinfo_change_attempts = 0;
 		}
 
 	cl->userinfo_next_changetime = host.realtime + cl->userinfo_penalty;
-
 	return allow;
 	}
 
@@ -2210,9 +2308,12 @@ static qboolean SV_DownloadFile_f (sv_client_t *cl)
 		memset (&custResource, 0, sizeof (custResource));
 		COM_HexConvert (name + 4, 32, md5);
 
-		if (HPAK_ResourceForHash (CUSTOM_RES_PATH, md5, &custResource))
+		// [FWGS, 01.07.24]
+		/*if (HPAK_ResourceForHash (CUSTOM_RES_PATH, md5, &custResource))*/
+		if (HPAK_ResourceForHash (hpk_custom_file.string, md5, &custResource))
 			{
-			if (HPAK_GetDataPointer (CUSTOM_RES_PATH, &custResource, &pbuf, &size))
+			/*if (HPAK_GetDataPointer (CUSTOM_RES_PATH, &custResource, &pbuf, &size))*/
+			if (HPAK_GetDataPointer (hpk_custom_file.string, &custResource, &pbuf, &size))
 				{
 				if (size)
 					{
@@ -3245,10 +3346,10 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	args = MSG_ReadStringLine (msg);
 	Cmd_TokenizeString (args);
 
-	// [FWGS, 01.07.23]
+	// [FWGS, 01.07.24]
 	pcmd = Cmd_Argv (0);
 	if (sv_log_outofband.value)
-		Con_Reportf ("SV_ConnectionlessPacket: %s : %s\n", NET_AdrToString (from), pcmd);
+		Con_Reportf ("%s: %s : %s\n", __func__, NET_AdrToString (from), pcmd);
 
 	if (!Q_strcmp (pcmd, "ping"))
 		SV_Ping (from);
@@ -3306,7 +3407,7 @@ that were in the last three packets, so that the information
 in dropped packets can be recovered.
 
 On very fast clients, there may be multiple usercmd packed into
-each of the backup packets.
+each of the backup packets
 ==================
 ***/
 static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
@@ -3335,14 +3436,16 @@ static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
 	totalcmds = numcmds + numbackup;
 	net_drop -= (numcmds - 1);
 
+	// [FWGS, 01.07.24]
 	if ((totalcmds < 0) || (totalcmds >= CMD_MASK))
 		{
-		Con_Reportf (S_ERROR "SV_ParseClientMove: %s sending too many commands %i\n", cl->name, totalcmds);
+		Con_Reportf (S_ERROR "%s: %s sending too many commands %i\n", __func__, cl->name, totalcmds);
 		SV_DropClient (cl, false);
 		return;
 		}
 
-	from = &nullcmd;	// first cmd are starting from null-compressed usercmd_t
+	// first cmd are starting from null-compressed usercmd_t
+	from = &nullcmd;
 
 	for (i = totalcmds - 1; i >= 0; i--)
 		{
@@ -3358,9 +3461,11 @@ static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
 	size = MSG_GetRealBytesRead (msg) - key - 1;
 	checksum2 = CRC32_BlockSequence (msg->pData + key + 1, size, cl->netchan.incoming_sequence);
 
+	// [FWGS, 01.07.24]
 	if (checksum2 != checksum1)
 		{
-		Con_Reportf (S_ERROR "SV_UserMove: failed command checksum for %s (%d != %d)\n", cl->name, checksum2, checksum1);
+		Con_Reportf (S_ERROR "%s: failed command checksum for %s (%d != %d)\n", __func__,
+			cl->name, checksum2, checksum1);
 		return;
 		}
 
@@ -3562,7 +3667,7 @@ static void SV_ParseCvarValue2 (sv_client_t *cl, sizebuf_t *msg)
 
 /***
 ===================
-SV_ParseVoiceData [FWGS, 01.03.24]
+SV_ParseVoiceData
 ===================
 ***/
 static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
@@ -3575,13 +3680,13 @@ static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 	cl->m_bLoopback = MSG_ReadByte (msg);
 
 	frames = MSG_ReadByte (msg);
-
 	size = MSG_ReadShort (msg);
 	client = cl - svs.clients;
 
+	// [FWGS, 01.07.24]
 	if (size > sizeof (received))
 		{
-		Con_DPrintf ("SV_ParseVoiceData: invalid incoming packet.\n");
+		Con_DPrintf ("%s: invalid incoming packet.\n", __func__);
 		SV_DropClient (cl, false);
 		return;
 		}
@@ -3593,7 +3698,6 @@ static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 
 	for (i = 0, cur = svs.clients; i < svs.maxclients; i++, cur++)
 		{
-		// [FWGS, 01.04.23]
 		if (cl != cur)
 			{
 			if (cur->state < cs_connected)

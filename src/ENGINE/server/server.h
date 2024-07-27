@@ -82,17 +82,17 @@ extern int SV_UPDATE_BACKUP;
 
 typedef enum
 	{
-	ss_dead,		// no map loaded
+	ss_dead,	// no map loaded
 	ss_loading,	// spawning level edicts
-	ss_active		// actively running
+	ss_active	// actively running
 	} sv_state_t;
 
 typedef enum
 	{
 	cs_free = 0,	// can be reused for a new connection
-	cs_zombie,	// client has been disconnected, but don't reuse connection for a couple seconds
+	cs_zombie,		// client has been disconnected, but don't reuse connection for a couple seconds
 	cs_connected,	// has been assigned to a sv_client_t, but not in game yet
-	cs_spawned	// client is fully in game
+	cs_spawned		// client is fully in game
 	} cl_state_t;
 
 typedef enum
@@ -273,11 +273,11 @@ typedef struct sv_client_s
 
 /***
 =============================================================================
- a client can leave the server in one of four ways:
- dropping properly by quiting or disconnecting
- timing out if no valid messages are received for timeout.value seconds
- getting kicked off by the server operator
- a program error, like an overflowed reliable buffer
+a client can leave the server in one of four ways:
+dropping properly by quiting or disconnecting
+timing out if no valid messages are received for sv_timeout.value seconds
+getting kicked off by the server operator
+a program error, like an overflowed reliable buffer
 =============================================================================
 ***/
 
@@ -403,10 +403,10 @@ typedef struct
 // =============================================================================
 
 // [FWGS, 01.05.24]
-extern server_static_t svs RENAME_SYMBOL ("svs_");	// persistant server info
-extern server_t sv RENAME_SYMBOL ("sv_");			// local server
-extern svgame_static_t svgame;		// persistant game info
-extern areanode_t sv_areanodes[];	// AABB dynamic tree
+extern server_static_t	svs RENAME_SYMBOL ("svs_");	// persistant server info
+extern server_t		sv RENAME_SYMBOL ("sv_");			// local server
+extern svgame_static_t	svgame;		// persistant game info
+extern areanode_t	sv_areanodes[];	// AABB dynamic tree
 
 extern convar_t		mp_logecho;
 extern convar_t		mp_logfile;
@@ -431,21 +431,21 @@ extern convar_t		sv_send_resources;
 extern convar_t		sv_send_logos;
 extern convar_t		sv_allow_upload;
 extern convar_t		sv_allow_download;
-extern convar_t		sv_airaccelerate;
-extern convar_t		sv_accelerate;
+/*extern convar_t		sv_airaccelerate;	// [FWGS, 01.07.24]
+extern convar_t		sv_accelerate;*/
 extern convar_t		sv_friction;
-extern convar_t		sv_edgefriction;
+/*extern convar_t		sv_edgefriction;*/	// [FWGS, 01.07.24]
 extern convar_t		sv_gravity;
 extern convar_t		sv_stopspeed;
-extern convar_t		sv_maxspeed;
+/*extern convar_t		sv_maxspeed;*/		// [FWGS, 01.07.24]
 extern convar_t		sv_wateralpha;
 extern convar_t		sv_wateramp;
 extern convar_t		sv_voiceenable;
 extern convar_t		sv_voicequality;
-extern convar_t		sv_stepsize;
+/*extern convar_t		sv_stepsize;*/		// [FWGS, 01.07.24]
 extern convar_t		sv_maxvelocity;
-extern convar_t		sv_rollangle;
-extern convar_t		sv_rollspeed;
+/*extern convar_t		sv_rollangle;		// [FWGS, 01.07.24]
+extern convar_t		sv_rollspeed;*/
 extern convar_t		sv_skyname;
 extern convar_t		sv_skycolor_r;
 extern convar_t		sv_skycolor_g;
@@ -461,37 +461,36 @@ extern convar_t		sv_trace_messages;
 extern convar_t		sv_enttools_enable;		// [FWGS, 01.04.23]
 extern convar_t		sv_enttools_maxfire;
 extern convar_t		sv_autosave;
-
 extern convar_t		deathmatch;
 extern convar_t		hostname;
 extern convar_t		skill;
 extern convar_t		coop;
-
 extern convar_t		meat_mode;		// ESHQ: meat mode
 extern convar_t		sv_cheats;		// [FWGS, 01.04.23]
 extern convar_t		public_server;	// [FWGS, 01.05.23]
 extern convar_t		sv_nat;			// [FWGS, 01.05.23]
 
-// [FWGS, 01.07.23]
-extern convar_t sv_speedhack_kick;
-extern convar_t sv_pausable;	// allows pause in multiplayer
-extern convar_t sv_check_errors;
-extern convar_t sv_reconnect_limit;
-extern convar_t sv_lighting_modulate;
-extern convar_t sv_novis;
-extern convar_t sv_hostmap;
-extern convar_t sv_validate_changelevel;
-extern convar_t sv_maxclients;
-extern convar_t sv_userinfo_enable_penalty;
-extern convar_t sv_userinfo_penalty_time;
-extern convar_t sv_userinfo_penalty_multiplier;
-extern convar_t sv_userinfo_penalty_attempts;
-extern convar_t sv_fullupdate_penalty_time;
-extern convar_t sv_log_outofband;
+extern convar_t		sv_speedhack_kick;
+extern convar_t		sv_pausable;	// allows pause in multiplayer
+extern convar_t		sv_check_errors;
+/*extern convar_t		sv_reconnect_limit;*/	// [FWGS, 01.07.24]
+extern convar_t		sv_lighting_modulate;
+extern convar_t		sv_novis;
+extern convar_t		sv_hostmap;
+extern convar_t		sv_validate_changelevel;
+extern convar_t		sv_maxclients;
+extern convar_t		sv_userinfo_enable_penalty;
+extern convar_t		sv_userinfo_penalty_time;
+extern convar_t		sv_userinfo_penalty_multiplier;
+extern convar_t		sv_userinfo_penalty_attempts;
+extern convar_t		sv_fullupdate_penalty_time;
+extern convar_t		sv_log_outofband;
+extern convar_t		sv_allow_autoaim;
+extern convar_t		sv_aim;
 
-// [FWGS, 01.12.23]
-extern convar_t sv_allow_autoaim;
-extern convar_t sv_aim;
+// [FWGS, 01.07.24]
+extern convar_t		sv_allow_testpacket;
+extern convar_t		sv_expose_player_list;
 
 // ===========================================================
 //
@@ -513,13 +512,14 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg);
 qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent);
 
 //
-// sv_init.c [FWGS, 01.02.24]
+// sv_init.c [FWGS, 01.07.24]
 //
 qboolean SV_InitGame (void);
 void SV_ActivateServer (int runPhysics);
 qboolean SV_SpawnServer (const char *server, const char *startspot, qboolean background);
 model_t *SV_ModelHandle (int modelindex);
 void SV_DeactivateServer (void);
+void SV_FreeTestPacket (void);
 
 //
 // sv_phys.c
@@ -549,7 +549,7 @@ void SV_SendClientMessages (void);
 void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) _format (2);
 
 //
-// sv_client.c [FWGS, 01.02.24]
+// sv_client.c [FWGS, 01.07.24]
 //
 void SV_RefreshUserinfo (void);
 void SV_TogglePause (const char *msg);
@@ -570,7 +570,8 @@ int SV_CalcPing (sv_client_t *cl);
 void SV_UpdateServerInfo (void);
 void SV_EndRedirect (host_redirect_t *rd);
 void SV_RejectConnection (netadr_t from, const char *fmt, ...) _format (2);
-void SV_GetPlayerCount (int *clients, int *bots);	// [FWGS, 01.04.23]
+void SV_GetPlayerCount (int *clients, int *bots);
+qboolean SV_HavePassword (void);
 
 //
 // sv_cmds.c [FWGS, 01.02.24]

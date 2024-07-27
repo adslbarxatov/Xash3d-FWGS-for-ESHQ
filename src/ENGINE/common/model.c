@@ -113,13 +113,17 @@ void Mod_FreeModel (model_t *mod)
 		Mem_FreePool (&mod->mempool);
 		}
 
+	// [FWGS, 01.07.24]
 	if ((mod->type == mod_brush) && FBitSet (mod->flags, MODEL_WORLD))
 		{
-		// [FWGS, 01.01.24]
 		world.version = 0;
-
 		world.shadowdata = NULL;
 		world.deluxedata = NULL;
+
+		// data already freed by Mem_FreePool above
+		world.hull_models = NULL;
+		world.compressed_phs = NULL;
+		world.phsofs = NULL;
 		}
 
 	memset (mod, 0, sizeof (*mod));

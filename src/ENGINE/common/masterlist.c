@@ -368,7 +368,7 @@ static void NET_LoadMasters (void)
 
 /***
 ========================
-NET_SaveMasters
+NET_SaveMasters [FWGS, 01.07.24]
 
 Save master server list to xashcomm.lst, except for default
 ========================
@@ -385,10 +385,10 @@ void NET_SaveMasters (void)
 		}
 
 	f = FS_Open ("xashcomm.lst", "w", true);
-
 	if (!f)
 		{
-		Con_Reportf (S_ERROR  "Couldn't write xashcomm.lst\n");
+		/*Con_Reportf (S_ERROR  "Couldn't write xashcomm.lst\n");*/
+		Con_Reportf (S_ERROR "Couldn't write xashcomm.lst\n");
 		return;
 		}
 
@@ -403,7 +403,7 @@ void NET_SaveMasters (void)
 
 /***
 ========================
-NET_InitMasters
+NET_InitMasters [FWGS, 01.07.24]
 
 Initialize master server list
 ========================
@@ -415,8 +415,11 @@ void NET_InitMasters (void)
 	Cmd_AddCommand ("listmasters", NET_ListMasters_f, "list masterservers");
 
 	// keep main master always there
-	Cvar_RegisterVariable (&sv_verbose_heartbeats);	// [FWGS, 01.05.23]
+	Cvar_RegisterVariable (&sv_verbose_heartbeats);
 	NET_AddMaster (MASTERSERVER_ADR, false);
-	NET_AddMaster (MASTERSERVER_ADR_TEST, false);	// [FWGS, 01.11.23]
+
+	/*NET_AddMaster (MASTERSERVER_ADR_TEST, false);	// [FWGS, 01.11.23]*/
+	NET_AddMaster ("aaaa.mentality.rip:27010", false); // IPv6-only
+	NET_AddMaster ("mentality.rip:27011", false);
 	NET_LoadMasters ();
 	}

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef IMAGELIB_H
@@ -60,42 +60,42 @@ typedef struct saveformat_s
 
 typedef struct imglib_s
 	{
-	const loadpixformat_t *loadformats;
-	const savepixformat_t *saveformats;
+	const loadpixformat_t	*loadformats;
+	const savepixformat_t	*saveformats;
 
 	// current 2d image state
-	word			width;
-	word			height;
-	word			depth;
-	byte			num_mips;		// mipmap count
-	word			encode;		// custom encode type
-	uint			type;		// main type switcher
-	uint			flags;		// additional image flags
-	size_t			size;		// image rgba size (for bounds checking)
-	uint			ptr;		// safe image pointer
+	word		width;
+	word		height;
+	word		depth;
+	byte		num_mips;	// mipmap count
+	word		encode;		// custom encode type
+	uint		type;		// main type switcher
+	uint		flags;		// additional image flags
+	size_t		size;		// image rgba size (for bounds checking)
+	uint		ptr;		// safe image pointer
 	int			bpp;		// PFDesc[type].bpp
-	byte *rgba;		// image pointer (see image_type for details)
+	byte		*rgba;		// image pointer (see image_type for details)
 
 	// current cubemap state
 	int			source_width;	// locked cubemap dims (all wrong sides will be automatically resampled)
 	int			source_height;
-	uint			source_type;	// shared image type for all mipmaps or cubemap sides
-	int			num_sides;	// how much sides is loaded
-	byte *cubemap;		// cubemap pack
+	uint		source_type;	// shared image type for all mipmaps or cubemap sides
+	int			num_sides;		// how much sides is loaded
+	byte		*cubemap;		// cubemap pack
 
 	// indexed images state
-	uint *d_currentpal;	// installed version of internal palette
+	uint		*d_currentpal;	// installed version of internal palette
 	int			d_rendermode;	// palette rendermode
-	byte *palette;		// palette pointer
+	byte		*palette;		// palette pointer
 
 	// global parms
-	rgba_t			fogParams;	// some water textures has info about underwater fog
+	rgba_t		fogParams;		// some water textures has info about underwater fog
 
-	int		hint;			// [FWGS, 01.04.23] hint for some loaders
-	byte	*tempbuffer;	// for convert operations
-	int		cmd_flags;		// global imglib flags
-	int		force_flags;	// override cmd_flags
-	qboolean			custom_palette;	// custom palette was installed
+	int			hint;			// [FWGS, 01.04.23] hint for some loaders
+	byte		*tempbuffer;	// for convert operations
+	int			cmd_flags;		// global imglib flags
+	int			force_flags;	// override cmd_flags
+	qboolean	custom_palette;	// custom palette was installed
 	} imglib_t;
 
 // imagelib definitions
@@ -103,17 +103,21 @@ typedef struct imglib_s
 #define IMAGE_MAXHEIGHT	8192
 #define LUMP_MAXWIDTH	1024	// WorldCraft limits
 #define LUMP_MAXHEIGHT	1024
-#define PLDECAL_MAXWIDTH  512	// [FWGS, 01.04.23]
-#define PLDECAL_MAXHEIGHT 512
+
+// [FWGS, 01.07.24]
+/*#define PLDECAL_MAXWIDTH  512	// [FWGS, 01.04.23]
+#define PLDECAL_MAXHEIGHT 512*/
+#define PLDECAL_MAXWIDTH	768	// total of ~2mb uncompressed rgba data
+#define PLDECAL_MAXHEIGHT	768
 
 enum
 	{
-	LUMP_NORMAL = 0,		// no alpha
+	LUMP_NORMAL = 0,	// no alpha
 	LUMP_MASKED,		// 1-bit alpha channel masked texture
 	LUMP_GRADIENT,		// gradient image (decals)
 	LUMP_EXTENDED,		// bmp images have extened palette with alpha-channel
 	LUMP_HALFLIFE,		// get predefined half-life palette
-	LUMP_QUAKE1		// get predefined quake palette
+	LUMP_QUAKE1			// get predefined quake palette
 	};
 
 enum

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef FILESYSTEM_INTERNAL_H
@@ -29,22 +29,26 @@ extern "C"
 	{
 #endif
 
+typedef struct searchpath_s searchpath_t;	// [FWGS, 01.07.24]
 typedef struct dir_s dir_t;		// [FWGS, 01.04.23]
 typedef struct zip_s zip_t;
 typedef struct pack_s pack_t;
 typedef struct wfile_s wfile_t;
 
-// [FWGS, 01.11.23]
-#if XASH_ANDROID
-	typedef struct android_assets_s android_assets_t;
-	// typedef struct android_saf_s android_saf_t;
-#endif
+// [FWGS, 01.07.24]
+/*// [FWGS, 01.11.23]
+if XASH_ANDROID*/
+typedef struct android_assets_s android_assets_t;
+/*// typedef struct android_saf_s android_saf_t;
+endif*/
 
+/*#define FILE_BUFF_SIZE		(2048)*/
 #define FILE_BUFF_SIZE		(2048)
 
+// [FWGS, 01.07.24]
 struct file_s
 	{
-	int		handle;			// file descriptor
+	/*int		handle;			// file descriptor
 	int		ungetc;			// single stored character from ungetc, cleared to EOF when read
 	fs_offset_t		real_length;		// uncompressed file size (for files opened in "read" mode)
 	fs_offset_t		position;			// current position in the file
@@ -53,7 +57,20 @@ struct file_s
 
 	// contents buffer
 	fs_offset_t		buff_ind, buff_len;		// buffer current index and length
-	byte		buff[FILE_BUFF_SIZE];	// intermediate buffer
+	byte		buff[FILE_BUFF_SIZE];	// intermediate buffer*/
+	int			handle;			// file descriptor
+	int			ungetc;			// single stored character from ungetc, cleared to EOF when read
+	time_t		filetime;		// pak, wad or real filetime
+	searchpath_t	*searchpath;
+	fs_offset_t	real_length;	// uncompressed file size (for files opened in "read" mode)
+	fs_offset_t	position;		// current position in the file
+	fs_offset_t	offset;			// offset into the package (0 if external file)
+
+	// contents buffer
+	fs_offset_t	buff_ind;		// buffer current index
+	fs_offset_t	buff_len;		// buffer current length
+	byte		buff[FILE_BUFF_SIZE]; // intermediate buffer
+
 #ifdef XASH_REDUCE_FD
 	const char *backup_path;
 	fs_offset_t backup_position;
@@ -61,15 +78,18 @@ struct file_s
 #endif
 	};
 
-enum
+// [FWGS, 01.07.24]
+/*enum*/
+typedef enum searchpathtype_e
 	{
 	SEARCHPATH_PLAIN = 0,
 	SEARCHPATH_PAK,
 	SEARCHPATH_WAD,
 	SEARCHPATH_ZIP,
-	SEARCHPATH_PK3DIR,			// [FWGS, 01.07.23] it's actually a plain directory but it must behave like a ZIP archive
-	SEARCHPATH_ANDROID_ASSETS	// [FWGS, 01.11.23]
-	};
+	SEARCHPATH_PK3DIR,			// it's actually a plain directory but it must behave like a ZIP archive
+	SEARCHPATH_ANDROID_ASSETS
+	/*};*/
+	} searchpathtype_t;
 
 typedef struct stringlist_s
 	{
@@ -79,39 +99,38 @@ typedef struct stringlist_s
 	char	**strings;
 	} stringlist_t;
 
+// [FWGS, 01.07.24]
 typedef struct searchpath_s
 	{
-	string  filename;
+	/*string  filename;
 	int     type;
-	int     flags;
+	int     flags;*/
+	string		filename;
+	searchpathtype_t	type;
+	int			flags;
 	union
 		{
-		dir_t	*dir;		// [FWGS, 01.04.23]
+		dir_t	*dir;
 		pack_t	*pack;
 		wfile_t	*wad;
 		zip_t	*zip;
-
-// [FWGS, 01.11.23]
-#if XASH_ANDROID
-		android_assets_t * assets;
-#endif
+		/*if XASH_ANDROID*/
+		android_assets_t	*assets;
+		/*endif*/
 		};
+
 	struct searchpath_s *next;
 
-	// [FWGS, 01.04.23]
 	void    (*pfnPrintInfo)(struct searchpath_s *search, char *dst, size_t size);
 	void    (*pfnClose)(struct searchpath_s *search);
-	file_t *(*pfnOpenFile)(struct searchpath_s *search, const char *filename, const char *mode, int pack_ind);
+	file_t	*(*pfnOpenFile)(struct searchpath_s *search, const char *filename, const char *mode, int pack_ind);
 	int     (*pfnFileTime)(struct searchpath_s *search, const char *filename);
 	int     (*pfnFindFile)(struct searchpath_s *search, const char *path, char *fixedname, size_t len);
 	void    (*pfnSearch)(struct searchpath_s *search, stringlist_t *list, const char *pattern, int caseinsensitive);
-
-	// [FWGS, 01.03.24]
-	byte *(*pfnLoadFile)(struct searchpath_s *search, const char *path, int pack_ind, fs_offset_t *filesize,
-		void *(*pfnAlloc)(size_t), void (*pfnFree)(void *));
+	byte	*(*pfnLoadFile)(struct searchpath_s *search, const char *path, int pack_ind, fs_offset_t *filesize,
+	void	*(*pfnAlloc)(size_t), void (*pfnFree)(void *));
 	} searchpath_t;
 
-// [FWGS, 01.07.23]
 typedef searchpath_t *(*FS_ADDARCHIVE_FULLPATH)(const char *path, int flags);
 	
 typedef struct fs_archive_s
@@ -123,15 +142,14 @@ typedef struct fs_archive_s
 	} fs_archive_t;
 
 extern fs_globals_t		FI;
-extern searchpath_t		*fs_writepath;		// [FWGS, 01.04.23]
+extern searchpath_t		*fs_writepath;
 extern poolhandle_t		fs_mempool;
 extern fs_interface_t	g_engfuncs;
 extern qboolean			fs_ext_path;
 extern char				fs_rodir[MAX_SYSPATH];
 extern char				fs_rootdir[MAX_SYSPATH];
-// [FWGS, 01.04.23] удалена fs_writedir
 extern fs_api_t			g_api;
-extern const fs_archive_t g_archives[];		// [FWGS, 01.07.23]
+extern const fs_archive_t	g_archives[];
 
 #define GI FI.GameInfo
 
@@ -210,44 +228,35 @@ int FS_FileTime (const char *filename, qboolean gamedironly);
 fs_offset_t FS_FileSize (const char *filename, qboolean gamedironly);
 qboolean FS_Rename (const char *oldname, const char *newname);
 qboolean FS_Delete (const char *path);
-// [FWGS, 01.04.23] удалена FS_SysFileExists
-qboolean FS_SysFileExists (const char *path);	// [FWGS, 01.04.23]
+qboolean FS_SysFileExists (const char *path);
 const char *FS_GetDiskPath (const char *name, qboolean gamedironly);
-qboolean FS_GetFullDiskPath (char *buffer, size_t size, const char *name, qboolean gamedironly);	// [FWGS, 01.05.23]
-// [FWGS, 01.04.23] удалена stringlistappend
+qboolean FS_GetFullDiskPath (char *buffer, size_t size, const char *name, qboolean gamedironly);
 void     FS_CreatePath (char *path);
 qboolean FS_SysFolderExists (const char *path);
-qboolean FS_SysFileOrFolderExists (const char *path);	// [FWGS, 01.04.23]
+qboolean FS_SysFileOrFolderExists (const char *path);
 file_t *FS_OpenReadFile (const char *filename, const char *mode, qboolean gamedironly);
-
 int		FS_SysFileTime (const char *filename);
-file_t	*FS_OpenHandle (const char *syspath, int handle, fs_offset_t offset, fs_offset_t len);
+/*file_t	*FS_OpenHandle (const char *syspath, int handle, fs_offset_t offset, fs_offset_t len);*/
+file_t *FS_OpenHandle (searchpath_t *search, int handle, fs_offset_t offset, fs_offset_t len);	// [FWGS, 01.07.24]
 file_t	*FS_SysOpen (const char *filepath, const char *mode);
-
-// [FWGS, 01.04.23] удалены FS_FixFileCase, FS_FindFile
 searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t len, qboolean gamedironly);
-qboolean FS_FullPathToRelativePath (char *dst, const char *src, size_t size);	// [FWGS, 01.07.23]
+qboolean FS_FullPathToRelativePath (char *dst, const char *src, size_t size);
 
 //
 // pak.c
 //
-// [FWGS, 01.04.23] удалены FS_FileTimePAK, FS_FindFilePAK, FS_PrintPAKInfo, FS_ClosePAK,
-// FS_SearchPAK, FS_OpenPackedFile
-searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags);	// [FWGS, 01.07.23]
+searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags);
 
 
 //
 // wad.c
 //
-// [FWGS, 01.04.23] удалены FS_FileTimeWAD, FS_PrintWADInfo, FS_CloseWAD, FS_SearchWAD, FS_FindFileWAD
-searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags);	// [FWGS, 01.07.23]
+searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags);
 
 //
 // zip.c
 //
-// [FWGS, 01.04.23] удалены FS_FileTimeZIP, FS_FindFileZIP, FS_PrintZIPInfo, FS_CloseZIP,
-// FS_OpenZipFile, FS_SearchZIP
-searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags);	// [FWGS, 01.07.23]
+searchpath_t *FS_AddZip_Fullpath (const char *zipfile, int flags);
 
 //
 // dir.c

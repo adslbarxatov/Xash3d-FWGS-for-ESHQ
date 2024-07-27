@@ -10,11 +10,14 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
 #include "platform/platform.h"
+
+// [FWGS, 01.07.24]
+static jmp_buf g_abortframe;
 
 void COM_InitHostState (void)
 	{
@@ -140,7 +143,9 @@ static void Host_ShutdownGame (void)
 		}
 	}
 
-static void Host_RunFrame (float time)
+// [FWGS, 01.07.24]
+/*static void Host_RunFrame (float time)*/
+static void Host_RunFrame (double time)
 	{
 	// at this time, we don't need to get events from OS on dedicated
 #if !XASH_DEDICATED
@@ -175,11 +180,26 @@ static void Host_RunFrame (float time)
 		}
 	}
 
-void COM_Frame (float time)
+/*void COM_Frame (float time)*/
+/***
+================
+Host_AbortCurrentFrame [FWGS, 01.07.24]
+
+aborts the current host frame and goes on with the next one
+================
+***/
+void Host_AbortCurrentFrame (void)
+	{
+	longjmp (g_abortframe, 1);
+	}
+
+// [FWGS, 01.07.24]
+void COM_Frame (double time)
 	{
 	int	loopCount = 0;
 
-	if (setjmp (host.abortframe))
+	/*if (setjmp (host.abortframe))*/
+	if (setjmp (g_abortframe))
 		return;
 
 	while (1)
@@ -193,17 +213,21 @@ void COM_Frame (float time)
 				SV_ExecLoadLevel ();
 				Host_SetState (STATE_RUNFRAME, true);
 				break;
+
 			case STATE_LOAD_GAME:
 				SV_ExecLoadGame ();
 				Host_SetState (STATE_RUNFRAME, true);
 				break;
+
 			case STATE_CHANGELEVEL:
 				SV_ExecChangeLevel ();
 				Host_SetState (STATE_RUNFRAME, true);
 				break;
+
 			case STATE_RUNFRAME:
 				Host_RunFrame (time);
 				break;
+
 			case STATE_GAME_SHUTDOWN:
 				Host_ShutdownGame ();
 				break;

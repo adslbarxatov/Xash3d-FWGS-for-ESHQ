@@ -11,7 +11,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "build.h"
@@ -279,9 +279,10 @@ static inline qboolean FS_AppendToPath (char *dst, size_t *pi, const size_t len,
 	i += Q_strncpy (&dst[i], src, len - i);
 	*pi = i;
 
+	// [FWGS, 01.07.24]
 	if (i >= len)
 		{
-		Con_Printf (S_ERROR "FS_FixFileCase: overflow while searching %s (%s)\n", path, err);
+		Con_Printf (S_ERROR "%s: overflow while appending %s (%s)\n", __func__, path, err);
 		return false;
 		}
 	return true;
@@ -462,12 +463,18 @@ static int FS_FileTime_DIR (searchpath_t *search, const char *filename)
 	return FS_SysFileTime (path);
 	}
 
+// [FWGS, 01.07.24]
 static file_t *FS_OpenFile_DIR (searchpath_t *search, const char *filename, const char *mode, int pack_ind)
 	{
-	char path[MAX_SYSPATH];
+	file_t	*f;
+	char	path[MAX_SYSPATH];
 
 	Q_snprintf (path, sizeof (path), "%s%s", search->filename, filename);
-	return FS_SysOpen (path, mode);
+	/*return FS_SysOpen (path, mode);*/
+	f = FS_SysOpen (path, mode);
+	f->searchpath = search;
+
+	return f;
 	}
 
 // [FWGS, 01.07.23]

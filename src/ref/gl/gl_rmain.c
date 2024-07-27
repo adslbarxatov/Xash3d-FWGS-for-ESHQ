@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -940,15 +940,19 @@ static void R_DrawEntitiesOnList (void)
 			case mod_brush:
 				R_DrawBrushModel (RI.currententity);
 				break;
+
 			case mod_alias:
 				R_DrawAliasModel (RI.currententity);
 				break;
+
 			case mod_studio:
 				R_DrawStudioModel (RI.currententity);
 				break;
+
 			case mod_sprite:
 				R_DrawSpriteModel (RI.currententity);
 				break;
+
 			default:
 				break;
 			}
@@ -984,15 +988,16 @@ static void R_DrawEntitiesOnList (void)
 
 /***
 ================
-R_RenderScene [FWGS, 01.01.24]
+R_RenderScene
 
 R_SetupRefParams must be called right before
 ================
 ***/
 void R_RenderScene (void)
 	{
+	// [FWGS, 01.01.24]
 	if (!WORLDMODEL && RI.drawWorld)
-		gEngfuncs.Host_Error ("R_RenderView: NULL worldmodel\n");
+		gEngfuncs.Host_Error ("%s: NULL worldmodel\n", __func__);
 
 	// frametime is valid only for normal pass
 	if (RP_NORMALPASS ())

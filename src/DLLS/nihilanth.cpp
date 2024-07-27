@@ -47,13 +47,13 @@ class CNihilanth: public CBaseMonster
 
 		void HandleAnimEvent (MonsterEvent_t* pEvent);
 
-		void EXPORT StartupThink (void);
-		void EXPORT HuntThink (void);
-		void EXPORT CrashTouch (CBaseEntity* pOther);
-		void EXPORT DyingThink (void);
-		void EXPORT StartupUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-		void EXPORT NullThink (void);
-		void EXPORT CommandUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT StartupThink (void);
+		void HLEXPORT HuntThink (void);
+		void HLEXPORT CrashTouch (CBaseEntity* pOther);
+		void HLEXPORT DyingThink (void);
+		void HLEXPORT StartupUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT NullThink (void);
+		void HLEXPORT CommandUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 		void FloatSequence (void);
 		void NextActivity (void);
@@ -185,21 +185,19 @@ class CNihilanthHVR: public CBaseMonster
 		void GreenBallInit (void);
 		void ZapInit (CBaseEntity* pEnemy);
 
-		void EXPORT HoverThink (void);
+		void HLEXPORT HoverThink (void);
 		BOOL CircleTarget (Vector vecTarget);
-		void EXPORT DissipateThink (void);
+		void HLEXPORT DissipateThink (void);
 
-		void EXPORT ZapThink (void);
-		void EXPORT TeleportThink (void);
-		void EXPORT TeleportTouch (CBaseEntity* pOther);
+		void HLEXPORT ZapThink (void);
+		void HLEXPORT TeleportThink (void);
+		void HLEXPORT TeleportTouch (CBaseEntity* pOther);
 
-		void EXPORT RemoveTouch (CBaseEntity* pOther);
-		void EXPORT BounceTouch (CBaseEntity* pOther);
-		void EXPORT ZapTouch (CBaseEntity* pOther);
+		void HLEXPORT RemoveTouch (CBaseEntity* pOther);
+		void HLEXPORT BounceTouch (CBaseEntity* pOther);
+		void HLEXPORT ZapTouch (CBaseEntity* pOther);
 
 		CBaseEntity* RandomClassname (const char* szName);
-
-		// void EXPORT SphereUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 		void MovetoTarget (Vector vecTarget);
 		virtual void Crawl (void);

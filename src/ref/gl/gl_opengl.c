@@ -481,13 +481,16 @@ static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLui
 		case GL_DEBUG_TYPE_ERROR_ARB:
 			gEngfuncs.Con_Printf (S_OPENGL_ERROR "%s\n", message);
 			break;
+
 		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
 		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:
 			gEngfuncs.Con_Printf (S_OPENGL_WARN "%s\n", message);
 			break;
+
 		case GL_DEBUG_TYPE_PORTABILITY_ARB:
 			gEngfuncs.Con_Reportf (S_OPENGL_WARN "%s\n", message);
 			break;
+
 		case GL_DEBUG_TYPE_PERFORMANCE_ARB:
 		case GL_DEBUG_TYPE_OTHER_ARB:
 		default:
@@ -498,28 +501,28 @@ static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLui
 
 /***
 =================
-GL_SetExtension
+GL_SetExtension [FWGS, 01.07.24]
 =================
 ***/
 void GL_SetExtension (int r_ext, int enable)
 	{
-	if (r_ext >= 0 && r_ext < GL_EXTCOUNT)
+	if ((r_ext >= 0) && (r_ext < GL_EXTCOUNT))
 		glConfig.extension[r_ext] = enable ? GL_TRUE : GL_FALSE;
 	else
-		gEngfuncs.Con_Printf (S_ERROR "GL_SetExtension: invalid extension %d\n", r_ext);
+		gEngfuncs.Con_Printf (S_ERROR "%s: invalid extension %d\n", __func__, r_ext);
 	}
 
 /***
 =================
-GL_Support
+GL_Support [FWGS, 01.07.24]
 =================
 ***/
 qboolean GL_Support (int r_ext)
 	{
-	if (r_ext >= 0 && r_ext < GL_EXTCOUNT)
+	if ((r_ext >= 0) && (r_ext < GL_EXTCOUNT))
 		return glConfig.extension[r_ext] ? true : false;
 
-	gEngfuncs.Con_Printf (S_ERROR "GL_Support: invalid extension %d\n", r_ext);
+	gEngfuncs.Con_Printf (S_ERROR "%s: invalid extension %d\n", __func__, r_ext);
 	return false;
 	}
 
@@ -538,7 +541,7 @@ int GL_MaxTextureUnits (void)
 
 /***
 =================
-GL_CheckExtension [FWGS, 01.11.23]
+GL_CheckExtension
 =================
 ***/
 qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext, float minver)
@@ -549,7 +552,8 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 	char			desc[MAX_VA_STRING];
 	float			glver = (float)glConfig.version_major + glConfig.version_minor / 10.0f;
 
-	gEngfuncs.Con_Reportf ("GL_CheckExtension: %s ", name);
+	// [FWGS, 01.07.24]
+	gEngfuncs.Con_Reportf ("%s: %s ", __func__, name);
 	GL_SetExtension (r_ext, true);
 
 	// system config disable extensions
@@ -559,7 +563,7 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 		parm = gEngfuncs.Cvar_Get (cvarname, "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, desc);
 		}
 
-	if ((parm && !parm->value) || !gl_extensions.value && (r_ext != GL_OPENGL_110))	// [FWGS, 01.07.23]
+	if ((parm && !parm->value) || !gl_extensions.value && (r_ext != GL_OPENGL_110))
 		{
 		gEngfuncs.Con_Reportf ("- disabled\n");
 		GL_SetExtension (r_ext, false);
@@ -568,7 +572,7 @@ qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char
 
 	extensions_string = glConfig.extensions_string;
 
-	if ((name[2] == '_' || name[3] == '_') && !Q_strstr (extensions_string, name) &&
+	if (((name[2] == '_') || (name[3] == '_')) && !Q_strstr (extensions_string, name) &&
 		((glver < minver) || (!minver || !glver)))
 		{
 		GL_SetExtension (r_ext, false);	// update render info

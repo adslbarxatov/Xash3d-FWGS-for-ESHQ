@@ -20,60 +20,35 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "studio.h"
 
-// just for debug
-const char *et_name[] =
+// [FWGS, 01.07.24] just for debug
+/*const char *et_name[] =
 	{
 		"normal",
 		"player",
 		"tempentity",
 		"beam",
 		"fragmented",
-	};
+	};*/
 
-/***
-===============================================================================
-ENTITY LINKING
-===============================================================================
-***/
-/***
-===============
-ClearLink
-
-ClearLink is used for new headnodes
-===============
-***/
-void ClearLink (link_t *l)
+// [FWGS, 01.07.24] removed ClearLink, RemoveLink, InsertLinkBefore
+/*void ClearLink (link_t *l)
 	{
 	l->prev = l->next = l;
-	}
+	}*/
 
-/***
-===============
-RemoveLink
-
-remove link from chain
-===============
-***/
-void RemoveLink (link_t *l)
+/*void RemoveLink (link_t *l)
 	{
 	l->next->prev = l->prev;
 	l->prev->next = l->next;
-	}
+	}*/
 
-/***
-===============
-InsertLinkBefore
-
-kept trigger and solid entities seperate
-===============
-***/
-void InsertLinkBefore (link_t *l, link_t *before)
+/*void InsertLinkBefore (link_t *l, link_t *before)
 	{
 	l->next = before;
 	l->prev = before->prev;
 	l->prev->next = l;
 	l->next->prev = l;
-	}
+	}*/
 
 /***
 ==================

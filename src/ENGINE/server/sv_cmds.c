@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -342,7 +342,7 @@ static void SV_Maps_f (void)
 
 /***
 ==================
-SV_MapBackground_f [FWGS, 01.05.24]
+SV_MapBackground_f
 
 Set background map (enable physics in menu)
 ==================
@@ -371,10 +371,12 @@ static void SV_MapBackground_f (void)
 	if (!SV_ValidateMap (mapname))
 		return;
 
-	// background map is always run as singleplayer
+	// [FWGS, 01.07.24] background map is always run as singleplayer
 	Cvar_FullSet ("maxplayers", "1", FCVAR_LATCH);
-	Cvar_FullSet ("deathmatch", "0", FCVAR_LATCH);
-	Cvar_FullSet ("coop", "0", FCVAR_LATCH);
+	/*Cvar_FullSet ("deathmatch", "0", FCVAR_LATCH);
+	Cvar_FullSet ("coop", "0", FCVAR_LATCH);*/
+	Cvar_FullSet ("deathmatch", "0", FCVAR_LATCH | FCVAR_SERVER);
+	Cvar_FullSet ("coop", "0", FCVAR_LATCH | FCVAR_SERVER);
 
 	COM_LoadLevel (mapname, true);
 	}
@@ -589,10 +591,12 @@ static void SV_AutoSave_f (void)
 		return;
 		}
 
-	if (Cvar_VariableInteger ("sv_autosave"))	// [FWGS, 01.04.23]
+	// [FWGS, 01.07.24]
+	/*if (Cvar_VariableInteger ("sv_autosave"))	// [FWGS, 01.04.23]*/
+	if (sv_autosave.value)
 		SV_SaveGame ("autosave");
 
-	// ESHQ
+	// ESHQ: восстановлено сообщение о сохранении
 	if (CL_Active () && !FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
 		CL_HudMessage ("GAMESAVED"); // defined in titles.txt
 	}
@@ -834,7 +838,7 @@ static void SV_Heartbeat_f (void)
 
 /***
 ===========
-SV_ServerInfo_f [FWGS, 01.05.24]
+SV_ServerInfo_f [FWGS, 01.07.24]
 
 Examine or change the serverinfo string
 ===========
@@ -847,7 +851,7 @@ static void SV_ServerInfo_f (void)
 		{
 		Con_Printf ("Server info settings:\n");
 		Info_Print (svs.serverinfo);
-		Con_Printf ("Total %lu symbols\n", Q_strlen (svs.serverinfo));
+		Con_Printf ("Total %zu symbols\n", Q_strlen (svs.serverinfo));
 		return;
 		}
 
@@ -885,11 +889,12 @@ Examine or change the localinfo string
 ***/
 static void SV_LocalInfo_f (void)
 	{
+	// [FWGS, 01.07.24]
 	if (Cmd_Argc () == 1)
 		{
 		Con_Printf ("Local info settings:\n");
 		Info_Print (svs.localinfo);
-		Con_Printf ("Total %lu symbols\n", Q_strlen (svs.localinfo));
+		Con_Printf ("Total %zu symbols\n", Q_strlen (svs.localinfo));
 		return;
 		}
 
@@ -1102,7 +1107,7 @@ void SV_InitHostCommands (void)
 		Cmd_AddRestrictedCommand ("credits", SV_Credits_f, "starting a credits");
 
 		// ESHQ: команды для ESRM
-		if (strstr (host.gamefolder, "esrm"))
+		if (strstr (GI->gamefolder, "esrm"))
 			{
 			Cmd_AddRestrictedCommand ("esrm_size", SV_ESRM_Command,
 				"Sets the size of the next map (coeff, 1 - 8)");

@@ -185,7 +185,8 @@ static void VID_Mode_f (void)
 			vidmode = R_GetVideoMode (Q_atoi (Cmd_Argv (1)));
 			if (!vidmode)
 				{
-				Con_Print (S_ERROR "unable to set mode, backend returned null");
+				/*Con_Print (S_ERROR "unable to set mode, backend returned null");*/
+				Con_Printf (S_ERROR "unable to set mode, backend returned null");	// [FWGS, 01.07.24]
 				return;
 				}
 

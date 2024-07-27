@@ -29,9 +29,11 @@ qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesi
 	{
 	int	rendermode = LUMP_NORMAL;
 
+	// [FWGS, 01.07.24]
 	if (filesize != 768)
 		{
-		Con_DPrintf (S_ERROR "Image_LoadPAL: (%s) have invalid size (%ld should be %d)\n", name, filesize, 768);
+		Con_DPrintf (S_ERROR "%s: (%s) have invalid size (%li should be %d)\n", __func__,
+			name, (long)filesize, 768);
 		return false;
 		}
 
@@ -39,11 +41,17 @@ qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		// using palette name as rendermode
 		if (Q_stristr (name, "normal"))
+			{
 			rendermode = LUMP_NORMAL;
+			}
 		else if (Q_stristr (name, "masked"))
+			{
 			rendermode = LUMP_MASKED;
+			}
 		else if (Q_stristr (name, "gradient"))
+			{
 			rendermode = LUMP_GRADIENT;
+			}
 		else if (Q_stristr (name, "valve"))
 			{
 			rendermode = LUMP_HALFLIFE;

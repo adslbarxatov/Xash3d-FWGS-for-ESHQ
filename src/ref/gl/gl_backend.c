@@ -10,9 +10,8 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
-
 
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
@@ -95,7 +94,9 @@ void GL_BackendEndFrame (void)
 	switch ((int)r_speeds->value)
 		{
 		case 1:
+			// [FWGS, 01.07.24]
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i wpoly, %3i apoly\n%3i epoly, %3i spoly",
+				/*r_stats.c_world_polys, r_stats.c_alias_polys, r_stats.c_studio_polys, r_stats.c_sprite_polys);*/
 				r_stats.c_world_polys, r_stats.c_alias_polys, r_stats.c_studio_polys, r_stats.c_sprite_polys);
 			break;
 
@@ -107,26 +108,30 @@ void GL_BackendEndFrame (void)
 			break;
 
 		case 3:
+			// [FWGS, 01.07.24]
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg),
 				"%3i alias models drawn\n%3i studio models drawn\n%3i sprites drawn",
+				/*r_stats.c_alias_models_drawn, r_stats.c_studio_models_drawn, r_stats.c_sprite_models_drawn);*/
 				r_stats.c_alias_models_drawn, r_stats.c_studio_models_drawn, r_stats.c_sprite_models_drawn);
 			break;
 
 		case 4:
+			// [FWGS, 01.07.24]
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i static entities\n%3i normal entities\n%3i server entities",
-				r_numStatics, r_numEntities - r_numStatics, ENGINE_GET_PARM (PARM_NUMENTITIES));
+				/*r_numStatics, r_numEntities - r_numStatics, ENGINE_GET_PARM (PARM_NUMENTITIES));*/
+				r_numStatics, r_numEntities - r_numStatics, (int)ENGINE_GET_PARM (PARM_NUMENTITIES));
 			break;
 
 		case 5:
+			// [FWGS, 01.07.24]
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i tempents\n%3i viewbeams\n%3i particles",
+				/*r_stats.c_active_tents_count, r_stats.c_view_beams_count, r_stats.c_particle_count);*/
 				r_stats.c_active_tents_count, r_stats.c_view_beams_count, r_stats.c_particle_count);
 			break;
 		}
 
 	memset (&r_stats, 0, sizeof (r_stats));
 	}
-
-// [FWGS, 01.05.23] удалена GL_LoadTexMatrix
 
 /***
 =================
@@ -183,9 +188,10 @@ void GL_SelectTexture (GLint tmu)
 	if (tmu < 0)
 		return;
 
+	// [FWGS, 01.07.24]
 	if (tmu >= GL_MaxTextureUnits ())
 		{
-		gEngfuncs.Con_Reportf (S_ERROR "GL_SelectTexture: bad tmu state %i\n", tmu);
+		gEngfuncs.Con_Reportf (S_ERROR "%s: bad tmu state %i\n", __func__, tmu);
 		return;
 		}
 
@@ -295,14 +301,15 @@ void GL_EnableTextureUnit (int tmu, qboolean enable)
 
 /***
 =================
-GL_TextureTarget [FWGS, 01.11.23]
+GL_TextureTarget
 =================
 ***/
 void GL_TextureTarget (uint target)
 	{
+	// [FWGS, 01.07.24]
 	if ((glState.activeTMU < 0) || (glState.activeTMU >= GL_MaxTextureUnits ()))
 		{
-		gEngfuncs.Con_Reportf (S_ERROR "GL_TextureTarget: bad tmu state %i\n", glState.activeTMU);
+		gEngfuncs.Con_Reportf (S_ERROR "%s: bad tmu state %i\n", __func__, glState.activeTMU);
 		return;
 		}
 

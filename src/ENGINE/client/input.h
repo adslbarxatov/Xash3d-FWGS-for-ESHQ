@@ -25,20 +25,20 @@ INPUT
 #include "keydefs.h"
 
 //
-// input.c
+// input.c [FWGS, 01.07.24]
 //
 extern qboolean	in_mouseinitialized;
 void IN_Init (void);
 void Host_InputFrame (void);
 void IN_Shutdown (void);
 void IN_MouseEvent (int key, int down);
-void IN_MWheelEvent (int direction);	// [FWGS, 01.04.23]
+void IN_MWheelEvent (int direction);
 void IN_ActivateMouse (void);
 void IN_DeactivateMouse (void);
 void IN_MouseSavePos (void);
 void IN_MouseRestorePos (void);
 void IN_ToggleClientMouse (int newstate, int oldstate);
-void IN_SetCursor (void *hCursor);
+/*void IN_SetCursor (void *hCursor);*/
 
 uint IN_CollectInputDevices (void);
 void IN_LockInputDevices (qboolean lock);

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef COMMON_H
@@ -153,18 +153,23 @@ typedef enum
 #define Assert( f )
 #endif
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.07.24]
 extern convar_t gl_vsync;
 extern convar_t scr_loading;
 extern convar_t scr_download;
 extern convar_t cmd_scripting;
-extern convar_t cl_allow_levelshots;
+/*extern convar_t cl_allow_levelshots;*/
+extern convar_t host_allow_materials;
 extern convar_t	host_developer;
 extern convar_t host_limitlocal;
 extern convar_t host_maxfps;
 extern convar_t	sys_timescale;
 extern convar_t	cl_filterstuffcmd;
 extern convar_t	rcon_password;
+extern convar_t hpk_custom_file;
+
+// [FWGS, 01.07.24]
+#define Mod_AllowMaterials() ((host_allow_materials.value != 0.0f) && !FBitSet(host.features, ENGINE_DISABLE_HDTEXTURES))
 
 /***
 ==============================================================
@@ -178,14 +183,16 @@ GAMEINFO stuff
 internal shared gameinfo structure (readonly for engine parts)
 ========================================================================
 ***/
-typedef struct sysinfo_s
+
+// [FWGS, 01.07.24]
+/*typedef struct sysinfo_s
 	{
 	string		exeName;		// exe.filename
 	string		rcName;			// .rc script name
 	string		basedirName;	// name of base directory
 	string		gamedll;
 	string		clientlib;
-	} sysinfo_t;
+	} sysinfo_t;*/
 
 typedef enum
 	{
@@ -280,9 +287,10 @@ typedef enum bugcomp_e
 	BUGCOMP_MESSAGE_REWRITE_FACILITY_FLAG = BIT (1),
 	} bugcomp_t;
 
+// [FWGS, 01.07.24]
 typedef struct host_parm_s
 	{
-	HINSTANCE		hInst;
+	/*HINSTANCE		hInst;
 	HANDLE			hMutex;
 
 	host_status_t	status;		// global host state
@@ -299,16 +307,18 @@ typedef struct host_parm_s
 
 	// command line parms
 	int				argc;
-	char			**argv;
+	char			**argv;*/
 
-	// [FWGS, 01.01.24]
 	// ==== shared through RefAPI's ref_host_t
-	double			realtime;		// host.curtime
+	/*double			realtime;		// host.curtime
 	double			frametime;		// time between engine frames
-	uint			features;		// custom features that enables by mod-maker request
+	uint			features;		// custom features that enables by mod-maker request*/
+	double		realtime;	// host.curtime
+	double		frametime;	// time between engine frames
+	uint		features;	// custom features that enables by mod-maker request
 	// ==== shared through RefAPI's ref_host_t
 
-	double			realframetime;	// for some system events, e.g. console animations
+	/*double			realframetime;	// for some system events, e.g. console animations
 	uint			framecount;		// global framecount
 
 	// list of unique decal indexes
@@ -342,9 +352,19 @@ typedef struct host_parm_s
 	// some settings were changed and needs to global update
 	qboolean		userinfo_changed;
 	qboolean		movevars_changed;
-	qboolean		renderinfo_changed;
+	qboolean		renderinfo_changed;*/
+	host_status_t	status;		// global host state
+	game_status_t	game;		// game manager
+	uint			type;		// running at
+	poolhandle_t	mempool;	// static mempool for misc allocations
+	poolhandle_t	imagepool;	// imagelib mempool
+	poolhandle_t	soundpool;	// soundlib mempool
+	string			finalmsg;	// server shutdown final message
+	string			downloadfile;		// filename to be downloading
+	int				downloadcount;		// how many files remain to downloading
+	char			deferred_cmd[128];	// deferred commands
 
-	char			rootdir[MAX_OSPATH];	// member root directory
+	/*char			rootdir[MAX_OSPATH];	// member root directory
 	char			rodir[MAX_OSPATH];		// readonly root
 	char			gamefolder[MAX_QPATH];	// it's a default gamefolder
 	poolhandle_t	imagepool;		// imagelib mempool
@@ -352,20 +372,68 @@ typedef struct host_parm_s
 
 	// for IN_MouseMove() easy access
 	int				window_center_x;
-	int				window_center_y;
+	int				window_center_y;*/
+	host_redirect_t	rd;		// remote console
 
-	struct decallist_s	*decalList;	// used for keep decals, when renderer is restarted or changed
-	int				numdecals;
+	/*struct decallist_s	*decalList;	// used for keep decals, when renderer is restarted or changed
+	int				numdecals;*/
+	void			*hWnd;	// main window
 
-	// [FWGS, 01.05.24]
-	uint32_t		bugcomp;
+	/*uint32_t		bugcomp;
+	*/
+	// command line parms
+	char		**argv;
+	int			argc;
 
-	double			starttime;		// [FWGS, 01.04.23] measure time to first frame
-	double			pureframetime;	// [FWGS, 01.04.23] count of sleeps can be inserted between frames
+	uint		framecount;		// global framecount
+	uint		errorframe;		// to prevent multiple host error
+	uint32_t	bugcomp;		// bug compatibility level, for very "special" games
+	double		realframetime;	// for some system events, e.g. console animations
+	double		starttime;		// measure time to first frame
+	double		pureframetime;	// count of sleeps can be inserted between frames
+	double		force_draw_version_time;
+
+	char		draw_decals[MAX_DECALS][MAX_QPATH];	// list of unique decal indexes
+	vec3_t		player_mins[MAX_MAP_HULLS];			// 4 hulls allowed
+	vec3_t		player_maxs[MAX_MAP_HULLS];			// 4 hulls allowed
+
+	qboolean	allow_console;		// allow console in dev-mode or multiplayer game
+	qboolean	allow_console_init;	// initial value to allow the console
+	qboolean	key_overstrike;		// key overstrike mode
+	qboolean	stuffcmds_pending;	// should execute stuff commands
+	qboolean	allow_cheats;		// this host will allow cheating
+	qboolean	change_game;		// initialize when game is changed
+	qboolean	mouse_visible;		// vgui override cursor control (never change outside Platform_SetCursorType!)
+	qboolean	shutdown_issued;	// engine is shutting down
+	qboolean	apply_game_config;	// when true apply only to game cvars and ignore all other commands
+	qboolean	apply_opengl_config;	// when true apply only to opengl cvars and ignore all other commands
+	qboolean	config_executed;	// a bit who indicated was config.cfg already executed e.g. from valve.rc
+	qboolean	crashed;			// set to true if crashed
+
+#if XASH_DLL_LOADER
+	qboolean	enabledll;
+#endif
+	qboolean	textmode;
+
+	/*double	starttime;		// [FWGS, 01.04.23] measure time to first frame
+	*/
+	// some settings were changed and needs to global update
+	qboolean	userinfo_changed;
+	qboolean	movevars_changed;
+	qboolean	renderinfo_changed;
+
+	/*double			pureframetime;	// [FWGS, 01.04.23] count of sleeps can be inserted between frames
+	*/
+	// for IN_MouseMove() easy access
+	int			window_center_x;
+	int			window_center_y;
+	string		gamedll;
+	string		clientlib;
 	} host_parm_t;
 
+// [FWGS, 01.07.24]
 extern host_parm_t	host;
-extern sysinfo_t	SI;
+/*extern sysinfo_t	SI;*/
 
 #define CMD_SERVERDLL	BIT( 0 )		// added by server.dll
 #define CMD_CLIENTDLL	BIT( 1 )		// added by client.dll
@@ -377,10 +445,11 @@ extern sysinfo_t	SI;
 typedef void (*xcommand_t)(void);
 
 //
-// filesystem_engine.c
+// filesystem_engine.c [FWGS, 01.07.24]
 //
-qboolean FS_LoadProgs (void);
-void FS_Init (void);
+/*qboolean FS_LoadProgs (void);
+void FS_Init (void);*/
+void FS_Init (const char *basedir);
 void FS_Shutdown (void);
 void *FS_GetNativeObject (const char *obj);	// [FWGS, 01.11.23]
 
@@ -532,13 +601,13 @@ uint Sound_GetApproxWavePlayLen (const char *filepath);
 qboolean Sound_SupportedFileFormat (const char *fileext);	// [FWGS, 01.05.23]
 
 //
-// host.c [FWGS, 01.02.24]
+// host.c [FWGS, 01.07.24]
 //
 typedef void(*pfnChangeGame)(const char *progname);
 
 qboolean Host_IsQuakeCompatible (void);
-void EXPORT Host_Shutdown (void);
-int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func);
+void HLEXPORT Host_Shutdown (void);
+int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func);
 int Host_CompareFileTime (int ft1, int ft2);
 void Host_EndGame (qboolean abort, const char *message, ...) _format (2);
 void Host_AbortCurrentFrame (void) NORETURN;
@@ -546,23 +615,25 @@ void Host_WriteServerConfig (const char *name);
 void Host_WriteOpenGLConfig (void);
 void Host_WriteVideoConfig (void);
 void Host_WriteConfig (void);
-qboolean Host_IsLocalGame (void);
-qboolean Host_IsLocalClient (void);
+/*qboolean Host_IsLocalGame (void);
+qboolean Host_IsLocalClient (void);*/
 void Host_ShutdownServer (void);
 void Host_Error (const char *error, ...) _format (1);
 void Host_ValidateEngineFeatures (uint32_t features);
-void Host_Frame (float time);
+/*void Host_Frame (float time);*/
+void Host_Frame (double time);
 void Host_Credits (void);
 
 //
-// host_state.c
+// host_state.c [FWGS, 01.07.24]
 //
 void COM_InitHostState (void);
 void COM_NewGame (char const *pMapName);
 void COM_LoadLevel (char const *pMapName, qboolean background);
 void COM_LoadGame (char const *pSaveFileName);
 void COM_ChangeLevel (char const *pNewLevel, char const *pLandmarkName, qboolean background);
-void COM_Frame (float time);
+/*void COM_Frame (float time);*/
+void COM_Frame (double time);
 
 /***
 ==============================================================
@@ -676,7 +747,7 @@ void HPAK_FlushHostQueue (void);
 #define INPUT_DEVICE_JOYSTICK (1<<2)
 #define INPUT_DEVICE_VR (1<<3)
 
-// shared calls [FWGS, 01.02.24]
+// shared calls [FWGS, 01.07.24]
 struct physent_s;
 struct sv_client_s;
 typedef struct sizebuf_s sizebuf_t;
@@ -699,8 +770,10 @@ void Log_Printf (const char *fmt, ...) _format (1);
 void SV_BroadcastCommand (const char *fmt, ...) _format (1);
 void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) _format (2);
 void CL_ClearStaticEntities (void);
-qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack, size_t loopTrackSize, int *position);	  // [FWGS, 09.05.24]
+qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack, size_t loopTrackSize, int *position);
 void CL_ServerCommand (qboolean reliable, const char *fmt, ...) _format (2);
+void CL_UpdateInfo (const char *key, const char *value);
+
 void CL_HudMessage (const char *pMessage);
 const char *CL_MsgInfo (int cmd);
 void SV_DrawDebugTriangles (void);
@@ -767,14 +840,29 @@ void VID_Init (void);
 void UI_SetActiveMenu (qboolean fActive);
 void UI_ShowConnectionWarning (void);
 void Cmd_Null_f (void);
-void Rcon_Print (host_redirect_t *rd, const char *pMsg);	// [FWGS, 01.01.24]
+void Rcon_Print (host_redirect_t *rd, const char *pMsg);
 qboolean COM_ParseVector (char **pfile, float *v, size_t size);
 void COM_NormalizeAngles (vec3_t angles);
 int COM_FileSize (const char *filename);
 void COM_FreeFile (void *buffer);
 int COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare);
 char *va (const char *format, ...) _format (1);
-qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer);	// [FWGS, 01.02.24]
+qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer);
+
+// [FWGS, 01.07.24]
+static inline qboolean Host_IsLocalGame (void)
+	{
+	if (SV_Active ())
+		return SV_GetMaxClients () == 1 ? true : false;
+
+	return CL_GetMaxClients () == 1 ? true : false;
+	}
+
+// [FWGS, 01.07.24]
+static inline qboolean Host_IsLocalClient (void)
+	{
+	return CL_Initialized () && SV_Initialized () ? true : false;
+	}
 
 // soundlib shared exports
 qboolean S_Init (void);

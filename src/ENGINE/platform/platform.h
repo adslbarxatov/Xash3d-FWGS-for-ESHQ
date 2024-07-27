@@ -71,9 +71,10 @@ qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 	void Android_Shutdown (void);
 #endif
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.07.24]
 #if XASH_WIN32
-	void Wcon_CreateConsole (void);
+	/*void Wcon_CreateConsole (void);*/
+	void Wcon_CreateConsole (qboolean con_showalways);
 	void Wcon_DestroyConsole (void);
 #endif
 
@@ -104,8 +105,9 @@ qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 	void Linux_SetTimer (float time);
 #endif
 
-// [FWGS, 01.07.23]
-static inline void Platform_Init (void)
+// [FWGS, 01.07.24]
+/*static inline void Platform_Init (void)*/
+static inline void Platform_Init (qboolean con_showalways)
 	{
 #if XASH_POSIX
 	// daemonize as early as possible, because we need to close our file descriptors
@@ -125,7 +127,8 @@ static inline void Platform_Init (void)
 #elif XASH_DOS
 	DOS_Init ();
 #elif XASH_WIN32
-	Wcon_CreateConsole ();
+	/*Wcon_CreateConsole ();*/
+	Wcon_CreateConsole (con_showalways);
 #elif XASH_LINUX
 	Linux_Init ();
 #endif

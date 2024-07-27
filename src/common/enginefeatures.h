@@ -1,5 +1,5 @@
 /*
-features.h - engine features that can be enabled by mod-maker request
+enginefeatures.h - engine features that can be enabled by mod-maker request
 Copyright (C) 2012 Uncle Mike
 
 This program is free software: you can redistribute it and/or modify
@@ -32,8 +32,11 @@ GNU General Public License for more details.
 // [FWGS, 01.04.23]
 #define ENGINE_LINEAR_GAMMA_SPACE	(1<<8)	// disable influence of gamma/brightness cvars to textures/lightmaps, for mods with custom renderer
 
+// [FWGS, 01.07.24]
+#define ENGINE_DISABLE_HDTEXTURES (1U<<30)	// disable support of HD-textures in case custom renderer have separate way to load them
+
 // [FWGS, 01.01.24]
-#define ENGINE_STEP_POSHISTORY_LERP (1U<<31) // enable MOVETYPE_STEP interpolation based on position history. Incompatible with ENGINE_COMPUTE_STUDIO_LERP!
+#define ENGINE_STEP_POSHISTORY_LERP (1U<<31)	// enable MOVETYPE_STEP interpolation based on position history. Incompatible with ENGINE_COMPUTE_STUDIO_LERP!
 
 // [FWGS, 01.01.24] adjust the mask when features will be added or removed
 #define ENGINE_FEATURES_MASK \

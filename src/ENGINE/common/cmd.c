@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -84,7 +84,7 @@ static void *Cbuf_GetSpace (cmdbuf_t *buf, int length)
 	if ((buf->cursize + length) > buf->maxsize)
 		{
 		buf->cursize = 0;
-		Host_Error ("Cbuf_GetSpace: overflow\n");
+		Host_Error ("%s: overflow\n", __func__);	// [FWGS, 01.07.24]
 		}
 
 	data = buf->data + buf->cursize;
@@ -155,7 +155,7 @@ static void Cbuf_InsertTextToBuffer (cmdbuf_t *buf, const char *text)
 
 	if ((buf->cursize + l) >= buf->maxsize)
 		{
-		Con_Reportf (S_WARN "Cbuf_InsertText: overflow\n");
+		Con_Reportf (S_WARN "%s: overflow\n", __func__);	// [FWGS, 01.07.24]
 		}
 	else
 		{
@@ -201,19 +201,22 @@ static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged
 			{
 			if (!comment)
 				{
-				if (text[i] == '"') quotes = !quotes;
+				if (text[i] == '"')
+					quotes = !quotes;
 
 				if (quotes)
 					{
 					// make sure i doesn't get > cursize which causes a negative size in memmove, which is fatal --blub
-					if (i < (buf->cursize - 1) && (text[i + 0] == '\\' && (text[i + 1] == '"' || text[i + 1] == '\\')))
+					if ((i < (buf->cursize - 1)) && ((text[i + 0] == '\\') && ((text[i + 1] == '"') ||
+						(text[i + 1] == '\\'))))
 						i++;
 					}
 				else
 					{
-					if (text[i + 0] == '/' && text[i + 1] == '/' && (i == 0 || (byte)text[i - 1] <= ' '))
+					if ((text[i + 0] == '/') && (text[i + 1] == '/') && ((i == 0) || ((byte)text[i - 1] <= ' ')))
 						comment = &text[i];
-					if (text[i] == ';') break; // don't break if inside a quoted string or comment
+					if (text[i] == ';')
+						break; // don't break if inside a quoted string or comment
 					}
 				}
 
@@ -223,7 +226,7 @@ static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged
 
 		if (i >= (MAX_CMD_LINE - 1))
 			{
-			Con_DPrintf (S_ERROR "Cbuf_Execute: command string owerflow\n");
+			Con_DPrintf (S_ERROR "%s: command string owerflow\n", __func__);	// [FWGS, 01.07.24]
 			line[0] = 0;
 			}
 		else
@@ -251,8 +254,7 @@ static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged
 
 		if (cmd_wait)
 			{
-			// skip out while text still remains in buffer,
-			// leaving it for next frame
+			// skip out while text still remains in buffer, leaving it for next frame
 			cmd_wait = false;
 			break;
 			}
@@ -267,6 +269,7 @@ Cbuf_Execute
 void Cbuf_Execute (void)
 	{
 	Cbuf_ExecuteCommandsFromBuffer (&cmd_text, true, -1);
+
 	// a1ba: unlimited commands for filtered buffer per frame
 	// I don't see any sense in restricting that at this moment
 	// but in future we may limit this
@@ -292,8 +295,8 @@ void Cbuf_ExecStuffCmds (void)
 
 	for (i = 0; i < host.argc; i++)
 		{
-		if (host.argv[i] && host.argv[i][0] == '+' && (host.argv[i][1] < '0' || host.argv[i][1] > '9') &&
-			l + Q_strlen (host.argv[i]) - 1 <= sizeof (build) - 1)
+		if (host.argv[i] && (host.argv[i][0] == '+') && ((host.argv[i][1] < '0') || (host.argv[i][1] > '9')) &&
+			(l + Q_strlen (host.argv[i]) - 1 <= sizeof (build) - 1))
 			{
 			j = 1;
 
@@ -612,18 +615,18 @@ const char *GAME_EXPORT Cmd_GetName (cmd_t *cmd)
 
 /***
 ============
-Cmd_TokenizeString
+Cmd_TokenizeString [FWGS, 01.07.24]
 
 Parses the given string into command line tokens.
 The text is copied to a seperate buffer and 0 characters
 are inserted in the apropriate place, The argv array
-will point into this temporary buffer.
+will point into this temporary buffer
 ============
 ***/
 void Cmd_TokenizeString (const char *text)
 	{
 	char	cmd_token[MAX_CMD_BUFFER];
-	int	i;
+	int		i;
 
 	// clear the args from the last string
 	for (i = 0; i < cmd_argc; i++)
@@ -637,7 +640,8 @@ void Cmd_TokenizeString (const char *text)
 	while (1)
 		{
 		// skip whitespace up to a /n
-		while (*text && (*text <= ' ') && (*text != '\r') && (*text != '\n'))
+		/*while (*text && (*text <= ' ') && (*text != '\r') && (*text != '\n'))*/
+		while (*text && (((byte)*text) <= ' ') && (*text != '\r') && (*text != '\n'))
 			text++;
 
 		if ((*text == '\n') || (*text == '\r'))
@@ -680,7 +684,7 @@ static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcomman
 
 	if (!COM_CheckString (cmd_name))
 		{
-		Con_Reportf (S_ERROR  "%s: NULL name\n", funcname);
+		Con_Reportf (S_ERROR "%s: NULL name\n", funcname);	// [FWGS, 01.07.24]
 		return 0;
 		}
 
@@ -723,38 +727,41 @@ static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcomman
 
 /***
 ============
-Cmd_AddCommand
+Cmd_AddCommand [FWGS, 01.07.24]
 ============
 ***/
 void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
-	Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, cmd_desc, 0);
+	/*Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, cmd_desc, 0);*/
+	Cmd_AddCommandEx (__func__, cmd_name, function, cmd_desc, 0);
 	}
 
 
 /***
 ============
-Cmd_AddRestrictedCommand
+Cmd_AddRestrictedCommand [FWGS, 01.07.24]
 ============
 ***/
 void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
-	Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, cmd_desc, CMD_PRIVILEGED);
+	/*Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, cmd_desc, CMD_PRIVILEGED);*/
+	Cmd_AddCommandEx (__func__, cmd_name, function, cmd_desc, CMD_PRIVILEGED);
 	}
 
 /***
 ============
-Cmd_AddServerCommand
+Cmd_AddServerCommand [FWGS, 01.07.24]
 ============
 ***/
 void GAME_EXPORT Cmd_AddServerCommand (const char *cmd_name, xcommand_t function)
 	{
-	Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "server command", CMD_SERVERDLL);
+	/*Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "server command", CMD_SERVERDLL);*/
+	Cmd_AddCommandEx (__func__, cmd_name, function, "server command", CMD_SERVERDLL);
 	}
 
 /***
 ============
-Cmd_AddClientCommand
+Cmd_AddClientCommand [FWGS, 01.07.24]
 ============
 ***/
 int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
@@ -763,31 +770,32 @@ int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
 
 	// a1ba: try to mitigate outdated client.dll vulnerabilities
 	if (!Q_stricmp (cmd_name, "motd_write"))
-		{
 		flags |= CMD_PRIVILEGED;
-		}
 
-	return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "client command", flags);
+	/*return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "client command", flags);*/
+	return Cmd_AddCommandEx (__func__, cmd_name, function, "client command", flags);
 	}
 
 /***
 ============
-Cmd_AddGameUICommand
+Cmd_AddGameUICommand [FWGS, 01.07.24]
 ============
 ***/
 int GAME_EXPORT Cmd_AddGameUICommand (const char *cmd_name, xcommand_t function)
 	{
-	return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "gameui command", CMD_GAMEUIDLL);
+	/*return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "gameui command", CMD_GAMEUIDLL);*/
+	return Cmd_AddCommandEx (__func__, cmd_name, function, "gameui command", CMD_GAMEUIDLL);
 	}
 
 /***
 ============
-Cmd_AddRefCommand
+Cmd_AddRefCommand [FWGS, 01.07.24]
 ============
 ***/
 int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description)
 	{
-	return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, description, CMD_REFDLL);
+	/*return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, description, CMD_REFDLL);*/
+	return Cmd_AddCommandEx (__func__, cmd_name, function, description, CMD_REFDLL);
 	}
 
 /***
@@ -836,16 +844,18 @@ Cmd_LookupCmds
 ***/
 void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback)
 	{
-	cmd_t *cmd;
-	cmdalias_t *alias;
+	cmd_t		*cmd;
+	cmdalias_t	*alias;
 
 	// nothing to process ?
 	if (!callback) return;
 
 	for (cmd = cmd_functions; cmd; cmd = cmd->next)
 		{
-		if (!buffer) callback (cmd->name, (char *)cmd->function, cmd->desc, ptr);
-		else callback (cmd->name, (char *)cmd->function, buffer, ptr);
+		if (!buffer)
+			callback (cmd->name, (char *)cmd->function, cmd->desc, ptr);
+		else
+			callback (cmd->name, (char *)cmd->function, buffer, ptr);
 		}
 
 	// lookup an aliases too
@@ -947,10 +957,11 @@ static void Cmd_Else_f (void)
 	cmd_condition ^= BIT (cmd_condlevel);
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.07.24]
 static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 	{
-	const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_", "joy_" };
+	/*const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_", "joy_" };*/
+	const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_", "joy_", "con_", "scr_" };
 	int i;
 
 	// always allow local commands
@@ -1107,8 +1118,9 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 	// check cvars
 	if (Cvar_CommandWithPrivilegeCheck (cvar, isPrivileged)) return;
 
+	// don't send nothing to server: we are a server!
 	if (host.apply_game_config)
-		return; // don't send nothing to server: we are a server!
+		return;
 
 	// forward the command line to the server, so the entity DLL can parse it
 	if (host.type == HOST_NORMAL)
@@ -1153,11 +1165,13 @@ void Cmd_ForwardToServer (void)
 		return;
 		}
 
-	if (cls.state < ca_connected || cls.state > ca_active)
+	if ((cls.state < ca_connected) || (cls.state > ca_active))
 		{
 		if (Q_stricmp (Cmd_Argv (0), "setinfo"))
 			Con_Printf ("Can't \"%s\", not connected\n", Cmd_Argv (0));
-		return; // not connected
+
+		// don't send nothing to server: we are a server!
+		return;
 		}
 
 	MSG_BeginClientCmd (&cls.netchan.message, clc_stringcmd);

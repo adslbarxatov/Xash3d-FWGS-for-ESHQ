@@ -24,8 +24,8 @@ class CAirtank: public CGrenade
 	{
 	void Spawn (void);
 	void Precache (void);
-	void EXPORT TankThink (void);
-	void EXPORT TankTouch (CBaseEntity* pOther);
+	void HLEXPORT TankThink (void);
+	void HLEXPORT TankTouch (CBaseEntity* pOther);
 	int	 BloodColor (void) { return DONT_BLEED; };
 	void Killed (entvars_t* pevAttacker, int iGib);
 

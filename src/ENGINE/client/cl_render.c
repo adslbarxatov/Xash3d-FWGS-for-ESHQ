@@ -18,9 +18,11 @@ GNU General Public License for more details.
 #include "library.h"
 #include "platform/platform.h"
 
+// [FWGS, 01.07.24]
 int R_FatPVS (const vec3_t org, float radius, byte *visbuffer, qboolean merge, qboolean fullvis)
 	{
-	return Mod_FatPVS (org, radius, visbuffer, world.visbytes, merge, fullvis);
+	/*return Mod_FatPVS (org, radius, visbuffer, world.visbytes, merge, fullvis);*/
+	return Mod_FatPVS (org, radius, visbuffer, world.visbytes, merge, fullvis, false);
 	}
 
 lightstyle_t *CL_GetLightStyle (int number)
@@ -41,7 +43,9 @@ static void *R_Mem_Alloc (size_t cb, const char *filename, const int fileline)
 
 static void R_Mem_Free (void *mem, const char *filename, const int fileline)
 	{
-	if (!mem) return;
+	if (!mem)
+		return;
+
 	_Mem_Free (mem, filename, fileline);
 	}
 
@@ -61,12 +65,14 @@ static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamediron
 
 	if (!t)
 		{
-		if (numFiles) *numFiles = 0;
+		if (numFiles)
+			*numFiles = 0;
 		return NULL;
 		}
 
 	if (numFiles)
 		*numFiles = t->numfilenames;
+
 	return t->filenames;
 	}
 
@@ -134,6 +140,7 @@ static const char *CL_GenericHandle (int fileindex)
 	return cl.files_precache[fileindex];
 	}
 
+// [FWGS, 01.07.24]
 intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRef)
 	{
 	switch (parm)
@@ -143,37 +150,58 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 			return 1;
 #endif
 			return 0;
-		// [FWGS, 01.01.24]
+		
 		case PARAM_GAMEPAUSED:
 			return cl.paused;
+
 		case PARM_CLIENT_INGAME:
 			return CL_IsInGame ();
+
 		case PARM_MAX_ENTITIES:
 			return clgame.maxEntities;
+
 		case PARM_FEATURES:
 			return host.features;
+
 		case PARM_MAP_HAS_DELUXE:
 			return FBitSet (world.flags, FWORLD_HAS_DELUXEMAP);
+
 		case PARM_CLIENT_ACTIVE:
 			return (cls.state == ca_active);
+
 		case PARM_DEDICATED_SERVER:
 			return (host.type == HOST_DEDICATED);
+
 		case PARM_WATER_ALPHA:
 			return FBitSet (world.flags, FWORLD_WATERALPHA);
+
 		case PARM_DELUXEDATA:
 			return (intptr_t)world.deluxedata;
+
 		case PARM_SHADOWDATA:
 			return (intptr_t)world.shadowdata;
 
-		// [FWGS, 01.07.23]
 		case PARM_FULLSCREEN:
 			return refState.fullScreen;
+
 		case PARM_WIDESCREEN:
 			return refState.wideScreen;
+
 		case PARM_SCREEN_WIDTH:
 			return refState.width;
+
 		case PARM_SCREEN_HEIGHT:
 			return refState.height;
+
+		// New
+		case PARM_SKY_SPHERE:
+			return FBitSet (world.flags, FWORLD_SKYSPHERE) && !FBitSet (world.flags, FWORLD_CUSTOM_SKYBOX);
+
+		case PARM_SURF_SAMPLESIZE:
+			if ((arg >= 0) && (arg < cl.worldmodel->numsurfaces))
+				return Mod_SampleSizeForFace (&cl.worldmodel->surfaces[arg]);
+
+			return LM_SAMPLE_SIZE;
 
 		default:
 			// indicates call from client.dll
@@ -186,42 +214,51 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 				{
 				case PARM_DEV_OVERVIEW:
 					return CL_IsDevOverviewMode ();
+
 				case PARM_THIRDPERSON:
 					return CL_IsThirdPerson ();
+
 				case PARM_QUAKE_COMPATIBLE:
 					return Host_IsQuakeCompatible ();
 
-				// [FWGS, 01.01.24]
 				case PARM_CONNSTATE:
 					return (int)cls.state;
+
 				case PARM_PLAYING_DEMO:
 					return cls.demoplayback;
+
 				case PARM_WATER_LEVEL:
 					return cl.local.waterlevel;
 
-				// [FWGS, 01.01.24]
 				case PARM_LOCAL_HEALTH:
 					return cl.local.health;
+
 				case PARM_LOCAL_GAME:
 					return Host_IsLocalGame ();
+
 				case PARM_NUMENTITIES:
 					return pfnNumberOfEntities ();
 
-				// [FWGS, 01.01.24]
 				case PARM_GET_CLIENT_PTR:
 					return (intptr_t)&cl.time; // with the offset
+
 				case PARM_GET_HOST_PTR:
 					return (intptr_t)&host.realtime; // with the offset
+
 				case PARM_GET_WORLD_PTR:
 					return (intptr_t)&world;
+
 				case PARM_GET_MOVEVARS_PTR:
 					return (intptr_t)&clgame.movevars;
+
 				case PARM_GET_PALETTE_PTR:
 					return (intptr_t)&clgame.palette;
+
 				case PARM_GET_VIEWENT_PTR:
 					return (intptr_t)&clgame.viewent;
 				}
 		}
+
 	return 0;
 	}
 
@@ -352,13 +389,13 @@ qboolean R_InitRenderAPI (void)
 		{
 		if (clgame.dllFuncs.pfnGetRenderInterface (CL_RENDER_INTERFACE_VERSION, &gRenderAPI, &clgame.drawFuncs))
 			{
-			Con_Reportf ("CL_LoadProgs: ^2initailized extended RenderAPI ^7ver. %i\n", CL_RENDER_INTERFACE_VERSION);
+			Con_Reportf ("%s: ^2initailized extended RenderAPI ^7ver. %i\n", __func__,
+				CL_RENDER_INTERFACE_VERSION);	// [FWGS, 01.07.24]
 			return true;
 			}
 
 		// make sure what render functions is cleared
 		memset (&clgame.drawFuncs, 0, sizeof (clgame.drawFuncs));
-
 		return false; // just tell user about problems
 		}
 

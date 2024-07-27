@@ -203,34 +203,34 @@ show update dialog
 void UI_ShowUpdateDialog (qboolean preferStore)
 	{
 	if (gameui.dllFuncs2.pfnShowUpdateDialog)
-		{
 		gameui.dllFuncs2.pfnShowUpdateDialog (preferStore);
-		}
 
 	Con_Printf (S_WARN "This version is not supported anymore. To continue, install latest engine version\n");
 	}
 
 /***
 =================
-UI_ShowConnectionWarning
+UI_ShowMessageBox [FWGS, 01.07.24]
 
 show message box
 =================
 ***/
-void UI_ShowMessageBox (const char *text)
+/*void UI_ShowMessageBox (const char *text)*/
+qboolean UI_ShowMessageBox (const char *text)
 	{
 	if (gameui.dllFuncs2.pfnShowMessageBox)
 		{
 		gameui.dllFuncs2.pfnShowMessageBox (text);
+		return true;
 		}
+
+	return false;
 	}
 
 void UI_ConnectionProgress_Disconnect (void)
 	{
 	if (gameui.dllFuncs2.pfnConnectionProgress_Disconnect)
-		{
 		gameui.dllFuncs2.pfnConnectionProgress_Disconnect ();
-		}
 	}
 
 void UI_ConnectionProgress_Download (const char *pszFileName, const char *pszServerName,
@@ -255,41 +255,31 @@ void UI_ConnectionProgress_Download (const char *pszFileName, const char *pszSer
 void UI_ConnectionProgress_DownloadEnd (void)
 	{
 	if (gameui.dllFuncs2.pfnConnectionProgress_DownloadEnd)
-		{
 		gameui.dllFuncs2.pfnConnectionProgress_DownloadEnd ();
-		}
 	}
 
 void UI_ConnectionProgress_Precache (void)
 	{
 	if (gameui.dllFuncs2.pfnConnectionProgress_Precache)
-		{
 		gameui.dllFuncs2.pfnConnectionProgress_Precache ();
-		}
 	}
 
 void UI_ConnectionProgress_Connect (const char *server) // NULL for local server
 	{
 	if (gameui.dllFuncs2.pfnConnectionProgress_Connect)
-		{
 		gameui.dllFuncs2.pfnConnectionProgress_Connect (server);
-		}
 	}
 
 void UI_ConnectionProgress_ChangeLevel (void)
 	{
 	if (gameui.dllFuncs2.pfnConnectionProgress_ChangeLevel)
-		{
 		gameui.dllFuncs2.pfnConnectionProgress_ChangeLevel ();
-		}
 	}
 
 void UI_ConnectionProgress_ParseServerInfo (const char *server)
 	{
 	if (gameui.dllFuncs2.pfnConnectionProgress_ParseServerInfo)
-		{
 		gameui.dllFuncs2.pfnConnectionProgress_ParseServerInfo (server);
-		}
 	}
 
 static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, float width, float height)
@@ -505,7 +495,7 @@ static HIMAGE GAME_EXPORT pfnPIC_Load (const char *szPicName, const byte *image_
 
 	if (!COM_CheckString (szPicName))
 		{
-		Con_Reportf (S_ERROR "CL_LoadImage: refusing to load image with empty name\n");
+		Con_Reportf (S_ERROR "%s: refusing to load image with empty name\n", __func__);	// [FWGS, 01.07.24]
 		return 0;
 		}
 
@@ -1004,12 +994,12 @@ static int GAME_EXPORT pfnCheckGameDll (void)
 
 /***
 =========
-pfnChangeInstance
+pfnChangeInstance [FWGS, 01.07.24]
 =========
 ***/
 static void GAME_EXPORT pfnChangeInstance (const char *newInstance, const char *szFinalMessage)
 	{
-	Con_Reportf (S_ERROR "ChangeInstance menu call is deprecated!\n");
+	Con_Reportf (S_ERROR "%s menu call is deprecated!\n", __func__);
 	}
 
 /***
@@ -1094,92 +1084,108 @@ static void GAME_EXPORT pfnCon_DefaultColor (int r, int g, int b)
 	Con_DefaultColor (r, g, b, true);
 	}
 
+// [FWGS, 01.07.24]
+static void GAME_EXPORT pfnSetCursor (void *hCursor)
+	{
+	uintptr_t cursor;
+
+	if (!gameui.use_extended_api)
+		return; // ignore original Xash menus
+
+	cursor = (uintptr_t)hCursor;
+	if ((cursor < dc_user) || (cursor > dc_last))
+		return;
+
+	Platform_SetCursorType (cursor);
+	}
+
 // engine callbacks
 static ui_enginefuncs_t gEngfuncs =
 	{
-		pfnPIC_Load,
-		GL_FreeImage,
-		pfnPIC_Width,
-		pfnPIC_Height,
-		pfnPIC_Set,
-		pfnPIC_Draw,
-		pfnPIC_DrawHoles,
-		pfnPIC_DrawTrans,
-		pfnPIC_DrawAdditive,
-		pfnPIC_EnableScissor,
-		pfnPIC_DisableScissor,
-		pfnFillRGBA,
-		pfnCvar_RegisterGameUIVariable,
-		Cvar_VariableValue,
-		Cvar_VariableString,
-		Cvar_Set,
-		Cvar_SetValue,
-		Cmd_AddGameUICommand,
-		pfnClientCmd,
-		Cmd_RemoveCommand,
-		Cmd_Argc,
-		Cmd_Argv,
-		Cmd_Args,
-		Con_Printf,
-		Con_DPrintf,
-		UI_NPrintf,
-		UI_NXPrintf,
-		pfnPlaySound,
-		UI_DrawLogo,
-		UI_GetLogoWidth,
-		UI_GetLogoHeight,
-		UI_GetLogoLength,
-		pfnDrawCharacter,
-		UI_DrawConsoleString,
-		UI_DrawSetTextColor,
-		Con_DrawStringLen,
-		pfnCon_DefaultColor,	// [FWGS, 01.02.24]
-		pfnGetPlayerModel,
-		pfnSetPlayerModel,
-		pfnClearScene,
-		pfnRenderScene,
-		pfnAddEntity,
-		Host_Error,
-		pfnFileExists,
-		pfnGetGameDir,
-		Cmd_CheckMapsList,
-		CL_Active,
-		pfnClientJoin,
-		COM_LoadFileForMe,
-		pfnParseFile,
-		COM_FreeFile,
-		Key_ClearStates,
-		Key_SetKeyDest,
-		Key_KeynumToString,
-		Key_GetBinding,
-		Key_SetBinding,
-		Key_IsDown,
-		pfnKeyGetOverstrikeMode,
-		pfnKeySetOverstrikeMode,
-		pfnKeyGetState,
-		pfnMemAlloc,
-		pfnMemFree,
-		pfnGetGameInfo,
-		pfnGetGamesList,
-		pfnGetFilesList,
-		SV_GetSaveComment,
-		CL_GetDemoComment,
-		pfnCheckGameDll,
-		pfnGetClipboardData,
-		UI_ShellExecute,
-		Host_WriteServerConfig,
-		pfnChangeInstance,
-		pfnStartBackgroundTrack,
-		pfnHostEndGame,
-		COM_RandomFloat,
-		COM_RandomLong,
-		IN_SetCursor,
-		pfnIsMapValid,
-		GL_ProcessTexture,
-		COM_CompareFileTime,
-		VID_GetModeString,
-		(void *)COM_SaveFile,
-		pfnDelete
+	pfnPIC_Load,
+	GL_FreeImage,
+	pfnPIC_Width,
+	pfnPIC_Height,
+	pfnPIC_Set,
+	pfnPIC_Draw,
+	pfnPIC_DrawHoles,
+	pfnPIC_DrawTrans,
+	pfnPIC_DrawAdditive,
+	pfnPIC_EnableScissor,
+	pfnPIC_DisableScissor,
+	pfnFillRGBA,
+	pfnCvar_RegisterGameUIVariable,
+	Cvar_VariableValue,
+	Cvar_VariableString,
+	Cvar_Set,
+	Cvar_SetValue,
+	Cmd_AddGameUICommand,
+	pfnClientCmd,
+	Cmd_RemoveCommand,
+	Cmd_Argc,
+	Cmd_Argv,
+	Cmd_Args,
+	Con_Printf,
+	Con_DPrintf,
+	UI_NPrintf,
+	UI_NXPrintf,
+	pfnPlaySound,
+	UI_DrawLogo,
+	UI_GetLogoWidth,
+	UI_GetLogoHeight,
+	UI_GetLogoLength,
+	pfnDrawCharacter,
+	UI_DrawConsoleString,
+	UI_DrawSetTextColor,
+	Con_DrawStringLen,
+	pfnCon_DefaultColor,	// [FWGS, 01.02.24]
+	pfnGetPlayerModel,
+	pfnSetPlayerModel,
+	pfnClearScene,
+	pfnRenderScene,
+	pfnAddEntity,
+	Host_Error,
+	pfnFileExists,
+	pfnGetGameDir,
+	Cmd_CheckMapsList,
+	CL_Active,
+	pfnClientJoin,
+	COM_LoadFileForMe,
+	pfnParseFile,
+	COM_FreeFile,
+	Key_ClearStates,
+	Key_SetKeyDest,
+	Key_KeynumToString,
+	Key_GetBinding,
+	Key_SetBinding,
+	Key_IsDown,
+	pfnKeyGetOverstrikeMode,
+	pfnKeySetOverstrikeMode,
+	pfnKeyGetState,
+	pfnMemAlloc,
+	pfnMemFree,
+	pfnGetGameInfo,
+	pfnGetGamesList,
+	pfnGetFilesList,
+	SV_GetSaveComment,
+	CL_GetDemoComment,
+	pfnCheckGameDll,
+	pfnGetClipboardData,
+	UI_ShellExecute,
+	Host_WriteServerConfig,
+	pfnChangeInstance,
+	pfnStartBackgroundTrack,
+	pfnHostEndGame,
+	COM_RandomFloat,
+	COM_RandomLong,
+	/*IN_SetCursor,*/
+	pfnSetCursor,	// [FWGS, 01.07.24]
+	pfnIsMapValid,
+	GL_ProcessTexture,
+	COM_CompareFileTime,
+	VID_GetModeString,
+	(void *)COM_SaveFile,
+	pfnDelete
 	};
 
 static void pfnEnableTextInput (int enable)
@@ -1218,6 +1224,7 @@ static ui_extendedfuncs_t gExtendedfuncs =
 	NET_AdrToString,
 	NET_CompareAdrSort,
 	Sys_GetNativeObject,	// [FWGS, 01.03.24]
+	&gNetApi,	// [FWGS, 01.07.24]
 	};
 
 // [FWGS, 01.07.23]
@@ -1280,13 +1287,14 @@ qboolean UI_LoadProgs (void)
 	if ((GetMenuAPI = (MENUAPI)COM_GetProcAddress (gameui.hInstance, "GetMenuAPI")) == NULL)
 		{
 		COM_FreeLibrary (gameui.hInstance);
-		Con_Reportf ("UI_LoadProgs: can't init menu API\n");
+		Con_Reportf ("%s: can't init menu API\n", __func__);	// [FWGS, 01.07.24]
 		gameui.hInstance = NULL;
 		return false;
 		}
 
-
-	gameui.use_text_api = false;
+	// [FWGS, 01.07.24]
+	/*gameui.use_text_api = false;*/
+	gameui.use_extended_api = false;
 
 	// make local copy of engfuncs to prevent overwrite it with user dll
 	memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));
@@ -1296,7 +1304,7 @@ qboolean UI_LoadProgs (void)
 	if (!GetMenuAPI (&gameui.dllFuncs, &gpEngfuncs, gameui.globals))
 		{
 		COM_FreeLibrary (gameui.hInstance);
-		Con_Reportf ("UI_LoadProgs: can't init menu API\n");
+		Con_Reportf ("%s: can't init menu API\n", __func__);	// [FWGS, 01.07.24]
 		Mem_FreePool (&gameui.mempool);
 		gameui.hInstance = NULL;
 		return false;
@@ -1306,33 +1314,42 @@ qboolean UI_LoadProgs (void)
 	memcpy (&gpExtendedfuncs, &gExtendedfuncs, sizeof (gExtendedfuncs));
 	memset (&gameui.dllFuncs2, 0, sizeof (gameui.dllFuncs2));
 
-	// try to initialize new extended API
+	// [FWGS, 01.07.24] try to initialize new extended API
 	if ((GetExtAPI = (UIEXTENEDEDAPI)COM_GetProcAddress (gameui.hInstance, "GetExtAPI")))
 		{
-		Con_Reportf ("UI_LoadProgs: extended Menu API found\n");
+		Con_Reportf ("%s: extended Menu API found\n", __func__);
 		if (GetExtAPI (MENU_EXTENDED_API_VERSION, &gameui.dllFuncs2, &gpExtendedfuncs))
 			{
-			Con_Reportf ("UI_LoadProgs: extended Menu API initialized\n");
-			gameui.use_text_api = true;
+			/*Con_Reportf ("UI_LoadProgs: extended Menu API initialized\n");
+			gameui.use_text_api = true;*/
+			Con_Reportf ("%s: extended Menu API initialized\n", __func__);
+			gameui.use_extended_api = true;
 			}
 		}
-	else // otherwise, fallback to old and deprecated extensions
+
+	// [FWGS, 01.07.24] otherwise, fallback to old and deprecated extensions
+	else
 		{
 		if ((GiveTextApi = (UITEXTAPI)COM_GetProcAddress (gameui.hInstance, "GiveTextAPI")))
 			{
-			Con_Reportf ("UI_LoadProgs: extended text API found\n");
+			Con_Reportf ("%s: extended text API found\n", __func__);
 			Con_Reportf (S_WARN "Text API is deprecated! If you are mod developer, consider moving to Extended Menu API!\n");
-			if (GiveTextApi (&gpExtendedfuncs)) // they are binary compatible, so we can just pass extended funcs API to menu
+
+			// they are binary compatible, so we can just pass extended funcs API to menu
+			if (GiveTextApi (&gpExtendedfuncs))
 				{
-				Con_Reportf ("UI_LoadProgs: extended text API initialized\n");
-				gameui.use_text_api = true;
+				/*Con_Reportf ("UI_LoadProgs: extended text API initialized\n");
+				gameui.use_text_api = true;*/
+				Con_Reportf ("%s: extended text API initialized\n", __func__);
+				gameui.use_extended_api = true;
 				}
 			}
 
-		gameui.dllFuncs2.pfnAddTouchButtonToList = (ADDTOUCHBUTTONTOLIST)COM_GetProcAddress (gameui.hInstance, "AddTouchButtonToList");
+		gameui.dllFuncs2.pfnAddTouchButtonToList = (ADDTOUCHBUTTONTOLIST)COM_GetProcAddress (gameui.hInstance,
+			"AddTouchButtonToList");
 		if (gameui.dllFuncs2.pfnAddTouchButtonToList)
 			{
-			Con_Reportf ("UI_LoadProgs: AddTouchButtonToList call found\n");
+			Con_Reportf ("%s: AddTouchButtonToList call found\n", __func__);	// [FWGS, 01.07.24]
 			Con_Reportf (S_WARN "AddTouchButtonToList is deprecated! If you are mod developer, consider moving to Extended Menu API!\n");
 			}
 		}

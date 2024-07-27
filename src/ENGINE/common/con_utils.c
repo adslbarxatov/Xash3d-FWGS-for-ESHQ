@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -62,9 +62,9 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 	for (i = 0, nummaps = 0; i < t->numfilenames; i++)
 		{
 		char		entfilename[MAX_QPATH];
-		const char *ext = COM_FileExtension (t->filenames[i]);
+		const char	*ext = COM_FileExtension (t->filenames[i]);
 		int			ver = -1, lumpofs = 0, lumplen = 0;
-		char *ents = NULL, *pfile;
+		char		*ents = NULL, *pfile;
 		int			version = 0;
 		string		version_description;
 
@@ -620,7 +620,9 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 		Con_Printf ("%16s\n", matchbuf);
 		}
 
-	Con_Printf ("\n^3 %lu keys found.\n", numkeys);
+	// [FWGS, 01.07.24]
+	/*Con_Printf ("\n^3 %lu keys found.\n", numkeys);*/
+	Con_Printf ("\n^3 %zu keys found.\n", numkeys);
 
 	if (completedname && length)
 		{
@@ -1453,7 +1455,7 @@ void Host_WriteConfig (void)
 	f = FS_Open ("config.cfg.new", "w", false);
 	if (f)
 		{
-		Con_Reportf ("Host_WriteConfig()\n");
+		Con_Reportf ("%s()\n", __func__);	// [FWGS, 01.07.24]
 		FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "//\t\t\tCopyright XashXT Group & Flying With Gauss %s (C)\n", Q_timestamp (TIME_YEAR_ONLY));
 		FS_Printf (f, "//\t\t\tconfig.cfg - archive of cvars\n");
@@ -1545,7 +1547,7 @@ void Host_WriteOpenGLConfig (void)
 	f = FS_Open (va ("%s.new", name), "w", false);
 	if (f)
 		{
-		Con_Reportf ("Host_WriteGLConfig()\n");
+		Con_Reportf ("%s()\n", __func__);	// [FWGS, 01.07.24]
 		FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "//\t\t\tCopyright XashXT Group & Flying With Gauss %s (C)\n", Q_timestamp (TIME_YEAR_ONLY));
 		FS_Printf (f, "//\t\t    %s - archive of renderer implementation cvars\n", name);
@@ -1578,7 +1580,7 @@ void Host_WriteVideoConfig (void)
 	f = FS_Open ("video.cfg.new", "w", false);
 	if (f)
 		{
-		Con_Reportf ("Host_WriteVideoConfig()\n");
+		Con_Reportf ("%s()\n", __func__);	// [FWGS, 01.07.24]
 		FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "//\t\t\tCopyright XashXT Group & Flying With Gauss %s (C)\n", Q_timestamp (TIME_YEAR_ONLY));
 		FS_Printf (f, "//\t\tvideo.cfg - archive of renderer variables\n");
@@ -1591,7 +1593,7 @@ void Host_WriteVideoConfig (void)
 		Con_DPrintf (S_ERROR "can't update video.cfg.\n");
 		}
 	}
-#endif // XASH_DEDICATED
+#endif
 
 void Key_EnumCmds_f (void)
 	{
@@ -1628,4 +1630,3 @@ void Key_EnumCmds_f (void)
 
 	FS_AllowDirectPaths (false);
 	}
-

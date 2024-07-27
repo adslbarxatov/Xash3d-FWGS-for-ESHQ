@@ -81,7 +81,6 @@ static void Sound_HandleCustomID3Comment (const char *key, const char *value)
 		}
 	}
 
-// [FWGS, 01.11.23]
 static qboolean Sound_ParseID3Frame (const did3v2_frame_t *frame, const byte *buffer, size_t frame_length)
 	{
 	if (CHECK_FRAME_ID (frame->frame_id, 'T', 'X', 'X', 'X'))
@@ -93,9 +92,11 @@ static qboolean Sound_ParseID3Frame (const did3v2_frame_t *frame, const byte *bu
 			{
 			key_len = Q_strncpy (key, &buffer[1], sizeof (key));
 			value_len = frame_length - (1 + key_len + 1);
+
+			// [FWGS, 01.07.24]
 			if ((value_len <= 0) || (value_len >= sizeof (value)))
 				{
-				Con_Printf (S_ERROR "Sound_ParseID3Frame: invalid TXXX description, possibly broken file.\n");
+				Con_Printf (S_ERROR "%s: invalid TXXX description, possibly broken file.\n", __func__);
 				return false;
 				}
 
@@ -106,11 +107,12 @@ static qboolean Sound_ParseID3Frame (const did3v2_frame_t *frame, const byte *bu
 			}
 		else
 			{
+			// [FWGS, 01.07.24]
 			if ((buffer[0] == 0x01) || (buffer[0] == 0x02)) // UTF-16 with BOM
-				Con_Printf (S_ERROR "Sound_ParseID3Frame: UTF-16 encoding is unsupported. Use UTF-8 or ISO-8859!\n");
+				Con_Printf (S_ERROR "%s: UTF-16 encoding is unsupported. Use UTF-8 or ISO-8859!\n", __func__);
 			else
-				Con_Printf (S_ERROR "Sound_ParseID3Frame: unknown TXXX tag encoding %d, possibly broken file.\n",
-					buffer[0]);
+				Con_Printf (S_ERROR "%s: unknown TXXX tag encoding %d, possibly broken file.\n", __func__, buffer[0]);
+
 			return false;
 			}
 		}
@@ -118,12 +120,11 @@ static qboolean Sound_ParseID3Frame (const did3v2_frame_t *frame, const byte *bu
 	return true;
 	}
 
-// [FWGS, 01.05.23]
 static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 	{
-	const did3v2_header_t *header = (const did3v2_header_t *)buffer;
-	const byte *buffer_begin = buffer;
-	uint32_t tag_length;
+	const did3v2_header_t	*header = (const did3v2_header_t *)buffer;
+	const byte	*buffer_begin = buffer;
+	uint32_t	tag_length;
 
 	if (filesize < sizeof (*header))
 		return false;
@@ -133,25 +134,26 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 	// support only id3v2
 	if (!CHECK_IDENT (header->ident, 'I', 'D', '3'))
 		{
-		// old id3v1 header found
+		// [FWGS, 01.07.24] old id3v1 header found
 		if (CHECK_IDENT (header->ident, 'T', 'A', 'G'))
-			Con_Printf (S_ERROR "Sound_ParseID3Tag: ID3v1 is not supported! Convert to ID3v2.4!\n");
+			Con_Printf (S_ERROR "%s: ID3v1 is not supported! Convert to ID3v2.4!\n", __func__);
 
 		return true; // missing tag header is not an error
 		}
 
-	// support only latest id3 v2.4
+	// [FWGS, 01.07.24] support only latest id3 v2.4
 	if ((header->major_ver != 4) || (header->minor_ver == 0xff))
 		{
-		Con_Printf (S_ERROR "Sound_ParseID3Tag: invalid ID3v2 tag version 2.%d.%d. Convert to ID3v2.4!\n",
+		Con_Printf (S_ERROR "%s: invalid ID3v2 tag version 2.%d.%d. Convert to ID3v2.4!\n", __func__,
 			header->major_ver, header->minor_ver);
 		return false;
 		}
 
+	// [FWGS, 01.07.24]
 	tag_length = Sound_ParseSynchInteger (header->length);
 	if (tag_length > filesize - sizeof (*header))
 		{
-		Con_Printf (S_ERROR "Sound_ParseID3Tag: invalid tag length %u, possibly broken file.\n", tag_length);
+		Con_Printf (S_ERROR "%s: invalid tag length %u, possibly broken file.\n", __func__, tag_length);
 		return false;
 		}
 
@@ -161,10 +163,11 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 		const did3v2_extended_header_t *ext_header = (const did3v2_extended_header_t *)buffer;
 		uint32_t ext_length = Sound_ParseSynchInteger (ext_header->length);
 
+		// [FWGS, 01.07.24]
 		if (ext_length > tag_length)
 			{
-			Con_Printf (S_ERROR "Sound_ParseID3Tag: invalid extended header length %u, possibly broken file.\n",
-				ext_length);
+			Con_Printf (S_ERROR "%s: invalid extended header length %u, possibly broken file.\n",
+				__func__, ext_length);
 			return false;
 			}
 
@@ -176,9 +179,11 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 		const did3v2_frame_t *frame = (const did3v2_frame_t *)buffer;
 		uint32_t frame_length = Sound_ParseSynchInteger (frame->length);
 
+		// [FWGS, 01.07.24]
 		if (frame_length > tag_length)
 			{
-			Con_Printf (S_ERROR "Sound_ParseID3Tag: invalid frame length %u, possibly broken file.\n", frame_length);
+			Con_Printf (S_ERROR "%s: invalid frame length %u, possibly broken file.\n",
+				__func__, frame_length);
 			return false;
 			}
 
@@ -196,9 +201,9 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 // [FWGS, 01.02.24]
 #if XASH_ENGINE_TESTS
 
-int EXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size);
+int HLEXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size);
 
-int EXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size)
+int HLEXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size)
 	{
 	memset (&sound, 0, sizeof (sound));
 	Sound_ParseID3Tag (Data, Size);
@@ -209,7 +214,7 @@ int EXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size)
 
 /***
 =================================================================
-MPEG decompression [FWGS, 09.05.24]
+MPEG decompression
 =================================================================
 ***/
 qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -233,30 +238,32 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 	if (ret)
 		Con_DPrintf (S_ERROR "%s\n", get_error (mpeg));
 
-	// trying to read header
+	// [FWGS, 01.07.24] trying to read header
 	if (!feed_mpeg_header (mpeg, buffer, FRAME_SIZE, filesize, &sc))
 		{
-		Con_DPrintf (S_ERROR "Sound_LoadMPG: failed to load (%s): %s\n", name, get_error (mpeg));
+		Con_DPrintf (S_ERROR "%s: failed to load (%s): %s\n", __func__, name, get_error (mpeg));
 		close_decoder (mpeg);
 		return false;
 		}
 
 	sound.channels = sc.channels;
 	sound.rate = sc.rate;
-	sound.width = 2; // always 16-bit PCM
-	sound.size = (sound.channels * sound.rate * sound.width) * (sc.playtime / 1000); // in bytes
+	sound.width = 2;	// always 16-bit PCM
+	sound.size = (sound.channels * sound.rate * sound.width) * (sc.playtime / 1000);	// in bytes
 	padsize = sound.size % FRAME_SIZE;
-	pos += FRAME_SIZE; // evaluate pos
+	pos += FRAME_SIZE;	// evaluate pos
 
+	// [FWGS, 01.07.24]
 	if (!Sound_ParseID3Tag (buffer, filesize))
 		{
-		Con_DPrintf (S_WARN "Sound_LoadMPG: (%s) failed to extract LOOP_START tag\n", name);
+		Con_DPrintf (S_WARN "%s: (%s) failed to extract LOOP_START tag\n", __func__, name);
 		}
 
+	// [FWGS, 01.07.24]
 	if (!sound.size)
 		{
 		// bad mpeg file ?
-		Con_DPrintf (S_ERROR "Sound_LoadMPG: (%s) is probably corrupted\n", name);
+		Con_DPrintf (S_ERROR "%s: (%s) is probably corrupted\n", __func__, name);
 		close_decoder (mpeg);
 		return false;
 		}
@@ -301,14 +308,24 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 	return true;
 	}
 
-/***
+/*
 =================
 FS_SeekEx [FWGS, 01.02.24]
 =================
-***/
-static fs_offset_t FS_SeekEx (file_t *file, fs_offset_t offset, int whence)
+/
+static fs_offset_t FS_SeekEx (file_t *file, fs_offset_t offset, int whence)*/
+
+// [FWGS, 01.07.24]
+static fs_offset_t FS_SeekMpg (void *file, fs_offset_t offset, int whence)
 	{
-	return (FS_Seek (file, offset, whence) == -1) ? -1 : FS_Tell (file);
+	return g_fsapi.Seek ((file_t *)file, offset, whence) == -1 ? -1 : g_fsapi.Tell ((file_t *)file);
+	}
+
+// [FWGS, 01.07.24]
+static mpg_ssize_t FS_ReadMpg (void *file, void *buf, size_t count)
+	{
+	/*return (FS_Seek (file, offset, whence) == -1) ? -1 : FS_Tell (file);*/
+	return g_fsapi.Read ((file_t *)file, buf, count);
 	}
 
 /***
@@ -333,10 +350,10 @@ stream_t *Stream_OpenMPG (const char *filename)
 	stream->file = file;
 	stream->pos = 0;
 
-	// couldn't create decoder
+	// [FWGS, 01.07.24] couldn't create decoder
 	if ((mpeg = create_decoder (&ret)) == NULL)
 		{
-		Con_DPrintf (S_ERROR "Stream_OpenMPG: couldn't create decoder: %s\n", get_error (mpeg));
+		Con_DPrintf (S_ERROR "%s: couldn't create decoder: %s\n", __func__, get_error (mpeg));
 		Mem_Free (stream);
 		FS_Close (file);
 		return NULL;
@@ -345,10 +362,11 @@ stream_t *Stream_OpenMPG (const char *filename)
 	if (ret) 
 		Con_DPrintf (S_ERROR "%s\n", get_error (mpeg));
 
-	// [FWGS, 01.04.23] trying to open stream and read header
-	if (!open_mpeg_stream (mpeg, file, (void *)FS_Read, (void *)FS_SeekEx, &sc))
+	// [FWGS, 01.07.24] trying to open stream and read header
+	/*if (!open_mpeg_stream (mpeg, file, (void *)FS_Read, (void *)FS_SeekEx, &sc))*/
+	if (!open_mpeg_stream (mpeg, file, FS_ReadMpg, FS_SeekMpg, &sc))
 		{
-		Con_DPrintf (S_ERROR "Stream_OpenMPG: failed to load (%s): %s\n", filename, get_error (mpeg));
+		Con_DPrintf (S_ERROR "%s: failed to load (%s): %s\n", __func__, filename, get_error (mpeg));
 		close_decoder (mpeg);
 		Mem_Free (stream);
 		FS_Close (file);

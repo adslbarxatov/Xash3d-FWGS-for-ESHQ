@@ -42,12 +42,12 @@ class CHornet: public CBaseMonster
 		static	TYPEDESCRIPTION m_SaveData[];
 
 		void IgniteTrail (void);
-		void EXPORT StartTrack (void);
-		void EXPORT StartDart (void);
-		void EXPORT TrackTarget (void);
-		void EXPORT TrackTouch (CBaseEntity* pOther);
-		void EXPORT DartTouch (CBaseEntity* pOther);
-		void EXPORT DieTouch (CBaseEntity* pOther);
+		void HLEXPORT StartTrack (void);
+		void HLEXPORT StartDart (void);
+		void HLEXPORT TrackTarget (void);
+		void HLEXPORT TrackTouch (CBaseEntity* pOther);
+		void HLEXPORT DartTouch (CBaseEntity* pOther);
+		void HLEXPORT DieTouch (CBaseEntity* pOther);
 
 		int TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
 

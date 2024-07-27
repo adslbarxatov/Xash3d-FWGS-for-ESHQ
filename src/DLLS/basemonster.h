@@ -136,9 +136,9 @@ class CBaseMonster: public CBaseToggle
 		virtual void MonsterInit (void);
 		virtual void MonsterInitDead (void);	// Call after animation/pose is set up
 		virtual void BecomeDead (void);
-		void EXPORT CorpseFallThink (void);
+		void HLEXPORT CorpseFallThink (void);
 
-		void EXPORT MonsterInitThink (void);
+		void HLEXPORT MonsterInitThink (void);
 		virtual void StartMonster (void);
 		virtual CBaseEntity* BestVisibleEnemy (void);		// finds best visible enemy for attack
 		virtual BOOL FInViewCone (CBaseEntity* pEntity);	// see if pEntity is in monster's view cone

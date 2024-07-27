@@ -198,11 +198,12 @@ void Sys_ParseCommandLine (int argc, char **argv)
 		}
 	}
 
-/***
+// [FWGS, 01.07.24] removed Sys_MergeCommandLine
+/*
 ==================
 Sys_MergeCommandLine
 ==================
-***/
+/
 void Sys_MergeCommandLine (void)
 	{
 	const char	*blank = "censored";
@@ -217,7 +218,7 @@ void Sys_MergeCommandLine (void)
 		if (Host_IsDedicated () && !Q_strnicmp ("+menu_", host.argv[i], 6))
 			host.argv[i] = (char *)blank;
 		}
-	}
+	}*/
 
 /***
 ================
@@ -308,7 +309,8 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 	if (!dll->name || !*dll->name)
 		return false; // nothing to load
 
-	Con_Reportf ("Sys_LoadLibrary: Loading %s", dll->name);
+	// [FWGS, 01.07.24]
+	Con_Reportf ("%s: Loading %s", __func__, dll->name);
 
 	if (dll->fcts)
 		{
@@ -368,13 +370,13 @@ qboolean Sys_FreeLibrary (dll_info_t *dll)
 
 	if (host.status == HOST_CRASHED)
 		{
-		// we need to hold down all modules, while MSVC can find error
-		Con_Reportf ("Sys_FreeLibrary: hold %s for debugging\n", dll->name);
+		// [FWGS, 01.07.24] we need to hold down all modules, while MSVC can find error
+		Con_Reportf ("%s: hold %s for debugging\n", __func__, dll->name);
 		return false;
 		}
 	else
 		{
-		Con_Reportf ("Sys_FreeLibrary: Unloading %s\n", dll->name);
+		Con_Reportf ("%s: Unloading %s\n", __func__, dll->name);
 		}
 
 	COM_FreeLibrary (dll->link);
@@ -414,7 +416,7 @@ static void Sys_WaitForQuit (void)
 
 /***
 ================
-Sys_Warn [FWGS, 01.05.24]
+Sys_Warn
 
 Just messagebox
 ================
@@ -428,8 +430,9 @@ void Sys_Warn (const char *format, ...)
 	Q_vsnprintf (text, MAX_PRINT_MSG, format, argptr);
 	va_end (argptr);
 
+	// [FWGS, 01.07.24]
 	Sys_DebugBreak ();
-	Msg ("Sys_Warn: %s\n", text);
+	Msg ("%s: %s\n", __func__, text);
 
 	// dedicated server should not hang on messagebox
 	if (!Host_IsDedicated ())

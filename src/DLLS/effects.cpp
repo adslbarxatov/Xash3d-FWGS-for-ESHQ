@@ -1297,7 +1297,7 @@ class CGibShooter: public CBaseDelay
 		void	Spawn (void);
 		void	Precache (void);
 		void	KeyValue (KeyValueData* pkvd);
-		void EXPORT ShootThink (void);
+		void HLEXPORT ShootThink (void);
 		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 		virtual CGib* CreateGib (void);
@@ -1544,7 +1544,7 @@ class CTestEffect: public CBaseDelay
 		void	Spawn (void);
 		void	Precache (void);
 		// void	KeyValue( KeyValueData *pkvd );
-		void EXPORT TestThink (void);
+		void HLEXPORT TestThink (void);
 		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 		int		m_iLoop;

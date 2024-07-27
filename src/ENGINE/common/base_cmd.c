@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -151,7 +151,7 @@ void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const ch
 
 /***
 ============
-BaseCmd_Remove [FWGS, 01.04.23]
+BaseCmd_Remove
 
 Remove base command from hashmap
 ============
@@ -167,7 +167,7 @@ void BaseCmd_Remove (base_command_type_e type, const char *name)
 
 	if (!i)
 		{
-		Con_Reportf (S_ERROR  "Couldn't find %s in buckets\n", name);
+		Con_Reportf (S_ERROR "%s: Couldn't find %s in buckets\n", __func__, name);	// [FWGS, 01.07.24]
 		return;
 		}
 

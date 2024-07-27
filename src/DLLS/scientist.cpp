@@ -1212,7 +1212,7 @@ class CSittingScientist: public CScientist // kdb: changed from public CBaseMons
 		void Spawn (void);
 		void  Precache (void);
 
-		void EXPORT SittingThink (void);
+		void HLEXPORT SittingThink (void);
 		int	Classify (void);
 		virtual int		Save (CSave& save);
 		virtual int		Restore (CRestore& restore);

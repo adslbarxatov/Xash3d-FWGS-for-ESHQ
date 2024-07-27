@@ -254,8 +254,9 @@ loc0:
 		return true;
 		}
 
+	// [FWGS, 01.07.24]
 	if ((num < hull->firstclipnode) || (num > hull->lastclipnode))
-		Host_Error ("PM_RecursiveHullCheck: bad node number %i\n", num);
+		Host_Error ("%s: bad node number %i\n", __func__, num);
 
 	// find the point distances
 	node = hull->clipnodes + num;

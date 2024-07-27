@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef COM_STRINGS_H
@@ -39,8 +39,9 @@ GNU General Public License for more details.
 // end game final default message
 #define DEFAULT_ENDGAME_MESSAGE	"The End"
 
-// path to the hash-pak that contain custom player decals
-#define CUSTOM_RES_PATH		"custom.hpk"
+// [FWGS, 01.07.24]
+/*// path to the hash-pak that contain custom player decals
+#define CUSTOM_RES_PATH		"custom.hpk"*/
 
 // path to default playermodel in GoldSrc
 #define DEFAULT_PLAYER_PATH_HALFLIFE	"models/player.mdl"
@@ -65,8 +66,9 @@ GNU General Public License for more details.
 #define DEFAULT_SAVE_EXTENSION	"x3v"
 #define EXTENDED_SAVE_EXTENSION	"xv"
 
-// fallback to this skybox
-#define DEFAULT_SKYBOX_PATH		"gfx/env/desert"
+// [FWGS, 01.07.24] fallback to this skybox
+/*#define DEFAULT_SKYBOX_PATH		"gfx/env/desert"*/
+#define DEFAULT_SKYBOX_NAME		"desert"
 
 // playlist for startup videos
 #define DEFAULT_VIDEOLIST_PATH	"media/StartupVids.txt"

@@ -190,7 +190,7 @@ void CL_ParseRestoreSoundPacket (sizebuf_t *msg)
 
 /***
 ==================
-CL_ParseServerTime
+CL_ParseServerTime [FWGS, 01.07.24]
 ==================
 ***/
 void CL_ParseServerTime (sizebuf_t *msg)
@@ -200,15 +200,18 @@ void CL_ParseServerTime (sizebuf_t *msg)
 	cl.mtime[1] = cl.mtime[0];
 	cl.mtime[0] = MSG_ReadFloat (msg);
 
-	if (cls.demoplayback == DEMO_QUAKE1)
-		return; // don't mess the time
+	// don't mess the time
+	/*if (cls.demoplayback == DEMO_QUAKE1)*/
+	if (cls.legacymode == PROTO_QUAKE)
+		return;
 
 	if (cl.maxclients == 1)
 		cl.time = cl.mtime[0];
 
 	dt = cl.time - cl.mtime[0];
 
-	if (fabs (dt) > cl_clockreset.value)	// 0.1 by default
+	// 0.1 by default
+	if (fabs (dt) > cl_clockreset.value)
 		{
 		cl.time = cl.mtime[0];
 		cl.timedelta = 0.0f;
@@ -257,9 +260,10 @@ void CL_ParseMovevars (sizebuf_t *msg)
 	if (!FBitSet (world.flags, FWORLD_WATERALPHA))
 		clgame.movevars.wateralpha = 1.0f;
 
-	// update sky if changed
+	// [FWGS, 01.07.24] update sky if changed
 	if (Q_strcmp (clgame.oldmovevars.skyName, clgame.movevars.skyName) && cl.video_prepped)
-		ref.dllFuncs.R_SetupSky (clgame.movevars.skyName);
+		R_SetupSky (clgame.movevars.skyName);
+		/*ref.dllFuncs.R_SetupSky (clgame.movevars.skyName);*/
 
 	memcpy (&clgame.oldmovevars, &clgame.movevars, sizeof (movevars_t));
 	clgame.entities->curstate.scale = clgame.movevars.waveHeight;
@@ -286,10 +290,11 @@ void CL_ParseParticles (sizebuf_t *msg)
 
 	count = MSG_ReadByte (msg);
 	color = MSG_ReadByte (msg);
-	if (count == 255) count = 1024;
+	if (count == 255)
+		count = 1024;
 	life = MSG_ReadByte (msg) * 0.125f;
 
-	if (life != 0.0f && count == 1)
+	if ((life != 0.0f) && (count == 1))
 		{
 		particle_t *p;
 
@@ -397,7 +402,8 @@ void CL_ParseStaticDecal (sizebuf_t *msg)
 
 	if (entityIndex > 0)
 		modelIndex = MSG_ReadWord (msg);
-	else modelIndex = 0;
+	else
+		modelIndex = 0;
 	flags = MSG_ReadByte (msg);
 	scale = (float)MSG_ReadWord (msg) / 4096.0f;
 
@@ -450,16 +456,19 @@ qboolean CL_RequestMissingResources (void)
 	return false;
 	}
 
+// [FWGS, 01.07.24]
 void CL_BatchResourceRequest (qboolean initialize)
 	{
 	byte		data[MAX_INIT_MSG];
 	resource_t	*p, *n;
 	sizebuf_t	msg;
+	qboolean	done_downloading = true;
 
 	MSG_Init (&msg, "Resource Batch", data, sizeof (data));
 
 	// client resources is not precached by server
-	if (initialize) CL_AddClientResources ();
+	if (initialize)
+		CL_AddClientResources ();
 
 	for (p = cl.resourcesneeded.pNext; p && (p != &cl.resourcesneeded); p = n)
 		{
@@ -484,7 +493,10 @@ void CL_BatchResourceRequest (qboolean initialize)
 			case t_model:
 			case t_eventscript:
 				if (!CL_CheckFile (&msg, p))
+					{
+					done_downloading = false;
 					break;
+					}
 				CL_MoveToOnHandList (p);
 				break;
 
@@ -493,19 +505,19 @@ void CL_BatchResourceRequest (qboolean initialize)
 				break;
 
 			case t_decal:
-				if (!HPAK_GetDataPointer (CUSTOM_RES_PATH, p, NULL, NULL))
+				/*if (!HPAK_GetDataPointer (CUSTOM_RES_PATH, p, NULL, NULL))*/
+				if (!HPAK_GetDataPointer (hpk_custom_file.string, p, NULL, NULL))
 					{
 					if (!FBitSet (p->ucFlags, RES_REQUESTED))
 						{
 						MSG_BeginClientCmd (&msg, clc_stringcmd);
-						
-						// [FWGS, 01.04.23]
 						MSG_WriteStringf (&msg, "dlfile !MD5%s", MD5_Print (p->rgucMD5_hash));
-						
 						SetBits (p->ucFlags, RES_REQUESTED);
+						done_downloading = false;
 						}
 					break;
 					}
+
 				CL_MoveToOnHandList (p);
 				break;
 
@@ -516,6 +528,7 @@ void CL_BatchResourceRequest (qboolean initialize)
 					Mem_Free (p);
 					break;
 					}
+
 				if (!CL_CheckFile (&msg, p))
 					break;
 				CL_MoveToOnHandList (p);
@@ -529,14 +542,13 @@ void CL_BatchResourceRequest (qboolean initialize)
 
 	if (cls.state != ca_disconnected)
 		{
-		if (!cl.downloadUrl[0] && !MSG_GetNumBytesWritten (&msg) && CL_PrecacheResources ())
+		/*if (!cl.downloadUrl[0] && !MSG_GetNumBytesWritten (&msg) && CL_PrecacheResources ())
 			{
 			CL_RegisterResources (&msg);
 			}
-		if (cl.downloadUrl[0] && host.downloadcount == 0 && CL_PrecacheResources ())
-			{
+		if (cl.downloadUrl[0] && host.downloadcount == 0 && CL_PrecacheResources ())*/
+		if (done_downloading && CL_PrecacheResources ())
 			CL_RegisterResources (&msg);
-			}
 
 		Netchan_CreateFragments (&cls.netchan, &msg);
 		Netchan_FragSend (&cls.netchan);
@@ -705,7 +717,7 @@ void CL_ParseCustomization (sizebuf_t *msg)
 		return;
 		}
 
-	if (cls.state == ca_active && !cl_download_ingame.value)
+	if ((cls.state == ca_active) && !cl_download_ingame.value)
 		{
 		Con_DPrintf ("Refusing new resource, cl_download_ingame set to 0\n");
 		Mem_Free (pRes);
@@ -727,7 +739,9 @@ void CL_ParseCustomization (sizebuf_t *msg)
 			}
 		}
 
-	if (HPAK_GetDataPointer (CUSTOM_RES_PATH, pRes, NULL, NULL))
+	// [FWGS, 01.07.24]
+	/*if (HPAK_GetDataPointer (CUSTOM_RES_PATH, pRes, NULL, NULL))*/
+	if (HPAK_GetDataPointer (hpk_custom_file.string, pRes, NULL, NULL))
 		{
 		qboolean	bError = false;
 
@@ -743,7 +757,8 @@ void CL_ParseCustomization (sizebuf_t *msg)
 			Con_DPrintf ("Duplicate resource ignored for local client\n");
 			}
 
-		if (bError) Con_DPrintf ("Error loading customization\n");
+		if (bError)
+			Con_DPrintf ("Error loading customization\n");
 		Mem_Free (pRes);
 		}
 	else
@@ -774,7 +789,7 @@ void CL_ParseResourceRequest (sizebuf_t *msg)
 	if (cl.servercount != arg)
 		return;
 
-	if (nStartIndex < 0 && nStartIndex > cl.num_resources)
+	if ((nStartIndex < 0) && (nStartIndex > cl.num_resources))
 		return;
 
 	MSG_BeginClientCmd (&sbuf, clc_resourcelist);
@@ -844,7 +859,7 @@ SERVER CONNECTING MESSAGES
 ***/
 /***
 ==================
-CL_ParseServerData [FWGS, 01.07.23]
+CL_ParseServerData [FWGS, 01.07.24]
 ==================
 ***/
 void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
@@ -855,7 +870,8 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 	int			i;
 	uint32_t	mapCRC;
 
-	HPAK_CheckSize (CUSTOM_RES_PATH);
+	/*HPAK_CheckSize (CUSTOM_RES_PATH);*/
+	HPAK_CheckSize (hpk_custom_file.string);
 	Con_Reportf ("%s packet received.\n", legacy ? "Legacy serverdata" : "Serverdata");
 	cls.timestart = Sys_DoubleTime ();
 
@@ -906,8 +922,6 @@ void CL_ParseServerData (sizebuf_t *msg, qboolean legacy)
 
 	background = MSG_ReadOneBit (msg);	
 	Q_strncpy (gamefolder, MSG_ReadString (msg), sizeof (gamefolder));
-	
-	// [FWGS, 01.01.24]
 	Host_ValidateEngineFeatures (MSG_ReadDword (msg));
 
 	if (!legacy)
@@ -1120,14 +1134,15 @@ void CL_ParseClientData (sizebuf_t *msg)
 		frame->latency = latency;
 
 		// negative latency makes no sense.  Huge latency is a problem.
-		if (latency >= 0.0f && latency <= 2.0f)
+		if ((latency >= 0.0f) && (latency <= 2.0f))
 			{
 			// drift the average latency towards the observed latency
 			// if round trip was fastest so far, just use that for latency value
 			// otherwise, move in 1 ms steps toward observed channel latency.
 			if (latency < cls.latency)
 				cls.latency = latency;
-			else cls.latency += 0.001f; // drift up, so corrections are needed
+			else
+				cls.latency += 0.001f; // drift up, so corrections are needed
 			}
 		}
 	else
@@ -1215,7 +1230,7 @@ void CL_ParseBaseline (sizebuf_t *msg, qboolean legacy)
 		player = CL_IsPlayerIndex (newnum);
 
 		if (newnum >= clgame.maxEntities)
-			Host_Error ("CL_AllocEdict: no free edicts\n");
+			Host_Error ("%s: no free edicts\n", __func__);	// [FWGS, 01.07.24]
 
 		ent = CL_EDICT_NUM (newnum);
 		memset (&ent->prevstate, 0, sizeof (ent->prevstate));
@@ -1373,7 +1388,7 @@ void CL_RegisterUserMessage (sizebuf_t *msg)
 
 /***
 ================
-CL_UpdateUserinfo [FWGS, 01.03.24]
+CL_UpdateUserinfo [FWGS, 01.07.24]
 
 collect userinfo from all players
 ================
@@ -1387,7 +1402,7 @@ void CL_UpdateUserinfo (sizebuf_t *msg, qboolean legacy)
 	slot = MSG_ReadUBitLong (msg, MAX_CLIENT_BITS);
 
 	if (slot >= MAX_CLIENTS)
-		Host_Error ("CL_ParseServerMessage: svc_updateuserinfo >= MAX_CLIENTS\n");
+		Host_Error ("%s: svc_updateuserinfo >= MAX_CLIENTS\n", __func__);
 
 	player = &cl.players[slot];
 
@@ -1419,7 +1434,7 @@ void CL_UpdateUserinfo (sizebuf_t *msg, qboolean legacy)
 		memset (player, 0, sizeof (*player));
 		}
 
-	// [FWGS, 01.03.24] in GoldSrc userinfo might be empty but userid is always sent as separate value
+	// In GoldSrc userinfo might be empty but userid is always sent as separate value
 	// thus avoids clean up even after client disconnect
 	player->userid = id;
 	}
@@ -1501,7 +1516,7 @@ void CL_UpdateUserPings (sizebuf_t *msg)
 		slot = MSG_ReadUBitLong (msg, MAX_CLIENT_BITS);
 
 		if (slot >= MAX_CLIENTS)
-			Host_Error ("CL_ParseServerMessage: svc_pings > MAX_CLIENTS\n");
+			Host_Error ("%s: svc_pings > MAX_CLIENTS\n", __func__);	// [FWGS, 01.07.24]
 
 		player = &cl.players[slot];
 		player->ping = MSG_ReadUBitLong (msg, 12);
@@ -1628,8 +1643,8 @@ Clean up and move to next part of sequence
 ***/
 void CL_RegisterResources (sizebuf_t *msg)
 	{
-	model_t *mod;
-	int	i;
+	model_t	*mod;
+	int		i;
 
 	if (cls.dl.custom || ((cls.signon == SIGNONS) && (cls.state == ca_active)))
 		{
@@ -1662,6 +1677,9 @@ void CL_RegisterResources (sizebuf_t *msg)
 
 			CL_ClearWorld ();
 
+			// [FWGS, 01.07.24] load skybox
+			R_SetupSky (clgame.movevars.skyName);
+
 			// [FWGS, 01.01.24] tell rendering system we have a new set of models
 			ref.dllFuncs.R_NewMap ();
 
@@ -1673,7 +1691,7 @@ void CL_RegisterResources (sizebuf_t *msg)
 			// release unused SpriteTextures
 			for (i = 1, mod = clgame.sprites; i < MAX_CLIENT_SPRITES; i++, mod++)
 				{
-				if (mod->needload == NL_UNREFERENCED && COM_CheckString (mod->name))
+				if ((mod->needload == NL_UNREFERENCED) && COM_CheckString (mod->name))
 					Mod_FreeModel (mod);
 				}
 
@@ -1739,7 +1757,7 @@ static void CL_ParseConsistencyInfo (sizebuf_t *msg)
 			}
 
 		if (cl.num_consistency >= MAX_MODELS)
-			Host_Error ("CL_CheckConsistency: MAX_MODELS limit exceeded (%d)\n", MAX_MODELS);
+			Host_Error ("%s: MAX_MODELS limit exceeded (%d)\n", __func__, MAX_MODELS);	// [FWGS, 01.07.24]
 
 		pc = &cl.consistency_list[cl.num_consistency];
 		cl.num_consistency++;
@@ -1856,12 +1874,15 @@ void CL_ParseResLocation (sizebuf_t *msg)
 		return;
 		}
 
+	// [FWGS, 01.07.24]
+	/*while ((data = COM_ParseFile (data, token, sizeof (token))))*/
 	while ((data = COM_ParseFile (data, token, sizeof (token))))
 		{
 		Con_Reportf ("Adding %s as download location\n", token);
 
-		if (!cl.downloadUrl[0])
-			Q_strncpy (cl.downloadUrl, token, sizeof (token));
+		/*if (!cl.downloadUrl[0])
+			Q_strncpy (cl.downloadUrl, token, sizeof (token));*/
+		cl.http_download = true;
 
 		HTTP_AddCustomServer (token);
 		}
@@ -1895,12 +1916,7 @@ void CL_ParseHLTV (sizebuf_t *msg)
 
 		case HLTV_LISTEN:
 			cls.signon = SIGNONS;
-#if 1
 			MSG_ReadString (msg);
-#else
-			NET_StringToAdr (MSG_ReadString (msg), &cls.hltv_listen_address);
-			NET_JoinGroup (cls.netchan.sock, cls.hltv_listen_address);
-#endif
 			SCR_EndLoadingPlaque ();
 			break;
 
@@ -2003,13 +2019,14 @@ static void CL_ParseScreenFade (sizebuf_t *msg)
 
 /***
 ==============
-CL_ParseCvarValue
+CL_ParseCvarValue [FWGS, 01.07.24]
 
 Find the client cvar value
 and sent it back to the server
 ==============
 ***/
-void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext)
+/*void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext)*/
+void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext, const connprotocol_t proto)
 	{
 	const char	*cvarName, *response;
 	convar_t	*cvar;
@@ -2032,10 +2049,18 @@ void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext)
 		else
 			response = cvar->string;
 		}
+	/*else
+		{
+		response = "Bad CVAR request";*/
+	else if (proto == PROTO_LEGACY)
+		{
+		response = "Not Found";
+		}
 	else
 		{
 		response = "Bad CVAR request";
 		}
+		/*}*/
 
 	if (ext)
 		{
@@ -2152,7 +2177,7 @@ void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 	if ((svc_num <= svc_lastmsg) || (svc_num > (MAX_USER_MESSAGES + svc_lastmsg)))
 		{
 		// out or range
-		Host_Error ("CL_ParseUserMessage: illegible server message %d\n", svc_num);
+		Host_Error ("%s: illegible server message %d\n", __func__, svc_num);	// [FWGS, 01.07.24]
 		return;
 		}
 
@@ -2164,7 +2189,7 @@ void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 		}
 
 	if (i == MAX_USER_MESSAGES) // probably unregistered
-		Host_Error ("CL_ParseUserMessage: illegible server message %d\n", svc_num);
+		Host_Error ("%s: illegible server message %d\n", __func__, svc_num);	// [FWGS, 01.07.24]
 
 	// NOTE: some user messages handled into engine
 	if (!Q_strcmp (clgame.msg[i].name, "ScreenShake"))
@@ -2189,9 +2214,12 @@ void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 			iSize = MSG_ReadWord (msg);
 		}
 
+	// [FWGS, 01.07.24]
 	if (iSize >= MAX_USERMSG_LENGTH)
 		{
-		Msg ("WTF??? %d %d\n", i, svc_num);
+		/*Msg ("WTF??? %d %d\n", i, svc_num);*/
+		Con_Reportf ("%s: user message %s size limit hit (%d > %d)!\n", __func__,
+			clgame.msg[i].name, iSize, MAX_USERMSG_LENGTH);
 		return;
 		}
 
@@ -2214,7 +2242,8 @@ void CL_ParseUserMessage (sizebuf_t *msg, int svc_num)
 		}
 	else
 		{
-		Con_DPrintf (S_ERROR "UserMsg: No pfn %s %d\n", clgame.msg[i].name, clgame.msg[i].number);
+		// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: No pfn %s %d\n", __func__, clgame.msg[i].name, clgame.msg[i].number);
 		clgame.msg[i].func = CL_UserMsgStub; // throw warning only once
 		}
 	}
@@ -2226,19 +2255,20 @@ ACTION MESSAGES
 ***/
 /***
 =====================
-CL_ParseServerMessage
+CL_ParseServerMessage [FWGS, 01.07.24]
 
 dispatch messages
 =====================
 ***/
-void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
+/*void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)*/
+void CL_ParseServerMessage (sizebuf_t *msg)
 	{
 	size_t		bufStart, playerbytes;
 	int			cmd, param1, param2;
 	int			old_background;
 	const char	*s;
 
-	cls.starting_count = MSG_GetNumBytesRead (msg);	// updates each frame
+	/*cls.starting_count = MSG_GetNumBytesRead (msg);	// updates each frame
 	CL_Parse_Debug (true);			// begin parsing
 
 	if (normal_message)
@@ -2253,14 +2283,14 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 			{
 			CL_ResetFrame (&cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK]);
 			}
-		}
+		}*/
 
 	// parse the message
 	while (1)
 		{
 		if (MSG_CheckOverflow (msg))
 			{
-			Host_Error ("CL_ParseServerMessage: overflow!\n");
+			Host_Error ("%s: overflow!\n", __func__);
 			return;
 			}
 
@@ -2300,7 +2330,6 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 			case svc_changing:
 				old_background = cl.background;
 
-				// [FWGS, 01.07.23]
 				if (MSG_ReadOneBit (msg))
 					{
 					int maxclients = cl.maxclients;
@@ -2360,7 +2389,6 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 				Con_Printf ("%s", MSG_ReadString (msg));
 				break;
 
-			// [FWGS, 01.03.24]
 			case svc_stufftext:
 				s = MSG_ReadString (msg);
 				if (cl_trace_stufftext.value)
@@ -2383,8 +2411,6 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 
 			case svc_serverdata:
 				Cbuf_Execute (); // make sure any stuffed commands are done
-
-				// [FWGS, 01.04.23]
 				CL_ParseServerData (msg, false);
 				break;
 
@@ -2393,7 +2419,6 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 				break;
 
 			case svc_updateuserinfo:
-				// [FWGS, 01.04.23]
 				CL_UpdateUserinfo (msg, false);
 				break;
 
@@ -2433,7 +2458,6 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 				break;
 
 			case svc_spawnbaseline:
-				// [FWGS, 01.04.23]
 				CL_ParseBaseline (msg, false);
 				break;
 
@@ -2568,11 +2592,13 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 				break;
 
 			case svc_querycvarvalue:
-				CL_ParseCvarValue (msg, false);
+				/*CL_ParseCvarValue (msg, false);*/
+				CL_ParseCvarValue (msg, false, PROTO_CURRENT);
 				break;
 
 			case svc_querycvarvalue2:
-				CL_ParseCvarValue (msg, true);
+				/*CL_ParseCvarValue (msg, true);*/
+				CL_ParseCvarValue (msg, true, PROTO_CURRENT);
 				break;
 
 			case svc_exec:
@@ -2586,7 +2612,7 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 			}
 		}
 
-	cl.frames[cl.parsecountmod].graphdata.msgbytes += MSG_GetNumBytesRead (msg) - cls.starting_count;
+	/*cl.frames[cl.parsecountmod].graphdata.msgbytes += MSG_GetNumBytesRead (msg) - cls.starting_count;
 	CL_Parse_Debug (false); // done
 
 	// we don't know if it is ok to save a demo message until
@@ -2601,10 +2627,9 @@ void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message)
 			{
 			CL_WriteDemoMessage (true, cls.starting_count, msg);
 			}
-		}
+		}*/
 	}
 
 // [FWGS, 01.04.23] удалены CL_LegacyParseBaseline, CL_ParseLegacyServerData
 
 // [FWGS, 01.07.23] перенесены в cl_parse_48.c
-

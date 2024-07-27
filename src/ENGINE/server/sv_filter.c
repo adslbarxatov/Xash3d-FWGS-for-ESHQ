@@ -91,13 +91,12 @@ qboolean SV_CheckID (const char *id)
 
 // [FWGS, 01.04.23] удалена SV_CheckIP
 
-// [FWGS, 01.05.23]
 static void SV_BanID_f (void)
 	{
-	float time = Q_atof (Cmd_Argv (1));
-	const char *id = Cmd_Argv (2);
-	sv_client_t *cl = NULL;
-	cidfilter_t *filter;
+	float		time = Q_atof (Cmd_Argv (1));
+	const char	*id = Cmd_Argv (2);
+	sv_client_t	*cl = NULL;
+	cidfilter_t	*filter;
 
 	if (time)
 		time = host.realtime + time * 60.0f;
@@ -131,7 +130,9 @@ static void SV_BanID_f (void)
 
 		len = Q_strlen (id);
 
-		for (i = 0; i < sv_maxclients.value; i++)
+		// [FWGS, 01.07.24]
+		/*for (i = 0; i < sv_maxclients.value; i++)*/
+		for (i = 0; i < svs.maxclients; i++)
 			{
 			if (FBitSet (svs.clients[i].flags, FCL_FAKECLIENT))
 				continue;
@@ -194,7 +195,9 @@ static void SV_RemoveID_f (void)
 		{
 		int num = Q_atoi (id + 1);
 
-		if ((num >= sv_maxclients.value) || (num < 0))
+		// [FWGS, 01.07.24]
+		/*if ((num >= sv_maxclients.value) || (num < 0))*/
+		if ((num >= svs.maxclients) || (num < 0))
 			return;
 
 		id = Info_ValueForKey (svs.clients[num].useragent, "uuid");

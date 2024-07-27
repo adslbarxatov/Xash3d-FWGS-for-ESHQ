@@ -16,10 +16,10 @@ GNU General Public License for more details.
 #include "common.h"
 #include "hpak.h"
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.07.24]
 #define HPAK_MAX_ENTRIES	0x8000
-#define HPAK_ENTRY_MIN_SIZE	(512)
-#define HPAK_ENTRY_MAX_SIZE	(128 * 1024)
+/*#define HPAK_ENTRY_MIN_SIZE	(512)
+#define HPAK_ENTRY_MAX_SIZE	(128 * 1024)*/
 
 typedef struct hash_pack_queue_s
 	{
@@ -30,11 +30,22 @@ typedef struct hash_pack_queue_s
 	struct hash_pack_queue_s	*next;
 	} hash_pack_queue_t;
 
-// [FWGS, 01.05.23]
-static CVAR_DEFINE_AUTO (hpk_maxsize, "4", FCVAR_ARCHIVE, "set limit by size for all HPK-files ( 0 - unlimited )");
+// [FWGS, 01.07.24]
+/*static CVAR_DEFINE_AUTO (hpk_maxsize, "4", FCVAR_ARCHIVE, "set limit by size for all HPK-files ( 0 - unlimited )");*/
+static CVAR_DEFINE (hpk_maxsize, "hpk_max_size", "64", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"set limit by size for all HPK-files in megabytes (0 - unlimited)");
+CVAR_DEFINE_AUTO (hpk_custom_file, "custom.hpk", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"set custom path for players customizations cache file");
+
 static hash_pack_queue_t * gp_hpak_queue = NULL;
 static hpak_header_t hash_pack_header;
 static hpak_info_t hash_pack_info;
+
+// [FWGS, 01.07.24]
+static void HPAK_MaxSize_f (void)
+	{
+	Con_Printf (S_ERROR "hpk_maxsize is deprecated, use hpk_max_size\n");
+	}
 
 static const char *HPAK_TypeFromIndex (int type)
 	{
@@ -86,7 +97,7 @@ static void HPAK_AddToQueue (const char *name, resource_t *pResource, void *data
 	else if (f != NULL)
 		FS_Read (f, p->data, p->size);
 	else
-		Host_Error ("HPAK_AddToQueue: data == NULL.\n");
+		Host_Error ("%s: data == NULL.\n", __func__);	// [FWGS, 01.07.24]
 
 	p->next = gp_hpak_queue;
 	gp_hpak_queue = p;
@@ -104,6 +115,7 @@ void HPAK_FlushHostQueue (void)
 		Mem_Free (p->data);
 		Mem_Free (p);
 		}
+
 	gp_hpak_queue = NULL;
 	}
 
@@ -126,11 +138,10 @@ static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *p
 
 	Con_Printf ("creating HPAK %s.\n", pakname);
 
-	// [FWGS, 01.04.23]
 	fout = FS_Open (pakname, "wb", true);
 	if (!fout)
 		{
-		Con_DPrintf (S_ERROR "HPAK_CreatePak: can't write %s.\n", pakname);
+		Con_DPrintf (S_ERROR "%s: can't write %s.\n", __func__, pakname);	// [FWGS, 01.07.24]
 		return;
 		}
 
@@ -159,7 +170,7 @@ static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *p
 
 	if (memcmp (md5, pResource->rgucMD5_hash, 16))
 		{
-		Con_DPrintf (S_ERROR "HPAK_CreatePak: bad checksum for %s. Ignored\n", pakname);
+		Con_DPrintf (S_ERROR "%s: bad checksum for %s. Ignored\n", __func__, pakname);	// [FWGS, 01.07.24]
 		return;
 		}
 
@@ -262,9 +273,10 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 
 	MD5Final (md5, &ctx);
 
+	// [FWGS, 01.07.24]
 	if (memcmp (md5, pResource->rgucMD5_hash, 16))
 		{
-		Con_DPrintf (S_ERROR "HPAK_AddLump: bad checksum for %s. Ignored\n", pResource->szFileName);
+		Con_DPrintf (S_ERROR "%s: bad checksum for %s. Ignored\n", __func__, pResource->szFileName);
 		return;
 		}
 
@@ -289,11 +301,11 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	Q_strncpy (dstname, srcname, sizeof (dstname));
 	COM_ReplaceExtension (dstname, ".hp2", sizeof (dstname));	// [FWGS, 01.05.23]
 
-	// [FWGS, 01.04.23]
+	// [FWGS, 01.07.24]
 	file_dst = FS_Open (dstname, "wb", true);
 	if (!file_dst)
 		{
-		Con_DPrintf (S_ERROR "HPAK_AddLump: couldn't open %s.\n", srcname);
+		Con_DPrintf (S_ERROR "%s: couldn't open %s.\n", __func__, srcname);
 		FS_Close (file_src);
 		return;
 		}
@@ -303,8 +315,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 
 	if (hash_pack_header.version != IDHPAK_VERSION)
 		{
-		// we don't check the HPAK bit for some reason.
-		Con_DPrintf (S_ERROR "HPAK_AddLump: %s does not have a valid header.\n", srcname);
+		// [FWGS, 01.07.24] we don't check the HPAK bit for some reason
+		Con_DPrintf (S_ERROR "%s: %s does not have a valid header.\n", __func__, srcname);
 		FS_Close (file_src);
 		FS_Close (file_dst);
 		return;
@@ -317,9 +329,10 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	FS_Seek (file_src, hash_pack_header.infotableofs, SEEK_SET);
 	FS_Read (file_src, &srcpak.count, sizeof (srcpak.count));
 
+	// [FWGS, 01.07.24]
 	if ((srcpak.count < 1) || (srcpak.count > HPAK_MAX_ENTRIES))
 		{
-		Con_DPrintf (S_ERROR "HPAK_AddLump: %s contain too many lumps.\n", srcname);
+		Con_DPrintf (S_ERROR "%s: %s contain too many lumps.\n", __func__, srcname);
 		FS_Close (file_src);
 		FS_Close (file_dst);
 		return;
@@ -432,7 +445,8 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 	FS_Read (f, &hdr, sizeof (hdr));
 	if ((hdr.ident != IDHPAKHEADER) || (hdr.version != IDHPAK_VERSION))
 		{
-		Con_DPrintf (S_ERROR "HPAK_ValidatePak: %s does not have a valid HPAK header.\n", pakname);
+		// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: %s does not have a valid HPAK header.\n", __func__, pakname);
 		FS_Close (f);
 
 		if (delete)
@@ -445,7 +459,8 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 
 	if ((num_lumps < 1) || (num_lumps > HPAK_MAX_ENTRIES))
 		{
-		Con_DPrintf (S_ERROR "HPAK_ValidatePak: %s has too many lumps %u.\n", pakname, num_lumps);
+		// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: %s has too many lumps %u.\n", __func__, pakname, num_lumps);
 		FS_Close (f);
 
 		if (delete)
@@ -466,8 +481,8 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 		{
 		if ((dataDir[i].disksize < HPAK_ENTRY_MIN_SIZE) || (dataDir[i].disksize > HPAK_ENTRY_MAX_SIZE))
 			{
-			// odd max size
-			Con_DPrintf (S_ERROR "HPAK_ValidatePak: lump %i has invalid size %s\n", i, 
+			// [FWGS, 01.07.24] odd max size
+			Con_DPrintf (S_ERROR "%s: lump %i has invalid size %s\n", __func__, i,
 				Q_pretifymem (dataDir[i].disksize, 2));
 			Mem_Free (dataDir);
 			FS_Close (f);
@@ -498,7 +513,8 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 			{
 			if (quiet)
 				{
-				Con_DPrintf (S_ERROR "HPAK_ValidatePak: %s has invalid checksum.\n", pakname);
+				// [FWGS, 01.07.24]
+				Con_DPrintf (S_ERROR "%s: %s has invalid checksum.\n", __func__, pakname);
 				Mem_Free (dataPak);
 				Mem_Free (dataDir);
 				FS_Close (f);
@@ -542,12 +558,13 @@ void HPAK_CheckIntegrity (const char *filename)
 	HPAK_Validate (pakname, true, true);	// [FWGS, 01.05.23]
 	}
 
+// [FWGS, 01.07.24]
 void HPAK_CheckSize (const char *filename)
 	{
 	string	pakname;
 	int	maxsize;
 
-	maxsize = hpk_maxsize.value;	// [FWGS, 01.05.23]
+	maxsize = hpk_maxsize.value;
 	if (maxsize <= 0)
 		return;
 
@@ -555,12 +572,11 @@ void HPAK_CheckSize (const char *filename)
 		return;
 
 	Q_strncpy (pakname, filename, sizeof (pakname));
-	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));	// [FWGS, 01.05.23]
+	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 
-	// [FWGS, 01.04.23]
-	if (FS_FileSize (pakname, false) > (maxsize * 1048576))
+	/*if (FS_FileSize (pakname, false) > (maxsize * 1048576))*/
+	if (FS_FileSize (pakname, false) > (maxsize * 1024 * 1024))
 		{
-		// [FWGS, 01.05.23]
 		Con_Printf ("Server: Size of %s > %f MB, deleting.\n", filename, hpk_maxsize.value);
 		Log_Printf ("Server: Size of %s > %f MB, deleting.\n", filename, hpk_maxsize.value);
 		FS_Delete (filename);
@@ -569,12 +585,12 @@ void HPAK_CheckSize (const char *filename)
 
 qboolean HPAK_ResourceForHash (const char *filename, byte *hash, resource_t *pResource)
 	{
-	hpak_info_t	directory;
+	hpak_info_t		directory;
 	hpak_header_t	header;
-	string		pakname;
+	string			pakname;
 	qboolean		bFound;
-	file_t *f;
-	hash_pack_queue_t *p;
+	file_t			*f;
+	hash_pack_queue_t	*p;
 
 	if (!COM_CheckString (filename))
 		return false;
@@ -634,7 +650,7 @@ static qboolean HPAK_ResourceForIndex (const char *filename, int index, resource
 	hpak_header_t	header;
 	hpak_info_t	directory;
 	string		pakname;
-	file_t *f;
+	file_t		*f;
 
 	if (!COM_CheckString (filename))
 		return false;
@@ -693,14 +709,14 @@ static qboolean HPAK_ResourceForIndex (const char *filename, int index, resource
 
 qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte **buffer, int *bufsize)
 	{
-	byte *tmpbuf;
+	byte		*tmpbuf;
 	string		pakname;
 	hpak_header_t	header;
 	hpak_info_t	directory;
-	hpak_lump_t *entry;
-	hash_pack_queue_t *p;
-	file_t *f;
-	int		i;
+	hpak_lump_t	*entry;
+	hash_pack_queue_t	*p;
+	file_t		*f;
+	int			i;
 
 	if (!COM_CheckString (filename))
 		return false;
@@ -754,9 +770,10 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 	FS_Seek (f, header.infotableofs, SEEK_SET);
 	FS_Read (f, &directory.count, sizeof (directory.count));
 
+	// [FWGS, 01.07.24]
 	if ((directory.count < 1) || (directory.count > HPAK_MAX_ENTRIES))
 		{
-		Con_DPrintf (S_ERROR "HPAK_GetDataPointer: %s has too many lumps %u.\n", filename, directory.count);
+		Con_DPrintf (S_ERROR "%s: %s has too many lumps %u.\n", __func__, filename, directory.count);
 		FS_Close (f);
 		return false;
 		}
@@ -768,8 +785,7 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 		{
 		entry = &directory.entries[i];
 
-		if (entry->filepos > 0 &&
-			entry->disksize > 0 &&
+		if ((entry->filepos > 0) && (entry->disksize > 0) &&
 			!memcmp (entry->resource.rgucMD5_hash, pResource->rgucMD5_hash, 16))
 			{
 			FS_Seek (f, entry->filepos, SEEK_SET);
@@ -1144,13 +1160,17 @@ static void HPAK_Validate_f (void)
 	HPAK_Validate (Cmd_Argv (1), false, false);	// [FWGS, 01.05.23]
 	}
 
+// [FWGS, 01.07.24]
 void HPAK_Init (void)
 	{
 	Cmd_AddRestrictedCommand ("hpklist", HPAK_List_f, "list all files in specified HPK-file");
 	Cmd_AddRestrictedCommand ("hpkremove", HPAK_Remove_f, "remove specified file from HPK-file");
 	Cmd_AddRestrictedCommand ("hpkval", HPAK_Validate_f, "validate specified HPK-file");
 	Cmd_AddRestrictedCommand ("hpkextract", HPAK_Extract_f, "extract all lumps from specified HPK-file");
-	Cvar_RegisterVariable (&hpk_maxsize);	// [FWGS, 01.05.23]
+	Cmd_AddRestrictedCommand ("hpk_maxsize", HPAK_MaxSize_f, "deprecation notice for hpk_maxsize");
+
+	Cvar_RegisterVariable (&hpk_maxsize);
+	Cvar_RegisterVariable (&hpk_custom_file);
 
 	gp_hpak_queue = NULL;
 	}

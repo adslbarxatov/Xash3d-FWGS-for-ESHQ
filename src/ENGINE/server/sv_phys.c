@@ -1767,19 +1767,24 @@ static void SV_Physics_Entity (edict_t *ent)
 		case MOVETYPE_NONE:
 			SV_Physics_None (ent);
 			break;
+
 		case MOVETYPE_NOCLIP:
 			SV_Physics_Noclip (ent);
 			break;
+
 		case MOVETYPE_FOLLOW:
 			SV_Physics_Follow (ent);
 			break;
+
 		case MOVETYPE_COMPOUND:
 			SV_Physics_Compound (ent);
 			break;
+
 		case MOVETYPE_STEP:
 		case MOVETYPE_PUSHSTEP:
 			SV_Physics_Step (ent);
 			break;
+
 		case MOVETYPE_FLY:
 		case MOVETYPE_TOSS:
 		case MOVETYPE_BOUNCE:
@@ -1787,11 +1792,14 @@ static void SV_Physics_Entity (edict_t *ent)
 		case MOVETYPE_BOUNCEMISSILE:
 			SV_Physics_Toss (ent);
 			break;
+
 		case MOVETYPE_PUSH:
 			SV_Physics_Pusher (ent);
 			break;
+
 		case MOVETYPE_WALK:
-			Host_Error ("SV_Physics: bad movetype %i\n", ent->v.movetype);
+			// [FWGS, 01.07.24]
+			Host_Error ("%s: bad movetype %i\n", __func__, ent->v.movetype);
 			break;
 		}
 
@@ -1970,7 +1978,7 @@ void SV_DrawOrthoTriangles (void)
 
 /***
 ==================
-SV_GetLightStyle [FWGS, 01.02.24]
+SV_GetLightStyle [FWGS, 01.07.24]
 
 needs to get correct working SV_LightPoint
 ==================
@@ -1980,7 +1988,7 @@ static const char *GAME_EXPORT SV_GetLightStyle (int style)
 	if (style < 0)
 		style = 0;
 	if (style >= MAX_LIGHTSTYLES)
-		Host_Error ("SV_GetLightStyle: style: %i >= %d", style, MAX_LIGHTSTYLES);
+		Host_Error ("%s: style: %i >= %d", __func__, style, MAX_LIGHTSTYLES);
 
 	return sv.lightstyles[style].pattern;
 	}
@@ -2064,7 +2072,7 @@ static trace_t GAME_EXPORT SV_MoveNormal (const vec3_t start, vec3_t mins, vec3_
 
 /***
 =============
-pfnWriteBytes [FWGS, 01.07.23]
+pfnWriteBytes [FWGS, 01.07.24]
 =============
 ***/
 static void GAME_EXPORT pfnWriteBytes (const byte *bytes, int count)
@@ -2072,7 +2080,7 @@ static void GAME_EXPORT pfnWriteBytes (const byte *bytes, int count)
 	MSG_WriteBytes (&sv.multicast, bytes, count);
 
 	if (svgame.msg_trace)
-		Con_Printf ("\t^3%s( %i )\n", __FUNCTION__, count);
+		Con_Printf ("\t^3%s( %i )\n", __func__, count);
 
 	svgame.msg_realsize += count;
 	}
@@ -2159,27 +2167,26 @@ static server_physics_api_t gPhysicsAPI =
 
 /***
 ===============
-SV_InitPhysicsAPI [FWGS, 01.01.24]
+SV_InitPhysicsAPI [FWGS, 01.07.24]
 
 Initialize server external physics
 ===============
 ***/
 qboolean SV_InitPhysicsAPI (void)
 	{
-	static PHYSICAPI	pPhysIface;
+	static PHYSICAPI pPhysIface;
 
 	pPhysIface = (PHYSICAPI)COM_GetProcAddress (svgame.hInstance, "Server_GetPhysicsInterface");
 	if (pPhysIface)
 		{
 		if (pPhysIface (SV_PHYSICS_INTERFACE_VERSION, &gPhysicsAPI, &svgame.physFuncs))
 			{
-			Con_Reportf ("SV_LoadProgs: ^2initailized extended PhysicAPI ^7ver. %i\n", SV_PHYSICS_INTERFACE_VERSION);
+			Con_Reportf ("%s: ^2initailized extended PhysicAPI ^7ver. %i\n",
+				__func__, SV_PHYSICS_INTERFACE_VERSION);
 
 			// grab common engine features (it will be shared across the network)
 			if (svgame.physFuncs.SV_CheckFeatures != NULL)
-				{
 				Host_ValidateEngineFeatures (svgame.physFuncs.SV_CheckFeatures ());
-				}
 
 			return true;
 			}
@@ -2196,4 +2203,3 @@ qboolean SV_InitPhysicsAPI (void)
 	Host_ValidateEngineFeatures (0);
 	return true;
 	}
-

@@ -37,14 +37,22 @@ GNU General Public License for more details
 // 3. [FWGS, 01.04.23] SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
 // 4. [FWGS, 01.05.23] R_StudioEstimateFrame now has time argument
 // 5. [FWGS, 01.01.24] Removed GetSomethingByIndex calls, renderers are supposed to cache pointer values
-// Removed previously unused calls
-// Simplified remapping calls
-// GetRefAPI is now expected to return REF_API_VERSION
+// - Removed previously unused calls
+// - Simplified remapping calls
+// - GetRefAPI is now expected to return REF_API_VERSION
 // 6. [FWGS, 01.01.24] Removed timing from ref_globals_t.
-// Renderers are supposed to migrate to ref_client_t/ref_host_t using PARM_GET_CLIENT_PTR and PARM_GET_HOST_PTR
-// Removed functions to get internal engine structions. Use PARM_GET_*_PTR instead.
+// - Renderers are supposed to migrate to ref_client_t/ref_host_t using PARM_GET_CLIENT_PTR and PARM_GET_HOST_PTR
+// - Removed functions to get internal engine structions. Use PARM_GET_*_PTR instead.
 // 7. [FWGS, 01.02.24] Gamma fixes
-#define REF_API_VERSION 7
+// 8. [FWGS, 01.07.24] Moved common code to engine.
+// - Removed REF_{SOLID,ALPHA}SKY_TEXTURE. Replaced R_InitSkyClouds by R_SetSkyCloudsTextures.
+// - Skybox loading is now done at engine side.
+// - R_SetupSky callback accepts a pointer to an array of 6 integers representing box side textures.
+// - Restored texture replacement from old Xash3D.
+// - PARM_SKY_SPHERE and PARM_SURF_SAMPLESIZE are now handled at engine side.
+// - VGUI rendering code is mostly moved back to engine.
+// - Implemented texture replacement
+#define REF_API_VERSION 8
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP|TF_ALLOW_NEAREST)
@@ -80,7 +88,10 @@ GNU General Public License for more details
 
 // [FWGS, 01.04.23] special rendermode for screenfade modulate
 // (probably will be expanded at some point)
-#define kRenderScreenFadeModulate 0x1000
+#define kRenderScreenFadeModulate	0x1000
+
+// [FWGS, 01.07.24] a box can only have 6 sides
+#define SKYBOX_MAX_SIDES		6
 
 typedef enum
 	{
@@ -155,29 +166,29 @@ enum // r_speeds counters
 	RS_ACTIVE_TENTS = 0,
 	};
 
-// refdll must expose this default textures using this names
+// [FWGS, 01.07.24] refdll must expose this default textures using this names
 #define REF_DEFAULT_TEXTURE  "*default"
 #define REF_GRAY_TEXTURE     "*gray"
 #define REF_WHITE_TEXTURE    "*white"
 #define REF_BLACK_TEXTURE    "*black"
 #define REF_PARTICLE_TEXTURE "*particle"
-#define REF_SOLIDSKY_TEXTURE "solid_sky"
-#define REF_ALPHASKY_TEXTURE "alpha_sky"
+/*#define REF_SOLIDSKY_TEXTURE "solid_sky"
+#define REF_ALPHASKY_TEXTURE "alpha_sky"*/
 
 typedef enum connstate_e
 	{
-	ca_disconnected = 0,// not talking to a server
-	ca_connecting,	// sending request packets to the server
-	ca_connected,	// netchan_t established, waiting for svc_serverdata
-	ca_validate,	// download resources, validating, auth on server
-	ca_active,	// game views should be displayed
-	ca_cinematic,	// playing a cinematic, not connected to a server
+	ca_disconnected = 0,	// not talking to a server
+	ca_connecting,			// sending request packets to the server
+	ca_connected,			// netchan_t established, waiting for svc_serverdata
+	ca_validate,			// download resources, validating, auth on server
+	ca_active,				// game views should be displayed
+	ca_cinematic,			// playing a cinematic, not connected to a server
 	} connstate_t;
 
 enum ref_defaultsprite_e
 	{
-	REF_DOT_SPRITE, // cl_sprite_dot
-	REF_CHROME_SPRITE // cl_sprite_shell
+	REF_DOT_SPRITE,		// cl_sprite_dot
+	REF_CHROME_SPRITE	// cl_sprite_shell
 	};
 
 // the order of first three is important!
@@ -185,8 +196,8 @@ enum ref_defaultsprite_e
 enum ref_graphic_apis_e
 	{
 	REF_SOFTWARE,	// hypothetical: just make a surface to draw on, in software
-	REF_GL,		// create GL context
-	REF_D3D,	// Direct3D
+	REF_GL,			// create GL context
+	REF_D3D,		// Direct3D
 	};
 
 typedef enum
@@ -253,12 +264,12 @@ typedef enum ref_screen_rotation_e
 
 typedef struct remap_info_s
 	{
-	unsigned short	textures[MAX_SKINS];// alias textures
-	struct mstudiotex_s *ptexture;	// array of textures with local copy of remapped textures
-	short		numtextures;	// textures count
-	short		topcolor;		// cached value
-	short		bottomcolor;	// cached value
-	model_t *model;		// for catch model changes
+	unsigned short		textures[MAX_SKINS];	// alias textures
+	struct mstudiotex_s	*ptexture;	// array of textures with local copy of remapped textures
+	short		numtextures;		// textures count
+	short		topcolor;			// cached value
+	short		bottomcolor;		// cached value
+	model_t		*model;				// for catch model changes
 	} remap_info_t;
 
 typedef struct convar_s convar_t;	// [FWGS, 01.07.23]
@@ -272,24 +283,24 @@ typedef enum
 	PARM_DEV_OVERVIEW = -1,
 	PARM_THIRDPERSON = -2,
 	PARM_QUAKE_COMPATIBLE = -3,
-	PARM_GET_CLIENT_PTR = -4, // ref_client_t
-	PARM_GET_HOST_PTR = -5, // ref_host_t
-	PARM_CONNSTATE = -6, // cls.state
-	PARM_PLAYING_DEMO = -7, // cls.demoplayback
-	PARM_WATER_LEVEL = -8, // cl.local.water_level
-	PARM_GET_WORLD_PTR = -9, // world
-	PARM_LOCAL_HEALTH = -10, // cl.local.health
+	PARM_GET_CLIENT_PTR = -4,	// ref_client_t
+	PARM_GET_HOST_PTR = -5,		// ref_host_t
+	PARM_CONNSTATE = -6,		// cls.state
+	PARM_PLAYING_DEMO = -7,		// cls.demoplayback
+	PARM_WATER_LEVEL = -8,		// cl.local.water_level
+	PARM_GET_WORLD_PTR = -9,	// world
+	PARM_LOCAL_HEALTH = -10,	// cl.local.health
 	PARM_LOCAL_GAME = -11,
-	PARM_NUMENTITIES = -12, // local game only
-	PARM_GET_MOVEVARS_PTR = -13, // clgame.movevars
-	PARM_GET_PALETTE_PTR = -14, // clgame.palette
-	PARM_GET_VIEWENT_PTR = -15, // clgame.viewent
+	PARM_NUMENTITIES = -12,		// local game only
+	PARM_GET_MOVEVARS_PTR = -13,	// clgame.movevars
+	PARM_GET_PALETTE_PTR = -14,		// clgame.palette
+	PARM_GET_VIEWENT_PTR = -15,		// clgame.viewent
 
-	// [FWGS, 01.02.24] implemented by ref_dll
-
+	// [FWGS, 01.07.24] implemented by ref_dll
 	// returns non-null integer if filtering is enabled for texture
 	// pass -1 to query global filtering settings
-	PARM_TEX_FILTERING = -65536,
+	/*PARM_TEX_FILTERING = -65536,*/
+	PARM_TEX_FILTERING = -0x10000,
 	} ref_parm_e;
 
 typedef struct ref_api_s
@@ -498,11 +509,12 @@ typedef struct ref_interface_s
 	// debug
 	void (*R_ShowTextures)(void);
 
-	// texture management
+	// [FWGS, 01.07.24] texture management
 	const byte *(*R_GetTextureOriginalBuffer)(unsigned int idx); // not always available
 	int (*GL_LoadTextureFromBuffer)(const char *name, rgbdata_t *pic, texFlags_t flags, qboolean update);
 	void (*GL_ProcessTexture)(int texnum, float gamma, int topColor, int bottomColor);
-	void (*R_SetupSky)(const char *skyname);
+	/*void (*R_SetupSky)(const char *skyname);*/
+	void (*R_SetupSky)(int *skyboxTextures);
 
 	// 2D
 	void (*R_Set2DMode)(qboolean enable);
@@ -532,8 +544,9 @@ typedef struct ref_interface_s
 	void (*R_StudioLerpMovement)(cl_entity_t *e, double time, vec3_t origin, vec3_t angles);
 	void (*CL_InitStudioAPI)(void);
 
-	// [FWGS, 01.11.23] bmodel
-	void (*R_InitSkyClouds)(struct mip_s *mt, struct texture_s *tx, qboolean custom_palette);
+	// [FWGS, 01.07.24] bmodel
+	/*void (*R_InitSkyClouds)(struct mip_s *mt, struct texture_s *tx, qboolean custom_palette);*/
+	void (*R_SetSkyCloudsTextures)(int solidskyTexture, int alphaskyTexture);
 	void (*GL_SubdivideSurface)(model_t *mod, msurface_t *fa);
 	void (*CL_RunLightStyles)(void);
 
@@ -575,6 +588,9 @@ typedef struct ref_interface_s
 	int		(*GL_CreateTextureArray)(const char *name, int width, int height, int depth, const void *buffer,
 		texFlags_t flags);
 	void		(*GL_FreeTexture)(unsigned int texnum);
+
+	// [FWGS, 01.07.24] used to override decal size for texture replacement
+	void (*R_OverrideTextureSourceSize)(unsigned int texnum, unsigned int srcWidth, unsigned int srcHeight);
 
 	// Decals manipulating (draw & remove)
 	void		(*DrawSingleDecal)(struct decal_s *pDecal, struct msurface_s *fa);
@@ -634,8 +650,8 @@ typedef struct ref_interface_s
 	void	(*FogParams)(float flDensity, int iFogSkybox);
 	void    (*CullFace)(TRICULLSTYLE mode);
 
-	// vgui drawing implementation
-	void	(*VGUI_DrawInit)(void);
+	// [FWGS, 01.07.24] vgui drawing implementation
+	/*void	(*VGUI_DrawInit)(void);
 	void	(*VGUI_DrawShutdown)(void);
 	void	(*VGUI_SetupDrawingText)(int *pColor);
 	void	(*VGUI_SetupDrawingRect)(int *pColor);
@@ -647,7 +663,9 @@ typedef struct ref_interface_s
 	void	(*VGUI_UploadTextureBlock)(int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);
 	void	(*VGUI_DrawQuad)(const vpoint_t *ul, const vpoint_t *lr);
 	void	(*VGUI_GetTextureSizes)(int *width, int *height);
-	int		(*VGUI_GenerateTexture)(void);
+	int		(*VGUI_GenerateTexture)(void);*/
+	void	(*VGUI_SetupDrawing)(qboolean rect);
+	void	(*VGUI_UploadTextureBlock)(int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);
 	} ref_interface_t;
 
 typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *engfuncs, ref_globals_t *pGlobals);
@@ -667,7 +685,7 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 // and must be retrieved by renderer side
 // sometimes it's done to standartize cvars to make it easier for users
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.07.24]
 #define ENGINE_SHARED_CVAR_LIST( f ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_gamma, gamma ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_brightness, brightness ) \
@@ -694,6 +712,7 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 	ENGINE_SHARED_CVAR( f, r_sprite_lighting ) \
 	ENGINE_SHARED_CVAR( f, r_drawviewmodel ) \
 	ENGINE_SHARED_CVAR( f, r_glowshellfreq ) \
+	ENGINE_SHARED_CVAR( f, host_allow_materials ) \
 
 #define DECLARE_ENGINE_SHARED_CVAR_LIST() \
 	ENGINE_SHARED_CVAR_LIST( DECLARE_ENGINE_SHARED_CVAR )

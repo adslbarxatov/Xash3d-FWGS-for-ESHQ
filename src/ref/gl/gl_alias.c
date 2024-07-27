@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
@@ -549,7 +549,7 @@ static void *Mod_LoadGroupSkin (model_t *loadmodel, daliasskintype_t *pskintype,
 
 /***
 ===============
-Mod_LoadAllSkins [FWGS, 01.11.23]
+Mod_LoadAllSkins
 ===============
 ***/
 static void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *pskintype)
@@ -557,10 +557,11 @@ static void *Mod_LoadAllSkins (model_t *mod, int numskins, daliasskintype_t *psk
 	int	i, size;
 
 	if ((numskins < 1) || (numskins > MAX_SKINS))
-		gEngfuncs.Host_Error ("Mod_LoadAliasModel: Invalid # of skins: %d\n", numskins);
+		gEngfuncs.Host_Error ("%s: Invalid # of skins: %d\n", __func__, numskins);	// [FWGS, 01.07.24]
 
 	size = m_pAliasHeader->skinwidth * m_pAliasHeader->skinheight;
 
+	// TODO: texture replacement support here
 	for (i = 0; i < numskins; i++)
 		{
 		if (pskintype->type == ALIAS_SKIN_SINGLE)
@@ -1218,8 +1219,9 @@ static void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
 		}
 	else if (newframe >= paliashdr->numframes)
 		{
+		// [FWGS, 01.07.24]
 		if (newframe > paliashdr->numframes)
-			gEngfuncs.Con_Reportf (S_WARN "R_GetAliasFrame: no such frame %d (%s)\n", newframe, e->model->name);
+			gEngfuncs.Con_Reportf (S_WARN "%s: no such frame %d (%s)\n", __func__, newframe, e->model->name);
 		newframe = paliashdr->numframes - 1;
 		}
 

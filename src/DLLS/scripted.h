@@ -58,8 +58,7 @@ class CCineMonster: public CBaseMonster
 
 		static	TYPEDESCRIPTION m_SaveData[];
 
-		// void EXPORT CineSpawnThink( void );
-		void EXPORT CineThink (void);
+		void HLEXPORT CineThink (void);
 		void Pain (void);
 		void Die (void);
 		void DelayStart (int state);

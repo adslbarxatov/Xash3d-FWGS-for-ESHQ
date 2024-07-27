@@ -49,16 +49,16 @@ class COsprey: public CBaseMonster
 
 		void UpdateGoal (void);
 		BOOL HasDead (void);
-		void EXPORT FlyThink (void);
-		void EXPORT DeployThink (void);
+		void HLEXPORT FlyThink (void);
+		void HLEXPORT DeployThink (void);
 		void Flight (void);
-		void EXPORT HitTouch (CBaseEntity* pOther);
-		void EXPORT FindAllThink (void);
-		void EXPORT HoverThink (void);
+		void HLEXPORT HitTouch (CBaseEntity* pOther);
+		void HLEXPORT FindAllThink (void);
+		void HLEXPORT HoverThink (void);
 		CBaseMonster* MakeGrunt (Vector vecSrc);
-		void EXPORT CrashTouch (CBaseEntity* pOther);
-		void EXPORT DyingThink (void);
-		void EXPORT CommandUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void HLEXPORT CrashTouch (CBaseEntity* pOther);
+		void HLEXPORT DyingThink (void);
+		void HLEXPORT CommandUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 		void TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
 		void ShowDamage (void);

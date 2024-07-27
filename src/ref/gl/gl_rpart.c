@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -230,11 +230,11 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 			VectorAdd (verts[0], delta, verts[2]);
 			VectorAdd (verts[1], delta, verts[3]);
 
-			// [FWGS, 01.07.23]
+			// [FWGS, 01.07.24]
 			if (p->color > sizeof (gTracerColors) / sizeof (gTracerColors[0]))
 				{
-				gEngfuncs.Con_Printf (S_ERROR "UserTracer with color(%d) > %d\n", p->color,
-					sizeof (gTracerColors) / sizeof (gTracerColors[0]));
+				gEngfuncs.Con_Printf (S_ERROR "UserTracer with color(%d) > %zu\n",
+					p->color, sizeof (gTracerColors) / sizeof (gTracerColors[0]));
 				p->color = 0;
 				}
 

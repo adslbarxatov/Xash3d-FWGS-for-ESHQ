@@ -370,7 +370,7 @@ void Touch_WriteConfig (void)
 	if (Sys_CheckParm ("-nowriteconfig") || !touch.configchanged || !touch.config_loaded)
 		return;
 
-	Con_DPrintf ("Touch_WriteConfig(): %s\n", touch_config_file.string);
+	Con_DPrintf ("%s: %s\n", __func__, touch_config_file.string);	// [FWGS, 01.07.24]
 
 	Q_snprintf (newconfigfile, sizeof (newconfigfile), "%s.new", touch_config_file.string);
 	Q_snprintf (oldconfigfile, sizeof (oldconfigfile), "%s.bak", touch_config_file.string);
@@ -1138,7 +1138,8 @@ void Touch_Init (void)
 		return;
 	touch.mempool = Mem_AllocPool ("Touch");
 
-	Con_Printf ("IN_TouchInit()\n");
+	Con_Printf ("%s()\n", __func__);	// [FWGS, 01.07.24]
+
 	touch.move_finger = touch.resize_finger = touch.look_finger = touch.wheel_finger = -1;
 	touch.state = state_none;
 	touch.showeditbuttons = true;
@@ -1327,22 +1328,30 @@ TOUCH CONTROLS RENDERING
 ============================================================================
 ***/
 
+// [FWGS, 01.07.24]
 static qboolean Touch_IsVisible (touch_button_t *button)
 	{
+	// skip nonclient buttons in clientonly mode
 	if (!FBitSet (button->flags, TOUCH_FL_CLIENT) && touch.clientonly)
-		return false;	// skip nonclient buttons in clientonly mode
+		return false;
 
+	// !!! Draw when editor is open
 	if (touch.state >= state_edit)
-		return true;	// !!! Draw when editor is open
+		return true;
 
+	// skip hidden
 	if (FBitSet (button->flags, TOUCH_FL_HIDE))
-		return false;	// skip hidden
+		return false;
 
-	if (FBitSet (button->flags, TOUCH_FL_SP) && CL_GetMaxClients () != 1)
-		return false;	// skip singleplayer(load, save) buttons in multiplayer
+	// skip singleplayer(load, save) buttons in multiplayer
+	/*if (FBitSet (button->flags, TOUCH_FL_SP) && CL_GetMaxClients () != 1)*/
+	if (FBitSet (button->flags, TOUCH_FL_SP) && (cl.maxclients != 1))
+		return false;
 
-	if (FBitSet (button->flags, TOUCH_FL_MP) && CL_GetMaxClients () == 1)
-		return false;	// skip multiplayer buttons in singleplayer
+	// skip multiplayer buttons in singleplayer
+	/*if (FBitSet (button->flags, TOUCH_FL_MP) && CL_GetMaxClients () == 1)*/
+	if (FBitSet (button->flags, TOUCH_FL_MP) && (cl.maxclients == 1))
+		return false;
 
 	return true;
 	}
@@ -2261,14 +2270,14 @@ void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch)
 	touch.yaw = touch.pitch = 0;
 	}
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.07.24]
 void Touch_KeyEvent (int key, int down)
 	{
-	static float lx, ly;
-	static int kidNamedFinger = -1;
-	touchEventType event;
-	float x, y;
-	int finger, xi, yi;
+	static float	lx, ly;
+	static int		kidNamedFinger = -1;
+	touchEventType	event;
+	float			x, y;
+	int				finger, xi, yi;
 
 	if (!touch_emulate.value)
 		{
@@ -2311,8 +2320,8 @@ void Touch_KeyEvent (int key, int down)
 	x = xi / SCR_W;
 	y = yi / SCR_H;
 
-	Con_DPrintf ("event %d %.2f %.2f %.2f %.2f\n",
-		event, x, y, x - lx, y - ly);
+	/*Con_DPrintf ("event %d %.2f %.2f %.2f %.2f\n",
+		event, x, y, x - lx, y - ly);*/
 
 	IN_TouchEvent (event, finger, x, y, x - lx, y - ly);
 

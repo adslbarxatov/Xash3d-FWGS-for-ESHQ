@@ -20,6 +20,7 @@ GNU General Public License for more details
 #include "gameinfo.h"
 #include "wrect.h"
 #include "xash3d_types.h"	// [FWGS, 01.01.24]
+#include "net_api.h"		// [FWGS, 01.07.24]
 
 // FWGS: a macro for mainui_cpp, indicating that mainui should be compiled for
 // Xash3D 1.0 interface
@@ -41,18 +42,18 @@ typedef int		HIMAGE;		// handle to a graphic
 
 typedef struct ui_globalvars_s
 	{
-	float		time;		// unclamped host.realtime
-	float		frametime;
+	float	time;			// unclamped host.realtime
+	float	frametime;
 
 	int		scrWidth;		// actual values
 	int		scrHeight;
 
 	int		maxClients;
-	int		developer;	// FWGS: boolean, changed from allow_console to make mainui_cpp compile for both engines
+	int		developer;		// FWGS: boolean, changed from allow_console to make mainui_cpp compile for both engines
 	int		demoplayback;
 	int		demorecording;
-	char		demoname[64];	// name of currently playing demo
-	char		maptitle[64];	// title of active map
+	char	demoname[64];	// name of currently playing demo
+	char	maptitle[64];	// title of active map
 	} ui_globalvars_t;
 
 struct ref_viewpass_s;	// FWGS
@@ -60,7 +61,7 @@ struct ref_viewpass_s;	// FWGS
 typedef struct ui_enginefuncs_s
 	{
 	// image handlers
-	HIMAGE (*pfnPIC_Load)(const char *szPicName, const byte *ucRawImage, int ulRawImageSize, int flags);
+	HIMAGE	(*pfnPIC_Load)(const char *szPicName, const byte *ucRawImage, int ulRawImageSize, int flags);
 	void	(*pfnPIC_Free)(const char *szPicName);
 	int		(*pfnPIC_Width)(HIMAGE hPic);
 	int		(*pfnPIC_Height)(HIMAGE hPic);
@@ -76,19 +77,19 @@ typedef struct ui_enginefuncs_s
 	void	(*pfnFillRGBA)(int x, int y, int width, int height, int r, int g, int b, int a);
 
 	// cvar handlers
-	cvar_t *(*pfnRegisterVariable)(const char *szName, const char *szValue, int flags);
+	cvar_t	*(*pfnRegisterVariable)(const char *szName, const char *szValue, int flags);
 	float	(*pfnGetCvarFloat)(const char *szName);
-	const char *(*pfnGetCvarString)(const char *szName);
+	const char	*(*pfnGetCvarString)(const char *szName);
 	void	(*pfnCvarSetString)(const char *szName, const char *szValue);
 	void	(*pfnCvarSetValue)(const char *szName, float flValue);
 
 	// command handlers
-	int	(*pfnAddCommand)(const char *cmd_name, void (*function)(void));
+	int		(*pfnAddCommand)(const char *cmd_name, void (*function)(void));
 	void	(*pfnClientCmd)(int execute_now, const char *szCmdString);
 	void	(*pfnDelCommand)(const char *cmd_name);
-	int	(*pfnCmdArgc)(void);
-	const char *(*pfnCmdArgv)(int argc);
-	const char *(*pfnCmd_Args)(void);
+	int		(*pfnCmdArgc)(void);
+	const char	*(*pfnCmdArgv)(int argc);
+	const char	*(*pfnCmd_Args)(void);
 
 	// [FWGS, 01.04.23] debug messages (in-menu shows only notify)	
 	void	(*Con_Printf)(const char *fmt, ...);	// FWGS: _format (1);
@@ -101,23 +102,23 @@ typedef struct ui_enginefuncs_s
 
 	// cinematic handlers
 	void	(*pfnDrawLogo)(const char *filename, float x, float y, float width, float height);
-	int	(*pfnGetLogoWidth)(void);
-	int	(*pfnGetLogoHeight)(void);
+	int		(*pfnGetLogoWidth)(void);
+	int		(*pfnGetLogoHeight)(void);
 	float	(*pfnGetLogoLength)(void);	// cinematic duration in seconds
 
 	// text message system
 	void	(*pfnDrawCharacter)(int x, int y, int width, int height, int ch, int ulRGBA, HIMAGE hFont);
-	int	(*pfnDrawConsoleString)(int x, int y, const char *string);
+	int		(*pfnDrawConsoleString)(int x, int y, const char *string);
 	void	(*pfnDrawSetTextColor)(int r, int g, int b, int alpha);
 	void	(*pfnDrawConsoleStringLen)(const char *string, int *length, int *height);
 	void	(*pfnSetConsoleDefaultColor)(int r, int g, int b); // color must came from colors.lst
 
 	// custom rendering (for playermodel preview)
-	struct cl_entity_s *(*pfnGetPlayerModel)(void);	// for drawing playermodel previews
+	struct cl_entity_s	*(*pfnGetPlayerModel)(void);	// for drawing playermodel previews
 	void	(*pfnSetModel)(struct cl_entity_s *ed, const char *path);
 	void	(*pfnClearScene)(void);
 	void	(*pfnRenderScene)(const struct ref_viewpass_s *rvp);
-	int	(*CL_CreateVisibleEntity)(int type, struct cl_entity_s *ent);
+	int		(*CL_CreateVisibleEntity)(int type, struct cl_entity_s *ent);
 
 	// [FWGS, 01.04.23: отменено] misc handlers
 	void	(*pfnHostError)(const char *szFmt, ...);	// FWGS: _format(1);
@@ -125,38 +126,38 @@ typedef struct ui_enginefuncs_s
 	void	(*pfnGetGameDir)(char *szGetGameDir);
 
 	// gameinfo handlers
-	int	(*pfnCreateMapsList)(int fRefresh);
-	int	(*pfnClientInGame)(void);
+	int		(*pfnCreateMapsList)(int fRefresh);
+	int		(*pfnClientInGame)(void);
 	void	(*pfnClientJoin)(const struct netadr_s adr);
 
 	// parse txt files
-	byte *(*COM_LoadFile)(const char *filename, int *pLength);
-	char *(*COM_ParseFile)(char *data, char *token);
+	byte	*(*COM_LoadFile)(const char *filename, int *pLength);
+	char	*(*COM_ParseFile)(char *data, char *token);
 	void	(*COM_FreeFile)(void *buffer);
 
 	// keyfuncs
 	void	(*pfnKeyClearStates)(void);				// call when menu open or close
 	void	(*pfnSetKeyDest)(int dest);
-	const char *(*pfnKeynumToString)(int keynum);
-	const char *(*pfnKeyGetBinding)(int keynum);
+	const char	*(*pfnKeynumToString)(int keynum);
+	const char	*(*pfnKeyGetBinding)(int keynum);
 	void	(*pfnKeySetBinding)(int keynum, const char *binding);
-	int	(*pfnKeyIsDown)(int keynum);
-	int	(*pfnKeyGetOverstrikeMode)(void);
+	int		(*pfnKeyIsDown)(int keynum);
+	int		(*pfnKeyGetOverstrikeMode)(void);
 	void	(*pfnKeySetOverstrikeMode)(int fActive);
-	void *(*pfnKeyGetState)(const char *name);			// for mlook, klook etc
+	void	*(*pfnKeyGetState)(const char *name);			// for mlook, klook etc
 
 	// [FWGS, 01.01.24] engine memory manager
-	void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
+	void	*(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void	(*pfnMemFree)(void *mem, const char *filename, const int fileline);
 
 	// collect info from engine
-	int	(*pfnGetGameInfo)(GAMEINFO *pgameinfo);
-	GAMEINFO **(*pfnGetGamesList)(int *numGames);			// collect info about all mods
-	char **(*pfnGetFilesList)(const char *pattern, int *numFiles, int gamedironly);	// find in files
+	int		(*pfnGetGameInfo)(GAMEINFO *pgameinfo);
+	GAMEINFO	**(*pfnGetGamesList)(int *numGames);			// collect info about all mods
+	char	**(*pfnGetFilesList)(const char *pattern, int *numFiles, int gamedironly);	// find in files
 	int 	(*pfnGetSaveComment)(const char *savename, char *comment);
-	int	(*pfnGetDemoComment)(const char *demoname, char *comment);
-	int	(*pfnCheckGameDll)(void);				// returns false if hl.dll is missed or invalid
-	char *(*pfnGetClipboardData)(void);
+	int		(*pfnGetDemoComment)(const char *demoname, char *comment);
+	int		(*pfnCheckGameDll)(void);				// returns false if hl.dll is missed or invalid
+	char	*(*pfnGetClipboardData)(void);
 
 	// engine launcher
 	void	(*pfnShellExecute)(const char *name, const char *args, int closeEngine);
@@ -175,7 +176,7 @@ typedef struct ui_enginefuncs_s
 	void	(*pfnProcessImage)(int texnum, float gamma, int topColor, int bottomColor);
 	int		(*pfnCompareFileTime)(const char *filename1, const char *filename2, int *iCompare);
 
-	const char *(*pfnGetModeString)(int vid_mode);
+	const char	*(*pfnGetModeString)(int vid_mode);
 	int		(*COM_SaveFile)(const char *filename, const void *data, int len);
 	int		(*COM_RemoveFile)(const char *filepath);
 	} ui_enginefuncs_t;
@@ -225,6 +226,9 @@ typedef struct ui_extendedfuncs_s
 
 	// [FWGS, 01.03.24]
 	void	*(*pfnGetNativeObject)(const char *name);
+
+	// [FWGS, 01.07.24]
+	struct net_api_s *pNetAPI;
 	} ui_extendedfuncs_t;
 
 // deprecated export from old engine

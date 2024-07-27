@@ -253,11 +253,11 @@ class CMultiManager : public CBaseToggle
 	public:
 		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
-		void EXPORT ManagerThink (void);
-		void EXPORT ManagerUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT ManagerThink (void);
+		void HLEXPORT ManagerUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
 #if _DEBUG
-		void EXPORT ManagerReport (void);
+		void HLEXPORT ManagerReport (void);
 #endif
 
 		BOOL	HasTarget (string_t targetname);
@@ -496,16 +496,16 @@ void CRenderFxManager::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 class CBaseTrigger : public CBaseToggle
 	{
 	public:
-		void EXPORT TeleportTouch (CBaseEntity *pOther);
+		void HLEXPORT TeleportTouch (CBaseEntity *pOther);
 		void KeyValue (KeyValueData *pkvd);
-		void EXPORT MultiTouch (CBaseEntity *pOther);
-		void EXPORT HurtTouch (CBaseEntity *pOther);
-		void EXPORT CDAudioTouch (CBaseEntity *pOther);
+		void HLEXPORT MultiTouch (CBaseEntity *pOther);
+		void HLEXPORT HurtTouch (CBaseEntity *pOther);
+		void HLEXPORT CDAudioTouch (CBaseEntity *pOther);
 		// ESHQ: поддержка дополнительных возможностей
 		void ActivateMultiTrigger (CBaseEntity *pActivator, int RoomType);
-		void EXPORT MultiWaitOver (void);
-		void EXPORT CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-		void EXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT MultiWaitOver (void);
+		void HLEXPORT CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT ToggleUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		void InitTrigger (void);
 
 		virtual int	ObjectCaps (void) { return CBaseToggle::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
@@ -559,7 +559,7 @@ class CTriggerHurt : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void EXPORT RadiationThink (void);
+		void HLEXPORT RadiationThink (void);
 	};
 
 LINK_ENTITY_TO_CLASS (trigger_hurt, CTriggerHurt);
@@ -1002,7 +1002,7 @@ class CTriggerSound : public CBaseTrigger
 		void KeyValue (KeyValueData *pkvd);
 
 		// trigger_sound
-		void EXPORT MultiTouch_Sound (CBaseEntity *pOther);
+		void HLEXPORT MultiTouch_Sound (CBaseEntity *pOther);
 
 		virtual int		Save (CSave &save);
 		virtual int		Restore (CRestore &restore);
@@ -1069,7 +1069,7 @@ class CTriggerFog : public CBaseTrigger
 		void KeyValue (KeyValueData *pkvd);
 
 		// trigger_sound
-		void EXPORT MultiTouch_Fog (CBaseEntity *pOther);
+		void HLEXPORT MultiTouch_Fog (CBaseEntity *pOther);
 
 		virtual int	Save (CSave &save);
 		virtual int	Restore (CRestore &restore);
@@ -1497,10 +1497,10 @@ class CChangeLevel : public CBaseTrigger
 	public:
 		void Spawn (void);
 		void KeyValue (KeyValueData *pkvd);
-		void EXPORT UseChangeLevel (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-		void EXPORT TriggerChangeLevel (void);
-		void EXPORT ExecuteChangeLevel (void);
-		void EXPORT TouchChangeLevel (CBaseEntity *pOther);
+		void HLEXPORT UseChangeLevel (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT TriggerChangeLevel (void);
+		void HLEXPORT ExecuteChangeLevel (void);
+		void HLEXPORT TouchChangeLevel (CBaseEntity *pOther);
 		void ChangeLevelNow (CBaseEntity *pActivator);
 
 		static edict_t *FindLandmark (const char *pLandmarkName);
@@ -2099,7 +2099,7 @@ class CTriggerSave : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void EXPORT SaveTouch (CBaseEntity *pOther);
+		void HLEXPORT SaveTouch (CBaseEntity *pOther);
 	};
 LINK_ENTITY_TO_CLASS (trigger_autosave, CTriggerSave);
 
@@ -2135,9 +2135,9 @@ class CTriggerEndSection : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void EXPORT EndSectionTouch (CBaseEntity *pOther);
+		void HLEXPORT EndSectionTouch (CBaseEntity *pOther);
 		void KeyValue (KeyValueData *pkvd);
-		void EXPORT EndSectionUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT EndSectionUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	};
 LINK_ENTITY_TO_CLASS (trigger_endsection, CTriggerEndSection);
 
@@ -2206,8 +2206,8 @@ class CTriggerGravity : public CBaseTrigger
 	{
 	public:
 		void Spawn (void);
-		void EXPORT GravityTouch (CBaseEntity *pOther);
-		void EXPORT GravityUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT GravityTouch (CBaseEntity *pOther);
+		void HLEXPORT GravityUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	};
 LINK_ENTITY_TO_CLASS (trigger_gravity, CTriggerGravity);
 
@@ -2328,7 +2328,7 @@ class CTriggerCamera : public CBaseDelay
 		void Spawn (void);
 		void KeyValue (KeyValueData *pkvd);
 		void Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-		void EXPORT FollowTarget (void);
+		void HLEXPORT FollowTarget (void);
 		void Move (void);
 
 		virtual int		Save (CSave &save);
@@ -2607,8 +2607,8 @@ class CTriggerRandom : public CBaseToggle
 	public:
 		void KeyValue (KeyValueData *pkvd);
 		void Spawn (void);
-		void EXPORT ManagerThink (void);
-		void EXPORT ManagerUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+		void HLEXPORT ManagerThink (void);
+		void HLEXPORT ManagerUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
 		BOOL HasTarget (string_t targetname);
 

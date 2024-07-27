@@ -1135,11 +1135,11 @@ class CTestHull: public CBaseMonster
 	public:
 		void Spawn (entvars_t* pevMasterNode);
 		virtual int	ObjectCaps (void) { return CBaseMonster::ObjectCaps () & ~FCAP_ACROSS_TRANSITION; }
-		void EXPORT CallBuildNodeGraph (void);
+		void HLEXPORT CallBuildNodeGraph (void);
 		void BuildNodeGraph (void);
-		void EXPORT ShowBadNode (void);
-		void EXPORT DropDelay (void);
-		void EXPORT PathFind (void);
+		void HLEXPORT ShowBadNode (void);
+		void HLEXPORT DropDelay (void);
+		void HLEXPORT PathFind (void);
 
 		Vector	vecBadNodeOrigin;
 	};
@@ -3038,7 +3038,7 @@ class CNodeViewer: public CBaseEntity
 
 		void FindNodeConnections (int iNode);
 		void AddNode (int iFrom, int iTo);
-		void EXPORT DrawThink (void);
+		void HLEXPORT DrawThink (void);
 
 	};
 LINK_ENTITY_TO_CLASS (node_viewer, CNodeViewer);

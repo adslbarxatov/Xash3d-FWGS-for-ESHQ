@@ -351,7 +351,7 @@ qboolean V_PreRender (void)
 		{
 		if ((host.realtime - cls.disable_screen) > cl_timeout.value)
 			{
-			Con_Reportf ("V_PreRender: loading plaque timed out\n");
+			Con_Reportf ("%s: loading plaque timed out\n", __func__);	// [FWGS, 01.07.24]
 			cls.disable_screen = 0.0f;
 			}
 		return false;
@@ -503,13 +503,13 @@ static void R_ShowTree (void)
 
 /***
 ==================
-V_PostRender [FWGS, 01.03.24]
+V_PostRender [FWGS, 01.07.24]
 ==================
 ***/
 void V_PostRender (void)
 	{
-	static double	oldtime;
-	qboolean		draw_2d = false;
+	/*static double	oldtime;*/
+	qboolean	draw_2d = false;
 
 	ref.dllFuncs.R_AllowFog (false);
 	ref.dllFuncs.R_Set2DMode (true);
@@ -535,6 +535,8 @@ void V_PostRender (void)
 		SCR_RSpeeds ();
 		SCR_NetSpeeds ();
 		SCR_DrawPos ();
+		SCR_DrawEnts ();
+
 		SCR_DrawNetGraph ();
 		SV_DrawOrthoTriangles ();
 		CL_DrawDemoRecording ();

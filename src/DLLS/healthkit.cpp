@@ -83,8 +83,8 @@ class CWallHealth: public CBaseToggle
 	public:
 		void Spawn ();
 		void Precache (void);
-		void EXPORT Off (void);
-		void EXPORT Recharge (void);
+		void HLEXPORT Off (void);
+		void HLEXPORT Recharge (void);
 		void KeyValue (KeyValueData* pkvd);
 		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		virtual int	ObjectCaps (void) { return (CBaseToggle::ObjectCaps () | FCAP_CONTINUOUS_USE) & ~FCAP_ACROSS_TRANSITION; }

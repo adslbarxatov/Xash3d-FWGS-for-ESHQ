@@ -473,34 +473,6 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int inrate, int inwidth, 
 	if (FBitSet (sc->flags, SOUND_LOOPED))
 		sc->loopStart = sc->loopStart / stepscale;
 
-	// slow but somewhat accurate
-#if 0 && XASH_SDL
-		{
-		const SDL_AudioFormat infmt = inwidth == 1 ? AUDIO_S8 : AUDIO_S16;
-		const SDL_AudioFormat outfmt = outwidth == 1 ? AUDIO_S8 : AUDIO_S16;
-		SDL_AudioCVT cvt;
-
-		// SDL_AudioCVT does conversion in place, original buffer is used for it
-		if (SDL_BuildAudioCVT (&cvt, infmt, sc->channels, inrate, outfmt, sc->channels, outrate) > 0 && cvt.needed)
-			{
-			sc->buffer = (byte *)Mem_Realloc (host.soundpool, sc->buffer, oldsize * cvt.len_mult);
-			cvt.len = oldsize;
-			cvt.buf = sc->buffer;
-
-			if (!SDL_ConvertAudio (&cvt))
-				{
-				t2 = Sys_DoubleTime ();
-
-				Con_Reportf ("Sound_Resample: from [%d bit %d Hz] to [%d bit %d Hz] (took %.3fs through SDL)\n", inwidth * 8, inrate, outwidth * 8, outrate, t2 - t1);
-
-				sc->rate = outrate;
-				sc->width = outwidth;
-				return false; // HACKHACK: return false so Sound_Process won't reallocate buffer
-				}
-			}
-		}
-#endif
-
 	sound.tempbuffer = (byte *)Mem_Realloc (host.soundpool, sound.tempbuffer, sc->size);
 
 	// no resampling, just copy data
@@ -517,19 +489,20 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int inrate, int inwidth, 
 
 	t2 = Sys_DoubleTime ();
 		
+	// [FWGS, 01.07.24]
 	if (handled)
 		{
 		if (t2 - t1 > 0.01f) // critical, report to mod developer
-			Con_Printf (S_WARN "Sound_Resample: from [%d bit %d Hz] to [%d bit %d Hz] (took %.3fs)\n",
+			Con_Printf (S_WARN "%s: from [%d bit %d Hz] to [%d bit %d Hz] (took %.3fs)\n", __func__,
 				inwidth * 8, inrate, outwidth * 8, outrate, t2 - t1);
 
 		else
-			Con_Reportf ("Sound_Resample: from [%d bit %d Hz] to [%d bit %d Hz] (took %.3fs)\n",
+			Con_Reportf ("%s: from [%d bit %d Hz] to [%d bit %d Hz] (took %.3fs)\n", __func__,
 				inwidth * 8, inrate, outwidth * 8, outrate, t2 - t1);
 		}
 	else
 		{
-		Con_Printf (S_ERROR "Sound_Resample: unsupported from [%d bit %d Hz] to [%d bit %d Hz]\n",
+		Con_Printf (S_ERROR "%s: unsupported from [%d bit %d Hz] to [%d bit %d Hz]\n", __func__,
 			inwidth * 8, inrate, outwidth * 8, outrate);
 		}
 

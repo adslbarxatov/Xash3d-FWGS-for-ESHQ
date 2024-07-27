@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #if defined( XASH_SDL ) && !XASH_DEDICATED
@@ -140,12 +140,13 @@ static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
 
 /***
 =============
-SDLash_KeyEvent [FWGS, 01.05.24]
+SDLash_KeyEvent [FWGS, 01.07.24]
 =============
 ***/
 static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	{
 	int down = key.state != SDL_RELEASED;
+
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	int keynum = key.keysym.scancode;
 #else
@@ -157,20 +158,27 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 #endif
 
-	if (SDL_IsTextInputActive ())
+	/*if (SDL_IsTextInputActive ())*/
+	if (SDL_IsTextInputActive () && down)
 		{
 		// this is how engine understands ctrl+c, ctrl+v and other hotkeys
-		if (down && (cls.key_dest != key_game))
+		/*if (down && (cls.key_dest != key_game))*/
+		if ((cls.key_dest != key_game) && FBitSet (SDL_GetModState (), KMOD_CTRL))
 			{
-			if (FBitSet (SDL_GetModState (), KMOD_CTRL))
+			/*if (FBitSet (SDL_GetModState (), KMOD_CTRL))*/
+			if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
 				{
-				if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
+				/*if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
 					{
 					keynum = keynum - SDL_SCANCODE_A + 1;
 					CL_CharEvent (keynum);
 					}
-				return;
+				return;*/
+				keynum = keynum - SDL_SCANCODE_A + 1;
+				CL_CharEvent (keynum);
 				}
+
+			return;
 			}
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -446,12 +454,12 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 			case SDL_SCANCODE_UNKNOWN:
 				if (down)
-					Con_Reportf ("SDLash_KeyEvent: Unknown scancode\n");
+					Con_Reportf ("%s: Unknown scancode\n", __func__);
 				return;
 
 			default:
 				if (down)
-					Con_Reportf ("SDLash_KeyEvent: Unknown key: %s = %i\n", SDL_GetScancodeName (keynum), keynum);
+					Con_Reportf ("%s: Unknown key: %s = %i\n", __func__, SDL_GetScancodeName (keynum), keynum);
 				return;
 			}
 		}
@@ -523,23 +531,28 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 
 /***
 =============
-SDLash_InputEvent
+SDLash_InputEvent [FWGS, 01.07.24]
 =============
 ***/
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 static void SDLash_InputEvent (SDL_TextInputEvent input)
 	{
-	char *text;
+	/*char *text;*/
+	const char *text;
 	VGui_ReportTextInput (input.text);
 
 	for (text = input.text; *text; text++)
 		{
-		int ch;
+		/*int ch;*/
+		int ch = (byte)*text;
 
-		if (!Q_stricmp (cl_charset.string, "utf-8"))
+		/*if (!Q_stricmp (cl_charset.string, "utf-8"))
 			ch = (unsigned char)*text;
 		else
-			ch = Con_UtfProcessCharForce ((unsigned char)*text);
+			ch = Con_UtfProcessCharForce ((unsigned char)*text);*/
+			// do not pass UTF-8 sequence into the engine, convert it here
+		if (!cls.accept_utf8)
+			ch = Con_UtfProcessCharForce (ch);
 
 		if (!ch)
 			continue;
@@ -599,6 +612,7 @@ static void SDLash_GameController_Add (int index)
 		SDL_ClearError ();
 		return;
 		}
+
 #if SDL_VERSION_ATLEAST( 2, 0, 6 )
 	Con_Reportf ("Added controller: %s (%i:%i:%i)\n",
 		SDL_GameControllerName (controller),
@@ -630,10 +644,11 @@ static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
 
 /***
 =============
-SDLash_EventFilter
+SDLash_EventHandler [FWGS, 01.07.24]
 =============
 ***/
-static void SDLash_EventFilter (SDL_Event *event)
+/*static void SDLash_EventFilter (SDL_Event *event)*/
+static void SDLash_EventHandler (SDL_Event *event)
 	{
 	switch (event->type)
 		{
@@ -861,7 +876,7 @@ static void SDLash_EventFilter (SDL_Event *event)
 
 /***
 =============
-SDLash_RunEvents
+SDLash_RunEvents [FWGS, 01.07.24]
 =============
 ***/
 void Platform_RunEvents (void)
@@ -869,7 +884,8 @@ void Platform_RunEvents (void)
 	SDL_Event event;
 
 	while (!host.crashed && !host.shutdown_issued && SDL_PollEvent (&event))
-		SDLash_EventFilter (&event);
+		SDLash_EventHandler (&event);
+	/*SDLash_EventFilter (&event);*/
 	}
 
 // [FWGS, 01.04.23]

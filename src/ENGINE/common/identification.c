@@ -10,14 +10,17 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
+// [FWGS, 01.07.24]
+#include <inttypes.h>
 #include "common.h"
 #include <fcntl.h>
 #if !XASH_WIN32
-#include <dirent.h>
+	#include <dirent.h>
 #endif
+
 static char id_md5[33];
 static char id_customid[MAX_STRING];
 
@@ -97,6 +100,7 @@ IDENTIFICATION
 // [FWGS, 01.05.23]
 static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path);
 
+// [FWGS, 01.07.24]
 static void ID_BloomFilter_f (void)
 	{
 	bloomfilter_t value = 0;
@@ -105,16 +109,17 @@ static void ID_BloomFilter_f (void)
 	for (i = 1; i < Cmd_Argc (); i++)
 		value |= BloomFilter_ProcessStr (Cmd_Argv (i));
 
-	Msg ("%d %016llX\n", BloomFilter_Weight (value), value);
+	/*Msg ("%d %016llX\n", BloomFilter_Weight (value), value);*/
+	Msg ("%d %016"PRIX64"\n", BloomFilter_Weight (value), value);
 	}
 
 // [FWGS, 01.05.23]
 static qboolean ID_VerifyHEX (const char *hex)
 	{
-	uint chars = 0;
-	char prev = 0;
-	qboolean monotonic = true; // detect 11:22...
-	int weight = 0;
+	uint		chars = 0;
+	char		prev = 0;
+	qboolean	monotonic = true; // detect 11:22...
+	int			weight = 0;
 
 	while (*hex++)
 		{
@@ -282,13 +287,15 @@ static int ID_CheckNetDevices (bloomfilter_t value)
 	return count;
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.07.24]
 static void ID_TestCPUInfo_f (void)
 	{
 	bloomfilter_t value = 0;
 
 	if (ID_ProcessCPUInfo (&value))
-		Msg ("Got %016llX\n", value);
+		Msg ("Got %016"PRIX64"\n", value);
+	/*Msg ("Got %016llX\n", value);*/
+
 	else
 		Msg ("Could not get serial\n");
 	}
@@ -298,9 +305,9 @@ static void ID_TestCPUInfo_f (void)
 // [FWGS, 01.05.23]
 static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path)
 	{
-	int fd = open (path, O_RDONLY);
-	char buffer[256];
-	int ret;
+	int		fd = open (path, O_RDONLY);
+	char	buffer[256];
+	int		ret;
 
 	if (fd < 0)
 		return false;
@@ -630,8 +637,10 @@ void ID_Init (void)
 	Cmd_AddRestrictedCommand ("testcpuinfo", ID_TestCPUInfo_f, "try read cpu serial");
 #endif
 
+// [FWGS, 01.07.24]
 #if XASH_ANDROID && !XASH_DEDICATED
-	sscanf (Android_LoadID (), "%016llX", &id);
+	/*sscanf (Android_LoadID (), "%016llX", &id);*/
+	sscanf (Android_LoadID (), "%016"PRIX64, &id);
 	if (id)
 		{
 		id ^= SYSTEM_XOR_MASK;
@@ -643,7 +652,9 @@ void ID_Init (void)
 	CHAR szBuf[MAX_PATH];
 	ID_GetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", "xash_id", szBuf, MAX_PATH);
 
-	sscanf (szBuf, "%016llX", &id);
+	// [FWGS, 01.07.24]
+	/*sscanf (szBuf, "%016llX", &id);*/
+	sscanf (szBuf, "%016"PRIX64, &id);
 	id ^= SYSTEM_XOR_MASK;
 	ID_Check ();
 	}
@@ -657,9 +668,12 @@ void ID_Init (void)
 			cfg = fopen (va ("%s/.local/.xash_id", home), "r");
 		if (!cfg)
 			cfg = fopen (va ("%s/.xash_id", home), "r");
+
+		// [FWGS, 01.07.24]
 		if (cfg)
 			{
-			if (fscanf (cfg, "%016llX", &id) > 0)
+			/*if (fscanf (cfg, "%016llX", &id) > 0)*/
+			if (fscanf (cfg, "%016"PRIX64, &id) > 0)
 				{
 				id ^= SYSTEM_XOR_MASK;
 				ID_Check ();
@@ -672,9 +686,12 @@ void ID_Init (void)
 	if (!id)
 		{
 		const char *buf = (const char *)FS_LoadFile (".xash_id", NULL, false);
+
+		// [FWGS, 01.07.24]
 		if (buf)
 			{
-			sscanf (buf, "%016llX", &id);
+			/*sscanf (buf, "%016llX", &id);*/
+			sscanf (buf, "%016"PRIX64, &id);
 			id ^= GAME_XOR_MASK;
 			ID_Check ();
 			}
@@ -690,12 +707,15 @@ void ID_Init (void)
 	for (i = 0; i < 16; i++)
 		Q_snprintf (&id_md5[i * 2], sizeof (id_md5) - i * 2, "%02hhx", md5[i]);
 
+// [FWGS, 01.07.24]
 #if XASH_ANDROID && !XASH_DEDICATED
-	Android_SaveID (va ("%016llX", id ^ SYSTEM_XOR_MASK));
+	/*Android_SaveID (va ("%016llX", id ^ SYSTEM_XOR_MASK));*/
+	Android_SaveID (va ("%016"PRIX64, id ^SYSTEM_XOR_MASK));
 #elif XASH_WIN32
 	{
 	CHAR Buf[MAX_PATH];
-	sprintf (Buf, "%016llX", id ^ SYSTEM_XOR_MASK);
+	/*sprintf (Buf, "%016llX", id ^ SYSTEM_XOR_MASK);*/
+	sprintf (Buf, "%016"PRIX64, id ^SYSTEM_XOR_MASK);
 	ID_SetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", REG_SZ, "xash_id", Buf, Q_strlen (Buf));
 	}
 #else
@@ -708,16 +728,18 @@ void ID_Init (void)
 			cfg = fopen (va ("%s/.local/.xash_id", home), "w");
 		if (!cfg)
 			cfg = fopen (va ("%s/.xash_id", home), "w");
+
+		// [FWGS, 01.07.24]
 		if (cfg)
 			{
-			fprintf (cfg, "%016llX", id ^ SYSTEM_XOR_MASK);
+			/*fprintf (cfg, "%016llX", id ^ SYSTEM_XOR_MASK);*/
+			fprintf (cfg, "%016"PRIX64, id ^SYSTEM_XOR_MASK);
 			fclose (cfg);
 			}
 		}
 	}
 #endif
-	FS_WriteFile (".xash_id", va ("%016llX", id ^ GAME_XOR_MASK), 16);
-#if 0
-	Msg ("MD5 id: %s\nRAW id:%016llX\n", id_md5, id);
-#endif
+
+	/*FS_WriteFile (".xash_id", va ("%016llX", id ^ GAME_XOR_MASK), 16);*/
+	FS_WriteFile (".xash_id", va ("%016"PRIX64, id ^GAME_XOR_MASK), 16);
 	}

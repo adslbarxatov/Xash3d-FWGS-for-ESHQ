@@ -41,8 +41,8 @@ class CBarnacle : public CBaseMonster
 		CBaseEntity *TongueTouchEnt (float *pflLength);
 		int  Classify (void);
 		void HandleAnimEvent (MonsterEvent_t *pEvent);
-		void EXPORT BarnacleThink (void);
-		void EXPORT WaitTillDead (void);
+		void HLEXPORT BarnacleThink (void);
+		void HLEXPORT WaitTillDead (void);
 		void Killed (entvars_t *pevAttacker, int iGib);
 		int TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
 		virtual int		Save (CSave &save);

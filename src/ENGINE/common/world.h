@@ -33,12 +33,13 @@ ENTITY AREA CHECKING
 
 #include "lightstyle.h"
 
-extern const char *et_name[];
+// [FWGS, 01.07.24]
+/*extern const char *et_name[];
 
 // linked list
 void InsertLinkBefore (link_t *l, link_t *before);
 void RemoveLink (link_t *l);
-void ClearLink (link_t *l);
+void ClearLink (link_t *l);*/
 
 // trace common
 void World_MoveBounds (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, vec3_t boxmins, vec3_t boxmaxs);
@@ -60,15 +61,15 @@ EVENTS QUEUE (hl1 events code)
 
 typedef struct event_info_s
 	{
-	word		index;		// 0 implies not in use
+	word		index;			// 0 implies not in use
 	short		packet_index;	// Use data from state info for entity in delta_packet .
 	// -1 implies separate info based on event
 	// parameter signature
 	short		entity_index;	// The edict this event is associated with
-	float		fire_time;	// if non-zero, the time when the event should be fired
+	float		fire_time;		// if non-zero, the time when the event should be fired
 	// ( fixed up on the client )
 	event_args_t	args;
-	int		flags;		// reliable or not, etc. ( CLIENT ONLY )
+	int			flags;			// reliable or not, etc. ( CLIENT ONLY )
 	} event_info_t;
 
 typedef struct event_state_s

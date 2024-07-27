@@ -47,8 +47,8 @@ class CSqueakGrenade: public CGrenade
 	void Spawn (void);
 	void Precache (void);
 	int  Classify (void);
-	void EXPORT SuperBounceTouch (CBaseEntity* pOther);
-	void EXPORT HuntThink (void);
+	void HLEXPORT SuperBounceTouch (CBaseEntity* pOther);
+	void HLEXPORT HuntThink (void);
 	int  BloodColor (void) { return BLOOD_COLOR_YELLOW; }
 	void Killed (entvars_t* pevAttacker, int iGib);
 	void GibMonster (void);
