@@ -27,18 +27,19 @@ GNU General Public License for more details
 
 /***
 ====================
-Mod_LoadSpriteModel
+Mod_LoadSpriteModel [FWGS, 01.08.24]
 
 load sprite model
 ====================
 ***/
-void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags)
+/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags)*/
+void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
 	dsprite_q1_t	*pinq1;
 	dsprite_hl_t	*pinhl;
 	dsprite_t		*pin;
 	msprite_t		*psprite;
-	char			poolname[MAX_VA_STRING];	// [FWGS, 01.04.23]
+	char			poolname[MAX_VA_STRING];
 	int				i, size;
 
 	if (loaded)

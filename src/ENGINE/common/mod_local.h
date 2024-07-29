@@ -155,6 +155,11 @@ void Mod_NeedCRC (const char *name, qboolean needCRC);
 void Mod_FreeUnused (void);
 
 //
+// mod_alias.c [FWGS, 01.08.24]
+//
+void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded);
+
+//
 // mod_bmodel.c [FWGS, 01.07.24]
 //
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
@@ -199,9 +204,10 @@ int Mod_HitgroupForStudioHull (int index);
 void Mod_ClearStudioCache (void);
 
 //
-// mod_sprite.c
+// mod_sprite.c [FWGS, 01.08.24]
 //
-void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags);
+/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags);*/
+void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded);
 #endif
 
 #endif

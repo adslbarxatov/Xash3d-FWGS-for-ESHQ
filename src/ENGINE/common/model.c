@@ -302,25 +302,35 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 		case IDSTUDIOHEADER:
 			Mod_LoadStudioModel (mod, buf, &loaded);
 			break;
+
 		case IDSPRITEHEADER:
-			Mod_LoadSpriteModel (mod, buf, &loaded, 0);
+			// [FWGS, 01.08.24]
+			/*Mod_LoadSpriteModel (mod, buf, &loaded, 0);*/
+			Mod_LoadSpriteModel (mod, buf, &loaded);
 			break;
+
 		case IDALIASHEADER:
-			// REFTODO: move server-related code here
-			loaded = true;
+			// [FWGS, 01.08.24]
+			/*// REFTODO: move server-related code here
+			loaded = true;*/
+			Mod_LoadAliasModel (mod, buf, &loaded);
 			break;
+
 		case Q1BSP_VERSION:
 		case HLBSP_VERSION:
 		case QBSP2_VERSION:
 			Mod_LoadBrushModel (mod, buf, &loaded);
-			// ref.dllFuncs.Mod_LoadModel( mod_brush, mod, buf, &loaded, 0 );
 			break;
+
 		default:
 			Mem_Free (buf);
-			if (crash) Host_Error ("%s has unknown format\n", tempname);
-			else Con_Printf (S_ERROR "%s has unknown format\n", tempname);
+			if (crash)
+				Host_Error ("%s has unknown format\n", tempname);
+			else
+				Con_Printf (S_ERROR "%s has unknown format\n", tempname);
 			return NULL;
 		}
+
 	if (loaded)
 		{
 		if (world.loading)
@@ -342,13 +352,25 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 #endif
 		}
 
+	// [FWGS, 01.08.24]
+	if (mod->type == mod_alias)
+		{
+		aliashdr_t *hdr = mod->cache.data;
+
+		// clean up temporary pointer after passing the alias model to the renderer
+		if (hdr)
+			hdr->pposeverts = NULL;
+		}
+
 	if (!loaded)
 		{
 		Mod_FreeModel (mod);
 		Mem_Free (buf);
 
-		if (crash) Host_Error ("Could not load model %s\n", tempname);
-		else Con_Printf (S_ERROR "Could not load model %s\n", tempname);
+		if (crash)
+			Host_Error ("Could not load model %s\n", tempname);
+		else
+			Con_Printf (S_ERROR "Could not load model %s\n", tempname);
 
 		return NULL;
 		}
@@ -375,8 +397,8 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 			p->initialCRC = currentCRC;
 			}
 		}
-	Mem_Free (buf);
 
+	Mem_Free (buf);
 	return mod;
 	}
 	

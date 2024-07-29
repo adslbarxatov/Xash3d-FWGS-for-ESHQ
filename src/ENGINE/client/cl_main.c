@@ -213,10 +213,11 @@ qboolean CL_IsInGame (void)
 	return (cls.key_dest == key_game);
 	}
 
-qboolean CL_IsInMenu (void)
+// [FWGS, 01.08.24] removed CL_IsInMenu
+/*qboolean CL_IsInMenu (void)
 	{
 	return (cls.key_dest == key_menu);
-	}
+	}*/
 
 qboolean CL_IsInConsole (void)
 	{
@@ -1614,22 +1615,30 @@ static void CL_SendDisconnectMessage (void)
 	Netchan_TransmitBits (&cls.netchan, MSG_GetNumBitsWritten (&buf), MSG_GetData (&buf));
 	}
 
+// [FWGS, 01.08.24]
 int CL_GetSplitSize (void)
 	{
-	int splitsize;
+	/*int splitsize;
 
 	if (Host_IsDedicated ())
-		return 0;
+		return 0;*/
+	int splitsize = (int)cl_dlmax.value;
 
-	if (!(cls.extensions & NET_EXT_SPLITSIZE))
+	/*if (!(cls.extensions & NET_EXT_SPLITSIZE))*/
+	if (!FBitSet (cls.extensions, NET_EXT_SPLITSIZE))
 		return 1400;
 
-	splitsize = cl_dlmax.value;
+	/*splitsize = cl_dlmax.value;
 
+	if ((splitsize < FRAGMENT_MIN_SIZE) || (splitsize > FRAGMENT_MAX_SIZE))*/
 	if ((splitsize < FRAGMENT_MIN_SIZE) || (splitsize > FRAGMENT_MAX_SIZE))
+		{
 		Cvar_SetValue ("cl_dlmax", FRAGMENT_DEFAULT_SIZE);
+		return FRAGMENT_DEFAULT_SIZE;
+		}
 
-	return cl_dlmax.value;
+	/*return cl_dlmax.value;*/
+	return (int)cl_dlmax.value;
 	}
 
 /***
@@ -1719,7 +1728,7 @@ void CL_Disconnect (void)
 	S_StopBackgroundTrack ();
 	SCR_EndLoadingPlaque (); // get rid of loading plaque
 
-	// clear the network channel, too.
+	// clear the network channel, too
 	Netchan_Clear (&cls.netchan);
 
 	IN_LockInputDevices (false); // unlock input devices

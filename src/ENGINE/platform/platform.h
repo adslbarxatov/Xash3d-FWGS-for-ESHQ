@@ -71,11 +71,16 @@ qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 	void Android_Shutdown (void);
 #endif
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.08.24]
 #if XASH_WIN32
 	/*void Wcon_CreateConsole (void);*/
 	void Wcon_CreateConsole (qboolean con_showalways);
 	void Wcon_DestroyConsole (void);
+	void Wcon_InitConsoleCommands (void);
+	void Wcon_ShowConsole (qboolean show);
+	void Wcon_DisableInput (void);
+	char *Wcon_Input (void);
+	void Wcon_WinPrint (const char *pMsg);
 #endif
 
 // [FWGS, 01.04.23]

@@ -809,20 +809,25 @@ static void SV_PrepWorldFrame (void)
 
 /***
 =================
-SV_IsSimulating
+SV_IsSimulating [FWGS, 01.08.24]
 =================
 ***/
 static qboolean SV_IsSimulating (void)
 	{
+	if (Host_IsDedicated ())
+		return true; // always active for dedicated servers
+
 	if (sv.background && SV_Active () && CL_Active ())
 		{
 		if (CL_IsInConsole ())
 			return false;
-		return true; // force simulating for background map
+
+		// force simulating for background map
+		return true;
 		}
 
-	if (Host_IsDedicated ())
-		return true; // always active for dedicated servers
+	/*if (Host_IsDedicated ())
+		return true; // always active for dedicated servers*/
 
 	if (!SV_HasActivePlayers ())
 		return false;

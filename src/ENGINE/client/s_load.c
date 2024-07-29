@@ -126,7 +126,7 @@ static wavdata_t *S_CreateDefaultSound (void)
 
 /***
 =================
-S_LoadSound [FWGS, 01.07.24]
+S_LoadSound [FWGS, 01.08.24]
 =================
 ***/
 wavdata_t *S_LoadSound (sfx_t *sfx)
@@ -162,11 +162,16 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 		sc = S_CreateDefaultSound ();
 
 	if (sc->rate < SOUND_11k) // some bad sounds
-		Sound_Process (&sc, SOUND_11k, sc->width, SOUND_RESAMPLE);
+		Sound_Process (&sc, SOUND_11k, sc->width, sc->channels, SOUND_RESAMPLE);
+		/*Sound_Process (&sc, SOUND_11k, sc->width, SOUND_RESAMPLE);*/
+
 	else if ((sc->rate > SOUND_11k) && (sc->rate < SOUND_22k))	// some bad sounds
-		Sound_Process (&sc, SOUND_22k, sc->width, SOUND_RESAMPLE);
+		Sound_Process (&sc, SOUND_22k, sc->width, sc->channels, SOUND_RESAMPLE);
+		/*Sound_Process (&sc, SOUND_22k, sc->width, SOUND_RESAMPLE);*/
+
 	else if ((sc->rate > SOUND_22k) && (sc->rate < SOUND_44k))	// some bad sounds
-		Sound_Process (&sc, SOUND_44k, sc->width, SOUND_RESAMPLE);
+		Sound_Process (&sc, SOUND_44k, sc->width, sc->channels, SOUND_RESAMPLE);
+		/*Sound_Process (&sc, SOUND_44k, sc->width, SOUND_RESAMPLE);*/
 
 	sfx->cache = sc;
 	return sfx->cache;

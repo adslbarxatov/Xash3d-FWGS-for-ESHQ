@@ -175,12 +175,15 @@ hull_t *PM_HullForBsp (physent_t *pe, playermove_t *pmove, float *offset)
 		case 1:
 			hull = &pe->model->hulls[3];
 			break;
+
 		case 2:
 			hull = &pe->model->hulls[0];
 			break;
+
 		case 3:
 			hull = &pe->model->hulls[2];
 			break;
+
 		default:
 			hull = &pe->model->hulls[1];
 			break;
@@ -188,8 +191,9 @@ hull_t *PM_HullForBsp (physent_t *pe, playermove_t *pmove, float *offset)
 
 	Assert (hull != NULL);
 
-	// calculate an offset value to center the origin
-	VectorSubtract (hull->clip_mins, pmove->player_mins[pmove->usehull], offset);
+	// [FWGS, 01.08.24] calculate an offset value to center the origin
+	/*VectorSubtract (hull->clip_mins, pmove->player_mins[pmove->usehull], offset);*/
+	VectorSubtract (hull->clip_mins, host.player_mins[pmove->usehull], offset);
 	VectorAdd (offset, pe->origin, offset);
 
 	return hull;
@@ -206,7 +210,9 @@ static hull_t *PM_HullForStudio (physent_t *pe, playermove_t *pmove, int *numhit
 	{
 	vec3_t	size;
 
-	VectorSubtract (pmove->player_maxs[pmove->usehull], pmove->player_mins[pmove->usehull], size);
+	// [FWGS, 01.08.24]
+	/*VectorSubtract (pmove->player_maxs[pmove->usehull], pmove->player_mins[pmove->usehull], size);*/
+	VectorSubtract (host.player_maxs[pmove->usehull], host.player_mins[pmove->usehull], size);
 	VectorScale (size, 0.5f, size);
 
 	return Mod_HullForStudio (pe->studiomodel, pe->frame, pe->sequence, pe->angles, pe->origin, size,
@@ -392,10 +398,13 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 
 		hullcount = 1;
 
+		// [FWGS, 01.08.24]
 		if (pe->solid == SOLID_CUSTOM)
 			{
-			VectorCopy (pmove->player_mins[pmove->usehull], mins);
-			VectorCopy (pmove->player_maxs[pmove->usehull], maxs);
+			/*VectorCopy (pmove->player_mins[pmove->usehull], mins);
+			VectorCopy (pmove->player_maxs[pmove->usehull], maxs);*/
+			VectorCopy (host.player_mins[pmove->usehull], mins);
+			VectorCopy (host.player_maxs[pmove->usehull], maxs);
 			VectorClear (offset);
 			}
 		else if (pe->model)
@@ -416,8 +425,11 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 					}
 				else
 					{
-					VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
-					VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);
+					// [FWGS, 01.08.24]
+					/*VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
+					VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);*/
+					VectorSubtract (pe->mins, host.player_maxs[pmove->usehull], mins);
+					VectorSubtract (pe->maxs, host.player_mins[pmove->usehull], maxs);
 
 					hull = PM_HullForBox (mins, maxs);
 					VectorCopy (pe->origin, offset);
@@ -425,8 +437,11 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 				}
 			else
 				{
-				VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
-				VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);
+				// [FWGS, 01.08.24]
+				/*VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
+				VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);*/
+				VectorSubtract (pe->mins, host.player_maxs[pmove->usehull], mins);
+				VectorSubtract (pe->maxs, host.player_mins[pmove->usehull], maxs);
 
 				hull = PM_HullForBox (mins, maxs);
 				VectorCopy (pe->origin, offset);
@@ -463,9 +478,14 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 
 			if (transform_bbox)
 				{
-				World_TransformAABB (matrix, pmove->player_mins[pmove->usehull],
-					pmove->player_maxs[pmove->usehull], mins, maxs);
-				VectorSubtract (hull->clip_mins, mins, offset);	// calc new local offset
+				// [FWGS, 01.08.24]
+				/*World_TransformAABB (matrix, pmove->player_mins[pmove->usehull],
+					pmove->player_maxs[pmove->usehull], mins, maxs);*/
+				World_TransformAABB (matrix, host.player_mins[pmove->usehull],
+					host.player_maxs[pmove->usehull], mins, maxs);
+
+				// calc new local offset
+				VectorSubtract (hull->clip_mins, mins, offset);
 
 				for (j = 0; j < 3; j++)
 					{
@@ -600,10 +620,13 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 
 		hullcount = 1;
 
+		// [FWGS, 01.08.24]
 		if (pe->solid == SOLID_CUSTOM)
 			{
-			VectorCopy (pmove->player_mins[pmove->usehull], mins);
-			VectorCopy (pmove->player_maxs[pmove->usehull], maxs);
+			/*VectorCopy (pmove->player_mins[pmove->usehull], mins);
+			VectorCopy (pmove->player_maxs[pmove->usehull], maxs);*/
+			VectorCopy (host.player_mins[pmove->usehull], mins);
+			VectorCopy (host.player_maxs[pmove->usehull], maxs);
 			VectorClear (offset);
 			}
 		else if (pe->model)
@@ -617,8 +640,11 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 			}
 		else
 			{
-			VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
-			VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);
+			// [FWGS, 01.08.24]
+			/*VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
+			VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);*/
+			VectorSubtract (pe->mins, host.player_maxs[pmove->usehull], mins);
+			VectorSubtract (pe->maxs, host.player_mins[pmove->usehull], maxs);
 
 			hull = PM_HullForBox (mins, maxs);
 			VectorCopy (pe->origin, offset);
@@ -645,9 +671,14 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 
 			if (transform_bbox)
 				{
-				World_TransformAABB (matrix, pmove->player_mins[pmove->usehull],
-					pmove->player_maxs[pmove->usehull], mins, maxs);
-				VectorSubtract (hull->clip_mins, mins, offset);	// calc new local offset
+				// [FWGS, 01.08.24]
+				/*World_TransformAABB (matrix, pmove->player_mins[pmove->usehull],
+					pmove->player_maxs[pmove->usehull], mins, maxs);*/
+				World_TransformAABB (matrix, host.player_mins[pmove->usehull],
+					host.player_maxs[pmove->usehull], mins, maxs);
+
+				// calc new local offset
+				VectorSubtract (hull->clip_mins, mins, offset);
 
 				for (j = 0; j < 3; j++)
 					{

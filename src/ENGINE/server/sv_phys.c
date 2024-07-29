@@ -185,7 +185,7 @@ void SV_UpdateBaseVelocity (edict_t *ent)
 
 /***
 ============
-SV_TestEntityPosition [FWGS, 01.07.23]
+SV_TestEntityPosition [FWGS, 01.08.24]
 
 returns true if the entity is in solid currently
 ============
@@ -197,11 +197,14 @@ static qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker)
 
 	if (FBitSet (ent->v.flags, FL_CLIENT | FL_FAKECLIENT))
 		{
-		// to avoid falling through tracktrain update client mins\maxs here
+		// to avoid falling through tracktrain update client mins/maxs here
 		if (FBitSet (ent->v.flags, FL_DUCKING))
-			SV_SetMinMaxSize (ent, svgame.pmove->player_mins[1], svgame.pmove->player_maxs[1], true);
+			SV_SetMinMaxSize (ent, host.player_mins[1], host.player_maxs[1], true);
 		else
-			SV_SetMinMaxSize (ent, svgame.pmove->player_mins[0], svgame.pmove->player_maxs[0], true);
+			SV_SetMinMaxSize (ent, host.player_mins[0], host.player_maxs[0], true);
+		/*	SV_SetMinMaxSize (ent, svgame.pmove->player_mins[1], svgame.pmove->player_maxs[1], true);
+		else
+			SV_SetMinMaxSize (ent, svgame.pmove->player_mins[0], svgame.pmove->player_maxs[0], true);*/
 		}
 
 	trace = SV_Move (ent->v.origin, ent->v.mins, ent->v.maxs, ent->v.origin, MOVE_NORMAL, ent, monsterClip);

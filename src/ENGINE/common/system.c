@@ -70,22 +70,44 @@ double GAME_EXPORT Sys_DoubleTime (void)
 
 /***
 ================
-Sys_DebugBreak [FWGS, 01.05.24]
+Sys_DebugBreak [FWGS, 01.08.24]
 ================
 ***/
 void Sys_DebugBreak (void)
 	{
+#if XASH_SDL
+	int was_grabbed = host.hWnd != NULL && SDL_GetWindowGrab (host.hWnd);
+#endif
+
+	if (!Sys_DebuggerPresent ())
+		return;
+
+#if XASH_SDL
+	if (was_grabbed) // so annoying...
+		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
+#endif
+
 #if _MSC_VER
-	if (Sys_DebuggerPresent ())
-		__debugbreak ();
+	/*if (Sys_DebuggerPresent ())
+		__debugbreak ();*/
+	__debugbreak ();
 #else
-	if (Sys_DebuggerPresent ())
+	/*if (Sys_DebuggerPresent ())
 		{
 		INLINE_RAISE (SIGINT);
 
 		// sometimes signal comes with delay, let it interrupt nanosleep
 		INLINE_NANOSLEEP1 ();
-		}
+		}*/
+	INLINE_RAISE (SIGINT);
+
+	// sometimes signal comes with delay, let it interrupt nanosleep
+	INLINE_NANOSLEEP1 ();
+#endif
+
+#if XASH_SDL
+	if (was_grabbed)
+		SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
 #endif
 	}
 

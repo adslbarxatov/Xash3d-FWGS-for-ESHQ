@@ -649,10 +649,14 @@ static qboolean VID_SetScreenResolution (int width, int height, window_mode_t wi
 	return true;
 	}
 
-// [FWGS, 01.11.23]
+// [FWGS, 01.08.24]
 void VID_RestoreScreenResolution (void)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
+	// on mobile platform fullscreen is designed to be always on
+	// and code below minimizes our window if we're in full screen
+	// don't do that on mobile devices
+#if SDL_VERSION_ATLEAST( 2, 0, 0 ) && !XASH_MOBILE_PLATFORM
 	switch ((window_mode_t)vid_fullscreen.value)
 		{
 		case WINDOW_MODE_WINDOWED:

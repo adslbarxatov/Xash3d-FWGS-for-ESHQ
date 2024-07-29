@@ -273,7 +273,7 @@ static void Host_PrintFeatures (uint32_t flags, const char *s, feature_message_t
 
 /***
 ==============
-Host_ValidateEngineFeatures [FWGS, 01.05.24]
+Host_ValidateEngineFeatures [FWGS, 01.08.24]
 
 validate features bits and set host.features
 ==============
@@ -282,7 +282,8 @@ void Host_ValidateEngineFeatures (uint32_t features)
 	{
 	uint32_t mask = ENGINE_FEATURES_MASK;
 
-#if !HOST_DEDICATED
+/*if !HOST_DEDICATED*/
+#if !XASH_DEDICATED
 	if (!Host_IsDedicated () && cls.legacymode)
 		mask = ENGINE_LEGACY_FEATURES_MASK;
 #endif
@@ -373,7 +374,7 @@ void Host_AbortCurrentFrame (void)
 
 /***
 ==================
-Host_CalcSleep [FWGS, 01.07.24]
+Host_CalcSleep [FWGS, 01.08.24]
 ==================
 ***/
 static int Host_CalcSleep (void)
@@ -388,6 +389,7 @@ static int Host_CalcSleep (void)
 	*/
 
 	// let the dedicated server some sleep
+	/*if (Host_IsDedicated ())*/
 	if (Host_IsDedicated ())
 		return host_sleeptime.value;
 
@@ -1113,7 +1115,7 @@ static void Host_DetermineExecutableName (char *out, size_t size)
 
 /***
 =================
-Host_InitCommon [FWGS, 01.07.24]
+Host_InitCommon [FWGS, 01.08.24]
 =================
 ***/
 /*static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame)*/
@@ -1214,8 +1216,10 @@ endif
 		{
 		Sys_MergeCommandLine ();*/
 
-	// always enable console for Quake
-	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_strnicmp (exename, "quake", 5)))
+	/*// always enable console for Quake
+	if (!host.allow_console && (Sys_CheckParm ("-console") || !Q_strnicmp (exename, "quake", 5)))*/
+	// always enable console for Quake and dedicated
+	if (!host.allow_console && (Host_IsDedicated () || Sys_CheckParm ("-console") || !Q_strnicmp (exename, "quake", 5)))
 		host.allow_console = true;
 	/*}
 	else
@@ -1360,7 +1364,18 @@ endif
 
 	// print current developer level to simplify processing users feedback
 	if (developer > 0)
-		Con_Printf ("Developer level: ^3%i\n", developer);
+		{
+		int i;
+
+		Con_Printf ("Program args: " S_YELLOW);
+		for (i = 0; i < host.argc; i++)
+			Con_Printf ("%s ", host.argv[i]);
+		Con_Printf (S_DEFAULT "\n");
+
+		Con_Printf ("Developer level: " S_YELLOW "%i" S_DEFAULT "\n", developer);
+		}
+	/*Con_Printf ("Developer level: ^3%i\n", developer);*/
+
 	host.bugcomp = Host_CheckBugcomp ();
 
 	Cmd_AddCommand ("exec", Host_Exec_f,
@@ -1438,7 +1453,7 @@ static void Host_FreeCommon (void)
 
 /***
 =================
-Host_Main [FWGS, 01.07.24]
+Host_Main [FWGS, 01.08.24]
 =================
 ***/
 int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
@@ -1462,7 +1477,6 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 		}
 
 	Cvar_RegisterVariable (&host_allow_materials);
-
 	Cvar_RegisterVariable (&host_serverstate);
 	Cvar_RegisterVariable (&host_maxfps);
 	Cvar_RegisterVariable (&host_framerate);
@@ -1507,6 +1521,7 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	ID_Init ();
 	SoundList_Init ();
 
+	/*if (Host_IsDedicated ())*/
 	if (Host_IsDedicated ())
 		{
 #ifdef _WIN32

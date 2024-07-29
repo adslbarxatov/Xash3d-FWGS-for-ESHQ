@@ -216,25 +216,35 @@ void Sys_CloseLog (void)
 	}
 
 #if XASH_COLORIZE_CONSOLE == true
+
+// [FWGS, 01.08.24]
 static void Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 	{
 	static const char *q3ToAnsi[8] =
 		{
-			"\033[30m", // COLOR_BLACK
-			"\033[31m", // COLOR_RED
-			"\033[32m", // COLOR_GREEN
-			"\033[33m", // COLOR_YELLOW
-			"\033[34m", // COLOR_BLUE
-			"\033[36m", // COLOR_CYAN
-			"\033[35m", // COLOR_MAGENTA
-			"\033[0m", // COLOR_WHITE
+		/*"\033[30m", // COLOR_BLACK
+		"\033[31m", // COLOR_RED
+		"\033[32m", // COLOR_GREEN
+		"\033[33m", // COLOR_YELLOW
+		"\033[34m", // COLOR_BLUE
+		"\033[36m", // COLOR_CYAN
+		"\033[35m", // COLOR_MAGENTA*/
+		"\033[1;30m",	// COLOR_BLACK
+		"\033[1;31m",	// COLOR_RED
+		"\033[1;32m",	// COLOR_GREEN
+		"\033[1;33m",	// COLOR_YELLOW
+		"\033[1;34m",	// COLOR_BLUE
+		"\033[1;36m",	// COLOR_CYAN
+		"\033[1;35m",	// COLOR_MAGENTA
+		"\033[0m",		// COLOR_WHITE
 		};
 	const char *esc = q3ToAnsi[c];
 
 	if (c == 7)
 		write (fd, esc, 4);
 	else
-		write (fd, esc, 5);
+		write (fd, esc, 7);
+		/*write (fd, esc, 5);*/
 	}
 #else
 static void Sys_WriteEscapeSequenceForColorcode (int fd, int c) {}
@@ -350,79 +360,102 @@ void Sys_PrintLog (const char *pMsg)
 CONSOLE PRINT
 =============================================================================
 ***/
+
+// [FWGS, 01.08.24]
+static void Con_Printfv (qboolean debug, const char *szFmt, va_list args)
+	{
+	static char buffer[MAX_PRINT_MSG];
+	qboolean add_newline;
+
+	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
+
+	if (debug && Q_strcmp (buffer, "0\n"))
+		return; // hlrally spam
+
+	Sys_Print (buffer);
+	if (add_newline)
+		Sys_Print ("\n");
+	}
+
 /***
 =============
-Con_Printf [FWGS, 01.05.24]
+Con_Printf [FWGS, 01.08.24]
 =============
 ***/
 void GAME_EXPORT Con_Printf (const char *szFmt, ...)
 	{
-	static char	buffer[MAX_PRINT_MSG];
+	/*static char	buffer[MAX_PRINT_MSG];
 	va_list		args;
-	qboolean	add_newline;
+	qboolean	add_newline;*/
+	va_list args;
 
 	if (!host.allow_console)
 		return;
 
 	va_start (args, szFmt);
-	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
+	/*add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;*/
+	Con_Printfv (false, szFmt, args);
 	va_end (args);
 
-	Sys_Print (buffer);
+	/*Sys_Print (buffer);
 
 	if (add_newline)
-		Sys_Print ("\n");
+		Sys_Print ("\n");*/
 	}
 
 /***
 =============
-Con_DPrintf [FWGS, 01.05.24]
+Con_DPrintf [FWGS, 01.08.24]
 =============
 ***/
 void GAME_EXPORT Con_DPrintf (const char *szFmt, ...)
 	{
-	static char	buffer[MAX_PRINT_MSG];
+	/*static char	buffer[MAX_PRINT_MSG];
 	va_list		args;
-	qboolean	add_newline;
+	qboolean	add_newline;*/
+	va_list args;
 
 	if (host_developer.value < DEV_NORMAL)
 		return;
 
 	va_start (args, szFmt);
-	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
+	/*add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;*/
+	Con_Printfv (true, szFmt, args);
 	va_end (args);
 
-	if ((buffer[0] == '0') && (buffer[1] == '\n') && (buffer[2] == '\0'))
+	/*if ((buffer[0] == '0') && (buffer[1] == '\n') && (buffer[2] == '\0'))
 		return;
 
 	Sys_Print (buffer);
 
 	if (add_newline)
-		Sys_Print ("\n");
+		Sys_Print ("\n");*/
 	}
 
 /***
 =============
-Con_Reportf [FWGS, 01.05.24]
+Con_Reportf [FWGS, 01.08.24]
 =============
 ***/
 void Con_Reportf (const char *szFmt, ...)
 	{
-	static char	buffer[MAX_PRINT_MSG];
+	/*static char	buffer[MAX_PRINT_MSG];
 	va_list		args;
-	qboolean	add_newline;
+	qboolean	add_newline;*/
+	va_list args;
 
 	if (host_developer.value < DEV_EXTENDED)
 		return;
 
 	va_start (args, szFmt);
-	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
+	/*add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;*/
+	Con_Printfv (false, szFmt, args);
 	va_end (args);
 
-	Sys_Print (buffer);
+	/*Sys_Print (buffer);
 
 	if (add_newline)
-		Sys_Print ("\n");
+		Sys_Print ("\n");*/
 	}
 
 #if XASH_MESSAGEBOX == MSGBOX_STDERR

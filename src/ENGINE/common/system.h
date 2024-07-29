@@ -82,10 +82,11 @@ void Sys_InitLog (void);
 void Sys_PrintLog (const char *pMsg);
 int Sys_LogFileNo (void);
 
-//
+// [FWGS, 01.08.24]
+/*//
 // con_win.c
 //
-#if XASH_WIN32
+if XASH_WIN32
 void Wcon_InitConsoleCommands (void);
 void Wcon_ShowConsole (qboolean show);
 void Wcon_CreateConsole (void);
@@ -94,7 +95,7 @@ void Wcon_DisableInput (void);
 char *Wcon_Input (void);
 void Wcon_WinPrint (const char *pMsg);
 void Wcon_SetStatus (const char *pStatus);
-#endif
+endif*/
 
 // text messages
 #define Msg	Con_Printf

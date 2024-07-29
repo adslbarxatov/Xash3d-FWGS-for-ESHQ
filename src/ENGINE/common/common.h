@@ -397,6 +397,11 @@ typedef struct host_parm_s
 	vec3_t		player_mins[MAX_MAP_HULLS];			// 4 hulls allowed
 	vec3_t		player_maxs[MAX_MAP_HULLS];			// 4 hulls allowed
 
+	// [FWGS, 01.08.24] for CL_{Push,Pop}TraceBounds
+	vec3_t		player_mins_backup[MAX_MAP_HULLS];
+	vec3_t		player_maxs_backup[MAX_MAP_HULLS];
+	qboolean	trace_bounds_pushed;
+
 	qboolean	allow_console;		// allow console in dev-mode or multiplayer game
 	qboolean	allow_console_init;	// initial value to allow the console
 	qboolean	key_overstrike;		// key overstrike mode
@@ -584,7 +589,7 @@ typedef struct
 	} wavdata_t;
 
 //
-// soundlib
+// soundlib [FWGS, 01.08.24]
 //
 void Sound_Init (void);
 void Sound_Shutdown (void);
@@ -596,9 +601,10 @@ int FS_ReadStream (stream_t *stream, int bytes, void *buffer);
 int FS_SetStreamPos (stream_t *stream, int newpos);
 int FS_GetStreamPos (stream_t *stream);
 void FS_FreeStream (stream_t *stream);
-qboolean Sound_Process (wavdata_t **wav, int rate, int width, uint flags);
+/*qboolean Sound_Process (wavdata_t **wav, int rate, int width, uint flags);*/
+qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint flags);
 uint Sound_GetApproxWavePlayLen (const char *filepath);
-qboolean Sound_SupportedFileFormat (const char *fileext);	// [FWGS, 01.05.23]
+qboolean Sound_SupportedFileFormat (const char *fileext);
 
 //
 // host.c [FWGS, 01.07.24]
@@ -747,12 +753,12 @@ void HPAK_FlushHostQueue (void);
 #define INPUT_DEVICE_JOYSTICK (1<<2)
 #define INPUT_DEVICE_VR (1<<3)
 
-// shared calls [FWGS, 01.07.24]
+// shared calls [FWGS, 01.08.24]
 struct physent_s;
 struct sv_client_s;
 typedef struct sizebuf_s sizebuf_t;
 qboolean CL_IsInGame (void);
-qboolean CL_IsInMenu (void);
+/*qboolean CL_IsInMenu (void);*/
 qboolean CL_IsInConsole (void);
 qboolean CL_IsThirdPerson (void);
 qboolean CL_IsIntermission (void);

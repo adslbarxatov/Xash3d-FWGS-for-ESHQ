@@ -1127,7 +1127,7 @@ void SV_InitHostCommands (void)
 				"Sets the gravity multiplier (x * 10%) for the next map (coeff, 1 - 20)");
 
 			Cmd_AddRestrictedCommand ("esrm_button", SV_ESRM_Command,
-				"Sets the button mode for the next map (1 = none, 2 = one button, 3 = two buttons)");
+				"Sets the button mode for the next map (0 = none, 1 = single button, 2 = main + add. button)");
 			Cmd_AddRestrictedCommand ("esrm_sections", SV_ESRM_Command,
 				"Sets types of map sections for the next map (1 = all, 2 = only under sky, 3 = only inside)");
 			Cmd_AddRestrictedCommand ("esrm_two_floors", SV_ESRM_Command,

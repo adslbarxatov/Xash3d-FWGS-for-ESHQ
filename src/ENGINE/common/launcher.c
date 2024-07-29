@@ -27,9 +27,11 @@ GNU General Public License for more details
 #include "build.h"
 #include "common.h"
 
-#define E_GAME	"XASH3D_GAME" // default env dir to start from
+// [FWGS, 01.08.24]
+/*#define E_GAME	"XASH3D_GAME" // default env dir to start from*/
 #ifndef XASH_GAMEDIR
-	#define XASH_GAMEDIR	"valve"
+	/*#define XASH_GAMEDIR	"valve"*/
+	#define XASH_GAMEDIR "valve" // !!! Replace with your default (base) game directory !!!
 #endif
 
 // [FWGS, 01.11.23]
@@ -50,15 +52,16 @@ static void Sys_ChangeGame (const char *progname)
 	exit (Host_Main (szArgc, szArgv, szGameDir, 1, &Sys_ChangeGame));
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.08.24]
 static int Sys_Start (void)
 	{
-	const char *game = getenv (E_GAME);
+	/*const char *game = getenv (E_GAME);
 
 	if (!game)
 		game = XASH_GAMEDIR;
 
-	Q_strncpy (szGameDir, game, sizeof (szGameDir));
+	Q_strncpy (szGameDir, game, sizeof (szGameDir));*/
+	Q_strncpy (szGameDir, XASH_GAMEDIR, sizeof (szGameDir));
 
 #if XASH_EMSCRIPTEN
 #ifdef EMSCRIPTEN_LIB_FS
@@ -79,12 +82,12 @@ static int Sys_Start (void)
 	catch (e) {};);
 #endif
 
-	// [FWGS, 01.01.24]
 #elif XASH_IOS
 	IOS_LaunchDialog ();
 #endif
 
-	return Host_Main (szArgc, szArgv, game, 0, Sys_ChangeGame);
+	/*return Host_Main (szArgc, szArgv, game, 0, Sys_ChangeGame);*/
+	return Host_Main (szArgc, szArgv, szGameDir, 0, Sys_ChangeGame);
 	}
 
 // [FWGS, 01.11.23]

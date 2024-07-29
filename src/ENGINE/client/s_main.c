@@ -1639,7 +1639,7 @@ void S_UpdateFrame (struct ref_viewpass_s *rvp)
 
 /***
 ============
-SND_UpdateSound [FWGS, 09.05.24]
+SND_UpdateSound
 
 Called once each time through the main loop
 ============
@@ -1660,10 +1660,12 @@ void SND_UpdateSound (void)
 	// release raw-channels that no longer used more than 10 secs
 	S_FreeIdleRawChannels ();
 
+	// [FWGS, 01.08.24]
 	s_listener.frametime = (cl.time - cl.oldtime);
 	s_listener.waterlevel = cl.local.waterlevel;
 	s_listener.active = CL_IsInGame ();
-	s_listener.inmenu = CL_IsInMenu ();
+	/*s_listener.inmenu = CL_IsInMenu ();*/
+	s_listener.inmenu = (cls.key_dest == key_menu);
 	s_listener.paused = cl.paused;
 
 	// update general area ambient sound sources

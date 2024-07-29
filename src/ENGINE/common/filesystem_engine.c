@@ -61,7 +61,9 @@ static void FS_Path_f_ (void)
 	FS_Path_f ();
 	}
 
-static fs_interface_t fs_memfuncs =
+// [FWGS, 01.08.24]
+/*static fs_interface_t fs_memfuncs =*/
+static const fs_interface_t fs_memfuncs =
 	{
 	Con_Printf,
 	Con_DPrintf,
@@ -72,7 +74,7 @@ static fs_interface_t fs_memfuncs =
 	_Mem_Alloc,
 	_Mem_Realloc,
 	_Mem_Free,
-	Sys_GetNativeObject,	// [FWGS, 01.11.23]
+	Sys_GetNativeObject,
 	};
 
 // [FWGS, 01.05.23]
@@ -224,7 +226,7 @@ static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 
 /***
 ================
-FS_Init [FWGS, 01.07.24]
+FS_Init [FWGS, 01.08.24]
 ================
 ***/
 /*void FS_Init (void)*/
@@ -253,7 +255,14 @@ void FS_Init (const char *basedir)
 	COM_StripDirectorySlash (rodir);
 
 	if (!Sys_GetParmFromCmdLine ("-game", gamedir))
-		Q_strncpy (gamedir, basedir, sizeof (gamedir)); // gamedir == basedir
+		{
+		char *env = getenv ("XASH3D_GAME");
+		if (env)
+			Q_strncpy (gamedir, env, sizeof (gamedir));
+		else
+			Q_strncpy (gamedir, basedir, sizeof (gamedir)); // gamedir == basedir
+		}
+	/*Q_strncpy (gamedir, basedir, sizeof (gamedir)); // gamedir == basedir*/
 
 	FS_LoadProgs ();
 	/*Q_strncpy (gamedir, SI.basedirName, sizeof (gamedir));	// gamedir == basedir

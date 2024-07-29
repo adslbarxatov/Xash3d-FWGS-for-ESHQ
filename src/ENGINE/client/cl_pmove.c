@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -574,11 +574,13 @@ void GAME_EXPORT CL_SetSolidPlayers (int playernum)
 		CL_CopyEntityToPhysEnt (pe, state, false);
 		clgame.pmove->numphysent++;
 
-		// some fields needs to be override from cls.predicted_players
+		// [FWGS, 01.08.24] some fields needs to be override from cls.predicted_players
 		VectorCopy (player->origin, pe->origin);
 		VectorCopy (player->angles, pe->angles);
-		VectorCopy (clgame.pmove->player_mins[player->usehull], pe->mins);
-		VectorCopy (clgame.pmove->player_maxs[player->usehull], pe->maxs);
+		/*VectorCopy (clgame.pmove->player_mins[player->usehull], pe->mins);
+		VectorCopy (clgame.pmove->player_maxs[player->usehull], pe->maxs);*/
+		VectorCopy (host.player_mins[player->usehull], pe->mins);
+		VectorCopy (host.player_maxs[player->usehull], pe->maxs);
 		pe->movetype = player->movetype;
 		pe->solid = player->solid;
 		}

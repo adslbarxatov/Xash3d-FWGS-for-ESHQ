@@ -230,7 +230,9 @@ typedef struct fs_interface_t
 	void *(*_Sys_GetNativeObject)(const char *object);
 	} fs_interface_t;
 
-typedef int (*FSAPI)(int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *interface);
+// [FWGS, 01.08.24]
+/*typedef int (*FSAPI)(int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *interface);*/
+typedef int (*FSAPI)(int version, fs_api_t *api, fs_globals_t **globals, const fs_interface_t *interface);
 #define GET_FS_API "GetFSAPI"
 
 #ifdef __cplusplus

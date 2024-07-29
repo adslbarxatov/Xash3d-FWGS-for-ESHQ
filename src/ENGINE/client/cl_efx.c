@@ -1,5 +1,3 @@
-
-
 #include "common.h"
 #include "client.h"
 #include "customentity.h"
@@ -617,7 +615,7 @@ static qboolean CL_BeamAttemptToDie (BEAM *pBeam)
 
 /***
 ==============
-R_BeamKill
+R_BeamKill [FWGS, 01.08.24]
 
 Remove beam attached to specified entity
 and all particle trails (if this is a beamfollow)
@@ -625,12 +623,28 @@ and all particle trails (if this is a beamfollow)
 ***/
 void GAME_EXPORT R_BeamKill (int deadEntity)
 	{
-	cl_entity_t *pDeadEntity;
+	/*cl_entity_t *pDeadEntity;*/
+	BEAM *beam;
 
-	pDeadEntity = R_BeamGetEntity (deadEntity);
-	if (!pDeadEntity) return;
+	/*pDeadEntity = R_BeamGetEntity (deadEntity);
+	if (!pDeadEntity) return;*/
+	for (beam = cl_active_beams; beam; beam = beam->next)
+		{
+		if (FBitSet (beam->flags, FBEAM_STARTENTITY) && (beam->startEntity == deadEntity))
+			{
+			if (beam->type != TE_BEAMFOLLOW)
+				beam->die = cl.time;
 
-	CL_KillDeadBeams (pDeadEntity);
+			ClearBits (beam->flags, FBEAM_STARTENTITY);
+			}
+
+		/*CL_KillDeadBeams (pDeadEntity);*/
+		if (FBitSet (beam->flags, FBEAM_ENDENTITY) && beam->endEntity == deadEntity)
+			{
+			beam->die = cl.time;
+			ClearBits (beam->flags, FBEAM_ENDENTITY);
+			}
+		}
 	}
 
 /***
@@ -643,9 +657,9 @@ handle beam messages
 void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 	{
 	vec3_t	start, end;
-	int	modelIndex, startFrame;
+	int		modelIndex, startFrame;
 	float	frameRate, life, width;
-	int	startEnt, endEnt;
+	int		startEnt, endEnt;
 	float	noise, speed;
 	float	r, g, b, a;
 
@@ -693,6 +707,7 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 			else
 				R_BeamPoints (start, end, modelIndex, life, width, noise, a, speed, startFrame, frameRate, r, g, b);
 			break;
+
 		case TE_LIGHTNING:
 			start[0] = MSG_ReadCoord (msg);
 			start[1] = MSG_ReadCoord (msg);
@@ -706,8 +721,10 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 			modelIndex = MSG_ReadShort (msg);
 			R_BeamLightning (start, end, modelIndex, life, width, noise, 0.6f, 3.5f);
 			break;
+
 		case TE_BEAM:
 			break;
+
 		case TE_BEAMSPRITE:
 			start[0] = MSG_ReadCoord (msg);
 			start[1] = MSG_ReadCoord (msg);
@@ -719,6 +736,7 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 			startFrame = MSG_ReadShort (msg);	// sprite model
 			CL_BeamSprite (start, end, modelIndex, startFrame);
 			break;
+
 		case TE_BEAMTORUS:
 		case TE_BEAMDISK:
 		case TE_BEAMCYLINDER:
@@ -739,8 +757,10 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 			b = (float)MSG_ReadByte (msg) / 255.0f;
 			a = (float)MSG_ReadByte (msg) / 255.0f;
 			speed = (float)MSG_ReadByte (msg) * 0.1f;
-			R_BeamCirclePoints (beamType, start, end, modelIndex, life, width, noise, a, speed, startFrame, frameRate, r, g, b);
+			R_BeamCirclePoints (beamType, start, end, modelIndex, life, width, noise, a, speed, startFrame,
+				frameRate, r, g, b);
 			break;
+
 		case TE_BEAMFOLLOW:
 			startEnt = MSG_ReadShort (msg);
 			modelIndex = MSG_ReadShort (msg);
@@ -752,6 +772,7 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 			a = (float)MSG_ReadByte (msg) / 255.0f;
 			R_BeamFollow (startEnt, modelIndex, life, width, r, g, b, a);
 			break;
+
 		case TE_BEAMRING:
 			startEnt = MSG_ReadShort (msg);
 			endEnt = MSG_ReadShort (msg);
@@ -768,6 +789,7 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 			speed = (float)MSG_ReadByte (msg) * 0.1f;
 			R_BeamRing (startEnt, endEnt, modelIndex, life, width, noise, a, speed, startFrame, frameRate, r, g, b);
 			break;
+
 		case TE_BEAMHOSE:
 			break;
 		case TE_KILLBEAM:
@@ -785,8 +807,8 @@ R_BeamEnts
 Create beam between two ents
 ==============
 ***/
-BEAM *GAME_EXPORT R_BeamEnts (int startEnt, int endEnt, int modelIndex, float life, float width, float amplitude, float brightness,
-	float speed, int startFrame, float framerate, float r, float g, float b)
+BEAM *GAME_EXPORT R_BeamEnts (int startEnt, int endEnt, int modelIndex, float life, float width,
+	float amplitude, float brightness, float speed, int startFrame, float framerate, float r, float g, float b)
 	{
 	cl_entity_t *start, *end;
 	BEAM *pbeam;
@@ -1075,7 +1097,7 @@ void GAME_EXPORT R_ParticleExplosion (const vec3_t org)
 
 /***
 ===============
-R_ParticleExplosion2
+R_ParticleExplosion2 [FWGS, 01.08.24]
 ===============
 ***/
 void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int colorLength)
@@ -1084,10 +1106,11 @@ void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int col
 	int			colorMod = 0, packedColor;
 	particle_t	*p;
 
-	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
+	/*if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
 		packedColor = 255; // use old code for blob particles
 	else
-		packedColor = 0;
+		packedColor = 0;*/
+	packedColor = Host_IsQuakeCompatible () ? 255 : 0; // use old code for blob particles
 
 	for (i = 0; i < 512; i++)
 		{
@@ -1111,7 +1134,7 @@ void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int col
 
 /***
 ===============
-R_BlobExplosion
+R_BlobExplosion [FWGS, 01.08.24]
 ===============
 ***/
 void GAME_EXPORT R_BlobExplosion (const vec3_t org)
@@ -1119,9 +1142,10 @@ void GAME_EXPORT R_BlobExplosion (const vec3_t org)
 	particle_t *p;
 	int		i, j, packedColor;
 
-	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
+	/*if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
 		packedColor = 255; // use old code for blob particles
-	else packedColor = 0;
+	else packedColor = 0;*/
+	packedColor = Host_IsQuakeCompatible () ? 255 : 0; // use old code for blob particles
 
 	for (i = 0; i < 1024; i++)
 		{

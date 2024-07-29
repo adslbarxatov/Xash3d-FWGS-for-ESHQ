@@ -365,7 +365,7 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 /***
 =============
-Image_LoadMIP [FWGS, 01.05.24]
+Image_LoadMIP [FWGS, 01.08.24]
 =============
 ***/
 qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -445,8 +445,18 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 				}
 
 			if (pal_type == PAL_QUAKE1)
+				{
 				SetBits (image.flags, IMAGE_QUAKEPAL);
-			rendermode = LUMP_NORMAL;
+				/*rendermode = LUMP_NORMAL;*/
+				// if texture was converted from quake to half-life with no palette changes
+				// then applying texgamma might make it too dark or even outright broken
+				rendermode = LUMP_NORMAL;
+				}
+			else
+				{
+				// half-life mips need texgamma applied
+				rendermode = LUMP_TEXGAMMA;
+				}
 			}
 
 		Image_GetPaletteLMP (pal, rendermode);

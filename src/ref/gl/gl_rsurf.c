@@ -1904,7 +1904,7 @@ static struct arraystate_s
 
 /***
 ===================
-R_GenerateVBO [FWGS, 01.01.24]
+R_GenerateVBO [FWGS, 01.08.24]
 
 Allocate memory for arrays, fill it with vertex attribs and upload to GPU
 ===================
@@ -1919,6 +1919,7 @@ void R_GenerateVBO (void)
 	int			k, len = 0;
 	vboarray_t	*vbo;
 	uint		maxindex = 0;
+	double		t1, t2, t3;
 
 	R_ClearVBO ();
 
@@ -1928,6 +1929,8 @@ void R_GenerateVBO (void)
 		gEngfuncs.Cvar_FullSet ("gl_vbo", "0", FCVAR_READ_ONLY);
 		return;
 		}
+
+	t1 = gEngfuncs.pfnTime ();
 
 	// save in config if enabled manually
 	if (r_vbo.value)
@@ -1976,9 +1979,11 @@ void R_GenerateVBO (void)
 					{
 					vbotex->vboarray = vbo;
 
-					// [FWGS, 01.07.24] generate new array and new vbotexture node
+					// generate new array and new vbotexture node
 					vbo->array = Mem_Calloc (vbos.mempool, sizeof (vbovertex_t) * vbo->array_len);
-					gEngfuncs.Con_Printf ("%s: allocated array of %d verts, texture %d, lm %d\n",
+					/*gEngfuncs.Con_Printf ("%s: allocated array of %d verts, texture %d, lm %d\n",
+						__func__, vbo->array_len, j, k);*/
+					gEngfuncs.Con_Printf (S_NOTE "%s: allocated array of %d verts, texture %d, lm %d\n",
 						__func__, vbo->array_len, j, k);
 
 					vbo->next = Mem_Calloc (vbos.mempool, sizeof (vboarray_t));
@@ -2006,9 +2011,12 @@ void R_GenerateVBO (void)
 			}
 		}
 
-	// [FWGS, 01.07.24] allocate last array
+	// allocate last array
 	vbo->array = Mem_Calloc (vbos.mempool, sizeof (vbovertex_t) * vbo->array_len);
-	gEngfuncs.Con_Printf ("%s: allocated array of %d verts\n", __func__, vbo->array_len);
+	/*gEngfuncs.Con_Printf ("%s: allocated array of %d verts\n", __func__, vbo->array_len);*/
+	t2 = gEngfuncs.pfnTime ();
+	gEngfuncs.Con_Printf (S_NOTE "%s: allocated array of %d verts in %.3g seconds\n",
+		__func__, vbo->array_len, t2 - t1);
 
 	// switch to list begin
 	vbo = vbos.arraylist;
@@ -2127,6 +2135,10 @@ void R_GenerateVBO (void)
 	// reset state
 	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);
 	mtst.tmu_gl = XASH_TEXTURE0;
+
+	t3 = gEngfuncs.pfnTime ();
+	gEngfuncs.Con_Reportf (S_NOTE "%s: uploaded VBOs in %.3g seconds, %.3g seconds total\n",
+		__func__, t3 - t2, t3 - t1);
 	}
 
 /***

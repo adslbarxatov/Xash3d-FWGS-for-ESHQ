@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -204,10 +204,10 @@ Initialize CD playlist
 ***/
 static void CL_InitCDAudio (const char *filename)
 	{
-	byte *afile;
-	char *pfile;
+	byte	*afile;
+	char	*pfile;
 	string	token;
-	int	c = 0;
+	int		c = 0;
 
 	if (!FS_FileExists (filename, false))
 		{
@@ -548,7 +548,7 @@ static int V_FadeAlpha (screenfade_t *sf)
 
 /***
 =============
-CL_DrawScreenFade [FWGS, 01.04.23]
+CL_DrawScreenFade [FWGS, 01.08.24]
 
 fill screen with specfied color
 can be modulated
@@ -564,7 +564,20 @@ static void CL_DrawScreenFade (void)
 	if (!alpha)
 		return;
 
-	if (FBitSet (sf->fadeFlags, FFADE_MODULATE))
+	/*if (FBitSet (sf->fadeFlags, FFADE_MODULATE))*/
+	if (!FBitSet (sf->fadeFlags, FFADE_MODULATE))
+		{
+		ref.dllFuncs.GL_SetRenderMode (kRenderTransTexture);
+		ref.dllFuncs.Color4ub (sf->fader, sf->fadeg, sf->fadeb, alpha);
+		}
+	else if (Host_IsQuakeCompatible ())
+		{
+		// Quake Wrapper and Quake Remake use FFADE_MODULATE for item pickups
+		// so hack the check here
+		ref.dllFuncs.GL_SetRenderMode (kRenderTransAdd);
+		ref.dllFuncs.Color4ub (sf->fader, sf->fadeg, sf->fadeb, alpha);
+		}
+	else
 		{
 		// ESHQ: исправление для обеспечения полной заливки экрана
 		ref.dllFuncs.GL_SetRenderMode (kRenderTransAdd);
@@ -574,11 +587,11 @@ static void CL_DrawScreenFade (void)
 			(uint16_t)(sf->fadeb * alpha + (255 - alpha) * 255) >> 8,
 			alpha);
 		}
-	else
+	/*else
 		{
 		ref.dllFuncs.GL_SetRenderMode (kRenderTransTexture);
 		ref.dllFuncs.Color4ub (sf->fader, sf->fadeg, sf->fadeb, alpha);
-		}
+		}*/
 
 	ref.dllFuncs.R_DrawStretchPic (0, 0, refState.width, refState.height, 0, 0, 1, 1,
 		R_GetBuiltinTexture (REF_WHITE_TEXTURE));
@@ -1208,7 +1221,8 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 	if ((type == SPR_CLIENT) || (type == SPR_HUDSPRITE))
 		SetBits (m_pSprite->flags, MODEL_CLIENT);
 
-	m_pSprite->numtexinfo = texFlags; // store texFlags into numtexinfo
+	/*m_pSprite->numtexinfo = texFlags; // store texFlags into numtexinfo*/
+	m_pSprite->numtexinfo = texFlags;	// [FWGS, 01.08.24] store texFlags for renderer into numtexinfo
 
 	if (!FS_FileExists (szSpriteName, false))
 		{
@@ -1237,7 +1251,9 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 		}
 	else
 		{
-		Mod_LoadSpriteModel (m_pSprite, buf, &loaded, texFlags);
+		// [FWGS, 01.08.24]
+		/*Mod_LoadSpriteModel (m_pSprite, buf, &loaded, texFlags);*/
+		Mod_LoadSpriteModel (m_pSprite, buf, &loaded);
 		ref.dllFuncs.Mod_ProcessRenderData (m_pSprite, true, buf);
 		}
 
@@ -2393,17 +2409,21 @@ static void GAME_EXPORT pfnLocalPlayerViewheight (float *view_ofs)
 
 /***
 =============
-pfnLocalPlayerBounds
+pfnLocalPlayerBounds [FWGS, 01.08.24]
 =============
 ***/
 static void GAME_EXPORT pfnLocalPlayerBounds (int hull, float *mins, float *maxs)
 	{
 	if ((hull >= 0) && (hull < 4))
 		{
-		if (mins)
+		/*if (mins)
 			VectorCopy (clgame.pmove->player_mins[hull], mins);
 		if (maxs)
-			VectorCopy (clgame.pmove->player_maxs[hull], maxs);
+			VectorCopy (clgame.pmove->player_maxs[hull], maxs);*/
+		if (mins)
+			VectorCopy (host.player_mins[hull], mins);
+		if (maxs)
+			VectorCopy (host.player_maxs[hull], maxs);
 		}
 	}
 
@@ -2451,25 +2471,45 @@ static int GAME_EXPORT CL_TestLine (const vec3_t start, const vec3_t end, int fl
 
 /***
 =============
-CL_PushTraceBounds [FWGS, 01.02.24]
+CL_PushTraceBounds [FWGS, 01.08.24]
 =============
 ***/
 static void GAME_EXPORT CL_PushTraceBounds (int hullnum, const float *mins, const float *maxs)
 	{
+	if (!host.trace_bounds_pushed)
+		{
+		memcpy (host.player_mins_backup, host.player_mins, sizeof (host.player_mins_backup));
+		memcpy (host.player_maxs_backup, host.player_maxs, sizeof (host.player_maxs_backup));
+
+		host.trace_bounds_pushed = true;
+		}
+
 	hullnum = bound (0, hullnum, 3);
-	VectorCopy (mins, clgame.pmove->player_mins[hullnum]);
-	VectorCopy (maxs, clgame.pmove->player_maxs[hullnum]);
+	
+	/*VectorCopy (mins, clgame.pmove->player_mins[hullnum]);
+	VectorCopy (maxs, clgame.pmove->player_maxs[hullnum]);*/
+	VectorCopy (mins, host.player_mins[hullnum]);
+	VectorCopy (maxs, host.player_maxs[hullnum]);
 	}
 
 /***
 =============
-CL_PopTraceBounds [FWGS, 01.02.24]
+CL_PopTraceBounds [FWGS, 01.08.24]
 =============
 ***/
 static void GAME_EXPORT CL_PopTraceBounds (void)
 	{
-	memcpy (clgame.pmove->player_mins, host.player_mins, sizeof (host.player_mins));
-	memcpy (clgame.pmove->player_maxs, host.player_maxs, sizeof (host.player_maxs));
+	/*memcpy (clgame.pmove->player_mins, host.player_mins, sizeof (host.player_mins));
+	memcpy (clgame.pmove->player_maxs, host.player_maxs, sizeof (host.player_maxs));*/
+	if (!host.trace_bounds_pushed)
+		{
+		Con_Reportf (S_ERROR "%s called without push!\n", __func__);
+		return;
+		}
+
+	host.trace_bounds_pushed = false;
+	memcpy (host.player_mins, host.player_mins_backup, sizeof (host.player_mins));
+	memcpy (host.player_maxs, host.player_maxs_backup, sizeof (host.player_maxs));
 	}
 
 /***

@@ -402,9 +402,11 @@ void Voice_RecordStart (void)
 		{
 		voice.input_file = FS_LoadSound ("voice_input.wav", NULL, 0);
 
+		// [FWGS, 01.08.24]
 		if (voice.input_file)
 			{
-			Sound_Process (&voice.input_file, voice.samplerate, voice.width, SOUND_RESAMPLE);
+			/*Sound_Process (&voice.input_file, voice.samplerate, voice.width, SOUND_RESAMPLE);*/
+			Sound_Process (&voice.input_file, voice.samplerate, voice.width, VOICE_PCM_CHANNELS, SOUND_RESAMPLE);
 			voice.input_file_pos = 0;
 
 			voice.start_time = Sys_DoubleTime ();

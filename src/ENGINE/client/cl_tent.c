@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -2540,7 +2540,10 @@ void CL_SetLightstyle (int style, const char *s, float f)
 			}
 		}
 
-	Con_Reportf ("Lightstyle %i (%s), interp %s\n", style, ls->pattern, ls->interp ? "Yes" : "No");
+	// [FWGS, 01.08.24]
+	/*Con_Reportf ("Lightstyle %i (%s), interp %s\n", style, ls->pattern, ls->interp ? "Yes" : "No");*/
+	if (ls->length >= 1)
+		Con_Reportf ("Lightstyle %i (%s), interp %s\n", style, ls->pattern, ls->interp ? "Yes" : "No");
 	}
 
 /***
@@ -2832,11 +2835,19 @@ void CL_AddEntityEffects (cl_entity_t *ent)
 		}
 	else if (RP_LOCALCLIENT (ent))
 		{
-		// from CL_PlayerFlashlight
+		// [FWGS, 01.08.24] from CL_PlayerFlashlight
 		if (FBitSet (ent->curstate.effects, EF_BRIGHTLIGHT))
+			{
 			R_EntityBrightlight (ent, ent->index, 400);
+			}
 		else if (FBitSet (ent->curstate.effects, EF_DIMLIGHT))
-			CL_UpdateFlashlight (ent);
+			{
+			if (Host_IsQuakeCompatible ())
+				R_EntityDimlight (ent, ent->index);
+			else
+				CL_UpdateFlashlight (ent);
+			}
+		/*CL_UpdateFlashlight (ent);*/
 		}
 
 	else

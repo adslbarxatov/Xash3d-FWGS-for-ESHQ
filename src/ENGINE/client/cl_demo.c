@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -1556,9 +1556,10 @@ void CL_PlayDemo_f (void)
 		if (neg)
 			cls.forcetrack = -cls.forcetrack;
 
-		// [FWGS, 01.07.24]
-		cls.legacymode = PROTO_QUAKE;
+		// [FWGS, 01.08.24]
+		/*cls.legacymode = PROTO_QUAKE;*/
 		CL_DemoStartPlayback (DEMO_QUAKE1);
+		cls.legacymode = PROTO_QUAKE;
 		return; // quake demo is started
 		}
 
@@ -1574,13 +1575,14 @@ void CL_PlayDemo_f (void)
 
 	if (demo.header.dem_protocol != DEMO_PROTOCOL)
 		{
-		Con_Printf (S_ERROR "playdemo: demo protocol outdated (%i should be %i)\n", demo.header.dem_protocol, DEMO_PROTOCOL);
+		Con_Printf (S_ERROR "playdemo: demo protocol outdated (%i should be %i)\n",
+			demo.header.dem_protocol, DEMO_PROTOCOL);
 		CL_DemoAborted ();
 		return;
 		}
 
-	if (demo.header.net_protocol != PROTOCOL_VERSION &&
-		demo.header.net_protocol != PROTOCOL_LEGACY_VERSION)
+	if ((demo.header.net_protocol != PROTOCOL_VERSION) &&
+		(demo.header.net_protocol != PROTOCOL_LEGACY_VERSION))
 		{
 		Con_Printf (S_ERROR "playdemo: net protocol outdated (%i should be %i)\n", 
 			demo.header.net_protocol, PROTOCOL_VERSION);

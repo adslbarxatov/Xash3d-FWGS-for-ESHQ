@@ -477,9 +477,10 @@ static const char *R_GetConfigName (void)
 	return "opengl";
 	}
 
-// [FWGS, 01.07.24]
-/*ref_interface_t gReffuncs =*/
-static ref_interface_t gReffuncs =
+// [FWGS, 01.08.24]
+/*ref_interface_t gReffuncs =
+static ref_interface_t gReffuncs =*/
+static const ref_interface_t gReffuncs =
 	{
 	R_Init,
 	R_Shutdown,

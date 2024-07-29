@@ -168,12 +168,15 @@ void Image_Shutdown (void)
 	Mem_FreePool (&host.imagepool);
 	}
 
+// [FWGS, 01.08.24]
 byte *Image_Copy (size_t size)
 	{
 	byte *out;
 
-	out = Mem_Malloc (host.imagepool, size);
-	memcpy (out, image.tempbuffer, size);
+	/*out = Mem_Malloc (host.imagepool, size);
+	memcpy (out, image.tempbuffer, size);*/
+	out = Mem_Realloc (host.imagepool, image.tempbuffer, size);
+	image.tempbuffer = NULL;
 
 	return out;
 	}
@@ -279,10 +282,11 @@ int Image_ComparePalette (const byte *pal)
 		return PAL_QUAKE1;
 	else if (!memcmp (palette_hl, pal, 765))
 		return PAL_HALFLIFE;
+
 	return PAL_CUSTOM;
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.08.24]
 static void Image_SetPalette (const byte *pal, uint *d_table)
 	{
 	byte	rgba[4];
@@ -293,6 +297,19 @@ static void Image_SetPalette (const byte *pal, uint *d_table)
 	switch (image.d_rendermode)
 		{
 		case LUMP_NORMAL:
+			for (i = 0; i < 256; i++)
+				{
+				/*rgba[0] = TextureToGamma (pal[i * 3 + 0]);
+				rgba[1] = TextureToGamma (pal[i * 3 + 1]);
+				rgba[2] = TextureToGamma (pal[i * 3 + 2]);*/
+				memcpy (rgba, &pal[i * 3], 3);
+				rgba[3] = 0xFF;
+				memcpy (&uirgba, rgba, sizeof (uirgba));
+				d_table[i] = uirgba;
+				}
+			break;
+
+		case LUMP_TEXGAMMA:
 			for (i = 0; i < 256; i++)
 				{
 				rgba[0] = TextureToGamma (pal[i * 3 + 0]);
@@ -1411,6 +1428,8 @@ static qboolean Image_RemapInternal (rgbdata_t *pic, int topColor, int bottomCol
 	return true;
 	}
 
+// [FWGS, 01.08.24]
+/*qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, float reserved)*/
 qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, float reserved)
 	{
 	rgbdata_t	*pic = *pix;
@@ -1418,20 +1437,21 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 	byte		*out;
 
 	// check for buffers
-	if (!pic || !pic->buffer)
+	/*if (!pic || !pic->buffer)*/
+	if (unlikely (!pic || !pic->buffer))
 		{
 		image.force_flags = 0;
 		return false;
 		}
 
-	if (!flags)
+	/*if (!flags)*/
+	if (unlikely (!flags))
 		{
 		// clear any force flags
 		image.force_flags = 0;
 		return false; // no operation specfied
 		}
 
-	// [FWGS, 01.07.24]
 	if (FBitSet (flags, IMAGE_MAKE_LUMA))
 		{
 		/*out = Image_CreateLumaInternal (pic->buffer, pic->width, pic->height, pic->type, pic->flags);*/
@@ -1473,7 +1493,9 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 			pic->width = w, pic->height = h;
 			pic->size = w * h * PFDesc[pic->type].bpp;
 			Mem_Free (pic->buffer);		// free original image buffer
-			pic->buffer = Image_Copy (pic->size);	// unzone buffer (don't touch image.tempbuffer)
+
+			/*pic->buffer = Image_Copy (pic->size);	// unzone buffer (don't touch image.tempbuffer)*/
+			pic->buffer = Image_Copy (pic->size); // unzone buffer
 			}
 		else
 			{

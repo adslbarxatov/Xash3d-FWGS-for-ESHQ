@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -389,7 +389,11 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg)
 					{
 					int maxclients = cl.maxclients;
 
-					cls.changelevel = true;
+					/*cls.changelevel = true;*/
+					// [FWGS, 01.08.24] we can only changelevel in singleplayer
+					// and singleplayer always runs in current protocol
+					// cls.changelevel = true;
+
 					S_StopAllSounds (true);
 
 					Con_Printf ("Server changing, reconnecting\n");

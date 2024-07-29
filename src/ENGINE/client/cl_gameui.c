@@ -1099,8 +1099,9 @@ static void GAME_EXPORT pfnSetCursor (void *hCursor)
 	Platform_SetCursorType (cursor);
 	}
 
-// engine callbacks
-static ui_enginefuncs_t gEngfuncs =
+// [FWGS, 01.08.24] engine callbacks
+/*static ui_enginefuncs_t gEngfuncs =*/
+static const ui_enginefuncs_t gEngfuncs =
 	{
 	pfnPIC_Load,
 	GL_FreeImage,

@@ -45,6 +45,7 @@ static void Host_SetNextState (host_state_t nextState)
 	GameState->nextstate = nextState;
 	}
 
+// [FWGS, 01.08.24]
 void COM_NewGame (char const *pMapName)
 	{
 	if (GameState->nextstate != STATE_RUNFRAME)
@@ -61,10 +62,15 @@ void COM_NewGame (char const *pMapName)
 	GameState->loadGame = false;
 	GameState->newGame = true;
 
-	// [FWGS, 01.01.24] exit from current game
+	// disconnect from current online game
+	if (!SV_Active ())
+		CL_Disconnect ();
+
+	// exit from current game
 	SV_ShutdownGame ();
 	}
 
+// [FWGS, 01.08.24] 
 void COM_LoadLevel (char const *pMapName, qboolean background)
 	{
 	if (GameState->nextstate != STATE_RUNFRAME)
@@ -81,10 +87,15 @@ void COM_LoadLevel (char const *pMapName, qboolean background)
 	GameState->loadGame = false;
 	GameState->newGame = false;
 
-	// [FWGS, 01.01.24] exit from current game
+	// disconnect from current online game
+	if (!SV_Active ())
+		CL_Disconnect ();
+
+	// exit from current game
 	SV_ShutdownGame ();
 	}
 
+// [FWGS, 01.08.24]
 void COM_LoadGame (char const *pMapName)
 	{
 	if (GameState->nextstate != STATE_RUNFRAME)
@@ -98,6 +109,10 @@ void COM_LoadGame (char const *pMapName)
 	GameState->backgroundMap = false;
 	GameState->newGame = false;
 	GameState->loadGame = true;
+
+	// disconnect from current online game
+	if (!SV_Active ())
+		CL_Disconnect ();
 	}
 
 void COM_ChangeLevel (char const *pNewLevel, char const *pLandmarkName, qboolean background)

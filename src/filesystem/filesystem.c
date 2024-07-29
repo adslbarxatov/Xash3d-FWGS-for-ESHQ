@@ -1386,7 +1386,7 @@ static int FS_StripIdiotRelativePath (const char *dllname, const char *gamefolde
 
 /***
 ==================
-FS_FindLibrary [FWGS, 01.07.24]
+FS_FindLibrary [FWGS, 01.08.24]
 
 search for library, assume index is valid
 ==================
@@ -1495,12 +1495,13 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 			}
 		else
 			{
-			Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath), "%s%s", search->filename, dllInfo->shortPath);
+			/*Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath), "%s%s", search->filename, dllInfo->shortPath);*/
+			Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath), "%s", dllInfo->shortPath);
 
 #if XASH_WIN32 && XASH_X86 // a1ba: custom loader is non-portable (I just don't want to touch it)
-			/*Con_Printf (S_WARN "%s: loading libraries from packs is deprecated "
-				"and will be removed in the future\n", __FUNCTION__);*/
-			Con_Printf (S_WARN "%s: loading libraries from archives is deprecated and will be removed in the future\n",
+			/*Con_Printf (S_WARN "%s: loading libraries from archives is deprecated and will be removed in the future\n",
+				__func__);*/
+			Con_Printf (S_WARN "%s: loading libraries from archives is non portable and might fail on other platforms\n",
 				__func__);
 			dllInfo->custom_loader = true;
 #else
@@ -3176,7 +3177,9 @@ fs_interface_t g_engfuncs =
 	Sys_GetNativeObject_stub,	// [FWGS, 01.11.23]
 	};
 
-static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)
+// [FWGS, 01.08.24]
+/*static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)*/
+static qboolean FS_InitInterface (int version, const fs_interface_t *engfuncs)
 	{
 	// to be extended in future interface revisions
 	if (version != FS_API_VERSION)
@@ -3215,7 +3218,6 @@ static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)
 		Con_Reportf ("filesystem_stdio: custom memory allocation functions found\n");
 		}
 
-	// [FWGS, 01.11.23]
 	if (engfuncs->_Sys_GetNativeObject)
 		{
 		g_engfuncs._Sys_GetNativeObject = engfuncs->_Sys_GetNativeObject;
@@ -3225,7 +3227,9 @@ static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)
 	return true;
 	}
 
-fs_api_t g_api =
+// [FWGS, 01.08.24]
+/*fs_api_t g_api =*/
+const fs_api_t g_api =
 	{
 	FS_InitStdio,
 	FS_ShutdownStdio,

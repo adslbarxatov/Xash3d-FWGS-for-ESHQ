@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -444,10 +444,11 @@ void SCR_MakeScreenShot (void)
 
 /***
 ================
-SCR_DrawPlaque
+SCR_DrawPlaque [FWGS, 01.08.24]
 ================
 ***/
-static void SCR_DrawPlaque (void)
+/*static void SCR_DrawPlaque (void)*/
+static qboolean SCR_DrawPlaque (void)
 	{
 	if ((cl_allow_levelshots.value && !cls.changelevel) || cl.background)
 		{
@@ -456,25 +457,31 @@ static void SCR_DrawPlaque (void)
 		ref.dllFuncs.R_DrawStretchPic (0, 0, refState.width, refState.height, 0, 0, 1, 1, levelshot);
 		if (!cl.background)
 			CL_DrawHUD (CL_LOADING);
+
+		return true;
 		}
+
+	return false;
 	}
 
 /***
 ================
-SCR_BeginLoadingPlaque
+SCR_BeginLoadingPlaque [FWGS, 01.08.24]
 ================
 ***/
 void SCR_BeginLoadingPlaque (qboolean is_background)
 	{
-	float	oldclear = 0;;
+	/*float	oldclear = 0;;*/
 	S_StopAllSounds (true);
-	cl.audio_prepped = false;			// don't play ambients
-	cl.video_prepped = false;
+	cl.audio_prepped = false;	// don't play ambients
+
+	/*cl.video_prepped = false;
 
 	if (!Host_IsDedicated ())
 		oldclear = gl_clear.value;
 
-	if (CL_IsInMenu () && !cls.changedemo && !is_background)
+	if (CL_IsInMenu () && !cls.changedemo && !is_background)*/
+	if ((cls.key_dest == key_menu) && !cls.changedemo && !is_background)
 		{
 		UI_SetActiveMenu (false);
 		if ((cls.state == ca_disconnected) && !((GameState->curstate == STATE_RUNFRAME) &&
@@ -488,19 +495,23 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	if (cls.key_dest == key_console)
 		return;
 
-	if (!Host_IsDedicated ())
-		gl_clear.value = 0.0f;
+	/*if (!Host_IsDedicated ())
+		gl_clear.value = 0.0f;*/
 
 	if (is_background) 
 		IN_MouseSavePos ();
 
 	cls.draw_changelevel = !is_background;
 	SCR_UpdateScreen ();
+
+	// set video_prepped after update screen, so engine can draw last remaining frame
+	cl.video_prepped = false;
+
 	cls.disable_screen = host.realtime;
 	cl.background = is_background;		// set right state before svc_serverdata is came
 
-	if (!Host_IsDedicated ())
-		gl_clear.value = oldclear;
+	/*if (!Host_IsDedicated ())
+		gl_clear.value = oldclear;*/
 	}
 
 /***
@@ -545,11 +556,13 @@ SCR_TileClear
 ***/
 void SCR_TileClear (void)
 	{
-	int	i, top, bottom, left, right;
+	int		i, top, bottom, left, right;
 	dirty_t	clear;
 
-	if (scr_viewsize.value >= 120)
-		return; // full screen rendering
+	// [FWGS, 01.08.24] full screen rendering
+	/*if (scr_viewsize.value >= 120)*/
+	if (likely (scr_viewsize.value >= 120))
+		return;
 
 	// erase rect will be the union of the past three frames
 	// so tripple buffering works properly
@@ -618,7 +631,7 @@ void SCR_TileClear (void)
 
 /***
 ==================
-SCR_UpdateScreen
+SCR_UpdateScreen [FWGS, 01.08.24]
 
 This is called every frame, and can also be called explicitly to flush
 text to the screen
@@ -626,6 +639,8 @@ text to the screen
 ***/
 void SCR_UpdateScreen (void)
 	{
+	qboolean screen_redraw = true; // assume screen has been redrawn
+
 	if (!V_PreRender ())
 		return;
 
@@ -638,7 +653,8 @@ void SCR_UpdateScreen (void)
 		case ca_connecting:
 		case ca_connected:
 		case ca_validate:
-			SCR_DrawPlaque ();
+			/*SCR_DrawPlaque ();*/
+			screen_redraw = SCR_DrawPlaque ();
 			break;
 
 		case ca_active:
@@ -655,7 +671,12 @@ void SCR_UpdateScreen (void)
 			break;
 		}
 
-	V_PostRender ();
+	/*V_PostRender ();*/
+	// during changelevel we might have a few frames when we have nothing to draw
+	// (assuming levelshots are off) and drawing 2d on top of nothing or cleared screen
+	// is ugly, specifically with Adreno and ImgTec GPUs
+	if (screen_redraw || !cls.changelevel || !cls.changedemo)
+		V_PostRender ();
 	}
 
 // [FWGS, 01.04.23] удалены SCR_LoadFixedWidthFont, SCR_LoadVariableWidthFont
