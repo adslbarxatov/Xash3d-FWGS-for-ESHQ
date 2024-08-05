@@ -277,8 +277,8 @@ struct msurface_s
 
 typedef struct hull_s
 	{
-	mclipnode_t *clipnodes;
-	mplane_t *planes;
+	mclipnode_t	*clipnodes;
+	mplane_t	*planes;
 	int			firstclipnode;
 	int			lastclipnode;
 	vec3_t		clip_mins;

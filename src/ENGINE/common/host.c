@@ -305,7 +305,8 @@ void Host_ValidateEngineFeatures (uint32_t features)
 			__func__);
 
 	// finally set global variable
-	host.features = features;
+	host.features = features | ENGINE_PHYSICS_PUSHER_EXT;
+	// ESHQ: принудительное добавление новой обработки физики для func_door_rotating
 	}
 
 /***

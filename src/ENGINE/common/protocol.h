@@ -316,7 +316,7 @@ extern const char *clc_strings[clc_lastmsg + 1];
 	| ENGINE_LOAD_DELUXEDATA \
 	| ENGINE_LARGE_LIGHTMAPS \
 	| ENGINE_COMPENSATE_QUAKE_BUG \
-	| ENGINE_COMPUTE_STUDIO_LERP )
+	| ENGINE_COMPUTE_STUDIO_LERP )	
 
 // Master Server protocol
 #define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter

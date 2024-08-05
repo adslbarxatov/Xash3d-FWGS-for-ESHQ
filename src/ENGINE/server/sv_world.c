@@ -181,9 +181,9 @@ forcing to select BSP hull
 ***/
 static hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs, vec3_t offset)
 	{
-	hull_t *hull;
-	model_t *model;
-	vec3_t		size;
+	hull_t	*hull;
+	model_t	*model;
+	vec3_t	size;
 
 	if (svgame.physFuncs.SV_HullForBsp != NULL)
 		{
@@ -195,7 +195,7 @@ static hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs
 	// decide which clipping hull to use, based on the size
 	model = SV_ModelHandle (ent->v.modelindex);
 
-	if (!model || model->type != mod_brush)
+	if (!model || (model->type != mod_brush))
 		Host_Error ("Entity %i (%s) SOLID_BSP with a non bsp model %s\n", NUM_FOR_EDICT (ent), SV_ClassName (ent),
 			STRING (ent->v.model));
 
@@ -205,11 +205,12 @@ static hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs
 	// author: The FiEctro
 	hull = &model->hulls[COM_RandomLong (0, 0)];
 #endif
+
 	// g-cont: find a better method to detect quake-maps?
 	if (FBitSet (world.flags, FWORLD_SKYSPHERE))
 		{
 		// alternate hull select for quake maps
-		if (size[0] < 3.0f || ent->v.solid == SOLID_PORTAL)
+		if ((size[0] < 3.0f) || (ent->v.solid == SOLID_PORTAL))
 			hull = &model->hulls[0];
 		else if (size[0] <= 32.0f)
 			hull = &model->hulls[1];

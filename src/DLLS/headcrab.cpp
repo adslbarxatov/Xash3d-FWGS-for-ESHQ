@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   This source code contains proprietary and confidential information of
-*   Valve LLC and its suppliers.  Access to this code is restricted to
-*   persons who have executed a written SDK license with Valve.  Any access,
-*   use or distribution of this code by or to any unlicensed person is illegal.
-*
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+This source code contains proprietary and confidential information of
+Valve LLC and its suppliers.  Access to this code is restricted to
+persons who have executed a written SDK license with Valve.  Any access,
+use or distribution of this code by or to any unlicensed person is illegal
 ****/
+
 // =========================================================
 // headcrab.cpp - tiny, jumpy alien parasite
 // =========================================================
@@ -193,17 +192,21 @@ void CHeadCrab::SetYawSpeed (void)
 		case ACT_IDLE:
 			ys = 30;
 			break;
+
 		case ACT_RUN:
 		case ACT_WALK:
 			ys = 20;
 			break;
+
 		case ACT_TURN_LEFT:
 		case ACT_TURN_RIGHT:
 			ys = 60;
 			break;
+
 		case ACT_RANGE_ATTACK1:
 			ys = 30;
 			break;
+
 		default:
 			ys = 30;
 			break;
@@ -428,7 +431,8 @@ int CHeadCrab::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, floa
 // =========================================================
 void CHeadCrab::IdleSound (void)
 	{
-	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pIdleSounds), GetSoundVolue (), ATTN_SMALL, 0, GetVoicePitch ());
+	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pIdleSounds), GetSoundVolue (),
+		ATTN_SMALL, 0, GetVoicePitch ());
 	}
 
 // =========================================================
@@ -436,7 +440,8 @@ void CHeadCrab::IdleSound (void)
 // =========================================================
 void CHeadCrab::AlertSound (void)
 	{
-	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pAlertSounds), GetSoundVolue (), ATTN_SMALL, 0, GetVoicePitch ());
+	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pAlertSounds), GetSoundVolue (),
+		ATTN_SMALL, 0, GetVoicePitch ());
 	}
 
 // =========================================================
@@ -444,7 +449,8 @@ void CHeadCrab::AlertSound (void)
 // =========================================================
 void CHeadCrab::PainSound (void)
 	{
-	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pPainSounds), GetSoundVolue (), ATTN_SMALL, 0, GetVoicePitch ());
+	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pPainSounds), GetSoundVolue (),
+		ATTN_SMALL, 0, GetVoicePitch ());
 	}
 
 // =========================================================
@@ -452,7 +458,8 @@ void CHeadCrab::PainSound (void)
 // =========================================================
 void CHeadCrab::DeathSound (void)
 	{
-	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pDeathSounds), GetSoundVolue (), ATTN_SMALL, 0, GetVoicePitch ());
+	EMIT_SOUND_DYN (edict (), CHAN_VOICE, RANDOM_SOUND_ARRAY (pDeathSounds), GetSoundVolue (),
+		ATTN_SMALL, 0, GetVoicePitch ());
 	}
 
 Schedule_t* CHeadCrab::GetScheduleOfType (int Type)
@@ -486,8 +493,10 @@ void CBabyCrab::Spawn (void)
 	{
 	CHeadCrab::Spawn ();
 	SET_MODEL (ENT (pev), "models/baby_headcrab.mdl");
-	pev->rendermode = kRenderTransTexture;
-	pev->renderamt = 192;
+
+	// ESHQ: отключена полупрозрачность для улучшения видимости
+	/*pev->rendermode = kRenderTransTexture;
+	pev->renderamt = 192;*/
 	UTIL_SetSize (pev, Vector (-10, -10, 0), Vector (10, 10, 12));
 
 	pev->health = gSkillData.headcrabHealth * 0.25;	// less health than full grown
