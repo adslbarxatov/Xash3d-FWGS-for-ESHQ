@@ -276,7 +276,7 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 
 /***
 ===============
-CL_DrawParticlesExternal
+CL_DrawParticlesExternal [FWGS, 01.09.24]
 
 allow to draw effects from custom renderer
 ===============
@@ -285,7 +285,7 @@ void CL_DrawParticlesExternal (const ref_viewpass_t *rvp, qboolean trans_pass, f
 	{
 	ref_instance_t	oldRI = RI;
 
-	memcpy (&oldRI, &RI, sizeof (ref_instance_t));
+	/*memcpy (&oldRI, &RI, sizeof (ref_instance_t));*/
 	R_SetupRefParams (rvp);
 	R_SetupFrustum ();
 	R_SetupGL (false);	// don't touch GL-states
@@ -294,5 +294,6 @@ void CL_DrawParticlesExternal (const ref_viewpass_t *rvp, qboolean trans_pass, f
 	gEngfuncs.CL_DrawEFX (frametime, trans_pass);
 
 	// restore internal state
-	memcpy (&RI, &oldRI, sizeof (ref_instance_t));
+	/*memcpy (&RI, &oldRI, sizeof (ref_instance_t));*/
+	RI = oldRI;
 	}

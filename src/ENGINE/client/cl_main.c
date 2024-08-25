@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -167,8 +167,14 @@ static CVAR_DEFINE_AUTO (cl_maxframetime, "0", 0,
 	"set deadline timer for client rendering to catch freezes");
 CVAR_DEFINE_AUTO (cl_fixmodelinterpolationartifacts, "1", 0,
 	"try to fix up models interpolation on a moving platforms (monsters on trains for example)");
-static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
+
+// [FWGS, 01.09.24]
+/*static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
+	"player name");*/
+static char username[32];
+static CVAR_DEFINE_AUTO (name, username, FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
 	"player name");
+
 static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"player model ('player' is a singleplayer model)");
 static CVAR_DEFINE_AUTO (topcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -2357,13 +2363,12 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		// reading test buffer
 		MSG_ReadBytes (msg, recv_buf, realsize);
 
-		// procssing the CRC
+		// processing the CRC
 		CRC32_ProcessBuffer (&crcValue2, recv_buf, realsize);
 
 		if (crcValue == crcValue2)
 			{
 			// packet was sucessfully delivered, adjust the fragment size and get challenge
-
 			Con_DPrintf ("CRC %x is matched, get challenge, fragment size %d\n", crcValue, cls.max_fragment_size);
 			Netchan_OutOfBandPrint (NS_CLIENT, from, "getchallenge\n");
 			Cvar_SetValue ("cl_dlmax", cls.max_fragment_size);
@@ -2576,7 +2581,7 @@ static int CL_GetMessage (byte *data, size_t *length)
 	return false;
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 static void CL_ParseNetMessage (sizebuf_t *msg, void (*parsefn)(sizebuf_t *))
 	{
 	cls.starting_count = MSG_GetNumBytesRead (msg); // updates each frame
@@ -2591,10 +2596,13 @@ static void CL_ParseNetMessage (sizebuf_t *msg, void (*parsefn)(sizebuf_t *))
 	// after we have parsed the frame
 	if (!cls.demoplayback)
 		{
+		if (cls.state != ca_active)
+			CL_WriteDemoMessage (true, cls.starting_count, msg);
+
 		if (cls.demorecording && !cls.demowaiting)
 			CL_WriteDemoMessage (false, cls.starting_count, msg);
-		else if (cls.state != ca_active)
-			CL_WriteDemoMessage (true, cls.starting_count, msg);
+		/*else if (cls.state != ca_active)
+			CL_WriteDemoMessage (true, cls.starting_count, msg);*/
 		}
 	}
 
@@ -2614,12 +2622,15 @@ static void CL_ReadNetMessage (void)
 		case PROTO_CURRENT:
 			parsefn = CL_ParseServerMessage;
 			break;
+
 		case PROTO_LEGACY:
 			parsefn = CL_ParseLegacyServerMessage;
 			break;
+
 		case PROTO_QUAKE:
 			parsefn = CL_ParseQuakeMessage;
 			break;
+
 		case PROTO_GOLDSRC:
 		default:
 			ASSERT (0);
@@ -2841,7 +2852,7 @@ static void CL_RegisterCustomization (resource_t *resource)
 
 /***
 ====================
-CL_ProcessFile [FWGS, 01.07.24]
+CL_ProcessFile [FWGS, 01.09.24]
 
 A file has been received via the fragmentation/reassembly layer, put it in the right spot and
  see if we have finished downloading files.
@@ -2851,7 +2862,7 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 	{
 	int			sound_len = sizeof (DEFAULT_SOUNDPATH) - 1;
 	byte		rgucMD5_hash[16];
-	const char	*pfilename;
+	/*const char	*pfilename;*/
 	resource_t	*p;
 
 	if (COM_CheckString (filename) && successfully_received)
@@ -2860,8 +2871,10 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 			Con_Printf ("processing %s\n", filename);
 
 		// skip "downloaded/" part to avoid mismatch with needed resources list
-		if (!Q_strnicmp (filename, "downloaded/", 11))
-			filename += 11;
+		/*if (!Q_strnicmp (filename, "downloaded/", 11))*/
+		if (!Q_strnicmp (filename, DEFAULT_DOWNLOADED_DIRECTORY, sizeof (DEFAULT_DOWNLOADED_DIRECTORY) - 1))
+			filename += sizeof (DEFAULT_DOWNLOADED_DIRECTORY) - 1;
+		/*filename += 11;*/
 		}
 	else if (!successfully_received)
 		{
@@ -2941,6 +2954,7 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 					{
 					Con_Printf ("Downloaded %i bytes for purported %i byte file, ignoring download\n",
 						cls.netchan.tempbuffersize, p->nDownloadSize);
+					/*cls.netchan.tempbuffersize, p->nDownloadSize);*/
 					}
 
 				if (cls.netchan.tempbuffer)
@@ -3101,24 +3115,34 @@ static void CL_Physinfo_f (void)
 	Con_Printf ("Total %zu symbols\n", Q_strlen (cls.physinfo));
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 static qboolean CL_ShouldRescanFilesystem (void)
 	{
-	resource_t *res;
+	resource_t	*res;
+	qboolean	retval = false;
 
 	for (res = cl.resourcesonhand.pNext; res && (res != &cl.resourcesonhand); res = res->pNext)
 		{
 		if (res->type == t_generic)
 			{
 			const char *ext = COM_FileExtension (res->szFileName);
-			// TODO: query supported archives format from fs_stdio
+			/*// TODO: query supported archives format from fs_stdio
 			// TODO: query if was already opened
 			if (!Q_stricmp (ext, "wad") || !Q_stricmp (ext, "pk3") || !Q_stricmp (ext, "pak"))
-				return true;
+				return true;*/
+			if (!g_fsapi.IsArchiveExtensionSupported (ext, IAES_ONLY_REAL_ARCHIVES))
+				continue;
+
+			if (FBitSet (res->ucExtraFlags, RES_EXTRA_ARCHIVE_CHECKED))
+				continue;
+
+			SetBits (res->ucExtraFlags, RES_EXTRA_ARCHIVE_CHECKED);
+			retval = true;
 			}
 		}
 
-	return false;
+	/*return false;*/
+	return retval;
 	}
 
 // [FWGS, 01.07.24]
@@ -3212,8 +3236,10 @@ qboolean CL_PrecacheResources (void)
 					S_RegisterSound (pRes->szFileName);
 					}
 				break;
+
 			case t_skin:
 				break;
+
 			case t_model:
 				cl.nummodels = Q_max (cl.nummodels, pRes->nIndex + 1);
 				if (pRes->szFileName[0] != '*')
@@ -3238,18 +3264,22 @@ qboolean CL_PrecacheResources (void)
 						}
 					}
 				break;
+
 			case t_decal:
 				if (!FBitSet (pRes->ucFlags, RES_CUSTOM))
 					Q_strncpy (host.draw_decals[pRes->nIndex], pRes->szFileName, sizeof (host.draw_decals[0]));
 				break;
+
 			case t_generic:
 				Q_strncpy (cl.files_precache[pRes->nIndex], pRes->szFileName, sizeof (cl.files_precache[0]));
 				cl.numfiles = Q_max (cl.numfiles, pRes->nIndex + 1);
 				break;
+
 			case t_eventscript:
 				Q_strncpy (cl.event_precache[pRes->nIndex], pRes->szFileName, sizeof (cl.event_precache[0]));
 				CL_SetEventIndex (cl.event_precache[pRes->nIndex], pRes->nIndex);
 				break;
+
 			default:
 				break;
 			}
@@ -3350,10 +3380,17 @@ static void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_trace_messages);
 	Cvar_RegisterVariable (&cl_trace_events);
 
-	// [FWGS, 01.07.23] userinfo
+	// userinfo
 	Cvar_RegisterVariable (&cl_nopred);
+
+	// [FWGS, 01.09.24] initialize before registering variable
+	Q_strncpy (username, Sys_GetCurrentUser (), sizeof (username));
+
 	Cvar_RegisterVariable (&name);
-	Cvar_DirectSet (&name, Sys_GetCurrentUser ());
+
+	/*Cvar_DirectSet (&name, Sys_GetCurrentUser ());*/
+	Cvar_Get ("ui_username", username, FCVAR_READ_ONLY | FCVAR_PRIVILEGED, "default user name");
+
 	Cvar_RegisterVariable (&model);
 	Cvar_RegisterVariable (&cl_updaterate);
 	Cvar_RegisterVariable (&cl_dlmax);
@@ -3474,6 +3511,11 @@ static void CL_InitLocal (void)
 		"play a movie");
 	Cmd_AddCommand ("stop", CL_Stop_f,
 		"stop playing or recording a demo");
+
+	// [FWGS, 01.09.24]
+	Cmd_AddCommand ("listdemo", CL_ListDemo_f,
+		"list demo entries");
+
 	Cmd_AddCommand ("info", NULL,
 		"collect info about local servers with specified protocol");
 	Cmd_AddCommand ("escape", CL_Escape_f,

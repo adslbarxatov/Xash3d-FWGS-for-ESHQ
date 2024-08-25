@@ -47,6 +47,11 @@ CVAR_DEFINE_AUTO (voice_inputfromfile, "0", FCVAR_PRIVILEGED,
 // [FWGS, 01.05.24]
 static void Voice_ApplyGainAdjust (int16_t *samples, int count, float scale);
 
+// [FWGS, 01.09.24] in case user enabled voice after connection
+// can't keep in `voice` struct because it gets zeroed on shutdown
+static string voice_codec_init;
+static int voice_quality_init;
+
 /***
 ===============================================================================
 OPUS INTEGRATION
@@ -601,7 +606,7 @@ static void Voice_Shutdown (void)
 
 /***
 =========================
-Voice_Idle
+Voice_Idle [FWGS, 01.09.24]
 
 Run timeout for all clients
 =========================
@@ -610,10 +615,22 @@ void Voice_Idle (double frametime)
 	{
 	int i;
 
-	if (FBitSet (voice_enable.flags, FCVAR_CHANGED) && !voice_enable.value)
+	/*if (FBitSet (voice_enable.flags, FCVAR_CHANGED) && !voice_enable.value)*/
+	if (FBitSet (voice_enable.flags, FCVAR_CHANGED))
 		{
-		Voice_Shutdown ();
-		return;
+		/*Voice_Shutdown ();
+		return;*/
+		ClearBits (voice_enable.flags, FCVAR_CHANGED);
+
+		if (voice_enable.value)
+			{
+			if ((cls.state == ca_active) && COM_CheckString (voice_codec_init) && (voice_quality_init != 0))
+				Voice_Init (voice_codec_init, voice_quality_init, false);
+			}
+		else
+			{
+			Voice_Shutdown ();
+			}
 		}
 
 	// update local player status first
@@ -625,13 +642,26 @@ void Voice_Idle (double frametime)
 
 /***
 =========================
-Voice_Init [FWGS, 01.05.24]
+Voice_Init [FWGS, 01.09.24]
 
 Initialize the voice subsystem
 =========================
 ***/
 qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit)
 	{
+	if (Q_strcmp (pszCodecName, VOICE_OPUS_CUSTOM_CODEC))
+		{
+		Con_Printf (S_ERROR "Server requested unsupported codec: %s\n", pszCodecName);
+
+		// reset saved codec name, we won't enable voice for this connection
+		voice_codec_init[0] = 0;
+		voice_quality_init = 0;
+		return false;
+		}
+
+	Q_strncpy (voice_codec_init, pszCodecName, sizeof (voice_codec_init));
+	voice_quality_init = quality;
+
 	if (!voice_enable.value)
 		return false;
 
@@ -640,11 +670,11 @@ qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit)
 		{
 		Voice_Shutdown ();
 
-		if (Q_strcmp (pszCodecName, VOICE_OPUS_CUSTOM_CODEC))
+		/*if (Q_strcmp (pszCodecName, VOICE_OPUS_CUSTOM_CODEC))
 			{
 			Con_Printf (S_ERROR "Server requested unsupported codec: %s\n", pszCodecName);
 			return false;
-			}
+			}*/
 
 		voice.autogain.block_size = 128;
 

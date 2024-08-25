@@ -61,14 +61,18 @@ static char			fs_basedir[MAX_SYSPATH];	// base game directory
 static char			fs_gamedir[MAX_SYSPATH];	// game current directory
 // [FWGS, 01.05.23] удалена fs_caseinsensitive
 
-// [FWGS, 01.07.23] add archives in specific order PAK -> PK3 -> WAD
+// [FWGS, 01.09.24] add archives in specific order PAK -> PK3 -> WAD
 // so raw WADs takes precedence over WADs included into PAKs and PK3s
 const fs_archive_t g_archives[] =
 	{
-		{ "pak", SEARCHPATH_PAK, FS_AddPak_Fullpath, true },
+		/*{ "pak", SEARCHPATH_PAK, FS_AddPak_Fullpath, true },
 		{ "pk3", SEARCHPATH_ZIP, FS_AddZip_Fullpath, true },
 		{ "pk3dir", SEARCHPATH_PK3DIR, FS_AddDir_Fullpath, true },
-		{ "wad", SEARCHPATH_WAD, FS_AddWad_Fullpath, false },
+		{ "wad", SEARCHPATH_WAD, FS_AddWad_Fullpath, false },*/
+		{ "pak", SEARCHPATH_PAK, FS_AddPak_Fullpath, true, true },
+		{ "pk3", SEARCHPATH_ZIP, FS_AddZip_Fullpath, true, true },
+		{ "pk3dir", SEARCHPATH_PK3DIR, FS_AddDir_Fullpath, true, false },
+		{ "wad", SEARCHPATH_WAD, FS_AddWad_Fullpath, false, true },
 		{ NULL }, // end marker
 	};
 
@@ -656,6 +660,11 @@ static void FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 	// always expose our extensions
 	FS_Printf (f, "internal_vgui_support\t\t%s\n", GameInfo->internal_vgui_support ? "1" : "0");
 	FS_Printf (f, "render_picbutton_text\t\t%s\n", GameInfo->render_picbutton_text ? "1" : "0");
+
+	// [FWGS, 01.09.24]
+	if (COM_CheckStringEmpty (GameInfo->demomap))
+		FS_Printf (f, "demomap\t\t\"%s\"\n", GameInfo->demomap);
+
 	FS_Close (f);	// all done
 	}
 
@@ -954,7 +963,21 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->autosave_aged_count = bound (2, Q_atoi (token), 99);
 				}
+
+			// [FWGS, 01.09.24]
+			else if (!Q_stricmp (token, "demomap"))
+				{
+				pfile = COM_ParseFile (pfile, GameInfo->demomap, sizeof (GameInfo->demomap));
+				}
 			}
+		}
+
+	// [FWGS, 01.09.24] demomap only valid for gameinfo.txt but HL1 after 25th anniversary update
+	// comes with demo chapter. Set the demomap here
+	if (!COM_CheckStringEmpty (GameInfo->demomap))
+		{
+		if (!Q_stricmp (GameInfo->title, "Half-Life")) // original check from GameUI
+			Q_strncpy (GameInfo->demomap, "hldemo1", sizeof (GameInfo->demomap));
 		}
 
 	if (!found_linux || !found_osx)
@@ -971,10 +994,23 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			Q_snprintf (GameInfo->game_dll_osx, sizeof (GameInfo->game_dll_osx), "%s.dylib", gamedll);
 		}
 
-	// [FWGS, 01.04.23] make sure what gamedir is really exist
+	// [FWGS, 01.09.24] make sure what gamedir is really exist
+	// a1ba: why we are doing this???
 	Q_snprintf (token, sizeof (token), "%s/%s", fs_rootdir, GameInfo->falldir);
 	if (!FS_SysFolderExists (token))
-		GameInfo->falldir[0] = '\0';
+		{
+		if (COM_CheckStringEmpty (fs_rodir))
+			{
+			Q_snprintf (token, sizeof (token), "%s/%s", fs_rodir, GameInfo->falldir);
+			if (!FS_SysFolderExists (token))
+				GameInfo->falldir[0] = 0;
+			}
+		else
+			{
+			GameInfo->falldir[0] = 0;
+			}
+		}
+		/*GameInfo->falldir[0] = '\0';*/
 	}
 
 /***
@@ -1256,17 +1292,22 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 		FS_AllowDirectPaths (false);
 		}
 
+	// [FWGS, 01.09.24]
 	if (isGameDir)
 		{
-		Q_snprintf (buf, sizeof (buf), "%s/downloaded/", dir);
+		/*Q_snprintf (buf, sizeof (buf), "%s/downloaded/", dir);*/
+		Q_snprintf (buf, sizeof (buf), "%s/" DEFAULT_DOWNLOADED_DIRECTORY, dir);
 		FS_AddGameDirectory (buf, FS_NOWRITE_PATH | FS_CUSTOM_PATH);
 		}
+
 	Q_snprintf (buf, sizeof (buf), "%s/", dir);
 	FS_AddGameDirectory (buf, flags);
 
+	// [FWGS, 01.09.24]
 	if (isGameDir)
 		{
-		Q_snprintf (buf, sizeof (buf), "%s/custom/", dir);
+		/*Q_snprintf (buf, sizeof (buf), "%s/custom/", dir);*/
+		Q_snprintf (buf, sizeof (buf), "%s/" DEFAULT_CUSTOM_DIRECTORY, dir);
 		FS_AddGameDirectory (buf, FS_NOWRITE_PATH | FS_CUSTOM_PATH);
 		}
 	}
@@ -2856,7 +2897,7 @@ int GAME_EXPORT FS_FileExists (const char *filename, int gamedironly)
 
 /***
 ==================
-FS_GetDiskPath [FWGS, 01.07.23]
+FS_GetDiskPath [FWGS, 01.09.24]
 
 Build direct path for file in the filesystem
 return NULL for file in pack
@@ -2865,7 +2906,7 @@ return NULL for file in pack
 const char *FS_GetDiskPath (const char *name, qboolean gamedironly)
 	{
 	static char diskpath[MAX_SYSPATH];
-	char fullpath[MAX_SYSPATH];
+	/*char fullpath[MAX_SYSPATH];
 	searchpath_t *search;
 
 	search = FS_FindFile (name, NULL, fullpath, sizeof (fullpath), gamedironly);
@@ -2873,18 +2914,19 @@ const char *FS_GetDiskPath (const char *name, qboolean gamedironly)
 	if (search)
 		{
 		if (search->type != SEARCHPATH_PLAIN) // file in pack or wad
-			return NULL;
+			return NULL;*/
 
-		Q_snprintf (diskpath, sizeof (diskpath), "%s/%s", search->filename, fullpath);
+	/*Q_snprintf (diskpath, sizeof (diskpath), "%s/%s", search->filename, fullpath);*/
+	if (FS_GetFullDiskPath (diskpath, sizeof (diskpath), name, gamedironly))
 		return diskpath;
-		}
+	/*}*/
 
 	return NULL;
 	}
 
 /***
 ==================
-FS_GetFullDiskPath [FWGS, 01.05.23]
+FS_GetFullDiskPath [FWGS, 01.09.24]
 
 Build full path for file on disk
 return false for file in pack
@@ -2899,7 +2941,8 @@ qboolean FS_GetFullDiskPath (char *buffer, size_t size, const char *name, qboole
 
 	if (search && (search->type == SEARCHPATH_PLAIN))
 		{
-		Q_snprintf (buffer, size, "%s/%s", search->filename, temp);
+		/*Q_snprintf (buffer, size, "%s/%s", search->filename, temp);*/
+		Q_snprintf (buffer, size, "%s%s", search->filename, temp);
 		return true;
 		}
 
@@ -3157,6 +3200,26 @@ static const char *FS_ArchivePath (file_t *f)
 	return "plain";
 	}
 
+// [FWGS, 01.09.24]
+static qboolean FS_IsArchiveExtensionSupported (const char *ext, uint flags)
+	{
+	int i;
+
+	if (ext == NULL)
+		return false;
+
+	for (i = 0; i < (sizeof (g_archives) / sizeof (g_archives[0])) - 1; i++)
+		{
+		if (FBitSet (flags, IAES_ONLY_REAL_ARCHIVES) && !g_archives[i].real_archive)
+			continue;
+
+		if (!Q_stricmp (ext, g_archives[i].ext))
+			return true;
+		}
+
+	return false;
+	}
+
 void FS_InitMemory (void)
 	{
 	fs_mempool = Mem_AllocPool ("FileSystem Pool");
@@ -3287,11 +3350,12 @@ const fs_api_t g_api =
 	(void *)FS_MountArchive_Fullpath,
 	FS_GetFullDiskPath,
 
-	// [FWGS, 01.03.24]
+	// [FWGS, 01.09.24]
 	FS_LoadFileMalloc,
+	FS_IsArchiveExtensionSupported,
 	};
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.09.24]
 int HLEXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *engfuncs);
 
 int HLEXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *engfuncs)
@@ -3299,7 +3363,8 @@ int HLEXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_in
 	if (engfuncs && !FS_InitInterface (version, engfuncs))
 		return 0;
 
-	memcpy (api, &g_api, sizeof (*api));
+	/*memcpy (api, &g_api, sizeof (*api));*/
+	*api = g_api;
 	*globals = &FI;
 
 	return FS_API_VERSION;

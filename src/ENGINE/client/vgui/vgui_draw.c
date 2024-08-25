@@ -65,12 +65,14 @@ static vgui_static_t vgui = {
 static CVAR_DEFINE_AUTO (vgui_utf8, "0", FCVAR_ARCHIVE,
 	"enable utf-8 support for vgui text");
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 static void GAME_EXPORT VGUI_DrawInit (void)
 	{
-	/*false,*/
 	memset (vgui.textures, 0, sizeof (vgui.textures));
+	memset (vgui.color, 0, sizeof (vgui.color));
+
 	vgui.texture_id = vgui.bound_texture = 0;
+	vgui.enable_texture = true;
 	}
 
 // [FWGS, 01.07.24]
@@ -355,13 +357,14 @@ static const vguiapi_t gEngfuncs =
 	Platform_GetKeyModifiers,
 	};
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 qboolean VGui_LoadProgs (HINSTANCE hInstance)
 	{
 	void (*F)(vguiapi_t *);
 	qboolean client = (hInstance != NULL);
 
-	memcpy (&vgui.dllFuncs, &gEngfuncs, sizeof (vgui.dllFuncs));
+	/*memcpy (&vgui.dllFuncs, &gEngfuncs, sizeof (vgui.dllFuncs));*/
+	vgui.dllFuncs = gEngfuncs;
 
 	// not loading interface from client.dll, load vgui_support.dll instead
 	if (!client)
@@ -446,7 +449,7 @@ void VGui_Startup (int width, int height)
 
 /***
 ================
-VGui_Shutdown [FWGS, 01.07.24]
+VGui_Shutdown [FWGS, 01.09.24]
 
 Unload vgui_support library and call VGui_Shutdown
 ================
@@ -460,7 +463,8 @@ void VGui_Shutdown (void)
 		COM_FreeLibrary (vgui.hInstance);*/
 	
 	// drop pointers to now unloaded vgui_support
-	memcpy (&vgui.dllFuncs, &gEngfuncs, sizeof (vgui.dllFuncs));
+	/*memcpy (&vgui.dllFuncs, &gEngfuncs, sizeof (vgui.dllFuncs));*/
+	vgui.dllFuncs = gEngfuncs;
 	vgui.hInstance = NULL;
 	/*vgui.initialized = false;*/
 	}

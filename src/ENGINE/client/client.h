@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef CLIENT_H
@@ -452,67 +452,66 @@ typedef struct
 // new versions of client dlls have a single export with all callbacks
 typedef void (*CL_EXPORT_FUNCS)(void *pv);
 
+// [FWGS, 01.09.24]
 typedef struct
 	{
-	void *hInstance;		// pointer to client.dll
-	cldll_func_t	dllFuncs;			// dll exported funcs
+	void		*hInstance;				// pointer to client.dll
+	cldll_func_t		dllFuncs;		// dll exported funcs
 	render_interface_t	drawFuncs;		// custom renderer support
-	poolhandle_t      mempool;			// client edicts pool
-	string		mapname;			// map name
-	string		maptitle;			// display map title
-	string		itemspath;		// path to items description for auto-complete func
+	poolhandle_t		mempool;		// client edicts pool
+	string		mapname;				// map name
+	string		maptitle;				// display map title
+	string		itemspath;				// path to items description for auto-complete func
 
-	cl_entity_t *entities;		// dynamically allocated entity array
-	cl_entity_t *static_entities;		// dynamically allocated static entity array
-	remap_info_t **remap_info;		// store local copy of all remap textures for each entity
+	cl_entity_t		*entities;			// dynamically allocated entity array
+	cl_entity_t		*static_entities;	// dynamically allocated static entity array
+	remap_info_t	**remap_info;		// store local copy of all remap textures for each entity
 
 	int		maxEntities;
-	int		maxRemapInfos;		// maxEntities + cl.viewEnt; also used for catch entcount
+	int		maxRemapInfos;	// maxEntities + cl.viewEnt; also used for catch entcount
 	int		numStatics;		// actual static entity count
 	int		maxModels;
 
 	// movement values from server
-	movevars_t	movevars;
-	movevars_t	oldmovevars;
-	playermove_t *pmove;		// pmove state
+	movevars_t		movevars;
+	movevars_t		oldmovevars;
+	playermove_t	*pmove;		// pmove state
 
 	qboolean		pushed;		// used by PM_Push\Pop state
 	int		oldviscount;		// used by PM_Push\Pop state
 	int		oldphyscount;		// used by PM_Push\Pop state
 
 	cl_user_message_t	msg[MAX_USER_MESSAGES];	// keep static to avoid fragment memory
-	cl_user_event_t *events[MAX_EVENTS];
+	cl_user_event_t		*events[MAX_EVENTS];
 
-	string		cdtracks[MAX_CDTRACKS];	// 32 cd-tracks read from cdaudio.txt
+	string		cdtracks[MAX_CDTRACKS];			// 32 cd-tracks read from cdaudio.txt
 
 	model_t		sprites[MAX_CLIENT_SPRITES];	// hud&client spritetexturesz
-	int		viewport[4];		// viewport sizes
+	int			viewport[4];		// viewport sizes
 
 	client_draw_t	ds;				// draw2d stuff (hud, weaponmenu etc)
 	screenfade_t	fade;			// screen fade
 	screen_shake_t	shake;			// screen shake
 	center_print_t	centerPrint;	// centerprint variables
-	SCREENINFO	scrInfo;			// actual screen info
+	SCREENINFO		scrInfo;		// actual screen info
 	ref_overview_t	overView;		// overView params
-	color24		palette[256];		// palette used for particle colors
+	color24			palette[256];	// palette used for particle colors
 
-	cached_spritelist_t	sprlist[MAX_CLIENT_SPRITES];	// client list sprites
+	cached_spritelist_t		sprlist[MAX_CLIENT_SPRITES];	// client list sprites
 
-	client_textmessage_t *titles;			// title messages, not network messages
-	int		numTitles;
+	client_textmessage_t	*titles;	// title messages, not network messages
+	int				numTitles;
 
-	// [FWGS, 01.11.23]
 	net_request_t	net_requests[MAX_REQUESTS];	// no reason to keep more
-	efrag_t *free_efrags;			// linked efrags
-	cl_entity_t	viewent;			// viewmodel
-
-	qboolean client_dll_uses_sdl;
+	/*efrag_t			*free_efrags;	// linked efrags*/
+	cl_entity_t		viewent;			// viewmodel
+	qboolean		client_dll_uses_sdl;
 	} clgame_static_t;
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 typedef struct
 	{
-	void *hInstance;					// pointer to client.dll
+	void			*hInstance;			// pointer to client.dll
 	UI_FUNCTIONS	dllFuncs;			// dll exported funcs
 	UI_EXTENDED_FUNCTIONS	dllFuncs2;	// fwgs extension
 	poolhandle_t	mempool;			// client edicts pool
@@ -521,8 +520,11 @@ typedef struct
 	player_info_t	playerinfo;			// local playerinfo
 
 	gameui_draw_t	ds;					// draw2d stuff (menu images)
-	GAMEINFO		gameInfo;			// current gameInfo
-	GAMEINFO		*modsInfo[MAX_MODS];	// simplified gameInfo for MainUI
+	/*GAMEINFO		gameInfo;			// current gameInfo
+	GAMEINFO		*modsInfo[MAX_MODS];	// simplified gameInfo for MainUI*/
+	gameinfo2_t		gameInfo;			// current gameInfo
+	gameinfo2_t		*modsInfo;			// simplified gameInfo for MainUI, allocated by demand
+	GAMEINFO		**oldModsInfo;		// simplified gameInfo for older MainUI, allocated by demand
 
 	ui_globalvars_t	*globals;
 
@@ -531,7 +533,7 @@ typedef struct
 	int				logo_yres;
 	float			logo_length;
 
-	/*qboolean use_text_api;*/
+	/*qboolean		use_text_api;*/
 	qboolean		use_extended_api;
 	} gameui_static_t;
 
@@ -781,7 +783,7 @@ void CL_SignonReply (void);
 void CL_ClearState (void);
 
 //
-// cl_demo.c [FWGS, 01.02.24]
+// cl_demo.c [FWGS, 01.09.24]
 //
 void CL_StartupDemoHeader (void);
 void CL_DrawDemoRecording (void);
@@ -801,6 +803,7 @@ void CL_Demos_f (void);
 void CL_DeleteDemo_f (void);
 void CL_Record_f (void);
 void CL_Stop_f (void);
+void CL_ListDemo_f (void);
 int CL_GetDemoComment (const char *demoname, char *comment);
 
 //

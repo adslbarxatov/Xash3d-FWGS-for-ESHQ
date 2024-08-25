@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -94,8 +94,6 @@ static int pfnDrawScaledCharacter (int x, int y, int number, int r, int g, int b
 	return CL_DrawCharacter (x, y, number, color, &g_scaled_font, flags);
 	}
 
-// [FWGS, 01.11.23] удалена pfnGetNativeObject
-
 static void pfnTouch_HideButtons (const char *name, byte state)
 	{
 	Touch_HideButtons (name, state, true);
@@ -131,7 +129,7 @@ static const mobile_engfuncs_t gMobileEngfuncs =
 	pfnParseFileSafe
 	};
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.09.24]
 qboolean Mobile_Init (void)
 	{
 	/*qboolean success = false;*/
@@ -156,7 +154,9 @@ qboolean Mobile_Init (void)
 		{
 		static mobile_engfuncs_t mobile_engfuncs; // keep a copy, don't let user change engine pointers
 
-		memcpy (&mobile_engfuncs, &gMobileEngfuncs, sizeof (mobile_engfuncs));
+		/*memcpy (&mobile_engfuncs, &gMobileEngfuncs, sizeof (mobile_engfuncs));*/
+		mobile_engfuncs = gMobileEngfuncs;
+
 		if (!ExportToClient (&mobile_engfuncs))
 			{
 			Con_Reportf ("%s: ^2initailized extended MobilityAPI ^7ver. %i\n", __func__, MOBILITY_API_VERSION);

@@ -11,7 +11,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -61,6 +61,10 @@ void TriRenderMode (int mode)
 
 		case kRenderGlow:
 		case kRenderTransAdd:
+			// [FWGS, 01.09.24]
+			// ??? требует проверки
+			// pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
 			pglEnable (GL_BLEND);
 			pglDepthMask (GL_FALSE);

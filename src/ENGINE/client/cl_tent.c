@@ -2655,40 +2655,66 @@ dlight_t *CL_AllocElight (int key)
 
 /***
 ===============
-CL_DecayLights
+CL_DecayLights [FWGS, 01.09.24]
 ===============
 ***/
 void CL_DecayLights (void)
 	{
-	dlight_t	*dl;
-	float		time;
+	/*dlight_t	*dl;
+	float		time;*/
+	const float	time = cl.time;
+	const float	dt = cl.time - cl.oldtime;
 	int			i;
 
-	time = cl.time - cl.oldtime;
+	/*time = cl.time - cl.oldtime;
 
-	for (i = 0, dl = cl_dlights; i < MAX_DLIGHTS; i++, dl++)
+	for (i = 0, dl = cl_dlights; i < MAX_DLIGHTS; i++, dl++)*/
+	for (i = 0; i < MAX_DLIGHTS; i++)
 		{
+		/*if (!dl->radius)
+			continue;*/
+		dlight_t *dl = &cl_dlights[i];
+
+		/*dl->radius -= time * dl->decay;
+		if (dl->radius < 0)
+			dl->radius = 0;*/
 		if (!dl->radius)
 			continue;
 
-		dl->radius -= time * dl->decay;
-		if (dl->radius < 0)
-			dl->radius = 0;
+		if (dl->die < time)
+			{
+			memset (dl, 0, sizeof (*dl));
+			continue;
+			}
 
-		if ((dl->die < cl.time) || !dl->radius)
+		/*if ((dl->die < cl.time) || !dl->radius)*/
+		dl->radius -= dt * dl->decay;
+		if (dl->radius <= 0)
 			memset (dl, 0, sizeof (*dl));
 		}
 
-	for (i = 0, dl = cl_elights; i < MAX_ELIGHTS; i++, dl++)
+	/*for (i = 0, dl = cl_elights; i < MAX_ELIGHTS; i++, dl++)*/
+	for (i = 0; i < MAX_ELIGHTS; i++)
 		{
+		/*if (!dl->radius)
+			continue;*/
+		dlight_t *dl = &cl_elights[i];
+
+		/*dl->radius -= time * dl->decay;
+		if (dl->radius < 0)
+			dl->radius = 0;*/
 		if (!dl->radius)
 			continue;
 
-		dl->radius -= time * dl->decay;
-		if (dl->radius < 0)
-			dl->radius = 0;
+		/*if ((dl->die < cl.time) || !dl->radius)*/
+		if (dl->die < time)
+			{
+			memset (dl, 0, sizeof (*dl));
+			continue;
+			}
 
-		if ((dl->die < cl.time) || !dl->radius)
+		dl->radius -= dt * dl->decay;
+		if (dl->radius <= 0)
 			memset (dl, 0, sizeof (*dl));
 		}
 	}
@@ -3189,14 +3215,12 @@ void GAME_EXPORT CL_DecalRemoveAll (int textureIndex)
 EFRAGS MANAGEMENT
 ==============================================================
 ***/
-efrag_t	cl_efrags[MAX_EFRAGS];
 
-/***
-==============
-CL_ClearEfrags
-==============
-***/
-void CL_ClearEfrags (void)
+// [FWGS, 01.09.24]
+/*efrag_t	cl_efrags[MAX_EFRAGS];*/
+
+// [FWGS, 01.09.24] removed CL_ClearEfrags
+/*void CL_ClearEfrags (void)
 	{
 	int	i;
 
@@ -3207,7 +3231,7 @@ void CL_ClearEfrags (void)
 	for (i = 0; i < MAX_EFRAGS - 1; i++)
 		clgame.free_efrags[i].entnext = &clgame.free_efrags[i + 1];
 	clgame.free_efrags[i].entnext = NULL;
-	}
+	}*/
 
 /***
 =======================

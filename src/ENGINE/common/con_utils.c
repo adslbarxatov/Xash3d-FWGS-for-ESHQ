@@ -1072,6 +1072,7 @@ autocomplete_list_t cmd_list[] =
 	{ "changelevel", 1, Cmd_GetMapList },
 	{ "playdemo", 1, Cmd_GetDemoList, },
 	{ "timedemo", 1, Cmd_GetDemoList, },
+	{ "listdemo", 1, Cmd_GetDemoList, },	// [FWGS, 01.09.24]
 	{ "playvol", 1, Cmd_GetSoundList },
 	{ "hpkval", 1, Cmd_GetCustomList },
 	{ "hpklist", 1, Cmd_GetCustomList },
@@ -1080,13 +1081,13 @@ autocomplete_list_t cmd_list[] =
 	{ "music", 1, Cmd_GetMusicList, },
 	{ "movie", 1, Cmd_GetMovieList },
 	{ "exec", 1, Cmd_GetConfigList },
-	#if !XASH_DEDICATED
+#if !XASH_DEDICATED
 	{ "give", 1, Cmd_GetItemsList },
 	{ "drop", 1, Cmd_GetItemsList },
 	{ "bind", 1, Cmd_GetKeysList },
 	{ "unbind", 1, Cmd_GetKeysList },
 	{ "bind", 2, Cmd_GetCommandsList },
-	#endif
+#endif
 	{ "game", 1, Cmd_GetGamesList },
 	{ "save", 1, Cmd_GetSavesList },
 	{ "load", 1, Cmd_GetSavesList },
@@ -1196,8 +1197,10 @@ static void Con_ConcatRemaining (const char *src, const char *start)
 				}
 
 			Q_strncat (con.completionField->buffer, Cmd_Argv (i), sizeof (con.completionField->buffer));
-			if (*arg == ' ') Q_strncat (con.completionField->buffer, "\"", sizeof (con.completionField->buffer));
+			if (*arg == ' ')
+				Q_strncat (con.completionField->buffer, "\"", sizeof (con.completionField->buffer));
 			}
+
 		return;
 		}
 
@@ -1253,9 +1256,13 @@ void Con_CompleteCommand (field_t *field)
 	Cmd_LookupCmds (NULL, &con, (setpair_t)Con_AddCommandToList);
 	Cvar_LookupVars (0, NULL, &con, (setpair_t)Con_AddCommandToList);
 
-	if (!con.matchCount) return; // no matches
+	// no matches?
+	if (!con.matchCount)
+		return;
 
-	memcpy (&temp, con.completionField, sizeof (field_t));
+	// [FWGS, 01.09.24]
+	/*memcpy (&temp, con.completionField, sizeof (field_t));*/
+	temp = *con.completionField;
 
 	// autocomplete second arg
 	if ((Cmd_Argc () >= 2) || ((Cmd_Argc () == 1) && nextcmd))
@@ -1289,8 +1296,11 @@ void Con_CompleteCommand (field_t *field)
 	if (con.matchCount == 1)
 		{
 		Q_strncpy (con.completionField->buffer, con.cmds[0], sizeof (con.completionField->buffer));
-		if (Cmd_Argc () == 1) Q_strncat (con.completionField->buffer, " ", sizeof (con.completionField->buffer));
-		else Con_ConcatRemaining (temp.buffer, con.completionString);
+		if (Cmd_Argc () == 1)
+			Q_strncat (con.completionField->buffer, " ", sizeof (con.completionField->buffer));
+		else
+			Con_ConcatRemaining (temp.buffer, con.completionString);
+
 		con.completionField->cursor = Q_strlen (con.completionField->buffer);
 		}
 	else

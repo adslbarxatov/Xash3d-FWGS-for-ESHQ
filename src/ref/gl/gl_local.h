@@ -443,7 +443,7 @@ void Matrix4x4_CreateModelview (matrix4x4 out);
 void R_ClearStaticEntities (void);
 
 //
-// gl_rsurf.c
+// gl_rsurf.c [FWGS, 01.09.24]
 //
 void R_MarkLeaves (void);
 void R_DrawWorld (void);
@@ -451,7 +451,8 @@ void R_DrawWaterSurfaces (void);
 void R_DrawBrushModel (cl_entity_t *e);
 void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
 void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);
-void DrawGLPoly (glpoly_t *p, float xScale, float yScale);
+/*void DrawGLPoly (glpoly_t *p, float xScale, float yScale);*/
+void DrawGLPoly (glpoly2_t *p, float xScale, float yScale);
 texture_t *R_TextureAnimation (msurface_t *s);
 void GL_SetupFogColorForSurfaces (void);
 void R_DrawAlphaTextureChains (void);
@@ -574,8 +575,10 @@ void R_RunViewmodelEvents (void);
 void R_DrawViewModel (void);
 int R_GetSpriteTexture (const struct model_s *m_pSpriteModel, int frame);
 void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale);
-void R_RemoveEfrags (struct cl_entity_s *ent);
-void R_AddEfrags (struct cl_entity_s *ent);
+
+// [FWGS, 01.09.24]
+/*void R_RemoveEfrags (struct cl_entity_s *ent);
+void R_AddEfrags (struct cl_entity_s *ent);*/
 void R_DecalRemoveAll (int texture);
 int R_CreateDecalList (decallist_t *pList);
 void R_ClearAllDecals (void);

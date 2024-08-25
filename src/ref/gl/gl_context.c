@@ -617,14 +617,17 @@ static const ref_interface_t gReffuncs =
 // [FWGS, 01.02.24]
 int HLEXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals);
 
+// [FWGS, 01.09.24]
 int HLEXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs, ref_globals_t *globals)
 	{
 	if (version != REF_API_VERSION)
 		return 0;
 
 	// fill in our callbacks
-	memcpy (funcs, &gReffuncs, sizeof (ref_interface_t));
-	memcpy (&gEngfuncs, engfuncs, sizeof (ref_api_t));
+	/*memcpy (funcs, &gReffuncs, sizeof (ref_interface_t));
+	memcpy (&gEngfuncs, engfuncs, sizeof (ref_api_t));*/
+	*funcs = gReffuncs;
+	gEngfuncs = *engfuncs;
 	gpGlobals = globals;
 
 	gp_cl = (ref_client_t *)ENGINE_GET_PARM (PARM_GET_CLIENT_PTR);

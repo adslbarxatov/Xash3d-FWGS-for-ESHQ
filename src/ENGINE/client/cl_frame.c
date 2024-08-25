@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -75,7 +75,7 @@ static void CL_UpdatePositions (cl_entity_t *ent)
 
 /***
 ==================
-CL_ResetPositions
+CL_ResetPositions [FWGS, 01.09.24]
 
 Interpolation init or reset after teleporting
 ==================
@@ -91,8 +91,9 @@ static void CL_ResetPositions (cl_entity_t *ent)
 	ent->current_position = 1;
 
 	memset (ent->ph, 0, sizeof (position_history_t) * HISTORY_MAX);
-	memcpy (&ent->ph[1], &store, sizeof (position_history_t));
-	memcpy (&ent->ph[0], &store, sizeof (position_history_t));
+	/*memcpy (&ent->ph[1], &store, sizeof (position_history_t));
+	memcpy (&ent->ph[0], &store, sizeof (position_history_t));*/
+	ent->ph[1] = ent->ph[0] = store;
 	}
 
 /***
@@ -724,10 +725,10 @@ static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_s
 	{
 	cl_entity_t		*ent;
 	entity_state_t	*state;
-	qboolean		newent = (old) ? false : true;
-	int		pack = frame->num_entities;
-	int		delta_type = DELTA_ENTITY;
-	qboolean		alive = true;
+	qboolean	newent = (old) ? false : true;
+	int			pack = frame->num_entities;
+	int			delta_type = DELTA_ENTITY;
+	qboolean	alive = true;
 
 	// alloc next slot to store update
 	state = &cls.packet_entities[cls.next_client_entities % cls.num_client_entities];
@@ -744,11 +745,15 @@ static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_s
 
 	ent = CL_EDICT_NUM (newnum);
 	ent->index = newnum; // enumerate entity index
-	if (newent) old = &ent->baseline;
+	if (newent)
+		old = &ent->baseline;
 
+	// [FWGS, 01.09.24]
 	if (has_update)
 		alive = MSG_ReadDeltaEntity (msg, old, state, newnum, delta_type, cl.mtime[0]);
-	else memcpy (state, old, sizeof (entity_state_t));
+	else
+		*state = *old;
+	/*memcpy (state, old, sizeof (entity_state_t));*/
 
 	if (!alive)
 		{

@@ -54,7 +54,7 @@ static inline bool IsIdGamedir (const char *id)
 		!Q_strcmp (id, "GAMEDOWNLOAD");
 	}
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.09.24]
 static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	{
 	if (!Q_strcmp (id, "GAME"))
@@ -62,7 +62,8 @@ static inline const char *IdToDir (char *dir, size_t size, const char *id)
 
 	if (!Q_strcmp (id, "GAMEDOWNLOAD"))
 		{
-		Q_snprintf (dir, size, "%s/downloaded", GI->gamefolder);
+		/*Q_snprintf (dir, size, "%s/downloaded", GI->gamefolder);*/
+		Q_snprintf (dir, size, "%s/" DEFAULT_DOWNLOADED_DIRECTORY, GI->gamefolder);
 		return dir;
 		}
 
@@ -565,10 +566,12 @@ extern "C" void HLEXPORT * CreateInterface (const char *interface, int *retval)
 
 	if (!Q_strcmp (interface, FS_API_CREATEINTERFACE_TAG))
 		{
-		// return a copy, to disallow overriding
-		static fs_api_t copy = { 0 };
+		// [FWGS, 01.09.24] return a copy, to disallow overriding
+		/*static fs_api_t copy = { 0 };*/
+		static fs_api_t copy;
 
-		memcpy (&copy, &g_api, sizeof (copy));
+		/*memcpy (&copy, &g_api, sizeof (copy));*/
+		copy = g_api;
 
 		if (retval)
 			*retval = 0;

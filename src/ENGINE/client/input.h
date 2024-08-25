@@ -57,8 +57,8 @@ typedef enum
 	event_motion
 	} touchEventType;
 
-extern convar_t touch_enable;	// [FWGS, 01.04.23]
-extern convar_t touch_emulate;
+extern convar_t touch_enable;
+/*extern convar_t touch_emulate;*/	// [FWGS, 01.09.24]
 
 void Touch_Draw (void);
 void Touch_SetClientOnly (byte state);
@@ -75,7 +75,8 @@ void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch);
 void Touch_ResetDefaultButtons (void);
 int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy);
 void Touch_KeyEvent (int key, int down);
-qboolean Touch_WantVisibleCursor (void);	// [FWGS, 01.04.23]
+qboolean Touch_WantVisibleCursor (void);
+qboolean Touch_Emulated (void);		// [FWGS, 01.09.24]
 void Touch_NotifyResize (void);		// [FWGS, 01.11.23]
 
 //

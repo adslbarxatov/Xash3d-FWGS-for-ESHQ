@@ -50,7 +50,7 @@ typedef struct
 
 typedef struct
 	{
-	char		name[56];		// total 64 bytes
+	char	name[56];	// total 64 bytes
 	int		filepos;
 	int		filelen;
 	} dpackfile_t;
@@ -64,14 +64,15 @@ typedef struct
 #define PAK_LOAD_NO_FILES		5
 #define PAK_LOAD_CORRUPTED		6
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 struct pack_s
 	{
 	/*int		handle;*/
 	file_t		*handle;
 	int			numfiles;
 	/*time_t		filetime;	// common for all packed files*/
-	dpackfile_t	files[1];	// flexible
+	/*dpackfile_t	files[1];	// flexible*/
+	dpackfile_t	files[]; // flexible
 	};
 
 /***
@@ -88,12 +89,12 @@ static int FS_SortPak (const void *_a, const void *_b)
 
 /***
 =================
-FS_LoadPackPAK [FWGS, 01.07.24]
+FS_LoadPackPAK [FWGS, 01.09.24]
 
 Takes an explicit (not game tree related) path to a pak file.
 
 Loads the header and directory, adding the files at the beginning
-of the list so they override previous pack files.
+of the list so they override previous pack files
 =================
 ***/
 static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
@@ -167,7 +168,8 @@ static pack_t *FS_LoadPackPAK (const char *packfile, int *error)
 		return NULL;
 		}
 
-	pack = (pack_t *)Mem_Calloc (fs_mempool, sizeof (pack_t) + sizeof (dpackfile_t) * (numpackfiles - 1));
+	/*pack = (pack_t *)Mem_Calloc (fs_mempool, sizeof (pack_t) + sizeof (dpackfile_t) * (numpackfiles - 1));*/
+	pack = (pack_t *)Mem_Calloc (fs_mempool, sizeof (pack_t) + sizeof (dpackfile_t) * numpackfiles);
 	/*lseek (packhandle, header.dirofs, SEEK_SET);*/
 	FS_Seek (packhandle, header.dirofs, SEEK_SET);
 

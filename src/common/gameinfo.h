@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 */
 
 #ifndef GAMEINFO_H
@@ -22,14 +22,17 @@ GNU General Public License for more details.
 #define GFL_HD_BACKGROUND			(1<<3)	// [FWGS, 01.12.23]
 #define GFL_ANIMATED_TITLE			(1<<4)	// [FWGS, 01.12.23]
 
-/*
+/***
 ========================================================================
 GAMEINFO stuff
 
 internal shared gameinfo structure (readonly for engine parts)
 ========================================================================
-*/
-typedef struct
+***/
+
+// [FWGS, 01.09.24]
+/*typedef struct*/
+typedef struct GAMEINFO_s
 	{
 	// filesystem info
 	char		gamefolder[64];	// used for change game '-game x'
@@ -49,5 +52,51 @@ typedef struct
 
 	int			gamemode;
 	} GAMEINFO;
+
+/***
+========================================================================
+[FWGS, 01.09.24] Extended GameInfo struct introduced in Xash3D FWGS
+
+GAMEINFO can't be reliably extended, as nor engine, nor menu can't be
+sure about struct size. By adding struct versioning, we can check the
+presense for extra fields
+========================================================================
+***/
+
+#define GAMEINFO_VERSION 2
+
+// [FWGS, 01.09.24]
+typedef enum gametype_e
+	{
+	GAME_NORMAL,
+	GAME_SINGLEPLAYER_ONLY,
+	GAME_MULTIPLAYER_ONLY,
+	} gametype_t;
+
+// [FWGS, 01.09.24]
+typedef struct gameinfo2_s
+	{
+	int		gi_version;		// should be set to desired struct version, e.g. GAMEINFO_VERSION
+
+	// filesystem info
+	char	gamefolder[64];	// used for change game
+	char	startmap[64];	// map to start singleplayer game from
+	char	trainmap[64];	// map to start hazardous course from (if specified)
+	char	demomap[64];	// map to start demo chapter from (if specified)
+	char	creditsmap[64];	// ESHQ: map to show credits (if specified)
+	char	title[64];		// game title
+	char	iconpath[64];	// path to game icon
+	char	version[16];	// game version (optional)
+	unsigned __int32	flags;		// gameinfo flags, extended to fit more flags
+
+	// mod info
+	char	game_url[256];	// link to a developer's site
+	char	update_url[256];	// link to updates page
+	char	type[64];		// single, toolkit, multiplayer, etc
+	char	date[64];		// release date
+	unsigned __int64	size;		// size in bytes
+
+	gametype_t	gamemode;
+	} gameinfo2_t;
 
 #endif

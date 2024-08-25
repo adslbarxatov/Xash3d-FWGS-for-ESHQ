@@ -421,13 +421,12 @@ static void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 	if (!ppbuf)
 		return;
 
-	// Throw away any that are sitting around
+	// [FWGS, 01.09.24] Throw away any that are sitting around
 	buf = *ppbuf;
-
 	while (buf)
 		{
 		n = buf->next;
-		Mem_Free (buf->frag_message_buf);	// [FWGS, 01.04.23]
+		/*Mem_Free (buf->frag_message_buf);	// [FWGS, 01.04.23]*/
 		Mem_Free (buf);
 		buf = n;
 		}
@@ -499,59 +498,88 @@ void Netchan_Clear (netchan_t *chan)
 
 /***
 ===============
-Netchan_OutOfBand
+Netchan_OutOfBand [FWGS, 01.09.24]
 
 Sends an out-of-band datagram
 ================
 ***/
-void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data)
+/*void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data)*/
+void Netchan_OutOfBand (int net_socket, netadr_t adr, int len, byte *data)
 	{
-	byte		send_buf[MAX_PRINT_MSG];
+	/*byte		send_buf[MAX_PRINT_MSG];
 	sizebuf_t	send;
 
 	// write the packet header
-	MSG_Init (&send, "SequencePacket", send_buf, sizeof (send_buf));
+	MSG_Init (&send, "SequencePacket", send_buf, sizeof (send_buf));*/
+	byte buf[MAX_PRINT_MSG + 4] = { 0xff, 0xff, 0xff, 0xff };
 
-	MSG_WriteLong (&send, NET_HEADER_OUTOFBANDPACKET); // -1 sequence means out of band
-	MSG_WriteBytes (&send, data, length);
+	/*MSG_WriteLong (&send, NET_HEADER_OUTOFBANDPACKET); // -1 sequence means out of band
+	MSG_WriteBytes (&send, data, length);*/
+	if (CL_IsPlaybackDemo ())
+		return;
 
-	if (!CL_IsPlaybackDemo ())
+	/*if (!CL_IsPlaybackDemo ())*/
+	if (len > sizeof (buf) - 4)
 		{
-		// send the datagram
-		NET_SendPacket (net_socket, MSG_GetNumBytesWritten (&send), MSG_GetData (&send), adr);
+		/*// send the datagram
+		NET_SendPacket (net_socket, MSG_GetNumBytesWritten (&send), MSG_GetData (&send), adr);*/
+		Host_Error ("%s: overflow!\n", __func__);
+		return;
 		}
+
+	memcpy (&buf[4], data, len);
+	NET_SendPacket (net_socket, len + 4, buf, adr);
 	}
 
 /***
 ===============
-Netchan_OutOfBandPrint
+Netchan_OutOfBandPrint [FWGS, 01.09.24]
 
 Sends a text message in an out-of-band datagram
 ================
 ***/
-void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...)
+/*void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...)*/
+void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *fmt, ...)
 	{
-	char	string[MAX_PRINT_MSG];
-	va_list	argptr;
+	/*char	string[MAX_PRINT_MSG];
+	va_list	argptr;*/
+	va_list	va;
+	byte	buf[MAX_PRINT_MSG + 4] = { 0xff, 0xff, 0xff, 0xff };
+	int		len;
 
-	va_start (argptr, format);
+	if (CL_IsPlaybackDemo ())
+		return;
+
+	/*va_start (argptr, format);
 	Q_vsnprintf (string, sizeof (string) - 1, format, argptr);
-	va_end (argptr);
+	va_end (argptr);*/
+	va_start (va, fmt);
+	len = Q_vsnprintf (&buf[4], sizeof (buf) - 4, fmt, va);
+	va_end (va);
 
-	Netchan_OutOfBand (net_socket, adr, Q_strlen (string), (byte *)string);
+	if (len < 0)
+		{
+		Host_Error ("%s: snprintf overflow!\n", __func__);
+		return;
+		}
+
+	/*Netchan_OutOfBand (net_socket, adr, Q_strlen (string), (byte *)string);*/
+	NET_SendPacket (net_socket, len + 4, buf, adr);
 	}
 
 /***
 ==============================
-Netchan_AllocFragbuf [FWGS, 01.02.24]
+Netchan_AllocFragbuf [FWGS, 01.09.24]
 ==============================
 ***/
 static fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	{
 	fragbuf_t *buf;
 
-	buf = (fragbuf_t *)Mem_Calloc (net_mempool, sizeof (fragbuf_t));
-	buf->frag_message_buf = (byte *)Mem_Calloc (net_mempool, fragment_size);
+	/*buf = (fragbuf_t *)Mem_Calloc (net_mempool, sizeof (fragbuf_t));
+	buf->frag_message_buf = (byte *)Mem_Calloc (net_mempool, fragment_size);*/
+	buf = (fragbuf_t *)Mem_Calloc (net_mempool, sizeof (fragbuf_t) + fragment_size);
+
 	MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, fragment_size);
 
 	return buf;
@@ -559,11 +587,12 @@ static fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 
 /***
 ==============================
-Netchan_AddFragbufToTail
+Netchan_AddFragbufToTail [FWGS, 01.09.24]
 ==============================
 ***/
 static void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
 	{
+	/*fragbuf_t *p;*/
 	fragbuf_t *p;
 
 	buf->next = NULL;
@@ -1217,11 +1246,12 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 		return false;
 		}
 
-	// [FWGS, 01.04.23]
+	// [FWGS, 01.09.24]
 	if (filename[0] != '!')
 		{
 		string temp_filename;
-		Q_snprintf (temp_filename, sizeof (temp_filename), "downloaded/%s", filename);
+		/*Q_snprintf (temp_filename, sizeof (temp_filename), "downloaded/%s", filename);*/
+		Q_snprintf (temp_filename, sizeof (temp_filename), DEFAULT_DOWNLOADED_DIRECTORY "%s", filename);
 		Q_strncpy (filename, temp_filename, sizeof (filename));
 		}
 

@@ -3222,13 +3222,14 @@ void TriLightAtPoint (float *pos, float *value)
 
 /***
 =============
-TriColor4fRendermode
+TriColor4fRendermode [FWGS, 01.09.24]
 Heavy legacy of Quake...
 =============
 ***/
 void TriColor4fRendermode (float r, float g, float b, float a, int rendermode)
 	{
-	if (clgame.ds.renderMode == kRenderTransAlpha)
+	/*if (clgame.ds.renderMode == kRenderTransAlpha)*/
+	if (rendermode == kRenderTransAlpha)
 		{
 		clgame.ds.triRGBA[3] = a / 255.0f;
 		ref.dllFuncs.Color4f (r, g, b, a);
@@ -3330,7 +3331,7 @@ static void GAME_EXPORT NetAPI_Status (net_status_t *status)
 
 	Assert (status != NULL);
 
-	if (cls.state > ca_disconnected && cls.state != ca_cinematic)
+	if ((cls.state > ca_disconnected) && (cls.state != ca_cinematic))
 		connected = true;
 
 	if (cls.state == ca_active)
@@ -3347,15 +3348,15 @@ static void GAME_EXPORT NetAPI_Status (net_status_t *status)
 
 /***
 =================
-NetAPI_SendRequest [FWGS, 01.07.24]
+NetAPI_SendRequest [FWGS, 01.09.24]
 =================
 ***/
 static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags, double timeout,
 	netadr_t *remote_address, net_api_response_func_t response)
 	{
-	net_request_t *nr = NULL;
-	string req;
-	int i;
+	net_request_t	*nr = NULL;
+	/*string req;*/
+	int		i;
 
 	if (!response)
 		{
@@ -3410,9 +3411,11 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	
 	// local servers request
 	/*Q_snprintf (req, sizeof (req), "netinfo %i %i %i", PROTOCOL_VERSION, context, request);*/
-	Q_snprintf (req, sizeof (req), "netinfo %i %i %i", FBitSet (flags, FNETAPI_LEGACY_PROTOCOL) ?
+	/*Q_snprintf (req, sizeof (req), "netinfo %i %i %i", FBitSet (flags, FNETAPI_LEGACY_PROTOCOL) ?
 		PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);
-	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "%s", req);
+	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "%s", req);*/
+	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "netinfo %i %i %i",
+		FBitSet (flags, FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);
 	}
 
 /***

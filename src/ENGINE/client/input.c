@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -311,7 +311,7 @@ void IN_DeactivateMouse (void)
 
 /***
 ================
-IN_MouseMove [FWGS, 01.02.24]
+IN_MouseMove [FWGS, 01.09.24]
 ================
 ***/
 static void IN_MouseMove (void)
@@ -322,7 +322,8 @@ static void IN_MouseMove (void)
 		return;
 
 	// touch emulation overrides all input
-	if (touch_emulate.value)
+	/*if (touch_emulate.value)*/
+	if (Touch_Emulated ())
 		{
 		Touch_KeyEvent (0, 0);
 		return;
@@ -338,7 +339,7 @@ static void IN_MouseMove (void)
 
 /***
 ===========
-IN_MouseEvent [FWGS, 01.04.23]
+IN_MouseEvent [FWGS, 01.09.24]
 ===========
 ***/
 void IN_MouseEvent (int key, int down)
@@ -352,7 +353,8 @@ void IN_MouseEvent (int key, int down)
 		ClearBits (in_mstate, BIT (key));
 
 	// touch emulation overrides all input
-	if (touch_emulate.value)
+	/*if (touch_emulate.value)*/
+	if (Touch_Emulated ())
 		{
 		Touch_KeyEvent (K_MOUSE1 + key, down);
 		}

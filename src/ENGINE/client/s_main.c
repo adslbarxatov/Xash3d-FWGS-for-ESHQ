@@ -1142,10 +1142,12 @@ rawchan_t *S_FindRawChannel (int entnum, qboolean create)
 	if (best < 0)
 		return NULL; // no free slots
 
+	// [FWGS, 01.09.24]
 	if (!raw_channels[best])
 		{
 		raw_samples = MAX_RAW_SAMPLES;
-		raw_channels[best] = Mem_Calloc (sndpool, sizeof (*ch) + sizeof (portable_samplepair_t) * (raw_samples - 1));
+		/*raw_channels[best] = Mem_Calloc (sndpool, sizeof (*ch) + sizeof (portable_samplepair_t) * (raw_samples - 1));*/
+		raw_channels[best] = Mem_Calloc (sndpool, sizeof (*ch) + sizeof (portable_samplepair_t) * raw_samples);
 		}
 
 	ch = raw_channels[best];

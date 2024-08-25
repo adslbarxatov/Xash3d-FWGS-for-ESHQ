@@ -1233,7 +1233,10 @@ static void NET_AddToLagged (netsrc_t sock, packetlag_t *list, packetlag_t *pack
 	packet->data = pStart;
 	packet->size = length;
 	packet->receivedtime = timestamp;
-	memcpy (&packet->from, from, sizeof (netadr_t));
+
+	// [FWGS, 01.09.24]
+	/*memcpy (&packet->from, from, sizeof (netadr_t));*/
+	packet->from = *from;
 	}
 
 /***
@@ -1283,9 +1286,9 @@ add fake lagged packet into rececived message
 ***/
 static qboolean NET_LagPacket (qboolean newdata, netsrc_t sock, netadr_t *from, size_t *length, void *data)
 	{
-	packetlag_t *pNewPacketLag;
-	packetlag_t *pPacket;
-	int		ninterval;
+	packetlag_t	*pNewPacketLag;
+	packetlag_t	*pPacket;
+	int			ninterval;
 	float		curtime;
 
 	if (net.fakelag <= 0.0f)
@@ -1344,9 +1347,10 @@ static qboolean NET_LagPacket (qboolean newdata, netsrc_t sock, netadr_t *from, 
 
 	NET_RemoveFromPacketList (pPacket);
 
-	// delivery packet from fake lag queue
+	// [FWGS, 01.09.24] delivery packet from fake lag queue
 	memcpy (data, pPacket->data, pPacket->size);
-	memcpy (&net_from, &pPacket->from, sizeof (netadr_t));
+	/*memcpy (&net_from, &pPacket->from, sizeof (netadr_t));*/
+	net_from = pPacket->from;
 	*length = pPacket->size;
 
 	if (pPacket->data)
@@ -2363,7 +2367,10 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 
 	file->socket = -1;
 
-	Q_snprintf (incname, 256, "downloaded/%s.incomplete", file->path);
+	// [FWGS, 01.09.24]
+	/*Q_snprintf (incname, 256, "downloaded/%s.incomplete", file->path);*/
+	Q_snprintf (incname, sizeof (incname), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", file->path);
+
 	if (error)
 		{
 		// Switch to next fastdl server if present
@@ -2391,7 +2398,10 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 		// Success, rename and process file
 		char name[256];
 
-		Q_snprintf (name, 256, "downloaded/%s", file->path);
+		// [FWGS, 01.09.24]
+		/*Q_snprintf (name, 256, "downloaded/%s", file->path);*/
+		Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s", file->path);
+
 		FS_Rename (incname, name);
 
 		if (file->process)
@@ -2619,7 +2629,10 @@ void HTTP_Run (void)
 				}
 
 			Con_Reportf ("HTTP: Starting download %s from %s\n", curfile->path, curfile->server->host);
-			Q_snprintf (name, sizeof (name), "downloaded/%s.incomplete", curfile->path);
+
+			// [FWGS, 01.09.24]
+			/*Q_snprintf (name, sizeof (name), "downloaded/%s.incomplete", curfile->path);*/
+			Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", curfile->path);
 
 			curfile->file = FS_Open (name, "wb", true);
 			if (!curfile->file)

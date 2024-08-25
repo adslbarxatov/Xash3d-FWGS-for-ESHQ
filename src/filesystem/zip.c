@@ -125,7 +125,7 @@ typedef struct zipfile_s
 	uint16_t	flags;
 	} zipfile_t;
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 struct zip_s
 	{
 	/*int		handle;*/
@@ -133,7 +133,8 @@ struct zip_s
 	int			numfiles;
 	/*time_t	filetime;
 	zipfile_t	*files;*/
-	zipfile_t	files[1]; // flexible
+	/*zipfile_t	files[1]; // flexible*/
+	zipfile_t	files[];	// flexible
 	};
 
 // [FWGS, 01.01.24]
@@ -331,10 +332,12 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 	/*lseek (zip->handle, header_eocd.central_directory_offset, SEEK_SET);*/
 	FS_Seek (zip->handle, header_eocd.central_directory_offset, SEEK_SET);
 
-	// Calc count of files in archive
+	// [FWGS, 01.09.24] Calc count of files in archive
 	/*info = (zipfile_t *)Mem_Calloc (fs_mempool, sizeof (*info) * header_eocd.total_central_directory_record);*/
+	/*zip = (zip_t *)Mem_Realloc (fs_mempool, zip, sizeof (*zip) + sizeof (*info) *
+		(header_eocd.total_central_directory_record - 1));*/
 	zip = (zip_t *)Mem_Realloc (fs_mempool, zip, sizeof (*zip) + sizeof (*info) *
-		(header_eocd.total_central_directory_record - 1));
+		header_eocd.total_central_directory_record);
 	info = zip->files;
 
 	for (i = 0; i < header_eocd.total_central_directory_record; i++)

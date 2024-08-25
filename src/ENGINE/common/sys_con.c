@@ -322,12 +322,14 @@ static void Sys_PrintStdout (const char *logtime, const char *msg)
 #endif
 	}
 
+// [FWGS, 01.09.24]
 void Sys_PrintLog (const char *pMsg)
 	{
-	time_t	crt_time;
+	time_t		crt_time;
 	const struct tm	*crt_tm;
-	char	logtime[32] = "";
-	static char		lastchar;
+	char		logtime[32] = "";
+	static char	lastchar;
+	size_t		len;
 
 	time (&crt_time);
 	crt_tm = localtime (&crt_time);
@@ -337,11 +339,13 @@ void Sys_PrintLog (const char *pMsg)
 
 	// spew to stdout
 	Sys_PrintStdout (logtime, pMsg);
+	len = Q_strlen (pMsg);
 
 	if (!s_ld.logfile)
 		{
 		// save last char to detect when line was not ended
-		lastchar = pMsg[Q_strlen (pMsg) - 1];
+		/*lastchar = pMsg[Q_strlen (pMsg) - 1];*/
+		lastchar = len > 0 ? pMsg[len - 1] : 0;
 		return;
 		}
 
@@ -349,7 +353,8 @@ void Sys_PrintLog (const char *pMsg)
 		strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm);	// full time
 
 	// save last char to detect when line was not ended
-	lastchar = pMsg[Q_strlen (pMsg) - 1];
+	/*lastchar = pMsg[Q_strlen (pMsg) - 1];*/
+	lastchar = len > 0 ? pMsg[len - 1] : 0;
 
 	Sys_PrintLogfile (s_ld.logfileno, logtime, pMsg, false);
 	Sys_FlushLogfile ();
@@ -361,7 +366,7 @@ CONSOLE PRINT
 =============================================================================
 ***/
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.09.24]
 static void Con_Printfv (qboolean debug, const char *szFmt, va_list args)
 	{
 	static char buffer[MAX_PRINT_MSG];
@@ -369,8 +374,10 @@ static void Con_Printfv (qboolean debug, const char *szFmt, va_list args)
 
 	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
 
-	if (debug && Q_strcmp (buffer, "0\n"))
-		return; // hlrally spam
+	// hlrally spam
+	/*if (debug && Q_strcmp (buffer, "0\n"))*/
+	if (debug && !Q_strcmp (buffer, "0\n"))
+		return;
 
 	Sys_Print (buffer);
 	if (add_newline)

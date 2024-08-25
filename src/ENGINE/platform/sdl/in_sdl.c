@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #if !XASH_DEDICATED
@@ -318,7 +318,7 @@ void SDLash_FreeCursors (void)
 
 /***
 ========================
-Platform_SetCursorType [FWGS, 01.04.23]
+Platform_SetCursorType
 ========================
 ***/
 void Platform_SetCursorType (VGUI_DefaultCursor type)
@@ -342,8 +342,9 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 			break;
 		}
 	
-	// never disable cursor in touch emulation mode
-	if (!visible && touch_emulate.value)
+	// [FWGS, 01.09.24] never disable cursor in touch emulation mode
+	/*if (!visible && touch_emulate.value)*/
+	if (!visible && Touch_Emulated ())
 		return;
 
 	host.mouse_visible = visible;

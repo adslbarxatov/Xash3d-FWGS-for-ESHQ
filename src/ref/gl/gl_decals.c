@@ -15,10 +15,10 @@ GNU General Public License for more details
 
 #include "gl_local.h"
 
-#define DECAL_OVERLAP_DISTANCE	2
-#define DECAL_DISTANCE			4	// too big values produce more clipped polygons
-#define MAX_DECALCLIPVERT		32	// produced vertexes of fragmented decal
-#define DECAL_CACHEENTRY		256	// MUST BE POWER OF 2 or code below needs to change!
+#define DECAL_OVERLAP_DISTANCE		2
+#define DECAL_DISTANCE				4	// too big values produce more clipped polygons
+#define MAX_DECALCLIPVERT			32	// produced vertexes of fragmented decal
+#define DECAL_CACHEENTRY			256	// MUST BE POWER OF 2 or code below needs to change!
 #define DECAL_TRANSPARENT_THRESHOLD	230	// transparent decals draw with GL_MODULATE
 
 // empirically determined constants for minimizing overalpping decals
@@ -474,15 +474,17 @@ static decal_t *R_DecalIntersect (decalinfo_t *decalinfo, msurface_t *surf, int 
 
 /***
 ====================
-R_DecalCreatePoly
+R_DecalCreatePoly [FWGS, 01.09.24]
 
 creates mesh for decal on first rendering
 ====================
 ***/
-static glpoly_t *R_DecalCreatePoly (decalinfo_t *decalinfo, decal_t *pdecal, msurface_t *surf)
+/*static glpoly_t *R_DecalCreatePoly (decalinfo_t *decalinfo, decal_t *pdecal, msurface_t *surf)*/
+static glpoly2_t *R_DecalCreatePoly (decalinfo_t *decalinfo, decal_t *pdecal, msurface_t *surf)
 	{
 	int			lnumverts;
-	glpoly_t	*poly;
+	/*glpoly_t	*poly;*/
+	glpoly2_t	*poly;
 	float		*v;
 	int			i;
 
@@ -494,7 +496,8 @@ static glpoly_t *R_DecalCreatePoly (decalinfo_t *decalinfo, decal_t *pdecal, msu
 
 	// allocate glpoly
 	// REFTODO: com_studiocache pool!
-	poly = Mem_Calloc (r_temppool, sizeof (glpoly_t) + (lnumverts - 4) * VERTEXSIZE * sizeof (float));
+	/*poly = Mem_Calloc (r_temppool, sizeof (glpoly_t) + (lnumverts - 4) * VERTEXSIZE * sizeof (float));*/
+	poly = Mem_Calloc (r_temppool, sizeof (glpoly2_t) + lnumverts * VERTEXSIZE * sizeof (float));
 	poly->next = pdecal->polys;
 	poly->flags = surf->flags;
 	pdecal->polys = poly;
@@ -819,12 +822,13 @@ void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos
 	R_DecalNode (model, &model->nodes[hull->firstclipnode], &decalInfo);
 	}
 
-// Build the vertex list for a decal on a surface and clip it to the surface.
+// [FWGS, 01.09.24] Build the vertex list for a decal on a surface and clip it to the surface.
 // This is a template so it can work on world surfaces and dynamic displacement
 // triangles the same way
 float *R_DecalSetupVerts (decal_t *pDecal, msurface_t *surf, int texture, int *outCount)
 	{
-	glpoly_t	*p = pDecal->polys;
+	/*glpoly_t	*p = pDecal->polys;*/
+	glpoly2_t	*p = pDecal->polys;
 	int			i, count;
 	float		*v, *v2;
 

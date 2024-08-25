@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -25,9 +25,19 @@ static void 	UI_UpdateUserinfo (void);
 
 gameui_static_t	gameui;
 
+// [FWGS, 01.09.24]
+static void UI_ToggleAllowConsole_f (void)
+	{
+	host.allow_console = host.allow_console_init = true;
+
+	if (gameui.globals)
+		gameui.globals->developer = true;
+	}
+
 void UI_UpdateMenu (float realtime)
 	{
-	if (!gameui.hInstance) return;
+	if (!gameui.hInstance)
+		return;
 
 	// if some deferred cmds is waiting
 	if (UI_IsVisible () && COM_CheckString (host.deferred_cmd))
@@ -391,22 +401,28 @@ void Host_Credits (void)
 	gameui.dllFuncs.pfnFinalCredits ();
 	}
 
-// [FWGS, 01.12.23]
-static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)
+// [FWGS, 01.09.24]
+/*static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)*/
+static void UI_ConvertGameInfo (gameinfo2_t *out, const gameinfo_t *in)
 	{
+	out->gi_version = GAMEINFO_VERSION;
+
 	Q_strncpy (out->gamefolder, in->gamefolder, sizeof (out->gamefolder));
 	Q_strncpy (out->startmap, in->startmap, sizeof (out->startmap));
 	Q_strncpy (out->trainmap, in->trainmap, sizeof (out->trainmap));
+	Q_strncpy (out->demomap, in->demomap, sizeof (out->demomap));
 
 	// ESHQ: добавлено для поддержки титров
 	Q_strncpy (out->creditsmap, in->creditsmap, sizeof (out->creditsmap));
 
 	Q_strncpy (out->title, in->title, sizeof (out->title));
 	Q_snprintf (out->version, sizeof (out->version), "%g", in->version);
+	Q_strncpy (out->iconpath, in->iconpath, sizeof (out->iconpath));
 
 	Q_strncpy (out->game_url, in->game_url, sizeof (out->game_url));
 	Q_strncpy (out->update_url, in->update_url, sizeof (out->update_url));
-	Q_strncpy (out->size, Q_pretifymem (in->size, 0), sizeof (out->size));
+	/*Q_strncpy (out->size, Q_pretifymem (in->size, 0), sizeof (out->size));*/
+	out->size = in->size;
 	Q_strncpy (out->type, in->type, sizeof (out->type));
 	Q_strncpy (out->date, in->date, sizeof (out->date));
 
@@ -428,7 +444,23 @@ static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)
 		SetBits (out->flags, GFL_ANIMATED_TITLE);
 	}
 
-// [FWGS, 01.04.23] удалена PIC_Scissor
+// [FWGS, 01.09.24]
+static void UI_ToOldGameInfo (GAMEINFO *out, const gameinfo2_t *in)
+	{
+	Q_strncpy (out->gamefolder, in->gamefolder, sizeof (out->gamefolder));
+	Q_strncpy (out->startmap, in->startmap, sizeof (out->startmap));
+	Q_strncpy (out->trainmap, in->trainmap, sizeof (out->trainmap));
+	Q_strncpy (out->creditsmap, in->creditsmap, sizeof (out->creditsmap));	// ESHQ
+	Q_strncpy (out->title, in->title, sizeof (out->title));
+	Q_strncpy (out->version, in->version, sizeof (out->version));
+	out->flags = in->flags & 0xFFFF;
+	Q_strncpy (out->game_url, in->game_url, sizeof (out->game_url));
+	Q_strncpy (out->update_url, in->update_url, sizeof (out->update_url));
+	Q_strncpy (out->size, Q_memprint (in->size), sizeof (out->size));
+	Q_strncpy (out->type, in->type, sizeof (out->type));
+	Q_strncpy (out->date, in->date, sizeof (out->date));
+	out->gamemode = in->gamemode;
+	}
 
 /***
 ====================
@@ -909,27 +941,47 @@ static void GAME_EXPORT pfnMemFree (void *mem, const char *filename, const int f
 
 /***
 =========
-pfnGetGameInfo
+pfnGetGameInfo [FWGS, 01.09.24]
 =========
 ***/
-static int GAME_EXPORT pfnGetGameInfo (GAMEINFO *pgameinfo)
+/*static int GAME_EXPORT pfnGetGameInfo (GAMEINFO *pgameinfo)*/
+static int GAME_EXPORT pfnGetOldGameInfo (GAMEINFO *pgameinfo)
 	{
 	if (!pgameinfo)
 		return 0;
 
-	*pgameinfo = gameui.gameInfo;
+	/**pgameinfo = gameui.gameInfo;*/
+	UI_ToOldGameInfo (pgameinfo, &gameui.gameInfo);
 	return 1;
 	}
 
 /***
 =========
-pfnGetGamesList
+pfnGetGamesList [FWGS, 01.09.24]
 =========
 ***/
 static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
 	{
-	if (numGames) *numGames = FI->numgames;
-	return gameui.modsInfo;
+	/*if (numGames)
+		*numGames = FI->numgames;
+	return gameui.modsInfo;*/
+	if (numGames)
+		*numGames = FI->numgames;
+
+	if (!gameui.oldModsInfo)
+		{
+		int i;
+
+		// first allocate array of pointers
+		gameui.oldModsInfo = Mem_Calloc (gameui.mempool, sizeof (void *) * FI->numgames);
+		for (i = 0; i < FI->numgames; i++)
+			{
+			gameui.oldModsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (GAMEINFO));
+			UI_ToOldGameInfo (gameui.oldModsInfo[i], &gameui.modsInfo[i]);
+			}
+		}
+
+	return gameui.oldModsInfo;
 	}
 
 /***
@@ -942,17 +994,19 @@ release prev search on a next call
 static char **GAME_EXPORT pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
 	{
 	static search_t *t = NULL;
-
-	if (t) Mem_Free (t); // release prev search
+	if (t)
+		Mem_Free (t); // release prev search
 
 	t = FS_Search (pattern, true, gamedironly);
 	if (!t)
 		{
-		if (numFiles) *numFiles = 0;
+		if (numFiles)
+			*numFiles = 0;
 		return NULL;
 		}
 
-	if (numFiles) *numFiles = t->numfilenames;
+	if (numFiles)
+		*numFiles = t->numfilenames;
 	return t->filenames;
 	}
 
@@ -1165,7 +1219,8 @@ static const ui_enginefuncs_t gEngfuncs =
 	pfnKeyGetState,
 	pfnMemAlloc,
 	pfnMemFree,
-	pfnGetGameInfo,
+	/*pfnGetGameInfo,*/
+	pfnGetOldGameInfo,	// [FWGS, 01.09.24]
 	pfnGetGamesList,
 	pfnGetFilesList,
 	SV_GetSaveComment,
@@ -1213,6 +1268,27 @@ static char *pfnParseFileSafe (char *data, char *buf, const int size, unsigned i
 	return COM_ParseFileSafe (data, buf, size, flags, len, NULL);
 	}
 
+// [FWGS, 01.09.24]
+static gameinfo2_t *pfnGetGameInfo (int gi_version)
+	{
+	if (gi_version != gameui.gameInfo.gi_version)
+		return NULL;
+
+	return &gameui.gameInfo;
+	}
+
+// [FWGS, 01.09.24]
+static gameinfo2_t *pfnGetModInfo (int gi_version, int i)
+	{
+	if ((i < 0) || (i >= FI->numgames))
+		return NULL;
+
+	if (gi_version != gameui.modsInfo[i].gi_version)
+		return NULL;
+
+	return &gameui.modsInfo[i];
+	}
+
 static ui_extendedfuncs_t gExtendedfuncs =
 	{
 	pfnEnableTextInput,
@@ -1225,10 +1301,12 @@ static ui_extendedfuncs_t gExtendedfuncs =
 	NET_AdrToString,
 	NET_CompareAdrSort,
 	Sys_GetNativeObject,	// [FWGS, 01.03.24]
-	&gNetApi,	// [FWGS, 01.07.24]
+	&gNetApi,				// [FWGS, 01.07.24]
+	pfnGetGameInfo,			// [FWGS, 01.09.24]
+	pfnGetModInfo,			// [FWGS, 01.09.24]
 	};
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.09.24]
 void UI_UnloadProgs (void)
 	{
 	if (!gameui.hInstance)
@@ -1237,6 +1315,7 @@ void UI_UnloadProgs (void)
 	// deinitialize game
 	gameui.dllFuncs.pfnShutdown ();
 
+	Cmd_RemoveCommand ("ui_allowconsole");
 	Cvar_FullSet ("host_gameuiloaded", "0", FCVAR_READ_ONLY);
 
 	Cvar_Unlink (FCVAR_GAMEUIDLL);
@@ -1297,8 +1376,9 @@ qboolean UI_LoadProgs (void)
 	/*gameui.use_text_api = false;*/
 	gameui.use_extended_api = false;
 
-	// make local copy of engfuncs to prevent overwrite it with user dll
-	memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));
+	// [FWGS, 01.09.24] make local copy of engfuncs to prevent overwrite it with user dll
+	/*memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));*/
+	gpEngfuncs = gEngfuncs;
 
 	gameui.mempool = Mem_AllocPool ("Menu Pool");
 
@@ -1311,8 +1391,9 @@ qboolean UI_LoadProgs (void)
 		return false;
 		}
 
-	// make local copy of engfuncs to prevent overwrite it with user dll
-	memcpy (&gpExtendedfuncs, &gExtendedfuncs, sizeof (gExtendedfuncs));
+	// [FWGS, 01.09.24] make local copy of engfuncs to prevent overwrite it with user dll
+	/*memcpy (&gpExtendedfuncs, &gExtendedfuncs, sizeof (gExtendedfuncs));*/
+	gpExtendedfuncs = gExtendedfuncs;
 	memset (&gameui.dllFuncs2, 0, sizeof (gameui.dllFuncs2));
 
 	// [FWGS, 01.07.24] try to initialize new extended API
@@ -1355,14 +1436,18 @@ qboolean UI_LoadProgs (void)
 			}
 		}
 
+	// [FWGS, 01.09.24]
 	Cvar_FullSet ("host_gameuiloaded", "1", FCVAR_READ_ONLY);
+	Cmd_AddRestrictedCommand ("ui_allowconsole", UI_ToggleAllowConsole_f, "unlocks developer console");
 
 	// setup gameinfo
+	gameui.modsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.modsInfo) * FI->numgames);
 	for (i = 0; i < FI->numgames; i++)
-		{
+		UI_ConvertGameInfo (&gameui.modsInfo[i], FI->games[i]);
+		/*{
 		gameui.modsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (GAMEINFO));
 		UI_ConvertGameInfo (gameui.modsInfo[i], FI->games[i]);
-		}
+		}*/
 
 	UI_ConvertGameInfo (&gameui.gameInfo, FI->GameInfo); // current gameinfo
 

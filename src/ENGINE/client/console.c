@@ -1947,9 +1947,11 @@ static void Con_DrawNotify (void)
 
 	x = con.curFont->charWidths[' ']; // offset one space at left screen side
 
+	// [FWGS, 01.09.24]
 	if (host.allow_console && (!Cvar_VariableInteger ("cl_background") && !Cvar_VariableInteger ("sv_background")))
 		{
-		for (i = CON_LINES_COUNT - con.num_times; i < CON_LINES_COUNT; i++)
+		/*for (i = CON_LINES_COUNT - con.num_times; i < CON_LINES_COUNT; i++)*/
+		for (i = Q_max (0, CON_LINES_COUNT - con.num_times); i < CON_LINES_COUNT; i++)
 			{
 			con_lineinfo_t *l = &CON_LINES (i);
 

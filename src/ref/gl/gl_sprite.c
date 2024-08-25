@@ -53,6 +53,8 @@ static const byte *R_SpriteLoadFrame (model_t *mod, const void *pin, mspritefram
 	char	texname[128];
 	int		bytes = 1;
 
+	// [FWGS, 01.09.24]
+	/*memcpy (&pinframe, pin, sizeof (dspriteframe_t));*/
 	memcpy (&pinframe, pin, sizeof (dspriteframe_t));
 
 	if (sprite_version == SPRITE_VERSION_32)

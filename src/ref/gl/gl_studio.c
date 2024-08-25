@@ -3436,8 +3436,11 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 
 	if (flags & STUDIO_RENDER)
 		{
+		/*if (cl_himodels->value && (RI.currentmodel != RI.currententity->model))*/
+		
+		// [FWGS, 01.09.24] change body if it's a menu entity
 		// show highest resolution multiplayer model
-		if (cl_himodels->value && (RI.currentmodel != RI.currententity->model))
+		if (cl_himodels->value && (RI.currentmodel != RI.currententity->model || !RI.drawWorld))
 			RI.currententity->curstate.body = 255;
 
 		// force helmet

@@ -71,13 +71,15 @@ typedef struct hullnode_s
 	struct hullnode_s *prev;
 	} hullnode_t;
 
+// [FWGS, 01.09.24]
 typedef struct winding_s
 	{
 	const mplane_t		*plane;
 	struct winding_s	*pair;
 	hullnode_t			chain;
 	int					numpoints;
-	vec3_t				p[4];		// variable sized
+	/*vec3_t				p[4];		// variable sized*/
+	vec3_t				p[];	// variable sized
 	} winding_t;
 
 typedef struct

@@ -125,11 +125,12 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 		sw.win = SDL_GetVideoSurface ();
 #endif
 
-		// sdl will create renderer if hw framebuffer unavailiable, so cannot fallback here
+		// [FWGS, 01.09.24] sdl will create renderer if hw framebuffer unavailiable, so cannot fallback here
 		// if it is failed, it is not possible to draw with SDL in REF_SOFTWARE mode
 		if (!sw.win)
 			{
-			Sys_Warn ("failed to initialize software output, try enable sw_glblit");
+			/*Sys_Warn ("failed to initialize software output, try enable sw_glblit");*/
+			Sys_Warn ("failed to initialize software output, try running with -glblit flag");
 			return false;
 			}
 
@@ -1224,14 +1225,16 @@ qboolean VID_SetMode (void)
 		}
 #endif
 
-	if (!FBitSet (vid_fullscreen.flags, FCVAR_CHANGED))
+	// [FWGS, 01.09.24]
+	/*if (!FBitSet (vid_fullscreen.flags, FCVAR_CHANGED))
 		Cvar_DirectSet (&vid_fullscreen, DEFAULT_FULLSCREEN);
 	else
 		ClearBits (vid_fullscreen.flags, FCVAR_CHANGED);
 
-	SetBits (gl_vsync.flags, FCVAR_CHANGED);
+	SetBits (gl_vsync.flags, FCVAR_CHANGED);*/
 
 	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
+	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 	
 	if ((err = R_ChangeDisplaySettings (iScreenWidth, iScreenHeight, window_mode)) == rserr_ok)
 		{

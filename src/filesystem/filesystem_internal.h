@@ -132,13 +132,15 @@ typedef struct searchpath_s
 	} searchpath_t;
 
 typedef searchpath_t *(*FS_ADDARCHIVE_FULLPATH)(const char *path, int flags);
-	
+
+// [FWGS, 01.09.24]
 typedef struct fs_archive_s
 	{
-	const char *ext;
-	int type;
-	FS_ADDARCHIVE_FULLPATH pfnAddArchive_Fullpath;
-	qboolean load_wads; // load wads from this archive
+	const char	*ext;
+	int			type;
+	FS_ADDARCHIVE_FULLPATH	pfnAddArchive_Fullpath;
+	qboolean	load_wads;		// load wads from this archive
+	qboolean	real_archive;
 	} fs_archive_t;
 
 extern fs_globals_t		FI;

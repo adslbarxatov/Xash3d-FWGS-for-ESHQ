@@ -220,7 +220,7 @@ typedef struct ui_extendedfuncs_s
 
 	char	*(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
 
-	// [FWGS, 01.04.23]: network address funcs
+	// [FWGS, 01.04.23] network address funcs
 	const char	*(*pfnAdrToString)(const struct netadr_s a);
 	int		(*pfnCompareAdr)(const void *a, const void *b);
 
@@ -229,6 +229,10 @@ typedef struct ui_extendedfuncs_s
 
 	// [FWGS, 01.07.24]
 	struct net_api_s *pNetAPI;
+
+	// [FWGS, 01.09.24] new mods info
+	gameinfo2_t *(*pfnGetGameInfo)(int gi_version); // might return NULL if gi_version is unsupported
+	gameinfo2_t *(*pfnGetModInfo)(int gi_version, int mod_index); // continiously call it until it returns null
 	} ui_extendedfuncs_t;
 
 // deprecated export from old engine

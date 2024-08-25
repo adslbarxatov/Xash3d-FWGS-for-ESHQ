@@ -22,11 +22,12 @@ GNU General Public License for more details
 #include "xash3d_types.h"
 #include "const.h"
 #include "com_model.h"
+#include "gameinfo.h"	// [FWGS, 01.09.24]
 
 #ifdef __cplusplus
 extern "C"
 	{
-#endif // __cplusplus
+#endif
 
 #define FS_API_VERSION					3					// [FWGS, 01.05.24] not stable yet!
 #define FS_API_CREATEINTERFACE_TAG		"XashFileSystem002" // [FWGS, 01.11.23] follow FS_API_VERSION!!!
@@ -44,6 +45,13 @@ enum
 	FS_LOAD_PACKED_WAD =	BIT (6),	// [FWGS, 01.07.24] this wad is packed inside other archive
 
 	FS_GAMEDIRONLY_SEARCH_FLAGS = FS_GAMEDIR_PATH | FS_CUSTOM_PATH | FS_GAMERODIR_PATH
+	};
+
+// [FWGS, 01.09.24] IsArchiveExtensionSupported flags
+enum
+	{
+	// excludes directories and pk3dir, i.e. archives that cannot be represented as a single file
+	IAES_ONLY_REAL_ARCHIVES = BIT (0),
 	};
 
 typedef struct
@@ -108,17 +116,19 @@ typedef struct gameinfo_s
 	int			quicksave_aged_count; // min is 1, max is 99
 	int			autosave_aged_count; // min is 1, max is 99
 
-	// [FWGS, 01.12.23] HL25 compatibility keys
+	// [FWGS, 01.09.24] HL25 compatibility keys
 	qboolean	hd_background;
 	qboolean	animated_title;
-	} gameinfo_t;
+	/*} gameinfo_t;
 
-typedef enum
+	typedef enum
 	{
 	GAME_NORMAL,
 	GAME_SINGLEPLAYER_ONLY,
 	GAME_MULTIPLAYER_ONLY
-	} gametype_t;
+	} gametype_t;*/
+	char		demomap[MAX_QPATH];
+	} gameinfo_t;
 
 // [FWGS, 01.07.24]
 typedef struct fs_dllinfo_t
@@ -139,7 +149,8 @@ typedef struct fs_globals_t
 	int			numgames;
 	} fs_globals_t;
 
-typedef void (*fs_event_callback_t)(const char *path);
+// [FWGS, 01.09.24]
+/*typedef void (*fs_event_callback_t)(const char *path);*/
 
 typedef struct fs_api_t
 	{
@@ -206,6 +217,9 @@ typedef struct fs_api_t
 	
 	// [FWGS, 01.03.24] like LoadFile but returns pointer that can be free'd using standard library function
 	byte *(*LoadFileMalloc)(const char *path, fs_offset_t *filesizeptr, qboolean gamedironly);
+
+	// [FWGS, 01.09.24] queries supported archive formats
+	qboolean (*IsArchiveExtensionSupported)(const char *ext, uint flags);
 	} fs_api_t;
 
 typedef struct fs_interface_t

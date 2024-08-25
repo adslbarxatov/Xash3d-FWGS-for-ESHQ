@@ -331,19 +331,21 @@ void R_ClearSkyBox (void)
 
 /***
 =================
-R_AddSkyBoxSurface [FWGS, 01.01.24]
+R_AddSkyBoxSurface [FWGS, 01.09.24]
 =================
 ***/
 void R_AddSkyBoxSurface (msurface_t *fa)
 	{
 	vec3_t		verts[MAX_CLIP_VERTS];
-	glpoly_t	*p;
+	/*glpoly_t	*p;*/
+	glpoly2_t	*p;
 	float		*v;
 	int			i;
 
 	if (FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && fa->polys && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX))
 		{
-		glpoly_t *p = fa->polys;
+		/*glpoly_t *p = fa->polys;*/
+		glpoly2_t *p = fa->polys;
 
 		// draw the sky poly
 		pglBegin (GL_POLYGON);
@@ -529,10 +531,11 @@ static void R_CloudVertex (float s, float t, int axis, vec3_t v)
 
 /***
 =============
-R_CloudTexCoord [FWGS, 01.01.24]
+R_CloudTexCoord [FWGS, 01.09.24]
 =============
 ***/
-static void R_CloudTexCoord (vec3_t v, float speed, float *s, float *t)
+/*static void R_CloudTexCoord (vec3_t v, float speed, float *s, float *t)*/
+static void R_CloudTexCoord (const vec3_t v, float speed, float *s, float *t)
 	{
 	float	length, speedscale;
 	vec3_t	dir;
@@ -552,20 +555,23 @@ static void R_CloudTexCoord (vec3_t v, float speed, float *s, float *t)
 
 /***
 ===============
-R_CloudDrawPoly
+R_CloudDrawPoly [FWGS, 01.09.24]
 ===============
 ***/
-static void R_CloudDrawPoly (glpoly_t *p)
+/*static void R_CloudDrawPoly (glpoly_t *p)*/
+static void R_CloudDrawPoly (const float *verts)
 	{
+	const float	*v;
 	float	s, t;
-	float *v;
+	/*float	*v;*/
 	int		i;
 
 	GL_SetRenderMode (kRenderNormal);
 	GL_Bind (XASH_TEXTURE0, tr.solidskyTexture);
 
 	pglBegin (GL_QUADS);
-	for (i = 0, v = p->verts[0]; i < 4; i++, v += VERTEXSIZE)
+	/*for (i = 0, v = p->verts[0]; i < 4; i++, v += VERTEXSIZE)*/
+	for (i = 0, v = verts; i < 4; i++, v += VERTEXSIZE)
 		{
 		R_CloudTexCoord (v, 8.0f, &s, &t);
 		pglTexCoord2f (s, t);
@@ -577,7 +583,8 @@ static void R_CloudDrawPoly (glpoly_t *p)
 	GL_Bind (XASH_TEXTURE0, tr.alphaskyTexture);
 
 	pglBegin (GL_QUADS);
-	for (i = 0, v = p->verts[0]; i < 4; i++, v += VERTEXSIZE)
+	/*for (i = 0, v = p->verts[0]; i < 4; i++, v += VERTEXSIZE)*/
+	for (i = 0, v = verts; i < 4; i++, v += VERTEXSIZE)
 		{
 		R_CloudTexCoord (v, 16.0f, &s, &t);
 		pglTexCoord2f (s, t);
@@ -590,16 +597,17 @@ static void R_CloudDrawPoly (glpoly_t *p)
 
 /***
 ==============
-R_CloudRenderSide
+R_CloudRenderSide [FWGS, 01.09.24]
 ==============
 ***/
 static void R_CloudRenderSide (int axis)
 	{
 	vec3_t		verts[4];
+	float		final_verts[4][VERTEXSIZE];
 	float		di, qi, dj, qj;
 	vec3_t		vup, vright;
 	vec3_t		temp, temp2;
-	glpoly_t	p[1];
+	/*glpoly_t	p[1];*/
 	int			i, j;
 
 	R_CloudVertex (-1.0f, -1.0f, axis, verts[0]);
@@ -610,7 +618,7 @@ static void R_CloudRenderSide (int axis)
 	VectorSubtract (verts[2], verts[3], vup);
 	VectorSubtract (verts[2], verts[1], vright);
 
-	p->numverts = 4;
+	/*p->numverts = 4;*/
 	di = SKYCLOUDS_QUALITY;
 	qi = 1.0f / di;
 	dj = (axis < 4) ? di * 2 : di;	// subdivide vertically more than horizontally on skybox sides
@@ -629,17 +637,22 @@ static void R_CloudRenderSide (int axis)
 			VectorScale (vright, qi * i, temp);
 			VectorScale (vup, qj * j, temp2);
 			VectorAdd (temp, temp2, temp);
-			VectorAdd (verts[0], temp, p->verts[0]);
+			/*VectorAdd (verts[0], temp, p->verts[0]);*/
+			VectorAdd (verts[0], temp, final_verts[0]);
 
 			VectorScale (vup, qj, temp);
-			VectorAdd (p->verts[0], temp, p->verts[1]);
+			/*VectorAdd (p->verts[0], temp, p->verts[1]);*/
+			VectorAdd (final_verts[0], temp, final_verts[1]);
 
 			VectorScale (vright, qi, temp);
-			VectorAdd (p->verts[1], temp, p->verts[2]);
+			/*VectorAdd (p->verts[1], temp, p->verts[2]);*/
+			VectorAdd (final_verts[1], temp, final_verts[2]);
 
-			VectorAdd (p->verts[0], temp, p->verts[3]);
+			/*VectorAdd (p->verts[0], temp, p->verts[3]);*/
+			VectorAdd (final_verts[0], temp, final_verts[3]);
 
-			R_CloudDrawPoly (p);
+			/*R_CloudDrawPoly (p);*/
+			R_CloudDrawPoly (final_verts[0]);
 			}
 		}
 	}
@@ -785,7 +798,7 @@ void R_InitSkyClouds (mip_t *mt, texture_t *tx, qboolean custom_palette)
 
 /***
 =============
-EmitWaterPolys [FWGS, 01.01.24]
+EmitWaterPolys [FWGS, 01.09.24]
 
 Does a water warp on the pre-fragmented glpoly_t chain
 =============
@@ -794,7 +807,8 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 	{
 	float		*v, nv, waveHeight;
 	float		s, t, os, ot;
-	glpoly_t	*p;
+	/*glpoly_t	*p;*/
+	glpoly2_t	*p;
 	int			i;
 	const qboolean	useQuads = FBitSet (warp->flags, SURF_DRAWTURB_QUADS) && (glConfig.context == CONTEXT_TYPE_GL);
 

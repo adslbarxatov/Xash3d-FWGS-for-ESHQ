@@ -177,19 +177,20 @@ typedef struct
 	int		totalbytes;
 	} flow_t;
 
-// generic fragment structure
+// [FWGS, 01.09.24] generic fragment structure
 typedef struct fragbuf_s
 	{
 	struct fragbuf_s	*next;				// next buffer in chain
 	int					bufferid;			// id of this buffer
 	sizebuf_t			frag_message;		// message buffer where raw data is stored
-	byte				*frag_message_buf;	// [FWGS, 01.04.23] the actual data sits here
+	/*byte				*frag_message_buf;	// [FWGS, 01.04.23] the actual data sits here*/
 	qboolean			isfile;				// is this a file buffer?
 	qboolean			isbuffer;			// is this file buffer from memory ( custom decal, etc. ).
 	qboolean			iscompressed;		// is compressed file, we should using filename.ztmp
-	char				filename[MAX_OSPATH];		// name of the file to save out on remote host
+	char				filename[MAX_OSPATH];	// name of the file to save out on remote host
 	int					foffset;			// offset in file from which to read data
 	int					size;				// size of data to read at that offset
+	byte				frag_message_buf[];	// the actual data sits here (flexible)
 	} fragbuf_t;
 
 // Waiting list of fragbuf chains

@@ -1,17 +1,15 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 
 #ifndef CUSTOM_H
 #define CUSTOM_H
@@ -45,30 +43,40 @@ typedef struct resourceinfo_s
 	} resourceinfo_t;
 
 #define RES_FATALIFMISSING	(1<<0)	// Disconnect if we can't get this file.
-#define RES_WASMISSING	(1<<1)	// Do we have the file locally, did we get it ok?
-#define RES_CUSTOM		(1<<2)	// Is this resource one that corresponds to another player's customization
-// or is it a server startup resource.
-#define RES_REQUESTED	(1<<3)	// Already requested a download of this one
-#define RES_PRECACHED	(1<<4)	// Already precached
-#define RES_ALWAYS		(1<<5)	// Download always even if available on client
-#define RES_CHECKFILE	(1<<7)	// Check file on client
+#define RES_WASMISSING		(1<<1)	// Do we have the file locally, did we get it ok?
+
+// Is this resource one that corresponds to another player's customization
+// or is it a server startup resource
+#define RES_CUSTOM			(1<<2)
+
+#define RES_REQUESTED		(1<<3)	// Already requested a download of this one
+#define RES_PRECACHED		(1<<4)	// Already precached
+#define RES_ALWAYS			(1<<5)	// Download always even if available on client
+#define RES_CHECKFILE		(1<<7)	// Check file on client
+
+// [FWGS, 01.09.24] this archive was already mounted after rescan
+// only makes sense for archives and on client
+#define RES_EXTRA_ARCHIVE_CHECKED BIT( 0 )
 
 typedef struct resource_s
 	{
-	char			szFileName[64];	// File name to download/precache.
-	resourcetype_t		type;		// t_sound, t_skin, t_model, t_decal.
-	int			nIndex;		// For t_decals
-	int			nDownloadSize;	// Size in Bytes if this must be downloaded.
+	char	szFileName[64];		// File name to download/precache
+	resourcetype_t		type;	// t_sound, t_skin, t_model, t_decal
+	int		nIndex;				// For t_decals
+	int		nDownloadSize;		// Size in Bytes if this must be downloaded
 	unsigned char		ucFlags;
 
 	// for handling client to client resource propagation
-	unsigned char		rgucMD5_hash[16];	// To determine if we already have it.
-	unsigned char		playernum;	// Which player index this resource is associated with,
-	// if it's a custom resource.
+	unsigned char		rgucMD5_hash[16];	// To determine if we already have it
+	unsigned char		playernum;	// Which player index this resource is associated with if it's a custom resource
 
 	unsigned char		rguc_reserved[32];	// For future expansion
-	struct resource_s *pNext;		// Next in chain.
-	struct resource_s *pPrev;
+
+	// [FWGS, 01.09.24] fwgs extension, doesn't change the size of struct because of compiler padding
+	unsigned short		ucExtraFlags;
+
+	struct resource_s	*pNext;		// Next in chain
+	struct resource_s	*pPrev;
 	} resource_t;
 
 typedef struct customization_s
@@ -89,5 +97,14 @@ typedef struct customization_s
 #define FCUST_FROMHPAK		( 1<<0 )
 #define FCUST_WIPEDATA		( 1<<1 )
 #define FCUST_IGNOREINIT	( 1<<2 )
+
+// [FWGS, 01.09.24]
+#if !XASH_64BIT
+STATIC_ASSERT (sizeof (customization_t) == 164, "invalid customization_t size, broken API");
+STATIC_ASSERT (sizeof (resource_t) == 136, "invalid resource_t size, broken API");
+#else
+STATIC_ASSERT (sizeof (customization_t) == 192, "invalid customization_t size, broken API");
+STATIC_ASSERT (sizeof (resource_t) == 144, "invalid resource_t size, broken API");
+#endif
 
 #endif

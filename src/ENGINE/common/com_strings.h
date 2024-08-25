@@ -56,15 +56,21 @@ GNU General Public License for more details
 
 #define DEFAULT_EXTERNAL_PALETTE	"gfx/palette.pal"
 
-// path to folders where placed all sounds
+// path to sound files
 #define DEFAULT_SOUNDPATH		"sound/"
 
-// path store saved games
+// path to saved games
 #define DEFAULT_SAVE_DIRECTORY	"save/"
 
 // ESHQ: начальное определение Ц в basemenu.h
 #define DEFAULT_SAVE_EXTENSION	"x3v"
 #define EXTENDED_SAVE_EXTENSION	"xv"
+
+// [FWGS, 01.09.24] path to download games
+#define DEFAULT_DOWNLOADED_DIRECTORY "downloaded/"
+
+// [FWGS, 01.09.24] path to user mod directory
+#define DEFAULT_CUSTOM_DIRECTORY "custom/"
 
 // [FWGS, 01.07.24] fallback to this skybox
 /*#define DEFAULT_SKYBOX_PATH		"gfx/env/desert"*/
@@ -80,8 +86,13 @@ GNU General Public License for more details
 #define DEFAULT_UPDATE_PAGE "https://github.com/FWGS/xash3d-fwgs/releases/latest"
 
 #define XASH_ENGINE_NAME	"Xash3D FWGS"
-#define XASH_DEDICATED_SERVER_NAME	"XashDS"	// [FWGS, 01.05.24]
-#define XASH_VERSION		"0.20"	// engine current version
+
+// [FWGS, 01.05.24]
+#define XASH_DEDICATED_SERVER_NAME	"XashDS"
+
+// [FWGS, 01.09.24]
+/*#define XASH_VERSION		"0.20"	// engine current version*/
+#define XASH_VERSION		"0.21"	// engine current version
 #define XASH_COMPAT_VERSION	"0.99"	// version we are based on
 
 #endif

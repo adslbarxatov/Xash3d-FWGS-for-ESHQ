@@ -419,9 +419,17 @@ qboolean MSG_WriteBytes (sizebuf_t *sb, const void *pBuf, int nBytes)
 	return MSG_WriteBits (sb, pBuf, nBytes << 3);
 	}
 
+// [FWGS, 01.09.24]
 qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr)
 	{
-	if (pStr)
+	int len = Q_strlen (pStr);
+
+	if (len)
+		MSG_WriteBytes (sb, pStr, len + 1);
+	else
+		MSG_WriteByte (sb, 0);
+
+	/*if (pStr)
 		{
 		do
 			{
@@ -432,22 +440,32 @@ qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr)
 	else
 		{
 		MSG_WriteChar (sb, 0);
-		}
+		}*/
 
 	return !sb->bOverflow;
 	}
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.09.24]
 qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...)
 	{
-	va_list va;
-	char buf[MAX_VA_STRING];
+	va_list	va;
+	int		len;
+	char	buf[MAX_VA_STRING];
 
 	va_start (va, format);
-	Q_vsnprintf (buf, sizeof (buf), format, va);
+	/*Q_vsnprintf (buf, sizeof (buf), format, va);*/
+	len = Q_vsnprintf (buf, sizeof (buf), format, va);
 	va_end (va);
 
-	return MSG_WriteString (sb, buf);
+	/*return MSG_WriteString (sb, buf);*/
+	if (len < 0)
+		{
+		Host_Error ("%s: snprintf overflow!\n", __func__);
+		return false;
+		}
+
+	MSG_WriteBytes (sb, buf, len + 1);
+	return !sb->bOverflow;
 	}
 
 int MSG_ReadOneBit (sizebuf_t *sb)
@@ -664,13 +682,15 @@ uint32_t MSG_ReadDword (sizebuf_t *sb)
 	return MSG_ReadUBitLong (sb, sizeof (uint32_t) << 3);
 	}
 
+// [FWGS, 01.09.24]
 float MSG_ReadFloat (sizebuf_t *sb)
 	{
 	float	ret;
 
-	Assert (sizeof (ret) == 4);
+	/*Assert (sizeof (ret) == 4);
 
-	MSG_ReadBits (sb, &ret, 32);
+	MSG_ReadBits (sb, &ret, 32);*/
+	MSG_ReadBits (sb, &ret, sizeof (ret) << 3);
 
 	return ret;
 	}
@@ -736,3 +756,166 @@ void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove)
 	MSG_SeekToBit (sb, startbit, SEEK_SET);
 	sb->nDataBits -= bitstoremove;
 	}
+
+#ifdef XASH_ENGINE_TESTS
+#include "tests.h"
+
+// [FWGS, 01.09.24]
+static const void *g_testbuf = "asdf\xba\xa1\xba\xa1\xed\xc8\x15\x7a";
+static const size_t g_testbuf_bits = ((4 + 4 + 2 + 1) << 3) + 4;
+
+// [FWGS, 01.09.24]
+static void Test_Buffer_BitByte (void)
+	{
+	TASSERT_EQi (BitByte (0), 0);
+	TASSERT_EQi (BitByte (1), 1);
+	TASSERT_EQi (BitByte (8), 1);
+	TASSERT_EQi (BitByte (9), 2);
+	}
+
+// [FWGS, 01.09.24]
+static void Test_Buffer_Write (void)
+	{
+	sizebuf_t sb;
+	char testdata[0x100] = { 0 };
+
+	MSG_Init (&sb, __func__, testdata, sizeof (testdata));
+	TASSERT_EQi (sb.iCurBit, 0);
+	TASSERT_EQi (sb.nDataBits, sizeof (testdata) << 3);
+	TASSERT_EQi (sb.pData, testdata);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	MSG_WriteBytes (&sb, "asdf", 4);
+	TASSERT_EQi (sb.bOverflow, false);
+	TASSERT_EQi (sb.iCurBit, 32);
+
+	MSG_WriteDword (&sb, 0xa1baa1ba);
+	TASSERT_EQi (sb.bOverflow, false);
+	TASSERT_EQi (sb.iCurBit, 64);
+
+	MSG_WriteShort (&sb, -0x3713);
+	TASSERT_EQi (sb.bOverflow, false);
+	TASSERT_EQi (sb.iCurBit, 80);
+
+	MSG_WriteOneBit (&sb, 1);
+	TASSERT_EQi (sb.bOverflow, false);
+	TASSERT_EQi (sb.iCurBit, 81);
+
+	MSG_WriteOneBit (&sb, 0);
+	TASSERT_EQi (sb.bOverflow, false);
+	TASSERT_EQi (sb.iCurBit, 82);
+
+	MSG_WriteOneBit (&sb, 1);
+	TASSERT_EQi (sb.bOverflow, false);
+	TASSERT_EQi (sb.iCurBit, 83);
+
+	MSG_WriteOneBit (&sb, 0);
+	TASSERT_EQi (sb.bOverflow, false);
+	TASSERT_EQi (sb.iCurBit, 84);
+
+	MSG_WriteByte (&sb, 0xa1);
+	TASSERT_EQi (sb.bOverflow, false);
+	TASSERT_EQi (sb.iCurBit, 92);
+
+	TASSERT_EQi (MSG_GetNumBitsWritten (&sb), g_testbuf_bits);
+	TASSERT_EQi (MSG_GetNumBytesWritten (&sb), BitByte (g_testbuf_bits));
+	TASSERT_EQi (MSG_GetRealBytesWritten (&sb), g_testbuf_bits >> 3);
+
+	// if tests fails here on big endian, it's possible due to endian issues
+	TASSERT (!memcmp (sb.pData, g_testbuf, g_testbuf_bits >> 3));
+
+	// must check last 4 bits separately because we never care about uninitialized bits
+	MSG_SeekToBit (&sb, g_testbuf_bits & ~7, SEEK_SET);
+	TASSERT_EQi (sb.iCurBit, 88);
+	TASSERT_EQi (MSG_ReadUBitLong (&sb, 4), 0xa);
+	}
+
+// [FWGS, 01.09.24]
+static void Test_Buffer_Read (void)
+	{
+	sizebuf_t sb;
+	char buf[4];
+
+	MSG_StartReading (&sb, (void *)g_testbuf, -1, 0, g_testbuf_bits);
+	TASSERT_EQi (sb.iCurBit, 0);
+	TASSERT_EQi (sb.nDataBits, g_testbuf_bits);
+	TASSERT_EQi (sb.pData, g_testbuf);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	MSG_ReadBytes (&sb, buf, 4);
+	TASSERT (!memcmp (buf, "asdf", 4));
+	TASSERT_EQi (sb.iCurBit, 32);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	TASSERT_EQi (MSG_ReadWord (&sb), 0xa1ba);
+	TASSERT_EQi (sb.iCurBit, 48);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	TASSERT_EQi (MSG_ReadDword (&sb), 0xc8eda1baU);
+	TASSERT_EQi (sb.iCurBit, 80);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	TASSERT_EQi (MSG_ReadOneBit (&sb), 1);
+	TASSERT_EQi (sb.iCurBit, 81);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	TASSERT_EQi (MSG_ReadOneBit (&sb), 0);
+	TASSERT_EQi (sb.iCurBit, 82);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	TASSERT_EQi (MSG_ReadOneBit (&sb), 1);
+	TASSERT_EQi (sb.iCurBit, 83);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	TASSERT_EQi (MSG_ReadOneBit (&sb), 0);
+	TASSERT_EQi (sb.iCurBit, 84);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	TASSERT_EQi (MSG_ReadByte (&sb), 0xa1);
+	TASSERT_EQi (sb.iCurBit, 92);
+	TASSERT_EQi (sb.bOverflow, false);
+
+	TASSERT_EQi (MSG_Overflow (&sb, 1), true);
+	TASSERT_EQi (sb.bOverflow, true);
+	}
+
+// [FWGS, 01.09.24]
+static void Test_Buffer_ExciseBits (void)
+	{
+	sizebuf_t sb;
+	char testdata[0x100];
+
+	memcpy (testdata, g_testbuf, BitByte (g_testbuf_bits));
+
+	MSG_StartWriting (&sb, testdata, 0, 0, g_testbuf_bits);
+	MSG_ExciseBits (&sb, 8, 28);
+
+	TASSERT_EQi (MSG_CheckOverflow (&sb), false);
+	TASSERT_EQi (MSG_GetMaxBits (&sb), 64);
+	TASSERT (!memcmp (MSG_GetData (&sb), "a\x1b\xaa\x1b\xda\x8e\x5c\xa1", 8));
+
+	memcpy (testdata, g_testbuf, BitByte (g_testbuf_bits));
+
+	MSG_StartWriting (&sb, testdata, 0, 0, g_testbuf_bits);
+	MSG_ExciseBits (&sb, 16, 32);
+
+	TASSERT_EQi (MSG_CheckOverflow (&sb), false);
+	TASSERT_EQi (MSG_GetMaxBits (&sb), g_testbuf_bits - 32);
+	TASSERT (!memcmp (MSG_GetData (&sb), "as\xba\xa1\xed\xc8\x15", 7));
+
+	MSG_SeekToBit (&sb, 7 << 3, SEEK_SET);
+	TASSERT_EQi (MSG_ReadUBitLong (&sb, 4), 0xa);
+	}
+
+// [FWGS, 01.09.24]
+void Test_RunBuffer (void)
+	{
+	MSG_InitMasks ();
+
+	TRUN (Test_Buffer_BitByte ());
+	TRUN (Test_Buffer_Write ());
+	TRUN (Test_Buffer_Read ());
+	TRUN (Test_Buffer_ExciseBits ());
+	}
+
+#endif

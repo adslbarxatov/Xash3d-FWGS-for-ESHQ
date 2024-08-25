@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -22,7 +22,8 @@ GNU General Public License for more details.
 #include "hltv.h"
 #include "input.h"
 
-#define STAT_HEALTH			0
+// [FWGS, 01.09.24]
+/*#define STAT_HEALTH			0
 #define STAT_FRAGS			1
 #define STAT_WEAPON			2
 #define STAT_AMMO			3
@@ -37,7 +38,26 @@ GNU General Public License for more details.
 #define STAT_TOTALMONSTERS	12
 #define STAT_SECRETS		13	// bumped on client side by svc_foundsecret
 #define STAT_MONSTERS		14	// bumped by svc_killedmonster
-#define MAX_STATS			32
+#define MAX_STATS			32*/
+enum
+	{
+	STAT_HEALTH = 0,
+	STAT_FRAGS,
+	STAT_WEAPON,
+	STAT_AMMO,
+	STAT_ARMOR,
+	STAT_WEAPONFRAME,
+	STAT_SHELLS,
+	STAT_NAILS,
+	STAT_ROCKETS,
+	STAT_CELLS,
+	STAT_ACTIVEWEAPON,
+	STAT_TOTALSECRETS,
+	STAT_TOTALMONSTERS,
+	STAT_SECRETS,	// bumped on client side by svc_foundsecret
+	STAT_MONSTERS,	// bumped by svc_killedmonster
+	MAX_STATS = 32,
+	};
 
 static char	cmd_buf[8192];
 static char	msg_buf[8192];
@@ -174,7 +194,7 @@ static void CL_ParseQuakeSound (sizebuf_t *msg)
 
 /***
 ==================
-CL_ParseQuakeServerInfo [FWGS, 09.05.24]
+CL_ParseQuakeServerInfo [FWGS, 01.09.24]
 ==================
 ***/
 static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
@@ -342,7 +362,8 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	clgame.movevars.gravity = 800.0f;
 	clgame.movevars.maxvelocity = 2000.0f;
 
-	memcpy (&clgame.oldmovevars, &clgame.movevars, sizeof (movevars_t));
+	/*memcpy (&clgame.oldmovevars, &clgame.movevars, sizeof (movevars_t));*/
+	clgame.oldmovevars = clgame.movevars;
 	}
 
 /***
@@ -711,7 +732,7 @@ static void CL_ParseStaticEntity (sizebuf_t *msg)
 
 /***
 ===================
-CL_ParseQuakeBaseline [FWGS, 01.07.24]
+CL_ParseQuakeBaseline [FWGS, 01.09.24]
 ===================
 ***/
 static void CL_ParseQuakeBaseline (sizebuf_t *msg)
@@ -741,8 +762,10 @@ static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	ent = CL_EDICT_NUM (newnum);
 	ent->index = newnum;
 	ent->player = CL_IsPlayerIndex (newnum);
-	memcpy (&ent->baseline, &state, sizeof (entity_state_t));
-	memcpy (&ent->prevstate, &state, sizeof (entity_state_t));
+
+	/*memcpy (&ent->baseline, &state, sizeof (entity_state_t));
+	memcpy (&ent->prevstate, &state, sizeof (entity_state_t));*/
+	ent->prevstate = ent->baseline = state;
 	}
 
 /***

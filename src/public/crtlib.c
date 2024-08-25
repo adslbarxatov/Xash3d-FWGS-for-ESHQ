@@ -11,7 +11,8 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details
-*/
+***/
+
 #include "port.h"
 #include "xash3d_types.h"
 #include "const.h"
@@ -824,16 +825,24 @@ void COM_FixSlashes (char *pname)
 
 /***
 ============
-COM_PathSlashFix [FWGS, 01.05.23]
+COM_PathSlashFix [FWGS, 01.09.24]
+
+Ensure directory path always ends on forward slash
 ============
 ***/
 void COM_PathSlashFix (char *path)
 	{
-	size_t	len;
+	/*size_t	len;
 
-	len = Q_strlen (path);
+	len = Q_strlen (path);*/
+	size_t len = Q_strlen (path);
 
-	if ((path[len - 1] != '\\') && (path[len - 1] != '/'))
+	/*if ((path[len - 1] != '\\') && (path[len - 1] != '/'))*/
+	if (path[len - 1] == '\\')
+		{
+		path[len - 1] = '/';
+		}
+	else if (path[len - 1] != '/')
 		{
 		path[len] = '/';
 		path[len + 1] = '\0';

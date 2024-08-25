@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -35,7 +35,9 @@ static void V_CalcViewRect (void)
 	int			sb_lines;
 	float		size;
 
-	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
+	// [FWGS, 01.09.24]
+	/*if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))*/
+	if (Host_IsQuakeCompatible ())
 		{
 		// intermission is always full screen
 		if (cl.intermission)
@@ -149,10 +151,15 @@ static void V_SetRefParams (ref_params_t *fd)
 	VectorCopy (cl.viewheight, fd->viewheight);
 	fd->idealpitch = cl.local.idealpitch;
 
+	// [FWGS, 01.09.24]
 	VectorCopy (cl.viewangles, fd->cl_viewangles);
 	fd->health = cl.local.health;
 	VectorCopy (cl.crosshairangle, fd->crosshairangle);
-	fd->viewsize = scr_viewsize.value;
+	/*fd->viewsize = scr_viewsize.value;*/
+	if (Host_IsQuakeCompatible ())
+		fd->viewsize = scr_viewsize.value;
+	else
+		fd->viewsize = 120.0f;
 
 	VectorCopy (cl.punchangle, fd->punchangle);
 	fd->maxclients = cl.maxclients;

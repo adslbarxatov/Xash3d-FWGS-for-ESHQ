@@ -11,9 +11,12 @@ ref_globals_t refState;
 // [FWGS, 01.07.24]
 static const char *r_skyBoxSuffix[SKYBOX_MAX_SIDES] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
-// [FWGS, 01.07.23]
-CVAR_DEFINE_AUTO (gl_vsync, "0", FCVAR_ARCHIVE,
+// [FWGS, 01.09.24]
+/*CVAR_DEFINE_AUTO (gl_vsync, "0", FCVAR_ARCHIVE,
+	"enable vertical syncronization");*/
+CVAR_DEFINE_AUTO (gl_vsync, "1", FCVAR_ARCHIVE,
 	"enable vertical syncronization");
+
 CVAR_DEFINE_AUTO (r_showtextures, "0", FCVAR_CHEAT,
 	"show all uploaded textures");
 CVAR_DEFINE_AUTO (r_adjust_fov, "1", FCVAR_ARCHIVE,
@@ -519,7 +522,7 @@ static void CL_FillTriAPIFromRef (triangleapi_t *dst, const ref_interface_t *src
 	dst->FogParams = src->FogParams;
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 static qboolean R_LoadProgs (const char *name)
 	{
 	/*extern triangleapi_t gTriApi;*/
@@ -547,8 +550,8 @@ static qboolean R_LoadProgs (const char *name)
 		}
 
 	// make local copy of engfuncs to prevent overwrite it with user dll
-	memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));
-
+	/*memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));*/
+	gpEngfuncs = gEngfuncs;
 	if (GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState) != REF_API_VERSION)
 		{
 		COM_FreeLibrary (ref.hInstance);
@@ -558,11 +561,10 @@ static qboolean R_LoadProgs (const char *name)
 		}
 
 	refState.developer = host_developer.value;
-
 	if (!ref.dllFuncs.R_Init ())
 		{
 		COM_FreeLibrary (ref.hInstance);
-		Con_Reportf ("%s: can't init renderer!\n", __func__);	//, ref.dllFuncs.R_GetInitError() );
+		Con_Reportf ("%s: can't init renderer!\n", __func__);	/*, ref.dllFuncs.R_GetInitError() );*/
 		ref.hInstance = NULL;
 		return false;
 		}
@@ -596,24 +598,40 @@ void R_Shutdown (void)
 	ref.initialized = false;
 	}
 
+// [FWGS, 01.09.24]
 static void R_GetRendererName (char *dest, size_t size, const char *opt)
 	{
 	if (!Q_strstr (opt, "." OS_LIB_EXT))
 		{
-		const char *format;
+		/*const char *format;*/
 
 #ifdef XASH_INTERNAL_GAMELIBS
-		if (!Q_strcmp (opt, "ref_"))
+
+		/*if (!Q_strcmp (opt, "ref_"))
 			format = "%s";
 		else
-			format = "ref_%s";
+			format = "ref_%s";*/
+#define FMT1 "%s"
+#define FMT2 "ref_%s"
+
 #else
-		if (!Q_strcmp (opt, "ref_"))
+
+		/*if (!Q_strcmp (opt, "ref_"))
 			format = OS_LIB_PREFIX "%s." OS_LIB_EXT;
 		else
-			format = OS_LIB_PREFIX "ref_%s." OS_LIB_EXT;
+			format = OS_LIB_PREFIX "ref_%s." OS_LIB_EXT;*/
+#define FMT1 OS_LIB_PREFIX "%s." OS_LIB_EXT
+#define FMT2 OS_LIB_PREFIX "ref_%s." OS_LIB_EXT
+
 #endif
-		Q_snprintf (dest, size, format, opt);
+		/*Q_snprintf (dest, size, format, opt);*/
+		if (!Q_strncmp (opt, "ref_", 4))
+			Q_snprintf (dest, size, FMT1, opt);
+		else
+			Q_snprintf (dest, size, FMT2, opt);
+
+#undef FMT1
+#undef FMT2
 		}
 	else
 		{
@@ -696,8 +714,14 @@ static void R_CollectRendererNames (void)
 			"gles3compat",
 		#endif
 
+		// [FWGS, 01.09.24]
 		#if XASH_REF_SOFT_ENABLED
 			"soft",
+		#endif
+
+		// [FWGS, 01.09.24]
+		#if XASH_REF_NULL_ENABLED
+			"null",
 		#endif
 		};
 
@@ -722,8 +746,14 @@ static void R_CollectRendererNames (void)
 			"GLES3 (gl2_shim)",
 		#endif
 
+		// [FWGS, 01.09.24]
 		#if XASH_REF_SOFT_ENABLED
 			"Software",
+		#endif
+
+		// [FWGS, 01.09.24]
+		#if XASH_REF_NULL_ENABLED
+			"Null Renderer",
 		#endif
 		};
 

@@ -113,7 +113,7 @@ typedef struct
 	qboolean	finished;
 	} mixer_t;
 
-// [FWGS, 09.05.24]
+// [FWGS, 01.09.24]
 typedef struct rawchan_s
 	{
 	int			entnum;
@@ -127,7 +127,8 @@ typedef struct rawchan_s
 	wavdata_t	sound_info;	// advance play position
 	size_t		max_samples;	// buffer length
 
-	portable_samplepair_t	rawsamples[1];	// variable sized
+	/*portable_samplepair_t	rawsamples[1];	// variable sized*/
+	portable_samplepair_t	rawsamples[]; // variable sized
 	} rawchan_t;
 
 // [FWGS, 09.05.24]

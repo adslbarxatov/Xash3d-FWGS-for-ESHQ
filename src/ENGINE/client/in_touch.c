@@ -146,9 +146,12 @@ static struct touch_s
 touchdefaultbutton_t g_DefaultButtons[256];
 int g_LastDefaultButton;
 
-// [FWGS, 01.07.23]
-static CVAR_DEFINE_AUTO (touch_in_menu, "0", FCVAR_FILTERABLE,
+// [FWGS, 01.09.24]
+/*static CVAR_DEFINE_AUTO (touch_in_menu, "0", FCVAR_FILTERABLE,
+	"draw touch in menu (for internal use only)");*/
+static CVAR_DEFINE_AUTO (touch_in_menu, "0", FCVAR_PRIVILEGED,
 	"draw touch in menu (for internal use only)");
+
 static CVAR_DEFINE_AUTO (touch_forwardzone, "0.06", FCVAR_FILTERABLE,
 	"forward touch zone");
 static CVAR_DEFINE_AUTO (touch_sidezone, "0.06", FCVAR_FILTERABLE,
@@ -189,10 +192,13 @@ static CVAR_DEFINE_AUTO (touch_move_indicator, "0.0", FCVAR_FILTERABLE,
 	"indicate move events (0 to disable)");
 static CVAR_DEFINE_AUTO (touch_joy_texture, "touch_default/joy", FCVAR_FILTERABLE,
 	"texture for move indicator");
+
+static CVAR_DEFINE_AUTO (touch_emulate, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"emulate touch with mouse");
 CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable touch controls");
-CVAR_DEFINE_AUTO (touch_emulate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-	"emulate touch with mouse");
+/*CVAR_DEFINE_AUTO (touch_emulate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"emulate touch with mouse");*/
 
 // [FWGS, 01.11.23] code looks smaller with it
 #define B(x) (button->x)
@@ -819,7 +825,12 @@ static void Touch_ReloadConfig_f (void)
 	touch.edit = touch.selection = NULL;
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
 
-	// [FWGS, 01.11.23]
+	/*// [FWGS, 01.11.23]
+	if (FS_FileExists (touch_config_file.string, true))
+		{*/
+	if (touch_in_menu.value)
+		Cvar_DirectSet (&touch_in_menu, "0");
+
 	if (FS_FileExists (touch_config_file.string, true))
 		{
 		Cbuf_AddTextf ("exec \"%s\"\n", touch_config_file.string);
@@ -1063,6 +1074,7 @@ static void Touch_EnableEdit_f (void)
 		}
 	}
 
+// [FWGS, 01.09.24]
 static void Touch_DisableEdit_f (void)
 	{
 	touch.state = state_none;
@@ -1074,11 +1086,11 @@ static void Touch_DisableEdit_f (void)
 	touch.edit = touch.selection = NULL;
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
 
-	// [FWGS, 01.07.23]
 	if (touch_in_menu.value)
 		{
 		Cvar_Set ("touch_in_menu", "0");
 		}
+	/*else if (cls.key_dest == key_game)*/
 	else if (cls.key_dest == key_game)
 		{
 		Touch_WriteConfig ();
@@ -1169,21 +1181,32 @@ void Touch_Init (void)
 	Touch_AddDefaultButton ("attack2", "touch_default/shoot_alt", "+attack2", 0.760000, 0.302971, 0.880000,
 		0.530200, color, 2, 1, 0);
 
-	// [FWGS, 01.04.23]
+	// [FWGS, 01.09.24]
+	/*// [FWGS, 01.04.23]
 	Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.680000, 0.000000, 0.760000,
 		0.151486, color, 2, 1, 16);
 	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.760000, 0.000000, 0.840000,
 		0.151486, color, 2, 1, 16);
 	Touch_AddDefaultButton ("messagemode", "touch_default/keyboard", "messagemode", 0.760000, 0.000000, 0.840000,
-		0.151486, color, 2, 1, 8);
+		0.151486, color, 2, 1, 8);*/
+	Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.760000, 0.000000, 0.840000,
+		0.142222, color, 2, 1, 16);
+	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.840000, 0.000000, 0.920000,
+		0.142222, color, 2, 1, 16);
+	Touch_AddDefaultButton ("messagemode", "touch_default/keyboard", "messagemode", 0.840000, 0.000000, 0.920000,
+		0.142222, color, 2, 1, 8);
+
 	Touch_AddDefaultButton ("reload", "touch_default/reload", "+reload", 0.000000, 0.302971, 0.120000,
 		0.530200, color, 2, 1, 0);
 	Touch_AddDefaultButton ("flashlight", "touch_default/flash_light_filled", "impulse 100", 0.920000, 0.000000,
 		1.000000, 0.151486, color, 2, 1, 0);
 
-	// [FWGS, 01.04.23]
+	/*// [FWGS, 01.04.23]
 	Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.680000, 0.000000, 0.760000, 0.151486,
+		color, 2, 1, 8);*/
+	Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.760000, 0.000000, 0.840000, 0.142222,
 		color, 2, 1, 8);
+
 	Touch_AddDefaultButton ("show_numbers", "touch_default/show_weapons", "exec touch_default/numbers.cfg",
 		0.440000, 0.833171, 0.520000, 0.984656, color, 2, 1, 0);
 	Touch_AddDefaultButton ("duck", "touch_default/crouch", "+duck", 0.880000, 0.757428, 1.000000, 0.984656,
@@ -1195,9 +1218,13 @@ void Touch_Init (void)
 	Touch_AddDefaultButton ("menu", "touch_default/menu", "escape", 0.000000, 0.833171, 0.080000, 0.984656,
 		color, 2, 1, 0);
 
-	// [FWGS, 01.04.23]
+	/*// [FWGS, 01.04.23]
 	Touch_AddDefaultButton ("spray", "touch_default/spray", "impulse 201", 0.840000, 0.000000, 0.920000, 0.151486,
-		color, 2, 1, 0);
+		color, 2, 1, 0);*/
+	Touch_AddDefaultButton ("spray", "touch_default/spray", "impulse 201", 0.680000, 0.000000, 0.760000, 0.142222,
+		color, 2, 1, 8);
+	Touch_AddDefaultButton ("voicechat", "touch_default/microphone", "+voicerecord", 0.780000, 0.817778, 0.860000, 0.960000,
+		color, 2, 1, 8);
 
 	Cmd_AddCommand ("touch_addbutton", Touch_AddButton_f,
 		"add native touch button");
@@ -2270,7 +2297,7 @@ void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch)
 	touch.yaw = touch.pitch = 0;
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.09.24]
 void Touch_KeyEvent (int key, int down)
 	{
 	static float	lx, ly;
@@ -2279,7 +2306,8 @@ void Touch_KeyEvent (int key, int down)
 	float			x, y;
 	int				finger, xi, yi;
 
-	if (!touch_emulate.value)
+	/*if (!touch_emulate.value)*/
+	if (!Touch_Emulated ())
 		{
 		if (touch_enable.value)
 			return;
@@ -2333,6 +2361,12 @@ void Touch_KeyEvent (int key, int down)
 qboolean Touch_WantVisibleCursor (void)
 	{
 	return (touch_enable.value && touch_emulate.value) || touch.clientonly;
+	}
+
+// [FWGS, 01.09.24]
+qboolean Touch_Emulated (void)
+	{
+	return touch_emulate.value || touch_in_menu.value;
 	}
 
 void Touch_Shutdown (void)
