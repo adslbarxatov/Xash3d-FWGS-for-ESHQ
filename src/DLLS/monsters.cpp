@@ -1911,10 +1911,9 @@ void CBaseMonster::StartMonster (void)
 		// Try to move the monster to make sure it's not stuck in a brush
 		if (!WALK_MOVE (ENT (pev), 0, 0, WALKMOVE_NORMAL))
 			{
-			ALERT (at_error, "Monster %s stuck in wall\n", STRING (pev->classname));
-
 			// ESHQ: отключена подсветка застрявших монстров:
 			// часть монстров действительно будет находиться в недопустимых состояниях
+			//ALERT (at_error, "Monster %s stuck in wall\n", STRING (pev->classname));
 			}
 		}
 	else

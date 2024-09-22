@@ -521,11 +521,11 @@ static void SV_NewChaseDir (edict_t *actor, vec3_t destination, float dist)
 	if ((turnaround != -1.0f) && SV_StepDirection (actor, turnaround, dist))
 		return;
 
-	// well, we're stuck somehow.
+	// well, we're stuck somehow
 	actor->v.ideal_yaw = olddir;
 
 	// if a bridge was pulled out from underneath a monster, it may not have
-	// a valid standing position at all.
+	// a valid standing position at all
 	if (!SV_CheckBottom (actor, WALKMOVE_NORMAL))
 		{
 		actor->v.flags |= FL_PARTIALGROUND;
