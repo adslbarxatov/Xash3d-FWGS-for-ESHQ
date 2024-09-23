@@ -1148,9 +1148,9 @@ void SV_InitHostCommands (void)
 				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");
 
 			Cmd_AddRestrictedCommand ("esrm_enemies_list", SV_ESRM_Command,
-				"Enumerates the allowed enemies (the line of letters for [a]ssassins, [b]ullchickens, "
-				"[c]ontrollers, hound[e]yes, human [g]runts, [h]eadcrabs, [l]eeches, trip[m]ines, bar[n]acles, "
-				"alien g[r]unts, alien [s]laves, [t]urrets and [z]ombies");
+				"Enumerates the allowed enemies (the line of probabilities (from 0 to 5) for assassins, bullchickens, "
+				"controllers, houndeyes, human grunts, headcrabs, leeches, tripmines, barnacles, "
+				"alien grunts, alien slaves, turrets and zombies");
 			Cmd_AddRestrictedCommand ("esrm_items_list", SV_ESRM_Command,
 				"Enumerates the allowed items (the line of letters for health[k]its, [b]atteries, [g]renades, "
 				"[9] mm handguns, [s]atchels, .[3]57 pythons, [c]rossbows, ga[u]ss, cro[w]bars, [h]ornetguns, "
