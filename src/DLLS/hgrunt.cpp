@@ -1,16 +1,14 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   This source code contains proprietary and confidential information of
-*   Valve LLC and its suppliers.  Access to this code is restricted to
-*   persons who have executed a written SDK license with Valve.  Any access,
-*   use or distribution of this code by or to any unlicensed person is illegal.
-*
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+This source code contains proprietary and confidential information of
+Valve LLC and its suppliers.  Access to this code is restricted to
+persons who have executed a written SDK license with Valve.  Any access,
+use or distribution of this code by or to any unlicensed person is illegal
 ****/
 // =========================================================
 // hgrunt
@@ -846,6 +844,9 @@ void CHGrunt::HandleAnimEvent (MonsterEvent_t* pEvent)
 
 		case HGRUNT_AE_GREN_TOSS:
 			{
+			if (!FBitSet (pev->weapons, HGRUNT_HANDGRENADE))
+				break;
+
 			UTIL_MakeVectors (pev->angles);
 			CGrenade::ShootTimed (pev, GetGunPosition (), m_vecTossVelocity, 3.5);
 
@@ -857,6 +858,9 @@ void CHGrunt::HandleAnimEvent (MonsterEvent_t* pEvent)
 
 		case HGRUNT_AE_GREN_LAUNCH:
 			{
+			if (!FBitSet (pev->weapons, HGRUNT_GRENADELAUNCHER))
+				break;
+
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "weapons/glauncher.wav", 0.8, ATTN_MEDIUM);
 			CGrenade::ShootContact (pev, GetGunPosition (), m_vecTossVelocity);
 			m_fThrowGrenade = FALSE;
@@ -866,13 +870,17 @@ void CHGrunt::HandleAnimEvent (MonsterEvent_t* pEvent)
 			}
 			break;
 
-		case HGRUNT_AE_GREN_DROP:
+		// ESHQ: прекращена обработка события HGRUNT_AE_GREN_DROP из-за неконтролируемых самоподрывов врагов
+		/*case HGRUNT_AE_GREN_DROP:
 			{
+			if (!FBitSet (pev->weapons, HGRUNT_HANDGRENADE))
+				break;
+
 			UTIL_MakeVectors (pev->angles);
 			CGrenade::ShootTimed (pev, pev->origin + gpGlobals->v_forward * 17 - gpGlobals->v_right * 27 + 
 				gpGlobals->v_up * 6, g_vecZero, 3);
 			}
-			break;
+			break;*/
 
 		case HGRUNT_AE_BURST1:
 			{
