@@ -944,6 +944,7 @@ void CHGrunt::HandleAnimEvent (MonsterEvent_t* pEvent)
 				JustSpoke ();
 				}
 			}
+			break;
 
 		default:
 			CSquadMonster::HandleAnimEvent (pEvent);
@@ -1113,10 +1114,8 @@ void CHGrunt::RunTask (Task_t* pTask)
 			}
 
 		default:
-			{
 			CSquadMonster::RunTask (pTask);
 			break;
-			}
 		}
 	}
 

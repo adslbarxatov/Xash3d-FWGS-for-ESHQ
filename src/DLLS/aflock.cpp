@@ -350,7 +350,6 @@ void CFlockingFlyer::BoidAdvanceFrame ()
 	// bank
 	pev->avelocity.z = -(pev->angles.z + pev->avelocity.y);
 
-	// pev->framerate		= flapspeed;
 	StudioFrameAdvance (0.1);
 	}
 

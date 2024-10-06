@@ -1831,7 +1831,8 @@ static edict_t *GAME_EXPORT pfnFindClientInPVS (edict_t *pEdict)
 
 	// portals & monitors
 	// NOTE: this specific break "radiaton tick" in normal half-life. use only as feature
-	if (FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT) && mod && (mod->type == mod_brush) &&
+	// ESHQ: восстановлено в пользу счётчика Гейгера
+	if (false /*FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT)*/ && mod && (mod->type == mod_brush) &&
 		!FBitSet (mod->flags, MODEL_HAS_ORIGIN))
 		{
 		// handle PVS origin for bmodels

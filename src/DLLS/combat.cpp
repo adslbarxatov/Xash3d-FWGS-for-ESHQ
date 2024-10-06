@@ -137,9 +137,10 @@ void CGib::SpawnHeadGib (entvars_t* pevVictim)
 
 		edict_t* pentPlayer = FIND_CLIENT_IN_PVS (pGib->edict ());
 
-		if (RANDOM_LONG (0, 100) <= 5 && pentPlayer)
+		// ESHQ: зачем?
+		if ((RANDOM_LONG (0, 100) < 5) && pentPlayer)
 			{
-			// 5% chance head will be thrown at player's face.
+			// 5% chance head will be thrown at player's face
 			entvars_t* pevPlayer;
 
 			pevPlayer = VARS (pentPlayer);
@@ -580,7 +581,6 @@ BOOL CBaseMonster::ShouldGibMonster (int iGib)
 	return FALSE;
 	}
 
-
 void CBaseMonster::CallGibMonster (void)
 	{
 	BOOL fade = FALSE;
@@ -647,7 +647,7 @@ void CBaseMonster::Killed (entvars_t* pevAttacker, int iGib)
 	// Make sure this condition is fired too (TakeDamage breaks out before this happens on death)
 	SetConditions (bits_COND_LIGHT_DAMAGE);
 
-	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
+	// tell owner (if any) that we're dead.This is mostly for MonsterMaker functionality
 	CBaseEntity* pOwner = CBaseEntity::Instance (pev->owner);
 	if (pOwner)
 		pOwner->DeathNotice (pev);
@@ -875,15 +875,11 @@ int CBaseMonster::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, f
 		return 0;
 
 	if (!IsAlive ())
-		{
 		return DeadTakeDamage (pevInflictor, pevAttacker, flDamage, bitsDamageType);
-		}
 
+	// no pain sound during death animation
 	if (pev->deadflag == DEAD_NO)
-		{
-		// no pain sound during death animation
 		PainSound ();
-		}
 
 	flTake = flDamage;
 
@@ -919,7 +915,8 @@ int CBaseMonster::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, f
 		}
 
 	// If this is a player, move him around!
-	if ((!FNullEnt (pevInflictor)) && (pev->movetype == MOVETYPE_WALK) && (!pevAttacker || (pevAttacker->solid != SOLID_TRIGGER)))
+	if ((!FNullEnt (pevInflictor)) && (pev->movetype == MOVETYPE_WALK) && (!pevAttacker ||
+		(pevAttacker->solid != SOLID_TRIGGER)))
 		{
 		pev->velocity = pev->velocity + vecDir * -DamageForce (flDamage);
 		}
@@ -939,17 +936,11 @@ int CBaseMonster::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, f
 		g_pevLastInflictor = pevInflictor;
 
 		if (bitsDamageType & DMG_ALWAYSGIB)
-			{
 			Killed (pevAttacker, GIB_ALWAYS);
-			}
 		else if (bitsDamageType & DMG_NEVERGIB)
-			{
 			Killed (pevAttacker, GIB_NEVER);
-			}
 		else
-			{
 			Killed (pevAttacker, GIB_NORMAL);
-			}
 
 		g_pevLastInflictor = NULL;
 
@@ -965,10 +956,8 @@ int CBaseMonster::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, f
 			// enemy's last known position is somewhere down the vector that the attack came from
 			if (pevInflictor)
 				{
-				if (m_hEnemy == NULL || pevInflictor == m_hEnemy->pev || !HasConditions (bits_COND_SEE_ENEMY))
-					{
+				if ((m_hEnemy == NULL) || (pevInflictor == m_hEnemy->pev) || !HasConditions (bits_COND_SEE_ENEMY))
 					m_vecEnemyLKP = pevInflictor->origin;
-					}
 				}
 			else
 				{

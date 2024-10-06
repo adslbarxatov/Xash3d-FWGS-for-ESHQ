@@ -1156,9 +1156,10 @@ Schedule_t* CHoundeye::GetScheduleOfType (int Type)
 			// sound was not loud enough to scare the bejesus out of houndeye
 			return &slHoundWakeLazy[0];
 			}
+
 		else if (HasConditions (bits_COND_NEW_ENEMY))
 			{
-			// get up fast, to fight.
+			// get up fast, to fight
 			return &slHoundWakeUrgent[0];
 			}
 
@@ -1168,60 +1169,61 @@ Schedule_t* CHoundeye::GetScheduleOfType (int Type)
 			return &slHoundWakeLazy[0];
 			}
 		}
+
 	switch (Type)
 		{
 		case SCHED_IDLE_STAND:
 			{
 			// we may want to sleep instead of stand!
 			if (InSquad () && !IsLeader () && !m_fAsleep && RANDOM_LONG (0, 29) < 1)
-				{
 				return &slHoundSleep[0];
-				}
 			else
-				{
 				return CSquadMonster::GetScheduleOfType (Type);
-				}
 			}
+
 		case SCHED_RANGE_ATTACK1:
 			{
 			return &slHoundRangeAttack[0];
 			}
+
 		case SCHED_SPECIAL_ATTACK1:
 			{
 			return &slHoundSpecialAttack1[0];
 			}
+
 		case SCHED_GUARD:
 			{
 			return &slHoundGuardPack[0];
 			}
+
 		case SCHED_HOUND_AGITATED:
 			{
 			return &slHoundAgitated[0];
 			}
+
 		case SCHED_HOUND_HOP_RETREAT:
 			{
 			return &slHoundHopRetreat[0];
 			}
+
 		case SCHED_FAIL:
 			{
 			if (m_MonsterState == MONSTERSTATE_COMBAT)
 				{
+				// client in PVS
 				if (!FNullEnt (FIND_CLIENT_IN_PVS (edict ())))
-					{
-					// client in PVS
 					return &slHoundCombatFailPVS[0];
-					}
+
+				// client has taken off! 
 				else
-					{
-					// client has taken off! 
 					return &slHoundCombatFailNoPVS[0];
-					}
 				}
 			else
 				{
 				return CSquadMonster::GetScheduleOfType (Type);
 				}
 			}
+
 		default:
 			{
 			return CSquadMonster::GetScheduleOfType (Type);

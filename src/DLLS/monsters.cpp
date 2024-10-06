@@ -2452,6 +2452,7 @@ void CBaseMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 				ALERT (at_aiconsole, "INVALID death event:%s\n", STRING (pev->classname));
 #endif
 			break;
+
 		case SCRIPT_EVENT_NOT_DEAD:
 			if (m_MonsterState == MONSTERSTATE_SCRIPT)
 				{
@@ -2473,6 +2474,7 @@ void CBaseMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 			if (RANDOM_LONG (0, 2) == 0)
 				break;
 			// fall through...
+
 		case SCRIPT_EVENT_SENTENCE:			// Play a named sentence group
 			SENTENCEG_PlayRndSz (edict (), pEvent->options, 1.0, ATTN_SMALL, 0, 100);
 			break;
@@ -2490,12 +2492,6 @@ void CBaseMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 			if (m_pCine)
 				m_pCine->AllowInterrupt (TRUE);
 			break;
-
-#if 0
-		case SCRIPT_EVENT_INAIR:			// Don't DROP_TO_FLOOR()
-		case SCRIPT_EVENT_ENDANIMATION:		// Set ending animation sequence to
-			break;
-#endif
 
 		// ESHQ: новое звуковое сопровождение
 		case MONSTER_EVENT_BODYDROP_HEAVY:
@@ -2808,68 +2804,60 @@ BOOL CBaseMonster::FCheckAITrigger (void)
 	switch (m_iTriggerCondition)
 		{
 		case AITRIGGER_SEEPLAYER_ANGRY_AT_PLAYER:
-			if (m_hEnemy != NULL && m_hEnemy->IsPlayer () && HasConditions (bits_COND_SEE_ENEMY))
-				{
+			if ((m_hEnemy != NULL) && m_hEnemy->IsPlayer () && HasConditions (bits_COND_SEE_ENEMY))
 				fFireTarget = TRUE;
-				}
 			break;
+
 		case AITRIGGER_SEEPLAYER_UNCONDITIONAL:
 			if (HasConditions (bits_COND_SEE_CLIENT))
-				{
 				fFireTarget = TRUE;
-				}
 			break;
+
 		case AITRIGGER_SEEPLAYER_NOT_IN_COMBAT:
 			if (HasConditions (bits_COND_SEE_CLIENT) &&
-				m_MonsterState != MONSTERSTATE_COMBAT &&
-				m_MonsterState != MONSTERSTATE_PRONE &&
-				m_MonsterState != MONSTERSTATE_SCRIPT)
+				(m_MonsterState != MONSTERSTATE_COMBAT) &&
+				(m_MonsterState != MONSTERSTATE_PRONE) &&
+				(m_MonsterState != MONSTERSTATE_SCRIPT))
 				{
 				fFireTarget = TRUE;
 				}
 			break;
+
 		case AITRIGGER_TAKEDAMAGE:
 			if (m_afConditions & (bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE))
-				{
 				fFireTarget = TRUE;
-				}
 			break;
+
 		case AITRIGGER_DEATH:
 			if (pev->deadflag != DEAD_NO)
-				{
 				fFireTarget = TRUE;
-				}
 			break;
+
 		case AITRIGGER_HALFHEALTH:
-			if (IsAlive () && pev->health <= (pev->max_health / 2))
-				{
+			if (IsAlive () && (pev->health <= (pev->max_health / 2)))
 				fFireTarget = TRUE;
-				}
 			break;
+
 		case AITRIGGER_HEARWORLD:
-			if (m_afConditions & bits_COND_HEAR_SOUND && m_afSoundTypes & bits_SOUND_WORLD)
-				{
+			if ((m_afConditions & bits_COND_HEAR_SOUND) && (m_afSoundTypes & bits_SOUND_WORLD))
 				fFireTarget = TRUE;
-				}
 			break;
+
 		case AITRIGGER_HEARPLAYER:
-			if (m_afConditions & bits_COND_HEAR_SOUND && m_afSoundTypes & bits_SOUND_PLAYER)
-				{
+			if ((m_afConditions & bits_COND_HEAR_SOUND) && (m_afSoundTypes & bits_SOUND_PLAYER))
 				fFireTarget = TRUE;
-				}
 			break;
+
 		case AITRIGGER_HEARCOMBAT:
-			if (m_afConditions & bits_COND_HEAR_SOUND && m_afSoundTypes & bits_SOUND_COMBAT)
-				{
+			if ((m_afConditions & bits_COND_HEAR_SOUND) && (m_afSoundTypes & bits_SOUND_COMBAT))
 				fFireTarget = TRUE;
-				}
 			break;
 		}
 
 	if (fFireTarget)
 		{
 		// fire the target, then set the trigger conditions to NONE so we don't fire again
-		ALERT (at_aiconsole, "AI Trigger Fire Target\n");
+		ALERT (at_aiconsole, "AI Trigger fire target at condition %i\n", m_iTriggerCondition);
 		FireTargets (STRING (m_iszTriggerTarget), this, this, USE_TOGGLE, 0);
 		m_iTriggerCondition = AITRIGGER_NONE;
 		return TRUE;

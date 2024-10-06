@@ -1,16 +1,14 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
 ****/
 #include <stdio.h>
 #include <stdlib.h>
@@ -210,7 +208,8 @@ void SequencePrecache (void* pmodel, const char* pSequenceName)
 				{
 				if (!strlen (pevent[i].options))
 					{
-					ALERT (at_error, "Bad sound event %d in sequence %s :: %s (sound is \"%s\")\n", pevent[i].event, pstudiohdr->name, pSequenceName, pevent[i].options);
+					ALERT (at_error, "Bad sound event %d in sequence %s :: %s (sound is \"%s\")\n",
+						pevent[i].event, pstudiohdr->name, pSequenceName, pevent[i].options);
 					}
 
 				PRECACHE_SOUND ((char*)(gpGlobals->pStringBase + ALLOC_STRING (pevent[i].options)));
@@ -285,7 +284,7 @@ int GetAnimationEvent (void* pmodel, entvars_t* pev, MonsterEvent_t* pMonsterEve
 	pseqdesc = (mstudioseqdesc_t*)((byte*)pstudiohdr + pstudiohdr->seqindex) + (int)pev->sequence;
 	pevent = (mstudioevent_t*)((byte*)pstudiohdr + pseqdesc->eventindex);
 
-	if (pseqdesc->numevents == 0 || index > pseqdesc->numevents)
+	if ((pseqdesc->numevents == 0) || (index > pseqdesc->numevents))
 		return 0;
 
 	if (pseqdesc->numframes > 1)
@@ -306,7 +305,8 @@ int GetAnimationEvent (void* pmodel, entvars_t* pev, MonsterEvent_t* pMonsterEve
 			continue;
 
 		if ((pevent[index].frame >= flStart && pevent[index].frame < flEnd) ||
-			((pseqdesc->flags & STUDIO_LOOPING) && flEnd >= pseqdesc->numframes - 1 && pevent[index].frame < flEnd - pseqdesc->numframes + 1))
+			((pseqdesc->flags & STUDIO_LOOPING) && (flEnd >= pseqdesc->numframes - 1) &&
+				(pevent[index].frame < flEnd - pseqdesc->numframes + 1)))
 			{
 			pMonsterEvent->event = pevent[index].event;
 			pMonsterEvent->options = pevent[index].options;

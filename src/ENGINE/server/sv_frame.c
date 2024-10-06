@@ -497,7 +497,10 @@ static void SV_EmitEvents (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 				MSG_WriteOneBit (msg, 1);
 				MSG_WriteWord (msg, (info->fire_time * 100.0f));
 				}
-			else MSG_WriteOneBit (msg, 0);
+			else
+				{
+				MSG_WriteOneBit (msg, 0);
+				}
 			}
 
 		info->index = 0;
