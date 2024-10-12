@@ -116,7 +116,8 @@ int CGraph::AllocNodes (void)
 	return TRUE;
 	}
 
-// =========================================================
+// ESHQ: удалена в связи с отсутствием ссылок на неё
+/*// =========================================================
 // CGraph - LinkEntForLink - sometimes the ent that blocks
 // a path is a usable door, in which case the monster just
 // needs to face the door and fire it. In other cases, the
@@ -128,8 +129,8 @@ int CGraph::AllocNodes (void)
 // 
 // pNode is the node the monster will be standing on when it
 // will need to stop and trigger the ent
-// =========================================================
-entvars_t *CGraph::LinkEntForLink (CLink *pLink, CNode *pNode)
+// =========================================================*/
+/*entvars_t *CGraph::LinkEntForLink (CLink *pLink, CNode *pNode)
 	{
 	edict_t *pentSearch;
 	edict_t *pentTrigger;
@@ -143,8 +144,7 @@ entvars_t *CGraph::LinkEntForLink (CLink *pLink, CNode *pNode)
 
 	pentSearch = NULL;	// start search at the top of the ent list
 
-	// ESHQ: поведение отключено
-	if (false && (FClassnameIs (pevLinkEnt, "func_door") || FClassnameIs (pevLinkEnt, "func_door_rotating")))
+	if (FClassnameIs (pevLinkEnt, "func_door") || FClassnameIs (pevLinkEnt, "func_door_rotating"))
 		{
 		// check for TOGGLE or STAY open doors here. If a door is in the way, and is 
 		// TOGGLE or STAY OPEN, even monsters that can't open doors can go that way
@@ -186,7 +186,7 @@ entvars_t *CGraph::LinkEntForLink (CLink *pLink, CNode *pNode)
 		ALERT (at_aiconsole, "Unsupported PathEnt:\n'%s'\n", STRING (pevLinkEnt->classname));
 		return NULL;
 		}
-	}
+	}*/
 
 // =========================================================
 // CGraph - HandleLinkEnt - a brush ent is between two
@@ -214,14 +214,15 @@ int	CGraph::HandleLinkEnt (int iNode, entvars_t *pevLinkEnt, int afCapMask, NODE
 	pentWorld = NULL;
 
 	// func_door
-	if (FClassnameIs (pevLinkEnt, "func_door") || FClassnameIs (pevLinkEnt, "func_door_rotating"))
-		{// ent is a door.
-
+	// ESHQ: поведение отключено
+	if (false && (FClassnameIs (pevLinkEnt, "func_door") || FClassnameIs (pevLinkEnt, "func_door_rotating")))
+		{
+		// ent is a door
 		pDoor = (CBaseEntity::Instance (pevLinkEnt));
 
 		if ((pevLinkEnt->spawnflags & SF_DOOR_USE_ONLY))
-			{// door is use only.
-
+			{
+			// door is use only
 			if ((afCapMask & bits_CAP_OPEN_DOORS))
 				{// let monster right through if he can open doors
 				return TRUE;
@@ -230,21 +231,18 @@ int	CGraph::HandleLinkEnt (int iNode, entvars_t *pevLinkEnt, int afCapMask, NODE
 				{
 				// monster should try for it if the door is open and looks as if it will stay that way
 				if (pDoor->GetToggleState () == TS_AT_TOP && (pevLinkEnt->spawnflags & SF_DOOR_NO_AUTO_RETURN))
-					{
 					return TRUE;
-					}
 
 				return FALSE;
 				}
 			}
 		else
-			{// door must be opened with a button or trigger field.
-
-				// monster should try for it if the door is open and looks as if it will stay that way
+			{
+			// door must be opened with a button or trigger field.
+			// monster should try for it if the door is open and looks as if it will stay that way
 			if (pDoor->GetToggleState () == TS_AT_TOP && (pevLinkEnt->spawnflags & SF_DOOR_NO_AUTO_RETURN))
-				{
 				return TRUE;
-				}
+			
 			if ((afCapMask & bits_CAP_OPEN_DOORS))
 				{
 				if (!(pevLinkEnt->spawnflags & SF_DOOR_NOMONSTERS) || (queryType == NODEGRAPH_STATIC))
@@ -255,7 +253,7 @@ int	CGraph::HandleLinkEnt (int iNode, entvars_t *pevLinkEnt, int afCapMask, NODE
 			}
 		}
 
-	// func_breakable	
+	// func_breakable
 	else if (FClassnameIs (pevLinkEnt, "func_breakable") && (queryType == NODEGRAPH_STATIC))
 		{
 		return TRUE;
