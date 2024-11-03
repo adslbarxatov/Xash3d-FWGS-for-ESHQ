@@ -4652,8 +4652,9 @@ LINK_ENTITY_TO_CLASS (player_loadsaved, CRevertSaved);
 
 TYPEDESCRIPTION	CRevertSaved::m_SaveData[] =
 	{
-		DEFINE_FIELD (CRevertSaved, m_messageTime, FIELD_FLOAT),	// These are not actual times, but durations, so save as floats
-		DEFINE_FIELD (CRevertSaved, m_loadTime, FIELD_FLOAT),
+	DEFINE_FIELD (CRevertSaved, m_messageTime, FIELD_FLOAT),
+	// These are not actual times, but durations, so save as floats
+	DEFINE_FIELD (CRevertSaved, m_loadTime, FIELD_FLOAT),
 	};
 
 IMPLEMENT_SAVERESTORE (CRevertSaved, CPointEntity);
