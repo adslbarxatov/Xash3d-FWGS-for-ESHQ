@@ -1148,13 +1148,13 @@ void SV_InitHostCommands (void)
 				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");
 
 			Cmd_AddRestrictedCommand ("esrm_enemies_list", SV_ESRM_Command,
-				"Enumerates the allowed enemies (the line of probabilities (from 0 to 5) for assassins, bullchickens, "
+				"Enumerates the allowed enemies (the line of probabilities (0 - 5) for assassins, bullchickens, "
 				"controllers, houndeyes, human grunts, headcrabs, leeches, tripmines, barnacles, "
 				"alien grunts, alien slaves, turrets and zombies");
 			Cmd_AddRestrictedCommand ("esrm_items_list", SV_ESRM_Command,
-				"Enumerates the allowed items (the line of letters for health[k]its, [b]atteries, [g]renades, "
-				"[9] mm handguns, [s]atchels, .[3]57 pythons, [c]rossbows, ga[u]ss, cro[w]bars, [h]ornetguns, "
-				"9 mm A[R]s, sh[o]tguns, R[P]Gs, [t]ripmines, s[n]arks, [e]gons and [a]xes");
+				"Enumerates the allowed items (the line of probabilities (0 - 5) for healthkits, batteries, grenades, "
+				"9mm handguns, satchels, .357 pythons, crossbows, gauss, crowbars, hornetguns, "
+				"9mm ARs, shotguns, RPGs, tripmines, snarks, egons and axes");
 
 			Cmd_AddRestrictedCommand ("esrm_rebuild", SV_ESRM_Command,
 				"Forces the rebuilding of the next map. Settings will be applied right after the next teleportation, "
