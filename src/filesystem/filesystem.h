@@ -119,14 +119,6 @@ typedef struct gameinfo_s
 	// [FWGS, 01.09.24] HL25 compatibility keys
 	qboolean	hd_background;
 	qboolean	animated_title;
-	/*} gameinfo_t;
-
-	typedef enum
-	{
-	GAME_NORMAL,
-	GAME_SINGLEPLAYER_ONLY,
-	GAME_MULTIPLAYER_ONLY
-	} gametype_t;*/
 	char		demomap[MAX_QPATH];
 	} gameinfo_t;
 
@@ -135,8 +127,6 @@ typedef struct fs_dllinfo_t
 	{
 	char		fullPath[2048];	// absolute disk path
 	string		shortPath;		// vfs path
-	/*qboolean	encrypted;
-	qboolean	custom_loader;*/
 	qboolean	encrypted;		// do we need encrypted DLL loader?
 	qboolean	custom_loader;	// do we need memory DLL loader?
 
@@ -150,8 +140,6 @@ typedef struct fs_globals_t
 	} fs_globals_t;
 
 // [FWGS, 01.09.24]
-/*typedef void (*fs_event_callback_t)(const char *path);*/
-
 typedef struct fs_api_t
 	{
 	qboolean (*InitStdio)(qboolean unused_set_to_true, const char *rootdir, const char *basedir,
@@ -209,8 +197,6 @@ typedef struct fs_api_t
 	const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
 	
 	// [FWGS, 01.07.24]
-	/*void (*Unused0)(void);
-	void *(*MountArchive_Fullpath)(const char *path, int flags);	// [FWGS, 01.07.23]*/
 	const char *(*ArchivePath)(file_t *f); // returns path to archive from which file was opened or "plain"
 	void *(*MountArchive_Fullpath)(const char *path, int flags); // mounts the archive by path, if supported
 	qboolean (*GetFullDiskPath)(char *buffer, size_t size, const char *name, qboolean gamedironly);
@@ -245,7 +231,6 @@ typedef struct fs_interface_t
 	} fs_interface_t;
 
 // [FWGS, 01.08.24]
-/*typedef int (*FSAPI)(int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *interface);*/
 typedef int (*FSAPI)(int version, fs_api_t *api, fs_globals_t **globals, const fs_interface_t *interface);
 #define GET_FS_API "GetFSAPI"
 

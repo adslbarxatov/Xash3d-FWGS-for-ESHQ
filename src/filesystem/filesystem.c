@@ -65,10 +65,6 @@ static char			fs_gamedir[MAX_SYSPATH];	// game current directory
 // so raw WADs takes precedence over WADs included into PAKs and PK3s
 const fs_archive_t g_archives[] =
 	{
-		/*{ "pak", SEARCHPATH_PAK, FS_AddPak_Fullpath, true },
-		{ "pk3", SEARCHPATH_ZIP, FS_AddZip_Fullpath, true },
-		{ "pk3dir", SEARCHPATH_PK3DIR, FS_AddDir_Fullpath, true },
-		{ "wad", SEARCHPATH_WAD, FS_AddWad_Fullpath, false },*/
 		{ "pak", SEARCHPATH_PAK, FS_AddPak_Fullpath, true, true },
 		{ "pk3", SEARCHPATH_ZIP, FS_AddZip_Fullpath, true, true },
 		{ "pk3dir", SEARCHPATH_PK3DIR, FS_AddDir_Fullpath, true, false },
@@ -352,7 +348,6 @@ searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const char *f
 
 			// [FWGS, 01.07.24]
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", file, list.strings[i]);
-			/*if ((wad = FS_AddWad_Fullpath (fullpath, flags)))*/
 			if ((wad = FS_AddWad_Fullpath (fullpath, flags | FS_LOAD_PACKED_WAD)))
 				{
 				wad->next = fs_searchpaths;
@@ -408,9 +403,6 @@ void FS_AddGameDirectory (const char *dir, uint flags)
 	for (archive = g_archives; archive->ext; archive++)
 		{
 		// [FWGS, 01.07.24]
-		/*if (archive->type == SEARCHPATH_WAD) // HACKHACK: wads need direct paths but only in this function
-			FS_AllowDirectPaths (true);*/
-
 		for (i = 0; i < list.numstrings; i++)
 			{
 			const char *ext = COM_FileExtension (list.strings[i]);
@@ -421,9 +413,6 @@ void FS_AddGameDirectory (const char *dir, uint flags)
 			Q_snprintf (fullpath, sizeof (fullpath), "%s%s", dir, list.strings[i]);
 			FS_AddArchive_Fullpath (archive, fullpath, flags);
 			}
-
-		// [FWGS, 01.07.24]
-		/*FS_AllowDirectPaths (false);*/
 		}
 
 	stringlistfreecontents (&list);
@@ -1010,7 +999,6 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			GameInfo->falldir[0] = 0;
 			}
 		}
-		/*GameInfo->falldir[0] = '\0';*/
 	}
 
 /***
@@ -1277,25 +1265,20 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 	if (COM_CheckStringEmpty (fs_rodir))
 		{
 		// append new flags to rodir, except FS_GAMEDIR_PATH and FS_CUSTOM_PATH
-		/*uint newFlags = FS_NOWRITE_PATH | (flags & (~FS_GAMEDIR_PATH | FS_CUSTOM_PATH));*/
 		uint new_flags = FS_NOWRITE_PATH | (flags & (~FS_GAMEDIR_PATH | FS_CUSTOM_PATH));
 		if (isGameDir)
 			SetBits (new_flags, FS_GAMERODIR_PATH);
-		/*newFlags |= FS_GAMERODIR_PATH;*/
 
 		FS_AllowDirectPaths (true);
 		
 		Q_snprintf (buf, sizeof (buf), "%s/%s/", fs_rodir, dir);
-		/*FS_AddGameDirectory (buf, newFlags);*/
 		FS_AddGameDirectory (buf, new_flags);
-
 		FS_AllowDirectPaths (false);
 		}
 
 	// [FWGS, 01.09.24]
 	if (isGameDir)
 		{
-		/*Q_snprintf (buf, sizeof (buf), "%s/downloaded/", dir);*/
 		Q_snprintf (buf, sizeof (buf), "%s/" DEFAULT_DOWNLOADED_DIRECTORY, dir);
 		FS_AddGameDirectory (buf, FS_NOWRITE_PATH | FS_CUSTOM_PATH);
 		}
@@ -1306,7 +1289,6 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 	// [FWGS, 01.09.24]
 	if (isGameDir)
 		{
-		/*Q_snprintf (buf, sizeof (buf), "%s/custom/", dir);*/
 		Q_snprintf (buf, sizeof (buf), "%s/" DEFAULT_CUSTOM_DIRECTORY, dir);
 		FS_AddGameDirectory (buf, FS_NOWRITE_PATH | FS_CUSTOM_PATH);
 		}
@@ -1354,7 +1336,6 @@ void FS_LoadGameInfo (const char *rootfolder)
 
 	// [FWGS, 01.07.24] lock uplevel of gamedir for read\write
 	FS_AllowDirectPaths (false);
-	/*fs_ext_path = false;*/
 
 	if (rootfolder)
 		Q_strncpy (fs_gamedir, rootfolder, sizeof (fs_gamedir));
@@ -1442,7 +1423,6 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 	if (!COM_CheckString (dllname))
 		return false;
 
-	/*fs_ext_path = directpath;*/
 	FS_AllowDirectPaths (directpath);
 
 	// HACKHACK remove relative path to game folder
@@ -1457,17 +1437,6 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 		start += len;
 		}
 
-	/*// replace all backward slashes
-	len = Q_strlen (dllname);
-
-	for (i = 0; i < len; i++)
-		{
-		if (dllname[i + start] == '\\')
-			dllInfo->shortPath[i] = '/';
-		else 
-			dllInfo->shortPath[i] = Q_tolower (dllname[i + start]);
-		}
-	dllInfo->shortPath[i] = '\0';*/
 	Q_strnlwr (&dllname[start], dllInfo->shortPath, sizeof (dllInfo->shortPath)); // always in lower case (why?)
 	COM_FixSlashes (dllInfo->shortPath); // replace all backward slashes
 
@@ -1481,7 +1450,6 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 		}
 	else if (!directpath)
 		{
-		/*fs_ext_path = false;*/
 		FS_AllowDirectPaths (false);
 
 		// trying check also 'bin' folder for indirect paths
@@ -1492,32 +1460,14 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 		Q_strncpy (dllInfo->shortPath, fixedname, sizeof (dllInfo->shortPath));
 		}
 
-	/*dllInfo->encrypted = FS_CheckForCrypt (dllInfo->shortPath);*/
 	dllInfo->encrypted = dllInfo->custom_loader = false; // predict state
 
 	// when library is available through VFS
-	/*if ((index >= 0) && !dllInfo->encrypted && search)*/
 	if (search && (index >= 0))
 		{
-		/*// gamedll might resolve it's own path using dladdr()
-		// combine it with engine returned path to gamedir
-		// it might lead to double gamedir like this
-		// - valve/valve/dlls/hl.so
-		// instead of expected
-		// - valve/dlls/hl.so
-		Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath), "%s/%s%s", fs_rootdir,
-			search->filename, dllInfo->shortPath);
-		dllInfo->custom_loader = false;
-		// we can loading from disk and use normal debugging
-		}
-		else
-		{
-		// NOTE: if search is NULL let the OS found library himself
-		Q_strncpy (dllInfo->fullPath, dllInfo->shortPath, sizeof (dllInfo->fullPath));*/
 		dllInfo->encrypted = FS_CheckForCrypt (dllInfo->shortPath);
 
 		// is it on the disk? (intentionally omit pk3dir here)
-		/*if (search && search->type != SEARCHPATH_PLAIN)*/
 		if (search->type == SEARCHPATH_PLAIN)
 			{
 			// NOTE: gamedll might resolve it's own path using dladdr() and expects absolute path
@@ -1536,27 +1486,17 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 			}
 		else
 			{
-			/*Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath), "%s%s", search->filename, dllInfo->shortPath);*/
 			Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath), "%s", dllInfo->shortPath);
 
 #if XASH_WIN32 && XASH_X86 // a1ba: custom loader is non-portable (I just don't want to touch it)
-			/*Con_Printf (S_WARN "%s: loading libraries from archives is deprecated and will be removed in the future\n",
-				__func__);*/
 			Con_Printf (S_WARN "%s: loading libraries from archives is non portable and might fail on other platforms\n",
 				__func__);
 			dllInfo->custom_loader = true;
 #else
-			/*Con_Printf (S_WARN "%s: loading libraries from packs is unsupported on "
-				"this platform\n", __FUNCTION__);
-			dllInfo->custom_loader = false;*/
 			Con_Printf (S_WARN "%s: loading libraries from archives is unsupported on this platform\n",
 				__func__);
 #endif
 			}
-			/*else
-			{
-			dllInfo->custom_loader = false;
-			}*/
 		}
 	else
 		{
@@ -1565,9 +1505,6 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 		}
 
 	FS_AllowDirectPaths (false); // always reset direct paths
-
-	/*// always reset direct paths
-	fs_ext_path = false;*/
 	return true;
 	}
 
@@ -1916,7 +1853,6 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 	}
 
 // [FWGS, 01.07.24]
-/*file_t *FS_OpenHandle (const char *syspath, int handle, fs_offset_t offset, fs_offset_t len)*/
 file_t *FS_OpenHandle (searchpath_t *searchpath, int handle, fs_offset_t offset, fs_offset_t len)
 	{
 	file_t *file = (file_t *)Mem_Calloc (fs_mempool, sizeof (file_t));
@@ -1925,7 +1861,6 @@ file_t *FS_OpenHandle (searchpath_t *searchpath, int handle, fs_offset_t offset,
 #ifdef HAVE_DUP
 	file->handle = dup (handle);
 #else
-	/*file->handle = open (syspath, O_RDONLY | O_BINARY);*/
 	file->handle = open (searchpath->filename, O_RDONLY | O_BINARY);
 #endif
 
@@ -2060,9 +1995,6 @@ int FS_SetCurrentDirectory (const char *path)
 		wchar_t	wide_buf[1024];
 		char	buf[1024];
 
-		/*FormatMessageA (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, GetLastError (), MAKELANGID (LANG_ENGLISH, SUBLANG_DEFAULT),
-			buf, sizeof (buf), NULL);*/
 		FormatMessageW (fm_flags, NULL, GetLastError (), 0, wide_buf, sizeof (wide_buf) / sizeof (wide_buf[0]), NULL);
 		Q_UTF16ToUTF8 (buf, sizeof (buf), wide_buf, sizeof (wide_buf) / sizeof (wide_buf[0]));
 
@@ -2324,7 +2256,6 @@ fs_offset_t FS_Write (file_t *file, const void *data, size_t datasize)
 	FS_Purge (file);
 
 	// [FWGS, 01.07.24] write the buffer and update the position
-	/*result = write (file->handle, data, (fs_offset_t)datasize);*/
 	result = write (file->handle, data, datasize);
 	file->position = lseek (file->handle, 0, SEEK_CUR);
 
@@ -2347,7 +2278,6 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 	{
 	fs_offset_t		done;
 	fs_offset_t		nb;
-	/*size_t			count;*/
 	fs_offset_t		count;
 
 	// nothing to copy
@@ -2373,15 +2303,10 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 		count = file->buff_len - file->buff_ind;
 		count = (buffersize > count) ? count : (fs_offset_t)buffersize;
 
-		/*done += (buffersize > count) ? (fs_offset_t)count : (fs_offset_t)buffersize;
-
-		memcpy (buffer, &file->buff[file->buff_ind], done);
-		file->buff_ind += done;*/
 		done += count;
 		memcpy (buffer, &file->buff[file->buff_ind], count);
 		file->buff_ind += count;
 
-		/*buffersize -= done;*/
 		buffersize -= count;
 		if (buffersize == 0)
 			return done;
@@ -2396,13 +2321,10 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 	// if we have a lot of data to get, put them directly into "buffer"
 	if (buffersize > sizeof (file->buff) / 2)
 		{
-		/*if (count > buffersize)
-			count = buffersize;*/
 		if (count > (fs_offset_t)buffersize)
 			count = (fs_offset_t)buffersize;
 
 		lseek (file->handle, file->offset + file->position, SEEK_SET);
-		/*nb = read (file->handle, (byte *)buffer + done, count);*/
 		nb = read (file->handle, &((byte *)buffer)[done], count);
 
 		if (nb > 0)
@@ -2416,8 +2338,6 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize)
 		}
 	else
 		{
-		/*if (count > sizeof (file->buff))
-			count = sizeof (file->buff);*/
 		if (count > (fs_offset_t)sizeof (file->buff))
 			count = (fs_offset_t)sizeof (file->buff);
 
@@ -2677,7 +2597,6 @@ static void *FS_CustomAlloc (size_t size)
 // [FWGS, 01.07.24]
 static void FS_CustomFree (void *data)
 	{
-	/*return Mem_Free (data);*/
 	Mem_Free (data);
 	}
 
@@ -2731,7 +2650,6 @@ static byte *FS_LoadFile_ (const char *path, fs_offset_t *filesizeptr, const qbo
 	// [FWGS, 01.07.24]
 	if (unlikely (!buf)) // TODO: indicate errors
 		{
-		/*Con_Reportf ("%s: can't alloc %d bytes, no free memory\n", __func__, filesize + 1);*/
 		Con_Reportf ("%s: can't alloc %li bytes, no free memory\n", __func__, (long)filesize + 1);
 		FS_Close (file);
 		return NULL;
@@ -2906,20 +2824,9 @@ return NULL for file in pack
 const char *FS_GetDiskPath (const char *name, qboolean gamedironly)
 	{
 	static char diskpath[MAX_SYSPATH];
-	/*char fullpath[MAX_SYSPATH];
-	searchpath_t *search;
 
-	search = FS_FindFile (name, NULL, fullpath, sizeof (fullpath), gamedironly);
-
-	if (search)
-		{
-		if (search->type != SEARCHPATH_PLAIN) // file in pack or wad
-			return NULL;*/
-
-	/*Q_snprintf (diskpath, sizeof (diskpath), "%s/%s", search->filename, fullpath);*/
 	if (FS_GetFullDiskPath (diskpath, sizeof (diskpath), name, gamedironly))
 		return diskpath;
-	/*}*/
 
 	return NULL;
 	}
@@ -2941,7 +2848,6 @@ qboolean FS_GetFullDiskPath (char *buffer, size_t size, const char *name, qboole
 
 	if (search && (search->type == SEARCHPATH_PLAIN))
 		{
-		/*Q_snprintf (buffer, size, "%s/%s", search->filename, temp);*/
 		Q_snprintf (buffer, size, "%s%s", search->filename, temp);
 		return true;
 		}
@@ -3241,7 +3147,6 @@ fs_interface_t g_engfuncs =
 	};
 
 // [FWGS, 01.08.24]
-/*static qboolean FS_InitInterface (int version, fs_interface_t *engfuncs)*/
 static qboolean FS_InitInterface (int version, const fs_interface_t *engfuncs)
 	{
 	// to be extended in future interface revisions
@@ -3291,7 +3196,6 @@ static qboolean FS_InitInterface (int version, const fs_interface_t *engfuncs)
 	}
 
 // [FWGS, 01.08.24]
-/*fs_api_t g_api =*/
 const fs_api_t g_api =
 	{
 	FS_InitStdio,
@@ -3363,7 +3267,6 @@ int HLEXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_in
 	if (engfuncs && !FS_InitInterface (version, engfuncs))
 		return 0;
 
-	/*memcpy (api, &g_api, sizeof (*api));*/
 	*api = g_api;
 	*globals = &FI;
 

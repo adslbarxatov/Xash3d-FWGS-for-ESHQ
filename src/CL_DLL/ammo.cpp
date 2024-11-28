@@ -1,17 +1,15 @@
-/****
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+/***
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 //
 // Ammo.cpp
 //
@@ -1198,7 +1196,7 @@ int CHudAmmo::DrawWList (float flTime)
 	}
 
 
-/***
+/*
 =================================
 GetSpriteList
 
@@ -1207,7 +1205,7 @@ sprite name 'psz' and resolution 'iRes'
 in the given sprite list 'pList'
 iCount is the number of items in the pList
 =================================
-***/
+*/
 client_sprite_t* GetSpriteList (client_sprite_t* pList, const char* psz, int iRes, int iCount)
 	{
 	if (!pList)

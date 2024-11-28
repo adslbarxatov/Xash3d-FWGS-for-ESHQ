@@ -293,7 +293,6 @@ W_Open [FWGS, 01.07.24]
 open the wad for reading & writing
 ===========
 ***/
-/*static wfile_t *W_Open (const char *filename, int *error)*/
 static wfile_t * W_Open (const char *filename, int *error, uint flags)
 	{
 	wfile_t		*wad = (wfile_t *)Mem_Calloc (fs_mempool, sizeof (wfile_t));
@@ -302,26 +301,13 @@ static wfile_t * W_Open (const char *filename, int *error, uint flags)
 	size_t		lat_size;
 	dwadinfo_t	header;
 
-	/*// NOTE: FS_Open is load wad file from the first pak in the list (while fs_ext_path is false)
-	if (fs_ext_path)*/
 	if (FBitSet (flags, FS_LOAD_PACKED_WAD))
 		{
-		/*int ind;
-		searchpath_t *search = FS_FindFile (filename, &ind, NULL, 0, false);
-
-		// allow direct absolute paths
-		// TODO: catch them in FS_FindFile_DIR!
-		if (!search || (ind < 0))
-			wad->handle = FS_SysOpen (filename, "rb");
-		else
-			wad->handle = search->pfnOpenFile (search, filename, "rb", ind);*/
 		const char *basename = COM_FileWithoutPath (filename);
 		wad->handle = FS_Open (basename, "rb", false);
 		}
 	else
 		{
-		/*const char *basename = COM_FileWithoutPath (filename);
-		wad->handle = FS_Open (basename, "rb", false);*/
 		wad->handle = FS_SysOpen (filename, "rb");
 		}
 
@@ -455,7 +441,6 @@ FS_PrintInfo_WAD [FWGS, 01.07.24]
 ***/
 static void FS_PrintInfo_WAD (searchpath_t *search, char *dst, size_t size)
 	{
-	/*Q_snprintf (dst, size, "%s (%i files)", search->filename, search->wad->numlumps);*/
 	if (search->wad->handle->searchpath)
 		Q_snprintf (dst, size, "%s (%i files)" S_CYAN " from %s" S_DEFAULT, search->filename,
 			search->wad->numlumps, search->wad->handle->searchpath->filename);
@@ -677,7 +662,6 @@ searchpath_t *FS_AddWad_Fullpath (const char *wadfile, int flags)
 	wfile_t			*wad;
 	int				errorcode = WAD_LOAD_COULDNT_OPEN;
 
-	/*wad = W_Open (wadfile, &errorcode);*/
 	wad = W_Open (wadfile, &errorcode, flags);
 	if (!wad)
 		{

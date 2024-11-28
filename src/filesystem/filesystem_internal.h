@@ -36,28 +36,13 @@ typedef struct pack_s pack_t;
 typedef struct wfile_s wfile_t;
 
 // [FWGS, 01.07.24]
-/*// [FWGS, 01.11.23]
-if XASH_ANDROID*/
 typedef struct android_assets_s android_assets_t;
-/*// typedef struct android_saf_s android_saf_t;
-endif*/
 
-/*#define FILE_BUFF_SIZE		(2048)*/
 #define FILE_BUFF_SIZE		(2048)
 
 // [FWGS, 01.07.24]
 struct file_s
 	{
-	/*int		handle;			// file descriptor
-	int		ungetc;			// single stored character from ungetc, cleared to EOF when read
-	fs_offset_t		real_length;		// uncompressed file size (for files opened in "read" mode)
-	fs_offset_t		position;			// current position in the file
-	fs_offset_t		offset;			// offset into the package (0 if external file)
-	time_t		filetime;			// pak, wad or real filetime
-
-	// contents buffer
-	fs_offset_t		buff_ind, buff_len;		// buffer current index and length
-	byte		buff[FILE_BUFF_SIZE];	// intermediate buffer*/
 	int			handle;			// file descriptor
 	int			ungetc;			// single stored character from ungetc, cleared to EOF when read
 	time_t		filetime;		// pak, wad or real filetime
@@ -79,7 +64,6 @@ struct file_s
 	};
 
 // [FWGS, 01.07.24]
-/*enum*/
 typedef enum searchpathtype_e
 	{
 	SEARCHPATH_PLAIN = 0,
@@ -88,7 +72,6 @@ typedef enum searchpathtype_e
 	SEARCHPATH_ZIP,
 	SEARCHPATH_PK3DIR,			// it's actually a plain directory but it must behave like a ZIP archive
 	SEARCHPATH_ANDROID_ASSETS
-	/*};*/
 	} searchpathtype_t;
 
 typedef struct stringlist_s
@@ -102,9 +85,6 @@ typedef struct stringlist_s
 // [FWGS, 01.07.24]
 typedef struct searchpath_s
 	{
-	/*string  filename;
-	int     type;
-	int     flags;*/
 	string		filename;
 	searchpathtype_t	type;
 	int			flags;
@@ -114,9 +94,7 @@ typedef struct searchpath_s
 		pack_t	*pack;
 		wfile_t	*wad;
 		zip_t	*zip;
-		/*if XASH_ANDROID*/
 		android_assets_t	*assets;
-		/*endif*/
 		};
 
 	struct searchpath_s *next;
@@ -150,7 +128,6 @@ extern fs_interface_t	g_engfuncs;
 extern qboolean			fs_ext_path;
 extern char				fs_rodir[MAX_SYSPATH];
 extern char				fs_rootdir[MAX_SYSPATH];
-/*extern fs_api_t			g_api;*/
 extern const fs_api_t	g_api;	// [FWGS, 01.08.24]
 extern const fs_archive_t	g_archives[];
 
@@ -239,7 +216,6 @@ qboolean FS_SysFolderExists (const char *path);
 qboolean FS_SysFileOrFolderExists (const char *path);
 file_t *FS_OpenReadFile (const char *filename, const char *mode, qboolean gamedironly);
 int		FS_SysFileTime (const char *filename);
-/*file_t	*FS_OpenHandle (const char *syspath, int handle, fs_offset_t offset, fs_offset_t len);*/
 file_t *FS_OpenHandle (searchpath_t *search, int handle, fs_offset_t offset, fs_offset_t len);	// [FWGS, 01.07.24]
 file_t	*FS_SysOpen (const char *filepath, const char *mode);
 searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t len, qboolean gamedironly);

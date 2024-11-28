@@ -26,19 +26,7 @@ GNU General Public License for more details
 // [FWGS, 01.07.24]
 void Q_strnlwr (const char *in, char *out, size_t size_out)
 	{
-	/*if (size_out == 0)
-		return;*/
 	size_t len, i;
-
-	/*while (*in && (size_out > 1))
-		{
-		if ((*in >= 'A') && (*in <= 'Z'))
-			*out++ = *in++ + 'a' - 'A';
-		else
-			*out++ = *in++;
-		size_out--;
-		}
-	*out = '\0';*/
 	len = Q_strncpy (out, in, size_out);
 
 	for (i = 0; i < len; i++)
@@ -50,27 +38,19 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 // [FWGS, 01.07.24]
 size_t Q_colorstr (const char *string)
 	{
-	/*size_t len;
-	const char *p;*/
 	const char *p = string;
 	size_t len = 0;
 
-	/*if (!string) return 0;*/
 	if (!string)
 		return len;
 
-	/*len = 0;
-	p = string;
-	while (*p)*/
 	while ((p = Q_strchr (p, '^')))
 		{
 		if (IsColorString (p))
 			{
 			len += 2;
 			p += 2;
-			/*continue;*/
 			}
-		/*p++;*/
 		}
 
 	return len;
@@ -119,18 +99,10 @@ int Q_atoi (const char *str)
 	int	val = 0;
 	int	c, sign;
 
-	/*if (!str)
-		return 0;*/
 	if (!COM_CheckString (str))
 		return 0;
 
-	/*// check for empty charachters in string
-	while (str && (*str == ' '))
-		str++;*/
 	str = Q_atoi_strip_whitespace (str);
-
-	/*if (!str)
-		return 0;*/
 	if (!COM_CheckString (str))
 		return 0;
 
@@ -148,26 +120,9 @@ int Q_atoi (const char *str)
 	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
 		return Q_atoi_hex (sign, str);
 
-	/*{
-		str += 2;
-		while (1)
-			{
-			c = *str++;
-			if ((c >= '0') && (c <= '9'))
-				val = (val << 4) + c - '0';
-			else if ((c >= 'a') && (c <= 'f'))
-				val = (val << 4) + c - 'a' + 10;
-			else if ((c >= 'A') && (c <= 'F'))
-				val = (val << 4) + c - 'A' + 10;
-			else
-				return val * sign;
-			}
-		}*/
-
 	// check for character
 	if (str[0] == '\'')
 		return Q_atoi_character (sign, str);
-	/*return sign * str[1];*/
 
 	// assume decimal
 	while (1)
@@ -188,18 +143,10 @@ float Q_atof (const char *str)
 	double	val = 0;
 	int		c, sign, decimal, total;
 
-	/*if (!str)
-		return 0.0f;*/
 	if (!COM_CheckString (str))
 		return 0;
-
-	/*// check for empty charachters in string
-	while (str && (*str == ' '))
-		str++;*/
 	str = Q_atoi_strip_whitespace (str);
 
-	/*if (!str)
-		return 0.0f;*/
 	if (!COM_CheckString (str))
 		return 0;
 
@@ -217,25 +164,7 @@ float Q_atof (const char *str)
 	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
 		return Q_atoi_hex (sign, str);
 
-	/*{
-		str += 2;
-		while (1)
-			{
-			c = *str++;
-			if ((c >= '0') && (c <= '9'))
-				val = (val * 16) + c - '0';
-			else if ((c >= 'a') && (c <= 'f'))
-				val = (val * 16) + c - 'a' + 10;
-			else if ((c >= 'A') && (c <= 'F'))
-				val = (val * 16) + c - 'A' + 10;
-			else
-				return val * sign;
-			}
-		}*/
-
 	// check for character
-	/*if (str[0] == '\'')
-		return sign * str[1];*/
 	if (str[0] == '\'')
 		return Q_atoi_character (sign, str);
 
@@ -276,7 +205,6 @@ void Q_atov (float *vec, const char *str, size_t siz)
 	const char	*pstr, *pfront;
 	int		j;
 
-	/*memset (vec, 0, sizeof (vec_t) * siz);*/
 	memset (vec, 0, sizeof (*vec) * siz);
 	pstr = pfront = str;
 
@@ -512,10 +440,8 @@ int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...)
 // [FWGS, 01.07.24]
 void COM_StripColors (const char *in, char *out)
 	{
-	/*while (*in)*/
 	while (*in)
 		{
-		/*if (IsColorString (in))*/
 		if (IsColorString (in))
 			in += 2;
 		else
@@ -529,9 +455,6 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	{
 	static char	output[8][32];
 	static int	current;
-	/*float		onekb = 1024.0f;
-	float		onemb = onekb * onekb;
-	char		suffix[8];*/
 	const float	onekb = 1024.0f;
 	const float	onemb = onekb * onekb;
 	const char	*suffix;
@@ -546,19 +469,16 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	if (value > onemb)
 		{
 		value /= onemb;
-		/*Q_strncpy (suffix, " Mb", sizeof (suffix));*/
 		suffix = " Mb";
 		}
 	else if (value > onekb)
 		{
 		value /= onekb;
-		/*Q_strncpy (suffix, " Kb", sizeof (suffix));*/
 		suffix = " Kb";
 		}
 	else
 		{
 		suffix = " bytes";
-		/*Q_strncpy (suffix, " bytes", sizeof (suffix));*/
 		}
 
 	// clamp to >= 0
@@ -790,18 +710,14 @@ void COM_ReplaceExtension (char *path, const char *extension, size_t size)
 COM_RemoveLineFeed [FWGS, 01.07.24]
 ============
 ***/
-/*void COM_RemoveLineFeed (char *str)*/
 void COM_RemoveLineFeed (char *str, size_t bufsize)
 	{
-	/*while (*str != '\0')*/
 	size_t i;
 
 	for (i = 0; (i < bufsize) && (*str != '\0'); i++, str++)
 		{
 		if ((*str == '\r') || (*str == '\n'))
 			*str = '\0';
-
-		/*++str;*/
 		}
 	}
 
@@ -814,11 +730,8 @@ Changes all '\' characters into '/' characters, in place
 ***/
 void COM_FixSlashes (char *pname)
 	{
-	/*for (; *pname; pname++)*/
 	while ((pname = Q_strchr (pname, '\\')))
 		{
-		/*if (*pname == '\\')
-			*pname = '/';*/
 		*pname = '/';
 		}
 	}
@@ -832,12 +745,8 @@ Ensure directory path always ends on forward slash
 ***/
 void COM_PathSlashFix (char *path)
 	{
-	/*size_t	len;
-
-	len = Q_strlen (path);*/
 	size_t len = Q_strlen (path);
 
-	/*if ((path[len - 1] != '\\') && (path[len - 1] != '/'))*/
 	if (path[len - 1] == '\\')
 		{
 		path[len - 1] = '/';

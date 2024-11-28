@@ -1694,8 +1694,7 @@ void CTestHull::BuildNodeGraph (void)
 	// This is used for FindNearestNode
 	WorldGraph.BuildRegionTables ();
 
-
-	// Push all of the LAND nodes down to the ground now. Leave the water and air nodes alone.
+	// Push all of the LAND nodes down to the ground now. Leave the water and air nodes alone
 	for (i = 0; i < WorldGraph.m_cNodes; i++)
 		{
 		if ((WorldGraph.m_pNodes[i].m_afNodeInfo & bits_NODE_LAND))
@@ -1974,8 +1973,8 @@ int CGraph::FLoadGraph (char *szMapName)
 	char	szFilename[MAX_PATH];
 	int		iVersion;
 	int     length;
-	byte *aMemFile;
-	byte *pMemFile;
+	byte	*aMemFile;
+	byte	*pMemFile;
 
 	// make sure the directories have been made
 	char	szDirName[MAX_PATH];

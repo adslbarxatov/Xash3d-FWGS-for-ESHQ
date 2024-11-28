@@ -9,7 +9,8 @@ Use, distribution, and modification of this source code and/or resulting
 object code is restricted to non-commercial enhancements to products from
 Valve LLC.  All other use, distribution, or modification is prohibited
 without written permission from Valve LLC
-****/
+***/
+
 //
 // battery.cpp
 //

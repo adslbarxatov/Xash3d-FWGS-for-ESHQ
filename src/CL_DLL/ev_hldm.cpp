@@ -1,17 +1,16 @@
-/***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+/*
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+*/
+
 #include "hud.h"
 #include "cl_util.h"
 #include "const.h"
@@ -372,13 +371,13 @@ int EV_HLDM_CheckTracer (int idx, float* vecSrc, float* end, float* forward, flo
 	return tracer;
 	}
 
-/***
+/*
 ================
 FireBullets
 
 Go to the trouble of combining multiple pellets into a single damage call
 ================
-***/
+*/
 void EV_HLDM_FireBullets (int idx, float* forward, float* right, float* up, int cShots, float* vecSrc,
 	float* vecDirShooting, float flDistance, int iBulletType, int iTracerFreq, int* tracerCount,
 	float flSpreadX, float flSpreadY)
@@ -869,11 +868,11 @@ void EV_SpinGauss (event_args_t* args)
 		1.0, ATTN_MEDIUM, iSoundState, pitch);
 	}
 
-/***
+/*
 ==============================
 EV_StopPreviousGauss
 ==============================
-***/
+*/
 void EV_StopPreviousGauss (int idx)
 	{
 	// Make sure we don't have a gauss spin event in the queue for this guy
