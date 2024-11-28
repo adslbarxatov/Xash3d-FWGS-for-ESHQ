@@ -22,7 +22,6 @@ GNU General Public License for more details
 #define TURBSCALE			( 256.0f / ( M_PI2 ))
 
 // [FWGS, 01.07.24]
-/*static const char *r_skyBoxSuffix[SKYBOX_MAX_SIDES] = { "rt", "bk", "lf", "ft", "up", "dn" };*/
 static const int r_skyTexOrder[SKYBOX_MAX_SIDES] = { 0, 2, 1, 3, 4, 5 };
 static const vec3_t skyclip[SKYBOX_MAX_SIDES] =
 	{
@@ -88,52 +87,6 @@ static struct
 	} g_ripple;
 
 // [FWGS, 01.07.24] removed CheckSkybox
-/*static qboolean CheckSkybox (const char *name, char out[6][MAX_STRING])
-	{
-	const char	*skybox_ext[3] = { "dds", "tga", "bmp" };
-	int			i, j, num_checked_sides;
-	char		sidename[MAX_VA_STRING];
-
-	// search for skybox images
-	for (i = 0; i < 3; i++)
-		{
-		// check HL-style skyboxes
-		num_checked_sides = 0;
-		for (j = 0; j < SKYBOX_MAX_SIDES; j++)	// [FWGS, 01.07.23]
-			{
-			// [FWGS, 01.04.23] build side name
-			Q_snprintf (sidename, sizeof (sidename), "%s%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
-
-			if (gEngfuncs.fsapi->FileExists (sidename, false))
-				{
-				Q_strncpy (out[j], sidename, sizeof (out[j]));
-				num_checked_sides++;
-				}
-			}
-
-		if (num_checked_sides == 6)
-			return true; // image exists
-
-		// check Q1-style skyboxes
-		num_checked_sides = 0;
-		for (j = 0; j < SKYBOX_MAX_SIDES; j++)	// [FWGS, 01.07.23]
-			{
-			// [FWGS, 01.04.23] build side name
-			Q_snprintf (sidename, sizeof (sidename), "%s_%s.%s", name, r_skyBoxSuffix[j], skybox_ext[i]);
-
-			if (gEngfuncs.fsapi->FileExists (sidename, false))
-				{
-				Q_strncpy (out[j], sidename, sizeof (out[j]));
-				num_checked_sides++;
-				}
-			}
-
-		if (num_checked_sides == 6)
-			return true; // images exists
-		}
-
-	return false;
-	}*/
 
 static void DrawSkyPolygon (int nump, vec3_t vecs)
 	{
@@ -337,14 +290,12 @@ R_AddSkyBoxSurface [FWGS, 01.09.24]
 void R_AddSkyBoxSurface (msurface_t *fa)
 	{
 	vec3_t		verts[MAX_CLIP_VERTS];
-	/*glpoly_t	*p;*/
 	glpoly2_t	*p;
 	float		*v;
 	int			i;
 
 	if (FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && fa->polys && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX))
 		{
-		/*glpoly_t *p = fa->polys;*/
 		glpoly2_t *p = fa->polys;
 
 		// draw the sky poly
@@ -373,7 +324,6 @@ R_UnloadSkybox [FWGS, 01.07.24]
 Unload previous skybox
 ==============
 ***/
-/*static void R_UnloadSkybox (void)*/
 void R_UnloadSkybox (void)
 	{
 	int	i;
@@ -534,7 +484,6 @@ static void R_CloudVertex (float s, float t, int axis, vec3_t v)
 R_CloudTexCoord [FWGS, 01.09.24]
 =============
 ***/
-/*static void R_CloudTexCoord (vec3_t v, float speed, float *s, float *t)*/
 static void R_CloudTexCoord (const vec3_t v, float speed, float *s, float *t)
 	{
 	float	length, speedscale;
@@ -558,19 +507,16 @@ static void R_CloudTexCoord (const vec3_t v, float speed, float *s, float *t)
 R_CloudDrawPoly [FWGS, 01.09.24]
 ===============
 ***/
-/*static void R_CloudDrawPoly (glpoly_t *p)*/
 static void R_CloudDrawPoly (const float *verts)
 	{
 	const float	*v;
 	float	s, t;
-	/*float	*v;*/
 	int		i;
 
 	GL_SetRenderMode (kRenderNormal);
 	GL_Bind (XASH_TEXTURE0, tr.solidskyTexture);
 
 	pglBegin (GL_QUADS);
-	/*for (i = 0, v = p->verts[0]; i < 4; i++, v += VERTEXSIZE)*/
 	for (i = 0, v = verts; i < 4; i++, v += VERTEXSIZE)
 		{
 		R_CloudTexCoord (v, 8.0f, &s, &t);
@@ -583,7 +529,6 @@ static void R_CloudDrawPoly (const float *verts)
 	GL_Bind (XASH_TEXTURE0, tr.alphaskyTexture);
 
 	pglBegin (GL_QUADS);
-	/*for (i = 0, v = p->verts[0]; i < 4; i++, v += VERTEXSIZE)*/
 	for (i = 0, v = verts; i < 4; i++, v += VERTEXSIZE)
 		{
 		R_CloudTexCoord (v, 16.0f, &s, &t);
@@ -607,7 +552,6 @@ static void R_CloudRenderSide (int axis)
 	float		di, qi, dj, qj;
 	vec3_t		vup, vright;
 	vec3_t		temp, temp2;
-	/*glpoly_t	p[1];*/
 	int			i, j;
 
 	R_CloudVertex (-1.0f, -1.0f, axis, verts[0]);
@@ -618,7 +562,6 @@ static void R_CloudRenderSide (int axis)
 	VectorSubtract (verts[2], verts[3], vup);
 	VectorSubtract (verts[2], verts[1], vright);
 
-	/*p->numverts = 4;*/
 	di = SKYCLOUDS_QUALITY;
 	qi = 1.0f / di;
 	dj = (axis < 4) ? di * 2 : di;	// subdivide vertically more than horizontally on skybox sides
@@ -637,21 +580,16 @@ static void R_CloudRenderSide (int axis)
 			VectorScale (vright, qi * i, temp);
 			VectorScale (vup, qj * j, temp2);
 			VectorAdd (temp, temp2, temp);
-			/*VectorAdd (verts[0], temp, p->verts[0]);*/
 			VectorAdd (verts[0], temp, final_verts[0]);
 
 			VectorScale (vup, qj, temp);
-			/*VectorAdd (p->verts[0], temp, p->verts[1]);*/
 			VectorAdd (final_verts[0], temp, final_verts[1]);
 
 			VectorScale (vright, qi, temp);
-			/*VectorAdd (p->verts[1], temp, p->verts[2]);*/
 			VectorAdd (final_verts[1], temp, final_verts[2]);
 
-			/*VectorAdd (p->verts[0], temp, p->verts[3]);*/
 			VectorAdd (final_verts[0], temp, final_verts[3]);
 
-			/*R_CloudDrawPoly (p);*/
 			R_CloudDrawPoly (final_verts[0]);
 			}
 		}
@@ -807,7 +745,6 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 	{
 	float		*v, nv, waveHeight;
 	float		s, t, os, ot;
-	/*glpoly_t	*p;*/
 	glpoly2_t	*p;
 	int			i;
 	const qboolean	useQuads = FBitSet (warp->flags, SURF_DRAWTURB_QUADS) && (glConfig.context == CONTEXT_TYPE_GL);

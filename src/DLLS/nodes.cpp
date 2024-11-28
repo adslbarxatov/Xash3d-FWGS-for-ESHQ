@@ -116,83 +116,13 @@ int CGraph::AllocNodes (void)
 	return TRUE;
 	}
 
-// ESHQ: удалена в связи с отсутствием ссылок на неё
-/*// =========================================================
-// CGraph - LinkEntForLink - sometimes the ent that blocks
-// a path is a usable door, in which case the monster just
-// needs to face the door and fire it. In other cases, the
-// monster needs to operate a button or lever to get the 
-// door to open. This function will return a pointer to the
-// button if the monster needs to hit a button to open the 
-// door, or returns a pointer to the door if the monster 
-// need only use the door.
-// 
-// pNode is the node the monster will be standing on when it
-// will need to stop and trigger the ent
-// =========================================================*/
-/*entvars_t *CGraph::LinkEntForLink (CLink *pLink, CNode *pNode)
-	{
-	edict_t *pentSearch;
-	edict_t *pentTrigger;
-	entvars_t *pevTrigger;
-	entvars_t *pevLinkEnt;
-	TraceResult	tr;
-
-	pevLinkEnt = pLink->m_pLinkEnt;
-	if (!pevLinkEnt)
-		return NULL;
-
-	pentSearch = NULL;	// start search at the top of the ent list
-
-	if (FClassnameIs (pevLinkEnt, "func_door") || FClassnameIs (pevLinkEnt, "func_door_rotating"))
-		{
-		// check for TOGGLE or STAY open doors here. If a door is in the way, and is 
-		// TOGGLE or STAY OPEN, even monsters that can't open doors can go that way
-
-		// door is use only, so the door is all the monster has to worry about
-		if ((pevLinkEnt->spawnflags & SF_DOOR_USE_ONLY))
-			return pevLinkEnt;
-
-		while (1)
-			{
-			// find the button or trigger
-			pentTrigger = FIND_ENTITY_BY_TARGET (pentSearch, STRING (pevLinkEnt->targetname));
-
-			// no trigger found
-			if (FNullEnt (pentTrigger))
-				return pevLinkEnt;
-			// right now this is a problem among auto-open doors, or any door that opens through the use 
-			// of a trigger brush. Trigger brushes have no models, and don't show up in searches. Just allow
-			// monsters to open these sorts of doors for now
-
-			pentSearch = pentTrigger;
-			pevTrigger = VARS (pentTrigger);
-
-			// only buttons are handled right now
-			if (FClassnameIs (pevTrigger, "func_button") || FClassnameIs (pevTrigger, "func_rot_button"))
-				{
-				// trace from the node to the trigger, make sure it's one we can see from the node.
-				// !!!HACKHACK Use bodyqueue here cause there are no ents we really wish to ignore!
-				UTIL_TraceLine (pNode->m_vecOrigin, VecBModelOrigin (pevTrigger), ignore_monsters, g_pBodyQueueHead, &tr);
-
-				// good to go!
-				if (VARS (tr.pHit) == pevTrigger)
-					return VARS (tr.pHit);
-				}
-			}
-		}
-	else
-		{
-		ALERT (at_aiconsole, "Unsupported PathEnt:\n'%s'\n", STRING (pevLinkEnt->classname));
-		return NULL;
-		}
-	}*/
+// ESHQ: CGraph::LinkEntForLink удалена в связи с отсутствием ссылок на неё
 
 // =========================================================
 // CGraph - HandleLinkEnt - a brush ent is between two
-// nodes that would otherwise be able to see each other. 
+// nodes that would otherwise be able to see each other.
 // Given the monster's capability, determine whether
-// or not the monster can go this way. 
+// or not the monster can go this way
 // =========================================================
 int	CGraph::HandleLinkEnt (int iNode, entvars_t *pevLinkEnt, int afCapMask, NODEQUERY queryType)
 	{

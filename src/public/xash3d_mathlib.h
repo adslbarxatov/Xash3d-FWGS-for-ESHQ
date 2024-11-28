@@ -75,7 +75,6 @@ GNU General Public License for more details
 #define Q_max( a, b )	(((a) > (b)) ? (a) : (b))
 
 // [FWGS, 01.07.24]
-/*#define Q_equal_e( a, b, e ) (((a) > ((b) - (e))) && ((a) < ((b) + (e))))*/
 #define Q_equal_e( a, b, e ) (((a) >= ((b) - (e))) && ((a) <= ((b) + (e))))
 #define Q_equal( a, b ) Q_equal_e( a, b, EQUAL_EPSILON )
 

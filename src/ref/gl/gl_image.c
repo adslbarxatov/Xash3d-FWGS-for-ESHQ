@@ -1484,23 +1484,12 @@ GL_AllocTexture [FWGS, 01.07.24]
 ***/
 static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 	{
-	/*gl_texture_t	*tex;
-	uint			i;
-
-	// find a free texture_t slot
-	for (i = 0, tex = gl_textures; i < gl_numTextures; i++, tex++)
-		if (!tex->name[0]) break;*/
 	const qboolean	skyboxhack = FBitSet (flags, TF_SKYSIDE) && glConfig.context != CONTEXT_TYPE_GL_CORE;
 	gl_texture_t	*tex = NULL;
 	GLuint			texnum = 1;
 
-	/*if (i == gl_numTextures)
-	*/
 	if (!skyboxhack)
 		{
-		/*if (gl_numTextures == MAX_TEXTURES)
-			gEngfuncs.Host_Error ("GL_AllocTexture: MAX_TEXTURES limit exceeds\n");
-		gl_numTextures++;*/
 		// keep generating new texture names to avoid collision with predefined skybox objects
 		do
 			{
@@ -1512,29 +1501,14 @@ static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 		texnum = tr.skyboxbasenum;
 		}
 
-	/*tex = &gl_textures[i];
-
-	// [FWGS, 01.11.23] copy initial params
-	Q_strncpy (tex->name, name, sizeof (tex->name));
-	if (FBitSet (flags, TF_SKYSIDE) && (glConfig.context != CONTEXT_TYPE_GL_CORE))
-		{
-		tex->texnum = tr.skyboxbasenum++;
-		}
-
-	// [FWGS, 01.07.23] keep generating new texture names to avoid collision with predefined skybox objects
-	else*/
-
 	// try to match texture slot and texture handle because of buggy games
 	if ((texnum >= MAX_TEXTURES) || (gl_textures[texnum].texnum != 0))
 		{
-		/*do
-		*/
 		// find a free texture_t slot
 		uint i;
 
 		for (i = 0; i < MAX_TEXTURES; i++)
 			{
-			/*pglGenTextures (1, &tex->texnum);*/
 			if (gl_textures[i].texnum)
 				continue;
 
@@ -1542,8 +1516,6 @@ static gl_texture_t *GL_AllocTexture (const char *name, texFlags_t flags)
 			break;
 
 			}
-			/*while ((tex->texnum >= SKYBOX_BASE_NUM) &&
-				(tex->texnum <= SKYBOX_BASE_NUM + SKYBOX_MAX_SIDES));*/
 		}
 	else
 		{

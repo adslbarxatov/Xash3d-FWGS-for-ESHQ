@@ -255,10 +255,6 @@ static int GL_RefGetParm (int parm, int arg)
 			return glConfig.softwareGammaUpdate;
 
 		// [FWGS, 01.07.24]
-		/*case PARM_SURF_SAMPLESIZE:
-			if ((arg >= 0) && (arg < WORLDMODEL->numsurfaces))
-				return gEngfuncs.Mod_SampleSizeForFace (&WORLDMODEL->surfaces[arg]);
-			return LM_SAMPLE_SIZE;*/
 
 		case PARM_GL_CONTEXT_TYPE:
 			return glConfig.context;
@@ -270,10 +266,6 @@ static int GL_RefGetParm (int parm, int arg)
 			return glState.stencilEnabled;
 
 		// [FWGS, 01.07.24]
-		/*case PARM_SKY_SPHERE:
-			return FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX);*/
-
-		// [FWGS, 01.02.24]
 		case PARM_TEX_FILTERING:
 			if (arg < 0)
 				return gl_texture_nearest.value == 0.0f;
@@ -478,8 +470,6 @@ static const char *R_GetConfigName (void)
 	}
 
 // [FWGS, 01.08.24]
-/*ref_interface_t gReffuncs =
-static ref_interface_t gReffuncs =*/
 static const ref_interface_t gReffuncs =
 	{
 	R_Init,
@@ -526,10 +516,7 @@ static const ref_interface_t gReffuncs =
 	R_StudioEstimateFrame,
 	R_StudioLerpMovement,
 	CL_InitStudioAPI,
-
-	/*R_InitSkyClouds,*/
-	R_SetSkyCloudsTextures,
-	
+	R_SetSkyCloudsTextures,	
 	GL_SubdivideSurface,
 	CL_RunLightStyles,
 	R_GetSpriteParms,
@@ -596,22 +583,8 @@ static const ref_interface_t gReffuncs =
 	TriGetMatrix,
 	TriFogParams,
 	TriCullFace,
-
-	/*VGUI_DrawInit,
-	VGUI_DrawShutdown,
-	VGUI_SetupDrawingText,
-	VGUI_SetupDrawingRect,
-	VGUI_SetupDrawingImage,
-	VGUI_BindTexture,
-	VGUI_EnableTexture,
-	VGUI_CreateTexture,
-	VGUI_UploadTexture,*/
 	VGUI_SetupDrawing,
-
 	VGUI_UploadTextureBlock,
-	/*VGUI_DrawQuad,
-	VGUI_GetTextureSizes,
-	VGUI_GenerateTexture,*/
 	};
 
 // [FWGS, 01.02.24]
@@ -624,8 +597,6 @@ int HLEXPORT GetRefAPI (int version, ref_interface_t *funcs, ref_api_t *engfuncs
 		return 0;
 
 	// fill in our callbacks
-	/*memcpy (funcs, &gReffuncs, sizeof (ref_interface_t));
-	memcpy (&gEngfuncs, engfuncs, sizeof (ref_api_t));*/
 	*funcs = gReffuncs;
 	gEngfuncs = *engfuncs;
 	gpGlobals = globals;

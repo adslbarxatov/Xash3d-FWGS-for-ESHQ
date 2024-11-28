@@ -28,7 +28,6 @@ GNU General Public License for more details
 // [FWGS, 01.07.24] rewrite in triapi
 void R_DrawWorldHull (void)
 	{
-	/*hull_model_t	*hull = &tr.world->hull_models[0];*/
 	hull_model_t	*hull;
 	winding_t		*poly;
 	int				i;

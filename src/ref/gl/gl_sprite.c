@@ -54,7 +54,6 @@ static const byte *R_SpriteLoadFrame (model_t *mod, const void *pin, mspritefram
 	int		bytes = 1;
 
 	// [FWGS, 01.09.24]
-	/*memcpy (&pinframe, pin, sizeof (dspriteframe_t));*/
 	memcpy (&pinframe, pin, sizeof (dspriteframe_t));
 
 	if (sprite_version == SPRITE_VERSION_32)
@@ -68,9 +67,6 @@ static const byte *R_SpriteLoadFrame (model_t *mod, const void *pin, mspritefram
 		}
 	else
 		{
-		/*Q_snprintf (texname, sizeof (texname), "#%s(%s:%i%i).spr", sprite_name, group_suffix, num / 10, num % 10);
-		gl_texturenum = GL_LoadTexture (texname, pin, pinframe.width * pinframe.height * bytes, r_texFlags);*/
-
 		// partial HD-textures support
 		if (Mod_AllowMaterials ())
 			{
@@ -827,7 +823,6 @@ static qboolean R_SpriteHasLightmap (cl_entity_t *e, int texFormat)
 		return false;
 
 	// [FWGS, 01.07.24]
-	/*if (e->curstate.effects & EF_FULLBRIGHT)*/
 	if (FBitSet (e->curstate.effects, EF_FULLBRIGHT))
 		return false;
 
@@ -983,7 +978,6 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		// [FWGS, 01.07.24] NOTE: sprites with 'lightmap' looks ugly when alpha func is GL_GREATER 0.0
 		// NOTE: make them easier to see with 0.3333, was 0.5 in original
 		pglAlphaFunc (GL_GREATER, 1.0f / 3.0f);
-		/*pglAlphaFunc (GL_GREATER, 0.5f);*/
 		}
 
 	if (R_SpriteAllowLerping (e, psprite))

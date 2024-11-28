@@ -495,8 +495,6 @@ void CBabyCrab::Spawn (void)
 	SET_MODEL (ENT (pev), "models/baby_headcrab.mdl");
 
 	// ESHQ: отключена полупрозрачность для улучшения видимости
-	/*pev->rendermode = kRenderTransTexture;
-	pev->renderamt = 192;*/
 	UTIL_SetSize (pev, Vector (-10, -10, 0), Vector (10, 10, 12));
 
 	pev->health = gSkillData.headcrabHealth * 0.25;	// less health than full grown

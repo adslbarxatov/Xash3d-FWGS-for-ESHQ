@@ -265,8 +265,6 @@ static GLuint GL2_GenerateShader (gl2wrap_prog_t *prog, GLenum type)
 	// [FWGS, 01.07.24]
 	if (status == GL_FALSE)
 		{
-		/*gEngfuncs.Con_Reportf (S_ERROR "GL2_GenerateShader( 0x%04x, 0x%x ): compile failed: %s\n",
-			prog->flags, type, GL_PrintInfoLog (id, false));*/
 		gEngfuncs.Con_Reportf (S_ERROR "%s( 0x%04x, 0x%x ): compile failed: %s\n",
 			__func__, prog->flags, type, GL_PrintInfoLog (id, false));
 

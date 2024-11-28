@@ -154,8 +154,6 @@ void R_NewMap (void)
 		}
 
 	// [FWGS, 01.07.24]
-	/*R_SetupSky (tr.movevars->skyName);*/
-
 	GL_BuildLightmaps ();
 	R_GenerateVBO ();
 	R_ResetRipples ();

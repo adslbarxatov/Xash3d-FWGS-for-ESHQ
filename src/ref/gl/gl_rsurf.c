@@ -137,7 +137,6 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 	int				i, j, k, f, b;
 	float			sample_size;
 	vec3_t			mins, maxs;
-	/*glpoly_t		*poly;*/
 	glpoly2_t		*poly;
 
 	if (numverts > (SUBDIVIDE_SIZE - 4))
@@ -202,7 +201,6 @@ static void SubdividePolygon_r (model_t *loadmodel, msurface_t *warpface, int nu
 		ClearBits (warpface->flags, SURF_DRAWTURB_QUADS);
 
 	// add a point in the center to help keep warp valid
-	/*poly = Mem_Calloc (loadmodel->mempool, sizeof (glpoly_t) + (numverts - 4) * VERTEXSIZE * sizeof (float));*/
 	poly = Mem_Calloc (loadmodel->mempool, sizeof (glpoly2_t) + numverts * VERTEXSIZE * sizeof (float));
 	poly->next = warpface->polys;
 	poly->flags = warpface->flags;
@@ -311,7 +309,6 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 	float			sample_size;
 	texture_t		*tex;
 	gl_texture_t	*glt;
-	/*glpoly_t	*poly;*/
 	glpoly2_t		*poly;
 
 	if (!mod || !fa->texinfo || !fa->texinfo->texture)
@@ -339,7 +336,6 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 
 	// quake simple models (healthkits etc) need to be reconstructed their polys because
 	// LM coords has changed after the map change
-	/*poly = Mem_Realloc (mod->mempool, poly, sizeof (glpoly_t) + (lnumverts - 4) * VERTEXSIZE * sizeof (float));*/
 	poly = Mem_Realloc (mod->mempool, poly, sizeof (glpoly2_t) + lnumverts * VERTEXSIZE * sizeof (float));
 	poly->next = fa->polys;
 	poly->flags = fa->flags;
@@ -797,7 +793,6 @@ static void R_BuildLightMap (msurface_t *surf, byte *dest, int stride, qboolean 
 DrawGLPoly [FWGS, 01.09.24]
 ================
 ***/
-/*void DrawGLPoly (glpoly_t *p, float xScale, float yScale)*/
 void DrawGLPoly (glpoly2_t *p, float xScale, float yScale)
 	{
 	float	*v;
@@ -882,7 +877,6 @@ DrawGLPolyChain [FWGS, 01.09.24]
 Render lightmaps
 ================
 ***/
-/*static void DrawGLPolyChain (glpoly_t *p, float soffset, float toffset)*/
 static void DrawGLPolyChain (glpoly2_t *p, float soffset, float toffset)
 	{
 	qboolean dynamic = true;
@@ -1987,8 +1981,6 @@ void R_GenerateVBO (void)
 
 					// generate new array and new vbotexture node
 					vbo->array = Mem_Calloc (vbos.mempool, sizeof (vbovertex_t) * vbo->array_len);
-					/*gEngfuncs.Con_Printf ("%s: allocated array of %d verts, texture %d, lm %d\n",
-						__func__, vbo->array_len, j, k);*/
 					gEngfuncs.Con_Printf (S_NOTE "%s: allocated array of %d verts, texture %d, lm %d\n",
 						__func__, vbo->array_len, j, k);
 
@@ -2019,7 +2011,6 @@ void R_GenerateVBO (void)
 
 	// allocate last array
 	vbo->array = Mem_Calloc (vbos.mempool, sizeof (vbovertex_t) * vbo->array_len);
-	/*gEngfuncs.Con_Printf ("%s: allocated array of %d verts\n", __func__, vbo->array_len);*/
 	t2 = gEngfuncs.pfnTime ();
 	gEngfuncs.Con_Printf (S_NOTE "%s: allocated array of %d verts in %.3g seconds\n",
 		__func__, vbo->array_len, t2 - t1);
@@ -3650,7 +3641,6 @@ static void R_DrawTriangleOutlines (void)
 	{
 	int			i, j;
 	msurface_t	*surf;
-	/*glpoly_t	*p;*/
 	glpoly2_t	*p;
 	float		*v;
 

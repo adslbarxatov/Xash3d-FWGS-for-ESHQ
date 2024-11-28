@@ -871,16 +871,6 @@ void CHGrunt::HandleAnimEvent (MonsterEvent_t* pEvent)
 			break;
 
 		// ESHQ: прекращена обработка события HGRUNT_AE_GREN_DROP из-за неконтролируемых самоподрывов врагов
-		/*case HGRUNT_AE_GREN_DROP:
-			{
-			if (!FBitSet (pev->weapons, HGRUNT_HANDGRENADE))
-				break;
-
-			UTIL_MakeVectors (pev->angles);
-			CGrenade::ShootTimed (pev, pev->origin + gpGlobals->v_forward * 17 - gpGlobals->v_right * 27 + 
-				gpGlobals->v_up * 6, g_vecZero, 3);
-			}
-			break;*/
 
 		case HGRUNT_AE_BURST1:
 			{

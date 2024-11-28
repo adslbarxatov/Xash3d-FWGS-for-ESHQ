@@ -112,7 +112,6 @@ extern poolhandle_t			r_temppool;
 
 // [FWGS, 01.07.24]
 #define SKYBOX_BASE_NUM		5800	// set skybox base (to let some mods load hi-res skyboxes)
-/*#define SKYBOX_MAX_SIDES	6		// box can only have 6 sides*/
 
 typedef struct gltexture_s
 	{
@@ -451,7 +450,6 @@ void R_DrawWaterSurfaces (void);
 void R_DrawBrushModel (cl_entity_t *e);
 void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
 void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);
-/*void DrawGLPoly (glpoly_t *p, float xScale, float yScale);*/
 void DrawGLPoly (glpoly2_t *p, float xScale, float yScale);
 texture_t *R_TextureAnimation (msurface_t *s);
 void GL_SetupFogColorForSurfaces (void);
@@ -507,7 +505,6 @@ void R_AliasInit (void);
 //
 // gl_warp.c [FWGS, 01.07.24]
 //
-/*void R_InitSkyClouds (mip_t *mt, struct texture_s *tx, qboolean custom_palette);*/
 void R_AddSkyBoxSurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
@@ -519,24 +516,6 @@ void R_InitRipples (void);
 void R_ResetRipples (void);
 void R_AnimateRipples (void);
 void R_UploadRipples (texture_t * image);
-
-// [FWGS, 01.07.24]
-/*//
-// gl_vgui.c
-//
-void VGUI_DrawInit (void);
-void VGUI_DrawShutdown (void);
-void VGUI_SetupDrawingText (int *pColor);
-void VGUI_SetupDrawingRect (int *pColor);
-void VGUI_SetupDrawingImage (int *pColor);
-void VGUI_BindTexture (int id);
-void VGUI_EnableTexture (qboolean enable);
-void VGUI_CreateTexture (int id, int width, int height);
-void VGUI_UploadTexture (int id, const char *buffer, int width, int height);
-void VGUI_UploadTextureBlock (int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);
-void VGUI_DrawQuad (const vpoint_t *ul, const vpoint_t *lr);
-void VGUI_GetTextureSizes (int *width, int *height);
-int VGUI_GenerateTexture (void);*/
 
 //
 // renderer exports
@@ -561,7 +540,6 @@ void R_GetSpriteParms (int *frameWidth, int *frameHeight, int *numFrames, int cu
 void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, const byte *data, qboolean dirty);
 void R_DrawStretchPic (float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum);
 qboolean R_SpeedsMessage (char *out, size_t size);
-/*void R_SetupSky (const char *skyboxname);*/	// [FWGS, 01.07.24]
 qboolean R_CullBox (const vec3_t mins, const vec3_t maxs);
 int R_WorldToScreen (const vec3_t point, vec3_t screen);
 void R_ScreenToWorld (const vec3_t screen, vec3_t point);
@@ -577,8 +555,6 @@ int R_GetSpriteTexture (const struct model_s *m_pSpriteModel, int frame);
 void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale);
 
 // [FWGS, 01.09.24]
-/*void R_RemoveEfrags (struct cl_entity_s *ent);
-void R_AddEfrags (struct cl_entity_s *ent);*/
 void R_DecalRemoveAll (int texture);
 int R_CreateDecalList (decallist_t *pList);
 void R_ClearAllDecals (void);

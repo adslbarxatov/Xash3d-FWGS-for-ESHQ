@@ -166,7 +166,7 @@ class CGraph
 		// A static query means we're asking about the possiblity of handling this entity at ANY time
 		// A dynamic query means we're asking about it RIGHT NOW.  So we should query the current state
 		int		HandleLinkEnt (int iNode, entvars_t *pevLinkEnt, int afCapMask, NODEQUERY queryType);
-		/*entvars_t *LinkEntForLink (CLink *pLink, CNode *pNode);*/
+
 		void	ShowNodeConnections (int iNode);
 		void	InitGraph (void);
 		int		AllocNodes (void);

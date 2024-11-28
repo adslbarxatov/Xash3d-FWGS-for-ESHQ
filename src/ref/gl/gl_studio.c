@@ -3436,8 +3436,6 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 
 	if (flags & STUDIO_RENDER)
 		{
-		/*if (cl_himodels->value && (RI.currentmodel != RI.currententity->model))*/
-		
 		// [FWGS, 01.09.24] change body if it's a menu entity
 		// show highest resolution multiplayer model
 		if (cl_himodels->value && (RI.currentmodel != RI.currententity->model || !RI.drawWorld))
@@ -3645,37 +3643,16 @@ void R_DrawStudioModel (cl_entity_t *e)
 		R_StudioDrawModelInternal (e, STUDIO_RENDER | STUDIO_EVENTS);
 		}
 
-	/*else if ((e->curstate.movetype == MOVETYPE_FOLLOW) && (e->curstate.aiment > 0))
-	*/
 	else if (e->curstate.movetype == MOVETYPE_FOLLOW)
 		{
-		/*cl_entity_t *parent = CL_GetEntityByIndex (e->curstate.aiment), **entities;
-		uint i, num_entities;*/
 		cl_entity_t *parent = CL_GetEntityByIndex (e->curstate.aiment);
-
 		if (!parent || !parent->model || (parent->model->type != mod_studio))
 			return;
 
-		/*if (R_OpaqueEntity (parent))
-			{
-			entities = tr.draw_list->solid_entities;
-			num_entities = tr.draw_list->num_solid_entities;
-			}
-		else
-			{
-			entities = tr.draw_list->trans_entities;
-			num_entities = tr.draw_list->num_solid_entities;
-			}*/
 		parent = R_FindParentEntity (e, tr.draw_list->solid_entities, tr.draw_list->num_solid_entities);
-
-		/*for (i = 0; i < num_entities; i++)
-			{
-			if ((*entities)[i].index != e->curstate.aiment)
-				continue;*/
 		if (!parent)
 			parent = R_FindParentEntity (e, tr.draw_list->trans_entities, tr.draw_list->num_trans_entities);
 
-		/*RI.currententity = &(*entities)[i];*/
 		if (parent)
 			{
 			RI.currententity = parent;
@@ -3686,7 +3663,6 @@ void R_DrawStudioModel (cl_entity_t *e)
 			RI.currententity = e;
 
 			R_StudioDrawModelInternal (e, STUDIO_RENDER | STUDIO_EVENTS);
-			/*break;*/
 			}
 		}
 	else
@@ -3868,17 +3844,9 @@ static void R_StudioLoadTexture (model_t *mod, studiohdr_t *phdr, mstudiotexture
 	if (FBitSet (ptexture->flags, STUDIO_NF_NOMIPS))
 		SetBits (flags, TF_NOMIPMAP);
 
-	/*// NOTE: replace index with pointer to start of imagebuffer, ImageLib expected it
-	gEngfuncs.Image_SetMDLPointer ((byte *)phdr + ptexture->index);
-	size = sizeof (mstudiotexture_t) + ptexture->width * ptexture->height + 768;*/
-
 	if (FBitSet (gp_host->features, ENGINE_IMPROVED_LINETRACE) &&
 		FBitSet (ptexture->flags, STUDIO_NF_MASKED))
 		flags |= TF_KEEP_SOURCE; // Paranoia2 texture alpha-tracing
-
-	/*// build the texname
-	Q_snprintf (texname, sizeof (texname), "#%s/%s.mdl", mdlname, name);
-	ptexture->index = GL_LoadTexture (texname, (byte *)ptexture, size, flags);*/
 
 	// NOTE: colormaps must have the palette for properly work. Ignore them
 	if (Mod_AllowMaterials () && !FBitSet (ptexture->flags, STUDIO_NF_COLORMAP))
