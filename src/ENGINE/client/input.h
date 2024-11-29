@@ -38,7 +38,6 @@ void IN_DeactivateMouse (void);
 void IN_MouseSavePos (void);
 void IN_MouseRestorePos (void);
 void IN_ToggleClientMouse (int newstate, int oldstate);
-/*void IN_SetCursor (void *hCursor);*/
 
 uint IN_CollectInputDevices (void);
 void IN_LockInputDevices (qboolean lock);
@@ -58,7 +57,6 @@ typedef enum
 	} touchEventType;
 
 extern convar_t touch_enable;
-/*extern convar_t touch_emulate;*/	// [FWGS, 01.09.24]
 
 void Touch_Draw (void);
 void Touch_SetClientOnly (byte state);

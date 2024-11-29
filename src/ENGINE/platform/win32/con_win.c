@@ -485,7 +485,6 @@ Con_CreateConsole [FWGS, 01.07.24]
 create win32 console
 ================
 ***/
-/*void Wcon_CreateConsole (void)*/
 void Wcon_CreateConsole (qboolean con_showalways)
 	{
 	if (Sys_CheckParm ("-log"))
@@ -537,7 +536,6 @@ void Wcon_CreateConsole (qboolean con_showalways)
 		SetWindowPos (s_wcd.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_SHOWWINDOW);
 
 		// show console if needed
-		/*if (host.con_showalways)*/
 		if (con_showalways)
 			{
 			// make console visible
@@ -602,10 +600,6 @@ void Wcon_DestroyConsole (void)
 		}
 
 	FreeConsole ();
-
-	/*// place it here in case Sys_Crash working properly
-	if (host.hMutex)
-		CloseHandle (host.hMutex);*/
 	}
 
 /***

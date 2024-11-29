@@ -69,7 +69,6 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 
 // [FWGS, 01.07.24]
 #define MASTERSERVER_ADR		"mentality.rip:27010"
-/*#define MASTERSERVER_ADR_TEST	"mentality.rip:27011"*/
 #define MS_SCAN_REQUEST			"1\xFF" "0.0.0.0:0\0"
 
 #define PORT_MASTER		27010
@@ -183,7 +182,6 @@ typedef struct fragbuf_s
 	struct fragbuf_s	*next;				// next buffer in chain
 	int					bufferid;			// id of this buffer
 	sizebuf_t			frag_message;		// message buffer where raw data is stored
-	/*byte				*frag_message_buf;	// [FWGS, 01.04.23] the actual data sits here*/
 	qboolean			isfile;				// is this a file buffer?
 	qboolean			isbuffer;			// is this file buffer from memory ( custom decal, etc. ).
 	qboolean			iscompressed;		// is compressed file, we should using filename.ztmp

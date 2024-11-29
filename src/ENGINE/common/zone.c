@@ -301,16 +301,8 @@ void *_Mem_Realloc (poolhandle_t poolptr, void *data, size_t size, qboolean clea
 
 	mem = (memheader_t *)((byte *)data - sizeof (memheader_t));
 
-	/*if (!Mem_CheckAllocHeader ("Mem_Realloc", mem, filename, fileline))*/
 	if (!Mem_CheckAllocHeader (__func__, mem, filename, fileline))
 		return NULL;
-
-	/*if (unlikely (mem->poolptr != poolptr))
-		{
-		Sys_Error ("%s: pool migration is not allowed (alloc at %s:%i, realloc at %s:%i)\n",
-			__func__, Mem_CheckFilename (mem->filename), mem->fileline, filename, fileline);
-		return NULL;
-		}*/
 	
 	// migrate pool if requested, even if no reallocation needed
 	if (mem->poolptr != poolptr)
@@ -498,7 +490,6 @@ void _Mem_Check (const char *filename, int fileline)
 	for (i = 0, pool = poolchain; i < poolcount; i++, pool++)
 		for (mem = pool->chain; mem; mem = mem->next)
 			Mem_CheckAllocHeader (__func__, mem, filename, fileline);
-	/*Mem_CheckAllocHeader ("Mem_CheckSentinels", mem, filename, fileline);*/
 	}
 
 void Mem_PrintStats (void)

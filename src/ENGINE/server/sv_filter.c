@@ -131,7 +131,6 @@ static void SV_BanID_f (void)
 		len = Q_strlen (id);
 
 		// [FWGS, 01.07.24]
-		/*for (i = 0; i < sv_maxclients.value; i++)*/
 		for (i = 0; i < svs.maxclients; i++)
 			{
 			if (FBitSet (svs.clients[i].flags, FCL_FAKECLIENT))
@@ -196,7 +195,6 @@ static void SV_RemoveID_f (void)
 		int num = Q_atoi (id + 1);
 
 		// [FWGS, 01.07.24]
-		/*if ((num >= sv_maxclients.value) || (num < 0))*/
 		if ((num >= svs.maxclients) || (num < 0))
 			return;
 

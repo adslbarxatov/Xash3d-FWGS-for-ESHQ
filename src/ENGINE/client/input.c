@@ -134,9 +134,6 @@ static void IN_StartupMouse (void)
 	}
 
 // [FWGS, 01.07.24] removed IN_SetCursor
-/*void GAME_EXPORT IN_SetCursor (void *hCursor)
-	{
-	}*/
 
 /***
 ===========
@@ -322,7 +319,6 @@ static void IN_MouseMove (void)
 		return;
 
 	// touch emulation overrides all input
-	/*if (touch_emulate.value)*/
 	if (Touch_Emulated ())
 		{
 		Touch_KeyEvent (0, 0);
@@ -353,7 +349,6 @@ void IN_MouseEvent (int key, int down)
 		ClearBits (in_mstate, BIT (key));
 
 	// touch emulation overrides all input
-	/*if (touch_emulate.value)*/
 	if (Touch_Emulated ())
 		{
 		Touch_KeyEvent (K_MOUSE1 + key, down);

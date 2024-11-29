@@ -343,7 +343,6 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 		}
 	
 	// [FWGS, 01.09.24] never disable cursor in touch emulation mode
-	/*if (!visible && touch_emulate.value)*/
 	if (!visible && Touch_Emulated ())
 		return;
 

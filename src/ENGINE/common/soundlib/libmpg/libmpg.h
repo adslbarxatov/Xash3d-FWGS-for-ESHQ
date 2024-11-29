@@ -42,8 +42,6 @@ typedef struct
 #endif
 
 // [FWGS, 01.07.24] custom stdio
-/*typedef long (*pfread)(void *handle, void *buf, size_t count);
-typedef long (*pfseek)(void *handle, long offset, int whence);*/
 typedef mpg_ssize_t (*pfread)(void *handle, void *buf, size_t count);
 typedef fs_offset_t (*pfseek)(void *handle, fs_offset_t offset, int whence);
 

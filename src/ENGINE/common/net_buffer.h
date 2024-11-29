@@ -181,7 +181,6 @@ void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove);
 
 // [FWGS, 01.07.24] Bit-write functions
 void MSG_WriteOneBit (sizebuf_t *sb, int nValue);
-/*void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits);*/
 NO_ASAN void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits);
 void MSG_WriteSBitLong (sizebuf_t *sb, int data, int numbits);
 void MSG_WriteBitLong (sizebuf_t *sb, uint data, int numbits, qboolean bSigned);

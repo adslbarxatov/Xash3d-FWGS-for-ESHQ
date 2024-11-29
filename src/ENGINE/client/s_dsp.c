@@ -164,13 +164,10 @@ static const sx_preset_t rgsxpre_hlalpha052[] =
 static const sx_preset_t *ptable = rgsxpre;
 
 // [FWGS, 01.07.24] cvars
-/*static CVAR_DEFINE_AUTO (dsp_off, "0", FCVAR_ARCHIVE,
-	"disable DSP processing");*/
 static CVAR_DEFINE_AUTO (dsp_off, "0", FCVAR_ARCHIVE,
 	"disable DSP processing (deprecated)");
 static CVAR_DEFINE_AUTO (room_off, "0", FCVAR_ARCHIVE,
 	"disable DSP processing (GoldSrc compatible cvar)");
-
 static CVAR_DEFINE_AUTO (dsp_coeff_table, "0", FCVAR_ARCHIVE,
 	"select DSP coefficient table: 0 for release or 1 for alpha 0.52");
 static CVAR_DEFINE_AUTO (room_type, "0", 0,
@@ -180,7 +177,7 @@ static CVAR_DEFINE (roomwater_type, "waterroom_type", "14", 0,
 static CVAR_DEFINE (hisound, "room_hires", "2", FCVAR_ARCHIVE,
 	"dsp quality. 1 for 22k, 2 for 44k(recommended) and 3 for 96k");
 
-// underwater/special fx modulations
+// underwater / special fx modulations
 static CVAR_DEFINE (sxmod_mod, "room_mod", "0", 0,
 	"stereo amptitude modulation for room");
 static CVAR_DEFINE (sxmod_lowpass, "room_lp", "0", 0,
@@ -832,7 +829,6 @@ DSP_Process [FWGS, 01.07.24]
 ***/
 void DSP_Process (portable_samplepair_t *pbfront, int sampleCount)
 	{
-	/*if (dsp_off.value || !sampleCount)*/
 	if (dsp_off.value || room_off.value || !sampleCount)
 		return;
 
@@ -867,7 +863,6 @@ CheckNewDspPresets [FWGS, 01.07.24]
 ***/
 void CheckNewDspPresets (void)
 	{
-	/*if (dsp_off.value != 0.0f)*/
 	if (dsp_off.value || room_off.value)
 		return;
 

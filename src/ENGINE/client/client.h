@@ -232,7 +232,6 @@ typedef struct
 	player_info_t	players[MAX_CLIENTS];	// collected info about all other players include himself
 	double			lastresourcecheck;
 
-	/*string		downloadUrl;*/
 	qboolean		http_download;		// [FWGS, 01.07.24]
 	event_state_t	events;
 
@@ -503,7 +502,6 @@ typedef struct
 	int				numTitles;
 
 	net_request_t	net_requests[MAX_REQUESTS];	// no reason to keep more
-	/*efrag_t			*free_efrags;	// linked efrags*/
 	cl_entity_t		viewent;			// viewmodel
 	qboolean		client_dll_uses_sdl;
 	} clgame_static_t;
@@ -520,8 +518,6 @@ typedef struct
 	player_info_t	playerinfo;			// local playerinfo
 
 	gameui_draw_t	ds;					// draw2d stuff (menu images)
-	/*GAMEINFO		gameInfo;			// current gameInfo
-	GAMEINFO		*modsInfo[MAX_MODS];	// simplified gameInfo for MainUI*/
 	gameinfo2_t		gameInfo;			// current gameInfo
 	gameinfo2_t		*modsInfo;			// simplified gameInfo for MainUI, allocated by demand
 	GAMEINFO		**oldModsInfo;		// simplified gameInfo for older MainUI, allocated by demand
@@ -533,7 +529,6 @@ typedef struct
 	int				logo_yres;
 	float			logo_length;
 
-	/*qboolean		use_text_api;*/
 	qboolean		use_extended_api;
 	} gameui_static_t;
 
@@ -640,10 +635,6 @@ typedef struct
 	uint32_t		internetservers_key;		// compare key to validate master server reply
 	char			internetservers_query[512];	// cached query
 	uint32_t		internetservers_query_len;
-
-	/*// legacy mode support
-	qboolean		legacymode;		// one-way 48 protocol compatibility
-	netadr_t		legacyserver;*/
 	
 	// [FWGS, 01.07.24] multiprotocol support
 	connprotocol_t	legacymode;
@@ -674,15 +665,11 @@ extern "C" {
 extern convar_t	mp_decals;
 
 // [FWGS, 01.07.24]
-/*extern convar_t	cl_logofile;
-extern convar_t	cl_logocolor;*/
 extern convar_t cl_logomaxdim;
 extern convar_t	cl_allow_download;
-/*extern convar_t	cl_allow_upload;*/
 extern convar_t	cl_download_ingame;
 extern convar_t cl_nopred;
 extern convar_t cl_timeout;
-/*extern convar_t cl_nodelta;*/
 extern convar_t cl_interp;
 extern convar_t cl_nointerp;
 extern convar_t cl_showerror;
@@ -695,13 +682,11 @@ extern convar_t cl_updaterate;
 extern convar_t cl_solid_players;
 extern convar_t cl_idealpitchscale;
 extern convar_t cl_allow_levelshots;
-/*extern convar_t cl_lightstyle_lerping;*/
 extern convar_t cl_draw_particles;
 extern convar_t cl_draw_tracers;
 extern convar_t cl_levelshot_name;
 extern convar_t cl_draw_beams;
 extern convar_t cl_clockreset;
-/*extern convar_t cl_fixtimerate;*/
 extern convar_t hud_fontscale;
 extern convar_t hud_fontrender;
 extern convar_t hud_scale;
@@ -914,8 +899,6 @@ void CL_ParseFileTransferFailed (sizebuf_t * msg);
 void CL_ParseHLTV (sizebuf_t * msg);
 void CL_ParseDirector (sizebuf_t * msg);
 void CL_ParseResLocation (sizebuf_t * msg);
-/*void CL_ParseCvarValue (sizebuf_t * msg, const qboolean ext);
-void CL_ParseServerMessage (sizebuf_t *msg, qboolean normal_message);*/
 void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext, const connprotocol_t proto);
 void CL_ParseServerMessage (sizebuf_t *msg);
 
@@ -935,7 +918,6 @@ int CL_EstimateNeededResources (void);
 //
 // cl_parse_48.c [FWGS, 01.07.24]
 //
-/*void CL_ParseLegacyServerMessage (sizebuf_t * msg, qboolean normal_message);*/
 void CL_ParseLegacyServerMessage (sizebuf_t *msg);
 void CL_LegacyPrecache_f (void);
 
@@ -995,7 +977,6 @@ void CL_SetIdealPitch (void);
 //
 // cl_qparse.c [FWGS, 01.07.24]
 //
-/*void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message);*/
 void CL_ParseQuakeMessage (sizebuf_t *msg);
 
 //
@@ -1089,7 +1070,6 @@ int Con_UtfMoveRight (char *str, int pos, int length);
 void Con_DefaultColor (int r, int g, int b, qboolean gameui);
 cl_font_t *Con_GetCurFont (void);
 cl_font_t *Con_GetFont (int num);
-/*void Con_DrawCharacterLen (int number, int *width, int *height);*/
 int Con_DrawString (int x, int y, const char *string, rgba_t setColor);				// legacy, use cl_font.c
 void GAME_EXPORT Con_DrawStringLen (const char *pText, int *length, int *height);	// legacy, use cl_font.c
 
@@ -1143,7 +1123,6 @@ qboolean UI_MouseInRect (void);
 qboolean UI_IsVisible (void);
 void UI_ResetPing (void);
 void UI_ShowUpdateDialog (qboolean preferStore);
-/*void UI_ShowMessageBox (const char *text);*/
 qboolean UI_ShowMessageBox (const char *text);
 void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command, unsigned char *color,
 	int flags);

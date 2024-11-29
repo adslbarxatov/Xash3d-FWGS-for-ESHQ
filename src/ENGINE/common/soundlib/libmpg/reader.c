@@ -870,8 +870,6 @@ static int default_init (mpg123_handle_t *fr)
 	{
 	fr->rdat.fdread = plain_read;
 
-	/*fr->rdat.read = fr->rdat.r_read != NULL ? fr->rdat.r_read : read;
-	fr->rdat.lseek = fr->rdat.r_lseek != NULL ? fr->rdat.r_lseek : lseek;*/
 	fr->rdat.read = fr->rdat.r_read != NULL ? fr->rdat.r_read : read_mpgtypes;
 	fr->rdat.lseek = fr->rdat.r_lseek != NULL ? fr->rdat.r_lseek : lseek_mpgtypes;
 

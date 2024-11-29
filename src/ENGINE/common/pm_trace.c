@@ -192,7 +192,6 @@ hull_t *PM_HullForBsp (physent_t *pe, playermove_t *pmove, float *offset)
 	Assert (hull != NULL);
 
 	// [FWGS, 01.08.24] calculate an offset value to center the origin
-	/*VectorSubtract (hull->clip_mins, pmove->player_mins[pmove->usehull], offset);*/
 	VectorSubtract (hull->clip_mins, host.player_mins[pmove->usehull], offset);
 	VectorAdd (offset, pe->origin, offset);
 
@@ -211,7 +210,6 @@ static hull_t *PM_HullForStudio (physent_t *pe, playermove_t *pmove, int *numhit
 	vec3_t	size;
 
 	// [FWGS, 01.08.24]
-	/*VectorSubtract (pmove->player_maxs[pmove->usehull], pmove->player_mins[pmove->usehull], size);*/
 	VectorSubtract (host.player_maxs[pmove->usehull], host.player_mins[pmove->usehull], size);
 	VectorScale (size, 0.5f, size);
 
@@ -401,8 +399,6 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 		// [FWGS, 01.08.24]
 		if (pe->solid == SOLID_CUSTOM)
 			{
-			/*VectorCopy (pmove->player_mins[pmove->usehull], mins);
-			VectorCopy (pmove->player_maxs[pmove->usehull], maxs);*/
 			VectorCopy (host.player_mins[pmove->usehull], mins);
 			VectorCopy (host.player_maxs[pmove->usehull], maxs);
 			VectorClear (offset);
@@ -426,8 +422,6 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 				else
 					{
 					// [FWGS, 01.08.24]
-					/*VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
-					VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);*/
 					VectorSubtract (pe->mins, host.player_maxs[pmove->usehull], mins);
 					VectorSubtract (pe->maxs, host.player_mins[pmove->usehull], maxs);
 
@@ -438,8 +432,6 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 			else
 				{
 				// [FWGS, 01.08.24]
-				/*VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
-				VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);*/
 				VectorSubtract (pe->mins, host.player_maxs[pmove->usehull], mins);
 				VectorSubtract (pe->maxs, host.player_mins[pmove->usehull], maxs);
 
@@ -479,8 +471,6 @@ pmtrace_t PM_PlayerTraceExt (playermove_t *pmove, vec3_t start, vec3_t end, int 
 			if (transform_bbox)
 				{
 				// [FWGS, 01.08.24]
-				/*World_TransformAABB (matrix, pmove->player_mins[pmove->usehull],
-					pmove->player_maxs[pmove->usehull], mins, maxs);*/
 				World_TransformAABB (matrix, host.player_mins[pmove->usehull],
 					host.player_maxs[pmove->usehull], mins, maxs);
 
@@ -623,8 +613,6 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 		// [FWGS, 01.08.24]
 		if (pe->solid == SOLID_CUSTOM)
 			{
-			/*VectorCopy (pmove->player_mins[pmove->usehull], mins);
-			VectorCopy (pmove->player_maxs[pmove->usehull], maxs);*/
 			VectorCopy (host.player_mins[pmove->usehull], mins);
 			VectorCopy (host.player_maxs[pmove->usehull], maxs);
 			VectorClear (offset);
@@ -641,8 +629,6 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 		else
 			{
 			// [FWGS, 01.08.24]
-			/*VectorSubtract (pe->mins, pmove->player_maxs[pmove->usehull], mins);
-			VectorSubtract (pe->maxs, pmove->player_mins[pmove->usehull], maxs);*/
 			VectorSubtract (pe->mins, host.player_maxs[pmove->usehull], mins);
 			VectorSubtract (pe->maxs, host.player_mins[pmove->usehull], maxs);
 
@@ -672,8 +658,6 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 			if (transform_bbox)
 				{
 				// [FWGS, 01.08.24]
-				/*World_TransformAABB (matrix, pmove->player_mins[pmove->usehull],
-					pmove->player_maxs[pmove->usehull], mins, maxs);*/
 				World_TransformAABB (matrix, host.player_mins[pmove->usehull],
 					host.player_maxs[pmove->usehull], mins, maxs);
 

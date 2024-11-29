@@ -621,7 +621,6 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 		}
 
 	// [FWGS, 01.07.24]
-	/*Con_Printf ("\n^3 %lu keys found.\n", numkeys);*/
 	Con_Printf ("\n^3 %zu keys found.\n", numkeys);
 
 	if (completedname && length)
@@ -1261,7 +1260,6 @@ void Con_CompleteCommand (field_t *field)
 		return;
 
 	// [FWGS, 01.09.24]
-	/*memcpy (&temp, con.completionField, sizeof (field_t));*/
 	temp = *con.completionField;
 
 	// autocomplete second arg

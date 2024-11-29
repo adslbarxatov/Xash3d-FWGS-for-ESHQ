@@ -98,16 +98,10 @@ static void R_SplitEntityOnNode (mnode_t *node)
 		leaf = (mleaf_t *)node;
 
 		// grab an efrag off the free list
-		/*ef = clgame.free_efrags;*/
 		ef = cl_efrags;
 		if (!ef)
 			ef = CL_AllocEfrags (NUM_EFRAGS_ALLOC);
-		/*{
-		Con_Printf (S_ERROR "too many efrags!\n");
-		return; // no free fragments...
-		}*/
 
-		/*clgame.free_efrags = ef->entnext;*/
 		cl_efrags = ef->entnext;
 		ef->entity = r_addent;
 
@@ -180,9 +174,6 @@ R_StoreEfrags [FWGS, 01.09.24]
 ***/
 void R_StoreEfrags (efrag_t **ppefrag, int framecount)
 	{
-	/*cl_entity_t	*pent;
-	model_t		*clmodel;
-	efrag_t		*pefrag;*/
 	efrag_t		*pefrag;
 	cl_entity_t	*pent;
 	model_t		*clmodel;
@@ -192,35 +183,18 @@ void R_StoreEfrags (efrag_t **ppefrag, int framecount)
 		pent = pefrag->entity;
 		clmodel = pent->model;
 
-		/*switch (clmodel->type)*/
 		// how this could happen?
 		if (unlikely ((clmodel->type < mod_brush) || (clmodel->type > mod_studio)))
 			continue;
 
 		if (pent->visframe != framecount)
 			{
-			/*case mod_alias:
-			case mod_brush:
-			case mod_studio:
-			case mod_sprite:
-				if (pent->visframe != framecount)*/
 			if (CL_AddVisibleEntity (pent, ET_FRAGMENTED))
 				{
-				/*if (CL_AddVisibleEntity (pent, ET_FRAGMENTED))
-					{
-					// mark that we've recorded this entity for this frame
-					pent->curstate.messagenum = cl.parsecount;
-					pent->visframe = framecount;
-					}*/
 				// mark that we've recorded this entity for this frame
 				pent->curstate.messagenum = cl.parsecount;
 				pent->visframe = framecount;
 				}
-
-			/*ppefrag = &pefrag->leafnext;
-			break;
-			default:
-			break;*/
 			}
 
 		ppefrag = &pefrag->leafnext;

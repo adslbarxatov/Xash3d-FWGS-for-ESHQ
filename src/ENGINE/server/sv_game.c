@@ -30,10 +30,6 @@ GNU General Public License for more details
 static int GAME_EXPORT pfnModelIndex (const char *m);
 
 // [FWGS, 01.07.24] fatpvs stuff
-/*static byte fatpvs[MAX_MAP_LEAFS / 8];
-static byte fatphs[MAX_MAP_LEAFS / 8];
-static byte clientpvs[MAX_MAP_LEAFS / 8];	// for find client in PVS
-static vec3_t viewPoint[MAX_CLIENTS];*/
 static byte fatphs[(MAX_MAP_LEAFS + 7) / 8];
 static byte clientpvs[(MAX_MAP_LEAFS + 7) / 8]; // for find client in PVS
 
@@ -278,7 +274,6 @@ void GAME_EXPORT SV_SetModel (edict_t *ent, const char *modelname)
 		return;
 		}
 
-	/*if (!modelname || (modelname[0] <= ' '))*/
 	if (!modelname || (((byte)modelname[0]) <= ' '))
 		{
 		Con_Printf (S_WARN "%s: null name\n", __func__);
@@ -363,10 +358,8 @@ static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 		return true; // GoldSrc rules
 
 	clientnum = cl - svs.clients;
-	/*VectorCopy (viewPoint[clientnum], vieworg);*/
 
 	// Invasion issues: wrong camera position received in ENGINE_SET_PVS
-	/*if (cl->pViewEntity && !VectorCompare (vieworg, cl->pViewEntity->v.origin))*/
 	if (cl->pViewEntity)
 		VectorCopy (cl->pViewEntity->v.origin, vieworg);
 	else
@@ -455,7 +448,6 @@ static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboo
 				return false;
 
 			// [FWGS, 01.07.24] NOTE: GoldSource not using PHS for singleplayer
-			/*Mod_FatPVS (origin, FATPHS_RADIUS, fatphs, world.fatbytes, false, (svs.maxclients == 1));*/
 			Mod_FatPVS (origin, FATPHS_RADIUS, fatphs, world.fatbytes, false, (svs.maxclients == 1), true);
 
 			// using the FatPVS like a PHS
@@ -741,25 +733,21 @@ Write all the decals into demo
 ***/
 void SV_RestartDecals (void)
 	{
-	/*decallist_t	*entry;*/
 	decallist_t	*list;
 	int			decalIndex;
 	int			modelIndex;
 	sizebuf_t	*msg;
-	/*int			i;*/
 	int			i, numdecals;
 
 	if (!SV_Active ())
 		return;
 
 	// g-cont. add space for studiodecals if present
-	/*host.decalList = (decallist_t *)Z_Calloc (sizeof (decallist_t) * MAX_RENDER_DECALS * 2);*/
 	list = (decallist_t *)Z_Calloc (sizeof (decallist_t) * MAX_RENDER_DECALS * 2);
 
 #if !XASH_DEDICATED
 	if (!Host_IsDedicated ())
 		{
-		/*host.numdecals = ref.dllFuncs.R_CreateDecalList (host.decalList);*/
 		numdecals = ref.dllFuncs.R_CreateDecalList (list);
 
 		// remove decals from map
@@ -769,7 +757,6 @@ void SV_RestartDecals (void)
 #endif
 		{
 		// we probably running a dedicated server
-		/*host.numdecals = 0;*/
 		numdecals = 0;
 		}
 
@@ -777,10 +764,8 @@ void SV_RestartDecals (void)
 	msg = SV_GetReliableDatagram ();
 
 	// restore decals and write them into network message
-	/*for (i = 0; i < host.numdecals; i++)*/
 	for (i = 0; i < numdecals; i++)
 		{
-		/*entry = &host.decalList[i];*/
 		decallist_t *entry = &list[i];
 		modelIndex = SV_PEntityOfEntIndex (entry->entityIndex, true)->v.modelindex;
 
@@ -796,9 +781,6 @@ void SV_RestartDecals (void)
 				entry->flags, entry->scale);
 		}
 
-	/*Z_Free (host.decalList);
-	host.decalList = NULL;
-	host.numdecals = 0;*/
 	Z_Free (list);
 	}
 
@@ -1832,7 +1814,8 @@ static edict_t *GAME_EXPORT pfnFindClientInPVS (edict_t *pEdict)
 	// portals & monitors
 	// NOTE: this specific break "radiaton tick" in normal half-life. use only as feature
 	// ESHQ: восстановлено в пользу счётчика Гейгера
-	if (false /*FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT)*/ && mod && (mod->type == mod_brush) &&
+	//       отменённое определение: FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT)
+	if (false && mod && (mod->type == mod_brush) &&
 		!FBitSet (mod->flags, MODEL_HAS_ORIGIN))
 		{
 		// handle PVS origin for bmodels
@@ -2141,9 +2124,6 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 	spawn = FBitSet (flags, SND_RESTORE_POSITION) ? false : true;
 
 	// [FWGS, 01.07.24]
-	/*if (SV_IsValidEdict (ent) && SV_IsValidEdict (ent->v.aiment))
-		entityIndex = NUM_FOR_EDICT (ent->v.aiment);
-	else if (SV_IsValidEdict (ent))*/
 	if (SV_IsValidEdict (ent))
 		entityIndex = NUM_FOR_EDICT (ent);
 	else 
@@ -2175,7 +2155,6 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 		MSG_WriteByte (msg, vol);
 	if (FBitSet (flags, SND_ATTENUATION)) 
 		MSG_WriteByte (msg, Q_min (attn * 64, 255));
-	/*MSG_WriteByte (msg, attn * 64);*/
 
 	if (FBitSet (flags, SND_PITCH))
 		MSG_WriteByte (msg, pitch);
@@ -4306,7 +4285,6 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 	// [FWGS, 01.07.24] setup pvs cluster for invoker
 	if (!FBitSet (flags, FEV_GLOBAL))
 		{
-		/*Mod_FatPVS (pvspoint, FATPHS_RADIUS, fatphs, world.fatbytes, false, (svs.maxclients == 1));*/
 		Mod_FatPVS (pvspoint, FATPHS_RADIUS, fatphs, world.fatbytes, false, (svs.maxclients == 1), true);
 		mask = fatphs; // using the FatPVS like a PHS
 		}
@@ -4343,7 +4321,6 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 		// if it breaks some mods, probably sv.current_client semantics must be reworked to match GoldSrc
 		if (FBitSet (flags, FEV_NOTHOST) && ((cl == sv.current_client) || (cl->edict == pInvoker)) &&
 			FBitSet (cl->flags, FCL_LOCAL_WEAPONS))
-			/*if (FBitSet (flags, FEV_NOTHOST) && cl == sv.current_client && FBitSet (cl->flags, FCL_LOCAL_WEAPONS))*/
 			continue;	// will be played on client side
 
 		if (FBitSet (flags, FEV_HOSTONLY) && (cl->edict != pInvoker))
@@ -4430,7 +4407,6 @@ so we can't use a single PVS point
 ***/
 static byte *GAME_EXPORT pfnSetFatPVS (const float *org)
 	{
-	/*qboolean	fullvis = false;*/
 	static byte	fatpvs[(MAX_MAP_LEAFS + 7) / 8];
 	qboolean	fullvis = false;
 	qboolean	merge = false;
@@ -4438,43 +4414,9 @@ static byte *GAME_EXPORT pfnSetFatPVS (const float *org)
 	if (!sv.worldmodel->visdata || sv_novis.value || !org || CL_DisableVisibility ())
 		fullvis = true;
 
-	/*// portals can't change viewpoint!
-	if (!FBitSet (sv.hostflags, SVF_MERGE_VISIBILITY))
-		{
-		vec3_t	viewPos, offset;
-		qboolean client_active = pfnGetCurrentPlayer () != -1;
-
-		// see code from client.cpp for understanding:
-		// org = pView->v.origin + pView->v.view_ofs;
-		// if (pView->v.flags & FL_DUCKING)
-		//   {
-		//   org = org + (VEC_HULL_MIN - VEC_DUCK_HULL_MIN);
-		//   }
-		// so we have unneeded duck calculations who have affect when player
-		// is ducked into water. Remove offset to restore right PVS position
-		if (client_active && FBitSet (sv.current_client->edict->v.flags, FL_DUCKING))
-			{
-			VectorSubtract (svgame.pmove->player_mins[0], svgame.pmove->player_mins[1], offset);
-			VectorSubtract (org, offset, viewPos);
-			}
-		else
-			{
-			VectorCopy (org, viewPos);
-			}*/
 	if (FBitSet (sv.hostflags, SVF_MERGE_VISIBILITY))
 		merge = true;
 
-	/*// build a new PVS frame
-		Mod_FatPVS (viewPos, FATPVS_RADIUS, fatpvs, world.fatbytes, false, fullvis);
-		
-		if (client_active)
-			VectorCopy (viewPos, viewPoint[pfnGetCurrentPlayer ()]);
-		}
-	else
-		{
-		// merge PVS
-		Mod_FatPVS (org, FATPVS_RADIUS, fatpvs, world.fatbytes, true, fullvis);
-		}*/
 	Mod_FatPVS (org, FATPVS_RADIUS, fatpvs, world.fatbytes, merge, fullvis, false);
 
 	return fatpvs;
@@ -4490,47 +4432,15 @@ so we can't use a single PHS point
 ***/
 byte *pfnSetFatPAS (const float *org)
 	{
-	/*qboolean	fullvis = false;*/
 	qboolean	fullvis = false;
 	qboolean	merge = false;
 
 	if (!sv.worldmodel->visdata || sv_novis.value || !org || CL_DisableVisibility ())
 		fullvis = true;
 
-	/*// portals can't change viewpoint!
-	if (!FBitSet (sv.hostflags, SVF_MERGE_VISIBILITY))
-		{
-		vec3_t	viewPos, offset;
-		qboolean client_active = pfnGetCurrentPlayer () != -1;
-
-		// see code from client.cpp for understanding:
-		// org = pView->v.origin + pView->v.view_ofs;
-		// if (pView->v.flags & FL_DUCKING)
-		//   {
-		//   org = org + (VEC_HULL_MIN - VEC_DUCK_HULL_MIN);
-		//   }
-		// so we have unneeded duck calculations who have affect when player
-		// is ducked into water. Remove offset to restore right PVS position
-		if (client_active && FBitSet (sv.current_client->edict->v.flags, FL_DUCKING))
-			{
-			VectorSubtract (svgame.pmove->player_mins[0], svgame.pmove->player_mins[1], offset);
-			VectorSubtract (org, offset, viewPos);
-			}
-		else
-			{
-			VectorCopy (org, viewPos);
-			}*/
 	if (FBitSet (sv.hostflags, SVF_MERGE_VISIBILITY))
 		merge = true;
 
-	/*// build a new PHS frame
-		Mod_FatPVS (viewPos, FATPHS_RADIUS, fatphs, world.fatbytes, false, fullvis);
-		}
-	else
-		{
-		// merge PHS
-		Mod_FatPVS (org, FATPHS_RADIUS, fatphs, world.fatbytes, true, fullvis);
-		}*/
 	Mod_FatPVS (org, FATPHS_RADIUS, fatphs, world.fatbytes, merge, fullvis, true);
 
 	return fatphs;
@@ -5442,7 +5352,6 @@ qboolean SV_LoadProgs (const char *name)
 		gEngfuncs.pfnPEntityOfEntIndex = pfnPEntityOfEntIndexBroken;
 
 	// [FWGS, 01.09.24] make local copy of engfuncs to prevent overwrite it with bots.dll
-	/*memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));*/
 	gpEngfuncs = gEngfuncs;
 
 	GetEntityAPI = (APIFUNCTION)COM_GetProcAddress (svgame.hInstance, "GetEntityAPI");

@@ -119,7 +119,6 @@ static void SV_GetChallenge (netadr_t from)
 	if (i == MAX_CHALLENGES)
 		{
 		// this is the first time this client has asked for a challenge
-		/*svs.challenges[oldest].challenge = (COM_RandomLong (0, 0xFFFF) << 16) | COM_RandomLong (0, 0xFFFF);*/
 		svs.challenges[oldest].challenge = (COM_RandomLong (0, 0x7FFF) << 16) | COM_RandomLong (0, 0xFFFF);
 		svs.challenges[oldest].adr = from;
 		svs.challenges[oldest].time = host.realtime;
@@ -378,12 +377,8 @@ static void SV_ConnectClient (netadr_t from)
 	Q_strncpy (userinfo, s, sizeof (userinfo));
 
 	// [FWGS, 01.07.24] check connection password (don't verify local client)
-	/*if (!NET_IsLocalAddress (from) && sv_password.string[0] && Q_stricmp (sv_password.string, 
-		Info_ValueForKey (userinfo, "password")))*/
 	if (!NET_IsLocalAddress (from) && SV_HavePassword ())
 		{
-		/*SV_RejectConnection (from, "invalid password\n");
-		return;*/
 		if (Q_stricmp (sv_password.string, Info_ValueForKey (userinfo, "password")))
 			{
 			SV_RejectConnection (from, "invalid password\n");
@@ -530,10 +525,6 @@ edict_t *GAME_EXPORT SV_FakeConnect (const char *netname)
 	userinfo[0] = '\0';
 
 	// [FWGS, 01.07.24] setup fake client params
-	/*Info_SetValueForKey (userinfo, "name", netname, MAX_INFO_STRING);
-	Info_SetValueForKey (userinfo, "model", "gordon", MAX_INFO_STRING);
-	Info_SetValueForKey (userinfo, "topcolor", "1", MAX_INFO_STRING);
-	Info_SetValueForKey (userinfo, "bottomcolor", "1", MAX_INFO_STRING);*/
 	Info_SetValueForKey (userinfo, "name", netname, sizeof (userinfo));
 	Info_SetValueForKey (userinfo, "model", "gordon", sizeof (userinfo));
 	Info_SetValueForKey (userinfo, "topcolor", "1", sizeof (userinfo));
@@ -879,7 +870,6 @@ static void SV_TestBandWidth (netadr_t from)
 		}
 
 	// [FWGS, 01.07.24] quickly reject invalid packets
-	/*if (!svs.testpacket_buf ||*/
 	if (!sv_allow_testpacket.value || !svs.testpacket_buf ||
 		(packetsize <= FRAGMENT_MIN_SIZE) || (packetsize > FRAGMENT_MAX_SIZE))
 		{
@@ -939,7 +929,6 @@ static void SV_Info (netadr_t from, int protocolVersion)
 		{
 		int count, bots, remaining;
 		char temp[sizeof (s)];
-		/*qboolean have_password = COM_CheckStringEmpty (sv_password.string);*/
 
 		SV_GetPlayerCount (&count, &bots);
 
@@ -952,7 +941,6 @@ static void SV_Info (netadr_t from, int protocolVersion)
 		Info_SetValueForKeyf (s, "numcl", sizeof (s), "%i", count);
 		Info_SetValueForKeyf (s, "maxcl", sizeof (s), "%i", svs.maxclients);
 		Info_SetValueForKey (s, "gamedir", GI->gamefolder, sizeof (s));
-		/*Info_SetValueForKey (s, "password", have_password ? "1" : "0", sizeof (s));*/
 		Info_SetValueForKey (s, "password", SV_HavePassword () ? "1" : "0", sizeof (s));
 
 		// write host last so we can try to cut off too long hostnames
@@ -980,9 +968,6 @@ Responds with long info for local and broadcast requests
 ***/
 static void SV_BuildNetAnswer (netadr_t from)
 	{
-	/*char	string[MAX_INFO_STRING];
-	int		version, context, type;
-	int		i, count = 0;*/
 	const cvar_t *cv;
 	char	string[4096];
 	int		version;
@@ -1002,32 +987,14 @@ static void SV_BuildNetAnswer (netadr_t from)
 
 	if (version != PROTOCOL_VERSION)
 		{
-		/*// handle the unsupported protocol
-		string[0] = '\0';
-		Info_SetValueForKey (string, "neterror", "protocol", MAX_INFO_STRING);*/
-
 		// send error unsupported protocol
 		Info_SetValueForKey (string, "neterror", "protocol", sizeof (string));
 		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
 		return;
 		}
 
-	/*if (type == NETAPI_REQUEST_PING)
-		{
-		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, "");
-		}
-	else if (type == NETAPI_REQUEST_RULES)
-		{
-		// send serverinfo
-		Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, svs.serverinfo);
-		}
-
-	// [FWGS, 01.04.23]
-	else if (type == NETAPI_REQUEST_PLAYERS)*/
 	switch (type)
 		{
-		/*size_t len = 0;
-		string[0] = '\0';*/
 		case NETAPI_REQUEST_PING:
 			break;
 
@@ -1048,8 +1015,7 @@ static void SV_BuildNetAnswer (netadr_t from)
 					{
 					Info_SetValueForKey (string, cv->name, cv->string, sizeof (string));
 					}
-				/*for (i = 0; i < svs.maxclients; i++)
-				*/
+
 				count++;
 				}
 
@@ -1059,27 +1025,14 @@ static void SV_BuildNetAnswer (netadr_t from)
 		case NETAPI_REQUEST_PLAYERS:
 			if (!sv_expose_player_list.value || SV_HavePassword ())
 				{
-				/*if (svs.clients[i].state >= cs_connected)
-				*/
 				Info_SetValueForKey (string, "neterror", "forbidden", sizeof (string));
 				}
 			else
 				{
 				for (i = 0; i < svs.maxclients; i++)
 					{
-					/*int ret;
-					edict_t *ed = svs.clients[i].edict;
-					float time = host.realtime - svs.clients[i].connection_started;
-
-					ret = Q_snprintf (&string[len], sizeof (string) - len, "%c\\%s\\%i\\%f\\", count,
-					svs.clients[i].name, (int)ed->v.frags, time);*/
 					const sv_client_t *cl = &svs.clients[i];
 
-					/*if (ret == -1)
-					{
-					Con_DPrintf (S_WARN "SV_BuildNetAnswer: NETAPI_REQUEST_PLAYERS: buffer overflow!\n");
-					break;
-					}*/
 					if (cl->state < cs_connected)
 						continue;
 
@@ -1089,16 +1042,9 @@ static void SV_BuildNetAnswer (netadr_t from)
 					Info_SetValueForKeyf (string, va ("p%itime", count), sizeof (string), "%f",
 						host.realtime - cl->connection_started);
 
-					/*len += ret;
-					*/
 					count++;
 					}
-				/*}
-				// send playernames
-				Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
-				}
-				else if (type == NETAPI_REQUEST_DETAILS)
-				{*/
+
 				Info_SetValueForKeyf (string, "players", sizeof (string), "%i", count);
 				}
 			break;
@@ -1110,22 +1056,6 @@ static void SV_BuildNetAnswer (netadr_t from)
 					count++;
 				}
 
-			/*string[0] = '\0';
-			Info_SetValueForKey (string, "hostname", hostname.string, MAX_INFO_STRING);
-			Info_SetValueForKey (string, "gamedir", GI->gamefolder, MAX_INFO_STRING);
-
-			// [FWGS, 01.04.23]
-			Info_SetValueForKeyf (string, "current", MAX_INFO_STRING, "%i", count);
-			Info_SetValueForKeyf (string, "max", MAX_INFO_STRING, "%i", svs.maxclients);
-			Info_SetValueForKey (string, "map", sv.name, MAX_INFO_STRING);
-
-			// send serverinfo
-			Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
-			}
-			else
-			{
-			string[0] = '\0';
-			Info_SetValueForKey (string, "neterror", "undefined", MAX_INFO_STRING);*/
 			// should match SV_SourceQuery_Details
 			Info_SetValueForKey (string, "hostname", hostname.string, sizeof (string));
 			Info_SetValueForKey (string, "gamedir", GI->gamefolder, sizeof (string));
@@ -1136,8 +1066,6 @@ static void SV_BuildNetAnswer (netadr_t from)
 
 		default:
 			// send error undefined request type
-			/*Netchan_OutOfBandPrint (NS_SERVER, from, "netinfo %i %i %s\n", context, type, string);
-			*/
 			Info_SetValueForKey (string, "neterror", "undefined", sizeof (string));
 			break;
 		}
@@ -1937,8 +1865,6 @@ static qboolean SV_ShouldUpdateUserinfo (sv_client_t *cl)
 		// [FWGS, 01.07.24] player changes userinfo too quick! ignore!
 		if (host.realtime < cl->userinfo_next_changetime)
 			{
-			/*Con_Reportf ("SV_ShouldUpdateUserinfo: ignore userinfo update for %s: penalty %f, attempts %i\n",
-				cl->name, cl->userinfo_penalty, cl->userinfo_change_attempts);*/
 			Con_Reportf ("%s: ignore userinfo update for %s: penalty %f, attempts %i\n",
 				__func__, cl->name, cl->userinfo_penalty, cl->userinfo_change_attempts);
 			allow = false;
@@ -2309,10 +2235,8 @@ static qboolean SV_DownloadFile_f (sv_client_t *cl)
 		COM_HexConvert (name + 4, 32, md5);
 
 		// [FWGS, 01.07.24]
-		/*if (HPAK_ResourceForHash (CUSTOM_RES_PATH, md5, &custResource))*/
 		if (HPAK_ResourceForHash (hpk_custom_file.string, md5, &custResource))
 			{
-			/*if (HPAK_GetDataPointer (CUSTOM_RES_PATH, &custResource, &pbuf, &size))*/
 			if (HPAK_GetDataPointer (hpk_custom_file.string, &custResource, &pbuf, &size))
 				{
 				if (size)

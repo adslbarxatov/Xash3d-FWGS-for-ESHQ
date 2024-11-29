@@ -101,7 +101,7 @@ typedef uint64_t longtime_t;
 #else
 	#if defined( _MSC_VER )
 		#define HLEXPORT __declspec( dllexport )
-		#define NO_ASAN __declspec( no_sanitize_address )
+		#define NO_ASAN // ESHQ: отключён по умолчанию: __declspec( no_sanitize_address )
 	#else
 		#define HLEXPORT
 		#define NO_ASAN

@@ -72,22 +72,12 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		}
 
 	// [FWGS, 01.07.24]
-	/*if (cl.downloadUrl[0])
-	*/
 	host.downloadcount++;
 
 	if (cl.http_download)
 		{
 		HTTP_AddDownload (filepath, pResource->nDownloadSize, true);
-		/*host.downloadcount++;
-		return false;*/
 		}
-
-	/*MSG_BeginClientCmd (msg, clc_stringcmd);
-	
-	// [FWGS, 01.04.23]
-	MSG_WriteStringf (msg, "dlfile %s", filepath);
-	host.downloadcount++;*/
 	else
 		{
 		MSG_BeginClientCmd (msg, clc_stringcmd);

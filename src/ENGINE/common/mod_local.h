@@ -34,7 +34,6 @@ GNU General Public License for more details
 #define FATPVS_RADIUS		8.0f	// FatPVS use radius smaller than the FatPHS
 
 // [FWGS, 01.07.24] see SV_AddToFatPAS in GoldSrc
-/*#define FATPHS_RADIUS		16.0f*/
 #define FATPHS_RADIUS		8.0f
 
 // world index is always 1
@@ -78,7 +77,6 @@ typedef struct winding_s
 	struct winding_s	*pair;
 	hullnode_t			chain;
 	int					numpoints;
-	/*vec3_t				p[4];		// variable sized*/
 	vec3_t				p[];	// variable sized
 	} winding_t;
 
@@ -167,7 +165,6 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded);
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);
 qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf);
-/*int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis);*/
 int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis, qboolean false);
 qboolean Mod_BoxVisible (const vec3_t mins, const vec3_t maxs, const byte *visbits);
 int Mod_CheckLump (const char *filename, const int lump, int *lumpsize);
@@ -208,7 +205,6 @@ void Mod_ClearStudioCache (void);
 //
 // mod_sprite.c [FWGS, 01.08.24]
 //
-/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags);*/
 void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded);
 #endif
 

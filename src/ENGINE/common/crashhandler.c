@@ -82,7 +82,6 @@ static int Sys_ModuleName (HANDLE process, char *name, void *address, int len)
 // [FWGS, 01.09.24]
 static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	{
-	/*char message[1024];*/
 	char message[8192]; // match *nix Sys_Crash
 
 	int len = 0;
@@ -96,7 +95,6 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	STACKFRAME64 stackframe;
 	DWORD image;
 
-	/*memcpy (&context, pInfo->ContextRecord, sizeof (CONTEXT));*/
 	context = *pInfo->ContextRecord;
 
 	options = SymGetOptions ();
@@ -348,7 +346,6 @@ void Sys_SetupCrashHandler (void)
 	{
 	SetErrorMode (SEM_FAILCRITICALERRORS);	// no abort/retry/fail errors
 	oldFilter = SetUnhandledExceptionFilter (Sys_Crash);
-	/*host.hInst = GetModuleHandle (NULL);*/
 	}
 
 void Sys_RestoreCrashHandler (void)

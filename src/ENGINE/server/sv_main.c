@@ -50,11 +50,8 @@ CVAR_DEFINE_AUTO (sv_instancedbaseline, "1", 0,
 	"allow to use instanced baselines to saves network overhead");
 
 // [FWGS, 01.07.24]
-/*CVAR_DEFINE_AUTO (sv_contact, "", FCVAR_ARCHIVE | FCVAR_SERVER,
-	"server techincal support contact address or web-page");*/
 static CVAR_DEFINE_AUTO (sv_contact, "", FCVAR_ARCHIVE | FCVAR_SERVER,
 	"server technical support contact address or web-page");
-
 CVAR_DEFINE_AUTO (sv_minupdaterate, "25.0", FCVAR_ARCHIVE,
 	"minimal value for 'cl_updaterate' window");
 CVAR_DEFINE_AUTO (sv_maxupdaterate, "60.0", FCVAR_ARCHIVE,
@@ -73,11 +70,8 @@ CVAR_DEFINE_AUTO (sv_clienttrace, "1", FCVAR_SERVER,
 	"0 = big box(Quake), 0.5 = halfsize, 1 = normal (100%), otherwise it's a scaling factor");
 
 // [FWGS, 01.07.24]
-/*CVAR_DEFINE_AUTO (sv_timeout, "65", 0,
-	"after this many seconds without a message from a client, the client is dropped");*/
 static CVAR_DEFINE_AUTO (sv_timeout, "65", 0,
 	"after this many seconds without a message from a client, the client is dropped");
-
 CVAR_DEFINE_AUTO (sv_failuretime, "0.5", 0,
 	"after this long without a packet from client, don't send any more until client starts sending again");
 CVAR_DEFINE_AUTO (sv_password, "", FCVAR_SERVER | FCVAR_PROTECTED,
@@ -90,11 +84,6 @@ CVAR_DEFINE_AUTO (sv_send_logos, "1", 0,
 	"send custom decal logo to other players so they can view his too");
 CVAR_DEFINE_AUTO (sv_send_resources, "1", 0,
 	"allow to download missed resources for players");
-
-/*CVAR_DEFINE_AUTO (sv_logbans, "0", 0,
-	"print into the server log info about player bans");
-CVAR_DEFINE_AUTO (sv_allow_upload, "1", FCVAR_SERVER,
-	"allow uploading custom resources on a server");*/
 
 // [FWGS, 01.07.24] disabled CVAR_DEFINE_AUTO( sv_logbans, "0", 0,
 // "print into the server log info about player bans" );
@@ -129,20 +118,6 @@ CVAR_DEFINE_AUTO (sv_speedhack_kick, "10", FCVAR_ARCHIVE,
 	"number of speedhack warns before automatic kick (0 to disable)");
 
 // [FWGS, 01.07.24] game-related cvars
-/*CVAR_DEFINE_AUTO (mapcyclefile, "mapcycle.txt", 0,
-	"name of multiplayer map cycle configuration file");
-CVAR_DEFINE_AUTO (motdfile, "motd.txt", 0,
-	"name of 'message of the day' file");
-CVAR_DEFINE_AUTO (logsdir, "logs", 0,
-	"place to store multiplayer logs");
-CVAR_DEFINE_AUTO (bannedcfgfile, "banned.cfg", 0,
-	"name of list of banned users");
-CVAR_DEFINE_AUTO (deathmatch, "0", 0,
-	"deathmatch mode in multiplayer game");
-CVAR_DEFINE_AUTO (coop, "0", 0,
-	"cooperative mode in multiplayer game");
-CVAR_DEFINE_AUTO (teamplay, "0", 0,
-	"team mode in multiplayer game");*/
 static CVAR_DEFINE_AUTO (mapcyclefile, "mapcycle.txt", 0,
 	"name of multiplayer map cycle configuration file");
 static CVAR_DEFINE_AUTO (motdfile, "motd.txt", 0,
@@ -157,20 +132,8 @@ CVAR_DEFINE_AUTO (coop, "0", FCVAR_SERVER,
 	"cooperative mode in multiplayer game");
 static CVAR_DEFINE_AUTO (teamplay, "0", 0,
 	"team mode in multiplayer game (Quake only)");
-
 CVAR_DEFINE_AUTO (skill, "1", 0,
 	"skill level in singleplayer game");
-
-/*CVAR_DEFINE_AUTO (temp1, "0", 0,
-	"temporary cvar that used by some mods");
-CVAR_DEFINE_AUTO (listipcfgfile, "listip.cfg", 0,
-	"name of listip.cfg file");
-CVAR_DEFINE_AUTO (mapchangecfgfile, "", 0,
-	"name of map change configuration file");
-CVAR_DEFINE_AUTO (disconcfgfile, "", 0,
-	"name of disconnect configuration file");
-CVAR_DEFINE_AUTO (_sv_override_scientist_mdl, "", 0,
-	"override default scientist model name (specially for HL25 Uplink maps)");*/
 static CVAR_DEFINE_AUTO (temp1, "0", 0,
 	"temporary cvar that used by some mods");
 static CVAR_DEFINE_AUTO (listipcfgfile, "listip.cfg", 0,
@@ -187,30 +150,6 @@ CVAR_DEFINE_AUTO (meat_mode, "0", FCVAR_ARCHIVE,
 	"allows bullets and electrical shocks to squash corpses immediately");
 
 // [FWGS, 01.07.24] physic-related variables
-/*CVAR_DEFINE_AUTO (sv_gravity, "800", FCVAR_MOVEVARS,
-	"world gravity value");
-CVAR_DEFINE_AUTO (sv_stopspeed, "100", FCVAR_MOVEVARS,
-	"how fast you come to a complete stop");
-CVAR_DEFINE_AUTO (sv_maxspeed, "320", FCVAR_MOVEVARS,
-	"maximum speed a player can accelerate to when on ground");
-CVAR_DEFINE_AUTO (sv_spectatormaxspeed, "500", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
-	"maximum speed a spectator can accelerate in air");
-CVAR_DEFINE_AUTO (sv_accelerate, "10", FCVAR_MOVEVARS,
-	"rate at which a player accelerates to sv_maxspeed");
-CVAR_DEFINE_AUTO (sv_airaccelerate, "10", FCVAR_MOVEVARS,
-	"rate at which a player accelerates to sv_maxspeed while in the air");
-CVAR_DEFINE_AUTO (sv_wateraccelerate, "10", FCVAR_MOVEVARS,
-	"rate at which a player accelerates to sv_maxspeed while in the water");
-CVAR_DEFINE_AUTO (sv_friction, "4", FCVAR_MOVEVARS,
-	"how fast you slow down");
-CVAR_DEFINE (sv_edgefriction, "edgefriction", "2", FCVAR_MOVEVARS,
-	"how much you slow down when nearing a ledge you might fall off");
-CVAR_DEFINE_AUTO (sv_waterfriction, "1", FCVAR_MOVEVARS,
-	"how fast you slow down in water");
-CVAR_DEFINE_AUTO (sv_bounce, "1", FCVAR_MOVEVARS,
-	"bounce factor for entities with MOVETYPE_BOUNCE");
-CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_MOVEVARS,
-	"how high you and NPS's can step up");*/
 CVAR_DEFINE_AUTO (sv_gravity, "800", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"world gravity value");
 CVAR_DEFINE_AUTO (sv_stopspeed, "100", FCVAR_SERVER | FCVAR_MOVEVARS,
@@ -235,35 +174,20 @@ static CVAR_DEFINE_AUTO (sv_bounce, "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"bounce factor for entities with MOVETYPE_BOUNCE");
 static CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"how high you and NPS's can step up");
-
 CVAR_DEFINE_AUTO (sv_maxvelocity, "2000", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"max velocity for all things in the world");
-
-/*CVAR_DEFINE_AUTO (sv_zmax, "4096", FCVAR_MOVEVARS | FCVAR_SPONLY,
-	"maximum viewable distance");*/
 static CVAR_DEFINE_AUTO (sv_zmax, "4096", FCVAR_SERVER | FCVAR_MOVEVARS | FCVAR_SPONLY,
 	"maximum viewable distance");
-
 CVAR_DEFINE_AUTO (sv_wateramp, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"world waveheight factor");
-
-/*CVAR_DEFINE (sv_footsteps, "mp_footsteps", "1", FCVAR_MOVEVARS,
-	"world gravity value");*/
 static CVAR_DEFINE (sv_footsteps, "mp_footsteps", "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"world gravity value");
-
 CVAR_DEFINE_AUTO (sv_skyname, "desert", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"skybox name (can be dynamically changed in-game)");
-
-/*CVAR_DEFINE_AUTO (sv_rollangle, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED | FCVAR_ARCHIVE,
-	"how much to tilt the view when strafing");
-CVAR_DEFINE_AUTO (sv_rollspeed, "200", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
-	"how much strafing is necessary to tilt the view");*/
 static CVAR_DEFINE_AUTO (sv_rollangle, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED | FCVAR_ARCHIVE,
 	"how much to tilt the view when strafing");
 static CVAR_DEFINE_AUTO (sv_rollspeed, "200", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"how much strafing is necessary to tilt the view");
-
 CVAR_DEFINE_AUTO (sv_skycolor_r, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"skylight red component value");
 CVAR_DEFINE_AUTO (sv_skycolor_g, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
@@ -280,17 +204,6 @@ CVAR_DEFINE_AUTO (sv_wateralpha, "1", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"world surfaces water transparency factor. 1.0 - solid, 0.0 - fully transparent");
 CVAR_DEFINE_AUTO (sv_background_freeze, "1", FCVAR_ARCHIVE,
 	"freeze player movement on background maps (e.g. to prevent falling)");
-
-/*CVAR_DEFINE_AUTO (showtriggers, "0", FCVAR_LATCH,
-	"debug cvar shows triggers");
-CVAR_DEFINE_AUTO (sv_airmove, "1", FCVAR_SERVER,
-	"obsolete, compatibility issues");
-CVAR_DEFINE_AUTO (sv_version, "", FCVAR_READ_ONLY,
-	"engine version string");
-CVAR_DEFINE_AUTO (hostname, "", FCVAR_SERVER | FCVAR_PRINTABLEONLY,
-	"name of current host");
-CVAR_DEFINE_AUTO (sv_fps, "0.0", FCVAR_SERVER,
-	"server framerate");*/
 static CVAR_DEFINE_AUTO (showtriggers, "0", FCVAR_LATCH,
 	"debug cvar shows triggers");
 static CVAR_DEFINE_AUTO (sv_airmove, "1", FCVAR_SERVER,
@@ -303,14 +216,6 @@ static CVAR_DEFINE_AUTO (sv_fps, "0.0", 0,
 	"server framerate");
 
 // [FWGS, 01.07.24] gore-related cvars
-/*CVAR_DEFINE_AUTO (violence_hblood, "1", 0,
-	"draw human blood");
-CVAR_DEFINE_AUTO (violence_ablood, "1", 0,
-	"draw alien blood");
-CVAR_DEFINE_AUTO (violence_hgibs, "1", 0,
-	"show human gib entities");
-CVAR_DEFINE_AUTO (violence_agibs, "1", 0,
-	"show alien gib entities");*/
 static CVAR_DEFINE_AUTO (violence_hblood, "1", 0,
 	"draw human blood");
 static CVAR_DEFINE_AUTO (violence_ablood, "1", 0,
@@ -323,12 +228,8 @@ static CVAR_DEFINE_AUTO (violence_agibs, "1", 0,
 // [FWGS, 01.07.24] voice chat
 CVAR_DEFINE_AUTO (sv_voiceenable, "1", FCVAR_ARCHIVE | FCVAR_SERVER,
 	"enable voice support");
-
-/*CVAR_DEFINE_AUTO (sv_voicequality, "3", FCVAR_ARCHIVE | FCVAR_SERVER,
-	"voice chat quality level, from 0 to 5, higher is better");*/
 CVAR_DEFINE_AUTO (sv_voicequality, "3", FCVAR_ARCHIVE,
 	"voice chat quality level, from 0 to 5, higher is better");
-
 CVAR_DEFINE_AUTO (sv_enttools_enable, "0", FCVAR_ARCHIVE | FCVAR_PROTECTED,
 	"enable powerful and dangerous entity tools");
 CVAR_DEFINE_AUTO (sv_enttools_maxfire, "5", FCVAR_ARCHIVE | FCVAR_PROTECTED,
@@ -337,22 +238,12 @@ CVAR_DEFINE (public_server, "public", "0", 0,
 	"change server type from private to public");
 CVAR_DEFINE_AUTO (sv_novis, "0", 0,
 	"force to ignore server visibility");	// disable server culling entities by vis
-
-/*CVAR_DEFINE (sv_pausable, "pausable", "1", FCVAR_SERVER,
-	"allow players to pause or not");
-static CVAR_DEFINE_AUTO (timeout, "125", FCVAR_SERVER,
-	"connection timeout");	// seconds without any message*/
 CVAR_DEFINE (sv_pausable, "pausable", "1", 0,
 	"allow players to pause or not");
-
 CVAR_DEFINE (sv_maxclients, "maxplayers", "1", FCVAR_LATCH,
 	"server max capacity");
 CVAR_DEFINE_AUTO (sv_check_errors, "0", FCVAR_ARCHIVE,
 	"check edicts for errors");
-
-/*CVAR_DEFINE_AUTO (sv_reconnect_limit, "3", FCVAR_ARCHIVE,
-	"max reconnect attempts");	// minimum seconds between connect messages*/
-
 CVAR_DEFINE_AUTO (sv_validate_changelevel, "0", 0,
 	"test change level for level-designer errors");
 CVAR_DEFINE (sv_hostmap, "hostmap", "", 0,
@@ -477,7 +368,6 @@ void SV_UpdateMovevars (qboolean initialize)
 	// [FWGS, 01.09.24]
 	if (MSG_WriteDeltaMovevars (&sv.reliable_datagram, &svgame.oldmovevars, &svgame.movevars))
 		svgame.oldmovevars = svgame.movevars; // oldstate changed
-	/*memcpy (&svgame.oldmovevars, &svgame.movevars, sizeof (movevars_t)); // oldstate changed*/
 
 	host.movevars_changed = false;
 	}
@@ -580,7 +470,6 @@ static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 		}
 
 	// [FWGS, 01.07.24]
-	/*HPAK_AddLump (true, CUSTOM_RES_PATH, resource, cl->netchan.tempbuffer, NULL);*/
 	HPAK_AddLump (true, hpk_custom_file.string, resource, cl->netchan.tempbuffer, NULL);
 	ClearBits (resource->ucFlags, RES_WASMISSING);
 	SV_MoveToOnHandList (cl, resource);
@@ -744,7 +633,6 @@ static void SV_CheckTimeouts (void)
 	double		droppoint;
 	int			i, numclients = 0;
 
-	/*droppoint = host.realtime - timeout.value;*/
 	droppoint = host.realtime - sv_timeout.value;
 
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
@@ -827,9 +715,6 @@ static qboolean SV_IsSimulating (void)
 		// force simulating for background map
 		return true;
 		}
-
-	/*if (Host_IsDedicated ())
-		return true; // always active for dedicated servers*/
 
 	if (!SV_HasActivePlayers ())
 		return false;
@@ -1160,7 +1045,6 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&hostname);
 
 	// [FWGS, 01.07.24]
-	/*Cvar_RegisterVariable (&timeout);*/
 	Cvar_RegisterVariable (&sv_timeout);
 	Cvar_RegisterVariable (&sv_pausable);
 	Cvar_RegisterVariable (&sv_validate_changelevel);
@@ -1182,7 +1066,6 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_maxclients);
 	Cvar_RegisterVariable (&sv_check_errors);
 	Cvar_RegisterVariable (&public_server);
-	/*Cvar_RegisterVariable (&sv_reconnect_limit);*/
 	Cvar_RegisterVariable (&sv_failuretime);
 	Cvar_RegisterVariable (&sv_unlag);
 	Cvar_RegisterVariable (&sv_maxunlag);

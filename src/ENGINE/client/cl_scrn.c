@@ -29,12 +29,8 @@ CVAR_DEFINE_AUTO (scr_download, "-1", 0,
 	"downloading bar progress");
 CVAR_DEFINE (scr_viewsize, "viewsize", "120", FCVAR_ARCHIVE,
 	"screen size (quake only)");
-
-/*CVAR_DEFINE_AUTO (cl_testlights, "0", 0,
-	"test dynamic lights");*/
 CVAR_DEFINE_AUTO (cl_testlights, "0", FCVAR_CHEAT,
 	"test dynamic lights");
-
 CVAR_DEFINE (cl_allow_levelshots, "allow_levelshots", "0", FCVAR_ARCHIVE,
 	"allow engine to use indivdual levelshots instead of 'loading' image");
 CVAR_DEFINE_AUTO (cl_levelshot_name, "*black", 0,
@@ -144,9 +140,7 @@ void SCR_DrawPos (void)
 	if ((cls.state != ca_active) || !cl_showpos.value || cl.background)
 		return;
 
-	/*ent = CL_GetLocalPlayer ();*/
 	ent = CL_EDICT_NUM (cl.playernum + 1);
-
 	speed = VectorLength (cl.simvel);
 
 	Q_snprintf (msg, MAX_SYSPATH,
@@ -447,7 +441,6 @@ void SCR_MakeScreenShot (void)
 SCR_DrawPlaque [FWGS, 01.08.24]
 ================
 ***/
-/*static void SCR_DrawPlaque (void)*/
 static qboolean SCR_DrawPlaque (void)
 	{
 	if ((cl_allow_levelshots.value && !cls.changelevel) || cl.background)
@@ -471,16 +464,9 @@ SCR_BeginLoadingPlaque [FWGS, 01.08.24]
 ***/
 void SCR_BeginLoadingPlaque (qboolean is_background)
 	{
-	/*float	oldclear = 0;;*/
 	S_StopAllSounds (true);
 	cl.audio_prepped = false;	// don't play ambients
 
-	/*cl.video_prepped = false;
-
-	if (!Host_IsDedicated ())
-		oldclear = gl_clear.value;
-
-	if (CL_IsInMenu () && !cls.changedemo && !is_background)*/
 	if ((cls.key_dest == key_menu) && !cls.changedemo && !is_background)
 		{
 		UI_SetActiveMenu (false);
@@ -495,9 +481,6 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	if (cls.key_dest == key_console)
 		return;
 
-	/*if (!Host_IsDedicated ())
-		gl_clear.value = 0.0f;*/
-
 	if (is_background) 
 		IN_MouseSavePos ();
 
@@ -509,9 +492,6 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 
 	cls.disable_screen = host.realtime;
 	cl.background = is_background;		// set right state before svc_serverdata is came
-
-	/*if (!Host_IsDedicated ())
-		gl_clear.value = oldclear;*/
 	}
 
 /***
@@ -560,7 +540,6 @@ void SCR_TileClear (void)
 	dirty_t	clear;
 
 	// [FWGS, 01.08.24] full screen rendering
-	/*if (scr_viewsize.value >= 120)*/
 	if (likely (scr_viewsize.value >= 120))
 		return;
 
@@ -653,7 +632,6 @@ void SCR_UpdateScreen (void)
 		case ca_connecting:
 		case ca_connected:
 		case ca_validate:
-			/*SCR_DrawPlaque ();*/
 			screen_redraw = SCR_DrawPlaque ();
 			break;
 
@@ -671,7 +649,6 @@ void SCR_UpdateScreen (void)
 			break;
 		}
 
-	/*V_PostRender ();*/
 	// during changelevel we might have a few frames when we have nothing to draw
 	// (assuming levelshots are off) and drawing 2d on top of nothing or cleared screen
 	// is ugly, specifically with Adreno and ImgTec GPUs

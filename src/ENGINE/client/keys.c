@@ -582,7 +582,6 @@ static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 				}
 
 			buttonPtr = button;
-			/*while (((kb[i] <= ' ') || (kb[i] == ';')) && (kb[i] != 0))*/
 			while (((((byte)kb[i]) <= ' ') || (kb[i] == ';')) && (kb[i] != 0))
 				i++;
 			}
@@ -789,12 +788,10 @@ void GAME_EXPORT Key_Event (int key, int down)
 	if (cls.key_dest == key_menu)
 		{
 		// only non printable keys passed
-		/*if (!gameui.use_text_api)*/
 		if (!gameui.use_extended_api)
 			Key_EnableTextInput (true, false);
 		
 		// pass printable chars for old menus
-		/*if (!gameui.use_text_api && !host.textmode && down && (key >= 32) && (key <= 'z'))*/
 		if (!gameui.use_extended_api && !host.textmode && down && (key >= 32) && (key <= 'z'))
 			{
 			if (Key_IsDown (K_SHIFT))
@@ -1106,10 +1103,6 @@ static qboolean OSK_KeyEvent (int key, int down)
 						break;
 						}
 
-					/*if (!Q_stricmp (cl_charset.string, "utf-8"))
-						ch = (unsigned char)osk.curbutton.val;
-					else
-						ch = Con_UtfProcessCharForce ((unsigned char)osk.curbutton.val);*/
 					ch = (byte)osk.curbutton.val;
 
 					// do not pass UTF-8 sequence into the engine, convert it here
@@ -1119,9 +1112,6 @@ static qboolean OSK_KeyEvent (int key, int down)
 					if (!ch)
 						break;
 
-					/*Con_CharEvent (ch);
-					if (cls.key_dest == key_menu)
-						UI_CharEvent (ch);*/
 					CL_CharEvent (ch);
 
 					break;

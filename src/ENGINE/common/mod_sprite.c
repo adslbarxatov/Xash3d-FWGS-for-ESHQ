@@ -32,7 +32,6 @@ Mod_LoadSpriteModel [FWGS, 01.08.24]
 load sprite model
 ====================
 ***/
-/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags)*/
 void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
 	dsprite_q1_t	*pinq1;

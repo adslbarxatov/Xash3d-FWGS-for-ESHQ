@@ -147,8 +147,6 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 	if (Q_stricmp (sfx->name, "*default"))
 		{
 		// load it from disk
-		/*if ((s_warn_late_precache.value > 0) && CL_Active ())
-			Con_Printf (S_WARN "S_LoadSound: late precache of %s\n", sfx->name);*/
 		if ((s_warn_late_precache.value > 0) && (cls.state == ca_active))
 			Con_Printf (S_WARN "%s: late precache of %s\n", __func__, sfx->name);
 
@@ -163,15 +161,12 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 
 	if (sc->rate < SOUND_11k) // some bad sounds
 		Sound_Process (&sc, SOUND_11k, sc->width, sc->channels, SOUND_RESAMPLE);
-		/*Sound_Process (&sc, SOUND_11k, sc->width, SOUND_RESAMPLE);*/
 
 	else if ((sc->rate > SOUND_11k) && (sc->rate < SOUND_22k))	// some bad sounds
 		Sound_Process (&sc, SOUND_22k, sc->width, sc->channels, SOUND_RESAMPLE);
-		/*Sound_Process (&sc, SOUND_22k, sc->width, SOUND_RESAMPLE);*/
 
 	else if ((sc->rate > SOUND_22k) && (sc->rate < SOUND_44k))	// some bad sounds
 		Sound_Process (&sc, SOUND_44k, sc->width, sc->channels, SOUND_RESAMPLE);
-		/*Sound_Process (&sc, SOUND_44k, sc->width, SOUND_RESAMPLE);*/
 
 	sfx->cache = sc;
 	return sfx->cache;

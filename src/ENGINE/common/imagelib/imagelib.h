@@ -105,20 +105,12 @@ typedef struct imglib_s
 #define LUMP_MAXHEIGHT	1024
 
 // [FWGS, 01.07.24]
-/*#define PLDECAL_MAXWIDTH  512	// [FWGS, 01.04.23]
-#define PLDECAL_MAXHEIGHT 512*/
 #define PLDECAL_MAXWIDTH	768	// total of ~2mb uncompressed rgba data
 #define PLDECAL_MAXHEIGHT	768
 
 // [FWGS, 01.08.24]
 enum
 	{
-	/*LUMP_NORMAL = 0,	// no alpha
-	LUMP_MASKED,		// 1-bit alpha channel masked texture
-	LUMP_GRADIENT,		// gradient image (decals)
-	LUMP_EXTENDED,		// bmp images have extened palette with alpha-channel
-	LUMP_HALFLIFE,		// get predefined half-life palette
-	LUMP_QUAKE1			// get predefined quake palette*/
 	LUMP_NORMAL = 0,	// no alpha
 	LUMP_MASKED,		// 1-bit alpha channel masked texture
 	LUMP_GRADIENT,		// gradient image (decals)

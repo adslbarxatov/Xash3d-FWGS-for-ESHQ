@@ -62,7 +62,6 @@ static void FS_Path_f_ (void)
 	}
 
 // [FWGS, 01.08.24]
-/*static fs_interface_t fs_memfuncs =*/
 static const fs_interface_t fs_memfuncs =
 	{
 	Con_Printf,
@@ -95,7 +94,6 @@ static void FS_UnloadProgs (void)
 #endif
 
 // [FWGS, 01.07.24]
-/*qboolean FS_LoadProgs (void)*/
 static qboolean FS_LoadProgs (void)
 	{
 	const char *name = FILESYSTEM_STDIO_DLL;
@@ -105,7 +103,6 @@ static qboolean FS_LoadProgs (void)
 
 	if (!fs_hInstance)
 		{
-		/*Host_Error ("%s: can't load filesystem library %s: %s\n", __func__, name, COM_GetLibraryError ());*/
 		Sys_Error ("%s: can't load filesystem library %s: %s\n", __func__, name, COM_GetLibraryError ());
 		return false;
 		}
@@ -113,7 +110,6 @@ static qboolean FS_LoadProgs (void)
 	if (!(GetFSAPI = (FSAPI)COM_GetProcAddress (fs_hInstance, GET_FS_API)))
 		{
 		FS_UnloadProgs ();
-		/*Host_Error ("%s: can't find GetFSAPI entry point in %s\n", __func__, name);*/
 		Sys_Error ("%s: can't find GetFSAPI entry point in %s\n", __func__, name);
 		return false;
 		}
@@ -121,7 +117,6 @@ static qboolean FS_LoadProgs (void)
 	if (GetFSAPI (FS_API_VERSION, &g_fsapi, &FI, &fs_memfuncs) != FS_API_VERSION)
 		{
 		FS_UnloadProgs ();
-		/*Host_Error ("%s: can't initialize filesystem API: wrong version\n", __func__);*/
 		Sys_Error ("%s: can't initialize filesystem API: wrong version\n", __func__);
 		return false;
 		}
@@ -129,7 +124,6 @@ static qboolean FS_LoadProgs (void)
 	if (!(fs_pfnCreateInterface = (pfnCreateInterface_t)COM_GetProcAddress (fs_hInstance, "CreateInterface")))
 		{
 		FS_UnloadProgs ();
-		/*Host_Error ("%s: can't find CreateInterface entry point in %s\n", __func__, name);*/
 		Sys_Error ("%s: can't find CreateInterface entry point in %s\n", __func__, name);
 		return false;
 		}
@@ -229,17 +223,11 @@ static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 FS_Init [FWGS, 01.08.24]
 ================
 ***/
-/*void FS_Init (void)*/
 void FS_Init (const char *basedir)
 	{
-	/*int	i;*/
 	string	gamedir;
 	char	rodir[MAX_OSPATH], rootdir[MAX_OSPATH];
 	rodir[0] = rootdir[0] = 0;
-
-	/*Cmd_AddRestrictedCommand ("fs_rescan", FS_Rescan_f, "rescan filesystem search pathes");
-	Cmd_AddRestrictedCommand ("fs_path", FS_Path_f_, "show filesystem search pathes");
-	Cmd_AddRestrictedCommand ("fs_clearpaths", FS_ClearPaths_f, "clear filesystem search pathes");*/
 
 	if (!FS_DetermineRootDirectory (rootdir, sizeof (rootdir)) || !COM_CheckStringEmpty (rootdir))
 		{
@@ -262,12 +250,8 @@ void FS_Init (const char *basedir)
 		else
 			Q_strncpy (gamedir, basedir, sizeof (gamedir)); // gamedir == basedir
 		}
-	/*Q_strncpy (gamedir, basedir, sizeof (gamedir)); // gamedir == basedir*/
 
 	FS_LoadProgs ();
-	/*Q_strncpy (gamedir, SI.basedirName, sizeof (gamedir));	// gamedir == basedir
-
-	if (!FS_InitStdio (true, host.rootdir, SI.basedirName, gamedir, host.rodir))*/
 
 	// TODO: this function will cause engine to stop in case of fail
 	// when it will have an option to return string error, restore Sys_Error
@@ -277,13 +261,10 @@ void FS_Init (const char *basedir)
 	g_fsapi.SetCurrentDirectory (rootdir);
 	if (!g_fsapi.InitStdio (true, rootdir, basedir, gamedir, rodir))
 		{
-		/*Host_Error ("Can't init filesystem_stdio!\n");*/
 		Sys_Error ("Can't init filesystem_stdio!\n");
 		return;
 		}
 
-	/*if (!Sys_GetParmFromCmdLine ("-dll", SI.gamedll))
-		SI.gamedll[0] = 0;*/
 	Cmd_AddRestrictedCommand ("fs_rescan", FS_Rescan_f, "rescan filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_path", FS_Path_f_, "show filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_clearpaths", FS_ClearPaths_f, "clear filesystem search pathes");
@@ -291,8 +272,6 @@ void FS_Init (const char *basedir)
 	if (!Sys_GetParmFromCmdLine ("-dll", host.gamedll))
 		host.gamedll[0] = 0;
 
-	/*if (!Sys_GetParmFromCmdLine ("-clientlib", SI.clientlib))
-		SI.clientlib[0] = 0;*/
 	if (!Sys_GetParmFromCmdLine ("-clientlib", host.clientlib))
 		host.clientlib[0] = 0;
 	}
@@ -306,8 +285,6 @@ void FS_Shutdown (void)
 	{
 	if (g_fsapi.ShutdownStdio)
 		g_fsapi.ShutdownStdio ();
-
-	/*memset (&SI, 0, sizeof (sysinfo_t));*/
 
 	FS_UnloadProgs ();
 	}

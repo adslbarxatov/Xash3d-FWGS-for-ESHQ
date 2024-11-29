@@ -410,7 +410,6 @@ void Voice_RecordStart (void)
 		// [FWGS, 01.08.24]
 		if (voice.input_file)
 			{
-			/*Sound_Process (&voice.input_file, voice.samplerate, voice.width, SOUND_RESAMPLE);*/
 			Sound_Process (&voice.input_file, voice.samplerate, voice.width, VOICE_PCM_CHANNELS, SOUND_RESAMPLE);
 			voice.input_file_pos = 0;
 
@@ -615,11 +614,8 @@ void Voice_Idle (double frametime)
 	{
 	int i;
 
-	/*if (FBitSet (voice_enable.flags, FCVAR_CHANGED) && !voice_enable.value)*/
 	if (FBitSet (voice_enable.flags, FCVAR_CHANGED))
 		{
-		/*Voice_Shutdown ();
-		return;*/
 		ClearBits (voice_enable.flags, FCVAR_CHANGED);
 
 		if (voice_enable.value)
@@ -669,13 +665,6 @@ qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit)
 	if (Q_strcmp (pszCodecName, voice.codec) || (voice.quality != quality))
 		{
 		Voice_Shutdown ();
-
-		/*if (Q_strcmp (pszCodecName, VOICE_OPUS_CUSTOM_CODEC))
-			{
-			Con_Printf (S_ERROR "Server requested unsupported codec: %s\n", pszCodecName);
-			return false;
-			}*/
-
 		voice.autogain.block_size = 128;
 
 #if OPUS

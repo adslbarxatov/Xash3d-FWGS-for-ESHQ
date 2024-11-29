@@ -36,7 +36,6 @@ static void V_CalcViewRect (void)
 	float		size;
 
 	// [FWGS, 01.09.24]
-	/*if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))*/
 	if (Host_IsQuakeCompatible ())
 		{
 		// intermission is always full screen
@@ -155,7 +154,7 @@ static void V_SetRefParams (ref_params_t *fd)
 	VectorCopy (cl.viewangles, fd->cl_viewangles);
 	fd->health = cl.local.health;
 	VectorCopy (cl.crosshairangle, fd->crosshairangle);
-	/*fd->viewsize = scr_viewsize.value;*/
+
 	if (Host_IsQuakeCompatible ())
 		fd->viewsize = scr_viewsize.value;
 	else
@@ -515,7 +514,6 @@ V_PostRender [FWGS, 01.07.24]
 ***/
 void V_PostRender (void)
 	{
-	/*static double	oldtime;*/
 	qboolean	draw_2d = false;
 
 	ref.dllFuncs.R_AllowFog (false);

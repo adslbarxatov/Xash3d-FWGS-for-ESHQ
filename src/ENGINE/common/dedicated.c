@@ -42,11 +42,6 @@ qboolean CL_IsInGame (void)
 	}
 
 // [FWGS, 01.08.24] removed CL_IsInMenu
-/*qboolean CL_IsInMenu (void)
-	{
-	return false;
-	}*/
-
 qboolean CL_IsInConsole (void)
 	{
 	return false;

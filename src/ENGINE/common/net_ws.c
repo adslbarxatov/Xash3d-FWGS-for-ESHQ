@@ -1235,7 +1235,6 @@ static void NET_AddToLagged (netsrc_t sock, packetlag_t *list, packetlag_t *pack
 	packet->receivedtime = timestamp;
 
 	// [FWGS, 01.09.24]
-	/*memcpy (&packet->from, from, sizeof (netadr_t));*/
 	packet->from = *from;
 	}
 
@@ -1349,7 +1348,6 @@ static qboolean NET_LagPacket (qboolean newdata, netsrc_t sock, netadr_t *from, 
 
 	// [FWGS, 01.09.24] delivery packet from fake lag queue
 	memcpy (data, pPacket->data, pPacket->size);
-	/*memcpy (&net_from, &pPacket->from, sizeof (netadr_t));*/
 	net_from = pPacket->from;
 	*length = pPacket->size;
 
@@ -1857,8 +1855,6 @@ static void NET_OpenIP (qboolean change_port, int *sockets, const char *net_ifac
 	{
 	// [FWGS, 01.07.24]
 	int port;
-	/*qboolean sv_nat = Cvar_VariableInteger ("sv_nat");
-	qboolean cl_nat = Cvar_VariableInteger ("cl_nat");*/
 	qboolean sv_nat = Cvar_VariableInteger ("sv_nat");
 	qboolean cl_nat = Cvar_VariableInteger ("cl_nat");
 
@@ -2368,7 +2364,6 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 	file->socket = -1;
 
 	// [FWGS, 01.09.24]
-	/*Q_snprintf (incname, 256, "downloaded/%s.incomplete", file->path);*/
 	Q_snprintf (incname, sizeof (incname), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", file->path);
 
 	if (error)
@@ -2399,7 +2394,6 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 		char name[256];
 
 		// [FWGS, 01.09.24]
-		/*Q_snprintf (name, 256, "downloaded/%s", file->path);*/
 		Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s", file->path);
 
 		FS_Rename (incname, name);
@@ -2468,7 +2462,6 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 
 	if (curfile->header_size >= sizeof (buf))
 		{
-		/*Con_Reportf (S_ERROR "Header too big, the size is %s\n", curfile->header_size);*/
 		Con_Reportf (S_ERROR "Header too big, the size is %d\n", curfile->header_size);
 		HTTP_FreeFile (curfile, true);
 		return false;
@@ -2489,8 +2482,6 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 				{
 				int cutheadersize = begin - curfile->buf + 4; // after that begin of data
 				char *content_length_line;
-
-				/*Con_Reportf ("HTTP: Got response!\n");*/
 
 				if (!Q_strstr (curfile->buf, "200 OK"))
 					{
@@ -2516,12 +2507,10 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 					content_length_line += sizeof ("Content-Length: ") - 1;
 					size = Q_atoi (content_length_line);
 
-					/*Con_Reportf ("HTTP: File size is %d\n", size);*/
 					Con_Reportf ("HTTP: Got 200 OK! File size is %d\n", size);
 
 					if ((curfile->size != -1) && (curfile->size != size)) // check size if specified, not used
 						Con_Reportf (S_WARN "Server reports wrong file size for %s!\n", curfile->path);
-					/*Con_Reportf (S_WARN "Server reports wrong file size!\n");*/
 
 					curfile->size = size;
 					curfile->header_size = 0;
@@ -2631,7 +2620,6 @@ void HTTP_Run (void)
 			Con_Reportf ("HTTP: Starting download %s from %s\n", curfile->path, curfile->server->host);
 
 			// [FWGS, 01.09.24]
-			/*Q_snprintf (name, sizeof (name), "downloaded/%s.incomplete", curfile->path);*/
 			Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", curfile->path);
 
 			curfile->file = FS_Open (name, "wb", true);

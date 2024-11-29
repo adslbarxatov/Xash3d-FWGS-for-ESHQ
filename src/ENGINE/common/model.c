@@ -305,14 +305,11 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 
 		case IDSPRITEHEADER:
 			// [FWGS, 01.08.24]
-			/*Mod_LoadSpriteModel (mod, buf, &loaded, 0);*/
 			Mod_LoadSpriteModel (mod, buf, &loaded);
 			break;
 
 		case IDALIASHEADER:
 			// [FWGS, 01.08.24]
-			/*// REFTODO: move server-related code here
-			loaded = true;*/
 			Mod_LoadAliasModel (mod, buf, &loaded);
 			break;
 

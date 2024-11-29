@@ -129,7 +129,6 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 		// if it is failed, it is not possible to draw with SDL in REF_SOFTWARE mode
 		if (!sw.win)
 			{
-			/*Sys_Warn ("failed to initialize software output, try enable sw_glblit");*/
 			Sys_Warn ("failed to initialize software output, try running with -glblit flag");
 			return false;
 			}
@@ -653,7 +652,6 @@ static qboolean VID_SetScreenResolution (int width, int height, window_mode_t wi
 // [FWGS, 01.08.24]
 void VID_RestoreScreenResolution (void)
 	{
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	// on mobile platform fullscreen is designed to be always on
 	// and code below minimizes our window if we're in full screen
 	// don't do that on mobile devices
@@ -715,7 +713,6 @@ static void VID_SetWindowIcon (SDL_Window *hWnd)
 
 // ICO support only for Win32
 #if XASH_WIN32
-	/*WIN_SetWindowIcon (LoadIcon (host.hInst, MAKEINTRESOURCE (101)));*/
 	WIN_SetWindowIcon (LoadIcon (hInst, MAKEINTRESOURCE (101)));
 #endif
 	}
@@ -1226,13 +1223,6 @@ qboolean VID_SetMode (void)
 #endif
 
 	// [FWGS, 01.09.24]
-	/*if (!FBitSet (vid_fullscreen.flags, FCVAR_CHANGED))
-		Cvar_DirectSet (&vid_fullscreen, DEFAULT_FULLSCREEN);
-	else
-		ClearBits (vid_fullscreen.flags, FCVAR_CHANGED);
-
-	SetBits (gl_vsync.flags, FCVAR_CHANGED);*/
-
 	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
 	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 	
@@ -1247,8 +1237,6 @@ qboolean VID_SetMode (void)
 		if (err == rserr_invalid_fullscreen)
 			{
 			Cvar_DirectSet (&vid_fullscreen, "0");
-			/*Con_Reportf (S_ERROR  "VID_SetMode: fullscreen unavailable in this mode\n");
-			Sys_Warn ("fullscreen unavailable in this mode!");*/
 			Con_Reportf (S_ERROR "%s: fullscreen unavailable in this mode\n", __func__);
 			Sys_Warn ("fullscreen unavailable in this mode!");
 
@@ -1264,8 +1252,6 @@ qboolean VID_SetMode (void)
 		// [FWGS, 01.07.24] try setting it back to something safe
 		if ((err = R_ChangeDisplaySettings (sdlState.prev_width, sdlState.prev_height, false)) != rserr_ok)
 			{
-			/*Con_Reportf (S_ERROR  "VID_SetMode: could not revert to safe mode\n");
-			Sys_Warn ("could not revert to safe mode!");*/
 			Con_Reportf (S_ERROR "%s: could not revert to safe mode\n", __func__);
 			Sys_Warn ("could not revert to safe mode!");
 			return false;

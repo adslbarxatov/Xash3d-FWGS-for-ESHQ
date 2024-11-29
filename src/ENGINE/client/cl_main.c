@@ -34,34 +34,16 @@ CVAR_DEFINE_AUTO (mp_decals, "300", FCVAR_ARCHIVE,
 	"decals limit in multiplayer");
 
 // [FWGS, 01.07.24]
-/*CVAR_DEFINE_AUTO (dev_overview, "0", 0,
-	"draw level in overview-mode");
-CVAR_DEFINE_AUTO (cl_resend, "6.0", 0,
-	"time to resend connect");*/
 static CVAR_DEFINE_AUTO (dev_overview, "0", 0,
 	"draw level in overview-mode");
 static CVAR_DEFINE_AUTO (cl_resend, "6.0", 0,
 	"time to resend connect");
-
 CVAR_DEFINE (cl_allow_download, "cl_allowdownload", "1", FCVAR_ARCHIVE,
 	"allow to downloading resources from the server");
-
-/*CVAR_DEFINE_AUTO (cl_allow_upload, "1", FCVAR_ARCHIVE,
-	"allow to uploading resources to the server");*/
 static CVAR_DEFINE (cl_allow_upload, "cl_allowupload", "1", FCVAR_ARCHIVE,
 	"allow to uploading resources to the server");
-
 CVAR_DEFINE_AUTO (cl_download_ingame, "1", FCVAR_ARCHIVE,
 	"allow to downloading resources while client is active");
-
-/*CVAR_DEFINE_AUTO (cl_logofile, "lambda", FCVAR_ARCHIVE,
-	"player logo name");
-CVAR_DEFINE_AUTO (cl_logocolor, "orange", FCVAR_ARCHIVE,
-	"player logo color");
-CVAR_DEFINE_AUTO (cl_logoext, "bmp", FCVAR_ARCHIVE,
-	"temporary cvar to tell engine which logo must be packed");
-CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE,
-	"test network bandwith before connection");*/
 static CVAR_DEFINE_AUTO (cl_logofile, "lambda", FCVAR_ARCHIVE,
 	"player logo name");
 static CVAR_DEFINE_AUTO (cl_logocolor, "orange", FCVAR_ARCHIVE,
@@ -72,7 +54,6 @@ CVAR_DEFINE_AUTO (cl_logomaxdim, "96", FCVAR_ARCHIVE,
 	"maximum decal dimension");
 static CVAR_DEFINE_AUTO (cl_test_bandwidth, "1", FCVAR_ARCHIVE,
 	"test network bandwith before connection");
-
 CVAR_DEFINE (cl_draw_particles, "r_drawparticles", "1", FCVAR_CHEAT,
 	"render particles");
 CVAR_DEFINE (cl_draw_tracers, "r_drawtracers", "1", FCVAR_CHEAT,
@@ -85,12 +66,8 @@ CVAR_DEFINE_AUTO (cl_timeout, "60", 0,
 	"connect timeout (in-seconds)");
 CVAR_DEFINE_AUTO (cl_nopred, "0", FCVAR_ARCHIVE | FCVAR_USERINFO,
 	"disable client movement prediction");
-
-/*CVAR_DEFINE_AUTO (cl_nodelta, "0", 0,
-	"disable delta-compression for server messages");*/
 static CVAR_DEFINE_AUTO (cl_nodelta, "0", 0,
 	"disable delta-compression for server messages");
-
 CVAR_DEFINE (cl_crosshair, "crosshair", "1", FCVAR_ARCHIVE,
 	"show weapon chrosshair");
 static CVAR_DEFINE_AUTO (cl_cmdbackup, "10", FCVAR_ARCHIVE,
@@ -99,12 +76,8 @@ CVAR_DEFINE_AUTO (cl_showerror, "0", FCVAR_ARCHIVE,
 	"show prediction error");
 CVAR_DEFINE_AUTO (cl_bmodelinterp, "1", FCVAR_ARCHIVE,
 	"enable bmodel interpolation");
-
-/*CVAR_DEFINE_AUTO (cl_lightstyle_lerping, "0", FCVAR_ARCHIVE,
-	"enables animated light lerping (perfomance option)");*/
 static CVAR_DEFINE_AUTO (cl_lightstyle_lerping, "0", FCVAR_ARCHIVE,
 	"enables animated light lerping (perfomance option)");
-
 CVAR_DEFINE_AUTO (cl_idealpitchscale, "0.8", 0,
 	"how much to look up/down slopes and stairs when not using freelook");
 CVAR_DEFINE_AUTO (cl_nosmooth, "0", FCVAR_ARCHIVE,
@@ -113,12 +86,8 @@ CVAR_DEFINE_AUTO (cl_smoothtime, "0.1", FCVAR_ARCHIVE,
 	"time to smooth up");
 CVAR_DEFINE_AUTO (cl_clockreset, "0.1", FCVAR_ARCHIVE,
 	"frametime delta maximum value before reset");
-
-/*CVAR_DEFINE_AUTO (cl_fixtimerate, "7.5", FCVAR_ARCHIVE,
-	"time in msec to client clock adjusting");*/
 static CVAR_DEFINE_AUTO (cl_fixtimerate, "7.5", FCVAR_ARCHIVE,
 	"time in msec to client clock adjusting");
-
 CVAR_DEFINE_AUTO (hud_fontscale, "1.0", FCVAR_ARCHIVE | FCVAR_LATCH,
 	"scale hud font texture");
 CVAR_DEFINE_AUTO (hud_fontrender, "0", FCVAR_ARCHIVE,
@@ -137,12 +106,8 @@ CVAR_DEFINE_AUTO (cl_cmdrate, "60", FCVAR_ARCHIVE,
 	"Max number of command packets sent to server per second");
 CVAR_DEFINE (cl_interp, "ex_interp", "0.1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"Interpolate object positions starting this many seconds in past");
-
-/*CVAR_DEFINE_AUTO (cl_nointerp, "0", FCVAR_CLIENTDLL,
-	"disable interpolation of entities and players");*/
 CVAR_DEFINE_AUTO (cl_nointerp, "0", 0,
 	"disable interpolation of entities and players");
-
 static CVAR_DEFINE_AUTO (cl_dlmax, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
 	"max allowed outcoming fragment size");
 static CVAR_DEFINE_AUTO (cl_upmax, "1200", FCVAR_ARCHIVE,
@@ -169,12 +134,9 @@ CVAR_DEFINE_AUTO (cl_fixmodelinterpolationartifacts, "1", 0,
 	"try to fix up models interpolation on a moving platforms (monsters on trains for example)");
 
 // [FWGS, 01.09.24]
-/*static CVAR_DEFINE_AUTO (name, "player", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
-	"player name");*/
 static char username[32];
 static CVAR_DEFINE_AUTO (name, username, FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_PRINTABLEONLY | FCVAR_FILTERABLE,
 	"player name");
-
 static CVAR_DEFINE_AUTO (model, "", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"player model ('player' is a singleplayer model)");
 static CVAR_DEFINE_AUTO (topcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -211,7 +173,6 @@ qboolean CL_IsInGame (void)
 		return true;
 
 	// always active for multiplayer or background map
-	/*if (cl.background || (CL_GetMaxClients () > 1))*/
 	if (cl.background || (cl.maxclients > 1))
 		return true;
 
@@ -220,10 +181,6 @@ qboolean CL_IsInGame (void)
 	}
 
 // [FWGS, 01.08.24] removed CL_IsInMenu
-/*qboolean CL_IsInMenu (void)
-	{
-	return (cls.key_dest == key_menu);
-	}*/
 
 qboolean CL_IsInConsole (void)
 	{
@@ -707,12 +664,6 @@ CL_CreateCmd [FWGS, 01.07.24]
 ***/
 static void CL_CreateCmd (void)
 	{
-	/*usercmd_t	nullcmd, *cmd;
-	runcmd_t	*pcmd;
-	vec3_t		angles;
-	qboolean	active;
-	int			input_override;
-	int			i, ms;*/
 	usercmd_t	nullcmd, *cmd;
 	runcmd_t	*pcmd;
 	qboolean	active;
@@ -726,7 +677,6 @@ static void CL_CreateCmd (void)
 
 	// store viewangles in case it's will be freeze
 	VectorCopy (cl.viewangles, angles);
-	/*ms = bound (1, host.frametime * 1000, 255);*/
 	memset (&cmd, 0, sizeof (cmd));	// ESHQ: исправление проблем с неочищенной памятью
 	input_override = 0;
 
@@ -1074,19 +1024,15 @@ static void CL_BeginUpload_f (void)
 	COM_HexConvert (name + 4, 32, md5);
 
 	// [FWGS, 01.07.24]
-	/*if (HPAK_ResourceForHash (CUSTOM_RES_PATH, md5, &custResource))*/
 	if (HPAK_ResourceForHash (hpk_custom_file.string, md5, &custResource))
 		{
 		if (memcmp (md5, custResource.rgucMD5_hash, 16))
 			{
-			/*Con_Reportf ("Bogus data retrieved from %s, attempting to delete entry\n", CUSTOM_RES_PATH);
-			HPAK_RemoveLump (CUSTOM_RES_PATH, &custResource);*/
 			Con_Reportf ("Bogus data retrieved from %s, attempting to delete entry\n", hpk_custom_file.string);
 			HPAK_RemoveLump (hpk_custom_file.string, &custResource);
 			return;
 			}
 
-		/*if (HPAK_GetDataPointer (CUSTOM_RES_PATH, &custResource, &buf, &size))*/
 		if (HPAK_GetDataPointer (hpk_custom_file.string, &custResource, &buf, &size))
 			{
 			byte		md5[16];
@@ -1103,7 +1049,6 @@ static void CL_BeginUpload_f (void)
 				Con_Reportf ("Purported:  %s\n", MD5_Print (custResource.rgucMD5_hash));
 				Con_Reportf ("Actual   :  %s\n", MD5_Print (md5));
 				Con_Reportf ("Removing conflicting lump\n");
-				/*HPAK_RemoveLump (CUSTOM_RES_PATH, &custResource);*/
 				HPAK_RemoveLump (hpk_custom_file.string, &custResource);
 				return;
 				}
@@ -1407,7 +1352,6 @@ static void CL_CreateResourceList (void)
 			{
 			SetBits (pNewResource->ucFlags, RES_CUSTOM);
 			memcpy (pNewResource->rgucMD5_hash, rgucMD5_hash, 16);
-			/*HPAK_AddLump (false, CUSTOM_RES_PATH, pNewResource, NULL, fp);*/
 			HPAK_AddLump (false, hpk_custom_file.string, pNewResource, NULL, fp);
 			}
 		}
@@ -1423,13 +1367,11 @@ CL_Connect_f [FWGS, 01.07.24]
 static void CL_Connect_f (void)
 	{
 	string	server;
-	/*qboolean legacyconnect = false;*/
 	connprotocol_t proto = PROTO_CURRENT;
 
 	// hint to connect by using legacy protocol
 	if (Cmd_Argc () == 3)
 		{
-		/*legacyconnect = !Q_strcmp (Cmd_Argv (2), "legacy");*/
 		const char *s = Cmd_Argv (2);
 
 		if (!Q_strcmp (s, "current") || !Q_strcmp (s, "49"))
@@ -1450,7 +1392,6 @@ static void CL_Connect_f (void)
 		}
 	else if (Cmd_Argc () != 2)
 		{
-		/*Con_Printf (S_USAGE "connect <server>\n");*/
 		Con_Printf (S_USAGE "connect <server> [protocol]\n");
 		return;
 		}
@@ -1472,7 +1413,6 @@ static void CL_Connect_f (void)
 	Key_SetKeyDest (key_console);
 
 	cls.state = ca_connecting;
-	/*cls.legacymode = legacyconnect;*/
 	cls.legacymode = proto;
 	Q_strncpy (cls.servername, server, sizeof (cls.servername));
 	cls.connect_time = MAX_HEARTBEAT;	// CL_CheckForResend() will fire immediately
@@ -1624,26 +1564,17 @@ static void CL_SendDisconnectMessage (void)
 // [FWGS, 01.08.24]
 int CL_GetSplitSize (void)
 	{
-	/*int splitsize;
-
-	if (Host_IsDedicated ())
-		return 0;*/
 	int splitsize = (int)cl_dlmax.value;
 
-	/*if (!(cls.extensions & NET_EXT_SPLITSIZE))*/
 	if (!FBitSet (cls.extensions, NET_EXT_SPLITSIZE))
 		return 1400;
 
-	/*splitsize = cl_dlmax.value;
-
-	if ((splitsize < FRAGMENT_MIN_SIZE) || (splitsize > FRAGMENT_MAX_SIZE))*/
 	if ((splitsize < FRAGMENT_MIN_SIZE) || (splitsize > FRAGMENT_MAX_SIZE))
 		{
 		Cvar_SetValue ("cl_dlmax", FRAGMENT_DEFAULT_SIZE);
 		return FRAGMENT_DEFAULT_SIZE;
 		}
 
-	/*return cl_dlmax.value;*/
 	return (int)cl_dlmax.value;
 	}
 
@@ -1715,7 +1646,6 @@ This is also called on Host_Error, so it shouldn't cause any errors
 ***/
 void CL_Disconnect (void)
 	{
-	/*cls.legacymode = false;*/
 	cls.legacymode = PROTO_CURRENT;
 
 	if (cls.state == ca_disconnected)
@@ -1828,7 +1758,6 @@ static size_t NONNULL CL_BuildMasterServerScanRequest (char *buf, size_t size, u
 	Info_SetValueForKey (info, "gamedir", GI->gamefolder, remaining);
 #endif
 
-	/*Info_SetValueForKey (info, "clver", XASH_VERSION, remaining);	// let master know about client version*/
 	// let master know about client version
 	Info_SetValueForKey (info, "clver", XASH_VERSION, remaining);
 	Info_SetValueForKey (info, "nat", nat ? "1" : "0", remaining);
@@ -1906,7 +1835,6 @@ static void CL_Reconnect_f (void)
 
 	if (COM_CheckString (cls.servername))
 		{
-		/*qboolean legacy = cls.legacymode;	// [FWGS, 01.04.23]*/
 		connprotocol_t proto = cls.legacymode;
 
 		if (cls.state >= ca_connected)
@@ -1916,7 +1844,6 @@ static void CL_Reconnect_f (void)
 		cls.demonum = cls.movienum = -1;	// not in the demo loop now
 		cls.state = ca_connecting;
 		cls.signon = 0;
-		/*cls.legacymode = legacy;			// [FWGS, 01.04.23] don't change protocol*/
 		cls.legacymode = proto; // don't change protocol
 
 		Con_Printf ("reconnecting...\n");
@@ -1930,7 +1857,6 @@ CL_FixupColorStringsForInfoString [FWGS, 01.07.24]
 all the keys and values must be ends with ^7
 =================
 ***/
-/*static void CL_FixupColorStringsForInfoString (const char *in, char *out)*/
 static void CL_FixupColorStringsForInfoString (const char *in, char *out, size_t len)
 	{
 	qboolean	hasPrefix = false;
@@ -1944,7 +1870,6 @@ static void CL_FixupColorStringsForInfoString (const char *in, char *out, size_t
 		count++;
 		}
 
-	/*while (*in && (count < MAX_INFO_STRING))*/
 	while (*in && count < len)
 		{
 		if (IsColorString (in))
@@ -2000,7 +1925,6 @@ static void CL_ParseStatusMessage (netadr_t from, sizebuf_t *msg)
 	{
 	static char	infostring[MAX_INFO_STRING + 8];
 	char		*s = MSG_ReadString (msg);
-	/*int			i;*/	// ESHQ: extraneous variable
 	const char	*magic = ": wrong version\n";
 	size_t		len = Q_strlen (s), magiclen = Q_strlen (magic);
 
@@ -2017,7 +1941,6 @@ static void CL_ParseStatusMessage (netadr_t from, sizebuf_t *msg)
 		}
 
 	// [FWGS, 01.07.24]
-	/*CL_FixupColorStringsForInfoString (s, infostring);*/
 	CL_FixupColorStringsForInfoString (s, infostring, sizeof (infostring));
 
 	if (!COM_CheckString (Info_ValueForKey (infostring, "gamedir")))
@@ -2047,11 +1970,8 @@ CL_ParseNETInfoMessage [FWGS, 01.07.24]
 Handle a reply from a netinfo
 =================
 ***/
-/*static void CL_ParseNETInfoMessage (netadr_t from, sizebuf_t *msg, const char *s)*/
 static void CL_ParseNETInfoMessage (netadr_t from, const char *s)
 	{
-	/*net_request_t	*nr;
-	static char		infostring[MAX_INFO_STRING + 8];*/
 	net_request_t	*nr = NULL;
 	static char		infostring[MAX_PRINT_MSG];
 	int				i, context, type;
@@ -2062,13 +1982,6 @@ static void CL_ParseNETInfoMessage (netadr_t from, const char *s)
 	context = Q_atoi (Cmd_Argv (1));
 	type = Q_atoi (Cmd_Argv (2));
 
-	/*// fetching infostring
-	while (*s != '\\')
-		s++;
-
-	// check for errors
-	val = Info_ValueForKey (s, "neterror");*/
-
 	// find request with specified context and type
 	for (i = 0; i < MAX_REQUESTS; i++)
 		{
@@ -2078,27 +1991,16 @@ static void CL_ParseNETInfoMessage (netadr_t from, const char *s)
 			break;
 			}
 		}
-
-	/*if (!Q_stricmp (val, "protocol"))
-		SetBits (errorBits, NET_ERROR_PROTO_UNSUPPORTED);
-	else if (!Q_stricmp (val, "undefined"))
-		SetBits (errorBits, NET_ERROR_UNDEFINED);*/
 	
 	// not found, ignore
 	if (nr == NULL)
 		return;
-
-	/*CL_FixupColorStringsForInfoString (s, infostring);*/
 
 	// find the payload
 	s = Q_strchr (s, ' '); // skip netinfo
 	if (!s)
 		return;
 
-	/*// find a request with specified context
-	for (i = 0; i < MAX_REQUESTS; i++)
-		{
-		nr = &clgame.net_requests[i];*/
 	s = Q_strchr (s + 1, ' '); // skip challenge
 	if (!s)
 		return;
@@ -2109,23 +2011,13 @@ static void CL_ParseNETInfoMessage (netadr_t from, const char *s)
 	else if (type != NETAPI_REQUEST_PING) // ping have no payload, and that's ok
 		return;
 
-	/*if (nr->resp.context == context && nr->resp.type == type)
-	*/
 	if (s)
 		{
 		if (s[0] == '\\')
 			{
-			/*// setup the answer
-			nr->resp.response = infostring;
-			nr->resp.remote_address = from;
-			nr->resp.error = NET_SUCCESS;
-			nr->resp.ping = host.realtime - nr->timesend;*/
 			// check for errors
 			val = Info_ValueForKey (s, "neterror");
 
-			/*if (nr->timeout <= host.realtime)
-				SetBits (nr->resp.error, NET_ERROR_TIMEOUT);
-			SetBits (nr->resp.error, errorBits); // misc error bits*/
 			if (!Q_stricmp (val, "protocol"))
 				SetBits (errorBits, NET_ERROR_PROTO_UNSUPPORTED);
 			else if (!Q_stricmp (val, "undefined"))
@@ -2133,11 +2025,6 @@ static void CL_ParseNETInfoMessage (netadr_t from, const char *s)
 			else if (!Q_stricmp (val, "forbidden"))
 				SetBits (errorBits, NET_ERROR_FORBIDDEN);
 
-			/*nr->pfnFunc (&nr->resp);
-
-			if (!FBitSet (nr->flags, FNETAPI_MULTIPLE_RESPONSE))
-				memset (nr, 0, sizeof (*nr)); // done
-			return;*/
 			CL_FixupColorStringsForInfoString (s, infostring, sizeof (infostring));
 			}
 		else
@@ -2261,7 +2148,6 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	const char	*c;
 	char		buf[MAX_SYSPATH];
 	int			len = sizeof (buf);
-	/*int			dataoffset = 0;*/
 	netadr_t	servadr;
 
 	MSG_Clear (msg);
@@ -2297,7 +2183,6 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	else if (!Q_strcmp (c, "netinfo"))
 		{
 		// server responding to a status broadcast
-		/*CL_ParseNETInfoMessage (from, msg, args);*/
 		CL_ParseNETInfoMessage (from, args);
 		}
 	else if (!Q_strcmp (c, "cmd"))
@@ -2319,7 +2204,6 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	else if (!Q_strcmp (c, "print"))
 		{
 		// print command from somewhere
-		/*Con_Printf ("%s", MSG_ReadString (msg));*/
 		char *s = MSG_ReadString (msg);
 
 		Con_Printf (S_CYAN "r:" S_DEFAULT " %s", s);
@@ -2432,13 +2316,6 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		// a disconnect message from the server, which will happen if the server
 		// dropped the connection but it is still getting packets from us
 		CL_Disconnect_f ();
-
-		/*if (NET_CompareAdr (from, cls.legacyserver))
-			{
-			// [FWGS, 01.04.23]
-			Cbuf_AddTextf ("connect %s legacy\n", NET_AdrToString (from));
-			memset (&cls.legacyserver, 0, sizeof (cls.legacyserver));
-			}*/
 		}
 	else if (!Q_strcmp (c, "errormsg"))
 		{
@@ -2448,17 +2325,6 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 			return;
 
 		args = MSG_ReadString (msg);
-
-		/*if (!Q_strcmp (args, "Server uses protocol version 48.\n"))
-			{
-			cls.legacyserver = from;
-			}
-		else
-			{
-			if (UI_IsVisible ())
-				UI_ShowMessageBox (va ("^3Server message^7\n%s", args));
-			Msg ("%s", args);
-			}*/
 		Q_snprintf (formatted_msg, sizeof (formatted_msg), "^3Server message^7\n%s", args);
 
 		// in case we're in console or it's classic mainui which doesn't support messageboxes
@@ -2601,8 +2467,6 @@ static void CL_ParseNetMessage (sizebuf_t *msg, void (*parsefn)(sizebuf_t *))
 
 		if (cls.demorecording && !cls.demowaiting)
 			CL_WriteDemoMessage (false, cls.starting_count, msg);
-		/*else if (cls.state != ca_active)
-			CL_WriteDemoMessage (true, cls.starting_count, msg);*/
 		}
 	}
 
@@ -2640,7 +2504,6 @@ static void CL_ReadNetMessage (void)
 	while (CL_GetMessage (net_message_buffer, &curSize))
 		{
 		const int split_header = LittleLong (0xFFFFFFFE);
-		/*if (cls.legacymode && !memcmp (&split_header, net_message_buffer, sizeof (split_header)))*/
 		if ((cls.legacymode == PROTO_LEGACY) && !memcmp (&split_header, net_message_buffer, sizeof (split_header)))
 			{
 			// Will rewrite existing packet by merged
@@ -2661,11 +2524,8 @@ static void CL_ReadNetMessage (void)
 		if (cls.state < ca_connected)
 			continue;
 
-		/*if (!cls.demoplayback && (MSG_GetMaxBytes (&net_message) < 8))*/
 		if (!cls.demoplayback)
 			{
-			/*Con_Printf (S_WARN "CL_ReadPackets: %s:runt packet\n", NET_AdrToString (net_from));
-			continue;*/
 			if (MSG_GetMaxBytes (&net_message) < 8)
 				{
 				Con_Printf (S_WARN "%s: %s:runt packet\n", __func__, NET_AdrToString (net_from));
@@ -2685,12 +2545,8 @@ static void CL_ReadNetMessage (void)
 				continue;
 			}
 
-		/*// packet from server
-		if (!cls.demoplayback && !NET_CompareAdr (net_from, cls.netchan.remote_address))*/
 		if (cls.state == ca_active)
 			{
-			/*Con_DPrintf (S_ERROR "CL_ReadPackets: %s:sequenced packet without connection\n", NET_AdrToString (net_from));
-			continue;*/
 			cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].valid = false;
 			cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].choked = false;
 			}
@@ -2699,18 +2555,7 @@ static void CL_ReadNetMessage (void)
 			CL_ResetFrame (&cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK]);
 			}
 
-		/*if (!cls.demoplayback && !Netchan_Process (&cls.netchan, &net_message))
-			continue;	// wasn't accepted for some reason
-
-		// run special handler for quake demos
-		if (cls.demoplayback == DEMO_QUAKE1)
-			CL_ParseQuakeMessage (&net_message, true);
-		else if (cls.legacymode)
-			CL_ParseLegacyServerMessage (&net_message, true);
-		else
-			CL_ParseServerMessage (&net_message, true);*/
 		CL_ParseNetMessage (&net_message, parsefn);
-
 		cl.send_reply = true;
 		}
 
@@ -2724,7 +2569,6 @@ static void CL_ReadNetMessage (void)
 		if (Netchan_CopyNormalFragments (&cls.netchan, &net_message, &curSize))
 			{
 			MSG_Init (&net_message, "ServerData", net_message_buffer, curSize);
-			/*CL_ParseServerMessage (&net_message, false);*/
 			CL_ParseNetMessage (&net_message, parsefn);
 			}
 
@@ -2862,7 +2706,6 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 	{
 	int			sound_len = sizeof (DEFAULT_SOUNDPATH) - 1;
 	byte		rgucMD5_hash[16];
-	/*const char	*pfilename;*/
 	resource_t	*p;
 
 	if (COM_CheckString (filename) && successfully_received)
@@ -2871,10 +2714,8 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 			Con_Printf ("processing %s\n", filename);
 
 		// skip "downloaded/" part to avoid mismatch with needed resources list
-		/*if (!Q_strnicmp (filename, "downloaded/", 11))*/
 		if (!Q_strnicmp (filename, DEFAULT_DOWNLOADED_DIRECTORY, sizeof (DEFAULT_DOWNLOADED_DIRECTORY) - 1))
 			filename += sizeof (DEFAULT_DOWNLOADED_DIRECTORY) - 1;
-		/*filename += 11;*/
 		}
 	else if (!successfully_received)
 		{
@@ -2891,11 +2732,6 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 			}
 		return;
 		}
-
-	/*pfilename = filename;
-
-	if (!Q_strnicmp (filename, DEFAULT_SOUNDPATH, sound_len))
-		pfilename += sound_len;*/
 
 	for (p = cl.resourcesneeded.pNext; p != &cl.resourcesneeded; p = p->pNext)
 		{
@@ -2918,17 +2754,8 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 			}
 		else
 			{
-			/*if (p->type == t_generic)
-				{
-				if (!Q_stricmp (p->szFileName, filename))
-					break;
-				}
-			else
-				{
-				if (!Q_stricmp (p->szFileName, pfilename))*/
 			if (!Q_stricmp (p->szFileName, filename))
 				break;
-			/*}*/
 			}
 		}
 
@@ -2945,7 +2772,6 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 					{
 					if (p->ucFlags & RES_CUSTOM)
 						{
-						/*HPAK_AddLump (true, CUSTOM_RES_PATH, p, cls.netchan.tempbuffer, NULL);*/
 						HPAK_AddLump (true, hpk_custom_file.string, p, cls.netchan.tempbuffer, NULL);
 						CL_RegisterCustomization (p);
 						}
@@ -2954,7 +2780,6 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 					{
 					Con_Printf ("Downloaded %i bytes for purported %i byte file, ignoring download\n",
 						cls.netchan.tempbuffersize, p->nDownloadSize);
-					/*cls.netchan.tempbuffersize, p->nDownloadSize);*/
 					}
 
 				if (cls.netchan.tempbuffer)
@@ -2995,7 +2820,6 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 
 		if (cls.netchan.tempbuffer)
 			{
-			/*Con_Printf ("Received a decal %s, but didn't find it in resources needed list!\n", pfilename);*/
 			Con_Printf ("Received a decal %s, but didn't find it in resources needed list!\n", filename);
 			Mem_Free (cls.netchan.tempbuffer);
 			}
@@ -3073,7 +2897,6 @@ static void CL_SetInfo_f (void)
 		{
 		Con_Printf ("User info settings:\n");
 		Info_Print (cls.userinfo);
-		/*Con_Printf ("Total %i symbols\n", Q_strlen (cls.userinfo));*/
 		Con_Printf ("Total %zu symbols\n", Q_strlen (cls.userinfo));
 		return;
 		}
@@ -3094,7 +2917,6 @@ static void CL_SetInfo_f (void)
 		{
 		Cvar_DirectSet (var, Cmd_Argv (2));
 		}
-	/*else if (Info_SetValueForKey (cls.userinfo, Cmd_Argv (1), Cmd_Argv (2), MAX_INFO_STRING))*/
 	else if (Info_SetValueForKey (cls.userinfo, Cmd_Argv (1), Cmd_Argv (2), sizeof (cls.userinfo)))
 		{
 		// send update only on successfully changed userinfo
@@ -3111,7 +2933,6 @@ static void CL_Physinfo_f (void)
 	{
 	Con_Printf ("Phys info settings:\n");
 	Info_Print (cls.physinfo);
-	/*Con_Printf ("Total %i symbols\n", Q_strlen (cls.physinfo));*/
 	Con_Printf ("Total %zu symbols\n", Q_strlen (cls.physinfo));
 	}
 
@@ -3126,10 +2947,6 @@ static qboolean CL_ShouldRescanFilesystem (void)
 		if (res->type == t_generic)
 			{
 			const char *ext = COM_FileExtension (res->szFileName);
-			/*// TODO: query supported archives format from fs_stdio
-			// TODO: query if was already opened
-			if (!Q_stricmp (ext, "wad") || !Q_stricmp (ext, "pk3") || !Q_stricmp (ext, "pak"))
-				return true;*/
 			if (!g_fsapi.IsArchiveExtensionSupported (ext, IAES_ONLY_REAL_ARCHIVES))
 				continue;
 
@@ -3141,7 +2958,6 @@ static qboolean CL_ShouldRescanFilesystem (void)
 			}
 		}
 
-	/*return false;*/
 	return retval;
 	}
 
@@ -3387,10 +3203,7 @@ static void CL_InitLocal (void)
 	Q_strncpy (username, Sys_GetCurrentUser (), sizeof (username));
 
 	Cvar_RegisterVariable (&name);
-
-	/*Cvar_DirectSet (&name, Sys_GetCurrentUser ());*/
 	Cvar_Get ("ui_username", username, FCVAR_READ_ONLY | FCVAR_PRIVILEGED, "default user name");
-
 	Cvar_RegisterVariable (&model);
 	Cvar_RegisterVariable (&cl_updaterate);
 	Cvar_RegisterVariable (&cl_dlmax);

@@ -57,8 +57,4 @@ extern convar_t gl_clear;
 qboolean R_Init (void);
 void R_Shutdown (void);
 
-// [FWGS, 01.07.24]
-/*// [FWGS, 01.01.24]
-extern triangleapi_t gTriApi;*/
-
 #endif

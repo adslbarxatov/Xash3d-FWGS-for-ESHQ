@@ -306,7 +306,6 @@ static qboolean SV_CheckFile (sizebuf_t *msg, const char *filename)
 		COM_HexConvert (filename + 4, 32, p.rgucMD5_hash);
 
 		// [FWGS, 01.07.24]
-		/*if (HPAK_GetDataPointer (CUSTOM_RES_PATH, &p, NULL, NULL))*/
 		if (HPAK_GetDataPointer (hpk_custom_file.string, &p, NULL, NULL))
 			return true;
 		}
@@ -405,7 +404,6 @@ int SV_EstimateNeededResources (sv_client_t *cl)
 			continue;
 
 		// [FWGS, 01.07.24]
-		/*if (!HPAK_ResourceForHash (CUSTOM_RES_PATH, p->rgucMD5_hash, NULL))*/
 		if (!HPAK_ResourceForHash (hpk_custom_file.string, p->rgucMD5_hash, NULL))
 			{
 			if (p->nDownloadSize != 0)

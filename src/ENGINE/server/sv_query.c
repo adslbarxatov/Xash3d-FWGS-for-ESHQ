@@ -17,8 +17,6 @@ GNU General Public License for more details
 #include "server.h"
 
 // [FWGS, 01.07.24]
-/*define SOURCE_QUERY_INFO 'T'
-define SOURCE_QUERY_DETAILS 'I'*/
 #define SOURCE_QUERY_DETAILS 'T'
 #define SOURCE_QUERY_DETAILS_RESPONSE 'I'
 
@@ -27,8 +25,6 @@ define SOURCE_QUERY_DETAILS 'I'*/
 
 #define SOURCE_QUERY_PLAYERS 'U'
 #define SOURCE_QUERY_PLAYERS_RESPONSE 'D'
-
-/*define SOURCE_QUERY_CONNECTIONLESS -1*/
 
 /***
 ==================
@@ -40,18 +36,12 @@ static void SV_SourceQuery_Details (netadr_t from)
 	sizebuf_t	buf;
 	char		answer[2048];
 	int			bot_count, client_count;
-	/*int			is_private = 0;*/
 
 	SV_GetPlayerCount (&client_count, &bot_count);
 	client_count += bot_count; // bots are counted as players in this reply
 
-	/*if (COM_CheckStringEmpty (sv_password.string) && Q_stricmp (sv_password.string, "none"))
-		is_private = 1;*/
-
 	MSG_Init (&buf, "TSourceEngineQuery", answer, sizeof (answer));
 
-	/*MSG_WriteLong (&buf, SOURCE_QUERY_CONNECTIONLESS);
-	MSG_WriteByte (&buf, SOURCE_QUERY_DETAILS);*/
 	MSG_WriteByte (&buf, SOURCE_QUERY_DETAILS_RESPONSE);
 	MSG_WriteByte (&buf, PROTOCOL_VERSION);
 
@@ -74,7 +64,6 @@ static void SV_SourceQuery_Details (netadr_t from)
 	MSG_WriteByte (&buf, 'l');
 #endif
 
-	/*MSG_WriteByte (&buf, is_private);*/
 	if (SV_HavePassword ())
 		MSG_WriteByte (&buf, 1);
 	else
@@ -83,7 +72,6 @@ static void SV_SourceQuery_Details (netadr_t from)
 	MSG_WriteByte (&buf, GI->secure);
 	MSG_WriteString (&buf, XASH_VERSION);
 
-	/*NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);*/
 	Netchan_OutOfBand (NS_SERVER, from, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf));
 	}
 
@@ -96,26 +84,13 @@ static void SV_SourceQuery_Rules (netadr_t from)
 	{
 	const cvar_t	*cvar;
 	sizebuf_t		buf;
-	/*char			answer[1024 * 8];
-	cvar_t			*cvar;
-	int				cvar_count = 0;
-
-	for (cvar = Cvar_GetList (); cvar; cvar = cvar->next)
-		{
-		if (FBitSet (cvar->flags, FCVAR_SERVER))
-			cvar_count++;
-		}
-	if (cvar_count <= 0)
-		return;*/
 	char	answer[MAX_PRINT_MSG - 4];
 	int		pos;
 	uint	cvar_count = 0;
 
 	MSG_Init (&buf, "TSourceEngineQueryRules", answer, sizeof (answer));
 
-	/*MSG_WriteLong (&buf, SOURCE_QUERY_CONNECTIONLESS);*/
 	MSG_WriteByte (&buf, SOURCE_QUERY_RULES_RESPONSE);
-	/*MSG_WriteShort (&buf, cvar_count);*/
 	pos = MSG_GetNumBitsWritten (&buf);
 	MSG_WriteShort (&buf, 0);
 
@@ -149,11 +124,7 @@ static void SV_SourceQuery_Rules (netadr_t from)
 		MSG_WriteShort (&buf, cvar_count);
 
 		Netchan_OutOfBand (NS_SERVER, from, total, MSG_GetData (&buf));
-		/*MSG_WriteString (&buf, (COM_CheckStringEmpty (cvar->string) && Q_stricmp (cvar->string, "none")) ? "1" : "0");
-		else
-		MSG_WriteString (&buf, cvar->string);*/
 		}
-	/*NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);*/
 	}
 
 /***
@@ -164,16 +135,9 @@ SV_SourceQuery_Players [FWGS, 01.07.24]
 static void SV_SourceQuery_Players (netadr_t from)
 	{
 	sizebuf_t	buf;
-	/*char	answer[1024 * 8];
-	int		i, client_count, bot_count;
-
-	SV_GetPlayerCount (&client_count, &bot_count);
-	client_count += bot_count; // bots are counted as players in this reply*/
 	char		answer[MAX_PRINT_MSG - 4];
 	int			i, count = 0;
 	int			pos;
-
-	/*if (client_count <= 0)*/
 	
 	// respect players privacy
 	if (!sv_expose_player_list.value || SV_HavePassword ())
@@ -181,20 +145,16 @@ static void SV_SourceQuery_Players (netadr_t from)
 
 	MSG_Init (&buf, "TSourceEngineQueryPlayers", answer, sizeof (answer));
 
-	/*MSG_WriteLong (&buf, SOURCE_QUERY_CONNECTIONLESS);*/
 	MSG_WriteByte (&buf, SOURCE_QUERY_PLAYERS_RESPONSE);
-	/*MSG_WriteByte (&buf, client_count);*/
 	pos = MSG_GetNumBitsWritten (&buf);
 	MSG_WriteByte (&buf, 0);
 
 	for (i = 0; i < svs.maxclients; i++)
 		{
-		/*sv_client_t *cl = &svs.clients[i];*/
 		const sv_client_t *cl = &svs.clients[i];
 		if (cl->state < cs_connected)
 			continue;
 
-		/*MSG_WriteByte (&buf, i);*/
 		MSG_WriteByte (&buf, count);
 		MSG_WriteString (&buf, cl->name);
 		MSG_WriteLong (&buf, cl->edict->v.frags);
@@ -214,9 +174,7 @@ static void SV_SourceQuery_Players (netadr_t from)
 		MSG_WriteByte (&buf, count);
 
 		Netchan_OutOfBand (NS_SERVER, from, total, MSG_GetData (&buf));
-		/*else MSG_WriteFloat (&buf, host.realtime - cl->connecttime);*/
 		}
-	/*NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);*/
 	}
 
 /***
@@ -226,12 +184,8 @@ SV_SourceQuery_HandleConnnectionlessPacket [FWGS, 01.07.24]
 ***/
 qboolean SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from)
 	{
-	/*int request = c[0];
-
-	switch (request)*/
 	switch (c[0])
 		{
-		/*case SOURCE_QUERY_INFO:*/
 		case SOURCE_QUERY_DETAILS:
 			SV_SourceQuery_Details (from);
 			return true;

@@ -159,7 +159,6 @@ static void Host_ShutdownGame (void)
 	}
 
 // [FWGS, 01.07.24]
-/*static void Host_RunFrame (float time)*/
 static void Host_RunFrame (double time)
 	{
 	// at this time, we don't need to get events from OS on dedicated
@@ -195,7 +194,6 @@ static void Host_RunFrame (double time)
 		}
 	}
 
-/*void COM_Frame (float time)*/
 /***
 ================
 Host_AbortCurrentFrame [FWGS, 01.07.24]
@@ -213,7 +211,6 @@ void COM_Frame (double time)
 	{
 	int	loopCount = 0;
 
-	/*if (setjmp (host.abortframe))*/
 	if (setjmp (g_abortframe))
 		return;
 

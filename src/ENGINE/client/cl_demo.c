@@ -80,7 +80,6 @@ typedef struct
 typedef struct
 	{
 	demoentry_t *entries;		// track entry info
-	/*int		numentries;	// number of tracks*/
 	int32_t		numentries;		// number of tracks
 	} demodirectory_t;
 
@@ -158,10 +157,6 @@ we record a demo on this level
 ***/
 void CL_StartupDemoHeader (void)
 	{
-	/*if (cls.demoheader)
-		{
-		FS_Close (cls.demoheader);
-		}*/
 	CL_CloseDemoHeader ();
 
 	cls.demoheader = FS_Open ("demoheader.tmp", "w+b", true);
@@ -339,10 +334,6 @@ void CL_WriteDemoMessage (qboolean startup, int start, sizebuf_t *msg)
 		return;
 
 	// [FWGS, 01.09.24]
-	/*// past the start but not recording a demo.
-	if (!startup && !cls.demorecording)
-		return;*/
-
 	swlen = MSG_GetNumBytesWritten (msg) - start;
 	if (swlen <= 0)
 		return;
@@ -418,7 +409,6 @@ static void CL_WriteDemoHeader (const char *name)
 	// [FWGS, 01.07.24]
 	demo.header.id = IDEMOHEADER;
 	demo.header.dem_protocol = DEMO_PROTOCOL;
-	/*demo.header.net_protocol = cls.legacymode ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION;*/
 	demo.header.net_protocol = CL_GetDemoNetProtocol (cls.legacymode);
 	
 	// [FWGS, 01.01.24]
@@ -1608,58 +1598,23 @@ void CL_PlayDemo_f (void)
 			cls.forcetrack = -cls.forcetrack;
 
 		// [FWGS, 01.08.24]
-		/*cls.legacymode = PROTO_QUAKE;*/
 		CL_DemoStartPlayback (DEMO_QUAKE1);
 		cls.legacymode = PROTO_QUAKE;
 		return; // quake demo is started
 		}
 
 	// [FWGS, 01.09.24] read in the demo header
-	/*FS_Read (cls.demofile, &demo.header, sizeof (demoheader_t));
-
-	if (demo.header.id != IDEMOHEADER)
-		{
-		Con_Printf (S_ERROR "%s is not a demo file\n", demoname);
-		CL_DemoAborted ();
-		return;
-		}
-
-	if (demo.header.dem_protocol != DEMO_PROTOCOL)
-		{
-		Con_Printf (S_ERROR "playdemo: demo protocol outdated (%i should be %i)\n",
-			demo.header.dem_protocol, DEMO_PROTOCOL);
-		CL_DemoAborted ();
-		return;
-		}
-
-	if ((demo.header.net_protocol != PROTOCOL_VERSION) &&
-		(demo.header.net_protocol != PROTOCOL_LEGACY_VERSION))
-		{
-		Con_Printf (S_ERROR "playdemo: net protocol outdated (%i should be %i)\n", 
-			demo.header.net_protocol, PROTOCOL_VERSION);
-		CL_DemoAborted ();
-		return;
-		}
-
-	// now read in the directory structure.
-	FS_Seek (cls.demofile, demo.header.directory_offset, SEEK_SET);
-	FS_Read (cls.demofile, &demo.directory.numentries, sizeof (int));
-
-	if ((demo.directory.numentries < 1) || (demo.directory.numentries > 1024))*/
 	if (!CL_ParseDemoHeader (Cmd_Argv (0), filename, cls.demofile, &demo.header, &demo.directory.numentries))
 		{
-		/*Con_Printf (S_ERROR "demo had bogus # of directory entries: %i\n", demo.directory.numentries);*/
 		CL_DemoAborted ();
 		return;
 		}
 
 	// [FWGS, 01.09.24] allocate demo entries
-	/*demo.directory.entries = Mem_Malloc (cls.mempool, sizeof (demoentry_t) * demo.directory.numentries);*/
 	demo.directory.entries = Mem_Malloc (cls.mempool, sizeof (*demo.directory.entries) * demo.directory.numentries);
 
 	for (i = 0; i < demo.directory.numentries; i++)
 		{
-		/*FS_Read (cls.demofile, &demo.directory.entries[i], sizeof (demoentry_t));*/
 		demoentry_t *entry = &demo.directory.entries[i];
 
 		if (FS_Read (cls.demofile, entry, sizeof (*entry)) != sizeof (*entry))
@@ -1684,7 +1639,6 @@ void CL_PlayDemo_f (void)
 
 	// g-cont. is this need?
 	Q_strncpy (cls.servername, demoname, sizeof (cls.servername));
-	/*cls.legacymode = demo.header.net_protocol == PROTOCOL_LEGACY_VERSION;*/
 
 	// begin a playback demo
 	}

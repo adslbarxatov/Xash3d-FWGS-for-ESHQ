@@ -640,7 +640,6 @@ void Cmd_TokenizeString (const char *text)
 	while (1)
 		{
 		// skip whitespace up to a /n
-		/*while (*text && (*text <= ' ') && (*text != '\r') && (*text != '\n'))*/
 		while (*text && (((byte)*text) <= ' ') && (*text != '\r') && (*text != '\n'))
 			text++;
 
@@ -732,7 +731,6 @@ Cmd_AddCommand [FWGS, 01.07.24]
 ***/
 void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
-	/*Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, cmd_desc, 0);*/
 	Cmd_AddCommandEx (__func__, cmd_name, function, cmd_desc, 0);
 	}
 
@@ -744,7 +742,6 @@ Cmd_AddRestrictedCommand [FWGS, 01.07.24]
 ***/
 void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
-	/*Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, cmd_desc, CMD_PRIVILEGED);*/
 	Cmd_AddCommandEx (__func__, cmd_name, function, cmd_desc, CMD_PRIVILEGED);
 	}
 
@@ -755,7 +752,6 @@ Cmd_AddServerCommand [FWGS, 01.07.24]
 ***/
 void GAME_EXPORT Cmd_AddServerCommand (const char *cmd_name, xcommand_t function)
 	{
-	/*Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "server command", CMD_SERVERDLL);*/
 	Cmd_AddCommandEx (__func__, cmd_name, function, "server command", CMD_SERVERDLL);
 	}
 
@@ -772,7 +768,6 @@ int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
 	if (!Q_stricmp (cmd_name, "motd_write"))
 		flags |= CMD_PRIVILEGED;
 
-	/*return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "client command", flags);*/
 	return Cmd_AddCommandEx (__func__, cmd_name, function, "client command", flags);
 	}
 
@@ -783,7 +778,6 @@ Cmd_AddGameUICommand [FWGS, 01.07.24]
 ***/
 int GAME_EXPORT Cmd_AddGameUICommand (const char *cmd_name, xcommand_t function)
 	{
-	/*return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, "gameui command", CMD_GAMEUIDLL);*/
 	return Cmd_AddCommandEx (__func__, cmd_name, function, "gameui command", CMD_GAMEUIDLL);
 	}
 
@@ -794,7 +788,6 @@ Cmd_AddRefCommand [FWGS, 01.07.24]
 ***/
 int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description)
 	{
-	/*return Cmd_AddCommandEx (__FUNCTION__, cmd_name, function, description, CMD_REFDLL);*/
 	return Cmd_AddCommandEx (__func__, cmd_name, function, description, CMD_REFDLL);
 	}
 
@@ -960,7 +953,6 @@ static void Cmd_Else_f (void)
 // [FWGS, 01.07.24]
 static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 	{
-	/*const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_", "joy_" };*/
 	const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_", "joy_", "con_", "scr_" };
 	int i;
 

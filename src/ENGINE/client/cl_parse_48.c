@@ -251,7 +251,6 @@ static void CL_LegacyParseResourceList (sizebuf_t *msg)
 
 	if (reslist.rescount > MAX_LEGACY_RESOURCES)
 		Host_Error ("MAX_RESOURCES reached\n");
-	/*Host_Error ("MAX_RESOURCES reached\n");*/
 
 	for (i = 0; i < reslist.rescount; i++)
 		{
@@ -259,7 +258,6 @@ static void CL_LegacyParseResourceList (sizebuf_t *msg)
 		Q_strncpy (reslist.resnames[i], MSG_ReadString (msg), sizeof (reslist.resnames[i]));
 		}
 
-	/*if (CL_IsPlaybackDemo ())*/
 	if (cls.demoplayback)
 		return;
 
@@ -316,30 +314,12 @@ CL_ParseLegacyServerMessage [FWGS, 01.07.24]
 dispatch messages
 =====================
 ***/
-/*void CL_ParseLegacyServerMessage (sizebuf_t *msg, qboolean normal_message)*/
 void CL_ParseLegacyServerMessage (sizebuf_t *msg)
 	{
 	size_t		bufStart, playerbytes;
 	int			cmd, param1, param2;
 	int			old_background;
 	const char	*s;
-
-	/*cls.starting_count = MSG_GetNumBytesRead (msg);	// updates each frame
-	CL_Parse_Debug (true);			// begin parsing
-
-	if (normal_message)
-		{
-		// assume no entity/player update this packet
-		if (cls.state == ca_active)
-			{
-			cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].valid = false;
-			cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].choked = false;
-			}
-		else
-			{
-			CL_ResetFrame (&cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK]);
-			}
-		}*/
 
 	// parse the message
 	while (1)
@@ -389,7 +369,6 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg)
 					{
 					int maxclients = cl.maxclients;
 
-					/*cls.changelevel = true;*/
 					// [FWGS, 01.08.24] we can only changelevel in singleplayer
 					// and singleplayer always runs in current protocol
 					// cls.changelevel = true;
@@ -670,12 +649,10 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg)
 				break;
 
 			case svc_querycvarvalue:
-				/*CL_ParseCvarValue (msg, false);*/
 				CL_ParseCvarValue (msg, false, PROTO_LEGACY);
 				break;
 
 			case svc_querycvarvalue2:
-				/*CL_ParseCvarValue (msg, true);*/
 				CL_ParseCvarValue (msg, true, PROTO_LEGACY);
 				break;
 
@@ -685,23 +662,6 @@ void CL_ParseLegacyServerMessage (sizebuf_t *msg)
 				break;
 			}
 		}
-
-	/*cl.frames[cl.parsecountmod].graphdata.msgbytes += MSG_GetNumBytesRead (msg) - cls.starting_count;
-	CL_Parse_Debug (false); // done
-
-	// we don't know if it is ok to save a demo message until
-	// after we have parsed the frame
-	if (!cls.demoplayback)
-		{
-		if (cls.demorecording && !cls.demowaiting)
-			{
-			CL_WriteDemoMessage (false, cls.starting_count, msg);
-			}
-		else if (cls.state != ca_active)
-			{
-			CL_WriteDemoMessage (true, cls.starting_count, msg);
-			}
-		}*/
 	}
 
 // [FWGS, 01.09.24] 
@@ -748,26 +708,13 @@ void CL_LegacyPrecache_f (void)
 	MSG_BeginClientCmd (&cls.netchan.message, clc_stringcmd);
 	MSG_WriteStringf (&cls.netchan.message, "begin %i", spawncount);
 
-	/*cls.signon = SIGNONS;*/
 	cls.signon = SIGNONS - 1;
 	}
 
 // [FWGS, 01.07.24] removed CL_LegacyUpdateInfo
-/*void CL_LegacyUpdateInfo (void)
-	{
-	if (!cls.legacymode)
-		return;
-
-	if (cls.state != ca_active)
-		return;
-
-	MSG_BeginClientCmd (&cls.netchan.message, clc_legacy_userinfo);
-	MSG_WriteString (&cls.netchan.message, cls.userinfo);
-	}*/
 
 // [FWGS, 01.07.24]
 qboolean CL_LegacyMode (void)
 	{
-	/*return cls.legacymode;*/
 	return cls.legacymode == PROTO_LEGACY;
 	}

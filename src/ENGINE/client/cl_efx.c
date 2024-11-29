@@ -623,11 +623,8 @@ and all particle trails (if this is a beamfollow)
 ***/
 void GAME_EXPORT R_BeamKill (int deadEntity)
 	{
-	/*cl_entity_t *pDeadEntity;*/
 	BEAM *beam;
 
-	/*pDeadEntity = R_BeamGetEntity (deadEntity);
-	if (!pDeadEntity) return;*/
 	for (beam = cl_active_beams; beam; beam = beam->next)
 		{
 		if (FBitSet (beam->flags, FBEAM_STARTENTITY) && (beam->startEntity == deadEntity))
@@ -638,7 +635,6 @@ void GAME_EXPORT R_BeamKill (int deadEntity)
 			ClearBits (beam->flags, FBEAM_STARTENTITY);
 			}
 
-		/*CL_KillDeadBeams (pDeadEntity);*/
 		if (FBitSet (beam->flags, FBEAM_ENDENTITY) && beam->endEntity == deadEntity)
 			{
 			beam->die = cl.time;
@@ -1106,10 +1102,6 @@ void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int col
 	int			colorMod = 0, packedColor;
 	particle_t	*p;
 
-	/*if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
-		packedColor = 255; // use old code for blob particles
-	else
-		packedColor = 0;*/
 	packedColor = Host_IsQuakeCompatible () ? 255 : 0; // use old code for blob particles
 
 	for (i = 0; i < 512; i++)
@@ -1142,9 +1134,6 @@ void GAME_EXPORT R_BlobExplosion (const vec3_t org)
 	particle_t *p;
 	int		i, j, packedColor;
 
-	/*if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
-		packedColor = 255; // use old code for blob particles
-	else packedColor = 0;*/
 	packedColor = Host_IsQuakeCompatible () ? 255 : 0; // use old code for blob particles
 
 	for (i = 0; i < 1024; i++)

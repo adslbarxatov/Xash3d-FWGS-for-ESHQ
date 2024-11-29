@@ -172,8 +172,6 @@ enum // r_speeds counters
 #define REF_WHITE_TEXTURE    "*white"
 #define REF_BLACK_TEXTURE    "*black"
 #define REF_PARTICLE_TEXTURE "*particle"
-/*#define REF_SOLIDSKY_TEXTURE "solid_sky"
-#define REF_ALPHASKY_TEXTURE "alpha_sky"*/
 
 typedef enum connstate_e
 	{
@@ -299,7 +297,6 @@ typedef enum
 	// [FWGS, 01.07.24] implemented by ref_dll
 	// returns non-null integer if filtering is enabled for texture
 	// pass -1 to query global filtering settings
-	/*PARM_TEX_FILTERING = -65536,*/
 	PARM_TEX_FILTERING = -0x10000,
 	} ref_parm_e;
 
@@ -513,7 +510,6 @@ typedef struct ref_interface_s
 	const byte *(*R_GetTextureOriginalBuffer)(unsigned int idx); // not always available
 	int (*GL_LoadTextureFromBuffer)(const char *name, rgbdata_t *pic, texFlags_t flags, qboolean update);
 	void (*GL_ProcessTexture)(int texnum, float gamma, int topColor, int bottomColor);
-	/*void (*R_SetupSky)(const char *skyname);*/
 	void (*R_SetupSky)(int *skyboxTextures);
 
 	// 2D
@@ -545,7 +541,6 @@ typedef struct ref_interface_s
 	void (*CL_InitStudioAPI)(void);
 
 	// [FWGS, 01.07.24] bmodel
-	/*void (*R_InitSkyClouds)(struct mip_s *mt, struct texture_s *tx, qboolean custom_palette);*/
 	void (*R_SetSkyCloudsTextures)(int solidskyTexture, int alphaskyTexture);
 	void (*GL_SubdivideSurface)(model_t *mod, msurface_t *fa);
 	void (*CL_RunLightStyles)(void);
@@ -651,19 +646,6 @@ typedef struct ref_interface_s
 	void    (*CullFace)(TRICULLSTYLE mode);
 
 	// [FWGS, 01.07.24] vgui drawing implementation
-	/*void	(*VGUI_DrawInit)(void);
-	void	(*VGUI_DrawShutdown)(void);
-	void	(*VGUI_SetupDrawingText)(int *pColor);
-	void	(*VGUI_SetupDrawingRect)(int *pColor);
-	void	(*VGUI_SetupDrawingImage)(int *pColor);
-	void	(*VGUI_BindTexture)(int id);
-	void	(*VGUI_EnableTexture)(qboolean enable);
-	void	(*VGUI_CreateTexture)(int id, int width, int height);
-	void	(*VGUI_UploadTexture)(int id, const char *buffer, int width, int height);
-	void	(*VGUI_UploadTextureBlock)(int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);
-	void	(*VGUI_DrawQuad)(const vpoint_t *ul, const vpoint_t *lr);
-	void	(*VGUI_GetTextureSizes)(int *width, int *height);
-	int		(*VGUI_GenerateTexture)(void);*/
 	void	(*VGUI_SetupDrawing)(qboolean rect);
 	void	(*VGUI_UploadTextureBlock)(int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);
 	} ref_interface_t;

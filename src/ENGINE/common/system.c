@@ -88,17 +88,8 @@ void Sys_DebugBreak (void)
 #endif
 
 #if _MSC_VER
-	/*if (Sys_DebuggerPresent ())
-		__debugbreak ();*/
 	__debugbreak ();
 #else
-	/*if (Sys_DebuggerPresent ())
-		{
-		INLINE_RAISE (SIGINT);
-
-		// sometimes signal comes with delay, let it interrupt nanosleep
-		INLINE_NANOSLEEP1 ();
-		}*/
 	INLINE_RAISE (SIGINT);
 
 	// sometimes signal comes with delay, let it interrupt nanosleep

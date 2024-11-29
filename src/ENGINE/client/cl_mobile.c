@@ -21,8 +21,6 @@ GNU General Public License for more details
 #include "platform/platform.h"
 
 // [FWGS, 01.08.24]
-/*static mobile_engfuncs_t *gMobileEngfuncs;*/
-
 static CVAR_DEFINE_AUTO (vibration_length, "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"vibration length");
 static CVAR_DEFINE_AUTO (vibration_enable, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
@@ -35,15 +33,8 @@ static float g_font_scale;
 // [FWGS, 01.08.24]
 static void pfnVibrate (float life, char flags)
 	{
-	/*if (!vibration_enable.value)
-		return;
-
-	if (life < 0.0f)
-		{
-		Con_Reportf (S_WARN "Negative vibrate time: %f\n", life);*/
 	if (!vibration_enable.value || (life < 0.0f))
 		return;
-		/*}*/
 
 	// here goes platform-specific backends
 	Platform_Vibrate (life * vibration_length.value, flags);
@@ -58,7 +49,6 @@ static void Vibrate_f (void)
 		}
 
 	// [FWGS, 01.08.24]
-	/*pfnVibrate (Q_atof (Cmd_Argv (1)), VIBRATE_NORMAL);*/
 	pfnVibrate (Q_atof (Cmd_Argv (1)), VIBRATE_NORMAL);
 	}
 
@@ -110,7 +100,6 @@ static char *pfnParseFileSafe (char *data, char *buf, const int size, unsigned i
 	}
 
 // [FWGS, 01.08.24]
-/*static mobile_engfuncs_t gpMobileEngfuncs =*/
 static const mobile_engfuncs_t gMobileEngfuncs =
 	{
 	MOBILITY_API_VERSION,
@@ -132,29 +121,18 @@ static const mobile_engfuncs_t gMobileEngfuncs =
 // [FWGS, 01.09.24]
 qboolean Mobile_Init (void)
 	{
-	/*qboolean success = false;*/
 	pfnMobilityInterface ExportToClient;
 
-	/*// find a mobility interface
-	ExportToClient = COM_GetProcAddress (clgame.hInstance, MOBILITY_CLIENT_EXPORT);
-	gMobileEngfuncs = &gpMobileEngfuncs;
-
-	if (ExportToClient && !ExportToClient (gMobileEngfuncs))
-		success = true;
-
-	Cmd_AddCommand ("vibrate", (xcommand_t)Vibrate_f, "Vibrate for specified time");*/
 	Cmd_AddCommand ("vibrate", Vibrate_f, "Vibrate for specified time");
 
 	Cvar_RegisterVariable (&vibration_length);
 	Cvar_RegisterVariable (&vibration_enable);
 
-	/*return success;*/
 	// find mobility interface
 	if ((ExportToClient = COM_GetProcAddress (clgame.hInstance, MOBILITY_CLIENT_EXPORT)))
 		{
 		static mobile_engfuncs_t mobile_engfuncs; // keep a copy, don't let user change engine pointers
 
-		/*memcpy (&mobile_engfuncs, &gMobileEngfuncs, sizeof (mobile_engfuncs));*/
 		mobile_engfuncs = gMobileEngfuncs;
 
 		if (!ExportToClient (&mobile_engfuncs))

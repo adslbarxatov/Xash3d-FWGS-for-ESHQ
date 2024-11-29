@@ -158,22 +158,13 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 #endif
 
-	/*if (SDL_IsTextInputActive ())*/
 	if (SDL_IsTextInputActive () && down)
 		{
 		// this is how engine understands ctrl+c, ctrl+v and other hotkeys
-		/*if (down && (cls.key_dest != key_game))*/
 		if ((cls.key_dest != key_game) && FBitSet (SDL_GetModState (), KMOD_CTRL))
 			{
-			/*if (FBitSet (SDL_GetModState (), KMOD_CTRL))*/
 			if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
 				{
-				/*if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
-					{
-					keynum = keynum - SDL_SCANCODE_A + 1;
-					CL_CharEvent (keynum);
-					}
-				return;*/
 				keynum = keynum - SDL_SCANCODE_A + 1;
 				CL_CharEvent (keynum);
 				}
@@ -537,20 +528,14 @@ SDLash_InputEvent [FWGS, 01.07.24]
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 static void SDLash_InputEvent (SDL_TextInputEvent input)
 	{
-	/*char *text;*/
 	const char *text;
 	VGui_ReportTextInput (input.text);
 
 	for (text = input.text; *text; text++)
 		{
-		/*int ch;*/
 		int ch = (byte)*text;
 
-		/*if (!Q_stricmp (cl_charset.string, "utf-8"))
-			ch = (unsigned char)*text;
-		else
-			ch = Con_UtfProcessCharForce ((unsigned char)*text);*/
-			// do not pass UTF-8 sequence into the engine, convert it here
+		// do not pass UTF-8 sequence into the engine, convert it here
 		if (!cls.accept_utf8)
 			ch = Con_UtfProcessCharForce (ch);
 
@@ -647,7 +632,6 @@ static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
 SDLash_EventHandler [FWGS, 01.07.24]
 =============
 ***/
-/*static void SDLash_EventFilter (SDL_Event *event)*/
 static void SDLash_EventHandler (SDL_Event *event)
 	{
 	switch (event->type)
@@ -885,7 +869,6 @@ void Platform_RunEvents (void)
 
 	while (!host.crashed && !host.shutdown_issued && SDL_PollEvent (&event))
 		SDLash_EventHandler (&event);
-	/*SDLash_EventFilter (&event);*/
 	}
 
 // [FWGS, 01.04.23]

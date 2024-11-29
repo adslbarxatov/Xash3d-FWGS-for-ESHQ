@@ -26,17 +26,6 @@ GNU General Public License for more details
 // [FWGS, 01.07.24]
 static const char *file_exts[] =
 	{
-	/*"cfg",
-	"lst",
-	"exe",
-	"vbs",
-	"com",
-	"bat",
-	"dll",
-	"ini",
-	"log",
-	"sys",*/
-
 	// ban text files that don't make sense as resource
 	"cfg", "lst", "ini", "log",
 
@@ -918,7 +907,6 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	if (!COM_CheckString (filename))
 		return false;
 
-	/*if (!Q_strncmp (filename, "!MD5", 4))*/
 	ext = COM_FileExtension (lwrfilename);
 
 	// only allow extensionless files that start with !MD5
@@ -944,8 +932,6 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 
 	if (Q_strlen (first) != 4)
 		return false;
-
-	/*ext = COM_FileExtension (lwrfilename);*/
 
 	for (i = 0; i < ARRAYSIZE (file_exts); i++)
 		{

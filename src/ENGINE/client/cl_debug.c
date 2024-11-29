@@ -54,7 +54,6 @@ const char *CL_MsgInfo (int cmd)
 		// get engine message name
 		const char *svc_string = NULL;
 
-		/*if (cls.legacymode)*/
 		switch (cls.legacymode)
 			{
 			case PROTO_CURRENT:

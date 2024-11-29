@@ -20,35 +20,7 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "studio.h"
 
-// [FWGS, 01.07.24] just for debug
-/*const char *et_name[] =
-	{
-		"normal",
-		"player",
-		"tempentity",
-		"beam",
-		"fragmented",
-	};*/
-
 // [FWGS, 01.07.24] removed ClearLink, RemoveLink, InsertLinkBefore
-/*void ClearLink (link_t *l)
-	{
-	l->prev = l->next = l;
-	}*/
-
-/*void RemoveLink (link_t *l)
-	{
-	l->next->prev = l->prev;
-	l->prev->next = l->next;
-	}*/
-
-/*void InsertLinkBefore (link_t *l, link_t *before)
-	{
-	l->next = before;
-	l->prev = before->prev;
-	l->prev->next = l;
-	l->next->prev = l;
-	}*/
 
 /***
 ==================

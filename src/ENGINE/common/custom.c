@@ -99,7 +99,6 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 
 	if (FBitSet (flags, FCUST_FROMHPAK))
 		{
-		/*if (!HPAK_GetDataPointer (CUSTOM_RES_PATH, pResource, (byte **)&pCust->pBuffer, NULL))*/
 		if (!HPAK_GetDataPointer (hpk_custom_file.string, pResource, (byte **)&pCust->pBuffer, NULL))
 			bError = true;
 		}
@@ -121,13 +120,11 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 			{
 			if (!FBitSet (flags, FCUST_IGNOREINIT))
 				{
-				/*if ((pResource->nDownloadSize >= (1 * 1024)) && (pResource->nDownloadSize <= (128 * 1024)))*/
 				if ((pResource->nDownloadSize >= HPAK_ENTRY_MIN_SIZE) &&
 					(pResource->nDownloadSize <= HPAK_ENTRY_MAX_SIZE))
 					{
 					pCust->bTranslated = true;
 					pCust->nUserData1 = 0;
-					/*pCust->nUserData2 = 1;*/
 					pCust->nUserData2 = 7;
 
 					if (!FBitSet (flags, FCUST_WIPEDATA))

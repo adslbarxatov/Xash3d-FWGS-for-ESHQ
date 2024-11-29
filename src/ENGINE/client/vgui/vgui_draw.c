@@ -26,22 +26,12 @@ GNU General Public License for more details
 #include "platform/platform.h"
 
 // [FWGS, 01.07.24]
-/*CVAR_DEFINE_AUTO (vgui_utf8, "0", FCVAR_ARCHIVE, "enable utf-8 support for vgui text");*/
 #define VGUI_MAX_TEXTURES 1024
 
-/*static void GAME_EXPORT *VGUI_EngineMalloc (size_t size);
-static void GAME_EXPORT VGUI_GetMousePos (int *, int *);
-static void GAME_EXPORT VGUI_CursorSelect (VGUI_DefaultCursor);
-static byte GAME_EXPORT VGUI_GetColor (int, int);
-static int GAME_EXPORT VGUI_UtfProcessChar (int in);
-static qboolean GAME_EXPORT VGUI_IsInGame (void);
-
-static struct*/
 // [FWGS, 01.07.24]
 typedef struct vgui_static_s
 	{
 	qboolean initialized;
-	/*vguiapi_t dllFuncs;*/
 	VGUI_DefaultCursor cursor;
 
 	vguiapi_t dllFuncs;
@@ -55,7 +45,6 @@ typedef struct vgui_static_s
 	HINSTANCE hInstance;
 
 	enum VGUI_KeyCode virtualKeyTrans[256];
-	/*} vgui =*/
 	} vgui_static_t;
 
 // [FWGS, 01.07.24]
@@ -101,34 +90,6 @@ static void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int widt
 
 	if ((id <= 0) || (id >= VGUI_MAX_TEXTURES))
 		{
-		/*false, // Not initialized yet
-				NULL, // VGUI_DrawInit,
-				NULL, // VGUI_DrawShutdown,
-				NULL, // VGUI_SetupDrawingText,
-				NULL, // VGUI_SetupDrawingRect,
-				NULL, // VGUI_SetupDrawingImage,
-				NULL, // VGUI_BindTexture,
-				NULL, // VGUI_EnableTexture,
-				NULL, // VGUI_CreateTexture,
-				NULL, // VGUI_UploadTexture,
-				NULL, // VGUI_UploadTextureBlock,
-				NULL, // VGUI_DrawQuad,
-				NULL, // VGUI_GetTextureSizes,
-				NULL, // VGUI_GenerateTexture,
-				VGUI_EngineMalloc,
-				VGUI_CursorSelect,
-				VGUI_GetColor,
-				VGUI_IsInGame,
-				Key_EnableTextInput,
-				VGUI_GetMousePos,
-				VGUI_UtfProcessChar,
-				Platform_GetClipboardText,
-				Platform_SetClipboardText,
-				Platform_GetKeyModifiers,
-			},
-			-1
-		};*/
-
 		Con_DPrintf (S_ERROR "%s: bad texture %i. Ignored\n", __func__, id);
 		return;
 		}
@@ -306,22 +267,6 @@ qboolean VGui_IsActive (void)
 	}
 
 // [FWGS, 01.07.24] removed VGui_FillAPIFromRef
-/*static void VGui_FillAPIFromRef (vguiapi_t *to, const ref_interface_t *from)
-	{
-	to->DrawInit = from->VGUI_DrawInit;
-	to->DrawShutdown = from->VGUI_DrawShutdown;
-	to->SetupDrawingText = from->VGUI_SetupDrawingText;
-	to->SetupDrawingRect = from->VGUI_SetupDrawingRect;
-	to->SetupDrawingImage = from->VGUI_SetupDrawingImage;
-	to->BindTexture = from->VGUI_BindTexture;
-	to->EnableTexture = from->VGUI_EnableTexture;
-	to->CreateTexture = from->VGUI_CreateTexture;
-	to->UploadTexture = from->VGUI_UploadTexture;
-	to->UploadTextureBlock = from->VGUI_UploadTextureBlock;
-	to->DrawQuad = from->VGUI_DrawQuad;
-	to->GetTextureSizes = from->VGUI_GetTextureSizes;
-	to->GenerateTexture = from->VGUI_GenerateTexture;
-	}*/
 
 void VGui_RegisterCvars (void)
 	{
@@ -363,7 +308,6 @@ qboolean VGui_LoadProgs (HINSTANCE hInstance)
 	void (*F)(vguiapi_t *);
 	qboolean client = (hInstance != NULL);
 
-	/*memcpy (&vgui.dllFuncs, &gEngfuncs, sizeof (vgui.dllFuncs));*/
 	vgui.dllFuncs = gEngfuncs;
 
 	// not loading interface from client.dll, load vgui_support.dll instead
@@ -392,7 +336,6 @@ qboolean VGui_LoadProgs (HINSTANCE hInstance)
 				Con_Reportf (S_ERROR "Failed to load vgui_support library: %s\n", COM_GetLibraryError ());
 			else
 				Con_Reportf ("%s: not found\n", __func__);
-			/*Con_Reportf ("vgui_support: not found\n");*/
 
 			return false;
 			}
@@ -403,7 +346,6 @@ qboolean VGui_LoadProgs (HINSTANCE hInstance)
 
 	if (F)
 		{
-		/*VGui_FillAPIFromRef (&vgui.dllFuncs, &ref.dllFuncs);*/
 		F (&vgui.dllFuncs);
 
 		vgui.initialized = vgui.dllFuncs.initialized = true;
@@ -458,15 +400,10 @@ void VGui_Shutdown (void)
 	{
 	if (vgui.dllFuncs.Shutdown)
 		vgui.dllFuncs.Shutdown ();
-
-	/*if (vgui.hInstance)
-		COM_FreeLibrary (vgui.hInstance);*/
 	
 	// drop pointers to now unloaded vgui_support
-	/*memcpy (&vgui.dllFuncs, &gEngfuncs, sizeof (vgui.dllFuncs));*/
 	vgui.dllFuncs = gEngfuncs;
 	vgui.hInstance = NULL;
-	/*vgui.initialized = false;*/
 	}
 
 static void VGUI_InitKeyTranslationTable (void)

@@ -564,7 +564,6 @@ static void CL_DrawScreenFade (void)
 	if (!alpha)
 		return;
 
-	/*if (FBitSet (sf->fadeFlags, FFADE_MODULATE))*/
 	if (!FBitSet (sf->fadeFlags, FFADE_MODULATE))
 		{
 		ref.dllFuncs.GL_SetRenderMode (kRenderTransTexture);
@@ -587,11 +586,6 @@ static void CL_DrawScreenFade (void)
 			(uint16_t)(sf->fadeb * alpha + (255 - alpha) * 255) >> 8,
 			alpha);
 		}
-	/*else
-		{
-		ref.dllFuncs.GL_SetRenderMode (kRenderTransTexture);
-		ref.dllFuncs.Color4ub (sf->fader, sf->fadeg, sf->fadeb, alpha);
-		}*/
 
 	ref.dllFuncs.R_DrawStretchPic (0, 0, refState.width, refState.height, 0, 0, 1, 1,
 		R_GetBuiltinTexture (REF_WHITE_TEXTURE));
@@ -1221,7 +1215,6 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 	if ((type == SPR_CLIENT) || (type == SPR_HUDSPRITE))
 		SetBits (m_pSprite->flags, MODEL_CLIENT);
 
-	/*m_pSprite->numtexinfo = texFlags; // store texFlags into numtexinfo*/
 	m_pSprite->numtexinfo = texFlags;	// [FWGS, 01.08.24] store texFlags for renderer into numtexinfo
 
 	if (!FS_FileExists (szSpriteName, false))
@@ -1252,7 +1245,6 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 	else
 		{
 		// [FWGS, 01.08.24]
-		/*Mod_LoadSpriteModel (m_pSprite, buf, &loaded, texFlags);*/
 		Mod_LoadSpriteModel (m_pSprite, buf, &loaded);
 		ref.dllFuncs.Mod_ProcessRenderData (m_pSprite, true, buf);
 		}
@@ -1522,7 +1514,6 @@ SPR_GetList [FWGS, 01.07.24]
 for parsing half-life scripts - hud.txt etc
 =========
 ***/
-/*static client_sprite_t *pfnSPR_GetList (char *psz, int *piCount)*/
 static client_sprite_t *SPR_GetList (char *psz, int *piCount)
 	{
 	cached_spritelist_t	*pEntry = &clgame.sprlist[0];
@@ -2416,10 +2407,6 @@ static void GAME_EXPORT pfnLocalPlayerBounds (int hull, float *mins, float *maxs
 	{
 	if ((hull >= 0) && (hull < 4))
 		{
-		/*if (mins)
-			VectorCopy (clgame.pmove->player_mins[hull], mins);
-		if (maxs)
-			VectorCopy (clgame.pmove->player_maxs[hull], maxs);*/
 		if (mins)
 			VectorCopy (host.player_mins[hull], mins);
 		if (maxs)
@@ -2486,8 +2473,6 @@ static void GAME_EXPORT CL_PushTraceBounds (int hullnum, const float *mins, cons
 
 	hullnum = bound (0, hullnum, 3);
 	
-	/*VectorCopy (mins, clgame.pmove->player_mins[hullnum]);
-	VectorCopy (maxs, clgame.pmove->player_maxs[hullnum]);*/
 	VectorCopy (mins, host.player_mins[hullnum]);
 	VectorCopy (maxs, host.player_maxs[hullnum]);
 	}
@@ -2499,8 +2484,6 @@ CL_PopTraceBounds [FWGS, 01.08.24]
 ***/
 static void GAME_EXPORT CL_PopTraceBounds (void)
 	{
-	/*memcpy (clgame.pmove->player_mins, host.player_mins, sizeof (host.player_mins));
-	memcpy (clgame.pmove->player_maxs, host.player_maxs, sizeof (host.player_maxs));*/
 	if (!host.trace_bounds_pushed)
 		{
 		Con_Reportf (S_ERROR "%s called without push!\n", __func__);
@@ -2782,11 +2765,9 @@ static void GAME_EXPORT PlayerInfo_SetValueForKey (const char *key, const char *
 		{
 		Cvar_DirectSet (var, value);
 		}
-	/*else if (Info_SetValueForStarKey (cls.userinfo, key, value, MAX_INFO_STRING))*/
 	else if (Info_SetValueForStarKey (cls.userinfo, key, value, sizeof (cls.userinfo)))
 		{
 		// time to update server copy of userinfo
-		/*CL_ServerCommand (true, "setinfo \"%s\" \"%s\"\n", key, value);*/
 		CL_UpdateInfo (key, value);
 		}
 	}
@@ -3228,7 +3209,6 @@ Heavy legacy of Quake...
 ***/
 void TriColor4fRendermode (float r, float g, float b, float a, int rendermode)
 	{
-	/*if (clgame.ds.renderMode == kRenderTransAlpha)*/
 	if (rendermode == kRenderTransAlpha)
 		{
 		clgame.ds.triRGBA[3] = a / 255.0f;
@@ -3355,7 +3335,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	netadr_t *remote_address, net_api_response_func_t response)
 	{
 	net_request_t	*nr = NULL;
-	/*string req;*/
 	int		i;
 
 	if (!response)
@@ -3365,7 +3344,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 		return;
 		}
 
-	/*if ((remote_address->type != NA_IPX) && (remote_address->type != NA_BROADCAST_IPX))*/
 	if ((remote_address->type == NA_IPX) || (remote_address->type == NA_BROADCAST_IPX))
 		return; // IPX no longer support
 
@@ -3410,10 +3388,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	nr->flags = flags;
 	
 	// local servers request
-	/*Q_snprintf (req, sizeof (req), "netinfo %i %i %i", PROTOCOL_VERSION, context, request);*/
-	/*Q_snprintf (req, sizeof (req), "netinfo %i %i %i", FBitSet (flags, FNETAPI_LEGACY_PROTOCOL) ?
-		PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);
-	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "%s", req);*/
 	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "netinfo %i %i %i",
 		FBitSet (flags, FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);
 	}
@@ -3710,7 +3684,6 @@ static demo_api_t gDemoApi =
 	};
 
 // [FWGS, 01.07.24]
-/*static net_api_t gNetApi =*/
 net_api_t gNetApi =
 	{
 		NetAPI_InitNetworking,
@@ -3747,7 +3720,6 @@ static cl_enginefunc_t gEngfuncs =
 		pfnSPR_DrawAdditive,
 		SPR_EnableScissor,
 		SPR_DisableScissor,
-		/*pfnSPR_GetList,*/
 		SPR_GetList,
 		CL_FillRGBA,
 		CL_GetScreenInfo,

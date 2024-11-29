@@ -441,11 +441,6 @@ static void GAME_EXPORT pfnPlaybackEventFull (int flags, int clientindex, word e
 	if (!SV_IsValidEdict (ent))
 		return;
 
-	/*if (Host_IsDedicated ())
-		flags |= FEV_NOTHOST; // no local clients for dedicated server
-
-	SV_PlaybackEventFull (flags, ent, eventindex,*/
-
 	// GoldSrc always sets FEV_NOTHOST in PMove version of this function
 	SV_PlaybackEventFull (flags | FEV_NOTHOST, ent, eventindex,
 		delay, origin, angles,
@@ -712,7 +707,6 @@ static void SV_FinishPMove (playermove_t *pmove, sv_client_t *cl)
 		}
 
 	// [FWGS, 01.08.24]
-	/*SV_SetMinMaxSize (clent, pmove->player_mins[pmove->usehull], pmove->player_maxs[pmove->usehull], false);*/
 	SV_SetMinMaxSize (clent, host.player_mins[pmove->usehull], host.player_maxs[pmove->usehull], false);
 
 	// all next calls ignore footstep sounds

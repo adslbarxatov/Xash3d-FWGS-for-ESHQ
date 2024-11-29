@@ -53,11 +53,8 @@ static CVAR_DEFINE_AUTO (s_combine_sounds, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE
 	"combine channels with same sounds");
 
 // [FWGS, 01.07.24]
-/*static CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-	"silence the audio when game window loses focus");*/
 CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"silence the audio when game window loses focus");
-
 CVAR_DEFINE_AUTO (s_test, "0", 0, 
 	"engine developer cvar for quick testing new features");
 CVAR_DEFINE_AUTO (s_samplecount, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
@@ -82,10 +79,6 @@ float S_GetMasterVolume (void)
 	// we return zero volume to keep sounds running
 	if ((host.status == HOST_NOFOCUS) && (snd_mute_losefocus.value != 0.0f))
 		return 0.0f;
-
-	/*// mute sounds in menu when it's not transparent and we're in multiplayer
-	if (s_listener.inmenu && !ui_renderworld.value && !Host_IsLocalGame ())
-		return 0.0f;*/
 
 	if (!s_listener.inmenu && (soundfade.percent != 0))
 		{
@@ -1146,7 +1139,6 @@ rawchan_t *S_FindRawChannel (int entnum, qboolean create)
 	if (!raw_channels[best])
 		{
 		raw_samples = MAX_RAW_SAMPLES;
-		/*raw_channels[best] = Mem_Calloc (sndpool, sizeof (*ch) + sizeof (portable_samplepair_t) * (raw_samples - 1));*/
 		raw_channels[best] = Mem_Calloc (sndpool, sizeof (*ch) + sizeof (portable_samplepair_t) * raw_samples);
 		}
 
@@ -1666,7 +1658,6 @@ void SND_UpdateSound (void)
 	s_listener.frametime = (cl.time - cl.oldtime);
 	s_listener.waterlevel = cl.local.waterlevel;
 	s_listener.active = CL_IsInGame ();
-	/*s_listener.inmenu = CL_IsInMenu ();*/
 	s_listener.inmenu = (cls.key_dest == key_menu);
 	s_listener.paused = cl.paused;
 

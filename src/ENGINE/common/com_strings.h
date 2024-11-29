@@ -39,10 +39,6 @@ GNU General Public License for more details
 // end game final default message
 #define DEFAULT_ENDGAME_MESSAGE	"The End"
 
-// [FWGS, 01.07.24]
-/*// path to the hash-pak that contain custom player decals
-#define CUSTOM_RES_PATH		"custom.hpk"*/
-
 // path to default playermodel in GoldSrc
 #define DEFAULT_PLAYER_PATH_HALFLIFE	"models/player.mdl"
 
@@ -73,7 +69,6 @@ GNU General Public License for more details
 #define DEFAULT_CUSTOM_DIRECTORY "custom/"
 
 // [FWGS, 01.07.24] fallback to this skybox
-/*#define DEFAULT_SKYBOX_PATH		"gfx/env/desert"*/
 #define DEFAULT_SKYBOX_NAME		"desert"
 
 // playlist for startup videos
@@ -91,7 +86,6 @@ GNU General Public License for more details
 #define XASH_DEDICATED_SERVER_NAME	"XashDS"
 
 // [FWGS, 01.09.24]
-/*#define XASH_VERSION		"0.20"	// engine current version*/
 #define XASH_VERSION		"0.21"	// engine current version
 #define XASH_COMPAT_VERSION	"0.99"	// version we are based on
 

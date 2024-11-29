@@ -2541,7 +2541,6 @@ void CL_SetLightstyle (int style, const char *s, float f)
 		}
 
 	// [FWGS, 01.08.24]
-	/*Con_Reportf ("Lightstyle %i (%s), interp %s\n", style, ls->pattern, ls->interp ? "Yes" : "No");*/
 	if (ls->length >= 1)
 		Con_Reportf ("Lightstyle %i (%s), interp %s\n", style, ls->pattern, ls->interp ? "Yes" : "No");
 	}
@@ -2660,24 +2659,13 @@ CL_DecayLights [FWGS, 01.09.24]
 ***/
 void CL_DecayLights (void)
 	{
-	/*dlight_t	*dl;
-	float		time;*/
 	const float	time = cl.time;
 	const float	dt = cl.time - cl.oldtime;
 	int			i;
 
-	/*time = cl.time - cl.oldtime;
-
-	for (i = 0, dl = cl_dlights; i < MAX_DLIGHTS; i++, dl++)*/
 	for (i = 0; i < MAX_DLIGHTS; i++)
 		{
-		/*if (!dl->radius)
-			continue;*/
 		dlight_t *dl = &cl_dlights[i];
-
-		/*dl->radius -= time * dl->decay;
-		if (dl->radius < 0)
-			dl->radius = 0;*/
 		if (!dl->radius)
 			continue;
 
@@ -2687,26 +2675,17 @@ void CL_DecayLights (void)
 			continue;
 			}
 
-		/*if ((dl->die < cl.time) || !dl->radius)*/
 		dl->radius -= dt * dl->decay;
 		if (dl->radius <= 0)
 			memset (dl, 0, sizeof (*dl));
 		}
 
-	/*for (i = 0, dl = cl_elights; i < MAX_ELIGHTS; i++, dl++)*/
 	for (i = 0; i < MAX_ELIGHTS; i++)
 		{
-		/*if (!dl->radius)
-			continue;*/
 		dlight_t *dl = &cl_elights[i];
-
-		/*dl->radius -= time * dl->decay;
-		if (dl->radius < 0)
-			dl->radius = 0;*/
 		if (!dl->radius)
 			continue;
 
-		/*if ((dl->die < cl.time) || !dl->radius)*/
 		if (dl->die < time)
 			{
 			memset (dl, 0, sizeof (*dl));
@@ -2873,7 +2852,6 @@ void CL_AddEntityEffects (cl_entity_t *ent)
 			else
 				CL_UpdateFlashlight (ent);
 			}
-		/*CL_UpdateFlashlight (ent);*/
 		}
 
 	else
@@ -3070,13 +3048,10 @@ static void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, flo
 			{
 			if (!pCust->nUserData1)
 				{
-				/*int sprayTextureIndex;*/
 				char	decalname[MAX_VA_STRING];
 				int		width, height;
 
 				Q_snprintf (decalname, sizeof (decalname), "player%dlogo%d", playernum, customIndex);
-				/*sprayTextureIndex = ref.dllFuncs.GL_FindTexture (decalname);
-				if (sprayTextureIndex != 0)*/
 				textureIndex = ref.dllFuncs.GL_FindTexture (decalname);
 				if (textureIndex != 0)
 					ref.dllFuncs.GL_FreeTexture (textureIndex);
@@ -3088,7 +3063,6 @@ static void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, flo
 
 				if ((width > cl_logomaxdim.value) || (height > cl_logomaxdim.value))
 					{
-					/*ref.dllFuncs.GL_FreeTexture (sprayTextureIndex);*/
 					double scale = cl_logomaxdim.value / Q_max (width, height);
 					width = round (width * scale);
 					height = round (height * scale);
@@ -3096,8 +3070,6 @@ static void CL_PlayerDecal (int playernum, int customIndex, int entityIndex, flo
 					// default custom decal from HL1
 					ref.dllFuncs.R_OverrideTextureSourceSize (pCust->nUserData1, width, height);
 					}
-
-				/*pCust->nUserData1 = GL_LoadTextureInternal (decalname, pCust->pInfo, TF_DECAL);*/
 				}
 
 			textureIndex = pCust->nUserData1;
@@ -3147,7 +3119,6 @@ int GAME_EXPORT CL_DecalIndex (int id)
 		int gl_texturenum = 0;
 
 		Image_SetForceFlags (IL_LOAD_DECAL);
-		/*cl.decal_index[id] = ref.dllFuncs.GL_LoadTexture (host.draw_decals[id], NULL, 0, TF_DECAL);*/
 		if (Mod_AllowMaterials ())
 			{
 			string decalname;
@@ -3216,22 +3187,7 @@ EFRAGS MANAGEMENT
 ==============================================================
 ***/
 
-// [FWGS, 01.09.24]
-/*efrag_t	cl_efrags[MAX_EFRAGS];*/
-
 // [FWGS, 01.09.24] removed CL_ClearEfrags
-/*void CL_ClearEfrags (void)
-	{
-	int	i;
-
-	memset (cl_efrags, 0, sizeof (cl_efrags));
-
-	// allocate the efrags and chain together into a free list
-	clgame.free_efrags = cl_efrags;
-	for (i = 0; i < MAX_EFRAGS - 1; i++)
-		clgame.free_efrags[i].entnext = &clgame.free_efrags[i + 1];
-	clgame.free_efrags[i].entnext = NULL;
-	}*/
 
 /***
 =======================

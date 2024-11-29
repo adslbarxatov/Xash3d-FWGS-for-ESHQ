@@ -127,7 +127,6 @@ typedef struct rawchan_s
 	wavdata_t	sound_info;	// advance play position
 	size_t		max_samples;	// buffer length
 
-	/*portable_samplepair_t	rawsamples[1];	// variable sized*/
 	portable_samplepair_t	rawsamples[]; // variable sized
 	} rawchan_t;
 

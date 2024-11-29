@@ -249,7 +249,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	FindChunk (name, "cue ");
 
 	// [FWGS, 01.09.24]
-	/*if (iff_dataPtr)*/
 	if (iff_dataPtr && (iff_end - iff_dataPtr >= 36))
 		{
 		iff_dataPtr += 32;
@@ -257,7 +256,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		SetBits (sound.flags, SOUND_LOOPED);
 		FindNextChunk (name, "LIST");	// if the next chunk is a LIST chunk, look for a cue length marker
 
-		/*if (iff_dataPtr)*/
 		if (iff_dataPtr && (iff_end - iff_dataPtr >= 32))
 			{
 			if (IsFourCC (iff_dataPtr + 28, "mark"))

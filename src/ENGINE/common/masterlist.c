@@ -387,7 +387,6 @@ void NET_SaveMasters (void)
 	f = FS_Open ("xashcomm.lst", "w", true);
 	if (!f)
 		{
-		/*Con_Reportf (S_ERROR  "Couldn't write xashcomm.lst\n");*/
 		Con_Reportf (S_ERROR "Couldn't write xashcomm.lst\n");
 		return;
 		}
@@ -418,7 +417,6 @@ void NET_InitMasters (void)
 	Cvar_RegisterVariable (&sv_verbose_heartbeats);
 	NET_AddMaster (MASTERSERVER_ADR, false);
 
-	/*NET_AddMaster (MASTERSERVER_ADR_TEST, false);	// [FWGS, 01.11.23]*/
 	NET_AddMaster ("aaaa.mentality.rip:27010", false); // IPv6-only
 	NET_AddMaster ("mentality.rip:27011", false);
 	NET_LoadMasters ();

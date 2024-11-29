@@ -83,8 +83,6 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 const char *COM_OffsetNameForFunction (void *function)
 	{
 	static string sname;
-	/*Q_snprintf (sname, MAX_STRING, "ofs:%lu", (size_t)((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
-	Con_Reportf ("COM_OffsetNameForFunction %s\n", sname);*/
 
 	Q_snprintf (sname, MAX_STRING, "ofs:%zu", ((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
 	Con_Reportf ("%s: %s\n", __func__, sname);
@@ -235,21 +233,16 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 			break;
 
 		case LIBRARY_CLIENT:
-			/*if (SI.clientlib[0])*/
 			if (COM_CheckStringEmpty (host.clientlib))
 				Q_strncpy (out, host.clientlib, size);
-			/*Q_strncpy (out, SI.clientlib, size);*/
 
 			else
 				COM_GenerateClientLibraryPath ("client", out, size);
 			break;
 
 		case LIBRARY_SERVER:
-			/*if (SI.gamedll[0])*/
 			if (COM_CheckStringEmpty (host.gamedll))
 				Q_strncpy (out, host.gamedll, size);
-			/*Q_strncpy (out, SI.gamedll, size);*/
-
 			else
 				COM_GenerateServerLibraryPath (out, size);
 			break;

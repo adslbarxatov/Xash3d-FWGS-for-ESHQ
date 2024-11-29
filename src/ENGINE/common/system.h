@@ -55,7 +55,6 @@ qboolean Sys_LoadLibrary (dll_info_t *dll);
 void *Sys_GetProcAddress (dll_info_t *dll, const char *name);
 qboolean Sys_FreeLibrary (dll_info_t *dll);
 void Sys_ParseCommandLine (int argc, char **argv);
-/*void Sys_MergeCommandLine (void);*/	// [FWGS, 01.07.24]
 void Sys_SetupCrashHandler (void);
 void Sys_RestoreCrashHandler (void);
 void Sys_DebugBreak (void);	// [FWGS, 01.04.23]
@@ -81,21 +80,6 @@ void Sys_CloseLog (void);
 void Sys_InitLog (void);
 void Sys_PrintLog (const char *pMsg);
 int Sys_LogFileNo (void);
-
-// [FWGS, 01.08.24]
-/*//
-// con_win.c
-//
-if XASH_WIN32
-void Wcon_InitConsoleCommands (void);
-void Wcon_ShowConsole (qboolean show);
-void Wcon_CreateConsole (void);
-void Wcon_DestroyConsole (void);
-void Wcon_DisableInput (void);
-char *Wcon_Input (void);
-void Wcon_WinPrint (const char *pMsg);
-void Wcon_SetStatus (const char *pStatus);
-endif*/
 
 // text messages
 #define Msg	Con_Printf

@@ -88,12 +88,6 @@ unacknowledged reliable
 // [FWGS, 01.07.24]
 CVAR_DEFINE_AUTO (net_showpackets, "0", 0,
 	"show network packets");
-/*CVAR_DEFINE_AUTO (net_chokeloop, "0", 0,
-	"apply bandwidth choke to loopback packets");
-CVAR_DEFINE_AUTO (net_showdrop, "0", 0,
-	"show packets that are dropped");
-CVAR_DEFINE_AUTO (net_qport, "0", FCVAR_READ_ONLY,
-	"current quake netport");*/
 static CVAR_DEFINE_AUTO (net_chokeloop, "0", 0,
 	"apply bandwidth choke to loopback packets");
 static CVAR_DEFINE_AUTO (net_showdrop, "0", 0,
@@ -426,7 +420,6 @@ static void Netchan_ClearFragbufs (fragbuf_t **ppbuf)
 	while (buf)
 		{
 		n = buf->next;
-		/*Mem_Free (buf->frag_message_buf);	// [FWGS, 01.04.23]*/
 		Mem_Free (buf);
 		buf = n;
 		}
@@ -503,26 +496,15 @@ Netchan_OutOfBand [FWGS, 01.09.24]
 Sends an out-of-band datagram
 ================
 ***/
-/*void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data)*/
 void Netchan_OutOfBand (int net_socket, netadr_t adr, int len, byte *data)
 	{
-	/*byte		send_buf[MAX_PRINT_MSG];
-	sizebuf_t	send;
-
-	// write the packet header
-	MSG_Init (&send, "SequencePacket", send_buf, sizeof (send_buf));*/
 	byte buf[MAX_PRINT_MSG + 4] = { 0xff, 0xff, 0xff, 0xff };
 
-	/*MSG_WriteLong (&send, NET_HEADER_OUTOFBANDPACKET); // -1 sequence means out of band
-	MSG_WriteBytes (&send, data, length);*/
 	if (CL_IsPlaybackDemo ())
 		return;
 
-	/*if (!CL_IsPlaybackDemo ())*/
 	if (len > sizeof (buf) - 4)
 		{
-		/*// send the datagram
-		NET_SendPacket (net_socket, MSG_GetNumBytesWritten (&send), MSG_GetData (&send), adr);*/
 		Host_Error ("%s: overflow!\n", __func__);
 		return;
 		}
@@ -538,11 +520,8 @@ Netchan_OutOfBandPrint [FWGS, 01.09.24]
 Sends a text message in an out-of-band datagram
 ================
 ***/
-/*void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...)*/
 void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *fmt, ...)
 	{
-	/*char	string[MAX_PRINT_MSG];
-	va_list	argptr;*/
 	va_list	va;
 	byte	buf[MAX_PRINT_MSG + 4] = { 0xff, 0xff, 0xff, 0xff };
 	int		len;
@@ -550,9 +529,6 @@ void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *fmt, ...)
 	if (CL_IsPlaybackDemo ())
 		return;
 
-	/*va_start (argptr, format);
-	Q_vsnprintf (string, sizeof (string) - 1, format, argptr);
-	va_end (argptr);*/
 	va_start (va, fmt);
 	len = Q_vsnprintf (&buf[4], sizeof (buf) - 4, fmt, va);
 	va_end (va);
@@ -563,7 +539,6 @@ void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *fmt, ...)
 		return;
 		}
 
-	/*Netchan_OutOfBand (net_socket, adr, Q_strlen (string), (byte *)string);*/
 	NET_SendPacket (net_socket, len + 4, buf, adr);
 	}
 
@@ -575,13 +550,9 @@ Netchan_AllocFragbuf [FWGS, 01.09.24]
 static fragbuf_t *Netchan_AllocFragbuf (int fragment_size)
 	{
 	fragbuf_t *buf;
-
-	/*buf = (fragbuf_t *)Mem_Calloc (net_mempool, sizeof (fragbuf_t));
-	buf->frag_message_buf = (byte *)Mem_Calloc (net_mempool, fragment_size);*/
 	buf = (fragbuf_t *)Mem_Calloc (net_mempool, sizeof (fragbuf_t) + fragment_size);
 
 	MSG_Init (&buf->frag_message, "Frag Message", buf->frag_message_buf, fragment_size);
-
 	return buf;
 	}
 
@@ -592,7 +563,6 @@ Netchan_AddFragbufToTail [FWGS, 01.09.24]
 ***/
 static void Netchan_AddFragbufToTail (fragbufwaiting_t *wait, fragbuf_t *buf)
 	{
-	/*fragbuf_t *p;*/
 	fragbuf_t *p;
 
 	buf->next = NULL;
@@ -997,7 +967,6 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	int		remaining;
 	int		bufferid = 1;
 	fs_offset_t	filesize = 0;
-	/*char	compressedfilename[MAX_OSPATH];*/
 	int		compressedFileTime;
 	int		fileTime;
 	qboolean	firstfragment = true;
@@ -1025,8 +994,6 @@ int Netchan_CreateFileFragments (netchan_t *chan, const char *filename)
 	else
 		chunksize = FRAGMENT_MAX_SIZE; // fallback
 
-	/*Q_strncpy (compressedfilename, filename, sizeof (compressedfilename));
-	COM_ReplaceExtension (compressedfilename, ".ztmp", sizeof (compressedfilename));	// [FWGS, 01.05.23]*/
 	Q_snprintf (compressedfilename, sizeof (compressedfilename), "%s.ztmp", filename);
 	compressedFileTime = FS_FileTime (compressedfilename, false);
 	fileTime = FS_FileTime (filename, false);
@@ -1250,7 +1217,6 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 	if (filename[0] != '!')
 		{
 		string temp_filename;
-		/*Q_snprintf (temp_filename, sizeof (temp_filename), "downloaded/%s", filename);*/
 		Q_snprintf (temp_filename, sizeof (temp_filename), DEFAULT_DOWNLOADED_DIRECTORY "%s", filename);
 		Q_strncpy (filename, temp_filename, sizeof (filename));
 		}
@@ -1614,12 +1580,8 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 					// [FWGS, 01.07.24]
 					if (pbuf->iscompressed)
 						{
-						/*char compressedfilename[MAX_OSPATH];*/
 						char compressedfilename[sizeof (pbuf->filename) + 5];
 
-						/*Q_strncpy (compressedfilename, pbuf->filename, sizeof (compressedfilename));
-						// [FWGS, 01.05.23]
-						COM_ReplaceExtension (compressedfilename, ".ztmp", sizeof (compressedfilename));*/
 						Q_snprintf (compressedfilename, sizeof (compressedfilename), "%s.ztmp", pbuf->filename);
 						file = FS_Open (compressedfilename, "rb", false);
 						}
@@ -1682,7 +1644,6 @@ void Netchan_TransmitBits (netchan_t *chan, int length, byte *data)
 	// [FWGS, 01.07.24] send the qport if we are a client
 	if (chan->sock == NS_CLIENT)
 		MSG_WriteWord (&send, (int)net_qport.value);
-	/*MSG_WriteWord (&send, Cvar_VariableInteger ("net_qport"));*/
 
 	if (send_reliable && send_reliable_fragment)
 		{
@@ -1800,9 +1761,6 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 	int		frag_length[MAX_STREAMS] = { 0, 0 };
 	qboolean	message_contains_fragments;
 	int		i, qport, statId;
-
-	/*if (!CL_IsPlaybackDemo () && !NET_CompareAdr (net_from, chan->remote_address))
-		return false;*/
 
 	// get sequence numbers
 	MSG_Clear (msg);

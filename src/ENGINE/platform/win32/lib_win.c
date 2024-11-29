@@ -326,11 +326,6 @@ static const char *GetLastErrorAsString (void)
 	static string	errormessage;
 
 	errorcode = GetLastError ();
-	/*if (!errorcode) return "";
-
-	FormatMessageA (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
-		NULL, errorcode, MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPSTR)&errormessage, sizeof (errormessage), NULL);*/
 	if (!errorcode)
 		return "";
 

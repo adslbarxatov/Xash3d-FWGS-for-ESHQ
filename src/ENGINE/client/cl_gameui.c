@@ -225,7 +225,6 @@ UI_ShowMessageBox [FWGS, 01.07.24]
 show message box
 =================
 ***/
-/*void UI_ShowMessageBox (const char *text)*/
 qboolean UI_ShowMessageBox (const char *text)
 	{
 	if (gameui.dllFuncs2.pfnShowMessageBox)
@@ -402,7 +401,6 @@ void Host_Credits (void)
 	}
 
 // [FWGS, 01.09.24]
-/*static void UI_ConvertGameInfo (GAMEINFO *out, gameinfo_t *in)*/
 static void UI_ConvertGameInfo (gameinfo2_t *out, const gameinfo_t *in)
 	{
 	out->gi_version = GAMEINFO_VERSION;
@@ -421,7 +419,6 @@ static void UI_ConvertGameInfo (gameinfo2_t *out, const gameinfo_t *in)
 
 	Q_strncpy (out->game_url, in->game_url, sizeof (out->game_url));
 	Q_strncpy (out->update_url, in->update_url, sizeof (out->update_url));
-	/*Q_strncpy (out->size, Q_pretifymem (in->size, 0), sizeof (out->size));*/
 	out->size = in->size;
 	Q_strncpy (out->type, in->type, sizeof (out->type));
 	Q_strncpy (out->date, in->date, sizeof (out->date));
@@ -944,13 +941,11 @@ static void GAME_EXPORT pfnMemFree (void *mem, const char *filename, const int f
 pfnGetGameInfo [FWGS, 01.09.24]
 =========
 ***/
-/*static int GAME_EXPORT pfnGetGameInfo (GAMEINFO *pgameinfo)*/
 static int GAME_EXPORT pfnGetOldGameInfo (GAMEINFO *pgameinfo)
 	{
 	if (!pgameinfo)
 		return 0;
 
-	/**pgameinfo = gameui.gameInfo;*/
 	UI_ToOldGameInfo (pgameinfo, &gameui.gameInfo);
 	return 1;
 	}
@@ -962,9 +957,6 @@ pfnGetGamesList [FWGS, 01.09.24]
 ***/
 static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
 	{
-	/*if (numGames)
-		*numGames = FI->numgames;
-	return gameui.modsInfo;*/
 	if (numGames)
 		*numGames = FI->numgames;
 
@@ -1154,7 +1146,6 @@ static void GAME_EXPORT pfnSetCursor (void *hCursor)
 	}
 
 // [FWGS, 01.08.24] engine callbacks
-/*static ui_enginefuncs_t gEngfuncs =*/
 static const ui_enginefuncs_t gEngfuncs =
 	{
 	pfnPIC_Load,
@@ -1219,7 +1210,6 @@ static const ui_enginefuncs_t gEngfuncs =
 	pfnKeyGetState,
 	pfnMemAlloc,
 	pfnMemFree,
-	/*pfnGetGameInfo,*/
 	pfnGetOldGameInfo,	// [FWGS, 01.09.24]
 	pfnGetGamesList,
 	pfnGetFilesList,
@@ -1234,7 +1224,6 @@ static const ui_enginefuncs_t gEngfuncs =
 	pfnHostEndGame,
 	COM_RandomFloat,
 	COM_RandomLong,
-	/*IN_SetCursor,*/
 	pfnSetCursor,	// [FWGS, 01.07.24]
 	pfnIsMapValid,
 	GL_ProcessTexture,
@@ -1373,11 +1362,9 @@ qboolean UI_LoadProgs (void)
 		}
 
 	// [FWGS, 01.07.24]
-	/*gameui.use_text_api = false;*/
 	gameui.use_extended_api = false;
 
 	// [FWGS, 01.09.24] make local copy of engfuncs to prevent overwrite it with user dll
-	/*memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));*/
 	gpEngfuncs = gEngfuncs;
 
 	gameui.mempool = Mem_AllocPool ("Menu Pool");
@@ -1392,7 +1379,6 @@ qboolean UI_LoadProgs (void)
 		}
 
 	// [FWGS, 01.09.24] make local copy of engfuncs to prevent overwrite it with user dll
-	/*memcpy (&gpExtendedfuncs, &gExtendedfuncs, sizeof (gExtendedfuncs));*/
 	gpExtendedfuncs = gExtendedfuncs;
 	memset (&gameui.dllFuncs2, 0, sizeof (gameui.dllFuncs2));
 
@@ -1402,8 +1388,6 @@ qboolean UI_LoadProgs (void)
 		Con_Reportf ("%s: extended Menu API found\n", __func__);
 		if (GetExtAPI (MENU_EXTENDED_API_VERSION, &gameui.dllFuncs2, &gpExtendedfuncs))
 			{
-			/*Con_Reportf ("UI_LoadProgs: extended Menu API initialized\n");
-			gameui.use_text_api = true;*/
 			Con_Reportf ("%s: extended Menu API initialized\n", __func__);
 			gameui.use_extended_api = true;
 			}
@@ -1420,8 +1404,6 @@ qboolean UI_LoadProgs (void)
 			// they are binary compatible, so we can just pass extended funcs API to menu
 			if (GiveTextApi (&gpExtendedfuncs))
 				{
-				/*Con_Reportf ("UI_LoadProgs: extended text API initialized\n");
-				gameui.use_text_api = true;*/
 				Con_Reportf ("%s: extended text API initialized\n", __func__);
 				gameui.use_extended_api = true;
 				}
@@ -1444,10 +1426,6 @@ qboolean UI_LoadProgs (void)
 	gameui.modsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.modsInfo) * FI->numgames);
 	for (i = 0; i < FI->numgames; i++)
 		UI_ConvertGameInfo (&gameui.modsInfo[i], FI->games[i]);
-		/*{
-		gameui.modsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (GAMEINFO));
-		UI_ConvertGameInfo (gameui.modsInfo[i], FI->games[i]);
-		}*/
 
 	UI_ConvertGameInfo (&gameui.gameInfo, FI->GameInfo); // current gameinfo
 

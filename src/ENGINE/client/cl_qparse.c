@@ -23,22 +23,6 @@ GNU General Public License for more details
 #include "input.h"
 
 // [FWGS, 01.09.24]
-/*#define STAT_HEALTH			0
-#define STAT_FRAGS			1
-#define STAT_WEAPON			2
-#define STAT_AMMO			3
-#define STAT_ARMOR			4
-#define STAT_WEAPONFRAME	5
-#define STAT_SHELLS			6
-#define STAT_NAILS			7
-#define STAT_ROCKETS		8
-#define STAT_CELLS			9
-#define STAT_ACTIVEWEAPON	10
-#define STAT_TOTALSECRETS	11
-#define STAT_TOTALMONSTERS	12
-#define STAT_SECRETS		13	// bumped on client side by svc_foundsecret
-#define STAT_MONSTERS		14	// bumped by svc_killedmonster
-#define MAX_STATS			32*/
 enum
 	{
 	STAT_HEALTH = 0,
@@ -362,7 +346,6 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	clgame.movevars.gravity = 800.0f;
 	clgame.movevars.maxvelocity = 2000.0f;
 
-	/*memcpy (&clgame.oldmovevars, &clgame.movevars, sizeof (movevars_t));*/
 	clgame.oldmovevars = clgame.movevars;
 	}
 
@@ -671,7 +654,6 @@ static void CL_ParseQuakeDamage (sizebuf_t *msg)
 CL_ParseStaticEntity [FWGS, 01.07.24]
 ===================
 ***/
-/*static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)*/
 static void CL_ParseStaticEntity (sizebuf_t *msg)
 	{
 	entity_state_t	state;
@@ -763,8 +745,6 @@ static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	ent->index = newnum;
 	ent->player = CL_IsPlayerIndex (newnum);
 
-	/*memcpy (&ent->baseline, &state, sizeof (entity_state_t));
-	memcpy (&ent->prevstate, &state, sizeof (entity_state_t));*/
 	ent->prevstate = ent->baseline = state;
 	}
 
@@ -892,7 +872,6 @@ static void CL_QuakeExecStuff (void)
 	while (1)
 		{
 		// [FWGS, 01.07.24] skip whitespace up to a /n
-		/*while (*text && ((byte)*text) <= ' ' && *text != '\r' && *text != '\n')*/
 		while (*text && (((byte)*text) <= ' ') && (*text != '\r') && (*text != '\n'))
 			text++;
 
@@ -935,32 +914,14 @@ static void CL_QuakeExecStuff (void)
 CL_ParseQuakeMessage [FWGS, 01.07.24]
 ==================
 ***/
-/*void CL_ParseQuakeMessage (sizebuf_t *msg, qboolean normal_message)*/
 void CL_ParseQuakeMessage (sizebuf_t *msg)
 	{
 	int			cmd, param1, param2;
 	size_t		bufStart;
 	const char	*str;
 
-	/*cls.starting_count = MSG_GetNumBytesRead (msg);	// updates each frame
-	CL_Parse_Debug (true);			// begin parsing*/
-
 	// init excise buffer
 	MSG_Init (&msg_demo, "UserMsg", msg_buf, sizeof (msg_buf));
-
-	/*if (normal_message)
-		{
-		// assume no entity/player update this packet
-		if (cls.state == ca_active)
-			{
-			cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].valid = false;
-			cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].choked = false;
-			}
-		else
-			{
-			CL_ResetFrame (&cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK]);
-			}
-		}*/
 
 	// parse the message
 	while (1)
@@ -1091,7 +1052,6 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 
 			case svc_spawnstatic:
-				/*CL_ParseQuakeStaticEntity (msg);*/
 				CL_ParseStaticEntity (msg);
 				break;
 
@@ -1202,9 +1162,6 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 			}
 		}
-
-	/*cl.frames[cl.parsecountmod].graphdata.msgbytes += MSG_GetNumBytesRead (msg) - cls.starting_count;
-	CL_Parse_Debug (false); // done*/
 
 	// now process packet.
 	CL_ProcessPacket (&cl.frames[cl.parsecountmod]);

@@ -429,19 +429,6 @@ qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr)
 	else
 		MSG_WriteByte (sb, 0);
 
-	/*if (pStr)
-		{
-		do
-			{
-			MSG_WriteChar (sb, (signed char)*pStr);
-			pStr++;
-			} while (*(pStr - 1));
-		}
-	else
-		{
-		MSG_WriteChar (sb, 0);
-		}*/
-
 	return !sb->bOverflow;
 	}
 
@@ -453,11 +440,9 @@ qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...)
 	char	buf[MAX_VA_STRING];
 
 	va_start (va, format);
-	/*Q_vsnprintf (buf, sizeof (buf), format, va);*/
 	len = Q_vsnprintf (buf, sizeof (buf), format, va);
 	va_end (va);
 
-	/*return MSG_WriteString (sb, buf);*/
 	if (len < 0)
 		{
 		Host_Error ("%s: snprintf overflow!\n", __func__);
@@ -687,11 +672,7 @@ float MSG_ReadFloat (sizebuf_t *sb)
 	{
 	float	ret;
 
-	/*Assert (sizeof (ret) == 4);
-
-	MSG_ReadBits (sb, &ret, 32);*/
 	MSG_ReadBits (sb, &ret, sizeof (ret) << 3);
-
 	return ret;
 	}
 

@@ -373,8 +373,6 @@ static void SV_MapBackground_f (void)
 
 	// [FWGS, 01.07.24] background map is always run as singleplayer
 	Cvar_FullSet ("maxplayers", "1", FCVAR_LATCH);
-	/*Cvar_FullSet ("deathmatch", "0", FCVAR_LATCH);
-	Cvar_FullSet ("coop", "0", FCVAR_LATCH);*/
 	Cvar_FullSet ("deathmatch", "0", FCVAR_LATCH | FCVAR_SERVER);
 	Cvar_FullSet ("coop", "0", FCVAR_LATCH | FCVAR_SERVER);
 
@@ -592,7 +590,6 @@ static void SV_AutoSave_f (void)
 		}
 
 	// [FWGS, 01.07.24]
-	/*if (Cvar_VariableInteger ("sv_autosave"))	// [FWGS, 01.04.23]*/
 	if (sv_autosave.value)
 		SV_SaveGame ("autosave");
 

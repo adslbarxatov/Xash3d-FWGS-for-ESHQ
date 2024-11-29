@@ -387,7 +387,6 @@ void CL_SetSky_f (void)
 		return;
 		}
 
-	/*ref.dllFuncs.R_SetupSky (Cmd_Argv (1));*/
 	R_SetupSky (Cmd_Argv (1));
 	}
 

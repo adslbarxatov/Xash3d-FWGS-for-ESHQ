@@ -447,7 +447,7 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 			if (pal_type == PAL_QUAKE1)
 				{
 				SetBits (image.flags, IMAGE_QUAKEPAL);
-				/*rendermode = LUMP_NORMAL;*/
+
 				// if texture was converted from quake to half-life with no palette changes
 				// then applying texgamma might make it too dark or even outright broken
 				rendermode = LUMP_NORMAL;

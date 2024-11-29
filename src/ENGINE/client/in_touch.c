@@ -147,11 +147,8 @@ touchdefaultbutton_t g_DefaultButtons[256];
 int g_LastDefaultButton;
 
 // [FWGS, 01.09.24]
-/*static CVAR_DEFINE_AUTO (touch_in_menu, "0", FCVAR_FILTERABLE,
-	"draw touch in menu (for internal use only)");*/
 static CVAR_DEFINE_AUTO (touch_in_menu, "0", FCVAR_PRIVILEGED,
 	"draw touch in menu (for internal use only)");
-
 static CVAR_DEFINE_AUTO (touch_forwardzone, "0.06", FCVAR_FILTERABLE,
 	"forward touch zone");
 static CVAR_DEFINE_AUTO (touch_sidezone, "0.06", FCVAR_FILTERABLE,
@@ -197,8 +194,6 @@ static CVAR_DEFINE_AUTO (touch_emulate, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"emulate touch with mouse");
 CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable touch controls");
-/*CVAR_DEFINE_AUTO (touch_emulate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-	"emulate touch with mouse");*/
 
 // [FWGS, 01.11.23] code looks smaller with it
 #define B(x) (button->x)
@@ -825,9 +820,6 @@ static void Touch_ReloadConfig_f (void)
 	touch.edit = touch.selection = NULL;
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
 
-	/*// [FWGS, 01.11.23]
-	if (FS_FileExists (touch_config_file.string, true))
-		{*/
 	if (touch_in_menu.value)
 		Cvar_DirectSet (&touch_in_menu, "0");
 
@@ -1090,7 +1082,6 @@ static void Touch_DisableEdit_f (void)
 		{
 		Cvar_Set ("touch_in_menu", "0");
 		}
-	/*else if (cls.key_dest == key_game)*/
 	else if (cls.key_dest == key_game)
 		{
 		Touch_WriteConfig ();
@@ -1182,13 +1173,6 @@ void Touch_Init (void)
 		0.530200, color, 2, 1, 0);
 
 	// [FWGS, 01.09.24]
-	/*// [FWGS, 01.04.23]
-	Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.680000, 0.000000, 0.760000,
-		0.151486, color, 2, 1, 16);
-	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.760000, 0.000000, 0.840000,
-		0.151486, color, 2, 1, 16);
-	Touch_AddDefaultButton ("messagemode", "touch_default/keyboard", "messagemode", 0.760000, 0.000000, 0.840000,
-		0.151486, color, 2, 1, 8);*/
 	Touch_AddDefaultButton ("loadquick", "touch_default/load", "loadquick", 0.760000, 0.000000, 0.840000,
 		0.142222, color, 2, 1, 16);
 	Touch_AddDefaultButton ("savequick", "touch_default/save", "savequick", 0.840000, 0.000000, 0.920000,
@@ -1201,9 +1185,6 @@ void Touch_Init (void)
 	Touch_AddDefaultButton ("flashlight", "touch_default/flash_light_filled", "impulse 100", 0.920000, 0.000000,
 		1.000000, 0.151486, color, 2, 1, 0);
 
-	/*// [FWGS, 01.04.23]
-	Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.680000, 0.000000, 0.760000, 0.151486,
-		color, 2, 1, 8);*/
 	Touch_AddDefaultButton ("scores", "touch_default/map", "+showscores", 0.760000, 0.000000, 0.840000, 0.142222,
 		color, 2, 1, 8);
 
@@ -1218,9 +1199,6 @@ void Touch_Init (void)
 	Touch_AddDefaultButton ("menu", "touch_default/menu", "escape", 0.000000, 0.833171, 0.080000, 0.984656,
 		color, 2, 1, 0);
 
-	/*// [FWGS, 01.04.23]
-	Touch_AddDefaultButton ("spray", "touch_default/spray", "impulse 201", 0.840000, 0.000000, 0.920000, 0.151486,
-		color, 2, 1, 0);*/
 	Touch_AddDefaultButton ("spray", "touch_default/spray", "impulse 201", 0.680000, 0.000000, 0.760000, 0.142222,
 		color, 2, 1, 8);
 	Touch_AddDefaultButton ("voicechat", "touch_default/microphone", "+voicerecord", 0.780000, 0.817778, 0.860000, 0.960000,
@@ -1371,12 +1349,10 @@ static qboolean Touch_IsVisible (touch_button_t *button)
 		return false;
 
 	// skip singleplayer(load, save) buttons in multiplayer
-	/*if (FBitSet (button->flags, TOUCH_FL_SP) && CL_GetMaxClients () != 1)*/
 	if (FBitSet (button->flags, TOUCH_FL_SP) && (cl.maxclients != 1))
 		return false;
 
 	// skip multiplayer buttons in singleplayer
-	/*if (FBitSet (button->flags, TOUCH_FL_MP) && CL_GetMaxClients () == 1)*/
 	if (FBitSet (button->flags, TOUCH_FL_MP) && (cl.maxclients == 1))
 		return false;
 
@@ -2306,7 +2282,6 @@ void Touch_KeyEvent (int key, int down)
 	float			x, y;
 	int				finger, xi, yi;
 
-	/*if (!touch_emulate.value)*/
 	if (!Touch_Emulated ())
 		{
 		if (touch_enable.value)
@@ -2347,9 +2322,6 @@ void Touch_KeyEvent (int key, int down)
 
 	x = xi / SCR_W;
 	y = yi / SCR_H;
-
-	/*Con_DPrintf ("event %d %.2f %.2f %.2f %.2f\n",
-		event, x, y, x - lx, y - ly);*/
 
 	IN_TouchEvent (event, finger, x, y, x - lx, y - ly);
 

@@ -173,8 +173,6 @@ byte *Image_Copy (size_t size)
 	{
 	byte *out;
 
-	/*out = Mem_Malloc (host.imagepool, size);
-	memcpy (out, image.tempbuffer, size);*/
 	out = Mem_Realloc (host.imagepool, image.tempbuffer, size);
 	image.tempbuffer = NULL;
 
@@ -299,9 +297,6 @@ static void Image_SetPalette (const byte *pal, uint *d_table)
 		case LUMP_NORMAL:
 			for (i = 0; i < 256; i++)
 				{
-				/*rgba[0] = TextureToGamma (pal[i * 3 + 0]);
-				rgba[1] = TextureToGamma (pal[i * 3 + 1]);
-				rgba[2] = TextureToGamma (pal[i * 3 + 2]);*/
 				memcpy (rgba, &pal[i * 3], 3);
 				rgba[3] = 0xFF;
 				memcpy (&uirgba, rgba, sizeof (uirgba));
@@ -1213,7 +1208,6 @@ byte *Image_FlipInternal (const byte *in, word *srcwidth, word *srcheight, int t
 	}
 
 // [FWGS, 01.07.24]
-/*static byte *Image_CreateLumaInternal (byte *fin, int width, int height, int type, int flags)*/
 static byte *Image_MakeLuma (byte *fin, int width, int height, int type, int flags)
 	{
 	byte	*out;
@@ -1429,7 +1423,6 @@ static qboolean Image_RemapInternal (rgbdata_t *pic, int topColor, int bottomCol
 	}
 
 // [FWGS, 01.08.24]
-/*qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, float reserved)*/
 qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, float reserved)
 	{
 	rgbdata_t	*pic = *pix;
@@ -1437,14 +1430,12 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 	byte		*out;
 
 	// check for buffers
-	/*if (!pic || !pic->buffer)*/
 	if (unlikely (!pic || !pic->buffer))
 		{
 		image.force_flags = 0;
 		return false;
 		}
 
-	/*if (!flags)*/
 	if (unlikely (!flags))
 		{
 		// clear any force flags
@@ -1454,7 +1445,6 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 
 	if (FBitSet (flags, IMAGE_MAKE_LUMA))
 		{
-		/*out = Image_CreateLumaInternal (pic->buffer, pic->width, pic->height, pic->type, pic->flags);*/
 		out = Image_MakeLuma (pic->buffer, pic->width, pic->height, pic->type, pic->flags);
 
 		if (pic->buffer != out)
@@ -1494,7 +1484,6 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 			pic->size = w * h * PFDesc[pic->type].bpp;
 			Mem_Free (pic->buffer);		// free original image buffer
 
-			/*pic->buffer = Image_Copy (pic->size);	// unzone buffer (don't touch image.tempbuffer)*/
 			pic->buffer = Image_Copy (pic->size); // unzone buffer
 			}
 		else

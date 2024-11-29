@@ -973,7 +973,6 @@ static void SV_GenerateTestPacket (void)
 	uint32_t	crc;
 	file_t		*file;
 	byte		*filepos;
-	/*int			i, filesize;*/
 	int			i;
 
 	if (!sv_allow_testpacket.value)
@@ -1102,8 +1101,6 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	current_skill = bound (0, current_skill, 3);
 	Cvar_SetValue ("skill", (float)current_skill);
 
-	/*// [FWGS, 01.05.23] enforce hpk_maxsize
-	HPAK_CheckSize (CUSTOM_RES_PATH);*/
 	// [FWGS, 01.07.24] enforce hpk_max_size
 	HPAK_CheckSize (hpk_custom_file.string);
 

@@ -12,11 +12,8 @@ ref_globals_t refState;
 static const char *r_skyBoxSuffix[SKYBOX_MAX_SIDES] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
 // [FWGS, 01.09.24]
-/*CVAR_DEFINE_AUTO (gl_vsync, "0", FCVAR_ARCHIVE,
-	"enable vertical syncronization");*/
 CVAR_DEFINE_AUTO (gl_vsync, "1", FCVAR_ARCHIVE,
 	"enable vertical syncronization");
-
 CVAR_DEFINE_AUTO (r_showtextures, "0", FCVAR_CHEAT,
 	"show all uploaded textures");
 CVAR_DEFINE_AUTO (r_adjust_fov, "1", FCVAR_ARCHIVE,
@@ -172,11 +169,11 @@ void R_SetupSky (const char *name)
 		}
 	}
 
-/*Frees image by name
+/***
+================
+Frees image by name [FWGS, 01.07.24]
 ================
 ***/
-
-// [FWGS, 01.07.24]
 void GAME_EXPORT GL_FreeImage (const char *name)
 	{
 	int	texnum;
@@ -350,7 +347,6 @@ static qboolean R_Init_Video_ (const int type)
 	}
 
 // [FWGS, 01.08.24]
-/*static ref_api_t gEngfuncs =*/
 static const ref_api_t gEngfuncs =
 	{
 	pfnEngineGetParm,
@@ -525,7 +521,6 @@ static void CL_FillTriAPIFromRef (triangleapi_t *dst, const ref_interface_t *src
 // [FWGS, 01.09.24]
 static qboolean R_LoadProgs (const char *name)
 	{
-	/*extern triangleapi_t gTriApi;*/
 	static ref_api_t gpEngfuncs;
 	REFAPI GetRefAPI; // single export
 
@@ -550,7 +545,6 @@ static qboolean R_LoadProgs (const char *name)
 		}
 
 	// make local copy of engfuncs to prevent overwrite it with user dll
-	/*memcpy (&gpEngfuncs, &gEngfuncs, sizeof (gpEngfuncs));*/
 	gpEngfuncs = gEngfuncs;
 	if (GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState) != REF_API_VERSION)
 		{
@@ -564,7 +558,7 @@ static qboolean R_LoadProgs (const char *name)
 	if (!ref.dllFuncs.R_Init ())
 		{
 		COM_FreeLibrary (ref.hInstance);
-		Con_Reportf ("%s: can't init renderer!\n", __func__);	/*, ref.dllFuncs.R_GetInitError() );*/
+		Con_Reportf ("%s: can't init renderer!\n", __func__);
 		ref.hInstance = NULL;
 		return false;
 		}
@@ -603,28 +597,19 @@ static void R_GetRendererName (char *dest, size_t size, const char *opt)
 	{
 	if (!Q_strstr (opt, "." OS_LIB_EXT))
 		{
-		/*const char *format;*/
 
 #ifdef XASH_INTERNAL_GAMELIBS
 
-		/*if (!Q_strcmp (opt, "ref_"))
-			format = "%s";
-		else
-			format = "ref_%s";*/
 #define FMT1 "%s"
 #define FMT2 "ref_%s"
 
 #else
 
-		/*if (!Q_strcmp (opt, "ref_"))
-			format = OS_LIB_PREFIX "%s." OS_LIB_EXT;
-		else
-			format = OS_LIB_PREFIX "ref_%s." OS_LIB_EXT;*/
 #define FMT1 OS_LIB_PREFIX "%s." OS_LIB_EXT
 #define FMT2 OS_LIB_PREFIX "ref_%s." OS_LIB_EXT
 
 #endif
-		/*Q_snprintf (dest, size, format, opt);*/
+
 		if (!Q_strncmp (opt, "ref_", 4))
 			Q_snprintf (dest, size, FMT1, opt);
 		else

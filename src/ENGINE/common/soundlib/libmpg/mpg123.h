@@ -51,7 +51,6 @@ typedef unsigned char	byte;
 typedef unsigned short	word;
 typedef unsigned long	ulong;
 typedef unsigned int	uint;
-/*typedef long		mpg_off_t;*/
 typedef fs_offset_t mpg_off_t;	// [FWGS, 01.07.24]
 
 // a1ba: MSVC6 don't have ssize_t

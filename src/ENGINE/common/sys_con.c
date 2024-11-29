@@ -222,13 +222,6 @@ static void Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 	{
 	static const char *q3ToAnsi[8] =
 		{
-		/*"\033[30m", // COLOR_BLACK
-		"\033[31m", // COLOR_RED
-		"\033[32m", // COLOR_GREEN
-		"\033[33m", // COLOR_YELLOW
-		"\033[34m", // COLOR_BLUE
-		"\033[36m", // COLOR_CYAN
-		"\033[35m", // COLOR_MAGENTA*/
 		"\033[1;30m",	// COLOR_BLACK
 		"\033[1;31m",	// COLOR_RED
 		"\033[1;32m",	// COLOR_GREEN
@@ -244,7 +237,6 @@ static void Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 		write (fd, esc, 4);
 	else
 		write (fd, esc, 7);
-		/*write (fd, esc, 5);*/
 	}
 #else
 static void Sys_WriteEscapeSequenceForColorcode (int fd, int c) {}
@@ -344,7 +336,6 @@ void Sys_PrintLog (const char *pMsg)
 	if (!s_ld.logfile)
 		{
 		// save last char to detect when line was not ended
-		/*lastchar = pMsg[Q_strlen (pMsg) - 1];*/
 		lastchar = len > 0 ? pMsg[len - 1] : 0;
 		return;
 		}
@@ -353,7 +344,6 @@ void Sys_PrintLog (const char *pMsg)
 		strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm);	// full time
 
 	// save last char to detect when line was not ended
-	/*lastchar = pMsg[Q_strlen (pMsg) - 1];*/
 	lastchar = len > 0 ? pMsg[len - 1] : 0;
 
 	Sys_PrintLogfile (s_ld.logfileno, logtime, pMsg, false);
@@ -375,7 +365,6 @@ static void Con_Printfv (qboolean debug, const char *szFmt, va_list args)
 	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
 
 	// hlrally spam
-	/*if (debug && Q_strcmp (buffer, "0\n"))*/
 	if (debug && !Q_strcmp (buffer, "0\n"))
 		return;
 
@@ -391,23 +380,14 @@ Con_Printf [FWGS, 01.08.24]
 ***/
 void GAME_EXPORT Con_Printf (const char *szFmt, ...)
 	{
-	/*static char	buffer[MAX_PRINT_MSG];
-	va_list		args;
-	qboolean	add_newline;*/
 	va_list args;
 
 	if (!host.allow_console)
 		return;
 
 	va_start (args, szFmt);
-	/*add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;*/
 	Con_Printfv (false, szFmt, args);
 	va_end (args);
-
-	/*Sys_Print (buffer);
-
-	if (add_newline)
-		Sys_Print ("\n");*/
 	}
 
 /***
@@ -417,26 +397,14 @@ Con_DPrintf [FWGS, 01.08.24]
 ***/
 void GAME_EXPORT Con_DPrintf (const char *szFmt, ...)
 	{
-	/*static char	buffer[MAX_PRINT_MSG];
-	va_list		args;
-	qboolean	add_newline;*/
 	va_list args;
 
 	if (host_developer.value < DEV_NORMAL)
 		return;
 
 	va_start (args, szFmt);
-	/*add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;*/
 	Con_Printfv (true, szFmt, args);
 	va_end (args);
-
-	/*if ((buffer[0] == '0') && (buffer[1] == '\n') && (buffer[2] == '\0'))
-		return;
-
-	Sys_Print (buffer);
-
-	if (add_newline)
-		Sys_Print ("\n");*/
 	}
 
 /***
@@ -446,23 +414,14 @@ Con_Reportf [FWGS, 01.08.24]
 ***/
 void Con_Reportf (const char *szFmt, ...)
 	{
-	/*static char	buffer[MAX_PRINT_MSG];
-	va_list		args;
-	qboolean	add_newline;*/
 	va_list args;
 
 	if (host_developer.value < DEV_EXTENDED)
 		return;
 
 	va_start (args, szFmt);
-	/*add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;*/
 	Con_Printfv (false, szFmt, args);
 	va_end (args);
-
-	/*Sys_Print (buffer);
-
-	if (add_newline)
-		Sys_Print ("\n");*/
 	}
 
 #if XASH_MESSAGEBOX == MSGBOX_STDERR

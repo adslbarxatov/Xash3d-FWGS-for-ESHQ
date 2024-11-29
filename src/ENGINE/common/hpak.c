@@ -18,8 +18,6 @@ GNU General Public License for more details.
 
 // [FWGS, 01.07.24]
 #define HPAK_MAX_ENTRIES	0x8000
-/*#define HPAK_ENTRY_MIN_SIZE	(512)
-#define HPAK_ENTRY_MAX_SIZE	(128 * 1024)*/
 
 typedef struct hash_pack_queue_s
 	{
@@ -31,7 +29,6 @@ typedef struct hash_pack_queue_s
 	} hash_pack_queue_t;
 
 // [FWGS, 01.07.24]
-/*static CVAR_DEFINE_AUTO (hpk_maxsize, "4", FCVAR_ARCHIVE, "set limit by size for all HPK-files ( 0 - unlimited )");*/
 static CVAR_DEFINE (hpk_maxsize, "hpk_max_size", "64", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"set limit by size for all HPK-files in megabytes (0 - unlimited)");
 CVAR_DEFINE_AUTO (hpk_custom_file, "custom.hpk", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
@@ -574,7 +571,6 @@ void HPAK_CheckSize (const char *filename)
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 
-	/*if (FS_FileSize (pakname, false) > (maxsize * 1048576))*/
 	if (FS_FileSize (pakname, false) > (maxsize * 1024 * 1024))
 		{
 		Con_Printf ("Server: Size of %s > %f MB, deleting.\n", filename, hpk_maxsize.value);

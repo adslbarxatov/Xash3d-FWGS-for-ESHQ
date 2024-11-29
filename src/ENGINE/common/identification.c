@@ -109,7 +109,6 @@ static void ID_BloomFilter_f (void)
 	for (i = 1; i < Cmd_Argc (); i++)
 		value |= BloomFilter_ProcessStr (Cmd_Argv (i));
 
-	/*Msg ("%d %016llX\n", BloomFilter_Weight (value), value);*/
 	Msg ("%d %016"PRIX64"\n", BloomFilter_Weight (value), value);
 	}
 
@@ -294,7 +293,6 @@ static void ID_TestCPUInfo_f (void)
 
 	if (ID_ProcessCPUInfo (&value))
 		Msg ("Got %016"PRIX64"\n", value);
-	/*Msg ("Got %016llX\n", value);*/
 
 	else
 		Msg ("Could not get serial\n");
@@ -639,7 +637,6 @@ void ID_Init (void)
 
 // [FWGS, 01.07.24]
 #if XASH_ANDROID && !XASH_DEDICATED
-	/*sscanf (Android_LoadID (), "%016llX", &id);*/
 	sscanf (Android_LoadID (), "%016"PRIX64, &id);
 	if (id)
 		{
@@ -653,7 +650,6 @@ void ID_Init (void)
 	ID_GetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", "xash_id", szBuf, MAX_PATH);
 
 	// [FWGS, 01.07.24]
-	/*sscanf (szBuf, "%016llX", &id);*/
 	sscanf (szBuf, "%016"PRIX64, &id);
 	id ^= SYSTEM_XOR_MASK;
 	ID_Check ();
@@ -672,7 +668,6 @@ void ID_Init (void)
 		// [FWGS, 01.07.24]
 		if (cfg)
 			{
-			/*if (fscanf (cfg, "%016llX", &id) > 0)*/
 			if (fscanf (cfg, "%016"PRIX64, &id) > 0)
 				{
 				id ^= SYSTEM_XOR_MASK;
@@ -690,7 +685,6 @@ void ID_Init (void)
 		// [FWGS, 01.07.24]
 		if (buf)
 			{
-			/*sscanf (buf, "%016llX", &id);*/
 			sscanf (buf, "%016"PRIX64, &id);
 			id ^= GAME_XOR_MASK;
 			ID_Check ();
@@ -709,12 +703,10 @@ void ID_Init (void)
 
 // [FWGS, 01.07.24]
 #if XASH_ANDROID && !XASH_DEDICATED
-	/*Android_SaveID (va ("%016llX", id ^ SYSTEM_XOR_MASK));*/
 	Android_SaveID (va ("%016"PRIX64, id ^SYSTEM_XOR_MASK));
 #elif XASH_WIN32
 	{
 	CHAR Buf[MAX_PATH];
-	/*sprintf (Buf, "%016llX", id ^ SYSTEM_XOR_MASK);*/
 	sprintf (Buf, "%016"PRIX64, id ^SYSTEM_XOR_MASK);
 	ID_SetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", REG_SZ, "xash_id", Buf, Q_strlen (Buf));
 	}
@@ -732,7 +724,6 @@ void ID_Init (void)
 		// [FWGS, 01.07.24]
 		if (cfg)
 			{
-			/*fprintf (cfg, "%016llX", id ^ SYSTEM_XOR_MASK);*/
 			fprintf (cfg, "%016"PRIX64, id ^SYSTEM_XOR_MASK);
 			fclose (cfg);
 			}
@@ -740,6 +731,5 @@ void ID_Init (void)
 	}
 #endif
 
-	/*FS_WriteFile (".xash_id", va ("%016llX", id ^ GAME_XOR_MASK), 16);*/
 	FS_WriteFile (".xash_id", va ("%016"PRIX64, id ^GAME_XOR_MASK), 16);
 	}

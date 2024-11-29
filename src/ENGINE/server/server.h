@@ -431,21 +431,14 @@ extern convar_t		sv_send_resources;
 extern convar_t		sv_send_logos;
 extern convar_t		sv_allow_upload;
 extern convar_t		sv_allow_download;
-/*extern convar_t		sv_airaccelerate;	// [FWGS, 01.07.24]
-extern convar_t		sv_accelerate;*/
 extern convar_t		sv_friction;
-/*extern convar_t		sv_edgefriction;*/	// [FWGS, 01.07.24]
 extern convar_t		sv_gravity;
 extern convar_t		sv_stopspeed;
-/*extern convar_t		sv_maxspeed;*/		// [FWGS, 01.07.24]
 extern convar_t		sv_wateralpha;
 extern convar_t		sv_wateramp;
 extern convar_t		sv_voiceenable;
 extern convar_t		sv_voicequality;
-/*extern convar_t		sv_stepsize;*/		// [FWGS, 01.07.24]
 extern convar_t		sv_maxvelocity;
-/*extern convar_t		sv_rollangle;		// [FWGS, 01.07.24]
-extern convar_t		sv_rollspeed;*/
 extern convar_t		sv_skyname;
 extern convar_t		sv_skycolor_r;
 extern convar_t		sv_skycolor_g;
@@ -473,7 +466,6 @@ extern convar_t		sv_nat;			// [FWGS, 01.05.23]
 extern convar_t		sv_speedhack_kick;
 extern convar_t		sv_pausable;	// allows pause in multiplayer
 extern convar_t		sv_check_errors;
-/*extern convar_t		sv_reconnect_limit;*/	// [FWGS, 01.07.24]
 extern convar_t		sv_lighting_modulate;
 extern convar_t		sv_novis;
 extern convar_t		sv_hostmap;
