@@ -12,5 +12,5 @@ Detailed description of the app is available on [its own page](https://adslbarxa
 ---
 
 *The product is distributed according to GPL-3.0 license of the parent project (Xash3d FWGS engine)
-and the [Application development policy](https://adslbarxatov.github.io/ADP) where it doesn’t interfere with GPL-3.0.
+and the [Integrated operational policy](https://adslbarxatov.github.io/IOP) where it doesn’t interfere with GPL-3.0.
 By starting to work with this product, you fully agree with these documents and accept them!*
