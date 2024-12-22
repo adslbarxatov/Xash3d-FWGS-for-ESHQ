@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -19,17 +19,22 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "ipv6text.h"
 
-#if XASH_WIN32
-	#include "platform/win32/net.h"
-#elif defined XASH_NO_NETWORK
-	#include "platform/stub/net_stub.h"
-#else
-	#include "platform/posix/net.h"
-#endif
+// [FWGS, 01.12.24]
+/*if XASH_WIN32
+	include "platform/win32/net.h"
+elif defined XASH_NO_NETWORK
+	include "platform/stub/net_stub.h"
+else
+	include "platform/posix/net.h"
+endif
 
-#if XASH_PSVITA
-	#include "platform/psvita/net_psvita.h"
-	static const struct in6_addr in6addr_any;
+if XASH_PSVITA
+	include "platform/psvita/net_psvita.h"
+	static const struct in6_addr in6addr_any;*/
+#include "net_ws_private.h"
+
+#if XASH_SDL == 2
+	#include <SDL_thread.h>
 #endif
 
 #define NET_USE_FRAGMENTS
@@ -38,10 +43,16 @@ GNU General Public License for more details
 #define MAX_LOOPBACK		4
 #define MASK_LOOPBACK		(MAX_LOOPBACK - 1)
 
+// [FWGS, 01.12.24]
+/*define MAX_ROUTEABLE_PACKET	1400
+define SPLITPACKET_MIN_SIZE	508		// RFC 791: 576(min ip packet) - 60 (ip header) - 8 (udp header)
+define SPLITPACKET_MAX_SIZE	64000
+define NET_MAX_FRAGMENTS		( NET_MAX_FRAGMENT / (SPLITPACKET_MIN_SIZE - sizeof( SPLITPACKET )))*/
 #define MAX_ROUTEABLE_PACKET	1400
-#define SPLITPACKET_MIN_SIZE	508		// RFC 791: 576(min ip packet) - 60 (ip header) - 8 (udp header)
+#define SPLITPACKET_MIN_SIZE	508 // RFC 791: 576(min ip packet) - 60 (ip header) - 8 (udp header)
 #define SPLITPACKET_MAX_SIZE	64000
 #define NET_MAX_FRAGMENTS		( NET_MAX_FRAGMENT / (SPLITPACKET_MIN_SIZE - sizeof( SPLITPACKET )))
+#define NET_MAX_GOLDSRC_FRAGMENTS	5 // magic number
 
 // ff02:1
 static const uint8_t k_ipv6Bytes_LinkLocalAllNodes[16] =
@@ -49,7 +60,7 @@ static const uint8_t k_ipv6Bytes_LinkLocalAllNodes[16] =
 
 typedef struct
 	{
-	byte		data[NET_MAX_MESSAGE];
+	byte	data[NET_MAX_MESSAGE];
 	int		datalen;
 	} net_loopmsg_t;
 
@@ -61,12 +72,12 @@ typedef struct
 
 typedef struct packetlag_s
 	{
-	byte *data;	// Raw stream data is stored.
+	byte	*data;	// Raw stream data is stored.
 	int		size;
-	netadr_t		from;
-	float		receivedtime;
-	struct packetlag_s *next;
-	struct packetlag_s *prev;
+	netadr_t	from;
+	float	receivedtime;
+	struct packetlag_s	*next;
+	struct packetlag_s	*prev;
 	} packetlag_t;
 
 // split long packets. Anything over 1460 is failing on some routers.
@@ -75,43 +86,52 @@ typedef struct
 	int		current_sequence;
 	int		split_count;
 	int		total_size;
-	char		buffer[NET_MAX_FRAGMENT];
+	char	buffer[NET_MAX_FRAGMENT];
 	} LONGPACKET;
 
 // use this to pick apart the network stream, must be packed
 #pragma pack(push, 1)
+
 typedef struct
 	{
 	int		net_id;
 	int		sequence_number;
-	short		packet_id;
+	short	packet_id;
 	} SPLITPACKET;
+
+// [FWGS, 01.12.24]
+typedef struct
+	{
+	int		net_id;
+	int		sequence_number;
+	unsigned char	packet_id;
+	} SPLITPACKETGS;
+
 #pragma pack(pop)
 
 typedef struct
 	{
 	net_loopback_t	loopbacks[NS_COUNT];
 	packetlag_t	lagdata[NS_COUNT];
-	int		losscount[NS_COUNT];
+	int			losscount[NS_COUNT];
 	float		fakelag;			// cached fakelag value
 	LONGPACKET	split;
 	int		split_flags[NET_MAX_FRAGMENTS];
 	int		sequence_number;
 	int		ip_sockets[NS_COUNT];
 	int		ip6_sockets[NS_COUNT];
-	qboolean		initialized;
-	qboolean		threads_initialized;
-	qboolean		configured;
-	qboolean		allow_ip;
-	qboolean		allow_ip6;
+	qboolean	initialized;
+	qboolean	threads_initialized;
+	qboolean	configured;
+	qboolean	allow_ip;
+	qboolean	allow_ip6;
 #if XASH_WIN32
 	WSADATA		winsockdata;
 #endif
 	} net_state_t;
 
-static net_state_t		net;
+static net_state_t	net;
 
-// [FWGS, 01.07.23]
 static CVAR_DEFINE_AUTO (net_address, "0", FCVAR_PRIVILEGED | FCVAR_READ_ONLY,
 	"contain local address of current client");
 static CVAR_DEFINE (net_ipname, "ip", "localhost", FCVAR_PRIVILEGED,
@@ -128,11 +148,15 @@ static CVAR_DEFINE (net_fakelag, "fakelag", "0", FCVAR_PRIVILEGED,
 	"lag all incoming network data (including loopback) by xxx ms.");
 static CVAR_DEFINE (net_fakeloss, "fakeloss", "0", FCVAR_PRIVILEGED,
 	"act like we dropped the packet this % of the time.");
+
+// [FWGS, 01.12.24]
+static CVAR_DEFINE_AUTO (net_resolve_debug, "0", FCVAR_PRIVILEGED,
+	"print resolve thread debug messages");
 CVAR_DEFINE (net_clockwindow, "clockwindow", "0.5", FCVAR_PRIVILEGED,
 	"timewindow to execute client moves");
 
-netadr_t			net_local;
-netadr_t			net6_local;
+netadr_t	net_local;
+netadr_t	net6_local;
 
 // [FWGS, 01.07.23] cvars equivalents for IPv6
 static CVAR_DEFINE (net_ip6name, "ip6", "localhost", FCVAR_PRIVILEGED,
@@ -144,17 +168,21 @@ static CVAR_DEFINE (net_ip6clientport, "ip6_clientport", "0", FCVAR_READ_ONLY,
 static CVAR_DEFINE_AUTO (net6_address, "0", FCVAR_PRIVILEGED | FCVAR_READ_ONLY,
 	"contain local IPv6 address of current client");
 
-/***
+/*
 ====================
 NET_ErrorString [FWGS, 01.01.24]
 ====================
-***/
+/
 static char *NET_ErrorString (void)
 	{
-#if XASH_WIN32
-	int	err = WSANOTINITIALISED;
+if XASH_WIN32
+	int	err = WSANOTINITIALISED;*/
 
-	if (net.initialized)
+// [FWGS, 01.12.24]
+static void NET_ClearLagData (qboolean bClient, qboolean bServer);
+
+// [FWGS, 01.12.24] removed NET_ErrorString, NET_SockAddrLen
+/*	if (net.initialized)
 		err = WSAGetLastError ();
 
 	switch (err)
@@ -205,9 +233,9 @@ static char *NET_ErrorString (void)
 		case WSANO_DATA: return "WSANO_DATA";
 		default: return "NO ERROR";
 		}
-#else
+else
 	return strerror (errno);
-#endif
+endif
 	}
 
 _inline socklen_t NET_SockAddrLen (const struct sockaddr_storage *addr)
@@ -223,7 +251,10 @@ _inline socklen_t NET_SockAddrLen (const struct sockaddr_storage *addr)
 		}
 	}
 
-_inline qboolean NET_IsSocketError (int retval)
+_inline qboolean NET_IsSocketError (int retval)*/
+
+// [FWGS, 01.12.24]
+static inline qboolean NET_IsSocketError (int retval)
 	{
 #if XASH_WIN32 || XASH_DOS4GW
 	return retval == SOCKET_ERROR ? true : false;
@@ -232,7 +263,9 @@ _inline qboolean NET_IsSocketError (int retval)
 #endif
 	}
 
-_inline qboolean NET_IsSocketValid (int socket)
+/*_inline qboolean NET_IsSocketValid (int socket)*/
+// [FWGS, 01.12.24]
+static inline qboolean NET_IsSocketValid (int socket)
 	{
 #if XASH_WIN32 || XASH_DOS4GW
 	return socket != INVALID_SOCKET;
@@ -261,7 +294,7 @@ static int NET_NetadrIP6Compare (const netadr_t *a, const netadr_t *b)
 
 /***
 ====================
-NET_NetadrToSockadr [FWGS, 01.11.23]
+NET_NetadrToSockadr [FWGS, 01.12.24]
 ====================
 ***/
 static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
@@ -270,19 +303,21 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 
 	if (a->type == NA_BROADCAST)
 		{
-		((struct sockaddr_in *)s)->sin_family = AF_INET;
+		/*((struct sockaddr_in *)s)->sin_family = AF_INET;*/
+		s->ss_family = AF_INET;
 		((struct sockaddr_in *)s)->sin_port = a->port;
 		((struct sockaddr_in *)s)->sin_addr.s_addr = INADDR_BROADCAST;
 		}
 	else if (a->type == NA_IP)
 		{
-		((struct sockaddr_in *)s)->sin_family = AF_INET;
+		/*((struct sockaddr_in *)s)->sin_family = AF_INET;*/
+		s->ss_family = AF_INET;
 		((struct sockaddr_in *)s)->sin_port = a->port;
 		((struct sockaddr_in *)s)->sin_addr.s_addr = a->ip4;
 		}
 	else if (a->type6 == NA_IP6)
 		{
-		struct in6_addr ip6;
+		/*struct in6_addr ip6;
 		NET_NetadrToIP6Bytes (ip6.s6_addr, a);
 
 		if (IN6_IS_ADDR_V4MAPPED (&ip6))
@@ -296,19 +331,24 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 			((struct sockaddr_in6 *)s)->sin6_family = AF_INET6;
 			memcpy (&((struct sockaddr_in6 *)s)->sin6_addr, &ip6, sizeof (struct in6_addr));
 			((struct sockaddr_in6 *)s)->sin6_port = a->port;
-			}
+			}*/
+		s->ss_family = AF_INET6;
+		((struct sockaddr_in6 *)s)->sin6_port = a->port;
+		NET_NetadrToIP6Bytes (((struct sockaddr_in6 *)s)->sin6_addr.s6_addr, a);
 		}
 	else if (a->type6 == NA_MULTICAST_IP6)
 		{
-		((struct sockaddr_in6 *)s)->sin6_family = AF_INET6;
-		memcpy (((struct sockaddr_in6 *)s)->sin6_addr.s6_addr, k_ipv6Bytes_LinkLocalAllNodes, sizeof (struct in6_addr));
+		/*((struct sockaddr_in6 *)s)->sin6_family = AF_INET6;
+		memcpy (((struct sockaddr_in6 *)s)->sin6_addr.s6_addr, k_ipv6Bytes_LinkLocalAllNodes, sizeof (struct in6_addr));*/
+		s->ss_family = AF_INET6;
 		((struct sockaddr_in6 *)s)->sin6_port = a->port;
+		memcpy (((struct sockaddr_in6 *)s)->sin6_addr.s6_addr, k_ipv6Bytes_LinkLocalAllNodes, sizeof (struct in6_addr));
 		}
 	}
 
 /***
 ====================
-NET_SockadrToNetAdr [FWGS, 01.11.23]
+NET_SockadrToNetAdr [FWGS, 01.12.24]
 ====================
 ***/
 static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
@@ -321,12 +361,13 @@ static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 		}
 	else if (s->ss_family == AF_INET6)
 		{
+		a->type6 = NA_IP6;
 		NET_IP6BytesToNetadr (a, ((struct sockaddr_in6 *)s)->sin6_addr.s6_addr);
 
-		if (IN6_IS_ADDR_V4MAPPED (&((struct sockaddr_in6 *)s)->sin6_addr))
+		/*if (IN6_IS_ADDR_V4MAPPED (&((struct sockaddr_in6 *)s)->sin6_addr))
 			a->type = NA_IP;
 		else
-			a->type6 = NA_IP6;
+			a->type6 = NA_IP6;*/
 
 		a->port = ((struct sockaddr_in6 *)s)->sin6_port;
 		}
@@ -334,7 +375,7 @@ static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 
 /***
 ============
-NET_GetHostByName
+NET_GetHostByName [FWGS, 01.12.24]
 ============
 ***/
 static qboolean NET_GetHostByName (const char *hostname, int family, struct sockaddr_storage *addr)
@@ -343,6 +384,11 @@ static qboolean NET_GetHostByName (const char *hostname, int family, struct sock
 	struct addrinfo *ai = NULL, *cur;
 	struct addrinfo hints;
 	qboolean ret = false;
+
+#if XASH_NO_IPV6_RESOLVE
+	if (family == AF_INET6)
+		return false;
+#endif
 
 	memset (&hints, 0, sizeof (hints));
 	hints.ai_family = family;
@@ -364,8 +410,16 @@ static qboolean NET_GetHostByName (const char *hostname, int family, struct sock
 		}
 
 	return ret;
+
 #else
+
 	struct hostent *h;
+
+#if XASH_NO_IPV6_RESOLVE
+	if (family == AF_INET6)
+		return false;
+#endif
+
 	if (!(h = gethostbyname (hostname)))
 		return false;
 
@@ -378,32 +432,73 @@ static qboolean NET_GetHostByName (const char *hostname, int family, struct sock
 
 #if !XASH_EMSCRIPTEN && !XASH_DOS4GW && !defined XASH_NO_ASYNC_NS_RESOLVE
 #define CAN_ASYNC_NS_RESOLVE
-#endif // !XASH_EMSCRIPTEN && !XASH_DOS4GW && !defined XASH_NO_ASYNC_NS_RESOLVE
+#endif
 
 #ifdef CAN_ASYNC_NS_RESOLVE
 static void NET_ResolveThread (void);
 
-#if !XASH_WIN32
+// [FWGS, 01.12.24]
+/*if !XASH_WIN32*/
+#if XASH_SDL == 2
+
+#define mutex_create( x ) (( x ) = SDL_CreateMutex() )
+#define mutex_destroy( x ) SDL_DestroyMutex(( x ))
+#define mutex_lock( x ) SDL_LockMutex(( x ))
+#define mutex_unlock( x ) SDL_UnlockMutex(( x ))
+#define create_thread( thread, pfn ) (( thread ) = SDL_CreateThread(( pfn ), "DNS resolver thread", NULL ))
+#define detach_thread( x ) SDL_DetachThread(( x ))
+
+typedef SDL_mutex *mutex_t;
+typedef SDL_Thread *thread_t;
+
+static int NET_ThreadStart (void *ununsed)
+	{
+	NET_ResolveThread ();
+	return 0;
+	}
+
+// [FWGS, 01.12.24]
+#elif !XASH_WIN32
+
 #include <pthread.h>
-#define mutex_lock pthread_mutex_lock
-#define mutex_unlock pthread_mutex_unlock
-#define exit_thread( x ) pthread_exit(x)
-#define create_thread( pfn ) !pthread_create( &nsthread.thread, NULL, (pfn), NULL )
-#define detach_thread( x ) pthread_detach(x)
-#define mutex_t  pthread_mutex_t
-#define thread_t pthread_t
+/*define mutex_lock pthread_mutex_lock
+define mutex_unlock pthread_mutex_unlock
+define exit_thread( x ) pthread_exit(x)
+define create_thread( pfn ) !pthread_create( &nsthread.thread, NULL, (pfn), NULL )
+define detach_thread( x ) pthread_detach(x)
+define mutex_t  pthread_mutex_t
+define thread_t pthread_t*/
+#define mutex_create( x ) pthread_mutex_init( &( x ), NULL )
+#define mutex_destroy( x ) pthread_mutex_destroy( &( x ))
+#define mutex_lock( x ) pthread_mutex_lock( &( x ))
+#define mutex_unlock( x ) pthread_mutex_unlock( &( x ))
+#define create_thread( thread, pfn ) !pthread_create( &( thread ), NULL, ( pfn ), NULL )
+#define detach_thread( x ) pthread_detach( x )
+typedef pthread_mutex_t mutex_t;
+typedef pthread_t thread_t;
+
 static void *NET_ThreadStart (void *unused)
 	{
 	NET_ResolveThread ();
 	return NULL;
 	}
+
 #else
-#define mutex_lock EnterCriticalSection
-#define mutex_unlock LeaveCriticalSection
-#define detach_thread( x ) CloseHandle(x)
-#define create_thread( pfn ) ( nsthread.thread = CreateThread( NULL, 0, pfn, NULL, 0, NULL ))	// [FWGS, 01.05.23]
-#define mutex_t  CRITICAL_SECTION
-#define thread_t HANDLE
+
+/*define mutex_lock EnterCriticalSection
+define mutex_unlock LeaveCriticalSection
+define detach_thread( x ) CloseHandle(x)
+define create_thread( pfn ) ( nsthread.thread = CreateThread( NULL, 0, pfn, NULL, 0, NULL ))	// [FWGS, 01.05.23]
+define mutex_t  CRITICAL_SECTION
+define thread_t HANDLE*/
+#define mutex_create( x ) InitializeCriticalSection( &( x ))
+#define mutex_destroy( x ) DeleteCriticalSection( &( x ))
+#define mutex_lock( x ) EnterCriticalSection( &( x ))
+#define mutex_unlock( x ) LeaveCriticalSection( &( x ))
+#define create_thread( thread, pfn ) (( thread ) = CreateThread( NULL, 0, ( pfn ), NULL, 0, NULL ))
+#define detach_thread( x ) CloseHandle(( x ))
+typedef CRITICAL_SECTION mutex_t;
+typedef HANDLE thread_t;
 
 DWORD WINAPI NET_ThreadStart (LPVOID unused)
 	{
@@ -411,41 +506,69 @@ DWORD WINAPI NET_ThreadStart (LPVOID unused)
 	ExitThread (0);
 	return 0;
 	}
+
 #endif
 
-#ifdef DEBUG_RESOLVE
-#define RESOLVE_DBG(x) Sys_PrintLog(x)
-#else
-#define RESOLVE_DBG(x)
-#endif //  DEBUG_RESOLVE
+// [FWGS, 01.12.24]
+/*ifdef DEBUG_RESOLVE
+define RESOLVE_DBG(x) Sys_PrintLog(x)
+else
+define RESOLVE_DBG(x)
+endif //  DEBUG_RESOLVE*/
+#define RESOLVE_DBG( x ) do { if( net_resolve_debug.value ) Sys_PrintLog(( x )); } while( 0 )
 
+// [FWGS, 01.12.24]
 static struct nsthread_s
 	{
-	mutex_t mutexns;
-	mutex_t mutexres;
-	thread_t thread;
-	int     result;
-	string  hostname;
-	int     family;
-	struct sockaddr_storage addr;
-	qboolean busy;
-	} nsthread
-#if !XASH_WIN32
+	/*mutex_t		mutexns;
+	mutex_t		mutexres;*/
+	mutex_t		mutexns;
+	mutex_t		mutexres;
+	thread_t	thread;
+	/*int			result;
+	string		hostname;
+	int			family;*/
+	int			result;
+	string		hostname;
+	int			family;
+	struct sockaddr_storage	addr;
+	qboolean	busy;
+	/*} nsthread
+	if !XASH_WIN32
 	= { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER }
-#endif
-	;
+	endif
+	;*/
+	} nsthread;
 
+// [FWGS, 01.12.24]
 static void NET_InitializeCriticalSections (void)
 	{
 	net.threads_initialized = true;
-#if XASH_WIN32
+	/*if XASH_WIN32
 	InitializeCriticalSection (&nsthread.mutexns);
 	InitializeCriticalSection (&nsthread.mutexres);
-#endif
+	endif*/
+	mutex_create (nsthread.mutexns);
+	mutex_create (nsthread.mutexres);
 	}
 
-// [FWGS, 01.11.23]
-void NET_ResolveThread (void)
+// [FWGS, 01.12.24]
+static void NET_DeleteCriticalSections (void)
+	{
+	if (net.threads_initialized)
+		{
+		mutex_destroy (nsthread.mutexns);
+		mutex_destroy (nsthread.mutexres);
+
+		net.threads_initialized = false;
+		}
+
+	memset (&nsthread, 0, sizeof (nsthread));
+	}
+
+// [FWGS, 01.12.24]
+/*void NET_ResolveThread (void)*/
+static void NET_ResolveThread (void)
 	{
 	struct sockaddr_storage addr;
 	qboolean res;
@@ -463,20 +586,23 @@ void NET_ResolveThread (void)
 	else
 		RESOLVE_DBG ("[resolve thread] failed\n");
 
-	mutex_lock (&nsthread.mutexres);
+	/*mutex_lock (&nsthread.mutexres);*/
+	mutex_lock (nsthread.mutexres);
+
 	nsthread.addr = addr;
 	nsthread.busy = false;
 	nsthread.result = res ? NET_EAI_OK : NET_EAI_NONAME;
 
 	RESOLVE_DBG ("[resolve thread] returning result\n");
-	mutex_unlock (&nsthread.mutexres);
+	/*mutex_unlock (&nsthread.mutexres);*/
+	mutex_unlock (nsthread.mutexres);
 	RESOLVE_DBG ("[resolve thread] exiting thread\n");
 	}
 #endif 
 
 /***
 =============
-NET_StringToAdr [FWGS, 01.11.23]
+NET_StringToAdr [FWGS, 01.12.24]
 
 localhost
 idnewt
@@ -485,14 +611,15 @@ idnewt:28000
 192.246.40.70:28000
 =============
 ***/
-static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sadr,
-	qboolean nonblocking, int family)
+/*static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sadr,
+	qboolean nonblocking, int family)*/
+net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sadr, qboolean nonblocking, int family)
 	{
-	int ret = 0, port;
-	char *colon;
+	int		ret = 0, port;
+	char	*colon;
 	char	copy[128];
-	byte ip6[16];
-	struct sockaddr_storage temp;
+	byte	ip6[16];
+	struct sockaddr_storage	temp;
 
 	if (!net.initialized)
 		return NET_EAI_NONAME;
@@ -500,7 +627,7 @@ static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_stor
 	memset (sadr, 0, sizeof (*sadr));
 
 	// try to parse it as IPv6 first
-	if ((family == AF_UNSPEC || family == AF_INET6) && ParseIPv6Addr (s, ip6, &port, NULL))
+	if (((family == AF_UNSPEC) || (family == AF_INET6)) && ParseIPv6Addr (s, ip6, &port, NULL))
 		{
 		((struct sockaddr_in6 *)sadr)->sin6_family = AF_INET6;
 		((struct sockaddr_in6 *)sadr)->sin6_port = htons ((short)port);
@@ -534,11 +661,13 @@ static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_stor
 #ifdef CAN_ASYNC_NS_RESOLVE
 		if (net.threads_initialized && nonblocking)
 			{
-			mutex_lock (&nsthread.mutexres);
+			/*mutex_lock (&nsthread.mutexres);*/
+			mutex_lock (nsthread.mutexres);
 
 			if (nsthread.busy)
 				{
-				mutex_unlock (&nsthread.mutexres);
+				/*mutex_unlock (&nsthread.mutexres);*/
+				mutex_unlock (nsthread.mutexres);
 				return NET_EAI_AGAIN;
 				}
 
@@ -559,23 +688,28 @@ static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_stor
 				Q_strncpy (nsthread.hostname, copy, sizeof (nsthread.hostname));
 				nsthread.family = family;
 				nsthread.busy = true;
-				mutex_unlock (&nsthread.mutexres);
+				/*mutex_unlock (&nsthread.mutexres);*/
+				mutex_unlock (nsthread.mutexres);
 
-				if (create_thread (NET_ThreadStart))
+				/*if (create_thread (NET_ThreadStart))*/
+				if (create_thread (nsthread.thread, NET_ThreadStart))
 					{
 					asyncfailed = false;
 					return NET_EAI_AGAIN;
 					}
 
-				// [FWGS, 01.07.24] failed to create thread
-				else
+				// failed to create thread
+				Con_Reportf (S_ERROR "%s: failed to create thread!\n", __func__);
+				nsthread.busy = false;
+				/*else
 					{
 					Con_Reportf (S_ERROR "%s: failed to create thread!\n", __func__);
 					nsthread.busy = false;
-					}
+					}*/
 				}
 
-			mutex_unlock (&nsthread.mutexres);
+			/*mutex_unlock (&nsthread.mutexres);*/
+			mutex_unlock (nsthread.mutexres);
 			}
 #endif
 
@@ -595,14 +729,16 @@ static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_stor
 
 		if (temp.ss_family == AF_INET)
 			{
-			((struct sockaddr_in *)sadr)->sin_addr =
-				((struct sockaddr_in *)&temp)->sin_addr;
+			/*((struct sockaddr_in *)sadr)->sin_addr =
+				((struct sockaddr_in *)&temp)->sin_addr;*/
+			((struct sockaddr_in *)sadr)->sin_addr = ((struct sockaddr_in *)&temp)->sin_addr;
 			}
 		else if (temp.ss_family == AF_INET6)
 			{
-			memcpy (&((struct sockaddr_in6 *)sadr)->sin6_addr,
+			/*memcpy (&((struct sockaddr_in6 *)sadr)->sin6_addr,
 				&((struct sockaddr_in6 *)&temp)->sin6_addr,
-				sizeof (struct in6_addr));
+				sizeof (struct in6_addr));*/
+			((struct sockaddr_in6 *)sadr)->sin6_addr = ((struct sockaddr_in6 *)&temp)->sin6_addr;
 			}
 		}
 
@@ -951,13 +1087,18 @@ qboolean NET_CompareAdr (const netadr_t a, const netadr_t b)
 		{
 		if ((a.ip4 == b.ip4) && (a.port == b.port))
 			return true;
+
 		return false;
 		}
 
+	// [FWGS, 01.12.24]
 	if (a.type6 == NA_IP6)
 		{
 		if ((a.port == b.port) && !NET_NetadrIP6Compare (&a, &b))
 			return true;
+
+		return false;
+		/*return true;*/
 		}
 
 	// [FWGS, 01.07.24]
@@ -1026,15 +1167,16 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 	return 0;
 	}
 
-/***
+// [FWGS, 01.12.24] removed NET_IsLocalAddress
+/*
 ====================
 NET_IsLocalAddress
 ====================
-***/
+/
 qboolean NET_IsLocalAddress (netadr_t adr)
 	{
 	return (adr.type == NA_LOOPBACK) ? true : false;
-	}
+	}*/
 
 /***
 =============
@@ -1069,8 +1211,9 @@ qboolean NET_StringToAdr (const char *string, netadr_t *adr)
 	return NET_StringToAdrEx (string, adr, AF_UNSPEC);
 	}
 
-// [FWGS, 01.11.23]
-net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)
+// [FWGS, 01.12.24]
+/*net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)*/
+net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr, qboolean v6only)
 	{
 	struct sockaddr_storage s;
 	net_gai_state_t res;
@@ -1082,7 +1225,8 @@ net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)
 		return NET_EAI_OK;
 		}
 
-	res = NET_StringToSockaddr (string, &s, true, AF_UNSPEC);
+	/*res = NET_StringToSockaddr (string, &s, true, AF_UNSPEC);*/
+	res = NET_StringToSockaddr (string, &s, true, v6only ? AF_INET6 : AF_UNSPEC);
 	if (res == NET_EAI_OK)
 		NET_SockadrToNetadr (&s, adr);
 
@@ -1094,6 +1238,7 @@ net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)
 LOOPBACK BUFFERS FOR LOCAL PLAYER
 =============================================================================
 ***/
+
 /***
 ====================
 NET_GetLoopPacket
@@ -1161,6 +1306,7 @@ static void NET_ClearLoopback (void)
 LAG & LOSS SIMULATION SYSTEM (network debugging)
 =============================================================================
 ***/
+
 /***
 ==================
 NET_RemoveFromPacketList
@@ -1361,35 +1507,63 @@ static qboolean NET_LagPacket (qboolean newdata, netsrc_t sock, netadr_t *from, 
 
 /***
 ==================
-NET_GetLong
+NET_GetLong [FWGS, 01.12.24]
 
 receive long packet from network
 ==================
 ***/
-static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize)
+/*static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize)*/
+static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize, connprotocol_t proto)
 	{
 	int		i, sequence_number, offset;
-	SPLITPACKET	*pHeader = (SPLITPACKET *)pData;
+	/*SPLITPACKET	*pHeader = (SPLITPACKET *)pData;*/
 	int		packet_number;
 	int		packet_count;
 	short	packet_id;
-	int		body_size = splitsize - sizeof (SPLITPACKET);
+	/*int		body_size = splitsize - sizeof (SPLITPACKET);*/
+	size_t	header_size = proto == PROTO_GOLDSRC ? sizeof (SPLITPACKETGS) : sizeof (SPLITPACKET);
+	int		body_size = splitsize - header_size;
+	int		max_splits;
 
 	if (body_size < 0)
 		return false;
 
-	if (size < sizeof (SPLITPACKET))
+	/*if (size < sizeof (SPLITPACKET))*/
+	if (size < header_size)
 		{
 		Con_Printf (S_ERROR "invalid split packet length %i\n", size);
 		return false;
 		}
 
-	sequence_number = pHeader->sequence_number;
+	/*sequence_number = pHeader->sequence_number;
 	packet_id = pHeader->packet_id;
 	packet_count = (packet_id & 0xFF);
-	packet_number = (packet_id >> 8);
+	packet_number = (packet_id >> 8);*/
+	if (proto == PROTO_GOLDSRC)
+		{
+		SPLITPACKETGS *pHeader = (SPLITPACKETGS *)pData;
 
-	if ((packet_number >= NET_MAX_FRAGMENTS) || (packet_count > NET_MAX_FRAGMENTS))
+		sequence_number = pHeader->sequence_number;
+		packet_id = pHeader->packet_id;
+		packet_count = (packet_id & 0xF);
+		packet_number = (packet_id >> 4);
+
+		/*if ((packet_number >= NET_MAX_FRAGMENTS) || (packet_count > NET_MAX_FRAGMENTS))*/
+		max_splits = NET_MAX_GOLDSRC_FRAGMENTS;
+		}
+	else
+		{
+		SPLITPACKET *pHeader = (SPLITPACKET *)pData;
+
+		sequence_number = pHeader->sequence_number;
+		packet_id = pHeader->packet_id;
+		packet_count = (packet_id & 0xFF);
+		packet_number = (packet_id >> 8);
+
+		max_splits = ARRAYSIZE (net.split_flags);
+		}
+
+	if ((packet_number >= max_splits) || (packet_count > max_splits))
 		{
 		Con_Printf (S_ERROR "malformed packet number (%i/%i)\n", packet_number + 1, packet_count);
 		return false;
@@ -1402,15 +1576,16 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 		net.split.total_size = 0;
 
 		// clear part's sequence
-		for (i = 0; i < NET_MAX_FRAGMENTS; i++)
+		/*for (i = 0; i < NET_MAX_FRAGMENTS; i++)*/
+		for (i = 0; i < ARRAYSIZE (net.split_flags); i++)
 			net.split_flags[i] = -1;
 
-		// [FWGS, 01.07.23]
 		if (net_showpackets.value == 4.0f)
 			Con_Printf ("<-- Split packet restart %i count %i seq\n", net.split.split_count, sequence_number);
 		}
 
-	size -= sizeof (SPLITPACKET);
+	/*size -= sizeof (SPLITPACKET);*/
+	size -= header_size;
 
 	if (net.split_flags[packet_number] != sequence_number)
 		{
@@ -1420,20 +1595,19 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 		net.split.split_count--;
 		net.split_flags[packet_number] = sequence_number;
 
-		// [FWGS, 01.07.23]
 		if (net_showpackets.value == 4.0f)
 			Con_Printf ("<-- Split packet %i of %i, %i bytes %i seq\n", packet_number + 1,
 				packet_count, size, sequence_number);
 		}
 	else
 		{
-		// [FWGS, 01.07.24]
 		Con_DPrintf ("%s: Ignoring duplicated split packet %i of %i ( %i bytes )\n", __func__,
 			packet_number + 1, packet_count, size);
 		}
 
 	offset = (packet_number * body_size);
-	memcpy (net.split.buffer + offset, pData + sizeof (SPLITPACKET), size);
+	/*memcpy (net.split.buffer + offset, pData + sizeof (SPLITPACKET), size);*/
+	memcpy (net.split.buffer + offset, pData + header_size, size);
 
 	// have we received all of the pieces to the packet?
 	if (net.split.split_count <= 0)
@@ -1457,7 +1631,7 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 
 /***
 ==================
-NET_QueuePacket
+NET_QueuePacket [FWGS, 01.12.24]
 
 queue normal and lagged packets
 ==================
@@ -1502,12 +1676,22 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 				*length = ret;
 
 #if !XASH_DEDICATED
-				if (CL_LegacyMode ())
+				/*if (CL_LegacyMode ())
 					return NET_LagPacket (true, sock, from, length, data);
 
 				// check for split message
-				if ((sock == NS_CLIENT) && (*(int *)data == NET_HEADER_SPLITPACKET))
-					return NET_GetLong (data, ret, length, CL_GetSplitSize ());
+				if ((sock == NS_CLIENT) && (*(int *)data == NET_HEADER_SPLITPACKET))*/
+				{
+				/*return NET_GetLong (data, ret, length, CL_GetSplitSize ());*/
+				connprotocol_t proto = CL_Protocol ();
+
+				if (proto == PROTO_LEGACY)
+					return NET_LagPacket (true, sock, from, length, data);
+
+				// check for split message
+				if (sock == NS_CLIENT && *(int *)data == NET_HEADER_SPLITPACKET)
+					return NET_GetLong (data, ret, length, CL_GetSplitSize (), proto);
+				}
 #endif
 
 				// lag the packet, if needed
@@ -1575,7 +1759,7 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 	{
 #ifdef NET_USE_FRAGMENTS
 	// do we need to break this packet up?
-	if (splitsize > sizeof (SPLITPACKET) && sock == NS_SERVER && len > splitsize)
+	if (splitsize > sizeof (SPLITPACKET) && (sock == NS_SERVER) && (len > splitsize))
 		{
 		char	packet[SPLITPACKET_MAX_SIZE];
 		int		total_sent, size, packet_count;
@@ -1776,10 +1960,13 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 					port, NET_ErrorString ());
 			}
 
+		// [FWGS, 01.12.24]
 		if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
 			NET_StringToSockaddr (net_iface, &addr, false, AF_INET6);
 		else
-			memcpy (((struct sockaddr_in6 *)&addr)->sin6_addr.s6_addr, &in6addr_any, sizeof (struct in6_addr));
+			((struct sockaddr_in6 *)&addr)->sin6_addr = in6addr_any;
+		/*else
+			memcpy (((struct sockaddr_in6 *)&addr)->sin6_addr.s6_addr, &in6addr_any, sizeof (struct in6_addr));*/
 
 		if (port == PORT_ANY)
 			((struct sockaddr_in6 *)&addr)->sin6_port = 0;
@@ -2138,12 +2325,13 @@ void NET_Sleep (int msec)
 
 /***
 ====================
-NET_ClearLagData
+NET_ClearLagData [FWGS, 01.12.24]
 
 clear fakelag list
 ====================
 ***/
-void NET_ClearLagData (qboolean bClient, qboolean bServer)
+/*void NET_ClearLagData (qboolean bClient, qboolean bServer)*/
+static void NET_ClearLagData (qboolean bClient, qboolean bServer)
 	{
 	if (bClient)
 		NET_ClearLaggedList (&net.lagdata[NS_CLIENT]);
@@ -2153,7 +2341,7 @@ void NET_ClearLagData (qboolean bClient, qboolean bServer)
 
 /***
 ====================
-NET_Init [FWGS, 01.11.23]
+NET_Init
 ====================
 ***/
 void NET_Init (void)
@@ -2172,6 +2360,7 @@ void NET_Init (void)
 	Cvar_RegisterVariable (&net_clientport);
 	Cvar_RegisterVariable (&net_fakelag);
 	Cvar_RegisterVariable (&net_fakeloss);
+	Cvar_RegisterVariable (&net_resolve_debug);	// [FWGS, 01.12.24]
 
 	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_SERVER);
 	Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);
@@ -2192,7 +2381,9 @@ void NET_Init (void)
 		}
 
 #if XASH_WIN32
-	if (WSAStartup (MAKEWORD (1, 1), &net.winsockdata))
+	// [FWGS, 01.12.24]
+	/*if (WSAStartup (MAKEWORD (1, 1), &net.winsockdata))*/
+	if (WSAStartup (MAKEWORD (2, 0), &net.winsockdata))
 		{
 		Con_DPrintf (S_ERROR "network initialization failed.\n");
 		return;
@@ -2206,25 +2397,38 @@ void NET_Init (void)
 	net.allow_ip = !Sys_CheckParm ("-noip");
 	net.allow_ip6 = !Sys_CheckParm ("-noip6");
 
-	// specify custom host port
+	// [FWGS, 01.12.24] specify custom host port
 	if (Sys_GetParmFromCmdLine ("-port", cmd) && Q_isdigit (cmd))
-		Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);
+		Cvar_FullSet (net_hostport.name, cmd, net_hostport.flags);
+	/*Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);*/
 
-	// specify custom IPv6 host port
+	// [FWGS, 01.12.24] specify custom IPv6 host port
 	if (Sys_GetParmFromCmdLine ("-port6", cmd) && Q_isdigit (cmd))
-		Cvar_FullSet ("ip6_hostport", cmd, FCVAR_READ_ONLY);
+		/*Cvar_FullSet ("ip6_hostport", cmd, FCVAR_READ_ONLY);*/
+		Cvar_FullSet (net_ip6hostport.name, cmd, net_ip6hostport.flags);
 
-	// specify custom ip
+	// [FWGS, 01.12.24] specify custom client port
+	if (Sys_GetParmFromCmdLine ("-clientport", cmd) && Q_isdigit (cmd))
+		Cvar_FullSet (net_clientport.name, cmd, net_clientport.flags);
+
+	// [FWGS, 01.12.24] specify custom IPv6 client port
+	if (Sys_GetParmFromCmdLine ("-clientport6", cmd) && Q_isdigit (cmd))
+		Cvar_FullSet (net_ip6clientport.name, cmd, net_ip6clientport.flags);
+
+	// [FWGS, 01.12.24] specify custom ip
 	if (Sys_GetParmFromCmdLine ("-ip", cmd))
-		Cvar_FullSet ("ip", cmd, net_ipname.flags);
+		Cvar_DirectSet (&net_ipname, cmd);
+	/*Cvar_FullSet ("ip", cmd, net_ipname.flags);*/
 
-	// specify custom ip6
+	// [FWGS, 01.12.24] specify custom ip6
 	if (Sys_GetParmFromCmdLine ("-ip6", cmd))
-		Cvar_FullSet ("ip6", cmd, net_ip6name.flags);
+		Cvar_DirectSet (&net_ip6name, cmd);
+	/*Cvar_FullSet ("ip6", cmd, net_ip6name.flags);*/
 
-	// adjust clockwindow
+	// [FWGS, 01.12.24] adjust clockwindow
 	if (Sys_GetParmFromCmdLine ("-clockwindow", cmd))
-		Cvar_SetValue ("clockwindow", Q_atof (cmd));
+		Cvar_DirectSetValue (&net_clockwindow, Q_atof (cmd));
+	/*Cvar_SetValue ("clockwindow", Q_atof (cmd));*/
 
 	net.sequence_number = 1;
 	net.initialized = true;
@@ -2233,7 +2437,7 @@ void NET_Init (void)
 
 /***
 ====================
-NET_Shutdown
+NET_Shutdown [FWGS, 01.12.24]
 ====================
 ***/
 void NET_Shutdown (void)
@@ -2242,22 +2446,28 @@ void NET_Shutdown (void)
 		return;
 
 	NET_ClearLagData (true, true);
-
 	NET_Config (false, false);
+
+#ifdef CAN_ASYNC_NS_RESOLVE
+	NET_DeleteCriticalSections ();
+#endif
+
 #if XASH_WIN32
 	WSACleanup ();
 #endif
 	net.initialized = false;
 	}
 
-/***
+// [FWGS, 01.12.24] moved to net_http
+/*
 =================================================
 HTTP downloader [FWGS, 01.12.23]
 =================================================
-***/
-#define MAX_HTTP_BUFFER_SIZE	(BIT(13))
+/
+#define MAX_HTTP_BUFFER_SIZE	(BIT(13))*/
 
-typedef struct httpserver_s
+// [FWGS, 01.12.24] moved to net_http
+/*typedef struct httpserver_s
 	{
 	char host[256];
 	int port;
@@ -2320,13 +2530,14 @@ static CVAR_DEFINE_AUTO (http_autoremove, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 static CVAR_DEFINE_AUTO (http_timeout, "45", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"timeout for http downloader");
 static CVAR_DEFINE_AUTO (http_maxconnections, "4", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-	"maximum http connection number");
+	"maximum http connection number");*/
 
-/***
+// [FWGS, 01.12.24] HTTP_ClearCustomServers moved to net_http
+/*
 ========================
 HTTP_ClearCustomServers
 ========================
-***/
+/
 void HTTP_ClearCustomServers (void)
 	{
 	if (http.first_file)
@@ -2339,15 +2550,16 @@ void HTTP_ClearCustomServers (void)
 		http.first_server = http.first_server->next;
 		Mem_Free (tmp);
 		}
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_FreeFile moved to net_http
+/*
 ==============
 HTTP_FreeFile
 
 Skip to next server/file
 ==============
-***/
+/
 static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 	{
 	char incname[256];
@@ -2405,15 +2617,16 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 		}
 
 	file->state = HTTP_FREE;
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_AutoClean moved to net_http
+/*
 ===================
 HTTP_AutoClean
 
 remove files with HTTP_FREE state from list
 ===================
-***/
+/
 static void HTTP_AutoClean (void)
 	{
 	httpfile_t *curfile, *prevfile = 0;
@@ -2445,15 +2658,16 @@ static void HTTP_AutoClean (void)
 			break;
 		}
 	http.last_file = prevfile;
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_ProcessStream moved to net_http
+/*
 ===================
 HTTP_ProcessStream [FWGS, 01.07.24]
 
 process incoming data
 ===================
-***/
+/
 static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 	{
 	char	buf[sizeof (curfile->buf)];
@@ -2578,16 +2792,17 @@ static qboolean HTTP_ProcessStream (httpfile_t *curfile)
 	curfile->checktime += host.frametime;
 
 	return true;
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_Run moved to net_http
+/*
 ==============
 HTTP_Run
 
 Download next file block of each active file
 Call every frame
 ==============
-***/
+/
 void HTTP_Run (void)
 	{
 	httpfile_t	*curfile;
@@ -2650,10 +2865,10 @@ void HTTP_Run (void)
 			// but download will lock engine, maybe you will need to add manual returns
 			mode = 1;
 			ioctlsocket (curfile->socket, FIONBIO, (void *)&mode);
-#if XASH_LINUX
+if XASH_LINUX
 			// SOCK_NONBLOCK is not portable, so use fcntl
 			fcntl (curfile->socket, F_SETFL, fcntl (curfile->socket, F_GETFL, 0) | O_NONBLOCK);
-#endif
+endif
 			curfile->state = HTTP_SOCKET;
 			}
 
@@ -2811,15 +3026,16 @@ void HTTP_Run (void)
 		Cvar_SetValue ("scr_download", flProgress / iProgressCount * 100);
 
 	HTTP_AutoClean ();
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_AddDownload moved to net_http
+/*
 ===================
 HTTP_AddDownload
 
 Add new download to end of queue
 ===================
-***/
+/
 void HTTP_AddDownload (const char *path, int size, qboolean process)
 	{
 	httpfile_t *httpfile = Z_Calloc (sizeof (httpfile_t));
@@ -2850,15 +3066,16 @@ void HTTP_AddDownload (const char *path, int size, qboolean process)
 	httpfile->state = HTTP_QUEUE;
 	httpfile->server = http.first_server;
 	httpfile->process = process;
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_Download_f moved to net_http
+/*
 ===============
 HTTP_Download_f
 
 Console wrapper
 ===============
-***/
+/
 static void HTTP_Download_f (void)
 	{
 	if (Cmd_Argc () < 2)
@@ -2868,13 +3085,14 @@ static void HTTP_Download_f (void)
 		}
 
 	HTTP_AddDownload (Cmd_Argv (1), -1, false);
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_ParseURL moved to net_http
+/*
 ==============
 HTTP_ParseURL
 ==============
-***/
+/
 static httpserver_t *HTTP_ParseURL (const char *url)
 	{
 	httpserver_t *server;
@@ -2926,13 +3144,14 @@ static httpserver_t *HTTP_ParseURL (const char *url)
 	server->needfree = false;
 
 	return server;
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_AddCustomServer moved to net_http
+/*
 =======================
 HTTP_AddCustomServer
 =======================
-***/
+/
 void HTTP_AddCustomServer (const char *url)
 	{
 	httpserver_t *server = HTTP_ParseURL (url);
@@ -2946,13 +3165,14 @@ void HTTP_AddCustomServer (const char *url)
 	server->needfree = true;
 	server->next = http.first_server;
 	http.first_server = server;
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_AddCustomServer_f moved to net_http
+/*
 =======================
 HTTP_AddCustomServer_f [FWGS, 01.12.23]
 =======================
-***/
+/
 static void HTTP_AddCustomServer_f (void)
 	{
 	if (Cmd_Argc () == 2)
@@ -2963,15 +3183,16 @@ static void HTTP_AddCustomServer_f (void)
 		{
 		Con_Printf (S_USAGE "http_addcustomserver <url>\n");
 		}
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_Clear_f moved to net_http
+/*
 ============
 HTTP_Clear_f
 
 Clear all queue
 ============
-***/
+/
 static void HTTP_Clear_f (void)
 	{
 	http.last_file = NULL;
@@ -2990,15 +3211,16 @@ static void HTTP_Clear_f (void)
 
 		Mem_Free (file);
 		}
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_Cancel_f moved to net_http
+/*
 ==============
 HTTP_Cancel_f
 
 Stop current download, skip to next file
 ==============
-***/
+/
 static void HTTP_Cancel_f (void)
 	{
 	if (!http.first_file)
@@ -3006,28 +3228,30 @@ static void HTTP_Cancel_f (void)
 
 	http.first_file->state = HTTP_FREE;
 	HTTP_FreeFile (http.first_file, true);
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_Skip_f moved to net_http
+/*
 =============
 HTTP_Skip_f
 
 Stop current download, skip to next server
 =============
-***/
+/
 static void HTTP_Skip_f (void)
 	{
 	if (http.first_file)
 		HTTP_FreeFile (http.first_file, true);
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_List_f moved to net_http
+/*
 =============
 HTTP_List_f
 
 Print all pending downloads to console
 =============
-***/
+/
 static void HTTP_List_f (void)
 	{
 	httpfile_t *file = http.first_file;
@@ -3043,15 +3267,16 @@ static void HTTP_List_f (void)
 
 		file = file->next;
 		}
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_ResetProcessState moved to net_http
+/*
 ================
 HTTP_ResetProcessState
 
 When connected to new server, all old files should not increase counter
 ================
-***/
+/
 void HTTP_ResetProcessState (void)
 	{
 	httpfile_t *file = http.first_file;
@@ -3061,13 +3286,14 @@ void HTTP_ResetProcessState (void)
 		file->process = false;
 		file = file->next;
 		}
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_Init moved to net_http
+/*
 =============
 HTTP_Init
 =============
-***/
+/
 void HTTP_Init (void)
 	{
 	char *serverfile, *line, token[1024];
@@ -3113,13 +3339,14 @@ void HTTP_Init (void)
 
 		Mem_Free (serverfile);
 		}
-	}
+	}*/
 
-/***
+// [FWGS, 01.12.24] HTTP_Shutdown moved to net_http
+/*
 ====================
 HTTP_Shutdown
 ====================
-***/
+/
 void HTTP_Shutdown (void)
 	{
 	HTTP_Clear_f ();
@@ -3133,5 +3360,4 @@ void HTTP_Shutdown (void)
 		}
 
 	http.last_server = NULL;
-	}
-
+	}*/

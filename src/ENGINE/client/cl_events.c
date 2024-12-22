@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -364,26 +364,38 @@ static void CL_QueueEvent (int flags, int index, float delay, event_args_t *args
 
 /***
 =============
-CL_ParseReliableEvent
+CL_ParseReliableEvent [FWGS, 01.12.24]
 =============
 ***/
-void CL_ParseReliableEvent (sizebuf_t *msg)
+/*void CL_ParseReliableEvent (sizebuf_t *msg)*/
+void CL_ParseReliableEvent (sizebuf_t *msg, connprotocol_t proto)
 	{
 	int		event_index;
 	event_args_t	nullargs, args;
 	float		delay = 0.0f;
 
 	memset (&nullargs, 0, sizeof (nullargs));
-
 	event_index = MSG_ReadUBitLong (msg, MAX_EVENT_BITS);
 
-	if (MSG_ReadOneBit (msg))
-		delay = (float)MSG_ReadWord (msg) * (1.0f / 100.0f);
+	/*if (MSG_ReadOneBit (msg))
+		delay = (float)MSG_ReadWord (msg) * (1.0f / 100.0f);*/
 
 	// reliable events not use delta-compression just null-compression
-	MSG_ReadDeltaEvent (msg, &nullargs, &args);
+	/*MSG_ReadDeltaEvent (msg, &nullargs, &args);*/
+	if (proto == PROTO_GOLDSRC)
+		{
+		Delta_ReadGSFields (msg, DT_EVENT_T, &nullargs, &args, 0.0f);
+		if (MSG_ReadOneBit (msg))
+			delay = (float)MSG_ReadWord (msg) * (1.0f / 100.0f);
+		}
+	else
+		{
+		if (MSG_ReadOneBit (msg))
+			delay = (float)MSG_ReadWord (msg) * (1.0f / 100.0f);
+		MSG_ReadDeltaEvent (msg, &nullargs, &args);
+		}
 
-	if (args.entindex > 0 && args.entindex <= cl.maxclients)
+	if ((args.entindex > 0) && (args.entindex <= cl.maxclients))
 		args.angles[PITCH] *= -3.0f;
 
 	CL_QueueEvent (FEV_RELIABLE | FEV_SERVER, event_index, delay, &args);
@@ -392,36 +404,62 @@ void CL_ParseReliableEvent (sizebuf_t *msg)
 
 /***
 =============
-CL_ParseEvent
+CL_ParseEvent [FWGS, 01.12.24]
 =============
 ***/
-void CL_ParseEvent (sizebuf_t *msg)
+/*void CL_ParseEvent (sizebuf_t *msg)*/
+void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 	{
 	int		event_index;
 	int		i, num_events;
 	int		packet_index;
-	event_args_t	nullargs, args;
+
+	/*event_args_t	nullargs, args;*/
+	const event_args_t nullargs = { 0 };
+	event_args_t args = { 0 };
+
 	entity_state_t *state;
 	float		delay;
 
-	memset (&nullargs, 0, sizeof (nullargs));
-	memset (&args, 0, sizeof (args));
+	/*memset (&nullargs, 0, sizeof (nullargs));
+	memset (&args, 0, sizeof (args));*/
+	int entity_bits;
 
 	num_events = MSG_ReadUBitLong (msg, 5);
+
+	if (proto == PROTO_GOLDSRC)
+		entity_bits = MAX_GOLDSRC_ENTITY_BITS;
+	else if (proto == PROTO_LEGACY)
+		entity_bits = MAX_LEGACY_ENTITY_BITS;
+	else
+		entity_bits = MAX_ENTITY_BITS;
 
 	// parse events queue
 	for (i = 0; i < num_events; i++)
 		{
 		event_index = MSG_ReadUBitLong (msg, MAX_EVENT_BITS);
 
-		if (MSG_ReadOneBit (msg))
+		/*if (MSG_ReadOneBit (msg))
 			packet_index = MSG_ReadUBitLong (msg, cls.legacymode ? MAX_LEGACY_ENTITY_BITS : MAX_ENTITY_BITS);
 		else
-			packet_index = -1;
+			packet_index = -1;*/
 
 		if (MSG_ReadOneBit (msg))
 			{
-			MSG_ReadDeltaEvent (msg, &nullargs, &args);
+			/*MSG_ReadDeltaEvent (msg, &nullargs, &args);*/
+			packet_index = MSG_ReadUBitLong (msg, entity_bits);
+
+			if (MSG_ReadOneBit (msg))
+				{
+				if (proto == PROTO_GOLDSRC)
+					Delta_ReadGSFields (msg, DT_EVENT_T, &nullargs, &args, 0.0f);
+				else
+					MSG_ReadDeltaEvent (msg, &nullargs, &args);
+				}
+			}
+		else
+			{
+			packet_index = -1;
 			}
 
 		if (MSG_ReadOneBit (msg))

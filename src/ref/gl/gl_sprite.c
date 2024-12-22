@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -19,8 +19,8 @@ GNU General Public License for more details
 #include "studio.h"
 #include "entity_types.h"
 
-// it's a Valve default value for LoadMapSprite (probably must be power of two)
-#define MAPSPRITE_SIZE	128
+// [FWGS, 01.12.24] it's a Valve default value for LoadMapSprite (probably must be power of two)
+/*#define MAPSPRITE_SIZE	128*/
 #define GLARE_FALLOFF	19000.0f
 
 char		sprite_name[MAX_QPATH];
@@ -256,14 +256,15 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 		*loaded = true;
 	}
 
-/***
+// [FWGS, 01.12.24] removed Mod_LoadMapSprite
+/*
 ====================
 Mod_LoadMapSprite [FWGS, 01.04.23]
 
 Loading a bitmap image as sprite with multiple frames
 as pieces of input image
 ====================
-***/
+/
 void Mod_LoadMapSprite (model_t *mod, const void *buffer, size_t size, qboolean *loaded)
 	{
 	byte		*src, *dst;
@@ -390,7 +391,7 @@ void Mod_LoadMapSprite (model_t *mod, const void *buffer, size_t size, qboolean 
 
 	if (loaded)
 		*loaded = true;
-	}
+	}*/
 
 /***
 ====================

@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -35,7 +35,7 @@ static inline int BitByte (int bits)
 	return PAD_NUMBER (bits, 8) >> 3;
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 struct sizebuf_s
 	{
 	byte		*pData;
@@ -43,6 +43,9 @@ struct sizebuf_s
 	int			iCurBit;
 	int			nDataBits;
 	const char	*pDebugName;	// buffer name (pointer to const name)
+
+	// to support GoldSrc broken signed integers
+	int iAlternateSign;
 	};
 
 // [FWGS, 01.05.24]
@@ -62,7 +65,7 @@ static inline void MSG_Clear (sizebuf_t *sb)
 	sb->iCurBit = 0;
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 static inline void MSG_InitExt (sizebuf_t *sb, const char *pDebugName, void *pData, int nBytes, int nBits)
 	{
 	sb->pData = pData;
@@ -74,6 +77,7 @@ static inline void MSG_InitExt (sizebuf_t *sb, const char *pDebugName, void *pDa
 		sb->nDataBits = nBits;
 
 	sb->pDebugName = pDebugName;
+	sb->iAlternateSign = 0;
 	}
 
 // [FWGS, 01.05.24]
@@ -92,11 +96,14 @@ static inline int MSG_SeekToBit (sizebuf_t *sb, int bitPos, int whence)
 		case SEEK_CUR:
 			bitPos += sb->iCurBit;
 			break;
+
 		case SEEK_SET:
 			break;
+
 		case SEEK_END:
 			bitPos += sb->nDataBits;
 			break;
+
 		default:
 			return -1;
 		}
@@ -176,18 +183,53 @@ static inline qboolean MSG_Overflow (sizebuf_t *sb, int nBits)
 	return sb->bOverflow;
 	}
 
+// [FWGS, 01.12.24]
+static inline void MSG_EndBitWriting (sizebuf_t *sb)
+	{
+	sb->iAlternateSign--;
+
+	if (sb->iAlternateSign < 0)
+		{
+		Con_Printf ("%s: non-even MSG_Start/EndBitWriting\n", __func__);
+		sb->iAlternateSign = 0;
+		}
+
+	// we have native bit ops here, just pad to closest byte
+	if ((sb->iCurBit & 7) != 0)
+		MSG_SeekToBit (sb, 8 - (sb->iCurBit & 7), SEEK_CUR);
+	}
+
+// [FWGS, 01.12.24]
+static inline void MSG_StartBitWriting (sizebuf_t *sb)
+	{
+	sb->iAlternateSign++;
+	}
+
 void MSG_InitMasks (void); // called once at startup engine
 void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove);
 
-// [FWGS, 01.07.24] Bit-write functions
-void MSG_WriteOneBit (sizebuf_t *sb, int nValue);
+// [FWGS, 01.12.24] Bit-write functions
+/*void MSG_WriteOneBit (sizebuf_t *sb, int nValue);*/
+static inline void MSG_WriteOneBit (sizebuf_t *sb, int nValue)
+	{
+	if (!MSG_Overflow (sb, 1))
+		{
+		if (nValue)
+			sb->pData[sb->iCurBit >> 3] |= BIT (sb->iCurBit & 7);
+		else
+			sb->pData[sb->iCurBit >> 3] &= ~BIT (sb->iCurBit & 7);
+
+		sb->iCurBit++;
+		}
+	}
+
 NO_ASAN void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits);
 void MSG_WriteSBitLong (sizebuf_t *sb, int data, int numbits);
 void MSG_WriteBitLong (sizebuf_t *sb, uint data, int numbits, qboolean bSigned);
 qboolean MSG_WriteBits (sizebuf_t *sb, const void *pData, int nBits);
 void MSG_WriteBitAngle (sizebuf_t *sb, float fAngle, int numbits);
 
-// [FWGS, 01.05.24] Byte-write functions
+// [FWGS, 01.12.24] Byte-write functions
 #define MSG_BeginServerCmd( sb, cmd ) MSG_WriteCmdExt( sb, cmd, NS_SERVER, NULL )
 #define MSG_BeginClientCmd( sb, cmd ) MSG_WriteCmdExt( sb, cmd, NS_CLIENT, NULL )
 void MSG_WriteCmdExt (sizebuf_t *sb, int cmd, netsrc_t type, const char *name);		// message marker
@@ -202,7 +244,10 @@ void MSG_WriteFloat (sizebuf_t *sb, float val);
 void MSG_WriteVec3Coord (sizebuf_t *sb, const float *fa);
 void MSG_WriteVec3Angles (sizebuf_t *sb, const float *fa);
 qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr);		// returns false if it overflows the buffer
-qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...) _format (2);
+
+/*qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...) _format (2);*/
+qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...) FORMAT_CHECK (2);
+
 qboolean MSG_WriteBytes (sizebuf_t *sb, const void *pBuf, int nBytes);
 
 // Bit-read functions
@@ -223,14 +268,17 @@ int MSG_ReadShort (sizebuf_t *sb);
 int MSG_ReadWord (sizebuf_t *sb);
 int MSG_ReadLong (sizebuf_t *sb);
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 uint MSG_ReadDword (sizebuf_t *sb);
 float MSG_ReadCoord (sizebuf_t *sb);
 float MSG_ReadFloat (sizebuf_t *sb);
 void MSG_ReadVec3Coord (sizebuf_t *sb, vec3_t fa);
 void MSG_ReadVec3Angles (sizebuf_t *sb, vec3_t fa);
-char *MSG_ReadString (sizebuf_t *sb);
-char *MSG_ReadStringLine (sizebuf_t *sb);
+
+/*char *MSG_ReadString (sizebuf_t *sb);
+char *MSG_ReadStringLine (sizebuf_t *sb);*/
+char *MSG_ReadString (sizebuf_t *sb) RETURNS_NONNULL;
+char *MSG_ReadStringLine (sizebuf_t *sb) RETURNS_NONNULL;
 
 qboolean MSG_ReadBytes (sizebuf_t *sb, void *pOut, int nBytes);
 

@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "crtlib.h"
@@ -80,7 +80,7 @@ int Q_buildnum_compat (void)
 
 /***
 ============
-Q_GetPlatformStringByID [FWGS, 01.02.24]
+Q_GetPlatformStringByID
 
 Returns name of operating system by ID. Without any spaces
 ============
@@ -117,6 +117,12 @@ const char *Q_PlatformStringByID (const int platform)
 			return "nswitch";
 		case PLATFORM_PSVITA:
 			return "psvita";
+
+		// [FWGS, 01.12.24]
+		case PLATFORM_WASI:
+			return "wasi";
+		case PLATFORM_SUNOS:
+			return "sunos";
 		}
 
 	assert (0);
@@ -137,7 +143,7 @@ const char *Q_buildos (void)
 
 /***
 ============
-Q_ArchitectureStringByID [FWGS, 01.04.23]
+Q_ArchitectureStringByID
 
 Returns name of the architecture by it's ID. Without any spaces.
 ============
@@ -209,6 +215,10 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 					return is64 ? "riscv64d" : "riscv32d";
 				}
 			break;
+
+		// [FWGS, 01.12.24]
+		case ARCHITECTURE_WASM:
+			return is64 ? "wasm64" : "wasm32";
 		}
 
 	assert (0);

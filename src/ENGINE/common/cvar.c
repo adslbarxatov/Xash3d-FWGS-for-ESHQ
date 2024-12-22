@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -18,7 +18,9 @@ GNU General Public License for more details
 #include "base_cmd.h"
 #include "eiface.h" // ARRAYSIZE
 
-convar_t *cvar_vars = NULL; // head of list
+// [FWGS, 01.12.24]
+/*convar_t *cvar_vars = NULL; // head of list*/
+static convar_t *cvar_vars = NULL; // head of list
 
 // [FWGS, 01.07.23]
 CVAR_DEFINE_AUTO (cmd_scripting, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
@@ -26,19 +28,22 @@ CVAR_DEFINE_AUTO (cmd_scripting, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 
 // [FWGS, 01.04.23] удалена команда cl_filterstuffcmd
 
-#ifdef HACKS_RELATED_HLMODS
+/*ifdef HACKS_RELATED_HLMODS*/
+
 typedef struct cvar_filter_quirks_s
 	{
 	const char *gamedir;	// gamedir to enable for
 	const char *cvars;		// list of cvars should be excluded from filter
 	} cvar_filter_quirks_t;
 
-// EXAMPLE:
+// [FWGS, 01.12.24] EXAMPLE:
 // {
 // "valve",
 // "test;test1;test100"
 // }
-static cvar_filter_quirks_t cvar_filter_quirks[] =
+/*static cvar_filter_quirks_t cvar_filter_quirks[] =*/
+#ifdef HACKS_RELATED_HLMODS
+static const cvar_filter_quirks_t cvar_filter_quirks[] =
 	{
 		{
 		"ricochet",
@@ -50,8 +55,11 @@ static cvar_filter_quirks_t cvar_filter_quirks[] =
 		},
 	};
 
-static cvar_filter_quirks_t *cvar_active_filter_quirks = NULL;
+/*static cvar_filter_quirks_t *cvar_active_filter_quirks = NULL;*/
 #endif
+
+// [FWGS, 01.12.24]
+static const cvar_filter_quirks_t *cvar_active_filter_quirks = NULL;
 
 CVAR_DEFINE_AUTO (cl_filterstuffcmd, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED, "filter commands coming from server");
 
@@ -67,21 +75,26 @@ cvar_t *GAME_EXPORT Cvar_GetList (void)
 
 /***
 ============
-Cvar_FindVar
+Cvar_FindVar [FWGS, 01.12.24]
 
 find the specified variable by name
 ============
 ***/
 convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 	{
-#if defined(XASH_HASHED_VARS)
+	/*if defined(XASH_HASHED_VARS)
 	return (convar_t *)BaseCmd_Find (HM_CVAR, var_name);
-#else
+	else
+	convar_t *var;*/
 	convar_t *var;
 
 	if (!var_name)
 		return NULL;
 
+	// TODO: ignore_group
+#if defined(XASH_HASHED_VARS)
+	var = BaseCmd_Find (HM_CVAR, var_name);
+#else
 	for (var = cvar_vars; var; var = var->next)
 		{
 		if (ignore_group && FBitSet (ignore_group, var->flags))
@@ -91,8 +104,14 @@ convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 			return var;
 		}
 
-	return NULL;
+	/*return NULL;*/
 #endif
+
+	// HACKHACK: HL25 compatibility
+	if (!var && !Q_stricmp (var_name, "gl_widescreen_yfov"))
+		var = Cvar_FindVarExt ("r_adjust_fov", ignore_group);
+
+	return var;
 	}
 
 /***
@@ -214,7 +233,7 @@ static const char *Cvar_ValidateString (convar_t *var, const char *value)
 		char *szVal = szNew;
 		int	len = 0;
 
-		// [FWGS, 01.11.23] step through the string, only copying back in characters that are printable
+		// step through the string, only copying back in characters that are printable
 		while (*pszValue && (len < (MAX_STRING - 1)))
 			{
 			if (((byte)*pszValue) < 32)
@@ -230,10 +249,13 @@ static const char *Cvar_ValidateString (convar_t *var, const char *value)
 		pszValue = szNew;
 
 		// g-cont. is this even need?
-		if (!COM_CheckStringEmpty (szNew)) Q_strncpy (szNew, "empty", sizeof (szNew));
+		if (!COM_CheckStringEmpty (szNew))
+			Q_strncpy (szNew, "empty", sizeof (szNew));
 		}
 
-	if (FBitSet (var->flags, FCVAR_NOEXTRAWHITEPACE))
+	// [FWGS, 01.12.24]
+	/*if (FBitSet (var->flags, FCVAR_NOEXTRAWHITEPACE))*/
+	if (FBitSet (var->flags, FCVAR_NOEXTRAWHITESPACE))
 		{
 		char *szVal = szNew;
 		int	len = 0;
@@ -275,9 +297,19 @@ static qboolean Cvar_ValidateVarName (const char *s, qboolean isvalue)
 	return true;
 	}
 
+// [FWGS, 01.12.24]
+static void Cvar_Free (convar_t *var)
+	{
+	freestring (var->name);
+	freestring (var->string);
+	freestring (var->def_string);
+	freestring (var->desc);
+	Mem_Free (var);
+	}
+
 /***
 ============
-Cvar_UnlinkVar
+Cvar_UnlinkVar [FWGS, 01.12.24]
 
 unlink the variable
 ============
@@ -293,7 +325,8 @@ static int Cvar_UnlinkVar (const char *var_name, int group)
 	while (1)
 		{
 		var = *prev;
-		if (!var) break;
+		if (!var)
+			break;
 
 		// do filter by name
 		if (var_name && Q_strcmp (var->name, var_name))
@@ -314,17 +347,21 @@ static int Cvar_UnlinkVar (const char *var_name, int group)
 #endif
 
 		// unlink variable from list
-		freestring (var->string);
+		/*freestring (var->string);*/
 		*prev = var->next;
 
 		// only allocated cvars can throw these fields
 		if (FBitSet (var->flags, FCVAR_ALLOCATED))
-			{
+			/*{
 			freestring (var->name);
 			freestring (var->def_string);
 			freestring (var->desc);
 			Mem_Free (var);
-			}
+			}*/
+			Cvar_Free (var);
+		else
+			freestring (var->string);
+
 		count++;
 		}
 
@@ -965,7 +1002,18 @@ static void Cvar_SetGL (const char *name, const char *value)
 	Cvar_FullSet (name, value, FCVAR_GLCONFIG);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.12.24]
+static int ShouldSetCvar_splitstr_handler (char *prev, char *next, void *userdata)
+	{
+	size_t len = next - prev;
+
+	if (!Q_strnicmp (prev, userdata, len))
+		return 1;
+
+	return 0;
+	}
+
+// [FWGS, 01.12.24]
 static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	{
 	const char *prefixes[] = { "cl_", "gl_", "m_", "r_", "hud_", "joy_", "con_", "scr_" };
@@ -981,10 +1029,10 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 		return true;
 
 	// check if game-specific filter exceptions should be applied
-#ifdef HACKS_RELATED_HLMODS
+/*ifdef HACKS_RELATED_HLMODS*/
 	if (cvar_active_filter_quirks)
 		{
-		const char *cur, *next;
+		/*const char *cur, *next;
 
 		cur = cvar_active_filter_quirks->cvars;
 		next = Q_strchr (cur, ';');
@@ -1007,9 +1055,11 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 				// stop
 				cur = NULL;
 				}
-			}
+			}*/
+		if (Q_splitstr ((char *)cvar_active_filter_quirks->cvars, ';', v->name, ShouldSetCvar_splitstr_handler))
+			return true;
 		}
-#endif
+/*endif*/
 
 	if (FBitSet (v->flags, FCVAR_FILTERABLE))
 		return false;
@@ -1239,9 +1289,24 @@ static void Cvar_List_f (void)
 	Con_Printf ("\n%i cvars\n", count);
 	}
 
+// [FWGS, 01.12.24]
+static qboolean Cvar_ValidateUnlinkGroup (int group)
+	{
+	if (FBitSet (group, FCVAR_EXTDLL) && !Cvar_VariableInteger ("host_gameloaded"))
+		return false;
+
+	if (FBitSet (group, FCVAR_CLIENTDLL) && !Cvar_VariableInteger ("host_clientloaded"))
+		return false;
+
+	if (FBitSet (group, FCVAR_GAMEUIDLL) && !Cvar_VariableInteger ("host_gameuiloaded"))
+		return false;
+
+	return true;
+	}
+
 /***
 ============
-Cvar_Unlink
+Cvar_Unlink [FWGS, 01.12.24]
 
 unlink all cvars with specified flag
 ============
@@ -1250,16 +1315,104 @@ void Cvar_Unlink (int group)
 	{
 	int	count;
 
-	if (Cvar_VariableInteger ("host_gameloaded") && FBitSet (group, FCVAR_EXTDLL))
+	/*if (Cvar_VariableInteger ("host_gameloaded") && FBitSet (group, FCVAR_EXTDLL))*/
+	if (!Cvar_ValidateUnlinkGroup (group))
 		return;
 
-	if (Cvar_VariableInteger ("host_clientloaded") && FBitSet (group, FCVAR_CLIENTDLL))
-		return;
-
-	if (Cvar_VariableInteger ("host_gameuiloaded") && FBitSet (group, FCVAR_GAMEUIDLL))
-		return;
-
+	/*if (Cvar_VariableInteger ("host_clientloaded") && FBitSet (group, FCVAR_CLIENTDLL))
+		return;*/
 	count = Cvar_UnlinkVar (NULL, group);
+	Con_Reportf ("unlink %i cvars\n", count);
+	}
+
+// [FWGS, 01.12.24]
+pending_cvar_t *Cvar_PrepareToUnlink (int group)
+	{
+	pending_cvar_t	*list = NULL;
+	pending_cvar_t	*tail = NULL;
+	convar_t		*cv;
+
+	for (cv = cvar_vars; cv != NULL; cv = cv->next)
+		{
+		size_t namelen;
+		pending_cvar_t *p;
+
+		if (!FBitSet (cv->flags, group))
+			continue;
+
+		namelen = Q_strlen (cv->name) + 1;
+		p = Mem_Malloc (host.mempool, sizeof (*list) + namelen);
+		p->next = NULL;
+		p->cv_cur = cv;
+		p->cv_next = cv->next;
+		p->cv_allocated = FBitSet (cv->flags, FCVAR_ALLOCATED) ? true : false;
+		Q_strncpy (p->cv_name, cv->name, namelen);
+
+		if (list == NULL)
+			list = p;
+		else
+			tail->next = p;
+
+		tail = p;
+		}
+
+	return list;
+	}
+
+// [FWGS, 01.12.24]
+void Cvar_UnlinkPendingCvars (pending_cvar_t *list)
+	{
+	int count = 0;
+
+	while (list != NULL)
+		{
+		pending_cvar_t *next = list->next;
+		convar_t *cv_prev, *cv;
+
+		for (cv_prev = NULL, cv = cvar_vars; cv != NULL; cv_prev = cv, cv = cv->next)
+			{
+			if (cv == list->cv_cur)
+				break;
+			}
+
+		if (cv == NULL)
+			{
+			Con_Reportf ("%s: can't find %s in variable list\n", __func__, list->cv_name);
+			Mem_Free (list);
+			list = next;
+			continue;
+			}
+
+		// unlink cvar from list
+		BaseCmd_Remove (HM_CVAR, list->cv_name);
+		if (cv_prev != NULL)
+			cv_prev->next = list->cv_next;
+		else
+			cvar_vars = list->cv_next;
+
+		if (list->cv_allocated)
+			{
+			Cvar_Free (list->cv_cur);
+			}
+		else
+			{
+			// TODO: can't free cvar string here because
+			// it's not safe to access cv_cur and
+			// can't save string pointer because it could've been changed
+			// and pointer to it is already lost
+			// freestring( list->cv_string );
+			}
+
+		// now free pending cvar
+		Mem_Free (list);
+		list = next;
+		count++;
+		}
+
+	/*if (Cvar_VariableInteger ("host_gameuiloaded") && FBitSet (group, FCVAR_GAMEUIDLL))
+		return;*/
+
+	/*count = Cvar_UnlinkVar (NULL, group);*/
 	Con_Reportf ("unlink %i cvars\n", count);
 	}
 
@@ -1358,4 +1511,3 @@ void Test_RunCvar (void)
 	}
 
 #endif
-

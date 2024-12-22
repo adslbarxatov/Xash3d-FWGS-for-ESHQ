@@ -9,9 +9,10 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
+
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
 #include "const.h"
@@ -21,7 +22,8 @@ GNU General Public License for more details
 #include "pm_local.h"
 #include "pmtrace.h"
 
-extern cvar_t r_shadows;
+// [FWGS, 01.12.24]
+/*extern cvar_t r_shadows;*/
 
 typedef struct
 	{
@@ -652,7 +654,7 @@ ALIAS MODELS
 
 /***
 ===============
-R_AliasDynamicLight [FWGS, 01.02.24]
+R_AliasDynamicLight [FWGS, 01.12.24]
 
 similar to R_StudioDynamicLight
 ===============
@@ -665,7 +667,7 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	float		add, radius, total;
 	colorVec	light;
 	uint		lnum;
-	dlight_t	*dl;
+	/*dlight_t	*dl;*/
 
 	if (!plight || !ent)
 		return;
@@ -710,8 +712,10 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 			}
 
 		trace = gEngfuncs.CL_TraceLine (vecSrc, vecEnd, PM_STUDIO_IGNORE);
-		if (trace.ent > 0) psurf = gEngfuncs.EV_TraceSurface (trace.ent, vecSrc, vecEnd);
-		else psurf = gEngfuncs.EV_TraceSurface (0, vecSrc, vecEnd);
+		if (trace.ent > 0)
+			psurf = gEngfuncs.EV_TraceSurface (trace.ent, vecSrc, vecEnd);
+		else
+			psurf = gEngfuncs.EV_TraceSurface (0, vecSrc, vecEnd);
 
 		if (psurf && FBitSet (psurf->flags, SURF_DRAWSKY))
 			{
@@ -726,7 +730,7 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	if ((light.r + light.g + light.b) == 0)
 		{
 		colorVec	gcolor;
-		float	grad[4];
+		float		grad[4];
 
 		VectorScale (lightDir, 2048.0f, vecEnd);
 		VectorAdd (vecEnd, vecSrc, vecEnd);
@@ -783,7 +787,8 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 
 	for (lnum = 0; lnum < MAX_DLIGHTS; lnum++)
 		{
-		dl = gEngfuncs.GetDynamicLight (lnum);
+		/*dl = gEngfuncs.GetDynamicLight (lnum);*/
+		const dlight_t *dl = &tr.dlights[lnum];
 
 		if ((dl->die < g_alias.time) || !r_dynamic->value)
 			continue;
@@ -891,7 +896,8 @@ static void R_AliasLighting (float *lv, const vec3_t normal)
 		}
 
 	illum = bound (0.0f, illum, 255.0f);
-	*lv = gEngfuncs.LightToTexGammaEx (illum * 4) / 1023.0f;
+	/**lv = gEngfuncs.LightToTexGammaEx (illum * 4) / 1023.0f;*/
+	*lv = LightToTexGamma (illum * 4) / 1023.0f;
 	}
 
 /***

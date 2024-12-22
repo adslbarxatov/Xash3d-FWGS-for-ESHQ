@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -82,143 +82,147 @@ typedef struct
 	float	time;
 	} SAVE_LIGHTSTYLE;
 
-void (__cdecl *pfnSaveGameComment)(char *buffer, int max_length) = NULL;
+// [FWGS, 01.12.24]
+/*void (__cdecl *pfnSaveGameComment)(char *buffer, int max_length) = NULL;*/
+static void (__cdecl *pfnSaveGameComment)(char *buffer, int max_length) = NULL;
 
 static TYPEDESCRIPTION gGameHeader[] =
 	{
-		DEFINE_ARRAY (GAME_HEADER, mapName, FIELD_CHARACTER, 32),
-		DEFINE_ARRAY (GAME_HEADER, comment, FIELD_CHARACTER, 80),
-		DEFINE_FIELD (GAME_HEADER, mapCount, FIELD_INTEGER),
+	DEFINE_ARRAY (GAME_HEADER, mapName, FIELD_CHARACTER, 32),
+	DEFINE_ARRAY (GAME_HEADER, comment, FIELD_CHARACTER, 80),
+	DEFINE_FIELD (GAME_HEADER, mapCount, FIELD_INTEGER),
 	};
 
 static TYPEDESCRIPTION gSaveHeader[] =
 	{
-		DEFINE_FIELD (SAVE_HEADER, skillLevel, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_HEADER, entityCount, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_HEADER, connectionCount, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_HEADER, lightStyleCount, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_HEADER, time, FIELD_TIME),
-		DEFINE_ARRAY (SAVE_HEADER, mapName, FIELD_CHARACTER, 32),
-		DEFINE_ARRAY (SAVE_HEADER, skyName, FIELD_CHARACTER, 32),
-		DEFINE_FIELD (SAVE_HEADER, skyColor_r, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_HEADER, skyColor_g, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_HEADER, skyColor_b, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_HEADER, skyVec_x, FIELD_FLOAT),
-		DEFINE_FIELD (SAVE_HEADER, skyVec_y, FIELD_FLOAT),
-		DEFINE_FIELD (SAVE_HEADER, skyVec_z, FIELD_FLOAT),
+	DEFINE_FIELD (SAVE_HEADER, skillLevel, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_HEADER, entityCount, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_HEADER, connectionCount, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_HEADER, lightStyleCount, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_HEADER, time, FIELD_TIME),
+	DEFINE_ARRAY (SAVE_HEADER, mapName, FIELD_CHARACTER, 32),
+	DEFINE_ARRAY (SAVE_HEADER, skyName, FIELD_CHARACTER, 32),
+	DEFINE_FIELD (SAVE_HEADER, skyColor_r, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_HEADER, skyColor_g, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_HEADER, skyColor_b, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_HEADER, skyVec_x, FIELD_FLOAT),
+	DEFINE_FIELD (SAVE_HEADER, skyVec_y, FIELD_FLOAT),
+	DEFINE_FIELD (SAVE_HEADER, skyVec_z, FIELD_FLOAT),
 	};
 
 static TYPEDESCRIPTION gAdjacency[] =
 	{
-		DEFINE_ARRAY (LEVELLIST, mapName, FIELD_CHARACTER, 32),
-		DEFINE_ARRAY (LEVELLIST, landmarkName, FIELD_CHARACTER, 32),
-		DEFINE_FIELD (LEVELLIST, pentLandmark, FIELD_EDICT),
-		DEFINE_FIELD (LEVELLIST, vecLandmarkOrigin, FIELD_VECTOR),
+	DEFINE_ARRAY (LEVELLIST, mapName, FIELD_CHARACTER, 32),
+	DEFINE_ARRAY (LEVELLIST, landmarkName, FIELD_CHARACTER, 32),
+	DEFINE_FIELD (LEVELLIST, pentLandmark, FIELD_EDICT),
+	DEFINE_FIELD (LEVELLIST, vecLandmarkOrigin, FIELD_VECTOR),
 	};
 
 static TYPEDESCRIPTION gLightStyle[] =
 	{
-		DEFINE_FIELD (SAVE_LIGHTSTYLE, index, FIELD_INTEGER),
-		DEFINE_ARRAY (SAVE_LIGHTSTYLE, style, FIELD_CHARACTER, 256),
-		DEFINE_FIELD (SAVE_LIGHTSTYLE, time, FIELD_FLOAT),
+	DEFINE_FIELD (SAVE_LIGHTSTYLE, index, FIELD_INTEGER),
+	DEFINE_ARRAY (SAVE_LIGHTSTYLE, style, FIELD_CHARACTER, 256),
+	DEFINE_FIELD (SAVE_LIGHTSTYLE, time, FIELD_FLOAT),
 	};
 
 static TYPEDESCRIPTION gEntityTable[] =
 	{
-		DEFINE_FIELD (ENTITYTABLE, id, FIELD_INTEGER),
-		DEFINE_FIELD (ENTITYTABLE, location, FIELD_INTEGER),
-		DEFINE_FIELD (ENTITYTABLE, size, FIELD_INTEGER),
-		DEFINE_FIELD (ENTITYTABLE, flags, FIELD_INTEGER),
-		DEFINE_FIELD (ENTITYTABLE, classname, FIELD_STRING),
+	DEFINE_FIELD (ENTITYTABLE, id, FIELD_INTEGER),
+	DEFINE_FIELD (ENTITYTABLE, location, FIELD_INTEGER),
+	DEFINE_FIELD (ENTITYTABLE, size, FIELD_INTEGER),
+	DEFINE_FIELD (ENTITYTABLE, flags, FIELD_INTEGER),
+	DEFINE_FIELD (ENTITYTABLE, classname, FIELD_STRING),
 	};
 
 static TYPEDESCRIPTION gSaveClient[] =
 	{
-		DEFINE_FIELD (SAVE_CLIENT, decalCount, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_CLIENT, entityCount, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_CLIENT, soundCount, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_CLIENT, tempEntsCount, FIELD_INTEGER),
-		DEFINE_ARRAY (SAVE_CLIENT, introTrack, FIELD_CHARACTER, 64),
-		DEFINE_ARRAY (SAVE_CLIENT, mainTrack, FIELD_CHARACTER, 64),
-		DEFINE_FIELD (SAVE_CLIENT, trackPosition, FIELD_INTEGER),
-		DEFINE_FIELD (SAVE_CLIENT, viewentity, FIELD_SHORT),
-		DEFINE_FIELD (SAVE_CLIENT, wateralpha, FIELD_FLOAT),
-		DEFINE_FIELD (SAVE_CLIENT, wateramp, FIELD_FLOAT),
+	DEFINE_FIELD (SAVE_CLIENT, decalCount, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_CLIENT, entityCount, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_CLIENT, soundCount, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_CLIENT, tempEntsCount, FIELD_INTEGER),
+	DEFINE_ARRAY (SAVE_CLIENT, introTrack, FIELD_CHARACTER, 64),
+	DEFINE_ARRAY (SAVE_CLIENT, mainTrack, FIELD_CHARACTER, 64),
+	DEFINE_FIELD (SAVE_CLIENT, trackPosition, FIELD_INTEGER),
+	DEFINE_FIELD (SAVE_CLIENT, viewentity, FIELD_SHORT),
+	DEFINE_FIELD (SAVE_CLIENT, wateralpha, FIELD_FLOAT),
+	DEFINE_FIELD (SAVE_CLIENT, wateramp, FIELD_FLOAT),
 	};
 
 static TYPEDESCRIPTION gDecalEntry[] =
 	{
-		DEFINE_FIELD (decallist_t, position, FIELD_VECTOR),
-		DEFINE_ARRAY (decallist_t, name, FIELD_CHARACTER, 64),
-		DEFINE_FIELD (decallist_t, entityIndex, FIELD_SHORT),
-		DEFINE_FIELD (decallist_t, depth, FIELD_CHARACTER),
-		DEFINE_FIELD (decallist_t, flags, FIELD_CHARACTER),
-		DEFINE_FIELD (decallist_t, scale, FIELD_FLOAT),
-		DEFINE_FIELD (decallist_t, impactPlaneNormal, FIELD_VECTOR),
-		DEFINE_ARRAY (decallist_t, studio_state, FIELD_CHARACTER, sizeof (modelstate_t)),
+	DEFINE_FIELD (decallist_t, position, FIELD_VECTOR),
+	DEFINE_ARRAY (decallist_t, name, FIELD_CHARACTER, 64),
+	DEFINE_FIELD (decallist_t, entityIndex, FIELD_SHORT),
+	DEFINE_FIELD (decallist_t, depth, FIELD_CHARACTER),
+	DEFINE_FIELD (decallist_t, flags, FIELD_CHARACTER),
+	DEFINE_FIELD (decallist_t, scale, FIELD_FLOAT),
+	DEFINE_FIELD (decallist_t, impactPlaneNormal, FIELD_VECTOR),
+	DEFINE_ARRAY (decallist_t, studio_state, FIELD_CHARACTER, sizeof (modelstate_t)),
 	};
 
 static TYPEDESCRIPTION gStaticEntry[] =
 	{
-		DEFINE_FIELD (entity_state_t, messagenum, FIELD_MODELNAME), // HACKHACK: store model into messagenum
-		DEFINE_FIELD (entity_state_t, origin, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, angles, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, sequence, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, frame, FIELD_FLOAT),
-		DEFINE_FIELD (entity_state_t, colormap, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, skin, FIELD_SHORT),
-		DEFINE_FIELD (entity_state_t, body, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, scale, FIELD_FLOAT),
-		DEFINE_FIELD (entity_state_t, effects, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, framerate, FIELD_FLOAT),
-		DEFINE_FIELD (entity_state_t, mins, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, maxs, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, startpos, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, rendermode, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, renderamt, FIELD_FLOAT),
-		DEFINE_ARRAY (entity_state_t, rendercolor, FIELD_CHARACTER, sizeof (color24)),
-		DEFINE_FIELD (entity_state_t, renderfx, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, controller, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, blending, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, solid, FIELD_SHORT),
-		DEFINE_FIELD (entity_state_t, animtime, FIELD_TIME),
-		DEFINE_FIELD (entity_state_t, movetype, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, vuser1, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, vuser2, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, vuser3, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, vuser4, FIELD_VECTOR),
-		DEFINE_FIELD (entity_state_t, iuser1, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, iuser2, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, iuser3, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, iuser4, FIELD_INTEGER),
-		DEFINE_FIELD (entity_state_t, fuser1, FIELD_FLOAT),
-		DEFINE_FIELD (entity_state_t, fuser2, FIELD_FLOAT),
-		DEFINE_FIELD (entity_state_t, fuser3, FIELD_FLOAT),
-		DEFINE_FIELD (entity_state_t, fuser4, FIELD_FLOAT),
+	DEFINE_FIELD (entity_state_t, messagenum, FIELD_MODELNAME), // HACKHACK: store model into messagenum
+	DEFINE_FIELD (entity_state_t, origin, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, angles, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, sequence, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, frame, FIELD_FLOAT),
+	DEFINE_FIELD (entity_state_t, colormap, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, skin, FIELD_SHORT),
+	DEFINE_FIELD (entity_state_t, body, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, scale, FIELD_FLOAT),
+	DEFINE_FIELD (entity_state_t, effects, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, framerate, FIELD_FLOAT),
+	DEFINE_FIELD (entity_state_t, mins, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, maxs, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, startpos, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, rendermode, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, renderamt, FIELD_FLOAT),
+	DEFINE_ARRAY (entity_state_t, rendercolor, FIELD_CHARACTER, sizeof (color24)),
+	DEFINE_FIELD (entity_state_t, renderfx, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, controller, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, blending, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, solid, FIELD_SHORT),
+	DEFINE_FIELD (entity_state_t, animtime, FIELD_TIME),
+	DEFINE_FIELD (entity_state_t, movetype, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, vuser1, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, vuser2, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, vuser3, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, vuser4, FIELD_VECTOR),
+	DEFINE_FIELD (entity_state_t, iuser1, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, iuser2, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, iuser3, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, iuser4, FIELD_INTEGER),
+	DEFINE_FIELD (entity_state_t, fuser1, FIELD_FLOAT),
+	DEFINE_FIELD (entity_state_t, fuser2, FIELD_FLOAT),
+	DEFINE_FIELD (entity_state_t, fuser3, FIELD_FLOAT),
+	DEFINE_FIELD (entity_state_t, fuser4, FIELD_FLOAT),
 	};
 
 static TYPEDESCRIPTION gSoundEntry[] =
 	{
-		DEFINE_ARRAY (soundlist_t, name, FIELD_CHARACTER, 64),
-		DEFINE_FIELD (soundlist_t, entnum, FIELD_SHORT),
-		DEFINE_FIELD (soundlist_t, origin, FIELD_VECTOR),
-		DEFINE_FIELD (soundlist_t, volume, FIELD_FLOAT),
-		DEFINE_FIELD (soundlist_t, attenuation, FIELD_FLOAT),
-		DEFINE_FIELD (soundlist_t, looping, FIELD_BOOLEAN),
-		DEFINE_FIELD (soundlist_t, channel, FIELD_CHARACTER),
-		DEFINE_FIELD (soundlist_t, pitch, FIELD_CHARACTER),
-		DEFINE_FIELD (soundlist_t, wordIndex, FIELD_CHARACTER),
-		DEFINE_ARRAY (soundlist_t, samplePos, FIELD_CHARACTER, sizeof (double)),
-		DEFINE_ARRAY (soundlist_t, forcedEnd, FIELD_CHARACTER, sizeof (double)),
+	DEFINE_ARRAY (soundlist_t, name, FIELD_CHARACTER, 64),
+	DEFINE_FIELD (soundlist_t, entnum, FIELD_SHORT),
+	DEFINE_FIELD (soundlist_t, origin, FIELD_VECTOR),
+	DEFINE_FIELD (soundlist_t, volume, FIELD_FLOAT),
+	DEFINE_FIELD (soundlist_t, attenuation, FIELD_FLOAT),
+	DEFINE_FIELD (soundlist_t, looping, FIELD_BOOLEAN),
+	DEFINE_FIELD (soundlist_t, channel, FIELD_CHARACTER),
+	DEFINE_FIELD (soundlist_t, pitch, FIELD_CHARACTER),
+	DEFINE_FIELD (soundlist_t, wordIndex, FIELD_CHARACTER),
+	DEFINE_ARRAY (soundlist_t, samplePos, FIELD_CHARACTER, sizeof (double)),
+	DEFINE_ARRAY (soundlist_t, forcedEnd, FIELD_CHARACTER, sizeof (double)),
 	};
 
 static TYPEDESCRIPTION gTempEntvars[] =
 	{
-		DEFINE_ENTITY_FIELD (classname, FIELD_STRING),
-		DEFINE_ENTITY_GLOBAL_FIELD (globalname, FIELD_STRING),
+	DEFINE_ENTITY_FIELD (classname, FIELD_STRING),
+	DEFINE_ENTITY_GLOBAL_FIELD (globalname, FIELD_STRING),
 	};
 
-struct
+// [FWGS, 01.12.24]
+/*struct*/
+static const struct
 	{
 	const char *mapname;
 	const char *titlename;
@@ -776,33 +780,7 @@ static void SaveFinish (SAVERESTOREDATA *pSaveData)
 	Mem_Free (pSaveData);
 	}
 
-// [FWGS, 01.02.24]
-/***
-=============
-DumpHashStrings
-
-debug thing
-=============
-//
-static void DumpHashStrings (SAVERESTOREDATA *pSaveData, const char *pMessage)
-	{
-	int	i, count = 0;
-
-	if (pSaveData && pSaveData->pTokens)
-		{
-		Con_Printf ("%s\n", pMessage);
-
-		for (i = 0; i < pSaveData->tokenCount; i++)
-			{
-			if (!pSaveData->pTokens[i])
-				continue;
-
-			Con_Printf ("#%i %s\n", count, pSaveData->pTokens[i]);
-			count++;
-			}
-		Con_Printf ("total %i actual %i\n", pSaveData->tokenCount, count);
-		}
-	}*/
+// [FWGS, 01.02.24] removed DumpHashStrings
 
 /***
 =============
@@ -1200,7 +1178,7 @@ static void RestoreSound (SAVERESTOREDATA *pSaveData, soundlist_t *snd)
 
 /***
 =============
-SaveClientState [FWGS, 09.05.24]
+SaveClientState [FWGS, 01.12.24]
 
 write out the list of premanent decals for this level
 =============
@@ -1212,43 +1190,61 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 	char		name[MAX_QPATH];
 	int			i, id, version;
 	char		*pTokenData;
-	decallist_t	*decalList;
-	SAVE_CLIENT	header;
+	/*decallist_t	*decalList;
+	SAVE_CLIENT	header;*/
+	decallist_t	*decalList = NULL;
+	SAVE_CLIENT	header = { 0 };
 	file_t		*pFile;
 
 	// clearing the saving buffer to reuse
 	SaveClear (pSaveData);
 
-	memset (&header, 0, sizeof (header));
+	/*memset (&header, 0, sizeof (header));
 
 	// g-cont. add space for studiodecals if present
-	decalList = (decallist_t *)Z_Calloc (sizeof (decallist_t) * MAX_RENDER_DECALS * 2);
+	decalList = (decallist_t *)Z_Calloc (sizeof (decallist_t) * MAX_RENDER_DECALS * 2);*/
+	header.entityCount = sv.num_static_entities;
 
 	// initialize client header
 #if !XASH_DEDICATED
+	/*if (!Host_IsDedicated ())*/
 	if (!Host_IsDedicated ())
 		{
+		// g-cont. add space for studiodecals if present
+		decalList = (decallist_t *)Mem_Calloc (host.mempool, sizeof (decallist_t) * MAX_RENDER_DECALS * 2);
+
 		header.decalCount = ref.dllFuncs.R_CreateDecalList (decalList);
-		}
+		/*}
 	else
-#endif
+	endif
 		{
 		// we probably running a dedicated server
 		header.decalCount = 0;
 		}
-	header.entityCount = sv.num_static_entities;
+	header.entityCount = sv.num_static_entities;*/
 
-	if (!changelevel)
+		/*if (!changelevel)
 		{
 		// sounds won't going across transition
 		header.soundCount = S_GetCurrentDynamicSounds (soundInfo, MAX_CHANNELS);
 
-#if !XASH_DEDICATED
+	if !XASH_DEDICATED
 		// music not reqiured to save position: it's just continue playing on a next level
 		S_StreamGetCurrentState (header.introTrack, sizeof (header.introTrack), header.mainTrack,
 			sizeof (header.mainTrack), &header.trackPosition);
-#endif
+	endif*/
+		if (!changelevel) // sounds won't going across transition
+			{
+			header.soundCount = S_GetCurrentDynamicSounds (soundInfo, MAX_CHANNELS);
+
+			// music not reqiured to save position: it's just continue playing on a next level
+			S_StreamGetCurrentState (
+				header.introTrack, sizeof (header.introTrack),
+				header.mainTrack, sizeof (header.mainTrack),
+				&header.trackPosition);
+			}
 		}
+#endif
 
 	// save viewentity to allow camera works after save\restore
 	if (SV_IsValidEdict (cl->pViewEntity) && cl->pViewEntity != cl->edict)
@@ -1257,11 +1253,12 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 	header.wateralpha = sv_wateralpha.value;
 	header.wateramp = sv_wateramp.value;
 
-	// Store the client header
+	// store the client header
 	svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "ClientHeader", &header, gSaveClient, ARRAYSIZE (gSaveClient));
 
 	// store decals
-	for (i = 0; i < header.decalCount; i++)
+	/*for (i = 0; i < header.decalCount; i++)*/
+	for (i = 0; (decalList != NULL) && (i < header.decalCount); i++)
 		{
 		// NOTE: apply landmark offset only for brush entities without origin brushes
 		if (pSaveData->fUseLandmark && FBitSet (decalList[i].flags, FDECAL_USE_LANDMARK))
@@ -1270,7 +1267,10 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "DECALLIST", &decalList[i], gDecalEntry,
 			ARRAYSIZE (gDecalEntry));
 		}
-	Z_Free (decalList);
+
+	/*Z_Free (decalList);*/
+	if (decalList)
+		Mem_Free (decalList);
 
 	// write client entities
 	for (i = 0; i < header.entityCount; i++)
@@ -2253,6 +2253,17 @@ qboolean SV_SaveGame (const char *pName)
 	return SaveGameSlot (savename, comment);	// [FWGS, 01.04.23]
 	}
 
+// [FWGS, 01.12.24]
+static int SV_CompareFileTime (int ft1, int ft2)
+	{
+	if (ft1 < ft2)
+		return -1;
+	else if (ft1 > ft2)
+		return 1;
+
+	return 0;
+	}
+
 /***
 ==================
 SV_GetLatestSave
@@ -2277,8 +2288,9 @@ const char *SV_GetLatestSave (void)
 		// found a match?
 		if (ft > 0)
 			{
-			// should we use the matched?
-			if (!found || (Host_CompareFileTime (newest, ft) < 0))
+			// [FWGS, 01.12.24] should we use the matched?
+			/*if (!found || (Host_CompareFileTime (newest, ft) < 0))*/
+			if (!found || (SV_CompareFileTime (newest, ft) < 0))
 				{
 				Q_strncpy (savename, t->filenames[i], sizeof (savename));
 				newest = ft;
@@ -2291,6 +2303,7 @@ const char *SV_GetLatestSave (void)
 
 	if (found)
 		return savename;
+
 	return NULL;
 	}
 

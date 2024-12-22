@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -110,8 +110,9 @@ void Image_Reset (void)
 	image.size = 0;
 	}
 
-// [FWGS, 01.04.23]
-static rgbdata_t *ImagePack (void)
+// [FWGS, 01.12.24]
+/*static rgbdata_t *ImagePack (void)*/
+static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (void)
 	{
 	rgbdata_t *pack;
 
@@ -559,6 +560,7 @@ static void GeneratePixel (byte *pix, uint i, uint j, uint w, uint h, qboolean g
 	pix[3] = genAlpha ? (byte)((cos (d * 2.0) + 1.0) * 126) : 255;
 	}
 
+// [FWGS, 01.12.24]
 static void Test_CheckImage (const char *name, rgbdata_t *rgb)
 	{
 	rgbdata_t *load;
@@ -572,7 +574,8 @@ static void Test_CheckImage (const char *name, rgbdata_t *rgb)
 		TASSERT (load->size == rgb->size)
 		TASSERT (memcmp (load->buffer, rgb->buffer, rgb->size) == 0)
 
-		Mem_Free (load);
+		/*Mem_Free (load);*/
+		FS_FreeImage (load);
 	}
 
 void Test_RunImagelib (void)

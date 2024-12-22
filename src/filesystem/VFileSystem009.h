@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #ifndef VFILESYSTEM009_H
@@ -42,7 +42,9 @@ class IBaseInterface
 		virtual ~IBaseInterface () {}
 	};
 
-class IVFileSystem009 : public IBaseInterface
+// [FWGS, 01.12.24]
+/*class IVFileSystem009 : public IBaseInterface*/
+class IFileSystem : public IBaseInterface
 	{
 	public:
 		virtual void Mount () = 0;
@@ -151,7 +153,7 @@ class IVFileSystem009 : public IBaseInterface
 		// linkage=_ZN11IFileSystem20OpenFromCacheForReadEPKcS1_S1_
 		virtual void AddSearchPathNoWrite (const char *, const char *) = 0;
 		// linkage=_ZN11IFileSystem20AddSearchPathNoWriteEPKcS1_
-		virtual long int GetFileModificationTime (const char *) = 0;	// [FWGS, 01.12.23]
+		virtual long int GetFileModificationTime (const char *) = 0;
 		// linkage=_ZN11IFileSystem23GetFileModificationTimeEPKc
 	};
 

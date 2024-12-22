@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -46,6 +46,9 @@ enum
 
 	FS_GAMEDIRONLY_SEARCH_FLAGS = FS_GAMEDIR_PATH | FS_CUSTOM_PATH | FS_GAMERODIR_PATH
 	};
+
+// [FWGS, 01.12.24]
+typedef struct searchpath_s searchpath_t;
 
 // [FWGS, 01.09.24] IsArchiveExtensionSupported flags
 enum
@@ -169,11 +172,12 @@ typedef struct fs_api_t
 	qboolean (*Eof)(file_t *file);
 	int (*Flush)(file_t *file);
 	int (*Close)(file_t *file);
-	int (*Gets)(file_t *file, char *string, size_t bufsize);	// [FWGS, 01.05.23]
-	int (*UnGetc)(file_t *file, char c);	// [FWGS, 01.05.23]
+	int (*Gets)(file_t *file, char *string, size_t bufsize);
+	int (*UnGetc)(file_t *file, char c);
 	int (*Getc)(file_t *file);
 	int (*VPrintf)(file_t *file, const char *format, va_list ap);
-	int (*Printf)(file_t *file, const char *format, ...) _format (2);
+	/*int (*Printf)(file_t *file, const char *format, ...) _format (2);*/
+	int (*Printf)(file_t *file, const char *format, ...) FORMAT_CHECK (2);	// [FWGS, 01.12.24]
 	int (*Print)(file_t *file, const char *msg);
 	fs_offset_t (*FileLength)(file_t *f);
 	qboolean (*FileCopy)(file_t *pOutput, file_t *pInput, int fileSize);
@@ -204,26 +208,54 @@ typedef struct fs_api_t
 	// [FWGS, 01.03.24] like LoadFile but returns pointer that can be free'd using standard library function
 	byte *(*LoadFileMalloc)(const char *path, fs_offset_t *filesizeptr, qboolean gamedironly);
 
-	// [FWGS, 01.09.24] queries supported archive formats
+	// **** archive interface ****
+	// query supported formats
 	qboolean (*IsArchiveExtensionSupported)(const char *ext, uint flags);
+
+	// [FWGS, 01.12.24] to speed up archive lookups, this function can be used to get the archive object by it's name
+	// because archive can share the name, you can call this function repeatedly to get all archives
+	searchpath_t *(*GetArchiveByName)(const char *name, searchpath_t *prev);
+
+	// return an index into the archive and a true path, if possible
+	int (*FindFileInArchive)(searchpath_t *sp, const char *path, char *outpath, size_t len);
+
+	// similarly to Open, opens file but from specified archive
+	// NOTE: for speed reasons, path is case-sensitive here!
+	// Use FindFileInArchive to retrieve real path from caseinsensitive FS emulation!
+	file_t *(*OpenFileFromArchive)(searchpath_t *, const char *path, const char *mode, int pack_ind);
+
+	// similarly to LoadFile, loads whole file into memory from specified archive
+	// NOTE: for speed reasons, path is case-sensitive here!
+	// Use FindFileInArchive to retrieve real path from caseinsensitive FS emulation!
+
+	byte *(*LoadFileFromArchive)(searchpath_t *sp, const char *path, int pack_ind, fs_offset_t *filesizeptr, const qboolean sys_malloc);
 	} fs_api_t;
 
 typedef struct fs_interface_t
 	{
-	// logging
-	void    (*_Con_Printf)(const char *fmt, ...) _format (1); // typical console allowed messages
+	// [FWGS, 01.12.24] logging
+	/*void    (*_Con_Printf)(const char *fmt, ...) _format (1); // typical console allowed messages
 	void    (*_Con_DPrintf)(const char *fmt, ...) _format (1); // -dev 1
-	void    (*_Con_Reportf)(const char *fmt, ...) _format (1); // -dev 2
+	void    (*_Con_Reportf)(const char *fmt, ...) _format (1); // -dev 2*/
+	void (*_Con_Printf)(const char *fmt, ...) FORMAT_CHECK (1);		// typical console allowed messages
+	void (*_Con_DPrintf)(const char *fmt, ...) FORMAT_CHECK (1);	// -dev 1
+	void (*_Con_Reportf)(const char *fmt, ...) FORMAT_CHECK (1);	// -dev 2
+	void (*_Sys_Error)(const char *fmt, ...) FORMAT_CHECK (1);
+	/*void    (*_Sys_Error)(const char *fmt, ...) _format (1);*/
 
-	void    (*_Sys_Error)(const char *fmt, ...) _format (1);
-
-	// [FWGS, 01.01.24] memory
+	// [FWGS, 01.12.24] memory
 	poolhandle_t (*_Mem_AllocPool)(const char *name, const char *filename, int fileline);
 	void  (*_Mem_FreePool)(poolhandle_t *poolptr, const char *filename, int fileline);
-	void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename,
+	
+	/*void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename,
 		int fileline) ALLOC_CHECK (2);
 	void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear,
-		const char *filename, int fileline) ALLOC_CHECK (3);
+		const char *filename, int fileline) ALLOC_CHECK (3);*/
+	void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
+		ALLOC_CHECK (2) WARN_UNUSED_RESULT;
+	void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline)
+		ALLOC_CHECK (3) WARN_UNUSED_RESULT;
+
 	void  (*_Mem_Free)(void *data, const char *filename, int fileline);
 
 	// [FWGS, 01.11.23] platform

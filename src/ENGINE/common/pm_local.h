@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -20,17 +20,18 @@ GNU General Public License for more details
 
 typedef int (*pfnIgnore)(physent_t *pe);	// custom trace filter
 
-//
+// [FWGS, 01.12.24]
+/*//
 // pm_debug.c
 //
 void PM_ParticleLine (const vec3_t start, const vec3_t end, int pcolor, float life, float zvel);
-void PM_DrawBBox (const vec3_t mins, const vec3_t maxs, const vec3_t origin, int pcolor, float life);
+void PM_DrawBBox (const vec3_t mins, const vec3_t maxs, const vec3_t origin, int pcolor, float life);*/
 
 //
-// pm_trace.c
+// pm_trace.c [FWGS, 01.12.24]
 //
 void Pmove_Init (void);
-void PM_ClearPhysEnts (playermove_t *pmove);	// [FWGS, 01.04.23]
+/*void PM_ClearPhysEnts (playermove_t *pmove);	// [FWGS, 01.04.23]*/
 void PM_InitBoxHull (void);
 hull_t *PM_HullForBsp (physent_t *pe, playermove_t *pmove, float *offset);
 qboolean PM_RecursiveHullCheck (hull_t *hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, pmtrace_t *trace);
@@ -40,8 +41,6 @@ int PM_TestPlayerPosition (playermove_t *pmove, vec3_t pos, pmtrace_t *ptrace, p
 int PM_HullPointContents (hull_t *hull, int num, const vec3_t p);
 int PM_TruePointContents (playermove_t *pmove, const vec3_t p);
 int PM_PointContents (playermove_t *pmove, const vec3_t p);
-
-// [FWGS, 01.04.23]
 float PM_TraceModel (playermove_t *pmove, physent_t *pe, float *start, float *end, trace_t *trace);
 pmtrace_t *PM_TraceLine (playermove_t *pmove, float *start, float *end, int flags, int usehull, int ignore_pe);
 pmtrace_t *PM_TraceLineEx (playermove_t *pmove, float *start, float *end, int flags, int usehull, pfnIgnore pmFilter);
@@ -50,7 +49,32 @@ const char *PM_TraceTexture (playermove_t *pmove, int ground, float *vstart, flo
 int PM_PointContentsPmove (playermove_t *pmove, const float *p, int *truecontents);
 void PM_StuckTouch (playermove_t *pmove, int hitent, pmtrace_t *tr);
 
-void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent);
+/*void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent);*/
+
+// [FWGS, 01.12.24]
+static inline void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
+	{
+	out->allsolid = in->allsolid;
+	out->startsolid = in->startsolid;
+	out->inopen = in->inopen;
+	out->inwater = in->inwater;
+	out->fraction = in->fraction;
+	out->plane.dist = in->plane.dist;
+	out->hitgroup = in->hitgroup;
+	out->ent = ent;
+
+	VectorCopy (in->endpos, out->endpos);
+	VectorCopy (in->plane.normal, out->plane.normal);
+	}
+
+// [FWGS, 01.12.24]
+static inline void PM_ClearPhysEnts (playermove_t *pmove)
+	{
+	pmove->nummoveent = 0;
+	pmove->numphysent = 0;
+	pmove->numvisent = 0;
+	pmove->numtouch = 0;
+	}
 
 static inline void PM_InitTrace (trace_t *trace, const vec3_t end)
 	{

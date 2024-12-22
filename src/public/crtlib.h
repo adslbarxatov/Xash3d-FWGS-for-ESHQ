@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -37,9 +37,11 @@ enum
 	};
 
 // a1ba: not using BIT macro, so flags can be copypasted into
-// exported APIs headers and will get nice warning in case of changing values
+// exported APIs headers and will not get warning in case of changing values
 #define PFILE_IGNOREBRACKET			(1<<0)
 #define PFILE_HANDLECOLON			(1<<1)
+#define PFILE_IGNOREHASHCMT			(1<<2)	// [FWGS, 01.12.24]
+
 #define PFILE_TOKEN_MAX_LENGTH		1024
 #define PFILE_FS_TOKEN_MAX_LENGTH	512
 
@@ -64,11 +66,13 @@ const char *Q_buildcommit (void);
 const char *Q_buildbranch (void);
 
 //
-// crtlib.c [FWGS, 01.05.24]
+// crtlib.c [FWGS, 01.12.24]
 //
 void Q_strnlwr (const char *in, char *out, size_t size_out);
 #define Q_strlen( str ) (( str ) ? strlen(( str )) : 0 )
 size_t Q_colorstr (const char *string);
+int Q_atoi_hex (int sign, const char *str);
+
 int Q_atoi (const char *str);
 float Q_atof (const char *str);
 void Q_atov (float *vec, const char *str, size_t siz);
@@ -77,28 +81,32 @@ void Q_atov (float *vec, const char *str, size_t siz);
 qboolean Q_stricmpext (const char *pattern, const char *text);
 qboolean Q_strnicmpext (const char *pattern, const char *text, size_t minimumlen);
 const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *needle, size_t needlelen);
-void Q_memor (byte *XASH_RESTRICT dst, const byte *XASH_RESTRICT src, size_t len);	// [FWGS, 01.07.24]
-const char *Q_timestamp (int format);
+void Q_memor (byte *XASH_RESTRICT dst, const byte *XASH_RESTRICT src, size_t len);
+/*const char *Q_timestamp (int format);*/
+const char *Q_timestamp (int format) RETURNS_NONNULL;
+
 int Q_vsnprintf (char *buffer, size_t buffersize, const char *format, va_list args);
-int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) _format (3);
+/*int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) _format (3);*/
+int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) FORMAT_CHECK (3);
 
 #define Q_strpbrk strpbrk
 void COM_StripColors (const char *in, char *out);
 #define Q_memprint( val ) Q_pretifymem( val, 2 )
 char *Q_pretifymem (float value, int digitsafterdecimal);
 void COM_FileBase (const char *in, char *out, size_t size);
-const char *COM_FileExtension (const char *in);
+/*const char *COM_FileExtension (const char *in);*/
+const char *COM_FileExtension (const char *in) RETURNS_NONNULL;
+
 void COM_DefaultExtension (char *path, const char *extension, size_t size);
 void COM_ReplaceExtension (char *path, const char *extension, size_t size);
 void COM_ExtractFilePath (const char *path, char *dest);
 const char *COM_FileWithoutPath (const char *in);
 void COM_StripExtension (char *path);
-/*void COM_RemoveLineFeed (char *str);*/
 void COM_RemoveLineFeed (char *str, size_t bufsize);	// [FWGS, 01.07.24]
 void COM_FixSlashes (char *pname);
 void COM_PathSlashFix (char *path);
-char COM_Hex2Char (uint8_t hex);
-void COM_Hex2String (uint8_t hex, char *str);
+/*char COM_Hex2Char (uint8_t hex);
+void COM_Hex2String (uint8_t hex, char *str);*/
 
 // return 0 on empty or null string, 1 otherwise
 #define COM_CheckString( string ) ( ( !string || !*string ) ? 0 : 1 )
@@ -334,24 +342,53 @@ static inline char *Q_stristr (const char *s1, const char *s2)
 
 #endif
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 #if HAVE_STRCHRNUL
 
 	#define Q_strchrnul strchrnul
 
 #else
 
-static inline const char *Q_strchrnul (const char *s, int c)
+/*static inline const char *Q_strchrnul (const char *s, int c)*/
+static inline char *Q_strchrnul (const char *s, int c)
 	{
-	const char *p = Q_strchr (s, c);
-
+	/*const char *p = Q_strchr (s, c);*/
+	char *p = (char *)Q_strchr (s, c);
 	if (p)
 		return p;
 
-	return s + Q_strlen (s);
+	/*return s + Q_strlen (s);*/
+	return (char *)s + Q_strlen (s);
 	}
 
 #endif
+
+/*
+===========
+Q_splitstr [FWGS, 01.12.24]
+
+splits strings by a character if handler returns nonzero
+value, exists with that value
+===========
+*/
+static inline int Q_splitstr (char *str, int delim, void *userdata,
+	int (*handler)(char *prev, char *next, void *userdata))
+	{
+	char	*prev = str;
+	char	*next = Q_strchrnul (prev, delim);
+	int		ret = 0;
+
+	for (; ; prev = next + 1, next = Q_strchrnul (prev, delim))
+		{
+		int ch = *next; // save next value if it's modified by handler
+
+		ret = handler (prev, next, userdata);
+		if (!ch || ret != 0)
+			break;
+		}
+
+	return ret;
+	}
 
 #ifdef __cplusplus
 	}

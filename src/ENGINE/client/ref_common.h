@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -38,12 +38,21 @@ struct ref_state_s
 extern struct ref_state_s ref;
 extern ref_globals_t refState;
 
-// handy API wrappers
-void R_GetTextureParms (int *w, int *h, int texnum);
+// [FWGS, 01.12.24] handy API wrappers
+/*void R_GetTextureParms (int *w, int *h, int texnum);*/
 #define REF_GET_PARM( parm, arg ) ref.dllFuncs.RefGetParm( (parm), (arg) )
 #define GL_LoadTextureInternal( name, pic, flags ) ref.dllFuncs.GL_LoadTextureFromBuffer( (name), (pic), (flags), false )
 #define GL_UpdateTextureInternal( name, pic, flags ) ref.dllFuncs.GL_LoadTextureFromBuffer( (name), (pic), (flags), true )
 #define R_GetBuiltinTexture( name ) ref.dllFuncs.GL_LoadTexture( (name), 0, 0, 0 )
+
+// [FWGS, 01.12.24]
+static inline void R_GetTextureParms (int *w, int *h, int texnum)
+	{
+	if (w)
+		*w = REF_GET_PARM (PARM_TEX_WIDTH, texnum);
+	if (h)
+		*h = REF_GET_PARM (PARM_TEX_HEIGHT, texnum);
+	}
 
 // [FWGS, 01.07.24]
 void GL_RenderFrame (const struct ref_viewpass_s *rvp);

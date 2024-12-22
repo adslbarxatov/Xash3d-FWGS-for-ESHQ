@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (C) 1996-1997 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,19 +14,8 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/
-
-// [FWGS, 01.01.24]
-/*
-#if !defined( KBUTTONH )
-#define KBUTTONH
-#pragma once
-*/
-
-/*
-typedef struct kbutton_s
-*/
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+***/
 
 // [FWGS, 01.01.24]
 #ifndef KBUTTON_H
@@ -42,9 +31,8 @@ typedef struct
 	int		state;			// low bit is down state
 	} kbutton_t;
 
-/*
-#endif
-*/
-STATIC_ASSERT (sizeof (kbutton_t) == 12, "kbutton_t isn't 12 bytes!");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (kbutton_t) == 12, "kbutton_t isn't 12 bytes!");*/
+STATIC_CHECK_SIZEOF (kbutton_t, 12, 12);
 
 #endif

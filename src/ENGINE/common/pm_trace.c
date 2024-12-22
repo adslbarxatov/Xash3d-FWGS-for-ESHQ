@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -55,14 +55,14 @@ void Pmove_Init (void)
 	memcpy (host.player_maxs, pm_hullmaxs, sizeof (pm_hullmaxs));
 	}
 
-// [FWGS, 01.04.23]
-void PM_ClearPhysEnts (playermove_t *pmove)
+// [FWGS, 01.12.23] removed PM_ClearPhysEnts
+/*void PM_ClearPhysEnts (playermove_t *pmove)
 	{
 	pmove->nummoveent = 0;
 	pmove->numphysent = 0;
 	pmove->numvisent = 0;
 	pmove->numtouch = 0;
-	}
+	}*/
 
 /***
 ===================
@@ -120,8 +120,8 @@ static hull_t *PM_HullForBox (const vec3_t mins, const vec3_t maxs)
 	return &pm_boxhull;
 	}
 
-// [FWGS, 01.04.23]
-void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
+// [FWGS, 01.12.24] removed PM_ConvertTrace
+/*void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
 	{
 	out->allsolid = in->allsolid;
 	out->startsolid = in->startsolid;
@@ -134,7 +134,7 @@ void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)
 
 	VectorCopy (in->endpos, out->endpos);
 	VectorCopy (in->plane.normal, out->plane.normal);
-	}
+	}*/
 
 /***
 ==================

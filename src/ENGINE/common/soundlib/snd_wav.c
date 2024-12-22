@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -23,10 +23,11 @@ static const byte *iff_end;
 static const byte *iff_lastChunk;
 static int iff_chunkLen;
 
-// [FWGS, 01.05.24]
-static int IsFourCC (const byte *ptr, const byte *fourcc)
+// [FWGS, 01.12.24]
+/*static int IsFourCC (const byte *ptr, const byte *fourcc)*/
+static int IsFourCC (const void *ptr, const void *fourcc)
 	{
-	return 0 == memcmp (ptr, fourcc, 4);
+	return (0 == memcmp (ptr, fourcc, 4));
 	}
 
 /***

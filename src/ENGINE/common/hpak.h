@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -69,17 +69,20 @@ typedef struct dresource_s
 	} dresource_t;
 #pragma pack( pop )
 
-STATIC_ASSERT (sizeof (dresource_t) == 136, "invalid dresource_t size, HPAKs won't be compatible (no custom logo in multiplayer!)");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dresource_t) == 136, "invalid dresource_t size, HPAKs won't be compatible (no custom logo in multiplayer!)");*/
+STATIC_CHECK_SIZEOF (dresource_t, 136, 136);
 
 typedef struct
 	{
-	int             ident;          // should be equal HPAK
-	int             version;
-	int             infotableofs;
+	int		ident;		// should be equal HPAK
+	int		version;
+	int		infotableofs;
 	} hpak_header_t;
 
-// [FWGS, 01.09.24]
-STATIC_ASSERT (sizeof (hpak_header_t) == 12, "invalid hpak_header_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (hpak_header_t) == 12, "invalid hpak_header_t size");*/
+STATIC_CHECK_SIZEOF (hpak_header_t, 12, 12);
 
 typedef struct
 	{
@@ -88,8 +91,9 @@ typedef struct
 	int             disksize;
 	} hpak_lump_t;
 
-// [FWGS, 01.09.24]
-STATIC_ASSERT (sizeof (hpak_lump_t) == 144, "invalid hpak_lump_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (hpak_lump_t) == 144, "invalid hpak_lump_t size");*/
+STATIC_CHECK_SIZEOF (hpak_lump_t, 144, 144);
 
 typedef struct
 	{

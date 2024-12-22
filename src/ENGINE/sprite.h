@@ -14,9 +14,8 @@ without written permission from Valve LLC
 #ifndef SPRITE_H
 #define SPRITE_H
 
-// [FWGS, 01.04.23]
 #include "build.h"
-#include STDINT_H
+#include <stdint.h>		// [FWGS, 01.12.24]
 #include "synctype.h"
 
 /***
@@ -70,7 +69,9 @@ typedef struct
 	int32_t		version;	// current version 2
 	} dsprite_t;
 
-STATIC_ASSERT (sizeof (dsprite_t) == 8, "invalid dsprite_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dsprite_t) == 8, "invalid dsprite_t size");*/
+STATIC_CHECK_SIZEOF (dsprite_t, 8, 8);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -85,7 +86,9 @@ typedef struct
 	uint32_t	synctype;		// animation synctype
 	} dsprite_q1_t;
 
-STATIC_ASSERT (sizeof (dsprite_q1_t) == 36, "invalid dsprite_q1_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dsprite_q1_t) == 36, "invalid dsprite_q1_t size");*/
+STATIC_CHECK_SIZEOF (dsprite_q1_t, 36, 36);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -101,7 +104,9 @@ typedef struct
 	uint32_t	synctype;		// animation synctype, was synctype_t
 	} dsprite_hl_t;
 
-STATIC_ASSERT (sizeof (dsprite_hl_t) == 40, "invalid dsprite_hl_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dsprite_hl_t) == 40, "invalid dsprite_hl_t size");*/
+STATIC_CHECK_SIZEOF (dsprite_hl_t, 40, 40);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -111,7 +116,9 @@ typedef struct
 	int32_t		height;
 	} dspriteframe_t;
 
-STATIC_ASSERT (sizeof (dspriteframe_t) == 16, "invalid dspriteframe_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dspriteframe_t) == 16, "invalid dspriteframe_t size");*/
+STATIC_CHECK_SIZEOF (dspriteframe_t, 16, 16);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -119,7 +126,9 @@ typedef struct
 	int32_t		numframes;
 	} dspritegroup_t;
 
-STATIC_ASSERT (sizeof (dspritegroup_t) == 4, "invalid dspritegroup_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dspritegroup_t) == 4, "invalid dspritegroup_t size");*/
+STATIC_CHECK_SIZEOF (dspritegroup_t, 4, 4);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -127,7 +136,9 @@ typedef struct
 	float		interval;
 	} dspriteinterval_t;
 
-STATIC_ASSERT (sizeof (dspriteinterval_t) == 4, "invalid dspriteinterval_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dspriteinterval_t) == 4, "invalid dspriteinterval_t size");*/
+STATIC_CHECK_SIZEOF (dspriteinterval_t, 4, 4);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -135,6 +146,8 @@ typedef struct
 	uint32_t	type;
 	} dframetype_t;
 
-STATIC_ASSERT (sizeof (dframetype_t) == 4, "invalid dframetype_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dframetype_t) == 4, "invalid dframetype_t size");*/
+STATIC_CHECK_SIZEOF (dframetype_t, 4, 4);
 
 #endif

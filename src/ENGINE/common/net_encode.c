@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -28,26 +28,27 @@ GNU General Public License for more details
 
 #define DELTA_PATH		"delta.lst"
 
-// [FWGS, 01.05.23]
-#define DT_BYTE		BIT (0)		// A byte
-#define DT_SHORT	BIT (1)		// 2 byte field
-#define DT_FLOAT	BIT (2)		// A floating point field
-#define DT_INTEGER	BIT (3)		// 4 byte integer
-#define DT_ANGLE	BIT (4)		// A floating point angle ( will get masked correctly )
+#define DT_BYTE				BIT (0)		// A byte
+#define DT_SHORT			BIT (1)		// 2 byte field
+#define DT_FLOAT			BIT (2)		// A floating point field
+#define DT_INTEGER			BIT (3)		// 4 byte integer
+#define DT_ANGLE			BIT (4)		// A floating point angle ( will get masked correctly )
 #define DT_TIMEWINDOW_8		BIT (5)		// A floating point timestamp, relative to sv.time
 #define DT_TIMEWINDOW_BIG	BIT (6)		// and re-encoded on the client relative to the client's clock
-#define DT_STRING	BIT (7)		// A null terminated string, sent as 8 byte chars
-#define DT_SIGNED	BIT (8)		// sign modificator
+#define DT_STRING			BIT (7)		// A null terminated string, sent as 8 byte chars
+#define DT_SIGNED			BIT (8)		// sign modificator
+#define DT_SIGNED_GS		BIT (31)	// [FWGS, 01.12.24] GoldSrc-specific sign modificator
 
 #define NUM_FIELDS(x) ((sizeof (x) / sizeof (x[0])) - 1)
 
-// [FWGS, 01.05.23] helper macroses
+// [FWGS, 01.12.24] helper macroses
 #define ENTS_DEF(x) #x, offsetof (entity_state_t, x), sizeof (((entity_state_t *)0)->x)
 #define UCMD_DEF(x) #x, offsetof (usercmd_t, x), sizeof (((usercmd_t *)0)->x)
 #define EVNT_DEF(x) #x, offsetof (event_args_t, x), sizeof (((event_args_t *)0)->x)
 #define PHYS_DEF(x) #x, offsetof (movevars_t, x), sizeof (((movevars_t *)0)->x)
 #define CLDT_DEF(x) #x, offsetof (clientdata_t, x), sizeof (((clientdata_t *)0)->x)
 #define WPDT_DEF(x) #x, offsetof (weapon_data_t, x), sizeof (((weapon_data_t *)0)->x)
+#define DESC_DEF( x ) #x, offsetof( goldsrc_delta_t, x ), sizeof( ((goldsrc_delta_t *)0)->x )
 
 static qboolean		delta_init = false;
 
@@ -316,6 +317,19 @@ static const delta_field_t ent_fields[] =
 	{ NULL },
 	};
 
+// [FWGS, 01.12.24]
+static const delta_field_t meta_fields[] =
+	{
+	{ DESC_DEF (fieldType), },
+	{ DESC_DEF (fieldName), },
+	{ DESC_DEF (fieldOffset), },
+	{ DESC_DEF (fieldSize), },
+	{ DESC_DEF (significant_bits), },
+	{ DESC_DEF (premultiply), },
+	{ DESC_DEF (postmultiply), },
+	{ NULL },
+	};
+
 // [FWGS, 01.05.24]
 #if XASH_ENGINE_TESTS
 typedef struct delta_test_struct_t
@@ -354,8 +368,8 @@ static const delta_field_t test_fields[] =
 	};
 #endif
 
-// [FWGS, 01.05.24]
-enum
+// [FWGS, 01.12.24]
+/*enum
 	{
 	DT_EVENT_T = 0,
 	DT_MOVEVARS_T,
@@ -366,13 +380,13 @@ enum
 	DT_ENTITY_STATE_PLAYER_T,
 	DT_CUSTOM_ENTITY_STATE_T,
 
-#if XASH_ENGINE_TESTS
+	if XASH_ENGINE_TESTS
 	DT_DELTA_TEST_STRUCT_T,
-#endif
+	endif
 	DT_STRUCT_COUNT
-	};
+	};*/
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 static delta_info_t dt_info[] =
 	{
 	[DT_EVENT_T] = { "event_t", ev_fields, NUM_FIELDS (ev_fields) },
@@ -380,13 +394,78 @@ static delta_info_t dt_info[] =
 	[DT_USERCMD_T] = { "usercmd_t", cmd_fields, NUM_FIELDS (cmd_fields) },
 	[DT_CLIENTDATA_T] = { "clientdata_t", cd_fields, NUM_FIELDS (cd_fields) },
 	[DT_WEAPONDATA_T] = { "weapon_data_t", wd_fields, NUM_FIELDS (wd_fields) },
+	
+	/*[DT_ENTITY_STATE_T] = { "entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },*/
 	[DT_ENTITY_STATE_T] = { "entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },
+	
 	[DT_ENTITY_STATE_PLAYER_T] = { "entity_state_player_t", ent_fields, NUM_FIELDS (ent_fields) },
 	[DT_CUSTOM_ENTITY_STATE_T] = { "custom_entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },
 #if XASH_ENGINE_TESTS
 	[DT_DELTA_TEST_STRUCT_T] = { "delta_test_struct_t", test_fields, NUM_FIELDS (test_fields) },
 #endif
 	[DT_STRUCT_COUNT] = { NULL },
+	};
+
+// [FWGS, 01.12.24] meta description is special, it cannot be overriden
+static const delta_info_t dt_goldsrc_meta =
+	{
+	.pName = "goldsrc_delta_t",
+	.pInfo = meta_fields,
+	.maxFields = NUM_FIELDS (meta_fields),
+	.numFields = NUM_FIELDS (meta_fields),
+	.pFields = (delta_t[NUM_FIELDS (meta_fields)])
+	{
+	{
+	DESC_DEF (fieldType),
+	.flags = DT_INTEGER,
+	.multiplier = 1.0f,
+	.post_multiplier = 1.0f,
+	.bits = 32,
+	},
+	{
+	DESC_DEF (fieldName),
+	.flags = DT_STRING,
+	.multiplier = 1.0f,
+	.post_multiplier = 1.0f,
+	.bits = 1,
+	},
+	{
+	DESC_DEF (fieldOffset),
+	.flags = DT_INTEGER,
+	.multiplier = 1.0f,
+	.post_multiplier = 1.0f,
+	.bits = 16,
+	},
+	{
+	DESC_DEF (fieldSize),
+	.flags = DT_INTEGER,
+	.multiplier = 1.0f,
+	.post_multiplier = 1.0f,
+	.bits = 8,
+	},
+	{
+	DESC_DEF (significant_bits),
+	.flags = DT_INTEGER,
+	.multiplier = 1.0f,
+	.post_multiplier = 1.0f,
+	.bits = 8,
+	},
+	{
+	DESC_DEF (premultiply),
+	.flags = DT_FLOAT,
+	.multiplier = 4000.0f,
+	.post_multiplier = 1.0f,
+	.bits = 32,
+	},
+	{
+	DESC_DEF (postmultiply),
+	.flags = DT_FLOAT,
+	.multiplier = 4000.0f,
+	.post_multiplier = 1.0f,
+	.bits = 32,
+	},
+	},
+	.bInitialized = true
 	};
 
 // [FWGS, 01.05.23]
@@ -500,7 +579,7 @@ static int Delta_IndexForFieldInfo (const delta_field_t *pInfo, const char *fiel
 	return -1;
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.12.24]
 static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, int bits, float mul, float post_mul)
 	{
 	delta_field_t	*pFieldInfo;
@@ -508,7 +587,8 @@ static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, 
 	int				i;
 
 	// check for coexisting field
-	for (i = 0, pField = dt->pFields; i < dt->numFields; i++, pField++)
+	/*for (i = 0, pField = dt->pFields; i < dt->numFields; i++, pField++)*/
+	for (i = 0, pField = dt->pFields; i < dt->numFields && pField; i++, pField++)
 		{
 		if (!Q_strcmp (pField->name, pName))
 			{
@@ -521,7 +601,7 @@ static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, 
 			}
 		}
 
-	// [FWGS, 01.07.24] find field description
+	// find field description
 	pFieldInfo = Delta_FindFieldInfo (dt->pInfo, pName);
 	if (!pFieldInfo)
 		{
@@ -529,7 +609,7 @@ static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, 
 		return false;
 		}
 
-	// [FWGS, 01.07.24] too many fields specified (duplicated ?)
+	// too many fields specified (duplicated ?)
 	if (dt->numFields + 1 > dt->maxFields)
 		{
 		Con_DPrintf (S_WARN "%s: can't add %s->%s encoder list is full\n", __func__, dt->pName, pName);
@@ -1020,13 +1100,14 @@ static int Delta_ClampIntegerField (delta_t *pField, int iValue, int signbit, in
 
 /***
 =====================
-Delta_CompareField [FWGS, 01.05.24]
+Delta_CompareField [FWGS, 01.12.24]
 
 compare fields by offsets
 assume from and to is valid
 =====================
 ***/
-static qboolean Delta_CompareField (delta_t *pField, void *from, void *to, double timebase)
+/*static qboolean Delta_CompareField (delta_t *pField, void *from, void *to, double timebase)*/
+static qboolean Delta_CompareField (delta_t *pField, const void *from, const void *to)
 	{
 	int		signbit = (pField->flags & DT_SIGNED) ? 1 : 0;
 	float	val_a, val_b;
@@ -1142,12 +1223,13 @@ static qboolean Delta_CompareField (delta_t *pField, void *from, void *to, doubl
 
 /***
 =====================
-Delta_TestBaseline [FWGS, 01.01.24]
+Delta_TestBaseline [FWGS, 01.12.24]
 
 compare baselines to find optimal
 =====================
 ***/
-int Delta_TestBaseline (entity_state_t *from, entity_state_t *to, qboolean player, double timebase)
+/*int Delta_TestBaseline (entity_state_t *from, entity_state_t *to, qboolean player, double timebase)*/
+int Delta_TestBaseline (const entity_state_t *from, const entity_state_t *to, qboolean player, double timebase)
 	{
 	delta_info_t	*dt = NULL;
 	delta_t			*pField;
@@ -1184,7 +1266,8 @@ int Delta_TestBaseline (entity_state_t *from, entity_state_t *to, qboolean playe
 		// flag about field change (sets always)
 		countBits++;
 
-		if (!Delta_CompareField (pField, from, to, timebase))
+		/*if (!Delta_CompareField (pField, from, to, timebase))*/
+		if (!Delta_CompareField (pField, from, to))
 			{
 			// strings are handled differently
 			if (FBitSet (pField->flags, DT_STRING))
@@ -1200,13 +1283,14 @@ int Delta_TestBaseline (entity_state_t *from, entity_state_t *to, qboolean playe
 
 /***
 =====================
-Delta_WriteField [FWGS, 01.05.24]
+Delta_WriteField [FWGS, 01.12.24]
 
 write fields by offsets
 assume from and to is valid
 =====================
 ***/
-static qboolean Delta_WriteField (sizebuf_t *msg, delta_t *pField, void *from, void *to, double timebase)
+/*static qboolean Delta_WriteField (sizebuf_t *msg, delta_t *pField, void *from, void *to, double timebase)*/
+static void Delta_WriteField_ (sizebuf_t *msg, delta_t *pField, const void *from, const void *to, double timebase)
 	{
 	int			signbit = FBitSet (pField->flags, DT_SIGNED) ? 1 : 0;
 	float		flValue, flAngle;
@@ -1214,13 +1298,13 @@ static qboolean Delta_WriteField (sizebuf_t *msg, delta_t *pField, void *from, v
 	int			dt;
 	const char	*pStr;
 
-	if (Delta_CompareField (pField, from, to, timebase))
+	/*if (Delta_CompareField (pField, from, to, timebase))
 		{
 		MSG_WriteOneBit (msg, 0);	// unchanged
 		return false;
 		}
 
-	MSG_WriteOneBit (msg, 1);	// changed
+	MSG_WriteOneBit (msg, 1);	// changed*/
 
 	if (pField->flags & DT_BYTE)
 		{
@@ -1298,15 +1382,30 @@ static qboolean Delta_WriteField (sizebuf_t *msg, delta_t *pField, void *from, v
 		pStr = (char *)((byte *)to + pField->offset);
 		MSG_WriteString (msg, pStr);
 		}
+	}
+
+// [FWGS, 01.12.24]
+static qboolean Delta_WriteField (sizebuf_t *msg, delta_t *pField, const void *from, const void *to, double timebase)
+	{
+	if (Delta_CompareField (pField, from, to))
+		{
+		MSG_WriteOneBit (msg, 0); // unchanged
+		return false;
+		}
+
+	MSG_WriteOneBit (msg, 1); // changed
+
+	Delta_WriteField_ (msg, pField, from, to, timebase);
 	return true;
 	}
 
 /***
 ====================
-Delta_CopyField
+Delta_CopyField [FWGS, 01.12.24]
 ====================
 ***/
-static void Delta_CopyField (delta_t *pField, void *from, void *to, double timebase)
+/*static void Delta_CopyField (delta_t *pField, void *from, void *to, double timebase)*/
+static void Delta_CopyField (delta_t *pField, const void *from, void *to, double timebase)
 	{
 	qboolean	bSigned = FBitSet (pField->flags, DT_SIGNED);
 	uint8_t		*to_field = (uint8_t *)to + pField->offset;
@@ -1349,13 +1448,14 @@ static void Delta_CopyField (delta_t *pField, void *from, void *to, double timeb
 
 /***
 =====================
-Delta_ReadField [FWGS, 01.05.24]
+Delta_ReadField [FWGS, 01.12.24]
 
 read fields by offsets
 assume 'from' and 'to' is valid
 =====================
 ***/
-static qboolean Delta_ReadField (sizebuf_t *msg, delta_t *pField, void *from, void *to, double timebase)
+/*static qboolean Delta_ReadField (sizebuf_t *msg, delta_t *pField, void *from, void *to, double timebase)*/
+static void Delta_ReadField_ (sizebuf_t *msg, delta_t *pField, void *to, double timebase)
 	{
 	qboolean	bSigned = (pField->flags & DT_SIGNED) ? true : false;
 	float		flValue, flAngle, flTime;
@@ -1363,11 +1463,11 @@ static qboolean Delta_ReadField (sizebuf_t *msg, delta_t *pField, void *from, vo
 	const char	*pStr;
 	char		*pOut;
 
-	if (!MSG_ReadOneBit (msg))
+	/*if (!MSG_ReadOneBit (msg))
 		{
 		Delta_CopyField (pField, from, to, timebase);
 		return false;
-		}
+		}*/
 
 	Assert (pField->multiplier != 0.0f);
 
@@ -1454,7 +1554,88 @@ static qboolean Delta_ReadField (sizebuf_t *msg, delta_t *pField, void *from, vo
 		pOut = (char *)((byte *)to + pField->offset);
 		Q_strncpy (pOut, pStr, pField->size);
 		}
+	}
+
+// [FWGS, 01.12.24]
+static qboolean Delta_ReadField (sizebuf_t *msg, delta_t *pField, const void *from, void *to, double timebase)
+	{
+	if (!MSG_ReadOneBit (msg))
+		{
+		Delta_CopyField (pField, from, to, timebase);
+		return false;
+		}
+
+	Delta_ReadField_ (msg, pField, to, timebase);
 	return true;
+	}
+
+// [FWGS, 01.12.24]
+static void Delta_ParseGSFields (sizebuf_t *msg, const delta_info_t *dt, const void *from, void *to, double timebase)
+	{
+	uint8_t	bits[8] = { 0 };
+	delta_t	*pField;
+	byte	c;
+	int		i;
+
+	c = MSG_ReadUBitLong (msg, 3);
+
+	for (i = 0; i < c; i++)
+		bits[i] = MSG_ReadByte (msg);
+
+	for (i = 0, pField = dt->pFields; i < dt->numFields; i++, pField++)
+		{
+		int b = i >> 3;
+		int n = 1 << (i & 7);
+
+		if (FBitSet (bits[b], n))
+			Delta_ReadField_ (msg, pField, to, timebase);
+		else
+			Delta_CopyField (pField, from, to, timebase);
+		}
+	}
+
+// [FWGS, 01.12.24]
+void Delta_ReadGSFields (sizebuf_t *msg, int index, const void *from, void *to, double timebase)
+	{
+	const delta_info_t *dt = Delta_FindStructByIndex (index);
+	Delta_ParseGSFields (msg, dt, from, to, timebase);
+	}
+
+// [FWGS, 01.12.24]
+void Delta_WriteGSFields (sizebuf_t *msg, int index, const void *from, const void *to, double timebase)
+	{
+	delta_info_t	*dt = Delta_FindStructByIndex (index);
+	delta_t	*pField;
+	uint8_t	bits[8] = { 0 };
+	uint	c = 0;
+	int		i;
+
+	Delta_CustomEncode (dt, from, to);
+
+	for (i = 0, pField = dt->pFields; i < dt->numFields; i++, pField++)
+		{
+		if (!Delta_CompareField (pField, from, to))
+			{
+			int b = i >> 3;
+			int n = 1 << (i & 7);
+
+			SetBits (bits[b], n);
+			c = b + 1;
+			}
+		}
+
+	MSG_WriteUBitLong (msg, c, 3);
+	for (i = 0; i < c; i++)
+		MSG_WriteByte (msg, bits[i]);
+
+	for (i = 0, pField = dt->pFields; i < dt->numFields; i++, pField++)
+		{
+		int b = i >> 3;
+		int n = 1 << (i & 7);
+
+		if (FBitSet (bits[b], n))
+			Delta_WriteField_ (msg, pField, from, to, timebase);
+		}
 	}
 
 /***
@@ -1462,18 +1643,19 @@ static qboolean Delta_ReadField (sizebuf_t *msg, delta_t *pField, void *from, vo
 usercmd_t communication
 =============================================================================
 ***/
+
 /***
 =====================
-MSG_WriteDeltaUsercmd
+MSG_WriteDeltaUsercmd [FWGS, 01.12.24]
 =====================
 ***/
-void MSG_WriteDeltaUsercmd (sizebuf_t *msg, usercmd_t *from, usercmd_t *to)
+/*void MSG_WriteDeltaUsercmd (sizebuf_t *msg, usercmd_t *from, usercmd_t *to)*/
+void MSG_WriteDeltaUsercmd (sizebuf_t *msg, const usercmd_t *from, const usercmd_t *to)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
 	int				i;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_USERCMD_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1492,16 +1674,16 @@ void MSG_WriteDeltaUsercmd (sizebuf_t *msg, usercmd_t *from, usercmd_t *to)
 
 /***
 =====================
-MSG_ReadDeltaUsercmd
+MSG_ReadDeltaUsercmd [FWGS, 01.12.24]
 =====================
 ***/
-void MSG_ReadDeltaUsercmd (sizebuf_t *msg, usercmd_t *from, usercmd_t *to)
+/*void MSG_ReadDeltaUsercmd (sizebuf_t *msg, usercmd_t *from, usercmd_t *to)*/
+void MSG_ReadDeltaUsercmd (sizebuf_t *msg, const usercmd_t *from, usercmd_t *to)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
 	int				i;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_USERCMD_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1524,18 +1706,19 @@ void MSG_ReadDeltaUsercmd (sizebuf_t *msg, usercmd_t *from, usercmd_t *to)
 event_args_t communication
 ============================================================================
 ***/
+
 /***
 =====================
-MSG_WriteDeltaEvent
+MSG_WriteDeltaEvent [FWGS, 01.12.24]
 =====================
 ***/
-void MSG_WriteDeltaEvent (sizebuf_t *msg, event_args_t *from, event_args_t *to)
+/*void MSG_WriteDeltaEvent (sizebuf_t *msg, event_args_t *from, event_args_t *to)*/
+void MSG_WriteDeltaEvent (sizebuf_t *msg, const event_args_t *from, const event_args_t *to)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
 	int				i;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_EVENT_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1554,16 +1737,16 @@ void MSG_WriteDeltaEvent (sizebuf_t *msg, event_args_t *from, event_args_t *to)
 
 /***
 =====================
-MSG_ReadDeltaEvent
+MSG_ReadDeltaEvent [FWGS, 01.12.24]
 =====================
 ***/
-void MSG_ReadDeltaEvent (sizebuf_t *msg, event_args_t *from, event_args_t *to)
+/*void MSG_ReadDeltaEvent (sizebuf_t *msg, event_args_t *from, event_args_t *to)*/
+void MSG_ReadDeltaEvent (sizebuf_t *msg, const event_args_t *from, event_args_t *to)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
-	int			i;
+	int				i;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_EVENT_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1584,14 +1767,16 @@ void MSG_ReadDeltaEvent (sizebuf_t *msg, event_args_t *from, event_args_t *to)
 movevars_t communication
 =============================================================================
 ***/
-qboolean MSG_WriteDeltaMovevars (sizebuf_t *msg, movevars_t *from, movevars_t *to)
+
+// [FWGS, 01.12.24]
+/*qboolean MSG_WriteDeltaMovevars (sizebuf_t *msg, movevars_t *from, movevars_t *to)*/
+qboolean MSG_WriteDeltaMovevars (sizebuf_t *msg, const movevars_t *from, const movevars_t *to)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
 	int				i, startBit;
 	int				numChanges = 0;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_MOVEVARS_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1618,16 +1803,18 @@ qboolean MSG_WriteDeltaMovevars (sizebuf_t *msg, movevars_t *from, movevars_t *t
 		MSG_SeekToBit (msg, startBit, SEEK_SET);
 		return false;
 		}
+
 	return true;
 	}
 
-void MSG_ReadDeltaMovevars (sizebuf_t *msg, movevars_t *from, movevars_t *to)
+// [FWGS, 01.12.24]
+/*void MSG_ReadDeltaMovevars (sizebuf_t *msg, movevars_t *from, movevars_t *to)*/
+void MSG_ReadDeltaMovevars (sizebuf_t *msg, const movevars_t *from, movevars_t *to)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
 	int				i;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_MOVEVARS_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1648,22 +1835,23 @@ void MSG_ReadDeltaMovevars (sizebuf_t *msg, movevars_t *from, movevars_t *to)
 clientdata_t communication
 =============================================================================
 ***/
+
 /***
 ==================
-MSG_WriteClientData
+MSG_WriteClientData [FWGS, 01.12.24]
 
 Writes current client data only for local client
 Other clients can grab the client state from entity_state_t
 ==================
 ***/
-void MSG_WriteClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, double timebase)
+/*void MSG_WriteClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, double timebase)*/
+void MSG_WriteClientData (sizebuf_t *msg, const clientdata_t *from, const clientdata_t *to, double timebase)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
 	int				i, startBit;
 	int				numChanges = 0;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_CLIENTDATA_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1671,7 +1859,6 @@ void MSG_WriteClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, 
 	Assert (pField != NULL);
 
 	startBit = msg->iCurBit;
-
 	MSG_WriteOneBit (msg, 1); // have clientdata
 
 	// activate fields and call custom encode func
@@ -1684,7 +1871,9 @@ void MSG_WriteClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, 
 			numChanges++;
 		}
 
-	if (numChanges) return; // we have updates
+	// we have updates
+	if (numChanges)
+		return;
 
 	MSG_SeekToBit (msg, startBit, SEEK_SET);
 	MSG_WriteOneBit (msg, 0); // no changes
@@ -1692,12 +1881,13 @@ void MSG_WriteClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, 
 
 /***
 ==================
-MSG_ReadClientData
+MSG_ReadClientData [FWGS, 01.12.24]
 
 Read the clientdata
 ==================
 ***/
-void MSG_ReadClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, double timebase)
+/*void MSG_ReadClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, double timebase)*/
+void MSG_ReadClientData (sizebuf_t *msg, const clientdata_t *from, clientdata_t *to, double timebase)
 	{
 #if !XASH_DEDICATED
 	delta_t			*pField;
@@ -1705,7 +1895,6 @@ void MSG_ReadClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, d
 	int				i;
 	qboolean		noChanges;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_CLIENTDATA_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1719,7 +1908,8 @@ void MSG_ReadClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, d
 		{
 		if (noChanges)
 			Delta_CopyField (pField, from, to, timebase);
-		else Delta_ReadField (msg, pField, from, to, timebase);
+		else
+			Delta_ReadField (msg, pField, from, to, timebase);
 		}
 #endif
 	}
@@ -1729,22 +1919,23 @@ void MSG_ReadClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, d
 weapon_data_t communication
 =============================================================================
 ***/
+
 /***
 ==================
-MSG_WriteWeaponData
+MSG_WriteWeaponData [FWGS, 01.12.24]
 
 Writes current client data only for local client
 Other clients can grab the client state from entity_state_t
 ==================
 ***/
-void MSG_WriteWeaponData (sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to, double timebase, int index)
+/*void MSG_WriteWeaponData (sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to, double timebase, int index)*/
+void MSG_WriteWeaponData (sizebuf_t *msg, const weapon_data_t *from, const weapon_data_t *to, double timebase, int index)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
 	int				i, startBit;
 	int				numChanges = 0;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_WEAPONDATA_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1767,23 +1958,24 @@ void MSG_WriteWeaponData (sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to
 		}
 
 	// if we have no changes - kill the message
-	if (!numChanges) MSG_SeekToBit (msg, startBit, SEEK_SET);
+	if (!numChanges)
+		MSG_SeekToBit (msg, startBit, SEEK_SET);
 	}
 
 /***
 ==================
-MSG_ReadWeaponData
+MSG_ReadWeaponData [FWGS, 01.12.24]
 
 Read the clientdata
 ==================
 ***/
-void MSG_ReadWeaponData (sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to, double timebase)
+/*void MSG_ReadWeaponData (sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to, double timebase)*/
+void MSG_ReadWeaponData (sizebuf_t *msg, const weapon_data_t *from, weapon_data_t *to, double timebase)
 	{
 	delta_t			*pField;
 	delta_info_t	*dt;
 	int				i;
 
-	// [FWGS, 01.07.23]
 	dt = Delta_FindStructByIndex (DT_WEAPONDATA_T);
 	Assert (dt && dt->bInitialized);
 
@@ -1802,18 +1994,21 @@ void MSG_ReadWeaponData (sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to,
 entity_state_t communication
 =============================================================================
 ***/
+
 /***
 ==================
-MSG_WriteDeltaEntity
+MSG_WriteDeltaEntity [FWGS, 01.12.24]
 
 Writes part of a packetentities message, including the entity number.
 Can delta from either a baseline or a previous packet_entity
 If to is NULL, a remove entity update will be sent
 If force is not set, then nothing at all will be generated if the entity is
-identical, under the assumption that the in-order delta code will catch it.
+identical, under the assumption that the in-order delta code will catch it
 ==================
 ***/
-void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *msg, qboolean force,
+/*void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *msg, qboolean force,
+	int delta_type, double timebase, int baseline)*/
+void MSG_WriteDeltaEntity (const entity_state_t *from, const entity_state_t *to, sizebuf_t *msg, qboolean force,
 	int delta_type, double timebase, int baseline)
 	{
 	delta_info_t	*dt = NULL;
@@ -1835,8 +2030,10 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 		// 0 - keep alive, has delta-update
 		// 1 - remove from delta message (but keep states)
 		// 2 - completely remove from server
-		if (force) fRemoveType = 2;
-		else fRemoveType = 1;
+		if (force)
+			fRemoveType = 2;
+		else
+			fRemoveType = 1;
 
 		MSG_WriteUBitLong (msg, fRemoveType, 2);
 		return;
@@ -1844,7 +2041,6 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 
 	startBit = msg->iCurBit;
 
-	// [FWGS, 01.07.24]
 	if ((to->number < 0) || (to->number >= GI->max_edicts))
 		Host_Error ("%s: Bad entity number: %i\n", __func__, to->number);
 
@@ -1910,7 +2106,7 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 
 /***
 ==================
-MSG_ReadDeltaEntity
+MSG_ReadDeltaEntity [FWGS, 01.12.24]
 
 The entity number has already been read from the message, which
 is how the from state is identified.
@@ -1919,7 +2115,9 @@ If the delta removes the entity, entity_state_t->number will be set to MAX_EDICT
 Can go from either a baseline or a previous packet_entity
 ==================
 ***/
-qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, entity_state_t *from, entity_state_t *to, int number,
+/*qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, entity_state_t *from, entity_state_t *to, int number,
+	int delta_type, double timebase)*/
+qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, const entity_state_t *from, entity_state_t *to, int number,
 	int delta_type, double timebase)
 	{
 #if !XASH_DEDICATED
@@ -1928,9 +2126,12 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, entity_state_t *from, entity_state
 	int				i, fRemoveType;
 	int				baseline_offset = 0;
 
-	// [FWGS, 01.07.24]
 	if ((number < 0) || (number >= clgame.maxEntities))
-		Host_Error ("%s: bad delta entity number: %i\n", __func__, number);
+		/*Host_Error ("%s: bad delta entity number: %i\n", __func__, number);*/
+		{
+		Con_Printf (S_ERROR "%s: bad delta entity number: %i\n", __func__, number);
+		return false;
+		}
 
 	fRemoveType = MSG_ReadUBitLong (msg, 2);
 	if (fRemoveType)
@@ -1951,8 +2152,9 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, entity_state_t *from, entity_state
 			return false;
 			}
 
-		// [FWGS, 01.07.24]
-		Host_Error ("%s: unknown update type %i\n", __func__, fRemoveType);
+		/*Host_Error ("%s: unknown update type %i\n", __func__, fRemoveType);*/
+		Con_Printf (S_ERROR "%s: unknown update type %i\n", __func__, fRemoveType);
+		return false;
 		}
 
 	if (!cls.legacymode)
@@ -1980,6 +2182,7 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, entity_state_t *from, entity_state
 				}
 			}
 		}
+
 	// g-cont. probably is redundant
 	*to = *from;
 
@@ -1994,7 +2197,12 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, entity_state_t *from, entity_state
 	else
 		dt = Delta_FindStructByIndex (DT_ENTITY_STATE_T);
 
-	Assert (dt && dt->bInitialized);
+	/*Assert (dt && dt->bInitialized);*/
+	if (!dt || !dt->bInitialized)
+		{
+		Con_Printf (S_ERROR "%s: broken delta\n", __func__);
+		return true;
+		}
 
 	pField = dt->pFields;
 	Assert (pField != NULL);
@@ -2008,6 +2216,46 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, entity_state_t *from, entity_state
 
 	// message parsed
 	return true;
+	}
+
+// [FWGS, 01.12.24]
+void Delta_ParseTableField_GS (sizebuf_t *msg)
+	{
+	const char		*s = MSG_ReadString (msg);
+	delta_info_t	*dt = Delta_FindStruct (s);
+	goldsrc_delta_t	null = { 0 };
+	int		i, num_fields;
+
+	// delta encoders it's already initialized on this machine (local game)
+	if (delta_init)
+		Delta_Shutdown ();
+
+	if (!dt)
+		Host_Error ("%s: not initialized", __func__);
+
+	num_fields = MSG_ReadShort (msg);
+	if (num_fields > dt->maxFields)
+		Host_Error ("%s: numFields > maxFields", __func__);
+
+	MSG_StartBitWriting (msg);
+
+	for (i = 0; i < num_fields; i++)
+		{
+		goldsrc_delta_t to;
+
+		Delta_ParseGSFields (msg, &dt_goldsrc_meta, &null, &to, 0.0f);
+
+		// patch our DT_SIGNED flag
+		if (FBitSet (to.fieldType, DT_SIGNED_GS))
+			{
+			ClearBits (to.fieldType, DT_SIGNED_GS);
+			SetBits (to.fieldType, DT_SIGNED);
+			}
+
+		Delta_AddField (dt, to.fieldName, to.fieldType, to.significant_bits, to.premultiply, to.postmultiply);
+		}
+
+	MSG_EndBitWriting (msg);
 	}
 
 /***

@@ -197,11 +197,15 @@ static void UI_Controls_ParseKeysList (void)
 
 			sprintf (str, "^6%s^7", token);	// enable uiPromptTextColor
 
-			if (keys[0] == -1) strcpy (uiControls.firstKey[i], "");
-			else strncpy (uiControls.firstKey[i], KEY_KeynumToString (keys[0]), sizeof (uiControls.firstKey[i]));
+			if (keys[0] == -1)
+				strcpy (uiControls.firstKey[i], "");
+			else
+				strncpy (uiControls.firstKey[i], KEY_KeynumToString (keys[0]), sizeof (uiControls.firstKey[i]));
 
-			if (keys[1] == -1) strcpy (uiControls.secondKey[i], "");
-			else strncpy (uiControls.secondKey[i], KEY_KeynumToString (keys[1]), sizeof (uiControls.secondKey[i]));
+			if (keys[1] == -1)
+				strcpy (uiControls.secondKey[i], "");
+			else
+				strncpy (uiControls.secondKey[i], KEY_KeynumToString (keys[1]), sizeof (uiControls.secondKey[i]));
 
 			StringConcat (uiControls.keysDescription[i], str, CMD_LENGTH);
 			StringConcat (uiControls.keysDescription[i], uiEmptyString, CMD_LENGTH);
@@ -288,7 +292,8 @@ static void UI_Controls_ResetKeysList (void)
 		strncpy (key, token, sizeof (key));
 
 		pfile = COM_ParseFile (pfile, token);
-		if (!pfile) break;	// technically an error
+		if (!pfile)
+			break;	// technically an error
 
 		char	cmd[128];
 
@@ -552,9 +557,11 @@ static void UI_Controls_Init (void)
 	uiControls.tipMessage.generic.x = 360;
 	uiControls.tipMessage.generic.y = 175;
 #ifdef RU
-	uiControls.tipMessage.generic.name = "    Нажмите 'Enter' для задания/добавления, 'Del' для очистки,\n           'Backspace' для очистки и установки клавиши";
+	uiControls.tipMessage.generic.name =	"    Нажмите 'Enter' для задания/добавления, 'Del' для очистки,\n"
+											"           'Backspace' для очистки и установки клавиши";
 #else
-	uiControls.tipMessage.generic.name = "    Press 'Enter' to set/add a key, 'Del' to clear keys,\n              'Backspace' to clear and set key";
+	uiControls.tipMessage.generic.name =	"    Press 'Enter' to set/add a key, 'Del' to clear keys,\n"
+											"              'Backspace' to clear and set key";
 #endif
 
 	uiControls.hintMessage.generic.id = ID_TABLEHINT;

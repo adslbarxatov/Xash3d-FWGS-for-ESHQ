@@ -51,9 +51,10 @@ extern "C" {
 #define TOUCH_FL_STROKE			(1U << 8)
 #define TOUCH_FL_PRECISION		(1U << 9)
 
-	// flags for COM_ParseFileSafe
-#define PFILE_IGNOREBRACKET (1<<0)
-#define PFILE_HANDLECOLON   (1<<1)
+// [FWGS, 01.12.24] flags for COM_ParseFileSafe
+#define PFILE_IGNOREBRACKET		(1<<0)
+#define PFILE_HANDLECOLON		(1<<1)
+#define PFILE_IGNOREHASHCMT		(1<<2)
 
 typedef struct mobile_engfuncs_s
 	{

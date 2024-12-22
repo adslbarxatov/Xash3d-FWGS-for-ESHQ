@@ -12,6 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details
 ***/
+
 #include "common.h"
 #include "client.h"
 
@@ -154,6 +155,7 @@ void CL_PlayCDTrack_f (void)
 		enabled = false;
 		}
 
+	// [FWGS, 01.12.24]
 	else if (!Q_stricmp (command, "info"))
 		{
 		int	i, maxTrack;
@@ -170,7 +172,8 @@ void CL_PlayCDTrack_f (void)
 				Con_Printf ("Currently %s track %u\n", looped ? "looping" : "playing", track);
 			}
 
-		Con_Printf ("Volume is %f\n", Cvar_VariableValue ("MP3Volume"));
+		/*Con_Printf ("Volume is %f\n", Cvar_VariableValue ("MP3Volume"));*/
+		Con_Printf ("Volume is %f\n", s_musicvolume.value);
 		return;
 		}
 	else
@@ -308,6 +311,13 @@ void CL_GenericShot_f (void)
 			const char *fmt;
 			string checkname;
 			int i;
+
+			// [FWGS, 01.12.24] allow overriding screenshot by users request
+			if (Cmd_Argc () > 1)
+				{
+				Q_strncpy (cls.shotname, Cmd_Argv (1), sizeof (cls.shotname));
+				break;
+				}
 
 			if (type == scrshot_snapshot)
 				{

@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -865,7 +865,7 @@ void Con_Shutdown (void)
 
 /***
 ================
-Con_Print [FWGS, 01.07.24]
+Con_Print [FWGS, 01.12.24]
 
 Handles cursor positioning, line wrapping, etc
 All console printing must go through this in order to be displayed
@@ -915,10 +915,17 @@ void Con_Print (const char *txt)
 				break;
 
 			case '\r':
-				Con_AddLine (buf, bufpos, true);
+				/*Con_AddLine (buf, bufpos, true);
 				lastlength = CON_LINES_LAST ().length;
 				cr_pending = 1;
-				bufpos = 0;
+				bufpos = 0;*/
+				if (txt[1] != '\n')
+					{
+					Con_AddLine (buf, bufpos, true);
+					lastlength = CON_LINES_LAST ().length;
+					cr_pending = 1;
+					bufpos = 0;
+					}
 				break;
 
 			case '\n':
@@ -1729,7 +1736,7 @@ static int Con_DrawDebugLines (void)
 
 /***
 ================
-Con_DrawDebug [FWGS, 01.11.23]
+Con_DrawDebug [FWGS, 01.12.24]
 
 Draws the debug messages (not passed to console history)
 ================
@@ -1747,14 +1754,16 @@ void Con_DrawDebug (void)
 			host.downloadcount, host.downloadfile, scr_download.value, Sys_DoubleTime () - timeStart);
 
 		Con_DrawStringLen (dlstring, &length, NULL);
-		length = Q_max (length, 500);
+		/*length = Q_max (length, 500);*/
+		length = Q_max (length, 300);
+
 		x = refState.width - length * 1.05f;
 		y = con.curFont->charHeight * 1.05f;
 		Con_DrawString (x, y, dlstring, g_color_table[7]);
 		}
 	else
 		{
-		timeStart = host.realtime;	// [FWGS, 01.04.23]
+		timeStart = host.realtime;
 		}
 
 	if (!host.allow_console || Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background"))
@@ -1967,7 +1976,7 @@ static void Con_DrawSolidConsole (int lines)
 
 /***
 ==================
-Con_DrawConsole [FWGS, 01.11.23]
+Con_DrawConsole [FWGS, 01.12.24]
 ==================
 ***/
 void Con_DrawConsole (void)
@@ -1983,8 +1992,10 @@ void Con_DrawConsole (void)
 		{
 		if (!cl_allow_levelshots.value && !cls.timedemo)
 			{
-			if ((Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background")) &&
-				(cls.key_dest != key_console))
+			/*if ((Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background")) &&
+				(cls.key_dest != key_console))*/
+			if ((cls.key_dest != key_console) && (Cvar_VariableInteger ("cl_background") ||
+				Cvar_VariableInteger ("sv_background")))
 				con.vislines = con.showlines = 0;
 			else
 				con.vislines = con.showlines = refState.height;
@@ -2023,8 +2034,6 @@ void Con_DrawConsole (void)
 				if (cls.key_dest == key_console)
 					Con_DrawSolidConsole (refState.height);
 				}
-
-			// [FWGS, 01.11.23]
 			else
 				{
 				if (con.vislines)

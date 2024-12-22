@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -41,6 +41,7 @@ struct
 	SDL_Surface *win;
 	} sw;
 
+// [FWGS, 01.12.24]
 qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *r, uint *g, uint *b)
 	{
 	sw.width = width;
@@ -50,10 +51,14 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 	if (sw.renderer)
 		{
 		unsigned int format = SDL_GetWindowPixelFormat (host.hWnd);
+		/*SDL_RenderSetLogicalSize (sw.renderer, refState.width, refState.height);*/
 		SDL_RenderSetLogicalSize (sw.renderer, refState.width, refState.height);
 
 		if (sw.tex)
+			{
 			SDL_DestroyTexture (sw.tex);
+			sw.tex = NULL;
+			}
 
 		// guess
 		if (format == SDL_PIXELFORMAT_UNKNOWN)
@@ -66,20 +71,23 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 
 		// we can only copy fast 16 or 32 bits
 		// SDL_Renderer does not allow zero-copy, so 24 bits will be ineffective
-		if (!(SDL_BYTESPERPIXEL (format) == 2 || SDL_BYTESPERPIXEL (format) == 4))
+		/*if (!(SDL_BYTESPERPIXEL (format) == 2 || SDL_BYTESPERPIXEL (format) == 4))*/
+		if ((SDL_BYTESPERPIXEL (format) != 2) && (SDL_BYTESPERPIXEL (format) != 4))
 			format = SDL_PIXELFORMAT_RGBA8888;
 
-		sw.tex = SDL_CreateTexture (sw.renderer, format,
+		/*sw.tex = SDL_CreateTexture (sw.renderer, format,
 			SDL_TEXTUREACCESS_STREAMING,
-			width, height);
+			width, height);*/
+		sw.tex = SDL_CreateTexture (sw.renderer, format, SDL_TEXTUREACCESS_STREAMING, width, height);
 
 		// fallback
 		if (!sw.tex && format != SDL_PIXELFORMAT_RGBA8888)
 			{
 			format = SDL_PIXELFORMAT_RGBA8888;
-			sw.tex = SDL_CreateTexture (sw.renderer, format,
+			/*sw.tex = SDL_CreateTexture (sw.renderer, format,
 				SDL_TEXTUREACCESS_STREAMING,
-				width, height);
+				width, height);*/
+			sw.tex = SDL_CreateTexture (sw.renderer, format, SDL_TEXTUREACCESS_STREAMING, width, height);
 			}
 
 		if (!sw.tex)
@@ -92,15 +100,20 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 			void *pixels;
 			int pitch;
 
+			/*if (!SDL_LockTexture (sw.tex, NULL, &pixels, &pitch))*/
 			if (!SDL_LockTexture (sw.tex, NULL, &pixels, &pitch))
 				{
-				int bits;
-				uint amask;
+				int		bits;
+				uint	amask;
+
 				// lock successfull, release
+				/*SDL_UnlockTexture (sw.tex);*/
 				SDL_UnlockTexture (sw.tex);
 
 				// enough for building blitter tables
 				SDL_PixelFormatEnumToMasks (format, &bits, r, g, b, &amask);
+
+				/**bpp = SDL_BYTESPERPIXEL (format);*/
 				*bpp = SDL_BYTESPERPIXEL (format);
 				*stride = pitch / *bpp;
 
@@ -108,8 +121,11 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 				}
 
 			// fallback to surf
+			/*SDL_DestroyTexture (sw.tex);*/
 			SDL_DestroyTexture (sw.tex);
 			sw.tex = NULL;
+
+			/*SDL_DestroyRenderer (sw.renderer);*/
 			SDL_DestroyRenderer (sw.renderer);
 			sw.renderer = NULL;
 			}
@@ -125,7 +141,7 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 		sw.win = SDL_GetVideoSurface ();
 #endif
 
-		// [FWGS, 01.09.24] sdl will create renderer if hw framebuffer unavailiable, so cannot fallback here
+		// sdl will create renderer if hw framebuffer unavailiable, so cannot fallback here
 		// if it is failed, it is not possible to draw with SDL in REF_SOFTWARE mode
 		if (!sw.win)
 			{
@@ -138,6 +154,17 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 		*g = sw.win->format->Gmask;
 		*b = sw.win->format->Bmask;
 		*stride = sw.win->pitch / sw.win->format->BytesPerPixel;
+
+		// [FWGS, 01.12.24] TODO: check somehow if ref_soft can handle native format
+#if 0
+		{
+		sw.surf = SDL_CreateRGBSurfaceWithFormat (0, width, height, 16, SDL_PIXELFORMAT_RGB565);
+		if (!sw.surf)
+			Sys_Error ("%s: %s", __func__, SDL_GetError ());
+		}
+#endif
+
+		return true;
 		}
 
 	// we can't create ref_soft buffer
@@ -176,7 +203,7 @@ void *SW_LockBuffer (void)
 			return sw.surf->pixels;
 			}
 		else
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#endif
 			{
 			// real window pixels (x11 shm region, dma buffer, etc)
 			// or SDL_Renderer texture if not supported
@@ -199,7 +226,6 @@ void SW_UnlockBuffer (void)
 
 		SDL_SetTextureBlendMode (sw.tex, SDL_BLENDMODE_NONE);
 
-
 		SDL_RenderCopy (sw.renderer, sw.tex, &src, &dst);
 		SDL_RenderPresent (sw.renderer);
 
@@ -218,14 +244,14 @@ void SW_UnlockBuffer (void)
 		SDL_BlitSurface (sw.surf, &src, sw.win, &dst);
 		return;
 		}
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#endif
 
 	// already blitted
 	SDL_UnlockSurface (sw.win);
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_UpdateWindowSurface (host.hWnd);
-#else // SDL_VERSION_ATLEAST( 2, 0, 0 )
+#else
 	SDL_Flip (host.hWnd);
 #endif
 	}
@@ -649,7 +675,7 @@ static qboolean VID_SetScreenResolution (int width, int height, window_mode_t wi
 	return true;
 	}
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.12.24]
 void VID_RestoreScreenResolution (void)
 	{
 	// on mobile platform fullscreen is designed to be always on
@@ -659,10 +685,20 @@ void VID_RestoreScreenResolution (void)
 	switch ((window_mode_t)vid_fullscreen.value)
 		{
 		case WINDOW_MODE_WINDOWED:
+			// TODO: this line is from very old SDL video backend
+			// figure out why we need it, because in windowed mode we
+			// always have borders
 			SDL_SetWindowBordered (host.hWnd, SDL_TRUE);
 			break;
 
-		default:
+		/*default:*/
+		case WINDOW_MODE_BORDERLESS:
+			// in borderless fullscreen we don't change screen resolution, so no-op
+			break;
+
+		case WINDOW_MODE_FULLSCREEN:
+			// TODO: we might want to not minimize window if current desktop mode
+			// and window mode are the same
 			SDL_MinimizeWindow (host.hWnd);
 			SDL_SetWindowFullscreen (host.hWnd, 0);
 			break;
@@ -1033,22 +1069,23 @@ int GL_GetAttribute (int attr, int *val)
 
 /***
 ==================
-R_Init_Video
+R_Init_Video [FWGS, 01.12.24]
 ==================
 ***/
 qboolean R_Init_Video (const int type)
 	{
-	string safe;
-	qboolean retval;
+	string		safe;
+	qboolean	retval;
+
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_DisplayMode displayMode;
+	/*SDL_GetCurrentDisplayMode (0, &displayMode);*/
 	SDL_GetCurrentDisplayMode (0, &displayMode);
 	refState.desktopBitsPixel = SDL_BITSPERPIXEL (displayMode.format);
 #else
 	refState.desktopBitsPixel = 16;
 #endif
 
-	// [FWGS, 01.11.23]
 #ifdef SDL_HINT_QTWAYLAND_WINDOW_FLAGS
 	SDL_SetHint (SDL_HINT_QTWAYLAND_WINDOW_FLAGS, "OverridesSystemGestures");
 #endif
@@ -1104,13 +1141,13 @@ qboolean R_Init_Video (const int type)
 			// refdll also can check extensions
 			ref.dllFuncs.GL_InitExtensions ();
 			break;
+
 		case REF_SOFTWARE:
 		default:
 			break;
 		}
 
 	R_InitVideoModes ();
-
 	host.renderinfo_changed = false;
 
 	return true;
@@ -1120,9 +1157,12 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_DisplayMode displayMode;
+
+	// [FWGS, 01.12.24]
 	if (SDL_GetCurrentDisplayMode (0, &displayMode) < 0)
 		{
-		Con_Printf (S_ERROR "SDL_GetCurrentDisplayMode: %s", SDL_GetError ());
+		/*Con_Printf (S_ERROR "SDL_GetCurrentDisplayMode: %s", SDL_GetError ());*/
+		Con_Printf (S_ERROR "SDL_GetCurrentDisplayMode: %s\n", SDL_GetError ());
 		return rserr_invalid_mode;
 		}
 
@@ -1263,7 +1303,7 @@ qboolean VID_SetMode (void)
 
 /***
 ==================
-R_Free_Video
+R_Free_Video [FWGS, 01.12.24]
 ==================
 ***/
 void R_Free_Video (void)
@@ -1274,9 +1314,9 @@ void R_Free_Video (void)
 
 	ref.dllFuncs.GL_ClearExtensions ();
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_VideoQuit ();
-#endif
+	endif*/
 	}
 
 #endif

@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -46,21 +46,26 @@ GNU General Public License for more details
 #include "render_api.h"	// decallist_t
 #include "tests.h"
 
-// [FWGS, 01.07.24]
-pfnChangeGame	pChangeGame = NULL;
+// [FWGS, 01.12.24]
+/*pfnChangeGame	pChangeGame = NULL;*/
+static pfnChangeGame pChangeGame = NULL;
 host_parm_t		host;	// host parms
 
 #ifdef XASH_ENGINE_TESTS
 struct tests_stats_s tests_stats;
 #endif
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.12.24]
 CVAR_DEFINE (host_developer, "developer", "0", FCVAR_FILTERABLE,
 	"engine is in development-mode");
 CVAR_DEFINE_AUTO (sys_timescale, "1.0", FCVAR_FILTERABLE,
 	"scale frame time");
-CVAR_DEFINE_AUTO (sys_ticrate, "100", FCVAR_SERVER,
+
+/*CVAR_DEFINE_AUTO (sys_ticrate, "100", FCVAR_SERVER,
+	"framerate in dedicated mode");*/
+static CVAR_DEFINE_AUTO (sys_ticrate, "100", FCVAR_SERVER,
 	"framerate in dedicated mode");
+
 static CVAR_DEFINE_AUTO (host_serverstate, "0", FCVAR_READ_ONLY,
 	"displays current server state");
 static CVAR_DEFINE_AUTO (host_gameloaded, "0", FCVAR_READ_ONLY,
@@ -71,6 +76,11 @@ CVAR_DEFINE_AUTO (host_limitlocal, "0", 0,
 	"apply cl_cmdrate and rate to loopback connection");
 CVAR_DEFINE (host_maxfps, "fps_max", "72", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"host fps upper limit");
+
+// [FWGS, 01.12.24]
+CVAR_DEFINE_AUTO (fps_override, "1", FCVAR_FILTERABLE,
+	"unlock higher framerate values, not supported");
+
 static CVAR_DEFINE_AUTO (host_framerate, "0", FCVAR_FILTERABLE,
 	"locks frame timing to this value in seconds");
 static CVAR_DEFINE (host_sleeptime, "sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -92,15 +102,18 @@ typedef struct feature_message_s
 	const char	*arg;
 	} feature_message_t;
 
-// [FWGS, 01.05.24]
-static feature_message_t bugcomp_features[] =
+// [FWGS, 01.12.24]
+/*static feature_message_t bugcomp_features[] =*/
+static const feature_message_t bugcomp_features[] =
 	{
 	{ BUGCOMP_PENTITYOFENTINDEX_FLAG, "pfnPEntityOfEntIndex bugfix revert", "peoei" },
 	{ BUGCOMP_MESSAGE_REWRITE_FACILITY_FLAG, "GoldSrc Message Rewrite Facility", "gsmrf" },
+	{ BUGCOMP_SPATIALIZE_SOUND_WITH_ATTN_NONE, "spatialize sounds with zero attenuation", "sp_attn_none" },
 	};
 
-// [FWGS, 01.05.24]
-static feature_message_t engine_features[] =
+// [FWGS, 01.12.24]
+/*static feature_message_t engine_features[] =*/
+static const feature_message_t engine_features[] =
 	{
 	{ ENGINE_WRITE_LARGE_COORD, "Big World Support" },
 	{ ENGINE_QUAKE_COMPATIBLE, "Quake Compatibility" },
@@ -114,7 +127,7 @@ static feature_message_t engine_features[] =
 	{ ENGINE_STEP_POSHISTORY_LERP, "MOVETYPE_STEP Position History Based Lerping" },
 	};
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.12.24]
 static void Sys_PrintUsage (const char *exename)
 	{
 	string		version_str;
@@ -138,36 +151,66 @@ static void Sys_PrintUsage (const char *exename)
 
 	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
 		"\nCommon options:\n"
-		O ("-dev [level]     ", "set log verbosity 0-2")
+		/*O ("-dev [level]     ", "set log verbosity 0-2")
 		O ("-log             ", "write log to \"engine.log\"")
 		O ("-nowriteconfig   ", "disable config save")
-		O ("-noch            ", "disable crashhandler")
+		O ("-noch            ", "disable crashhandler")*/
+		O ("-dev [level]       ", "set log verbosity 0-2")
+		O ("-log               ", "write log to \"engine.log\"")
+		O ("-nowriteconfig     ", "disable config save")
+		O ("-noch              ", "disable crashhandler")
 #if XASH_WIN32
-		O ("-minidumps       ", "enable writing minidumps when game is crashed")
+		/*O ("-minidumps       ", "enable writing minidumps when game is crashed")*/
+		O ("-minidumps         ", "enable writing minidumps when game is crashed")
 #endif
-		O ("-rodir <path>    ", "set read-only base directory")
+		/*O ("-rodir <path>    ", "set read-only base directory")
 		O ("-bugcomp [opts] ", "enable precise bug compatibility")
 		O (" ", "will break games that don't require it")
 		O (" ", "refer to engine documentation for more info")
-		O ("-disablehelp     ", "disable this message")
+		O ("-disablehelp     ", "disable this message")*/
+		O ("-rodir <path>      ", "set read-only base directory")
+		O ("-bugcomp [opts]    ", "enable precise bug compatibility")
+		O ("                   ", "will break games that don't require it")
+		O ("                   ", "refer to engine documentation for more info")
+		O ("-disablehelp       ", "disable this message")
+
 #if !XASH_DEDICATED
-		O ("-dedicated       ", "run engine in dedicated mode")
+		/*O ("-dedicated       ", "run engine in dedicated mode")*/
+		O ("-dedicated         ", "run engine in dedicated mode")
 #endif
 
 		"\nNetworking options:\n"
-		O ("-noip            ", "disable IPv4")
+		/*O ("-noip            ", "disable IPv4")
 		O ("-ip <ip>         ", "set IPv4 address")
 		O ("-port <port>     ", "set IPv4 port")
 		O ("-noip6           ", "disable IPv6")
 		O ("-ip6 <ip>        ", "set IPv6 address")
 		O ("-port6 <port>    ", "set IPv6 port")
 		O ("-clockwindow <cw>", "adjust clockwindow used to ignore client commands")
-		O (" ", "to prevent speed hacks")
-		"\nGame options:\n"
-		O ("-game <directory>", "set game directory to start engine with")
-		O ("-dll <path>      ", "override server DLL path")
+		O (" ", "to prevent speed hacks")*/
+		O ("-noip              ", "disable IPv4")
+		O ("-ip <ip>           ", "set IPv4 address")
+		O ("-port <port>       ", "set IPv4 port")
 #if !XASH_DEDICATED
-		O ("-clientlib <path>", "override client DLL path")
+		O ("-clientport <port> ", "set IPv4 client port")
+#endif
+		O ("-noip6             ", "disable IPv6")
+		O ("-ip6 <ip>          ", "set IPv6 address")
+		O ("-port6 <port>      ", "set IPv6 port")
+#if !XASH_DEDICATED
+		O ("-clientport6 <port>", "set IPv6 client port")
+#endif
+		O ("-clockwindow <cw>  ", "adjust clockwindow used to ignore client commands")
+		O ("                   ", "to prevent speed hacks")
+
+		"\nGame options:\n"
+		/*O ("-game <directory>", "set game directory to start engine with")
+		O ("-dll <path>      ", "override server DLL path")*/
+		O ("-game <directory>  ", "set game directory to start engine with")
+		O ("-dll <path>        ", "override server DLL path")
+
+#if !XASH_DEDICATED
+		/*O ("-clientlib <path>", "override client DLL path")
 		O ("-console         ", "run engine with console enabled")
 		O ("-toconsole       ", "run engine witn console open")
 		O ("-oldfont         ", "enable unused Quake font in Half-Life")
@@ -177,41 +220,71 @@ static void Sys_PrintUsage (const char *exename)
 		O ("-fullscreen      ", "run engine in fullscreen mode")
 		O ("-windowed        ", "run engine in windowed mode")
 		O ("-ref <name>      ", "use selected renderer dll")
-		O ("-gldebug         ", "enable OpenGL debug log")
+		O ("-gldebug         ", "enable OpenGL debug log")*/
+		O ("-clientlib <path>  ", "override client DLL path")
+		O ("-console           ", "run engine with console enabled")
+		O ("-toconsole         ", "run engine witn console open")
+		O ("-oldfont           ", "enable unused Quake font in Half-Life")
+		O ("-width <n>         ", "set window width")
+		O ("-height <n>        ", "set window height")
+		O ("-borderless        ", "run engine in fullscreen borderless mode")
+		O ("-fullscreen        ", "run engine in fullscreen mode")
+		O ("-windowed          ", "run engine in windowed mode")
+		O ("-ref <name>        ", "use selected renderer dll")
+		O ("-gldebug           ", "enable OpenGL debug log")
+
 #if XASH_WIN32
-		O ("-noavi           ", "disable AVI support")
-		O ("-nointro         ", "disable intro video")
+		/*O ("-noavi           ", "disable AVI support")
+		O ("-nointro         ", "disable intro video")*/
+		O ("-noavi             ", "disable AVI support")
+		O ("-nointro           ", "disable intro video")
 #endif
-		O ("-noenginejoy     ", "disable engine builtin joystick support")
+
+		/*O ("-noenginejoy     ", "disable engine builtin joystick support")
 		O ("-noenginemouse   ", "disable engine builtin mouse support")
 		O ("-nosound         ", "disable sound output")
-		O ("-timedemo        ", "run timedemo and exit")	// [FWGS, 01.11.23]
+		O ("-timedemo        ", "run timedemo and exit")	// [FWGS, 01.11.23]*/
+		O ("-noenginejoy       ", "disable engine builtin joystick support")
+		O ("-noenginemouse     ", "disable engine builtin mouse support")
+		O ("-nosound           ", "disable sound output")
+		O ("-timedemo          ", "run timedemo and exit")
 #endif
+
 		"\nPlatform-specific options:\n"
 #if !XASH_MOBILE_PLATFORM
-		O ("-daemonize       ", "run engine as a daemon")
+		/*O ("-daemonize       ", "run engine as a daemon")*/
+		O ("-daemonize         ", "run engine as a daemon")
 #endif
+
 #if XASH_SDL == 2
-		O ("-sdl_joy_old_api ", "use SDL legacy joystick API")
-		O ("-sdl_renderer <n>", "use alternative SDL_Renderer for software")
+		/*O ("-sdl_joy_old_api ", "use SDL legacy joystick API")
+		O ("-sdl_renderer <n>", "use alternative SDL_Renderer for software")*/
+		O ("-sdl_joy_old_api   ", "use SDL legacy joystick API")
+		O ("-sdl_renderer <n>  ", "use alternative SDL_Renderer for software")
 #endif
 
 #if XASH_ANDROID && !XASH_SDL
-		O ("-nativeegl       ", "use native egl implementation. Use if screen does not update or black")
+		/*O ("-nativeegl       ", "use native egl implementation. Use if screen does not update or black")*/
+		O ("-nativeegl         ", "use native egl implementation. Use if screen does not update or black")
 #endif
 
 #if XASH_DOS
-		O ("-novesa          ", "disable vesa")
+		/*O ("-novesa          ", "disable vesa")*/
+		O ("-novesa            ", "disable vesa")
 #endif
 
 #if XASH_VIDEO == VIDEO_FBDEV
-		O ("-fbdev <path>    ", "open selected framebuffer")
+		/*O ("-fbdev <path>    ", "open selected framebuffer")
 		O ("-ttygfx          ", "set graphics mode in tty")
-		O ("-doublebuffer    ", "enable doublebuffering")
+		O ("-doublebuffer    ", "enable doublebuffering")*/
+		O ("-fbdev <path>      ", "open selected framebuffer")
+		O ("-ttygfx            ", "set graphics mode in tty")
+		O ("-doublebuffer      ", "enable doublebuffering")
 #endif 
 
 #if XASH_SOUND == SOUND_ALSA
-		O ("-alsadev <dev>   ", "open selected ALSA device")
+		/*O ("-alsadev <dev>   ", "open selected ALSA device")*/
+		O ("-alsadev <dev>     ", "open selected ALSA device")
 #endif
 		;
 #undef O
@@ -227,7 +300,8 @@ static void Sys_PrintUsage (const char *exename)
 	Sys_Quit ();
 	}
 
-int Host_CompareFileTime (int ft1, int ft2)
+// [FWGS, 01.12.24] removed Host_CompareFileTime
+/*int Host_CompareFileTime (int ft1, int ft2)
 	{
 	if (ft1 < ft2)
 		return -1;
@@ -235,7 +309,7 @@ int Host_CompareFileTime (int ft1, int ft2)
 		return 1;
 
 	return 0;
-	}
+	}*/
 
 void Host_ShutdownServer (void)
 	{
@@ -244,10 +318,11 @@ void Host_ShutdownServer (void)
 
 /***
 ================
-Host_PrintEngineFeatures [FWGS, 01.05.24]
+Host_PrintEngineFeatures [FWGS, 01.12.24]
 ================
 ***/
-static void Host_PrintFeatures (uint32_t flags, const char *s, feature_message_t *features, size_t size)
+/*static void Host_PrintFeatures (uint32_t flags, const char *s, feature_message_t *features, size_t size)*/
+static void Host_PrintFeatures (uint32_t flags, const char *s, const feature_message_t *features, size_t size)
 	{
 	size_t i;
 
@@ -260,19 +335,20 @@ static void Host_PrintFeatures (uint32_t flags, const char *s, feature_message_t
 
 /***
 ==============
-Host_ValidateEngineFeatures [FWGS, 01.08.24]
+Host_ValidateEngineFeatures [FWGS, 01.12.24]
 
 validate features bits and set host.features
 ==============
 ***/
-void Host_ValidateEngineFeatures (uint32_t features)
+/*void Host_ValidateEngineFeatures (uint32_t features)*/
+void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features)
 	{
-	uint32_t mask = ENGINE_FEATURES_MASK;
+	/*uint32_t mask = ENGINE_FEATURES_MASK;
 
-#if !XASH_DEDICATED
+	if !XASH_DEDICATED
 	if (!Host_IsDedicated () && cls.legacymode)
 		mask = ENGINE_LEGACY_FEATURES_MASK;
-#endif
+	endif*/
 
 	// don't allow unsupported bits
 	features &= mask;
@@ -637,7 +713,7 @@ static void Host_GetCommands (void)
 
 /***
 ===================
-Host_CalcFPS [FWGS, 01.07.24]
+Host_CalcFPS
 
 compute actual FPS for various modes
 ===================
@@ -666,14 +742,28 @@ static double Host_CalcFPS (void)
 		if (!gl_vsync.value)
 			fps = host_maxfps.value;
 		}
+
+	// [FWGS, 01.12.24]
+	else if (!SV_Active () && (CL_Protocol () == PROTO_GOLDSRC) && (cls.state != ca_disconnected) &&
+		(cls.state < ca_validate))
+		{
+		return 31.0;
+		}
+
+	// [FWGS, 01.12.24]
 	else
 		{
 		if (!gl_vsync.value)
 			{
+			double max_fps = fps_override.value ? MAX_FPS_HARD : MAX_FPS_SOFT;
+
 			fps = host_maxfps.value;
-			if (fps == 0.0)
+			/*if (fps == 0.0)
 				fps = MAX_FPS;
-			fps = bound (MIN_FPS, fps, MAX_FPS);
+			fps = bound (MIN_FPS, fps, MAX_FPS);*/
+			if (fps == 0.0)
+				fps = max_fps;
+			fps = bound (MIN_FPS, fps, max_fps);
 			}
 		}
 #endif
@@ -681,7 +771,6 @@ static double Host_CalcFPS (void)
 	return fps;
 	}
 
-// [FWGS, 01.01.24]
 static qboolean Host_Autosleep (double dt, double scale)
 	{
 	double	targetframetime, fps;
@@ -691,8 +780,9 @@ static qboolean Host_Autosleep (double dt, double scale)
 	if (fps <= 0)
 		return true;
 
-	// limit fps to withing tolerable range
-	fps = bound (MIN_FPS, fps, MAX_FPS);
+	// [FWGS, 01.12.24] limit fps to withing tolerable range
+	/*fps = bound (MIN_FPS, fps, MAX_FPS);*/
+	fps = bound (MIN_FPS, fps, MAX_FPS_HARD);
 
 	if (Host_IsDedicated ())
 		targetframetime = (1.0 / (fps + 1.0));
@@ -976,22 +1066,29 @@ static void Host_RunTests (int stage)
 	}
 #endif
 
-// [FWGS, 01.05.24]
-static uint32_t Host_CheckBugcomp (void)
+// [FWGS, 01.12.24]
+/*static uint32_t Host_CheckBugcomp (void)*/
+static int Host_CheckBugcomp_splitstr_handler (char *prev, char *next, void *userdata)
 	{
-	const char	*prev, *next;
+	/*const char	*prev, *next;
 	uint32_t	flags = 0;
-	string		args, arg;
+	string		args, arg;*/
 	size_t		i;
+	uint32_t	*flags = userdata;
 
-	if (!Sys_CheckParm ("-bugcomp"))
+	/*if (!Sys_CheckParm ("-bugcomp"))*/
+	*next = '\0';
+
+	if (!COM_CheckStringEmpty (prev))
 		return 0;
 
-	if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha (args[0]))
+	/*if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha (args[0]))*/
+	for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
 		{
-		for (prev = args, next = Q_strchrnul (prev, '+'); ; prev = next + 1, next = Q_strchrnul (prev, '+'))
+		/*for (prev = args, next = Q_strchrnul (prev, '+'); ; prev = next + 1, next = Q_strchrnul (prev, '+'))*/
+		if (!Q_stricmp (bugcomp_features[i].arg, prev))
 			{
-			Q_strncpy (arg, prev, next - prev + 1);
+			/*Q_strncpy (arg, prev, next - prev + 1);
 			for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
 				{
 				if (!Q_stricmp (bugcomp_features[i].arg, arg))
@@ -999,19 +1096,45 @@ static uint32_t Host_CheckBugcomp (void)
 					SetBits (flags, bugcomp_features[i].mask);
 					break;
 					}
-				}
+				}*/
+			SetBits (*flags, bugcomp_features[i].mask);
+			break;
+			}
+		}
 
-			if (i == ARRAYSIZE (bugcomp_features))
+	/*if (i == ARRAYSIZE (bugcomp_features))
 				{
 				Con_Printf (S_ERROR "Unknown bugcomp flag %s\n", arg);
 				Con_Printf ("Valid flags are:\n");
 				for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
 					Con_Printf ("\t%s: %s\n", bugcomp_features[i].arg, bugcomp_features[i].msg);
-				}
-
-			if (!*next)
+				}*/
+	if (i == ARRAYSIZE (bugcomp_features))
+		{
+		Con_Printf (S_ERROR "Unknown bugcomp flag %s\n", prev);
+		Con_Printf ("Valid flags are:\n");
+		for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+			Con_Printf ("\t%s: %s\n", bugcomp_features[i].arg, bugcomp_features[i].msg);
+		}
+	
+	/*if (!*next)
 				break;
-			}
+			}*/
+	return 0;
+	}
+
+// [FWGS, 01.12.24]
+static uint32_t Host_CheckBugcomp (void)
+	{
+	uint32_t	flags = 0;
+	string		args;
+
+	if (!Sys_CheckParm ("-bugcomp"))
+		return 0;
+
+	if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha (args[0]))
+		{
+		Q_splitstr (args, '+', &flags, Host_CheckBugcomp_splitstr_handler);
 		}
 	else
 		{
@@ -1041,7 +1164,7 @@ static void Host_DetermineExecutableName (char *out, size_t size)
 
 /***
 =================
-Host_InitCommon [FWGS, 01.08.24]
+Host_InitCommon
 =================
 ***/
 static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame,
@@ -1051,11 +1174,9 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	char		dev_level[4], ticrate[16];
 	int			developer = DEFAULT_DEV;
 
-	// some commands may turn engine into infinite loop,
-	// e.g. xash.exe +game xash -game xash
+	// some commands may turn engine into infinite loop, e.g. xash.exe +game xash -game xash
 	// so we clear all cmd_args, but leave dbg states as well
 	Sys_ParseCommandLine (argc, argv);
-
 	Host_DetermineExecutableName (exename, exename_size);
 
 	if (!Sys_CheckParm ("-disablehelp"))
@@ -1131,9 +1252,11 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	Cvar_DirectSet (&host_developer, dev_level);
 	Cvar_RegisterVariable (&sys_ticrate);
 
+	// [FWGS, 01.12.24]
 	if (Sys_GetParmFromCmdLine ("-sys_ticrate", ticrate))
 		{
-		double fps = bound (MIN_FPS, atof (ticrate), MAX_FPS);
+		/*double fps = bound (MIN_FPS, atof (ticrate), MAX_FPS);*/
+		double fps = bound (MIN_FPS, atof (ticrate), MAX_FPS_HARD);
 		Cvar_SetValue ("sys_ticrate", fps);
 		}
 
@@ -1145,100 +1268,11 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		Host_RunTests (0);
 #endif
 
-	/*
-	Platform_Init ();
+	// [FWGS, 01.12.24]
+#if XASH_DEDICATED
+	Platform_SetupSigtermHandling ();
+#endif
 
-	baseDir = getenv ("XASH3D_BASEDIR");
-
-	if (COM_CheckString (baseDir))
-		{
-		Q_strncpy (host.rootdir, baseDir, sizeof (host.rootdir));
-		}
-	else
-		{
-
-	if TARGET_OS_IOS
-		Q_strncpy (host.rootdir, IOS_GetDocsDir (), sizeof (host.rootdir));
-	elif XASH_ANDROID && XASH_SDL
-		Q_strncpy (host.rootdir, SDL_AndroidGetExternalStoragePath (), sizeof (host.rootdir));
-
-	elif XASH_PSVITA
-		if (!PSVita_GetBasePath (host.rootdir, sizeof (host.rootdir)))
-			{
-			Sys_Error ("couldn't find xash3d data directory");
-			host.rootdir[0] = 0;
-			}
-
-		// GetBasePath not impl'd in switch-sdl2
-	elif (XASH_SDL == 2) && !XASH_NSWITCH 
-		char *szBasePath = SDL_GetBasePath ();
-		if (szBasePath)
-			{
-			Q_strncpy (host.rootdir, szBasePath, sizeof (host.rootdir));
-			SDL_free (szBasePath);
-			}
-		else
-			{
-
-	if XASH_POSIX || XASH_WIN32
-			if (!getcwd (host.rootdir, sizeof (host.rootdir)))
-				Sys_Error ("couldn't determine current directory: %s, getcwd: %s", SDL_GetError (), strerror (errno));
-	else
-			Sys_Error ("couldn't determine current directory: %s", SDL_GetError ());
-	endif
-			}
-
-	else
-		if (!getcwd (host.rootdir, sizeof (host.rootdir)))
-			{
-			Sys_Error ("couldn't determine current directory: %s", strerror (errno));
-			host.rootdir[0] = 0;
-			}
-	endif
-		}
-
-	if XASH_WIN32
-	COM_FixSlashes (host.rootdir);
-	endif
-
-	len = Q_strlen (host.rootdir);
-
-	if (len && (host.rootdir[len - 1] == '/'))
-		host.rootdir[len - 1] = 0;
-
-	// get readonly root. The order is: check for arg, then env.
-	// if still not got it, rodir is disabled
-	host.rodir[0] = '\0';
-	if (!Sys_GetParmFromCmdLine ("-rodir", host.rodir))
-		{
-		char *roDir = getenv ("XASH3D_RODIR");
-
-		if (COM_CheckString (roDir))
-			Q_strncpy (host.rodir, roDir, sizeof (host.rodir));
-		}
-
-	if XASH_WIN32
-	COM_FixSlashes (host.rootdir);
-	endif
-
-	len = Q_strlen (host.rodir);
-
-	if (len && (host.rodir[len - 1] == '/'))
-		host.rodir[len - 1] = 0;
-
-	if (!COM_CheckStringEmpty (host.rootdir))
-		{
-		Sys_Error ("Changing working directory failed (empty working directory)\n");
-		return;
-		}
-
-	FS_LoadProgs ();
-
-	// TODO: this function will cause engine to stop in case of fail
-	// when it will have an option to return string error, restore Sys_Error
-	FS_SetCurrentDirectory (host.rootdir);
-
-	FS_Init ();*/
 	Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED));
 	FS_Init (basedir);
 	Sys_InitLog ();
@@ -1317,14 +1351,20 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	// init commands and vars
 	if (host_developer.value >= DEV_EXTENDED)
 		{
-		Cmd_AddRestrictedCommand ("sys_error", Sys_Error_f, "just throw a fatal error to test shutdown procedures");
-		Cmd_AddRestrictedCommand ("host_error", Host_Error_f, "just throw a host error to test shutdown procedures");
-		Cmd_AddRestrictedCommand ("crash", Host_Crash_f, "a way to force a bus error for development reasons");
+		Cmd_AddRestrictedCommand ("sys_error", Sys_Error_f,
+			"just throw a fatal error to test shutdown procedures");
+		Cmd_AddRestrictedCommand ("host_error", Host_Error_f,
+			"just throw a host error to test shutdown procedures");
+		Cmd_AddRestrictedCommand ("crash", Host_Crash_f,
+			"a way to force a bus error for development reasons");
 		}
 
 	Cvar_RegisterVariable (&host_allow_materials);
 	Cvar_RegisterVariable (&host_serverstate);
 	Cvar_RegisterVariable (&host_maxfps);
+
+	// [FWGS, 01.12.24]
+	Cvar_RegisterVariable (&fps_override);
 	Cvar_RegisterVariable (&host_framerate);
 	Cvar_RegisterVariable (&host_sleeptime);
 	Cvar_RegisterVariable (&host_sleeptime_debug);
@@ -1484,7 +1524,7 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 
 /***
 =================
-Host_Shutdown [FWGS, 01.01.24]
+Host_Shutdown
 =================
 ***/
 void HLEXPORT Host_Shutdown (void)
@@ -1505,7 +1545,7 @@ void HLEXPORT Host_Shutdown (void)
 		Host_WriteConfig ();
 #endif
 
-	SV_UnloadProgs ();	// [FWGS, 01.11.23]
+	SV_UnloadProgs ();
 	SV_Shutdown ("Server shutdown\n");
 	SV_ShutdownFilter ();
 	CL_Shutdown ();

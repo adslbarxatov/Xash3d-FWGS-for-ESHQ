@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -22,20 +22,42 @@ GNU General Public License for more details
 #define MAX_CMD_LINE	2048
 #define MAX_ALIAS_NAME	32
 
+// [FWGS, 01.12.24]
 typedef struct
 	{
-	byte	*data;
+	/*byte	*data;
 	int		cursize;
-	int		maxsize;
+	int		maxsize;*/
+	byte *const data;
+	const int maxsize;
+	int cursize;
 	} cmdbuf_t;
 
-qboolean		cmd_wait;
+// [FWGS, 01.12.24]
+/*qboolean		cmd_wait;
 cmdbuf_t		cmd_text, filteredcmd_text;
 byte			cmd_text_buf[MAX_CMD_BUFFER];
 byte			filteredcmd_text_buf[MAX_CMD_BUFFER];
 cmdalias_t		*cmd_alias;
 uint			cmd_condition;
-int				cmd_condlevel;
+int				cmd_condlevel;*/
+static qboolean	cmd_wait;
+static byte		cmd_text_buf[MAX_CMD_BUFFER];
+static byte		filteredcmd_text_buf[MAX_CMD_BUFFER];
+static cmdbuf_t	cmd_text =
+	{
+	.data = cmd_text_buf,
+	.maxsize = ARRAYSIZE (cmd_text_buf),
+	};
+static cmdbuf_t	filteredcmd_text =
+	{
+	.data = filteredcmd_text_buf,
+	.maxsize = ARRAYSIZE (filteredcmd_text_buf),
+	};
+static cmdalias_t	*cmd_alias;
+static uint		cmd_condition;
+static int		cmd_condlevel;
+
 static qboolean	cmd_currentCommandIsPrivileged;
 
 static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPrivileged);
@@ -46,11 +68,12 @@ COMMAND BUFFER
 =============================================================================
 ***/
 
-/***
+// [FWGS, 01.12.24] removed Cbuf_Init
+/*
 ============
 Cbuf_Init
 ============
-***/
+/
 static void Cbuf_Init (void)
 	{
 	cmd_text.data = cmd_text_buf;
@@ -58,7 +81,7 @@ static void Cbuf_Init (void)
 
 	filteredcmd_text.maxsize = cmd_text.maxsize = MAX_CMD_BUFFER;
 	filteredcmd_text.cursize = cmd_text.cursize = 0;
-	}
+	}*/
 
 /***
 ============
@@ -378,7 +401,7 @@ static void Cmd_Wait_f (void)
 
 /***
 ===============
-Cmd_Echo_f
+Cmd_Echo_f [FWGS, 01.12.24]
 
 Just prints the rest of the line to the console
 ===============
@@ -388,7 +411,9 @@ static void Cmd_Echo_f (void)
 	int	i;
 
 	for (i = 1; i < Cmd_Argc (); i++)
-		Con_Printf ("%s", Cmd_Argv (i));
+		Con_Printf ("%s ", Cmd_Argv (i));
+		/*Con_Printf ("%s", Cmd_Argv (i));*/
+
 	Con_Printf ("\n");
 	}
 
@@ -1221,7 +1246,7 @@ static void Cmd_List_f (void)
 
 /***
 ============
-Cmd_Unlink
+Cmd_Unlink [FWGS, 01.12.24]
 
 unlink all commands with specified flag
 ============
@@ -1232,13 +1257,16 @@ void Cmd_Unlink (int group)
 	cmd_t **prev;
 	int	count = 0;
 
-	if (Cvar_VariableInteger ("host_gameloaded") && FBitSet (group, CMD_SERVERDLL))
+	/*if (Cvar_VariableInteger ("host_gameloaded") && FBitSet (group, CMD_SERVERDLL))*/
+	if (FBitSet (group, CMD_SERVERDLL) && Cvar_VariableInteger ("host_gameloaded"))
 		return;
 
-	if (Cvar_VariableInteger ("host_clientloaded") && FBitSet (group, CMD_CLIENTDLL))
+	/*if (Cvar_VariableInteger ("host_clientloaded") && FBitSet (group, CMD_CLIENTDLL))*/
+	if (FBitSet (group, CMD_CLIENTDLL) && Cvar_VariableInteger ("host_clientloaded"))
 		return;
 
-	if (Cvar_VariableInteger ("host_gameuiloaded") && FBitSet (group, CMD_GAMEUIDLL))
+	/*if (Cvar_VariableInteger ("host_gameuiloaded") && FBitSet (group, CMD_GAMEUIDLL))*/
+	if (FBitSet (group, CMD_GAMEUIDLL) && Cvar_VariableInteger ("host_gameuiloaded"))
 		return;
 
 	prev = &cmd_functions;
@@ -1246,7 +1274,8 @@ void Cmd_Unlink (int group)
 	while (1)
 		{
 		cmd = *prev;
-		if (!cmd) break;
+		if (!cmd)
+			break;
 
 		// do filter by specified group
 		if (group && !FBitSet (cmd->flags, group))
@@ -1261,8 +1290,10 @@ void Cmd_Unlink (int group)
 
 		*prev = cmd->next;
 
-		if (cmd->name) Mem_Free (cmd->name);
-		if (cmd->desc) Mem_Free (cmd->desc);
+		if (cmd->name)
+			Mem_Free (cmd->name);
+		if (cmd->desc)
+			Mem_Free (cmd->desc);
 
 		Mem_Free (cmd);
 		count++;
@@ -1274,12 +1305,12 @@ void Cmd_Unlink (int group)
 // [FWGS, 01.04.23]
 static void Cmd_Apropos_f (void)
 	{
-	cmd_t *cmd;
-	convar_t *var;
-	cmdalias_t *alias;
-	const char *partial;
-	int count = 0;
-	char buf[MAX_VA_STRING];
+	cmd_t		*cmd;
+	convar_t	*var;
+	cmdalias_t	*alias;
+	const char	*partial;
+	int			count = 0;
+	char		buf[MAX_VA_STRING];
 
 	if (Cmd_Argc () < 2)
 		{
@@ -1400,7 +1431,8 @@ Cmd_Init
 ***/
 void Cmd_Init (void)
 	{
-	Cbuf_Init ();
+	// [FWGS, 01.12.24]
+	/*Cbuf_Init ();*/
 
 	cmd_functions = NULL;
 	cmd_condition = 0;
@@ -1429,8 +1461,6 @@ void Cmd_Init (void)
 		"create a script function. Without arguments show the list of all alias");
 	Cmd_AddRestrictedCommand ("unalias", Cmd_UnAlias_f, 
 		"remove a script function");
-
-	// [FWGS, 01.04.23]
 	Cmd_AddRestrictedCommand ("if", Cmd_If_f, 
 		"compare and set condition bits");
 	Cmd_AddRestrictedCommand ("else", Cmd_Else_f, 

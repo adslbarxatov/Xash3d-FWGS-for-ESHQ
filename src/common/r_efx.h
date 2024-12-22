@@ -1,17 +1,15 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 
 #ifndef R_EFX_H
 #define R_EFX_H
@@ -36,25 +34,8 @@
 #include "cl_entity.h"
 #endif
 
-/*
-// FOR REFERENCE, These are the built-in tracer colors.  Note, color 4 is the one
-// that uses the tracerred/tracergreen/tracerblue and traceralpha cvar settings
-color24 gTracerColors[] =
-{
-	{ 255, 255, 255 },		// White
-	{ 255, 0, 0 },			// Red
-	{ 0, 255, 0 },			// Green
-	{ 0, 0, 255 },			// Blue
-	{ 0, 0, 0 },			// Tracer default, filled in from cvars, etc.
-	{ 255, 167, 17 },		// Yellow-orange sparks
-	{ 255, 130, 90 },		// Yellowish streaks (garg)
-	{ 55, 60, 144 },		// Blue egon streak
-	{ 255, 130, 90 },		// More Yellowish streaks (garg)
-	{ 255, 140, 90 },		// More Yellowish streaks (garg)
-	{ 200, 130, 90 },		// More red streaks (garg)
-	{ 255, 120, 70 },		// Darker red streaks (garg)
-};
-*/
+// [FWGS, 01.12.24]
+#define TRACER_COLORINDEX_DEFAULT 4
 
 // Temporary entity array
 #define TENTPRIORITY_LOW	0

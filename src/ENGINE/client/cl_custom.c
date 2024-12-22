@@ -49,9 +49,11 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		return true;
 		}
 
+	// [FWGS, 01.12.24]
 	if (!cl_allow_download.value)
 		{
-		Con_Reportf ("Download refused, cl_allow_download is 0\n");
+		/*Con_Reportf ("Download refused, cl_allow_download is 0\n");*/
+		Con_Reportf ("Download refused, cl_allowdownload is 0\n");
 		return true;
 		}
 
@@ -71,12 +73,13 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		return true;
 		}
 
-	// [FWGS, 01.07.24]
+	// [FWGS, 01.12.24]
 	host.downloadcount++;
 
 	if (cl.http_download)
 		{
-		HTTP_AddDownload (filepath, pResource->nDownloadSize, true);
+		/*HTTP_AddDownload (filepath, pResource->nDownloadSize, true);*/
+		HTTP_AddDownload (filepath, pResource->nDownloadSize, true, pResource);
 		}
 	else
 		{

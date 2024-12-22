@@ -29,22 +29,22 @@ BOOL WINAPI DllMain (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 
 static UI_FUNCTIONS gFunctionTable =
 	{
-		UI_VidInit,
-		UI_Init,
-		UI_Shutdown,
-		UI_UpdateMenu,
-		UI_KeyEvent,
-		UI_MouseMove,
-		UI_SetActiveMenu,
-		UI_AddServerToList,
-		UI_GetCursorPos,
-		UI_SetCursorPos,
-		UI_ShowCursor,
-		UI_CharEvent,
-		UI_MouseInRect,
-		UI_IsVisible,
-		UI_CreditsActive,
-		UI_FinalCredits
+	UI_VidInit,
+	UI_Init,
+	UI_Shutdown,
+	UI_UpdateMenu,
+	UI_KeyEvent,
+	UI_MouseMove,
+	UI_SetActiveMenu,
+	UI_AddServerToList,
+	UI_GetCursorPos,
+	UI_SetCursorPos,
+	UI_ShowCursor,
+	UI_CharEvent,
+	UI_MouseInRect,
+	UI_IsVisible,
+	UI_CreditsActive,
+	UI_FinalCredits
 	};
 
 //=======================================================================

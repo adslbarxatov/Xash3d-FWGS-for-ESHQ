@@ -11,6 +11,7 @@
 PARTICLES MANAGEMENT
 ==============================================================
 ***/
+
 // particle ramps
 static int ramp1[8] = { 0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61 };
 static int ramp2[8] = { 0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66 };
@@ -22,12 +23,21 @@ static CVAR_DEFINE_AUTO (tracerspeed, "6000", 0, "tracer speed");
 static CVAR_DEFINE_AUTO (tracerlength, "0.8", 0, "tracer length factor");
 static CVAR_DEFINE_AUTO (traceroffset, "30", 0, "tracer starting offset");
 
-particle_t *cl_active_particles;
+// [FWGS, 01.12.24]
+/*particle_t *cl_active_particles;
 particle_t *cl_active_tracers;
 particle_t *cl_free_particles;
-particle_t *cl_particles = NULL;	// particle pool
+particle_t *cl_particles = NULL;	// particle pool*/
+static particle_t *cl_active_particles;
+static particle_t *cl_active_tracers;
+static particle_t *cl_free_particles;
+static particle_t *cl_particles = NULL; // particle pool
+
 static vec3_t	cl_avelocities[NUMVERTEXNORMALS];
 static float	cl_lasttimewarn = 0.0f;
+
+// [FWGS, 01.12.24] expand debugging BBOX particle hulls by this many units
+#define BOX_GAP	0.0f
 
 /***
 ================
@@ -251,7 +261,8 @@ static particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life
 	VectorCopy (vel, p->vel);
 	p->die = cl.time + life;
 	p->ramp = tracerlength.value;	// [FWGS, 01.07.23]
-	p->color = 4; // select custom color
+	/*p->color = 4; // select custom color*/
+	p->color = TRACER_COLORINDEX_DEFAULT; // [FWGS, 01.12.24] select custom color
 	p->packedColor = 255; // alpha
 
 	return p;
@@ -259,12 +270,15 @@ static particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life
 
 /***
 ==============================================================
-VIEWBEAMS MANAGEMENT
+VIEWBEAMS MANAGEMENT [FWGS, 01.12.24]
 ==============================================================
 ***/
-BEAM *cl_active_beams;
+/*BEAM *cl_active_beams;
 BEAM *cl_free_beams;
-BEAM *cl_viewbeams = NULL;		// beams pool
+BEAM *cl_viewbeams = NULL;		// beams pool*/
+static BEAM *cl_active_beams;
+static BEAM *cl_free_beams;
+static BEAM *cl_viewbeams = NULL; // beams pool
 
 /***
 ==============================================================
@@ -1476,14 +1490,14 @@ void GAME_EXPORT R_TeleportSplash (const vec3_t org)
 
 /***
 ===============
-R_RocketTrail
+R_RocketTrail [FWGS, 01.12.24]
 ===============
 ***/
 void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 	{
 	vec3_t		vec, right, up;
-	static int	tracercount;
-	float		s, c, x, y;
+	/*static int	tracercount;
+	float		s, c, x, y;*/
 	float		len, dec;
 	particle_t	*p;
 
@@ -1492,15 +1506,18 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 
 	if (type == 7)
 		{
+		dec = 1.0f;
 		VectorVectors (vec, right, up);
 		}
-
-	if (type < 128)
+	/*if (type < 128)*/
+	else if (type < 128)
 		{
 		dec = 3.0f;
 		}
 	else
 		{
+		// initialize if type will be 7 here
+		VectorVectors (vec, right, up);
 		dec = 1.0f;
 		type -= 128;
 		}
@@ -1509,43 +1526,61 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 
 	while (len > 0)
 		{
-		len -= dec;
+		/*len -= dec;*/
 
 		p = R_AllocParticle (NULL);
-		if (!p) return;
+		/*if (!p) return;*/
+		if (!p)
+			return;
 
+		len -= dec;
 		p->die = cl.time + 2.0f;
 
 		switch (type)
 			{
-			case 0:	// rocket trail
-				p->ramp = COM_RandomLong (0, 3);
+			/*case 0:	// rocket trail
+				p->ramp = COM_RandomLong (0, 3);*/
+			case 0:
+			case 1:
+				p->ramp = COM_RandomLong (0 + type * 2, 3 + type * 2);
 				p->color = ramp3[(int)p->ramp];
 				p->type = pt_fire;
 				VectorAddScalar (start, COM_RandomFloat (-3.0f, 3.0f), p->org);
 				break;
-			case 1:	// smoke smoke
+
+			/*case 1:	// smoke smoke
 				p->ramp = COM_RandomLong (2, 5);
 				p->color = ramp3[(int)p->ramp];
 				p->type = pt_fire;
 				VectorAddScalar (start, COM_RandomFloat (-3.0f, 3.0f), p->org);
 				break;
 			case 2:	// blood
-				p->type = pt_grav;
+				p->type = pt_grav;*/
+			case 2:
 				p->color = COM_RandomLong (67, 74);
+				p->type = pt_grav;
 				VectorAddScalar (start, COM_RandomFloat (-3.0f, 3.0f), p->org);
 				break;
-			case 3:
-			case 5:	// tracer
-				p->die = cl.time + 0.5f;
 
-				if (type == 3) p->color = 52 + ((tracercount & 4) << 1);
-				else p->color = 230 + ((tracercount & 4) << 1);
+			case 3:
+			/*case 5:	// tracer*/
+			case 5:
+				{
+				static int tracercount;
+				p->die = cl.time + 0.5f;
+				p->color = (tracercount & 4) * 2;
+
+				/*if (type == 3) p->color = 52 + ((tracercount & 4) << 1);
+				else p->color = 230 + ((tracercount & 4) << 1);*/
+				if (type == 3)
+					p->color += 52;
+				else
+					p->color += 230;
 
 				VectorCopy (start, p->org);
 				tracercount++;
 
-				if (FBitSet (tracercount, 1))
+				/*if (FBitSet (tracercount, 1))
 					{
 					p->vel[0] = 30.0f * vec[1];
 					p->vel[1] = 30.0f * -vec[0];
@@ -1554,22 +1589,42 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 					{
 					p->vel[0] = 30.0f * -vec[1];
 					p->vel[1] = 30.0f * vec[0];
-					}
+					}*/
+				p->vel[0] = 30.0f * vec[1];
+				p->vel[1] = 30.0f * vec[0];
+				p->vel[tracercount & 1] = -p->vel[tracercount & 1];
 				break;
-			case 4:	// slight blood
-				p->type = pt_grav;
+				/*case 4:	// slight blood
+				p->type = pt_grav;*/
+				}
+
+			case 4:
 				p->color = COM_RandomLong (67, 70);
+				p->type = pt_grav;
 				VectorAddScalar (start, COM_RandomFloat (-3.0f, 3.0f), p->org);
 				len -= 3.0f;
 				break;
-			case 6:	// voor trail
+
+			/*case 6:	// voor trail
 				p->color = COM_RandomLong (152, 155);
 				p->die += 0.3f;
-				VectorAddScalar (start, COM_RandomFloat (-8.0f, 8.0f), p->org);
+				VectorAddScalar (start, COM_RandomFloat (-8.0f, 8.0f), p->org);*/
+			case 6:
+				p->type = pt_fire;
+				p->ramp = COM_RandomLong (0, 3);
+				p->color = ramp3[(int)p->ramp];
+				VectorCopy (start, p->org);
 				break;
-			case 7:	// explosion tracer
+
+			/*case 7:	// explosion tracer
 				x = COM_RandomLong (0, 65535);
-				y = COM_RandomLong (8, 16);
+				y = COM_RandomLong (8, 16);*/
+			case 7:
+				{
+				float x = COM_RandomLong (0, 65535);
+				float y = COM_RandomLong (8, 16);
+				float s, c;
+
 				SinCos (x, &s, &c);
 				s *= y;
 				c *= y;
@@ -1577,18 +1632,88 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 				VectorMAMAM (1.0f, start, s, right, c, up, p->org);
 				VectorSubtract (start, p->org, p->vel);
 				VectorScale (p->vel, 2.0f, p->vel);
-				VectorMA (p->vel, COM_RandomFloat (96.0f, 111.0f), vec, p->vel);
+
+				/*VectorMA (p->vel, COM_RandomFloat (96.0f, 111.0f), vec, p->vel);*/
+				x = COM_RandomFloat (96.0f, 111.0f);
+				VectorMA (p->vel, x, vec, p->vel);
+
 				p->ramp = COM_RandomLong (0, 3);
 				p->color = ramp3[(int)p->ramp];
 				p->type = pt_explode2;
 				break;
+				}
+
 			default:
-				// just build line to show error
 				VectorCopy (start, p->org);
 				break;
 			}
 
 		VectorAdd (start, vec, start);
+		}
+	}
+
+/*
+===============
+PM_ParticleLine [FWGS, 01.12.24]
+
+draw line from particles
+================
+*/
+static void PM_ParticleLine (const vec3_t start, const vec3_t end, int pcolor, float life, float zvel)
+	{
+	float len, curdist;
+	vec3_t diff, pos;
+
+	// determine distance
+	VectorSubtract (end, start, diff);
+	len = VectorNormalizeLength (diff);
+	curdist = 0;
+
+	while (curdist <= len)
+		{
+		VectorMA (start, curdist, diff, pos);
+		CL_Particle (pos, pcolor, life, 0, zvel);
+		curdist += 2.0f;
+		}
+	}
+
+/*
+================
+PM_DrawRectangle [FWGS, 01.12.24]
+================
+*/
+static void PM_DrawRectangle (const vec3_t tl, const vec3_t bl, const vec3_t tr, const vec3_t br, int pcolor, float life)
+	{
+	PM_ParticleLine (tl, bl, pcolor, life, 0);
+	PM_ParticleLine (bl, br, pcolor, life, 0);
+	PM_ParticleLine (br, tr, pcolor, life, 0);
+	PM_ParticleLine (tr, tl, pcolor, life, 0);
+	}
+
+/*
+================
+PM_DrawBBox [FWGS, 01.12.24]
+================
+*/
+static void PM_DrawBBox (const vec3_t mins, const vec3_t maxs, const vec3_t origin, int pcolor, float life)
+	{
+	vec3_t p[8], tmp;
+	float gap = BOX_GAP;
+	int i;
+
+	for (i = 0; i < 8; i++)
+		{
+		tmp[0] = (i & 1) ? mins[0] - gap : maxs[0] + gap;
+		tmp[1] = (i & 2) ? mins[1] - gap : maxs[1] + gap;
+		tmp[2] = (i & 4) ? mins[2] - gap : maxs[2] + gap;
+
+		VectorAdd (tmp, origin, tmp);
+		VectorCopy (tmp, p[i]);
+		}
+
+	for (i = 0; i < 6; i++)
+		{
+		PM_DrawRectangle (p[boxpnt[i][1]], p[boxpnt[i][0]], p[boxpnt[i][2]], p[boxpnt[i][3]], pcolor, life);
 		}
 	}
 
@@ -1753,13 +1878,14 @@ void GAME_EXPORT R_StreakSplash (const vec3_t pos, const vec3_t dir, int color, 
 		}
 	}
 
-/***
+// [FWGS, 01.12.24]: removed R_DebugParticle
+/*
 ===============
 R_DebugParticle
 
 just for debug purposes
 ===============
-***/
+/
 void R_DebugParticle (const vec3_t pos, byte r, byte g, byte b)
 	{
 	particle_t *p;
@@ -1770,7 +1896,7 @@ void R_DebugParticle (const vec3_t pos, byte r, byte g, byte b)
 	VectorCopy (pos, p->org);
 	p->color = R_LookupColor (r, g, b);
 	p->die = cl.time + 0.01f;
-	}
+	}*/
 
 /***
 ===============

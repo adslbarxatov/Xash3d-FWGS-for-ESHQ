@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -25,13 +25,15 @@ typedef enum
 	T_COUNT
 	} cvartype_t;
 
-const char *cvartypes[] = { NULL, "BOOL", "NUMBER", "LIST", "STRING" };
+// [FWGS, 01.12.24]
+/*const char *cvartypes[] = { NULL, "BOOL", "NUMBER", "LIST", "STRING" };*/
+static const char *const cvartypes[] = { NULL, "BOOL", "NUMBER", "LIST", "STRING" };
 
 typedef struct parserstate_s
 	{
-	char *buf;
+	char		*buf;
 	char		token[MAX_STRING];
-	const char *filename;
+	const char	*filename;
 	} parserstate_t;
 
 typedef struct scrvardef_s
@@ -41,8 +43,8 @@ typedef struct scrvardef_s
 	char		desc[MAX_STRING];
 	float		fMin, fMax;
 	cvartype_t	type;
-	int		flags;
-	qboolean		fHandled;
+	int			flags;
+	qboolean	fHandled;
 	} scrvardef_t;
 
 /***
@@ -214,8 +216,7 @@ generic scr parser
 will callback on each scrvardef_t
 ==============
 ***/
-static int CSCR_ParseFile (const char *scriptfilename,
-	void (*callback)(scrvardef_t *var, void *), void *userdata)
+static int CSCR_ParseFile (const char *scriptfilename, void (*callback)(scrvardef_t *var, void *), void *userdata)
 	{
 	parserstate_t	state = { 0 };
 	qboolean		success = false;
@@ -267,7 +268,8 @@ finish:
 			Con_DPrintf (S_ERROR "Parse error in %s, token %s\n", scriptfilename, state.token);
 		}
 
-	if (start) Mem_Free (start);
+	if (start)
+		Mem_Free (start);
 
 	return count;
 	}

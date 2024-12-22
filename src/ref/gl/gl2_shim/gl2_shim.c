@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -33,7 +33,10 @@ Limitations:
 ***/
 
 #include "..\\gl_local.h"
-#ifndef XASH_GL_STATIC
+
+// [FWGS, 01.12.24]
+/*ifndef XASH_GL_STATIC*/
+#if !XASH_GL_STATIC
 #include "gl2_shim.h"
 
 #define MAX_SHADERLEN 4096
@@ -1346,7 +1349,9 @@ static void APIENTRY GL2_LoadMatrixf (const GLfloat *m)
 	gl2wrap_matrix.update = 0xFFFFFFFFFFFFFFFF;
 	}
 
-#ifdef XASH_GLES
+// [FWGS, 01.12.24]
+/*ifdef XASH_GLES*/
+#if XASH_GLES
 static void (APIENTRY *_pglDepthRangef)(GLfloat zFar, GLfloat zNear);
 static void APIENTRY GL2_DepthRange (GLdouble zFar, GLdouble zNear)
 	{
@@ -1386,10 +1391,6 @@ static void GL2_SetPointer (int idx, GLint size, GLenum type, GLsizei stride, co
 	gl2wrap_arrays.ptr[idx].stride = stride;
 	gl2wrap_arrays.ptr[idx].userptr = pointer;
 	gl2wrap_arrays.ptr[idx].vbo = gl2wrap_state.vbo;
-	//	if( vbo )
-	//		SetBits( gl2wrap_arrays.vbo_flags, BIT( idx );
-	//	else
-	//		ClearBits( gl2wrap_arrays.vbo_flags, BIT( idx );
 	}
 
 static void APIENTRY GL2_VertexPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
@@ -1464,7 +1465,8 @@ Persistent array always mapped to stream_pointer with BufferStorage
 just memcopy it into and flush when overflowed
 ===========================
 ***/
-static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int offset, GLuint start, GLuint end, int stride, int attr)
+static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int offset, GLuint start, GLuint end,
+	int stride, int attr)
 	{
 	if (gl2wrap_arrays.stream_counter + size > GL2_MAX_VERTS * 64)
 		{
@@ -1473,15 +1475,17 @@ static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int
 		pglUnmapBufferARB (GL_ARRAY_BUFFER_ARB);
 		gl2wrap_arrays.stream_counter = 0;
 		gl2wrap_arrays.stream_pointer = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, 0, GL2_MAX_VERTS * 64, flags);
-		//i = -1;
-		//continue;
+
 		size = end * stride, offset = 0;
 		}
 
-	memcpy (((char *)gl2wrap_arrays.stream_pointer) + gl2wrap_arrays.stream_counter, ((char *)gl2wrap_arrays.ptr[attr].userptr) + offset, size);
+	memcpy (((char *)gl2wrap_arrays.stream_pointer) + gl2wrap_arrays.stream_counter,
+		((char *)gl2wrap_arrays.ptr[attr].userptr) + offset, size);
 	if (!gl2wrap_config.coherent)
 		pglFlushMappedBufferRange (GL_ARRAY_BUFFER_ARB, gl2wrap_arrays.stream_counter, size);
-	pglVertexAttribPointerARB (prog->attridx[attr], gl2wrap_arrays.ptr[attr].size, gl2wrap_arrays.ptr[attr].type, attr == GL2_ATTR_COLOR, gl2wrap_arrays.ptr[attr].stride, (void *)(gl2wrap_arrays.stream_counter - offset));
+
+	pglVertexAttribPointerARB (prog->attridx[attr], gl2wrap_arrays.ptr[attr].size, gl2wrap_arrays.ptr[attr].type,
+		attr == GL2_ATTR_COLOR, gl2wrap_arrays.ptr[attr].stride, (void *)(gl2wrap_arrays.stream_counter - offset));
 	gl2wrap_arrays.stream_counter += size;
 	}
 
@@ -1492,7 +1496,8 @@ UpdateIncrementalArrayBuffer
 Like persistent buffer, but map every time when copying data when BufferStorage unavailiable
 ===========================
 ***/
-static void GL2_UpdateIncrementalArrayBuffer (gl2wrap_prog_t *prog, int size, int offset, GLuint start, GLuint end, int stride, int attr)
+static void GL2_UpdateIncrementalArrayBuffer (gl2wrap_prog_t *prog, int size, int offset, GLuint start,
+	GLuint end, int stride, int attr)
 	{
 	void *mem;
 	qboolean inv = false;
@@ -1510,8 +1515,10 @@ static void GL2_UpdateIncrementalArrayBuffer (gl2wrap_prog_t *prog, int size, in
 	memcpy (mem, ((char *)gl2wrap_arrays.ptr[attr].userptr) + offset, size);
 	if (gl2wrap_config.force_flush)
 		pglFlushMappedBufferRange (GL_ARRAY_BUFFER_ARB, 0, size);
+
 	pglUnmapBufferARB (GL_ARRAY_BUFFER_ARB);
-	pglVertexAttribPointerARB (prog->attridx[attr], gl2wrap_arrays.ptr[attr].size, gl2wrap_arrays.ptr[attr].type, attr == GL2_ATTR_COLOR, gl2wrap_arrays.ptr[attr].stride, (void *)(gl2wrap_arrays.stream_counter - offset));
+	pglVertexAttribPointerARB (prog->attridx[attr], gl2wrap_arrays.ptr[attr].size, gl2wrap_arrays.ptr[attr].type,
+		attr == GL2_ATTR_COLOR, gl2wrap_arrays.ptr[attr].stride, (void *)(gl2wrap_arrays.stream_counter - offset));
 	gl2wrap_arrays.stream_counter += size;
 	}
 
@@ -1528,7 +1535,8 @@ static void GL2_AllocArrayPersistenStorage (void)
 		GL_MAP_PERSISTENT_BIT | MB (gl2wrap_config.coherent, COHERENT);
 	pglGenBuffersARB (1, &gl2wrap_arrays.stream_buffer);
 	rpglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap_arrays.stream_buffer);
-	pglBufferStorage (GL_ARRAY_BUFFER_ARB, GL2_MAX_VERTS * 64, NULL, GL_MAP_WRITE_BIT | MB (gl2wrap_config.coherent, COHERENT) | GL_MAP_PERSISTENT_BIT);
+	pglBufferStorage (GL_ARRAY_BUFFER_ARB, GL2_MAX_VERTS * 64, NULL, GL_MAP_WRITE_BIT |
+		MB (gl2wrap_config.coherent, COHERENT) | GL_MAP_PERSISTENT_BIT);
 	gl2wrap_arrays.stream_pointer = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, 0, GL2_MAX_VERTS * 64, flags);
 	}
 

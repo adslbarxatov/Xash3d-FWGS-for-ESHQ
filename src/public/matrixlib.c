@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "port.h"
@@ -19,12 +19,13 @@ GNU General Public License for more details.
 #include "com_model.h"
 #include "xash3d_mathlib.h"
 
-const matrix3x4 m_matrix3x4_identity =
+// [FWGS, 01.12.24]
+/*const matrix3x4 m_matrix3x4_identity =
 	{
 	{ 1, 0, 0, 0 },	// PITCH	[forward], org[0]
 	{ 0, 1, 0, 0 },	// YAW	[right]  , org[1]
 	{ 0, 0, 1, 0 },	// ROLL	[up]     , org[2]
-	};
+	};*/
 
 /***
 ========================================================================
@@ -219,22 +220,27 @@ void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const ve
 	VectorAverage (mins, maxs, localCenter);
 	VectorSubtract (maxs, localCenter, localExtents);
 
+	// [FWGS, 01.12.24]
 	Matrix3x4_VectorTransform (world, localCenter, worldCenter);
-	worldExtents[0] = DotProductAbs (localExtents, world[0]);	// auto-transposed!
+	/*worldExtents[0] = DotProductAbs (localExtents, world[0]);	// auto-transposed!
 	worldExtents[1] = DotProductAbs (localExtents, world[1]);
-	worldExtents[2] = DotProductAbs (localExtents, world[2]);
+	worldExtents[2] = DotProductAbs (localExtents, world[2]);*/
+	worldExtents[0] = DotProductFabs (localExtents, world[0]); // auto-transposed!
+	worldExtents[1] = DotProductFabs (localExtents, world[1]);
+	worldExtents[2] = DotProductFabs (localExtents, world[2]);
 
 	VectorSubtract (worldCenter, worldExtents, absmin);
 	VectorAdd (worldCenter, worldExtents, absmax);
 	}
 
-const matrix4x4 m_matrix4x4_identity =
+// [FWGS, 01.12.24]
+/*const matrix4x4 m_matrix4x4_identity =
 	{
 	{ 1, 0, 0, 0 },	// PITCH
 	{ 0, 1, 0, 0 },	// YAW
 	{ 0, 0, 1, 0 },	// ROLL
 	{ 0, 0, 0, 1 },	// ORIGIN
-	};
+	};*/
 
 /***
 ========================================================================

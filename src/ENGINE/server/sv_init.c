@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -374,7 +374,7 @@ static void SV_ReadResourceList (const char *filename)
 
 /***
 ================
-SV_CreateGenericResources
+SV_CreateGenericResources [FWGS, 01.12.24]
 
 loads external resource list
 ================
@@ -382,13 +382,22 @@ loads external resource list
 static void SV_CreateGenericResources (void)
 	{
 	string	filename;
+	int		i;
 
 	Q_strncpy (filename, sv.model_precache[1], sizeof (filename));
-	COM_ReplaceExtension (filename, ".res", sizeof (filename));	// [FWGS, 01.05.23]
+	COM_ReplaceExtension (filename, ".res", sizeof (filename));
 	COM_FixSlashes (filename);
 
 	SV_ReadResourceList (filename);
 	SV_ReadResourceList ("reslist.txt");
+
+	for (i = 0; i < world.wadlist.count; i++)
+		{
+		if (world.wadlist.wadusage[i] > 0)
+			{
+			SV_GenericIndex (world.wadlist.wadnames[i]);
+			}
+		}
 	}
 
 /***
@@ -709,7 +718,7 @@ void SV_ActivateServer (int runPhysics)
 
 /***
 ================
-SV_DeactivateServer [FWGS, 01.03.24]
+SV_DeactivateServer
 
 deactivate server, free edicts, strings etc
 ================
@@ -734,9 +743,11 @@ void SV_DeactivateServer (void)
 
 	SV_FreeEdicts ();
 
-	// [FWGS, 01.04.23]
+	// [FWGS, 01.12.24]
 	PM_ClearPhysEnts (svgame.pmove);
-	SV_EmptyStringPool ();
+	/*SV_EmptyStringPool ();*/
+	SV_EmptyStringPool (true);
+	Mem_EmptyPool (svgame.stringspool);
 
 	for (i = 0; i < svs.maxclients; i++)
 		{
@@ -964,7 +975,7 @@ void SV_FreeTestPacket (void)
 
 /***
 ================
-SV_GenerateTestPacket [FWGS, 01.07.24]
+SV_GenerateTestPacket
 ================
 ***/
 static void SV_GenerateTestPacket (void)
@@ -1004,7 +1015,10 @@ static void SV_GenerateTestPacket (void)
 	// write packet base data
 	MSG_Init (&svs.testpacket, "BandWidthTest", svs.testpacket_buf, maxsize);
 	MSG_WriteLong (&svs.testpacket, -1);
-	MSG_WriteString (&svs.testpacket, "testpacket");
+
+	// [FWGS, 01.12.24]
+	/*MSG_WriteString (&svs.testpacket, "testpacket");*/
+	MSG_WriteString (&svs.testpacket, S2C_BANDWIDTHTEST);
 	svs.testpacket_crcpos = svs.testpacket.pData + MSG_GetNumBytesWritten (&svs.testpacket);
 	MSG_WriteDword (&svs.testpacket, 0); // to be changed by crc
 
@@ -1034,7 +1048,7 @@ static void SV_GenerateTestPacket (void)
 
 /***
 ================
-SV_SpawnServer [FWGS, 01.03.24]
+SV_SpawnServer
 
 Change the server to a new map, taking all connected
 clients along with it
@@ -1050,6 +1064,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	if (!SV_InitGame ())
 		return false;
+
+	// [FWGS, 01.12.24] re-initialize delta
+	Delta_Init ();
 
 	// unlock sv_cheats in local game
 	ClearBits (sv_cheats.flags, FCVAR_READ_ONLY);

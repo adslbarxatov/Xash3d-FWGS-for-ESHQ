@@ -34,10 +34,15 @@ GNU General Public License for more details
 #define MAX_TEXTCHANNELS	8		// must be power of two (GoldSrc uses 4 channels)
 #define TEXT_MSGNAME		"TextMessage%i"
 
-char			cl_textbuffer[MAX_TEXTCHANNELS][2048];
-client_textmessage_t	cl_textmessage[MAX_TEXTCHANNELS];
+// [FWGS, 01.12.24]
+/*char			cl_textbuffer[MAX_TEXTCHANNELS][2048];
+client_textmessage_t	cl_textmessage[MAX_TEXTCHANNELS];*/
+static char	cl_textbuffer[MAX_TEXTCHANNELS][2048];
+static client_textmessage_t	cl_textmessage[MAX_TEXTCHANNELS];
 
-static dllfunc_t cdll_exports[] =
+// [FWGS, 01.12.24]
+/*static dllfunc_t cdll_exports[] =*/
+static const dllfunc_t cdll_exports[] =
 	{
 	{ "Initialize", (void **)&clgame.dllFuncs.pfnInitialize },
 	{ "HUD_VidInit", (void **)&clgame.dllFuncs.pfnVidInit },
@@ -80,8 +85,9 @@ static dllfunc_t cdll_exports[] =
 	{ NULL, NULL }
 	};
 
-// optional exports
-static dllfunc_t cdll_new_exports[] = 	// allowed only in SDK 2.3 and higher
+// [FWGS, 01.12.24] optional exports
+/*static dllfunc_t cdll_new_exports[] = 	// allowed only in SDK 2.3 and higher*/
+static const dllfunc_t cdll_new_exports[] = // allowed only in SDK 2.3 and higher
 	{
 	{ "HUD_GetStudioModelInterface", (void **)&clgame.dllFuncs.pfnGetStudioModelInterface },
 	{ "HUD_DirectorMessage", (void **)&clgame.dllFuncs.pfnDirectorMessage },
@@ -97,13 +103,14 @@ static dllfunc_t cdll_new_exports[] = 	// allowed only in SDK 2.3 and higher
 
 static void pfnSPR_DrawHoles (int frame, int x, int y, const wrect_t *prc);
 
-/***
+// [FWGS, 01.12.24] removed CL_GetEntityByIndex, CL_ModelHandle, CL_IsThirdPerson
+/*
 ====================
 CL_GetEntityByIndex
 
 Render callback for studio models
 ====================
-***/
+/
 cl_entity_t *CL_GetEntityByIndex (int index)
 	{
 	if (!clgame.entities) // not in game yet
@@ -118,13 +125,13 @@ cl_entity_t *CL_GetEntityByIndex (int index)
 	return CL_EDICT_NUM (index);
 	}
 
-/***
+/
 ================
 CL_ModelHandle
 
 get model handle by index
 ================
-***/
+/
 model_t *CL_ModelHandle (int modelindex)
 	{
 	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
@@ -132,13 +139,13 @@ model_t *CL_ModelHandle (int modelindex)
 	return cl.models[modelindex];
 	}
 
-/***
+/
 ====================
 CL_IsThirdPerson
 
 returns true if thirdperson is enabled
 ====================
-***/
+/
 qboolean CL_IsThirdPerson (void)
 	{
 	cl.local.thirdperson = clgame.dllFuncs.CL_IsThirdPerson ();
@@ -146,7 +153,7 @@ qboolean CL_IsThirdPerson (void)
 	if (cl.local.thirdperson)
 		return true;
 	return false;
-	}
+	}*/
 
 /***
 ====================
@@ -241,7 +248,7 @@ static void CL_InitCDAudio (const char *filename)
 
 /***
 =============
-CL_AdjustXPos
+CL_AdjustXPos [FWGS, 01.12.24]
 
 adjust text by x pos
 =============
@@ -252,18 +259,26 @@ static int CL_AdjustXPos (float x, int width, int totalWidth)
 
 	if (x == -1)
 		{
-		xPos = (refState.width - width) * 0.5f;
+		/*xPos = (refState.width - width) * 0.5f;*/
+		xPos = (clgame.scrInfo.iWidth - width) * 0.5f;
 		}
 	else
 		{
+		// alight right
 		if (x < 0)
-			xPos = (1.0f + x) * refState.width - totalWidth;	// Alight right
-		else // align left
-			xPos = x * refState.width;
+			xPos = (1.0f + x) * clgame.scrInfo.iWidth - totalWidth;
+			/*xPos = (1.0f + x) * refState.width - totalWidth;*/
+
+		// align left
+		else
+			xPos = x * clgame.scrInfo.iWidth;
+			/*xPos = x * refState.width;*/
 		}
 
-	if (xPos + width > refState.width)
-		xPos = refState.width - width;
+	/*if (xPos + width > refState.width)
+		xPos = refState.width - width;*/
+	if (xPos + width > clgame.scrInfo.iWidth)
+		xPos = clgame.scrInfo.iWidth - width;
 	else if (xPos < 0)
 		xPos = 0;
 
@@ -272,7 +287,7 @@ static int CL_AdjustXPos (float x, int width, int totalWidth)
 
 /***
 =============
-CL_AdjustYPos
+CL_AdjustYPos [FWGS, 01.12.24]
 
 adjust text by y pos
 =============
@@ -283,19 +298,26 @@ static int CL_AdjustYPos (float y, int height)
 
 	if (y == -1) // centered?
 		{
-		yPos = (refState.height - height) * 0.5f;
+		/*yPos = (refState.height - height) * 0.5f;*/
+		yPos = (clgame.scrInfo.iHeight - height) * 0.5f;
 		}
 	else
 		{
-		// Alight bottom?
+		// alight bottom
 		if (y < 0)
-			yPos = (1.0f + y) * refState.height - height; // Alight bottom
-		else // align top
-			yPos = y * refState.height;
+			yPos = (1.0f + y) * clgame.scrInfo.iHeight - height;
+			/*yPos = (1.0f + y) * refState.height - height; // Alight bottom*/
+
+		// align top
+		else
+			yPos = y * clgame.scrInfo.iHeight;
+			/*yPos = y * refState.height;*/
 		}
 
-	if (yPos + height > refState.height)
-		yPos = refState.height - height;
+	/*if (yPos + height > refState.height)
+		yPos = refState.height - height;*/
+	if (yPos + height > clgame.scrInfo.iHeight)
+		yPos = clgame.scrInfo.iHeight - height;
 	else if (yPos < 0)
 		yPos = 0;
 
@@ -747,13 +769,14 @@ void CL_ParseFinaleCutscene (sizebuf_t *msg, int level)
 	CL_HudMessage (text->pName);
 	}
 
-/***
+// [FWGS, 01.12.24] removed CL_GetLocalPlayer
+/*
 ====================
 CL_GetLocalPlayer
 
 Render callback for studio models
 ====================
-***/
+/
 cl_entity_t *CL_GetLocalPlayer (void)
 	{
 	cl_entity_t *player;
@@ -762,7 +785,7 @@ cl_entity_t *CL_GetLocalPlayer (void)
 	Assert (player != NULL);
 
 	return player;
-	}
+	}*/
 
 /***
 ====================
@@ -1006,7 +1029,6 @@ static void CL_DrawLoadingOrPaused (int tex)
 	ref.dllFuncs.R_DrawStretchPic (x, y, width, height, 0, 0, 1, 1, tex);
 	}
 
-// [FWGS, 01.04.23]
 void CL_DrawHUD (int state)
 	{
 	if ((state == CL_ACTIVE) && !cl.video_prepped)
@@ -1028,12 +1050,20 @@ void CL_DrawHUD (int state)
 				CL_DrawScreenFade ();
 			break;
 
+		// [FWGS, 01.12.24]
 		case CL_PAUSED:
 			CL_DrawScreenFade ();
 			CL_DrawCrosshair ();
 			CL_DrawCenterPrint ();
 			clgame.dllFuncs.pfnRedraw (cl.time, cl.intermission);
-			CL_DrawLoadingOrPaused (cls.pauseIcon);
+
+			/*CL_DrawLoadingOrPaused (cls.pauseIcon);*/
+			if (showpause.value)
+				{
+				if (!cls.pauseIcon)
+					cls.pauseIcon = SCR_LoadPauseIcon ();
+				CL_DrawLoadingOrPaused (Q_max (0, cls.pauseIcon));
+				}
 			break;
 
 		case CL_LOADING:
@@ -1194,6 +1224,137 @@ void CL_ClearSpriteTextures (void)
 		clgame.sprites[i].needload = NL_UNREFERENCED;
 	}
 
+// [FWGS, 01.12.24] it's a Valve default value for LoadMapSprite (probably must be power of two)
+#define MAPSPRITE_SIZE 128
+
+/***
+====================
+Mod_LoadMapSprite [FWGS, 01.12.24]
+
+Loading a bitmap image as sprite with multiple frames
+as pieces of input image
+====================
+***/
+static void Mod_LoadMapSprite (model_t *mod, const void *buffer, size_t size, qboolean *loaded)
+	{
+	rgbdata_t	*pix, temp = { 0 };
+	char	texname[128];
+	int		i, w, h;
+	int		xl, yl;
+	int		numframes;
+	msprite_t	*psprite;
+	char	poolname[MAX_VA_STRING];
+
+	if (loaded)
+		*loaded = false;
+	Q_snprintf (texname, sizeof (texname), "#%s", mod->name);
+	Image_SetForceFlags (IL_OVERVIEW);
+	pix = FS_LoadImage (texname, buffer, size);
+	Image_ClearForceFlags ();
+
+	// bad image or something else
+	if (!pix)
+		return;
+
+	mod->type = mod_sprite;
+
+	if (pix->width % MAPSPRITE_SIZE)
+		w = pix->width - (pix->width % MAPSPRITE_SIZE);
+	else
+		w = pix->width;
+
+	if (pix->height % MAPSPRITE_SIZE)
+		h = pix->height - (pix->height % MAPSPRITE_SIZE);
+	else
+		h = pix->height;
+
+	if (w < MAPSPRITE_SIZE)
+		w = MAPSPRITE_SIZE;
+	if (h < MAPSPRITE_SIZE)
+		h = MAPSPRITE_SIZE;
+
+	// resample image if needed
+	Image_Process (&pix, w, h, IMAGE_FORCE_RGBA | IMAGE_RESAMPLE, 0.0f);
+
+	w = h = MAPSPRITE_SIZE;
+
+	// check range
+	if (w > pix->width)
+		w = pix->width;
+	if (h > pix->height)
+		h = pix->height;
+
+	// determine how many frames we needs
+	numframes = (pix->width * pix->height) / (w * h);
+	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
+	mod->mempool = Mem_AllocPool (poolname);
+	psprite = Mem_Calloc (mod->mempool, sizeof (msprite_t) + (numframes - 1) * sizeof (psprite->frames));
+	mod->cache.data = psprite; // make link to extradata
+
+	psprite->type = SPR_FWD_PARALLEL_ORIENTED;
+	psprite->texFormat = SPR_ALPHTEST;
+	psprite->numframes = mod->numframes = numframes;
+	psprite->radius = sqrt (((w >> 1) * (w >> 1)) + ((h >> 1) * (h >> 1)));
+
+	mod->mins[0] = mod->mins[1] = -w / 2;
+	mod->maxs[0] = mod->maxs[1] = w / 2;
+	mod->mins[2] = -h / 2;
+	mod->maxs[2] = h / 2;
+
+	// create a temporary pic
+	temp.width = w;
+	temp.height = h;
+	temp.type = pix->type;
+	temp.flags = pix->flags;
+	temp.size = w * h * PFDesc[temp.type].bpp;
+	temp.buffer = Mem_Malloc (mod->mempool, temp.size);
+	temp.palette = NULL;
+
+	// chop the image and upload into video memory
+	for (i = xl = yl = 0; i < numframes; i++)
+		{
+		mspriteframe_t	*pspriteframe;
+		int		xh = xl + w, yh = yl + h, x, y, j;
+		int		linedelta = (pix->width - w) * 4;
+		byte	*src = pix->buffer + (yl * pix->width + xl) * 4;
+		byte	*dst = temp.buffer;
+
+		// cut block from source
+		for (y = yl; y < yh; y++)
+			{
+			for (x = xl; x < xh; x++)
+				for (j = 0; j < 4; j++)
+					*dst++ = *src++;
+			src += linedelta;
+			}
+
+		// build uinque frame name
+		Q_snprintf (texname, sizeof (texname), "#MAP/%s_%i%i.spr", mod->name, i / 10, i % 10);
+
+		psprite->frames[i].frameptr = Mem_Calloc (mod->mempool, sizeof (mspriteframe_t));
+		pspriteframe = psprite->frames[i].frameptr;
+		pspriteframe->width = w;
+		pspriteframe->height = h;
+		pspriteframe->up = (h >> 1);
+		pspriteframe->left = -(w >> 1);
+		pspriteframe->down = (h >> 1) - h;
+		pspriteframe->right = w + -(w >> 1);
+		pspriteframe->gl_texturenum = GL_LoadTextureInternal (texname, &temp, TF_IMAGE);
+
+		xl += w;
+		if (xl >= pix->width)
+			{
+			xl = 0;
+			yl += h;
+			}
+		}
+
+	FS_FreeImage (pix);
+	Mem_Free (temp.buffer);
+	if (loaded)
+		*loaded = true;
+	}
+
 /***
 =============
 CL_LoadHudSprite
@@ -1240,7 +1401,9 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 
 	if (type == SPR_MAPSPRITE)
 		{
-		ref.dllFuncs.Mod_LoadMapSprite (m_pSprite, buf, size, &loaded);
+		// [FWGS, 01.12.24]
+		/*ref.dllFuncs.Mod_LoadMapSprite (m_pSprite, buf, size, &loaded);*/
+		Mod_LoadMapSprite (m_pSprite, buf, size, &loaded);
 		}
 	else
 		{
@@ -1603,21 +1766,27 @@ static client_sprite_t *SPR_GetList (char *psz, int *piCount)
 
 /***
 =============
-CL_FillRGBA
+CL_FillRGBA [FWGS, 01.12.24]
 =============
 ***/
 static void GAME_EXPORT CL_FillRGBA (int x, int y, int w, int h, int r, int g, int b, int a)
 	{
-	float _x = x, _y = y, _w = w, _h = h;
+	/*float _x = x, _y = y, _w = w, _h = h;*/
+	float	x_ = x;
+	float	y_ = y;
+	float	w_ = w;
+	float	h_ = h;
 
 	r = bound (0, r, 255);
 	g = bound (0, g, 255);
 	b = bound (0, b, 255);
 	a = bound (0, a, 255);
 
-	SPR_AdjustSize (&_x, &_y, &_w, &_h);
+	/*SPR_AdjustSize (&_x, &_y, &_w, &_h);*/
+	SPR_AdjustSize (&x_, &y_, &w_, &h_);
 
-	ref.dllFuncs.FillRGBA (_x, _y, _w, _h, r, g, b, a);
+	/*ref.dllFuncs.FillRGBA (_x, _y, _w, _h, r, g, b, a);*/
+	ref.dllFuncs.FillRGBA (kRenderTransAdd, x_, y_, w_, h_, r, g, b, a);
 	}
 
 /***
@@ -2299,7 +2468,9 @@ static void GAME_EXPORT pfnKillEvents (int entnum, const char *eventname)
 	if (eventIndex >= MAX_EVENTS)
 		return;
 
-	if ((entnum < 0) || (entnum > clgame.maxEntities))
+	// [FWGS, 01.12.24]
+	/*if ((entnum < 0) || (entnum > clgame.maxEntities))*/
+	if ((entnum < 0) || (entnum >= clgame.maxEntities))
 		return;
 
 	es = &cl.events;
@@ -2556,10 +2727,11 @@ struct msurface_s *pfnTraceSurface (int ground, float *vstart, float *vend)
 
 /***
 =============
-pfnGetMovevars
+pfnGetMovevars [FWGS, 01.12.24]
 =============
 ***/
-movevars_t *pfnGetMoveVars (void)
+/*movevars_t *pfnGetMoveVars (void)*/
+static movevars_t *pfnGetMoveVars (void)
 	{
 	return &clgame.movevars;
 	}
@@ -2705,7 +2877,7 @@ static void GAME_EXPORT COM_AddAppDirectoryToSearchPath (const char *pszBaseDir,
 COM_ExpandFilename [FWGS, 01.02.24]
 
 Finds the file in the search path, copies over the name with the full path name.
-This doesn't search in the pak file.
+This doesn't search in the pak file
 ===========
 ***/
 static int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, int nameOutBufferSize)
@@ -3034,21 +3206,27 @@ static void GAME_EXPORT pfnPlaySoundByNameAtPitch (char *filename, float volume,
 
 /***
 =============
-pfnFillRGBABlend
+pfnFillRGBABlend [FWGS, 01.12.24]
 =============
 ***/
 static void GAME_EXPORT CL_FillRGBABlend (int x, int y, int w, int h, int r, int g, int b, int a)
 	{
-	float _x = x, _y = y, _w = w, _h = h;
+	/*float _x = x, _y = y, _w = w, _h = h;*/
+	float	x_ = x;
+	float	y_ = y;
+	float	w_ = w;
+	float	h_ = h;
 
 	r = bound (0, r, 255);
 	g = bound (0, g, 255);
 	b = bound (0, b, 255);
 	a = bound (0, a, 255);
 
-	SPR_AdjustSize (&_x, &_y, &_w, &_h);
+	/*SPR_AdjustSize (&_x, &_y, &_w, &_h);*/
+	SPR_AdjustSize (&x_, &y_, &w_, &h_);
 
-	ref.dllFuncs.FillRGBABlend (_x, _y, _w, _h, r, g, b, a);
+	/*ref.dllFuncs.FillRGBABlend (_x, _y, _w, _h, r, g, b, a);*/
+	ref.dllFuncs.FillRGBA (kRenderTransTexture, x_, y_, w_, h_, r, g, b, a);
 	}
 
 /***
@@ -3087,6 +3265,7 @@ static char *pfnParseFile (char *data, char *token)
 TriAPI implementation
 =================
 ***/
+
 /***
 =================
 TriRenderMode
@@ -3328,7 +3507,7 @@ static void GAME_EXPORT NetAPI_Status (net_status_t *status)
 
 /***
 =================
-NetAPI_SendRequest [FWGS, 01.09.24]
+NetAPI_SendRequest
 =================
 ***/
 static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags, double timeout,
@@ -3387,9 +3566,11 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	nr->resp.remote_address = *remote_address;
 	nr->flags = flags;
 	
-	// local servers request
-	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "netinfo %i %i %i",
-		FBitSet (flags, FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);
+	// [FWGS, 01.12.24] local servers request
+	/*Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "netinfo %i %i %i",
+		FBitSet (flags, FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);*/
+	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO " %i %i %i", FBitSet (flags,
+		FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);
 	}
 
 /***

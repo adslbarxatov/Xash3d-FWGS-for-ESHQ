@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -48,8 +48,10 @@ qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 	#undef XASH_PLATFORM_HAVE_STATUS
 #endif
 
+// [FWGS, 01.12.24]
 #if XASH_POSIX
 	void Posix_Daemonize (void);
+	void Posix_SetupSigtermHandling (void);
 #endif
 
 #if XASH_SDL
@@ -61,12 +63,8 @@ qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 	const char *Android_GetAndroidID (void);
 	const char *Android_LoadID (void);
 	void Android_SaveID (const char *id);
-
-	// [FWGS, 01.11.23]
 	void Android_Init (void);
 	void *Android_GetNativeObject (const char *name);
-
-	// [FWGS, 01.05.24]
 	int Android_GetKeyboardHeight (void);
 	void Android_Shutdown (void);
 #endif
@@ -92,7 +90,7 @@ qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 	void PSVita_Init (void);
 	void PSVita_Shutdown (void);
 	qboolean PSVita_GetBasePath (char *buf, const size_t buflen);
-	int PSVita_GetArgv (int in_argc, char **in_argv, char ***out_argv);	// [FWGS, 01.05.23]
+	int PSVita_GetArgv (int in_argc, char **in_argv, char ***out_argv);
 	void PSVita_InputUpdate (void);
 #endif
 
@@ -102,11 +100,12 @@ qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
 	void DOS_Shutdown (void);
 #endif
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.12.24]
 #if XASH_LINUX
 	void Linux_Init (void);
 	void Linux_Shutdown (void);
 	void Linux_SetTimer (float time);
+	int Linux_GetProcessID (void);
 #endif
 
 // [FWGS, 01.07.24]
@@ -168,6 +167,14 @@ static inline void Platform_Shutdown (void)
 
 // [FWGS, 01.11.23] removed Platform_GetNativeObject
 
+// [FWGS, 01.12.24]
+static inline void Platform_SetupSigtermHandling (void)
+	{
+#if XASH_POSIX
+	Posix_SetupSigtermHandling ();
+#endif
+	}
+
 /***
 ==============================================================================
 MOBILE API
@@ -184,17 +191,21 @@ INPUT
 ***/
 // Gamepad support
 int Platform_JoyInit (int numjoy); // returns number of connected gamepads, negative if error
+
 // Text input
 void Platform_EnableTextInput (qboolean enable);
 key_modifier_t Platform_GetKeyModifiers (void);
+
 // System events
 void Platform_RunEvents (void);
+
 // Mouse
 void Platform_GetMousePos (int *x, int *y);
 void Platform_SetMousePos (int x, int y);
 void Platform_PreCreateMove (void);
 void Platform_MouseMove (float *x, float *y);
 void Platform_SetCursorType (VGUI_DefaultCursor type);
+
 // Clipboard
 int Platform_GetClipboardText (char *buffer, size_t size);
 void Platform_SetClipboardText (const char *buffer);
@@ -289,12 +300,16 @@ qboolean VoiceCapture_Lock (qboolean lock);
 	#define INLINE_RAISE(x) asm volatile( "int $3;" );
 	#define INLINE_NANOSLEEP1() // nothing!
 
+// [FWGS, 01.12.24]
 #elif XASH_LINUX && XASH_ARM && !XASH_64BIT
+
+	#include <sys/syscall.h>
+	#include <sys/types.h>
 
 	#define INLINE_RAISE(x) do \
 	{ \
 	int raise_pid = getpid(); \
-	int raise_tid = gettid(); \
+	pid_t raise_tid = Linux_GetProcessID(); \
 	int raise_sig = (x); \
 	__asm__ volatile ( \
 	"mov r7,#268\n\t" \
@@ -323,12 +338,16 @@ qboolean VoiceCapture_Lock (qboolean lock);
 	); \
 	} while( 0 )
 
+// [FWGS, 01.12.24]
 #elif XASH_LINUX && XASH_ARM && XASH_64BIT
+
+	#include <sys/syscall.h>
+	#include <sys/types.h>
 
 	#define INLINE_RAISE(x) do \
 	{ \
 	int raise_pid = getpid(); \
-	int raise_tid = gettid(); \
+	pid_t raise_tid = Linux_GetProcessID(); \
 	int raise_sig = (x); \
 	__asm__ volatile ( \
 	"mov x8,#131\n\t" \
@@ -357,12 +376,13 @@ qboolean VoiceCapture_Lock (qboolean lock);
 	); \
 	} while( 0 )
 
+// [FWGS, 01.12.24]
 #elif XASH_LINUX
-	#ifdef __NR_tgkill
-		#define INLINE_RAISE(x) syscall( __NR_tgkill, getpid(), gettid(), x )
-	#else // __NR_tgkill
+	#if defined( __NR_tgkill )
+		#define INLINE_RAISE(x) syscall( __NR_tgkill, getpid(), Linux_GetProcessID(), x )
+	#else
 		#define INLINE_RAISE(x) raise(x)
-	#endif // __NR_tgkill
+	#endif
 
 	#define INLINE_NANOSLEEP1() do \
 	{ \

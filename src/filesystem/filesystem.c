@@ -5,7 +5,6 @@ Copyright (C) 2000-2007 DarkPlaces contributors
 Copyright (C) 2007 Uncle Mike
 Copyright (C) 2015-2023 Xash3D FWGS contributors
 
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +12,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -22,16 +21,20 @@ GNU General Public License for more details
 #include <sys/types.h>	// [FWGS, 01.04.23]
 #include <sys/stat.h>
 #include <time.h>
+#include <errno.h>		// [FWGS, 01.12.24]
+
+// [FWGS, 01.12.24]
 #if XASH_WIN32
 #include <direct.h>
 #include <io.h>
 #elif XASH_DOS4GW
 #include <direct.h>
-#include <errno.h>
+/*include <errno.h>*/
 #else
 #include <dirent.h>
-#include <errno.h>
+/*include <errno.h>*/
 #endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include "port.h"
@@ -123,7 +126,6 @@ static void FS_BackupFileName (file_t *file, const char *path, uint options)
 		}
 	}
 
-
 #else
 static void FS_EnsureOpenFile (file_t *file) {}
 static void FS_BackupFileName (file_t *file, const char *path, uint options) {}
@@ -131,6 +133,18 @@ static void FS_BackupFileName (file_t *file, const char *path, uint options) {}
 
 static void FS_InitMemory (void);
 static void FS_Purge (file_t *file);
+
+// [FWGS, 01.12.24]
+void _Mem_Free (void *data, const char *filename, int fileline)
+	{
+	g_engfuncs._Mem_Free (data, filename, fileline);
+	}
+
+// [FWGS, 01.12.24]
+void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
+	{
+	return g_engfuncs._Mem_Alloc (poolptr, size, clear, filename, fileline);
+	}
 
 /***
 =============================================================================
@@ -916,11 +930,13 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 					GameInfo->gamemode = GAME_MULTIPLAYER_ONLY;
 				}
 
+			// [FWGS, 01.12.24]
 			else if (!Q_strnicmp (token, "ambient", 7))
 				{
 				int	ambientNum = Q_atoi (token + 7);
 
-				if ((ambientNum < 0) || (ambientNum > (NUM_AMBIENTS - 1)))
+				/*if ((ambientNum < 0) || (ambientNum > (NUM_AMBIENTS - 1)))*/
+				if ((ambientNum < 0) || (ambientNum >= NUM_AMBIENTS))
 					ambientNum = 0;
 				pfile = COM_ParseFile (pfile, GameInfo->ambientsound[ambientNum],
 					sizeof (GameInfo->ambientsound[ambientNum]));
@@ -1508,18 +1524,22 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 	return true;
 	}
 
-// [FWGS, 01.04.23]
-static poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline)
+// [FWGS, 01.12.24]
+/*static poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline)*/
+static poolhandle_t Mem_AllocPoolStub (const char *name, const char *filename, int fileline)
 	{
 	return (poolhandle_t)0xDEADC0DE;
 	}
 
-static void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)
+// [FWGS, 01.12.24]
+/*static void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline)*/
+static void Mem_FreePoolStub (poolhandle_t *poolptr, const char *filename, int fileline)
 	{
 	}
 
-// [FWGS, 01.07.23]
-static void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
+// [FWGS, 01.12.24]
+/*static void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)*/
+static void *Mem_AllocStub (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
 	{
 	void *ptr = malloc (size);
 
@@ -1529,18 +1549,25 @@ static void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, cons
 	return ptr;
 	}
 
-static void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename,
-	int fileline)
+// [FWGS, 01.12.24]
+/*static void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename,
+	int fileline)*/
+static void *Mem_ReallocStub (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear,
+	const char *filename, int fileline)
 	{
 	return realloc (memptr, size);
 	}
 
-static void _Mem_Free (void *data, const char *filename, int fileline)
+// [FWGS, 01.12.24]
+/*static void _Mem_Free (void *data, const char *filename, int fileline)*/
+static void Mem_FreeStub (void *data, const char *filename, int fileline)
 	{
 	free (data);
 	}
 
-static void _Con_Printf (const char *fmt, ...)
+// [FWGS, 01.12.24]
+/*static void _Con_Printf (const char *fmt, ...)*/
+static void Con_PrintfStub (const char *fmt, ...)
 	{
 	va_list ap;
 
@@ -1549,7 +1576,9 @@ static void _Con_Printf (const char *fmt, ...)
 	va_end (ap);
 	}
 
-static void _Sys_Error (const char *fmt, ...)
+// [FWGS, 01.12.24]
+/*static void _Sys_Error (const char *fmt, ...)*/
+static void Sys_ErrorStub (const char *fmt, ...)
 	{
 	va_list ap;
 
@@ -1560,8 +1589,9 @@ static void _Sys_Error (const char *fmt, ...)
 	exit (1);
 	}
 
-// [FWGS, 01.11.23]
-static void *Sys_GetNativeObject_stub (const char *object)
+// [FWGS, 01.12.24]
+/*static void *Sys_GetNativeObject_stub (const char *object)*/
+static void *Sys_GetNativeObjectStub (const char *object)
 	{
 	return NULL;
 	}
@@ -2055,6 +2085,17 @@ searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t
 	if (fs_ext_path)
 		{
 		char netpath[MAX_SYSPATH], dirpath[MAX_SYSPATH];
+
+		// [FWGS, 01.12.24] HACKHACK: when the code wants to access to root game directory
+		// it often uses ../ in conjunction with FS_AllowDirectPath
+		// it results in the access above the root game directory.
+		// FS_Open with "write" flag doesn't have this problem because
+		// it looks up relative to fs_writepath.
+		// The correct solution MIGHT be using fs_writepath instead of fs_rootdir here?
+		// But this need to be properly tested so as a temporary solution:
+		// just strip ../
+		if (!Q_strncmp (name, "../", 3))
+			name += 3;
 
 		Q_snprintf (dirpath, sizeof (dirpath), "%s/", fs_rootdir);
 		Q_snprintf (netpath, sizeof (netpath), "%s%s", dirpath, name);
@@ -2600,9 +2641,45 @@ static void FS_CustomFree (void *data)
 	Mem_Free (data);
 	}
 
+// [FWGS, 01.12.24]
+static byte *FS_LoadFileFromArchive (searchpath_t *sp, const char *path, int pack_ind, fs_offset_t *filesizeptr,
+	const qboolean sys_malloc)
+	{
+	fs_offset_t	filesize;
+	file_t		*file;
+	byte		*buf;
+	void		*(*pfnAlloc)(size_t) = sys_malloc ? malloc : FS_CustomAlloc;
+	void		(*pfnFree)(void *) = sys_malloc ? free : FS_CustomFree;
+
+	// custom load file function for compressed files
+	if (sp->pfnLoadFile)
+		return sp->pfnLoadFile (sp, path, pack_ind, filesizeptr, pfnAlloc, pfnFree);
+
+	file = sp->pfnOpenFile (sp, path, "rb", pack_ind);
+	if (!file) // TODO: indicate errors
+		return NULL;
+
+	filesize = file->real_length;
+	buf = (byte *)pfnAlloc (filesize + 1);
+
+	if (unlikely (!buf)) // TODO: indicate errors
+		{
+		Con_Reportf ("%s: can't alloc %li bytes, no free memory\n", __func__, (long)filesize + 1);
+		FS_Close (file);
+		return NULL;
+		}
+
+	buf[filesize] = '\0';
+	FS_Read (file, buf, filesize);
+	FS_Close (file);
+	if (filesizeptr) *filesizeptr = filesize;
+
+	return buf;
+	}
+
 /***
 ============
-FS_LoadFile [FWGS, 01.03.24]
+FS_LoadFile [FWGS, 01.12.24]
 
 Filename are relative to the xash directory.
 Always appends a 0 byte
@@ -2612,20 +2689,20 @@ static byte *FS_LoadFile_ (const char *path, fs_offset_t *filesizeptr, const qbo
 	const qboolean custom_alloc)
 	{
 	searchpath_t	*search;
-	fs_offset_t		filesize;
+	/*fs_offset_t		filesize;
 	file_t			*file;
-	byte			*buf;
+	byte			*buf;*/
 	char			netpath[MAX_SYSPATH];
 	int				pack_ind;
 
-	void *(*pfnAlloc)(size_t) = custom_alloc ? FS_CustomAlloc : malloc;
-	void (*pfnFree)(void *) = custom_alloc ? FS_CustomFree : free;
+	/*void *(*pfnAlloc)(size_t) = custom_alloc ? FS_CustomAlloc : malloc;
+	void (*pfnFree)(void *) = custom_alloc ? FS_CustomFree : free;*/
 
 	// some mappers used leading '/' or '\' in path to models or sounds
-	if (path[0] == '/' || path[0] == '\\')
+	if ((path[0] == '/') || (path[0] == '\\'))
 		path++;
 
-	if (path[0] == '/' || path[0] == '\\')
+	if ((path[0] == '/') || (path[0] == '\\'))
 		path++;
 
 	if (!fs_searchpaths || FS_CheckNastyPath (path))
@@ -2636,7 +2713,7 @@ static byte *FS_LoadFile_ (const char *path, fs_offset_t *filesizeptr, const qbo
 	if (!search)
 		return NULL;
 
-	// custom load file function for compressed files
+	/*// custom load file function for compressed files
 	if (search->pfnLoadFile)
 		return search->pfnLoadFile (search, netpath, pack_ind, filesizeptr, pfnAlloc, pfnFree);
 
@@ -2661,7 +2738,8 @@ static byte *FS_LoadFile_ (const char *path, fs_offset_t *filesizeptr, const qbo
 	if (filesizeptr)
 		*filesizeptr = filesize;
 
-	return buf;
+	return buf;*/
+	return FS_LoadFileFromArchive (search, netpath, pack_ind, filesizeptr, !custom_alloc);
 	}
 
 // [FWGS, 01.03.24]
@@ -2670,10 +2748,11 @@ byte *FS_LoadFileMalloc (const char *path, fs_offset_t *filesizeptr, qboolean ga
 	return FS_LoadFile_ (path, filesizeptr, gamedironly, false);
 	}
 
-// [FWGS, 01.03.24]
+// [FWGS, 01.12.24]
 byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
 	{
-	return FS_LoadFile_ (path, filesizeptr, gamedironly, g_engfuncs._Mem_Alloc != _Mem_Alloc);
+	/*return FS_LoadFile_ (path, filesizeptr, gamedironly, g_engfuncs._Mem_Alloc != _Mem_Alloc);*/
+	return FS_LoadFile_ (path, filesizeptr, gamedironly, true);
 	}
 
 qboolean CRC32_File (dword *crcvalue, const char *filename)
@@ -3097,14 +3176,14 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 	return search;
 	}
 
-// [FWGS, 01.07.24]
-static const char *FS_ArchivePath (file_t *f)
+// [FWGS, 01.12.24] removed FS_ArchivePath
+/*static const char *FS_ArchivePath (file_t *f)
 	{
 	if (f->searchpath)
 		return f->searchpath->filename;
 
 	return "plain";
-	}
+	}*/
 
 // [FWGS, 01.09.24]
 static qboolean FS_IsArchiveExtensionSupported (const char *ext, uint flags)
@@ -3126,15 +3205,42 @@ static qboolean FS_IsArchiveExtensionSupported (const char *ext, uint flags)
 	return false;
 	}
 
+// [FWGS, 01.12.24]
+static searchpath_t *FS_GetArchiveByName (const char *name, searchpath_t *prev)
+	{
+	searchpath_t *sp = prev ? prev->next : fs_searchpaths;
+
+	for (; sp; sp = sp->next)
+		{
+		if (!Q_stricmp (COM_FileWithoutPath (sp->filename), name))
+			return sp;
+		}
+
+	return NULL;
+	}
+
+// [FWGS, 01.12.24]
+static int FS_FindFileInArchive (searchpath_t *sp, const char *path, char *truepath, size_t len)
+	{
+	return sp->pfnFindFile (sp, path, truepath, len);
+	}
+
+// [FWGS, 01.12.24]
+static file_t *FS_OpenFileFromArchive (searchpath_t *sp, const char *path, const char *mode, int pack_ind)
+	{
+	return sp->pfnOpenFile (sp, path, mode, pack_ind);
+	}
+
 void FS_InitMemory (void)
 	{
 	fs_mempool = Mem_AllocPool ("FileSystem Pool");
 	fs_searchpaths = NULL;
 	}
 
+// [FWGS, 01.12.24]
 fs_interface_t g_engfuncs =
 	{
-	_Con_Printf,
+	/*_Con_Printf,
 	_Con_Printf,
 	_Con_Printf,
 	_Sys_Error,
@@ -3143,7 +3249,17 @@ fs_interface_t g_engfuncs =
 	_Mem_Alloc,
 	_Mem_Realloc,
 	_Mem_Free,
-	Sys_GetNativeObject_stub,	// [FWGS, 01.11.23]
+	Sys_GetNativeObject_stub,	// [FWGS, 01.11.23]*/
+	Con_PrintfStub,
+	Con_PrintfStub,
+	Con_PrintfStub,
+	Sys_ErrorStub,
+	Mem_AllocPoolStub,
+	Mem_FreePoolStub,
+	Mem_AllocStub,
+	Mem_ReallocStub,
+	Mem_FreeStub,
+	Sys_GetNativeObjectStub,
 	};
 
 // [FWGS, 01.08.24]
@@ -3257,6 +3373,12 @@ const fs_api_t g_api =
 	// [FWGS, 01.09.24]
 	FS_LoadFileMalloc,
 	FS_IsArchiveExtensionSupported,
+
+	// [FWGS, 01.12.24]
+	FS_GetArchiveByName,
+	FS_FindFileInArchive,
+	FS_OpenFileFromArchive,
+	FS_LoadFileFromArchive,
 	};
 
 // [FWGS, 01.09.24]

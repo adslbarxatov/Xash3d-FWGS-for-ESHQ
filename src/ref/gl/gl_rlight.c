@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -24,17 +24,21 @@ GNU General Public License for more details
 DYNAMIC LIGHTS
 =============================================================================
 ***/
+
 /***
 ==================
-CL_RunLightStyles [FWGS, 01.01.24]
+CL_RunLightStyles [FWGS, 01.12.24]
 ==================
 ***/
-void CL_RunLightStyles (void)
+/*void CL_RunLightStyles (void)*/
+void CL_RunLightStyles (lightstyle_t *ls)
 	{
-	int				i, k, flight, clight;
+	/*int				i, k, flight, clight;
 	float			l, lerpfrac, backlerp;
 	float			frametime = (gp_cl->time - gp_cl->oldtime);
-	lightstyle_t	*ls;
+	lightstyle_t	*ls;*/
+	int		i;
+	float	frametime = (gp_cl->time - gp_cl->oldtime);
 
 	if (!WORLDMODEL)
 		return;
@@ -50,39 +54,56 @@ void CL_RunLightStyles (void)
 	// 'm' is normal light, 'a' is no light, 'z' is double bright
 	for (i = 0; i < MAX_LIGHTSTYLES; i++)
 		{
-		ls = gEngfuncs.GetLightStyle (i);
-		if (!gp_cl->paused && (frametime <= 0.1f))
-			ls->time += frametime; // evaluate local time
+		/*ls = gEngfuncs.GetLightStyle (i);*/
+		int		k, flight, clight;
+		float	l, lerpfrac, backlerp;
 
-		flight = (int)Q_floor (ls->time * 10);
+		if (!gp_cl->paused && (frametime <= 0.1f))
+			/*ls->time += frametime; // evaluate local time*/
+			ls[i].time += frametime; // evaluate local time
+
+		/*flight = (int)Q_floor (ls->time * 10);
 		clight = (int)Q_ceil (ls->time * 10);
 		lerpfrac = (ls->time * 10) - flight;
 		backlerp = 1.0f - lerpfrac;
 
-		if (!ls->length)
+		if (!ls->length)*/
+		if (!ls[i].length)
 			{
 			tr.lightstylevalue[i] = 256;
 			continue;
 			}
-		else if (ls->length == 1)
+		/*else if (ls->length == 1)*/
+		else if (ls[i].length == 1)
 			{
 			// single length style so don't bother interpolating
-			tr.lightstylevalue[i] = (ls->pattern[0] - 'a') * 22;
+			/*tr.lightstylevalue[i] = (ls->pattern[0] - 'a') * 22;*/
+			tr.lightstylevalue[i] = (ls[i].map[0]) * 22;
 			continue;
 			}
-		else if (!ls->interp || !cl_lightstyle_lerping->flags)
+		/*else if (!ls->interp || !cl_lightstyle_lerping->flags)*/
+
+		flight = (int)Q_floor (ls[i].time * 10);
+		if (!ls[i].interp || !cl_lightstyle_lerping->value)
 			{
-			tr.lightstylevalue[i] = (ls->pattern[flight % ls->length] - 'a') * 22;
+			/*tr.lightstylevalue[i] = (ls->pattern[flight % ls->length] - 'a') * 22;*/
+			tr.lightstylevalue[i] = ls[i].map[flight % ls[i].length] * 22;
 			continue;
 			}
+
+		clight = (int)Q_ceil (ls[i].time * 10);
+		lerpfrac = (ls[i].time * 10) - flight;
+		backlerp = 1.0f - lerpfrac;
 
 		// interpolate animating light
 		// frame just gone
-		k = ls->map[flight % ls->length];
+		/*k = ls->map[flight % ls->length];*/
+		k = ls[i].map[flight % ls[i].length];
 		l = (float)(k * 22.0f) * backlerp;
 
 		// upcoming frame
-		k = ls->map[clight % ls->length];
+		/*k = ls->map[clight % ls->length];*/
+		k = ls[i].map[clight % ls[i].length];
 		l += (float)(k * 22.0f) * lerpfrac;
 
 		tr.lightstylevalue[i] = (int)l;
@@ -138,7 +159,7 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 
 /***
 =============
-R_PushDlights [FWGS, 01.07.24]
+R_PushDlights
 =============
 ***/
 void R_PushDlights (void)
@@ -154,9 +175,11 @@ void R_PushDlights (void)
 
 	RI.currentmodel = RI.currententity->model;
 
+	// [FWGS, 01.12.24]
 	for (i = 0; i < MAX_DLIGHTS; i++)
 		{
-		dlight_t *l = gEngfuncs.GetDynamicLight (i);
+		/*dlight_t *l = gEngfuncs.GetDynamicLight (i);*/
+		dlight_t *l = &tr.dlights[i];
 
 		if ((l->die < gp_cl->time) || !l->radius)
 			continue;
@@ -168,7 +191,7 @@ void R_PushDlights (void)
 		}
 	}
 
-// [FWGS, 01.02.24] удалена R_CountSurfaceDlights
+// [FWGS, 01.02.24] removed R_CountSurfaceDlights
 
 /***
 =======================================================================

@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -205,6 +205,7 @@ void VOX_LoadWord (channel_t *ch)
 	S_TrimStartEndTimes (ch, data, start * 0.01f * samples, end * 0.01f * samples);
 	}
 
+// [FWGS, 01.12.24]
 void VOX_FreeWord (channel_t *ch)
 	{
 	voxword_t *word = &ch->words[ch->wordIndex];
@@ -212,7 +213,8 @@ void VOX_FreeWord (channel_t *ch)
 	ch->currentWord = NULL;
 	memset (&ch->pMixer, 0, sizeof (ch->pMixer));
 
-	if (!word->sfx && !word->fKeepCached)
+	/*if (!word->sfx && !word->fKeepCached)*/
+	if (!word->sfx || word->fKeepCached)
 		return;
 
 	FS_FreeSound (word->sfx->cache);
@@ -251,17 +253,24 @@ float VOX_ModifyPitch (channel_t *ch, float pitch)
 	return pitch;
 	}
 
+// [FWGS, 01.12.24]
 static const char *VOX_GetDirectory (char *szpath, const char *psz, int nsize)
 	{
-	const char *p;
-	int len;
+	const char	*p;
+	int			len;
+
+	// HACKHACK: some modders send strings like "/fvox/_period four"
+	// which should get parsed as "_period four" said by fvox
+	// it might be incorrect but ignore first slash here for now
+	if (psz[0] == '/')
+		psz++;
 
 	// search / backwards
 	p = Q_strrchr (psz, '/');
 
 	if (!p)
 		{
-		Q_strncpy (szpath, "vox/", nsize);	// [FWGS, 01.05.23]
+		Q_strncpy (szpath, "vox/", nsize);
 		return psz;
 		}
 
@@ -269,7 +278,7 @@ static const char *VOX_GetDirectory (char *szpath, const char *psz, int nsize)
 
 	if (len > nsize)
 		{
-		Con_Printf ("%s: invalid directory in: %s\n", __func__, psz);	// [FWGS, 01.07.24]
+		Con_Printf ("%s: invalid directory in: %s\n", __func__, psz);
 		return NULL;
 		}
 
@@ -352,19 +361,19 @@ static int VOX_ParseString (char *psz, char *rgpparseword[CVOXWORDMAX])
 			return i;
 
 		// . and , are special but if not end of string
-		if ((*psz == '.' || *psz == ',') &&
-			psz[1] != '\n' && psz[1] != '\r' && psz[1] != '\0')
+		if (((*psz == '.') || (*psz == ',')) &&
+			(psz[1] != '\n') && (psz[1] != '\r') && (psz[1] != '\0'))
 			{
 			if (*psz == '.')
 				rgpparseword[i++] = (char *)voxperiod;
-			else rgpparseword[i++] = (char *)voxcomma;
+			else
+				rgpparseword[i++] = (char *)voxcomma;
 
 			if (i >= CVOXWORDMAX)
 				return i;
 			}
 
 		*psz++ = 0;
-
 		for (; *psz && (*psz == '.' || *psz == ' ' || *psz == ',');
 			psz++);
 
@@ -396,7 +405,6 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, qboolean fF
 	*pvoxword = voxwordDefault;
 
 	len = Q_strlen (psz);
-
 	if (len == 0)
 		return false;
 
@@ -418,12 +426,9 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, qboolean fF
 		char command;
 
 		// find command
-		for (; *psz &&
-			*psz != 'v' &&
-			*psz != 'p' &&
-			*psz != 's' &&
-			*psz != 'e' &&
-			*psz != 't'; psz++)
+		for (; *psz && (*psz != 'v') &&
+			(*psz != 'p') && (*psz != 's') &&
+			(*psz != 'e') && (*psz != 't'); psz++)
 			{
 			if (*psz == ')')
 				break;
@@ -441,11 +446,25 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, qboolean fF
 		i = Q_atoi (sznum);
 		switch (command)
 			{
-			case 'e': pvoxword->end = i; break;
-			case 'p': pvoxword->pitch = i; break;
-			case 's': pvoxword->start = i; break;
-			case 't': pvoxword->timecompress = i; break;
-			case 'v': pvoxword->volume = i; break;
+			case 'e':
+				pvoxword->end = i;
+				break;
+
+			case 'p':
+				pvoxword->pitch = i;
+				break;
+
+			case 's':
+				pvoxword->start = i;
+				break;
+
+			case 't':
+				pvoxword->timecompress = i;
+				break;
+
+			case 'v':
+				pvoxword->volume = i;
+				break;
 			}
 		}
 
@@ -532,14 +551,14 @@ static void VOX_ReadSentenceFile_ (byte *buf, fs_offset_t size)
 		if (cszrawsentences >= CVOXFILESENTENCEMAX)
 			break;
 
-		for (; p < last && (*p == '\n' || *p == '\r' || *p == '\t' || *p == ' ');
+		for (; p < last && ((*p == '\n') || (*p == '\r') || (*p == '\t') || (*p == ' '));
 			p++);
 
 		if (*p != '/')
 			{
 			name = p;
 
-			for (; p < last && *p != ' ' && *p != '\t'; p++);
+			for (; (p < last) && (*p != ' ') && (*p != '\t'); p++);
 
 			if (p < last)
 				*p++ = 0;
@@ -547,7 +566,7 @@ static void VOX_ReadSentenceFile_ (byte *buf, fs_offset_t size)
 			value = p;
 			}
 
-		for (; p < last && *p != '\n' && *p != '\r'; p++);
+		for (; (p < last) && (*p != '\n') && (*p != '\r'); p++);
 
 		if (p < last)
 			*p++ = 0;
@@ -602,10 +621,10 @@ static void Test_VOX_GetDirectory (void)
 	{
 	const char *data[] =
 		{
-			"", "", "vox/",
-			"bark bark", "bark bark", "vox/",
-			"barney/meow", "meow", "barney/"
-
+		"", "", "vox/",
+		"bark bark", "bark bark", "vox/",
+		"barney/meow", "meow", "barney/",
+		"/fvox/_period", "_period", "fvox/",
 		};
 	int i;
 

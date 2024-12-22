@@ -9,9 +9,10 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 */
+
 #ifndef FSCALLBACK_H
 #define FSCALLBACK_H
 
@@ -33,22 +34,31 @@ extern fs_globals_t *FI;
 #define FS_AllowDirectPaths (*g_fsapi.AllowDirectPaths)
 #define FS_AddGameDirectory (*g_fsapi.AddGameDirectory)
 #define FS_AddGameHierarchy (*g_fsapi.AddGameHierarchy)
+
+// [FWGS, 01.12.24]
+#ifndef FSCALLBACK_OVERRIDE_MALLOC_LIKE
 #define FS_Search (*g_fsapi.Search)
+#endif
+
 #define FS_SetCurrentDirectory (*g_fsapi.SetCurrentDirectory)
 #define FS_Path_f (*g_fsapi.Path_f)
 
 // gameinfo utils
 #define FS_LoadGameInfo (*g_fsapi.LoadGameInfo)
 
-// file ops
+// [FWGS, 01.12.24] file ops
+#ifndef FSCALLBACK_OVERRIDE_MALLOC_LIKE
 #define FS_Open (*g_fsapi.Open)
+#define FS_Close (*g_fsapi.Close)
+#endif
+
 #define FS_Write (*g_fsapi.Write)
 #define FS_Read (*g_fsapi.Read)
 #define FS_Seek (*g_fsapi.Seek)
 #define FS_Tell (*g_fsapi.Tell)
 #define FS_Eof (*g_fsapi.Eof)
 #define FS_Flush (*g_fsapi.Flush)
-#define FS_Close (*g_fsapi.Close)
+/*define FS_Close (*g_fsapi.Close)*/
 #define FS_Gets (*g_fsapi.Gets)
 #define FS_UnGetc (*g_fsapi.UnGetc)
 #define FS_Getc (*g_fsapi.Getc)
@@ -58,9 +68,12 @@ extern fs_globals_t *FI;
 #define FS_FileLength (*g_fsapi.FileLength)
 #define FS_FileCopy (*g_fsapi.FileCopy)
 
-// file buffer ops
+// [FWGS, 01.12.24] file buffer ops
+#ifndef FSCALLBACK_OVERRIDE_MALLOC_LIKE
 #define FS_LoadFile (*g_fsapi.LoadFile)
 #define FS_LoadDirectFile (*g_fsapi.LoadDirectFile)
+#endif
+
 #define FS_WriteFile (*g_fsapi.WriteFile)
 
 // file hashing

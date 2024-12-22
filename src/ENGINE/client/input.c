@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -37,7 +37,6 @@ static struct inputstate_s
 	float lastpitch, lastyaw;
 	} inputstate;
 
-// [FWGS, 01.07.23]
 CVAR_DEFINE_AUTO (m_pitch, "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"mouse pitch value");
 CVAR_DEFINE_AUTO (m_yaw, "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -48,14 +47,16 @@ static CVAR_DEFINE_AUTO (look_filter, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"filter look events making it smoother");
 static CVAR_DEFINE_AUTO (m_rawinput, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable mouse raw input");
-
-// [FWGS, 01.07.23]
 static CVAR_DEFINE_AUTO (cl_forwardspeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 	"Default forward move speed");
 static CVAR_DEFINE_AUTO (cl_backspeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 	"Default back move speed");
 static CVAR_DEFINE_AUTO (cl_sidespeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 	"Default side move speed");
+
+// [FWGS, 01.12.24]
+static CVAR_DEFINE_AUTO (m_grab_debug, "0", FCVAR_PRIVILEGED,
+	"show debug messages on mouse state change");
 
 /***
 ================
@@ -114,7 +115,7 @@ void IN_LockInputDevices (qboolean lock)
 
 /***
 ===========
-IN_StartupMouse [FWGS, 01.02.24]
+IN_StartupMouse
 ===========
 ***/
 static void IN_StartupMouse (void)
@@ -124,6 +125,7 @@ static void IN_StartupMouse (void)
 	Cvar_RegisterVariable (&m_yaw);
 	Cvar_RegisterVariable (&look_filter);
 	Cvar_RegisterVariable (&m_rawinput);
+	Cvar_RegisterVariable (&m_grab_debug);	// [FWGS, 01.12.24]
 
 	// You can use -nomouse argument to prevent using mouse from client
 	// -noenginemouse will disable all mouse input
@@ -170,7 +172,7 @@ void IN_MouseRestorePos (void)
 
 /***
 ===========
-IN_ToggleClientMouse [FWGS, 01.07.23]
+IN_ToggleClientMouse
 
 Called when key_dest is changed
 ===========
@@ -180,7 +182,7 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 	if (newstate == oldstate)
 		return;
 
-	// since SetCursorType controls cursor visibility [FWGS, 01.05.23]
+	// since SetCursorType controls cursor visibility
 	// execute it first, and then check mouse grab state
 	if ((newstate == key_menu) || (newstate == key_console))
 		{
@@ -209,65 +211,125 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		IN_ActivateMouse ();
 		}
 
-// [FWGS, 01.02.24]
-static void IN_CheckMouseState (qboolean active)
+// [FWGS, 01.12.24]
+/*static void IN_CheckMouseState (qboolean active)*/
+static void IN_SetRelativeMouseMode (qboolean set, qboolean verbose)
 	{
-	static qboolean s_bRawInput, s_bMouseGrab;
+	/*static qboolean s_bRawInput, s_bMouseGrab;
 
-#if XASH_WIN32
+	if XASH_WIN32
 	qboolean useRawInput = (m_rawinput.value && clgame.client_dll_uses_sdl) ||
 		(clgame.dllFuncs.pfnLookEvent != NULL);
-#else
+	else
 	qboolean useRawInput = true; // always use SDL code
-#endif
+	endif*/
+	static qboolean s_bRawInput;
 
-	if (m_ignore.value)
+	/*if (m_ignore.value)
 		return;
 
-	if (active && useRawInput && !host.mouse_visible && (cls.state == ca_active))
+	if (active && useRawInput && !host.mouse_visible && (cls.state == ca_active))*/
+	if (set && !s_bRawInput)
 		{
-		if (!s_bRawInput)
-			{
+		/*if (!s_bRawInput)
+			{*/
 #if XASH_SDL == 2
-			SDL_GetRelativeMouseState (NULL, NULL);
-			SDL_SetRelativeMouseMode (SDL_TRUE);
+			/*SDL_GetRelativeMouseState (NULL, NULL);
+			SDL_SetRelativeMouseMode (SDL_TRUE);*/
+		SDL_GetRelativeMouseState (NULL, NULL);
+		SDL_SetRelativeMouseMode (SDL_TRUE);
 #endif
 
-			s_bRawInput = true;
-			}
+		/*s_bRawInput = true;
+		}*/
+		s_bRawInput = true;
+		if (verbose)
+			Con_Printf ("%s: true\n", __func__);
 		}
-	else
+
+	/*else*/
+	else if (!set && s_bRawInput)
 		{
-		if (s_bRawInput)
-			{
+		/*if (s_bRawInput)
+			{*/
 #if XASH_SDL == 2
-			SDL_GetRelativeMouseState (NULL, NULL);
-			SDL_SetRelativeMouseMode (SDL_FALSE);
+		/*SDL_GetRelativeMouseState (NULL, NULL);
+			SDL_SetRelativeMouseMode (SDL_FALSE);*/
+		SDL_GetRelativeMouseState (NULL, NULL);
+		SDL_SetRelativeMouseMode (SDL_FALSE);
 #endif
-			s_bRawInput = false;
-			}
+		/*s_bRawInput = false;
+		}*/
+
+		s_bRawInput = false;
+		if (verbose)
+			Con_Printf ("%s: false\n", __func__);
 		}
+	}
+
+// [FWGS, 01.12.24]
+static void IN_SetMouseGrab (qboolean set, qboolean verbose)
+	{
+	static qboolean s_bMouseGrab;
+
+	if (set && !s_bMouseGrab)
+		/*if (active && !host.mouse_visible && (cls.state == ca_active))*/
+		{
+		/*if (!s_bMouseGrab)
+			{*/
+#if XASH_SDL
+			/*SDL_SetWindowGrab (host.hWnd, SDL_TRUE);*/
+		SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
+#endif
+		/*s_bMouseGrab = true;
+		}*/
+		s_bMouseGrab = true;
+		if (verbose)
+			Con_Printf ("%s: true\n", __func__);
+		}
+
+	/*else*/
+	else if (!set && s_bMouseGrab)
+		{
+		/*if (s_bMouseGrab)
+			{*/
+#if XASH_SDL
+			/*SDL_SetWindowGrab (host.hWnd, SDL_FALSE);*/
+		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
+#endif
+		/*s_bMouseGrab = false;
+		}*/
+		s_bMouseGrab = false;
+		if (verbose)
+			Con_Printf ("%s: false\n", __func__);
+		}
+	}
+
+// [FWGS, 01.12.24]
+static void IN_CheckMouseState (qboolean active)
+	{
+	qboolean use_raw_input, verbose;
+
+#if XASH_WIN32
+	use_raw_input = (m_rawinput.value && clgame.client_dll_uses_sdl) || (clgame.dllFuncs.pfnLookEvent != NULL);
+#else
+	use_raw_input = true; // always use SDL code
+#endif
+
+	verbose = m_grab_debug.value ? true : false;
+
+	if (m_ignore.value)
+		active = false;
+
+	if (active && use_raw_input && !host.mouse_visible && (cls.state == ca_active))
+		IN_SetRelativeMouseMode (true, verbose);
+	else
+		IN_SetRelativeMouseMode (false, verbose);
 
 	if (active && !host.mouse_visible && (cls.state == ca_active))
-		{
-		if (!s_bMouseGrab)
-			{
-#if XASH_SDL
-			SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
-#endif
-			s_bMouseGrab = true;
-			}
-		}
+		IN_SetMouseGrab (true, verbose);
 	else
-		{
-		if (s_bMouseGrab)
-			{
-#if XASH_SDL
-			SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
-#endif
-			s_bMouseGrab = false;
-			}
-		}
+		IN_SetMouseGrab (false, verbose);
 	}
 
 /***
@@ -438,15 +500,16 @@ Common function for engine joystick movement
 ================
 ***/
 
-#define F (1U << 0)	// Forward
-#define B (1U << 1)	// Back
-#define L (1U << 2)	// Left
-#define R (1U << 3)	// Right
-#define T (1U << 4)	// Forward stop
-#define S (1U << 5)	// Side stop
+#define F_ (1U << 0)	// Forward (ESHQ: закрыто возможное пересечение с названиями функций и переменных)
+#define B_ (1U << 1)	// Back
+#define L_ (1U << 2)	// Left
+#define R_ (1U << 3)	// Right
+#define T_ (1U << 4)	// Forward stop
+#define S_ (1U << 5)	// Side stop
+
 static void IN_JoyAppendMove (usercmd_t *cmd, float forwardmove, float sidemove)
 	{
-	static uint moveflags = T | S;
+	static uint moveflags = T_ | S_;
 
 	if (forwardmove)
 		cmd->forwardmove = forwardmove * cl_forwardspeed.value;
@@ -455,67 +518,67 @@ static void IN_JoyAppendMove (usercmd_t *cmd, float forwardmove, float sidemove)
 
 	if (forwardmove)
 		{
-		moveflags &= ~T;
+		moveflags &= ~T_;
 		}
-	else if (!(moveflags & T))
+	else if (!(moveflags & T_))
 		{
 		Cmd_ExecuteString ("-back");
 		Cmd_ExecuteString ("-forward");
-		moveflags |= T;
+		moveflags |= T_;
 		}
 
 	if (sidemove)
 		{
-		moveflags &= ~S;
+		moveflags &= ~S_;
 		}
-	else if (!(moveflags & S))
+	else if (!(moveflags & S_))
 		{
 		Cmd_ExecuteString ("-moveleft");
 		Cmd_ExecuteString ("-moveright");
-		moveflags |= S;
+		moveflags |= S_;
 		}
 
-	if ((forwardmove > 0.7f) && !(moveflags & F))
+	if ((forwardmove > 0.7f) && !(moveflags & F_))
 		{
-		moveflags |= F;
+		moveflags |= F_;
 		Cmd_ExecuteString ("+forward");
 		}
-	else if ((forwardmove < 0.7f) && (moveflags & F))
+	else if ((forwardmove < 0.7f) && (moveflags & F_))
 		{
-		moveflags &= ~F;
+		moveflags &= ~F_;
 		Cmd_ExecuteString ("-forward");
 		}
 
-	if ((forwardmove < -0.7f) && !(moveflags & B))
+	if ((forwardmove < -0.7f) && !(moveflags & B_))
 		{
-		moveflags |= B;
+		moveflags |= B_;
 		Cmd_ExecuteString ("+back");
 		}
-	else if ((forwardmove > -0.7f) && (moveflags & B))
+	else if ((forwardmove > -0.7f) && (moveflags & B_))
 		{
-		moveflags &= ~B;
+		moveflags &= ~B_;
 		Cmd_ExecuteString ("-back");
 		}
 
-	if ((sidemove > 0.9f) && !(moveflags & R))
+	if ((sidemove > 0.9f) && !(moveflags & R_))
 		{
-		moveflags |= R;
+		moveflags |= R_;
 		Cmd_ExecuteString ("+moveright");
 		}
-	else if ((sidemove < 0.9f) && (moveflags & R))
+	else if ((sidemove < 0.9f) && (moveflags & R_))
 		{
-		moveflags &= ~R;
+		moveflags &= ~R_;
 		Cmd_ExecuteString ("-moveright");
 		}
 
-	if ((sidemove < -0.9f) && !(moveflags & L))
+	if ((sidemove < -0.9f) && !(moveflags & L_))
 		{
-		moveflags |= L;
+		moveflags |= L_;
 		Cmd_ExecuteString ("+moveleft");
 		}
-	else if ((sidemove > -0.9f) && (moveflags & L))
+	else if ((sidemove > -0.9f) && (moveflags & L_))
 		{
-		moveflags &= ~L;
+		moveflags &= ~L_;
 		Cmd_ExecuteString ("-moveleft");
 		}
 	}
@@ -544,25 +607,25 @@ static void IN_CollectInput (float *forward, float *side, float *pitch, float *y
 		inputstate.lastpitch = *pitch;
 		inputstate.lastyaw = *yaw;
 		}
-
-		}
+	}
 
 /***
 ================
-IN_EngineAppendMove
+IN_EngineAppendMove [FWGS, 01.12.24]
 
 Called from cl_main.c after generating command in client
 ================
 ***/
-void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)
+/*void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)*/
+void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active)
 	{
-	float		forward, side, pitch, yaw;
-	usercmd_t	*cmd = cmd1;
+	float	forward, side, pitch, yaw;
+	/*usercmd_t	*cmd = cmd1;*/
 
 	if (clgame.dllFuncs.pfnLookEvent)
 		return;
 
-	if (cls.key_dest != key_game || cl.paused || cl.intermission)
+	if ((cls.key_dest != key_game) || cl.paused || cl.intermission)
 		return;
 
 	forward = side = pitch = yaw = 0;
@@ -572,7 +635,6 @@ void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)
 		float sensitivity = 1;
 
 		IN_CollectInput (&forward, &side, &pitch, &yaw, false);
-
 		IN_JoyAppendMove (cmd, forward, side);
 
 		if (pitch || yaw)
@@ -621,8 +683,6 @@ Called every frame, even if not generating commands
 void Host_InputFrame (void)
 	{
 	Sys_SendKeyEvents ();
-
 	IN_Commands ();
-
 	IN_MouseMove ();
 	}

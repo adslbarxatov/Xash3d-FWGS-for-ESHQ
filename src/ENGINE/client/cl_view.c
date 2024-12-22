@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -494,12 +494,12 @@ static void R_ShowTree (void)
 	float	y = NODE_INTERVAL_Y (1.0f);
 	mleaf_t	*viewleaf;
 
-	// [FWGS, 01.07.23]
 	if (!cl.worldmodel || !r_showtree.value)
 		return;
 
 	world.recursion_level = 0;
 	viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes);
+	ref.dllFuncs.TriRenderMode (kRenderTransTexture);	// [FWGS, 01.12.24]
 	ref.dllFuncs.Color4f (1, 0.7f, 0, 1.0f);
 
 	R_ShowTree_r (cl.worldmodel->nodes, x, y, world.max_recursion * 3.5f, 2, viewleaf);
@@ -509,12 +509,12 @@ static void R_ShowTree (void)
 
 /***
 ==================
-V_PostRender [FWGS, 01.07.24]
+V_PostRender [FWGS, 01.12.24]
 ==================
 ***/
 void V_PostRender (void)
 	{
-	qboolean	draw_2d = false;
+	qboolean draw_2d = false;
 
 	ref.dllFuncs.R_AllowFog (false);
 	ref.dllFuncs.R_Set2DMode (true);
@@ -541,8 +541,10 @@ void V_PostRender (void)
 		SCR_NetSpeeds ();
 		SCR_DrawPos ();
 		SCR_DrawEnts ();
-
 		SCR_DrawNetGraph ();
+
+		SCR_DrawUserCmd ();
+
 		SV_DrawOrthoTriangles ();
 		CL_DrawDemoRecording ();
 		CL_DrawHUD (CL_CHANGELEVEL);

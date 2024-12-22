@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -1183,7 +1183,7 @@ static void OSK_EnableTextInput (qboolean enable, qboolean force)
 
 /***
 ============
-Joy_DrawSymbolButton [FWGS, 01.04.23]
+Joy_DrawSymbolButton [FWGS, 01.12.24]
 
 Draw button with symbol on it
 ============
@@ -1199,7 +1199,8 @@ static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float
 		h = height * refState.height;
 
 	if (symb == osk.curbutton.val)
-		ref.dllFuncs.FillRGBABlend (x1, y1, w, h, 255, 160, 0, 100);
+		ref.dllFuncs.FillRGBA (kRenderTransTexture, x1, y1, w, h, 255, 160, 0, 100);
+		/*ref.dllFuncs.FillRGBABlend (x1, y1, w, h, 255, 160, 0, 100);*/
 
 	if (!symb || (symb == ' ') || ((symb >= OSK_TAB) && (symb < OSK_SPECKEY_LAST)))
 		return;
@@ -1223,26 +1224,25 @@ static void OSK_DrawSpecialButton (const char *name, float x, float y, float wid
 		y * refState.height + height * 0.4 * refState.height, name, color);
 	}
 
-
 /***
 =============
-Joy_DrawOnScreenKeyboard
+Joy_DrawOnScreenKeyboard [FWGS, 01.12.24]
 
 Draw on screen keyboard, if enabled
 =============
 ***/
 void OSK_Draw (void)
 	{
-	const char **curlayout = osk_keylayout[osk.curlayout]; // shortcut :)
-	float  x, y;
-	int i, j;
+	const char	**curlayout = osk_keylayout[osk.curlayout]; // shortcut :)
+	float		x, y;
+	int			i, j;
 
-	// [FWGS, 01.07.23]
 	if (!osk.enable || !osk_enable.value || !osk.curbutton.val)
 		return;
 
 	// draw keyboard
-	ref.dllFuncs.FillRGBABlend (X_START * refState.width, Y_START * refState.height,
+	/*ref.dllFuncs.FillRGBABlend (X_START * refState.width, Y_START * refState.height,*/
+	ref.dllFuncs.FillRGBA (kRenderTransTexture, X_START * refState.width, Y_START * refState.height,
 		X_STEP * MAX_OSK_ROWS * refState.width,
 		Y_STEP * MAX_OSK_LINES * refState.height, 100, 100, 100, 100);
 
@@ -1256,4 +1256,3 @@ void OSK_Draw (void)
 		for (x = X_START, i = 0; i < MAX_OSK_ROWS; i++, x += X_STEP)
 			OSK_DrawSymbolButton (curlayout[j][i], x, y, X_STEP, Y_STEP);
 	}
-

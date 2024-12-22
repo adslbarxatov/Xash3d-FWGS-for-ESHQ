@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -18,7 +18,9 @@ GNU General Public License for more details
 #include "gl_local.h"
 #include "gl_export.h"
 
-#ifdef XASH_GL4ES
+// [FWGS, 01.12.24]
+/*ifdef XASH_GL4ES*/
+#if XASH_GL4ES
 #include "gl4es/include/gl4esinit.h"
 #endif
 
@@ -27,6 +29,18 @@ ref_api_t		gEngfuncs;
 ref_globals_t	*gpGlobals;
 ref_client_t	*gp_cl;
 ref_host_t		*gp_host;
+
+// [FWGS, 01.12.24]
+void _Mem_Free (void *data, const char *filename, int fileline)
+	{
+	gEngfuncs._Mem_Free (data, filename, fileline);
+	}
+
+// [FWGS, 01.12.24]
+void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
+	{
+	return gEngfuncs._Mem_Alloc (poolptr, size, clear, filename, fileline);
+	}
 
 static void R_ClearScreen (void)
 	{
@@ -44,17 +58,20 @@ static const byte *R_GetTextureOriginalBuffer (unsigned int idx)
 	return glt->original->buffer;
 	}
 
+// [FWGS, 01.12.24] removed CL_FillRGBABlend
+
 /***
 =============
-CL_FillRGBA
+CL_FillRGBA [FWGS, 01.12.24]
 =============
 ***/
-static void CL_FillRGBA (float _x, float _y, float _w, float _h, int r, int g, int b, int a)
+/*static void CL_FillRGBA (float _x, float _y, float _w, float _h, int r, int g, int b, int a)*/
+static void CL_FillRGBA (int rendermode, float _x, float _y, float _w, float _h, byte r, byte g, byte b, byte a)
 	{
 	pglDisable (GL_TEXTURE_2D);
 	pglEnable (GL_BLEND);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
+	/*pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
 	pglColor4f (r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 
 	pglBegin (GL_QUADS);
@@ -69,18 +86,23 @@ static void CL_FillRGBA (float _x, float _y, float _w, float _h, int r, int g, i
 	pglDisable (GL_BLEND);
 	}
 
-/***
+/
 =============
 pfnFillRGBABlend
 =============
-***/
+/
 static void GAME_EXPORT CL_FillRGBABlend (float _x, float _y, float _w, float _h, int r, int g, int b, int a)
 	{
 	pglDisable (GL_TEXTURE_2D);
 	pglEnable (GL_BLEND);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	pglColor4f (r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+	pglColor4f (r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);*/
+	if (rendermode == kRenderTransAdd)
+		pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
+	else
+		pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	pglColor4ub (r, g, b, a);
 
 	pglBegin (GL_QUADS);
 	pglVertex2f (_x, _y);
@@ -89,7 +111,7 @@ static void GAME_EXPORT CL_FillRGBABlend (float _x, float _y, float _w, float _h
 	pglVertex2f (_x, _y + _h);
 	pglEnd ();
 
-	pglColor3f (1.0f, 1.0f, 1.0f);
+	/*pglColor3f (1.0f, 1.0f, 1.0f);*/
 	pglEnable (GL_TEXTURE_2D);
 	pglDisable (GL_BLEND);
 	}
@@ -174,7 +196,7 @@ static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte
 	return loaded;
 	}
 
-// [FWGS, 01.02.24] удалена R_TextureFilteringEnabled
+// [FWGS, 01.02.24] removed R_TextureFilteringEnabled
 
 static int GL_RefGetParm (int parm, int arg)
 	{
@@ -455,9 +477,11 @@ static void GAME_EXPORT R_OverrideTextureSourceSize (unsigned int texnum, uint s
 	tx->srcHeight = srcHeight;
 	}
 
+// [FWGS, 01.12.24]
 static void *GAME_EXPORT R_GetProcAddress (const char *name)
 	{
-#ifdef XASH_GL4ES
+/*ifdef XASH_GL4ES*/
+#if XASH_GL4ES
 	return gl4es_GetProcAddress (name);
 #else
 	return gEngfuncs.GL_GetProcAddress (name);
@@ -469,7 +493,7 @@ static const char *R_GetConfigName (void)
 	return "opengl";
 	}
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.12.24]
 static const ref_interface_t gReffuncs =
 	{
 	R_Init,
@@ -502,9 +526,9 @@ static const ref_interface_t gReffuncs =
 	R_Set2DMode,
 	R_DrawStretchRaw,
 	R_DrawStretchPic,
-	R_DrawTileClear,
+	/*R_DrawTileClear,*/
 	CL_FillRGBA,
-	CL_FillRGBABlend,
+	/*CL_FillRGBABlend,*/
 	R_WorldToScreen,
 	VID_ScreenShot,
 	VID_CubemapShot,
@@ -521,7 +545,7 @@ static const ref_interface_t gReffuncs =
 	CL_RunLightStyles,
 	R_GetSpriteParms,
 	R_GetSpriteTexture,
-	Mod_LoadMapSprite,
+	/*Mod_LoadMapSprite,*/
 	Mod_ProcessRenderData,
 	Mod_StudioLoadTextures,
 	CL_DrawParticles,

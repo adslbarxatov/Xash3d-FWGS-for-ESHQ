@@ -14,9 +14,8 @@ without written permission from Valve LLC
 #ifndef ALIAS_H
 #define ALIAS_H
 
-// [FWGS, 01.04.23]
 #include "build.h"
-#include STDINT_H
+#include <stdint.h>		// [FWGS, 01.12.24]
 #include "synctype.h"
 
 /***
@@ -73,7 +72,9 @@ typedef struct
 	float		size;
 	} daliashdr_t;
 
-STATIC_ASSERT (sizeof (daliashdr_t) == 84, "invalid daliashdr_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (daliashdr_t) == 84, "invalid daliashdr_t size");*/
+STATIC_CHECK_SIZEOF (daliashdr_t, 84, 84);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -83,7 +84,9 @@ typedef struct
 	int32_t		t;
 	} stvert_t;
 
-STATIC_ASSERT (sizeof (stvert_t) == 12, "invalid stvert_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (stvert_t) == 12, "invalid stvert_t size");*/
+STATIC_CHECK_SIZEOF (stvert_t, 12, 12);
 
 // [FWGS, 01.04.23]
 typedef struct dtriangle_s
@@ -92,7 +95,9 @@ typedef struct dtriangle_s
 	int32_t		vertindex[3];
 	} dtriangle_t;
 
-STATIC_ASSERT (sizeof (dtriangle_t) == 16, "invalid dtriangle_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (dtriangle_t) == 16, "invalid dtriangle_t size");*/
+STATIC_CHECK_SIZEOF (dtriangle_t, 16, 16);
 
 #define DT_FACES_FRONT	0x0010
 #define ALIAS_ONSEAM	0x0020
@@ -105,7 +110,9 @@ typedef struct
 	char		name[16];	// frame name from grabbing
 	} daliasframe_t;
 
-STATIC_ASSERT (sizeof (daliasframe_t) == 24, "invalid daliasframe_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (daliasframe_t) == 24, "invalid daliasframe_t size");*/
+STATIC_CHECK_SIZEOF (daliasframe_t, 24, 24);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -115,7 +122,9 @@ typedef struct
 	trivertex_t	bboxmax;	// lightnormal isn't used
 	} daliasgroup_t;
 
-STATIC_ASSERT (sizeof (daliasgroup_t) == 12, "invalid daliasgrou_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (daliasgroup_t) == 12, "invalid daliasgrou_t size");*/
+STATIC_CHECK_SIZEOF (daliasgroup_t, 12, 12);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -123,7 +132,9 @@ typedef struct
 	int32_t		numskins;
 	} daliasskingroup_t;
 
-STATIC_ASSERT (sizeof (daliasskingroup_t) == 4, "invalid daliasskingroup_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (daliasskingroup_t) == 4, "invalid daliasskingroup_t size");*/
+STATIC_CHECK_SIZEOF (daliasskingroup_t, 4, 4);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -131,7 +142,9 @@ typedef struct
 	float		interval;
 	} daliasinterval_t;
 
-STATIC_ASSERT (sizeof (daliasinterval_t) == 4, "invalid daliasinterval_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (daliasinterval_t) == 4, "invalid daliasinterval_t size");*/
+STATIC_CHECK_SIZEOF (daliasinterval_t, 4, 4);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -139,7 +152,9 @@ typedef struct
 	float		interval;
 	} daliasskininterval_t;
 
-STATIC_ASSERT (sizeof (daliasskininterval_t) == 4, "invalid daliasskininterval_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (daliasskininterval_t) == 4, "invalid daliasskininterval_t size");*/
+STATIC_CHECK_SIZEOF (daliasskininterval_t, 4, 4);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -147,7 +162,9 @@ typedef struct
 	uint32_t	type;
 	} daliasframetype_t;
 
-STATIC_ASSERT (sizeof (daliasframetype_t) == 4, "invalid daliasframetype_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (daliasframetype_t) == 4, "invalid daliasframetype_t size");*/
+STATIC_CHECK_SIZEOF (daliasframetype_t, 4, 4);
 
 // [FWGS, 01.04.23]
 typedef struct
@@ -155,6 +172,8 @@ typedef struct
 	uint32_t	type;
 	} daliasskintype_t;
 
-STATIC_ASSERT (sizeof (daliasskintype_t) == 4, "invalid daliasskintype_t size");
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (daliasskintype_t) == 4, "invalid daliasskintype_t size");*/
+STATIC_CHECK_SIZEOF (daliasskintype_t, 4, 4);
 
 #endif

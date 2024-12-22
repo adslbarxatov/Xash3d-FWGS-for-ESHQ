@@ -1,17 +1,15 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+ object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 
 #ifndef PM_DEFS_H
 #define PM_DEFS_H
@@ -35,8 +33,6 @@
 
 // PM_PlayerTrace results
 #include "pmtrace.h"
-
-
 #include "usercmd.h"
 
 // physent_t
@@ -208,7 +204,7 @@ typedef struct playermove_s
 	void		(*COM_FreeFile) (void *buffer);
 	char *(*memfgets) (byte *pMemFile, int fileSize, int *pFilePos, char *pBuffer, int bufferSize);
 
-	// Functions
+	// [FWGS, 01.12.24] Functions
 	// Run functions for this frame?
 	qboolean		runfuncs;
 	void		(*PM_PlaySound) (int channel, const char *sample, float volume, float attenuation, int fFlags, int pitch);
@@ -217,7 +213,8 @@ typedef struct playermove_s
 	pmtrace_t (*PM_PlayerTraceEx) (float *start, float *end, int traceFlags, int (*pfnIgnore) (physent_t *pe));
 	int		(*PM_TestPlayerPositionEx) (float *pos, pmtrace_t *ptrace, int (*pfnIgnore) (physent_t *pe));
 	struct pmtrace_s *(*PM_TraceLineEx) (float *start, float *end, int flags, int usehulll, int (*pfnIgnore) (physent_t *pe));
-	struct msurface_s *(*PM_TraceSurface) (int ground, float *vstart, float *vend);
+	/*struct msurface_s *(*PM_TraceSurface) (int ground, float *vstart, float *vend);*/
+	struct msurface_s *(*PM_TraceSurface)(int ground, float *vstart, float *vend); // Xash3D-specific
 	} playermove_t;
 
 // ESHQ: получение состояния для определения скорости

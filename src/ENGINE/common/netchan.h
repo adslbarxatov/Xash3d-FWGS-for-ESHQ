@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -206,6 +206,15 @@ typedef enum fragsize_e
 	FRAGSIZE_UNRELIABLE
 	} fragsize_t;
 
+// [FWGS, 01.12.24]
+typedef enum netchan_flags_e
+	{
+	NETCHAN_USE_LEGACY_SPLIT = BIT (0),
+	NETCHAN_USE_MUNGE = BIT (1),
+	NETCHAN_USE_BZIP2 = BIT (2),
+	NETCHAN_GOLDSRC = BIT (3),
+	} netchan_flags_t;
+
 // Network Connection Channel
 typedef struct netchan_s
 	{
@@ -228,39 +237,39 @@ typedef struct netchan_s
 	unsigned int		last_reliable_sequence;		// outgoing sequence number of last send that had reliable data
 
 	// callback to get actual framgment size
-	void *client;
-	int (*pfnBlockSize)(void *cl, fragsize_t mode);
+	void			*client;
+	int				(*pfnBlockSize)(void *cl, fragsize_t mode);
 
 	// staging and holding areas
 	sizebuf_t		message;
-	byte		message_buf[NET_MAX_MESSAGE];
+	byte			message_buf[NET_MAX_MESSAGE];
 
 	// reliable message buffer.
-	// we keep adding to it until reliable is acknowledged.  Then we clear it.
-	int		reliable_length;
+	// we keep adding to it until reliable is acknowledged. Then we clear it
+	int			reliable_length;
 	byte		reliable_buf[NET_MAX_MESSAGE];	// unacked reliable message (max size for loopback connection)
 
 	// Waiting list of buffered fragments to go onto queue.
 	// Multiple outgoing buffers can be queued in succession
-	fragbufwaiting_t *waitlist[MAX_STREAMS];
+	fragbufwaiting_t	*waitlist[MAX_STREAMS];
 
-	int		reliable_fragment[MAX_STREAMS];	// is reliable waiting buf a fragment?
+	int			reliable_fragment[MAX_STREAMS];	// is reliable waiting buf a fragment?
 	uint		reliable_fragid[MAX_STREAMS];		// buffer id for each waiting fragment
 
-	fragbuf_t *fragbufs[MAX_STREAMS];	// the current fragment being set
-	int		fragbufcount[MAX_STREAMS];	// the total number of fragments in this stream
+	fragbuf_t	*fragbufs[MAX_STREAMS];	// the current fragment being set
+	int			fragbufcount[MAX_STREAMS];	// the total number of fragments in this stream
 
-	int		frag_startpos[MAX_STREAMS];	// position in outgoing buffer where frag data starts
-	int		frag_length[MAX_STREAMS];	// length of frag data in the buffer
+	int			frag_startpos[MAX_STREAMS];	// position in outgoing buffer where frag data starts
+	int			frag_length[MAX_STREAMS];	// length of frag data in the buffer
 
-	fragbuf_t *incomingbufs[MAX_STREAMS];	// incoming fragments are stored here
-	qboolean		incomingready[MAX_STREAMS];	// set to true when incoming data is ready
+	fragbuf_t	*incomingbufs[MAX_STREAMS];	// incoming fragments are stored here
+	qboolean	incomingready[MAX_STREAMS];	// set to true when incoming data is ready
 
 	// Only referenced by the FRAG_FILE_STREAM component
 	char		incomingfilename[MAX_OSPATH];	// Name of file being downloaded
 
-	void *tempbuffer;		// download file buffer
-	int		tempbuffersize;		// current size
+	void		*tempbuffer;		// download file buffer
+	int			tempbuffersize;		// current size
 
 	// incoming and outgoing flow metrics
 	flow_t		flow[MAX_FLOWS];
@@ -268,10 +277,18 @@ typedef struct netchan_s
 	// added for net_speeds
 	size_t		total_sended;
 	size_t		total_received;
-	qboolean	split;
+	/*qboolean	split;*/	// [FWGS, 01.12.24]
 	unsigned int	maxpacket;
 	unsigned int	splitid;
-	netsplit_t netsplit;
+
+	// [FWGS, 01.12.24]
+	/*netsplit_t		netsplit;*/
+	netsplit_t	netsplit;
+
+	qboolean	split;
+	qboolean	use_munge;
+	qboolean	use_bz2;
+	qboolean	gs_netchan;
 	} netchan_t;
 
 extern netadr_t		net_from;
@@ -285,17 +302,27 @@ extern int			net_drop;
 
 void Netchan_Init (void);
 void Netchan_Shutdown (void);
-void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client, 
-	int (*pfnBlockSize)(void *, fragsize_t mode));
+
+// [FWGS, 01.12.24]
+/*void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client, 
+	int (*pfnBlockSize)(void *, fragsize_t mode));*/
+void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client,
+	int (*pfnBlockSize)(void *, fragsize_t mode), uint flags);
+
 void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filename, byte *pbuf, int size);
 qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *length);
 qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg);
 void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg);
 int Netchan_CreateFileFragments (netchan_t *chan, const char *filename);
-// [FWGS, 01.05.23] удалена Netchan_Transmit
-void Netchan_TransmitBits (netchan_t *chan, int lengthInBits, byte *data);
+
+// [FWGS, 01.12.24]
+/*void Netchan_TransmitBits (netchan_t *chan, int lengthInBits, byte *data);
 void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data);
-void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...) _format (3);
+void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...) _format (3);*/
+void Netchan_TransmitBits (netchan_t *chan, int lengthInBits, const byte *data);
+void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, const byte *data);
+void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...) FORMAT_CHECK (3);
+
 qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg);
 void Netchan_UpdateProgress (netchan_t *chan);
 qboolean Netchan_IncomingReady (netchan_t *chan);

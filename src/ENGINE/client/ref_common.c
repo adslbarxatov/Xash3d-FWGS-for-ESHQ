@@ -58,17 +58,14 @@ REF_HOST_CHECK (realtime);
 REF_HOST_CHECK (frametime);
 REF_HOST_CHECK (features);
 
-void R_GetTextureParms (int *w, int *h, int texnum)
+// [FWGS, 01.12.24] removed R_GetTextureParms
+/*void R_GetTextureParms (int *w, int *h, int texnum)
 	{
 	if (w)
 		*w = REF_GET_PARM (PARM_TEX_WIDTH, texnum);
 	if (h)
 		*h = REF_GET_PARM (PARM_TEX_HEIGHT, texnum);
-	}
-
-/***
-================
-GL_FreeImage*/
+	}*/
 
 // [FWGS, 01.07.24]
 static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_STRING])
@@ -202,6 +199,25 @@ static intptr_t pfnEngineGetParm (int parm, int arg)
 	}
 
 // [FWGS, 01.01.24] удалена pfnGetWorld
+
+// [FWGS, 01.12.24]
+static cvar_t *pfnCvar_Get (const char *szName, const char *szValue, int flags, const char *description)
+	{
+	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_REFDLL, description);
+	}
+
+// [FWGS, 01.12.24]
+static void pfnCvar_RegisterVariable (convar_t *var)
+	{
+	SetBits (var->flags, FCVAR_REFDLL);
+	Cvar_RegisterVariable (var);
+	}
+
+// [FWGS, 01.12.24]
+static void pfnCvar_FullSet (const char *var_name, const char *value, int flags)
+	{
+	Cvar_FullSet (var_name, value, flags | FCVAR_REFDLL);
+	}
 
 static void pfnStudioEvent (const mstudioevent_t *event, const cl_entity_t *e)
 	{
@@ -346,18 +362,21 @@ static qboolean R_Init_Video_ (const int type)
 	return R_Init_Video (type);
 	}
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.12.24]
 static const ref_api_t gEngfuncs =
 	{
 	pfnEngineGetParm,
-	(void *)Cvar_Get,
+	/*(void *)Cvar_Get,*/
+	pfnCvar_Get,
 	(void *)Cvar_FindVarExt,
 	Cvar_VariableValue,
 	Cvar_VariableString,
 	Cvar_SetValue,
 	Cvar_Set,
-	Cvar_RegisterVariable,
-	Cvar_FullSet,
+	/*Cvar_RegisterVariable,
+	Cvar_FullSet,*/
+	pfnCvar_RegisterVariable,
+	pfnCvar_FullSet,
 
 	Cmd_AddRefCommand,
 	Cmd_RemoveCommand,
@@ -384,7 +403,9 @@ static const ref_api_t gEngfuncs =
 	Mod_SampleSizeForFace,
 	Mod_BoxVisible,
 	Mod_PointInLeaf,
-	Mod_CreatePolygonsForHull,
+	/*Mod_CreatePolygonsForHull,*/
+	R_DrawWorldHull,
+	R_DrawModelHull,
 	R_StudioGetAnim,
 	pfnStudioEvent,
 
@@ -437,15 +458,15 @@ static const ref_api_t gEngfuncs =
 	SW_CreateBuffer,
 	SW_LockBuffer,
 	SW_UnlockBuffer,
-	LightToTexGamma,
+	/*LightToTexGamma,
 	LightToTexGammaEx,
 	TextureToGamma,
 	ScreenGammaTable,
-	LinearGammaTable,
+	LinearGammaTable,*/
 
-	CL_GetLightStyle,
+	/*CL_GetLightStyle,
 	CL_GetDynamicLight,
-	CL_GetEntityLight,
+	CL_GetEntityLight,*/
 	R_FatPVS,
 	GL_GetOverviewParms,
 	Sys_DoubleTime,
@@ -474,17 +495,20 @@ static const ref_api_t gEngfuncs =
 	&g_fsapi,
 	};
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.12.24]
 static void R_UnloadProgs (void)
 	{
-	if (!ref.hInstance) return;
+	if (!ref.hInstance)
+		return;
 
 	// deinitialize renderer
 	ref.dllFuncs.R_Shutdown ();
 
 	Cvar_FullSet ("host_refloaded", "0", FCVAR_READ_ONLY);
 
-	Cvar_Unlink (FCVAR_RENDERINFO | FCVAR_GLCONFIG);
+	/*Cvar_Unlink (FCVAR_RENDERINFO | FCVAR_GLCONFIG);*/
+	Cvar_Unlink (FCVAR_RENDERINFO | FCVAR_GLCONFIG | FCVAR_REFDLL);
+
 	Cmd_Unlink (CMD_REFDLL);
 
 	COM_FreeLibrary (ref.hInstance);
@@ -518,15 +542,17 @@ static void CL_FillTriAPIFromRef (triangleapi_t *dst, const ref_interface_t *src
 	dst->FogParams = src->FogParams;
 	}
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.12.24]
 static qboolean R_LoadProgs (const char *name)
 	{
 	static ref_api_t gpEngfuncs;
 	REFAPI GetRefAPI; // single export
 
-	if (ref.hInstance) R_UnloadProgs ();
+	if (ref.hInstance)
+		R_UnloadProgs ();
 
 	FS_AllowDirectPaths (true);
+	/*if (!(ref.hInstance = COM_LoadLibrary (name, false, true)))*/
 	if (!(ref.hInstance = COM_LoadLibrary (name, false, true)))
 		{
 		FS_AllowDirectPaths (false);
@@ -536,11 +562,12 @@ static qboolean R_LoadProgs (const char *name)
 
 	FS_AllowDirectPaths (false);
 
+	/*if (!(GetRefAPI = (REFAPI)COM_GetProcAddress (ref.hInstance, GET_REF_API)))*/
 	if (!(GetRefAPI = (REFAPI)COM_GetProcAddress (ref.hInstance, GET_REF_API)))
 		{
-		COM_FreeLibrary (ref.hInstance);
+		/*COM_FreeLibrary (ref.hInstance);*/
 		Con_Reportf ("%s: can't find GetRefAPI entry point in %s\n", __func__, name);
-		ref.hInstance = NULL;
+		/*ref.hInstance = NULL;*/
 		return false;
 		}
 
@@ -548,18 +575,19 @@ static qboolean R_LoadProgs (const char *name)
 	gpEngfuncs = gEngfuncs;
 	if (GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState) != REF_API_VERSION)
 		{
-		COM_FreeLibrary (ref.hInstance);
+		/*COM_FreeLibrary (ref.hInstance);*/
 		Con_Reportf ("%s: can't init renderer API: wrong version\n", __func__);
-		ref.hInstance = NULL;
+		/*ref.hInstance = NULL;*/
 		return false;
 		}
 
 	refState.developer = host_developer.value;
+	/*if (!ref.dllFuncs.R_Init ())*/
 	if (!ref.dllFuncs.R_Init ())
 		{
-		COM_FreeLibrary (ref.hInstance);
+		/*COM_FreeLibrary (ref.hInstance);*/
 		Con_Reportf ("%s: can't init renderer!\n", __func__);
-		ref.hInstance = NULL;
+		/*ref.hInstance = NULL;*/
 		return false;
 		}
 
@@ -574,8 +602,8 @@ static qboolean R_LoadProgs (const char *name)
 
 void R_Shutdown (void)
 	{
-	int i;
-	model_t *mod;
+	int		i;
+	model_t	*mod;
 
 	// release SpriteTextures
 	for (i = 1, mod = clgame.sprites; i < MAX_CLIENT_SPRITES; i++, mod++)
@@ -675,7 +703,7 @@ static void SetFullscreenModeFromCommandLine (void)
 		Cvar_DirectSet (&vid_fullscreen, "0");
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.12.24]
 static void R_CollectRendererNames (void)
 	{
 	// ordering is important!
@@ -693,20 +721,14 @@ static void R_CollectRendererNames (void)
 		#if XASH_REF_GL4ES_ENABLED
 			"gl4es",
 		#endif
-
-		// [FWGS, 01.11.23]
 		#if XASH_REF_GLES3COMPAT_ENABLED
 			"gles3compat",
 		#endif
-
-		// [FWGS, 01.09.24]
 		#if XASH_REF_SOFT_ENABLED
 			"soft",
-		#endif
-
-		// [FWGS, 01.09.24]
-		#if XASH_REF_NULL_ENABLED
-			"null",
+		/*endif
+		if XASH_REF_NULL_ENABLED
+		"null",*/
 		#endif
 		};
 
@@ -725,20 +747,14 @@ static void R_CollectRendererNames (void)
 		#if XASH_REF_GL4ES_ENABLED
 			"GL4ES",
 		#endif
-
-		// [FWGS, 01.11.23]
 		#if XASH_REF_GLES3COMPAT_ENABLED
 			"GLES3 (gl2_shim)",
 		#endif
-
-		// [FWGS, 01.09.24]
 		#if XASH_REF_SOFT_ENABLED
 			"Software",
-		#endif
-
-		// [FWGS, 01.09.24]
-		#if XASH_REF_NULL_ENABLED
-			"Null Renderer",
+		/*endif
+		if XASH_REF_NULL_ENABLED
+		"Null Renderer",*/
 		#endif
 		};
 
@@ -747,11 +763,13 @@ static void R_CollectRendererNames (void)
 	ref.readableNames = readableNames;
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.12.24]
 qboolean R_Init (void)
 	{
 	qboolean	success = false;
-	string		requested;
+	/*string		requested;*/
+	string		requested_cmdline;
+	string		requested_cvar;
 
 	Cvar_RegisterVariable (&gl_vsync);
 	Cvar_RegisterVariable (&r_showtextures);
@@ -761,8 +779,6 @@ qboolean R_Init (void)
 	Cvar_RegisterVariable (&gl_clear);
 	Cvar_RegisterVariable (&r_showtree);
 	Cvar_RegisterVariable (&r_refdll);
-
-	// [FWGS, 01.11.23]
 	Cvar_RegisterVariable (&r_refdll_loaded);
 
 	// cvars that are expected to exist
@@ -808,19 +824,27 @@ qboolean R_Init (void)
 
 	R_CollectRendererNames ();
 
-	// [FWGS, 01.05.23] Priority:
+	// Priority:
 	// 1. Command line `-ref` argument
 	// 2. `ref_dll` cvar
 	// 3. Detected renderers in `DEFAULT_RENDERERS` order
-	requested[0] = 0;
-	if (!success && Sys_GetParmFromCmdLine ("-ref", requested))
-		success = R_LoadRenderer (requested);
 
-	// [FWGS, 01.05.23]
-	if (!success && COM_CheckString (r_refdll.string))
+	/*requested[0] = 0;*/
+	requested_cmdline[0] = 0;
+	requested_cvar[0] = 0;
+
+	/*if (!success && Sys_GetParmFromCmdLine ("-ref", requested))
+		success = R_LoadRenderer (requested);*/
+	if (Sys_GetParmFromCmdLine ("-ref", requested_cmdline))
+		success = R_LoadRenderer (requested_cmdline);
+
+	/*if (!success && COM_CheckString (r_refdll.string))*/
+	if (!success && COM_CheckString (r_refdll.string) && Q_stricmp (requested_cmdline, r_refdll.string))
 		{
-		Q_strncpy (requested, r_refdll.string, sizeof (requested));
-		success = R_LoadRenderer (requested);
+		/*Q_strncpy (requested, r_refdll.string, sizeof (requested));
+		success = R_LoadRenderer (requested);*/
+		Q_strncpy (requested_cvar, r_refdll.string, sizeof (requested_cvar));
+		success = R_LoadRenderer (requested_cvar);
 		}
 
 	if (!success)
@@ -830,7 +854,11 @@ qboolean R_Init (void)
 		for (i = 0; i < ref.numRenderers && !success; i++)
 			{
 			// skip renderer that was requested but failed to load
-			if (!Q_strcmp (requested, ref.shortNames[i]))
+			/*if (!Q_strcmp (requested, ref.shortNames[i]))*/
+			if (!Q_strcmp (requested_cmdline, ref.shortNames[i]))
+				continue;
+
+			if (!Q_strcmp (requested_cvar, ref.shortNames[i]))
 				continue;
 
 			success = R_LoadRenderer (ref.shortNames[i]);
@@ -839,7 +867,8 @@ qboolean R_Init (void)
 
 	if (!success)
 		{
-		Host_Error ("Can't initialize any renderer. Check your video drivers!\n");
+		/*Host_Error ("Can't initialize any renderer. Check your video drivers!\n");*/
+		Sys_Error ("Can't initialize any renderer. Check your video drivers!\n");
 		return false;
 		}
 

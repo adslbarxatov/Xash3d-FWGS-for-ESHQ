@@ -486,10 +486,11 @@ extern convar_t		sv_expose_player_list;
 
 // ===========================================================
 //
-// sv_main.c [FWGS, 01.05.24]
+// sv_main.c [FWGS, 01.12.24]
 //
 void SV_FinalMessage (const char *message, qboolean reconnect);
-void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) _format (2);
+/*void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) _format (2);*/
+void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) FORMAT_CHECK (2);
 void SV_DropClient (sv_client_t *cl, qboolean crash) RENAME_SYMBOL ("SV_DropClient_");
 void SV_UpdateMovevars (qboolean initialize);
 int SV_ModelIndex (const char *name);
@@ -535,13 +536,14 @@ float SV_VecToYaw (const vec3_t src);
 void SV_WaterMove (edict_t *ent);
 
 //
-// sv_send.c [FWGS, 01.02.24]
+// sv_send.c [FWGS, 01.12.24]
 //
 void SV_SendClientMessages (void);
-void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) _format (2);
+/*void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) _format (2);*/
+void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) FORMAT_CHECK (2);
 
 //
-// sv_client.c [FWGS, 01.07.24]
+// sv_client.c [FWGS, 01.12.24]
 //
 void SV_RefreshUserinfo (void);
 void SV_TogglePause (const char *msg);
@@ -557,13 +559,29 @@ void SV_ExecuteClientMessage (sv_client_t *cl, sizebuf_t *msg);
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg);
 edict_t *SV_FakeConnect (const char *netname);
 void SV_BuildReconnect (sizebuf_t *msg);
-qboolean SV_IsPlayerIndex (int idx);
+/*qboolean SV_IsPlayerIndex (int idx);*/
 int SV_CalcPing (sv_client_t *cl);
 void SV_UpdateServerInfo (void);
 void SV_EndRedirect (host_redirect_t *rd);
-void SV_RejectConnection (netadr_t from, const char *fmt, ...) _format (2);
+/*void SV_RejectConnection (netadr_t from, const char *fmt, ...) _format (2);*/
+void SV_RejectConnection (netadr_t from, const char *fmt, ...) FORMAT_CHECK (2);
 void SV_GetPlayerCount (int *clients, int *bots);
-qboolean SV_HavePassword (void);
+
+/*qboolean SV_HavePassword (void);*/
+// [FWGS, 01.12.24]
+static inline qboolean SV_HavePassword (void)
+	{
+	if (COM_CheckStringEmpty (sv_password.string) && Q_stricmp (sv_password.string, "none"))
+		return true;
+
+	return false;
+	}
+
+// [FWGS, 01.12.24]
+static inline qboolean SV_IsPlayerIndex (int idx)
+	{
+	return (idx > 0) && (idx <= svs.maxclients) ? true : false;
+	}
 
 //
 // sv_cmds.c [FWGS, 01.02.24]
@@ -600,7 +618,7 @@ int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_s
 void SV_SkipUpdates (void);
 
 //
-// sv_game.c
+// sv_game.c [FWGS, 01.12.24]
 //
 qboolean SV_LoadProgs (const char *name);
 void SV_UnloadProgs (void);
@@ -625,9 +643,8 @@ string_t SV_AllocString (const char *szValue);
 string_t SV_MakeString (const char *szValue);
 const char *SV_GetString (string_t iString);
 void SV_SetStringArrayMode (qboolean dynamic);
-void SV_EmptyStringPool (void);
-
-// [FWGS, 01.05.24]
+/*void SV_EmptyStringPool (void);*/
+void SV_EmptyStringPool (qboolean clear_stats);
 void SV_PrintStr64Stats_f (void);
 
 // [FWGS, 01.05.24]
@@ -706,8 +723,9 @@ void SV_SetLightStyle (int style, const char *s, float f);
 int SV_LightForEntity (edict_t *pEdict);
 
 //
-// sv_query.c [FWGS, 01.07.23]
+// sv_query.c [FWGS, 01.12.24]
 //
-qboolean SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from);
+/*qboolean SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from);*/
+void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from);
 
 #endif

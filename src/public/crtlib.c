@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -19,7 +19,7 @@ GNU General Public License for more details
 #include <math.h>
 #include <stdarg.h>
 #include <time.h>
-#include <stdio.h>	// ESHQ: чего?
+#include <stdio.h>
 #include "crtlib.h"
 #include "xash3d_mathlib.h"
 
@@ -58,20 +58,24 @@ size_t Q_colorstr (const char *string)
 
 // [FWGS, 01.05.24] removed Q_toupper, Q_tolower, Q_strncat
 
-// [FWGS, 01.07.24]
-static int Q_atoi_hex (int sign, const char *str)
+// [FWGS, 01.12.24]
+/*static int Q_atoi_hex (int sign, const char *str)*/
+int Q_atoi_hex (int sign, const char *str)
 	{
 	int c, val = 0;
 
-	str += 2;
+	/*str += 2;*/
+	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
+		str += 2;
+
 	while (1)
 		{
 		c = *str++;
-		if (c >= '0' && c <= '9')
+		if ((c >= '0') && (c <= '9'))
 			val = (val << 4) + c - '0';
-		else if (c >= 'a' && c <= 'f')
+		else if ((c >= 'a') && (c <= 'f'))
 			val = (val << 4) + c - 'a' + 10;
-		else if (c >= 'A' && c <= 'F')
+		else if ((c >= 'A') && (c <= 'F'))
 			val = (val << 4) + c - 'A' + 10;
 		else
 			return val * sign;
@@ -312,12 +316,13 @@ void Q_memor (byte *XASH_RESTRICT dst, const byte *XASH_RESTRICT src, size_t len
 		dst[i] |= src[i];
 	}
 
+// [FWGS, 01.12.24]
 const char *Q_timestamp (int format)
 	{
 	static string	timestamp;
 	time_t		crt_time;
 	const struct tm *crt_tm;
-	string		timestring;
+	/*string		timestring;*/
 
 	time (&crt_time);
 	crt_tm = localtime (&crt_time);
@@ -326,38 +331,49 @@ const char *Q_timestamp (int format)
 		{
 		case TIME_FULL:
 			// Build the full timestamp (ex: "Apr03 2007 [23:31.55]");
-			strftime (timestring, sizeof (timestring), "%b%d %Y [%H:%M.%S]", crt_tm);
+			/*strftime (timestring, sizeof (timestring), "%b%d %Y [%H:%M.%S]", crt_tm);*/
+			strftime (timestamp, sizeof (timestamp), "%b%d %Y [%H:%M.%S]", crt_tm);
 			break;
 
 		case TIME_DATE_ONLY:
 			// Build the date stamp only (ex: "Apr03 2007");
-			strftime (timestring, sizeof (timestring), "%b%d %Y", crt_tm);
+			/*strftime (timestring, sizeof (timestring), "%b%d %Y", crt_tm);*/
+			strftime (timestamp, sizeof (timestamp), "%b%d %Y", crt_tm);
 			break;
 
 		case TIME_TIME_ONLY:
 			// Build the time stamp only (ex: "23:31.55");
-			strftime (timestring, sizeof (timestring), "%H:%M.%S", crt_tm);
+			/*strftime (timestring, sizeof (timestring), "%H:%M.%S", crt_tm);*/
+			strftime (timestamp, sizeof (timestamp), "%H:%M.%S", crt_tm);
 			break;
 
 		case TIME_NO_SECONDS:
 			// Build the time stamp exclude seconds (ex: "13:46");
-			strftime (timestring, sizeof (timestring), "%H:%M", crt_tm);
+			/*strftime (timestring, sizeof (timestring), "%H:%M", crt_tm);*/
+			strftime (timestamp, sizeof (timestamp), "%H:%M", crt_tm);
 			break;
 
 		case TIME_YEAR_ONLY:
 			// Build the date stamp year only (ex: "2006");
-			strftime (timestring, sizeof (timestring), "%Y", crt_tm);
+			/*strftime (timestring, sizeof (timestring), "%Y", crt_tm);*/
+			strftime (timestamp, sizeof (timestamp), "%Y", crt_tm);
 			break;
+
 		case TIME_FILENAME:
 			// Build a timestamp that can use for filename (ex: "Nov2006-26 (19.14.28)");
-			strftime (timestring, sizeof (timestring), "%b%Y-%d_%H.%M.%S", crt_tm);
+			/*strftime (timestring, sizeof (timestring), "%b%Y-%d_%H.%M.%S", crt_tm);*/
+			strftime (timestamp, sizeof (timestamp), "%b%Y-%d_%H.%M.%S", crt_tm);
 			break;
 
 		default:
-			return NULL;
+			Q_snprintf (timestamp, sizeof (timestamp), "%s: unknown format %d", __func__, format);
+			break;
+
+		/*default:
+			return NULL;*/
 		}
 
-	Q_strncpy (timestamp, timestring, sizeof (timestamp));
+	/*Q_strncpy (timestamp, timestring, sizeof (timestamp));*/
 	return timestamp;
 	}
 
@@ -487,7 +503,7 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	// if it's basically integral, don't do any decimals
 	if (fabs (value - (int)value) < 0.00001f)
 		{
-		Q_snprintf (val, sizeof (val), "%i%s", (int)value, suffix);	// [FWGS, 01.05.23]
+		Q_snprintf (val, sizeof (val), "%i%s", (int)value, suffix);
 		}
 	else
 		{
@@ -570,12 +586,12 @@ void COM_FileBase (const char *in, char *out, size_t size)
 
 /***
 ============
-COM_FileExtension
+COM_FileExtension [FWGS, 01.12.24]
 ============
 ***/
 const char *COM_FileExtension (const char *in)
 	{
-	const char *separator, *backslash, *colon, *dot;
+	/*const char *separator, *backslash, *colon, *dot;
 
 	separator = Q_strrchr (in, '/');
 	backslash = Q_strrchr (in, '\\');
@@ -586,11 +602,17 @@ const char *COM_FileExtension (const char *in)
 	colon = Q_strrchr (in, ':');
 
 	if (!separator || (separator < colon))
-		separator = colon;
-
+		separator = colon;*/
+	const char *dot;
 	dot = Q_strrchr (in, '.');
 
-	if ((dot == NULL) || (separator && (dot < separator)))
+	/*if ((dot == NULL) || (separator && (dot < separator)))*/
+	// quickly exit if there is no dot at all
+	if (dot == NULL)
+		return "";
+
+	// if there are any of these special symbols after the dot, the file has no extension
+	if (Q_strpbrk (dot + 1, "\\/:"))
 		return "";
 
 	return dot + 1;
@@ -758,11 +780,12 @@ void COM_PathSlashFix (char *path)
 		}
 	}
 
-/***
+// [FWGS, 01.12.24] COM_Hex2Char, COM_Hex2String moved to crclib
+/*
 ============
 COM_Hex2Char
 ============
-***/
+/
 char COM_Hex2Char (uint8_t hex)
 	{
 	if ((hex >= 0x0) && (hex <= 0x9))
@@ -773,17 +796,17 @@ char COM_Hex2Char (uint8_t hex)
 	return (char)hex;
 	}
 
-/***
+/
 ============
 COM_Hex2String
 ============
-***/
+/
 void COM_Hex2String (uint8_t hex, char *str)
 	{
 	*str++ = COM_Hex2Char (hex >> 4);
 	*str++ = COM_Hex2Char (hex & 0x0F);
 	*str = '\0';
-	}
+	}*/
 
 /***
 ==============
@@ -800,7 +823,7 @@ static int COM_IsSingleChar (unsigned int flags, char c)
 	if (!FBitSet (flags, PFILE_IGNOREBRACKET) && ((c == ')') || (c == '(')))
 		return true;
 
-	if (FBitSet (flags, PFILE_HANDLECOLON) && c == ':')
+	if (FBitSet (flags, PFILE_HANDLECOLON) && (c == ':'))
 		return true;
 
 	return false;
@@ -846,8 +869,11 @@ skipwhite:
 		data++;
 		}
 
-	// skip // comments
-	if ((c == '/') && (data[1] == '/'))
+	/*// skip // comments
+	if ((c == '/') && (data[1] == '/'))*/
+
+	// [FWGS, 01.12.24] skip // or #, if requested, comments
+	if (((c == '/') && (data[1] == '/')) || ((c == '#') && FBitSet (flags, PFILE_IGNOREHASHCMT)))
 		{
 		while (*data && (*data != '\n'))
 			data++;
@@ -881,7 +907,10 @@ skipwhite:
 					token[len] = (byte)*data;
 					len++;
 					}
-				else overflow = true;
+				else
+					{
+					overflow = true;
+					}
 
 				data++;
 				continue;
@@ -890,7 +919,8 @@ skipwhite:
 			if (c == '\"')
 				{
 				token[len] = 0;
-				if (plen) *plen = overflow ? -1 : len;
+				if (plen)
+					*plen = overflow ? -1 : len;
 				return data;
 				}
 
@@ -899,7 +929,10 @@ skipwhite:
 				token[len] = c;
 				len++;
 				}
-			else overflow = true;
+			else
+				{
+				overflow = true;
+				}
 			}
 		}
 
@@ -911,14 +944,16 @@ skipwhite:
 			token[len] = c;
 			len++;
 			token[len] = 0;
-			if (plen) *plen = overflow ? -1 : len;
+			if (plen)
+				*plen = overflow ? -1 : len;
 			return data + 1;
 			}
 		else
 			{
 			// couldn't pass anything
 			token[0] = 0;
-			if (plen) *plen = overflow ? -1 : len;
+			if (plen)
+				*plen = overflow ? -1 : len;
 			return data;
 			}
 		}
@@ -991,6 +1026,7 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 					in++;
 					}
 				pattern++;
+
 				while (*in)
 					{
 					if (Q_strchr (separators, *in))
@@ -998,6 +1034,7 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 					// see if pattern matches at this offset
 					if (matchpattern_with_separator (in, pattern, caseinsensitive, separators, wildcard_least_one))
 						return 1;
+
 					// nope, advance to next offset
 					in++;
 					}
@@ -1011,12 +1048,15 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 					c1 = *in;
 					if ((c1 >= 'A') && (c1 <= 'Z'))
 						c1 += 'a' - 'A';
+
 					c2 = *pattern;
 					if ((c2 >= 'A') && (c2 <= 'Z'))
 						c2 += 'a' - 'A';
+
 					if (c1 != c2)
 						return 0; // no match
 					}
+
 				in++;
 				pattern++;
 				break;
@@ -1025,5 +1065,6 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 
 	if (*in)
 		return 0; // reached end of pattern but not end of input
+
 	return 1; // success
 	}

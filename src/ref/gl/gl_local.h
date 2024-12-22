@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -31,7 +31,8 @@ GNU General Public License for more details
 #include "enginefeatures.h"
 #include "com_strings.h"
 #include "pm_movevars.h"
-#include "common/cvar.h"	// [FWGS, 01.07.23]
+/*include "common/cvar.h"	// [FWGS, 01.07.23]*/
+#include "cvardef.h"			// [FWGS, 01.12.24]
 #include "gl_export.h"
 #include "wadfile.h"
 #include "common/mod_local.h"	// [FWGS, 01.01.24]
@@ -270,7 +271,15 @@ typedef struct
 	color24			*palette;
 	cl_entity_t		*viewent;
 
-	uint	max_entities;
+	// [FWGS, 01.12.24]
+	dlight_t	*dlights;
+	dlight_t	*elights;
+	byte		*texgammatable;
+	uint		*lightgammatable;
+	uint		*lineargammatable;
+	uint		*screengammatable;
+
+	uint		max_entities;
 	} gl_globals_t;
 
 typedef struct
@@ -352,10 +361,10 @@ void DrawDecalsBatch (void);
 void R_ClearDecals (void);
 
 //
-// gl_draw.c
+// gl_draw.c [FWGS, 01.12.24]
 //
 void R_Set2DMode (qboolean enable);
-void R_DrawTileClear (int texnum, int x, int y, int w, int h);
+/*void R_DrawTileClear (int texnum, int x, int y, int w, int h);*/
 void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height, const byte *data);
 
 //
@@ -365,10 +374,11 @@ void R_DrawWorldHull (void);
 void R_DrawModelHull (void);
 
 //
-// gl_image.c
+// gl_image.c [FWGS, 01.12.24]
 //
 void R_SetTextureParameters (void);
 gl_texture_t *R_GetTexture (GLenum texnum);
+const char *GL_TargetToString (GLenum target);
 #define GL_LoadTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, false )
 #define GL_UpdateTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, true )
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
@@ -390,16 +400,18 @@ void R_InitImages (void);
 void R_ShutdownImages (void);
 int GL_TexMemory (void);	// [FWGS, 01.11.23]
 
-// [FWGS, 01.07.24]
-qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...) _format (4);
+// [FWGS, 01.12.24]
+/*qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...) _format (4);*/
+qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...) FORMAT_CHECK (4);
 void R_TextureReplacementReport (const char *modelname, int gl_texturenum, const char *foundpath);
 
 //
-// gl_rlight.c
+// gl_rlight.c [FWGS, 01.12.24]
 //
-void CL_RunLightStyles (void);
+/*void CL_RunLightStyles (void);*/
+void CL_RunLightStyles (lightstyle_t *ls);
 void R_PushDlights (void);
-void R_AnimateLight (void);
+/*void R_AnimateLight (void);*/
 void R_GetLightSpot (vec3_t lightspot);
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
 colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lightspot, vec3_t lightvec);
@@ -442,7 +454,7 @@ void Matrix4x4_CreateModelview (matrix4x4 out);
 void R_ClearStaticEntities (void);
 
 //
-// gl_rsurf.c [FWGS, 01.09.24]
+// gl_rsurf.c [FWGS, 01.12.24]
 //
 void R_MarkLeaves (void);
 void R_DrawWorld (void);
@@ -461,7 +473,10 @@ void GL_ResetFogColor (void);
 void R_GenerateVBO (void);
 void R_ClearVBO (void);
 void R_AddDecalVBO (decal_t *pdecal, msurface_t *surf);
-void R_LightmapCoord (const vec3_t v, const msurface_t *surf, const float sample_size, vec2_t coords);	// [FWGS, 01.01.24]
+void R_LightmapCoord (const vec3_t v, const msurface_t *surf, const float sample_size, vec2_t coords);
+qboolean R_HasGeneratedVBO (void);
+void R_EnableVBO (qboolean enable);
+qboolean R_HasEnabledVBO (void);
 
 //
 // gl_rpart.c
@@ -518,7 +533,7 @@ void R_AnimateRipples (void);
 void R_UploadRipples (texture_t * image);
 
 //
-// renderer exports
+// renderer exports [FWGS, 01.12.24]
 //
 qboolean R_Init (void);
 void R_Shutdown (void);
@@ -530,7 +545,7 @@ int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
 void GL_FreeImage (const char *name);
 qboolean VID_ScreenShot (const char *filename, int shot_type);
 qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qboolean skyshot);
-void R_GammaChanged (qboolean do_reset_gamma);	// [FWGS, 01.01.24]
+void R_GammaChanged (qboolean do_reset_gamma);
 void R_BeginFrame (qboolean clearScene);
 void R_RenderFrame (const struct ref_viewpass_s *vp);
 void R_EndFrame (void);
@@ -544,7 +559,7 @@ qboolean R_CullBox (const vec3_t mins, const vec3_t maxs);
 int R_WorldToScreen (const vec3_t point, vec3_t screen);
 void R_ScreenToWorld (const vec3_t screen, vec3_t point);
 qboolean R_AddEntity (struct cl_entity_s *pRefEntity, int entityType);
-void Mod_LoadMapSprite (struct model_s *mod, const void *buffer, size_t size, qboolean *loaded);
+/*void Mod_LoadMapSprite (struct model_s *mod, const void *buffer, size_t size, qboolean *loaded);*/
 void Mod_SpriteUnloadTextures (void *data);
 void Mod_UnloadAliasModel (struct model_s *mod);
 void Mod_AliasUnloadTextures (void *data);
@@ -694,12 +709,13 @@ typedef struct
 	int		prev_height;
 	} glconfig_t;
 
+// [FWGS, 01.12.24]
 typedef struct
 	{
-	int			width, height;
+	/*int			width, height;*/
 	int			activeTMU;
 	GLint		currentTextures[MAX_TEXTURE_UNITS];
-	GLint		currentTexturesIndex[MAX_TEXTURE_UNITS];	// [FWGS, 01.07.23]
+	GLint		currentTexturesIndex[MAX_TEXTURE_UNITS];
 	GLuint		currentTextureTargets[MAX_TEXTURE_UNITS];
 	GLboolean	texIdentityMatrix[MAX_TEXTURE_UNITS];
 	GLint		genSTEnabled[MAX_TEXTURE_UNITS];	// 0 - disabled, OR 1 - S, OR 2 - T, OR 4 - R
@@ -711,7 +727,6 @@ typedef struct
 	qboolean	stencilEnabled;
 	qboolean	in2DMode;
 	} glstate_t;
-
 
 typedef struct
 	{
@@ -751,6 +766,39 @@ static inline model_t *CL_ModelHandle (int index)
 	return gp_cl->models[index];
 	}
 
+// [FWGS, 01.12.24]
+static inline byte TextureToGamma (byte b)
+	{
+	return !FBitSet (gp_host->features, ENGINE_LINEAR_GAMMA_SPACE) ? tr.texgammatable[b] : b;
+	}
+
+// [FWGS, 01.12.24]
+static inline uint LightToTexGamma (uint b)
+	{
+	if (unlikely (b >= 1024))
+		return 0;
+
+	return !FBitSet (gp_host->features, ENGINE_LINEAR_GAMMA_SPACE) ? tr.lightgammatable[b] : b;
+	}
+
+// [FWGS, 01.12.24]
+static inline uint ScreenGammaTable (uint b)
+	{
+	if (unlikely (b >= 1024))
+		return 0;
+
+	return !FBitSet (gp_host->features, ENGINE_LINEAR_GAMMA_SPACE) ? tr.screengammatable[b] : b;
+	}
+
+// [FWGS, 01.12.24]
+static inline uint LinearGammaTable (uint b)
+	{
+	if (unlikely (b >= 1024))
+		return 0;
+
+	return !FBitSet (gp_host->features, ENGINE_LINEAR_GAMMA_SPACE) ? tr.lineargammatable[b] : b;
+	}
+
 // [FWGS, 01.01.24]
 #define WORLDMODEL (gp_cl->models[1])
 
@@ -771,6 +819,7 @@ extern convar_t gl_test;	// cvar to testify new effects
 extern convar_t gl_msaa;
 extern convar_t gl_stencilbits;
 extern convar_t gl_overbright;	// [FWGS, 01.01.24]
+extern convar_t gl_fog;			// [FWGS, 01.12.24]
 extern convar_t r_lighting_extended;
 extern convar_t r_lighting_ambient;
 extern convar_t r_studio_lambert;
@@ -786,6 +835,7 @@ extern convar_t r_vbo_detail;	// [FWGS, 01.01.24]
 extern convar_t r_vbo_overbrightmode;	// [FWGS, 01.03.24]
 extern convar_t r_studio_sort_textures;
 extern convar_t r_studio_drawelements;
+extern convar_t r_shadows;		// [FWGS, 01.12.24]
 extern convar_t r_ripple;
 extern convar_t r_ripple_updatetime;
 extern convar_t r_ripple_spawntime;
@@ -800,10 +850,21 @@ DECLARE_ENGINE_SHARED_CVAR_LIST ();
 //
 #include "crtlib.h"
 
-#define Mem_Malloc( pool, size ) gEngfuncs._Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
-#define Mem_Calloc( pool, size ) gEngfuncs._Mem_Alloc( pool, size, true, __FILE__, __LINE__ )
+// [FWGS, 01.12.24]
+/*define Mem_Malloc( pool, size ) gEngfuncs._Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
+define Mem_Calloc( pool, size ) gEngfuncs._Mem_Alloc( pool, size, true, __FILE__, __LINE__ )*/
+void _Mem_Free (void *data, const char *filename, int fileline);
+void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
+	ALLOC_CHECK (2) MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
+
+#define Mem_Malloc( pool, size ) _Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
+#define Mem_Calloc( pool, size ) _Mem_Alloc( pool, size, true, __FILE__, __LINE__ )
+
 #define Mem_Realloc( pool, ptr, size ) gEngfuncs._Mem_Realloc( pool, ptr, size, true, __FILE__, __LINE__ )
-#define Mem_Free( mem ) gEngfuncs._Mem_Free( mem, __FILE__, __LINE__ )
+
+/*define Mem_Free( mem ) gEngfuncs._Mem_Free( mem, __FILE__, __LINE__ )*/
+#define Mem_Free( mem ) _Mem_Free( mem, __FILE__, __LINE__ )
+
 #define Mem_AllocPool( name ) gEngfuncs._Mem_AllocPool( name, __FILE__, __LINE__ )
 #define Mem_FreePool( pool ) gEngfuncs._Mem_FreePool( pool, __FILE__, __LINE__ )
 #define Mem_EmptyPool( pool ) gEngfuncs._Mem_EmptyPool( pool, __FILE__, __LINE__ )

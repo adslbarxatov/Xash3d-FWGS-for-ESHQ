@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -23,9 +23,10 @@ GNU General Public License for more details
 typedef int (*STUDIOAPI)(int, sv_blending_interface_t **, server_studio_api_t *, float (*transform)[3][4], 
 	float (*bones)[MAXSTUDIOBONES][3][4]);
 
+// [FWGS, 01.12.24]
 typedef struct mstudiocache_s
 	{
-	float	frame;
+	/*float	frame;
 	int	sequence;
 	vec3_t	angles;
 	vec3_t	origin;
@@ -35,6 +36,17 @@ typedef struct mstudiocache_s
 	model_t *model;
 	uint	current_hull;
 	uint	current_plane;
+	uint	numhitboxes;*/
+	model_t	*model;
+	float	frame;
+	int		sequence;
+	vec3_t	angles;
+	vec3_t	origin;
+	vec3_t	size;
+	byte	controller[4];
+	byte	blending[2];
+	uint	current_hull;
+	uint	current_plane;
 	uint	numhitboxes;
 	} mstudiocache_t;
 
@@ -42,23 +54,23 @@ typedef struct mstudiocache_s
 #define STUDIO_CACHEMASK		(STUDIO_CACHESIZE - 1)
 
 // trace global variables
-static sv_blending_interface_t *pBlendAPI = NULL;
-static studiohdr_t *mod_studiohdr;
-static matrix3x4			studio_transform;
+static sv_blending_interface_t	*pBlendAPI = NULL;
+static studiohdr_t		*mod_studiohdr;
+static matrix3x4		studio_transform;
 static hull_t			cache_hull[MAXSTUDIOBONES];
 static hull_t			studio_hull[MAXSTUDIOBONES];
-static matrix3x4			studio_bones[MAXSTUDIOBONES];
-static uint			studio_hull_hitgroup[MAXSTUDIOBONES];
-static uint			cache_hull_hitgroup[MAXSTUDIOBONES];
-static mstudiocache_t		cache_studio[STUDIO_CACHESIZE];
-static mclipnode_t			studio_clipnodes[6];
+static matrix3x4		studio_bones[MAXSTUDIOBONES];
+static uint				studio_hull_hitgroup[MAXSTUDIOBONES];
+static uint				cache_hull_hitgroup[MAXSTUDIOBONES];
+static mstudiocache_t	cache_studio[STUDIO_CACHESIZE];
+static mclipnode_t		studio_clipnodes[6];
 static mplane_t			studio_planes[768];
 static mplane_t			cache_planes[768];
 
 // current cache state
-static int			cache_current;
-static int			cache_current_hull;
-static int			cache_current_plane;
+static int		cache_current;
+static int		cache_current_hull;
+static int		cache_current_plane;
 
 /***
 ====================
@@ -310,9 +322,9 @@ StudioCalcBoneAdj
 ***/
 static void Mod_StudioCalcBoneAdj (float *adj, const byte *pcontroller)
 	{
-	int			i, j;
-	float			value;
-	mstudiobonecontroller_t *pbonecontroller;
+	int		i, j;
+	float	value;
+	mstudiobonecontroller_t	*pbonecontroller;
 
 	pbonecontroller = (mstudiobonecontroller_t *)((byte *)mod_studiohdr + mod_studiohdr->bonecontrollerindex);
 
@@ -345,6 +357,7 @@ static void Mod_StudioCalcBoneAdj (float *adj, const byte *pcontroller)
 			case STUDIO_ZR:
 				adj[j] = value * (M_PI_F / 180.0f);
 				break;
+
 			case STUDIO_X:
 			case STUDIO_Y:
 			case STUDIO_Z:
@@ -363,9 +376,9 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 	vec4_t *q, mstudioseqdesc_t *pseqdesc, mstudioanim_t *panim, float f)
 	{
 	int		i, j, frame;
-	mstudiobone_t *pbone;
-	float		adj[MAXSTUDIOCONTROLLERS];
-	float		s;
+	mstudiobone_t	*pbone;
+	float	adj[MAXSTUDIOCONTROLLERS];
+	float	s;
 
 	// bah, fix this bug with changing sequences too fast
 	if (f > pseqdesc->numframes - 1)
@@ -473,9 +486,9 @@ static void SV_StudioSetupBones (model_t *pModel, float frame, int sequence, con
 	int		boneused[MAXSTUDIOBONES];
 	float	f = 0.0;
 
-	mstudiobone_t *pbones;
-	mstudioseqdesc_t *pseqdesc;
-	mstudioanim_t *panim;
+	mstudiobone_t		*pbones;
+	mstudioseqdesc_t	*pseqdesc;
+	mstudioanim_t		*panim;
 
 	static float	pos[MAXSTUDIOBONES][3];
 	static vec4_t	q[MAXSTUDIOBONES];

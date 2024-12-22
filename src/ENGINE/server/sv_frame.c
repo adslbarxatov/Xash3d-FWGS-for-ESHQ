@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -25,8 +25,11 @@ typedef struct
 	byte		sended[MAX_EDICTS_BYTES];
 	} sv_ents_t;
 
-int	c_fullsend;	// just a debug counter
-int	c_notsend;
+// [FWGS, 01.12.24]
+/*int	c_fullsend;	// just a debug counter
+int	c_notsend;*/
+static int c_fullsend; // just a debug counter
+static int c_notsend;
 
 /***
 =======================

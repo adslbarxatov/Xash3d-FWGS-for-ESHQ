@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -439,14 +439,16 @@ static void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 	frame_t			*frame;
 	cl_entity_t		*ent;
 
-	// first update is the final signon stage where we actually receive an entity (i.e., the world at least)
+	// [FWGS, 01.12.24] first update is the final signon stage where we actually receive an entity
+	// (i.e., the world at least)
 	if (cls.signon == (SIGNONS - 1))
 		{
-		// we are done with signon sequence.
+		// we are done with signon sequence
 		cls.signon = SIGNONS;
 
-		// Clear loading plaque.
-		CL_SignonReply ();
+		// Clear loading plaque
+		/*CL_SignonReply ();*/
+		CL_SignonReply (PROTO_QUAKE);
 		}
 
 	// alloc next slot to store update
@@ -651,10 +653,11 @@ static void CL_ParseQuakeDamage (sizebuf_t *msg)
 
 /***
 ===================
-CL_ParseStaticEntity [FWGS, 01.07.24]
+CL_ParseStaticEntity [FWGS, 01.12.24]
 ===================
 ***/
-static void CL_ParseStaticEntity (sizebuf_t *msg)
+/*static void CL_ParseStaticEntity (sizebuf_t *msg)*/
+static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	{
 	entity_state_t	state;
 	cl_entity_t		*ent;
@@ -911,7 +914,7 @@ static void CL_QuakeExecStuff (void)
 
 /***
 ==================
-CL_ParseQuakeMessage [FWGS, 01.07.24]
+CL_ParseQuakeMessage [FWGS, 01.12.24]
 ==================
 ***/
 void CL_ParseQuakeMessage (sizebuf_t *msg)
@@ -928,7 +931,7 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 		{
 		if (MSG_CheckOverflow (msg))
 			{
-			Host_Error ("%s: overflow!\n", __func__);	// [FWGS, 01.07.24]
+			Host_Error ("%s: overflow!\n", __func__);
 			return;
 			}
 
@@ -983,7 +986,8 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 
 			case svc_time:
 				Cbuf_AddText ("\n"); // new frame was started
-				CL_ParseServerTime (msg);
+				/*CL_ParseServerTime (msg);*/
+				CL_ParseServerTime (msg, PROTO_QUAKE);
 				break;
 
 			case svc_print:
@@ -1052,7 +1056,8 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 
 			case svc_spawnstatic:
-				CL_ParseStaticEntity (msg);
+				/*CL_ParseStaticEntity (msg);*/
+				CL_ParseQuakeStaticEntity (msg);
 				break;
 
 			case svc_spawnbinary:
@@ -1107,7 +1112,8 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				param2 = bound (0, param2, MAX_CDTRACKS - 1); // loopnum
 				if ((cls.demoplayback || cls.demorecording) && (cls.forcetrack != -1))
 					S_StartBackgroundTrack (clgame.cdtracks[cls.forcetrack], clgame.cdtracks[cls.forcetrack], 0, false);
-				else S_StartBackgroundTrack (clgame.cdtracks[param1], clgame.cdtracks[param2], 0, false);
+				else
+					S_StartBackgroundTrack (clgame.cdtracks[param1], clgame.cdtracks[param2], 0, false);
 				break;
 
 			case svc_sellscreen:
@@ -1163,7 +1169,7 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 			}
 		}
 
-	// now process packet.
+	// now process packet
 	CL_ProcessPacket (&cl.frames[cl.parsecountmod]);
 
 	// add new entities into physic lists

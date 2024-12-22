@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -213,7 +213,8 @@ static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
 	if (!voice.input_file)
 		VoiceCapture_Lock (true);
 
-	for (ofs = 0; voice.input_buffer_pos - ofs >= frame_size_bytes && ofs <= voice.input_buffer_pos; ofs += frame_size_bytes)
+	for (ofs = 0; voice.input_buffer_pos - ofs >= frame_size_bytes && ofs <= voice.input_buffer_pos;
+		ofs += frame_size_bytes)
 		{
 		int bytes;
 
@@ -396,18 +397,19 @@ void Voice_RecordStop (void)
 
 /***
 =========================
-Voice_RecordStart
+Voice_RecordStart [FWGS, 01.12.24]
 =========================
 ***/
 void Voice_RecordStart (void)
 	{
 	Voice_RecordStop ();
 
+	if (!voice.initialized)
+		return;
+
 	if (voice_inputfromfile.value)
 		{
 		voice.input_file = FS_LoadSound ("voice_input.wav", NULL, 0);
-
-		// [FWGS, 01.08.24]
 		if (voice.input_file)
 			{
 			Sound_Process (&voice.input_file, voice.samplerate, voice.width, VOICE_PCM_CHANNELS, SOUND_RESAMPLE);
@@ -423,7 +425,8 @@ void Voice_RecordStart (void)
 			}
 		}
 
-	if (!Voice_IsRecording ())
+	/*if (!Voice_IsRecording ())*/
+	if (!Voice_IsRecording () && voice.device_opened)
 		voice.is_recording = VoiceCapture_Activate (true);
 
 	if (Voice_IsRecording ())
@@ -638,7 +641,7 @@ void Voice_Idle (double frametime)
 
 /***
 =========================
-Voice_Init [FWGS, 01.09.24]
+Voice_Init [FWGS, 01.12.24]
 
 Initialize the voice subsystem
 =========================
@@ -647,7 +650,9 @@ qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit)
 	{
 	if (Q_strcmp (pszCodecName, VOICE_OPUS_CUSTOM_CODEC))
 		{
-		Con_Printf (S_ERROR "Server requested unsupported codec: %s\n", pszCodecName);
+		/*Con_Printf (S_ERROR "Server requested unsupported codec: %s\n", pszCodecName);*/
+		if (COM_CheckStringEmpty (pszCodecName))
+			Con_Printf (S_ERROR "Server requested unsupported codec: %s\n", pszCodecName);
 
 		// reset saved codec name, we won't enable voice for this connection
 		voice_codec_init[0] = 0;
@@ -715,4 +720,3 @@ qboolean Voice_Init (const char *pszCodecName, int quality, qboolean preinit)
 
 	return true;
 	}
-

@@ -135,7 +135,6 @@ typedef struct
 	int			flags;
 	} mtexinfo_t;
 
-/*typedef struct glpoly_s*/
 // [FWGS, 01.09.24] a1ba: changed size to avoid undefined behavior. Check your allocations if you take this header!
 // For example:
 // before: malloc( sizeof( glpoly_t ) + ( numverts - 4 ) * VERTEXSIZE * sizeof( float ))
@@ -143,14 +142,10 @@ typedef struct
 // after (C++): malloc( sizeof( glpoly_t ) + ( numverts - 1 ) * VERTEXSIZE * sizeof( float ))
 typedef struct glpoly2_s
 	{
-	/*struct glpoly_s *next;
-	struct glpoly_s *chain;*/
 	struct glpoly2_s	*next;
 	struct glpoly2_s	*chain;
 	int			numverts;
 	int			flags;          		// for SURF_UNDERWATER
-	/*float		verts[4][VERTEXSIZE];	// variable sized (xyz s1t1 s2t2)
-	} glpoly_t;*/
 
 #ifdef __cplusplus
 	float verts[1][VERTEXSIZE];	// variable sized (xyz s1t1 s2t2)
@@ -197,7 +192,6 @@ struct decal_s
 
 	// Xash3D specific
 	vec3_t		position;		// location of the decal center in world space.
-	/*glpoly_t	*polys;			// precomputed decal vertices*/
 	glpoly2_t	*polys;			// precomputed decal vertices
 	intptr_t	reserved[4];	// just for future expansions or mod-makers
 	};
@@ -258,6 +252,17 @@ typedef struct mextrasurf_s
 	intptr_t		reserved[32];	// [FWGS, 01.04.23] just for future expansions or mod-makers
 	} mextrasurf_t;
 
+// [FWGS, 01.12.24] additional struct at the end of msurface_t for HL25 compatibility
+#ifdef SUPPORT_HL25_EXTENDED_STRUCTS
+typedef struct mdisplaylist_s
+	{
+	unsigned int	gl_displaylist;
+	int		rendermode;
+	float	scrolloffset;
+	int		renderDetailTexture;
+	} mdisplaylist_t;
+#endif
+
 // [FWGS, 01.09.24]
 struct msurface_s
 	{
@@ -274,7 +279,6 @@ struct msurface_s
 
 	int			light_s, light_t;	// gl lightmap coordinates
 
-	/*glpoly_t *polys;			// multiple if warped*/
 	glpoly2_t	*polys;			// multiple if warped
 	struct msurface_s	*texturechain;
 
@@ -293,6 +297,11 @@ struct msurface_s
 
 	color24		*samples;		// note: this is the actual lightmap data for this surface
 	decal_t		*pdecals;
+
+	// [FWGS, 01.12.24]
+#ifdef SUPPORT_HL25_EXTENDED_STRUCTS
+	mdisplaylist_t	displaylist;
+#endif
 	};
 
 typedef struct hull_s
@@ -517,7 +526,6 @@ typedef struct
 	float	size;
 
 	// [FWGS, 01.08.24]
-	/*int		reserved[8];		// VBO offsets*/
 	const trivertex_t **pposeverts; // only valid during loading, used to build GL mesh
 	intptr_t reserved[7]; // VBO offsets
 
@@ -561,18 +569,22 @@ typedef struct
 #define MAX_CLIENT_SPRITES	512	// SpriteTextures (0-256 hud, 256-512 client)
 
 // [FWGS, 01.09.24]
-/*#define MAX_EFRAGS		8192	// Arcane Dimensions required*/
 #define MAX_REQUESTS	64
 
-// [FWGS, 01.03.24]
-#if ! XASH_64BIT
+/*// [FWGS, 01.03.24]
+if ! XASH_64BIT
 STATIC_ASSERT (sizeof (mextrasurf_t) == 324, "mextrasurf_t unexpected size");
 STATIC_ASSERT (sizeof (decal_t) == 60, "decal_t unexpected size");
 STATIC_ASSERT (sizeof (mfaceinfo_t) == 176, "mfaceinfo_t unexpected size");
-#else
+else
 STATIC_ASSERT (sizeof (mextrasurf_t) == 496, "mextrasurf_t unexpected size");
 STATIC_ASSERT (sizeof (decal_t) == 88, "decal_t unexpected size");
 STATIC_ASSERT (sizeof (mfaceinfo_t) == 304, "mfaceinfo_t unexpected size");
-#endif
+endif*/
+
+// [FWGS, 01.12.24]
+STATIC_CHECK_SIZEOF (mextrasurf_t, 324, 496);
+STATIC_CHECK_SIZEOF (decal_t, 60, 88);
+STATIC_CHECK_SIZEOF (mfaceinfo_t, 176, 304);
 
 #endif

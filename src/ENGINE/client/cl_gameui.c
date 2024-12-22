@@ -65,13 +65,15 @@ void UI_UpdateMenu (float realtime)
 
 void UI_KeyEvent (int key, qboolean down)
 	{
-	if (!gameui.hInstance) return;
+	if (!gameui.hInstance)
+		return;
 	gameui.dllFuncs.pfnKeyEvent (key, down);
 	}
 
 void UI_MouseMove (int x, int y)
 	{
-	if (!gameui.hInstance) return;
+	if (!gameui.hInstance)
+		return;
 	gameui.dllFuncs.pfnMouseMove (x, y);
 	}
 
@@ -459,6 +461,16 @@ static void UI_ToOldGameInfo (GAMEINFO *out, const gameinfo2_t *in)
 	out->gamemode = in->gamemode;
 	}
 
+// [FWGS, 01.12.24]
+static void UI_GetModsInfo (void)
+	{
+	int i;
+
+	gameui.modsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.modsInfo) * FI->numgames);
+	for (i = 0; i < FI->numgames; i++)
+		UI_ConvertGameInfo (&gameui.modsInfo[i], FI->games[i]);
+	}
+
 /***
 ====================
 PIC_DrawGeneric
@@ -653,7 +665,7 @@ static void GAME_EXPORT pfnPIC_DisableScissor (void)
 
 /***
 =============
-pfnFillRGBA
+pfnFillRGBA [FWGS, 01.12.24]
 =============
 ***/
 static void GAME_EXPORT pfnFillRGBA (int x, int y, int width, int height, int r, int g, int b, int a)
@@ -662,10 +674,12 @@ static void GAME_EXPORT pfnFillRGBA (int x, int y, int width, int height, int r,
 	g = bound (0, g, 255);
 	b = bound (0, b, 255);
 	a = bound (0, a, 255);
-	ref.dllFuncs.Color4ub (r, g, b, a);
+
+	/*ref.dllFuncs.Color4ub (r, g, b, a);
 	ref.dllFuncs.GL_SetRenderMode (kRenderTransTexture);
 	ref.dllFuncs.R_DrawStretchPic (x, y, width, height, 0, 0, 1, 1, R_GetBuiltinTexture (REF_WHITE_TEXTURE));
-	ref.dllFuncs.Color4ub (255, 255, 255, 255);
+	ref.dllFuncs.Color4ub (255, 255, 255, 255);*/
+	ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, width, height, r, g, b, a);
 	}
 
 /***
@@ -703,7 +717,9 @@ pfnPlaySound
 ***/
 static void GAME_EXPORT pfnPlaySound (const char *szSound)
 	{
-	if (!COM_CheckString (szSound)) return;
+	if (!COM_CheckString (szSound))
+		return;
+
 	S_StartLocalSound (szSound, VOL_NORM, false);
 	}
 
@@ -725,8 +741,10 @@ static void GAME_EXPORT pfnDrawCharacter (int ix, int iy, int iwidth, int iheigh
 
 	ch &= 255;
 
-	if (ch == ' ') return;
-	if (y < -height) return;
+	if (ch == ' ')
+		return;
+	if (y < -height)
+		return;
 
 	color[3] = (ulRGBA & 0xFF000000) >> 24;
 	color[0] = (ulRGBA & 0xFF0000) >> 16;
@@ -952,7 +970,7 @@ static int GAME_EXPORT pfnGetOldGameInfo (GAMEINFO *pgameinfo)
 
 /***
 =========
-pfnGetGamesList [FWGS, 01.09.24]
+pfnGetGamesList
 =========
 ***/
 static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
@@ -964,11 +982,19 @@ static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
 		{
 		int i;
 
+		// [FWGS, 01.12.24]
+		if (!gameui.modsInfo)
+			UI_GetModsInfo ();
+
 		// first allocate array of pointers
-		gameui.oldModsInfo = Mem_Calloc (gameui.mempool, sizeof (void *) * FI->numgames);
+		/*gameui.oldModsInfo = Mem_Calloc (gameui.mempool, sizeof (void *) * FI->numgames);*/
+		gameui.oldModsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.oldModsInfo) * FI->numgames);
+
 		for (i = 0; i < FI->numgames; i++)
 			{
-			gameui.oldModsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (GAMEINFO));
+			/*gameui.oldModsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (GAMEINFO));*/
+			gameui.oldModsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (*gameui.oldModsInfo[i]));
+
 			UI_ToOldGameInfo (gameui.oldModsInfo[i], &gameui.modsInfo[i]);
 			}
 		}
@@ -1224,10 +1250,11 @@ static const ui_enginefuncs_t gEngfuncs =
 	pfnHostEndGame,
 	COM_RandomFloat,
 	COM_RandomLong,
-	pfnSetCursor,	// [FWGS, 01.07.24]
+	pfnSetCursor,		// [FWGS, 01.07.24]
 	pfnIsMapValid,
 	GL_ProcessTexture,
-	COM_CompareFileTime,
+	/*COM_CompareFileTime,*/
+	pfnCompareFileTime,	// [FWGS, 01.12.24]
 	VID_GetModeString,
 	(void *)COM_SaveFile,
 	pfnDelete
@@ -1266,16 +1293,30 @@ static gameinfo2_t *pfnGetGameInfo (int gi_version)
 	return &gameui.gameInfo;
 	}
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.12.24]
 static gameinfo2_t *pfnGetModInfo (int gi_version, int i)
 	{
 	if ((i < 0) || (i >= FI->numgames))
 		return NULL;
 
+	if (!gameui.modsInfo)
+		UI_GetModsInfo ();
+
 	if (gi_version != gameui.modsInfo[i].gi_version)
 		return NULL;
 
 	return &gameui.modsInfo[i];
+	}
+
+// [FWGS, 01.12.24]
+static int pfnIsCvarReadOnly (const char *name)
+	{
+	convar_t *cv = Cvar_FindVar (name);
+
+	if (!cv)
+		return -1;
+
+	return FBitSet (cv->flags, FCVAR_READ_ONLY) ? 1 : 0;
 	}
 
 static ui_extendedfuncs_t gExtendedfuncs =
@@ -1293,6 +1334,7 @@ static ui_extendedfuncs_t gExtendedfuncs =
 	&gNetApi,				// [FWGS, 01.07.24]
 	pfnGetGameInfo,			// [FWGS, 01.09.24]
 	pfnGetModInfo,			// [FWGS, 01.09.24]
+	pfnIsCvarReadOnly,		// [FWGS, 01.12.24]
 	};
 
 // [FWGS, 01.09.24]
@@ -1422,10 +1464,11 @@ qboolean UI_LoadProgs (void)
 	Cvar_FullSet ("host_gameuiloaded", "1", FCVAR_READ_ONLY);
 	Cmd_AddRestrictedCommand ("ui_allowconsole", UI_ToggleAllowConsole_f, "unlocks developer console");
 
-	// setup gameinfo
+	// [FWGS, 01.12.24]
+	/*// setup gameinfo
 	gameui.modsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.modsInfo) * FI->numgames);
 	for (i = 0; i < FI->numgames; i++)
-		UI_ConvertGameInfo (&gameui.modsInfo[i], FI->games[i]);
+		UI_ConvertGameInfo (&gameui.modsInfo[i], FI->games[i]);*/
 
 	UI_ConvertGameInfo (&gameui.gameInfo, FI->GameInfo); // current gameinfo
 

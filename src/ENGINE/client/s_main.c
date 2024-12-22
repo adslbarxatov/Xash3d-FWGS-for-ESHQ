@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -495,7 +495,7 @@ static void S_SpatializeChannel (int *left_vol, int *right_vol, int master_vol, 
 
 /***
 =================
-SND_Spatialize [FWGS, 09.05.24]
+SND_Spatialize [FWGS, 01.12.24]
 =================
 ***/
 static void SND_Spatialize (channel_t *ch)
@@ -514,7 +514,6 @@ static void SND_Spatialize (channel_t *ch)
 		}
 
 	pSource = ch->sfx->cache;
-
 	if (ch->use_loop && pSource && FBitSet (pSource->flags, SOUND_LOOPED))
 		looping = true;
 
@@ -536,8 +535,15 @@ static void SND_Spatialize (channel_t *ch)
 	dist = VectorNormalizeLength (source_vec);
 	dot = DotProduct (s_listener.right, source_vec);
 
-	// don't pan sounds with no attenuation
-	if (ch->dist_mult <= 0.0f) dot = 0.0f;
+	/*// don't pan sounds with no attenuation
+	if (ch->dist_mult <= 0.0f) dot = 0.0f;*/
+
+	if (!FBitSet (host.bugcomp, BUGCOMP_SPATIALIZE_SOUND_WITH_ATTN_NONE))
+		{
+		// don't pan sounds with no attenuation
+		if (ch->dist_mult <= 0.0f)
+			dot = 0.0f;
+		}
 
 	// fill out channel volumes for single location
 	S_SpatializeChannel (&ch->leftvol, &ch->rightvol, ch->master_vol, gain, dot, dist * ch->dist_mult);
@@ -1948,12 +1954,13 @@ void S_SoundInfo_f (void)
 
 /***
 =================
-S_VoiceRecordStart_f
+S_VoiceRecordStart_f [FWGS, 01.12.24]
 =================
 ***/
 static void S_VoiceRecordStart_f (void)
 	{
-	if ((cls.state != ca_active) || cls.legacymode)
+	/*if ((cls.state != ca_active) || cls.legacymode)*/
+	if (cls.state != ca_active)
 		return;
 
 	Voice_RecordStart ();
@@ -1975,16 +1982,16 @@ static void S_VoiceRecordStop_f (void)
 
 /***
 ================
-S_Init
+S_Init [FWGS, 01.12.24]
 ================
 ***/
 qboolean S_Init (void)
 	{
-	if (Sys_CheckParm ("-nosound"))
+	/*if (Sys_CheckParm ("-nosound"))
 		{
 		Con_Printf ("Audio: Disabled\n");
 		return false;
-		}
+		}*/
 
 	Cvar_RegisterVariable (&s_volume);
 	Cvar_RegisterVariable (&s_musicvolume);
@@ -1998,6 +2005,12 @@ qboolean S_Init (void)
 	Cvar_RegisterVariable (&s_test);
 	Cvar_RegisterVariable (&s_samplecount);
 	Cvar_RegisterVariable (&s_warn_late_precache);
+
+	if (Sys_CheckParm ("-nosound"))
+		{
+		Con_Printf ("Audio: Disabled\n");
+		return false;
+		}
 
 	Cmd_AddCommand ("play", S_Play_f, "playing a specified sound file");
 	Cmd_AddCommand ("play2", S_Play2_f, "playing a group of specified sound files"); // nehahra stuff

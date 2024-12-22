@@ -9,24 +9,38 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
+
 #include "port.h"
 #include "xash3d_types.h"
 #include "const.h"
 #include "com_model.h"
 #include "xash3d_mathlib.h"
 #include "eiface.h"
+#include "studio.h"		// [FWGS, 01.12.24]
 
 #define NUM_HULL_ROUNDS	ARRAYSIZE( hull_table )
 #define HULL_PRECISION	4
 
-vec3_t vec3_origin = { 0, 0, 0 };
+// [FWGS, 01.12.24]
+/*vec3_t vec3_origin = { 0, 0, 0 };*/
+static const word hull_table[] = {
+	2,		4,		6,		8,
+	12,		16,		18,		24,
+	28,		32,		36,		40,
+	48,		54,		56,		60,
+	64,		72,		80,		112,
+	120,	128,	140,	176
+	};
 
-static word hull_table[] = { 2, 4, 6, 8, 12, 16, 18, 24, 28, 32, 36, 40, 48, 54, 56, 60, 64, 72, 80, 112, 120, 128, 140, 176 };
+/*static word hull_table[] = { 2, 4, 6, 8, 12, 16, 18, 24, 28, 32, 36, 40, 48, 54, 56, 60, 64, 72, 80, 112, 120, 128, 140, 176 };
 
-int boxpnt[6][4] =
+int boxpnt[6][4] =*/
+
+// [FWGS, 01.12.24]
+const int boxpnt[6][4] =
 	{
 	{ 0, 4, 6, 2 }, // +X
 	{ 0, 1, 5, 4 }, // +Y
@@ -42,22 +56,25 @@ const float m_bytenormals[NUMVERTEXNORMALS][3] =
 	#include "anorms.h"
 	};
 
-/***
+// [FWGS, 01.12.24] removed anglemod
+/*
 =================
 anglemod
 =================
-***/
+/
 float anglemod (float a)
 	{
 	a = (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
 	return a;
-	}
+	}*/
 
-// [FWGS, 01.05.23] Удалена SimpleSpline
+// [FWGS, 01.05.23] removed SimpleSpline
 
-word FloatToHalf (float v)
+// [FWGS, 01.12.24]
+/*word FloatToHalf (float v)*/
+uint16_t FloatToHalf (float v)
 	{
-	unsigned int	i = FloatAsUint (v);	// [FWGS, 01.04.23]
+	unsigned int	i = FloatAsUint (v);
 	unsigned int	e = (i >> 23) & 0x00ff;
 	unsigned int	m = i & 0x007fffff;
 	unsigned short	h;
@@ -72,7 +89,9 @@ word FloatToHalf (float v)
 	return h;
 	}
 
-float HalfToFloat (word h)
+// [FWGS, 01.12.24]
+/*float HalfToFloat (word h)*/
+float HalfToFloat (uint16_t h)
 	{
 	unsigned int	f = (h << 16) & 0x80000000;
 	unsigned int	em = h & 0x7fff;
@@ -155,13 +174,14 @@ void RoundUpHullSize (vec3_t size)
 		}
 	}
 
-/***
+// [FWGS, 01.12.24] removed SignbitsForPlane, PlaneTypeForNormal
+/*
 =================
 SignbitsForPlane
 
 fast box on planeside test
 =================
-***/
+/
 int SignbitsForPlane (const vec3_t normal)
 	{
 	int	bits, i;
@@ -170,13 +190,13 @@ int SignbitsForPlane (const vec3_t normal)
 		if (normal[i] < 0.0f)
 			bits |= 1 << i;
 	return bits;
-	}
+	}*/
 
-/***
+/*
 =================
 PlaneTypeForNormal
 =================
-***/
+/
 int PlaneTypeForNormal (const vec3_t normal)
 	{
 	if (normal[0] == 1.0f)
@@ -186,15 +206,16 @@ int PlaneTypeForNormal (const vec3_t normal)
 	if (normal[2] == 1.0f)
 		return PLANE_Z;
 	return PLANE_NONAXIAL;
-	}
+	}*/
 
-// [FWGS, 01.05.23] Удалена PlanesGetIntersectionPoint
+// [FWGS, 01.05.23] removed PlanesGetIntersectionPoint
 
-/***
+// [FWGS, 01.12.24] removed NearestPOW
+/*
 =================
 NearestPOW
 =================
-***/
+/
 int NearestPOW (int value, qboolean roundDown)
 	{
 	int	n = 1;
@@ -210,7 +231,7 @@ int NearestPOW (int value, qboolean roundDown)
 			n >>= 1;
 		}
 	return n;
-	}
+	}*/
 
 // [FWGS, 01.05.24] removed RemapVal, ApproachVal
 
@@ -228,9 +249,9 @@ float rsqrt (float number)
 		return 0.0f;
 
 	x = number * 0.5f;
-	i = FloatAsInt (number);	// [FWGS, 01.04.23]
+	i = FloatAsInt (number);
 	i = 0x5f3759df - (i >> 1);	// what the fuck?
-	y = IntAsFloat (i);			// [FWGS, 01.04.23]
+	y = IntAsFloat (i);
 	y = y * (1.5f - (x * y * y));	// first iteration
 
 	return y;
@@ -238,11 +259,12 @@ float rsqrt (float number)
 
 // [FWGS, 01.05.24] removed SinCos
 
-/***
+// [FWGS, 01.12.24] removed VectorCompareEpsilon, VectorNormalizeLength2
+/*
 ==============
 VectorCompareEpsilon
 ==============
-***/
+/
 qboolean VectorCompareEpsilon (const vec3_t vec1, const vec3_t vec2, vec_t epsilon)
 	{
 	vec_t	ax, ay, az;
@@ -272,7 +294,7 @@ float VectorNormalizeLength2 (const vec3_t v, vec3_t out)
 		}
 
 	return length;
-	}
+	}*/
 
 void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up)
 	{
@@ -289,11 +311,12 @@ void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up)
 	VectorNormalize (up);
 	}
 
-/***
+// [FWGS, 01.12.24] removed AngleVectors
+/*
 =================
 AngleVectors
 =================
-***/
+/
 void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 	{
 	float	sr, sp, sy, cr, cp, cy;
@@ -322,7 +345,7 @@ void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right
 		up[1] = (cr * sp * sy + -sr * cy);
 		up[2] = (cr * cp);
 		}
-	}
+	}*/
 
 /***
 =================
@@ -400,11 +423,12 @@ void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, v
 
 // [FWGS, 01.05.24] removed ClearBounds
 
-/***
+// [FWGS, 01.12.24] removed AddPointToBounds, ExpandBounds
+/*
 =================
 AddPointToBounds
 =================
-***/
+/
 void AddPointToBounds (const vec3_t v, vec3_t mins, vec3_t maxs)
 	{
 	float	val;
@@ -416,13 +440,13 @@ void AddPointToBounds (const vec3_t v, vec3_t mins, vec3_t maxs)
 		if (val < mins[i]) mins[i] = val;
 		if (val > maxs[i]) maxs[i] = val;
 		}
-	}
+	}*/
 
-/***
+/*
 =================
 ExpandBounds (not used anywhere?)
 =================
-***/
+/
 void ExpandBounds (vec3_t mins, vec3_t maxs, float offset)
 	{
 	mins[0] -= offset;
@@ -431,7 +455,7 @@ void ExpandBounds (vec3_t mins, vec3_t maxs, float offset)
 	maxs[0] += offset;
 	maxs[1] += offset;
 	maxs[2] += offset;
-	}
+	}*/
 
 // [FWGS, 01.05.24] removed BoundsIntersect, BoundsAndSphereIntersect
 
@@ -476,11 +500,12 @@ void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, ve
 	VectorMA (p0, sect, p1, out);
 	}
 
-/***
+// [FWGS, 01.12.24] removed RadiusFromBounds
+/*
 =================
 RadiusFromBounds
 =================
-***/
+/
 float RadiusFromBounds (const vec3_t mins, const vec3_t maxs)
 	{
 	vec3_t	corner;
@@ -491,16 +516,19 @@ float RadiusFromBounds (const vec3_t mins, const vec3_t maxs)
 		corner[i] = fabs (mins[i]) > fabs (maxs[i]) ? fabs (mins[i]) : fabs (maxs[i]);
 		}
 	return VectorLength (corner);
-	}
+	}*/
 
 //
 // studio utils
 //
-/***
+
+// [FWGS, 01.12.24] removed AngleQuaternion, QuaternionAngle
+
+/*
 ====================
 AngleQuaternion
 ====================
-***/
+/
 void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean studio)
 	{
 	float	sr, sp, sy, cr, cp, cy;
@@ -522,19 +550,19 @@ void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean studio)
 	q[1] = cr * sp * cy + sr * cp * sy; // Y
 	q[2] = cr * cp * sy - sr * sp * cy; // Z
 	q[3] = cr * cp * cy + sr * sp * sy; // W
-	}
+	}*/
 
-/***
+/*
 ====================
 QuaternionAngle
 ====================
-***/
+/
 void QuaternionAngle (const vec4_t q, vec3_t angles)
 	{
 	matrix3x4	mat;
 	Matrix3x4_FromOriginQuat (mat, q, vec3_origin);
 	Matrix3x4_AnglesFromMatrix (mat, angles);
-	}
+	}*/
 
 /***
 ====================
@@ -699,11 +727,12 @@ int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p)
 	return sides;
 	}
 
-/***
+// [FWGS, 01.12.24] removed R_StudioSlerpBones
+/*
 ====================
 StudioSlerpBones [FWGS, 01.04.23]
 ====================
-***/
+/
 void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_t q2[], const float pos2[][3], float s)
 	{
 	int	i;
@@ -715,7 +744,7 @@ void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_
 		QuaternionSlerp (q1[i], q2[i], s, q1[i]);
 		VectorLerp (pos1[i], s, pos2[i], pos1[i]);
 		}
-	}
+	}*/
 
 /***
 ====================

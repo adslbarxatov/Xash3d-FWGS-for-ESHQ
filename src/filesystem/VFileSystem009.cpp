@@ -17,8 +17,9 @@ GNU General Public License for more details
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
-#define ALLOCA_H	<malloc.h>	// [FWGS, 01.04.23]
-#include ALLOCA_H
+/*define ALLOCA_H	<malloc.h>	// [FWGS, 01.04.23]
+include ALLOCA_H*/
+#include <malloc.h>		// [FWGS, 01.12.24]
 #include "crtlib.h"
 #include "filesystem.h"
 #include "filesystem_internal.h"
@@ -79,19 +80,19 @@ static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	return fs_rootdir; // give at least root directory
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.12.24]
 static inline void CopyAndFixSlashes (char *p, const char *in, size_t size)
 	{
 	Q_strncpy (p, in, size);
 	COM_FixSlashes (p);
 	}
 
-class CXashFS : public IVFileSystem009
+/*class CXashFS : public IVFileSystem009*/
+class CXashFS : public IFileSystem
 	{
 	private:
 		class CSearchState
 			{
-			// [FWGS, 01.05.23]
 			public:
 				CSearchState (CSearchState **head, search_t *search) :
 					next (*head),
@@ -114,7 +115,6 @@ class CXashFS : public IVFileSystem009
 
 		CSearchState *searchHead;
 
-		// [FWGS, 01.05.23]
 		CSearchState *GetSearchStateByHandle (FileFindHandle_t handle)
 			{
 			for (CSearchState *state = searchHead; state; state = state->next)
@@ -137,7 +137,6 @@ class CXashFS : public IVFileSystem009
 			FS_ClearSearchPath ();
 			}
 
-		// [FWGS, 01.05.23]
 		void AddSearchPath (const char *path, const char *id) override
 			{
 			FixupPath (p, path);
@@ -145,7 +144,6 @@ class CXashFS : public IVFileSystem009
 			FS_AddGameDirectory (p, FS_CUSTOM_PATH);
 			}
 
-		// [FWGS, 01.05.23]
 		void AddSearchPathNoWrite (const char *path, const char *id) override
 			{
 			FixupPath (p, path);
@@ -158,7 +156,6 @@ class CXashFS : public IVFileSystem009
 			return true;
 			}
 
-		// [FWGS, 01.11.23]
 		void RemoveFile (const char *path, const char *id) override
 			{
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
@@ -167,7 +164,6 @@ class CXashFS : public IVFileSystem009
 			FS_Delete (fullpath);	// FS_Delete is aware of slashes
 			}
 
-		// [FWGS, 01.04.23]
 		void CreateDirHierarchy (const char *path, const char *id) override
 			{
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
@@ -176,7 +172,6 @@ class CXashFS : public IVFileSystem009
 			FS_CreatePath (fullpath); // FS_CreatePath is aware of slashes
 			}
 
-		// [FWGS, 01.05.23]
 		bool FileExists (const char *path) override
 			{
 			FixupPath (p, path);
@@ -184,7 +179,6 @@ class CXashFS : public IVFileSystem009
 			return FS_FileExists (p, false);
 			}
 
-		// [FWGS, 01.05.23]
 		bool IsDirectory (const char *path) override
 			{
 			FixupPath (p, path);
@@ -192,7 +186,6 @@ class CXashFS : public IVFileSystem009
 			return FS_SysFolderExists (p);
 			}
 
-		// [FWGS, 01.05.23]
 		FileHandle_t Open (const char *path, const char *mode, const char *id) override
 			{
 			file_t *fd;
@@ -203,13 +196,11 @@ class CXashFS : public IVFileSystem009
 			return fd;
 			}
 
-		// [FWGS, 01.05.23]
 		void Close (FileHandle_t handle) override
 			{
 			FS_Close (static_cast<file_t *>(handle));
 			}
 
-		// [FWGS, 01.05.23]
 		void Seek (FileHandle_t handle, int offset, FileSystemSeek_t whence) override
 			{
 			int whence_ = SEEK_SET;
@@ -231,41 +222,37 @@ class CXashFS : public IVFileSystem009
 			FS_Seek (static_cast<file_t *>(handle), offset, whence_);
 			}
 
-		// [FWGS, 01.05.23]
 		unsigned int Tell (FileHandle_t handle) override
 			{
 			return FS_Tell (static_cast<file_t *>(handle));
 			}
 
-		// [FWGS, 01.05.23]
 		unsigned int Size (FileHandle_t handle) override
 			{
 			return static_cast<file_t *>(handle)->real_length;
 			}
 
-		// [FWGS, 01.05.23]
 		unsigned int Size (const char *path) override
 			{
 			FixupPath (p, path);
 			return FS_FileSize (p, false);
 			}
 
-		// [FWGS, 01.05.23]
 		long int GetFileTime (const char *path) override
 			{
 			FixupPath (p, path);
 			return FS_FileTime (p, false);
 			}
 
-		// [FWGS, 01.12.23]
-		long int GetFileModificationTime (const char *path)
+		// [FWGS, 01.12.24]
+		/*long int GetFileModificationTime (const char *path)*/
+		long int GetFileModificationTime (const char *path) override
 			{
 			// TODO: properly reverse-engineer this
 			FixupPath (p, path);
 			return FS_FileTime (p, false);
 			}
 
-		// [FWGS, 01.05.23]
 		void FileTimeToString (char *p, int size, long int time) override
 			{
 			const time_t curtime = time;
@@ -274,37 +261,31 @@ class CXashFS : public IVFileSystem009
 			Q_strncpy (p, buf, size);
 			}
 
-		// [FWGS, 01.05.23]
 		bool IsOk (FileHandle_t handle) override
 			{
 			return !FS_Eof (static_cast<file_t *>(handle));
 			}
 
-		// [FWGS, 01.05.23]
 		void Flush (FileHandle_t handle) override
 			{
 			FS_Flush (static_cast<file_t *>(handle));
 			}
 
-		// [FWGS, 01.05.23]
 		bool EndOfFile (FileHandle_t handle) override
 			{
 			return FS_Eof (static_cast<file_t *>(handle));
 			}
 
-		// [FWGS, 01.05.23]
 		int Read (void *buf, int size, FileHandle_t handle) override
 			{
 			return FS_Read (static_cast<file_t *>(handle), buf, size);
 			}
 
-		// [FWGS, 01.05.23]
 		int Write (const void *buf, int size, FileHandle_t handle) override
 			{
 			return FS_Write (static_cast<file_t *>(handle), buf, size);
 			}
 
-		// [FWGS, 01.05.23]
 		char *ReadLine (char *buf, int size, FileHandle_t handle) override
 			{
 			const int c = FS_Gets (static_cast<file_t *>(handle), buf, size);
@@ -317,7 +298,7 @@ class CXashFS : public IVFileSystem009
 			int ret;
 
 			va_start (ap, fmt);
-			ret = FS_VPrintf (static_cast<file_t *>(handle), fmt, ap);	// [FWGS, 01.05.23]
+			ret = FS_VPrintf (static_cast<file_t *>(handle), fmt, ap);
 			va_end (ap);
 
 			return ret;
@@ -411,7 +392,6 @@ class CXashFS : public IVFileSystem009
 			delete i;
 			}
 
-		// [FWGS, 01.05.23]
 		const char *GetLocalPath (const char *name, char *buf, int size) override
 			{
 			const char *fullpath;
@@ -440,7 +420,6 @@ class CXashFS : public IVFileSystem009
 			return buf;
 			}
 
-		// [FWGS, 01.05.23]
 		char *ParseFile (char *buf, char *token, bool *quoted) override
 			{
 			qboolean qquoted;
@@ -453,7 +432,6 @@ class CXashFS : public IVFileSystem009
 			return p;
 			}
 
-		// [FWGS, 01.07.23]
 		bool FullPathToRelativePath (const char *path, char *out) override
 			{
 			if (!COM_CheckString (path))
@@ -502,7 +480,6 @@ class CXashFS : public IVFileSystem009
 			Q_strncpy (p, "Stdio", size);
 			}
 
-		// [FWGS, 01.07.23]
 		bool AddPackFile (const char *path, const char *id) override
 			{
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
@@ -521,7 +498,6 @@ class CXashFS : public IVFileSystem009
 			return false;
 			}
 
-		// [FWGS, 01.05.23]
 		FileHandle_t OpenFromCacheForRead (const char *path, const char *mode, const char *id) override
 			{
 			FixupPath (p, path);

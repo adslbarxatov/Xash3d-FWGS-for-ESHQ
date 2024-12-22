@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -22,11 +22,12 @@ GNU General Public License for more details
 
 // [FWGS, 01.07.24] removed ClearLink, RemoveLink, InsertLinkBefore
 
-/***
+// [FWGS, 01.12.24] removed World_MoveBounds, World_CombineTraces
+/*
 ==================
 World_MoveBounds
 ==================
-***/
+/
 void World_MoveBounds (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, vec3_t boxmins, vec3_t boxmaxs)
 	{
 	int	i;
@@ -44,9 +45,9 @@ void World_MoveBounds (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_
 			boxmaxs[i] = start[i] + maxs[i] + 1.0f;
 			}
 		}
-	}
+	}*/
 
-trace_t World_CombineTraces (trace_t *cliptrace, trace_t *trace, edict_t *touch)
+/*trace_t World_CombineTraces (trace_t *cliptrace, trace_t *trace, edict_t *touch)
 	{
 	if (trace->allsolid || trace->startsolid || trace->fraction < cliptrace->fraction)
 		{
@@ -61,7 +62,7 @@ trace_t World_CombineTraces (trace_t *cliptrace, trace_t *trace, edict_t *touch)
 		}
 
 	return *cliptrace;
-	}
+	}*/
 
 /***
 ==================
@@ -70,11 +71,12 @@ World_TransformAABB
 ***/
 void World_TransformAABB (matrix4x4 transform, const vec3_t mins, const vec3_t maxs, vec3_t outmins, vec3_t outmaxs)
 	{
-	vec3_t	p1, p2;
+	vec3_t		p1, p2;
 	matrix4x4	itransform;
-	int	i;
+	int			i;
 
-	if (!outmins || !outmaxs) return;
+	if (!outmins || !outmaxs)
+		return;
 
 	Matrix4x4_Invert_Simple (itransform, transform);
 	ClearBounds (outmins, outmaxs);
@@ -110,13 +112,14 @@ void World_TransformAABB (matrix4x4 transform, const vec3_t mins, const vec3_t m
 		}
 	}
 
-/***
+// [FWGS, 01.12.24] removed RankForContents
+/*
 ==================
 RankForContents
 
 Used for determine contents priority
 ==================
-***/
+/
 int RankForContents (int contents)
 	{
 	switch (contents)
@@ -136,4 +139,4 @@ int RankForContents (int contents)
 		case CONTENTS_SOLID:	return 12;
 		default:			return 13; // any user contents has more priority than default
 		}
-	}
+	}*/

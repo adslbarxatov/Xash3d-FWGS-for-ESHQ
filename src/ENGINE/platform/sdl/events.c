@@ -158,7 +158,8 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
 #endif
 
-	if (SDL_IsTextInputActive () && down)
+	// ESHQ: отключено, т.к. мешает установке текстовых клавиш в меню настройки управления
+	if (0 && SDL_IsTextInputActive () && down)
 		{
 		// this is how engine understands ctrl+c, ctrl+v and other hotkeys
 		if ((cls.key_dest != key_game) && FBitSet (SDL_GetModState (), KMOD_CTRL))

@@ -12,21 +12,51 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
 #include <errno.h>		// [FWGS, 01.07.24]
 #include "common.h"
 #include "library.h"
-#include "server.h"				// ESHQ
-#include "platform/platform.h"	// [FWGS, 01.07.23]
+#include "server.h"		// ESHQ
+#include "platform/platform.h"
 
 fs_api_t g_fsapi;
 fs_globals_t *FI;
 
-static pfnCreateInterface_t fs_pfnCreateInterface;	// [FWGS, 01.11.23]
+static pfnCreateInterface_t fs_pfnCreateInterface;
 static HINSTANCE fs_hInstance;
+
+// [FWGS, 01.12.24]
+search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
+	{
+	return g_fsapi.Search (pattern, caseinsensitive, gamedironly);
+	}
+
+// [FWGS, 01.12.24]
+int FS_Close (file_t *file)
+	{
+	return g_fsapi.Close (file);
+	}
+
+// [FWGS, 01.12.24]
+file_t *FS_Open (const char *filepath, const char *mode, qboolean gamedironly)
+	{
+	return g_fsapi.Open (filepath, mode, gamedironly);
+	}
+
+// [FWGS, 01.12.24]
+byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
+	{
+	return g_fsapi.LoadFile (path, filesizeptr, gamedironly);
+	}
+
+// [FWGS, 01.12.24]
+byte *FS_LoadDirectFile (const char *path, fs_offset_t *filesizeptr)
+	{
+	return g_fsapi.LoadDirectFile (path, filesizeptr);
+	}
 
 // [FWGS, 01.07.24]
 static void COM_StripDirectorySlash (char *pname)

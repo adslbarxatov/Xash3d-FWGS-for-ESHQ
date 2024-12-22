@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -24,7 +24,8 @@ GNU General Public License for more details
 #include "render_api.h"	// modelstate_t
 #include "ref_common.h" // decals
 
-#define ENTVARS_COUNT	ARRAYSIZE( gEntvarsDescription )
+// [FWGS, 01.12.24]
+/*#define ENTVARS_COUNT	ARRAYSIZE( gEntvarsDescription )*/
 
 // [FWGS, 01.07.23] GameAPI functions declarations
 static int GAME_EXPORT pfnModelIndex (const char *m);
@@ -80,41 +81,43 @@ static edict_t *SV_PEntityOfEntIndex (const int iEntIndex, const qboolean allent
 
 /***
 =============
-EntvarsDescription
+EntvarsDescription [FWGS, 01.12.24]
 
 entavrs table for FindEntityByString
 =============
 ***/
-static TYPEDESCRIPTION gEntvarsDescription[] =
+/*static TYPEDESCRIPTION gEntvarsDescription[] =*/
+static const TYPEDESCRIPTION gEntvarsDescription[] =
 	{
-		DEFINE_ENTITY_FIELD (classname, FIELD_STRING),
-		DEFINE_ENTITY_FIELD (globalname, FIELD_STRING),
-		DEFINE_ENTITY_FIELD (model, FIELD_MODELNAME),
-		DEFINE_ENTITY_FIELD (viewmodel, FIELD_MODELNAME),
-		DEFINE_ENTITY_FIELD (weaponmodel, FIELD_MODELNAME),
-		DEFINE_ENTITY_FIELD (target, FIELD_STRING),
-		DEFINE_ENTITY_FIELD (targetname, FIELD_STRING),
-		DEFINE_ENTITY_FIELD (netname, FIELD_STRING),
-		DEFINE_ENTITY_FIELD (message, FIELD_STRING),
-		DEFINE_ENTITY_FIELD (noise, FIELD_SOUNDNAME),
-		DEFINE_ENTITY_FIELD (noise1, FIELD_SOUNDNAME),
-		DEFINE_ENTITY_FIELD (noise2, FIELD_SOUNDNAME),
-		DEFINE_ENTITY_FIELD (noise3, FIELD_SOUNDNAME),
+	DEFINE_ENTITY_FIELD (classname, FIELD_STRING),
+	DEFINE_ENTITY_FIELD (globalname, FIELD_STRING),
+	DEFINE_ENTITY_FIELD (model, FIELD_MODELNAME),
+	DEFINE_ENTITY_FIELD (viewmodel, FIELD_MODELNAME),
+	DEFINE_ENTITY_FIELD (weaponmodel, FIELD_MODELNAME),
+	DEFINE_ENTITY_FIELD (target, FIELD_STRING),
+	DEFINE_ENTITY_FIELD (targetname, FIELD_STRING),
+	DEFINE_ENTITY_FIELD (netname, FIELD_STRING),
+	DEFINE_ENTITY_FIELD (message, FIELD_STRING),
+	DEFINE_ENTITY_FIELD (noise, FIELD_SOUNDNAME),
+	DEFINE_ENTITY_FIELD (noise1, FIELD_SOUNDNAME),
+	DEFINE_ENTITY_FIELD (noise2, FIELD_SOUNDNAME),
+	DEFINE_ENTITY_FIELD (noise3, FIELD_SOUNDNAME),
 	};
 
-/***
+// [FWGS, 01.12.24] removed SV_GetEntvarsDescirption
+/*
 =============
 SV_GetEntvarsDescription
 
 entavrs table for FindEntityByString
 =============
-***/
+/
 static TYPEDESCRIPTION *SV_GetEntvarsDescirption (int number)
 	{
 	if ((number < 0) || (number >= ENTVARS_COUNT))
 		return NULL;
 	return &gEntvarsDescription[number];
-	}
+	}*/
 
 /***
 =============
@@ -686,19 +689,25 @@ static void SV_StartMusic (const char *curtrack, const char *looptrack, int posi
 
 /***
 =================
-SV_RestartAmbientSounds [FWGS, 09.05.24]
+SV_RestartAmbientSounds [FWGS, 01.12.24]
 
 Write ambient sounds into demo
 =================
 ***/
 void SV_RestartAmbientSounds (void)
 	{
+	// TODO: we don't know sounds state on remote server
+	// as it's used only for demos, maybe this could be implemented on client side?
+#if !XASH_DEDICATED
+
 	soundlist_t	soundInfo[256];
 	string		curtrack, looptrack;
 	int			i, nSounds;
 	int			position;
 
-	if (!SV_Active ())
+	/*if (!SV_Active ())
+		return;*/
+	if (!SV_Active () || Host_IsDedicated ())
 		return;
 
 	nSounds = S_GetCurrentStaticSounds (soundInfo, 256);
@@ -715,7 +724,7 @@ void SV_RestartAmbientSounds (void)
 			si->attenuation, 0, si->pitch);
 		}
 
-#if !XASH_DEDICATED
+	/*if !XASH_DEDICATED*/
 	// restart soundtrack
 	if (S_StreamGetCurrentState (curtrack, sizeof (curtrack), looptrack, sizeof (looptrack), &position))
 		{
@@ -726,39 +735,48 @@ void SV_RestartAmbientSounds (void)
 
 /***
 =================
-SV_RestartDecals [FWGS, 01.07.24]
+SV_RestartDecals [FWGS, 01.12.24]
 
 Write all the decals into demo
 =================
 ***/
 void SV_RestartDecals (void)
 	{
+	// TODO: similar to SV_RestartAmbientSounds, this is only used for demo recording
+	// and better be reimplemented on client side
+#if !XASH_DEDICATED
+
 	decallist_t	*list;
 	int			decalIndex;
 	int			modelIndex;
 	sizebuf_t	*msg;
 	int			i, numdecals;
 
-	if (!SV_Active ())
+	/*if (!SV_Active ())
+		return;*/
+	if (!SV_Active () || Host_IsDedicated ())
 		return;
 
 	// g-cont. add space for studiodecals if present
 	list = (decallist_t *)Z_Calloc (sizeof (decallist_t) * MAX_RENDER_DECALS * 2);
 
-#if !XASH_DEDICATED
+	/*if !XASH_DEDICATED
 	if (!Host_IsDedicated ())
 		{
-		numdecals = ref.dllFuncs.R_CreateDecalList (list);
+		numdecals = ref.dllFuncs.R_CreateDecalList (list);*/
+	numdecals = ref.dllFuncs.R_CreateDecalList (list);
 
-		// remove decals from map
+	/*// remove decals from map
 		ref.dllFuncs.R_ClearAllDecals ();
 		}
 	else
-#endif
+	endif
 		{
 		// we probably running a dedicated server
 		numdecals = 0;
-		}
+		}*/
+	// remove decals from map
+	ref.dllFuncs.R_ClearAllDecals ();
 
 	// write decals into reliable datagram
 	msg = SV_GetReliableDatagram ();
@@ -782,6 +800,7 @@ void SV_RestartDecals (void)
 		}
 
 	Z_Free (list);
+#endif
 	}
 
 /***
@@ -1561,15 +1580,17 @@ static void GAME_EXPORT pfnChangePitch (edict_t *ent)
 
 /***
 =========
-SV_FindEntityByString
+SV_FindEntityByString [FWGS, 01.12.24]
 =========
 ***/
 static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszField, const char *pszValue)
 	{
-	int		index = 0, e = 0;
-	TYPEDESCRIPTION	*desc = NULL;
-	edict_t	*ed;
-	const char		*t;
+	/*int		index = 0, e = 0;
+	TYPEDESCRIPTION	*desc = NULL;*/
+	int			i = 0, e = 0;
+	const TYPEDESCRIPTION	*desc = NULL;
+	edict_t		*ed;
+	const char	*t;
 
 	if (!COM_CheckString (pszValue))
 		return svgame.edicts;
@@ -1577,10 +1598,15 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 	if (pStartEdict)
 		e = NUM_FOR_EDICT (pStartEdict);
 
-	while ((desc = SV_GetEntvarsDescirption (index++)) != NULL)
+	/*while ((desc = SV_GetEntvarsDescirption (index++)) != NULL)*/
+	for (i = 0; i < ARRAYSIZE (gEntvarsDescription); i++)
 		{
-		if (!Q_strcmp (pszField, desc->fieldName))
+		/*if (!Q_strcmp (pszField, desc->fieldName))*/
+		if (!Q_strcmp (pszField, gEntvarsDescription[i].fieldName))
+			{
+			desc = &gEntvarsDescription[i];
 			break;
+			}
 		}
 
 	if (desc == NULL)
@@ -2482,10 +2508,12 @@ static void GAME_EXPORT pfnServerExecute (void)
 
 /***
 =========
-pfnClientCommand
+pfnClientCommand [FWGS, 01.12.24]
 =========
 ***/
-void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...) _format (2);
+/*void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...) _format (2);*/
+void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...) FORMAT_CHECK (2);
+
 void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...)
 	{
 	sv_client_t *cl;
@@ -3017,10 +3045,12 @@ static void GAME_EXPORT pfnCvar_RegisterServerVariable (cvar_t *variable)
 
 /***
 =============
-pfnAlertMessage
+pfnAlertMessage [FWGS, 01.12.24]
 =============
 ***/
-static void pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...) _format (2);
+/*static void pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...) _format (2);*/
+static void pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...) FORMAT_CHECK (2);
+
 static void GAME_EXPORT pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...)
 	{
 	char	buffer[2048];
@@ -3126,51 +3156,65 @@ static void *GAME_EXPORT pfnPvEntPrivateData (edict_t *pEdict)
 	return NULL;
 	}
 
-
-#ifdef XASH_64BIT
+// [FWGS, 01.12.24]
+/*ifdef XASH_64BIT*/
 static struct str64_s
 	{
-	size_t maxstringarray;
-	qboolean allowdup;
-	char *staticstringarray;
-	char *pstringarray;
-	char *pstringarraystatic;
-	char *pstringbase;
-	char *poldstringbase;
-	char *plast;
-	qboolean dynamic;
-	size_t maxalloc;
-	size_t numdups;
-	size_t numoverflows;
-	size_t totalalloc;
+	size_t		maxstringarray;
+	qboolean	allowdup;
+	qboolean	dynamic;
+	char		*staticstringarray;
+	char		*pstringarray;
+	char		*pstringarraystatic;
+	char		*pstringbase;
+	char		*poldstringbase;
+	char		*plast;
+	/*qboolean	dynamic;*/
+	size_t		maxalloc;
+	size_t		numdups;
+	size_t		numoverflows;
+	size_t		totalalloc;
 	} str64;
-#endif
+/*endif*/
 
 /***
 ==================
-SV_EmptyStringPool
+SV_EmptyStringPool [FWGS, 01.12.24]
 
 Free strings on server stop. Reset string pointer on 64 bits
 ==================
 ***/
-void SV_EmptyStringPool (void)
+/*void SV_EmptyStringPool (void)*/
+void SV_EmptyStringPool (qboolean clear_stats)
 	{
-#ifdef XASH_64BIT
+/*ifdef XASH_64BIT*/
+#if XASH_64BIT
 	if (str64.dynamic) // switch only after array fill (more space for multiplayer games)
+		{
 		str64.pstringbase = str64.pstringarray;
+		}
 	else
 		{
 		str64.pstringbase = str64.poldstringbase = str64.pstringarraystatic;
 		str64.plast = str64.pstringbase + 1;
 		}
-#else
+
+	/*#else
 	Mem_EmptyPool (svgame.stringspool);
+	endif*/
+	if (clear_stats)
+		{
+		str64.maxalloc = 0;
+		str64.totalalloc = 0;
+		str64.numdups = 0;
+		str64.numoverflows = 0;
+		}
 #endif
 	}
 
 /***
 ===============
-SV_SetStringArrayMode
+SV_SetStringArrayMode [FWGS, 01.12.24]
 
 use different arrays on 64 bit platforms
 set dynamic after complete server spawn
@@ -3179,8 +3223,8 @@ this helps not to lose strings that belongs to static game part
 ***/
 void SV_SetStringArrayMode (qboolean dynamic)
 	{
-#ifdef XASH_64BIT
-	// [FWGS, 01.07.24]
+/*ifdef XASH_64BIT*/
+#if XASH_64BIT
 	Con_Reportf ("%s(%d) %d\n", __func__, dynamic, str64.dynamic);
 
 	if (dynamic == str64.dynamic)
@@ -3188,19 +3232,23 @@ void SV_SetStringArrayMode (qboolean dynamic)
 
 	str64.dynamic = dynamic;
 
-	SV_EmptyStringPool ();
+	/*SV_EmptyStringPool ();
+	endif*/
+	SV_EmptyStringPool (false);
 #endif
 	}
 
-// [FWGS, 01.11.23]
-#if XASH_64BIT && !XASH_WIN32 && !XASH_APPLE && !XASH_NSWITCH && !XASH_ANDROID
-#define USE_MMAP
+// [FWGS, 01.12.24]
+/*if XASH_64BIT && !XASH_WIN32 && !XASH_APPLE && !XASH_NSWITCH && !XASH_ANDROID
+define USE_MMAP*/
+#if XASH_AMD64 && XASH_LINUX && !XASH_ANDROID
+#define USE_MMAP 1
 #include <sys/mman.h>
 #endif
 
 /***
 ==================
-SV_AllocStringPool
+SV_AllocStringPool [FWGS, 01.12.24]
 
 alloc string pool on 32bit platforms
 alloc string array near the server library on 64bit platforms if possible
@@ -3210,26 +3258,31 @@ this case need patched game dll with MAKE_STRING checking ptrdiff size
 ***/
 static void SV_AllocStringPool (void)
 	{
-#ifdef XASH_64BIT
+/*ifdef XASH_64BIT*/
+#if XASH_64BIT
 	void *ptr = NULL;
 	string lenstr;
 
-	// [FWGS, 01.07.24]
 	Con_Reportf ("%s()\n", __func__);
+	/*if (Sys_GetParmFromCmdLine ("-str64alloc", lenstr))*/
 	if (Sys_GetParmFromCmdLine ("-str64alloc", lenstr))
 		{
 		str64.maxstringarray = Q_atoi (lenstr);
 		if ((str64.maxstringarray < 1024) || (str64.maxstringarray >= INT_MAX))
-			str64.maxstringarray = 65536;
+			/*str64.maxstringarray = 65536;*/
+			str64.maxstringarray = 65536 * Q_ceil (GI->max_edicts / 1024.0f);
 		}
 	else
 		{
-		str64.maxstringarray = 65536;
+		/*str64.maxstringarray = 65536;*/
+		str64.maxstringarray = 65536 * Q_ceil (GI->max_edicts / 1024.0f);
 		}
+
 	if (Sys_CheckParm ("-str64dup"))
 		str64.allowdup = true;
 
-#ifdef USE_MMAP
+	/*ifdef USE_MMAP*/
+#if USE_MMAP
 	{
 	uint flags;
 	size_t pagesize = sysconf (_SC_PAGESIZE);
@@ -3275,7 +3328,6 @@ static void SV_AllocStringPool (void)
 			}
 		}
 
-	// [FWGS, 01.07.24]
 	if (ptr)
 		{
 		Con_Reportf ("%s: Allocated string array near the server library: %p %p\n", __func__, base, ptr);
@@ -3287,7 +3339,6 @@ static void SV_AllocStringPool (void)
 		}
 	}
 #else
-	// [FWGS, 01.07.24]
 	ptr = str64.staticstringarray = Mem_Calloc (host.mempool, str64.maxstringarray * 2);
 #endif
 
@@ -3296,19 +3347,24 @@ static void SV_AllocStringPool (void)
 	str64.pstringbase = str64.poldstringbase = ptr;
 	str64.plast = (byte *)ptr + 1;
 	svgame.globals->pStringBase = ptr;
+	/*else
+	svgame.stringspool = Mem_AllocPool ("Server Strings");*/
 #else
-	svgame.stringspool = Mem_AllocPool ("Server Strings");
 	svgame.globals->pStringBase = "";
 #endif
+
+	svgame.stringspool = Mem_AllocPool ("Server Strings");
 	}
 
+// [FWGS, 01.12.24]
 static void SV_FreeStringPool (void)
 	{
-#ifdef XASH_64BIT
-	// [FWGS, 01.07.24]
+/*ifdef XASH_64BIT*/
+#if XASH_64BIT
 	Con_Reportf ("%s()\n", __func__);
 
-#ifdef USE_MMAP
+/*ifdef USE_MMAP*/
+#if USE_MMAP
 	if (str64.pstringarray != str64.staticstringarray)
 		munmap (str64.pstringarray, (str64.maxstringarray * 2) & ~(sysconf (_SC_PAGESIZE) - 1));
 	else
@@ -3383,7 +3439,7 @@ static uint SV_ProcessString (char *dst, const char *src)
 
 /***
 =============
-SV_AllocString [FWGS, 01.05.24]
+SV_AllocString [FWGS, 01.12.24]
 
 allocate new engine string
 on 64bit platforms find in array string if deduplication enabled (default)
@@ -3393,38 +3449,56 @@ use -str64dup to disable deduplication, -str64alloc to set array size
 ***/
 string_t GAME_EXPORT SV_AllocString (const char *szValue)
 	{
-	char	*newString = NULL;
+	/*char	*newString = NULL;
 	uint	len;
-#ifdef XASH_64BIT
+	ifdef XASH_64BIT
 	int		cmp;
-#endif
+	endif*/
+	uint	len = SV_ProcessString (NULL, szValue);
+	char	*processed_string = Mem_Calloc (svgame.stringspool, len);
+	char	*dupe_string = NULL;
+	qboolean	found_dupe = false;
 
-	if (svgame.physFuncs.pfnAllocString != NULL)
+	/*if (svgame.physFuncs.pfnAllocString != NULL)
 		{
 		string_t i;
 		newString = Mem_Malloc (host.mempool, SV_ProcessString (NULL, szValue));
 
 		SV_ProcessString (newString, szValue);
-		i = svgame.physFuncs.pfnAllocString (newString);
+		i = svgame.physFuncs.pfnAllocString (newString);*/
+	(void)dupe_string;
+	(void)found_dupe;
 
-		Mem_Free (newString);
+	/*Mem_Free (newString);*/
+	SV_ProcessString (processed_string, szValue);
+
+	if (svgame.physFuncs.pfnAllocString != NULL)
+		{
+		string_t i = svgame.physFuncs.pfnAllocString (processed_string);
+		Mem_Free (processed_string);
+
 		return i;
 		}
 
-#ifdef XASH_64BIT
+	/*ifdef XASH_64BIT
 
-	cmp = 1;
+	cmp = 1;*/
+#if XASH_64BIT
 
 	if (!str64.allowdup)
 		{
-		for (newString = str64.poldstringbase + 1;
+		/*for (newString = str64.poldstringbase + 1;
 			newString < str64.plast && (cmp = Q_strcmp (newString, szValue));
-			newString += Q_strlen (newString) + 1);
+			newString += Q_strlen (newString) + 1);*/
+		for (dupe_string = str64.poldstringbase + 1;
+			dupe_string < str64.plast && (found_dupe = !Q_strcmp (dupe_string, processed_string));
+			dupe_string += Q_strlen (dupe_string) + 1);
 		}
 
-	if (cmp)
+	/*if (cmp)*/
+	if (!found_dupe)
 		{
-		uint len = SV_ProcessString (NULL, szValue);
+		/*uint len = SV_ProcessString (NULL, szValue);*/
 
 		if (str64.plast - str64.poldstringbase + len + 1 > str64.maxstringarray)
 			{
@@ -3433,10 +3507,12 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 			str64.numoverflows++;
 			}
 
-		SV_ProcessString (str64.plast, szValue);
+		/*SV_ProcessString (str64.plast, szValue);*/
+		Q_strncpy (str64.plast, processed_string, len);
 		str64.totalalloc += len;
 
-		newString = str64.plast;
+		/*newString = str64.plast;*/
+		dupe_string = str64.plast;
 		str64.plast += len;
 		}
 	else
@@ -3444,26 +3520,37 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 		str64.numdups++;
 		}
 
-	if (newString - str64.pstringarray > str64.maxalloc)
-		str64.maxalloc = newString - str64.pstringarray;
+	/*if (newString - str64.pstringarray > str64.maxalloc)
+		str64.maxalloc = newString - str64.pstringarray;*/
+	if (dupe_string - str64.pstringarray > str64.maxalloc)
+		str64.maxalloc = dupe_string - str64.pstringarray;
 
-	return newString - svgame.globals->pStringBase;
+	/*return newString - svgame.globals->pStringBase;
 
-#else
+	else
 
 	len = SV_ProcessString (NULL, szValue);
 	newString = Mem_Malloc (svgame.stringspool, len);
-	SV_ProcessString (newString, szValue);
+	SV_ProcessString (newString, szValue);*/
+	Mem_Free (processed_string);
 
-	return newString - svgame.globals->pStringBase;
+	/*return newString - svgame.globals->pStringBase;
+
+	endif*/
+	return dupe_string - svgame.globals->pStringBase;
+
+#else
+
+	return processed_string - svgame.globals->pStringBase;
 
 #endif
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 void SV_PrintStr64Stats_f (void)
 	{
-#ifdef XASH_64BIT
+/*ifdef XASH_64BIT*/
+#if XASH_64BIT
 	Con_Printf ("====================\n");
 	Con_Printf ("64 bit string pool statistics\n");
 	Con_Printf ("====================\n");
@@ -3479,7 +3566,7 @@ void SV_PrintStr64Stats_f (void)
 
 /***
 =============
-SV_MakeString
+SV_MakeString [FWGS, 01.12.24]
 
 make constant string
 =============
@@ -3488,7 +3575,9 @@ string_t SV_MakeString (const char *szValue)
 	{
 	if (svgame.physFuncs.pfnMakeString != NULL)
 		return svgame.physFuncs.pfnMakeString (szValue);
-#ifdef XASH_64BIT
+
+/*ifdef XASH_64BIT*/
+#if XASH_64BIT
 	{
 	long long ptrdiff = szValue - svgame.globals->pStringBase;
 	if (ptrdiff > INT_MAX || ptrdiff < INT_MIN)
@@ -4793,7 +4882,7 @@ static enginefuncs_t gEngfuncs =
 	{
 	pfnPrecacheModel,
 	SV_SoundIndex,
-	SV_SetModel,	// [FWGS, 01.07.23]
+	SV_SetModel,
 	pfnModelIndex,
 	pfnModelFrames,
 	pfnSetSize,
@@ -4889,7 +4978,8 @@ static enginefuncs_t gEngfuncs =
 	COM_LoadFileForMe,
 	COM_FreeFile,
 	pfnEndSection,
-	COM_CompareFileTime,
+	/*COM_CompareFileTime,*/
+	pfnCompareFileTime,		// [FWGS, 01.12.24]
 	pfnGetGameDir,
 	pfnCvar_RegisterEngineVariable,
 	pfnFadeClientVolume,
@@ -5270,14 +5360,18 @@ void SV_SpawnEntities (const char *mapname)
 	SV_LoadFromFile (mapname, sv.worldmodel->entities);
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 void SV_UnloadProgs (void)
 	{
+	pending_cvar_t *pending_cvars_list;
+
 	if (!svgame.hInstance)
 		return;
 
 	SV_DeactivateServer ();
 	Delta_Shutdown ();
+
+	pending_cvars_list = Cvar_PrepareToUnlink (FCVAR_EXTDLL);
 
 	if (svgame.dllFuncs2.pfnGameShutdown != NULL)
 		svgame.dllFuncs2.pfnGameShutdown ();
@@ -5294,9 +5388,10 @@ void SV_UnloadProgs (void)
 	// remove server cmds
 	SV_KillOperatorCommands ();
 
-	// must unlink all game cvars,
-	// before pointers on them will be lost...
-	Cvar_Unlink (FCVAR_EXTDLL);
+	// must unlink all game cvars, before pointers on them will be lost...
+	/*Cvar_Unlink (FCVAR_EXTDLL);*/
+	Cvar_UnlinkPendingCvars (pending_cvars_list);
+
 	Cmd_Unlink (CMD_SERVERDLL);
 
 	SV_FreeStringPool ();
@@ -5307,7 +5402,6 @@ void SV_UnloadProgs (void)
 	memset (&svgame, 0, sizeof (svgame));
 	}
 
-// [FWGS, 01.07.24] 
 qboolean SV_LoadProgs (const char *name)
 	{
 	int			i, version;
@@ -5404,8 +5498,9 @@ qboolean SV_LoadProgs (const char *name)
 				Con_Printf (S_WARN "%s: interface version %i should be %i\n", __func__,
 					INTERFACE_VERSION, version);
 
-			// fallback to old API
-			if (!GetEntityAPI (&svgame.dllFuncs, version))
+			// [FWGS, 01.12.24] fallback to old API
+			/*if (!GetEntityAPI (&svgame.dllFuncs, version))*/
+			if (GetEntityAPI && !GetEntityAPI (&svgame.dllFuncs, version))
 				{
 				COM_FreeLibrary (svgame.hInstance);
 				Con_Printf (S_ERROR "%s: couldn't get entity API\n", __func__);
@@ -5423,7 +5518,10 @@ qboolean SV_LoadProgs (const char *name)
 			Con_Reportf ("%s: ^2initailized extended EntityAPI ^7ver. %i\n", __func__, version);
 			}
 		}
-	else if (!GetEntityAPI (&svgame.dllFuncs, version))
+
+	// [FWGS, 01.12.24]
+	/*else if (!GetEntityAPI (&svgame.dllFuncs, version))*/
+	else if (GetEntityAPI && !GetEntityAPI (&svgame.dllFuncs, version))
 		{
 		COM_FreeLibrary (svgame.hInstance);
 		Con_Printf (S_ERROR "%s: couldn't get entity API\n", __func__);

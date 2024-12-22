@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -23,9 +23,10 @@ INPUT
 ***/
 
 #include "keydefs.h"
+#include "usercmd.h"	// [FWGS, 01.12.24]
 
 //
-// input.c [FWGS, 01.07.24]
+// input.c
 //
 extern qboolean	in_mouseinitialized;
 void IN_Init (void);
@@ -38,12 +39,11 @@ void IN_DeactivateMouse (void);
 void IN_MouseSavePos (void);
 void IN_MouseRestorePos (void);
 void IN_ToggleClientMouse (int newstate, int oldstate);
-
 uint IN_CollectInputDevices (void);
 void IN_LockInputDevices (qboolean lock);
-void IN_EngineAppendMove (float frametime, void *cmd, qboolean active);
+/*void IN_EngineAppendMove (float frametime, void *cmd, qboolean active);*/
+void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active);	// [FWGS, 01.12.24]
 
-// [FWGS, 01.07.23]
 extern convar_t m_yaw;
 extern convar_t m_pitch;
 //

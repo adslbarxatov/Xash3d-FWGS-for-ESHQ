@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -58,37 +58,15 @@ void GAME_EXPORT CL_PopPMStates (void)
 	clgame.pushed = false;
 	}
 
-// [FWGS, 01.02.24]
-/***
-=============
-CL_PushTraceBounds
-=============
-//
-void GAME_EXPORT CL_PushTraceBounds (int hullnum, const float *mins, const float *maxs)
-	{
-	hullnum = bound (0, hullnum, 3);
-	VectorCopy (mins, clgame.pmove->player_mins[hullnum]);
-	VectorCopy (maxs, clgame.pmove->player_maxs[hullnum]);
-	}*/
-
-// [FWGS, 01.02.24]
-/***
-=============
-CL_PopTraceBounds
-=============
-//
-void GAME_EXPORT CL_PopTraceBounds (void)
-	{
-	memcpy (clgame.pmove->player_mins, host.player_mins, sizeof (host.player_mins));
-	memcpy (clgame.pmove->player_maxs, host.player_maxs, sizeof (host.player_maxs));
-	}*/
+// [FWGS, 01.02.24] removed CL_PushTraceBounds, CL_PopTraceBounds
 
 /***
 ===============
-CL_IsPredicted
+CL_IsPredicted [FWGS, 01.12.24]
 ===============
 ***/
-qboolean CL_IsPredicted (void)
+/*qboolean CL_IsPredicted (void)*/
+static qboolean CL_IsPredicted (void)
 	{
 	if (cl_nopred.value || cl.intermission)
 		return false;
@@ -340,19 +318,25 @@ static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboole
 	model_t *mod = CL_ModelHandle (state->modelindex);
 
 	pe->player = 0;
-
-	if (state->number >= 1 && state->number <= cl.maxclients)
+	if ((state->number >= 1) && (state->number <= cl.maxclients))
 		pe->player = state->number;
 
+	// [FWGS, 01.12.24]
 	if (pe->player)
 		{
 		// client or bot
 		Q_snprintf (pe->name, sizeof (pe->name), "player %i", pe->player - 1);
 		}
-	else
+
+	/*else*/
+	else if (mod != NULL)
 		{
 		// otherwise copy the modelname
 		Q_strncpy (pe->name, mod->name, sizeof (pe->name));
+		}
+	else
+		{
+		Q_strncpy (pe->name, "entity %i", state->number);
 		}
 
 	pe->model = pe->studiomodel = NULL;
@@ -373,8 +357,9 @@ static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboole
 			pe->model = mod;
 		}
 
-	// rare case: not solid entities in vistrace
-	if (visent && VectorIsNull (pe->mins))
+	// [FWGS, 01.12.24] rare case: not solid entities in vistrace
+	/*if (visent && VectorIsNull (pe->mins))*/
+	if (visent && VectorIsNull (pe->mins) && (mod != NULL))
 		{
 		VectorCopy (mod->mins, pe->mins);
 		VectorCopy (mod->maxs, pe->maxs);

@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -374,14 +374,21 @@ void CL_DrawStringLen (cl_font_t *font, const char *s, int *width, int *height, 
 
 		if (FBitSet (flags, FONT_DRAW_UTF8))
 			number = Con_UtfProcessChar ((byte)*s);
-		else number = (byte)*s;
+		else
+			number = (byte)*s;
 
+		// [FWGS, 01.12.24]
 		if (number)
 			{
 			draw_len += font->charWidths[number];
 
-			if (draw_len > *width)
-				*width = draw_len;
+			/*if (draw_len > *width)
+				*width = draw_len;*/
+			if (width)
+				{
+				if (draw_len > *width)
+					*width = draw_len;
+				}
 			}
 
 		s++;

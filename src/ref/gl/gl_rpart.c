@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -150,7 +150,7 @@ static qboolean CL_CullTracer (particle_t *p, const vec3_t start, const vec3_t e
 
 /***
 ================
-CL_DrawTracers [FWGS, 01.01.24]
+CL_DrawTracers
 
 update tracer color, position, free expired and draw it
 ================
@@ -160,7 +160,7 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 	float		scale, atten, gravity;
 	vec3_t		screenLast, screen;
 	vec3_t		start, end, delta;
-	particle_t *p;
+	particle_t	*p;
 
 	// update tracer color if this is changed
 	if (FBitSet (tracerred->flags | tracergreen->flags | tracerblue->flags | traceralpha->flags, FCVAR_CHANGED))
@@ -230,12 +230,14 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 			VectorAdd (verts[0], delta, verts[2]);
 			VectorAdd (verts[1], delta, verts[3]);
 
-			// [FWGS, 01.07.24]
-			if (p->color > sizeof (gTracerColors) / sizeof (gTracerColors[0]))
+			// [FWGS, 01.12.24]
+			/*if (p->color > sizeof (gTracerColors) / sizeof (gTracerColors[0]))*/
+			if ((p->color < 0) || (p->color >= sizeof (gTracerColors) / sizeof (gTracerColors[0])))
 				{
-				gEngfuncs.Con_Printf (S_ERROR "UserTracer with color(%d) > %zu\n",
+				/*gEngfuncs.Con_Printf (S_ERROR "UserTracer with color(%d) > %zu\n",
 					p->color, sizeof (gTracerColors) / sizeof (gTracerColors[0]));
-				p->color = 0;
+				p->color = 0;*/
+				p->color = TRACER_COLORINDEX_DEFAULT;
 				}
 
 			color = gTracerColors[p->color];

@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -30,7 +30,9 @@ static void Sound_Reset (void)
 	sound.size = 0;
 	}
 
-static wavdata_t *SoundPack (void)
+// [FWGS, 01.12.24]
+/*static wavdata_t *SoundPack (void)*/
+static MALLOC_LIKE (FS_FreeSound, 1) wavdata_t *SoundPack (void)
 	{
 	wavdata_t *pack = Mem_Calloc (host.soundpool, sizeof (wavdata_t));
 

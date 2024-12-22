@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -22,7 +22,9 @@ enum soundlst_type_e
 	SoundList_List
 	};
 
-static const char *soundlst_groups[SoundList_Groups] =
+// [FWGS, 01.12.24]
+/*static const char *soundlst_groups[SoundList_Groups] =*/
+static const char *const soundlst_groups[SoundList_Groups] =
 	{
 	"BouncePlayerShell",
 	"BounceWeaponShell",
@@ -47,7 +49,9 @@ typedef struct soundlst_s
 	int		max;	// the string count if type is group
 	} soundlst_t;
 
-soundlst_t soundlst[SoundList_Groups];
+// [FWGS, 01.12.24]
+/*soundlst_t soundlst[SoundList_Groups];*/
+static soundlst_t soundlst[SoundList_Groups];
 
 static void SoundList_Print_f (void);
 static void SoundList_Free (soundlst_t *lst)

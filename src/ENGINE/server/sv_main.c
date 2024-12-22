@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -41,15 +41,10 @@ CVAR_DEFINE_AUTO (rcon_password, "", FCVAR_PROTECTED | FCVAR_PRIVILEGED,
 	"remote connect password");
 CVAR_DEFINE_AUTO (rcon_enable, "1", FCVAR_PROTECTED,
 	"enable accepting remote commands on server");
-
-// [FWGS, 01.07.24] disabled CVAR_DEFINE_AUTO (sv_filterban, "1", 0, "filter banned users");
-
 CVAR_DEFINE_AUTO (sv_cheats, "0", FCVAR_SERVER,
 	"allow cheats on server");
 CVAR_DEFINE_AUTO (sv_instancedbaseline, "1", 0,
 	"allow to use instanced baselines to saves network overhead");
-
-// [FWGS, 01.07.24]
 static CVAR_DEFINE_AUTO (sv_contact, "", FCVAR_ARCHIVE | FCVAR_SERVER,
 	"server technical support contact address or web-page");
 CVAR_DEFINE_AUTO (sv_minupdaterate, "25.0", FCVAR_ARCHIVE,
@@ -60,36 +55,22 @@ CVAR_DEFINE_AUTO (sv_minrate, "5000", FCVAR_SERVER,
 	"min bandwidth rate allowed on server, 0 == unlimited");
 CVAR_DEFINE_AUTO (sv_maxrate, "50000", FCVAR_SERVER,
 	"max bandwidth rate allowed on server, 0 == unlimited");
-
-// [FWGS, 01.07.24] disabled CVAR_DEFINE_AUTO (sv_logrelay, "0", FCVAR_ARCHIVE,
-// "allow log messages from remote machines to be logged on this server");
-
 CVAR_DEFINE_AUTO (sv_newunit, "0", 0,
 	"clear level-saves from previous SP game chapter to help keep .sav file size as minimum");
 CVAR_DEFINE_AUTO (sv_clienttrace, "1", FCVAR_SERVER,
 	"0 = big box(Quake), 0.5 = halfsize, 1 = normal (100%), otherwise it's a scaling factor");
-
-// [FWGS, 01.07.24]
 static CVAR_DEFINE_AUTO (sv_timeout, "65", 0,
 	"after this many seconds without a message from a client, the client is dropped");
 CVAR_DEFINE_AUTO (sv_failuretime, "0.5", 0,
 	"after this long without a packet from client, don't send any more until client starts sending again");
 CVAR_DEFINE_AUTO (sv_password, "", FCVAR_SERVER | FCVAR_PROTECTED,
 	"server password for entry into multiplayer games");
-
-// [FWGS, 01.07.24] disabled CVAR_DEFINE_AUTO (sv_proxies, "1", FCVAR_SERVER,
-// "maximum count of allowed proxies for HLTV spectating");
-
 CVAR_DEFINE_AUTO (sv_send_logos, "1", 0,
 	"send custom decal logo to other players so they can view his too");
 CVAR_DEFINE_AUTO (sv_send_resources, "1", 0,
 	"allow to download missed resources for players");
-
-// [FWGS, 01.07.24] disabled CVAR_DEFINE_AUTO( sv_logbans, "0", 0,
-// "print into the server log info about player bans" );
 CVAR_DEFINE (sv_allow_upload, "sv_allowupload", "1", FCVAR_SERVER,
 	"allow uploading custom resources on a server");
-
 CVAR_DEFINE (sv_allow_download, "sv_allowdownload", "1", FCVAR_SERVER,
 	"allow downloading custom resources to the client");
 static CVAR_DEFINE_AUTO (sv_allow_dlfile, "1", 0,
@@ -149,7 +130,7 @@ static CVAR_DEFINE_AUTO (_sv_override_scientist_mdl, "", 0,
 CVAR_DEFINE_AUTO (meat_mode, "0", FCVAR_ARCHIVE,
 	"allows bullets and electrical shocks to squash corpses immediately");
 
-// [FWGS, 01.07.24] physic-related variables
+// physic-related variables
 CVAR_DEFINE_AUTO (sv_gravity, "800", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"world gravity value");
 CVAR_DEFINE_AUTO (sv_stopspeed, "100", FCVAR_SERVER | FCVAR_MOVEVARS,
@@ -176,12 +157,22 @@ static CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"how high you and NPS's can step up");
 CVAR_DEFINE_AUTO (sv_maxvelocity, "2000", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"max velocity for all things in the world");
-static CVAR_DEFINE_AUTO (sv_zmax, "4096", FCVAR_SERVER | FCVAR_MOVEVARS | FCVAR_SPONLY,
+
+// [FWGS, 01.12.24]
+/*static CVAR_DEFINE_AUTO (sv_zmax, "4096", FCVAR_SERVER | FCVAR_MOVEVARS | FCVAR_SPONLY,
+	"maximum viewable distance");*/
+static CVAR_DEFINE_AUTO (sv_zmax, "4096", FCVAR_MOVEVARS | FCVAR_SPONLY,
 	"maximum viewable distance");
+
 CVAR_DEFINE_AUTO (sv_wateramp, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"world waveheight factor");
+
+// [FWGS, 01.12.24]
+/*static CVAR_DEFINE (sv_footsteps, "mp_footsteps", "1", FCVAR_SERVER | FCVAR_MOVEVARS,
+	"world gravity value");*/
 static CVAR_DEFINE (sv_footsteps, "mp_footsteps", "1", FCVAR_SERVER | FCVAR_MOVEVARS,
-	"world gravity value");
+	"play foot steps for players");
+
 CVAR_DEFINE_AUTO (sv_skyname, "desert", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"skybox name (can be dynamically changed in-game)");
 static CVAR_DEFINE_AUTO (sv_rollangle, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED | FCVAR_ARCHIVE,
@@ -317,6 +308,9 @@ void SV_UpdateMovevars (qboolean initialize)
 	if (!initialize && !host.movevars_changed)
 		return;
 
+	// [FWGS, 01.12.24] NOTE: this breaks Natural Selection mod on ns_machina map that uses model as sky
+	// it sets the value to 4000000 that even exceeds the coord limit
+#if 0
 	// check range
 	if (sv_zmax.value < 256.0f)
 		Cvar_SetValue ("sv_zmax", 256.0f);
@@ -332,6 +326,7 @@ void SV_UpdateMovevars (qboolean initialize)
 		if (sv_zmax.value > 32767.0f)
 			Cvar_SetValue ("sv_zmax", 32767.0f);
 		}
+#endif
 
 	svgame.movevars.gravity = sv_gravity.value;
 	svgame.movevars.stopspeed = sv_stopspeed.value;
@@ -381,16 +376,19 @@ static void SV_CheckCmdTimes (void)
 	{
 	sv_client_t		*cl;
 	static double	lastreset = 0;
-	float			diff;
+	float	diff;
 	int		i;
 
+	// [FWGS, 01.12.24]
 	if (sv_fps.value != 0.0f)
 		{
 		if (sv_fps.value < MIN_FPS)
 			Cvar_SetValue ("sv_fps", MIN_FPS);
 
-		if (sv_fps.value > MAX_FPS)
-			Cvar_SetValue ("sv_fps", MAX_FPS);
+		/*if (sv_fps.value > MAX_FPS)
+			Cvar_SetValue ("sv_fps", MAX_FPS);*/
+		if (sv_fps.value > MAX_FPS_HARD)
+			Cvar_SetValue ("sv_fps", MAX_FPS_HARD);
 		}
 
 	if (Host_IsLocalGame ())
@@ -516,10 +514,10 @@ static void SV_ReadPackets (void)
 		{
 		MSG_Init (&net_message, "ClientPacket", net_message_buffer, curSize);
 
-		// check for connectionless packet (0xffffffff) first
+		// [FWGS, 01.12.24] check for connectionless packet (0xffffffff) first
 		if ((MSG_GetMaxBytes (&net_message) >= 4) && (*(int *)net_message.pData == -1))
 			{
-			if (!svs.initialized)
+			/*if (!svs.initialized)
 				{
 				char *args;
 				const char *c;
@@ -537,7 +535,8 @@ static void SV_ReadPackets (void)
 			else
 				{
 				SV_ConnectionlessPacket (net_from, &net_message);
-				}
+				}*/
+			SV_ConnectionlessPacket (net_from, &net_message);
 
 			continue;
 			}
@@ -861,12 +860,14 @@ void Host_ServerFrame (void)
 
 // [FWGS, 01.02.24] removed Host_SetServerState
 
-// [FWGS, 01.05.23] удалены Master_Add, Master_Heartbeat, Master_Shutdown
+// [FWGS, 01.05.23] removed Master_Add, Master_Heartbeat, Master_Shutdown
 
+// [FWGS, 01.12.24]
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	{
 	uint	challenge, challenge2, heartbeat_challenge;
-	char	s[MAX_INFO_STRING] = "0\n"; // skip 2 bytes of header
+	/*char	s[MAX_INFO_STRING] = "0\n"; // skip 2 bytes of header*/
+	char	s[MAX_INFO_STRING] = S2M_INFO; // skip 2 bytes of header
 	int		clients, bots;
 	double	last_heartbeat;
 	const int	len = sizeof (s);
@@ -879,7 +880,8 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 
 	if (last_heartbeat + sv_master_response_timeout.value < host.realtime)
 		{
-		Con_Printf (S_WARN "unexpected master server info query packet (too late? try increasing sv_master_response_timeout value)\n");
+		Con_Printf (S_WARN "unexpected master server info query packet (too late? try increasing "
+			"sv_master_response_timeout value)\n");
 		return;
 		}
 

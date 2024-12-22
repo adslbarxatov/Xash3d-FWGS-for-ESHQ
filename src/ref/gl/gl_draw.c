@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -80,14 +80,15 @@ void R_DrawStretchPic (float x, float y, float w, float h, float s1, float t1, f
 	pglEnd ();
 	}
 
-/***
+// [FWGS, 01.12.24] removed R_DrawTileClear
+/*
 =============
 Draw_TileClear
 
 This repeats a 64*64 tile graphic to fill the screen around a sized down
 refresh window.
 =============
-***/
+/
 void R_DrawTileClear (int texnum, int x, int y, int w, int h)
 	{
 	float		tw, th;
@@ -111,7 +112,7 @@ void R_DrawTileClear (int texnum, int x, int y, int w, int h)
 	pglTexCoord2f (x / tw, (y + h) / th);
 	pglVertex2f (x, y + h);
 	pglEnd ();
-	}
+	}*/
 
 /***
 =============

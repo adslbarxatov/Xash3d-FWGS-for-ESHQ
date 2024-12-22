@@ -18,7 +18,7 @@ GNU General Public License for more details
 
 #define PROTOCOL_VERSION		49
 
-// server to client
+// [FWGS, 01.12.24] server to client
 #define svc_bad				0	// immediately crash client when received
 #define svc_nop				1	// does nothing
 #define svc_disconnect		2	// kick client from server
@@ -73,7 +73,8 @@ GNU General Public License for more details
 #define svc_director		51	// <variable sized>
 #define svc_voiceinit		52	// <see code>
 #define svc_voicedata		53	// [byte][short][...]
-#define svc_deltapacketbones	54	// [short][byte][...]
+/*#define svc_deltapacketbones	54	// [short][byte][...]*/
+// reserved
 // reserved
 #define svc_resourcelocation	56	// [string]
 #define svc_querycvarvalue		57	// [string]
@@ -93,7 +94,8 @@ GNU General Public License for more details
 #define clc_voicedata		8
 #define clc_requestcvarvalue	9
 #define clc_requestcvarvalue2	10
-#define clc_lastmsg			10	// end client messages
+/*#define clc_lastmsg			10	// end client messages*/
+#define clc_lastmsg			11	// [FWGS, 01.12.24] end client messages (11 is GoldSrc message)
 
 #define MAX_VISIBLE_PACKET_BITS	11	// 2048 visible entities per frame (hl1 has 256)
 #define MAX_VISIBLE_PACKET		(1<<MAX_VISIBLE_PACKET_BITS)
@@ -136,28 +138,28 @@ GNU General Public License for more details
 #define MAX_SND_CHAN_BITS		4
 
 // sound flags
-#define SND_VOLUME			(1<<0)	// a scaled byte
-#define SND_ATTENUATION		(1<<1)	// a byte
-#define SND_SEQUENCE		(1<<2)	// get sentence from a script
-#define SND_PITCH			(1<<3)	// a byte
-#define SND_SENTENCE		(1<<4)	// set if sound num is actually a sentence num
-#define SND_STOP			(1<<5)	// stop the sound
-#define SND_CHANGE_VOL		(1<<6)	// change sound vol
-#define SND_CHANGE_PITCH	(1<<7)	// change sound pitch
-#define SND_SPAWNING		(1<<8)	// we're spawning, used in some cases for ambients (not sent across network)
-#define SND_LOCALSOUND		(1<<9)	// not paused, not looped, for internal use
-#define SND_STOP_LOOPING	(1<<10)	// stop all looping sounds on the entity.
-#define SND_FILTER_CLIENT	(1<<11)	// don't send sound from local player if prediction was enabled
+#define SND_VOLUME				(1<<0)	// a scaled byte
+#define SND_ATTENUATION			(1<<1)	// a byte
+#define SND_SEQUENCE			(1<<2)	// get sentence from a script
+#define SND_PITCH				(1<<3)	// a byte
+#define SND_SENTENCE			(1<<4)	// set if sound num is actually a sentence num
+#define SND_STOP				(1<<5)	// stop the sound
+#define SND_CHANGE_VOL			(1<<6)	// change sound vol
+#define SND_CHANGE_PITCH		(1<<7)	// change sound pitch
+#define SND_SPAWNING			(1<<8)	// we're spawning, used in some cases for ambients (not sent across network)
+#define SND_LOCALSOUND			(1<<9)	// not paused, not looped, for internal use
+#define SND_STOP_LOOPING		(1<<10)	// stop all looping sounds on the entity.
+#define SND_FILTER_CLIENT		(1<<11)	// don't send sound from local player if prediction was enabled
 #define SND_RESTORE_POSITION	(1<<12)	// passed playing position and the forced end
 
 // decal flags
 #define FDECAL_PERMANENT		0x01	// This decal should not be removed in favor of any new decals
 #define FDECAL_USE_LANDMARK		0x02	// This is a decal applied on a bmodel without origin-brush so we done in absoulute pos
-#define FDECAL_CUSTOM		0x04	// This is a custom clan logo and should not be saved/restored
+#define FDECAL_CUSTOM			0x04	// This is a custom clan logo and should not be saved/restored
 // reserved
 // reserved
-#define FDECAL_DONTSAVE		0x20	// Decal was loaded from adjacent level, don't save it for this level
-#define FDECAL_STUDIO		0x40	// Indicates a studio decal
+#define FDECAL_DONTSAVE			0x20	// Decal was loaded from adjacent level, don't save it for this level
+#define FDECAL_STUDIO			0x40	// Indicates a studio decal
 #define FDECAL_LOCAL_SPACE		0x80	// decal is in local space (any decal after serialization)
 
 // game type
@@ -166,16 +168,19 @@ GNU General Public License for more details
 #define GAME_COOP			2
 #define GAME_TEAMPLAY		4
 
-// Max number of history commands to send ( 2 by default ) in case of dropped packets
-#define NUM_BACKUP_COMMAND_BITS	4
-#define MAX_BACKUP_COMMANDS		(1 << NUM_BACKUP_COMMAND_BITS)
+// [FWGS, 01.12.24] Max number of history commands to send (2 by default) in case of dropped packets
+/*#define NUM_BACKUP_COMMAND_BITS	4
+#define MAX_BACKUP_COMMANDS		(1 << NUM_BACKUP_COMMAND_BITS)*/
+#define NUM_BACKUP_COMMAND_BITS		4
+#define MAX_BACKUP_COMMANDS			BIT( NUM_BACKUP_COMMAND_BITS )
+#define MAX_TOTAL_CMDS				32
 
-#define MAX_RESOURCES		(MAX_MODELS+MAX_SOUNDS+MAX_CUSTOM+MAX_EVENTS)
-#define MAX_RESOURCE_BITS		13	// 13 bits 8192 resource (4096 models + 2048 sounds + 1024 events + 1024 files)
+#define MAX_RESOURCES				(MAX_MODELS+MAX_SOUNDS+MAX_CUSTOM+MAX_EVENTS)
+#define MAX_RESOURCE_BITS			13		// 13 bits 8192 resource (4096 models + 2048 sounds + 1024 events + 1024 files)
 #define	FRAGMENT_MIN_SIZE			508		// RFC 791: 576(min ip packet) - 60 (ip header) - 8 (udp header)
-#define FRAGMENT_DEFAULT_SIZE		1200		// default MTU
-#define FRAGMENT_MAX_SIZE		64000		// maximal fragment size
-#define FRAGMENT_LOCAL_SIZE		FRAGMENT_MAX_SIZE	// local connection
+#define FRAGMENT_DEFAULT_SIZE		1200	// default MTU
+#define FRAGMENT_MAX_SIZE			64000	// maximal fragment size
+#define FRAGMENT_LOCAL_SIZE			FRAGMENT_MAX_SIZE	// local connection
 
 #if XASH_LOW_MEMORY == 2
 #undef MAX_VISIBLE_PACKET
@@ -276,12 +281,17 @@ GNU General Public License for more details
 #define SU_ARMOR		(1<<13)
 #define SU_WEAPON		(1<<14)
 
-// [FWGS, 01.07.24]
-extern const char *svc_strings[svc_lastmsg + 1];
+// [FWGS, 01.12.24]
+/*extern const char *svc_strings[svc_lastmsg + 1];
 extern const char *svc_legacy_strings[svc_lastmsg + 1];
 extern const char *svc_quake_strings[svc_lastmsg + 1];
 extern const char *svc_goldsrc_strings[svc_lastmsg + 1];
-extern const char *clc_strings[clc_lastmsg + 1];
+extern const char *clc_strings[clc_lastmsg + 1];*/
+extern const char *const svc_strings[svc_lastmsg + 1];
+extern const char *const svc_legacy_strings[svc_lastmsg + 1];
+extern const char *const svc_quake_strings[svc_lastmsg + 1];
+extern const char *const svc_goldsrc_strings[svc_lastmsg + 1];
+extern const char *const clc_strings[clc_lastmsg + 1];
 
 // FWGS extensions
 #define NET_EXT_SPLITSIZE (1U<<0) // set splitsize by cl_dlmax
@@ -292,23 +302,21 @@ extern const char *clc_strings[clc_lastmsg + 1];
 #define svc_legacy_soundindex		28	// [index][soundpath]
 #define svc_legacy_eventindex		34	// [index][eventname]
 #define svc_legacy_ambientsound		29
-#define svc_legacy_chokecount 42		// old client specified count, new just sends svc_choke
+#define svc_legacy_chokecount		42	// old client specified count, new just sends svc_choke
 #define svc_legacy_event			27	// playback event queue
 #define svc_legacy_changing			3	// changelevel by server request
 
-#define clc_legacy_userinfo		6	// [[userinfo string]
+#define clc_legacy_userinfo			6	// [[userinfo string]
 
 #define SND_LEGACY_LARGE_INDEX		(1<<2)	// a send sound as short
 #define MAX_LEGACY_ENTITY_BITS		12
 #define MAX_LEGACY_WEAPON_BITS		5
-#define MAX_LEGACY_MODEL_BITS 11
+#define MAX_LEGACY_MODEL_BITS		11
+#define MAX_LEGACY_TOTAL_CMDS		16		// 28 - 16 = 12 real legacy max backup
+#define MAX_LEGACY_BACKUP_CMDS		12
 
-// [FWGS, 01.04.23]
-#define MAX_LEGACY_TOTAL_CMDS  16	// 28 - 16 = 12 real legacy max backup
-#define MAX_LEGACY_BACKUP_CMDS 12
-
-#define MAX_LEGACY_EDICTS (1 << MAX_LEGACY_ENTITY_BITS)		// 4096 edicts
-#define MIN_LEGACY_EDICTS 30
+#define MAX_LEGACY_EDICTS			(1 << MAX_LEGACY_ENTITY_BITS)	// 4096 edicts
+#define MIN_LEGACY_EDICTS			30
 
 // [FWGS, 01.01.24] legacy engine features that can be implemented through currently supported features
 #define ENGINE_LEGACY_FEATURES_MASK \
@@ -321,42 +329,99 @@ extern const char *clc_strings[clc_lastmsg + 1];
 // Master Server protocol
 #define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter
 
-// [FWGS, 01.05.24] GoldSrc protocol definitions
-#define PROTOCOL_GOLDSRC_VERSION_REAL 48
+// [FWGS, 01.12.24] GoldSrc protocol definitions
+#define PROTOCOL_GOLDSRC_VERSION	48
+/*#define PROTOCOL_GOLDSRC_VERSION_REAL 48
 
  // should be 48, only to differentiate it from PROTOCOL_LEGACY_VERSION
-#define PROTOCOL_GOLDSRC_VERSION (PROTOCOL_GOLDSRC_VERSION_REAL | (BIT( 7 )))
+#define PROTOCOL_GOLDSRC_VERSION (PROTOCOL_GOLDSRC_VERSION_REAL | (BIT( 7 )))*/
 
-#define svc_goldsrc_version svc_changing
-#define svc_goldsrc_serverinfo svc_serverdata
-#define svc_goldsrc_deltadescription svc_deltatable
-#define svc_goldsrc_stopsound svc_resource
-#define svc_goldsrc_damage svc_restoresound
-#define svc_goldsrc_killedmonster 27
-#define svc_goldsrc_foundsecret 28
-#define svc_goldsrc_spawnstaticsound 29
-#define svc_goldsrc_decalname svc_bspdecal
-#define svc_goldsrc_newusermsg svc_usermessage
-#define svc_goldsrc_newmovevars svc_deltamovevars
-#define svc_goldsrc_sendextrainfo 54
-#define svc_goldsrc_timescale 55
-#define svc_goldsrc_sendcvarvalue svc_querycvarvalue
-#define svc_goldsrc_sendcvarvalue2 svc_querycvarvalue2
+#define svc_goldsrc_version			svc_changing
+#define svc_goldsrc_serverinfo		svc_serverdata
+#define svc_goldsrc_deltadescription	svc_deltatable
+#define svc_goldsrc_stopsound		svc_resource
+#define svc_goldsrc_damage			svc_restoresound
+#define svc_goldsrc_killedmonster	27
+#define svc_goldsrc_foundsecret		28
+#define svc_goldsrc_spawnstaticsound	29
+#define svc_goldsrc_decalname		svc_bspdecal
+#define svc_goldsrc_newusermsg		svc_usermessage
+#define svc_goldsrc_newmovevars		svc_deltamovevars
+#define svc_goldsrc_sendextrainfo	54
+#define svc_goldsrc_timescale		55
+#define svc_goldsrc_sendcvarvalue	svc_querycvarvalue
+#define svc_goldsrc_sendcvarvalue2	svc_querycvarvalue2
 
-#define clc_goldsrc_hltv clc_requestcvarvalue // 9
-#define clc_goldsrc_requestcvarvalue clc_requestcvarvalue2 // 10
-#define clc_goldsrc_requestcvarvalue2 11
-#define clc_goldsrc_lastmsg 12
+#define clc_goldsrc_hltv			clc_requestcvarvalue // 9
+#define clc_goldsrc_requestcvarvalue	clc_requestcvarvalue2 // 10
+#define clc_goldsrc_requestcvarvalue2	11
+
+// [FWGS, 01.12.24]
+/*#define clc_goldsrc_lastmsg			12
 
 #define S2C_REJECT_BADPASSWORD '8'
 #define S2C_REJECT '9'
 #define S2C_CHALLENGE "A00000000"
-#define S2C_CONNECTION "B"
+#define S2C_CONNECTION "B"*/
+#define clc_goldsrc_lastmsg			11
 
-#define MAX_GOLDSRC_RESOURCE_BITS 12
-#define MAX_GOLDSRC_ENTITY_BITS 11
-// #define MAX_GOLDSRC_EDICTS BIT( MAX_ENTITY_BITS )
-#define MAX_GOLDSRC_EDICTS ( BIT( MAX_ENTITY_BITS ) + ( MAX_CLIENTS * 15 ))
-#define LAST_GOLDSRC_EDICT ( BIT( MAX_ENTITY_BITS ) - 1 )
+#define MAX_GOLDSRC_BACKUP_CMDS		8
+#define MAX_GOLDSRC_TOTAL_CMDS		16
+#define MAX_GOLDSRC_EXTENDED_TOTAL_CMDS	62
+#define MAX_GOLDSRC_MODEL_BITS		10
+
+#define MAX_GOLDSRC_RESOURCE_BITS	12
+#define MAX_GOLDSRC_ENTITY_BITS		11
+#define MAX_GOLDSRC_EDICTS			( BIT( MAX_ENTITY_BITS ) + ( MAX_CLIENTS * 15 ))
+#define LAST_GOLDSRC_EDICT			( BIT( MAX_ENTITY_BITS ) - 1 )
+
+// [FWGS, 01.12.24] from any to any (must be handled on both server and client)
+#define A2A_PING			"ping"		// reply with A2A_ACK
+#define A2A_ACK				"ack"		// no-op
+#define A2A_INFO			"info"		// different format for client and server, see code
+#define A2A_NETINFO			"netinfo"	// different format for client and server, see code
+#define A2A_GOLDSRC_PING	"i"			// reply with A2A_GOLDSRC_ACK
+#define A2A_GOLDSRC_ACK		"j"			// no-op
+
+// [FWGS, 01.12.24] from any to server
+#define A2S_GOLDSRC_INFO	"TSource Engine Query"
+#define A2S_GOLDSRC_RULES	'V'
+#define A2S_GOLDSRC_PLAYERS	'U'
+
+// [FWGS, 01.12.24] from server to any
+#define S2A_GOLDSRC_INFO	'I'
+#define S2A_GOLDSRC_RULES	'E'
+#define S2A_GOLDSRC_PLAYERS	'D'
+
+// [FWGS, 01.12.24] from master to server
+#define M2S_CHALLENGE		"s"
+#define M2S_NAT_CONNECT		"c"
+
+// [FWGS, 01.12.24] from server to master
+#define S2M_INFO			"0\n"
+
+// [FWGS, 01.12.24] from client to server
+#define C2S_BANDWIDTHTEST	"bandwidth"
+#define C2S_GETCHALLENGE	"getchallenge"
+#define C2S_CONNECT			"connect"
+#define C2S_RCON			"rcon"
+
+// [FWGS, 01.12.24] from server to client
+#define S2C_BANDWIDTHTEST	"testpacket"
+#define S2C_CHALLENGE		"challenge"
+#define S2C_CONNECTION		"client_connect"
+#define S2C_ERRORMSG		"errormsg"
+#define S2C_REJECT			"disconnect"
+#define S2C_GOLDSRC_REJECT_BADPASSWORD	'8'
+#define S2C_GOLDSRC_REJECT		'9'
+#define S2C_GOLDSRC_CHALLENGE	"A00000000"
+#define S2C_GOLDSRC_CONNECTION	"B"
+
+// [FWGS, 01.12.24] from any to client
+#define A2C_PRINT			"print"
+#define A2C_GOLDSRC_PRINT	'l'
+
+// [FWGS, 01.12.24] from master to client
+#define M2A_SERVERSLIST		"f"
 
 #endif

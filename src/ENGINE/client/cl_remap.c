@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -26,7 +26,8 @@ Returns remapinfo slot for specified entity
 ***/
 remap_info_t *CL_GetRemapInfoForEntity (cl_entity_t *e)
 	{
-	if (!e) return NULL;
+	if (!e)
+		return NULL;
 
 	if (e == &clgame.viewent)
 		return clgame.remap_info[clgame.maxEntities];
@@ -109,7 +110,7 @@ static byte *CL_CreateRawTextureFromPixels (texture_t *tx, size_t *size, int top
 
 /***
 ====================
-CL_DuplicateTexture [FWGS, 01.01.24]
+CL_DuplicateTexture [FWGS, 01.12.24]
 
 Dupliacte texture with remap pixels
 ====================
@@ -138,7 +139,9 @@ static void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotex
 			break; // found
 		}
 
-	Assert (tx != NULL);
+	/*Assert (tx != NULL);*/
+	if (!tx)
+		return;
 
 	// backup original palette
 	pal = (byte *)(tx + 1) + (tx->width * tx->height);
@@ -153,7 +156,7 @@ static void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotex
 
 /***
 ====================
-CL_UpdateStudioTexture [FWGS, 01.01.24]
+CL_UpdateStudioTexture [FWGS, 01.12.24]
 
 Update texture top and bottom colors
 ====================
@@ -174,13 +177,15 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 
 	// build name of original texture
 	Q_strncpy (mdlname, entity->model->name, sizeof (mdlname));
-	COM_FileBase (ptexture->name, name, sizeof (name));	// [FWGS, 01.05.23]
+	COM_FileBase (ptexture->name, name, sizeof (name));
 	COM_StripExtension (mdlname);
 
 	Q_snprintf (texname, sizeof (texname), "#%s/%s.mdl", mdlname, name);
 	index = ref.dllFuncs.GL_FindTexture (texname);
+	/*if (!index)
+		return; // couldn't find texture*/
 	if (!index)
-		return; // couldn't find texture
+		return;		// couldn't find texture
 
 	// search for pixels
 	for (i = 0; i < entity->model->numtextures; i++)
@@ -190,7 +195,9 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 			break; // found
 		}
 
-	Assert (tx != NULL);
+	/*Assert (tx != NULL);*/
+	if (!tx)
+		return;		// couldn't find texture
 
 	// backup original palette
 	pal = (byte *)(tx + 1) + (tx->width * tx->height);

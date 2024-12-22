@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -26,7 +26,10 @@ typedef struct did3v2_header_s
 	uint8_t  flags;
 	uint32_t length; // size of extended header, padding and frames
 	} did3v2_header_t;
-STATIC_ASSERT (sizeof (did3v2_header_t) == 10, "invalid did3v2_header_t size");
+
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (did3v2_header_t) == 10, "invalid did3v2_header_t size");*/
+STATIC_CHECK_SIZEOF (did3v2_header_t, 10, 10);
 
 typedef struct did3v2_extended_header_s
 	{
@@ -34,7 +37,10 @@ typedef struct did3v2_extended_header_s
 	uint8_t  flags_length;
 	uint8_t  flags[1];
 	} did3v2_extended_header_t;
-STATIC_ASSERT (sizeof (did3v2_extended_header_t) == 6, "invalid did3v2_extended_header_t size");
+
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (did3v2_extended_header_t) == 6, "invalid did3v2_extended_header_t size");*/
+STATIC_CHECK_SIZEOF (did3v2_extended_header_t, 6, 6);
 
 typedef struct did3v2_frame_s
 	{
@@ -42,7 +48,11 @@ typedef struct did3v2_frame_s
 	uint32_t length;
 	uint8_t  flags[2];
 	} did3v2_frame_t;
-STATIC_ASSERT (sizeof (did3v2_frame_t) == 10, "invalid did3v2_frame_t size");
+
+// [FWGS, 01.12.24]
+/*STATIC_ASSERT (sizeof (did3v2_frame_t) == 10, "invalid did3v2_frame_t size");*/
+STATIC_CHECK_SIZEOF (did3v2_frame_t, 10, 10);
+
 #pragma pack(pop)
 
 // [FWGS, 01.05.23]

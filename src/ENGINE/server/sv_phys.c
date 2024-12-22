@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -2167,7 +2167,7 @@ static server_physics_api_t gPhysicsAPI =
 
 /***
 ===============
-SV_InitPhysicsAPI [FWGS, 01.07.24]
+SV_InitPhysicsAPI [FWGS, 01.12.24]
 
 Initialize server external physics
 ===============
@@ -2186,20 +2186,23 @@ qboolean SV_InitPhysicsAPI (void)
 
 			// grab common engine features (it will be shared across the network)
 			if (svgame.physFuncs.SV_CheckFeatures != NULL)
-				Host_ValidateEngineFeatures (svgame.physFuncs.SV_CheckFeatures ());
+				/*Host_ValidateEngineFeatures (svgame.physFuncs.SV_CheckFeatures ());*/
+				Host_ValidateEngineFeatures (ENGINE_FEATURES_MASK, svgame.physFuncs.SV_CheckFeatures ());
 
 			return true;
 			}
 
 		// make sure what physic functions is cleared
 		memset (&svgame.physFuncs, 0, sizeof (svgame.physFuncs));
-		Host_ValidateEngineFeatures (0);
+		/*Host_ValidateEngineFeatures (0);*/
+		Host_ValidateEngineFeatures (ENGINE_FEATURES_MASK, 0);
 
 		// just tell user about problems
 		return false;
 		}
 
 	// physic interface is missed
-	Host_ValidateEngineFeatures (0);
+	/*Host_ValidateEngineFeatures (0);*/
+	Host_ValidateEngineFeatures (ENGINE_FEATURES_MASK, 0);
 	return true;
 	}

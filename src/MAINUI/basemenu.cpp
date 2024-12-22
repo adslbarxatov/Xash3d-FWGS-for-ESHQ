@@ -738,7 +738,7 @@ const char *UI_DefaultKey (menuFramework_s *menu, int key, int down)
 	int		cursorPrev;
 
 	// menu system key
-	if (down && key == K_ESCAPE)
+	if (down && (key == K_ESCAPE))
 		{
 		UI_PopMenu ();
 		return uiSoundOut;
@@ -777,11 +777,13 @@ const char *UI_DefaultKey (menuFramework_s *menu, int key, int down)
 				sound = UI_PicButton_Key ((menuPicButton_s *)item, key, down);
 				break;
 			}
-		if (sound) return sound; // key was handled
+		if (sound)
+			return sound; // key was handled
 		}
 
 		// system keys are always wait for keys down and never keys up
-	if (!down) return 0;
+	if (!down)
+		return 0;
 
 	// default handling
 	switch (key)
@@ -802,6 +804,7 @@ const char *UI_DefaultKey (menuFramework_s *menu, int key, int down)
 					sound = uiSoundMove;
 				}
 			break;
+
 		case K_DOWNARROW:
 		case K_KP_DOWNARROW:
 		case K_RIGHTARROW:
@@ -819,6 +822,7 @@ const char *UI_DefaultKey (menuFramework_s *menu, int key, int down)
 					sound = uiSoundMove;
 				}
 			break;
+
 		case K_MOUSE1:
 			if (item)
 				{
@@ -827,6 +831,7 @@ const char *UI_DefaultKey (menuFramework_s *menu, int key, int down)
 				}
 
 			break;
+
 		case K_ENTER:
 		case K_KP_ENTER:
 			if (item)
@@ -836,6 +841,7 @@ const char *UI_DefaultKey (menuFramework_s *menu, int key, int down)
 				}
 			break;
 		}
+
 	return sound;
 	}
 
@@ -1118,10 +1124,12 @@ void UI_KeyEvent (int key, int down)
 
 	if (uiStatic.menuActive->keyFunc)
 		sound = uiStatic.menuActive->keyFunc (key, down);
-	else sound = UI_DefaultKey (uiStatic.menuActive, key, down);
+	else
+		sound = UI_DefaultKey (uiStatic.menuActive, key, down);
 
-	if (!down) return;
-	if (sound && sound != uiSoundNull)
+	if (!down)
+		return;
+	if (sound && (sound != uiSoundNull))
 		UI_StartSound (sound);
 	}
 

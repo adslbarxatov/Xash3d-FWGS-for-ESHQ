@@ -15,8 +15,9 @@
 
 #include <sys/types.h> // off_t
 
-#define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
-#include STDINT_H
+/*define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
+include STDINT_H*/
+#include <stdint.h>		// [FWGS, 01.12.24]
 #include <assert.h>
 
 typedef unsigned char byte;
@@ -80,25 +81,53 @@ typedef uint64_t longtime_t;
 #define IsColorString( p )	( p && *( p ) == '^' && *(( p ) + 1) && *(( p ) + 1) >= '0' && *(( p ) + 1 ) <= '9' )
 #define ColorIndex( c )	((( c ) - '0' ) & 7 )
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.12.24]
 #if defined( __GNUC__ )
 	#if defined( __i386__ )
 		#define HLEXPORT __attribute__(( visibility( "default" ), force_align_arg_pointer ))
-		#define GAME_EXPORT __attribute(( force_align_arg_pointer ))
+		/*#define GAME_EXPORT __attribute(( force_align_arg_pointer ))*/
+		#define GAME_EXPORT __attribute__(( force_align_arg_pointer ))
 	#else
 		#define HLEXPORT __attribute__(( visibility ( "default" )))
 		#define GAME_EXPORT
 	#endif
 
+	#define MALLOC __attribute__(( malloc ))
+
+	// added in GCC 11
+	#if __GNUC__ >= 11
+		// might want to set noclone due to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=116893
+		// but it's easier to not force mismatched-dealloc to error yet
+		#define MALLOC_LIKE( x, y ) __attribute__(( malloc( x, y )))
+	#else
+		#define MALLOC_LIKE( x, y ) MALLOC
+	#endif
+
 	#define NORETURN __attribute__(( noreturn ))
 	#define NONNULL __attribute__(( nonnull ))
-	#define _format( x ) __attribute__(( format( printf, x, x + 1 )))
+
+	/*#define _format( x ) __attribute__(( format( printf, x, x + 1 )))*/
+	#define RETURNS_NONNULL __attribute__(( returns_nonnull ))
+
+	#if __clang__
+		#define PFN_RETURNS_NONNULL
+		// clang has bugged returns_nonnull for functions pointers, it's ignored
+		// and generates a warning about objective-c? O_o
+	#else
+		#define PFN_RETURNS_NONNULL RETURNS_NONNULL
+	#endif
+	#define FORMAT_CHECK( x ) __attribute__(( format( printf, x, x + 1 )))
+
 	#define ALLOC_CHECK( x ) __attribute__(( alloc_size( x )))
 	#define NO_ASAN __attribute__(( no_sanitize( "address" )))
+
+	#define WARN_UNUSED_RESULT __attribute__(( warn_unused_result ))
+
 	#define RENAME_SYMBOL( x ) asm( x )
 
-
 #else
+
+	// [FWGS, 01.12.24]
 	#if defined( _MSC_VER )
 		#define HLEXPORT __declspec( dllexport )
 		#define NO_ASAN // ESHQ: отключён по умолчанию: __declspec( no_sanitize_address )
@@ -109,30 +138,42 @@ typedef uint64_t longtime_t;
 
 	#define GAME_EXPORT
 	#define NORETURN
-	#define NONNULL	// [FWGS, 01.11.23]
+	#define NONNULL
 
-	#define _format( x )
+	/*#define _format( x )*/
+	#define RETURNS_NONNULL
+	#define PFN_RETURNS_NONNULL
+	#define FORMAT_CHECK( x )
+
 	#define ALLOC_CHECK( x )
 	#define RENAME_SYMBOL( x )
+
+	#define MALLOC
+	#define MALLOC_LIKE( x, y )
+	#define WARN_UNUSED_RESULT
+#endif
+
+// [FWGS, 01.12.24]
+#if defined( __has_feature )
+	#if __has_feature( address_sanitizer )
+		#define USE_ASAN 1
+	#endif
+#endif
+
+// [FWGS, 01.12.24]
+#if !defined( USE_ASAN ) && defined( __SANITIZE_ADDRESS__ )
+	#define USE_ASAN 1
 #endif
 
 // [FWGS, 01.07.24]
-/*#if ( __GNUC__ >= 3 )*/
 #if __GNUC__ >= 3
 	#define unlikely( x ) __builtin_expect( x, 0 )
 	#define likely( x ) __builtin_expect( x, 1 )
 #elif defined( __has_builtin )
-	/*#if __has_builtin( __builtin_expect )
-		#define unlikely( x ) __builtin_expect( x, 0 )
-		#define likely( x ) __builtin_expect( x, 1 )
-	#else
-		#define unlikely( x ) ( x )
-		#define likely( x ) ( x )*/
 	#if __has_builtin( __builtin_expect ) // this must be after defined() check
 		#define unlikely( x ) __builtin_expect( x, 0 )
 		#define likely( x ) __builtin_expect( x, 1 )
 	#endif
-	/*#else*/
 #endif
 
 #if !defined( unlikely ) || !defined( likely )
@@ -155,6 +196,16 @@ typedef uint64_t longtime_t;
 	#define STATIC_ASSERT_2( line, x, y ) STATIC_ASSERT_3( line, x, y )
 	#define STATIC_ASSERT( x, y ) STATIC_ASSERT_2( __LINE__, x, y )
 #endif
+
+// [FWGS, 01.12.24] at least, statically check size of some public structures
+#if XASH_64BIT
+	#define STATIC_CHECK_SIZEOF( type, size32, size64 ) \
+		STATIC_ASSERT( sizeof( type ) == size64, #type " unexpected size" )
+#else
+	#define STATIC_CHECK_SIZEOF( type, size32, size64 ) \
+		STATIC_ASSERT (sizeof (type) == size32, #type " unexpected size" )
+#endif
+
 
 // [FWGS, 01.07.24] [ESHQ: где-то есть проблема с переключением, принудительно выставлен __restrict]
 #if !defined( __cplusplus ) && __STDC_VERSION__ >= 199101L && false	// not C++ and C99 or newer
@@ -195,8 +246,6 @@ _inline float LittleFloat (float f)
 #endif
 
 // [FWGS, 01.07.24]
-/*typedef unsigned int	dword;
-typedef unsigned int	uint;*/
 typedef unsigned int dword;
 typedef unsigned int uint;
 typedef unsigned long ulong;

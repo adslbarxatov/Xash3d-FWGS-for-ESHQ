@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -242,25 +242,34 @@ static void Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 static void Sys_WriteEscapeSequenceForColorcode (int fd, int c) {}
 #endif
 
+// [FWGS, 01.12.24]
 static void Sys_PrintLogfile (const int fd, const char *logtime, const char *msg, const qboolean colorize)
 	{
 	const char *p = msg;
 
 	write (fd, logtime, Q_strlen (logtime));
-
 	while (p && *p)
 		{
 		p = Q_strchr (msg, '^');
-
 		if (p == NULL)
 			{
-			write (fd, msg, Q_strlen (msg));
+			/*write (fd, msg, Q_strlen (msg));*/
+			if (write (fd, msg, Q_strlen (msg)) < 0)
+				{
+				// don't call engine Msg, might cause recursion
+				fprintf (stderr, "%s: write failed: %s\n", __func__, strerror (errno));
+				}
 			break;
 			}
 		else if (IsColorString (p))
 			{
 			if (p != msg)
-				write (fd, msg, p - msg);
+				/*write (fd, msg, p - msg);*/
+				{
+				if (write (fd, msg, p - msg) < 0)
+					fprintf (stderr, "%s: write failed: %s\n", __func__, strerror (errno));
+				}
+
 			msg = p + 2;
 
 			if (colorize)
@@ -268,7 +277,10 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, const char *msg
 			}
 		else
 			{
-			write (fd, msg, p - msg + 1);
+			/*write (fd, msg, p - msg + 1);*/
+			if (write (fd, msg, p - msg + 1) < 0)
+				fprintf (stderr, "%s: write failed: %s\n", __func__, strerror (errno));
+
 			msg = p + 1;
 			}
 		}

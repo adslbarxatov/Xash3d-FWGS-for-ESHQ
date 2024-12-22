@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -24,9 +24,9 @@ GNU General Public License for more details
 static uint32_t	BitWriteMasks[32][33];	// [FWGS, 01.07.23]
 static uint32_t	ExtraMasks[32];
 
-// [FWGS, 01.04.23]
-
-const char *svc_strings[svc_lastmsg + 1] =
+// [FWGS, 01.12.24]
+/*const char *svc_strings[svc_lastmsg + 1] =*/
+const char *const svc_strings[svc_lastmsg + 1] =
 	{
 	"svc_bad",
 	"svc_nop",
@@ -82,7 +82,8 @@ const char *svc_strings[svc_lastmsg + 1] =
 	"svc_director",
 	"svc_voiceinit",
 	"svc_voicedata",
-	"svc_deltapacketbones",
+	/*"svc_deltapacketbones",*/
+	"svc_unused54",
 	"svc_unused55",
 	"svc_resourcelocation",
 	"svc_querycvarvalue",
@@ -90,7 +91,9 @@ const char *svc_strings[svc_lastmsg + 1] =
 	"svc_exec",
 	};
 
-const char *svc_legacy_strings[svc_lastmsg + 1] =
+// [FWGS, 01.12.24]
+/*const char *svc_legacy_strings[svc_lastmsg + 1] =*/
+const char *const svc_legacy_strings[svc_lastmsg + 1] =
 	{
 	[svc_legacy_changing] = "svc_legacy_changing",
 	[svc_legacy_ambientsound] = "svc_legacy_ambientsound",
@@ -101,8 +104,9 @@ const char *svc_legacy_strings[svc_lastmsg + 1] =
 	[svc_legacy_chokecount] = "svc_legacy_chokecount",
 	};
 
-// [FWGS, 01.05.24]
-const char *svc_goldsrc_strings[svc_lastmsg + 1] =
+// [FWGS, 01.12.24]
+/*const char *svc_goldsrc_strings[svc_lastmsg + 1] =*/
+const char *const svc_goldsrc_strings[svc_lastmsg + 1] =
 	{
 	[svc_goldsrc_version] = "svc_goldsrc_version",
 	[svc_goldsrc_serverinfo] = "svc_goldsrc_serverinfo",
@@ -121,8 +125,9 @@ const char *svc_goldsrc_strings[svc_lastmsg + 1] =
 	[svc_goldsrc_sendcvarvalue2] = "svc_goldsrc_sendcvarvalue2",
 	};
 
-// [FWGS, 01.07.24]
-const char *svc_quake_strings[svc_lastmsg + 1] =
+// [FWGS, 01.12.24]
+/*const char *svc_quake_strings[svc_lastmsg + 1] =*/
+const char *const svc_quake_strings[svc_lastmsg + 1] =
 	{
 	[svc_updatestat] = "svc_quake_updatestat",
 	[svc_version] = "svc_quake_version",
@@ -168,7 +173,8 @@ void MSG_InitMasks (void)
 
 // [FWGS, 01.02.24] удалена MSG_SeekToByte
 
-void MSG_WriteOneBit (sizebuf_t *sb, int nValue)
+// [FWGS, 01.12.24] removed MSG_WriteOneBit
+/*void MSG_WriteOneBit (sizebuf_t *sb, int nValue)
 	{
 	if (!MSG_Overflow (sb, 1))
 		{
@@ -179,7 +185,7 @@ void MSG_WriteOneBit (sizebuf_t *sb, int nValue)
 
 		sb->iCurBit++;
 		}
-	}
+	}*/
 
 void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 	{
@@ -228,7 +234,7 @@ void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 
 /***
 =======================
-MSG_WriteSBitLong
+MSG_WriteSBitLong [FWGS, 01.12.24]
 
 sign bit comes first
 =======================
@@ -238,17 +244,30 @@ void MSG_WriteSBitLong (sizebuf_t *sb, int data, int numbits)
 	// do we have a valid # of bits to encode with?
 	Assert ((numbits >= 1) && (numbits <= 32));
 
-	// NOTE: it does this wierdness here so it's bit-compatible with regular integer data in the buffer.
+	/*// NOTE: it does this wierdness here so it's bit-compatible with regular integer data in the buffer.
 	// (Some old code writes direct integers right into the buffer).
-	if (data < 0)
+	if (data < 0)*/
+	if (sb->iAlternateSign)
 		{
-		MSG_WriteUBitLong (sb, (uint)(0x80000000 + data), numbits - 1);
-		MSG_WriteOneBit (sb, 1);
+		/*MSG_WriteUBitLong (sb, (uint)(0x80000000 + data), numbits - 1);
+		MSG_WriteOneBit (sb, 1);*/
+		MSG_WriteOneBit (sb, data < 0 ? 1 : 0);
+		MSG_WriteUBitLong (sb, (uint)abs (data), numbits - 1);
 		}
 	else
 		{
-		MSG_WriteUBitLong (sb, (uint)data, numbits - 1);
-		MSG_WriteOneBit (sb, 0);
+		/*MSG_WriteUBitLong (sb, (uint)data, numbits - 1);
+		MSG_WriteOneBit (sb, 0);*/
+		if (data < 0)
+			{
+			MSG_WriteUBitLong (sb, (uint)(0x80000000 + data), numbits - 1);
+			MSG_WriteOneBit (sb, 1);
+			}
+		else
+			{
+			MSG_WriteUBitLong (sb, (uint)data, numbits - 1);
+			MSG_WriteOneBit (sb, 0);
+			}
 		}
 	}
 
@@ -345,31 +364,49 @@ void MSG_WriteVec3Angles (sizebuf_t *sb, const float *fa)
 
 // [FWGS, 01.05.23] удалена MSG_WriteBitFloat
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.12.24]
 void MSG_WriteCmdExt (sizebuf_t *sb, int cmd, netsrc_t type, const char *name)
 	{
-#ifdef DEBUG_NET_MESSAGES_SEND
+	/*ifdef DEBUG_NET_MESSAGES_SEND
 	if (name != NULL)
 		{
 		// get custom name
 		Con_Printf ("^1sv^7 write: %s\n", name);
 		}
-	else if (type == NS_SERVER)
+	else if (type == NS_SERVER)*/
+	if (unlikely (net_send_debug.value))
 		{
-		if (cmd >= 0 && cmd <= svc_lastmsg)
+		/*if (cmd >= 0 && cmd <= svc_lastmsg)*/
+		if (name != NULL)
 			{
-			// get engine message name
-			Con_Printf ("^1sv^7 write: %s\n", svc_strings[cmd]);
+			/*// get engine message name
+			Con_Printf ("^1sv^7 write: %s\n", svc_strings[cmd]);*/
+			// get custom name
+			Con_Printf ("^1sv^7 (%d) write: %s\n", sb->iCurBit, name);
 			}
-		}
+		/*}
 	else if (type == NS_CLIENT)
 		{
-		if (cmd >= 0 && cmd <= clc_lastmsg)
+		if (cmd >= 0 && cmd <= clc_lastmsg)*/
+		else if (type == NS_SERVER)
 			{
-			Con_Printf ("^1cl^7 write: %s\n", clc_strings[cmd]);
+			/*Con_Printf ("^1cl^7 write: %s\n", clc_strings[cmd]);*/
+			if ((cmd >= 0) && (cmd <= svc_lastmsg))
+				{
+				// get engine message name
+				Con_Printf ("^1sv^7 (%d) write: %s\n", sb->iCurBit, svc_strings[cmd]);
+				}
+			}
+		else if (type == NS_CLIENT)
+			{
+			if ((cmd >= 0) && (cmd <= clc_lastmsg) && (cmd != clc_nop))
+				{
+				Con_Printf ("^1cl^7 (%d) write: %s\n", sb->iCurBit, clc_strings[cmd]);
+				}
 			}
 		}
-#endif
+
+	/*endif*/
 	MSG_WriteUBitLong (sb, cmd, sizeof (uint8_t) << 3);
 	}
 
@@ -517,8 +554,8 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 
 qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)
 	{
-	byte *pOut = (byte *)pOutData;
-	int	nBitsLeft = nBits;
+	byte	*pOut = (byte *)pOutData;
+	int		nBitsLeft = nBits;
 
 	// [FWGS, 01.07.23] get output dword-aligned
 	while ((((uint32_t)pOut & 3) != 0) && (nBitsLeft >= 8))
@@ -556,7 +593,7 @@ qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)
 float MSG_ReadBitAngle (sizebuf_t *sb, int numbits)
 	{
 	float	fReturn, shift;
-	int	i;
+	int		i;
 
 	shift = (float)(1 << numbits);
 
@@ -570,17 +607,32 @@ float MSG_ReadBitAngle (sizebuf_t *sb, int numbits)
 	return fReturn;
 	}
 
-// Append numbits least significant bits from data to the current bit stream
+// [FWGS, 01.12.24] Append numbits least significant bits from data to the current bit stream
 int MSG_ReadSBitLong (sizebuf_t *sb, int numbits)
 	{
 	int	r, sign;
 
-	r = MSG_ReadUBitLong (sb, numbits - 1);
+	/*r = MSG_ReadUBitLong (sb, numbits - 1);*/
+	if (sb->iAlternateSign)
+		{
+		sign = MSG_ReadOneBit (sb);
+		r = MSG_ReadUBitLong (sb, numbits - 1);
 
-	// NOTE: it does this wierdness here so it's bit-compatible with regular integer data in the buffer.
+		/*// NOTE: it does this wierdness here so it's bit-compatible with regular integer data in the buffer.
 	// (Some old code writes direct integers right into the buffer).
 	sign = MSG_ReadOneBit (sb);
-	if (sign) r = -(BIT (numbits - 1) - r);
+	if (sign) r = -(BIT (numbits - 1) - r);*/
+		if (sign)
+			r = -r;
+		}
+	else
+		{
+		r = MSG_ReadUBitLong (sb, numbits - 1);
+		sign = MSG_ReadOneBit (sb);
+
+		if (sign)
+			r = -(BIT (numbits - 1) - r);
+		}
 
 	return r;
 	}
@@ -589,30 +641,50 @@ uint MSG_ReadBitLong (sizebuf_t *sb, int numbits, qboolean bSigned)
 	{
 	if (bSigned)
 		return (uint)MSG_ReadSBitLong (sb, numbits);
+
 	return MSG_ReadUBitLong (sb, numbits);
 	}
 
+// [FWGS, 01.12.24]
 int MSG_ReadCmd (sizebuf_t *sb, netsrc_t type)
 	{
-	int	cmd = MSG_ReadUBitLong (sb, sizeof (uint8_t) << 3);	// [FWGS, 01.07.23]
+	int	cmd = MSG_ReadUBitLong (sb, sizeof (uint8_t) << 3);
 
-#ifdef DEBUG_NET_MESSAGES_READ
+	/*ifdef DEBUG_NET_MESSAGES_READ
 	if (type == NS_SERVER)
 		{
 		Con_Printf ("^1cl^7 read: %s\n", CL_MsgInfo (cmd));
 		}
-	else if (cmd >= 0 && cmd <= clc_lastmsg)
+	else if (cmd >= 0 && cmd <= clc_lastmsg)*/
+	if (unlikely (net_recv_debug.value))
 		{
-		Con_Printf ("^1sv^7 read: %s\n", clc_strings[cmd]);
+		/*Con_Printf ("^1sv^7 read: %s\n", clc_strings[cmd]);*/
+		if (type == NS_SERVER)
+			{
+			if (cmd != svc_nop)
+				Con_Printf ("^1cl^7 read: %s\n", CL_MsgInfo (cmd));
+			}
+		else if ((cmd >= 0) && (cmd <= clc_lastmsg))
+			{
+			Con_Printf ("^1sv^7 read: %s\n", clc_strings[cmd]);
+			}
 		}
-#endif
+
+	/*endif*/
 	return cmd;
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.12.24]
 int MSG_ReadChar (sizebuf_t *sb)
 	{
-	return MSG_ReadSBitLong (sb, sizeof (int8_t) << 3);
+	/*return MSG_ReadSBitLong (sb, sizeof (int8_t) << 3);*/
+	int alt = sb->iAlternateSign, ret;
+
+	sb->iAlternateSign = 0;
+	ret = MSG_ReadSBitLong (sb, sizeof (int8_t) << 3);
+	sb->iAlternateSign = alt;
+
+	return ret;
 	}
 
 // [FWGS, 01.07.23]
@@ -621,10 +693,17 @@ int MSG_ReadByte (sizebuf_t *sb)
 	return MSG_ReadUBitLong (sb, sizeof (uint8_t) << 3);
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.12.24]
 int MSG_ReadShort (sizebuf_t *sb)
 	{
-	return MSG_ReadSBitLong (sb, sizeof (int16_t) << 3);
+	/*return MSG_ReadSBitLong (sb, sizeof (int16_t) << 3);*/
+	int alt = sb->iAlternateSign, ret;
+
+	sb->iAlternateSign = 0;
+	ret = MSG_ReadSBitLong (sb, sizeof (int16_t) << 3);
+	sb->iAlternateSign = alt;
+
+	return ret;
 	}
 
 // [FWGS, 01.07.23]
@@ -638,6 +717,7 @@ float MSG_ReadCoord (sizebuf_t *sb)
 	// g-cont. we loose precision here but keep old size of coord variable!
 	if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
 		return (float)(MSG_ReadShort (sb));
+
 	return (float)(MSG_ReadShort (sb) * (1.0f / 8.0f));
 	}
 
@@ -655,10 +735,17 @@ void MSG_ReadVec3Angles (sizebuf_t *sb, vec3_t fa)
 	fa[2] = MSG_ReadBitAngle (sb, 16);
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.12.24]
 int MSG_ReadLong (sizebuf_t *sb)
 	{
-	return MSG_ReadSBitLong (sb, sizeof (int32_t) << 3);
+	/*return MSG_ReadSBitLong (sb, sizeof (int32_t) << 3);*/
+	int alt = sb->iAlternateSign, ret;
+
+	sb->iAlternateSign = 0;
+	ret = MSG_ReadSBitLong (sb, sizeof (int32_t) << 3);
+	sb->iAlternateSign = alt;
+
+	return ret;
 	}
 
 // [FWGS, 01.07.23]

@@ -21,7 +21,7 @@ GNU General Public License for more details
 #if defined(XASH_NO_NETWORK)
 	#include "platform/stub/net_stub.h"
 #elif XASH_NSWITCH
-	// [FWGS, 01.04.23] our ntohl is here
+	// our ntohl is here
 	#include <arpa/inet.h>
 #elif !XASH_WIN32
 	#include <netinet/in.h>

@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -100,13 +100,14 @@ void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximiz
 
 /***
 =================
-VID_GetModeString
+VID_GetModeString [FWGS, 01.12.24]
 =================
 ***/
 const char *VID_GetModeString (int vid_mode)
 	{
 	vidmode_t *vidmode;
-	if ((vid_mode < 0) || (vid_mode > R_MaxVideoModes ()))
+	/*if ((vid_mode < 0) || (vid_mode > R_MaxVideoModes ()))*/
+	if ((vid_mode < 0) || (vid_mode >= R_MaxVideoModes ()))
 		return NULL;
 
 	if (!(vidmode = R_GetVideoMode (vid_mode)))

@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -139,7 +139,6 @@ static const char *CL_GenericHandle (int fileindex)
 	return cl.files_precache[fileindex];
 	}
 
-// [FWGS, 01.07.24]
 intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRef)
 	{
 	switch (parm)
@@ -208,6 +207,7 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 				{
 				return ref.dllFuncs.RefGetParm (parm, arg);
 				}
+
 			// call issued from ref_dll, check extensions here
 			else switch (parm)
 				{
@@ -255,6 +255,22 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 
 				case PARM_GET_VIEWENT_PTR:
 					return (intptr_t)&clgame.viewent;
+
+				// [FWGS, 01.12.24]
+				case PARM_GET_TEXGAMMATABLE_PTR:
+				case PARM_GET_LIGHTGAMMATABLE_PTR:
+				case PARM_GET_SCREENGAMMATABLE_PTR:
+				case PARM_GET_LINEARGAMMATABLE_PTR:
+					return V_GetGammaPtr (parm);
+
+				case PARM_GET_LIGHTSTYLES_PTR:
+					return (intptr_t)CL_GetLightStyle (0);
+
+				case PARM_GET_DLIGHTS_PTR:
+					return (intptr_t)CL_GetDynamicLight (0);
+
+				case PARM_GET_ELIGHTS_PTR:
+					return (intptr_t)CL_GetEntityLight (0);
 				}
 		}
 
@@ -326,7 +342,8 @@ static render_api_t gRenderAPI =
 		R_Mem_Free,
 		pfnGetFilesList,
 		pfnFileBufferCRC32,
-		COM_CompareFileTime,
+		/*COM_CompareFileTime,*/
+		pfnCompareFileTime,	// [FWGS, 01.12.24]
 		Host_Error,
 		(void *)CL_ModelHandle,
 		pfnTime,

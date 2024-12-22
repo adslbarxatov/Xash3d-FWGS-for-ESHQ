@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -153,9 +153,12 @@ void R_NewMap (void)
 		tx->texturechain = NULL;
 		}
 
-	// [FWGS, 01.07.24]
+	// [FWGS, 01.12.24]
 	GL_BuildLightmaps ();
-	R_GenerateVBO ();
+	/*R_GenerateVBO ();*/
+	R_ClearVBO ();
+	if (R_HasEnabledVBO ())
+		R_GenerateVBO ();
 	R_ResetRipples ();
 
 	if (gEngfuncs.drawFuncs->R_NewMap != NULL)

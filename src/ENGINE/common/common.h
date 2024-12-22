@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -112,11 +112,20 @@ typedef enum
 #include "con_nprint.h"
 #include "crclib.h"
 #include "ref_api.h"
+
+// [FWGS, 01.12.24]
+#define FSCALLBACK_OVERRIDE_OPEN
+#define FSCALLBACK_OVERRIDE_LOADFILE
+#define FSCALLBACK_OVERRIDE_MALLOC_LIKE
+
 #include "fscallback.h"
 
-// PERFORMANCE INFO
-#define MIN_FPS         20.0f		// host minimum fps value for maxfps.
-#define MAX_FPS         200.0f		// upper limit for maxfps.
+// [FWGS, 01.12.24] PERFORMANCE INFO
+/*#define MIN_FPS		20.0f		// host minimum fps value for maxfps.
+#define MAX_FPS         200.0f		// upper limit for maxfps.*/
+#define MIN_FPS			20.0f		// host minimum fps value for maxfps.
+#define MAX_FPS_SOFT	200.0f		// soft limit for maxfps
+#define MAX_FPS_HARD	1000.0f		// multiplayer hard limit for maxfps
 #define HOST_FPS		100.0f		// multiplayer games typical fps
 
 #define MAX_FRAMETIME	0.25f
@@ -153,7 +162,7 @@ typedef enum
 #define Assert( f )
 #endif
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.12.24]
 extern convar_t gl_vsync;
 extern convar_t scr_loading;
 extern convar_t scr_download;
@@ -162,10 +171,12 @@ extern convar_t host_allow_materials;
 extern convar_t	host_developer;
 extern convar_t host_limitlocal;
 extern convar_t host_maxfps;
+extern convar_t fps_override;
 extern convar_t	sys_timescale;
 extern convar_t	cl_filterstuffcmd;
 extern convar_t	rcon_password;
 extern convar_t hpk_custom_file;
+extern convar_t con_gamemaps;
 
 // [FWGS, 01.07.24]
 #define Mod_AllowMaterials() ((host_allow_materials.value != 0.0f) && !FBitSet(host.features, ENGINE_DISABLE_HDTEXTURES))
@@ -266,7 +277,7 @@ typedef struct
 	double		forcedEnd;
 	} soundlist_t;
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 typedef enum bugcomp_e
 	{
 	// reverts fix for pfnPEntityOfEntIndex for bug compatibility with GoldSrc
@@ -275,6 +286,9 @@ typedef enum bugcomp_e
 	// rewrites mod's attempts to write GoldSrc-specific messages into Xash protocol
 	// (new wrappers are added by request)
 	BUGCOMP_MESSAGE_REWRITE_FACILITY_FLAG = BIT (1),
+
+	// makes sound with no attenuation spatialized, like in GoldSrc
+	BUGCOMP_SPATIALIZE_SOUND_WITH_ATTN_NONE = BIT (2),
 	} bugcomp_t;
 
 // [FWGS, 01.07.24]
@@ -364,11 +378,45 @@ extern host_parm_t	host;
 typedef void (*xcommand_t)(void);
 
 //
-// filesystem_engine.c [FWGS, 01.07.24]
+// zone.c [FWGS, 01.12.24]
+//
+void Memory_Init (void);
+void _Mem_Free (void *data, const char *filename, int fileline);
+void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (3) WARN_UNUSED_RESULT;
+void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (2) MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
+poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline) WARN_UNUSED_RESULT;
+void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline);
+void _Mem_EmptyPool (poolhandle_t poolptr, const char *filename, int fileline);
+void _Mem_Check (const char *filename, int fileline);
+qboolean Mem_IsAllocatedExt (poolhandle_t poolptr, void *data);
+void Mem_PrintList (size_t minallocationsize);
+void Mem_PrintStats (void);
+
+#define Mem_Malloc( pool, size ) _Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
+#define Mem_Calloc( pool, size ) _Mem_Alloc( pool, size, true, __FILE__, __LINE__ )
+#define Mem_Realloc( pool, ptr, size ) _Mem_Realloc( pool, ptr, size, true, __FILE__, __LINE__ )
+#define Mem_Free( mem ) _Mem_Free( mem, __FILE__, __LINE__ )
+#define Mem_AllocPool( name ) _Mem_AllocPool( name, __FILE__, __LINE__ )
+#define Mem_FreePool( pool ) _Mem_FreePool( pool, __FILE__, __LINE__ )
+#define Mem_EmptyPool( pool ) _Mem_EmptyPool( pool, __FILE__, __LINE__ )
+#define Mem_IsAllocated( mem ) Mem_IsAllocatedExt( NULL, mem )
+#define Mem_Check() _Mem_Check( __FILE__, __LINE__ )
+
+//
+// filesystem_engine.c [FWGS, 01.12.24]
 //
 void FS_Init (const char *basedir);
 void FS_Shutdown (void);
-void *FS_GetNativeObject (const char *obj);	// [FWGS, 01.11.23]
+void *FS_GetNativeObject (const char *obj);
+int FS_Close (file_t *file);
+search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
+MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
+file_t *FS_Open (const char *filepath, const char *mode, qboolean gamedironly)
+MALLOC_LIKE (FS_Close, 1) WARN_UNUSED_RESULT;
+byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
+MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
+byte *FS_LoadDirectFile (const char *path, fs_offset_t *filesizeptr)
+MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 
 // ESHQ: поддержка скриптов достижений
 #define ACHI_SCRIPT_С		"achi0.sc"
@@ -382,19 +430,25 @@ void *FS_GetNativeObject (const char *obj);	// [FWGS, 01.11.23]
 void FS_WriteAchievementsScript (byte Mode, int NewLevel);
 
 //
-// cmd.c [FWGS, 01.02.24]
+// cmd.c [FWGS, 01.12.24]
 //
 void Cbuf_Clear (void);
 void Cbuf_AddText (const char *text);
-void Cbuf_AddTextf (const char *text, ...) _format (1);
+/*void Cbuf_AddTextf (const char *text, ...) _format (1);*/
+void Cbuf_AddTextf (const char *text, ...) FORMAT_CHECK (1);
+
 void Cbuf_AddFilteredText (const char *text);
 void Cbuf_InsertText (const char *text);
 void Cbuf_ExecStuffCmds (void);
 void Cbuf_Execute (void);
 qboolean Cmd_CurrentCommandIsPrivileged (void);
 int Cmd_Argc (void);
-const char *Cmd_Args (void);
-const char *Cmd_Argv (int arg);
+
+/*const char *Cmd_Args (void);
+const char *Cmd_Argv (int arg);*/
+const char *Cmd_Args (void) RETURNS_NONNULL;
+const char *Cmd_Argv (int arg) RETURNS_NONNULL;
+
 void Cmd_Init (void);
 void Cmd_Unlink (int group);
 void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc);
@@ -412,7 +466,7 @@ void Cmd_ExecuteString (const char *text);
 void Cmd_ForwardToServer (void);
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len);
 
-//
+/*//
 // zone.c [FWGS, 01.01.24]
 //
 void Memory_Init (void);
@@ -436,10 +490,10 @@ void Mem_PrintStats (void);
 #define Mem_FreePool( pool ) _Mem_FreePool( pool, __FILE__, __LINE__ )
 #define Mem_EmptyPool( pool ) _Mem_EmptyPool( pool, __FILE__, __LINE__ )
 #define Mem_IsAllocated( mem ) Mem_IsAllocatedExt( NULL, mem )
-#define Mem_Check() _Mem_Check( __FILE__, __LINE__ )
+#define Mem_Check() _Mem_Check( __FILE__, __LINE__ )*/
 
 //
-// imagelib [FWGS, 01.02.24]
+// imagelib [FWGS, 01.12.24]
 //
 #include "com_image.h"
 
@@ -447,10 +501,16 @@ void Image_Setup (void);
 void Image_Init (void);
 void Image_Shutdown (void);
 void Image_AddCmdFlags (uint flags);
-rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size);
+
+/*rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size);
 qboolean FS_SaveImage (const char *filename, rgbdata_t *pix);
-rgbdata_t *FS_CopyImage (rgbdata_t *in);
+rgbdata_t *FS_CopyImage (rgbdata_t *in);*/
+
 void FS_FreeImage (rgbdata_t *pack);
+rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
+qboolean FS_SaveImage (const char *filename, rgbdata_t *pix);
+rgbdata_t *FS_CopyImage (rgbdata_t *in) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
+
 extern const bpc_desc_t PFDesc[];	// image get pixelformat
 qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, float reserved);
 void Image_PaletteHueReplace (byte *palSrc, int newHue, int start, int end, int pal_size);
@@ -501,40 +561,52 @@ typedef struct
 	} wavdata_t;
 
 //
-// soundlib [FWGS, 01.08.24]
+// soundlib [FWGS, 01.12.24]
 //
 void Sound_Init (void);
 void Sound_Shutdown (void);
-wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size);
+/*wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size);*/
 void FS_FreeSound (wavdata_t *pack);
-stream_t *FS_OpenStream (const char *filename);
+/*stream_t *FS_OpenStream (const char *filename);*/
+void FS_FreeStream (stream_t *stream);
+wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size) MALLOC_LIKE (FS_FreeSound, 1) WARN_UNUSED_RESULT;
+stream_t *FS_OpenStream (const char *filename) MALLOC_LIKE (FS_FreeStream, 1) WARN_UNUSED_RESULT;
+
 wavdata_t *FS_StreamInfo (stream_t *stream);
 int FS_ReadStream (stream_t *stream, int bytes, void *buffer);
 int FS_SetStreamPos (stream_t *stream, int newpos);
 int FS_GetStreamPos (stream_t *stream);
-void FS_FreeStream (stream_t *stream);
+/*void FS_FreeStream (stream_t *stream);*/
+
 qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint flags);
 uint Sound_GetApproxWavePlayLen (const char *filepath);
 qboolean Sound_SupportedFileFormat (const char *fileext);
 
 //
-// host.c [FWGS, 01.07.24]
+// host.c [FWGS, 01.12.24]
 //
 typedef void(*pfnChangeGame)(const char *progname);
 
 qboolean Host_IsQuakeCompatible (void);
 void HLEXPORT Host_Shutdown (void);
 int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func);
-int Host_CompareFileTime (int ft1, int ft2);
-void Host_EndGame (qboolean abort, const char *message, ...) _format (2);
+
+/*int Host_CompareFileTime (int ft1, int ft2);
+void Host_EndGame (qboolean abort, const char *message, ...) _format (2);*/
+void Host_EndGame (qboolean abort, const char *message, ...) FORMAT_CHECK (2);
+
 void Host_AbortCurrentFrame (void) NORETURN;
 void Host_WriteServerConfig (const char *name);
 void Host_WriteOpenGLConfig (void);
 void Host_WriteVideoConfig (void);
 void Host_WriteConfig (void);
 void Host_ShutdownServer (void);
-void Host_Error (const char *error, ...) _format (1);
-void Host_ValidateEngineFeatures (uint32_t features);
+
+/*void Host_Error (const char *error, ...) _format (1);
+void Host_ValidateEngineFeatures (uint32_t features);*/
+void Host_Error (const char *error, ...) FORMAT_CHECK (1);
+void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features);
+
 void Host_Frame (double time);
 void Host_Credits (void);
 
@@ -567,13 +639,16 @@ qboolean SV_Active (void);
 
 /***
 ==============================================================
-SHARED ENGFUNCS [FWGS, 01.02.24]
+SHARED ENGFUNCS [FWGS, 01.12.24]
 ==============================================================
 ***/
 char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize);
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput);
 int COM_SaveFile (const char *filename, const void *data, int len);
-byte *COM_LoadFileForMe (const char *filename, int *pLength);
+
+/*byte *COM_LoadFileForMe (const char *filename, int *pLength);*/
+byte *COM_LoadFileForMe (const char *filename, int *pLength) MALLOC_LIKE (free, 1);
+
 qboolean COM_IsSafeFileToDownload (const char *filename);
 cvar_t *pfnCVarGetPointer (const char *szVarName);
 int pfnDrawConsoleString (int x, int y, char *string);
@@ -586,9 +661,14 @@ int COM_CheckParm (char *parm, char **ppnext);
 void pfnGetGameDir (char *szGetGameDir);
 int pfnGetModelType (model_t *mod);
 int pfnIsMapValid (char *filename);
-void Con_Reportf (const char *szFmt, ...) _format (1);
+
+/*void Con_Reportf (const char *szFmt, ...) _format (1);
 void Con_DPrintf (const char *fmt, ...) _format (1);
-void Con_Printf (const char *szFmt, ...) _format (1);
+void Con_Printf (const char *szFmt, ...) _format (1);*/
+void Con_Reportf (const char *szFmt, ...) FORMAT_CHECK (1);
+void Con_DPrintf (const char *fmt, ...) FORMAT_CHECK (1);
+void Con_Printf (const char *szFmt, ...) FORMAT_CHECK (1);
+
 int pfnNumberOfEntities (void);
 int pfnIsInGame (void);
 float pfnTime (void);
@@ -655,37 +735,53 @@ void HPAK_FlushHostQueue (void);
 //
 // input.c
 //
-#define INPUT_DEVICE_MOUSE (1<<0)
-#define INPUT_DEVICE_TOUCH (1<<1)
-#define INPUT_DEVICE_JOYSTICK (1<<2)
-#define INPUT_DEVICE_VR (1<<3)
+#define INPUT_DEVICE_MOUSE		(1<<0)
+#define INPUT_DEVICE_TOUCH		(1<<1)
+#define INPUT_DEVICE_JOYSTICK	(1<<2)
+#define INPUT_DEVICE_VR			(1<<3)
 
-// shared calls [FWGS, 01.08.24]
+// [FWGS, 01.12.24]
+typedef enum connprotocol_e
+	{
+	PROTO_CURRENT = 0,	// Xash3D 49
+	PROTO_LEGACY,		// Xash3D 48
+	PROTO_QUAKE,		// Quake 15
+	PROTO_GOLDSRC,		// GoldSrc 48
+	} connprotocol_t;
+
+// shared calls [FWGS, 01.12.24]
 struct physent_s;
 struct sv_client_s;
 typedef struct sizebuf_s sizebuf_t;
 qboolean CL_IsInGame (void);
 qboolean CL_IsInConsole (void);
-qboolean CL_IsThirdPerson (void);
+/*qboolean CL_IsThirdPerson (void);*/
 qboolean CL_IsIntermission (void);
 qboolean CL_Initialized (void);
 char *CL_Userinfo (void);
-void CL_LegacyUpdateInfo (void);
+/*void CL_LegacyUpdateInfo (void);*/
 void CL_CharEvent (int key);
 qboolean CL_DisableVisibility (void);
-byte *COM_LoadFile (const char *filename, int usehunk, int *pLength);
+/*byte *COM_LoadFile (const char *filename, int usehunk, int *pLength);*/
+byte *COM_LoadFile (const char *filename, int usehunk, int *pLength) MALLOC_LIKE (free, 1);
+
 struct cmd_s *Cmd_GetFirstFunctionHandle (void);
 struct cmd_s *Cmd_GetNextFunctionHandle (struct cmd_s *cmd);
 struct cmdalias_s *Cmd_AliasGetList (void);
 const char *Cmd_GetName (struct cmd_s *cmd);
-void Log_Printf (const char *fmt, ...) _format (1);
+/*void Log_Printf (const char *fmt, ...) _format (1);
 void SV_BroadcastCommand (const char *fmt, ...) _format (1);
-void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) _format (2);
+void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) _format (2);*/
+void Log_Printf (const char *fmt, ...) FORMAT_CHECK (1);
+void SV_BroadcastCommand (const char *fmt, ...) FORMAT_CHECK (1);
+void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) FORMAT_CHECK (2);
+
 void CL_ClearStaticEntities (void);
 qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack, size_t loopTrackSize, int *position);
-void CL_ServerCommand (qboolean reliable, const char *fmt, ...) _format (2);
-void CL_UpdateInfo (const char *key, const char *value);
+/*void CL_ServerCommand (qboolean reliable, const char *fmt, ...) _format (2);*/
+void CL_ServerCommand (qboolean reliable, const char *fmt, ...) FORMAT_CHECK (2);
 
+void CL_UpdateInfo (const char *key, const char *value);
 void CL_HudMessage (const char *pMessage);
 const char *CL_MsgInfo (int cmd);
 void SV_DrawDebugTriangles (void);
@@ -725,15 +821,25 @@ int SCR_GetAudioChunk (char *rawdata, int length);
 wavdata_t *SCR_GetMovieInfo (void);
 void SCR_Shutdown (void);
 void Con_Print (const char *txt);
-void Con_NPrintf (int idx, const char *fmt, ...) _format (2);
+
+// [FWGS, 01.12.24]
+/*void Con_NPrintf (int idx, const char *fmt, ...) _format (2);
 void Con_NXPrintf (con_nprint_t *info, const char *fmt, ...) _format (2);
 void UI_NPrintf (int idx, const char *fmt, ...) _format (2);
-void UI_NXPrintf (con_nprint_t *info, const char *fmt, ...) _format (2);
+void UI_NXPrintf (con_nprint_t *info, const char *fmt, ...) _format (2);*/
+void Con_NPrintf (int idx, const char *fmt, ...) FORMAT_CHECK (2);
+void Con_NXPrintf (con_nprint_t *info, const char *fmt, ...) FORMAT_CHECK (2);
+void UI_NPrintf (int idx, const char *fmt, ...) FORMAT_CHECK (2);
+void UI_NXPrintf (con_nprint_t *info, const char *fmt, ...) FORMAT_CHECK (2);
+
 const char *Info_ValueForKey (const char *s, const char *key);
 void Info_RemovePrefixedKeys (char *start, char prefix);
 qboolean Info_RemoveKey (char *s, const char *key);
 qboolean Info_SetValueForKey (char *s, const char *key, const char *value, int maxsize);
-qboolean Info_SetValueForKeyf (char *s, const char *key, int maxsize, const char *format, ...) _format (4);
+
+/*qboolean Info_SetValueForKeyf (char *s, const char *key, int maxsize, const char *format, ...) _format (4);*/
+qboolean Info_SetValueForKeyf (char *s, const char *key, int maxsize, const char *format, ...) FORMAT_CHECK (4);
+
 qboolean Info_SetValueForStarKey (char *s, const char *key, const char *value, int maxsize);
 qboolean Info_IsValid (const char *s);
 void Info_WriteVars (file_t *f);
@@ -742,10 +848,17 @@ int Cmd_CheckMapsList (int fRefresh);
 void COM_SetRandomSeed (int lSeed);
 int COM_RandomLong (int lMin, int lMax);
 float COM_RandomFloat (float fMin, float fMax);
-qboolean LZSS_IsCompressed (const byte *source);
-uint LZSS_GetActualSize (const byte *source);
+
+/*qboolean LZSS_IsCompressed (const byte *source);
+uint LZSS_GetActualSize (const byte *source);*/
+qboolean LZSS_IsCompressed (const byte *source, size_t input_len);
+uint LZSS_GetActualSize (const byte *source, size_t input_len);
+
 byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize);
-uint LZSS_Decompress (const byte *pInput, byte *pOutput);
+/*uint LZSS_Decompress (const byte *pInput, byte *pOutput);*/
+uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_t output_len);
+
+// [FWGS, 01.12.24]
 void GL_FreeImage (const char *name);
 void VID_InitDefaultResolution (void);
 void VID_Init (void);
@@ -754,12 +867,40 @@ void UI_ShowConnectionWarning (void);
 void Cmd_Null_f (void);
 void Rcon_Print (host_redirect_t *rd, const char *pMsg);
 qboolean COM_ParseVector (char **pfile, float *v, size_t size);
-void COM_NormalizeAngles (vec3_t angles);
+/*void COM_NormalizeAngles (vec3_t angles);*/
+
 int COM_FileSize (const char *filename);
 void COM_FreeFile (void *buffer);
-int COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare);
-char *va (const char *format, ...) _format (1);
+/*int COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare);
+char *va (const char *format, ...) _format (1);*/
+int pfnCompareFileTime (const char *path1, const char *path2, int *retval);
+char *va (const char *format, ...) FORMAT_CHECK (1) RETURNS_NONNULL;
+
 qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer);
+
+// [FWGS, 01.12.24]
+static inline void COM_NormalizeAngles (vec3_t angles)
+	{
+	int i;
+
+	for (i = 0; i < 3; i++)
+		{
+		if (angles[i] > 180.0f)
+			angles[i] -= 360.0f;
+		else if (angles[i] < -180.0f)
+			angles[i] += 360.0f;
+		}
+	}
+
+// [FWGS, 01.12.24]
+#if !XASH_DEDICATED
+connprotocol_t CL_Protocol (void);
+#else
+static inline connprotocol_t CL_Protocol (void)
+	{
+	return PROTO_CURRENT;
+	}
+#endif
 
 // [FWGS, 01.07.24]
 static inline qboolean Host_IsLocalGame (void)
@@ -784,15 +925,16 @@ int S_GetCurrentStaticSounds (soundlist_t *pout, int size);
 void S_StopBackgroundTrack (void);
 void S_StopAllSounds (qboolean ambient);
 
-// [FWGS, 01.03.24] gamma routines
+// [FWGS, 01.12.24] gamma routines
 byte LightToTexGamma (byte b);
 byte TextureToGamma (byte);
-uint LightToTexGammaEx (uint);
+/*uint LightToTexGammaEx (uint);*/
 uint ScreenGammaTable (uint);
 uint LinearGammaTable (uint);
 void V_Init (void);
 void V_CheckGamma (void);
 void V_CheckGammaEnd (void);
+intptr_t V_GetGammaPtr (int parm);
 
 //
 // identification.c
@@ -808,12 +950,20 @@ void NET_InitMasters (void);
 void NET_SaveMasters (void);
 qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data);
 qboolean NET_IsMasterAdr (netadr_t adr);
-
-// [FWGS, 01.05.23]
 void NET_MasterHeartbeat (void);
 void NET_MasterClear (void);
 void NET_MasterShutdown (void);
 qboolean NET_GetMaster (netadr_t from, uint * challenge, double *last_heartbeat);
+
+//
+// munge.c [FWGS, 01.12.24]
+//
+void COM_Munge (byte *data, size_t len, int seq);
+void COM_UnMunge (byte *data, size_t len, int seq);
+void COM_Munge2 (byte *data, size_t len, int seq);
+void COM_UnMunge2 (byte *data, size_t len, int seq);
+void COM_Munge3 (byte *data, size_t len, int seq);
+void COM_UnMunge3 (byte *data, size_t len, int seq);
 
 //
 // sounds.c [FWGS, 01.03.24]

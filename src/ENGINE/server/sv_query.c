@@ -9,26 +9,26 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
 #include "common.h"
 #include "server.h"
 
-// [FWGS, 01.07.24]
-#define SOURCE_QUERY_DETAILS 'T'
+// [FWGS, 01.12.24]
+/*#define SOURCE_QUERY_DETAILS 'T'
 #define SOURCE_QUERY_DETAILS_RESPONSE 'I'
 
 #define SOURCE_QUERY_RULES 'V'
 #define SOURCE_QUERY_RULES_RESPONSE 'E'
 
 #define SOURCE_QUERY_PLAYERS 'U'
-#define SOURCE_QUERY_PLAYERS_RESPONSE 'D'
+#define SOURCE_QUERY_PLAYERS_RESPONSE 'D'*/
 
 /***
 ==================
-SV_SourceQuery_Details [FWGS, 01.07.24]
+SV_SourceQuery_Details [FWGS, 01.12.24]
 ==================
 ***/
 static void SV_SourceQuery_Details (netadr_t from)
@@ -42,7 +42,9 @@ static void SV_SourceQuery_Details (netadr_t from)
 
 	MSG_Init (&buf, "TSourceEngineQuery", answer, sizeof (answer));
 
-	MSG_WriteByte (&buf, SOURCE_QUERY_DETAILS_RESPONSE);
+	/*MSG_WriteByte (&buf, SOURCE_QUERY_DETAILS_RESPONSE);*/
+	MSG_WriteDword (&buf, 0xFFFFFFFFU);
+	MSG_WriteByte (&buf, S2A_GOLDSRC_INFO);
 	MSG_WriteByte (&buf, PROTOCOL_VERSION);
 
 	MSG_WriteString (&buf, hostname.string);
@@ -72,12 +74,13 @@ static void SV_SourceQuery_Details (netadr_t from)
 	MSG_WriteByte (&buf, GI->secure);
 	MSG_WriteString (&buf, XASH_VERSION);
 
-	Netchan_OutOfBand (NS_SERVER, from, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf));
+	/*Netchan_OutOfBand (NS_SERVER, from, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf));*/
+	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);
 	}
 
 /***
 ==================
-SV_SourceQuery_Rules [FWGS, 01.07.24]
+SV_SourceQuery_Rules [FWGS, 01.12.24]
 ==================
 ***/
 static void SV_SourceQuery_Rules (netadr_t from)
@@ -90,7 +93,9 @@ static void SV_SourceQuery_Rules (netadr_t from)
 
 	MSG_Init (&buf, "TSourceEngineQueryRules", answer, sizeof (answer));
 
-	MSG_WriteByte (&buf, SOURCE_QUERY_RULES_RESPONSE);
+	/*MSG_WriteByte (&buf, SOURCE_QUERY_RULES_RESPONSE);*/
+	MSG_WriteDword (&buf, 0xFFFFFFFFU);
+	MSG_WriteByte (&buf, S2A_GOLDSRC_RULES);
 	pos = MSG_GetNumBitsWritten (&buf);
 	MSG_WriteShort (&buf, 0);
 
@@ -123,13 +128,14 @@ static void SV_SourceQuery_Rules (netadr_t from)
 		MSG_SeekToBit (&buf, pos, SEEK_SET);
 		MSG_WriteShort (&buf, cvar_count);
 
-		Netchan_OutOfBand (NS_SERVER, from, total, MSG_GetData (&buf));
+		/*Netchan_OutOfBand (NS_SERVER, from, total, MSG_GetData (&buf));*/
+		NET_SendPacket (NS_SERVER, total, MSG_GetData (&buf), from);
 		}
 	}
 
 /***
 ==================
-SV_SourceQuery_Players [FWGS, 01.07.24]
+SV_SourceQuery_Players [FWGS, 01.12.24]
 ==================
 ***/
 static void SV_SourceQuery_Players (netadr_t from)
@@ -145,7 +151,9 @@ static void SV_SourceQuery_Players (netadr_t from)
 
 	MSG_Init (&buf, "TSourceEngineQueryPlayers", answer, sizeof (answer));
 
-	MSG_WriteByte (&buf, SOURCE_QUERY_PLAYERS_RESPONSE);
+	/*MSG_WriteByte (&buf, SOURCE_QUERY_PLAYERS_RESPONSE);*/
+	MSG_WriteDword (&buf, 0xFFFFFFFFU);
+	MSG_WriteByte (&buf, S2A_GOLDSRC_PLAYERS);
 	pos = MSG_GetNumBitsWritten (&buf);
 	MSG_WriteByte (&buf, 0);
 
@@ -173,33 +181,44 @@ static void SV_SourceQuery_Players (netadr_t from)
 		MSG_SeekToBit (&buf, pos, SEEK_SET);
 		MSG_WriteByte (&buf, count);
 
-		Netchan_OutOfBand (NS_SERVER, from, total, MSG_GetData (&buf));
+		/*Netchan_OutOfBand (NS_SERVER, from, total, MSG_GetData (&buf));*/
+		NET_SendPacket (NS_SERVER, total, MSG_GetData (&buf), from);
 		}
 	}
 
 /***
 ==================
-SV_SourceQuery_HandleConnnectionlessPacket [FWGS, 01.07.24]
+SV_SourceQuery_HandleConnnectionlessPacket [FWGS, 01.12.24]
 ==================
 ***/
-qboolean SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from)
+/*qboolean SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from)*/
+void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from)
 	{
-	switch (c[0])
+	/*switch (c[0])*/
+	if (!Q_strcmp (c, A2S_GOLDSRC_INFO))
 		{
-		case SOURCE_QUERY_DETAILS:
-			SV_SourceQuery_Details (from);
-			return true;
+		/*case SOURCE_QUERY_DETAILS:*/
+		SV_SourceQuery_Details (from);
+		/*return true;
 
-		case SOURCE_QUERY_RULES:
-			SV_SourceQuery_Rules (from);
-			return true;
-
-		case SOURCE_QUERY_PLAYERS:
-			SV_SourceQuery_Players (from);
-			return true;
-
-		default:
-			return false;
+		case SOURCE_QUERY_RULES:*/
 		}
-	return false;
+	else switch (c[0])
+		{
+		case A2S_GOLDSRC_RULES:
+			SV_SourceQuery_Rules (from);
+			/*return true;
+
+			case SOURCE_QUERY_PLAYERS:*/
+			break;
+
+		case A2S_GOLDSRC_PLAYERS:
+			SV_SourceQuery_Players (from);
+			/*return true;
+
+			default:
+			return false;*/
+			break;
+		}
+	/*return false;*/
 	}

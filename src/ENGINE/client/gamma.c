@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -200,7 +200,8 @@ byte LightToTexGamma (byte b)
 	return lightgammatable[b << 2] >> 2;
 	}
 
-uint LightToTexGammaEx (uint b)
+// [FWGS, 01.12.24] removed LightToTexGammaEx
+/*uint LightToTexGammaEx (uint b)
 	{
 	if (FBitSet (host.features, ENGINE_LINEAR_GAMMA_SPACE))
 		return b;
@@ -209,14 +210,16 @@ uint LightToTexGammaEx (uint b)
 		return 0;
 
 	return lightgammatable[b];
-	}
+	}*/
 
 uint ScreenGammaTable (uint b)
 	{
 	if (FBitSet (host.features, ENGINE_LINEAR_GAMMA_SPACE))
 		return b;
 
-	if (unlikely (b > ARRAYSIZE (screengammatable)))
+	// [FWGS, 01.12.24]
+	/*if (unlikely (b > ARRAYSIZE (screengammatable)))*/
+	if (unlikely (b >= ARRAYSIZE (screengammatable)))
 		return 0;
 
 	return screengammatable[b];
@@ -227,9 +230,29 @@ uint LinearGammaTable (uint b)
 	if (FBitSet (host.features, ENGINE_LINEAR_GAMMA_SPACE))
 		return b;
 
-	if (unlikely (b > ARRAYSIZE (lineargammatable)))
+	// [FWGS, 01.12.24]
+	/*if (unlikely (b > ARRAYSIZE (lineargammatable)))*/
+	if (unlikely (b >= ARRAYSIZE (lineargammatable)))
 		return 0;
 	return lineargammatable[b];
+	}
+
+// [FWGS, 01.12.24]
+intptr_t V_GetGammaPtr (int parm)
+	{
+	switch (parm)
+		{
+		case PARM_GET_TEXGAMMATABLE_PTR:
+			return (intptr_t)texgammatable;
+		case PARM_GET_LIGHTGAMMATABLE_PTR:
+			return (intptr_t)lightgammatable;
+		case PARM_GET_SCREENGAMMATABLE_PTR:
+			return (intptr_t)screengammatable;
+		case PARM_GET_LINEARGAMMATABLE_PTR:
+			return (intptr_t)lineargammatable;
+		}
+
+	return 0;
 	}
 
 #if XASH_ENGINE_TESTS

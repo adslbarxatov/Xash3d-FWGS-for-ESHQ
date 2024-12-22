@@ -12,7 +12,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -450,37 +450,37 @@ static void FS_PrintInfo_WAD (searchpath_t *search, char *dst, size_t size)
 
 /***
 ===========
-FS_FindFile_WAD
+FS_FindFile_WAD [FWGS, 01.12.24]
 ===========
 ***/
 static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedname, size_t len)
 	{
-	dlumpinfo_t		*lump;
-	signed char		type = W_TypeFromExt (path);
-	qboolean		anywadname = true;
-	string			wadname, wadfolder;
-	string			shortname;
+	dlumpinfo_t	*lump;
+	signed char	type = W_TypeFromExt (path);
+	qboolean	anywadname = true;
+	/*string			wadname, wadfolder;*/
+	string		wadname;
+	string		shortname;
 
 	// quick reject by filetype
 	if (type == TYP_NONE)
 		return -1;
 
 	COM_ExtractFilePath (path, wadname);
-	wadfolder[0] = '\0';
+	/*wadfolder[0] = '\0';*/
 
-	// [FWGS, 01.05.23]
 	if (COM_CheckStringEmpty (wadname))
 		{
 		string wadbasename;
 		COM_FileBase (wadname, wadbasename, sizeof (wadbasename));
 
-		Q_strncpy (wadfolder, wadbasename, sizeof (wadfolder));
+		/*Q_strncpy (wadfolder, wadbasename, sizeof (wadfolder));*/
 		Q_snprintf (wadname, sizeof (wadname), "%s.wad", wadbasename);
 
 		anywadname = false;
 		}
 
-	// [FWGS, 01.05.23] make wadname from wad fullpath
+	// make wadname from wad fullpath
 	COM_FileBase (search->filename, shortname, sizeof (shortname));
 	COM_DefaultExtension (shortname, ".wad", sizeof (shortname));
 
@@ -490,7 +490,7 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 
 	// NOTE: we can't using long names for wad,
 	// because we using original wad names[16];
-	COM_FileBase (path, shortname, sizeof (shortname));	// [FWGS, 01.05.23]
+	COM_FileBase (path, shortname, sizeof (shortname));
 
 	lump = W_FindLump (search->wad, shortname, type);
 	if (lump)

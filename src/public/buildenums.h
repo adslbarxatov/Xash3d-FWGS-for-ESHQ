@@ -1,4 +1,4 @@
-/*
+/***
 build.h - compile-time build information
 Copyright (C) 2023 Alibek Omarov
 
@@ -9,9 +9,10 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
+***/
+
 #pragma once
 #ifndef BUILDENUMS_H
 #define BUILDENUMS_H
@@ -39,15 +40,13 @@ GNU General Public License for more details.
 #define PLATFORM_IRIX			12
 #define PLATFORM_NSWITCH		13
 #define PLATFORM_PSVITA			14
-/*#define PLATFORM_LINUX_UNKNOWN	15*/	// [FWGS, 01.02.24]
+#define PLATFORM_WASI			15	// [FWGS, 01.12.24]
+#define PLATFORM_SUNOS			16	// [FWGS, 01.12.24]
 
 #if XASH_WIN32
 	#define XASH_PLATFORM PLATFORM_WIN32
 #elif XASH_ANDROID
 	#define XASH_PLATFORM PLATFORM_ANDROID
-// [FWGS, 01.02.24]
-/*#elif XASH_LINUX_UNKNOWN
-	#define XASH_PLATFORM PLATFORM_LINUX_UNKNOWN*/
 #elif XASH_LINUX
 	#define XASH_PLATFORM PLATFORM_LINUX
 #elif XASH_APPLE
@@ -72,6 +71,10 @@ GNU General Public License for more details.
 	#define XASH_PLATFORM PLATFORM_NSWITCH
 #elif XASH_PSVITA
 	#define XASH_PLATFORM PLATFORM_PSVITA
+#elif XASH_WASI
+	#define XASH_PLATFORM PLATFORM_WASI
+#elif XASH_SUNOS
+	#define XASH_PLATFORM PLATFORM_SUNOS
 #else
 	#error
 #endif
@@ -88,6 +91,7 @@ GNU General Public License for more details.
 #define ARCHITECTURE_E2K	7
 #define ARCHITECTURE_RISCV	8
 #define ARCHITECTURE_PPC	9	// [FWGS, 01.07.23]
+#define ARCHITECTURE_WASM	10	// [FWGS, 01.12.24]
 
 #if XASH_AMD64
 	#define XASH_ARCHITECTURE ARCHITECTURE_AMD64
@@ -105,6 +109,8 @@ GNU General Public License for more details.
 	#define XASH_ARCHITECTURE ARCHITECTURE_RISCV
 #elif XASH_PPC
 	#define XASH_ARCHITECTURE ARCHITECTURE_PPC
+#elif XASH_WASM
+	#define XASH_ARCHITECTURE ARCHITECTURE_WASM
 #else
 	#error
 #endif

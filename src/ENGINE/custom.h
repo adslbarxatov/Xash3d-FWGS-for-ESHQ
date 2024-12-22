@@ -2,12 +2,12 @@
 Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
 This product contains software technology licensed from Id
-Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+Software, Inc. ("Id Technology"). Id Technology (c) 1996 Id Software, Inc.
 All Rights Reserved.
 
 Use, distribution, and modification of this source code and/or resulting
 object code is restricted to non-commercial enhancements to products from
-Valve LLC.  All other use, distribution, or modification is prohibited
+Valve LLC. All other use, distribution, or modification is prohibited
 without written permission from Valve LLC
 ***/
 
@@ -98,13 +98,15 @@ typedef struct customization_s
 #define FCUST_WIPEDATA		( 1<<1 )
 #define FCUST_IGNOREINIT	( 1<<2 )
 
-// [FWGS, 01.09.24]
-#if !XASH_64BIT
+// [FWGS, 01.12.24]
+/*if !XASH_64BIT
 STATIC_ASSERT (sizeof (customization_t) == 164, "invalid customization_t size, broken API");
 STATIC_ASSERT (sizeof (resource_t) == 136, "invalid resource_t size, broken API");
-#else
+else
 STATIC_ASSERT (sizeof (customization_t) == 192, "invalid customization_t size, broken API");
 STATIC_ASSERT (sizeof (resource_t) == 144, "invalid resource_t size, broken API");
-#endif
+endif*/
+STATIC_CHECK_SIZEOF (customization_t, 164, 192);
+STATIC_CHECK_SIZEOF (resource_t, 136, 144);
 
 #endif

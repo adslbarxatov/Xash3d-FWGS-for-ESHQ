@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -18,9 +18,10 @@ GNU General Public License for more details
 #include <string.h>
 #include <stdlib.h>
 
-#define NUM_BYTES			256
-#define CRC32_INIT_VALUE	0xFFFFFFFFUL
-#define CRC32_XOR_VALUE		0xFFFFFFFFUL
+// [FWGS, 01.12.24]
+#define NUM_BYTES		256
+/*#define CRC32_INIT_VALUE	0xFFFFFFFFUL
+#define CRC32_XOR_VALUE		0xFFFFFFFFUL*/
 
 // [FWGS, 01.07.23]
 static const uint32_t crc32table[NUM_BYTES] =
@@ -91,16 +92,16 @@ static const uint32_t crc32table[NUM_BYTES] =
 	0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 	};
 
-// [FWGS, 01.07.23]
-void GAME_EXPORT CRC32_Init (uint32_t *pulCRC)
+// [FWGS, 01.12.24] removed CRC32_Init, CRC32_Final
+/*void GAME_EXPORT CRC32_Init (uint32_t *pulCRC)
 	{
 	*pulCRC = CRC32_INIT_VALUE;
-	}
+	}*/
 
-dword GAME_EXPORT CRC32_Final (uint32_t pulCRC)
+/*dword GAME_EXPORT CRC32_Final (uint32_t pulCRC)
 	{
 	return pulCRC ^ CRC32_XOR_VALUE;
-	}
+	}*/
 
 // [FWGS, 01.07.23]
 void GAME_EXPORT CRC32_ProcessByte (uint32_t *pulCRC, byte ch)
@@ -191,13 +192,14 @@ byte CRC32_BlockSequence (byte *base, int length, int sequence)
 
 void MD5Transform (uint buf[4], const uint in[16]);
 
-/***
+// [FWGS, 01.12.24] removed MD5Init
+/*
 ==================
 MD5Init
 
 Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious initialization constants
 ==================
-***/
+/
 void MD5Init (MD5Context_t *ctx)
 	{
 	ctx->buf[0] = 0x67452301;
@@ -207,7 +209,7 @@ void MD5Init (MD5Context_t *ctx)
 
 	ctx->bits[0] = 0;
 	ctx->bits[1] = 0;
-	}
+	}*/
 
 /***
 ===================
@@ -271,7 +273,7 @@ Final wrapup - pad to 64-byte boundary with the bit pattern
 void MD5Final (byte digest[16], MD5Context_t *ctx)
 	{
 	uint	count;
-	byte *p;
+	byte	*p;
 
 	// compute number of bytes mod 64
 	count = (ctx->bits[0] >> 3) & 0x3F;
@@ -409,6 +411,33 @@ void MD5Transform (uint buf[4], const uint in[16])
 	buf[1] += b;
 	buf[2] += c;
 	buf[3] += d;
+	}
+
+/*
+============
+COM_Hex2Char [FWGS, 01.12.24]
+============
+*/
+static char COM_Hex2Char (uint8_t hex)
+	{
+	if ((hex >= 0x0) && (hex <= 0x9))
+		hex += '0';
+	else if ((hex >= 0xA) && (hex <= 0xF))
+		hex += '7';
+
+	return (char)hex;
+	}
+
+/*
+============
+COM_Hex2String [FWGS, 01.12.24]
+============
+*/
+static void COM_Hex2String (uint8_t hex, char *str)
+	{
+	*str++ = COM_Hex2Char (hex >> 4);
+	*str++ = COM_Hex2Char (hex & 0x0F);
+	*str = '\0';
 	}
 
 /***

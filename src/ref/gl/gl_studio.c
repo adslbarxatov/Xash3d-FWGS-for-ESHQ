@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -32,10 +32,14 @@ typedef struct
 	model_t *model;
 	} player_model_t;
 
-// never gonna change, just shut up const warning
-cvar_t r_shadows = { (char *)"r_shadows", (char *)"0", 0 };
+// [FWGS, 01.12.24] never gonna change, just shut up const warning
+/*cvar_t r_shadows = { (char *)"r_shadows", (char *)"0", 0 };*/
+CVAR_DEFINE_AUTO (r_shadows, "0", 0,
+	"draw ugly shadows");
 
-static vec3_t hullcolor[8] =
+// [FWGS, 01.12.24]
+/*static vec3_t hullcolor[8] =*/
+static const vec3_t hullcolor[8] =
 	{
 	{ 1.0f, 1.0f, 1.0f },
 	{ 1.0f, 0.5f, 0.5f },
@@ -148,7 +152,6 @@ R_StudioInit
 ***/
 void R_StudioInit (void)
 	{
-// [FWGS, 01.04.23]
 #if XASH_PSVITA
 	// don't do the same array-building work twice since that's what our FFP shim does anyway
 	gEngfuncs.Cvar_FullSet ("r_studio_drawelements", "0", FCVAR_READ_ONLY);
@@ -156,7 +159,7 @@ void R_StudioInit (void)
 
 	Matrix3x4_LoadIdentity (g_studio.rotationmatrix);
 
-	// g-cont. cvar disabled by Valve
+	/*// g-cont. cvar disabled by Valve*/
 	g_studio.interpolate = true;
 	g_studio.framecount = 0;
 	m_fDoRemap = false;
@@ -1330,7 +1333,7 @@ static int R_StudioCheckBBox (void)
 
 /***
 ===============
-R_StudioDynamicLight [FWGS, 01.02.24]
+R_StudioDynamicLight
 ===============
 ***/
 static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
@@ -1464,9 +1467,11 @@ static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 	// scale lightdir by light intentsity
 	VectorScale (lightDir, total, lightDir);
 
+	// [FWGS, 01.12.24]
 	for (lnum = 0; lnum < MAX_DLIGHTS; lnum++)
 		{
-		dl = gEngfuncs.GetDynamicLight (lnum);
+		/*dl = gEngfuncs.GetDynamicLight (lnum);*/
+		dl = &tr.dlights[lnum];
 
 		if ((dl->die < g_studio.time) || !r_dynamic->value)
 			continue;
@@ -1511,7 +1516,10 @@ static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 		plight->color[1] = finalLight[1] * (1.0f / total);
 		plight->color[2] = finalLight[2] * (1.0f / total);
 		}
-	else VectorSet (plight->color, 1.0f, 1.0f, 1.0f);
+	else
+		{
+		VectorSet (plight->color, 1.0f, 1.0f, 1.0f);
+		}
 
 	if (plight->ambientlight > 128)
 		plight->ambientlight = 128;
@@ -1524,7 +1532,7 @@ static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 
 /***
 ===============
-pfnStudioEntityLight [FWGS, 01.02.24]
+pfnStudioEntityLight [FWGS, 01.12.24]
 ===============
 ***/
 static void R_StudioEntityLight (alight_t *lightinfo)
@@ -1534,7 +1542,7 @@ static void R_StudioEntityLight (alight_t *lightinfo)
 	float		lstrength[MAX_LOCALLIGHTS];
 	cl_entity_t	*ent = RI.currententity;
 	vec3_t		mid, origin, pos;
-	dlight_t	*el;
+	/*dlight_t	*el;*/
 
 	g_studio.numlocallights = 0;
 
@@ -1550,7 +1558,8 @@ static void R_StudioEntityLight (alight_t *lightinfo)
 
 	for (lnum = 0; lnum < MAX_ELIGHTS; lnum++)
 		{
-		el = gEngfuncs.GetEntityLight (lnum);
+		/*el = gEngfuncs.GetEntityLight (lnum);*/
+		dlight_t *el = &tr.elights[lnum];
 
 		if ((el->die < g_studio.time) || (el->radius <= 0.0f))
 			continue;
@@ -1596,9 +1605,12 @@ static void R_StudioEntityLight (alight_t *lightinfo)
 
 			if (k != -1)
 				{
-				g_studio.locallightcolor[k][0] = gEngfuncs.LinearGammaTable (el->color.r << 2);
+				/*g_studio.locallightcolor[k][0] = gEngfuncs.LinearGammaTable (el->color.r << 2);
 				g_studio.locallightcolor[k][1] = gEngfuncs.LinearGammaTable (el->color.g << 2);
-				g_studio.locallightcolor[k][2] = gEngfuncs.LinearGammaTable (el->color.b << 2);
+				g_studio.locallightcolor[k][2] = gEngfuncs.LinearGammaTable (el->color.b << 2);*/
+				g_studio.locallightcolor[k][0] = LinearGammaTable (el->color.r << 2);
+				g_studio.locallightcolor[k][1] = LinearGammaTable (el->color.g << 2);
+				g_studio.locallightcolor[k][2] = LinearGammaTable (el->color.b << 2);
 				g_studio.locallightR2[k] = r2;
 				g_studio.locallight[k] = el;
 				lstrength[k] = minstrength;
@@ -1641,7 +1653,7 @@ static void R_StudioSetupLighting (alight_t *plight)
 
 /***
 ===============
-R_StudioLighting [FWGS, 01.02.24]
+R_StudioLighting
 ===============
 ***/
 static void R_StudioLighting (float *lv, int bone, int flags, vec3_t normal)
@@ -1693,13 +1705,15 @@ static void R_StudioLighting (float *lv, int bone, int flags, vec3_t normal)
 		illum = Q_max (illum, 0.0f);
 		}
 
+	// [FWGS, 01.12.24]
 	illum = Q_min (illum, 255.0f);
-	*lv = gEngfuncs.LightToTexGammaEx (illum * 4) / 1023.0f;
+	/**lv = gEngfuncs.LightToTexGammaEx (illum * 4) / 1023.0f;*/
+	*lv = LightToTexGamma (illum * 4) / 1023.0f;
 	}
 
 /***
 ====================
-R_LightLambert [FWGS, 01.01.24]
+R_LightLambert
 ====================
 ***/
 static void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], const vec3_t normal, const vec3_t color, byte *out)
@@ -1745,15 +1759,18 @@ static void R_LightLambert (vec4_t light[MAX_LOCALLIGHTS], const vec3_t normal, 
 			}
 		}
 
+	// [FWGS, 01.12.24]
 	if (!VectorIsNull (finalLight))
 		{
 		for (i = 0; i < 3; i++)
 			{
-			float c = finalLight[i] + gEngfuncs.LinearGammaTable (color[i] * 1023.0f);
+			/*float c = finalLight[i] + gEngfuncs.LinearGammaTable (color[i] * 1023.0f);*/
+			float c = finalLight[i] + LinearGammaTable (color[i] * 1023.0f);
 			if (c > 1023.0f)
 				out[i] = 255;
 			else
-				out[i] = gEngfuncs.ScreenGammaTable (c) >> 2;
+				/*out[i] = gEngfuncs.ScreenGammaTable (c) >> 2;*/
+				out[i] = ScreenGammaTable (c) >> 2;
 			}
 		}
 	else
@@ -2691,13 +2708,18 @@ void R_StudioResetPlayerModels (void)
 
 /***
 ===============
-R_StudioSetupPlayerModel
+R_StudioSetupPlayerModel [FWGS, 01.12.24]
 ===============
 ***/
 static model_t *R_StudioSetupPlayerModel (int index)
 	{
+	/*player_info_t	*info = gEngfuncs.pfnPlayerInfo (index);
+	player_model_t	*state;*/
 	player_info_t	*info = gEngfuncs.pfnPlayerInfo (index);
 	player_model_t	*state;
+
+	if ((index < 0) || (index >= gp_cl->maxclients))
+		return NULL;
 
 	state = &g_studio.player_models[index];
 
@@ -2713,6 +2735,8 @@ static model_t *R_StudioSetupPlayerModel (int index)
 
 			if (gEngfuncs.fsapi->FileExists (state->modelname, false))
 				state->model = gEngfuncs.Mod_ForName (state->modelname, false, true);
+			/*else
+				state->model = NULL;*/
 			else
 				state->model = NULL;
 
@@ -2732,25 +2756,33 @@ static model_t *R_StudioSetupPlayerModel (int index)
 
 /***
 ================
-R_GetEntityRenderMode
+R_GetEntityRenderMode [FWGS, 01.12.24]
 
 check for texture flags
 ================
 ***/
 int R_GetEntityRenderMode (cl_entity_t *ent)
 	{
-	int			i, opaque, trans;
+	/*int			i, opaque, trans;
 	mstudiotexture_t	*ptexture;
 	cl_entity_t	*oldent;
 	model_t		*model;
-	studiohdr_t	*phdr;
+	studiohdr_t	*phdr;*/
+	int					i, opaque, trans;
+	mstudiotexture_t	*ptexture;
+	cl_entity_t			*oldent;
+	model_t				*model = NULL;
+	studiohdr_t			*phdr;
 
 	oldent = RI.currententity;
 	RI.currententity = ent;
 
 	if (ent->player) // check it for real playermodel
 		model = R_StudioSetupPlayerModel (ent->curstate.number - 1);
-	else
+	
+	/*else
+		model = ent->model;*/
+	if (!model)
 		model = ent->model;
 
 	RI.currententity = oldent;
@@ -2763,6 +2795,7 @@ int R_GetEntityRenderMode (cl_entity_t *ent)
 			if ((model && model->type == mod_brush) && FBitSet (model->flags, MODEL_TRANSPARENT))
 				return kRenderTransAlpha;
 			}
+
 		return ent->curstate.rendermode;
 		}
 	ptexture = (mstudiotexture_t *)((byte *)phdr + phdr->textureindex);
@@ -2772,12 +2805,14 @@ int R_GetEntityRenderMode (cl_entity_t *ent)
 		// ignore chrome & additive it's just a specular-like effect
 		if (FBitSet (ptexture->flags, STUDIO_NF_ADDITIVE) && !FBitSet (ptexture->flags, STUDIO_NF_CHROME))
 			trans++;
-		else opaque++;
+		else
+			opaque++;
 		}
 
 	// if model is more additive than opaque
 	if (trans > opaque)
 		return kRenderTransAdd;
+
 	return ent->curstate.rendermode;
 	}
 

@@ -120,7 +120,7 @@
 /* Defines to completely disable specific portions of miniz.c:
    If all macros here are defined the only functionality remaining will be CRC-32 and adler-32. */
 
-   /* Define MINIZ_NO_STDIO to disable all usage and any functions which rely on stdio for file I/O. */
+/* Define MINIZ_NO_STDIO to disable all usage and any functions which rely on stdio for file I/O. */
 #define MINIZ_NO_STDIO
 
 /* If MINIZ_NO_TIME is specified then the ZIP archive functions will not be able to get the current time, or */

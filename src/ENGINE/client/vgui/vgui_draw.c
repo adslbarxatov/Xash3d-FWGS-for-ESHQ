@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -183,7 +183,7 @@ static void GAME_EXPORT VGUI_SetupDrawingText (int *pColor)
 	Vector4Set (vgui.color, pColor[0], pColor[1], pColor[2], 255 - pColor[3]);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.12.24]
 static void GAME_EXPORT VGUI_DrawQuad (const vpoint_t *ul, const vpoint_t *lr)
 	{
 	float x, y, w, h;
@@ -212,7 +212,9 @@ static void GAME_EXPORT VGUI_DrawQuad (const vpoint_t *ul, const vpoint_t *lr)
 		}
 	else
 		{
-		ref.dllFuncs.FillRGBABlend (x, y, w, h, vgui.color[0], vgui.color[1], vgui.color[2], vgui.color[3]);
+		/*ref.dllFuncs.FillRGBABlend (x, y, w, h, vgui.color[0], vgui.color[1], vgui.color[2], vgui.color[3]);*/
+		ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, w, h, vgui.color[0], vgui.color[1],
+			vgui.color[2], vgui.color[3]);
 		}
 	}
 

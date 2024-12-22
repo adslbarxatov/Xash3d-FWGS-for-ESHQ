@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -39,11 +39,13 @@ static int R_RankForRenderMode (int rendermode)
 	return 0;
 	}
 
+// [FWGS, 01.12.24]
 void R_AllowFog (qboolean allowed)
 	{
 	if (allowed)
 		{
-		if (glState.isFogEnabled)
+		/*if (glState.isFogEnabled)*/
+		if (glState.isFogEnabled && gl_fog.value)
 			pglEnable (GL_FOG);
 		}
 	else
@@ -828,7 +830,9 @@ R_DrawFog
 ***/
 void R_DrawFog (void)
 	{
-	if (!RI.fogEnabled)
+	// [FWGS, 01.12.24]
+	/*if (!RI.fogEnabled)*/
+	if (!RI.fogEnabled || !gl_fog.value)
 		return;
 
 	pglEnable (GL_FOG);
@@ -1049,23 +1053,38 @@ void R_GammaChanged (qboolean do_reset_gamma)
 		}
 	}
 
-// [FWGS, 01.03.24]
-static void R_CheckGamma (void)
+// [FWGS, 01.12.24]
+/*static void R_CheckGamma (void)*/
+static void R_CheckCvars (void)
 	{
 	qboolean rebuild = false;
 
 	if (FBitSet (gl_overbright.flags, FCVAR_CHANGED))
 		{
-		rebuild = true;
+		/*rebuild = true;*/
 		ClearBits (gl_overbright.flags, FCVAR_CHANGED);
+		rebuild = true;
 		}
 
-	if (gl_overbright.value && (FBitSet (r_vbo.flags, FCVAR_CHANGED) ||
-		FBitSet (r_vbo_overbrightmode.flags, FCVAR_CHANGED)))
+	/*if (gl_overbright.value && (FBitSet (r_vbo.flags, FCVAR_CHANGED) ||
+		FBitSet (r_vbo_overbrightmode.flags, FCVAR_CHANGED)))*/
+	if (FBitSet (r_vbo.flags, FCVAR_CHANGED))
 		{
-		rebuild = true;
+		/*rebuild = true;*/
 		ClearBits (r_vbo.flags, FCVAR_CHANGED);
+
+		R_EnableVBO (r_vbo.value ? true : false);
+		if (R_HasEnabledVBO ())
+			R_GenerateVBO ();
+
+		if (gl_overbright.value)
+			rebuild = true;
+		}
+
+	if (FBitSet (r_vbo_overbrightmode.flags, FCVAR_CHANGED) && gl_overbright.value)
+		{
 		ClearBits (r_vbo_overbrightmode.flags, FCVAR_CHANGED);
+		rebuild = true;
 		}
 
 	if (rebuild)
@@ -1087,8 +1106,9 @@ void R_BeginFrame (qboolean clearScene)
 		pglClear (GL_COLOR_BUFFER_BIT);
 		}
 
-	R_CheckGamma ();
-
+	// [FWGS, 01.12.24]
+	/*R_CheckGamma ();*/
+	R_CheckCvars ();
 	R_Set2DMode (true);
 
 	// draw buffer stuff

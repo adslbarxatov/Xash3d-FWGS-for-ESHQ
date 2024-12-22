@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -1115,7 +1115,9 @@ static void HPAK_Extract_f (void)
 		FS_Seek (f, entry->filepos, SEEK_SET);
 		FS_Read (f, pData, nDataSize);
 
-		Q_snprintf (szFileOut, sizeof (szFileOut), "hpklmps\\lmp%04i.bmp", nCurrent);
+		// [FWGS, 01.12.24]
+		/*Q_snprintf (szFileOut, sizeof (szFileOut), "hpklmps\\lmp%04i.bmp", nCurrent);*/
+		Q_snprintf (szFileOut, sizeof (szFileOut), "hpklmps/lmp%04i.bmp", nCurrent);
 		FS_WriteFile (szFileOut, pData, nDataSize);
 		if (pData)
 			Mem_Free (pData);

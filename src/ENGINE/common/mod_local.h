@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -86,6 +86,14 @@ typedef struct
 	uint		num_polys;
 	} hull_model_t;
 
+// [FWGS, 01.12.24]
+typedef struct wadlist_s
+	{
+	char	wadnames[MAX_MAP_WADS][36];	// including .wad extension
+	int		wadusage[MAX_MAP_WADS];
+	int		count;
+	} wadlist_t;
+
 typedef struct world_static_s
 	{
 	qboolean	loading;		// true if worldmodel is loading
@@ -122,6 +130,9 @@ typedef struct world_static_s
 	// [FWGS, 01.07.24] Potentially Hearable Set
 	byte		*compressed_phs;
 	size_t		*phsofs;
+
+	// [FWGS, 01.12.24]
+	wadlist_t	wadlist;
 	} world_static_t;
 
 #ifndef REF_DLL
@@ -177,10 +188,12 @@ void Mod_UnloadBrushModel (model_t *mod);
 void Mod_PrintWorldStats_f (void);
 
 //
-// mod_dbghulls.c [FWGS, 01.11.23]
+// mod_dbghulls.c [FWGS, 01.12.24]
 //
-void Mod_InitDebugHulls (model_t *mod);
-void Mod_CreatePolygonsForHull (int hullnum);
+/*void Mod_InitDebugHulls (model_t *mod);
+void Mod_CreatePolygonsForHull (int hullnum);*/
+void R_DrawWorldHull (void);
+void R_DrawModelHull (model_t *mod);
 void Mod_ReleaseHullPolygons (void);
 
 //

@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -699,14 +699,15 @@ static portable_samplepair_t *S_GetNextpFilter (int i, portable_samplepair_t *pb
 	return (&(pbuffer[(i - 2) * 2 + 1]));
 	}
 
-// pass forward over passed in buffer and cubic interpolate all odd samples
+// [FWGS, 01.12.24] pass forward over passed in buffer and cubic interpolate all odd samples
 // pbuffer: buffer to filter (in place)
 // prevfilter: filter memory. NOTE: this must match the filtertype ie: filtercubic[] for FILTERTYPE_CUBIC
 //   if NULL then perform no filtering.
 // count: how many samples to upsample. will become count*2 samples in buffer, in place
-static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_samplepair_t *pfiltermem, int cfltmem, int count)
+static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_samplepair_t *pfiltermem,
+	int cfltmem, int count)
 	{
-	// implement cubic interpolation on 2x upsampled buffer.   Effectively delays buffer contents by 2 samples.
+	// implement cubic interpolation on 2x upsampled buffer. Effectively delays buffer contents by 2 samples.
 	// pbuffer: contains samples at 0, 2, 4, 6...
 	// temppaintbuffer is temp buffer, same size as paintbuffer, used to store processed values
 	// count: number of samples to process in buffer ie: how many samples at 0, 2, 4, 6...
@@ -714,16 +715,19 @@ static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_sampl
 	// finpos is the fractional, inpos the integer part.
 	// finpos = 0.5 for upsampling by 2x
 	// inpos is the position of the sample
-	int i, upCount = count << 1;
-	int a, b, c;
-	int xm1, x0, x1, x2;
-	portable_samplepair_t *psamp0;
-	portable_samplepair_t *psamp1;
-	portable_samplepair_t *psamp2;
-	portable_samplepair_t *psamp3;
-	int outpos = 0;
 
-	Assert (upCount <= PAINTBUFFER_SIZE);
+	/*int i, upCount = count << 1;*/
+	int			i;
+	const int	upCount = Q_min (count << 1, PAINTBUFFER_SIZE);
+	int			a, b, c;
+	int			xm1, x0, x1, x2;
+	portable_samplepair_t	*psamp0;
+	portable_samplepair_t	*psamp1;
+	portable_samplepair_t	*psamp2;
+	portable_samplepair_t	*psamp3;
+	int			outpos = 0;
+
+	/*Assert (upCount <= PAINTBUFFER_SIZE);*/
 
 	// pfiltermem holds 6 samples from previous buffer pass
 	// process 'count' samples
@@ -766,7 +770,9 @@ static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_sampl
 		// write out interpolated sample, increment output counter
 		temppaintbuffer[outpos++].right = a / 8 + b / 4 + c / 2 + x0;
 
-		Assert (outpos <= (sizeof (temppaintbuffer) / sizeof (temppaintbuffer[0])));
+		/*Assert (outpos <= (sizeof (temppaintbuffer) / sizeof (temppaintbuffer[0])));*/
+		if (outpos > ARRAYSIZE (temppaintbuffer))
+			break;
 		}
 
 	Assert (cfltmem >= 3);
@@ -777,8 +783,9 @@ static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_sampl
 	pfiltermem[2] = pbuffer[upCount - 1];
 
 	// copy temppaintbuffer back into paintbuffer
-	for (i = 0; i < upCount; i++)
-		pbuffer[i] = temppaintbuffer[i];
+	/*for (i = 0; i < upCount; i++)
+		pbuffer[i] = temppaintbuffer[i];*/
+	memcpy (pbuffer, temppaintbuffer, sizeof (*pbuffer) * upCount);
 	}
 
 // pass forward over passed in buffer and linearly interpolate all odd samples

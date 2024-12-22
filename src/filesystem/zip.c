@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -25,8 +25,9 @@ GNU General Public License for more details
 #include <errno.h>
 #include <stddef.h>
 
-#define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
-#include STDINT_H
+/*define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
+include STDINT_H*/
+#include <stdint.h>		// [FWGS, 01.12.24]
 #include "port.h"
 #include "filesystem_internal.h"
 #include "crtlib.h"
@@ -171,7 +172,7 @@ static int FS_SortZip (const void *a, const void *b)
 
 /***
 ============
-FS_LoadZip [FWGS, 01.07.24]
+FS_LoadZip
 ============
 ***/
 static zip_t *FS_LoadZip (const char *zipfile, int *error)
@@ -288,6 +289,7 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 		header_eocd.total_central_directory_record);
 	info = zip->files;
 
+	// [FWGS, 01.12.24]
 	for (i = 0; i < header_eocd.total_central_directory_record; i++)
 		{
 		c = FS_Read (zip->handle, &header_cdf, sizeof (header_cdf));
@@ -297,7 +299,7 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 			if (error)
 				*error = ZIP_LOAD_BAD_HEADER;
 
-			Mem_Free (info);
+			/*Mem_Free (info);*/
 			FS_CloseZIP (zip);
 			return NULL;
 			}
@@ -314,7 +316,7 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 				if (error)
 					*error = ZIP_LOAD_CORRUPTED;
 
-				Mem_Free (info);
+				/*Mem_Free (info);*/
 				FS_CloseZIP (zip);
 				return NULL;
 				}
@@ -349,7 +351,7 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 		return NULL;
 		}
 
-	// recalculate offsets
+	//// [FWGS, 01.12.24] recalculate offsets
 	for (i = 0; i < numpackfiles; i++)
 		{
 		zip_header_t header;
@@ -363,7 +365,7 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 			if (error)
 				*error = ZIP_LOAD_CORRUPTED;
 
-			Mem_Free (info);
+			/*Mem_Free (info);*/
 			FS_CloseZIP (zip);
 			return NULL;
 			}

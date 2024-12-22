@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -23,8 +23,9 @@ GNU General Public License for more details
 #include "client.h"
 #include "library.h"
 
-// [FWGS, 01.07.24]
-static const char *file_exts[] =
+// [FWGS, 01.12.24]
+/*static const char *file_exts[] =*/
+static const char *const file_exts[] =
 	{
 	// ban text files that don't make sense as resource
 	"cfg", "lst", "ini", "log",
@@ -191,10 +192,10 @@ char *va (const char *format, ...)
 LZSS Compression
 ===============================================================================
 ***/
-#define LZSS_ID		(('S'<<24)|('S'<<16)|('Z'<<8)|('L'))
-#define LZSS_LOOKSHIFT	4
+#define LZSS_ID				(('S'<<24)|('S'<<16)|('Z'<<8)|('L'))
+#define LZSS_LOOKSHIFT		4
 #define LZSS_WINDOW_SIZE	4096
-#define LZSS_LOOKAHEAD	BIT( LZSS_LOOKSHIFT )
+#define LZSS_LOOKAHEAD		BIT( LZSS_LOOKSHIFT )
 
 
 typedef struct
@@ -206,47 +207,63 @@ typedef struct
 // expected to be sixteen bytes
 typedef struct lzss_node_s
 	{
-	const byte *data;
-	struct lzss_node_s *prev;
-	struct lzss_node_s *next;
-	char		pad[4];
+	const byte			*data;
+	struct lzss_node_s	*prev;
+	struct lzss_node_s	*next;
+	char				pad[4];
 	} lzss_node_t;
 
 typedef struct
 	{
-	lzss_node_t *start;
-	lzss_node_t *end;
+	lzss_node_t	*start;
+	lzss_node_t	*end;
 	} lzss_list_t;
 
 typedef struct
 	{
-	lzss_list_t *hash_table;
-	lzss_node_t *hash_node;
-	int		window_size;
+	lzss_list_t	*hash_table;
+	lzss_node_t	*hash_node;
+	int			window_size;
 	} lzss_state_t;
 
-qboolean LZSS_IsCompressed (const byte *source)
+// [FWGS, 01.12.24]
+/*qboolean LZSS_IsCompressed (const byte *source)*/
+qboolean LZSS_IsCompressed (const byte *source, size_t input_len)
 	{
-	lzss_header_t *phdr = (lzss_header_t *)source;
+	/*lzss_header_t *phdr = (lzss_header_t *)source;*/
+	const lzss_header_t *phdr;
 
-	if (phdr && phdr->id == LZSS_ID)
+	if (input_len <= sizeof (lzss_header_t))
+		return 0;
+
+	phdr = (const lzss_header_t *)source;
+	if (phdr && (phdr->id == LZSS_ID))
 		return true;
+
 	return false;
 	}
 
-uint LZSS_GetActualSize (const byte *source)
+// [FWGS, 01.12.24]
+/*uint LZSS_GetActualSize (const byte *source)*/
+uint LZSS_GetActualSize (const byte *source, size_t input_len)
 	{
-	lzss_header_t *phdr = (lzss_header_t *)source;
+	/*lzss_header_t *phdr = (lzss_header_t *)source;*/
+	const lzss_header_t *phdr;
 
-	if (phdr && phdr->id == LZSS_ID)
+	if (input_len <= sizeof (lzss_header_t))
+		return 0;
+
+	phdr = (const lzss_header_t *)source;
+	if (phdr && (phdr->id == LZSS_ID))
 		return phdr->size;
+
 	return 0;
 	}
 
 static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 	{
-	lzss_list_t *list;
-	lzss_node_t *node;
+	lzss_list_t		*list;
+	lzss_node_t		*node;
 	unsigned int	targetindex = (uint)source & (state->window_size - 1);
 
 	node = &state->hash_node[targetindex];
@@ -272,11 +289,14 @@ static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 	node->next = list->start;
 	if (list->start)
 		list->start->prev = node;
-	else list->end = node;
+	else
+		list->end = node;
+
 	list->start = node;
 	}
 
-static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_length, byte *pOutputBuf, uint *pOutputSize)
+static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_length, byte *pOutputBuf,
+	uint *pOutputSize)
 	{
 	byte	*pStart = pOutputBuf; // allocate the output buffer, compressed buffer is expected to be less, caller will free
 	byte	*pEnd = pStart + input_length - sizeof (lzss_header_t) - 8; // prevent compression failure
@@ -362,15 +382,19 @@ static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_
 
 		if (pOutput >= pEnd)
 			{
-			// compression is worse, abandon
+			// [FWGS, 01.12.24] compression is worse, abandon
+			state->hash_table = NULL;
+			state->hash_node = NULL;
 			return NULL;
 			}
 		}
 
 	if (input_length != 0)
 		{
-		// unexpected failure
+		// [FWGS, 01.12.24] unexpected failure
 		Assert (0);
+		state->hash_table = NULL;
+		state->hash_node = NULL;
 		return NULL;
 		}
 
@@ -394,18 +418,21 @@ static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_
 	return pStart;
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.12.24]
 byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize)
 	{
+	/*byte	*pStart = (byte *)malloc (inputLength);
+	byte	*pFinal = NULL;
+	lzss_state_t	state;*/
 	byte	*pStart = (byte *)malloc (inputLength);
 	byte	*pFinal = NULL;
-	lzss_state_t	state;
+	lzss_state_t	state = { .window_size = LZSS_WINDOW_SIZE };
 
 	if (!pStart)
 		return NULL;
 
-	memset (&state, 0, sizeof (state));
-	state.window_size = LZSS_WINDOW_SIZE;
+	/*memset (&state, 0, sizeof (state));
+	state.window_size = LZSS_WINDOW_SIZE;*/
 
 	pFinal = LZSS_CompressNoAlloc (&state, pInput, inputLength, pStart, pOutputSize);
 
@@ -418,14 +445,24 @@ byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize)
 	return pStart;
 	}
 
-uint LZSS_Decompress (const byte *pInput, byte *pOutput)
+// [FWGS, 01.12.24]
+/*uint LZSS_Decompress (const byte *pInput, byte *pOutput)*/
+uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_t output_len)
 	{
 	uint	totalBytes = 0;
-	int	getCmdByte = 0;
-	int	cmdByte = 0;
-	uint	actualSize = LZSS_GetActualSize (pInput);
+	int		getCmdByte = 0;
+	int		cmdByte = 0;
+	/*uint	actualSize = LZSS_GetActualSize (pInput);*/
+	uint	actualSize;
+	const byte	*pInputEnd = pInput + input_len - 1; // thanks to nillerusr for the fix!
+	byte	*pOrigOutput = pOutput;
 
-	if (!actualSize)
+	/*if (!actualSize)*/
+	if (input_len <= sizeof (lzss_header_t))
+		return 0;
+
+	actualSize = LZSS_GetActualSize (pInput, input_len);
+	if (!actualSize || (actualSize > output_len))
 		return 0;
 
 	pInput += sizeof (lzss_header_t);
@@ -433,15 +470,26 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput)
 	while (1)
 		{
 		if (!getCmdByte)
+			{
+			if (pInput > pInputEnd)
+				return 0;
+
 			cmdByte = *pInput++;
+			}
+
 		getCmdByte = (getCmdByte + 1) & 0x07;
 
 		if (cmdByte & 0x01)
 			{
-			int	position = *pInput++ << LZSS_LOOKSHIFT;
-			int	i, count;
-			byte *pSource;
+			/*int	position = *pInput++ << LZSS_LOOKSHIFT;*/
+			int		position;
+			int		i, count;
+			byte	*pSource;
 
+			if (pInput > pInputEnd)
+				return 0;
+
+			position = *pInput++ << LZSS_LOOKSHIFT;
 			position |= (*pInput >> LZSS_LOOKSHIFT);
 			count = (*pInput++ & 0x0F) + 1;
 
@@ -449,12 +497,18 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput)
 				break;
 
 			pSource = pOutput - position - 1;
+			if ((totalBytes + count > output_len) || (pSource < pOrigOutput))
+				return 0;
+
 			for (i = 0; i < count; i++)
 				*pOutput++ = *pSource++;
 			totalBytes += count;
 			}
 		else
 			{
+			if ((totalBytes + 1 > output_len) || (pInput > pInputEnd))
+				return 0;
+
 			*pOutput++ = *pInput++;
 			totalBytes++;
 			}
@@ -478,7 +532,7 @@ interpret symbol as whitespace
 ***/
 static int COM_IsWhiteSpace (char space)
 	{
-	if (space == ' ' || space == '\t' || space == '\r' || space == '\n')
+	if ((space == ' ') || (space == '\t') || (space == '\r') || (space == '\n'))
 		return 1;
 	return 0;
 	}
@@ -490,12 +544,12 @@ COM_ParseVector
 ***/
 qboolean COM_ParseVector (char **pfile, float *v, size_t size)
 	{
-	string	token;
+	string		token;
 	qboolean	bracket = false;
-	char *saved;
-	uint	i;
+	char		*saved;
+	uint		i;
 
-	if (v == NULL || size == 0)
+	if ((v == NULL) || (size == 0))
 		return false;
 
 	memset (v, 0, sizeof (*v) * size);
@@ -611,7 +665,6 @@ void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput)
 	const char	*pIn;
 	byte		*p = pOutput;
 	int			i;
-
 
 	for (i = 0; i < nInputLength; i += 2)
 		{
@@ -757,11 +810,12 @@ void GAME_EXPORT COM_FreeFile (void *buffer)
 	free (buffer);
 	}
 
-/***
+// [FWGS, 01.12.24] removed COM_NormalizeAngles
+/*
 =============
 COM_NormalizeAngles
 =============
-***/
+/
 void COM_NormalizeAngles (vec3_t angles)
 	{
 	int i;
@@ -773,7 +827,7 @@ void COM_NormalizeAngles (vec3_t angles)
 		else if (angles[i] < -180.0f)
 			angles[i] += 360.0f;
 		}
-	}
+	}*/
 
 /***
 =============
@@ -829,28 +883,43 @@ cvar_t *GAME_EXPORT pfnCVarGetPointer (const char *szVarName)
 
 /***
 =============
-COM_CompareFileTime
+pfnCompareFileTime [FWGS, 01.12.24]
 =============
 ***/
-int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare)
+/*int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare)*/
+int GAME_EXPORT pfnCompareFileTime (const char *path1, const char *path2, int *retval)
 	{
-	int	bRet = 0;
-	*iCompare = 0;
+	/*int	bRet = 0;
+	*iCompare = 0;*/
+	int	t1, t2;
+	*retval = 0;
 
-	if (filename1 && filename2)
+	if (!path1 || !path2)
+		return 0;
+
+	/*if (filename1 && filename2)
 		{
 		int ft1 = FS_FileTime (filename1, false);
-		int ft2 = FS_FileTime (filename2, false);
+		int ft2 = FS_FileTime (filename2, false);*/
+	if ((t1 = g_fsapi.FileTime (path1, false)) == -1)
+		return 0;
 
-		// one of files is missing
+	/*// one of files is missing
 		if ((ft1 == -1) || (ft2 == -1))
-			return bRet;
+			return bRet;*/
+	if ((t2 = g_fsapi.FileTime (path2, false)) == -1)
+		return 0;
 
-		*iCompare = Host_CompareFileTime (ft1, ft2);
+	/**iCompare = Host_CompareFileTime (ft1, ft2);
 		bRet = 1;
-		}
+		}*/
+	if (t1 < t2)
+		*retval = -1;
+	else if (t1 > t2)
+		*retval = 1;
 
-	return bRet;
+	/*return bRet;*/
+	return 1;
 	}
 
 /***
@@ -896,24 +965,48 @@ void GAME_EXPORT pfnGetGameDir (char *szGetGameDir)
 	Q_strncpy (szGetGameDir, GI->gamefolder, sizeof (GI->gamefolder));
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.12.24]
 qboolean COM_IsSafeFileToDownload (const char *filename)
 	{
 	char		lwrfilename[4096];
 	const char	*first, *last;
 	const char	*ext;
+	size_t		len;
 	int			i;
 
 	if (!COM_CheckString (filename))
 		return false;
 
-	ext = COM_FileExtension (lwrfilename);
+	/*ext = COM_FileExtension (lwrfilename);*/
+	ext = COM_FileExtension (filename);
+	len = Q_strlen (filename);
 
 	// only allow extensionless files that start with !MD5
-	if (!Q_strncmp (filename, "!MD5", 4) && (ext[0] == 0))
+	/*if (!Q_strncmp (filename, "!MD5", 4) && (ext[0] == 0))*/
+	if (!Q_strncmp (filename, "!MD5", 4))
+		{
+		if (COM_CheckStringEmpty (ext))
+			return false;
+
+		len = Q_strlen (filename);
+
+		if (len != 36)
+			return false;
+
+		for (i = 4; i < len; i++)
+			{
+			if (((filename[i] >= '0') && (filename[i] <= '9')) ||
+				((filename[i] >= 'A') && (filename[i] <= 'F')))
+				continue;
+
+			return false;
+			}
+
 		return true;
+		}
 
 	Q_strnlwr (filename, lwrfilename, sizeof (lwrfilename));
+	ext = COM_FileExtension (lwrfilename);
 
 	if (Q_strpbrk (lwrfilename, "\\:~") || Q_strstr (lwrfilename, ".."))
 		return false;
@@ -1045,30 +1138,101 @@ void GAME_EXPORT pfnResetTutorMessageDecayData (void)
 
 #include "tests.h"
 
+/*void Test_RunCommon (void)*/
+
+// [FWGS, 01.12.24]
+#ifdef USE_ASAN
+#include <sanitizer/asan_interface.h>
+#endif
+
+// [FWGS, 01.12.24]
+static void Test_LZSS (void)
+	{
+	/*char *file = (char *)"q asdf \"qwerty\" \"f \\\"f\" meowmeow\n// comment \"stuff ignored\"\nbark";
+	int len;
+	char buf[5];*/
+	char poison1[8192];
+	byte in[256];
+	char poison2[8192];
+	byte out[256];
+	char poison3[8192];
+
+	lzss_header_t *hdr = (lzss_header_t *)in;
+	uint result;
+
+	/*Msg ("Checking COM_ParseFile...\n");*/
+	const byte compressed[] =
+		{
+		0x4c, 0x5a, 0x53, 0x53, 0x1a, 0x00, 0x00, 0x00, 0x00,
+		0x44, 0x6f, 0x20, 0x79, 0x6f, 0x75, 0x20, 0x6c, 0x00,
+		0x69, 0x6b, 0x65, 0x20, 0x77, 0x68, 0x61, 0x74, 0x41,
+		0x00, 0xd4, 0x73, 0x65, 0x65, 0x3f, 0x00, 0x00, 0x00,
+		};
+	const char decompressed[] = "Do you like what you see?";
+
+#ifdef USING_ASAN
+	ASAN_POISON_MEMORY_REGION (poison1, sizeof (poison1));
+	ASAN_POISON_MEMORY_REGION (poison2, sizeof (poison2));
+	ASAN_POISON_MEMORY_REGION (poison3, sizeof (poison3));
+#endif
+
+	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
+	TASSERT (!Q_strcmp (buf, "q") && len == 1);*/
+	hdr->size = sizeof (in) - sizeof (*hdr);
+	hdr->id = LZSS_ID;
+
+	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
+	TASSERT (!Q_strcmp (buf, "asdf") && len == 4);*/
+	memset (in + sizeof (*hdr), 0xff, sizeof (in) - sizeof (*hdr));
+	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
+	TASSERT_EQi (result, 0);
+
+	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
+	TASSERT (!Q_strcmp (buf, "qwer") && len == -1);*/
+	memset (in + sizeof (*hdr), 0x00, sizeof (in) - sizeof (*hdr));
+	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
+	TASSERT_EQi (result, 0);
+
+	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
+	TASSERT (!Q_strcmp (buf, "f \"f") && len == 4);*/
+	hdr->size = 1;
+	hdr->id = LZSS_ID;
+	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
+	TASSERT_EQi (result, 0);
+
+	hdr->size = 999;
+	hdr->id = LZSS_ID;
+	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
+	TASSERT_EQi (result, 0);
+
+	hdr->size = sizeof (in) - sizeof (*hdr);
+	hdr->id = 0xa1ba;
+	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
+	TASSERT_EQi (result, 0);
+
+	result = LZSS_Decompress (compressed, out, sizeof (compressed), sizeof (out));
+	TASSERT_EQi (result, 26);
+	TASSERT_STR (out, decompressed);
+	}
+
+// [FWGS, 01.12.24]
 void Test_RunCommon (void)
 	{
-	char *file = (char *)"q asdf \"qwerty\" \"f \\\"f\" meowmeow\n// comment \"stuff ignored\"\nbark";
-	int len;
-	char buf[5];
+	Msg ("Checking COM_IsSafeFileToDownload...\n");
 
-	Msg ("Checking COM_ParseFile...\n");
+	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
+	TASSERT (!Q_strcmp (buf, "meow") && len == -1);*/
+	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD5AAB5E8B307672DA86FBD10AC302BC732"), true);
+	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD56f1ffd8c96bd64c9c27955309f6ecfe6"), false);
+	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD5AAB5E8B307672DA86FBD10AC302B.exe"), false);
+	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD5/../../valve/resource/GameMenu.res"), false);
+	TASSERT_EQi (COM_IsSafeFileToDownload ("not-a-virus-trust-me.bat"), false);
+	TASSERT_EQi (COM_IsSafeFileToDownload ("a-texture.png"), true);
 
-	file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "q") && len == 1);
-
-	file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "asdf") && len == 4);
-
-	file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "qwer") && len == -1);
-
-	file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "f \"f") && len == 4);
-
-	file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "meow") && len == -1);
-
-	file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "bark") && len == 4);
+	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
+	TASSERT (!Q_strcmp (buf, "bark") && len == 4);*/
+	Msg ("Checking LZSS_Decompress...\n");
+	Test_LZSS ();
 	}
+
 #endif

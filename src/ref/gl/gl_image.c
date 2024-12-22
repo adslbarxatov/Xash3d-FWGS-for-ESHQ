@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -51,10 +51,11 @@ gl_texture_t *R_GetTexture (GLenum texnum)
 
 /***
 =================
-GL_TargetToString
+GL_TargetToString [FWGS, 01.12.24]
 =================
 ***/
-static const char *GL_TargetToString (GLenum target)
+/*static const char *GL_TargetToString (GLenum target)*/
+const char *GL_TargetToString (GLenum target)
 	{
 	switch (target)
 		{
@@ -650,7 +651,7 @@ static void GL_SetTextureDimensions (gl_texture_t *tex, int width, int height, i
 
 /***
 ===============
-GL_SetTextureTarget [FWGS, 01.05.24]
+GL_SetTextureTarget
 ===============
 ***/
 static void GL_SetTextureTarget (gl_texture_t *tex, rgbdata_t *pic)
@@ -665,8 +666,9 @@ static void GL_SetTextureTarget (gl_texture_t *tex, rgbdata_t *pic)
 	// correct mip count
 	pic->numMips = Q_max (1, pic->numMips);
 
-	// trying to determine texture type
-#ifndef XASH_GLES
+	// [FWGS, 01.12.24] trying to determine texture type
+/*ifndef XASH_GLES*/
+#if !XASH_GLES
 	if ((pic->width > 1) && (pic->height <= 1))
 		tex->target = GL_TEXTURE_1D;
 	else
@@ -1155,7 +1157,6 @@ static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLin
 		}
 	}
 
-// [FWGS, 01.11.23]
 static void GL_TextureImageCompressed (gl_texture_t *tex, GLint side, GLint level, GLint width, GLint height,
 	GLint depth, size_t size, const void *data)
 	{
@@ -1164,7 +1165,9 @@ static void GL_TextureImageCompressed (gl_texture_t *tex, GLint side, GLint leve
 
 	Assert (tex != NULL);
 
-#ifndef XASH_GLES
+	// [FWGS, 01.12.24]
+/*ifndef XASH_GLES*/
+#if !XASH_GLES
 	if (tex->target == GL_TEXTURE_1D)
 		{
 		if (subImage)
