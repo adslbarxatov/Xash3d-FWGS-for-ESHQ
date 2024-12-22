@@ -146,11 +146,11 @@ void CHudHealth::GetPainColor (int& r, int& g, int& b)
 	else if (iHealth < 0)
 		iHealth = 0;
 
-	if (m_iHealth > 25)
+	if (m_iHealth > 40)
 		{
 		UnpackRGB (r, g, b, RGB_MASTER);
 		}
-	else if (m_iHealth > 10)
+	else if (m_iHealth > 20)
 		{
 		UnpackRGB (r, g, b, RGB_YELLOWISH2);
 		}

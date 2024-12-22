@@ -67,7 +67,6 @@ int WeaponsResource::HasAmmo (WEAPON* p)
 		|| CountAmmo (p->iAmmo2Type) || (p->iFlags & WEAPON_FLAGS_SELECTONEMPTY);
 	}
 
-
 void WeaponsResource::LoadWeaponSprites (WEAPON* pWeapon)
 	{
 	int i, iRes;
@@ -107,7 +106,9 @@ void WeaponsResource::LoadWeaponSprites (WEAPON* pWeapon)
 		pWeapon->rcCrosshair = p->rc;
 		}
 	else
+		{
 		pWeapon->hCrosshair = NULL;
+		}
 
 	p = GetSpriteList (pList, "autoaim", iRes, i);
 	if (p)
@@ -117,7 +118,9 @@ void WeaponsResource::LoadWeaponSprites (WEAPON* pWeapon)
 		pWeapon->rcAutoaim = p->rc;
 		}
 	else
+		{
 		pWeapon->hAutoaim = 0;
+		}
 
 	p = GetSpriteList (pList, "zoom", iRes, i);
 	if (p)
@@ -155,7 +158,9 @@ void WeaponsResource::LoadWeaponSprites (WEAPON* pWeapon)
 		gHR.iHistoryGap = max (gHR.iHistoryGap, pWeapon->rcActive.bottom - pWeapon->rcActive.top);
 		}
 	else
+		{
 		pWeapon->hInactive = 0;
+		}
 
 	p = GetSpriteList (pList, "weapon_s", iRes, i);
 	if (p)
@@ -165,7 +170,9 @@ void WeaponsResource::LoadWeaponSprites (WEAPON* pWeapon)
 		pWeapon->rcActive = p->rc;
 		}
 	else
+		{
 		pWeapon->hActive = 0;
+		}
 
 	p = GetSpriteList (pList, "ammo", iRes, i);
 	if (p)
@@ -177,7 +184,9 @@ void WeaponsResource::LoadWeaponSprites (WEAPON* pWeapon)
 		gHR.iHistoryGap = max (gHR.iHistoryGap, pWeapon->rcActive.bottom - pWeapon->rcActive.top);
 		}
 	else
+		{
 		pWeapon->hAmmo = 0;
+		}
 
 	p = GetSpriteList (pList, "ammo2", iRes, i);
 	if (p)
@@ -189,7 +198,9 @@ void WeaponsResource::LoadWeaponSprites (WEAPON* pWeapon)
 		gHR.iHistoryGap = max (gHR.iHistoryGap, pWeapon->rcActive.bottom - pWeapon->rcActive.top);
 		}
 	else
+		{
 		pWeapon->hAmmo2 = 0;
+		}
 
 	}
 
@@ -210,10 +221,9 @@ WEAPON* WeaponsResource::GetFirstPos (int iSlot)
 	return pret;
 	}
 
-
 WEAPON* WeaponsResource::GetNextActivePos (int iSlot, int iSlotPos)
 	{
-	if (iSlotPos >= MAX_WEAPON_POSITIONS || iSlot >= MAX_WEAPON_SLOTS)
+	if ((iSlotPos >= MAX_WEAPON_POSITIONS) || (iSlot >= MAX_WEAPON_SLOTS))
 		return NULL;
 
 	WEAPON* p = gWR.rgSlots[iSlot][iSlotPos + 1];
@@ -383,7 +393,6 @@ void CHudAmmo::Think (void)
 
 		PlaySound ("common/wpn_select.wav", 1);
 		}
-
 	}
 
 //
@@ -409,9 +418,7 @@ HLSPRITE* WeaponsResource::GetAmmoPicFromWeapon (int iAmmoId, wrect_t& rect)
 	return NULL;
 	}
 
-
 // Menu Selection Code
-
 void WeaponsResource::SelectSlot (int iSlot, int fAdvance, int iDirection)
 	{
 	if (gHUD.m_Menu.m_fMenuDisplayed && (fAdvance == FALSE) && (iDirection == 1))
@@ -552,7 +559,6 @@ int CHudAmmo::MsgFunc_ItemPickup (const char* pszName, int iSize, void* pbuf)
 
 	return 1;
 	}
-
 
 int CHudAmmo::MsgFunc_HideWeapon (const char* pszName, int iSize, void* pbuf)
 	{
@@ -761,9 +767,10 @@ void CHudAmmo::UserCmd_Close (void)
 		PlaySound ("common/wpn_hudoff.wav", 1);
 		}
 	else
+		{
 		ClientCmd ("escape");
+		}
 	}
-
 
 // Selects the next item in the weapon menu
 void CHudAmmo::UserCmd_NextWeapon (void)
@@ -847,12 +854,9 @@ void CHudAmmo::UserCmd_PrevWeapon (void)
 	gpActiveSel = NULL;
 	}
 
-
-
 // -------------------------------------------------------------------------
 // Drawing code
 // -------------------------------------------------------------------------
-
 int CHudAmmo::Draw (float flTime)
 	{
 	int a, x, y, r, g, b;
@@ -882,9 +886,7 @@ int CHudAmmo::Draw (float flTime)
 	if ((pw->iAmmoType < 0) && (pw->iAmmo2Type < 0))
 		return 0;
 
-
 	int iFlags = DHN_DRAWZERO; // draw 0 values
-
 	AmmoWidth = gHUD.GetSpriteRect (gHUD.m_HUD_number_0).right - gHUD.GetSpriteRect (gHUD.m_HUD_number_0).left;
 
 	a = (int)max (MIN_ALPHA, m_fFade);
@@ -892,7 +894,22 @@ int CHudAmmo::Draw (float flTime)
 	if (m_fFade > 0)
 		m_fFade -= (gHUD.m_flTimeDelta * 20);
 
+	// ESHQ: цвет для оставшегося количества патронов
+	// ! не удаётся найти ссылку на MAXCLIP для текущего оружия
 	UnpackRGB (r, g, b, RGB_MASTER);
+	/*float amount = (float)(pw->iClip) / (float)(1);
+	if (amount > 0.4f)
+		{
+		UnpackRGB (r, g, b, RGB_MASTER);
+		}
+	else if (amount > 0.2f)
+		{
+		UnpackRGB (r, g, b, RGB_YELLOWISH2);
+		}
+	else
+		{
+		UnpackRGB (r, g, b, RGB_REDISH);
+		}*/
 
 	ScaleColors (r, g, b, a);
 

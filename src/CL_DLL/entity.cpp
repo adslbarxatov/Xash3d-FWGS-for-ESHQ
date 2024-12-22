@@ -202,7 +202,7 @@ void DLLEXPORT HUD_TxferPredictionData (struct entity_state_s *ps, const struct 
 
 	pcd->deadflag = ppcd->deadflag;
 
-	// Spectating or not dead == get control over view angles.
+	// Spectating or not dead == get control over view angles
 	g_iAlive = (ppcd->iuser1 || (pcd->deadflag == DEAD_NO)) ? 1 : 0;
 
 	// Spectator

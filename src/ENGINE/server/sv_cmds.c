@@ -249,10 +249,10 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "ST ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_two_floors"))
 		Q_strncat (cmdLine, "TF ", MAX_QPATH);
-	else if (strstr (Cmd_Argv (0), "esrm_expl_crates"))
+	/*else if (strstr (Cmd_Argv (0), "esrm_expl_crates"))
 		Q_strncat (cmdLine, "XC ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_item_crates"))
-		Q_strncat (cmdLine, "IC ", MAX_QPATH);
+		Q_strncat (cmdLine, "IC ", MAX_QPATH);*/
 	else if (strstr (Cmd_Argv (0), "esrm_makers"))
 		Q_strncat (cmdLine, "MM ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_barriers"))
@@ -1120,7 +1120,7 @@ void SV_InitHostCommands (void)
 			Cmd_AddRestrictedCommand ("esrm_outlight", SV_ESRM_Command,
 				"Affects outdoor brightness and the type of sky (coeff, 1 - 6)");
 			Cmd_AddRestrictedCommand ("esrm_crates", SV_ESRM_Command,
-				"Sets the crates density for the next map (coeff, 1 - 5)");
+				"Sets the crates density for the next map (coeff, 0 - 5)");
 			Cmd_AddRestrictedCommand ("esrm_gravity", SV_ESRM_Command,
 				"Sets the gravity multiplier (x * 10%) for the next map (coeff, 1 - 20)");
 
@@ -1130,10 +1130,10 @@ void SV_InitHostCommands (void)
 				"Sets types of map sections for the next map (1 = all, 2 = only under sky, 3 = only inside)");
 			Cmd_AddRestrictedCommand ("esrm_two_floors", SV_ESRM_Command,
 				"Disables / enables the two floors mode for the next map (flag, 0 / 1)");
-			Cmd_AddRestrictedCommand ("esrm_expl_crates", SV_ESRM_Command,
+			/*Cmd_AddRestrictedCommand ("esrm_expl_crates", SV_ESRM_Command,
 				"Disables / enables crates with explosives for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_item_crates", SV_ESRM_Command,
-				"Disables / enables crates with items (weapons, bugs) for the next map (flag, 0 / 1)");
+				"Disables / enables crates with items (weapons, bugs) for the next map (flag, 0 / 1)");*/
 			Cmd_AddRestrictedCommand ("esrm_makers", SV_ESRM_Command,
 				"Disables / enables monster makers for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_barriers", SV_ESRM_Command,
