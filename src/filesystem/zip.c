@@ -61,8 +61,8 @@ typedef struct zip_header_s
 	} zip_header_t;
 
 /***
-  in zip64 comp and uncompr size == 0xffffffff remeber this
-  compressed and uncompress filesize stored in extra field
+in zip64 comp and uncompr size == 0xffffffff remeber this
+compressed and uncompress filesize stored in extra field
 ***/
 
 typedef struct zip_header_extra_s
@@ -351,7 +351,7 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 		return NULL;
 		}
 
-	//// [FWGS, 01.12.24] recalculate offsets
+	// [FWGS, 01.12.24] recalculate offsets
 	for (i = 0; i < numpackfiles; i++)
 		{
 		zip_header_t header;

@@ -20,7 +20,7 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "ipv6text.h"
 #include "net_ws_private.h"
-/*include "miniz.h"*/
+#include "miniz.h"
 
 /***
 =================================================
@@ -101,8 +101,7 @@ static int HTTP_FileProcessStream (httpfile_t *file);
 static int HTTP_FileQueue (httpfile_t *file);
 static int HTTP_FileResolveNS (httpfile_t *file);
 static int HTTP_FileSendRequest (httpfile_t *file);
-// ESHQ: отклонено
-/*static int HTTP_FileDecompress (httpfile_t *file);*/
+static int HTTP_FileDecompress (httpfile_t *file);
 
 /***
 ==============
@@ -396,8 +395,7 @@ static int HTTP_FileSendRequest (httpfile_t *file)
 	return 0;
 	}
 
-// ESHQ: отклонено
-/*static int HTTP_FileDecompress (httpfile_t *file)
+static int HTTP_FileDecompress (httpfile_t *file)
 	{
 	fs_offset_t len;
 #pragma pack( push, 1 )
@@ -523,7 +521,7 @@ static int HTTP_FileSendRequest (httpfile_t *file)
 	g_fsapi.WriteFile (name, data_out, decompressed_len);
 	HTTP_FreeFile (file, false);
 	return 1;
-	}*/
+	}
 
 /***
 ========================
@@ -622,14 +620,13 @@ static int HTTP_FileSaveReceivedData (httpfile_t *file, int pos, int length)
 
 			if (!file->chunksize && (begin[0] == '0')) // actually an end, not Q_atoi being stupid
 				{
-				// ESHQ: отклонено
-				/*if (file->compressed)
+				if (file->compressed)
 					{
 					file->blocktime = 0;
 					file->pfn_process = HTTP_FileDecompress;
 					return 1;
 					}
-				else*/
+				else
 					{
 					HTTP_FreeFile (file, false); // success
 					return 1;
