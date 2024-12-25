@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -916,13 +916,19 @@ static inline qboolean CL_IsThirdPerson (void)
 	return clgame.dllFuncs.CL_IsThirdPerson () ? true : false;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 25.12.24]
 static inline cl_entity_t *CL_GetLocalPlayer (void)
 	{
-	cl_entity_t *player;
+	/*cl_entity_t *player;*/
+	cl_entity_t *player = CL_GetEntityByIndex (cl.playernum + 1);
 
-	player = CL_EDICT_NUM (cl.playernum + 1);
-	Assert (player != NULL);
+	/*player = CL_EDICT_NUM (cl.playernum + 1);
+	Assert (player != NULL);*/
+
+	// HACKHACK: GoldSrc doesn't do this, but some mods actually check it for null pointer
+	// this is a lesser evil than changing semantics of HUD_VidInit and call it after entities are allocated
+	if (!player)
+		Con_Printf (S_WARN "%s: client entities are not initialized yet! Returning NULL...\n", __func__);
 
 	return player;
 	}

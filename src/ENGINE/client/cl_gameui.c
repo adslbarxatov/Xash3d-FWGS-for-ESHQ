@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -693,6 +693,12 @@ static cvar_t *GAME_EXPORT pfnCvar_RegisterGameUIVariable (const char *szName, c
 		flags | FCVAR_GAMEUIDLL));
 	}
 
+// [FWGS, 25.12.24]
+static int GAME_EXPORT Cmd_AddGameUICommand (const char *cmd_name, xcommand_t function)
+	{
+	return Cmd_AddCommandEx (cmd_name, function, "gameui command", CMD_GAMEUIDLL, __func__);
+	}
+
 /***
 =============
 pfnClientCmd
@@ -1169,6 +1175,15 @@ static void GAME_EXPORT pfnSetCursor (void *hCursor)
 		return;
 
 	Platform_SetCursorType (cursor);
+	}
+
+// [FWGS, 25.12.24]
+static void GAME_EXPORT pfnGetGameDir (char *out)
+	{
+	if (!out)
+		return;
+
+	Q_strncpy (out, GI->gamefolder, sizeof (GI->gamefolder));
 	}
 
 // [FWGS, 01.08.24] engine callbacks

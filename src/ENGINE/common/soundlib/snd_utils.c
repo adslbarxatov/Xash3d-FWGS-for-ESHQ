@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -19,24 +19,59 @@ GNU General Public License for more details
 	#include <SDL_audio.h>
 #endif
 
+// [FWGS, 25.12.24] global sound variables
+sndlib_t sound;
+
 /***
 =============================================================================
 XASH3D LOAD SOUND FORMATS
 =============================================================================
 ***/
-// stub
+
+// [FWGS, 25.12.24]
+/*// stub
 static const loadwavfmt_t load_null[] =
 	{
 	{ NULL, NULL, NULL }
-	};
+	};*/
 
+// [FWGS, 25.12.24]
+// ESHQ: внешние библиотеки отключены
 static const loadwavfmt_t load_game[] =
 	{
+#ifndef XASH_DEDICATED
 	{ DEFAULT_SOUNDPATH "%s%s.%s", "wav", Sound_LoadWAV },
 	{ "%s%s.%s", "wav", Sound_LoadWAV },
+
 	{ DEFAULT_SOUNDPATH "%s%s.%s", "mp3", Sound_LoadMPG },
 	{ "%s%s.%s", "mp3", Sound_LoadMPG },
-	{ NULL, NULL, NULL }
+	/*{ NULL, NULL, NULL }*/
+
+#ifdef OGG_VORBIS
+	{ DEFAULT_SOUNDPATH "%s%s.%s", "ogg", Sound_LoadOggVorbis },
+	{ "%s%s.%s", "ogg", Sound_LoadOggVorbis },
+#endif
+
+#ifdef OPUS
+	{ DEFAULT_SOUNDPATH "%s%s.%s", "opus", Sound_LoadOggOpus },
+	{ "%s%s.%s", "opus", Sound_LoadOggOpus },
+#endif
+
+#else // we only need extensions
+	{ NULL, "wav" },
+
+	{ NULL, "mp3" },
+
+#ifdef OGG_VORBIS
+	{ NULL, "ogg" },
+#endif
+
+#ifdef OPUS
+	{ NULL, "opus" },
+#endif
+
+#endif
+	{ NULL },
 	};
 
 /***
@@ -44,25 +79,56 @@ static const loadwavfmt_t load_game[] =
 XASH3D PROCESS STREAM FORMATS
 =============================================================================
 ***/
-// stub
+
+// [FWGS, 25.12.24]
+/*// stub
 static const streamfmt_t stream_null[] =
 	{
 	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL }
-	};
+	};*/
 
+// [FWGS, 25.12.24]
 static const streamfmt_t stream_game[] =
 	{
+#ifndef XASH_DEDICATED
 	{ "%s%s.%s", "mp3", Stream_OpenMPG, Stream_ReadMPG, Stream_SetPosMPG, Stream_GetPosMPG, Stream_FreeMPG },
+
 	{ "%s%s.%s", "wav", Stream_OpenWAV, Stream_ReadWAV, Stream_SetPosWAV, Stream_GetPosWAV, Stream_FreeWAV },
-	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+	/*{ NULL, NULL, NULL, NULL, NULL, NULL, NULL }*/
+
+#ifdef OGG_VORBIS
+	{ "%s%s.%s", "ogg", Stream_OpenOggVorbis, Stream_ReadOggVorbis, Stream_SetPosOggVorbis, Stream_GetPosOggVorbis, Stream_FreeOggVorbis },
+#endif
+
+#ifdef OPUS
+	{ "%s%s.%s", "opus", Stream_OpenOggOpus, Stream_ReadOggOpus, Stream_SetPosOggOpus, Stream_GetPosOggOpus, Stream_FreeOggOpus },
+#endif
+
+#else // we only need extensions
+
+	{ NULL, "mp3" },
+
+	{ NULL, "wav" },
+
+#ifdef OGG_VORBIS
+	{ NULL, "ogg" },
+#endif
+
+#ifdef OPUS
+	{ NULL, "opus" },
+#endif
+
+#endif
+	{ NULL },
 	};
 
+// [FWGS, 25.12.24]
 void Sound_Init (void)
 	{
 	// init pools
 	host.soundpool = Mem_AllocPool ("SoundLib Pool");
 
-	// install image formats (can be re-install later by Sound_Setup)
+	/*// install image formats (can be re-install later by Sound_Setup)
 	switch (host.type)
 		{
 		case HOST_NORMAL:
@@ -73,7 +139,11 @@ void Sound_Init (void)
 			sound.loadformats = load_null;
 			sound.streamformat = stream_null;
 			break;
-		}
+		}*/
+	// install sound formats
+	sound.loadformats = load_game;
+	sound.streamformat = stream_game;
+
 	sound.tempbuffer = NULL;
 	}
 

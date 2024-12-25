@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -404,9 +404,9 @@ typedef struct
 
 // [FWGS, 01.05.24]
 extern server_static_t	svs RENAME_SYMBOL ("svs_");	// persistant server info
-extern server_t		sv RENAME_SYMBOL ("sv_");			// local server
-extern svgame_static_t	svgame;		// persistant game info
-extern areanode_t	sv_areanodes[];	// AABB dynamic tree
+extern server_t			sv RENAME_SYMBOL ("sv_");	// local server
+extern svgame_static_t	svgame;				// persistant game info
+extern areanode_t		sv_areanodes[];		// AABB dynamic tree
 
 extern convar_t		mp_logecho;
 extern convar_t		mp_logfile;
@@ -439,6 +439,7 @@ extern convar_t		sv_wateramp;
 extern convar_t		sv_voiceenable;
 extern convar_t		sv_voicequality;
 extern convar_t		sv_maxvelocity;
+extern convar_t		sv_stepsize;	// [FWGS, 25.12.24]
 extern convar_t		sv_skyname;
 extern convar_t		sv_skycolor_r;
 extern convar_t		sv_skycolor_g;
@@ -611,10 +612,11 @@ qboolean SV_CheckIP (netadr_t *adr);
 qboolean SV_CheckID (const char *id);
 
 //
-// sv_frame.c [FWGS, 01.02.24]
+// sv_frame.c [FWGS, 25.12.24]
 //
 void SV_InactivateClients (void);
-int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to);
+/*int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to);*/
+int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *to, client_frame_t *frame, qboolean player);
 void SV_SkipUpdates (void);
 
 //

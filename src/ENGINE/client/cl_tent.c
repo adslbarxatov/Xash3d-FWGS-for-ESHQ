@@ -2968,20 +2968,29 @@ static void CL_ClearLightStyles (void)
 	memset (cl.lightstyles, 0, sizeof (cl.lightstyles));
 	}
 
+// [FWGS, 25.12.24]
 void CL_SetLightstyle (int style, const char *s, float f)
 	{
-	int				i, k;
+	/*int				i, k;
 	lightstyle_t	*ls;
-	float			val1, val2;
+	float			val1, val2;*/
+	int				i;
+	lightstyle_t	*ls;
 
-	Assert (s != NULL);
-	Assert ((style >= 0) && (style < MAX_LIGHTSTYLES));
+	/*Assert (s != NULL);
+	Assert ((style >= 0) && (style < MAX_LIGHTSTYLES));*/
+	if (unlikely ((style < 0) || (style >= MAX_LIGHTSTYLES)))
+		{
+		Con_Printf (S_WARN "%s: ignored invalid lightstyle id %d\n", style);
+		return;
+		}
 
 	ls = &cl.lightstyles[style];
 
-	Q_strncpy (ls->pattern, s, sizeof (ls->pattern));
+	/*Q_strncpy (ls->pattern, s, sizeof (ls->pattern));
 
-	ls->length = Q_strlen (s);
+	ls->length = Q_strlen (s);*/
+	ls->length = Q_strncpy (ls->pattern, s, sizeof (ls->pattern));
 	ls->time = f; // set local time
 
 	for (i = 0; i < ls->length; i++)
@@ -2991,10 +3000,13 @@ void CL_SetLightstyle (int style, const char *s, float f)
 
 	// check for allow interpolate
 	// NOTE: fast flickering styles looks ugly when interpolation is running
-	for (k = 0; k < (ls->length - 1); k++)
+	/*for (k = 0; k < (ls->length - 1); k++)*/
+	for (i = 0; i < (ls->length - 1); i++)
 		{
-		val1 = ls->map[(k + 0) % ls->length];
-		val2 = ls->map[(k + 1) % ls->length];
+		/*val1 = ls->map[(k + 0) % ls->length];
+		val2 = ls->map[(k + 1) % ls->length];*/
+		float val1 = ls->map[(i + 0) % ls->length];
+		float val2 = ls->map[(i + 1) % ls->length];
 
 		if (fabs (val1 - val2) > STYLE_LERPING_THRESHOLD)
 			{
@@ -3003,7 +3015,6 @@ void CL_SetLightstyle (int style, const char *s, float f)
 			}
 		}
 
-	// [FWGS, 01.08.24]
 	if (ls->length >= 1)
 		Con_Reportf ("Lightstyle %i (%s), interp %s\n", style, ls->pattern, ls->interp ? "Yes" : "No");
 	}
@@ -3013,8 +3024,12 @@ void CL_SetLightstyle (int style, const char *s, float f)
 DLIGHT MANAGEMENT
 ==============================================================
 ***/
-dlight_t	cl_dlights[MAX_DLIGHTS];
-dlight_t	cl_elights[MAX_ELIGHTS];
+
+// [FWGS, 25.12.24]
+/*dlight_t	cl_dlights[MAX_DLIGHTS];
+dlight_t	cl_elights[MAX_ELIGHTS];*/
+static dlight_t cl_dlights[MAX_DLIGHTS];
+static dlight_t cl_elights[MAX_ELIGHTS];
 
 /***
 ================

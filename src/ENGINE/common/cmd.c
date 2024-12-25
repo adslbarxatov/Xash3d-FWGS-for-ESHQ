@@ -286,17 +286,24 @@ static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged
 
 /***
 ============
-Cbuf_Execute
+Cbuf_Execute [FWGS, 25.12.24]
 ============
 ***/
 void Cbuf_Execute (void)
 	{
 	Cbuf_ExecuteCommandsFromBuffer (&cmd_text, true, -1);
 
-	// a1ba: unlimited commands for filtered buffer per frame
+	// a1ba: goldsrc limits unprivileged commands per frame to 1 here
 	// I don't see any sense in restricting that at this moment
 	// but in future we may limit this
-	Cbuf_ExecuteCommandsFromBuffer (&filteredcmd_text, false, -1);
+	
+	/*Cbuf_ExecuteCommandsFromBuffer (&filteredcmd_text, false, -1);*/
+
+	// a1ba: there is little to no sense limit privileged commands in
+	// local game, as client runs server code anyway
+	// do this for singleplayer only though, to make it easier to catch
+	// possible bugs during local multiplayer testing
+	Cbuf_ExecuteCommandsFromBuffer (&filteredcmd_text, SV_Active () && (SV_GetMaxClients () == 1), -1);
 	}
 
 /***
@@ -698,17 +705,18 @@ void Cmd_TokenizeString (const char *text)
 
 /***
 ============
-Cmd_AddCommandEx
+Cmd_AddCommandEx [FWGS, 25.12.24]
 ============
 ***/
-static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcommand_t function,
-	const char *cmd_desc, int iFlags)
+/*static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcommand_t function,
+	const char *cmd_desc, int iFlags)*/
+int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd_desc, int iFlags, const char *funcname)
 	{
 	cmd_t *cmd, *cur, *prev;
 
 	if (!COM_CheckString (cmd_name))
 		{
-		Con_Reportf (S_ERROR "%s: NULL name\n", funcname);	// [FWGS, 01.07.24]
+		Con_Reportf (S_ERROR "%s: NULL name\n", funcname);
 		return 0;
 		}
 
@@ -749,42 +757,44 @@ static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcomman
 	return 1;
 	}
 
-/***
+// [FWGS, 25.12.24] removed Cmd_AddCommand, Cmd_AddRestrictedCommand, Cmd_AddServerCommand,
+// Cmd_AddClientCommand, Cmd_AddGameUICommand, Cmd_AddRefCommand
+/*
 ============
 Cmd_AddCommand [FWGS, 01.07.24]
 ============
-***/
+/
 void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
 	Cmd_AddCommandEx (__func__, cmd_name, function, cmd_desc, 0);
 	}
 
 
-/***
+/
 ============
 Cmd_AddRestrictedCommand [FWGS, 01.07.24]
 ============
-***/
+/
 void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
 	Cmd_AddCommandEx (__func__, cmd_name, function, cmd_desc, CMD_PRIVILEGED);
 	}
 
-/***
+/
 ============
 Cmd_AddServerCommand [FWGS, 01.07.24]
 ============
-***/
+/
 void GAME_EXPORT Cmd_AddServerCommand (const char *cmd_name, xcommand_t function)
 	{
 	Cmd_AddCommandEx (__func__, cmd_name, function, "server command", CMD_SERVERDLL);
 	}
 
-/***
+/
 ============
 Cmd_AddClientCommand [FWGS, 01.07.24]
 ============
-***/
+/
 int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
 	{
 	int flags = CMD_CLIENTDLL;
@@ -796,25 +806,25 @@ int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
 	return Cmd_AddCommandEx (__func__, cmd_name, function, "client command", flags);
 	}
 
-/***
+/
 ============
 Cmd_AddGameUICommand [FWGS, 01.07.24]
 ============
-***/
+/
 int GAME_EXPORT Cmd_AddGameUICommand (const char *cmd_name, xcommand_t function)
 	{
 	return Cmd_AddCommandEx (__func__, cmd_name, function, "gameui command", CMD_GAMEUIDLL);
 	}
 
-/***
+/
 ============
 Cmd_AddRefCommand [FWGS, 01.07.24]
 ============
-***/
+/
 int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description)
 	{
 	return Cmd_AddCommandEx (__func__, cmd_name, function, description, CMD_REFDLL);
-	}
+	}*/
 
 /***
 ============

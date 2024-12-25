@@ -616,7 +616,7 @@ NOTE: static entities only accepted when game is loading
 qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	{
 	entity_state_t	nullstate, *baseline;
-	entity_state_t *state;
+	entity_state_t	*state;
 	int		offset;
 
 	if (index >= (MAX_STATIC_ENTITIES - 1))
@@ -647,8 +647,9 @@ qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	state->entityType = ENTITY_NORMAL; // select delta-encode
 	state->number = 0;
 
-	// trying to compress with previous delta's
-	offset = SV_FindBestBaselineForStatic (index, &baseline, state);
+	// [FWGS, 25.12.24] trying to compress with previous delta's
+	/*offset = SV_FindBestBaselineForStatic (index, &baseline, state);*/
+	offset = SV_FindBestBaseline (index, &baseline, state, NULL, false);
 
 	MSG_BeginServerCmd (msg, svc_spawnstatic);
 	MSG_WriteDeltaEntity (baseline, state, msg, true, DELTA_STATIC, sv.time, offset);
@@ -1665,20 +1666,21 @@ edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname)
 	return pent;
 	}
 
-/***
+// [FWGS, 25.12.24] removed pfnGetEntityIllum
+/*
 ==============
 pfnGetEntityIllum
 
 returns averaged lightvalue for entity
 ==============
-***/
+/
 static int GAME_EXPORT pfnGetEntityIllum (edict_t *pEnt)
 	{
 	if (!SV_IsValidEdict (pEnt))
 		return -1;
 
 	return SV_LightForEntity (pEnt);
-	}
+	}*/
 
 /***
 =================
@@ -2576,17 +2578,24 @@ static void GAME_EXPORT pfnParticleEffect (const float *org, const float *dir, f
 
 /***
 ===============
-pfnLightStyle
+pfnLightStyle [FWGS, 25.12.24]
 ===============
 ***/
 static void GAME_EXPORT pfnLightStyle (int style, const char *val)
 	{
+	/*if (style < 0) style = 0;*/
 	if (style < 0)
 		style = 0;
 
-	// [FWGS, 01.07.24]
 	if (style >= MAX_LIGHTSTYLES)
+		{
 		Host_Error ("%s: style: %i >= %d", __func__, style, MAX_LIGHTSTYLES);
+
+		/*// don't let the world overwrite our restored styles
+		if (sv.loadgame)
+		return;*/
+		return;
+		}
 
 	// don't let the world overwrite our restored styles
 	if (sv.loadgame)
@@ -3759,12 +3768,13 @@ static int GAME_EXPORT pfnRegUserMsg (const char *pszName, int iSize)
 	// make sure what size inrange
 	iSize = bound (-1, iSize, MAX_USERMSG_LENGTH);
 
-	// message 0 is reserved for svc_bad
+	// [FWGS, 25.12.24] message 0 is reserved for svc_bad
 	for (i = 1; i < MAX_USER_MESSAGES && svgame.msg[i].name[0]; i++)
 		{
 		// see if already registered
 		if (!Q_strcmp (svgame.msg[i].name, pszName))
-			return svc_lastmsg + i; // offset
+			/*return svc_lastmsg + i; // offset*/
+			return svgame.msg[i].number;
 		}
 
 	// [FWGS, 01.07.24]
@@ -4041,7 +4051,7 @@ static void GAME_EXPORT pfnFadeClientVolume (const edict_t *pEdict, int fadePerc
 
 /***
 =============
-pfnSetClientMaxspeed
+pfnSetClientMaxspeed [FWGS, 25.12.24]
 
 fakeclients can be changed speed to
 =============
@@ -4054,9 +4064,10 @@ static void GAME_EXPORT pfnSetClientMaxspeed (const edict_t *pEdict, float fNewM
 	if ((cl = SV_ClientFromEdict (pEdict, false)) == NULL)
 		return;
 
+	// GoldSrc doesn't bound the value to the movevar here
 	fNewMaxspeed = bound (-svgame.movevars.maxspeed, fNewMaxspeed, svgame.movevars.maxspeed);
 
-	// [FWGS, 01.04.23]
+	// There isn't any reference to "maxspd" anywhere except some commented-out code in SDK
 	Info_SetValueForKeyf (cl->physinfo, "maxspd", MAX_INFO_STRING, "%.f", fNewMaxspeed);
 	cl->edict->v.maxspeed = fNewMaxspeed;
 	}
@@ -4682,6 +4693,12 @@ static void GAME_EXPORT pfnGetPlayerStats (const edict_t *pClient, int *ping, in
 		*ping = cl->latency * 1000;
 	}
 
+// [FWGS, 25.12.24]
+static void GAME_EXPORT Cmd_AddServerCommand (const char *cmd_name, xcommand_t function)
+	{
+	Cmd_AddCommandEx (cmd_name, function, "server command", CMD_SERVERDLL, __func__);
+	}
+
 /***
 =============
 pfnForceUnmodified
@@ -4877,6 +4894,31 @@ static int GAME_EXPORT pfnGetTimesTutorMessageShown (int mid)
 	return 0;
 	}
 
+// [FWGS, 25.12.24]
+static void GAME_EXPORT pfnGetGameDir (char *out)
+	{
+	char rootdir[MAX_SYSPATH];
+
+	if (!out)
+		return;
+
+	if (!FBitSet (host.bugcomp, BUGCOMP_GET_GAME_DIR_FULL_PATH))
+		{
+		Q_strncpy (out, GI->gamefolder, 256);
+		}
+	else
+		{
+		// in GoldSrc pre-1.1.1.1, it's a full path to game directory, limited by 256 characters
+		// however the full path might easily overflow that limitation
+		// here we check if it would overflow and just return game folder in that case
+		if (!g_fsapi.GetRootDirectory (rootdir, sizeof (rootdir))
+			|| Q_snprintf (out, 256, "%s/%s", rootdir, GI->gamefolder) < 0)
+			{
+			Q_strncpy (out, GI->gamefolder, 256);
+			}
+		}
+	}
+
 // engine callbacks
 static enginefuncs_t gEngfuncs =
 	{
@@ -4895,7 +4937,8 @@ static enginefuncs_t gEngfuncs =
 	pfnChangeYaw,
 	pfnChangePitch,
 	SV_FindEntityByString,
-	pfnGetEntityIllum,
+	/*pfnGetEntityIllum,*/
+	SV_LightForEntity,		// [FWGS, 25.12.24]
 	pfnFindEntityInSphere,
 	pfnFindClientInPVS,
 	pfnEntitiesInPVS,
@@ -5360,7 +5403,7 @@ void SV_SpawnEntities (const char *mapname)
 	SV_LoadFromFile (mapname, sv.worldmodel->entities);
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 25.12.24]
 void SV_UnloadProgs (void)
 	{
 	pending_cvar_t *pending_cvars_list;
@@ -5378,7 +5421,7 @@ void SV_UnloadProgs (void)
 
 	// now we can unload cvars
 	Cvar_FullSet ("host_gameloaded", "0", FCVAR_READ_ONLY);
-	Cvar_FullSet ("sv_background", "0", FCVAR_READ_ONLY);
+	/*Cvar_FullSet ("sv_background", "0", FCVAR_READ_ONLY);*/
 
 	// free entity baselines
 	Z_Free (svs.static_entities);
@@ -5414,14 +5457,15 @@ qboolean SV_LoadProgs (const char *name)
 	static playermove_t		gpMove;
 	edict_t *e;
 
+	// [FWGS, 25.12.24]
 	if (svgame.hInstance)
-		{
-#if XASH_WIN32
+		/*{
+		if XASH_WIN32
 		SV_UnloadProgs ();
-#else
+		else*/
 		return true;
-#endif
-		}
+		/*endif
+		}*/
 
 	// fill it in
 	svgame.pmove = &gpMove;

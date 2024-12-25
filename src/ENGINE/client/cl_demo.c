@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -27,11 +27,11 @@ GNU General Public License for more details
 #define dem_lastcmd		dem_stop
 
 #define DEMO_STARTUP	0	// this lump contains startup info needed to spawn into the server
-#define DEMO_NORMAL		1	// this lump contains playback info of messages, etc., needed during playback.
+#define DEMO_NORMAL		1	// this lump contains playback info of messages, etc., needed during playback
 
 // Demo flags
-#define FDEMO_TITLE		0x01	// Show title
-#define FDEMO_PLAY		0x04	// Playing cd track
+#define FDEMO_TITLE			0x01	// Show title
+#define FDEMO_PLAY			0x04	// Playing cd track
 #define FDEMO_FADE_IN_SLOW	0x08	// Fade in (slow)
 #define FDEMO_FADE_IN_FAST	0x10	// Fade in (fast)
 #define FDEMO_FADE_OUT_SLOW	0x20	// Fade out (slow)
@@ -154,7 +154,7 @@ static connprotocol_t CL_GetProtocolFromDemo (int net_protocol)
 
 /***
 ====================
-CL_StartupDemoHeader [FWGS, 01.07.24]
+CL_StartupDemoHeader
 
 spooling demo header in case we record a demo on this level
 ====================
@@ -163,7 +163,9 @@ void CL_StartupDemoHeader (void)
 	{
 	CL_CloseDemoHeader ();
 
-	cls.demoheader = FS_Open ("demoheader.tmp", "w+b", true);
+	// [FWGS, 25.12.24]
+	/*cls.demoheader = FS_Open ("demoheader.tmp", "w+b", true);*/
+	cls.demoheader = FS_Open ("demoheader.tmp", "w+bm", true);
 
 	if (!cls.demoheader)
 		{

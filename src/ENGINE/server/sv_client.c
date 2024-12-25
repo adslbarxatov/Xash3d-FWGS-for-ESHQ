@@ -797,20 +797,22 @@ void Rcon_Print (host_redirect_t *rd, const char *pMsg)
 
 /***
 ===============
-SV_GetClientIDString
+SV_GetClientIDString [FWGS, 25.12.24]
 
 Returns a pointer to a static char for most likely only printing.
 ===============
 ***/
 const char *SV_GetClientIDString (sv_client_t *cl)
 	{
-	static char	result[MAX_QPATH];
+	/*static char	result[MAX_QPATH];*/
+	static char result[MAX_QPATH];
 
+	/*if (!cl) return "";*/
 	if (!cl)
 		return "";
 
 	if (FBitSet (cl->flags, FCL_FAKECLIENT))
-		{
+		/*{
 		Q_strncpy (result, "ID_BOT", sizeof (result));
 		}
 	else if (NET_IsLocalAddress (cl->netchan.remote_address))
@@ -824,8 +826,16 @@ const char *SV_GetClientIDString (sv_client_t *cl)
 	else
 		{
 		Q_snprintf (result, sizeof (result), "ID_%s", MD5_Print ((byte *)cl->hashedcdkey));
-		}
+		}*/
+		return "ID_BOT";
 
+	if (NET_IsLocalAddress (cl->netchan.remote_address))
+		return "ID_LOOPBACK";
+
+	if (sv_lan.value)
+		return "ID_LAN";
+
+	Q_snprintf (result, sizeof (result), "ID_%s", MD5_Print ((byte *)cl->hashedcdkey));
 	return result;
 	}
 

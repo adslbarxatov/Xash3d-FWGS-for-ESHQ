@@ -24,7 +24,7 @@ GNU General Public License for more details
 
 /***
 ==================
-CL_ParseStaticEntity
+CL_ParseStaticEntity [FWGS, 25.12.24]
 
 static client entity
 ==================
@@ -32,10 +32,14 @@ static client entity
 static void CL_LegacyParseStaticEntity (sizebuf_t *msg)
 	{
 	int		i;
-	entity_state_t	state;
+	/*entity_state_t	state;*/
+	entity_state_t	state = { 0 };
 	cl_entity_t		*ent;
 
-	memset (&state, 0, sizeof (state));
+	/*memset (&state, 0, sizeof (state));*/
+	if (!clgame.static_entities)
+		clgame.static_entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * MAX_STATIC_ENTITIES);
+
 	state.modelindex = MSG_ReadShort (msg);
 	state.sequence = MSG_ReadByte (msg);
 	state.frame = MSG_ReadByte (msg);

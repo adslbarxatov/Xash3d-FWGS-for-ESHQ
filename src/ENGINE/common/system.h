@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -44,7 +44,8 @@ writes into struct by offsets not names
 ***/
 extern int error_on_exit;	// [FWGS, 01.05.24]
 
-void Sys_Sleep (int msec);
+// [FWGS, 25.12.24]
+/*void Sys_Sleep (int msec);*/
 double Sys_DoubleTime (void);
 char *Sys_GetClipboardData (void);
 const char *Sys_GetCurrentUser (void);

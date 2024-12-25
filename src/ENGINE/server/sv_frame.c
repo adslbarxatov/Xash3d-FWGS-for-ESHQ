@@ -122,7 +122,8 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 
 		if (FBitSet (ent->v.effects, EF_REQUEST_PHS))
 			pset = clientphs;
-		else pset = clientpvs;
+		else
+			pset = clientpvs;
 
 		state = &ents->entities[ents->num_entities];
 
@@ -157,7 +158,8 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 				}
 			}
 
-		if (fullvis) continue; // portal ents will be added anyway, ignore recursion
+		if (fullvis)
+			continue; // portal ents will be added anyway, ignore recursion
 
 		// if it's a portal entity, add everything visible from its camera position
 		if (from_client && FBitSet (ent->v.effects, EF_MERGE_VISIBILITY))
@@ -174,15 +176,20 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 Encode a client frame onto the network channel
 =============================================================================
 ***/
+
+// [FWGS, 25.12.24] removed SV_FindBestBaselineForStatic
+
 /***
 =============
-SV_FindBestBaseline
+SV_FindBestBaseline [FWGS, 25.12.24]
 
 trying to deltas with previous entities
+set frame to NULL to check for static entities
 =============
 ***/
-static int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **baseline, entity_state_t *to,
-	client_frame_t *frame, qboolean player)
+/*static int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **baseline, entity_state_t *to,
+	client_frame_t *frame, qboolean player)*/
+int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *to, client_frame_t *frame, qboolean player)
 	{
 	int	bestBitCount;
 	int	i, bitCount;
@@ -195,7 +202,14 @@ static int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **bas
 	for (i = index - 1; (bestBitCount > 0) && (i >= 0) && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)
 		{
 		// don't worry about underflow in circular buffer
-		entity_state_t *test = &svs.packet_entities[(frame->first_entity + i) % svs.num_client_entities];
+		/*entity_state_t *test = &svs.packet_entities[(frame->first_entity + i) % svs.num_client_entities];*/
+		entity_state_t *test;
+
+		// if set, then it's normal entity
+		if (frame != NULL)
+			test = &svs.packet_entities[(frame->first_entity + i) % svs.num_client_entities];
+		else
+			test = &svs.static_entities[i];
 
 		if (to->entityType == test->entityType)
 			{
@@ -211,17 +225,17 @@ static int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **bas
 
 	// using delta from previous entity as baseline for current
 	if (index != bestfound)
-		*baseline = &svs.packet_entities[(frame->first_entity + bestfound) % svs.num_client_entities];
+	/*-*baseline = &svs.packet_entities[(frame->first_entity + bestfound) % svs.num_client_entities];
 	return index - bestfound;
 	}
 
-/***
+/
 =============
 SV_FindBestBaselineForStatic
 
 trying to deltas with previous static entities
 =============
-***/
+/
 int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to)
 	{
 	int	bestBitCount;
@@ -232,9 +246,9 @@ int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_s
 	bestfound = index;
 
 	// lookup backward for previous 64 states and try to interpret current delta as baseline
-	for (i = index - 1; bestBitCount > 0 && i >= 0 && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)
+	for (i = index - 1; bestBitCount > 0 && i >= 0 && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)*/
 		{
-		// don't worry about underflow in circular buffer
+		/*// don't worry about underflow in circular buffer
 		entity_state_t *test = &svs.static_entities[i];
 
 		bitCount = Delta_TestBaseline (test, to, false, sv.time);
@@ -243,12 +257,16 @@ int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_s
 			{
 			bestBitCount = bitCount;
 			bestfound = i;
-			}
+			}*/
+		if (frame != NULL)
+			*baseline = &svs.packet_entities[(frame->first_entity + bestfound) % svs.num_client_entities];
+		else
+			*baseline = &svs.static_entities[bestfound];
 		}
 
-	// using delta from previous entity as baseline for current
+	/*// using delta from previous entity as baseline for current
 	if (index != bestfound)
-		*baseline = &svs.static_entities[bestfound];
+		*baseline = &svs.static_entities[bestfound];*/
 	return index - bestfound;
 	}
 
@@ -261,12 +279,12 @@ Writes a delta update of an entity_state_t list to the message->
 ***/
 static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 	{
-	entity_state_t *oldent, *newent;
-	int		oldindex, newindex;
-	int		i, oldnum, newnum;
-	qboolean		player;
-	int		oldmax;
-	client_frame_t *from;
+	entity_state_t	*oldent, *newent;
+	int			oldindex, newindex;
+	int			i, oldnum, newnum;
+	qboolean	player;
+	int			oldmax;
+	client_frame_t	*from;
 
 	// this is the frame that we are going to delta update from
 	if (cl->delta_sequence != -1)
@@ -346,10 +364,11 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 			const char *classname = SV_ClassName (EDICT_NUM (newnum));
 			int		offset = 0;
 
-			// trying to reduce message by select optimal baseline
+			// [FWGS, 25.12.24] trying to reduce message by select optimal baseline
 			if (!sv_instancedbaseline.value || !sv.num_instanced || sv.last_valid_baseline > newnum)
 				{
-				offset = SV_FindBestBaseline (cl, newindex, &baseline, newent, to, player);
+				/*offset = SV_FindBestBaseline (cl, newindex, &baseline, newent, to, player);*/
+				offset = SV_FindBestBaseline (newindex, &baseline, newent, to, player);
 				}
 			else
 				{

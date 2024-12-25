@@ -277,7 +277,7 @@ typedef struct
 	double		forcedEnd;
 	} soundlist_t;
 
-// [FWGS, 01.12.24]
+// [FWGS, 25.12.24]
 typedef enum bugcomp_e
 	{
 	// reverts fix for pfnPEntityOfEntIndex for bug compatibility with GoldSrc
@@ -289,6 +289,9 @@ typedef enum bugcomp_e
 
 	// makes sound with no attenuation spatialized, like in GoldSrc
 	BUGCOMP_SPATIALIZE_SOUND_WITH_ATTN_NONE = BIT (2),
+
+	// returns full path to the game directory in server's pfnGetGameDir call
+	BUGCOMP_GET_GAME_DIR_FULL_PATH = BIT (3),
 	} bugcomp_t;
 
 // [FWGS, 01.07.24]
@@ -451,12 +454,35 @@ const char *Cmd_Argv (int arg) RETURNS_NONNULL;
 
 void Cmd_Init (void);
 void Cmd_Unlink (int group);
-void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc);
+
+// [FWGS, 25.12.24]
+/*void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc);
 void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc);
 void Cmd_AddServerCommand (const char *cmd_name, xcommand_t function);
 int Cmd_AddClientCommand (const char *cmd_name, xcommand_t function);
 int Cmd_AddGameUICommand (const char *cmd_name, xcommand_t function);
-int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description);
+int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description);*/
+
+int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd_desc, int iFlags, const char *funcname);
+
+// [FWGS, 25.12.24]
+static inline void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
+	{
+	Cmd_AddCommandEx (cmd_name, function, cmd_desc, 0, __func__);
+	}
+
+// [FWGS, 25.12.24]
+static inline void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
+	{
+	Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);
+	}
+
+// [FWGS, 25.12.24]
+static inline void Cmd_AddFilteredCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
+	{
+	Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);
+	}
+
 void Cmd_RemoveCommand (const char *cmd_name);
 qboolean Cmd_Exists (const char *cmd_name);
 void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback);
@@ -527,11 +553,15 @@ internal sound format
 typically expanded to wav buffer
 ========================================================================
 ***/
+
+// [FWGS, 25.12.24]
 typedef enum
 	{
 	WF_UNKNOWN = 0,
 	WF_PCMDATA,
 	WF_MPGDATA,
+	WF_VORBISDATA,
+	WF_OPUSDATA,
 	WF_TOTALCOUNT,	// must be last
 	} sndformat_t;
 
@@ -658,7 +688,9 @@ void *Cache_Check (poolhandle_t mempool, struct cache_user_s *c);
 void COM_TrimSpace (const char *source, char *dest);
 void pfnGetModelBounds (model_t *mod, float *mins, float *maxs);
 int COM_CheckParm (char *parm, char **ppnext);
-void pfnGetGameDir (char *szGetGameDir);
+
+// [FWGS, 25.12.24]
+/*void pfnGetGameDir (char *szGetGameDir);*/
 int pfnGetModelType (model_t *mod);
 int pfnIsMapValid (char *filename);
 

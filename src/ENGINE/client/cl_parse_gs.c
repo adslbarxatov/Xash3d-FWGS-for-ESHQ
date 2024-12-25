@@ -639,7 +639,9 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				CL_ParseSetAngle (msg);
 				break;
 
-			case svc_goldsrc_serverinfo:
+			// [FWGS, 25.12.24]
+			/*case svc_goldsrc_serverinfo:*/
+			case svc_serverdata:
 				Cbuf_Execute (); // make sure any stuffed commands are done
 				CL_ParseServerData (msg, PROTO_GOLDSRC);
 				break;
@@ -652,7 +654,9 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				CL_UpdateUserinfo (msg, PROTO_GOLDSRC);
 				break;
 
-			case svc_goldsrc_deltadescription:
+			// [FWGS, 25.12.24]
+			/*case svc_goldsrc_deltadescription:*/
+			case svc_deltatable:
 				Delta_ParseTableField_GS (msg);
 				break;
 
@@ -730,7 +734,9 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				CL_ParseAddAngle (msg);
 				break;
 
-			case svc_goldsrc_newusermsg:
+			// [FWGS, 25.12.24]
+			/*case svc_goldsrc_newusermsg:*/
+			case svc_usermessage:
 				CL_RegisterUserMessage (msg, PROTO_GOLDSRC);
 				break;
 
@@ -757,7 +763,9 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				MSG_EndBitWriting (msg);
 				break;
 
-			case svc_goldsrc_newmovevars:
+			// [FWGS, 25.12.24]
+			/*case svc_goldsrc_newmovevars:*/
+			case svc_deltamovevars:
 				CL_ParseNewMovevars (msg);
 				break;
 
@@ -809,11 +817,15 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				MSG_ReadFloat (msg);
 				break;
 
-			case svc_goldsrc_sendcvarvalue:
+			// [FWGS, 25.12.24]
+			/*case svc_goldsrc_sendcvarvalue:*/
+			case svc_querycvarvalue:
 				CL_ParseCvarValue (msg, false, PROTO_GOLDSRC);
 				break;
 
-			case svc_goldsrc_sendcvarvalue2:
+			// [FWGS, 25.12.24]
+			/*case svc_goldsrc_sendcvarvalue2:*/
+			case svc_querycvarvalue2:
 				CL_ParseCvarValue (msg, true, PROTO_GOLDSRC);
 				break;
 

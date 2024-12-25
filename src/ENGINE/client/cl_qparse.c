@@ -653,17 +653,20 @@ static void CL_ParseQuakeDamage (sizebuf_t *msg)
 
 /***
 ===================
-CL_ParseStaticEntity [FWGS, 01.12.24]
+CL_ParseStaticEntity [FWGS, 25.12.24]
 ===================
 ***/
 /*static void CL_ParseStaticEntity (sizebuf_t *msg)*/
 static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	{
-	entity_state_t	state;
+	/*entity_state_t	state;*/
+	entity_state_t	state = { 0 };
 	cl_entity_t		*ent;
-	int		i;
+	int				i;
 
-	memset (&state, 0, sizeof (state));
+	/*memset (&state, 0, sizeof (state));*/
+	if (!clgame.static_entities)
+		clgame.static_entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * MAX_STATIC_ENTITIES);
 
 	state.modelindex = MSG_ReadByte (msg);
 	state.frame = MSG_ReadByte (msg);

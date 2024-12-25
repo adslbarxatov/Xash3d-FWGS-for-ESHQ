@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -33,10 +33,11 @@ double Platform_DoubleTime (void)
 	return (double)(CurrentTime - g_ClockStart) / (double)(g_PerformanceFrequency);
 	}
 
-void Platform_Sleep (int msec)
+// [FWGS, 25.12.24] removed Platform_Sleep
+/*void Platform_Sleep (int msec)
 	{
 	SDL_Delay (msec);
-	}
+	}*/
 #endif
 
 #if XASH_MESSAGEBOX == MSGBOX_SDL
@@ -67,8 +68,9 @@ void SDLash_Init (void)
 	SDLash_InitCursors ();
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 25.12.24]
 void SDLash_Shutdown (void)
 	{
 	SDLash_FreeCursors ();
+	SDL_Quit ();
 	}

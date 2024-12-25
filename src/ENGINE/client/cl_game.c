@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -1080,12 +1080,14 @@ void CL_DrawHUD (int state)
 		}
 	}
 
+// [FWGS, 25.12.24]
 static void CL_ClearUserMessage (char *pszName, int svc_num)
 	{
 	int i;
 
 	for (i = 0; i < MAX_USER_MESSAGES && clgame.msg[i].name[0]; i++)
-		if ((clgame.msg[i].number == svc_num) && Q_strcmp (clgame.msg[i].name, pszName))
+		/*if ((clgame.msg[i].number == svc_num) && Q_strcmp (clgame.msg[i].name, pszName))*/
+		if ((clgame.msg[i].number == svc_num) && Q_stricmp (clgame.msg[i].name, pszName))
 			clgame.msg[i].number = 0;
 	}
 
@@ -1146,7 +1148,6 @@ void CL_ClearWorld (void)
 	clgame.numStatics = 0;
 	}
 
-// [FWGS, 01.01.24]
 void CL_InitEdicts (int maxclients)
 	{
 	Assert (clgame.entities == NULL);
@@ -1162,7 +1163,9 @@ void CL_InitEdicts (int maxclients)
 	cls.packet_entities = Mem_Realloc (clgame.mempool, cls.packet_entities,
 		sizeof (entity_state_t) * cls.num_client_entities);
 	clgame.entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * clgame.maxEntities);
-	clgame.static_entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * MAX_STATIC_ENTITIES);
+	
+	/*clgame.static_entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * MAX_STATIC_ENTITIES);*/
+	clgame.static_entities = NULL; // [FWGS, 25.12.24] will be initialized later
 	clgame.numStatics = 0;
 
 	if ((clgame.maxRemapInfos - 1) != clgame.maxEntities)
@@ -1875,6 +1878,18 @@ static cvar_t *GAME_EXPORT pfnCvar_RegisterClientVariable (const char *szName, c
 
 	return (cvar_t *)Cvar_Get (szName, szValue, flags | FCVAR_CLIENTDLL, Cvar_BuildAutoDescription (szName,
 		flags | FCVAR_CLIENTDLL));
+	}
+
+// [FWGS, 25.12.24]
+static int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
+	{
+	int flags = CMD_CLIENTDLL;
+
+	// a1ba: try to mitigate outdated client.dll vulnerabilities
+	if (!Q_stricmp (cmd_name, "motd_write"))
+		flags |= CMD_PRIVILEGED;
+
+	return Cmd_AddCommandEx (cmd_name, function, "client command", flags, __func__);
 	}
 
 /***

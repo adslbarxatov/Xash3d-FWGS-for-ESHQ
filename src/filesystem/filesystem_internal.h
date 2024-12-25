@@ -178,6 +178,7 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 	MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 
 int FS_SetCurrentDirectory (const char *path);
+qboolean FS_GetRootDirectory (char *path, size_t size);		// [FWGS, 25.12.24]
 void FS_Path_f (void);
 
 // gameinfo utils

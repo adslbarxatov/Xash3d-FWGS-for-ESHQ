@@ -219,12 +219,18 @@ static void pfnCvar_FullSet (const char *var_name, const char *value, int flags)
 	Cvar_FullSet (var_name, value, flags | FCVAR_REFDLL);
 	}
 
+// [FWGS, 25.12.24]
+static int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description)
+	{
+	return Cmd_AddCommandEx (cmd_name, function, description, CMD_REFDLL, __func__);
+	}
+
 static void pfnStudioEvent (const mstudioevent_t *event, const cl_entity_t *e)
 	{
 	clgame.dllFuncs.pfnStudioEvent (event, e);
 	}
 
-// [FWGS, 01.05.23] удалены pfnGetEfragsFreeList, pfnSetEfragsFreeList
+// [FWGS, 01.05.23] removed pfnGetEfragsFreeList, pfnSetEfragsFreeList
 
 static model_t *pfnGetDefaultSprite (enum ref_defaultsprite_e spr)
 	{

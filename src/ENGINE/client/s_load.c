@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -126,7 +126,7 @@ static wavdata_t *S_CreateDefaultSound (void)
 
 /***
 =================
-S_LoadSound [FWGS, 01.08.24]
+S_LoadSound
 =================
 ***/
 wavdata_t *S_LoadSound (sfx_t *sfx)
@@ -159,13 +159,15 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 	if (!sc)
 		sc = S_CreateDefaultSound ();
 
+	// [FWGS, 25.12.24]
 	if (sc->rate < SOUND_11k) // some bad sounds
 		Sound_Process (&sc, SOUND_11k, sc->width, sc->channels, SOUND_RESAMPLE);
 
 	else if ((sc->rate > SOUND_11k) && (sc->rate < SOUND_22k))	// some bad sounds
 		Sound_Process (&sc, SOUND_22k, sc->width, sc->channels, SOUND_RESAMPLE);
 
-	else if ((sc->rate > SOUND_22k) && (sc->rate < SOUND_44k))	// some bad sounds
+	/*else if ((sc->rate > SOUND_22k) && (sc->rate < SOUND_44k))	// some bad sounds*/
+	else if ((sc->rate > SOUND_22k) && (sc->rate != SOUND_44k))		// some bad sounds
 		Sound_Process (&sc, SOUND_44k, sc->width, sc->channels, SOUND_RESAMPLE);
 
 	sfx->cache = sc;

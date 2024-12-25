@@ -102,13 +102,14 @@ typedef struct feature_message_s
 	const char	*arg;
 	} feature_message_t;
 
-// [FWGS, 01.12.24]
+// [FWGS, 25.12.24]
 /*static feature_message_t bugcomp_features[] =*/
 static const feature_message_t bugcomp_features[] =
 	{
 	{ BUGCOMP_PENTITYOFENTINDEX_FLAG, "pfnPEntityOfEntIndex bugfix revert", "peoei" },
 	{ BUGCOMP_MESSAGE_REWRITE_FACILITY_FLAG, "GoldSrc Message Rewrite Facility", "gsmrf" },
 	{ BUGCOMP_SPATIALIZE_SOUND_WITH_ATTN_NONE, "spatialize sounds with zero attenuation", "sp_attn_none" },
+	{ BUGCOMP_GET_GAME_DIR_FULL_PATH, "Return full path in GET_GAME_DIR()", "get_game_dir_full" }
 	};
 
 // [FWGS, 01.12.24]
@@ -127,15 +128,23 @@ static const feature_message_t engine_features[] =
 	{ ENGINE_STEP_POSHISTORY_LERP, "MOVETYPE_STEP Position History Based Lerping" },
 	};
 
-// [FWGS, 01.12.24]
+// [FWGS, 25.12.24]
+static void Sys_MakeVersionString (char *out, size_t len)
+	{
+	Q_snprintf (out, len, XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
+		Q_buildos (), Q_buildarch (), Q_buildnum ());
+	}
+
+// [FWGS, 25.12.24]
 static void Sys_PrintUsage (const char *exename)
 	{
 	string		version_str;
 	const char	*usage_str;
 
-	Q_snprintf (version_str, sizeof (version_str),
+	/*Q_snprintf (version_str, sizeof (version_str),
 		XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
-		Q_buildos (), Q_buildarch (), Q_buildnum ());
+		Q_buildos (), Q_buildarch (), Q_buildnum ());*/
+	Sys_MakeVersionString (version_str, sizeof (version_str));
 
 #if XASH_MESSAGEBOX != MSGBOX_STDERR
 	#if XASH_WIN32
@@ -287,8 +296,39 @@ static void Sys_PrintUsage (const char *exename)
 		O ("-alsadev <dev>     ", "open selected ALSA device")
 #endif
 		;
-#undef O
 
+#undef O
+#undef XASH_EXE
+
+	// HACKHACK: pretty output in dedicated
+#if XASH_MESSAGEBOX != MSGBOX_STDERR
+	Platform_MessageBox (version_str, usage_str, false);
+#else
+	fprintf (stderr, "%s\n", version_str);
+	fprintf (stderr, usage_str, exename);
+#endif
+
+	Sys_Quit ();
+	}
+
+// [FWGS, 25.12.24]
+static void Sys_PrintBugcompUsage (const char *exename)
+	{
+	string	version_str;
+	char	usage_str[4096];
+	char	*p = usage_str;
+	int		i;
+
+	Sys_MakeVersionString (version_str, sizeof (version_str));
+
+	p += Q_snprintf (p, sizeof (usage_str) - (usage_str - p), "Known bugcomp flags are:\n");
+	for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+		p += Q_snprintf (p, sizeof (usage_str) - (usage_str - p), " %s: %s\n", bugcomp_features[i].arg,
+			bugcomp_features[i].msg);
+
+	p += Q_snprintf (p, sizeof (usage_str) - (usage_str - p), "\nIt is possible to combine multiple flags with '+'"
+		" characters.\nExample: -bugcomp flag1+flag2+flag3...\n");
+		
 	// HACKHACK: pretty output in dedicated
 #if XASH_MESSAGEBOX != MSGBOX_STDERR
 	Platform_MessageBox (version_str, usage_str, false);
@@ -799,20 +839,21 @@ static qboolean Host_Autosleep (double dt, double scale)
 		}
 	else
 		{
-		static double timewindow; // allocate a time window for sleeps
-		static int counter; // for debug
-		static double realsleeptime;
-		const double sleeptime = sleep * 0.001;
+		static double	timewindow; // allocate a time window for sleeps
+		static int		counter; // for debug
+		static double	realsleeptime;
+		const double	sleeptime = sleep * 0.001;
 
 		if (dt < targetframetime * scale)
 			{
 			// if we have allocated time window, try to sleep
 			if (timewindow > realsleeptime)
 				{
-				// Sys_Sleep isn't guaranteed to sleep an exact amount of milliseconds
+				// [FWGS, 25.12.24] Platform_Sleep isn't guaranteed to sleep an exact amount of milliseconds
 				// so we measure the real sleep time and use it to decrease the window
 				double t1 = Sys_DoubleTime (), t2;
-				Sys_Sleep (sleep); // in msec!
+				/*Sys_Sleep (sleep); // in msec!*/
+				Platform_Sleep (sleep);	// in msec!
 
 				t2 = Sys_DoubleTime ();
 				realsleeptime = t2 - t1;
@@ -1179,10 +1220,16 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	Sys_ParseCommandLine (argc, argv);
 	Host_DetermineExecutableName (exename, exename_size);
 
+	// [FWGS, 25.12.24]
 	if (!Sys_CheckParm ("-disablehelp"))
 		{
+		string arg;
+
 		if (Sys_CheckParm ("-help") || Sys_CheckParm ("-h") || Sys_CheckParm ("--help"))
 			Sys_PrintUsage (exename);
+
+		if (Sys_GetParmFromCmdLine ("-bugcomp", arg) && !Q_stricmp (arg, "help"))
+			Sys_PrintBugcompUsage (exename);
 		}
 
 	if (!Sys_CheckParm ("-noch"))

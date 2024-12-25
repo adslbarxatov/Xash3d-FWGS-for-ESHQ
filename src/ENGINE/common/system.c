@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -122,13 +122,14 @@ char *Sys_GetClipboardData (void)
 	}
 #endif
 
-/***
+// [FWGS, 25.12.24] removed Sys_Sleep
+/*
 ================
 Sys_Sleep
 
 freeze application for some time
 ================
-***/
+/
 void Sys_Sleep (int msec)
 	{
 	if (!msec)
@@ -136,7 +137,7 @@ void Sys_Sleep (int msec)
 
 	msec = Q_min (msec, 1000);
 	Platform_Sleep (msec);
-	}
+	}*/
 
 /***
 ================
@@ -419,9 +420,12 @@ static void Sys_WaitForQuit (void)
 			TranslateMessage (&msg);
 			DispatchMessage (&msg);
 			}
+
+		// [FWGS, 25.12.24]
 		else
 			{
-			Sys_Sleep (20);
+			/*Sys_Sleep (20);*/
+			Platform_Sleep (20);
 			}
 		}
 #endif
@@ -454,7 +458,7 @@ void Sys_Warn (const char *format, ...)
 
 /***
 ================
-Sys_Error [FWGS, 01.05.24]
+Sys_Error
 
 NOTE: we must prepare engine to shutdown
 before call this
@@ -473,9 +477,11 @@ void Sys_Error (const char *error, ...)
 	if (host.status == HOST_ERR_FATAL)
 		return; 
 
-	// make sure that console received last message
-	if (host.change_game) 
-		Sys_Sleep (200);
+	// [FWGS, 25.12.24] make sure that console received last message
+	/*if (host.change_game) 
+		Sys_Sleep (200);*/
+	if (host.change_game)
+		Platform_Sleep (200);
 
 	error_on_exit = 1;
 

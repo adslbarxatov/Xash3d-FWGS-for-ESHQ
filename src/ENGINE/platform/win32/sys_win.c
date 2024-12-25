@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -35,10 +35,11 @@ double Platform_DoubleTime (void)
 	return (double)(CurrentTime.QuadPart - g_ClockStart.QuadPart) / (double)(g_PerformanceFrequency.QuadPart);
 	}
 
-void Platform_Sleep (int msec)
+// [FWGS, 25.12.24]
+/*void Platform_Sleep (int msec)
 	{
 	Sleep (msec);
-	}
+	}*/
 #endif
 
 // [FWGS, 01.05.24]

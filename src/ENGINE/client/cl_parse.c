@@ -322,23 +322,31 @@ void CL_ParseParticles (sizebuf_t *msg, connprotocol_t proto)
 		VectorCopy (org, p->org);
 		VectorCopy (dir, p->vel);
 		}
-	else R_RunParticleEffect (org, dir, color, count);
+	else
+		{
+		R_RunParticleEffect (org, dir, color, count);
+		}
 	}
 
 /***
 ==================
-CL_ParseStaticEntity
+CL_ParseStaticEntity [FWGS, 25.12.24]
 
 static client entity
 ==================
 ***/
 static void CL_ParseStaticEntity (sizebuf_t *msg)
 	{
-	int		i, newnum;
-	entity_state_t	from, to;
-	cl_entity_t		*ent;
+	int						i, newnum;
+	/*entity_state_t	from, to;*/
+	const entity_state_t	from = { 0 };
+	entity_state_t			to;
+	cl_entity_t				*ent;
 
-	memset (&from, 0, sizeof (from));
+	/*memset (&from, 0, sizeof (from));*/
+	if (!clgame.static_entities)
+		clgame.static_entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * MAX_STATIC_ENTITIES);
+
 	newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
 	MSG_ReadDeltaEntity (msg, &from, &to, 0, DELTA_STATIC, cl.mtime[0]);
 
@@ -1525,7 +1533,7 @@ void CL_ParseRestore (sizebuf_t *msg)
 
 /***
 ================
-CL_RegisterUserMessage [FWGS, 01.12.24]
+CL_RegisterUserMessage [FWGS, 25.12.24]
 
 register new user message or update existing
 ================
@@ -1535,26 +1543,33 @@ void CL_RegisterUserMessage (sizebuf_t *msg, connprotocol_t proto)
 	{
 	/*char	*pszName;*/
 	char	*pszName;
-	int		svc_num, size, bits;
+	/*int		svc_num, size, bits;
 
-	svc_num = MSG_ReadByte (msg);
+	svc_num = MSG_ReadByte (msg);*/
+	char	szName[17];
+	int		size;
+	int		svc_num = MSG_ReadByte (msg);
 
 	/*if (cls.legacymode)*/
 	if ((proto == PROTO_LEGACY) || (proto == PROTO_GOLDSRC))
 		{
 		size = MSG_ReadByte (msg);
-		bits = 8;
+		/*bits = 8;*/
+		if (size == UINT8_MAX)
+			size = -1;
 		}
 	else
 		{
 		size = MSG_ReadWord (msg);
-		bits = 16;
+		/*bits = 16;*/
+		if (size == UINT16_MAX)
+			size = -1;
 		}
 
 	/*pszName = MSG_ReadString (msg);*/
 	if (proto == PROTO_GOLDSRC)
 		{
-		static char szName[17];
+		/*static char szName[17];*/
 
 		MSG_ReadBytes (msg, szName, sizeof (szName) - 1);
 		szName[16] = 0;
@@ -1566,10 +1581,10 @@ void CL_RegisterUserMessage (sizebuf_t *msg, connprotocol_t proto)
 		pszName = MSG_ReadString (msg);
 		}
 
-	// important stuff
+	/*// important stuff
 	if (size == (BIT (bits) - 1))
 		size = -1;
-	svc_num = bound (0, svc_num, 255);
+	svc_num = bound (0, svc_num, 255);*/
 
 	CL_LinkUserMessage (pszName, svc_num, size);
 	}
@@ -1714,24 +1729,37 @@ void CL_ParseResource (sizebuf_t *msg)
 
 /***
 ================
-CL_UpdateUserPings
+CL_UpdateUserPings [FWGS, 25.12.24]
 
 collect pings and packet lossage from clients
 ================
 ***/
 void CL_UpdateUserPings (sizebuf_t *msg)
 	{
-	int				i, slot;
+	/*int				i, slot;
 	player_info_t	*player;
 
-	for (i = 0; i < MAX_CLIENTS; i++)
+	for (i = 0; i < MAX_CLIENTS; i++)*/
+
+	// a1ba: there was a MAX_PLAYERS check but it doesn't make sense
+	// because pings message always ends by null bit
+	while (1)
 		{
-		if (!MSG_ReadOneBit (msg)) break; // end of message
+		/*if (!MSG_ReadOneBit (msg)) break; // end of message*/
+		int slot;
+		player_info_t *player;
+
+		if (!MSG_ReadOneBit (msg))
+			break; // end of message
 
 		slot = MSG_ReadUBitLong (msg, MAX_CLIENT_BITS);
 
-		if (slot >= MAX_CLIENTS)
-			Host_Error ("%s: svc_pings > MAX_CLIENTS\n", __func__);	// [FWGS, 01.07.24]
+		/*if (slot >= MAX_CLIENTS)*/
+		if (unlikely (slot >= MAX_CLIENTS))
+			{
+			Host_Error ("%s: svc_pings > MAX_CLIENTS\n", __func__);
+			return;
+			}
 
 		player = &cl.players[slot];
 		player->ping = MSG_ReadUBitLong (msg, 12);

@@ -1778,13 +1778,13 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 		total_sent = 0;
 		packet_count = (len + body_size - 1) / body_size;
 
+		// [FWGS, 25.12.24]
 		while (len > 0)
 			{
 			size = Q_min (body_size, len);
 			pPacket->packet_id = (packet_number << 8) + packet_count;
 			memcpy (packet + sizeof (SPLITPACKET), buf + (packet_number * body_size), size);
 
-			// [FWGS, 01.07.23]
 			if (net_showpackets.value == 3.0f)
 				{
 				netadr_t	adr;
@@ -1798,13 +1798,15 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 
 			ret = sendto (net_socket, packet, size + sizeof (SPLITPACKET), flags,
 				(const struct sockaddr *)to, tolen);
-			if (ret < 0) return ret; // error
-
+			if (ret < 0)
+				return ret; // error
 			if (ret >= size)
 				total_sent += size;
+
 			len -= size;
 			packet_number++;
-			Sys_Sleep (1);
+			/*Sys_Sleep (1);*/
+			Platform_Sleep (1);
 			}
 
 		return total_sent;

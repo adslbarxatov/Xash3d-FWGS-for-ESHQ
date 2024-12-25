@@ -952,18 +952,19 @@ float GAME_EXPORT pfnTime (void)
 	return (float)Sys_DoubleTime ();
 	}
 
-/***
+// [FWGS, 25.12.24] removed pfnGetGameDir
+/*
 =============
 pfnGetGameDir [FWGS, 01.05.23]
 =============
-***/
+/
 void GAME_EXPORT pfnGetGameDir (char *szGetGameDir)
 	{
 	if (!szGetGameDir)
 		return;
 
 	Q_strncpy (szGetGameDir, GI->gamefolder, sizeof (GI->gamefolder));
-	}
+	}*/
 
 // [FWGS, 01.12.24]
 qboolean COM_IsSafeFileToDownload (const char *filename)

@@ -308,7 +308,7 @@ void dct12 (float *in, float *rawout1, float *rawout2, register float *wi, regis
 
 				DCT12_PART2
 
-					out2[11 - 0] = REAL_MUL (in2, wi[11 - 0]);
+				out2[11 - 0] = REAL_MUL (in2, wi[11 - 0]);
 				out2[6 + 0] = REAL_MUL (in2, wi[6 + 0]);
 				out2[6 + 2] = REAL_MUL (in3, wi[6 + 2]);
 				out2[11 - 2] = REAL_MUL (in3, wi[11 - 2]);

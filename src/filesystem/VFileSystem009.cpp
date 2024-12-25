@@ -17,8 +17,6 @@ GNU General Public License for more details
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
-/*define ALLOCA_H	<malloc.h>	// [FWGS, 01.04.23]
-include ALLOCA_H*/
 #include <malloc.h>		// [FWGS, 01.12.24]
 #include "crtlib.h"
 #include "filesystem.h"
@@ -444,11 +442,12 @@ class CXashFS : public IFileSystem
 			return FS_FullPathToRelativePath (out, p, 512);
 			}
 
+		// [FWGS, 25.12.24]
 		bool GetCurrentDirectory (char *p, int size) override
 			{
-			Q_strncpy (p, fs_rootdir, size);
-
-			return true;
+			/*Q_strncpy (p, fs_rootdir, size);
+			return true;*/
+			return FS_GetRootDirectory (p, size);
 			}
 
 		void PrintOpenedFiles () override

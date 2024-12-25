@@ -666,12 +666,12 @@ SCR_DrawNetGraph
 ***/
 void SCR_DrawNetGraph (void)
 	{
-	wrect_t	rect;
-	float	avg_ping;
-	int	ping_count;
-	int	w, x, y;
-	kbutton_t *in_graph;
-	int   graphtype;
+	wrect_t		rect;
+	float		avg_ping;
+	int			ping_count;
+	int			w, x, y;
+	kbutton_t	*in_graph;
+	int			graphtype;
 
 	if (!host.allow_console)
 		return;
@@ -679,20 +679,23 @@ void SCR_DrawNetGraph (void)
 	if (cls.state != ca_active)
 		return;
 
+	// [FWGS, 25.12.24]
 	in_graph = clgame.dllFuncs.KB_Find ("in_graph");
-
-	if (in_graph->state & 1)
-		{
+	/*if (in_graph->state & 1)*/
+	if (in_graph && (in_graph->state & 1))
+		/*{*/
 		graphtype = 2;
-		}
+		/*}*/
 	else if (net_graph.value != 0.0f)
-		{
+		/*{*/
 		graphtype = (int)net_graph.value;
-		}
+		/*}
 	else
 		{
 		return;
-		}
+		}*/
+	else
+		return;
 
 	if (net_scale.value <= 0)
 		Cvar_SetValue ("net_scale", 0.1f);

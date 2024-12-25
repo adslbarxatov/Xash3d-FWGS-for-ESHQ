@@ -16,6 +16,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+#define _GNU_SOURCE 1	// [FWGS, 25.12.24]
+
 #include "build.h"
 #include <fcntl.h>
 #include <sys/types.h>	// [FWGS, 01.04.23]
@@ -37,6 +39,12 @@ GNU General Public License for more details
 
 #include <stdio.h>
 #include <stdarg.h>
+
+// [FWGS, 25.12.24]
+#if HAVE_MEMFD_CREATE
+#include <sys/mman.h>
+#endif
+
 #include "port.h"
 #include "defaults.h"	// [FWGS, 01.12.23]
 #include "const.h"
@@ -1424,7 +1432,7 @@ static int FS_StripIdiotRelativePath (const char *dllname, const char *gamefolde
 
 /***
 ==================
-FS_FindLibrary [FWGS, 01.08.24]
+FS_FindLibrary
 
 search for library, assume index is valid
 ==================
@@ -1486,10 +1494,11 @@ static qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dll
 		// is it on the disk? (intentionally omit pk3dir here)
 		if (search->type == SEARCHPATH_PLAIN)
 			{
-			// NOTE: gamedll might resolve it's own path using dladdr() and expects absolute path
+			// [FWGS, 25.12.24] NOTE: gamedll might resolve it's own path using dladdr() and expects absolute path
 			// NOTE: the only allowed case when searchpath is set by absolute path is the RoDir
 			// rather than figuring out whether path is absolute, just check if it matches
-			if (!Q_strnicmp (search->filename, fs_rodir, Q_strlen (fs_rodir)))
+			/*if (!Q_strnicmp (search->filename, fs_rodir, Q_strlen (fs_rodir)))*/
+			if (COM_CheckStringEmpty (fs_rodir) && !Q_strnicmp (search->filename, fs_rodir, Q_strlen (fs_rodir)))
 				{
 				Q_snprintf (dllInfo->fullPath, sizeof (dllInfo->fullPath), "%s%s",
 					search->filename, dllInfo->shortPath);
@@ -1789,16 +1798,20 @@ int FS_SysFileTime (const char *filename)
 
 /***
 ====================
-FS_SysOpen
+FS_SysOpen [FWGS, 25.12.24]
 
 Internal function used to create a file_t and open the relevant non-packed file on disk
 ====================
 ***/
 file_t *FS_SysOpen (const char *filepath, const char *mode)
 	{
-	file_t	*file;
+	/*file_t	*file;
 	int		mod, opt;
-	uint	ind;
+	uint	ind;*/
+	file_t		*file;
+	int			mod, opt, fd = -1;
+	qboolean	memfile = false;
+	uint		ind;
 
 	// Parse the mode string
 	switch (mode[0])
@@ -1844,36 +1857,72 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 			}
 		}
 
-	file = (file_t *)Mem_Calloc (fs_mempool, sizeof (*file));
+	/*file = (file_t *)Mem_Calloc (fs_mempool, sizeof (*file));
 	file->filetime = FS_SysFileTime (filepath);
-	file->ungetc = EOF;
+	file->ungetc = EOF;*/
 
+	// the 'm' flag let's user to create temporary file in memory
+	// through so-called "anonymous files"
+	if (Q_strchr (mode, 'm'))
+		{
+#if HAVE_MEMFD_CREATE
+
+#ifndef MFD_NOEXEC_SEAL
+#define MFD_NOEXEC_SEAL 8U
+#endif
+		fd = memfd_create (filepath, MFD_CLOEXEC | MFD_NOEXEC_SEAL);
+
+		/*if XASH_WIN32
+		file->handle = _wopen (FS_PathToWideChar (filepath), mod | opt, 0666);
+		else
+		file->handle = open (filepath, mod | opt, 0666);*/
+
+		// through fcntl() and MFD_ALLOW_SEALING we could enforce
+		// read-write flags but we don't really care about them yet
+		if (fd < 0)
+			Con_Printf (S_ERROR "%s: can't create anonymous file %s: %s", __func__, filepath, strerror (errno));
+		else
+			memfile = true;
+#endif
+		// if it's unsupported, we can open it on disk
+		}
+
+	/*if !XASH_WIN32
+	if (file->handle < 0)
+		FS_BackupFileName (file, filepath, mod | opt);*/
+	if (fd < 0)
+		{
 #if XASH_WIN32
-	file->handle = _wopen (FS_PathToWideChar (filepath), mod | opt, 0666);
+		fd = _wopen (FS_PathToWideChar (filepath), mod | opt, 0666);
 #else
-	file->handle = open (filepath, mod | opt, 0666);
+		fd = open (filepath, mod | opt, 0666);
 #endif
+		}
 
-// [FWGS, 01.04.23]
-#if !XASH_WIN32
-	if (file->handle < 0)
-		FS_BackupFileName (file, filepath, mod | opt);
-#endif
-
-	// [FWGS, 01.01.24]
-	if (file->handle < 0)
+	/*if (file->handle < 0)*/
+	if (fd < 0)
 		{
 		if (errno != ENOENT)
 			Con_Printf (S_ERROR "%s: can't open file %s: %s\n", __func__, filepath, strerror (errno));
 
-		Mem_Free (file);
+		/*Mem_Free (file);*/
 		return NULL;
 		}
 
-	file->searchpath = NULL;	// [FWGS, 01.07.24]
+	file = (file_t *)Mem_Calloc (fs_mempool, sizeof (*file));
+	file->filetime = memfile ? 0 : FS_SysFileTime (filepath);
+	file->ungetc = EOF;
+	file->handle = fd;
+
+#if !XASH_WIN32
+	if (!memfile)
+		FS_BackupFileName (file, filepath, mod | opt);
+#endif
+
+	file->searchpath = NULL;
 	file->real_length = lseek (file->handle, 0, SEEK_END);
 
-	// For files opened in append mode, we start at the end of the file
+	// for files opened in append mode, we start at the end of the file
 	if (opt & O_APPEND)
 		file->position = file->real_length;
 	else
@@ -2053,6 +2102,24 @@ int FS_SetCurrentDirectory (const char *path)
 	}
 
 /***
+==================
+FS_GetRootDirectory [FWGS, 25.12.24]
+
+Returns writable root directory path
+==================
+***/
+qboolean FS_GetRootDirectory (char *path, size_t size)
+	{
+	size_t dirlen = Q_strlen (fs_rootdir);
+
+	if (dirlen >= size) // check for possible overflow
+		return false;
+
+	Q_strncpy (path, fs_rootdir, size);
+	return true;
+	}
+
+/***
 ====================
 FS_FindFile [FWGS, 01.04.23]
 
@@ -2165,9 +2232,9 @@ Look for a file in the search paths and open it in read-only mode
 ***/
 file_t *FS_OpenReadFile (const char *filename, const char *mode, qboolean gamedironly)
 	{
-	searchpath_t *search;
-	char netpath[MAX_SYSPATH];
-	int pack_ind;
+	searchpath_t	*search;
+	char	netpath[MAX_SYSPATH];
+	int		pack_ind;
 
 	search = FS_FindFile (filename, &pack_ind, netpath, sizeof (netpath), gamedironly);
 
@@ -3379,6 +3446,9 @@ const fs_api_t g_api =
 	FS_FindFileInArchive,
 	FS_OpenFileFromArchive,
 	FS_LoadFileFromArchive,
+
+	// [FWGS, 25.12.24]
+	FS_GetRootDirectory,
 	};
 
 // [FWGS, 01.09.24]

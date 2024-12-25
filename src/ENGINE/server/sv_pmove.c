@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -554,7 +554,6 @@ static void PM_CheckMovingGround (edict_t *ent, float frametime)
 	ClearBits (ent->v.flags, FL_BASEVELOCITY);
 	}
 
-// [FWGS, 09.05.24]
 static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd, const char *physinfo)
 	{
 	vec3_t	absmin, absmax;
@@ -596,7 +595,10 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 		pmove->onground = -1;
 	pmove->waterlevel = clent->v.waterlevel;
 	pmove->watertype = clent->v.watertype;
-	pmove->maxspeed = svgame.movevars.maxspeed;
+
+	// [FWGS, 25.12.24]
+	/*pmove->maxspeed = svgame.movevars.maxspeed;*/
+	pmove->maxspeed = svgame.movevars.maxspeed;	// GoldSrc uses sv_maxspeed here?
 	pmove->clientmaxspeed = clent->v.maxspeed;
 
 	// ESHQ: поддержка собираемых объектов

@@ -15,8 +15,9 @@ GNU General Public License for more details
 
 #include "soundlib.h"
 
-// global sound variables
-sndlib_t	sound;
+// [FWGS, 25.12.24]
+/*// global sound variables
+sndlib_t	sound;*/
 
 static void Sound_Reset (void)
 	{

@@ -104,25 +104,25 @@ const char *const svc_legacy_strings[svc_lastmsg + 1] =
 	[svc_legacy_chokecount] = "svc_legacy_chokecount",
 	};
 
-// [FWGS, 01.12.24]
+// [FWGS, 25.12.24]
 /*const char *svc_goldsrc_strings[svc_lastmsg + 1] =*/
 const char *const svc_goldsrc_strings[svc_lastmsg + 1] =
 	{
 	[svc_goldsrc_version] = "svc_goldsrc_version",
-	[svc_goldsrc_serverinfo] = "svc_goldsrc_serverinfo",
-	[svc_goldsrc_deltadescription] = "svc_goldsrc_deltadescription",
+	/*[svc_goldsrc_serverinfo] = "svc_goldsrc_serverinfo",
+	[svc_goldsrc_deltadescription] = "svc_goldsrc_deltadescription",*/
 	[svc_goldsrc_stopsound] = "svc_goldsrc_stopsound",
 	[svc_goldsrc_damage] = "svc_goldsrc_damage",
 	[svc_goldsrc_killedmonster] = "svc_goldsrc_killedmonster",
 	[svc_goldsrc_foundsecret] = "svc_goldsrc_foundsecret",
 	[svc_goldsrc_spawnstaticsound] = "svc_goldsrc_spawnstaticsound",
 	[svc_goldsrc_decalname] = "svc_goldsrc_decalname",
-	[svc_goldsrc_newusermsg] = "svc_goldsrc_newusermsg",
-	[svc_goldsrc_newmovevars] = "svc_goldsrc_newmovevars",
+	/*[svc_goldsrc_newusermsg] = "svc_goldsrc_newusermsg",
+	[svc_goldsrc_newmovevars] = "svc_goldsrc_newmovevars",*/
 	[svc_goldsrc_sendextrainfo] = "svc_goldsrc_sendextrainfo",
 	[svc_goldsrc_timescale] = "svc_goldsrc_timescale",
-	[svc_goldsrc_sendcvarvalue] = "svc_goldsrc_sendcvarvalue",
-	[svc_goldsrc_sendcvarvalue2] = "svc_goldsrc_sendcvarvalue2",
+	/*[svc_goldsrc_sendcvarvalue] = "svc_goldsrc_sendcvarvalue",
+	[svc_goldsrc_sendcvarvalue2] = "svc_goldsrc_sendcvarvalue2",*/
 	};
 
 // [FWGS, 01.12.24]

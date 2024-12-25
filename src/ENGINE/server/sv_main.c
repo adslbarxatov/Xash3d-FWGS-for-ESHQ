@@ -153,8 +153,13 @@ static CVAR_DEFINE_AUTO (sv_waterfriction, "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"how fast you slow down in water");
 static CVAR_DEFINE_AUTO (sv_bounce, "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"bounce factor for entities with MOVETYPE_BOUNCE");
-static CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_SERVER | FCVAR_MOVEVARS,
-	"how high you and NPS's can step up");
+
+// [FWGS, 25.12.24]
+/*static CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_SERVER | FCVAR_MOVEVARS,
+	"how high you and NPS's can step up");*/
+CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_SERVER | FCVAR_MOVEVARS,
+	"how high you and NPC's can step up");
+
 CVAR_DEFINE_AUTO (sv_maxvelocity, "2000", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"max velocity for all things in the world");
 
@@ -1233,7 +1238,7 @@ static void SV_FreeClients (void)
 
 /***
 ================
-SV_Shutdown
+SV_Shutdown [FWGS, 25.12.24]
 
 Called when each game quits, before Sys_Quit or Sys_Error
 ================
@@ -1247,11 +1252,14 @@ void SV_Shutdown (const char *finalmsg)
 		if (CL_IsPlaybackDemo ())
 			CL_Drop ();
 
-#if XASH_WIN32
+		/*if XASH_WIN32
 		SV_UnloadProgs ();
-#endif
+		endif*/
 		return;
 		}
+
+	// don't forget to reset sv_background state
+	Cvar_FullSet ("sv_background", "0", FCVAR_READ_ONLY);
 
 	if (COM_CheckString (finalmsg))
 		Con_Printf ("%s", finalmsg);
@@ -1268,9 +1276,9 @@ void SV_Shutdown (const char *finalmsg)
 	NET_Config (false, false);
 	SV_DeactivateServer ();
 
-#if XASH_WIN32
+	/*if XASH_WIN32
 	SV_UnloadProgs ();
-#endif
+	endif*/
 
 	CL_Drop ();
 
@@ -1280,7 +1288,7 @@ void SV_Shutdown (const char *finalmsg)
 	SV_FreeClients ();
 	svs.maxclients = 0;
 
-	// [FWGS, 01.07.24] release test packet blob
+	// release test packet blob
 	SV_FreeTestPacket ();
 
 	// release all models

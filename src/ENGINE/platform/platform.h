@@ -29,12 +29,13 @@ SYSTEM UTILS
 ==============================================================================
 ***/
 
+// [FWGS, 25.12.24]
 double Platform_DoubleTime (void);
-void Platform_Sleep (int msec);
+/*void Platform_Sleep (int msec);*/
 void Platform_ShellExecute (const char *path, const char *parms);
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow);
 void Platform_SetStatus (const char *status);
-qboolean Platform_DebuggerPresent (void);	// [FWGS, 01.05.24]
+qboolean Platform_DebuggerPresent (void);
 
 // [FWGS, 01.01.24] legacy iOS port functions
 #if TARGET_OS_IOS
@@ -172,6 +173,20 @@ static inline void Platform_SetupSigtermHandling (void)
 	{
 #if XASH_POSIX
 	Posix_SetupSigtermHandling ();
+#endif
+	}
+
+// [FWGS, 25.12.24]
+static inline void Platform_Sleep (int msec)
+	{
+#if XASH_TIMER == TIMER_SDL
+	SDL_Delay (msec);
+#elif XASH_TIMER == TIMER_POSIX
+	usleep (msec * 1000);
+#elif XASH_TIMER == TIMER_WIN32
+	Sleep (msec);
+#else
+	// stub
 #endif
 	}
 
