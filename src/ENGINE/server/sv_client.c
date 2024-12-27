@@ -1566,10 +1566,10 @@ static void SV_PutClientInServer (sv_client_t *cl)
 		svgame.globals->time = sv.time;
 		svgame.dllFuncs.pfnClientPutInServer (ent);
 
-		if (sv.background)	// don't attack player in background mode
+		if (sv.background)		// don't attack player in background mode
 			SetBits (ent->v.flags, FL_GODMODE | FL_NOTARGET);
 
-		cl->pViewEntity = NULL; // reset pViewEntity
+		cl->pViewEntity = NULL;	// reset pViewEntity
 		}
 
 	if (svgame.globals->cdAudioTrack)
