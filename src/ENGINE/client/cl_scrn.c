@@ -263,7 +263,7 @@ void SCR_DrawUserCmd (void)
 		if ((cls.state != ca_active) || (!cl_showcmd.value))
 			return;
 
-		for (i = 0; i < ARRAYSIZE (buttons); i++)
+		for (i = 0; i < HLARRAYSIZE (buttons); i++)
 			{
 			rgba_t rgba;
 
@@ -800,7 +800,7 @@ void SCR_LoadCreditsFont (void)
 
 		clgame.scrInfo.iCharHeight = cls.creditsFont.charHeight;
 
-		for (i = 0; i < ARRAYSIZE (cls.creditsFont.charWidths); i++)
+		for (i = 0; i < HLARRAYSIZE (cls.creditsFont.charWidths); i++)
 			clgame.scrInfo.charWidths[i] = cls.creditsFont.charWidths[i];
 		}
 	else

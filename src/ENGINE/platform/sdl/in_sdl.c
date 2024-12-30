@@ -305,7 +305,7 @@ void SDLash_FreeCursors (void)
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	int i = 0;
 
-	for (; i < ARRAYSIZE (cursors.cursors); i++)
+	for (; i < HLARRAYSIZE (cursors.cursors); i++)
 		{
 		if (cursors.cursors[i])
 			SDL_FreeCursor (cursors.cursors[i]);

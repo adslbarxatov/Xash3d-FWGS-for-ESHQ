@@ -16,7 +16,7 @@ GNU General Public License for more details
 #include <math.h>	// fabs...
 #include "common.h"
 #include "base_cmd.h"
-#include "eiface.h" // ARRAYSIZE
+#include "eiface.h" // HLARRAYSIZE
 
 // [FWGS, 01.12.24]
 /*convar_t *cvar_vars = NULL; // head of list*/
@@ -1064,7 +1064,7 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	if (FBitSet (v->flags, FCVAR_FILTERABLE))
 		return false;
 
-	for (i = 0; i < ARRAYSIZE (prefixes); i++)
+	for (i = 0; i < HLARRAYSIZE (prefixes); i++)
 		{
 		if (!Q_strnicmp (v->name, prefixes[i], Q_strlen (prefixes[i])))
 			return false;
@@ -1453,7 +1453,7 @@ void Cvar_PostFSInit (void)
 	{
 	int i;
 
-	for (i = 0; i < ARRAYSIZE (cvar_filter_quirks); i++)
+	for (i = 0; i < HLARRAYSIZE (cvar_filter_quirks); i++)
 		{
 		if (!Q_stricmp (cvar_filter_quirks[i].gamedir, GI->gamefolder))
 			{

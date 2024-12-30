@@ -322,7 +322,7 @@ static void Sys_PrintBugcompUsage (const char *exename)
 	Sys_MakeVersionString (version_str, sizeof (version_str));
 
 	p += Q_snprintf (p, sizeof (usage_str) - (usage_str - p), "Known bugcomp flags are:\n");
-	for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+	for (i = 0; i < HLARRAYSIZE (bugcomp_features); i++)
 		p += Q_snprintf (p, sizeof (usage_str) - (usage_str - p), " %s: %s\n", bugcomp_features[i].arg,
 			bugcomp_features[i].msg);
 
@@ -398,7 +398,7 @@ void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features)
 		SetBits (features, ENGINE_STEP_POSHISTORY_LERP);
 
 	// print requested first
-	Host_PrintFeatures (features, "EXT", engine_features, ARRAYSIZE (engine_features));
+	Host_PrintFeatures (features, "EXT", engine_features, HLARRAYSIZE (engine_features));
 
 	// now warn about incompatible bits
 	if (FBitSet (features, ENGINE_STEP_POSHISTORY_LERP | ENGINE_COMPUTE_STUDIO_LERP) ==
@@ -592,7 +592,7 @@ static void Host_Exec_f (void)
 		Q_snprintf (temp, sizeof (temp), "%s.cfg", clgame.mapname);
 		unprivilegedWhitelist[0] = temp;
 
-		for (i = 0; i < ARRAYSIZE (unprivilegedWhitelist); i++)
+		for (i = 0; i < HLARRAYSIZE (unprivilegedWhitelist); i++)
 			{
 			if (!Q_strcmp (cfgpath, unprivilegedWhitelist[i]))
 				{
@@ -1124,13 +1124,13 @@ static int Host_CheckBugcomp_splitstr_handler (char *prev, char *next, void *use
 		return 0;
 
 	/*if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha (args[0]))*/
-	for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+	for (i = 0; i < HLARRAYSIZE (bugcomp_features); i++)
 		{
 		/*for (prev = args, next = Q_strchrnul (prev, '+'); ; prev = next + 1, next = Q_strchrnul (prev, '+'))*/
 		if (!Q_stricmp (bugcomp_features[i].arg, prev))
 			{
 			/*Q_strncpy (arg, prev, next - prev + 1);
-			for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+			for (i = 0; i < ARRAY SIZE (bugcomp_features); i++)
 				{
 				if (!Q_stricmp (bugcomp_features[i].arg, arg))
 					{
@@ -1143,18 +1143,18 @@ static int Host_CheckBugcomp_splitstr_handler (char *prev, char *next, void *use
 			}
 		}
 
-	/*if (i == ARRAYSIZE (bugcomp_features))
+	/*if (i == ARRAY SIZE (bugcomp_features))
 				{
 				Con_Printf (S_ERROR "Unknown bugcomp flag %s\n", arg);
 				Con_Printf ("Valid flags are:\n");
-				for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+				for (i = 0; i < ARRAY SIZE (bugcomp_features); i++)
 					Con_Printf ("\t%s: %s\n", bugcomp_features[i].arg, bugcomp_features[i].msg);
 				}*/
-	if (i == ARRAYSIZE (bugcomp_features))
+	if (i == HLARRAYSIZE (bugcomp_features))
 		{
 		Con_Printf (S_ERROR "Unknown bugcomp flag %s\n", prev);
 		Con_Printf ("Valid flags are:\n");
-		for (i = 0; i < ARRAYSIZE (bugcomp_features); i++)
+		for (i = 0; i < HLARRAYSIZE (bugcomp_features); i++)
 			Con_Printf ("\t%s: %s\n", bugcomp_features[i].arg, bugcomp_features[i].msg);
 		}
 	
@@ -1183,7 +1183,7 @@ static uint32_t Host_CheckBugcomp (void)
 		flags = -1;
 		}
 
-	Host_PrintFeatures (flags, "BUGCOMP", bugcomp_features, ARRAYSIZE (bugcomp_features));
+	Host_PrintFeatures (flags, "BUGCOMP", bugcomp_features, HLARRAYSIZE (bugcomp_features));
 	return flags;
 	}
 

@@ -757,7 +757,7 @@ static void SDLash_EventHandler (SDL_Event *event)
 			if (!Joy_IsActive ())
 				break;
 
-			if ((event->caxis.axis >= 0) && (event->caxis.axis < ARRAYSIZE (SDLash_GameControllerAxisMapping)))
+			if ((event->caxis.axis >= 0) && (event->caxis.axis < HLARRAYSIZE (SDLash_GameControllerAxisMapping)))
 				Joy_KnownAxisMotionEvent (SDLash_GameControllerAxisMapping[event->caxis.axis], event->caxis.value);
 			break;
 			}
@@ -765,11 +765,10 @@ static void SDLash_EventHandler (SDL_Event *event)
 		case SDL_CONTROLLERBUTTONDOWN:
 		case SDL_CONTROLLERBUTTONUP:
 			{
-			// [FWGS, 01.04.23]
 			if (!Joy_IsActive ())
 				break;
 
-			if ((event->cbutton.button >= 0) && (event->cbutton.button < ARRAYSIZE (SDLash_GameControllerButtonMapping)))
+			if ((event->cbutton.button >= 0) && (event->cbutton.button < HLARRAYSIZE (SDLash_GameControllerButtonMapping)))
 				Key_Event (SDLash_GameControllerButtonMapping[event->cbutton.button], event->cbutton.state);
 			break;
 			}

@@ -510,7 +510,7 @@ void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audi
 		return;
 
 	// convert to wide char [FWGS, 01.05.23]
-	if (MultiByteToWideChar (CP_UTF8, 0, filename, -1, pathBuffer, ARRAYSIZE (pathBuffer)) <= 0)
+	if (MultiByteToWideChar (CP_UTF8, 0, filename, -1, pathBuffer, HLARRAYSIZE (pathBuffer)) <= 0)
 		{
 		Con_DPrintf (S_ERROR "filename buffer limit exceeded\n");
 		return;

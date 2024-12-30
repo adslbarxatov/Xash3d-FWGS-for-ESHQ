@@ -3868,7 +3868,7 @@ qboolean CL_PrecacheResources (void)
 		}
 
 	// then we set up all the world submodels
-	for (pRes = cl.resourcesonhand.pNext; pRes && pRes != &cl.resourcesonhand; pRes = pRes->pNext)
+	for (pRes = cl.resourcesonhand.pNext; pRes && (pRes != &cl.resourcesonhand); pRes = pRes->pNext)
 		{
 		if (FBitSet (pRes->ucFlags, RES_PRECACHED))
 			continue;
@@ -3896,17 +3896,17 @@ qboolean CL_PrecacheResources (void)
 		S_BeginRegistration ();
 
 	// precache all the remaining resources where order is doesn't matter
-	for (pRes = cl.resourcesonhand.pNext; pRes && pRes != &cl.resourcesonhand; pRes = pRes->pNext)
+	for (pRes = cl.resourcesonhand.pNext; pRes && (pRes != &cl.resourcesonhand); pRes = pRes->pNext)
 		{
 		if (FBitSet (pRes->ucFlags, RES_PRECACHED))
 			continue;
 
 		switch (pRes->type)
 			{
+			// [FWGS, 30.12.24] участок заменён на фрагмент из материнской сборки
 			case t_sound:
-				/*if (pRes->nIndex != -1)*/
-				if ((pRes->nIndex >= 0) && (pRes->nIndex < ARRAYSIZE (cl.sound_precache)) &&
-					(pRes->nIndex < ARRAYSIZE (cl.sound_index)))
+				if ((pRes->nIndex >= 0) && (pRes->nIndex < HLARRAYSIZE (cl.sound_precache)) &&
+					(pRes->nIndex < HLARRAYSIZE (cl.sound_index)))
 					{
 					if (FBitSet (pRes->ucFlags, RES_WASMISSING))
 						{
@@ -3943,7 +3943,7 @@ qboolean CL_PrecacheResources (void)
 			case t_model:
 				/*cl.nummodels = Q_max (cl.nummodels, pRes->nIndex + 1);
 				if (pRes->szFileName[0] != '*')*/
-				if ((pRes->nIndex >= 0) && (pRes->nIndex < ARRAYSIZE (cl.models)))
+				if ((pRes->nIndex >= 0) && (pRes->nIndex < HLARRAYSIZE (cl.models)))
 					{
 					/*if (pRes->nIndex != -1)*/
 					cl.nummodels = Q_max (cl.nummodels, pRes->nIndex + 1);
@@ -3986,14 +3986,14 @@ qboolean CL_PrecacheResources (void)
 			case t_decal:
 				/*if (!FBitSet (pRes->ucFlags, RES_CUSTOM))*/
 				if (!FBitSet (pRes->ucFlags, RES_CUSTOM) && (pRes->nIndex >= 0) &&
-					(pRes->nIndex < ARRAYSIZE (host.draw_decals)))
+					(pRes->nIndex < HLARRAYSIZE (host.draw_decals)))
 					Q_strncpy (host.draw_decals[pRes->nIndex], pRes->szFileName, sizeof (host.draw_decals[0]));
 				break;
 
 			case t_generic:
 				/*Q_strncpy (cl.files_precache[pRes->nIndex], pRes->szFileName, sizeof (cl.files_precache[0]));
 				cl.numfiles = Q_max (cl.numfiles, pRes->nIndex + 1);*/
-				if ((pRes->nIndex >= 0) && (pRes->nIndex < ARRAYSIZE (cl.files_precache)))
+				if ((pRes->nIndex >= 0) && (pRes->nIndex < HLARRAYSIZE (cl.files_precache)))
 					{
 					Q_strncpy (cl.files_precache[pRes->nIndex], pRes->szFileName, sizeof (cl.files_precache[0]));
 					cl.numfiles = Q_max (cl.numfiles, pRes->nIndex + 1);
@@ -4003,7 +4003,7 @@ qboolean CL_PrecacheResources (void)
 			case t_eventscript:
 				/*Q_strncpy (cl.event_precache[pRes->nIndex], pRes->szFileName, sizeof (cl.event_precache[0]));
 				CL_SetEventIndex (cl.event_precache[pRes->nIndex], pRes->nIndex);*/
-				if ((pRes->nIndex >= 0) && (pRes->nIndex < ARRAYSIZE (cl.event_precache)))
+				if ((pRes->nIndex >= 0) && (pRes->nIndex < HLARRAYSIZE (cl.event_precache)))
 					{
 					Q_strncpy (cl.event_precache[pRes->nIndex], pRes->szFileName, sizeof (cl.event_precache[0]));
 					CL_SetEventIndex (cl.event_precache[pRes->nIndex], pRes->nIndex);

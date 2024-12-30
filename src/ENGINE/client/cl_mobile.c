@@ -75,7 +75,7 @@ static int pfnDrawScaledCharacter (int x, int y, int number, int r, int g, int b
 		g_scaled_font = cls.creditsFont;
 		g_scaled_font.scale *= scale;
 		g_scaled_font.charHeight *= scale;
-		for (i = 0; i < ARRAYSIZE (g_scaled_font.charWidths); i++)
+		for (i = 0; i < HLARRAYSIZE (g_scaled_font.charWidths); i++)
 			g_scaled_font.charWidths[i] *= scale;
 
 		g_font_scale = scale;

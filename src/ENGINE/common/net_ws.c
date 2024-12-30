@@ -1560,7 +1560,7 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 		packet_count = (packet_id & 0xFF);
 		packet_number = (packet_id >> 8);
 
-		max_splits = ARRAYSIZE (net.split_flags);
+		max_splits = HLARRAYSIZE (net.split_flags);
 		}
 
 	if ((packet_number >= max_splits) || (packet_count > max_splits))
@@ -1577,7 +1577,7 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 
 		// clear part's sequence
 		/*for (i = 0; i < NET_MAX_FRAGMENTS; i++)*/
-		for (i = 0; i < ARRAYSIZE (net.split_flags); i++)
+		for (i = 0; i < HLARRAYSIZE (net.split_flags); i++)
 			net.split_flags[i] = -1;
 
 		if (net_showpackets.value == 4.0f)

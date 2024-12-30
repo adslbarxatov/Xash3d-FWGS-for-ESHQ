@@ -47,12 +47,12 @@ static byte		filteredcmd_text_buf[MAX_CMD_BUFFER];
 static cmdbuf_t	cmd_text =
 	{
 	.data = cmd_text_buf,
-	.maxsize = ARRAYSIZE (cmd_text_buf),
+	.maxsize = HLARRAYSIZE (cmd_text_buf),
 	};
 static cmdbuf_t	filteredcmd_text =
 	{
 	.data = filteredcmd_text_buf,
-	.maxsize = ARRAYSIZE (filteredcmd_text_buf),
+	.maxsize = HLARRAYSIZE (filteredcmd_text_buf),
 	};
 static cmdalias_t	*cmd_alias;
 static uint		cmd_condition;
@@ -1006,7 +1006,7 @@ static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 	if (FBitSet (cmd->flags, CMD_FILTERABLE))
 		return false;
 
-	for (i = 0; i < ARRAYSIZE (prefixes); i++)
+	for (i = 0; i < HLARRAYSIZE (prefixes); i++)
 		{
 		if (!Q_strnicmp (cmd->name, prefixes[i], Q_strlen (prefixes[i])))
 			return false;

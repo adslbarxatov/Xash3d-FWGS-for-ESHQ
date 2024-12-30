@@ -621,7 +621,7 @@ static void Test_StringToFilterAdr (void)
 				{ "fd8a:63d5:e014:0d62:ffff:ffff:ffff:ffff:ffff", false },
 				};
 
-			for (i = 0; i < ARRAYSIZE (ipv4tests); i++)
+			for (i = 0; i < HLARRAYSIZE (ipv4tests); i++)
 				{
 				qboolean ret = NET_StringToFilterAdr (ipv4tests[i].str, &f1.adr, &f1.prefixlen);
 
@@ -637,7 +637,7 @@ static void Test_StringToFilterAdr (void)
 					}
 				}
 
-			for (i = 0; i < ARRAYSIZE (ipv6tests); i++)
+			for (i = 0; i < HLARRAYSIZE (ipv6tests); i++)
 				{
 				qboolean ret = NET_StringToFilterAdr (ipv6tests[i].str, &f1.adr, &f1.prefixlen);
 				uint8_t x[16];
@@ -698,7 +698,7 @@ static void Test_IPFilterIncludesIPFilter (void)
 		NET_StringToFilterAdr (adrs[i], &f[i].adr, &f[i].prefixlen);
 		}
 
-	for (i = 0; i < ARRAYSIZE (tests); i++)
+	for (i = 0; i < HLARRAYSIZE (tests); i++)
 		{
 		ret = SV_IPFilterIncludesIPFilter (&f[tests[i][0]], &f[tests[i][1]]);
 
@@ -706,7 +706,6 @@ static void Test_IPFilterIncludesIPFilter (void)
 		}
 	}
 
-// [FWGS, 01.04.23]
 void Test_RunIPFilter (void)
 	{
 	Test_StringToFilterAdr ();

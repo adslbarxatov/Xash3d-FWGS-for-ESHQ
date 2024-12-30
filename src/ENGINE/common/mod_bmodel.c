@@ -800,7 +800,7 @@ void Mod_PrintWorldStats_f (void)
 	Con_Printf ("Object names  Objects/Maxobjs  Memory / Maxmem  Fullness\n");
 	Con_Printf ("------------  ---------------  ---------------  --------\n");
 
-	for (i = 0; i < ARRAYSIZE (worldstats); i++)
+	for (i = 0; i < HLARRAYSIZE (worldstats); i++)
 		{
 		mlumpstat_t *stat = &worldstats[i];
 
@@ -2124,7 +2124,7 @@ static int Mod_LoadEntities_splitstr_handler (char *prev, char *next, void *user
 		wadlist->wadusage[num] = 0;
 		}
 
-	if (wadlist->count >= ARRAYSIZE (wadlist->wadnames))
+	if (wadlist->count >= HLARRAYSIZE (wadlist->wadnames))
 		return 1;
 
 	return 0;
@@ -2488,11 +2488,16 @@ static void Mod_TextureReplacementReport (const char *modelname, const char *tex
 	if (host_allow_materials.value != 2.0f)
 		return;
 
-	if (gl_texturenum > 0) // found and loaded successfully
+	// found and loaded successfully
+	if (gl_texturenum > 0)
 		Con_Printf ("Looking for %s:%s%s tex replacement..." S_GREEN "OK (%s)\n", modelname, texname, type, foundpath);
-	else if (gl_texturenum < 0) // not found
+
+	// not found
+	else if (gl_texturenum < 0)
 		Con_Printf ("Looking for %s:%s%s tex replacement..." S_YELLOW "MISS (%s)\n", modelname, texname, type, foundpath);
-	else // found but not loaded
+	
+	// found but not loaded
+	else
 		Con_Printf ("Looking for %s:%s%s tex replacement..." S_RED "FAIL (%s)\n", modelname, texname, type, foundpath);
 	}
 
@@ -2503,13 +2508,15 @@ static qboolean Mod_SearchForTextureReplacement (char *out, size_t size, const c
 	const char *subdirs[] = { modelname, "common" };
 	int i;
 
-	for (i = 0; i < ARRAYSIZE (subdirs); i++)
+	for (i = 0; i < HLARRAYSIZE (subdirs); i++)
 		{
+		// truncated name
 		if (Q_snprintf (out, size, "materials/%s/%s%s.tga", subdirs[i], texname, type) < 0)
-			continue; // truncated name
+			continue;
 
+		// found, load it
 		if (g_fsapi.FileExists (out, false))
-			return true; // found, load it
+			return true;
 		}
 
 	Mod_TextureReplacementReport (modelname, texname, type, -1, "not found");
@@ -3880,11 +3887,11 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, const byte *mod_base, qboolea
 	bmod->isbsp30ext = FBitSet (flags, LUMP_BSP30EXT);
 
 	// loading base lumps
-	for (i = 0; i < ARRAYSIZE (srclumps); i++)
+	for (i = 0; i < HLARRAYSIZE (srclumps); i++)
 		Mod_LoadLump (mod_base, &srclumps[i], &worldstats[i], flags);
 
 	// loading extralumps
-	for (i = 0; i < ARRAYSIZE (extlumps); i++)
+	for (i = 0; i < HLARRAYSIZE (extlumps); i++)
 		Mod_LoadLump (mod_base, &extlumps[i], &worldstats[ARRAYSIZE (srclumps) + i], flags);
 
 	if (!bmod->isworld && loadstat.numerrors)
@@ -4081,11 +4088,11 @@ qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base,
 		}
 
 	// loading base lumps
-	for (i = 0; i < ARRAYSIZE (srclumps); i++)
+	for (i = 0; i < HLARRAYSIZE (srclumps); i++)
 		Mod_LoadLump (mod_base, &srclumps[i], &worldstats[i], flags);
 
 	// loading extralumps
-	for (i = 0; i < ARRAYSIZE (extlumps); i++)
+	for (i = 0; i < HLARRAYSIZE (extlumps); i++)
 		Mod_LoadLump (mod_base, &extlumps[i], &worldstats[ARRAYSIZE (srclumps) + i], flags);
 
 	// [FWGS, 01.07.24]

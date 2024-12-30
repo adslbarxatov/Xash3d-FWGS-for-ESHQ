@@ -771,7 +771,7 @@ static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_sampl
 		temppaintbuffer[outpos++].right = a / 8 + b / 4 + c / 2 + x0;
 
 		/*Assert (outpos <= (sizeof (temppaintbuffer) / sizeof (temppaintbuffer[0])));*/
-		if (outpos > ARRAYSIZE (temppaintbuffer))
+		if (outpos > HLARRAYSIZE (temppaintbuffer))
 			break;
 		}
 

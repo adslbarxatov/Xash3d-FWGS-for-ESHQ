@@ -1027,7 +1027,7 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	if (Q_strlen (first) != 4)
 		return false;
 
-	for (i = 0; i < ARRAYSIZE (file_exts); i++)
+	for (i = 0; i < HLARRAYSIZE (file_exts); i++)
 		{
 		if (!Q_stricmp (ext, file_exts[i]))
 			return false;

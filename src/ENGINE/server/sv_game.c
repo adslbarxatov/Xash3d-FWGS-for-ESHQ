@@ -1600,7 +1600,7 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 		e = NUM_FOR_EDICT (pStartEdict);
 
 	/*while ((desc = SV_GetEntvarsDescirption (index++)) != NULL)*/
-	for (i = 0; i < ARRAYSIZE (gEntvarsDescription); i++)
+	for (i = 0; i < HLARRAYSIZE (gEntvarsDescription); i++)
 		{
 		/*if (!Q_strcmp (pszField, desc->fieldName))*/
 		if (!Q_strcmp (pszField, gEntvarsDescription[i].fieldName))
@@ -5185,7 +5185,7 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 		pkvd[numpairs].fHandled = false;
 		numpairs++;
 
-		if (numpairs > ARRAYSIZE (pkvd))
+		if (numpairs > HLARRAYSIZE (pkvd))
 			{
 			if (classname)
 				Con_Printf (S_ERROR "%s: too many keyvalue pairs for %s!\n", __func__, classname);

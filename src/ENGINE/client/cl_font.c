@@ -94,7 +94,7 @@ qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float sc
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (font_width / 16 * scale);
 
-	for (i = 0; i < ARRAYSIZE (font->fontRc); i++)
+	for (i = 0; i < HLARRAYSIZE (font->fontRc); i++)
 		{
 		font->fontRc[i].left = (i * font_width / 16) % font_width;
 		font->fontRc[i].right = font->fontRc[i].left + font_width / 16;
@@ -145,7 +145,7 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (src.rowheight * scale);
 
-	for (i = 0; i < ARRAYSIZE (font->fontRc); i++)
+	for (i = 0; i < HLARRAYSIZE (font->fontRc); i++)
 		{
 		const charinfo *ci = &src.fontinfo[i];
 

@@ -1494,9 +1494,18 @@ void CEnvShooter::KeyValue (KeyValueData* pkvd)
 			case 4:
 				m_iGibMaterial = matRocks;
 				break;
+			case 5:
+				m_iGibMaterial = matCinderBlock;
+				break;
+			case 6:
+				m_iGibMaterial = matComputer;
+				break;
+			case 7:
+				m_iGibMaterial = matFabric;
+				break;
 
 			default:
-			case -1:
+			/*case -1:*/
 				m_iGibMaterial = matNone;
 				break;
 			}
@@ -1510,7 +1519,7 @@ void CEnvShooter::KeyValue (KeyValueData* pkvd)
 void CEnvShooter::Precache (void)
 	{
 	m_iGibModelIndex = PRECACHE_MODEL ((char*)STRING (pev->model));
-	CBreakable::MaterialSoundPrecache ((Materials)m_iGibMaterial);
+	CBreakable::MaterialSoundPrecache ((Materials2)m_iGibMaterial);
 	}
 
 CGib* CEnvShooter::CreateGib (void)

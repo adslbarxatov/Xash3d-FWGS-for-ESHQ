@@ -75,11 +75,11 @@ static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_ST
 	int i;
 
 	// search for skybox images
-	for (i = 0; i < ARRAYSIZE (skybox_ext); i++)
+	for (i = 0; i < HLARRAYSIZE (skybox_ext); i++)
 		{
 		int j;
 
-		for (j = 0; j < ARRAYSIZE (skybox_delim); j++)
+		for (j = 0; j < HLARRAYSIZE (skybox_delim); j++)
 			{
 			int k, num_checked_sides = 0;
 
@@ -764,7 +764,7 @@ static void R_CollectRendererNames (void)
 		#endif
 		};
 
-	ref.numRenderers = ARRAYSIZE (shortNames);
+	ref.numRenderers = HLARRAYSIZE (shortNames);
 	ref.shortNames = shortNames;
 	ref.readableNames = readableNames;
 	}

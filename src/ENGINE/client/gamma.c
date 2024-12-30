@@ -206,7 +206,7 @@ byte LightToTexGamma (byte b)
 	if (FBitSet (host.features, ENGINE_LINEAR_GAMMA_SPACE))
 		return b;
 
-	if (unlikely (b > ARRAYSIZE (lightgammatable)))
+	if (unlikely (b > ARRAY SIZE (lightgammatable)))
 		return 0;
 
 	return lightgammatable[b];
@@ -218,8 +218,8 @@ uint ScreenGammaTable (uint b)
 		return b;
 
 	// [FWGS, 01.12.24]
-	/*if (unlikely (b > ARRAYSIZE (screengammatable)))*/
-	if (unlikely (b >= ARRAYSIZE (screengammatable)))
+	/*if (unlikely (b > ARRAY SIZE (screengammatable)))*/
+	if (unlikely (b >= HLARRAYSIZE (screengammatable)))
 		return 0;
 
 	return screengammatable[b];
@@ -231,8 +231,8 @@ uint LinearGammaTable (uint b)
 		return b;
 
 	// [FWGS, 01.12.24]
-	/*if (unlikely (b > ARRAYSIZE (lineargammatable)))*/
-	if (unlikely (b >= ARRAYSIZE (lineargammatable)))
+	/*if (unlikely (b > ARRAY SIZE (lineargammatable)))*/
+	if (unlikely (b >= HLARRAYSIZE (lineargammatable)))
 		return 0;
 	return lineargammatable[b];
 	}
@@ -462,7 +462,7 @@ precomputed_gamma_tables_t *Test_GetGammaTables (int i)
 	}
 		};
 
-	if (i < 0 || i >= ARRAYSIZE (precomputed_data))
+	if ((i < 0) || (i >= HLARRAYSIZE (precomputed_data)))
 		return NULL;
 
 	return &precomputed_data[i];

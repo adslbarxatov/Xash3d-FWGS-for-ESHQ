@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 /***
 ===== h_cycler.cpp ========================================================
   The Halflife Cycler Monsters
@@ -63,7 +62,7 @@ class CCycler : public CBaseMonster
 		int			m_animate;
 
 		// ESHQ: поддержка разрушаемости
-		Materials	m_Material;
+		Materials2	m_Material;
 		int			m_magnitude;
 		float		m_sizeFactor;
 		int			m_idShard;
@@ -118,7 +117,7 @@ void CCycler::KeyValue (KeyValueData *pkvd)
 		if ((i < 0) || (i >= matLastMaterial))
 			m_Material = matMetal;
 		else
-			m_Material = (Materials)i;
+			m_Material = (Materials2)i;
 
 		pkvd->fHandled = TRUE;
 		}
@@ -146,9 +145,10 @@ LINK_ENTITY_TO_CLASS (cycler_weapon, CCycler);
 void CCycler::Precache (void) 
 	{
 	const char *pGibName;
+	pGibName = CBreakable::PrecacheSounds (m_Material);
 
 	// ESHQ: обработка звуков и моделей разрушения
-	switch (m_Material)
+	/*switch (m_Material)
 		{
 		case matWood:
 			pGibName = "models/woodgibs.mdl";
@@ -203,7 +203,8 @@ void CCycler::Precache (void)
 			PRECACHE_SOUND ("debris/bustceiling1.wav");
 			PRECACHE_SOUND ("debris/bustceiling2.wav");
 			break;
-		}
+		}*/
+
 	m_idShard = PRECACHE_MODEL ((char *)pGibName);
 	}
 
@@ -309,8 +310,13 @@ void CCycler::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTy
 	else
 		pev->framerate = 0.0;
 
+	// Подмена звука
+	if (FStringNull (pev->target))
+		EMIT_SOUND (ENT (pev), CHAN_ITEM, "common/wpn_denyselect.wav", 0.4, ATTN_MEDIUM);
+
 	// ESHQ: активация привязанной цели
-	SUB_UseTargets (NULL, USE_TOGGLE, 0);
+	else
+		SUB_UseTargets (NULL, USE_TOGGLE, 0);
 	}
 
 // ESHQ: обработка звукового сопровождения
@@ -327,7 +333,10 @@ int CCycler::GetPitch (void)
 
 void CCycler::DamageSound ()
 	{
-	int pitch;
+	CBreakable::MakeDamageSound (m_Material, GetVolume (), GetPitch (), ENT (pev),
+		FBitSet (pev->spawnflags, HC_CYCLER_BREAKABLE));
+
+	/*int pitch;
 	float fvol;
 	char *rgpsz[6];
 	int i;
@@ -394,18 +403,18 @@ void CCycler::DamageSound ()
 		}
 
 	if (i)
-		EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, rgpsz[RANDOM_LONG (0, i - 1)], fvol, ATTN_MEDIUM, 0, pitch);
+		EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, rgpsz[RANDOM_LONG (0, i - 1)], fvol, ATTN_MEDIUM, 0, pitch);*/
 	}
 
-// Обработка получения урона
+// ESHQ: обработка получения урона
 int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
 	{
 	Vector vecSpot;		// shard origin
 	Vector vecVelocity;	// shard velocity
 	CBaseEntity *pEntity = NULL;
 	char cFlag = 0;
-	int pitch;
-	float fvol;
+	/*int pitch;
+	float fvol;*/
 	float ampl, freq, duration;
 
 	// Защита от посторонних обработок
@@ -421,7 +430,7 @@ int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 			pev->framerate = 1.0;
 			StudioFrameAdvance (0.1);
 			pev->framerate = 0;
-			ALERT (at_console, "sequence: %d, frame %.0f\n", pev->sequence, pev->frame);
+			/*ALERT (at_console, "sequence: %d, frame %.0f\n", pev->sequence, pev->frame);*/
 			}
 		}
 
@@ -446,7 +455,9 @@ int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 	pev->deadflag = DEAD_KILLED;
 	UTIL_Remove (this);
 
-	// ESHQ: громкость и высота теперь зависят от размера объекта
+	cFlag = CBreakable::MakeBustSound (m_Material, GetVolume (), GetPitch (), ENT (pev));
+
+	/*// ESHQ: громкость и высота теперь зависят от размера объекта
 	fvol = GetVolume ();
 	pitch = GetPitch ();
 
@@ -536,14 +547,36 @@ int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 					break;
 				}
 			break;
-		}
+		}*/
 
-	// Направление
+	/*// Направление
 	vecVelocity.x = 0;
 	vecVelocity.y = 0;
-	vecVelocity.z = 0;
+	vecVelocity.z = 0;*/
+	// Разброс обломков (armortype не равен нулю только при ударах по объекту оружием)
+	ampl = flDamage * 15.0f;
+	if (ampl > 400.0f)
+		ampl = 400.0f;
 
+	// Определение вектора атаки
+	Vector vecTemp;
+	if (pevAttacker == pevInflictor)
+		{
+		vecTemp = pevInflictor->origin - (pev->absmin + (pev->size * 0.5));
+
+		if (FBitSet (pevAttacker->flags, FL_CLIENT) &&
+			FBitSet (pev->spawnflags, SF_BREAK_CROWBAR) && (bitsDamageType & DMG_CLUB))
+			flDamage = pev->health;
+		}
+	else
+		{
+		vecTemp = pevInflictor->origin - (pev->absmin + (pev->size * 0.5));
+		}
+
+	// Запуск на сервер
+	vecVelocity = vecTemp.Normalize () * -ampl;
 	vecSpot = pev->origin + (pev->mins + pev->maxs) * 0.5;
+
 	MESSAGE_BEGIN (MSG_PVS, SVC_TEMPENTITY, vecSpot);
 	WRITE_BYTE (TE_BREAKMODEL);
 
@@ -558,8 +591,8 @@ int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 	WRITE_COORD (vecVelocity.z);
 	WRITE_BYTE (10);	// RND
 	WRITE_SHORT (m_idShard);
-	WRITE_BYTE (0);		// let client decide
-	WRITE_BYTE (25);	// 2.5 seconds
+	WRITE_BYTE (0);		// Количество
+	WRITE_BYTE (50);	// ESHQ: увеличено до 5 секунд
 	WRITE_BYTE (cFlag);
 	MESSAGE_END ();
 

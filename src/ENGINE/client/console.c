@@ -977,7 +977,7 @@ Draw a single debug line with specified height, color and time to live
 ***/
 static void Con_NXPrintfv (keydest_t key_dest, const con_nprint_t *info, const char *fmt, va_list va)
 	{
-	if ((info->index < 0) || (info->index >= ARRAYSIZE (con.notify)))
+	if ((info->index < 0) || (info->index >= HLARRAYSIZE (con.notify)))
 		return;
 
 	Q_vsnprintf (con.notify[info->index].szNotify, sizeof (con.notify[info->index].szNotify), fmt, va);
@@ -1691,7 +1691,7 @@ static void Con_DrawInput (int lines)
 
 /***
 ================
-Con_DrawDebugLines [FWGS, 01.04.23]
+Con_DrawDebugLines
 
 Custom debug messages
 ================
@@ -1710,7 +1710,7 @@ static int Con_DrawDebugLines (void)
 	defaultX = refState.width / 4;
 	fontTall = con.curFont->charHeight + 1;
 
-	for (i = 0; i < ARRAYSIZE (con.notify); i++, notify++)
+	for (i = 0; i < HLARRAYSIZE (con.notify); i++, notify++)
 		{
 		int	x, len;
 
@@ -2205,7 +2205,7 @@ static int Con_LoadSimpleConback (const char *name, int flags)
 		};
 	size_t i;
 
-	for (i = 0; i < ARRAYSIZE (paths); i++)
+	for (i = 0; i < HLARRAYSIZE (paths); i++)
 		{
 		string path;
 
@@ -2257,13 +2257,13 @@ void Con_VidInit (void)
 
 /***
 =========
-Con_InvalidateFonts [FWGS, 01.04.23]
+Con_InvalidateFonts
 =========
 ***/
 void Con_InvalidateFonts (void)
 	{
 	int i;
-	for (i = 0; i < ARRAYSIZE (con.chars); i++)
+	for (i = 0; i < HLARRAYSIZE (con.chars); i++)
 		CL_FreeFont (&con.chars[i]);
 	con.curFont = NULL;
 	}
@@ -2319,7 +2319,7 @@ static void Test_RunConHistory (void)
 	const char *testbackup = "unfinished_edit";
 	int i;
 
-	for (i = 0; i < ARRAYSIZE (strs1); i++)
+	for (i = 0; i < HLARRAYSIZE (strs1); i++)
 		{
 		Field_Set (&input, strs1[i]);
 		Con_HistoryAppend (&hist, &input);
@@ -2327,7 +2327,7 @@ static void Test_RunConHistory (void)
 
 	Field_Set (&input, testbackup);
 
-	for (i = 0; i < ARRAYSIZE (strs2); i++)
+	for (i = 0; i < HLARRAYSIZE (strs2); i++)
 		{
 		Con_HistoryUp (&hist, &input);
 		TASSERT_STR (input.buffer, strs2[i]);
@@ -2336,7 +2336,7 @@ static void Test_RunConHistory (void)
 	// check for overrun
 	Con_HistoryUp (&hist, &input);
 
-	for (i = ARRAYSIZE (strs2) - 1; i >= 0; i--)
+	for (i = HLARRAYSIZE (strs2) - 1; i >= 0; i--)
 		{
 		TASSERT_STR (input.buffer, strs2[i]);
 		Con_HistoryDown (&hist, &input);
