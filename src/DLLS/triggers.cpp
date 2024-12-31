@@ -2525,8 +2525,15 @@ void CTriggerCamera::FollowTarget ()
 	if (dy > 180)
 		dy = dy - 360;
 
-	pev->avelocity.x = dx * 40 * gpGlobals->frametime;
-	pev->avelocity.y = dy * 40 * gpGlobals->frametime;
+	if ((int)m_deceleration * (int)m_acceleration != 0)
+		{
+		pev->avelocity.x = dx * 40 * gpGlobals->frametime;
+		pev->avelocity.y = dy * 40 * gpGlobals->frametime;
+		}
+	else
+		{
+		pev->angles = vecGoal;
+		}
 
 	if (!(FBitSet (pev->spawnflags, SF_CAMERA_PLAYER_TAKECONTROL)))
 		{

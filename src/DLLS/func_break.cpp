@@ -597,20 +597,12 @@ void CBreakable::MakeDamageSound (Materials2 material, float volume, int pitch, 
 
 		// ESHQ: новые материалы
 		case matFabric:
-			/*rgpsz[0] = "player/pl_dirt1.wav";
-			rgpsz[1] = "player/pl_dirt2.wav";
-			rgpsz[2] = "player/pl_dirt3.wav";
-			rgpsz[3] = "player/pl_dirt4.wav";*/
 			i = HLARRAYSIZE (pSoundsFabric);
 			for (int j = 0; j < i; j++)
 				rgpsz[j] = (char *)pSoundsFabric[j];
-			i = 4;
 			break;
 
 		case matCeilingTile:
-			/*i = 0;
-			break;*/
-			/*default:*/
 			i = 0;
 			rgpsz[0] = "-";
 			break;
@@ -622,8 +614,8 @@ void CBreakable::MakeDamageSound (Materials2 material, float volume, int pitch, 
 
 void CBreakable::BreakTouch (CBaseEntity* pOther)
 	{
-	float flDamage;
-	entvars_t* pevToucher = pOther->pev;
+	float		flDamage;
+	entvars_t	*pevToucher = pOther->pev;
 
 	// only players can break these right now
 	if (!pOther->IsPlayer () || !IsBreakable ())

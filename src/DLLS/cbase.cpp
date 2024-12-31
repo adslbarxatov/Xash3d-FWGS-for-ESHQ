@@ -554,6 +554,7 @@ CBaseEntity* CBaseEntity::GetNextTarget (void)
 	{
 	if (FStringNull (pev->target))
 		return NULL;
+
 	edict_t* pTarget = FIND_ENTITY_BY_TARGETNAME (NULL, STRING (pev->target));
 	if (FNullEnt (pTarget))
 		return NULL;

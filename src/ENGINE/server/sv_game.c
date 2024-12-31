@@ -2202,8 +2202,8 @@ void GAME_EXPORT SV_StartSound (edict_t *ent, int chan, const char *sample, floa
 	int flags, int pitch)
 	{
 	qboolean	filter = false;
-	int	msg_dest;
-	vec3_t	origin;
+	int			msg_dest;
+	vec3_t		origin;
 
 	if (!SV_IsValidEdict (ent))
 		return;
