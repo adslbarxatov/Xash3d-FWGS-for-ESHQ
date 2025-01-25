@@ -634,12 +634,13 @@ void COM_TrimSpace (const char *source, char *dest)
 
 /***
 ==================
-COM_Nibble
+COM_Nibble [FWGS, 22.01.25]
 
 Returns the 4 bit nibble for a hex character
 ==================
 ***/
-static byte COM_Nibble (char c)
+/*static byte COM_Nibble (char c)*/
+byte COM_Nibble (char c)
 	{
 	if ((c >= '0') && (c <= '9'))
 		return (byte)(c - '0');

@@ -1432,21 +1432,21 @@ void CL_ParseBaseline (sizebuf_t *msg, connprotocol_t proto)
 
 /***
 ================
-CL_ParseLightStyle [FWGS, 01.12.24]
+CL_ParseLightStyle [FWGS, 22.01.25]
 ================
 ***/
-/*void CL_ParseLightStyle (sizebuf_t *msg)*/
 void CL_ParseLightStyle (sizebuf_t *msg, connprotocol_t proto)
 	{
 	int			style;
 	const char	*s;
-	/*float		f;*/
-	float		f = 0.0f;
+	/*float		f = 0.0f;*/
+	float		f = cl.mtime[0];
 
 	style = MSG_ReadByte (msg);
 	s = MSG_ReadString (msg);
-	/*f = MSG_ReadFloat (msg);*/
-	if (proto != PROTO_GOLDSRC)
+
+	/*if (proto != PROTO_GOLDSRC)*/
+	if ((proto != PROTO_GOLDSRC) && (proto != PROTO_QUAKE))
 		f = MSG_ReadFloat (msg);
 
 	CL_SetLightstyle (style, s, f);

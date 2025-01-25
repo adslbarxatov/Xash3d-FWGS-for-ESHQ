@@ -123,21 +123,6 @@ char *Sys_GetClipboardData (void)
 #endif
 
 // [FWGS, 25.12.24] removed Sys_Sleep
-/*
-================
-Sys_Sleep
-
-freeze application for some time
-================
-/
-void Sys_Sleep (int msec)
-	{
-	if (!msec)
-		return;
-
-	msec = Q_min (msec, 1000);
-	Platform_Sleep (msec);
-	}*/
 
 /***
 ================
@@ -213,26 +198,6 @@ void Sys_ParseCommandLine (int argc, char **argv)
 	}
 
 // [FWGS, 01.07.24] removed Sys_MergeCommandLine
-/*
-==================
-Sys_MergeCommandLine
-==================
-/
-void Sys_MergeCommandLine (void)
-	{
-	const char	*blank = "censored";
-	int		i;
-
-	if (!host.change_game)
-		return;
-
-	for (i = 0; i < host.argc; i++)
-		{
-		// second call
-		if (Host_IsDedicated () && !Q_strnicmp ("+menu_", host.argv[i], 6))
-			host.argv[i] = (char *)blank;
-		}
-	}*/
 
 /***
 ================
@@ -290,9 +255,10 @@ qboolean Sys_GetIntFromCmdLine (const char *argName, int *out)
 	return true;
 	}
 
-void Sys_SendKeyEvents (void)
+// [FWGS, 22.01.25] removed Sys_SendKeyEvents
+/*void Sys_SendKeyEvents (void)
 	{
-#if XASH_WIN32
+if XASH_WIN32
 	MSG	msg;
 
 	while (PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE))
@@ -303,16 +269,19 @@ void Sys_SendKeyEvents (void)
 		TranslateMessage (&msg);
 		DispatchMessage (&msg);
 		}
-#endif
-	}
+endif
+	}*/
 
 // =======================================================================
 // DLL'S MANAGER SYSTEM
 // =======================================================================
+
+// [FWGS, 22.01.25]
 qboolean Sys_LoadLibrary (dll_info_t *dll)
 	{
-	const dllfunc_t	*func;
-	string		errorstring;
+	/*const dllfunc_t	*func;*/
+	size_t	i;
+	string	errorstring;
 
 	// check errors
 	if (!dll)
@@ -323,15 +292,18 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 	if (!dll->name || !*dll->name)
 		return false; // nothing to load
 
-	// [FWGS, 01.07.24]
 	Con_Reportf ("%s: Loading %s", __func__, dll->name);
 
-	if (dll->fcts)
+	/*if (dll->fcts)
 		{
 		// lookup export table
 		for (func = dll->fcts; func && func->name != NULL; func++)
 			*func->func = NULL;
-		}
+		}*/
+
+	// lookup export table
+	if (dll->fcts)
+		ClearExports (dll->fcts, dll->num_fcts);
 
 	if (!dll->link)
 		dll->link = COM_LoadLibrary (dll->name, false, true); // environment pathes
@@ -344,9 +316,13 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 		}
 
 	// Get the function adresses
-	for (func = dll->fcts; func && func->name != NULL; func++)
+	/*for (func = dll->fcts; func && func->name != NULL; func++)*/
+	for (i = 0; i < dll->num_fcts; i++)
 		{
-		if (!(*func->func = Sys_GetProcAddress (dll, func->name)))
+		/*if (!(*func->func = Sys_GetProcAddress (dll, func->name)))*/
+		const dllfunc_t *func = &dll->fcts[i];
+
+		if (!(*func->func = COM_GetProcAddress (dll->link, func->name)))
 			{
 			Q_snprintf (errorstring, sizeof (errorstring), "Sys_LoadLibrary: %s missing or invalid function (%s)\n",
 				dll->name, func->name);
@@ -363,22 +339,24 @@ error:
 	if (dll->crash)
 		Sys_Error ("%s", errorstring);
 	else
-		Con_Reportf (S_ERROR  "%s", errorstring);
+		/*Con_Reportf (S_ERROR  "%s", errorstring);*/
+		Con_Reportf (S_ERROR "%s", errorstring);
 
 	return false;
 	}
 
-void *Sys_GetProcAddress (dll_info_t *dll, const char *name)
+// [FWGS, 22.01.25] removed Sys_GetProcAddress
+/*void *Sys_GetProcAddress (dll_info_t *dll, const char *name)
 	{
 	if (!dll || !dll->link) // invalid desc
 		return NULL;
 
 	return (void *)COM_GetProcAddress (dll->link, name);
-	}
+	}*/
 
 qboolean Sys_FreeLibrary (dll_info_t *dll)
 	{
-	// invalid desc or alredy freed
+	// invalid desc or already freed
 	if (!dll || !dll->link)
 		return false;
 
@@ -395,6 +373,9 @@ qboolean Sys_FreeLibrary (dll_info_t *dll)
 
 	COM_FreeLibrary (dll->link);
 	dll->link = NULL;
+
+	// [FWGS, 22.01.25]
+	ClearExports (dll->fcts, dll->num_fcts);
 
 	return true;
 	}
@@ -516,7 +497,9 @@ void Sys_Error (const char *error, ...)
 		Sys_WaitForQuit ();
 		}
 
-	Sys_Quit ();
+	// [FWGS, 22.01.25]
+	/*Sys_Quit ();*/
+	Sys_Quit ("caught an error");
 	}
 
 #if XASH_EMSCRIPTEN
@@ -535,12 +518,14 @@ void my_exit (int ret)
 
 /***
 ================
-Sys_Quit
+Sys_Quit [FWGS, 22.01.25]
 ================
 ***/
-void Sys_Quit (void)
+/*void Sys_Quit (void)*/
+void Sys_Quit (const char *reason)
 	{
-	Host_Shutdown ();
+	/*Host_Shutdown ();*/
+	Host_ShutdownWithReason (reason);
 	exit (error_on_exit);
 	}
 
@@ -625,7 +610,7 @@ void Sys_Print (const char *pMsg)
 
 /***
 ==================
-Sys_NewInstance [FWGS, 01.04.23]
+Sys_NewInstance
 
 This is a special function
 
@@ -645,7 +630,10 @@ qboolean Sys_NewInstance (const char *gamedir)
 	// just restart the entire thing
 	printf ("envSetNextLoad exe: `%s`\n", exe);
 	printf ("envSetNextLoad argv:\n`%s`\n", newargs);
-	Host_Shutdown ();
+
+	// [FWGS, 22.01.25]
+	/*Host_Shutdown ();*/
+	Host_ShutdownWithReason ("changing game");
 	envSetNextLoad (exe, newargs);
 	exit (0);
 
@@ -686,10 +674,15 @@ qboolean Sys_NewInstance (const char *gamedir)
 	newargs[i] = NULL;
 
 #if XASH_PSVITA
+
 	// under normal circumstances it's always going to be the same path
 	exe = strdup ("app0:/eboot.bin");
-	Host_Shutdown ();
+
+	// [FWGS, 22.01.25]
+	/*Host_Shutdown ();*/
+	Host_ShutdownWithReason ("changing game");
 	sceAppMgrLoadExec (exe, newargs, NULL);
+
 #else
 
 	exelen = wai_getExecutablePath (NULL, 0, NULL);
@@ -697,9 +690,12 @@ qboolean Sys_NewInstance (const char *gamedir)
 	wai_getExecutablePath (exe, exelen, NULL);
 	exe[exelen] = 0;
 
-	Host_Shutdown ();
+	// [FWGS, 22.01.25]
+	/*Host_Shutdown ();*/
+	Host_ShutdownWithReason ("changing game");
 
 	execv (exe, newargs);
+
 #endif
 
 	// if execv returned, it's probably an error

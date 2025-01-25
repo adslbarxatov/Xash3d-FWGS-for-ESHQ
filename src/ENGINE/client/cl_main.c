@@ -1246,13 +1246,14 @@ static void CL_BeginUpload_f (void)
 
 /***
 ==================
-CL_Quit_f
+CL_Quit_f [FWGS, 22.01.25]
 ==================
 ***/
 void CL_Quit_f (void)
 	{
 	CL_Disconnect ();
-	Sys_Quit ();
+	/*Sys_Quit ();*/
+	Sys_Quit ("command");
 	}
 
 /***
@@ -1734,7 +1735,7 @@ static qboolean CL_StringToProtocol (const char *s, connprotocol_t *proto)
 
 /***
 ================
-CL_Connect_f [FWGS, 01.12.24]
+CL_Connect_f
 ================
 ***/
 static void CL_Connect_f (void)
@@ -1743,27 +1744,6 @@ static void CL_Connect_f (void)
 	connprotocol_t proto = PROTO_CURRENT;
 
 	// hint to connect by using legacy protocol
-	/*if (Cmd_Argc () == 3)
-		{
-		const char *s = Cmd_Argv (2);
-
-		if (!Q_strcmp (s, "current") || !Q_strcmp (s, "49"))
-			{
-			proto = PROTO_CURRENT;
-			}
-		else if (!Q_strcmp (s, "legacy") || !Q_strcmp (s, "48"))
-			{
-			proto = PROTO_LEGACY;
-			}
-		else
-			{
-			// quake protocol only used for demos
-			// goldsrc protocol is not supported yet
-			Con_Printf ("Unknown protocol. Supported are: current, legacy\n");
-			return;
-			}
-		}
-	else if (Cmd_Argc () != 2)*/
 	if ((Cmd_Argc () == 3) && !CL_StringToProtocol (Cmd_Argv (2), &proto) && (Cmd_Argc () != 2))
 		{
 		Con_Printf (S_USAGE "connect <server> [protocol]\n");
@@ -1772,9 +1752,11 @@ static void CL_Connect_f (void)
 
 	Q_strncpy (server, Cmd_Argv (1), sizeof (server));
 
-	// if running a local server, kill it and reissue
+	// [FWGS, 22.01.25] if running a local server, kill it and reissue
+	/*if (SV_Active ())
+		Host_ShutdownServer ();*/
 	if (SV_Active ())
-		Host_ShutdownServer ();
+		SV_Shutdown ("Server was killed due to connection to remote server\n");
 
 	NET_Config (true, !cl_nat.value); // allow remote
 

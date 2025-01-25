@@ -917,7 +917,7 @@ static void CL_QuakeExecStuff (void)
 
 /***
 ==================
-CL_ParseQuakeMessage [FWGS, 01.12.24]
+CL_ParseQuakeMessage
 ==================
 ***/
 void CL_ParseQuakeMessage (sizebuf_t *msg)
@@ -989,7 +989,6 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 
 			case svc_time:
 				Cbuf_AddText ("\n"); // new frame was started
-				/*CL_ParseServerTime (msg);*/
 				CL_ParseServerTime (msg, PROTO_QUAKE);
 				break;
 
@@ -1013,10 +1012,12 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				CL_ParseQuakeServerInfo (msg);
 				break;
 
+			// [FWGS, 22.01.25]
 			case svc_lightstyle:
-				param1 = MSG_ReadByte (msg);
+				/*param1 = MSG_ReadByte (msg);
 				str = MSG_ReadString (msg);
-				CL_SetLightstyle (param1, str, cl.mtime[0]);
+				CL_SetLightstyle (param1, str, cl.mtime[0]);*/
+				CL_ParseLightStyle (msg, PROTO_QUAKE);
 				break;
 
 			case svc_updatename:
@@ -1059,13 +1060,13 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 
 			case svc_spawnstatic:
-				/*CL_ParseStaticEntity (msg);*/
 				CL_ParseQuakeStaticEntity (msg);
 				break;
 
 			case svc_spawnbinary:
 				// never used in Quake
 				break;
+
 			case svc_spawnbaseline:
 				CL_ParseQuakeBaseline (msg);
 				break;
@@ -1113,6 +1114,7 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				param1 = bound (0, param1, MAX_CDTRACKS - 1); // tracknum
 				param2 = MSG_ReadByte (msg);
 				param2 = bound (0, param2, MAX_CDTRACKS - 1); // loopnum
+
 				if ((cls.demoplayback || cls.demorecording) && (cls.forcetrack != -1))
 					S_StartBackgroundTrack (clgame.cdtracks[cls.forcetrack], clgame.cdtracks[cls.forcetrack], 0, false);
 				else

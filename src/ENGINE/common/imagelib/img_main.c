@@ -15,6 +15,7 @@ GNU General Public License for more details
 
 #include <math.h>
 #include "imagelib.h"
+#include "eiface.h"		// [FWGS, 22.01.25] ARRAYSIZE
 
 // global image variables
 imglib_t	image;
@@ -62,12 +63,13 @@ typedef struct cubepack_s
 	const suffix_t *type;
 	} cubepack_t;
 
+// [FWGS, 22.01.25]
 static const cubepack_t load_cubemap[] =
 	{
 	{ "3Ds Sky1", skybox_qv1 },
 	{ "3Ds Sky2", skybox_qv2 },
 	{ "3Ds Cube", cubemap_v1 },
-	{ NULL, NULL },
+	/*{ NULL, NULL },*/
 	};
 
 // soul of ImageLib - table of image format constants
@@ -296,7 +298,7 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 
 /***
 ================
-FS_LoadImage
+FS_LoadImage [FWGS, 22.01.25]
 
 loading and unpack to rgba any known image
 ================
@@ -305,10 +307,10 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 	{
 	const char	*ext = COM_FileExtension (filename);
 	string		loadname;
-	int			i;
-	
-	const loadpixformat_t *extfmt;
-	const cubepack_t *cmap;
+	/*int			i;*/
+	int			i, j;
+	const loadpixformat_t	*extfmt;
+	/*const cubepack_t		*cmap;*/
 
 	Q_strncpy (loadname, filename, sizeof (loadname));
 	Image_Reset (); // clear old image
@@ -326,10 +328,13 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 		return ImagePack ();
 
 	// check all cubemap sides with package suffix
-	for (cmap = load_cubemap; cmap && cmap->type; cmap++)
+	/*for (cmap = load_cubemap; cmap && cmap->type; cmap++)*/
+	for (j = 0; j < HLARRAYSIZE (load_cubemap); j++)
 		{
 		for (i = 0; i < 6; i++)
 			{
+			const cubepack_t *cmap = &load_cubemap[j];
+
 			if (Image_ProbeLoad (extfmt, loadname, cmap->type[i].suf, cmap->type[i].hint))
 				FS_AddSideToPack (cmap->type[i].flags);
 

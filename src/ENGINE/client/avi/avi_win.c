@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "build.h"
@@ -24,15 +24,18 @@ static HDRAWDIB (_stdcall *pDrawDibOpen)(void);
 static BOOL (_stdcall *pDrawDibClose)(HDRAWDIB hdd);
 static BOOL (_stdcall *pDrawDibDraw)(HDRAWDIB, HDC, int, int, int, int, LPBITMAPINFOHEADER, void *, int, int, int, int, uint);
 
+// [FWGS, 22.01.25]
 static dllfunc_t msvfw_funcs[] =
 	{
 	{ "DrawDibOpen", (void **)&pDrawDibOpen },
 	{ "DrawDibDraw", (void **)&pDrawDibDraw },
 	{ "DrawDibClose", (void **)&pDrawDibClose },
-	{ NULL, NULL }
+	/*{ NULL, NULL }*/
 	};
 
-dll_info_t msvfw_dll = { "msvfw32.dll", msvfw_funcs, false };
+// [FWGS, 22.01.25]
+/*dll_info_t msvfw_dll = { "msvfw32.dll", msvfw_funcs, false };*/
+dll_info_t msvfw_dll = { "msvfw32.dll", msvfw_funcs, HLARRAYSIZE (msvfw_funcs), false };
 
 // msacm32.dll exports
 static MMRESULT (_stdcall *pacmStreamOpen)(LPHACMSTREAM, HACMDRIVER, LPWAVEFORMATEX, LPWAVEFORMATEX, LPWAVEFILTER, DWORD, DWORD, DWORD);
@@ -42,6 +45,7 @@ static MMRESULT (_stdcall *pacmStreamConvert)(HACMSTREAM, LPACMSTREAMHEADER, DWO
 static MMRESULT (_stdcall *pacmStreamSize)(HACMSTREAM, DWORD, LPDWORD, DWORD);
 static MMRESULT (_stdcall *pacmStreamClose)(HACMSTREAM, DWORD);
 
+// [FWGS, 22.01.25]
 static dllfunc_t msacm_funcs[] =
 	{
 	{ "acmStreamOpen", (void **)&pacmStreamOpen },
@@ -50,10 +54,12 @@ static dllfunc_t msacm_funcs[] =
 	{ "acmStreamConvert", (void **)&pacmStreamConvert },
 	{ "acmStreamSize", (void **)&pacmStreamSize },
 	{ "acmStreamClose", (void **)&pacmStreamClose },
-	{ NULL, NULL }
+	/*{ NULL, NULL }*/
 	};
 
-dll_info_t msacm_dll = { "msacm32.dll", msacm_funcs, false };
+// [FWGS, 22.01.25]
+/*dll_info_t msacm_dll = { "msacm32.dll", msacm_funcs, false };*/
+dll_info_t msacm_dll = { "msacm32.dll", msacm_funcs, HLARRAYSIZE (msacm_funcs), false };
 
 // avifil32.dll exports
 static int (_stdcall *pAVIStreamInfo)(PAVISTREAM pavi, AVISTREAMINFO *psi, LONG lSize);
@@ -64,7 +70,7 @@ static int (_stdcall *pAVIStreamTimeToSample)(PAVISTREAM pavi, LONG lTime);
 static void *(_stdcall *pAVIStreamGetFrame)(PGETFRAME pg, LONG lPos);
 static int (_stdcall *pAVIStreamGetFrameClose)(PGETFRAME pg);
 static dword (_stdcall *pAVIStreamRelease)(PAVISTREAM pavi);
-static int (_stdcall *pAVIFileOpenW)(PAVIFILE *ppfile, LPCWSTR szFile, UINT uMode, LPCLSID lpHandler);	// [FWGS, 01.05.23]
+static int (_stdcall *pAVIFileOpenW)(PAVIFILE *ppfile, LPCWSTR szFile, UINT uMode, LPCLSID lpHandler);
 static int (_stdcall *pAVIFileGetStream)(PAVIFILE pfile, PAVISTREAM *ppavi, DWORD fccType, LONG lParam);
 static int (_stdcall *pAVIStreamReadFormat)(PAVISTREAM pavi, LONG lPos, LPVOID lpFormat, LONG *lpcbFormat);
 static int (_stdcall *pAVIStreamStart)(PAVISTREAM pavi);
@@ -72,12 +78,13 @@ static dword (_stdcall *pAVIFileRelease)(PAVIFILE pfile);
 static void (_stdcall *pAVIFileInit)(void);
 static void (_stdcall *pAVIFileExit)(void);
 
+// [FWGS, 22.01.25]
 static dllfunc_t avifile_funcs[] =
 	{
 	{ "AVIFileExit", (void **)&pAVIFileExit },
 	{ "AVIFileGetStream", (void **)&pAVIFileGetStream },
 	{ "AVIFileInit", (void **)&pAVIFileInit },
-	{ "AVIFileOpenW", (void **)&pAVIFileOpenW },	// [FWGS, 01.05.23]
+	{ "AVIFileOpenW", (void **)&pAVIFileOpenW },
 	{ "AVIFileRelease", (void **)&pAVIFileRelease },
 	{ "AVIStreamGetFrame", (void **)&pAVIStreamGetFrame },
 	{ "AVIStreamGetFrameClose", (void **)&pAVIStreamGetFrameClose },
@@ -88,50 +95,52 @@ static dllfunc_t avifile_funcs[] =
 	{ "AVIStreamRelease", (void **)&pAVIStreamRelease },
 	{ "AVIStreamStart", (void **)&pAVIStreamStart },
 	{ "AVIStreamTimeToSample", (void **)&pAVIStreamTimeToSample },
-	{ NULL, NULL }
+	/*{ NULL, NULL }*/
 	};
 
-dll_info_t avifile_dll = { "avifil32.dll", avifile_funcs, false };
+// [FWGS, 22.01.25]
+/*dll_info_t avifile_dll = { "avifil32.dll", avifile_funcs, false };*/
+dll_info_t avifile_dll = { "avifil32.dll", avifile_funcs, HLARRAYSIZE (avifile_funcs), false };
 
 typedef struct movie_state_s
 	{
 	qboolean		active;
-	qboolean		quiet;		// ignore error messages
+	qboolean		quiet;			// ignore error messages
 
-	PAVIFILE		pfile;		// avi file pointer
-	PAVISTREAM	video_stream;	// video stream pointer
+	PAVIFILE		pfile;			// avi file pointer
+	PAVISTREAM		video_stream;	// video stream pointer
 	PGETFRAME		video_getframe;	// pointer to getframe object for video stream
-	int		video_frames;	// total frames
-	int		video_xres;	// video stream resolution
-	int		video_yres;
-	float		video_fps;	// video stream fps
+	int			video_frames;		// total frames
+	int			video_xres;			// video stream resolution
+	int			video_yres;
+	float		video_fps;			// video stream fps
 
-	PAVISTREAM	audio_stream;	// audio stream pointer
-	WAVEFORMAT *audio_header;	// audio stream header
-	int		audio_header_size;	// WAVEFORMAT is returned for PCM data; WAVEFORMATEX for others
-	int		audio_codec;	// WAVE_FORMAT_PCM is oldstyle: anything else needs conversion
-	int		audio_length;	// in converted samples
-	int		audio_bytes_per_sample; // guess.
+	PAVISTREAM	audio_stream;		// audio stream pointer
+	WAVEFORMAT	*audio_header;		// audio stream header
+	int			audio_header_size;	// WAVEFORMAT is returned for PCM data; WAVEFORMATEX for others
+	int			audio_codec;		// WAVE_FORMAT_PCM is oldstyle: anything else needs conversion
+	int			audio_length;		// in converted samples
+	int			audio_bytes_per_sample;		// guess
 
 	// compressed audio specific data
-	dword		cpa_blockalign;	// block size to read
+	dword		cpa_blockalign;		// block size to read
 	HACMSTREAM	cpa_conversion_stream;
 	ACMSTREAMHEADER	cpa_conversion_header;
-	byte *cpa_srcbuffer;	// maintained buffer for raw data
-	byte *cpa_dstbuffer;
+	byte		*cpa_srcbuffer;		// maintained buffer for raw data
+	byte		*cpa_dstbuffer;
 
-	dword		cpa_blocknum;	// current block
-	dword		cpa_blockpos;	// read position in current block
+	dword		cpa_blocknum;		// current block
+	dword		cpa_blockpos;		// read position in current block
 	dword		cpa_blockoffset;	// corresponding offset in bytes in the output stream
 
 	// for additional unpack Ms-RLE codecs etc
-	HDC		hDC;		// compatible DC
-	HDRAWDIB		hDD;		// DrawDib handler
-	HBITMAP		hBitmap;		// for DIB conversions
-	byte *pframe_data;	// converted framedata
+	HDC			hDC;				// compatible DC
+	HDRAWDIB	hDD;				// DrawDib handler
+	HBITMAP		hBitmap;			// for DIB conversions
+	byte		*pframe_data;		// converted framedata
 	} movie_state_t;
 
-static qboolean		avi_initialized = false;
+static qboolean			avi_initialized = false;
 static movie_state_t	avi[2];
 
 // Converts a compressed audio stream into uncompressed PCM

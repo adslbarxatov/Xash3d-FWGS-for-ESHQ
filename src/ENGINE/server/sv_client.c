@@ -20,7 +20,6 @@ GNU General Public License for more details
 #include "net_api.h"
 
 // [FWGS, 01.12.24]
-/*const char *clc_strings[clc_lastmsg + 1] =*/
 const char *const clc_strings[clc_lastmsg + 1] =
 	{
 	"clc_bad",
@@ -29,12 +28,9 @@ const char *const clc_strings[clc_lastmsg + 1] =
 	"clc_stringcmd",
 	"clc_delta",
 	"clc_resourcelist",
-	/*"clc_unused6",*/
 	"clc_legacy_userinfo",
 	"clc_fileconsistency",
 	"clc_voicedata",
-	/*"clc_cvarvalue",
-	"clc_cvarvalue2",*/
 	"clc_cvarvalue/clc_goldsrc_hltv",
 	"clc_cvarvalue2/clc_goldsrc_requestcvarvalue",
 	"clc_goldsrc_requestcvarvalue2",
@@ -3201,70 +3197,79 @@ static qboolean SV_EntGetVars_f (sv_client_t *cl)
 	return true;
 	}
 
-// [FWGS, 01.12.24]
-/*ucmd_t ucmds[] =*/
+// [FWGS, 22.01.25]
 static const ucmd_t ucmds[] =
 	{
-	{ "new", SV_New_f },
-	{ "god", SV_Godmode_f },
-	{ "kill", SV_Kill_f },
-	{ "begin", SV_Begin_f },
-	{ "spawn", SV_Spawn_f },
-	{ "pause", SV_Pause_f },
-	{ "noclip", SV_Noclip_f },
-	{ "setinfo", SV_SetInfo_f },
-	{ "sendres", SV_SendRes_f },
-	{ "notarget", SV_Notarget_f },
-	{ "info", SV_ShowServerinfo_f },
-	{ "dlfile", SV_DownloadFile_f },
-	{ "disconnect", SV_Disconnect_f },
-	{ "userinfo", SV_UpdateUserinfo_f },
-	{ "_sv_build_info", SV_SendBuildInfo_f },
-	{ NULL, NULL }
+	{ "new", SV_New_f			},
+	{ "god", SV_Godmode_f		},
+	{ "kill", SV_Kill_f			},
+	{ "begin", SV_Begin_f		},
+	{ "spawn", SV_Spawn_f		},
+	{ "pause", SV_Pause_f		},
+	{ "noclip", SV_Noclip_f		},
+	{ "setinfo", SV_SetInfo_f	},
+	{ "sendres", SV_SendRes_f	},
+	{ "notarget", SV_Notarget_f	},
+	{ "info", SV_ShowServerinfo_f		},
+	{ "dlfile", SV_DownloadFile_f		},
+	{ "disconnect", SV_Disconnect_f		},
+	{ "userinfo", SV_UpdateUserinfo_f	},
+	{ "_sv_build_info", SV_SendBuildInfo_f	},
+	/*{ NULL, NULL }*/
 	};
 
-// [FWGS, 01.12.24]
-/*ucmd_t enttoolscmds[] =*/
+// [FWGS, 22.01.25]
 static const ucmd_t enttoolscmds[] =
 	{
-	{ "ent_list", SV_EntList_f },
-	{ "ent_info", SV_EntInfo_f },
-	{ "ent_fire", SV_EntFire_f },
-	{ "ent_create", SV_EntCreate_f },
-	{ "ent_getvars", SV_EntGetVars_f },
-	{ NULL, NULL }
+	{ "ent_list", SV_EntList_f			},
+	{ "ent_info", SV_EntInfo_f			},
+	{ "ent_fire", SV_EntFire_f			},
+	{ "ent_create", SV_EntCreate_f		},
+	{ "ent_getvars", SV_EntGetVars_f	},
+	/*{ NULL, NULL }*/
 	};
 
 // [FWGS, 01.07.23] removed SV_TSourceEngineQuery
 
 /***
 ==================
-SV_ExecuteUserCommand [FWGS, 01.12.24]
+SV_ExecuteClientCommand [FWGS, 22.01.25]
 ==================
 ***/
 static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 	{
-	/*ucmd_t *u;*/
-	const ucmd_t *u;
+	/*const ucmd_t *u;*/
+	int	i;
 
 	Cmd_TokenizeString (s);
 
-	for (u = ucmds; u->name; u++)
+	/*for (u = ucmds; u->name; u++)*/
+	for (i = 0; i < HLARRAYSIZE (ucmds); i++)
 		{
+		const ucmd_t *u = &ucmds[i];
+
 		if (!Q_strcmp (Cmd_Argv (0), u->name))
 			{
 			if (!u->func (cl))
 				Con_Printf ("'%s' is not valid from the console\n", u->name);
+			/*else
+				Con_Reportf ("ucmd->%s()\n", u->name);
+			break;*/
 			else
 				Con_Reportf ("ucmd->%s()\n", u->name);
-			break;
+
+			return;
 			}
 		}
 
-	if (!u->name && (sv_enttools_enable.value > 0.0f) && !sv.background)
+	/*if (!u->name && (sv_enttools_enable.value > 0.0f) && !sv.background)*/
+	if ((sv_enttools_enable.value > 0.0f) && !sv.background)
 		{
-		for (u = enttoolscmds; u->name; u++)
+		/*for (u = enttoolscmds; u->name; u++)*/
+		for (i = 0; i < HLARRAYSIZE (enttoolscmds); i++)
 			{
+			const ucmd_t *u = &enttoolscmds[i];
+
 			if (!Q_strcmp (Cmd_Argv (0), u->name))
 				{
 				Con_Reportf ("enttools->%s(): %s\n", u->name, s);
@@ -3274,12 +3279,14 @@ static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 				if (u->func)
 					u->func (cl);
 
-				break;
+				/*break;*/
+				return;
 				}
 			}
 		}
 
-	if (!u->name && (sv.state == ss_active))
+	/*if (!u->name && (sv.state == ss_active))*/
+	if (sv.state == ss_active)
 		{
 		qboolean fullupdate = !Q_strcmp (Cmd_Argv (0), "fullupdate");
 
@@ -3321,19 +3328,13 @@ Clients that are in the game can still send connectionless packets
 ***/
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 	{
-	/*char		*args;
-	const char	*pcmd;
-	char		buf[MAX_SYSPATH];
-	int			len = sizeof (buf);*/
 	const char *pcmd, *args;
 
 	// prevent flooding from banned address
-	/*if (SV_CheckIP (&from))*/
 	if (SV_CheckIP (&from))
 		return;
 
 	MSG_Clear (msg);
-	/*MSG_ReadLong (msg);// skip the -1 marker*/
 	MSG_SeekToBit (msg, sizeof (uint32_t) << 3, SEEK_CUR); // skip the -1 marker
 
 	args = MSG_ReadStringLine (msg);

@@ -34,7 +34,7 @@ enum
 	DELTA_STATIC,
 	};
 
-// [FWGS, 01.12.24]
+// [FWGS, 22.01.25]
 enum
 	{
 	DT_EVENT_T = 0,
@@ -48,7 +48,7 @@ enum
 #if XASH_ENGINE_TESTS
 	DT_DELTA_TEST_STRUCT_T,
 #endif
-	DT_STRUCT_COUNT
+	/*DT_STRUCT_COUNT*/
 	};
 
 // struct info (filled by engine)

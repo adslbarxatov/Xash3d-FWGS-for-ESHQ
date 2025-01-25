@@ -675,14 +675,14 @@ static void IN_Commands (void)
 
 /***
 ==================
-Host_InputFrame
+Host_InputFrame [FWGS, 22.01.25]
 
 Called every frame, even if not generating commands
 ==================
 ***/
 void Host_InputFrame (void)
 	{
-	Sys_SendKeyEvents ();
+	/*Sys_SendKeyEvents ();*/
 	IN_Commands ();
 	IN_MouseMove ();
 	}

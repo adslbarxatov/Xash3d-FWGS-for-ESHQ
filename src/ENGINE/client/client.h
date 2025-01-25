@@ -453,7 +453,6 @@ typedef struct
 // new versions of client dlls have a single export with all callbacks
 typedef void (*CL_EXPORT_FUNCS)(void *pv);
 
-// [FWGS, 01.09.24]
 typedef struct
 	{
 	void		*hInstance;				// pointer to client.dll
@@ -505,7 +504,11 @@ typedef struct
 
 	net_request_t	net_requests[MAX_REQUESTS];	// no reason to keep more
 	cl_entity_t		viewent;			// viewmodel
+
+	// [FWGS, 22.01.25]
+#if XASH_WIN32
 	qboolean		client_dll_uses_sdl;
+#endif
 	} clgame_static_t;
 
 // [FWGS, 01.09.24]
@@ -1267,7 +1270,7 @@ void SCR_StopCinematic (void);
 void CL_PlayVideo_f (void);
 
 //
-// keys.c
+// keys.c [FWGS, 22.01.25]
 //
 int Key_IsDown (int keynum);
 void Key_Event (int key, int down);
@@ -1275,10 +1278,11 @@ void Key_Init (void);
 void Key_WriteBindings (file_t *f);
 const char *Key_GetBinding (int keynum);
 void Key_SetBinding (int keynum, const char *binding);
+const char *Key_LookupBinding (const char *pBinding);	// [FWGS, 22.01.25]
 void Key_ClearStates (void);
 const char *Key_KeynumToString (int keynum);
-int Key_StringToKeynum (const char *str);
-int Key_GetKey (const char *binding);
+/*int Key_StringToKeynum (const char *str);
+int Key_GetKey (const char *binding);*/
 void Key_EnumCmds_f (void);
 void Key_SetKeyDest (int key_dest);
 void Key_EnableTextInput (qboolean enable, qboolean force);

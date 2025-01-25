@@ -1064,8 +1064,7 @@ int GAME_EXPORT Cmd_CheckMapsList (int fRefresh)
 	return Cmd_CheckMapsList_R (fRefresh, true);
 	}
 
-// [FWGS, 01.12.24]
-/*autocomplete_list_t cmd_list[] =*/
+// [FWGS, 22.01.25]
 static const autocomplete_list_t cmd_list[] =
 	{
 	{ "map_background", 1, Cmd_GetMapList },
@@ -1096,7 +1095,7 @@ static const autocomplete_list_t cmd_list[] =
 	{ "map", 1, Cmd_GetMapList },
 	{ "cd", 1, Cmd_GetCDList },
 	{ "mp3", 1, Cmd_GetCDList },
-	{ NULL }, // termiantor
+	/*{ NULL }, // termiantor*/
 	};
 
 /***
@@ -1120,7 +1119,7 @@ static qboolean Cmd_CheckName (const char *name)
 
 /***
 ============
-Cmd_AutocompleteName [FWGS, 01.12.24]
+Cmd_AutocompleteName [FWGS, 22.01.25]
 
 Autocomplete filename
 for various cmds
@@ -1128,13 +1127,16 @@ for various cmds
 ***/
 static qboolean Cmd_AutocompleteName (const char *source, int arg, char *buffer, size_t bufsize)
 	{
-	/*autocomplete_list_t *list;*/
-	const autocomplete_list_t *list;
+	/*const autocomplete_list_t *list;*/
+	int i;
 
-	for (list = cmd_list; list->name; list++)
+	/*for (list = cmd_list; list->name; list++)*/
+	for (i = 0; i < HLARRAYSIZE (cmd_list); i++)
 		{
-		if ((list->arg == arg) && Cmd_CheckName (list->name))
-			return list->func (source, buffer, bufsize);
+		/*if ((list->arg == arg) && Cmd_CheckName (list->name))
+			return list->func (source, buffer, bufsize);*/
+		if ((cmd_list[i].arg == arg) && Cmd_CheckName (cmd_list[i].name))
+			return cmd_list[i].func (source, buffer, bufsize);
 		}
 
 	return false;

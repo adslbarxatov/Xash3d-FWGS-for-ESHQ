@@ -35,13 +35,10 @@ GNU General Public License for more details
 #define TEXT_MSGNAME		"TextMessage%i"
 
 // [FWGS, 01.12.24]
-/*char			cl_textbuffer[MAX_TEXTCHANNELS][2048];
-client_textmessage_t	cl_textmessage[MAX_TEXTCHANNELS];*/
 static char	cl_textbuffer[MAX_TEXTCHANNELS][2048];
 static client_textmessage_t	cl_textmessage[MAX_TEXTCHANNELS];
 
-// [FWGS, 01.12.24]
-/*static dllfunc_t cdll_exports[] =*/
+// [FWGS, 22.01.25]
 static const dllfunc_t cdll_exports[] =
 	{
 	{ "Initialize", (void **)&clgame.dllFuncs.pfnInitialize },
@@ -82,11 +79,10 @@ static const dllfunc_t cdll_exports[] =
 	{ "IN_ClearStates", (void **)&clgame.dllFuncs.IN_ClearStates },
 	{ "V_CalcRefdef", (void **)&clgame.dllFuncs.pfnCalcRefdef },
 	{ "KB_Find", (void **)&clgame.dllFuncs.KB_Find },
-	{ NULL, NULL }
+	/*{ NULL, NULL }*/
 	};
 
-// [FWGS, 01.12.24] optional exports
-/*static dllfunc_t cdll_new_exports[] = 	// allowed only in SDK 2.3 and higher*/
+// [FWGS, 22.01.25] optional exports
 static const dllfunc_t cdll_new_exports[] = // allowed only in SDK 2.3 and higher
 	{
 	{ "HUD_GetStudioModelInterface", (void **)&clgame.dllFuncs.pfnGetStudioModelInterface },
@@ -98,62 +94,12 @@ static const dllfunc_t cdll_new_exports[] = // allowed only in SDK 2.3 and highe
 	{ "IN_ClientTouchEvent", (void **)&clgame.dllFuncs.pfnTouchEvent}, // Xash3D FWGS ext
 	{ "IN_ClientMoveEvent", (void **)&clgame.dllFuncs.pfnMoveEvent}, // Xash3D FWGS ext
 	{ "IN_ClientLookEvent", (void **)&clgame.dllFuncs.pfnLookEvent}, // Xash3D FWGS ext
-	{ NULL, NULL }
+	/*{ NULL, NULL }*/
 	};
 
 static void pfnSPR_DrawHoles (int frame, int x, int y, const wrect_t *prc);
 
 // [FWGS, 01.12.24] removed CL_GetEntityByIndex, CL_ModelHandle, CL_IsThirdPerson
-/*
-====================
-CL_GetEntityByIndex
-
-Render callback for studio models
-====================
-/
-cl_entity_t *CL_GetEntityByIndex (int index)
-	{
-	if (!clgame.entities) // not in game yet
-		return NULL;
-
-	if ((index < 0) || (index >= clgame.maxEntities))
-		return NULL;
-
-	if (index == 0)
-		return clgame.entities;
-
-	return CL_EDICT_NUM (index);
-	}
-
-/
-================
-CL_ModelHandle
-
-get model handle by index
-================
-/
-model_t *CL_ModelHandle (int modelindex)
-	{
-	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
-		return NULL;
-	return cl.models[modelindex];
-	}
-
-/
-====================
-CL_IsThirdPerson
-
-returns true if thirdperson is enabled
-====================
-/
-qboolean CL_IsThirdPerson (void)
-	{
-	cl.local.thirdperson = clgame.dllFuncs.CL_IsThirdPerson ();
-
-	if (cl.local.thirdperson)
-		return true;
-	return false;
-	}*/
 
 /***
 ====================
@@ -2808,15 +2754,16 @@ static const char *pfnGetGameDirectory (void)
 	return szGetGameDir;
 	}
 
-/***
+// [FWGS, 22.01.25] removed Key_LookupBinding
+/*
 =============
 Key_LookupBinding
 =============
-***/
+/
 static const char *Key_LookupBinding (const char *pBinding)
 	{
 	return Key_KeynumToString (Key_GetKey (pBinding));
-	}
+	}*/
 
 /***
 =============
@@ -3760,288 +3707,288 @@ triangleapi_t gTriApi;
 
 static efx_api_t gEfxApi =
 	{
-		R_AllocParticle,
-		R_BlobExplosion,
-		R_Blood,
-		R_BloodSprite,
-		R_BloodStream,
-		R_BreakModel,
-		R_Bubbles,
-		R_BubbleTrail,
-		R_BulletImpactParticles,
-		R_EntityParticles,
-		R_Explosion,
-		R_FizzEffect,
-		R_FireField,
-		R_FlickerParticles,
-		R_FunnelSprite,
-		R_Implosion,
-		R_LargeFunnel,
-		R_LavaSplash,
-		R_MultiGunshot,
-		R_MuzzleFlash,
-		R_ParticleBox,
-		R_ParticleBurst,
-		R_ParticleExplosion,
-		R_ParticleExplosion2,
-		R_ParticleLine,
-		R_PlayerSprites,
-		R_Projectile,
-		R_RicochetSound,
-		R_RicochetSprite,
-		R_RocketFlare,
-		R_RocketTrail,
-		R_RunParticleEffect,
-		R_ShowLine,
-		R_SparkEffect,
-		R_SparkShower,
-		R_SparkStreaks,
-		R_Spray,
-		R_Sprite_Explode,
-		R_Sprite_Smoke,
-		R_Sprite_Spray,
-		R_Sprite_Trail,
-		R_Sprite_WallPuff,
-		R_StreakSplash,
-		R_TracerEffect,
-		R_UserTracerParticle,
-		R_TracerParticles,
-		R_TeleportSplash,
-		R_TempSphereModel,
-		R_TempModel,
-		R_DefaultSprite,
-		R_TempSprite,
-		CL_DecalIndex,
-		CL_DecalIndexFromName,
-		CL_DecalShoot,
-		R_AttachTentToPlayer,
-		R_KillAttachedTents,
-		R_BeamCirclePoints,
-		R_BeamEntPoint,
-		R_BeamEnts,
-		R_BeamFollow,
-		R_BeamKill,
-		R_BeamLightning,
-		R_BeamPoints,
-		R_BeamRing,
-		CL_AllocDlight,
-		CL_AllocElight,
-		CL_TempEntAlloc,
-		CL_TempEntAllocNoModel,
-		CL_TempEntAllocHigh,
-		CL_TempEntAllocCustom,
-		R_GetPackedColor,
-		R_LookupColor,
-		CL_DecalRemoveAll,
-		CL_FireCustomDecal,
+	R_AllocParticle,
+	R_BlobExplosion,
+	R_Blood,
+	R_BloodSprite,
+	R_BloodStream,
+	R_BreakModel,
+	R_Bubbles,
+	R_BubbleTrail,
+	R_BulletImpactParticles,
+	R_EntityParticles,
+	R_Explosion,
+	R_FizzEffect,
+	R_FireField,
+	R_FlickerParticles,
+	R_FunnelSprite,
+	R_Implosion,
+	R_LargeFunnel,
+	R_LavaSplash,
+	R_MultiGunshot,
+	R_MuzzleFlash,
+	R_ParticleBox,
+	R_ParticleBurst,
+	R_ParticleExplosion,
+	R_ParticleExplosion2,
+	R_ParticleLine,
+	R_PlayerSprites,
+	R_Projectile,
+	R_RicochetSound,
+	R_RicochetSprite,
+	R_RocketFlare,
+	R_RocketTrail,
+	R_RunParticleEffect,
+	R_ShowLine,
+	R_SparkEffect,
+	R_SparkShower,
+	R_SparkStreaks,
+	R_Spray,
+	R_Sprite_Explode,
+	R_Sprite_Smoke,
+	R_Sprite_Spray,
+	R_Sprite_Trail,
+	R_Sprite_WallPuff,
+	R_StreakSplash,
+	R_TracerEffect,
+	R_UserTracerParticle,
+	R_TracerParticles,
+	R_TeleportSplash,
+	R_TempSphereModel,
+	R_TempModel,
+	R_DefaultSprite,
+	R_TempSprite,
+	CL_DecalIndex,
+	CL_DecalIndexFromName,
+	CL_DecalShoot,
+	R_AttachTentToPlayer,
+	R_KillAttachedTents,
+	R_BeamCirclePoints,
+	R_BeamEntPoint,
+	R_BeamEnts,
+	R_BeamFollow,
+	R_BeamKill,
+	R_BeamLightning,
+	R_BeamPoints,
+	R_BeamRing,
+	CL_AllocDlight,
+	CL_AllocElight,
+	CL_TempEntAlloc,
+	CL_TempEntAllocNoModel,
+	CL_TempEntAllocHigh,
+	CL_TempEntAllocCustom,
+	R_GetPackedColor,
+	R_LookupColor,
+	CL_DecalRemoveAll,
+	CL_FireCustomDecal,
 	};
 
 static event_api_t gEventApi =
 	{
-		EVENT_API_VERSION,
-		pfnPlaySound,
-		S_StopSound,
-		CL_FindModelIndex,
-		pfnIsLocal,
-		pfnLocalPlayerDucking,
-		pfnLocalPlayerViewheight,
-		pfnLocalPlayerBounds,
-		pfnIndexFromTrace,
-		pfnGetPhysent,
-		CL_SetUpPlayerPrediction,
-		CL_PushPMStates,
-		CL_PopPMStates,
-		CL_SetSolidPlayers,
-		CL_SetTraceHull,
-		CL_PlayerTrace,
-		CL_WeaponAnim,
-		pfnPrecacheEvent,
-		CL_PlaybackEvent,
-		PM_CL_TraceTexture,		// [FWGS, 01.04.23]
-		pfnStopAllSounds,
-		pfnKillEvents,
-		CL_PlayerTraceExt,		// Xash3D added
-		CL_SoundFromIndex,
-		pfnTraceSurface,
-		pfnGetMoveVars,
-		CL_VisTraceLine,
-		pfnGetVisent,
-		CL_TestLine,
-		CL_PushTraceBounds,
-		CL_PopTraceBounds,
+	EVENT_API_VERSION,
+	pfnPlaySound,
+	S_StopSound,
+	CL_FindModelIndex,
+	pfnIsLocal,
+	pfnLocalPlayerDucking,
+	pfnLocalPlayerViewheight,
+	pfnLocalPlayerBounds,
+	pfnIndexFromTrace,
+	pfnGetPhysent,
+	CL_SetUpPlayerPrediction,
+	CL_PushPMStates,
+	CL_PopPMStates,
+	CL_SetSolidPlayers,
+	CL_SetTraceHull,
+	CL_PlayerTrace,
+	CL_WeaponAnim,
+	pfnPrecacheEvent,
+	CL_PlaybackEvent,
+	PM_CL_TraceTexture,		// [FWGS, 01.04.23]
+	pfnStopAllSounds,
+	pfnKillEvents,
+	CL_PlayerTraceExt,		// Xash3D added
+	CL_SoundFromIndex,
+	pfnTraceSurface,
+	pfnGetMoveVars,
+	CL_VisTraceLine,
+	pfnGetVisent,
+	CL_TestLine,
+	CL_PushTraceBounds,
+	CL_PopTraceBounds,
 	};
 
 static demo_api_t gDemoApi =
 	{
-		Demo_IsRecording,
-		Demo_IsPlayingback,
-		Demo_IsTimeDemo,
-		Demo_WriteBuffer,
+	Demo_IsRecording,
+	Demo_IsPlayingback,
+	Demo_IsTimeDemo,
+	Demo_WriteBuffer,
 	};
 
 // [FWGS, 01.07.24]
 net_api_t gNetApi =
 	{
-		NetAPI_InitNetworking,
-		NetAPI_Status,
-		NetAPI_SendRequest,
-		NetAPI_CancelRequest,
-		NetAPI_CancelAllRequests,
-		NetAPI_AdrToString,
-		NetAPI_CompareAdr,
-		NetAPI_StringToAdr,
-		NetAPI_ValueForKey,
-		NetAPI_RemoveKey,
-		NetAPI_SetValueForKey,
+	NetAPI_InitNetworking,
+	NetAPI_Status,
+	NetAPI_SendRequest,
+	NetAPI_CancelRequest,
+	NetAPI_CancelAllRequests,
+	NetAPI_AdrToString,
+	NetAPI_CompareAdr,
+	NetAPI_StringToAdr,
+	NetAPI_ValueForKey,
+	NetAPI_RemoveKey,
+	NetAPI_SetValueForKey,
 	};
 
 static IVoiceTweak gVoiceApi =
 	{
-		Voice_StartVoiceTweakMode,
-		Voice_EndVoiceTweakMode,
-		Voice_SetControlFloat,
-		Voice_GetControlFloat,
+	Voice_StartVoiceTweakMode,
+	Voice_EndVoiceTweakMode,
+	Voice_SetControlFloat,
+	Voice_GetControlFloat,
 	};
 
 // engine callbacks [FWGS, 01.07.24]
 static cl_enginefunc_t gEngfuncs =
 	{
-		pfnSPR_Load,
-		pfnSPR_Frames,
-		pfnSPR_Height,
-		pfnSPR_Width,
-		pfnSPR_Set,
-		pfnSPR_Draw,
-		pfnSPR_DrawHoles,
-		pfnSPR_DrawAdditive,
-		SPR_EnableScissor,
-		SPR_DisableScissor,
-		SPR_GetList,
-		CL_FillRGBA,
-		CL_GetScreenInfo,
-		pfnSetCrosshair,
-		pfnCvar_RegisterClientVariable,
-		Cvar_VariableValue,
-		Cvar_VariableString,
-		Cmd_AddClientCommand,
-		pfnHookUserMsg,
-		pfnServerCmd,
-		pfnClientCmd,
-		pfnGetPlayerInfo,
-		pfnPlaySoundByName,
-		pfnPlaySoundByIndex,
-		AngleVectors,
-		CL_TextMessageGet,
-		pfnDrawCharacter,
-		pfnDrawConsoleString,
-		pfnDrawSetTextColor,
-		pfnDrawConsoleStringLen,
-		pfnConsolePrint,
-		pfnCenterPrint,
-		pfnGetWindowCenterX,
-		pfnGetWindowCenterY,
-		pfnGetViewAngles,
-		pfnSetViewAngles,
-		CL_GetMaxClients,
-		Cvar_SetValue,
-		Cmd_Argc,
-		Cmd_Argv,
-		Con_Printf,
-		Con_DPrintf,
-		Con_NPrintf,
-		Con_NXPrintf,
-		pfnPhysInfo_ValueForKey,
-		pfnServerInfo_ValueForKey,
-		pfnGetClientMaxspeed,
-		COM_CheckParm,
-		Key_Event,
-		Platform_GetMousePos,
-		pfnIsNoClipping,
-		CL_GetLocalPlayer,
-		CL_GetViewModel,
-		CL_GetEntityByIndex,
-		pfnGetClientTime,
-		pfnCalcShake,
-		pfnApplyShake,
-		PM_CL_PointContents,	// [FWGS, 01.04.23]
-		CL_WaterEntity,
-		PM_CL_TraceLine,		// [FWGS, 01.04.23]
-		CL_LoadModel,
-		CL_AddEntity,
-		CL_GetSpritePointer,
-		pfnPlaySoundByNameAtLocation,
-		pfnPrecacheEvent,
-		CL_PlaybackEvent,
-		CL_WeaponAnim,
-		COM_RandomFloat,
-		COM_RandomLong,
-		pfnHookEvent,
-		Con_Visible,
-		pfnGetGameDirectory,
-		pfnCVarGetPointer,
-		Key_LookupBinding,
-		pfnGetLevelName,
-		pfnGetScreenFade,
-		pfnSetScreenFade,
-		VGui_GetPanel,
-		VGui_ViewportPaintBackground,
-		COM_LoadFile,
-		pfnParseFile,
-		COM_FreeFile,
-		&gTriApi,
-		&gEfxApi,
-		&gEventApi,
-		&gDemoApi,
-		&gNetApi,
-		&gVoiceApi,
-		pfnIsSpectateOnly,
-		pfnLoadMapSprite,
-		COM_AddAppDirectoryToSearchPath,
-		COM_ExpandFilename,
-		PlayerInfo_ValueForKey,
-		PlayerInfo_SetValueForKey,
-		pfnGetPlayerUniqueID,
-		pfnGetTrackerIDForPlayer,
-		pfnGetPlayerForTrackerID,
-		pfnServerCmdUnreliable,
-		pfnGetMousePos,
-		Platform_SetMousePos,
-		pfnSetMouseEnable,
-		Cvar_GetList,
-		(void *)Cmd_GetFirstFunctionHandle,
-		(void *)Cmd_GetNextFunctionHandle,
-		(void *)Cmd_GetName,
-		pfnGetClientOldTime,
-		pfnGetGravity,
-		CL_ModelHandle,
-		pfnEnableTexSort,
-		pfnSetLightmapColor,
-		pfnSetLightmapScale,
-		pfnSequenceGet,
-		pfnSPR_DrawGeneric,
-		pfnSequencePickSentence,
-		pfnDrawString,
-		pfnDrawStringReverse,
-		LocalPlayerInfo_ValueForKey,
-		pfnVGUI2DrawCharacter,
-		pfnVGUI2DrawCharacterAdditive,
-		Sound_GetApproxWavePlayLen,
-		GetCareerGameInterface,
-		Cvar_Set,
-		pfnIsCareerMatch,
-		pfnPlaySoundVoiceByName,
-		pfnMP3_InitStream,
-		Sys_DoubleTime,
-		pfnProcessTutorMessageDecayBuffer,
-		pfnConstructTutorMessageDecayBuffer,
-		pfnResetTutorMessageDecayData,
-		pfnPlaySoundByNameAtPitch,
-		CL_FillRGBABlend,
-		pfnGetAppID,
-		Cmd_AliasGetList,
-		pfnVguiWrap2_GetMouseDelta,
-		pfnFilteredClientCmd,
-		pfnGetCurrentDuckState		// ESHQ: поддержка клиентской части
+	pfnSPR_Load,
+	pfnSPR_Frames,
+	pfnSPR_Height,
+	pfnSPR_Width,
+	pfnSPR_Set,
+	pfnSPR_Draw,
+	pfnSPR_DrawHoles,
+	pfnSPR_DrawAdditive,
+	SPR_EnableScissor,
+	SPR_DisableScissor,
+	SPR_GetList,
+	CL_FillRGBA,
+	CL_GetScreenInfo,
+	pfnSetCrosshair,
+	pfnCvar_RegisterClientVariable,
+	Cvar_VariableValue,
+	Cvar_VariableString,
+	Cmd_AddClientCommand,
+	pfnHookUserMsg,
+	pfnServerCmd,
+	pfnClientCmd,
+	pfnGetPlayerInfo,
+	pfnPlaySoundByName,
+	pfnPlaySoundByIndex,
+	AngleVectors,
+	CL_TextMessageGet,
+	pfnDrawCharacter,
+	pfnDrawConsoleString,
+	pfnDrawSetTextColor,
+	pfnDrawConsoleStringLen,
+	pfnConsolePrint,
+	pfnCenterPrint,
+	pfnGetWindowCenterX,
+	pfnGetWindowCenterY,
+	pfnGetViewAngles,
+	pfnSetViewAngles,
+	CL_GetMaxClients,
+	Cvar_SetValue,
+	Cmd_Argc,
+	Cmd_Argv,
+	Con_Printf,
+	Con_DPrintf,
+	Con_NPrintf,
+	Con_NXPrintf,
+	pfnPhysInfo_ValueForKey,
+	pfnServerInfo_ValueForKey,
+	pfnGetClientMaxspeed,
+	COM_CheckParm,
+	Key_Event,
+	Platform_GetMousePos,
+	pfnIsNoClipping,
+	CL_GetLocalPlayer,
+	CL_GetViewModel,
+	CL_GetEntityByIndex,
+	pfnGetClientTime,
+	pfnCalcShake,
+	pfnApplyShake,
+	PM_CL_PointContents,	// [FWGS, 01.04.23]
+	CL_WaterEntity,
+	PM_CL_TraceLine,		// [FWGS, 01.04.23]
+	CL_LoadModel,
+	CL_AddEntity,
+	CL_GetSpritePointer,
+	pfnPlaySoundByNameAtLocation,
+	pfnPrecacheEvent,
+	CL_PlaybackEvent,
+	CL_WeaponAnim,
+	COM_RandomFloat,
+	COM_RandomLong,
+	pfnHookEvent,
+	Con_Visible,
+	pfnGetGameDirectory,
+	pfnCVarGetPointer,
+	Key_LookupBinding,
+	pfnGetLevelName,
+	pfnGetScreenFade,
+	pfnSetScreenFade,
+	VGui_GetPanel,
+	VGui_ViewportPaintBackground,
+	COM_LoadFile,
+	pfnParseFile,
+	COM_FreeFile,
+	&gTriApi,
+	&gEfxApi,
+	&gEventApi,
+	&gDemoApi,
+	&gNetApi,
+	&gVoiceApi,
+	pfnIsSpectateOnly,
+	pfnLoadMapSprite,
+	COM_AddAppDirectoryToSearchPath,
+	COM_ExpandFilename,
+	PlayerInfo_ValueForKey,
+	PlayerInfo_SetValueForKey,
+	pfnGetPlayerUniqueID,
+	pfnGetTrackerIDForPlayer,
+	pfnGetPlayerForTrackerID,
+	pfnServerCmdUnreliable,
+	pfnGetMousePos,
+	Platform_SetMousePos,
+	pfnSetMouseEnable,
+	Cvar_GetList,
+	(void *)Cmd_GetFirstFunctionHandle,
+	(void *)Cmd_GetNextFunctionHandle,
+	(void *)Cmd_GetName,
+	pfnGetClientOldTime,
+	pfnGetGravity,
+	CL_ModelHandle,
+	pfnEnableTexSort,
+	pfnSetLightmapColor,
+	pfnSetLightmapScale,
+	pfnSequenceGet,
+	pfnSPR_DrawGeneric,
+	pfnSequencePickSentence,
+	pfnDrawString,
+	pfnDrawStringReverse,
+	LocalPlayerInfo_ValueForKey,
+	pfnVGUI2DrawCharacter,
+	pfnVGUI2DrawCharacterAdditive,
+	Sound_GetApproxWavePlayLen,
+	GetCareerGameInterface,
+	Cvar_Set,
+	pfnIsCareerMatch,
+	pfnPlaySoundVoiceByName,
+	pfnMP3_InitStream,
+	Sys_DoubleTime,
+	pfnProcessTutorMessageDecayBuffer,
+	pfnConstructTutorMessageDecayBuffer,
+	pfnResetTutorMessageDecayData,
+	pfnPlaySoundByNameAtPitch,
+	CL_FillRGBABlend,
+	pfnGetAppID,
+	Cmd_AliasGetList,
+	pfnVguiWrap2_GetMouseDelta,
+	pfnFilteredClientCmd,
+	pfnGetCurrentDuckState		// ESHQ: поддержка клиентской части
 	};
 
 void CL_UnloadProgs (void)
@@ -4077,12 +4024,17 @@ void CL_UnloadProgs (void)
 	memset (&clgame, 0, sizeof (clgame));
 	}
 
+// [FWGS, 22.01.25]
 qboolean CL_LoadProgs (const char *name)
 	{
 	static playermove_t	gpMove;
-	const dllfunc_t		*func;
+	/*const dllfunc_t		*func;
 	CL_EXPORT_FUNCS		GetClientAPI; // single export
-	qboolean			critical_exports = true;
+	qboolean			critical_exports = true;*/
+	CL_EXPORT_FUNCS		GetClientAPI;	// single export
+	qboolean	valid_single_export = false;
+	qboolean	missed_exports = false;
+	int			i;
 
 	if (clgame.hInstance)
 		CL_UnloadProgs ();
@@ -4098,26 +4050,30 @@ qboolean CL_LoadProgs (const char *name)
 	// and if so, disable relative mouse mode
 #if XASH_WIN32 && !XASH_64BIT
 
-	if ((clgame.client_dll_uses_sdl = COM_CheckLibraryDirectDependency (name, OS_LIB_PREFIX "SDL2." OS_LIB_EXT, false)))
+	/*if ((clgame.client_dll_uses_sdl = COM_CheckLibraryDirectDependency (name, OS_LIB_PREFIX "SDL2." OS_LIB_EXT, false)))
 		Con_Printf (S_NOTE "%s uses SDL2 for mouse input\n", name);
 	else
 		Con_Printf (S_NOTE "%s uses Windows API for mouse input\n", name);
 
-#else
+	else
 
 	// this doesn't mean other platforms uses SDL2 in any case
 	// it just helps input code to stay platform-independent
-	clgame.client_dll_uses_sdl = true;
+	clgame.client_dll_uses_sdl = true;*/
+	clgame.client_dll_uses_sdl = COM_CheckLibraryDirectDependency (name, OS_LIB_PREFIX "SDL2." OS_LIB_EXT, false);
+	Con_Printf (S_NOTE "%s uses %s for mouse input\n", name, clgame.client_dll_uses_sdl ? "SDL2" : "Windows API");
 
 #endif
 
-	// [FWGS, 01.04.23]
 	// NOTE: important stuff!
-	// vgui must startup BEFORE loading client.dll to avoid get error ERROR_NOACESS
-	// during LoadLibrary
+	// vgui must startup BEFORE loading client.dll to avoid get error
+	// ERROR_NOACESS during LoadLibrary
 	if (!GI->internal_vgui_support && VGui_LoadProgs (NULL))
 		VGui_Startup (refState.width, refState.height);
 
+	/*// we failed to load vgui_support, but let's probe client.dll for support anyway
+	else
+		GI->internal_vgui_support = true;*/
 	// we failed to load vgui_support, but let's probe client.dll for support anyway
 	else
 		GI->internal_vgui_support = true;
@@ -4131,8 +4087,9 @@ qboolean CL_LoadProgs (const char *name)
 		VGui_Startup (refState.width, refState.height);
 
 	// clear exports
-	for (func = cdll_exports; func && func->name; func++)
-		*func->func = NULL;
+	/*for (func = cdll_exports; func && func->name; func++)
+		*func->func = NULL;*/
+	ClearExports (cdll_exports, ARRAYSIZE (cdll_exports));
 
 	// trying to get single export
 	if ((GetClientAPI = (void *)COM_GetProcAddress (clgame.hInstance, "GetClientAPI")) != NULL)
@@ -4150,7 +4107,7 @@ qboolean CL_LoadProgs (const char *name)
 		CL_GetSecuredClientAPI (GetClientAPI);
 		}
 
-	if (GetClientAPI != NULL)
+	/*if (GetClientAPI != NULL)
 		{
 		// check critical functions again
 		for (func = cdll_exports; func && func->name; func++)
@@ -4162,44 +4119,67 @@ qboolean CL_LoadProgs (const char *name)
 		// because all the exports are loaded through function 'F"
 		if (!func || !func->name)
 			critical_exports = false;
-		}
+		}*/
+	if (GetClientAPI != NULL) // check critical functions again
+		valid_single_export = ValidateExports (cdll_exports, ARRAYSIZE (cdll_exports));
 
-	for (func = cdll_exports; func && func->name != NULL; func++)
+	/*for (func = cdll_exports; func && func->name != NULL; func++)*/
+	for (i = 0; i < ARRAYSIZE (cdll_exports); i++)
 		{
-		if (*func->func != NULL)
-			continue;	// already get through 'F'
+		/*if (*func->func != NULL)
+			continue;	// already get through 'F'*/
+		if (*(cdll_exports[i].func) != NULL)
+			continue;	// already gott through 'F' or 'GetClientAPI'
 
 		// functions are cleared before all the extensions are evaluated
-		if ((*func->func = (void *)COM_GetProcAddress (clgame.hInstance, func->name)) == NULL)
+		/*if ((*func->func = (void *)COM_GetProcAddress (clgame.hInstance, func->name)) == NULL)*/
+		if ((*(cdll_exports[i].func) = (void *)COM_GetProcAddress (clgame.hInstance, cdll_exports[i].name)) == NULL)
 			{
-			Con_Reportf ("%s: failed to get address of %s proc\n", __func__, func->name);	// [FWGS, 01.07.24]
+			/*Con_Reportf ("%s: failed to get address of %s proc\n", __func__, func->name);	// [FWGS, 01.07.24]*/
+			Con_Reportf (S_ERROR "%s: failed to get address of %s proc\n", __func__, cdll_exports[i].name);
 
-			if (critical_exports)
+			/*if (critical_exports)
 				{
 				COM_FreeLibrary (clgame.hInstance);
 				clgame.hInstance = NULL;
 				return false;
-				}
+				}*/
+			// print all not found exports at once, for debug
+			missed_exports = true;
 			}
 		}
 
-	// it may be loaded through 'GetClientAPI' so we don't need to clear them
-	if (critical_exports)
+	/*// it may be loaded through 'GetClientAPI' so we don't need to clear them
+	if (critical_exports)*/
+	if (missed_exports)
 		{
-		// clear new exports
+		/*// clear new exports
 		for (func = cdll_new_exports; func && func->name; func++)
-			*func->func = NULL;
+			*func->func = NULL;*/
+		COM_FreeLibrary (clgame.hInstance);
+		clgame.hInstance = NULL;
+		return false;
 		}
 
-	for (func = cdll_new_exports; func && (func->name != NULL); func++)
+	/*for (func = cdll_new_exports; func && (func->name != NULL); func++)*/
+	
+	// it may be loaded through 'GetClientAPI' so we don't need to clear them
+	if (!valid_single_export)
+		ClearExports (cdll_new_exports, HLARRAYSIZE (cdll_new_exports));
+
+	for (i = 0; i < HLARRAYSIZE (cdll_new_exports); i++)
 		{
-		if (*func->func != NULL)
-			continue;	// already get through 'F'
+		/*if (*func->func != NULL)
+			continue;	// already get through 'F'*/
+		if (*(cdll_new_exports[i].func) != NULL)
+			continue;	// already gott through 'F' or 'GetClientAPI'
 
 		// functions are cleared before all the extensions are evaluated
 		// NOTE: new exports can be missed without stop the engine
-		if ((*func->func = (void *)COM_GetProcAddress (clgame.hInstance, func->name)) == NULL)
-			Con_Reportf ("%s: failed to get address of %s proc\n", __func__, func->name);	// [FWGS, 01.07.24]
+		/*if ((*func->func = (void *)COM_GetProcAddress (clgame.hInstance, func->name)) == NULL)
+			Con_Reportf ("%s: failed to get address of %s proc\n", __func__, func->name);	// [FWGS, 01.07.24]*/
+		if ((*(cdll_new_exports[i].func) = (void *)COM_GetProcAddress (clgame.hInstance, cdll_new_exports[i].name)) == NULL)
+			Con_Reportf (S_WARN "%s: failed to get address of %s proc\n", __func__, cdll_new_exports[i].name);
 		}
 
 	if (!clgame.dllFuncs.pfnInitialize (&gEngfuncs, CLDLL_INTERFACE_VERSION))

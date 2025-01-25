@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -41,13 +41,15 @@ static char		szGameDir[128]; // safe place to keep gamedir
 static int		szArgc;
 static char		**szArgv;
 
+// [FWGS, 22.01.25]
 static void Sys_ChangeGame (const char *progname)
 	{
-	// [FWGS, 01.11.23] a1ba: may never be called within engine
+	/*// [FWGS, 01.11.23] a1ba: may never be called within engine
 	// if platform supports execv() function
 	Q_strncpy (szGameDir, progname, sizeof (szGameDir));
 	Host_Shutdown ();
-	exit (Host_Main (szArgc, szArgv, szGameDir, 1, &Sys_ChangeGame));
+	exit (Host_Main (szArgc, szArgv, szGameDir, 1, &Sys_ChangeGame));*/
+	// stub
 	}
 
 // [FWGS, 01.08.24]

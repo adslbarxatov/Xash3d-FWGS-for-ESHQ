@@ -387,7 +387,7 @@ static void NET_LoadMasters (void)
 
 /***
 ========================
-NET_SaveMasters
+NET_SaveMasters [FWGS, 22.01.25]
 
 Save master server list to xashcomm.lst, except for default
 ========================
@@ -398,10 +398,10 @@ void NET_SaveMasters (void)
 	master_t	*m;
 
 	if (!ml.modified)
-		{
-		Con_Reportf ("Master server list not changed\n");
+		/*{
+		Con_Reportf ("Master server list not changed\n");*/
 		return;
-		}
+		/*}*/
 
 	f = FS_Open ("xashcomm.lst", "w", true);
 	if (!f)

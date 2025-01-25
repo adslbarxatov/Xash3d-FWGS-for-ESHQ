@@ -1,23 +1,20 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
-/***
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
+/***
 ===== triggers.cpp ========================================================
 
-  spawn and use functions for editor-placed triggers
-
+spawn and use functions for editor-placed triggers
 ***/
 
 #include "extdll.h"
@@ -1378,7 +1375,7 @@ void CBaseTrigger::MultiWaitOver (void)
 	}
 
 // ========================= COUNTING TRIGGER =====================================
-// GLOBALS ASSUMED SET:  g_eoActivator
+// GLOBALS ASSUMED SET: g_eoActivator
 void CBaseTrigger::CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	m_cTriggersLeft--;
@@ -1387,8 +1384,7 @@ void CBaseTrigger::CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	if (m_cTriggersLeft < 0)
 		return;
 
-	BOOL fTellActivator =
-		(m_hActivator != 0) &&
+	/*BOOL fTellActivator = (m_hActivator != 0) &&
 		FClassnameIs (m_hActivator->pev, "player") &&
 		!FBitSet (pev->spawnflags, SPAWNFLAG_NOMESSAGE);
 	if (m_cTriggersLeft != 0)
@@ -1409,7 +1405,7 @@ void CBaseTrigger::CounterUse (CBaseEntity *pActivator, CBaseEntity *pCaller, US
 
 	// !!!UNDONE: I don't think we want these Quakesque messages
 	if (fTellActivator)
-		ALERT (at_console, "Sequence completed!");
+		ALERT (at_console, "Sequence completed!");*/
 
 	ActivateMultiTrigger (m_hActivator, -1);
 	}
@@ -1443,7 +1439,7 @@ void CTriggerCounter::Spawn (void)
 class CTriggerVolume : public CPointEntity	// Derive from point entity so this doesn't move across levels
 	{
 	public:
-		void		Spawn (void);
+		void	Spawn (void);
 	};
 
 LINK_ENTITY_TO_CLASS (trigger_transition, CTriggerVolume);

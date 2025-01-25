@@ -160,23 +160,13 @@ static void Sys_PrintUsage (const char *exename)
 
 	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
 		"\nCommon options:\n"
-		/*O ("-dev [level]     ", "set log verbosity 0-2")
-		O ("-log             ", "write log to \"engine.log\"")
-		O ("-nowriteconfig   ", "disable config save")
-		O ("-noch            ", "disable crashhandler")*/
 		O ("-dev [level]       ", "set log verbosity 0-2")
 		O ("-log               ", "write log to \"engine.log\"")
 		O ("-nowriteconfig     ", "disable config save")
 		O ("-noch              ", "disable crashhandler")
 #if XASH_WIN32
-		/*O ("-minidumps       ", "enable writing minidumps when game is crashed")*/
 		O ("-minidumps         ", "enable writing minidumps when game is crashed")
 #endif
-		/*O ("-rodir <path>    ", "set read-only base directory")
-		O ("-bugcomp [opts] ", "enable precise bug compatibility")
-		O (" ", "will break games that don't require it")
-		O (" ", "refer to engine documentation for more info")
-		O ("-disablehelp     ", "disable this message")*/
 		O ("-rodir <path>      ", "set read-only base directory")
 		O ("-bugcomp [opts]    ", "enable precise bug compatibility")
 		O ("                   ", "will break games that don't require it")
@@ -184,19 +174,10 @@ static void Sys_PrintUsage (const char *exename)
 		O ("-disablehelp       ", "disable this message")
 
 #if !XASH_DEDICATED
-		/*O ("-dedicated       ", "run engine in dedicated mode")*/
 		O ("-dedicated         ", "run engine in dedicated mode")
 #endif
 
 		"\nNetworking options:\n"
-		/*O ("-noip            ", "disable IPv4")
-		O ("-ip <ip>         ", "set IPv4 address")
-		O ("-port <port>     ", "set IPv4 port")
-		O ("-noip6           ", "disable IPv6")
-		O ("-ip6 <ip>        ", "set IPv6 address")
-		O ("-port6 <port>    ", "set IPv6 port")
-		O ("-clockwindow <cw>", "adjust clockwindow used to ignore client commands")
-		O (" ", "to prevent speed hacks")*/
 		O ("-noip              ", "disable IPv4")
 		O ("-ip <ip>           ", "set IPv4 address")
 		O ("-port <port>       ", "set IPv4 port")
@@ -213,23 +194,10 @@ static void Sys_PrintUsage (const char *exename)
 		O ("                   ", "to prevent speed hacks")
 
 		"\nGame options:\n"
-		/*O ("-game <directory>", "set game directory to start engine with")
-		O ("-dll <path>      ", "override server DLL path")*/
 		O ("-game <directory>  ", "set game directory to start engine with")
 		O ("-dll <path>        ", "override server DLL path")
 
 #if !XASH_DEDICATED
-		/*O ("-clientlib <path>", "override client DLL path")
-		O ("-console         ", "run engine with console enabled")
-		O ("-toconsole       ", "run engine witn console open")
-		O ("-oldfont         ", "enable unused Quake font in Half-Life")
-		O ("-width <n>       ", "set window width")
-		O ("-height <n>      ", "set window height")
-		O ("-borderless      ", "run engine in fullscreen borderless mode")	// [FWGS, 01.11.23]
-		O ("-fullscreen      ", "run engine in fullscreen mode")
-		O ("-windowed        ", "run engine in windowed mode")
-		O ("-ref <name>      ", "use selected renderer dll")
-		O ("-gldebug         ", "enable OpenGL debug log")*/
 		O ("-clientlib <path>  ", "override client DLL path")
 		O ("-console           ", "run engine with console enabled")
 		O ("-toconsole         ", "run engine witn console open")
@@ -243,16 +211,10 @@ static void Sys_PrintUsage (const char *exename)
 		O ("-gldebug           ", "enable OpenGL debug log")
 
 #if XASH_WIN32
-		/*O ("-noavi           ", "disable AVI support")
-		O ("-nointro         ", "disable intro video")*/
 		O ("-noavi             ", "disable AVI support")
 		O ("-nointro           ", "disable intro video")
 #endif
 
-		/*O ("-noenginejoy     ", "disable engine builtin joystick support")
-		O ("-noenginemouse   ", "disable engine builtin mouse support")
-		O ("-nosound         ", "disable sound output")
-		O ("-timedemo        ", "run timedemo and exit")	// [FWGS, 01.11.23]*/
 		O ("-noenginejoy       ", "disable engine builtin joystick support")
 		O ("-noenginemouse     ", "disable engine builtin mouse support")
 		O ("-nosound           ", "disable sound output")
@@ -261,38 +223,29 @@ static void Sys_PrintUsage (const char *exename)
 
 		"\nPlatform-specific options:\n"
 #if !XASH_MOBILE_PLATFORM
-		/*O ("-daemonize       ", "run engine as a daemon")*/
 		O ("-daemonize         ", "run engine as a daemon")
 #endif
 
 #if XASH_SDL == 2
-		/*O ("-sdl_joy_old_api ", "use SDL legacy joystick API")
-		O ("-sdl_renderer <n>", "use alternative SDL_Renderer for software")*/
 		O ("-sdl_joy_old_api   ", "use SDL legacy joystick API")
 		O ("-sdl_renderer <n>  ", "use alternative SDL_Renderer for software")
 #endif
 
 #if XASH_ANDROID && !XASH_SDL
-		/*O ("-nativeegl       ", "use native egl implementation. Use if screen does not update or black")*/
 		O ("-nativeegl         ", "use native egl implementation. Use if screen does not update or black")
 #endif
 
 #if XASH_DOS
-		/*O ("-novesa          ", "disable vesa")*/
 		O ("-novesa            ", "disable vesa")
 #endif
 
 #if XASH_VIDEO == VIDEO_FBDEV
-		/*O ("-fbdev <path>    ", "open selected framebuffer")
-		O ("-ttygfx          ", "set graphics mode in tty")
-		O ("-doublebuffer    ", "enable doublebuffering")*/
 		O ("-fbdev <path>      ", "open selected framebuffer")
 		O ("-ttygfx            ", "set graphics mode in tty")
 		O ("-doublebuffer      ", "enable doublebuffering")
 #endif 
 
 #if XASH_SOUND == SOUND_ALSA
-		/*O ("-alsadev <dev>   ", "open selected ALSA device")*/
 		O ("-alsadev <dev>     ", "open selected ALSA device")
 #endif
 		;
@@ -308,7 +261,8 @@ static void Sys_PrintUsage (const char *exename)
 	fprintf (stderr, usage_str, exename);
 #endif
 
-	Sys_Quit ();
+	/*Sys_Quit ();*/
+	Sys_Quit (NULL);
 	}
 
 // [FWGS, 25.12.24]
@@ -337,24 +291,17 @@ static void Sys_PrintBugcompUsage (const char *exename)
 	fprintf (stderr, usage_str, exename);
 #endif
 
-	Sys_Quit ();
+	/*Sys_Quit ();
+	}
+
+	void Host_ShutdownServer (void)
+	{
+	SV_Shutdown ("Server was killed\n");*/
+	Sys_Quit (NULL);
 	}
 
 // [FWGS, 01.12.24] removed Host_CompareFileTime
-/*int Host_CompareFileTime (int ft1, int ft2)
-	{
-	if (ft1 < ft2)
-		return -1;
-	else if (ft1 > ft2)
-		return 1;
-
-	return 0;
-	}*/
-
-void Host_ShutdownServer (void)
-	{
-	SV_Shutdown ("Server was killed\n");
-	}
+// [FWGS, 22.01.25] removed Host_ShutdownServer
 
 /***
 ================
@@ -556,14 +503,15 @@ static void Host_ChangeGame_f (void)
 
 /***
 ===============
-Host_Exec_f [FWGS, 01.07.24]
+Host_Exec_f [FWGS, 22.01.25]
 ===============
 ***/
 static void Host_Exec_f (void)
 	{
 	string		cfgpath;
 	byte		*f;
-	char		*txt;
+	/*char		*txt;
+	fs_offset_t	len;*/
 	fs_offset_t	len;
 
 	if (Cmd_Argc () != 2)
@@ -620,22 +568,43 @@ static void Host_Exec_f (void)
 		return;
 		}
 
+	// len is fs_offset_t, which can be larger than size_t
+	if (len >= SIZE_MAX)
+		{
+		Con_Reportf ("%s: %s is too long\n", __func__, Cmd_Argv (1));
+		return;
+		}
+
 	if (!Q_stricmp ("config.cfg", cfgpath))
 		host.config_executed = true;
 
-	// adds \n\0 at end of the file
+	/*// adds \n\0 at end of the file
 	txt = Z_Calloc (len + 2);
 	memcpy (txt, f, len);
 
 	txt[len] = '\n';
 	txt[len + 1] = '\0';
-	Mem_Free (f);
+	Mem_Free (f);*/
 
 	if (!host.apply_game_config)
 		Con_Printf ("execing %s\n", Cmd_Argv (1));
 
-	Cbuf_InsertText (txt);
-	Mem_Free (txt);
+	/*Cbuf_InsertText (txt);
+	Mem_Free (txt);*/
+
+	// adds \n at end of the file
+	// FS_LoadFile always null terminates
+	if (f[len - 1] != '\n')
+		{
+		Cbuf_InsertTextLen (f, len, len + 1);
+		Cbuf_InsertTextLen ("\n", 1, 1);
+		}
+	else
+		{
+		Cbuf_InsertTextLen (f, len, len);
+		}
+
+	Mem_Free (f);
 	}
 
 /***
@@ -735,7 +704,7 @@ static void Host_InitDecals (void)
 
 /***
 ===================
-Host_GetCommands
+Host_GetCommands [FWGS, 22.01.25]
 
 Add them exactly as if they had been typed at the console
 ===================
@@ -744,7 +713,8 @@ static void Host_GetCommands (void)
 	{
 	char *cmd;
 
-	while ((cmd = Sys_Input ()))
+	/*while ((cmd = Sys_Input ()))*/
+	while ((cmd = Platform_Input ()))
 		{
 		Cbuf_AddText (cmd);
 		Cbuf_Execute ();
@@ -958,7 +928,7 @@ void Host_Frame (double time)
 
 /***
 =================
-Host_Error [FWGS, 01.07.24]
+Host_Error
 =================
 ***/
 void GAME_EXPORT Host_Error (const char *error, ...)
@@ -985,11 +955,14 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 		}
 	else
 		{
+		// [FWGS, 22.01.25]
+		Con_Printf ("%s: %s", __func__, hosterror1);
+
 		if (host.allow_console)
 			{
 			UI_SetActiveMenu (false);
 			Key_SetKeyDest (key_console);
-			Con_Printf ("%s: %s", __func__, hosterror1);
+			/*Con_Printf ("%s: %s", __func__, hosterror1);*/
 			}
 		else
 			{
@@ -1018,8 +991,9 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	COM_InitHostState ();
 	Cbuf_Clear ();
 
-	// drop clients
-	Host_ShutdownServer ();
+	// [FWGS, 22.01.25] drop clients
+	/*Host_ShutdownServer ();*/
+	SV_Shutdown ("Server was killed due to an error\n");
 	CL_Drop ();
 
 	// recreate world if needs
@@ -1082,7 +1056,7 @@ static void Host_Userconfigd_f (void)
 
 #if XASH_ENGINE_TESTS
 
-// [FWGS, 01.05.24]
+// [FWGS, 22.01.25]
 static void Host_RunTests (int stage)
 	{
 	switch (stage)
@@ -1102,54 +1076,32 @@ static void Host_RunTests (int stage)
 #endif
 			Msg ("Done! %d passed, %d failed\n", tests_stats.passed, tests_stats.failed);
 			error_on_exit = tests_stats.failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
-			Sys_Quit ();
+			/*Sys_Quit ();*/
+			Sys_Quit (NULL);
 		}
 	}
 #endif
 
 // [FWGS, 01.12.24]
-/*static uint32_t Host_CheckBugcomp (void)*/
 static int Host_CheckBugcomp_splitstr_handler (char *prev, char *next, void *userdata)
 	{
-	/*const char	*prev, *next;
-	uint32_t	flags = 0;
-	string		args, arg;*/
 	size_t		i;
 	uint32_t	*flags = userdata;
 
-	/*if (!Sys_CheckParm ("-bugcomp"))*/
 	*next = '\0';
 
 	if (!COM_CheckStringEmpty (prev))
 		return 0;
 
-	/*if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha (args[0]))*/
 	for (i = 0; i < HLARRAYSIZE (bugcomp_features); i++)
 		{
-		/*for (prev = args, next = Q_strchrnul (prev, '+'); ; prev = next + 1, next = Q_strchrnul (prev, '+'))*/
 		if (!Q_stricmp (bugcomp_features[i].arg, prev))
 			{
-			/*Q_strncpy (arg, prev, next - prev + 1);
-			for (i = 0; i < ARRAY SIZE (bugcomp_features); i++)
-				{
-				if (!Q_stricmp (bugcomp_features[i].arg, arg))
-					{
-					SetBits (flags, bugcomp_features[i].mask);
-					break;
-					}
-				}*/
 			SetBits (*flags, bugcomp_features[i].mask);
 			break;
 			}
 		}
 
-	/*if (i == ARRAY SIZE (bugcomp_features))
-				{
-				Con_Printf (S_ERROR "Unknown bugcomp flag %s\n", arg);
-				Con_Printf ("Valid flags are:\n");
-				for (i = 0; i < ARRAY SIZE (bugcomp_features); i++)
-					Con_Printf ("\t%s: %s\n", bugcomp_features[i].arg, bugcomp_features[i].msg);
-				}*/
 	if (i == HLARRAYSIZE (bugcomp_features))
 		{
 		Con_Printf (S_ERROR "Unknown bugcomp flag %s\n", prev);
@@ -1158,9 +1110,6 @@ static int Host_CheckBugcomp_splitstr_handler (char *prev, char *next, void *use
 			Con_Printf ("\t%s: %s\n", bugcomp_features[i].arg, bugcomp_features[i].msg);
 		}
 	
-	/*if (!*next)
-				break;
-			}*/
 	return 0;
 	}
 
@@ -1380,6 +1329,12 @@ static void Host_FreeCommon (void)
 	FS_Shutdown ();
 	}
 
+// [FWGS, 22.01.25]
+static void Sys_Quit_f (void)
+	{
+	Sys_Quit ("command");
+	}
+
 /***
 =================
 Host_Main [FWGS, 01.08.24]
@@ -1389,6 +1344,7 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	{
 	static double	oldtime, newtime;
 	string			demoname, exename;
+	qboolean		achiExecuted = false;
 
 	host.starttime = Sys_DoubleTime ();
 	pChangeGame = func;		// may be NULL
@@ -1463,8 +1419,11 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 		// disable texture replacements for dedicated
 		Cvar_FullSet ("host_allow_materials", "0", FCVAR_READ_ONLY);
 
-		Cmd_AddRestrictedCommand ("quit", Sys_Quit, "quit the game");
-		Cmd_AddRestrictedCommand ("exit", Sys_Quit, "quit the game");
+		// [FWGS, 22.01.25]
+		/*Cmd_AddRestrictedCommand ("quit", Sys_Quit, "quit the game");
+		Cmd_AddRestrictedCommand ("exit", Sys_Quit, "quit the game");*/
+		Cmd_AddRestrictedCommand ("quit", Sys_Quit_f, "quit the game");
+		Cmd_AddRestrictedCommand ("exit", Sys_Quit_f, "quit the game");
 		}
 	else
 		{
@@ -1503,6 +1462,7 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 				Cbuf_Execute ();
 				Cbuf_AddText (ACHI_EXEC_LINE_R);
 				Cbuf_Execute ();
+				achiExecuted = true;
 				}
 
 			// exec all files from userconfig.d
@@ -1520,12 +1480,15 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	Cbuf_ExecStuffCmds ();	// execute stuffcmds (commandline)
 
 	// ESHQ: поддержка достижений
-	Cbuf_AddText (ACHI_EXEC_LINE_A);
-	Cbuf_Execute ();
-	Cbuf_AddText (ACHI_EXEC_LINE_G);
-	Cbuf_Execute ();
-	Cbuf_AddText (ACHI_EXEC_LINE_R);
-	Cbuf_Execute ();
+	if (!achiExecuted)
+		{
+		Cbuf_AddText (ACHI_EXEC_LINE_A);
+		Cbuf_Execute ();
+		Cbuf_AddText (ACHI_EXEC_LINE_G);
+		Cbuf_Execute ();
+		Cbuf_AddText (ACHI_EXEC_LINE_R);
+		Cbuf_Execute ();
+		}
 
 	SCR_CheckStartupVids ();	// must be last
 
@@ -1569,21 +1532,39 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	return 0;
 	}
 
+// [FWGS, 22.01.25]
+void HLEXPORT Host_Shutdown (void);
+void HLEXPORT Host_Shutdown (void)
+	{
+	Host_ShutdownWithReason ("launcher shutdown");
+	}
+
 /***
 =================
-Host_Shutdown
+Host_Shutdown [FWGS, 22.01.25]
 =================
 ***/
-void HLEXPORT Host_Shutdown (void)
+/*void HLEXPORT Host_Shutdown (void)*/
+void Host_ShutdownWithReason (const char *reason)
 	{
 	qboolean error = host.status == HOST_ERR_FATAL;
 
+	/*if (host.shutdown_issued)
+		return;*/
 	if (host.shutdown_issued)
 		return;
 	host.shutdown_issued = true;
 
+	/*if (host.status != HOST_ERR_FATAL)
+		host.status = HOST_SHUTDOWN; // prepare host to normal shutdown
+	if (!host.change_game)
+		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));*/
+	if (reason != NULL)
+		Con_Printf (S_NOTE "Issuing host shutdown due to reason \"%s\"\n", reason);
+
 	if (host.status != HOST_ERR_FATAL)
 		host.status = HOST_SHUTDOWN; // prepare host to normal shutdown
+
 	if (!host.change_game)
 		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));
 
@@ -1596,7 +1577,7 @@ void HLEXPORT Host_Shutdown (void)
 	SV_Shutdown ("Server shutdown\n");
 	SV_ShutdownFilter ();
 	CL_Shutdown ();
-	SoundList_Shutdown ();	// [FWGS, 01.03.24]
+	SoundList_Shutdown ();
 
 	Mod_Shutdown ();
 	NET_Shutdown ();

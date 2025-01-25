@@ -371,12 +371,20 @@ typedef struct host_parm_s
 // [FWGS, 01.07.24]
 extern host_parm_t	host;
 
-#define CMD_SERVERDLL	BIT( 0 )		// added by server.dll
-#define CMD_CLIENTDLL	BIT( 1 )		// added by client.dll
-#define CMD_GAMEUIDLL	BIT( 2 )		// added by GameUI.dll
-#define CMD_PRIVILEGED	BIT( 3 )		// only available in privileged mode
-#define CMD_FILTERABLE  BIT( 4 )		// filtered in unprivileged mode if cl_filterstuffcmd is 1
-#define CMD_REFDLL		BIT( 5 )		// added by ref.dll
+// [FWGS, 22.01.25]
+/*define CMD_SERVERDLL	BIT( 0 )		// added by server.dll
+define CMD_CLIENTDLL	BIT( 1 )		// added by client.dll
+define CMD_GAMEUIDLL	BIT( 2 )		// added by GameUI.dll
+define CMD_PRIVILEGED	BIT( 3 )		// only available in privileged mode
+define CMD_FILTERABLE  BIT( 4 )		// filtered in unprivileged mode if cl_filterstuffcmd is 1
+define CMD_REFDLL		BIT( 5 )		// added by ref.dll*/
+#define CMD_SERVERDLL	BIT( 0 )	// added by server.dll
+#define CMD_CLIENTDLL	BIT( 1 )	// added by client.dll
+#define CMD_GAMEUIDLL	BIT( 2 )	// added by GameUI.dll
+#define CMD_PRIVILEGED	BIT( 3 )	// only available in privileged mode
+#define CMD_FILTERABLE	BIT( 4 )	// filtered in unprivileged mode if cl_filterstuffcmd is 1
+#define CMD_REFDLL		BIT( 5 )	// added by ref.dll
+#define CMD_OVERRIDABLE	BIT( 6 )	// can be removed by DLLs if name matches
 
 typedef void (*xcommand_t)(void);
 
@@ -433,90 +441,65 @@ MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 void FS_WriteAchievementsScript (byte Mode, int NewLevel);
 
 //
-// cmd.c [FWGS, 01.12.24]
+// cmd.c [FWGS, 22.01.25]
 //
+typedef struct cmd_s cmd_t;
+
 void Cbuf_Clear (void);
 void Cbuf_AddText (const char *text);
-/*void Cbuf_AddTextf (const char *text, ...) _format (1);*/
 void Cbuf_AddTextf (const char *text, ...) FORMAT_CHECK (1);
-
 void Cbuf_AddFilteredText (const char *text);
 void Cbuf_InsertText (const char *text);
+void Cbuf_InsertTextLen (const char *text, size_t len, size_t requested_len);
 void Cbuf_ExecStuffCmds (void);
 void Cbuf_Execute (void);
 qboolean Cmd_CurrentCommandIsPrivileged (void);
 int Cmd_Argc (void);
 
-/*const char *Cmd_Args (void);
-const char *Cmd_Argv (int arg);*/
 const char *Cmd_Args (void) RETURNS_NONNULL;
 const char *Cmd_Argv (int arg) RETURNS_NONNULL;
-
 void Cmd_Init (void);
 void Cmd_Unlink (int group);
 
-// [FWGS, 25.12.24]
-/*void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc);
-void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc);
-void Cmd_AddServerCommand (const char *cmd_name, xcommand_t function);
-int Cmd_AddClientCommand (const char *cmd_name, xcommand_t function);
-int Cmd_AddGameUICommand (const char *cmd_name, xcommand_t function);
-int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description);*/
+// [FWGS, 22.01.25]
+/*int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd_desc, int iFlags, const char *funcname);*/
+int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd_desc, int flags, const char *funcname);
 
-int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd_desc, int iFlags, const char *funcname);
-
-// [FWGS, 25.12.24]
-static inline void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
+// [FWGS, 22.01.25]
+/*static inline void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)*/
+static inline int Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
-	Cmd_AddCommandEx (cmd_name, function, cmd_desc, 0, __func__);
+	/*Cmd_AddCommandEx (cmd_name, function, cmd_desc, 0, __func__);*/
+	return Cmd_AddCommandEx (cmd_name, function, cmd_desc, 0, __func__);
 	}
 
-// [FWGS, 25.12.24]
-static inline void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
+// [FWGS, 22.01.25]
+/*static inline void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)*/
+static inline int Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
-	Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);
+	/*Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);*/
+	return Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);
 	}
 
-// [FWGS, 25.12.24]
-static inline void Cmd_AddFilteredCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
+// [FWGS, 22.01.25]
+/*static inline void Cmd_AddFilteredCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)*/
+static inline int Cmd_AddCommandWithFlags (const char *cmd_name, xcommand_t function, const char *cmd_desc, int flags)
 	{
-	Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);
+	/*Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);*/
+	return Cmd_AddCommandEx (cmd_name, function, cmd_desc, flags, __func__);
 	}
 
+// [FWGS, 22.01.25]
 void Cmd_RemoveCommand (const char *cmd_name);
-qboolean Cmd_Exists (const char *cmd_name);
+/*qboolean Cmd_Exists (const char *cmd_name);*/
+cmd_t *Cmd_Exists (const char *cmd_name);
+
 void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback);
 int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len);
 void Cmd_TokenizeString (const char *text);
 void Cmd_ExecuteString (const char *text);
 void Cmd_ForwardToServer (void);
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len);
-
-/*//
-// zone.c [FWGS, 01.01.24]
-//
-void Memory_Init (void);
-void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (3);
-void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (2);
-
-poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline);
-void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline);
-void _Mem_EmptyPool (poolhandle_t poolptr, const char *filename, int fileline);
-void _Mem_Free (void *data, const char *filename, int fileline);
-void _Mem_Check (const char *filename, int fileline);
-qboolean Mem_IsAllocatedExt (poolhandle_t poolptr, void *data);
-void Mem_PrintList (size_t minallocationsize);
-void Mem_PrintStats (void);
-
-#define Mem_Malloc( pool, size ) _Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
-#define Mem_Calloc( pool, size ) _Mem_Alloc( pool, size, true, __FILE__, __LINE__ )
-#define Mem_Realloc( pool, ptr, size ) _Mem_Realloc( pool, ptr, size, true, __FILE__, __LINE__ )
-#define Mem_Free( mem ) _Mem_Free( mem, __FILE__, __LINE__ )
-#define Mem_AllocPool( name ) _Mem_AllocPool( name, __FILE__, __LINE__ )
-#define Mem_FreePool( pool ) _Mem_FreePool( pool, __FILE__, __LINE__ )
-#define Mem_EmptyPool( pool ) _Mem_EmptyPool( pool, __FILE__, __LINE__ )
-#define Mem_IsAllocated( mem ) Mem_IsAllocatedExt( NULL, mem )
-#define Mem_Check() _Mem_Check( __FILE__, __LINE__ )*/
 
 //
 // imagelib [FWGS, 01.12.24]
@@ -613,16 +596,15 @@ uint Sound_GetApproxWavePlayLen (const char *filepath);
 qboolean Sound_SupportedFileFormat (const char *fileext);
 
 //
-// host.c [FWGS, 01.12.24]
+// host.c [FWGS, 22.01.25]
 //
 typedef void(*pfnChangeGame)(const char *progname);
 
 qboolean Host_IsQuakeCompatible (void);
-void HLEXPORT Host_Shutdown (void);
-int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func);
+/*void HLEXPORT Host_Shutdown (void);*/
+void Host_ShutdownWithReason (const char *reason);
 
-/*int Host_CompareFileTime (int ft1, int ft2);
-void Host_EndGame (qboolean abort, const char *message, ...) _format (2);*/
+int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func);
 void Host_EndGame (qboolean abort, const char *message, ...) FORMAT_CHECK (2);
 
 void Host_AbortCurrentFrame (void) NORETURN;
@@ -630,13 +612,11 @@ void Host_WriteServerConfig (const char *name);
 void Host_WriteOpenGLConfig (void);
 void Host_WriteVideoConfig (void);
 void Host_WriteConfig (void);
-void Host_ShutdownServer (void);
 
-/*void Host_Error (const char *error, ...) _format (1);
-void Host_ValidateEngineFeatures (uint32_t features);*/
+// [FWGS, 22.01.25]
+/*void Host_ShutdownServer (void);*/
 void Host_Error (const char *error, ...) FORMAT_CHECK (1);
 void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features);
-
 void Host_Frame (double time);
 void Host_Credits (void);
 
@@ -669,14 +649,15 @@ qboolean SV_Active (void);
 
 /***
 ==============================================================
-SHARED ENGFUNCS [FWGS, 01.12.24]
+SHARED ENGFUNCS
 ==============================================================
 ***/
 char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize);
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput);
-int COM_SaveFile (const char *filename, const void *data, int len);
 
-/*byte *COM_LoadFileForMe (const char *filename, int *pLength);*/
+// [FWGS, 22.01.25]
+byte COM_Nibble (char c);
+int COM_SaveFile (const char *filename, const void *data, int len);
 byte *COM_LoadFileForMe (const char *filename, int *pLength) MALLOC_LIKE (free, 1);
 
 qboolean COM_IsSafeFileToDownload (const char *filename);
@@ -690,13 +671,8 @@ void pfnGetModelBounds (model_t *mod, float *mins, float *maxs);
 int COM_CheckParm (char *parm, char **ppnext);
 
 // [FWGS, 25.12.24]
-/*void pfnGetGameDir (char *szGetGameDir);*/
 int pfnGetModelType (model_t *mod);
 int pfnIsMapValid (char *filename);
-
-/*void Con_Reportf (const char *szFmt, ...) _format (1);
-void Con_DPrintf (const char *fmt, ...) _format (1);
-void Con_Printf (const char *szFmt, ...) _format (1);*/
 void Con_Reportf (const char *szFmt, ...) FORMAT_CHECK (1);
 void Con_DPrintf (const char *fmt, ...) FORMAT_CHECK (1);
 void Con_Printf (const char *szFmt, ...) FORMAT_CHECK (1);

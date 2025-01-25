@@ -25,22 +25,12 @@ GNU General Public License for more details
 // [FWGS, 01.12.24]
 typedef struct
 	{
-	/*byte	*data;
-	int		cursize;
-	int		maxsize;*/
-	byte *const data;
-	const int maxsize;
-	int cursize;
+	byte *const	data;
+	const int	maxsize;
+	int			cursize;
 	} cmdbuf_t;
 
 // [FWGS, 01.12.24]
-/*qboolean		cmd_wait;
-cmdbuf_t		cmd_text, filteredcmd_text;
-byte			cmd_text_buf[MAX_CMD_BUFFER];
-byte			filteredcmd_text_buf[MAX_CMD_BUFFER];
-cmdalias_t		*cmd_alias;
-uint			cmd_condition;
-int				cmd_condlevel;*/
 static qboolean	cmd_wait;
 static byte		cmd_text_buf[MAX_CMD_BUFFER];
 static byte		filteredcmd_text_buf[MAX_CMD_BUFFER];
@@ -69,19 +59,6 @@ COMMAND BUFFER
 ***/
 
 // [FWGS, 01.12.24] removed Cbuf_Init
-/*
-============
-Cbuf_Init
-============
-/
-static void Cbuf_Init (void)
-	{
-	cmd_text.data = cmd_text_buf;
-	filteredcmd_text.data = filteredcmd_text_buf;
-
-	filteredcmd_text.maxsize = cmd_text.maxsize = MAX_CMD_BUFFER;
-	filteredcmd_text.cursize = cmd_text.cursize = 0;
-	}*/
 
 /***
 ============
@@ -166,31 +143,46 @@ void Cbuf_AddFilteredText (const char *text)
 
 /***
 ============
-Cbuf_InsertText
+Cbuf_InsertText [FWGS, 22.01.25]
 
 Adds command text immediately after the current command
-Adds a \n to the text
 ============
 ***/
-static void Cbuf_InsertTextToBuffer (cmdbuf_t *buf, const char *text)
+/*static void Cbuf_InsertTextToBuffer (cmdbuf_t *buf, const char *text)*/
+static void Cbuf_InsertTextToBuffer (cmdbuf_t *buf, const char *text, size_t len, size_t requested_len)
 	{
-	int	l = Q_strlen (text);
+	/*int	l = Q_strlen (text);
 
-	if ((buf->cursize + l) >= buf->maxsize)
+	if ((buf->cursize + l) >= buf->maxsize)*/
+	if ((buf->cursize + requested_len) >= buf->maxsize)
 		{
-		Con_Reportf (S_WARN "%s: overflow\n", __func__);	// [FWGS, 01.07.24]
+		Con_Reportf (S_WARN "%s: overflow\n", __func__);
 		}
 	else
 		{
-		memmove (buf->data + l, buf->data, buf->cursize);
+		/*memmove (buf->data + l, buf->data, buf->cursize);
 		memcpy (buf->data, text, l);
-		buf->cursize += l;
+		buf->cursize += l;*/
+		memmove (buf->data + len, buf->data, buf->cursize);
+		memcpy (buf->data, text, len);
+		buf->cursize += len;
 		}
 	}
 
+// [FWGS, 22.01.25]
+void Cbuf_InsertTextLen (const char *text, size_t len, size_t requested_len)
+	{
+	// sometimes we need to insert more data than we have
+	// but also prevent overflow
+	Cbuf_InsertTextToBuffer (&cmd_text, text, len, requested_len);
+	}
+
+// [FWGS, 22.01.25]
 void Cbuf_InsertText (const char *text)
 	{
-	Cbuf_InsertTextToBuffer (&cmd_text, text);
+	/*Cbuf_InsertTextToBuffer (&cmd_text, text);*/
+	size_t l = Q_strlen (text);
+	Cbuf_InsertTextToBuffer (&cmd_text, text, l, l);
 	}
 
 /***
@@ -335,11 +327,16 @@ void Cbuf_ExecStuffCmds (void)
 
 			for (i++; i < host.argc; i++)
 				{
-				if (!host.argv[i]) continue;
-				if ((host.argv[i][0] == '+' || host.argv[i][0] == '-') && (host.argv[i][1] < '0' || host.argv[i][1] > '9'))
+				if (!host.argv[i])
+					continue;
+
+				if (((host.argv[i][0] == '+') || (host.argv[i][0] == '-')) &&
+					((host.argv[i][1] < '0') || (host.argv[i][1] > '9')))
 					break;
+
 				if (l + Q_strlen (host.argv[i]) + 4 > sizeof (build) - 1)
 					break;
+
 				build[l++] = ' ';
 
 				if (Q_strchr (host.argv[i], ' '))
@@ -419,7 +416,6 @@ static void Cmd_Echo_f (void)
 
 	for (i = 1; i < Cmd_Argc (); i++)
 		Con_Printf ("%s ", Cmd_Argv (i));
-		/*Con_Printf ("%s", Cmd_Argv (i));*/
 
 	Con_Printf ("\n");
 	}
@@ -475,8 +471,10 @@ static void Cmd_Alias_f (void)
 		// insert it at the right alphanumeric position
 		for (prev = NULL, cur = cmd_alias; cur && Q_strcmp (cur->name, a->name) < 0; prev = cur, cur = cur->next);
 
-		if (prev) prev->next = a;
-		else cmd_alias = a;
+		if (prev)
+			prev->next = a;
+		else
+			cmd_alias = a;
 		a->next = cur;
 
 #if defined( XASH_HASHED_VARS )
@@ -486,7 +484,6 @@ static void Cmd_Alias_f (void)
 
 	// copy the rest of the command line
 	cmd[0] = 0; // start out with a null string
-
 	c = Cmd_Argc ();
 
 	for (i = 2; i < c; i++)
@@ -551,14 +548,18 @@ static void Cmd_UnAlias_f (void)
 COMMAND EXECUTION
 =============================================================================
 ***/
-typedef struct cmd_s
+
+// [FWGS, 22.01.25]
+/*typedef struct cmd_s*/
+struct cmd_s
 	{
-	struct cmd_s *next;
-	char *name;
+	struct cmd_s	*next;
+	char		*name;
 	xcommand_t	function;
-	int		flags;
-	char *desc;
-	} cmd_t;
+	int			flags;
+	char		*desc;
+	/*} cmd_t;*/
+	};
 
 // [FWGS, 01.03.24]
 static int			cmd_argc;
@@ -705,7 +706,7 @@ void Cmd_TokenizeString (const char *text)
 
 /***
 ============
-Cmd_AddCommandEx [FWGS, 25.12.24]
+Cmd_AddCommandEx [FWGS, 22.01.25]
 ============
 ***/
 /*static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcommand_t function,
@@ -727,11 +728,34 @@ int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd
 		return 0;
 		}
 
-	// fail if the command already exists
-	if (Cmd_Exists (cmd_name))
+	/*// fail if the command already exists
+	if (Cmd_Exists (cmd_name))*/
+
+	// fail if the command already exists and cannot be overriden
+	cmd = Cmd_Exists (cmd_name);
+	if (cmd)
 		{
-		Con_DPrintf (S_ERROR "%s: %s already defined\n", funcname, cmd_name);
-		return 0;
+		/*Con_DPrintf (S_ERROR "%s: %s already defined\n", funcname, cmd_name);
+		return 0;*/
+
+		// some mods register commands that share the name with some engine's commands
+		// when they aren't critical to keep engine running, we can let mods to override them
+		// unfortunately, we lose original command this way
+		if (FBitSet (cmd->flags, CMD_OVERRIDABLE))
+			{
+			Mem_Free (cmd->desc);
+			cmd->desc = copystring (cmd_desc);
+			cmd->function = function;
+			cmd->flags = iFlags;
+
+			Con_DPrintf (S_WARN "%s: %s already defined but is allowed to be overriden\n", funcname, cmd_name);
+			return 1;
+			}
+		else
+			{
+			Con_DPrintf (S_ERROR "%s: %s already defined\n", funcname, cmd_name);
+			return 0;
+			}
 		}
 
 	// use a small malloc to avoid zone fragmentation
@@ -759,72 +783,6 @@ int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd
 
 // [FWGS, 25.12.24] removed Cmd_AddCommand, Cmd_AddRestrictedCommand, Cmd_AddServerCommand,
 // Cmd_AddClientCommand, Cmd_AddGameUICommand, Cmd_AddRefCommand
-/*
-============
-Cmd_AddCommand [FWGS, 01.07.24]
-============
-/
-void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
-	{
-	Cmd_AddCommandEx (__func__, cmd_name, function, cmd_desc, 0);
-	}
-
-
-/
-============
-Cmd_AddRestrictedCommand [FWGS, 01.07.24]
-============
-/
-void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
-	{
-	Cmd_AddCommandEx (__func__, cmd_name, function, cmd_desc, CMD_PRIVILEGED);
-	}
-
-/
-============
-Cmd_AddServerCommand [FWGS, 01.07.24]
-============
-/
-void GAME_EXPORT Cmd_AddServerCommand (const char *cmd_name, xcommand_t function)
-	{
-	Cmd_AddCommandEx (__func__, cmd_name, function, "server command", CMD_SERVERDLL);
-	}
-
-/
-============
-Cmd_AddClientCommand [FWGS, 01.07.24]
-============
-/
-int GAME_EXPORT Cmd_AddClientCommand (const char *cmd_name, xcommand_t function)
-	{
-	int flags = CMD_CLIENTDLL;
-
-	// a1ba: try to mitigate outdated client.dll vulnerabilities
-	if (!Q_stricmp (cmd_name, "motd_write"))
-		flags |= CMD_PRIVILEGED;
-
-	return Cmd_AddCommandEx (__func__, cmd_name, function, "client command", flags);
-	}
-
-/
-============
-Cmd_AddGameUICommand [FWGS, 01.07.24]
-============
-/
-int GAME_EXPORT Cmd_AddGameUICommand (const char *cmd_name, xcommand_t function)
-	{
-	return Cmd_AddCommandEx (__func__, cmd_name, function, "gameui command", CMD_GAMEUIDLL);
-	}
-
-/
-============
-Cmd_AddRefCommand [FWGS, 01.07.24]
-============
-/
-int Cmd_AddRefCommand (const char *cmd_name, xcommand_t function, const char *description)
-	{
-	return Cmd_AddCommandEx (__func__, cmd_name, function, description, CMD_REFDLL);
-	}*/
 
 /***
 ============
@@ -893,22 +851,27 @@ void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback)
 
 /***
 ============
-Cmd_Exists
+Cmd_Exists [FWGS, 22.01.25]
 ============
 ***/
-qboolean Cmd_Exists (const char *cmd_name)
+/*qboolean Cmd_Exists (const char *cmd_name)*/
+cmd_t *Cmd_Exists (const char *cmd_name)
 	{
 #if defined(XASH_HASHED_VARS)
-	return BaseCmd_Find (HM_CMD, cmd_name) != NULL;
+	/*return BaseCmd_Find (HM_CMD, cmd_name) != NULL;*/
+	return BaseCmd_Find (HM_CMD, cmd_name);
 #else
 	cmd_t *cmd;
 
 	for (cmd = cmd_functions; cmd; cmd = cmd->next)
 		{
 		if (!Q_strcmp (cmd_name, cmd->name))
-			return true;
+			/*return true;*/
+			return cmd;
 		}
-	return false;
+
+	/*return false;*/
+	return NULL;
 #endif
 	}
 
@@ -1017,7 +980,7 @@ static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 
 /***
 ============
-Cmd_ExecuteString [FWGS, 09.05.24]
+Cmd_ExecuteString
 
 A complete command line has been parsed, so try to execute it
 ============
@@ -1103,11 +1066,13 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 				}
 			}
 
+		// [FWGS, 22.01.25]
 		if (a)
 			{
-			Cbuf_InsertTextToBuffer (
-				isPrivileged ? &cmd_text : &filteredcmd_text,
-				a->value);
+			size_t len = Q_strlen (a->value);
+			Cbuf_InsertTextToBuffer (isPrivileged ? &cmd_text : &filteredcmd_text,
+				/*a->value);*/
+				a->value, len, len);
 			return;
 			}
 		}

@@ -518,7 +518,7 @@ void R_DrawAliasModel (cl_entity_t *e);
 void R_AliasInit (void);
 
 //
-// gl_warp.c [FWGS, 01.07.24]
+// gl_warp.c [FWGS, 22.01.25]
 //
 void R_AddSkyBoxSurface (msurface_t *fa);
 void R_ClearSkyBox (void);
@@ -526,11 +526,13 @@ void R_DrawSkyBox (void);
 void R_DrawClouds (void);
 void R_UnloadSkybox (void);
 
-void EmitWaterPolys (msurface_t *warp, qboolean reverse);
+/*void EmitWaterPolys (msurface_t *warp, qboolean reverse);*/
+void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples);
 void R_InitRipples (void);
 void R_ResetRipples (void);
 void R_AnimateRipples (void);
-void R_UploadRipples (texture_t * image);
+/*void R_UploadRipples (texture_t * image);*/
+qboolean R_UploadRipples (const texture_t *image);
 
 //
 // renderer exports [FWGS, 01.12.24]
@@ -587,9 +589,9 @@ const char *GL_ErrorString (int err);
 qboolean GL_Support (int r_ext);
 int GL_MaxTextureUnits (void);
 
-// [FWGS, 01.11.23]
+/*// [FWGS, 01.11.23]
 qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext, float minver);
-void GL_SetExtension (int r_ext, int enable);
+void GL_SetExtension (int r_ext, int enable);*/
 
 //
 // gl_triapi.c

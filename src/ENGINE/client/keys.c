@@ -34,9 +34,12 @@ typedef struct keyname_s
 	const char	*binding;	// default bind
 	} keyname_t;
 
-enginekey_t	keys[256];
+// [FWGS, 22.01.25]
+/*enginekey_t	keys[256];*/
+static enginekey_t keys[256];
 
-keyname_t keynames[] =
+/*keyname_t keynames[] =*/
+static const keyname_t keynames[] =
 	{
 	{"TAB",			K_TAB,			""},
 	{"ENTER",		K_ENTER,		""},
@@ -139,7 +142,7 @@ keyname_t keynames[] =
 
 	// raw semicolon seperates commands
 	{"SEMICOLON",	';',			""},
-	{NULL,			0,				NULL},
+	/*{NULL,			0,				NULL},*/
 	};
 
 static void OSK_EnableTextInput (qboolean enable, qboolean force);
@@ -167,7 +170,7 @@ int GAME_EXPORT Key_IsDown (int keynum)
 
 /***
 ===================
-Key_StringToKeynum
+Key_StringToKeynum [FWGS, 22.01.25]
 
 Returns a key number to be used to index keys[] by looking at
 the given string.  Single ascii characters return themselves, while
@@ -175,19 +178,28 @@ the K_* names are matched up.
 
 0x11 will be interpreted as raw hex, which will allow new controlers
 
-to be configured even if they don't have defined names.
+to be configured even if they don't have defined names
 ===================
 ***/
-int Key_StringToKeynum (const char *str)
+/*int Key_StringToKeynum (const char *str)*/
+static int Key_StringToKeynum (const char *str)
 	{
-	keyname_t *kn;
+	/*keyname_t *kn;*/
+	int i;
 
-	if (!str || !str[0]) return -1;
-	if (!str[1]) return str[0];
+	/*if (!str || !str[0])
+		return -1;
+	if (!str[1])
+		return str[0];*/
+	if (!str || !str[0])
+		return -1;
+
+	if (!str[1])
+		return str[0];
 
 	// check for hex code
 	if ((str[0] == '0') && (str[1] == 'x') && (Q_strlen (str) == 4))
-		{
+		/*{
 		int	n1, n2;
 
 		n1 = str[2];
@@ -219,13 +231,17 @@ int Key_StringToKeynum (const char *str)
 			}
 
 		return n1 * 16 + n2;
-		}
+		}*/
+		return COM_Nibble (str[2]) << 4 | COM_Nibble (str[3]);
 
 	// scan for a text match
-	for (kn = keynames; kn->name; kn++)
+	/*for (kn = keynames; kn->name; kn++)*/
+	for (i = 0; i < HLARRAYSIZE (keynames); i++)
 		{
-		if (!Q_stricmp (str, kn->name))
-			return kn->keynum;
+		/*if (!Q_stricmp (str, kn->name))
+			return kn->keynum;*/
+		if (!Q_stricmp (str, keynames[i].name))
+			return keynames[i].keynum;
 		}
 
 	return -1;
@@ -233,20 +249,25 @@ int Key_StringToKeynum (const char *str)
 
 /***
 ===================
-Key_KeynumToString
+Key_KeynumToString [FWGS, 22.01.25]
 
-Returns a string (either a single ascii char, a K_* name, or a 0x11 hex string) for the
-given keynum.
+Returns a string (either a single ascii char, a K_* name,
+or a 0x11 hex string) for the given keynum
 ===================
 ***/
 const char *Key_KeynumToString (int keynum)
 	{
-	keyname_t *kn;
+	/*keyname_t *kn;*/
 	static char	tinystr[5];
 	int		i, j;
 
+	/*if (keynum == -1)
+		return "<KEY NOT FOUND>";
+	if ((keynum < 0) || (keynum > 255))
+		return "<OUT OF RANGE>";*/
 	if (keynum == -1)
 		return "<KEY NOT FOUND>";
+
 	if ((keynum < 0) || (keynum > 255))
 		return "<OUT OF RANGE>";
 
@@ -259,10 +280,13 @@ const char *Key_KeynumToString (int keynum)
 		}
 
 	// check for a key string
-	for (kn = keynames; kn->name; kn++)
+	/*for (kn = keynames; kn->name; kn++)*/
+	for (i = 0; i < HLARRAYSIZE (keynames); i++)
 		{
-		if (keynum == kn->keynum)
-			return kn->name;
+		/*if (keynum == kn->keynum)
+			return kn->name;*/
+		if (keynum == keynames[i].keynum)
+			return keynames[i].name;
 		}
 
 	// make a hex string
@@ -314,10 +338,11 @@ const char *Key_GetBinding (int keynum)
 
 /***
 ===================
-Key_GetKey
+Key_GetKey [FWGS, 22.01.25]
 ===================
 ***/
-int Key_GetKey (const char *pBinding)
+/*int Key_GetKey (const char *pBinding)*/
+static int Key_GetKey (const char *pBinding)
 	{
 	int			i, len;
 	const char	*p;
@@ -342,6 +367,16 @@ int Key_GetKey (const char *pBinding)
 		}
 
 	return -1;
+	}
+
+/***
+=============
+Key_LookupBinding [FWGS, 22.01.25]
+=============
+***/
+const char *Key_LookupBinding (const char *pBinding)
+	{
+	return Key_KeynumToString (Key_GetKey (pBinding));
 	}
 
 /***
@@ -392,12 +427,12 @@ static void Key_Unbindall_f (void)
 
 /***
 ===================
-Key_Reset_f [FWGS, 01.02.24]
+Key_Reset_f [FWGS, 22.01.25]
 ===================
 ***/
 static void Key_Reset_f (void)
 	{
-	keyname_t	*kn;
+	/*keyname_t	*kn;*/
 	int			i;
 
 	// clear all keys first
@@ -408,8 +443,10 @@ static void Key_Reset_f (void)
 		}
 
 	// apply default values
-	for (kn = keynames; kn->name; kn++)
-		Key_SetBinding (kn->keynum, kn->binding);
+	/*for (kn = keynames; kn->name; kn++)
+		Key_SetBinding (kn->keynum, kn->binding);*/
+	for (i = 0; i < HLARRAYSIZE (keynames); i++)
+		Key_SetBinding (keynames[i].keynum, keynames[i].binding);
 	}
 
 /***
@@ -431,7 +468,6 @@ static void Key_Bind_f (void)
 		}
 
 	b = Key_StringToKeynum (Cmd_Argv (1));
-
 	if (b == -1)
 		{
 		Con_Printf ("\"%s\" isn't a valid key\n", Cmd_Argv (1));
@@ -511,14 +547,16 @@ static void Key_Bindlist_f (void)
 LINE TYPING INTO THE CONSOLE
 ==============================================================================
 ***/
+
 /***
 ===================
-Key_Init
+Key_Init [FWGS, 22.01.25]
 ===================
 ***/
 void Key_Init (void)
 	{
-	keyname_t *kn;
+	/*keyname_t *kn;*/
+	int	i;
 
 	// register our functions
 	Cmd_AddRestrictedCommand ("bind", Key_Bind_f,
@@ -535,10 +573,11 @@ void Key_Init (void)
 		"write help.txt that contains all console cvars and cmds");
 
 	// setup default binding. "unbindall" from config.cfg will be reset it
-	for (kn = keynames; kn->name; kn++)
-		Key_SetBinding (kn->keynum, kn->binding);
+	/*for (kn = keynames; kn->name; kn++)
+		Key_SetBinding (kn->keynum, kn->binding);*/
+	for (i = 0; i < HLARRAYSIZE (keynames); i++)
+		Key_SetBinding (keynames[i].keynum, keynames[i].binding);
 
-	// [FWGS, 01.07.23]
 	Cvar_RegisterVariable (&osk_enable);
 	Cvar_RegisterVariable (&key_rotate);
 	}
@@ -946,24 +985,32 @@ void CL_CharEvent (int key)
 
 /***
 ============
-Key_ToUpper
+Key_ToUpper [FWGS, 22.01.25]
 
 A helper function if platform input doesn't support text mode properly
 ============
 ***/
 int Key_ToUpper (int keynum)
 	{
-	keynum = Q_toupper (keynum);
+	/*keynum = Q_toupper (keynum);*/
 	if (keynum == '-')
-		keynum = '_';
-	if (keynum == '=')
-		keynum = '+';
-	if (keynum == ';')
-		keynum = ':';
-	if (keynum == '\'')
-		keynum = '"';
+		/*keynum = '_';*/
+		return '_';
 
-	return keynum;
+	if (keynum == '=')
+		/*keynum = '+';*/
+		return '+';
+
+	if (keynum == ';')
+		/*keynum = ':';*/
+		return ':';
+
+	if (keynum == '\'')
+		/*keynum = '"';*/
+		return '"';
+
+	/*return keynum;*/
+	return Q_toupper (keynum);
 	}
 
 /***

@@ -70,7 +70,7 @@ static float r_turbsin[] =
 
 STATIC_ASSERT (RIPPLES_TEXSIZE == 0x4000, "fix the algorithm to work with custom resolution");
 
-// [FWGS, 01.11.23]
+// [FWGS, 22.01.25]
 static struct
 	{
 	double	time;
@@ -83,7 +83,7 @@ static struct
 	uint32_t	texture[RIPPLES_TEXSIZE];
 	int		gl_texturenum;
 	int		rippletexturenum;
-	float	texturescale; // not all textures are 128x128, scale the texcoords down
+	/*float	texturescale; // not all textures are 128x128, scale the texcoords down*/
 	} g_ripple;
 
 // [FWGS, 01.07.24] removed CheckSkybox
@@ -628,120 +628,16 @@ void R_DrawClouds (void)
 	}
 
 // [FWGS, 01.07.24] removed R_InitSkyClouds
-/*
-=============
-R_InitSkyClouds
-
-A sky texture is 256*128, with the right side being a masked overlay
-==============
-/
-void R_InitSkyClouds (mip_t *mt, texture_t *tx, qboolean custom_palette)
-	{
-	rgbdata_t	r_temp, *r_sky;
-	uint *trans, *rgba;
-	uint	transpix;
-	int	r, g, b;
-	int	i, j, p;
-	char	texname[32];
-
-	if (!glw_state.initialized)
-		return;
-
-	Q_snprintf (texname, sizeof (texname), "%s%s.mip", (mt->offsets[0] > 0) ? "#" : "", tx->name);
-
-	if (mt->offsets[0] > 0)
-		{
-		int	size = (int)sizeof (mip_t) + ((mt->width * mt->height * 85) >> 6);
-
-		if (custom_palette) size += sizeof (short) + 768;
-		r_sky = gEngfuncs.FS_LoadImage (texname, (byte *)mt, size);
-		}
-	else
-		{
-		// okay, loading it from wad
-		r_sky = gEngfuncs.FS_LoadImage (texname, NULL, 0);
-		}
-
-	// make sure what sky image is valid
-	if (!r_sky || !r_sky->palette || (r_sky->type != PF_INDEXED_32) || (r_sky->height == 0))
-		{
-		gEngfuncs.Con_Reportf (S_ERROR "R_InitSky: unable to load sky texture %s\n", tx->name);
-		if (r_sky) gEngfuncs.FS_FreeImage (r_sky);
-		return;
-		}
-
-	// make an average value for the back to avoid
-	// a fringe on the top level
-	trans = Mem_Malloc (r_temppool, r_sky->height * r_sky->height * sizeof (*trans));
-	r = g = b = 0;
-
-	for (i = 0; i < r_sky->width >> 1; i++)
-		{
-		for (j = 0; j < r_sky->height; j++)
-			{
-			p = r_sky->buffer[i * r_sky->width + j + r_sky->height];
-			rgba = (uint *)r_sky->palette + p;
-			trans[(i * r_sky->height) + j] = *rgba;
-			r += ((byte *)rgba)[0];
-			g += ((byte *)rgba)[1];
-			b += ((byte *)rgba)[2];
-			}
-		}
-
-	((byte *)&transpix)[0] = r / (r_sky->height * r_sky->height);
-	((byte *)&transpix)[1] = g / (r_sky->height * r_sky->height);
-	((byte *)&transpix)[2] = b / (r_sky->height * r_sky->height);
-	((byte *)&transpix)[3] = 0;
-
-	// build a temporary image
-	r_temp = *r_sky;
-	r_temp.width = r_sky->width >> 1;
-	r_temp.height = r_sky->height;
-	r_temp.type = PF_RGBA_32;
-	r_temp.flags = IMAGE_HAS_COLOR;
-	r_temp.size = r_temp.width * r_temp.height * 4;
-	r_temp.buffer = (byte *)trans;
-	r_temp.palette = NULL;
-
-	// load it in
-	tr.solidskyTexture = GL_LoadTextureInternal (REF_SOLIDSKY_TEXTURE, &r_temp, TF_NOMIPMAP);
-
-	for (i = 0; i < r_sky->width >> 1; i++)
-		{
-		for (j = 0; j < r_sky->height; j++)
-			{
-			p = r_sky->buffer[i * r_sky->width + j];
-
-			if (p == 0)
-				{
-				trans[(i * r_sky->height) + j] = transpix;
-				}
-			else
-				{
-				rgba = (uint *)r_sky->palette + p;
-				trans[(i * r_sky->height) + j] = *rgba;
-				}
-			}
-		}
-
-	r_temp.flags = IMAGE_HAS_COLOR | IMAGE_HAS_ALPHA;
-
-	// load it in
-	tr.alphaskyTexture = GL_LoadTextureInternal (REF_ALPHASKY_TEXTURE, &r_temp, TF_NOMIPMAP);
-
-	// clean up
-	gEngfuncs.FS_FreeImage (r_sky);
-	Mem_Free (trans);
-	}*/
 
 /***
 =============
-EmitWaterPolys [FWGS, 01.09.24]
+EmitWaterPolys [FWGS, 22.01.25]
 
 Does a water warp on the pre-fragmented glpoly_t chain
 =============
 ***/
-void EmitWaterPolys (msurface_t *warp, qboolean reverse)
+/*void EmitWaterPolys (msurface_t *warp, qboolean reverse)*/
+void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples)
 	{
 	float		*v, nv, waveHeight;
 	float		s, t, os, ot;
@@ -790,15 +686,18 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse)
 			os = v[3];
 			ot = v[4];
 
-			if (!r_ripple.value)
+			/*if (!r_ripple.value)*/
+			if (!ripples)
 				{
 				s = os + r_turbsin[(int)((ot * 0.125f + gp_cl->time) * TURBSCALE) & 255];
 				t = ot + r_turbsin[(int)((os * 0.125f + gp_cl->time) * TURBSCALE) & 255];
 				}
 			else
 				{
-				s = os / g_ripple.texturescale;
-				t = ot / g_ripple.texturescale;
+				/*s = os / g_ripple.texturescale;
+				t = ot / g_ripple.texturescale;*/
+				s = os;
+				t = ot;
 				}
 
 			s *= (1.0f / SUBDIVIDE_SIZE);
@@ -896,8 +795,8 @@ static void R_RunRipplesAnimation (const short *oldbuf, short *pbuf)
 		}
 	}
 
-// [FWGS, 01.11.23]
-static int MostSignificantBit (unsigned int v)
+// [FWGS, 22.01.25] removed MostSignificantBit
+/*static int MostSignificantBit (unsigned int v)
 	{
 #if __GNUC__
 	return 31 - __builtin_clz (v);
@@ -906,7 +805,7 @@ static int MostSignificantBit (unsigned int v)
 	for (i = 0, v >>= 1; v; v >>= 1, i++);
 	return i;
 #endif
-	}
+	}*/
 
 // [FWGS, 01.01.24]
 void R_AnimateRipples (void)
@@ -938,70 +837,108 @@ void R_AnimateRipples (void)
 	R_RunRipplesAnimation (g_ripple.oldbuf, g_ripple.curbuf);
 	}
 
-// [FWGS, 01.02.24] удалена R_UpdateRippleTexParams
+// [FWGS, 01.02.24] removed R_UpdateRippleTexParams
 
-// [FWGS, 01.05.24]
-void R_UploadRipples (texture_t *image)
+// [FWGS, 22.01.25]
+/*void R_UploadRipples (texture_t *image)*/
+qboolean R_UploadRipples (const texture_t *image)
 	{
-	gl_texture_t	*glt;
+	/*gl_texture_t	*glt;
 	uint32_t		*pixels;
-	int		wbits, wmask, wshft;
+	int		wbits, wmask, wshft;*/
+	const gl_texture_t	*glt;
+	const uint32_t		*pixels;
 	int		y;
+	int		width, height, size;
 
-	// discard unuseful textures
-	if (!r_ripple.value || (image->width > RIPPLES_CACHEWIDTH) || (image->width != image->height))
+	/*// discard unuseful textures
+	if (!r_ripple.value || (image->width > RIPPLES_CACHEWIDTH) || (image->width != image->height))*/
+	if (!r_ripple.value)
 		{
 		GL_Bind (XASH_TEXTURE0, image->gl_texturenum);
-		return;
+		/*return;*/
+		return false;
 		}
 
+	// discard unuseful textures
 	glt = R_GetTexture (image->gl_texturenum);
 	if (!glt || !glt->original || !glt->original->buffer || !FBitSet (glt->flags, TF_EXPAND_SOURCE))
 		{
 		GL_Bind (XASH_TEXTURE0, image->gl_texturenum);
-		return;
+		/*return;*/
+		return false;
 		}
 
 	GL_Bind (XASH_TEXTURE0, g_ripple.rippletexturenum);
 
 	// no updates this frame
 	if (!g_ripple.update && (image->gl_texturenum == g_ripple.gl_texturenum))
-		return;
+		return true;
+	/*return;*/
 
 	g_ripple.gl_texturenum = image->gl_texturenum;
-	if (r_ripple.value == 1.0f)
+	/*if (r_ripple.value == 1.0f)
 		{
 		g_ripple.texturescale = Q_max (1.0f, image->width / 64.0f);
 		}
 	else
 		{
 		g_ripple.texturescale = 1.0f;
-		}
+		}*/
+	size = (r_ripple.value == 1.0f) ? 64 : RIPPLES_CACHEWIDTH;
 
-
-	pixels = (uint32_t *)glt->original->buffer;
+	/*pixels = (uint32_t *)glt->original->buffer;
 	wbits = MostSignificantBit (image->width);
 	wshft = 7 - wbits;
-	wmask = image->width - 1;
+	wmask = image->width - 1;*/
 
-	for (y = 0; y < image->height; y++)
+	// try to preserve aspect ratio
+	width = height = RIPPLES_CACHEWIDTH; // always render at maximum size
+	if (image->width > image->height)
+		height = (float)image->height / image->width * width;
+	else if (image->width < image->height)
+		width = (float)image->width / image->height * height;
+
+	/*for (y = 0; y < image->height; y++)*/
+	pixels = (const uint32_t *)glt->original->buffer;
+
+	for (y = 0; y < height; y++)
 		{
-		int ry = y << (7 + wshft);
+		/*int ry = y << (7 + wshft);*/
+		int ry = (float)y / height * size;
 		int x;
 
-		for (x = 0; x < image->width; x++)
+		/*for (x = 0; x < image->width; x++)*/
+		for (x = 0; x < width; x++)
 			{
-			int rx = x << wshft;
-			int val = g_ripple.curbuf[ry + rx] >> 4;
+			/*int rx = x << wshft;
+			int val = g_ripple.curbuf[ry + rx] >> 4;*/
+			int rx = (float)x / width * size;
+			int val = g_ripple.curbuf[ry * RIPPLES_CACHEWIDTH + rx] / 16;
 
-			int py = (y - val) & wmask;
+			// transform it to texture space and get nice tiling effect
+			int rpy = (y - val) % height;
+			int rpx = (x + val) % width;
+
+			/*int py = (y - val) & wmask;
 			int px = (x + val) & wmask;
-			int p = (py << wbits) + px;
+			int p = (py << wbits) + px;*/
+			int py = (float)rpy / height * image->height;
+			int px = (float)rpx / width * image->width;
 
-			g_ripple.texture[(y << wbits) + x] = pixels[p];
+			/*g_ripple.texture[(y << wbits) + x] = pixels[p];*/
+			if (py < 0)
+				py = image->height + py;
+			if (px < 0)
+				px = image->width + px;
+
+			g_ripple.texture[y * width + x] = pixels[py * image->width + px];
 			}
 		}
 
-	pglTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->width, 0,
+	/*pglTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->width, 0,*/
+	pglTexImage2D (GL_TEXTURE_2D, 0, glt->format, width, height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, g_ripple.texture);
+
+	return true;
 	}

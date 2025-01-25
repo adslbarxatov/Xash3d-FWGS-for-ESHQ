@@ -1294,22 +1294,9 @@ static void R_RenderBrushPoly (msurface_t *fa, int cull_type)*/
 // [FWGS, 01.12.24]
 static void R_RenderFullbrightForSurface (msurface_t *fa, texture_t *t)
 	{
-	/*qboolean	is_dynamic = false;
-	int			maps;
-	texture_t	*t;
-
-	r_stats.c_world_polys++;
-
-	if (fa->flags & SURF_DRAWSKY)
-		return; // already handled
-
-	t = R_TextureAnimation (fa);*/
 	if (!t->fb_texturenum)
 		return;
 
-	/*if (FBitSet (fa->flags, SURF_DRAWTURB))
-		{
-		R_UploadRipples (t);*/
 	fa->info->lumachain = fullbright_surfaces[t->fb_texturenum];
 	fullbright_surfaces[t->fb_texturenum] = fa->info;
 	R_AddToSeparatePass (&draw_fullbrights, t->fb_texturenum);
@@ -1319,51 +1306,13 @@ static void R_RenderFullbrightForSurface (msurface_t *fa, texture_t *t)
 static void R_RenderDetailsForSurface (msurface_t *fa, texture_t *t)
 	{
 	if (!r_detailtextures.value)
-		/*// warp texture, no lightmaps
-		EmitWaterPolys (fa, (cull_type == CULL_BACKSIDE));*/
 		return;
-	/*}
-	else
-		{
-		GL_Bind (XASH_TEXTURE0, t->gl_texturenum);
-		}
 
-	if (t->fb_texturenum)
-		{
-		fa->info->lumachain = fullbright_surfaces[t->fb_texturenum];
-		fullbright_surfaces[t->fb_texturenum] = fa->info;
-		draw_fullbrights = true;
-		}*/
-
-	/*if (r_detailtextures.value)*/
 	if (glState.isFogEnabled)
 		{
-		/*if (glState.isFogEnabled)*/
 		// don't apply detail textures for windows in the fog
 		if (RI.currententity->curstate.rendermode != kRenderTransTexture)
 			{
-			/*// don't apply detail textures for windows in the fog
-			if (RI.currententity->curstate.rendermode != kRenderTransTexture)
-				{
-				if (t->dt_texturenum)
-					{
-					fa->info->detailchain = detail_surfaces[t->dt_texturenum];
-					detail_surfaces[t->dt_texturenum] = fa->info;
-					}
-				else
-					{
-					// draw stub detail texture for underwater surfaces
-					fa->info->detailchain = detail_surfaces[tr.grayTexture];
-					detail_surfaces[tr.grayTexture] = fa->info;
-					}
-				draw_details = true;
-				}
-			}
-		else if (t->dt_texturenum)
-			{
-			fa->info->detailchain = detail_surfaces[t->dt_texturenum];
-			detail_surfaces[t->dt_texturenum] = fa->info;
-			draw_details = true;*/
 			// draw stub detail texture for underwater surfaces
 			int texturenum = t->dt_texturenum ? t->dt_texturenum : tr.grayTexture;
 
@@ -1383,8 +1332,6 @@ static void R_RenderDetailsForSurface (msurface_t *fa, texture_t *t)
 // [FWGS, 01.12.24]
 static void R_RenderDecalsForSurface (msurface_t *fa, int cull_type)
 	{
-	/*DrawGLPoly (fa->polys, 0.0f, 0.0f);*/
-
 	if (RI.currententity->curstate.rendermode == kRenderNormal)
 		{
 		// batch decals to draw later
@@ -1403,8 +1350,6 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 	{
 	qboolean	is_dynamic = false;
 	int			maps;
-	/*if (FBitSet (fa->flags, SURF_DRAWTILED))
-		return; // no lightmaps anyway*/
 
 	// check for lightmap modification
 	for (maps = 0; (maps < MAXLIGHTMAPS) && (fa->styles[maps] != 255); maps++)
@@ -1418,16 +1363,12 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 		{
 dynamic:
 		// NOTE: at this point we have only valid textures
-		/*if (r_dynamic->value)
-			is_dynamic = true;*/
 		if (r_dynamic->value)
 			is_dynamic = true;
 		}
 
 	if (is_dynamic)
 		{
-		/*if ((maps < MAXLIGHTMAPS) && ((fa->styles[maps] >= 32) || (fa->styles[maps] == 0) ||
-			(fa->styles[maps] == 20)) && (fa->dlightframe != tr.framecount))*/
 		const int style = fa->styles[maps];
 
 		if ((maps < MAXLIGHTMAPS) &&
@@ -1443,7 +1384,6 @@ dynamic:
 			smax = (info->lightextents[0] / sample_size) + 1;
 			tmax = (info->lightextents[1] / sample_size) + 1;
 
-			/*R_BuildLightMap (fa, temp, smax * 4, true);*/
 			if ((smax < 132) && (tmax < 132))
 				{
 				R_BuildLightMap (fa, temp, smax * 4, true);
@@ -1464,23 +1404,15 @@ dynamic:
 			GL_Bind (XASH_TEXTURE0, tr.lightmapTextures[fa->lightmaptexturenum]);
 #endif
 
-			/*pglTexSubImage2D (GL_TEXTURE_2D, 0, fa->light_s, fa->light_t, smax, tmax,
-				GL_RGBA, GL_UNSIGNED_BYTE, temp);*/
 			pglTexSubImage2D (GL_TEXTURE_2D, 0, fa->light_s, fa->light_t, smax, tmax, GL_RGBA,
 				GL_UNSIGNED_BYTE, temp);
 
-			/*fa->info->lightmapchain = gl_lms.lightmap_surfaces[fa->lightmaptexturenum];
-			gl_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;*/
 #if XASH_WES
 			GL_SelectTexture (XASH_TEXTURE0);
 #endif
 			}
 		else
 			{
-			/*{
-			fa->info->lightmapchain = gl_lms.dynamic_surfaces;
-			gl_lms.dynamic_surfaces = fa;
-			}*/
 			return true; // add to dynamic chain
 			}
 		}
@@ -1508,7 +1440,7 @@ static void R_RenderLightmapForSurface (msurface_t *fa)
 
 /***
 ================
-R_RenderBrushPoly [FWGS, 01.12.24]
+R_RenderBrushPoly [FWGS, 22.01.25]
 ================
 ***/
 static void R_RenderBrushPoly (msurface_t *fa, int cull_type)
@@ -1522,10 +1454,11 @@ static void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 	t = R_TextureAnimation (fa);
 	if (FBitSet (fa->flags, SURF_DRAWTURB))
 		{
-		R_UploadRipples (t);
+		/*R_UploadRipples (t);*/
 
 		// warp texture, no lightmaps
-		EmitWaterPolys (fa, (cull_type == CULL_BACKSIDE));
+		/*EmitWaterPolys (fa, (cull_type == CULL_BACKSIDE));*/
+		EmitWaterPolys (fa, cull_type == CULL_BACKSIDE, R_UploadRipples (t));
 		return;
 		}
 	else
@@ -1676,20 +1609,19 @@ void R_DrawAlphaTextureChains (void)
 
 /***
 ================
-R_DrawWaterSurfaces [FWGS, 01.12.24]
+R_DrawWaterSurfaces [FWGS, 22.01.25]
 ================
 ***/
 void R_DrawWaterSurfaces (void)
 	{
-	int		i;
-	msurface_t *s;
-	texture_t *t;
+	int			i;
+	msurface_t	*s;
+	texture_t	*t;
 
 	if (!RI.drawWorld || RI.onlyClientDraw)
 		return;
 
 	// non-transparent water is already drawed
-	/*if (tr.movevars->wateralpha >= 1.0f)*/
 	if (!R_SeparatePassActive (&draw_wateralpha))
 		return;
 
@@ -1707,7 +1639,6 @@ void R_DrawWaterSurfaces (void)
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	pglColor4f (1.0f, 1.0f, 1.0f, tr.movevars->wateralpha);
 
-	/*for (i = 0; i < WORLDMODEL->numtextures; i++)*/
 	for (i = draw_wateralpha.first; i <= draw_wateralpha.last; i++)
 		{
 		t = WORLDMODEL->textures[i];
@@ -1721,11 +1652,12 @@ void R_DrawWaterSurfaces (void)
 		if (!FBitSet (s->flags, SURF_DRAWTURB))
 			continue;
 
-		// set modulate mode explicitly
-		R_UploadRipples (t);
+		/*// set modulate mode explicitly
+		R_UploadRipples (t);*/
 
 		for (; s; s = s->texturechain)
-			EmitWaterPolys (s, false);
+			/*EmitWaterPolys (s, false);*/
+			EmitWaterPolys (s, false, R_UploadRipples (t));
 
 		t->texturechain = NULL;
 		}

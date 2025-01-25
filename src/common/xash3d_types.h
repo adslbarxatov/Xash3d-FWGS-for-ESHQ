@@ -15,8 +15,6 @@
 
 #include <sys/types.h> // off_t
 
-/*define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
-include STDINT_H*/
 #include <stdint.h>		// [FWGS, 01.12.24]
 #include <assert.h>
 
@@ -85,7 +83,6 @@ typedef uint64_t longtime_t;
 #if defined( __GNUC__ )
 	#if defined( __i386__ )
 		#define HLEXPORT __attribute__(( visibility( "default" ), force_align_arg_pointer ))
-		/*#define GAME_EXPORT __attribute(( force_align_arg_pointer ))*/
 		#define GAME_EXPORT __attribute__(( force_align_arg_pointer ))
 	#else
 		#define HLEXPORT __attribute__(( visibility ( "default" )))
@@ -106,7 +103,6 @@ typedef uint64_t longtime_t;
 	#define NORETURN __attribute__(( noreturn ))
 	#define NONNULL __attribute__(( nonnull ))
 
-	/*#define _format( x ) __attribute__(( format( printf, x, x + 1 )))*/
 	#define RETURNS_NONNULL __attribute__(( returns_nonnull ))
 
 	#if __clang__
@@ -140,7 +136,6 @@ typedef uint64_t longtime_t;
 	#define NORETURN
 	#define NONNULL
 
-	/*#define _format( x )*/
 	#define RETURNS_NONNULL
 	#define PFN_RETURNS_NONNULL
 	#define FORMAT_CHECK( x )
@@ -253,6 +248,7 @@ typedef char		string[MAX_STRING];
 typedef struct file_s	file_t;		// normal file
 typedef struct stream_s	stream_t;		// sound stream for background music playing
 typedef off_t fs_offset_t;
+
 #if XASH_WIN32
 	typedef int fs_size_t; // return type of _read, _write funcs
 #else
@@ -265,10 +261,12 @@ typedef struct dllfunc_s
 	void **func;
 	} dllfunc_t;
 
+// [FWGS, 22.01.25]
 typedef struct dll_info_s
 	{
 	const char		*name;	// name of library
 	const dllfunc_t	*fcts;	// list of dll exports
+	const size_t	num_fcts;
 	qboolean		crash;	// crash if dll not found
 	void			*link;	// hinstance of loading library
 	} dll_info_t;

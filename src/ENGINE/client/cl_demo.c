@@ -729,7 +729,7 @@ static void CL_ReadDemoSequence (qboolean discard)
 
 /***
 =================
-CL_DemoStartPlayback [FWGS, 01.02.24]
+CL_DemoStartPlayback [FWGS, 22.01.25]
 =================
 ***/
 static void CL_DemoStartPlayback (int mode)
@@ -747,7 +747,8 @@ static void CL_DemoStartPlayback (int mode)
 		{
 		// NOTE: at this point demo is still valid
 		CL_Disconnect ();
-		Host_ShutdownServer ();
+		/*Host_ShutdownServer ();*/
+		SV_Shutdown ("Server was killed due to demo playback start\n");
 
 		Con_FastClose ();
 		UI_SetActiveMenu (false);

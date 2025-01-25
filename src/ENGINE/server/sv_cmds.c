@@ -17,9 +17,6 @@ GNU General Public License for more details
 #include "server.h"
 #include <shellapi.h>	// ESHQ: поддержка вызова генератора карт ESRM
 
-// [FWGS, 01.12.24]
-/*extern convar_t con_gamemaps;*/
-
 /***
 =================
 SV_ClientPrintf
@@ -963,14 +960,15 @@ static void SV_ClientUserAgent_f (void)
 
 /***
 ===============
-SV_KillServer_f
+SV_KillServer_f [FWGS, 22.01.25]
 
 Kick everyone off, possibly in preparation for a new game
 ===============
 ***/
 static void SV_KillServer_f (void)
 	{
-	Host_ShutdownServer ();
+	/*Host_ShutdownServer ();*/
+	SV_Shutdown ("Server was killed due to shutdownserver command\n");
 	}
 
 /***

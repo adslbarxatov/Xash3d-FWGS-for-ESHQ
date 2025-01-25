@@ -39,7 +39,8 @@ GNU General Public License for more details
 #define DT_SIGNED			BIT (8)		// sign modificator
 #define DT_SIGNED_GS		BIT (31)	// [FWGS, 01.12.24] GoldSrc-specific sign modificator
 
-#define NUM_FIELDS(x) ((sizeof (x) / sizeof (x[0])) - 1)
+// [FWGS, 22.01.25]
+/*#define NUM_FIELDS(x) ((sizeof (x) / sizeof (x[0])) - 1)*/
 
 // [FWGS, 01.12.24] helper macroses
 #define ENTS_DEF(x) #x, offsetof (entity_state_t, x), sizeof (((entity_state_t *)0)->x)
@@ -52,203 +53,208 @@ GNU General Public License for more details
 
 static qboolean		delta_init = false;
 
-// list of all the struct names
+// [FWGS, 22.01.25] list of all the struct names
 static const delta_field_t cmd_fields[] =
 	{
-	{ UCMD_DEF (lerp_msec)		},
-	{ UCMD_DEF (msec)			},
+	{ UCMD_DEF (lerp_msec)			},
+	{ UCMD_DEF (msec)				},
 	{ UCMD_DEF (viewangles[0])		},
 	{ UCMD_DEF (viewangles[1])		},
 	{ UCMD_DEF (viewangles[2])		},
 	{ UCMD_DEF (forwardmove)		},
-	{ UCMD_DEF (sidemove)		},
-	{ UCMD_DEF (upmove)		},
-	{ UCMD_DEF (lightlevel)		},
-	{ UCMD_DEF (buttons)		},
-	{ UCMD_DEF (impulse)		},
+	{ UCMD_DEF (sidemove)			},
+	{ UCMD_DEF (upmove)				},
+	{ UCMD_DEF (lightlevel)			},
+	{ UCMD_DEF (buttons)			},
+	{ UCMD_DEF (impulse)			},
 	{ UCMD_DEF (weaponselect)		},
 	{ UCMD_DEF (impact_index)		},
 	{ UCMD_DEF (impact_position[0])	},
 	{ UCMD_DEF (impact_position[1])	},
 	{ UCMD_DEF (impact_position[2])	},
-	{ NULL },
+	/*{ NULL },*/
 	};
 
+// [FWGS, 22.01.25]
 static const delta_field_t pm_fields[] =
 	{
-	{ PHYS_DEF (gravity)		},
-	{ PHYS_DEF (stopspeed)		},
-	{ PHYS_DEF (maxspeed)		},
+	{ PHYS_DEF (gravity)			},
+	{ PHYS_DEF (stopspeed)			},
+	{ PHYS_DEF (maxspeed)			},
 	{ PHYS_DEF (spectatormaxspeed)	},
-	{ PHYS_DEF (accelerate)		},
+	{ PHYS_DEF (accelerate)			},
 	{ PHYS_DEF (airaccelerate)		},
-	{ PHYS_DEF (wateraccelerate)		},
-	{ PHYS_DEF (friction)		},
+	{ PHYS_DEF (wateraccelerate)	},
+	{ PHYS_DEF (friction)			},
 	{ PHYS_DEF (edgefriction)		},
 	{ PHYS_DEF (waterfriction)		},
-	{ PHYS_DEF (bounce)		},
-	{ PHYS_DEF (stepsize)		},
+	{ PHYS_DEF (bounce)				},
+	{ PHYS_DEF (stepsize)			},
 	{ PHYS_DEF (maxvelocity)		},
-	{ PHYS_DEF (zmax)			},
-	{ PHYS_DEF (waveHeight)		},
-	{ PHYS_DEF (footsteps)		},
-	{ PHYS_DEF (skyName)		},
-	{ PHYS_DEF (rollangle)		},
-	{ PHYS_DEF (rollspeed)		},
-	{ PHYS_DEF (skycolor_r)		},
-	{ PHYS_DEF (skycolor_g)		},
-	{ PHYS_DEF (skycolor_b)		},
-	{ PHYS_DEF (skyvec_x)		},
-	{ PHYS_DEF (skyvec_y)		},
-	{ PHYS_DEF (skyvec_z)		},
+	{ PHYS_DEF (zmax)				},
+	{ PHYS_DEF (waveHeight)			},
+	{ PHYS_DEF (footsteps)			},
+	{ PHYS_DEF (skyName)			},
+	{ PHYS_DEF (rollangle)			},
+	{ PHYS_DEF (rollspeed)			},
+	{ PHYS_DEF (skycolor_r)			},
+	{ PHYS_DEF (skycolor_g)			},
+	{ PHYS_DEF (skycolor_b)			},
+	{ PHYS_DEF (skyvec_x)			},
+	{ PHYS_DEF (skyvec_y)			},
+	{ PHYS_DEF (skyvec_z)			},
 	{ PHYS_DEF (fog_settings)		},
-	{ PHYS_DEF (wateralpha)		},
-	{ PHYS_DEF (skydir_x)		},
-	{ PHYS_DEF (skydir_y)		},
-	{ PHYS_DEF (skydir_z)		},
-	{ PHYS_DEF (skyangle)		},
-	{ NULL },
+	{ PHYS_DEF (wateralpha)			},
+	{ PHYS_DEF (skydir_x)			},
+	{ PHYS_DEF (skydir_y)			},
+	{ PHYS_DEF (skydir_z)			},
+	{ PHYS_DEF (skyangle)			},
+	/*{ NULL },*/
 	};
 
+// [FWGS, 22.01.25]
 static const delta_field_t ev_fields[] =
 	{
-	{ EVNT_DEF (flags)		},
-	{ EVNT_DEF (entindex)	},
-	{ EVNT_DEF (origin[0])	},
-	{ EVNT_DEF (origin[1])	},
-	{ EVNT_DEF (origin[2])	},
-	{ EVNT_DEF (angles[0])	},
-	{ EVNT_DEF (angles[1])	},
-	{ EVNT_DEF (angles[2])	},
+	{ EVNT_DEF (flags)			},
+	{ EVNT_DEF (entindex)		},
+	{ EVNT_DEF (origin[0])		},
+	{ EVNT_DEF (origin[1])		},
+	{ EVNT_DEF (origin[2])		},
+	{ EVNT_DEF (angles[0])		},
+	{ EVNT_DEF (angles[1])		},
+	{ EVNT_DEF (angles[2])		},
 	{ EVNT_DEF (velocity[0])	},
 	{ EVNT_DEF (velocity[1])	},
 	{ EVNT_DEF (velocity[2])	},
-	{ EVNT_DEF (ducking)	},
-	{ EVNT_DEF (fparam1)	},
-	{ EVNT_DEF (fparam2)	},
-	{ EVNT_DEF (iparam1)	},
-	{ EVNT_DEF (iparam2)	},
-	{ EVNT_DEF (bparam1)	},
-	{ EVNT_DEF (bparam2)	},
-	{ NULL },
+	{ EVNT_DEF (ducking)		},
+	{ EVNT_DEF (fparam1)		},
+	{ EVNT_DEF (fparam2)		},
+	{ EVNT_DEF (iparam1)		},
+	{ EVNT_DEF (iparam2)		},
+	{ EVNT_DEF (bparam1)		},
+	{ EVNT_DEF (bparam2)		},
+	/*{ NULL },*/
 	};
 
+// [FWGS, 22.01.25]
 static const delta_field_t wd_fields[] =
 	{
-	{ WPDT_DEF (m_iId)			},
-	{ WPDT_DEF (m_iClip)		},
-	{ WPDT_DEF (m_flNextPrimaryAttack)	},
+	{ WPDT_DEF (m_iId)						},
+	{ WPDT_DEF (m_iClip)					},
+	{ WPDT_DEF (m_flNextPrimaryAttack)		},
 	{ WPDT_DEF (m_flNextSecondaryAttack)	},
-	{ WPDT_DEF (m_flTimeWeaponIdle)	},
-	{ WPDT_DEF (m_fInReload)		},
-	{ WPDT_DEF (m_fInSpecialReload)	},
-	{ WPDT_DEF (m_flNextReload)		},
-	{ WPDT_DEF (m_flPumpTime)		},
-	{ WPDT_DEF (m_fReloadTime)		},
-	{ WPDT_DEF (m_fAimedDamage)		},
-	{ WPDT_DEF (m_fNextAimBonus)		},
-	{ WPDT_DEF (m_fInZoom)		},
-	{ WPDT_DEF (m_iWeaponState)		},
-	{ WPDT_DEF (iuser1)		},
-	{ WPDT_DEF (iuser2)		},
-	{ WPDT_DEF (iuser3)		},
-	{ WPDT_DEF (iuser4)		},
-	{ WPDT_DEF (fuser1)		},
-	{ WPDT_DEF (fuser2)		},
-	{ WPDT_DEF (fuser3)		},
-	{ WPDT_DEF (fuser4)		},
-	{ NULL },
+	{ WPDT_DEF (m_flTimeWeaponIdle)			},
+	{ WPDT_DEF (m_fInReload)				},
+	{ WPDT_DEF (m_fInSpecialReload)			},
+	{ WPDT_DEF (m_flNextReload)				},
+	{ WPDT_DEF (m_flPumpTime)				},
+	{ WPDT_DEF (m_fReloadTime)				},
+	{ WPDT_DEF (m_fAimedDamage)				},
+	{ WPDT_DEF (m_fNextAimBonus)			},
+	{ WPDT_DEF (m_fInZoom)					},
+	{ WPDT_DEF (m_iWeaponState)				},
+	{ WPDT_DEF (iuser1)						},
+	{ WPDT_DEF (iuser2)						},
+	{ WPDT_DEF (iuser3)						},
+	{ WPDT_DEF (iuser4)						},
+	{ WPDT_DEF (fuser1)						},
+	{ WPDT_DEF (fuser2)						},
+	{ WPDT_DEF (fuser3)						},
+	{ WPDT_DEF (fuser4)						},
+	/*{ NULL },*/
 	};
 
+// [FWGS, 22.01.25]
 static const delta_field_t cd_fields[] =
 	{
-	{ CLDT_DEF (origin[0])	},
-	{ CLDT_DEF (origin[1])	},
-	{ CLDT_DEF (origin[2])	},
-	{ CLDT_DEF (velocity[0])	},
-	{ CLDT_DEF (velocity[1])	},
-	{ CLDT_DEF (velocity[2])	},
-	{ CLDT_DEF (viewmodel)	},
-	{ CLDT_DEF (punchangle[0])	},
-	{ CLDT_DEF (punchangle[1])	},
-	{ CLDT_DEF (punchangle[2])	},
-	{ CLDT_DEF (flags)		},
-	{ CLDT_DEF (waterlevel)	},
-	{ CLDT_DEF (watertype)	},
-	{ CLDT_DEF (view_ofs[0])	},
-	{ CLDT_DEF (view_ofs[1])	},
-	{ CLDT_DEF (view_ofs[2])	},
-	{ CLDT_DEF (health)	},
-	{ CLDT_DEF (bInDuck)	},
-	{ CLDT_DEF (weapons)	},
+	{ CLDT_DEF (origin[0])			},
+	{ CLDT_DEF (origin[1])			},
+	{ CLDT_DEF (origin[2])			},
+	{ CLDT_DEF (velocity[0])		},
+	{ CLDT_DEF (velocity[1])		},
+	{ CLDT_DEF (velocity[2])		},
+	{ CLDT_DEF (viewmodel)			},
+	{ CLDT_DEF (punchangle[0])		},
+	{ CLDT_DEF (punchangle[1])		},
+	{ CLDT_DEF (punchangle[2])		},
+	{ CLDT_DEF (flags)				},
+	{ CLDT_DEF (waterlevel)			},
+	{ CLDT_DEF (watertype)			},
+	{ CLDT_DEF (view_ofs[0])		},
+	{ CLDT_DEF (view_ofs[1])		},
+	{ CLDT_DEF (view_ofs[2])		},
+	{ CLDT_DEF (health)				},
+	{ CLDT_DEF (bInDuck)			},
+	{ CLDT_DEF (weapons)			},
 	{ CLDT_DEF (flTimeStepSound)	},
-	{ CLDT_DEF (flDuckTime)	},
-	{ CLDT_DEF (flSwimTime)	},
-	{ CLDT_DEF (waterjumptime)	},
-	{ CLDT_DEF (maxspeed)	},
-	{ CLDT_DEF (fov)		},
-	{ CLDT_DEF (weaponanim)	},
-	{ CLDT_DEF (m_iId)		},
-	{ CLDT_DEF (ammo_shells)	},
-	{ CLDT_DEF (ammo_nails)	},
-	{ CLDT_DEF (ammo_cells)	},
-	{ CLDT_DEF (ammo_rockets)	},
-	{ CLDT_DEF (m_flNextAttack)	},
-	{ CLDT_DEF (tfstate)	},
-	{ CLDT_DEF (pushmsec)	},
-	{ CLDT_DEF (deadflag)	},
-	{ CLDT_DEF (physinfo)	},
-	{ CLDT_DEF (iuser1)	},
-	{ CLDT_DEF (iuser2)	},
-	{ CLDT_DEF (iuser3)	},
-	{ CLDT_DEF (iuser4)	},
-	{ CLDT_DEF (fuser1)	},
-	{ CLDT_DEF (fuser2)	},
-	{ CLDT_DEF (fuser3)	},
-	{ CLDT_DEF (fuser4)	},
-	{ CLDT_DEF (vuser1[0])	},
-	{ CLDT_DEF (vuser1[1])	},
-	{ CLDT_DEF (vuser1[2])	},
-	{ CLDT_DEF (vuser2[0])	},
-	{ CLDT_DEF (vuser2[1])	},
-	{ CLDT_DEF (vuser2[2])	},
-	{ CLDT_DEF (vuser3[0])	},
-	{ CLDT_DEF (vuser3[1])	},
-	{ CLDT_DEF (vuser3[2])	},
-	{ CLDT_DEF (vuser4[0])	},
-	{ CLDT_DEF (vuser4[1])	},
-	{ CLDT_DEF (vuser4[2])	},
-	{ NULL },
+	{ CLDT_DEF (flDuckTime)			},
+	{ CLDT_DEF (flSwimTime)			},
+	{ CLDT_DEF (waterjumptime)		},
+	{ CLDT_DEF (maxspeed)			},
+	{ CLDT_DEF (fov)				},
+	{ CLDT_DEF (weaponanim)			},
+	{ CLDT_DEF (m_iId)				},
+	{ CLDT_DEF (ammo_shells)		},
+	{ CLDT_DEF (ammo_nails)			},
+	{ CLDT_DEF (ammo_cells)			},
+	{ CLDT_DEF (ammo_rockets)		},
+	{ CLDT_DEF (m_flNextAttack)		},
+	{ CLDT_DEF (tfstate)			},
+	{ CLDT_DEF (pushmsec)			},
+	{ CLDT_DEF (deadflag)			},
+	{ CLDT_DEF (physinfo)			},
+	{ CLDT_DEF (iuser1)				},
+	{ CLDT_DEF (iuser2)				},
+	{ CLDT_DEF (iuser3)				},
+	{ CLDT_DEF (iuser4)				},
+	{ CLDT_DEF (fuser1)				},
+	{ CLDT_DEF (fuser2)				},
+	{ CLDT_DEF (fuser3)				},
+	{ CLDT_DEF (fuser4)				},
+	{ CLDT_DEF (vuser1[0])			},
+	{ CLDT_DEF (vuser1[1])			},
+	{ CLDT_DEF (vuser1[2])			},
+	{ CLDT_DEF (vuser2[0])			},
+	{ CLDT_DEF (vuser2[1])			},
+	{ CLDT_DEF (vuser2[2])			},
+	{ CLDT_DEF (vuser3[0])			},
+	{ CLDT_DEF (vuser3[1])			},
+	{ CLDT_DEF (vuser3[2])			},
+	{ CLDT_DEF (vuser4[0])			},
+	{ CLDT_DEF (vuser4[1])			},
+	{ CLDT_DEF (vuser4[2])			},
+	/*{ NULL },*/
 	};
 
+// [FWGS, 22.01.25]
 static const delta_field_t ent_fields[] =
 	{
-	{ ENTS_DEF (entityType)	},
-	{ ENTS_DEF (origin[0])	},
-	{ ENTS_DEF (origin[1])	},
-	{ ENTS_DEF (origin[2])	},
-	{ ENTS_DEF (angles[0])	},
-	{ ENTS_DEF (angles[1])	},
-	{ ENTS_DEF (angles[2])	},
-	{ ENTS_DEF (modelindex)	},
-	{ ENTS_DEF (sequence)	},
-	{ ENTS_DEF (frame)		},
-	{ ENTS_DEF (colormap)	},
-	{ ENTS_DEF (skin)		},
-	{ ENTS_DEF (solid)		},
-	{ ENTS_DEF (effects)	},
-	{ ENTS_DEF (scale)		},
-	{ ENTS_DEF (eflags)	},
-	{ ENTS_DEF (rendermode)	},
-	{ ENTS_DEF (renderamt)	},
+	{ ENTS_DEF (entityType)		},
+	{ ENTS_DEF (origin[0])		},
+	{ ENTS_DEF (origin[1])		},
+	{ ENTS_DEF (origin[2])		},
+	{ ENTS_DEF (angles[0])		},
+	{ ENTS_DEF (angles[1])		},
+	{ ENTS_DEF (angles[2])		},
+	{ ENTS_DEF (modelindex)		},
+	{ ENTS_DEF (sequence)		},
+	{ ENTS_DEF (frame)			},
+	{ ENTS_DEF (colormap)		},
+	{ ENTS_DEF (skin)			},
+	{ ENTS_DEF (solid)			},
+	{ ENTS_DEF (effects)		},
+	{ ENTS_DEF (scale)			},
+	{ ENTS_DEF (eflags)			},
+	{ ENTS_DEF (rendermode)		},
+	{ ENTS_DEF (renderamt)		},
 	{ ENTS_DEF (rendercolor.r)	},
 	{ ENTS_DEF (rendercolor.g)	},
 	{ ENTS_DEF (rendercolor.b)	},
-	{ ENTS_DEF (renderfx)	},
-	{ ENTS_DEF (movetype)	},
-	{ ENTS_DEF (animtime)	},
-	{ ENTS_DEF (framerate)	},
-	{ ENTS_DEF (body)		},
+	{ ENTS_DEF (renderfx)		},
+	{ ENTS_DEF (movetype)		},
+	{ ENTS_DEF (animtime)		},
+	{ ENTS_DEF (framerate)		},
+	{ ENTS_DEF (body)			},
 	{ ENTS_DEF (controller[0])	},
 	{ ENTS_DEF (controller[1])	},
 	{ ENTS_DEF (controller[2])	},
@@ -260,74 +266,74 @@ static const delta_field_t ent_fields[] =
 	{ ENTS_DEF (velocity[0])	},
 	{ ENTS_DEF (velocity[1])	},
 	{ ENTS_DEF (velocity[2])	},
-	{ ENTS_DEF (mins[0])	},
-	{ ENTS_DEF (mins[1])	},
-	{ ENTS_DEF (mins[2])	},
-	{ ENTS_DEF (maxs[0])	},
-	{ ENTS_DEF (maxs[1])	},
-	{ ENTS_DEF (maxs[2])	},
-	{ ENTS_DEF (aiment)	},
-	{ ENTS_DEF (owner)		},
-	{ ENTS_DEF (friction)	},
-	{ ENTS_DEF (gravity)	},
-	{ ENTS_DEF (team)		},
+	{ ENTS_DEF (mins[0])		},
+	{ ENTS_DEF (mins[1])		},
+	{ ENTS_DEF (mins[2])		},
+	{ ENTS_DEF (maxs[0])		},
+	{ ENTS_DEF (maxs[1])		},
+	{ ENTS_DEF (maxs[2])		},
+	{ ENTS_DEF (aiment)			},
+	{ ENTS_DEF (owner)			},
+	{ ENTS_DEF (friction)		},
+	{ ENTS_DEF (gravity)		},
+	{ ENTS_DEF (team)			},
 	{ ENTS_DEF (playerclass)	},
-	{ ENTS_DEF (health)	},
-	{ ENTS_DEF (spectator)	},
+	{ ENTS_DEF (health)			},
+	{ ENTS_DEF (spectator)		},
 	{ ENTS_DEF (weaponmodel)	},
 	{ ENTS_DEF (gaitsequence)	},
 	{ ENTS_DEF (basevelocity[0])	},
 	{ ENTS_DEF (basevelocity[1])	},
 	{ ENTS_DEF (basevelocity[2])	},
-	{ ENTS_DEF (usehull)	},
-	{ ENTS_DEF (oldbuttons)	},	// probably never transmitted
-	{ ENTS_DEF (onground)	},
-	{ ENTS_DEF (iStepLeft)	},
+	{ ENTS_DEF (usehull)		},
+	{ ENTS_DEF (oldbuttons)		},	// probably never transmitted
+	{ ENTS_DEF (onground)		},
+	{ ENTS_DEF (iStepLeft)		},
 	{ ENTS_DEF (flFallVelocity)	},
-	{ ENTS_DEF (fov)		},
-	{ ENTS_DEF (weaponanim)	},
+	{ ENTS_DEF (fov)			},
+	{ ENTS_DEF (weaponanim)		},
 	{ ENTS_DEF (startpos[0])	},
 	{ ENTS_DEF (startpos[1])	},
 	{ ENTS_DEF (startpos[2])	},
-	{ ENTS_DEF (endpos[0])	},
-	{ ENTS_DEF (endpos[1])	},
-	{ ENTS_DEF (endpos[2])	},
-	{ ENTS_DEF (impacttime)	},
-	{ ENTS_DEF (starttime)	},
-	{ ENTS_DEF (iuser1)	},
-	{ ENTS_DEF (iuser2)	},
-	{ ENTS_DEF (iuser3)	},
-	{ ENTS_DEF (iuser4)	},
-	{ ENTS_DEF (fuser1)	},
-	{ ENTS_DEF (fuser2)	},
-	{ ENTS_DEF (fuser3)	},
-	{ ENTS_DEF (fuser4)	},
-	{ ENTS_DEF (vuser1[0])	},
-	{ ENTS_DEF (vuser1[1])	},
-	{ ENTS_DEF (vuser1[2])	},
-	{ ENTS_DEF (vuser2[0])	},
-	{ ENTS_DEF (vuser2[1])	},
-	{ ENTS_DEF (vuser2[2])	},
-	{ ENTS_DEF (vuser3[0])	},
-	{ ENTS_DEF (vuser3[1])	},
-	{ ENTS_DEF (vuser3[2])	},
-	{ ENTS_DEF (vuser4[0])	},
-	{ ENTS_DEF (vuser4[1])	},
-	{ ENTS_DEF (vuser4[2])	},
-	{ NULL },
+	{ ENTS_DEF (endpos[0])		},
+	{ ENTS_DEF (endpos[1])		},
+	{ ENTS_DEF (endpos[2])		},
+	{ ENTS_DEF (impacttime)		},
+	{ ENTS_DEF (starttime)		},
+	{ ENTS_DEF (iuser1)			},
+	{ ENTS_DEF (iuser2)			},
+	{ ENTS_DEF (iuser3)			},
+	{ ENTS_DEF (iuser4)			},
+	{ ENTS_DEF (fuser1)			},
+	{ ENTS_DEF (fuser2)			},
+	{ ENTS_DEF (fuser3)			},
+	{ ENTS_DEF (fuser4)			},
+	{ ENTS_DEF (vuser1[0])		},
+	{ ENTS_DEF (vuser1[1])		},
+	{ ENTS_DEF (vuser1[2])		},
+	{ ENTS_DEF (vuser2[0])		},
+	{ ENTS_DEF (vuser2[1])		},
+	{ ENTS_DEF (vuser2[2])		},
+	{ ENTS_DEF (vuser3[0])		},
+	{ ENTS_DEF (vuser3[1])		},
+	{ ENTS_DEF (vuser3[2])		},
+	{ ENTS_DEF (vuser4[0])		},
+	{ ENTS_DEF (vuser4[1])		},
+	{ ENTS_DEF (vuser4[2])		},
+	/*{ NULL },*/
 	};
 
-// [FWGS, 01.12.24]
+// [FWGS, 22.01.25]
 static const delta_field_t meta_fields[] =
 	{
-	{ DESC_DEF (fieldType), },
-	{ DESC_DEF (fieldName), },
-	{ DESC_DEF (fieldOffset), },
-	{ DESC_DEF (fieldSize), },
-	{ DESC_DEF (significant_bits), },
-	{ DESC_DEF (premultiply), },
-	{ DESC_DEF (postmultiply), },
-	{ NULL },
+	{ DESC_DEF (fieldType),			},
+	{ DESC_DEF (fieldName),			},
+	{ DESC_DEF (fieldOffset),		},
+	{ DESC_DEF (fieldSize),			},
+	{ DESC_DEF (significant_bits),	},
+	{ DESC_DEF (premultiply),		},
+	{ DESC_DEF (postmultiply),		},
+	/*{ NULL },*/
 	};
 
 // [FWGS, 01.05.24]
@@ -350,70 +356,62 @@ typedef struct delta_test_struct_t
 
 #define TEST_DEF( x ) #x, offsetof( delta_test_struct_t, x ), sizeof( ((delta_test_struct_t *)0)->x )
 
+// [FWGS, 22.01.25]
 static const delta_field_t test_fields[] =
 	{
-	{ TEST_DEF (dt_string) },
-	{ TEST_DEF (dt_timewindow_big)},
-	{ TEST_DEF (dt_timewindow_8)},
-	{ TEST_DEF (dt_angle) },
-	{ TEST_DEF (dt_float_signed) },
-	{ TEST_DEF (dt_float_unsigned) },
-	{ TEST_DEF (dt_integer_signed) },
-	{ TEST_DEF (dt_integer_unsigned) },
-	{ TEST_DEF (dt_short_signed) },
-	{ TEST_DEF (dt_short_unsigned) },
-	{ TEST_DEF (dt_byte_signed) },
-	{ TEST_DEF (dt_byte_unsigned) },
-	{ NULL },
+	{ TEST_DEF (dt_string)				},
+	{ TEST_DEF (dt_timewindow_big)		},
+	{ TEST_DEF (dt_timewindow_8)		},
+	{ TEST_DEF (dt_angle)				},
+	{ TEST_DEF (dt_float_signed)		},
+	{ TEST_DEF (dt_float_unsigned)		},
+	{ TEST_DEF (dt_integer_signed)		},
+	{ TEST_DEF (dt_integer_unsigned)	},
+	{ TEST_DEF (dt_short_signed)		},
+	{ TEST_DEF (dt_short_unsigned)		},
+	{ TEST_DEF (dt_byte_signed)			},
+	{ TEST_DEF (dt_byte_unsigned)		},
+	/*{ NULL },*/
 	};
 #endif
 
-// [FWGS, 01.12.24]
-/*enum
-	{
-	DT_EVENT_T = 0,
-	DT_MOVEVARS_T,
-	DT_USERCMD_T,
-	DT_CLIENTDATA_T,
-	DT_WEAPONDATA_T,
-	DT_ENTITY_STATE_T,
-	DT_ENTITY_STATE_PLAYER_T,
-	DT_CUSTOM_ENTITY_STATE_T,
-
-	if XASH_ENGINE_TESTS
-	DT_DELTA_TEST_STRUCT_T,
-	endif
-	DT_STRUCT_COUNT
-	};*/
-
-// [FWGS, 01.12.24]
+// [FWGS, 22.01.25]
 static delta_info_t dt_info[] =
 	{
-	[DT_EVENT_T] = { "event_t", ev_fields, NUM_FIELDS (ev_fields) },
+	/*[DT_EVENT_T] = { "event_t", ev_fields, NUM_FIELDS (ev_fields) },
 	[DT_MOVEVARS_T] = { "movevars_t", pm_fields, NUM_FIELDS (pm_fields) },
 	[DT_USERCMD_T] = { "usercmd_t", cmd_fields, NUM_FIELDS (cmd_fields) },
 	[DT_CLIENTDATA_T] = { "clientdata_t", cd_fields, NUM_FIELDS (cd_fields) },
 	[DT_WEAPONDATA_T] = { "weapon_data_t", wd_fields, NUM_FIELDS (wd_fields) },
-	
-	/*[DT_ENTITY_STATE_T] = { "entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },*/
 	[DT_ENTITY_STATE_T] = { "entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },
-	
 	[DT_ENTITY_STATE_PLAYER_T] = { "entity_state_player_t", ent_fields, NUM_FIELDS (ent_fields) },
-	[DT_CUSTOM_ENTITY_STATE_T] = { "custom_entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },
+	[DT_CUSTOM_ENTITY_STATE_T] = { "custom_entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },*/
+	[DT_EVENT_T] = { "event_t", ev_fields, HLARRAYSIZE (ev_fields) },
+	[DT_MOVEVARS_T] = { "movevars_t", pm_fields, HLARRAYSIZE (pm_fields) },
+	[DT_USERCMD_T] = { "usercmd_t", cmd_fields, HLARRAYSIZE (cmd_fields) },
+	[DT_CLIENTDATA_T] = { "clientdata_t", cd_fields, HLARRAYSIZE (cd_fields) },
+	[DT_WEAPONDATA_T] = { "weapon_data_t", wd_fields, HLARRAYSIZE (wd_fields) },
+	[DT_ENTITY_STATE_T] = { "entity_state_t", ent_fields, HLARRAYSIZE (ent_fields) },
+	[DT_ENTITY_STATE_PLAYER_T] = { "entity_state_player_t", ent_fields, HLARRAYSIZE (ent_fields) },
+	[DT_CUSTOM_ENTITY_STATE_T] = { "custom_entity_state_t", ent_fields, HLARRAYSIZE (ent_fields) },
 #if XASH_ENGINE_TESTS
-	[DT_DELTA_TEST_STRUCT_T] = { "delta_test_struct_t", test_fields, NUM_FIELDS (test_fields) },
+	/*[DT_DELTA_TEST_STRUCT_T] = { "delta_test_struct_t", test_fields, NUM_FIELDS (test_fields) },*/
+	[DT_DELTA_TEST_STRUCT_T] = { "delta_test_struct_t", test_fields, HLARRAYSIZE (test_fields) },
 #endif
-	[DT_STRUCT_COUNT] = { NULL },
+	/*[DT_STRUCT_COUNT] = { NULL },*/
 	};
 
-// [FWGS, 01.12.24] meta description is special, it cannot be overriden
+// [FWGS, 22.01.25] meta description is special, it cannot be overriden
 static const delta_info_t dt_goldsrc_meta =
 	{
 	.pName = "goldsrc_delta_t",
 	.pInfo = meta_fields,
-	.maxFields = NUM_FIELDS (meta_fields),
+	/*.maxFields = NUM_FIELDS (meta_fields),
 	.numFields = NUM_FIELDS (meta_fields),
-	.pFields = (delta_t[NUM_FIELDS (meta_fields)])
+	.pFields = (delta_t[NUM_FIELDS (meta_fields)])*/
+	.maxFields = HLARRAYSIZE (meta_fields),
+	.numFields = HLARRAYSIZE (meta_fields),
+	.pFields = (delta_t[HLARRAYSIZE (meta_fields)])
 	{
 	{
 	DESC_DEF (fieldType),
@@ -468,7 +466,7 @@ static const delta_info_t dt_goldsrc_meta =
 	.bInitialized = true
 	};
 
-// [FWGS, 01.05.23]
+// [FWGS, 22.01.25]
 static delta_info_t *Delta_FindStruct (const char *name)
 	{
 	int	i;
@@ -476,7 +474,8 @@ static delta_info_t *Delta_FindStruct (const char *name)
 	if (!COM_CheckString (name))
 		return NULL;
 
-	for (i = 0; i < NUM_FIELDS (dt_info); i++)
+	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
+	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		if (!Q_stricmp (dt_info[i].pName, name))
 			return &dt_info[i];
@@ -488,9 +487,11 @@ static delta_info_t *Delta_FindStruct (const char *name)
 	return NULL;
 	}
 
+// [FWGS, 22.01.25]
 static int Delta_NumTables (void)
 	{
-	return NUM_FIELDS (dt_info);
+	/*return NUM_FIELDS (dt_info);*/
+	return HLARRAYSIZE (dt_info);
 	}
 
 // [FWGS, 01.07.23]
@@ -499,7 +500,7 @@ static delta_info_t *Delta_FindStructByIndex (int index)
 	return &dt_info[index];
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 22.01.25]
 static delta_info_t *Delta_FindStructByEncoder (const char *encoderName)
 	{
 	int	i;
@@ -507,7 +508,8 @@ static delta_info_t *Delta_FindStructByEncoder (const char *encoderName)
 	if (!COM_CheckString (encoderName))
 		return NULL;
 
-	for (i = 0; i < NUM_FIELDS (dt_info); i++)
+	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
+	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		if (!Q_stricmp (dt_info[i].funcName, encoderName))
 			return &dt_info[i];
@@ -517,7 +519,7 @@ static delta_info_t *Delta_FindStructByEncoder (const char *encoderName)
 	return NULL;
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 22.01.25]
 static delta_info_t *Delta_FindStructByDelta (const delta_t *pFields)
 	{
 	int	i;
@@ -525,11 +527,13 @@ static delta_info_t *Delta_FindStructByDelta (const delta_t *pFields)
 	if (!pFields)
 		return NULL;
 
-	for (i = 0; i < NUM_FIELDS (dt_info); i++)
+	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
+	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		if (dt_info[i].pFields == pFields)
 			return &dt_info[i];
 		}
+
 	// found nothing
 	return NULL;
 	}
@@ -549,45 +553,55 @@ static void Delta_CustomEncode (delta_info_t *dt, const void *from, const void *
 		dt->userCallback (dt->pFields, from, to);
 	}
 
-// [FWGS, 01.05.23]
-static delta_field_t *Delta_FindFieldInfo (const delta_field_t *pInfo, const char *fieldName)
+// [FWGS, 22.01.25]
+/*static delta_field_t *Delta_FindFieldInfo (const delta_field_t *pInfo, const char *fieldName)*/
+static const delta_field_t *Delta_FindFieldInfo (const delta_field_t *pInfo, const char *fieldName, int maxFields)
 	{
+	int i;
+
 	if (!fieldName || !*fieldName)
 		return NULL;
 
-	for (; pInfo->name; pInfo++)
+	/*for (; pInfo->name; pInfo++)*/
+	for (i = 0; i < maxFields; i++)
 		{
-		if (!Q_strcmp (pInfo->name, fieldName))
-			return (delta_field_t *)pInfo;
+		/*if (!Q_strcmp (pInfo->name, fieldName))
+			return (delta_field_t *)pInfo;*/
+		if (!Q_strcmp (pInfo[i].name, fieldName))
+			return &pInfo[i];
 		}
+
 	return NULL;
 	}
 
-// [FWGS, 01.05.23]
-static int Delta_IndexForFieldInfo (const delta_field_t *pInfo, const char *fieldName)
+// [FWGS, 22.01.25]
+/*static int Delta_IndexForFieldInfo (const delta_field_t *pInfo, const char *fieldName)*/
+static int Delta_IndexForFieldInfo (const delta_field_t *pInfo, const char *fieldName, int maxFields)
 	{
 	int	i;
 
 	if (!fieldName || !*fieldName)
 		return -1;
 
-	for (i = 0; pInfo->name; i++, pInfo++)
+	/*for (i = 0; pInfo->name; i++, pInfo++)*/
+	for (i = 0; i < maxFields; i++)
 		{
-		if (!Q_strcmp (pInfo->name, fieldName))
+		/*if (!Q_strcmp (pInfo->name, fieldName))*/
+		if (!Q_strcmp (pInfo[i].name, fieldName))
 			return i;
 		}
 	return -1;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 22.01.25]
 static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, int bits, float mul, float post_mul)
 	{
-	delta_field_t	*pFieldInfo;
-	delta_t			*pField;
-	int				i;
+	/*delta_field_t		*pFieldInfo;*/
+	const delta_field_t	*pFieldInfo;
+	delta_t		*pField;
+	int			i;
 
 	// check for coexisting field
-	/*for (i = 0, pField = dt->pFields; i < dt->numFields; i++, pField++)*/
 	for (i = 0, pField = dt->pFields; i < dt->numFields && pField; i++, pField++)
 		{
 		if (!Q_strcmp (pField->name, pName))
@@ -602,7 +616,8 @@ static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, 
 		}
 
 	// find field description
-	pFieldInfo = Delta_FindFieldInfo (dt->pInfo, pName);
+	/*pFieldInfo = Delta_FindFieldInfo (dt->pInfo, pName);*/
+	pFieldInfo = Delta_FindFieldInfo (dt->pInfo, pName, dt->maxFields);
 	if (!pFieldInfo)
 		{
 		Con_DPrintf (S_ERROR "%s: couldn't find description for %s->%s\n", __func__, dt->pName, pName);
@@ -633,6 +648,7 @@ static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, 
 	return true;
 	}
 
+// [FWGS, 22.01.25]
 static void Delta_WriteTableField (sizebuf_t *msg, int tableIndex, const delta_t *pField)
 	{
 	int	nameIndex;
@@ -646,7 +662,8 @@ static void Delta_WriteTableField (sizebuf_t *msg, int tableIndex, const delta_t
 	dt = Delta_FindStructByIndex (tableIndex);
 	Assert (dt && dt->bInitialized);
 
-	nameIndex = Delta_IndexForFieldInfo (dt->pInfo, pField->name);
+	/*nameIndex = Delta_IndexForFieldInfo (dt->pInfo, pField->name);*/
+	nameIndex = Delta_IndexForFieldInfo (dt->pInfo, pField->name, dt->maxFields);
 	Assert (nameIndex >= 0 && nameIndex < dt->maxFields);
 
 	MSG_BeginServerCmd (msg, svc_deltatable);
@@ -725,13 +742,15 @@ void Delta_ParseTableField (sizebuf_t *msg)
 	Delta_AddField (dt, pName, flags, bits, mul, post_mul);
 	}
 
-static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInfo, delta_t *pField, qboolean bPost)
+// [FWGS, 22.01.25]
+/*static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInfo, delta_t *pField, qboolean bPost)*/
+static qboolean Delta_ParseField (char **delta_script, const delta_info_t *dt, delta_t *pField, qboolean bPost)
 	{
+	const delta_field_t	*pFieldInfo;
 	string			token;
-	delta_field_t	*pFieldInfo;
+	/*delta_field_t	*pFieldInfo;*/
 	char			*oldpos;
 
-	// [FWGS, 01.07.24]
 	*delta_script = COM_ParseFile (*delta_script, token, sizeof (token));
 	if (Q_strcmp (token, "("))
 		{
@@ -746,15 +765,14 @@ static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInf
 		return false;
 		}
 
-	// [FWGS, 01.07.24]
-	pFieldInfo = Delta_FindFieldInfo (pInfo, token);
+	/*pFieldInfo = Delta_FindFieldInfo (pInfo, token);*/
+	pFieldInfo = Delta_FindFieldInfo (dt->pInfo, token, dt->maxFields);
 	if (!pFieldInfo)
 		{
 		Con_DPrintf (S_ERROR "%s: unable to find field %s\n", __func__, token);
 		return false;
 		}
 
-	// [FWGS, 01.07.24]
 	*delta_script = COM_ParseFile (*delta_script, token, sizeof (token));
 	if (Q_strcmp (token, ","))
 		{
@@ -797,14 +815,13 @@ static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInf
 			pField->flags |= DT_SIGNED;
 		}
 
-	// [FWGS, 01.07.24]
 	if (Q_strcmp (token, ","))
 		{
 		Con_DPrintf (S_ERROR "%s: expected ',', found '%s' instead\n", __func__, token);
 		return false;
 		}
 
-	// [FWGS, 01.07.24] read delta-bits
+	// read delta-bits
 	if ((*delta_script = COM_ParseFile (*delta_script, token, sizeof (token))) == NULL)
 		{
 		Con_DPrintf (S_ERROR "%s: %s field bits argument is missing\n", __func__, pField->name);
@@ -813,7 +830,6 @@ static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInf
 
 	pField->bits = Q_atoi (token);
 
-	// [FWGS, 01.07.24]
 	*delta_script = COM_ParseFile (*delta_script, token, sizeof (token));
 	if (Q_strcmp (token, ","))
 		{
@@ -821,7 +837,7 @@ static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInf
 		return false;
 		}
 
-	// [FWGS, 01.07.24] read delta-multiplier
+	// read delta-multiplier
 	if ((*delta_script = COM_ParseFile (*delta_script, token, sizeof (token))) == NULL)
 		{
 		Con_DPrintf (S_ERROR "%s: %s missing 'multiplier' argument\n", __func__, pField->name);
@@ -832,7 +848,6 @@ static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInf
 
 	if (bPost)
 		{
-		// [FWGS, 01.07.24]
 		*delta_script = COM_ParseFile (*delta_script, token, sizeof (token));
 		if (Q_strcmp (token, ","))
 			{
@@ -840,7 +855,7 @@ static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInf
 			return false;
 			}
 
-		// [FWGS, 01.07.24] read delta-postmultiplier
+		// read delta-postmultiplier
 		if ((*delta_script = COM_ParseFile (*delta_script, token, sizeof (token))) == NULL)
 			{
 			Con_DPrintf (S_ERROR "%s: %s missing 'post_multiply' argument\n", __func__, pField->name);
@@ -855,7 +870,7 @@ static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInf
 		pField->post_multiplier = 1.0f;
 		}
 
-	// [FWGS, 01.07.24] closing brace...
+	// closing brace...
 	*delta_script = COM_ParseFile (*delta_script, token, sizeof (token));
 	if (Q_strcmp (token, ")"))
 		{
@@ -871,19 +886,19 @@ static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInf
 	return true;
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 22.01.25]
 static void Delta_ParseTable (char **delta_script, delta_info_t *dt, const char *encodeDll, const char *encodeFunc)
 	{
 	string		token;
 	delta_t		*pField;
-	const delta_field_t	*pInfo;
+	/*const delta_field_t	*pInfo;*/
 
 	// allocate the delta-structures
 	if (!dt->pFields)
 		dt->pFields = (delta_t *)Z_Calloc (dt->maxFields * sizeof (delta_t));
 
 	pField = dt->pFields;
-	pInfo = dt->pInfo;
+	/*pInfo = dt->pInfo;*/
 	dt->numFields = 0;
 
 	// assume we have handled '{'
@@ -893,12 +908,14 @@ static void Delta_ParseTable (char **delta_script, delta_info_t *dt, const char 
 
 		if (!Q_strcmp (token, "DEFINE_DELTA"))
 			{
-			if (Delta_ParseField (delta_script, pInfo, &pField[dt->numFields], false))
+			/*if (Delta_ParseField (delta_script, pInfo, &pField[dt->numFields], false))*/
+			if (Delta_ParseField (delta_script, dt, &pField[dt->numFields], false))
 				dt->numFields++;
 			}
 		else if (!Q_strcmp (token, "DEFINE_DELTA_POST"))
 			{
-			if (Delta_ParseField (delta_script, pInfo, &pField[dt->numFields], true))
+			/*if (Delta_ParseField (delta_script, pInfo, &pField[dt->numFields], true))*/
+			if (Delta_ParseField (delta_script, dt, &pField[dt->numFields], true))
 				dt->numFields++;
 			}
 		else if (token[0] == '}')
@@ -966,7 +983,7 @@ static void Delta_InitFields (void)
 	Mem_Free (afile);
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 22.01.25]
 void Delta_Init (void)
 	{
 	delta_info_t *dt;
@@ -1019,20 +1036,24 @@ void Delta_Init (void)
 	Delta_AddField (dt, "wateralpha", DT_FLOAT | DT_SIGNED, 16, 32.0f, 1.0f);
 	Delta_AddField (dt, "fog_settings", DT_INTEGER, 32, 1.0f, 1.0f);
 
-	dt->numFields = NUM_FIELDS (pm_fields) - 4;
+	/*dt->numFields = NUM_FIELDS (pm_fields) - 4;*/
+	dt->numFields = HLARRAYSIZE (pm_fields) - 4;
 
 	// now done
 	dt->bInitialized = true;
 	}
 
+// [FWGS, 22.01.25]
 void Delta_InitClient (void)
 	{
 	int	i, numActive = 0;
 
 	// already initalized
-	if (delta_init) return;
+	if (delta_init)
+		return;
 
-	for (i = 0; i < NUM_FIELDS (dt_info); i++)
+	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
+	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		if (dt_info[i].numFields > 0)
 			{
@@ -1041,16 +1062,20 @@ void Delta_InitClient (void)
 			}
 		}
 
-	if (numActive) delta_init = true;
+	if (numActive)
+		delta_init = true;
 	}
 
+// [FWGS, 22.01.25]
 void Delta_Shutdown (void)
 	{
 	int	i;
 
-	if (!delta_init) return;
+	if (!delta_init)
+		return;
 
-	for (i = 0; i < NUM_FIELDS (dt_info); i++)
+	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
+	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		dt_info[i].numFields = 0;
 		dt_info[i].customEncode = CUSTOM_NONE;

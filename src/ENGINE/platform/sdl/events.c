@@ -677,7 +677,9 @@ static void SDLash_EventHandler (SDL_Event *event)
 			break;
 
 		case SDL_QUIT:
-			Sys_Quit ();
+			// [FWGS, 22.01.25]
+			/*Sys_Quit ();*/
+			Sys_Quit ("caught SDL_QUIT");
 			break;
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )

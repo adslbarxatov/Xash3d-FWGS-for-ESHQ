@@ -743,20 +743,21 @@ void COM_RemoveLineFeed (char *str, size_t bufsize)
 		}
 	}
 
-/***
+// [FWGS, 22.01.25] removed COM_FixSlashes
+/*
 ============
 COM_FixSlashes [FWGS, 01.07.24]
 
 Changes all '\' characters into '/' characters, in place
 ============
-***/
+/
 void COM_FixSlashes (char *pname)
 	{
 	while ((pname = Q_strchr (pname, '\\')))
 		{
 		*pname = '/';
 		}
-	}
+	}*/
 
 /***
 ============

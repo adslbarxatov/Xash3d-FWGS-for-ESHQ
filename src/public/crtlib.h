@@ -83,11 +83,8 @@ qboolean Q_stricmpext (const char *pattern, const char *text);
 qboolean Q_strnicmpext (const char *pattern, const char *text, size_t minimumlen);
 const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *needle, size_t needlelen);
 void Q_memor (byte *XASH_RESTRICT dst, const byte *XASH_RESTRICT src, size_t len);
-/*const char *Q_timestamp (int format);*/
 const char *Q_timestamp (int format) RETURNS_NONNULL;
-
 int Q_vsnprintf (char *buffer, size_t buffersize, const char *format, va_list args);
-/*int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) _format (3);*/
 int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) FORMAT_CHECK (3);
 
 #define Q_strpbrk strpbrk
@@ -95,19 +92,17 @@ void COM_StripColors (const char *in, char *out);
 #define Q_memprint( val ) Q_pretifymem( val, 2 )
 char *Q_pretifymem (float value, int digitsafterdecimal);
 void COM_FileBase (const char *in, char *out, size_t size);
-/*const char *COM_FileExtension (const char *in);*/
 const char *COM_FileExtension (const char *in) RETURNS_NONNULL;
 
+// [FWGS, 22.01.25]
 void COM_DefaultExtension (char *path, const char *extension, size_t size);
 void COM_ReplaceExtension (char *path, const char *extension, size_t size);
 void COM_ExtractFilePath (const char *path, char *dest);
 const char *COM_FileWithoutPath (const char *in);
 void COM_StripExtension (char *path);
-void COM_RemoveLineFeed (char *str, size_t bufsize);	// [FWGS, 01.07.24]
-void COM_FixSlashes (char *pname);
+void COM_RemoveLineFeed (char *str, size_t bufsize);
+/*void COM_FixSlashes (char *pname);*/
 void COM_PathSlashFix (char *path);
-/*char COM_Hex2Char (uint8_t hex);
-void COM_Hex2String (uint8_t hex, char *str);*/
 
 // return 0 on empty or null string, 1 otherwise
 #define COM_CheckString( string ) ( ( !string || !*string ) ? 0 : 1 )
@@ -121,6 +116,12 @@ char *COM_ParseFileSafe (char *data, char *token, const int size, unsigned int f
 int matchpattern (const char *in, const char *pattern, qboolean caseinsensitive);
 int matchpattern_with_separator (const char *in, const char *pattern, qboolean caseinsensitive,
 	const char *separators, qboolean wildcard_least_one);
+
+//
+// dllhelpers.c [FWGS, 22.01.25]
+//
+void ClearExports (const dllfunc_t *funcs, size_t num_funcs);
+qboolean ValidateExports (const dllfunc_t *funcs, size_t num_funcs);
 
 // [FWGS, 01.05.24]
 static inline char Q_toupper (const char in)
@@ -433,6 +434,19 @@ static inline int Q_splitstr (char *str, int delim, void *userdata,
 		}
 
 	return ret;
+	}
+
+/***
+============
+COM_FixSlashes [FWGS, 22.01.25]
+
+Changes all '\' characters into '/' characters, in place.
+============
+***/
+static inline void COM_FixSlashes (char *pname)
+	{
+	while ((pname = Q_strchr (pname, '\\')))
+		*pname = '/';
 	}
 
 #ifdef __cplusplus

@@ -13,24 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.04.23]
-#ifndef _GNU_SOURCE
-	#define _GNU_SOURCE
-#endif
+#include "platform/platform.h"
 
-#include "common.h"
+#define DBGHELP 1 // we always enable dbghelp.dll on Windows targets
 
-/***
-================
-Sys_Crash [FWGS, 01.04.23]
-
-Crash handler, called from system
-================
-***/
-#if XASH_WIN32
 #if DBGHELP
-
-#pragma comment( lib, "dbghelp" )
 
 #include <winnt.h>
 #include <dbghelp.h>
@@ -43,12 +30,12 @@ typedef ULONG_PTR DWORD_PTR, *PDWORD_PTR;
 
 static int Sys_ModuleName (HANDLE process, char *name, void *address, int len)
 	{
-	DWORD_PTR   baseAddress = 0;
-	static HMODULE *moduleArray;
+	DWORD_PTR		baseAddress = 0;
+	static HMODULE	*moduleArray;
 	static unsigned int moduleCount;
 	LPBYTE      moduleArrayBytes;
 	DWORD       bytesRequired;
-	int i;
+	int			i;
 
 	if (len < 3)
 		return 0;
@@ -76,24 +63,23 @@ static int Sys_ModuleName (HANDLE process, char *name, void *address, int len)
 			((DWORD64)address < (DWORD64)info.lpBaseOfDll + (DWORD64)info.SizeOfImage))
 			return GetModuleBaseName (process, moduleArray[i], name, len);
 		}
+
 	return Q_snprintf (name, len, "???");
 	}
 
-// [FWGS, 01.09.24]
 static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	{
-	char message[8192]; // match *nix Sys_Crash
-
-	int len = 0;
-	size_t i;
-	HANDLE process = GetCurrentProcess ();
-	HANDLE thread = GetCurrentThread ();
-	IMAGEHLP_LINE64 line;
-	DWORD dline = 0;
-	DWORD options;
-	CONTEXT context;
-	STACKFRAME64 stackframe;
-	DWORD image;
+	char	message[8192]; // match *nix Sys_Crash
+	int		len = 0;
+	size_t	i;
+	HANDLE	process = GetCurrentProcess ();
+	HANDLE	thread = GetCurrentThread ();
+	IMAGEHLP_LINE64	line;
+	DWORD	dline = 0;
+	DWORD	options;
+	CONTEXT	context;
+	STACKFRAME64	stackframe;
+	DWORD	image;
 
 	context = *pInfo->ContextRecord;
 
@@ -149,7 +135,7 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	stackframe.AddrStack.Offset = context.Sp;
 	stackframe.AddrStack.Mode = AddrModeFlat;
 #elif
-#error
+	#error
 #endif
 
 	len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
@@ -172,6 +158,7 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 		len += Q_snprintf (message + len, 1024 - len, "Frame: %s:%d:%d\n",
 			(char *)line.FileName, (int)line.LineNumber, (int)dline);
 		}
+
 	for (i = 0; i < 25; i++)
 		{
 		char buffer[sizeof (SYMBOL_INFO) + MAX_SYM_NAME * sizeof (TCHAR)];
@@ -214,16 +201,14 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	SymCleanup (process);
 	}
 
-// [FWGS, 01.05.23]
 static void Sys_GetProcessName (char *processName, size_t bufferSize)
 	{
 	char fullpath[MAX_PATH];
-	
+
 	GetModuleBaseName (GetCurrentProcess (), NULL, fullpath, sizeof (fullpath) - 1);
 	COM_FileBase (fullpath, processName, bufferSize);
 	}
 
-// [FWGS, 01.04.23]
 static void Sys_GetMinidumpFileName (const char *processName, char *mdmpFileName, size_t bufferSize)
 	{
 	time_t currentUtcTime = time (NULL);
@@ -240,7 +225,6 @@ static void Sys_GetMinidumpFileName (const char *processName, char *mdmpFileName
 		currentLocalTime->tm_sec);
 	}
 
-// [FWGS, 01.04.23]
 static qboolean Sys_WriteMinidump (PEXCEPTION_POINTERS exceptionInfo, MINIDUMP_TYPE minidumpType)
 	{
 	HRESULT errorCode;
@@ -277,9 +261,8 @@ static qboolean Sys_WriteMinidump (PEXCEPTION_POINTERS exceptionInfo, MINIDUMP_T
 
 #endif
 
-LPTOP_LEVEL_EXCEPTION_FILTER       oldFilter;
+static LPTOP_LEVEL_EXCEPTION_FILTER  oldFilter;
 
-// [FWGS, 01.07.24]
 static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 	{
 	// save config
@@ -290,12 +273,12 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 
 #ifdef XASH_SDL
 		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
-#endif
+#endif // XASH_SDL
 
 #if DBGHELP
 		Sys_StackTrace (pInfo);
 #else
-		Sys_Warn ("Sys_Crash: call %p at address %p", pInfo->ExceptionRecord->ExceptionAddress, 
+		Sys_Warn ("Sys_Crash: call %p at address %p", pInfo->ExceptionRecord->ExceptionAddress,
 			pInfo->ExceptionRecord->ExceptionCode);
 #endif
 
@@ -305,30 +288,30 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 			host.status = HOST_CRASHED;
 
 #if DBGHELP
-	if (Sys_CheckParm ("-minidumps"))
-		{
-		int minidumpFlags = (
-			MiniDumpWithDataSegs |
-			MiniDumpWithCodeSegs |
-			MiniDumpWithHandleData |
-			MiniDumpWithFullMemory |
-			MiniDumpWithFullMemoryInfo |
-			MiniDumpWithIndirectlyReferencedMemory |
-			MiniDumpWithThreadInfo |
-			MiniDumpWithModuleHeaders);
-
-		if (!Sys_WriteMinidump (pInfo, (MINIDUMP_TYPE)minidumpFlags))
+		if (Sys_CheckParm ("-minidumps"))
 			{
-			// fallback method, create minidump with minimal info in it
-			Sys_WriteMinidump (pInfo, MiniDumpWithDataSegs);
+			int minidumpFlags = (
+				MiniDumpWithDataSegs |
+				MiniDumpWithCodeSegs |
+				MiniDumpWithHandleData |
+				MiniDumpWithFullMemory |
+				MiniDumpWithFullMemoryInfo |
+				MiniDumpWithIndirectlyReferencedMemory |
+				MiniDumpWithThreadInfo |
+				MiniDumpWithModuleHeaders);
+
+			if (!Sys_WriteMinidump (pInfo, (MINIDUMP_TYPE)minidumpFlags))
+				{
+				// fallback method, create minidump with minimal info in it
+				Sys_WriteMinidump (pInfo, MiniDumpWithDataSegs);
+				}
 			}
-		}
 #endif
 
 		if (host_developer.value <= 0)
 			{
 			// no reason to call debugger in release build - just exit
-			Sys_Quit ();
+			Sys_Quit ("crashed");
 			return EXCEPTION_CONTINUE_EXECUTION;
 			}
 
@@ -338,10 +321,10 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 
 	if (oldFilter)
 		return oldFilter (pInfo);
+
 	return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
-// [FWGS, 01.07.24]
 void Sys_SetupCrashHandler (void)
 	{
 	SetErrorMode (SEM_FAILCRITICALERRORS);	// no abort/retry/fail errors
@@ -353,234 +336,3 @@ void Sys_RestoreCrashHandler (void)
 	// restore filter
 	if (oldFilter) SetUnhandledExceptionFilter (oldFilter);
 	}
-
-// [FWGS, 01.04.23]
-#elif XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
-
-// [FWGS, 01.12.23] Posix signal handler
-#ifndef XASH_OPENBSD
-	#include <ucontext.h>
-#endif
-
-#include <signal.h>
-#include <sys/mman.h>
-#include "library.h"
-
-// [FWGS, 01.04.23]
-#define STACK_BACKTRACE_STR     "Stack backtrace:\n"
-#define STACK_DUMP_STR          "Stack dump:\n"
-
-// [FWGS, 01.04.23]
-#define STACK_BACKTRACE_STR_LEN ( sizeof( STACK_BACKTRACE_STR ) - 1 )
-#define STACK_DUMP_STR_LEN      ( sizeof( STACK_DUMP_STR ) - 1 )
-#define ALIGN( x, y ) (((uintptr_t) ( x ) + (( y ) - 1 )) & ~(( y ) - 1 ))
-
-// [FWGS, 01.04.23]
-static struct sigaction oldFilter;
-
-// [FWGS, 01.07.23]
-static int Sys_PrintFrame (char *buf, int len, int i, void *addr)
-	{
-	Dl_info dlinfo;
-	if (len <= 0)
-		return 0; // overflow
-
-	if (dladdr (addr, &dlinfo))
-		{
-		if (dlinfo.dli_sname)
-			return Q_snprintf (buf, len, "%2d: %p <%s+%lu> (%s)\n", i, addr, dlinfo.dli_sname,
-				(unsigned long)addr - (unsigned long)dlinfo.dli_saddr, dlinfo.dli_fname); 
-				// print symbol, module and address
-
-		return Q_snprintf (buf, len, "%2d: %p (%s)\n", i, addr, dlinfo.dli_fname);	// print module and address
-		}
-	else
-		{
-		return Q_snprintf (buf, len, "%2d: %p\n", i, addr); // print only address
-		}
-	}
-
-// [FWGS, 01.04.23]
-static void Sys_Crash (int signal, siginfo_t *si, void *context)
-	{
-	void *pc = NULL, **bp = NULL, **sp = NULL; // this must be set for every OS!
-	char message[8192];
-	int len, logfd, i = 0;
-
-#if XASH_OPENBSD
-	struct sigcontext *ucontext = (struct sigcontext *)context;
-#else
-	ucontext_t *ucontext = (ucontext_t *)context;
-#endif
-
-#if XASH_AMD64
-#if XASH_FREEBSD
-	pc = (void *)ucontext->uc_mcontext.mc_rip;
-	bp = (void **)ucontext->uc_mcontext.mc_rbp;
-	sp = (void **)ucontext->uc_mcontext.mc_rsp;
-
-	// [FWGS, 01.02.24]
-#elif XASH_NETBSD
-	pc = (void *)ucontext->uc_mcontext.__gregs[_REG_RIP];
-	bp = (void **)ucontext->uc_mcontext.__gregs[_REG_RBP];
-	sp = (void **)ucontext->uc_mcontext.__gregs[_REG_RSP];
-
-#elif XASH_OPENBSD
-	pc = (void *)ucontext->sc_rip;
-	bp = (void **)ucontext->sc_rbp;
-	sp = (void **)ucontext->sc_rsp;
-#else
-	pc = (void *)ucontext->uc_mcontext.gregs[REG_RIP];
-	bp = (void **)ucontext->uc_mcontext.gregs[REG_RBP];
-	sp = (void **)ucontext->uc_mcontext.gregs[REG_RSP];
-#endif
-#elif XASH_X86
-#if XASH_FREEBSD
-	pc = (void *)ucontext->uc_mcontext.mc_eip;
-	bp = (void **)ucontext->uc_mcontext.mc_ebp;
-	sp = (void **)ucontext->uc_mcontext.mc_esp;
-#elif XASH_NETBSD
-	pc = (void *)ucontext->uc_mcontext.__gregs[REG_EIP];
-	bp = (void **)ucontext->uc_mcontext.__gregs[REG_EBP];
-	sp = (void **)ucontext->uc_mcontext.__gregs[REG_ESP];
-#elif XASH_OPENBSD
-	pc = (void *)ucontext->sc_eip;
-	bp = (void **)ucontext->sc_ebp;
-	sp = (void **)ucontext->sc_esp;
-#else
-	pc = (void *)ucontext->uc_mcontext.gregs[REG_EIP];
-	bp = (void **)ucontext->uc_mcontext.gregs[REG_EBP];
-	sp = (void **)ucontext->uc_mcontext.gregs[REG_ESP];
-#endif
-#elif XASH_ARM && XASH_64BIT
-	pc = (void *)ucontext->uc_mcontext.pc;
-	bp = (void *)ucontext->uc_mcontext.regs[29];
-	sp = (void *)ucontext->uc_mcontext.sp;
-#elif XASH_ARM
-	pc = (void *)ucontext->uc_mcontext.arm_pc;
-	bp = (void *)ucontext->uc_mcontext.arm_fp;
-	sp = (void *)ucontext->uc_mcontext.arm_sp;
-#endif
-
-	// [FWGS, 01.04.23] safe actions first, stack and memory may be corrupted
-	len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
-		Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());
-
-// [FWGS, 01.04.23] #if !XASH_BSD
-#if !XASH_FREEBSD && !XASH_NETBSD && !XASH_OPENBSD
-	len += Q_snprintf (message + len, sizeof (message) - len, "Crash: signal %d errno %d with code %d at %p %p\n", 
-		signal, si->si_errno, si->si_code, si->si_addr, si->si_ptr);
-#else
-	len += Q_snprintf (message + len, sizeof (message) - len, "Crash: signal %d errno %d with code %d at %p\n", 
-		signal, si->si_errno, si->si_code, si->si_addr);
-#endif
-
-	write (STDERR_FILENO, message, len);
-
-	// flush buffers before writing directly to descriptors
-	fflush (stdout);
-	fflush (stderr);
-
-	// now get log fd and write trace directly to log
-	logfd = Sys_LogFileNo ();
-	write (logfd, message, len);
-
-	if (pc && bp && sp)
-		{
-		size_t pagesize = sysconf (_SC_PAGESIZE);
-		// try to print backtrace
-		write (STDERR_FILENO, STACK_BACKTRACE_STR, STACK_BACKTRACE_STR_LEN);
-		write (logfd, STACK_BACKTRACE_STR, STACK_BACKTRACE_STR_LEN);
-		Q_strncpy (message + len, STACK_BACKTRACE_STR, sizeof (message) - len);
-		len += STACK_BACKTRACE_STR_LEN;
-
-		// false on success, true on failure
-#define try_allow_read(pointer, pagesize) \
-	((mprotect( (char *)ALIGN( (pointer), (pagesize) ), (pagesize), PROT_READ | PROT_WRITE | PROT_EXEC ) == -1) && \
-	( mprotect( (char *)ALIGN( (pointer), (pagesize) ), (pagesize), PROT_READ | PROT_EXEC ) == -1) && \
-	( mprotect( (char *)ALIGN( (pointer), (pagesize) ), (pagesize), PROT_READ | PROT_WRITE ) == -1) && \
-	( mprotect( (char *)ALIGN( (pointer), (pagesize) ), (pagesize), PROT_READ ) == -1))
-
-		do
-			{
-			int line = Sys_PrintFrame (message + len, sizeof (message) - len, ++i, pc);
-			write (STDERR_FILENO, message + len, line);
-			write (logfd, message + len, line);
-			len += line;
-			if (try_allow_read (bp, pagesize))
-				break;
-			if (try_allow_read (bp[0], pagesize))
-				break;
-			pc = bp[1];
-			bp = (void **)bp[0];
-			} while (bp && i < 128);
-
-			// try to print stack
-			write (STDERR_FILENO, STACK_DUMP_STR, STACK_DUMP_STR_LEN);
-			write (logfd, STACK_DUMP_STR, STACK_DUMP_STR_LEN);
-			Q_strncpy (message + len, STACK_DUMP_STR, sizeof (message) - len);
-			len += STACK_DUMP_STR_LEN;
-
-			if (!try_allow_read (sp, pagesize))
-				{
-				for (i = 0; i < 32; i++)
-					{
-					int line = Sys_PrintFrame (message + len, sizeof (message) - len, i, sp[i]);
-					write (STDERR_FILENO, message + len, line);
-					write (logfd, message + len, line);
-					len += line;
-					}
-				}
-
-#undef try_allow_read
-		}
-
-	// put MessageBox as Sys_Error
-	Msg ("%s\n", message);
-#ifdef XASH_SDL
-	SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
-#endif
-
-	// [FWGS, 01.05.24]
-	host.crashed = true;
-	Platform_MessageBox ("Xash Error", message, false);
-
-	// log saved, now we can try to save configs and close log correctly, it may crash
-	if (host.type == HOST_NORMAL)
-		CL_Crashed ();
-	host.status = HOST_CRASHED;
-
-	Sys_Quit ();
-	}
-
-void Sys_SetupCrashHandler (void)
-	{
-	struct sigaction act = { 0 };	// [FWGS, 01.04.23]
-	act.sa_sigaction = Sys_Crash;
-	act.sa_flags = SA_SIGINFO | SA_ONSTACK;
-	sigaction (SIGSEGV, &act, &oldFilter);
-	sigaction (SIGABRT, &act, &oldFilter);
-	sigaction (SIGBUS, &act, &oldFilter);
-	sigaction (SIGILL, &act, &oldFilter);
-	}
-
-void Sys_RestoreCrashHandler (void)
-	{
-	sigaction (SIGSEGV, &oldFilter, NULL);
-	sigaction (SIGABRT, &oldFilter, NULL);
-	sigaction (SIGBUS, &oldFilter, NULL);
-	sigaction (SIGILL, &oldFilter, NULL);
-	}
-
-// [FWGS, 01.04.23]
-#else
-
-void Sys_SetupCrashHandler (void)
-	{
-	}
-
-void Sys_RestoreCrashHandler (void)
-	{
-	}
-
-#endif

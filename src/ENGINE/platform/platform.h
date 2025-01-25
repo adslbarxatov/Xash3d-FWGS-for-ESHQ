@@ -49,10 +49,11 @@ qboolean Platform_DebuggerPresent (void);
 	#undef XASH_PLATFORM_HAVE_STATUS
 #endif
 
-// [FWGS, 01.12.24]
+// [FWGS, 22.01.25]
 #if XASH_POSIX
 	void Posix_Daemonize (void);
 	void Posix_SetupSigtermHandling (void);
+	char *Posix_Input (void);
 #endif
 
 #if XASH_SDL
@@ -190,6 +191,20 @@ static inline void Platform_Sleep (int msec)
 #endif
 	}
 
+// [FWGS, 22.01.25]
+#if XASH_WIN32 || XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
+void Sys_SetupCrashHandler (void);
+void Sys_RestoreCrashHandler (void);
+#else
+static inline void Sys_SetupCrashHandler (void)
+	{
+	}
+
+static inline void Sys_RestoreCrashHandler (void)
+	{
+	}
+#endif
+
 /***
 ==============================================================================
 MOBILE API
@@ -240,6 +255,18 @@ static inline void Platform_SetTimer (float time)
 	{
 #if XASH_LINUX
 	Linux_SetTimer (time);
+#endif
+	}
+
+// [FWGS, 22.01.25]
+static inline char *Platform_Input (void)
+	{
+#if XASH_WIN32
+	return Wcon_Input ();
+#elif XASH_POSIX && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
+	return Posix_Input ();
+#else
+	return NULL;
 #endif
 	}
 

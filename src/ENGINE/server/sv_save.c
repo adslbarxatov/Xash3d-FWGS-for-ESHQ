@@ -63,14 +63,14 @@ typedef struct
 
 typedef struct
 	{
-	int		decalCount;	// render decals count
+	int		decalCount;		// render decals count
 	int		entityCount;	// static entity count
-	int		soundCount;	// sounds count
+	int		soundCount;		// sounds count
 	int		tempEntsCount;	// not used
 	char	introTrack[64];
 	char	mainTrack[64];
 	int		trackPosition;
-	short	viewentity;	// Xash3D added
+	short	viewentity;		// Xash3D added
 	float	wateralpha;
 	float	wateramp;		// world waves
 	} SAVE_CLIENT;
@@ -143,7 +143,11 @@ static TYPEDESCRIPTION gSaveClient[] =
 	DEFINE_ARRAY (SAVE_CLIENT, introTrack, FIELD_CHARACTER, 64),
 	DEFINE_ARRAY (SAVE_CLIENT, mainTrack, FIELD_CHARACTER, 64),
 	DEFINE_FIELD (SAVE_CLIENT, trackPosition, FIELD_INTEGER),
-	DEFINE_FIELD (SAVE_CLIENT, viewentity, FIELD_SHORT),
+
+	/*DEFINE_FIELD (SAVE_CLIENT, viewentity, FIELD_SHORT),*/
+	// [FWGS, 22.01.25] mods based on HLU SDK disallow usage of FIELD_SHORT
+	DEFINE_ARRAY (SAVE_CLIENT, viewentity, FIELD_CHARACTER, sizeof (short)),
+	
 	DEFINE_FIELD (SAVE_CLIENT, wateralpha, FIELD_FLOAT),
 	DEFINE_FIELD (SAVE_CLIENT, wateramp, FIELD_FLOAT),
 	};
@@ -152,7 +156,11 @@ static TYPEDESCRIPTION gDecalEntry[] =
 	{
 	DEFINE_FIELD (decallist_t, position, FIELD_VECTOR),
 	DEFINE_ARRAY (decallist_t, name, FIELD_CHARACTER, 64),
-	DEFINE_FIELD (decallist_t, entityIndex, FIELD_SHORT),
+
+	/*DEFINE_FIELD (decallist_t, entityIndex, FIELD_SHORT),*/
+	// [FWGS, 22.01.25] mods based on HLU SDK disallow usage of FIELD_SHORT
+	DEFINE_ARRAY (decallist_t, entityIndex, FIELD_CHARACTER, sizeof (short)),
+
 	DEFINE_FIELD (decallist_t, depth, FIELD_CHARACTER),
 	DEFINE_FIELD (decallist_t, flags, FIELD_CHARACTER),
 	DEFINE_FIELD (decallist_t, scale, FIELD_FLOAT),
@@ -160,6 +168,7 @@ static TYPEDESCRIPTION gDecalEntry[] =
 	DEFINE_ARRAY (decallist_t, studio_state, FIELD_CHARACTER, sizeof (modelstate_t)),
 	};
 
+// Can use any FIELD type here because only Xash3D games will spawn static entities
 static TYPEDESCRIPTION gStaticEntry[] =
 	{
 	DEFINE_FIELD (entity_state_t, messagenum, FIELD_MODELNAME), // HACKHACK: store model into messagenum
@@ -202,7 +211,12 @@ static TYPEDESCRIPTION gStaticEntry[] =
 static TYPEDESCRIPTION gSoundEntry[] =
 	{
 	DEFINE_ARRAY (soundlist_t, name, FIELD_CHARACTER, 64),
-	DEFINE_FIELD (soundlist_t, entnum, FIELD_SHORT),
+	
+	// [FWGS, 22.01.25]
+	/*DEFINE_FIELD (soundlist_t, entnum, FIELD_SHORT),*/
+	// mods based on HLU SDK disallow usage of FIELD_SHORT
+	DEFINE_ARRAY (soundlist_t, entnum, FIELD_CHARACTER, sizeof (short)),
+
 	DEFINE_FIELD (soundlist_t, origin, FIELD_VECTOR),
 	DEFINE_FIELD (soundlist_t, volume, FIELD_FLOAT),
 	DEFINE_FIELD (soundlist_t, attenuation, FIELD_FLOAT),
@@ -1659,14 +1673,21 @@ load current game state
 ***/
 static int LoadGameState (char const *level, qboolean changelevel)
 	{
-	SAVERESTOREDATA *pSaveData;
-	ENTITYTABLE *pTable;
-	SAVE_HEADER	header;
-	edict_t *pent;
-	int		i;
+	SAVERESTOREDATA	*pSaveData;
+	ENTITYTABLE		*pTable;
+	SAVE_HEADER		header;
+	edict_t		*pent;
+	int			i;
 
 	pSaveData = LoadSaveData (level);
-	if (!pSaveData) return 0; // couldn't load the file
+
+	// couldn't load the file
+	if (!pSaveData)
+		return 0;
+
+	// [FWGS, 22.01.25] must set mapname before calling into DLL
+	Q_strncpy (sv.name, level, sizeof (sv.name));
+	svgame.globals->mapname = MAKE_STRING (sv.name);
 
 	ParseSaveTables (pSaveData, &header, true);
 	EntityPatchRead (pSaveData, level);
@@ -1674,9 +1695,10 @@ static int LoadGameState (char const *level, qboolean changelevel)
 	// pause until all clients connect
 	sv.loadgame = sv.paused = true;
 
+	// [FWGS, 22.01.25]
 	Cvar_SetValue ("skill", header.skillLevel);
-	Q_strncpy (sv.name, header.mapName, sizeof (sv.name));
-	svgame.globals->mapname = MAKE_STRING (sv.name);
+	/*Q_strncpy (sv.name, header.mapName, sizeof (sv.name));
+	svgame.globals->mapname = MAKE_STRING (sv.name);*/
 	Cvar_Set ("sv_skyname", header.skyName);
 
 	// restore sky parms

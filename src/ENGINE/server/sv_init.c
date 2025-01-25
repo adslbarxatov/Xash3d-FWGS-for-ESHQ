@@ -837,14 +837,16 @@ static void SV_SetupClients (void)
 	if (!changed_maxclients)
 		return; // nothing to change
 
-	// if clients count was changed we need to run full shutdown procedure
+	// [FWGS, 22.01.25] if clients count was changed we need to run full shutdown procedure
+	/*if (svs.maxclients)
+		Host_ShutdownServer ();*/
 	if (svs.maxclients)
-		Host_ShutdownServer ();
+		SV_Shutdown ("Server was killed due to maxclients change\n");
 
 	// copy the actual value from cvar
 	svs.maxclients = (int)sv_maxclients.value;
 
-	// dedicated servers are can't be single player and are usually DM
+	// dedicated servers can't be single player and are usually DM
 	if (Host_IsDedicated ())
 		svs.maxclients = bound (4, svs.maxclients, MAX_CLIENTS);
 	else
@@ -856,7 +858,8 @@ static void SV_SetupClients (void)
 		Cvar_SetValue ("deathmatch", 1.0f);
 
 	// make cvars consistant
-	if (coop.value) Cvar_SetValue ("deathmatch", 0.0f);
+	if (coop.value)
+		Cvar_SetValue ("deathmatch", 0.0f);
 
 	// feedback for cvar
 	Cvar_FullSet ("maxplayers", va ("%d", svs.maxclients), FCVAR_LATCH);

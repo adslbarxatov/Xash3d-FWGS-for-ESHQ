@@ -305,7 +305,6 @@ void CGameText::KeyValue (KeyValueData *pkvd)
 		}
 	}
 
-
 void CGameText::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	if (!CanFireForActivator (pActivator))
@@ -533,7 +532,9 @@ void CGamePlayerZone::KeyValue (KeyValueData *pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CRuleBrushEntity::KeyValue (pkvd);
+		}
 	}
 
 void CGamePlayerZone::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
@@ -593,7 +594,6 @@ void CGamePlayerZone::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	}
 
 
-
 // CGamePlayerHurt / game_player_hurt	-- Damages the player who fires it
 // Flag: Fire once
 
@@ -626,9 +626,7 @@ void CGamePlayerHurt::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	SUB_UseTargets (pActivator, useType, value);
 
 	if (RemoveOnFire ())
-		{
 		UTIL_Remove (this);
-		}
 	}
 
 
@@ -679,6 +677,7 @@ void CGamePlayerSetHealth::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, U
 
 #define SF_GAMECOUNT_FIREONCE			0x0001
 #define SF_GAMECOUNT_RESET				0x0002
+#define SF_GAMECOUNT_SHOW				0x0004
 
 class CGameCounter : public CRulePointEntity
 	{
@@ -687,6 +686,7 @@ class CGameCounter : public CRulePointEntity
 		void		Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		inline BOOL RemoveOnFire (void) { return (pev->spawnflags & SF_GAMECOUNT_FIREONCE) ? TRUE : FALSE; }
 		inline BOOL ResetOnFire (void) { return (pev->spawnflags & SF_GAMECOUNT_RESET) ? TRUE : FALSE; }
+		inline BOOL ShowProgress (void) { return (pev->spawnflags & SF_GAMECOUNT_SHOW) ? TRUE : FALSE; }
 
 		inline void CountUp (void) { pev->frags++; }
 		inline void CountDown (void) { pev->frags--; }
@@ -700,6 +700,10 @@ class CGameCounter : public CRulePointEntity
 
 		inline void SetCountValue (int value) { pev->frags = value; }
 		inline void SetInitialValue (int value) { pev->dmg = value; }
+
+		// ESHQ: поддержка сообщений
+		struct hudtextparms_s textParams;
+		BOOL alreadyShowing;
 	};
 
 LINK_ENTITY_TO_CLASS (game_counter, CGameCounter);
@@ -713,6 +717,9 @@ void CGameCounter::Spawn (void)
 
 void CGameCounter::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
+	// ESHQ: поддержка сообщений
+	char achiMessage[128];
+
 	if (!CanFireForActivator (pActivator))
 		return;
 
@@ -736,14 +743,41 @@ void CGameCounter::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		{
 		SUB_UseTargets (pActivator, USE_TOGGLE, 0);
 		if (RemoveOnFire ())
-			{
 			UTIL_Remove (this);
-			}
 
 		if (ResetOnFire ())
-			{
 			ResetCount ();
+		}
+
+	// ESHQ: отображение текущего состояния триггера, если требуется
+	if (ShowProgress () && !alreadyShowing && (LimitValue () > CountValue ()))
+		{
+		// Защита от множественного входа
+		alreadyShowing = true;
+
+		// Настройка
+		if (textParams.a1 != 64)
+			{
+			textParams.a1 = textParams.a2 = 64;
+			textParams.g1 = textParams.b2 = 128;
+			textParams.b1 = textParams.g2 = 128;
+
+			textParams.effect = 0;
+			textParams.fadeinTime = textParams.fadeoutTime = 0.05f;
+			textParams.fxTime = 0.16f;
+			textParams.holdTime = 1.0f;
+
+			textParams.x = -1.0f;
+			textParams.y = 0.95f;
+			textParams.channel = 5;
 			}
+
+		// Отображение
+		achiMessage[0] = '\0';
+		sprintf (achiMessage, "%s: %u", STRING (pev->message), LimitValue () - CountValue ());
+		UTIL_HudMessageAll (textParams, achiMessage);
+
+		alreadyShowing = false;
 		}
 	}
 

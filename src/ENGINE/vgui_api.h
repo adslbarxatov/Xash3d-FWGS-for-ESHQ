@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -160,6 +160,7 @@ enum VGUI_MouseAction
 	MA_WHEEL
 	};
 
+// [FWGS, 22.01.25]
 typedef struct  vguiapi_s
 	{
 	qboolean initialized;
@@ -171,17 +172,19 @@ typedef struct  vguiapi_s
 	void	(*SetupDrawingImage)(int *pColor);
 	void	(*BindTexture)(int id);
 	void	(*EnableTexture)(qboolean enable);
-	void	(*CreateTexture)(int id, int width, int height);
+	/*void	(*CreateTexture)(int id, int width, int height);*/
+	void	(*Reserved0)(int id, int width, int height);
 	void	(*UploadTexture)(int id, const char *buffer, int width, int height);
-	void	(*UploadTextureBlock)(int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);
+	/*void	(*UploadTextureBlock)(int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);*/
+	void	(*Reserved1)(int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);
 	void	(*DrawQuad)(const vpoint_t *ul, const vpoint_t *lr);
 	void	(*GetTextureSizes)(int *width, int *height);
 	int		(*GenerateTexture)(void);
-	void *(*EngineMalloc)(size_t size);
+	void	*(*EngineMalloc)(size_t size);
 	void	(*CursorSelect)(VGUI_DefaultCursor cursor);
-	byte (*GetColor)(int i, int j);
-	qboolean (*IsInGame)(void);
-	void	(*EnableTextInput)(qboolean enable, qboolean force);	// [FWGS, 01.04.23]
+	byte	(*GetColor)(int i, int j);
+	qboolean	(*IsInGame)(void);
+	void	(*EnableTextInput)(qboolean enable, qboolean force);
 	void	(*GetCursorPos)(int *x, int *y);
 	int		(*ProcessUtfChar)(int ch);
 	int		(*GetClipboardText)(char *buffer, size_t bufferSize);
