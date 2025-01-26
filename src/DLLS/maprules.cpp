@@ -1,17 +1,15 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 
 // -------------------------------------------
 // maprules.cpp
@@ -677,7 +675,6 @@ void CGamePlayerSetHealth::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, U
 
 #define SF_GAMECOUNT_FIREONCE			0x0001
 #define SF_GAMECOUNT_RESET				0x0002
-#define SF_GAMECOUNT_SHOW				0x0004
 
 class CGameCounter : public CRulePointEntity
 	{
@@ -686,7 +683,7 @@ class CGameCounter : public CRulePointEntity
 		void		Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 		inline BOOL RemoveOnFire (void) { return (pev->spawnflags & SF_GAMECOUNT_FIREONCE) ? TRUE : FALSE; }
 		inline BOOL ResetOnFire (void) { return (pev->spawnflags & SF_GAMECOUNT_RESET) ? TRUE : FALSE; }
-		inline BOOL ShowProgress (void) { return (pev->spawnflags & SF_GAMECOUNT_SHOW) ? TRUE : FALSE; }
+		BOOL		ShowProgress (void);
 
 		inline void CountUp (void) { pev->frags++; }
 		inline void CountDown (void) { pev->frags--; }
@@ -715,10 +712,16 @@ void CGameCounter::Spawn (void)
 	CRulePointEntity::Spawn ();
 	}
 
+BOOL CGameCounter::ShowProgress (void)
+	{
+	int l = strlen (STRING (pev->message));
+	return (l > 0) && (l <= 56);
+	}
+
 void CGameCounter::Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{
 	// ESHQ: поддержка сообщений
-	char achiMessage[128];
+	char achiMessage[64];
 
 	if (!CanFireForActivator (pActivator))
 		return;
