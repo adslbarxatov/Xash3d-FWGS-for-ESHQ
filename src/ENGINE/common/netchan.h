@@ -169,11 +169,11 @@ typedef struct
 typedef struct
 	{
 	flowstats_t	stats[MAX_LATENT];	// data for last MAX_LATENT messages
-	int		current;		// current message position
+	int			current;		// current message position
 	double		nextcompute; 	// time when we should recompute k/sec data
 	float		kbytespersec;	// average data
 	float		avgkbytespersec;
-	int		totalbytes;
+	int			totalbytes;
 	} flow_t;
 
 // [FWGS, 01.09.24] generic fragment structure
@@ -206,21 +206,22 @@ typedef enum fragsize_e
 	FRAGSIZE_UNRELIABLE
 	} fragsize_t;
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.02.25]
 typedef enum netchan_flags_e
 	{
 	NETCHAN_USE_LEGACY_SPLIT = BIT (0),
 	NETCHAN_USE_MUNGE = BIT (1),
 	NETCHAN_USE_BZIP2 = BIT (2),
 	NETCHAN_GOLDSRC = BIT (3),
+	NETCHAN_USE_LZSS = BIT (4), // mutually exclusive with bzip2
 	} netchan_flags_t;
 
 // Network Connection Channel
 typedef struct netchan_s
 	{
-	netsrc_t		sock;		// NS_SERVER or NS_CLIENT, depending on channel.
-	netadr_t		remote_address;	// address this channel is talking to.
-	int		qport;		// qport value to write when transmitting
+	netsrc_t	sock;		// NS_SERVER or NS_CLIENT, depending on channel.
+	netadr_t	remote_address;	// address this channel is talking to.
+	int			qport;		// qport value to write when transmitting
 
 	double		last_received;	// for timeouts
 	double		connect_time;	// Usage: host.realtime - netchan.connect_time
@@ -277,17 +278,14 @@ typedef struct netchan_s
 	// added for net_speeds
 	size_t		total_sended;
 	size_t		total_received;
-	/*qboolean	split;*/	// [FWGS, 01.12.24]
 	unsigned int	maxpacket;
 	unsigned int	splitid;
 
-	// [FWGS, 01.12.24]
-	/*netsplit_t		netsplit;*/
 	netsplit_t	netsplit;
-
 	qboolean	split;
 	qboolean	use_munge;
 	qboolean	use_bz2;
+	qboolean	use_lzss;		// [FWGS, 01.02.25]
 	qboolean	gs_netchan;
 	} netchan_t;
 

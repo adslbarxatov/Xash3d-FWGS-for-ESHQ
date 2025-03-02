@@ -113,7 +113,7 @@ typedef struct
 	qboolean	finished;
 	} mixer_t;
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.02.25]
 typedef struct rawchan_s
 	{
 	int			entnum;
@@ -124,7 +124,7 @@ typedef struct rawchan_s
 	vec3_t		origin;		// only use if fixed_origin is set
 	volatile uint	s_rawend;
 	float		oldtime;	// catch time jumps
-	wavdata_t	sound_info;	// advance play position
+	/*wavdata_t	sound_info;	// advance play position*/
 	size_t		max_samples;	// buffer length
 
 	portable_samplepair_t	rawsamples[]; // variable sized
@@ -188,6 +188,9 @@ typedef struct
 	stream_t	*stream;
 	int			source;		// may be game, menu, etc
 	} bg_track_t;
+
+// [FWGS, 01.02.25]
+typedef int sound_t;
 
 // ====================================================================
 

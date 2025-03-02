@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -221,9 +221,10 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 		{
 		if (!Q_stricmp (mod->name, modname))
 			{
-			if (mod->mempool || mod->name[0] == '*')
+			if (mod->mempool || (mod->name[0] == '*'))
 				mod->needload = NL_PRESENT;
-			else mod->needload = NL_NEEDS_LOADED;
+			else
+				mod->needload = NL_NEEDS_LOADED;
 
 			return mod;
 			}
@@ -252,18 +253,19 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 
 /***
 ==================
-Mod_LoadModel
+Mod_LoadModel [FWGS, 01.02.25]
 
 Loads a model into the cache
 ==================
 ***/
 model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	{
-	char		tempname[MAX_QPATH];
+	char			tempname[MAX_QPATH];
 	fs_offset_t		length = 0;
-	qboolean		loaded;
-	byte *buf;
-	model_info_t *p;
+	/*qboolean		loaded;*/
+	qboolean		loaded, loaded2 = false;
+	byte			*buf;
+	model_info_t	*p;
 
 	ASSERT (mod != NULL);
 
@@ -281,17 +283,19 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	COM_FixSlashes (tempname);
 
 	buf = FS_LoadFile (tempname, &length, false);
-	if (!buf)
+	/*if (!buf)*/
+	if (!buf || (length < sizeof (uint)))
 		{
 		memset (mod, 0, sizeof (model_t));
 
-		if (crash) Host_Error ("Could not load model %s from disk\n", tempname);
-		else Con_Printf (S_ERROR "Could not load model %s from disk\n", tempname);
+		if (crash)
+			Host_Error ("Could not load model %s from disk\n", tempname);
+		else
+			Con_Printf (S_ERROR "Could not load model %s from disk\n", tempname);
 
 		return NULL;
 		}
 
-	// [FWGS, 01.11.23]
 	Con_Reportf ("loading %s\n", mod->name);
 	mod->needload = NL_PRESENT;
 	mod->type = mod_bad;
@@ -304,12 +308,10 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 			break;
 
 		case IDSPRITEHEADER:
-			// [FWGS, 01.08.24]
 			Mod_LoadSpriteModel (mod, buf, &loaded);
 			break;
 
 		case IDALIASHEADER:
-			// [FWGS, 01.08.24]
 			Mod_LoadAliasModel (mod, buf, &loaded);
 			break;
 
@@ -339,17 +341,18 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 				{
 				// let the server.dll load custom data
 				svgame.physFuncs.Mod_ProcessUserData (mod, true, buf);
+				loaded2 = true;
 				}
 			}
 #if !XASH_DEDICATED
 		else
 			{
-			loaded = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf);
+			/*loaded = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf);*/
+			loaded2 = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf);
 			}
 #endif
 		}
 
-	// [FWGS, 01.08.24]
 	if (mod->type == mod_alias)
 		{
 		aliashdr_t *hdr = mod->cache.data;
@@ -359,7 +362,8 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 			hdr->pposeverts = NULL;
 		}
 
-	if (!loaded)
+	/*if (!loaded)*/
+	if (!loaded || !loaded2)
 		{
 		Mod_FreeModel (mod);
 		Mem_Free (buf);
@@ -615,6 +619,49 @@ void Mod_NeedCRC (const char *name, qboolean needCRC)
 	mod = Mod_FindName (name, true);
 	p = &mod_crcinfo[mod - mod_known];
 
-	if (needCRC) SetBits (p->flags, FCRC_SHOULD_CHECKSUM);
-	else ClearBits (p->flags, FCRC_SHOULD_CHECKSUM);
+	if (needCRC)
+		SetBits (p->flags, FCRC_SHOULD_CHECKSUM);
+	else
+		ClearBits (p->flags, FCRC_SHOULD_CHECKSUM);
 	}
+
+#if XASH_ENGINE_TESTS
+
+static const uint8_t *fuzz_data;
+static size_t fuzz_size;
+
+// [FWGS, 01.02.25]
+static byte *Fuzz_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
+	{
+	byte *buf = Mem_Malloc (host.mempool, fuzz_size);
+	memcpy (buf, fuzz_data, fuzz_size);
+	*filesizeptr = fuzz_size;
+	return buf;
+	}
+
+// [FWGS, 01.02.25]
+int EXPORT Fuzz_Mod_LoadModel (const uint8_t *Data, size_t Size);
+
+int EXPORT Fuzz_Mod_LoadModel (const uint8_t *Data, size_t Size)
+	{
+	model_t mod = { .name = "test", .needload = NL_NEEDS_LOADED };
+
+	Memory_Init ();
+
+	host.type = HOST_DEDICATED;
+	host.mempool = Mem_AllocPool ("fuzzing pool");
+	fuzz_data = Data;
+	fuzz_size = Size;
+	refState.draw_surfaces = NULL;
+
+	g_fsapi.LoadFile = Fuzz_LoadFile;
+
+	if (Mod_LoadModel (&mod, false) && mod.mempool)
+		Mem_FreePool (&mod.mempool);
+
+	Mem_FreePool (&host.mempool);
+
+	return 0;
+	}
+
+#endif

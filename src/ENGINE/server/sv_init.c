@@ -19,7 +19,7 @@ GNU General Public License for more details
 #include "library.h"
 #include "voice.h"
 #include <shellapi.h>	// ESHQ: поддержка вызова генератора карт ESRM
-#include "pm_local.h"	// [FWGS, 01.04.23]
+#include "pm_local.h"
 
 #if XASH_LOW_MEMORY != 2
 int SV_UPDATE_BACKUP = SINGLEPLAYER_BACKUP;
@@ -276,21 +276,21 @@ int GAME_EXPORT SV_GenericIndex (const char *filename)
 	return i;
 	}
 
-/***
+// [FWGS, 01.02.25] removed SV_ModelHandle
+/*
 ================
 SV_ModelHandle
 
 get model by handle
 ================
-***/
+/
 model_t *GAME_EXPORT SV_ModelHandle (int modelindex)
 	{
 	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
 		return NULL;
 	return sv.models[modelindex];
-	}
+	}*/
 
-// [FWGS, 01.05.23]
 static resourcetype_t SV_DetermineResourceType (const char *filename)
 	{
 	if (!Q_strncmp (filename, DEFAULT_SOUNDPATH, sizeof (DEFAULT_SOUNDPATH) - 1) &&

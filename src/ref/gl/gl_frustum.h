@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #ifndef GL_FRUSTUM_H
@@ -31,10 +31,11 @@ typedef struct gl_frustum_s
 	unsigned int 	clipFlags;
 	} gl_frustum_t;
 
+// [FWGS, 01.02.25]
 void GL_FrustumInitProj (gl_frustum_t *out, float flZNear, float flZFar, float flFovX, float flFovY);
 void GL_FrustumInitOrtho (gl_frustum_t *out, float xLeft, float xRight, float yTop, float yBottom,
 	float flZNear, float flZFar);
-void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist);
+/*void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist);*/
 
 // cull methods
 qboolean GL_FrustumCullBox (gl_frustum_t *out, const vec3_t mins, const vec3_t maxs, int userClipFlags);

@@ -15,10 +15,6 @@ GNU General Public License for more details
 
 #include "soundlib.h"
 
-// [FWGS, 25.12.24]
-/*// global sound variables
-sndlib_t	sound;*/
-
 static void Sound_Reset (void)
 	{
 	// reset global variables
@@ -31,21 +27,29 @@ static void Sound_Reset (void)
 	sound.size = 0;
 	}
 
-// [FWGS, 01.12.24]
-/*static wavdata_t *SoundPack (void)*/
+// [FWGS, 01.02.25]
 static MALLOC_LIKE (FS_FreeSound, 1) wavdata_t *SoundPack (void)
 	{
-	wavdata_t *pack = Mem_Calloc (host.soundpool, sizeof (wavdata_t));
+	/*wavdata_t *pack = Mem_Calloc (host.soundpool, sizeof (wavdata_t));*/
+	wavdata_t *pack = Mem_Malloc (host.soundpool, sizeof (*pack) + sound.size);
 
-	pack->buffer = sound.wav;
+	/*pack->buffer = sound.wav;
 	pack->width = sound.width;
 	pack->rate = sound.rate;
-	pack->type = sound.type;
+	pack->type = sound.type;*/
 	pack->size = sound.size;
 	pack->loopStart = sound.loopstart;
 	pack->samples = sound.samples;
-	pack->channels = sound.channels;
+	/*pack->channels = sound.channels;*/
+	pack->type = sound.type;
 	pack->flags = sound.flags;
+	pack->rate = sound.rate;
+	pack->width = sound.width;
+	pack->channels = sound.channels;
+	memcpy (pack->buffer, sound.wav, sound.size);
+
+	Mem_Free (sound.wav);
+	sound.wav = NULL;
 
 	return pack;
 	}
@@ -134,7 +138,7 @@ load_internal:
 
 /***
 ================
-Sound_FreeSound
+Sound_FreeSound [FWGS, 01.02.25]
 
 free WAV buffer
 ================
@@ -143,8 +147,8 @@ void FS_FreeSound (wavdata_t *pack)
 	{
 	if (!pack)
 		return;
-	if (pack->buffer) 
-		Mem_Free (pack->buffer);
+	/*if (pack->buffer) 
+		Mem_Free (pack->buffer);*/
 	Mem_Free (pack);
 	}
 
@@ -212,13 +216,14 @@ stream_t *FS_OpenStream (const char *filename)
 	return stream;
 	}
 
-/***
+// [FWGS, 01.02.25] removed FS_StreamInfo
+/*
 ================
 FS_StreamInfo [FWGS, 09.05.24]
 
 get basic stream info
 ================
-***/
+/
 wavdata_t *FS_StreamInfo (stream_t *stream)
 	{
 	static wavdata_t	info;
@@ -240,7 +245,7 @@ wavdata_t *FS_StreamInfo (stream_t *stream)
 	info.type = stream->type;
 
 	return &info;
-	}
+	}*/
 
 /***
 ================
@@ -254,7 +259,7 @@ int FS_ReadStream (stream_t *stream, int bytes, void *buffer)
 	if (!stream || !stream->format || !stream->format->readfunc)
 		return 0;
 
-	if (bytes <= 0 || buffer == NULL)
+	if ((bytes <= 0) || (buffer == NULL))
 		return 0;
 
 	return stream->format->readfunc (stream, bytes, buffer);

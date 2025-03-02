@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #pragma once
@@ -34,11 +34,11 @@ typedef void base_command_t;
 // [FWGS, 01.04.23] удалена base_command_hashmap_s
 
 void BaseCmd_Init (void);
+void BaseCmd_Shutdown (void);	// [FWGS, 01.02.25]
 base_command_t *BaseCmd_Find (base_command_type_e type, const char *name);
 void BaseCmd_FindAll (const char *name,
 	base_command_t **cmd, base_command_t **alias, base_command_t **cvar);
 void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const char *name);
-// [FWGS, 01.05.23] удалена BaseCmd_Replace
 void BaseCmd_Remove (base_command_type_e type, const char *name);
 void BaseCmd_Stats_f (void);	// to be registered later
 void BaseCmd_Test_f (void);		// to be registered later

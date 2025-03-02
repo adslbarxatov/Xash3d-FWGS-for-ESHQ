@@ -68,6 +68,10 @@ extern int SV_UPDATE_BACKUP;
 #define MAX_PUSHED_ENTS	256
 #define MAX_VIEWENTS	128
 
+// [FWGS, 01.02.25]
+#define MAX_LOCALINFO_STRING	32768	// localinfo used on server and not sended to the clients
+#define MAX_ENT_LEAFS(ext)		(( ext ) ? MAX_ENT_LEAFS_32 : MAX_ENT_LEAFS_16 )
+
 #define FCL_RESEND_USERINFO		BIT( 0 )
 #define FCL_RESEND_MOVEVARS		BIT( 1 )
 #define FCL_SKIP_NET_MESSAGE	BIT( 2 )
@@ -391,10 +395,9 @@ typedef struct
 
 	challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting
 
-	// [FWGS, 01.07.23]
 	sizebuf_t	testpacket;         // pregenerataed testpacket, only needs CRC32 patching
 	byte		*testpacket_buf;    // check for NULL if testpacket is available
-	byte		*testpacket_crcpos; // pointer to write pregenerated crc (unaligned!!!)
+	byte		*testpacket_crcpos; // pointer to write pregenerated crc (unaligned!)
 	uint32_t	*testpacket_crcs;   // checksums lookup table
 	int			testpacket_filepos; // file position (need to calculate lookup table pos)
 	int			testpacket_filelen; // file and lookup table length
@@ -506,14 +509,29 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg);
 qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent);
 
 //
-// sv_init.c [FWGS, 01.07.24]
+// sv_init.c [FWGS, 01.02.25]
 //
 qboolean SV_InitGame (void);
 void SV_ActivateServer (int runPhysics);
 qboolean SV_SpawnServer (const char *server, const char *startspot, qboolean background);
-model_t *SV_ModelHandle (int modelindex);
+/*model_t *SV_ModelHandle (int modelindex);*/
 void SV_DeactivateServer (void);
 void SV_FreeTestPacket (void);
+
+/***
+================
+SV_ModelHandle [FWGS, 01.02.25]
+
+get model by handle
+================
+***/
+static inline model_t *GAME_EXPORT SV_ModelHandle (int modelindex)
+	{
+	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
+		return NULL;
+
+	return sv.models[modelindex];
+	}
 
 //
 // sv_phys.c
@@ -697,10 +715,10 @@ void SV_InitSaveRestore (void);
 void SV_ClearGameState (void);
 
 //
-// sv_pmove.c [FWGS, 01.02.24]
+// sv_pmove.c [FWGS, 01.02.25]
 //
 void SV_InitClientMove (void);
-qboolean SV_PlayerIsFrozen (edict_t *pClient);
+/*qboolean SV_PlayerIsFrozen (edict_t *pClient);*/
 void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed);
 
 //

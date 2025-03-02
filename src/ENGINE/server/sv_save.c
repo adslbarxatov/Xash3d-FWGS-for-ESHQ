@@ -2332,7 +2332,7 @@ const char *SV_GetLatestSave (void)
 
 /***
 ==================
-SV_GetSaveComment [FWGS, 01.05.24]
+SV_GetSaveComment
 
 check savegame for valid
 ==================
@@ -2362,9 +2362,11 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 
 	FS_Read (f, &tag, sizeof (int));
 
+	// [FWGS, 01.02.25]
 	if (tag == 0x0065)
 		{
-		Q_strncpy (comment, "<old version Xash3D unsupported>", MAX_STRING);
+		/*Q_strncpy (comment, "<old version Xash3D unsupported>", MAX_STRING);*/
+		Q_strncpy (comment, "<old version " XASH_ENGINE_NAME " unsupported>", MAX_STRING);
 		FS_Close (f);
 		return 0;
 		}
@@ -2393,7 +2395,7 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 	size += tokenSize;
 
 	// sanity check.
-	if (tokenCount < 0 || tokenCount > SAVE_HASHSTRINGS)
+	if ((tokenCount < 0) || (tokenCount > SAVE_HASHSTRINGS))
 		{
 		Q_strncpy (comment, "<corrupted hashtable>", MAX_STRING);
 		FS_Close (f);
@@ -2532,7 +2534,6 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		}
 
 	Q_strncpy (comment, "<unknown version>", MAX_STRING);
-
 	return 0;
 	}
 
@@ -2540,4 +2541,3 @@ void SV_InitSaveRestore (void)
 	{
 	pfnSaveGameComment = COM_GetProcAddress (svgame.hInstance, "SV_SaveGameComment");
 	}
-

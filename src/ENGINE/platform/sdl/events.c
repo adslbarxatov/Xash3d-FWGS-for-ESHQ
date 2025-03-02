@@ -423,8 +423,12 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 				keynum = K_PAUSE;
 				break;
 
+				// [FWGS, 01.02.25]
+				/*case SDL_SCANCODE_SCROLLLOCK:
+					keynum = K_SCROLLOCK;
+					break;*/
 			case SDL_SCANCODE_SCROLLLOCK:
-				keynum = K_SCROLLOCK;
+				keynum = K_SCROLLLOCK;
 				break;
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -571,9 +575,14 @@ static void SDLash_ActiveEvent (int gain)
 				IOS_StartBackgroundTask ();
 				}
 #endif
+
+				// [FWGS, 01.02.25]
 				host.status = HOST_NOFOCUS;
 				if (cls.key_dest == key_game)
+					{
+					Key_ClearStates ();
 					IN_DeactivateMouse ();
+					}
 
 				host.force_draw_version_time = host.realtime + 2.0;
 				VID_RestoreScreenResolution ();
@@ -873,16 +882,13 @@ void Platform_RunEvents (void)
 		SDLash_EventHandler (&event);
 	}
 
-// [FWGS, 01.04.23]
 #if XASH_PSVITA
 PSVita_InputUpdate ();
 #endif
 
-// [FWGS, 01.07.23] removed Platform_GetNativeObject
-
 /***
 ========================
-Platform_PreCreateMove [FWGS, 01.07.23]
+Platform_PreCreateMove
 
 this should disable mouse look on client when m_ignore enabled
 ========================

@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -62,26 +62,45 @@ typedef struct
 	vec3_t		position;
 	} mvertex_t;
 
-typedef struct
+// [FWGS, 01.02.25]
+/*typedef struct*/
+typedef struct mclipnode32_s
+	{
+	/*int		planenum;
+ifdef SUPPORT_BSP2_FORMAT
+	int		children[2];	// negative numbers are contents
+else
+	short		children[2];	// negative numbers are contents
+endif
+	} mclipnode_t;*/
+	int	planenum;
+	int	children[2];		// negative numbers are contents
+	} mclipnode32_t;
+
+// [FWGS, 01.02.25]
+typedef struct mclipnode16_s
 	{
 	int		planenum;
-#ifdef SUPPORT_BSP2_FORMAT
-	int		children[2];	// negative numbers are contents
-#else
-	short		children[2];	// negative numbers are contents
-#endif
-	} mclipnode_t;
+	short	children[2];	// negative numbers are contents
+	} mclipnode16_t;
 
-// size is matched but representation is not
-typedef struct
+// [FWGS, 01.02.25] size is matched but representation is not
+/*typedef struct*/
+typedef struct medge32_s
 	{
-#ifdef SUPPORT_BSP2_FORMAT
+/*ifdef SUPPORT_BSP2_FORMAT*/
 	unsigned int	v[2];
-#else
+/*else*/
+	} medge32_t;
+
+// [FWGS, 01.02.25]
+typedef struct medge16_s
+	{
 	unsigned short	v[2];
 	unsigned int	cachededgeoffset;
-#endif
-	} medge_t;
+/*endif
+	} medge_t;*/
+	} medge16_t;
 
 typedef struct texture_s
 	{
@@ -100,20 +119,20 @@ typedef struct texture_s
 
 typedef struct
 	{
-	char		landname[16];	// name of decsription in mapname_land.txt
+	char			landname[16];	// name of decsription in mapname_land.txt
 	unsigned short	texture_step;	// default is 16, pixels\luxels ratio
-	unsigned short	max_extent;	// default is 16, subdivision step ((texture_step * max_extent) - texture_step)
-	short		groupid;		// to determine equal landscapes from various groups, -1 - no group
+	unsigned short	max_extent;		// default is 16, subdivision step ((texture_step * max_extent) - texture_step)
+	short			groupid;		// to determine equal landscapes from various groups, -1 - no group
 
-	vec3_t		mins, maxs;		// terrain bounds (fill by user)
+	vec3_t			mins, maxs;		// terrain bounds (fill by user)
 
-	intptr_t			reserved[32];	// just for future expansions or mod-makers
+	intptr_t		reserved[32];	// just for future expansions or mod-makers
 	} mfaceinfo_t;
 
 // 4529
 typedef struct
 	{
-	mplane_t *edges;
+	mplane_t	*edges;
 	int			numedges;
 	vec3_t		origin;
 	vec_t		radius;		// for culling tests
@@ -128,8 +147,8 @@ typedef struct
 	// s or t = dot( 3Dpoint, vecs[i] ) + vecs[i][3]
 
 	// pointer to landscape info and lightmap resolution (may be NULL)
-	mfaceinfo_t *faceinfo;
-	texture_t *texture;
+	mfaceinfo_t	*faceinfo;
+	texture_t	*texture;
 
 	// sky or slime, no lightmap or 256 subdivision
 	int			flags;
@@ -163,15 +182,42 @@ typedef struct mnode_s
 	float	minmaxs[6];		// for bounding box culling
 	struct mnode_s	*parent;
 
-	// node specific
+	// [FWGS, 01.02.25] node specific
 	mplane_t	*plane;
-	struct mnode_s	*children[2];
-#ifdef SUPPORT_BSP2_FORMAT
+	/*struct mnode_s	*children[2];
+ifdef SUPPORT_BSP2_FORMAT
 	int		firstsurface;
-	int		numsurfaces;
+	int		numsurfaces;*/
+#if !XASH_64BIT
+
+	union
+		{
+		struct mnode_s	*children_[2];
+		struct
+			{
+			// the ordering is important
+			int child_0_leaf : 1;
+			int child_0_off : 23;
+			int firstsurface_1 : 8;
+			int child_1_leaf : 1;
+			int child_1_off : 23;
+			int numsurfaces_1 : 8;
+			};
+		};
+	unsigned short	firstsurface_0;
+	unsigned short	numsurfaces_0;
+
 #else
-	unsigned short	firstsurface;
-	unsigned short	numsurfaces;
+
+	/*unsigned short	firstsurface;
+	unsigned short	numsurfaces;*/
+	// in 64-bit ABI this struct has 4 more bytes of padding, let's use it!
+	struct mnode_s	*children_[2];
+	unsigned short	firstsurface_0;
+	unsigned short	numsurfaces_0;
+	unsigned short	firstsurface_1;
+	unsigned short	numsurfaces_1;
+
 #endif
 	} mnode_t;
 
@@ -304,9 +350,15 @@ struct msurface_s
 #endif
 	};
 
+// [FWGS, 01.02.25]
 typedef struct hull_s
 	{
-	mclipnode_t	*clipnodes;
+	/*mclipnode_t	*clipnodes;*/
+	union
+		{
+		mclipnode16_t	*clipnodes16;
+		mclipnode32_t	*clipnodes32;
+		};
 	mplane_t	*planes;
 	int			firstclipnode;
 	int			lastclipnode;
@@ -355,8 +407,14 @@ typedef struct model_s
 	int			numvertexes;
 	mvertex_t	*vertexes;
 
+	// [FWGS, 01.02.25]
 	int			numedges;
-	medge_t		*edges;
+	/*medge_t		*edges;*/
+	union
+		{
+		medge16_t *edges16;
+		medge32_t *edges32;
+		};
 
 	int			numnodes;
 	mnode_t		*nodes;
@@ -370,8 +428,14 @@ typedef struct model_s
 	int			numsurfedges;
 	int			*surfedges;
 
+	// [FWGS, 01.02.25]
 	int			numclipnodes;
-	mclipnode_t	*clipnodes;
+	/*mclipnode_t	*clipnodes;*/
+	union
+		{
+		mclipnode16_t *clipnodes16;
+		mclipnode32_t *clipnodes32;
+		};
 
 	int			nummarksurfaces;
 	msurface_t	**marksurfaces;
@@ -571,20 +635,66 @@ typedef struct
 // [FWGS, 01.09.24]
 #define MAX_REQUESTS	64
 
-/*// [FWGS, 01.03.24]
-if ! XASH_64BIT
-STATIC_ASSERT (sizeof (mextrasurf_t) == 324, "mextrasurf_t unexpected size");
-STATIC_ASSERT (sizeof (decal_t) == 60, "decal_t unexpected size");
-STATIC_ASSERT (sizeof (mfaceinfo_t) == 176, "mfaceinfo_t unexpected size");
-else
-STATIC_ASSERT (sizeof (mextrasurf_t) == 496, "mextrasurf_t unexpected size");
-STATIC_ASSERT (sizeof (decal_t) == 88, "decal_t unexpected size");
-STATIC_ASSERT (sizeof (mfaceinfo_t) == 304, "mfaceinfo_t unexpected size");
-endif*/
-
-// [FWGS, 01.12.24]
+// [FWGS, 01.02.25]
+STATIC_CHECK_SIZEOF (mnode_t, 52, 72);
 STATIC_CHECK_SIZEOF (mextrasurf_t, 324, 496);
 STATIC_CHECK_SIZEOF (decal_t, 60, 88);
 STATIC_CHECK_SIZEOF (mfaceinfo_t, 176, 304);
+
+// model flags (stored in model_t->flags)
+#define MODEL_QBSP2 BIT( 28 ) // uses 32-bit types
+
+// [FWGS, 01.02.25] access functions
+static inline mnode_t *node_child (const mnode_t *n, int side, const model_t *mod)
+	{
+#if !XASH_64BIT
+	if (unlikely (mod->flags & MODEL_QBSP2)) // MODEL_QBSP2
+		{
+		if (side == 0)
+			{
+			if (n->child_0_leaf)
+				return (mnode_t *)(mod->leafs + n->child_0_off);
+			else
+				return (mnode_t *)(mod->nodes + n->child_0_off);
+			}
+		else
+			{
+			if (n->child_1_leaf)
+				return (mnode_t *)(mod->leafs + n->child_1_off);
+			else
+				return (mnode_t *)(mod->nodes + n->child_1_off);
+			}
+		}
+
+	return n->children_[side];
+#else
+	return n->children_[side];
+#endif
+	}
+
+// [FWGS, 01.02.25]
+static inline void node_children (mnode_t *children[2], const mnode_t *n, const model_t *mod)
+	{
+	children[0] = node_child (n, 0, mod);
+	children[1] = node_child (n, 1, mod);
+	}
+
+// [FWGS, 01.02.25]
+static inline int node_firstsurface (const mnode_t *n, const model_t *mod)
+	{
+	if (mod->flags & MODEL_QBSP2)
+		return n->firstsurface_0 + (n->firstsurface_1 << 16);
+	else
+		return n->firstsurface_0;
+	}
+
+// [FWGS, 01.02.25]
+static inline int node_numsurfaces (const mnode_t *n, const model_t *mod)
+	{
+	if (mod->flags & MODEL_QBSP2)
+		return n->numsurfaces_0 + (n->numsurfaces_1 << 16);
+	else
+		return n->numsurfaces_0;
+	}
 
 #endif

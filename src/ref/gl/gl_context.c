@@ -19,7 +19,6 @@ GNU General Public License for more details
 #include "gl_export.h"
 
 // [FWGS, 01.12.24]
-/*ifdef XASH_GL4ES*/
 #if XASH_GL4ES
 #include "gl4es/include/gl4esinit.h"
 #endif
@@ -116,6 +115,7 @@ static void GAME_EXPORT CL_FillRGBABlend (float _x, float _y, float _w, float _h
 	pglDisable (GL_BLEND);
 	}
 
+// [FWGS, 01.02.25]
 static void Mod_BrushUnloadTextures (model_t *mod)
 	{
 	int i;
@@ -123,11 +123,18 @@ static void Mod_BrushUnloadTextures (model_t *mod)
 	for (i = 0; i < mod->numtextures; i++)
 		{
 		texture_t *tx = mod->textures[i];
-		if (!tx || (tx->gl_texturenum == tr.defaultTexture))
+
+		/*if (!tx || (tx->gl_texturenum == tr.defaultTexture))*/
+		if (!tx)
 			continue; // free slot
 
-		GL_FreeTexture (tx->gl_texturenum);    // main texture
-		GL_FreeTexture (tx->fb_texturenum);    // luma texture
+		/*GL_FreeTexture (tx->gl_texturenum);    // main texture
+		GL_FreeTexture (tx->fb_texturenum);    // luma texture*/
+		if (tx->gl_texturenum != tr.defaultTexture)
+			GL_FreeTexture (tx->gl_texturenum); // main texture
+
+		GL_FreeTexture (tx->fb_texturenum); // luma texture
+		GL_FreeTexture (tx->dt_texturenum); // detail texture
 		}
 	}
 
@@ -159,13 +166,16 @@ static void Mod_UnloadTextures (model_t *mod)
 		}
 	}
 
+// [FWGS, 01.02.25]
 static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)
 	{
-	qboolean loaded = true;
+	/*qboolean loaded = true;*/
+	qboolean loaded = false;
 
-	if (create)
+	/*if (create)*/
+	if (!create)
 		{
-		switch (mod->type)
+		/*switch (mod->type)
 			{
 			case mod_studio:
 				break;
@@ -184,14 +194,40 @@ static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte
 			default:
 				// [FWGS, 01.07.24]
 				gEngfuncs.Host_Error ("%s: unsupported type %d\n", __func__, mod->type);
-			}
+			}*/
+		if (gEngfuncs.drawFuncs->Mod_ProcessUserData)
+			gEngfuncs.drawFuncs->Mod_ProcessUserData (mod, false, buf);
+
+		Mod_UnloadTextures (mod);
+		return true;
 		}
 
-	if (loaded && gEngfuncs.drawFuncs->Mod_ProcessUserData)
-		gEngfuncs.drawFuncs->Mod_ProcessUserData (mod, create, buf);
+	/*if (loaded && gEngfuncs.drawFuncs->Mod_ProcessUserData)
+		gEngfuncs.drawFuncs->Mod_ProcessUserData (mod, create, buf);*/
+	switch (mod->type)
+		{
+		case mod_studio:
+		case mod_brush:
+			loaded = true;
+			break;
 
-	if (!create)
-		Mod_UnloadTextures (mod);
+		case mod_sprite:
+			Mod_LoadSpriteModel (mod, buf, &loaded, mod->numtexinfo);
+			break;
+
+		case mod_alias:
+			Mod_LoadAliasModel (mod, buf, &loaded);
+			break;
+
+		default:
+			gEngfuncs.Host_Error ("%s: unsupported type %d\n", __func__, mod->type);
+			return false;
+		}
+
+	/*if (!create)
+		Mod_UnloadTextures (mod);*/
+	if (gEngfuncs.drawFuncs->Mod_ProcessUserData)
+		gEngfuncs.drawFuncs->Mod_ProcessUserData (mod, true, buf);
 
 	return loaded;
 	}

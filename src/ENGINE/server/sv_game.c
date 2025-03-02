@@ -346,7 +346,7 @@ static void SV_ConvertTrace (TraceResult *dst, trace_t *src)
 
 /***
 =============
-SV_CheckClientVisiblity [FWGS, 01.07.24]
+SV_CheckClientVisiblity
 
 Check visibility through client camera, portal camera, etc
 =============
@@ -368,7 +368,9 @@ static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 	else
 		VectorCopy (cl->edict->v.origin, vieworg);
 
-	leaf = Mod_PointInLeaf (vieworg, sv.worldmodel->nodes);
+	// [FWGS, 01.02.25]
+	/*leaf = Mod_PointInLeaf (vieworg, sv.worldmodel->nodes);*/
+	leaf = Mod_PointInLeaf (vieworg, sv.worldmodel->nodes, sv.worldmodel);
 
 	if (CHECKVISBIT (mask, leaf->cluster))
 		return true; // visible from player view or camera view
@@ -381,8 +383,10 @@ static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 		if (!SV_IsValidEdict (view))
 			continue;
 
+		// [FWGS, 01.02.25]
 		VectorAdd (view->v.origin, view->v.view_ofs, vieworg);
-		leaf = Mod_PointInLeaf (vieworg, sv.worldmodel->nodes);
+		/*leaf = Mod_PointInLeaf (vieworg, sv.worldmodel->nodes);*/
+		leaf = Mod_PointInLeaf (vieworg, sv.worldmodel->nodes, sv.worldmodel);
 
 		if (CHECKVISBIT (mask, leaf->cluster))
 			return true; // visible from portal camera view
@@ -509,7 +513,7 @@ static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboo
 			continue;
 
 		// reject step sounds while predicting is enabled
-		// FIXME: make sure what this code doesn't cutoff something important!!!
+		// FIXME: make sure what this code doesn't cutoff something important!
 		if (filter && cl == sv.current_client && FBitSet (sv.current_client->flags, FCL_PREDICT_MOVEMENT))
 			continue;
 
@@ -1855,7 +1859,9 @@ static edict_t *GAME_EXPORT pfnFindClientInPVS (edict_t *pEdict)
 		VectorAdd (pEdict->v.origin, pEdict->v.view_ofs, view);
 		}
 
-	leaf = Mod_PointInLeaf (view, sv.worldmodel->nodes);
+	// [FWGS, 01.02.25]
+	/*leaf = Mod_PointInLeaf (view, sv.worldmodel->nodes);*/
+	leaf = Mod_PointInLeaf (view, sv.worldmodel->nodes, sv.worldmodel);
 
 	if (CHECKVISBIT (clientpvs, leaf->cluster))
 		return pClient;	// client which currently in PVS
@@ -4546,20 +4552,51 @@ byte *pfnSetFatPAS (const float *org)
 	return fatphs;
 	}
 
+/*
+=============
+Mod_HeadnodeVisible [FWGS, 01.02.25]
+=============
+*/
+static qboolean Mod_HeadnodeVisible (model_t *mod, mnode_t *node, const byte *visbits, int *lastleaf)
+	{
+	if (!node || (node->contents == CONTENTS_SOLID))
+		return false;
+
+	if (node->contents < 0)
+		{
+		if (!CHECKVISBIT (visbits, ((mleaf_t *)node)->cluster))
+			return false;
+
+		if (lastleaf)
+			*lastleaf = ((mleaf_t *)node)->cluster;
+		return true;
+		}
+
+	if (Mod_HeadnodeVisible (mod, node_child (node, 0, mod), visbits, lastleaf))
+		return true;
+
+	if (Mod_HeadnodeVisible (mod, node_child (node, 1, mod), visbits, lastleaf))
+		return true;
+
+	return false;
+	}
+
 /***
 =============
-pfnCheckVisibility
+pfnCheckVisibility [FWGS, 01.02.25]
 =============
 ***/
 static int GAME_EXPORT pfnCheckVisibility (const edict_t *ent, byte *pset)
 	{
-	int	i, leafnum;
+	int			i, leafnum;
+	qboolean	large_leafs = FBitSet (sv.worldmodel->flags, MODEL_QBSP2);
 
 	if (!SV_IsValidEdict (ent))
 		return 0;
 
 	// vis not set - fullvis enabled
-	if (!pset) return 1;
+	if (!pset)
+		return 1;
 
 	if (FBitSet (ent->v.flags, FL_CUSTOMENTITY) && ent->v.owner && FBitSet (ent->v.owner->v.flags, FL_CLIENT))
 		ent = ent->v.owner;	// upcast beams to my owner
@@ -4569,29 +4606,53 @@ static int GAME_EXPORT pfnCheckVisibility (const edict_t *ent, byte *pset)
 		// check individual leafs
 		for (i = 0; i < ent->num_leafs; i++)
 			{
-			if (CHECKVISBIT (pset, ent->leafnums[i]))
-				return 1;	// visible passed by leaf
+			/*if (CHECKVISBIT (pset, ent->leafnums[i]))
+				return 1;	// visible passed by leaf*/
+			if (large_leafs)
+				{
+				if (CHECKVISBIT (pset, ent->leafnums32[i]))
+					return 1; // visible passed by leaf
+				}
+			else
+				{
+				if (CHECKVISBIT (pset, ent->leafnums16[i]))
+					return 1; // visible passed by leaf
+				}
 			}
 
 		return 0;
 		}
 	else
 		{
-		for (i = 0; i < MAX_ENT_LEAFS; i++)
+		/*for (i = 0; i < MAX_ENT_LEAFS; i++)*/
+		for (i = 0; i < MAX_ENT_LEAFS (large_leafs); i++)
 			{
-			leafnum = ent->leafnums[i];
-			if (leafnum == -1) break;
+			/*leafnum = ent->leafnums[i];*/
+			if (large_leafs)
+				leafnum = ent->leafnums32[i];
+			else
+				leafnum = ent->leafnums16[i];
+
+			if (leafnum == -1)
+				break;
 
 			if (CHECKVISBIT (pset, leafnum))
 				return 1;	// visible passed by leaf
 			}
 
 		// too many leafs for individual check, go by headnode
-		if (!Mod_HeadnodeVisible (&sv.worldmodel->nodes[ent->headnode], pset, &leafnum))
+		/*if (!Mod_HeadnodeVisible (&sv.worldmodel->nodes[ent->headnode], pset, &leafnum))*/
+		if (!Mod_HeadnodeVisible (sv.worldmodel, &sv.worldmodel->nodes[ent->headnode], pset, &leafnum))
 			return 0;
 
-		((edict_t *)ent)->leafnums[ent->num_leafs] = leafnum;
-		((edict_t *)ent)->num_leafs = (ent->num_leafs + 1) % MAX_ENT_LEAFS;
+		/*((edict_t *)ent)->leafnums[ent->num_leafs] = leafnum;
+		((edict_t *)ent)->num_leafs = (ent->num_leafs + 1) % MAX_ENT_LEAFS;*/
+		if (large_leafs)
+			((edict_t *)ent)->leafnums32[ent->num_leafs] = leafnum;
+		else
+			((edict_t *)ent)->leafnums16[ent->num_leafs] = leafnum;
+
+		((edict_t *)ent)->num_leafs = (ent->num_leafs + 1) % MAX_ENT_LEAFS (large_leafs);
 
 		return 2;	// visible passed by headnode
 		}

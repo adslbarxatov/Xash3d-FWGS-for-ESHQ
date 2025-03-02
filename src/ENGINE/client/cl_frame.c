@@ -1122,7 +1122,7 @@ Add server beam to draw list
 ***/
 static void CL_LinkCustomEntity (cl_entity_t *ent, entity_state_t *state)
 	{
-	ent->curstate.movetype = state->modelindex; // !!!
+	ent->curstate.movetype = state->modelindex; // !!
 
 	if (ent->model->type != mod_sprite)
 		Con_Reportf (S_WARN "bad model on beam ( %s )\n", ent->model->name);

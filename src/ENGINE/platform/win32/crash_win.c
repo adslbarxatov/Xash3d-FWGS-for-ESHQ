@@ -138,8 +138,10 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	#error
 #endif
 
+	// [FWGS, 01.02.25]
 	len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
-		Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());
+		/*Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());*/
+		Q_buildnum (), g_buildcommit, Q_buildos (), Q_buildarch ());
 
 	len += Q_snprintf (message + len, 1024 - len, "Sys_Crash: address %p, code %p\n",
 		pInfo->ExceptionRecord->ExceptionAddress, (void *)pInfo->ExceptionRecord->ExceptionCode);
@@ -214,9 +216,18 @@ static void Sys_GetMinidumpFileName (const char *processName, char *mdmpFileName
 	time_t currentUtcTime = time (NULL);
 	struct tm *currentLocalTime = localtime (&currentUtcTime);
 
+	// [FWGS, 01.02.25]
 	Q_snprintf (mdmpFileName, bufferSize, "%s_%s_crash_%d%.2d%.2d_%.2d%.2d%.2d.mdmp",
-		processName,
+		/*processName,
 		Q_buildcommit (),
+		currentLocalTime->tm_year + 1900,
+		currentLocalTime->tm_mon + 1,
+		currentLocalTime->tm_mday,
+		currentLocalTime->tm_hour,
+		currentLocalTime->tm_min,
+		currentLocalTime->tm_sec);*/
+		processName,
+		g_buildcommit,
 		currentLocalTime->tm_year + 1900,
 		currentLocalTime->tm_mon + 1,
 		currentLocalTime->tm_mday,

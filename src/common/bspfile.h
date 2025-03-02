@@ -1,4 +1,4 @@
-/*
+/***
 bspfile.h - BSP format included q1, hl1 support
 Copyright (C) 2010 Uncle Mike
 
@@ -9,23 +9,20 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
+***/
 
 #ifndef BSPFILE_H
 #define BSPFILE_H
 
-//#define SUPPORT_BSP2_FORMAT		// allow to loading Darkplaces BSP2 maps (with broke binary compatibility)
-
-/*
+/***
 ==============================================================================
-
 BRUSH MODELS
 
 .bsp contain level static geometry with including PVS and lightning info
 ==============================================================================
-*/
+***/
 
 // header
 #define Q1BSP_VERSION	29	// quake1 regular version (beta is 28)
@@ -67,29 +64,29 @@ BRUSH MODELS
 #define MAX_MAP_CLIPNODES_HLBSP	32767
 #define MAX_MAP_CLIPNODES_BSP2	524288
 
-// these limis not using by modelloader but only for displaying 'mapstats' correctly
-#ifdef SUPPORT_BSP2_FORMAT
+// [FWGS, 01.02.25] these limis not using by modelloader but only for displaying 'mapstats' correctly
+/*ifdef SUPPORT_BSP2_FORMAT*/
 #define MAX_MAP_MODELS			2048		// embedded models
-#define MAX_MAP_ENTSTRING		0x200000		// 2 Mb should be enough
+#define MAX_MAP_ENTSTRING		0x200000	// 2 Mb should be enough
 #define MAX_MAP_PLANES			131072		// can be increased without problems
 #define MAX_MAP_NODES			262144		// can be increased without problems
-#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_BSP2		// [FWGS, 01.04.23] can be increased without problems
-#define MAX_MAP_LEAFS			131072		// CRITICAL STUFF to run ad_sepulcher!!!
+#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_BSP2		// can be increased without problems
+#define MAX_MAP_LEAFS			131072		// CRITICAL STUFF to run ad_sepulcher!
 #define MAX_MAP_VERTS			524288		// can be increased without problems
 #define MAX_MAP_FACES			262144		// can be increased without problems
 #define MAX_MAP_MARKSURFACES	524288		// can be increased without problems
-#else
+/*else
 // FWGS
-#define MAX_MAP_MODELS			1024		// embedded models
-#define MAX_MAP_ENTSTRING		0x100000	// 1 Mb should be enough
-#define MAX_MAP_PLANES			65536		// can be increased without problems
-#define MAX_MAP_NODES			32767		// because negative shorts are leafs
-#define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_HLBSP		// [FWGS, 01.04.23] because negative shorts are contents
-#define MAX_MAP_LEAFS			32767		// signed short limit
-#define MAX_MAP_VERTS			65535		// unsigned short limit
-#define MAX_MAP_FACES			65535		// unsigned short limit
-#define MAX_MAP_MARKSURFACES	65535		// unsigned short limit
-#endif
+define MAX_MAP_MODELS			1024		// embedded models
+define MAX_MAP_ENTSTRING		0x100000	// 1 Mb should be enough
+define MAX_MAP_PLANES			65536		// can be increased without problems
+define MAX_MAP_NODES			32767		// because negative shorts are leafs
+define MAX_MAP_CLIPNODES		MAX_MAP_CLIPNODES_HLBSP		// [FWGS, 01.04.23] because negative shorts are contents
+define MAX_MAP_LEAFS			32767		// signed short limit
+define MAX_MAP_VERTS			65535		// unsigned short limit
+define MAX_MAP_FACES			65535		// unsigned short limit
+define MAX_MAP_MARKSURFACES	65535		// unsigned short limit
+endif*/
 
 #define MAX_MAP_ENTITIES	8192		// network limit
 #define MAX_MAP_TEXINFO		MAX_MAP_FACES	// in theory each face may have personal texinfo
@@ -166,14 +163,14 @@ typedef struct
 
 typedef struct
 	{
-	int	version;
+	int		version;
 	dlump_t	lumps[HEADER_LUMPS];
 	} dheader_t;
 
 typedef struct
 	{
-	int	id;			// must be little endian XASH
-	int	version;
+	int		id;			// must be little endian XASH
+	int		version;
 	dlump_t	lumps[EXTRA_LUMPS];
 	} dextrahdr_t;
 
@@ -182,10 +179,10 @@ typedef struct
 	vec3_t	mins;
 	vec3_t	maxs;
 	vec3_t	origin;			// for sounds or lights
-	int	headnode[MAX_MAP_HULLS];
-	int	visleafs;			// not including the solid leaf 0
-	int	firstface;
-	int	numfaces;
+	int		headnode[MAX_MAP_HULLS];
+	int		visleafs;			// not including the solid leaf 0
+	int		firstface;
+	int		numfaces;
 	} dmodel_t;
 
 typedef struct
@@ -203,12 +200,12 @@ typedef struct
 	{
 	vec3_t	normal;
 	float	dist;
-	int	type;			// PLANE_X - PLANE_ANYZ ?
+	int		type;			// PLANE_X - PLANE_ANYZ ?
 	} dplane_t;
 
 typedef struct
 	{
-	int	planenum;
+	int		planenum;
 	short	children[2];		// negative numbers are -(leafs + 1), not nodes
 	short	mins[3];			// for sphere culling
 	short	maxs[3];
@@ -218,20 +215,20 @@ typedef struct
 
 typedef struct
 	{
-	int	planenum;
-	int	children[2];		// negative numbers are -(leafs+1), not nodes
+	int		planenum;
+	int		children[2];		// negative numbers are -(leafs+1), not nodes
 	float	mins[3];			// for sphere culling
 	float	maxs[3];
-	int	firstface;
-	int	numfaces;			// counting both sides
+	int		firstface;
+	int		numfaces;			// counting both sides
 	} dnode32_t;
 
 // leaf 0 is the generic CONTENTS_SOLID leaf, used for all solid areas
 // all other leafs need visibility info
 typedef struct
 	{
-	int	contents;
-	int	visofs;			// -1 = no visibility info
+	int		contents;
+	int		visofs;			// -1 = no visibility info
 
 	short	mins[3];			// for frustum culling
 	short	maxs[3];
@@ -244,21 +241,21 @@ typedef struct
 
 typedef struct
 	{
-	int	contents;
-	int	visofs;			// -1 = no visibility info
+	int		contents;
+	int		visofs;			// -1 = no visibility info
 
-	float	mins[3];			// for frustum culling
+	float	mins[3];		// for frustum culling
 	float	maxs[3];
 
-	int	firstmarksurface;
-	int	nummarksurfaces;
+	int		firstmarksurface;
+	int		nummarksurfaces;
 
 	byte	ambient_level[NUM_AMBIENTS];
 	} dleaf32_t;
 
 typedef struct
 	{
-	int	planenum;
+	int		planenum;
 	short	children[2];		// negative numbers are contents
 	} dclipnode_t;
 
@@ -271,23 +268,23 @@ typedef struct
 typedef struct
 	{
 	float	vecs[2][4];		// texmatrix [s/t][xyz offset]
-	int	miptex;
+	int		miptex;
 	short	flags;
 	short	faceinfo;			// -1 no face info otherwise dfaceinfo_t
 	} dtexinfo_t;
 
 typedef struct
 	{
-	char		landname[16];	// name of decsription in mapname_land.txt
+	char			landname[16];	// name of decsription in mapname_land.txt
 	unsigned short	texture_step;	// default is 16, pixels\luxels ratio
-	unsigned short	max_extent;	// default is 16, subdivision step ((texture_step * max_extent) - texture_step)
-	short		groupid;		// to determine equal landscapes from various groups, -1 - no group
+	unsigned short	max_extent;		// default is 16, subdivision step ((texture_step * max_extent) - texture_step)
+	short			groupid;		// to determine equal landscapes from various groups, -1 - no group
 	} dfaceinfo_t;
 
 typedef word	dmarkface_t;		// leaf marksurfaces indexes
-typedef int	dmarkface32_t;		// leaf marksurfaces indexes
+typedef int		dmarkface32_t;		// leaf marksurfaces indexes
 
-typedef int	dsurfedge_t;		// map surfedges
+typedef int		dsurfedge_t;		// map surfedges
 
 // NOTE: that edge 0 is never used, because negative edge nums
 // are used for counterclockwise use of the edge in a face
@@ -306,27 +303,27 @@ typedef struct
 	word	planenum;
 	short	side;
 
-	int	firstedge;		// we must support > 64k edges
+	int		firstedge;		// we must support > 64k edges
 	short	numedges;
 	short	texinfo;
 
 	// lighting info
 	byte	styles[LM_STYLES];
-	int	lightofs;			// start of [numstyles*surfsize] samples
+	int		lightofs;			// start of [numstyles*surfsize] samples
 	} dface_t;
 
 typedef struct
 	{
-	int	planenum;
-	int	side;
+	int		planenum;
+	int		side;
 
-	int	firstedge;		// we must support > 64k edges
-	int	numedges;
-	int	texinfo;
+	int		firstedge;	// we must support > 64k edges
+	int		numedges;
+	int		texinfo;
 
 	// lighting info
 	byte	styles[LM_STYLES];
-	int	lightofs;			// start of [numstyles*surfsize] samples
+	int		lightofs;	// start of [numstyles*surfsize] samples
 	} dface32_t;
 
 #endif

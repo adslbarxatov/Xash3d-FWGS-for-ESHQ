@@ -506,6 +506,12 @@ void Sys_Error (const char *error, ...)
 // strange glitchy bug on emscripten
 // _exit->_Exit->asm._exit->_exit
 // As we do not need atexit(), just throw hidden exception
+
+// [FWGS, 01.02.25] Hey, you, making an Emscripten port!
+// What if we're not supposed to use exit() on Emscripten and instead we should
+// exit from the main() function? Would this fix this bug? Test this case, pls.
+#error "Read the comment above"
+
 #include <emscripten.h>
 #define exit my_exit
 void my_exit (int ret)
@@ -518,15 +524,18 @@ void my_exit (int ret)
 
 /***
 ================
-Sys_Quit [FWGS, 22.01.25]
+Sys_Quit [FWGS, 01.02.25]
 ================
 ***/
-/*void Sys_Quit (void)*/
 void Sys_Quit (const char *reason)
 	{
-	/*Host_Shutdown ();*/
 	Host_ShutdownWithReason (reason);
+
+#if XASH_ANDROID
+	Host_ExitInMain ();
+#else
 	exit (error_on_exit);
+#endif
 	}
 
 /***
@@ -610,7 +619,7 @@ void Sys_Print (const char *pMsg)
 
 /***
 ==================
-Sys_NewInstance
+Sys_NewInstance [FWGS, 01.02.25]
 
 This is a special function
 
@@ -619,7 +628,8 @@ but since engine will be unloaded during this call
 it explicitly doesn't use internal allocation or string copy utils
 ==================
 ***/
-qboolean Sys_NewInstance (const char *gamedir)
+/*qboolean Sys_NewInstance (const char *gamedir)*/
+qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 	{
 #if XASH_NSWITCH
 	char newargs[4096];
@@ -631,9 +641,8 @@ qboolean Sys_NewInstance (const char *gamedir)
 	printf ("envSetNextLoad exe: `%s`\n", exe);
 	printf ("envSetNextLoad argv:\n`%s`\n", newargs);
 
-	// [FWGS, 22.01.25]
-	/*Host_Shutdown ();*/
-	Host_ShutdownWithReason ("changing game");
+	/*Host_ShutdownWithReason ("changing game");*/
+	Host_ShutdownWithReason (finalmsg);
 	envSetNextLoad (exe, newargs);
 	exit (0);
 
@@ -678,9 +687,8 @@ qboolean Sys_NewInstance (const char *gamedir)
 	// under normal circumstances it's always going to be the same path
 	exe = strdup ("app0:/eboot.bin");
 
-	// [FWGS, 22.01.25]
-	/*Host_Shutdown ();*/
-	Host_ShutdownWithReason ("changing game");
+	/*Host_ShutdownWithReason ("changing game");*/
+	Host_ShutdownWithReason (finalmsg);
 	sceAppMgrLoadExec (exe, newargs, NULL);
 
 #else
@@ -690,10 +698,8 @@ qboolean Sys_NewInstance (const char *gamedir)
 	wai_getExecutablePath (exe, exelen, NULL);
 	exe[exelen] = 0;
 
-	// [FWGS, 22.01.25]
-	/*Host_Shutdown ();*/
-	Host_ShutdownWithReason ("changing game");
-
+	/*Host_ShutdownWithReason ("changing game");*/
+	Host_ShutdownWithReason (finalmsg);
 	execv (exe, newargs);
 
 #endif
@@ -712,7 +718,7 @@ qboolean Sys_NewInstance (const char *gamedir)
 
 /***
 ==================
-Sys_GetNativeObject [FWGS, 01.11.23]
+Sys_GetNativeObject
 
 Get platform-specific native object
 ==================

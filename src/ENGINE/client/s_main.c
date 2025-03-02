@@ -67,6 +67,7 @@ CVAR_DEFINE_AUTO (s_warn_late_precache, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 SOUNDS PROCESSING
 =============================================================================
 ***/
+
 /***
 =================
 S_GetMasterVolume [FWGS, 01.07.24]
@@ -365,9 +366,9 @@ channel_t *SND_PickDynamicChannel (int entnum, int channel, sfx_t *sfx, qboolean
 SND_PickStaticChannel
 
 Pick an empty channel from the static sound area, or allocate a new
-channel.  Only fails if we're at max_channels (128!!!) or if
+channel. Only fails if we're at max_channels (128!) or if
 we're trying to allocate a channel for a stream sound that is
-already playing.
+already playing
 =====================
 ***/
 channel_t *SND_PickStaticChannel (const vec3_t pos, sfx_t *sfx)
@@ -1041,7 +1042,9 @@ static void S_UpdateAmbientSounds (void)
 	if (!cl.worldmodel)
 		return;
 
-	leaf = Mod_PointInLeaf (s_listener.origin, cl.worldmodel->nodes);
+	// [FWGS, 01.02.25]
+	/*leaf = Mod_PointInLeaf (s_listener.origin, cl.worldmodel->nodes);*/
+	leaf = Mod_PointInLeaf (s_listener.origin, cl.worldmodel->nodes, cl.worldmodel);
 
 	if (!leaf || !s_ambient_level.value)
 		{
@@ -1259,11 +1262,12 @@ void S_RawSamples (uint samples, uint rate, word width, word channels, const byt
 	S_RawEntSamples (entnum, samples, rate, width, channels, data, snd_vol);
 	}
 
-/***
+// [FWGS, 01.02.25] removed S_StreamAviSamples
+/*
 ===================
 S_PositionedRawSamples
 ===================
-***/
+/
 void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float synctime)
 	{
 	int		bufferSamples;
@@ -1337,9 +1341,7 @@ void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float sy
 			}
 		else break; // no more samples for this frame
 		}
-	}
-
-// [FWGS, 01.05.23] удалены S_GetRawSamplesLength, S_ClearRawChannel
+	}*/
 
 /***
 ===================
@@ -1982,7 +1984,7 @@ static void S_VoiceRecordStop_f (void)
 
 /***
 ================
-S_Init [FWGS, 22.01.25]
+S_Init
 ================
 ***/
 qboolean S_Init (void)
@@ -2011,7 +2013,6 @@ qboolean S_Init (void)
 	Cmd_AddCommand ("playvol", S_PlayVol_f, "playing a specified sound file with specified volume");
 	Cmd_AddCommand ("stopsound", S_StopSound_f, "stop all sounds");
 
-	/*Cmd_AddCommand ("music", S_Music_f, "starting a background track");*/
 	// HLU SDK have command with the same name
 	Cmd_AddCommandWithFlags ("music", S_Music_f, "starting a background track", CMD_OVERRIDABLE);
 
@@ -2023,14 +2024,21 @@ qboolean S_Init (void)
 	Cmd_AddCommand ("spk", S_SayReliable_f, "reliable play a specified sententce");
 	Cmd_AddCommand ("speak", S_Say_f, "playing a specified sententce");
 
+	// [FWGS, 01.02.25]
+	sndpool = Mem_AllocPool ("Sound Zone");
+
 	dma.backendName = "None";
+
+	// [FWGS, 01.02.25]
+	/*if (!SNDDMA_Init ())*/
 	if (!SNDDMA_Init ())
 		{
 		Con_Printf ("Audio: sound system can't be initialized\n");
+		Mem_FreePool (&sndpool);
 		return false;
 		}
 
-	sndpool = Mem_AllocPool ("Sound Zone");
+	/*sndpool = Mem_AllocPool ("Sound Zone");*/
 	soundtime = 0;
 	paintedtime = 0;
 

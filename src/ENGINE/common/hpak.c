@@ -44,7 +44,9 @@ static void HPAK_MaxSize_f (void)
 	Con_Printf (S_ERROR "hpk_maxsize is deprecated, use hpk_max_size\n");
 	}
 
-static const char *HPAK_TypeFromIndex (int type)
+// [FWGS, 01.02.25]
+/*static const char *HPAK_TypeFromIndex (int type)*/
+const char *COM_ResourceTypeFromIndex (int type)
 	{
 	switch (type)
 		{
@@ -116,13 +118,15 @@ void HPAK_FlushHostQueue (void)
 	gp_hpak_queue = NULL;
 	}
 
+// [FWGS, 01.02.25]
 static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *pData, file_t *fin)
 	{
 	int			filelocation;
 	string		pakname;
 	byte		md5[16];
 	file_t		*fout;
-	MD5Context_t	ctx;
+	/*MD5Context_t	ctx;*/
+	MD5Context_t	ctx = { 0 };
 
 	if (!COM_CheckString (filename))
 		return;
@@ -131,19 +135,19 @@ static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *p
 		return;
 
 	Q_strncpy (pakname, filename, sizeof (pakname));
-	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));	// [FWGS, 01.05.23]
+	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 
 	Con_Printf ("creating HPAK %s.\n", pakname);
 
 	fout = FS_Open (pakname, "wb", true);
 	if (!fout)
 		{
-		Con_DPrintf (S_ERROR "%s: can't write %s.\n", __func__, pakname);	// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: can't write %s.\n", __func__, pakname);
 		return;
 		}
 
 	// let's hash it
-	memset (&ctx, 0, sizeof (MD5Context_t));
+	/*memset (&ctx, 0, sizeof (MD5Context_t));*/
 	MD5Init (&ctx);
 
 	if (pData == NULL)
@@ -223,6 +227,7 @@ static qboolean HPAK_FindResource (hpak_info_t *hpk, byte *hash, resource_t *pRe
 	return false;
 	}
 
+// [FWGS, 01.02.25]
 void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, byte *pData, file_t *pFile)
 	{
 	int				i, j, position, length;
@@ -232,12 +237,12 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	file_t			*file_src;
 	file_t			*file_dst;
 	byte			md5[16];
-	MD5Context_t	ctx;
+	/*MD5Context_t	ctx;*/
+	MD5Context_t	ctx = { 0 };
 
 	if ((pData == NULL) && (pFile == NULL))
 		return;
 
-	// [FWGS, 01.04.23]
 	if ((pResource->nDownloadSize < HPAK_ENTRY_MIN_SIZE) || (pResource->nDownloadSize > HPAK_ENTRY_MAX_SIZE))
 		{
 		Con_Printf (S_ERROR "%s: invalid size %s\n", name, Q_pretifymem (pResource->nDownloadSize, 2));
@@ -245,10 +250,9 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 		}
 
 	// hash it
-	memset (&ctx, 0, sizeof (MD5Context_t));
+	/*memset (&ctx, 0, sizeof (MD5Context_t));*/
 	MD5Init (&ctx);
 
-	// [FWGS, 01.04.23]
 	if (!pData)
 		{
 		byte *temp;
@@ -500,9 +504,11 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 
 		pRes = &dataDir[i].resource;
 
+		// [FWGS, 01.02.25]
 		if (!quiet)
 			{
-			Con_Printf ("%i:      %s %s %s:   ", i, HPAK_TypeFromIndex (pRes->type),
+			/*Con_Printf ("%i:      %s %s %s:   ", i, HPAK_TypeFromIndex (pRes->type),*/
+			Con_Printf   ("%i:      %s %s %s:   ", i, COM_ResourceTypeFromIndex (pRes->type),
 				Q_pretifymem (pRes->nDownloadSize, 2), pRes->szFileName);
 			}
 
@@ -999,11 +1005,13 @@ static void HPAK_List_f (void)
 	directory.entries = Z_Malloc (directory.count * sizeof (hpak_lump_t));
 	FS_Read (f, directory.entries, directory.count * sizeof (hpak_lump_t));
 
+	// [FWGS, 01.02.25]
 	for (nCurrent = 0; nCurrent < directory.count; nCurrent++)
 		{
 		entry = &directory.entries[nCurrent];
-		COM_FileBase (entry->resource.szFileName, lumpname, sizeof (lumpname));	// [FWGS, 01.05.23]
-		type = HPAK_TypeFromIndex (entry->resource.type);
+		COM_FileBase (entry->resource.szFileName, lumpname, sizeof (lumpname));
+		/*type = HPAK_TypeFromIndex (entry->resource.type);*/
+		type = COM_ResourceTypeFromIndex (entry->resource.type);
 		size = Q_memprint (entry->resource.nDownloadSize);
 
 		Con_Printf ("%i: %10s %s %s\n  :  %s\n", nCurrent + 1, type, size, lumpname,
@@ -1097,13 +1105,14 @@ static void HPAK_Extract_f (void)
 		if ((nIndex != -1) && (nIndex != nCurrent))
 			continue;
 
-		COM_FileBase (entry->resource.szFileName, lumpname, sizeof (lumpname));	// [FWGS, 01.05.23]
-		type = HPAK_TypeFromIndex (entry->resource.type);
+		// [FWGS, 01.02.25]
+		COM_FileBase (entry->resource.szFileName, lumpname, sizeof (lumpname));
+		/*type = HPAK_TypeFromIndex (entry->resource.type);*/
+		type = COM_ResourceTypeFromIndex (entry->resource.type);
 		size = Q_memprint (entry->resource.nDownloadSize);
 
 		Con_Printf ("Extracting %i: %10s %s %s\n", nCurrent + 1, type, size, lumpname);
 
-		// [FWGS, 01.04.23]
 		if ((entry->disksize < HPAK_ENTRY_MIN_SIZE) || (entry->disksize > HPAK_ENTRY_MAX_SIZE))
 			{
 			Con_DPrintf (S_WARN "Unable to extract data, size invalid:  %s\n", Q_memprint (entry->disksize));

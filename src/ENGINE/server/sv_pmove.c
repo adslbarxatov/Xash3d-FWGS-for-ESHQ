@@ -21,11 +21,12 @@ GNU General Public License for more details
 #include "studio.h"
 
 static qboolean has_update = false;
-static void SV_GetTrueOrigin (sv_client_t *cl, int edictnum, vec3_t origin);	// [FWGS, 01.07.23]
+static void SV_GetTrueOrigin (sv_client_t *cl, int edictnum, vec3_t origin);
 
-// [FWGS, 01.04.23] удалена SV_ClearPhysEnts
+// [FWGS, 01.04.23] removed SV_ClearPhysEnts
 
-qboolean SV_PlayerIsFrozen (edict_t *pClient)
+// [FWGS, 01.02.25] removed SV_PlayerIsFrozen
+/*qboolean SV_PlayerIsFrozen (edict_t *pClient)
 	{
 	if (sv_background_freeze.value && sv.background)
 		return true;
@@ -36,7 +37,7 @@ qboolean SV_PlayerIsFrozen (edict_t *pClient)
 	if (FBitSet (pClient->v.flags, FL_FROZEN))
 		return true;
 	return false;
-	}
+	}*/
 
 void SV_ClipPMoveToEntity (physent_t *pe, const vec3_t start, vec3_t mins, vec3_t maxs,
 	const vec3_t end, pmtrace_t *tr)

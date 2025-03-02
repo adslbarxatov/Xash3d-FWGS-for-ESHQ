@@ -9,10 +9,9 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
-
 
 #include "gl_local.h"
 #include "wadfile.h"
@@ -34,7 +33,7 @@ static const vec3_t skyclip[SKYBOX_MAX_SIDES] =
 	};
 
 // 1 = s, 2 = t, 3 = 2048
-static const int st_to_vec[SKYBOX_MAX_SIDES][3] =	// [FWGS, 01.07.23]
+static const int st_to_vec[SKYBOX_MAX_SIDES][3] =
 	{
 	{  3, -1,  2 },
 	{ -3,  1,  2 },
@@ -45,7 +44,7 @@ static const int st_to_vec[SKYBOX_MAX_SIDES][3] =	// [FWGS, 01.07.23]
 	};
 
 // s = [0]/[2], t = [1]/[2]
-static const int vec_to_st[SKYBOX_MAX_SIDES][3] =	// [FWGS, 01.07.23]
+static const int vec_to_st[SKYBOX_MAX_SIDES][3] =
 	{
 	{ -2,  3,  1 },
 	{  2,  3, -1 },
@@ -70,7 +69,7 @@ static float r_turbsin[] =
 
 STATIC_ASSERT (RIPPLES_TEXSIZE == 0x4000, "fix the algorithm to work with custom resolution");
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.02.25]
 static struct
 	{
 	double	time;
@@ -81,9 +80,8 @@ static struct
 	qboolean	update;
 
 	uint32_t	texture[RIPPLES_TEXSIZE];
-	int		gl_texturenum;
-	int		rippletexturenum;
-	/*float	texturescale; // not all textures are 128x128, scale the texcoords down*/
+	/*int		gl_texturenum;
+	int		rippletexturenum;*/
 	} g_ripple;
 
 // [FWGS, 01.07.24] removed CheckSkybox
@@ -737,7 +735,8 @@ void R_ResetRipples (void)
 	memset (g_ripple.buf, 0, sizeof (g_ripple.buf));
 	}
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.02.25] removed R_InitRipples
+/*// [FWGS, 01.02.24]
 void R_InitRipples (void)
 	{
 	rgbdata_t pic = { 0 };
@@ -752,9 +751,8 @@ void R_InitRipples (void)
 	memset (pic.buffer, 0, pic.size);
 
 	g_ripple.rippletexturenum = GL_LoadTextureInternal ("*rippletex", &pic, TF_NOMIPMAP | TF_ALLOW_NEAREST);
-	}
+	}*/
 
-// [FWGS, 01.11.23]
 static void R_SwapBufs (void)
 	{
 	short *tempbufp = g_ripple.curbuf;
@@ -762,7 +760,6 @@ static void R_SwapBufs (void)
 	g_ripple.oldbuf = tempbufp;
 	}
 
-// [FWGS, 01.11.23]
 static void R_SpawnNewRipple (int x, int y, short val)
 	{
 #define PIXEL( x, y ) ((( x ) & RIPPLES_CACHEWIDTH_MASK ) + ((( y ) & RIPPLES_CACHEWIDTH_MASK) << 7 ))
@@ -776,7 +773,6 @@ static void R_SpawnNewRipple (int x, int y, short val)
 #undef PIXEL
 	}
 
-// [FWGS, 01.11.23]
 static void R_RunRipplesAnimation (const short *oldbuf, short *pbuf)
 	{
 	size_t i = 0;
@@ -796,16 +792,6 @@ static void R_RunRipplesAnimation (const short *oldbuf, short *pbuf)
 	}
 
 // [FWGS, 22.01.25] removed MostSignificantBit
-/*static int MostSignificantBit (unsigned int v)
-	{
-#if __GNUC__
-	return 31 - __builtin_clz (v);
-#else
-	int i;
-	for (i = 0, v >>= 1; v; v >>= 1, i++);
-	return i;
-#endif
-	}*/
 
 // [FWGS, 01.01.24]
 void R_AnimateRipples (void)
@@ -839,24 +825,18 @@ void R_AnimateRipples (void)
 
 // [FWGS, 01.02.24] removed R_UpdateRippleTexParams
 
-// [FWGS, 22.01.25]
-/*void R_UploadRipples (texture_t *image)*/
-qboolean R_UploadRipples (const texture_t *image)
+// [FWGS, 01.02.25]
+/*qboolean R_UploadRipples (const texture_t *image)*/
+qboolean R_UploadRipples (texture_t *image)
 	{
-	/*gl_texture_t	*glt;
-	uint32_t		*pixels;
-	int		wbits, wmask, wshft;*/
 	const gl_texture_t	*glt;
 	const uint32_t		*pixels;
 	int		y;
 	int		width, height, size;
 
-	/*// discard unuseful textures
-	if (!r_ripple.value || (image->width > RIPPLES_CACHEWIDTH) || (image->width != image->height))*/
 	if (!r_ripple.value)
 		{
 		GL_Bind (XASH_TEXTURE0, image->gl_texturenum);
-		/*return;*/
 		return false;
 		}
 
@@ -865,32 +845,17 @@ qboolean R_UploadRipples (const texture_t *image)
 	if (!glt || !glt->original || !glt->original->buffer || !FBitSet (glt->flags, TF_EXPAND_SOURCE))
 		{
 		GL_Bind (XASH_TEXTURE0, image->gl_texturenum);
-		/*return;*/
 		return false;
 		}
 
-	GL_Bind (XASH_TEXTURE0, g_ripple.rippletexturenum);
+	/*GL_Bind (XASH_TEXTURE0, g_ripple.rippletexturenum);
 
 	// no updates this frame
 	if (!g_ripple.update && (image->gl_texturenum == g_ripple.gl_texturenum))
 		return true;
-	/*return;*/
 
 	g_ripple.gl_texturenum = image->gl_texturenum;
-	/*if (r_ripple.value == 1.0f)
-		{
-		g_ripple.texturescale = Q_max (1.0f, image->width / 64.0f);
-		}
-	else
-		{
-		g_ripple.texturescale = 1.0f;
-		}*/
-	size = (r_ripple.value == 1.0f) ? 64 : RIPPLES_CACHEWIDTH;
-
-	/*pixels = (uint32_t *)glt->original->buffer;
-	wbits = MostSignificantBit (image->width);
-	wshft = 7 - wbits;
-	wmask = image->width - 1;*/
+	size = (r_ripple.value == 1.0f) ? 64 : RIPPLES_CACHEWIDTH;*/
 
 	// try to preserve aspect ratio
 	width = height = RIPPLES_CACHEWIDTH; // always render at maximum size
@@ -899,34 +864,51 @@ qboolean R_UploadRipples (const texture_t *image)
 	else if (image->width < image->height)
 		width = (float)image->width / image->height * height;
 
-	/*for (y = 0; y < image->height; y++)*/
+	if (!image->fb_texturenum)
+		{
+		rgbdata_t	pic = { 0 };
+		string		name;
+		Q_snprintf (name, sizeof (name), "*rippletex_%s", image->name);
+
+		pic.width = width;
+		pic.height = height;
+		pic.depth = 1;
+		pic.flags = IMAGE_HAS_COLOR;
+		pic.buffer = (byte *)g_ripple.texture;
+		pic.type = PF_RGBA_32;
+		pic.size = width * height * 4;
+		pic.numMips = 1;
+		memset (pic.buffer, 0, pic.size);
+
+		image->fb_texturenum = GL_LoadTextureInternal (name, &pic, TF_NOMIPMAP | TF_ALLOW_NEAREST);
+		}
+
+	GL_Bind (XASH_TEXTURE0, image->fb_texturenum);
+
+	// no updates this frame
+	if (!g_ripple.update)
+		return true;
+
+	size = r_ripple.value == 1.0f ? 64 : RIPPLES_CACHEWIDTH;
+
 	pixels = (const uint32_t *)glt->original->buffer;
 
 	for (y = 0; y < height; y++)
 		{
-		/*int ry = y << (7 + wshft);*/
 		int ry = (float)y / height * size;
 		int x;
 
-		/*for (x = 0; x < image->width; x++)*/
 		for (x = 0; x < width; x++)
 			{
-			/*int rx = x << wshft;
-			int val = g_ripple.curbuf[ry + rx] >> 4;*/
 			int rx = (float)x / width * size;
 			int val = g_ripple.curbuf[ry * RIPPLES_CACHEWIDTH + rx] / 16;
 
 			// transform it to texture space and get nice tiling effect
 			int rpy = (y - val) % height;
 			int rpx = (x + val) % width;
-
-			/*int py = (y - val) & wmask;
-			int px = (x + val) & wmask;
-			int p = (py << wbits) + px;*/
 			int py = (float)rpy / height * image->height;
 			int px = (float)rpx / width * image->width;
 
-			/*g_ripple.texture[(y << wbits) + x] = pixels[p];*/
 			if (py < 0)
 				py = image->height + py;
 			if (px < 0)
@@ -936,7 +918,6 @@ qboolean R_UploadRipples (const texture_t *image)
 			}
 		}
 
-	/*pglTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->width, 0,*/
 	pglTexImage2D (GL_TEXTURE_2D, 0, glt->format, width, height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, g_ripple.texture);
 

@@ -668,7 +668,7 @@ extern "C" {
 #endif
 
 //
-// cvars [FWGS, 01.12.24]
+// cvars
 //
 extern convar_t showpause;
 extern convar_t	mp_decals;
@@ -702,6 +702,7 @@ extern convar_t r_showtextures;
 extern convar_t cl_bmodelinterp;
 extern convar_t cl_lw;	// local weapons
 extern convar_t cl_charset;
+extern convar_t cl_trace_consistency;	// [FWGS, 01.02.25]
 extern convar_t cl_trace_stufftext;
 extern convar_t cl_trace_messages;
 extern convar_t cl_trace_events;
@@ -782,13 +783,14 @@ void CL_SignonReply (connprotocol_t proto);
 void CL_ClearState (void);
 
 //
-// cl_demo.c [FWGS, 01.09.24]
+// cl_demo.c
 //
 void CL_StartupDemoHeader (void);
 void CL_DrawDemoRecording (void);
 void CL_WriteDemoUserCmd (int cmdnumber);
 void CL_WriteDemoMessage (qboolean startup, int start, sizebuf_t *msg);
-void CL_WriteDemoUserMessage (const byte *buffer, size_t size);
+/*void CL_WriteDemoUserMessage (const byte *buffer, size_t size);*/
+void CL_WriteDemoUserMessage (int size, byte *buffer);	// [FWGS, 01.02.25]
 qboolean CL_DemoReadMessage (byte *buffer, size_t *length);
 void CL_DemoInterpolateAngles (void);
 void CL_CheckStartupDemos (void);
@@ -957,8 +959,6 @@ void CL_UpdateUserPings (sizebuf_t * msg);
 void CL_ParseParticles (sizebuf_t *msg, connprotocol_t proto);
 
 void CL_ParseRestoreSoundPacket (sizebuf_t * msg);
-/*void CL_ParseBaseline (sizebuf_t * msg, qboolean legacy);
-void CL_ParseSignon (sizebuf_t * msg);*/
 void CL_ParseBaseline (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseSignon (sizebuf_t *msg, connprotocol_t proto);
 
@@ -996,8 +996,6 @@ qboolean CL_RequestMissingResources (void);
 void CL_RegisterResources (sizebuf_t *msg, connprotocol_t proto);
 
 void CL_ParseViewEntity (sizebuf_t *msg);
-/*void CL_ParseServerTime (sizebuf_t *msg);
-void CL_ParseUserMessage (sizebuf_t *msg, int svc_num);*/
 void CL_ParseServerTime (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseUserMessage (sizebuf_t *msg, int svc_num, connprotocol_t proto);
 
@@ -1194,9 +1192,10 @@ void Con_PageDown (int lines);
 void Con_PageUp (int lines);
 
 //
-// s_main.c [FWGS, 01.02.24]
+// s_main.c
 //
-void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float synctime);
+/*void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float synctime);*/
+typedef int sound_t;	// [FWGS, 01.02.25]
 void S_StartBackgroundTrack (const char *intro, const char *loop, int position, qboolean fullpath);
 void S_StopBackgroundTrack (void);
 void S_StreamSetPause (int pause);

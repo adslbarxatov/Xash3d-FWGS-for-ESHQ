@@ -1310,7 +1310,7 @@ static void SV_Physics_Compound (edict_t *ent)
 		// create parent actual position
 		Matrix4x4_CreateFromEntity (end_l, parent->v.angles, parent->v.origin, 1.0f);
 
-		// stupid quake bug!!!
+		// stupid quake bug!
 		if (!(host.features & ENGINE_COMPENSATE_QUAKE_BUG))
 			ent->v.angles[PITCH] = -ent->v.angles[PITCH];
 
@@ -1324,7 +1324,7 @@ static void SV_Physics_Compound (edict_t *ent)
 		// create child final position
 		Matrix4x4_ConvertToEntity (child, ent->v.angles, ent->v.origin);
 
-		// stupid quake bug!!!
+		// stupid quake bug!
 		if (!(host.features & ENGINE_COMPENSATE_QUAKE_BUG))
 			ent->v.angles[PITCH] = -ent->v.angles[PITCH];
 		}

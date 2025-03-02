@@ -9,16 +9,16 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
 
-// [FWGS, 01.05.23] удалены GL_FrustumEnablePlane, GL_FrustumDisablePlane
-
-void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist)
+// [FWGS, 01.02.25]
+/*void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist)*/
+static void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist)
 	{
 	Assert ((side >= 0) && (side < FRUSTUM_PLANES));
 
@@ -29,8 +29,6 @@ void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, fl
 
 	SetBits (out->clipFlags, BIT (side));
 	}
-
-// [FWGS, 01.05.23] удалена GL_FrustumNormalizePlane
 
 void GL_FrustumInitProj (gl_frustum_t *out, float flZNear, float flZFar, float flFovX, float flFovY)
 	{
@@ -101,9 +99,6 @@ void GL_FrustumInitOrtho (gl_frustum_t *out, float xLeft, float xRight, float yT
 	GL_FrustumSetPlane (out, FRUSTUM_BOTTOM, iup, -yBottom - orgOffset);
 	}
 
-// [FWGS, 01.05.23] удалены GL_FrustumInitBox, GL_FrustumInitProjFromMatrix, GL_FrustumComputeCorners,
-// GL_FrustumComputeBounds, GL_FrustumDrawDebug
-
 // ==============================
 // Cull methods
 // ==============================
@@ -117,7 +112,8 @@ qboolean GL_FrustumCullBox (gl_frustum_t *out, const vec3_t mins, const vec3_t m
 
 	if (userClipFlags != 0)
 		iClipFlags = userClipFlags;
-	else iClipFlags = out->clipFlags;
+	else
+		iClipFlags = out->clipFlags;
 
 	for (i = FRUSTUM_PLANES, bit = 1; i > 0; i--, bit <<= 1)
 		{
@@ -178,7 +174,8 @@ qboolean GL_FrustumCullSphere (gl_frustum_t *out, const vec3_t center, float rad
 
 	if (userClipFlags != 0)
 		iClipFlags = userClipFlags;
-	else iClipFlags = out->clipFlags;
+	else
+		iClipFlags = out->clipFlags;
 
 	for (i = FRUSTUM_PLANES, bit = 1; i > 0; i--, bit <<= 1)
 		{

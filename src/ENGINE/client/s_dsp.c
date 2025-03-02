@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -328,9 +328,11 @@ static int DLY_Init (int idelay, float delay)
 
 	DLY_Free (idelay);	// free dly if it's allocated
 
+	// [FWGS, 01.02.25]
 	cur = &rgsxdly[idelay];
 	cur->cdelaysamplesmax = ((int)(delay * idsp_dma_speed) << sxhires) + 1;
-	cur->lpdelayline = (int *)Z_Calloc (cur->cdelaysamplesmax * sizeof (int));
+	/*cur->lpdelayline = (int *)Z_Calloc (cur->cdelaysamplesmax * sizeof (int));*/
+	cur->lpdelayline = (int *)Mem_Calloc (sndpool, cur->cdelaysamplesmax * sizeof (int));
 	cur->xfade = 0;
 
 	// init modulation
@@ -341,7 +343,7 @@ static int DLY_Init (int idelay, float delay)
 	cur->lp0 = cur->lp1 = cur->lp2 = 0;
 
 	cur->idelayinput = 0;
-	cur->idelayoutput = cur->cdelaysamplesmax - cur->delaysamples; // NOTE: delaysamples must be set!!!
+	cur->idelayoutput = cur->cdelaysamplesmax - cur->delaysamples; // NOTE: delaysamples must be set!
 
 	return 1;
 	}

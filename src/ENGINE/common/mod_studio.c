@@ -26,17 +26,6 @@ typedef int (*STUDIOAPI)(int, sv_blending_interface_t **, server_studio_api_t *,
 // [FWGS, 01.12.24]
 typedef struct mstudiocache_s
 	{
-	/*float	frame;
-	int	sequence;
-	vec3_t	angles;
-	vec3_t	origin;
-	vec3_t	size;
-	byte	controller[4];
-	byte	blending[2];
-	model_t *model;
-	uint	current_hull;
-	uint	current_plane;
-	uint	numhitboxes;*/
 	model_t	*model;
 	float	frame;
 	int		sequence;
@@ -63,9 +52,13 @@ static matrix3x4		studio_bones[MAXSTUDIOBONES];
 static uint				studio_hull_hitgroup[MAXSTUDIOBONES];
 static uint				cache_hull_hitgroup[MAXSTUDIOBONES];
 static mstudiocache_t	cache_studio[STUDIO_CACHESIZE];
-static mclipnode_t		studio_clipnodes[6];
+
+// [FWGS, 01.02.25]
+/*static mclipnode_t		studio_clipnodes[6];
 static mplane_t			studio_planes[768];
-static mplane_t			cache_planes[768];
+static mplane_t			cache_planes[768];*/
+static mplane_t			studio_planes[MAXSTUDIOBONES * 6];
+static mplane_t			cache_planes[MAXSTUDIOBONES * 6];
 
 // current cache state
 static int		cache_current;
@@ -74,17 +67,18 @@ static int		cache_current_plane;
 
 /***
 ====================
-Mod_InitStudioHull
+Mod_InitStudioHull [FWGS, 01.02.25]
 ====================
 ***/
 void Mod_InitStudioHull (void)
 	{
-	int	i, side;
+	/*int	i, side;*/
+	int i;
 
 	if (studio_hull[0].planes != NULL)
 		return;	// already initailized
 
-	for (i = 0; i < 6; i++)
+	/*for (i = 0; i < 6; i++)
 		{
 		studio_clipnodes[i].planenum = i;
 
@@ -93,11 +87,13 @@ void Mod_InitStudioHull (void)
 		studio_clipnodes[i].children[side] = CONTENTS_EMPTY;
 		if (i != 5) studio_clipnodes[i].children[side ^ 1] = i + 1;
 		else studio_clipnodes[i].children[side ^ 1] = CONTENTS_SOLID;
-		}
+		}*/
 
 	for (i = 0; i < MAXSTUDIOBONES; i++)
 		{
-		studio_hull[i].clipnodes = studio_clipnodes;
+		/*studio_hull[i].clipnodes = studio_clipnodes;*/
+		studio_hull[i].clipnodes16 = (mclipnode16_t *)box_clipnodes16;
+
 		studio_hull[i].planes = &studio_planes[i * 6];
 		studio_hull[i].firstclipnode = 0;
 		studio_hull[i].lastclipnode = 5;
@@ -287,8 +283,15 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 
 	for (i = j = 0; i < mod_studiohdr->numhitboxes; i++, j += 6)
 		{
-		if (bSkipShield && i == 21)
-			continue;	// CS stuff
+		// [FWGS, 01.02.25]
+		if (world.version == QBSP2_VERSION)
+			studio_hull[i].clipnodes32 = (mclipnode32_t *)box_clipnodes32;
+		else
+			studio_hull[i].clipnodes16 = (mclipnode16_t *)box_clipnodes16;
+
+		// CS stuff
+		if (bSkipShield && (i == 21))
+			continue;
 
 		studio_hull_hitgroup[i] = phitbox[i].group;
 
@@ -916,7 +919,10 @@ void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded)
 	mod->type = mod_studio;
 
 	phdr = R_StudioLoadHeader (mod, buffer);
-	if (!phdr) 
+
+	/*if (!phdr) */
+	// [FWGS, 01.02.25] garbage value in length
+	if (!phdr || (phdr->length < sizeof (studiohdr_t)))
 		return;	// bad model
 
 #if !XASH_DEDICATED

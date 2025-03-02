@@ -46,6 +46,7 @@ file_n:	byte[dwadinfo_t[num]->disksize]
 infotable	dlumpinfo_t[dwadinfo_t->numlumps]
 ========================================================================
 ***/
+
 #define WAD3_NAMELEN		16
 #define HINT_NAMELEN		5		// e.g. _mask, _norm
 #define MAX_FILES_IN_WAD	65535	// real limit as above <2Gb size not a lumpcount
@@ -90,68 +91,89 @@ struct wfile_s
 #define WAD_LOAD_NO_FILES		5
 #define WAD_LOAD_CORRUPTED		6
 
+// [FWGS, 01.02.25]
 typedef struct wadtype_s
 	{
-	const char	*ext;
+	/*const char	*ext;
+	signed char	type;*/
+	char		ext[4];
 	signed char	type;
 	} wadtype_t;
 
-// associate extension with wad type
-static const wadtype_t wad_types[7] =
+// [FWGS, 01.02.25] associate extension with wad type
+/*static const wadtype_t wad_types[7] =*/
+static const wadtype_t wad_types[] =
 	{
-	{ "pal", TYP_PALETTE	}, // palette
+	/*{ "pal", TYP_PALETTE	}, // palette
 	{ "dds", TYP_DDSTEX 	}, // DDS image
 	{ "lmp", TYP_GFXPIC		}, // quake1, hl pic
 	{ "fnt", TYP_QFONT		}, // hl qfonts
 	{ "mip", TYP_MIPTEX		}, // hl/q1 mip
 	{ "txt", TYP_SCRIPT		}, // scripts
-	{ NULL,  TYP_NONE		}
+	{ NULL,  TYP_NONE		}*/
+	{ "pal",	TYP_PALETTE },	// palette
+	{ "dds",	TYP_DDSTEX },	// DDS image
+	{ "lmp",	TYP_GFXPIC },	// quake1, hl pic
+	{ "fnt",	TYP_QFONT },	// hl qfonts
+	{ "mip",	TYP_MIPTEX },	// hl/q1 mip
+	{ "txt",	TYP_SCRIPT },	// scripts
 	};
 
 /***
 ===========
-W_TypeFromExt
+W_TypeFromExt [FWGS, 01.02.25]
 
 Extracts file type from extension
 ===========
 ***/
 static signed char W_TypeFromExt (const char *lumpname)
 	{
-	const char *ext = COM_FileExtension (lumpname);
-	const wadtype_t *type;
+	/*const char *ext = COM_FileExtension (lumpname);
+	const wadtype_t *type;*/
+	const char	*ext = COM_FileExtension (lumpname);
+	int		i;
 
 	// we not known about filetype, so match only by filename
 	if (!Q_strcmp (ext, "*") || !COM_CheckStringEmpty (ext))
 		return TYP_ANY;
 
-	for (type = wad_types; type->ext; type++)
+	/*for (type = wad_types; type->ext; type++)*/
+	for (i = 0; i < sizeof (wad_types) / sizeof (wad_types[0]); i++)
 		{
-		if (!Q_stricmp (ext, type->ext))
-			return type->type;
+		/*if (!Q_stricmp (ext, type->ext))
+			return type->type;*/
+		if (!Q_stricmp (ext, wad_types[i].ext))
+			return wad_types[i].type;
 		}
+
 	return TYP_NONE;
 	}
 
 /***
 ===========
-W_ExtFromType
+W_ExtFromType [FWGS, 01.02.25]
 
 Convert type to extension
 ===========
 ***/
 static const char *W_ExtFromType (signed char lumptype)
 	{
-	const wadtype_t *type;
+	/*const wadtype_t *type;*/
+	int i;
 
 	// we not known aboyt filetype, so match only by filename
 	if ((lumptype == TYP_NONE) || (lumptype == TYP_ANY))
 		return "";
 
-	for (type = wad_types; type->ext; type++)
+	/*for (type = wad_types; type->ext; type++)*/
+	for (i = 0; i < sizeof (wad_types) / sizeof (wad_types[0]); i++)
 		{
-		if (lumptype == type->type)
-			return type->ext;
+		/*if (lumptype == type->type)
+			return type->ext;*/
+		if (lumptype == wad_types[i].type)
+			return wad_types[i].ext;
 		}
+
 	return "";
 	}
 

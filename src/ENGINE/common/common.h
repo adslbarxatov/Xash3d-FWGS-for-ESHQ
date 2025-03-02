@@ -104,25 +104,29 @@ typedef enum
 #define Host_IsDedicated() ( host.type == HOST_DEDICATED )
 #endif
 
+// [FWGS, 01.02.25]
 #include "system.h"
 #include "com_model.h"
 #include "com_strings.h"
 #include "crtlib.h"
-#include "cvar.h"
-#include "con_nprint.h"
-#include "crclib.h"
-#include "ref_api.h"
+/*include "cvar.h"
+include "con_nprint.h"
+include "crclib.h"
+include "ref_api.h"*/
 
 // [FWGS, 01.12.24]
 #define FSCALLBACK_OVERRIDE_OPEN
 #define FSCALLBACK_OVERRIDE_LOADFILE
 #define FSCALLBACK_OVERRIDE_MALLOC_LIKE
 
+// [FWGS, 01.02.25]
 #include "fscallback.h"
+#include "cvar.h"
+#include "con_nprint.h"
+#include "crclib.h"
+#include "ref_api.h"
 
 // [FWGS, 01.12.24] PERFORMANCE INFO
-/*#define MIN_FPS		20.0f		// host minimum fps value for maxfps.
-#define MAX_FPS         200.0f		// upper limit for maxfps.*/
 #define MIN_FPS			20.0f		// host minimum fps value for maxfps.
 #define MAX_FPS_SOFT	200.0f		// soft limit for maxfps
 #define MAX_FPS_HARD	1000.0f		// multiplayer hard limit for maxfps
@@ -150,6 +154,12 @@ typedef enum
 #define MAX_DECALS		256	// touching TE_DECAL messages, etc
 #define MAX_STATIC_ENTITIES	32	// static entities that moved on the client when level is spawn
 #endif
+
+// [FWGS, 01.02.25]
+#define MAX_SERVERINFO_STRING	512		// server handles too many settings. expand to 1024?
+#define MAX_PRINT_MSG			8192	// how many symbols can handle single call of Con_Printf or Con_DPrintf
+#define MAX_TOKEN				2048	// parse token length
+#define MAX_USERMSG_LENGTH		2048	// don't modify it's relies on a client-side definitions
 
 #define GameState		(&host.game)
 
@@ -294,7 +304,7 @@ typedef enum bugcomp_e
 	BUGCOMP_GET_GAME_DIR_FULL_PATH = BIT (3),
 	} bugcomp_t;
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.02.25]
 typedef struct host_parm_s
 	{
 	// ==== shared through RefAPI's ref_host_t
@@ -309,7 +319,7 @@ typedef struct host_parm_s
 	poolhandle_t	mempool;	// static mempool for misc allocations
 	poolhandle_t	imagepool;	// imagelib mempool
 	poolhandle_t	soundpool;	// soundlib mempool
-	string			finalmsg;	// server shutdown final message
+	/*string			finalmsg;	// server shutdown final message*/
 	string			downloadfile;		// filename to be downloading
 	int				downloadcount;		// how many files remain to downloading
 	char			deferred_cmd[128];	// deferred commands
@@ -333,7 +343,7 @@ typedef struct host_parm_s
 	vec3_t		player_mins[MAX_MAP_HULLS];			// 4 hulls allowed
 	vec3_t		player_maxs[MAX_MAP_HULLS];			// 4 hulls allowed
 
-	// [FWGS, 01.08.24] for CL_{Push,Pop}TraceBounds
+	// for CL_{Push,Pop}TraceBounds
 	vec3_t		player_mins_backup[MAX_MAP_HULLS];
 	vec3_t		player_maxs_backup[MAX_MAP_HULLS];
 	qboolean	trace_bounds_pushed;
@@ -372,12 +382,6 @@ typedef struct host_parm_s
 extern host_parm_t	host;
 
 // [FWGS, 22.01.25]
-/*define CMD_SERVERDLL	BIT( 0 )		// added by server.dll
-define CMD_CLIENTDLL	BIT( 1 )		// added by client.dll
-define CMD_GAMEUIDLL	BIT( 2 )		// added by GameUI.dll
-define CMD_PRIVILEGED	BIT( 3 )		// only available in privileged mode
-define CMD_FILTERABLE  BIT( 4 )		// filtered in unprivileged mode if cl_filterstuffcmd is 1
-define CMD_REFDLL		BIT( 5 )		// added by ref.dll*/
 #define CMD_SERVERDLL	BIT( 0 )	// added by server.dll
 #define CMD_CLIENTDLL	BIT( 1 )	// added by client.dll
 #define CMD_GAMEUIDLL	BIT( 2 )	// added by GameUI.dll
@@ -459,6 +463,7 @@ int Cmd_Argc (void);
 const char *Cmd_Args (void) RETURNS_NONNULL;
 const char *Cmd_Argv (int arg) RETURNS_NONNULL;
 void Cmd_Init (void);
+void Cmd_Shutdown (void);	// [FWGS, 01.02.25]
 void Cmd_Unlink (int group);
 
 // [FWGS, 22.01.25]
@@ -511,10 +516,6 @@ void Image_Init (void);
 void Image_Shutdown (void);
 void Image_AddCmdFlags (uint flags);
 
-/*rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size);
-qboolean FS_SaveImage (const char *filename, rgbdata_t *pix);
-rgbdata_t *FS_CopyImage (rgbdata_t *in);*/
-
 void FS_FreeImage (rgbdata_t *pack);
 rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
 qboolean FS_SaveImage (const char *filename, rgbdata_t *pix);
@@ -559,23 +560,29 @@ typedef enum
 	SOUND_RESAMPLE =	BIT (12),	// resample sound to specified rate
 	} sndFlags_t;
 
-// [FWGS, 09.05.24]
+// [FWGS, 01.02.25]
 typedef struct
 	{
-	word	rate;		// num samples per second (e.g. 11025 - 11 khz)
+	/*word	rate;		// num samples per second (e.g. 11025 - 11 khz)
 	byte	width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
-	byte	channels;	// num channels (1 - mono, 2 - stereo)
+	byte	channels;	// num channels (1 - mono, 2 - stereo)*/
+	size_t	size;		// for bounds checking
 	uint	loopStart;	// offset at this point sound will be looping while playing more than only once
 	uint	samples;	// total samplecount in wav
 	uint	type;		// compression type
 	uint	flags;		// misc sound flags
-	byte	*buffer;	// sound buffer
-	size_t	size;		// for bounds checking
+	/*byte	*buffer;	// sound buffer
+	size_t	size;		// for bounds checking*/
+	word	rate;		// num samples per second (e.g. 11025 - 11 khz)
+	byte	width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
+	byte	channels;	// num channels (1 - mono, 2 - stereo)
+	byte	buffer[];	// sound buffer
 	} wavdata_t;
 
 //
-// soundlib [FWGS, 01.12.24]
+// soundlib [FWGS, 01.02.25]
 //
+typedef struct stream_s stream_t;
 void Sound_Init (void);
 void Sound_Shutdown (void);
 /*wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size);*/
@@ -584,8 +591,7 @@ void FS_FreeSound (wavdata_t *pack);
 void FS_FreeStream (stream_t *stream);
 wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size) MALLOC_LIKE (FS_FreeSound, 1) WARN_UNUSED_RESULT;
 stream_t *FS_OpenStream (const char *filename) MALLOC_LIKE (FS_FreeStream, 1) WARN_UNUSED_RESULT;
-
-wavdata_t *FS_StreamInfo (stream_t *stream);
+/*wavdata_t *FS_StreamInfo (stream_t *stream);*/
 int FS_ReadStream (stream_t *stream, int bytes, void *buffer);
 int FS_SetStreamPos (stream_t *stream, int newpos);
 int FS_GetStreamPos (stream_t *stream);
@@ -596,14 +602,13 @@ uint Sound_GetApproxWavePlayLen (const char *filepath);
 qboolean Sound_SupportedFileFormat (const char *fileext);
 
 //
-// host.c [FWGS, 22.01.25]
+// host.c
 //
 typedef void(*pfnChangeGame)(const char *progname);
 
 qboolean Host_IsQuakeCompatible (void);
 /*void HLEXPORT Host_Shutdown (void);*/
 void Host_ShutdownWithReason (const char *reason);
-
 int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func);
 void Host_EndGame (qboolean abort, const char *message, ...) FORMAT_CHECK (2);
 
@@ -613,12 +618,13 @@ void Host_WriteOpenGLConfig (void);
 void Host_WriteVideoConfig (void);
 void Host_WriteConfig (void);
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.02.25]
 /*void Host_ShutdownServer (void);*/
 void Host_Error (const char *error, ...) FORMAT_CHECK (1);
 void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features);
 void Host_Frame (double time);
 void Host_Credits (void);
+void Host_ExitInMain (void);
 
 //
 // host_state.c [FWGS, 01.07.24]
@@ -635,11 +641,21 @@ void COM_Frame (double time);
 CLIENT / SERVER SYSTEMS
 ==============================================================
 ***/
+
+// [FWGS, 01.02.25]
+#if !XASH_DEDICATED
 void CL_Init (void);
 void CL_Shutdown (void);
 void Host_ClientBegin (void);
 void Host_ClientFrame (void);
 int CL_Active (void);
+#else
+static inline void CL_Init (void) {}
+static inline void CL_Shutdown (void) {}
+static inline void Host_ClientBegin (void) { Cbuf_Execute (); }
+static inline void Host_ClientFrame (void) {}
+static inline int CL_Active (void) { return 0; }
+#endif
 
 void SV_Init (void);
 void SV_Shutdown (const char *finalmsg);
@@ -670,7 +686,6 @@ void COM_TrimSpace (const char *source, char *dest);
 void pfnGetModelBounds (model_t *mod, float *mins, float *maxs);
 int COM_CheckParm (char *parm, char **ppnext);
 
-// [FWGS, 25.12.24]
 int pfnGetModelType (model_t *mod);
 int pfnIsMapValid (char *filename);
 void Con_Reportf (const char *szFmt, ...) FORMAT_CHECK (1);
@@ -681,6 +696,7 @@ int pfnNumberOfEntities (void);
 int pfnIsInGame (void);
 float pfnTime (void);
 #define copystring( s ) _copystring( host.mempool, s, __FILE__, __LINE__ )
+#define copystringpool( pool, s ) _copystring( pool, s, __FILE__, __LINE__ )	// [FWGS, 01.02.25]
 #define SV_CopyString( s ) _copystring( svgame.stringspool, s, __FILE__, __LINE__ )
 #define freestring( s ) if( s != NULL ) { Mem_Free( s ); s = NULL; }
 char *_copystring (poolhandle_t mempool, const char *s, const char *filename, int fileline);
@@ -729,6 +745,7 @@ int CSCR_WriteGameCVars (file_t *cfg, const char *scriptfilename);
 //
 // hpak.c
 //
+const char *COM_ResourceTypeFromIndex (int index);	// [FWGS, 01.02.25]
 void HPAK_Init (void);
 qboolean HPAK_GetDataPointer (const char *filename, struct resource_s *pRes, byte **buffer, int *size);
 qboolean HPAK_ResourceForHash (const char *filename, byte *hash, struct resource_s *pRes);
@@ -761,47 +778,65 @@ typedef enum connprotocol_e
 struct physent_s;
 struct sv_client_s;
 typedef struct sizebuf_s sizebuf_t;
+
+// [FWGS, 01.02.25]
+int SV_GetMaxClients (void);
+
+#if !XASH_DEDICATED
+qboolean CL_Initialized (void);
 qboolean CL_IsInGame (void);
 qboolean CL_IsInConsole (void);
-/*qboolean CL_IsThirdPerson (void);*/
 qboolean CL_IsIntermission (void);
-qboolean CL_Initialized (void);
-char *CL_Userinfo (void);
-/*void CL_LegacyUpdateInfo (void);*/
-void CL_CharEvent (int key);
+/*qboolean CL_Initialized (void);*/
 qboolean CL_DisableVisibility (void);
-/*byte *COM_LoadFile (const char *filename, int usehunk, int *pLength);*/
+qboolean CL_IsRecordDemo (void);
+qboolean CL_IsPlaybackDemo (void);
+qboolean UI_CreditsActive (void);
+int CL_GetMaxClients (void);
+#else
+static inline qboolean CL_Initialized (void) { return false; }
+static inline qboolean CL_IsInGame (void) { return false; }
+static inline qboolean CL_IsInConsole (void) { return false; }
+static inline qboolean CL_IsIntermission (void) { return false; }
+static inline qboolean CL_DisableVisibility (void) { return false; }
+static inline qboolean CL_IsRecordDemo (void) { return false; }
+static inline qboolean CL_IsPlaybackDemo (void) { return false; }
+static inline qboolean UI_CreditsActive (void) { return false; }
+static inline int CL_GetMaxClients (void) { return SV_GetMaxClients (); }
+#endif
+
+// [FWGS, 01.02.25]
+char *CL_Userinfo (void);
+void CL_CharEvent (int key);
+/*qboolean CL_DisableVisibility (void);*/
 byte *COM_LoadFile (const char *filename, int usehunk, int *pLength) MALLOC_LIKE (free, 1);
 
 struct cmd_s *Cmd_GetFirstFunctionHandle (void);
 struct cmd_s *Cmd_GetNextFunctionHandle (struct cmd_s *cmd);
 struct cmdalias_s *Cmd_AliasGetList (void);
 const char *Cmd_GetName (struct cmd_s *cmd);
-/*void Log_Printf (const char *fmt, ...) _format (1);
-void SV_BroadcastCommand (const char *fmt, ...) _format (1);
-void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) _format (2);*/
 void Log_Printf (const char *fmt, ...) FORMAT_CHECK (1);
 void SV_BroadcastCommand (const char *fmt, ...) FORMAT_CHECK (1);
 void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) FORMAT_CHECK (2);
 
 void CL_ClearStaticEntities (void);
 qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack, size_t loopTrackSize, int *position);
-/*void CL_ServerCommand (qboolean reliable, const char *fmt, ...) _format (2);*/
 void CL_ServerCommand (qboolean reliable, const char *fmt, ...) FORMAT_CHECK (2);
 
+// [FWGS, 01.02.25]
 void CL_UpdateInfo (const char *key, const char *value);
 void CL_HudMessage (const char *pMessage);
 const char *CL_MsgInfo (int cmd);
 void SV_DrawDebugTriangles (void);
 void SV_DrawOrthoTriangles (void);
 double CL_GetDemoFramerate (void);
-qboolean UI_CreditsActive (void);
+/*qboolean UI_CreditsActive (void);*/
 void CL_StopPlayback (void);
-int CL_GetMaxClients (void);
+/*int CL_GetMaxClients (void);
 int SV_GetMaxClients (void);
 qboolean CL_IsRecordDemo (void);
 qboolean CL_IsTimeDemo (void);
-qboolean CL_IsPlaybackDemo (void);
+qboolean CL_IsPlaybackDemo (void);*/
 qboolean SV_Initialized (void);
 void CL_ProcessFile (qboolean successfully_received, const char *filename);
 int SV_GetSaveComment (const char *savename, char *comment);
@@ -831,10 +866,6 @@ void SCR_Shutdown (void);
 void Con_Print (const char *txt);
 
 // [FWGS, 01.12.24]
-/*void Con_NPrintf (int idx, const char *fmt, ...) _format (2);
-void Con_NXPrintf (con_nprint_t *info, const char *fmt, ...) _format (2);
-void UI_NPrintf (int idx, const char *fmt, ...) _format (2);
-void UI_NXPrintf (con_nprint_t *info, const char *fmt, ...) _format (2);*/
 void Con_NPrintf (int idx, const char *fmt, ...) FORMAT_CHECK (2);
 void Con_NXPrintf (con_nprint_t *info, const char *fmt, ...) FORMAT_CHECK (2);
 void UI_NPrintf (int idx, const char *fmt, ...) FORMAT_CHECK (2);
@@ -844,8 +875,6 @@ const char *Info_ValueForKey (const char *s, const char *key);
 void Info_RemovePrefixedKeys (char *start, char prefix);
 qboolean Info_RemoveKey (char *s, const char *key);
 qboolean Info_SetValueForKey (char *s, const char *key, const char *value, int maxsize);
-
-/*qboolean Info_SetValueForKeyf (char *s, const char *key, int maxsize, const char *format, ...) _format (4);*/
 qboolean Info_SetValueForKeyf (char *s, const char *key, int maxsize, const char *format, ...) FORMAT_CHECK (4);
 
 qboolean Info_SetValueForStarKey (char *s, const char *key, const char *value, int maxsize);
@@ -856,14 +885,9 @@ int Cmd_CheckMapsList (int fRefresh);
 void COM_SetRandomSeed (int lSeed);
 int COM_RandomLong (int lMin, int lMax);
 float COM_RandomFloat (float fMin, float fMax);
-
-/*qboolean LZSS_IsCompressed (const byte *source);
-uint LZSS_GetActualSize (const byte *source);*/
 qboolean LZSS_IsCompressed (const byte *source, size_t input_len);
 uint LZSS_GetActualSize (const byte *source, size_t input_len);
-
 byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize);
-/*uint LZSS_Decompress (const byte *pInput, byte *pOutput);*/
 uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_t output_len);
 
 // [FWGS, 01.12.24]
@@ -879,8 +903,6 @@ qboolean COM_ParseVector (char **pfile, float *v, size_t size);
 
 int COM_FileSize (const char *filename);
 void COM_FreeFile (void *buffer);
-/*int COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare);
-char *va (const char *format, ...) _format (1);*/
 int pfnCompareFileTime (const char *path1, const char *path2, int *retval);
 char *va (const char *format, ...) FORMAT_CHECK (1) RETURNS_NONNULL;
 
@@ -914,9 +936,9 @@ static inline connprotocol_t CL_Protocol (void)
 static inline qboolean Host_IsLocalGame (void)
 	{
 	if (SV_Active ())
-		return SV_GetMaxClients () == 1 ? true : false;
+		return (SV_GetMaxClients () == 1) ? true : false;
 
-	return CL_GetMaxClients () == 1 ? true : false;
+	return (CL_GetMaxClients () == 1) ? true : false;
 	}
 
 // [FWGS, 01.07.24]

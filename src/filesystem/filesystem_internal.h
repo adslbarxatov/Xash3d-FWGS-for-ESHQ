@@ -19,6 +19,7 @@ GNU General Public License for more details
 #include <stdlib.h>			// [FWGS, 01.12.24]
 #include "xash3d_types.h"
 #include "filesystem.h"
+#include "miniz.h"			// [FWGS, 01.02.25]
 
 // [FWGS, 01.11.23]
 #if XASH_ANDROID
@@ -31,7 +32,7 @@ extern "C"
 #endif
 
 typedef struct searchpath_s searchpath_t;	// [FWGS, 01.07.24]
-typedef struct dir_s dir_t;		// [FWGS, 01.04.23]
+typedef struct dir_s dir_t;
 typedef struct zip_s zip_t;
 typedef struct pack_s pack_t;
 typedef struct wfile_s wfile_t;
@@ -41,7 +42,20 @@ typedef struct android_assets_s android_assets_t;
 
 #define FILE_BUFF_SIZE		(2048)
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.02.25]
+#define FILE_DEFLATED BIT( 0 )
+
+// [FWGS, 01.02.25]
+typedef struct ztoolkit_s
+	{
+	z_stream	zstream;
+	size_t		comp_length;
+	size_t		in_ind, in_len;
+	size_t		in_position;
+	byte		input[FILE_BUFF_SIZE];
+	} ztoolkit_t;
+
+// [FWGS, 01.02.25]
 struct file_s
 	{
 	int			handle;			// file descriptor
@@ -51,6 +65,9 @@ struct file_s
 	fs_offset_t	real_length;	// uncompressed file size (for files opened in "read" mode)
 	fs_offset_t	position;		// current position in the file
 	fs_offset_t	offset;			// offset into the package (0 if external file)
+
+	uint32_t	flags;
+	ztoolkit_t	*ztk;			// if not NULL, all read functions must go through decompression
 
 	// contents buffer
 	fs_offset_t	buff_ind;		// buffer current index
@@ -225,12 +242,13 @@ qboolean FS_WriteFile (const char *filename, const void *data, fs_offset_t len);
 qboolean CRC32_File (dword *crcvalue, const char *filename);
 qboolean MD5_HashFile (byte digest[16], const char *pszFileName, uint seed[4]);
 
-// [FWGS, 01.11.23] stringlist ops
+// [FWGS, 01.02.25] stringlist ops
 void stringlistinit (stringlist_t *list);
 void stringlistfreecontents (stringlist_t *list);
 void stringlistappend (stringlist_t *list, const char *text);
 void stringlistsort (stringlist_t *list);
-void listdirectory (stringlist_t *list, const char *path);
+/*void listdirectory (stringlist_t *list, const char *path);*/
+void listdirectory (stringlist_t *list, const char *path, qboolean dirs_only);
 
 // filesystem ops
 int FS_FileExists (const char *filename, int gamedironly);
@@ -252,10 +270,10 @@ searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t
 qboolean FS_FullPathToRelativePath (char *dst, const char *src, size_t size);
 
 //
-// pak.c
+// pak.c [FWGS, 01.02.25]
 //
+qboolean FS_CheckForQuakePak (const char *pakfile, const char *files[], size_t num_files);
 searchpath_t *FS_AddPak_Fullpath (const char *pakfile, int flags);
-
 
 //
 // wad.c
@@ -275,7 +293,7 @@ qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t l
 void FS_InitDirectorySearchpath (searchpath_t *search, const char *path, int flags);
 
 //
-// [FWGS, 01.11.23] android.c
+// android.c
 //
 void FS_InitAndroid (void);
 searchpath_t *FS_AddAndroidAssets_Fullpath (const char *path, int flags);

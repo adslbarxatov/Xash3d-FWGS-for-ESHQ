@@ -29,7 +29,7 @@ GNU General Public License for more details
 
 // [FWGS, 01.08.24]
 #ifndef XASH_GAMEDIR
-	#define XASH_GAMEDIR "valve" // !!! Replace with your default (base) game directory !!!
+	#define XASH_GAMEDIR "valve" // ! Replace with your default (base) game directory !
 #endif
 
 // [FWGS, 01.11.23]

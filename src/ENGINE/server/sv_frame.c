@@ -534,19 +534,23 @@ static void SV_EmitEvents (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 
 /***
 =============
-SV_EmitPings
+SV_EmitPings [FWGS, 01.02.25]
 =============
 ***/
 static void SV_EmitPings (sizebuf_t *msg)
 	{
-	sv_client_t	*cl;
+	/*sv_client_t	*cl;
 	int			packet_loss;
-	int			i, ping;
+	int			i, ping;*/
+	sv_client_t		*cl;
+	int		i;
 
 	MSG_BeginServerCmd (msg, svc_pings);
 
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
+		int packet_loss, ping;
+
 		if (cl->state != cs_spawned)
 			continue;
 

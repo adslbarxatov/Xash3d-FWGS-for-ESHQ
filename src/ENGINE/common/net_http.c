@@ -329,10 +329,12 @@ static int HTTP_FileConnect (httpfile_t *file)
 
 	file->blocktime = 0;
 
+	// [FWGS, 01.02.25]
 	if (!COM_CheckStringEmpty (http_useragent.string) || !Q_strcmp (http_useragent.string, "xash3d"))
 		{
 		Q_snprintf (useragent, sizeof (useragent), "%s/%s (%s-%s; build %d; %s)",
-			XASH_ENGINE_NAME, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum (), Q_buildcommit ());
+			/*XASH_ENGINE_NAME, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum (), Q_buildcommit ());*/
+			XASH_ENGINE_NAME, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum (), g_buildcommit);
 		}
 	else
 		{
@@ -513,13 +515,23 @@ static int HTTP_FileDecompress (httpfile_t *file)
 	zlib_result = inflate (&decompress_stream, Z_NO_FLUSH);
 	inflateEnd (&decompress_stream);
 
-	if (zlib_result == Z_OK || zlib_result == Z_STREAM_END)
+	// [FWGS, 01.02.25]
+	if ((zlib_result == Z_OK) || (zlib_result == Z_STREAM_END))
 		{
-		Mem_Free (data_in);
+		/*Mem_Free (data_in);*/
+		g_fsapi.WriteFile (name, data_out, decompressed_len);
+		HTTP_FreeFile (file, false);
+		}
+	else
+		{
+		HTTP_FreeFile (file, true);
 		}
 
-	g_fsapi.WriteFile (name, data_out, decompressed_len);
-	HTTP_FreeFile (file, false);
+	Mem_Free (data_in);
+	Mem_Free (data_out);
+
+	/*g_fsapi.WriteFile (name, data_out, decompressed_len);
+	HTTP_FreeFile (file, false);*/
 	return 1;
 	}
 

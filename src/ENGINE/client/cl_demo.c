@@ -383,12 +383,13 @@ void CL_WriteDemoMessage (qboolean startup, int start, sizebuf_t *msg)
 
 /***
 ====================
-CL_WriteDemoUserMessage
+CL_WriteDemoUserMessage [FWGS, 01.02.25]
 
 Dumps the user message (demoaction)
 ====================
 ***/
-void CL_WriteDemoUserMessage (const byte *buffer, size_t size)
+/*void CL_WriteDemoUserMessage (const byte *buffer, size_t size)*/
+void GAME_EXPORT CL_WriteDemoUserMessage (int size, byte *buffer)
 	{
 	if (!cls.demorecording || cls.demowaiting)
 		return;
@@ -645,13 +646,15 @@ static void CL_ReadDemoUserCmd (qboolean discard)
 
 	FS_Read (cls.demofile, data, bytes);
 
+	// [FWGS, 01.02.25]
 	if (!discard)
 		{
-		usercmd_t	nullcmd;
+		/*usercmd_t	nullcmd;*/
+		const usercmd_t nullcmd = { 0 };
 		sizebuf_t	buf;
 		demoangle_t	*a;
 
-		memset (&nullcmd, 0, sizeof (nullcmd));
+		/*memset (&nullcmd, 0, sizeof (nullcmd));*/
 		MSG_Init (&buf, "UserCmd", data, sizeof (data));
 
 		// [FWGS, 01.01.24] a1ba: I have no proper explanation why

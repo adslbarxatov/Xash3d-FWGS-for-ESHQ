@@ -115,7 +115,8 @@ void CL_Parse_RecordCommand (int cmd, int startoffset)
 	{
 	int	slot;
 
-	if (cmd == svc_nop) return;
+	if (cmd == svc_nop)
+		return;
 
 	slot = (cls_message_debug.currentcmd++ & MSG_MASK);
 	cls_message_debug.oldcmd[slot].command = cmd;
@@ -151,10 +152,12 @@ static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 	file_t *fp;
 
 	fp = FS_Open (buffer_file, "wb", false);
-	if (!fp) return;
+	if (!fp)
+		return;
 
 	FS_Write (fp, &cls.starting_count, sizeof (int));
 	FS_Write (fp, &current_count, sizeof (int));
+	FS_Write (fp, &cls.legacymode, sizeof (cls.legacymode));	// [FWGS, 01.02.25]
 	FS_Write (fp, MSG_GetData (msg), MSG_GetMaxBytes (msg));
 	FS_Close (fp);
 
@@ -163,18 +166,19 @@ static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 
 /***
 =====================
-CL_WriteMessageHistory
+CL_WriteMessageHistory [FWGS, 01.02.25]
 
 list last 32 messages for debugging net troubleshooting
 =====================
 ***/
 void CL_WriteMessageHistory (void)
 	{
-	oldcmd_t *old, *failcommand;
-	sizebuf_t *msg = &net_message;
-	int	i, thecmd;
+	/*oldcmd_t *old, *failcommand;*/
+	oldcmd_t	*old;
+	sizebuf_t	*msg = &net_message;
+	int			i, thecmd;
 
-	if (!cls.initialized || cls.state == ca_disconnected)
+	if (!cls.initialized || (cls.state == ca_disconnected))
 		return;
 
 	if (!cls_message_debug.parsing)
@@ -194,9 +198,14 @@ void CL_WriteMessageHistory (void)
 		thecmd++;
 		}
 
-	failcommand = &cls_message_debug.oldcmd[thecmd];
+	/*failcommand = &cls_message_debug.oldcmd[thecmd];
 	Con_Printf ("BAD:  %3i:%s\n", MSG_GetNumBytesRead (msg) - 1, CL_MsgInfo (failcommand->command));
 	if (host_developer.value >= DEV_EXTENDED)
-		CL_WriteErrorMessage (MSG_GetNumBytesRead (msg) - 1, msg);
+		CL_WriteErrorMessage (MSG_GetNumBytesRead (msg) - 1, msg);*/
+	old = &cls_message_debug.oldcmd[thecmd];
+	Con_Printf (S_RED "BAD: " S_DEFAULT "%i %04i %s\n", old->frame_number, old->starting_offset,
+		CL_MsgInfo (old->command));
+	CL_WriteErrorMessage (old->starting_offset, msg);
+
 	cls_message_debug.parsing = false;
 	}

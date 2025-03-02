@@ -60,20 +60,21 @@ int Q_buildnum_compat (void);
 const char *Q_PlatformStringByID (const int platform);	// [FWGS, 01.04.23]
 const char *Q_buildos (void);
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.02.25]
 const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int endianness, const qboolean is64);
 const char *Q_buildarch (void);
-const char *Q_buildcommit (void);
-const char *Q_buildbranch (void);
+/*const char *Q_buildcommit (void);
+const char *Q_buildbranch (void);*/
+extern const char *g_buildcommit;
+extern const char *g_buildbranch;
 
 //
-// crtlib.c [FWGS, 01.12.24]
+// crtlib.c [FWGS, 01.02.25]
 //
 void Q_strnlwr (const char *in, char *out, size_t size_out);
 #define Q_strlen( str ) (( str ) ? strlen(( str )) : 0 )
-size_t Q_colorstr (const char *string);
+/*size_t Q_colorstr (const char *string);*/
 int Q_atoi_hex (int sign, const char *str);
-
 int Q_atoi (const char *str);
 float Q_atof (const char *str);
 void Q_atov (float *vec, const char *str, size_t siz);
@@ -118,8 +119,14 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 	const char *separators, qboolean wildcard_least_one);
 
 //
-// dllhelpers.c [FWGS, 22.01.25]
+// dllhelpers.c [FWGS, 01.02.25]
 //
+typedef struct dllfunc_s
+	{
+	const char	*name;
+	void		**func;
+	} dllfunc_t;
+
 void ClearExports (const dllfunc_t *funcs, size_t num_funcs);
 qboolean ValidateExports (const dllfunc_t *funcs, size_t num_funcs);
 

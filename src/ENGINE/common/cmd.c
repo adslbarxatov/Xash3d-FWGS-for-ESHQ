@@ -44,11 +44,13 @@ static cmdbuf_t	filteredcmd_text =
 	.data = filteredcmd_text_buf,
 	.maxsize = HLARRAYSIZE (filteredcmd_text_buf),
 	};
-static cmdalias_t	*cmd_alias;
-static uint		cmd_condition;
-static int		cmd_condlevel;
 
-static qboolean	cmd_currentCommandIsPrivileged;
+static cmdalias_t	*cmd_alias;
+static uint			cmd_condition;
+static int			cmd_condlevel;
+static qboolean		cmd_currentCommandIsPrivileged;
+static poolhandle_t cmd_pool;	// [FWGS, 01.02.25]
+
 
 static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPrivileged);
 
@@ -450,21 +452,24 @@ static void Cmd_Alias_f (void)
 		return;
 		}
 
-	// if the alias already exists, reuse it
+	// [FWGS, 01.02.25] if the alias already exists, reuse it
 	for (a = cmd_alias; a; a = a->next)
 		{
 		if (!Q_strcmp (s, a->name))
 			{
-			Z_Free (a->value);
+			/*Z_Free (a->value);*/
+			Mem_Free (a->value);
 			break;
 			}
 		}
 
+	// [FWGS, 01.02.25]
 	if (!a)
 		{
 		cmdalias_t *cur, *prev;
 
-		a = Z_Malloc (sizeof (cmdalias_t));
+		/*a = Z_Malloc (sizeof (cmdalias_t));*/
+		a = Mem_Malloc (cmd_pool, sizeof (cmdalias_t));
 
 		Q_strncpy (a->name, s, sizeof (a->name));
 
@@ -488,12 +493,15 @@ static void Cmd_Alias_f (void)
 
 	for (i = 2; i < c; i++)
 		{
-		if (i != 2) Q_strncat (cmd, " ", sizeof (cmd));
+		if (i != 2)
+			Q_strncat (cmd, " ", sizeof (cmd));
 		Q_strncat (cmd, Cmd_Argv (i), sizeof (cmd));
 		}
 
+	// [FWGS, 01.02.25]
 	Q_strncat (cmd, "\n", sizeof (cmd));
-	a->value = copystring (cmd);
+	/*a->value = copystring (cmd);*/
+	a->value = copystringpool (cmd_pool, cmd);
 	}
 
 /***
@@ -549,16 +557,15 @@ COMMAND EXECUTION
 =============================================================================
 ***/
 
-// [FWGS, 22.01.25]
-/*typedef struct cmd_s*/
+// [FWGS, 01.02.25]
 struct cmd_s
 	{
 	struct cmd_s	*next;
 	char		*name;
 	xcommand_t	function;
 	int			flags;
-	char		*desc;
-	/*} cmd_t;*/
+	/*char		*desc;*/
+	char		desc[];
 	};
 
 // [FWGS, 01.03.24]
@@ -648,7 +655,7 @@ const char *GAME_EXPORT Cmd_GetName (cmd_t *cmd)
 
 /***
 ============
-Cmd_TokenizeString [FWGS, 01.07.24]
+Cmd_TokenizeString
 
 Parses the given string into command line tokens.
 The text is copied to a seperate buffer and 0 characters
@@ -661,14 +668,16 @@ void Cmd_TokenizeString (const char *text)
 	char	cmd_token[MAX_CMD_BUFFER];
 	int		i;
 
-	// clear the args from the last string
+	// [FWGS, 01.02.25] clear the args from the last string
 	for (i = 0; i < cmd_argc; i++)
-		Z_Free (cmd_argv[i]);
+		Mem_Free (cmd_argv[i]);
+		/*Z_Free (cmd_argv[i]);*/
 
 	cmd_argc = 0; // clear previous args
 	cmd_args = NULL;
 
-	if (!text) return;
+	if (!text)
+		return;
 
 	while (1)
 		{
@@ -696,9 +705,11 @@ void Cmd_TokenizeString (const char *text)
 		if (!text)
 			return;
 
+		// [FWGS, 01.02.25]
 		if (cmd_argc < MAX_CMD_TOKENS)
 			{
-			cmd_argv[cmd_argc] = copystring (cmd_token);
+			/*cmd_argv[cmd_argc] = copystring (cmd_token);*/
+			cmd_argv[cmd_argc] = copystringpool (cmd_pool, cmd_token);
 			cmd_argc++;
 			}
 		}
@@ -706,14 +717,14 @@ void Cmd_TokenizeString (const char *text)
 
 /***
 ============
-Cmd_AddCommandEx [FWGS, 22.01.25]
+Cmd_AddCommandEx [FWGS, 01.02.25]
 ============
 ***/
-/*static int Cmd_AddCommandEx (const char *funcname, const char *cmd_name, xcommand_t function,
-	const char *cmd_desc, int iFlags)*/
 int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd_desc, int iFlags, const char *funcname)
 	{
-	cmd_t *cmd, *cur, *prev;
+	/*cmd_t *cmd, *cur, *prev;*/
+	cmd_t	*cmd, *cur, *prev;
+	size_t	desc_len;
 
 	if (!COM_CheckString (cmd_name))
 		{
@@ -728,23 +739,20 @@ int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd
 		return 0;
 		}
 
-	/*// fail if the command already exists
-	if (Cmd_Exists (cmd_name))*/
-
 	// fail if the command already exists and cannot be overriden
 	cmd = Cmd_Exists (cmd_name);
 	if (cmd)
 		{
-		/*Con_DPrintf (S_ERROR "%s: %s already defined\n", funcname, cmd_name);
-		return 0;*/
-
 		// some mods register commands that share the name with some engine's commands
 		// when they aren't critical to keep engine running, we can let mods to override them
 		// unfortunately, we lose original command this way
 		if (FBitSet (cmd->flags, CMD_OVERRIDABLE))
 			{
-			Mem_Free (cmd->desc);
-			cmd->desc = copystring (cmd_desc);
+			/*Mem_Free (cmd->desc);
+			cmd->desc = copystring (cmd_desc);*/
+			desc_len = Q_strlen (cmd->desc) + 1;
+			Q_strncpy (cmd->desc, cmd_desc, desc_len);
+
 			cmd->function = function;
 			cmd->flags = iFlags;
 
@@ -753,15 +761,22 @@ int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd
 			}
 		else
 			{
-			Con_DPrintf (S_ERROR "%s: %s already defined\n", funcname, cmd_name);
+			/*Con_DPrintf (S_ERROR "%s: %s already defined\n", funcname, cmd_name);*/
+			Con_DPrintf ("%s%s: %s already defined\n", (cmd->function == function) ? S_WARN : S_ERROR,
+				funcname, cmd_name);
 			return 0;
 			}
 		}
 
 	// use a small malloc to avoid zone fragmentation
-	cmd = Z_Malloc (sizeof (cmd_t));
+	/*cmd = Z_Malloc (sizeof (cmd_t));
 	cmd->name = copystring (cmd_name);
-	cmd->desc = copystring (cmd_desc);
+	cmd->desc = copystring (cmd_desc);*/
+	desc_len = Q_strlen (cmd_desc) + 1;
+	cmd = Mem_Malloc (cmd_pool, sizeof (cmd_t) + desc_len);
+	cmd->name = copystringpool (cmd_pool, cmd_name);
+	Q_strncpy (cmd->desc, cmd_desc, desc_len);
+
 	cmd->function = function;
 	cmd->flags = iFlags;
 
@@ -800,8 +815,10 @@ void GAME_EXPORT Cmd_RemoveCommand (const char *cmd_name)
 	while (1)
 		{
 		cmd = *back;
-		if (!cmd) return;
+		if (!cmd)
+			return;
 
+		// [FWGS, 01.02.25]
 		if (!Q_strcmp (cmd_name, cmd->name))
 			{
 #if defined(XASH_HASHED_VARS)
@@ -813,12 +830,13 @@ void GAME_EXPORT Cmd_RemoveCommand (const char *cmd_name)
 			if (cmd->name)
 				Mem_Free (cmd->name);
 
-			if (cmd->desc)
-				Mem_Free (cmd->desc);
+			/*if (cmd->desc)
+				Mem_Free (cmd->desc);*/
 
 			Mem_Free (cmd);
 			return;
 			}
+
 		back = &cmd->next;
 		}
 	}
@@ -1221,7 +1239,7 @@ static void Cmd_List_f (void)
 
 /***
 ============
-Cmd_Unlink [FWGS, 01.12.24]
+Cmd_Unlink
 
 unlink all commands with specified flag
 ============
@@ -1265,10 +1283,11 @@ void Cmd_Unlink (int group)
 
 		*prev = cmd->next;
 
+		// [FWGS, 01.02.25]
 		if (cmd->name)
 			Mem_Free (cmd->name);
-		if (cmd->desc)
-			Mem_Free (cmd->desc);
+		/*if (cmd->desc)
+			Mem_Free (cmd->desc);*/
 
 		Mem_Free (cmd);
 		count++;
@@ -1277,7 +1296,6 @@ void Cmd_Unlink (int group)
 	Con_Reportf ("unlink %i commands\n", count);
 	}
 
-// [FWGS, 01.04.23]
 static void Cmd_Apropos_f (void)
 	{
 	cmd_t		*cmd;
@@ -1377,7 +1395,7 @@ inserts escape sequences
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len)
 	{
 	int c;
-	int scripting = cmd_scripting.value;	// [FWGS, 01.07.23]
+	int scripting = cmd_scripting.value;
 
 	while ((c = *oldCommand++) && len > 1)
 		{
@@ -1408,6 +1426,9 @@ void Cmd_Init (void)
 	{
 	// [FWGS, 01.12.24]
 	/*Cbuf_Init ();*/
+
+	// [FWGS, 01.02.25]
+	cmd_pool = Mem_AllocPool ("Console Commands");
 
 	cmd_functions = NULL;
 	cmd_condition = 0;
@@ -1447,6 +1468,12 @@ void Cmd_Init (void)
 	Cmd_AddCommand ("basecmd_test", BaseCmd_Test_f, 
 		"test basecmd");
 #endif
+	}
+
+// [FWGS, 01.02.25]
+void Cmd_Shutdown (void)
+	{
+	Mem_FreePool (&cmd_pool);
 	}
 
 #if XASH_ENGINE_TESTS

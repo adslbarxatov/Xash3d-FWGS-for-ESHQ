@@ -18,15 +18,12 @@ GNU General Public License for more details
 #include "base_cmd.h"
 #include "eiface.h" // HLARRAYSIZE
 
-// [FWGS, 01.12.24]
-/*convar_t *cvar_vars = NULL; // head of list*/
-static convar_t *cvar_vars = NULL; // head of list
+// [FWGS, 01.02.25]
+static convar_t		*cvar_vars = NULL; // head of list
+static poolhandle_t	cvar_pool;
 
-// [FWGS, 01.07.23]
 CVAR_DEFINE_AUTO (cmd_scripting, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"enable simple condition checking and variable operations");
-
-// [FWGS, 01.04.23] удалена команда cl_filterstuffcmd
 
 /*ifdef HACKS_RELATED_HLMODS*/
 
@@ -462,9 +459,10 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			// in other cases we need to rewrite them
 			if (COM_CheckStringEmpty (var->desc))
 				{
-				// directly set value
+				// [FWGS, 01.02.25] directly set value
 				freestring (var->string);
-				var->string = copystring (value);
+				/*var->string = copystring (value);*/
+				var->string = copystringpool (cvar_pool, value);
 				var->value = Q_atof (var->string);
 				SetBits (var->flags, flags);
 
@@ -482,28 +480,37 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			{
 			if (!FBitSet (flags, FCVAR_GLCONFIG))
 				Con_Reportf ("%s change description from %s to %s\n", var->name, var->desc, var_desc);
-			// update description if needs
+
+			// [FWGS, 01.02.25] update description if needs
 			freestring (var->desc);
-			var->desc = copystring (var_desc);
+			/*var->desc = copystring (var_desc);*/
+			var->desc = copystringpool (cvar_pool, var_desc);
 			}
 
 		return var;
 		}
 
-	// allocate a new cvar
-	var = Z_Malloc (sizeof (*var));
+	// [FWGS, 01.02.25] allocate a new cvar
+	/*var = Z_Malloc (sizeof (*var));
 	var->name = copystring (name);
 	var->string = copystring (value);
 	var->def_string = copystring (value);
-	var->desc = copystring (var_desc);
+	var->desc = copystring (var_desc);*/
+	var = Mem_Malloc (cvar_pool, sizeof (*var));
+	var->name = copystringpool (cvar_pool, name);
+	var->string = copystringpool (cvar_pool, value);
+	var->def_string = copystringpool (cvar_pool, value);
+	var->desc = copystringpool (cvar_pool, var_desc);
 	var->value = Q_atof (var->string);
 	var->flags = flags | FCVAR_ALLOCATED;
 
 	// link the variable in alphanumerical order
 	for (cur = NULL, find = cvar_vars; find && (Q_strcmp (find->name, var->name) < 0); cur = find, find = find->next);
 
-	if (cur) cur->next = var;
-	else cvar_vars = var;
+	if (cur)
+		cur->next = var;
+	else
+		cvar_vars = var;
 	var->next = find;
 
 	// fill it cls.userinfo, svs.serverinfo
@@ -522,7 +529,7 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 
 /***
 ============
-Cvar_Getf [FWGS, 01.04.23]
+Cvar_Getf
 ============
 ***/
 convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, const char *format, ...)
@@ -581,15 +588,19 @@ void Cvar_RegisterVariable (convar_t *var)
 	if (FBitSet (var->flags, FCVAR_EXTENDED))
 		var->def_string = var->string; // just swap pointers
 
-	var->string = copystring (var->string);
+	// [FWGS, 01.02.25]
+	/*var->string = copystring (var->string);*/
+	var->string = copystringpool (cvar_pool, var->string);
 	var->value = Q_atof (var->string);
 
 	// find the supposed position in chain (alphanumerical order)
 	for (cur = NULL, find = cvar_vars; find && Q_strcmp (find->name, var->name) < 0; cur = find, find = find->next);
 
 	// now link variable
-	if (cur) cur->next = var;
-	else cvar_vars = var;
+	if (cur)
+		cur->next = var;
+	else
+		cvar_vars = var;
 	var->next = find;
 
 	// fill it cls.userinfo, svs.serverinfo
@@ -628,7 +639,7 @@ static qboolean Cvar_CanSet (const convar_t *cv)
 
 /***
 ============
-Cvar_Set2 [FWGS, 01.04.23]
+Cvar_Set2
 ============
 ***/
 static convar_t *Cvar_Set2 (const char *var_name, const char *value)
@@ -711,9 +722,10 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	if (!Cvar_UpdateInfo (var, pszValue, true))
 		return var;
 
-	// and finally changed the cvar itself
+	// [FWGS, 01.02.25] and finally changed the cvar itself
 	freestring (var->string);
-	var->string = copystring (pszValue);
+	/*var->string = copystring (pszValue);*/
+	var->string = copystringpool (cvar_pool, pszValue);
 	var->value = Q_atof (var->string);
 
 	// tell engine about changes
@@ -732,11 +744,10 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	{
 	const char *pszValue;
 
-	// [FWGS, 01.07.23]
 	if (unlikely (!var))
-		return; // ???
+		return; // ?
 
-	// [FWGS, 01.07.23] lookup for registration
+	// lookup for registration
 	if (unlikely (CVAR_CHECK_SENTINEL (var) || (var->next == NULL && !FBitSet (var->flags,
 		FCVAR_EXTENDED | FCVAR_ALLOCATED))))
 		{
@@ -774,9 +785,10 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	if (!Cvar_UpdateInfo (var, pszValue, true))
 		return;
 
-	// and finally changed the cvar itself
+	// [FWGS, 01.02.25] and finally changed the cvar itself
 	freestring (var->string);
-	var->string = copystring (pszValue);
+	/*var->string = copystring (pszValue);*/
+	var->string = copystringpool (cvar_pool, pszValue);
 	var->value = Q_atof (var->string);
 
 	// tell engine about changes
@@ -785,7 +797,7 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 
 /***
 ============
-Cvar_DirectSetValue [FWGS, 01.01.24]
+Cvar_DirectSetValue
 
 functionally is the same as Cvar_SetValue but for direct cvar access
 ============
@@ -819,8 +831,10 @@ void Cvar_FullSet (const char *var_name, const char *value, int flags)
 		return;
 		}
 
+	// [FWGS, 01.02.25]
 	freestring (var->string);
-	var->string = copystring (value);
+	/*var->string = copystring (value);*/
+	var->string = copystringpool (cvar_pool, value);
 	var->value = Q_atof (var->string);
 	SetBits (var->flags, flags);
 
@@ -1247,7 +1261,7 @@ static void Cvar_Reset_f (void)
 
 /***
 ============
-Cvar_List_f [FWGS, 01.02.24]
+Cvar_List_f
 ============
 ***/
 static void Cvar_List_f (void)
@@ -1263,9 +1277,11 @@ static void Cvar_List_f (void)
 		matchlen = Q_strlen (match);
 		}
 
+	// [FWGS, 01.02.25]
 	for (var = cvar_vars; var; var = var->next)
 		{
 		char value[MAX_VA_STRING];
+		char *p;
 
 		if (var->name[0] == '@')
 			continue;	// never shows system cvars
@@ -1273,7 +1289,9 @@ static void Cvar_List_f (void)
 		if (match && !Q_strnicmpext (match, var->name, matchlen))
 			continue;
 
-		if (Q_colorstr (var->string))
+		/*if (Q_colorstr (var->string))*/
+		p = Q_strchr (var->string, '^');
+		if (IsColorString (p))
 			Q_snprintf (value, sizeof (value), "\"%s\"", var->string);
 		else
 			Q_snprintf (value, sizeof (value), "\"^2%s^7\"", var->string);
@@ -1315,17 +1333,13 @@ void Cvar_Unlink (int group)
 	{
 	int	count;
 
-	/*if (Cvar_VariableInteger ("host_gameloaded") && FBitSet (group, FCVAR_EXTDLL))*/
 	if (!Cvar_ValidateUnlinkGroup (group))
 		return;
 
-	/*if (Cvar_VariableInteger ("host_clientloaded") && FBitSet (group, FCVAR_CLIENTDLL))
-		return;*/
 	count = Cvar_UnlinkVar (NULL, group);
 	Con_Reportf ("unlink %i cvars\n", count);
 	}
 
-// [FWGS, 01.12.24]
 pending_cvar_t *Cvar_PrepareToUnlink (int group)
 	{
 	pending_cvar_t	*list = NULL;
@@ -1340,8 +1354,10 @@ pending_cvar_t *Cvar_PrepareToUnlink (int group)
 		if (!FBitSet (cv->flags, group))
 			continue;
 
+		// [FWGS, 01.02.25]
 		namelen = Q_strlen (cv->name) + 1;
-		p = Mem_Malloc (host.mempool, sizeof (*list) + namelen);
+		/*p = Mem_Malloc (host.mempool, sizeof (*list) + namelen);*/
+		p = Mem_Malloc (cvar_pool, sizeof (*list) + namelen);
 		p->next = NULL;
 		p->cv_cur = cv;
 		p->cv_next = cv->next;
@@ -1409,22 +1425,21 @@ void Cvar_UnlinkPendingCvars (pending_cvar_t *list)
 		count++;
 		}
 
-	/*if (Cvar_VariableInteger ("host_gameuiloaded") && FBitSet (group, FCVAR_GAMEUIDLL))
-		return;*/
-
-	/*count = Cvar_UnlinkVar (NULL, group);*/
 	Con_Reportf ("unlink %i cvars\n", count);
 	}
 
 /***
 ============
-Cvar_Init [FWGS, 01.07.23]
+Cvar_Init
 
 Reads in all archived cvars
 ============
 ***/
 void Cvar_Init (void)
 	{
+	// [FWGS, 01.02.25]
+	cvar_pool = Mem_AllocPool ("Console Variables");
+
 	cvar_vars = NULL;
 	cvar_active_filter_quirks = NULL;
 
@@ -1444,9 +1459,15 @@ void Cvar_Init (void)
 		"display all console variables beginning with the specified prefix");
 	}
 
+// [FWGS, 01.02.25]
+void Cvar_Shutdown (void)
+	{
+	Mem_FreePool (&cvar_pool);
+	}
+
 /***
 ============
-Cvar_PostFSInit [FWGS, 01.04.23]
+Cvar_PostFSInit
 ============
 ***/
 void Cvar_PostFSInit (void)

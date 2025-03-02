@@ -77,7 +77,7 @@ void CL_ClearEfrags (void)
 
 /***
 ===================
-R_SplitEntityOnNode [FWGS, 01.09.24]
+R_SplitEntityOnNode
 ===================
 ***/
 static void R_SplitEntityOnNode (mnode_t *node)
@@ -128,11 +128,15 @@ static void R_SplitEntityOnNode (mnode_t *node)
 			r_pefragtopnode = node;
 		}
 
-	// recurse down the contacted sides
-	if (sides & 1)
+	// [FWGS, 01.02.25] recurse down the contacted sides
+	/*if (sides & 1)
 		R_SplitEntityOnNode (node->children[0]);
 	if (sides & 2)
-		R_SplitEntityOnNode (node->children[1]);
+		R_SplitEntityOnNode (node->children[1]);*/
+	if (sides & 1)
+		R_SplitEntityOnNode (node_child (node, 0, cl.worldmodel));
+	if (sides & 2)
+		R_SplitEntityOnNode (node_child (node, 1, cl.worldmodel));
 	}
 
 /***

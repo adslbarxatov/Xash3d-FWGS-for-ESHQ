@@ -205,7 +205,6 @@ static int CL_AdjustXPos (float x, int width, int totalWidth)
 
 	if (x == -1)
 		{
-		/*xPos = (refState.width - width) * 0.5f;*/
 		xPos = (clgame.scrInfo.iWidth - width) * 0.5f;
 		}
 	else
@@ -213,16 +212,12 @@ static int CL_AdjustXPos (float x, int width, int totalWidth)
 		// alight right
 		if (x < 0)
 			xPos = (1.0f + x) * clgame.scrInfo.iWidth - totalWidth;
-			/*xPos = (1.0f + x) * refState.width - totalWidth;*/
 
 		// align left
 		else
 			xPos = x * clgame.scrInfo.iWidth;
-			/*xPos = x * refState.width;*/
 		}
 
-	/*if (xPos + width > refState.width)
-		xPos = refState.width - width;*/
 	if (xPos + width > clgame.scrInfo.iWidth)
 		xPos = clgame.scrInfo.iWidth - width;
 	else if (xPos < 0)
@@ -244,7 +239,6 @@ static int CL_AdjustYPos (float y, int height)
 
 	if (y == -1) // centered?
 		{
-		/*yPos = (refState.height - height) * 0.5f;*/
 		yPos = (clgame.scrInfo.iHeight - height) * 0.5f;
 		}
 	else
@@ -252,16 +246,12 @@ static int CL_AdjustYPos (float y, int height)
 		// alight bottom
 		if (y < 0)
 			yPos = (1.0f + y) * clgame.scrInfo.iHeight - height;
-			/*yPos = (1.0f + y) * refState.height - height; // Alight bottom*/
 
 		// align top
 		else
 			yPos = y * clgame.scrInfo.iHeight;
-			/*yPos = y * refState.height;*/
 		}
 
-	/*if (yPos + height > refState.height)
-		yPos = refState.height - height;*/
 	if (yPos + height > clgame.scrInfo.iHeight)
 		yPos = clgame.scrInfo.iHeight - height;
 	else if (yPos < 0)
@@ -562,7 +552,7 @@ static void CL_DrawScreenFade (void)
 
 /***
 ====================
-CL_InitTitles [FWGS, 01.04.23]
+CL_InitTitles
 
 parse all messages that declared in titles.txt
 and hold them into permament memory pool
@@ -571,16 +561,17 @@ and hold them into permament memory pool
 static void CL_InitTitles (const char *filename)
 	{
 	fs_offset_t	fileSize;
-	byte *pMemFile;
-	int	i;
+	byte	*pMemFile;
+	int		i;
 
-	// initialize text messages (game_text)
+	// [FWGS, 01.02.25] initialize text messages (game_text)
 	for (i = 0; i < MAX_TEXTCHANNELS; i++)
 		{
 		char name[MAX_VA_STRING];
 		Q_snprintf (name, sizeof (name), TEXT_MSGNAME, i);
 
-		cl_textmessage[i].pName = _copystring (clgame.mempool, name, __FILE__, __LINE__);
+		/*cl_textmessage[i].pName = _copystring (clgame.mempool, name, __FILE__, __LINE__);*/
+		cl_textmessage[i].pName = copystringpool (clgame.mempool, name);
 		cl_textmessage[i].pMessage = cl_textbuffer[i];
 		}
 
@@ -2462,13 +2453,15 @@ static void GAME_EXPORT pfnPlaySound (int ent, float *org, int chan, const char 
 
 /***
 =============
-CL_FindModelIndex
+CL_FindModelIndex [FWGS, 01.02.25]
 =============
 ***/
 static int GAME_EXPORT CL_FindModelIndex (const char *m)
 	{
-	char	filepath[MAX_QPATH];
+	/*char	filepath[MAX_QPATH];
 	static float	lasttimewarn;
+	int		i;*/
+	char	filepath[MAX_QPATH];
 	int		i;
 
 	if (!COM_CheckString (m))
@@ -2486,12 +2479,12 @@ static int GAME_EXPORT CL_FindModelIndex (const char *m)
 			return i + 1;
 		}
 
-	if (lasttimewarn < host.realtime)
+	/*if (lasttimewarn < host.realtime)
 		{
 		// tell user about problem (but don't spam console)
 		Con_DPrintf (S_ERROR "Could not find index for model %s: not precached\n", filepath);	// [FWGS, 01.07.24]
 		lasttimewarn = host.realtime + 1.0f;
-		}
+		}*/
 
 	return 0;
 	}
@@ -3385,25 +3378,27 @@ int TriSpriteTexture (model_t *pSpriteModel, int frame)
 DemoApi implementation
 =================
 ***/
-/***
+
+// [FWGS, 01.02.25] removed Demo_IsRecording, Demo_IsPlayingback
+/*
 =================
 Demo_IsRecording
 =================
-***/
+/
 static int GAME_EXPORT Demo_IsRecording (void)
 	{
 	return cls.demorecording;
 	}
 
-/***
+/
 =================
 Demo_IsPlayingback
 =================
-***/
+/
 static int GAME_EXPORT Demo_IsPlayingback (void)
 	{
 	return cls.demoplayback;
-	}
+	}*/
 
 /***
 =================
@@ -3415,21 +3410,23 @@ static int GAME_EXPORT Demo_IsTimeDemo (void)
 	return cls.timedemo;
 	}
 
-/***
+// [FWGS, 01.02.25] removed Demo_WriteBuffer
+/*
 =================
 Demo_WriteBuffer
 =================
-***/
+/
 static void GAME_EXPORT Demo_WriteBuffer (int size, byte *buffer)
 	{
 	CL_WriteDemoUserMessage (buffer, size);
-	}
+	}*/
 
 /***
 =================
 NetworkApi implementation
 =================
 ***/
+
 /***
 =================
 NetAPI_InitNetworking
@@ -3529,8 +3526,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	nr->flags = flags;
 	
 	// [FWGS, 01.12.24] local servers request
-	/*Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, "netinfo %i %i %i",
-		FBitSet (flags, FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);*/
 	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO " %i %i %i", FBitSet (flags,
 		FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);
 	}
@@ -3559,7 +3554,6 @@ static void GAME_EXPORT NetAPI_CancelRequest (int context)
 				nr->pfnFunc (&nr->resp);
 				}
 
-			// [FWGS, 01.11.23]
 			memset (&clgame.net_requests[i], 0, sizeof (net_request_t));
 			break;
 			}
@@ -3588,7 +3582,6 @@ void GAME_EXPORT NetAPI_CancelAllRequests (void)
 		nr->pfnFunc (&nr->resp);
 		}
 
-	// [FWGS, 01.11.23]
 	memset (clgame.net_requests, 0, sizeof (clgame.net_requests));
 	}
 
@@ -3612,25 +3605,26 @@ static int GAME_EXPORT NetAPI_CompareAdr (netadr_t *a, netadr_t *b)
 	return NET_CompareAdr (*a, *b);
 	}
 
-/***
+// [FWGS, 01.02.25] removed NetAPI_StringToAdr, NetAPI_ValueForKey
+/*
 =================
 NetAPI_StringToAdr
 =================
-***/
+/
 static int GAME_EXPORT NetAPI_StringToAdr (char *s, netadr_t *a)
 	{
 	return NET_StringToAdr (s, a);
 	}
 
-/***
+/
 =================
 NetAPI_ValueForKey
 =================
-***/
+/
 static const char *GAME_EXPORT NetAPI_ValueForKey (const char *s, const char *key)
 	{
 	return Info_ValueForKey (s, key);
-	}
+	}*/
 
 /***
 =================
@@ -3818,15 +3812,19 @@ static event_api_t gEventApi =
 	CL_PopTraceBounds,
 	};
 
+// [FWGS, 01.02.25]
 static demo_api_t gDemoApi =
 	{
-	Demo_IsRecording,
-	Demo_IsPlayingback,
+	/*Demo_IsRecording,
+	Demo_IsPlayingback,*/
+	(void *)CL_IsRecordDemo,
+	(void *)CL_IsPlaybackDemo,
 	Demo_IsTimeDemo,
-	Demo_WriteBuffer,
+	/*Demo_WriteBuffer,*/
+	CL_WriteDemoUserMessage,
 	};
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.02.25]
 net_api_t gNetApi =
 	{
 	NetAPI_InitNetworking,
@@ -3836,8 +3834,10 @@ net_api_t gNetApi =
 	NetAPI_CancelAllRequests,
 	NetAPI_AdrToString,
 	NetAPI_CompareAdr,
-	NetAPI_StringToAdr,
-	NetAPI_ValueForKey,
+	/*NetAPI_StringToAdr,
+	NetAPI_ValueForKey,*/
+	(void *)NET_StringToAdr,
+	Info_ValueForKey,
 	NetAPI_RemoveKey,
 	NetAPI_SetValueForKey,
 	};

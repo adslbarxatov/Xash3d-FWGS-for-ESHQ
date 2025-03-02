@@ -42,10 +42,20 @@ NOTE: never change this structure because all dll descriptions in xash code
 writes into struct by offsets not names
 ========================================================================
 ***/
+
+// [FWGS, 01.02.25]
+typedef struct dll_info_s
+	{
+	const char		*name;	// name of library
+	const dllfunc_t	*fcts;	// list of dll exports
+	const size_t	num_fcts;
+	qboolean		crash;	// crash if dll not found
+	void			*link;	// hinstance of loading library
+	} dll_info_t;
+
 extern int error_on_exit;	// [FWGS, 01.05.24]
 
 // [FWGS, 25.12.24]
-/*void Sys_Sleep (int msec);*/
 double Sys_DoubleTime (void);
 char *Sys_GetClipboardData (void);
 const char *Sys_GetCurrentUser (void);
@@ -55,33 +65,30 @@ int Sys_CheckParm (const char *parm);
 void Sys_Warn (const char *format, ...) FORMAT_CHECK (1);
 void Sys_Error (const char *error, ...) FORMAT_CHECK (1);
 qboolean Sys_LoadLibrary (dll_info_t *dll);
-/*void *Sys_GetProcAddress (dll_info_t *dll, const char *name);*/
 qboolean Sys_FreeLibrary (dll_info_t *dll);
 void Sys_ParseCommandLine (int argc, char **argv);
-/*void Sys_SetupCrashHandler (void);
-void Sys_RestoreCrashHandler (void);*/
 void Sys_DebugBreak (void);
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.02.25]
 #define Sys_GetParmFromCmdLine( parm, out ) _Sys_GetParmFromCmdLine( parm, out, sizeof( out ))
 qboolean _Sys_GetParmFromCmdLine (const char *parm, char *out, size_t size);
 qboolean Sys_GetIntFromCmdLine (const char *parm, int *out);
-/*void Sys_SendKeyEvents (void);*/
 void Sys_Print (const char *pMsg);
-void Sys_PrintLog (const char *pMsg);
+/*void Sys_PrintLog (const char *pMsg);
 void Sys_InitLog (void);
-void Sys_CloseLog (void);
-/*void Sys_Quit (void) NORETURN;*/
+void Sys_CloseLog (void);*/
 void Sys_Quit (const char *reason) NORETURN;
-qboolean Sys_NewInstance (const char *gamedir);
+/*qboolean Sys_NewInstance (const char *gamedir);*/
+qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg);
 void *Sys_GetNativeObject (const char *obj);
 
 //
-// sys_con.c
+// sys_con.c [FWGS, 01.02.25]
 //
 char *Sys_Input (void);
 void Sys_DestroyConsole (void);
-void Sys_CloseLog (void);
+/*void Sys_CloseLog (void);*/
+void Sys_CloseLog (const char *finalmsg);
 void Sys_InitLog (void);
 void Sys_PrintLog (const char *pMsg);
 int Sys_LogFileNo (void);

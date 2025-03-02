@@ -205,11 +205,11 @@ static inline void MSG_StartBitWriting (sizebuf_t *sb)
 	sb->iAlternateSign++;
 	}
 
-void MSG_InitMasks (void); // called once at startup engine
+// [FWGS, 01.02.25]
+/*void MSG_InitMasks (void); // called once at startup engine*/
 void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove);
 
 // [FWGS, 01.12.24] Bit-write functions
-/*void MSG_WriteOneBit (sizebuf_t *sb, int nValue);*/
 static inline void MSG_WriteOneBit (sizebuf_t *sb, int nValue)
 	{
 	if (!MSG_Overflow (sb, 1))

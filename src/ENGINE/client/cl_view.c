@@ -443,10 +443,10 @@ static void R_DrawNodeConnection (float x, float y, float x2, float y2)
 static void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int shownodes, mleaf_t *viewleaf)
 	{
 	float	downScale = scale * 0.8f;
-
 	downScale = Q_max (downScale, 1.0f);
 
-	if (!node) return;
+	if (!node)
+		return;
 
 	world.recursion_level++;
 
@@ -467,6 +467,7 @@ static void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int show
 				ref.dllFuncs.Color4f (0.0f, 1.0f, 0.0f, 1.0f);
 			R_DrawLeafNode (x, y, scale);
 			}
+
 		world.recursion_level--;
 		return;
 		}
@@ -482,8 +483,11 @@ static void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int show
 		R_DrawNodeConnection (x, y, x + scale, y + scale);
 		}
 
-	R_ShowTree_r (node->children[1], x - scale, y + scale, downScale, shownodes, viewleaf);
-	R_ShowTree_r (node->children[0], x + scale, y + scale, downScale, shownodes, viewleaf);
+	// [FWGS, 01.02.25]
+	/*R_ShowTree_r (node->children[1], x - scale, y + scale, downScale, shownodes, viewleaf);
+	R_ShowTree_r (node->children[0], x + scale, y + scale, downScale, shownodes, viewleaf);*/
+	R_ShowTree_r (node_child (node, 1, cl.worldmodel), x - scale, y + scale, downScale, shownodes, viewleaf);
+	R_ShowTree_r (node_child (node, 0, cl.worldmodel), x + scale, y + scale, downScale, shownodes, viewleaf);
 
 	world.recursion_level--;
 	}
@@ -497,9 +501,13 @@ static void R_ShowTree (void)
 	if (!cl.worldmodel || !r_showtree.value)
 		return;
 
+	// [FWGS, 01.02.25]
 	world.recursion_level = 0;
-	viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes);
-	ref.dllFuncs.TriRenderMode (kRenderTransTexture);	// [FWGS, 01.12.24]
+	/*viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes);*/
+	viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes, cl.worldmodel);
+
+	// [FWGS, 01.12.24]
+	ref.dllFuncs.TriRenderMode (kRenderTransTexture);
 	ref.dllFuncs.Color4f (1, 0.7f, 0, 1.0f);
 
 	R_ShowTree_r (cl.worldmodel->nodes, x, y, world.max_recursion * 3.5f, 2, viewleaf);

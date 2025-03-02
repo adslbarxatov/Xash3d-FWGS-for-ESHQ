@@ -14,13 +14,11 @@ GNU General Public License for more details
 ***/
 
 #include "crtlib.h"
-#include "buildenums.h"		// [FWGS, 01.04.23]
+#include "buildenums.h"
 
-// [FWGS, 01.05.23] удалена *date
 static const char *mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 static const char mond[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-// [FWGS, 01.05.23]
 int Q_buildnum_date (const char *date)
 	{
 	int b;
@@ -249,28 +247,29 @@ const char *Q_buildarch (void)
 	);
 	}
 
-/***
+// [FWGS, 01.02.25] removed Q_buildcommit, Q_buildbranch
+/*
 =============
 Q_buildcommit [FWGS, 01.05.24]
 
 Returns a short hash of current commit in VCS as string
 XASH_BUILD_COMMIT must be passed in quotes
 =============
-***/
+/
 const char *Q_buildcommit (void)
 	{
 	return XASH_BUILD_COMMIT;
 	}
 
-/***
+/*
 =============
 Q_buildbranch [FWGS, 01.05.24]
 
 Returns current branch name in VCS as string
 XASH_BUILD_BRANCH must be passed in quotes
 =============
-***/
+/
 const char *Q_buildbranch (void)
 	{
 	return XASH_BUILD_BRANCH;
-	}
+	}*/

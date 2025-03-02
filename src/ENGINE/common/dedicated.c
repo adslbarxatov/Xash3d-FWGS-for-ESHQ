@@ -24,7 +24,6 @@ ref_globals_t refState;
 // [FWGS, 01.12.24] removed CL_ProcessFile
 
 // [FWGS, 01.12.24]
-/*void CL_ProcessFile (qboolean successfully_received, const char *filename)*/
 const char *CL_MsgInfo (int cmd)
 	{
 	static string sz;
@@ -54,7 +53,10 @@ const char *CL_MsgInfo (int cmd)
 	return sz;
 	}
 
-int GAME_EXPORT CL_Active (void)
+// [FWGS, 01.08.24] removed CL_IsInMenu
+// [FWGS, 01.02.25] removed CL_Active, CL_Initialized, CL_IsInGame, CL_IsInConsole,
+// CL_IsIntermission, CL_IsPlaybackDemo, CL_IsRecordDemo, CL_DisableVisibility, CL_Init
+/*int GAME_EXPORT CL_Active (void)
 	{
 	return false;
 	}
@@ -68,8 +70,6 @@ qboolean CL_IsInGame (void)
 	{
 	return true;	// always active for dedicated servers
 	}
-
-// [FWGS, 01.08.24] removed CL_IsInMenu
 
 qboolean CL_IsInConsole (void)
 	{
@@ -100,7 +100,7 @@ qboolean CL_DisableVisibility (void)
 
 void CL_Init (void)
 	{
-	}
+	}*/
 
 void Key_Init (void)
 	{
@@ -130,14 +130,15 @@ void CL_WriteMessageHistory (void)
 	{
 	}
 
-void Host_ClientBegin (void)
+// [FWGS, 01.02.25] removed Host_ClientBegin, Host_ClientFrame
+/*void Host_ClientBegin (void)
 	{
 	Cbuf_Execute ();
 	}
 
 void Host_ClientFrame (void)
 	{
-	}
+	}*/
 
 void Host_InputFrame (void)
 	{
@@ -151,22 +152,18 @@ void Con_Init (void)
 	{
 	}
 
-// [FWGS, 01.02.24] удалены R_ClearAllDecals, R_CreateDecalList
+// [FWGS, 01.02.24] removed R_ClearAllDecals, R_CreateDecalList
 
 void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
 	{
 	}
 
 // [FWGS, 01.02.24] removed S_GetCurrentStaticSounds
-/*int S_GetCurrentStaticSounds (soundlist_t *pout, int size)
+// [FWGS, 01.02.25] removed CL_GetMaxClients
+/*int GAME_EXPORT CL_GetMaxClients (void)
 	{
 	return 0;
 	}*/
-
-int GAME_EXPORT CL_GetMaxClients (void)
-	{
-	return 0;
-	}
 
 void IN_TouchInitConfig (void)
 	{
@@ -176,9 +173,10 @@ void CL_Disconnect (void)
 	{
 	}
 
-void CL_Shutdown (void)
+// [FWGS, 01.02.25] removed CL_Shutdown
+/*void CL_Shutdown (void)
 	{
-	}
+	}*/
 
 void R_ClearStaticEntities (void)
 	{
@@ -188,10 +186,11 @@ void Host_Credits (void)
 	{
 	}
 
-qboolean UI_CreditsActive (void)
+// [FWGS, 01.02.25] removed UI_CreditsActive
+/*qboolean UI_CreditsActive (void)
 	{
 	return false;
-	}
+	}*/
 
 void S_StopBackgroundTrack (void)
 	{
@@ -201,10 +200,11 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	{
 	}
 
-int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
+// [FWGS, 01.02.25] removed S_GetCurrentDynamicSounds
+/*int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
 	{
 	return 0;
-	}
+	}*/
 
 void S_StopAllSounds (qboolean ambient)
 	{

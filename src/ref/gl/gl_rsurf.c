@@ -35,9 +35,6 @@ static mextrasurf_t	*detail_surfaces[MAX_TEXTURES];
 static int		rtable[MOD_FRAMES][MOD_FRAMES];
 
 // [FWGS, 01.12.24]
-/*static qboolean	draw_alpha_surfaces = false;
-static qboolean	draw_fullbrights = false;
-static qboolean	draw_details = false;*/
 typedef struct
 	{
 	int first, last;
@@ -134,16 +131,33 @@ static void R_TextureCoord (const vec3_t v, const msurface_t *surf, vec2_t coord
 	Vector2Set (coords, s, t);
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.02.25]
 static void R_GetEdgePosition (const model_t *mod, const msurface_t *fa, int i, vec3_t vec)
 	{
-	const int		lindex = mod->surfedges[fa->firstedge + i];
-	const medge_t	*pedges = mod->edges;
+	const int	lindex = mod->surfedges[fa->firstedge + i];
+	/*const medge_t	*pedges = mod->edges;*/
 
-	if (lindex > 0)
-		VectorCopy (mod->vertexes[pedges[lindex].v[0]].position, vec);
+	/*if (lindex > 0)
+		VectorCopy (mod->vertexes[pedges[lindex].v[0]].position, vec);*/
+	if (FBitSet (mod->flags, MODEL_QBSP2))
+		{
+		const medge32_t *pedges = mod->edges32;
+
+		if (lindex > 0)
+			VectorCopy (mod->vertexes[pedges[lindex].v[0]].position, vec);
+		else
+			VectorCopy (mod->vertexes[pedges[-lindex].v[1]].position, vec);
+		}
 	else
-		VectorCopy (mod->vertexes[pedges[-lindex].v[1]].position, vec);
+		/*VectorCopy (mod->vertexes[pedges[-lindex].v[1]].position, vec);*/
+		{
+		const medge16_t *pedges = mod->edges16;
+
+		if (lindex > 0)
+			VectorCopy (mod->vertexes[pedges[lindex].v[0]].position, vec);
+		else
+			VectorCopy (mod->vertexes[pedges[-lindex].v[1]].position, vec);
+		}
 	}
 
 static void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
@@ -478,12 +492,13 @@ static texture_t *R_TextureAnim (texture_t *b)
 
 /***
 ===============
-R_TextureAnimation
+R_TextureAnimation [FWGS, 01.02.25]
 
 Returns the proper texture for a given time and surface
 ===============
 ***/
-texture_t *R_TextureAnimation (msurface_t *s)
+/*texture_t *R_TextureAnimation (msurface_t *s)*/
+static texture_t *R_TextureAnimation (msurface_t *s)
 	{
 	texture_t	*base = s->texinfo->texture;
 	int			count, reletive;
@@ -888,10 +903,11 @@ static void R_BuildLightMap (const msurface_t *surf, byte *dest, int stride, qbo
 
 /***
 ================
-DrawGLPoly [FWGS, 01.09.24]
+DrawGLPoly [FWGS, 01.02.25]
 ================
 ***/
-void DrawGLPoly (glpoly2_t *p, float xScale, float yScale)
+/*void DrawGLPoly (glpoly2_t *p, float xScale, float yScale)*/
+static void DrawGLPoly (glpoly2_t *p, float xScale, float yScale)
 	{
 	float	*v;
 	float	sOffset, sy;
@@ -922,7 +938,6 @@ void DrawGLPoly (glpoly2_t *p, float xScale, float yScale)
 			flConveyorSpeed = (float)(e->curstate.renderfx - kRenderFxEdge) * 10.0f;
 			}
 
-		// [FWGS, 01.07.23]
 		texture = R_GetTexture (glState.currentTexturesIndex[glState.activeTMU]);
 
 		flRate = fabs (flConveyorSpeed) / (float)texture->srcWidth;
@@ -2020,7 +2035,9 @@ typedef struct vbodecaldata_s
 // gl_decals.c
 extern decal_t	gDecalPool[MAX_RENDER_DECALS];
 
-struct vbo_static_s
+// [FWGS, 01.02.25]
+/*struct vbo_static_s*/
+static struct vbo_static_s
 	{
 	// quickly free all allocations on map change
 	poolhandle_t	mempool;
@@ -2056,7 +2073,9 @@ struct vbo_static_s
 	qboolean	enabled;
 	} vbos;
 
-struct multitexturestate_s
+// [FWGS, 01.02.25]
+/*struct multitexturestate_s*/
+static struct multitexturestate_s
 	{
 	int			tmu_gl;		// texture tmu
 	int			tmu_dt;		// detail tmu
@@ -3693,9 +3712,10 @@ qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
 WORLD MODEL
 =============================================================
 ***/
+
 /***
 ================
-R_RecursiveWorldNode
+R_RecursiveWorldNode [FWGS, 01.02.25]
 ================
 ***/
 static void R_RecursiveWorldNode (mnode_t *node, uint clipflags)
@@ -3705,6 +3725,8 @@ static void R_RecursiveWorldNode (mnode_t *node, uint clipflags)
 	mleaf_t		*pleaf;
 	int			c, side;
 	float		dot;
+	mnode_t		*children[2];
+	int			numsurfaces, firstsurface;
 
 loc0:
 	if (node->contents == CONTENTS_SOLID)
@@ -3713,7 +3735,7 @@ loc0:
 	if (node->visframe != tr.visframecount)
 		return;
 
-	if (clipflags && !r_nocull.value)	// [FWGS, 01.07.23]
+	if (clipflags && !r_nocull.value)
 		{
 		for (i = 0; i < 6; i++)
 			{
@@ -3762,10 +3784,16 @@ loc0:
 	side = (dot >= 0.0f) ? 0 : 1;
 
 	// recurse down the children, front side first
-	R_RecursiveWorldNode (node->children[side], clipflags);
+	/*R_RecursiveWorldNode (node->children[side], clipflags);*/
+	node_children (children, node, WORLDMODEL);
+	R_RecursiveWorldNode (children[side], clipflags);
+
+	firstsurface = node_firstsurface (node, WORLDMODEL);
+	numsurfaces = node_numsurfaces (node, WORLDMODEL);
 
 	// draw stuff
-	for (c = node->numsurfaces, surf = WORLDMODEL->surfaces + node->firstsurface; c; c--, surf++)
+	/*for (c = node->numsurfaces, surf = WORLDMODEL->surfaces + node->firstsurface; c; c--, surf++)*/
+	for (c = numsurfaces, surf = WORLDMODEL->surfaces + firstsurface; c; c--, surf++)
 		{
 		if (R_CullSurface (surf, &RI.frustum, clipflags))
 			continue;
@@ -3784,7 +3812,8 @@ loc0:
 		}
 
 	// recurse down the back side
-	node = node->children[!side];
+	/*node = node->children[!side];*/
+	node = children[!side];
 	goto loc0;
 	}
 
@@ -3850,7 +3879,7 @@ static void R_DrawTopViewLeaf (mleaf_t *pleaf, uint clipflags)
 
 /***
 ================
-R_DrawWorldTopView
+R_DrawWorldTopView [FWGS, 01.02.25]
 ================
 ***/
 static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
@@ -3860,6 +3889,9 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 
 	do
 		{
+		mnode_t	*children[2];
+		int		numsurfaces, firstsurface;
+
 		if (node->contents == CONTENTS_SOLID)
 			return;	// hit a solid leaf
 
@@ -3895,7 +3927,11 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 			}
 
 		// draw stuff
-		for (c = node->numsurfaces, surf = WORLDMODEL->surfaces + node->firstsurface; c; c--, surf++)
+		/*for (c = node->numsurfaces, surf = WORLDMODEL->surfaces + node->firstsurface; c; c--, surf++)*/
+		numsurfaces = node_numsurfaces (node, WORLDMODEL);
+		firstsurface = node_firstsurface (node, WORLDMODEL);
+
+		for (c = numsurfaces, surf = WORLDMODEL->surfaces + firstsurface; c; c--, surf++)
 			{
 			// don't process the same surface twice
 			if (surf->visframe == tr.framecount)
@@ -3914,8 +3950,11 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 			}
 
 		// recurse down both children, we don't care the order...
-		R_DrawWorldTopView (node->children[0], clipflags);
-		node = node->children[1];
+		/*R_DrawWorldTopView (node->children[0], clipflags);
+		node = node->children[1];*/
+		node_children (children, node, WORLDMODEL);
+		R_DrawWorldTopView (children[0], clipflags);
+		node = children[1];
 
 		} while (node);
 	}

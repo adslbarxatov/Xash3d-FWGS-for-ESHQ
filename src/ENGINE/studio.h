@@ -46,7 +46,7 @@ Studio models are position independent, so the cache manager can move them
 
 #define MAXSTUDIONAME			32	// a part of specs
 #define MAXSTUDIOPOSEPARAM		24
-#define MAX_STUDIO_LIGHTMAP_SIZE	256	// must match with engine const!!!
+#define MAX_STUDIO_LIGHTMAP_SIZE	256	// must match with engine const!
 
 // client-side model flags
 #define STUDIO_ROCKET		(1U<<0)	// leave a trail

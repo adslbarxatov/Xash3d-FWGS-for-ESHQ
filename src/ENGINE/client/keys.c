@@ -35,15 +35,15 @@ typedef struct keyname_s
 	} keyname_t;
 
 // [FWGS, 22.01.25]
-/*enginekey_t	keys[256];*/
 static enginekey_t keys[256];
 
-/*keyname_t keynames[] =*/
+// [FWGS, 01.02.25]
 static const keyname_t keynames[] =
 	{
 	{"TAB",			K_TAB,			""},
 	{"ENTER",		K_ENTER,		""},
-	{"ESCAPE",		K_ESCAPE, 		"escape"}, // hardcoded
+	/*{"ESCAPE",		K_ESCAPE, 		"escape"}, // hardcoded*/
+	{"ESCAPE",		K_ESCAPE,		"cancelselect" }, // hardcoded
 	{"SPACE",		K_SPACE,		"+jump"},
 	{"BACKSPACE",	K_BACKSPACE,	""},
 	{"UPARROW",		K_UPARROW,		"+forward"},
@@ -54,7 +54,8 @@ static const keyname_t keynames[] =
 	{"CTRL",		K_CTRL,			"+attack"},
 	{"SHIFT",		K_SHIFT,		"+speed"},
 	{"CAPSLOCK",	K_CAPSLOCK,		""},
-	{"SCROLLOCK",	K_SCROLLOCK,	""},
+	/*{"SCROLLOCK",	K_SCROLLOCK,	""},*/
+	{"SCROLLOCK",	K_SCROLLLOCK,	"" },
 	{"F1",			K_F1,			"cmd help"},
 	{"F2",			K_F2,			"menu_savegame"},
 	{"F3",			K_F3,			"menu_loadgame"},
@@ -107,9 +108,10 @@ static const keyname_t keynames[] =
 	{"B_BUTTON",	K_B_BUTTON,		"+use"},
 	{"X_BUTTON",	K_X_BUTTON,		"+reload"},
 	{"Y_BUTTON",	K_Y_BUTTON,		"impulse 100"},	// Flashlight
-	{"BACK",		K_BACK_BUTTON,	"pause"},		// [FWGS, 01.04.23] Menu
+	{"BACK",		K_BACK_BUTTON,	"pause"},		// Menu
 	{"MODE",		K_MODE_BUTTON,	""},
-	{"START",		K_START_BUTTON,	"escape"},		// [FWGS, 01.04.23]
+	/*{"START",		K_START_BUTTON,	"escape"},		// [FWGS, 01.04.23]*/
+	{"START",		K_START_BUTTON,	"cancelselect"},
 	{"STICK1",		K_LSTICK,		"+speed"},
 	{"STICK2",		K_RSTICK,		"+duck"},
 	{"L1_BUTTON",	K_L1_BUTTON,	"+duck"},
@@ -126,7 +128,7 @@ static const keyname_t keynames[] =
 	{"JOY4" ,		K_JOY4 ,		""},
 	{"C_BUTTON",	K_C_BUTTON,		""},
 	{"Z_BUTTON",	K_Z_BUTTON,		""},
-	{"MISC_BUTTON",	K_MISC_BUTTON,	""},	// [FWGS, 01.04.23]
+	{"MISC_BUTTON",	K_MISC_BUTTON,	""},
 	{"PADDLE1",		K_PADDLE1_BUTTON,	""},
 	{"PADDLE2",		K_PADDLE2_BUTTON,	""},
 	{"PADDLE3",		K_PADDLE3_BUTTON,	""},
@@ -142,13 +144,11 @@ static const keyname_t keynames[] =
 
 	// raw semicolon seperates commands
 	{"SEMICOLON",	';',			""},
-	/*{NULL,			0,				NULL},*/
 	};
 
 static void OSK_EnableTextInput (qboolean enable, qboolean force);
 static qboolean OSK_KeyEvent (int key, int down);
 
-// [FWGS, 01.07.23]
 static CVAR_DEFINE_AUTO (osk_enable, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable built-in on-screen keyboard");
 static CVAR_DEFINE_AUTO (key_rotate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -163,10 +163,9 @@ int GAME_EXPORT Key_IsDown (int keynum)
 	{
 	if (keynum == -1)
 		return false;
+
 	return keys[keynum].down;
 	}
-
-// [FWGS, 01.05.23] удалена Key_IsBind
 
 /***
 ===================
@@ -249,7 +248,7 @@ static int Key_StringToKeynum (const char *str)
 
 /***
 ===================
-Key_KeynumToString [FWGS, 22.01.25]
+Key_KeynumToString [FWGS, 01.02.25]
 
 Returns a string (either a single ascii char, a K_* name,
 or a 0x11 hex string) for the given keynum
@@ -272,7 +271,8 @@ const char *Key_KeynumToString (int keynum)
 		return "<OUT OF RANGE>";
 
 	// check for printable ascii (don't use quote)
-	if ((keynum > 32) && (keynum < 127) && (keynum != '"') && (keynum != ';') && (keynum != K_SCROLLOCK))
+	/*if ((keynum > 32) && (keynum < 127) && (keynum != '"') && (keynum != ';') && (keynum != K_SCROLLOCK))*/
+	if ((keynum > 32) && (keynum < 127) && (keynum != '"') && (keynum != ';') && (keynum != K_SCROLLLOCK))
 		{
 		tinystr[0] = keynum;
 		tinystr[1] = 0;
@@ -395,10 +395,16 @@ static void Key_Unbind_f (void)
 		}
 
 	b = Key_StringToKeynum (Cmd_Argv (1));
-
 	if (b == -1)
 		{
 		Con_Printf ("\"%s\" isn't a valid key\n", Cmd_Argv (1));
+		return;
+		}
+
+	// [FWGS, 01.02.25]
+	if (b == K_ESCAPE)
+		{
+		Con_Printf ("Can't unbind ESCAPE key\n");
 		return;
 		}
 
@@ -407,7 +413,7 @@ static void Key_Unbind_f (void)
 
 /***
 ===================
-Key_Unbindall_f [FWGS, 01.02.24]
+Key_Unbindall_f
 ===================
 ***/
 static void Key_Unbindall_f (void)
@@ -420,9 +426,11 @@ static void Key_Unbindall_f (void)
 			Key_SetBinding (i, "");
 		}
 
-	// set some defaults
-	Key_SetBinding (K_ESCAPE, "escape");
-	Key_SetBinding (K_START_BUTTON, "escape");
+	// [FWGS, 01.02.25] set some defaults
+	/*Key_SetBinding (K_ESCAPE, "escape");
+	Key_SetBinding (K_START_BUTTON, "escape");*/
+	Key_SetBinding (K_ESCAPE, "cancelselect");
+	Key_SetBinding (K_START_BUTTON, "cancelselect");
 	}
 
 /***
@@ -701,7 +709,7 @@ static int Key_Rotate (int key)
 
 /***
 ===================
-Key_Event [FWGS, 01.07.24]
+Key_Event
 
 Called by the system for both key up and key down events
 ===================
@@ -824,19 +832,33 @@ void GAME_EXPORT Key_Event (int key, int down)
 			}
 		}
 
+	// [FWGS, 01.02.25]
 	if (cls.key_dest == key_menu)
 		{
-		// only non printable keys passed
+		// classic Xash3D menus don't have an extension that tells engine
+		// to enable text input
 		if (!gameui.use_extended_api)
-			Key_EnableTextInput (true, false);
+		/*Key_EnableTextInput (true, false);
 		
 		// pass printable chars for old menus
-		if (!gameui.use_extended_api && !host.textmode && down && (key >= 32) && (key <= 'z'))
+		if (!gameui.use_extended_api && !host.textmode && down && (key >= 32) && (key <= 'z'))*/
 			{
-			if (Key_IsDown (K_SHIFT))
-				key += 'A' - 'a';
+			/*if (Key_IsDown (K_SHIFT))*/
+			// we don't know if menu wants text input or not
+			// enable it unconditionally
+			Key_EnableTextInput (true, false);
 
-			UI_CharEvent (key);
+			// pass this key to the menu, if printable
+			if (!host.textmode && down && (key >= 32) && (key <= 'z'))
+				{
+				/*key += 'A' - 'a';*/
+				if (Key_IsDown (K_SHIFT))
+					key += 'A' - 'a';
+
+				UI_CharEvent (key);
+				}
+
+			/*UI_CharEvent (key);*/
 			}
 
 		UI_KeyEvent (key, down);
@@ -870,7 +892,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 
 /***
 ================
-Key_EnableTextInput [FWGS, 01.07.23]
+Key_EnableTextInput
 ================
 ***/
 void Key_EnableTextInput (qboolean enable, qboolean force)
@@ -911,7 +933,7 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 			break;
 
 		case key_console:
-#if !XASH_NSWITCH && !XASH_PSVITA // [FWGS, 01.04.23] if we don't disable this, pops up the keyboard during load
+#if !XASH_NSWITCH && !XASH_PSVITA // if we don't disable this, pops up the keyboard during load
 			Key_EnableTextInput (true, false);
 #endif			
 			cls.key_dest = key_console;
@@ -937,18 +959,25 @@ void GAME_EXPORT Key_ClearStates (void)
 	{
 	int	i;
 
-	// don't clear keys during changelevel
-	if (cls.changelevel) return;
+	// [FWGS, 01.02.25] don't clear keys during changelevel
+	/*if (cls.changelevel) return;*/
+	if (cls.changelevel)
+		return;
 
 	for (i = 0; i < 256; i++)
 		{
-		if (keys[i].down)
+		/*if (keys[i].down)*/
+		if (keys[i].down && (i < K_MOUSE1) && (i > K_MOUSE5))
 			Key_Event (i, false);
 
 		keys[i].down = 0;
 		keys[i].repeats = 0;
 		keys[i].gamedown = 0;
 		}
+
+	// [FWGS, 01.02.25] from K_MOUSE1 to K_MOUSE5
+	for (i = K_MOUSE1; i < K_MOUSE5; i++)
+		IN_MouseEvent (i - K_MOUSE1, false);
 
 	if (clgame.hInstance)
 		clgame.dllFuncs.IN_ClearStates ();

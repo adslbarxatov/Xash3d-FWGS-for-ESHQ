@@ -22,8 +22,8 @@ GNU General Public License for more details
 #include "server.h"		// ESHQ
 #include "platform/platform.h"
 
-fs_api_t g_fsapi;
-fs_globals_t *FI;
+fs_api_t		g_fsapi;
+fs_globals_t	*FI;
 
 static pfnCreateInterface_t fs_pfnCreateInterface;
 static HINSTANCE fs_hInstance;
@@ -64,7 +64,7 @@ static void COM_StripDirectorySlash (char *pname)
 	size_t len;
 
 	len = Q_strlen (pname);
-	if (len > 0 && pname[len - 1] == '/')
+	if ((len > 0) && (pname[len - 1] == '/'))
 		pname[len - 1] = 0;
 	}
 
@@ -89,6 +89,12 @@ static void FS_ClearPaths_f (void)
 static void FS_Path_f_ (void)
 	{
 	FS_Path_f ();
+	}
+
+// [FWGS, 01.02.25]
+static void FS_MakeGameInfo_f (void)
+	{
+	g_fsapi.MakeGameInfo ();
 	}
 
 // [FWGS, 01.08.24]
@@ -191,17 +197,32 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 
 #elif XASH_PSVITA
 
+	// [FWGS, 01.02.25]
 	if (PSVita_GetBasePath (out, size))
 		return true;
-	Sys_Error ("couldn't find Xash3D data directory");
+	/*Sys_Error ("couldn't find Xash3D data directory");*/
+	Sys_Error ("couldn't find %s data directory", XASH_ENGINE_NAME);
+
 	return false;
 
 #elif ( XASH_SDL == 2 ) && !XASH_NSWITCH // GetBasePath not impl'd in switch-sdl2
 
 	path = SDL_GetBasePath ();
+
+	// [FWGS, 01.02.25]
+#if XASH_APPLE
+	if (path != NULL && Q_stristr (path, ".app"))
+		{
+		SDL_free ((void *)path);
+		path = SDL_GetPrefPath (NULL, XASH_ENGINE_NAME);
+		}
+#endif
+
+	// [FWGS, 01.02.25]
 	if (path != NULL)
 		{
 		Q_strncpy (out, path, size);
+		/*SDL_free ((void *)path);*/
 		SDL_free ((void *)path);
 		return true;
 		}
@@ -250,7 +271,7 @@ static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 
 /***
 ================
-FS_Init [FWGS, 01.08.24]
+FS_Init
 ================
 ***/
 void FS_Init (const char *basedir)
@@ -295,9 +316,11 @@ void FS_Init (const char *basedir)
 		return;
 		}
 
+	// [FWGS, 01.02.25]
 	Cmd_AddRestrictedCommand ("fs_rescan", FS_Rescan_f, "rescan filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_path", FS_Path_f_, "show filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_clearpaths", FS_ClearPaths_f, "clear filesystem search pathes");
+	Cmd_AddRestrictedCommand ("fs_make_gameinfo", FS_MakeGameInfo_f, "create gameinfo.txt for current running game");
 
 	if (!Sys_GetParmFromCmdLine ("-dll", host.gamedll))
 		host.gamedll[0] = 0;

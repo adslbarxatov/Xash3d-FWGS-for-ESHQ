@@ -143,11 +143,12 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 	{
 	switch (parm)
 		{
+		// [FWGS, 01.02.25]
 		case PARM_BSP2_SUPPORTED:
-#ifdef SUPPORT_BSP2_FORMAT
+			/*ifdef SUPPORT_BSP2_FORMAT*/
 			return 1;
-#endif
-			return 0;
+			/*endif
+			return 0;*/
 		
 		case PARAM_GAMEPAUSED:
 			return cl.paused;
@@ -282,74 +283,81 @@ static intptr_t pfnRenderGetParm (int parm, int arg)
 	return CL_RenderGetParm (parm, arg, true);
 	}
 
+// [FWGS, 01.02.25]
+static void pfnAVI_StreamSound (void *avi, int entnum, float fvol, float attn, float synctime)
+	{
+	return; // stub, use AVI_SetParm and AVI_Think to stream AVI sound
+	}
+
 static render_api_t gRenderAPI =
 	{
-		pfnRenderGetParm, // GL_RenderGetParm,
-		NULL, // R_GetDetailScaleForTexture,
-		NULL, // R_GetExtraParmsForTexture,
-		CL_GetLightStyle,
-		CL_GetDynamicLight,
-		CL_GetEntityLight,
-		LightToTexGamma,
-		NULL, // R_GetFrameTime,
-		NULL, // R_SetCurrentEntity,
-		NULL, // R_SetCurrentModel,
-		R_FatPVS,
-		R_StoreEfrags,
-		NULL, // GL_FindTexture,
-		NULL, // GL_TextureName,
-		NULL, // GL_TextureData,
-		NULL, // GL_LoadTexture,
-		NULL, // GL_CreateTexture,
-		NULL, // GL_LoadTextureArray,
-		NULL, // GL_CreateTextureArray,
-		NULL, // GL_FreeTexture,
-		NULL, // DrawSingleDecal,
-		NULL, // R_DecalSetupVerts,
-		NULL, // R_EntityRemoveDecals,
-		(void *)AVI_LoadVideo,
-		(void *)AVI_GetVideoInfo,
-		(void *)AVI_GetVideoFrameNumber,
-		(void *)AVI_GetVideoFrame,
-		NULL, // R_UploadStretchRaw,
-		(void *)AVI_FreeVideo,
-		(void *)AVI_IsActive,
-		S_StreamAviSamples,
-		NULL,
-		NULL,
-		NULL, // GL_Bind,
-		NULL, // GL_SelectTexture,
-		NULL, // GL_LoadTexMatrixExt,
-		NULL, // GL_LoadIdentityTexMatrix,
-		NULL, // GL_CleanUpTextureUnits,
-		NULL, // GL_TexGen,
-		NULL, // GL_TextureTarget,
-		NULL, // GL_SetTexCoordArrayMode,
-		NULL, // GL_GetProcAddress,
-		NULL, // GL_UpdateTexSize,
-		NULL,
-		NULL,
-		NULL, // CL_DrawParticlesExternal,
-		R_EnvShot,
-		pfnSPR_LoadExt,
-		NULL, // R_LightVec,
-		NULL, // R_StudioGetTexture,
-		GL_GetOverviewParms,
-		CL_GenericHandle,
-		COM_SaveFile,
-		NULL,
-		R_Mem_Alloc,
-		R_Mem_Free,
-		pfnGetFilesList,
-		pfnFileBufferCRC32,
-		/*COM_CompareFileTime,*/
-		pfnCompareFileTime,	// [FWGS, 01.12.24]
-		Host_Error,
-		(void *)CL_ModelHandle,
-		pfnTime,
-		Cvar_Set,
-		S_FadeMusicVolume,
-		COM_SetRandomSeed,
+	pfnRenderGetParm, // GL_RenderGetParm,
+	NULL, // R_GetDetailScaleForTexture,
+	NULL, // R_GetExtraParmsForTexture,
+	CL_GetLightStyle,
+	CL_GetDynamicLight,
+	CL_GetEntityLight,
+	LightToTexGamma,
+	NULL, // R_GetFrameTime,
+	NULL, // R_SetCurrentEntity,
+	NULL, // R_SetCurrentModel,
+	R_FatPVS,
+	R_StoreEfrags,
+	NULL, // GL_FindTexture,
+	NULL, // GL_TextureName,
+	NULL, // GL_TextureData,
+	NULL, // GL_LoadTexture,
+	NULL, // GL_CreateTexture,
+	NULL, // GL_LoadTextureArray,
+	NULL, // GL_CreateTextureArray,
+	NULL, // GL_FreeTexture,
+	NULL, // DrawSingleDecal,
+	NULL, // R_DecalSetupVerts,
+	NULL, // R_EntityRemoveDecals,
+	(void *)AVI_LoadVideo,
+	(void *)AVI_GetVideoInfo,
+	(void *)AVI_GetVideoFrameNumber,
+	(void *)AVI_GetVideoFrame,
+	NULL, // R_UploadStretchRaw,
+	(void *)AVI_FreeVideo,
+	(void *)AVI_IsActive,
+	/*S_StreamAviSamples,*/
+	(void *)pfnAVI_StreamSound,	// [FWGS, 01.02.25]
+	NULL,
+	NULL,
+	NULL, // GL_Bind,
+	NULL, // GL_SelectTexture,
+	NULL, // GL_LoadTexMatrixExt,
+	NULL, // GL_LoadIdentityTexMatrix,
+	NULL, // GL_CleanUpTextureUnits,
+	NULL, // GL_TexGen,
+	NULL, // GL_TextureTarget,
+	NULL, // GL_SetTexCoordArrayMode,
+	NULL, // GL_GetProcAddress,
+	NULL, // GL_UpdateTexSize,
+	NULL,
+	NULL,
+	NULL, // CL_DrawParticlesExternal,
+	R_EnvShot,
+	pfnSPR_LoadExt,
+	NULL, // R_LightVec,
+	NULL, // R_StudioGetTexture,
+	GL_GetOverviewParms,
+	CL_GenericHandle,
+	COM_SaveFile,
+	NULL,
+	R_Mem_Alloc,
+	R_Mem_Free,
+	pfnGetFilesList,
+	pfnFileBufferCRC32,
+	/*COM_CompareFileTime,*/
+	pfnCompareFileTime,	// [FWGS, 01.12.24]
+	Host_Error,
+	(void *)CL_ModelHandle,
+	pfnTime,
+	Cvar_Set,
+	S_FadeMusicVolume,
+	COM_SetRandomSeed,
 	};
 
 static void R_FillRenderAPIFromRef (render_api_t *to, const ref_interface_t *from)

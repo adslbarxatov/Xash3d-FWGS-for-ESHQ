@@ -125,9 +125,11 @@ CVAR_DEFINE_AUTO (cl_lw, "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
 CVAR_DEFINE_AUTO (cl_charset, "utf-8", FCVAR_ARCHIVE,
 	"1-byte charset to use (iconv style)");
 
+// [FWGS, 01.02.25]
+CVAR_DEFINE_AUTO (cl_trace_consistency, "0", FCVAR_ARCHIVE,
+	"enable consistency info tracing (good for developers)");
+
 // [FWGS, 01.12.24]
-/*CVAR_DEFINE_AUTO (cl_trace_stufftext, "0", FCVAR_ARCHIVE | FCVAR_CHEAT,
-	"enable stufftext (server-to-client console commands) tracing (good for developers)");*/
 CVAR_DEFINE_AUTO (cl_trace_stufftext, "0", FCVAR_ARCHIVE,
 	"enable stufftext (server-to-client console commands) tracing (good for developers)");
 
@@ -219,17 +221,16 @@ qboolean CL_IsRecordDemo (void)
 	return cls.demorecording;
 	}
 
-qboolean CL_IsTimeDemo (void)
+// [FWGS, 01.02.25] removed CL_IsTimeDemo
+/*qboolean CL_IsTimeDemo (void)
 	{
 	return cls.timedemo;
-	}
+	}*/
 
 qboolean CL_DisableVisibility (void)
 	{
 	return cls.envshot_disable_vis;
 	}
-
-// [FWGS, 01.05.23] удалены CL_IsBackgroundDemo, CL_IsBackgroundMap
 
 char *CL_Userinfo (void)
 	{
@@ -718,12 +719,13 @@ static void CL_UpdateClientData (void)
 
 /***
 =================
-CL_CreateCmd [FWGS, 01.12.24]
+CL_CreateCmd [FWGS, 01.02.25]
 =================
 ***/
 static void CL_CreateCmd (void)
 	{
-	usercmd_t	nullcmd, *cmd;
+	/*usercmd_t	nullcmd, *cmd;*/
+	usercmd_t	nullcmd = { 0 }, *cmd;
 	runcmd_t	*pcmd;
 	qboolean	active;
 	double		accurate_ms;
@@ -778,7 +780,7 @@ static void CL_CreateCmd (void)
 		}
 	else
 		{
-		memset (&nullcmd, 0, sizeof (nullcmd));
+		/*memset (&nullcmd, 0, sizeof (nullcmd));*/
 		cmd = &nullcmd;
 		}
 
@@ -857,7 +859,7 @@ void CL_WriteUsercmd (connprotocol_t proto, sizebuf_t *msg, int from, int to)
 
 /***
 ===================
-CL_WritePacket [FWGS, 01.12.24]
+CL_WritePacket [FWGS, 01.02.25]
 
 Create and send the command packet to the server
 Including both the reliable commands and the usercmds
@@ -865,26 +867,27 @@ Including both the reliable commands and the usercmds
 ***/
 static void CL_WritePacket (void)
 	{
-	/*sizebuf_t		buf;
-	qboolean		send_command = false;
-	byte		data[MAX_CMD_BUFFER];
-	int		i, from, to, key, size;
-	int		numbackup = 2;
-	int		numcmds;
-	int		newcmds;
-	int		cmdnumber;*/
 	sizebuf_t	buf;
 	byte		data[MAX_CMD_BUFFER] = { 0 };
 	runcmd_t	*pcmd;
 	int			numbackup, maxbackup, maxcmds;
 	const connprotocol_t	proto = cls.legacymode;
 
+	// FIXME: on Xash protocol we don't send move commands until ca_active
+	// to prevent outgoing_command outrun incoming_acknowledged
+	// which is fatal for some buggy mods like TFC
+	//
+	// ... but GoldSrc don't have (real) ca_validate state, so we consider
+	// ca_validate the same as ca_active, otherwise we don't pass validation
+	// of server-side mods like ReAuthCheck
+	const connstate_t min_state = (proto == PROTO_GOLDSRC) ? ca_validate : ca_active;
+
 	// don't send anything if playing back a demo
 	if (cls.demoplayback || (cls.state < ca_connected) || (cls.state == ca_cinematic))
 		return;
 
-	/*CL_ComputePacketLoss ();*/
-	if (cls.state <= ca_connected)
+	/*if (cls.state <= ca_connected)*/
+	if (cls.state < min_state)
 		{
 		Netchan_TransmitBits (&cls.netchan, 0, "");
 		return;
@@ -896,11 +899,6 @@ static void CL_WritePacket (void)
 	/*memset (data, 0, sizeof (data));	// [FWGS, 01.04.23]*/
 	MSG_Init (&buf, "ClientData", data, sizeof (data));
 
-	/*// Determine number of backup commands to send along [FWGS, 01.04.23]
-	numbackup = bound (0, cl_cmdbackup.value, cls.legacymode ? MAX_LEGACY_BACKUP_CMDS : MAX_BACKUP_COMMANDS);
-
-	if (cls.state == ca_connected)
-		numbackup = 0;*/
 	switch (proto)
 		{
 		case PROTO_GOLDSRC:
@@ -925,60 +923,27 @@ static void CL_WritePacket (void)
 	if ((proto == PROTO_GOLDSRC) && (cls.build_num >= 5971))
 		maxcmds = MAX_GOLDSRC_EXTENDED_TOTAL_CMDS - numbackup;
 
-	// clamp cmdrate [FWGS, 01.07.23]
+	// clamp cmdrate
 	if (cl_cmdrate.value < 10.0f)
 		Cvar_DirectSet (&cl_cmdrate, "10");
 
 	else if (cl_cmdrate.value > 100.0f)
 		Cvar_DirectSet (&cl_cmdrate, "100");
 
-	/*// Check to see if we can actually send this command
-
-	// In single player, send commands as fast as possible
-	// Otherwise, only send when ready and when not choking bandwidth
-	if ((cl.maxclients == 1) || (NET_IsLocalAddress (cls.netchan.remote_address) && !host_limitlocal.value))
-		send_command = true;
-
-	if ((host.realtime >= cls.nextcmdtime) && Netchan_CanPacket (&cls.netchan, true))
-		send_command = true;
-
-	if (cl.send_reply)
-		{
-		cl.send_reply = false;
-		send_command = true;
-		}*/
 	// are we hltv spectator?
 	if (cls.spectator && (cl.delta_sequence == cl.validsequence) && (!cls.demorecording || !cls.demowaiting) &&
 		(cls.nextcmdtime + 1.0f > host.realtime))
 		return;
 
-	/*// spectator is not sending cmds to server
-	if (cls.spectator && (cls.state == ca_active) && cl.delta_sequence == cl.validsequence)
-		{
-		if (!(cls.demorecording && cls.demowaiting) && cls.nextcmdtime + 1.0f > host.realtime)
-			return;
-		}*/
 	// can send this command?
 	pcmd = &cl.commands[cls.netchan.outgoing_sequence & CL_UPDATE_MASK];
 
-	/*if ((cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged) >= CL_UPDATE_MASK)
-		{
-		if ((host.realtime - cls.netchan.last_received) > CONNECTION_PROBLEM_TIME)
-			{
-			Con_NPrintf (1, "^3Warning:^1 Connection Problem^7\n");
-			Con_NPrintf (2, "^1Auto-disconnect in %.1f seconds^7", cl_timeout.value -
-				(host.realtime - cls.netchan.last_received));	// [FWGS, 01.04.23]
-			cl.validsequence = 0;
-			}
-		}*/
 	if ((cl.maxclients == 1) || (NET_IsLocalAddress (cls.netchan.remote_address) && !host_limitlocal.value) ||
 		((host.realtime >= cls.nextcmdtime) && Netchan_CanPacket (&cls.netchan, true)))
 		pcmd->heldback = false;
 	else
 		pcmd->heldback = true;
 
-	/*if (cl_nodelta.value)
-		cl.validsequence = 0;*/
 	// immediately add it to the demo, regardless if we send the message or not
 	if (cls.demorecording)
 		CL_WriteDemoUserCmd (cls.netchan.outgoing_sequence & CL_UPDATE_MASK);
@@ -990,24 +955,9 @@ static void CL_WritePacket (void)
 		int newcmds, numcmds;
 		int from, i, key;
 
-		/*if (cl_cmdrate.value > 0) // clamped between 10 and 100 fps
-			cls.nextcmdtime = host.realtime + bound (0.1f, (1.0f / cl_cmdrate.value), 0.01f);
-		else
-			cls.nextcmdtime = host.realtime; // always able to send right away*/
 		cls.nextcmdtime = host.realtime + (1.0f / cl_cmdrate.value);
-
-		/*if (cls.lastoutgoingcommand == -1)
-			{
-			outgoing_sequence = cls.netchan.outgoing_sequence;*/
 		if (cls.lastoutgoingcommand < 0)
 			cls.lastoutgoingcommand = cls.netchan.outgoing_sequence;
-		/*}
-		else
-			{
-			outgoing_sequence = cls.lastoutgoingcommand + 1;
-			}
-
-		// begin a client move command*/
 
 		newcmds = cls.netchan.outgoing_sequence - cls.lastoutgoingcommand;
 		newcmds = bound (0, newcmds, maxcmds);
@@ -1022,76 +972,36 @@ static void CL_WritePacket (void)
 
 		key = MSG_GetRealBytesWritten (&buf);
 		MSG_WriteByte (&buf, 0);
-
-		/*// write packet lossage percentation
-		MSG_WriteByte (&buf, cls.packet_loss);
-
-		// say how many backups we'll be sending*/
 		MSG_WriteByte (&buf, bound (0, (int)cls.packet_loss, 100));
 		MSG_WriteByte (&buf, numbackup);
-
-		/*// how many real commands have queued up
-		newcmds = (cls.netchan.outgoing_sequence - cls.lastoutgoingcommand);
-
-		// put an upper/lower bound on this
-		newcmds = bound (0, newcmds, cls.legacymode ? MAX_LEGACY_TOTAL_CMDS : MAX_TOTAL_CMDS);
-		if (cls.state == ca_connected) newcmds = 0;*/
-
 		MSG_WriteByte (&buf, newcmds);
 
-		/*numcmds = newcmds + numbackup;
-		from = -1;
-
-		for (i = numcmds - 1; i >= 0; i--)*/
 		for (from = -1, i = numcmds - 1; i >= 0; i--)
 			{
 			/*cmdnumber = (cls.netchan.outgoing_sequence - i) & CL_UPDATE_MASK;*/
 			int to = (cls.netchan.outgoing_sequence - i) & CL_UPDATE_MASK;
 
-			/*to = cmdnumber;
-			CL_WriteUsercmd (&buf, from, to);*/
 			CL_WriteUsercmd (proto, &buf, from, to);
 
 			from = to;
-
-			/*// [FWGS, 01.07.24]
-			if (MSG_CheckOverflow (&buf))
-				Host_Error ("%s: overflowed command buffer (%i bytes)\n", __func__, MAX_CMD_BUFFER);*/
 			}
-
-		/*// calculate a checksum over the move commands
-		size = MSG_GetRealBytesWritten (&buf) - key - 1;
-		buf.pData[key] = CRC32_BlockSequence (buf.pData + key + 1, size, cls.netchan.outgoing_sequence);
-
-		// message we are constructing.
-		i = cls.netchan.outgoing_sequence & CL_UPDATE_MASK;
-
-		// determine if we need to ask for a new set of delta's.
-		if (cl.validsequence && (cls.state == ca_active) && !(cls.demorecording && cls.demowaiting))*/
 
 		// finalize message
 		if (proto == PROTO_GOLDSRC)
 			{
-			/*cl.delta_sequence = cl.validsequence;*/
 			int size = MSG_GetRealBytesWritten (&buf) - key - 1;
 
-			/*MSG_BeginClientCmd (&buf, clc_delta);
-			MSG_WriteByte (&buf, cl.validsequence & 0xFF);*/
 			buf.pData[key - 1] = Q_min (size, 255);
 			buf.pData[key] = CRC32_BlockSequence (&buf.pData[key + 1], size, cls.netchan.outgoing_sequence);
 			COM_Munge (&buf.pData[key + 1], Q_min (size, 255), cls.netchan.outgoing_sequence);
 			}
-		else
+		/*else*/
+		else if (!Host_IsLocalClient ())
 			{
-			/*// request delta compression of entities
-			cl.delta_sequence = -1;*/
 			int size = MSG_GetRealBytesWritten (&buf) - key - 1;
 			buf.pData[key] = CRC32_BlockSequence (&buf.pData[key + 1], size, cls.netchan.outgoing_sequence);
 			}
 
-		/*// [FWGS, 01.07.24]
-		if (MSG_CheckOverflow (&buf))
-			Host_Error ("%s: overflowed command buffer (%i bytes)\n", __func__, MAX_CMD_BUFFER);*/
 		// check if we're timing out
 		if ((cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged >= CL_UPDATE_MASK) &&
 			(host.realtime - cls.netchan.last_received >= CL_CONNECTION_TIMEOUT))
@@ -1103,14 +1013,9 @@ static void CL_WritePacket (void)
 			cl.validsequence = 0;
 			}
 
-		/*// remember outgoing command that we are sending
-		cls.lastoutgoingcommand = cls.netchan.outgoing_sequence;*/
 		if (cl_nodelta.value)
 			cl.validsequence = 0;
 
-		/*// update size counter for netgraph
-		cl.commands[cls.netchan.outgoing_sequence & CL_UPDATE_MASK].sendsize = MSG_GetNumBytesWritten (&buf);
-		cl.commands[cls.netchan.outgoing_sequence & CL_UPDATE_MASK].heldback = false;*/
 		if (cl.validsequence && (!cls.demorecording || !cls.demowaiting))
 			{
 			cl.delta_sequence = cl.validsequence;
@@ -1473,12 +1378,8 @@ static void CL_SendConnectPacket (connprotocol_t proto, int challenge)
 
 		Info_SetValueForKey (protinfo, "uuid", key, sizeof (protinfo));
 		Info_SetValueForKey (protinfo, "qport", qport, sizeof (protinfo));
-
 		Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", extensions);
 
-		/*Netchan_OutOfBandPrint (NS_CLIENT, adr, "connect %i %i \"%s\" \"%s\"\n", PROTOCOL_VERSION,
-			cls.challenge, protinfo, cls.userinfo);
-		Con_Printf ("Trying to connect by modern protocol\n");*/
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, C2S_CONNECT " %i %i \"%s\" \"%s\"\n", PROTOCOL_VERSION,
 			challenge, protinfo, cls.userinfo);
 		Con_Printf ("Trying to connect with modern protocol\n");
@@ -1982,6 +1883,10 @@ void CL_SetupNetchanForProtocol (connprotocol_t proto)
 			break;
 
 		default:
+			// [FWGS, 01.02.25]
+			if (!Host_IsLocalClient ())
+				SetBits (flags, NETCHAN_USE_LZSS);
+
 			cls.extensions = Q_atoi (Info_ValueForKey (Cmd_Argv (1), "ext"));
 
 			if (FBitSet (cls.extensions, NET_EXT_SPLITSIZE))
@@ -2153,7 +2058,7 @@ static void CL_LocalServers_f (void)
 
 /***
 =================
-CL_BuildMasterServerScanRequest [FWGS, 01.07.24]
+CL_BuildMasterServerScanRequest
 =================
 ***/
 static size_t NONNULL CL_BuildMasterServerScanRequest (char *buf, size_t size, uint32_t *key,
@@ -2181,8 +2086,11 @@ static size_t NONNULL CL_BuildMasterServerScanRequest (char *buf, size_t size, u
 	Info_SetValueForKey (info, "clver", XASH_VERSION, remaining);
 	Info_SetValueForKey (info, "nat", nat ? "1" : "0", remaining);
 
-	Info_SetValueForKey (info, "commit", Q_buildcommit (), remaining);
-	Info_SetValueForKey (info, "branch", Q_buildbranch (), remaining);
+	// [FWGS, 01.02.25]
+	/*Info_SetValueForKey (info, "commit", Q_buildcommit (), remaining);
+	Info_SetValueForKey (info, "branch", Q_buildbranch (), remaining);*/
+	Info_SetValueForKey (info, "commit", g_buildcommit, remaining);
+	Info_SetValueForKey (info, "branch", g_buildbranch, remaining);
 	Info_SetValueForKey (info, "os", Q_buildos (), remaining);
 	Info_SetValueForKey (info, "arch", Q_buildarch (), remaining);
 	Q_snprintf (temp, sizeof (temp), "%d", Q_buildnum ());
@@ -4109,6 +4017,7 @@ static void CL_InitLocal (void)
 	Cvar_RegisterVariable (&cl_charset);
 	Cvar_RegisterVariable (&hud_utf8);
 	Cvar_RegisterVariable (&rcon_address);
+	Cvar_RegisterVariable (&cl_trace_consistency);	// [FWGS, 01.02.25]
 	Cvar_RegisterVariable (&cl_trace_stufftext);
 	Cvar_RegisterVariable (&cl_trace_messages);
 	Cvar_RegisterVariable (&cl_trace_events);
@@ -4205,10 +4114,6 @@ static void CL_InitLocal (void)
 		"pause the game (if the server allows pausing)");
 	
 	// [FWGS, 01.12.24]
-	/*Cmd_AddCommand ("localservers", CL_LocalServers_f,
-		"collect info about local servers");
-	Cmd_AddCommand ("internetservers", CL_InternetServers_f,
-		"collect info about internet servers");*/
 	Cmd_AddRestrictedCommand ("localservers", CL_LocalServers_f,
 		"collect info about local servers");
 	Cmd_AddRestrictedCommand ("internetservers", CL_InternetServers_f,

@@ -540,7 +540,7 @@ int S_MixDataToDevice (channel_t *pChannel, int sampleCount, int outRate, int ou
 		pChannel->pMixer.finished = true;
 		}
 
-	// total number of samples mixed !!! at the output clock rate !!!
+	// total number of samples mixed !! at the output clock rate !!
 	return outOffset - startingOffset;
 	}
 

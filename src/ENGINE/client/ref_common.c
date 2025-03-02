@@ -368,19 +368,23 @@ static qboolean R_Init_Video_ (const int type)
 	return R_Init_Video (type);
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.02.25]
+static mleaf_t *pfnMod_PointInLeaf (const vec3_t p, mnode_t *node)
+	{
+	// FIXME: get rid of this on next RefAPI update
+	return Mod_PointInLeaf (p, node, cl.models[1]);
+	}
+
+// [FWGS, 01.02.25]
 static const ref_api_t gEngfuncs =
 	{
 	pfnEngineGetParm,
-	/*(void *)Cvar_Get,*/
 	pfnCvar_Get,
 	(void *)Cvar_FindVarExt,
 	Cvar_VariableValue,
 	Cvar_VariableString,
 	Cvar_SetValue,
 	Cvar_Set,
-	/*Cvar_RegisterVariable,
-	Cvar_FullSet,*/
 	pfnCvar_RegisterVariable,
 	pfnCvar_FullSet,
 
@@ -408,8 +412,8 @@ static const ref_api_t gEngfuncs =
 
 	Mod_SampleSizeForFace,
 	Mod_BoxVisible,
-	Mod_PointInLeaf,
-	/*Mod_CreatePolygonsForHull,*/
+	/*Mod_PointInLeaf,*/
+	pfnMod_PointInLeaf,
 	R_DrawWorldHull,
 	R_DrawModelHull,
 	R_StudioGetAnim,
@@ -464,15 +468,7 @@ static const ref_api_t gEngfuncs =
 	SW_CreateBuffer,
 	SW_LockBuffer,
 	SW_UnlockBuffer,
-	/*LightToTexGamma,
-	LightToTexGammaEx,
-	TextureToGamma,
-	ScreenGammaTable,
-	LinearGammaTable,*/
 
-	/*CL_GetLightStyle,
-	CL_GetDynamicLight,
-	CL_GetEntityLight,*/
 	R_FatPVS,
 	GL_GetOverviewParms,
 	Sys_DoubleTime,

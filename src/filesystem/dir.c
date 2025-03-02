@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -59,6 +59,12 @@ static qboolean Platform_GetDirectoryCaseSensitivity (const char *dir)
 	{
 #if XASH_WIN32 || XASH_PSVITA || XASH_NSWITCH
 	return false;
+#elif XASH_ANDROID
+	// [FWGS, 01.02.25] on Android, doing code below causes crash in MediaProviderGoogle.apk!libfuse_jni.so
+	// which in turn makes vold (Android's Volume Daemon) to unmount /storage/emulated/0
+	// and because you can't unmount a filesystem when there is file descriptors open
+	// it has no other choice but to terminate and then kill our program
+	return true;
 #elif XASH_LINUX && defined( FS_IOC_GETFLAGS )
 	int flags = 0;
 	int fd;
@@ -67,8 +73,12 @@ static qboolean Platform_GetDirectoryCaseSensitivity (const char *dir)
 	if (fd < 0)
 		return true;
 
+	// [FWGS, 01.02.25]
 	if (ioctl (fd, FS_IOC_GETFLAGS, &flags) < 0)
+		{
+		close (fd);
 		return true;
+		}
 
 	close (fd);
 
@@ -135,8 +145,11 @@ static void FS_PopulateDirEntries (dir_t *dir, const char *path)
 		return;
 		}
 
+	// [FWGS, 01.02.25]
 	stringlistinit (&list);
-	listdirectory (&list, path);
+	/*listdirectory (&list, path);*/
+	listdirectory (&list, path, false);
+
 	if (!list.numstrings)
 		{
 		dir->numentries = DIRENTRY_EMPTY_DIRECTORY;
@@ -146,6 +159,7 @@ static void FS_PopulateDirEntries (dir_t *dir, const char *path)
 		{
 		FS_InitDirEntries (dir, &list);
 		}
+
 	stringlistfreecontents (&list);
 	}
 
@@ -226,8 +240,10 @@ static int FS_MaybeUpdateDirEntries (dir_t *dir, const char *path, const char *e
 	stringlist_t list;
 	int ret;
 
+	// [FWGS, 01.02.25]
 	stringlistinit (&list);
-	listdirectory (&list, path);
+	/*listdirectory (&list, path);*/
+	listdirectory (&list, path, false);
 
 	if (list.numstrings == 0) // empty directory
 		{
@@ -427,8 +443,10 @@ static void FS_Search_DIR (searchpath_t *search, stringlist_t *list, const char 
 		return;
 		}
 
+	// [FWGS, 01.02.25]
 	stringlistinit (&dirlist);
-	listdirectory (&dirlist, netpath);
+	/*listdirectory (&dirlist, netpath);*/
+	listdirectory (&dirlist, netpath, false);
 
 	Q_strncpy (temp, basepath, sizeof (temp));
 

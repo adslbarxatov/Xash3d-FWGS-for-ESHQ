@@ -56,8 +56,10 @@ qboolean Platform_DebuggerPresent (void);
 	char *Posix_Input (void);
 #endif
 
+// [FWGS, 01.02.25]
 #if XASH_SDL
-	void SDLash_Init (void);
+	/*void SDLash_Init (void);*/
+	void SDLash_Init (const char *basedir);
 	void SDLash_Shutdown (void);
 #endif
 
@@ -110,8 +112,9 @@ qboolean Platform_DebuggerPresent (void);
 	int Linux_GetProcessID (void);
 #endif
 
-// [FWGS, 01.07.24]
-static inline void Platform_Init (qboolean con_showalways)
+// [FWGS, 01.02.25]
+/*static inline void Platform_Init (qboolean con_showalways)*/
+	static inline void Platform_Init (qboolean con_showalways, const char *basedir)
 	{
 #if XASH_POSIX
 	// daemonize as early as possible, because we need to close our file descriptors
@@ -119,7 +122,8 @@ static inline void Platform_Init (qboolean con_showalways)
 #endif
 
 #if XASH_SDL
-	SDLash_Init ();
+	/*SDLash_Init ();*/
+	SDLash_Init (basedir);
 #endif
 
 #if XASH_ANDROID

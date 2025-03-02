@@ -35,8 +35,8 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 
 // [FWGS, 01.05.24] removed Q_isdigit, Q_isspace
 
-// [FWGS, 01.07.24]
-size_t Q_colorstr (const char *string)
+// [FWGS, 01.02.25] removed Q_colorstr
+/*size_t Q_colorstr (const char *string)
 	{
 	const char *p = string;
 	size_t len = 0;
@@ -54,12 +54,11 @@ size_t Q_colorstr (const char *string)
 		}
 
 	return len;
-	}
+	}*/
 
 // [FWGS, 01.05.24] removed Q_toupper, Q_tolower, Q_strncat
 
 // [FWGS, 01.12.24]
-/*static int Q_atoi_hex (int sign, const char *str)*/
 int Q_atoi_hex (int sign, const char *str)
 	{
 	int c, val = 0;

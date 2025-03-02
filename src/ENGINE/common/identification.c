@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -623,11 +623,13 @@ void GAME_EXPORT ID_SetCustomClientID (const char *id)
 	Q_strncpy (id_customid, id, sizeof (id_customid));
 	}
 
+// [FWGS, 01.02.25]
 void ID_Init (void)
 	{
-	MD5Context_t hash = { 0 };
-	byte md5[16];
-	int i;
+	/*MD5Context_t hash = { 0 };*/
+	MD5Context_t	hash = { 0 };
+	byte	md5[16];
+	int		i;
 
 	Cmd_AddRestrictedCommand ("bloomfilter", ID_BloomFilter_f, "print bloomfilter raw value of arguments set");
 	Cmd_AddRestrictedCommand ("verifyhex", ID_VerifyHEX_f, "check if id source seems to be fake");
@@ -644,12 +646,13 @@ void ID_Init (void)
 		ID_Check ();
 		}
 
+	// [FWGS, 01.02.25]
 #elif XASH_WIN32
 	{
 	CHAR szBuf[MAX_PATH];
-	ID_GetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", "xash_id", szBuf, MAX_PATH);
+	/*ID_GetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", "xash_id", szBuf, MAX_PATH);*/
+	ID_GetKeyData (HKEY_CURRENT_USER, "Software\\" XASH_ENGINE_NAME "\\", "xash_id", szBuf, MAX_PATH);
 
-	// [FWGS, 01.07.24]
 	sscanf (szBuf, "%016"PRIX64, &id);
 	id ^= SYSTEM_XOR_MASK;
 	ID_Check ();
@@ -673,6 +676,7 @@ void ID_Init (void)
 				id ^= SYSTEM_XOR_MASK;
 				ID_Check ();
 				}
+
 			fclose (cfg);
 			}
 		}
@@ -690,6 +694,7 @@ void ID_Init (void)
 			ID_Check ();
 			}
 		}
+
 	if (!id)
 		id = ID_GenerateRawId ();
 
@@ -697,18 +702,18 @@ void ID_Init (void)
 	MD5Update (&hash, (byte *)&id, sizeof (id));
 	MD5Final ((byte *)md5, &hash);
 
-	// [FWGS, 01.05.23]
 	for (i = 0; i < 16; i++)
 		Q_snprintf (&id_md5[i * 2], sizeof (id_md5) - i * 2, "%02hhx", md5[i]);
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.02.25]
 #if XASH_ANDROID && !XASH_DEDICATED
 	Android_SaveID (va ("%016"PRIX64, id ^SYSTEM_XOR_MASK));
 #elif XASH_WIN32
 	{
 	CHAR Buf[MAX_PATH];
 	sprintf (Buf, "%016"PRIX64, id ^SYSTEM_XOR_MASK);
-	ID_SetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", REG_SZ, "xash_id", Buf, Q_strlen (Buf));
+	/*ID_SetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", REG_SZ, "xash_id", Buf, Q_strlen (Buf));*/
+	ID_SetKeyData (HKEY_CURRENT_USER, "Software\\" XASH_ENGINE_NAME "\\", REG_SZ, "xash_id", Buf, Q_strlen (Buf));
 	}
 #else
 	{

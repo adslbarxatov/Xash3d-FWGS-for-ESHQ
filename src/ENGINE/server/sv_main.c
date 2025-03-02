@@ -1145,8 +1145,10 @@ void SV_Init (void)
 
 	MSG_Init (&net_message, "NetMessage", net_message_buffer, sizeof (net_message_buffer));
 
+	// [FWGS, 01.02.25]
 	Q_snprintf (versionString, sizeof (versionString), XASH_ENGINE_NAME ": " XASH_VERSION "-%s(%s-%s),%i,%i",
-		Q_buildcommit (), Q_buildos (), Q_buildarch (), PROTOCOL_VERSION, Q_buildnum ());
+		/*Q_buildcommit (), Q_buildos (), Q_buildarch (), PROTOCOL_VERSION, Q_buildnum ());*/
+		g_buildcommit, Q_buildos (), Q_buildarch (), PROTOCOL_VERSION, Q_buildnum ());
 
 	Cvar_FullSet ("sv_version", versionString, FCVAR_READ_ONLY);
 

@@ -89,7 +89,7 @@ static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 
 /***
 ==================
-SNDDMA_Init [FWGS, 22.01.25]
+SNDDMA_Init
 
 Try to find a sound device to mix for.
 Returns false if nothing is found
@@ -131,8 +131,7 @@ qboolean SNDDMA_Init (void)
 	SDL_setenv ("PULSE_PROP_application.name", GI->title, 1);
 	SDL_setenv ("PULSE_PROP_media.role", "game", 1);
 
-	/*if (SDL_Init (SDL_INIT_AUDIO))*/
-		// reinitialize SDL with our driver just in case
+	// reinitialize SDL with our driver just in case
 	if (SDL_WasInit (SDL_INIT_AUDIO))
 		SDL_QuitSubSystem (SDL_INIT_AUDIO);
 
@@ -176,8 +175,10 @@ qboolean SNDDMA_Init (void)
 	if (!samplecount)
 		samplecount = 0x8000;
 
+	// [FWGS, 01.02.25]
 	dma.samples = samplecount * obtained.channels;
-	dma.buffer = Z_Calloc (dma.samples * 2);
+	/*dma.buffer = Z_Calloc (dma.samples * 2);*/
+	dma.buffer = Mem_Malloc (sndpool, dma.samples * 2);
 	dma.samplepos = 0;
 
 	sdl_format = obtained.format;
@@ -195,7 +196,6 @@ fail:
 	SNDDMA_Shutdown ();
 	return false;
 	}
-
 
 /***
 ==============

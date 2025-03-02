@@ -291,10 +291,11 @@ void Netchan_Init (void)
 	Cvar_RegisterVariable (&net_send_debug);
 	Cvar_RegisterVariable (&net_recv_debug);
 
+	// [FWGS, 01.02.25]
 	Cvar_FullSet (net_qport.name, buf, net_qport.flags);
 	net_mempool = Mem_AllocPool ("Network Pool");
 
-	MSG_InitMasks ();	// initialize bit-masks
+	/*MSG_InitMasks ();	// initialize bit-masks*/
 	}
 
 void Netchan_Shutdown (void)
@@ -336,13 +337,11 @@ qboolean Netchan_IsLocal (netchan_t *chan)
 
 /***
 ==============
-Netchan_Setup [FWGS, 01.12.24]
+Netchan_Setup
 
 called to open a channel to a remote system
 ==============
 ***/
-/*void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client,
-	int (*pfnBlockSize)(void *, fragsize_t mode))*/
 void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client,
 	int (*pfnBlockSize)(void *, fragsize_t mode), uint flags)
 	{
@@ -368,6 +367,7 @@ void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, voi
 	chan->split = FBitSet (flags, NETCHAN_USE_LEGACY_SPLIT) ? true : false;
 	chan->use_munge = FBitSet (flags, NETCHAN_USE_MUNGE) ? true : false;
 	chan->use_bz2 = FBitSet (flags, NETCHAN_USE_BZIP2) ? true : false;
+	chan->use_lzss = FBitSet (flags, NETCHAN_USE_LZSS) ? true : false;	// [FWGS, 01.02.25]
 	chan->gs_netchan = FBitSet (flags, NETCHAN_GOLDSRC) ? true : false;
 
 	MSG_Init (&chan->message, "NetData", chan->message_buf, sizeof (chan->message_buf));
@@ -752,7 +752,7 @@ void Netchan_AddBufferToList (fragbuf_t **pplist, fragbuf_t *pbuf)
 
 /***
 ==============================
-Netchan_CreateFragments_ [FWGS, 01.12.24]
+Netchan_CreateFragments_
 ==============================
 ***/
 static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
@@ -767,20 +767,12 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 	if (MSG_GetNumBytesWritten (msg) == 0)
 		return;
 
-	/*if (chan->pfnBlockSize != NULL)
-		chunksize = chan->pfnBlockSize (chan->client, FRAGSIZE_FRAG);
-	else
-		chunksize = FRAGMENT_MAX_SIZE; // fallback*/
 	chunksize = chan->pfnBlockSize (chan->client, FRAGSIZE_FRAG);
 	wait = (fragbufwaiting_t *)Mem_Calloc (net_mempool, sizeof (fragbufwaiting_t));
 
 	/*if (!LZSS_IsCompressed (MSG_GetData (msg)))*/
 	if (chan->use_bz2 && memcmp (MSG_GetData (msg), "BZ2", 4))
 		{
-		/*uint	uCompressedSize = 0;
-		uint	uSourceSize = MSG_GetNumBytesWritten (msg);
-		byte	*pbOut = LZSS_Compress (msg->pData, uSourceSize, &uCompressedSize);*/
-
 		// ESHQ: отклонено
 #if !XASH_DEDICATED && 0
 		byte pbOut[0x10000];
@@ -800,7 +792,10 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 		Host_Error ("%s: BZ2 compression is not supported for server", __func__);
 #endif
 		}
-	else if (!chan->use_bz2 && !LZSS_IsCompressed (MSG_GetData (msg), MSG_GetMaxBytes (msg)))
+
+	// [FWGS, 01.02.25]
+	/*else if (!chan->use_bz2 && !LZSS_IsCompressed (MSG_GetData (msg), MSG_GetMaxBytes (msg)))*/
+	else if (chan->use_lzss && !LZSS_IsCompressed (MSG_GetData (msg), MSG_GetMaxBytes (msg)))
 		{
 		uint uCompressedSize = 0;
 		uint uSourceSize = MSG_GetNumBytesWritten (msg);
@@ -813,6 +808,7 @@ static void Netchan_CreateFragments_ (netchan_t *chan, sizebuf_t *msg)
 			memcpy (msg->pData, pbOut, uCompressedSize);
 			MSG_SeekToBit (msg, uCompressedSize << 3, SEEK_SET);
 			}
+
 		if (pbOut)
 			free (pbOut);
 		}
@@ -1199,7 +1195,6 @@ qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *l
 		}
 
 	p = chan->incomingbufs[FRAG_NORMAL_STREAM];
-
 	MSG_Init (msg, "NetMessage", net_message_buffer, sizeof (net_message_buffer));
 
 	while (p)
@@ -1214,7 +1209,8 @@ qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *l
 		p = n;
 		}
 
-	/*if (LZSS_IsCompressed (MSG_GetData (msg)))*/
+	// [FWGS, 01.02.25]
+	/*if (chan->use_bz2 && !memcmp (MSG_GetData (msg), "BZ2", 4))*/
 	if (chan->use_bz2 && !memcmp (MSG_GetData (msg), "BZ2", 4))
 		{
 		// ESHQ: отклонено
@@ -1239,7 +1235,10 @@ qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *l
 		Host_Error ("%s: BZ2 compression is not supported for server\n", __func__);
 #endif
 		}
-	else if (!chan->use_bz2 && LZSS_IsCompressed (MSG_GetData (msg), size))
+
+	// [FWGS, 01.02.25]
+	/*else if (!chan->use_bz2 && LZSS_IsCompressed (MSG_GetData (msg), size))*/
+	else if (chan->use_lzss && LZSS_IsCompressed (MSG_GetData (msg), size))
 		{
 		/*uint	uDecompressedLen = LZSS_GetActualSize (MSG_GetData (msg));*/
 		uint	uDecompressedLen = LZSS_GetActualSize (MSG_GetData (msg), size);
@@ -1380,12 +1379,8 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 		p = n;
 		}
 
-	/*if (LZSS_IsCompressed (buffer))*/
 	if (chan->gs_netchan && chan->use_bz2 && !Q_stricmp (compressor, "bz2"))
 		{
-		/*uint	uncompressedSize = LZSS_GetActualSize (buffer) + 1;
-		byte *uncompressedBuffer = Mem_Calloc (net_mempool, uncompressedSize);*/
-
 		// ESHQ: отклонено
 #if !XASH_DEDICATED && 0
 		byte *uncompressedBuffer = Mem_Calloc (net_mempool, uncompressedSize);
@@ -1400,7 +1395,10 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 		Host_Error ("%s: BZ2 compression is not supported for server", __func__);
 #endif
 		}
-	else if (LZSS_IsCompressed (buffer, nsize + 1))
+
+	// [FWGS, 01.02.25]
+	/*else if (LZSS_IsCompressed (buffer, nsize + 1))*/
+	else if (chan->use_lzss && LZSS_IsCompressed (buffer, nsize + 1))
 		{
 		byte *uncompressedBuffer;
 

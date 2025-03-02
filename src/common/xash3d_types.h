@@ -18,15 +18,16 @@
 #include <stdint.h>		// [FWGS, 01.12.24]
 #include <assert.h>
 
-typedef unsigned char byte;
+// [FWGS, 01.02.25]
+/*typedef unsigned char byte;
 typedef int		sound_t;
 
 typedef float		vec_t;
 typedef vec_t		vec2_t[2];
 
-#if XASH_DL || XASH_FS
+if XASH_DL || XASH_FS
 	typedef vec_t		vec3_t[3];
-#endif
+endif
 
 typedef vec_t		vec4_t[4];
 typedef vec_t		quat_t[4];
@@ -36,6 +37,19 @@ typedef vec_t		matrix3x4[3][4];
 typedef vec_t		matrix4x4[4][4];
 
 // [FWGS, 01.05.24]
+typedef uint32_t	poolhandle_t;*/
+typedef uint8_t	byte;
+typedef float	vec_t;
+typedef vec_t	vec2_t[2];
+#if XASH_DL || XASH_FS
+typedef vec_t	vec3_t[3];
+#endif
+typedef vec_t	vec4_t[4];
+typedef vec_t	quat_t[4];
+typedef byte	rgba_t[4];	// unsigned byte colorpack
+typedef byte	rgb_t[3];	// unsigned byte colorpack
+typedef vec_t	matrix3x4[3][4];
+typedef vec_t	matrix4x4[4][4];
 typedef uint32_t	poolhandle_t;
 
 #undef true
@@ -47,7 +61,8 @@ typedef uint32_t	poolhandle_t;
 	typedef int		qboolean;
 #endif
 
-typedef uint64_t longtime_t;
+// [FWGS, 01.02.25]
+/*typedef uint64_t longtime_t;
 
 #define MAX_STRING		256		// generic string
 #define MAX_INFO_STRING	256		// infostrings are transmitted across network
@@ -58,10 +73,14 @@ typedef uint64_t longtime_t;
 #define MAX_PRINT_MSG	8192	// how many symbols can handle single call of Con_Printf or Con_DPrintf
 #define MAX_TOKEN		2048	// parse token length
 #define MAX_MODS		512		// environment games that engine can keep visible
-#define MAX_USERMSG_LENGTH	2048	// don't modify it's relies on a client-side definitions
+#define MAX_USERMSG_LENGTH	2048	// don't modify it's relies on a client-side definitions*/
+#define MAX_STRING		256		// generic string
+#define MAX_VA_STRING	1024	// compatibility macro
+#define MAX_SYSPATH		1024	// system filepath
+#define MAX_MODS		512		// environment games that engine can keep visible
 
 #define BIT( n )		( 1U << ( n ))
-#define BIT64( n )		( 1ULL << ( n ))	// [FWGS, 01.11.23]
+#define BIT64( n )		( 1ULL << ( n ))
 
 #define SetBits( iBitVector, bits )	((iBitVector) = (iBitVector) | (bits))
 #define ClearBits( iBitVector, bits )	((iBitVector) = (iBitVector) & ~(bits))
@@ -240,22 +259,31 @@ _inline float LittleFloat (float f)
 #define LittleFloat(x) (x)
 #endif
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.02.25]
+/*// [FWGS, 01.07.24]
 typedef unsigned int dword;
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef char		string[MAX_STRING];
 typedef struct file_s	file_t;		// normal file
 typedef struct stream_s	stream_t;		// sound stream for background music playing
+typedef off_t fs_offset_t;*/
+typedef unsigned int dword;
+typedef unsigned int uint;
+typedef char string[MAX_STRING];
 typedef off_t fs_offset_t;
 
+// [FWGS, 01.02.25]
 #if XASH_WIN32
-	typedef int fs_size_t; // return type of _read, _write funcs
+	/*typedef int fs_size_t; // return type of _read, _write funcs*/
+	typedef int fs_size_t;	// return type of _read, _write funcs
 #else
+	/*typedef ssize_t fs_size_t;*/
 	typedef ssize_t fs_size_t;
 #endif
 
-typedef struct dllfunc_s
+// [FWGS, 01.02.25]
+/*typedef struct dllfunc_s
 	{
 	const char *name;
 	void **func;
@@ -271,7 +299,7 @@ typedef struct dll_info_s
 	void			*link;	// hinstance of loading library
 	} dll_info_t;
 
-typedef void (*setpair_t)(const char *key, const void *value, const void *buffer, void *numpairs);
+typedef void (*setpair_t)(const char *key, const void *value, const void *buffer, void *numpairs);*/
 
 // [FWGS, 01.11.23]
 typedef void *(*pfnCreateInterface_t)(const char *, int *);

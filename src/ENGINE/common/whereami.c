@@ -5,7 +5,7 @@
 
 // in case you want to #include "whereami.c" in a larger compilation unit
 #if !defined(WHEREAMI_H)
-#include <whereami.h>
+	#include <whereami.h>
 #endif
 
 #ifdef __cplusplus
@@ -13,62 +13,73 @@ extern "C" {
 #endif
 
 #if defined(__linux__) || defined(__CYGWIN__)
-#undef _DEFAULT_SOURCE
-#define _DEFAULT_SOURCE
+	#undef _DEFAULT_SOURCE
+	#define _DEFAULT_SOURCE
 #elif defined(__APPLE__)
-#undef _DARWIN_C_SOURCE
-#define _DARWIN_C_SOURCE
-#define _DARWIN_BETTER_REALPATH
+	#undef _DARWIN_C_SOURCE
+	#define _DARWIN_C_SOURCE
+	#define _DARWIN_BETTER_REALPATH
 #endif
 
 #if !defined(WAI_MALLOC) || !defined(WAI_FREE) || !defined(WAI_REALLOC)
-#include <stdlib.h>
+	#include <stdlib.h>
 #endif
 
 #if !defined(WAI_MALLOC)
-#define WAI_MALLOC(size) malloc(size)
+	#define WAI_MALLOC(size) malloc(size)
 #endif
 
 #if !defined(WAI_FREE)
-#define WAI_FREE(p) free(p)
+	#define WAI_FREE(p) free(p)
 #endif
 
 #if !defined(WAI_REALLOC)
-#define WAI_REALLOC(p, size) realloc(p, size)
+	#define WAI_REALLOC(p, size) realloc(p, size)
 #endif
 
 #ifndef WAI_NOINLINE
-#if defined(_MSC_VER)
-#define WAI_NOINLINE __declspec(noinline)
-#elif defined(__GNUC__)
-#define WAI_NOINLINE __attribute__((noinline))
-#else
-#error unsupported compiler
-#endif
+	#if defined(_MSC_VER)
+		#define WAI_NOINLINE __declspec(noinline)
+	#elif defined(__GNUC__)
+		#define WAI_NOINLINE __attribute__((noinline))
+	#else
+		#error unsupported compiler
+	#endif
 #endif
 
 #if defined(_MSC_VER)
-#define WAI_RETURN_ADDRESS() _ReturnAddress()
+	#define WAI_RETURN_ADDRESS() _ReturnAddress()
 #elif defined(__GNUC__)
-#define WAI_RETURN_ADDRESS() __builtin_extract_return_addr(__builtin_return_address(0))
+	#define WAI_RETURN_ADDRESS() __builtin_extract_return_addr(__builtin_return_address(0))
 #else
-#error unsupported compiler
+	#error unsupported compiler
 #endif
 
 #if defined(_WIN32)
 
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
 #endif
+
 #if defined(_MSC_VER)
-#pragma warning(push, 3)
+	#pragma warning(push, 3)
 #endif
+
 #include <windows.h>
 #include <intrin.h>
+
 #if defined(_MSC_VER)
-#pragma warning(pop)
+	#pragma warning(pop)
 #endif
-#include <stdbool.h>
+
+// [FWGS, 01.02.25]
+#if (_MSC_VER >= 1900)
+	#include <stdbool.h>
+#else
+	#define bool int
+	#define false 0
+	#define true 1
+#endif
 
 static int WAI_PREFIX (getModulePath_)(HMODULE module, char *out, int capacity, int *dirname_length)
 	{
@@ -158,14 +169,17 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	int length = -1;
 
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4054)
+	#pragma warning(push)
+	#pragma warning(disable: 4054)
 #endif
+
 	if (GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 		(LPCTSTR)WAI_RETURN_ADDRESS (), &module))
+
 #if defined(_MSC_VER)
-#pragma warning(pop)
+	#pragma warning(pop)
 #endif
+
 		{
 		length = WAI_PREFIX (getModulePath_)(module, out, capacity, dirname_length);
 		}
@@ -173,29 +187,31 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	return length;
 	}
 
-// [FWGS, 01.05.23]
 #elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun) || defined(__serenity__) || defined(WAI_USE_PROC_SELF_EXE)
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #if defined(__linux__)
-#include <linux/limits.h>
+	#include <linux/limits.h>
 #else
-#include <limits.h>
+	#include <limits.h>
 #endif
+
 #ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
+	#define __STDC_FORMAT_MACROS
 #endif
+
 #include <inttypes.h>
 #include <stdbool.h>
 
 #if !defined(WAI_PROC_SELF_EXE)
-#if defined(__sun)
-#define WAI_PROC_SELF_EXE "/proc/self/path/a.out"
-#else
-#define WAI_PROC_SELF_EXE "/proc/self/exe"
-#endif
+	#if defined(__sun)
+		#define WAI_PROC_SELF_EXE "/proc/self/path/a.out"
+	#else
+		#define WAI_PROC_SELF_EXE "/proc/self/exe"
+	#endif
 #endif
 
 WAI_FUNCSPEC
@@ -237,22 +253,29 @@ int WAI_PREFIX (getExecutablePath)(char *out, int capacity, int *dirname_length)
 	}
 
 #if !defined(WAI_PROC_SELF_MAPS_RETRY)
-#define WAI_PROC_SELF_MAPS_RETRY 5
+	#define WAI_PROC_SELF_MAPS_RETRY 5
 #endif
 
 #if !defined(WAI_PROC_SELF_MAPS)
-#if defined(__sun)
-#define WAI_PROC_SELF_MAPS "/proc/self/map"
-#else
-#define WAI_PROC_SELF_MAPS "/proc/self/maps"
+	#if defined(__sun)
+		#define WAI_PROC_SELF_MAPS "/proc/self/map"
+	#else
+		#define WAI_PROC_SELF_MAPS "/proc/self/maps"
+	#endif
 #endif
+
+// [FWGS, 01.02.25]
+#if !defined(WAI_STRINGIZE)
+	#define WAI_STRINGIZE(s)
+	#define WAI_STRINGIZE_(s) #s
 #endif
 
 #if defined(__ANDROID__) || defined(ANDROID)
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
+	#include <fcntl.h>
+	#include <sys/mman.h>
+	#include <unistd.h>
 #endif
+
 #include <stdbool.h>
 
 WAI_NOINLINE WAI_FUNCSPEC
@@ -268,23 +291,35 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 		if (!maps)
 			break;
 
+		// [FWGS, 01.02.25]
 		for (;;)
 			{
-			char buffer[PATH_MAX < 1024 ? 1024 : PATH_MAX];
-			uint64_t low, high;
+			/*char buffer[PATH_MAX < 1024 ? 1024 : PATH_MAX];
+			uint64_t low, high;*/
+			char buffer[128 + PATH_MAX];
+			uintptr_t low, high;
+
 			char perms[5];
 			uint64_t offset;
-			uint32_t major, minor;
+			/*uint32_t major, minor;
 			char path[PATH_MAX];
-			uint32_t inode;
+			uint32_t inode;*/
+			uint32_t major, minor, inode;
+			char path[PATH_MAX + 1];
 
 			if (!fgets (buffer, sizeof (buffer), maps))
 				break;
 
-			if (sscanf (buffer, "%" PRIx64 "-%" PRIx64 " %s %" PRIx64 " %x:%x %u %s\n", &low, &high, perms, &offset, &major, &minor, &inode, path) == 8)
+			/*if (sscanf (buffer, "%" PRIx64 "-%" PRIx64 " %s %" PRIx64 " %x:%x %u %s\n", &low, &high,
+				perms, &offset, &major, &minor, &inode, path) == 8)*/
+			if (sscanf (buffer, "%" SCNxPTR "-%" SCNxPTR " %s %" SCNx64 " %x:%x %u %" WAI_STRINGIZE (PATH_MAX) "[^\n]\n",
+				&low, &high, perms, &offset, &major, &minor, &inode, path) == 8)
 				{
-				uint64_t addr = (uintptr_t)WAI_RETURN_ADDRESS ();
-				if (low <= addr && addr <= high)
+				/*uint64_t addr = (uintptr_t)WAI_RETURN_ADDRESS ();*/
+				void *_addr = WAI_RETURN_ADDRESS ();
+				uintptr_t addr = (uintptr_t)_addr;
+
+				if ((low <= addr) && (addr <= high))
 					{
 					char *resolved;
 
@@ -488,7 +523,7 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 #include <stdbool.h>
 
 #if !defined(WAI_PROC_SELF_EXE)
-#define WAI_PROC_SELF_EXE "/proc/self/exefile"
+	#define WAI_PROC_SELF_EXE "/proc/self/exefile"
 #endif
 
 WAI_FUNCSPEC
@@ -636,7 +671,6 @@ int WAI_PREFIX (getExecutablePath)(char *out, int capacity, int *dirname_length)
 			}
 		else
 			{
-			// [FWGS, 01.12.23]
 			const char *PATH = getenv ("PATH");
 			const char *begin;
 			size_t argv0_length;
@@ -803,7 +837,7 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	return length;
 	}
 
-#elif defined(__sgi) 	// [FWGS, 01.07.23]
+#elif defined(__sgi)
 
 /***
 These functions are stubbed for now to get the code compiling.
@@ -830,7 +864,6 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	return -1;
 	}
 
-// [FWGS, 01.07.23]
 #elif defined(__SWITCH__) || defined(__vita__)
 
 // Not possible on this platform

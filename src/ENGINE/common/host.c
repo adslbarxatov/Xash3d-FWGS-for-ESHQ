@@ -47,9 +47,30 @@ GNU General Public License for more details
 #include "tests.h"
 
 // [FWGS, 01.12.24]
-/*pfnChangeGame	pChangeGame = NULL;*/
 static pfnChangeGame pChangeGame = NULL;
 host_parm_t		host;	// host parms
+
+#if XASH_ANDROID
+static jmp_buf return_from_main_buf;
+
+/***
+===============
+Host_ExitInMain [FWGS, 01.02.25]
+
+On some platforms (e.g. Android) we can't exit with exit(3) as calling it would
+kill wrapper process (e.g. app_process) too early, before all resources would
+be freed, contexts released, files closed, etc, etc...
+
+To fix this, we create jmp_buf in Host_Main function, when jumping into with
+non-zero value will immediately return from it with `error_on_exit`
+===============
+***/
+void Host_ExitInMain (void)
+	{
+	longjmp (return_from_main_buf, 1);
+	}
+
+#endif
 
 #ifdef XASH_ENGINE_TESTS
 struct tests_stats_s tests_stats;
@@ -447,15 +468,17 @@ static int Host_CalcSleep (void)
 	return host_sleeptime.value;
 	}
 
+// [FWGS, 01.02.25]
 static void Host_NewInstance (const char *name, const char *finalmsg)
 	{
 	if (!pChangeGame)
 		return;
 
 	host.change_game = true;
-	Q_strncpy (host.finalmsg, finalmsg, sizeof (host.finalmsg));
+	/*Q_strncpy (host.finalmsg, finalmsg, sizeof (host.finalmsg));*/
 
-	if (!Sys_NewInstance (name))
+	/*if (!Sys_NewInstance (name))*/
+	if (!Sys_NewInstance (name, finalmsg))
 		pChangeGame (name); // call from hl.exe
 	}
 
@@ -578,19 +601,8 @@ static void Host_Exec_f (void)
 	if (!Q_stricmp ("config.cfg", cfgpath))
 		host.config_executed = true;
 
-	/*// adds \n\0 at end of the file
-	txt = Z_Calloc (len + 2);
-	memcpy (txt, f, len);
-
-	txt[len] = '\n';
-	txt[len + 1] = '\0';
-	Mem_Free (f);*/
-
 	if (!host.apply_game_config)
 		Con_Printf ("execing %s\n", Cmd_Argv (1));
-
-	/*Cbuf_InsertText (txt);
-	Mem_Free (txt);*/
 
 	// adds \n at end of the file
 	// FS_LoadFile always null terminates
@@ -655,7 +667,7 @@ static qboolean Host_RegisterDecal (const char *name, int *count)
 	if (!COM_CheckString (name))
 		return 0;
 
-	COM_FileBase (name, shortname, sizeof (shortname));	// [FWGS, 01.05.23]
+	COM_FileBase (name, shortname, sizeof (shortname));
 
 	for (i = 1; (i < MAX_DECALS) && host.draw_decals[i][0]; i++)
 		{
@@ -768,9 +780,6 @@ static double Host_CalcFPS (void)
 			double max_fps = fps_override.value ? MAX_FPS_HARD : MAX_FPS_SOFT;
 
 			fps = host_maxfps.value;
-			/*if (fps == 0.0)
-				fps = MAX_FPS;
-			fps = bound (MIN_FPS, fps, MAX_FPS);*/
 			if (fps == 0.0)
 				fps = max_fps;
 			fps = bound (MIN_FPS, fps, max_fps);
@@ -962,7 +971,6 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 			{
 			UI_SetActiveMenu (false);
 			Key_SetKeyDest (key_console);
-			/*Con_Printf ("%s: %s", __func__, hosterror1);*/
 			}
 		else
 			{
@@ -983,9 +991,9 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	recursive = true;
 	Q_strncpy (hosterror2, hosterror1, sizeof (hosterror2));
 
-	// to avoid multply calls per frame
+	// [FWGS, 01.02.25] to avoid multply calls per frame
 	host.errorframe = host.framecount;
-	Q_snprintf (host.finalmsg, sizeof (host.finalmsg), "Server crashed: %s", hosterror1);
+	/*Q_snprintf (host.finalmsg, sizeof (host.finalmsg), "Server crashed: %s", hosterror1);*/
 
 	// clearing cmd buffer to prevent execute any commands
 	COM_InitHostState ();
@@ -1264,12 +1272,13 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		Host_RunTests (0);
 #endif
 
-	// [FWGS, 01.12.24]
 #if XASH_DEDICATED
 	Platform_SetupSigtermHandling ();
 #endif
 
-	Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED));
+	// [FWGS, 01.02.25]
+	/*Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED));*/
+	Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED), basedir);
 	FS_Init (basedir);
 	Sys_InitLog ();
 
@@ -1381,8 +1390,12 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	Cvar_Getf ("ver", FCVAR_READ_ONLY, "shows an engine version", "%i/%s (hw build %i)", PROTOCOL_VERSION,
 		XASH_COMPAT_VERSION, Q_buildnum_compat ());
 
-	Cvar_Getf ("host_ver", FCVAR_READ_ONLY, "detailed info about this build",
-		"%i " XASH_VERSION " %s %s %s", Q_buildnum (), Q_buildos (), Q_buildarch (), Q_buildcommit ());
+	// [FWGS, 01.02.25]
+	/*Cvar_Getf ("host_ver", FCVAR_READ_ONLY, "detailed info about this build",
+		"%i " XASH_VERSION " %s %s %s", Q_buildnum (), Q_buildos (), Q_buildarch (), Q_buildcommit ());*/
+	Cvar_Getf ("host_ver", FCVAR_READ_ONLY, "detailed info about this build", "%i " XASH_VERSION " %s %s %s",
+		Q_buildnum (), Q_buildos (), Q_buildarch (), g_buildcommit);
+
 	Cvar_Getf ("host_lowmemorymode", FCVAR_READ_ONLY,
 		"indicates if engine compiled for low RAM consumption (0 - normal, 1 - low engine limits, 2 - low protocol limits)",
 		"%i", XASH_LOW_MEMORY);
@@ -1420,8 +1433,6 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 		Cvar_FullSet ("host_allow_materials", "0", FCVAR_READ_ONLY);
 
 		// [FWGS, 22.01.25]
-		/*Cmd_AddRestrictedCommand ("quit", Sys_Quit, "quit the game");
-		Cmd_AddRestrictedCommand ("exit", Sys_Quit, "quit the game");*/
 		Cmd_AddRestrictedCommand ("quit", Sys_Quit_f, "quit the game");
 		Cmd_AddRestrictedCommand ("exit", Sys_Quit_f, "quit the game");
 		}
@@ -1520,6 +1531,12 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	// check after all configs were executed
 	HPAK_CheckIntegrity (hpk_custom_file.string);
 
+	// [FWGS, 01.02.25]
+#if XASH_ANDROID
+	if (setjmp (return_from_main_buf))
+		return error_on_exit;
+#endif
+
 	// main window message loop
 	while (!host.crashed)
 		{
@@ -1534,6 +1551,7 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 
 // [FWGS, 22.01.25]
 void HLEXPORT Host_Shutdown (void);
+
 void HLEXPORT Host_Shutdown (void)
 	{
 	Host_ShutdownWithReason ("launcher shutdown");
@@ -1541,32 +1559,26 @@ void HLEXPORT Host_Shutdown (void)
 
 /***
 =================
-Host_Shutdown [FWGS, 22.01.25]
+Host_Shutdown
 =================
 ***/
-/*void HLEXPORT Host_Shutdown (void)*/
 void Host_ShutdownWithReason (const char *reason)
 	{
 	qboolean error = host.status == HOST_ERR_FATAL;
 
-	/*if (host.shutdown_issued)
-		return;*/
 	if (host.shutdown_issued)
 		return;
 	host.shutdown_issued = true;
 
-	/*if (host.status != HOST_ERR_FATAL)
-		host.status = HOST_SHUTDOWN; // prepare host to normal shutdown
-	if (!host.change_game)
-		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));*/
 	if (reason != NULL)
 		Con_Printf (S_NOTE "Issuing host shutdown due to reason \"%s\"\n", reason);
 
 	if (host.status != HOST_ERR_FATAL)
 		host.status = HOST_SHUTDOWN; // prepare host to normal shutdown
 
-	if (!host.change_game)
-		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));
+	// [FWGS, 01.02.25]
+	/*if (!host.change_game)
+		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));*/
 
 #if !XASH_DEDICATED
 	if ((host.type == HOST_NORMAL) && !error)
@@ -1585,10 +1597,16 @@ void Host_ShutdownWithReason (const char *reason)
 	Host_FreeCommon ();
 	Platform_Shutdown ();
 
+	// [FWGS, 01.02.25]
+	BaseCmd_Shutdown ();
+	Cmd_Shutdown ();
+	Cvar_Shutdown ();
+
 	// must be last, console uses this
 	Mem_FreePool (&host.mempool);
 
-	// restore filter
+	// [FWGS, 01.02.25] restore filter
 	Sys_RestoreCrashHandler ();
-	Sys_CloseLog ();
+	/*Sys_CloseLog ();*/
+	Sys_CloseLog (reason);
 	}

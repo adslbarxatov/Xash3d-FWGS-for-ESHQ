@@ -142,7 +142,8 @@ typedef struct gltexture_s
 	float		xscale;
 	float		yscale;
 
-	int			servercount;
+	// [FWGS, 01.02.25]
+	/*int			servercount;*/
 	uint		hashValue;
 	struct gltexture_s *nextHash;
 	} gl_texture_t;
@@ -454,7 +455,7 @@ void Matrix4x4_CreateModelview (matrix4x4 out);
 void R_ClearStaticEntities (void);
 
 //
-// gl_rsurf.c [FWGS, 01.12.24]
+// gl_rsurf.c [FWGS, 01.02.25]
 //
 void R_MarkLeaves (void);
 void R_DrawWorld (void);
@@ -462,8 +463,8 @@ void R_DrawWaterSurfaces (void);
 void R_DrawBrushModel (cl_entity_t *e);
 void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
 void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);
-void DrawGLPoly (glpoly2_t *p, float xScale, float yScale);
-texture_t *R_TextureAnimation (msurface_t *s);
+/*void DrawGLPoly (glpoly2_t *p, float xScale, float yScale);
+texture_t *R_TextureAnimation (msurface_t *s);*/
 void GL_SetupFogColorForSurfaces (void);
 void R_DrawAlphaTextureChains (void);
 void GL_RebuildLightmaps (void);
@@ -518,21 +519,19 @@ void R_DrawAliasModel (cl_entity_t *e);
 void R_AliasInit (void);
 
 //
-// gl_warp.c [FWGS, 22.01.25]
+// gl_warp.c [FWGS, 01.02.25]
 //
 void R_AddSkyBoxSurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_DrawClouds (void);
 void R_UnloadSkybox (void);
-
-/*void EmitWaterPolys (msurface_t *warp, qboolean reverse);*/
 void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples);
-void R_InitRipples (void);
+/*void R_InitRipples (void);*/
 void R_ResetRipples (void);
 void R_AnimateRipples (void);
-/*void R_UploadRipples (texture_t * image);*/
-qboolean R_UploadRipples (const texture_t *image);
+/*qboolean R_UploadRipples (const texture_t *image);*/
+qboolean R_UploadRipples (texture_t *image);
 
 //
 // renderer exports [FWGS, 01.12.24]

@@ -2464,8 +2464,8 @@ void R_InitImages (void)
 	R_SetTextureParameters ();
 	GL_CreateInternalTextures ();
 
-	// [FWGS, 01.11.23]
-	R_InitRipples ();
+	// [FWGS, 01.02.25]
+	/*R_InitRipples ();*/
 
 	gEngfuncs.Cmd_AddCommand ("texturelist", R_TextureList_f, "display loaded textures list");
 	}

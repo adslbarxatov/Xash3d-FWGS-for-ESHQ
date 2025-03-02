@@ -570,7 +570,7 @@ void Wcon_InitConsoleCommands (void)
 
 /***
 ================
-Con_DestroyConsole [FWGS, 01.07.24]
+Con_DestroyConsole
 
 destroy win32 console
 ================
@@ -580,7 +580,9 @@ void Wcon_DestroyConsole (void)
 	// last text message into console or log
 	Con_Reportf ("%s: Unloading xash.dll\n", __func__);
 
-	Sys_CloseLog ();
+	// [FWGS, 01.02.25]
+	/*Sys_CloseLog ();*/
+	Sys_CloseLog (NULL);
 
 	if (!s_wcd.attached)
 		{
@@ -611,7 +613,7 @@ returned input text
 ***/
 char *Wcon_Input (void)
 	{
-	DWORD i;	// [FWGS, 01.05.23]
+	DWORD i;
 	DWORD eventsCount;
 	static INPUT_RECORD events[1024];
 

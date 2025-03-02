@@ -1767,7 +1767,28 @@ void CL_UpdateUserPings (sizebuf_t *msg)
 		}
 	}
 
-/*static void CL_SendConsistencyInfo (sizebuf_t *msg)*/
+// [FWGS, 01.02.25]
+static const char *CL_CheckTypeToString (int check_type)
+	{
+	// renamed so they have same width and look better in console output
+	switch (check_type)
+		{
+		case force_exactfile:
+			return "exactfile";
+
+		case force_model_samebounds:
+			return "samebounds";
+
+		case force_model_specifybounds:
+			return "specbounds";
+
+		case force_model_specifybounds_if_avail:
+			return "specbounds2";
+		}
+
+	return "unknown";
+	}
+
 // [FWGS, 01.12.24]
 static void CL_SendConsistencyInfo (sizebuf_t *msg, connprotocol_t proto)
 	{
@@ -1775,10 +1796,8 @@ static void CL_SendConsistencyInfo (sizebuf_t *msg, connprotocol_t proto)
 	vec3_t		mins, maxs;
 	string		filename;
 	CRC32_t		crcFile;
-	/*byte		md5[16];*/
 	byte		md5[16] = { 0 };
 	consistency_t	*pc;
-	/*int			i;*/
 	int			i, pos;
 
 	if (!cl.need_force_consistency_response)
@@ -2026,7 +2045,6 @@ void CL_RegisterResources (sizebuf_t *msg, connprotocol_t proto)
 		}
 	}
 
-/*static void CL_ParseConsistencyInfo (sizebuf_t *msg)*/
 // [FWGS, 01.12.24]
 static void CL_ParseConsistencyInfo (sizebuf_t *msg, connprotocol_t proto)
 	{
@@ -2054,6 +2072,10 @@ static void CL_ParseConsistencyInfo (sizebuf_t *msg, connprotocol_t proto)
 		return;
 		}
 
+	// [FWGS, 01.02.25]
+	if (cl_trace_consistency.value)
+		Con_Printf ("Server wants consistency of the following resources:\n");
+
 	skip_crc_change = NULL;
 	lastcheck = 0;
 
@@ -2063,8 +2085,6 @@ static void CL_ParseConsistencyInfo (sizebuf_t *msg, connprotocol_t proto)
 
 		if (isdelta)
 			delta = MSG_ReadUBitLong (msg, 5) + lastcheck;
-		/*else
-			delta = MSG_ReadUBitLong (msg, MAX_MODEL_BITS);*/
 		else
 			delta = MSG_ReadUBitLong (msg, proto == PROTO_GOLDSRC ? MAX_GOLDSRC_MODEL_BITS : MAX_MODEL_BITS);
 
@@ -2090,7 +2110,9 @@ static void CL_ParseConsistencyInfo (sizebuf_t *msg, connprotocol_t proto)
 		pc = &cl.consistency_list[cl.num_consistency];
 		cl.num_consistency++;
 
-		memset (pc, 0, sizeof (consistency_t));
+		// [FWGS, 01.02.25]
+		/*memset (pc, 0, sizeof (consistency_t));*/
+		memset (pc, 0, sizeof (*pc));
 		pc->filename = pResource->szFileName;
 		pc->issound = (pResource->type == t_sound);
 		pc->orig_index = delta;
@@ -2104,6 +2126,11 @@ static void CL_ParseConsistencyInfo (sizebuf_t *msg, connprotocol_t proto)
 			pc->check_type = pResource->rguc_reserved[0];
 			}
 
+		// [FWGS, 01.02.25]
+		if (cl_trace_consistency.value)
+			Con_Printf ("%s\t%s\t%s\n", COM_ResourceTypeFromIndex (pResource->type),
+				CL_CheckTypeToString (pc->check_type), pc->filename);
+
 		skip_crc_change = pResource;
 		lastcheck = delta;
 		}
@@ -2114,13 +2141,11 @@ static void CL_ParseConsistencyInfo (sizebuf_t *msg, connprotocol_t proto)
 CL_ParseResourceList [FWGS, 01.12.24]
 ==============
 ***/
-/*static void CL_ParseResourceList (sizebuf_t *msg)*/
 void CL_ParseResourceList (sizebuf_t *msg, connprotocol_t proto)
 	{
 	resource_t	*pResource;
 	int			i, total;
 
-	/*total = MSG_ReadUBitLong (msg, MAX_RESOURCE_BITS);*/
 	total = MSG_ReadUBitLong (msg, proto == PROTO_GOLDSRC ? MAX_GOLDSRC_RESOURCE_BITS : MAX_RESOURCE_BITS);
 
 	for (i = 0; i < total; i++)

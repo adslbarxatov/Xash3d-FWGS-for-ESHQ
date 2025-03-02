@@ -123,6 +123,10 @@ typedef struct gameinfo_s
 	qboolean	hd_background;
 	qboolean	animated_title;
 	char		demomap[MAX_QPATH];
+
+	// [FWGS, 01.02.25]
+	qboolean	rodir; // if true, parsed from rodir
+	int64_t		mtime;
 	} gameinfo_t;
 
 // [FWGS, 01.07.24]
@@ -132,7 +136,6 @@ typedef struct fs_dllinfo_t
 	string		shortPath;		// vfs path
 	qboolean	encrypted;		// do we need encrypted DLL loader?
 	qboolean	custom_loader;	// do we need memory DLL loader?
-
 	} fs_dllinfo_t;
 
 typedef struct fs_globals_t
@@ -142,10 +145,13 @@ typedef struct fs_globals_t
 	int			numgames;
 	} fs_globals_t;
 
+// [FWGS, 01.02.25]
+typedef struct file_s file_t;
+
 typedef struct fs_api_t
 	{
 	qboolean (*InitStdio)(qboolean unused_set_to_true, const char *rootdir, const char *basedir,
-		const char *gamedir, const char *rodir);	// [FWGS, 01.05.23]
+		const char *gamedir, const char *rodir);
 	void (*ShutdownStdio)(void);
 
 	// search path utils
@@ -231,28 +237,23 @@ typedef struct fs_api_t
 
 	// [FWGS, 25.12.24] gets current root directory, set by InitStdio
 	qboolean (*GetRootDirectory)(char *path, size_t size);
+
+	// [FWGS, 01.02.25]
+	void (*MakeGameInfo)(void);
 	} fs_api_t;
 
 typedef struct fs_interface_t
 	{
 	// [FWGS, 01.12.24] logging
-	/*void    (*_Con_Printf)(const char *fmt, ...) _format (1); // typical console allowed messages
-	void    (*_Con_DPrintf)(const char *fmt, ...) _format (1); // -dev 1
-	void    (*_Con_Reportf)(const char *fmt, ...) _format (1); // -dev 2*/
 	void (*_Con_Printf)(const char *fmt, ...) FORMAT_CHECK (1);		// typical console allowed messages
 	void (*_Con_DPrintf)(const char *fmt, ...) FORMAT_CHECK (1);	// -dev 1
 	void (*_Con_Reportf)(const char *fmt, ...) FORMAT_CHECK (1);	// -dev 2
 	void (*_Sys_Error)(const char *fmt, ...) FORMAT_CHECK (1);
-	/*void    (*_Sys_Error)(const char *fmt, ...) _format (1);*/
 
 	// [FWGS, 01.12.24] memory
 	poolhandle_t (*_Mem_AllocPool)(const char *name, const char *filename, int fileline);
 	void  (*_Mem_FreePool)(poolhandle_t *poolptr, const char *filename, int fileline);
 	
-	/*void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename,
-		int fileline) ALLOC_CHECK (2);
-	void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear,
-		const char *filename, int fileline) ALLOC_CHECK (3);*/
 	void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
 		ALLOC_CHECK (2) WARN_UNUSED_RESULT;
 	void *(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline)

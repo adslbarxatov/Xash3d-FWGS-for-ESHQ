@@ -242,6 +242,6 @@ uint32_t Q_UnicodeToCP1251 (uint32_t uc)
 
 uint32_t Q_UnicodeToCP1252 (uint32_t uc)
 	{
-	// this is NOT valid way to convert Unicode codepoint back to CP1252!!!
-	return uc < 0xFF ? uc : '?';
+	// this is NOT valid way to convert Unicode codepoint back to CP1252!
+	return (uc < 0xFF) ? uc : '?';
 	}

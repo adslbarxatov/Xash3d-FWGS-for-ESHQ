@@ -9,13 +9,14 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
 #include "common.h"
 #include "sound.h"
 #include "client.h"
+#include "soundlib.h"	// [FWGS, 01.02.25]
 
 static bg_track_t		s_bgTrack;
 static musicfade_t		musicfade;	// controlled by game dlls
@@ -180,11 +181,11 @@ S_StreamBackgroundTrack
 ***/
 void S_StreamBackgroundTrack (void)
 	{
-	int	bufferSamples;
-	int	fileSamples;
+	int		bufferSamples;
+	int		fileSamples;
 	byte	raw[MAX_RAW_SAMPLES];
-	int	r, fileBytes;
-	rawchan_t *ch = NULL;
+	int		r, fileBytes;
+	rawchan_t	*ch = NULL;
 
 	if (!dma.initialized || !s_bgTrack.stream || s_listener.streaming)
 		return;
@@ -196,11 +197,15 @@ void S_StreamBackgroundTrack (void)
 	if (!cl.background)
 		{
 		// pause music by source type
-		if (s_bgTrack.source == key_game && cls.key_dest == key_menu) return;
-		if (s_bgTrack.source == key_menu && cls.key_dest != key_menu) return;
+		if ((s_bgTrack.source == key_game) && (cls.key_dest == key_menu))
+			return;
+		if ((s_bgTrack.source == key_menu) && (cls.key_dest != key_menu))
+			return;
 		}
 	else if (cls.key_dest == key_console)
+		{
 		return;
+		}
 
 	ch = S_FindRawChannel (S_RAW_SOUND_BACKGROUNDTRACK, true);
 
@@ -210,15 +215,20 @@ void S_StreamBackgroundTrack (void)
 	if (ch->s_rawend < soundtime)
 		ch->s_rawend = soundtime;
 
+	// [FWGS, 01.02.25]
 	while (ch->s_rawend < soundtime + ch->max_samples)
 		{
-		wavdata_t *info = FS_StreamInfo (s_bgTrack.stream);
+		/*wavdata_t *info = FS_StreamInfo (s_bgTrack.stream);*/
+		const stream_t *info = s_bgTrack.stream;
 
 		bufferSamples = ch->max_samples - (ch->s_rawend - soundtime);
 
 		// decide how much data needs to be read from the file
 		fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);
-		if (fileSamples <= 1) return; // no more samples need
+
+		// no more samples need
+		if (fileSamples <= 1)
+			return;
 
 		// our max buffer size
 		fileBytes = fileSamples * (info->width * info->channels);

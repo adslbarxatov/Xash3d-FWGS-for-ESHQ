@@ -38,13 +38,16 @@ HULL BOXES
 ===============================================================================
 ***/
 
-static hull_t	box_hull;
+// [FWGS, 01.02.25]
+/*static hull_t	box_hull;
 static mclipnode_t	box_clipnodes[6];
+static mplane_t	box_planes[6];*/
+static hull_t	box_hull;
 static mplane_t	box_planes[6];
 
 /***
 ===================
-SV_InitBoxHull
+SV_InitBoxHull [FWGS, 01.02.25]
 
 Set up the planes and clipnodes so that the six floats of a bounding box
 can just be stored out and get a proper hull_t structure.
@@ -52,16 +55,18 @@ can just be stored out and get a proper hull_t structure.
 ***/
 static void SV_InitBoxHull (void)
 	{
-	int	i, side;
+	/*int	i, side;*/
+	int i;
 
-	box_hull.clipnodes = box_clipnodes;
+	/*box_hull.clipnodes = box_clipnodes;*/
+	box_hull.clipnodes16 = (mclipnode16_t *)box_clipnodes16;
 	box_hull.planes = box_planes;
 	box_hull.firstclipnode = 0;
 	box_hull.lastclipnode = 5;
 
 	for (i = 0; i < 6; i++)
 		{
-		box_clipnodes[i].planenum = i;
+		/*box_clipnodes[i].planenum = i;
 
 		side = i & 1;
 
@@ -69,7 +74,7 @@ static void SV_InitBoxHull (void)
 		if (i != 5)
 			box_clipnodes[i].children[side ^ 1] = i + 1;
 		else
-			box_clipnodes[i].children[side ^ 1] = CONTENTS_SOLID;
+			box_clipnodes[i].children[side ^ 1] = CONTENTS_SOLID;*/
 
 		box_planes[i].type = i >> 1;
 		box_planes[i].normal[i >> 1] = 1;
@@ -152,7 +157,7 @@ static qboolean SV_CheckSphereIntersection (edict_t *ent, const vec3_t start, co
 
 /***
 ===================
-SV_HullForBox
+SV_HullForBox [FWGS, 01.02.25]
 
 To keep everything totally uniform, bounding boxes are turned into small
 BSP trees instead of being compared directly.
@@ -167,10 +172,13 @@ static hull_t *SV_HullForBox (const vec3_t mins, const vec3_t maxs)
 	box_planes[4].dist = maxs[2];
 	box_planes[5].dist = mins[2];
 
+	if (world.version == QBSP2_VERSION)
+		box_hull.clipnodes32 = (mclipnode32_t *)box_clipnodes32;
+	else
+		box_hull.clipnodes16 = (mclipnode16_t *)box_clipnodes16;
+
 	return &box_hull;
 	}
-
-// [FWGS, 01.05.23] удалена SV_HullAutoSelect
 
 /***
 ==================
@@ -598,13 +606,14 @@ static void SV_TouchLinks (edict_t *ent, areanode_t *node)
 
 /***
 ===============
-SV_FindTouchedLeafs
+SV_FindTouchedLeafs [FWGS, 01.02.25]
 ===============
 ***/
-static void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)
+/*static void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)*/
+static void SV_FindTouchedLeafs (edict_t *ent, model_t *mod, mnode_t *node, int *headnode)
 	{
-	int	sides;
-	mleaf_t *leaf;
+	int		sides;
+	mleaf_t	*leaf;
 
 	if (node->contents == CONTENTS_SOLID)
 		return;
@@ -612,18 +621,25 @@ static void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)
 	// add an efrag if the node is a leaf
 	if (node->contents < 0)
 		{
-		if (ent->num_leafs > (MAX_ENT_LEAFS - 1))
+		/*if (ent->num_leafs > (MAX_ENT_LEAFS - 1))*/
+		if (ent->num_leafs > MAX_ENT_LEAFS (FBitSet (mod->flags, MODEL_QBSP2)))
 			{
-			// continue counting leafs,
-			// so we know how many it's overrun
-			ent->num_leafs = (MAX_ENT_LEAFS + 1);
+			// continue counting leafs, so we know how many it's overrun
+			/*ent->num_leafs = (MAX_ENT_LEAFS + 1);*/
+			ent->num_leafs = (MAX_ENT_LEAFS (FBitSet (mod->flags, MODEL_QBSP2)) + 1);
 			}
 		else
 			{
 			leaf = (mleaf_t *)node;
-			ent->leafnums[ent->num_leafs] = leaf->cluster;
+			/*ent->leafnums[ent->num_leafs] = leaf->cluster;*/
+			if (FBitSet (mod->flags, MODEL_QBSP2))
+				ent->leafnums32[ent->num_leafs] = leaf->cluster;
+			else
+				ent->leafnums16[ent->num_leafs] = leaf->cluster;
+
 			ent->num_leafs++;
 			}
+
 		return;
 		}
 
@@ -631,11 +647,16 @@ static void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)
 	sides = BOX_ON_PLANE_SIDE (ent->v.absmin, ent->v.absmax, node->plane);
 
 	if ((sides == 3) && (*headnode == -1))
-		*headnode = node - sv.worldmodel->nodes;
+		/**headnode = node - sv.worldmodel->nodes;*/
+		*headnode = node - mod->nodes;
 
 	// recurse down the contacted sides
-	if (sides & 1) SV_FindTouchedLeafs (ent, node->children[0], headnode);
-	if (sides & 2) SV_FindTouchedLeafs (ent, node->children[1], headnode);
+	/*if (sides & 1) SV_FindTouchedLeafs (ent, node->children[0], headnode);
+	if (sides & 2) SV_FindTouchedLeafs (ent, node->children[1], headnode);*/
+	if (sides & 1)
+		SV_FindTouchedLeafs (ent, mod, node_child (node, 0, mod), headnode);
+	if (sides & 2)
+		SV_FindTouchedLeafs (ent, mod, node_child (node, 1, mod), headnode);
 	}
 
 /***
@@ -658,9 +679,11 @@ void GAME_EXPORT SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 	// set the abs box
 	svgame.dllFuncs.pfnSetAbsBox (ent);
 
+	// [FWGS, 01.02.25]
 	if ((ent->v.movetype == MOVETYPE_FOLLOW) && SV_IsValidEdict (ent->v.aiment))
 		{
-		memcpy (ent->leafnums, ent->v.aiment->leafnums, sizeof (ent->leafnums));
+		/*memcpy (ent->leafnums, ent->v.aiment->leafnums, sizeof (ent->leafnums));*/
+		memcpy (ent->leafnums32, ent->v.aiment->leafnums32, sizeof (ent->leafnums32));
 		ent->num_leafs = ent->v.aiment->num_leafs;
 		ent->headnode = ent->v.aiment->headnode;
 		}
@@ -672,11 +695,14 @@ void GAME_EXPORT SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 		headnode = -1;
 
 		if (ent->v.modelindex)
-			SV_FindTouchedLeafs (ent, sv.worldmodel->nodes, &headnode);
+			/*SV_FindTouchedLeafs (ent, sv.worldmodel->nodes, &headnode);*/
+			SV_FindTouchedLeafs (ent, sv.worldmodel, sv.worldmodel->nodes, &headnode);
 
-		if (ent->num_leafs > MAX_ENT_LEAFS)
+		/*if (ent->num_leafs > MAX_ENT_LEAFS)*/
+		if (ent->num_leafs > MAX_ENT_LEAFS (FBitSet (sv.worldmodel->flags, MODEL_QBSP2)))
 			{
-			memset (ent->leafnums, -1, sizeof (ent->leafnums));
+			/*memset (ent->leafnums, -1, sizeof (ent->leafnums));*/
+			memset (ent->leafnums32, -1, sizeof (ent->leafnums32));
 			ent->num_leafs = 0;	// so we use headnode instead
 			ent->headnode = headnode;
 			}
@@ -1577,29 +1603,19 @@ LIGHTING INFO
 ===============================================================================
 ***/
 
-// [FWGS, 25.12.24]
-/*static vec3_t	sv_pointColor;*/
-
 /***
 =================
-SV_RecursiveLightPoint [FWGS, 25.12.24]
+SV_RecursiveLightPoint [FWGS, 01.02.25]
 =================
 ***/
-/*static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec3_t start, const vec3_t end)*/
 static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec3_t start, const vec3_t end,
 	vec3_t point_color)
 	{
-	/*float		front, back, scale, frac;
-	int			i, map, side, size;
-	float		ds, dt, s, t;
-	int			sample_size;
-	msurface_t	*surf;
-	mextrasurf_t	*info;
-	color24		*lm;
-	vec3_t		mid;*/
 	float	front, back, frac;
 	int		i, side;
 	vec3_t	mid;
+	mnode_t	*children[2];
+	int		numsurfaces, firstsurface;
 
 	// didn't hit anything
 	if (!node || (node->contents < 0))
@@ -1609,33 +1625,34 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 	front = PlaneDiff (start, node->plane);
 	back = PlaneDiff (end, node->plane);
 
+	node_children (children, node, model);
+
 	side = front < 0.0f;
 	if ((back < 0.0f) == side)
-		/*return SV_RecursiveLightPoint (model, node->children[side], start, end);*/
-		return SV_RecursiveLightPoint (model, node->children[side], start, end, point_color);
+		/*return SV_RecursiveLightPoint (model, node->children[side], start, end, point_color);*/
+		return SV_RecursiveLightPoint (model, children[side], start, end, point_color);
 
 	frac = front / (front - back);
 
 	VectorLerp (start, frac, end, mid);
 
 	// go down front side
-	/*if (SV_RecursiveLightPoint (model, node->children[side], start, mid))*/
-	if (SV_RecursiveLightPoint (model, node->children[side], start, mid, point_color))
+	/*if (SV_RecursiveLightPoint (model, node->children[side], start, mid, point_color))*/
+	if (SV_RecursiveLightPoint (model, children[side], start, mid, point_color))
 		return true;	// hit something
 
 	if ((back < 0.0f) == side)
-		/*return false;	// didn't hit anything*/
 		return false;	// didn't hit anything
 
 	// check for impact on this node
-	/*surf = model->surfaces + node->firstsurface;
+	/*for (i = 0; i < node->numsurfaces; i++)*/
+	numsurfaces = node_numsurfaces (node, model);
+	firstsurface = node_firstsurface (node, model);
 
-	for (i = 0; i < node->numsurfaces; i++, surf++)*/
-	for (i = 0; i < node->numsurfaces; i++)
+	for (i = 0; i < numsurfaces; i++)
 		{
-		/*int	smax, tmax;
-		info = surf->info;*/
-		const msurface_t	*surf = &model->surfaces[node->firstsurface + i];
+		/*const msurface_t	*surf = &model->surfaces[node->firstsurface + i];*/
+		const msurface_t	*surf = &model->surfaces[firstsurface + i];
 		const mextrasurf_t	*info = surf->info;
 		int		smax, tmax, map, size;
 		int		sample_size;
@@ -1648,13 +1665,13 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 		s = DotProduct (mid, info->lmvecs[0]) + info->lmvecs[0][3];
 		t = DotProduct (mid, info->lmvecs[1]) + info->lmvecs[1][3];
 
-		if (s < info->lightmapmins[0] || t < info->lightmapmins[1])
+		if ((s < info->lightmapmins[0]) || (t < info->lightmapmins[1]))
 			continue;
 
 		ds = s - info->lightmapmins[0];
 		dt = t - info->lightmapmins[1];
 
-		if (ds > info->lightextents[0] || dt > info->lightextents[1])
+		if ((ds > info->lightextents[0]) || (dt > info->lightextents[1]))
 			continue;
 
 		if (!surf->samples)
@@ -1666,7 +1683,6 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 		ds /= sample_size;
 		dt /= sample_size;
 
-		/*VectorClear (sv_pointColor);*/
 		VectorClear (point_color);
 
 		lm = surf->samples + Q_rint (dt) * smax + Q_rint (ds);
@@ -1674,24 +1690,21 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 
 		for (map = 0; (map < MAXLIGHTMAPS) && (surf->styles[map] != 255); map++)
 			{
-			/*scale = sv.lightstyles[surf->styles[map]].value;*/
 			float scale = sv.lightstyles[surf->styles[map]].value;
 
-			/*sv_pointColor[0] += lm->r * scale;
-			sv_pointColor[1] += lm->g * scale;
-			sv_pointColor[2] += lm->b * scale;*/
 			point_color[0] += lm->r * scale;
 			point_color[1] += lm->g * scale;
 			point_color[2] += lm->b * scale;
 
 			lm += size;		// skip to next lightmap
 			}
+
 		return true;
 		}
 
 	// go down back side
-	/*return SV_RecursiveLightPoint (model, node->children[!side], mid, end);*/
-	return SV_RecursiveLightPoint (model, node->children[!side], mid, end, point_color);
+	/*return SV_RecursiveLightPoint (model, node->children[!side], mid, end, point_color);*/
+	return SV_RecursiveLightPoint (model, children[!side], mid, end, point_color);
 	}
 
 // [FWGS, 01.05.24] removed SV_RunLightStyles

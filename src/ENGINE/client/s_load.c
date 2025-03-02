@@ -104,22 +104,33 @@ char *S_SkipSoundChar (const char *pch)
 
 /***
 =================
-S_CreateDefaultSound [FWGS, 09.05.24]
+S_CreateDefaultSound [FWGS, 01.02.25]
 =================
 ***/
 static wavdata_t *S_CreateDefaultSound (void)
 	{
-	wavdata_t *sc;
+	/*wavdata_t *sc;
 
 	sc = Mem_Calloc (sndpool, sizeof (wavdata_t));
 
 	sc->width = 2;
 	sc->channels = 1;
-	sc->loopStart = 0;
+	sc->loopStart = 0;*/
+	wavdata_t	*sc;
+	uint	samples = SOUND_DMA_SPEED;
+	uint	channels = 1;
+	uint	width = 2;
+	size_t	size = samples * width * channels;
+
+	sc = Mem_Calloc (sndpool, sizeof (wavdata_t) + size);
+	sc->width = width;
+	sc->channels = channels;
 	sc->rate = SOUND_DMA_SPEED;
-	sc->samples = SOUND_DMA_SPEED;
+	/*sc->samples = SOUND_DMA_SPEED;
 	sc->size = sc->samples * sc->width * sc->channels;
-	sc->buffer = Mem_Calloc (sndpool, sc->size);
+	sc->buffer = Mem_Calloc (sndpool, sc->size);*/
+	sc->samples = samples;
+	sc->size = size;
 
 	return sc;
 	}

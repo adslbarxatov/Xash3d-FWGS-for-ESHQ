@@ -253,6 +253,11 @@ functions (such as tdefl_compress_mem_to_heap() and tinfl_decompress_mem_to_heap
 #define MINIZ_HAS_64BIT_REGISTERS 0
 #endif
 
+// ESHQ: непонятно, откуда оно лезет, но оно мешает
+#ifdef __cplusplus
+#undef __cplusplus
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

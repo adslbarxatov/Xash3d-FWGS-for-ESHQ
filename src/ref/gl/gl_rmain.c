@@ -615,7 +615,7 @@ static void R_EndGL (void)
 
 /***
 =============
-R_RecursiveFindWaterTexture
+R_RecursiveFindWaterTexture [FWGS, 01.02.25]
 
 using to find source waterleaf with
 watertexture to grab fog values from it
@@ -623,7 +623,8 @@ watertexture to grab fog values from it
 ***/
 static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mnode_t *ignore, qboolean down)
 	{
-	gl_texture_t *tex = NULL;
+	gl_texture_t	*tex = NULL;
+	mnode_t			*children[2];
 
 	// assure the initial node is not null
 	// we could check it here, but we would rather check it
@@ -641,7 +642,8 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 		int		i, c;
 
 		// ignore non-liquid leaves
-		if (node->contents != CONTENTS_WATER && node->contents != CONTENTS_LAVA && node->contents != CONTENTS_SLIME)
+		if ((node->contents != CONTENTS_WATER) && (node->contents != CONTENTS_LAVA) &&
+			(node->contents != CONTENTS_SLIME))
 			return NULL;
 
 		// find texture
@@ -661,16 +663,22 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 
 	// this is a regular node
 	// traverse children
-	if (node->children[0] && (node->children[0] != ignore))
+	/*if (node->children[0] && (node->children[0] != ignore))*/
+	node_children (children, node, WORLDMODEL);
+
+	if (children[0] && (children[0] != ignore))
 		{
-		tex = R_RecursiveFindWaterTexture (node->children[0], node, true);
+		/*tex = R_RecursiveFindWaterTexture (node->children[0], node, true);*/
+		tex = R_RecursiveFindWaterTexture (children[0], node, true);
 		if (tex)
 			return tex;
 		}
 
-	if (node->children[1] && (node->children[1] != ignore))
+	/*if (node->children[1] && (node->children[1] != ignore))*/
+	if (children[1] && (children[1] != ignore))
 		{
-		tex = R_RecursiveFindWaterTexture (node->children[1], node, true);
+		/*tex = R_RecursiveFindWaterTexture (node->children[1], node, true);*/
+		tex = R_RecursiveFindWaterTexture (children[1], node, true);
 		if (tex)
 			return tex;
 		}

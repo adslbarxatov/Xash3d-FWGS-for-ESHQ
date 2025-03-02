@@ -300,7 +300,7 @@ static int SV_FindEmptySlot (netadr_t from, int *pslot, sv_client_t **ppClient)
 
 /***
 ==================
-SV_ConnectClient
+SV_ConnectClient [FWGS, 01.02.25]
 
 A connection request that did not come from the master
 ==================
@@ -317,6 +317,7 @@ static void SV_ConnectClient (netadr_t from)
 	int			challenge;
 	const char	*s;
 	int			extensions;
+	uint		netchan_flags = 0;
 
 	if (Cmd_Argc () < 5)
 		{
@@ -383,7 +384,7 @@ static void SV_ConnectClient (netadr_t from)
 
 	Q_strncpy (userinfo, s, sizeof (userinfo));
 
-	// [FWGS, 01.07.24] check connection password (don't verify local client)
+	// check connection password (don't verify local client)
 	if (!NET_IsLocalAddress (from) && SV_HavePassword ())
 		{
 		if (Q_stricmp (sv_password.string, Info_ValueForKey (userinfo, "password")))
@@ -447,9 +448,12 @@ static void SV_ConnectClient (netadr_t from)
 	// with server.dll without voice game manager
 	newcl->listeners = -1;
 
-	// [FWGS, 01.12.24] initailize netchan
-	/*Netchan_Setup (NS_SERVER, &newcl->netchan, from, qport, newcl, SV_GetFragmentSize);*/
-	Netchan_Setup (NS_SERVER, &newcl->netchan, from, qport, newcl, SV_GetFragmentSize, 0);
+	// initailize netchan
+	/*Netchan_Setup (NS_SERVER, &newcl->netchan, from, qport, newcl, SV_GetFragmentSize, 0);*/
+	if (!Host_IsLocalClient ())
+		SetBits (netchan_flags, NETCHAN_USE_LZSS);
+	Netchan_Setup (NS_SERVER, &newcl->netchan, from, qport, newcl, SV_GetFragmentSize, netchan_flags);
+
 	MSG_Init (&newcl->datagram, "Datagram", newcl->datagram_buf, sizeof (newcl->datagram_buf)); // datagram buf
 
 	Q_strncpy (newcl->hashedcdkey, Info_ValueForKey (protinfo, "uuid"), 32);
@@ -459,8 +463,7 @@ static void SV_ConnectClient (netadr_t from)
 	protinfo[0] = '\0';
 	Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", newcl->extensions);
 
-	// [FWGS, 01.12.24] send the connect packet to the client
-	/*Netchan_OutOfBandPrint (NS_SERVER, from, "client_connect %s", protinfo);*/
+	// send the connect packet to the client
 	Netchan_OutOfBandPrint (NS_SERVER, from, S2C_CONNECTION " %s", protinfo);
 
 	newcl->upstate = us_inactive;
@@ -490,7 +493,8 @@ static void SV_ConnectClient (netadr_t from)
 
 	// reset stats
 	newcl->next_checkpingtime = -1.0;
-	newcl->packet_loss = 0.0f;
+	/*newcl->packet_loss = 0.0f;*/
+	newcl->packet_loss = 0;
 
 	// if this was the first client on the server, or the last client
 	// the server can hold, send a heartbeat to the master.
@@ -1250,12 +1254,13 @@ int SV_CalcPing (sv_client_t *cl)
 
 /***
 ===================
-SV_EstablishTimeBase
+SV_EstablishTimeBase [FWGS, 01.02.25]
 
 Finangles latency and the like
 ===================
 ***/
-static void SV_EstablishTimeBase (sv_client_t *cl, usercmd_t *cmds, int dropped, int numbackup, int numcmds)
+/*static void SV_EstablishTimeBase (sv_client_t *cl, usercmd_t *cmds, int dropped, int numbackup, int numcmds)*/
+static void SV_EstablishTimeBase (sv_client_t *cl, const usercmd_t *cmds, int dropped, int numbackup, int numcmds)
 	{
 	double	runcmd_time = 0.0;
 	int		i, cmdnum = dropped;
@@ -2357,25 +2362,26 @@ static qboolean SV_Begin_f (sv_client_t *cl)
 
 	// now client is spawned
 	cl->state = cs_spawned;
-	cl->connecttime = host.realtime;	// [FWGS, 01.04.23]
+	cl->connecttime = host.realtime;
 	return true;
 	}
 
 /***
 ==================
-SV_SendBuildInfo_f [FWGS, 01.04.23]
+SV_SendBuildInfo_f [FWGS, 01.02.25]
 ==================
 ***/
 static qboolean SV_SendBuildInfo_f (sv_client_t *cl)
 	{
 	SV_ClientPrintf (cl, "Server running " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
-		Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());
+		/*Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());*/
+		Q_buildnum (), g_buildcommit, Q_buildos (), Q_buildarch ());
 	return true;
 	}
 
 /***
 ==================
-SV_GetCrossEnt [FWGS, 01.04.23]
+SV_GetCrossEnt
 ==================
 ***/
 static edict_t *SV_GetCrossEnt (edict_t *player)
@@ -3022,7 +3028,7 @@ static void SV_EntSendVars (sv_client_t *cl, edict_t *ent)
 
 /***
 ===============
-SV_EntCreate_f [FWGS, 01.04.23]
+SV_EntCreate_f
 
 Create new entity with specified name
 ===============
@@ -3055,17 +3061,30 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 			}
 		}
 
-	// XashXT does not implement SV_CreateEntity, use saverestore export
+	// [FWGS, 01.02.25] XashXT does not implement SV_CreateEntity, use saverestore export
 	if (!ent && svgame.physFuncs.pfnCreateEntitiesInRestoreList)
 		{
-		SAVERESTOREDATA data = { 0 };
+		/*SAVERESTOREDATA data = { 0 };
 		ENTITYTABLE table = { 0 };
 		data.tableCount = 1;
 		data.pTable = &table;
 		table.classname = classname;
 		table.id = -1;
 		table.size = 1;
-		svgame.physFuncs.pfnCreateEntitiesInRestoreList (&data, 0, false);
+		svgame.physFuncs.pfnCreateEntitiesInRestoreList (&data, 0, false);*/
+		ENTITYTABLE table = {
+			.classname = classname,
+			.id = -1,
+			.size = 1,
+			.flags = 1337,
+			};
+
+		SAVERESTOREDATA data = {
+			.tableCount = 1,
+			.pTable = &table
+			};
+
+		svgame.physFuncs.pfnCreateEntitiesInRestoreList (&data, table.flags, false);
 		ent = table.pent;
 		}
 
@@ -3175,7 +3194,6 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 	return true;
 	}
 
-// [FWGS, 01.04.23]
 static qboolean SV_EntGetVars_f (sv_client_t *cl)
 	{
 	edict_t *ent = NULL;
@@ -3215,7 +3233,6 @@ static const ucmd_t ucmds[] =
 	{ "disconnect", SV_Disconnect_f		},
 	{ "userinfo", SV_UpdateUserinfo_f	},
 	{ "_sv_build_info", SV_SendBuildInfo_f	},
-	/*{ NULL, NULL }*/
 	};
 
 // [FWGS, 22.01.25]
@@ -3226,10 +3243,7 @@ static const ucmd_t enttoolscmds[] =
 	{ "ent_fire", SV_EntFire_f			},
 	{ "ent_create", SV_EntCreate_f		},
 	{ "ent_getvars", SV_EntGetVars_f	},
-	/*{ NULL, NULL }*/
 	};
-
-// [FWGS, 01.07.23] removed SV_TSourceEngineQuery
 
 /***
 ==================
@@ -3464,9 +3478,24 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		}
 	}
 
+// [FWGS, 01.02.25]
+static qboolean SV_PlayerIsFrozen (const edict_t *pClient)
+	{
+	if (sv_background_freeze.value && sv.background)
+		return true;
+
+	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
+		return false;
+
+	if (FBitSet (pClient->v.flags, FL_FROZEN))
+		return true;
+
+	return false;
+	}
+
 /***
 ==================
-SV_ParseClientMove
+SV_ParseClientMove [FWGS, 01.02.25]
 
 The message usually contains all the movement commands
 that were in the last three packets, so that the information
@@ -3478,7 +3507,7 @@ each of the backup packets
 ***/
 static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
 	{
-	client_frame_t	*frame;
+	/*client_frame_t	*frame;
 	int				key, size, checksum1, checksum2;
 	int				i, numbackup, totalcmds, numcmds;
 	usercmd_t		nullcmd, *to, *from;
@@ -3497,12 +3526,24 @@ static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
 	packet_loss = MSG_ReadByte (msg);
 
 	numbackup = MSG_ReadByte (msg);
-	numcmds = MSG_ReadByte (msg);
+	numcmds = MSG_ReadByte (msg);*/
+	const usercmd_t	nullcmd = { 0 }, *from = &nullcmd; // first cmd are starting from null-compressed usercmd_t
+	client_frame_t	*frame = &cl->frames[cl->netchan.incoming_acknowledged & SV_UPDATE_MASK];
+	usercmd_t		cmds[CMD_BACKUP] = { 0 }, *to;
+	edict_t			*player = cl->edict;
+	model_t			*model;
 
-	totalcmds = numcmds + numbackup;
+	int key = MSG_GetRealBytesRead (msg);
+	int checksum1 = MSG_ReadByte (msg);
+	int packet_loss = MSG_ReadByte (msg);
+	int numbackup = MSG_ReadByte (msg);
+	int numcmds = MSG_ReadByte (msg);
+	int totalcmds = numcmds + numbackup;
+	int i;
+
+	/*totalcmds = numcmds + numbackup;*/
 	net_drop -= (numcmds - 1);
 
-	// [FWGS, 01.07.24]
 	if ((totalcmds < 0) || (totalcmds >= CMD_MASK))
 		{
 		Con_Reportf (S_ERROR "%s: %s sending too many commands %i\n", __func__, cl->name, totalcmds);
@@ -3510,8 +3551,8 @@ static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
 		return;
 		}
 
-	// first cmd are starting from null-compressed usercmd_t
-	from = &nullcmd;
+	/*// first cmd are starting from null-compressed usercmd_t
+	from = &nullcmd;*/
 
 	for (i = totalcmds - 1; i >= 0; i--)
 		{
@@ -3523,16 +3564,27 @@ static void SV_ParseClientMove (sv_client_t *cl, sizebuf_t *msg)
 	if (cl->state != cs_spawned)
 		return;
 
-	// if the checksum fails, ignore the rest of the packet
+	/*// if the checksum fails, ignore the rest of the packet
 	size = MSG_GetRealBytesRead (msg) - key - 1;
 	checksum2 = CRC32_BlockSequence (msg->pData + key + 1, size, cl->netchan.incoming_sequence);
 
 	// [FWGS, 01.07.24]
-	if (checksum2 != checksum1)
+	if (checksum2 != checksum1)*/
+	if (!Host_IsLocalClient ())
 		{
-		Con_Reportf (S_ERROR "%s: failed command checksum for %s (%d != %d)\n", __func__,
+		/*Con_Reportf (S_ERROR "%s: failed command checksum for %s (%d != %d)\n", __func__,
 			cl->name, checksum2, checksum1);
-		return;
+		return;*/
+		// if the checksum fails, ignore the rest of the packet
+		int size = MSG_GetRealBytesRead (msg) - key - 1;
+		int checksum2 = CRC32_BlockSequence (msg->pData + key + 1, size, cl->netchan.incoming_sequence);
+
+		if (checksum2 != checksum1)
+			{
+			Con_Reportf (S_ERROR "%s: failed command checksum for %s (%d != %d)\n", __func__,
+				cl->name, checksum2, checksum1);
+			return;
+			}
 		}
 
 	cl->packet_loss = packet_loss;

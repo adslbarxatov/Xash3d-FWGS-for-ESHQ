@@ -25,14 +25,12 @@ GNU General Public License for more details
 #include <errno.h>
 #include <stddef.h>
 
-/*define STDINT_H <stdint.h>		// [FWGS, 01.04.23]
-include STDINT_H*/
 #include <stdint.h>		// [FWGS, 01.12.24]
 #include "port.h"
 #include "filesystem_internal.h"
 #include "crtlib.h"
 #include "common/com_strings.h"
-#include "miniz.h"
+/*include "miniz.h"*/	// [FWGS, 01.02.25]
 
 #define ZIP_HEADER_LF      (('K'<<8)+('P')+(0x03<<16)+(0x04<<24))
 #define ZIP_HEADER_SPANNED ((0x08<<24)+(0x07<<16)+('K'<<8)+'P')
@@ -385,7 +383,7 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 
 /***
 ===========
-FS_OpenZipFile [FWGS, 01.07.24]
+FS_OpenZipFile [FWGS, 01.02.25]
 
 Open a packed file using its package file descriptor
 ===========
@@ -393,15 +391,47 @@ Open a packed file using its package file descriptor
 static file_t *FS_OpenFile_ZIP (searchpath_t *search, const char *filename, const char *mode, int pack_ind)
 	{
 	zipfile_t *pfile = &search->zip->files[pack_ind];
+	file_t *f = FS_OpenHandle (search, search->zip->handle->handle, pfile->offset, pfile->size);
 
-	// compressed files handled in Zip_LoadFile
-	if (pfile->flags != ZIP_COMPRESSION_NO_COMPRESSION)
+	/*// compressed files handled in Zip_LoadFile
+	if (pfile->flags != ZIP_COMPRESSION_NO_COMPRESSION)*/
+	if (!f)
+		return NULL;
+
+	if (pfile->flags == ZIP_COMPRESSION_DEFLATED)
 		{
-		Con_Printf (S_ERROR "%s: can't open compressed file %s\n", __func__, pfile->name);
+		ztoolkit_t *ztk;
+
+		SetBits (f->flags, FILE_DEFLATED);
+
+		ztk = Mem_Calloc (fs_mempool, sizeof (*ztk));
+		ztk->comp_length = pfile->compressed_size;
+		ztk->zstream.next_in = ztk->input;
+		ztk->zstream.avail_in = 0;
+
+		if (inflateInit2 (&ztk->zstream, -MAX_WBITS) != Z_OK)
+			{
+			Con_Printf ("%s: inflate init error (file: %s)\n", __func__, filename);
+			FS_Close (f);
+			Mem_Free (ztk);
+			return NULL;
+			}
+
+		ztk->zstream.next_out = f->buff;
+		ztk->zstream.avail_out = sizeof (f->buff);
+
+		f->ztk = ztk;
+		}
+	else if (pfile->flags != ZIP_COMPRESSION_NO_COMPRESSION)
+		{
+		/*Con_Printf (S_ERROR "%s: can't open compressed file %s\n", __func__, pfile->name);*/
+		Con_Reportf (S_ERROR "%s: %s: file compressed with unknown algorithm.\n", __func__, filename);
+		FS_Close (f);
 		return NULL;
 		}
 
-	return FS_OpenHandle (search, search->zip->handle->handle, pfile->offset, pfile->size);
+	/*return FS_OpenHandle (search, search->zip->handle->handle, pfile->offset, pfile->size);*/
+	return f;
 	}
 
 /***

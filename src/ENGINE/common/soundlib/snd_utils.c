@@ -29,13 +29,6 @@ XASH3D LOAD SOUND FORMATS
 ***/
 
 // [FWGS, 25.12.24]
-/*// stub
-static const loadwavfmt_t load_null[] =
-	{
-	{ NULL, NULL, NULL }
-	};*/
-
-// [FWGS, 25.12.24]
 // ESHQ: внешние библиотеки отключены
 static const loadwavfmt_t load_game[] =
 	{
@@ -45,7 +38,6 @@ static const loadwavfmt_t load_game[] =
 
 	{ DEFAULT_SOUNDPATH "%s%s.%s", "mp3", Sound_LoadMPG },
 	{ "%s%s.%s", "mp3", Sound_LoadMPG },
-	/*{ NULL, NULL, NULL }*/
 
 #ifdef OGG_VORBIS
 	{ DEFAULT_SOUNDPATH "%s%s.%s", "ogg", Sound_LoadOggVorbis },
@@ -81,20 +73,12 @@ XASH3D PROCESS STREAM FORMATS
 ***/
 
 // [FWGS, 25.12.24]
-/*// stub
-static const streamfmt_t stream_null[] =
-	{
-	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL }
-	};*/
-
-// [FWGS, 25.12.24]
 static const streamfmt_t stream_game[] =
 	{
 #ifndef XASH_DEDICATED
 	{ "%s%s.%s", "mp3", Stream_OpenMPG, Stream_ReadMPG, Stream_SetPosMPG, Stream_GetPosMPG, Stream_FreeMPG },
 
 	{ "%s%s.%s", "wav", Stream_OpenWAV, Stream_ReadWAV, Stream_SetPosWAV, Stream_GetPosWAV, Stream_FreeWAV },
-	/*{ NULL, NULL, NULL, NULL, NULL, NULL, NULL }*/
 
 #ifdef OGG_VORBIS
 	{ "%s%s.%s", "ogg", Stream_OpenOggVorbis, Stream_ReadOggVorbis, Stream_SetPosOggVorbis, Stream_GetPosOggVorbis, Stream_FreeOggVorbis },
@@ -153,7 +137,8 @@ void Sound_Shutdown (void)
 	Mem_FreePool (&host.soundpool);
 	}
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.02.25] removed Sound_Copy
+/*// [FWGS, 01.08.24]
 static byte *Sound_Copy (size_t size)
 	{
 	byte *out;
@@ -162,9 +147,8 @@ static byte *Sound_Copy (size_t size)
 	sound.tempbuffer = NULL;
 
 	return out;
-	}
+	}*/
 
-// [FWGS, 01.11.23]
 uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 	{
 	string		name;
@@ -470,7 +454,7 @@ static qboolean Sound_ConvertUpsample (wavdata_t *sc, int inwidth, int inchannel
 
 /***
 ================
-Sound_ResampleInternal [FWGS, 01.08.24]
+Sound_ResampleInternal [FWGS, 01.02.25]
 ================
 ***/
 static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth, int outchannels)
@@ -479,6 +463,8 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	const int	inwidth = sc->width;
 	const int	inchannels = sc->channels;
 	const int	incount = sc->samples;
+	const int	insize = sc->size;
+
 	qboolean	handled = false;
 	double		stepscale;
 	double		t1, t2;
@@ -513,11 +499,12 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	else
 		handled = Sound_ConvertUpsample (sc, inwidth, inchannels, incount, outwidth, outchannels, outcount, stepscale);
 
-	t2 = Sys_DoubleTime ();
+	/*t2 = Sys_DoubleTime ();
 		
-	if (handled)
+	if (handled)*/
+	if (!handled)
 		{
-		if (t2 - t1 > 0.01f) // critical, report to mod developer
+		/*if (t2 - t1 > 0.01f) // critical, report to mod developer
 			Con_Printf (S_WARN "%s: from [%d bit %d Hz %dch] to [%d bit %d Hz %dch] (took %.3fs)\n",
 				__func__, inwidth * 8, inrate, inchannels, outwidth * 8, outrate, outchannels, t2 - t1);
 
@@ -525,19 +512,36 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 			Con_Reportf ("%s: from [%d bit %d Hz %dch] to [%d bit %d Hz %dch] (took %.3fs)\n",
 				__func__, inwidth * 8, inrate, inchannels, outwidth * 8, outrate, outchannels, t2 - t1);
 		}
-	else
-		{
+		else*/
+
+		// restore previously changed data
+		sc->rate = inrate;
+		sc->width = inwidth;
+		sc->channels = inchannels;
+		sc->samples = incount;
+		sc->size = insize;
+
 		Con_Printf (S_ERROR "%s: unsupported from [%d bit %d Hz %dch] to [%d bit %d Hz %dch]\n",
 			__func__, inwidth * 8, inrate, inchannels, outwidth * 8, outrate, outchannels);
+		return false;
 		}
 
+	t2 = Sys_DoubleTime ();
 	sc->rate = outrate;
 	sc->width = outwidth;
 
-	return handled;
+	// critical, report to mod developer
+	/*return handled;*/
+	if (t2 - t1 > 0.01f)
+		Con_Printf (S_WARN "%s: from [%d bit %d Hz %dch] to [%d bit %d Hz %dch] (took %.3fs)\n",
+			__func__, inwidth * 8, inrate, inchannels, outwidth * 8, outrate, outchannels, t2 - t1);
+	else
+		Con_Reportf ("%s: from [%d bit %d Hz %dch] to [%d bit %d Hz %dch] (took %.3fs)\n",
+			__func__, inwidth * 8, inrate, inchannels, outwidth * 8, outrate, outchannels, t2 - t1);
+
+	return true;
 	}
 
-// [FWGS, 01.08.24]
 qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint flags)
 	{
 	wavdata_t	*snd = *wav;
@@ -547,13 +551,19 @@ qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint
 	if (unlikely (!snd || !snd->buffer))
 		return false;
 
+	// [FWGS, 01.02.25]
 	if (likely (FBitSet (flags, SOUND_RESAMPLE) && ((width > 0) || (rate > 0) || (channels > 0))))
 		{
 		result = Sound_ResampleInternal (snd, rate, width, channels);
 		if (result)
 			{
-			Mem_Free (snd->buffer);		// free original image buffer
-			snd->buffer = Sound_Copy (snd->size); // unzone buffer
+			/*Mem_Free (snd->buffer);		// free original image buffer
+			snd->buffer = Sound_Copy (snd->size); // unzone buffer*/
+			snd = Mem_Realloc (host.soundpool, snd, sizeof (*snd) + snd->size);
+			memcpy (snd->buffer, sound.tempbuffer, snd->size);
+
+			Mem_Free (sound.tempbuffer);
+			sound.tempbuffer = NULL;
 			}
 		}
 
@@ -561,7 +571,6 @@ qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint
 	return result;
 	}
 
-// [FWGS, 01.05.23]
 qboolean Sound_SupportedFileFormat (const char *fileext)
 	{
 	const loadwavfmt_t *format;

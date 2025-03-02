@@ -13,7 +13,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.11.23]
 #include "common.h"
 #include "sound.h"
 #include "const.h"
@@ -585,12 +584,14 @@ static void VOX_ReadSentenceFile_ (byte *buf, fs_offset_t size)
 		if (p < last)
 			*p++ = 0;
 
+		// [FWGS, 01.02.25]
 		if (name)
 			{
 			int index = cszrawsentences;
 			int size = strlen (name) + strlen (value) + 2;
 
-			rgpszrawsentence[index] = Mem_Malloc (host.mempool, size);
+			/*rgpszrawsentence[index] = Mem_Malloc (host.mempool, size);*/
+			rgpszrawsentence[index] = Mem_Malloc (sndpool, size);
 			memcpy (rgpszrawsentence[index], name, size);
 			rgpszrawsentence[index][size - 1] = 0;
 			cszrawsentences++;
