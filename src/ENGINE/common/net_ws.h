@@ -23,7 +23,6 @@ typedef enum
 	NS_COUNT
 	} netsrc_t;
 
-// [FWGS, 01.05.23]
 typedef enum
 	{
 	NET_EAI_NONAME = 0,
@@ -38,10 +37,11 @@ typedef enum
 #define MAX_MULTICAST		8192	// some mods spamming for rain effect
 
 #if !XASH_LOW_MEMORY
-#define MAX_INIT_MSG		0x30000	// max length of possible message
+	#define MAX_INIT_MSG		0x30000	// max length of possible message
 #else
-#define MAX_INIT_MSG		0x8000
+	#define MAX_INIT_MSG		0x8000
 #endif
+
 // net packets type
 #define NET_HEADER_OUTOFBANDPACKET	-1
 #define NET_HEADER_SPLITPACKET	-2
@@ -51,8 +51,6 @@ typedef enum
 #include "netadr.h"
 
 // [FWGS, 01.12.24]
-/*extern convar_t net_showpackets;
-extern convar_t net_clockwindow;*/
 extern convar_t net_showpackets;
 extern convar_t net_clockwindow;
 extern convar_t net_send_debug;
@@ -65,21 +63,16 @@ qboolean NET_IsActive (void);
 qboolean NET_IsConfigured (void);
 void NET_Config (qboolean net_enable, qboolean changeport);
 
-// [FWGS, 01.12.24]
-/*qboolean NET_IsLocalAddress (netadr_t adr);
-const char *NET_AdrToString (const netadr_t a);
-const char *NET_BaseAdrToString (const netadr_t a);*/
+// [FWGS, 01.03.25]
 const char *NET_AdrToString (const netadr_t a) RETURNS_NONNULL;
 const char *NET_BaseAdrToString (const netadr_t a) RETURNS_NONNULL;
 qboolean NET_IsReservedAdr (netadr_t a);
-qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b);
+/*qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b);*/
 qboolean NET_StringToAdr (const char *string, netadr_t *adr);
 qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen);
 
 // [FWGS, 01.12.24]
-/*net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr);	// [FWGS, 01.05.23]*/
 net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr, qboolean v6only);
-
 int NET_CompareAdrSort (const void *_a, const void *_b);
 qboolean NET_CompareAdr (const netadr_t a, const netadr_t b);
 qboolean NET_CompareBaseAdr (const netadr_t a, const netadr_t b);
@@ -87,27 +80,24 @@ qboolean NET_CompareAdrByMask (const netadr_t a, const netadr_t b, uint prefixle
 qboolean NET_GetPacket (netsrc_t sock, netadr_t *from, byte *data, size_t *length);
 void NET_SendPacket (netsrc_t sock, size_t length, const void *data, netadr_t to);
 void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t to, size_t splitsize);
-/*void NET_ClearLagData (qboolean bClient, qboolean bServer);*/
 void NET_IP6BytesToNetadr (netadr_t *adr, const uint8_t *ip6);
 void NET_NetadrToIP6Bytes (uint8_t *ip6, const netadr_t *adr);
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.25]
 static inline qboolean NET_IsLocalAddress (netadr_t adr)
 	{
-	return adr.type == NA_LOOPBACK ? true : false;
+	/*return adr.type == NA_LOOPBACK ? true : false;*/
+	return NET_NetadrType (&adr) == NA_LOOPBACK;
 	}
 
 // [FWGS, 01.12.24]
 #if !XASH_DEDICATED
-/*qboolean CL_LegacyMode (void);*/
 int CL_GetSplitSize (void);
 #endif
 
 // [FWGS, 01.12.24]
 void HTTP_AddCustomServer (const char *url);
-/*void HTTP_AddDownload (const char *path, int size, qboolean process);*/
 void HTTP_AddDownload (const char *path, int size, qboolean process, resource_t *res);
-
 void HTTP_ClearCustomServers (void);
 void HTTP_Shutdown (void);
 void HTTP_ResetProcessState (void);

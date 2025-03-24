@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #pragma once
@@ -20,7 +20,7 @@ GNU General Public License for more details.
 
 #include "platform/platform.h"
 
-// [FWGS, 01.11.23] window management
+// window management
 void VID_RestoreScreenResolution (void);
 qboolean  VID_CreateWindow (int width, int height, window_mode_t window_mode);
 void      VID_DestroyWindow (void);
@@ -28,16 +28,20 @@ void GL_InitExtensions (void);
 qboolean GL_DeleteContext (void);
 void VID_SaveWindowSize (int width, int height, qboolean maximized);
 
-// [FWGS, 01.05.23] удалены GL_CreateContext, GL_UpdateContext
-
-// joystick events
-extern SDL_Joystick *g_joy;
+// [FWGS, 01.03.25]
+/*// joystick events
+extern SDL_Joystick *g_joy;*/
 
 //
 // in_sdl.c
 //
 void SDLash_InitCursors (void);
 void SDLash_FreeCursors (void);
+
+//
+// joy_sdl.c [FWGS, 01.03.25]
+//
+void SDLash_HandleGameControllerEvent (SDL_Event *ev);
 
 #endif
 #endif

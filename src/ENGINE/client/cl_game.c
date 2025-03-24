@@ -13,6 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.25]
+#if XASH_SDL
+#include <SDL.h> // SDL_GetWindowPosition
+#endif
+
 #include "common.h"
 #include "client.h"
 #include "const.h"
@@ -79,7 +84,6 @@ static const dllfunc_t cdll_exports[] =
 	{ "IN_ClearStates", (void **)&clgame.dllFuncs.IN_ClearStates },
 	{ "V_CalcRefdef", (void **)&clgame.dllFuncs.pfnCalcRefdef },
 	{ "KB_Find", (void **)&clgame.dllFuncs.KB_Find },
-	/*{ NULL, NULL }*/
 	};
 
 // [FWGS, 22.01.25] optional exports
@@ -94,7 +98,6 @@ static const dllfunc_t cdll_new_exports[] = // allowed only in SDK 2.3 and highe
 	{ "IN_ClientTouchEvent", (void **)&clgame.dllFuncs.pfnTouchEvent}, // Xash3D FWGS ext
 	{ "IN_ClientMoveEvent", (void **)&clgame.dllFuncs.pfnMoveEvent}, // Xash3D FWGS ext
 	{ "IN_ClientLookEvent", (void **)&clgame.dllFuncs.pfnLookEvent}, // Xash3D FWGS ext
-	/*{ NULL, NULL }*/
 	};
 
 static void pfnSPR_DrawHoles (int frame, int x, int y, const wrect_t *prc);
@@ -177,7 +180,7 @@ static void CL_InitCDAudio (const char *filename)
 	// format: trackname\n [num]
 	while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
 		{
-		if (!Q_stricmp (token, "blank"))	// [FWGS, 01.05.23]
+		if (!Q_stricmp (token, "blank"))
 			clgame.cdtracks[c][0] = '\0';
 		else
 			Q_snprintf (clgame.cdtracks[c], sizeof (clgame.cdtracks[c]), "media/%s", token);
@@ -262,7 +265,7 @@ static int CL_AdjustYPos (float y, int height)
 
 /***
 =============
-CL_CenterPrint [FWGS, 01.04.23]
+CL_CenterPrint
 
 print centerscreen message
 =============
@@ -291,7 +294,7 @@ void CL_CenterPrint (const char *text, float y)
 
 /***
 ====================
-SPR_AdjustSize [FWGS, 01.04.23]
+SPR_AdjustSize
 
 draw hudsprite routine
 ====================
@@ -313,24 +316,38 @@ void SPR_AdjustSize (float *x, float *y, float *w, float *h)
 	*h *= yscale;
 	}
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.03.25]
 static void SPR_AdjustTexCoords (int texnum, float width, float height, float *s1, float *t1, float *s2, float *t2)
 	{
-	if (REF_GET_PARM (PARM_TEX_FILTERING, texnum))
+	/*if (REF_GET_PARM (PARM_TEX_FILTERING, texnum))*/
+	const qboolean filtering = REF_GET_PARM (PARM_TEX_FILTERING, texnum);
+	const int xremainder = refState.width % clgame.scrInfo.iWidth;
+	const int yremainder = refState.height % clgame.scrInfo.iHeight;
+
+	if ((filtering || xremainder) && (refState.width != clgame.scrInfo.iWidth))
 		{
-		if (refState.width != clgame.scrInfo.iWidth)
+		/*if (refState.width != clgame.scrInfo.iWidth)
 			{
 			// align to texel if scaling
 			*s1 += 0.5f;
 			*s2 -= 0.5f;
-			}
+			}*/
+		// align to texel if scaling
+		*s1 += 0.5f;
+		*s2 -= 0.5f;
+		}
 
-		if (refState.height != clgame.scrInfo.iHeight)
+		/*if (refState.height != clgame.scrInfo.iHeight)
 			{
 			// align to texel if scaling
 			*t1 += 0.5f;
 			*t2 -= 0.5f;
-			}
+			}*/
+	if ((filtering || yremainder) && (refState.height != clgame.scrInfo.iHeight))
+		{
+		// align to texel if scaling
+		*t1 += 0.5f;
+		*t2 -= 0.5f;
 		}
 
 	*s1 /= width;
@@ -1731,7 +1748,7 @@ static void GAME_EXPORT CL_FillRGBA (int x, int y, int w, int h, int r, int g, i
 
 /***
 =============
-pfnGetScreenInfo [FWGS, 01.02.24]
+pfnGetScreenInfo [FWGS, 01.03.25]
 
 get actual screen info
 =============
@@ -1753,7 +1770,13 @@ int GAME_EXPORT CL_GetScreenInfo (SCREENINFO *pscrinfo)
 	clgame.scrInfo.iSize = sizeof (clgame.scrInfo);
 	clgame.scrInfo.iFlags = SCRINFO_SCREENFLASH;
 
-	if (scale_factor && scale_factor != 1.0f)
+	/*if (scale_factor && scale_factor != 1.0f)*/
+	if ((hud_scale.value >= 320.0f) && (hud_scale.value >= hud_scale_minimal_width.value))
+		{
+		scale_factor = refState.width / hud_scale.value;
+		apply_scale_factor = true;
+		}
+	else if (scale_factor && (scale_factor != 1.0f))
 		{
 		float scaled_width = (float)refState.width / scale_factor;
 		if (scaled_width >= hud_scale_minimal_width.value)
@@ -3477,12 +3500,13 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 
 	if (!response)
 		{
-		Con_DPrintf (S_ERROR "%s: no callbcak specified for request with context %i!\n", __func__,
-			context);
+		Con_DPrintf (S_ERROR "%s: no callbcak specified for request with context %i!\n", __func__, context);
 		return;
 		}
 
-	if ((remote_address->type == NA_IPX) || (remote_address->type == NA_BROADCAST_IPX))
+	// [FWGS, 01.03.25]
+	/*if ((remote_address->type == NA_IPX) || (remote_address->type == NA_BROADCAST_IPX))*/
+	if ((NET_NetadrType (remote_address) == NA_IPX) || (NET_NetadrType (remote_address) == NA_BROADCAST_IPX))
 		return; // IPX no longer support
 
 	if (request == NETAPI_REQUEST_SERVERLIST)

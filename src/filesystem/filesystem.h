@@ -41,8 +41,13 @@ enum
 	FS_GAMEDIR_PATH =		BIT (2),	// just a marker for gamedir path
 	FS_CUSTOM_PATH =		BIT (3),	// gamedir but with custom/mod data
 	FS_GAMERODIR_PATH =		BIT (4),	// gamedir but read-only
-	FS_SKIP_ARCHIVED_WADS =	BIT (5),	// [FWGS, 01.07.23] don't mount wads inside archives automatically
+	FS_SKIP_ARCHIVED_WADS =	BIT (5),	// don't mount wads inside archives automatically
 	FS_LOAD_PACKED_WAD =	BIT (6),	// [FWGS, 01.07.24] this wad is packed inside other archive
+
+	FS_MOUNT_HD =			BIT (7),	// [FWGS, 01.03.25] mount high definition content folder
+	FS_MOUNT_LV =			BIT (8),	// [FWGS, 01.03.25] mount low violence content folder
+	FS_MOUNT_ADDON =		BIT (9),	// [FWGS, 01.03.25] mount addon folder
+	FS_MOUNT_L10N =			BIT (10),	// [FWGS, 01.03.25] mount localization folder
 
 	FS_GAMEDIRONLY_SEARCH_FLAGS = FS_GAMEDIR_PATH | FS_CUSTOM_PATH | FS_GAMERODIR_PATH
 	};
@@ -114,8 +119,6 @@ typedef struct gameinfo_s
 	char		game_dll_osx[64];	// custom path for game.dll
 
 	qboolean	added;
-
-	// [FWGS, 01.07.23]
 	int			quicksave_aged_count; // min is 1, max is 99
 	int			autosave_aged_count; // min is 1, max is 99
 
@@ -154,8 +157,9 @@ typedef struct fs_api_t
 		const char *gamedir, const char *rodir);
 	void (*ShutdownStdio)(void);
 
-	// search path utils
-	void (*Rescan)(void);
+	// [FWGS, 01.03.25] search path utils
+	/*void (*Rescan)(void);*/
+	void (*Rescan)(uint32_t flags, const char *language);
 	void (*ClearSearchPath)(void);
 	void (*AllowDirectPaths)(qboolean enable);
 	void (*AddGameDirectory)(const char *dir, uint flags);

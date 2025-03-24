@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -26,7 +26,6 @@ static CVAR_DEFINE_AUTO (vibration_length, "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEG
 static CVAR_DEFINE_AUTO (vibration_enable, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"enable vibration");
 
-// [FWGS, 01.04.23]
 static cl_font_t g_scaled_font;
 static float g_font_scale;
 
@@ -57,7 +56,6 @@ static void pfnEnableTextInput (int enable)
 	Key_EnableTextInput (enable, false);
 	}
 
-// [FWGS, 01.04.23]
 static int pfnDrawScaledCharacter (int x, int y, int number, int r, int g, int b, float scale)
 	{
 	// this call is very ineffective and possibly broken!
@@ -99,7 +97,12 @@ static char *pfnParseFileSafe (char *data, char *buf, const int size, unsigned i
 	return COM_ParseFileSafe (data, buf, size, flags, len, NULL);
 	}
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.03.25]
+static void GAME_EXPORT pfnSetCustomClientID (const char *id)
+	{
+	// deprecated
+	}
+
 static const mobile_engfuncs_t gMobileEngfuncs =
 	{
 	MOBILITY_API_VERSION,
@@ -114,7 +117,8 @@ static const mobile_engfuncs_t gMobileEngfuncs =
 	pfnDrawScaledCharacter,
 	Sys_Warn,
 	Sys_GetNativeObject,
-	ID_SetCustomClientID,
+	/*ID_SetCustomClientID,*/
+	pfnSetCustomClientID,	// [FWGS, 01.03.25]
 	pfnParseFileSafe
 	};
 
@@ -142,15 +146,10 @@ qboolean Mobile_Init (void)
 			}
 
 		// make sure that mobile functions are cleared
-#if 1
+
 		// some SDKs define export as returning void, breaking the contract
 		// ignore result for now...
 		return true;
-#else
-		// just tell user about problems
-		memset (&mobile_engfuncs, 0, sizeof (mobile_engfuncs));
-		return false;
-#endif
 		}
 
 	// mobile interface is missed

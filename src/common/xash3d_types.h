@@ -15,35 +15,29 @@
 
 #include <sys/types.h> // off_t
 
-#include <stdint.h>		// [FWGS, 01.12.24]
+// [FWGS, 01.03.25]
+#ifdef STDINT_H
+	#include STDINT_H
+#else
+	#include <stdint.h>
+#endif
+
 #include <assert.h>
 
 // [FWGS, 01.02.25]
-/*typedef unsigned char byte;
-typedef int		sound_t;
-
-typedef float		vec_t;
-typedef vec_t		vec2_t[2];
-
-if XASH_DL || XASH_FS
-	typedef vec_t		vec3_t[3];
-endif
-
-typedef vec_t		vec4_t[4];
-typedef vec_t		quat_t[4];
-typedef byte		rgba_t[4];		// unsigned byte colorpack
-typedef byte		rgb_t[3];		// unsigned byte colorpack
-typedef vec_t		matrix3x4[3][4];
-typedef vec_t		matrix4x4[4][4];
-
-// [FWGS, 01.05.24]
-typedef uint32_t	poolhandle_t;*/
 typedef uint8_t	byte;
 typedef float	vec_t;
 typedef vec_t	vec2_t[2];
+
+// ESHQ: защита от переопределения
 #if XASH_DL || XASH_FS
+
+// [FWGS, 01.03.25]
+#ifndef vec3_t
 typedef vec_t	vec3_t[3];
 #endif
+#endif
+
 typedef vec_t	vec4_t[4];
 typedef vec_t	quat_t[4];
 typedef byte	rgba_t[4];	// unsigned byte colorpack
@@ -55,25 +49,19 @@ typedef uint32_t	poolhandle_t;
 #undef true
 #undef false
 
-#ifndef __cplusplus
+/*ifndef __cplusplus
 	typedef enum { false, true }	qboolean;
-#else
-	typedef int		qboolean;
+else
+	typedef int		qboolean;*/
+//[FWGS, 01.03.25] true and false are keywords in C++ and C23
+#if !__cplusplus && __STDC_VERSION__ < 202311L
+	enum { false, true };
 #endif
 
-// [FWGS, 01.02.25]
-/*typedef uint64_t longtime_t;
+// [FWGS, 01.03.25]
+typedef int qboolean;
 
-#define MAX_STRING		256		// generic string
-#define MAX_INFO_STRING	256		// infostrings are transmitted across network
-#define MAX_SERVERINFO_STRING	512		// server handles too many settings. expand to 1024?
-#define MAX_LOCALINFO_STRING	32768	// localinfo used on server and not sended to the clients
-#define MAX_SYSPATH		1024	// system filepath
-#define MAX_VA_STRING	1024	// [FWGS, 01.04.23] string length returned by va()
-#define MAX_PRINT_MSG	8192	// how many symbols can handle single call of Con_Printf or Con_DPrintf
-#define MAX_TOKEN		2048	// parse token length
-#define MAX_MODS		512		// environment games that engine can keep visible
-#define MAX_USERMSG_LENGTH	2048	// don't modify it's relies on a client-side definitions*/
+// [FWGS, 01.02.25]
 #define MAX_STRING		256		// generic string
 #define MAX_VA_STRING	1024	// compatibility macro
 #define MAX_SYSPATH		1024	// system filepath
@@ -97,6 +85,9 @@ typedef uint32_t	poolhandle_t;
 // color strings
 #define IsColorString( p )	( p && *( p ) == '^' && *(( p ) + 1) && *(( p ) + 1) >= '0' && *(( p ) + 1 ) <= '9' )
 #define ColorIndex( c )	((( c ) - '0' ) & 7 )
+
+// [FWGS, 01.03.25]
+#undef EXPORT
 
 // [FWGS, 01.12.24]
 #if defined( __GNUC__ )
@@ -145,7 +136,7 @@ typedef uint32_t	poolhandle_t;
 	// [FWGS, 01.12.24]
 	#if defined( _MSC_VER )
 		#define HLEXPORT __declspec( dllexport )
-		#define NO_ASAN // ESHQ: отключён по умолчанию: __declspec( no_sanitize_address )
+		#define NO_ASAN // ESHQ: отключён; по умолчанию равен: __declspec( no_sanitize_address )
 	#else
 		#define HLEXPORT
 		#define NO_ASAN
@@ -260,14 +251,6 @@ _inline float LittleFloat (float f)
 #endif
 
 // [FWGS, 01.02.25]
-/*// [FWGS, 01.07.24]
-typedef unsigned int dword;
-typedef unsigned int uint;
-typedef unsigned long ulong;
-typedef char		string[MAX_STRING];
-typedef struct file_s	file_t;		// normal file
-typedef struct stream_s	stream_t;		// sound stream for background music playing
-typedef off_t fs_offset_t;*/
 typedef unsigned int dword;
 typedef unsigned int uint;
 typedef char string[MAX_STRING];
@@ -275,31 +258,10 @@ typedef off_t fs_offset_t;
 
 // [FWGS, 01.02.25]
 #if XASH_WIN32
-	/*typedef int fs_size_t; // return type of _read, _write funcs*/
 	typedef int fs_size_t;	// return type of _read, _write funcs
 #else
-	/*typedef ssize_t fs_size_t;*/
 	typedef ssize_t fs_size_t;
 #endif
-
-// [FWGS, 01.02.25]
-/*typedef struct dllfunc_s
-	{
-	const char *name;
-	void **func;
-	} dllfunc_t;
-
-// [FWGS, 22.01.25]
-typedef struct dll_info_s
-	{
-	const char		*name;	// name of library
-	const dllfunc_t	*fcts;	// list of dll exports
-	const size_t	num_fcts;
-	qboolean		crash;	// crash if dll not found
-	void			*link;	// hinstance of loading library
-	} dll_info_t;
-
-typedef void (*setpair_t)(const char *key, const void *value, const void *buffer, void *numpairs);*/
 
 // [FWGS, 01.11.23]
 typedef void *(*pfnCreateInterface_t)(const char *, int *);

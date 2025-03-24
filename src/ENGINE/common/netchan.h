@@ -67,8 +67,8 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 //  bytes will be stripped by the networking channel layer
 #define NET_MAX_MESSAGE		PAD_NUMBER(( NET_MAX_PAYLOAD + HEADER_BYTES ), 16 )
 
-// [FWGS, 01.07.24]
-#define MASTERSERVER_ADR		"mentality.rip:27010"
+// [FWGS, 01.03.25]
+/*define MASTERSERVER_ADR		"mentality.rip:27010"*/
 #define MS_SCAN_REQUEST			"1\xFF" "0.0.0.0:0\0"
 
 #define PORT_MASTER		27010

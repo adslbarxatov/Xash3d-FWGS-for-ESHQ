@@ -169,7 +169,7 @@ typedef struct server_s
 	sizebuf_t		datagram;
 	byte		datagram_buf[MAX_DATAGRAM];
 
-	// reliable data to send to clients.
+	// reliable data to send to clients
 	sizebuf_t		reliable_datagram;	// copied to all clients at end of frame
 	byte		reliable_datagram_buf[MAX_DATAGRAM];
 
@@ -207,9 +207,10 @@ typedef struct
 	int  		first_entity;		// into the circular sv_packet_entities[]
 	} client_frame_t;
 
+// [FWGS, 01.03.25]
 typedef struct sv_client_s
 	{
-	cl_state_t	state;
+	/*cl_state_t	state;
 	cl_upload_t	upstate;			// uploading state
 	char		name[32];			// extracted from userinfo, color string allowed
 	uint		flags;			// client flags, some info
@@ -255,24 +256,72 @@ typedef struct sv_client_s
 	// the datagram is written to by sound calls, prints, temp ents, etc.
 	// it can be harmlessly overflowed.
 	sizebuf_t		datagram;
-	byte		datagram_buf[MAX_DATAGRAM];
+	byte		datagram_buf[MAX_DATAGRAM];*/
+	cl_state_t	state;
+	cl_upload_t	upstate;		// uploading state
+	char		name[32];		// extracted from userinfo, color string allowed
+	uint		flags;			// client flags, some info
+	uint		extensions;		// protocol extensions
 
-	client_frame_t *frames;			// updates can be delta'd from here
-	event_state_t	events;			// delta-updated events cycle
-
-	int		challenge;		// challenge of this user, randomly generated
-	int		userid;			// identifying number on server
-	int		extensions;
+	/*client_frame_t *frames;				// updates can be delta'd from here
+	event_state_t	events;					// delta-updated events cycle*/
+	char		hashedcdkey[34];			// MD5 hash is 32 hex #'s, plus trailing 0
+	char		userinfo[MAX_INFO_STRING];	// name, etc (received from client)
+	char		physinfo[MAX_INFO_STRING];	// set on server (transmit to client)
 	char		useragent[MAX_INFO_STRING];
 
-	// [FWGS, 01.07.23]
-	int ignorecmdtime_warns;		// how many times client time was faster than server during this session
-	qboolean ignorecmdtime_warned;	// did we warn our server operator in the log for this batch of commands?
+	/*int		challenge;		// challenge of this user, randomly generated
+	int		userid;			// identifying number on server
+	int		extensions;
+	char		useragent[MAX_INFO_STRING];*/
+	byte		ignorecmdtime_warned;	// did we warn our server operator in the log for this batch of commands?
+	byte		m_bLoopback;			// does this client want to hear his own voice?
+	uint		listeners;				// which other clients does this guy's voice stream go to?
+
+	int			ignorecmdtime_warns;	// how many times client time was faster than server during this session
+
+	/*qboolean ignorecmdtime_warned;	// did we warn our server operator in the log for this batch of commands?*/
+	int			userid;					// identifying number on server
+
+	netchan_t	netchan;
+	sizebuf_t	datagram;				// the datagram is written to by sound calls, prints, temp ents, etc.
+	byte		datagram_buf[MAX_DATAGRAM];	// it can be harmlessly overflowed
+
+	int			chokecount;				// number of messages rate supressed
+	int			delta_sequence;			// -1 = no compression
+
+	double		next_messagetime;		// time when we should send next world state update
+	double		next_checkpingtime;		// time to send all players pings to client
+	double		next_sendinfotime;		// time to send info about all players
+	double		cl_updaterate;			// client requested updaterate
+	double		timebase;				// client timebase
+	double		connection_started;
+
+	customization_t	customdata;			// player customization linked list
+	resource_t	resourcesonhand;
+	resource_t	resourcesneeded;		// <mapname.res> from client (server downloading)
+	usercmd_t	lastcmd;				// for filling in big drops
+
+	int			packet_loss;
+	double		connecttime;
+	double		cmdtime;
+	double		ignorecmdtime;
+	float		latency;
+
+	int			ignored_ents;			// if visibility list is full we should know how many entities will be ignored
+	edict_t		*edict;					// EDICT_NUM(clientnum+1)
+	edict_t		*pViewEntity;			// svc_setview member
+	edict_t		*viewentity[MAX_VIEWENTS];	// list of portal cameras in player PVS
+	int			num_viewents;			// num of portal cameras that can merge PVS
 	
-	double fullupdate_next_calltime;
-	double userinfo_next_changetime;
-	double userinfo_penalty;
-	int    userinfo_change_attempts;
+	int			userinfo_change_attempts;
+
+	double		fullupdate_next_calltime;
+	double		userinfo_next_changetime;
+	double		userinfo_penalty;
+	/*int			userinfo_change_attempts;*/
+	client_frame_t	*frames;			// updates can be delta'd from here
+	event_state_t	events;				// delta-updated events cycle
 	} sv_client_t;
 
 /***
@@ -285,7 +334,8 @@ a program error, like an overflowed reliable buffer
 =============================================================================
 ***/
 
-// MAX_CHALLENGES is made large to prevent a denial
+// [FWGS, 01.03.25]
+/*// MAX_CHALLENGES is made large to prevent a denial
 // of service attack that could cycle all of them
 // out before legitimate users connected
 #define MAX_CHALLENGES	1024
@@ -296,13 +346,13 @@ typedef struct
 	double		time;
 	int			challenge;
 	qboolean	connected;
-	} challenge_t;
+	} challenge_t;*/
 
 typedef struct
 	{
 	char	name[32];	// in GoldSrc max name length is 12
-	int		number;	// svc_ number
-	int		size;	// if size == -1, size come from first byte after svcnum
+	int		number;		// svc_ number
+	int		size;		// if size == -1, size come from first byte after svcnum
 	} sv_user_message_t;
 
 typedef struct
@@ -369,11 +419,11 @@ typedef struct
 	poolhandle_t	stringspool;		// for engine strings
 	} svgame_static_t;
 
+// [FWGS, 01.03.25]
 typedef struct
 	{
 	qboolean		initialized;		// sv_init has completed
 	
-	// [FWGS, 01.11.23]
 	double	timestart;		// just for profiling
 	int		maxclients;		// server max clients
 
@@ -393,7 +443,8 @@ typedef struct
 	entity_state_t *baselines;		// [GI->max_edicts]
 	entity_state_t *static_entities;		// [MAX_STATIC_ENTITIES];
 
-	challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting
+	/*challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting*/
+	uint32_t	challenge_salt[16];	// pregenerated random numbers for generating challenged based on IP's MD5 address
 
 	sizebuf_t	testpacket;         // pregenerataed testpacket, only needs CRC32 patching
 	byte		*testpacket_buf;    // check for NULL if testpacket is available

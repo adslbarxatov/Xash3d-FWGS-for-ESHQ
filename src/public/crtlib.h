@@ -55,25 +55,25 @@ enum
 // build.c
 //
 int Q_buildnum (void);
-int Q_buildnum_date (const char *date);	// [FWGS, 01.05.23]
+int Q_buildnum_date (const char *date);
+int Q_buildnum_iso (const char *date);	// [FWGS, 01.03.25]
 int Q_buildnum_compat (void);
-const char *Q_PlatformStringByID (const int platform);	// [FWGS, 01.04.23]
+const char *Q_PlatformStringByID (const int platform);
 const char *Q_buildos (void);
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.03.25]
 const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int endianness, const qboolean is64);
 const char *Q_buildarch (void);
-/*const char *Q_buildcommit (void);
-const char *Q_buildbranch (void);*/
 extern const char *g_buildcommit;
 extern const char *g_buildbranch;
+extern const char *g_build_date;
+extern const char *g_buildcommit_date;
 
 //
 // crtlib.c [FWGS, 01.02.25]
 //
 void Q_strnlwr (const char *in, char *out, size_t size_out);
 #define Q_strlen( str ) (( str ) ? strlen(( str )) : 0 )
-/*size_t Q_colorstr (const char *string);*/
 int Q_atoi_hex (int sign, const char *str);
 int Q_atoi (const char *str);
 float Q_atof (const char *str);
@@ -102,7 +102,6 @@ void COM_ExtractFilePath (const char *path, char *dest);
 const char *COM_FileWithoutPath (const char *in);
 void COM_StripExtension (char *path);
 void COM_RemoveLineFeed (char *str, size_t bufsize);
-/*void COM_FixSlashes (char *pname);*/
 void COM_PathSlashFix (char *path);
 
 // return 0 on empty or null string, 1 otherwise
@@ -156,12 +155,15 @@ static inline char Q_tolower (const char in)
 	return out;
 	}
 
-// [FWGS, 01.05.24]
-static inline qboolean Q_isdigit (const char *str)
+// [FWGS, 01.03.25]
+/*static inline qboolean Q_isdigit (const char *str)*/
+static inline qboolean Q_istype (const char *str, int (*istype)(int c))
 	{
 	if (likely (str && *str))
 		{
-		while (isdigit (*str))
+		/*while (isdigit (*str))
+			str++;*/
+		while (istype (*str))
 			str++;
 
 		if (!*str)
@@ -171,10 +173,22 @@ static inline qboolean Q_isdigit (const char *str)
 	return false;
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.03.25]
+static inline qboolean Q_isdigit (const char *str)
+	{
+	return Q_istype (str, isdigit);
+	}
+
+// [FWGS, 01.03.25]
+static inline qboolean Q_isalpha (const char *str)
+	{
+	return Q_istype (str, isalpha);
+	}
+
+// [FWGS, 01.03.25]
 static inline qboolean Q_isspace (const char *str)
 	{
-	if (likely (str && *str))
+	/*if (likely (str && *str))
 		{
 		while (isspace (*str))
 			str++;
@@ -183,7 +197,8 @@ static inline qboolean Q_isspace (const char *str)
 			return true;
 		}
 
-	return false;
+	return false;*/
+	return Q_istype (str, isspace);
 	}
 
 // [FWGS, 01.05.24]

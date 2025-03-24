@@ -83,19 +83,29 @@ static void CL_ParseNewMovevars (sizebuf_t *msg)
 		R_SetupSky (clgame.movevars.skyName);
 
 	clgame.oldmovevars = clgame.movevars;
-	clgame.entities->curstate.scale = clgame.movevars.waveHeight;
+	
+	/*clgame.entities->curstate.scale = clgame.movevars.waveHeight;*/
+	// [FWGS, 01.03.25] FIXME: set world wave height when entities will be allocated
+	if (clgame.entities)
+		clgame.entities->curstate.scale = clgame.movevars.waveHeight;
 
 	// keep features an actual!
 	clgame.oldmovevars.features = clgame.movevars.features = host.features;
 	}
 
+// [FWGS, 01.03.25]
 typedef struct delta_header_t
 	{
-	qboolean remove : 1;
+	/*qboolean remove : 1;
 	qboolean custom : 1;
 	qboolean instanced : 1;
 	uint instanced_baseline_index : 6;
-	uint offset : 6;
+	uint offset : 6;*/
+	qboolean remove;
+	qboolean custom;
+	qboolean instanced;
+	uint16_t instanced_baseline_index;
+	uint16_t offset;
 	} delta_header_t;
 
 static int CL_ParseDeltaHeader (sizebuf_t *msg, qboolean delta, int oldnum, struct delta_header_t *hdr)
@@ -123,7 +133,8 @@ static int CL_ParseDeltaHeader (sizebuf_t *msg, qboolean delta, int oldnum, stru
 		// same logic as above
 		if (MSG_ReadOneBit (msg) == 0)
 			entnum += MSG_ReadUBitLong (msg, 6);
-		else entnum = MSG_ReadUBitLong (msg, MAX_GOLDSRC_ENTITY_BITS);
+		else
+			entnum = MSG_ReadUBitLong (msg, MAX_GOLDSRC_ENTITY_BITS);
 		}
 
 	// if we are not removing this entity
@@ -161,7 +172,6 @@ static int CL_GetEntityDelta (const struct delta_header_t *hdr, int entnum)
 	}
 
 // [FWGS, 01.02.25]
-/*static void CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)*/
 static int CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)
 	{
 	int playerbytes = 0, numbase = 0;
@@ -223,10 +233,12 @@ static void CL_DeltaEntityGS (const delta_header_t *hdr, sizebuf_t *msg, frame_t
 	// alloc next slot to store update
 	to = &cls.packet_entities[cls.next_client_entities % cls.num_client_entities];
 
+	// [FWGS, 01.03.25]
 	if ((newnum < 0) || (newnum >= clgame.maxEntities))
 		{
 		Con_DPrintf (S_ERROR "CL_DeltaEntity: invalid newnum: %d\n", newnum);
-		Host_Error ("%s: bad delta entity number: %i", __func__, newnum);
+		/*Host_Error ("%s: bad delta entity number: %i", __func__, newnum);*/
+		Host_Error ("%s: bad delta entity number: %i\n", __func__, newnum);
 		return;
 		}
 

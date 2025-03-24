@@ -76,14 +76,17 @@ XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 #define HACKS_RELATED_HLMODS		
 // some HL-mods works differently under Xash and can't be fixed without some hacks at least at current time
 
-enum
+// [FWGS, 01.03.25]
+/*enum*/
+enum dev_level_e
 	{
 	DEV_NONE = 0,
 	DEV_NORMAL,
 	DEV_EXTENDED
 	};
 
-enum
+// [FWGS, 01.03.25]
+/*enum
 	{
 	D_INFO = 1,	// "-dev 1", shows various system messages
 	D_WARN,		// "-dev 2", shows not critical system warnings
@@ -92,7 +95,8 @@ enum
 	D_NOTE		// "-dev 5", show system notifications for engine developers
 	};
 
-typedef enum
+typedef enum*/
+typedef enum instance_e
 	{
 	HOST_NORMAL,	// listen server, singleplayer
 	HOST_DEDICATED,
@@ -109,10 +113,6 @@ typedef enum
 #include "com_model.h"
 #include "com_strings.h"
 #include "crtlib.h"
-/*include "cvar.h"
-include "con_nprint.h"
-include "crclib.h"
-include "ref_api.h"*/
 
 // [FWGS, 01.12.24]
 #define FSCALLBACK_OVERRIDE_OPEN
@@ -188,6 +188,13 @@ extern convar_t	rcon_password;
 extern convar_t hpk_custom_file;
 extern convar_t con_gamemaps;
 
+// [FWGS, 01.03.25]
+extern convar_t fs_mount_lv;
+extern convar_t fs_mount_hd;
+extern convar_t fs_mount_addon;
+extern convar_t fs_mount_l10n;
+extern convar_t ui_language; // historically used for UI, but now controls mounted localization directory
+
 // [FWGS, 01.07.24]
 #define Mod_AllowMaterials() ((host_allow_materials.value != 0.0f) && !FBitSet(host.features, ENGINE_DISABLE_HDTEXTURES))
 
@@ -196,6 +203,7 @@ extern convar_t con_gamemaps;
 HOST INTERFACE
 ==============================================================
 ***/
+
 /***
 ========================================================================
 GAMEINFO stuff
@@ -204,8 +212,9 @@ internal shared gameinfo structure (readonly for engine parts)
 ========================================================================
 ***/
 
-// [FWGS, 01.07.24]
-typedef enum
+// [FWGS, 01.03.25]
+/*typedef enum*/
+typedef enum host_status_e
 	{
 	HOST_INIT = 0,	// initalize operations
 	HOST_FRAME,		// host running
@@ -216,7 +225,9 @@ typedef enum
 	HOST_CRASHED	// an exception handler called
 	} host_status_t;
 
-typedef enum
+// [FWGS, 01.03.25]
+/*typedef enum*/
+typedef enum host_state_e
 	{
 	STATE_RUNFRAME = 0,
 	STATE_LOAD_LEVEL,
@@ -225,7 +236,9 @@ typedef enum
 	STATE_GAME_SHUTDOWN,
 	} host_state_t;
 
-typedef struct
+// [FWGS, 01.03.25]
+/*typedef struct*/
+typedef struct game_status_e
 	{
 	host_state_t	curstate;
 	host_state_t	nextstate;
@@ -236,7 +249,9 @@ typedef struct
 	qboolean		newGame;		// unload the server.dll before start a new map
 	} game_status_t;
 
-typedef enum
+// [FWGS, 01.03.25]
+/*typedef enum*/
+typedef enum keydest_e
 	{
 	key_console = 0,
 	key_game,
@@ -244,7 +259,9 @@ typedef enum
 	key_message
 	} keydest_t;
 
-typedef enum
+// [FWGS, 01.03.25]
+/*typedef enum*/
+typedef enum rdtype_e
 	{
 	RD_NONE = 0,
 	RD_CLIENT,
@@ -253,8 +270,9 @@ typedef enum
 
 #include "net_ws.h"
 
-// console field
-typedef struct
+// [FWGS, 01.03.25] console field
+/*typedef struct*/
+typedef struct field_e
 	{
 	string	buffer;
 	int		cursor;
@@ -272,7 +290,9 @@ typedef struct host_redirect_s
 	int			lines;
 	} host_redirect_t;
 
-typedef struct
+// [FWGS, 01.03.25]
+/*typedef struct*/
+typedef struct soundlist_e
 	{
 	char		name[MAX_QPATH];
 	short		entnum;
@@ -304,7 +324,7 @@ typedef enum bugcomp_e
 	BUGCOMP_GET_GAME_DIR_FULL_PATH = BIT (3),
 	} bugcomp_t;
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.03.25]
 typedef struct host_parm_s
 	{
 	// ==== shared through RefAPI's ref_host_t
@@ -315,11 +335,11 @@ typedef struct host_parm_s
 
 	host_status_t	status;		// global host state
 	game_status_t	game;		// game manager
-	uint			type;		// running at
+	/*uint			type;		// running at*/
+	instance_t		type;		// running at
 	poolhandle_t	mempool;	// static mempool for misc allocations
 	poolhandle_t	imagepool;	// imagelib mempool
 	poolhandle_t	soundpool;	// soundlib mempool
-	/*string			finalmsg;	// server shutdown final message*/
 	string			downloadfile;		// filename to be downloading
 	int				downloadcount;		// how many files remain to downloading
 	char			deferred_cmd[128];	// deferred commands
@@ -433,6 +453,10 @@ MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 byte *FS_LoadDirectFile (const char *path, fs_offset_t *filesizeptr)
 MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 
+// [FWGS, 01.03.25]
+void FS_Rescan_f (void);
+void FS_CheckConfig (void);
+
 // ESHQ: поддержка скриптов достижений
 #define ACHI_SCRIPT_С		"achi0.sc"
 #define ACHI_SCRIPT_G		"achi2.sc"
@@ -467,38 +491,29 @@ void Cmd_Shutdown (void);	// [FWGS, 01.02.25]
 void Cmd_Unlink (int group);
 
 // [FWGS, 22.01.25]
-/*int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd_desc, int iFlags, const char *funcname);*/
 int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd_desc, int flags, const char *funcname);
 
 // [FWGS, 22.01.25]
-/*static inline void Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)*/
 static inline int Cmd_AddCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
-	/*Cmd_AddCommandEx (cmd_name, function, cmd_desc, 0, __func__);*/
 	return Cmd_AddCommandEx (cmd_name, function, cmd_desc, 0, __func__);
 	}
 
 // [FWGS, 22.01.25]
-/*static inline void Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)*/
 static inline int Cmd_AddRestrictedCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)
 	{
-	/*Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);*/
 	return Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);
 	}
 
 // [FWGS, 22.01.25]
-/*static inline void Cmd_AddFilteredCommand (const char *cmd_name, xcommand_t function, const char *cmd_desc)*/
 static inline int Cmd_AddCommandWithFlags (const char *cmd_name, xcommand_t function, const char *cmd_desc, int flags)
 	{
-	/*Cmd_AddCommandEx (cmd_name, function, cmd_desc, CMD_PRIVILEGED, __func__);*/
 	return Cmd_AddCommandEx (cmd_name, function, cmd_desc, flags, __func__);
 	}
 
 // [FWGS, 22.01.25]
 void Cmd_RemoveCommand (const char *cmd_name);
-/*qboolean Cmd_Exists (const char *cmd_name);*/
 cmd_t *Cmd_Exists (const char *cmd_name);
-
 void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback);
 int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len);
 void Cmd_TokenizeString (const char *text);
@@ -538,8 +553,9 @@ typically expanded to wav buffer
 ========================================================================
 ***/
 
-// [FWGS, 25.12.24]
-typedef enum
+// [FWGS, 01.03.25]
+/*typedef enum*/
+typedef enum sndformat_e
 	{
 	WF_UNKNOWN = 0,
 	WF_PCMDATA,
@@ -549,8 +565,9 @@ typedef enum
 	WF_TOTALCOUNT,	// must be last
 	} sndformat_t;
 
-// [FWGS, 09.05.24] wavdata output flags
-typedef enum
+// [FWGS, 01.03.25] wavdata output flags
+/*typedef enum*/
+typedef enum sndFlags_e
 	{
 	// wavdata->flags
 	SOUND_LOOPED =		BIT (0),	// this is looped sound (contain cue markers)
@@ -560,19 +577,15 @@ typedef enum
 	SOUND_RESAMPLE =	BIT (12),	// resample sound to specified rate
 	} sndFlags_t;
 
-// [FWGS, 01.02.25]
-typedef struct
+// [FWGS, 01.03.25]
+/*typedef struct*/
+typedef struct wavdata_s
 	{
-	/*word	rate;		// num samples per second (e.g. 11025 - 11 khz)
-	byte	width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
-	byte	channels;	// num channels (1 - mono, 2 - stereo)*/
 	size_t	size;		// for bounds checking
 	uint	loopStart;	// offset at this point sound will be looping while playing more than only once
 	uint	samples;	// total samplecount in wav
 	uint	type;		// compression type
 	uint	flags;		// misc sound flags
-	/*byte	*buffer;	// sound buffer
-	size_t	size;		// for bounds checking*/
 	word	rate;		// num samples per second (e.g. 11025 - 11 khz)
 	byte	width;		// resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
 	byte	channels;	// num channels (1 - mono, 2 - stereo)
@@ -585,18 +598,13 @@ typedef struct
 typedef struct stream_s stream_t;
 void Sound_Init (void);
 void Sound_Shutdown (void);
-/*wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size);*/
 void FS_FreeSound (wavdata_t *pack);
-/*stream_t *FS_OpenStream (const char *filename);*/
 void FS_FreeStream (stream_t *stream);
 wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size) MALLOC_LIKE (FS_FreeSound, 1) WARN_UNUSED_RESULT;
 stream_t *FS_OpenStream (const char *filename) MALLOC_LIKE (FS_FreeStream, 1) WARN_UNUSED_RESULT;
-/*wavdata_t *FS_StreamInfo (stream_t *stream);*/
 int FS_ReadStream (stream_t *stream, int bytes, void *buffer);
 int FS_SetStreamPos (stream_t *stream, int newpos);
 int FS_GetStreamPos (stream_t *stream);
-/*void FS_FreeStream (stream_t *stream);*/
-
 qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint flags);
 uint Sound_GetApproxWavePlayLen (const char *filepath);
 qboolean Sound_SupportedFileFormat (const char *fileext);
@@ -607,11 +615,9 @@ qboolean Sound_SupportedFileFormat (const char *fileext);
 typedef void(*pfnChangeGame)(const char *progname);
 
 qboolean Host_IsQuakeCompatible (void);
-/*void HLEXPORT Host_Shutdown (void);*/
 void Host_ShutdownWithReason (const char *reason);
 int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func);
 void Host_EndGame (qboolean abort, const char *message, ...) FORMAT_CHECK (2);
-
 void Host_AbortCurrentFrame (void) NORETURN;
 void Host_WriteServerConfig (const char *name);
 void Host_WriteOpenGLConfig (void);
@@ -619,7 +625,6 @@ void Host_WriteVideoConfig (void);
 void Host_WriteConfig (void);
 
 // [FWGS, 01.02.25]
-/*void Host_ShutdownServer (void);*/
 void Host_Error (const char *error, ...) FORMAT_CHECK (1);
 void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features);
 void Host_Frame (double time);
@@ -782,12 +787,12 @@ typedef struct sizebuf_s sizebuf_t;
 // [FWGS, 01.02.25]
 int SV_GetMaxClients (void);
 
+// [FWGS, 01.03.25]
 #if !XASH_DEDICATED
 qboolean CL_Initialized (void);
 qboolean CL_IsInGame (void);
 qboolean CL_IsInConsole (void);
 qboolean CL_IsIntermission (void);
-/*qboolean CL_Initialized (void);*/
 qboolean CL_DisableVisibility (void);
 qboolean CL_IsRecordDemo (void);
 qboolean CL_IsPlaybackDemo (void);
@@ -795,7 +800,8 @@ qboolean UI_CreditsActive (void);
 int CL_GetMaxClients (void);
 #else
 static inline qboolean CL_Initialized (void) { return false; }
-static inline qboolean CL_IsInGame (void) { return false; }
+/*static inline qboolean CL_IsInGame (void) { return false; }*/
+static inline qboolean CL_IsInGame (void) { return true; } // always true for dedicated
 static inline qboolean CL_IsInConsole (void) { return false; }
 static inline qboolean CL_IsIntermission (void) { return false; }
 static inline qboolean CL_DisableVisibility (void) { return false; }
@@ -808,9 +814,7 @@ static inline int CL_GetMaxClients (void) { return SV_GetMaxClients (); }
 // [FWGS, 01.02.25]
 char *CL_Userinfo (void);
 void CL_CharEvent (int key);
-/*qboolean CL_DisableVisibility (void);*/
 byte *COM_LoadFile (const char *filename, int usehunk, int *pLength) MALLOC_LIKE (free, 1);
-
 struct cmd_s *Cmd_GetFirstFunctionHandle (void);
 struct cmd_s *Cmd_GetNextFunctionHandle (struct cmd_s *cmd);
 struct cmdalias_s *Cmd_AliasGetList (void);
@@ -830,13 +834,7 @@ const char *CL_MsgInfo (int cmd);
 void SV_DrawDebugTriangles (void);
 void SV_DrawOrthoTriangles (void);
 double CL_GetDemoFramerate (void);
-/*qboolean UI_CreditsActive (void);*/
 void CL_StopPlayback (void);
-/*int CL_GetMaxClients (void);
-int SV_GetMaxClients (void);
-qboolean CL_IsRecordDemo (void);
-qboolean CL_IsTimeDemo (void);
-qboolean CL_IsPlaybackDemo (void);*/
 qboolean SV_Initialized (void);
 void CL_ProcessFile (qboolean successfully_received, const char *filename);
 int SV_GetSaveComment (const char *savename, char *comment);
@@ -899,13 +897,10 @@ void UI_ShowConnectionWarning (void);
 void Cmd_Null_f (void);
 void Rcon_Print (host_redirect_t *rd, const char *pMsg);
 qboolean COM_ParseVector (char **pfile, float *v, size_t size);
-/*void COM_NormalizeAngles (vec3_t angles);*/
-
 int COM_FileSize (const char *filename);
 void COM_FreeFile (void *buffer);
 int pfnCompareFileTime (const char *path1, const char *path2, int *retval);
 char *va (const char *format, ...) FORMAT_CHECK (1) RETURNS_NONNULL;
-
 qboolean CRC32_MapFile (dword *crcvalue, const char *filename, qboolean multiplayer);
 
 // [FWGS, 01.12.24]
@@ -958,7 +953,6 @@ void S_StopAllSounds (qboolean ambient);
 // [FWGS, 01.12.24] gamma routines
 byte LightToTexGamma (byte b);
 byte TextureToGamma (byte);
-/*uint LightToTexGammaEx (uint);*/
 uint ScreenGammaTable (uint);
 uint LinearGammaTable (uint);
 void V_Init (void);
@@ -966,12 +960,13 @@ void V_CheckGamma (void);
 void V_CheckGammaEnd (void);
 intptr_t V_GetGammaPtr (int parm);
 
-//
+// [FWGS, 01.03.25]
+/*//
 // identification.c
 //
 void ID_Init (void);
 const char *ID_GetMD5 (void);
-void GAME_EXPORT ID_SetCustomClientID (const char *id);
+void GAME_EXPORT ID_SetCustomClientID (const char *id);*/
 
 //
 // masterlist.c

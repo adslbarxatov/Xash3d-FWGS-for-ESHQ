@@ -21,8 +21,9 @@ GNU General Public License for more details
 	#include <dirent.h>
 #endif
 
+// [FWGS, 01.03.25]
 static char id_md5[33];
-static char id_customid[MAX_STRING];
+/*static char id_customid[MAX_STRING];*/
 
 /***
 ==========================================================
@@ -603,30 +604,31 @@ static void ID_Check (void)
 		id = 0;
 	}
 
+// [FWGS, 01.03.25]
 const char *ID_GetMD5 (void)
 	{
-	if (id_customid[0])
-		return id_customid;
+	/*if (id_customid[0])
+		return id_customid;*/
 	return id_md5;
 	}
 
-/***
+// [FWGS, 01.03.25] removed ID_SetCustomClientID
+/*
 ===============
 ID_SetCustomClientID
 ===============
-***/
+/
 void GAME_EXPORT ID_SetCustomClientID (const char *id)
 	{
 	if (!id)
 		return;
 
 	Q_strncpy (id_customid, id, sizeof (id_customid));
-	}
+	}*/
 
 // [FWGS, 01.02.25]
 void ID_Init (void)
 	{
-	/*MD5Context_t hash = { 0 };*/
 	MD5Context_t	hash = { 0 };
 	byte	md5[16];
 	int		i;

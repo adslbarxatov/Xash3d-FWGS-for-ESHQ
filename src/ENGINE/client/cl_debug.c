@@ -25,8 +25,6 @@ GNU General Public License for more details
 #define MSG_COUNT		32		// last 32 messages parsed
 #define MSG_MASK		(MSG_COUNT - 1)
 
-// [FWGS, 01.04.23] удалена svc_strings
-
 typedef struct
 	{
 	int	command;
@@ -59,12 +57,15 @@ const char *CL_MsgInfo (int cmd)
 			case PROTO_CURRENT:
 				svc_string = svc_strings[cmd];
 				break;
+
 			case PROTO_LEGACY:
 				svc_string = svc_legacy_strings[cmd];
 				break;
+
 			case PROTO_QUAKE:
 				svc_string = svc_quake_strings[cmd];
 				break;
+
 			case PROTO_GOLDSRC:
 				svc_string = svc_goldsrc_strings[cmd];
 				break;
@@ -173,7 +174,6 @@ list last 32 messages for debugging net troubleshooting
 ***/
 void CL_WriteMessageHistory (void)
 	{
-	/*oldcmd_t *old, *failcommand;*/
 	oldcmd_t	*old;
 	sizebuf_t	*msg = &net_message;
 	int			i, thecmd;
@@ -198,14 +198,42 @@ void CL_WriteMessageHistory (void)
 		thecmd++;
 		}
 
-	/*failcommand = &cls_message_debug.oldcmd[thecmd];
-	Con_Printf ("BAD:  %3i:%s\n", MSG_GetNumBytesRead (msg) - 1, CL_MsgInfo (failcommand->command));
-	if (host_developer.value >= DEV_EXTENDED)
-		CL_WriteErrorMessage (MSG_GetNumBytesRead (msg) - 1, msg);*/
 	old = &cls_message_debug.oldcmd[thecmd];
 	Con_Printf (S_RED "BAD: " S_DEFAULT "%i %04i %s\n", old->frame_number, old->starting_offset,
 		CL_MsgInfo (old->command));
 	CL_WriteErrorMessage (old->starting_offset, msg);
 
 	cls_message_debug.parsing = false;
+	}
+
+// [FWGS, 01.03.25]
+void CL_ReplayBufferDat_f (void)
+	{
+	file_t *f = FS_Open (Cmd_Argv (1), "rb", true);
+	sizebuf_t msg;
+	char buffer[NET_MAX_MESSAGE];
+	int starting_count, current_count, protocol;
+	fs_offset_t len;
+
+	if (!f)
+		return;
+
+	FS_Read (f, &starting_count, sizeof (starting_count));
+	FS_Read (f, &current_count, sizeof (current_count));
+	FS_Read (f, &protocol, sizeof (protocol));
+
+	cls.legacymode = protocol;
+
+	len = FS_Read (f, buffer, sizeof (buffer));
+	FS_Close (f);
+
+	MSG_Init (&msg, __func__, buffer, len);
+
+	Delta_Shutdown ();
+	Delta_Init ();
+
+	clgame.maxEntities = MAX_EDICTS;
+	clgame.entities = Mem_Calloc (clgame.mempool, sizeof (*clgame.entities) * clgame.maxEntities);
+
+	Sys_Quit (__func__);
 	}

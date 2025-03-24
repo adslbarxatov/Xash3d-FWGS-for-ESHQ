@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   This source code contains proprietary and confidential information of
-*   Valve LLC and its suppliers.  Access to this code is restricted to
-*   persons who have executed a written SDK license with Valve.  Any access,
-*   use or distribution of this code by or to any unlicensed person is illegal.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+This source code contains proprietary and confidential information of
+Valve LLC and its suppliers.  Access to this code is restricted to
+persons who have executed a written SDK license with Valve.  Any access,
+use or distribution of this code by or to any unlicensed person is illegal
+***/
+
 // =========================================================
 // Alien slave monster
 // =========================================================
@@ -139,7 +138,7 @@ const char* CISlave::pDeathSounds[] =
 
 // =========================================================
 // Classify - indicates this monster's place in the 
-// relationship table.
+// relationship table
 // =========================================================
 int	CISlave::Classify (void)
 	{
@@ -316,11 +315,13 @@ void CISlave::HandleAnimEvent (MonsterEvent_t* pEvent)
 					pHurt->pev->punchangle.z = -18;
 					pHurt->pev->punchangle.x = 5;
 					}
-				EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pAttackHitSounds[RANDOM_LONG (0, HLARRAYSIZE (pAttackHitSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
+				EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pAttackHitSounds[RANDOM_LONG (0,
+					HLARRAYSIZE (pAttackHitSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
 				}
 			else
 				{
-				EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pAttackMissSounds[RANDOM_LONG (0, HLARRAYSIZE (pAttackMissSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
+				EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, pAttackMissSounds[RANDOM_LONG (0,
+					HLARRAYSIZE (pAttackMissSounds) - 1)], 1.0, ATTN_MEDIUM, 0, m_voicePitch);
 				}
 			}
 			break;

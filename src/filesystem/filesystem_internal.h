@@ -21,7 +21,6 @@ GNU General Public License for more details
 #include "filesystem.h"
 #include "miniz.h"			// [FWGS, 01.02.25]
 
-// [FWGS, 01.11.23]
 #if XASH_ANDROID
 	#include <android/asset_manager.h>
 #endif
@@ -152,23 +151,17 @@ extern const fs_archive_t	g_archives[];
 #define GI FI.GameInfo
 
 // [FWGS, 01.12.24]
-/*#define Mem_Malloc( pool, size ) g_engfuncs._Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
-#define Mem_Calloc( pool, size ) g_engfuncs._Mem_Alloc( pool, size, true, __FILE__, __LINE__ )*/
 #define Mem_Malloc( pool, size ) _Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
 #define Mem_Calloc( pool, size ) _Mem_Alloc( pool, size, true, __FILE__, __LINE__ )
-
 #define Mem_Realloc( pool, ptr, size ) g_engfuncs._Mem_Realloc( pool, ptr, size, true, __FILE__, __LINE__ )
-/*#define Mem_Free( mem ) g_engfuncs._Mem_Free( mem, __FILE__, __LINE__ )*/
 #define Mem_Free( mem ) _Mem_Free( mem, __FILE__, __LINE__ )
-
 #define Mem_AllocPool( name ) g_engfuncs._Mem_AllocPool( name, __FILE__, __LINE__ )
 #define Mem_FreePool( pool ) g_engfuncs._Mem_FreePool( pool, __FILE__, __LINE__ )
-
 #define Con_Printf  (*g_engfuncs._Con_Printf)
 #define Con_DPrintf (*g_engfuncs._Con_DPrintf)
 #define Con_Reportf (*g_engfuncs._Con_Reportf)
 #define Sys_Error   (*g_engfuncs._Sys_Error)
-#define Sys_GetNativeObject (*g_engfuncs._Sys_GetNativeObject)	// [FWGS, 01.11.23]
+#define Sys_GetNativeObject (*g_engfuncs._Sys_GetNativeObject)
 
 //
 // filesystem.c
@@ -183,14 +176,13 @@ void _Mem_Free (void *data, const char *filename, int fileline);
 void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
 	ALLOC_CHECK (2) MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 
-// [FWGS, 01.12.24] search path utils
-void FS_Rescan (void);
+// [FWGS, 01.03.25] search path utils
+/*void FS_Rescan (void);*/
+void FS_Rescan (uint32_t flags, const char *language);
 void FS_ClearSearchPath (void);
 void FS_AllowDirectPaths (qboolean enable);
 void FS_AddGameDirectory (const char *dir, uint flags);
 void FS_AddGameHierarchy (const char *dir, uint flags);
-
-/*search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly);*/
 search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 	MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 
@@ -202,7 +194,6 @@ void FS_Path_f (void);
 void FS_LoadGameInfo (const char *rootfolder);
 
 // [FWGS, 01.12.24] file ops
-/*file_t *FS_Open (const char *filepath, const char *mode, qboolean gamedironly);*/
 int FS_Close (file_t *file);
 file_t *FS_Open (const char *filepath, const char *mode, qboolean gamedironly)
 	MALLOC_LIKE (FS_Close, 1) WARN_UNUSED_RESULT;
@@ -213,22 +204,16 @@ int FS_Seek (file_t *file, fs_offset_t offset, int whence);
 fs_offset_t FS_Tell (file_t *file);
 qboolean FS_Eof (file_t *file);
 int FS_Flush (file_t *file);
-/*int FS_Close (file_t *file);*/
 int FS_Gets (file_t *file, char *string, size_t bufsize);
 int FS_UnGetc (file_t *file, char c);
 int FS_Getc (file_t *file);
 int FS_VPrintf (file_t *file, const char *format, va_list ap);
-/*int FS_Printf (file_t *file, const char *format, ...) _format (2);*/
 int FS_Printf (file_t *file, const char *format, ...) FORMAT_CHECK (2);
-
 int FS_Print (file_t *file, const char *msg);
 fs_offset_t FS_FileLength (file_t *f);
 qboolean FS_FileCopy (file_t *pOutput, file_t *pInput, int fileSize);
 
 // [FWGS, 01.12.24] file buffer ops
-/*byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly);
-byte *FS_LoadFileMalloc (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly);	// [FWGS, 01.03.24]
-byte *FS_LoadDirectFile (const char *path, fs_offset_t *filesizeptr);*/
 byte *FS_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
 	MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 byte *FS_LoadFileMalloc (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
@@ -247,7 +232,6 @@ void stringlistinit (stringlist_t *list);
 void stringlistfreecontents (stringlist_t *list);
 void stringlistappend (stringlist_t *list, const char *text);
 void stringlistsort (stringlist_t *list);
-/*void listdirectory (stringlist_t *list, const char *path);*/
 void listdirectory (stringlist_t *list, const char *path, qboolean dirs_only);
 
 // filesystem ops

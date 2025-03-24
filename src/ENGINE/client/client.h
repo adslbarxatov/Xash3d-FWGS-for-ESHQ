@@ -749,8 +749,9 @@ void CL_MoveToOnHandList (resource_t *pResource);
 void CL_ClearResourceLists (void);
 
 //
-// cl_debug.c [FWGS, 01.02.24]
+// cl_debug.c [FWGS, 01.03.25]
 //
+void CL_ReplayBufferDat_f (void);
 void CL_Parse_Debug (qboolean enable);
 void CL_Parse_RecordCommand (int cmd, int startoffset);
 void CL_ResetFrame (frame_t *frame);
@@ -766,20 +767,13 @@ void CL_Particle (const vec3_t org, int color, float life, int zpos, int zvel);
 void CL_Init (void);
 void CL_Disconnect_f (void);
 void CL_ProcessFile (qboolean successfully_received, const char *filename);
-
-/*void CL_WriteUsercmd (sizebuf_t *msg, int from, int to);
-int CL_GetFragmentSize (void *unused, fragsize_t mode);*/
 void CL_WriteUsercmd (connprotocol_t proto, sizebuf_t *msg, int from, int to);
 void CL_SetupNetchanForProtocol (connprotocol_t proto);
-
 qboolean CL_PrecacheResources (void);
 void CL_SetupOverviewParams (void);
 void CL_UpdateFrameLerp (void);
 int CL_IsDevOverviewMode (void);
-
-/*void CL_SignonReply (void);*/
 void CL_SignonReply (connprotocol_t proto);
-
 void CL_ClearState (void);
 
 //
@@ -789,7 +783,6 @@ void CL_StartupDemoHeader (void);
 void CL_DrawDemoRecording (void);
 void CL_WriteDemoUserCmd (int cmdnumber);
 void CL_WriteDemoMessage (qboolean startup, int start, sizebuf_t *msg);
-/*void CL_WriteDemoUserMessage (const byte *buffer, size_t size);*/
 void CL_WriteDemoUserMessage (int size, byte *buffer);	// [FWGS, 01.02.25]
 qboolean CL_DemoReadMessage (byte *buffer, size_t *length);
 void CL_DemoInterpolateAngles (void);
@@ -810,11 +803,8 @@ int CL_GetDemoComment (const char *demoname, char *comment);
 //
 // cl_events.c [FWGS, 01.12.24]
 //
-/*void CL_ParseEvent (sizebuf_t *msg);
-void CL_ParseReliableEvent (sizebuf_t *msg);*/
 void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseReliableEvent (sizebuf_t *msg, connprotocol_t proto);
-
 void CL_SetEventIndex (const char *szEvName, int ev_index);
 void CL_PlaybackEvent (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2);
@@ -824,19 +814,24 @@ word CL_EventIndex (const char *name);
 void CL_FireEvents (void);
 
 //
-// cl_font.c [FWGS, 01.12.24]
+// cl_font.c
 //
 qboolean CL_FixedFont (cl_font_t *font);
 qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode, uint texFlags);
 qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode, uint texFlags);
 void CL_FreeFont (cl_font_t *font);
 void CL_SetFontRendermode (cl_font_t *font);
-int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *font, int flags);
-int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *font, int flags);
+
+// [FWGS, 01.03.25]
+/*int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *font, int flags);
+int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *font, int flags);*/
+int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_t *font, int flags);
+int CL_DrawString (float x, float y, const char *s, const rgba_t color, cl_font_t *font, int flags);
+
 void CL_DrawCharacterLen (cl_font_t *font, int number, int *width, int *height);
 void CL_DrawStringLen (cl_font_t *font, const char *s, int *width, int *height, int flags);
-/*int CL_DrawStringf (cl_font_t *font, float x, float y, rgba_t color, int flags, const char *fmt, ...) _format (6);*/
-int CL_DrawStringf (cl_font_t *font, float x, float y, rgba_t color, int flags, const char *fmt, ...) FORMAT_CHECK (6);
+/*int CL_DrawStringf (cl_font_t *font, float x, float y, rgba_t color, int flags, const char *fmt, ...) FORMAT_CHECK (6);*/
+int CL_DrawStringf (cl_font_t *font, float x, float y, const rgba_t color, int flags, const char *fmt, ...) FORMAT_CHECK (6);
 
 //
 // cl_game.c [FWGS, 01.12.24]
@@ -853,9 +848,7 @@ void CL_ClearSpriteTextures (void);
 void CL_CenterPrint (const char *text, float y);
 void CL_TextMessageParse (byte *pMemFile, int fileSize);
 client_textmessage_t *CL_TextMessageGet (const char *pName);
-/*model_t *CL_ModelHandle (int modelindex);*/
 void NetAPI_CancelAllRequests (void);
-/*cl_entity_t *CL_GetLocalPlayer (void);*/
 model_t *CL_LoadClientSprite (const char *filename);
 model_t *CL_LoadModel (const char *modelname, int *index);
 HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags);
@@ -868,33 +861,36 @@ int PM_CL_PointContents (const float *p, int *truecontents);
 // [FWGS, 01.12.24]
 physent_t *pfnGetPhysent (int idx);
 struct msurface_s *pfnTraceSurface (int ground, float *vstart, float *vend);
-/*movevars_t *pfnGetMoveVars (void);*/
-void CL_EnableScissor (scissor_state_t *scissor, int x, int y, int width, int height);	// [FWGS, 01.04.23]
+void CL_EnableScissor (scissor_state_t *scissor, int x, int y, int width, int height);
 void CL_DisableScissor (scissor_state_t *scissor);
 qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *width, float *height, float *u0, 
 	float *v0, float *u1, float *v1);
-/*struct cl_entity_s *CL_GetEntityByIndex (int index);
 
-// [FWGS, 01.07.24]
-_inline cl_entity_t *CL_EDICT_NUM (int n)*/
-
-// [FWGS, 01.12.24]
-static inline cl_entity_t *CL_EDICT_NUM (int n)
+// [FWGS, 01.03.25]
+/*static inline cl_entity_t *CL_EDICT_NUM (int n)*/
+static inline cl_entity_t *CL_EDICT_NUM (int index)
 	{
-	if (!clgame.entities)
+	/*if (!clgame.entities)*/
+	if (!clgame.entities) // not in game yet
 		{
 		Host_Error ("%s: clgame.entities is NULL\n", __func__);
 		return NULL;
 		}
 
-	if ((n >= 0) && (n < clgame.maxEntities))
-		return clgame.entities + n;
+	/*if ((n >= 0) && (n < clgame.maxEntities))
+		return clgame.entities + n;*/
+	if ((index < 0) || (index >= clgame.maxEntities))
+		{
+		Host_Error ("%s: bad number %i\n", __func__, index);
+		return NULL;
+		}
 
-	Host_Error ("%s: bad number %i\n", __func__, n);
-	return NULL;
+	/*Host_Error ("%s: bad number %i\n", __func__, n);
+	return NULL;*/
+	return clgame.entities + index;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.25]
 static inline cl_entity_t *CL_GetEntityByIndex (int index)
 	{
 	if (!clgame.entities) // not in game yet
@@ -903,10 +899,11 @@ static inline cl_entity_t *CL_GetEntityByIndex (int index)
 	if ((index < 0) || (index >= clgame.maxEntities))
 		return NULL;
 
-	if (index == 0)
+	/*if (index == 0)
 		return clgame.entities;
 
-	return CL_EDICT_NUM (index);
+	return CL_EDICT_NUM (index);*/
+	return clgame.entities + index;
 	}
 
 // [FWGS, 01.12.24]
@@ -915,20 +912,17 @@ static inline model_t *CL_ModelHandle (int modelindex)
 	return (modelindex >= 0) && (modelindex < MAX_MODELS) ? cl.models[modelindex] : NULL;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.25]
 static inline qboolean CL_IsThirdPerson (void)
 	{
-	return clgame.dllFuncs.CL_IsThirdPerson () ? true : false;
+	/*return clgame.dllFuncs.CL_IsThirdPerson () ? true : false;*/
+	return clgame.dllFuncs.CL_IsThirdPerson ();
 	}
 
 // [FWGS, 25.12.24]
 static inline cl_entity_t *CL_GetLocalPlayer (void)
 	{
-	/*cl_entity_t *player;*/
 	cl_entity_t *player = CL_GetEntityByIndex (cl.playernum + 1);
-
-	/*player = CL_EDICT_NUM (cl.playernum + 1);
-	Assert (player != NULL);*/
 
 	// HACKHACK: GoldSrc doesn't do this, but some mods actually check it for null pointer
 	// this is a lesser evil than changing semantics of HUD_VidInit and call it after entities are allocated
@@ -943,19 +937,12 @@ static inline cl_entity_t *CL_GetLocalPlayer (void)
 //
 // [FWGS, 01.12.24]
 void CL_ParseSetAngle (sizebuf_t *msg);
-/*void CL_ParseServerData (sizebuf_t * msg, qboolean legacy);
-void CL_ParseLightStyle (sizebuf_t * msg);
-void CL_UpdateUserinfo (sizebuf_t * msg, qboolean legacy);*/
 void CL_ParseServerData (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseLightStyle (sizebuf_t *msg, connprotocol_t proto);
 void CL_UpdateUserinfo (sizebuf_t *msg, connprotocol_t proto);
-
 void CL_ParseResource (sizebuf_t * msg);
-/*void CL_ParseClientData (sizebuf_t * msg);*/
 void CL_ParseClientData (sizebuf_t *msg, connprotocol_t proto);
-
 void CL_UpdateUserPings (sizebuf_t * msg);
-/*void CL_ParseParticles (sizebuf_t * msg);*/
 void CL_ParseParticles (sizebuf_t *msg, connprotocol_t proto);
 
 void CL_ParseRestoreSoundPacket (sizebuf_t * msg);
@@ -965,7 +952,6 @@ void CL_ParseSignon (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseRestore (sizebuf_t * msg);
 void CL_ParseStaticDecal (sizebuf_t * msg);
 void CL_ParseAddAngle (sizebuf_t * msg);
-/*void CL_RegisterUserMessage (sizebuf_t * msg);*/
 void CL_RegisterUserMessage (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseResourceList (sizebuf_t *msg, connprotocol_t proto);
 
@@ -986,13 +972,10 @@ void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext, const connprotocol_t
 void CL_ParseServerMessage (sizebuf_t *msg);
 
 // [FWGS, 01.12.24]
-/*void CL_ParseTempEntity (sizebuf_t *msg);*/
 qboolean CL_ParseCommonDLLMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);
 void CL_ParseTempEntity (sizebuf_t *msg, connprotocol_t proto);
-
 qboolean CL_DispatchUserMessage (const char *pszName, int iSize, void *pbuf);
 qboolean CL_RequestMissingResources (void);
-/*void CL_RegisterResources (sizebuf_t *msg);*/
 void CL_RegisterResources (sizebuf_t *msg, connprotocol_t proto);
 
 void CL_ParseViewEntity (sizebuf_t *msg);
@@ -1060,7 +1043,6 @@ void CL_SetSolidPlayers (int playernum);
 void CL_InitClientMove (void);
 void CL_PredictMovement (qboolean repredicting);
 void CL_CheckPredictionError (void);
-/*qboolean CL_IsPredicted (void);*/
 int CL_WaterEntity (const float *rgflPos);
 cl_entity_t *CL_GetWaterEntity (const float *rgflPos);
 pmtrace_t *CL_VisTraceLine (vec3_t start, vec3_t end, int flags);
@@ -1083,7 +1065,6 @@ void CL_ParseQuakeMessage (sizebuf_t *msg);
 //
 struct channel_s;
 struct rawchan_s;
-/*int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta);*/
 qboolean CL_ValidateDeltaPacket (uint oldpacket, frame_t *oldframe);
 int CL_UpdateOldEntNum (int oldindex, frame_t *oldframe, entity_state_t **oldent);
 int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto);
@@ -1095,7 +1076,6 @@ qboolean CL_GetMovieSpatialization (struct rawchan_s *ch);
 void CL_ComputePlayerOrigin (cl_entity_t *clent);
 void CL_ProcessPacket (frame_t *frame);
 void CL_MoveThirdpersonCamera (void);
-/*qboolean CL_IsPlayerIndex (int idx);*/
 void CL_EmitEntities (void);
 
 // [FWGS, 01.12.24]
@@ -1143,7 +1123,6 @@ void CL_InitParticles (void);
 void CL_ClearParticles (void);
 void CL_FreeParticles (void);
 void CL_InitTempEnts (void);
-/*void CL_ClearTempEnts (void);*/
 void CL_FreeTempEnts (void);
 void CL_TempEntUpdate (void);
 void CL_InitViewBeams (void);
@@ -1159,7 +1138,7 @@ void CL_ThinkParticle (double frametime, particle_t *p);
 void CL_ReadLineFile_f (void);
 
 //
-// console.c [FWGS, 01.07.24]
+// console.c [FWGS, 01.03.25]
 //
 extern convar_t con_fontsize;
 int Con_Visible (void);
@@ -1179,10 +1158,9 @@ int Con_UtfMoveRight (char *str, int pos, int length);
 void Con_DefaultColor (int r, int g, int b, qboolean gameui);
 cl_font_t *Con_GetCurFont (void);
 cl_font_t *Con_GetFont (int num);
-int Con_DrawString (int x, int y, const char *string, rgba_t setColor);				// legacy, use cl_font.c
+/*int Con_DrawString (int x, int y, const char *string, rgba_t setColor);				// legacy, use cl_font.c*/
+int Con_DrawString (int x, int y, const char *string, const rgba_t setColor);		// legacy, use cl_font.c
 void GAME_EXPORT Con_DrawStringLen (const char *pText, int *length, int *height);	// legacy, use cl_font.c
-
-// [FWGS, 01.02.24]
 void Con_CharEvent (int key);
 void Key_Console (int key);
 void Key_Message (int key);
@@ -1194,7 +1172,6 @@ void Con_PageUp (int lines);
 //
 // s_main.c
 //
-/*void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float synctime);*/
 typedef int sound_t;	// [FWGS, 01.02.25]
 void S_StartBackgroundTrack (const char *intro, const char *loop, int position, qboolean fullpath);
 void S_StopBackgroundTrack (void);
@@ -1280,13 +1257,17 @@ void Key_SetBinding (int keynum, const char *binding);
 const char *Key_LookupBinding (const char *pBinding);	// [FWGS, 22.01.25]
 void Key_ClearStates (void);
 const char *Key_KeynumToString (int keynum);
-/*int Key_StringToKeynum (const char *str);
-int Key_GetKey (const char *binding);*/
 void Key_EnumCmds_f (void);
 void Key_SetKeyDest (int key_dest);
 void Key_EnableTextInput (qboolean enable, qboolean force);
 int Key_ToUpper (int key);
 void OSK_Draw (void);
+
+//
+// identification.c [FWGS, 01.03.25]
+//
+void ID_Init (void);
+const char *ID_GetMD5 (void);
 
 // [FWGS, 01.07.24]
 extern rgba_t g_color_table[8];

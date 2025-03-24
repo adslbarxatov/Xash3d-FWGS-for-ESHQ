@@ -27,7 +27,6 @@ GNU General Public License for more details
 #include "com_model.h"
 #include "studio.h"
 #include "r_efx.h"
-/*include "com_image.h"*/
 #include "filesystem.h"
 #include "common/protocol.h"
 #include "cvardef.h"	// [FWGS, 01.12.24]
@@ -95,7 +94,7 @@ define FCVAR_READ_ONLY		(1<<17)*/
 #define FWORLD_WATERALPHA		BIT( 2 )
 #define FWORLD_HAS_DELUXEMAP	BIT( 3 )
 
-// [FWGS, 01.04.23] special rendermode for screenfade modulate
+// special rendermode for screenfade modulate
 // (probably will be expanded at some point)
 #define kRenderScreenFadeModulate	0x1000
 
@@ -279,7 +278,7 @@ typedef struct remap_info_s
 	model_t		*model;				// for catch model changes
 	} remap_info_t;
 
-typedef struct convar_s convar_t;	// [FWGS, 01.07.23]
+typedef struct convar_s convar_t;
 struct con_nprint_s;
 struct engine_studio_api_s;
 struct r_studio_interface_s;
@@ -327,7 +326,6 @@ typedef struct ref_api_s
 	cvar_t		*(*Cvar_Get)(const char *szName, const char *szValue, int flags, const char *description);
 	cvar_t		*(*pfnGetCvarPointer)(const char *name, int ignore_flags);
 	float		(*pfnGetCvarFloat)(const char *szName);
-	/*const char *(*pfnGetCvarString)(const char *szName);*/
 	const char	*(*pfnGetCvarString)(const char *szName) PFN_RETURNS_NONNULL;
 	void        (*Cvar_SetValue)(const char *name, float value);
 	void        (*Cvar_Set)(const char *name, const char *value);
@@ -338,8 +336,6 @@ typedef struct ref_api_s
 	int         (*Cmd_AddCommand)(const char *cmd_name, void (*function)(void), const char *description);
 	void        (*Cmd_RemoveCommand)(const char *cmd_name);
 	int         (*Cmd_Argc)(void);
-	/*const char	*(*Cmd_Argv)(int arg);
-	const char	*(*Cmd_Args)(void);*/
 	const char	*(*Cmd_Argv)(int arg) PFN_RETURNS_NONNULL;
 	const char	*(*Cmd_Args)(void) PFN_RETURNS_NONNULL;
 
@@ -349,21 +345,17 @@ typedef struct ref_api_s
 	void		(*Cbuf_Execute)(void);
 
 	// logging
-	/*void	(*Con_Printf)(const char *fmt, ...) _format (1); // typical console allowed messages
-	void	(*Con_DPrintf)(const char *fmt, ...) _format (1); // -dev 1
-	void	(*Con_Reportf)(const char *fmt, ...) _format (1); // -dev 2*/
 	void		(*Con_Printf)(const char *fmt, ...) FORMAT_CHECK (1);	// typical console allowed messages
 	void		(*Con_DPrintf)(const char *fmt, ...) FORMAT_CHECK (1);	// -dev 1
 	void		(*Con_Reportf)(const char *fmt, ...) FORMAT_CHECK (1);	// -dev 2
 
 	// debug print
-	/*void	(*Con_NPrintf)(int pos, const char *fmt, ...) _format (2);
-	void	(*Con_NXPrintf)(struct con_nprint_s *info, const char *fmt, ...) _format (2);*/
 	void		(*Con_NPrintf)(int pos, const char *fmt, ...) FORMAT_CHECK (2);
 	void		(*Con_NXPrintf)(struct con_nprint_s *info, const char *fmt, ...) FORMAT_CHECK (2);
 	void		(*CL_CenterPrint)(const char *s, float y);
 	void		(*Con_DrawStringLen)(const char *pText, int *length, int *height);
-	int			(*Con_DrawString)(int x, int y, const char *string, rgba_t setColor);
+	/*int			(*Con_DrawString)(int x, int y, const char *string, rgba_t setColor);*/
+	int			(*Con_DrawString)(int x, int y, const char *string, const rgba_t setColor);	// [FWGS, 01.03.25]
 	void		(*CL_DrawCenterPrint)(void);
 
 	// entity management
@@ -375,7 +367,6 @@ typedef struct ref_api_s
 	int			(*Mod_SampleSizeForFace)(const struct msurface_s *surf);
 	qboolean	(*Mod_BoxVisible)(const vec3_t mins, const vec3_t maxs, const byte *visbits);
 	mleaf_t		*(*Mod_PointInLeaf)(const vec3_t p, mnode_t *node);
-	/*void		(*Mod_CreatePolygonsForHull)(int hullnum);*/
 	void		(*R_DrawWorldHull)(void);
 	void		(*R_DrawModelHull)(model_t *mod);
 
@@ -402,7 +393,6 @@ typedef struct ref_api_s
 
 	// utils
 	void		(*CL_ExtraUpdate)(void);
-	/*void		(*Host_Error)(const char *fmt, ...) _format (1);*/
 	void		(*Host_Error)(const char *fmt, ...) FORMAT_CHECK (1);
 	void		(*COM_SetRandomSeed)(int lSeed);
 	float		(*COM_RandomFloat)(float rmin, float rmax);
@@ -422,14 +412,9 @@ typedef struct ref_api_s
 		struct engine_studio_api_s *pstudio);
 
 	// memory
-	/*poolhandle_t	(*_Mem_AllocPool)(const char *name, const char *filename, int fileline);*/
 	poolhandle_t	(*_Mem_AllocPool)(const char *name, const char *filename, int fileline) WARN_UNUSED_RESULT;
 	void		(*_Mem_FreePool)(poolhandle_t *poolptr, const char *filename, int fileline);
 
-	/*void		*(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename,
-		int fileline) ALLOC_CHECK (2);
-	void		*(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear,
-		const char *filename, int fileline) ALLOC_CHECK (3);*/
 	void		*(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename,
 		int fileline) ALLOC_CHECK (2) WARN_UNUSED_RESULT;
 	void		*(*_Mem_Realloc)(poolhandle_t poolptr, void *memptr, size_t size, qboolean clear,
@@ -459,17 +444,7 @@ typedef struct ref_api_s
 	void		*(*SW_LockBuffer)(void);
 	void		(*SW_UnlockBuffer)(void);
 
-	/*// gamma
-	byte		(*LightToTexGamma)(byte); // software gamma support
-	uint		(*LightToTexGammaEx)(uint); // software gamma support
-	byte		(*TextureToGamma)(byte);
-	uint		(*ScreenGammaTable)(uint);
-	uint		(*LinearGammaTable)(uint);*/
-
 	// renderapi
-	/*lightstyle_t	*(*GetLightStyle)(int number);
-	dlight_t	*(*GetDynamicLight)(int number);
-	dlight_t	*(*GetEntityLight)(int number);*/
 	int			(*R_FatPVS)(const float *org, float radius, byte *visbuffer, qboolean merge, qboolean fullvis);
 	const struct ref_overview_s	*(*GetOverviewParms)(void);
 	double		(*pfnTime)(void);				// Sys_DoubleTime
@@ -552,10 +527,6 @@ typedef struct ref_interface_s
 	void		(*R_DrawStretchRaw)(float x, float y, float w, float h, int cols, int rows, const byte *data, qboolean dirty);
 	void		(*R_DrawStretchPic)(float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum);
 
-	/*void (*R_DrawTileClear)(int texnum, int x, int y, int w, int h);
-	void (*FillRGBA)(float x, float y, float w, float h, int r, int g, int b, int a); // in screen space
-	void (*FillRGBABlend)(float x, float y, float w, float h, int r, int g, int b, int a); // in screen space*/
-
 	// in screen space
 	void		(*FillRGBA)(int rendermode, float x, float y, float w, float h, byte r, byte g, byte b, byte a);
 
@@ -583,7 +554,6 @@ typedef struct ref_interface_s
 	// bmodel
 	void		(*R_SetSkyCloudsTextures)(int solidskyTexture, int alphaskyTexture);
 	void		(*GL_SubdivideSurface)(model_t *mod, msurface_t *fa);
-	/*void (*CL_RunLightStyles)(void);*/
 	void		(*CL_RunLightStyles)(lightstyle_t *ls);
 
 	// sprites
@@ -593,7 +563,6 @@ typedef struct ref_interface_s
 
 	// model management
 	// flags ignored for everything except spritemodels
-	/*void (*Mod_LoadMapSprite)(struct model_s *mod, const void *buffer, size_t size, qboolean *loaded);*/
 	qboolean	(*Mod_ProcessRenderData)(model_t *mod, qboolean create, const byte *buffer);
 	void		(*Mod_StudioLoadTextures)(model_t *mod, void *data);
 

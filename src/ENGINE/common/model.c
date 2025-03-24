@@ -253,7 +253,7 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 
 /***
 ==================
-Mod_LoadModel [FWGS, 01.02.25]
+Mod_LoadModel [FWGS, 01.03.25]
 
 Loads a model into the cache
 ==================
@@ -262,7 +262,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	{
 	char			tempname[MAX_QPATH];
 	fs_offset_t		length = 0;
-	/*qboolean		loaded;*/
 	qboolean		loaded, loaded2 = false;
 	byte			*buf;
 	model_info_t	*p;
@@ -341,13 +340,14 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 				{
 				// let the server.dll load custom data
 				svgame.physFuncs.Mod_ProcessUserData (mod, true, buf);
-				loaded2 = true;
+				/*loaded2 = true;*/
 				}
+
+			loaded2 = true;
 			}
 #if !XASH_DEDICATED
 		else
 			{
-			/*loaded = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf);*/
 			loaded2 = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf);
 			}
 #endif

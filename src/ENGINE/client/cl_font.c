@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -20,7 +20,7 @@ GNU General Public License for more details
 
 qboolean CL_FixedFont (cl_font_t *font)
 	{
-	return font && font->valid && font->type == FONT_FIXED;
+	return font && font->valid && (font->type == FONT_FIXED);
 	}
 
 static int CL_LoadFontTexture (const char *fontname, uint texFlags, int *width)
@@ -181,8 +181,9 @@ static int CL_CalcTabStop (const cl_font_t *font, int x)
 	return stop;
 	}
 
-// [FWGS, 01.03.24]
-int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *font, int flags)
+// [FWGS, 01.03.25]
+/*int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *font, int flags)*/
+int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_t *font, int flags)
 	{
 	wrect_t *rc;
 	float w, h;
@@ -242,8 +243,9 @@ int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *fon
 	return font->charWidths[number];
 	}
 
-// [FWGS, 01.03.24]
-int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *font, int flags)
+// [FWGS, 01.03.25]
+/*int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *font, int flags)*/
+int CL_DrawString (float x, float y, const char *s, const rgba_t color, cl_font_t *font, int flags)
 	{
 	rgba_t current_color;
 	int draw_len = 0;
@@ -299,7 +301,9 @@ int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *fon
 	return draw_len;
 	}
 
-int CL_DrawStringf (cl_font_t *font, float x, float y, rgba_t color, int flags, const char *fmt, ...)
+// [FWGS, 01.03.25]
+/*int CL_DrawStringf (cl_font_t *font, float x, float y, rgba_t color, int flags, const char *fmt, ...)*/
+int CL_DrawStringf (cl_font_t *font, float x, float y, const rgba_t color, int flags, const char *fmt, ...)
 	{
 	va_list va;
 	char buf[MAX_VA_STRING];
@@ -313,14 +317,19 @@ int CL_DrawStringf (cl_font_t *font, float x, float y, rgba_t color, int flags, 
 
 void CL_DrawCharacterLen (cl_font_t *font, int number, int *width, int *height)
 	{
-	if (!font || !font->valid) return;
+	if (!font || !font->valid)
+		return;
+
 	if (width)
 		{
 		if (number == '\t')
 			*width = CL_CalcTabStop (font, 0); // at least return max tabstop
-		else *width = font->charWidths[number & 255];
+		else
+			*width = font->charWidths[number & 255];
 		}
-	if (height) *height = font->charHeight;
+
+	if (height)
+		*height = font->charHeight;
 	}
 
 void CL_DrawStringLen (cl_font_t *font, const char *s, int *width, int *height, int flags)

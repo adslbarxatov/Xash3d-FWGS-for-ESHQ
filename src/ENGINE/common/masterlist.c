@@ -20,7 +20,7 @@ GNU General Public License for more details
 typedef struct master_s
 	{
 	struct master_s	*next;
-	qboolean	sent;	// [FWGS, 01.05.23] TODO: get rid of this internal state
+	qboolean	sent;	// TODO: get rid of this internal state
 	qboolean	save;
 	qboolean	v6only;	// [FWGS, 01.12.24]
 
@@ -30,7 +30,6 @@ typedef struct master_s
 	double		last_heartbeat;
 	} master_t;
 
-// [FWGS, 01.05.23]
 static struct masterlist_s
 	{
 	master_t *list;
@@ -48,7 +47,6 @@ NET_GetMasterHostByName [FWGS, 01.12.24]
 ***/
 static net_gai_state_t NET_GetMasterHostByName (master_t * m)
 	{
-	/*net_gai_state_t res = NET_StringToAdrNB (m->address, &m->adr);*/
 	net_gai_state_t res = NET_StringToAdrNB (m->address, &m->adr, m->v6only);
 	if (res == NET_EAI_OK)
 		return res;
@@ -63,7 +61,7 @@ static net_gai_state_t NET_GetMasterHostByName (master_t * m)
 
 /***
 ========================
-NET_SendToMasters [FWGS, 01.05.23]
+NET_SendToMasters
 
 Send request to all masterservers list
 return true if would block
@@ -423,7 +421,7 @@ void NET_SaveMasters (void)
 
 /***
 ========================
-NET_InitMasters [FWGS, 01.07.24]
+NET_InitMasters [FWGS, 01.03.25]
 
 Initialize master server list
 ========================
@@ -436,18 +434,29 @@ void NET_InitMasters (void)
 
 	Cvar_RegisterVariable (&sv_verbose_heartbeats);
 
-	// keep main master always there
-	/*NET_AddMaster (MASTERSERVER_ADR, false);
-
-	NET_AddMaster ("aaaa.mentality.rip:27010", false); // IPv6-only
-	NET_AddMaster ("mentality.rip:27011", false);*/
+	/*// keep main master always there
 	NET_AddMaster (MASTERSERVER_ADR, false, false);
 	NET_AddMaster ("mentality.rip:27011", false, false);		// testing server, might be offline
 	NET_AddMaster ("ms2.mentality.rip:27010", false, false);	// secondary master
 
 	NET_AddMaster ("aaaa.mentality.rip:27010", false, true);	// IPv6-only
 	NET_AddMaster ("aaaa.mentality.rip:27011", false, true);	// IPv6-only, testing server, might be offline
-	NET_AddMaster ("aaaa.ms2.mentality.rip:27010", false, false);	// secondary IPv6-only master
+	NET_AddMaster ("aaaa.ms2.mentality.rip:27010", false, false);	// secondary IPv6-only master*/
+	{ // IPv4-only
+	NET_AddMaster ("mentality.rip:27010", false, false);
+	NET_AddMaster ("ms2.mentality.rip:27010", false, false);
+	NET_AddMaster ("ms3.mentality.rip:27010", false, false);
+	}
+
+	{ // IPv6-only
+	NET_AddMaster ("aaaa.mentality.rip:27010", false, true);
+	NET_AddMaster ("aaaa.ms2.mentality.rip:27010", false, true);
+	}
+
+	{ // testing servers, might be offline
+	NET_AddMaster ("mentality.rip:27011", false, false);
+	NET_AddMaster ("aaaa.mentality.rip:27011", false, true);
+	}
 
 	NET_LoadMasters ();
 	}

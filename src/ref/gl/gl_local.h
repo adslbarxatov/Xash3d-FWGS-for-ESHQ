@@ -31,20 +31,17 @@ GNU General Public License for more details
 #include "enginefeatures.h"
 #include "com_strings.h"
 #include "pm_movevars.h"
-/*include "common/cvar.h"	// [FWGS, 01.07.23]*/
 #include "cvardef.h"			// [FWGS, 01.12.24]
 #include "gl_export.h"
 #include "wadfile.h"
 #include "common/mod_local.h"	// [FWGS, 01.01.24]
 
-// [FWGS, 01.04.23]
 #if XASH_PSVITA
 	int VGL_ShimInit (void);
 	void VGL_ShimShutdown (void);
 	void VGL_ShimEndFrame (void);
 #endif
 
-// [FWGS, 01.11.23]
 #if !defined(XASH_GL_STATIC)
 	#include "gl2_shim/gl2_shim.h"
 #endif
@@ -143,7 +140,6 @@ typedef struct gltexture_s
 	float		yscale;
 
 	// [FWGS, 01.02.25]
-	/*int			servercount;*/
 	uint		hashValue;
 	struct gltexture_s *nextHash;
 	} gl_texture_t;
@@ -331,7 +327,7 @@ void GL_CleanupAllTextureUnits (void);
 void GL_LoadIdentityTexMatrix (void);
 void GL_DisableAllTexGens (void);
 void GL_SetRenderMode (int mode);
-void GL_EnableTextureUnit (int tmu, qboolean enable);	// [FWGS, 01.11.23]
+void GL_EnableTextureUnit (int tmu, qboolean enable);
 void GL_TextureTarget (uint target);
 void GL_Cull (GLenum cull);
 void R_ShowTextures (void);
@@ -365,7 +361,6 @@ void R_ClearDecals (void);
 // gl_draw.c [FWGS, 01.12.24]
 //
 void R_Set2DMode (qboolean enable);
-/*void R_DrawTileClear (int texnum, int x, int y, int w, int h);*/
 void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height, const byte *data);
 
 //
@@ -399,22 +394,20 @@ void R_InitDlightTexture (void);
 void R_TextureList_f (void);
 void R_InitImages (void);
 void R_ShutdownImages (void);
-int GL_TexMemory (void);	// [FWGS, 01.11.23]
+int GL_TexMemory (void);
 
 // [FWGS, 01.12.24]
-/*qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...) _format (4);*/
 qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...) FORMAT_CHECK (4);
 void R_TextureReplacementReport (const char *modelname, int gl_texturenum, const char *foundpath);
 
 //
-// gl_rlight.c [FWGS, 01.12.24]
+// gl_rlight.c [FWGS, 01.03.25]
 //
-/*void CL_RunLightStyles (void);*/
 void CL_RunLightStyles (lightstyle_t *ls);
 void R_PushDlights (void);
-/*void R_AnimateLight (void);*/
 void R_GetLightSpot (vec3_t lightspot);
-void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
+/*void R_MarkLights (dlight_t *light, int bit, mnode_t *node);*/
+void R_MarkLights (const dlight_t *light, int bit, const mnode_t *node);
 colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lightspot, vec3_t lightvec);
 colorVec R_LightPoint (const vec3_t p0);
 
@@ -455,16 +448,14 @@ void Matrix4x4_CreateModelview (matrix4x4 out);
 void R_ClearStaticEntities (void);
 
 //
-// gl_rsurf.c [FWGS, 01.02.25]
+// gl_rsurf.c [FWGS, 01.03.25]
 //
 void R_MarkLeaves (void);
 void R_DrawWorld (void);
 void R_DrawWaterSurfaces (void);
 void R_DrawBrushModel (cl_entity_t *e);
 void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
-void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);
-/*void DrawGLPoly (glpoly2_t *p, float xScale, float yScale);
-texture_t *R_TextureAnimation (msurface_t *s);*/
+/*void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);*/
 void GL_SetupFogColorForSurfaces (void);
 void R_DrawAlphaTextureChains (void);
 void GL_RebuildLightmaps (void);
@@ -580,17 +571,13 @@ void R_NewMap (void);
 void CL_AddCustomBeam (cl_entity_t *pEnvBeam);
 
 //
-// gl_opengl.c
+// gl_opengl.c [FWGS, 01.03.25]
 //
 #define GL_CheckForErrors() GL_CheckForErrors_( __FILE__, __LINE__ )
 void GL_CheckForErrors_ (const char *filename, const int fileline);
 const char *GL_ErrorString (int err);
-qboolean GL_Support (int r_ext);
-int GL_MaxTextureUnits (void);
-
-/*// [FWGS, 01.11.23]
-qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, const char *cvarname, int r_ext, float minver);
-void GL_SetExtension (int r_ext, int enable);*/
+/*qboolean GL_Support (int r_ext);
+int GL_MaxTextureUnits (void);*/
 
 //
 // gl_triapi.c
@@ -800,6 +787,25 @@ static inline uint LinearGammaTable (uint b)
 	return !FBitSet (gp_host->features, ENGINE_LINEAR_GAMMA_SPACE) ? tr.lineargammatable[b] : b;
 	}
 
+// [FWGS, 01.03.25]
+static inline qboolean GL_Support (int r_ext)
+	{
+	if ((r_ext >= 0) && (r_ext < GL_EXTCOUNT))
+		return glConfig.extension[r_ext] ? true : false;
+
+	gEngfuncs.Con_Printf (S_ERROR "%s: invalid extension %d\n", __func__, r_ext);
+	return false;
+	}
+
+// [FWGS, 01.03.25]
+static inline int GL_MaxTextureUnits (void)
+	{
+	if (GL_Support (GL_SHADER_GLSL100_EXT))
+		return Q_min (Q_max (glConfig.max_texture_coords, glConfig.max_teximage_units), MAX_TEXTURE_UNITS);
+
+	return glConfig.max_texture_units;
+	}
+
 // [FWGS, 01.01.24]
 #define WORLDMODEL (gp_cl->models[1])
 
@@ -840,6 +846,8 @@ extern convar_t r_shadows;		// [FWGS, 01.12.24]
 extern convar_t r_ripple;
 extern convar_t r_ripple_updatetime;
 extern convar_t r_ripple_spawntime;
+extern convar_t r_large_lightmaps;	// [FWGS, 01.03.25]
+extern convar_t r_dlight_virtual_radius;	// [FWGS, 01.03.25]
 
 //
 // engine shared convars

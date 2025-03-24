@@ -1251,8 +1251,24 @@ void CEnvSpark::KeyValue (KeyValueData* pkvd)
 
 void HLEXPORT CEnvSpark::SparkThink (void)
 	{
+	byte brightness = RANDOM_LONG (0, 2) * 64 + 32;
+
 	pev->nextthink = gpGlobals->time + 0.1 + RANDOM_FLOAT (0, m_flDelay);
 	DoSpark (pev, pev->origin);
+
+	// Подсветка искры
+	MESSAGE_BEGIN (MSG_PVS, SVC_TEMPENTITY, pev->origin);
+	WRITE_BYTE (TE_DLIGHT);
+	WRITE_COORD (pev->origin.x);		// X
+	WRITE_COORD (pev->origin.y);		// Y
+	WRITE_COORD (pev->origin.z);		// Z
+	WRITE_BYTE (RANDOM_LONG (4, 8));	// radius * 0.1
+	WRITE_BYTE (0 + brightness);		// r
+	WRITE_BYTE (24 + brightness);		// g
+	WRITE_BYTE (48 + brightness);		// b
+	WRITE_BYTE (1);		// time * 10
+	WRITE_BYTE (1);		// decay * 0.1
+	MESSAGE_END ();
 	}
 
 void HLEXPORT CEnvSpark::SparkStart (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
@@ -1278,7 +1294,6 @@ class CButtonTarget: public CBaseEntity
 		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 		int TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
 		int	ObjectCaps (void);
-
 	};
 
 LINK_ENTITY_TO_CLASS (button_target, CButtonTarget);

@@ -402,14 +402,16 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 	// add in programtic controllers
 	pbone = (mstudiobone_t *)((byte *)mod_studiohdr + mod_studiohdr->boneindex);
 
-	memset (adj, 0, sizeof (adj));	// [FWGS, 01.04.23]
+	memset (adj, 0, sizeof (adj));
 	Mod_StudioCalcBoneAdj (adj, pcontroller);
 
+	// [FWGS, 01.03.25]
 	for (j = numbones - 1; j >= 0; j--)
 		{
 		i = boneused[j];
-		R_StudioCalcBoneQuaternion (frame, s, &pbone[i], &panim[i], adj, q[i]);
-		R_StudioCalcBonePosition (frame, s, &pbone[i], &panim[i], adj, pos[i]);
+		/*R_StudioCalcBoneQuaternion (frame, s, &pbone[i], &panim[i], adj, q[i]);
+		R_StudioCalcBonePosition (frame, s, &pbone[i], &panim[i], adj, pos[i]);*/
+		R_StudioCalcBones (frame, s, &pbone[i], &panim[i], adj, pos[i], q[i]);
 		}
 
 	if (pseqdesc->motiontype & STUDIO_X)
@@ -419,8 +421,6 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 	if (pseqdesc->motiontype & STUDIO_Z)
 		pos[pseqdesc->motionbone][2] = 0.0f;
 	}
-
-// [FWGS, 01.04.23] удалены R_StudioCalcBoneQuaternion, R_StudioCalcBonePosition, R_StudioSlerpBones
 
 /***
 ====================
@@ -766,11 +766,13 @@ void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean i
 		else
 			continue;
 
+		// [FWGS, 01.03.25]
 		for (j = 0; j < pstudiohdr->numbones; j++)
 			{
 			for (k = 0; k < pseqdesc->numframes; k++)
 				{
-				R_StudioCalcBonePosition (k, 0, &pbones[j], panim, NULL, pos);
+				/*R_StudioCalcBonePosition (k, 0, &pbones[j], panim, NULL, pos);*/
+				R_StudioCalcBones (k, 0, &pbones[j], panim, NULL, pos, NULL);
 				Mod_StudioBoundVertex (vert_mins, vert_maxs, &bone_count, pos);
 				}
 			}

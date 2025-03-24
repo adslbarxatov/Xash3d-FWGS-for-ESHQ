@@ -29,9 +29,9 @@ SYSTEM UTILS
 ==============================================================================
 ***/
 
-// [FWGS, 25.12.24]
+// [FWGS, 01.03.25]
 double Platform_DoubleTime (void);
-/*void Platform_Sleep (int msec);*/
+void Platform_Sleep (int msec);
 void Platform_ShellExecute (const char *path, const char *parms);
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow);
 void Platform_SetStatus (const char *status);
@@ -58,7 +58,6 @@ qboolean Platform_DebuggerPresent (void);
 
 // [FWGS, 01.02.25]
 #if XASH_SDL
-	/*void SDLash_Init (void);*/
 	void SDLash_Init (const char *basedir);
 	void SDLash_Shutdown (void);
 #endif
@@ -73,8 +72,12 @@ qboolean Platform_DebuggerPresent (void);
 	void Android_Shutdown (void);
 #endif
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.03.25]
 #if XASH_WIN32
+	void Win32_Init (qboolean con_showalways);
+	void Win32_Shutdown (void);
+	qboolean Win32_NanoSleep (int nsec);
+
 	void Wcon_CreateConsole (qboolean con_showalways);
 	void Wcon_DestroyConsole (void);
 	void Wcon_InitConsoleCommands (void);
@@ -84,7 +87,6 @@ qboolean Platform_DebuggerPresent (void);
 	void Wcon_WinPrint (const char *pMsg);
 #endif
 
-// [FWGS, 01.04.23]
 #if XASH_NSWITCH
 	void NSwitch_Init (void);
 	void NSwitch_Shutdown (void);
@@ -98,7 +100,6 @@ qboolean Platform_DebuggerPresent (void);
 	void PSVita_InputUpdate (void);
 #endif
 
-// [FWGS, 01.07.23]
 #if XASH_DOS
 	void DOS_Init (void);
 	void DOS_Shutdown (void);
@@ -112,9 +113,8 @@ qboolean Platform_DebuggerPresent (void);
 	int Linux_GetProcessID (void);
 #endif
 
-// [FWGS, 01.02.25]
-/*static inline void Platform_Init (qboolean con_showalways)*/
-	static inline void Platform_Init (qboolean con_showalways, const char *basedir)
+// [FWGS, 01.03.25]
+static inline void Platform_Init (qboolean con_showalways, const char *basedir)
 	{
 #if XASH_POSIX
 	// daemonize as early as possible, because we need to close our file descriptors
@@ -122,7 +122,6 @@ qboolean Platform_DebuggerPresent (void);
 #endif
 
 #if XASH_SDL
-	/*SDLash_Init ();*/
 	SDLash_Init (basedir);
 #endif
 
@@ -135,7 +134,8 @@ qboolean Platform_DebuggerPresent (void);
 #elif XASH_DOS
 	DOS_Init ();
 #elif XASH_WIN32
-	Wcon_CreateConsole (con_showalways);
+	/*Wcon_CreateConsole (con_showalways);*/
+	Win32_Init (con_showalways);
 #elif XASH_LINUX
 	Linux_Init ();
 #endif
@@ -151,7 +151,7 @@ static inline qboolean Sys_DebuggerPresent (void)
 #endif
 	}
 
-// [FWGS, 01.07.23]
+// [FWGS, 01.03.25]
 static inline void Platform_Shutdown (void)
 	{
 #if XASH_NSWITCH
@@ -161,7 +161,8 @@ static inline void Platform_Shutdown (void)
 #elif XASH_DOS
 	DOS_Shutdown ();
 #elif XASH_WIN32
-	Wcon_DestroyConsole ();
+	/*Wcon_DestroyConsole ();*/
+	Win32_Shutdown ();
 #elif XASH_LINUX
 	Linux_Shutdown ();
 #endif
@@ -171,8 +172,6 @@ static inline void Platform_Shutdown (void)
 #endif
 	}
 
-// [FWGS, 01.11.23] removed Platform_GetNativeObject
-
 // [FWGS, 01.12.24]
 static inline void Platform_SetupSigtermHandling (void)
 	{
@@ -181,32 +180,45 @@ static inline void Platform_SetupSigtermHandling (void)
 #endif
 	}
 
-// [FWGS, 25.12.24]
-static inline void Platform_Sleep (int msec)
+// [FWGS, 01.03.25]
+/*static inline void Platform_Sleep (int msec)*/
+static inline qboolean Platform_NanoSleep (int nsec)
 	{
-#if XASH_TIMER == TIMER_SDL
+	/*if XASH_TIMER == TIMER_SDL
 	SDL_Delay (msec);
-#elif XASH_TIMER == TIMER_POSIX
+elif XASH_TIMER == TIMER_POSIX
 	usleep (msec * 1000);
-#elif XASH_TIMER == TIMER_WIN32
-	Sleep (msec);
+elif XASH_TIMER == TIMER_WIN32
+	Sleep (msec);*/
+	// SDL2 doesn't have nanosleep, so use low-level functions here.
+	// When this code will be ported to SDL3, use SDL_DelayNS
+#if XASH_POSIX
+	struct timespec ts = {
+		.tv_sec = 0,
+		.tv_nsec = nsec, // just don't put large numbers here
+		};
+	return nanosleep (&ts, NULL) == 0;
+
+#elif XASH_WIN32
+	return Win32_NanoSleep (nsec);
+
 #else
-	// stub
+	return false;
+
 #endif
 	}
 
-// [FWGS, 22.01.25]
-#if XASH_WIN32 || XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
-void Sys_SetupCrashHandler (void);
+// [FWGS, 01.03.25]
+/*if XASH_WIN32 || XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX
+void Sys_SetupCrashHandler (void);*/
+
+#if XASH_WIN32 || XASH_FREEBSD || XASH_NETBSD || XASH_OPENBSD || XASH_ANDROID || XASH_LINUX || XASH_APPLE
+void Sys_SetupCrashHandler (const char *argv0);
 void Sys_RestoreCrashHandler (void);
 #else
-static inline void Sys_SetupCrashHandler (void)
-	{
-	}
-
-static inline void Sys_RestoreCrashHandler (void)
-	{
-	}
+/*static inline void Sys_SetupCrashHandler (void)*/
+static inline void Sys_SetupCrashHandler (const char *argv0) { }
+static inline void Sys_RestoreCrashHandler (void) { }
 #endif
 
 /***
@@ -215,16 +227,34 @@ MOBILE API
 ==============================================================================
 ***/
 
-// [FWGS, 01.11.23]
-void Platform_Vibrate (float life, char flags);
+// [FWGS, 01.03.25]
+/*void Platform_Vibrate (float life, char flags);*/
+void Platform_Vibrate (float life, char flags); // left for compatibility
+void Platform_Vibrate2 (float time, int low_freq, int high_freq, uint flags);
 
 /***
 ==============================================================================
 INPUT
 ==============================================================================
 ***/
-// Gamepad support
-int Platform_JoyInit (int numjoy); // returns number of connected gamepads, negative if error
+
+// [FWGS, 01.03.25] Gamepad support
+/*int Platform_JoyInit (int numjoy); // returns number of connected gamepads, negative if error*/
+#if XASH_SDL
+int Platform_JoyInit (void); // returns number of connected gamepads, negative if error
+void Platform_JoyShutdown (void);
+void Platform_CalibrateGamepadGyro (void);
+
+#else
+static inline int Platform_JoyInit (void)
+	{
+	return 0;
+	}
+
+static inline void Platform_JoyShutdown (void) { }
+static inline void Platform_CalibrateGamepadGyro (void) { }
+
+#endif
 
 // Text input
 void Platform_EnableTextInput (qboolean enable);

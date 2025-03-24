@@ -1,4 +1,4 @@
-/*
+/***
 port.h -- Portability Layer for Windows types
 Copyright (C) 2015 Alibek Omarov
 
@@ -9,9 +9,9 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
+***/
 
 #pragma once
 #ifndef PORT_H
@@ -35,13 +35,10 @@ GNU General Public License for more details.
 	#define __cdecl
 	#define __stdcall
 	#define _inline	static inline
-	// [FWGS, 01.02.24]
-	/*#define FORCEINLINE inline __attribute__((always_inline))*/
 
 	#if XASH_POSIX
 		#include <unistd.h>
 
-		// [FWGS, 01.04.23]
 		#if XASH_NSWITCH
 			#define SOLDER_LIBDL_COMPAT
 			#include <solder.h>
@@ -72,13 +69,6 @@ GNU General Public License for more details.
 #else
 
 	// [FWGS, 01.02.24]
-	/*#ifdef __MINGW32__
-		#define _inline static inline
-		#define FORCEINLINE inline __attribute__((always_inline))
-	#else
-		#define FORCEINLINE __forceinline
-	#endif*/
-
 	#define open _open
 	#define read _read
 	#define alloca _alloca
@@ -104,8 +94,9 @@ GNU General Public License for more details.
 #include <string.h>
 #include <limits.h>
 
-#if defined XASH_SDL && !defined REF_DLL
+// [FWGS, 01.03.25]
+/*#if defined XASH_SDL && !defined REF_DLL
 #include <SDL.h>
-#endif
+#endif*/
 
 #endif
