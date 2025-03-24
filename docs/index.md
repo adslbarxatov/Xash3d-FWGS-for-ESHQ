@@ -107,6 +107,7 @@ It is based on one of the newest versions of [Xash3d FWGS engine](https://github
 47. Our adaptation is now able to save the current `room type` (echo effect) for the next game loading.
 48. Our `monstermakers` are now able to emit teleportation sounds and show specified sprites when activated.
 49. Our brush entity `trigger_fog` can smoothly turn on / off the fog effect of the desired color and density.
+50. Our sparks can emit small flashes of light onto nearby surfaces.
 
 &nbsp;
 
