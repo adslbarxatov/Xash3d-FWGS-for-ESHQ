@@ -1,6 +1,6 @@
 /***
-vid_sdl.c - SDL input component
-Copyright (C) 2018 a1batross
+in_sdl.c - SDL input component
+Copyright (C) 2018-2025 a1batross
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -9,11 +9,12 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#if !XASH_DEDICATED
+// [FWGS, 01.03.25]
+/*if !XASH_DEDICATED*/
 #include <SDL.h>
 
 #include "common.h"
@@ -25,7 +26,8 @@ GNU General Public License for more details
 #include "sound.h"
 #include "vid_common.h"
 
-SDL_Joystick *g_joy = NULL;
+/*SDL_Joystick *g_joy = NULL;*/
+
 #if !SDL_VERSION_ATLEAST( 2, 0, 0 )
 #define SDL_WarpMouseInWindow( win, x, y ) SDL_WarpMouse( ( x ), ( y ) )
 #else
@@ -35,6 +37,13 @@ static struct
 	SDL_Cursor *cursors[dc_last];
 	} cursors;
 #endif
+
+// [FWGS, 01.03.25]
+static struct
+	{
+	int x, y;
+	qboolean pushed;
+	} in_visible_cursor_pos;
 
 /***
 =============
@@ -123,20 +132,21 @@ void Platform_SetClipboardText (const char *buffer)
 #endif
 	}
 
-/***
+// [FWGS, 01.03.25] removed Platform_Vibrate
+
+/*
 =============
 Platform_Vibrate [FWGS, 01.07.23]
 =============
-***/
+/
 void Platform_Vibrate (float time, char flags)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 9 )
+if SDL_VERSION_ATLEAST( 2, 0, 9 )
 	if (g_joy)
 		SDL_JoystickRumble (g_joy, 0xFFFF, 0xFFFF, time * 1000.0f);
-#endif
-	}
+endif
+	}*/
 
-// [FWGS, 01.04.23]
 #if !XASH_PSVITA
 
 /***
@@ -153,11 +163,13 @@ void Platform_EnableTextInput (qboolean enable)
 
 #endif
 
-/***
+// [FWGS, 01.03.25] removed SDLash_JoyInit_Old, SDLash_JoyInit_New, Platform_JoyInit
+
+/*
 =============
 SDLash_JoyInit_Old
 =============
-***/
+/
 static int SDLash_JoyInit_Old (int numjoy)
 	{
 	int num;
@@ -187,10 +199,10 @@ static int SDLash_JoyInit_Old (int numjoy)
 		return 0;
 		}
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	for (i = 0; i < num; i++)
 		Con_Reportf ("%i\t: %s\n", i, SDL_JoystickNameForIndex (i));
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
 
 	Con_Reportf ("Pass +set joy_index N to command line, where N is number, to select active joystick\n");
 
@@ -202,7 +214,7 @@ static int SDLash_JoyInit_Old (int numjoy)
 		return 0;
 		}
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	Con_Reportf ("Selected joystick: %s\n"
 		"\tAxes: %i\n"
 		"\tHats: %i\n"
@@ -212,19 +224,19 @@ static int SDLash_JoyInit_Old (int numjoy)
 		SDL_JoystickNumButtons (g_joy), SDL_JoystickNumBalls (g_joy));
 
 	SDL_GameControllerEventState (SDL_DISABLE);
-#endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
+endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_JoystickEventState (SDL_ENABLE);
 
 	return num;
-	}
+	}*/
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 
-/***
+/*
 =============
 SDLash_JoyInit_New
 =============
-***/
+/
 static int SDLash_JoyInit_New (int numjoy)
 	{
 	int count, numJoysticks, i;
@@ -247,24 +259,24 @@ static int SDLash_JoyInit_New (int numjoy)
 
 	return count;
 	}
-#endif
+#endif*/
 
-/***
+/*
 =============
 Platform_JoyInit
 =============
-***/
+/
 int Platform_JoyInit (int numjoy)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	// SDL_Joystick is now an old API
 	// SDL_GameController is preferred
 	if (!Sys_CheckParm ("-sdl_joy_old_api"))
 		return SDLash_JoyInit_New (numjoy);
-#endif
+endif
 
 	return SDLash_JoyInit_Old (numjoy);
-	}
+	}*/
 
 /***
 ========================
@@ -325,10 +337,11 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 	{
 	qboolean visible;
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	// [FWGS, 01.03.25]
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	if (!cursors.initialized)
 		return;
-#endif
+endif*/
 
 	switch (type)
 		{
@@ -342,22 +355,42 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 			break;
 		}
 	
-	// [FWGS, 01.09.24] never disable cursor in touch emulation mode
-	if (!visible && Touch_Emulated ())
+	// [FWGS, 01.03.25] never disable cursor in touch emulation mode
+	/*if (!visible && Touch_Emulated ())*/
+	if (!visible && Touch_WantVisibleCursor ())
 		return;
 
 	host.mouse_visible = visible;
 	VGui_UpdateInternalCursorState (type);
 
+	// [FWGS, 01.03.25]
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 
 	if (host.mouse_visible)
 		{
-		SDL_SetCursor (cursors.cursors[type]);
+		/*SDL_SetCursor (cursors.cursors[type]);*/
+		if (cursors.initialized)
+			SDL_SetCursor (cursors.cursors[type]);
+
 		SDL_ShowCursor (true);
+
+		// restore the last mouse position
+		if (in_visible_cursor_pos.pushed)
+			{
+			SDL_WarpMouseInWindow (host.hWnd, in_visible_cursor_pos.x, in_visible_cursor_pos.y);
+			in_visible_cursor_pos.pushed = false;
+			}
 		}
 	else
 		{
+		// save last mouse position and warp it to the center
+		if (!in_visible_cursor_pos.pushed)
+			{
+			SDL_GetMouseState (&in_visible_cursor_pos.x, &in_visible_cursor_pos.y);
+			SDL_WarpMouseInWindow (host.hWnd, host.window_center_x, host.window_center_y);
+			in_visible_cursor_pos.pushed = true;
+			}
+
 		SDL_ShowCursor (false);
 		}
 
@@ -411,4 +444,5 @@ key_modifier_t Platform_GetKeyModifiers (void)
 #endif
 	}
 
-#endif
+// [FWGS, 01.03.25]
+/*endif*/

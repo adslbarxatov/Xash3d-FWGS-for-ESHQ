@@ -16,11 +16,28 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.25]
+#if XASH_SDL
+#include <SDL.h>	// SDL_GetBasePath
+#endif
+
 #include <errno.h>		// [FWGS, 01.07.24]
 #include "common.h"
 #include "library.h"
 #include "server.h"		// ESHQ
 #include "platform/platform.h"
+
+// [FWGS, 01.03.25]
+CVAR_DEFINE_AUTO (fs_mount_hd, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
+	"mount high definition content folder");
+CVAR_DEFINE_AUTO (fs_mount_lv, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
+	"mount low violence models content folder");
+CVAR_DEFINE_AUTO (fs_mount_addon, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
+	"mount addon content folder");
+CVAR_DEFINE_AUTO (fs_mount_l10n, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
+	"mount localization content folder");
+CVAR_DEFINE_AUTO (ui_language, "english", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
+	"selected game language");
 
 fs_api_t		g_fsapi;
 fs_globals_t	*FI;
@@ -76,9 +93,30 @@ void *FS_GetNativeObject (const char *obj)
 	return NULL;
 	}
 
-static void FS_Rescan_f (void)
+// [FWGS, 01.03.25]
+/*static void FS_Rescan_f (void)*/
+void FS_Rescan_f (void)
 	{
-	FS_Rescan ();
+	/*FS_Rescan ();*/
+	uint32_t flags = 0;
+
+	// FIXME: VFS shouldn't care about this, allow engine to mount gamedirs
+	if (fs_mount_lv.value)
+		SetBits (flags, FS_MOUNT_LV);
+	if (fs_mount_hd.value)
+		SetBits (flags, FS_MOUNT_HD);
+	if (fs_mount_addon.value)
+		SetBits (flags, FS_MOUNT_ADDON);
+	if (fs_mount_l10n.value)
+		SetBits (flags, FS_MOUNT_L10N);
+
+	g_fsapi.Rescan (flags, ui_language.string);
+
+	ClearBits (fs_mount_lv.flags, FCVAR_CHANGED);
+	ClearBits (fs_mount_hd.flags, FCVAR_CHANGED);
+	ClearBits (fs_mount_addon.flags, FCVAR_CHANGED);
+	ClearBits (fs_mount_l10n.flags, FCVAR_CHANGED);
+	ClearBits (ui_language.flags, FCVAR_CHANGED);
 	}
 
 static void FS_ClearPaths_f (void)
@@ -112,7 +150,6 @@ static const fs_interface_t fs_memfuncs =
 	Sys_GetNativeObject,
 	};
 
-// [FWGS, 01.05.23]
 static void FS_UnloadProgs (void)
 	{
 	if (fs_hInstance)
@@ -200,7 +237,6 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 	// [FWGS, 01.02.25]
 	if (PSVita_GetBasePath (out, size))
 		return true;
-	/*Sys_Error ("couldn't find Xash3D data directory");*/
 	Sys_Error ("couldn't find %s data directory", XASH_ENGINE_NAME);
 
 	return false;
@@ -222,7 +258,6 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 	if (path != NULL)
 		{
 		Q_strncpy (out, path, size);
-		/*SDL_free ((void *)path);*/
 		SDL_free ((void *)path);
 		return true;
 		}
@@ -267,6 +302,13 @@ static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 		}
 
 	return false;
+	}
+
+// [FWGS, 01.03.25]
+void FS_CheckConfig (void)
+	{
+	if (fs_mount_lv.value || fs_mount_hd.value || fs_mount_addon.value || fs_mount_l10n.value)
+		FS_Rescan_f ();
 	}
 
 /***
@@ -321,6 +363,12 @@ void FS_Init (const char *basedir)
 	Cmd_AddRestrictedCommand ("fs_path", FS_Path_f_, "show filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_clearpaths", FS_ClearPaths_f, "clear filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_make_gameinfo", FS_MakeGameInfo_f, "create gameinfo.txt for current running game");
+
+	// [FWGS, 01.03.25]
+	Cvar_RegisterVariable (&fs_mount_hd);
+	Cvar_RegisterVariable (&fs_mount_lv);
+	Cvar_RegisterVariable (&fs_mount_addon);
+	Cvar_RegisterVariable (&fs_mount_l10n);
 
 	if (!Sys_GetParmFromCmdLine ("-dll", host.gamedll))
 		host.gamedll[0] = 0;

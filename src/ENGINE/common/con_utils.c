@@ -45,6 +45,7 @@ static con_autocomplete_t		con;
 FILENAME AUTOCOMPLETION
 =======================================================================
 ***/
+
 /***
 =====================================
 Cmd_ListMaps
@@ -78,14 +79,14 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 			{
 			dheader_t *header;
 			dextrahdr_t *hdrext;
-			dlump_t entities;	// [FWGS, 01.04.23]
+			dlump_t entities;
 
 			memset (buf, 0, sizeof (buf));
 			FS_Read (f, buf, sizeof (buf));
 			header = (dheader_t *)buf;
 			ver = header->version;
 
-			// [FWGS, 01.04.23] check all the lumps and some other errors
+			// check all the lumps and some other errors
 			if (Mod_TestBmodelLumps (f, t->filenames[i], buf, true, &entities))
 				{
 				lumpofs = entities.fileofs;
@@ -98,7 +99,7 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 				version = hdrext->version;
 
 			Q_strncpy (entfilename, t->filenames[i], sizeof (entfilename));
-			COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));	// [FWGS, 01.05.23]
+			COM_ReplaceExtension (entfilename, ".ent", sizeof (entfilename));
 			ents = (char *)FS_LoadFile (entfilename, NULL, true);
 
 			if (!ents && (lumplen >= 10))
@@ -143,7 +144,7 @@ int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len)
 
 		if (f)
 			FS_Close (f);
-		COM_FileBase (t->filenames[i], mapname, sizeof (mapname));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], mapname, sizeof (mapname));
 
 		switch (ver)
 			{
@@ -205,7 +206,7 @@ static qboolean Cmd_GetMapList (const char *s, char *completedname, int length)
 	if (!t)
 		return false;
 
-	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));
 
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
@@ -245,7 +246,7 @@ static qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
 	if (!t)
 		return false;
 
-	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
 	if (t->numfilenames == 1)
@@ -256,7 +257,7 @@ static qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "dem"))
 			continue;
 
-		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		numdems++;
 		}
@@ -273,6 +274,7 @@ static qboolean Cmd_GetDemoList (const char *s, char *completedname, int length)
 				completedname[i] = 0;
 			}
 		}
+
 	return true;
 	}
 
@@ -293,7 +295,7 @@ static qboolean Cmd_GetMovieList (const char *s, char *completedname, int length
 	if (!t)
 		return false;
 
-	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
 	if (t->numfilenames == 1)
@@ -304,7 +306,7 @@ static qboolean Cmd_GetMovieList (const char *s, char *completedname, int length
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "avi"))
 			continue;
 
-		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		nummovies++;
 		}
@@ -342,7 +344,7 @@ static qboolean Cmd_GetMusicList (const char *s, char *completedname, int length
 	if (!t)
 		return false;
 
-	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
 	if (t->numfilenames == 1)
@@ -355,7 +357,7 @@ static qboolean Cmd_GetMusicList (const char *s, char *completedname, int length
 		if (Q_stricmp (ext, "wav") && Q_stricmp (ext, "mp3"))
 			continue;
 
-		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		numtracks++;
 		}
@@ -394,7 +396,7 @@ qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 	if (!t)
 		return false;
 
-	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
 	if (t->numfilenames == 1)
@@ -405,7 +407,7 @@ qboolean Cmd_GetSavesList (const char *s, char *completedname, int length)
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), DEFAULT_SAVE_EXTENSION))
 			continue;
 
-		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		numsaves++;
 		}
@@ -443,7 +445,7 @@ static qboolean Cmd_GetConfigList (const char *s, char *completedname, int lengt
 	if (!t)
 		return false;
 
-	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
 	if (t->numfilenames == 1)
@@ -454,7 +456,7 @@ static qboolean Cmd_GetConfigList (const char *s, char *completedname, int lengt
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "cfg"))
 			continue;
 
-		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		numconfigs++;
 		}
@@ -528,16 +530,17 @@ static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length
 	return true;
 	}
 
-#if !XASH_DEDICATED
+/*if !XASH_DEDICATED*/
 /***
 =====================================
-Cmd_GetItemsList
+Cmd_GetItemsList [FWGS, 01.03.25]
 
 Prints or complete item classname (weapons only)
 =====================================
 ***/
 static qboolean Cmd_GetItemsList (const char *s, char *completedname, int length)
 	{
+#if !XASH_DEDICATED
 	search_t	*t;
 	string		matchbuf;
 	int			i, numitems;
@@ -548,18 +551,19 @@ static qboolean Cmd_GetItemsList (const char *s, char *completedname, int length
 	if (!t)
 		return false;
 
-	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
 	if (t->numfilenames == 1)
 		return true;
 
+	/*for (i = 0, numitems = 0; i < t->numfilenames; i++)*/
 	for (i = 0, numitems = 0; i < t->numfilenames; i++)
 		{
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "txt"))
 			continue;
 
-		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		numitems++;
 		}
@@ -576,18 +580,23 @@ static qboolean Cmd_GetItemsList (const char *s, char *completedname, int length
 				completedname[i] = 0;
 			}
 		}
+
 	return true;
+#endif
+
+	return false;
 	}
 
 /***
 =====================================
-Cmd_GetKeysList
+Cmd_GetKeysList [FWGS, 01.03.25]
 
 Autocomplete for bind command
 =====================================
 ***/
 static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 	{
+#if !XASH_DEDICATED
 	size_t	i, numkeys;
 	string	keys[256];
 	string	matchbuf;
@@ -601,7 +610,7 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 		const char *keyname = Key_KeynumToString (i);
 
 		if ((*s == '*') || !Q_strnicmp (keyname, s, len))
-			Q_strncpy (keys[numkeys++], keyname, sizeof (keys[0]));	// [FWGS, 01.05.23]
+			Q_strncpy (keys[numkeys++], keyname, sizeof (keys[0]));
 		}
 
 	if (!numkeys)
@@ -618,7 +627,6 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 		Con_Printf ("%16s\n", matchbuf);
 		}
 
-	// [FWGS, 01.07.24]
 	Con_Printf ("\n^3 %zu keys found.\n", numkeys);
 
 	if (completedname && length)
@@ -631,23 +639,34 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 		}
 
 	return true;
+#endif
+
+	return false;
 	}
 
-#endif
+/*endif*/
 
 /***
 ===============
-Con_AddCommandToList
+Con_AddCommandToList [FWGS, 01.03.25]
 ===============
 ***/
-static void Con_AddCommandToList (const char *s, const char *unused1, const char *unused2, void *_autocompleteList)
+/*static void Con_AddCommandToList (const char *s, const char *unused1, const char *unused2, void *_autocompleteList)*/
+static void Con_AddCommandToList (const char *s, const char *value, const void *ptoggle, void *_autocompleteList)
 	{
 	con_autocomplete_t *list = (con_autocomplete_t *)_autocompleteList;
+	qboolean toggle = (ptoggle != NULL) && *(qboolean *)ptoggle;
 
 	if (*s == '@')
 		return; // never show system cvars or cmds
 	if (list->matchCount >= CON_MAXCMDS)
 		return; // list is full
+
+	if (toggle)
+		{
+		if (Q_strcmp (value, "0") && Q_strcmp (value, "1"))
+			return; // exclude non-toggable cvars
+		}
 
 	if (Q_strnicmp (s, list->completionString, Q_strlen (list->completionString)))
 		return; // no match
@@ -667,18 +686,21 @@ static int Con_SortCmds (const void *arg1, const void *arg2)
 
 /***
 =====================================
-Cmd_GetCommandsList
+Cmd_GetCommandsList [FWGS, 01.03.25]
 
 Autocomplete for bind command
 =====================================
 ***/
-static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
+/*static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)*/
+static qboolean Cmd_GetCommandsAndCvarsList (const char *s, char *completedname, int length, qboolean cmds,
+	qboolean cvars, qboolean toggle)
 	{
 	size_t	i;
 	string	matchbuf;
-	con_autocomplete_t	list; // local autocomplete list
+	/*con_autocomplete_t	list; // local autocomplete list
 
-	memset (&list, 0, sizeof (list));
+	memset (&list, 0, sizeof (list));*/
+	con_autocomplete_t	list = { 0 }; // local autocomplete list
 
 	list.completionString = s;
 
@@ -690,8 +712,18 @@ static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int len
 		return false;
 
 	// find matching commands and variables
-	Cmd_LookupCmds (NULL, &list, (setpair_t)Con_AddCommandToList);
-	Cvar_LookupVars (0, NULL, &list, (setpair_t)Con_AddCommandToList);
+	/*Cmd_LookupCmds (NULL, &list, (setpair_t)Con_AddCommandToList);
+	Cvar_LookupVars (0, NULL, &list, (setpair_t)Con_AddCommandToList);*/
+	if (cvars)
+		{
+		Cvar_LookupVars (0, &toggle, &list, (setpair_t)Con_AddCommandToList);
+		}
+
+	if (cmds)
+		{
+		toggle = false;
+		Cmd_LookupCmds (&toggle, &list, (setpair_t)Con_AddCommandToList);
+		}
 
 	if (!list.matchCount)
 		return false;
@@ -710,7 +742,8 @@ static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int len
 		Con_Printf ("%16s\n", matchbuf);
 		}
 
-	Con_Printf ("\n^3 %i commands found.\n", list.matchCount);
+	/*Con_Printf ("\n^3 %i commands found.\n", list.matchCount);*/
+	Con_Printf ("\n^3 %i %s found.\n", list.matchCount, cmds ? "commands" : "variables");
 
 	if (completedname && length)
 		{
@@ -734,6 +767,31 @@ static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int len
 
 /***
 =====================================
+Cmd_GetCommandsList [FWGS, 01.03.25]
+
+Autocomplete for bind command
+=====================================
+***/
+static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)
+	{
+	return Cmd_GetCommandsAndCvarsList (s, completedname, length, true, true, false);
+	}
+
+/***
+=====================================
+Cmd_GetCvarList [FWGS, 01.03.25]
+
+Autocomplete for bind command
+=====================================
+***/
+static qboolean Cmd_GetCvarsList (const char *s, char *completedname, int length)
+	{
+	qboolean toggle = !Q_stricmp (Cmd_Argv (0), "toggle");
+	return Cmd_GetCommandsAndCvarsList (s, completedname, length, false, true, toggle);
+	}
+
+/***
+=====================================
 Cmd_GetCustomList
 
 Prints or complete .HPK filenames
@@ -748,7 +806,7 @@ static qboolean Cmd_GetCustomList (const char *s, char *completedname, int lengt
 	t = FS_Search (va ("%s*.hpk", s), true, false);
 	if (!t) return false;
 
-	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+	COM_FileBase (t->filenames[0], matchbuf, sizeof (matchbuf));
 	if (completedname && length)
 		Q_strncpy (completedname, matchbuf, length);
 	if (t->numfilenames == 1)
@@ -759,7 +817,7 @@ static qboolean Cmd_GetCustomList (const char *s, char *completedname, int lengt
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "hpk"))
 			continue;
 
-		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));	// [FWGS, 01.05.23]
+		COM_FileBase (t->filenames[i], matchbuf, sizeof (matchbuf));
 		Con_Printf ("%16s\n", matchbuf);
 		numitems++;
 		}
@@ -1062,43 +1120,68 @@ int GAME_EXPORT Cmd_CheckMapsList (int fRefresh)
 	return Cmd_CheckMapsList_R (fRefresh, true);
 	}
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.03.25] keep this sorted
 static const autocomplete_list_t cmd_list[] =
 	{
-	{ "map_background", 1, Cmd_GetMapList },
+	/*{ "map_background", 1, Cmd_GetMapList },*/
+	{ "bind", 1, Cmd_GetKeysList },
+	{ "bind", 2, Cmd_GetCommandsList },
+	{ "cd", 1, Cmd_GetCDList },
+
 	{ "changelevel2", 1, Cmd_GetMapList },
 	{ "changelevel", 1, Cmd_GetMapList },
-	{ "playdemo", 1, Cmd_GetDemoList, },
+	/*{ "playdemo", 1, Cmd_GetDemoList, },
 	{ "timedemo", 1, Cmd_GetDemoList, },
 	{ "listdemo", 1, Cmd_GetDemoList, },
 	{ "playvol", 1, Cmd_GetSoundList },
 	{ "hpkval", 1, Cmd_GetCustomList },
 	{ "hpklist", 1, Cmd_GetCustomList },
-	{ "hpkextract", 1, Cmd_GetCustomList },
+	{ "hpkextract", 1, Cmd_GetCustomList },*/
+	{ "drop", 1, Cmd_GetItemsList },
+
 	{ "entpatch", 1, Cmd_GetMapList },
-	{ "music", 1, Cmd_GetMusicList, },
-	{ "movie", 1, Cmd_GetMovieList },
+	/*{ "music", 1, Cmd_GetMusicList, },
+	{ "movie", 1, Cmd_GetMovieList },*/
 	{ "exec", 1, Cmd_GetConfigList },
-#if !XASH_DEDICATED
+	/*if !XASH_DEDICATED
 	{ "give", 1, Cmd_GetItemsList },
 	{ "drop", 1, Cmd_GetItemsList },
 	{ "bind", 1, Cmd_GetKeysList },
 	{ "unbind", 1, Cmd_GetKeysList },
 	{ "bind", 2, Cmd_GetCommandsList },
-#endif
+	endif*/
 	{ "game", 1, Cmd_GetGamesList },
-	{ "save", 1, Cmd_GetSavesList },
+
+	/*{ "save", 1, Cmd_GetSavesList },*/
+	{ "give", 1, Cmd_GetItemsList },
+	{ "hpkextract", 1, Cmd_GetCustomList },
+	{ "hpklist", 1, Cmd_GetCustomList },
+	{ "hpkval", 1, Cmd_GetCustomList },
+	{ "listdemo", 1, Cmd_GetDemoList, },
+
 	{ "load", 1, Cmd_GetSavesList },
-	{ "play", 1, Cmd_GetSoundList },
+	/*{ "play", 1, Cmd_GetSoundList },*/
 	{ "map", 1, Cmd_GetMapList },
-	{ "cd", 1, Cmd_GetCDList },
+	/*{ "cd", 1, Cmd_GetCDList },*/
+	{ "map_background", 1, Cmd_GetMapList },
+	{ "movie", 1, Cmd_GetMovieList },
 	{ "mp3", 1, Cmd_GetCDList },
-	/*{ NULL }, // termiantor*/
+
+	{ "music", 1, Cmd_GetMusicList, },
+	{ "play", 1, Cmd_GetSoundList },
+	{ "playdemo", 1, Cmd_GetDemoList, },
+	{ "playvol", 1, Cmd_GetSoundList },
+	{ "reset", 1, Cmd_GetCvarsList },
+	{ "save", 1, Cmd_GetSavesList },
+	{ "set", 1, Cmd_GetCvarsList },
+	{ "timedemo", 1, Cmd_GetDemoList },
+	{ "toggle", 1, Cmd_GetCvarsList },
+	{ "unbind", 1, Cmd_GetKeysList },
 	};
 
 /***
 ===============
-Cmd_CheckName [FWGS, 01.04.23]
+Cmd_CheckName
 
 compare first argument with string
 ===============
@@ -1125,14 +1208,10 @@ for various cmds
 ***/
 static qboolean Cmd_AutocompleteName (const char *source, int arg, char *buffer, size_t bufsize)
 	{
-	/*const autocomplete_list_t *list;*/
 	int i;
 
-	/*for (list = cmd_list; list->name; list++)*/
 	for (i = 0; i < HLARRAYSIZE (cmd_list); i++)
 		{
-		/*if ((list->arg == arg) && Cmd_CheckName (list->name))
-			return list->func (source, buffer, bufsize);*/
 		if ((cmd_list[i].arg == arg) && Cmd_CheckName (cmd_list[i].name))
 			return cmd_list[i].func (source, buffer, bufsize);
 		}
@@ -1149,8 +1228,10 @@ static void Con_PrintCmdMatches (const char *s, const char *unused1, const char 
 	{
 	if (!Q_strnicmp (s, con.shortestMatch, Q_strlen (con.shortestMatch)))
 		{
-		if (COM_CheckString (m)) Con_Printf ("    %s ^3\"%s\"\n", s, m);
-		else Con_Printf ("    %s\n", s); // variable or command without description
+		if (COM_CheckString (m))
+			Con_Printf ("    %s ^3\"%s\"\n", s, m);
+		else
+			Con_Printf ("    %s\n", s); // variable or command without description
 		}
 	}
 
@@ -1221,6 +1302,7 @@ void Con_CompleteCommand (field_t *field)
 	{
 	field_t		temp;
 	string		filename;
+	qboolean	toggle = false;	// [FWGS, 01.03.25]
 	qboolean	nextcmd;
 	int			i;
 
@@ -1254,9 +1336,11 @@ void Con_CompleteCommand (field_t *field)
 	con.matchCount = 0;
 	con.shortestMatch[0] = 0;
 
-	// find matching commands and variables
-	Cmd_LookupCmds (NULL, &con, (setpair_t)Con_AddCommandToList);
-	Cvar_LookupVars (0, NULL, &con, (setpair_t)Con_AddCommandToList);
+	// [FWGS, 01.03.25] find matching commands and variables
+	/*Cmd_LookupCmds (NULL, &con, (setpair_t)Con_AddCommandToList);
+	Cvar_LookupVars (0, NULL, &con, (setpair_t)Con_AddCommandToList);*/
+	Cmd_LookupCmds (&toggle, &con, (setpair_t)Con_AddCommandToList);
+	Cvar_LookupVars (0, &toggle, &con, (setpair_t)Con_AddCommandToList);
 
 	// no matches?
 	if (!con.matchCount)
@@ -1404,7 +1488,6 @@ static void Cmd_WriteOpenGLCvar (const char *name, const char *string, const cha
 	FS_Printf (f, "%s \"%s\"\n", name, string);
 	}
 
-// [FWGS, 01.04.23]
 static void Cmd_WriteHelp (const char *name, const char *unused, const char *desc, void *f)
 	{
 	int	length;
@@ -1468,12 +1551,8 @@ void Host_WriteConfig (void)
 		{
 		Con_Reportf ("%s()\n", __func__);
 		FS_Printf (f, "//=======================================================================\n");
-		
-		/*FS_Printf (f, "//\tGenerated by " XASH_ENGINE_NAME " (%i, %s, %s, %s-%s)\n", Q_buildnum (),
-			Q_buildcommit (), Q_buildbranch (), Q_buildos (), Q_buildarch ());*/
 		FS_Printf (f, "//\tGenerated by " XASH_ENGINE_NAME " (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
-
 		FS_Printf (f, "//\t\tconfig.cfg - archive of cvars\n");
 		FS_Printf (f, "//=======================================================================\n");
 		Key_WriteBindings (f);
@@ -1528,12 +1607,8 @@ void GAME_EXPORT Host_WriteServerConfig (const char *name)
 	if ((f = FS_Open (newconfigfile, "w", false)) != NULL)
 		{
 		FS_Printf (f, "//=======================================================================\n");
-		
-		/*FS_Printf (f, "//\tGenerated by " XASH_ENGINE_NAME " (%i, %s, %s, %s-%s)\n", Q_buildnum (),
-			Q_buildcommit (), Q_buildbranch (), Q_buildos (), Q_buildarch ());*/
 		FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
-
 		FS_Printf (f, "//\t\tgame.cfg - multiplayer server temporare config\n");
 		FS_Printf (f, "//=======================================================================\n");
 
@@ -1571,12 +1646,8 @@ void Host_WriteOpenGLConfig (void)
 		{
 		Con_Reportf ("%s()\n", __func__);
 		FS_Printf (f, "//=======================================================================\n");
-
-		/*FS_Printf (f, "//\tGenerated by " XASH_ENGINE_NAME " (%i, %s, %s, %s-%s)\n", Q_buildnum (),
-			Q_buildcommit (), Q_buildbranch (), Q_buildos (), Q_buildarch ());*/
 		FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
-
 		FS_Printf (f, "//\t\t%s - archive of renderer implementation cvars\n", name);
 		FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "\n");
@@ -1610,12 +1681,8 @@ void Host_WriteVideoConfig (void)
 		{
 		Con_Reportf ("%s()\n", __func__);
 		FS_Printf (f, "//=======================================================================\n");
-		
-		/*FS_Printf (f, "//\tGenerated by " XASH_ENGINE_NAME " (%i, %s, %s, %s-%s)\n", Q_buildnum (),
-			Q_buildcommit (), Q_buildbranch (), Q_buildos (), Q_buildarch ());*/
 		FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
-
 		FS_Printf (f, "//\t\tvideo.cfg - archive of renderer variables\n");
 		FS_Printf (f, "//=======================================================================\n");
 		Cvar_WriteVariables (f, FCVAR_RENDERINFO);
@@ -1645,15 +1712,10 @@ void Key_EnumCmds_f (void)
 	if (f)
 		{
 		FS_Printf (f, "//=======================================================================\n");
-
-		/*FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
-			Q_buildcommit (), Q_buildbranch (), Q_buildos (), Q_buildarch ());*/
 		FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
-
 		FS_Printf (f, "//\t\thelp.txt - xash commands and console variables\n");
 		FS_Printf (f, "//=======================================================================\n");
-
 		FS_Printf (f, "\n\n\t\t\tconsole variables\n\n");
 		Cvar_LookupVars (0, NULL, f, (setpair_t)Cmd_WriteHelp);
 		FS_Printf (f, "\n\n\t\t\tconsole commands\n\n");

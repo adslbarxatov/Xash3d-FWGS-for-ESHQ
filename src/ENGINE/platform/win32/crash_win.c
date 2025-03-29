@@ -13,10 +13,19 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.25]
 #include "platform/platform.h"
+#include "input.h"
 
 #define DBGHELP 1 // we always enable dbghelp.dll on Windows targets
 
+// [FWGS, 01.03.25]
+/*if DBGHELP*/
+#if XASH_SDL
+#include <SDL.h>
+#endif
+
+// [FWGS, 01.03.25]
 #if DBGHELP
 
 #include <winnt.h>
@@ -140,7 +149,6 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 
 	// [FWGS, 01.02.25]
 	len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, %s-%s)\n",
-		/*Q_buildnum (), Q_buildcommit (), Q_buildos (), Q_buildarch ());*/
 		Q_buildnum (), g_buildcommit, Q_buildos (), Q_buildarch ());
 
 	len += Q_snprintf (message + len, 1024 - len, "Sys_Crash: address %p, code %p\n",
@@ -218,14 +226,6 @@ static void Sys_GetMinidumpFileName (const char *processName, char *mdmpFileName
 
 	// [FWGS, 01.02.25]
 	Q_snprintf (mdmpFileName, bufferSize, "%s_%s_crash_%d%.2d%.2d_%.2d%.2d%.2d.mdmp",
-		/*processName,
-		Q_buildcommit (),
-		currentLocalTime->tm_year + 1900,
-		currentLocalTime->tm_mon + 1,
-		currentLocalTime->tm_mday,
-		currentLocalTime->tm_hour,
-		currentLocalTime->tm_min,
-		currentLocalTime->tm_sec);*/
 		processName,
 		g_buildcommit,
 		currentLocalTime->tm_year + 1900,
@@ -274,6 +274,7 @@ static qboolean Sys_WriteMinidump (PEXCEPTION_POINTERS exceptionInfo, MINIDUMP_T
 
 static LPTOP_LEVEL_EXCEPTION_FILTER  oldFilter;
 
+// [FWGS, 01.03.25]
 static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 	{
 	// save config
@@ -282,9 +283,11 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 		// check to avoid recursive call
 		host.crashed = true;
 
-#ifdef XASH_SDL
-		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
-#endif // XASH_SDL
+/*ifdef XASH_SDL
+		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);*/
+#if !XASH_DEDICATED
+		IN_SetMouseGrab (false);
+#endif
 
 #if DBGHELP
 		Sys_StackTrace (pInfo);
@@ -336,7 +339,9 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 	return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
-void Sys_SetupCrashHandler (void)
+// [FWGS, 01.03.25]
+/*void Sys_SetupCrashHandler (void)*/
+void Sys_SetupCrashHandler (const char *argv0)
 	{
 	SetErrorMode (SEM_FAILCRITICALERRORS);	// no abort/retry/fail errors
 	oldFilter = SetUnhandledExceptionFilter (Sys_Crash);

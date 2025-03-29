@@ -23,21 +23,7 @@ GNU General Public License for more details
 static qboolean has_update = false;
 static void SV_GetTrueOrigin (sv_client_t *cl, int edictnum, vec3_t origin);
 
-// [FWGS, 01.04.23] removed SV_ClearPhysEnts
-
 // [FWGS, 01.02.25] removed SV_PlayerIsFrozen
-/*qboolean SV_PlayerIsFrozen (edict_t *pClient)
-	{
-	if (sv_background_freeze.value && sv.background)
-		return true;
-
-	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
-		return false;
-
-	if (FBitSet (pClient->v.flags, FL_FROZEN))
-		return true;
-	return false;
-	}*/
 
 void SV_ClipPMoveToEntity (physent_t *pe, const vec3_t start, vec3_t mins, vec3_t maxs,
 	const vec3_t end, pmtrace_t *tr)
@@ -84,7 +70,7 @@ static qboolean SV_CopyEdictToPhysEnt (physent_t *pe, edict_t *ed)
 		}
 	else
 		{
-		// [FWGS, 01.11.23] otherwise copy the modelname
+		// otherwise copy the modelname
 		Q_strncpy (pe->name, mod->name, sizeof (pe->name));
 		}
 
@@ -225,10 +211,10 @@ static void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const
 
 		if (check->v.groupinfo != 0)
 			{
-			if (svs.groupop == GROUP_OP_AND && !FBitSet (check->v.groupinfo, pl->v.groupinfo))
+			if ((svs.groupop == GROUP_OP_AND) && !FBitSet (check->v.groupinfo, pl->v.groupinfo))
 				continue;
 
-			if (svs.groupop == GROUP_OP_NAND && FBitSet (check->v.groupinfo, pl->v.groupinfo))
+			if ((svs.groupop == GROUP_OP_NAND) && FBitSet (check->v.groupinfo, pl->v.groupinfo))
 				continue;
 			}
 
@@ -367,20 +353,16 @@ static void GAME_EXPORT pfnParticle (const float *origin, int color, float life,
 	MSG_WriteByte (&sv.reliable_datagram, bound (0, life * 8, 255));
 	}
 
-// [FWGS, 01.05.23] удалена SV_TestLine
-
 static int GAME_EXPORT pfnTestPlayerPosition (float *pos, pmtrace_t *ptrace)
 	{
 	return PM_TestPlayerPosition (svgame.pmove, pos, ptrace, NULL);
 	}
 
-// [FWGS, 01.04.23]
 static void GAME_EXPORT pfnStuckTouch (int hitent, pmtrace_t *tr)
 	{
 	PM_StuckTouch (svgame.pmove, hitent, tr);
 	}
 
-// [FWGS, 01.04.23]
 static int GAME_EXPORT pfnPointContents (float *p, int *truecontents)
 	{
 	return PM_PointContentsPmove (svgame.pmove, p, truecontents);
@@ -397,7 +379,6 @@ static pmtrace_t GAME_EXPORT pfnPlayerTrace (float *start, float *end, int trace
 		svgame.pmove->physents, ignore_pe, NULL);
 	}
 
-// [FWGS, 01.04.23]
 static pmtrace_t *GAME_EXPORT pfnTraceLine (float *start, float *end, int flags, int usehull, int ignore_pe)
 	{
 	return PM_TraceLine (svgame.pmove, start, end, flags, usehull, ignore_pe);
@@ -408,13 +389,11 @@ static hull_t *GAME_EXPORT pfnHullForBsp (physent_t *pe, float *offset)
 	return PM_HullForBsp (pe, svgame.pmove, offset);
 	}
 
-// [FWGS, 01.04.23]
 static float GAME_EXPORT pfnTraceModel (physent_t *pe, float *start, float *end, trace_t *trace)
 	{
 	return PM_TraceModel (svgame.pmove, pe, start, end, trace);
 	}
 
-// [FWGS, 01.04.23]
 static const char *GAME_EXPORT pfnTraceTexture (int ground, float *vstart, float *vend)
 	{
 	return PM_TraceTexture (svgame.pmove, ground, vstart, vend);
@@ -509,7 +488,7 @@ void SV_InitClientMove (void)
 	svgame.pmove->PM_StuckTouch = pfnStuckTouch;
 	svgame.pmove->PM_PointContents = pfnPointContents;
 	svgame.pmove->PM_TruePointContents = pfnTruePointContents;
-	svgame.pmove->PM_HullPointContents = (void *)PM_HullPointContents;	// [FWGS, 01.04.23]
+	svgame.pmove->PM_HullPointContents = (void *)PM_HullPointContents;
 	svgame.pmove->PM_PlayerTrace = pfnPlayerTrace;
 	svgame.pmove->PM_TraceLine = pfnTraceLine;
 	svgame.pmove->RandomLong = COM_RandomLong;
@@ -598,7 +577,6 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	pmove->watertype = clent->v.watertype;
 
 	// [FWGS, 25.12.24]
-	/*pmove->maxspeed = svgame.movevars.maxspeed;*/
 	pmove->maxspeed = svgame.movevars.maxspeed;	// GoldSrc uses sv_maxspeed here?
 	pmove->clientmaxspeed = clent->v.maxspeed;
 
@@ -693,7 +671,7 @@ static void SV_FinishPMove (playermove_t *pmove, sv_client_t *cl)
 		{
 		ClearBits (clent->v.flags, FL_ONGROUND);
 		}
-	else if (pmove->onground >= 0 && pmove->onground < pmove->numphysent)
+	else if ((pmove->onground >= 0) && (pmove->onground < pmove->numphysent))
 		{
 		SetBits (clent->v.flags, FL_ONGROUND);
 		clent->v.groundentity = EDICT_NUM (pmove->physents[pmove->onground].info);
@@ -934,7 +912,7 @@ static void SV_RestoreMoveInterpolant (sv_client_t *cl)
 
 /***
 ===========
-SV_RunCmd [FWGS, 01.07.23]
+SV_RunCmd [FWGS, 01.03.25]
 ===========
 ***/
 void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
@@ -946,6 +924,10 @@ void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 	trace_t		trace;
 	vec3_t		oldvel;
 	usercmd_t	cmd;
+
+	// if the player got kicked, do not process commands
+	if (cl->state <= cs_zombie)
+		return;
 
 	clent = cl->edict;
 	cmd = *ucmd;
@@ -960,7 +942,7 @@ void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 			cl->ignorecmdtime_warns++;
 
 			// automatically kick player
-			if (sv_speedhack_kick.value && cl->ignorecmdtime_warns > sv_speedhack_kick.value)
+			if (sv_speedhack_kick.value && (cl->ignorecmdtime_warns > sv_speedhack_kick.value))
 				SV_KickPlayer (cl, "Speed hacks aren't allowed on this server");
 			}
 
@@ -1005,11 +987,11 @@ void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 	if (ucmd->impulse)
 		clent->v.impulse = ucmd->impulse;
 
-	if (ucmd->impulse == 204)
+	/*if (ucmd->impulse == 204)
 		{
 		// force client.dll update
 		SV_RefreshUserinfo ();
-		}
+		}*/
 
 	svgame.globals->time = cl->timebase;
 	svgame.dllFuncs.pfnPlayerPreThink (clent);

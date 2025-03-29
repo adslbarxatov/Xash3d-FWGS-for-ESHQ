@@ -25,7 +25,7 @@ WIN32 CONSOLE
 // console defines
 #define COMMAND_HISTORY	64	// system console keep more commands than game console
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.03.25]
 typedef struct
 	{
 	string		title;
@@ -49,9 +49,9 @@ typedef struct
 	qboolean	consoleVisible;
 	qboolean	attached;
 
-	// log stuff
+	/*// log stuff
 	qboolean	log_active;
-	char		log_path[MAX_SYSPATH];
+	char		log_path[MAX_SYSPATH];*/
 	} WinConData;
 
 static WinConData	s_wcd;
@@ -142,9 +142,11 @@ void Wcon_ShowConsole (qboolean show)
 		ShowWindow (s_wcd.hWnd, SW_HIDE);
 	}
 
+// [FWGS, 01.03.25]
 void Wcon_DisableInput (void)
 	{
-	if (host.type != HOST_DEDICATED)
+	/*if (host.type != HOST_DEDICATED)*/
+	if ((host.type != HOST_DEDICATED) || !s_wcd.hWnd)
 		return;
 
 	s_wcd.inputEnabled = false;
@@ -425,12 +427,15 @@ static char *Wcon_KeyEvent (int key, WCHAR character)
 				return s_wcd.consoleText;
 				}
 			break;
+
 		case '\b':	// Backspace
 			Wcon_EventBackspace ();
 			break;
+
 		case '\t':	// TAB
 			Wcon_EventTab ();
 			break;
+
 		default:
 			// TODO implement converting wide chars to UTF-8 and properly handling it
 			if ((character >= ' ') && (character <= '~'))
@@ -451,13 +456,16 @@ WIN32 IO
 
 /***
 ================
-Con_WinPrint
+Con_WinPrint [FWGS, 01.03.25]
 
 print into window console
 ================
 ***/
 void Wcon_WinPrint (const char *pMsg)
 	{
+	if (!s_wcd.hWnd)
+		return;
+
 	int nLen;
 	if (s_wcd.consoleTextLen)
 		{
@@ -473,47 +481,54 @@ void Wcon_WinPrint (const char *pMsg)
 	if (s_wcd.consoleTextLen)
 		Wcon_PrintInternal (s_wcd.consoleText, s_wcd.consoleTextLen);
 
-	// [FWGS, 01.05.23]
 	if (!s_wcd.attached)
 		Wcon_UpdateStatusLine ();
 	}
 
 /***
 ================
-Con_CreateConsole [FWGS, 01.07.24]
+Con_CreateConsole [FWGS, 01.03.25]
 
 create win32 console
 ================
 ***/
 void Wcon_CreateConsole (qboolean con_showalways)
 	{
-	if (Sys_CheckParm ("-log"))
-		s_wcd.log_active = true;
+	/*if (Sys_CheckParm ("-log"))
+		s_wcd.log_active = true;*/
 
 	if (host.type == HOST_NORMAL)
 		{
 		Q_strncpy (s_wcd.title, XASH_ENGINE_NAME " " XASH_VERSION, sizeof (s_wcd.title));
-		Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));
+		/*Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));*/
 		}
 
 	// dedicated console
 	else
 		{
 		Q_strncpy (s_wcd.title, XASH_DEDICATED_SERVER_NAME " " XASH_VERSION, sizeof (s_wcd.title));
-		Q_strncpy (s_wcd.log_path, "dedicated.log", sizeof (s_wcd.log_path));
-		s_wcd.log_active = true;	// always make log
+		/*Q_strncpy (s_wcd.log_path, "dedicated.log", sizeof (s_wcd.log_path));
+		s_wcd.log_active = true;	// always make log*/
 		}
 
 	s_wcd.attached = (AttachConsole (ATTACH_PARENT_PROCESS) != 0);
+	/*if (s_wcd.attached)
+		{*/
 	if (s_wcd.attached)
 		{
 		GetConsoleTitle (&s_wcd.previousTitle, sizeof (s_wcd.previousTitle));
 		s_wcd.previousCodePage = GetConsoleCP ();
 		s_wcd.previousOutputCodePage = GetConsoleOutputCP ();
 		}
+	/*else
+		{
+		AllocConsole ();*/
 	else
 		{
-		AllocConsole ();
+		if ((host.type != HOST_DEDICATED) && (host_developer.value == DEV_NONE))
+			return; // don't initialize console in case of regular game startup, it's useless anyway
+		else
+			AllocConsole ();
 		}
 
 	SetConsoleTitle (s_wcd.title);
@@ -555,14 +570,15 @@ void Wcon_CreateConsole (qboolean con_showalways)
 
 /***
 ================
-Con_InitConsoleCommands
+Con_InitConsoleCommands [FWGS, 01.03.25]
 
 register console commands (dedicated only)
 ================
 ***/
 void Wcon_InitConsoleCommands (void)
 	{
-	if (host.type != HOST_DEDICATED)
+	/*if (host.type != HOST_DEDICATED)*/
+	if ((host.type != HOST_DEDICATED) || !s_wcd.hWnd)
 		return;
 
 	Cmd_AddCommand ("clear", Wcon_Clear_f, "clear console history");
@@ -570,7 +586,7 @@ void Wcon_InitConsoleCommands (void)
 
 /***
 ================
-Con_DestroyConsole
+Con_DestroyConsole [FWGS, 01.03.25]
 
 destroy win32 console
 ================
@@ -580,9 +596,8 @@ void Wcon_DestroyConsole (void)
 	// last text message into console or log
 	Con_Reportf ("%s: Unloading xash.dll\n", __func__);
 
-	// [FWGS, 01.02.25]
-	/*Sys_CloseLog ();*/
-	Sys_CloseLog (NULL);
+	/*// [FWGS, 01.02.25]
+	Sys_CloseLog (NULL);*/
 
 	if (!s_wcd.attached)
 		{
@@ -606,7 +621,7 @@ void Wcon_DestroyConsole (void)
 
 /***
 ================
-Con_Input
+Con_Input [FWGS, 01.03.25]
 
 returned input text
 ================
@@ -617,7 +632,8 @@ char *Wcon_Input (void)
 	DWORD eventsCount;
 	static INPUT_RECORD events[1024];
 
-	if (!s_wcd.inputEnabled)
+	/*if (!s_wcd.inputEnabled)*/
+	if (!s_wcd.inputEnabled || !s_wcd.hWnd)
 		return NULL;
 
 	while (true)
@@ -650,14 +666,15 @@ char *Wcon_Input (void)
 
 /***
 ================
-Platform_SetStatus [FWGS, 01.07.23]
+Platform_SetStatus [FWGS, 01.03.25]
 
 set server status string in console
 ================
 ***/
 void Platform_SetStatus (const char *pStatus)
 	{
-	if (s_wcd.attached)
+	/*if (s_wcd.attached)*/
+	if (s_wcd.attached || !s_wcd.hWnd)
 		return;
 
 	Q_strncpy (s_wcd.statusLine, pStatus, sizeof (s_wcd.statusLine) - 1);

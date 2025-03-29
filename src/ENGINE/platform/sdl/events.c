@@ -26,6 +26,7 @@ GNU General Public License for more details
 #include "sound.h"
 #include "vid_common.h"
 
+// [FWGS, 01.03.25]
 #if !SDL_VERSION_ATLEAST( 2, 0, 0 )
 #define SDL_SCANCODE_A SDLK_a
 #define SDL_SCANCODE_Z SDLK_z
@@ -89,11 +90,11 @@ GNU General Public License for more details
 #define SDL_SCANCODE_PRINTSCREEN SDLK_PRINT
 #define SDL_SCANCODE_UNKNOWN SDLK_UNKNOWN
 #define SDL_GetScancodeName( x ) "unknown"
-#define SDL_JoystickID Uint8
+/*#define SDL_JoystickID Uint8*/
 #endif
 
-// [FWGS, 01.04.23]
-static int SDLash_GameControllerButtonMapping[] =
+// [FWGS, 01.03.25]
+/*static int SDLash_GameControllerButtonMapping[] =
 	{
 	#if XASH_NSWITCH // devkitPro/SDL has inverted Nintendo layout for SDL_GameController
 		K_B_BUTTON, K_A_BUTTON, K_Y_BUTTON, K_X_BUTTON,
@@ -107,9 +108,9 @@ static int SDLash_GameControllerButtonMapping[] =
 		K_MISC_BUTTON,
 		K_PADDLE1_BUTTON, K_PADDLE2_BUTTON, K_PADDLE3_BUTTON, K_PADDLE4_BUTTON,
 		K_TOUCHPAD,
-	};
+	};*/
 
-// Swap axis to follow default axis binding:
+/*// Swap axis to follow default axis binding:
 // LeftX, LeftY, RightX, RightY, TriggerRight, TriggerLeft
 static int SDLash_GameControllerAxisMapping[] =
 	{
@@ -119,9 +120,11 @@ static int SDLash_GameControllerAxisMapping[] =
 		JOY_AXIS_YAW,	// SDL_CONTROLLER_AXIS_RIGHTY,
 		JOY_AXIS_LT,	// SDL_CONTROLLER_AXIS_TRIGGERLEFT,
 		JOY_AXIS_RT,	// SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
-	};
+	};*/
 
-static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
+// [FWGS, 01.03.25] removed SDLash_IsInstanceIDAGameController
+
+/*static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
 	{
 #if !SDL_VERSION_ATLEAST( 2, 0, 4 )
 	// HACKHACK: if we're not initialized g_joy, then we're probably using gamecontroller api
@@ -136,7 +139,7 @@ static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
 
 	return false;
 #endif
-	}
+	}*/
 
 /***
 =============
@@ -196,7 +199,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 #endif
 		}
 
-	// ESHQ: спорна€ конструкци€ макроса, решили убрать
+	// ESHQ: спорна€ конструкци€ макроса, удалено
 	if (keynum >= (SDL_SCANCODE_A) && keynum <= (SDL_SCANCODE_Z))
 		{
 		keynum = keynum - SDL_SCANCODE_A + 'a';
@@ -250,7 +253,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 				keynum = K_ENTER;
 				break;
 
-			case SDL_SCANCODE_AC_BACK:	// [FWGS, 01.07.23]
+			case SDL_SCANCODE_AC_BACK:
 			case SDL_SCANCODE_ESCAPE:
 				keynum = K_ESCAPE;
 				break;
@@ -423,10 +426,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 				keynum = K_PAUSE;
 				break;
 
-				// [FWGS, 01.02.25]
-				/*case SDL_SCANCODE_SCROLLLOCK:
-					keynum = K_SCROLLOCK;
-					break;*/
+			// [FWGS, 01.02.25]
 			case SDL_SCANCODE_SCROLLLOCK:
 				keynum = K_SCROLLLOCK;
 				break;
@@ -437,7 +437,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 				keynum = K_WIN;
 				break; // (compose key)
 
-				// don't console spam on known functional buttons, not used in engine
+			// don't console spam on known functional buttons, not used in engine
 			case SDL_SCANCODE_MUTE:
 			case SDL_SCANCODE_VOLUMEUP:
 			case SDL_SCANCODE_VOLUMEDOWN:
@@ -465,11 +465,9 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	Key_Event (keynum, down);
 	}
 
-// [FWGS, 01.04.23] удалена SDLash_MouseKey
-
 /***
 =============
-SDLash_MouseEvent [FWGS, 01.04.23]
+SDLash_MouseEvent
 =============
 ***/
 static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
@@ -589,10 +587,13 @@ static void SDLash_ActiveEvent (int gain)
 		}
 	}
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
-static size_t num_open_game_controllers = 0;
+// [FWGS, 01.03.25]
+/*if SDL_VERSION_ATLEAST( 2, 0, 0 )
+static size_t num_open_game_controllers = 0;*/
 
-static void SDLash_GameController_Add (int index)
+// [FWGS, 01.03.25] removed SDLash_GameController_Add, SDLash_GameController_Remove
+
+/*static void SDLash_GameController_Add (int index)
 	{
 	extern convar_t joy_enable; // private to input system
 	SDL_GameController *controller;
@@ -608,20 +609,20 @@ static void SDLash_GameController_Add (int index)
 		return;
 		}
 
-#if SDL_VERSION_ATLEAST( 2, 0, 6 )
+if SDL_VERSION_ATLEAST( 2, 0, 6 )
 	Con_Reportf ("Added controller: %s (%i:%i:%i)\n",
 		SDL_GameControllerName (controller),
 		SDL_GameControllerGetVendor (controller),
 		SDL_GameControllerGetProduct (controller),
 		SDL_GameControllerGetProductVersion (controller));
-#endif
+endif
 
 	++num_open_game_controllers;
 	if (num_open_game_controllers == 1)
 		Joy_AddEvent ();
-	}
+	}*/
 
-static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
+/*static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
 	{
 	Con_Reportf ("Removed controller %i\n", joystick_id);
 
@@ -631,7 +632,7 @@ static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
 	if (num_open_game_controllers == 0)
 		Joy_RemoveEvent ();
 	}
-#endif
+endif*/
 
 #endif
 
@@ -663,7 +664,8 @@ static void SDLash_EventHandler (SDL_Event *event)
 			SDLash_KeyEvent (event->key);
 			break;
 
-			// Joystick events
+		// [FWGS, 01.03.25]
+		/*	// Joystick events
 		case SDL_JOYAXISMOTION:
 			if (!SDLash_IsInstanceIDAGameController (event->jaxis.which))
 				Joy_AxisMotionEvent (event->jaxis.axis, event->jaxis.value);
@@ -683,21 +685,19 @@ static void SDLash_EventHandler (SDL_Event *event)
 		case SDL_JOYBUTTONUP:
 			if (!SDLash_IsInstanceIDAGameController (event->jbutton.which))
 				Joy_ButtonEvent (event->jbutton.button, event->jbutton.state);
-			break;
+			break;*/
 
 		case SDL_QUIT:
 			// [FWGS, 22.01.25]
-			/*Sys_Quit ();*/
 			Sys_Quit ("caught SDL_QUIT");
 			break;
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 		case SDL_MOUSEWHEEL:
-			// [FWGS, 01.04.23]
 			IN_MWheelEvent (event->wheel.y);
 			break;
 
-			// Touch events
+		// Touch events
 		case SDL_FINGERDOWN:
 		case SDL_FINGERUP:
 		case SDL_FINGERMOTION:
@@ -755,41 +755,47 @@ static void SDLash_EventHandler (SDL_Event *event)
 			SDLash_InputEvent (event->text);
 			break;
 
-		case SDL_JOYDEVICEADDED:
+		// [FWGS, 01.03.25]
+		/*case SDL_JOYDEVICEADDED:
 			Joy_AddEvent ();
 			break;
 		case SDL_JOYDEVICEREMOVED:
 			Joy_RemoveEvent ();
-			break;
+			break;*/
 
-			// GameController API
+		// [FWGS, 01.03.25] GameController API
 		case SDL_CONTROLLERAXISMOTION:
-			{
+			/*{
 			if (!Joy_IsActive ())
 				break;
 
 			if ((event->caxis.axis >= 0) && (event->caxis.axis < HLARRAYSIZE (SDLash_GameControllerAxisMapping)))
 				Joy_KnownAxisMotionEvent (SDLash_GameControllerAxisMapping[event->caxis.axis], event->caxis.value);
 			break;
-			}
+			}*/
 
 		case SDL_CONTROLLERBUTTONDOWN:
 		case SDL_CONTROLLERBUTTONUP:
-			{
+			/*{
 			if (!Joy_IsActive ())
 				break;
 
 			if ((event->cbutton.button >= 0) && (event->cbutton.button < HLARRAYSIZE (SDLash_GameControllerButtonMapping)))
 				Key_Event (SDLash_GameControllerButtonMapping[event->cbutton.button], event->cbutton.state);
 			break;
-			}
+			}*/
 
 		case SDL_CONTROLLERDEVICEADDED:
-			SDLash_GameController_Add (event->cdevice.which);
-			break;
+			/*SDLash_GameController_Add (event->cdevice.which);
+			break;*/
 
 		case SDL_CONTROLLERDEVICEREMOVED:
-			SDLash_GameController_Remove (event->cdevice.which);
+			/*SDLash_GameController_Remove (event->cdevice.which);*/
+		case SDL_CONTROLLERTOUCHPADDOWN:
+		case SDL_CONTROLLERTOUCHPADMOTION:
+		case SDL_CONTROLLERTOUCHPADUP:
+		case SDL_CONTROLLERSENSORUPDATE:
+			SDLash_HandleGameControllerEvent (event);
 			break;
 
 		case SDL_WINDOWEVENT:
@@ -801,20 +807,29 @@ static void SDLash_EventHandler (SDL_Event *event)
 
 			switch (event->window.event)
 				{
+				// [FWGS, 01.03.25]
 				case SDL_WINDOWEVENT_MOVED:
-					// [FWGS, 01.11.23]
-					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
+					/*if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
 						{
-						char val[32];
+						char val[32];*/
+					{
+					char val[32];
 
-						Q_snprintf (val, sizeof (val), "%d", event->window.data1);
-						Cvar_DirectSet (&window_xpos, val);
+					/*Q_snprintf (val, sizeof (val), "%d", event->window.data1);
+					Cvar_DirectSet (&window_xpos, val);*/
+					Q_snprintf (val, sizeof (val), "%d", event->window.data1);
+					Cvar_DirectSet (&window_xpos, val);
 
-						Q_snprintf (val, sizeof (val), "%d", event->window.data2);
-						Cvar_DirectSet (&window_ypos, val);
+					/*Q_snprintf (val, sizeof (val), "%d", event->window.data2);
+					Cvar_DirectSet (&window_ypos, val);*/
+					Q_snprintf (val, sizeof (val), "%d", event->window.data2);
+					Cvar_DirectSet (&window_ypos, val);
+
+					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
 						Cvar_DirectSet (&vid_maximized, "0");
-						}
+
 					break;
+					}
 
 				case SDL_WINDOWEVENT_MINIMIZED:
 					host.status = HOST_SLEEP;

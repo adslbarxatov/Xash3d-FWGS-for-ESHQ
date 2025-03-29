@@ -36,25 +36,6 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 // [FWGS, 01.05.24] removed Q_isdigit, Q_isspace
 
 // [FWGS, 01.02.25] removed Q_colorstr
-/*size_t Q_colorstr (const char *string)
-	{
-	const char *p = string;
-	size_t len = 0;
-
-	if (!string)
-		return len;
-
-	while ((p = Q_strchr (p, '^')))
-		{
-		if (IsColorString (p))
-			{
-			len += 2;
-			p += 2;
-			}
-		}
-
-	return len;
-	}*/
 
 // [FWGS, 01.05.24] removed Q_toupper, Q_tolower, Q_strncat
 
@@ -63,7 +44,6 @@ int Q_atoi_hex (int sign, const char *str)
 	{
 	int c, val = 0;
 
-	/*str += 2;*/
 	if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
 		str += 2;
 
@@ -219,7 +199,8 @@ void Q_atov (float *vec, const char *str, size_t siz)
 		while (*pstr && *pstr != ' ')
 			pstr++;
 
-		if (!*pstr) break;
+		if (!*pstr)
+			break;
 		pstr++;
 		pfront = pstr;
 		}
@@ -286,7 +267,6 @@ qboolean Q_stricmpext (const char *pattern, const char *text)
 	return Q_strnicmpext (pattern, text, ~((size_t)0));
 	}
 
-// [FWGS, 01.04.23]
 const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *needle, size_t needlelen)
 	{
 	const byte *i;
@@ -321,7 +301,6 @@ const char *Q_timestamp (int format)
 	static string	timestamp;
 	time_t		crt_time;
 	const struct tm *crt_tm;
-	/*string		timestring;*/
 
 	time (&crt_time);
 	crt_tm = localtime (&crt_time);
@@ -330,49 +309,39 @@ const char *Q_timestamp (int format)
 		{
 		case TIME_FULL:
 			// Build the full timestamp (ex: "Apr03 2007 [23:31.55]");
-			/*strftime (timestring, sizeof (timestring), "%b%d %Y [%H:%M.%S]", crt_tm);*/
 			strftime (timestamp, sizeof (timestamp), "%b%d %Y [%H:%M.%S]", crt_tm);
 			break;
 
 		case TIME_DATE_ONLY:
 			// Build the date stamp only (ex: "Apr03 2007");
-			/*strftime (timestring, sizeof (timestring), "%b%d %Y", crt_tm);*/
 			strftime (timestamp, sizeof (timestamp), "%b%d %Y", crt_tm);
 			break;
 
 		case TIME_TIME_ONLY:
 			// Build the time stamp only (ex: "23:31.55");
-			/*strftime (timestring, sizeof (timestring), "%H:%M.%S", crt_tm);*/
 			strftime (timestamp, sizeof (timestamp), "%H:%M.%S", crt_tm);
 			break;
 
 		case TIME_NO_SECONDS:
 			// Build the time stamp exclude seconds (ex: "13:46");
-			/*strftime (timestring, sizeof (timestring), "%H:%M", crt_tm);*/
 			strftime (timestamp, sizeof (timestamp), "%H:%M", crt_tm);
 			break;
 
 		case TIME_YEAR_ONLY:
 			// Build the date stamp year only (ex: "2006");
-			/*strftime (timestring, sizeof (timestring), "%Y", crt_tm);*/
 			strftime (timestamp, sizeof (timestamp), "%Y", crt_tm);
 			break;
 
 		case TIME_FILENAME:
 			// Build a timestamp that can use for filename (ex: "Nov2006-26 (19.14.28)");
-			/*strftime (timestring, sizeof (timestring), "%b%Y-%d_%H.%M.%S", crt_tm);*/
 			strftime (timestamp, sizeof (timestamp), "%b%Y-%d_%H.%M.%S", crt_tm);
 			break;
 
 		default:
 			Q_snprintf (timestamp, sizeof (timestamp), "%s: unknown format %d", __func__, format);
 			break;
-
-		/*default:
-			return NULL;*/
 		}
 
-	/*Q_strncpy (timestamp, timestring, sizeof (timestamp));*/
 	return timestamp;
 	}
 
@@ -411,9 +380,13 @@ char *Q_stristr (const char *string, const char *string2)
 
 #endif
 
+// [FWGS, 01.03.25]
 int Q_vsnprintf (char *buffer, size_t buffersize, const char *format, va_list args)
 	{
 	int	result;
+
+	if (unlikely (buffersize == 0))
+		return -1; // report as overflow
 
 #ifndef _MSC_VER
 	result = vsnprintf (buffer, buffersize, format, args);
@@ -539,14 +512,14 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 		pos--;		// count down comma position
 		*o++ = *i++;	// copy rest of data as normal
 		}
-	*o = 0; // terminate
 
+	*o = 0; // terminate
 	return out;
 	}
 
 /***
 ============
-COM_FileBase [FWGS, 01.05.23]
+COM_FileBase
 
 Extracts the base name of a file (no path, no extension, assumes '/' as path separator).
 a1ba: adapted and simplified version from QuakeSpasm
@@ -590,22 +563,9 @@ COM_FileExtension [FWGS, 01.12.24]
 ***/
 const char *COM_FileExtension (const char *in)
 	{
-	/*const char *separator, *backslash, *colon, *dot;
-
-	separator = Q_strrchr (in, '/');
-	backslash = Q_strrchr (in, '\\');
-
-	if (!separator || (separator < backslash))
-		separator = backslash;
-
-	colon = Q_strrchr (in, ':');
-
-	if (!separator || (separator < colon))
-		separator = colon;*/
 	const char *dot;
 	dot = Q_strrchr (in, '.');
 
-	/*if ((dot == NULL) || (separator && (dot < separator)))*/
 	// quickly exit if there is no dot at all
 	if (dot == NULL)
 		return "";
@@ -649,7 +609,7 @@ void COM_ExtractFilePath (const char *path, char *dest)
 	{
 	const char *src = path + Q_strlen (path) - 1;
 
-	// [FWGS, 01.11.23] back up until a / or the start
+	// back up until a / or the start
 	while ((src > path) && !(*(src - 1) == '\\' || *(src - 1) == '/'))
 		src--;
 
@@ -660,7 +620,7 @@ void COM_ExtractFilePath (const char *path, char *dest)
 		}
 	else
 		{
-		dest[0] = 0; // [FWGS, 01.04.23] file without path
+		dest[0] = 0;	// file without path
 		}
 	}
 
@@ -691,7 +651,7 @@ void COM_StripExtension (char *path)
 
 /***
 ==================
-COM_DefaultExtension [FWGS, 01.05.23]
+COM_DefaultExtension
 ==================
 ***/
 void COM_DefaultExtension (char *path, const char *extension, size_t size)
@@ -717,7 +677,7 @@ void COM_DefaultExtension (char *path, const char *extension, size_t size)
 
 /***
 ==================
-COM_ReplaceExtension [FWGS, 01.05.23]
+COM_ReplaceExtension
 ==================
 ***/
 void COM_ReplaceExtension (char *path, const char *extension, size_t size)
@@ -743,20 +703,6 @@ void COM_RemoveLineFeed (char *str, size_t bufsize)
 	}
 
 // [FWGS, 22.01.25] removed COM_FixSlashes
-/*
-============
-COM_FixSlashes [FWGS, 01.07.24]
-
-Changes all '\' characters into '/' characters, in place
-============
-/
-void COM_FixSlashes (char *pname)
-	{
-	while ((pname = Q_strchr (pname, '\\')))
-		{
-		*pname = '/';
-		}
-	}*/
 
 /***
 ============
@@ -781,32 +727,6 @@ void COM_PathSlashFix (char *path)
 	}
 
 // [FWGS, 01.12.24] COM_Hex2Char, COM_Hex2String moved to crclib
-/*
-============
-COM_Hex2Char
-============
-/
-char COM_Hex2Char (uint8_t hex)
-	{
-	if ((hex >= 0x0) && (hex <= 0x9))
-		hex += '0';
-	else if ((hex >= 0xA) && (hex <= 0xF))
-		hex += '7';
-
-	return (char)hex;
-	}
-
-/
-============
-COM_Hex2String
-============
-/
-void COM_Hex2String (uint8_t hex, char *str)
-	{
-	*str++ = COM_Hex2Char (hex >> 4);
-	*str++ = COM_Hex2Char (hex & 0x0F);
-	*str = '\0';
-	}*/
 
 /***
 ==============
@@ -868,9 +788,6 @@ skipwhite:
 			}
 		data++;
 		}
-
-	/*// skip // comments
-	if ((c == '/') && (data[1] == '/'))*/
 
 	// [FWGS, 01.12.24] skip // or #, if requested, comments
 	if (((c == '/') && (data[1] == '/')) || ((c == '#') && FBitSet (flags, PFILE_IGNOREHASHCMT)))
@@ -986,7 +903,6 @@ skipwhite:
 		return data;
 	}
 
-// [FWGS, 01.07.23]
 int matchpattern (const char *in, const char *pattern, qboolean caseinsensitive)
 	{
 	const char *separators = "/\\:";

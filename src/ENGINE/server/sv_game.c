@@ -24,10 +24,7 @@ GNU General Public License for more details
 #include "render_api.h"	// modelstate_t
 #include "ref_common.h" // decals
 
-// [FWGS, 01.12.24]
-/*#define ENTVARS_COUNT	ARRAYSIZE( gEntvarsDescription )*/
-
-// [FWGS, 01.07.23] GameAPI functions declarations
+// GameAPI functions declarations
 static int GAME_EXPORT pfnModelIndex (const char *m);
 
 // [FWGS, 01.07.24] fatpvs stuff
@@ -45,7 +42,8 @@ qboolean SV_CheckEdict (const edict_t *e, const char *file, const int line)
 	{
 	int	n;
 
-	if (!e) return false; // may be NULL
+	if (!e)
+		return false; // may be NULL
 
 	n = ((int)((edict_t *)(e)-svgame.edicts));
 
@@ -2516,10 +2514,9 @@ static void GAME_EXPORT pfnServerExecute (void)
 
 /***
 =========
-pfnClientCommand [FWGS, 01.12.24]
+pfnClientCommand [FWGS, 01.03.25]
 =========
 ***/
-/*void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...) _format (2);*/
 void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...) FORMAT_CHECK (2);
 
 void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...)
@@ -2531,7 +2528,8 @@ void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...)
 	if (sv.state != ss_active)
 		return; // early out
 
-	if ((cl = SV_ClientFromEdict (pEdict, true)) == NULL)
+	/*if ((cl = SV_ClientFromEdict (pEdict, true)) == NULL)*/
+	if ((cl = SV_ClientFromEdict (pEdict, false)) == NULL)
 		{
 		Con_Printf (S_ERROR "stuffcmd: client is not spawned!\n");
 		return;
@@ -4865,7 +4863,7 @@ static const char *GAME_EXPORT pfnGetPlayerAuthId (edict_t *e)
 
 /***
 =============
-pfnQueryClientCvarValue
+pfnQueryClientCvarValue [FWGS, 01.03.25]
 
 request client cvar value
 =============
@@ -4877,14 +4875,14 @@ static void GAME_EXPORT pfnQueryClientCvarValue (const edict_t *player, const ch
 	if (!COM_CheckString (cvarName))
 		return;
 
-	if ((cl = SV_ClientFromEdict (player, true)) != NULL)
+	/*if ((cl = SV_ClientFromEdict (player, true)) != NULL)*/
+	if ((cl = SV_ClientFromEdict (player, false)) != NULL)
 		{
 		MSG_BeginServerCmd (&cl->netchan.message, svc_querycvarvalue);
 		MSG_WriteString (&cl->netchan.message, cvarName);
 		}
 	else
 		{
-		// [FWGS, 01.07.24]
 		if (svgame.dllFuncs2.pfnCvarValue)
 			svgame.dllFuncs2.pfnCvarValue (player, "Bad Player");
 		Con_Printf (S_ERROR "%s: tried to send to a non-client!\n", __func__);
@@ -4893,7 +4891,7 @@ static void GAME_EXPORT pfnQueryClientCvarValue (const edict_t *player, const ch
 
 /***
 =============
-pfnQueryClientCvarValue2
+pfnQueryClientCvarValue2 // [FWGS, 01.03.25]
 
 request client cvar value (bugfixed)
 =============
@@ -4905,7 +4903,8 @@ static void GAME_EXPORT pfnQueryClientCvarValue2 (const edict_t *player, const c
 	if (!COM_CheckString (cvarName))
 		return;
 
-	if ((cl = SV_ClientFromEdict (player, true)) != NULL)
+	/*if ((cl = SV_ClientFromEdict (player, true)) != NULL)*/
+	if ((cl = SV_ClientFromEdict (player, false)) != NULL)
 		{
 		MSG_BeginServerCmd (&cl->netchan.message, svc_querycvarvalue2);
 		MSG_WriteLong (&cl->netchan.message, requestID);
@@ -4913,7 +4912,6 @@ static void GAME_EXPORT pfnQueryClientCvarValue2 (const edict_t *player, const c
 		}
 	else
 		{
-		// [FWGS, 01.07.24]
 		if (svgame.dllFuncs2.pfnCvarValue2)
 			svgame.dllFuncs2.pfnCvarValue2 (player, requestID, cvarName, "Bad Player");
 		Con_Printf (S_ERROR "%s: tried to send to a non-client!\n", __func__);

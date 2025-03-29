@@ -21,12 +21,11 @@ GNU General Public License for more details
 #include "voice.h"
 
 #include <SDL.h>
-#include <stdlib.h>	// [FWGS, 01.07.23]
+#include <stdlib.h>
 
 #define SAMPLE_16BIT_SHIFT 1
 #define SECONDARY_BUFFER_SIZE 0x10000
 
-// [FWGS, 01.07.23]
 #if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
 	#define SDL_GetCurrentAudioDriver() "legacysdl"
 	#define SDL_OpenAudioDevice( a, b, c, d, e ) SDL_OpenAudio( ( c ), ( d ) )
@@ -42,9 +41,10 @@ GNU General Public License for more details
 /***
 =======================================================================
 Global variables. Must be visible to window-procedure function
-so it can unlock and free the data block after it has been played.
+so it can unlock and free the data block after it has been played
 =======================================================================
 ***/
+
 static int sdl_dev;
 static SDL_AudioDeviceID in_dev = 0;
 static SDL_AudioFormat sdl_format;
@@ -175,10 +175,10 @@ qboolean SNDDMA_Init (void)
 	if (!samplecount)
 		samplecount = 0x8000;
 
-	// [FWGS, 01.02.25]
+	// [FWGS, 01.03.25]
 	dma.samples = samplecount * obtained.channels;
-	/*dma.buffer = Z_Calloc (dma.samples * 2);*/
-	dma.buffer = Mem_Malloc (sndpool, dma.samples * 2);
+	/*dma.buffer = Mem_Malloc (sndpool, dma.samples * 2);*/
+	dma.buffer = Mem_Calloc (sndpool, dma.samples * 2);
 	dma.samplepos = 0;
 
 	sdl_format = obtained.format;

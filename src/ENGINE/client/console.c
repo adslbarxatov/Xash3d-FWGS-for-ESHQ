@@ -638,16 +638,17 @@ static void Con_LoadConchars (void)
 
 /***
 ============================
-Con_UtfProcessChar [FWGS, 01.07.24]
+Con_UtfProcessChar
 
 Convert utf char to current font's single-byte encoding
 ============================
 ***/
 int Con_UtfProcessCharForce (int in)
 	{
-	// TODO: get rid of global state where possible
+	// [FWGS, 01.03.25] TODO: get rid of global state where possible
 	static utfstate_t state = { 0 };
-	int ch = Q_DecodeUTF8 (&state, in);
+	/*int ch = Q_DecodeUTF8 (&state, in);*/
+	uint32_t ch = Q_DecodeUTF8 (&state, in);
 
 	if (g_codepage == 1251)
 		return Q_UnicodeToCP1251 (ch);
@@ -749,7 +750,7 @@ static void Con_DrawCharToConback (int num, const byte *conchars, byte *dest)
 
 /***
 ====================
-Con_GetFont [FWGS, 01.04.23]
+Con_GetFont
 ====================
 ***/
 cl_font_t *Con_GetFont (int num)
@@ -758,11 +759,9 @@ cl_font_t *Con_GetFont (int num)
 	return &con.chars[num];
 	}
 
-// [FWGS, 01.07.23] Удалена Con_DrawCharacterLen
-
 /***
 ====================
-Con_GetCurFont [FWGS, 01.04.23]
+Con_GetCurFont
 ====================
 ***/
 cl_font_t *Con_GetCurFont (void)
@@ -772,7 +771,7 @@ cl_font_t *Con_GetCurFont (void)
 
 /***
 ====================
-Con_DrawStringLen [FWGS, 01.11.23]
+Con_DrawStringLen
 
 compute string width and height in screen pixels
 ====================
@@ -784,12 +783,13 @@ void GAME_EXPORT Con_DrawStringLen (const char *pText, int *length, int *height)
 
 /***
 ====================
-Con_DrawString [FWGS, 01.04.23]
+Con_DrawString [FWGS, 01.03.25]
 
 client version of routine
 ====================
 ***/
-int Con_DrawString (int x, int y, const char *string, rgba_t setColor)
+/*int Con_DrawString (int x, int y, const char *string, rgba_t setColor)*/
+int Con_DrawString (int x, int y, const char *string, const rgba_t setColor)
 	{
 	return CL_DrawString (x, y, string, setColor, con.curFont, FONT_DRAW_UTF8);
 	}
@@ -865,20 +865,27 @@ void Con_Shutdown (void)
 
 /***
 ================
-Con_Print [FWGS, 01.12.24]
+Con_Print [FWGS, 01.03.25]
 
-Handles cursor positioning, line wrapping, etc
+Handles cursor positioning, line wrapping, etc.
 All console printing must go through this in order to be displayed
-If no console is visible, the notify window will pop up.
+If no console is visible, the notify window will pop up
 ================
 ***/
 void Con_Print (const char *txt)
 	{
-	static int		cr_pending = 0;
+	/*static int		cr_pending = 0;
 	static char		buf[MAX_PRINT_MSG];
 	qboolean		norefresh = false;
 	static int		lastlength = 0;
+	static int		bufpos = 0;*/
+	static qboolean	cr_pending = false;
+	static qboolean	colorstring = false;
+	static char		buf[MAX_PRINT_MSG];
+	static int		lastlength = 0;
 	static int		bufpos = 0;
+	static int		charpos = 0;
+	qboolean		norefresh = false;
 	int				c, mask = 0;
 
 	// client not running
@@ -904,7 +911,8 @@ void Con_Print (const char *txt)
 		if (cr_pending)
 			{
 			Con_DeleteLastLine ();
-			cr_pending = 0;
+			/*cr_pending = 0;*/
+			cr_pending = false;
 			}
 
 		c = *txt;
@@ -915,16 +923,14 @@ void Con_Print (const char *txt)
 				break;
 
 			case '\r':
-				/*Con_AddLine (buf, bufpos, true);
-				lastlength = CON_LINES_LAST ().length;
-				cr_pending = 1;
-				bufpos = 0;*/
 				if (txt[1] != '\n')
 					{
 					Con_AddLine (buf, bufpos, true);
 					lastlength = CON_LINES_LAST ().length;
-					cr_pending = 1;
+					/*cr_pending = 1;*/
+					cr_pending = true;
 					bufpos = 0;
+					charpos = 0;
 					}
 				break;
 
@@ -932,15 +938,34 @@ void Con_Print (const char *txt)
 				Con_AddLine (buf, bufpos, true);
 				lastlength = CON_LINES_LAST ().length;
 				bufpos = 0;
+				charpos = 0;
 				break;
 
 			default:
 				buf[bufpos++] = c | mask;
-				if ((bufpos >= sizeof (buf) - 1) || bufpos >= (con.linewidth - 1))
+				/*if ((bufpos >= sizeof (buf) - 1) || (bufpos >= (con.linewidth - 1)))*/
+				if (IsColorString (txt))
+					{
+					// first color string character
+					colorstring = true;
+					}
+				else if (colorstring)
+					{
+					// second color string character
+					colorstring = false;
+					}
+				else
+					{
+					// not a color string, move char counter
+					charpos++;
+					}
+
+				if ((bufpos >= sizeof (buf) - 1) || (charpos >= (con.linewidth - 1)))
 					{
 					Con_AddLine (buf, bufpos, true);
 					lastlength = CON_LINES_LAST ().length;
 					bufpos = 0;
+					charpos = 0;
 					}
 				break;
 			}
@@ -957,6 +982,7 @@ void Con_Print (const char *txt)
 			Con_AddLine (buf, bufpos, lastlength != 0);
 			lastlength = 0;
 			bufpos = 0;
+			charpos = 0;
 			}
 
 		// pump messages to avoid window hanging
@@ -1138,7 +1164,7 @@ Field_KeyDownEvent
 Performs the basic line editing functions for the console,
 in-game talk, and menu fields
 
-Key events are used for non-printable characters, others are gotten from char events.
+Key events are used for non-printable characters, others are gotten from char events
 =================
 ***/
 static void Field_KeyDownEvent (field_t *edit, int key)
@@ -1161,7 +1187,7 @@ static void Field_KeyDownEvent (field_t *edit, int key)
 		return;
 		}
 
-	if ((key == K_BACKSPACE) || (key == K_X_BUTTON))	// [FWGS, 01.04.23]
+	if ((key == K_BACKSPACE) || (key == K_X_BUTTON))
 		{
 		if (edit->cursor > 0)
 			{
@@ -1174,7 +1200,7 @@ static void Field_KeyDownEvent (field_t *edit, int key)
 		return;
 		}
 
-	if ((key == K_RIGHTARROW) || (key == K_DPAD_RIGHT))	// [FWGS, 01.04.23]
+	if ((key == K_RIGHTARROW) || (key == K_DPAD_RIGHT))
 		{
 		if (edit->cursor < len) edit->cursor = Con_UtfMoveRight (edit->buffer, edit->cursor, edit->widthInChars);
 		if (edit->cursor >= edit->scroll + edit->widthInChars && edit->cursor <= len)
@@ -1182,7 +1208,7 @@ static void Field_KeyDownEvent (field_t *edit, int key)
 		return;
 		}
 
-	if ((key == K_LEFTARROW) || (key == K_DPAD_LEFT))	// [FWGS, 01.04.23]
+	if ((key == K_LEFTARROW) || (key == K_DPAD_LEFT))
 		{
 		if (edit->cursor > 0) edit->cursor = Con_UtfMoveLeft (edit->buffer, edit->cursor);
 		if (edit->cursor < edit->scroll) edit->scroll--;
@@ -1248,7 +1274,8 @@ static void Field_CharEvent (field_t *edit, int ch)
 		}
 
 	// ignore any other non printable chars
-	if (ch < 32) return;
+	if (ch < 32)
+		return;
 
 	if (host.key_overstrike)
 		{
@@ -1320,7 +1347,6 @@ static void Field_DrawInputLine (int x, int y, field_t *edit)
 	// save char for overstrike
 	cursorChar = str[edit->cursor - prestep];
 
-	// [FWGS, 01.04.23]
 	CL_DrawString (x, y, str, colorDefault, con.curFont, FONT_DRAW_UTF8);
 
 	// draw the cursor
@@ -1331,7 +1357,6 @@ static void Field_DrawInputLine (int x, int y, field_t *edit)
 	str[edit->cursor - prestep] = 0;
 	CL_DrawStringLen (con.curFont, str, &curPos, NULL, FONT_DRAW_UTF8);
 
-	// [FWGS, 01.04.23]
 	if (host.key_overstrike)
 		CL_DrawCharacter (x + curPos, y, '|', colorDefault, con.curFont, 0);
 	else
@@ -1488,13 +1513,24 @@ CONSOLE LINE EDITING
 ***/
 /***
 ====================
-Key_Console
+Key_Console [FWGS, 01.03.25]
 
 Handles history and console scrollback
 ====================
 ***/
 void Key_Console (int key)
 	{
+	// exit the console by pressing MINUS on NSwitch
+	// or both Back(Select)/Start buttons for everyone else
+	if ((key == K_BACK_BUTTON) || (key == K_START_BUTTON) || (key == K_ESCAPE))
+		{
+		if ((cls.state == ca_active) && !cl.background)
+			Key_SetKeyDest (key_game);
+		else
+			UI_SetActiveMenu (true);
+		return;
+		}
+
 	// ctrl-L clears screen
 	if ((key == 'l') && Key_IsDown (K_CTRL))
 		{
@@ -1532,7 +1568,7 @@ void Key_Console (int key)
 		return;
 		}
 
-	// [FWGS, 01.04.23] command completion
+	// command completion
 	if ((key == K_TAB) || (key == K_L2_BUTTON))
 		{
 		Con_CompleteCommand (&con.input);
@@ -1556,13 +1592,13 @@ void Key_Console (int key)
 		}
 
 	// console scrolling
-	if ((key == K_PGUP) || (key == K_DPAD_UP))	// [FWGS, 01.05.23]
+	if ((key == K_PGUP) || (key == K_DPAD_UP))
 		{
 		Con_PageUp (1);
 		return;
 		}
 
-	if ((key == K_PGDN) || (key == K_DPAD_DOWN))	// [FWGS, 01.05.23]
+	if ((key == K_PGDN) || (key == K_DPAD_DOWN))
 		{
 		Con_PageDown (1);
 		return;
@@ -1600,14 +1636,14 @@ void Key_Console (int key)
 		return;
 		}
 
-	// [FWGS, 01.04.23] enable the OSK with button press
+	// enable the OSK with button press
 	if (key == K_Y_BUTTON)
 		{
 		Key_EnableTextInput (true, true);
 		return;
 		}
 
-	// [FWGS, 01.04.23] exit the console by pressing MINUS on NSwitch
+	/*// [FWGS, 01.04.23] exit the console by pressing MINUS on NSwitch
 	// or both Back(Select)/Start buttons for everyone else
 	if ((key == K_BACK_BUTTON) || (key == K_START_BUTTON))
 		{
@@ -1616,7 +1652,7 @@ void Key_Console (int key)
 		else
 			UI_SetActiveMenu (true);
 		return;
-		}
+		}*/
 
 	// pass to the normal editline routine
 	Field_KeyDownEvent (&con.input, key);
@@ -2052,7 +2088,7 @@ void Con_DrawConsole (void)
 
 /***
 ==================
-Con_DrawVersion [FWGS, 01.01.24]
+Con_DrawVersion [FWGS, 01.03.25]
 
 Used by menu
 ==================
@@ -2065,7 +2101,8 @@ void Con_DrawVersion (void)
 	int		start, height = refState.height;
 	string	curbuild;
 
-	if (!scr_drawversion.value || (CL_IsDevOverviewMode () == 2) || net_graph.value)
+	/*if (!scr_drawversion.value || (CL_IsDevOverviewMode () == 2) || net_graph.value)*/
+	if (!scr_drawversion.value)
 		return;
 
 	if (cls.key_dest == key_menu)
@@ -2076,10 +2113,13 @@ void Con_DrawVersion (void)
 	else
 		{
 		qboolean draw_version;
+
+		if ((CL_IsDevOverviewMode () == 2) || net_graph.value)
+			return;
+
 		draw_version = (cls.scrshot_action == scrshot_normal) ||
 			(cls.scrshot_action == scrshot_snapshot) ||
 			(host.force_draw_version_time > host.realtime);
-
 		if (!draw_version)
 			return;
 
@@ -2097,7 +2137,7 @@ void Con_DrawVersion (void)
 
 /***
 ==================
-Con_RunConsole [FWGS, 01.07.24]
+Con_RunConsole
 
 Scroll it up or down
 ==================
@@ -2143,7 +2183,7 @@ void Con_RunConsole (void)
 	if (FBitSet (con_charset.flags | con_fontscale.flags | con_fontnum.flags | cl_charset.flags |
 		con_oldfont.flags, FCVAR_CHANGED))
 		{
-		// update codepage parameters
+		// [FWGS, 01.03.25] update codepage parameters
 		if (!Q_stricmp (con_charset.string, "cp1251"))
 			{
 			g_codepage = 1251;
@@ -2154,10 +2194,11 @@ void Con_RunConsole (void)
 			}
 		else
 			{
-			Con_Printf (S_WARN "Unknown charset %s, defaulting to cp1252", con_charset.string);
+			/*Con_Printf (S_WARN "Unknown charset %s, defaulting to cp1252", con_charset.string);
 
 			Cvar_DirectSet (&con_charset, "cp1252");
-			g_codepage = 1252;
+			g_codepage = 1252;*/
+			g_codepage = 0;
 			}
 
 		cls.accept_utf8 = !Q_stricmp (cl_charset.string, "utf-8");
@@ -2248,8 +2289,6 @@ void Con_VidInit (void)
 #if XASH_LOW_MEMORY
 	con.background = R_GetBuiltinTexture (REF_GRAY_TEXTURE);
 #else
-	//con.background = Con_LoadSimpleConback (host.allow_console ? "conback" : "loading", flags);
-
 	if ((con.background == R_GetBuiltinTexture (REF_DEFAULT_TEXTURE)) || (con.background == 0))
 		con.background = R_GetBuiltinTexture (REF_BLACK_TEXTURE);
 #endif

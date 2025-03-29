@@ -64,39 +64,11 @@ static const byte *R_GetTextureOriginalBuffer (unsigned int idx)
 CL_FillRGBA [FWGS, 01.12.24]
 =============
 ***/
-/*static void CL_FillRGBA (float _x, float _y, float _w, float _h, int r, int g, int b, int a)*/
 static void CL_FillRGBA (int rendermode, float _x, float _y, float _w, float _h, byte r, byte g, byte b, byte a)
 	{
 	pglDisable (GL_TEXTURE_2D);
 	pglEnable (GL_BLEND);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	/*pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
-	pglColor4f (r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
-
-	pglBegin (GL_QUADS);
-	pglVertex2f (_x, _y);
-	pglVertex2f (_x + _w, _y);
-	pglVertex2f (_x + _w, _y + _h);
-	pglVertex2f (_x, _y + _h);
-	pglEnd ();
-
-	pglColor3f (1.0f, 1.0f, 1.0f);
-	pglEnable (GL_TEXTURE_2D);
-	pglDisable (GL_BLEND);
-	}
-
-/
-=============
-pfnFillRGBABlend
-=============
-/
-static void GAME_EXPORT CL_FillRGBABlend (float _x, float _y, float _w, float _h, int r, int g, int b, int a)
-	{
-	pglDisable (GL_TEXTURE_2D);
-	pglEnable (GL_BLEND);
-	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	pglColor4f (r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);*/
 	if (rendermode == kRenderTransAdd)
 		pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
 	else
@@ -110,12 +82,26 @@ static void GAME_EXPORT CL_FillRGBABlend (float _x, float _y, float _w, float _h
 	pglVertex2f (_x, _y + _h);
 	pglEnd ();
 
-	/*pglColor3f (1.0f, 1.0f, 1.0f);*/
 	pglEnable (GL_TEXTURE_2D);
 	pglDisable (GL_BLEND);
 	}
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.03.25]
+static qboolean Mod_LooksLikeWaterTexture (const char *name)
+	{
+	if (((name[0] == '*') && Q_stricmp (name, REF_DEFAULT_TEXTURE)) || (name[0] == '!'))
+		return true;
+
+	if (!ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
+		{
+		if (!Q_strncmp (name, "water", 5) || !Q_strnicmp (name, "laser", 5))
+			return true;
+		}
+
+	return false;
+	}
+
+// [FWGS, 01.03.25]
 static void Mod_BrushUnloadTextures (model_t *mod)
 	{
 	int i;
@@ -124,17 +110,19 @@ static void Mod_BrushUnloadTextures (model_t *mod)
 		{
 		texture_t *tx = mod->textures[i];
 
-		/*if (!tx || (tx->gl_texturenum == tr.defaultTexture))*/
 		if (!tx)
 			continue; // free slot
 
-		/*GL_FreeTexture (tx->gl_texturenum);    // main texture
-		GL_FreeTexture (tx->fb_texturenum);    // luma texture*/
 		if (tx->gl_texturenum != tr.defaultTexture)
 			GL_FreeTexture (tx->gl_texturenum); // main texture
 
-		GL_FreeTexture (tx->fb_texturenum); // luma texture
-		GL_FreeTexture (tx->dt_texturenum); // detail texture
+		/*GL_FreeTexture (tx->fb_texturenum); // luma texture
+		GL_FreeTexture (tx->dt_texturenum); // detail texture*/
+		if (!Mod_LooksLikeWaterTexture (tx->name))
+			{
+			GL_FreeTexture (tx->fb_texturenum); // luma texture
+			GL_FreeTexture (tx->dt_texturenum); // detail texture
+			}
 		}
 	}
 
@@ -169,32 +157,10 @@ static void Mod_UnloadTextures (model_t *mod)
 // [FWGS, 01.02.25]
 static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)
 	{
-	/*qboolean loaded = true;*/
 	qboolean loaded = false;
 
-	/*if (create)*/
 	if (!create)
 		{
-		/*switch (mod->type)
-			{
-			case mod_studio:
-				break;
-
-			case mod_sprite:
-				Mod_LoadSpriteModel (mod, buf, &loaded, mod->numtexinfo);
-				break;
-
-			case mod_alias:
-				Mod_LoadAliasModel (mod, buf, &loaded);
-				break;
-
-			case mod_brush:
-				break;
-
-			default:
-				// [FWGS, 01.07.24]
-				gEngfuncs.Host_Error ("%s: unsupported type %d\n", __func__, mod->type);
-			}*/
 		if (gEngfuncs.drawFuncs->Mod_ProcessUserData)
 			gEngfuncs.drawFuncs->Mod_ProcessUserData (mod, false, buf);
 
@@ -202,8 +168,6 @@ static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte
 		return true;
 		}
 
-	/*if (loaded && gEngfuncs.drawFuncs->Mod_ProcessUserData)
-		gEngfuncs.drawFuncs->Mod_ProcessUserData (mod, create, buf);*/
 	switch (mod->type)
 		{
 		case mod_studio:
@@ -224,8 +188,6 @@ static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte
 			return false;
 		}
 
-	/*if (!create)
-		Mod_UnloadTextures (mod);*/
 	if (gEngfuncs.drawFuncs->Mod_ProcessUserData)
 		gEngfuncs.drawFuncs->Mod_ProcessUserData (mod, true, buf);
 

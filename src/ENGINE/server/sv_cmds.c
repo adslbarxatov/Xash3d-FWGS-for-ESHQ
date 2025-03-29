@@ -320,7 +320,6 @@ static void SV_Maps_f (void)
 
 	if (Cmd_Argc () != 2)
 		{
-		// [FWGS, 01.04.23]
 		Msg (S_USAGE "maps <substring>\nmaps * for full listing\n");
 		return;
 		}
@@ -673,7 +672,7 @@ static void SV_ChangeLevel2_f (void)
 
 /***
 ==================
-SV_Kick_f [FWGS, 01.07.23]
+SV_Kick_f
 
 Kick a user off of the server
 ==================
@@ -683,7 +682,9 @@ static void SV_Kick_f (void)
 	sv_client_t		*cl;
 	const char		*param;
 
-	if (Cmd_Argc () != 2)
+	// [FWGS, 01.03.25]
+	/*if (Cmd_Argc () != 2)*/
+	if (Cmd_Argc () < 2)
 		{
 		Con_Printf (S_USAGE "kick <#id|name> [reason]\n");
 		return;

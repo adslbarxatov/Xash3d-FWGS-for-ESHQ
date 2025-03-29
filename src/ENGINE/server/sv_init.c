@@ -1082,6 +1082,10 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	svs.timestart = Sys_DoubleTime ();
 	svs.spawncount++; // any partially connected client will be restarted
 
+	// [FWGS, 01.03.25]
+	for (i = 0; i < HLARRAYSIZE (svs.challenge_salt); i++)
+		svs.challenge_salt[i] = COM_RandomLong (0, 0x7FFFFFFE);
+
 	cycle = Cvar_VariableString ("mapchangecfgfile");
 	if (COM_CheckString (cycle))
 		Cbuf_AddTextf ("exec %s\n", cycle);
@@ -1149,7 +1153,7 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	if (svs.maxclients == 1) 
 		Cvar_SetValue ("sv_clienttrace", 1);
 	
-	// [FWGS, 01.11.23] allow loading maps from subdirectories, strip extension anyway
+	// allow loading maps from subdirectories, strip extension anyway
 	Q_strncpy (sv.name, mapname, sizeof (sv.name));
 	COM_StripExtension (sv.name);
 
@@ -1176,7 +1180,6 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	for (i = WORLD_INDEX; i < sv.worldmodel->numsubmodels; i++)
 		{
-		// [FWGS, 01.05.23]
 		Q_snprintf (sv.model_precache[i + 1], sizeof (sv.model_precache[i + 1]), "*%i", i);
 
 		sv.models[i + 1] = Mod_ForName (sv.model_precache[i + 1], false, false);
@@ -1205,7 +1208,7 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	// clear physics interaction links
 	SV_ClearWorld ();
 
-	// [FWGS, 01.07.23] pregenerate test packet
+	// pregenerate test packet
 	SV_GenerateTestPacket ();
 
 	return true;

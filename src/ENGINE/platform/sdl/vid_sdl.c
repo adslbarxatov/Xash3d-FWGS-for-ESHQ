@@ -17,8 +17,6 @@ GNU General Public License for more details
 #include <SDL.h>
 #include "common.h"
 #include "client.h"
-
-// [FWGS, 01.11.23]
 #include "vid_common.h"
 #include "platform/sdl/events.h"
 
@@ -51,7 +49,6 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 	if (sw.renderer)
 		{
 		unsigned int format = SDL_GetWindowPixelFormat (host.hWnd);
-		/*SDL_RenderSetLogicalSize (sw.renderer, refState.width, refState.height);*/
 		SDL_RenderSetLogicalSize (sw.renderer, refState.width, refState.height);
 
 		if (sw.tex)
@@ -75,18 +72,12 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 		if ((SDL_BYTESPERPIXEL (format) != 2) && (SDL_BYTESPERPIXEL (format) != 4))
 			format = SDL_PIXELFORMAT_RGBA8888;
 
-		/*sw.tex = SDL_CreateTexture (sw.renderer, format,
-			SDL_TEXTUREACCESS_STREAMING,
-			width, height);*/
 		sw.tex = SDL_CreateTexture (sw.renderer, format, SDL_TEXTUREACCESS_STREAMING, width, height);
 
 		// fallback
 		if (!sw.tex && format != SDL_PIXELFORMAT_RGBA8888)
 			{
 			format = SDL_PIXELFORMAT_RGBA8888;
-			/*sw.tex = SDL_CreateTexture (sw.renderer, format,
-				SDL_TEXTUREACCESS_STREAMING,
-				width, height);*/
 			sw.tex = SDL_CreateTexture (sw.renderer, format, SDL_TEXTUREACCESS_STREAMING, width, height);
 			}
 
@@ -100,20 +91,17 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 			void *pixels;
 			int pitch;
 
-			/*if (!SDL_LockTexture (sw.tex, NULL, &pixels, &pitch))*/
 			if (!SDL_LockTexture (sw.tex, NULL, &pixels, &pitch))
 				{
 				int		bits;
 				uint	amask;
 
 				// lock successfull, release
-				/*SDL_UnlockTexture (sw.tex);*/
 				SDL_UnlockTexture (sw.tex);
 
 				// enough for building blitter tables
 				SDL_PixelFormatEnumToMasks (format, &bits, r, g, b, &amask);
 
-				/**bpp = SDL_BYTESPERPIXEL (format);*/
 				*bpp = SDL_BYTESPERPIXEL (format);
 				*stride = pitch / *bpp;
 
@@ -121,11 +109,9 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 				}
 
 			// fallback to surf
-			/*SDL_DestroyTexture (sw.tex);*/
 			SDL_DestroyTexture (sw.tex);
 			sw.tex = NULL;
 
-			/*SDL_DestroyRenderer (sw.renderer);*/
 			SDL_DestroyRenderer (sw.renderer);
 			sw.renderer = NULL;
 			}
@@ -155,15 +141,6 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 		*b = sw.win->format->Bmask;
 		*stride = sw.win->pitch / sw.win->format->BytesPerPixel;
 
-		// [FWGS, 01.12.24] TODO: check somehow if ref_soft can handle native format
-#if 0
-		{
-		sw.surf = SDL_CreateRGBSurfaceWithFormat (0, width, height, 16, SDL_PIXELFORMAT_RGB565);
-		if (!sw.surf)
-			Sys_Error ("%s: %s", __func__, SDL_GetError ());
-		}
-#endif
-
 		return true;
 		}
 
@@ -179,7 +156,6 @@ void *SW_LockBuffer (void)
 			void *pixels;
 			int stride;
 
-			// [FWGS, 01.11.23]
 			if (SDL_LockTexture (sw.tex, NULL, &pixels, &stride) < 0)
 				Sys_Error ("%s: %s", __func__, SDL_GetError ());
 			return pixels;
@@ -269,12 +245,15 @@ vidmode_t *R_GetVideoMode (int num)
 	return vidmodes + num;
 	}
 
+// [FWGS, 01.03.25]
 static void R_InitVideoModes (void)
 	{
-	char buf[MAX_VA_STRING];
+	char		buf[MAX_VA_STRING];
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	int displayIndex = 0;
-	int i, modes;
+	/*int displayIndex = 0;*/
+	SDL_Point	point = { window_xpos.value, window_ypos.value };
+	int			displayIndex = SDL_GetPointDisplayIndex (&point);
+	int			i, modes;
 
 	num_vidmodes = 0;
 	modes = SDL_GetNumDisplayModes (displayIndex);
@@ -289,7 +268,6 @@ static void R_InitVideoModes (void)
 		int j;
 		SDL_DisplayMode mode;
 
-		// [FWGS, 01.11.23]
 		if (SDL_GetDisplayMode (displayIndex, i, &mode) < 0)
 			{
 			Msg ("SDL_GetDisplayMode: %s\n", SDL_GetError ());
@@ -313,7 +291,6 @@ static void R_InitVideoModes (void)
 		vidmodes[num_vidmodes].width = mode.w;
 		vidmodes[num_vidmodes].height = mode.h;
 
-		// [FWGS, 01.04.23]
 		Q_snprintf (buf, sizeof (buf), "%ix%i", mode.w, mode.h);
 		vidmodes[num_vidmodes].desc = copystring (buf);
 
@@ -353,7 +330,6 @@ static void R_InitVideoModes (void)
 		vidmodes[num_vidmodes].width = mode->w;
 		vidmodes[num_vidmodes].height = mode->h;
 
-		// [FWGS, 01.04.23]
 		Q_snprintf (buf, sizeof (buf), "%ix%i", mode->w, mode->h);
 		vidmodes[num_vidmodes].desc = copystring (buf);
 
@@ -376,7 +352,6 @@ static void R_FreeVideoModes (void)
 	vidmodes = NULL;
 	}
 
-// [FWGS, 01.11.23]
 #if XASH_WIN32
 typedef enum _XASH_DPI_AWARENESS
 	{
@@ -460,7 +435,6 @@ static void WIN_SetDPIAwareness (void)
 		}
 	}
 
-// [FWGS, 01.11.23]
 #include <SDL_syswm.h>
 static qboolean WIN_SetWindowIcon (HICON ico)
 	{
@@ -522,20 +496,21 @@ void *GL_GetProcAddress (const char *name)
 
 /***
 ===============
-GL_UpdateSwapInterval [FWGS, 01.11.23]
+GL_UpdateSwapInterval [FWGS, 01.03.25]
 ===============
 ***/
 void GL_UpdateSwapInterval (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	// disable VSync while level is loading
+	/*// disable VSync while level is loading
 	if (cls.state < ca_active)
 		{
 		SDL_GL_SetSwapInterval (0);
 		SetBits (gl_vsync.flags, FCVAR_CHANGED);
 		}
 
-	else if (FBitSet (gl_vsync.flags, FCVAR_CHANGED))
+	else if (FBitSet (gl_vsync.flags, FCVAR_CHANGED))*/
+	if (FBitSet (gl_vsync.flags, FCVAR_CHANGED))
 		{
 		ClearBits (gl_vsync.flags, FCVAR_CHANGED);
 
@@ -597,7 +572,6 @@ static qboolean GL_UpdateContext (void)
 	return true;
 	}
 
-// [FWGS, 01.11.23]
 void VID_SaveWindowSize (int width, int height, qboolean maximized)
 	{
 	int render_w = width, render_h = height;
@@ -691,7 +665,6 @@ void VID_RestoreScreenResolution (void)
 			SDL_SetWindowBordered (host.hWnd, SDL_TRUE);
 			break;
 
-		/*default:*/
 		case WINDOW_MODE_BORDERLESS:
 			// in borderless fullscreen we don't change screen resolution, so no-op
 			break;
@@ -789,9 +762,30 @@ static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int y
 	return true;
 	}
 
+// [FWGS, 01.03.25]
+static qboolean RectFitsInDisplay (const SDL_Rect *rect, const SDL_Rect *display)
+	{
+	return (rect->x >= display->x)
+		&& (rect->y >= display->y)
+		&& (rect->x + rect->w <= display->x + display->w)
+		&& (rect->y + rect->h <= display->y + display->h);
+	}
+
+// [FWGS, 01.03.25] Function to check if the rectangle fits in any display
+static qboolean RectFitsInAnyDisplay (const SDL_Rect *rect, const SDL_Rect *display_rects, int num_displays)
+	{
+	for (int i = 0; i < num_displays; i++)
+		{
+		if (RectFitsInDisplay (rect, &display_rects[i]))
+			return true; // Rectangle fits in this display
+		}
+
+	return false; // Rectangle does not fit in any display
+	}
+
 /***
 =================
-VID_CreateWindow
+VID_CreateWindow [FWGS, 01.03.25]
 =================
 ***/
 qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
@@ -802,6 +796,8 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 	qboolean	maximized = (vid_maximized.value != 0.0f);
 	Uint32		wndFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_MOUSE_FOCUS;
 	int			xpos, ypos;
+	int			num_displays = SDL_GetNumVideoDisplays ();
+	SDL_Rect	rect = { window_xpos.value, window_ypos.value, width, height };
 
 	Q_strncpy (wndname, GI->title, sizeof (wndname));
 
@@ -812,35 +808,61 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 
 	if (window_mode == WINDOW_MODE_WINDOWED)
 		{
-		SDL_Rect r;
+		/*SDL_Rect r;*/
+		SDL_Rect *display_rects = (SDL_Rect *)malloc (num_displays * sizeof (SDL_Rect));
+
 		SetBits (wndFlags, SDL_WINDOW_RESIZABLE);
 		if (maximized)
 			SetBits (wndFlags, SDL_WINDOW_MAXIMIZED);
 
-#if SDL_VERSION_ATLEAST( 2, 0, 5 )
+		/*if SDL_VERSION_ATLEAST( 2, 0, 5 )
 		if (SDL_GetDisplayUsableBounds (0, &r) < 0 &&
 			SDL_GetDisplayBounds (0, &r) < 0)
-#else
+else
 		if (SDL_GetDisplayBounds (0, &r) < 0)
-#endif
+endif*/
+		if (!display_rects)
 			{
-			// [FWGS, 01.07.24]
-			Con_Reportf (S_ERROR "%s: SDL_GetDisplayBounds failed: %s\n", __func__, SDL_GetError ());
+			/*Con_Reportf (S_ERROR "%s: SDL_GetDisplayBounds failed: %s\n", __func__, SDL_GetError ());
 			xpos = SDL_WINDOWPOS_CENTERED;
-			ypos = SDL_WINDOWPOS_CENTERED;
+			ypos = SDL_WINDOWPOS_CENTERED;*/
+			Con_Printf (S_ERROR "Failed to allocate memory for display rects!\n");
+			xpos = SDL_WINDOWPOS_UNDEFINED;
+			ypos = SDL_WINDOWPOS_UNDEFINED;
 			}
 		else
 			{
-			xpos = window_xpos.value;
+			/*xpos = window_xpos.value;
 			ypos = window_ypos.value;
 
 			// don't create window outside of usable display space
-			if ((xpos < r.x) || ((xpos + width) > (r.x + r.w)))
-				xpos = SDL_WINDOWPOS_CENTERED;
+			if ((xpos < r.x) || ((xpos + width) > (r.x + r.w)))*/
+			for (int i = 0; i < num_displays; i++)
+				{
+				if (SDL_GetDisplayBounds (i, &display_rects[i]) != 0)
+					{
+					Con_Printf (S_ERROR "Failed to get bounds for display %d! SDL_Error: %s\n", i, SDL_GetError ());
+					display_rects[i] = (SDL_Rect) { 0, 0, 0, 0 };
+					}
+				}
 
-			if ((ypos < r.y) || ((ypos + height) > (r.y + r.h)))
+			// Check if the rectangle fits in any display
+			if (!RectFitsInAnyDisplay (&rect, display_rects, num_displays))
+				{
+				// Rectangle doesn't fit in any display, center it
+				xpos = SDL_WINDOWPOS_CENTERED;
+				/*if ((ypos < r.y) || ((ypos + height) > (r.y + r.h)))*/
 				ypos = SDL_WINDOWPOS_CENTERED;
+				Con_Printf (S_ERROR "Rectangle does not fit in any display. Centering window.\n");
+				}
+			else
+				{
+				xpos = rect.x;
+				ypos = rect.y;
+				}
 			}
+
+		free (display_rects);
 		}
 	else
 		{
@@ -850,7 +872,18 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		else
 			SetBits (wndFlags, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		SetBits (wndFlags, SDL_WINDOW_BORDERLESS);
-		xpos = ypos = 0;
+		/*xpos = ypos = 0;*/
+
+		if ((window_xpos.value < 0) || (window_ypos.value < 0))
+			{
+			xpos = SDL_WINDOWPOS_UNDEFINED;
+			ypos = SDL_WINDOWPOS_UNDEFINED;
+			}
+		else
+			{
+			xpos = window_xpos.value;
+			ypos = window_ypos.value;
+			}
 		}
 
 	if (!VID_CreateWindowWithSafeGL (wndname, xpos, ypos, width, height, wndFlags))
@@ -1069,7 +1102,7 @@ int GL_GetAttribute (int attr, int *val)
 
 /***
 ==================
-R_Init_Video [FWGS, 01.12.24]
+R_Init_Video [FWGS, 01.03.25]
 ==================
 ***/
 qboolean R_Init_Video (const int type)
@@ -1080,7 +1113,9 @@ qboolean R_Init_Video (const int type)
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_DisplayMode displayMode;
 	/*SDL_GetCurrentDisplayMode (0, &displayMode);*/
-	SDL_GetCurrentDisplayMode (0, &displayMode);
+	SDL_Point point = { window_xpos.value, window_ypos.value };
+	SDL_GetCurrentDisplayMode (SDL_GetPointDisplayIndex (&point), &displayMode);
+
 	refState.desktopBitsPixel = SDL_BITSPERPIXEL (displayMode.format);
 #else
 	refState.desktopBitsPixel = 16;
@@ -1125,6 +1160,7 @@ qboolean R_Init_Video (const int type)
 				return false;
 				}
 			break;
+
 		default:
 			Host_Error ("Can't initialize unknown context type %d!\n", type);
 			break;
@@ -1161,7 +1197,6 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 	// [FWGS, 01.12.24]
 	if (SDL_GetCurrentDisplayMode (0, &displayMode) < 0)
 		{
-		/*Con_Printf (S_ERROR "SDL_GetCurrentDisplayMode: %s", SDL_GetError ());*/
 		Con_Printf (S_ERROR "SDL_GetCurrentDisplayMode: %s\n", SDL_GetError ());
 		return rserr_invalid_mode;
 		}
@@ -1313,10 +1348,6 @@ void R_Free_Video (void)
 	R_FreeVideoModes ();
 
 	ref.dllFuncs.GL_ClearExtensions ();
-
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	SDL_VideoQuit ();
-	endif*/
 	}
 
 #endif

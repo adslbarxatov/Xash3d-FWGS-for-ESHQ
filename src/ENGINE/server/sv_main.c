@@ -155,8 +155,6 @@ static CVAR_DEFINE_AUTO (sv_bounce, "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"bounce factor for entities with MOVETYPE_BOUNCE");
 
 // [FWGS, 25.12.24]
-/*static CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_SERVER | FCVAR_MOVEVARS,
-	"how high you and NPS's can step up");*/
 CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"how high you and NPC's can step up");
 
@@ -164,8 +162,6 @@ CVAR_DEFINE_AUTO (sv_maxvelocity, "2000", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"max velocity for all things in the world");
 
 // [FWGS, 01.12.24]
-/*static CVAR_DEFINE_AUTO (sv_zmax, "4096", FCVAR_SERVER | FCVAR_MOVEVARS | FCVAR_SPONLY,
-	"maximum viewable distance");*/
 static CVAR_DEFINE_AUTO (sv_zmax, "4096", FCVAR_MOVEVARS | FCVAR_SPONLY,
 	"maximum viewable distance");
 
@@ -173,11 +169,8 @@ CVAR_DEFINE_AUTO (sv_wateramp, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"world waveheight factor");
 
 // [FWGS, 01.12.24]
-/*static CVAR_DEFINE (sv_footsteps, "mp_footsteps", "1", FCVAR_SERVER | FCVAR_MOVEVARS,
-	"world gravity value");*/
 static CVAR_DEFINE (sv_footsteps, "mp_footsteps", "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"play foot steps for players");
-
 CVAR_DEFINE_AUTO (sv_skyname, "desert", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"skybox name (can be dynamically changed in-game)");
 static CVAR_DEFINE_AUTO (sv_rollangle, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED | FCVAR_ARCHIVE,
@@ -200,8 +193,13 @@ CVAR_DEFINE_AUTO (sv_wateralpha, "1", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"world surfaces water transparency factor. 1.0 - solid, 0.0 - fully transparent");
 CVAR_DEFINE_AUTO (sv_background_freeze, "1", FCVAR_ARCHIVE,
 	"freeze player movement on background maps (e.g. to prevent falling)");
-static CVAR_DEFINE_AUTO (showtriggers, "0", FCVAR_LATCH,
+
+// [FWGS, 01.03.25]
+/*static CVAR_DEFINE_AUTO (showtriggers, "0", FCVAR_LATCH,
+	"debug cvar shows triggers");*/
+static CVAR_DEFINE_AUTO (showtriggers, "0", FCVAR_LATCH | FCVAR_TEMPORARY,
 	"debug cvar shows triggers");
+
 static CVAR_DEFINE_AUTO (sv_airmove, "1", FCVAR_SERVER,
 	"obsolete, compatibility issues");
 static CVAR_DEFINE_AUTO (sv_version, "", FCVAR_READ_ONLY,
@@ -313,9 +311,9 @@ void SV_UpdateMovevars (qboolean initialize)
 	if (!initialize && !host.movevars_changed)
 		return;
 
-	// [FWGS, 01.12.24] NOTE: this breaks Natural Selection mod on ns_machina map that uses model as sky
+	/*// [FWGS, 01.12.24] NOTE: this breaks Natural Selection mod on ns_machina map that uses model as sky
 	// it sets the value to 4000000 that even exceeds the coord limit
-#if 0
+	if 0
 	// check range
 	if (sv_zmax.value < 256.0f)
 		Cvar_SetValue ("sv_zmax", 256.0f);
@@ -331,7 +329,16 @@ void SV_UpdateMovevars (qboolean initialize)
 		if (sv_zmax.value > 32767.0f)
 			Cvar_SetValue ("sv_zmax", 32767.0f);
 		}
-#endif
+	endif*/
+	// [FWGS, 01.03.25] NOTE: Natural Selection mod on ns_machina map that uses model as sky
+	// it sets the value to 4000000 that even exceeds the coord limit, but
+	// it's fine until the value fits in "zmax" delta field
+	// However, some stupid mappers set an insane value like 999999999 which
+	// overflows delta. In this case, just clamp it to something bigger
+	if (sv_zmax.value < 256.0f)
+		Cvar_DirectSet (&sv_zmax, "256");
+	else if (sv_zmax.value > 16777216.0f) // 2^24
+		Cvar_DirectSet (&sv_zmax, "16777216");
 
 	svgame.movevars.gravity = sv_gravity.value;
 	svgame.movevars.stopspeed = sv_stopspeed.value;
@@ -924,7 +931,7 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 
 /***
 ====================
-SV_ProcessUserAgent
+SV_ProcessUserAgent [FWGS, 01.03.25]
 
 send error message and return false on wrong input devices
 ====================
@@ -933,6 +940,32 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 	{
 	const char *input_devices_str = Info_ValueForKey (useragent, "d");
 	const char *id = Info_ValueForKey (useragent, "uuid");
+
+	size_t len, i;
+
+	len = Q_strlen (id);
+	if (len != 32)
+		{
+		SV_RejectConnection (from, "invalid authentication certificate\n");
+		return false;
+		}
+
+	for (i = 0; i < len; i++)
+		{
+		char c = id[i];
+
+		if (!isdigit (id[i]) && !((c >= 'a') && (c <= 'f')))
+			{
+			SV_RejectConnection (from, "invalid authentication certificate\n");
+			return false;
+			}
+		}
+
+	if (SV_CheckID (id))
+		{
+		SV_RejectConnection (from, "You are banned!\n");
+		return false;
+		}
 
 	if (!sv_allow_noinputdevices.value && (!input_devices_str || !input_devices_str[0]))
 		{
@@ -970,7 +1003,7 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 			}
 		}
 
-	if (id)
+	/*if (id)
 		{
 		qboolean banned = SV_CheckID (id);
 
@@ -979,7 +1012,7 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 			SV_RejectConnection (from, "You are banned!\n");
 			return false;
 			}
-		}
+		}*/
 
 	return true;
 	}
@@ -1147,7 +1180,6 @@ void SV_Init (void)
 
 	// [FWGS, 01.02.25]
 	Q_snprintf (versionString, sizeof (versionString), XASH_ENGINE_NAME ": " XASH_VERSION "-%s(%s-%s),%i,%i",
-		/*Q_buildcommit (), Q_buildos (), Q_buildarch (), PROTOCOL_VERSION, Q_buildnum ());*/
 		g_buildcommit, Q_buildos (), Q_buildarch (), PROTOCOL_VERSION, Q_buildnum ());
 
 	Cvar_FullSet ("sv_version", versionString, FCVAR_READ_ONLY);
@@ -1254,9 +1286,6 @@ void SV_Shutdown (const char *finalmsg)
 		if (CL_IsPlaybackDemo ())
 			CL_Drop ();
 
-		/*if XASH_WIN32
-		SV_UnloadProgs ();
-		endif*/
 		return;
 		}
 
@@ -1277,10 +1306,6 @@ void SV_Shutdown (const char *finalmsg)
 
 	NET_Config (false, false);
 	SV_DeactivateServer ();
-
-	/*if XASH_WIN32
-	SV_UnloadProgs ();
-	endif*/
 
 	CL_Drop ();
 

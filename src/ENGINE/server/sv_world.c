@@ -39,9 +39,6 @@ HULL BOXES
 ***/
 
 // [FWGS, 01.02.25]
-/*static hull_t	box_hull;
-static mclipnode_t	box_clipnodes[6];
-static mplane_t	box_planes[6];*/
 static hull_t	box_hull;
 static mplane_t	box_planes[6];
 
@@ -55,10 +52,8 @@ can just be stored out and get a proper hull_t structure.
 ***/
 static void SV_InitBoxHull (void)
 	{
-	/*int	i, side;*/
 	int i;
 
-	/*box_hull.clipnodes = box_clipnodes;*/
 	box_hull.clipnodes16 = (mclipnode16_t *)box_clipnodes16;
 	box_hull.planes = box_planes;
 	box_hull.firstclipnode = 0;
@@ -66,21 +61,10 @@ static void SV_InitBoxHull (void)
 
 	for (i = 0; i < 6; i++)
 		{
-		/*box_clipnodes[i].planenum = i;
-
-		side = i & 1;
-
-		box_clipnodes[i].children[side] = CONTENTS_EMPTY;
-		if (i != 5)
-			box_clipnodes[i].children[side ^ 1] = i + 1;
-		else
-			box_clipnodes[i].children[side ^ 1] = CONTENTS_SOLID;*/
-
 		box_planes[i].type = i >> 1;
 		box_planes[i].normal[i >> 1] = 1;
 		box_planes[i].signbits = 0;
 		}
-
 	}
 
 /***
@@ -383,6 +367,7 @@ static hull_t *SV_HullForStudioModel (edict_t *ent, vec3_t mins, vec3_t maxs, ve
 ENTITY LINKING
 ===============================================================================
 ***/
+
 /***
 ===============
 ClearLink [FWGS, 01.07.24]
@@ -609,7 +594,6 @@ static void SV_TouchLinks (edict_t *ent, areanode_t *node)
 SV_FindTouchedLeafs [FWGS, 01.02.25]
 ===============
 ***/
-/*static void SV_FindTouchedLeafs (edict_t *ent, mnode_t *node, int *headnode)*/
 static void SV_FindTouchedLeafs (edict_t *ent, model_t *mod, mnode_t *node, int *headnode)
 	{
 	int		sides;
@@ -621,17 +605,15 @@ static void SV_FindTouchedLeafs (edict_t *ent, model_t *mod, mnode_t *node, int 
 	// add an efrag if the node is a leaf
 	if (node->contents < 0)
 		{
-		/*if (ent->num_leafs > (MAX_ENT_LEAFS - 1))*/
-		if (ent->num_leafs > MAX_ENT_LEAFS (FBitSet (mod->flags, MODEL_QBSP2)))
+		/*if (ent->num_leafs > MAX_ENT_LEAFS (FBitSet (mod->flags, MODEL_QBSP2)))*/
+		if (ent->num_leafs >= MAX_ENT_LEAFS (FBitSet (mod->flags, MODEL_QBSP2)))
 			{
 			// continue counting leafs, so we know how many it's overrun
-			/*ent->num_leafs = (MAX_ENT_LEAFS + 1);*/
 			ent->num_leafs = (MAX_ENT_LEAFS (FBitSet (mod->flags, MODEL_QBSP2)) + 1);
 			}
 		else
 			{
 			leaf = (mleaf_t *)node;
-			/*ent->leafnums[ent->num_leafs] = leaf->cluster;*/
 			if (FBitSet (mod->flags, MODEL_QBSP2))
 				ent->leafnums32[ent->num_leafs] = leaf->cluster;
 			else
@@ -647,12 +629,9 @@ static void SV_FindTouchedLeafs (edict_t *ent, model_t *mod, mnode_t *node, int 
 	sides = BOX_ON_PLANE_SIDE (ent->v.absmin, ent->v.absmax, node->plane);
 
 	if ((sides == 3) && (*headnode == -1))
-		/**headnode = node - sv.worldmodel->nodes;*/
 		*headnode = node - mod->nodes;
 
 	// recurse down the contacted sides
-	/*if (sides & 1) SV_FindTouchedLeafs (ent, node->children[0], headnode);
-	if (sides & 2) SV_FindTouchedLeafs (ent, node->children[1], headnode);*/
 	if (sides & 1)
 		SV_FindTouchedLeafs (ent, mod, node_child (node, 0, mod), headnode);
 	if (sides & 2)
@@ -682,7 +661,6 @@ void GAME_EXPORT SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 	// [FWGS, 01.02.25]
 	if ((ent->v.movetype == MOVETYPE_FOLLOW) && SV_IsValidEdict (ent->v.aiment))
 		{
-		/*memcpy (ent->leafnums, ent->v.aiment->leafnums, sizeof (ent->leafnums));*/
 		memcpy (ent->leafnums32, ent->v.aiment->leafnums32, sizeof (ent->leafnums32));
 		ent->num_leafs = ent->v.aiment->num_leafs;
 		ent->headnode = ent->v.aiment->headnode;
@@ -695,13 +673,10 @@ void GAME_EXPORT SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 		headnode = -1;
 
 		if (ent->v.modelindex)
-			/*SV_FindTouchedLeafs (ent, sv.worldmodel->nodes, &headnode);*/
 			SV_FindTouchedLeafs (ent, sv.worldmodel, sv.worldmodel->nodes, &headnode);
 
-		/*if (ent->num_leafs > MAX_ENT_LEAFS)*/
 		if (ent->num_leafs > MAX_ENT_LEAFS (FBitSet (sv.worldmodel->flags, MODEL_QBSP2)))
 			{
-			/*memset (ent->leafnums, -1, sizeof (ent->leafnums));*/
 			memset (ent->leafnums32, -1, sizeof (ent->leafnums32));
 			ent->num_leafs = 0;	// so we use headnode instead
 			ent->headnode = headnode;
@@ -750,11 +725,11 @@ POINT TESTING IN HULLS
 ***/
 static void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 	{
-	link_t *l, *next;
-	edict_t *touch;
-	hull_t *hull;
+	link_t	*l, *next;
+	edict_t	*touch;
+	hull_t	*hull;
 	vec3_t	test, offset;
-	model_t *mod;
+	model_t	*mod;
 
 	// get water edicts
 	for (l = node->solid_edicts.next; l != &node->solid_edicts; l = next)
@@ -767,17 +742,17 @@ static void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 
 		if (touch->v.groupinfo)
 			{
-			if (svs.groupop == GROUP_OP_AND && !FBitSet (touch->v.groupinfo, svs.groupmask))
+			if ((svs.groupop == GROUP_OP_AND) && !FBitSet (touch->v.groupinfo, svs.groupmask))
 				continue;
 
-			if (svs.groupop == GROUP_OP_NAND && FBitSet (touch->v.groupinfo, svs.groupmask))
+			if ((svs.groupop == GROUP_OP_NAND) && FBitSet (touch->v.groupinfo, svs.groupmask))
 				continue;
 			}
 
 		mod = SV_ModelHandle (touch->v.modelindex);
 
 		// only brushes can have special contents
-		if (!mod || mod->type != mod_brush)
+		if (!mod || (mod->type != mod_brush))
 			continue;
 
 		if (!BoundsIntersect (origin, origin, touch->v.absmin, touch->v.absmax))
@@ -809,7 +784,8 @@ static void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 		}
 
 	// recurse down both sides
-	if (node->axis == -1) return;
+	if (node->axis == -1)
+		return;
 
 	if (origin[node->axis] > node->dist)
 		SV_WaterLinks (origin, pCont, node->children[0]);
@@ -827,7 +803,8 @@ int SV_TruePointContents (const vec3_t p)
 	int	cont;
 
 	// sanity check
-	if (!p) return CONTENTS_NONE;
+	if (!p)
+		return CONTENTS_NONE;
 
 	// get base contents from world
 	cont = PM_HullPointContents (&sv.worldmodel->hulls[0], 0, p);
@@ -851,39 +828,6 @@ int GAME_EXPORT SV_PointContents (const vec3_t p)
 		cont = CONTENTS_WATER;
 	return cont;
 	}
-
-// [FWGS, 01.07.23] SV_TestEntityPosition
-/***
-============
-SV_TestEntityPosition
-
-returns true if the entity is in solid currently
-============
-qboolean SV_TestEntityPosition (edict_t *ent, edict_t *blocker)
-	{
-	qboolean	monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
-	trace_t	trace;
-
-	if (FBitSet (ent->v.flags, FL_CLIENT | FL_FAKECLIENT))
-		{
-		// to avoid falling through tracktrain update client mins\maxs here
-		if (FBitSet (ent->v.flags, FL_DUCKING))
-			SV_SetMinMaxSize (ent, svgame.pmove->player_mins[1], svgame.pmove->player_maxs[1], true);
-		else SV_SetMinMaxSize (ent, svgame.pmove->player_mins[0], svgame.pmove->player_maxs[0], true);
-		}
-
-	trace = SV_Move (ent->v.origin, ent->v.mins, ent->v.maxs, ent->v.origin, MOVE_NORMAL, ent, monsterClip);
-
-	if (SV_IsValidEdict (blocker) && SV_IsValidEdict (trace.ent))
-		{
-		if (trace.ent->v.movetype == MOVETYPE_PUSH || trace.ent == blocker)
-			return trace.startsolid;
-		return false;
-		}
-
-	return trace.startsolid;
-	}
-*/
 
 /***
 ===============================================================================
@@ -1195,10 +1139,10 @@ static qboolean SV_ClipToEntity (edict_t *touch, moveclip_t *clip)
 
 	if (touch->v.groupinfo && SV_IsValidEdict (clip->passedict) && (clip->passedict->v.groupinfo != 0))
 		{
-		if (svs.groupop == GROUP_OP_AND && !FBitSet (touch->v.groupinfo, clip->passedict->v.groupinfo))
+		if ((svs.groupop == GROUP_OP_AND) && !FBitSet (touch->v.groupinfo, clip->passedict->v.groupinfo))
 			return true;
 
-		if (svs.groupop == GROUP_OP_NAND && FBitSet (touch->v.groupinfo, clip->passedict->v.groupinfo))
+		if ((svs.groupop == GROUP_OP_NAND) && FBitSet (touch->v.groupinfo, clip->passedict->v.groupinfo))
 			return true;
 		}
 
@@ -1573,7 +1517,6 @@ trace_t SV_MoveToss (edict_t *tossent, edict_t *ignore)
 	VectorCopy (tossent->v.avelocity, original_avelocity);
 
 	// [FWGS, 25.12.24]
-	/*gravity = tossent->v.gravity * svgame.movevars.gravity * 0.05f;*/
 	gravity = tossent->v.gravity * sv_gravity.value * 0.05f;
 
 	for (i = 0; i < 200; i++)
@@ -1629,7 +1572,6 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 
 	side = front < 0.0f;
 	if ((back < 0.0f) == side)
-		/*return SV_RecursiveLightPoint (model, node->children[side], start, end, point_color);*/
 		return SV_RecursiveLightPoint (model, children[side], start, end, point_color);
 
 	frac = front / (front - back);
@@ -1637,7 +1579,6 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 	VectorLerp (start, frac, end, mid);
 
 	// go down front side
-	/*if (SV_RecursiveLightPoint (model, node->children[side], start, mid, point_color))*/
 	if (SV_RecursiveLightPoint (model, children[side], start, mid, point_color))
 		return true;	// hit something
 
@@ -1645,13 +1586,11 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 		return false;	// didn't hit anything
 
 	// check for impact on this node
-	/*for (i = 0; i < node->numsurfaces; i++)*/
 	numsurfaces = node_numsurfaces (node, model);
 	firstsurface = node_firstsurface (node, model);
 
 	for (i = 0; i < numsurfaces; i++)
 		{
-		/*const msurface_t	*surf = &model->surfaces[node->firstsurface + i];*/
 		const msurface_t	*surf = &model->surfaces[firstsurface + i];
 		const mextrasurf_t	*info = surf->info;
 		int		smax, tmax, map, size;
@@ -1703,7 +1642,6 @@ static qboolean SV_RecursiveLightPoint (model_t *model, mnode_t *node, const vec
 		}
 
 	// go down back side
-	/*return SV_RecursiveLightPoint (model, node->children[!side], mid, end, point_color);*/
 	return SV_RecursiveLightPoint (model, children[!side], mid, end, point_color);
 	}
 
@@ -1719,11 +1657,9 @@ needs to get correct working SV_LightPoint
 void SV_SetLightStyle (int style, const char *s, float f)
 	{
 	int	j, k;
-	/*Q_strncpy (sv.lightstyles[style].pattern, s, sizeof (sv.lightstyles[0].pattern));*/
 	j = Q_strncpy (sv.lightstyles[style].pattern, s, sizeof (sv.lightstyles[0].pattern));
 
 	sv.lightstyles[style].time = f;
-	/*j = Q_strlen (s);*/
 	sv.lightstyles[style].length = j;
 
 	for (k = 0; k < j; k++)
@@ -1739,8 +1675,6 @@ void SV_SetLightStyle (int style, const char *s, float f)
 	MSG_WriteFloat (&sv.reliable_datagram, sv.lightstyles[style].time);
 	}
 
-// [FWGS, 01.07.23] removed SV_GetLightStyle
-
 /***
 ==================
 SV_LightForEntity [FWGS, 25.12.24]
@@ -1750,7 +1684,6 @@ grab the ambient lighting color for current point
 ***/
 int SV_LightForEntity (edict_t *pEdict)
 	{
-	/*vec3_t	start, end;*/
 	vec3_t point_color = { 1.0f, 1.0f, 1.0f };
 	vec3_t start, end;
 
@@ -1771,11 +1704,8 @@ int SV_LightForEntity (edict_t *pEdict)
 		end[2] = start[2] + world.size[2];
 	else
 		end[2] = start[2] - world.size[2];
-	/*VectorSet (sv_pointColor, 1.0f, 1.0f, 1.0f);*/
 
-	/*SV_RecursiveLightPoint (sv.worldmodel, sv.worldmodel->nodes, start, end);*/
 	SV_RecursiveLightPoint (sv.worldmodel, sv.worldmodel->nodes, start, end, point_color);
 
-	/*return VectorAvg (sv_pointColor);*/
 	return VectorAvg (point_color);
 	}

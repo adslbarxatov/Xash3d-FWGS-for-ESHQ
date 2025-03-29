@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -115,25 +115,45 @@ uint32_t Q_DecodeUTF16 (utfstate_t *s, uint32_t in)
 	return 0;
 	}
 
-size_t Q_EncodeUTF8 (char dst[4], uint32_t ch)
+// [FWGS, 01.03.25]
+/*size_t Q_EncodeUTF8 (char dst[4], uint32_t ch)*/
+static size_t Q_CodepointLength (uint32_t ch)
 	{
 	if (ch <= 0x7fu)
-		{
-		dst[0] = ch;
+		/*{
+		dst[0] = ch;*/
 		return 1;
-		}
+		/*}*/
 	else if (ch <= 0x7ffu)
-		{
-		dst[0] = 0xc0u | ((ch >> 6) & 0x1fu);
-		dst[1] = 0x80u | ((ch) & 0x3fu);
 		return 2;
-		}
 	else if (ch <= 0xffffu)
-		{
-		dst[0] = 0xe0u | ((ch >> 12) & 0x0fu);
-		dst[1] = 0x80u | ((ch >> 6) & 0x3fu);
-		dst[2] = 0x80u | ((ch) & 0x3fu);
 		return 3;
+
+	return 4;
+	}
+
+// [FWGS, 01.03.25]
+size_t Q_EncodeUTF8 (char dst[4], uint32_t ch)
+	{
+	switch (Q_CodepointLength (ch))
+		{
+		case 1:
+			dst[0] = ch;
+			return 1;
+
+		case 2:
+			dst[0] = 0xc0u | ((ch >> 6) & 0x1fu);
+			dst[1] = 0x80u | ((ch) & 0x3fu);
+			return 2;
+
+		/*}
+		else if (ch <= 0xffffu)
+		{*/
+		case 3:
+			dst[0] = 0xe0u | ((ch >> 12) & 0x0fu);
+			dst[1] = 0x80u | ((ch >> 6) & 0x3fu);
+			dst[2] = 0x80u | ((ch) & 0x3fu);
+			return 3;
 		}
 
 	dst[0] = 0xf0u | ((ch >> 18) & 0x07u);
@@ -164,7 +184,7 @@ size_t Q_UTF8Length (const char *s)
 	return len;
 	}
 
-static size_t Q_CodepointLength (uint32_t ch)
+/*static size_t Q_CodepointLength (uint32_t ch)
 	{
 	if (ch <= 0x7fu)
 		return 1;
@@ -174,7 +194,7 @@ static size_t Q_CodepointLength (uint32_t ch)
 		return 3;
 
 	return 4;
-	}
+	}*/
 
 size_t Q_UTF16ToUTF8 (char *dst, size_t dstsize, const uint16_t *src, size_t srcsize)
 	{

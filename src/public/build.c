@@ -13,12 +13,16 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.25]
+#include <stdio.h>
 #include "crtlib.h"
 #include "buildenums.h"
 
-static const char *mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+/*static const char *mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };*/
+static const char *const mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 static const char mond[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
+// [FWGS, 01.03.25]
 int Q_buildnum_date (const char *date)
 	{
 	int b;
@@ -44,9 +48,34 @@ int Q_buildnum_date (const char *date)
 	return b;
 	}
 
+// [FWGS, 01.03.25]
+int Q_buildnum_iso (const char *date)
+	{
+	int y, m, d, b, i;
+
+	if (sscanf (date, "%d-%d-%d", &y, &m, &d) != 3 || (y <= 1900) || (m <= 0) || (d <= 0))
+		return -1;
+
+	// fixup day and month
+	m--;
+	d--;
+
+	for (i = 0; i < m; i++)
+		d += mond[i];
+
+	y -= 1900;
+	b = d + (int)((y - 1) * 365.25f);
+
+	if (((y % 4) == 0) && m > 1)
+		b += 1;
+	b -= 41728; // Apr 1 2015
+
+	return b;
+	}
+
 /***
 ===============
-Q_buildnum [FWGS, 01.05.23]
+Q_buildnum [FWGS, 01.03.25]
 
 returns days since Apr 1 2015
 ===============
@@ -55,8 +84,16 @@ int Q_buildnum (void)
 	{
 	static int b = 0;
 
-	if (!b)
-		b = Q_buildnum_date (__DATE__);
+	/*if (!b)
+		b = Q_buildnum_date (__DATE__);*/
+	if (b)
+		return b;
+
+	if (COM_CheckString (g_buildcommit_date))
+		b = Q_buildnum_iso (g_buildcommit_date);
+
+	if (b <= 0)
+		b = Q_buildnum_date (g_build_date);
 
 	return b;
 	}

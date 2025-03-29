@@ -25,13 +25,14 @@ GNU General Public License for more details
 
 #include "platform/platform.h"
 
-void *in_mousecursor;
+void		*in_mousecursor;
 qboolean	in_mouseactive;				// false when not focus app
 qboolean	in_mouseinitialized;
 qboolean	in_mouse_suspended;
 POINT		in_lastvalidpos;
 qboolean	in_mouse_savedpos;
-static int in_mstate = 0;
+static int	in_mstate = 0;
+
 static struct inputstate_s
 	{
 	float lastpitch, lastyaw;
@@ -72,7 +73,7 @@ uint IN_CollectInputDevices (void)
 	if (!m_ignore.value) // no way to check is mouse connected, so use cvar only
 		ret |= INPUT_DEVICE_MOUSE;
 
-	if (touch_enable.value)		// [FWGS, 01.04.23]
+	if (touch_enable.value)
 		ret |= INPUT_DEVICE_TOUCH;
 
 	if (Joy_IsActive ()) // connected or enabled
@@ -89,7 +90,7 @@ uint IN_CollectInputDevices (void)
 
 /***
 =================
-IN_LockInputDevices [FWGS, 01.07.23]
+IN_LockInputDevices
 
 tries to lock any possibilty to connect another input device after
 player is connected to the server
@@ -201,7 +202,7 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 #endif
 		}
 
-	// [FWGS, 01.11.23] don't leave the user without cursor if they enabled m_ignore
+	// don't leave the user without cursor if they enabled m_ignore
 	if (m_ignore.value)
 		return;
 
@@ -211,55 +212,31 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		IN_ActivateMouse ();
 		}
 
-// [FWGS, 01.12.24]
-/*static void IN_CheckMouseState (qboolean active)*/
-static void IN_SetRelativeMouseMode (qboolean set, qboolean verbose)
+// [FWGS, 01.03.25]
+/*static void IN_SetRelativeMouseMode (qboolean set, qboolean verbose)*/
+void IN_SetRelativeMouseMode (qboolean set)
 	{
-	/*static qboolean s_bRawInput, s_bMouseGrab;
-
-	if XASH_WIN32
-	qboolean useRawInput = (m_rawinput.value && clgame.client_dll_uses_sdl) ||
-		(clgame.dllFuncs.pfnLookEvent != NULL);
-	else
-	qboolean useRawInput = true; // always use SDL code
-	endif*/
 	static qboolean s_bRawInput;
+	qboolean verbose = m_grab_debug.value ? true : false;
 
-	/*if (m_ignore.value)
-		return;
-
-	if (active && useRawInput && !host.mouse_visible && (cls.state == ca_active))*/
 	if (set && !s_bRawInput)
 		{
-		/*if (!s_bRawInput)
-			{*/
 #if XASH_SDL == 2
-			/*SDL_GetRelativeMouseState (NULL, NULL);
-			SDL_SetRelativeMouseMode (SDL_TRUE);*/
 		SDL_GetRelativeMouseState (NULL, NULL);
 		SDL_SetRelativeMouseMode (SDL_TRUE);
 #endif
 
-		/*s_bRawInput = true;
-		}*/
 		s_bRawInput = true;
 		if (verbose)
 			Con_Printf ("%s: true\n", __func__);
 		}
 
-	/*else*/
 	else if (!set && s_bRawInput)
 		{
-		/*if (s_bRawInput)
-			{*/
 #if XASH_SDL == 2
-		/*SDL_GetRelativeMouseState (NULL, NULL);
-			SDL_SetRelativeMouseMode (SDL_FALSE);*/
 		SDL_GetRelativeMouseState (NULL, NULL);
 		SDL_SetRelativeMouseMode (SDL_FALSE);
 #endif
-		/*s_bRawInput = false;
-		}*/
 
 		s_bRawInput = false;
 		if (verbose)
@@ -267,48 +244,39 @@ static void IN_SetRelativeMouseMode (qboolean set, qboolean verbose)
 		}
 	}
 
-// [FWGS, 01.12.24]
-static void IN_SetMouseGrab (qboolean set, qboolean verbose)
+// [FWGS, 01.03.25]
+/*static void IN_SetMouseGrab (qboolean set, qboolean verbose)*/
+void IN_SetMouseGrab (qboolean set)
 	{
 	static qboolean s_bMouseGrab;
+	qboolean verbose = m_grab_debug.value ? true : false;
 
 	if (set && !s_bMouseGrab)
-		/*if (active && !host.mouse_visible && (cls.state == ca_active))*/
 		{
-		/*if (!s_bMouseGrab)
-			{*/
 #if XASH_SDL
-			/*SDL_SetWindowGrab (host.hWnd, SDL_TRUE);*/
 		SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
 #endif
-		/*s_bMouseGrab = true;
-		}*/
 		s_bMouseGrab = true;
 		if (verbose)
 			Con_Printf ("%s: true\n", __func__);
 		}
 
-	/*else*/
 	else if (!set && s_bMouseGrab)
 		{
-		/*if (s_bMouseGrab)
-			{*/
 #if XASH_SDL
-			/*SDL_SetWindowGrab (host.hWnd, SDL_FALSE);*/
 		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
 #endif
-		/*s_bMouseGrab = false;
-		}*/
 		s_bMouseGrab = false;
 		if (verbose)
 			Con_Printf ("%s: false\n", __func__);
 		}
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.25]
 static void IN_CheckMouseState (qboolean active)
 	{
-	qboolean use_raw_input, verbose;
+	/*qboolean use_raw_input, verbose;*/
+	qboolean use_raw_input;
 
 #if XASH_WIN32
 	use_raw_input = (m_rawinput.value && clgame.client_dll_uses_sdl) || (clgame.dllFuncs.pfnLookEvent != NULL);
@@ -316,20 +284,24 @@ static void IN_CheckMouseState (qboolean active)
 	use_raw_input = true; // always use SDL code
 #endif
 
-	verbose = m_grab_debug.value ? true : false;
+	/*verbose = m_grab_debug.value ? true : false;*/
 
 	if (m_ignore.value)
 		active = false;
 
 	if (active && use_raw_input && !host.mouse_visible && (cls.state == ca_active))
-		IN_SetRelativeMouseMode (true, verbose);
+		/*IN_SetRelativeMouseMode (true, verbose);*/
+		IN_SetRelativeMouseMode (true);
 	else
-		IN_SetRelativeMouseMode (false, verbose);
+		/*IN_SetRelativeMouseMode (false, verbose);*/
+		IN_SetRelativeMouseMode (false);
 
 	if (active && !host.mouse_visible && (cls.state == ca_active))
-		IN_SetMouseGrab (true, verbose);
+		/*IN_SetMouseGrab (true, verbose);*/
+		IN_SetMouseGrab (true);
 	else
-		IN_SetMouseGrab (false, verbose);
+		/*IN_SetMouseGrab (false, verbose);*/
+		IN_SetMouseGrab (false);
 	}
 
 /***
@@ -380,8 +352,9 @@ static void IN_MouseMove (void)
 	if (!in_mouseinitialized)
 		return;
 
-	// touch emulation overrides all input
-	if (Touch_Emulated ())
+	// [FWGS, 01.03.25] touch emulation overrides all input
+	/*if (Touch_Emulated ())*/
+	if (Touch_WantVisibleCursor ())
 		{
 		Touch_KeyEvent (0, 0);
 		return;
@@ -410,8 +383,9 @@ void IN_MouseEvent (int key, int down)
 	else
 		ClearBits (in_mstate, BIT (key));
 
-	// touch emulation overrides all input
-	if (Touch_Emulated ())
+	// [FWGS, 01.03.25] touch emulation overrides all input
+	/*if (Touch_Emulated ())*/
+	if (Touch_WantVisibleCursor ())
 		{
 		Touch_KeyEvent (K_MOUSE1 + key, down);
 		}
@@ -435,7 +409,7 @@ void IN_MouseEvent (int key, int down)
 
 /***
 ==============
-IN_MWheelEvent [FWGS, 01.04.23]
+IN_MWheelEvent
 
 direction is negative for wheel down, otherwise wheel up
 ==============
@@ -473,7 +447,6 @@ IN_Init
 ***/
 void IN_Init (void)
 	{
-	// [FWGS, 01.07.23]
 	Cvar_RegisterVariable (&cl_forwardspeed);
 	Cvar_RegisterVariable (&cl_backspeed);
 	Cvar_RegisterVariable (&cl_sidespeed);
@@ -620,7 +593,6 @@ Called from cl_main.c after generating command in client
 void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active)
 	{
 	float	forward, side, pitch, yaw;
-	/*usercmd_t	*cmd = cmd1;*/
 
 	if (clgame.dllFuncs.pfnLookEvent)
 		return;
@@ -657,9 +629,7 @@ static void IN_Commands (void)
 		{
 		float forward = 0, side = 0, pitch = 0, yaw = 0;
 
-		// [FWGS, 01.07.23]
 		IN_CollectInput (&forward, &side, &pitch, &yaw, in_mouseinitialized && !m_ignore.value);
-
 		if (cls.key_dest == key_game)
 			{
 			clgame.dllFuncs.pfnLookEvent (yaw, pitch);
@@ -682,7 +652,6 @@ Called every frame, even if not generating commands
 ***/
 void Host_InputFrame (void)
 	{
-	/*Sys_SendKeyEvents ();*/
 	IN_Commands ();
 	IN_MouseMove ();
 	}

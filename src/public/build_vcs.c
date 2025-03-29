@@ -17,3 +17,7 @@ GNU General Public License for more details
 
 const char *g_buildcommit = XASH_BUILD_COMMIT;
 const char *g_buildbranch = XASH_BUILD_BRANCH;
+
+// [FWGS, 01.03.25]
+const char *g_buildcommit_date = "01.03.2025";
+const char *g_build_date = __DATE__;

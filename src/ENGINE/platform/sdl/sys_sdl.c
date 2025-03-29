@@ -22,9 +22,6 @@ GNU General Public License for more details
 // [FWGS, 01.02.25]
 double Platform_DoubleTime (void)
 	{
-	/*static longtime_t g_PerformanceFrequency;
-	static longtime_t g_ClockStart;
-	longtime_t CurrentTime;*/
 	static Uint64 g_PerformanceFrequency;
 	static Uint64 g_ClockStart;
 	Uint64 CurrentTime;
@@ -39,11 +36,12 @@ double Platform_DoubleTime (void)
 	return (double)(CurrentTime - g_ClockStart) / (double)(g_PerformanceFrequency);
 	}
 
-// [FWGS, 25.12.24] removed Platform_Sleep
-/*void Platform_Sleep (int msec)
+// [FWGS, 01.03.25]
+void Platform_Sleep (int msec)
 	{
 	SDL_Delay (msec);
-	}*/
+	}
+
 #endif
 
 #if XASH_MESSAGEBOX == MSGBOX_SDL
@@ -54,7 +52,6 @@ void Platform_MessageBox (const char *title, const char *message, qboolean paren
 #endif
 
 // [FWGS, 01.02.25]
-/*void SDLash_Init (void)*/
 static const char *SDLash_CategoryToString (int category)
 	{
 	switch (category)
@@ -107,7 +104,7 @@ static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_
 		}
 	}
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.03.25]
 void SDLash_Init (const char *basedir)
 	{
 #if XASH_APPLE
@@ -116,7 +113,8 @@ void SDLash_Init (const char *basedir)
 		{
 		char buf[MAX_VA_STRING];
 
-		Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", basedir, path);
+		/*Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", basedir, path);*/
+		Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, basedir);
 		setenv ("XASH3D_EXTRAS_PAK1", buf, true);
 		}
 #endif
@@ -140,8 +138,13 @@ void SDLash_Init (const char *basedir)
 		host.type = HOST_DEDICATED;
 		}
 
-#if XASH_SDL == 2
+	// [FWGS, 01.03.25]
+/*if XASH_SDL == 2
+	SDL_SetHint (SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");*/
+#if SDL_MAJOR_VERSION >= 2
 	SDL_SetHint (SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
+	SDL_SetHint (SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+	SDL_SetHint (SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 	SDL_StopTextInput ();
 #endif
 

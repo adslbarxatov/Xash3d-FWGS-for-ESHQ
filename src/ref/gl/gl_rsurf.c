@@ -26,7 +26,8 @@ typedef struct
 	byte		lightmap_buffer[BLOCK_SIZE_MAX * BLOCK_SIZE_MAX * 4];
 	} gllightmapstate_t;
 
-static int		nColinElim; // stats
+// [FWGS, 01.03.25]
+/*static int		nColinElim; // stats*/
 static vec2_t	world_orthocenter;
 static vec2_t	world_orthohalf;
 static uint		r_blocklights[BLOCK_SIZE_MAX * BLOCK_SIZE_MAX * 3];
@@ -135,10 +136,7 @@ static void R_TextureCoord (const vec3_t v, const msurface_t *surf, vec2_t coord
 static void R_GetEdgePosition (const model_t *mod, const msurface_t *fa, int i, vec3_t vec)
 	{
 	const int	lindex = mod->surfedges[fa->firstedge + i];
-	/*const medge_t	*pedges = mod->edges;*/
 
-	/*if (lindex > 0)
-		VectorCopy (mod->vertexes[pedges[lindex].v[0]].position, vec);*/
 	if (FBitSet (mod->flags, MODEL_QBSP2))
 		{
 		const medge32_t *pedges = mod->edges32;
@@ -149,7 +147,6 @@ static void R_GetEdgePosition (const model_t *mod, const msurface_t *fa, int i, 
 			VectorCopy (mod->vertexes[pedges[-lindex].v[1]].position, vec);
 		}
 	else
-		/*VectorCopy (mod->vertexes[pedges[-lindex].v[1]].position, vec);*/
 		{
 		const medge16_t *pedges = mod->edges16;
 
@@ -349,19 +346,22 @@ void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 
 /***
 ================
-GL_BuildPolygonFromSurface [FWGS, 01.09.24]
+GL_BuildPolygonFromSurface [FWGS, 01.03.25]
 ================
 ***/
-void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
+/*void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)*/
+static int GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 	{
-	int				i, lnumverts;
+	/*int				i, lnumverts;*/
+	int				i, lnumverts, nColinElim = 0;
 	float			sample_size;
 	texture_t		*tex;
 	gl_texture_t	*glt;
 	glpoly2_t		*poly;
 
 	if (!mod || !fa->texinfo || !fa->texinfo->texture)
-		return; // bad polygon ?
+		/*return; // bad polygon ?*/
+		return nColinElim; // bad polygon ?
 
 	if (FBitSet (fa->flags, SURF_CONVEYOR) && (fa->texinfo->texture->gl_texturenum != 0))
 		{
@@ -435,6 +435,7 @@ void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa)
 		}
 
 	poly->numverts = lnumverts;
+	return nColinElim;
 	}
 
 
@@ -1186,7 +1187,7 @@ static void R_BlendLightmaps (void)
 
 /***
 ================
-R_RenderFullbrights [FWGS, 01.12.24]
+R_RenderFullbrights [FWGS, 01.03.25]
 ================
 ***/
 static void R_RenderFullbrights (void)
@@ -1194,7 +1195,6 @@ static void R_RenderFullbrights (void)
 	mextrasurf_t	*es, *p;
 	int		i;
 
-	/*if (!draw_fullbrights)*/
 	if (!R_SeparatePassActive (&draw_fullbrights))
 		return;
 
@@ -1205,11 +1205,17 @@ static void R_RenderFullbrights (void)
 	pglBlendFunc (GL_ONE, GL_ONE);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	/*for (i = 1; i < MAX_TEXTURES; i++)*/
+	// if fullbright textures are drawn in separate pass from VBO they
+	// cause z-fighting, this is noticeable on `slide_waifufu.bsp` map
+	if (R_HasEnabledVBO () && gl_polyoffset.value)
+		{
+		pglEnable (GL_POLYGON_OFFSET_FILL);
+		pglPolygonOffset (-1.0f, -gl_polyoffset.value);
+		}
+
 	for (i = draw_fullbrights.first; i <= draw_fullbrights.last; i++)
 		{
 		es = fullbright_surfaces[i];
-		/*if (!es) continue;*/
 		if (!es)
 			continue;
 
@@ -1221,6 +1227,10 @@ static void R_RenderFullbrights (void)
 		fullbright_surfaces[i] = NULL;
 		es->lumachain = NULL;
 		}
+
+	// [FWGS, 01.03.25]
+	if (R_HasEnabledVBO () && gl_polyoffset.value)
+		pglDisable (GL_POLYGON_OFFSET_FILL);
 
 	pglDisable (GL_BLEND);
 	pglDepthMask (GL_TRUE);
@@ -2580,7 +2590,7 @@ static void R_SetDecalMode (qboolean enable)
 
 /***
 ==============
-R_SetupVBOTexture // [FWGS, 01.01.24]
+R_SetupVBOTexture [FWGS, 01.01.24]
 
 setup multitexture mode before drawing VBOs
 if tex is NULL, load texture by number
@@ -2695,15 +2705,21 @@ static void R_SetupVBOArrayDlight (vboarray_t *vbo, texture_t *texture)
 
 #define SPARSE_DECALS_UPLOAD 0
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.25]
 static void R_SetupVBOArrayDecalDlight (int decalcount)
 	{
-	pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
+	/*pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);*/
+	if (vbos.decal_dlight_vbo)
+		{
+		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.decal_dlight_vbo);
 
 #if !SPARSE_DECALS_UPLOAD
-	pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * DECAL_VERTS_MAX * decalcount,
-		vbos.decal_dlight, GL_STREAM_DRAW_ARB);
+		/*pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * DECAL_VERTS_MAX * decalcount,
+			vbos.decal_dlight, GL_STREAM_DRAW_ARB);*/
+		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vbovertex_t) * DECAL_VERTS_MAX * decalcount,
+			vbos.decal_dlight, GL_STREAM_DRAW_ARB);
 #endif
+		}
 
 	R_SetDecalMode (true);
 	GL_SelectTexture (mtst.tmu_lm);
@@ -4261,7 +4277,7 @@ void GL_RebuildLightmaps (void)
 
 /***
 ==================
-GL_BuildLightmaps [FWGS, 01.12.24]
+GL_BuildLightmaps [FWGS, 01.03.25]
 
 Builds the lightmap texture
 with all the surfaces from all brush models
@@ -4269,7 +4285,8 @@ with all the surfaces from all brush models
 ***/
 void GL_BuildLightmaps (void)
 	{
-	int		i, j;
+	/*int		i, j;*/
+	int		i, j, nColinElim = 0;
 	model_t	*m;
 
 	// release old lightmaps
@@ -4284,7 +4301,9 @@ void GL_BuildLightmaps (void)
 	memset (&RI, 0, sizeof (RI));
 
 	// update the lightmap blocksize
-	if (FBitSet (gp_host->features, ENGINE_LARGE_LIGHTMAPS) || (tr.world->version == QBSP2_VERSION))
+	/*if (FBitSet (gp_host->features, ENGINE_LARGE_LIGHTMAPS) || (tr.world->version == QBSP2_VERSION))*/
+	if (FBitSet (gp_host->features, ENGINE_LARGE_LIGHTMAPS) || (tr.world->version == QBSP2_VERSION) ||
+		r_large_lightmaps.value)
 		tr.block_size = BLOCK_SIZE_MAX;
 	else
 		tr.block_size = BLOCK_SIZE_DEFAULT;
@@ -4295,13 +4314,12 @@ void GL_BuildLightmaps (void)
 	gl_lms.current_lightmap_texture = 0;
 	tr.modelviewIdentity = false;
 	tr.realframecount = 1;
-	nColinElim = 0;
+	/*nColinElim = 0;*/
 
 	// setup the texture for dlights
 	R_InitDlightTexture ();
 
 	// setup all the lightstyles
-	/*CL_RunLightStyles ();*/
 	CL_RunLightStyles ((lightstyle_t *)ENGINE_GET_PARM (PARM_GET_LIGHTSTYLES_PTR));
 
 	LM_InitBlock ();
@@ -4325,7 +4343,8 @@ void GL_BuildLightmaps (void)
 			if (m->surfaces[j].flags & SURF_DRAWTURB)
 				continue;
 
-			GL_BuildPolygonFromSurface (m, m->surfaces + j);
+			/*GL_BuildPolygonFromSurface (m, m->surfaces + j);*/
+			nColinElim += GL_BuildPolygonFromSurface (m, m->surfaces + j);
 			}
 
 		// clearing visframe

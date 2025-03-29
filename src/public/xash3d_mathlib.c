@@ -25,7 +25,6 @@ GNU General Public License for more details
 #define HULL_PRECISION	4
 
 // [FWGS, 01.12.24]
-/*vec3_t vec3_origin = { 0, 0, 0 };*/
 static const word hull_table[] = {
 	2,		4,		6,		8,
 	12,		16,		18,		24,
@@ -34,10 +33,6 @@ static const word hull_table[] = {
 	64,		72,		80,		112,
 	120,	128,	140,	176
 	};
-
-/*static word hull_table[] = { 2, 4, 6, 8, 12, 16, 18, 24, 28, 32, 36, 40, 48, 54, 56, 60, 64, 72, 80, 112, 120, 128, 140, 176 };
-
-int boxpnt[6][4] =*/
 
 // [FWGS, 01.12.24]
 const int boxpnt[6][4] =
@@ -57,21 +52,8 @@ const float m_bytenormals[NUMVERTEXNORMALS][3] =
 	};
 
 // [FWGS, 01.12.24] removed anglemod
-/*
-=================
-anglemod
-=================
-/
-float anglemod (float a)
-	{
-	a = (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
-	return a;
-	}*/
-
-// [FWGS, 01.05.23] removed SimpleSpline
 
 // [FWGS, 01.12.24]
-/*word FloatToHalf (float v)*/
 uint16_t FloatToHalf (float v)
 	{
 	unsigned int	i = FloatAsUint (v);
@@ -90,7 +72,6 @@ uint16_t FloatToHalf (float v)
 	}
 
 // [FWGS, 01.12.24]
-/*float HalfToFloat (word h)*/
 float HalfToFloat (uint16_t h)
 	{
 	unsigned int	f = (h << 16) & 0x80000000;
@@ -119,7 +100,7 @@ float HalfToFloat (uint16_t h)
 			}
 		}
 
-	return UintAsFloat (f);	// [FWGS, 01.04.23]
+	return UintAsFloat (f);
 	}
 
 /***
@@ -175,63 +156,8 @@ void RoundUpHullSize (vec3_t size)
 	}
 
 // [FWGS, 01.12.24] removed SignbitsForPlane, PlaneTypeForNormal
-/*
-=================
-SignbitsForPlane
-
-fast box on planeside test
-=================
-/
-int SignbitsForPlane (const vec3_t normal)
-	{
-	int	bits, i;
-
-	for (bits = i = 0; i < 3; i++)
-		if (normal[i] < 0.0f)
-			bits |= 1 << i;
-	return bits;
-	}*/
-
-/*
-=================
-PlaneTypeForNormal
-=================
-/
-int PlaneTypeForNormal (const vec3_t normal)
-	{
-	if (normal[0] == 1.0f)
-		return PLANE_X;
-	if (normal[1] == 1.0f)
-		return PLANE_Y;
-	if (normal[2] == 1.0f)
-		return PLANE_Z;
-	return PLANE_NONAXIAL;
-	}*/
-
-// [FWGS, 01.05.23] removed PlanesGetIntersectionPoint
 
 // [FWGS, 01.12.24] removed NearestPOW
-/*
-=================
-NearestPOW
-=================
-/
-int NearestPOW (int value, qboolean roundDown)
-	{
-	int	n = 1;
-
-	if (value <= 0)
-		return 1;
-	while (n < value)
-		n <<= 1;
-
-	if (roundDown)
-		{
-		if (n > value)
-			n >>= 1;
-		}
-	return n;
-	}*/
 
 // [FWGS, 01.05.24] removed RemapVal, ApproachVal
 
@@ -260,41 +186,6 @@ float rsqrt (float number)
 // [FWGS, 01.05.24] removed SinCos
 
 // [FWGS, 01.12.24] removed VectorCompareEpsilon, VectorNormalizeLength2
-/*
-==============
-VectorCompareEpsilon
-==============
-/
-qboolean VectorCompareEpsilon (const vec3_t vec1, const vec3_t vec2, vec_t epsilon)
-	{
-	vec_t	ax, ay, az;
-
-	ax = fabs (vec1[0] - vec2[0]);
-	ay = fabs (vec1[1] - vec2[1]);
-	az = fabs (vec1[2] - vec2[2]);
-
-	if ((ax <= epsilon) && (ay <= epsilon) && (az <= epsilon))
-		return true;
-	return false;
-	}
-
-float VectorNormalizeLength2 (const vec3_t v, vec3_t out)
-	{
-	float	length, ilength;
-
-	length = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-	length = sqrt (length);
-
-	if (length)
-		{
-		ilength = 1.0f / length;
-		out[0] = v[0] * ilength;
-		out[1] = v[1] * ilength;
-		out[2] = v[2] * ilength;
-		}
-
-	return length;
-	}*/
 
 void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up)
 	{
@@ -312,40 +203,6 @@ void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up)
 	}
 
 // [FWGS, 01.12.24] removed AngleVectors
-/*
-=================
-AngleVectors
-=================
-/
-void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
-	{
-	float	sr, sp, sy, cr, cp, cy;
-
-	SinCos (DEG2RAD (angles[YAW]), &sy, &cy);
-	SinCos (DEG2RAD (angles[PITCH]), &sp, &cp);
-	SinCos (DEG2RAD (angles[ROLL]), &sr, &cr);
-
-	if (forward)
-		{
-		forward[0] = cp * cy;
-		forward[1] = cp * sy;
-		forward[2] = -sp;
-		}
-
-	if (right)
-		{
-		right[0] = (-1.0f * sr * sp * cy + -1.0f * cr * -sy);
-		right[1] = (-1.0f * sr * sp * sy + -1.0f * cr * cy);
-		right[2] = (-1.0f * sr * cp);
-		}
-
-	if (up)
-		{
-		up[0] = (cr * sp * cy + -sr * -sy);
-		up[1] = (cr * sp * sy + -sr * cy);
-		up[2] = (cr * cp);
-		}
-	}*/
 
 /***
 =================
@@ -424,38 +281,6 @@ void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, v
 // [FWGS, 01.05.24] removed ClearBounds
 
 // [FWGS, 01.12.24] removed AddPointToBounds, ExpandBounds
-/*
-=================
-AddPointToBounds
-=================
-/
-void AddPointToBounds (const vec3_t v, vec3_t mins, vec3_t maxs)
-	{
-	float	val;
-	int	i;
-
-	for (i = 0; i < 3; i++)
-		{
-		val = v[i];
-		if (val < mins[i]) mins[i] = val;
-		if (val > maxs[i]) maxs[i] = val;
-		}
-	}*/
-
-/*
-=================
-ExpandBounds (not used anywhere?)
-=================
-/
-void ExpandBounds (vec3_t mins, vec3_t maxs, float offset)
-	{
-	mins[0] -= offset;
-	mins[1] -= offset;
-	mins[2] -= offset;
-	maxs[0] += offset;
-	maxs[1] += offset;
-	maxs[2] += offset;
-	}*/
 
 // [FWGS, 01.05.24] removed BoundsIntersect, BoundsAndSphereIntersect
 
@@ -501,68 +326,12 @@ void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, ve
 	}
 
 // [FWGS, 01.12.24] removed RadiusFromBounds
-/*
-=================
-RadiusFromBounds
-=================
-/
-float RadiusFromBounds (const vec3_t mins, const vec3_t maxs)
-	{
-	vec3_t	corner;
-	int	i;
-
-	for (i = 0; i < 3; i++)
-		{
-		corner[i] = fabs (mins[i]) > fabs (maxs[i]) ? fabs (mins[i]) : fabs (maxs[i]);
-		}
-	return VectorLength (corner);
-	}*/
 
 //
 // studio utils
 //
 
 // [FWGS, 01.12.24] removed AngleQuaternion, QuaternionAngle
-
-/*
-====================
-AngleQuaternion
-====================
-/
-void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean studio)
-	{
-	float	sr, sp, sy, cr, cp, cy;
-
-	if (studio)
-		{
-		SinCos (angles[ROLL] * 0.5f, &sy, &cy);
-		SinCos (angles[YAW] * 0.5f, &sp, &cp);
-		SinCos (angles[PITCH] * 0.5f, &sr, &cr);
-		}
-	else
-		{
-		SinCos (DEG2RAD (angles[YAW]) * 0.5f, &sy, &cy);
-		SinCos (DEG2RAD (angles[PITCH]) * 0.5f, &sp, &cp);
-		SinCos (DEG2RAD (angles[ROLL]) * 0.5f, &sr, &cr);
-		}
-
-	q[0] = sr * cp * cy - cr * sp * sy; // X
-	q[1] = cr * sp * cy + sr * cp * sy; // Y
-	q[2] = cr * cp * sy - sr * sp * cy; // Z
-	q[3] = cr * cp * cy + sr * sp * sy; // W
-	}*/
-
-/*
-====================
-QuaternionAngle
-====================
-/
-void QuaternionAngle (const vec4_t q, vec3_t angles)
-	{
-	matrix3x4	mat;
-	Matrix3x4_FromOriginQuat (mat, q, vec3_origin);
-	Matrix3x4_AnglesFromMatrix (mat, angles);
-	}*/
 
 /***
 ====================
@@ -607,7 +376,7 @@ static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec
 	float	omega, cosom, sinom, sclp, sclq;
 	int		i;
 
-	// 0.0 returns p, 1.0 return q.
+	// 0.0 returns p, 1.0 return q
 	cosom = p[0] * q[0] + p[1] * q[1] + p[2] * q[2] + p[3] * q[3];
 
 	if ((1.0f + cosom) > 0.000001f)
@@ -728,49 +497,53 @@ int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p)
 	}
 
 // [FWGS, 01.12.24] removed R_StudioSlerpBones
+
 /*
 ====================
-StudioSlerpBones [FWGS, 01.04.23]
+StudioCalcBoneQuaternion
 ====================
 /
-void R_StudioSlerpBones (int numbones, vec4_t q1[], float pos1[][3], const vec4_t q2[], const float pos2[][3], float s)
-	{
-	int	i;
-
-	s = bound (0.0f, s, 1.0f);
-
-	for (i = 0; i < numbones; i++)
-		{
-		QuaternionSlerp (q1[i], q2[i], s, q1[i]);
-		VectorLerp (pos1[i], s, pos2[i], pos1[i]);
-		}
-	}*/
-
-/***
-====================
-StudioCalcBoneQuaternion [FWGS, 01.04.23]
-====================
-***/
 void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, 
-	const float *adj, vec4_t q)
+	const float *adj, vec4_t q)*/
+
+// [FWGS, 01.03.25]
+void R_StudioCalcBones (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, const float *adj,
+	vec3_t pos, vec4_t q)
 	{
-	vec3_t	angles1;
+	/*vec3_t	angles1;
 	vec3_t	angles2;
-	int	j, k;
+	int	j, k;*/
+	float	v1[6], v2[6];
+	int		i, max;
 
-	for (j = 0; j < 3; j++)
+	/*for (j = 0; j < 3; j++)*/
+	max = q != NULL ? 6 : 3;
+
+	for (i = 0; i < max; i++)
 		{
-		if (!panim || (panim->offset[j + 3] == 0))
+		/*if (!panim || (panim->offset[j + 3] == 0))*/
+		mstudioanimvalue_t *panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[i]);
+		int j = frame;
+		float fadj = 0.0f;
+
+		if ((pbone->bonecontroller[i] >= 0) && (adj != NULL))
+			fadj = adj[pbone->bonecontroller[i]];
+
+		if (panim->offset[i] == 0)
 			{
-			angles2[j] = angles1[j] = pbone->value[j + 3]; // default;
+			/*angles2[j] = angles1[j] = pbone->value[j + 3]; // default;*/
+			v1[i] = v2[i] = pbone->value[i] + fadj;
+			continue;
 			}
-		else
+		/*else
 			{
-			mstudioanimvalue_t *panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[j + 3]);
+			mstudioanimvalue_t *panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[j + 3]);*/
 
-			k = frame;
+		/*k = frame;*/
+		if (panimvalue->num.total < panimvalue->num.valid)
+			j = 0;
 
-			// debug
+		/*// debug
 			if (panimvalue->num.total < panimvalue->num.valid)
 				k = 0;
 
@@ -778,19 +551,29 @@ void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone,
 			while (panimvalue->num.total <= k)
 				{
 				k -= panimvalue->num.total;
-				panimvalue += panimvalue->num.valid + 1;
+				panimvalue += panimvalue->num.valid + 1;*/
+		while (panimvalue->num.total <= j)
+			{
+			j -= panimvalue->num.total;
+			panimvalue += panimvalue->num.valid + 1;
 
-				// debug
+			/*// debug
 				if (panimvalue->num.total < panimvalue->num.valid)
 					k = 0;
-				}
+				}*/
+			if (panimvalue->num.total < panimvalue->num.valid)
+				j = 0;
+			}
 
-			// bah, missing blend!
+		/*// bah, missing blend!
 			if (panimvalue->num.valid > k)
 				{
-				angles1[j] = panimvalue[k + 1].value;
+				angles1[j] = panimvalue[k + 1].value;*/
+		if (panimvalue->num.valid > j)
+			{
+			v1[i] = panimvalue[j + 1].value;
 
-				if (panimvalue->num.valid > k + 1)
+			/*if (panimvalue->num.valid > k + 1)
 					{
 					angles2[j] = panimvalue[k + 2].value;
 					}
@@ -800,65 +583,86 @@ void R_StudioCalcBoneQuaternion (int frame, float s, const mstudiobone_t *pbone,
 						angles2[j] = angles1[j];
 					else angles2[j] = panimvalue[panimvalue->num.valid + 2].value;
 					}
-				}
+				}*/
+			if (panimvalue->num.valid > j + 1)
+				v2[i] = panimvalue[j + 2].value;
+			else if (panimvalue->num.total > j + 1)
+				v2[i] = v1[i];
 			else
-				{
+				/*{
 				angles1[j] = panimvalue[panimvalue->num.valid].value;
 				if (panimvalue->num.total > k + 1)
 					angles2[j] = angles1[j];
 				else angles2[j] = panimvalue[panimvalue->num.valid + 2].value;
 				}
 
-			angles1[j] = pbone->value[j + 3] + angles1[j] * pbone->scale[j + 3];
-			angles2[j] = pbone->value[j + 3] + angles2[j] * pbone->scale[j + 3];
+				angles1[j] = pbone->value[j + 3] + angles1[j] * pbone->scale[j + 3];
+				angles2[j] = pbone->value[j + 3] + angles2[j] * pbone->scale[j + 3];*/
+				v2[i] = panimvalue[panimvalue->num.valid + 2].value;
 			}
 
-		if (pbone->bonecontroller[j + 3] != -1 && adj != NULL)
+		/*if (pbone->bonecontroller[j + 3] != -1 && adj != NULL)*/
+		else
 			{
-			angles1[j] += adj[pbone->bonecontroller[j + 3]];
+			/*angles1[j] += adj[pbone->bonecontroller[j + 3]];
 			angles2[j] += adj[pbone->bonecontroller[j + 3]];
 			}
-		}
+			}*/
+			v1[i] = panimvalue[panimvalue->num.valid].value;
 
-	if (!VectorCompare (angles1, angles2))
-		{
-		vec4_t	q1, q2;
+			/*if (!VectorCompare (angles1, angles2))
+			{
+			vec4_t	q1, q2;*/
+			if (panimvalue->num.total > j + 1)
+				v2[i] = v1[i];
+			else
+				v2[i] = panimvalue[panimvalue->num.valid + 2].value;
+			}
 
-		AngleQuaternion (angles1, q1, true);
+		/*AngleQuaternion (angles1, q1, true);
 		AngleQuaternion (angles2, q2, true);
 		QuaternionSlerp (q1, q2, s, q);
 		}
-	else
+		else
 		{
-		AngleQuaternion (angles1, q, true);
+		AngleQuaternion (angles1, q, true);*/
+		v1[i] = pbone->value[i] + v1[i] * pbone->scale[i] + fadj;
+		v2[i] = pbone->value[i] + v2[i] * pbone->scale[i] + fadj;
 		}
-	}
+	/*}*/
 
-/***
+	/*
 ====================
-StudioCalcBonePosition [FWGS, 01.04.23]
+StudioCalcBonePosition
 ====================
-***/
+/
 void R_StudioCalcBonePosition (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, 
 	const float *adj, vec3_t pos)
 	{
 	vec3_t	origin1;
 	vec3_t	origin2;
-	int	j, k;
+	int	j, k;*/
+	if (!VectorCompare (v1, v2))
+		VectorLerp (v1, s, v2, pos);
+	else
+		VectorCopy (v1, pos);
 
-	for (j = 0; j < 3; j++)
+	/*for (j = 0; j < 3; j++)*/
+	if (q != NULL)
 		{
-		if (!panim || panim->offset[j] == 0)
+		/*if (!panim || panim->offset[j] == 0)*/
+		if (!VectorCompare (&v1[3], &v2[3]))
 			{
-			origin2[j] = origin1[j] = pbone->value[j]; // default;
+			/*origin2[j] = origin1[j] = pbone->value[j]; // default;
 			}
-		else
+			else
 			{
 			mstudioanimvalue_t *panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[j]);
 
-			k = frame;
+			k = frame;*/
+			vec4_t q1, q2;
 
-			// debug
+			/*// debug
 			if (panimvalue->num.total < panimvalue->num.valid)
 				k = 0;
 
@@ -898,22 +702,27 @@ void R_StudioCalcBonePosition (int frame, float s, const mstudiobone_t *pbone, c
 				}
 
 			origin1[j] = pbone->value[j] + origin1[j] * pbone->scale[j];
-			origin2[j] = pbone->value[j] + origin2[j] * pbone->scale[j];
+			origin2[j] = pbone->value[j] + origin2[j] * pbone->scale[j];*/
+			AngleQuaternion (&v1[3], q1, true);
+			AngleQuaternion (&v2[3], q2, true);
+			QuaternionSlerp (q1, q2, s, q);
 			}
 
-		if (pbone->bonecontroller[j] != -1 && adj != NULL)
+		/*if (pbone->bonecontroller[j] != -1 && adj != NULL)*/
+		else
 			{
-			origin1[j] += adj[pbone->bonecontroller[j]];
-			origin2[j] += adj[pbone->bonecontroller[j]];
+			/*origin1[j] += adj[pbone->bonecontroller[j]];
+			origin2[j] += adj[pbone->bonecontroller[j]];*/
+			AngleQuaternion (&v1[3], q, true);
 			}
 		}
 
-	if (!VectorCompare (origin1, origin2))
+	/*if (!VectorCompare (origin1, origin2))
 		{
 		VectorLerp (origin1, s, origin2, pos);
 		}
 	else
 		{
 		VectorCopy (origin1, pos);
-		}
+		}*/
 	}

@@ -81,12 +81,8 @@ CVAR_DEFINE (host_developer, "developer", "0", FCVAR_FILTERABLE,
 	"engine is in development-mode");
 CVAR_DEFINE_AUTO (sys_timescale, "1.0", FCVAR_FILTERABLE,
 	"scale frame time");
-
-/*CVAR_DEFINE_AUTO (sys_ticrate, "100", FCVAR_SERVER,
-	"framerate in dedicated mode");*/
 static CVAR_DEFINE_AUTO (sys_ticrate, "100", FCVAR_SERVER,
 	"framerate in dedicated mode");
-
 static CVAR_DEFINE_AUTO (host_serverstate, "0", FCVAR_READ_ONLY,
 	"displays current server state");
 static CVAR_DEFINE_AUTO (host_gameloaded, "0", FCVAR_READ_ONLY,
@@ -97,21 +93,16 @@ CVAR_DEFINE_AUTO (host_limitlocal, "0", 0,
 	"apply cl_cmdrate and rate to loopback connection");
 CVAR_DEFINE (host_maxfps, "fps_max", "72", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"host fps upper limit");
-
-// [FWGS, 01.12.24]
 CVAR_DEFINE_AUTO (fps_override, "1", FCVAR_FILTERABLE,
 	"unlock higher framerate values, not supported");
-
 static CVAR_DEFINE_AUTO (host_framerate, "0", FCVAR_FILTERABLE,
 	"locks frame timing to this value in seconds");
 static CVAR_DEFINE (host_sleeptime, "sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"milliseconds to sleep for each frame.higher values reduce fps accuracy");
 static CVAR_DEFINE_AUTO (host_sleeptime_debug, "0", 0,
 	"print sleeps between frames");
-
 CVAR_DEFINE_AUTO (host_allow_materials, "0", FCVAR_LATCH | FCVAR_ARCHIVE,
 	"allow texture replacements from materials/ folder");
-
 CVAR_DEFINE (con_gamemaps, "con_mapfilter", "1", FCVAR_ARCHIVE,
 	"when true show only maps in game folder");
 
@@ -124,7 +115,6 @@ typedef struct feature_message_s
 	} feature_message_t;
 
 // [FWGS, 25.12.24]
-/*static feature_message_t bugcomp_features[] =*/
 static const feature_message_t bugcomp_features[] =
 	{
 	{ BUGCOMP_PENTITYOFENTINDEX_FLAG, "pfnPEntityOfEntIndex bugfix revert", "peoei" },
@@ -134,7 +124,6 @@ static const feature_message_t bugcomp_features[] =
 	};
 
 // [FWGS, 01.12.24]
-/*static feature_message_t engine_features[] =*/
 static const feature_message_t engine_features[] =
 	{
 	{ ENGINE_WRITE_LARGE_COORD, "Big World Support" },
@@ -156,15 +145,11 @@ static void Sys_MakeVersionString (char *out, size_t len)
 		Q_buildos (), Q_buildarch (), Q_buildnum ());
 	}
 
-// [FWGS, 25.12.24]
 static void Sys_PrintUsage (const char *exename)
 	{
 	string		version_str;
 	const char	*usage_str;
 
-	/*Q_snprintf (version_str, sizeof (version_str),
-		XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
-		Q_buildos (), Q_buildarch (), Q_buildnum ());*/
 	Sys_MakeVersionString (version_str, sizeof (version_str));
 
 #if XASH_MESSAGEBOX != MSGBOX_STDERR
@@ -179,10 +164,13 @@ static void Sys_PrintUsage (const char *exename)
 
 #define O( x, y ) "  "x"  "y"\n"
 
+	// [FWGS, 01.03.25]
 	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
 		"\nCommon options:\n"
 		O ("-dev [level]       ", "set log verbosity 0-2")
-		O ("-log               ", "write log to \"engine.log\"")
+		/*O ("-log               ", "write log to \"engine.log\"")*/
+		O ("-log [file name]   ", "write log to \"engine.log\" or [file name] if specified")
+		O ("-logtime           ", "enable writing timestamps to the log file")
 		O ("-nowriteconfig     ", "disable config save")
 		O ("-noch              ", "disable crashhandler")
 #if XASH_WIN32
@@ -248,7 +236,7 @@ static void Sys_PrintUsage (const char *exename)
 #endif
 
 #if XASH_SDL == 2
-		O ("-sdl_joy_old_api   ", "use SDL legacy joystick API")
+		/*O ("-sdl_joy_old_api   ", "use SDL legacy joystick API")*/
 		O ("-sdl_renderer <n>  ", "use alternative SDL_Renderer for software")
 #endif
 
@@ -282,7 +270,6 @@ static void Sys_PrintUsage (const char *exename)
 	fprintf (stderr, usage_str, exename);
 #endif
 
-	/*Sys_Quit ();*/
 	Sys_Quit (NULL);
 	}
 
@@ -312,12 +299,6 @@ static void Sys_PrintBugcompUsage (const char *exename)
 	fprintf (stderr, usage_str, exename);
 #endif
 
-	/*Sys_Quit ();
-	}
-
-	void Host_ShutdownServer (void)
-	{
-	SV_Shutdown ("Server was killed\n");*/
 	Sys_Quit (NULL);
 	}
 
@@ -329,7 +310,6 @@ static void Sys_PrintBugcompUsage (const char *exename)
 Host_PrintEngineFeatures [FWGS, 01.12.24]
 ================
 ***/
-/*static void Host_PrintFeatures (uint32_t flags, const char *s, feature_message_t *features, size_t size)*/
 static void Host_PrintFeatures (uint32_t flags, const char *s, const feature_message_t *features, size_t size)
 	{
 	size_t i;
@@ -348,16 +328,8 @@ Host_ValidateEngineFeatures [FWGS, 01.12.24]
 validate features bits and set host.features
 ==============
 ***/
-/*void Host_ValidateEngineFeatures (uint32_t features)*/
 void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features)
 	{
-	/*uint32_t mask = ENGINE_FEATURES_MASK;
-
-	if !XASH_DEDICATED
-	if (!Host_IsDedicated () && cls.legacymode)
-		mask = ENGINE_LEGACY_FEATURES_MASK;
-	endif*/
-
 	// don't allow unsupported bits
 	features &= mask;
 
@@ -431,17 +403,6 @@ void Host_EndGame (qboolean abort, const char *message, ...)
 	}
 
 // [FWGS, 01.07.24] removed Host_AbortCurrentFrame
-/***
-================
-Host_AbortCurrentFrame
-
-aborts the current host frame and goes on with the next one
-================
-/
-void Host_AbortCurrentFrame (void)
-	{
-	longjmp (host.abortframe, 1);
-	}*/
 
 /***
 ==================
@@ -475,9 +436,7 @@ static void Host_NewInstance (const char *name, const char *finalmsg)
 		return;
 
 	host.change_game = true;
-	/*Q_strncpy (host.finalmsg, finalmsg, sizeof (host.finalmsg));*/
 
-	/*if (!Sys_NewInstance (name))*/
 	if (!Sys_NewInstance (name, finalmsg))
 		pChangeGame (name); // call from hl.exe
 	}
@@ -516,7 +475,6 @@ static void Host_ChangeGame_f (void)
 		}
 	else
 		{
-		// [FWGS, 01.04.23]
 		char finalmsg[MAX_VA_STRING];
 
 		Q_snprintf (finalmsg, sizeof (finalmsg), "change game to '%s'", FI->games[i]->title);
@@ -533,8 +491,6 @@ static void Host_Exec_f (void)
 	{
 	string		cfgpath;
 	byte		*f;
-	/*char		*txt;
-	fs_offset_t	len;*/
 	fs_offset_t	len;
 
 	if (Cmd_Argc () != 2)
@@ -551,9 +507,9 @@ static void Host_Exec_f (void)
 		{
 		const char *unprivilegedWhitelist[] =
 			{
-				NULL, "mapdefault.cfg", "scout.cfg", "sniper.cfg",
-				"soldier.cfg", "demoman.cfg", "medic.cfg", "hwguy.cfg",
-				"pyro.cfg", "spy.cfg", "engineer.cfg", "civilian.cfg"
+			NULL, "mapdefault.cfg", "scout.cfg", "sniper.cfg",
+			"soldier.cfg", "demoman.cfg", "medic.cfg", "hwguy.cfg",
+			"pyro.cfg", "spy.cfg", "engineer.cfg", "civilian.cfg"
 			};
 
 		int i;
@@ -725,7 +681,6 @@ static void Host_GetCommands (void)
 	{
 	char *cmd;
 
-	/*while ((cmd = Sys_Input ()))*/
 	while ((cmd = Platform_Input ()))
 		{
 		Cbuf_AddText (cmd);
@@ -800,7 +755,6 @@ static qboolean Host_Autosleep (double dt, double scale)
 		return true;
 
 	// [FWGS, 01.12.24] limit fps to withing tolerable range
-	/*fps = bound (MIN_FPS, fps, MAX_FPS);*/
 	fps = bound (MIN_FPS, fps, MAX_FPS_HARD);
 
 	if (Host_IsDedicated ())
@@ -816,23 +770,27 @@ static qboolean Host_Autosleep (double dt, double scale)
 		if (dt < targetframetime * scale)
 			return false;
 		}
+
+	// [FWGS, 01.03.25]
 	else
 		{
 		static double	timewindow; // allocate a time window for sleeps
 		static int		counter; // for debug
 		static double	realsleeptime;
-		const double	sleeptime = sleep * 0.001;
+		/*const double	sleeptime = sleep * 0.001;*/
+		const double	sleeptime = sleep * 0.000001;
 
 		if (dt < targetframetime * scale)
 			{
 			// if we have allocated time window, try to sleep
 			if (timewindow > realsleeptime)
 				{
-				// [FWGS, 25.12.24] Platform_Sleep isn't guaranteed to sleep an exact amount of milliseconds
+				// Platform_Sleep isn't guaranteed to sleep an exact amount of microseconds
 				// so we measure the real sleep time and use it to decrease the window
 				double t1 = Sys_DoubleTime (), t2;
-				/*Sys_Sleep (sleep); // in msec!*/
-				Platform_Sleep (sleep);	// in msec!
+
+				/*Platform_Sleep (sleep);	// in msec!*/
+				Platform_NanoSleep (sleep * 1000); // in usec!
 
 				t2 = Sys_DoubleTime ();
 				realsleeptime = t2 - t1;
@@ -993,14 +951,12 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 
 	// [FWGS, 01.02.25] to avoid multply calls per frame
 	host.errorframe = host.framecount;
-	/*Q_snprintf (host.finalmsg, sizeof (host.finalmsg), "Server crashed: %s", hosterror1);*/
 
 	// clearing cmd buffer to prevent execute any commands
 	COM_InitHostState ();
 	Cbuf_Clear ();
 
 	// [FWGS, 22.01.25] drop clients
-	/*Host_ShutdownServer ();*/
 	SV_Shutdown ("Server was killed due to an error\n");
 	CL_Drop ();
 
@@ -1084,7 +1040,6 @@ static void Host_RunTests (int stage)
 #endif
 			Msg ("Done! %d passed, %d failed\n", tests_stats.passed, tests_stats.failed);
 			error_on_exit = tests_stats.failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
-			/*Sys_Quit ();*/
 			Sys_Quit (NULL);
 		}
 	}
@@ -1189,8 +1144,10 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 			Sys_PrintBugcompUsage (exename);
 		}
 
+	// [FWGS, 01.03.25]
 	if (!Sys_CheckParm ("-noch"))
-		Sys_SetupCrashHandler ();
+		/*Sys_SetupCrashHandler ();*/
+		Sys_SetupCrashHandler (argv[0]);
 
 #if XASH_DLL_LOADER
 	host.enabledll = !Sys_CheckParm ("-nodll");
@@ -1259,7 +1216,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	// [FWGS, 01.12.24]
 	if (Sys_GetParmFromCmdLine ("-sys_ticrate", ticrate))
 		{
-		/*double fps = bound (MIN_FPS, atof (ticrate), MAX_FPS);*/
 		double fps = bound (MIN_FPS, atof (ticrate), MAX_FPS_HARD);
 		Cvar_SetValue ("sys_ticrate", fps);
 		}
@@ -1277,7 +1233,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 #endif
 
 	// [FWGS, 01.02.25]
-	/*Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED));*/
 	Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED), basedir);
 	FS_Init (basedir);
 	Sys_InitLog ();
@@ -1346,7 +1301,7 @@ static void Sys_Quit_f (void)
 
 /***
 =================
-Host_Main [FWGS, 01.08.24]
+Host_Main
 =================
 ***/
 int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
@@ -1391,8 +1346,6 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 		XASH_COMPAT_VERSION, Q_buildnum_compat ());
 
 	// [FWGS, 01.02.25]
-	/*Cvar_Getf ("host_ver", FCVAR_READ_ONLY, "detailed info about this build",
-		"%i " XASH_VERSION " %s %s %s", Q_buildnum (), Q_buildos (), Q_buildarch (), Q_buildcommit ());*/
 	Cvar_Getf ("host_ver", FCVAR_READ_ONLY, "detailed info about this build", "%i " XASH_VERSION " %s %s %s",
 		Q_buildnum (), Q_buildos (), Q_buildarch (), g_buildcommit);
 
@@ -1419,8 +1372,9 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	SV_Init ();
 	CL_Init ();
 
+	// [FWGS, 01.03.25]
 	HTTP_Init ();
-	ID_Init ();
+	/*ID_Init ();*/
 	SoundList_Init ();
 
 	if (Host_IsDedicated ())
@@ -1503,6 +1457,9 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 
 	SCR_CheckStartupVids ();	// must be last
 
+	// [FWGS, 01.03.25]
+	FS_CheckConfig ();
+
 	if (Sys_GetParmFromCmdLine ("-timedemo", demoname))
 		Cbuf_AddTextf ("timedemo %s\n", demoname);
 
@@ -1577,9 +1534,6 @@ void Host_ShutdownWithReason (const char *reason)
 		host.status = HOST_SHUTDOWN; // prepare host to normal shutdown
 
 	// [FWGS, 01.02.25]
-	/*if (!host.change_game)
-		Q_strncpy (host.finalmsg, "Server shutdown", sizeof (host.finalmsg));*/
-
 #if !XASH_DEDICATED
 	if ((host.type == HOST_NORMAL) && !error)
 		Host_WriteConfig ();
@@ -1607,6 +1561,5 @@ void Host_ShutdownWithReason (const char *reason)
 
 	// [FWGS, 01.02.25] restore filter
 	Sys_RestoreCrashHandler ();
-	/*Sys_CloseLog ();*/
 	Sys_CloseLog (reason);
 	}

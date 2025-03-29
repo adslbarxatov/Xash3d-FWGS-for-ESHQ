@@ -812,7 +812,8 @@ void GAME_EXPORT Key_Event (int key, int down)
 					}
 				break;
 
-			case key_message:
+			// [FWGS, 01.03.25]
+			/*case key_message:
 				Key_Message (key);
 				return;
 
@@ -828,7 +829,9 @@ void GAME_EXPORT Key_Event (int key, int down)
 				return;
 
 			default:
-				return;
+				return;*/
+			default:
+				break;
 			}
 		}
 
@@ -838,10 +841,6 @@ void GAME_EXPORT Key_Event (int key, int down)
 		// classic Xash3D menus don't have an extension that tells engine
 		// to enable text input
 		if (!gameui.use_extended_api)
-		/*Key_EnableTextInput (true, false);
-		
-		// pass printable chars for old menus
-		if (!gameui.use_extended_api && !host.textmode && down && (key >= 32) && (key <= 'z'))*/
 			{
 			/*if (Key_IsDown (K_SHIFT))*/
 			// we don't know if menu wants text input or not
@@ -960,14 +959,16 @@ void GAME_EXPORT Key_ClearStates (void)
 	int	i;
 
 	// [FWGS, 01.02.25] don't clear keys during changelevel
-	/*if (cls.changelevel) return;*/
 	if (cls.changelevel)
 		return;
 
+	// [FWGS, 01.03.25]
 	for (i = 0; i < 256; i++)
 		{
-		/*if (keys[i].down)*/
-		if (keys[i].down && (i < K_MOUSE1) && (i > K_MOUSE5))
+		/*if (keys[i].down && (i < K_MOUSE1) && (i > K_MOUSE5))*/
+		if ((i >= K_MOUSE1) && (i <= K_MOUSE5))
+			IN_MouseEvent (i - K_MOUSE1, false);
+		else
 			Key_Event (i, false);
 
 		keys[i].down = 0;
@@ -975,9 +976,9 @@ void GAME_EXPORT Key_ClearStates (void)
 		keys[i].gamedown = 0;
 		}
 
-	// [FWGS, 01.02.25] from K_MOUSE1 to K_MOUSE5
+	/*// [FWGS, 01.02.25] from K_MOUSE1 to K_MOUSE5
 	for (i = K_MOUSE1; i < K_MOUSE5; i++)
-		IN_MouseEvent (i - K_MOUSE1, false);
+		IN_MouseEvent (i - K_MOUSE1, false);*/
 
 	if (clgame.hInstance)
 		clgame.dllFuncs.IN_ClearStates ();
@@ -1233,7 +1234,7 @@ static qboolean OSK_KeyEvent (int key, int down)
 
 /***
 =============
-Joy_EnableTextInput
+OSK_EnableTextInput
 
 Enables built-in IME
 =============

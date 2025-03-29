@@ -16,7 +16,6 @@ GNU General Public License for more details
 #include "common.h"
 
 // [FWGS, 01.02.25]
-/*define MEMHEADER_SENTINEL1	0xDEADF00DU*/
 #define MEMHEADER_SENTINEL1 0xA1BAU
 #define MEMHEADER_SENTINEL2	0xDFU
 
@@ -58,16 +57,6 @@ static void *Q_realloc (void *mem, size_t size)
 // on LP64 it's 40 bytes, which is also aligned to 8 byte boundary
 typedef struct memheader_s
 	{
-	/*struct memheader_s	*next;		// next and previous memheaders in chain belonging to pool
-	struct memheader_s	*prev;
-	const char			*filename;	// file name and line where Mem_Alloc was called
-	size_t				size;		// size of the memory after the header (excluding header and sentinel2)
-	poolhandle_t		poolptr;	// pool this memheader belongs to
-	int					fileline;
-	if !XASH_64BIT
-	uint32_t			pad0;		// doesn't have value, only to make Mem_Alloc return aligned addresses on ILP32
-	endif
-	uint32_t			sentinel1;	// should always be MEMHEADER_SENTINEL1*/
 	struct memheader_s	*next, *prev;	// next and previous memheaders in chain belonging to pool
 	const char		*filename;			// file name and line where Mem_Alloc was called
 	size_t			size;				// size of the memory after the header (excluding header and sentinel2)
@@ -77,16 +66,12 @@ typedef struct memheader_s
 	} memheader_t;
 // immediately followed by data, which is followed by a MEMHEADER_SENTINEL2 byte
 
+// [FWGS, 01.03.25]
+STATIC_CHECK_SIZEOF (memheader_t, 24, 40);
+
 // [FWGS, 01.02.25]
 typedef struct mempool_s
 	{
-	/*struct memheader_s	*chain;	// chain of individual memory allocations
-	size_t		totalsize;		// total memory allocated in this pool (inside memheaders)
-	size_t		realsize;		// total memory allocated in this pool (actual malloc total)
-	size_t		lastchecksize;	// updated each time the pool is displayed by memlist
-	const char	*filename;		// file name and line where Mem_AllocPool was called
-	int			fileline;
-	char		name[64];		// name of the pool*/
 	struct memheader_s	*chain;	// chain of individual memory allocations
 	size_t		totalsize;		// total memory allocated in this pool (inside memheaders)
 	size_t		realsize;		// total memory allocated in this pool (actual malloc total)
@@ -268,14 +253,14 @@ static void Mem_FreeBlock (memheader_t *mem, const char *filename, int fileline)
 	Q_free (mem);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.03.25]
 void _Mem_Free (void *data, const char *filename, int fileline)
 	{
 	if (data == NULL)
-		{
-		Sys_Error ("%s: data == NULL (called at %s:%i)\n", __func__, filename, fileline);
+		/*{
+		Sys_Error ("%s: data == NULL (called at %s:%i)\n", __func__, filename, fileline);*/
 		return;
-		}
+		/*}*/
 
 	Mem_FreeBlock ((memheader_t *)((byte *)data - sizeof (memheader_t)), filename, fileline);
 	}

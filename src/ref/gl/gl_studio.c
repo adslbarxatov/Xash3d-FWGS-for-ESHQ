@@ -33,12 +33,10 @@ typedef struct
 	} player_model_t;
 
 // [FWGS, 01.12.24] never gonna change, just shut up const warning
-/*cvar_t r_shadows = { (char *)"r_shadows", (char *)"0", 0 };*/
 CVAR_DEFINE_AUTO (r_shadows, "0", 0,
 	"draw ugly shadows");
 
 // [FWGS, 01.12.24]
-/*static vec3_t hullcolor[8] =*/
 static const vec3_t hullcolor[8] =
 	{
 	{ 1.0f, 1.0f, 1.0f },
@@ -125,7 +123,7 @@ typedef struct
 	uint			numelems;
 	} studio_draw_state_t;
 
-// [FWGS, 01.11.23] studio-related cvars
+// studio-related cvars
 CVAR_DEFINE_AUTO (r_studio_sort_textures, "0", FCVAR_GLCONFIG,
 	"change draw order for additive meshes");
 CVAR_DEFINE_AUTO (r_studio_drawelements, "1", FCVAR_GLCONFIG,
@@ -159,7 +157,6 @@ void R_StudioInit (void)
 
 	Matrix3x4_LoadIdentity (g_studio.rotationmatrix);
 
-	/*// g-cont. cvar disabled by Valve*/
 	g_studio.interpolate = true;
 	g_studio.framecount = 0;
 	m_fDoRemap = false;
@@ -825,12 +822,13 @@ static void R_StudioCalcRotations (cl_entity_t *e, float pos[][3], vec4_t *q, ms
 
 	R_StudioCalcBoneAdj (dadt, adj, e->curstate.controller, e->latched.prevcontroller, e->mouth.mouthopen);
 
-	// [FWGS, 01.04.23]
-	for (i = 0; i < m_pStudioHeader->numbones; i++, pbone++, panim++)
+	// [FWGS, 01.03.25]
+	/*for (i = 0; i < m_pStudioHeader->numbones; i++, pbone++, panim++)
 		{
 		R_StudioCalcBoneQuaternion (frame, s, pbone, panim, adj, q[i]);
 		R_StudioCalcBonePosition (frame, s, pbone, panim, adj, pos[i]);
-		}
+		}*/
+	R_StudioCalcBones (frame, s, pbone, panim, adj, pos[i], q[i]);
 
 	if (pseqdesc->motiontype & STUDIO_X)
 		pos[pseqdesc->motionbone][0] = 0.0f;

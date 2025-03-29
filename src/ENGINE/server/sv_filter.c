@@ -9,14 +9,12 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
 #include "common.h"
 #include "server.h"
-
-// [FWGS, 01.04.23] удалена ipfilter_s
 
 /***
 =============================================================================
@@ -269,7 +267,6 @@ CLIENT IP FILTER
 =============================================================================
 ***/
 
-// [FWGS, 01.04.23]
 typedef struct ipfilter_s
 	{
 	float endTime;
@@ -293,10 +290,11 @@ static int SV_FilterToString (char *dest, size_t size, qboolean config, ipfilter
 	return Q_snprintf (dest, size, "%s/%d (permanent)", NET_AdrToString (f->adr), f->prefixlen);
 	}
 
-// [FWGS, 01.04.23]
 static qboolean SV_IPFilterIncludesIPFilter (ipfilter_t *a, ipfilter_t *b)
 	{
-	if (a->adr.type6 != b->adr.type6)
+	// [FWGS, 01.03.25]
+	/*if (a->adr.type6 != b->adr.type6)*/
+	if (NET_NetadrType (&a->adr) != NET_NetadrType (&b->adr))
 		return false;
 
 	// can't include bigger subnet in small
@@ -309,7 +307,6 @@ static qboolean SV_IPFilterIncludesIPFilter (ipfilter_t *a, ipfilter_t *b)
 	return NET_CompareAdrByMask (a->adr, b->adr, b->prefixlen);
 	}
 
-// [FWGS, 01.04.23]
 static void SV_RemoveIPFilter (ipfilter_t *toremove, qboolean removeAll, qboolean verbose)
 	{
 	ipfilter_t *f, **back;
@@ -345,7 +342,6 @@ static void SV_RemoveIPFilter (ipfilter_t *toremove, qboolean removeAll, qboolea
 		}
 	}
 
-// [FWGS, 01.02.24]
 qboolean SV_CheckIP (netadr_t *adr)
 	{
 	ipfilter_t	*entry = ipfilter;
@@ -355,7 +351,9 @@ qboolean SV_CheckIP (netadr_t *adr)
 		if (entry->endTime && (host.realtime > entry->endTime))
 			continue;	// expired
 
-		switch (entry->adr.type6)
+		// [FWGS, 01.03.25]
+		/*switch (entry->adr.type6)*/
+		switch (NET_NetadrType (&entry->adr))
 			{
 			case NA_IP:
 			case NA_IP6:
@@ -368,7 +366,6 @@ qboolean SV_CheckIP (netadr_t *adr)
 	return false;
 	}
 
-// [FWGS, 01.04.23]
 static void SV_AddIP_PrintUsage (void)
 	{
 	Con_Printf (S_USAGE "addip <minutes> <ipaddress>\n"
@@ -378,7 +375,6 @@ static void SV_AddIP_PrintUsage (void)
 		"NOTE: IPv6 addresses only support prefix format!\n");
 	}
 
-// [FWGS, 01.04.23]
 static void SV_RemoveIP_PrintUsage (void)
 	{
 	Con_Printf (S_USAGE "removeip <ipaddress> [removeAll]\n"
@@ -386,14 +382,12 @@ static void SV_RemoveIP_PrintUsage (void)
 		"Use removeAll to delete all ip filters which ipaddress or ipaddress/CIDR includes\n");
 	}
 
-// [FWGS, 01.04.23]
 static void SV_ListIP_PrintUsage (void)
 	{
 	Con_Printf (S_USAGE "listip [ipaddress]\n"
 		S_USAGE_INDENT  "listip [ipaddress/CIDR]\n");
 	}
 
-// [FWGS, 01.04.23]
 static void SV_AddIP_f (void)
 	{
 	const char	*szMinutes = Cmd_Argv (1);
@@ -404,8 +398,7 @@ static void SV_AddIP_f (void)
 
 	if (Cmd_Argc () != 3)
 		{
-		// a1ba: kudos to rehlds for an idea of using CIDR prefixes
-		// in these commands :)
+		// a1ba: kudos to rehlds for an idea of using CIDR prefixes in these commands
 		SV_AddIP_PrintUsage ();
 		return;
 		}
@@ -446,7 +439,6 @@ static void SV_AddIP_f (void)
 		}
 	}
 
-// [FWGS, 01.04.23]
 static void SV_ListIP_f (void)
 	{
 	qboolean haveFilter = false;
@@ -490,7 +482,6 @@ static void SV_ListIP_f (void)
 		}
 	}
 
-// [FWGS, 01.04.23]
 static void SV_RemoveIP_f (void)
 	{
 	const char	*adr = Cmd_Argv (1);
@@ -516,7 +507,6 @@ static void SV_RemoveIP_f (void)
 	SV_RemoveIPFilter (&filter, removeAll, true);
 	}
 
-// [FWGS, 01.04.23]
 static void SV_WriteIP_f (void)
 	{
 	file_t *fd = FS_Open (Cvar_VariableString ("listipcfgfile"), "w", true);
@@ -544,7 +534,6 @@ static void SV_WriteIP_f (void)
 	FS_Close (fd);
 	}
 
-// [FWGS, 01.04.23]
 static void SV_InitIPFilter (void)
 	{
 	Cmd_AddRestrictedCommand ("addip", SV_AddIP_f, "add entry to IP filter");
@@ -553,7 +542,6 @@ static void SV_InitIPFilter (void)
 	Cmd_AddRestrictedCommand ("writeip", SV_WriteIP_f, "write listip.cfg");
 	}
 
-// [FWGS, 01.04.23]
 static void SV_ShutdownIPFilter (void)
 	{
 	ipfilter_t *ipList, *ipNext;
@@ -567,14 +555,12 @@ static void SV_ShutdownIPFilter (void)
 	ipfilter = NULL;
 	}
 
-// [FWGS, 01.04.23]
 void SV_InitFilter (void)
 	{
 	SV_InitIPFilter ();
 	SV_InitIDFilter ();
 	}
 
-// [FWGS, 01.04.23]
 void SV_ShutdownFilter (void)
 	{
 	SV_ShutdownIPFilter ();

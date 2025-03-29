@@ -20,17 +20,6 @@ GNU General Public License for more details
 #include "ipv6text.h"
 
 // [FWGS, 01.12.24]
-/*if XASH_WIN32
-	include "platform/win32/net.h"
-elif defined XASH_NO_NETWORK
-	include "platform/stub/net_stub.h"
-else
-	include "platform/posix/net.h"
-endif
-
-if XASH_PSVITA
-	include "platform/psvita/net_psvita.h"
-	static const struct in6_addr in6addr_any;*/
 #include "net_ws_private.h"
 
 #if XASH_SDL == 2
@@ -44,10 +33,6 @@ if XASH_PSVITA
 #define MASK_LOOPBACK		(MAX_LOOPBACK - 1)
 
 // [FWGS, 01.12.24]
-/*define MAX_ROUTEABLE_PACKET	1400
-define SPLITPACKET_MIN_SIZE	508		// RFC 791: 576(min ip packet) - 60 (ip header) - 8 (udp header)
-define SPLITPACKET_MAX_SIZE	64000
-define NET_MAX_FRAGMENTS		( NET_MAX_FRAGMENT / (SPLITPACKET_MIN_SIZE - sizeof( SPLITPACKET )))*/
 #define MAX_ROUTEABLE_PACKET	1400
 #define SPLITPACKET_MIN_SIZE	508 // RFC 791: 576(min ip packet) - 60 (ip header) - 8 (udp header)
 #define SPLITPACKET_MAX_SIZE	64000
@@ -158,7 +143,7 @@ CVAR_DEFINE (net_clockwindow, "clockwindow", "0.5", FCVAR_PRIVILEGED,
 netadr_t	net_local;
 netadr_t	net6_local;
 
-// [FWGS, 01.07.23] cvars equivalents for IPv6
+// cvars equivalents for IPv6
 static CVAR_DEFINE (net_ip6name, "ip6", "localhost", FCVAR_PRIVILEGED,
 	"network ip6 address");
 static CVAR_DEFINE (net_ip6hostport, "ip6_hostport", "0", FCVAR_READ_ONLY,
@@ -168,90 +153,10 @@ static CVAR_DEFINE (net_ip6clientport, "ip6_clientport", "0", FCVAR_READ_ONLY,
 static CVAR_DEFINE_AUTO (net6_address, "0", FCVAR_PRIVILEGED | FCVAR_READ_ONLY,
 	"contain local IPv6 address of current client");
 
-/*
-====================
-NET_ErrorString [FWGS, 01.01.24]
-====================
-/
-static char *NET_ErrorString (void)
-	{
-if XASH_WIN32
-	int	err = WSANOTINITIALISED;*/
-
 // [FWGS, 01.12.24]
 static void NET_ClearLagData (qboolean bClient, qboolean bServer);
 
 // [FWGS, 01.12.24] removed NET_ErrorString, NET_SockAddrLen
-/*	if (net.initialized)
-		err = WSAGetLastError ();
-
-	switch (err)
-		{
-		case WSAEINTR: return "WSAEINTR";
-		case WSAEBADF: return "WSAEBADF";
-		case WSAEACCES: return "WSAEACCES";
-		case WSAEFAULT: return "WSAEFAULT";
-		case WSAEINVAL: return "WSAEINVAL";
-		case WSAEMFILE: return "WSAEMFILE";
-		case WSAEWOULDBLOCK: return "WSAEWOULDBLOCK";
-		case WSAEINPROGRESS: return "WSAEINPROGRESS";
-		case WSAEALREADY: return "WSAEALREADY";
-		case WSAENOTSOCK: return "WSAENOTSOCK";
-		case WSAEDESTADDRREQ: return "WSAEDESTADDRREQ";
-		case WSAEMSGSIZE: return "WSAEMSGSIZE";
-		case WSAEPROTOTYPE: return "WSAEPROTOTYPE";
-		case WSAENOPROTOOPT: return "WSAENOPROTOOPT";
-		case WSAEPROTONOSUPPORT: return "WSAEPROTONOSUPPORT";
-		case WSAESOCKTNOSUPPORT: return "WSAESOCKTNOSUPPORT";
-		case WSAEOPNOTSUPP: return "WSAEOPNOTSUPP";
-		case WSAEPFNOSUPPORT: return "WSAEPFNOSUPPORT";
-		case WSAEAFNOSUPPORT: return "WSAEAFNOSUPPORT";
-		case WSAEADDRINUSE: return "WSAEADDRINUSE";
-		case WSAEADDRNOTAVAIL: return "WSAEADDRNOTAVAIL";
-		case WSAENETDOWN: return "WSAENETDOWN";
-		case WSAENETUNREACH: return "WSAENETUNREACH";
-		case WSAENETRESET: return "WSAENETRESET";
-		case WSAECONNABORTED: return "WSWSAECONNABORTEDAEINTR";
-		case WSAECONNRESET: return "WSAECONNRESET";
-		case WSAENOBUFS: return "WSAENOBUFS";
-		case WSAEISCONN: return "WSAEISCONN";
-		case WSAENOTCONN: return "WSAENOTCONN";
-		case WSAESHUTDOWN: return "WSAESHUTDOWN";
-		case WSAETOOMANYREFS: return "WSAETOOMANYREFS";
-		case WSAETIMEDOUT: return "WSAETIMEDOUT";
-		case WSAECONNREFUSED: return "WSAECONNREFUSED";
-		case WSAELOOP: return "WSAELOOP";
-		case WSAENAMETOOLONG: return "WSAENAMETOOLONG";
-		case WSAEHOSTDOWN: return "WSAEHOSTDOWN";
-		case WSAEDISCON: return "WSAEDISCON";
-		case WSASYSNOTREADY: return "WSASYSNOTREADY";
-		case WSAVERNOTSUPPORTED: return "WSAVERNOTSUPPORTED";
-		case WSANOTINITIALISED: return "WSANOTINITIALISED";
-		case WSAHOST_NOT_FOUND: return "WSAHOST_NOT_FOUND";
-		case WSATRY_AGAIN: return "WSATRY_AGAIN";
-		case WSANO_RECOVERY: return "WSANO_RECOVERY";
-		case WSANO_DATA: return "WSANO_DATA";
-		default: return "NO ERROR";
-		}
-else
-	return strerror (errno);
-endif
-	}
-
-_inline socklen_t NET_SockAddrLen (const struct sockaddr_storage *addr)
-	{
-	switch (addr->ss_family)
-		{
-		case AF_INET:
-			return sizeof (struct sockaddr_in);
-		case AF_INET6:
-			return sizeof (struct sockaddr_in6);
-		default:
-			return sizeof (*addr); // what the fuck is this?
-		}
-	}
-
-_inline qboolean NET_IsSocketError (int retval)*/
 
 // [FWGS, 01.12.24]
 static inline qboolean NET_IsSocketError (int retval)
@@ -263,7 +168,6 @@ static inline qboolean NET_IsSocketError (int retval)
 #endif
 	}
 
-/*_inline qboolean NET_IsSocketValid (int socket)*/
 // [FWGS, 01.12.24]
 static inline qboolean NET_IsSocketValid (int socket)
 	{
@@ -274,72 +178,68 @@ static inline qboolean NET_IsSocketValid (int socket)
 #endif
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.25]
 void NET_NetadrToIP6Bytes (uint8_t *ip6, const netadr_t *adr)
 	{
-	memcpy (ip6, adr->ip6, sizeof (adr->ip6));
+	/*memcpy (ip6, adr->ip6, sizeof (adr->ip6));*/
+	memcpy (&ip6[0], adr->ip6_0, 2);
+	memcpy (&ip6[2], adr->ip6_1, 14);
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.25]
 void NET_IP6BytesToNetadr (netadr_t *adr, const uint8_t *ip6)
 	{
-	memcpy (adr->ip6, ip6, sizeof (adr->ip6));
+	/*memcpy (adr->ip6, ip6, sizeof (adr->ip6));*/
+	memcpy (adr->ip6_0, &ip6[0], 2);
+	memcpy (adr->ip6_1, &ip6[2], 14);
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.25]
 static int NET_NetadrIP6Compare (const netadr_t *a, const netadr_t *b)
 	{
-	return memcmp (a->ip6, b->ip6, sizeof (a->ip6));
+	/*return memcmp (a->ip6, b->ip6, sizeof (a->ip6));*/
+	uint8_t ip6_a[16], ip6_b[16];
+
+	NET_NetadrToIP6Bytes (ip6_a, a);
+	NET_NetadrToIP6Bytes (ip6_b, b);
+
+	return memcmp (ip6_a, ip6_b, sizeof (ip6_a));
 	}
 
 /***
 ====================
-NET_NetadrToSockadr [FWGS, 01.12.24]
+NET_NetadrToSockadr [FWGS, 01.03.25]
 ====================
 ***/
 static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 	{
+	netadrtype_t type = NET_NetadrType (a);
 	memset (s, 0, sizeof (*s));
 
-	if (a->type == NA_BROADCAST)
+	/*if (a->type == NA_BROADCAST)*/
+	if (type == NA_BROADCAST)
 		{
-		/*((struct sockaddr_in *)s)->sin_family = AF_INET;*/
 		s->ss_family = AF_INET;
 		((struct sockaddr_in *)s)->sin_port = a->port;
 		((struct sockaddr_in *)s)->sin_addr.s_addr = INADDR_BROADCAST;
 		}
-	else if (a->type == NA_IP)
+	/*else if (a->type == NA_IP)*/
+	else if (type == NA_IP)
 		{
-		/*((struct sockaddr_in *)s)->sin_family = AF_INET;*/
 		s->ss_family = AF_INET;
 		((struct sockaddr_in *)s)->sin_port = a->port;
 		((struct sockaddr_in *)s)->sin_addr.s_addr = a->ip4;
 		}
-	else if (a->type6 == NA_IP6)
+	/*else if (a->type6 == NA_IP6)*/
+	else if (type == NA_IP6)
 		{
-		/*struct in6_addr ip6;
-		NET_NetadrToIP6Bytes (ip6.s6_addr, a);
-
-		if (IN6_IS_ADDR_V4MAPPED (&ip6))
-			{
-			((struct sockaddr_in *)s)->sin_family = AF_INET;
-			((struct sockaddr_in *)s)->sin_addr.s_addr = *(uint32_t *)(ip6.s6_addr + 12);
-			((struct sockaddr_in *)s)->sin_port = a->port;
-			}
-		else
-			{
-			((struct sockaddr_in6 *)s)->sin6_family = AF_INET6;
-			memcpy (&((struct sockaddr_in6 *)s)->sin6_addr, &ip6, sizeof (struct in6_addr));
-			((struct sockaddr_in6 *)s)->sin6_port = a->port;
-			}*/
 		s->ss_family = AF_INET6;
 		((struct sockaddr_in6 *)s)->sin6_port = a->port;
 		NET_NetadrToIP6Bytes (((struct sockaddr_in6 *)s)->sin6_addr.s6_addr, a);
 		}
-	else if (a->type6 == NA_MULTICAST_IP6)
+	/*else if (a->type6 == NA_MULTICAST_IP6)*/
+	else if (type == NA_MULTICAST_IP6)
 		{
-		/*((struct sockaddr_in6 *)s)->sin6_family = AF_INET6;
-		memcpy (((struct sockaddr_in6 *)s)->sin6_addr.s6_addr, k_ipv6Bytes_LinkLocalAllNodes, sizeof (struct in6_addr));*/
 		s->ss_family = AF_INET6;
 		((struct sockaddr_in6 *)s)->sin6_port = a->port;
 		memcpy (((struct sockaddr_in6 *)s)->sin6_addr.s6_addr, k_ipv6Bytes_LinkLocalAllNodes, sizeof (struct in6_addr));
@@ -348,27 +248,23 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 
 /***
 ====================
-NET_SockadrToNetAdr [FWGS, 01.12.24]
+NET_SockadrToNetAdr [FWGS, 01.03.25]
 ====================
 ***/
 static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 	{
 	if (s->ss_family == AF_INET)
 		{
-		a->type = NA_IP;
+		/*a->type = NA_IP;*/
+		NET_NetadrSetType (a, NA_IP);
 		a->ip4 = ((struct sockaddr_in *)s)->sin_addr.s_addr;
 		a->port = ((struct sockaddr_in *)s)->sin_port;
 		}
 	else if (s->ss_family == AF_INET6)
 		{
-		a->type6 = NA_IP6;
+		/*a->type6 = NA_IP6;*/
+		NET_NetadrSetType (a, NA_IP6);
 		NET_IP6BytesToNetadr (a, ((struct sockaddr_in6 *)s)->sin6_addr.s6_addr);
-
-		/*if (IN6_IS_ADDR_V4MAPPED (&((struct sockaddr_in6 *)s)->sin6_addr))
-			a->type = NA_IP;
-		else
-			a->type6 = NA_IP6;*/
-
 		a->port = ((struct sockaddr_in6 *)s)->sin6_port;
 		}
 	}
@@ -397,7 +293,7 @@ static qboolean NET_GetHostByName (const char *hostname, int family, struct sock
 		{
 		for (cur = ai; cur; cur = cur->ai_next)
 			{
-			if (family == AF_UNSPEC || cur->ai_family == family)
+			if ((family == AF_UNSPEC) || (cur->ai_family == family))
 				{
 				memcpy (addr, cur->ai_addr, cur->ai_addrlen);
 				ret = true;
@@ -438,7 +334,6 @@ static qboolean NET_GetHostByName (const char *hostname, int family, struct sock
 static void NET_ResolveThread (void);
 
 // [FWGS, 01.12.24]
-/*if !XASH_WIN32*/
 #if XASH_SDL == 2
 
 #define mutex_create( x ) (( x ) = SDL_CreateMutex() )
@@ -461,13 +356,6 @@ static int NET_ThreadStart (void *ununsed)
 #elif !XASH_WIN32
 
 #include <pthread.h>
-/*define mutex_lock pthread_mutex_lock
-define mutex_unlock pthread_mutex_unlock
-define exit_thread( x ) pthread_exit(x)
-define create_thread( pfn ) !pthread_create( &nsthread.thread, NULL, (pfn), NULL )
-define detach_thread( x ) pthread_detach(x)
-define mutex_t  pthread_mutex_t
-define thread_t pthread_t*/
 #define mutex_create( x ) pthread_mutex_init( &( x ), NULL )
 #define mutex_destroy( x ) pthread_mutex_destroy( &( x ))
 #define mutex_lock( x ) pthread_mutex_lock( &( x ))
@@ -485,12 +373,6 @@ static void *NET_ThreadStart (void *unused)
 
 #else
 
-/*define mutex_lock EnterCriticalSection
-define mutex_unlock LeaveCriticalSection
-define detach_thread( x ) CloseHandle(x)
-define create_thread( pfn ) ( nsthread.thread = CreateThread( NULL, 0, pfn, NULL, 0, NULL ))	// [FWGS, 01.05.23]
-define mutex_t  CRITICAL_SECTION
-define thread_t HANDLE*/
 #define mutex_create( x ) InitializeCriticalSection( &( x ))
 #define mutex_destroy( x ) DeleteCriticalSection( &( x ))
 #define mutex_lock( x ) EnterCriticalSection( &( x ))
@@ -510,44 +392,25 @@ DWORD WINAPI NET_ThreadStart (LPVOID unused)
 #endif
 
 // [FWGS, 01.12.24]
-/*ifdef DEBUG_RESOLVE
-define RESOLVE_DBG(x) Sys_PrintLog(x)
-else
-define RESOLVE_DBG(x)
-endif //  DEBUG_RESOLVE*/
 #define RESOLVE_DBG( x ) do { if( net_resolve_debug.value ) Sys_PrintLog(( x )); } while( 0 )
 
 // [FWGS, 01.12.24]
 static struct nsthread_s
 	{
-	/*mutex_t		mutexns;
-	mutex_t		mutexres;*/
 	mutex_t		mutexns;
 	mutex_t		mutexres;
 	thread_t	thread;
-	/*int			result;
-	string		hostname;
-	int			family;*/
 	int			result;
 	string		hostname;
 	int			family;
 	struct sockaddr_storage	addr;
 	qboolean	busy;
-	/*} nsthread
-	if !XASH_WIN32
-	= { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER }
-	endif
-	;*/
 	} nsthread;
 
 // [FWGS, 01.12.24]
 static void NET_InitializeCriticalSections (void)
 	{
 	net.threads_initialized = true;
-	/*if XASH_WIN32
-	InitializeCriticalSection (&nsthread.mutexns);
-	InitializeCriticalSection (&nsthread.mutexres);
-	endif*/
 	mutex_create (nsthread.mutexns);
 	mutex_create (nsthread.mutexres);
 	}
@@ -567,7 +430,6 @@ static void NET_DeleteCriticalSections (void)
 	}
 
 // [FWGS, 01.12.24]
-/*void NET_ResolveThread (void)*/
 static void NET_ResolveThread (void)
 	{
 	struct sockaddr_storage addr;
@@ -586,7 +448,6 @@ static void NET_ResolveThread (void)
 	else
 		RESOLVE_DBG ("[resolve thread] failed\n");
 
-	/*mutex_lock (&nsthread.mutexres);*/
 	mutex_lock (nsthread.mutexres);
 
 	nsthread.addr = addr;
@@ -594,7 +455,6 @@ static void NET_ResolveThread (void)
 	nsthread.result = res ? NET_EAI_OK : NET_EAI_NONAME;
 
 	RESOLVE_DBG ("[resolve thread] returning result\n");
-	/*mutex_unlock (&nsthread.mutexres);*/
 	mutex_unlock (nsthread.mutexres);
 	RESOLVE_DBG ("[resolve thread] exiting thread\n");
 	}
@@ -611,8 +471,6 @@ idnewt:28000
 192.246.40.70:28000
 =============
 ***/
-/*static net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sadr,
-	qboolean nonblocking, int family)*/
 net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sadr, qboolean nonblocking, int family)
 	{
 	int		ret = 0, port;
@@ -661,12 +519,10 @@ net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sa
 #ifdef CAN_ASYNC_NS_RESOLVE
 		if (net.threads_initialized && nonblocking)
 			{
-			/*mutex_lock (&nsthread.mutexres);*/
 			mutex_lock (nsthread.mutexres);
 
 			if (nsthread.busy)
 				{
-				/*mutex_unlock (&nsthread.mutexres);*/
 				mutex_unlock (nsthread.mutexres);
 				return NET_EAI_AGAIN;
 				}
@@ -688,10 +544,8 @@ net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sa
 				Q_strncpy (nsthread.hostname, copy, sizeof (nsthread.hostname));
 				nsthread.family = family;
 				nsthread.busy = true;
-				/*mutex_unlock (&nsthread.mutexres);*/
 				mutex_unlock (nsthread.mutexres);
 
-				/*if (create_thread (NET_ThreadStart))*/
 				if (create_thread (nsthread.thread, NET_ThreadStart))
 					{
 					asyncfailed = false;
@@ -701,14 +555,8 @@ net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sa
 				// failed to create thread
 				Con_Reportf (S_ERROR "%s: failed to create thread!\n", __func__);
 				nsthread.busy = false;
-				/*else
-					{
-					Con_Reportf (S_ERROR "%s: failed to create thread!\n", __func__);
-					nsthread.busy = false;
-					}*/
 				}
 
-			/*mutex_unlock (&nsthread.mutexres);*/
 			mutex_unlock (nsthread.mutexres);
 			}
 #endif
@@ -729,15 +577,10 @@ net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sa
 
 		if (temp.ss_family == AF_INET)
 			{
-			/*((struct sockaddr_in *)sadr)->sin_addr =
-				((struct sockaddr_in *)&temp)->sin_addr;*/
 			((struct sockaddr_in *)sadr)->sin_addr = ((struct sockaddr_in *)&temp)->sin_addr;
 			}
 		else if (temp.ss_family == AF_INET6)
 			{
-			/*memcpy (&((struct sockaddr_in6 *)sadr)->sin6_addr,
-				&((struct sockaddr_in6 *)&temp)->sin6_addr,
-				sizeof (struct in6_addr));*/
 			((struct sockaddr_in6 *)sadr)->sin6_addr = ((struct sockaddr_in6 *)&temp)->sin6_addr;
 			}
 		}
@@ -752,10 +595,10 @@ NET_StringToFilterAdr
 ***/
 qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 	{
-	char copy[128], *temp;
-	qboolean hasCIDR = false;
-	byte ip6[16];
-	uint len;
+	char		copy[128], *temp;
+	qboolean	hasCIDR = false;
+	byte		ip6[16];
+	uint		len;
 
 	if (!COM_CheckStringEmpty (s))
 		return false;
@@ -776,11 +619,12 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 			}
 		}
 
-	// try to parse as IPv6 first
+	// [FWGS, 01.03.25] try to parse as IPv6 first
 	if (ParseIPv6Addr (copy, ip6, NULL, NULL))
 		{
+		NET_NetadrSetType (adr, NA_IP6);
 		NET_IP6BytesToNetadr (adr, ip6);
-		adr->type6 = NA_IP6;
+		/*adr->type6 = NA_IP6;*/
 
 		if (!hasCIDR)
 			*prefixlen = 128;
@@ -850,7 +694,9 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 			adr->ip4 = ntohl (mask);
 			}
 
-		adr->type = NA_IP;
+		// [FWGS, 01.03.25]
+		/*adr->type = NA_IP;*/
+		NET_NetadrSetType (adr, NA_IP);
 		}
 
 	return true;
@@ -858,17 +704,20 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 
 /***
 ====================
-NET_AdrToString [FWGS, 01.11.23]
+NET_AdrToString [FWGS, 01.03.25]
 ====================
 ***/
 const char *NET_AdrToString (const netadr_t a)
 	{
 	static char s[64];
+	netadrtype_t type = NET_NetadrType (&a);
 
-	if (a.type == NA_LOOPBACK)
+	/*if (a.type == NA_LOOPBACK)*/
+	if (type == NA_LOOPBACK)
 		return "loopback";
 
-	if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))
+	/*if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))*/
+	if ((type == NA_IP6) || (type == NA_MULTICAST_IP6))
 		{
 		uint8_t ip6[16];
 
@@ -886,17 +735,20 @@ const char *NET_AdrToString (const netadr_t a)
 
 /***
 ====================
-NET_BaseAdrToString [FWGS, 01.11.23]
+NET_BaseAdrToString [FWGS, 01.03.25]
 ====================
 ***/
 const char *NET_BaseAdrToString (const netadr_t a)
 	{
 	static char s[64];
+	netadrtype_t type = NET_NetadrType (&a);
 
-	if (a.type == NA_LOOPBACK)
+	/*if (a.type == NA_LOOPBACK)*/
+	if (type == NA_LOOPBACK)
 		return "loopback";
 
-	if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))
+	/*if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))*/
+	if ((type == NA_IP6) || (type == NA_MULTICAST_IP6))
 		{
 		uint8_t ip6[16];
 
@@ -914,23 +766,30 @@ const char *NET_BaseAdrToString (const netadr_t a)
 
 /***
 ===================
-NET_CompareBaseAdr
+NET_CompareBaseAdr [FWGS, 01.03.25]
 
 Compares without the port
 ===================
 ***/
 qboolean NET_CompareBaseAdr (const netadr_t a, const netadr_t b)
 	{
-	if (a.type6 != b.type6)
+	/*if (a.type6 != b.type6)*/
+	netadrtype_t type_a = NET_NetadrType (&a);
+	netadrtype_t type_b = NET_NetadrType (&b);
+
+	if (type_a != type_b)
 		return false;
 
-	if (a.type == NA_LOOPBACK)
+	/*if (a.type == NA_LOOPBACK)*/
+	if (type_a == NA_LOOPBACK)
 		return true;
 
-	if (a.type == NA_IP)
+	/*if (a.type == NA_IP)*/
+	if (type_a == NA_IP)
 		return a.ip4 == b.ip4;
 
-	if (a.type6 == NA_IP6)
+	/*if (a.type6 == NA_IP6)*/
+	if (type_a == NA_IP)
 		{
 		if (!NET_NetadrIP6Compare (&a, &b))
 			return true;
@@ -939,13 +798,14 @@ qboolean NET_CompareBaseAdr (const netadr_t a, const netadr_t b)
 	return false;
 	}
 
-/***
+// [FWGS, 01.03.25] removed NET_CompareClassBAdr
+/*
 ====================
 NET_CompareClassBAdr
 
 Compare local masks
 ====================
-***/
+/
 qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b)
 	{
 	if (a.type6 != b.type6)
@@ -967,33 +827,39 @@ qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b)
 	// for real mask compare use NET_CompareAdrByMask
 
 	return false;
-	}
+	}*/
 
 /***
 ====================
-NET_CompareAdrByMask
+NET_CompareAdrByMask [FWGS, 01.03.25]
 
 Checks if adr is a part of subnet
 ====================
 ***/
 qboolean NET_CompareAdrByMask (const netadr_t a, const netadr_t b, uint prefixlen)
 	{
-	if ((a.type6 != b.type6) || (a.type == NA_LOOPBACK))
+	/*if ((a.type6 != b.type6) || (a.type == NA_LOOPBACK))*/
+	netadrtype_t type_a = NET_NetadrType (&a);
+	netadrtype_t type_b = NET_NetadrType (&b);
+
+	if ((type_a != type_b) || (type_a == NA_LOOPBACK))
 		return false;
 
-	if (a.type == NA_IP)
+	/*if (a.type == NA_IP)*/
+	if (type_a == NA_IP)
 		{
-		uint32_t ipa = htonl (a.ip4);
-		uint32_t ipb = htonl (b.ip4);
+		uint32_t	ipa = htonl (a.ip4);
+		uint32_t	ipb = htonl (b.ip4);
 
 		if ((ipa & ((0xFFFFFFFFU) << (32 - prefixlen))) == ipb)
 			return true;
 		}
-	else if (a.type6 == NA_IP6)
+	/*else if (a.type6 == NA_IP6)*/
+	else if (type_a == NA_IP6)
 		{
-		uint16_t a_[8], b_[8];
-		size_t check = prefixlen / 16;
-		size_t remaining = prefixlen % 16;
+		uint16_t	a_[8], b_[8];
+		size_t		check = prefixlen / 16;
+		size_t		remaining = prefixlen % 16;
 
 		// convert to 16-bit pieces first
 		NET_NetadrToIP6Bytes ((uint8_t *)a_, &a);
@@ -1025,18 +891,22 @@ qboolean NET_CompareAdrByMask (const netadr_t a, const netadr_t b, uint prefixle
 
 /***
 ====================
-NET_IsReservedAdr
+NET_IsReservedAdr [FWGS, 01.03.25]
 
 Check for reserved ip's
 ====================
 ***/
 qboolean NET_IsReservedAdr (netadr_t a)
 	{
-	if (a.type == NA_LOOPBACK)
+	/*if (a.type == NA_LOOPBACK)*/
+	netadrtype_t type_a = NET_NetadrType (&a);
+
+	if (type_a == NA_LOOPBACK)
 		return true;
 
 	// Following checks was imported from GameNetworkingSockets library
-	if (a.type == NA_IP)
+	/*if (a.type == NA_IP)*/
+	if (type_a == NA_IP)
 		{
 		if ((a.ip[0] == 10) || // 10.x.x.x is reserved
 			(a.ip[0] == 127) || // 127.x.x.x
@@ -1048,7 +918,8 @@ qboolean NET_IsReservedAdr (netadr_t a)
 			}
 		}
 
-	if (a.type6 == NA_IP6)
+	/*if (a.type6 == NA_IP6)*/
+	if (type_a == NA_IP6)
 		{
 		uint8_t ip6[16];
 
@@ -1070,20 +941,26 @@ qboolean NET_IsReservedAdr (netadr_t a)
 
 /***
 ====================
-NET_CompareAdr
+NET_CompareAdr [FWGS, 01.03.25]
 
 Compare full address
 ====================
 ***/
 qboolean NET_CompareAdr (const netadr_t a, const netadr_t b)
 	{
-	if (a.type6 != b.type6)
+	/*if (a.type6 != b.type6)*/
+	netadrtype_t type_a = NET_NetadrType (&a);
+	netadrtype_t type_b = NET_NetadrType (&b);
+
+	if (type_a != type_b)
 		return false;
 
-	if (a.type == NA_LOOPBACK)
+	/*if (a.type == NA_LOOPBACK)*/
+	if (type_a == NA_LOOPBACK)
 		return true;
 
-	if (a.type == NA_IP)
+	/*if (a.type == NA_IP)*/
+	if (type_a == NA_IP)
 		{
 		if ((a.ip4 == b.ip4) && (a.port == b.port))
 			return true;
@@ -1091,24 +968,22 @@ qboolean NET_CompareAdr (const netadr_t a, const netadr_t b)
 		return false;
 		}
 
-	// [FWGS, 01.12.24]
-	if (a.type6 == NA_IP6)
+	/*if (a.type6 == NA_IP6)*/
+	if (type_a == NA_IP6)
 		{
 		if ((a.port == b.port) && !NET_NetadrIP6Compare (&a, &b))
 			return true;
 
 		return false;
-		/*return true;*/
 		}
 
-	// [FWGS, 01.07.24]
 	Con_DPrintf (S_ERROR "%s: bad address type\n", __func__);
 	return false;
 	}
 
 /***
 ====================
-NET_CompareAdrSort
+NET_CompareAdrSort [FWGS, 01.03.25]
 
 Network address sorting comparator
 guaranteed to return -1, 0 or 1
@@ -1118,9 +993,15 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 	{
 	const netadr_t *a = _a, *b = _b;
 	int porta, portb, portdiff, addrdiff;
+	netadrtype_t type_a, type_b;
 
-	if (a->type6 != b->type6)
-		return bound (-1, (int)a->type6 - (int)b->type6, 1);
+	type_a = NET_NetadrType (a);
+	type_b = NET_NetadrType (b);
+
+	/*if (a->type6 != b->type6)
+		return bound (-1, (int)a->type6 - (int)b->type6, 1);*/
+	if (type_a != type_b)
+		return bound (-1, (int)type_a - (int)type_b, 1);
 
 	porta = ntohs (a->port);
 	portb = ntohs (b->port);
@@ -1132,7 +1013,8 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 	else
 		portdiff = 0;
 
-	switch (a->type6)
+	/*switch (a->type6)*/
+	switch (type_a)
 		{
 		case NA_IP6:
 			if ((addrdiff = NET_NetadrIP6Compare (a, b)))
@@ -1141,18 +1023,20 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 
 		case NA_MULTICAST_IP6:
 			return portdiff;
-		}
+
+		/*}
 
 	// don't check for full type earlier, as it's value depends on v6 address
 	if (a->type != b->type)
 		return bound (-1, (int)a->type - (int)b->type, 1);
 
 	switch (a->type)
-		{
+		{*/
 		case NA_IP:
 			if ((addrdiff = memcmp (a->ip, b->ip, sizeof (a->ipx))))
 				return addrdiff;
 			// fallthrough
+
 		case NA_BROADCAST:
 			return portdiff;
 
@@ -1160,6 +1044,7 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 			if ((addrdiff = memcmp (a->ipx, b->ipx, sizeof (a->ipx))))
 				return addrdiff;
 			// fallthrough
+
 		case NA_BROADCAST_IPX:
 			return portdiff;
 		}
@@ -1168,15 +1053,6 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 	}
 
 // [FWGS, 01.12.24] removed NET_IsLocalAddress
-/*
-====================
-NET_IsLocalAddress
-====================
-/
-qboolean NET_IsLocalAddress (netadr_t adr)
-	{
-	return (adr.type == NA_LOOPBACK) ? true : false;
-	}*/
 
 /***
 =============
@@ -1192,13 +1068,14 @@ static qboolean NET_StringToAdrEx (const char *string, netadr_t *adr, int family
 
 	memset (adr, 0, sizeof (netadr_t));
 
+	// [FWGS, 01.03.25]
 	if (!Q_stricmp (string, "localhost") || !Q_stricmp (string, "loopback"))
 		{
-		adr->type = NA_LOOPBACK;
+		/*adr->type = NA_LOOPBACK;*/
+		NET_NetadrSetType (adr, NA_LOOPBACK);
 		return true;
 		}
 
-	// [FWGS, 01.05.23]
 	if (NET_StringToSockaddr (string, &s, false, family) != NET_EAI_OK)
 		return false;
 	NET_SockadrToNetadr (&s, adr);
@@ -1211,21 +1088,21 @@ qboolean NET_StringToAdr (const char *string, netadr_t *adr)
 	return NET_StringToAdrEx (string, adr, AF_UNSPEC);
 	}
 
-// [FWGS, 01.12.24]
-/*net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr)*/
 net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr, qboolean v6only)
 	{
 	struct sockaddr_storage s;
 	net_gai_state_t res;
 
+	// [FWGS, 01.03.25]
 	memset (adr, 0, sizeof (netadr_t));
+
 	if (!Q_stricmp (string, "localhost") || !Q_stricmp (string, "loopback"))
 		{
-		adr->type = NA_LOOPBACK;
+		/*adr->type = NA_LOOPBACK;*/
+		NET_NetadrSetType (adr, NA_LOOPBACK);
 		return NET_EAI_OK;
 		}
 
-	/*res = NET_StringToSockaddr (string, &s, true, AF_UNSPEC);*/
 	res = NET_StringToSockaddr (string, &s, true, v6only ? AF_INET6 : AF_UNSPEC);
 	if (res == NET_EAI_OK)
 		NET_SockadrToNetadr (&s, adr);
@@ -1265,8 +1142,10 @@ static qboolean NET_GetLoopPacket (netsrc_t sock, netadr_t *from, byte *data, si
 	memcpy (data, loop->msgs[i].data, loop->msgs[i].datalen);
 	*length = loop->msgs[i].datalen;
 
+	// [FWGS, 01.03.25]
 	memset (from, 0, sizeof (*from));
-	from->type = NA_LOOPBACK;
+	/*from->type = NA_LOOPBACK;*/
+	NET_NetadrSetType (from, NA_LOOPBACK);
 
 	return true;
 	}
@@ -1516,11 +1395,9 @@ receive long packet from network
 static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize, connprotocol_t proto)
 	{
 	int		i, sequence_number, offset;
-	/*SPLITPACKET	*pHeader = (SPLITPACKET *)pData;*/
 	int		packet_number;
 	int		packet_count;
 	short	packet_id;
-	/*int		body_size = splitsize - sizeof (SPLITPACKET);*/
 	size_t	header_size = proto == PROTO_GOLDSRC ? sizeof (SPLITPACKETGS) : sizeof (SPLITPACKET);
 	int		body_size = splitsize - header_size;
 	int		max_splits;
@@ -1528,17 +1405,12 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 	if (body_size < 0)
 		return false;
 
-	/*if (size < sizeof (SPLITPACKET))*/
 	if (size < header_size)
 		{
 		Con_Printf (S_ERROR "invalid split packet length %i\n", size);
 		return false;
 		}
 
-	/*sequence_number = pHeader->sequence_number;
-	packet_id = pHeader->packet_id;
-	packet_count = (packet_id & 0xFF);
-	packet_number = (packet_id >> 8);*/
 	if (proto == PROTO_GOLDSRC)
 		{
 		SPLITPACKETGS *pHeader = (SPLITPACKETGS *)pData;
@@ -1548,7 +1420,6 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 		packet_count = (packet_id & 0xF);
 		packet_number = (packet_id >> 4);
 
-		/*if ((packet_number >= NET_MAX_FRAGMENTS) || (packet_count > NET_MAX_FRAGMENTS))*/
 		max_splits = NET_MAX_GOLDSRC_FRAGMENTS;
 		}
 	else
@@ -1576,7 +1447,6 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 		net.split.total_size = 0;
 
 		// clear part's sequence
-		/*for (i = 0; i < NET_MAX_FRAGMENTS; i++)*/
 		for (i = 0; i < HLARRAYSIZE (net.split_flags); i++)
 			net.split_flags[i] = -1;
 
@@ -1584,7 +1454,6 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 			Con_Printf ("<-- Split packet restart %i count %i seq\n", net.split.split_count, sequence_number);
 		}
 
-	/*size -= sizeof (SPLITPACKET);*/
 	size -= header_size;
 
 	if (net.split_flags[packet_number] != sequence_number)
@@ -1606,7 +1475,6 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 		}
 
 	offset = (packet_number * body_size);
-	/*memcpy (net.split.buffer + offset, pData + sizeof (SPLITPACKET), size);*/
 	memcpy (net.split.buffer + offset, pData + header_size, size);
 
 	// have we received all of the pieces to the packet?
@@ -1676,13 +1544,7 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 				*length = ret;
 
 #if !XASH_DEDICATED
-				/*if (CL_LegacyMode ())
-					return NET_LagPacket (true, sock, from, length, data);
-
-				// check for split message
-				if ((sock == NS_CLIENT) && (*(int *)data == NET_HEADER_SPLITPACKET))*/
 				{
-				/*return NET_GetLong (data, ret, length, CL_GetSplitSize ());*/
 				connprotocol_t proto = CL_Protocol ();
 
 				if (proto == PROTO_LEGACY)
@@ -1803,10 +1665,11 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 			if (ret >= size)
 				total_sent += size;
 
+			// [FWGS, 01.03.25]
 			len -= size;
 			packet_number++;
-			/*Sys_Sleep (1);*/
-			Platform_Sleep (1);
+			/*Platform_Sleep (1);*/
+			Platform_NanoSleep (100 * 1000);
 			}
 
 		return total_sent;
@@ -1821,7 +1684,7 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 
 /***
 ==================
-NET_SendPacketEx
+NET_SendPacketEx [FWGS, 01.03.25]
 ==================
 ***/
 void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t to, size_t splitsize)
@@ -1829,19 +1692,23 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 	int		ret;
 	struct sockaddr_storage	addr = { 0 };
 	SOCKET	net_socket = 0;
+	netadrtype_t type = NET_NetadrType (&to);
 
-	if (!net.initialized || (to.type == NA_LOOPBACK))
+	/*if (!net.initialized || (to.type == NA_LOOPBACK))*/
+	if (!net.initialized || (type == NA_LOOPBACK))
 		{
 		NET_SendLoopPacket (sock, length, data, to);
 		return;
 		}
-	else if ((to.type == NA_BROADCAST) || (to.type == NA_IP))
+	/*else if ((to.type == NA_BROADCAST) || (to.type == NA_IP))*/
+	else if ((type == NA_BROADCAST) || (type == NA_IP))
 		{
 		net_socket = net.ip_sockets[sock];
 		if (!NET_IsSocketValid (net_socket))
 			return;
 		}
-	else if ((to.type6 == NA_MULTICAST_IP6) || (to.type6 == NA_IP6))
+	/*else if ((to.type6 == NA_MULTICAST_IP6) || (to.type6 == NA_IP6))*/
+	else if ((type == NA_MULTICAST_IP6) || (type == NA_IP6))
 		{
 		net_socket = net.ip6_sockets[sock];
 		if (!NET_IsSocketValid (net_socket))
@@ -1849,8 +1716,9 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 		}
 	else
 		{
-		// [FWGS, 01.07.24]
-		Host_Error ("%s: bad address type %i (%i)\n", __func__, to.type, to.type6);
+		/*// [FWGS, 01.07.24]
+		Host_Error ("%s: bad address type %i (%i)\n", __func__, to.type, to.type6);*/
+		Host_Error ("%s: bad address type %i (%i, %i)\n", __func__, to.type, to.ip6_0[0], to.ip6_0[1]);
 		}
 
 	NET_NetadrToSockadr (&to, &addr);
@@ -1865,10 +1733,10 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 			return;
 
 		// some PPP links don't allow broadcasts
-		if (err == WSAEADDRNOTAVAIL && ((to.type == NA_BROADCAST) || (to.type6 == NA_MULTICAST_IP6)))
+		/*if (err == WSAEADDRNOTAVAIL && ((to.type == NA_BROADCAST) || (to.type6 == NA_MULTICAST_IP6)))*/
+		if ((err == WSAEADDRNOTAVAIL) && ((type == NA_BROADCAST) || (type == NA_MULTICAST_IP6)))
 			return;
 
-		// [FWGS, 01.07.24]
 		if (Host_IsDedicated ())
 			Con_DPrintf (S_ERROR "%s: %s to %s\n", __func__, NET_ErrorString (), NET_AdrToString (to));
 		else if ((err == WSAEADDRNOTAVAIL) || (err == WSAENOBUFS))
@@ -1887,8 +1755,6 @@ void NET_SendPacket (netsrc_t sock, size_t length, const void *data, netadr_t to
 	{
 	NET_SendPacketEx (sock, length, data, to, 0);
 	}
-
-// [FWGS, 01.05.23] удалены NET_BufferToBufferCompress, NET_BufferToBufferDecompress
 
 /***
 ====================
@@ -1967,8 +1833,6 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 			NET_StringToSockaddr (net_iface, &addr, false, AF_INET6);
 		else
 			((struct sockaddr_in6 *)&addr)->sin6_addr = in6addr_any;
-		/*else
-			memcpy (((struct sockaddr_in6 *)&addr)->sin6_addr.s6_addr, &in6addr_any, sizeof (struct in6_addr));*/
 
 		if (port == PORT_ANY)
 			((struct sockaddr_in6 *)&addr)->sin6_port = 0;
@@ -2109,7 +1973,7 @@ static void NET_OpenIP (qboolean change_port, int *sockets, const char *net_ifac
 ================
 NET_GetLocalAddress
 
-Returns the servers' ip address as a string.
+Returns the servers' ip address as a string
 ================
 ***/
 static void NET_GetLocalAddress (void)
@@ -2332,7 +2196,6 @@ NET_ClearLagData [FWGS, 01.12.24]
 clear fakelag list
 ====================
 ***/
-/*void NET_ClearLagData (qboolean bClient, qboolean bServer)*/
 static void NET_ClearLagData (qboolean bClient, qboolean bServer)
 	{
 	if (bClient)
@@ -2363,6 +2226,7 @@ void NET_Init (void)
 	Cvar_RegisterVariable (&net_fakelag);
 	Cvar_RegisterVariable (&net_fakeloss);
 	Cvar_RegisterVariable (&net_resolve_debug);	// [FWGS, 01.12.24]
+	Cvar_RegisterVariable (&net_clockwindow);	// [FWGS, 01.03.25]
 
 	Q_snprintf (cmd, sizeof (cmd), "%i", PORT_SERVER);
 	Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);
