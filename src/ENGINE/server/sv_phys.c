@@ -59,6 +59,7 @@ static const vec3_t current_table[] =
 Utility functions
 ===============================================================================
 ***/
+
 /***
 ================
 SV_CheckAllEnts
@@ -223,7 +224,7 @@ SV_RunThink
 Runs thinking code if time.  There is some play in the exact time the think
 function will be called, because it is called before any movement is done
 in a frame.  Not used for pushmove objects, because they must be exact.
-Returns false if the entity removed itself.
+Returns false if the entity removed itself
 =============
 ***/
 static qboolean SV_RunThink (edict_t *ent)
@@ -257,7 +258,7 @@ SV_PlayerRunThink
 Runs thinking code if player time.  There is some play in the exact time the think
 function will be called, because it is called before any movement is done
 in a frame.  Not used for pushmove objects, because they must be exact.
-Returns false if the entity removed itself.
+Returns false if the entity removed itself
 =============
 ***/
 qboolean SV_PlayerRunThink (edict_t *ent, float frametime, double time)
@@ -580,6 +581,7 @@ static int SV_ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overboun
 FLYING MOVEMENT CODE
 ===============================================================================
 ***/
+
 /***
 ============
 SV_FlyMove
@@ -601,10 +603,12 @@ static int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
 	qboolean	monsterClip;
 	trace_t	trace;
 
+	// [FWGS, 01.04.25]
 	blocked = 0;
 	monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
 	VectorCopy (ent->v.velocity, original_velocity);
 	VectorCopy (ent->v.velocity, primal_velocity);
+	VectorClear (new_velocity);
 	numplanes = 0;
 
 	allFraction = 0.0f;

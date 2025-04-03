@@ -1728,7 +1728,6 @@ CL_FillRGBA [FWGS, 01.12.24]
 ***/
 static void GAME_EXPORT CL_FillRGBA (int x, int y, int w, int h, int r, int g, int b, int a)
 	{
-	/*float _x = x, _y = y, _w = w, _h = h;*/
 	float	x_ = x;
 	float	y_ = y;
 	float	w_ = w;
@@ -1739,24 +1738,22 @@ static void GAME_EXPORT CL_FillRGBA (int x, int y, int w, int h, int r, int g, i
 	b = bound (0, b, 255);
 	a = bound (0, a, 255);
 
-	/*SPR_AdjustSize (&_x, &_y, &_w, &_h);*/
 	SPR_AdjustSize (&x_, &y_, &w_, &h_);
-
-	/*ref.dllFuncs.FillRGBA (_x, _y, _w, _h, r, g, b, a);*/
 	ref.dllFuncs.FillRGBA (kRenderTransAdd, x_, y_, w_, h_, r, g, b, a);
 	}
 
 /***
 =============
-pfnGetScreenInfo [FWGS, 01.03.25]
+pfnGetScreenInfo [FWGS, 01.04.25]
 
 get actual screen info
 =============
 ***/
 int GAME_EXPORT CL_GetScreenInfo (SCREENINFO *pscrinfo)
 	{
-	qboolean apply_scale_factor = false;
-	float scale_factor = hud_scale.value;
+	/*qboolean apply_scale_factor = false;*/
+	qboolean	apply_scale_factor = false; // we don't want floating point inaccuracies
+	float		scale_factor = hud_scale.value;
 
 	if (FBitSet (hud_fontscale.flags, FCVAR_CHANGED))
 		{
@@ -1774,7 +1771,8 @@ int GAME_EXPORT CL_GetScreenInfo (SCREENINFO *pscrinfo)
 	if ((hud_scale.value >= 320.0f) && (hud_scale.value >= hud_scale_minimal_width.value))
 		{
 		scale_factor = refState.width / hud_scale.value;
-		apply_scale_factor = true;
+		/*apply_scale_factor = true;*/
+		apply_scale_factor = (scale_factor > 1.0f);
 		}
 	else if (scale_factor && (scale_factor != 1.0f))
 		{
@@ -3478,12 +3476,14 @@ static void GAME_EXPORT NetAPI_Status (net_status_t *status)
 	if (cls.state == ca_active)
 		packet_loss = bound (0, (int)cls.packet_loss, 100);
 
+	// [FWGS, 01.04.25]
 	status->connected = connected;
 	status->connection_time = (connected) ? (host.realtime - cls.netchan.connect_time) : 0.0;
 	status->latency = (connected) ? cl.frames[cl.parsecountmod].latency : 0.0;
 	status->remote_address = cls.netchan.remote_address;
 	status->packet_loss = packet_loss;
-	status->local_address = net_local;
+	/*status->local_address = net_local;*/
+	NET_GetLocalAddress (&status->local_address, NULL); // NetAPI doesn't know about IPv6
 	status->rate = rate.value;
 	}
 

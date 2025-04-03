@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -43,19 +43,21 @@ typedef enum
 	IL_HINT_HL,
 	} image_hint_t;
 
+// [FWGS, 01.04.25]
 typedef struct loadformat_s
 	{
-	const char *formatstring;
-	const char *ext;
-	qboolean (*loadfunc)(const char *name, const byte *buffer, fs_offset_t filesize);
-	image_hint_t hint;
+	/*const char *formatstring;*/
+	const char		*ext;
+	qboolean		(*loadfunc)(const char *name, const byte *buffer, fs_offset_t filesize);
+	image_hint_t	hint;
 	} loadpixformat_t;
 
+// [FWGS, 01.04.25]
 typedef struct saveformat_s
 	{
-	const char *formatstring;
-	const char *ext;
-	qboolean (*savefunc)(const char *name, rgbdata_t *pix);
+	/*const char *formatstring;*/
+	const char	*ext;
+	qboolean	(*savefunc)(const char *name, rgbdata_t *pix);
 	} savepixformat_t;
 
 typedef struct imglib_s
@@ -91,7 +93,7 @@ typedef struct imglib_s
 	// global parms
 	rgba_t		fogParams;		// some water textures has info about underwater fog
 
-	int			hint;			// [FWGS, 01.04.23] hint for some loaders
+	int			hint;			// hint for some loaders
 	byte		*tempbuffer;	// for convert operations
 	int			cmd_flags;		// global imglib flags
 	int			force_flags;	// override cmd_flags
@@ -161,7 +163,7 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesize);
 qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesize);
 qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesize);
-qboolean Image_LoadKTX2 (const char *name, const byte *buffer, fs_offset_t filesize);	// [FWGS, 01.11.23]
+qboolean Image_LoadKTX2 (const char *name, const byte *buffer, fs_offset_t filesize);
 
 //
 // formats save

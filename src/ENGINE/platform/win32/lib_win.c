@@ -18,6 +18,14 @@ GNU General Public License for more details
 #if XASH_LIB == LIB_WIN32
 #include "lib_win.h"
 
+// [FWGS, 01.04.25]
+static const wchar_t *FS_PathToWideChar (const char *path)
+	{
+	static wchar_t pathBuffer[MAX_PATH];
+	MultiByteToWideChar (CP_UTF8, 0, path, -1, pathBuffer, MAX_PATH);
+	return pathBuffer;
+	}
+
 static DWORD GetOffsetByRVA (DWORD rva, PIMAGE_NT_HEADERS nt_header)
 	{
 	int i = 0;
@@ -376,7 +384,6 @@ static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *dat
 	return importDesc;
 	}
 
-// [FWGS, 01.03.24]
 static void ListMissingModules (dll_user_t *hInst)
 	{
 	PIMAGE_NT_HEADERS	peHeader;
@@ -398,12 +405,14 @@ static void ListMissingModules (dll_user_t *hInst)
 		return;
 		}
 
+	// [FWGS, 01.04.25]
 	for (; !IsBadReadPtr (importDesc, sizeof (IMAGE_IMPORT_DESCRIPTOR)) && importDesc->Name; importDesc++)
 		{
 		HMODULE hMod;
 		const char *importName = (const char *)CALCULATE_ADDRESS (data, GetOffsetByRVA (importDesc->Name, peHeader));
 
-		hMod = LoadLibraryEx (importName, NULL, LOAD_LIBRARY_AS_DATAFILE);
+		/*hMod = LoadLibraryEx (importName, NULL, LOAD_LIBRARY_AS_DATAFILE);*/
+		hMod = LoadLibraryExW (FS_PathToWideChar (importName), NULL, LOAD_LIBRARY_AS_DATAFILE);
 		if (!hMod)
 			{
 			Q_snprintf (buf, sizeof (buf), "%s not found!", importName);
@@ -465,7 +474,7 @@ qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname
 
 /***
 ================
-COM_LoadLibrary [FWGS, 01.04.23]
+COM_LoadLibrary
 
 smart dll loader - can loading dlls from pack or wad files
 ================
@@ -494,13 +503,15 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 		return NULL;
 		}
 
+	// [FWGS, 01.04.25]
 #if XASH_X86
 	if (hInst->custom_loader)
 		hInst->hInstance = MemoryLoadLibrary (hInst->fullPath);
 
 	else
 #endif
-		hInst->hInstance = LoadLibrary (hInst->fullPath);
+		/*hInst->hInstance = LoadLibrary (hInst->fullPath);*/
+		hInst->hInstance = LoadLibraryW (FS_PathToWideChar (hInst->fullPath));
 
 	if (!hInst->hInstance)
 		{
@@ -627,4 +638,5 @@ const char *COM_NameForFunction (void *hInstance, void *function)
 
 	return NULL;
 	}
-#endif // _WIN32
+
+#endif

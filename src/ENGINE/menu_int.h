@@ -221,16 +221,16 @@ typedef struct ui_extendedfuncs_s
 	int		(*pfnUtfMoveLeft) (char *str, int pos);
 	int		(*pfnUtfMoveRight) (char *str, int pos, int length);
 
-	// new engine extended api start here
+	// [FWGS, 01.04.25] new engine extended api start here
 	// returns 1 if there are more in list, otherwise 0
-	int		(*pfnGetRenderers)(unsigned int num, char *shortName, size_t size1, char *readableName, size_t size2);
+	/*int		(*pfnGetRenderers)(unsigned int num, char *shortName, size_t size1, char *readableName, size_t size2);*/
+	int		(*pfnGetRenderers)(unsigned int num, char *short_name, size_t size1, char *long_name, size_t size2);
 
 	double	(*pfnDoubleTime)(void);
 
 	char	*(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
 
 	// [FWGS, 01.12.24] network address funcs
-	/*const char	*(*pfnAdrToString)(const struct netadr_s a);*/
 	const char *(*pfnAdrToString)(const struct netadr_s a) PFN_RETURNS_NONNULL;
 	int		(*pfnCompareAdr)(const void *a, const void *b);
 

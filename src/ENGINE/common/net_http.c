@@ -438,7 +438,7 @@ static int HTTP_FileDecompress (httpfile_t *file)
 		return 0;
 		}
 
-	if (hdr.magic[0] != 0x1f && hdr.magic[1] != 0x8b && hdr.method != 0x08)
+	if ((hdr.magic[0] != 0x1f) && (hdr.magic[1] != 0x8b) && (hdr.method != 0x08))
 		{
 		HTTP_FreeFile (file, true);
 		return 0;
@@ -757,6 +757,7 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 						case 404:
 							Con_Printf (S_ERROR "%s: file not found\n", curfile->path);
 							break;
+
 						default:
 							Con_Printf (S_ERROR "%s: bad response: %s\n", curfile->path, curfile->buf);
 							if (http_show_headers.value)
@@ -866,9 +867,21 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 		http.progress += (float)curfile->downloaded / curfile->size;
 		http.progress_count++;
 
+		// [FWGS, 01.04.25]
 		if (curfile->downloaded >= curfile->size)
 			{
-			HTTP_FreeFile (curfile, false); // success
+			/*HTTP_FreeFile (curfile, false); // success*/
+			// chunked files are finalized in FileSaveReceivedData
+			if (curfile->compressed && !curfile->chunked)
+				{
+				curfile->pfn_process = HTTP_FileDecompress;
+				curfile->success = true;
+				}
+			else
+				{
+				HTTP_FreeFile (curfile, false); // success
+				}
+
 			return 0;
 			}
 		}

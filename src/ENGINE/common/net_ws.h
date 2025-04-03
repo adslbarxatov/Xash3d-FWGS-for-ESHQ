@@ -90,6 +90,9 @@ static inline qboolean NET_IsLocalAddress (netadr_t adr)
 	return NET_NetadrType (&adr) == NA_LOOPBACK;
 	}
 
+// [FWGS, 01.04.25]
+void NET_GetLocalAddress (netadr_t *ip4, netadr_t *ip6);
+
 // [FWGS, 01.12.24]
 #if !XASH_DEDICATED
 int CL_GetSplitSize (void);

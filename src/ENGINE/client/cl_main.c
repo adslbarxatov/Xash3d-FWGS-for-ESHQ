@@ -23,7 +23,7 @@ GNU General Public License for more details
 #include "library.h"
 #include "vid_common.h"
 #include "pm_local.h"
-/*#include "multi_emulator.h"*/	// [FWGS, 01.12.24]	// ESHQ: исключён
+//#include "multi_emulator.h"	// [FWGS, 01.12.24]	// ESHQ: исключён
 
 // [FWGS, 01.12.24]
 #define MAX_CMD_BUFFER			8000
@@ -1196,13 +1196,14 @@ static void CL_GetCDKey (char *protinfo, size_t protinfosize)
 	Info_SetValueForKey (protinfo, "cdkey", key, protinfosize);
 	}
 
-// [FWGS, 01.12.24], ESHQ: отклонено
+// [FWGS, 01.04.25], ESHQ: изменение отклонено
 static void CL_WriteSteamTicket (sizebuf_t *send)
 	{
 	const char	*s;
 	uint32_t	crc;
 	char		buf[768] = { 0 }; // setti and steamemu return 768
-	size_t		i = sizeof (buf);
+	/*size_t		i = sizeof (buf);*/
+	int			i = sizeof (buf);
 
 	if (!Q_strcmp (cl_ticket_generator.string, "null"))
 		{
@@ -1229,9 +1230,13 @@ static void CL_WriteSteamTicket (sizebuf_t *send)
 		i = GenerateSetti (buf);
 	else if (!Q_stricmp (cl_ticket_generator.string, "avsmp"))
 		i = GenerateAVSMP (buf, crc, true);
-	else*/
+	else
 		Con_Printf ("%s: unknown generator %s, supported are: null, revemu2003, sc2009, oldrevemu, "
-			"steamemu, revemu, setti, avsmp\n", __func__, cl_ticket_generator.string);
+			"steamemu, revemu, setti, avsmp\n", __func__, cl_ticket_generator.string);*/
+	
+	// ESHQ: отключена ссылка на внешнюю библиотеку
+	//i = GenerateRevEmu2013 (buf, s, crc);
+	i = 0;
 
 	MSG_WriteBytes (send, buf, i);
 	}
@@ -1366,14 +1371,20 @@ static void CL_SendConnectPacket (connprotocol_t proto, int challenge)
 
 /***
 =================
-CL_GetTestFragmentSize [FWGS, 01.05.24]
+CL_GetTestFragmentSize [FWGS, 01.04.25]
 
 Returns bandwidth test fragment size
 =================
 ***/
 static int CL_GetTestFragmentSize (void)
 	{
-	const int fragmentSizes[CL_TEST_RETRIES] = { 64000, 32000, 10666, 5200, 1400 };
+	/*const int fragmentSizes[CL_TEST_RETRIES] = { 64000, 32000, 10666, 5200, 1400 };*/
+	// const int fragmentSizes[CL_TEST_RETRIES] = { 64000, 32000, 10666, 5200, 1400 };
+
+	// it turns out, even if we pass the bandwidth test, it doesn't mean we can use such large fragments
+	// as a temporary solution, use smaller fragment sizes
+	const int fragmentSizes[CL_TEST_RETRIES] = { 1400, 1200, 1000, 800, 508 };
+
 	if ((cls.connect_retry >= 0) && (cls.connect_retry < CL_TEST_RETRIES))
 		return bound (FRAGMENT_MIN_SIZE, fragmentSizes[cls.connect_retry], FRAGMENT_MAX_SIZE);
 	else

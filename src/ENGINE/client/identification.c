@@ -37,7 +37,6 @@ static bloomfilter_t id;
 
 #define bf64_mask ((1U<<6)-1)
 
-// [FWGS, 01.05.23]
 static bloomfilter_t BloomFilter_Process (const char *buffer, int size)
 	{
 	dword crc32;
@@ -58,13 +57,11 @@ static bloomfilter_t BloomFilter_Process (const char *buffer, int size)
 	return value;
 	}
 
-// [FWGS, 01.05.23]
 static bloomfilter_t BloomFilter_ProcessStr (const char *buffer)
 	{
 	return BloomFilter_Process (buffer, Q_strlen (buffer));
 	}
 
-// [FWGS, 01.05.23]
 uint BloomFilter_Weight (bloomfilter_t value)
 	{
 	int weight = 0;
@@ -82,7 +79,6 @@ uint BloomFilter_Weight (bloomfilter_t value)
 	return weight;
 	}
 
-// [FWGS, 01.05.23]
 qboolean BloomFilter_ContainsString (bloomfilter_t filter, const char *str)
 	{
 	bloomfilter_t value = BloomFilter_ProcessStr (str);
@@ -98,7 +94,6 @@ IDENTIFICATION
 #define MAXBITS_GEN 30
 #define MAXBITS_CHECK MAXBITS_GEN + 6
 
-// [FWGS, 01.05.23]
 static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path);
 
 // [FWGS, 01.07.24]
@@ -113,7 +108,6 @@ static void ID_BloomFilter_f (void)
 	Msg ("%d %016"PRIX64"\n", BloomFilter_Weight (value), value);
 	}
 
-// [FWGS, 01.05.23]
 static qboolean ID_VerifyHEX (const char *hex)
 	{
 	uint		chars = 0;
@@ -156,7 +150,6 @@ static qboolean ID_VerifyHEX (const char *hex)
 	return false;
 	}
 
-// [FWGS, 01.05.23]
 static void ID_VerifyHEX_f (void)
 	{
 	if (ID_VerifyHEX (Cmd_Argv (1)))
@@ -167,7 +160,6 @@ static void ID_VerifyHEX_f (void)
 
 #if XASH_LINUX
 
-// [FWGS, 01.05.23]
 static qboolean ID_ProcessCPUInfo (bloomfilter_t *value)
 	{
 	int cpuinfofd = open ("/proc/cpuinfo", O_RDONLY);
@@ -204,7 +196,6 @@ static qboolean ID_ProcessCPUInfo (bloomfilter_t *value)
 	return true;
 	}
 
-// [FWGS, 01.05.23]
 static qboolean ID_ValidateNetDevice (const char *dev)
 	{
 	const char *prefix = "/sys/class/net";
@@ -233,7 +224,6 @@ static qboolean ID_ValidateNetDevice (const char *dev)
 	return true;
 	}
 
-// [FWGS, 01.05.23]
 static int ID_ProcessNetDevices (bloomfilter_t *value)
 	{
 	const char *prefix = "/sys/class/net";
@@ -258,7 +248,6 @@ static int ID_ProcessNetDevices (bloomfilter_t *value)
 	return count;
 	}
 
-// [FWGS, 01.05.23]
 static int ID_CheckNetDevices (bloomfilter_t value)
 	{
 	const char *prefix = "/sys/class/net";
@@ -301,7 +290,6 @@ static void ID_TestCPUInfo_f (void)
 
 #endif
 
-// [FWGS, 01.05.23]
 static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path)
 	{
 	int		fd = open (path, O_RDONLY);
@@ -330,7 +318,6 @@ static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path)
 
 #if !XASH_WIN32
 
-// [FWGS, 01.05.23]
 static int ID_ProcessFiles (bloomfilter_t *value, const char *prefix, const char *postfix)
 	{
 	DIR *dir;
@@ -351,7 +338,6 @@ static int ID_ProcessFiles (bloomfilter_t *value, const char *prefix, const char
 	return count;
 	}
 
-// [FWGS, 01.05.23]
 static int ID_CheckFiles (bloomfilter_t value, const char *prefix, const char *postfix)
 	{
 	DIR *dir;
@@ -377,15 +363,17 @@ static int ID_CheckFiles (bloomfilter_t value, const char *prefix, const char *p
 
 #else
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.04.25]
 static int ID_GetKeyData (HKEY hRootKey, char *subKey, char *value, LPBYTE data, DWORD cbData)
 	{
 	HKEY hKey;
 
-	if (RegOpenKeyEx (hRootKey, subKey, 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)
+	/*if (RegOpenKeyEx (hRootKey, subKey, 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)*/
+	if (RegOpenKeyExA (hRootKey, subKey, 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)
 		return 0;
 
-	if (RegQueryValueEx (hKey, value, NULL, NULL, data, &cbData) != ERROR_SUCCESS)
+	/*if (RegQueryValueEx (hKey, value, NULL, NULL, data, &cbData) != ERROR_SUCCESS)*/
+	if (RegQueryValueExA (hKey, value, NULL, NULL, data, &cbData) != ERROR_SUCCESS)
 		{
 		RegCloseKey (hKey);
 		return 0;
@@ -395,14 +383,17 @@ static int ID_GetKeyData (HKEY hRootKey, char *subKey, char *value, LPBYTE data,
 	return 1;
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.04.25]
+/*static int ID_SetKeyData (HKEY hRootKey, char *subKey, DWORD dwType, char *value, LPBYTE data, DWORD cbData)*/
 static int ID_SetKeyData (HKEY hRootKey, char *subKey, DWORD dwType, char *value, LPBYTE data, DWORD cbData)
 	{
 	HKEY hKey;
-	if (RegCreateKey (hRootKey, subKey, &hKey) != ERROR_SUCCESS)
+	/*if (RegCreateKey (hRootKey, subKey, &hKey) != ERROR_SUCCESS)*/
+	if (RegCreateKeyA (hRootKey, subKey, &hKey) != ERROR_SUCCESS)
 		return 0;
 
-	if (RegSetValueEx (hKey, value, 0, dwType, data, cbData) != ERROR_SUCCESS)
+	/*if (RegSetValueEx (hKey, value, 0, dwType, data, cbData) != ERROR_SUCCESS)*/
+	if (RegSetValueExA (hKey, value, 0, dwType, data, cbData) != ERROR_SUCCESS)
 		{
 		RegCloseKey (hKey);
 		return 0;
@@ -414,7 +405,6 @@ static int ID_SetKeyData (HKEY hRootKey, char *subKey, DWORD dwType, char *value
 
 #define BUFSIZE 4096
 
-// [FWGS, 01.05.23]
 static int ID_RunWMIC (char *buffer, const char *cmdline)
 	{
 	HANDLE g_IN_Rd = NULL;
@@ -459,7 +449,6 @@ static int ID_RunWMIC (char *buffer, const char *cmdline)
 	return bSuccess;
 	}
 
-// [FWGS, 01.05.23]
 static int ID_ProcessWMIC (bloomfilter_t *value, const char *cmdline)
 	{
 	char buffer[BUFSIZE], token[BUFSIZE], *pbuf;
@@ -480,7 +469,6 @@ static int ID_ProcessWMIC (bloomfilter_t *value, const char *cmdline)
 	return count;
 	}
 
-// [FWGS, 01.05.23]
 static int ID_CheckWMIC (bloomfilter_t value, const char *cmdline)
 	{
 	char buffer[BUFSIZE], token[BUFSIZE], *pbuf;
@@ -509,7 +497,12 @@ static int ID_CheckWMIC (bloomfilter_t value, const char *cmdline)
 char *IOS_GetUDID (void);
 #endif
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.04.25]
+#if XASH_PSVITA
+int PSVita_GetPSID (char *buf, const size_t buflen);
+#endif
+
+// [FWGS, 01.04.25]
 static bloomfilter_t ID_GenerateRawId (void)
 	{
 	bloomfilter_t value = 0;
@@ -540,10 +533,19 @@ static bloomfilter_t ID_GenerateRawId (void)
 	count++;
 	}
 #endif
+#if XASH_PSVITA
+	{
+	char data[16];
+	PSVita_GetPSID (data, sizeof (data));
+	value |= BloomFilter_Process (data, sizeof (data));
+	count++;
+	}
+#endif
+
 	return value;
 	}
 
-// [FWGS, 01.05.23]
+// [FWGS, 01.04.25]
 static uint ID_CheckRawId (bloomfilter_t filter)
 	{
 	bloomfilter_t value = 0;
@@ -579,13 +581,23 @@ static uint ID_CheckRawId (bloomfilter_t filter)
 	value = 0;
 	}
 #endif
+
+#if XASH_PSVITA
+	{
+	char data[16];
+	PSVita_GetPSID (data, sizeof (data));
+	value = BloomFilter_Process (data, sizeof (data));
+	count += (filter & value) == value;
+	value = 0;
+	}
+#endif
+
 	return count;
 	}
 
 #define SYSTEM_XOR_MASK 0x10331c2dce4c91db
 #define GAME_XOR_MASK 0x7ffc48fbac1711f1
 
-// [FWGS, 01.05.23]
 static void ID_Check (void)
 	{
 	uint weight = BloomFilter_Weight (id);

@@ -35,18 +35,9 @@ TEMPENTS MANAGEMENT
 #define MAX_MUZZLEFLASH		3
 
 // [FWGS, 01.12.24]
-/*TEMPENTITY *cl_active_tents;
-TEMPENTITY *cl_free_tents;
-TEMPENTITY *cl_tempents = NULL;		// entities pool*/
 static TEMPENTITY *cl_active_tents;
 static TEMPENTITY *cl_free_tents;
 static TEMPENTITY *cl_tempents = NULL; // entities pool
-
-/*model_t *cl_sprite_muzzleflash[MAX_MUZZLEFLASH];	// muzzle flashes
-model_t *cl_sprite_dot = NULL;
-model_t *cl_sprite_ricochet = NULL;
-model_t *cl_sprite_shell = NULL;
-model_t *cl_sprite_glow = NULL;*/
 static model_t *cl_sprite_muzzleflash[MAX_MUZZLEFLASH]; // muzzle flashes
 static model_t *cl_sprite_ricochet = NULL;
 static model_t *cl_sprite_glow = NULL;
@@ -54,7 +45,6 @@ model_t *cl_sprite_dot = NULL;
 model_t *cl_sprite_shell = NULL;
 
 // [FWGS, 01.12.24]	built-in sprites
-/*const char *cl_default_sprites[] =*/
 static const char *const cl_default_sprites[] =
 	{
 	"sprites/muzzleflash1.spr",
@@ -170,26 +160,12 @@ void CL_AddClientResources (void)
 	}
 
 // [FWGS, 01.12.24] removed CL_InitTempEnts
-/*
-================
-CL_InitTempents
-================
-/
-void CL_InitTempEnts (void)
-	{
-	cl_tempents = Mem_Calloc (cls.mempool, sizeof (TEMPENTITY) * GI->max_tents);
-	CL_ClearTempEnts ();
-
-	// load tempent sprites (glowshell, muzzleflashes etc)
-	CL_LoadClientSprites ();
-	}*/
 
 /***
 ================
 CL_ClearTempEnts [FWGS, 01.12.24]
 ================
 ***/
-/*void CL_ClearTempEnts (void)*/
 static void CL_ClearTempEnts (void)
 	{
 	int	i;
@@ -208,11 +184,11 @@ static void CL_ClearTempEnts (void)
 	cl_active_tents = NULL;
 	}
 
-/*
+/***
 ================
 CL_InitTempents [FWGS, 01.12.24]
 ================
-*/
+***/
 void CL_InitTempEnts (void)
 	{
 	cl_tempents = Mem_Calloc (cls.mempool, sizeof (TEMPENTITY) * GI->max_tents);
@@ -435,7 +411,7 @@ void CL_TempEntUpdate (void)
 ==============
 CL_TEntAddEntity
 
-free the first low priority tempent it finds.
+free the first low priority tempent it finds
 ==============
 ***/
 static qboolean CL_FreeLowPriorityTempEnt (void)
@@ -479,7 +455,6 @@ TEMPENTITY *CL_TempEntAlloc (const vec3_t org, model_t *pmodel)
 
 	if (!cl_free_tents)
 		{
-		/*Con_DPrintf ("Overflow %d temporary ents!\n", GI->max_tents);*/
 		if (cl_lasttimewarn < host.realtime)
 			{
 			Con_DPrintf ("Overflow %d temporary ents!\n", GI->max_tents);
@@ -494,7 +469,8 @@ TEMPENTITY *CL_TempEntAlloc (const vec3_t org, model_t *pmodel)
 	CL_PrepareTEnt (pTemp, pmodel);
 
 	pTemp->priority = TENTPRIORITY_LOW;
-	if (org) VectorCopy (org, pTemp->entity.origin);
+	if (org)
+		VectorCopy (org, pTemp->entity.origin);
 
 	pTemp->next = cl_active_tents;
 	cl_active_tents = pTemp;
@@ -516,26 +492,27 @@ TEMPENTITY *CL_TempEntAllocHigh (const vec3_t org, model_t *pmodel)
 	if (!cl_free_tents)
 		{
 		// no temporary ents free, so find the first active low-priority temp ent
-		// and overwrite it.
+		// and overwrite it
 		CL_FreeLowPriorityTempEnt ();
 		}
 
 	if (!cl_free_tents)
 		{
 		// didn't find anything? The tent list is either full of high-priority tents
-		// or all tents in the list are still due to live for > 10 seconds.
+		// or all tents in the list are still due to live for > 10 seconds
 		Con_DPrintf ("Couldn't alloc a high priority TENT!\n");
 		return NULL;
 		}
 
-	// Move out of the free list and into the active list.
+	// Move out of the free list and into the active list
 	pTemp = cl_free_tents;
 	cl_free_tents = pTemp->next;
 
 	CL_PrepareTEnt (pTemp, pmodel);
 
 	pTemp->priority = TENTPRIORITY_HIGH;
-	if (org) VectorCopy (org, pTemp->entity.origin);
+	if (org)
+		VectorCopy (org, pTemp->entity.origin);
 
 	pTemp->next = cl_active_tents;
 	cl_active_tents = pTemp;
@@ -855,27 +832,13 @@ Detach entity from player
 ***/
 void GAME_EXPORT R_KillAttachedTents (int client)
 	{
-	/*int	i;*/
 	TEMPENTITY *tent;
 
 	if ((client <= 0) || (client > cl.maxclients))
 		return;
 
-	/*for (i = 0; i < GI->max_tents; i++)*/
 	for (tent = cl_active_tents; tent; tent = tent->next)
 		{
-		/*TEMPENTITY *pTemp = &cl_tempents[i];
-
-		if (!FBitSet (pTemp->flags, FTENT_PLYRATTACHMENT))
-			continue;
-
-		// this TEMPENTITY is player attached.
-		// if it is attached to this client, set it to die instantly.
-		if (pTemp->clientIndex == client)
-			{
-			// good enough, it will die on next tent update.
-			pTemp->die = cl.time;
-			}*/
 		if (FBitSet (tent->flags, FTENT_PLYRATTACHMENT) && (tent->clientIndex == client))
 			tent->die = cl.time;
 		}
@@ -1057,7 +1020,8 @@ void GAME_EXPORT R_BloodSprite (const vec3_t org, int colorIndex, int modelIndex
 				if (pTemp->entity.curstate.frame > 8.0f)
 					pTemp->entity.curstate.frame = pTemp->frameMax;
 
-				pTemp->entity.baseline.origin[2] += COM_RandomFloat (4.0f, 16.0f) * size;
+				// [FWGS, 01.04.25]
+				/*pTemp->entity.baseline.origin[2] += COM_RandomFloat (4.0f, 16.0f) * size;*/
 				pTemp->entity.angles[2] = COM_RandomFloat (0.0f, 360.0f);
 				pTemp->bounceFactor = 0.0f;
 				}
@@ -1372,56 +1336,29 @@ void GAME_EXPORT R_Sprite_Smoke (TEMPENTITY *pTemp, float scale)
 	pTemp->entity.curstate.scale = scale;
 	}
 
-/*
-===============
-R_Spray
-
-Throws a shower of sprites or models
-===============
-/
-void GAME_EXPORT R_Spray (const vec3_t pos, const vec3_t dir, int modelIndex, int count, int speed,
-	int spread, int rendermode)*/
-
 // [FWGS, 01.12.24]
 static void R_Spray_Generic (const char *func, const vec3_t pos, const vec3_t dir, int modelIndex, int count,
 	int speed, int spread, int rendermode, qboolean sprite_spray)
 	{
-	/*TEMPENTITY	*pTemp;
-	float		noise;
-	float		znoise;
-	model_t		*pmodel;
-	int			i;*/
 	model_t	*mod = CL_ModelHandle (modelIndex);
 	float	noise = spread / 100.0f;
 	float	znoise = noise * 1.5f;
 	int		i;
 
-	/*if ((pmodel = CL_ModelHandle (modelIndex)) == NULL)*/
 	znoise = Q_min (1.0f, znoise);
 
 	if (!mod)
 		{
-		/*Con_Reportf ("No model %d!\n", modelIndex);*/
 		Con_Reportf ("%s: No model %d!\n", func, modelIndex);
 		return;
 		}
 
-	/*noise = (float)spread / 100.0f;
-
-	// more vertical displacement
-	znoise = Q_min (1.0f, noise * 1.5f);*/
-
 	for (i = 0; i < count; i++)
 		{
-		/*pTemp = CL_TempEntAlloc (pos, pmodel);
-		if (!pTemp) return;*/
 		TEMPENTITY	*tent = CL_TempEntAlloc (pos, mod);
 		float		rand_speed;
 		vec3_t		noise_vec, vout;
 
-		/*pTemp->entity.curstate.rendermode = rendermode;
-		pTemp->entity.baseline.renderamt = pTemp->entity.curstate.renderamt = 255;
-		pTemp->entity.curstate.renderfx = kRenderFxNoDissipation;*/
 		if (!tent)
 			break;
 
@@ -1439,44 +1376,19 @@ static void R_Spray_Generic (const char *func, const vec3_t pos, const vec3_t di
 		VectorAdd (dir, noise_vec, vout);
 		VectorScale (vout, rand_speed, tent->entity.baseline.origin);
 
-		/*if (rendermode != kRenderGlow)*/
-
 		// if TE_SPRITE_SPRAY
 		if (sprite_spray)
 			{
-			/*// spray
-			pTemp->flags |= FTENT_COLLIDEWORLD | FTENT_SLOWGRAVITY;*/
 			tent->flags |= FTENT_FADEOUT;
 			tent->fadeSpeed = 2.0f;
-
-			/*if (pTemp->frameMax > 1)
-				{
-				pTemp->flags |= FTENT_COLLIDEWORLD | FTENT_SLOWGRAVITY | FTENT_SPRANIMATE;
-				pTemp->die = cl.time + (pTemp->frameMax * 0.1f);
-				pTemp->entity.curstate.framerate = 10;
-				}
-			else pTemp->die = cl.time + 0.35f;*/
 			tent->entity.curstate.framerate = 0.5f;
 			tent->die = cl.time + 0.35;
 			tent->entity.curstate.frame = COM_RandomLong (0, tent->frameMax); // frameMax inclusive
 			}
 		else
 			{
-			/*// sprite spray
-			pTemp->entity.curstate.frame = COM_RandomLong (0, pTemp->frameMax);
-			pTemp->flags |= FTENT_FADEOUT | FTENT_SLOWGRAVITY;
-			pTemp->entity.curstate.framerate = 0.5;
-			pTemp->die = cl.time + 0.35f;
-			pTemp->fadeSpeed = 2.0;
-			}*/
 			tent->flags |= FTENT_COLLIDEWORLD;
 
-			/*// make the spittle fly the direction indicated, but mix in some noise.
-		pTemp->entity.baseline.origin[0] = dir[0] + COM_RandomFloat (-noise, noise);
-		pTemp->entity.baseline.origin[1] = dir[1] + COM_RandomFloat (-noise, noise);
-		pTemp->entity.baseline.origin[2] = dir[2] + COM_RandomFloat (0, znoise);
-		VectorScale (pTemp->entity.baseline.origin, COM_RandomFloat ((speed * 0.8f), (speed * 1.2f)),
-			pTemp->entity.baseline.origin);*/
 			if (tent->frameMax > 1)
 				{
 				tent->flags |= FTENT_SPRANIMATE;
@@ -1488,18 +1400,19 @@ static void R_Spray_Generic (const char *func, const vec3_t pos, const vec3_t di
 				tent->entity.curstate.framerate = 1.0f;
 				tent->die = cl.time + 0.35;
 				}
+
 			tent->entity.curstate.frame = 0.0f;
 			}
 		}
 	}
 
-/*
+/***
 ===============
 R_Spray [FWGS, 01.12.24]
 
 Throws a shower of sprites or models
 ===============
-*/
+***/
 void GAME_EXPORT R_Spray (const vec3_t pos, const vec3_t dir, int modelIndex, int count, int speed, int spread,
 	int rendermode)
 	{
@@ -1515,7 +1428,6 @@ Spray of alpha sprites
 ***/
 void GAME_EXPORT R_Sprite_Spray (const vec3_t pos, const vec3_t dir, int modelIndex, int count, int speed, int spread)
 	{
-	/*R_Spray (pos, dir, modelIndex, count, speed, spread, kRenderGlow);*/
 	R_Spray_Generic (__func__, pos, dir, modelIndex, count, speed, spread, kRenderTransAlpha, true);
 	}
 
@@ -1527,7 +1439,8 @@ Line of moving glow sprites with gravity,
 fadeout, and collisions
 ===============
 ***/
-void GAME_EXPORT R_Sprite_Trail (int type, vec3_t start, vec3_t end, int modelIndex, int count, float life, float size, float amp, int renderamt, float speed)
+void GAME_EXPORT R_Sprite_Trail (int type, vec3_t start, vec3_t end, int modelIndex, int count, float life,
+	float size, float amp, int renderamt, float speed)
 	{
 	TEMPENTITY *pTemp;
 	vec3_t		delta, dir;

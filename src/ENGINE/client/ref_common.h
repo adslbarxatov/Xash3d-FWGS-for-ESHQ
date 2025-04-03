@@ -22,17 +22,20 @@ GNU General Public License for more details
 // [FWGS, 09.05.24]
 #define RP_LOCALCLIENT( e ) ((e) != NULL && (e)->index == ( cl.playernum + 1 ) && e->player )
 
-// [FWGS, 09.05.24]
+// [FWGS, 01.04.25]
 struct ref_state_s
 	{
 	HINSTANCE	hInstance;
 	qboolean	initialized;
-	int			numRenderers;
+	/*int			numRenderers;*/
+	int			num_renderers;
 	ref_interface_t	dllFuncs;
 
 	// depends on build configuration
-	const char	**shortNames;
-	const char	**readableNames;
+	/*const char	**shortNames;
+	const char	**readableNames;*/
+	const char	**short_names;
+	const char	**long_names;
 	};
 
 extern struct ref_state_s ref;

@@ -210,7 +210,7 @@ static qboolean FS_AddSideToPack (int adjust_flags)
 	return true;
 	}
 
-// [FWGS, 01.04.23]
+// [FWGS, 01.04.25]
 static const loadpixformat_t *Image_GetLoadFormatForExtension (const char *ext)
 	{
 	const loadpixformat_t *format;
@@ -218,7 +218,8 @@ static const loadpixformat_t *Image_GetLoadFormatForExtension (const char *ext)
 	if (!COM_CheckStringEmpty (ext))
 		return NULL;
 
-	for (format = image.loadformats; format->formatstring; format++)
+	/*for (format = image.loadformats; format->formatstring; format++)*/
+	for (format = image.loadformats; format->ext; format++)
 		{
 		if (!Q_stricmp (ext, format->ext))
 			return format;
@@ -244,10 +245,11 @@ static qboolean Image_ProbeLoadBuffer (const loadpixformat_t *fmt, const char *n
 	if (size <= 0)
 		return false;
 
-	// bruteforce all loaders
+	// [FWGS, 01.04.25] bruteforce all loaders
 	if (!fmt)
 		{
-		for (fmt = image.loadformats; fmt->formatstring; fmt++)
+		/*for (fmt = image.loadformats; fmt->formatstring; fmt++)*/
+		for (fmt = image.loadformats; fmt->ext; fmt++)
 			{
 			if (Image_ProbeLoadBuffer_ (fmt, name, buf, size, override_hint))
 				return true;
@@ -259,20 +261,21 @@ static qboolean Image_ProbeLoadBuffer (const loadpixformat_t *fmt, const char *n
 	return Image_ProbeLoadBuffer_ (fmt, name, buf, size, override_hint);
 	}
 
+// [FWGS, 01.04.25]
 static qboolean Image_ProbeLoad_ (const loadpixformat_t *fmt, const char *name, const char *suffix, int override_hint)
 	{
-	qboolean success = false;
-	fs_offset_t filesize;
-	string path;
-	byte *f;
+	qboolean	success = false;
+	fs_offset_t	filesize;
+	string	path;
+	byte	*f;
 
-	Q_snprintf (path, sizeof (path), fmt->formatstring, name, suffix, fmt->ext);
+	/*Q_snprintf (path, sizeof (path), fmt->formatstring, name, suffix, fmt->ext);*/
+	Q_snprintf (path, sizeof (path), "%s%s.%s", name, suffix, fmt->ext);
 	f = FS_LoadFile (path, &filesize, false);
 
 	if (f)
 		{
 		success = Image_ProbeLoadBuffer (fmt, path, f, filesize, override_hint);
-
 		Mem_Free (f);
 		}
 
@@ -283,8 +286,9 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 	{
 	if (!fmt)
 		{
-		// bruteforce all formats to allow implicit extension
-		for (fmt = image.loadformats; fmt->formatstring; fmt++)
+		// [FWGS, 01.04.25] bruteforce all formats to allow implicit extension
+		/*for (fmt = image.loadformats; fmt->formatstring; fmt++)*/
+		for (fmt = image.loadformats; fmt->ext; fmt++)
 			{
 			if (Image_ProbeLoad_ (fmt, name, suffix, override_hint))
 				return true;
@@ -388,7 +392,7 @@ load_internal:
 
 /***
 ================
-Image_Save
+Image_Save [FWGS, 01.04.25]
 
 writes image as any known format
 ================
@@ -396,8 +400,6 @@ writes image as any known format
 qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 	{
 	const char	*ext = COM_FileExtension (filename);
-
-	// [FWGS, 01.04.23]
 	qboolean	anyformat = !COM_CheckStringEmpty (ext);
 	string		path, savename;
 	const savepixformat_t *format;
@@ -438,15 +440,16 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 		picBuffer = pix->buffer;
 
 		// save all sides seperately
-		for (format = image.saveformats; format && format->formatstring; format++)
+		/*for (format = image.saveformats; format && format->formatstring; format++)*/
+		for (format = image.saveformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (ext, format->ext))
 				{
 				for (i = 0; i < 6; i++)
 					{
-					// [FWGS, 01.05.23]
-					Q_snprintf (path, sizeof (path),
-						format->formatstring, savename, box[i].suf, format->ext);
+					/*Q_snprintf (path, sizeof (path),
+						format->formatstring, savename, box[i].suf, format->ext);*/
+					Q_snprintf (path, sizeof (path), "%s%s.%s", savename, box[i].suf, format->ext);
 
 					if (!format->savefunc (path, pix))
 						break; // there were errors
@@ -466,13 +469,14 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 		}
 	else
 		{
-		for (format = image.saveformats; format && format->formatstring; format++)
+		/*for (format = image.saveformats; format && format->formatstring; format++)*/
+		for (format = image.saveformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (ext, format->ext))
 				{
-				// [FWGS, 01.05.23]
-				Q_snprintf (path, sizeof (path),
-					format->formatstring, savename, "", format->ext);
+				/*Q_snprintf (path, sizeof (path),
+					format->formatstring, savename, "", format->ext);*/
+				Q_snprintf (path, sizeof (path), "%s.%s", savename, format->ext);
 
 				if (format->savefunc (path, pix))
 					{

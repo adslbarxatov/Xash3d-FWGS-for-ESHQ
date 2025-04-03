@@ -28,38 +28,55 @@ XASH3D LOAD SOUND FORMATS
 =============================================================================
 ***/
 
-// [FWGS, 25.12.24]
+// [FWGS, 01.04.25]
 // ESHQ: внешние библиотеки отключены
 static const loadwavfmt_t load_game[] =
 	{
 #ifndef XASH_DEDICATED
-	{ DEFAULT_SOUNDPATH "%s%s.%s", "wav", Sound_LoadWAV },
+	/*{ DEFAULT_SOUNDPATH "%s%s.%s", "wav", Sound_LoadWAV },
 	{ "%s%s.%s", "wav", Sound_LoadWAV },
 
 	{ DEFAULT_SOUNDPATH "%s%s.%s", "mp3", Sound_LoadMPG },
 	{ "%s%s.%s", "mp3", Sound_LoadMPG },
 
-#ifdef OGG_VORBIS
+	ifdef OGG_VORBIS
 	{ DEFAULT_SOUNDPATH "%s%s.%s", "ogg", Sound_LoadOggVorbis },
 	{ "%s%s.%s", "ogg", Sound_LoadOggVorbis },
-#endif
+	endif
 
-#ifdef OPUS
+	ifdef OPUS
 	{ DEFAULT_SOUNDPATH "%s%s.%s", "opus", Sound_LoadOggOpus },
 	{ "%s%s.%s", "opus", Sound_LoadOggOpus },
+	endif*/
+
+	{ "wav", Sound_LoadWAV },
+	{ "mp3", Sound_LoadMPG },
+#ifdef OGG_VORBIS
+	{ "ogg", Sound_LoadOggVorbis },
+#endif
+#ifdef OPUS
+	{ "opus", Sound_LoadOggOpus },
 #endif
 
 #else // we only need extensions
-	{ NULL, "wav" },
+	/*{ NULL, "wav" },
 
 	{ NULL, "mp3" },
 
-#ifdef OGG_VORBIS
+	ifdef OGG_VORBIS
 	{ NULL, "ogg" },
-#endif
+	endif
 
-#ifdef OPUS
+	ifdef OPUS
 	{ NULL, "opus" },
+	endif*/
+	{ "wav" },
+	{ "mp3" },
+#ifdef OGG_VORBIS
+	{ "ogg" },
+#endif
+#ifdef OPUS
+	{ "opus" },
 #endif
 
 #endif
@@ -72,34 +89,51 @@ XASH3D PROCESS STREAM FORMATS
 =============================================================================
 ***/
 
-// [FWGS, 25.12.24]
+// [FWGS, 01.04.25]
 static const streamfmt_t stream_game[] =
 	{
 #ifndef XASH_DEDICATED
-	{ "%s%s.%s", "mp3", Stream_OpenMPG, Stream_ReadMPG, Stream_SetPosMPG, Stream_GetPosMPG, Stream_FreeMPG },
+	/*{ "%s%s.%s", "mp3", Stream_OpenMPG, Stream_ReadMPG, Stream_SetPosMPG, Stream_GetPosMPG, Stream_FreeMPG },
 
 	{ "%s%s.%s", "wav", Stream_OpenWAV, Stream_ReadWAV, Stream_SetPosWAV, Stream_GetPosWAV, Stream_FreeWAV },
 
-#ifdef OGG_VORBIS
+	ifdef OGG_VORBIS
 	{ "%s%s.%s", "ogg", Stream_OpenOggVorbis, Stream_ReadOggVorbis, Stream_SetPosOggVorbis, Stream_GetPosOggVorbis, Stream_FreeOggVorbis },
-#endif
+	endif
 
-#ifdef OPUS
+	ifdef OPUS
 	{ "%s%s.%s", "opus", Stream_OpenOggOpus, Stream_ReadOggOpus, Stream_SetPosOggOpus, Stream_GetPosOggOpus, Stream_FreeOggOpus },
+	endif*/
+	{ "mp3", Stream_OpenMPG, Stream_ReadMPG, Stream_SetPosMPG, Stream_GetPosMPG, Stream_FreeMPG },
+	{ "wav", Stream_OpenWAV, Stream_ReadWAV, Stream_SetPosWAV, Stream_GetPosWAV, Stream_FreeWAV },
+#ifdef OGG_VORBIS
+	{ "ogg", Stream_OpenOggVorbis, Stream_ReadOggVorbis, Stream_SetPosOggVorbis, Stream_GetPosOggVorbis,
+		Stream_FreeOggVorbis },
+#endif
+#ifdef OPUS
+	{ "opus", Stream_OpenOggOpus, Stream_ReadOggOpus, Stream_SetPosOggOpus, Stream_GetPosOggOpus, Stream_FreeOggOpus },
 #endif
 
 #else // we only need extensions
 
-	{ NULL, "mp3" },
+	/*{ NULL, "mp3" },
 
 	{ NULL, "wav" },
 
-#ifdef OGG_VORBIS
+	ifdef OGG_VORBIS
 	{ NULL, "ogg" },
-#endif
+	endif
 
-#ifdef OPUS
+	ifdef OPUS
 	{ NULL, "opus" },
+	endif*/
+	{ "mp3" },
+	{ "wav" },
+#ifdef OGG_VORBIS
+	{ "ogg" },
+#endif
+#ifdef OPUS
+	{ "opus" },
 #endif
 
 #endif
@@ -112,18 +146,6 @@ void Sound_Init (void)
 	// init pools
 	host.soundpool = Mem_AllocPool ("SoundLib Pool");
 
-	/*// install image formats (can be re-install later by Sound_Setup)
-	switch (host.type)
-		{
-		case HOST_NORMAL:
-			sound.loadformats = load_game;
-			sound.streamformat = stream_game;
-			break;
-		default:	// all other instances not using soundlib or will be reinstalling later
-			sound.loadformats = load_null;
-			sound.streamformat = stream_null;
-			break;
-		}*/
 	// install sound formats
 	sound.loadformats = load_game;
 	sound.streamformat = stream_game;
@@ -138,16 +160,6 @@ void Sound_Shutdown (void)
 	}
 
 // [FWGS, 01.02.25] removed Sound_Copy
-/*// [FWGS, 01.08.24]
-static byte *Sound_Copy (size_t size)
-	{
-	byte *out;
-
-	out = Mem_Realloc (host.soundpool, sound.tempbuffer, size);
-	sound.tempbuffer = NULL;
-
-	return out;
-	}*/
 
 uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 	{
@@ -187,7 +199,7 @@ uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 	return msecs;
 	}
 
-// [FWGS, 01.08.24] удалена Sound_ConvertNoResample
+// [FWGS, 01.08.24] removed Sound_ConvertNoResample
 
 // [FWGS, 01.08.24]
 #define SOUND_FORMATCONVERT_BOILERPLATE( resamplemacro ) \
@@ -571,12 +583,15 @@ qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint
 	return result;
 	}
 
+// [FWGS, 01.04.25]
 qboolean Sound_SupportedFileFormat (const char *fileext)
 	{
 	const loadwavfmt_t *format;
+
 	if (COM_CheckStringEmpty (fileext))
 		{
-		for (format = sound.loadformats; format && format->formatstring; format++)
+		/*for (format = sound.loadformats; format && format->formatstring; format++)*/
+		for (format = sound.loadformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (format->ext, fileext))
 				return true;

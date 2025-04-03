@@ -1353,6 +1353,15 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 		"indicates if engine compiled for low RAM consumption (0 - normal, 1 - low engine limits, 2 - low protocol limits)",
 		"%i", XASH_LOW_MEMORY);
 
+	// [FWGS, 01.04.25]
+	Cvar_Get ("host_hl25_extended_structs",
+#if SUPPORT_HL25_EXTENDED_STRUCTS
+		"1",
+#else
+		"0",
+#endif
+		FCVAR_READ_ONLY, "indicates if engine was compiled with extended msurface_t struct");
+
 	Mod_Init ();
 	NET_Init ();
 	NET_InitMasters ();

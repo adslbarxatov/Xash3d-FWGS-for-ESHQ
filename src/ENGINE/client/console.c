@@ -23,7 +23,6 @@ GNU General Public License for more details
 #include "input.h"
 #include "utflib.h"			// [FWGS, 01.07.24]
 
-// [FWGS, 01.07.23]
 static CVAR_DEFINE_AUTO (scr_conspeed, "600", FCVAR_ARCHIVE,
 	"console moving speed");
 static CVAR_DEFINE_AUTO (con_notifytime, "3", FCVAR_ARCHIVE,
@@ -65,7 +64,7 @@ static qboolean g_messagemode_privileged = true;
 #define CON_TEXTSIZE	32768	// max scrollback buffer characters in console (32 kb)
 #define CON_MAXLINES	2048	// max scrollback buffer lines in console
 #else
-#define CON_NUMFONTS	3	// maxfonts
+#define CON_NUMFONTS	3		// maxfonts
 #define CON_TEXTSIZE	1048576	// max scrollback buffer characters in console (1 Mb)
 #define CON_MAXLINES	16384	// max scrollback buffer lines in console
 #endif
@@ -1303,18 +1302,25 @@ static void Field_CharEvent (field_t *edit, int ch)
 
 /***
 ==================
-Field_DrawInputLine
+Field_DrawInputLine [FWGS, 01.04.25]
 ==================
 ***/
-static void Field_DrawInputLine (int x, int y, field_t *edit)
+/*static void Field_DrawInputLine (int x, int y, field_t *edit)*/
+static void Field_DrawInputLine (int x, int y, const field_t *edit)
 	{
-	int		len, cursorChar;
+	/*int		len, cursorChar;
 	int		drawLen;
 	int		prestep, curPos;
 	char	str[MAX_SYSPATH];
-	byte	*colorDefault;
+	byte	*colorDefault;*/
+	int		curPos;
+	char	str[MAX_SYSPATH];
+	const byte	*colorDefault = g_color_table[ColorIndex (COLOR_DEFAULT)];
+	const int	prestep = bound (0, edit->scroll, sizeof (edit->buffer) - 1);
+	const int	drawLen = bound (0, edit->widthInChars, sizeof (str));
+	const int	cursorCharPos = bound (0, edit->cursor - prestep, sizeof (str));
 
-	drawLen = edit->widthInChars;
+	/*drawLen = edit->widthInChars;
 	len = Q_strlen (edit->buffer) + 1;
 	colorDefault = g_color_table[ColorIndex (COLOR_DEFAULT)];
 
@@ -1345,16 +1351,16 @@ static void Field_DrawInputLine (int x, int y, field_t *edit)
 	str[drawLen] = 0;
 
 	// save char for overstrike
-	cursorChar = str[edit->cursor - prestep];
-
+	cursorChar = str[edit->cursor - prestep];*/
+	Q_strncpy (str, edit->buffer + prestep, drawLen);
 	CL_DrawString (x, y, str, colorDefault, con.curFont, FONT_DRAW_UTF8);
 
-	// draw the cursor
 	if ((int)(host.realtime * 4) & 1)
 		return; // off blink
 
-	// calc cursor position
-	str[edit->cursor - prestep] = 0;
+	/*// calc cursor position
+	str[edit->cursor - prestep] = 0;*/
+	str[cursorCharPos] = 0;
 	CL_DrawStringLen (con.curFont, str, &curPos, NULL, FONT_DRAW_UTF8);
 
 	if (host.key_overstrike)
@@ -2234,23 +2240,48 @@ void Con_CharEvent (int key)
 		Field_CharEvent (&con.chat, key);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.04.25]
 static int Con_LoadSimpleConback (const char *name, int flags)
 	{
-	const char *paths[] = {
+	/*const char *paths[] = {
 		"gfx/shell/%s.dds",
 		"gfx/shell/%s.bmp",
 		"gfx/shell/%s.tga",
 		"cached/%s640",
 		"cached/%s",
 		};
-	size_t i;
+	size_t i;*/
+	int i;
 
-	for (i = 0; i < HLARRAYSIZE (paths); i++)
+	/*for (i = 0; i < HLARRAYSIZE (paths); i++)*/
+	for (i = 0; i < 5; i++)
 		{
 		string path;
 
-		Q_snprintf (path, sizeof (path), paths[i], name);
+		/*Q_snprintf (path, sizeof (path), paths[i], name);*/
+		switch (i)
+			{
+			case 0:
+				Q_snprintf (path, sizeof (path), "gfx/shell/%s.dds", name);
+				break;
+
+			case 1:
+				Q_snprintf (path, sizeof (path), "gfx/shell/%s.bmp", name);
+				break;
+
+			case 2:
+				Q_snprintf (path, sizeof (path), "gfx/shell/%s.tga", name);
+				break;
+
+			case 3:
+				Q_snprintf (path, sizeof (path), "cached/%s640", name);
+				break;
+
+			case 4:
+				Q_snprintf (path, sizeof (path), "cached/%s", name);
+				break;
+			}
+
 		if (g_fsapi.FileExists (path, false))
 			{
 			int gl_texturenum = ref.dllFuncs.GL_LoadTexture (path, NULL, 0, flags);

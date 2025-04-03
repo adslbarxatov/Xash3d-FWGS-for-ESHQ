@@ -360,21 +360,22 @@ typedef enum _XASH_DPI_AWARENESS
 	XASH_PER_MONITOR_DPI_AWARE = 2
 	} XASH_DPI_AWARENESS;
 
+// [FWGS, 01.04.25]
 static void WIN_SetDPIAwareness (void)
 	{
-	HMODULE hModule;
-	HRESULT (__stdcall * pSetProcessDpiAwareness)(XASH_DPI_AWARENESS);
-	BOOL (__stdcall * pSetProcessDPIAware)(void);
-	BOOL bSuccess = FALSE;
+	HMODULE	hModule;
+	HRESULT	(__stdcall * pSetProcessDpiAwareness)(XASH_DPI_AWARENESS);
+	BOOL	(__stdcall * pSetProcessDPIAware)(void);
+	BOOL	bSuccess = FALSE;
 
-	if ((hModule = LoadLibrary ("shcore.dll")))
+	/*if ((hModule = LoadLibrary ("shcore.dll")))*/
+	if ((hModule = LoadLibraryW (L"shcore.dll")))
 		{
 		if ((pSetProcessDpiAwareness = (void *)GetProcAddress (hModule, "SetProcessDpiAwareness")))
 			{
 			// I hope SDL don't handle WM_DPICHANGED message
 			HRESULT hResult = pSetProcessDpiAwareness (XASH_SYSTEM_DPI_AWARE);
 
-			// [FWGS, 01.07.24]
 			if (hResult == S_OK)
 				{
 				Con_Reportf ("%s: Success\n", __func__);
@@ -400,12 +401,12 @@ static void WIN_SetDPIAwareness (void)
 		Con_Reportf ("%s: Can't load shcore.dll\n", __func__);
 		}
 
-	// [FWGS, 01.07.24]
 	if (!bSuccess)
 		{
 		Con_Reportf ("%s: Trying SetProcessDPIAware...\n", __func__);
 
-		if ((hModule = LoadLibrary ("user32.dll")))
+		/*if ((hModule = LoadLibrary ("user32.dll")))*/
+		if ((hModule = LoadLibraryW (L"user32.dll")))
 			{
 			if ((pSetProcessDPIAware = (void *)GetProcAddress (hModule, "SetProcessDPIAware")))
 				{

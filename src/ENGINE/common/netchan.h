@@ -21,6 +21,7 @@ GNU General Public License for more details
 ELEMENTS COMMUNICATED ACROSS THE NET
 ==========================================================
 ***/
+
 #include "crtlib.h"
 #include "net_buffer.h"
 
@@ -289,9 +290,10 @@ typedef struct netchan_s
 	qboolean	gs_netchan;
 	} netchan_t;
 
+// [FWGS, 01.04.25]
 extern netadr_t		net_from;
-extern netadr_t		net_local;
-extern netadr_t		net6_local;	// [FWGS, 01.04.23]
+/*extern netadr_t		net_local;
+extern netadr_t		net6_local;	// [FWGS, 01.04.23]*/
 extern sizebuf_t	net_message;
 extern byte			net_message_buffer[NET_MAX_MESSAGE];
 extern convar_t		sv_lan;
@@ -302,11 +304,8 @@ void Netchan_Init (void);
 void Netchan_Shutdown (void);
 
 // [FWGS, 01.12.24]
-/*void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client, 
-	int (*pfnBlockSize)(void *, fragsize_t mode));*/
 void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client,
 	int (*pfnBlockSize)(void *, fragsize_t mode), uint flags);
-
 void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filename, byte *pbuf, int size);
 qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *length);
 qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg);
@@ -314,9 +313,6 @@ void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg);
 int Netchan_CreateFileFragments (netchan_t *chan, const char *filename);
 
 // [FWGS, 01.12.24]
-/*void Netchan_TransmitBits (netchan_t *chan, int lengthInBits, byte *data);
-void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data);
-void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...) _format (3);*/
 void Netchan_TransmitBits (netchan_t *chan, int lengthInBits, const byte *data);
 void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, const byte *data);
 void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...) FORMAT_CHECK (3);

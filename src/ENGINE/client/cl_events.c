@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -367,7 +367,6 @@ static void CL_QueueEvent (int flags, int index, float delay, event_args_t *args
 CL_ParseReliableEvent [FWGS, 01.12.24]
 =============
 ***/
-/*void CL_ParseReliableEvent (sizebuf_t *msg)*/
 void CL_ParseReliableEvent (sizebuf_t *msg, connprotocol_t proto)
 	{
 	int		event_index;
@@ -377,11 +376,7 @@ void CL_ParseReliableEvent (sizebuf_t *msg, connprotocol_t proto)
 	memset (&nullargs, 0, sizeof (nullargs));
 	event_index = MSG_ReadUBitLong (msg, MAX_EVENT_BITS);
 
-	/*if (MSG_ReadOneBit (msg))
-		delay = (float)MSG_ReadWord (msg) * (1.0f / 100.0f);*/
-
 	// reliable events not use delta-compression just null-compression
-	/*MSG_ReadDeltaEvent (msg, &nullargs, &args);*/
 	if (proto == PROTO_GOLDSRC)
 		{
 		Delta_ReadGSFields (msg, DT_EVENT_T, &nullargs, &args, 0.0f);
@@ -395,8 +390,14 @@ void CL_ParseReliableEvent (sizebuf_t *msg, connprotocol_t proto)
 		MSG_ReadDeltaEvent (msg, &nullargs, &args);
 		}
 
+	// [FWGS, 01.04.25]
 	if ((args.entindex > 0) && (args.entindex <= cl.maxclients))
-		args.angles[PITCH] *= -3.0f;
+		/*args.angles[PITCH] *= -3.0f;*/
+		{
+		args.angles[PITCH] *= 3.0f;
+		if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
+			args.angles[PITCH] = -args.angles[PITCH];
+		}
 
 	CL_QueueEvent (FEV_RELIABLE | FEV_SERVER, event_index, delay, &args);
 	}
@@ -404,26 +405,21 @@ void CL_ParseReliableEvent (sizebuf_t *msg, connprotocol_t proto)
 
 /***
 =============
-CL_ParseEvent [FWGS, 01.12.24]
+CL_ParseEvent
 =============
 ***/
-/*void CL_ParseEvent (sizebuf_t *msg)*/
 void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 	{
 	int		event_index;
 	int		i, num_events;
 	int		packet_index;
 
-	/*event_args_t	nullargs, args;*/
-	const event_args_t nullargs = { 0 };
-	event_args_t args = { 0 };
+	const event_args_t	nullargs = { 0 };
+	event_args_t	args = { 0 };
 
-	entity_state_t *state;
-	float		delay;
-
-	/*memset (&nullargs, 0, sizeof (nullargs));
-	memset (&args, 0, sizeof (args));*/
-	int entity_bits;
+	entity_state_t	*state;
+	float	delay;
+	int		entity_bits;
 
 	num_events = MSG_ReadUBitLong (msg, 5);
 
@@ -439,14 +435,8 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 		{
 		event_index = MSG_ReadUBitLong (msg, MAX_EVENT_BITS);
 
-		/*if (MSG_ReadOneBit (msg))
-			packet_index = MSG_ReadUBitLong (msg, cls.legacymode ? MAX_LEGACY_ENTITY_BITS : MAX_ENTITY_BITS);
-		else
-			packet_index = -1;*/
-
 		if (MSG_ReadOneBit (msg))
 			{
-			/*MSG_ReadDeltaEvent (msg, &nullargs, &args);*/
 			packet_index = MSG_ReadUBitLong (msg, entity_bits);
 
 			if (MSG_ReadOneBit (msg))
@@ -484,9 +474,14 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 
 				COM_NormalizeAngles (args.angles);
 
+				// [FWGS, 01.04.25]
 				if ((state->number > 0) && (state->number <= cl.maxclients))
 					{
-					args.angles[PITCH] *= -3.0f;
+					/*args.angles[PITCH] *= -3.0f;*/
+					args.angles[PITCH] *= 3.0f;
+					if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
+						args.angles[PITCH] = -args.angles[PITCH];
+
 					CL_CalcPlayerVelocity (state->number, args.velocity);
 					args.ducking = (state->usehull == 1);
 					}
@@ -495,8 +490,14 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 				{
 				if (args.entindex != 0)
 					{
-					if (args.entindex > 0 && args.entindex <= cl.maxclients)
-						args.angles[PITCH] /= -3.0f;
+					// [FWGS, 01.04.25]
+					if ((args.entindex > 0) && (args.entindex <= cl.maxclients))
+						/*args.angles[PITCH] /= -3.0f;*/
+						{
+						args.angles[PITCH] /= 3.0f;
+						if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
+							args.angles[PITCH] = -args.angles[PITCH];
+						}
 					}
 				}
 
@@ -554,4 +555,3 @@ void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word even
 
 	CL_QueueEvent (flags, eventindex, delay, &args);
 	}
-

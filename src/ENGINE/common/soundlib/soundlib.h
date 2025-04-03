@@ -21,23 +21,25 @@ GNU General Public License for more details
 #define FRAME_SIZE		32768	// must match with mp3 frame size
 #define OUTBUF_SIZE		8192	// don't change!
 
+// [FWGS, 01.04.25]
 typedef struct loadwavfmt_s
 	{
-	const char *formatstring;
-	const char *ext;
-	qboolean (*loadfunc)(const char *name, const byte *buffer, fs_offset_t filesize);
+	/*const char *formatstring;*/
+	const char	*ext;
+	qboolean	(*loadfunc)(const char *name, const byte *buffer, fs_offset_t filesize);
 	} loadwavfmt_t;
 
+// [FWGS, 01.04.25]
 typedef struct streamfmt_s
 	{
-	const char *formatstring;
-	const char *ext;
+	/*const char *formatstring;*/
+	const char	*ext;
 
-	stream_t *(*openfunc)(const char *filename);
-	int (*readfunc)(stream_t *stream, int bytes, void *buffer);
-	int (*setposfunc)(stream_t *stream, int newpos);
-	int (*getposfunc)(stream_t *stream);
-	void (*freefunc)(stream_t *stream);
+	stream_t	*(*openfunc)(const char *filename);
+	int		(*readfunc)(stream_t *stream, int bytes, void *buffer);
+	int		(*setposfunc)(stream_t *stream, int newpos);
+	int		(*getposfunc)(stream_t *stream);
+	void	(*freefunc)(stream_t *stream);
 	} streamfmt_t;
 
 // [FWGS, 09.05.24]
@@ -66,17 +68,17 @@ struct stream_s
 	const streamfmt_t *format;	// streamformat to operate
 
 	// stream info
-	file_t *file;	// stream file
+	file_t	*file;	// stream file
 	int		width;	// resolution - num bits divided by 8 (8 bit is 1, 16 bit is 2)
 	int		rate;	// stream rate
 	int		channels;	// stream channels
 	int		type;	// wavtype
-	size_t		size;	// total stream size
+	size_t	size;	// total stream size
 
 	// current stream state
-	void *ptr;	// internal decoder state
-	char		temp[OUTBUF_SIZE]; // mpeg decoder stuff
-	size_t		pos;	// actual track position (or actual buffer remains)
+	void	*ptr;	// internal decoder state
+	char	temp[OUTBUF_SIZE]; // mpeg decoder stuff
+	size_t	pos;	// actual track position (or actual buffer remains)
 	int		buffsize;	// cached buffer size
 	};
 

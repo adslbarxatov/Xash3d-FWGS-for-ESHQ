@@ -613,7 +613,7 @@ void SV_SendClientMessages (void);
 void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) FORMAT_CHECK (2);
 
 //
-// sv_client.c [FWGS, 01.12.24]
+// sv_client.c [FWGS, 01.04.25]
 //
 void SV_RefreshUserinfo (void);
 void SV_TogglePause (const char *msg);
@@ -629,15 +629,13 @@ void SV_ExecuteClientMessage (sv_client_t *cl, sizebuf_t *msg);
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg);
 edict_t *SV_FakeConnect (const char *netname);
 void SV_BuildReconnect (sizebuf_t *msg);
-/*qboolean SV_IsPlayerIndex (int idx);*/
-int SV_CalcPing (sv_client_t *cl);
+/*int SV_CalcPing (sv_client_t *cl);*/
+int SV_CalcPing (const sv_client_t *cl);
 void SV_UpdateServerInfo (void);
 void SV_EndRedirect (host_redirect_t *rd);
-/*void SV_RejectConnection (netadr_t from, const char *fmt, ...) _format (2);*/
 void SV_RejectConnection (netadr_t from, const char *fmt, ...) FORMAT_CHECK (2);
 void SV_GetPlayerCount (int *clients, int *bots);
 
-/*qboolean SV_HavePassword (void);*/
 // [FWGS, 01.12.24]
 static inline qboolean SV_HavePassword (void)
 	{
@@ -684,7 +682,6 @@ qboolean SV_CheckID (const char *id);
 // sv_frame.c [FWGS, 25.12.24]
 //
 void SV_InactivateClients (void);
-/*int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to);*/
 int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *to, client_frame_t *frame, qboolean player);
 void SV_SkipUpdates (void);
 
@@ -714,7 +711,6 @@ string_t SV_AllocString (const char *szValue);
 string_t SV_MakeString (const char *szValue);
 const char *SV_GetString (string_t iString);
 void SV_SetStringArrayMode (qboolean dynamic);
-/*void SV_EmptyStringPool (void);*/
 void SV_EmptyStringPool (qboolean clear_stats);
 void SV_PrintStr64Stats_f (void);
 
@@ -796,7 +792,6 @@ int SV_LightForEntity (edict_t *pEdict);
 //
 // sv_query.c [FWGS, 01.12.24]
 //
-/*qboolean SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from);*/
 void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from);
 
 #endif

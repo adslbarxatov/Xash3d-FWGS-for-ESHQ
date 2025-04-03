@@ -792,7 +792,9 @@ static void Touch_SetCommand_f (void)
 		touch_button_t *button = Touch_FindButtonNoPattern (&touch.list_user, Cmd_Argv (1),
 			Cmd_CurrentCommandIsPrivileged ());
 
-		if (!button)
+		// [FWGS, 01.04.25]
+		/*if (!button)*/
+		if (button)
 			Touch_SetCommand (button, Cmd_Argv (2));
 		else
 			Con_Printf (S_ERROR "no such button");
@@ -1130,7 +1132,6 @@ void Touch_Init (void)
 		return;
 
 	touch.mempool = Mem_AllocPool ("Touch");
-	//touch.first = touch.last = NULL;
 	Con_Printf ("%s()\n", __func__);
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
 	touch.state = state_none;
@@ -1247,20 +1248,21 @@ void Touch_Init (void)
 	touch.initialized = true;
 	}
 
-//int pfnGetScreenInfo( SCREENINFO *pscrinfo );
 static void Touch_InitConfig (void)
 	{
 	if (!touch.initialized || !host.config_executed || touch.config_loaded)
 		return;
 
 	/// TODO: hud font
-	//pfnGetScreenInfo( NULL ); //HACK: update hud screen parameters like iHeight
 	if (FS_FileExists (touch_config_file.string, true))
 		{
 		Cbuf_AddTextf ("exec \"%s\"\n", touch_config_file.string);
 		Cbuf_Execute ();
 		}
-	else Touch_LoadDefaults_f ();
+	else
+		{
+		Touch_LoadDefaults_f ();
+		}
 
 	Touch_InitEditor ();
 	touch.joytexture = ref.dllFuncs.GL_LoadTexture (touch_joy_texture.string, NULL, 0, TF_NOMIPMAP);

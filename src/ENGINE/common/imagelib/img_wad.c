@@ -22,7 +22,7 @@ GNU General Public License for more details
 
 /***
 ============
-Image_LoadPAL [FWGS, 01.02.25]
+Image_LoadPAL [FWGS, 01.04.25]
 ============
 ***/
 qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -35,7 +35,9 @@ qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		/*Con_DPrintf (S_ERROR "%s: (%s) have invalid size (%li should be %d)\n", __func__,
 			name, (long)filesize, 768);*/
-		Con_DPrintf (S_ERROR "%s: (%s) have invalid size (%li should be less or equal than %d)\n", __func__,
+		/*Con_DPrintf (S_ERROR "%s: (%s) have invalid size (%li should be less or equal than %d)\n", __func__,
+			name, (long)filesize, sizeof (pal));*/
+		Con_DPrintf (S_ERROR "%s: (%s) have invalid size (%li should be less or equal than %zu)\n", __func__,
 			name, (long)filesize, sizeof (pal));
 		return false;
 		}
@@ -260,6 +262,7 @@ qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesi
 		case LUMP_MASKED:
 			SetBits (image.flags, IMAGE_ONEBIT_ALPHA);
 			// intentionally fallthrough
+
 		case LUMP_GRADIENT:
 		case LUMP_QUAKE1:
 			SetBits (image.flags, IMAGE_HAS_ALPHA);
@@ -277,6 +280,7 @@ qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesi
 		SetBits (image.flags, IMAGE_HAS_COLOR); // Color. True Color!
 		return true;
 		}
+
 	return Image_AddIndexedImageToPack (fin, image.width, image.height);
 	}
 
@@ -308,7 +312,9 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 		fin = (byte *)buffer;
 
 		// need to remap transparent color from first to last entry
-		for (i = 0; i < 16384; i++) if (!fin[i]) fin[i] = 0xFF;
+		for (i = 0; i < 16384; i++)
+			if (!fin[i])
+				fin[i] = 0xFF;
 		}
 	else
 		{
@@ -332,7 +338,7 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		int	numcolors;
 
-		// [FWGS, 01.04.23] HACKHACK: console background image shouldn't be transparent
+		// HACKHACK: console background image shouldn't be transparent
 		if (!Q_stristr (name, "conback"))
 			{
 			for (i = 0; i < pixels; i++)

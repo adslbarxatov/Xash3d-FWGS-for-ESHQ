@@ -306,14 +306,15 @@ static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char
 #endif
 	}
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.04.25]
 void Sys_PrintLog (const char *pMsg)
 	{
 	time_t		crt_time;
 	const struct tm	*crt_tm;
 	char		logtime[32] = "";
 	static char	lastchar;
-	qboolean	print_time = true;
+	/*qboolean	print_time = true;*/
+	qboolean	print_time = false;
 	size_t		len, logtime_len = 0;
 
 	if (!lastchar || (lastchar == '\n'))
@@ -321,14 +322,15 @@ void Sys_PrintLog (const char *pMsg)
 		if (time (&crt_time) >= 0)
 			{
 			crt_tm = localtime (&crt_time);
-			if (crt_tm == NULL)
-				print_time = false;
+			/*if (crt_tm == NULL)
+				print_time = false;*/
+			print_time = (crt_tm != NULL);
 			}
 		}
-	else
+	/*else
 		{
 		print_time = false;
-		}
+		}*/
 
 	if (print_time)
 		{
@@ -343,7 +345,6 @@ void Sys_PrintLog (const char *pMsg)
 	// save last char to detect when line was not ended
 	lastchar = len > 0 ? pMsg[len - 1] : 0;
 
-	// [FWGS, 01.03.25]
 	/*if (!s_ld.logfile)
 		return;
 

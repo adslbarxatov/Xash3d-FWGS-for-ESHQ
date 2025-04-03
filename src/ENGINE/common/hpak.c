@@ -227,7 +227,7 @@ static qboolean HPAK_FindResource (hpak_info_t *hpk, byte *hash, resource_t *pRe
 	return false;
 	}
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.04.25]
 void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, byte *pData, file_t *pFile)
 	{
 	int				i, j, position, length;
@@ -245,7 +245,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 
 	if ((pResource->nDownloadSize < HPAK_ENTRY_MIN_SIZE) || (pResource->nDownloadSize > HPAK_ENTRY_MAX_SIZE))
 		{
-		Con_Printf (S_ERROR "%s: invalid size %s\n", name, Q_pretifymem (pResource->nDownloadSize, 2));
+		/*Con_Printf (S_ERROR "%s: invalid size %s\n", name, Q_pretifymem (pResource->nDownloadSize, 2));*/
+		Con_Printf (S_ERROR "%s: invalid size %s\n", name, Q_memprint (pResource->nDownloadSize));
 		return;
 		}
 
@@ -288,9 +289,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 		}
 
 	Q_strncpy (srcname, name, sizeof (srcname));
-	COM_ReplaceExtension (srcname, ".hpk", sizeof (srcname));	// [FWGS, 01.05.23]
+	COM_ReplaceExtension (srcname, ".hpk", sizeof (srcname));
 
-	// [FWGS, 01.04.23]
 	file_src = FS_Open (srcname, "rb", true);
 	if (!file_src)
 		{
@@ -300,7 +300,7 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 		}
 
 	Q_strncpy (dstname, srcname, sizeof (dstname));
-	COM_ReplaceExtension (dstname, ".hp2", sizeof (dstname));	// [FWGS, 01.05.23]
+	COM_ReplaceExtension (dstname, ".hp2", sizeof (dstname));
 
 	// [FWGS, 01.07.24]
 	file_dst = FS_Open (dstname, "wb", true);
@@ -357,7 +357,6 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	dstpak.count = srcpak.count + 1;
 	dstpak.entries = Z_Malloc (sizeof (hpak_lump_t) * dstpak.count);
 
-	// [FWGS, 01.04.23]
 	memcpy (dstpak.entries, srcpak.entries, sizeof (hpak_lump_t) *srcpak.count);
 
 	// check is there are entry with same hash
@@ -381,7 +380,6 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	pCurrentEntry->filepos = FS_Tell (file_dst);
 	pCurrentEntry->disksize = pResource->nDownloadSize;
 
-	// [FWGS, 01.04.23]
 	if (!pData)
 		FS_FileCopy (file_dst, pFile, pCurrentEntry->disksize);
 	else
@@ -482,9 +480,10 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 		{
 		if ((dataDir[i].disksize < HPAK_ENTRY_MIN_SIZE) || (dataDir[i].disksize > HPAK_ENTRY_MAX_SIZE))
 			{
-			// [FWGS, 01.07.24] odd max size
-			Con_DPrintf (S_ERROR "%s: lump %i has invalid size %s\n", __func__, i,
-				Q_pretifymem (dataDir[i].disksize, 2));
+			// [FWGS, 01.04.25] odd max size
+			/*Con_DPrintf (S_ERROR "%s: lump %i has invalid size %s\n", __func__, i,
+				Q_pretifymem (dataDir[i].disksize, 2));*/
+			Con_DPrintf (S_ERROR "%s: lump %i has invalid size %s\n", __func__, i, Q_memprint (dataDir[i].disksize));
 			Mem_Free (dataDir);
 			FS_Close (f);
 
@@ -504,12 +503,12 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 
 		pRes = &dataDir[i].resource;
 
-		// [FWGS, 01.02.25]
+		// [FWGS, 01.04.25]
 		if (!quiet)
 			{
-			/*Con_Printf ("%i:      %s %s %s:   ", i, HPAK_TypeFromIndex (pRes->type),*/
 			Con_Printf   ("%i:      %s %s %s:   ", i, COM_ResourceTypeFromIndex (pRes->type),
-				Q_pretifymem (pRes->nDownloadSize, 2), pRes->szFileName);
+				/*Q_pretifymem (pRes->nDownloadSize, 2), pRes->szFileName);*/
+				Q_memprint (pRes->nDownloadSize), pRes->szFileName);
 			}
 
 		if (memcmp (md5, pRes->rgucMD5_hash, 0x10))

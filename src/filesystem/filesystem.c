@@ -280,11 +280,12 @@ void listdirectory (stringlist_t *list, const char *path, qboolean dirs_only)
 	if (!dir)
 		return;
 
-	// iterate through the directory
+	// [FWGS, 01.04.25] iterate through the directory
 	while ((entry = readdir (dir)))
 		{
 #if HAVE_DIRENT_D_TYPE
-		if (dirs_only && (entry->d_type != DT_DIR) && (entry->d_type != DT_UNKNOWN))
+		/*if (dirs_only && (entry->d_type != DT_DIR) && (entry->d_type != DT_UNKNOWN))*/
+		if (dirs_only && (entry->d_type != DT_DIR) && (entry->d_type != DT_LNK) && (entry->d_type != DT_UNKNOWN))
 			continue;
 #endif
 

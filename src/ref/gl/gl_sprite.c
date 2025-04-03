@@ -765,12 +765,13 @@ static qboolean R_SpriteAllowLerping (cl_entity_t *e, msprite_t *psprite)
 
 /***
 =================
-R_DrawSpriteModel
+R_DrawSpriteModel [FWGS, 01.04.25]
 =================
 ***/
 void R_DrawSpriteModel (cl_entity_t *e)
 	{
-	mspriteframe_t	*frame, *oldframe;
+	/*mspriteframe_t	*frame, *oldframe;*/
+	mspriteframe_t	*frame = NULL, *oldframe = NULL;
 	msprite_t		*psprite;
 	model_t		*model;
 	int			i, type;
@@ -786,7 +787,7 @@ void R_DrawSpriteModel (cl_entity_t *e)
 	psprite = (msprite_t *)model->cache.data;
 	VectorCopy (e->origin, origin);	// set render origin
 
-	// [FWGS, 01.01.24] do movewith
+	// do movewith
 	if ((e->curstate.aiment > 0) && (e->curstate.movetype == MOVETYPE_FOLLOW))
 		{
 		cl_entity_t *parent;
@@ -979,6 +980,7 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		R_DrawSpriteQuad (frame, origin, v_right, v_up, scale);
 		pglAlphaFunc (GL_GREATER, DEFAULT_ALPHATEST);
 		pglDepthFunc (GL_LEQUAL);
+		pglDisable (GL_BLEND);	// [FWGS, 01.04.25]
 		}
 
 	if (psprite->facecull == SPR_CULL_NONE)

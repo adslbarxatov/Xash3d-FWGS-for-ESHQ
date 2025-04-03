@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -61,8 +61,8 @@ Emulate audio-cd system
 ***/
 void CL_PlayCDTrack_f (void)
 	{
-	const char *command;
-	const char *pszTrack;
+	const char	*command;
+	const char	*pszTrack;
 	static int	track = 0;
 	static qboolean	paused = false;
 	static qboolean	looped = false;
@@ -93,7 +93,6 @@ void CL_PlayCDTrack_f (void)
 		looped = false;
 		}
 
-	// [FWGS, 01.12.23]
 	else if (!Q_stricmp (command, "playfile"))
 		{
 		S_StartBackgroundTrack (pszTrack, NULL, 0, true);
@@ -117,7 +116,6 @@ void CL_PlayCDTrack_f (void)
 		looped = true;
 		}
 
-	// [FWGS, 01.12.23]
 	else if (!Q_stricmp (command, "loopfile"))
 		{
 		S_StartBackgroundTrack (pszTrack, pszTrack, 0, true);
@@ -172,7 +170,6 @@ void CL_PlayCDTrack_f (void)
 				Con_Printf ("Currently %s track %u\n", looped ? "looping" : "playing", track);
 			}
 
-		/*Con_Printf ("Volume is %f\n", Cvar_VariableValue ("MP3Volume"));*/
 		Con_Printf ("Volume is %f\n", s_musicvolume.value);
 		return;
 		}
@@ -182,18 +179,20 @@ void CL_PlayCDTrack_f (void)
 		}
 	}
 
-/***
+// [FWGS, 01.04.25] removed CL_ScreenshotGetName
+
+/*
 ==================
 CL_ScreenshotGetName [FWGS, 01.02.24]
 ==================
-***/
+/
 static qboolean CL_ScreenshotGetName (const char *fmt, int lastnum, char *filename, size_t size)
 	{
 	if ((lastnum < 0) || (lastnum > 9999))
 		return false;
 
 	return (Q_snprintf (filename, size, fmt, clgame.mapname, lastnum) > 0);
-	}
+	}*/
 
 /***
 ==============================================================================
@@ -218,7 +217,6 @@ void CL_LevelShot_f (void)
 	if (cls.scrshot_request != scrshot_plaque) return;
 	cls.scrshot_request = scrshot_inactive;
 
-	// check for exist [FWGS, 01.05.23]
 	if (cls.demoplayback && (cls.demonum != -1))
 		{
 		Q_snprintf (cls.shotname, sizeof (cls.shotname),
@@ -268,11 +266,10 @@ static scrshot_t CL_GetScreenshotTypeFromString (const char *string)
 	return scrshot_inactive;
 	}
 
-// [FWGS, 01.02.24]
 void CL_GenericShot_f (void)
 	{
-	const char *argv0 = Cmd_Argv (0);
-	scrshot_t type;
+	const char	*argv0 = Cmd_Argv (0);
+	scrshot_t	type;
 
 	type = CL_GetScreenshotTypeFromString (argv0);
 
@@ -305,14 +302,15 @@ void CL_GenericShot_f (void)
 			Q_snprintf (cls.shotname, sizeof (cls.shotname), "overviews/%s.bmp", clgame.mapname);
 			break;
 
+		// [FWGS, 01.04.25]
 		case scrshot_normal:
 		case scrshot_snapshot:
 			{
-			const char *fmt;
+			/*const char *fmt;*/
 			string checkname;
 			int i;
 
-			// [FWGS, 01.12.24] allow overriding screenshot by users request
+			// allow overriding screenshot by users request
 			if (Cmd_Argc () > 1)
 				{
 				Q_strncpy (cls.shotname, Cmd_Argv (1), sizeof (cls.shotname));
@@ -320,18 +318,26 @@ void CL_GenericShot_f (void)
 				}
 
 			if (type == scrshot_snapshot)
-				{
-				fmt = "../%s_%04d.png";
+				/*{
+				fmt = "../%s_%04d.png";*/
 				FS_AllowDirectPaths (true);
-				}
-			else
+				/*}
+				else
 				{
 				fmt = "scrshots/%s_shot%04d.png";
-				}
+				}*/
 
 			for (i = 0; i < 9999; i++)
 				{
-				if (!CL_ScreenshotGetName (fmt, i, checkname, sizeof (checkname)))
+				/*if (!CL_ScreenshotGetName (fmt, i, checkname, sizeof (checkname)))*/
+				int ret;
+
+				if (type == scrshot_snapshot)
+					ret = Q_snprintf (checkname, sizeof (checkname), "../%s_%04d.png", clgame.mapname, i);
+				else
+					ret = Q_snprintf (checkname, sizeof (checkname), "scrshots/%s_shot%04d.png", clgame.mapname, i);
+
+				if (ret <= 0)
 					{
 					Con_Printf (S_ERROR "unable to write %s\n", argv0);
 					FS_AllowDirectPaths (false);

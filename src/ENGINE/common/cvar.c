@@ -25,8 +25,6 @@ static poolhandle_t	cvar_pool;
 CVAR_DEFINE_AUTO (cmd_scripting, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"enable simple condition checking and variable operations");
 
-/*ifdef HACKS_RELATED_HLMODS*/
-
 typedef struct cvar_filter_quirks_s
 	{
 	const char *gamedir;	// gamedir to enable for
@@ -38,7 +36,6 @@ typedef struct cvar_filter_quirks_s
 // "valve",
 // "test;test1;test100"
 // }
-/*static cvar_filter_quirks_t cvar_filter_quirks[] =*/
 #ifdef HACKS_RELATED_HLMODS
 static const cvar_filter_quirks_t cvar_filter_quirks[] =
 	{
@@ -52,7 +49,6 @@ static const cvar_filter_quirks_t cvar_filter_quirks[] =
 		},
 	};
 
-/*static cvar_filter_quirks_t *cvar_active_filter_quirks = NULL;*/
 #endif
 
 // [FWGS, 01.12.24]
@@ -79,10 +75,6 @@ find the specified variable by name
 ***/
 convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 	{
-	/*if defined(XASH_HASHED_VARS)
-	return (convar_t *)BaseCmd_Find (HM_CVAR, var_name);
-	else
-	convar_t *var;*/
 	convar_t *var;
 
 	if (!var_name)
@@ -101,7 +93,6 @@ convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 			return var;
 		}
 
-	/*return NULL;*/
 #endif
 
 	// HACKHACK: HL25 compatibility
@@ -113,7 +104,7 @@ convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 
 /***
 ============
-Cvar_BuildAutoDescription [FWGS, 01.04.23]
+Cvar_BuildAutoDescription
 
 build cvar auto description that based on the setup flags
 ============
@@ -158,7 +149,7 @@ const char *Cvar_BuildAutoDescription (const char *szName, int flags)
 
 /***
 ============
-Cvar_UpdateInfo [FWGS, 01.07.24]
+Cvar_UpdateInfo [FWGS, 01.04.25]
 
 deal with userinfo etc
 ============
@@ -167,6 +158,7 @@ static qboolean Cvar_UpdateInfo (convar_t *var, const char *value, qboolean noti
 	{
 	if (FBitSet (var->flags, FCVAR_USERINFO))
 		{
+		/*if (Host_IsDedicated ())*/
 		if (Host_IsDedicated ())
 			{
 			// g-cont. this is a very strange behavior...
@@ -459,10 +451,13 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			// in other cases we need to rewrite them
 			if (COM_CheckStringEmpty (var->desc))
 				{
-				// [FWGS, 01.02.25] directly set value
-				freestring (var->string);
-				/*var->string = copystring (value);*/
-				var->string = copystringpool (cvar_pool, value);
+				// [FWGS, 01.04.25] directly set value
+				/*freestring (var->string);
+				var->string = copystringpool (cvar_pool, value);*/
+				size_t len = Q_strlen (value) + 1;
+				var->string = Mem_Realloc (cvar_pool, var->string, len);
+				Q_strncpy (var->string, value, len);
+
 				var->value = Q_atof (var->string);
 				SetBits (var->flags, flags);
 
@@ -476,15 +471,19 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			Cvar_DirectSet (var, value);
 			}
 
+		// [FWGS, 01.04.25]
 		if (FBitSet (var->flags, FCVAR_ALLOCATED) && Q_strcmp (var_desc, var->desc))
 			{
+			size_t len = Q_strlen (var_desc) + 1;
+
 			if (!FBitSet (flags, FCVAR_GLCONFIG))
 				Con_Reportf ("%s change description from %s to %s\n", var->name, var->desc, var_desc);
 
 			// [FWGS, 01.02.25] update description if needs
-			freestring (var->desc);
-			/*var->desc = copystring (var_desc);*/
-			var->desc = copystringpool (cvar_pool, var_desc);
+			/*freestring (var->desc);
+			var->desc = copystringpool (cvar_pool, var_desc);*/
+			var->desc = Mem_Realloc (cvar_pool, var->desc, len);
+			Q_strncpy (var->desc, var_desc, len);
 			}
 
 		return var;
@@ -639,15 +638,17 @@ static qboolean Cvar_CanSet (const convar_t *cv)
 
 /***
 ============
-Cvar_Set2
+Cvar_Set2 [FWGS, 01.04.25]
 ============
 ***/
 static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	{
 	convar_t	*var;
-	const char	*pszValue;
+	/*const char	*pszValue;*/
 	qboolean	dll_variable = false;
 	qboolean	force = false;
+	const char	*fixed_string;
+	size_t		fixed_string_len;
 
 	if (!Cvar_ValidateVarName (var_name, false))
 		{
@@ -705,27 +706,33 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	if (dll_variable)
 		force = true;
 
-	// [FWGS, 01.01.24]
 	if (!force)
 		{
 		if (!Cvar_CanSet (var))
 			return var;
 		}
 
-	pszValue = Cvar_ValidateString (var, value);
+	/*pszValue = Cvar_ValidateString (var, value);*/
+	fixed_string = Cvar_ValidateString (var, value);
 
 	// nothing to change
-	if (!Q_strcmp (pszValue, var->string))
+	/*if (!Q_strcmp (pszValue, var->string))*/
+	if (!Q_strcmp (fixed_string, var->string))
 		return var;
 
 	// fill it cls.userinfo, svs.serverinfo
-	if (!Cvar_UpdateInfo (var, pszValue, true))
+	/*if (!Cvar_UpdateInfo (var, pszValue, true))*/
+	if (!Cvar_UpdateInfo (var, fixed_string, true))
 		return var;
 
-	// [FWGS, 01.02.25] and finally changed the cvar itself
+	/*// [FWGS, 01.02.25] and finally changed the cvar itself
 	freestring (var->string);
-	/*var->string = copystring (pszValue);*/
-	var->string = copystringpool (cvar_pool, pszValue);
+	var->string = copystringpool (cvar_pool, pszValue);*/
+
+	// and finally change the cvar itself
+	fixed_string_len = Q_strlen (fixed_string) + 1;
+	var->string = Mem_Realloc (cvar_pool, var->string, fixed_string_len);
+	Q_strncpy (var->string, fixed_string, fixed_string_len);
 	var->value = Q_atof (var->string);
 
 	// tell engine about changes
@@ -735,14 +742,16 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 
 /***
 ============
-Cvar_DirectSet
+Cvar_DirectSet [FWGS, 01.04.25]
 
 way to change value for many cvars
 ============
 ***/
 void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	{
-	const char *pszValue;
+	/*const char *pszValue;*/
+	const char	*fixed_string;
+	size_t		fixed_string_len;
 
 	if (unlikely (!var))
 		return; // ?
@@ -759,7 +768,6 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 			return; // how this possible?
 		}
 
-	// [FWGS, 01.01.24]
 	if (!Cvar_CanSet (var))
 		return;
 
@@ -775,20 +783,27 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 		value = var->def_string; // reset to default value
 		}
 
-	pszValue = Cvar_ValidateString (var, value);
+	/*pszValue = Cvar_ValidateString (var, value);*/
+	fixed_string = Cvar_ValidateString (var, value);
 
 	// nothing to change
-	if (!Q_strcmp (pszValue, var->string))
+	/*if (!Q_strcmp (pszValue, var->string))*/
+	if (!Q_strcmp (fixed_string, var->string))
 		return;
 
 	// fill it cls.userinfo, svs.serverinfo
-	if (!Cvar_UpdateInfo (var, pszValue, true))
+	/*if (!Cvar_UpdateInfo (var, pszValue, true))*/
+	if (!Cvar_UpdateInfo (var, fixed_string, true))
 		return;
 
-	// [FWGS, 01.02.25] and finally changed the cvar itself
+	/*// [FWGS, 01.02.25] and finally changed the cvar itself
 	freestring (var->string);
-	/*var->string = copystring (pszValue);*/
-	var->string = copystringpool (cvar_pool, pszValue);
+	var->string = copystringpool (cvar_pool, pszValue);*/
+
+	// and finally change the cvar itself
+	fixed_string_len = Q_strlen (fixed_string) + 1;
+	var->string = Mem_Realloc (cvar_pool, var->string, fixed_string_len);
+	Q_strncpy (var->string, fixed_string, fixed_string_len);
 	var->value = Q_atof (var->string);
 
 	// tell engine about changes
@@ -816,14 +831,16 @@ void Cvar_DirectSetValue (convar_t *var, float value)
 
 /***
 ============
-Cvar_FullSet
+Cvar_FullSet [FWGS, 01.04.25]
 
 can set any protected cvars
 ============
 ***/
 void Cvar_FullSet (const char *var_name, const char *value, int flags)
 	{
-	convar_t *var = Cvar_FindVar (var_name);
+	/*convar_t *var = Cvar_FindVar (var_name);*/
+	convar_t	*var = Cvar_FindVar (var_name);
+	size_t		len = Q_strlen (value) + 1;
 
 	if (!var)
 		{
@@ -831,10 +848,11 @@ void Cvar_FullSet (const char *var_name, const char *value, int flags)
 		return;
 		}
 
-	// [FWGS, 01.02.25]
-	freestring (var->string);
-	/*var->string = copystring (value);*/
-	var->string = copystringpool (cvar_pool, value);
+	/*freestring (var->string);
+	var->string = copystringpool (cvar_pool, value);*/
+	var->string = Mem_Realloc (cvar_pool, var->string, len);
+	Q_strncpy (var->string, value, len);
+
 	var->value = Q_atof (var->string);
 	SetBits (var->flags, flags);
 

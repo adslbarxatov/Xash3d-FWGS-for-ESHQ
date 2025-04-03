@@ -3452,7 +3452,7 @@ static uint SV_ProcessString (char *dst, const char *src)
 
 /***
 =============
-SV_AllocString [FWGS, 01.12.24]
+SV_AllocString
 
 allocate new engine string
 on 64bit platforms find in array string if deduplication enabled (default)
@@ -3462,27 +3462,14 @@ use -str64dup to disable deduplication, -str64alloc to set array size
 ***/
 string_t GAME_EXPORT SV_AllocString (const char *szValue)
 	{
-	/*char	*newString = NULL;
-	uint	len;
-	ifdef XASH_64BIT
-	int		cmp;
-	endif*/
 	uint	len = SV_ProcessString (NULL, szValue);
 	char	*processed_string = Mem_Calloc (svgame.stringspool, len);
 	char	*dupe_string = NULL;
 	qboolean	found_dupe = false;
 
-	/*if (svgame.physFuncs.pfnAllocString != NULL)
-		{
-		string_t i;
-		newString = Mem_Malloc (host.mempool, SV_ProcessString (NULL, szValue));
-
-		SV_ProcessString (newString, szValue);
-		i = svgame.physFuncs.pfnAllocString (newString);*/
 	(void)dupe_string;
 	(void)found_dupe;
 
-	/*Mem_Free (newString);*/
 	SV_ProcessString (processed_string, szValue);
 
 	if (svgame.physFuncs.pfnAllocString != NULL)
@@ -3493,26 +3480,26 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 		return i;
 		}
 
-	/*ifdef XASH_64BIT
-
-	cmp = 1;*/
 #if XASH_64BIT
 
+	// [FWGS, 01.04.25]
 	if (!str64.allowdup)
 		{
-		/*for (newString = str64.poldstringbase + 1;
-			newString < str64.plast && (cmp = Q_strcmp (newString, szValue));
-			newString += Q_strlen (newString) + 1);*/
-		for (dupe_string = str64.poldstringbase + 1;
+		/*for (dupe_string = str64.poldstringbase + 1;
 			dupe_string < str64.plast && (found_dupe = !Q_strcmp (dupe_string, processed_string));
-			dupe_string += Q_strlen (dupe_string) + 1);
+			dupe_string += Q_strlen (dupe_string) + 1);*/
+		for (dupe_string = str64.poldstringbase + 1; dupe_string < str64.plast; dupe_string += Q_strlen (dupe_string) + 1)
+			{
+			if (!Q_strcmp (dupe_string, processed_string))
+				{
+				found_dupe = true;
+				break;
+				}
+			}
 		}
 
-	/*if (cmp)*/
 	if (!found_dupe)
 		{
-		/*uint len = SV_ProcessString (NULL, szValue);*/
-
 		if (str64.plast - str64.poldstringbase + len + 1 > str64.maxstringarray)
 			{
 			str64.plast = str64.pstringbase + 1;
@@ -3520,11 +3507,9 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 			str64.numoverflows++;
 			}
 
-		/*SV_ProcessString (str64.plast, szValue);*/
 		Q_strncpy (str64.plast, processed_string, len);
 		str64.totalalloc += len;
 
-		/*newString = str64.plast;*/
 		dupe_string = str64.plast;
 		str64.plast += len;
 		}
@@ -3533,23 +3518,11 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 		str64.numdups++;
 		}
 
-	/*if (newString - str64.pstringarray > str64.maxalloc)
-		str64.maxalloc = newString - str64.pstringarray;*/
 	if (dupe_string - str64.pstringarray > str64.maxalloc)
 		str64.maxalloc = dupe_string - str64.pstringarray;
 
-	/*return newString - svgame.globals->pStringBase;
-
-	else
-
-	len = SV_ProcessString (NULL, szValue);
-	newString = Mem_Malloc (svgame.stringspool, len);
-	SV_ProcessString (newString, szValue);*/
 	Mem_Free (processed_string);
 
-	/*return newString - svgame.globals->pStringBase;
-
-	endif*/
 	return dupe_string - svgame.globals->pStringBase;
 
 #else
@@ -3562,7 +3535,6 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 // [FWGS, 01.12.24]
 void SV_PrintStr64Stats_f (void)
 	{
-/*ifdef XASH_64BIT*/
 #if XASH_64BIT
 	Con_Printf ("====================\n");
 	Con_Printf ("64 bit string pool statistics\n");
