@@ -7,6 +7,3 @@
 [submodule "vgui"]
 	path = dependencies/vgui
 	url = https://github.com/FWGS/vgui-dev
-#[submodule "opus"]
-#	path = dependencies/opus
-#	url = https://github.com/xiph/opus
