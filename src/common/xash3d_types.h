@@ -4,7 +4,6 @@
 
 #include "build.h"
 
-// [FWGS, 01.04.23]
 #if XASH_IRIX
 	#include <port.h>
 #endif
@@ -49,10 +48,6 @@ typedef uint32_t	poolhandle_t;
 #undef true
 #undef false
 
-/*ifndef __cplusplus
-	typedef enum { false, true }	qboolean;
-else
-	typedef int		qboolean;*/
 //[FWGS, 01.03.25] true and false are keywords in C++ and C23
 #if !__cplusplus && __STDC_VERSION__ < 202311L
 	enum { false, true };
@@ -115,10 +110,16 @@ typedef int qboolean;
 
 	#define RETURNS_NONNULL __attribute__(( returns_nonnull ))
 
-	#if __clang__
-		#define PFN_RETURNS_NONNULL
+	/*if __clang__
+		define PFN_RETURNS_NONNULL
 		// clang has bugged returns_nonnull for functions pointers, it's ignored
-		// and generates a warning about objective-c? O_o
+		// and generates a warning about objective-c? O_o*/
+	
+	// [FWGS, 01.05.25]
+	#if __clang__ || __MCST__
+		// clang has bugged returns_nonnull for functions pointers, it's ignored and generates a warning about objective-c? O_o
+		// lcc doesn't support it at all
+		#define PFN_RETURNS_NONNULL
 	#else
 		#define PFN_RETURNS_NONNULL RETURNS_NONNULL
 	#endif

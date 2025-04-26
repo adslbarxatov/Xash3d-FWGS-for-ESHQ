@@ -55,6 +55,8 @@ GNU General Public License for more details
 #include "library.h"
 #include "whereami.h"
 
+#include "eiface.h"		// ESHQ: HLARRAYSIZE
+
 // [FWGS, 01.05.24] arg for exit()
 int error_on_exit = 0;
 
@@ -126,21 +128,30 @@ char *Sys_GetClipboardData (void)
 
 /***
 ================
-Sys_GetCurrentUser
+Sys_GetCurrentUser [FWGS, 01.05.25]
 
 returns username for current profile
 ================
 ***/
 const char *Sys_GetCurrentUser (void)
 	{
+	// TODO: move to platform
 #if XASH_WIN32
-	static string	s_userName;
-	unsigned long size = sizeof (s_userName);
+	/*static string	s_userName;
+	unsigned long size = sizeof (s_userName);*/
+	static wchar_t	sw_userName[MAX_STRING];
+	DWORD	size = HLARRAYSIZE (sw_userName);
 
-	if (GetUserName (s_userName, &size))
+	/*if (GetUserName (s_userName, &size))*/
+	if (GetUserNameW (sw_userName, &size) && (sw_userName[0] != 0))
+		{
+		static char s_userName[MAX_STRING * 4];
+
+		// set length to -1, so it will null terminate
+		WideCharToMultiByte (CP_UTF8, 0, sw_userName, -1, s_userName, sizeof (s_userName), NULL, NULL);
 		return s_userName;
+		}
 
-// [FWGS, 01.04.23]
 #elif XASH_PSVITA
 	static string username;
 	sceAppUtilSystemParamGetString (SCE_SYSTEM_PARAM_ID_USERNAME, username, sizeof (username) - 1);
@@ -148,12 +159,21 @@ const char *Sys_GetCurrentUser (void)
 		return username;
 
 #elif XASH_POSIX && !XASH_ANDROID && !XASH_NSWITCH
-	uid_t uid = geteuid ();
-	struct passwd *pw = getpwuid (uid);
+	/*uid_t uid = geteuid ();
+	struct passwd *pw = getpwuid (uid);*/
+	static string username;
+	struct passwd *pw = getpwuid (geteuid ());
 
-	if (pw)
-		return pw->pw_name;
+	/*if (pw)
+		return pw->pw_name;*/
+	// POSIX standard says pw _might_ point to static area, so let's make a copy
+	if (pw && COM_CheckString (pw->pw_name))
+		{
+		Q_strncpy (username, pw->pw_name, sizeof (username));
+		return username;
+		}
 #endif
+
 	return "Player";
 	}
 
@@ -256,21 +276,6 @@ qboolean Sys_GetIntFromCmdLine (const char *argName, int *out)
 	}
 
 // [FWGS, 22.01.25] removed Sys_SendKeyEvents
-/*void Sys_SendKeyEvents (void)
-	{
-if XASH_WIN32
-	MSG	msg;
-
-	while (PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE))
-		{
-		if (!GetMessage (&msg, NULL, 0, 0))
-			Sys_Quit ();
-
-		TranslateMessage (&msg);
-		DispatchMessage (&msg);
-		}
-endif
-	}*/
 
 // =======================================================================
 // DLL'S MANAGER SYSTEM
@@ -279,7 +284,6 @@ endif
 // [FWGS, 22.01.25]
 qboolean Sys_LoadLibrary (dll_info_t *dll)
 	{
-	/*const dllfunc_t	*func;*/
 	size_t	i;
 	string	errorstring;
 
@@ -293,13 +297,6 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 		return false; // nothing to load
 
 	Con_Reportf ("%s: Loading %s", __func__, dll->name);
-
-	/*if (dll->fcts)
-		{
-		// lookup export table
-		for (func = dll->fcts; func && func->name != NULL; func++)
-			*func->func = NULL;
-		}*/
 
 	// lookup export table
 	if (dll->fcts)
@@ -316,10 +313,8 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 		}
 
 	// Get the function adresses
-	/*for (func = dll->fcts; func && func->name != NULL; func++)*/
 	for (i = 0; i < dll->num_fcts; i++)
 		{
-		/*if (!(*func->func = Sys_GetProcAddress (dll, func->name)))*/
 		const dllfunc_t *func = &dll->fcts[i];
 
 		if (!(*func->func = COM_GetProcAddress (dll->link, func->name)))
@@ -336,23 +331,16 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 error:
 	Con_Reportf (" - failed\n");
 	Sys_FreeLibrary (dll); // trying to free
+
 	if (dll->crash)
 		Sys_Error ("%s", errorstring);
 	else
-		/*Con_Reportf (S_ERROR  "%s", errorstring);*/
 		Con_Reportf (S_ERROR "%s", errorstring);
 
 	return false;
 	}
 
 // [FWGS, 22.01.25] removed Sys_GetProcAddress
-/*void *Sys_GetProcAddress (dll_info_t *dll, const char *name)
-	{
-	if (!dll || !dll->link) // invalid desc
-		return NULL;
-
-	return (void *)COM_GetProcAddress (dll->link, name);
-	}*/
 
 qboolean Sys_FreeLibrary (dll_info_t *dll)
 	{
@@ -405,7 +393,6 @@ static void Sys_WaitForQuit (void)
 		// [FWGS, 25.12.24]
 		else
 			{
-			/*Sys_Sleep (20);*/
 			Platform_Sleep (20);
 			}
 		}
@@ -459,8 +446,6 @@ void Sys_Error (const char *error, ...)
 		return; 
 
 	// [FWGS, 25.12.24] make sure that console received last message
-	/*if (host.change_game) 
-		Sys_Sleep (200);*/
 	if (host.change_game)
 		Platform_Sleep (200);
 
@@ -498,7 +483,6 @@ void Sys_Error (const char *error, ...)
 		}
 
 	// [FWGS, 22.01.25]
-	/*Sys_Quit ();*/
 	Sys_Quit ("caught an error");
 	}
 
@@ -628,7 +612,6 @@ but since engine will be unloaded during this call
 it explicitly doesn't use internal allocation or string copy utils
 ==================
 ***/
-/*qboolean Sys_NewInstance (const char *gamedir)*/
 qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 	{
 #if XASH_NSWITCH
@@ -641,7 +624,6 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 	printf ("envSetNextLoad exe: `%s`\n", exe);
 	printf ("envSetNextLoad argv:\n`%s`\n", newargs);
 
-	/*Host_ShutdownWithReason ("changing game");*/
 	Host_ShutdownWithReason (finalmsg);
 	envSetNextLoad (exe, newargs);
 	exit (0);
@@ -687,7 +669,6 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 	// under normal circumstances it's always going to be the same path
 	exe = strdup ("app0:/eboot.bin");
 
-	/*Host_ShutdownWithReason ("changing game");*/
 	Host_ShutdownWithReason (finalmsg);
 	sceAppMgrLoadExec (exe, newargs, NULL);
 
@@ -698,7 +679,6 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 	wai_getExecutablePath (exe, exelen, NULL);
 	exe[exelen] = 0;
 
-	/*Host_ShutdownWithReason ("changing game");*/
 	Host_ShutdownWithReason (finalmsg);
 	execv (exe, newargs);
 

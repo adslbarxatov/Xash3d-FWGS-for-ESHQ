@@ -68,7 +68,6 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 
 		// we can only copy fast 16 or 32 bits
 		// SDL_Renderer does not allow zero-copy, so 24 bits will be ineffective
-		/*if (!(SDL_BYTESPERPIXEL (format) == 2 || SDL_BYTESPERPIXEL (format) == 4))*/
 		if ((SDL_BYTESPERPIXEL (format) != 2) && (SDL_BYTESPERPIXEL (format) != 4))
 			format = SDL_PIXELFORMAT_RGBA8888;
 
@@ -250,7 +249,6 @@ static void R_InitVideoModes (void)
 	{
 	char		buf[MAX_VA_STRING];
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	/*int displayIndex = 0;*/
 	SDL_Point	point = { window_xpos.value, window_ypos.value };
 	int			displayIndex = SDL_GetPointDisplayIndex (&point);
 	int			i, modes;
@@ -368,7 +366,6 @@ static void WIN_SetDPIAwareness (void)
 	BOOL	(__stdcall * pSetProcessDPIAware)(void);
 	BOOL	bSuccess = FALSE;
 
-	/*if ((hModule = LoadLibrary ("shcore.dll")))*/
 	if ((hModule = LoadLibraryW (L"shcore.dll")))
 		{
 		if ((pSetProcessDpiAwareness = (void *)GetProcAddress (hModule, "SetProcessDpiAwareness")))
@@ -405,7 +402,6 @@ static void WIN_SetDPIAwareness (void)
 		{
 		Con_Reportf ("%s: Trying SetProcessDPIAware...\n", __func__);
 
-		/*if ((hModule = LoadLibrary ("user32.dll")))*/
 		if ((hModule = LoadLibraryW (L"user32.dll")))
 			{
 			if ((pSetProcessDPIAware = (void *)GetProcAddress (hModule, "SetProcessDPIAware")))
@@ -503,14 +499,6 @@ GL_UpdateSwapInterval [FWGS, 01.03.25]
 void GL_UpdateSwapInterval (void)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	/*// disable VSync while level is loading
-	if (cls.state < ca_active)
-		{
-		SDL_GL_SetSwapInterval (0);
-		SetBits (gl_vsync.flags, FCVAR_CHANGED);
-		}
-
-	else if (FBitSet (gl_vsync.flags, FCVAR_CHANGED))*/
 	if (FBitSet (gl_vsync.flags, FCVAR_CHANGED))
 		{
 		ClearBits (gl_vsync.flags, FCVAR_CHANGED);
@@ -680,7 +668,7 @@ void VID_RestoreScreenResolution (void)
 #endif 
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.05.25]
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 static void VID_SetWindowIcon (SDL_Window *hWnd)
 	{
@@ -689,14 +677,29 @@ static void VID_SetWindowIcon (SDL_Window *hWnd)
 
 	// ICO support only for Win32
 #if XASH_WIN32
-	const char	*localIcoPath;
-	HINSTANCE	hInst = GetModuleHandle (NULL);
-
-	if ((localIcoPath = FS_GetDiskPath (GI->iconpath, true)))
+	/*const char	*localIcoPath;
+	HINSTANCE	hInst = GetModuleHandle (NULL);*/
+	const char *disk_iconpath = FS_GetDiskPath (GI->iconpath, true);
+	/*if ((localIcoPath = FS_GetDiskPath (GI->iconpath, true)))*/
+	if (disk_iconpath)
 		{
-		HICON ico = (HICON)LoadImage (NULL, localIcoPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+		/*HICON ico = (HICON)LoadImage (NULL, localIcoPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 		if (ico && WIN_SetWindowIcon (ico))
-			return;
+			return;*/
+		int len = MultiByteToWideChar (CP_UTF8, 0, disk_iconpath, -1, NULL, 0);
+		if (len >= 0)
+			{
+			wchar_t	*path = malloc (len * sizeof (*path));
+			HICON	ico;
+
+			MultiByteToWideChar (CP_UTF8, 0, disk_iconpath, -1, path, len);
+			ico = (HICON)LoadImageW (NULL, path, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+
+			free (path);
+
+			if (ico && WIN_SetWindowIcon (ico))
+				return;
+			}
 		}
 #endif
 
@@ -708,22 +711,26 @@ static void VID_SetWindowIcon (SDL_Window *hWnd)
 		{
 		SDL_Surface *surface = SDL_CreateRGBSurfaceFrom (icon->buffer,
 			icon->width, icon->height, 32, 4 * icon->width,
+			/*0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);*/
 			0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+
+		FS_FreeImage (icon);
 
 		if (surface)
 			{
 			SDL_SetWindowIcon (host.hWnd, surface);
 			SDL_FreeSurface (surface);
-			FS_FreeImage (icon);
+			/*FS_FreeImage (icon);*/
 			return;
 			}
 
-		FS_FreeImage (icon);
+		/*FS_FreeImage (icon);*/
 		}
 
 // ICO support only for Win32
 #if XASH_WIN32
-	WIN_SetWindowIcon (LoadIcon (hInst, MAKEINTRESOURCE (101)));
+	/*WIN_SetWindowIcon (LoadIcon (hInst, MAKEINTRESOURCE (101)));*/
+	WIN_SetWindowIcon (LoadIcon (GetModuleHandle (NULL), MAKEINTRESOURCE (101)));
 #endif
 	}
 
@@ -809,35 +816,20 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 
 	if (window_mode == WINDOW_MODE_WINDOWED)
 		{
-		/*SDL_Rect r;*/
 		SDL_Rect *display_rects = (SDL_Rect *)malloc (num_displays * sizeof (SDL_Rect));
 
 		SetBits (wndFlags, SDL_WINDOW_RESIZABLE);
 		if (maximized)
 			SetBits (wndFlags, SDL_WINDOW_MAXIMIZED);
 
-		/*if SDL_VERSION_ATLEAST( 2, 0, 5 )
-		if (SDL_GetDisplayUsableBounds (0, &r) < 0 &&
-			SDL_GetDisplayBounds (0, &r) < 0)
-else
-		if (SDL_GetDisplayBounds (0, &r) < 0)
-endif*/
 		if (!display_rects)
 			{
-			/*Con_Reportf (S_ERROR "%s: SDL_GetDisplayBounds failed: %s\n", __func__, SDL_GetError ());
-			xpos = SDL_WINDOWPOS_CENTERED;
-			ypos = SDL_WINDOWPOS_CENTERED;*/
 			Con_Printf (S_ERROR "Failed to allocate memory for display rects!\n");
 			xpos = SDL_WINDOWPOS_UNDEFINED;
 			ypos = SDL_WINDOWPOS_UNDEFINED;
 			}
 		else
 			{
-			/*xpos = window_xpos.value;
-			ypos = window_ypos.value;
-
-			// don't create window outside of usable display space
-			if ((xpos < r.x) || ((xpos + width) > (r.x + r.w)))*/
 			for (int i = 0; i < num_displays; i++)
 				{
 				if (SDL_GetDisplayBounds (i, &display_rects[i]) != 0)
@@ -852,7 +844,6 @@ endif*/
 				{
 				// Rectangle doesn't fit in any display, center it
 				xpos = SDL_WINDOWPOS_CENTERED;
-				/*if ((ypos < r.y) || ((ypos + height) > (r.y + r.h)))*/
 				ypos = SDL_WINDOWPOS_CENTERED;
 				Con_Printf (S_ERROR "Rectangle does not fit in any display. Centering window.\n");
 				}
@@ -873,7 +864,6 @@ endif*/
 		else
 			SetBits (wndFlags, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		SetBits (wndFlags, SDL_WINDOW_BORDERLESS);
-		/*xpos = ypos = 0;*/
 
 		if ((window_xpos.value < 0) || (window_ypos.value < 0))
 			{
@@ -1113,7 +1103,6 @@ qboolean R_Init_Video (const int type)
 
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
 	SDL_DisplayMode displayMode;
-	/*SDL_GetCurrentDisplayMode (0, &displayMode);*/
 	SDL_Point point = { window_xpos.value, window_ypos.value };
 	SDL_GetCurrentDisplayMode (SDL_GetPointDisplayIndex (&point), &displayMode);
 

@@ -164,11 +164,10 @@ static void Sys_PrintUsage (const char *exename)
 
 #define O( x, y ) "  "x"  "y"\n"
 
-	// [FWGS, 01.03.25]
+	// [FWGS, 01.05.25]
 	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
 		"\nCommon options:\n"
 		O ("-dev [level]       ", "set log verbosity 0-2")
-		/*O ("-log               ", "write log to \"engine.log\"")*/
 		O ("-log [file name]   ", "write log to \"engine.log\" or [file name] if specified")
 		O ("-logtime           ", "enable writing timestamps to the log file")
 		O ("-nowriteconfig     ", "disable config save")
@@ -208,6 +207,7 @@ static void Sys_PrintUsage (const char *exename)
 
 #if !XASH_DEDICATED
 		O ("-clientlib <path>  ", "override client DLL path")
+		O ("-menulib <path>    ", "override menu DLL path")
 		O ("-console           ", "run engine with console enabled")
 		O ("-toconsole         ", "run engine witn console open")
 		O ("-oldfont           ", "enable unused Quake font in Half-Life")
@@ -236,7 +236,6 @@ static void Sys_PrintUsage (const char *exename)
 #endif
 
 #if XASH_SDL == 2
-		/*O ("-sdl_joy_old_api   ", "use SDL legacy joystick API")*/
 		O ("-sdl_renderer <n>  ", "use alternative SDL_Renderer for software")
 #endif
 
@@ -777,7 +776,6 @@ static qboolean Host_Autosleep (double dt, double scale)
 		static double	timewindow; // allocate a time window for sleeps
 		static int		counter; // for debug
 		static double	realsleeptime;
-		/*const double	sleeptime = sleep * 0.001;*/
 		const double	sleeptime = sleep * 0.000001;
 
 		if (dt < targetframetime * scale)
@@ -789,7 +787,6 @@ static qboolean Host_Autosleep (double dt, double scale)
 				// so we measure the real sleep time and use it to decrease the window
 				double t1 = Sys_DoubleTime (), t2;
 
-				/*Platform_Sleep (sleep);	// in msec!*/
 				Platform_NanoSleep (sleep * 1000); // in usec!
 
 				t2 = Sys_DoubleTime ();
@@ -1146,7 +1143,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	// [FWGS, 01.03.25]
 	if (!Sys_CheckParm ("-noch"))
-		/*Sys_SetupCrashHandler ();*/
 		Sys_SetupCrashHandler (argv[0]);
 
 #if XASH_DLL_LOADER
@@ -1383,7 +1379,6 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 
 	// [FWGS, 01.03.25]
 	HTTP_Init ();
-	/*ID_Init ();*/
 	SoundList_Init ();
 
 	if (Host_IsDedicated ())
@@ -1503,8 +1498,9 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 		return error_on_exit;
 #endif
 
-	// main window message loop
-	while (!host.crashed)
+	// [FWGS, 01.05.25] main window message loop
+	/*while (!host.crashed)*/
+	while (host.status != HOST_CRASHED)
 		{
 		newtime = Sys_DoubleTime ();
 		COM_Frame (newtime - oldtime);

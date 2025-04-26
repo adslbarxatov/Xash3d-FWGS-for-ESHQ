@@ -235,6 +235,8 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "LI ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_outlight"))
 		Q_strncat (cmdLine, "LO ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_neon"))
+		Q_strncat (cmdLine, "NL ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_crates"))
 		Q_strncat (cmdLine, "CD ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_gravity"))
@@ -246,10 +248,6 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "ST ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_two_floors"))
 		Q_strncat (cmdLine, "TF ", MAX_QPATH);
-	/*else if (strstr (Cmd_Argv (0), "esrm_expl_crates"))
-		Q_strncat (cmdLine, "XC ", MAX_QPATH);
-	else if (strstr (Cmd_Argv (0), "esrm_item_crates"))
-		Q_strncat (cmdLine, "IC ", MAX_QPATH);*/
 	else if (strstr (Cmd_Argv (0), "esrm_makers"))
 		Q_strncat (cmdLine, "MM ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_barriers"))
@@ -683,7 +681,6 @@ static void SV_Kick_f (void)
 	const char		*param;
 
 	// [FWGS, 01.03.25]
-	/*if (Cmd_Argc () != 2)*/
 	if (Cmd_Argc () < 2)
 		{
 		Con_Printf (S_USAGE "kick <#id|name> [reason]\n");
@@ -737,19 +734,20 @@ static void SV_EntPatch_f (void)
 
 /***
 ================
-SV_Status_f [FWGS, 01.04.25]
+SV_Status_f [FWGS, 01.05.25]
 ================
 ***/
 static void SV_Status_f (void)
 	{
-	/*sv_client_t	*cl;*/
 	int		i;
 
+#if !XASH_DEDICATED
 	if (!svs.clients && CL_Active ())
 		{
 		Cmd_ForwardToServer ();
 		return;
 		}
+#endif
 
 	if (!svs.clients || sv.background)
 		{
@@ -758,16 +756,10 @@ static void SV_Status_f (void)
 		}
 
 	Con_Printf ("map: %s\n", sv.name);
-	/*
-	Con_Printf ("num score ping    name            lastmsg address               port \n");
-	Con_Printf ("--- ----- ------- --------------- ------- --------------------- ------\n");*/
 	Con_Printf ("# score ping dev  lastmsg qport useragent\t\tname\t\taddress\n");
 
-	/*for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)*/
 	for (i = 0; i < svs.maxclients; i++)
 		{
-		/*int	j, l;
-		const char	*s;*/
 		const sv_client_t	*cl = &svs.clients[i];
 		int		j = 0;
 		const char	*s;
@@ -778,7 +770,6 @@ static void SV_Status_f (void)
 		int		buildnum;
 		int		input_devices;
 
-		/*if (!cl->state) continue;*/
 		if (!cl->state)
 			continue;
 
@@ -826,33 +817,6 @@ static void SV_Status_f (void)
 			i, (int)cl->edict->v.frags, s, devices, host.realtime - cl->netchan.last_received, cl->netchan.qport,
 			version, os, arch, buildnum,
 			cl->name, NET_BaseAdrToString (cl->netchan.remote_address));
-
-		/*Con_Printf ("%3i ", i);
-		Con_Printf ("%5i ", (int)cl->edict->v.frags);
-
-		if (cl->state == cs_connected)
-			Con_Printf ("Connect");
-		else if (cl->state == cs_zombie)
-			Con_Printf ("Zombie ");
-		else if (FBitSet (cl->flags, FCL_FAKECLIENT))
-			Con_Printf ("Bot   ");
-		else
-			Con_Printf ("%7i ", SV_CalcPing (cl));
-
-		Con_Printf ("%s", cl->name);
-		l = 24 - Q_strlen (cl->name);
-
-		for (j = 0; j < l; j++)
-			Con_Printf (" ");
-		Con_Printf ("%g ", (host.realtime - cl->netchan.last_received));
-		s = NET_BaseAdrToString (cl->netchan.remote_address);
-		Con_Printf ("%s", s);
-		l = 22 - Q_strlen (s);
-
-		for (j = 0; j < l; j++)
-			Con_Printf (" ");
-		Con_Printf ("%5i", cl->netchan.qport);
-		Con_Printf ("\n");*/
 		}
 
 	Con_Printf ("\n");
@@ -889,7 +853,7 @@ static void SV_ConSay_f (void)
 
 /***
 ==================
-SV_Heartbeat_f [FWGS, 01.05.23]
+SV_Heartbeat_f
 ==================
 ***/
 static void SV_Heartbeat_f (void)
@@ -1033,7 +997,6 @@ Kick everyone off, possibly in preparation for a new game
 ***/
 static void SV_KillServer_f (void)
 	{
-	/*Host_ShutdownServer ();*/
 	SV_Shutdown ("Server was killed due to shutdownserver command\n");
 	}
 
@@ -1200,6 +1163,8 @@ void SV_InitHostCommands (void)
 				"Affects the quantity of enabled lamp lights (coeff, 1 - 10)");
 			Cmd_AddRestrictedCommand ("esrm_outlight", SV_ESRM_Command,
 				"Affects outdoor brightness and the type of sky (coeff, 1 - 6)");
+			Cmd_AddRestrictedCommand ("esrm_neon", SV_ESRM_Command,
+				"Disables / enables neon lamps in dark areas for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_crates", SV_ESRM_Command,
 				"Sets the crates density for the next map (coeff, 0 - 5)");
 			Cmd_AddRestrictedCommand ("esrm_gravity", SV_ESRM_Command,
@@ -1211,10 +1176,6 @@ void SV_InitHostCommands (void)
 				"Sets types of map sections for the next map (1 = all, 2 = only under sky, 3 = only inside)");
 			Cmd_AddRestrictedCommand ("esrm_two_floors", SV_ESRM_Command,
 				"Disables / enables the two floors mode for the next map (flag, 0 / 1)");
-			/*Cmd_AddRestrictedCommand ("esrm_expl_crates", SV_ESRM_Command,
-				"Disables / enables crates with explosives for the next map (flag, 0 / 1)");
-			Cmd_AddRestrictedCommand ("esrm_item_crates", SV_ESRM_Command,
-				"Disables / enables crates with items (weapons, bugs) for the next map (flag, 0 / 1)");*/
 			Cmd_AddRestrictedCommand ("esrm_makers", SV_ESRM_Command,
 				"Disables / enables monster makers for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_barriers", SV_ESRM_Command,
@@ -1222,7 +1183,7 @@ void SV_InitHostCommands (void)
 			Cmd_AddRestrictedCommand ("esrm_fog", SV_ESRM_Command,
 				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 0[0%] - 10[100%])");
 			Cmd_AddRestrictedCommand ("esrm_water", SV_ESRM_Command,
-				"Sets the water level multiplier (x * 5%) for the next map (coeff, 0[0%] - 9[45%])");
+				"Sets the water level multiplier (x * 5%) for the next map (coeff, 0[0%] - 5[25%])");
 			Cmd_AddRestrictedCommand ("esrm_items_on_2nd_floor", SV_ESRM_Command,
 				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");
 

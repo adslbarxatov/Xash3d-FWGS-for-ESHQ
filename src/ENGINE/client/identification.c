@@ -23,7 +23,6 @@ GNU General Public License for more details
 
 // [FWGS, 01.03.25]
 static char id_md5[33];
-/*static char id_customid[MAX_STRING];*/
 
 /***
 ==========================================================
@@ -368,11 +367,9 @@ static int ID_GetKeyData (HKEY hRootKey, char *subKey, char *value, LPBYTE data,
 	{
 	HKEY hKey;
 
-	/*if (RegOpenKeyEx (hRootKey, subKey, 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)*/
 	if (RegOpenKeyExA (hRootKey, subKey, 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)
 		return 0;
 
-	/*if (RegQueryValueEx (hKey, value, NULL, NULL, data, &cbData) != ERROR_SUCCESS)*/
 	if (RegQueryValueExA (hKey, value, NULL, NULL, data, &cbData) != ERROR_SUCCESS)
 		{
 		RegCloseKey (hKey);
@@ -384,15 +381,12 @@ static int ID_GetKeyData (HKEY hRootKey, char *subKey, char *value, LPBYTE data,
 	}
 
 // [FWGS, 01.04.25]
-/*static int ID_SetKeyData (HKEY hRootKey, char *subKey, DWORD dwType, char *value, LPBYTE data, DWORD cbData)*/
 static int ID_SetKeyData (HKEY hRootKey, char *subKey, DWORD dwType, char *value, LPBYTE data, DWORD cbData)
 	{
 	HKEY hKey;
-	/*if (RegCreateKey (hRootKey, subKey, &hKey) != ERROR_SUCCESS)*/
 	if (RegCreateKeyA (hRootKey, subKey, &hKey) != ERROR_SUCCESS)
 		return 0;
 
-	/*if (RegSetValueEx (hKey, value, 0, dwType, data, cbData) != ERROR_SUCCESS)*/
 	if (RegSetValueExA (hKey, value, 0, dwType, data, cbData) != ERROR_SUCCESS)
 		{
 		RegCloseKey (hKey);
@@ -405,82 +399,129 @@ static int ID_SetKeyData (HKEY hRootKey, char *subKey, DWORD dwType, char *value
 
 #define BUFSIZE 4096
 
-static int ID_RunWMIC (char *buffer, const char *cmdline)
+// [FWGS, 01.05.25]
+/*static int ID_RunWMIC (char *buffer, const char *cmdline)*/
+static int ID_RunWMIC (char *buffer, const wchar_t *cmdline)
 	{
-	HANDLE g_IN_Rd = NULL;
-	HANDLE g_IN_Wr = NULL;
-	HANDLE g_OUT_Rd = NULL;
-	HANDLE g_OUT_Wr = NULL;
-	DWORD dwRead;
-	BOOL bSuccess = FALSE;
-	SECURITY_ATTRIBUTES saAttr;
+	HANDLE	g_IN_Rd = NULL;
+	HANDLE	g_IN_Wr = NULL;
+	HANDLE	g_OUT_Rd = NULL;
+	HANDLE	g_OUT_Wr = NULL;
+	DWORD	dwRead;
+	BOOL	bSuccess = FALSE;
+	/*SECURITY_ATTRIBUTES	saAttr;*/
+	wchar_t	*cmdline_copy;
 
-	STARTUPINFO si = { 0 };
+	/*STARTUPINFO si = { 0 };
 
 	PROCESS_INFORMATION pi = { 0 };
 	saAttr.nLength = sizeof (SECURITY_ATTRIBUTES);
 	saAttr.bInheritHandle = TRUE;
-	saAttr.lpSecurityDescriptor = NULL;
+	saAttr.lpSecurityDescriptor = NULL;*/
+	PROCESS_INFORMATION	pi = { 0 };
+	SECURITY_ATTRIBUTES	saAttr =
+		{
+		.nLength = sizeof (SECURITY_ATTRIBUTES),
+		.bInheritHandle = TRUE,
+		.lpSecurityDescriptor = NULL,
+		};
 
 	CreatePipe (&g_IN_Rd, &g_IN_Wr, &saAttr, 0);
 	CreatePipe (&g_OUT_Rd, &g_OUT_Wr, &saAttr, 0);
 	SetHandleInformation (g_IN_Wr, HANDLE_FLAG_INHERIT, 0);
 
-	si.cb = sizeof (STARTUPINFO);
+	/*si.cb = sizeof (STARTUPINFO);
 	si.dwFlags = STARTF_USESTDHANDLES;
 	si.hStdInput = g_IN_Rd;
 	si.hStdOutput = g_OUT_Wr;
 	si.hStdError = g_OUT_Wr;
 	si.wShowWindow = SW_HIDE;
-	si.dwFlags |= STARTF_USESTDHANDLES;
+	si.dwFlags |= STARTF_USESTDHANDLES;*/
+	STARTUPINFO	si =
+		{
+		.cb = sizeof (STARTUPINFO),
+		.dwFlags = STARTF_USESTDHANDLES,
+		.hStdInput = g_IN_Rd,
+		.hStdOutput = g_OUT_Wr,
+		.hStdError = g_OUT_Wr,
+		.wShowWindow = SW_HIDE,
+		.dwFlags = STARTF_USESTDHANDLES,
+		};
 
-	CreateProcess (NULL, (char *)cmdline, NULL, NULL, true, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+	/*CreateProcess (NULL, (char *)cmdline, NULL, NULL, true, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);*/
+	cmdline_copy = malloc (wcslen (cmdline) * sizeof (*cmdline_copy));
 
-	CloseHandle (g_OUT_Wr);
-	CloseHandle (g_IN_Wr);
+	/*CloseHandle (g_OUT_Wr);
+	CloseHandle (g_IN_Wr);*/
+	if (!CreateProcessW (NULL, cmdline_copy, NULL, NULL, true, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+		goto err;
 
 	WaitForSingleObject (pi.hProcess, 500);
 
 	bSuccess = ReadFile (g_OUT_Rd, buffer, BUFSIZE, &dwRead, NULL);
 	buffer[BUFSIZE - 1] = 0;
+
+	TerminateProcess (pi.hProcess, 0);
+
+	CloseHandle (pi.hProcess);
+	CloseHandle (pi.hThread);
+
+err:
+	CloseHandle (g_IN_Wr);
+	CloseHandle (g_OUT_Wr);
+
 	CloseHandle (g_IN_Rd);
 	CloseHandle (g_OUT_Rd);
 
+	free (cmdline_copy);
 	return bSuccess;
 	}
 
-static int ID_ProcessWMIC (bloomfilter_t *value, const char *cmdline)
+// [FWGS, 01.05.25]
+/*static int ID_ProcessWMIC (bloomfilter_t *value, const char *cmdline)*/
+static int ID_ProcessWMIC (bloomfilter_t *value, const wchar_t *cmdline)
 	{
-	char buffer[BUFSIZE], token[BUFSIZE], *pbuf;
-	int count = 0;
+	char	buffer[BUFSIZE], token[BUFSIZE], *pbuf;
+	int		count = 0;
 
+	/*if (!ID_RunWMIC (buffer, cmdline))*/
 	if (!ID_RunWMIC (buffer, cmdline))
 		return 0;
+
 	pbuf = COM_ParseFile (buffer, token, sizeof (token)); // Header
+	/*while (pbuf = COM_ParseFile (pbuf, token, sizeof (token)))*/
 	while (pbuf = COM_ParseFile (pbuf, token, sizeof (token)))
 		{
+		/*if (!ID_VerifyHEX (token))*/
 		if (!ID_VerifyHEX (token))
 			continue;
 
 		*value |= BloomFilter_ProcessStr (token);
+		/*count++;*/
 		count++;
 		}
 
 	return count;
 	}
 
-static int ID_CheckWMIC (bloomfilter_t value, const char *cmdline)
+// [FWGS, 01.05.25]
+/*static int ID_CheckWMIC (bloomfilter_t value, const char *cmdline)*/
+static int ID_CheckWMIC (bloomfilter_t value, const wchar_t *cmdline)
 	{
-	char buffer[BUFSIZE], token[BUFSIZE], *pbuf;
-	int count = 0;
+	char	buffer[BUFSIZE], token[BUFSIZE], *pbuf;
+	int		count = 0;
 
+	/*if (!ID_RunWMIC (buffer, cmdline))*/
 	if (!ID_RunWMIC (buffer, cmdline))
 		return 0;
+
 	pbuf = COM_ParseFile (buffer, token, sizeof (token)); // Header
+	/*while (pbuf = COM_ParseFile (pbuf, token, sizeof (token)))*/
 	while (pbuf = COM_ParseFile (pbuf, token, sizeof (token)))
 		{
 		bloomfilter_t filter;
 
+		/*if (!ID_VerifyHEX (token))*/
 		if (!ID_VerifyHEX (token))
 			continue;
 
@@ -502,7 +543,6 @@ char *IOS_GetUDID (void);
 int PSVita_GetPSID (char *buf, const size_t buflen);
 #endif
 
-// [FWGS, 01.04.25]
 static bloomfilter_t ID_GenerateRawId (void)
 	{
 	bloomfilter_t value = 0;
@@ -523,16 +563,22 @@ static bloomfilter_t ID_GenerateRawId (void)
 	count += ID_ProcessFiles (&value, "/sys/block", "device/cid");
 	count += ID_ProcessNetDevices (&value);
 #endif
+
+	// [FWGS, 01.05.25]
 #if XASH_WIN32
-	count += ID_ProcessWMIC (&value, "wmic path win32_physicalmedia get SerialNumber ");
-	count += ID_ProcessWMIC (&value, "wmic bios get serialnumber ");
+	/*count += ID_ProcessWMIC (&value, "wmic path win32_physicalmedia get SerialNumber ");
+	count += ID_ProcessWMIC (&value, "wmic bios get serialnumber ");*/
+	count += ID_ProcessWMIC (&value, L"wmic path win32_physicalmedia get SerialNumber ");
+	count += ID_ProcessWMIC (&value, L"wmic bios get serialnumber ");
 #endif
+
 #if XASH_IOS
 	{
 	value |= BloomFilter_ProcessStr (IOS_GetUDID ());
 	count++;
 	}
 #endif
+
 #if XASH_PSVITA
 	{
 	char data[16];
@@ -545,7 +591,6 @@ static bloomfilter_t ID_GenerateRawId (void)
 	return value;
 	}
 
-// [FWGS, 01.04.25]
 static uint ID_CheckRawId (bloomfilter_t filter)
 	{
 	bloomfilter_t value = 0;
@@ -569,9 +614,12 @@ static uint ID_CheckRawId (bloomfilter_t filter)
 		count += (filter & value) == value;
 #endif
 
+	// [FWGS, 01.05.25]
 #if XASH_WIN32
-	count += ID_CheckWMIC (filter, "wmic path win32_physicalmedia get SerialNumber");
-	count += ID_CheckWMIC (filter, "wmic bios get serialnumber");
+	/*count += ID_CheckWMIC (filter, "wmic path win32_physicalmedia get SerialNumber");
+	count += ID_CheckWMIC (filter, "wmic bios get serialnumber");*/
+	count += ID_CheckWMIC (filter, L"wmic path win32_physicalmedia get SerialNumber");
+	count += ID_CheckWMIC (filter, L"wmic bios get serialnumber");
 #endif
 
 #if XASH_IOS
@@ -619,24 +667,10 @@ static void ID_Check (void)
 // [FWGS, 01.03.25]
 const char *ID_GetMD5 (void)
 	{
-	/*if (id_customid[0])
-		return id_customid;*/
 	return id_md5;
 	}
 
 // [FWGS, 01.03.25] removed ID_SetCustomClientID
-/*
-===============
-ID_SetCustomClientID
-===============
-/
-void GAME_EXPORT ID_SetCustomClientID (const char *id)
-	{
-	if (!id)
-		return;
-
-	Q_strncpy (id_customid, id, sizeof (id_customid));
-	}*/
 
 // [FWGS, 01.02.25]
 void ID_Init (void)
@@ -664,7 +698,6 @@ void ID_Init (void)
 #elif XASH_WIN32
 	{
 	CHAR szBuf[MAX_PATH];
-	/*ID_GetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", "xash_id", szBuf, MAX_PATH);*/
 	ID_GetKeyData (HKEY_CURRENT_USER, "Software\\" XASH_ENGINE_NAME "\\", "xash_id", szBuf, MAX_PATH);
 
 	sscanf (szBuf, "%016"PRIX64, &id);
@@ -726,7 +759,6 @@ void ID_Init (void)
 	{
 	CHAR Buf[MAX_PATH];
 	sprintf (Buf, "%016"PRIX64, id ^SYSTEM_XOR_MASK);
-	/*ID_SetKeyData (HKEY_CURRENT_USER, "Software\\Xash3D\\", REG_SZ, "xash_id", Buf, Q_strlen (Buf));*/
 	ID_SetKeyData (HKEY_CURRENT_USER, "Software\\" XASH_ENGINE_NAME "\\", REG_SZ, "xash_id", Buf, Q_strlen (Buf));
 	}
 #else

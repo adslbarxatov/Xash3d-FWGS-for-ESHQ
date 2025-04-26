@@ -24,7 +24,6 @@ GNU General Public License for more details
 #include "library.h"
 
 // [FWGS, 01.12.24]
-/*static const char *file_exts[] =*/
 static const char *const file_exts[] =
 	{
 	// ban text files that don't make sense as resource
@@ -165,7 +164,7 @@ int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
 
 /***
 ============
-va [FWGS, 01.04.23]
+va
 
 does a varargs printf into a temp buffer,
 so I don't need to have varargs versions
@@ -227,10 +226,8 @@ typedef struct
 	} lzss_state_t;
 
 // [FWGS, 01.12.24]
-/*qboolean LZSS_IsCompressed (const byte *source)*/
 qboolean LZSS_IsCompressed (const byte *source, size_t input_len)
 	{
-	/*lzss_header_t *phdr = (lzss_header_t *)source;*/
 	const lzss_header_t *phdr;
 
 	if (input_len <= sizeof (lzss_header_t))
@@ -244,10 +241,8 @@ qboolean LZSS_IsCompressed (const byte *source, size_t input_len)
 	}
 
 // [FWGS, 01.12.24]
-/*uint LZSS_GetActualSize (const byte *source)*/
 uint LZSS_GetActualSize (const byte *source, size_t input_len)
 	{
-	/*lzss_header_t *phdr = (lzss_header_t *)source;*/
 	const lzss_header_t *phdr;
 
 	if (input_len <= sizeof (lzss_header_t))
@@ -260,11 +255,13 @@ uint LZSS_GetActualSize (const byte *source, size_t input_len)
 	return 0;
 	}
 
+// [FWGS, 01.05.25]
 static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 	{
 	lzss_list_t		*list;
 	lzss_node_t		*node;
-	unsigned int	targetindex = (uint)source & (state->window_size - 1);
+	/*unsigned int	targetindex = (uint)source & (state->window_size - 1);*/
+	unsigned int	targetindex = (uintptr_t)source & (state->window_size - 1);
 
 	node = &state->hash_node[targetindex];
 
@@ -421,18 +418,12 @@ static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_
 // [FWGS, 01.12.24]
 byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize)
 	{
-	/*byte	*pStart = (byte *)malloc (inputLength);
-	byte	*pFinal = NULL;
-	lzss_state_t	state;*/
 	byte	*pStart = (byte *)malloc (inputLength);
 	byte	*pFinal = NULL;
 	lzss_state_t	state = { .window_size = LZSS_WINDOW_SIZE };
 
 	if (!pStart)
 		return NULL;
-
-	/*memset (&state, 0, sizeof (state));
-	state.window_size = LZSS_WINDOW_SIZE;*/
 
 	pFinal = LZSS_CompressNoAlloc (&state, pInput, inputLength, pStart, pOutputSize);
 
@@ -446,18 +437,15 @@ byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize)
 	}
 
 // [FWGS, 01.12.24]
-/*uint LZSS_Decompress (const byte *pInput, byte *pOutput)*/
 uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_t output_len)
 	{
 	uint	totalBytes = 0;
 	int		getCmdByte = 0;
 	int		cmdByte = 0;
-	/*uint	actualSize = LZSS_GetActualSize (pInput);*/
 	uint	actualSize;
 	const byte	*pInputEnd = pInput + input_len - 1; // thanks to nillerusr for the fix!
 	byte	*pOrigOutput = pOutput;
 
-	/*if (!actualSize)*/
 	if (input_len <= sizeof (lzss_header_t))
 		return 0;
 
@@ -481,7 +469,6 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_
 
 		if (cmdByte & 0x01)
 			{
-			/*int	position = *pInput++ << LZSS_LOOKSHIFT;*/
 			int		position;
 			int		i, count;
 			byte	*pSource;
@@ -639,7 +626,6 @@ COM_Nibble [FWGS, 22.01.25]
 Returns the 4 bit nibble for a hex character
 ==================
 ***/
-/*static byte COM_Nibble (char c)*/
 byte COM_Nibble (char c)
 	{
 	if ((c >= '0') && (c <= '9'))
@@ -812,23 +798,6 @@ void GAME_EXPORT COM_FreeFile (void *buffer)
 	}
 
 // [FWGS, 01.12.24] removed COM_NormalizeAngles
-/*
-=============
-COM_NormalizeAngles
-=============
-/
-void COM_NormalizeAngles (vec3_t angles)
-	{
-	int i;
-
-	for (i = 0; i < 3; i++)
-		{
-		if (angles[i] > 180.0f)
-			angles[i] -= 360.0f;
-		else if (angles[i] < -180.0f)
-			angles[i] += 360.0f;
-		}
-	}*/
 
 /***
 =============
@@ -887,39 +856,25 @@ cvar_t *GAME_EXPORT pfnCVarGetPointer (const char *szVarName)
 pfnCompareFileTime [FWGS, 01.12.24]
 =============
 ***/
-/*int GAME_EXPORT COM_CompareFileTime (const char *filename1, const char *filename2, int *iCompare)*/
 int GAME_EXPORT pfnCompareFileTime (const char *path1, const char *path2, int *retval)
 	{
-	/*int	bRet = 0;
-	*iCompare = 0;*/
 	int	t1, t2;
 	*retval = 0;
 
 	if (!path1 || !path2)
 		return 0;
 
-	/*if (filename1 && filename2)
-		{
-		int ft1 = FS_FileTime (filename1, false);
-		int ft2 = FS_FileTime (filename2, false);*/
 	if ((t1 = g_fsapi.FileTime (path1, false)) == -1)
 		return 0;
 
-	/*// one of files is missing
-		if ((ft1 == -1) || (ft2 == -1))
-			return bRet;*/
 	if ((t2 = g_fsapi.FileTime (path2, false)) == -1)
 		return 0;
 
-	/**iCompare = Host_CompareFileTime (ft1, ft2);
-		bRet = 1;
-		}*/
 	if (t1 < t2)
 		*retval = -1;
 	else if (t1 > t2)
 		*retval = 1;
 
-	/*return bRet;*/
 	return 1;
 	}
 
@@ -954,18 +909,6 @@ float GAME_EXPORT pfnTime (void)
 	}
 
 // [FWGS, 25.12.24] removed pfnGetGameDir
-/*
-=============
-pfnGetGameDir [FWGS, 01.05.23]
-=============
-/
-void GAME_EXPORT pfnGetGameDir (char *szGetGameDir)
-	{
-	if (!szGetGameDir)
-		return;
-
-	Q_strncpy (szGetGameDir, GI->gamefolder, sizeof (GI->gamefolder));
-	}*/
 
 // [FWGS, 01.12.24]
 qboolean COM_IsSafeFileToDownload (const char *filename)
@@ -979,12 +922,10 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	if (!COM_CheckString (filename))
 		return false;
 
-	/*ext = COM_FileExtension (lwrfilename);*/
 	ext = COM_FileExtension (filename);
 	len = Q_strlen (filename);
 
 	// only allow extensionless files that start with !MD5
-	/*if (!Q_strncmp (filename, "!MD5", 4) && (ext[0] == 0))*/
 	if (!Q_strncmp (filename, "!MD5", 4))
 		{
 		if (COM_CheckStringEmpty (ext))
@@ -1037,9 +978,8 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	return true;
 	}
 
-// [FWGS, 01.02.24] удалена COM_GetResourceTypeName
+// [FWGS, 01.02.24] removed COM_GetResourceTypeName
 
-// [FWGS, 01.05.23]
 char *_copystring (poolhandle_t mempool, const char *s, const char *filename, int fileline)
 	{
 	size_t size;
@@ -1089,11 +1029,9 @@ void *GAME_EXPORT pfnSequencePickSentence (const char *groupName, int pickMethod
 	return NULL;
 	}
 
-// [FWGS, 01.07.23] removed pfnIsCareerMatch, pfnRegisterTutorMessageShown
-
 /***
 =============
-pfnIsCareerMatch [FWGS, 01.07.23]
+pfnIsCareerMatch
 
 only exists in PlayStation version
 =============
@@ -1140,8 +1078,6 @@ void GAME_EXPORT pfnResetTutorMessageDecayData (void)
 
 #include "tests.h"
 
-/*void Test_RunCommon (void)*/
-
 // [FWGS, 01.12.24]
 #ifdef USE_ASAN
 #include <sanitizer/asan_interface.h>
@@ -1150,9 +1086,6 @@ void GAME_EXPORT pfnResetTutorMessageDecayData (void)
 // [FWGS, 01.12.24]
 static void Test_LZSS (void)
 	{
-	/*char *file = (char *)"q asdf \"qwerty\" \"f \\\"f\" meowmeow\n// comment \"stuff ignored\"\nbark";
-	int len;
-	char buf[5];*/
 	char poison1[8192];
 	byte in[256];
 	char poison2[8192];
@@ -1162,7 +1095,6 @@ static void Test_LZSS (void)
 	lzss_header_t *hdr = (lzss_header_t *)in;
 	uint result;
 
-	/*Msg ("Checking COM_ParseFile...\n");*/
 	const byte compressed[] =
 		{
 		0x4c, 0x5a, 0x53, 0x53, 0x1a, 0x00, 0x00, 0x00, 0x00,
@@ -1178,25 +1110,17 @@ static void Test_LZSS (void)
 	ASAN_POISON_MEMORY_REGION (poison3, sizeof (poison3));
 #endif
 
-	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "q") && len == 1);*/
 	hdr->size = sizeof (in) - sizeof (*hdr);
 	hdr->id = LZSS_ID;
 
-	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "asdf") && len == 4);*/
 	memset (in + sizeof (*hdr), 0xff, sizeof (in) - sizeof (*hdr));
 	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
 	TASSERT_EQi (result, 0);
 
-	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "qwer") && len == -1);*/
 	memset (in + sizeof (*hdr), 0x00, sizeof (in) - sizeof (*hdr));
 	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
 	TASSERT_EQi (result, 0);
 
-	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "f \"f") && len == 4);*/
 	hdr->size = 1;
 	hdr->id = LZSS_ID;
 	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
@@ -1222,8 +1146,6 @@ void Test_RunCommon (void)
 	{
 	Msg ("Checking COM_IsSafeFileToDownload...\n");
 
-	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "meow") && len == -1);*/
 	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD5AAB5E8B307672DA86FBD10AC302BC732"), true);
 	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD56f1ffd8c96bd64c9c27955309f6ecfe6"), false);
 	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD5AAB5E8B307672DA86FBD10AC302B.exe"), false);
@@ -1231,8 +1153,6 @@ void Test_RunCommon (void)
 	TASSERT_EQi (COM_IsSafeFileToDownload ("not-a-virus-trust-me.bat"), false);
 	TASSERT_EQi (COM_IsSafeFileToDownload ("a-texture.png"), true);
 
-	/*file = COM_ParseFileSafe (file, buf, sizeof (buf), 0, &len, NULL);
-	TASSERT (!Q_strcmp (buf, "bark") && len == 4);*/
 	Msg ("Checking LZSS_Decompress...\n");
 	Test_LZSS ();
 	}

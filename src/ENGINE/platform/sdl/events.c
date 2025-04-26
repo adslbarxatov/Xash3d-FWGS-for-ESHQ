@@ -90,56 +90,9 @@ GNU General Public License for more details
 #define SDL_SCANCODE_PRINTSCREEN SDLK_PRINT
 #define SDL_SCANCODE_UNKNOWN SDLK_UNKNOWN
 #define SDL_GetScancodeName( x ) "unknown"
-/*#define SDL_JoystickID Uint8*/
 #endif
-
-// [FWGS, 01.03.25]
-/*static int SDLash_GameControllerButtonMapping[] =
-	{
-	#if XASH_NSWITCH // devkitPro/SDL has inverted Nintendo layout for SDL_GameController
-		K_B_BUTTON, K_A_BUTTON, K_Y_BUTTON, K_X_BUTTON,
-	#else
-		K_A_BUTTON, K_B_BUTTON, K_X_BUTTON, K_Y_BUTTON,
-	#endif
-		K_BACK_BUTTON, K_MODE_BUTTON, K_START_BUTTON,
-		K_LSTICK, K_RSTICK,
-		K_L1_BUTTON, K_R1_BUTTON,
-		K_DPAD_UP, K_DPAD_DOWN, K_DPAD_LEFT, K_DPAD_RIGHT,
-		K_MISC_BUTTON,
-		K_PADDLE1_BUTTON, K_PADDLE2_BUTTON, K_PADDLE3_BUTTON, K_PADDLE4_BUTTON,
-		K_TOUCHPAD,
-	};*/
-
-/*// Swap axis to follow default axis binding:
-// LeftX, LeftY, RightX, RightY, TriggerRight, TriggerLeft
-static int SDLash_GameControllerAxisMapping[] =
-	{
-		JOY_AXIS_SIDE,	// SDL_CONTROLLER_AXIS_LEFTX,
-		JOY_AXIS_FWD,	// SDL_CONTROLLER_AXIS_LEFTY,
-		JOY_AXIS_PITCH,	// SDL_CONTROLLER_AXIS_RIGHTX,
-		JOY_AXIS_YAW,	// SDL_CONTROLLER_AXIS_RIGHTY,
-		JOY_AXIS_LT,	// SDL_CONTROLLER_AXIS_TRIGGERLEFT,
-		JOY_AXIS_RT,	// SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
-	};*/
 
 // [FWGS, 01.03.25] removed SDLash_IsInstanceIDAGameController
-
-/*static qboolean SDLash_IsInstanceIDAGameController (SDL_JoystickID joyId)
-	{
-#if !SDL_VERSION_ATLEAST( 2, 0, 4 )
-	// HACKHACK: if we're not initialized g_joy, then we're probably using gamecontroller api
-	// so return true
-	if (!g_joy)
-		return true;
-	return false;
-#else
-	// [FWGS, 01.11.23]
-	if (SDL_GameControllerFromInstanceID (joyId) != NULL)
-		return true;
-
-	return false;
-#endif
-	}*/
 
 /***
 =============
@@ -587,52 +540,7 @@ static void SDLash_ActiveEvent (int gain)
 		}
 	}
 
-// [FWGS, 01.03.25]
-/*if SDL_VERSION_ATLEAST( 2, 0, 0 )
-static size_t num_open_game_controllers = 0;*/
-
 // [FWGS, 01.03.25] removed SDLash_GameController_Add, SDLash_GameController_Remove
-
-/*static void SDLash_GameController_Add (int index)
-	{
-	extern convar_t joy_enable; // private to input system
-	SDL_GameController *controller;
-
-	if (!joy_enable.value)
-		return;
-
-	controller = SDL_GameControllerOpen (index);
-	if (!controller)
-		{
-		Con_Reportf ("Failed to open SDL GameController %d: %s\n", index, SDL_GetError ());
-		SDL_ClearError ();
-		return;
-		}
-
-if SDL_VERSION_ATLEAST( 2, 0, 6 )
-	Con_Reportf ("Added controller: %s (%i:%i:%i)\n",
-		SDL_GameControllerName (controller),
-		SDL_GameControllerGetVendor (controller),
-		SDL_GameControllerGetProduct (controller),
-		SDL_GameControllerGetProductVersion (controller));
-endif
-
-	++num_open_game_controllers;
-	if (num_open_game_controllers == 1)
-		Joy_AddEvent ();
-	}*/
-
-/*static void SDLash_GameController_Remove (SDL_JoystickID joystick_id)
-	{
-	Con_Reportf ("Removed controller %i\n", joystick_id);
-
-	// `Joy_RemoveEvent` sets `joy_found` to `0`.
-	// We only want to do this when all the game controllers have been removed.
-	--num_open_game_controllers;
-	if (num_open_game_controllers == 0)
-		Joy_RemoveEvent ();
-	}
-endif*/
 
 #endif
 
@@ -663,29 +571,6 @@ static void SDLash_EventHandler (SDL_Event *event)
 		case SDL_KEYUP:
 			SDLash_KeyEvent (event->key);
 			break;
-
-		// [FWGS, 01.03.25]
-		/*	// Joystick events
-		case SDL_JOYAXISMOTION:
-			if (!SDLash_IsInstanceIDAGameController (event->jaxis.which))
-				Joy_AxisMotionEvent (event->jaxis.axis, event->jaxis.value);
-			break;
-
-		case SDL_JOYBALLMOTION:
-			if (!SDLash_IsInstanceIDAGameController (event->jball.which))
-				Joy_BallMotionEvent (event->jball.ball, event->jball.xrel, event->jball.yrel);
-			break;
-
-		case SDL_JOYHATMOTION:
-			if (!SDLash_IsInstanceIDAGameController (event->jhat.which))
-				Joy_HatMotionEvent (event->jhat.hat, event->jhat.value);
-			break;
-
-		case SDL_JOYBUTTONDOWN:
-		case SDL_JOYBUTTONUP:
-			if (!SDLash_IsInstanceIDAGameController (event->jbutton.which))
-				Joy_ButtonEvent (event->jbutton.button, event->jbutton.state);
-			break;*/
 
 		case SDL_QUIT:
 			// [FWGS, 22.01.25]
@@ -755,42 +640,12 @@ static void SDLash_EventHandler (SDL_Event *event)
 			SDLash_InputEvent (event->text);
 			break;
 
-		// [FWGS, 01.03.25]
-		/*case SDL_JOYDEVICEADDED:
-			Joy_AddEvent ();
-			break;
-		case SDL_JOYDEVICEREMOVED:
-			Joy_RemoveEvent ();
-			break;*/
-
 		// [FWGS, 01.03.25] GameController API
 		case SDL_CONTROLLERAXISMOTION:
-			/*{
-			if (!Joy_IsActive ())
-				break;
-
-			if ((event->caxis.axis >= 0) && (event->caxis.axis < HLARRAYSIZE (SDLash_GameControllerAxisMapping)))
-				Joy_KnownAxisMotionEvent (SDLash_GameControllerAxisMapping[event->caxis.axis], event->caxis.value);
-			break;
-			}*/
-
 		case SDL_CONTROLLERBUTTONDOWN:
 		case SDL_CONTROLLERBUTTONUP:
-			/*{
-			if (!Joy_IsActive ())
-				break;
-
-			if ((event->cbutton.button >= 0) && (event->cbutton.button < HLARRAYSIZE (SDLash_GameControllerButtonMapping)))
-				Key_Event (SDLash_GameControllerButtonMapping[event->cbutton.button], event->cbutton.state);
-			break;
-			}*/
-
 		case SDL_CONTROLLERDEVICEADDED:
-			/*SDLash_GameController_Add (event->cdevice.which);
-			break;*/
-
 		case SDL_CONTROLLERDEVICEREMOVED:
-			/*SDLash_GameController_Remove (event->cdevice.which);*/
 		case SDL_CONTROLLERTOUCHPADDOWN:
 		case SDL_CONTROLLERTOUCHPADMOTION:
 		case SDL_CONTROLLERTOUCHPADUP:
@@ -809,19 +664,12 @@ static void SDLash_EventHandler (SDL_Event *event)
 				{
 				// [FWGS, 01.03.25]
 				case SDL_WINDOWEVENT_MOVED:
-					/*if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
-						{
-						char val[32];*/
 					{
 					char val[32];
 
-					/*Q_snprintf (val, sizeof (val), "%d", event->window.data1);
-					Cvar_DirectSet (&window_xpos, val);*/
 					Q_snprintf (val, sizeof (val), "%d", event->window.data1);
 					Cvar_DirectSet (&window_xpos, val);
 
-					/*Q_snprintf (val, sizeof (val), "%d", event->window.data2);
-					Cvar_DirectSet (&window_ypos, val);*/
 					Q_snprintf (val, sizeof (val), "%d", event->window.data2);
 					Cvar_DirectSet (&window_ypos, val);
 
@@ -886,14 +734,15 @@ static void SDLash_EventHandler (SDL_Event *event)
 
 /***
 =============
-SDLash_RunEvents [FWGS, 01.07.24]
+SDLash_RunEvents [FWGS, 01.05.25]
 =============
 ***/
 void Platform_RunEvents (void)
 	{
 	SDL_Event event;
 
-	while (!host.crashed && !host.shutdown_issued && SDL_PollEvent (&event))
+	/*while (!host.crashed && !host.shutdown_issued && SDL_PollEvent (&event))*/
+	while ((host.status != HOST_CRASHED) && !host.shutdown_issued && SDL_PollEvent (&event))
 		SDLash_EventHandler (&event);
 	}
 

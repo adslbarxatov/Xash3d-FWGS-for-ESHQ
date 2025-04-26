@@ -77,7 +77,6 @@ XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 // some HL-mods works differently under Xash and can't be fixed without some hacks at least at current time
 
 // [FWGS, 01.03.25]
-/*enum*/
 enum dev_level_e
 	{
 	DEV_NONE = 0,
@@ -86,16 +85,6 @@ enum dev_level_e
 	};
 
 // [FWGS, 01.03.25]
-/*enum
-	{
-	D_INFO = 1,	// "-dev 1", shows various system messages
-	D_WARN,		// "-dev 2", shows not critical system warnings
-	D_ERROR,	// "-dev 3", shows critical warnings
-	D_REPORT,	// "-dev 4", special case for game reports
-	D_NOTE		// "-dev 5", show system notifications for engine developers
-	};
-
-typedef enum*/
 typedef enum instance_e
 	{
 	HOST_NORMAL,	// listen server, singleplayer
@@ -213,7 +202,6 @@ internal shared gameinfo structure (readonly for engine parts)
 ***/
 
 // [FWGS, 01.03.25]
-/*typedef enum*/
 typedef enum host_status_e
 	{
 	HOST_INIT = 0,	// initalize operations
@@ -226,7 +214,6 @@ typedef enum host_status_e
 	} host_status_t;
 
 // [FWGS, 01.03.25]
-/*typedef enum*/
 typedef enum host_state_e
 	{
 	STATE_RUNFRAME = 0,
@@ -237,7 +224,6 @@ typedef enum host_state_e
 	} host_state_t;
 
 // [FWGS, 01.03.25]
-/*typedef struct*/
 typedef struct game_status_e
 	{
 	host_state_t	curstate;
@@ -250,7 +236,6 @@ typedef struct game_status_e
 	} game_status_t;
 
 // [FWGS, 01.03.25]
-/*typedef enum*/
 typedef enum keydest_e
 	{
 	key_console = 0,
@@ -260,7 +245,6 @@ typedef enum keydest_e
 	} keydest_t;
 
 // [FWGS, 01.03.25]
-/*typedef enum*/
 typedef enum rdtype_e
 	{
 	RD_NONE = 0,
@@ -271,7 +255,6 @@ typedef enum rdtype_e
 #include "net_ws.h"
 
 // [FWGS, 01.03.25] console field
-/*typedef struct*/
 typedef struct field_e
 	{
 	string	buffer;
@@ -291,7 +274,6 @@ typedef struct host_redirect_s
 	} host_redirect_t;
 
 // [FWGS, 01.03.25]
-/*typedef struct*/
 typedef struct soundlist_e
 	{
 	char		name[MAX_QPATH];
@@ -335,7 +317,6 @@ typedef struct host_parm_s
 
 	host_status_t	status;		// global host state
 	game_status_t	game;		// game manager
-	/*uint			type;		// running at*/
 	instance_t		type;		// running at
 	poolhandle_t	mempool;	// static mempool for misc allocations
 	poolhandle_t	imagepool;	// imagelib mempool
@@ -379,7 +360,9 @@ typedef struct host_parm_s
 	qboolean	apply_game_config;	// when true apply only to game cvars and ignore all other commands
 	qboolean	apply_opengl_config;	// when true apply only to opengl cvars and ignore all other commands
 	qboolean	config_executed;	// a bit who indicated was config.cfg already executed e.g. from valve.rc
-	qboolean	crashed;			// set to true if crashed
+
+	// [FWGS, 01.05.25]
+	/*qboolean	crashed;			// set to true if crashed*/
 
 #if XASH_DLL_LOADER
 	qboolean	enabledll;
@@ -396,6 +379,9 @@ typedef struct host_parm_s
 	int			window_center_y;
 	string		gamedll;
 	string		clientlib;
+
+	// [FWGS, 01.05.25]
+	string		menulib;
 	} host_parm_t;
 
 // [FWGS, 01.07.24]
@@ -554,7 +540,6 @@ typically expanded to wav buffer
 ***/
 
 // [FWGS, 01.03.25]
-/*typedef enum*/
 typedef enum sndformat_e
 	{
 	WF_UNKNOWN = 0,
@@ -566,7 +551,6 @@ typedef enum sndformat_e
 	} sndformat_t;
 
 // [FWGS, 01.03.25] wavdata output flags
-/*typedef enum*/
 typedef enum sndFlags_e
 	{
 	// wavdata->flags
@@ -578,7 +562,6 @@ typedef enum sndFlags_e
 	} sndFlags_t;
 
 // [FWGS, 01.03.25]
-/*typedef struct*/
 typedef struct wavdata_s
 	{
 	size_t	size;		// for bounds checking
@@ -800,7 +783,6 @@ qboolean UI_CreditsActive (void);
 int CL_GetMaxClients (void);
 #else
 static inline qboolean CL_Initialized (void) { return false; }
-/*static inline qboolean CL_IsInGame (void) { return false; }*/
 static inline qboolean CL_IsInGame (void) { return true; } // always true for dedicated
 static inline qboolean CL_IsInConsole (void) { return false; }
 static inline qboolean CL_IsIntermission (void) { return false; }
@@ -870,9 +852,7 @@ void UI_NPrintf (int idx, const char *fmt, ...) FORMAT_CHECK (2);
 void UI_NXPrintf (con_nprint_t *info, const char *fmt, ...) FORMAT_CHECK (2);
 
 // [FWGS, 01.04.25]
-/*const char *Info_ValueForKey (const char *s, const char *key);*/
 const char *Info_ValueForKey (const char *s, const char *key) RETURNS_NONNULL NONNULL;
-
 void Info_RemovePrefixedKeys (char *start, char prefix);
 qboolean Info_RemoveKey (char *s, const char *key);
 qboolean Info_SetValueForKey (char *s, const char *key, const char *value, int maxsize);
@@ -962,14 +942,6 @@ void V_Init (void);
 void V_CheckGamma (void);
 void V_CheckGammaEnd (void);
 intptr_t V_GetGammaPtr (int parm);
-
-// [FWGS, 01.03.25]
-/*//
-// identification.c
-//
-void ID_Init (void);
-const char *ID_GetMD5 (void);
-void GAME_EXPORT ID_SetCustomClientID (const char *id);*/
 
 //
 // masterlist.c

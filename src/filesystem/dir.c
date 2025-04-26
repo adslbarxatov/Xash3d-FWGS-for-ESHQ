@@ -147,7 +147,6 @@ static void FS_PopulateDirEntries (dir_t *dir, const char *path)
 
 	// [FWGS, 01.02.25]
 	stringlistinit (&list);
-	/*listdirectory (&list, path);*/
 	listdirectory (&list, path, false);
 
 	if (!list.numstrings)
@@ -242,7 +241,6 @@ static int FS_MaybeUpdateDirEntries (dir_t *dir, const char *path, const char *e
 
 	// [FWGS, 01.02.25]
 	stringlistinit (&list);
-	/*listdirectory (&list, path);*/
 	listdirectory (&list, path, false);
 
 	if (list.numstrings == 0) // empty directory
@@ -378,7 +376,7 @@ qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t l
 		i = temp;
 
 		// end of string, found file, return
-		if (next[0] == '\0' || (next[0] == '/' && next[1] == '\0'))
+		if ((next[0] == '\0') || ((next[0] == '/') && (next[1] == '\0')))
 			break;
 
 		if (!FS_AppendToPath (dst, &i, len, "/", path, "path separator"))
@@ -445,7 +443,6 @@ static void FS_Search_DIR (searchpath_t *search, stringlist_t *list, const char 
 
 	// [FWGS, 01.02.25]
 	stringlistinit (&dirlist);
-	/*listdirectory (&dirlist, netpath);*/
 	listdirectory (&dirlist, netpath, false);
 
 	Q_strncpy (temp, basepath, sizeof (temp));
@@ -481,7 +478,7 @@ static int FS_FileTime_DIR (searchpath_t *search, const char *filename)
 	return FS_SysFileTime (path);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.05.25]
 static file_t *FS_OpenFile_DIR (searchpath_t *search, const char *filename, const char *mode, int pack_ind)
 	{
 	file_t	*f;
@@ -489,12 +486,13 @@ static file_t *FS_OpenFile_DIR (searchpath_t *search, const char *filename, cons
 
 	Q_snprintf (path, sizeof (path), "%s%s", search->filename, filename);
 	f = FS_SysOpen (path, mode);
-	f->searchpath = search;
+	if (!f)
+		return NULL;
 
+	f->searchpath = search;
 	return f;
 	}
 
-// [FWGS, 01.07.23]
 void FS_InitDirectorySearchpath (searchpath_t *search, const char *path, int flags)
 	{
 	memset (search, 0, sizeof (searchpath_t));
@@ -521,7 +519,6 @@ void FS_InitDirectorySearchpath (searchpath_t *search, const char *path, int fla
 	FS_PopulateDirEntries (search->dir, path);
 	}
 
-// [FWGS, 01.07.23]
 searchpath_t *FS_AddDir_Fullpath (const char *path, int flags)
 	{
 	searchpath_t *search;

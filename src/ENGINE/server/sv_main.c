@@ -61,6 +61,11 @@ CVAR_DEFINE_AUTO (sv_clienttrace, "1", FCVAR_SERVER,
 	"0 = big box(Quake), 0.5 = halfsize, 1 = normal (100%), otherwise it's a scaling factor");
 static CVAR_DEFINE_AUTO (sv_timeout, "65", 0,
 	"after this many seconds without a message from a client, the client is dropped");
+
+// [FWGS, 01.05.25]
+static CVAR_DEFINE_AUTO (sv_connect_timeout, "15", 0,
+	"after this many seconds without a message from a client, the client is dropped");
+
 CVAR_DEFINE_AUTO (sv_failuretime, "0.5", 0,
 	"after this long without a packet from client, don't send any more until client starts sending again");
 CVAR_DEFINE_AUTO (sv_password, "", FCVAR_SERVER | FCVAR_PROTECTED,
@@ -195,11 +200,8 @@ CVAR_DEFINE_AUTO (sv_background_freeze, "1", FCVAR_ARCHIVE,
 	"freeze player movement on background maps (e.g. to prevent falling)");
 
 // [FWGS, 01.03.25]
-/*static CVAR_DEFINE_AUTO (showtriggers, "0", FCVAR_LATCH,
-	"debug cvar shows triggers");*/
 static CVAR_DEFINE_AUTO (showtriggers, "0", FCVAR_LATCH | FCVAR_TEMPORARY,
 	"debug cvar shows triggers");
-
 static CVAR_DEFINE_AUTO (sv_airmove, "1", FCVAR_SERVER,
 	"obsolete, compatibility issues");
 static CVAR_DEFINE_AUTO (sv_version, "", FCVAR_READ_ONLY,
@@ -311,25 +313,6 @@ void SV_UpdateMovevars (qboolean initialize)
 	if (!initialize && !host.movevars_changed)
 		return;
 
-	/*// [FWGS, 01.12.24] NOTE: this breaks Natural Selection mod on ns_machina map that uses model as sky
-	// it sets the value to 4000000 that even exceeds the coord limit
-	if 0
-	// check range
-	if (sv_zmax.value < 256.0f)
-		Cvar_SetValue ("sv_zmax", 256.0f);
-
-	// clamp it right
-	if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
-		{
-		if (sv_zmax.value > 131070.0f)
-			Cvar_SetValue ("sv_zmax", 131070.0f);
-		}
-	else
-		{
-		if (sv_zmax.value > 32767.0f)
-			Cvar_SetValue ("sv_zmax", 32767.0f);
-		}
-	endif*/
 	// [FWGS, 01.03.25] NOTE: Natural Selection mod on ns_machina map that uses model as sky
 	// it sets the value to 4000000 that even exceeds the coord limit, but
 	// it's fine until the value fits in "zmax" delta field
@@ -397,8 +380,6 @@ static void SV_CheckCmdTimes (void)
 		if (sv_fps.value < MIN_FPS)
 			Cvar_SetValue ("sv_fps", MIN_FPS);
 
-		/*if (sv_fps.value > MAX_FPS)
-			Cvar_SetValue ("sv_fps", MAX_FPS);*/
 		if (sv_fps.value > MAX_FPS_HARD)
 			Cvar_SetValue ("sv_fps", MAX_FPS_HARD);
 		}
@@ -529,25 +510,6 @@ static void SV_ReadPackets (void)
 		// [FWGS, 01.12.24] check for connectionless packet (0xffffffff) first
 		if ((MSG_GetMaxBytes (&net_message) >= 4) && (*(int *)net_message.pData == -1))
 			{
-			/*if (!svs.initialized)
-				{
-				char *args;
-				const char *c;
-
-				MSG_Clear (&net_message);
-				MSG_ReadLong (&net_message);// skip the -1 marker
-
-				args = MSG_ReadStringLine (&net_message);
-				Cmd_TokenizeString (args);
-				c = Cmd_Argv (0);
-
-				if (!Q_strcmp (c, "rcon"))
-					SV_RemoteCommand (net_from, &net_message);
-				}
-			else
-				{
-				SV_ConnectionlessPacket (net_from, &net_message);
-				}*/
 			SV_ConnectionlessPacket (net_from, &net_message);
 
 			continue;
@@ -625,9 +587,22 @@ static void SV_ReadPackets (void)
 	sv.current_client = NULL;
 	}
 
+// [FWGS, 01.05.25]
+static void SV_DropTimedOutClient (sv_client_t *cl, qboolean ban)
+	{
+	SV_BroadcastPrintf (NULL, "%s timed out\n", cl->name);
+	SV_DropClient (cl, false);
+	cl->state = cs_free; // don't bother with zombie state
+
+	if (ban)
+		{
+		Cbuf_AddTextf ("addip 30 %s\n", NET_BaseAdrToString (cl->netchan.remote_address));
+		}
+	}
+
 /***
 ==================
-SV_CheckTimeouts [FWGS, 01.07.24]
+SV_CheckTimeouts [FWGS, 01.05.25]
 
 If a packet has not been received from a client for sv_timeout.value
 seconds, drop the conneciton.  Server frames are used instead of
@@ -640,14 +615,20 @@ if necessary
 ***/
 static void SV_CheckTimeouts (void)
 	{
-	sv_client_t	*cl;
+	/*sv_client_t	*cl;
 	double		droppoint;
 	int			i, numclients = 0;
 
-	droppoint = host.realtime - sv_timeout.value;
+	droppoint = host.realtime - sv_timeout.value;*/
+	int	i, numclients = 0;
+	const double	spawned_droppoint = host.realtime - sv_timeout.value;
+	const double	connected_droppoint = host.realtime - sv_connect_timeout.value;
 
-	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
+	/*for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)*/
+	for (i = 0; i < svs.maxclients; i++)
 		{
+		sv_client_t *cl = &svs.clients[i];
+
 		if (cl->state >= cs_connected)
 			{
 			if (cl->edict && !FBitSet (cl->edict->v.flags, FL_SPECTATOR | FL_FAKECLIENT))
@@ -658,21 +639,41 @@ static void SV_CheckTimeouts (void)
 		if (FBitSet (cl->flags, FCL_FAKECLIENT))
 			continue;
 
-		// FIXME: get rid of the zombie state
-		if (cl->state == cs_zombie)
+		/*// FIXME: get rid of the zombie state
+		if (cl->state == cs_zombie)*/
+		switch (cl->state)
 			{
-			cl->state = cs_free; // can now be reused
-			continue;
+			case cs_zombie:
+				// FIXME: get rid of the zombie state
+				cl->state = cs_free; // can now be reused
+				/*continue;
 			}
 
 		if (((cl->state == cs_connected) || (cl->state == cs_spawned)) && (cl->netchan.last_received < droppoint))
-			{
-			if (!NET_IsLocalAddress (cl->netchan.remote_address))
-				{
-				SV_BroadcastPrintf (NULL, "%s timed out\n", cl->name);
-				SV_DropClient (cl, false);
-				cl->state = cs_free; // don't bother with zombie state
-				}
+			{*/
+				break;
+
+			case cs_connected:
+				if (!NET_IsLocalAddress (cl->netchan.remote_address))
+					{
+					/*SV_BroadcastPrintf (NULL, "%s timed out\n", cl->name);
+					SV_DropClient (cl, false);
+					cl->state = cs_free; // don't bother with zombie state*/
+					if (cl->connection_started < connected_droppoint)
+						SV_DropTimedOutClient (cl, true);
+					}
+				break;
+
+			case cs_spawned:
+				if (!NET_IsLocalAddress (cl->netchan.remote_address))
+					{
+					if (cl->netchan.last_received < spawned_droppoint)
+						SV_DropTimedOutClient (cl, false);
+					}
+				break;
+
+			default:
+				break;
 			}
 		}
 
@@ -778,7 +779,6 @@ static qboolean SV_RunGameFrame (void)
 		}
 	}
 
-// [FWGS, 01.07.23]
 static void SV_UpdateStatusLine (void)
 	{
 #if XASH_PLATFORM_HAVE_STATUS
@@ -827,7 +827,7 @@ Host_ServerFrame
 ***/
 void Host_ServerFrame (void)
 	{
-	// [FWGS, 01.07.23] update dedicated server status line in console
+	// update dedicated server status line in console
 	SV_UpdateStatusLine ();
 
 	// if server is not active, do nothing
@@ -872,13 +872,10 @@ void Host_ServerFrame (void)
 
 // [FWGS, 01.02.24] removed Host_SetServerState
 
-// [FWGS, 01.05.23] removed Master_Add, Master_Heartbeat, Master_Shutdown
-
 // [FWGS, 01.12.24]
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	{
 	uint	challenge, challenge2, heartbeat_challenge;
-	/*char	s[MAX_INFO_STRING] = "0\n"; // skip 2 bytes of header*/
 	char	s[MAX_INFO_STRING] = S2M_INFO; // skip 2 bytes of header
 	int		clients, bots;
 	double	last_heartbeat;
@@ -1003,17 +1000,6 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 			}
 		}
 
-	/*if (id)
-		{
-		qboolean banned = SV_CheckID (id);
-
-		if (banned)
-			{
-			SV_RejectConnection (from, "You are banned!\n");
-			return false;
-			}
-		}*/
-
 	return true;
 	}
 
@@ -1083,9 +1069,11 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_stepsize);
 	Cvar_RegisterVariable (&sv_newunit);
 	Cvar_RegisterVariable (&hostname);
-
-	// [FWGS, 01.07.24]
 	Cvar_RegisterVariable (&sv_timeout);
+
+	// [FWGS, 01.05.25]
+	Cvar_RegisterVariable (&sv_connect_timeout);
+
 	Cvar_RegisterVariable (&sv_pausable);
 	Cvar_RegisterVariable (&sv_validate_changelevel);
 	Cvar_RegisterVariable (&sv_clienttrace);

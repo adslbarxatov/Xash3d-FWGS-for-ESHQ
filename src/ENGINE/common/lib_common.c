@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -40,10 +40,10 @@ void COM_PushLibraryError (const char *error)
 
 void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 	{
-	char **funcs = NULL;
-	size_t numfuncs, i;
-	void *f = NULL;
-	const char *func = NULL;
+	char	**funcs = NULL;
+	size_t	numfuncs, i;
+	void	*f = NULL;
+	const char	*func = NULL;
 
 #ifdef XASH_ALLOW_SAVERESTORE_OFFSETS
 	if (!memcmp (pName, "ofs:", 4))
@@ -210,7 +210,7 @@ static void COM_GenerateServerLibraryPath (char *out, size_t size)
 
 	ext = COM_FileExtension (dllpath);
 	COM_StripExtension (dllpath);
-	COM_StripIntelSuffix (dllpath);	// [FWGS, 01.04.23]
+	COM_StripIntelSuffix (dllpath);
 
 	COM_GenerateCommonLibraryName (dllpath, ext, out, size);
 #endif
@@ -219,7 +219,7 @@ static void COM_GenerateServerLibraryPath (char *out, size_t size)
 
 /***
 ==============
-COM_GetCommonLibraryPath [FWGS, 01.07.24]
+COM_GetCommonLibraryPath
 
 Generates platform-unique and compatible name for server library
 ==============
@@ -228,14 +228,18 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 	{
 	switch (eLibType)
 		{
+		// [FWGS, 01.05.25]
 		case LIBRARY_GAMEUI:
-			COM_GenerateClientLibraryPath ("menu", out, size);
+			/*COM_GenerateClientLibraryPath ("menu", out, size);*/
+			if (COM_CheckStringEmpty (host.menulib))
+				Q_strncpy (out, host.menulib, size);
+			else
+				COM_GenerateClientLibraryPath ("menu", out, size);
 			break;
 
 		case LIBRARY_CLIENT:
 			if (COM_CheckStringEmpty (host.clientlib))
 				Q_strncpy (out, host.clientlib, size);
-
 			else
 				COM_GenerateClientLibraryPath ("client", out, size);
 			break;

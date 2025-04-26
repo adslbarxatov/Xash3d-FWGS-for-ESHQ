@@ -94,10 +94,8 @@ void *FS_GetNativeObject (const char *obj)
 	}
 
 // [FWGS, 01.03.25]
-/*static void FS_Rescan_f (void)*/
 void FS_Rescan_f (void)
 	{
-	/*FS_Rescan ();*/
 	uint32_t flags = 0;
 
 	// FIXME: VFS shouldn't care about this, allow engine to mount gamedirs
@@ -375,6 +373,10 @@ void FS_Init (const char *basedir)
 
 	if (!Sys_GetParmFromCmdLine ("-clientlib", host.clientlib))
 		host.clientlib[0] = 0;
+
+	// [FWGS, 01.05.25]
+	if (!Sys_GetParmFromCmdLine ("-menulib", host.menulib))
+		host.menulib[0] = 0;
 	}
 
 /***

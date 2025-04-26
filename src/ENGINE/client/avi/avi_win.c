@@ -30,11 +30,9 @@ static dllfunc_t msvfw_funcs[] =
 	{ "DrawDibOpen", (void **)&pDrawDibOpen },
 	{ "DrawDibDraw", (void **)&pDrawDibDraw },
 	{ "DrawDibClose", (void **)&pDrawDibClose },
-	/*{ NULL, NULL }*/
 	};
 
 // [FWGS, 22.01.25]
-/*dll_info_t msvfw_dll = { "msvfw32.dll", msvfw_funcs, false };*/
 dll_info_t msvfw_dll = { "msvfw32.dll", msvfw_funcs, HLARRAYSIZE (msvfw_funcs), false };
 
 // msacm32.dll exports
