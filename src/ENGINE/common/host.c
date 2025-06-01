@@ -15,9 +15,11 @@ GNU General Public License for more details
 
 #include "build.h"
 
-#ifdef XASH_SDL
-	#include <SDL.h>
-#endif
+// [FWGS, 01.06.25]
+/*ifdef XASH_SDL
+include <SDL.h>
+endif*/
+
 #include <stdarg.h>	// va_args
 
 // [FWGS, 01.07.24]
@@ -93,8 +95,13 @@ CVAR_DEFINE_AUTO (host_limitlocal, "0", 0,
 	"apply cl_cmdrate and rate to loopback connection");
 CVAR_DEFINE (host_maxfps, "fps_max", "72", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"host fps upper limit");
-CVAR_DEFINE_AUTO (fps_override, "1", FCVAR_FILTERABLE,
+
+// [FWGS, 01.06.25]
+/*CVAR_DEFINE_AUTO (fps_override, "1", FCVAR_FILTERABLE,
+	"unlock higher framerate values, not supported");*/
+CVAR_DEFINE_AUTO (fps_override, "0", FCVAR_FILTERABLE,
 	"unlock higher framerate values, not supported");
+
 static CVAR_DEFINE_AUTO (host_framerate, "0", FCVAR_FILTERABLE,
 	"locks frame timing to this value in seconds");
 static CVAR_DEFINE (host_sleeptime, "sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -599,13 +606,14 @@ static void Host_MemStats_f (void)
 		}
 	}
 
-static void Host_Minimize_f (void)
+// [FWGS, 01.06.25] removed Host_Minimize_f
+/*static void Host_Minimize_f (void)
 	{
-#ifdef XASH_SDL
+ifdef XASH_SDL
 	if (host.hWnd)
 		SDL_MinimizeWindow (host.hWnd);
-#endif
-	}
+endif
+	}*/
 
 // [FWGS, 01.07.24] removed Host_IsLocalGame, Host_IsLocalClient
 
@@ -1394,9 +1402,12 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 		Cmd_AddRestrictedCommand ("quit", Sys_Quit_f, "quit the game");
 		Cmd_AddRestrictedCommand ("exit", Sys_Quit_f, "quit the game");
 		}
+
+	// [FWGS, 01.06.25]
 	else
 		{
-		Cmd_AddRestrictedCommand ("minimize", Host_Minimize_f, "minimize main window to tray");
+		/*Cmd_AddRestrictedCommand ("minimize", Host_Minimize_f, "minimize main window to tray");*/
+		Cmd_AddRestrictedCommand ("minimize", Platform_Minimize_f, "minimize main window to tray");
 		}
 
 	host.errorframe = 0;
@@ -1499,7 +1510,6 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 #endif
 
 	// [FWGS, 01.05.25] main window message loop
-	/*while (!host.crashed)*/
 	while (host.status != HOST_CRASHED)
 		{
 		newtime = Sys_DoubleTime ();

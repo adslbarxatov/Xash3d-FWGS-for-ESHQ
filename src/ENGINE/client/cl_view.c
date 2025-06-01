@@ -178,9 +178,10 @@ static void V_SetRefParams (ref_params_t *fd)
 		fd->smoothing = cl.local.pushmsec;		// enable smoothing in multiplayer by server request (AMX uses)
 		}
 
-	// get pointers to movement vars and user cmd
+	// [FWGS, 01.06.25] get pointers to movement vars and user cmd
 	fd->movevars = &clgame.movevars;
-	fd->cmd = cl.cmd;
+	/*fd->cmd = cl.cmd;*/
+	fd->cmd = &cl.cmd;
 
 	// setup viewport
 	fd->viewport[0] = clgame.viewport[0];

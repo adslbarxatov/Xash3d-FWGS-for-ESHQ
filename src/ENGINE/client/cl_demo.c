@@ -649,12 +649,10 @@ static void CL_ReadDemoUserCmd (qboolean discard)
 	// [FWGS, 01.02.25]
 	if (!discard)
 		{
-		/*usercmd_t	nullcmd;*/
 		const usercmd_t nullcmd = { 0 };
 		sizebuf_t	buf;
 		demoangle_t	*a;
 
-		/*memset (&nullcmd, 0, sizeof (nullcmd));*/
 		MSG_Init (&buf, "UserCmd", data, sizeof (data));
 
 		// [FWGS, 01.01.24] a1ba: I have no proper explanation why
@@ -668,10 +666,11 @@ static void CL_ReadDemoUserCmd (qboolean discard)
 		pcmd->heldback = false;
 		pcmd->sendsize = 1;
 
-		// always delta'ing from null
-		cl.cmd = &pcmd->cmd;
+		// [FWGS, 01.06.25] always delta'ing from null
+		/*cl.cmd = &pcmd->cmd;
 
-		MSG_ReadDeltaUsercmd (&buf, &nullcmd, cl.cmd);
+		MSG_ReadDeltaUsercmd (&buf, &nullcmd, cl.cmd);*/
+		MSG_ReadDeltaUsercmd (&buf, &nullcmd, &pcmd->cmd);
 
 		// make sure what interp info contain angles from different frames
 		// or lerping will stop working
@@ -681,15 +680,19 @@ static void CL_ReadDemoUserCmd (qboolean discard)
 			demo.angle_position = (demo.angle_position + 1) & ANGLE_MASK;
 			a = &demo.cmds[demo.angle_position];
 
-			// record update
+			// [FWGS, 01.06.25] record update
 			a->starttime = demo.timestamp;
-			VectorCopy (cl.cmd->viewangles, a->viewangles);
+			/*VectorCopy (cl.cmd->viewangles, a->viewangles);*/
+			VectorCopy (pcmd->cmd.viewangles, a->viewangles);
 			demo.lasttime = demo.timestamp;
 			}
 
 		// NOTE: we need to have the current outgoing sequence correct
 		// so we can do prediction correctly during playback
 		cls.netchan.outgoing_sequence = outgoing_sequence;
+
+		// [FWGS, 01.06.25] save last usercmd
+		cl.cmd = pcmd->cmd;
 		}
 	}
 
@@ -750,7 +753,6 @@ static void CL_DemoStartPlayback (int mode)
 		{
 		// NOTE: at this point demo is still valid
 		CL_Disconnect ();
-		/*Host_ShutdownServer ();*/
 		SV_Shutdown ("Server was killed due to demo playback start\n");
 
 		Con_FastClose ();
@@ -766,7 +768,6 @@ static void CL_DemoStartPlayback (int mode)
 	demo.starttime = CL_GetDemoPlaybackClock (); // for determining whether to read another message
 
 	// [FWGS, 01.12.24]
-	/*Netchan_Setup (NS_CLIENT, &cls.netchan, net_from, Cvar_VariableInteger ("net_qport"), NULL, CL_GetFragmentSize);*/
 	CL_SetupNetchanForProtocol (cls.legacymode);
 
 	memset (demo.cmds, 0, sizeof (demo.cmds));
@@ -778,25 +779,6 @@ static void CL_DemoStartPlayback (int mode)
 	}
 
 // [FWGS, 01.12.24] перемещено вверх
-/*
-=================
-CL_DemoAborted
-=================
-/
-static void CL_DemoAborted (void)
-	{
-	if (cls.demofile)
-		FS_Close (cls.demofile);
-
-	cls.demoplayback = false;
-	cls.changedemo = false;
-	cls.timedemo = false;
-	demo.framecount = 0;
-	cls.demofile = NULL;
-	cls.demonum = -1;
-
-	Cvar_DirectSet (&v_dark, "0");	// [FWGS, 01.07.23]
-	}*/
 
 /***
 =================
@@ -813,7 +795,7 @@ void CL_DemoCompleted (void)
 	if (!CL_NextDemo () && !cls.changedemo)
 		UI_SetActiveMenu (true);
 
-	Cvar_DirectSet (&v_dark, "0");	// [FWGS, 01.07.23]
+	Cvar_DirectSet (&v_dark, "0");
 	}
 
 /***
@@ -1022,7 +1004,6 @@ qboolean CL_DemoReadMessage (byte *buffer, size_t *length)
 		if (!cls.demofile) break;
 		curpos = FS_Tell (cls.demofile);
 
-		// [FWGS, 01.04.23]
 		if (!CL_ReadDemoCmdHeader (&cmd, &demo.timestamp))
 			return false;
 
@@ -1043,7 +1024,7 @@ qboolean CL_DemoReadMessage (byte *buffer, size_t *length)
 			if (demo.framecount != 0)
 				{
 				FS_Seek (cls.demofile, curpos, SEEK_SET);
-				return false; // not time yet.
+				return false; // not time yet
 				}
 			}
 
@@ -1052,7 +1033,7 @@ qboolean CL_DemoReadMessage (byte *buffer, size_t *length)
 		if ((cmd == dem_usercmd) && (lastpos != 0) && (demo.framecount != 0))
 			{
 			FS_Seek (cls.demofile, lastpos, SEEK_SET);
-			return false; // not time yet.
+			return false; // not time yet
 			}
 
 		// COMMAND HANDLERS
@@ -1193,6 +1174,7 @@ void CL_DemoInterpolateAngles (void)
 		CL_DemoFindInterpolatedViewAngles (curtime, &frac, &prev, &next);
 		}
 
+	// [FWGS, 01.06.25]
 	if (prev && next)
 		{
 		vec4_t	q, q1, q2;
@@ -1202,9 +1184,11 @@ void CL_DemoInterpolateAngles (void)
 		QuaternionSlerp (q2, q1, frac, q);
 		QuaternionAngle (q, cl.viewangles);
 		}
-	else if (cl.cmd != NULL)
+	/*else if (cl.cmd != NULL)*/
+	else
 		{
-		VectorCopy (cl.cmd->viewangles, cl.viewangles);
+		/*VectorCopy (cl.cmd->viewangles, cl.viewangles);*/
+		VectorCopy (cl.cmd.viewangles, cl.viewangles);
 		}
 	}
 

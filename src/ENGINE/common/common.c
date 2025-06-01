@@ -260,7 +260,6 @@ static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 	{
 	lzss_list_t		*list;
 	lzss_node_t		*node;
-	/*unsigned int	targetindex = (uint)source & (state->window_size - 1);*/
 	unsigned int	targetindex = (uintptr_t)source & (state->window_size - 1);
 
 	node = &state->hash_node[targetindex];
@@ -834,7 +833,7 @@ void GAME_EXPORT pfnGetModelBounds (model_t *mod, float *mins, float *maxs)
 		}
 	}
 
-// [FWGS, 01.07.23] removed pfnCvar_RegisterServerVariable, pfnCvar_RegisterEngineVariable,
+// removed pfnCvar_RegisterServerVariable, pfnCvar_RegisterEngineVariable,
 // pfnCvar_RegisterClientVariable, pfnCvar_RegisterGameUIVariable
 
 /***
@@ -910,11 +909,12 @@ float GAME_EXPORT pfnTime (void)
 
 // [FWGS, 25.12.24] removed pfnGetGameDir
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.06.25]
 qboolean COM_IsSafeFileToDownload (const char *filename)
 	{
 	char		lwrfilename[4096];
-	const char	*first, *last;
+	/*const char	*first, *last;*/
+	const char	*last;
 	const char	*ext;
 	size_t		len;
 	int			i;
@@ -948,25 +948,34 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 		return true;
 		}
 
+	for (i = 0; i < len; i++)
+		{
+		if (!isprint (filename[i]))
+			return false;
+		}
+
 	Q_strnlwr (filename, lwrfilename, sizeof (lwrfilename));
 	ext = COM_FileExtension (lwrfilename);
 
+	/*if (Q_strpbrk (lwrfilename, "\\:~") || Q_strstr (lwrfilename, ".."))*/
 	if (Q_strpbrk (lwrfilename, "\\:~") || Q_strstr (lwrfilename, ".."))
 		return false;
 
 	if (lwrfilename[0] == '/')
 		return false;
 
-	first = Q_strchr (lwrfilename, '.');
+	/*first = Q_strchr (lwrfilename, '.');*/
 	last = Q_strrchr (lwrfilename, '.');
 
-	if ((first == NULL) || (last == NULL))
+	/*if ((first == NULL) || (last == NULL))
 		return false;
 
-	if (first != last)
+	if (first != last)*/
+	if (last == NULL)
 		return false;
 
-	if (Q_strlen (first) != 4)
+	/*if (Q_strlen (first) != 4)*/
+	if (Q_strlen (last) != 4)
 		return false;
 
 	for (i = 0; i < HLARRAYSIZE (file_exts); i++)
@@ -1141,11 +1150,12 @@ static void Test_LZSS (void)
 	TASSERT_STR (out, decompressed);
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.06.25]
 void Test_RunCommon (void)
 	{
 	Msg ("Checking COM_IsSafeFileToDownload...\n");
 
+	TASSERT_EQi (COM_IsSafeFileToDownload ("models/bsg_props/[hl-lab.ru]bush.mdl"), true);
 	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD5AAB5E8B307672DA86FBD10AC302BC732"), true);
 	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD56f1ffd8c96bd64c9c27955309f6ecfe6"), false);
 	TASSERT_EQi (COM_IsSafeFileToDownload ("!MD5AAB5E8B307672DA86FBD10AC302B.exe"), false);

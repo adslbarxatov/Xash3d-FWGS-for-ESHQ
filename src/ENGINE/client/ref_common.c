@@ -28,8 +28,6 @@ CVAR_DEFINE_AUTO (r_showtree, "0", FCVAR_ARCHIVE,
 	"build the graph of visible BSP tree");
 static CVAR_DEFINE_AUTO (r_refdll, "", FCVAR_RENDERINFO,
 	"choose renderer implementation, if supported");
-
-// [FWGS, 01.11.23]
 static CVAR_DEFINE_AUTO (r_refdll_loaded, "", FCVAR_READ_ONLY,
 	"currently loaded renderer");
 
@@ -59,13 +57,6 @@ REF_HOST_CHECK (frametime);
 REF_HOST_CHECK (features);
 
 // [FWGS, 01.12.24] removed R_GetTextureParms
-/*void R_GetTextureParms (int *w, int *h, int texnum)
-	{
-	if (w)
-		*w = REF_GET_PARM (PARM_TEX_WIDTH, texnum);
-	if (h)
-		*h = REF_GET_PARM (PARM_TEX_HEIGHT, texnum);
-	}*/
 
 // [FWGS, 01.07.24]
 static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_STRING])
@@ -182,7 +173,7 @@ void GAME_EXPORT GL_FreeImage (const char *name)
 		ref.dllFuncs.GL_FreeTexture (texnum);
 	}
 
-// [FWGS, 01.01.24] удалена R_UpdateRefState
+// [FWGS, 01.01.24] removed R_UpdateRefState
 
 // [FWGS, 01.01.24]
 void GL_RenderFrame (const ref_viewpass_t *rvp)
@@ -198,7 +189,7 @@ static intptr_t pfnEngineGetParm (int parm, int arg)
 	return CL_RenderGetParm (parm, arg, false); // prevent recursion
 	}
 
-// [FWGS, 01.01.24] удалена pfnGetWorld
+// [FWGS, 01.01.24] removed pfnGetWorld
 
 // [FWGS, 01.12.24]
 static cvar_t *pfnCvar_Get (const char *szName, const char *szValue, int flags, const char *description)
@@ -229,8 +220,6 @@ static void pfnStudioEvent (const mstudioevent_t *event, const cl_entity_t *e)
 	{
 	clgame.dllFuncs.pfnStudioEvent (event, e);
 	}
-
-// [FWGS, 01.05.23] removed pfnGetEfragsFreeList, pfnSetEfragsFreeList
 
 static model_t *pfnGetDefaultSprite (enum ref_defaultsprite_e spr)
 	{
@@ -270,9 +259,7 @@ static void *pfnMod_Extradata (int type, model_t *m)
 	return NULL;
 	}
 
-// [FWGS, 01.11.23] удалены pfnMod_GetCurrentLoadingModel, pfnMod_SetCurrentLoadingModel
-
-// [FWGS, 01.01.24] удалены pfnGetPredictedOrigin, pfnCL_GetPaletteColor
+// [FWGS, 01.01.24] removed pfnGetPredictedOrigin, pfnCL_GetPaletteColor
 
 // [FWGS, 01.02.24]
 static void CL_ExtraUpdate (void)
@@ -331,7 +318,7 @@ static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s 
 		0;
 	}
 
-// [FWGS, 01.01.24] удалена pfnImage_GetPool
+// [FWGS, 01.01.24] removed pfnImage_GetPool
 
 static const bpc_desc_t *pfnImage_GetPFDesc (int idx)
 	{
@@ -359,7 +346,6 @@ static qboolean R_Init_Video_ (const int type)
 	{
 	host.apply_opengl_config = true;
 
-	// [FWGS, 01.04.23]
 	Cbuf_AddTextf ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ());
 
 	Cbuf_Execute ();
@@ -412,7 +398,6 @@ static const ref_api_t gEngfuncs =
 
 	Mod_SampleSizeForFace,
 	Mod_BoxVisible,
-	/*Mod_PointInLeaf,*/
 	pfnMod_PointInLeaf,
 	R_DrawWorldHull,
 	R_DrawModelHull,
@@ -495,6 +480,9 @@ static const ref_api_t gEngfuncs =
 	&clgame.drawFuncs,
 
 	&g_fsapi,
+
+	// [FWGS, 01.06.25]
+	R_GetWindowHandle,
 	};
 
 // [FWGS, 01.12.24]
@@ -508,7 +496,6 @@ static void R_UnloadProgs (void)
 
 	Cvar_FullSet ("host_refloaded", "0", FCVAR_READ_ONLY);
 
-	/*Cvar_Unlink (FCVAR_RENDERINFO | FCVAR_GLCONFIG);*/
 	Cvar_Unlink (FCVAR_RENDERINFO | FCVAR_GLCONFIG | FCVAR_REFDLL);
 
 	Cmd_Unlink (CMD_REFDLL);
@@ -554,7 +541,6 @@ static qboolean R_LoadProgs (const char *name)
 		R_UnloadProgs ();
 
 	FS_AllowDirectPaths (true);
-	/*if (!(ref.hInstance = COM_LoadLibrary (name, false, true)))*/
 	if (!(ref.hInstance = COM_LoadLibrary (name, false, true)))
 		{
 		FS_AllowDirectPaths (false);
@@ -564,12 +550,9 @@ static qboolean R_LoadProgs (const char *name)
 
 	FS_AllowDirectPaths (false);
 
-	/*if (!(GetRefAPI = (REFAPI)COM_GetProcAddress (ref.hInstance, GET_REF_API)))*/
 	if (!(GetRefAPI = (REFAPI)COM_GetProcAddress (ref.hInstance, GET_REF_API)))
 		{
-		/*COM_FreeLibrary (ref.hInstance);*/
 		Con_Reportf ("%s: can't find GetRefAPI entry point in %s\n", __func__, name);
-		/*ref.hInstance = NULL;*/
 		return false;
 		}
 
@@ -577,19 +560,14 @@ static qboolean R_LoadProgs (const char *name)
 	gpEngfuncs = gEngfuncs;
 	if (GetRefAPI (REF_API_VERSION, &ref.dllFuncs, &gpEngfuncs, &refState) != REF_API_VERSION)
 		{
-		/*COM_FreeLibrary (ref.hInstance);*/
 		Con_Reportf ("%s: can't init renderer API: wrong version\n", __func__);
-		/*ref.hInstance = NULL;*/
 		return false;
 		}
 
 	refState.developer = host_developer.value;
-	/*if (!ref.dllFuncs.R_Init ())*/
 	if (!ref.dllFuncs.R_Init ())
 		{
-		/*COM_FreeLibrary (ref.hInstance);*/
 		Con_Reportf ("%s: can't init renderer!\n", __func__);
-		/*ref.hInstance = NULL;*/
 		return false;
 		}
 
@@ -656,7 +634,6 @@ static void R_GetRendererName (char *dest, size_t size, const char *opt)
 	}
 
 // [FWGS, 01.04.25]
-/*static qboolean R_LoadRenderer (const char *refopt)*/
 static qboolean R_LoadRenderer (const char *refopt, qboolean quiet)
 	{
 	string refdll;
@@ -668,9 +645,9 @@ static qboolean R_LoadRenderer (const char *refopt, qboolean quiet)
 	if (!R_LoadProgs (refdll))
 		{
 		R_Shutdown ();
-		/*Sys_Warn (S_ERROR "Can't initialize %s renderer!\n", refdll);*/
 		if (!quiet)
 			Sys_Warn (S_ERROR "Can't initialize %s renderer!\n", refdll);
+
 		return false;
 		}
 
@@ -710,7 +687,6 @@ static void SetFullscreenModeFromCommandLine (void)
 static void R_CollectRendererNames (void)
 	{
 	// ordering is important!
-	/*static const char *shortNames[] =*/
 	static const char *short_names[] =
 		{
 		#if XASH_REF_GL_ENABLED
@@ -734,7 +710,6 @@ static void R_CollectRendererNames (void)
 		};
 
 	// ordering is important here too!
-	/*static const char *readableNames[ARRAYSIZE (shortNames)] =*/
 	static const char *long_names[HLARRAYSIZE (short_names)] =
 		{
 		#if XASH_REF_GL_ENABLED
@@ -757,9 +732,6 @@ static void R_CollectRendererNames (void)
 		#endif
 		};
 
-	/*ref.numRenderers = HLARRAYSIZE (shortNames);
-	ref.shortNames = shortNames;
-	ref.readableNames = readableNames;*/
 	ref.num_renderers = HLARRAYSIZE (short_names);
 	ref.short_names = short_names;
 	ref.long_names = long_names;
@@ -834,13 +806,11 @@ qboolean R_Init (void)
 	requested_cvar[0] = 0;
 
 	if (Sys_GetParmFromCmdLine ("-ref", requested_cmdline))
-		/*success = R_LoadRenderer (requested_cmdline);*/
 		success = R_LoadRenderer (requested_cmdline, false);
 
 	if (!success && COM_CheckString (r_refdll.string) && Q_stricmp (requested_cmdline, r_refdll.string))
 		{
 		Q_strncpy (requested_cvar, r_refdll.string, sizeof (requested_cvar));
-		/*success = R_LoadRenderer (requested_cvar);*/
 
 		// do not show scary messages to user if renderer set in config cannot be loaded
 		// as game data could be copied from one platform to another, where this renderer
@@ -852,19 +822,15 @@ qboolean R_Init (void)
 		{
 		int i;
 
-		/*for (i = 0; i < ref.numRenderers && !success; i++)*/
 		for (i = 0; i < ref.num_renderers; i++)
 			{
 			// skip renderer that was requested but failed to load
-			/*if (!Q_strcmp (requested_cmdline, ref.shortNames[i]))*/
 			if (!Q_strcmp (requested_cmdline, ref.short_names[i]))
 				continue;
 
-			/*if (!Q_strcmp (requested_cvar, ref.shortNames[i]))*/
 			if (!Q_strcmp (requested_cvar, ref.short_names[i]))
 				continue;
 
-			/*success = R_LoadRenderer (ref.shortNames[i]);*/
 			// do not show bruteforcing attempts, however, warn user about falling back
 			// to software mode
 			if (!Q_strcmp ("soft", ref.short_names[i]) && !host_developer.value)

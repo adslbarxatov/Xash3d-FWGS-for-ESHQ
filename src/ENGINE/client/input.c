@@ -13,15 +13,22 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.06.25]
+#if XASH_SDL == 2
+	#include <SDL.h>
+#elif XASH_SDL == 3
+	#include <SDL3/SDL.h>
+#endif
+
 #include "common.h"
 #include "input.h"
 #include "client.h"
 #include "vgui_draw.h"
 #include "cursor_type.h"	// [FWGS, 01.07.24]
 
-#if XASH_SDL
-#include <SDL.h>
-#endif
+/*if XASH_SDL
+include <SDL.h>
+endif*/
 
 #include "platform/platform.h"
 
@@ -212,8 +219,7 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 		IN_ActivateMouse ();
 		}
 
-// [FWGS, 01.03.25]
-/*static void IN_SetRelativeMouseMode (qboolean set, qboolean verbose)*/
+// [FWGS, 01.06.25]
 void IN_SetRelativeMouseMode (qboolean set)
 	{
 	static qboolean s_bRawInput;
@@ -221,9 +227,17 @@ void IN_SetRelativeMouseMode (qboolean set)
 
 	if (set && !s_bRawInput)
 		{
-#if XASH_SDL == 2
+/*if XASH_SDL == 2*/
+#if XASH_SDL >= 2
 		SDL_GetRelativeMouseState (NULL, NULL);
+
+#if XASH_SDL == 2
 		SDL_SetRelativeMouseMode (SDL_TRUE);
+/*endif*/
+#else
+		SDL_SetWindowRelativeMouseMode (host.hWnd, true);
+#endif
+
 #endif
 
 		s_bRawInput = true;
@@ -231,11 +245,20 @@ void IN_SetRelativeMouseMode (qboolean set)
 			Con_Printf ("%s: true\n", __func__);
 		}
 
+	// [FWGS, 01.06.25]
 	else if (!set && s_bRawInput)
 		{
-#if XASH_SDL == 2
+/*if XASH_SDL == 2*/
+#if XASH_SDL >= 2
 		SDL_GetRelativeMouseState (NULL, NULL);
+
+#if XASH_SDL == 2
 		SDL_SetRelativeMouseMode (SDL_FALSE);
+/*endif*/
+#else
+		SDL_SetWindowRelativeMouseMode (host.hWnd, false);
+#endif
+
 #endif
 
 		s_bRawInput = false;
@@ -244,8 +267,7 @@ void IN_SetRelativeMouseMode (qboolean set)
 		}
 	}
 
-// [FWGS, 01.03.25]
-/*static void IN_SetMouseGrab (qboolean set, qboolean verbose)*/
+// [FWGS, 01.06.25]
 void IN_SetMouseGrab (qboolean set)
 	{
 	static qboolean s_bMouseGrab;
@@ -253,9 +275,11 @@ void IN_SetMouseGrab (qboolean set)
 
 	if (set && !s_bMouseGrab)
 		{
-#if XASH_SDL
+/*if XASH_SDL
 		SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
-#endif
+endif*/
+		Platform_SetMouseGrab (true);
+
 		s_bMouseGrab = true;
 		if (verbose)
 			Con_Printf ("%s: true\n", __func__);
@@ -263,9 +287,11 @@ void IN_SetMouseGrab (qboolean set)
 
 	else if (!set && s_bMouseGrab)
 		{
-#if XASH_SDL
+/*if XASH_SDL
 		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
-#endif
+endif*/
+		Platform_SetMouseGrab (false);
+
 		s_bMouseGrab = false;
 		if (verbose)
 			Con_Printf ("%s: false\n", __func__);
@@ -275,7 +301,6 @@ void IN_SetMouseGrab (qboolean set)
 // [FWGS, 01.03.25]
 static void IN_CheckMouseState (qboolean active)
 	{
-	/*qboolean use_raw_input, verbose;*/
 	qboolean use_raw_input;
 
 #if XASH_WIN32
@@ -284,23 +309,17 @@ static void IN_CheckMouseState (qboolean active)
 	use_raw_input = true; // always use SDL code
 #endif
 
-	/*verbose = m_grab_debug.value ? true : false;*/
-
 	if (m_ignore.value)
 		active = false;
 
 	if (active && use_raw_input && !host.mouse_visible && (cls.state == ca_active))
-		/*IN_SetRelativeMouseMode (true, verbose);*/
 		IN_SetRelativeMouseMode (true);
 	else
-		/*IN_SetRelativeMouseMode (false, verbose);*/
 		IN_SetRelativeMouseMode (false);
 
 	if (active && !host.mouse_visible && (cls.state == ca_active))
-		/*IN_SetMouseGrab (true, verbose);*/
 		IN_SetMouseGrab (true);
 	else
-		/*IN_SetMouseGrab (false, verbose);*/
 		IN_SetMouseGrab (false);
 	}
 
@@ -353,7 +372,6 @@ static void IN_MouseMove (void)
 		return;
 
 	// [FWGS, 01.03.25] touch emulation overrides all input
-	/*if (Touch_Emulated ())*/
 	if (Touch_WantVisibleCursor ())
 		{
 		Touch_KeyEvent (0, 0);
@@ -384,7 +402,6 @@ void IN_MouseEvent (int key, int down)
 		ClearBits (in_mstate, BIT (key));
 
 	// [FWGS, 01.03.25] touch emulation overrides all input
-	/*if (Touch_Emulated ())*/
 	if (Touch_WantVisibleCursor ())
 		{
 		Touch_KeyEvent (K_MOUSE1 + key, down);
@@ -589,7 +606,6 @@ IN_EngineAppendMove [FWGS, 01.12.24]
 Called from cl_main.c after generating command in client
 ================
 ***/
-/*void IN_EngineAppendMove (float frametime, void *cmd1, qboolean active)*/
 void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active)
 	{
 	float	forward, side, pitch, yaw;

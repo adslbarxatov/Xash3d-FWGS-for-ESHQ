@@ -115,8 +115,13 @@ CVAR_DEFINE_AUTO (cl_nointerp, "0", 0,
 	"disable interpolation of entities and players");
 static CVAR_DEFINE_AUTO (cl_dlmax, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
 	"max allowed outcoming fragment size");
-static CVAR_DEFINE_AUTO (cl_upmax, "1200", FCVAR_ARCHIVE,
+
+// [FWGS, 01.06.25]
+/*static CVAR_DEFINE_AUTO (cl_upmax, "1200", FCVAR_ARCHIVE,
+	"max allowed incoming fragment size");*/
+static CVAR_DEFINE_AUTO (cl_upmax, "508", FCVAR_ARCHIVE,
 	"max allowed incoming fragment size");
+
 CVAR_DEFINE_AUTO (cl_lw, "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
 	"enable client weapon predicting");
 CVAR_DEFINE_AUTO (cl_charset, "utf-8", FCVAR_ARCHIVE,
@@ -683,7 +688,7 @@ static void CL_UpdateClientData (void)
 
 /***
 =================
-CL_CreateCmd [FWGS, 01.02.25]
+CL_CreateCmd
 =================
 ***/
 static void CL_CreateCmd (void)
@@ -771,8 +776,10 @@ static void CL_CreateCmd (void)
 			pcmd->cmd.msec = 0;
 		}
 
-	// demo always have commands so don't overwrite them
-	if (!cls.demoplayback) cl.cmd = &pcmd->cmd;
+	// [FWGS, 01.06.25] demo always have commands so don't overwrite them
+	/*if (!cls.demoplayback) cl.cmd = &pcmd->cmd;*/
+	if (!cls.demoplayback)
+		cl.cmd = pcmd->cmd;
 
 	// predict all unacknowledged movements
 	CL_PredictMovement (false);
@@ -3665,14 +3672,23 @@ static void CL_InitLocal (void)
 		"print current client physinfo");
 	Cmd_AddCommand ("disconnect", CL_Disconnect_f,
 		"disconnect from server");
-	Cmd_AddCommand ("record", CL_Record_f,
+	
+	// [FWGS, 01.06.25]
+	/*Cmd_AddCommand ("record", CL_Record_f,
+		"record a demo");*/
+	Cmd_AddRestrictedCommand ("record", CL_Record_f,
 		"record a demo");
+
 	Cmd_AddCommand ("playdemo", CL_PlayDemo_f,
 		"play a demo");
 	Cmd_AddCommand ("timedemo", CL_TimeDemo_f,
 		"demo benchmark");
-	Cmd_AddCommand ("killdemo", CL_DeleteDemo_f,
+
+	/*Cmd_AddCommand ("killdemo", CL_DeleteDemo_f,
+		"delete a specified demo file");*/
+	Cmd_AddRestrictedCommand ("killdemo", CL_DeleteDemo_f,
 		"delete a specified demo file");
+
 	Cmd_AddCommand ("startdemos", CL_StartDemos_f,
 		"start playing back the selected demos sequentially");
 	Cmd_AddCommand ("demos", CL_Demos_f,

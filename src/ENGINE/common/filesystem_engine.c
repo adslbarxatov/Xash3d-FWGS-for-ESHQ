@@ -16,9 +16,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.03.25]
-#if XASH_SDL
-#include <SDL.h>	// SDL_GetBasePath
+// [FWGS, 01.06.25]
+/*if XASH_SDL*/
+#if XASH_SDL == 2
+	#include <SDL.h>	// SDL_GetBasePath
+#elif XASH_SDL == 3
+	#include <SDL3/SDL.h>
 #endif
 
 #include <errno.h>		// [FWGS, 01.07.24]
@@ -203,7 +206,6 @@ static qboolean FS_LoadProgs (void)
 	return true;
 	}
 
-// [FWGS, 01.07.24]
 static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 	{
 	const char *path = getenv ("XASH3D_BASEDIR");
@@ -239,11 +241,12 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 
 	return false;
 
-#elif ( XASH_SDL == 2 ) && !XASH_NSWITCH // GetBasePath not impl'd in switch-sdl2
+	// [FWGS, 01.06.25]
+/*elif ( XASH_SDL == 2 ) && !XASH_NSWITCH // GetBasePath not impl'd in switch-sdl2*/
+#elif ( XASH_SDL >= 2 ) && !XASH_NSWITCH // GetBasePath not impl'd in switch-sdl2
 
 	path = SDL_GetBasePath ();
 
-	// [FWGS, 01.02.25]
 #if XASH_APPLE
 	if (path != NULL && Q_stristr (path, ".app"))
 		{

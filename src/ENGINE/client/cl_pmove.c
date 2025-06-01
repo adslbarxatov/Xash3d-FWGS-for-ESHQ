@@ -26,8 +26,6 @@ GNU General Public License for more details
 #define MIN_PREDICTION_EPSILON	0.5f	// complain if error is > this and we have cl_showerror set
 #define MAX_PREDICTION_ERROR	64.0f	// above this is assumed to be a teleport, don't smooth, etc.
 
-// [FWGS, 01.04.23] удалена CL_ClearPhysEnts
-
 /***
 =============
 CL_PushPMStates
@@ -65,7 +63,6 @@ void GAME_EXPORT CL_PopPMStates (void)
 CL_IsPredicted [FWGS, 01.12.24]
 ===============
 ***/
-/*qboolean CL_IsPredicted (void)*/
 static qboolean CL_IsPredicted (void)
 	{
 	if (cl_nopred.value || cl.intermission)
@@ -171,7 +168,7 @@ void CL_SetIdealPitch (void)
 
 /***
 ==================
-CL_PlayerTeleported [FWGS, 01.04.23]
+CL_PlayerTeleported
 
 check for instant movement in case
 we don't want interpolate this
@@ -327,8 +324,6 @@ static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboole
 		// client or bot
 		Q_snprintf (pe->name, sizeof (pe->name), "player %i", pe->player - 1);
 		}
-
-	/*else*/
 	else if (mod != NULL)
 		{
 		// otherwise copy the modelname
@@ -358,7 +353,6 @@ static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboole
 		}
 
 	// [FWGS, 01.12.24] rare case: not solid entities in vistrace
-	/*if (visent && VectorIsNull (pe->mins))*/
 	if (visent && VectorIsNull (pe->mins) && (mod != NULL))
 		{
 		VectorCopy (mod->mins, pe->mins);
@@ -602,7 +596,7 @@ int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 		hull = PM_HullForBsp (pe, clgame.pmove, offset);
 		clgame.pmove->usehull = oldhull;
 
-		// offset the test point appropriately for this hull.
+		// offset the test point appropriately for this hull
 		VectorSubtract (rgflPos, offset, test);
 
 		if (FBitSet (pe->model->flags, MODEL_HAS_ORIGIN) && !VectorIsNull (pe->angles))
@@ -682,14 +676,13 @@ cl_entity_t *CL_GetWaterEntity (const float *rgflPos)
 	return CL_GetEntityByIndex (entnum);
 	}
 
-// [FWGS, 01.02.24] удалена CL_TestLine
+// [FWGS, 01.02.24] removed CL_TestLine
 
 static int GAME_EXPORT pfnTestPlayerPosition (float *pos, pmtrace_t *ptrace)
 	{
 	return PM_TestPlayerPosition (clgame.pmove, pos, ptrace, NULL);
 	}
 
-// [FWGS, 01.04.23]
 static void GAME_EXPORT pfnStuckTouch (int hitent, pmtrace_t *tr)
 	{
 	PM_StuckTouch (clgame.pmove, hitent, tr);
@@ -706,13 +699,11 @@ static pmtrace_t GAME_EXPORT pfnPlayerTrace (float *start, float *end, int trace
 		clgame.pmove->physents, ignore_pe, NULL);
 	}
 
-// [FWGS, 01.04.23]
 static void *pfnHullForBsp (physent_t *pe, float *offset)
 	{
 	return PM_HullForBsp (pe, clgame.pmove, offset);
 	}
 
-// [FWGS, 01.04.23]
 static float GAME_EXPORT pfnTraceModel (physent_t *pe, float *start, float *end, trace_t *trace)
 	{
 	return PM_TraceModel (clgame.pmove, pe, start, end, trace);
@@ -745,7 +736,6 @@ static int GAME_EXPORT pfnTestPlayerPositionEx (float *pos, pmtrace_t *ptrace, p
 	return PM_TestPlayerPosition (clgame.pmove, pos, ptrace, pmFilter);
 	}
 
-// [FWGS, 01.04.23]
 static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
 	{
 	return PM_TraceLineEx (clgame.pmove, start, end, flags, usehull, pmFilter);
@@ -787,8 +777,6 @@ void CL_InitClientMove (void)
 	clgame.pmove->Con_Printf = Con_Printf;
 	clgame.pmove->Sys_FloatTime = Sys_DoubleTime;
 	clgame.pmove->PM_StuckTouch = pfnStuckTouch;
-	
-	// [FWGS, 01.04.23]
 	clgame.pmove->PM_PointContents = (void *)PM_CL_PointContents;
 	clgame.pmove->PM_TruePointContents = pfnTruePointContents;
 	clgame.pmove->PM_HullPointContents = (void *)PM_HullPointContents;
@@ -1010,9 +998,11 @@ void CL_MoveSpectatorCamera (void)
 	if (!cls.spectator)
 		return;
 
+	// [FWGS, 01.06.25]
 	CL_SetUpPlayerPrediction (false, true);
 	CL_SetSolidPlayers (cl.playernum);
-	CL_RunUsercmd (&cls.spectator_state, &cls.spectator_state, cl.cmd, true, &time, (uint)(time * 100.0));
+	/*CL_RunUsercmd (&cls.spectator_state, &cls.spectator_state, cl.cmd, true, &time, (uint)(time * 100.0));*/
+	CL_RunUsercmd (&cls.spectator_state, &cls.spectator_state, &cl.cmd, true, &time, (uint)(time * 100.0));
 
 	VectorCopy (cls.spectator_state.client.velocity, cl.simvel);
 	VectorCopy (cls.spectator_state.client.origin, cl.simorg);
@@ -1022,7 +1012,7 @@ void CL_MoveSpectatorCamera (void)
 
 /***
 =================
-CL_PredictMovement [FWGS, 01.04.23]
+CL_PredictMovement
 
 Sets cl.predicted.origin and cl.predicted.angles
 =================
@@ -1132,7 +1122,6 @@ void CL_PredictMovement (qboolean repredicting)
 		else 
 			cl.local.onground = -1;
 
-		// [FWGS, 01.07.23]
 		if (!repredicting || !cl_lw.value)
 			cl.local.viewmodel = to->client.viewmodel;
 		cl.local.repredicting = false;
@@ -1168,7 +1157,6 @@ void CL_PredictMovement (qboolean repredicting)
 	cl.local.waterlevel = to->client.waterlevel;
 	cl.local.usehull = to->playerstate.usehull;
 
-	// [FWGS, 01.07.23]
 	if (!repredicting || !cl_lw.value)
 		cl.local.viewmodel = to->client.viewmodel;
 
@@ -1234,4 +1222,3 @@ void CL_PredictMovement (qboolean repredicting)
 	VectorCopy (cl.simorg, cl.local.lastorigin);
 	cl.local.repredicting = false;
 	}
-

@@ -158,7 +158,6 @@ static qboolean Cvar_UpdateInfo (convar_t *var, const char *value, qboolean noti
 	{
 	if (FBitSet (var->flags, FCVAR_USERINFO))
 		{
-		/*if (Host_IsDedicated ())*/
 		if (Host_IsDedicated ())
 			{
 			// g-cont. this is a very strange behavior...
@@ -243,7 +242,6 @@ static const char *Cvar_ValidateString (convar_t *var, const char *value)
 		}
 
 	// [FWGS, 01.12.24]
-	/*if (FBitSet (var->flags, FCVAR_NOEXTRAWHITEPACE))*/
 	if (FBitSet (var->flags, FCVAR_NOEXTRAWHITESPACE))
 		{
 		char *szVal = szNew;
@@ -270,7 +268,7 @@ static const char *Cvar_ValidateString (convar_t *var, const char *value)
 
 /***
 ============
-Cvar_ValidateVarName [FWGS, 01.04.23]
+Cvar_ValidateVarName
 ============
 ***/
 static qboolean Cvar_ValidateVarName (const char *s, qboolean isvalue)
@@ -336,17 +334,10 @@ static int Cvar_UnlinkVar (const char *var_name, int group)
 #endif
 
 		// unlink variable from list
-		/*freestring (var->string);*/
 		*prev = var->next;
 
 		// only allocated cvars can throw these fields
 		if (FBitSet (var->flags, FCVAR_ALLOCATED))
-			/*{
-			freestring (var->name);
-			freestring (var->def_string);
-			freestring (var->desc);
-			Mem_Free (var);
-			}*/
 			Cvar_Free (var);
 		else
 			freestring (var->string);
@@ -452,8 +443,6 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			if (COM_CheckStringEmpty (var->desc))
 				{
 				// [FWGS, 01.04.25] directly set value
-				/*freestring (var->string);
-				var->string = copystringpool (cvar_pool, value);*/
 				size_t len = Q_strlen (value) + 1;
 				var->string = Mem_Realloc (cvar_pool, var->string, len);
 				Q_strncpy (var->string, value, len);
@@ -480,8 +469,6 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 				Con_Reportf ("%s change description from %s to %s\n", var->name, var->desc, var_desc);
 
 			// [FWGS, 01.02.25] update description if needs
-			/*freestring (var->desc);
-			var->desc = copystringpool (cvar_pool, var_desc);*/
 			var->desc = Mem_Realloc (cvar_pool, var->desc, len);
 			Q_strncpy (var->desc, var_desc, len);
 			}
@@ -490,11 +477,6 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 		}
 
 	// [FWGS, 01.02.25] allocate a new cvar
-	/*var = Z_Malloc (sizeof (*var));
-	var->name = copystring (name);
-	var->string = copystring (value);
-	var->def_string = copystring (value);
-	var->desc = copystring (var_desc);*/
 	var = Mem_Malloc (cvar_pool, sizeof (*var));
 	var->name = copystringpool (cvar_pool, name);
 	var->string = copystringpool (cvar_pool, value);
@@ -547,7 +529,7 @@ convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, c
 ============
 Cvar_RegisterVariable
 
-Adds a freestanding variable to the variable list.
+Adds a freestanding variable to the variable list
 ============
 ***/
 void Cvar_RegisterVariable (convar_t *var)
@@ -588,7 +570,6 @@ void Cvar_RegisterVariable (convar_t *var)
 		var->def_string = var->string; // just swap pointers
 
 	// [FWGS, 01.02.25]
-	/*var->string = copystring (var->string);*/
 	var->string = copystringpool (cvar_pool, var->string);
 	var->value = Q_atof (var->string);
 
@@ -644,7 +625,6 @@ Cvar_Set2 [FWGS, 01.04.25]
 static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	{
 	convar_t	*var;
-	/*const char	*pszValue;*/
 	qboolean	dll_variable = false;
 	qboolean	force = false;
 	const char	*fixed_string;
@@ -712,22 +692,15 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 			return var;
 		}
 
-	/*pszValue = Cvar_ValidateString (var, value);*/
 	fixed_string = Cvar_ValidateString (var, value);
 
 	// nothing to change
-	/*if (!Q_strcmp (pszValue, var->string))*/
 	if (!Q_strcmp (fixed_string, var->string))
 		return var;
 
 	// fill it cls.userinfo, svs.serverinfo
-	/*if (!Cvar_UpdateInfo (var, pszValue, true))*/
 	if (!Cvar_UpdateInfo (var, fixed_string, true))
 		return var;
-
-	/*// [FWGS, 01.02.25] and finally changed the cvar itself
-	freestring (var->string);
-	var->string = copystringpool (cvar_pool, pszValue);*/
 
 	// and finally change the cvar itself
 	fixed_string_len = Q_strlen (fixed_string) + 1;
@@ -749,7 +722,6 @@ way to change value for many cvars
 ***/
 void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	{
-	/*const char *pszValue;*/
 	const char	*fixed_string;
 	size_t		fixed_string_len;
 
@@ -783,22 +755,15 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 		value = var->def_string; // reset to default value
 		}
 
-	/*pszValue = Cvar_ValidateString (var, value);*/
 	fixed_string = Cvar_ValidateString (var, value);
 
 	// nothing to change
-	/*if (!Q_strcmp (pszValue, var->string))*/
 	if (!Q_strcmp (fixed_string, var->string))
 		return;
 
 	// fill it cls.userinfo, svs.serverinfo
-	/*if (!Cvar_UpdateInfo (var, pszValue, true))*/
 	if (!Cvar_UpdateInfo (var, fixed_string, true))
 		return;
-
-	/*// [FWGS, 01.02.25] and finally changed the cvar itself
-	freestring (var->string);
-	var->string = copystringpool (cvar_pool, pszValue);*/
 
 	// and finally change the cvar itself
 	fixed_string_len = Q_strlen (fixed_string) + 1;
@@ -838,7 +803,6 @@ can set any protected cvars
 ***/
 void Cvar_FullSet (const char *var_name, const char *value, int flags)
 	{
-	/*convar_t *var = Cvar_FindVar (var_name);*/
 	convar_t	*var = Cvar_FindVar (var_name);
 	size_t		len = Q_strlen (value) + 1;
 
@@ -848,8 +812,6 @@ void Cvar_FullSet (const char *var_name, const char *value, int flags)
 		return;
 		}
 
-	/*freestring (var->string);
-	var->string = copystringpool (cvar_pool, value);*/
 	var->string = Mem_Realloc (cvar_pool, var->string, len);
 	Q_strncpy (var->string, value, len);
 
@@ -1061,37 +1023,11 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 		return true;
 
 	// check if game-specific filter exceptions should be applied
-/*ifdef HACKS_RELATED_HLMODS*/
 	if (cvar_active_filter_quirks)
 		{
-		/*const char *cur, *next;
-
-		cur = cvar_active_filter_quirks->cvars;
-		next = Q_strchr (cur, ';');
-
-		while (cur && *cur)
-			{
-			size_t len = next ? next - cur : Q_strlen (cur);
-
-			// found, quit
-			if (!Q_strnicmp (cur, v->name, len))
-				return true;
-
-			if (next)
-				{
-				cur = next + 1;
-				next = Q_strchr (cur, ';');
-				}
-			else
-				{
-				// stop
-				cur = NULL;
-				}
-			}*/
 		if (Q_splitstr ((char *)cvar_active_filter_quirks->cvars, ';', v->name, ShouldSetCvar_splitstr_handler))
 			return true;
 		}
-/*endif*/
 
 	if (FBitSet (v->flags, FCVAR_FILTERABLE))
 		return false;
@@ -1107,7 +1043,7 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 
 /***
 ============
-Cvar_Command
+Cvar_Command [FWGS, 01.06.25]
 
 Handles variable inspection and changing from the console
 ============
@@ -1121,9 +1057,13 @@ qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged)
 		return true;
 		}
 
+#if !defined( XASH_HASHED_VARS )
 	// check variables
-	if (!v) // already found in basecmd
-		v = Cvar_FindVar (Cmd_Argv (0));
+	/*if (!v) // already found in basecmd
+		v = Cvar_FindVar (Cmd_Argv (0));*/
+	v = Cvar_FindVar (Cmd_Argv (0));
+#endif
+
 	if (!v)
 		return false;
 
@@ -1157,8 +1097,6 @@ qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged)
 	else
 		{
 		Cvar_DirectSet (v, Cmd_Argv (1));
-
-		// [FWGS, 01.04.23]
 		return true;
 		}
 	}
@@ -1200,14 +1138,12 @@ static void Cvar_Toggle_f (void)
 		}
 
 	v = !Cvar_VariableInteger (Cmd_Argv (1));
-
-	// [FWGS, 01.04.23]
 	Cvar_Set (Cmd_Argv (1), v ? "1" : "0");
 	}
 
 /***
 ============
-Cvar_Set_f [FWGS, 01.04.23]
+Cvar_Set_f
 
 Allows setting and defining of arbitrary cvars from console, even if they
 weren't declared in C code
@@ -1232,7 +1168,6 @@ static void Cvar_Set_f (void)
 		if (l + len >= MAX_CMD_TOKENS - 2)
 			break;
 
-		// [FWGS, 01.05.23]
 		Q_strncat (combined, Cmd_Argv (i), sizeof (combined));
 		if (i != c - 1)
 			Q_strncat (combined, " ", sizeof (combined));
@@ -1307,7 +1242,6 @@ static void Cvar_List_f (void)
 		if (match && !Q_strnicmpext (match, var->name, matchlen))
 			continue;
 
-		/*if (Q_colorstr (var->string))*/
 		p = Q_strchr (var->string, '^');
 		if (IsColorString (p))
 			Q_snprintf (value, sizeof (value), "\"%s\"", var->string);
@@ -1374,7 +1308,6 @@ pending_cvar_t *Cvar_PrepareToUnlink (int group)
 
 		// [FWGS, 01.02.25]
 		namelen = Q_strlen (cv->name) + 1;
-		/*p = Mem_Malloc (host.mempool, sizeof (*list) + namelen);*/
 		p = Mem_Malloc (cvar_pool, sizeof (*list) + namelen);
 		p->next = NULL;
 		p->cv_cur = cv;

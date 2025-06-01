@@ -18,7 +18,6 @@ GNU General Public License for more details
 #include "cdll_int.h"
 
 // [FWGS, 01.02.25]
-/*define HASH_SIZE 128 // 128 * 4 * 4 == 2048 bytes*/
 #define HASH_SIZE 64	// 64 * 4 * 4 == 1024 bytes
 
 // [FWGS, 01.05.24]
@@ -30,7 +29,6 @@ struct base_command_hashmap_s
 	base_command_t *basecmd;	// base command: cvar, alias or command
 	base_command_hashmap_t *next;
 	base_command_type_e type;	// type for faster searching
-	/*char name[1];	// key for searching*/
 	char name[]; // key for searching
 	};
 
@@ -50,12 +48,8 @@ Find base command in bucket
 static base_command_hashmap_t *BaseCmd_FindInBucket (base_command_hashmap_t *bucket, base_command_type_e type,
 	const char *name)
 	{
-	/*base_command_hashmap_t *i = bucket;
-	for (; i && ((i->type != type) || Q_stricmp (name, i->name)); // filter out
-		i = i->next);*/
 	base_command_hashmap_t *i;
 
-	/*return i;*/
 	for (i = bucket; i != NULL; i = i->next)
 		{
 		int cmp;
@@ -108,23 +102,24 @@ base_command_t *BaseCmd_Find (base_command_type_e type, const char *name)
 
 /***
 ============
-BaseCmd_Find [FWGS, 01.02.25]
+BaseCmd_Find [FWGS, 01.06.25]
 
 Find every type of base command and write into arguments
 ============
 ***/
-void BaseCmd_FindAll (const char *name, base_command_t **cmd, base_command_t **alias, base_command_t **cvar)
+/*void BaseCmd_FindAll (const char *name, base_command_t **cmd, base_command_t **alias, base_command_t **cvar)*/
+void BaseCmd_FindAll (const char *name, cmd_t **cmd, cmdalias_t **alias, convar_t **cvar)
 	{
 	base_command_hashmap_t *base = BaseCmd_GetBucket (name);
 	base_command_hashmap_t *i = base;
 
-	/*ASSERT (cmd && alias && cvar);*/
-
-	*cmd = *alias = *cvar = NULL;
+	/**cmd = *alias = *cvar = NULL;*/
+	*cmd = NULL;
+	*alias = NULL;
+	*cvar = NULL;
 
 	for (; i; i = i->next)
 		{
-		/*if (!Q_stricmp (i->name, name))*/
 		int cmp = Q_stricmp (i->name, name);
 
 		if (cmp < 0)
@@ -135,29 +130,19 @@ void BaseCmd_FindAll (const char *name, base_command_t **cmd, base_command_t **a
 
 		switch (i->type)
 			{
-			/*switch (i->type)
-				{
-				case HM_CMD:
-					*cmd = i->basecmd;
-					break;
-				case HM_CMDALIAS:
-					*alias = i->basecmd;
-					break;
-				case HM_CVAR:
-					*cvar = i->basecmd;
-					break;
-				default: break;
-				}*/
 			case HM_CMD:
-				*cmd = i->basecmd;
+				/**cmd = i->basecmd;*/
+				*cmd = (cmd_t *)i->basecmd;
 				break;
 
 			case HM_CMDALIAS:
-				*alias = i->basecmd;
+				/**alias = i->basecmd;*/
+				*alias = (cmdalias_t *)i->basecmd;
 				break;
 
 			case HM_CVAR:
-				*cvar = i->basecmd;
+				/**cvar = i->basecmd;*/
+				*cvar = (convar_t *)i->basecmd;
 				break;
 
 			default:
@@ -180,7 +165,6 @@ void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const ch
 	size_t len = Q_strlen (name);
 
 	// [FWGS, 01.02.25]
-	/*elem = Z_Malloc (sizeof (base_command_hashmap_t) + len);*/
 	elem = Mem_Malloc (basecmd_pool, sizeof (base_command_hashmap_t) + len + 1);
 
 	elem->basecmd = basecmd;
@@ -189,7 +173,6 @@ void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const ch
 
 	// [FWGS, 01.02.25] link the variable in alphanumerical order
 	for (cur = NULL, find = hashed_cmds[hash];
-		/*find && Q_strcmp (find->name, elem->name) < 0;*/
 		find && Q_stricmp (find->name, elem->name) < 0;
 		cur = find, find = find->next);
 
@@ -213,9 +196,6 @@ void BaseCmd_Remove (base_command_type_e type, const char *name)
 	uint hash = BaseCmd_HashKey (name);
 	base_command_hashmap_t *i, *prev;
 
-	/*for (prev = NULL, i = hashed_cmds[hash]; i &&
-		(Q_strcmp (i->name, name) || (i->type != type)); // filter out
-		prev = i, i = i->next);*/
 	for (prev = NULL, i = hashed_cmds[hash]; i != NULL; prev = i, i = i->next)
 		{
 		int cmp;
@@ -300,14 +280,12 @@ void BaseCmd_Stats_f (void)
 	Con_Printf ("min length: %d, max length: %d, empty: %d\n", minsize, maxsize, empty);
 	}
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	qboolean	valid;
 	int			lookups;
 	} basecmd_test_stats_t;
 
-// [FWGS, 01.04.23]
 static void BaseCmd_CheckCvars (const char *key, const char *value, const void *unused, void *ptr)
 	{
 	basecmd_test_stats_t *stats = ptr;
@@ -322,7 +300,7 @@ static void BaseCmd_CheckCvars (const char *key, const char *value, const void *
 
 /***
 ============
-BaseCmd_Stats_f [FWGS, 01.04.23]
+BaseCmd_Stats_f
 
 testing order matches cbuf execute
 ============
