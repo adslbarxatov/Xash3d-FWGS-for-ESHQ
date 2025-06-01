@@ -21,6 +21,10 @@ GNU General Public License for more details
 
 #ifdef XASH_HASHED_VARS
 
+// [FWGS, 01.06.25]
+#include "common.h"
+#include "cdll_int.h"
+
 typedef enum base_command_type
 	{
 	HM_DONTCARE = 0,
@@ -31,13 +35,15 @@ typedef enum base_command_type
 
 typedef void base_command_t;
 
-// [FWGS, 01.04.23] удалена base_command_hashmap_s
-
 void BaseCmd_Init (void);
 void BaseCmd_Shutdown (void);	// [FWGS, 01.02.25]
 base_command_t *BaseCmd_Find (base_command_type_e type, const char *name);
-void BaseCmd_FindAll (const char *name,
-	base_command_t **cmd, base_command_t **alias, base_command_t **cvar);
+
+// [FWGS, 01.06.25]
+/*void BaseCmd_FindAll (const char *name,
+	base_command_t **cmd, base_command_t **alias, base_command_t **cvar);*/
+void BaseCmd_FindAll (const char *name, cmd_t **cmd, cmdalias_t **alias, convar_t **cvar);
+
 void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const char *name);
 void BaseCmd_Remove (base_command_type_e type, const char *name);
 void BaseCmd_Stats_f (void);	// to be registered later

@@ -31,7 +31,7 @@ GNU General Public License for more details
 #include "enginefeatures.h"
 #include "com_strings.h"
 #include "pm_movevars.h"
-#include "cvardef.h"			// [FWGS, 01.12.24]
+/*#include "cvardef.h"			// [FWGS, 01.12.24]*/
 #include "gl_export.h"
 #include "wadfile.h"
 #include "common/mod_local.h"	// [FWGS, 01.01.24]

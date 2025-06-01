@@ -1,4 +1,4 @@
-/*
+/***
 defaults.h - set up default configuration
 Copyright (C) 2016 Mittorn
 
@@ -9,9 +9,9 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
+***/
 
 #ifndef DEFAULTS_H
 #define DEFAULTS_H
@@ -19,11 +19,11 @@ GNU General Public License for more details.
 #include "backends.h"
 #include "build.h"
 
-/*
+/***
 ===================================================================
 SETUP BACKENDS DEFINITIONS
 ===================================================================
-*/
+***/
 #if !XASH_DEDICATED
 	#if XASH_SDL
 		// we are building using libSDL
@@ -45,7 +45,7 @@ SETUP BACKENDS DEFINITIONS
 			#endif
 
 			#ifndef XASH_MESSAGEBOX
-				// [FWGS, 01.04.23] SDL2 messageboxes not available
+				// SDL2 messageboxes not available
 				#if !XASH_NSWITCH
 					#define XASH_MESSAGEBOX MSGBOX_SDL
 				#endif			
@@ -67,7 +67,7 @@ SETUP BACKENDS DEFINITIONS
 			#define XASH_SOUND SOUND_ALSA
 		#endif
 
-		#define XASH_USE_EVDEV	1	// [FWGS, 01.05.23]
+		#define XASH_USE_EVDEV	1
 
 	#elif XASH_DOS4GW
 
@@ -92,11 +92,11 @@ SETUP BACKENDS DEFINITIONS
 
 	#if XASH_WIN32
 		#define XASH_MESSAGEBOX MSGBOX_WIN32
-	#elif XASH_NSWITCH	// [FWGS, 01.04.23]
+	#elif XASH_NSWITCH
 		#define XASH_MESSAGEBOX MSGBOX_NSWITCH
-	#else // !XASH_WIN32
+	#else
 		#define XASH_MESSAGEBOX MSGBOX_STDERR
-	#endif // !XASH_WIN32
+	#endif
 
 #endif
 
@@ -136,40 +136,44 @@ SETUP BACKENDS DEFINITIONS
 	#define XASH_INPUT INPUT_NULL
 #endif
 
-/*
+/***
 =========================================================================
 Default build-depended cvar and constant values
 =========================================================================
-*/
+***/
 
-// Platform overrides
+// [FWGS, 01.06.25] Platform overrides
 #if XASH_NSWITCH
-	#define DEFAULT_TOUCH_ENABLE	"0"
+	/*define DEFAULT_TOUCH_ENABLE	"0"*/
+	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 
 	#define DEFAULT_MODE_WIDTH		1280
 	#define DEFAULT_MODE_HEIGHT		720
 	#define DEFAULT_ALLOWCONSOLE	1
 #elif XASH_PSVITA
-	#define DEFAULT_TOUCH_ENABLE	"0"
+	/*define DEFAULT_TOUCH_ENABLE	"0"*/
+	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 	#define DEFAULT_MODE_WIDTH		960
 	#define DEFAULT_MODE_HEIGHT		544
 	#define DEFAULT_ALLOWCONSOLE	1
-#elif XASH_ANDROID	// [FWGS, 01.07.23]
+#elif XASH_ANDROID
 	#define DEFAULT_TOUCH_ENABLE "1"
 #elif XASH_MOBILE_PLATFORM
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 #endif
 
-#if XASH_ANDROID || XASH_IOS || XASH_EMSCRIPTEN
+// [FWGS, 01.06.25]
+/*if XASH_ANDROID || XASH_IOS || XASH_EMSCRIPTEN*/
+#if (XASH_ANDROID && !XASH_TERMUX) || XASH_IOS || XASH_EMSCRIPTEN
 #define XASH_INTERNAL_GAMELIBS
 // this means that libraries are provided with engine, but not in game data
 // You need add library loading code to library.c when adding new platform
 #endif
 
-// [FWGS, 01.04.23] Defaults
+// Defaults
 #ifndef DEFAULT_TOUCH_ENABLE
 	#define DEFAULT_TOUCH_ENABLE	"0"
 #endif
@@ -178,7 +182,6 @@ Default build-depended cvar and constant values
 	#define DEFAULT_M_IGNORE		"0"
 #endif
 
-// [FWGS, 01.05.23]
 #ifndef DEFAULT_JOY_DEADZONE
 	#define DEFAULT_JOY_DEADZONE "4096"
 #endif
@@ -187,16 +190,14 @@ Default build-depended cvar and constant values
 	#define DEFAULT_DEV 0
 #endif
 
-// [FWGS, 01.04.23]
 #ifndef DEFAULT_ALLOWCONSOLE
 	#define DEFAULT_ALLOWCONSOLE	0
 #endif
 
 #ifndef DEFAULT_FULLSCREEN
-	#define DEFAULT_FULLSCREEN "1"	// [FWGS, 01.07.23] must be a string
+	#define DEFAULT_FULLSCREEN "1"	// must be a string
 #endif
 
-// [FWGS, 01.12.23]
 #ifndef DEFAULT_MAX_EDICTS
 	#define DEFAULT_MAX_EDICTS 1200 // was 900 before HL25
 #endif

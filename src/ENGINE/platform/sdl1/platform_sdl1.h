@@ -1,5 +1,5 @@
 /***
-events.h - SDL backend internal header
+platform_sdl1.h - SDL backend internal header
 Copyright (C) 2015-2018 a1batross
 
 This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@ GNU General Public License for more details
 #define KEYWRAPPER_H
 #ifdef  XASH_SDL
 
-#include "platform/platform.h"
+#include "platform.h"
 
 // window management
 void VID_RestoreScreenResolution (void);
@@ -28,20 +28,10 @@ void GL_InitExtensions (void);
 qboolean GL_DeleteContext (void);
 void VID_SaveWindowSize (int width, int height, qboolean maximized);
 
-// [FWGS, 01.03.25]
-/*// joystick events
-extern SDL_Joystick *g_joy;*/
-
 //
-// in_sdl.c
-//
-void SDLash_InitCursors (void);
-void SDLash_FreeCursors (void);
-
-//
-// joy_sdl.c [FWGS, 01.03.25]
+// joy_sdl.c
 //
 void SDLash_HandleGameControllerEvent (SDL_Event *ev);
 
-#endif
-#endif
+#endif // XASH_SDL
+#endif // KEYWRAPPER_H

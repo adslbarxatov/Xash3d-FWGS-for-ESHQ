@@ -96,6 +96,7 @@ typedef enum
 	cs_free = 0,	// can be reused for a new connection
 	cs_zombie,		// client has been disconnected, but don't reuse connection for a couple seconds
 	cs_connected,	// has been assigned to a sv_client_t, but not in game yet
+	cs_spawning,	// [FWGS, 01.06.25] put in game, but not spawned yet
 	cs_spawned		// client is fully in game
 	} cl_state_t;
 
@@ -210,77 +211,20 @@ typedef struct
 // [FWGS, 01.03.25]
 typedef struct sv_client_s
 	{
-	/*cl_state_t	state;
-	cl_upload_t	upstate;			// uploading state
-	char		name[32];			// extracted from userinfo, color string allowed
-	uint		flags;			// client flags, some info
-	CRC32_t		crcValue;
-
-	char		userinfo[MAX_INFO_STRING];	// name, etc (received from client)
-	char		physinfo[MAX_INFO_STRING];	// set on server (transmit to client)
-
-	netchan_t		netchan;
-	int		chokecount;			// number of messages rate supressed
-	int		delta_sequence;		// -1 = no compression.
-
-	double		next_messagetime;		// time when we should send next world state update
-	double		next_checkpingtime;		// time to send all players pings to client
-	double		next_sendinfotime;		// time to send info about all players
-	double		cl_updaterate;		// client requested updaterate
-	double		timebase;			// client timebase
-	double		connection_started;
-
-	char		hashedcdkey[34];		// MD5 hash is 32 hex #'s, plus trailing 0
-
-	customization_t	customdata;		// player customization linked list
-	resource_t	resourcesonhand;
-	resource_t	resourcesneeded;		// <mapname.res> from client (server downloading)
-	usercmd_t		lastcmd;			// for filling in big drops
-
-	double		connecttime;
-	double		cmdtime;
-	double		ignorecmdtime;
-
-	int		packet_loss;
-	float		latency;
-
-	int		ignored_ents;		// if visibility list is full we should know how many entities will be ignored
-	edict_t *edict;			// EDICT_NUM(clientnum+1)
-	edict_t *pViewEntity;		// svc_setview member
-	edict_t *viewentity[MAX_VIEWENTS];	// list of portal cameras in player PVS
-	int		num_viewents;		// num of portal cameras that can merge PVS
-
-	qboolean		m_bLoopback;		// Does this client want to hear his own voice?
-	uint		listeners;		// which other clients does this guy's voice stream go to?
-
-	// the datagram is written to by sound calls, prints, temp ents, etc.
-	// it can be harmlessly overflowed.
-	sizebuf_t		datagram;
-	byte		datagram_buf[MAX_DATAGRAM];*/
 	cl_state_t	state;
 	cl_upload_t	upstate;		// uploading state
 	char		name[32];		// extracted from userinfo, color string allowed
 	uint		flags;			// client flags, some info
 	uint		extensions;		// protocol extensions
-
-	/*client_frame_t *frames;				// updates can be delta'd from here
-	event_state_t	events;					// delta-updated events cycle*/
 	char		hashedcdkey[34];			// MD5 hash is 32 hex #'s, plus trailing 0
 	char		userinfo[MAX_INFO_STRING];	// name, etc (received from client)
 	char		physinfo[MAX_INFO_STRING];	// set on server (transmit to client)
 	char		useragent[MAX_INFO_STRING];
-
-	/*int		challenge;		// challenge of this user, randomly generated
-	int		userid;			// identifying number on server
-	int		extensions;
-	char		useragent[MAX_INFO_STRING];*/
 	byte		ignorecmdtime_warned;	// did we warn our server operator in the log for this batch of commands?
 	byte		m_bLoopback;			// does this client want to hear his own voice?
 	uint		listeners;				// which other clients does this guy's voice stream go to?
 
 	int			ignorecmdtime_warns;	// how many times client time was faster than server during this session
-
-	/*qboolean ignorecmdtime_warned;	// did we warn our server operator in the log for this batch of commands?*/
 	int			userid;					// identifying number on server
 
 	netchan_t	netchan;
@@ -319,7 +263,9 @@ typedef struct sv_client_s
 	double		fullupdate_next_calltime;
 	double		userinfo_next_changetime;
 	double		userinfo_penalty;
-	/*int			userinfo_change_attempts;*/
+
+	double		overflow_warn_time;		// [FWGS, 01.06.25]
+
 	client_frame_t	*frames;			// updates can be delta'd from here
 	event_state_t	events;				// delta-updated events cycle
 	} sv_client_t;
@@ -335,19 +281,6 @@ a program error, like an overflowed reliable buffer
 ***/
 
 // [FWGS, 01.03.25]
-/*// MAX_CHALLENGES is made large to prevent a denial
-// of service attack that could cycle all of them
-// out before legitimate users connected
-#define MAX_CHALLENGES	1024
-
-typedef struct
-	{
-	netadr_t	adr;
-	double		time;
-	int			challenge;
-	qboolean	connected;
-	} challenge_t;*/
-
 typedef struct
 	{
 	char	name[32];	// in GoldSrc max name length is 12
@@ -443,7 +376,6 @@ typedef struct
 	entity_state_t *baselines;		// [GI->max_edicts]
 	entity_state_t *static_entities;		// [MAX_STATIC_ENTITIES];
 
-	/*challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting*/
 	uint32_t	challenge_salt[16];	// pregenerated random numbers for generating challenged based on IP's MD5 address
 
 	sizebuf_t	testpacket;         // pregenerataed testpacket, only needs CRC32 patching
@@ -470,7 +402,7 @@ extern convar_t		sv_unlag;
 extern convar_t		sv_maxunlag;
 extern convar_t		sv_unlagpush;
 extern convar_t		sv_unlagsamples;
-extern convar_t		rcon_enable;		// [FWGS, 01.04.23]
+extern convar_t		rcon_enable;
 extern convar_t		sv_instancedbaseline;
 extern convar_t		sv_background_freeze;
 extern convar_t		sv_minupdaterate;
@@ -506,7 +438,7 @@ extern convar_t		sv_password;
 extern convar_t		sv_uploadmax;
 extern convar_t		sv_trace_messages;
 
-extern convar_t		sv_enttools_enable;		// [FWGS, 01.04.23]
+extern convar_t		sv_enttools_enable;
 extern convar_t		sv_enttools_maxfire;
 extern convar_t		sv_autosave;
 extern convar_t		deathmatch;
@@ -514,9 +446,9 @@ extern convar_t		hostname;
 extern convar_t		skill;
 extern convar_t		coop;
 extern convar_t		meat_mode;		// ESHQ: meat mode
-extern convar_t		sv_cheats;		// [FWGS, 01.04.23]
-extern convar_t		public_server;	// [FWGS, 01.05.23]
-extern convar_t		sv_nat;			// [FWGS, 01.05.23]
+extern convar_t		sv_cheats;
+extern convar_t		public_server;
+extern convar_t		sv_nat;
 
 extern convar_t		sv_speedhack_kick;
 extern convar_t		sv_pausable;	// allows pause in multiplayer
@@ -544,7 +476,6 @@ extern convar_t		sv_expose_player_list;
 // sv_main.c [FWGS, 01.12.24]
 //
 void SV_FinalMessage (const char *message, qboolean reconnect);
-/*void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) _format (2);*/
 void SV_KickPlayer (sv_client_t *cl, const char *fmt, ...) FORMAT_CHECK (2);
 void SV_DropClient (sv_client_t *cl, qboolean crash) RENAME_SYMBOL ("SV_DropClient_");
 void SV_UpdateMovevars (qboolean initialize);
@@ -565,20 +496,20 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent);
 qboolean SV_InitGame (void);
 void SV_ActivateServer (int runPhysics);
 qboolean SV_SpawnServer (const char *server, const char *startspot, qboolean background);
-/*model_t *SV_ModelHandle (int modelindex);*/
 void SV_DeactivateServer (void);
 void SV_FreeTestPacket (void);
 
 /***
 ================
-SV_ModelHandle [FWGS, 01.02.25]
+SV_ModelHandle [FWGS, 01.06.25]
 
 get model by handle
 ================
 ***/
 static inline model_t *GAME_EXPORT SV_ModelHandle (int modelindex)
 	{
-	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
+	/*if ((modelindex < 0) || (modelindex >= MAX_MODELS))*/
+	if (unlikely ((modelindex < 0) || (modelindex >= MAX_MODELS)))
 		return NULL;
 
 	return sv.models[modelindex];
@@ -609,7 +540,6 @@ void SV_WaterMove (edict_t *ent);
 // sv_send.c [FWGS, 01.12.24]
 //
 void SV_SendClientMessages (void);
-/*void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) _format (2);*/
 void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) FORMAT_CHECK (2);
 
 //
@@ -629,7 +559,6 @@ void SV_ExecuteClientMessage (sv_client_t *cl, sizebuf_t *msg);
 void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg);
 edict_t *SV_FakeConnect (const char *netname);
 void SV_BuildReconnect (sizebuf_t *msg);
-/*int SV_CalcPing (sv_client_t *cl);*/
 int SV_CalcPing (const sv_client_t *cl);
 void SV_UpdateServerInfo (void);
 void SV_EndRedirect (host_redirect_t *rd);
@@ -765,7 +694,6 @@ void SV_ClearGameState (void);
 // sv_pmove.c [FWGS, 01.02.25]
 //
 void SV_InitClientMove (void);
-/*qboolean SV_PlayerIsFrozen (edict_t *pClient);*/
 void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed);
 
 //

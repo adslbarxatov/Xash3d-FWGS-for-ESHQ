@@ -83,6 +83,7 @@ Then you can use another oneliner to query all variables:
 #undef XASH_RISCV_SOFTFP
 #undef XASH_SERENITY
 #undef XASH_SUNOS
+#undef XASH_TERMUX	// [FWGS, 01.06.25]
 #undef XASH_WIN32
 #undef XASH_X86
 #undef XASH_NSWITCH
@@ -109,6 +110,11 @@ Then you can use another oneliner to query all variables:
 	#if defined __linux__
 		#if defined __ANDROID__
 			#define XASH_ANDROID 1
+
+			// [FWGS, 01.06.25]
+			#if defined __TERMUX__
+				#define XASH_TERMUX 1
+			#endif
 		#endif
 
 		#define XASH_LINUX 1
@@ -148,12 +154,13 @@ Then you can use another oneliner to query all variables:
 	#endif
 #endif
 
-// [FWGS, 01.07.23] XASH_SAILFISH is special: SailfishOS by itself is a normal GNU/Linux platform
+// [FWGS, 01.06.25] XASH_SAILFISH is special: SailfishOS by itself is a normal GNU/Linux platform
 // It doesn't make sense to split it to separate platform
 // but we still need XASH_MOBILE_PLATFORM for the engine.
 // So this macro is defined entirely in build-system: see main wscript
 // HLSDK/PrimeXT/other SDKs users note: you may ignore this macro
-#if XASH_ANDROID || XASH_IOS || XASH_NSWITCH || XASH_PSVITA || XASH_SAILFISH
+/*if XASH_ANDROID || XASH_IOS || XASH_NSWITCH || XASH_PSVITA || XASH_SAILFISH*/
+#if ( XASH_ANDROID && !XASH_TERMUX ) || XASH_IOS || XASH_NSWITCH || XASH_PSVITA || XASH_SAILFISH
 	#define XASH_MOBILE_PLATFORM 1
 #endif
 

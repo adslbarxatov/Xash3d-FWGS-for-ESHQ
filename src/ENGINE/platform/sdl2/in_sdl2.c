@@ -14,7 +14,6 @@ GNU General Public License for more details
 ***/
 
 // [FWGS, 01.03.25]
-/*if !XASH_DEDICATED*/
 #include <SDL.h>
 
 #include "common.h"
@@ -22,11 +21,9 @@ GNU General Public License for more details
 #include "input.h"
 #include "client.h"
 #include "vgui_draw.h"
-#include "events.h"
+#include "platform_sdl2.h"
 #include "sound.h"
 #include "vid_common.h"
-
-/*SDL_Joystick *g_joy = NULL;*/
 
 #if !SDL_VERSION_ATLEAST( 2, 0, 0 )
 #define SDL_WarpMouseInWindow( win, x, y ) SDL_WarpMouse( ( x ), ( y ) )

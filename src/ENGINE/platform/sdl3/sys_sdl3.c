@@ -1,6 +1,7 @@
 /***
-sys_sdl.c - SDL2 system utils
-Copyright (C) 2018 a1batross
+platform_sdl3.h - SDL3 platform definitions
+Copyright (C) 2025 Er2off
+Copyright (C) 2025 Alibek Omarov
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -13,13 +14,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#include <SDL.h>
-#include "platform/platform.h"
-#include "events.h"
+#include "platform_sdl3.h"
+#include "common.h"
 
 #if XASH_TIMER == TIMER_SDL
-
-// [FWGS, 01.02.25]
 double Platform_DoubleTime (void)
 	{
 	static Uint64 g_PerformanceFrequency;
@@ -30,13 +28,14 @@ double Platform_DoubleTime (void)
 		{
 		g_PerformanceFrequency = SDL_GetPerformanceFrequency ();
 		g_ClockStart = SDL_GetPerformanceCounter ();
+
+		return 0.0;
 		}
 
 	CurrentTime = SDL_GetPerformanceCounter ();
 	return (double)(CurrentTime - g_ClockStart) / (double)(g_PerformanceFrequency);
 	}
 
-// [FWGS, 01.03.25]
 void Platform_Sleep (int msec)
 	{
 	SDL_Delay (msec);
@@ -51,36 +50,29 @@ void Platform_MessageBox (const char *title, const char *message, qboolean paren
 	}
 #endif
 
-// [FWGS, 01.02.25]
+void SDLash_NanoSleep (int nsec)
+	{
+	SDL_DelayNS (nsec);
+	}
+
 static const char *SDLash_CategoryToString (int category)
 	{
 	switch (category)
 		{
-		case SDL_LOG_CATEGORY_APPLICATION:
-			return "App";
-		case SDL_LOG_CATEGORY_ERROR:
-			return "Error";
-		case SDL_LOG_CATEGORY_ASSERT:
-			return "Assert";
-		case SDL_LOG_CATEGORY_SYSTEM:
-			return "System";
-		case SDL_LOG_CATEGORY_AUDIO:
-			return "Audio";
-		case SDL_LOG_CATEGORY_VIDEO:
-			return "Video";
-		case SDL_LOG_CATEGORY_RENDER:
-			return "Render";
-		case SDL_LOG_CATEGORY_INPUT:
-			return "Input";
-		case SDL_LOG_CATEGORY_TEST:
-			return "Test";
-
-		default:
-			return "Unknown";
+		case SDL_LOG_CATEGORY_APPLICATION: return "App";
+		case SDL_LOG_CATEGORY_ERROR: return "Error";
+		case SDL_LOG_CATEGORY_ASSERT: return "Assert";
+		case SDL_LOG_CATEGORY_SYSTEM: return "System";
+		case SDL_LOG_CATEGORY_AUDIO: return "Audio";
+		case SDL_LOG_CATEGORY_VIDEO: return "Video";
+		case SDL_LOG_CATEGORY_RENDER: return "Render";
+		case SDL_LOG_CATEGORY_INPUT: return "Input";
+		case SDL_LOG_CATEGORY_TEST: return "Test";
+		case SDL_LOG_CATEGORY_GPU: return "GPU";
+		default: return "Unknown";
 		}
 	}
 
-// [FWGS, 01.02.25]
 static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_LogPriority priority, const char *message)
 	{
 	switch (priority)
@@ -89,69 +81,41 @@ static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_
 		case SDL_LOG_PRIORITY_ERROR:
 			Con_Printf (S_ERROR S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
 			break;
-
 		case SDL_LOG_PRIORITY_WARN:
 			Con_DPrintf (S_WARN S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
 			break;
-
 		case SDL_LOG_PRIORITY_INFO:
 			Con_Reportf (S_NOTE S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
 			break;
-
 		default:
 			Con_Reportf (S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
 			break;
 		}
 	}
 
-// [FWGS, 01.03.25]
 void SDLash_Init (const char *basedir)
 	{
-#if XASH_APPLE
-	char *path = SDL_GetBasePath ();
-	if (path != NULL)
-		{
-		char buf[MAX_VA_STRING];
-
-		/*Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", basedir, path);*/
-		Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, basedir);
-		setenv ("XASH3D_EXTRAS_PAK1", buf, true);
-		}
-#endif
-
-	SDL_LogSetOutputFunction (SDLash_LogOutputFunction, NULL);
+	SDL_SetLogOutputFunction (SDLash_LogOutputFunction, NULL);
 
 	if (host_developer.value >= 2)
-		SDL_LogSetAllPriority (SDL_LOG_PRIORITY_VERBOSE);
+		SDL_SetLogPriorities (SDL_LOG_PRIORITY_VERBOSE);
 	else if (host_developer.value >= 1)
-		SDL_LogSetAllPriority (SDL_LOG_PRIORITY_WARN);
+		SDL_SetLogPriorities (SDL_LOG_PRIORITY_WARN);
 	else
-		SDL_LogSetAllPriority (SDL_LOG_PRIORITY_ERROR);
+		SDL_SetLogPriorities (SDL_LOG_PRIORITY_ERROR);
 
-#ifndef SDL_INIT_EVENTS
-#define SDL_INIT_EVENTS 0
-#endif
-
-	if (SDL_Init (SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS))
+	if (!SDL_Init (SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		{
 		Sys_Warn ("SDL_Init failed: %s", SDL_GetError ());
 		host.type = HOST_DEDICATED;
 		}
 
-	// [FWGS, 01.03.25]
-/*if XASH_SDL == 2
-	SDL_SetHint (SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");*/
-#if SDL_MAJOR_VERSION >= 2
-	SDL_SetHint (SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
 	SDL_SetHint (SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
 	SDL_SetHint (SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
-	SDL_StopTextInput ();
-#endif
 
 	SDLash_InitCursors ();
 	}
 
-// [FWGS, 25.12.24]
 void SDLash_Shutdown (void)
 	{
 	SDLash_FreeCursors ();

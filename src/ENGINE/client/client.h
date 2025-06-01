@@ -170,7 +170,7 @@ typedef struct
 	qboolean	custom;
 	} incomingtransfer_t;
 
-// [FWGS, 01.12.24] the client_t structure is wiped completely at every server map change
+// the client_t structure is wiped completely at every server map change
 typedef struct
 	{
 	// ==== shared through RefAPI's ref_client_t ====
@@ -215,7 +215,6 @@ typedef struct
 	int			last_command_ack;
 	int			last_incoming_sequence;
 
-	/*qboolean	send_reply;*/
 	qboolean	background;			// not real game, just a background
 	qboolean	first_frame;		// first rendering frame
 	qboolean	proxy_redirect;		// spectator stuff
@@ -227,7 +226,7 @@ typedef struct
 	runcmd_t		commands[MULTIPLAYER_BACKUP];		// each mesage will send several old cmds
 	local_state_t	predicted_frames[MULTIPLAYER_BACKUP];	// local client state
 
-	double			timedelta;			// [FWGS, 01.04.23] floating delta between two updates
+	double			timedelta;			// floating delta between two updates
 
 	char			serverinfo[MAX_SERVERINFO_STRING];
 	player_info_t	players[MAX_CLIENTS];	// collected info about all other players include himself
@@ -239,8 +238,9 @@ typedef struct
 	// predicting stuff but not only...
 	cl_local_data_t	local;
 
-	// player final info
-	usercmd_t	*cmd;			// cl.commands[outgoing_sequence].cmd
+	// [FWGS, 01.06.25] player final info
+	/*usercmd_t	*cmd;			// cl.commands[outgoing_sequence].cmd*/
+	usercmd_t	cmd;			// cl.commands[outgoing_sequence].cmd
 	vec3_t		viewangles;
 	vec3_t		viewheight;
 	vec3_t		punchangle;
