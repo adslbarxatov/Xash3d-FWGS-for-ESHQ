@@ -1,5 +1,5 @@
 /***
-sys_win.c - platform dependent code
+sys_win.c - platform dependent code (which haven't moved to platform dir yet)
 Copyright (C) 2011 Uncle Mike
 
 This program is free software: you can redistribute it and/or modify
@@ -24,8 +24,12 @@ GNU General Public License for more details
 	#include <intrin.h>
 #endif
 
-#ifdef XASH_SDL
+// [FWGS, 01.06.25]
+/*ifdef XASH_SDL*/
+#if XASH_SDL == 2
 	#include <SDL.h>
+#elif XASH_SDL == 3
+	#include <SDL3/SDL.h>
 #endif
 
 #if XASH_POSIX
@@ -41,7 +45,6 @@ GNU General Public License for more details
 	#include <process.h>
 #endif
 
-// [FWGS, 01.04.23]
 #if XASH_NSWITCH
 	#include <switch.h>
 #endif
@@ -72,22 +75,28 @@ double GAME_EXPORT Sys_DoubleTime (void)
 
 /***
 ================
-Sys_DebugBreak [FWGS, 01.08.24]
+Sys_DebugBreak [FWGS, 01.06.25]
 ================
 ***/
 void Sys_DebugBreak (void)
 	{
-#if XASH_SDL
+	/*if XASH_SDL
 	int was_grabbed = host.hWnd != NULL && SDL_GetWindowGrab (host.hWnd);
-#endif
+	endif*/
+	qboolean was_grabbed = false;
 
 	if (!Sys_DebuggerPresent ())
 		return;
 
-#if XASH_SDL
+	/*if XASH_SDL
 	if (was_grabbed) // so annoying...
 		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
-#endif
+	endif*/
+	if (host.hWnd) // so annoying
+		{
+		was_grabbed = Platform_GetMouseGrab ();
+		Platform_SetMouseGrab (false);
+		}
 
 #if _MSC_VER
 	__debugbreak ();
@@ -98,10 +107,11 @@ void Sys_DebugBreak (void)
 	INLINE_NANOSLEEP1 ();
 #endif
 
-#if XASH_SDL
+	/*if XASH_SDL*/
 	if (was_grabbed)
-		SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
-#endif
+	/*	SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
+	endif*/
+		Platform_SetMouseGrab (true);
 	}
 
 #if !XASH_DEDICATED
@@ -137,12 +147,9 @@ const char *Sys_GetCurrentUser (void)
 	{
 	// TODO: move to platform
 #if XASH_WIN32
-	/*static string	s_userName;
-	unsigned long size = sizeof (s_userName);*/
 	static wchar_t	sw_userName[MAX_STRING];
 	DWORD	size = HLARRAYSIZE (sw_userName);
 
-	/*if (GetUserName (s_userName, &size))*/
 	if (GetUserNameW (sw_userName, &size) && (sw_userName[0] != 0))
 		{
 		static char s_userName[MAX_STRING * 4];
@@ -159,13 +166,9 @@ const char *Sys_GetCurrentUser (void)
 		return username;
 
 #elif XASH_POSIX && !XASH_ANDROID && !XASH_NSWITCH
-	/*uid_t uid = geteuid ();
-	struct passwd *pw = getpwuid (uid);*/
 	static string username;
 	struct passwd *pw = getpwuid (geteuid ());
 
-	/*if (pw)
-		return pw->pw_name;*/
 	// POSIX standard says pw _might_ point to static area, so let's make a copy
 	if (pw && COM_CheckString (pw->pw_name))
 		{
@@ -459,9 +462,11 @@ void Sys_Error (const char *error, ...)
 	Sys_DebugBreak ();
 	SV_SysError (text);
 
+	// [FWGS, 01.06.25]
 	if (!Host_IsDedicated ())
 		{
-#if XASH_SDL == 2
+/*if XASH_SDL == 2*/
+#if XASH_SDL >= 2
 		if (host.hWnd)
 			SDL_HideWindow (host.hWnd);
 #endif
@@ -556,7 +561,7 @@ void Sys_Print (const char *pMsg)
 	// copy into an intermediate buffer
 	while (msg[i] && ((b - buffer) < sizeof (buffer) - 1))
 		{
-		if (msg[i] == '\n' && msg[i + 1] == '\r')
+		if ((msg[i] == '\n') && (msg[i + 1] == '\r'))
 			{
 			b[0] = '\r';
 			b[1] = c[0] = '\n';
@@ -575,17 +580,18 @@ void Sys_Print (const char *pMsg)
 			b[1] = c[0] = '\n';
 			b += 2, c++;
 			}
-		else if (msg[i] == '\35' || msg[i] == '\36' || msg[i] == '\37')
+		else if ((msg[i] == '\35') || (msg[i] == '\36') || (msg[i] == '\37'))
 			{
 			i++; // skip console pseudo graph
 			}
 		else
 			{
-			if (msg[i] == '\1' || msg[i] == '\2' || msg[i] == '\3')
+			if ((msg[i] == '\1') || (msg[i] == '\2') || (msg[i] == '\3'))
 				i++;
 			*b = *c = msg[i];
 			b++, c++;
 			}
+
 		i++;
 		}
 

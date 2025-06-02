@@ -123,15 +123,17 @@ dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath)
 
 /***
 =============================================================================
-LIBRARY NAMING (see Documentation/library-naming.md for more info)
+LIBRARY NAMING (see Documentation/library-naming.md for more info) [FWGS, 01.06.25]
 =============================================================================
 ***/
 
 static void COM_GenerateCommonLibraryName (const char *name, const char *ext, char *out, size_t size)
 	{
-#if ( XASH_WIN32 || XASH_LINUX || XASH_APPLE ) && XASH_X86
+/*if ( XASH_WIN32 || XASH_LINUX || XASH_APPLE ) && XASH_X86*/
+#if ( XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE ) && XASH_X86
 	Q_snprintf (out, size, "%s.%s", name, ext);
-#elif ( XASH_WIN32 || XASH_LINUX || XASH_APPLE )
+/*elif ( XASH_WIN32 || XASH_LINUX || XASH_APPLE )*/
+#elif XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE
 	Q_snprintf (out, size, "%s_%s.%s", name, Q_buildarch (), ext);
 #else
 	Q_snprintf (out, size, "%s_%s_%s.%s", name, Q_buildos (), Q_buildarch (), ext);
@@ -177,7 +179,7 @@ static inline void COM_StripIntelSuffix (char *out)
 
 /***
 ==============
-COM_GenerateServerLibraryPath
+COM_GenerateServerLibraryPath [FWGS, 01.06.25]
 
 Generates platform-unique and compatible name for server library
 ==============
@@ -186,15 +188,18 @@ static void COM_GenerateServerLibraryPath (char *out, size_t size)
 	{
 #ifdef XASH_INTERNAL_GAMELIBS // assuming library loader knows where to get libraries
 	Q_strncpy (out, "server", size);
-#elif ( XASH_WIN32 || XASH_LINUX || XASH_APPLE ) && XASH_X86
+/*elif ( XASH_WIN32 || XASH_LINUX || XASH_APPLE ) && XASH_X86
 
-#if XASH_WIN32
+if XASH_WIN32*/
+#elif XASH_X86 && XASH_WIN32
 	Q_strncpy (out, GI->game_dll, size);
-#elif XASH_APPLE
+/*elif XASH_APPLE*/
+#elif XASH_X86 && XASH_APPLE
 	Q_strncpy (out, GI->game_dll_osx, size);
-#else
+/*else*/
+#elif XASH_X86 && XASH_LINUX && !XASH_ANDROID
 	Q_strncpy (out, GI->game_dll_linux, size);
-#endif
+/*endif*/
 
 #else
 	string dllpath;

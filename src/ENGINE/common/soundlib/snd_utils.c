@@ -13,11 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 09.05.24]
+// [FWGS, 01.06.25]
 #include "soundlib.h"
-#if XASH_SDL
-	#include <SDL_audio.h>
-#endif
+/*if XASH_SDL
+include <SDL_audio.h>
+endif*/
 
 // [FWGS, 25.12.24] global sound variables
 sndlib_t sound;
@@ -33,22 +33,6 @@ XASH3D LOAD SOUND FORMATS
 static const loadwavfmt_t load_game[] =
 	{
 #ifndef XASH_DEDICATED
-	/*{ DEFAULT_SOUNDPATH "%s%s.%s", "wav", Sound_LoadWAV },
-	{ "%s%s.%s", "wav", Sound_LoadWAV },
-
-	{ DEFAULT_SOUNDPATH "%s%s.%s", "mp3", Sound_LoadMPG },
-	{ "%s%s.%s", "mp3", Sound_LoadMPG },
-
-	ifdef OGG_VORBIS
-	{ DEFAULT_SOUNDPATH "%s%s.%s", "ogg", Sound_LoadOggVorbis },
-	{ "%s%s.%s", "ogg", Sound_LoadOggVorbis },
-	endif
-
-	ifdef OPUS
-	{ DEFAULT_SOUNDPATH "%s%s.%s", "opus", Sound_LoadOggOpus },
-	{ "%s%s.%s", "opus", Sound_LoadOggOpus },
-	endif*/
-
 	{ "wav", Sound_LoadWAV },
 	{ "mp3", Sound_LoadMPG },
 #ifdef OGG_VORBIS
@@ -59,17 +43,6 @@ static const loadwavfmt_t load_game[] =
 #endif
 
 #else // we only need extensions
-	/*{ NULL, "wav" },
-
-	{ NULL, "mp3" },
-
-	ifdef OGG_VORBIS
-	{ NULL, "ogg" },
-	endif
-
-	ifdef OPUS
-	{ NULL, "opus" },
-	endif*/
 	{ "wav" },
 	{ "mp3" },
 #ifdef OGG_VORBIS
@@ -93,17 +66,6 @@ XASH3D PROCESS STREAM FORMATS
 static const streamfmt_t stream_game[] =
 	{
 #ifndef XASH_DEDICATED
-	/*{ "%s%s.%s", "mp3", Stream_OpenMPG, Stream_ReadMPG, Stream_SetPosMPG, Stream_GetPosMPG, Stream_FreeMPG },
-
-	{ "%s%s.%s", "wav", Stream_OpenWAV, Stream_ReadWAV, Stream_SetPosWAV, Stream_GetPosWAV, Stream_FreeWAV },
-
-	ifdef OGG_VORBIS
-	{ "%s%s.%s", "ogg", Stream_OpenOggVorbis, Stream_ReadOggVorbis, Stream_SetPosOggVorbis, Stream_GetPosOggVorbis, Stream_FreeOggVorbis },
-	endif
-
-	ifdef OPUS
-	{ "%s%s.%s", "opus", Stream_OpenOggOpus, Stream_ReadOggOpus, Stream_SetPosOggOpus, Stream_GetPosOggOpus, Stream_FreeOggOpus },
-	endif*/
 	{ "mp3", Stream_OpenMPG, Stream_ReadMPG, Stream_SetPosMPG, Stream_GetPosMPG, Stream_FreeMPG },
 	{ "wav", Stream_OpenWAV, Stream_ReadWAV, Stream_SetPosWAV, Stream_GetPosWAV, Stream_FreeWAV },
 #ifdef OGG_VORBIS
@@ -116,17 +78,6 @@ static const streamfmt_t stream_game[] =
 
 #else // we only need extensions
 
-	/*{ NULL, "mp3" },
-
-	{ NULL, "wav" },
-
-	ifdef OGG_VORBIS
-	{ NULL, "ogg" },
-	endif
-
-	ifdef OPUS
-	{ NULL, "opus" },
-	endif*/
 	{ "mp3" },
 	{ "wav" },
 #ifdef OGG_VORBIS
@@ -511,21 +462,8 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	else
 		handled = Sound_ConvertUpsample (sc, inwidth, inchannels, incount, outwidth, outchannels, outcount, stepscale);
 
-	/*t2 = Sys_DoubleTime ();
-		
-	if (handled)*/
 	if (!handled)
 		{
-		/*if (t2 - t1 > 0.01f) // critical, report to mod developer
-			Con_Printf (S_WARN "%s: from [%d bit %d Hz %dch] to [%d bit %d Hz %dch] (took %.3fs)\n",
-				__func__, inwidth * 8, inrate, inchannels, outwidth * 8, outrate, outchannels, t2 - t1);
-
-		else
-			Con_Reportf ("%s: from [%d bit %d Hz %dch] to [%d bit %d Hz %dch] (took %.3fs)\n",
-				__func__, inwidth * 8, inrate, inchannels, outwidth * 8, outrate, outchannels, t2 - t1);
-		}
-		else*/
-
 		// restore previously changed data
 		sc->rate = inrate;
 		sc->width = inwidth;
@@ -543,7 +481,6 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	sc->width = outwidth;
 
 	// critical, report to mod developer
-	/*return handled;*/
 	if (t2 - t1 > 0.01f)
 		Con_Printf (S_WARN "%s: from [%d bit %d Hz %dch] to [%d bit %d Hz %dch] (took %.3fs)\n",
 			__func__, inwidth * 8, inrate, inchannels, outwidth * 8, outrate, outchannels, t2 - t1);
@@ -569,8 +506,6 @@ qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint
 		result = Sound_ResampleInternal (snd, rate, width, channels);
 		if (result)
 			{
-			/*Mem_Free (snd->buffer);		// free original image buffer
-			snd->buffer = Sound_Copy (snd->size); // unzone buffer*/
 			snd = Mem_Realloc (host.soundpool, snd, sizeof (*snd) + snd->size);
 			memcpy (snd->buffer, sound.tempbuffer, snd->size);
 
@@ -590,7 +525,6 @@ qboolean Sound_SupportedFileFormat (const char *fileext)
 
 	if (COM_CheckStringEmpty (fileext))
 		{
-		/*for (format = sound.loadformats; format && format->formatstring; format++)*/
 		for (format = sound.loadformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (format->ext, fileext))

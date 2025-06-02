@@ -21,19 +21,20 @@ GNU General Public License for more details
 #include "input.h"
 #include "client.h"
 #include "vgui_draw.h"
-#include "platform_sdl2.h"
+#include "platform_sdl2.h"	// [FWGS, 01.06.25]
 #include "sound.h"
 #include "vid_common.h"
 
-#if !SDL_VERSION_ATLEAST( 2, 0, 0 )
-#define SDL_WarpMouseInWindow( win, x, y ) SDL_WarpMouse( ( x ), ( y ) )
-#else
+// [FWGS, 01.06.25]
+/*if !SDL_VERSION_ATLEAST( 2, 0, 0 )
+define SDL_WarpMouseInWindow( win, x, y ) SDL_WarpMouse( ( x ), ( y ) )
+else*/
 static struct
 	{
 	qboolean initialized;
 	SDL_Cursor *cursors[dc_last];
 	} cursors;
-#endif
+/*endif*/
 
 // [FWGS, 01.03.25]
 static struct
@@ -89,19 +90,19 @@ void Platform_MouseMove (float *x, float *y)
 
 /***
 =============
-Platform_GetClipobardText
+Platform_GetClipobardText [FWGS, 01.06.25]
 =============
 ***/
 int Platform_GetClipboardText (char *buffer, size_t size)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	int textLength;
 	char *sdlbuffer = SDL_GetClipboardText ();
 
 	if (!sdlbuffer)
 		return 0;
 
-	if (buffer && size > 0)
+	if (buffer && (size > 0))
 		{
 		textLength = Q_strncpy (buffer, sdlbuffer, size);
 		}
@@ -111,178 +112,52 @@ int Platform_GetClipboardText (char *buffer, size_t size)
 		}
 	SDL_free (sdlbuffer);
 	return textLength;
-#else
+	/*else
 	buffer[0] = 0;
-#endif
-	return 0;
+	endif
+	return 0;*/
 	}
 
 /***
 =============
-Platform_SetClipobardText
+Platform_SetClipobardText [FWGS, 01.06.25]
 =============
 ***/
 void Platform_SetClipboardText (const char *buffer)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	SDL_SetClipboardText (buffer);
-#endif
+	/*endif*/
 	}
 
 // [FWGS, 01.03.25] removed Platform_Vibrate
-
-/*
-=============
-Platform_Vibrate [FWGS, 01.07.23]
-=============
-/
-void Platform_Vibrate (float time, char flags)
-	{
-if SDL_VERSION_ATLEAST( 2, 0, 9 )
-	if (g_joy)
-		SDL_JoystickRumble (g_joy, 0xFFFF, 0xFFFF, time * 1000.0f);
-endif
-	}*/
 
 #if !XASH_PSVITA
 
 /***
 =============
-SDLash_EnableTextInput
+SDLash_EnableTextInput [FWGS, 01.06.25]
 =============
 ***/
 void Platform_EnableTextInput (qboolean enable)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	enable ? SDL_StartTextInput () : SDL_StopTextInput ();
-#endif 
+	/*endif*/ 
 	}
 
 #endif
 
 // [FWGS, 01.03.25] removed SDLash_JoyInit_Old, SDLash_JoyInit_New, Platform_JoyInit
 
-/*
-=============
-SDLash_JoyInit_Old
-=============
-/
-static int SDLash_JoyInit_Old (int numjoy)
-	{
-	int num;
-	int i;
-
-	Con_Reportf ("Joystick: SDL\n");
-
-	if (SDL_WasInit (SDL_INIT_JOYSTICK) != SDL_INIT_JOYSTICK &&
-		SDL_InitSubSystem (SDL_INIT_JOYSTICK))
-		{
-		Con_Reportf ("Failed to initialize SDL Joysitck: %s\n", SDL_GetError ());
-		return 0;
-		}
-
-	if (g_joy)
-		{
-		SDL_JoystickClose (g_joy);
-		}
-
-	num = SDL_NumJoysticks ();
-
-	if (num > 0)
-		Con_Reportf ("%i joysticks found:\n", num);
-	else
-		{
-		Con_Reportf ("No joystick found.\n");
-		return 0;
-		}
-
-if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	for (i = 0; i < num; i++)
-		Con_Reportf ("%i\t: %s\n", i, SDL_JoystickNameForIndex (i));
-endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
-
-	Con_Reportf ("Pass +set joy_index N to command line, where N is number, to select active joystick\n");
-
-	g_joy = SDL_JoystickOpen (numjoy);
-
-	if (!g_joy)
-		{
-		Con_Reportf ("Failed to select joystick: %s\n", SDL_GetError ());
-		return 0;
-		}
-
-if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	Con_Reportf ("Selected joystick: %s\n"
-		"\tAxes: %i\n"
-		"\tHats: %i\n"
-		"\tButtons: %i\n"
-		"\tBalls: %i\n",
-		SDL_JoystickName (g_joy), SDL_JoystickNumAxes (g_joy), SDL_JoystickNumHats (g_joy),
-		SDL_JoystickNumButtons (g_joy), SDL_JoystickNumBalls (g_joy));
-
-	SDL_GameControllerEventState (SDL_DISABLE);
-endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
-	SDL_JoystickEventState (SDL_ENABLE);
-
-	return num;
-	}*/
-
-/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
-
-/*
-=============
-SDLash_JoyInit_New
-=============
-/
-static int SDLash_JoyInit_New (int numjoy)
-	{
-	int count, numJoysticks, i;
-
-	Con_Reportf ("Joystick: SDL GameController API\n");
-	if (SDL_WasInit (SDL_INIT_GAMECONTROLLER) != SDL_INIT_GAMECONTROLLER &&
-		SDL_InitSubSystem (SDL_INIT_GAMECONTROLLER))
-		{
-		Con_Reportf ("Failed to initialize SDL GameController API: %s\n", SDL_GetError ());
-		return 0;
-		}
-
-	SDL_GameControllerAddMappingsFromFile ("controllermappings.txt");
-
-	count = 0;
-	numJoysticks = SDL_NumJoysticks ();
-	for (i = 0; i < numJoysticks; i++)
-		if (SDL_IsGameController (i))
-			++count;
-
-	return count;
-	}
-#endif*/
-
-/*
-=============
-Platform_JoyInit
-=============
-/
-int Platform_JoyInit (int numjoy)
-	{
-if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	// SDL_Joystick is now an old API
-	// SDL_GameController is preferred
-	if (!Sys_CheckParm ("-sdl_joy_old_api"))
-		return SDLash_JoyInit_New (numjoy);
-endif
-
-	return SDLash_JoyInit_Old (numjoy);
-	}*/
-
 /***
 ========================
-SDLash_InitCursors
+SDLash_InitCursors [FWGS, 01.06.25]
 ========================
 ***/
 void SDLash_InitCursors (void)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	if (cursors.initialized)
 		SDLash_FreeCursors ();
 
@@ -301,17 +176,17 @@ void SDLash_InitCursors (void)
 	cursors.cursors[dc_no] = SDL_CreateSystemCursor (SDL_SYSTEM_CURSOR_NO);
 	cursors.cursors[dc_hand] = SDL_CreateSystemCursor (SDL_SYSTEM_CURSOR_HAND);
 	cursors.initialized = true;
-#endif
+	/*endif*/
 	}
 
 /***
 ========================
-SDLash_FreeCursors
+SDLash_FreeCursors [FWGS, 01.06.25]
 ========================
 ***/
 void SDLash_FreeCursors (void)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	int i = 0;
 
 	for (; i < HLARRAYSIZE (cursors.cursors); i++)
@@ -322,7 +197,7 @@ void SDLash_FreeCursors (void)
 		}
 
 	cursors.initialized = false;
-#endif
+	/*endif*/
 	}
 
 /***
@@ -335,11 +210,6 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 	qboolean visible;
 
 	// [FWGS, 01.03.25]
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )
-	if (!cursors.initialized)
-		return;
-endif*/
-
 	switch (type)
 		{
 		case dc_user:
@@ -353,19 +223,17 @@ endif*/
 		}
 	
 	// [FWGS, 01.03.25] never disable cursor in touch emulation mode
-	/*if (!visible && Touch_Emulated ())*/
 	if (!visible && Touch_WantVisibleCursor ())
 		return;
 
 	host.mouse_visible = visible;
 	VGui_UpdateInternalCursorState (type);
 
-	// [FWGS, 01.03.25]
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	// [FWGS, 01.06.25]
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 
 	if (host.mouse_visible)
 		{
-		/*SDL_SetCursor (cursors.cursors[type]);*/
 		if (cursors.initialized)
 			SDL_SetCursor (cursors.cursors[type]);
 
@@ -391,24 +259,45 @@ endif*/
 		SDL_ShowCursor (false);
 		}
 
-#else
+	// [FWGS, 01.06.25]
+	/*else
 
 	if (host.mouse_visible)
 		SDL_ShowCursor (true);
 	else
 		SDL_ShowCursor (false);
 
-#endif
+	endif*/
 	}
 
 /***
 ========================
-Platform_GetKeyModifiers
+Platform_GetMouseGrab [FWGS, 01.06.25]
+========================
+***/
+qboolean Platform_GetMouseGrab (void)
+	{
+	return SDL_GetWindowGrab (host.hWnd);
+	}
+
+/***
+========================
+Platform_SetMouseGrab [FWGS, 01.06.25]
+========================
+***/
+void Platform_SetMouseGrab (qboolean enable)
+	{
+	SDL_SetWindowGrab (host.hWnd, enable);
+	}
+
+/***
+========================
+Platform_GetKeyModifiers [FWGS, 01.06.25]
 ========================
 ***/
 key_modifier_t Platform_GetKeyModifiers (void)
 	{
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	SDL_Keymod modFlags;
 	key_modifier_t resultFlags;
 
@@ -436,10 +325,7 @@ key_modifier_t Platform_GetKeyModifiers (void)
 		SetBits (resultFlags, KeyModifier_LeftSuper);
 
 	return resultFlags;
-#else
+	/*else
 	return KeyModifier_None;
-#endif
+	endif*/
 	}
-
-// [FWGS, 01.03.25]
-/*endif*/

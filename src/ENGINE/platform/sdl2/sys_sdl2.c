@@ -13,8 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.06.25]
 #include <SDL.h>
-#include "platform/platform.h"
+/*include "platform/platform.h"
+include "platform_sdl2.h"*/
+#include "platform.h"
 #include "platform_sdl2.h"
 
 #if XASH_TIMER == TIMER_SDL
@@ -113,7 +116,6 @@ void SDLash_Init (const char *basedir)
 		{
 		char buf[MAX_VA_STRING];
 
-		/*Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", basedir, path);*/
 		Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, basedir);
 		setenv ("XASH3D_EXTRAS_PAK1", buf, true);
 		}
@@ -138,12 +140,12 @@ void SDLash_Init (const char *basedir)
 		host.type = HOST_DEDICATED;
 		}
 
-	// [FWGS, 01.03.25]
-/*if XASH_SDL == 2
-	SDL_SetHint (SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");*/
+	// [FWGS, 01.06.25]
 #if SDL_MAJOR_VERSION >= 2
 	SDL_SetHint (SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
+#ifdef SDL_HINT_MOUSE_TOUCH_EVENTS
 	SDL_SetHint (SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+#endif
 	SDL_SetHint (SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 	SDL_StopTextInput ();
 #endif

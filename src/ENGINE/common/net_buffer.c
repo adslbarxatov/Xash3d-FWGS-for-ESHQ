@@ -608,10 +608,10 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 
 	Assert ((numbits > 0) && (numbits <= 32));
 
-	// Read the current dword.
+	// Read the current dword
 	idword1 = sb->iCurBit >> 5;
 	dword1 = ((uint *)sb->pData)[idword1];
-	dword1 >>= (sb->iCurBit & 31);	// get the bits we're interested in.
+	dword1 >>= (sb->iCurBit & 31);	// get the bits we're interested in
 
 	sb->iCurBit += numbits;
 	ret = dword1;
@@ -628,9 +628,10 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 		uint	dword2 = ((uint *)sb->pData)[idword1 + 1] & ExtraMasks[nExtraBits];
 
 		// no need to mask since we hit the end of the dword.
-		// shift the second dword's part into the high bits.
+		// shift the second dword's part into the high bits
 		ret |= (dword2 << (numbits - nExtraBits));
 		}
+
 	return ret;
 	}
 
@@ -640,7 +641,6 @@ qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)
 	int		nBitsLeft = nBits;
 
 	// [FWGS, 01.05.25] get output dword-aligned
-	/*while ((((uint32_t)pOut & 3) != 0) && (nBitsLeft >= 8))*/
 	while ((((uintptr_t)pOut & 3) != 0) && (nBitsLeft >= 8))
 		{
 		*pOut = (byte)MSG_ReadUBitLong (sb, 8);
@@ -904,7 +904,7 @@ static void Test_Buffer_BitByte (void)
 	TASSERT_EQi (BitByte (9), 2);
 	}
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.06.25]
 static void Test_Buffer_Write (void)
 	{
 	sizebuf_t sb;
@@ -913,7 +913,8 @@ static void Test_Buffer_Write (void)
 	MSG_Init (&sb, __func__, testdata, sizeof (testdata));
 	TASSERT_EQi (sb.iCurBit, 0);
 	TASSERT_EQi (sb.nDataBits, sizeof (testdata) << 3);
-	TASSERT_EQi (sb.pData, testdata);
+	/*TASSERT_EQi (sb.pData, testdata);*/
+	TASSERT_EQp (sb.pData, (void *)testdata);
 	TASSERT_EQi (sb.bOverflow, false);
 
 	MSG_WriteBytes (&sb, "asdf", 4);
@@ -961,7 +962,7 @@ static void Test_Buffer_Write (void)
 	TASSERT_EQi (MSG_ReadUBitLong (&sb, 4), 0xa);
 	}
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.06.25]
 static void Test_Buffer_Read (void)
 	{
 	sizebuf_t sb;
@@ -970,7 +971,8 @@ static void Test_Buffer_Read (void)
 	MSG_StartReading (&sb, (void *)g_testbuf, -1, 0, g_testbuf_bits);
 	TASSERT_EQi (sb.iCurBit, 0);
 	TASSERT_EQi (sb.nDataBits, g_testbuf_bits);
-	TASSERT_EQi (sb.pData, g_testbuf);
+	/*TASSERT_EQi (sb.pData, g_testbuf);*/
+	TASSERT_EQp (sb.pData, (void *)g_testbuf);
 	TASSERT_EQi (sb.bOverflow, false);
 
 	MSG_ReadBytes (&sb, buf, 4);

@@ -30,13 +30,8 @@ qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesi
 	int	rendermode = LUMP_NORMAL;
 	byte pal[768];
 
-	/*if (filesize != 768)*/
 	if (filesize > sizeof (pal))
 		{
-		/*Con_DPrintf (S_ERROR "%s: (%s) have invalid size (%li should be %d)\n", __func__,
-			name, (long)filesize, 768);*/
-		/*Con_DPrintf (S_ERROR "%s: (%s) have invalid size (%li should be less or equal than %d)\n", __func__,
-			name, (long)filesize, sizeof (pal));*/
 		Con_DPrintf (S_ERROR "%s: (%s) have invalid size (%li should be less or equal than %zu)\n", __func__,
 			name, (long)filesize, sizeof (pal));
 		return false;
@@ -64,6 +59,13 @@ qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesi
 			{
 			rendermode = LUMP_GRADIENT;
 			}
+		
+		// [FWGS, 01.06.25]
+		else if (Q_stristr (name, "texgamma"))
+			{
+			rendermode = LUMP_TEXGAMMA;
+			}
+
 		else if (Q_stristr (name, "valve"))
 			{
 			rendermode = LUMP_HALFLIFE;
@@ -199,9 +201,12 @@ qboolean Image_LoadMDL (const char *name, const byte *buffer, fs_offset_t filesi
 			Image_GetPaletteLMP (pal, LUMP_MASKED);
 			image.flags |= IMAGE_HAS_ALPHA | IMAGE_ONEBIT_ALPHA;
 			}
+
+		// [FWGS, 01.06.25]
 		else
 			{
-			Image_GetPaletteLMP (fin + pixels, LUMP_NORMAL);
+			/*Image_GetPaletteLMP (fin + pixels, LUMP_NORMAL);*/
+			Image_GetPaletteLMP (fin + pixels, LUMP_TEXGAMMA);
 			}
 		}
 	else
@@ -241,6 +246,8 @@ qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesi
 		return false;
 		}
 
+	// [FWGS, 01.06.25]
+	/*memcpy (&pin, buffer, sizeof (dspriteframe_t));*/
 	memcpy (&pin, buffer, sizeof (dspriteframe_t));
 	image.width = pin.width;
 	image.height = pin.height;
@@ -334,7 +341,7 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 	if (!Image_ValidSize (name))
 		return false;
 
-	if (image.hint != IL_HINT_Q1 && filesize > (int)sizeof (lmp) + pixels)
+	if ((image.hint != IL_HINT_Q1) && (filesize > (int)sizeof (lmp) + pixels))
 		{
 		int	numcolors;
 

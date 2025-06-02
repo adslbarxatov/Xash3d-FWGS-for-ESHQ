@@ -13,8 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.06.25]
 #include "common.h"
-#include "platform/platform.h"
+/*#include "platform/platform.h"*/
+#include "platform.h"
+
 #if XASH_SOUND == SOUND_SDL
 
 #include "sound.h"
@@ -26,17 +29,18 @@ GNU General Public License for more details
 #define SAMPLE_16BIT_SHIFT 1
 #define SECONDARY_BUFFER_SIZE 0x10000
 
-#if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
-	#define SDL_GetCurrentAudioDriver() "legacysdl"
-	#define SDL_OpenAudioDevice( a, b, c, d, e ) SDL_OpenAudio( ( c ), ( d ) )
-	#define SDL_CloseAudioDevice( a ) SDL_CloseAudio()
-	#define SDL_PauseAudioDevice( a, b ) SDL_PauseAudio( ( b ) )
-	#define SDL_LockAudioDevice( x ) SDL_LockAudio()
-	#define SDL_UnlockAudioDevice( x ) SDL_UnlockAudio()
-	#define SDLash_IsAudioError( x ) (( x ) != 0)
-#else
-	#define SDLash_IsAudioError( x ) (( x ) == 0)
-#endif
+// [FWGS, 01.06.25]
+/*if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
+define SDL_GetCurrentAudioDriver() "legacysdl"
+define SDL_OpenAudioDevice( a, b, c, d, e ) SDL_OpenAudio( ( c ), ( d ) )
+define SDL_CloseAudioDevice( a ) SDL_CloseAudio()
+define SDL_PauseAudioDevice( a, b ) SDL_PauseAudio( ( b ) )
+define SDL_LockAudioDevice( x ) SDL_LockAudio()
+define SDL_UnlockAudioDevice( x ) SDL_UnlockAudio()
+define SDLash_IsAudioError( x ) (( x ) != 0)
+else*/
+#define SDLash_IsAudioError( x ) (( x ) == 0)
+/*endif*/
 
 /***
 =======================================================================
@@ -50,20 +54,20 @@ static SDL_AudioDeviceID in_dev = 0;
 static SDL_AudioFormat sdl_format;
 static char sdl_backend_name[32];
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.06.24]
 static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 	{
 	const int size = dma.samples << 1;
 	int pos;
 	int wrapped;
 
-#if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if ! SDL_VERSION_ATLEAST( 2, 0, 0 )
 	if (!dma.buffer)
 		{
 		memset (stream, 0, len);
 		return;
 		}
-#endif
+	endif*/
 
 	pos = dma.samplepos << 1;
 	if (pos >= size)
@@ -177,7 +181,6 @@ qboolean SNDDMA_Init (void)
 
 	// [FWGS, 01.03.25]
 	dma.samples = samplecount * obtained.channels;
-	/*dma.buffer = Mem_Malloc (sndpool, dma.samples * 2);*/
 	dma.buffer = Mem_Calloc (sndpool, dma.samples * 2);
 	dma.samplepos = 0;
 
@@ -211,7 +214,7 @@ void SNDDMA_BeginPainting (void)
 
 /***
 ==============
-SNDDMA_Submit [FWGS, 01.07.23]
+SNDDMA_Submit
 
 Send sound to device if buffer isn't really the dma buffer
 Also unlocks the dsound buffer
@@ -245,7 +248,6 @@ void SNDDMA_Shutdown (void)
 
 	// [FWGS, 22.01.25]
 #if !XASH_EMSCRIPTEN
-	/*if (SDL_WasInit (SDL_INIT_AUDIO))*/
 	if (SDL_WasInit (SDL_INIT_AUDIO))
 		SDL_QuitSubSystem (SDL_INIT_AUDIO);
 #endif

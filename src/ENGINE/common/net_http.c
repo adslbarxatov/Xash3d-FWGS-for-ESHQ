@@ -199,9 +199,11 @@ static int HTTP_FileQueue (httpfile_t *file)
 	Con_Reportf ("HTTP: Starting download %s from %s:%d\n", file->path, file->server->host, file->server->port);
 	Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", file->path);
 
+	// [FWGS, 01.06.25]
 	if (!(file->file = FS_Open (name, "wb+", true)))
 		{
-		Con_Printf (S_ERROR "HTTP: cannot open %s!", name);
+		/*Con_Printf (S_ERROR "HTTP: cannot open %s!", name);*/
+		Con_Printf (S_ERROR "HTTP: cannot open %s!\n", name);
 		HTTP_FreeFile (file, true);
 		return 0;
 		}
@@ -333,7 +335,6 @@ static int HTTP_FileConnect (httpfile_t *file)
 	if (!COM_CheckStringEmpty (http_useragent.string) || !Q_strcmp (http_useragent.string, "xash3d"))
 		{
 		Q_snprintf (useragent, sizeof (useragent), "%s/%s (%s-%s; build %d; %s)",
-			/*XASH_ENGINE_NAME, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum (), Q_buildcommit ());*/
 			XASH_ENGINE_NAME, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum (), g_buildcommit);
 		}
 	else
@@ -530,8 +531,6 @@ static int HTTP_FileDecompress (httpfile_t *file)
 	Mem_Free (data_in);
 	Mem_Free (data_out);
 
-	/*g_fsapi.WriteFile (name, data_out, decompressed_len);
-	HTTP_FreeFile (file, false);*/
 	return 1;
 	}
 
@@ -870,7 +869,6 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 		// [FWGS, 01.04.25]
 		if (curfile->downloaded >= curfile->size)
 			{
-			/*HTTP_FreeFile (curfile, false); // success*/
 			// chunked files are finalized in FileSaveReceivedData
 			if (curfile->compressed && !curfile->chunked)
 				{

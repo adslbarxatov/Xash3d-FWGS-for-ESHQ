@@ -1,6 +1,6 @@
 /***
-events.c - SDL event system handlers
-Copyright (C) 2015-2017 a1batross
+host_sdl2.c - SDL event system handlers
+Copyright (C) 2015-2025 a1batross
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -13,7 +13,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#if defined( XASH_SDL ) && !XASH_DEDICATED
+// [FWGS, 01.06.25]
+/*if defined( XASH_SDL ) && !XASH_DEDICATED*/
+
 #include <SDL.h>
 #include <ctype.h>
 
@@ -22,92 +24,92 @@ GNU General Public License for more details
 #include "input.h"
 #include "client.h"
 #include "vgui_draw.h"
-#include "platform_sdl2.h"
+#include "platform_sdl2.h"	// [FWGS, 01.06.25]
 #include "sound.h"
 #include "vid_common.h"
 
-// [FWGS, 01.03.25]
-#if !SDL_VERSION_ATLEAST( 2, 0, 0 )
-#define SDL_SCANCODE_A SDLK_a
-#define SDL_SCANCODE_Z SDLK_z
-#define SDL_SCANCODE_1 SDLK_1
-#define SDL_SCANCODE_9 SDLK_9
-#define SDL_SCANCODE_F1 SDLK_F1
-#define SDL_SCANCODE_F12 SDLK_F12
-#define SDL_SCANCODE_GRAVE SDLK_BACKQUOTE
-#define SDL_SCANCODE_0 SDLK_0
-#define SDL_SCANCODE_BACKSLASH SDLK_BACKSLASH
-#define SDL_SCANCODE_LEFTBRACKET SDLK_LEFTBRACKET
-#define SDL_SCANCODE_RIGHTBRACKET SDLK_RIGHTBRACKET
-#define SDL_SCANCODE_EQUALS SDLK_EQUALS
-#define SDL_SCANCODE_MINUS SDLK_MINUS
-#define SDL_SCANCODE_TAB SDLK_TAB
-#define SDL_SCANCODE_RETURN SDLK_RETURN
-#define SDL_SCANCODE_ESCAPE SDLK_ESCAPE
-#define SDL_SCANCODE_SPACE SDLK_SPACE
-#define SDL_SCANCODE_BACKSPACE SDLK_BACKSPACE
-#define SDL_SCANCODE_UP SDLK_UP
-#define SDL_SCANCODE_LEFT SDLK_LEFT
-#define SDL_SCANCODE_DOWN SDLK_DOWN
-#define SDL_SCANCODE_RIGHT SDLK_RIGHT
-#define SDL_SCANCODE_LALT SDLK_LALT
-#define SDL_SCANCODE_RALT SDLK_RALT
-#define SDL_SCANCODE_LCTRL SDLK_LCTRL
-#define SDL_SCANCODE_RCTRL SDLK_RCTRL
-#define SDL_SCANCODE_LSHIFT SDLK_LSHIFT
-#define SDL_SCANCODE_RSHIFT SDLK_RSHIFT
-#define SDL_SCANCODE_LGUI SDLK_LMETA
-#define SDL_SCANCODE_RGUI SDLK_RMETA
-#define SDL_SCANCODE_INSERT SDLK_INSERT
-#define SDL_SCANCODE_DELETE SDLK_DELETE
-#define SDL_SCANCODE_PAGEDOWN SDLK_PAGEDOWN
-#define SDL_SCANCODE_PAGEUP SDLK_PAGEUP
-#define SDL_SCANCODE_HOME SDLK_HOME
-#define SDL_SCANCODE_END SDLK_END
-#define SDL_SCANCODE_KP_1 SDLK_KP1
-#define SDL_SCANCODE_KP_2 SDLK_KP2
-#define SDL_SCANCODE_KP_3 SDLK_KP3
-#define SDL_SCANCODE_KP_4 SDLK_KP4
-#define SDL_SCANCODE_KP_5 SDLK_KP5
-#define SDL_SCANCODE_KP_6 SDLK_KP6
-#define SDL_SCANCODE_KP_7 SDLK_KP7
-#define SDL_SCANCODE_KP_8 SDLK_KP8
-#define SDL_SCANCODE_KP_9 SDLK_KP9
-#define SDL_SCANCODE_KP_0 SDLK_KP0
-#define SDL_SCANCODE_KP_PERIOD SDLK_KP_PERIOD
-#define SDL_SCANCODE_KP_ENTER SDLK_KP_ENTER
-#define SDL_SCANCODE_KP_PLUS SDLK_KP_PLUS
-#define SDL_SCANCODE_KP_MINUS SDLK_KP_MINUS
-#define SDL_SCANCODE_KP_DIVIDE SDLK_KP_DIVIDE
-#define SDL_SCANCODE_KP_MULTIPLY SDLK_KP_MULTIPLY
-#define SDL_SCANCODE_NUMLOCKCLEAR SDLK_NUMLOCK
-#define SDL_SCANCODE_CAPSLOCK SDLK_CAPSLOCK
-#define SDL_SCANCODE_SLASH SDLK_SLASH
-#define SDL_SCANCODE_PERIOD SDLK_PERIOD
-#define SDL_SCANCODE_SEMICOLON SDLK_SEMICOLON
-#define SDL_SCANCODE_APOSTROPHE SDLK_QUOTE
-#define SDL_SCANCODE_COMMA SDLK_COMMA
-#define SDL_SCANCODE_PRINTSCREEN SDLK_PRINT
-#define SDL_SCANCODE_UNKNOWN SDLK_UNKNOWN
-#define SDL_GetScancodeName( x ) "unknown"
-#endif
+// [FWGS, 01.06.25]
+/*if !SDL_VERSION_ATLEAST( 2, 0, 0 )
+define SDL_SCANCODE_A SDLK_a
+define SDL_SCANCODE_Z SDLK_z
+define SDL_SCANCODE_1 SDLK_1
+define SDL_SCANCODE_9 SDLK_9
+define SDL_SCANCODE_F1 SDLK_F1
+define SDL_SCANCODE_F12 SDLK_F12
+define SDL_SCANCODE_GRAVE SDLK_BACKQUOTE
+define SDL_SCANCODE_0 SDLK_0
+define SDL_SCANCODE_BACKSLASH SDLK_BACKSLASH
+define SDL_SCANCODE_LEFTBRACKET SDLK_LEFTBRACKET
+define SDL_SCANCODE_RIGHTBRACKET SDLK_RIGHTBRACKET
+define SDL_SCANCODE_EQUALS SDLK_EQUALS
+define SDL_SCANCODE_MINUS SDLK_MINUS
+define SDL_SCANCODE_TAB SDLK_TAB
+define SDL_SCANCODE_RETURN SDLK_RETURN
+define SDL_SCANCODE_ESCAPE SDLK_ESCAPE
+define SDL_SCANCODE_SPACE SDLK_SPACE
+define SDL_SCANCODE_BACKSPACE SDLK_BACKSPACE
+define SDL_SCANCODE_UP SDLK_UP
+define SDL_SCANCODE_LEFT SDLK_LEFT
+define SDL_SCANCODE_DOWN SDLK_DOWN
+define SDL_SCANCODE_RIGHT SDLK_RIGHT
+define SDL_SCANCODE_LALT SDLK_LALT
+define SDL_SCANCODE_RALT SDLK_RALT
+define SDL_SCANCODE_LCTRL SDLK_LCTRL
+define SDL_SCANCODE_RCTRL SDLK_RCTRL
+define SDL_SCANCODE_LSHIFT SDLK_LSHIFT
+define SDL_SCANCODE_RSHIFT SDLK_RSHIFT
+define SDL_SCANCODE_LGUI SDLK_LMETA
+define SDL_SCANCODE_RGUI SDLK_RMETA
+define SDL_SCANCODE_INSERT SDLK_INSERT
+define SDL_SCANCODE_DELETE SDLK_DELETE
+define SDL_SCANCODE_PAGEDOWN SDLK_PAGEDOWN
+define SDL_SCANCODE_PAGEUP SDLK_PAGEUP
+define SDL_SCANCODE_HOME SDLK_HOME
+define SDL_SCANCODE_END SDLK_END
+define SDL_SCANCODE_KP_1 SDLK_KP1
+define SDL_SCANCODE_KP_2 SDLK_KP2
+define SDL_SCANCODE_KP_3 SDLK_KP3
+define SDL_SCANCODE_KP_4 SDLK_KP4
+define SDL_SCANCODE_KP_5 SDLK_KP5
+define SDL_SCANCODE_KP_6 SDLK_KP6
+define SDL_SCANCODE_KP_7 SDLK_KP7
+define SDL_SCANCODE_KP_8 SDLK_KP8
+define SDL_SCANCODE_KP_9 SDLK_KP9
+define SDL_SCANCODE_KP_0 SDLK_KP0
+define SDL_SCANCODE_KP_PERIOD SDLK_KP_PERIOD
+define SDL_SCANCODE_KP_ENTER SDLK_KP_ENTER
+define SDL_SCANCODE_KP_PLUS SDLK_KP_PLUS
+define SDL_SCANCODE_KP_MINUS SDLK_KP_MINUS
+define SDL_SCANCODE_KP_DIVIDE SDLK_KP_DIVIDE
+define SDL_SCANCODE_KP_MULTIPLY SDLK_KP_MULTIPLY
+define SDL_SCANCODE_NUMLOCKCLEAR SDLK_NUMLOCK
+define SDL_SCANCODE_CAPSLOCK SDLK_CAPSLOCK
+define SDL_SCANCODE_SLASH SDLK_SLASH
+define SDL_SCANCODE_PERIOD SDLK_PERIOD
+define SDL_SCANCODE_SEMICOLON SDLK_SEMICOLON
+define SDL_SCANCODE_APOSTROPHE SDLK_QUOTE
+define SDL_SCANCODE_COMMA SDLK_COMMA
+define SDL_SCANCODE_PRINTSCREEN SDLK_PRINT
+define SDL_SCANCODE_UNKNOWN SDLK_UNKNOWN
+define SDL_GetScancodeName( x ) "unknown"
+endif*/
 
 // [FWGS, 01.03.25] removed SDLash_IsInstanceIDAGameController
 
 /***
 =============
-SDLash_KeyEvent [FWGS, 01.07.24]
+SDLash_KeyEvent [FWGS, 01.06.25]
 =============
 ***/
 static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	{
 	int down = key.state != SDL_RELEASED;
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	int keynum = key.keysym.scancode;
-#else
+	/*else
 	int keynum = key.keysym.sym;
-#endif
+	endif*/
 
 #if XASH_ANDROID
 	if ((keynum == SDL_SCANCODE_VOLUMEUP) || (keynum == SDL_SCANCODE_VOLUMEDOWN))
@@ -129,7 +131,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			return;
 			}
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+		/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 
 		// ignore printable keys, they are coming through SDL_TEXTINPUT
 		if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
@@ -137,7 +139,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			|| ((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))
 			return;
 
-#else
+		/*else
 
 		if (keynum >= SDLK_KP0 && keynum <= SDLK_KP9)
 			keynum -= SDLK_KP0 + '0';
@@ -149,7 +151,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 			CL_CharEvent (keynum);
 			}
-#endif
+		endif*/
 		}
 
 	// ESHQ: спорная конструкция макроса, удалено
@@ -384,7 +386,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 				keynum = K_SCROLLLOCK;
 				break;
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+			/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 
 			case SDL_SCANCODE_APPLICATION:
 				keynum = K_WIN;
@@ -399,7 +401,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			case SDL_SCANCODE_SELECT:
 				return;
 
-#endif
+			/*endif*/
 
 			case SDL_SCANCODE_UNKNOWN:
 				if (down)
@@ -420,17 +422,17 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 /***
 =============
-SDLash_MouseEvent
+SDLash_MouseEvent [FWGS, 01.06.25]
 =============
 ***/
 static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 	{
 	int down;
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	if (button.which == SDL_TOUCH_MOUSEID)
 		return;
-#endif
+	/*endif*/
 
 	if (button.state == SDL_RELEASED)
 		down = 0;
@@ -461,7 +463,7 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 			IN_MouseEvent (4, down);
 			break;
 
-#if !SDL_VERSION_ATLEAST( 2, 0, 0 )
+		/*if !SDL_VERSION_ATLEAST( 2, 0, 0 )
 		case SDL_BUTTON_WHEELUP:
 			IN_MWheelEvent (-1);
 			break;
@@ -469,7 +471,7 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 		case SDL_BUTTON_WHEELDOWN:
 			IN_MWheelEvent (1);
 			break;
-#endif
+		endif*/
 
 		default:
 			Con_Printf ("Unknown mouse button ID: %d\n", button.button);
@@ -478,10 +480,10 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 
 /***
 =============
-SDLash_InputEvent [FWGS, 01.07.24]
+SDLash_InputEvent [FWGS, 01.06.25]
 =============
 ***/
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 static void SDLash_InputEvent (SDL_TextInputEvent input)
 	{
 	const char *text;
@@ -501,7 +503,7 @@ static void SDLash_InputEvent (SDL_TextInputEvent input)
 		CL_CharEvent (ch);
 		}
 	}
-#endif
+/*endif*/
 
 // [FWGS, 01.05.24]
 static void SDLash_ActiveEvent (int gain)
@@ -542,13 +544,13 @@ static void SDLash_ActiveEvent (int gain)
 
 // [FWGS, 01.03.25] removed SDLash_GameController_Add, SDLash_GameController_Remove
 
-#endif
+/*endif
 
-#if XASH_SDL && !XASH_DEDICATED
+if XASH_SDL && !XASH_DEDICATED*/
 
 /***
 =============
-SDLash_EventHandler [FWGS, 01.07.24]
+SDLash_EventHandler [FWGS, 01.06.25]
 =============
 ***/
 static void SDLash_EventHandler (SDL_Event *event)
@@ -566,7 +568,7 @@ static void SDLash_EventHandler (SDL_Event *event)
 			SDLash_MouseEvent (event->button);
 			break;
 
-			// Keyboard events
+		// Keyboard events
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
 			SDLash_KeyEvent (event->key);
@@ -577,7 +579,7 @@ static void SDLash_EventHandler (SDL_Event *event)
 			Sys_Quit ("caught SDL_QUIT");
 			break;
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+		/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 		case SDL_MOUSEWHEEL:
 			IN_MWheelEvent (event->wheel.y);
 			break;
@@ -646,10 +648,14 @@ static void SDLash_EventHandler (SDL_Event *event)
 		case SDL_CONTROLLERBUTTONUP:
 		case SDL_CONTROLLERDEVICEADDED:
 		case SDL_CONTROLLERDEVICEREMOVED:
+
+		// [FWGS, 01.06.25]
+#if SDL_VERSION_ATLEAST( 2, 0, 14 )
 		case SDL_CONTROLLERTOUCHPADDOWN:
 		case SDL_CONTROLLERTOUCHPADMOTION:
 		case SDL_CONTROLLERTOUCHPADUP:
 		case SDL_CONTROLLERSENSORUPDATE:
+#endif
 			SDLash_HandleGameControllerEvent (event);
 			break;
 
@@ -721,14 +727,15 @@ static void SDLash_EventHandler (SDL_Event *event)
 				default:
 					break;
 				}
-#else
+
+		/*else
 		case SDL_VIDEORESIZE:
 			VID_SaveWindowSize (event->resize.w, event->resize.h);
 			break;
 		case SDL_ACTIVEEVENT:
 			SDLash_ActiveEvent (event->active.gain);
 			break;
-#endif
+		endif*/
 		}
 	}
 
@@ -741,7 +748,6 @@ void Platform_RunEvents (void)
 	{
 	SDL_Event event;
 
-	/*while (!host.crashed && !host.shutdown_issued && SDL_PollEvent (&event))*/
 	while ((host.status != HOST_CRASHED) && !host.shutdown_issued && SDL_PollEvent (&event))
 		SDLash_EventHandler (&event);
 	}
@@ -766,4 +772,4 @@ void Platform_PreCreateMove (void)
 		}
 	}
 
-#endif
+/*endif*/

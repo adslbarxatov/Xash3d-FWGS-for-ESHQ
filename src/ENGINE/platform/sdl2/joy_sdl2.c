@@ -15,7 +15,8 @@ GNU General Public License for more details
 
 #include <SDL.h>
 
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+// [FWGS, 01.06.25]
+/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 #include "common.h"
 #include "keydefs.h"
 #include "input.h"
@@ -98,7 +99,8 @@ static void SDLash_FinalizeCalibration (void)
 	VectorScale (gyrocal.data, 1.0f / gyrocal.samples, gyrocal.calibrated_values);
 	Joy_SetCalibrationState (JOY_CALIBRATED);
 
-	Con_Printf ("Calibration done. Result: %f %f %f\n", gyrocal.calibrated_values[0], gyrocal.calibrated_values[1], gyrocal.calibrated_values[2]);
+	Con_Printf ("Calibration done. Result: %f %f %f\n", gyrocal.calibrated_values[0],
+		gyrocal.calibrated_values[1], gyrocal.calibrated_values[2]);
 
 	gyrocal.time = 0.0f;
 	}
@@ -120,20 +122,24 @@ static void SDLash_GameControllerAddMappings (const char *name)
 	Mem_Free (p);
 	}
 
+// [FWGS, 01.06.25]
 static void SDLash_SetActiveGameController (SDL_JoystickID id)
 	{
-	SDL_GameController *oldgc;
+	/*SDL_GameController *oldgc;*/
 
 	if (g_current_gamepad_id == id)
 		return;
 
-	g_current_gamepad_id = id;
-	oldgc = g_current_gamepad;
+	/*g_current_gamepad_id = id;
+	oldgc = g_current_gamepad;*/
 
 #if SDL_VERSION_ATLEAST( 2, 0, 14 )
-	SDL_GameControllerSetSensorEnabled (oldgc, SDL_SENSOR_GYRO, SDL_FALSE);
+	/*SDL_GameControllerSetSensorEnabled (oldgc, SDL_SENSOR_GYRO, SDL_FALSE);*/
+	// going to change active controller, disable gyro events in old
+	SDL_GameControllerSetSensorEnabled (g_current_gamepad, SDL_SENSOR_GYRO, SDL_FALSE);
 #endif
 
+	g_current_gamepad_id = id;
 	if (id < 0)
 		{
 		g_current_gamepad = NULL;
@@ -232,6 +238,8 @@ static void SDLash_GameControllerRemoved (SDL_JoystickID id)
 		}
 	}
 
+// [FWGS, 01.06.25]
+#if SDL_VERSION_ATLEAST( 2, 0, 14 )
 static void SDLash_GameControllerSensorUpdate (SDL_ControllerSensorEvent sensor)
 	{
 	vec3_t data;
@@ -257,6 +265,7 @@ static void SDLash_GameControllerSensorUpdate (SDL_ControllerSensorEvent sensor)
 	VectorSubtract (sensor.data, gyrocal.calibrated_values, data);
 	Joy_GyroEvent (data);
 	}
+#endif
 
 void SDLash_HandleGameControllerEvent (SDL_Event *ev)
 	{
@@ -388,7 +397,8 @@ void Platform_JoyShutdown (void)
 	SDL_QuitSubSystem (SDL_INIT_GAMECONTROLLER);
 	}
 
-#else
+// [FWGS, 01.06.25]
+/*else
 
 void Platform_Vibrate (float time, char flags)
 	{
@@ -405,4 +415,4 @@ void Platform_JoyShutdown (void)
 
 	}
 
-#endif
+endif*/

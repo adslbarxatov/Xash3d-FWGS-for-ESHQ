@@ -34,13 +34,6 @@ GNU General Public License for more details
 #define MIPTEX_CUSTOM_PALETTE_SIZE_BYTES ( sizeof( int16_t ) + 768 )
 
 // [FWGS, 01.12.24]
-/*typedef struct wadlist_s
-	{
-	char	wadnames[MAX_MAP_WADS][32];
-	int		wadusage[MAX_MAP_WADS];
-	int		count;
-	} wadlist_t;*/
-
 typedef struct leaflist_s
 	{
 	int		count;
@@ -133,9 +126,13 @@ typedef struct
 	byte		*shadowdata_out;	// occlusion data pointer
 	dclipnode32_t	*clipnodes_out;	// temporary 32-bit array to hold clipnodes
 
-	// [FWGS, 01.12.24] misc stuff
-	int			lightmap_samples;	// samples per lightmap (1 or 3)
+	// [FWGS, 01.06.25] misc stuff
+	/*int			lightmap_samples;	// samples per lightmap (1 or 3)
 	int			version;			// model version
+	qboolean	isworld;
+	qboolean	isbsp30ext;*/
+	int			lightmap_samples; // samples per lightmap (1 or 3)
+	int			version; // model version
 	qboolean	isworld;
 	qboolean	isbsp30ext;
 	} dbspmodel_t;
@@ -455,13 +452,8 @@ static int Mod_LoadTextureFromWadList (wadlist_t *list, const char *name, rgbdat
 		/*char path[MAX_VA_STRING];*/
 		searchpath_t *sp = NULL;
 
-		/*Q_snprintf (path, sizeof (path), "%s.wad/%s.mip", list->wadnames[i], name);
-
-		if (FS_FileExists (path, false))*/
 		while ((sp = g_fsapi.GetArchiveByName (list->wadnames[i], sp)))
 			{
-			/*if (dst && size > 0)
-				Q_strncpy (dst, path, size);*/
 			fs_offset_t	len;
 			byte	*buf;
 			char	file[MAX_VA_STRING];
@@ -476,7 +468,6 @@ static int Mod_LoadTextureFromWadList (wadlist_t *list, const char *name, rgbdat
 			if (texpath != NULL)
 				Q_snprintf (texpath, texpathlen, "%s/%s.mip", list->wadnames[i], name);
 
-			/*return i;*/
 			if (pic == NULL)
 				return i;	// dedicated server don't want to load the textures (why?)
 
@@ -498,7 +489,6 @@ static int Mod_LoadTextureFromWadList (wadlist_t *list, const char *name, rgbdat
 	}
 
 // [FWGS, 01.02.25]
-/*static fs_offset_t Mod_CalculateMipTexSize (mip_t *mt, qboolean palette)*/
 static fs_offset_t Mod_CalculateMipTexSize (const mip_t *mt, qboolean palette)
 	{
 	if (!mt)
@@ -561,7 +551,6 @@ static qboolean Mod_NameImpliesTextureIsAnimated (texture_t *tex)
 	return true;
 	}
 
-// [FWGS, 01.11.23]
 static void Mod_CreateDefaultTexture (model_t *mod, texture_t **texture)
 	{
 	texture_t *tex;
@@ -588,6 +577,7 @@ static void Mod_CreateDefaultTexture (model_t *mod, texture_t **texture)
 MAP PROCESSING
 ===============================================================================
 ***/
+
 /***
 =================
 Mod_LoadLump [FWGS, 01.12.24]
@@ -595,7 +585,6 @@ Mod_LoadLump [FWGS, 01.12.24]
 generic loader
 =================
 ***/
-/*static void Mod_LoadLump (const byte *in, mlumpinfo_t *info, mlumpstat_t *stat, int flags)*/
 static void Mod_LoadLump (const byte *in, const mlumpinfo_t *info, mlumpstat_t *stat, int flags)
 	{
 	int		version = ((dheader_t *)in)->version;
@@ -815,8 +804,6 @@ void Mod_PrintWorldStats_f (void)
 	Con_Printf ("Lighting: %s\n", FBitSet (w->flags, MODEL_COLORED_LIGHTING) ? "colored" : "monochrome");
 	Con_Printf ("World total leafs: %d\n", worldmodel->numleafs + 1);
 	Con_Printf ("original name: ^1%s\n", worldmodel->name);
-
-	// [FWGS, 01.04.23]
 	Con_Printf ("internal name: ^2%s\n", world.message[0] ? world.message : "none");
 	Con_Printf ("map compiler: ^3%s\n", world.compiler[0] ? world.compiler : "unknown");
 	Con_Printf ("map editor: ^2%s\n", world.generator[0] ? world.generator : "unknown");
@@ -827,6 +814,7 @@ void Mod_PrintWorldStats_f (void)
 COMMON ROUTINES
 ===============================================================================
 ***/
+
 /***
 ===================
 Mod_DecompressPVS [FWGS, 01.07.24]
@@ -895,8 +883,6 @@ static size_t Mod_CompressPVS (byte *const out, const byte *in, size_t inbytes)
 
 		for (; (j < inbytes) && (rep != 255); j++, rep++)
 			{
-			/**out++ = 0;
-			c--;*/
 			if (in[j])
 				break;
 			}
@@ -913,7 +899,6 @@ static size_t Mod_CompressPVS (byte *const out, const byte *in, size_t inbytes)
 Mod_PointInLeaf [FWGS, 01.02.25]
 ==================
 ***/
-/*mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node)*/
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node, model_t *mod)
 	{
 	Assert (node != NULL);
@@ -923,7 +908,6 @@ mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node, model_t *mod)
 		if (node->contents < 0)
 			return (mleaf_t *)node;
 
-		/*node = node->children[PlaneDiff (p, node->plane) <= 0];*/
 		node = node_child (node, PlaneDiff (p, node->plane) <= 0, mod);
 		}
 
@@ -945,9 +929,7 @@ byte *Mod_GetPVSForPoint (const vec3_t p)
 
 	ASSERT (worldmodel != NULL);
 
-	/*leaf = Mod_PointInLeaf (p, worldmodel->nodes);*/
 	leaf = Mod_PointInLeaf (p, worldmodel->nodes, worldmodel);
-
 	if (leaf && (leaf->cluster >= 0))
 		return Mod_DecompressPVS (leaf->compressed_vis, world.visbytes);
 
@@ -968,19 +950,15 @@ static void Mod_FatPVS_RecursiveBSPNode (const vec3_t org, float radius, byte *v
 
 		if (d > radius)
 			{
-			/*node = node->children[0];*/
 			node = node_child (node, 0, worldmodel);
 			}
 		else if (d < -radius)
 			{
-			/*node = node->children[1];*/
 			node = node_child (node, 1, worldmodel);
 			}
 		else
 			{
 			// go down both sides
-			/*Mod_FatPVS_RecursiveBSPNode (org, radius, visbuffer, visbytes, node->children[0], phs);
-			node = node->children[1];*/
 			Mod_FatPVS_RecursiveBSPNode (org, radius, visbuffer, visbytes, node_child (node, 0, worldmodel), phs);
 			node = node_child (node, 1, worldmodel);
 			}
@@ -1021,7 +999,6 @@ int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, q
 
 	ASSERT (worldmodel != NULL);
 
-	/*leaf = Mod_PointInLeaf (org, worldmodel->nodes);*/
 	leaf = Mod_PointInLeaf (org, worldmodel->nodes, worldmodel);
 	bytes = Q_min (bytes, visbytes);
 
@@ -1044,7 +1021,6 @@ int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, q
 		memset (visbuffer, 0x00, bytes);
 
 	Mod_FatPVS_RecursiveBSPNode (org, radius, visbuffer, bytes, worldmodel->nodes, phs);
-
 	return bytes;
 	}
 
@@ -1082,12 +1058,10 @@ static void Mod_BoxLeafnums_r (leaflist_t *ll, mnode_t *node)
 		// [FWGS, 01.02.25]
 		if (sides == 1)
 			{
-			/*node = node->children[0];*/
 			node = node_child (node, 0, worldmodel);
 			}
 		else if (sides == 2)
 			{
-			/*node = node->children[1];*/
 			node = node_child (node, 1, worldmodel);
 			}
 		else
@@ -1095,8 +1069,7 @@ static void Mod_BoxLeafnums_r (leaflist_t *ll, mnode_t *node)
 			// go down both
 			if (ll->topnode == -1)
 				ll->topnode = node - worldmodel->nodes;
-			/*Mod_BoxLeafnums_r (ll, node->children[0]);
-			node = node->children[1];*/
+
 			Mod_BoxLeafnums_r (ll, node_child (node, 0, worldmodel));
 			node = node_child (node, 1, worldmodel);
 			}
@@ -1112,7 +1085,8 @@ static int Mod_BoxLeafnums (const vec3_t mins, const vec3_t maxs, int *list, int
 	{
 	leaflist_t	ll;
 
-	if (!worldmodel) return 0;
+	if (!worldmodel)
+		return 0;
 
 	VectorCopy (mins, ll.mins);
 	VectorCopy (maxs, ll.maxs);
@@ -1157,34 +1131,6 @@ qboolean Mod_BoxVisible (const vec3_t mins, const vec3_t maxs, const byte *visbi
 	}
 
 // [FWGS, 01.02.25] removed Mod_HeadnodeVisible
-/*
-=============
-Mod_HeadnodeVisible
-=============
-/
-qboolean Mod_HeadnodeVisible (mnode_t *node, const byte *visbits, int *lastleaf)
-	{
-	if (!node || (node->contents == CONTENTS_SOLID))
-		return false;
-
-	if (node->contents < 0)
-		{
-		if (!CHECKVISBIT (visbits, ((mleaf_t *)node)->cluster))
-			return false;
-
-		if (lastleaf)
-			*lastleaf = ((mleaf_t *)node)->cluster;
-		return true;
-		}
-
-	if (Mod_HeadnodeVisible (node->children[0], visbits, lastleaf))
-		return true;
-
-	if (Mod_HeadnodeVisible (node->children[1], visbits, lastleaf))
-		return true;
-
-	return false;
-	}*/
 
 /***
 =================
@@ -1251,7 +1197,7 @@ static void Mod_FindModelOrigin (const char *entities, const char *modelname, ve
 
 /***
 ==================
-Mod_CheckWaterAlphaSupport [FWGS, 01.11.23]
+Mod_CheckWaterAlphaSupport
 
 converted maps potential may don't
 support water transparency
@@ -1345,20 +1291,12 @@ Mod_GetFaceContents [FWGS, 01.02.25]
 determine face contents by name
 ==================
 ***/
-/*static mvertex_t *Mod_GetVertexByNumber (model_t *mod, int surfedge)*/
 static mvertex_t *Mod_GetVertexByNumber (model_t *mod, int surfedge, const dbspmodel_t *bmod)
 	{
-	/*int		lindex;
-	medge_t	*edge;*/
 	int lindex = mod->surfedges[surfedge];
 
-	/*lindex = mod->surfedges[surfedge];
-
-	if (lindex > 0)*/
 	if (bmod->version == QBSP2_VERSION)
 		{
-		/*edge = &mod->edges[lindex];
-		return &mod->vertexes[edge->v[0]];*/
 		if (lindex > 0)
 			{
 			medge32_t *edge = &mod->edges32[lindex];
@@ -1372,8 +1310,6 @@ static mvertex_t *Mod_GetVertexByNumber (model_t *mod, int surfedge, const dbspm
 		}
 	else
 		{
-		/*edge = &mod->edges[-lindex];
-		return &mod->vertexes[edge->v[1]];*/
 		if (lindex > 0)
 			{
 			medge16_t *edge = &mod->edges16[lindex];
@@ -1467,7 +1403,6 @@ Mod_CalcSurfaceExtents [FWGS, 01.02.25]
 Fills in surf->texturemins[] and surf->extents[]
 =================
 ***/
-/*static void Mod_CalcSurfaceExtents (model_t *mod, msurface_t *surf)*/
 static void Mod_CalcSurfaceExtents (model_t *mod, msurface_t *surf, const dbspmodel_t *bmod)
 	{
 	// this place is VERY critical to precision
@@ -1494,10 +1429,6 @@ static void Mod_CalcSurfaceExtents (model_t *mod, msurface_t *surf, const dbspmo
 		if ((e >= mod->numedges) || (e <= -mod->numedges))
 			Host_Error ("%s: bad edge\n", __func__);
 
-		/*if (e >= 0)
-			v = &mod->vertexes[mod->edges[e].v[0]];
-		else
-			v = &mod->vertexes[mod->edges[-e].v[1]];*/
 		if (bmod->version == QBSP2_VERSION)
 			{
 			if (e >= 0)
@@ -1560,7 +1491,6 @@ Mod_CalcSurfaceBounds [FWGS, 01.02.25]
 fills in surf->mins and surf->maxs
 =================
 ***/
-/*static void Mod_CalcSurfaceBounds (model_t *mod, msurface_t *surf)*/
 static void Mod_CalcSurfaceBounds (model_t *mod, msurface_t *surf, const dbspmodel_t *bmod)
 	{
 	int	i, e;
@@ -1575,10 +1505,6 @@ static void Mod_CalcSurfaceBounds (model_t *mod, msurface_t *surf, const dbspmod
 		if ((e >= mod->numedges) || (e <= -mod->numedges))
 			Host_Error ("%s: bad edge\n", __func__);
 
-		/*if (e >= 0)
-			v = &mod->vertexes[mod->edges[e].v[0]];
-		else
-			v = &mod->vertexes[mod->edges[-e].v[1]];*/
 		if (bmod->version == QBSP2_VERSION)
 			{
 			if (e >= 0)
@@ -1605,7 +1531,6 @@ static void Mod_CalcSurfaceBounds (model_t *mod, msurface_t *surf, const dbspmod
 Mod_CreateFaceBevels [FWGS, 01.02.25]
 =================
 ***/
-/*static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf)*/
 static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf, const dbspmodel_t *bmod)
 	{
 	vec3_t		delta, edgevec;
@@ -1641,8 +1566,6 @@ static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf, const dbspmode
 		{
 		mplane_t *dest = &fb->edges[i];
 
-		/*v0 = Mod_GetVertexByNumber (mod, surf->firstedge + i);
-		v1 = Mod_GetVertexByNumber (mod, surf->firstedge + (i + 1) % surf->numedges);*/
 		v0 = Mod_GetVertexByNumber (mod, surf->firstedge + i, bmod);
 		v1 = Mod_GetVertexByNumber (mod, surf->firstedge + (i + 1) % surf->numedges, bmod);
 
@@ -1659,7 +1582,6 @@ static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf, const dbspmode
 	// compute face radius
 	for (i = 0; i < surf->numedges; i++)
 		{
-		/*v0 = Mod_GetVertexByNumber (mod, surf->firstedge + i);*/
 		v0 = Mod_GetVertexByNumber (mod, surf->firstedge + i, bmod);
 		VectorSubtract (v0->position, fb->origin, delta);
 		radius = DotProduct (delta, delta);
@@ -1677,10 +1599,6 @@ static void Mod_SetParent (model_t *mod, mnode_t *node, mnode_t *parent)
 	{
 	node->parent = parent;
 
-	/*if (node->contents < 0)
-		return; // it's leaf
-	Mod_SetParent (node->children[0], node);
-	Mod_SetParent (node->children[1], node);*/
 	if (node->contents < 0)
 		return; // it's leaf
 
@@ -1690,72 +1608,69 @@ static void Mod_SetParent (model_t *mod, mnode_t *node, mnode_t *parent)
 
 /***
 ==================
-CountClipNodes_r [FWGS, 01.02.25]
+CountClipNodes_r [FWGS, 01.06.25]
 ==================
 ***/
-/*static void CountClipNodes_r (mclipnode_t *src, hull_t *hull, int nodenum)*/
 static void CountClipNodes16_r (mclipnode16_t *src, hull_t *hull, int nodenum)
 	{
 	// leaf?
 	if (nodenum < 0)
 		return;
 
-	if (hull->lastclipnode == MAX_MAP_CLIPNODES)
-		Host_Error ("MAX_MAP_CLIPNODES limit exceeded\n");
+	/*if (hull->lastclipnode == MAX_MAP_CLIPNODES)
+		Host_Error ("MAX_MAP_CLIPNODES limit exceeded\n");*/
+	if (hull->lastclipnode == MAX_MAP_CLIPNODES_HLBSP)
+		Host_Error ("%s: MAX_MAP_CLIPNODES_HLBSP limit exceeded\n", __func__);
 	hull->lastclipnode++;
 
-	/*CountClipNodes_r (src, hull, src[nodenum].children[0]);
-	CountClipNodes_r (src, hull, src[nodenum].children[1]);*/
 	CountClipNodes16_r (src, hull, src[nodenum].children[0]);
 	CountClipNodes16_r (src, hull, src[nodenum].children[1]);
 	}
 
-/*
-==================
-CountClipNodes32_r
-==================
-/
-static void CountClipNodes32_r (dclipnode32_t *src, hull_t *hull, int nodenum)*/
-
-// [FWGS, 01.02.25]
+// [FWGS, 01.06.25]
 static void CountClipNodes32_r (mclipnode32_t * src, hull_t * hull, int nodenum)
 	{
 	// leaf?
 	if (nodenum < 0)
 		return;
 
-	if (hull->lastclipnode == MAX_MAP_CLIPNODES)
-		Host_Error ("MAX_MAP_CLIPNODES limit exceeded\n");
+	/*if (hull->lastclipnode == MAX_MAP_CLIPNODES)
+		Host_Error ("MAX_MAP_CLIPNODES limit exceeded\n");*/
+	if (hull->lastclipnode == MAX_MAP_CLIPNODES_BSP2)
+		Host_Error ("%s: MAX_MAP_CLIPNODES_BSP2 limit exceeded\n", __func__);
 	hull->lastclipnode++;
 
 	CountClipNodes32_r (src, hull, src[nodenum].children[0]);
 	CountClipNodes32_r (src, hull, src[nodenum].children[1]);
 	}
 
-// [FWGS, 01.02.25]
-static void CountDClipNodes_r (dclipnode32_t *src, hull_t *hull, int nodenum)
+// [FWGS, 01.06.25]
+/*static void CountDClipNodes_r (dclipnode32_t *src, hull_t *hull, int nodenum)*/
+static void CountDClipNodes_r (dclipnode32_t *src, hull_t *hull, int nodenum, const int max_clipnodes)
 	{
 	// leaf?
-	if (nodenum < 0) return;
+	if (nodenum < 0)
+		return;
 
-	if (hull->lastclipnode == MAX_MAP_CLIPNODES)
-		Host_Error ("MAX_MAP_CLIPNODES limit exceeded\n");
+	/*if (hull->lastclipnode == MAX_MAP_CLIPNODES)
+		Host_Error ("MAX_MAP_CLIPNODES limit exceeded\n");*/
+	if (hull->lastclipnode == max_clipnodes)
+		Host_Error ("%s: MAX_MAP_CLIPNODES (%d) limit exceeded\n", __func__, max_clipnodes);
 	hull->lastclipnode++;
 
-	CountDClipNodes_r (src, hull, src[nodenum].children[0]);
-	CountDClipNodes_r (src, hull, src[nodenum].children[1]);
+	/*CountDClipNodes_r (src, hull, src[nodenum].children[0]);
+	CountDClipNodes_r (src, hull, src[nodenum].children[1]);*/
+	CountDClipNodes_r (src, hull, src[nodenum].children[0], max_clipnodes);
+	CountDClipNodes_r (src, hull, src[nodenum].children[1], max_clipnodes);
 	}
 
 /***
 ==================
-RemapClipNodes_r [FWGS, 01.02.25]
+RemapClipNodes_r [FWGS, 01.06.25]
 ==================
 ***/
-/*static int RemapClipNodes_r (dclipnode32_t *srcnodes, hull_t *hull, int nodenum)*/
 static int RemapClipNodes_r (dbspmodel_t *bmod, dclipnode32_t *srcnodes, hull_t *hull, int nodenum)
 	{
-	/*dclipnode32_t	*src;
-	mclipnode_t		*out;*/
 	dclipnode32_t	*src;
 	int				i, c;
 
@@ -1764,18 +1679,23 @@ static int RemapClipNodes_r (dbspmodel_t *bmod, dclipnode32_t *srcnodes, hull_t 
 		return nodenum;
 
 	// emit a clipnode
-	if (hull->lastclipnode == MAX_MAP_CLIPNODES)
-		Host_Error ("MAX_MAP_CLIPNODES limit exceeded\n");
+	/*if (hull->lastclipnode == MAX_MAP_CLIPNODES)
+		Host_Error ("MAX_MAP_CLIPNODES limit exceeded\n");*/
+	if (bmod->version == QBSP2_VERSION)
+		{
+		if (hull->lastclipnode == MAX_MAP_CLIPNODES_BSP2)
+			Host_Error ("%s: MAX_MAP_CLIPNODES_BSP2 limit exceeded\n", __func__);
+		}
+	else
+		{
+		if (hull->lastclipnode == MAX_MAP_CLIPNODES_HLBSP)
+			Host_Error ("%s: MAX_MAP_CLIPNODES_HLBSP limit exceeded\n", __func__);
+		}
 	src = srcnodes + nodenum;
 
 	c = hull->lastclipnode;
-	/*out = &hull->clipnodes[c];*/
 	hull->lastclipnode++;
 
-	/*out->planenum = src->planenum;
-
-	for (i = 0; i < 2; i++)
-		out->children[i] = RemapClipNodes_r (srcnodes, hull, src->children[i]);*/
 	if (bmod->version == QBSP2_VERSION)
 		{
 		mclipnode32_t *out = &hull->clipnodes32[c];
@@ -1801,17 +1721,8 @@ Mod_MakeHull0 [FWGS, 01.02.25]
 Duplicate the drawing hull structure as a clipping hull
 =================
 ***/
-/*static void Mod_MakeHull0 (model_t *mod)*/
 static void Mod_MakeHull0 (model_t *mod, const dbspmodel_t *bmod)
 	{
-	/*mnode_t		*in, *child;
-	mclipnode_t	*out;
-	hull_t		*hull;
-	int			i, j;
-
-	hull = &mod->hulls[0];
-	hull->clipnodes = out = Mem_Malloc (mod->mempool, mod->numnodes * sizeof (*out));
-	in = mod->nodes;*/
 	hull_t	*hull = &mod->hulls[0];
 	int		i;
 
@@ -1819,27 +1730,18 @@ static void Mod_MakeHull0 (model_t *mod, const dbspmodel_t *bmod)
 	hull->lastclipnode = mod->numnodes - 1;
 	hull->planes = mod->planes;
 
-	/*for (i = 0; i < mod->numnodes; i++, out++, in++)*/
 	if (bmod->version == QBSP2_VERSION)
 		{
-		/*out->planenum = in->plane - mod->planes;*/
 		mclipnode32_t	*out;
 		mnode_t			*in = mod->nodes;
 
-		/*for (j = 0; j < 2; j++)*/
 		hull->clipnodes32 = out = Mem_Malloc (mod->mempool, mod->numnodes * sizeof (*hull->clipnodes32));
 
 		for (i = 0; i < mod->numnodes; i++, out++, in++)
 			{
-			/*child = in->children[j];*/
 			int j;
-
 			out->planenum = in->plane - mod->planes;
 
-			/*if (child->contents < 0)
-				out->children[j] = child->contents;
-			else
-				out->children[j] = child - mod->nodes;*/
 			for (j = 0; j < 2; j++)
 				{
 				mnode_t *child = node_child (in, j, mod);
@@ -1879,12 +1781,13 @@ static void Mod_MakeHull0 (model_t *mod, const dbspmodel_t *bmod)
 
 /***
 =================
-Mod_SetupHull [FWGS, 01.02.25]
+Mod_SetupHull [FWGS, 01.06.25]
 =================
 ***/
-static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, poolhandle_t mempool, int headnode, int hullnum)
+/*static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, poolhandle_t mempool, int headnode, int hullnum)*/
+static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hullnum, model_t *world)
 	{
-	hull_t *hull = &mod->hulls[hullnum];
+	/*hull_t *hull = &mod->hulls[hullnum];
 
 	// assume no hull
 	hull->firstclipnode = hull->lastclipnode = 0;
@@ -1896,7 +1799,8 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, poolhandle_t mempool
 
 	// ZHLT weird empty hulls
 	if (headnode >= mod->numclipnodes)
-		return;
+		return;*/
+	hull_t *hull = &mod->hulls[hullnum];
 
 	switch (hullnum)
 		{
@@ -1927,21 +1831,84 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, poolhandle_t mempool
 	if (VectorIsNull (hull->clip_mins) && VectorIsNull (hull->clip_maxs))
 		return;
 
-	/*CountClipNodes32_r (bmod->clipnodes_out, hull, headnode);*/
-	CountDClipNodes_r (bmod->clipnodes_out, hull, headnode);
+	/*CountDClipNodes_r (bmod->clipnodes_out, hull, headnode);*/
+	// assume no hull
+	hull->firstclipnode = hull->lastclipnode = 0;
+	hull->planes = NULL; // hull is missed
+
+	if (headnode >= mod->numclipnodes)
+		return; // ZHLT weird empty hulls
+
+	// bsp30ext allows for extended total amount of clipnodes, but the limit is still 16-bit per submodel
+	// therefore we need to remap them
+	// take a simpler route if we don't need clipnodes remapping
+	if (!bmod->isbsp30ext)
+		{
+		hull->planes = mod->planes;
+
+		// some map "optimizers" (you know who you are!) put -1 here
+		hull->firstclipnode = Q_max (0, headnode);
+		hull->lastclipnode = mod->numclipnodes - 1;
+
+		// only allocate clipnodes array for the base model, only for first hull
+		if ((mod == world) && (hullnum == 1))
+			{
+			int i;
+
+			if (bmod->version == QBSP2_VERSION)
+				{
+				hull->clipnodes32 = Mem_Malloc (world->mempool, sizeof (*hull->clipnodes32) * mod->numclipnodes);
+
+				for (i = 0; i < mod->numclipnodes; i++)
+					{
+					hull->clipnodes32[i].planenum = bmod->clipnodes_out[i].planenum;
+					hull->clipnodes32[i].children[0] = bmod->clipnodes_out[i].children[0];
+					hull->clipnodes32[i].children[1] = bmod->clipnodes_out[i].children[1];
+					}
+				}
+			else
+				{
+				hull->clipnodes16 = Mem_Malloc (world->mempool, sizeof (*hull->clipnodes16) * mod->numclipnodes);
+
+				for (i = 0; i < mod->numclipnodes; i++)
+					{
+					hull->clipnodes16[i].planenum = bmod->clipnodes_out[i].planenum;
+					hull->clipnodes16[i].children[0] = bmod->clipnodes_out[i].children[0];
+					hull->clipnodes16[i].children[1] = bmod->clipnodes_out[i].children[1];
+					}
+				}
+			}
+		else
+			{
+			if (bmod->version == QBSP2_VERSION)
+				hull->clipnodes32 = world->hulls[1].clipnodes32;
+			else
+				hull->clipnodes16 = world->hulls[1].clipnodes16;
+			}
+
+		return;
+		}
+
+	if ((headnode == -1) || ((hullnum != 1) && (headnode == 0)))
+		return; // hull missed
 
 	// fit array to real count
-	/*hull->clipnodes = (mclipnode_t *)Mem_Malloc (mempool, sizeof (mclipnode_t) * hull->lastclipnode);*/
 	if (bmod->version == QBSP2_VERSION)
-		hull->clipnodes32 = Mem_Malloc (mempool, sizeof (*hull->clipnodes32) * hull->lastclipnode);
+		/*hull->clipnodes32 = Mem_Malloc (mempool, sizeof (*hull->clipnodes32) * hull->lastclipnode);*/
+		{
+		CountDClipNodes_r (bmod->clipnodes_out, hull, headnode, MAX_MAP_CLIPNODES_BSP2);
+		hull->clipnodes32 = Mem_Malloc (world->mempool, sizeof (*hull->clipnodes32) * hull->lastclipnode);
+		}
+
 	else
-		hull->clipnodes16 = Mem_Malloc (mempool, sizeof (*hull->clipnodes16) * hull->lastclipnode);
+		/*hull->clipnodes16 = Mem_Malloc (mempool, sizeof (*hull->clipnodes16) * hull->lastclipnode);*/
+		{
+		CountDClipNodes_r (bmod->clipnodes_out, hull, headnode, MAX_MAP_CLIPNODES_HLBSP);
+		hull->clipnodes16 = Mem_Malloc (world->mempool, sizeof (*hull->clipnodes16) * hull->lastclipnode);
+		}
 
 	hull->planes = mod->planes; // share planes
 	hull->lastclipnode = 0; // restart counting
-
-	/*// remap clipnodes to 16-bit indexes
-	RemapClipNodes_r (bmod->clipnodes_out, hull, headnode);*/
 
 	// remap clipnodes to 16-bit indexes
 	RemapClipNodes_r (bmod, bmod->clipnodes_out, hull, headnode);
@@ -1953,7 +1920,6 @@ static qboolean Mod_LoadLitfile (model_t *mod, const char *ext, size_t expected_
 	char	modelname[64], path[64];
 	int		iCompare;
 	fs_offset_t	datasize;
-	/*byte	*in;*/
 	file_t	*f;
 	uint	hdr[2];
 
@@ -1966,73 +1932,56 @@ static qboolean Mod_LoadLitfile (model_t *mod, const char *ext, size_t expected_
 	if (iCompare < 0)	// this may happens if level-designer used -onlyents key for hlcsg
 		Con_Printf (S_WARN "%s probably is out of date\n", path);
 
-	/*in = FS_LoadFile (path, &datasize, false);*/
 	f = FS_Open (path, "rb", false);
-	/*if (!in)*/
 	if (!f)
 		{
 		Con_Printf (S_ERROR "couldn't load %s\n", path);
 		return false;
 		}
 
-	/*if (datasize <= 8) // header + version*/
 	datasize = FS_FileLength (f);
 
 	// skip header bytes
 	datasize -= 8;
 	if (datasize != expected_size)
 		{
-		/*Con_Printf (S_ERROR "%s is too short\n", path);*/
 		Con_Printf (S_ERROR "%s has mismatched size (%li should be %zu)\n", path, (long)datasize, expected_size);
 		goto cleanup_and_error;
 		}
 	
-	/*if (LittleLong (((uint *)in)[0]) != IDDELUXEMAPHEADER)*/
 	if (FS_Read (f, hdr, sizeof (hdr)) != sizeof (hdr))
 		{
-		/*Con_Printf (S_ERROR "%s is corrupted\n", path);*/
 		Con_Printf (S_ERROR "failed reading header from %s\n", path);
 		goto cleanup_and_error;
 		}
 
-	/*if (LittleLong (((uint *)in)[1]) != DELUXEMAP_VERSION)*/
 	if (LittleLong (hdr[0]) != IDDELUXEMAPHEADER)
 		{
-		/*Con_Printf (S_ERROR "has %s mismatched version (%u should be %u)\n", path,
-			LittleLong (((uint *)in)[1]), DELUXEMAP_VERSION);*/
 		Con_Printf (S_ERROR "%s is corrupted\n", path);
 		goto cleanup_and_error;
 		}
 
-	/*// skip header bytes
-	datasize -= 8;
-
-	if (datasize != expected_size)*/
 	if (LittleLong (hdr[1]) != DELUXEMAP_VERSION)
 		{
-		/*Con_Printf (S_ERROR "%s has mismatched size (%li should be %zu)\n", path, (long)datasize, expected_size);*/
 		Con_Printf (S_ERROR "has %s mismatched version (%u should be %u)\n", path,
 			LittleLong (hdr[1]), DELUXEMAP_VERSION);
 		goto cleanup_and_error;
 		}
 
 	*out = Mem_Malloc (mod->mempool, datasize);
-	/*memcpy (*out, in + 8, datasize);*/
 	*outsize = datasize;
-	/*Mem_Free (in);*/
 	FS_Read (f, *out, datasize);
 	FS_Close (f);
 	return true;
 
 cleanup_and_error:
-	/*Mem_Free (in);*/
 	FS_Close (f);
 	return false;
 	}
 
 /***
 =================
-Mod_SetupSubmodels [FWGS, 01.02.25]
+Mod_SetupSubmodels [FWGS, 01.06.25]
 
 duplicate the basic information
 for embedded submodels
@@ -2040,13 +1989,15 @@ for embedded submodels
 ***/
 static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 	{
-	qboolean		colored = false;
+	/*qboolean		colored = false;
 	qboolean		qbsp2 = false;
 	poolhandle_t	mempool;
 	char			*ents;
-	dmodel_t		*bm;
-	const char		*name = mod->name;
-	int				i, j;
+	dmodel_t		*bm;*/
+	const qboolean	colored = FBitSet (mod->flags, MODEL_COLORED_LIGHTING) ? true : false;
+	const qboolean	qbsp2 = FBitSet (mod->flags, MODEL_QBSP2) ? true : false;
+	const char	*name = mod->name;
+	/*int				i, j;
 
 	ents = mod->entities;
 	mempool = mod->mempool;
@@ -2054,7 +2005,9 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 		colored = true;
 
 	if (FBitSet (mod->flags, MODEL_QBSP2))
-		qbsp2 = true;
+		qbsp2 = true;*/
+	model_t		*world = mod;	// submodels might want to share hulls
+	int			i;
 
 	// regular and alternate animation
 	mod->numframes = 2;
@@ -2062,14 +2015,15 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 	// set up the submodels
 	for (i = 0; i < mod->numsubmodels; i++)
 		{
-		bm = &mod->submodels[i];
+		/*bm = &mod->submodels[i];*/
+		dmodel_t *bm = &mod->submodels[i];
+		int j;
 
 		// hull 0 is just shared across all bmodels
 		mod->hulls[0].firstclipnode = bm->headnode[0];
 		mod->hulls[0].lastclipnode = bm->headnode[0]; // need to be real count
 
 		// counting a real number of clipnodes per each submodel
-		/*CountClipNodes_r (mod->hulls[0].clipnodes, &mod->hulls[0], bm->headnode[0]);*/
 		if (bmod->version == QBSP2_VERSION)
 			CountClipNodes32_r (mod->hulls[0].clipnodes32, &mod->hulls[0], bm->headnode[0]);
 		else
@@ -2077,7 +2031,8 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 
 		// but hulls1-3 is build individually for a each given submodel
 		for (j = 1; j < MAX_MAP_HULLS; j++)
-			Mod_SetupHull (bmod, mod, mempool, bm->headnode[j], j);
+			/*Mod_SetupHull (bmod, mod, mempool, bm->headnode[j], j);*/
+			Mod_SetupHull (bmod, mod, bm->headnode[j], j, world);
 
 		mod->firstmodelsurface = bm->firstface;
 		mod->nummodelsurfaces = bm->numfaces;
@@ -2101,7 +2056,8 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 			char temp[MAX_VA_STRING];
 
 			Q_snprintf (temp, sizeof (temp), "*%i", i);
-			Mod_FindModelOrigin (ents, temp, bm->origin);
+			/*Mod_FindModelOrigin (ents, temp, bm->origin);*/
+			Mod_FindModelOrigin (world->entities, temp, bm->origin);
 
 			// mark models that have origin brushes
 			if (!VectorIsNull (bm->origin))
@@ -2423,15 +2379,12 @@ Mod_LoadEdges [FWGS, 01.02.25]
 ***/
 static void Mod_LoadEdges (model_t *mod, dbspmodel_t *bmod)
 	{
-	/*medge_t	*out;*/
 	int		i;
 
-	/*mod->edges = out = Mem_Malloc (mod->mempool, bmod->numedges * sizeof (medge_t));*/
 	mod->numedges = bmod->numedges;
 
 	if (bmod->version == QBSP2_VERSION)
 		{
-		/*dedge32_t *in = (dedge32_t *)bmod->edges32;*/
 		dedge32_t	*in = bmod->edges32;
 		medge32_t	*out;
 		mod->edges32 = out = Mem_Malloc (mod->mempool, bmod->numedges * sizeof (*out));
@@ -2444,7 +2397,6 @@ static void Mod_LoadEdges (model_t *mod, dbspmodel_t *bmod)
 		}
 	else
 		{
-		/*dedge_t *in = (dedge_t *)bmod->edges;*/
 		dedge_t		*in = bmod->edges;
 		medge16_t	*out;
 		mod->edges16 = out = Mem_Malloc (mod->mempool, bmod->numedges * sizeof (*out));
@@ -2484,10 +2436,8 @@ static void Mod_LoadMarkSurfaces (model_t *mod, dbspmodel_t *bmod)
 
 	if (bmod->version == QBSP2_VERSION)
 		{
-		/*dmarkface32_t *in = bmod->markfaces32;*/
 		const dmarkface32_t *in = bmod->markfaces32;
 
-		/*for (i = 0; i < bmod->nummarkfaces; i++, in++)*/
 		for (i = 0; i < bmod->nummarkfaces; i++)
 			{
 			if ((in[i] < 0) || (in[i] >= mod->numsurfaces))
@@ -2499,10 +2449,8 @@ static void Mod_LoadMarkSurfaces (model_t *mod, dbspmodel_t *bmod)
 		}
 	else
 		{
-		/*dmarkface_t *in = bmod->markfaces;*/
 		const dmarkface_t *in = bmod->markfaces;
 
-		/*for (i = 0; i < bmod->nummarkfaces; i++, in++)*/
 		for (i = 0; i < bmod->nummarkfaces; i++)
 			{
 			// NOTE: some of the buggy compilers have written a broken BSP file
@@ -2584,7 +2532,6 @@ static qboolean Mod_SearchForTextureReplacement (char *out, size_t size, const c
 	}
 
 // [FWGS, 01.02.25]
-/*static void Mod_InitSkyClouds (model_t *mod, mip_t *mt, texture_t *tx, qboolean custom_palette)*/
 static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, texture_t *tx, qboolean custom_palette)
 	{
 #if !XASH_DEDICATED
@@ -2748,9 +2695,6 @@ done:
 // [FWGS, 01.02.25]
 static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureIndex)
 	{
-	/*texture_t	*texture = NULL;
-	mip_t		*mipTex = NULL;
-	qboolean	usesCustomPalette = false;*/
 	uint32_t	txFlags = 0;
 	char		texpath[MAX_VA_STRING];
 	char		safemtname[16];	// only for external textures
@@ -2758,13 +2702,6 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 
 	// don't load texture data on dedicated server, as there is no renderer.
 	// but count the wadusage for automatic precache.
-	/*//
-	// FIXME: for ENGINE_IMPROVED_LINETRACE we need to load textures on server too
-	// but there is no facility for this yet
-	texture = mod->textures[textureIndex];
-	mipTex = Mod_GetMipTexForTexture (bmod, textureIndex);
-
-	usesCustomPalette = Mod_CalcMipTexUsesCustomPalette (mod, bmod, textureIndex);*/
 	texture_t	*texture = mod->textures[textureIndex];
 	const mip_t	*mipTex = Mod_GetMipTexForTexture (bmod, textureIndex);
 	const qboolean	usesCustomPalette = Mod_CalcMipTexUsesCustomPalette (mod, bmod, textureIndex);
@@ -2784,7 +2721,6 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 		SetBits (txFlags, TF_KEEP_SOURCE); // Paranoia2 texture alpha-tracing
 
 	// check if this is water to keep the source texture and expand it to RGBA (so ripple effect works)
-	/*if (Mod_LooksLikeWaterTexture (mipTex->name))*/
 	if (iswater)
 		SetBits (txFlags, TF_KEEP_SOURCE | TF_EXPAND_SOURCE);
 	
@@ -2853,7 +2789,6 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 		texture->gl_texturenum = R_GetBuiltinTexture (REF_DEFAULT_TEXTURE);
 		}
 
-	/*// Check for luma texture*/
 	texture->fb_texturenum = 0;
 
 	// Check for luma texture
@@ -3144,7 +3079,6 @@ static void Mod_LoadTexInfo (model_t *mod, dbspmodel_t *bmod)
 				out->vecs[j][k] = in->vecs[j][k];
 
 		miptex = in->miptex;
-		/*if (miptex < 0 || miptex > mod->numtextures)*/
 		if ((miptex < 0) || (miptex >= mod->numtextures))
 			miptex = 0;	// this is possible?
 
@@ -3254,9 +3188,6 @@ static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 			SetBits (out->flags, SURF_DRAWTILED);
 
 		// [FWGS, 01.02.25]
-		/*Mod_CalcSurfaceBounds (mod, out);
-		Mod_CalcSurfaceExtents (mod, out);
-		Mod_CreateFaceBevels (mod, out);*/
 		Mod_CalcSurfaceBounds (mod, out, bmod);
 		Mod_CalcSurfaceExtents (mod, out, bmod);
 		Mod_CreateFaceBevels (mod, out, bmod);
@@ -3308,7 +3239,6 @@ static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 		if ((samples == 1) || (samples == 3))
 			{
 			bmod->lightmap_samples = (int)samples;
-			/*Con_Reportf ("lighting: %s\n", (bmod->lightmap_samples == 1) ? "monochrome" : "colored");*/
 			bmod->lightmap_samples = Q_max (bmod->lightmap_samples, 1); // avoid division by zero
 			}
 		else
@@ -3362,8 +3292,6 @@ static void Mod_LoadNodes (model_t *mod, dbspmodel_t *bmod)
 			// [FWGS, 01.02.25]
 			p = in->planenum;
 			out->plane = mod->planes + p;
-			/*out->firstsurface = in->firstface;
-			out->numsurfaces = in->numfaces;*/
 			out->firstsurface_0 = in->firstface & 0xFFFF;
 			out->numsurfaces_0 = in->numfaces & 0xFFFF;
 
@@ -3374,10 +3302,6 @@ static void Mod_LoadNodes (model_t *mod, dbspmodel_t *bmod)
 			for (j = 0; j < 2; j++)
 				{
 				p = in->children[j];
-				/*if (p >= 0)
-					out->children[j] = mod->nodes + p;
-				else
-					out->children[j] = (mnode_t *)(mod->leafs + (-1 - p));*/
 #if XASH_64BIT
 				if (p >= 0)
 					out->children_[j] = mod->nodes + p;
@@ -3427,18 +3351,12 @@ static void Mod_LoadNodes (model_t *mod, dbspmodel_t *bmod)
 
 			p = in->planenum;
 			out->plane = mod->planes + p;
-			/*out->firstsurface = in->firstface;
-			out->numsurfaces = in->numfaces;*/
 			out->firstsurface_0 = in->firstface;
 			out->numsurfaces_0 = in->numfaces;
 
 			for (j = 0; j < 2; j++)
 				{
 				p = in->children[j];
-				/*if (p >= 0)
-					out->children[j] = mod->nodes + p;
-				else
-					out->children[j] = (mnode_t *)(mod->leafs + (-1 - p));*/
 				if (p >= 0)
 					out->children_[j] = mod->nodes + p;
 				else
@@ -3448,7 +3366,6 @@ static void Mod_LoadNodes (model_t *mod, dbspmodel_t *bmod)
 		}
 
 	// [FWGS, 01.02.25] sets nodes and leafs
-	/*Mod_SetParent (mod->nodes, NULL);*/
 	Mod_SetParent (mod, mod->nodes, NULL);
 	}
 
@@ -3710,7 +3627,7 @@ static void Mod_CalcPHS (model_t *mod)
 
 /***
 =================
-Mod_LoadClipnodes
+Mod_LoadClipnodes [FWGS, 01.06.25]
 =================
 ***/
 static void Mod_LoadClipnodes (model_t *mod, dbspmodel_t *bmod)
@@ -3723,6 +3640,7 @@ static void Mod_LoadClipnodes (model_t *mod, dbspmodel_t *bmod)
 	if ((bmod->version == QBSP2_VERSION) || ((bmod->version == HLBSP_VERSION) &&
 		bmod->isbsp30ext && (bmod->numclipnodes >= MAX_MAP_CLIPNODES_HLBSP)))
 		{
+		/*dclipnode32_t *in = bmod->clipnodes32;*/
 		dclipnode32_t *in = bmod->clipnodes32;
 
 		for (i = 0; i < bmod->numclipnodes; i++, out++, in++)
@@ -3743,7 +3661,7 @@ static void Mod_LoadClipnodes (model_t *mod, dbspmodel_t *bmod)
 			out->children[0] = (unsigned short)in->children[0];
 			out->children[1] = (unsigned short)in->children[1];
 
-			// Arguire QBSP 'broken' clipnodes
+			// aguirRe QBSP 'broken' clipnodes
 			if (out->children[0] >= bmod->numclipnodes)
 				out->children[0] -= 65536;
 			if (out->children[1] >= bmod->numclipnodes)
@@ -3932,14 +3850,6 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, const byte *mod_base, qboolea
 	wadvalue[0] = '\0';
 
 	// [FWGS, 01.02.25]
-	/*ifndef SUPPORT_BSP2_FORMAT
-	if (header->version == QBSP2_VERSION)
-		{
-		Con_Printf (S_ERROR DEFAULT_BSP_BUILD_ERROR, mod->name);
-		return false;
-		}
-	endif*/
-
 	switch (header->version)
 		{
 		case HLBSP_VERSION:
@@ -4027,7 +3937,6 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, const byte *mod_base, qboolea
 	Mod_LoadClipnodes (mod, bmod);
 
 	// [FWGS, 01.02.25] preform some post-initalization
-	/*Mod_MakeHull0 (mod);*/
 	Mod_MakeHull0 (mod, bmod);
 	Mod_SetupSubmodels (mod, bmod);
 
@@ -4122,15 +4031,6 @@ qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base,
 		SetBits (flags, LUMP_SILENT);
 
 	// [FWGS, 01.02.25]
-	/*ifndef SUPPORT_BSP2_FORMAT
-	if (header->version == QBSP2_VERSION)
-		{
-		if (!FBitSet (flags, LUMP_SILENT))
-			Con_Printf (S_ERROR DEFAULT_BSP_BUILD_ERROR, name);
-		return false;
-		}
-	endif*/
-
 	switch (header->version)
 		{
 		case HLBSP_VERSION:
