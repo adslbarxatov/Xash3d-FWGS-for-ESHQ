@@ -25,6 +25,9 @@ GNU General Public License for more details
 #include "sound.h"
 #include "vid_common.h"
 
+// ESHQ: ограничение компиляции
+#if (XASH_SDL < 2)
+
 #define SDL_SCANCODE_A SDLK_a
 #define SDL_SCANCODE_Z SDLK_z
 #define SDL_SCANCODE_1 SDLK_1
@@ -516,3 +519,6 @@ void Platform_PreCreateMove (void)
 		SDL_ShowCursor (SDL_TRUE);
 		}
 	}
+
+// ESHQ: ограничение компиляции
+#endif

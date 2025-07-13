@@ -17,6 +17,9 @@ GNU General Public License for more details
 #include "platform.h"
 #include "platform_sdl1.h"
 
+// ESHQ: ограничение компиляции
+#if (XASH_SDL < 2)
+
 #if XASH_TIMER == TIMER_SDL
 
 double Platform_DoubleTime (void)
@@ -64,3 +67,5 @@ void SDLash_Shutdown (void)
 	{
 	SDL_Quit ();
 	}
+
+#endif

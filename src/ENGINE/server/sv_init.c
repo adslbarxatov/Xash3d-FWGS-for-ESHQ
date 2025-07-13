@@ -277,19 +277,6 @@ int GAME_EXPORT SV_GenericIndex (const char *filename)
 	}
 
 // [FWGS, 01.02.25] removed SV_ModelHandle
-/*
-================
-SV_ModelHandle
-
-get model by handle
-================
-/
-model_t *GAME_EXPORT SV_ModelHandle (int modelindex)
-	{
-	if ((modelindex < 0) || (modelindex >= MAX_MODELS))
-		return NULL;
-	return sv.models[modelindex];
-	}*/
 
 static resourcetype_t SV_DetermineResourceType (const char *filename)
 	{
@@ -673,7 +660,7 @@ void SV_ActivateServer (int runPhysics)
 	// check and count all files that marked by user as unmodified (typically is a player models etc)
 	SV_TransferConsistencyInfo ();
 
-	// send serverinfo to all connected clients
+	// [FWGS, 01.06.25] send serverinfo to all connected clients
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
 		if (cl->state < cs_connected)
@@ -681,6 +668,9 @@ void SV_ActivateServer (int runPhysics)
 
 		Netchan_Clear (&cl->netchan);
 		cl->delta_sequence = -1;
+
+		// bump connect timeout
+		cl->connection_started = host.realtime;
 		}
 
 	// invoke to refresh all movevars
@@ -745,7 +735,6 @@ void SV_DeactivateServer (void)
 
 	// [FWGS, 01.12.24]
 	PM_ClearPhysEnts (svgame.pmove);
-	/*SV_EmptyStringPool ();*/
 	SV_EmptyStringPool (true);
 	Mem_EmptyPool (svgame.stringspool);
 
@@ -766,7 +755,7 @@ void SV_DeactivateServer (void)
 
 /***
 ==============
-SV_InitGame [FWGS, 01.11.23]
+SV_InitGame
 
 A brand new game has been started
 ==============
@@ -838,8 +827,6 @@ static void SV_SetupClients (void)
 		return; // nothing to change
 
 	// [FWGS, 22.01.25] if clients count was changed we need to run full shutdown procedure
-	/*if (svs.maxclients)
-		Host_ShutdownServer ();*/
 	if (svs.maxclients)
 		SV_Shutdown ("Server was killed due to maxclients change\n");
 
@@ -1020,7 +1007,6 @@ static void SV_GenerateTestPacket (void)
 	MSG_WriteLong (&svs.testpacket, -1);
 
 	// [FWGS, 01.12.24]
-	/*MSG_WriteString (&svs.testpacket, "testpacket");*/
 	MSG_WriteString (&svs.testpacket, S2C_BANDWIDTHTEST);
 	svs.testpacket_crcpos = svs.testpacket.pData + MSG_GetNumBytesWritten (&svs.testpacket);
 	MSG_WriteDword (&svs.testpacket, 0); // to be changed by crc
@@ -1228,8 +1214,6 @@ int SV_GetMaxClients (void)
 	{
 	return svs.maxclients;
 	}
-
-// [FWGS, 01.11.23] removed SV_InitGameProgs, SV_FreeGameProgs
 
 /***
 ================

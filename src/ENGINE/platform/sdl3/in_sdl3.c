@@ -21,6 +21,9 @@ GNU General Public License for more details
 #include "input.h"			// Touch_WantVisibleCursor
 #include "vgui_draw.h"		// VGui_UpdateInternalCursorState
 
+// ESHQ: ограничение компиляции
+#if (XASH_SDL >= 3)
+
 static struct
 	{
 	qboolean initialized;
@@ -214,3 +217,6 @@ key_modifier_t Platform_GetKeyModifiers (void)
 
 	return result_flags;
 	}
+
+// ESHQ: ограничение компиляции
+#endif

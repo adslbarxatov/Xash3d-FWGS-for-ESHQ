@@ -14,6 +14,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// ESHQ: ограничение компиляции
+#if (XASH_SDL >= 3)
+
 #ifndef PLATFORM_SDL3_H
 #define PLATFORM_SDL3_H
 
@@ -26,4 +29,7 @@ GNU General Public License for more details
 void SDLash_InitCursors (void);
 void SDLash_FreeCursors (void);
 
+#endif
+
+// ESHQ: ограничение компиляции
 #endif

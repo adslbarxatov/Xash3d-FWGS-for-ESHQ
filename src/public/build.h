@@ -101,8 +101,10 @@ Then you can use another oneliner to query all variables:
 #if defined _WIN32
 	#define XASH_WIN32 1
 
-#elif defined __EMSCRIPTEN__
-	#define XASH_EMSCRIPTEN 1
+// [FWGS, 01.07.25]
+/*elif defined __EMSCRIPTEN__
+	define XASH_EMSCRIPTEN 1*/
+
 #elif defined __WATCOMC__ && defined __DOS__
 	#define XASH_DOS4GW 1
 #else
@@ -149,6 +151,11 @@ Then you can use another oneliner to query all variables:
 		#define XASH_WASI 1
 	#elif defined __sun__
 		#define XASH_SUNOS 1
+
+	// [FWGS, 01.07.25]
+	#elif defined __EMSCRIPTEN__
+		#define XASH_EMSCRIPTEN 1
+
 	#else
 		#error
 	#endif
@@ -159,7 +166,6 @@ Then you can use another oneliner to query all variables:
 // but we still need XASH_MOBILE_PLATFORM for the engine.
 // So this macro is defined entirely in build-system: see main wscript
 // HLSDK/PrimeXT/other SDKs users note: you may ignore this macro
-/*if XASH_ANDROID || XASH_IOS || XASH_NSWITCH || XASH_PSVITA || XASH_SAILFISH*/
 #if ( XASH_ANDROID && !XASH_TERMUX ) || XASH_IOS || XASH_NSWITCH || XASH_PSVITA || XASH_SAILFISH
 	#define XASH_MOBILE_PLATFORM 1
 #endif
@@ -204,8 +210,13 @@ Then you can use another oneliner to query all variables:
 	#define XASH_ARM 8
 #elif defined __mips__
 	#define XASH_MIPS 1
-#elif defined __EMSCRIPTEN__
-	#define XASH_JS 1
+
+	/*elif defined __EMSCRIPTEN__
+	define XASH_JS 1*/
+	// [FWGS, 01.07.25] commented out to avoid misdetection, modern Emscripten versions target WASM only
+	//elif defined __EMSCRIPTEN__
+	//define XASH_JS 1
+
 #elif defined __e2k__
 	#define XASH_64BIT 1
 	#define XASH_E2K 1

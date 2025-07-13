@@ -577,6 +577,7 @@ static void SV_ReadPackets (void)
 					SV_ProcessFile (cl, cl->netchan.incomingfilename);
 					}
 				}
+
 			break;
 			}
 
@@ -615,16 +616,10 @@ if necessary
 ***/
 static void SV_CheckTimeouts (void)
 	{
-	/*sv_client_t	*cl;
-	double		droppoint;
-	int			i, numclients = 0;
-
-	droppoint = host.realtime - sv_timeout.value;*/
 	int	i, numclients = 0;
 	const double	spawned_droppoint = host.realtime - sv_timeout.value;
 	const double	connected_droppoint = host.realtime - sv_connect_timeout.value;
 
-	/*for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)*/
 	for (i = 0; i < svs.maxclients; i++)
 		{
 		sv_client_t *cl = &svs.clients[i];
@@ -639,26 +634,18 @@ static void SV_CheckTimeouts (void)
 		if (FBitSet (cl->flags, FCL_FAKECLIENT))
 			continue;
 
-		/*// FIXME: get rid of the zombie state
-		if (cl->state == cs_zombie)*/
 		switch (cl->state)
 			{
 			case cs_zombie:
 				// FIXME: get rid of the zombie state
 				cl->state = cs_free; // can now be reused
-				/*continue;
-			}
-
-		if (((cl->state == cs_connected) || (cl->state == cs_spawned)) && (cl->netchan.last_received < droppoint))
-			{*/
 				break;
 
+			// [FWGS, 01.06.25]
 			case cs_connected:
+			case cs_spawning:
 				if (!NET_IsLocalAddress (cl->netchan.remote_address))
 					{
-					/*SV_BroadcastPrintf (NULL, "%s timed out\n", cl->name);
-					SV_DropClient (cl, false);
-					cl->state = cs_free; // don't bother with zombie state*/
 					if (cl->connection_started < connected_droppoint)
 						SV_DropTimedOutClient (cl, true);
 					}
@@ -797,10 +784,8 @@ static void SV_UpdateStatusLine (void)
 		int clients, bots;
 		SV_GetPlayerCount (&clients, &bots);
 
-		Q_snprintf (status, sizeof (status),
-			"%.1f fps %2i/%2i on %16s",
-			1.f / sv.frametime,
-			clients, svs.maxclients, host.game.levelName);
+		Q_snprintf (status, sizeof (status), "%.1f fps %2i/%2i on %16s",
+			1.f / sv.frametime, clients, svs.maxclients, host.game.levelName);
 		}
 	else if (sv.state == ss_loading)
 		{
@@ -872,7 +857,7 @@ void Host_ServerFrame (void)
 
 // [FWGS, 01.02.24] removed Host_SetServerState
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.06.25]
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	{
 	uint	challenge, challenge2, heartbeat_challenge;
@@ -883,14 +868,15 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 
 	if (!NET_GetMaster (from, &heartbeat_challenge, &last_heartbeat))
 		{
-		Con_Printf (S_WARN "unexpected master server info query packet from %s\n", NET_AdrToString (from));
+		/*Con_Printf (S_WARN "unexpected master server info query packet from %s\n", NET_AdrToString (from));
 		return;
 		}
 
 	if (last_heartbeat + sv_master_response_timeout.value < host.realtime)
 		{
 		Con_Printf (S_WARN "unexpected master server info query packet (too late? try increasing "
-			"sv_master_response_timeout value)\n");
+			"sv_master_response_timeout value)\n");*/
+		Con_Reportf (S_WARN "unexpected master server info query packet from %s\n", NET_AdrToString (from));
 		return;
 		}
 
@@ -899,7 +885,15 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 
 	if (challenge2 != heartbeat_challenge)
 		{
-		Con_Printf (S_WARN "unexpected master server info query packet (wrong challenge!)\n");
+		/*Con_Printf (S_WARN "unexpected master server info query packet (wrong challenge!)\n");*/
+		Con_Reportf (S_WARN "unexpected master server info query packet (wrong challenge!)\n");
+		return;
+		}
+
+	if (last_heartbeat + sv_master_response_timeout.value < host.realtime)
+		{
+		Con_Printf (S_WARN "unexpected master server info query packet (too late? try increasing "
+			"sv_master_response_timeout value)\n");
 		return;
 		}
 

@@ -362,8 +362,6 @@ typedef struct host_parm_s
 	qboolean	config_executed;	// a bit who indicated was config.cfg already executed e.g. from valve.rc
 
 	// [FWGS, 01.05.25]
-	/*qboolean	crashed;			// set to true if crashed*/
-
 #if XASH_DLL_LOADER
 	qboolean	enabledll;
 #endif
@@ -492,12 +490,8 @@ void Cbuf_InsertTextLen (const char *text, size_t len, size_t requested_len);
 void Cbuf_ExecStuffCmds (void);
 void Cbuf_Execute (void);
 qboolean Cmd_CurrentCommandIsPrivileged (void);
-/*int Cmd_Argc (void);
-
-const char *Cmd_Args (void) RETURNS_NONNULL;
-const char *Cmd_Argv (int arg) RETURNS_NONNULL;*/
 void Cmd_Init (void);
-void Cmd_Shutdown (void);	// [FWGS, 01.02.25]
+void Cmd_Shutdown (void);
 void Cmd_Unlink (int group);
 
 // [FWGS, 22.01.25]
@@ -864,8 +858,10 @@ void SCR_Init (void);
 void SCR_UpdateScreen (void);
 void SCR_BeginLoadingPlaque (qboolean is_background);
 void SCR_CheckStartupVids (void);
-int SCR_GetAudioChunk (char *rawdata, int length);
-wavdata_t *SCR_GetMovieInfo (void);
+
+// [FWGS, 01.07.25]
+/*int SCR_GetAudioChunk (char *rawdata, int length);
+wavdata_t *SCR_GetMovieInfo (void);*/
 void SCR_Shutdown (void);
 void Con_Print (const char *txt);
 

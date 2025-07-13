@@ -83,8 +83,6 @@ int Q_buildnum (void)
 	{
 	static int b = 0;
 
-	/*if (!b)
-		b = Q_buildnum_date (__DATE__);*/
 	if (b)
 		return b;
 
@@ -201,7 +199,6 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 		case ARCHITECTURE_JS:
 			return "javascript";
 
-		// [FWGS, 01.07.23]
 		case ARCHITECTURE_PPC:
 			return endianness == ENDIANNESS_LITTLE ? (is64 ? "ppc64el" : "ppcel") : (is64 ? "ppc64" : "ppc");
 
@@ -214,7 +211,6 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 			// no support for big endian ARM here
 			if (endianness == ENDIANNESS_LITTLE)
 				{
-				// [FWGS, 01.05.23]
 				const uint ver = (abi >> ARCH_ARM_VER_SHIFT) & ARCH_ARM_VER_MASK;
 				const qboolean hardfp = FBitSet (abi, ARCH_ARM_HARDFP);
 
@@ -238,7 +234,6 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 			break;
 
 		case ARCHITECTURE_RISCV:
-			// [FWGS, 01.05.23]
 			switch (abi)
 				{
 				case ARCH_RISCV_FP_SOFT:
@@ -284,28 +279,3 @@ const char *Q_buildarch (void)
 	}
 
 // [FWGS, 01.02.25] removed Q_buildcommit, Q_buildbranch
-/*
-=============
-Q_buildcommit [FWGS, 01.05.24]
-
-Returns a short hash of current commit in VCS as string
-XASH_BUILD_COMMIT must be passed in quotes
-=============
-/
-const char *Q_buildcommit (void)
-	{
-	return XASH_BUILD_COMMIT;
-	}
-
-/*
-=============
-Q_buildbranch [FWGS, 01.05.24]
-
-Returns current branch name in VCS as string
-XASH_BUILD_BRANCH must be passed in quotes
-=============
-/
-const char *Q_buildbranch (void)
-	{
-	return XASH_BUILD_BRANCH;
-	}*/

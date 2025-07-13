@@ -109,8 +109,8 @@ extern int CL_UPDATE_BACKUP;
 #define MAX_UPDATERATE	102.0f
 #define MAX_EX_INTERP	0.1f
 
-#define CL_MIN_RESEND_TIME	1.5f		// mininum time gap (in seconds) before a subsequent connection request is sent.
-#define CL_MAX_RESEND_TIME	20.0f		// max time.  The cvar cl_resend is bounded by these.
+#define CL_MIN_RESEND_TIME	1.5f		// mininum time gap (in seconds) before a subsequent connection request is sent
+#define CL_MAX_RESEND_TIME	20.0f		// max time.  The cvar cl_resend is bounded by these
 
 #define cl_serverframetime()	(cl.mtime[0] - cl.mtime[1])
 #define cl_clientframetime()	(cl.time - cl.oldtime)
@@ -129,7 +129,6 @@ typedef struct
 
 	// misc local info
 	qboolean	repredicting;	// repredicting in progress
-	/*qboolean	thirdperson;*/
 	qboolean	apply_effects;	// local player will not added but we should apply their effects: flashlight etc
 	float		idealpitch;
 	int			viewmodel;
@@ -138,7 +137,7 @@ typedef struct
 	int			light_level;
 	int			waterlevel;
 	int			usehull;
-	qboolean	moving;		// [FWGS, 01.04.23]
+	qboolean	moving;
 	int			pushmsec;
 	int			weapons;
 	float		maxspeed;
@@ -239,7 +238,6 @@ typedef struct
 	cl_local_data_t	local;
 
 	// [FWGS, 01.06.25] player final info
-	/*usercmd_t	*cmd;			// cl.commands[outgoing_sequence].cmd*/
 	usercmd_t	cmd;			// cl.commands[outgoing_sequence].cmd
 	vec3_t		viewangles;
 	vec3_t		viewheight;
@@ -292,13 +290,13 @@ of server connections
 typedef enum
 	{
 	scrshot_inactive,
-	scrshot_normal,	// in-game screenshot
+	scrshot_normal,		// in-game screenshot
 	scrshot_snapshot,	// in-game snapshot
 	scrshot_plaque,  	// levelshot
 	scrshot_savegame,	// saveshot
 	scrshot_envshot,	// cubemap view
 	scrshot_skyshot,	// skybox view
-	scrshot_mapshot	// overview layer
+	scrshot_mapshot		// overview layer
 	} scrshot_t;
 
 // client screen state
@@ -309,15 +307,6 @@ typedef enum
 	CL_PAUSED,		// pause when active
 	CL_CHANGELEVEL,	// draw 'loading' during changelevel
 	} scrstate_t;
-
-// [FWGS, 01.12.24]
-/*typedef enum
-	{
-	PROTO_CURRENT = 0,	// Xash3D 49
-	PROTO_LEGACY = 1,	// Xash3D 48
-	PROTO_QUAKE = 2,	// Quake 15
-	PROTO_GOLDSRC = 3,	// GoldSrc 48
-	} connprotocol_t;*/
 
 typedef struct
 	{
@@ -339,7 +328,6 @@ typedef struct
 #define FONT_FIXED		0
 #define FONT_VARIABLE	1
 
-// [FWGS, 01.04.23]
 #define FONT_DRAW_HUD				BIT( 0 ) // pass to drawing function to apply hud_scale
 #define FONT_DRAW_UTF8				BIT( 1 ) // call UtfProcessChar
 #define FONT_DRAW_FORCECOL			BIT( 2 ) // ignore colorcodes
@@ -360,7 +348,6 @@ typedef struct
 	qboolean	valid;				// all rectangles are valid
 	} cl_font_t;
 
-// [FWGS, 01.04.23]
 typedef struct scissor_state_s
 	{
 	int			x;
@@ -370,7 +357,6 @@ typedef struct scissor_state_s
 	qboolean	test;
 	} scissor_state_t;
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	// scissor test
@@ -402,7 +388,6 @@ typedef struct cl_predicted_player_s
 	vec3_t		angles;
 	} predicted_player_t;
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	scissor_state_t	scissor;		// scissor test
@@ -440,7 +425,6 @@ typedef struct
 	float		applied_angle;
 	} screen_shake_t;
 
-// [FWGS, 01.11.23]
 typedef struct
 	{
 	net_response_t		resp;
@@ -573,7 +557,6 @@ typedef struct
 	byte			datagram_buf[MAX_DATAGRAM];
 
 	netchan_t		netchan;
-	/*int				challenge;			// from the server to use for connecting*/
 
 	float			packet_loss;
 	double			packet_loss_recalc_time;
@@ -652,6 +635,9 @@ typedef struct
 
 	// server's build number (might be zero)
 	int				build_num;
+
+	// [FWGS, 01.07.25]
+	uint8_t			steamid[8];
 	} client_static_t;
 
 #ifdef __cplusplus
@@ -823,14 +809,10 @@ void CL_FreeFont (cl_font_t *font);
 void CL_SetFontRendermode (cl_font_t *font);
 
 // [FWGS, 01.03.25]
-/*int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *font, int flags);
-int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *font, int flags);*/
 int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_t *font, int flags);
 int CL_DrawString (float x, float y, const char *s, const rgba_t color, cl_font_t *font, int flags);
-
 void CL_DrawCharacterLen (cl_font_t *font, int number, int *width, int *height);
 void CL_DrawStringLen (cl_font_t *font, const char *s, int *width, int *height, int flags);
-/*int CL_DrawStringf (cl_font_t *font, float x, float y, rgba_t color, int flags, const char *fmt, ...) FORMAT_CHECK (6);*/
 int CL_DrawStringf (cl_font_t *font, float x, float y, const rgba_t color, int flags, const char *fmt, ...) FORMAT_CHECK (6);
 
 //
@@ -867,26 +849,20 @@ qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *
 	float *v0, float *u1, float *v1);
 
 // [FWGS, 01.03.25]
-/*static inline cl_entity_t *CL_EDICT_NUM (int n)*/
 static inline cl_entity_t *CL_EDICT_NUM (int index)
 	{
-	/*if (!clgame.entities)*/
 	if (!clgame.entities) // not in game yet
 		{
 		Host_Error ("%s: clgame.entities is NULL\n", __func__);
 		return NULL;
 		}
 
-	/*if ((n >= 0) && (n < clgame.maxEntities))
-		return clgame.entities + n;*/
 	if ((index < 0) || (index >= clgame.maxEntities))
 		{
 		Host_Error ("%s: bad number %i\n", __func__, index);
 		return NULL;
 		}
 
-	/*Host_Error ("%s: bad number %i\n", __func__, n);
-	return NULL;*/
 	return clgame.entities + index;
 	}
 
@@ -899,10 +875,6 @@ static inline cl_entity_t *CL_GetEntityByIndex (int index)
 	if ((index < 0) || (index >= clgame.maxEntities))
 		return NULL;
 
-	/*if (index == 0)
-		return clgame.entities;
-
-	return CL_EDICT_NUM (index);*/
 	return clgame.entities + index;
 	}
 
@@ -915,7 +887,6 @@ static inline model_t *CL_ModelHandle (int modelindex)
 // [FWGS, 01.03.25]
 static inline qboolean CL_IsThirdPerson (void)
 	{
-	/*return clgame.dllFuncs.CL_IsThirdPerson () ? true : false;*/
 	return clgame.dllFuncs.CL_IsThirdPerson ();
 	}
 
@@ -1158,7 +1129,6 @@ int Con_UtfMoveRight (char *str, int pos, int length);
 void Con_DefaultColor (int r, int g, int b, qboolean gameui);
 cl_font_t *Con_GetCurFont (void);
 cl_font_t *Con_GetFont (int num);
-/*int Con_DrawString (int x, int y, const char *string, rgba_t setColor);				// legacy, use cl_font.c*/
 int Con_DrawString (int x, int y, const char *string, const rgba_t setColor);		// legacy, use cl_font.c
 void GAME_EXPORT Con_DrawStringLen (const char *pText, int *length, int *height);	// legacy, use cl_font.c
 void Con_CharEvent (int key);
@@ -1254,7 +1224,7 @@ void Key_Init (void);
 void Key_WriteBindings (file_t *f);
 const char *Key_GetBinding (int keynum);
 void Key_SetBinding (int keynum, const char *binding);
-const char *Key_LookupBinding (const char *pBinding);	// [FWGS, 22.01.25]
+const char *Key_LookupBinding (const char *pBinding);
 void Key_ClearStates (void);
 const char *Key_KeynumToString (int keynum);
 void Key_EnumCmds_f (void);

@@ -39,6 +39,7 @@ void SDLash_FreeCursors (void);
 //
 // joy_sdl.c [FWGS, 01.03.25]
 //
+#include <SDL.h>	// ESHQ: без этого тип не определяется
 void SDLash_HandleGameControllerEvent (SDL_Event *ev);
 
 #endif

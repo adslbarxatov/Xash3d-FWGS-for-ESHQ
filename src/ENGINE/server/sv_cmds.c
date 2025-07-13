@@ -139,7 +139,6 @@ static sv_client_t *SV_SetPlayer (void)
 			}
 
 		cl = &svs.clients[idnum];
-
 		if (!cl->state)
 			{
 			Con_Printf ("Client %i is not active\n", idnum);
@@ -151,7 +150,8 @@ static sv_client_t *SV_SetPlayer (void)
 	// check for a name match
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
-		if (!cl->state) continue;
+		if (!cl->state)
+			continue;
 
 		if (!Q_strcmp (cl->name, s))
 			return cl;
@@ -459,7 +459,6 @@ static void SV_HazardCourse_f (void)
 	// special case for Gunman Chronicles: playing avi-file
 	if (FS_FileExists (va ("media/%s.avi", GI->trainmap), false))
 		{
-		// [FWGS, 01.04.23]
 		Cbuf_AddTextf ("wait; movie %s\n", GI->trainmap);
 		Host_EndGame (true, DEFAULT_ENDGAME_MESSAGE);
 		}
@@ -517,7 +516,7 @@ static void SV_QuickLoad_f (void)
 
 /***
 ==============
-SV_Save_f [FWGS, 01.04.23]
+SV_Save_f
 ==============
 ***/
 static void SV_Save_f (void)
@@ -734,7 +733,7 @@ static void SV_EntPatch_f (void)
 
 /***
 ================
-SV_Status_f [FWGS, 01.05.25]
+SV_Status_f
 ================
 ***/
 static void SV_Status_f (void)
@@ -773,14 +772,24 @@ static void SV_Status_f (void)
 		if (!cl->state)
 			continue;
 
+		// [FWGS, 01.06.25]
 		if (cl->state == cs_connected)
-			s = "Cnct";
+			/*s = "Cnct";*/
+			s = "Connect ";
+		else if (cl->state == cs_spawning)
+			s = "Spawning";
+
 		else if (cl->state == cs_zombie)
-			s = "Zmbi";
+			/*s = "Zmbi";*/
+			s = "Zombie ";
+
 		else if (FBitSet (cl->flags, FCL_FAKECLIENT))
+			/*s = "Bot ";*/
 			s = "Bot ";
+
 		else
-			s = va ("%i", SV_CalcPing (cl));
+			/*s = va ("%i", SV_CalcPing (cl));*/
+			s = va ("%8i", SV_CalcPing (cl));
 
 		input_devices = Q_atoi (Info_ValueForKey (cl->useragent, "d"));
 
@@ -1257,7 +1266,7 @@ void SV_KillOperatorCommands (void)
 	Cmd_RemoveCommand ("localinfo");
 	Cmd_RemoveCommand ("serverinfo");
 	Cmd_RemoveCommand ("clientinfo");
-	Cmd_RemoveCommand ("clientuseragent");	// [FWGS, 01.07.23]
+	Cmd_RemoveCommand ("clientuseragent");
 	Cmd_RemoveCommand ("playersonly");
 	Cmd_RemoveCommand ("restart");
 	Cmd_RemoveCommand ("entpatch");
@@ -1266,7 +1275,7 @@ void SV_KillOperatorCommands (void)
 	Cmd_RemoveCommand ("shutdownserver");
 	Cmd_RemoveCommand ("changelevel");
 	Cmd_RemoveCommand ("changelevel2");
-	Cmd_RemoveCommand ("redirect");	// [FWGS, 01.07.23]
+	Cmd_RemoveCommand ("redirect");
 	Cmd_RemoveCommand ("logaddress");
 	Cmd_RemoveCommand ("log");
 	Cmd_RemoveCommand ("str64stats");	// [FWGS, 01.05.24]
@@ -1282,4 +1291,3 @@ void SV_KillOperatorCommands (void)
 		Cmd_RemoveCommand ("say");
 		}
 	}
-

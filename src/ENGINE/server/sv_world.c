@@ -605,7 +605,6 @@ static void SV_FindTouchedLeafs (edict_t *ent, model_t *mod, mnode_t *node, int 
 	// add an efrag if the node is a leaf
 	if (node->contents < 0)
 		{
-		/*if (ent->num_leafs > MAX_ENT_LEAFS (FBitSet (mod->flags, MODEL_QBSP2)))*/
 		if (ent->num_leafs >= MAX_ENT_LEAFS (FBitSet (mod->flags, MODEL_QBSP2)))
 			{
 			// continue counting leafs, so we know how many it's overrun
@@ -770,7 +769,7 @@ static void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 			}
 		else
 			{
-			// offset the test point appropriately for this hull.
+			// offset the test point appropriately for this hull
 			VectorSubtract (origin, offset, test);
 			}
 
@@ -1000,7 +999,7 @@ static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t
 	model_t	*model;
 	float	portalradius;
 
-	// only run this code if we impacted on the portal's parent.
+	// only run this code if we impacted on the portal's parent
 	if ((trace->fraction == 1.0f) && !trace->startsolid)
 		return;
 
@@ -1010,7 +1009,7 @@ static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t
 	if (!model || (model->type != mod_brush))
 		return;
 
-	// make sure we use a sane valid position.
+	// make sure we use a sane valid position
 	if (trace->startsolid)
 		VectorCopy (start, worldpos);
 	else
@@ -1086,7 +1085,7 @@ static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t
 	if ((hitplane == 0) && (trace->fraction > bestfrac))
 		return;
 
-	// okay, elongate to clip to the portal hole properly.
+	// okay, elongate to clip to the portal hole properly
 	VectorLerp (start, bestfrac, end, trace->endpos);
 	trace->fraction = bestfrac;
 
@@ -1341,23 +1340,27 @@ static void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 
 /***
 ==================
-SV_Move
+SV_Move [FWGS, 01.06.25]
 ==================
 ***/
 trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e,
 	qboolean monsterclip)
 	{
-	moveclip_t	clip;
+	/*moveclip_t	clip;
 	vec3_t		trace_endpos;
-	float		trace_fraction;
+	float		trace_fraction;*/
+	moveclip_t	clip = { 0 };
 
-	memset (&clip, 0, sizeof (moveclip_t));
+	/*memset (&clip, 0, sizeof (moveclip_t));*/
 	SV_ClipMoveToEntity (EDICT_NUM (0), start, mins, maxs, end, &clip.trace);
 
 	if (clip.trace.fraction != 0.0f)
 		{
+		const float trace_fraction = clip.trace.fraction;
+		vec3_t trace_endpos;
+
 		VectorCopy (clip.trace.endpos, trace_endpos);
-		trace_fraction = clip.trace.fraction;
+		/*trace_fraction = clip.trace.fraction;*/
 		clip.trace.fraction = 1.0f;
 		clip.start = start;
 		clip.end = trace_endpos;
@@ -1526,6 +1529,7 @@ trace_t SV_MoveToss (edict_t *tossent, edict_t *ignore)
 		VectorMA (tossent->v.angles, 0.05f, tossent->v.avelocity, tossent->v.angles);
 		VectorScale (tossent->v.velocity, 0.05f, move);
 		VectorAdd (tossent->v.origin, move, end);
+
 		trace = SV_Move (tossent->v.origin, tossent->v.mins, tossent->v.maxs, end, MOVE_NORMAL, tossent, false);
 		VectorCopy (trace.endpos, tossent->v.origin);
 		if (trace.fraction < 1.0f)

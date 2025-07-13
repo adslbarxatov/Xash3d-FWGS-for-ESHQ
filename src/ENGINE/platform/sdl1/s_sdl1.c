@@ -24,6 +24,9 @@ GNU General Public License for more details
 #include <SDL.h>
 #include <stdlib.h>
 
+// ESHQ: ограничение компиляции
+#if (XASH_SDL < 2)
+
 #define SAMPLE_16BIT_SHIFT 1
 #define SECONDARY_BUFFER_SIZE 0x10000
 
@@ -265,4 +268,7 @@ void VoiceCapture_Shutdown (void)
 	{
 	}
 
+#endif
+
+// ESHQ: ограничение компиляции
 #endif

@@ -19,6 +19,9 @@ GNU General Public License for more details
 #include "vid_common.h"
 #include "platform_sdl1.h"
 
+// ESHQ: ограничение компиляции
+#if (XASH_SDL < 2)
+
 static vidmode_t *vidmodes = NULL;
 static int num_vidmodes = 0;
 static void GL_SetupAttributes (void);
@@ -535,3 +538,6 @@ void R_Free_Video (void)
 
 	ref.dllFuncs.GL_ClearExtensions ();
 	}
+
+// ESHQ: ограничение компиляции
+#endif

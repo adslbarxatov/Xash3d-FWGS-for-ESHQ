@@ -13,6 +13,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// ESHQ: ограничение компиляции
+#if (XASH_SDL < 2)
+
 #pragma once
 #ifndef KEYWRAPPER_H
 #define KEYWRAPPER_H
@@ -35,3 +38,6 @@ void SDLash_HandleGameControllerEvent (SDL_Event *ev);
 
 #endif // XASH_SDL
 #endif // KEYWRAPPER_H
+
+// ESHQ: ограничение компиляции
+#endif

@@ -22,11 +22,11 @@ GNU General Public License for more details
 #include "filesystem.h"
 #include "filesystem_internal.h"
 #include "VFileSystem009.h"
-#include "common/com_strings.h"	// [FWGS, 01.05.23]
+#include "common/com_strings.h"
 
 #if __cplusplus < 201103L
 	#define override
-	#define nullptr NULL	// [FWGS, 01.05.23]
+	#define nullptr NULL
 #endif
 
 // GoldSrc Directories and ID
@@ -39,13 +39,12 @@ GNU General Public License for more details
 // CONFIG        platform/config
 
 // This is a macro because pointers returned by alloca
-// [FWGS, 01.05.23] shouldn't leave current scope
+// shouldn't leave current scope
 #define FixupPath(var, str) \
 	const size_t var ## _size = Q_strlen(( str )) + 1; \
 	char * const var = static_cast<char *>( alloca( var ## _size )); \
 	CopyAndFixSlashes( var, ( str ), var ## _size )
 
-// [FWGS, 01.05.23]
 static inline bool IsIdGamedir (const char *id)
 	{
 	return !Q_strcmp (id, "GAME") ||
@@ -85,7 +84,6 @@ static inline void CopyAndFixSlashes (char *p, const char *in, size_t size)
 	COM_FixSlashes (p);
 	}
 
-/*class CXashFS : public IVFileSystem009*/
 class CXashFS : public IFileSystem
 	{
 	private:
@@ -243,7 +241,6 @@ class CXashFS : public IFileSystem
 			}
 
 		// [FWGS, 01.12.24]
-		/*long int GetFileModificationTime (const char *path)*/
 		long int GetFileModificationTime (const char *path) override
 			{
 			// TODO: properly reverse-engineer this
@@ -445,8 +442,6 @@ class CXashFS : public IFileSystem
 		// [FWGS, 25.12.24]
 		bool GetCurrentDirectory (char *p, int size) override
 			{
-			/*Q_strncpy (p, fs_rootdir, size);
-			return true;*/
 			return FS_GetRootDirectory (p, size);
 			}
 
@@ -479,22 +474,24 @@ class CXashFS : public IFileSystem
 			Q_strncpy (p, "Stdio", size);
 			}
 
+		// [FWGS, 01.06.25]
 		bool AddPackFile (const char *path, const char *id) override
 			{
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
-			const char *ext = COM_FileExtension (path);
+			/*const char *ext = COM_FileExtension (path);*/
 
 			IdToDir (dir, sizeof (dir), id);
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", dir, path);
 			COM_FixSlashes (fullpath);
 
-			for (const fs_archive_t *archive = g_archives; archive->ext; archive++)
+			/*for (const fs_archive_t *archive = g_archives; archive->ext; archive++)
 				{
 				if ((archive->type == SEARCHPATH_PAK) && !Q_stricmp (ext, archive->ext))
 					return FS_AddArchive_Fullpath (archive, fullpath, FS_CUSTOM_PATH);
 				}
 
-			return false;
+			return false;*/
+			return FS_MountArchive_Fullpath (fullpath, FS_CUSTOM_PATH) != NULL;
 			}
 
 		FileHandle_t OpenFromCacheForRead (const char *path, const char *mode, const char *id) override
@@ -528,7 +525,6 @@ class CXashFS : public IFileSystem
 			}
 	} g_VFileSystem009;
 
-// [FWGS, 01.11.23]
 extern "C" void HLEXPORT * CreateInterface (const char *interface, int *retval)
 	{
 	if (!Q_strcmp (interface, FILESYSTEM_INTERFACE_VERSION))

@@ -24,6 +24,9 @@ GNU General Public License for more details
 #include "sound.h"
 #include "vid_common.h"
 
+// ESHQ: ограничение компиляции
+#if (XASH_SDL < 2)
+
 #define SDL_WarpMouseInWindow( win, x, y ) SDL_WarpMouse( ( x ), ( y ) )
 
 /***
@@ -147,3 +150,6 @@ void Platform_SetMouseGrab (qboolean enable)
 	{
 	SDL_WM_GrabInput (enable ? SDL_GRAB_ON : SDL_GRAB_OFF);
 	}
+
+// ESHQ: ограничение компиляции
+#endif

@@ -78,7 +78,7 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define		HGRUNT_AE_BURST3		( 6 ) 
 #define		HGRUNT_AE_GREN_TOSS		( 7 )
 #define		HGRUNT_AE_GREN_LAUNCH	( 8 )
-#define		HGRUNT_AE_GREN_DROP		( 9 )
+/*#define		HGRUNT_AE_GREN_DROP		( 9 )*/	// ESHQ: удалено событие "уронить гранату"
 #define		HGRUNT_AE_CAUGHT_ENEMY	( 10)	// grunt established sight with an enemy (player only) that had previously eluded the squad
 #define		HGRUNT_AE_DROP_GUN		( 11)	// grunt (probably dead) is dropping his mp5
 
@@ -1444,7 +1444,8 @@ Schedule_t	slGruntTakeCover[] =
 		},
 	};
 
-// =========================================================
+// ESHQ: удалена обработка события DropGrenade
+/*// =========================================================
 // drop grenade then run to cover
 // =========================================================
 Task_t	tlGruntGrenadeCover1[] =
@@ -1468,10 +1469,10 @@ Schedule_t slGruntGrenadeCover[] =
 			0,
 			"GrenadeCover"
 		},
-	};
+	};*/
 
 // =========================================================
-// drop grenade then run to cover
+// toss grenade then run to cover
 // =========================================================
 Task_t	tlGruntTossGrenadeCover1[] =
 	{
@@ -1761,30 +1762,30 @@ Schedule_t	slGruntRepelLand[] =
 		},
 	};
 
-
+// ESHQ: удалена обработка события DropGrenade
 DEFINE_CUSTOM_SCHEDULES (CHGrunt)
 	{
 	slGruntFail,
-		slGruntCombatFail,
-		slGruntVictoryDance,
-		slGruntEstablishLineOfFire,
-		slGruntFoundEnemy,
-		slGruntCombatFace,
-		slGruntSignalSuppress,
-		slGruntSuppress,
-		slGruntWaitInCover,
-		slGruntTakeCover,
-		slGruntGrenadeCover,
-		slGruntTossGrenadeCover,
-		slGruntTakeCoverFromBestSound,
-		slGruntHideReload,
-		slGruntSweep,
-		slGruntRangeAttack1A,
-		slGruntRangeAttack1B,
-		slGruntRangeAttack2,
-		slGruntRepel,
-		slGruntRepelAttack,
-		slGruntRepelLand,
+	slGruntCombatFail,
+	slGruntVictoryDance,
+	slGruntEstablishLineOfFire,
+	slGruntFoundEnemy,
+	slGruntCombatFace,
+	slGruntSignalSuppress,
+	slGruntSuppress,
+	slGruntWaitInCover,
+	slGruntTakeCover,
+	/*slGruntGrenadeCover,*/
+	slGruntTossGrenadeCover,
+	slGruntTakeCoverFromBestSound,
+	slGruntHideReload,
+	slGruntSweep,
+	slGruntRangeAttack1A,
+	slGruntRangeAttack1B,
+	slGruntRangeAttack2,
+	slGruntRepel,
+	slGruntRepelAttack,
+	slGruntRepelLand,
 	};
 
 IMPLEMENT_CUSTOM_SCHEDULES (CHGrunt, CSquadMonster);
@@ -2152,10 +2153,11 @@ Schedule_t* CHGrunt::GetScheduleOfType (int Type)
 				}
 			else
 				{
-				if (RANDOM_LONG (0, 1))
-					return &slGruntTakeCover[0];
+				// ESHQ: удалена обработка события DropGrenade
+				/*if (RANDOM_LONG (0, 1))*/
+				return &slGruntTakeCover[0];
 					
-				return &slGruntGrenadeCover[0];
+				/*return &slGruntGrenadeCover[0];*/
 				}
 			}
 

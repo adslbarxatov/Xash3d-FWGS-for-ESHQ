@@ -17,6 +17,7 @@ GNU General Public License for more details
 #define NET_BUFFER_H
 
 #include "enginefeatures.h"
+#include "common.h"	// ESHQ: тип sizebuf_t
 
 /***
 ==============================================================================
@@ -38,11 +39,11 @@ static inline int BitByte (int bits)
 // [FWGS, 01.12.24]
 struct sizebuf_s
 	{
-	byte		*pData;
+	byte *pData;
 	qboolean	bOverflow;		// overflow reading or writing
 	int			iCurBit;
 	int			nDataBits;
-	const char	*pDebugName;	// buffer name (pointer to const name)
+	const char *pDebugName;	// buffer name (pointer to const name)
 
 	// to support GoldSrc broken signed integers
 	int iAlternateSign;

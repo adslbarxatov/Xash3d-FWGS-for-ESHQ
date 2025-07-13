@@ -24,6 +24,10 @@ GNU General Public License for more details
 		#include <sys/syslimits.h>
 		#define OS_LIB_EXT "dylib"
 		#define OPEN_COMMAND "open"
+	// [FWGS, 01.07.25]
+	#elif XASH_EMSCRIPTEN
+		#define OS_LIB_EXT "wasm"
+		#define OPEN_COMMAND "???"
 	#else
 		#define OS_LIB_EXT "so"
 		#define OPEN_COMMAND "xdg-open"
@@ -93,10 +97,5 @@ GNU General Public License for more details
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-
-// [FWGS, 01.03.25]
-/*#if defined XASH_SDL && !defined REF_DLL
-#include <SDL.h>
-#endif*/
 
 #endif

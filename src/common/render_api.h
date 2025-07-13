@@ -1,4 +1,4 @@
-/*
+/***
 render_api.h - Xash3D extension for client interface
 Copyright (C) 2011 Uncle Mike
 
@@ -9,9 +9,9 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
+***/
 
 #ifndef RENDER_API_H
 #define RENDER_API_H
@@ -60,8 +60,6 @@ GNU General Public License for more details.
 #define PARM_GLES_WRAPPER	35	//
 #define PARM_STENCIL_ACTIVE	36
 #define PARM_WATER_ALPHA	37
-
-// 4529
 #define PARM_TEX_MEMORY		38	// returns total memory of uploaded texture in bytes
 #define PARM_DELUXEDATA		39	// nasty hack, convert int to pointer
 #define PARM_SHADOWDATA		40	// nasty hack, convert int to pointer
@@ -98,7 +96,6 @@ typedef enum
 	TF_NORMALMAP = (1 << 15),	// is a normalmap
 	TF_HAS_ALPHA = (1 << 16),	// image has alpha (used only for GL_CreateTexture)
 	TF_FORCE_COLOR = (1 << 17),	// force upload monochrome textures as RGB (detail textures)
-	// 4529
 	TF_UPDATE = (1 << 18),	// allow to update already loaded texture
 	TF_BORDER = (1 << 19),	// zero clamp for projected textures
 	TF_TEXTURE_3D = (1 << 20),	// this is GL_TEXTURE_3D
@@ -106,13 +103,14 @@ typedef enum
 	TF_ALPHACONTRAST = (1 << 22),	// special texture mode for A2C
 	// reserved
 	// reserved
-	TF_IMG_UPLOADED = (1 << 25),	// this is set for first time when called glTexImage, otherwise it will be call glTexSubImage
+
+	// this is set for first time when called glTexImage, otherwise it will be call glTexSubImage
+	TF_IMG_UPLOADED = (1 << 25),
 	TF_ARB_FLOAT = (1 << 26),	// float textures
 	TF_NOCOMPARE = (1 << 27),	// disable comparing for depth textures
 	TF_ARB_16BIT = (1 << 28),	// keep image as 16-bit (not 24)
 
 	// [FWGS, 01.02.24]
-	/*TF_MULTISAMPLE	= (1<<29)	// FWGS: multisampling texture*/
 	TF_MULTISAMPLE = (1 << 29), // multisampling texture
 	TF_ALLOW_NEAREST = (1 << 30), // allows toggling nearest filtering for TF_NOMIPMAP textures
 	} texFlags_t;
@@ -163,7 +161,25 @@ typedef struct decallist_s
 	modelstate_t	studio_state;	// studio decals only
 	} decallist_t;
 
-struct ref_viewpass_s;	// FWGS
+// [FWGS, 01.07.25]
+enum movie_parms_e
+	{
+	AVI_PARM_LAST = 0,	// marker for SetParm to end parse parsing arguments
+	AVI_RENDER_TEXNUM,	// (int) sets texture to draw into, if 0 will draw to screen
+	AVI_RENDER_X,		// (int) when set to screen, sets position where to draw
+	AVI_RENDER_Y,
+	AVI_RENDER_W,		// (int) sets texture or screen width
+	AVI_RENDER_H,		// set to -1 to draw full screen
+	AVI_REWIND,			// no argument, rewind playback to the beginning
+	AVI_ENTNUM,			// (int) entity number, -1 for no spatialization
+	AVI_VOLUME,			// (int) volume from 0 to 255
+	AVI_ATTN,			// (float) attenuation value
+	AVI_PAUSE,			// no argument, pauses playback
+	AVI_RESUME,			// no argument, resumes playback
+	};
+
+struct movie_state_s;
+struct ref_viewpass_s;
 
 typedef struct render_api_s
 	{
@@ -171,17 +187,17 @@ typedef struct render_api_s
 	intptr_t	(*RenderGetParm)(int parm, int arg);	// FWGS: generic
 	void		(*GetDetailScaleForTexture)(int texture, float* xScale, float* yScale);
 	void		(*GetExtraParmsForTexture)(int texture, byte* red, byte* green, byte* blue, byte* alpha);
-	lightstyle_t* (*GetLightStyle)(int number);
-	dlight_t* (*GetDynamicLight)(int number);
-	dlight_t* (*GetEntityLight)(int number);
-	byte (*LightToTexGamma)(byte color);	// software gamma support
+	lightstyle_t	*(*GetLightStyle)(int number);
+	dlight_t	*(*GetDynamicLight)(int number);
+	dlight_t	*(*GetEntityLight)(int number);
+	byte		(*LightToTexGamma)(byte color);	// software gamma support
 	float		(*GetFrameTime)(void);
 
 	// Set renderer info (tell engine about changes)
-	void		(*R_SetCurrentEntity)(struct cl_entity_s* ent); // tell engine about both currententity and currentmodel
-	void		(*R_SetCurrentModel)(struct model_s* mod);	// change currentmodel but leave currententity unchanged
+	void	(*R_SetCurrentEntity)(struct cl_entity_s* ent); // tell engine about both currententity and currentmodel
+	void	(*R_SetCurrentModel)(struct model_s* mod);	// change currentmodel but leave currententity unchanged
 	int		(*R_FatPVS)(const float* org, float radius, byte* visbuffer, qboolean merge, qboolean fullvis);
-	void		(*R_StoreEfrags)(struct efrag_s** ppefrag, int framecount);// store efrags for static entities
+	void	(*R_StoreEfrags)(struct efrag_s** ppefrag, int framecount);// store efrags for static entities
 
 	// Texture tools
 	int		(*GL_FindTexture)(const char* name);
@@ -190,68 +206,79 @@ typedef struct render_api_s
 	int		(*GL_LoadTexture)(const char* name, const byte* buf, size_t size, int flags);
 	int		(*GL_CreateTexture)(const char* name, int width, int height, const void* buffer, texFlags_t flags);	// FWGS
 	int		(*GL_LoadTextureArray)(const char** names, int flags);
-	int		(*GL_CreateTextureArray)(const char* name, int width, int height, int depth, const void* buffer, texFlags_t flags);	// FWGS
-	void		(*GL_FreeTexture)(unsigned int texnum);
+	int		(*GL_CreateTextureArray)(const char* name, int width, int height, int depth, const void* buffer, texFlags_t flags);
+	void	(*GL_FreeTexture)(unsigned int texnum);
 
 	// Decals manipulating (draw & remove)
-	void		(*DrawSingleDecal)(struct decal_s* pDecal, struct msurface_s* fa);
-	float* (*R_DecalSetupVerts)(struct decal_s* pDecal, struct msurface_s* surf, int texture, int* outCount);
-	void		(*R_EntityRemoveDecals)(struct model_s* mod); // remove all the decals from specified entity (BSP only)
+	void	(*DrawSingleDecal)(struct decal_s* pDecal, struct msurface_s* fa);
+	float	*(*R_DecalSetupVerts)(struct decal_s *pDecal, struct msurface_s *surf, int texture, int *outCount);
+	void	(*R_EntityRemoveDecals)(struct model_s* mod); // remove all the decals from specified entity (BSP only)
 
-	// AVIkit support
-	void* (*AVI_LoadVideo)(const char* filename, qboolean load_audio);
+	// [FWGS, 01.07.25] AVIkit support
+	/*void* (*AVI_LoadVideo)(const char* filename, qboolean load_audio);
 	int		(*AVI_GetVideoInfo)(void* Avi, int* xres, int* yres, float* duration);
 	int		(*AVI_GetVideoFrameNumber)(void* Avi, float time);
-	byte* (*AVI_GetVideoFrame)(void* Avi, int frame);
+	byte* (*AVI_GetVideoFrame)(void* Avi, int frame);*/
+	struct movie_state_s	*(*AVI_LoadVideo)(const char *filename, qboolean load_audio);
+	// a1ba: changed longs to int
+	qboolean	(*AVI_GetVideoInfo)(struct movie_state_s *Avi, int *xres, int *yres, float *duration);
+	int			(*AVI_GetVideoFrameNumber)(struct movie_state_s *Avi, float time);
+	byte		*(*AVI_GetVideoFrame)(struct movie_state_s *Avi, int frame);
+
 	void		(*AVI_UploadRawFrame)(int texture, int cols, int rows, int width, int height, const byte* data);
-	void		(*AVI_FreeVideo)(void* Avi);
-	int		(*AVI_IsActive)(void* Avi);
+	
+	/*void		(*AVI_FreeVideo)(void* Avi);
+	int			(*AVI_IsActive)(void* Avi);
 	void		(*AVI_StreamSound)(void* Avi, int entnum, float fvol, float attn, float synctime);
 	void		(*AVI_Reserved0)(void);	// for potential interface expansion without broken compatibility
-	void		(*AVI_Reserved1)(void);
+	void		(*AVI_Reserved1)(void);*/
+	void		(*AVI_FreeVideo)(struct movie_state_s *Avi);
+	qboolean	(*AVI_IsActive)(struct movie_state_s *Avi);
+	void		(*AVI_StreamSound)(struct movie_state_s *Avi, int entnum, float fvol, float attn, float synctime);
+	qboolean	(*AVI_Think)(struct movie_state_s *Avi);
+	qboolean	(*AVI_SetParm)(struct movie_state_s *Avi, enum movie_parms_e parm, ...);
 
-	// glState related calls (must use this instead of normal gl-calls to prevent de-synchornize local states between engine and the client)
-	void		(*GL_Bind)(int tmu, unsigned int texnum);
-	void		(*GL_SelectTexture)(int tmu);
-	void		(*GL_LoadTextureMatrix)(const float* glmatrix);
-	void		(*GL_TexMatrixIdentity)(void);
-	void		(*GL_CleanUpTextureUnits)(int last);	// pass 0 for clear all the texture units
-	void		(*GL_TexGen)(unsigned int coord, unsigned int mode);
-	void		(*GL_TextureTarget)(unsigned int target); // change texture unit mode without bind texture
-	void		(*GL_TexCoordArrayMode)(unsigned int texmode);
-	void* (*GL_GetProcAddress)(const char* name);
-	void		(*GL_UpdateTexSize)(int texnum, int width, int height, int depth); // recalc statistics
-	void		(*GL_Reserved0)(void);	// for potential interface expansion without broken compatibility
-	void		(*GL_Reserved1)(void);
+	// glState related calls (must use this instead of normal gl-calls to prevent de-synchornize
+	// local states between engine and the client)
+	void	(*GL_Bind)(int tmu, unsigned int texnum);
+	void	(*GL_SelectTexture)(int tmu);
+	void	(*GL_LoadTextureMatrix)(const float* glmatrix);
+	void	(*GL_TexMatrixIdentity)(void);
+	void	(*GL_CleanUpTextureUnits)(int last);	// pass 0 for clear all the texture units
+	void	(*GL_TexGen)(unsigned int coord, unsigned int mode);
+	void	(*GL_TextureTarget)(unsigned int target); // change texture unit mode without bind texture
+	void	(*GL_TexCoordArrayMode)(unsigned int texmode);
+	void	*(*GL_GetProcAddress)(const char *name);
+	void	(*GL_UpdateTexSize)(int texnum, int width, int height, int depth); // recalc statistics
+	void	(*GL_Reserved0)(void);	// for potential interface expansion without broken compatibility
+	void	(*GL_Reserved1)(void);
 
 	// Misc renderer functions
 	void		(*GL_DrawParticles)(const struct ref_viewpass_s* rvp, qboolean trans_pass, float frametime);
 	void		(*EnvShot)(const float* vieworg, const char* name, qboolean skyshot, int shotsize); // store skybox into gfx\env folder
-	int		(*SPR_LoadExt)(const char* szPicName, unsigned int texFlags); // extended version of SPR_Load
-	colorVec (*LightVec)(const float* start, const float* end, float* lightspot, float* lightvec);
-	struct mstudiotex_s* (*StudioGetTexture)(struct cl_entity_s* e);
-	const struct ref_overview_s* (*GetOverviewParms)(void);
-	const char* (*GetFileByIndex)(int fileindex);
-	// [FWGS, 01.12.22]
+	int			(*SPR_LoadExt)(const char* szPicName, unsigned int texFlags); // extended version of SPR_Load
+	colorVec	(*LightVec)(const float* start, const float* end, float* lightspot, float* lightvec);
+	struct mstudiotex_s				*(*StudioGetTexture)(struct cl_entity_s *e);
+	const struct ref_overview_s		*(*GetOverviewParms)(void);
+	const char	*(*GetFileByIndex)(int fileindex);
 	int			(*pfnSaveFile)(const char* filename, const void* data, int len);
 	void		(*R_Reserved0)(void);	// for potential interface expansion without broken compatibility
 
 	// [FWGS, 01.01.24] static allocations
-	/*void* (*pfnMemAlloc)(size_t cb, const char* filename, const int fileline);*/
 	void		*(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void		(*pfnMemFree)(void* mem, const char* filename, const int fileline);
 
 	// engine utils (not related with render API but placed here)
-	char** (*pfnGetFilesList)(const char* pattern, int* numFiles, int gamedironly);
-	unsigned int	(*pfnFileBufferCRC32)(const void* buffer, const int length);
-	int		(*COM_CompareFileTime)(const char* filename1, const char* filename2, int* iCompare);
+	char		**(*pfnGetFilesList)(const char *pattern, int *numFiles, int gamedironly);
+	unsigned int	(*pfnFileBufferCRC32)(const void *buffer, const int length);
+	int			(*COM_CompareFileTime)(const char *filename1, const char *filename2, int *iCompare);
 	void		(*Host_Error)(const char* error, ...); // cause Host Error
-	void* (*pfnGetModel)(int modelindex);
+	void		*(*pfnGetModel)(int modelindex);
 	float		(*pfnTime)(void);				// Sys_DoubleTime
-	void		(*Cvar_Set)(const char* name, const char* value);
+	void		(*Cvar_Set)(const char *name, const char *value);
 	void		(*S_FadeMusicVolume)(float fadePercent);	// fade background track (0-100 percents)
 
-	// [FWGS, 01.04.23] a1ba: changed long to int
+	// a1ba: changed long to int
 	void		(*SetRandomSeed)(int lSeed);		// set custom seed for RANDOM_FLOAT\RANDOM_LONG for predictable random
 
 	// ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT. INTERFACE VERSION IS FROZEN AT 37
@@ -262,29 +289,29 @@ typedef struct render_interface_s
 	{
 	int		version;
 	// passed through R_RenderFrame (0 - use engine renderer, 1 - use custom client renderer)
-	int		(*GL_RenderFrame)(const struct ref_viewpass_s* rvp);
+	int		(*GL_RenderFrame)(const struct ref_viewpass_s *rvp);
 	// build all the lightmaps on new level or when gamma is changed
-	void		(*GL_BuildLightmaps)(void);
+	void	(*GL_BuildLightmaps)(void);
 	// setup map bounds for ortho-projection when we in dev_overview mode
-	void		(*GL_OrthoBounds)(const float* mins, const float* maxs);
+	void	(*GL_OrthoBounds)(const float *mins, const float *maxs);
 	// prepare studio decals for save
-	int		(*R_CreateStudioDecalList)(decallist_t* pList, int count);
+	int		(*R_CreateStudioDecalList)(decallist_t *pList, int count);
 	// clear decals by engine request (e.g. for demo recording or vid_restart)
-	void		(*R_ClearStudioDecals)(void);
+	void	(*R_ClearStudioDecals)(void);
 	// grab r_speeds message
-	qboolean (*R_SpeedsMessage)(char* out, size_t size);
+	qboolean(*R_SpeedsMessage)(char *out, size_t size);
 	// alloc or destroy model custom data
-	void		(*Mod_ProcessUserData)(struct model_s* mod, qboolean create, const byte* buffer);
+	void	(*Mod_ProcessUserData)(struct model_s *mod, qboolean create, const byte *buffer);
 	// alloc or destroy entity custom data
-	void		(*R_ProcessEntData)(qboolean allocate);
+	void	(*R_ProcessEntData)(qboolean allocate);
 	// get visdata for current frame from custom renderer
-	byte* (*Mod_GetCurrentVis)(void);
+	byte	*(*Mod_GetCurrentVis)(void);
 	// tell the renderer what new map is started
-	void		(*R_NewMap)(void);
+	void	(*R_NewMap)(void);
 	// clear the render entities before each frame
-	void		(*R_ClearScene)(void);
+	void	(*R_ClearScene)(void);
 	// 4529: shuffle previous & next states for lerping
-	void		(*CL_UpdateLatchedVars)(struct cl_entity_s* e, qboolean reset);
+	void	(*CL_UpdateLatchedVars)(struct cl_entity_s *e, qboolean reset);
 	} render_interface_t;
 
 #endif

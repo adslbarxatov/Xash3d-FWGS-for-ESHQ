@@ -59,6 +59,7 @@ qboolean SV_CheckBottom (edict_t *ent, int iMode)
 				goto realcheck;
 			}
 		}
+
 	return true; // we got out easy
 
 realcheck:
@@ -67,13 +68,11 @@ realcheck:
 
 	// [FWGS, 25.12.24]
 	if (!FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
-		/*start[2] += svgame.movevars.stepsize;*/
 		start[2] += sv_stepsize.value;
 
 	// [FWGS, 25.12.24] the midpoint must be within 16 of the bottom
 	start[0] = stop[0] = (mins[0] + maxs[0]) * 0.5f;
 	start[1] = stop[1] = (mins[1] + maxs[1]) * 0.5f;
-	/*stop[2] = start[2] - 2.0f * svgame.movevars.stepsize;*/
 	stop[2] = start[2] - 2.0f * sv_stepsize.value;
 
 	if (iMode == WALKMOVE_WORLDONLY)
@@ -103,7 +102,6 @@ realcheck:
 				bottom = trace.endpos[2];
 
 			// [FWGS, 25.12.24]
-			/*if ((trace.fraction == 1.0f) || (mid - trace.endpos[2] > svgame.movevars.stepsize))*/
 			if ((trace.fraction == 1.0f) || (mid - trace.endpos[2] > sv_stepsize.value))
 				return false;
 			}
@@ -231,7 +229,8 @@ float SV_VecToYaw (const vec3_t src)
 	else
 		{
 		yaw = (int)(atan2 (src[1], src[0]) * 180.0 / M_PI);
-		if (yaw < 0) yaw += 360.0f;
+		if (yaw < 0)
+			yaw += 360.0f;
 		}
 	return yaw;
 	}
@@ -251,8 +250,9 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 	VectorAdd (ent->v.origin, move, neworg);
 	monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
 
-	// well, try it.  Flying and swimming monsters are easiest.
-	if (ent->v.flags & (FL_SWIM | FL_FLY))
+	// [FWGS, 01.06.25] well, try it. Flying and swimming monsters are easiest
+	/*if (ent->v.flags & (FL_SWIM | FL_FLY))*/
+	if (FBitSet (ent->v.flags, FL_SWIM | FL_FLY))
 		{
 		// try one move with vertical motion, then one without
 		for (i = 0; i < 2; i++)
@@ -276,9 +276,10 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 				{
 				svs.groupmask = ent->v.groupinfo;
 
-				// that move takes us out of the water.
+				// [FWGS, 01.06.25] that move takes us out of the water.
 				// apparently though, it's okay to travel into solids, lava, sky, etc :)
-				if ((ent->v.flags & FL_SWIM) && SV_PointContents (trace.endpos) == CONTENTS_EMPTY)
+				/*if ((ent->v.flags & FL_SWIM) && SV_PointContents (trace.endpos) == CONTENTS_EMPTY)*/
+				if (FBitSet (ent->v.flags, FL_SWIM) && (SV_PointContents (trace.endpos) == CONTENTS_EMPTY))
 					return 0;
 
 				VectorCopy (trace.endpos, ent->v.origin);
@@ -295,11 +296,8 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 			}
 		return 0;
 		}
-
-	// [FWGS, 25.12.24]
 	else
 		{
-		/*dz = svgame.movevars.stepsize;*/
 		dz = sv_stepsize.value;
 		neworg[2] += dz;
 		VectorCopy (neworg, end);
@@ -318,17 +316,21 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 				return 0;
 			}
 
+		// [FWGS, 01.06.25]
 		if (trace.fraction == 1.0f)
 			{
-			if (ent->v.flags & FL_PARTIALGROUND)
+			/*if (ent->v.flags & FL_PARTIALGROUND)*/
+			if (FBitSet (ent->v.flags, FL_PARTIALGROUND))
 				{
 				VectorAdd (ent->v.origin, move, ent->v.origin);
 				if (relink)
 					SV_LinkEdict (ent, true);
 
-				ent->v.flags &= ~FL_ONGROUND;
+				/*ent->v.flags &= ~FL_ONGROUND;*/
+				ClearBits (ent->v.flags, FL_ONGROUND);
 				return 1;
 				}
+
 			return 0;
 			}
 		else
@@ -337,9 +339,11 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 
 			if (SV_CheckBottom (ent, WALKMOVE_NORMAL) == 0)
 				{
-				if (ent->v.flags & FL_PARTIALGROUND)
+				/*if (ent->v.flags & FL_PARTIALGROUND)*/
+				if (FBitSet (ent->v.flags, FL_PARTIALGROUND))
 					{
-					if (relink) SV_LinkEdict (ent, true);
+					if (relink)
+						SV_LinkEdict (ent, true);
 					return 1;
 					}
 
@@ -348,9 +352,11 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 				}
 			else
 				{
-				ent->v.flags &= ~FL_PARTIALGROUND;
+				/*ent->v.flags &= ~FL_PARTIALGROUND;*/
+				ClearBits (ent->v.flags, FL_PARTIALGROUND);
 				ent->v.groundentity = trace.ent;
-				if (relink) SV_LinkEdict (ent, true);
+				if (relink)
+					SV_LinkEdict (ent, true);
 
 				return 1;
 				}
@@ -368,7 +374,6 @@ qboolean SV_MoveTest (edict_t *ent, vec3_t move, qboolean relink)
 	VectorAdd (ent->v.origin, move, neworg);
 
 	// [FWGS, 25.12.24]
-	/*temp = svgame.movevars.stepsize;*/
 	temp = sv_stepsize.value;
 
 	neworg[2] += temp;
@@ -568,7 +573,8 @@ void SV_MoveToOrigin (edict_t *ent, const vec3_t pflGoal, float dist, int iMoveT
 
 			if (ent->v.flags & (FL_FLY | FL_SWIM))
 				vecDist[2] -= ent->v.origin[2];
-			else vecDist[2] = 0.0f;
+			else
+				vecDist[2] = 0.0f;
 
 			VectorNormalize (vecDist);
 			VectorScale (vecDist, dist, vecDist);

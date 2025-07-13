@@ -26,8 +26,6 @@ typedef struct
 	} sv_ents_t;
 
 // [FWGS, 01.12.24]
-/*int	c_fullsend;	// just a debug counter
-int	c_notsend;*/
 static int c_fullsend; // just a debug counter
 static int c_notsend;
 
@@ -98,16 +96,16 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 	for (e = 1; e < svgame.numEntities; e++)
 		{
 		byte *pset;
-
 		ent = EDICT_NUM (e);
 
 		// don't double add an entity through portals (in case this already added)
 		if (CHECKVISBIT (ents->sended, e))
 			continue;
 
-		if (e >= 1 && e <= svs.maxclients)
+		if ((e >= 1) && (e <= svs.maxclients))
 			player = 1;
-		else player = 0;
+		else
+			player = 0;
 
 		if (player)
 			{
@@ -187,8 +185,6 @@ trying to deltas with previous entities
 set frame to NULL to check for static entities
 =============
 ***/
-/*static int SV_FindBestBaseline (sv_client_t *cl, int index, entity_state_t **baseline, entity_state_t *to,
-	client_frame_t *frame, qboolean player)*/
 int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *to, client_frame_t *frame, qboolean player)
 	{
 	int	bestBitCount;
@@ -202,7 +198,6 @@ int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *t
 	for (i = index - 1; (bestBitCount > 0) && (i >= 0) && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)
 		{
 		// don't worry about underflow in circular buffer
-		/*entity_state_t *test = &svs.packet_entities[(frame->first_entity + i) % svs.num_client_entities];*/
 		entity_state_t *test;
 
 		// if set, then it's normal entity
@@ -225,48 +220,13 @@ int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *t
 
 	// using delta from previous entity as baseline for current
 	if (index != bestfound)
-	/*-*baseline = &svs.packet_entities[(frame->first_entity + bestfound) % svs.num_client_entities];
-	return index - bestfound;
-	}
-
-/
-=============
-SV_FindBestBaselineForStatic
-
-trying to deltas with previous static entities
-=============
-/
-int SV_FindBestBaselineForStatic (int index, entity_state_t **baseline, entity_state_t *to)
-	{
-	int	bestBitCount;
-	int	i, bitCount;
-	int	bestfound, j;
-
-	bestBitCount = j = Delta_TestBaseline (*baseline, to, false, sv.time);
-	bestfound = index;
-
-	// lookup backward for previous 64 states and try to interpret current delta as baseline
-	for (i = index - 1; bestBitCount > 0 && i >= 0 && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)*/
 		{
-		/*// don't worry about underflow in circular buffer
-		entity_state_t *test = &svs.static_entities[i];
-
-		bitCount = Delta_TestBaseline (test, to, false, sv.time);
-
-		if (bitCount < bestBitCount)
-			{
-			bestBitCount = bitCount;
-			bestfound = i;
-			}*/
 		if (frame != NULL)
 			*baseline = &svs.packet_entities[(frame->first_entity + bestfound) % svs.num_client_entities];
 		else
 			*baseline = &svs.static_entities[bestfound];
 		}
 
-	/*// using delta from previous entity as baseline for current
-	if (index != bestfound)
-		*baseline = &svs.static_entities[bestfound];*/
 	return index - bestfound;
 	}
 
@@ -323,7 +283,7 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 	newindex = 0;
 	oldindex = 0;
 
-	while (newindex < to->num_entities || oldindex < oldmax)
+	while ((newindex < to->num_entities) || (oldindex < oldmax))
 		{
 		if (newindex >= to->num_entities)
 			{
@@ -367,7 +327,6 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 			// [FWGS, 25.12.24] trying to reduce message by select optimal baseline
 			if (!sv_instancedbaseline.value || !sv.num_instanced || sv.last_valid_baseline > newnum)
 				{
-				/*offset = SV_FindBestBaseline (cl, newindex, &baseline, newent, to, player);*/
 				offset = SV_FindBestBaseline (newindex, &baseline, newent, to, player);
 				}
 			else
@@ -539,9 +498,6 @@ SV_EmitPings [FWGS, 01.02.25]
 ***/
 static void SV_EmitPings (sizebuf_t *msg)
 	{
-	/*sv_client_t	*cl;
-	int			packet_loss;
-	int			i, ping;*/
 	sv_client_t		*cl;
 	int		i;
 
@@ -610,7 +566,6 @@ static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 		}
 
 	clent->v.fixangle = 0; // reset fixangle
-
 	memset (&frame->clientdata, 0, sizeof (frame->clientdata));
 
 	// update clientdata_t
@@ -728,6 +683,7 @@ static void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 FRAME UPDATES
 ===============================================================================
 ***/
+
 /***
 =======================
 SV_SendClientDatagram
@@ -738,7 +694,7 @@ static void SV_SendClientDatagram (sv_client_t *cl)
 	byte		msg_buf[MAX_DATAGRAM];
 	sizebuf_t	msg;
 
-	memset (msg_buf, 0, sizeof (msg_buf));	// [FWGS, 01.04.23]
+	memset (msg_buf, 0, sizeof (msg_buf));
 	MSG_Init (&msg, "Datagram", msg_buf, sizeof (msg_buf));
 
 	// always send servertime at new frame
@@ -756,10 +712,18 @@ static void SV_SendClientDatagram (sv_client_t *cl)
 		}
 	else
 		{
+		// [FWGS, 01.06.25]
 		if (MSG_GetNumBytesWritten (&cl->datagram) < MSG_GetNumBytesLeft (&msg))
+			{
 			MSG_WriteBits (&msg, MSG_GetData (&cl->datagram), MSG_GetNumBitsWritten (&cl->datagram));
-		else
+			}
+			/*else
+			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow on msg\n", cl->name);*/
+		else if (host.realtime > cl->overflow_warn_time)
+			{
 			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow on msg\n", cl->name);
+			cl->overflow_warn_time = host.realtime + 5.0f;
+			}
 		}
 
 	MSG_Clear (&cl->datagram);
@@ -904,7 +868,7 @@ void SV_SendClientMessages (void)
 			// Try to send a message as soon as we can.
 			// If the target time for sending is within the next frame interval (based on last frame),
 			// trigger the send now. Note that in single player,
-			// FCL_SEND_NET_MESSAGE flag is also set any time a packet arrives from the client.
+			// FCL_SEND_NET_MESSAGE flag is also set any time a packet arrives from the client
 			time_until_next_message = cl->next_messagetime - (host.realtime + sv.frametime);
 			if (time_until_next_message <= 0.0)
 				SetBits (cl->flags, FCL_SEND_NET_MESSAGE);
@@ -927,7 +891,7 @@ void SV_SendClientMessages (void)
 			{
 			// If we haven't gotten a message in sv_failuretime seconds, then stop sending messages to this client
 			// until we get another packet in from the client. This prevents crash/drop and reconnect where they are
-			// being hosed with "sequenced packet without connection" packets.
+			// being hosed with "sequenced packet without connection" packets
 			if (sv_failuretime.value < (host.realtime - cl->netchan.last_received))
 				ClearBits (cl->flags, FCL_SEND_NET_MESSAGE);
 			}
@@ -943,24 +907,24 @@ void SV_SendClientMessages (void)
 				continue;
 				}
 
-			// now that we were able to send, reset timer to point to next possible send time.
+			// [FWGS, 01.06.25] now that we were able to send, reset timer to point to next possible send time.
 			// check here also because sv_max/minupdaterate could been changed in runtime
 			updaterate_time = bound (1.0 / sv_maxupdaterate.value, cl->cl_updaterate, 1.0 / sv_minupdaterate.value);
+			/*cl->next_messagetime = host.realtime + sv.frametime + updaterate_time;*/
 			cl->next_messagetime = host.realtime + sv.frametime + updaterate_time;
 			ClearBits (cl->flags, FCL_SEND_NET_MESSAGE);
 
 			// NOTE: we should send frame even if server is not simulated to prevent overflow
 			if (cl->state == cs_spawned)
 				SV_SendClientDatagram (cl);
-			else Netchan_TransmitBits (&cl->netchan, 0, NULL); // just update reliable
+			else
+				Netchan_TransmitBits (&cl->netchan, 0, NULL); // just update reliable
 			}
 		}
 
 	// reset current client
 	sv.current_client = NULL;
 	}
-
-// [FWGS, 01.05.23] удалена SV_SendMessagesToAll
 
 /***
 =======================
@@ -979,7 +943,7 @@ void SV_SkipUpdates (void)
 
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
-		if (cl->state != cs_spawned || FBitSet (cl->flags, FCL_FAKECLIENT))
+		if ((cl->state != cs_spawned) || FBitSet (cl->flags, FCL_FAKECLIENT))
 			continue;
 
 		SetBits (cl->flags, FCL_SKIP_NET_MESSAGE);
@@ -1016,8 +980,13 @@ void SV_InactivateClients (void)
 			continue;
 			}
 
+		// [FWGS, 01.06.25]
 		if (cl->state > cs_connected)
-			cl->state = cs_connected;
+			{
+			/*cl->state = cs_connected;*/
+			// bump connect timeout
+			cl->connection_started = host.realtime;
+			}
 
 		COM_ClearCustomizationList (&cl->customdata, false);
 		memset (cl->physinfo, 0, MAX_PHYSINFO_STRING);

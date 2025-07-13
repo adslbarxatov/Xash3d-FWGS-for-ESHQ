@@ -111,14 +111,25 @@ SETUP BACKENDS DEFINITIONS
 	#endif
 #endif
 
+//
+// [FWGS, 01.07.25] determine movie playback backend
+//
+#ifndef XASH_AVI
+	#if HAVE_FFMPEG
+		#define XASH_AVI AVI_FFMPEG
+	#else
+		#define XASH_AVI AVI_NULL
+	#endif
+#endif
+
 #ifdef XASH_STATIC_LIBS
-#define XASH_LIB LIB_STATIC
-#define XASH_INTERNAL_GAMELIBS
-#define XASH_ALLOW_SAVERESTORE_OFFSETS
+	#define XASH_LIB LIB_STATIC
+	#define XASH_INTERNAL_GAMELIBS
+	#define XASH_ALLOW_SAVERESTORE_OFFSETS
 #elif XASH_WIN32
-#define XASH_LIB LIB_WIN32
+	#define XASH_LIB LIB_WIN32
 #elif XASH_POSIX
-#define XASH_LIB LIB_POSIX
+	#define XASH_LIB LIB_POSIX
 #endif
 
 //
@@ -144,7 +155,6 @@ Default build-depended cvar and constant values
 
 // [FWGS, 01.06.25] Platform overrides
 #if XASH_NSWITCH
-	/*define DEFAULT_TOUCH_ENABLE	"0"*/
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 
@@ -152,7 +162,6 @@ Default build-depended cvar and constant values
 	#define DEFAULT_MODE_HEIGHT		720
 	#define DEFAULT_ALLOWCONSOLE	1
 #elif XASH_PSVITA
-	/*define DEFAULT_TOUCH_ENABLE	"0"*/
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 	#define DEFAULT_MODE_WIDTH		960
@@ -165,9 +174,9 @@ Default build-depended cvar and constant values
 	#define DEFAULT_M_IGNORE		"1"
 #endif
 
-// [FWGS, 01.06.25]
-/*if XASH_ANDROID || XASH_IOS || XASH_EMSCRIPTEN*/
-#if (XASH_ANDROID && !XASH_TERMUX) || XASH_IOS || XASH_EMSCRIPTEN
+// [FWGS, 01.07.25]
+/*if (XASH_ANDROID && !XASH_TERMUX) || XASH_IOS || XASH_EMSCRIPTEN*/
+#if (XASH_ANDROID && !XASH_TERMUX) || XASH_IOS
 #define XASH_INTERNAL_GAMELIBS
 // this means that libraries are provided with engine, but not in game data
 // You need add library loading code to library.c when adding new platform
