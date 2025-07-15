@@ -17,7 +17,6 @@ GNU General Public License for more details
 ***/
 
 // [FWGS, 01.06.25]
-/*if XASH_SDL*/
 #if XASH_SDL == 2
 	#include <SDL.h>	// SDL_GetBasePath
 #elif XASH_SDL == 3
@@ -216,8 +215,13 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 		return true;
 		}
 
-#if TARGET_OS_IOS
+	// [FWGS, 01.07.25]
+/*#if TARGET_OS_IOS*/
+#if XASH_EMSCRIPTEN
+	Q_strncpy (out, "/rwdir", size);
+	return true;
 
+#elif TARGET_OS_IOS
 	Q_strncpy (out, IOS_GetDocsDir (), size);
 	return true;
 
@@ -242,7 +246,6 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 	return false;
 
 	// [FWGS, 01.06.25]
-/*elif ( XASH_SDL == 2 ) && !XASH_NSWITCH // GetBasePath not impl'd in switch-sdl2*/
 #elif ( XASH_SDL >= 2 ) && !XASH_NSWITCH // GetBasePath not impl'd in switch-sdl2
 
 	path = SDL_GetBasePath ();
@@ -288,7 +291,7 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 #endif
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.07.25]
 static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 	{
 	const char *env_rodir = getenv ("XASH3D_RODIR");
@@ -301,6 +304,11 @@ static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 		Q_strncpy (out, env_rodir, size);
 		return true;
 		}
+
+#if XASH_EMSCRIPTEN
+	Q_strncpy (out, "/rodir", size);
+	return true;
+#endif
 
 	return false;
 	}

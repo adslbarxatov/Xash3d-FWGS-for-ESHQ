@@ -25,7 +25,6 @@ GNU General Public License for more details
 #endif
 
 // [FWGS, 01.06.25]
-/*ifdef XASH_SDL*/
 #if XASH_SDL == 2
 	#include <SDL.h>
 #elif XASH_SDL == 3
@@ -80,18 +79,11 @@ Sys_DebugBreak [FWGS, 01.06.25]
 ***/
 void Sys_DebugBreak (void)
 	{
-	/*if XASH_SDL
-	int was_grabbed = host.hWnd != NULL && SDL_GetWindowGrab (host.hWnd);
-	endif*/
 	qboolean was_grabbed = false;
 
 	if (!Sys_DebuggerPresent ())
 		return;
 
-	/*if XASH_SDL
-	if (was_grabbed) // so annoying...
-		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
-	endif*/
 	if (host.hWnd) // so annoying
 		{
 		was_grabbed = Platform_GetMouseGrab ();
@@ -109,8 +101,6 @@ void Sys_DebugBreak (void)
 
 	/*if XASH_SDL*/
 	if (was_grabbed)
-	/*	SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
-	endif*/
 		Platform_SetMouseGrab (true);
 	}
 
@@ -242,6 +232,7 @@ int Sys_CheckParm (const char *parm)
 		if (!Q_stricmp (parm, host.argv[i]))
 			return i;
 		}
+
 	return 0;
 	}
 
@@ -465,7 +456,6 @@ void Sys_Error (const char *error, ...)
 	// [FWGS, 01.06.25]
 	if (!Host_IsDedicated ())
 		{
-/*if XASH_SDL == 2*/
 #if XASH_SDL >= 2
 		if (host.hWnd)
 			SDL_HideWindow (host.hWnd);
@@ -491,23 +481,27 @@ void Sys_Error (const char *error, ...)
 	Sys_Quit ("caught an error");
 	}
 
+// [FWGS, 01.07.25]
 #if XASH_EMSCRIPTEN
-// strange glitchy bug on emscripten
+/*// strange glitchy bug on emscripten
 // _exit->_Exit->asm._exit->_exit
 // As we do not need atexit(), just throw hidden exception
 
-// [FWGS, 01.02.25] Hey, you, making an Emscripten port!
+// Hey, you, making an Emscripten port!
 // What if we're not supposed to use exit() on Emscripten and instead we should
 // exit from the main() function? Would this fix this bug? Test this case, pls.
-#error "Read the comment above"
+error "Read the comment above"*/
 
 #include <emscripten.h>
 #define exit my_exit
+
+/*void my_exit (int ret)*/
 void my_exit (int ret)
 	{
 	emscripten_cancel_main_loop ();
-	printf ("exit(%d)\n", ret);
-	EM_ASM (if (showElement)showElement ('reload', true); throw 'SimulateInfiniteLoop');
+	/*printf ("exit(%d)\n", ret);
+	EM_ASM (if (showElement)showElement ('reload', true); throw 'SimulateInfiniteLoop');*/
+	emscripten_force_exit (ret);
 	}
 #endif
 

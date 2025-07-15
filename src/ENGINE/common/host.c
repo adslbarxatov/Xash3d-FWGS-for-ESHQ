@@ -15,11 +15,6 @@ GNU General Public License for more details
 
 #include "build.h"
 
-// [FWGS, 01.06.25]
-/*ifdef XASH_SDL
-include <SDL.h>
-endif*/
-
 #include <stdarg.h>	// va_args
 
 // [FWGS, 01.07.24]
@@ -97,11 +92,8 @@ CVAR_DEFINE (host_maxfps, "fps_max", "72", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"host fps upper limit");
 
 // [FWGS, 01.06.25]
-/*CVAR_DEFINE_AUTO (fps_override, "1", FCVAR_FILTERABLE,
-	"unlock higher framerate values, not supported");*/
 CVAR_DEFINE_AUTO (fps_override, "0", FCVAR_FILTERABLE,
 	"unlock higher framerate values, not supported");
-
 static CVAR_DEFINE_AUTO (host_framerate, "0", FCVAR_FILTERABLE,
 	"locks frame timing to this value in seconds");
 static CVAR_DEFINE (host_sleeptime, "sleeptime", "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -394,6 +386,7 @@ void Host_EndGame (qboolean abort, const char *message, ...)
 	Con_Printf ("Host_EndGame: %s\n", string);
 
 	SV_Shutdown ("\n");
+
 #if !XASH_DEDICATED
 	CL_Disconnect ();
 
@@ -607,14 +600,6 @@ static void Host_MemStats_f (void)
 	}
 
 // [FWGS, 01.06.25] removed Host_Minimize_f
-/*static void Host_Minimize_f (void)
-	{
-ifdef XASH_SDL
-	if (host.hWnd)
-		SDL_MinimizeWindow (host.hWnd);
-endif
-	}*/
-
 // [FWGS, 01.07.24] removed Host_IsLocalGame, Host_IsLocalClient
 
 /***
@@ -1169,8 +1154,10 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	Memory_Init (); // init memory subsystem
 
+	// [FWGS, 01.07.25]
 	host.mempool = Mem_AllocPool ("Zone Engine");
-	host.allow_console = DEFAULT_ALLOWCONSOLE;
+	/*host.allow_console = DEFAULT_ALLOWCONSOLE;*/
+	host.allow_console = DEFAULT_ALLOWCONSOLE || (DEFAULT_DEV > 0);
 
 	if (Sys_CheckParm ("-dev"))
 		{
@@ -1303,6 +1290,15 @@ static void Sys_Quit_f (void)
 	Sys_Quit ("command");
 	}
 
+// [FWGS, 01.07.25]
+static void Host_MainLoop (void *userdata)
+	{
+	double *poldtime = (double *)userdata;
+	double newtime = Sys_DoubleTime ();
+	COM_Frame (newtime - *poldtime);
+	*poldtime = newtime;
+	}
+
 /***
 =================
 Host_Main
@@ -1310,7 +1306,9 @@ Host_Main
 ***/
 int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
 	{
-	static double	oldtime, newtime;
+	// [FWGS, 01.07.25]
+	/*static double	oldtime, newtime;*/
+	static double	oldtime;
 	string			demoname, exename;
 	qboolean		achiExecuted = false;
 
@@ -1333,8 +1331,6 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	Cvar_RegisterVariable (&host_allow_materials);
 	Cvar_RegisterVariable (&host_serverstate);
 	Cvar_RegisterVariable (&host_maxfps);
-
-	// [FWGS, 01.12.24]
 	Cvar_RegisterVariable (&fps_override);
 	Cvar_RegisterVariable (&host_framerate);
 	Cvar_RegisterVariable (&host_sleeptime);
@@ -1406,7 +1402,6 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	// [FWGS, 01.06.25]
 	else
 		{
-		/*Cmd_AddRestrictedCommand ("minimize", Host_Minimize_f, "minimize main window to tray");*/
 		Cmd_AddRestrictedCommand ("minimize", Platform_Minimize_f, "minimize main window to tray");
 		}
 
@@ -1509,15 +1504,20 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 		return error_on_exit;
 #endif
 
-	// [FWGS, 01.05.25] main window message loop
+	// [FWGS, 01.07.25]
+#if !XASH_EMSCRIPTEN
+	// main window message loop
 	while (host.status != HOST_CRASHED)
-		{
+		/*{
 		newtime = Sys_DoubleTime ();
 		COM_Frame (newtime - oldtime);
 		oldtime = newtime;
-		}
+		}*/
+		Host_MainLoop (&oldtime);
+#else
+		emscripten_set_main_loop_arg (Host_MainLoop, &oldtime, 0, false);
+#endif
 
-	// never reached
 	return 0;
 	}
 

@@ -49,6 +49,7 @@ typedef struct httpfile_s
 	file_t	*file;
 	int		socket;
 	int		size;
+	int		reported_size;	// [FWGS, 01.07.25]
 	int		downloaded;
 	int		lastchecksize;
 	float	checktime;
@@ -153,10 +154,13 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 			Con_Printf (S_ERROR "no servers to download %s\n", file->path);
 			FS_Delete (incname);
 			}
-		else // autoremove disabled, keep file
+
+		// [FWGS, 01.07.25] autoremove disabled, keep file
+		else
 			{
 			// warn about trash file
-			Con_Printf ("no servers to download %s. You may remove %s now\n", file->path, incname);
+			/*Con_Printf ("no servers to download %s. You may remove %s now\n", file->path, incname);*/
+			Con_Printf (S_ERROR "no servers to download %s. You may remove %s now\n", file->path, incname);
 			}
 		}
 	else
@@ -202,7 +206,6 @@ static int HTTP_FileQueue (httpfile_t *file)
 	// [FWGS, 01.06.25]
 	if (!(file->file = FS_Open (name, "wb+", true)))
 		{
-		/*Con_Printf (S_ERROR "HTTP: cannot open %s!", name);*/
 		Con_Printf (S_ERROR "HTTP: cannot open %s!\n", name);
 		HTTP_FreeFile (file, true);
 		return 0;
@@ -519,7 +522,6 @@ static int HTTP_FileDecompress (httpfile_t *file)
 	// [FWGS, 01.02.25]
 	if ((zlib_result == Z_OK) || (zlib_result == Z_STREAM_END))
 		{
-		/*Mem_Free (data_in);*/
 		g_fsapi.WriteFile (name, data_out, decompressed_len);
 		HTTP_FreeFile (file, false);
 		}
@@ -589,7 +591,10 @@ static void HTTP_AutoClean (void)
 				MSG_BeginClientCmd (&msg, clc_stringcmd);
 				MSG_WriteStringf (&msg, "dlfile %s", cur->path);
 				}
-			else CL_ProcessFile (cur->success, cur->path);
+			else
+				{
+				CL_ProcessFile (cur->success, cur->path);
+				}
 			}
 		else
 #endif
@@ -629,7 +634,8 @@ static int HTTP_FileSaveReceivedData (httpfile_t *file, int pos, int length)
 
 			file->chunksize = Q_atoi_hex (1, begin);
 
-			if (!file->chunksize && (begin[0] == '0')) // actually an end, not Q_atoi being stupid
+			// [FWGS, 01.07.25] actually an end, not Q_atoi being stupid
+			if (!file->chunksize && (begin[0] == '0'))
 				{
 				if (file->compressed)
 					{
@@ -639,7 +645,21 @@ static int HTTP_FileSaveReceivedData (httpfile_t *file, int pos, int length)
 					}
 				else
 					{
-					HTTP_FreeFile (file, false); // success
+					/*HTTP_FreeFile (file, false); // success*/
+					fs_offset_t filelen = FS_FileLength (file->file);
+
+					if (filelen != file->reported_size)
+						{
+						Con_Printf (S_ERROR
+							"downloaded file %s size doesn't match reported size. Got %ld bytes, expected %d bytes\n",
+							file->path, (long)filelen, file->reported_size);
+						HTTP_FreeFile (file, true);
+						}
+					else
+						{
+						HTTP_FreeFile (file, false); // success
+						}
+
 					return 1;
 					}
 				}
@@ -732,9 +752,8 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 
 				if (!Q_strstr (curfile->buf, "200 OK"))
 					{
-					char *p;
-
-					int num = -1;
+					char	*p;
+					int		num = -1;
 
 					p = Q_strchr (curfile->buf, '\r');
 					if (!p) p = Q_strchr (curfile->buf, '\n');
@@ -972,8 +991,10 @@ void HTTP_AddDownload (const char *path, int size, qboolean process, resource_t 
 
 	Con_Reportf ("File %s queued to download\n", path);
 
+	// [FWGS, 01.07.25]
 	httpfile->resource = res;
 	httpfile->size = size;
+	httpfile->reported_size = size;
 	httpfile->socket = -1;
 	Q_strncpy (httpfile->path, path, sizeof (httpfile->path));
 

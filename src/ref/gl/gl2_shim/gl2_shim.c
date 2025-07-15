@@ -1737,63 +1737,135 @@ static void APIENTRY stub (void)
 	*((void **)&pgl ## name) = (void *)stub; \
 	}
 
+// [FWGS, 01.07.25]
+#if XASH_EMSCRIPTEN
+
+static void GL2_PolygonMode (GLenum face, GLenum mode)
+	{
+	}
+
+static void GL2_PolygonOffset (GLfloat factor, GLfloat units)
+	{
+	}
+
+static void GL2_ShadeModel (GLenum mode)
+	{
+	}
+
+static void GL2_PointSize (GLfloat size)
+	{
+	}
+
+static void GL2_Normal3fv (const GLfloat *v)
+	{
+	}
+
+static void GL2_Hint (GLenum target, GLenum mode)
+	{
+	}
+
+static void GL2_Scalef (GLfloat x, GLfloat y, GLfloat z)
+	{
+	}
+
+static void GL2_Translatef (GLfloat x, GLfloat y, GLfloat z)
+	{
+	}
+
+static void GL2_TexEnvi (GLenum target, GLenum pname, GLint param)
+	{
+	}
+
+static void GL2_TexEnvf (GLenum target, GLenum pname, GLfloat param)
+	{
+	}
+
+static void GL2_Fogi (GLenum pname, GLint param)
+	{
+	}
+
+static void GL2_DrawBuffer (GLenum mode)
+	{
+	}
+
+#endif
+
 void GL2_ShimInstall (void)
 	{
 	GL2_OVERRIDE_PTR (Vertex2f)
-		GL2_OVERRIDE_PTR (Vertex3f)
-		GL2_OVERRIDE_PTR (Vertex3fv)
-		GL2_OVERRIDE_PTR (Color3f)
-		GL2_OVERRIDE_PTR (Color4f)
-		GL2_OVERRIDE_PTR (Color4ub)
-		GL2_OVERRIDE_PTR (Color4ubv)
-		GL2_STUB (Normal3fv)
-		GL2_OVERRIDE_PTR (TexCoord2f)
-		GL2_OVERRIDE_PTR (MultiTexCoord2f)
-		GL2_OVERRIDE_PTR (AlphaFunc)
-		GL2_OVERRIDE_PTR (Fogf)
-		GL2_OVERRIDE_PTR (Fogfv)
-		GL2_STUB (Hint) // fog
-		GL2_OVERRIDE_PTR (Begin)
-		GL2_OVERRIDE_PTR (End)
-		GL2_OVERRIDE_PTR_B (Enable)
-		GL2_OVERRIDE_PTR_B (Disable)
-		GL2_OVERRIDE_PTR (MatrixMode)
-		GL2_OVERRIDE_PTR (LoadIdentity)
-		GL2_OVERRIDE_PTR (Ortho)
-		GL2_OVERRIDE_PTR (LoadMatrixf)
-		GL2_STUB (Scalef)
-		GL2_STUB (Translatef)
-		GL2_STUB (TexEnvi)
-		GL2_STUB (TexEnvf)
-		GL2_OVERRIDE_PTR (ClientActiveTextureARB)
-		GL2_STUB (Fogi)
-		GL2_STUB (ShadeModel)
-#ifdef XASH_GLES
-		_pglDepthRangef = gEngfuncs.GL_GetProcAddress ("glDepthRangef");
-	GL2_STUB (PolygonMode)
-		GL2_STUB (PointSize)
-		GL2_OVERRIDE_PTR (DepthRange)
-		GL2_STUB (DrawBuffer)
-#endif
-		if (glConfig.context != CONTEXT_TYPE_GL)
-			{
-			GL2_OVERRIDE_PTR_B (TexImage2D)
-				GL2_OVERRIDE_PTR_B (TexParameteri)
-			}
-	GL2_OVERRIDE_PTR_B (IsEnabled)
-		GL2_OVERRIDE_PTR_B (DrawRangeElements)
-		GL2_OVERRIDE_PTR_B (DrawElements)
-		GL2_OVERRIDE_PTR_B (DrawArrays)
-		GL2_OVERRIDE_PTR_B (BindBufferARB)
-		GL2_OVERRIDE_PTR (EnableClientState)
-		GL2_OVERRIDE_PTR (DisableClientState)
-		GL2_OVERRIDE_PTR (VertexPointer)
-		GL2_OVERRIDE_PTR (ColorPointer)
-		GL2_OVERRIDE_PTR (TexCoordPointer)
+	GL2_OVERRIDE_PTR (Vertex3f)
+	GL2_OVERRIDE_PTR (Vertex3fv)
+	GL2_OVERRIDE_PTR (Color3f)
+	GL2_OVERRIDE_PTR (Color4f)
+	GL2_OVERRIDE_PTR (Color4ub)
+	GL2_OVERRIDE_PTR (Color4ubv)
+	GL2_STUB (Normal3fv)
+	GL2_OVERRIDE_PTR (TexCoord2f)
+	GL2_OVERRIDE_PTR (MultiTexCoord2f)
+	GL2_OVERRIDE_PTR (AlphaFunc)
+	GL2_OVERRIDE_PTR (Fogf)
+	GL2_OVERRIDE_PTR (Fogfv)
+	GL2_STUB (Hint) // fog
+	GL2_OVERRIDE_PTR (Begin)
+	GL2_OVERRIDE_PTR (End)
+	GL2_OVERRIDE_PTR_B (Enable)
+	GL2_OVERRIDE_PTR_B (Disable)
+	GL2_OVERRIDE_PTR (MatrixMode)
+	GL2_OVERRIDE_PTR (LoadIdentity)
+	GL2_OVERRIDE_PTR (Ortho)
+	GL2_OVERRIDE_PTR (LoadMatrixf)
+	GL2_STUB (Scalef)
+	GL2_STUB (Translatef)
+	GL2_STUB (TexEnvi)
+	GL2_STUB (TexEnvf)
+	GL2_OVERRIDE_PTR (ClientActiveTextureARB)
+	GL2_STUB (Fogi)
+	GL2_STUB (ShadeModel)
 
-#ifdef QUAD_BATCH
-		GL2_OVERRIDE_PTR_B (BindTexture)
+#ifdef XASH_GLES
+	_pglDepthRangef = gEngfuncs.GL_GetProcAddress ("glDepthRangef");
+	GL2_STUB (PolygonMode)
+	GL2_STUB (PointSize)
+	GL2_OVERRIDE_PTR (DepthRange)
+	GL2_STUB (DrawBuffer)
 #endif
-		GL2_AllocArrays ();
+
+	if (glConfig.context != CONTEXT_TYPE_GL)
+		{
+		GL2_OVERRIDE_PTR_B (TexImage2D)
+			GL2_OVERRIDE_PTR_B (TexParameteri)
+		}
+	
+	// [FWGS, 01.07.25]
+#if XASH_EMSCRIPTEN
+	GL2_OVERRIDE_PTR (Normal3fv)
+	GL2_OVERRIDE_PTR (Hint)
+	GL2_OVERRIDE_PTR (Scalef)
+	GL2_OVERRIDE_PTR (Translatef)
+	GL2_OVERRIDE_PTR (TexEnvi)
+	GL2_OVERRIDE_PTR (TexEnvf)
+	GL2_OVERRIDE_PTR (Fogi)
+	GL2_OVERRIDE_PTR (ShadeModel)
+	GL2_OVERRIDE_PTR (PolygonMode)
+	GL2_OVERRIDE_PTR (PointSize)
+	GL2_OVERRIDE_PTR (PolygonOffset)
+	GL2_OVERRIDE_PTR (DrawBuffer)
+#endif
+
+	GL2_OVERRIDE_PTR_B (IsEnabled)
+	GL2_OVERRIDE_PTR_B (DrawRangeElements)
+	GL2_OVERRIDE_PTR_B (DrawElements)
+	GL2_OVERRIDE_PTR_B (DrawArrays)
+	GL2_OVERRIDE_PTR_B (BindBufferARB)
+	GL2_OVERRIDE_PTR (EnableClientState)
+	GL2_OVERRIDE_PTR (DisableClientState)
+	GL2_OVERRIDE_PTR (VertexPointer)
+	GL2_OVERRIDE_PTR (ColorPointer)
+	GL2_OVERRIDE_PTR (TexCoordPointer)
+		
+#ifdef QUAD_BATCH
+	GL2_OVERRIDE_PTR_B (BindTexture)
+#endif
+	GL2_AllocArrays ();
 	}
 #endif

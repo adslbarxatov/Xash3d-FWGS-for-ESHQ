@@ -200,6 +200,7 @@ void UI_ShowConnectionWarning (void)
 			{
 			gameui.dllFuncs2.pfnShowConnectionWarning ();
 			}
+
 		Con_DPrintf (S_WARN "Too many lost packets! Showing Network options menu\n");
 		}
 	}
@@ -293,17 +294,21 @@ void UI_ConnectionProgress_ParseServerInfo (const char *server)
 		gameui.dllFuncs2.pfnConnectionProgress_ParseServerInfo (server);
 	}
 
+// [FWGS, 01.07.25]
 static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, float width, float height)
 	{
-	static float	cin_time;
+	/*static float	cin_time;
 	static int		last_frame = -1;
-	byte			*cin_data = NULL;
+	byte			*cin_data = NULL;*/
 	movie_state_t	*cin_state;
-	int				cin_frame;
-	qboolean		redraw = false;
+	/*int				cin_frame;
+	qboolean		redraw = false;*/
 
+	/*if (!gameui.drawLogo)
+		return;*/
 	if (!gameui.drawLogo)
 		return;
+
 	cin_state = AVI_GetState (CIN_LOGO);
 
 	if (!AVI_IsActive (cin_state))
@@ -313,7 +318,7 @@ static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, flo
 
 		// run cinematic if not
 		Q_snprintf (path, sizeof (path), "media/%s", filename);
-		COM_DefaultExtension (path, ".avi", sizeof (path));	// [FWGS, 01.05.23]
+		COM_DefaultExtension (path, ".avi", sizeof (path));
 
 		fullpath = FS_GetDiskPath (path, false);
 
@@ -332,27 +337,29 @@ static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, flo
 			return;
 			}
 
-		cin_time = 0.0f;
-		last_frame = -1;
+		/*cin_time = 0.0f;
+		last_frame = -1;*/
 		}
 
+	// precache call, don't draw
 	if ((width <= 0) || (height <= 0))
-		{
-		// precache call, don't draw
+		/*{
 		cin_time = 0.0f;
-		last_frame = -1;
+		last_frame = -1;*/
 		return;
-		}
+		/*}*/
 
-	// advances cinematic time (ignores maxfps and host_framerate settings)
+	/*// advances cinematic time (ignores maxfps and host_framerate settings)
 	cin_time += host.realframetime;
 
 	// restarts the cinematic
 	if (cin_time > gameui.logo_length)
-		cin_time = 0.0f;
+		cin_time = 0.0f;*/
+	AVI_SetParm (cin_state, AVI_RENDER_TEXNUM, 0, AVI_RENDER_X, (int)x, AVI_RENDER_Y, (int)y,
+		AVI_RENDER_W, (int)width, AVI_RENDER_H, (int)height, AVI_PARM_LAST);
 
 	// read the next frame
-	cin_frame = AVI_GetVideoFrameNumber (cin_state, cin_time);
+	/*cin_frame = AVI_GetVideoFrameNumber (cin_state, cin_time);
 
 	if (cin_frame != last_frame)
 		{
@@ -361,7 +368,9 @@ static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, flo
 		redraw = true;
 		}
 
-	ref.dllFuncs.R_DrawStretchRaw (x, y, width, height, gameui.logo_xres, gameui.logo_yres, cin_data, redraw);
+	ref.dllFuncs.R_DrawStretchRaw (x, y, width, height, gameui.logo_xres, gameui.logo_yres, cin_data, redraw);*/
+	if (!AVI_Think (cin_state))
+		AVI_SetParm (cin_state, AVI_REWIND, AVI_PARM_LAST);
 	}
 
 static int GAME_EXPORT UI_GetLogoWidth (void)

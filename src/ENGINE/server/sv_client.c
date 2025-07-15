@@ -43,7 +43,7 @@ typedef struct ucmd_s
 	} ucmd_t;
 
 static int	g_userid = 1;
-static void SV_UserinfoChanged (sv_client_t *cl);	// [FWGS, 01.07.23]
+static void SV_UserinfoChanged (sv_client_t *cl);
 static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s);	// [FWGS, 01.02.24]
 
 // [FWGS, 01.12.24] removed SV_HavePassword
@@ -87,7 +87,6 @@ flood the server with invalid connection IPs.  With a
 challenge, they must give a valid IP address.
 =================
 ***/
-/*static void SV_GetChallenge (netadr_t from)*/
 static int SV_GetChallenge (netadr_t from, qboolean *error)
 	{
 	const netadrtype_t	type = NET_NetadrType (&from);
@@ -272,7 +271,6 @@ Get slot # and set client_t pointer for player, if possible
 We don't do this search on a "reconnect, we just reuse the slot
 ================
 ***/
-/*static int SV_FindEmptySlot (netadr_t from, int *pslot, sv_client_t **ppClient)*/
 static sv_client_t *SV_FindEmptySlot (void)
 	{
 	int i;
@@ -308,7 +306,7 @@ static void SV_MaybeNotifyPlayerCountChange (const sv_client_t *cl, const char *
 
 /***
 ==================
-SV_ConnectClient
+SV_ConnectClient [FWGS, 01.07.25]
 
 A connection request that did not come from the master
 ==================
@@ -317,7 +315,7 @@ static void SV_ConnectClient (netadr_t from)
 	{
 	char		userinfo[MAX_INFO_STRING];
 	char		protinfo[MAX_INFO_STRING];
-	char		physinfo[MAX_INFO_STRING];
+	/*char		physinfo[MAX_INFO_STRING];*/
 	client_frame_t	*frames;
 	sv_client_t	*newcl = NULL;
 	int			qport, version;
@@ -427,18 +425,30 @@ static void SV_ConnectClient (netadr_t from)
 	memset (frames, 0, sizeof (client_frame_t) * SV_UPDATE_BACKUP);
 	SV_ClearResourceLists (newcl);
 
+	/*memcpy (physinfo, newcl->physinfo, sizeof (physinfo));
+	memset (newcl, 0, sizeof (*newcl));*/
+
+	// a1ba: preserve physinfo and viewent as it's set by game logic before client connect!
+	{
+	char physinfo[MAX_INFO_STRING];
+	edict_t *viewent = newcl->pViewEntity;
+
 	memcpy (physinfo, newcl->physinfo, sizeof (physinfo));
+
 	memset (newcl, 0, sizeof (*newcl));
 
-	// a1ba: preserve physinfo as it's set by game logic, before client connect!
 	memcpy (newcl->physinfo, physinfo, sizeof (newcl->physinfo));
+	newcl->pViewEntity = viewent;
+	}
+
+	/*// a1ba: preserve physinfo as it's set by game logic, before client connect!
+	memcpy (newcl->physinfo, physinfo, sizeof (newcl->physinfo));*/
 
 	newcl->edict = EDICT_NUM ((newcl - svs.clients) + 1);
 	newcl->frames = frames;
 
 	// [FWGS, 01.06.25]
 	newcl->userid = g_userid++;	// create unique userid
-	/*newcl->state = cs_connected;*/
 	newcl->state = cs_connected;	// now expect "spawn" command
 	newcl->extensions = FBitSet (extensions, NET_EXT_SPLITSIZE);
 
@@ -1652,7 +1662,7 @@ CLIENT COMMAND EXECUTION
 SV_New_f
 
 Sends the first message from the server to a connected client.
-This will be sent on the initial connection and upon each server load.
+This will be sent on the initial connection and upon each server load
 ================
 ***/
 static qboolean SV_New_f (sv_client_t *cl)
@@ -1822,7 +1832,7 @@ static qboolean SV_ShouldUpdateUserinfo (sv_client_t *cl)
 SV_UserinfoChanged
 
 Pull specific info from a newly changed userinfo string
-into a more C freindly form.
+into a more C freindly form
 =================
 ***/
 static void SV_UserinfoChanged (sv_client_t *cl)
@@ -2214,7 +2224,6 @@ SV_Begin_f
 ***/
 static qboolean SV_Begin_f (sv_client_t *cl)
 	{
-	/*if (cl->state != cs_connected)*/
 	// [FWGS, 01.06.25] make sure client has passed connection process correctly
 	if (cl->state != cs_spawning)
 		return false;
@@ -2267,7 +2276,6 @@ static qboolean SV_ClientStatus_f (sv_client_t *cl)
 	if (ip4.type == NA_IP)
 		SV_ClientPrintf (cl, "tcp/ip: %s\n", NET_AdrToString (ip4));
 	if (ip6.type == NA_IP6)
-		/*SV_ClientPrintf (cl, "tcp/ipv6: %s\n", NET_AdrToString (ip4));*/
 		SV_ClientPrintf (cl, "tcp/ipv6: %s\n", NET_AdrToString (ip6));
 
 	SV_ClientPrintf (cl, "map:\t%s at %d x, %d y, %d z\n" "players: %i active (%i max)\n"
@@ -2533,6 +2541,7 @@ static qboolean SV_EntList_f (sv_client_t *cl)
 
 		SV_ClientPrintf (cl, "\n");
 		}
+
 	return true;
 	}
 
@@ -3187,44 +3196,25 @@ static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 
 	for (i = 0; i < HLARRAYSIZE (ucmds); i++)
 		{
-		/*const ucmd_t *u = &ucmds[i];
-
-		if (!Q_strcmp (Cmd_Argv (0), u->name))*/
 		if (!Q_strcmp (Cmd_Argv (0), ucmds[i].name))
 			{
-			/*if (!u->func (cl))
-				Con_Printf ("'%s' is not valid from the console\n", u->name);*/
 			if (!ucmds[i].func (cl))
 				Con_Printf ("'%s' is not valid from the console\n", ucmds[i].name);
 			else
-				/*Con_Reportf ("ucmd->%s()\n", u->name);*/
 				Con_Reportf ("ucmd->%s()\n", ucmds[i].name);
 
 			return;
 			}
 		}
 
-	/*if ((sv_enttools_enable.value > 0.0f) && !sv.background)*/
 	if (sv.state == ss_active)
 		{
-		/*for (i = 0; i < HLARRAYSIZE (enttoolscmds); i++)
-			{
-			const ucmd_t *u = &enttoolscmds[i];*/
 		qboolean fullupdate;
 
-		/*if (!Q_strcmp (Cmd_Argv (0), u->name))*/
 		if ((cl->state == cs_spawned) && (sv_enttools_enable.value > 0.0f) && !sv.background)
 			{
 			for (i = 0; i < HLARRAYSIZE (enttoolscmds); i++)
 				{
-				/*Con_Reportf ("enttools->%s(): %s\n", u->name, s);
-				Log_Printf ("\"%s<%i><%s><>\" performed: %s\n", Info_ValueForKey (cl->userinfo, "name"),
-					cl->userid, SV_GetClientIDString (cl), s);
-
-				if (u->func)
-					u->func (cl);
-
-				return;*/
 				if (!Q_strcmp (Cmd_Argv (0), enttoolscmds[i].name))
 					{
 					Con_Reportf ("enttools->%s(): %s\n", enttoolscmds[i].name, s);
@@ -3235,11 +3225,6 @@ static void SV_ExecuteClientCommand (sv_client_t *cl, const char *s)
 					}
 				}
 			}
-		/*}
-
-	if (sv.state == ss_active)
-		{
-		qboolean fullupdate = !Q_strcmp (Cmd_Argv (0), "fullupdate");*/
 
 		fullupdate = !Q_strcmp (Cmd_Argv (0), "fullupdate");
 		if (fullupdate)
@@ -3333,14 +3318,6 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		{
 		SV_Info (from, Q_atoi (Cmd_Argv (1)));
 		}
-	/*else if (!Q_strcmp (pcmd, M2S_CHALLENGE))
-		{
-		SV_AddToMaster (from, msg);
-		}
-	else if (!Q_strcmp (pcmd, M2S_NAT_CONNECT))
-		{
-		SV_ConnectNatClient (from);
-		}*/
 	else if (!Q_strcmp (pcmd, C2S_BANDWIDTHTEST))
 		{
 		SV_TestBandWidth (from);
@@ -3695,7 +3672,6 @@ static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 	MSG_ReadBytes (msg, received, size);
 
 	// [FWGS, 01.06.25]
-	/*if (!sv_voiceenable.value || (svs.maxclients <= 1))*/
 	if (!sv_voiceenable.value || (svs.maxclients <= 1) || (cl->state != cs_spawned))
 		return;
 

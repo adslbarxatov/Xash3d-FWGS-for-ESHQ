@@ -17,12 +17,13 @@ GNU General Public License for more details
 #include "sound.h"
 #include "client.h"
 
-// [FWGS, 09.05.24]
+// [FWGS, 01.07.25]
 enum
 	{
 	IPAINTBUFFER = 0,
 	IROOMBUFFER,
 	ISTREAMBUFFER,
+	IVOICEBUFFER,
 	CPAINTBUFFERS,
 	};
 
@@ -63,12 +64,14 @@ typedef struct
 	portable_samplepair_t	fltmem[CPAINTFILTERS][CPAINTFILTERMEM];
 	} paintbuffer_t;
 
-static portable_samplepair_t *g_curpaintbuffer;
-static portable_samplepair_t streambuffer[(PAINTBUFFER_SIZE + 1)];
-static portable_samplepair_t paintbuffer[(PAINTBUFFER_SIZE + 1)];
-static portable_samplepair_t roombuffer[(PAINTBUFFER_SIZE + 1)];
-static portable_samplepair_t temppaintbuffer[(PAINTBUFFER_SIZE + 1)];
-static paintbuffer_t paintbuffers[CPAINTBUFFERS];
+// [FWGS, 01.07.25]
+static portable_samplepair_t	*g_curpaintbuffer;
+static portable_samplepair_t	streambuffer[(PAINTBUFFER_SIZE + 1)];
+static portable_samplepair_t	paintbuffer[(PAINTBUFFER_SIZE + 1)];
+static portable_samplepair_t	roombuffer[(PAINTBUFFER_SIZE + 1)];
+static portable_samplepair_t	voicebuffer[(PAINTBUFFER_SIZE + 1)];
+static portable_samplepair_t	temppaintbuffer[(PAINTBUFFER_SIZE + 1)];
+static paintbuffer_t			paintbuffers[CPAINTBUFFERS];
 
 static int snd_scaletable[SND_SCALE_LEVELS][256];
 
@@ -153,8 +156,6 @@ static void MIX_ActivatePaintbuffer (int ipaintbuffer)
 	paintbuffers[ipaintbuffer].factive = true;
 	}
 
-// [FWGS, 01.05.23] удалена MIX_DeactivatePaintbuffer
-
 // [FWGS, 09.05.24]
 static void MIX_SetCurrentPaintbuffer (int ipaintbuffer)
 	{
@@ -203,8 +204,6 @@ static void MIX_ResetPaintbufferFilterCounters (void)
 		paintbuffers[i].ifilter = FILTERTYPE_NONE;
 	}
 
-// [FWGS, 01.05.23] удалена MIX_ResetPaintbufferFilterCounter
-
 // [FWGS, 09.05.24] return pointer to front paintbuffer pbuf, given index
 static portable_samplepair_t *MIX_GetPFrontFromIPaint (int ipaintbuffer)
 	{
@@ -225,7 +224,7 @@ void MIX_FreeAllPaintbuffers (void)
 	memset (paintbuffers, 0, CPAINTBUFFERS * sizeof (paintbuffer_t));
 	}
 
-// Initialize paintbuffers array, set current paint buffer to main output buffer IPAINTBUFFER
+// [FWGS, 01.07.25] Initialize paintbuffers array, set current paint buffer to main output buffer IPAINTBUFFER
 void MIX_InitAllPaintbuffers (void)
 	{
 	// clear paintbuffer structs
@@ -234,6 +233,7 @@ void MIX_InitAllPaintbuffers (void)
 	paintbuffers[IPAINTBUFFER].pbuf = paintbuffer;
 	paintbuffers[IROOMBUFFER].pbuf = roombuffer;
 	paintbuffers[ISTREAMBUFFER].pbuf = streambuffer;
+	paintbuffers[IVOICEBUFFER].pbuf = voicebuffer;
 
 	MIX_SetCurrentPaintbuffer (IPAINTBUFFER);
 	}
@@ -501,7 +501,7 @@ int S_MixDataToDevice (channel_t *pChannel, int sampleCount, int outRate, int ou
 
 		if (availableSamples < inputSampleCount)
 			{
-			// how many samples are there given the number of input samples and the rate.
+			// how many samples are there given the number of input samples and the rate
 			outSampleCount = (int)ceil ((availableSamples - sampleFrac) / rate);
 			}
 		else
@@ -509,7 +509,7 @@ int S_MixDataToDevice (channel_t *pChannel, int sampleCount, int outRate, int ou
 			outSampleCount = sampleCount;
 			}
 
-		// Verify that we won't get a buffer overrun.
+		// Verify that we won't get a buffer overrun
 		Assert (floor (sampleFrac + rate * (outSampleCount - 1)) <= availableSamples);
 
 		// save current paintbuffer
@@ -716,7 +716,6 @@ static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_sampl
 	// finpos = 0.5 for upsampling by 2x
 	// inpos is the position of the sample
 
-	/*int i, upCount = count << 1;*/
 	int			i;
 	const int	upCount = Q_min (count << 1, PAINTBUFFER_SIZE);
 	int			a, b, c;
@@ -726,8 +725,6 @@ static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_sampl
 	portable_samplepair_t	*psamp2;
 	portable_samplepair_t	*psamp3;
 	int			outpos = 0;
-
-	/*Assert (upCount <= PAINTBUFFER_SIZE);*/
 
 	// pfiltermem holds 6 samples from previous buffer pass
 	// process 'count' samples
@@ -770,7 +767,6 @@ static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_sampl
 		// write out interpolated sample, increment output counter
 		temppaintbuffer[outpos++].right = a / 8 + b / 4 + c / 2 + x0;
 
-		/*Assert (outpos <= (sizeof (temppaintbuffer) / sizeof (temppaintbuffer[0])));*/
 		if (outpos > HLARRAYSIZE (temppaintbuffer))
 			break;
 		}
@@ -783,8 +779,6 @@ static void S_Interpolate2xCubic (portable_samplepair_t *pbuffer, portable_sampl
 	pfiltermem[2] = pbuffer[upCount - 1];
 
 	// copy temppaintbuffer back into paintbuffer
-	/*for (i = 0; i < upCount; i++)
-		pbuffer[i] = temppaintbuffer[i];*/
 	memcpy (pbuffer, temppaintbuffer, sizeof (*pbuffer) * upCount);
 	}
 
@@ -947,16 +941,16 @@ static void S_MixUpsample (int sampleCount, int filtertype)
 	ppaint->ifilter++;
 	}
 
-// [FWGS, 01.04.23] удалена MIX_MixStreamBuffer
-
-// [FWGS, 01.09.24]
+// [FWGS, 01.07.25]
 static void MIX_MixRawSamplesBuffer (int end)
 	{
-	portable_samplepair_t	*pbuf, *roombuf, *streambuf;
+	/*portable_samplepair_t	*pbuf, *roombuf, *streambuf;*/
+	portable_samplepair_t	*pbuf, *roombuf, *streambuf, *voicebuf;
 	uint	i, j, stop;
 
 	roombuf = MIX_GetPFrontFromIPaint (IROOMBUFFER);
 	streambuf = MIX_GetPFrontFromIPaint (ISTREAMBUFFER);
+	voicebuf = MIX_GetPFrontFromIPaint (IVOICEBUFFER);
 
 	if (s_listener.paused) 
 		return;
@@ -967,6 +961,7 @@ static void MIX_MixRawSamplesBuffer (int end)
 		// copy from the streaming sound source
 		rawchan_t *ch = raw_channels[i];
 		qboolean stream;
+		qboolean is_voice;
 
 		// background track should be mixing into another buffer
 		if (!ch)
@@ -976,8 +971,18 @@ static void MIX_MixRawSamplesBuffer (int end)
 		if (!ch->leftvol && !ch->rightvol)
 			continue;
 
+		is_voice = ((ch->entnum > 0) && (ch->entnum <= MAX_CLIENTS)) ||
+			(ch->entnum == VOICE_LOOPBACK_INDEX) ||
+			(ch->entnum == VOICE_LOCALCLIENT_INDEX);
+
 		stream = (ch->entnum == S_RAW_SOUND_BACKGROUNDTRACK) || CL_IsPlayerIndex (ch->entnum);
-		pbuf = stream ? streambuf : roombuf;
+		/*pbuf = stream ? streambuf : roombuf;*/
+		if (is_voice)
+			pbuf = voicebuf;
+		else if (stream)
+			pbuf = streambuf;
+		else
+			pbuf = roombuf;
 
 		stop = (end < ch->s_rawend) ? end : ch->s_rawend;
 
@@ -998,15 +1003,15 @@ static void MIX_MixRawSamplesBuffer (int end)
 // upsample and mix sounds into final 44khz versions of:
 // IROOMBUFFER, IFACINGBUFFER, IFACINGAWAY
 // dsp fx are then applied to these buffers by the caller.
-// caller also remixes all into final IPAINTBUFFER output.
+// caller also remixes all into final IPAINTBUFFER output
 static void MIX_UpsampleAllPaintbuffers (int end, int count)
 	{
 	// 11khz sounds are mixed into 3 buffers based on distance from listener, and facing direction
 	// These buffers are facing, facingaway, room
-	// These 3 mixed buffers are then each upsampled to 22khz.
+	// These 3 mixed buffers are then each upsampled to 22khz
 
 	// 22khz sounds are mixed into the 3 buffers based on distance from listener, and facing direction
-	// These 3 mixed buffers are then each upsampled to 44khz.
+	// These 3 mixed buffers are then each upsampled to 44khz
 
 	// 44khz sounds are mixed into the 3 buffers based on distance from listener, and facing direction
 
@@ -1075,8 +1080,12 @@ void MIX_PaintChannels (int endtime)
 		// add music or soundtrack from movie (no dsp)
 		MIX_MixPaintbuffers (IPAINTBUFFER, IROOMBUFFER, IPAINTBUFFER, count, S_GetMasterVolume ());
 
-		// add music or soundtrack from movie (no dsp)
-		MIX_MixPaintbuffers (IPAINTBUFFER, ISTREAMBUFFER, IPAINTBUFFER, count, S_GetMusicVolume ());
+		// [FWGS, 01.07.25] add music or soundtrack from movie (no dsp)
+		/*MIX_MixPaintbuffers (IPAINTBUFFER, ISTREAMBUFFER, IPAINTBUFFER, count, S_GetMusicVolume ());*/
+		MIX_MixPaintbuffers (IPAINTBUFFER, ISTREAMBUFFER, IPAINTBUFFER, count, 1.0f);
+
+		// [FWGS, 01.07.25] voice chat
+		MIX_MixPaintbuffers (IPAINTBUFFER, IVOICEBUFFER, IPAINTBUFFER, count, 1.0f);
 
 		// clip all values > 16 bit down to 16 bit
 		MIX_CompressPaintbuffer (IPAINTBUFFER, count);

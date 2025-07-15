@@ -117,8 +117,6 @@ static CVAR_DEFINE_AUTO (cl_dlmax, "0", FCVAR_USERINFO | FCVAR_ARCHIVE,
 	"max allowed outcoming fragment size");
 
 // [FWGS, 01.06.25]
-/*static CVAR_DEFINE_AUTO (cl_upmax, "1200", FCVAR_ARCHIVE,
-	"max allowed incoming fragment size");*/
 static CVAR_DEFINE_AUTO (cl_upmax, "508", FCVAR_ARCHIVE,
 	"max allowed incoming fragment size");
 
@@ -168,11 +166,14 @@ CVAR_DEFINE_AUTO (rate, "25000", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERAB
 static CVAR_DEFINE_AUTO (cl_ticket_generator, "revemu2013", FCVAR_ARCHIVE,
 	"you wouldn't steal a car");
 
+// [FWGS, 01.07.25] ESHQ: отклонено значение true по умолчанию
+static CVAR_DEFINE_AUTO (cl_advertise_engine_in_name, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"add [Xash3D] to the nickname when connecting to GoldSrc servers");
+
 client_t		cl;
 client_static_t	cls;
 clgame_static_t	clgame;
 
-// [FWGS, 01.11.23]
 static void CL_SendMasterServerScanRequest (void);
 
 // ======================================================================
@@ -439,8 +440,6 @@ static void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 		max_interp = 0.2f;
 
 	min_interp = 1.0f / cl_updaterate.value;
-
-	// [FWGS, 01.04.23]
 	interpolation_time = cl_interp.value * 1000.0;
 
 	if ((cl_interp.value + epsilon) < min_interp)
@@ -492,7 +491,6 @@ void CL_UpdateFrameLerp (void)
 
 	// compute last interpolation amount
 	cl.lerpFrac = CL_LerpPoint ();
-
 	cl.commands[(cls.netchan.outgoing_sequence - 1) & CL_UPDATE_MASK].frame_lerp = cl.lerpFrac;
 	}
 
@@ -777,7 +775,6 @@ static void CL_CreateCmd (void)
 		}
 
 	// [FWGS, 01.06.25] demo always have commands so don't overwrite them
-	/*if (!cls.demoplayback) cl.cmd = &pcmd->cmd;*/
 	if (!cls.demoplayback)
 		cl.cmd = pcmd->cmd;
 
@@ -1000,12 +997,12 @@ static void CL_WritePacket (void)
 =================
 CL_SendCommand
 
-Called every frame to builds and sends a command packet to the server.
+Called every frame to builds and sends a command packet to the server
 =================
 ***/
 static void CL_SendCommand (void)
 	{
-	// we create commands even if a demo is playing,
+	// we create commands even if a demo is playing
 	CL_CreateCmd ();
 
 	// clc_move, userinfo etc
@@ -1126,7 +1123,6 @@ static void CL_GetCDKey (char *protinfo, size_t protinfosize)
 	Info_SetValueForKey (protinfo, "cdkey", key, protinfosize);
 	}
 
-// [FWGS, 01.04.25], ESHQ: изменение отклонено
 static void CL_WriteSteamTicket (sizebuf_t *send)
 	{
 	const char	*s;
@@ -1150,11 +1146,15 @@ static void CL_WriteSteamTicket (sizebuf_t *send)
 	i = 0;
 
 	MSG_WriteBytes (send, buf, i);
+
+	// [FWGS, 01.07.25] RevEmu2013: pTicket[1] = revHash (low), pTicket[5] = 0x01100001 (high)
+	*(uint32_t *)cls.steamid = LittleLong (((uint32_t *)buf)[1]);
+	*(uint32_t *)(cls.steamid + 4) = LittleLong (((uint32_t *)buf)[5]);
 	}
 
 /***
 =======================
-CL_SendConnectPacket [FWGS, 01.03.25]
+CL_SendConnectPacket
 
 We have gotten a challenge from the server, so try and connect
 ======================
@@ -1213,8 +1213,10 @@ static void CL_SendConnectPacket (connprotocol_t proto, int challenge)
 		Info_RemoveKey (cls.userinfo, "cl_maxpacket");
 		Info_RemoveKey (cls.userinfo, "cl_maxpayload");
 
+		// [FWGS, 01.07.25]
 		name = Info_ValueForKey (cls.userinfo, "name");
-		if (Q_strnicmp (name, "[Xash3D]", 8))
+		/*if (Q_strnicmp (name, "[Xash3D]", 8))*/
+		if (cl_advertise_engine_in_name.value && Q_strnicmp (name, "[Xash3D]", 8))
 			Info_SetValueForKeyf (cls.userinfo, "name", sizeof (cls.userinfo), "[Xash3D]%s", name);
 
 		MSG_Init (&send, "GoldSrcConnect", send_buf, sizeof (send_buf));
@@ -1952,15 +1954,16 @@ static void CL_InternetServers_f (void)
 	CL_SendMasterServerScanRequest ();
 	}
 
-// [FWGS, 01.12.24]
 static void CL_QueryServer_f (void)
 	{
 	netadr_t		adr;
 	connprotocol_t	proto;
 
+	// [FWGS, 01.07.25]
 	if (Cmd_Argc () != 3)
 		{
-		Con_Printf (S_USAGE "queryserver <adr> <protocol>\n");
+		/*Con_Printf (S_USAGE "queryserver <adr> <protocol>\n");*/
+		Con_Printf (S_USAGE "ui_queryserver <adr> <protocol>\n");
 		return;
 		}
 
@@ -3175,7 +3178,7 @@ void CL_ServerCommand (qboolean reliable, const char *fmt, ...)
 
 /***
 ===============
-CL_UpdateInfo [FWGS, 01.12.24]
+CL_UpdateInfo
 
 tell server about changed userinfo
 ===============
@@ -3192,10 +3195,11 @@ void CL_UpdateInfo (const char *key, const char *value)
 			MSG_WriteString (&cls.netchan.message, cls.userinfo);
 			break;
 
+		// [FWGS, 01.07.25]
 		case PROTO_GOLDSRC:
-			if (!Q_stricmp (key, "name") && Q_strnicmp (value, "[Xash3D]", 8))
+			/*if (!Q_stricmp (key, "name") && Q_strnicmp (value, "[Xash3D]", 8))*/
+			if (cl_advertise_engine_in_name.value && !Q_stricmp (key, "name") && Q_strnicmp (value, "[Xash3D]", 8))
 				{
-				// always prepend [Xash3D] on GoldSrc protocol :)
 				CL_ServerCommand (true, "setinfo \"%s\" \"[Xash3D]%s\"\n", key, value);
 				break;
 				}
@@ -3524,10 +3528,10 @@ static void CL_InitLocal (void)
 	cl.resourcesneeded.pNext = cl.resourcesneeded.pPrev = &cl.resourcesneeded;
 	cl.resourcesonhand.pNext = cl.resourcesonhand.pPrev = &cl.resourcesonhand;
 
-	// [FWGS, 01.12.24]
+	// [FWGS, 01.07.25]
 	Cvar_RegisterVariable (&cl_ticket_generator);
+	Cvar_RegisterVariable (&cl_advertise_engine_in_name);
 	Cvar_RegisterVariable (&showpause);
-
 	Cvar_RegisterVariable (&mp_decals);
 	Cvar_RegisterVariable (&dev_overview);
 	Cvar_RegisterVariable (&cl_resend);
@@ -3654,7 +3658,11 @@ static void CL_InitLocal (void)
 		"collect info about local servers");
 	Cmd_AddRestrictedCommand ("internetservers", CL_InternetServers_f,
 		"collect info about internet servers");
-	Cmd_AddRestrictedCommand ("queryserver", CL_QueryServer_f,
+	
+	// [FWGS, 01.07.25]
+	/*Cmd_AddRestrictedCommand ("queryserver", CL_QueryServer_f,
+		"query server info from console");*/
+	Cmd_AddRestrictedCommand ("ui_queryserver", CL_QueryServer_f,
 		"query server info from console");
 
 	Cmd_AddCommand ("cd", CL_PlayCDTrack_f,
@@ -3674,21 +3682,14 @@ static void CL_InitLocal (void)
 		"disconnect from server");
 	
 	// [FWGS, 01.06.25]
-	/*Cmd_AddCommand ("record", CL_Record_f,
-		"record a demo");*/
 	Cmd_AddRestrictedCommand ("record", CL_Record_f,
 		"record a demo");
-
 	Cmd_AddCommand ("playdemo", CL_PlayDemo_f,
 		"play a demo");
 	Cmd_AddCommand ("timedemo", CL_TimeDemo_f,
 		"demo benchmark");
-
-	/*Cmd_AddCommand ("killdemo", CL_DeleteDemo_f,
-		"delete a specified demo file");*/
 	Cmd_AddRestrictedCommand ("killdemo", CL_DeleteDemo_f,
 		"delete a specified demo file");
-
 	Cmd_AddCommand ("startdemos", CL_StartDemos_f,
 		"start playing back the selected demos sequentially");
 	Cmd_AddCommand ("demos", CL_Demos_f,
@@ -3701,7 +3702,6 @@ static void CL_InitLocal (void)
 	// [FWGS, 01.09.24]
 	Cmd_AddCommand ("listdemo", CL_ListDemo_f,
 		"list demo entries");
-
 	Cmd_AddCommand ("info", NULL,
 		"collect info about local servers with specified protocol");
 	Cmd_AddCommand ("escape", CL_Escape_f,

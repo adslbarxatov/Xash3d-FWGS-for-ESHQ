@@ -28,24 +28,15 @@ GNU General Public License for more details
 #endif
 #include "xash3d_mathlib.h"	// [FWGS, 22.01.25]
 
-// do not waste precious CPU cycles on mobiles or low memory devices
-#if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
+// [FWGS, 01.07.25] do not waste precious CPU cycles on mobiles or low memory devices
+/*if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY*/
+#if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY && !XASH_EMSCRIPTEN
 	#define XASH_COLORIZE_CONSOLE 1
 #else
 	#define XASH_COLORIZE_CONSOLE 0
 #endif
 
 // [FWGS, 01.03.25]
-/*typedef struct
-	{
-	char		title[64];
-	qboolean	log_active;
-	char		log_path[MAX_SYSPATH];
-	FILE		*logfile;
-	int 		logfileno;
-	} LogData;
-
-static LogData s_ld;*/
 static struct logdata_s
 	{
 	char title[64];
@@ -96,10 +87,8 @@ static void Sys_FlushLogfile (void)
 // [FWGS, 01.03.25]
 void Sys_InitLog (void)
 	{
-	/*const char *mode;*/
 	const char *mode;
 
-	/*if (Sys_CheckParm ("-log") && (host.allow_console != 0))*/
 	if (Sys_CheckParm ("-log"))
 		{
 		if (!Sys_GetParmFromCmdLine ("-log", s_ld.log_path) || !isalnum (s_ld.log_path[0]))
@@ -108,7 +97,6 @@ void Sys_InitLog (void)
 		COM_DefaultExtension (s_ld.log_path, ".log", sizeof (s_ld.log_path));
 
 		s_ld.log_active = true;
-		/*Q_strncpy (s_ld.log_path, "engine.log", sizeof (s_ld.log_path));*/
 		}
 
 	s_ld.log_time = Sys_CheckParm ("-logtime");
@@ -130,7 +118,6 @@ void Sys_InitLog (void)
 
 		if (!s_ld.logfile)
 			{
-			/*Con_Reportf (S_ERROR "Sys_InitLog: can't create log file %s: %s\n", s_ld.log_path, strerror (errno));*/
 			Con_Reportf (S_ERROR "%s: can't create log file %s: %s\n", __func__, s_ld.log_path, strerror (errno));
 			return;
 			}
@@ -150,7 +137,6 @@ void Sys_InitLog (void)
 	}
 
 // [FWGS, 01.02.25]
-/*void Sys_CloseLog (void)*/
 void Sys_CloseLog (const char *finalmsg)
 	{
 	// flush to stdout to ensure all data was written
@@ -241,8 +227,10 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 				// don't call engine Msg, might cause recursion
 				fprintf (stderr, "%s: write failed: %s\n", __func__, strerror (errno));
 				}
+
 			break;
 			}
+
 		else if (IsColorString (p))
 			{
 			if (p != msg)
@@ -256,6 +244,7 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 			if (colorize)
 				Sys_WriteEscapeSequenceForColorcode (fd, ColorIndex (p[1]));
 			}
+
 		else
 			{
 			if (write (fd, msg, p - msg + 1) < 0)
@@ -313,7 +302,6 @@ void Sys_PrintLog (const char *pMsg)
 	const struct tm	*crt_tm;
 	char		logtime[32] = "";
 	static char	lastchar;
-	/*qboolean	print_time = true;*/
 	qboolean	print_time = false;
 	size_t		len, logtime_len = 0;
 
@@ -322,15 +310,9 @@ void Sys_PrintLog (const char *pMsg)
 		if (time (&crt_time) >= 0)
 			{
 			crt_tm = localtime (&crt_time);
-			/*if (crt_tm == NULL)
-				print_time = false;*/
 			print_time = (crt_tm != NULL);
 			}
 		}
-	/*else
-		{
-		print_time = false;
-		}*/
 
 	if (print_time)
 		{
@@ -345,15 +327,9 @@ void Sys_PrintLog (const char *pMsg)
 	// save last char to detect when line was not ended
 	lastchar = len > 0 ? pMsg[len - 1] : 0;
 
-	/*if (!s_ld.logfile)
-		return;
-
-	if (print_time)*/
 	// spew to engine.log
 	if (s_ld.logfile)
 		{
-		/*logtime_len = strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm);	// full time
-		logtime_len = Q_min (logtime_len, sizeof (logtime) - 1);	// just in case*/
 		if (s_ld.log_time && print_time)
 			{
 			logtime_len = strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm); //full time
@@ -368,9 +344,6 @@ void Sys_PrintLog (const char *pMsg)
 		Sys_PrintLogfile (s_ld.logfileno, logtime, logtime_len, pMsg, false);
 		Sys_FlushLogfile ();
 		}
-
-	/*Sys_PrintLogfile (s_ld.logfileno, logtime, logtime_len, pMsg, false);
-	Sys_FlushLogfile ();*/
 	}
 
 /***

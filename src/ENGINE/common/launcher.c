@@ -13,8 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.07.25]
 #if XASH_ENABLE_MAIN
+#include "build.h"
+#include "common.h"
+
 #if XASH_SDLMAIN
 	#include <SDL.h>
 #endif
@@ -23,9 +26,9 @@ GNU General Public License for more details
 	#include <emscripten.h>
 #endif
 
-// [FWGS, 01.01.24]
+/*// [FWGS, 01.01.24]
 #include "build.h"
-#include "common.h"
+#include "common.h"*/
 
 // [FWGS, 01.08.24]
 #ifndef XASH_GAMEDIR
@@ -44,49 +47,59 @@ static char		**szArgv;
 // [FWGS, 22.01.25]
 static void Sys_ChangeGame (const char *progname)
 	{
-	/*// [FWGS, 01.11.23] a1ba: may never be called within engine
-	// if platform supports execv() function
-	Q_strncpy (szGameDir, progname, sizeof (szGameDir));
-	Host_Shutdown ();
-	exit (Host_Main (szArgc, szArgv, szGameDir, 1, &Sys_ChangeGame));*/
 	// stub
 	}
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.07.25]
 static int Sys_Start (void)
 	{
 	Q_strncpy (szGameDir, XASH_GAMEDIR, sizeof (szGameDir));
 
 #if XASH_EMSCRIPTEN
-#ifdef EMSCRIPTEN_LIB_FS
+	/*ifdef EMSCRIPTEN_LIB_FS
 	// For some unknown reason emscripten refusing to load libraries later
 	COM_LoadLibrary ("menu", 0);
 	COM_LoadLibrary ("server", 0);
 	COM_LoadLibrary ("client", 0);
-#endif
+	endif
 
-#if XASH_DEDICATED
-	// NodeJS support for debug
+	if XASH_DEDICATED
+	// NodeJS support for debug*/
+#if !XASH_DEDICATED
+
+	EM_ASM (try
+		{
+		FS.mkdir ('/rwdir');
+		FS.mount (IDBFS, { root: '.' }, '/rwdir');
+		}
+	catch (e) {};);
+
+#else
+
 	EM_ASM (try
 		{
 		FS.mkdir ('/xash');
 		FS.mount (NODEFS, { root: '.' }, '/xash');
-		FS.chdir ('/xash');
+		/*FS.chdir ('/xash');*/
 		}
 	catch (e) {};);
+
+/*endif
+
+elif XASH_IOS*/
 #endif
 
-#elif XASH_IOS
+#endif
+
+#if XASH_IOS
 	IOS_LaunchDialog ();
 #endif
 
 	return Host_Main (szArgc, szArgv, szGameDir, 0, Sys_ChangeGame);
 	}
 
-// [FWGS, 01.11.23]
 int main (int argc, char **argv)
 	{
-// [FWGS, 01.05.23]
 #if XASH_PSVITA
 	
 	// inject -dev -console into args if required

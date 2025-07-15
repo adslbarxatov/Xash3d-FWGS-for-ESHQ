@@ -20,7 +20,8 @@ GNU General Public License for more details
 #include "pm_local.h"
 #include "platform/platform.h"
 
-#define SND_CLIP_DISTANCE		1000.0f
+// [FWGS, 01.07.25]
+/*define SND_CLIP_DISTANCE		1000.0f*/
 
 dma_t		dma;
 poolhandle_t	sndpool;
@@ -51,8 +52,6 @@ static CVAR_DEFINE (s_ambient_fade, "ambient_fade", "1000", FCVAR_ARCHIVE | FCVA
 	"rate of volume fading when client is moving");
 static CVAR_DEFINE_AUTO (s_combine_sounds, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
 	"combine channels with same sounds");
-
-// [FWGS, 01.07.24]
 CVAR_DEFINE_AUTO (snd_mute_losefocus, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"silence the audio when game window loses focus");
 CVAR_DEFINE_AUTO (s_test, "0", 0, 
@@ -175,7 +174,7 @@ static void S_UpdateSoundFade (void)
 		f = 1.0f - f; // backward interpolated...
 		}
 
-	// [FWGS, 01.05.23] spline it
+	// spline it
 	f = -(cos (M_PI * f) - 1) / 2;
 	f = bound (0.0f, f, 1.0f);
 
@@ -216,7 +215,7 @@ static qboolean SND_FStreamIsPlaying (sfx_t *sfx)
 
 /***
 =================
-SND_GetChannelTimeLeft [FWGS, 01.04.23]
+SND_GetChannelTimeLeft
 
 TODO: this function needs to be removed after whole sound subsystem rewrite
 =================
@@ -429,8 +428,7 @@ static int S_AlterChannel (int entnum, int channel, sfx_t *sfx, int vol, int pit
 		// This is a sentence name.
 		// For sentences: assume that the entity is only playing one sentence
 		// at a time, so we can just shut off
-		// any channel that has ch->isSentence >= 0 and matches the entnum.
-
+		// any channel that has ch->isSentence >= 0 and matches the entnum
 		for (i = NUM_AMBIENTS, ch = channels + NUM_AMBIENTS; i < total_channels; i++, ch++)
 			{
 			if ((ch->entnum == entnum) && (ch->entchannel == channel) && ch->sfx && ch->isSentence)
@@ -535,9 +533,6 @@ static void SND_Spatialize (channel_t *ch)
 	// normalize source_vec and get distance from listener to source
 	dist = VectorNormalizeLength (source_vec);
 	dot = DotProduct (s_listener.right, source_vec);
-
-	/*// don't pan sounds with no attenuation
-	if (ch->dist_mult <= 0.0f) dot = 0.0f;*/
 
 	if (!FBitSet (host.bugcomp, BUGCOMP_SPATIALIZE_SOUND_WITH_ATTN_NONE))
 		{
@@ -780,7 +775,7 @@ void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float 
 	SND_Spatialize (target_chan);
 
 	// NOTE: first spatialization may be failed because listener position is invalid at this time
-	// so we should keep all sounds an actual and waiting for player spawn.
+	// so we should keep all sounds an actual and waiting for player spawn
 
 	// apply the sample offests
 	target_chan->pMixer.sample = sample;
@@ -801,7 +796,7 @@ and one-shot ambient streaming sounds.  Can also play 'regular' sounds one-shot,
 in case designers want to trigger regular game sounds.
 Pitch changes playback pitch of wave by % above or below 100.  Ignored if pitch == 100
 
-NOTE: volume is 0.0 - 1.0 and attenuation is 0.0 - 1.0 when passed in.
+NOTE: volume is 0.0 - 1.0 and attenuation is 0.0 - 1.0 when passed in
 =================
 ***/
 void S_AmbientSound (const vec3_t pos, int ent, sound_t handle, float fvol, float attn, int pitch, int flags)
@@ -1043,7 +1038,6 @@ static void S_UpdateAmbientSounds (void)
 		return;
 
 	// [FWGS, 01.02.25]
-	/*leaf = Mod_PointInLeaf (s_listener.origin, cl.worldmodel->nodes);*/
 	leaf = Mod_PointInLeaf (s_listener.origin, cl.worldmodel->nodes, cl.worldmodel);
 
 	if (!leaf || !s_ambient_level.value)
@@ -1093,6 +1087,7 @@ static void S_UpdateAmbientSounds (void)
 SOUND STREAM RAW SAMPLES
 =============================================================================
 ***/
+
 /***
 ===================
 S_FindRawChannel
@@ -1161,11 +1156,13 @@ rawchan_t *S_FindRawChannel (int entnum, qboolean create)
 
 /***
 ===================
-S_RawSamplesStereo
+S_RawSamplesStereo [FWGS, 01.07.25]
 ===================
 ***/
-static uint S_RawSamplesStereo (portable_samplepair_t *rawsamples, uint rawend, uint max_samples,
-	uint samples, uint rate, word width, word channels, const byte *data)
+/*static uint S_RawSamplesStereo (portable_samplepair_t *rawsamples, uint rawend, uint max_samples,
+	uint samples, uint rate, word width, word channels, const byte *data)*/
+uint S_RawSamplesStereo (portable_samplepair_t *rawsamples, uint rawend, uint max_samples, uint samples,
+	uint rate, word width, word channels, const byte *data)
 	{
 	uint	fracstep, samplefrac;
 	uint	src, dst;
@@ -1247,11 +1244,13 @@ void S_RawEntSamples (int entnum, uint samples, uint rate, word width, word chan
 	ch->leftvol = ch->rightvol = snd_vol;
 	}
 
-/***
+// [FWGS, 01.07.25] removed S_RawSamples
+
+/*
 ===================
 S_RawSamples
 ===================
-***/
+/
 void S_RawSamples (uint samples, uint rate, word width, word channels, const byte *data, int entnum)
 	{
 	int	snd_vol = 128;
@@ -1260,88 +1259,9 @@ void S_RawSamples (uint samples, uint rate, word width, word channels, const byt
 		snd_vol = 256; // bg track or movie track
 
 	S_RawEntSamples (entnum, samples, rate, width, channels, data, snd_vol);
-	}
+	}*/
 
 // [FWGS, 01.02.25] removed S_StreamAviSamples
-/*
-===================
-S_PositionedRawSamples
-===================
-/
-void S_StreamAviSamples (void *Avi, int entnum, float fvol, float attn, float synctime)
-	{
-	int		bufferSamples;
-	int		fileSamples;
-	byte	raw[MAX_RAW_SAMPLES];
-	float	duration = 0.0f;
-	int		r, fileBytes;
-	rawchan_t	*ch = NULL;
-
-	if (!dma.initialized || s_listener.paused || !CL_IsInGame ())
-		return;
-
-	if ((entnum < 0) || (entnum >= GI->max_edicts))
-		return;
-
-	if (!(ch = S_FindRawChannel (entnum, true)))
-		return;
-
-	if (ch->sound_info.rate == 0)
-		{
-		if (!AVI_GetAudioInfo (Avi, &ch->sound_info))
-			return; // no audiotrack
-		}
-
-	ch->master_vol = bound (0, fvol * 255, 255);
-	ch->dist_mult = (attn / SND_CLIP_DISTANCE);
-
-	// see how many samples should be copied into the raw buffer
-	if (ch->s_rawend < soundtime)
-		ch->s_rawend = soundtime;
-
-	// position is changed, synchronization is lost etc
-	if (fabs (ch->oldtime - synctime) > s_mixahead.value)
-		ch->sound_info.loopStart = AVI_TimeToSoundPosition (Avi, synctime * 1000);
-	ch->oldtime = synctime; // keep actual time
-
-	while (ch->s_rawend < soundtime + ch->max_samples)
-		{
-		wavdata_t *info = &ch->sound_info;
-
-		bufferSamples = ch->max_samples - (ch->s_rawend - soundtime);
-
-		// decide how much data needs to be read from the file
-		fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);
-		if (fileSamples <= 1) return; // no more samples need
-
-		// our max buffer size
-		fileBytes = fileSamples * (info->width * info->channels);
-
-		if (fileBytes > sizeof (raw))
-			{
-			fileBytes = sizeof (raw);
-			fileSamples = fileBytes / (info->width * info->channels);
-			}
-
-		// read audio stream
-		r = AVI_GetAudioChunk (Avi, raw, info->loopStart, fileBytes);
-		info->loopStart += r; // advance play position
-
-		if (r < fileBytes)
-			{
-			fileBytes = r;
-			fileSamples = r / (info->width * info->channels);
-			}
-
-		if (r > 0)
-			{
-			// add to raw buffer
-			ch->s_rawend = S_RawSamplesStereo (ch->rawsamples, ch->s_rawend, ch->max_samples,
-				fileSamples, info->rate, info->width, info->channels, raw);
-			}
-		else break; // no more samples for this frame
-		}
-	}*/
 
 /***
 ===================
@@ -1405,11 +1325,12 @@ static void S_SpatializeRawChannels (void)
 
 	for (i = 0; i < MAX_RAW_CHANNELS; i++)
 		{
-		rawchan_t *ch = raw_channels[i];
+		rawchan_t	*ch = raw_channels[i];
 		vec3_t	source_vec;
 		float	dist, dot;
 
-		if (!ch) continue;
+		if (!ch)
+			continue;
 
 		if (ch->s_rawend < paintedtime)
 			{
@@ -1488,7 +1409,7 @@ static void S_ClearBuffer (void)
 ==================
 S_StopSound
 
-stop all sounds for entity on a channel.
+stop all sounds for entity on a channel
 ==================
 ***/
 void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
@@ -1552,7 +1473,7 @@ static int S_GetSoundtime (void)
 
 	// it is possible to miscount buffers
 	// if it has wrapped twice between
-	// calls to S_Update.  Oh well.
+	// calls to S_Update. Oh well
 	samplepos = dma.samplepos;
 
 	if (samplepos < oldsamplepos)
@@ -1599,7 +1520,7 @@ static void S_UpdateChannels (void)
 	if ((endtime - paintedtime) & 0x3)
 		{
 		// the difference between endtime and painted time should align on
-		// boundaries of 4 samples. this is important when upsampling from 11khz -> 44khz.
+		// boundaries of 4 samples. this is important when upsampling from 11khz -> 44khz
 		endtime -= (endtime - paintedtime) & 0x3;
 		}
 
@@ -1754,8 +1675,9 @@ void SND_UpdateSound (void)
 			Cvar_VariableString ("dsp_coeff_table"), total - 1, paintedtime);
 		}
 
+	// [FWGS, 01.07.25]
 	S_StreamBackgroundTrack ();
-	S_StreamSoundTrack ();
+	/*S_StreamSoundTrack ();*/
 
 	// mix some sound
 	S_UpdateChannels ();

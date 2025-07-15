@@ -59,9 +59,7 @@ GNU General Public License for more details
 
 // [FWGS, 01.06.25]
 fs_globals_t	FI;
-/*qboolean		fs_ext_path = false;	// attempt to read\write from ./ or ../ pathes*/
 poolhandle_t	fs_mempool;
-/*char			fs_rodir[MAX_SYSPATH];*/
 char			fs_rootdir[MAX_SYSPATH];
 
 // path that game allows to overwrite, delete and rename files (and create new of course)
@@ -89,13 +87,6 @@ typedef struct fs_archive_s
 
 // [FWGS, 01.06.25] add archives in specific order PAK -> PK3 -> WAD
 // so raw WADs takes precedence over WADs included into PAKs and PK3s
-/*const fs_archive_t g_archives[] =
-	{
-		{ "pak", SEARCHPATH_PAK, FS_AddPak_Fullpath, true, true },
-		{ "pk3", SEARCHPATH_ZIP, FS_AddZip_Fullpath, true, true },
-		{ "pk3dir", SEARCHPATH_PK3DIR, FS_AddDir_Fullpath, true, false },
-		{ "wad", SEARCHPATH_WAD, FS_AddWad_Fullpath, false, true },
-		{ NULL }, // end marker*/
 static const fs_archive_t g_archives[] = {
 	{
 	.ext = "pak",
@@ -125,7 +116,6 @@ static const fs_archive_t g_archives[] = {
 
 // [FWGS, 01.06.25] special fs_archive_t for plain directories
 static const fs_archive_t g_directory_archive =
-	/*{ NULL, SEARCHPATH_PLAIN, FS_AddDir_Fullpath, false };*/
 	{
 	.type = SEARCHPATH_PLAIN,
 	.pfnAddArchive_Fullpath = FS_AddDir_Fullpath,
@@ -134,7 +124,6 @@ static const fs_archive_t g_directory_archive =
 // [FWGS, 01.06.25]
 #if XASH_ANDROID
 static const fs_archive_t g_android_archive =
-	/*{ NULL, SEARCHPATH_ANDROID_ASSETS, FS_AddAndroidAssets_Fullpath, false };*/
 	{
 	.type = SEARCHPATH_ANDROID_ASSETS,
 	.pfnAddArchive_Fullpath = FS_AddAndroidAssets_Fullpath
@@ -394,7 +383,6 @@ void FS_CreatePath (char *path)
 	}
 
 // [FWGS, 01.06.25]
-/*searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const char *file, int flags)*/
 static searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const char *file, int flags)
 	{
 	searchpath_t *search;
@@ -469,19 +457,8 @@ static searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const 
 FS_MountArchive_Fullpath [FWGS, 01.06.25]
 ================
 ***/
-/*static searchpath_t *FS_MountArchive_Fullpath (const char *file, int flags)*/
 searchpath_t *FS_MountArchive_Fullpath (const char *file, int flags)
 	{
-	/*const fs_archive_t *archive;
-	const char *ext = COM_FileExtension (file);
-
-	for (archive = g_archives; archive->ext; archive++)
-		{
-		if (!Q_stricmp (ext, archive->ext))
-			return FS_AddArchive_Fullpath (archive, file, flags);
-		}
-
-	return NULL;*/
 	return FS_AddArchive_Fullpath (NULL, file, flags);
 	}
 
@@ -495,18 +472,14 @@ then loads and adds pak1.pak pak2.pak...
 ***/
 void FS_AddGameDirectory (const char *dir, uint flags)
 	{
-	/*const fs_archive_t	*archive;*/
 	stringlist_t	list;
 	searchpath_t	*search;
-	/*char				fullpath[MAX_SYSPATH];
-	int					i;*/
 	int		i, j;
 
 	stringlistinit (&list);
 	listdirectory (&list, dir, false);
 	stringlistsort (&list);
 
-	/*for (archive = g_archives; archive->ext; archive++)*/
 	for (j = 0; j < sizeof (g_archives) / sizeof (g_archives[0]); j++)
 		{
 		char	fullpath[MAX_SYSPATH];
@@ -514,14 +487,10 @@ void FS_AddGameDirectory (const char *dir, uint flags)
 
 		for (i = 0; i < list.numstrings; i++)
 			{
-			/*const char *ext = COM_FileExtension (list.strings[i]);
-
-			if (Q_stricmp (ext, archive->ext))*/
 			if (Q_stricmp (COM_FileExtension (list.strings[i]), g_archives[j].ext))
 				continue;
 
 			Q_snprintf (fullpath, sizeof (fullpath), "%s%s", dir, list.strings[i]);
-			/*FS_AddArchive_Fullpath (archive, fullpath, flags);*/
 			FS_AddArchive_Fullpath (&g_archives[j], fullpath, flags);
 			}
 		}
@@ -740,6 +709,7 @@ static qboolean FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 				FS_Print (f, "\n");
 				write_ambients = true;
 				}
+
 			FS_Printf (f, "ambient%i\t\t%s\n", i, GameInfo->ambientsound[i]);
 			}
 		}
@@ -1452,7 +1422,6 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 FS_Rescan [FWGS, 01.03.25]
 ================
 ***/
-/*void FS_Rescan (void)*/
 void FS_Rescan (uint32_t flags, const char *language)
 	{
 	const char *str;
@@ -1774,7 +1743,7 @@ static void FS_ValidateDirectories (const char *path, qboolean *has_base_dir, qb
 
 /***
 ================
-FS_InitStdio [FWGS, 01.03.25]
+FS_InitStdio
 ================
 ***/
 qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const char *basedir, const char *gamedir,
@@ -1845,9 +1814,12 @@ qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const c
 		listdirectory (&dirs, fs_rodir, true);
 		stringlistsort (&dirs);
 
+		// [FWGS, 01.07.25]
 		for (i = 0; i < dirs.numstrings; i++)
 			{
-			if (!FS_SysFolderExists (dirs.strings[i]))
+			/*if (!FS_SysFolderExists (dirs.strings[i]))**/
+			Q_snprintf (buf, sizeof (buf), "%s/%s", fs_rodir, dirs.strings[i]);
+			if (!FS_SysFolderExists (buf))
 				continue;
 
 			if (FI.games[FI.numgames] == NULL)
@@ -3200,7 +3172,6 @@ byte *FS_LoadDirectFile (const char *path, fs_offset_t *filesizeptr)
 	return buf;
 	}
 
-
 /***
 ============
 FS_WriteFile
@@ -3546,7 +3517,6 @@ static qboolean FS_IsArchiveExtensionSupported (const char *ext, uint flags)
 		return false;
 
 	// [FWGS, 01.06.25]
-	/*for (i = 0; i < (sizeof (g_archives) / sizeof (g_archives[0])) - 1; i++)*/
 	for (i = 0; i < sizeof (g_archives) / sizeof (g_archives[0]); i++)
 		{
 		if (FBitSet (flags, IAES_ONLY_REAL_ARCHIVES) && !g_archives[i].real_archive)

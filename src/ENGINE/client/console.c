@@ -21,7 +21,7 @@ GNU General Public License for more details
 #include "qfont.h"
 #include "wadfile.h"
 #include "input.h"
-#include "utflib.h"			// [FWGS, 01.07.24]
+#include "utflib.h"
 
 static CVAR_DEFINE_AUTO (scr_conspeed, "600", FCVAR_ARCHIVE,
 	"console moving speed");
@@ -29,11 +29,8 @@ static CVAR_DEFINE_AUTO (con_notifytime, "3", FCVAR_ARCHIVE,
 	"notify time to live");
 CVAR_DEFINE_AUTO (con_fontsize, "1", FCVAR_ARCHIVE,
 	"console font number (0, 1 or 2)");
-
-// [FWGS, 01.03.24]
 static CVAR_DEFINE_AUTO (con_fontrender, "2", FCVAR_ARCHIVE,
 	"console font render mode (0: additive, 1: holes, 2: trans)");
-
 static CVAR_DEFINE_AUTO (con_charset, "cp1251", FCVAR_ARCHIVE,
 	"console font charset (only cp1251 supported now)");
 static CVAR_DEFINE_AUTO (con_fontscale, "1.0", FCVAR_ARCHIVE,
@@ -42,8 +39,6 @@ static CVAR_DEFINE_AUTO (con_fontnum, "-1", FCVAR_ARCHIVE,
 	"console font number (0, 1 or 2), -1 for autoselect");
 static CVAR_DEFINE_AUTO (con_color, "240 180 24", FCVAR_ARCHIVE,
 	"set a custom console color");
-
-// [FWGS, 01.01.24]
 static CVAR_DEFINE_AUTO (scr_drawversion, "1", FCVAR_ARCHIVE,
 	"draw version in menu or screenshots, doesn't affect console");
 static CVAR_DEFINE_AUTO (con_oldfont, "0", 0,
@@ -88,23 +83,34 @@ rgba_t g_color_table[8] =
 
 typedef struct
 	{
-	string		szNotify;
-	float		expire;
-	rgba_t		color;
+	string	szNotify;
+	float	expire;
+	rgba_t	color;
 	int		key_dest;
 	} notify_t;
 
 typedef struct con_lineinfo_s
 	{
-	char *start;
-	size_t		length;
-	double		addtime;		// notify stuff
+	char	*start;
+	size_t	length;
+	double	addtime;	// notify stuff
 	} con_lineinfo_t;
 
+// [FWGS, 01.07.25]
+typedef struct history_line_s
+	{
+	string	buffer;
+	int		cursor;
+	int		scroll;
+	} history_line_t;
+
+// [FWGS, 01.07.25]
 typedef struct con_history_s
 	{
-	field_t lines[CON_HISTORY];
-	field_t backup;
+	/*field_t lines[CON_HISTORY];
+	field_t backup;*/
+	history_line_t	lines[CON_HISTORY];
+	history_line_t	backup;
 	int     line; // the line being displayed from history buffer will be <= nextHistoryLine
 	int     next; // the last line in the history buffer, not masked
 	} con_history_t;
@@ -236,8 +242,6 @@ static void Con_ClearTyping (void)
 	Cmd_AutoCompleteClear ();
 	}
 
-// [FWGS, 01.05.23] удалена Con_StringLength
-
 /***
 ================
 Con_MessageMode_f
@@ -364,7 +368,7 @@ static void Con_DeleteLine (void)
 ================
 Con_DeleteLastLine
 
-Deletes the last line from the console history.
+Deletes the last line from the console history
 ================
 ***/
 static void Con_DeleteLastLine (void)
@@ -379,7 +383,7 @@ static void Con_DeleteLastLine (void)
 Con_BytesLeft
 
 Checks if there is space for a line of the given length, and if yes, returns a
-pointer to the start of such a space, and NULL otherwise.
+pointer to the start of such a space, and NULL otherwise
 ================
 ***/
 static char *Con_BytesLeft (int length)
@@ -402,6 +406,7 @@ static char *Con_BytesLeft (int length)
 			// put at end?
 			if (length <= con.buffer + con.bufsize - lastline_onepastend)
 				return lastline_onepastend;
+
 			// put at beginning?
 			else if (length <= firstline_start - con.buffer)
 				return con.buffer;
@@ -469,7 +474,7 @@ static void Con_AddLine (const char *line, int length, qboolean newline)
 ================
 Con_CheckResize
 
-If the line width has changed, reformat the buffer.
+If the line width has changed, reformat the buffer
 ================
 ***/
 static void Con_CheckResize (void)
@@ -490,10 +495,11 @@ static void Con_CheckResize (void)
 	con.linewidth = width;
 	con.backscroll = 0;
 
+	// [FWGS, 01.07.25]
 	con.input.widthInChars = con.linewidth;
 
-	for (i = 0; i < CON_HISTORY; i++)
-		con.history.lines[i].widthInChars = con.linewidth;
+	/*for (i = 0; i < CON_HISTORY; i++)
+		con.history.lines[i].widthInChars = con.linewidth;*/
 	}
 
 /***
@@ -548,7 +554,7 @@ int GAME_EXPORT Con_Visible (void)
 
 /***
 ================
-Con_FixedFont [FWGS, 01.04.23]
+Con_FixedFont
 ================
 ***/
 qboolean Con_FixedFont (void)
@@ -631,7 +637,7 @@ static void Con_LoadConchars (void)
 	if (fontSize > CON_NUMFONTS - 1)
 		fontSize = CON_NUMFONTS - 1;
 
-	// [FWGS, 01.04.23] sets the current font
+	// sets the current font
 	con.curFont = &con.chars[fontSize];
 	}
 
@@ -646,7 +652,6 @@ int Con_UtfProcessCharForce (int in)
 	{
 	// [FWGS, 01.03.25] TODO: get rid of global state where possible
 	static utfstate_t state = { 0 };
-	/*int ch = Q_DecodeUTF8 (&state, in);*/
 	uint32_t ch = Q_DecodeUTF8 (&state, in);
 
 	if (g_codepage == 1251)
@@ -744,9 +749,6 @@ static void Con_DrawCharToConback (int num, const byte *conchars, byte *dest)
 
 	}
 
-// [FWGS, 01.07.23] удалены Con_TextAdjustSize, Con_DrawGenericChar, Con_SetFont,
-// Con_RestoreFont, Con_DrawCharacter
-
 /***
 ====================
 Con_GetFont
@@ -787,7 +789,6 @@ Con_DrawString [FWGS, 01.03.25]
 client version of routine
 ====================
 ***/
-/*int Con_DrawString (int x, int y, const char *string, rgba_t setColor)*/
 int Con_DrawString (int x, int y, const char *string, const rgba_t setColor)
 	{
 	return CL_DrawString (x, y, string, setColor, con.curFont, FONT_DRAW_UTF8);
@@ -873,11 +874,6 @@ If no console is visible, the notify window will pop up
 ***/
 void Con_Print (const char *txt)
 	{
-	/*static int		cr_pending = 0;
-	static char		buf[MAX_PRINT_MSG];
-	qboolean		norefresh = false;
-	static int		lastlength = 0;
-	static int		bufpos = 0;*/
 	static qboolean	cr_pending = false;
 	static qboolean	colorstring = false;
 	static char		buf[MAX_PRINT_MSG];
@@ -910,7 +906,6 @@ void Con_Print (const char *txt)
 		if (cr_pending)
 			{
 			Con_DeleteLastLine ();
-			/*cr_pending = 0;*/
 			cr_pending = false;
 			}
 
@@ -926,7 +921,6 @@ void Con_Print (const char *txt)
 					{
 					Con_AddLine (buf, bufpos, true);
 					lastlength = CON_LINES_LAST ().length;
-					/*cr_pending = 1;*/
 					cr_pending = true;
 					bufpos = 0;
 					charpos = 0;
@@ -942,7 +936,6 @@ void Con_Print (const char *txt)
 
 			default:
 				buf[bufpos++] = c | mask;
-				/*if ((bufpos >= sizeof (buf) - 1) || (bufpos >= (con.linewidth - 1)))*/
 				if (IsColorString (txt))
 					{
 					// first color string character
@@ -1302,64 +1295,25 @@ static void Field_CharEvent (field_t *edit, int ch)
 
 /***
 ==================
-Field_DrawInputLine [FWGS, 01.04.25]
+Field_DrawInputLine [FWGS, 01.07.25]
 ==================
 ***/
-/*static void Field_DrawInputLine (int x, int y, field_t *edit)*/
 static void Field_DrawInputLine (int x, int y, const field_t *edit)
 	{
-	/*int		len, cursorChar;
-	int		drawLen;
-	int		prestep, curPos;
-	char	str[MAX_SYSPATH];
-	byte	*colorDefault;*/
 	int		curPos;
 	char	str[MAX_SYSPATH];
 	const byte	*colorDefault = g_color_table[ColorIndex (COLOR_DEFAULT)];
 	const int	prestep = bound (0, edit->scroll, sizeof (edit->buffer) - 1);
 	const int	drawLen = bound (0, edit->widthInChars, sizeof (str));
 	const int	cursorCharPos = bound (0, edit->cursor - prestep, sizeof (str));
+	str[0] = 0;
 
-	/*drawLen = edit->widthInChars;
-	len = Q_strlen (edit->buffer) + 1;
-	colorDefault = g_color_table[ColorIndex (COLOR_DEFAULT)];
-
-	// guarantee that cursor will be visible
-	if (len <= drawLen)
-		{
-		prestep = 0;
-		}
-	else
-		{
-		if (edit->scroll + drawLen > len)
-			{
-			edit->scroll = len - drawLen;
-			if (edit->scroll < 0)
-				edit->scroll = 0;
-			}
-
-		prestep = edit->scroll;
-		}
-
-	if (prestep + drawLen > len)
-		drawLen = len - prestep;
-
-	// extract <drawLen> characters from the field at <prestep>
-	drawLen = Q_min (drawLen, MAX_SYSPATH - 1);
-
-	memcpy (str, edit->buffer + prestep, drawLen);
-	str[drawLen] = 0;
-
-	// save char for overstrike
-	cursorChar = str[edit->cursor - prestep];*/
 	Q_strncpy (str, edit->buffer + prestep, drawLen);
 	CL_DrawString (x, y, str, colorDefault, con.curFont, FONT_DRAW_UTF8);
 
 	if ((int)(host.realtime * 4) & 1)
 		return; // off blink
 
-	/*// calc cursor position
-	str[edit->cursor - prestep] = 0;*/
 	str[cursorCharPos] = 0;
 	CL_DrawStringLen (con.curFont, str, &curPos, NULL, FONT_DRAW_UTF8);
 
@@ -1374,42 +1328,77 @@ static void Field_DrawInputLine (int x, int y, const field_t *edit)
 CONSOLE HISTORY HANDLING
 =============================================================================
 ***/
+
 /***
 ===================
-Con_HistoryUp
+Con_HistoryFromField [FWGS, 01.07.25]
+===================
+***/
+static void Con_HistoryFromField (history_line_t *dst, const field_t *src)
+	{
+	Q_strncpy (dst->buffer, src->buffer, sizeof (dst->buffer));
+	dst->cursor = src->cursor;
+	dst->scroll = src->scroll;
+	}
+
+/***
+===================
+Con_HistoryToField [FWGS, 01.07.25]
+===================
+***/
+static void Con_HistoryToField (field_t *dst, const history_line_t *src)
+	{
+	Q_strncpy (dst->buffer, src->buffer, sizeof (dst->buffer));
+	dst->cursor = src->cursor;
+	dst->scroll = src->scroll;
+	}
+
+/***
+===================
+Con_HistoryUp [FWGS, 01.07.25]
 ===================
 ***/
 static void Con_HistoryUp (con_history_t *self, field_t *in)
 	{
 	if (self->line == self->next)
-		self->backup = *in;
+		/*self->backup = *in;*/
+		Con_HistoryFromField (&self->backup, in);
+	else
+		Con_HistoryFromField (&self->lines[self->line % CON_HISTORY], in);
 
 	if ((self->next - self->line) < CON_HISTORY)
 		self->line = Q_max (0, self->line - 1);
 
-	*in = self->lines[self->line % CON_HISTORY];
+	/**in = self->lines[self->line % CON_HISTORY];*/
+	Con_HistoryToField (in, &self->lines[self->line % CON_HISTORY]);
 	}
 
 /***
 ===================
-Con_HistoryDown
+Con_HistoryDown [FWGS, 01.07.25]
 ===================
 ***/
 static void Con_HistoryDown (con_history_t *self, field_t *in)
 	{
+	Con_HistoryFromField (&self->lines[self->line % CON_HISTORY], in);
+
 	self->line = Q_min (self->next, self->line + 1);
 	if (self->line == self->next)
-		*in = self->backup;
+		/**in = self->backup;
 	else
-		*in = self->lines[self->line % CON_HISTORY];
+		*in = self->lines[self->line % CON_HISTORY];*/
+		Con_HistoryToField (in, &self->backup);
+	else
+		Con_HistoryToField (in, &self->lines[self->line % CON_HISTORY]);
 	}
 
 /***
 ===================
-Con_HistoryAppend
+Con_HistoryAppend [FWGS, 01.07.25]
 ===================
 ***/
-static void Con_HistoryAppend (con_history_t *self, field_t *from)
+/*static void Con_HistoryAppend (con_history_t *self, field_t *from)*/
+static void Con_HistoryAppend (con_history_t *self, const field_t *from)
 	{
 	int prevLine = Q_max (0, self->line - 1);
 	const char *buf = from->buffer;
@@ -1430,14 +1419,15 @@ static void Con_HistoryAppend (con_history_t *self, field_t *from)
 	if (!Q_strcmp (from->buffer, self->lines[prevLine % CON_HISTORY].buffer))
 		return;
 
-	self->lines[self->next % CON_HISTORY] = *from;
+	/*self->lines[self->next % CON_HISTORY] = *from;*/
+	Con_HistoryFromField (&self->lines[self->next % CON_HISTORY], from);
 	self->line = ++self->next;
 	}
 
-// [FWGS, 01.05.24]
+// [FWGS, 01.07.25]
 static void Con_LoadHistory (con_history_t *self)
 	{
-	field_t	*f;
+	/*field_t	*f;*/
 	file_t	*fd;
 	int		i;
 
@@ -1447,13 +1437,15 @@ static void Con_LoadHistory (con_history_t *self)
 
 	while (!FS_Eof (fd))
 		{
-		f = &self->lines[self->next % CON_HISTORY];
+		/*f = &self->lines[self->next % CON_HISTORY];
 		Con_ClearField (f);
 
-		f->widthInChars = con.linewidth;
+		f->widthInChars = con.linewidth;*/
+		history_line_t *f = &self->lines[self->next % CON_HISTORY];
 		
 		FS_Gets (fd, f->buffer, sizeof (f->buffer));
 		f->cursor = Q_strlen (f->buffer);
+		f->scroll = 0;
 
 		// skip empty lines
 		if (f->cursor == 0)
@@ -1462,8 +1454,10 @@ static void Con_LoadHistory (con_history_t *self)
 		// skip repeating lines
 		if (self->next > 0)
 			{
-			field_t *prev;
-			prev = &self->lines[(self->next - 1) % CON_HISTORY];
+			/*field_t *prev;
+			prev = &self->lines[(self->next - 1) % CON_HISTORY];*/
+			const history_line_t *prev = &self->lines[(self->next - 1) % CON_HISTORY];
+
 			if (!Q_stricmp (prev->buffer, f->buffer))
 				continue;
 			}
@@ -1475,10 +1469,12 @@ static void Con_LoadHistory (con_history_t *self)
 
 	for (i = self->next; i < CON_HISTORY; i++)
 		{
-		f = &self->lines[i];
+		/*f = &self->lines[i];*/
+		history_line_t *f = &self->lines[i];
 
-		Con_ClearField (f);
-		f->widthInChars = con.linewidth;
+		/*Con_ClearField (f);
+		f->widthInChars = con.linewidth;*/
+		memset (f, 0, sizeof (*f));
 		}
 
 	self->line = self->next;
@@ -1649,17 +1645,6 @@ void Key_Console (int key)
 		return;
 		}
 
-	/*// [FWGS, 01.04.23] exit the console by pressing MINUS on NSwitch
-	// or both Back(Select)/Start buttons for everyone else
-	if ((key == K_BACK_BUTTON) || (key == K_START_BUTTON))
-		{
-		if (cls.state == ca_active && !cl.background)
-			Key_SetKeyDest (key_game);
-		else
-			UI_SetActiveMenu (true);
-		return;
-		}*/
-
 	// pass to the normal editline routine
 	Field_KeyDownEvent (&con.input, key);
 	}
@@ -1675,7 +1660,6 @@ void Key_Message (int key)
 	{
 	char	buffer[MAX_SYSPATH];
 
-	// [FWGS, 01.04.23]
 	if ((key == K_ESCAPE) || (key == K_BACK_BUTTON))
 		{
 		Key_SetKeyDest (key_game);
@@ -1683,7 +1667,6 @@ void Key_Message (int key)
 		return;
 		}
 
-	// [FWGS, 01.04.23]
 	if ((key == K_ENTER) || (key == K_KP_ENTER) || (key == K_A_BUTTON))
 		{
 		if (con.chat.buffer[0] && (cls.state == ca_active))
@@ -1709,6 +1692,7 @@ void Key_Message (int key)
 DRAWING
 ==============================================================================
 ***/
+
 /***
 ================
 Con_DrawInput
@@ -1726,7 +1710,6 @@ static void Con_DrawInput (int lines)
 
 	y = lines - (con.curFont->charHeight * 2);
 
-	// [FWGS, 01.04.23]
 	CL_DrawCharacter (con.curFont->charWidths[' '], y, ']', g_color_table[7], con.curFont, 0);
 	Field_DrawInputLine (con.curFont->charWidths[' '] * 2, y, &con.input);
 	}
@@ -1796,7 +1779,6 @@ void Con_DrawDebug (void)
 			host.downloadcount, host.downloadfile, scr_download.value, Sys_DoubleTime () - timeStart);
 
 		Con_DrawStringLen (dlstring, &length, NULL);
-		/*length = Q_max (length, 500);*/
 		length = Q_max (length, 300);
 
 		x = refState.width - length * 1.05f;
@@ -1886,7 +1868,6 @@ static int Con_DrawConsoleLine (int y, int lineno)
 	if (!li || !li->start || (*li->start == '\1'))
 		return 0;	// this string will be shown only at notify
 
-	// [FWGS, 01.04.23]
 	if (y >= con.curFont->charHeight)
 		{
 		float x = con.curFont->charWidths[' '];
@@ -1963,7 +1944,6 @@ static void Con_DrawSolidConsole (int lines)
 	// draw current version
 	memcpy (color, g_color_table[7], sizeof (color));
 
-	// [FWGS, 01.04.23]
 	Q_snprintf (curbuild, MAX_STRING, XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)",
 		PROTOCOL_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum ());
 
@@ -1988,7 +1968,7 @@ static void Con_DrawSolidConsole (int lines)
 			{
 			start = con.curFont->charWidths[' ']; // offset one space at left screen side
 
-			// [FWGS, 01.04.23] draw red arrows to show the buffer is backscrolled
+			// draw red arrows to show the buffer is backscrolled
 			for (x = 0; x < con.linewidth; x += 4)
 				CL_DrawCharacter ((x + 1) * start, y, '^', g_color_table[1], con.curFont, 0);
 
@@ -2034,8 +2014,6 @@ void Con_DrawConsole (void)
 		{
 		if (!cl_allow_levelshots.value && !cls.timedemo)
 			{
-			/*if ((Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background")) &&
-				(cls.key_dest != key_console))*/
 			if ((cls.key_dest != key_console) && (Cvar_VariableInteger ("cl_background") ||
 				Cvar_VariableInteger ("sv_background")))
 				con.vislines = con.showlines = 0;
@@ -2107,7 +2085,6 @@ void Con_DrawVersion (void)
 	int		start, height = refState.height;
 	string	curbuild;
 
-	/*if (!scr_drawversion.value || (CL_IsDevOverviewMode () == 2) || net_graph.value)*/
 	if (!scr_drawversion.value)
 		return;
 
@@ -2200,10 +2177,6 @@ void Con_RunConsole (void)
 			}
 		else
 			{
-			/*Con_Printf (S_WARN "Unknown charset %s, defaulting to cp1252", con_charset.string);
-
-			Cvar_DirectSet (&con_charset, "cp1252");
-			g_codepage = 1252;*/
 			g_codepage = 0;
 			}
 
@@ -2243,22 +2216,12 @@ void Con_CharEvent (int key)
 // [FWGS, 01.04.25]
 static int Con_LoadSimpleConback (const char *name, int flags)
 	{
-	/*const char *paths[] = {
-		"gfx/shell/%s.dds",
-		"gfx/shell/%s.bmp",
-		"gfx/shell/%s.tga",
-		"cached/%s640",
-		"cached/%s",
-		};
-	size_t i;*/
 	int i;
 
-	/*for (i = 0; i < HLARRAYSIZE (paths); i++)*/
 	for (i = 0; i < 5; i++)
 		{
 		string path;
 
-		/*Q_snprintf (path, sizeof (path), paths[i], name);*/
 		switch (i)
 			{
 			case 0:

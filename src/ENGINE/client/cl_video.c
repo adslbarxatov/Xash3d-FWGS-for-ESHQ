@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "common.h"
@@ -22,11 +22,12 @@ AVI PLAYING
 =================================================================
 ***/
 
-static int		xres, yres;
+// [FWGS, 01.07.25]
+/*static int		xres, yres;
 static float	video_duration;
 static float	cin_time;
 static int		cin_frame;
-static wavdata_t	cin_audio;
+static wavdata_t	cin_audio;*/
 static movie_state_t	*cin_state;
 
 /***
@@ -80,6 +81,7 @@ static void SCR_CreateStartupVids (void)
 	FS_Close (f);
 	}
 
+// [FWGS, 01.07.25]
 void SCR_CheckStartupVids (void)
 	{
 	int		c = 0;
@@ -87,8 +89,19 @@ void SCR_CheckStartupVids (void)
 	char	*pfile;
 	string	token;
 
-	if (Sys_CheckParm ("-nointro") || host_developer.value || (cls.demonum != -1) ||
-		(GameState->nextstate != STATE_RUNFRAME))
+	/*if (Sys_CheckParm ("-nointro") || host_developer.value || (cls.demonum != -1) ||
+		(GameState->nextstate != STATE_RUNFRAME))*/
+#if 0
+	if (host_developer.value)
+		{
+		// don't run movies where we in developer-mode
+		cls.movienum = -1;
+		CL_CheckStartupDemos ();
+		return;
+		}
+#endif
+
+	if (Sys_CheckParm ("-nointro") || (cls.demonum != -1) || (GameState->nextstate != STATE_RUNFRAME))
 		{
 		// don't run movies where we in developer-mode
 		cls.movienum = -1;
@@ -125,7 +138,7 @@ void SCR_CheckStartupVids (void)
 
 /***
 ==================
-SCR_RunCinematic
+SCR_RunCinematic [FWGS, 01.07.25]
 ==================
 ***/
 void SCR_RunCinematic (void)
@@ -147,12 +160,12 @@ void SCR_RunCinematic (void)
 		Key_SetKeyDest (key_menu);
 		S_StopStreaming ();
 		cls.movienum = -1;
-		cin_time = 0.0f;
+		/*cin_time = 0.0f;*/
 		cls.signon = 0;
 		return;
 		}
 
-	// advances cinematic time (ignores maxfps and host_framerate settings)
+	/*// advances cinematic time (ignores maxfps and host_framerate settings)
 	cin_time += host.realframetime;
 
 	// stop the video after it finishes
@@ -163,12 +176,12 @@ void SCR_RunCinematic (void)
 		}
 
 	// read the next frame
-	cin_frame = AVI_GetVideoFrameNumber (cin_state, cin_time);
+	cin_frame = AVI_GetVideoFrameNumber (cin_state, cin_time);*/
 	}
 
 /***
 ==================
-SCR_DrawCinematic
+SCR_DrawCinematic [FWGS, 01.07.25]
 
 Returns true if a cinematic is active, meaning the view rendering
 should be skipped
@@ -176,73 +189,102 @@ should be skipped
 ***/
 qboolean SCR_DrawCinematic (void)
 	{
-	static int	last_frame = -1;
+	/*static int	last_frame = -1;
 	qboolean		redraw = false;
 	byte *frame = NULL;
 
-	if (!ref.initialized || (cin_time <= 0.0f))
+	if (!ref.initialized || (cin_time <= 0.0f))*/
+	if (!ref.initialized)
 		return false;
 
-	if (cin_frame != last_frame)
+	/*if (cin_frame != last_frame)
 		{
 		frame = AVI_GetVideoFrame (cin_state, cin_frame);
 		last_frame = cin_frame;
 		redraw = true;
 		}
 
-	ref.dllFuncs.R_DrawStretchRaw (0, 0, refState.width, refState.height, xres, yres, frame, redraw);
+	ref.dllFuncs.R_DrawStretchRaw (0, 0, refState.width, refState.height, xres, yres, frame, redraw);*/
+	if (!AVI_Think (cin_state))
+		return SCR_NextMovie ();
 
 	return true;
 	}
 
 /***
 ==================
-SCR_PlayCinematic
+SCR_PlayCinematic [FWGS, 01.07.25]
 ==================
 ***/
 qboolean SCR_PlayCinematic (const char *arg)
 	{
-	// [FWGS, 01.01.24]
-	const char *fullpath;
+	int			x, y, w, h;
+	const char	*fullpath;
+	double		video_ratio, screen_ratio, scale;
+
 	fullpath = FS_GetDiskPath (arg, false);
 
 	if (FS_FileExists (arg, false) && !fullpath)
 		{
-		// [FWGS, 01.04.23]
 		Con_Printf (S_ERROR "Couldn't load %s from packfile. Please extract it\n", arg);
 		return false;
 		}
 
 	AVI_OpenVideo (cin_state, fullpath, true, false);
-	if (!AVI_IsActive (cin_state))
+	/*if (!AVI_IsActive (cin_state))*/
+	if (!AVI_IsActive (cin_state) || !AVI_GetVideoInfo (cin_state, &w, &h, NULL))
 		{
 		AVI_CloseVideo (cin_state);
 		return false;
 		}
 
-	if (!(AVI_GetVideoInfo (cin_state, &xres, &yres, &video_duration))) // couldn't open this at all.
+	/*if (!(AVI_GetVideoInfo (cin_state, &xres, &yres, &video_duration))) // couldn't open this at all.*/
+	video_ratio = (double)w / (double)h;
+	screen_ratio = (double)refState.width / (double)refState.height;
+
+	if (video_ratio < screen_ratio)
+		scale = (double)refState.height / (double)h;
+	else
+		scale = (double)refState.width / (double)w;
+
+	w = Q_rint (w * scale);
+	h = Q_rint (h * scale);
+
+	if (video_ratio < screen_ratio)
 		{
-		AVI_CloseVideo (cin_state);
-		return false;
+		/*AVI_CloseVideo (cin_state);
+		return false;*/
+		x = (refState.width - w) / 2.0;
+		y = 0;
+		}
+	else
+		{
+		x = 0;
+		y = (refState.height - h) / 2.0;
 		}
 
-	if (AVI_GetAudioInfo (cin_state, &cin_audio))
+	/*if (AVI_GetAudioInfo (cin_state, &cin_audio))*/
+	if (AVI_HaveAudioTrack (cin_state))
 		{
 		// begin streaming
 		S_StopAllSounds (true);
 		S_StartStreaming ();
 		}
 
+	AVI_SetParm (cin_state, AVI_RENDER_X, x, AVI_RENDER_Y, y, AVI_RENDER_W, w, AVI_RENDER_H, h, AVI_PARM_LAST);
+
 	UI_SetActiveMenu (false);
 	cls.state = ca_cinematic;
 	Con_FastClose ();
-	cin_time = 0.0f;
+	/*cin_time = 0.0f;*/
 	cls.signon = 0;
 
 	return true;
 	}
 
-int SCR_GetAudioChunk (char *rawdata, int length)
+// [FWGS, 01.07.25] removed SCR_GetAudioChunk, SCR_GetMovieInfo
+
+/*int SCR_GetAudioChunk (char *rawdata, int length)
 	{
 	int	r;
 
@@ -257,7 +299,7 @@ wavdata_t *SCR_GetMovieInfo (void)
 	if (AVI_IsActive (cin_state))
 		return &cin_audio;
 	return NULL;
-	}
+	}*/
 
 /***
 ==================
@@ -271,7 +313,7 @@ void SCR_StopCinematic (void)
 
 	AVI_CloseVideo (cin_state);
 	S_StopStreaming ();
-	cin_time = 0.0f;
+	/*cin_time = 0.0f;*/
 
 	cls.state = ca_disconnected;
 	cls.signon = 0;

@@ -18,6 +18,8 @@ GNU General Public License for more details
 #ifndef AVI_FFMPEG_H
 #define AVI_FFMPEG_H
 
+#include "defaults.h"	// ESHQ: определение XASH_AVI и AVI_FFMPEG
+
 #if XASH_AVI == AVI_FFMPEG
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>

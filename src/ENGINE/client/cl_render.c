@@ -145,10 +145,7 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 		{
 		// [FWGS, 01.02.25]
 		case PARM_BSP2_SUPPORTED:
-			/*ifdef SUPPORT_BSP2_FORMAT*/
 			return 1;
-			/*endif
-			return 0;*/
 		
 		case PARAM_GAMEPAUSED:
 			return cl.paused;
@@ -283,12 +280,14 @@ static intptr_t pfnRenderGetParm (int parm, int arg)
 	return CL_RenderGetParm (parm, arg, true);
 	}
 
-// [FWGS, 01.02.25]
-static void pfnAVI_StreamSound (void *avi, int entnum, float fvol, float attn, float synctime)
+// [FWGS, 01.07.25]
+/*static void pfnAVI_StreamSound (void *avi, int entnum, float fvol, float attn, float synctime)*/
+static void pfnAVI_StreamSound (movie_state_t *avi, int entnum, float fvol, float attn, float synctime)
 	{
 	return; // stub, use AVI_SetParm and AVI_Think to stream AVI sound
 	}
 
+// [FWGS, 01.07.25]
 static render_api_t gRenderAPI =
 	{
 	pfnRenderGetParm, // GL_RenderGetParm,
@@ -314,17 +313,29 @@ static render_api_t gRenderAPI =
 	NULL, // DrawSingleDecal,
 	NULL, // R_DecalSetupVerts,
 	NULL, // R_EntityRemoveDecals,
-	(void *)AVI_LoadVideo,
+
+	/*(void *)AVI_LoadVideo,
 	(void *)AVI_GetVideoInfo,
 	(void *)AVI_GetVideoFrameNumber,
-	(void *)AVI_GetVideoFrame,
+	(void *)AVI_GetVideoFrame,*/
+	AVI_LoadVideo,
+	AVI_GetVideoInfo,
+	AVI_GetVideoFrameNumber,
+	AVI_GetVideoFrame,
+
 	NULL, // R_UploadStretchRaw,
-	(void *)AVI_FreeVideo,
+	
+	/*(void *)AVI_FreeVideo,
 	(void *)AVI_IsActive,
-	/*S_StreamAviSamples,*/
 	(void *)pfnAVI_StreamSound,	// [FWGS, 01.02.25]
 	NULL,
-	NULL,
+	NULL,*/
+	AVI_FreeVideo,
+	AVI_IsActive,
+	pfnAVI_StreamSound,
+	AVI_Think,
+	AVI_SetParm,
+
 	NULL, // GL_Bind,
 	NULL, // GL_SelectTexture,
 	NULL, // GL_LoadTexMatrixExt,
@@ -350,8 +361,7 @@ static render_api_t gRenderAPI =
 	R_Mem_Free,
 	pfnGetFilesList,
 	pfnFileBufferCRC32,
-	/*COM_CompareFileTime,*/
-	pfnCompareFileTime,	// [FWGS, 01.12.24]
+	pfnCompareFileTime,
 	Host_Error,
 	(void *)CL_ModelHandle,
 	pfnTime,

@@ -101,7 +101,7 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 	else
 		Q_strncpy (s_bgTrack.loopName, mainTrack, sizeof (s_bgTrack.loopName));
 
-	// [FWGS, 01.05.23] open stream
+	// open stream
 	s_bgTrack.stream = FS_OpenStream (introTrack);
 	Q_strncpy (s_bgTrack.current, introTrack, sizeof (s_bgTrack.current));
 	memset (&musicfade, 0, sizeof (musicfade)); // clear any soundfade
@@ -121,8 +121,10 @@ void S_StopBackgroundTrack (void)
 	{
 	s_listener.stream_paused = false;
 
-	if (!dma.initialized) return;
-	if (!s_bgTrack.stream) return;
+	if (!dma.initialized)
+		return;
+	if (!s_bgTrack.stream)
+		return;
 
 	FS_FreeStream (s_bgTrack.stream);
 	memset (&s_bgTrack, 0, sizeof (bg_track_t));
@@ -218,7 +220,6 @@ void S_StreamBackgroundTrack (void)
 	// [FWGS, 01.02.25]
 	while (ch->s_rawend < soundtime + ch->max_samples)
 		{
-		/*wavdata_t *info = FS_StreamInfo (s_bgTrack.stream);*/
 		const stream_t *info = s_bgTrack.stream;
 
 		bufferSamples = ch->max_samples - (ch->s_rawend - soundtime);
@@ -248,10 +249,15 @@ void S_StreamBackgroundTrack (void)
 			fileSamples = r / (info->width * info->channels);
 			}
 
+		// [FWGS, 01.07.25]
 		if (r > 0)
 			{
 			// add to raw buffer
-			S_RawSamples (fileSamples, info->rate, info->width, info->channels, raw, S_RAW_SOUND_BACKGROUNDTRACK);
+			/*S_RawSamples (fileSamples, info->rate, info->width, info->channels, raw, S_RAW_SOUND_BACKGROUNDTRACK);*/
+			int music_vol = (int)(255.0f * S_GetMusicVolume ());
+
+			S_RawEntSamples (S_RAW_SOUND_BACKGROUNDTRACK, fileSamples, info->rate, info->width, info->channels,
+				raw, music_vol);
 			}
 		else
 			{
@@ -260,7 +266,6 @@ void S_StreamBackgroundTrack (void)
 				{
 				FS_FreeStream (s_bgTrack.stream);
 
-				// [FWGS, 01.05.23]
 				s_bgTrack.stream = FS_OpenStream (s_bgTrack.loopName);
 				Q_strncpy (s_bgTrack.current, s_bgTrack.loopName, sizeof (s_bgTrack.current));
 
@@ -302,11 +307,13 @@ void S_StopStreaming (void)
 	s_listener.streaming = false;
 	}
 
-/***
+// [FWGS, 01.07.25] removed S_StreamSoundTrack
+
+/*
 =================
 S_StreamSoundTrack
 =================
-***/
+/
 void S_StreamSoundTrack (void)
 	{
 	int	bufferSamples;
@@ -363,4 +370,4 @@ void S_StreamSoundTrack (void)
 			}
 		else break; // no more samples for this frame
 		}
-	}
+	}*/

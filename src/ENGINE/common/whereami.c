@@ -294,28 +294,20 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 		// [FWGS, 01.02.25]
 		for (;;)
 			{
-			/*char buffer[PATH_MAX < 1024 ? 1024 : PATH_MAX];
-			uint64_t low, high;*/
 			char buffer[128 + PATH_MAX];
 			uintptr_t low, high;
 
 			char perms[5];
 			uint64_t offset;
-			/*uint32_t major, minor;
-			char path[PATH_MAX];
-			uint32_t inode;*/
 			uint32_t major, minor, inode;
 			char path[PATH_MAX + 1];
 
 			if (!fgets (buffer, sizeof (buffer), maps))
 				break;
 
-			/*if (sscanf (buffer, "%" PRIx64 "-%" PRIx64 " %s %" PRIx64 " %x:%x %u %s\n", &low, &high,
-				perms, &offset, &major, &minor, &inode, path) == 8)*/
 			if (sscanf (buffer, "%" SCNxPTR "-%" SCNxPTR " %s %" SCNx64 " %x:%x %u %" WAI_STRINGIZE (PATH_MAX) "[^\n]\n",
 				&low, &high, perms, &offset, &major, &minor, &inode, path) == 8)
 				{
-				/*uint64_t addr = (uintptr_t)WAI_RETURN_ADDRESS ();*/
 				void *_addr = WAI_RETURN_ADDRESS ();
 				uintptr_t addr = (uintptr_t)_addr;
 
@@ -864,7 +856,9 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	return -1;
 	}
 
-#elif defined(__SWITCH__) || defined(__vita__)
+// [FWGS, 01.07.25]
+/*elif defined(__SWITCH__) || defined(__vita__)*/
+#elif defined(__SWITCH__) || defined(__vita__) || defined(__EMSCRIPTEN__)
 
 // Not possible on this platform
 WAI_FUNCSPEC
