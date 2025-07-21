@@ -246,7 +246,7 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "BM ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_sections"))
 		Q_strncat (cmdLine, "ST ", MAX_QPATH);
-	else if (strstr (Cmd_Argv (0), "esrm_two_floors"))
+	else if (strstr (Cmd_Argv (0), "esrm_floors_type"))
 		Q_strncat (cmdLine, "TF ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_makers"))
 		Q_strncat (cmdLine, "MM ", MAX_QPATH);
@@ -254,8 +254,8 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "BT ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_fog"))
 		Q_strncat (cmdLine, "FC ", MAX_QPATH);
-	else if (strstr (Cmd_Argv (0), "esrm_items_on_2nd_floor"))
-		Q_strncat (cmdLine, "SF ", MAX_QPATH);
+	/*else if (strstr (Cmd_Argv (0), "esrm_items_on_2nd_floor"))
+		Q_strncat (cmdLine, "SF ", MAX_QPATH);*/
 	else if (strstr (Cmd_Argv (0), "esrm_water"))
 		Q_strncat (cmdLine, "WL ", MAX_QPATH);
 
@@ -1183,8 +1183,8 @@ void SV_InitHostCommands (void)
 				"Sets the button mode for the next map (0 = none, 1 = single button, 2 = main + add. button)");
 			Cmd_AddRestrictedCommand ("esrm_sections", SV_ESRM_Command,
 				"Sets types of map sections for the next map (1 = all, 2 = only under sky, 3 = only inside)");
-			Cmd_AddRestrictedCommand ("esrm_two_floors", SV_ESRM_Command,
-				"Disables / enables the two floors mode for the next map (flag, 0 / 1)");
+			Cmd_AddRestrictedCommand ("esrm_floors_type", SV_ESRM_Command,
+				"Sets the floors type for the map (1 = single floor, 2 = balconies, no items, 3 = balconies, items, 4 = two separated floors)");
 			Cmd_AddRestrictedCommand ("esrm_makers", SV_ESRM_Command,
 				"Disables / enables monster makers for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_barriers", SV_ESRM_Command,
@@ -1193,8 +1193,8 @@ void SV_InitHostCommands (void)
 				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 0[0%] - 10[100%])");
 			Cmd_AddRestrictedCommand ("esrm_water", SV_ESRM_Command,
 				"Sets the water level multiplier (x * 5%) for the next map (coeff, 0[0%] - 5[25%])");
-			Cmd_AddRestrictedCommand ("esrm_items_on_2nd_floor", SV_ESRM_Command,
-				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");
+			/*Cmd_AddRestrictedCommand ("esrm_items_on_2nd_floor", SV_ESRM_Command,
+				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");*/
 
 			Cmd_AddRestrictedCommand ("esrm_enemies_list", SV_ESRM_Command,
 				"Enumerates the allowed enemies (the line of probabilities (0 - 5) for assassins, bullchickens, "
