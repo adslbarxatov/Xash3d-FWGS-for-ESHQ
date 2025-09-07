@@ -46,7 +46,6 @@ typedef enum
 // [FWGS, 01.04.25]
 typedef struct loadformat_s
 	{
-	/*const char *formatstring;*/
 	const char		*ext;
 	qboolean		(*loadfunc)(const char *name, const byte *buffer, fs_offset_t filesize);
 	image_hint_t	hint;
@@ -55,7 +54,6 @@ typedef struct loadformat_s
 // [FWGS, 01.04.25]
 typedef struct saveformat_s
 	{
-	/*const char *formatstring;*/
 	const char	*ext;
 	qboolean	(*savefunc)(const char *name, rgbdata_t *pix);
 	} savepixformat_t;
@@ -110,6 +108,9 @@ typedef struct imglib_s
 #define PLDECAL_MAXWIDTH	768	// total of ~2mb uncompressed rgba data
 #define PLDECAL_MAXHEIGHT	768
 
+// [FWGS, 01.09.25]
+#define IMAGE_GRADIENT_DECAL (1<<10) // TYP_PALETTE lump in WAD
+
 // [FWGS, 01.08.24]
 enum
 	{
@@ -148,7 +149,8 @@ void Image_CopyPalette32bit (void);
 void Image_SetPixelFormat (void);
 void Image_GetPaletteQ1 (void);
 void Image_GetPaletteHL (void);
-size_t Image_ComputeSize (int type, int width, int height, int depth);	// [FWGS, 01.11.23]
+size_t Image_ComputeSize (int type, int width, int height, int depth);
+void Image_GenerateMipmaps (const byte *source, int width, int height, byte *mip1, byte *mip2, byte *mip3);	// [FWGS, 01.09.25]
 
 //
 // formats load
@@ -164,6 +166,7 @@ qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesi
 qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesize);
 qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesize);
 qboolean Image_LoadKTX2 (const char *name, const byte *buffer, fs_offset_t filesize);
+qboolean Image_LoadWAD (const char *name, const byte *buffer, fs_offset_t filesize);	// [FWGS, 01.09.25]
 
 //
 // formats save
@@ -171,6 +174,7 @@ qboolean Image_LoadKTX2 (const char *name, const byte *buffer, fs_offset_t files
 qboolean Image_SaveTGA (const char *name, rgbdata_t *pix);
 qboolean Image_SaveBMP (const char *name, rgbdata_t *pix);
 qboolean Image_SavePNG (const char *name, rgbdata_t *pix);
+qboolean Image_SaveWAD (const char *name, rgbdata_t *pix);	// [FWGS, 01.09.25]
 
 //
 // img_quant.c

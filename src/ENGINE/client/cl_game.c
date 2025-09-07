@@ -14,7 +14,6 @@ GNU General Public License for more details
 ***/
 
 // [FWGS, 01.06.25]
-/*if XASH_SDL*/
 #if XASH_SDL == 2
 	#include <SDL.h>		// SDL_GetWindowPosition
 #elif XASH_SDL == 3
@@ -123,7 +122,7 @@ static void CL_CreatePlaylist (const char *filename)
 		return;
 
 	// make standard cdaudio playlist
-	FS_Print (f, "blank\n");		// #1
+	FS_Print (f, "blank\n");			// #1
 	FS_Print (f, "Half-Life01.mp3\n");	// #2
 	FS_Print (f, "Prospero01.mp3\n");	// #3
 	FS_Print (f, "Half-Life12.mp3\n");	// #4
@@ -322,7 +321,6 @@ void SPR_AdjustSize (float *x, float *y, float *w, float *h)
 // [FWGS, 01.03.25]
 static void SPR_AdjustTexCoords (int texnum, float width, float height, float *s1, float *t1, float *s2, float *t2)
 	{
-	/*if (REF_GET_PARM (PARM_TEX_FILTERING, texnum))*/
 	const qboolean filtering = REF_GET_PARM (PARM_TEX_FILTERING, texnum);
 	const int xremainder = refState.width % clgame.scrInfo.iWidth;
 	const int yremainder = refState.height % clgame.scrInfo.iHeight;
@@ -415,7 +413,7 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 
 /***
 =============
-CL_DrawCenterPrint [FWGS, 01.03.24]
+CL_DrawCenterPrint
 
 called each frame
 =============
@@ -451,16 +449,25 @@ void CL_DrawCenterPrint (void)
 		lineLength = 0;
 		width = 0;
 
+		// [FWGS, 01.09.25]
 		while (*pText && (*pText != '\n') && (lineLength < MAX_LINELENGTH))
 			{
-			byte c = *pText;
+			/*byte c = *pText;
 			line[lineLength] = c;
 
-			CL_DrawCharacterLen (font, c, &charWidth, NULL);
+			CL_DrawCharacterLen (font, c, &charWidth, NULL);*/
+
+			int number = Con_UtfProcessChar ((byte)*pText);
+			pText++;
+			if (number == 0)
+				continue;
+
+			line[lineLength] = number;
+			CL_DrawCharacterLen (font, number, &charWidth, NULL);
 
 			width += charWidth;
 			lineLength++;
-			pText++;
+			/*pText++;*/
 			}
 
 		if (lineLength == MAX_LINELENGTH)
@@ -471,11 +478,13 @@ void CL_DrawCenterPrint (void)
 
 		x = CL_AdjustXPos (-1, width, clgame.centerPrint.totalWidth);
 
+		// [FWGS, 01.09.25]
 		for (j = 0; j < lineLength; j++)
 			{
 			if ((x >= 0) && (y >= 0) && (x <= refState.width))
-				x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_UTF8 |
-					FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);
+				/*x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_UTF8 |
+					FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);*/
+				x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);
 			}
 
 		y += charHeight;

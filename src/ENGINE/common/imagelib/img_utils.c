@@ -89,29 +89,16 @@ XASH3D LOAD IMAGE FORMATS
 // [FWGS, 01.04.25] stub
 static const loadpixformat_t load_null[] =
 	{
-	/*{ NULL, NULL, NULL, IL_HINT_NO }*/
 	{ NULL, NULL, IL_HINT_NO }
 	};
 
-// [FWGS, 01.04.25]
 static const loadpixformat_t load_game[] =
 	{
-	/*{ "%s%s.%s", "dds", Image_LoadDDS, IL_HINT_NO },	// dds for world and studio models
-	{ "%s%s.%s", "bmp", Image_LoadBMP, IL_HINT_NO },	// WON menu images
-	{ "%s%s.%s", "tga", Image_LoadTGA, IL_HINT_NO },	// hl vgui menus
-	{ "%s%s.%s", "png", Image_LoadPNG, IL_HINT_NO },	// NightFire 007 menus
-	{ "%s%s.%s", "mip", Image_LoadMIP, IL_HINT_NO },	// hl textures from wad or buffer
-	{ "%s%s.%s", "mdl", Image_LoadMDL, IL_HINT_HL },	// hl studio model skins
-	{ "%s%s.%s", "spr", Image_LoadSPR, IL_HINT_HL },	// hl sprite frames
-	{ "%s%s.%s", "lmp", Image_LoadLMP, IL_HINT_NO },	// hl menu images (cached.wad etc)
-	{ "%s%s.%s", "fnt", Image_LoadFNT, IL_HINT_HL },	// hl console font (fonts.wad etc)
-	{ "%s%s.%s", "pal", Image_LoadPAL, IL_HINT_NO },	// install studio\sprite palette
-	{ "%s%s.%s", "ktx2", Image_LoadKTX2, IL_HINT_NO },	// [FWGS, 01.11.23] ktx2 for world and studio models
-	{ NULL, NULL, NULL, IL_HINT_NO }*/
 	{ "dds",	Image_LoadDDS,	IL_HINT_NO },	// dds for world and studio models
 	{ "bmp",	Image_LoadBMP,	IL_HINT_NO },	// WON menu images
 	{ "tga",	Image_LoadTGA,	IL_HINT_NO },	// hl vgui menus
 	{ "png",	Image_LoadPNG,	IL_HINT_NO },	// NightFire 007 menus
+	{ "wad",	Image_LoadWAD,	IL_HINT_NO },	// [FWGS, 01.09.25] hl wad files
 	{ "mip",	Image_LoadMIP,	IL_HINT_NO },	// hl textures from wad or buffer
 	{ "mdl",	Image_LoadMDL,	IL_HINT_HL },	// hl studio model skins
 	{ "spr",	Image_LoadSPR,	IL_HINT_HL },	// hl sprite frames
@@ -131,20 +118,16 @@ XASH3D SAVE IMAGE FORMATS
 // [FWGS, 01.04.25] stub
 static const savepixformat_t save_null[] =
 	{
-	/*{ NULL, NULL, NULL }*/
 	{ NULL, NULL }
 	};
 
-// [FWGS, 01.04.25] Xash3D normal instance
+// Xash3D normal instance
 static const savepixformat_t save_game[] =
 	{
-	/*{ "%s%s.%s", "tga", Image_SaveTGA },		// tga screenshots
-	{ "%s%s.%s", "bmp", Image_SaveBMP },		// bmp levelshots or screenshots
-	{ "%s%s.%s", "png", Image_SavePNG },		// png screenshots
-	{ NULL, NULL, NULL }*/
 	{ "tga",	Image_SaveTGA },	// tga screenshots
 	{ "bmp",	Image_SaveBMP },	// bmp levelshots or screenshots
 	{ "png",	Image_SavePNG },	// png screenshots
+	{ "wad",	Image_SaveWAD },	// [FWGS, 01.09.25] player logo in tempdecal.wad
 	{ NULL,		NULL }
 	};
 
@@ -425,7 +408,8 @@ void Image_CheckPaletteQ1 (void)
 			}
 		}
 
-	if (pic) FS_FreeImage (pic);
+	if (pic)
+		FS_FreeImage (pic);
 	}
 
 void Image_GetPaletteQ1 (void)
@@ -580,7 +564,7 @@ static void Image_PaletteTranslate (byte *palSrc, int top, int bottom, int pal_s
 
 	if (top < 128)
 		{
-		// the artists made some backwards ranges. sigh.
+		// the artists made some backwards ranges. sigh
 		memcpy (dst + SHIRT_HUE_START, src + top, 16);
 		}
 	else
@@ -693,7 +677,7 @@ qboolean Image_Copy8bitRGBA (const byte *in, byte *out, int pixels)
 
 	if (pixels & 1) // last byte
 		iout[0] = image.d_currentpal[in[0]];
-	image.type = PF_RGBA_32;	// update image type;
+	image.type = PF_RGBA_32;	// update image type
 
 	return true;
 	}
@@ -794,8 +778,12 @@ static void Image_Resample32Lerp (const void *indata, int inwidth, int inheight,
 			if (yi != oldy)
 				{
 				inrow = (byte *)indata + inwidth4 * yi;
-				if (yi == oldy + 1) memcpy (resamplerow1, resamplerow2, outwidth4);
-				else Image_Resample32LerpLine (inrow, resamplerow1, inwidth, outwidth);
+
+				if (yi == oldy + 1)
+					memcpy (resamplerow1, resamplerow2, outwidth4);
+				else
+					Image_Resample32LerpLine (inrow, resamplerow1, inwidth, outwidth);
+
 				Image_Resample32LerpLine (inrow + inwidth4, resamplerow2, inwidth, outwidth);
 				oldy = yi;
 				}
@@ -860,8 +848,12 @@ static void Image_Resample32Lerp (const void *indata, int inwidth, int inheight,
 			if (yi != oldy)
 				{
 				inrow = (byte *)indata + inwidth4 * yi;
-				if (yi == oldy + 1) memcpy (resamplerow1, resamplerow2, outwidth4);
-				else Image_Resample32LerpLine (inrow, resamplerow1, inwidth, outwidth);
+
+				if (yi == oldy + 1)
+					memcpy (resamplerow1, resamplerow2, outwidth4);
+				else
+					Image_Resample32LerpLine (inrow, resamplerow1, inwidth, outwidth);
+
 				oldy = yi;
 				}
 
@@ -943,8 +935,12 @@ static void Image_Resample24Lerp (const void *indata, int inwidth, int inheight,
 			if (yi != oldy)
 				{
 				inrow = (byte *)indata + inwidth3 * yi;
-				if (yi == oldy + 1) memcpy (resamplerow1, resamplerow2, outwidth3);
-				else Image_Resample24LerpLine (inrow, resamplerow1, inwidth, outwidth);
+
+				if (yi == oldy + 1)
+					memcpy (resamplerow1, resamplerow2, outwidth3);
+				else
+					Image_Resample24LerpLine (inrow, resamplerow1, inwidth, outwidth);
+
 				Image_Resample24LerpLine (inrow + inwidth3, resamplerow2, inwidth, outwidth);
 				oldy = yi;
 				}
@@ -1525,7 +1521,7 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 	return result;
 	}
 
-// [FWGS, 01.11.23] This codebase has too many copies of this function:
+// This codebase has too many copies of this function:
 // - ref_gl has one
 // - ref_vk has one
 // - ref_soft has one
@@ -1564,4 +1560,42 @@ size_t Image_ComputeSize (int type, int width, int height, int depth)
 		}
 
 	return 0;
+	}
+
+/***
+============
+Image_GenerateMipmaps [FWGS, 01.09.25]
+============
+***/
+void Image_GenerateMipmaps (const byte *source, int width, int height, byte *mip1, byte *mip2, byte *mip3)
+	{
+	const int sizes[3][2] = {
+		{ width / 2, height / 2 },
+		{ width / 4, height / 4 },
+		{ width / 8, height / 8 }
+		};
+
+	byte	*mipmaps[3] = { mip1, mip2, mip3 };
+	int		m;
+
+	for (m = 0; m < 3; ++m)
+		{
+		int mw, mh, step, y;
+
+		if (!mipmaps[m])
+			continue;
+
+		mw = sizes[m][0];
+		mh = sizes[m][1];
+		step = 1 << (m + 1);
+		for (y = 0; y < mh; ++y)
+			{
+			int x;
+
+			for (x = 0; x < mw; ++x)
+				{
+				mipmaps[m][y * mw + x] = source[(y * step) * width + (x * step)];
+				}
+			}
+		}
 	}

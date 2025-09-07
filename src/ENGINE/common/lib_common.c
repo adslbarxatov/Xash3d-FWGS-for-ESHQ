@@ -129,10 +129,8 @@ LIBRARY NAMING (see Documentation/library-naming.md for more info) [FWGS, 01.06.
 
 static void COM_GenerateCommonLibraryName (const char *name, const char *ext, char *out, size_t size)
 	{
-/*if ( XASH_WIN32 || XASH_LINUX || XASH_APPLE ) && XASH_X86*/
 #if ( XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE ) && XASH_X86
 	Q_snprintf (out, size, "%s.%s", name, ext);
-/*elif ( XASH_WIN32 || XASH_LINUX || XASH_APPLE )*/
 #elif XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE
 	Q_snprintf (out, size, "%s_%s.%s", name, Q_buildarch (), ext);
 #else
@@ -154,8 +152,12 @@ static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t s
 #else
 	string dllpath;
 
-	// we don't have any library prefixes, so we can safely append dll_path here
+	// [FWGS, 01.09.25]
+#if XASH_ANDROID
+	Q_snprintf (dllpath, sizeof (dllpath), "%s/lib%s", GI->dll_path, name);
+#else
 	Q_snprintf (dllpath, sizeof (dllpath), "%s/%s", GI->dll_path, name);
+#endif
 
 	COM_GenerateCommonLibraryName (dllpath, OS_LIB_EXT, out, size);
 #endif
@@ -179,44 +181,76 @@ static inline void COM_StripIntelSuffix (char *out)
 
 /***
 ==============
-COM_GenerateServerLibraryPath [FWGS, 01.06.25]
+COM_GenerateServerLibraryPath [FWGS, 01.09.25]
 
 Generates platform-unique and compatible name for server library
 ==============
 ***/
-static void COM_GenerateServerLibraryPath (char *out, size_t size)
+/*static void COM_GenerateServerLibraryPath (char *out, size_t size)*/
+static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, size_t size)
 	{
 #ifdef XASH_INTERNAL_GAMELIBS // assuming library loader knows where to get libraries
 	Q_strncpy (out, "server", size);
-/*elif ( XASH_WIN32 || XASH_LINUX || XASH_APPLE ) && XASH_X86
-
-if XASH_WIN32*/
 #elif XASH_X86 && XASH_WIN32
 	Q_strncpy (out, GI->game_dll, size);
-/*elif XASH_APPLE*/
 #elif XASH_X86 && XASH_APPLE
 	Q_strncpy (out, GI->game_dll_osx, size);
-/*else*/
 #elif XASH_X86 && XASH_LINUX && !XASH_ANDROID
 	Q_strncpy (out, GI->game_dll_linux, size);
-/*endif*/
+	COM_StripExtension (out);
+
+	// GoldSrc actually strips everything after '_', causing issues for mods that have '_' in the DLL name on Linux
+	// e.g. delta_particles.so becomes delta.so. We're gonna be smarter and just drop the _i?86 if it matches...
+	// ... until somebody complains :)
+	COM_StripIntelSuffix (out);
+	COM_DefaultExtension (out, "." OS_LIB_EXT, size);
 
 #else
-	string dllpath;
-	const char *ext;
+	/*string dllpath;
+	const char *ext;*/
+	string temp, dir, dllpath, ext;
+	const char *dllname;
 
 #if XASH_WIN32
-	Q_strncpy (dllpath, GI->game_dll, sizeof (dllpath));
+	/*Q_strncpy (dllpath, GI->game_dll, sizeof (dllpath));*/
+	Q_strncpy (temp, GI->game_dll, sizeof (temp));
 #elif XASH_APPLE
-	Q_strncpy (dllpath, GI->game_dll_osx, sizeof (dllpath));
+	/*Q_strncpy (dllpath, GI->game_dll_osx, sizeof (dllpath));*/
+	Q_strncpy (temp, GI->game_dll_osx, sizeof (temp));
 #else
-	Q_strncpy (dllpath, GI->game_dll_linux, sizeof (dllpath));
+	/*Q_strncpy (dllpath, GI->game_dll_linux, sizeof (dllpath));*/
+	Q_strncpy (temp, GI->game_dll_linux, sizeof (temp));
 #endif
 
-	ext = COM_FileExtension (dllpath);
+	/*ext = COM_FileExtension (dllpath);
 	COM_StripExtension (dllpath);
-	COM_StripIntelSuffix (dllpath);
+	COM_StripIntelSuffix (dllpath);*/
 
+	// path to the dll directory
+	COM_ExtractFilePath (temp, dir);
+
+	if (alt_dllname)
+		{
+		dllname = alt_dllname;
+		Q_strncpy (ext, OS_LIB_EXT, sizeof (ext));
+		}
+	else
+		{
+		// cleaned up dll name
+		Q_strncpy (ext, COM_FileExtension (temp), sizeof (ext));
+		COM_StripExtension (temp);
+		COM_StripIntelSuffix (temp);
+		dllname = COM_FileWithoutPath (temp);
+		}
+
+	// add `lib` prefix if required by platform
+#if XASH_ANDROID
+	Q_snprintf (dllpath, sizeof (dllpath), "%s/lib%s", dir, dllname);
+#else
+	Q_snprintf (dllpath, sizeof (dllpath), "%s/%s", dir, dllname);
+#endif
+
+	// and finally add platform suffix
 	COM_GenerateCommonLibraryName (dllpath, ext, out, size);
 #endif
 	}
@@ -233,27 +267,61 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 	{
 	switch (eLibType)
 		{
-		// [FWGS, 01.05.25]
+		// [FWGS, 01.09.25]
 		case LIBRARY_GAMEUI:
-			/*COM_GenerateClientLibraryPath ("menu", out, size);*/
 			if (COM_CheckStringEmpty (host.menulib))
-				Q_strncpy (out, host.menulib, size);
+				{
+				if (host.menulib[0] == '@')
+					COM_GenerateClientLibraryPath (host.menulib + 1, out, size);
+				else
+					Q_strncpy (out, host.menulib, size);
+				}
+			/*Q_strncpy (out, host.menulib, size);
 			else
+			COM_GenerateClientLibraryPath ("menu", out, size);*/
+			else
+				{
 				COM_GenerateClientLibraryPath ("menu", out, size);
+				}
+
 			break;
 
+		// [FWGS, 01.09.25]
 		case LIBRARY_CLIENT:
 			if (COM_CheckStringEmpty (host.clientlib))
-				Q_strncpy (out, host.clientlib, size);
+				{
+				if (host.clientlib[0] == '@')
+					COM_GenerateClientLibraryPath (host.clientlib + 1, out, size);
+				else
+					Q_strncpy (out, host.clientlib, size);
+				}
+			/*Q_strncpy (out, host.clientlib, size);
 			else
+			COM_GenerateClientLibraryPath ("client", out, size);*/
+			else
+				{
 				COM_GenerateClientLibraryPath ("client", out, size);
+				}
+
 			break;
 
+		// [FWGS, 01.09.25]
 		case LIBRARY_SERVER:
 			if (COM_CheckStringEmpty (host.gamedll))
-				Q_strncpy (out, host.gamedll, size);
+				{
+				if (host.gamedll[0] == '@')
+					COM_GenerateServerLibraryPath (host.gamedll + 1, out, size);
+				else
+					Q_strncpy (out, host.gamedll, size);
+				}
+			/*Q_strncpy (out, host.gamedll, size);
 			else
-				COM_GenerateServerLibraryPath (out, size);
+			COM_GenerateServerLibraryPath (out, size);*/
+			else
+				{
+				COM_GenerateServerLibraryPath (NULL, out, size);
+				}
+
 			break;
 
 		default:
@@ -504,13 +572,13 @@ static void Test_GetMSVCName (void)
 	{
 	const char *symbols[] =
 		{
-			"", "",
-			"?f@f@@XYZA", "f@f",
-			"?foo@bar@@QAEXXZ", "foo@bar",
-			"foo", "foo",
-			"?foo", "?foo",
-			"?foo@@", "foo", // not an error?
-			"?foo@bar@baz@@gotstrippedanyway","foo@bar@baz"
+		"", "",
+		"?f@f@@XYZA", "f@f",
+		"?foo@bar@@QAEXXZ", "foo@bar",
+		"foo", "foo",
+		"?foo", "?foo",
+		"?foo@@", "foo", // not an error?
+		"?foo@bar@baz@@gotstrippedanyway","foo@bar@baz"
 		};
 	int i;
 
@@ -526,18 +594,18 @@ static void Test_GetItaniumName (void)
 	{
 	const char *symbols[] =
 		{
-			"", NULL,
-			"_", NULL,
-			"_Z", NULL,
-			"_ZN", NULL,
-			"_ZNv", NULL,
-			"_ZN4barr3foo", NULL,
-			"_ZN3bar3foov", NULL,
-			"_ZN4bar3fooEv", NULL,
-			"_ZN3bar3fooEv", "foo@bar",
-			"_Z3foov", NULL,
-			"_ZN3fooEv", "foo", // not possible?
-			"_ZN3baz3bar3fooEdontcare", "foo@bar@baz",
+		"", NULL,
+		"_", NULL,
+		"_Z", NULL,
+		"_ZN", NULL,
+		"_ZNv", NULL,
+		"_ZN4barr3foo", NULL,
+		"_ZN3bar3foov", NULL,
+		"_ZN4bar3fooEv", NULL,
+		"_ZN3bar3fooEv", "foo@bar",
+		"_Z3foov", NULL,
+		"_ZN3fooEv", "foo", // not possible?
+		"_ZN3baz3bar3fooEdontcare", "foo@bar@baz",
 		};
 	int i;
 
@@ -553,10 +621,10 @@ static void Test_ConvertFromValveToLocal (void)
 	{
 	const char *symbols[] =
 		{
-			"", "_ZN",
-			"foo", "_ZN3foo",
-			"xash3d@fwgs", "_ZN4fwgs6xash3d",
-			"foo@bar@bazz", "_ZN4bazz3bar3foo"
+		"", "_ZN",
+		"foo", "_ZN3foo",
+		"xash3d@fwgs", "_ZN4fwgs6xash3d",
+		"foo@bar@bazz", "_ZN4bazz3bar3foo"
 		};
 	int i;
 
@@ -584,4 +652,5 @@ void Test_RunLibCommon (void)
 	TRUN (Test_GetItaniumName ());
 	TRUN (Test_ConvertFromValveToLocal ());
 	}
+
 #endif

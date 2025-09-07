@@ -1250,6 +1250,11 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	Cmd_AddRestrictedCommand ("userconfigd", Host_Userconfigd_f,
 		"execute all scripts from userconfig.d");
 
+	// [FWGS, 01.09.25]
+#if !XASH_DEDICATED
+	Cmd_AddRestrictedCommand ("host_writeconfig", Host_WriteConfig, "save current configuration");
+#endif
+
 	Image_Init ();
 	Sound_Init ();
 

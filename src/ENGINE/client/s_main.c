@@ -21,8 +21,6 @@ GNU General Public License for more details
 #include "platform/platform.h"
 
 // [FWGS, 01.07.25]
-/*define SND_CLIP_DISTANCE		1000.0f*/
-
 dma_t		dma;
 poolhandle_t	sndpool;
 static soundfade_t	soundfade;
@@ -279,7 +277,7 @@ SND_PickDynamicChannel [FWGS, 09.05.24]
 
 Select a channel from the dynamic channel allocation area.  For the given entity,
 override any other sound playing on the same channel (see code comments below for
-exceptions).
+exceptions)
 =================
 ***/
 channel_t *SND_PickDynamicChannel (int entnum, int channel, sfx_t *sfx, qboolean *ignore)
@@ -1100,8 +1098,13 @@ rawchan_t *S_FindRawChannel (int entnum, qboolean create)
 	size_t		raw_samples = 0;
 	rawchan_t	*ch;
 
+	// [FWGS, 01.09.25] sound is not active
+	if (!sndpool)
+		return NULL;
+
+	// world is unused
 	if (!entnum)
-		return NULL; // world is unused
+		return NULL;
 
 	// check for replacement sound, or find the best one to replace
 	best_time = 0x7fffffff;
@@ -1159,8 +1162,6 @@ rawchan_t *S_FindRawChannel (int entnum, qboolean create)
 S_RawSamplesStereo [FWGS, 01.07.25]
 ===================
 ***/
-/*static uint S_RawSamplesStereo (portable_samplepair_t *rawsamples, uint rawend, uint max_samples,
-	uint samples, uint rate, word width, word channels, const byte *data)*/
 uint S_RawSamplesStereo (portable_samplepair_t *rawsamples, uint rawend, uint max_samples, uint samples,
 	uint rate, word width, word channels, const byte *data)
 	{

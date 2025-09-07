@@ -174,9 +174,9 @@ Default build-depended cvar and constant values
 	#define DEFAULT_M_IGNORE		"1"
 #endif
 
-// [FWGS, 01.07.25]
-/*if (XASH_ANDROID && !XASH_TERMUX) || XASH_IOS || XASH_EMSCRIPTEN*/
-#if (XASH_ANDROID && !XASH_TERMUX) || XASH_IOS
+// [FWGS, 01.09.25]
+/*if (XASH_ANDROID && !XASH_TERMUX) || XASH_IOS*/
+#if XASH_IOS
 #define XASH_INTERNAL_GAMELIBS
 // this means that libraries are provided with engine, but not in game data
 // You need add library loading code to library.c when adding new platform

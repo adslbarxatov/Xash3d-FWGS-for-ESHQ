@@ -9,13 +9,21 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "imagelib.h"
 
-#define netsize		256			// number of colours used
+// [FWGS, 01.09.25]
+#define palettesize	256
+#define netsize		255		// number of colours used
+
+/*define netsize		256		// number of colours used
+define prime1		499
+define prime2		491
+define prime3		487
+define prime4		503*/
 #define prime1		499
 #define prime2		491
 #define prime3		487
@@ -24,29 +32,29 @@ GNU General Public License for more details.
 #define minpicturebytes	(3*prime4)		// minimum size for input image
 
 #define maxnetpos		(netsize-1)
-#define netbiasshift	4			// bias for colour values
-#define ncycles		100			// no. of learning cycles
+#define netbiasshift	4				// bias for colour values
+#define ncycles			100				// no. of learning cycles
 
 // defs for freq and bias
-#define intbiasshift	16			// bias for fractions
-#define intbias		(1<<intbiasshift)
-#define gammashift  	10			// gamma = 1024
-#define gamma		(1<<gammashift)
+#define intbiasshift	16				// bias for fractions
+#define intbias			(1<<intbiasshift)
+#define gammashift  	10				// gamma = 1024
+#define gamma			(1<<gammashift)
 #define betashift		10
-#define beta		(intbias>>betashift)	// beta = 1 / 1024
+#define beta			(intbias>>betashift)	// beta = 1 / 1024
 #define betagamma		(intbias<<(gammashift - betashift))
 
 // defs for decreasing radius factor
-#define initrad		(netsize>>3)		// for 256 cols, radius starts
-#define radiusbiasshift	6			// at 32.0 biased by 6 bits
+#define initrad			(netsize>>3)	// for 256 cols, radius starts
+#define radiusbiasshift	6				// at 32.0 biased by 6 bits
 #define radiusbias		(1<<radiusbiasshift)
 #define initradius		(initrad * radiusbias)	// and decreases by a
-#define radiusdec		30			// factor of 1/30 each cycle
+#define radiusdec		30				// factor of 1/30 each cycle
 
 // defs for decreasing alpha factor
 #define alphabiasshift	10			// alpha starts at 1.0
 #define initalpha		(1<<alphabiasshift)
-int			alphadec;			// biased by 10 bits
+int						alphadec;	// biased by 10 bits
 
 // radbias and alpharadbias used for radpower calculation
 #define radbiasshift	8
@@ -55,12 +63,12 @@ int			alphadec;			// biased by 10 bits
 #define alpharadbias	(1<<alpharadbshift)
 
 // types and global variables
-static byte *thepicture;		// the input image itself
-static int		lengthcount;		// lengthcount = H*W*3
-static int		samplefac;		// sampling factor 1..30
+static byte		*thepicture;			// the input image itself
+static int		lengthcount;			// lengthcount = H*W*3
+static int		samplefac;				// sampling factor 1..30
 static int		network[netsize][4];	// the network itself
-static int		netindex[256];		// for network lookup - really 256
-static int		bias[netsize];		// bias and freq arrays for learning
+static int		netindex[256];			// for network lookup - really 256
+static int		bias[netsize];			// bias and freq arrays for learning
 static int		freq[netsize];
 static int		radpower[initrad];		// radpower for precomputation
 
@@ -176,7 +184,7 @@ static int inxsearch (int r, int g, int b)
 		if (i < netsize)
 			{
 			p = network[i];
-			dist = p[1] - g;		// inx key
+			dist = p[1] - g;	// inx key
 
 			if (dist >= bestd)
 				{
@@ -406,8 +414,6 @@ static void learn (void)
 		if (rad) alterneigh (rad, j, r, g, b);   // alter neighbours
 
 		p += step;
-		
-		// [FWGS, 01.04.23]
 		while (p >= lim) 
 			p -= lengthcount;
 
@@ -426,13 +432,13 @@ static void learn (void)
 		}
 	}
 
-// returns the actual number of palette entries.
+// returns the actual number of palette entries
 rgbdata_t *Image_Quantize (rgbdata_t *pic)
 	{
 	int	i;
 
 	// quick case to reject unneeded conversions
-	if (pic->type == PF_INDEXED_24 || pic->type == PF_INDEXED_32)
+	if ((pic->type == PF_INDEXED_24) || (pic->type == PF_INDEXED_32))
 		return pic;
 
 	Image_CopyParms (pic);
@@ -447,13 +453,23 @@ rgbdata_t *Image_Quantize (rgbdata_t *pic)
 	learn ();
 	unbiasnet ();
 
-	pic->palette = Mem_Malloc (host.imagepool, netsize * 3);
+	// [FWGS, 01.09.25]
+	/*pic->palette = Mem_Malloc (host.imagepool, netsize * 3);*/
+	pic->palette = Mem_Malloc (host.imagepool, palettesize * 3);
 
 	for (i = 0; i < netsize; i++)
 		{
 		pic->palette[i * 3 + 0] = network[i][0];	// red
 		pic->palette[i * 3 + 1] = network[i][1];	// green
 		pic->palette[i * 3 + 2] = network[i][2];	// blue
+		}
+
+	// [FWGS, 01.09.25]
+	for (; i < palettesize; i++)
+		{
+		pic->palette[i * 3 + 0] = 0;
+		pic->palette[i * 3 + 1] = 0;
+		pic->palette[i * 3 + 2] = 0;
 		}
 
 	inxbuild ();

@@ -28,12 +28,8 @@ typedef struct OpusCustomMode OpusCustomMode;
 typedef struct OpusEncoder OpusEncoder;
 typedef struct OpusDecoder OpusDecoder;
 
-/*#define VOICE_LOOPBACK_INDEX (-2)
-#define VOICE_LOCALCLIENT_INDEX (-1)*/
 #define VOICE_LOOPBACK_INDEX	( -2 )
 #define VOICE_LOCALCLIENT_INDEX	( -1 )
-
-/*#define VOICE_PCM_CHANNELS 1 // always mono*/
 #define VOICE_PCM_CHANNELS		1	// always mono
 #define VOICE_MAX_DATA_SIZE		8192
 #define VOICE_MAX_GS_DATA_SIZE	4096
@@ -44,11 +40,9 @@ typedef struct OpusDecoder OpusDecoder;
 // [FWGS, 01.07.25] must follow opus custom requirements
 // also be divisible with MAX_RAW_SAMPLES
 #define VOICE_OPUS_CUSTOM_FRAME_SIZE	1024
-/*#define VOICE_OPUS_CUSTOM_CODEC "opus_custom_44k_512"*/
 #define VOICE_OPUS_CUSTOM_CODEC			"opus_custom_44k_512"
 
 // [FWGS, 01.07.25] a1ba: do not change, we don't have any re-encoding support now
-/*#define VOICE_DEFAULT_CODEC VOICE_OPUS_CUSTOM_CODEC*/
 #define VOICE_DEFAULT_CODEC VOICE_OPUS_CUSTOM_CODEC
 #define VOICE_DEFAULT_SILENCE_FRAME_SIZE 160
 
@@ -74,7 +68,6 @@ enum gs_vpc_type
 typedef struct voice_status_s
 	{
 	qboolean	talking_ack;
-	/*double		talking_timeout;*/
 	double		talking_timeout;
 	} voice_status_t;
 
@@ -87,11 +80,9 @@ typedef struct voice_autogain_s
 	float	gain_multiplier;
 	} voice_autogain_t;
 
-// [FWGS, 01.07.25]
+// [FWGS, 01.09.25]
 typedef struct voice_state_s
 	{
-	/*string		codec;
-	int			quality;*/
 	string		codec;
 	int			quality;
 	qboolean	goldsrc;
@@ -99,13 +90,11 @@ typedef struct voice_state_s
 	qboolean	initialized;
 	qboolean	is_recording;
 	qboolean	device_opened;
-	/*double		start_time;*/
 	double		start_time;
 
-	/*voice_status_t	local;
-	voice_status_t	players_status[MAX_CLIENTS];*/
 	voice_status_t	local;
-	voice_status_t	players_status[MAX_CLIENTS];
+	/*voice_status_t	players_status[MAX_CLIENTS];*/
+	voice_status_t	players_status[MAX_CLIENTS]; // do not access this directly, use Voice_GetPlayerStatus instead
 
 	// opus stuff
 	OpusCustomMode		*custom_mode;
@@ -124,21 +113,9 @@ typedef struct voice_state_s
 	byte	input_buffer[MAX_RAW_SAMPLES];
 	byte	compress_buffer[MAX_RAW_SAMPLES];
 	byte	decompress_buffer[MAX_RAW_SAMPLES];
-	/*fs_offset_t	input_buffer_pos; // in bytes*/
 	fs_offset_t			input_buffer_pos; // in bytes
 
 	// input from file
-	/*wavdata_t	*input_file;
-	fs_offset_t	input_file_pos; // in bytes
-
-	// automatic gain control
-	struct
-		{
-		int		block_size;
-		float	current_gain;
-		float	next_gain;
-		float	gain_multiplier;
-		} autogain;*/
 	wavdata_t		*input_file;
 	fs_offset_t		input_file_pos;	// in bytes
 

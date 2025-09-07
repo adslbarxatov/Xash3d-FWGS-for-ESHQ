@@ -558,12 +558,12 @@ static void CL_ApplyAddAngle (void)
 	cl.prevaddangletotal = addangletotal;
 	}
 
-
 /***
 =======================================================================
 CLIENT MOVEMENT COMMUNICATION
 =======================================================================
 ***/
+
 /***
 ===============
 CL_ProcessShowTexturesCmds [FWGS, 01.12.24]
@@ -1215,7 +1215,6 @@ static void CL_SendConnectPacket (connprotocol_t proto, int challenge)
 
 		// [FWGS, 01.07.25]
 		name = Info_ValueForKey (cls.userinfo, "name");
-		/*if (Q_strnicmp (name, "[Xash3D]", 8))*/
 		if (cl_advertise_engine_in_name.value && Q_strnicmp (name, "[Xash3D]", 8))
 			Info_SetValueForKeyf (cls.userinfo, "name", sizeof (cls.userinfo), "[Xash3D]%s", name);
 
@@ -1434,7 +1433,6 @@ static resource_t *CL_AddResource (resourcetype_t type, const char *name, int si
 	return r;
 	}
 
-// [FWGS, 01.12.24]
 static void CL_CreateResourceList (void)
 	{
 	char		szFileName[MAX_OSPATH];
@@ -1448,19 +1446,26 @@ static void CL_CreateResourceList (void)
 
 	memset (rgucMD5_hash, 0, sizeof (rgucMD5_hash));
 
+	// [FWGS, 01.09.25] sanitize cvar value
+	if (Q_strcmp (cl_logoext.string, "bmp") && Q_strcmp (cl_logoext.string, "png"))
+		Cvar_DirectSet (&cl_logoext, "bmp");
+
+	Q_snprintf (szFileName, sizeof (szFileName), "logos/remapped.%s", cl_logoext.string);
+
+	// [FWGS, 01.09.25]
 	if (cls.legacymode == PROTO_GOLDSRC)
 		{
-		// TODO: actually repack remapped.bmp into a WAD for GoldSrc servers
+		CL_ConvertImageToWAD3 (szFileName);
 		Q_strncpy (szFileName, "tempdecal.wad", sizeof (szFileName));
 		}
-	else
+	/*else
 		{
 		// sanitize cvar value
 		if (Q_strcmp (cl_logoext.string, "bmp") && Q_strcmp (cl_logoext.string, "png"))
 			Cvar_DirectSet (&cl_logoext, "bmp");
 
 		Q_snprintf (szFileName, sizeof (szFileName), "logos/remapped.%s", cl_logoext.string);
-		}
+		}*/
 
 	fp = FS_Open (szFileName, "rb", true);
 	if (!fp)

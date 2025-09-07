@@ -159,8 +159,11 @@ static void FS_UnloadProgs (void)
 		}
 	}
 
+// [FWGS, 01.09.25]
 #ifdef XASH_INTERNAL_GAMELIBS
 #define FILESYSTEM_STDIO_DLL "filesystem_stdio"
+#elif XASH_ANDROID
+#define FILESYSTEM_STDIO_DLL "libfilesystem_stdio.so"
 #else
 // ESHQ: другое название DLL
 #define FILESYSTEM_STDIO_DLL "FS." OS_LIB_EXT
@@ -216,7 +219,6 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 		}
 
 	// [FWGS, 01.07.25]
-/*#if TARGET_OS_IOS*/
 #if XASH_EMSCRIPTEN
 	Q_strncpy (out, "/rwdir", size);
 	return true;
@@ -378,6 +380,9 @@ void FS_Init (const char *basedir)
 	Cvar_RegisterVariable (&fs_mount_lv);
 	Cvar_RegisterVariable (&fs_mount_addon);
 	Cvar_RegisterVariable (&fs_mount_l10n);
+
+	// [FWGS, 01.09.25]
+	Cvar_RegisterVariable (&ui_language);
 
 	if (!Sys_GetParmFromCmdLine ("-dll", host.gamedll))
 		host.gamedll[0] = 0;

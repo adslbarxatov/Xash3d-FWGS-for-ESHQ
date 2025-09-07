@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -18,14 +18,15 @@ GNU General Public License for more details
 #include "ref_common.h"
 #include "hpak.h"	// [FWGS, 01.07.24] be aware of HPK limits
 
-// [FWGS, 01.04.23]
 static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
 	{
 	const char *testname;
 
-	// this way we limit file types
+	// [FWGS, 01.09.25] this way we limit file types
 	if (!Q_stricmp (COM_FileExtension (path), "png"))
 		testname = "#logo.png";
+	else if (!Q_stricmp (COM_FileExtension (path), "wad"))
+		testname = "#logo.wad";
 	else
 		testname = "#logo.bmp";
 
@@ -33,7 +34,6 @@ static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
 	return FS_LoadImage (testname, raw, size);
 	}
 
-// [FWGS, 01.04.23]
 static qboolean CustomDecal_Validate (const char *path, void *raw, int nFileSize)
 	{
 	rgbdata_t *test = CustomDecal_LoadImage (path, raw, nFileSize);

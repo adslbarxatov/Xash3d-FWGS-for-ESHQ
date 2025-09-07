@@ -17,6 +17,10 @@ GNU General Public License for more details
 #include "imagelib.h"
 #include "eiface.h"		// [FWGS, 22.01.25] ARRAYSIZE
 
+// [FWGS, 01.09.25]
+#define DEBUG_LOOKUPS_COUNT			0
+#define USE_FS_SEARCH_FOR_LOOKUPS	1
+
 // global image variables
 imglib_t	image;
 
@@ -69,7 +73,6 @@ static const cubepack_t load_cubemap[] =
 	{ "3Ds Sky1", skybox_qv1 },
 	{ "3Ds Sky2", skybox_qv2 },
 	{ "3Ds Cube", cubemap_v1 },
-	/*{ NULL, NULL },*/
 	};
 
 // soul of ImageLib - table of image format constants
@@ -88,6 +91,54 @@ const bpc_desc_t PFDesc[] =
 	{ PF_DXT5,	"DXT 5",	0x83F3, 4 },
 	{ PF_ATI2,	"ATI 2",	0x8837, 4 },
 	};
+
+// [FWGS, 01.09.25]
+#if DEBUG_LOOKUPS_COUNT
+
+static int g_lookups = 0;
+static int g_lookups_total = 0;
+static double g_lookup_start = 0.0f;
+static double g_lookup_time = 0.0f;
+static double g_lookup_time_total = 0.0f;
+
+// [FWGS, 01.09.25]
+static void Image_ReportLookupsCount (const char *name)
+	{
+	if (name[0] != '#')
+		{
+		Con_Reportf ("Performed %i lookups in %fs (of total %i for %fs) while loading %s\n",
+			g_lookups, g_lookup_time, g_lookups_total, g_lookup_time_total, name);
+		}
+	}
+
+// [FWGS, 01.09.25]
+static void Image_IncrementLookupTime (void)
+	{
+	double t = Sys_DoubleTime ();
+	double dt = t - g_lookup_start;
+
+	g_lookup_time += dt;
+	g_lookup_time_total += dt;
+	g_lookups++;
+	g_lookups_total++;
+
+	g_lookup_start = Sys_DoubleTime ();
+	}
+
+#else
+
+// [FWGS, 01.09.25]
+static void Image_ReportLookupsCount (const char *name)
+	{
+	(void)name;
+	}
+
+// [FWGS, 01.09.25]
+static void Image_IncrementLookupTime (void)
+	{
+	}
+
+#endif
 
 void Image_Reset (void)
 	{
@@ -110,13 +161,21 @@ void Image_Reset (void)
 	image.rgba = NULL;
 	image.ptr = 0;
 	image.size = 0;
+
+	// [FWGS, 01.09.25]
+#if DEBUG_LOOKUPS_COUNT
+	g_lookups = 0;
+	g_lookup_time = 0.0f;
+	g_lookup_start = Sys_DoubleTime ();
+#endif
 	}
 
-// [FWGS, 01.12.24]
-/*static rgbdata_t *ImagePack (void)*/
-static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (void)
+// [FWGS, 01.09.25]
+/*static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (void)*/
+static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (const char *name)
 	{
 	rgbdata_t *pack;
+	Image_ReportLookupsCount (name);
 
 	// clear any force flags
 	image.force_flags = 0;
@@ -162,7 +221,7 @@ static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (void)
 
 /***
 ================
-FS_AddSideToPack [FWGS, 01.04.23]
+FS_AddSideToPack
 ================
 ***/
 static qboolean FS_AddSideToPack (int adjust_flags)
@@ -218,7 +277,6 @@ static const loadpixformat_t *Image_GetLoadFormatForExtension (const char *ext)
 	if (!COM_CheckStringEmpty (ext))
 		return NULL;
 
-	/*for (format = image.loadformats; format->formatstring; format++)*/
 	for (format = image.loadformats; format->ext; format++)
 		{
 		if (!Q_stricmp (ext, format->ext))
@@ -239,16 +297,17 @@ static qboolean Image_ProbeLoadBuffer_ (const loadpixformat_t *fmt, const char *
 	return fmt->loadfunc (name, buf, size);
 	}
 
+// [FWGS, 01.09.25]
 static qboolean Image_ProbeLoadBuffer (const loadpixformat_t *fmt, const char *name, const byte *buf, 
 	size_t size, int override_hint)
 	{
-	if (size <= 0)
+	/*if (size <= 0)*/
+	if (unlikely (size <= 0))
 		return false;
 
-	// [FWGS, 01.04.25] bruteforce all loaders
+	// bruteforce all loaders
 	if (!fmt)
 		{
-		/*for (fmt = image.loadformats; fmt->formatstring; fmt++)*/
 		for (fmt = image.loadformats; fmt->ext; fmt++)
 			{
 			if (Image_ProbeLoadBuffer_ (fmt, name, buf, size, override_hint))
@@ -261,33 +320,92 @@ static qboolean Image_ProbeLoadBuffer (const loadpixformat_t *fmt, const char *n
 	return Image_ProbeLoadBuffer_ (fmt, name, buf, size, override_hint);
 	}
 
-// [FWGS, 01.04.25]
+// [FWGS, 01.09.25]
 static qboolean Image_ProbeLoad_ (const loadpixformat_t *fmt, const char *name, const char *suffix, int override_hint)
 	{
 	qboolean	success = false;
 	fs_offset_t	filesize;
-	string	path;
-	byte	*f;
+	string		path;
+	byte		*f;
 
-	/*Q_snprintf (path, sizeof (path), fmt->formatstring, name, suffix, fmt->ext);*/
 	Q_snprintf (path, sizeof (path), "%s%s.%s", name, suffix, fmt->ext);
 	f = FS_LoadFile (path, &filesize, false);
 
-	if (f)
+	/*if (f)*/
+	Image_IncrementLookupTime ();
+
+	if (f && (filesize >= 0))
 		{
-		success = Image_ProbeLoadBuffer (fmt, path, f, filesize, override_hint);
+		/*success = Image_ProbeLoadBuffer (fmt, path, f, filesize, override_hint);*/
+		success = Image_ProbeLoadBuffer_ (fmt, path, f, filesize, override_hint);
 		Mem_Free (f);
 		}
 
 	return success;
 	}
 
+// [FWGS, 01.09.25]
+static qboolean Image_ProbeLoad2 (const char *name, const char *suffix, int override_hint)
+	{
+	const loadpixformat_t	*fmt;
+	search_t	*t;
+	string		pattern;
+	int			i;
+
+	Q_snprintf (pattern, sizeof (pattern), "%s%s.*", name, suffix);
+
+	t = FS_Search (pattern, true, false);
+	if (!t)
+		return false;
+
+	// we now have to check every extension
+	// to keep the loading order
+	for (fmt = image.loadformats; fmt->ext; fmt++)
+		{
+		fs_offset_t filesize;
+		byte *data;
+
+		for (i = 0; i < t->numfilenames; i++)
+			{
+			const char *ext = COM_FileExtension (t->filenames[i]);
+
+			if (!Q_stricmp (ext, fmt->ext))
+				break;
+			}
+
+		// try next...
+		if (i == t->numfilenames)
+			continue;
+
+		data = FS_LoadFile (t->filenames[i], &filesize, false);
+		Image_IncrementLookupTime ();
+
+		// can't load file, ignore
+		if (unlikely (!data || (filesize <= 0)))
+			continue;
+
+		if (Image_ProbeLoadBuffer_ (fmt, t->filenames[i], data, filesize, override_hint))
+			{
+			Mem_Free (data);
+			Mem_Free (t);
+			return true;
+			}
+		}
+
+	Mem_Free (t);
+	return false;
+	}
+
+// [FWGS, 01.09.25]
 static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, const char *suffix, int override_hint)
 	{
 	if (!fmt)
 		{
-		// [FWGS, 01.04.25] bruteforce all formats to allow implicit extension
-		/*for (fmt = image.loadformats; fmt->formatstring; fmt++)*/
+#if USE_FS_SEARCH_FOR_LOOKUPS
+		return Image_ProbeLoad2 (name, suffix, override_hint);
+#else
+
+		// bruteforce all formats to allow implicit extension
 		for (fmt = image.loadformats; fmt->ext; fmt++)
 			{
 			if (Image_ProbeLoad_ (fmt, name, suffix, override_hint))
@@ -295,6 +413,7 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 			}
 
 		return false;
+#endif
 		}
 
 	return Image_ProbeLoad_ (fmt, name, suffix, override_hint);
@@ -302,7 +421,7 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 
 /***
 ================
-FS_LoadImage [FWGS, 22.01.25]
+FS_LoadImage [FWGS, 01.09.25]
 
 loading and unpack to rgba any known image
 ================
@@ -311,28 +430,29 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 	{
 	const char	*ext = COM_FileExtension (filename);
 	string		loadname;
-	/*int			i;*/
 	int			i, j;
 	const loadpixformat_t	*extfmt;
-	/*const cubepack_t		*cmap;*/
 
 	Q_strncpy (loadname, filename, sizeof (loadname));
-	Image_Reset (); // clear old image
+	/*Image_Reset (); // clear old image*/
 
 	// we needs to compare file extension with list of supported formats
 	// and be sure what is real extension, not a filename with dot
 	if ((extfmt = Image_GetLoadFormatForExtension (ext)))
 		COM_StripExtension (loadname);
 
+	// clear old image
+	Image_Reset ();
+
 	// special mode: skip any checks, load file from buffer
 	if ((filename[0] == '#') && buffer && size)
 		goto load_internal;
 
 	if (Image_ProbeLoad (extfmt, loadname, "", -1))
-		return ImagePack ();
+		/*return ImagePack ();*/
+		return ImagePack (filename);
 
 	// check all cubemap sides with package suffix
-	/*for (cmap = load_cubemap; cmap && cmap->type; cmap++)*/
 	for (j = 0; j < HLARRAYSIZE (load_cubemap); j++)
 		{
 		for (i = 0; i < 6; i++)
@@ -371,18 +491,22 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 		}
 
 	if (image.cubemap)
-		return ImagePack (); // all done
+		/*return ImagePack (); // all done*/
+		return ImagePack (filename); // all done
 
 load_internal:
 	if (buffer && size)
 		{
 		if (Image_ProbeLoadBuffer (extfmt, loadname, buffer, size, -1))
-			return ImagePack ();
+			/*return ImagePack ();*/
+			return ImagePack (filename);
 		}
 
-	// [FWGS, 01.07.24]
 	if (loadname[0] != '#')
+		{
 		Con_Reportf (S_WARN "%s: couldn't load \"%s\"\n", __func__, loadname);
+		Image_ReportLookupsCount (filename);
+		}
 
 	// clear any force flags
 	image.force_flags = 0;
@@ -440,15 +564,12 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 		picBuffer = pix->buffer;
 
 		// save all sides seperately
-		/*for (format = image.saveformats; format && format->formatstring; format++)*/
 		for (format = image.saveformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (ext, format->ext))
 				{
 				for (i = 0; i < 6; i++)
 					{
-					/*Q_snprintf (path, sizeof (path),
-						format->formatstring, savename, box[i].suf, format->ext);*/
 					Q_snprintf (path, sizeof (path), "%s%s.%s", savename, box[i].suf, format->ext);
 
 					if (!format->savefunc (path, pix))
@@ -469,13 +590,10 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 		}
 	else
 		{
-		/*for (format = image.saveformats; format && format->formatstring; format++)*/
 		for (format = image.saveformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (ext, format->ext))
 				{
-				/*Q_snprintf (path, sizeof (path),
-					format->formatstring, savename, "", format->ext);*/
 				Q_snprintf (path, sizeof (path), "%s.%s", savename, format->ext);
 
 				if (format->savefunc (path, pix))
@@ -583,7 +701,6 @@ static void Test_CheckImage (const char *name, rgbdata_t *rgb)
 		TASSERT (load->size == rgb->size)
 		TASSERT (memcmp (load->buffer, rgb->buffer, rgb->size) == 0)
 
-		/*Mem_Free (load);*/
 		FS_FreeImage (load);
 	}
 
@@ -615,7 +732,6 @@ void Test_RunImagelib (void)
 
 	for (i = 0; i < sizeof (extensions) / sizeof (extensions[0]); i++)
 		{
-		// [FWGS, 01.05.23]
 		qboolean ret; 
 		char name[MAX_VA_STRING];
 		Q_snprintf (name, sizeof (name), "test_gen.%s", extensions[i]);
@@ -644,7 +760,7 @@ int HLEXPORT export( const uint8_t *Data, size_t Size ) \
 	Image_Init(); \
 	if( target( "#internal", Data, Size )) \
 	{ \
-		rgb = ImagePack(); \
+		rgb = ImagePack( "#internal" ); \
 		FS_FreeImage( rgb ); \
 	} \
 	Image_Shutdown(); \

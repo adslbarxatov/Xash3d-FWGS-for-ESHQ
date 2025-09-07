@@ -1781,25 +1781,11 @@ static void Mod_MakeHull0 (model_t *mod, const dbspmodel_t *bmod)
 
 /***
 =================
-Mod_SetupHull [FWGS, 01.06.25]
+Mod_SetupHull
 =================
 ***/
-/*static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, poolhandle_t mempool, int headnode, int hullnum)*/
 static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hullnum, model_t *world)
 	{
-	/*hull_t *hull = &mod->hulls[hullnum];
-
-	// assume no hull
-	hull->firstclipnode = hull->lastclipnode = 0;
-	hull->planes = NULL; // hull is missed
-
-	// hull missed
-	if ((headnode == -1) || ((hullnum != 1) && (headnode == 0)))
-		return;
-
-	// ZHLT weird empty hulls
-	if (headnode >= mod->numclipnodes)
-		return;*/
 	hull_t *hull = &mod->hulls[hullnum];
 
 	switch (hullnum)
@@ -1831,7 +1817,6 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 	if (VectorIsNull (hull->clip_mins) && VectorIsNull (hull->clip_maxs))
 		return;
 
-	/*CountDClipNodes_r (bmod->clipnodes_out, hull, headnode);*/
 	// assume no hull
 	hull->firstclipnode = hull->lastclipnode = 0;
 	hull->planes = NULL; // hull is missed
@@ -1846,8 +1831,12 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 		{
 		hull->planes = mod->planes;
 
-		// some map "optimizers" (you know who you are!) put -1 here
-		hull->firstclipnode = Q_max (0, headnode);
+		// [FWGS, 01.09.25] some map "optimizers" (you know who you are!) put -1 here
+		/*hull->firstclipnode = Q_max (0, headnode);*/
+		// ... and it's purposefully? encode CONTENTS_EMPTY sometimes
+		// but might cause out of bounds reads
+		hull->firstclipnode = headnode;
+
 		hull->lastclipnode = mod->numclipnodes - 1;
 
 		// only allocate clipnodes array for the base model, only for first hull
@@ -1894,14 +1883,12 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 
 	// fit array to real count
 	if (bmod->version == QBSP2_VERSION)
-		/*hull->clipnodes32 = Mem_Malloc (mempool, sizeof (*hull->clipnodes32) * hull->lastclipnode);*/
 		{
 		CountDClipNodes_r (bmod->clipnodes_out, hull, headnode, MAX_MAP_CLIPNODES_BSP2);
 		hull->clipnodes32 = Mem_Malloc (world->mempool, sizeof (*hull->clipnodes32) * hull->lastclipnode);
 		}
 
 	else
-		/*hull->clipnodes16 = Mem_Malloc (mempool, sizeof (*hull->clipnodes16) * hull->lastclipnode);*/
 		{
 		CountDClipNodes_r (bmod->clipnodes_out, hull, headnode, MAX_MAP_CLIPNODES_HLBSP);
 		hull->clipnodes16 = Mem_Malloc (world->mempool, sizeof (*hull->clipnodes16) * hull->lastclipnode);
@@ -1989,23 +1976,9 @@ for embedded submodels
 ***/
 static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 	{
-	/*qboolean		colored = false;
-	qboolean		qbsp2 = false;
-	poolhandle_t	mempool;
-	char			*ents;
-	dmodel_t		*bm;*/
 	const qboolean	colored = FBitSet (mod->flags, MODEL_COLORED_LIGHTING) ? true : false;
 	const qboolean	qbsp2 = FBitSet (mod->flags, MODEL_QBSP2) ? true : false;
 	const char	*name = mod->name;
-	/*int				i, j;
-
-	ents = mod->entities;
-	mempool = mod->mempool;
-	if (FBitSet (mod->flags, MODEL_COLORED_LIGHTING))
-		colored = true;
-
-	if (FBitSet (mod->flags, MODEL_QBSP2))
-		qbsp2 = true;*/
 	model_t		*world = mod;	// submodels might want to share hulls
 	int			i;
 
@@ -2015,7 +1988,6 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 	// set up the submodels
 	for (i = 0; i < mod->numsubmodels; i++)
 		{
-		/*bm = &mod->submodels[i];*/
 		dmodel_t *bm = &mod->submodels[i];
 		int j;
 
@@ -2031,7 +2003,6 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 
 		// but hulls1-3 is build individually for a each given submodel
 		for (j = 1; j < MAX_MAP_HULLS; j++)
-			/*Mod_SetupHull (bmod, mod, mempool, bm->headnode[j], j);*/
 			Mod_SetupHull (bmod, mod, bm->headnode[j], j, world);
 
 		mod->firstmodelsurface = bm->firstface;
@@ -2056,7 +2027,6 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 			char temp[MAX_VA_STRING];
 
 			Q_snprintf (temp, sizeof (temp), "*%i", i);
-			/*Mod_FindModelOrigin (ents, temp, bm->origin);*/
 			Mod_FindModelOrigin (world->entities, temp, bm->origin);
 
 			// mark models that have origin brushes
