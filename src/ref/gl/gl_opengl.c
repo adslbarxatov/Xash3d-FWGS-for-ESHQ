@@ -101,134 +101,8 @@ glwstate_t	glw_state;
 #endif
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t opengl_110funcs[] =*/
 static const dllfunc_t opengl_110funcs[] =
 	{
-	/*{ GL_CALL (glClearColor) },
-	{ GL_CALL (glClear) },
-	{ GL_CALL (glAlphaFunc) },
-	{ GL_CALL (glBlendFunc) },
-	{ GL_CALL (glCullFace) },
-	{ GL_CALL (glDrawBuffer) },
-	{ GL_CALL (glReadBuffer) },
-	{ GL_CALL (glAccum) },
-	{ GL_CALL (glEnable) },
-	{ GL_CALL (glDisable) },
-	{ GL_CALL (glEnableClientState) },
-	{ GL_CALL (glDisableClientState) },
-	{ GL_CALL (glGetBooleanv) },
-	{ GL_CALL (glGetDoublev) },
-	{ GL_CALL (glGetFloatv) },
-	{ GL_CALL (glGetIntegerv) },
-	{ GL_CALL (glGetError) },
-	{ GL_CALL (glGetString) },
-	{ GL_CALL (glFinish) },
-	{ GL_CALL (glFlush) },
-	{ GL_CALL (glClearDepth) },
-	{ GL_CALL (glDepthFunc) },
-	{ GL_CALL (glDepthMask) },
-	{ GL_CALL (glDepthRange) },
-	{ GL_CALL (glFrontFace) },
-	{ GL_CALL (glDrawElements) },
-	{ GL_CALL (glDrawArrays) },
-	{ GL_CALL (glColorMask) },
-	{ GL_CALL (glIndexPointer) },
-	{ GL_CALL (glVertexPointer) },
-	{ GL_CALL (glNormalPointer) },
-	{ GL_CALL (glColorPointer) },
-	{ GL_CALL (glTexCoordPointer) },
-	{ GL_CALL (glArrayElement) },
-	{ GL_CALL (glColor3f) },
-	{ GL_CALL (glColor3fv) },
-	{ GL_CALL (glColor4f) },
-	{ GL_CALL (glColor4fv) },
-	{ GL_CALL (glColor3ub) },
-	{ GL_CALL (glColor4ub) },
-	{ GL_CALL (glColor4ubv) },
-	{ GL_CALL (glTexCoord1f) },
-	{ GL_CALL (glTexCoord2f) },
-	{ GL_CALL (glTexCoord3f) },
-	{ GL_CALL (glTexCoord4f) },
-	{ GL_CALL (glTexCoord1fv) },
-	{ GL_CALL (glTexCoord2fv) },
-	{ GL_CALL (glTexCoord3fv) },
-	{ GL_CALL (glTexCoord4fv) },
-	{ GL_CALL (glTexGenf) },
-	{ GL_CALL (glTexGenfv) },
-	{ GL_CALL (glTexGeni) },
-	{ GL_CALL (glVertex2f) },
-	{ GL_CALL (glVertex3f) },
-	{ GL_CALL (glVertex3fv) },
-	{ GL_CALL (glNormal3f) },
-	{ GL_CALL (glNormal3fv) },
-	{ GL_CALL (glBegin) },
-	{ GL_CALL (glEnd) },
-	{ GL_CALL (glLineWidth) },
-	{ GL_CALL (glPointSize) },
-	{ GL_CALL (glMatrixMode) },
-	{ GL_CALL (glOrtho) },
-	{ GL_CALL (glRasterPos2f) },
-	{ GL_CALL (glFrustum) },
-	{ GL_CALL (glViewport) },
-	{ GL_CALL (glPushMatrix) },
-	{ GL_CALL (glPopMatrix) },
-	{ GL_CALL (glPushAttrib) },
-	{ GL_CALL (glPopAttrib) },
-	{ GL_CALL (glLoadIdentity) },
-	{ GL_CALL (glLoadMatrixd) },
-	{ GL_CALL (glLoadMatrixf) },
-	{ GL_CALL (glMultMatrixd) },
-	{ GL_CALL (glMultMatrixf) },
-	{ GL_CALL (glRotated) },
-	{ GL_CALL (glRotatef) },
-	{ GL_CALL (glScaled) },
-	{ GL_CALL (glScalef) },
-	{ GL_CALL (glTranslated) },
-	{ GL_CALL (glTranslatef) },
-	{ GL_CALL (glReadPixels) },
-	{ GL_CALL (glDrawPixels) },
-	{ GL_CALL (glStencilFunc) },
-	{ GL_CALL (glStencilMask) },
-	{ GL_CALL (glStencilOp) },
-	{ GL_CALL (glClearStencil) },
-	{ GL_CALL (glIsEnabled) },
-	{ GL_CALL (glIsList) },
-	{ GL_CALL (glIsTexture) },
-	{ GL_CALL (glTexEnvf) },
-	{ GL_CALL (glTexEnvfv) },
-	{ GL_CALL (glTexEnvi) },
-	{ GL_CALL (glTexParameterf) },
-	{ GL_CALL (glTexParameterfv) },
-	{ GL_CALL (glTexParameteri) },
-	{ GL_CALL (glHint) },
-	{ GL_CALL (glPixelStoref) },
-	{ GL_CALL (glPixelStorei) },
-	{ GL_CALL (glGenTextures) },
-	{ GL_CALL (glDeleteTextures) },
-	{ GL_CALL (glBindTexture) },
-	{ GL_CALL (glTexImage1D) },
-	{ GL_CALL (glTexImage2D) },
-	{ GL_CALL (glTexSubImage1D) },
-	{ GL_CALL (glTexSubImage2D) },
-	{ GL_CALL (glCopyTexImage1D) },
-	{ GL_CALL (glCopyTexImage2D) },
-	{ GL_CALL (glCopyTexSubImage1D) },
-	{ GL_CALL (glCopyTexSubImage2D) },
-	{ GL_CALL (glScissor) },
-	{ GL_CALL (glGetTexImage) },
-	{ GL_CALL (glGetTexEnviv) },
-	{ GL_CALL (glPolygonOffset) },
-	{ GL_CALL (glPolygonMode) },
-	{ GL_CALL (glPolygonStipple) },
-	{ GL_CALL (glClipPlane) },
-	{ GL_CALL (glGetClipPlane) },
-	{ GL_CALL (glShadeModel) },
-	{ GL_CALL (glGetTexLevelParameteriv) },
-	{ GL_CALL (glGetTexLevelParameterfv) },
-	{ GL_CALL (glFogfv) },
-	{ GL_CALL (glFogf) },
-	{ GL_CALL (glFogi) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glClearColor) },
 	{ GL_CALL (glClear) },
 	{ GL_CALL (glAlphaFunc) },
@@ -356,14 +230,8 @@ static const dllfunc_t opengl_110funcs[] =
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t debugoutputfuncs[] =*/
 static const dllfunc_t debugoutputfuncs[] =
 	{
-	/*{ GL_CALL (glDebugMessageControlARB) },
-	{ GL_CALL (glDebugMessageInsertARB) },
-	{ GL_CALL (glDebugMessageCallbackARB) },
-	{ GL_CALL (glGetDebugMessageLogARB) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glDebugMessageControlARB) },
 	{ GL_CALL (glDebugMessageInsertARB) },
 	{ GL_CALL (glDebugMessageCallbackARB) },
@@ -371,18 +239,8 @@ static const dllfunc_t debugoutputfuncs[] =
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t multitexturefuncs[] =*/
 static const dllfunc_t multitexturefuncs[] =
 	{
-	/*{ GL_CALL (glMultiTexCoord1f) },
-	{ GL_CALL (glMultiTexCoord2f) },
-	{ GL_CALL (glMultiTexCoord3f) },
-	{ GL_CALL (glMultiTexCoord4f) },
-	{ GL_CALL (glActiveTexture) },
-	{ GL_CALL (glActiveTextureARB) },
-	{ GL_CALL (glClientActiveTexture) },
-	{ GL_CALL (glClientActiveTextureARB) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glMultiTexCoord1f) },
 	{ GL_CALL (glMultiTexCoord2f) },
 	{ GL_CALL (glMultiTexCoord3f) },
@@ -394,30 +252,16 @@ static const dllfunc_t multitexturefuncs[] =
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t texture3dextfuncs[] =*/
 static const dllfunc_t texture3dextfuncs[] =
 	{
-	/*{ GL_CALL (glTexImage3D) },
-	{ GL_CALL (glTexSubImage3D) },
-	{ GL_CALL (glCopyTexSubImage3D) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glTexImage3D) },
 	{ GL_CALL (glTexSubImage3D) },
 	{ GL_CALL (glCopyTexSubImage3D) },
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t texturecompressionfuncs[] =*/
 static const dllfunc_t texturecompressionfuncs[] =
 	{
-	/*{ GL_CALL (glCompressedTexImage3DARB) },
-	{ GL_CALL (glCompressedTexImage2DARB) },
-	{ GL_CALL (glCompressedTexImage1DARB) },
-	{ GL_CALL (glCompressedTexSubImage3DARB) },
-	{ GL_CALL (glCompressedTexSubImage2DARB) },
-	{ GL_CALL (glCompressedTexSubImage1DARB) },
-	{ GL_CALL (glGetCompressedTexImage) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glCompressedTexImage3DARB) },
 	{ GL_CALL (glCompressedTexImage2DARB) },
 	{ GL_CALL (glCompressedTexImage1DARB) },
@@ -428,53 +272,36 @@ static const dllfunc_t texturecompressionfuncs[] =
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t vbofuncs[] =*/
 static const dllfunc_t vbofuncs[] =
 	{
-	/*{ GL_CALL (glBindBufferARB) },
-	{ GL_CALL (glDeleteBuffersARB) },
-	{ GL_CALL (glGenBuffersARB) },
-	{ GL_CALL (glIsBufferARB) },*/
 	{ GL_CALL (glBindBufferARB) },
 	{ GL_CALL (glDeleteBuffersARB) },
 	{ GL_CALL (glGenBuffersARB) },
 	{ GL_CALL (glIsBufferARB) },
 #if !XASH_GLES
-	/*{ GL_CALL (glMapBufferARB) },
-	{ GL_CALL (glUnmapBufferARB) },*/
 	{ GL_CALL (glMapBufferARB) },
 	{ GL_CALL (glUnmapBufferARB) },
 #endif
-	/*{ GL_CALL (glBufferDataARB) },
-	{ GL_CALL (glBufferSubDataARB) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glBufferDataARB) },
 	{ GL_CALL (glBufferSubDataARB) },
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t multisampletexfuncs[] =*/
 static const dllfunc_t multisampletexfuncs[] =
 	{
-	/*{ GL_CALL (glTexImage2DMultisample) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glTexImage2DMultisample) },
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t drawrangeelementsfuncs[] =*/
 static const dllfunc_t drawrangeelementsfuncs[] =
 	{
 	{ GL_CALL (glDrawRangeElements) },
-	/*{ NULL, NULL }*/
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t drawrangeelementsextfuncs[] =*/
 static const dllfunc_t drawrangeelementsextfuncs[] =
 	{
 	{ GL_CALL (glDrawRangeElementsEXT) },
-	/*{ NULL, NULL }*/
 	};
 
 // mangling in gl2shim???
@@ -485,7 +312,6 @@ static const dllfunc_t drawrangeelementsextfuncs[] =
 #if !XASH_GL_STATIC
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t mapbufferrangefuncs[] =*/
 static const dllfunc_t mapbufferrangefuncs[] =
 	{
 	{ GL_CALL (glMapBufferRange) },
@@ -493,77 +319,23 @@ static const dllfunc_t mapbufferrangefuncs[] =
 #if XASH_GLES
 	{ GL_CALL (glUnmapBufferARB) },
 #endif
-	/*{ NULL, NULL }*/
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t drawrangeelementsbasevertexfuncs[] =*/
 static const dllfunc_t drawrangeelementsbasevertexfuncs[] =
 	{
 	{ GL_CALL (glDrawRangeElementsBaseVertex) },
-	/*{ NULL, NULL }*/
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t bufferstoragefuncs[] =*/
 static const dllfunc_t bufferstoragefuncs[] =
 	{
 	{ GL_CALL (glBufferStorage) },
-	/*{ NULL, NULL }*/
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t shaderobjectsfuncs[] =*/
 static const dllfunc_t shaderobjectsfuncs[] =
 	{
-	/*{ GL_CALL (glDeleteObjectARB) },
-	{ GL_CALL (glGetHandleARB) },
-	{ GL_CALL (glDetachObjectARB) },
-	{ GL_CALL (glCreateShaderObjectARB) },
-	{ GL_CALL (glShaderSourceARB) },
-	{ GL_CALL (glCompileShaderARB) },
-	{ GL_CALL (glCreateProgramObjectARB) },
-	{ GL_CALL (glAttachObjectARB) },
-	{ GL_CALL (glLinkProgramARB) },
-	{ GL_CALL (glUseProgramObjectARB) },
-	{ GL_CALL (glValidateProgramARB) },
-	{ GL_CALL (glUniform1fARB) },
-	{ GL_CALL (glUniform2fARB) },
-	{ GL_CALL (glUniform3fARB) },
-	{ GL_CALL (glUniform4fARB) },
-	{ GL_CALL (glUniform1iARB) },
-	{ GL_CALL (glUniform2iARB) },
-	{ GL_CALL (glUniform3iARB) },
-	{ GL_CALL (glUniform4iARB) },
-	{ GL_CALL (glUniform1fvARB) },
-	{ GL_CALL (glUniform2fvARB) },
-	{ GL_CALL (glUniform3fvARB) },
-	{ GL_CALL (glUniform4fvARB) },
-	{ GL_CALL (glUniform1ivARB) },
-	{ GL_CALL (glUniform2ivARB) },
-	{ GL_CALL (glUniform3ivARB) },
-	{ GL_CALL (glUniform4ivARB) },
-	{ GL_CALL (glUniformMatrix2fvARB) },
-	{ GL_CALL (glUniformMatrix3fvARB) },
-	{ GL_CALL (glUniformMatrix4fvARB) },
-	{ GL_CALL (glGetObjectParameterfvARB) },
-	{ GL_CALL (glGetObjectParameterivARB) },
-	{ GL_CALL (glGetInfoLogARB) },
-	{ GL_CALL (glGetAttachedObjectsARB) },
-	{ GL_CALL (glGetUniformLocationARB) },
-	{ GL_CALL (glGetActiveUniformARB) },
-	{ GL_CALL (glGetUniformfvARB) },
-	{ GL_CALL (glGetUniformivARB) },
-	{ GL_CALL (glGetShaderSourceARB) },
-	{ GL_CALL (glVertexAttribPointerARB) },
-	{ GL_CALL (glEnableVertexAttribArrayARB) },
-	{ GL_CALL (glDisableVertexAttribArrayARB) },
-	{ GL_CALL (glBindAttribLocationARB) },
-	{ GL_CALL (glGetActiveAttribARB) },
-	{ GL_CALL (glGetAttribLocationARB) },
-	{ GL_CALL (glVertexAttrib2fARB) },
-	{ GL_CALL (glVertexAttrib2fvARB) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glDeleteObjectARB) },
 	{ GL_CALL (glGetHandleARB) },
 	{ GL_CALL (glDetachObjectARB) },
@@ -630,60 +402,8 @@ Commented out lines left there intentionally to prevent usage on core/gles
 ***/
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t shaderobjectsfuncs_gles[] =*/
 static const dllfunc_t shaderobjectsfuncs_gles[] =
 	{
-	/*{ "glDeleteShader", (void **)&pglDeleteObjectARB },
-	{ "glDetachShader", (void **)&pglDetachObjectARB },
-	{ "glCreateShader", (void **)&pglCreateShaderObjectARB },
-	{ "glShaderSource", (void **)&pglShaderSourceARB },
-	{ "glCompileShader", (void **)&pglCompileShaderARB },
-	{ "glCreateProgram", (void **)&pglCreateProgramObjectARB },
-	{ "glAttachShader", (void **)&pglAttachObjectARB },
-	{ "glLinkProgram", (void **)&pglLinkProgramARB },
-	{ "glUseProgram", (void **)&pglUseProgramObjectARB },
-	{ "glValidateProgram", (void **)&pglValidateProgramARB },
-	{ "glUniform1f", (void **)&pglUniform1fARB },
-	{ "glUniform2f", (void **)&pglUniform2fARB },
-	{ "glUniform3f", (void **)&pglUniform3fARB },
-	{ "glUniform4f", (void **)&pglUniform4fARB },
-	{ "glUniform1i", (void **)&pglUniform1iARB },
-	{ "glUniform2i", (void **)&pglUniform2iARB },
-	{ "glUniform3i", (void **)&pglUniform3iARB },
-	{ "glUniform4i", (void **)&pglUniform4iARB },
-	{ "glUniform1f", (void **)&pglUniform1fvARB },
-	{ "glUniform2fv", (void **)&pglUniform2fvARB },
-	{ "glUniform3fv", (void **)&pglUniform3fvARB },
-	{ "glUniform4fv", (void **)&pglUniform4fvARB },
-	{ "glUniform1iv", (void **)&pglUniform1ivARB },
-	{ "glUniform2iv", (void **)&pglUniform2ivARB },
-	{ "glUniform3iv", (void **)&pglUniform3ivARB },
-	{ "glUniform4iv", (void **)&pglUniform4ivARB },
-	{ "glUniformMatrix2fv", (void **)&pglUniformMatrix2fvARB },
-	{ "glUniformMatrix3fv", (void **)&pglUniformMatrix3fvARB },
-	{ "glUniformMatrix4fv", (void **)&pglUniformMatrix4fvARB },
-	{ "glGetShaderiv", (void **)&pglGetObjectParameterivARB },
-	{ "glGetShaderInfoLog", (void **)&pglGetInfoLogARB },
-	{ "glGetUniformLocation", (void **)&pglGetUniformLocationARB },
-	{ "glGetActiveUniform", (void **)&pglGetActiveUniformARB },
-	{ "glGetUniformfv", (void **)&pglGetUniformfvARB },
-	{ "glGetUniformiv", (void **)&pglGetUniformivARB },
-	{ "glGetShaderSource", (void **)&pglGetShaderSourceARB },
-	{ "glVertexAttribPointer", (void **)&pglVertexAttribPointerARB },
-	{ "glEnableVertexAttribArray", (void **)&pglEnableVertexAttribArrayARB },
-	{ "glDisableVertexAttribArray", (void **)&pglDisableVertexAttribArrayARB },
-	{ "glBindAttribLocation", (void **)&pglBindAttribLocationARB },
-	{ "glGetActiveAttrib", (void **)&pglGetActiveAttribARB },
-	{ "glGetAttribLocation", (void **)&pglGetAttribLocationARB },
-	{ "glVertexAttrib2f", (void **)&pglVertexAttrib2fARB },
-	{ "glVertexAttrib2fv", (void **)&pglVertexAttrib2fvARB },
-	{ "glVertexAttrib3fv", (void **)&pglVertexAttrib3fvARB },
-	
-	// Core/GLES only
-	{ GL_CALL (glGetProgramiv) },
-	{ GL_CALL (glDeleteProgram) },
-	{ GL_CALL (glGetProgramInfoLog) },
-	{ NULL, NULL }*/
 	{ "glDeleteShader" , (void **)&pglDeleteObjectARB },
 	//{ "glGetHandleARB" , (void **)&pglGetHandleARB },
 	{ "glDetachShader" , (void **)&pglDetachObjectARB },
@@ -743,14 +463,8 @@ static const dllfunc_t shaderobjectsfuncs_gles[] =
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t vaofuncs[] =*/
 static const dllfunc_t vaofuncs[] =
 	{
-	/*{ GL_CALL (glBindVertexArray) },
-	{ GL_CALL (glDeleteVertexArrays) },
-	{ GL_CALL (glGenVertexArrays) },
-	{ GL_CALL (glIsVertexArray) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glBindVertexArray) },
 	{ GL_CALL (glDeleteVertexArrays) },
 	{ GL_CALL (glGenVertexArrays) },
@@ -758,14 +472,8 @@ static const dllfunc_t vaofuncs[] =
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t multitexturefuncs_es[] =*/
 static const dllfunc_t multitexturefuncs_es[] =
 	{
-	/*{ GL_CALL (glActiveTexture) },
-	{ GL_CALL (glActiveTextureARB) },
-	{ GL_CALL (glClientActiveTexture) },
-	{ GL_CALL (glClientActiveTextureARB) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glActiveTexture) },
 	{ GL_CALL (glActiveTextureARB) },
 	{ GL_CALL (glClientActiveTexture) },
@@ -773,12 +481,8 @@ static const dllfunc_t multitexturefuncs_es[] =
 	};
 
 // [FWGS, 22.01.25]
-/*static dllfunc_t multitexturefuncs_es2[] =*/
 static const dllfunc_t multitexturefuncs_es2[] =
 	{
-	/*{ GL_CALL (glActiveTexture) },
-	{ GL_CALL (glActiveTextureARB) },
-	{ NULL, NULL }*/
 	{ GL_CALL (glActiveTexture) },
 	{ GL_CALL (glActiveTextureARB) },
 	};
@@ -823,7 +527,6 @@ static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLui
 GL_SetExtension [FWGS, 22.01.25]
 =================
 ***/
-/*void GL_SetExtension (int r_ext, int enable)*/
 static void GL_SetExtension (int r_ext, int enable)
 	{
 	if ((r_ext >= 0) && (r_ext < GL_EXTCOUNT))
@@ -833,33 +536,6 @@ static void GL_SetExtension (int r_ext, int enable)
 	}
 
 // [FWGS, 01.03.25] removed GL_Support, GL_MaxTextureUnits
-
-/*
-=================
-GL_Support [FWGS, 01.07.24]
-=================
-/
-qboolean GL_Support (int r_ext)
-	{
-	if ((r_ext >= 0) && (r_ext < GL_EXTCOUNT))
-		return glConfig.extension[r_ext] ? true : false;
-
-	gEngfuncs.Con_Printf (S_ERROR "%s: invalid extension %d\n", __func__, r_ext);
-	return false;
-	}*/
-
-/*
-=================
-GL_MaxTextureUnits
-=================
-/
-int GL_MaxTextureUnits (void)
-	{
-	if (GL_Support (GL_SHADER_GLSL100_EXT))
-		return Q_min (Q_max (glConfig.max_texture_coords, glConfig.max_teximage_units), MAX_TEXTURE_UNITS);
-
-	return glConfig.max_texture_units;
-	}*/
 
 /***
 =================
@@ -931,7 +607,6 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 			else // I need Q_strstrnul
 				{
 				end = name + Q_strlen (name);
-				/*i++; // skip empty suffix*/
 				j++; // skip empty suffix
 				}
 
@@ -1068,7 +743,6 @@ static void GL_SetDefaults (void)
 
 	GL_Cull (GL_NONE);
 	}
-
 
 /***
 =================
@@ -1967,15 +1641,18 @@ void GL_SetupAttributes (int safegl)
 void wes_init (const char *gles2);
 int nanoGL_Init (void);
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.09.25]
 #if XASH_GL4ES
-static void GL4ES_GetMainFBSize (int *width, int *height)
+/*static void GL4ES_GetMainFBSize (int *width, int *height)*/
+static void APIENTRY GL4ES_GetMainFBSize (int *width, int *height)
 	{
 	*width = gpGlobals->width;
 	*height = gpGlobals->height;
 	}
 
-static void *GL4ES_GetProcAddress (const char *name)
+// [FWGS, 01.09.25]
+/*static void *GL4ES_GetProcAddress (const char *name)*/
+static void *APIENTRY GL4ES_GetProcAddress (const char *name)
 	{
 	// combined gles/gles2/gl implementation exports this, but it is invalid
 	if (!Q_strcmp (name, "glShadeModel"))

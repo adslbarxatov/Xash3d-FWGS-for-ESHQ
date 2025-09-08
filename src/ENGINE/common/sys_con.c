@@ -29,7 +29,6 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"	// [FWGS, 22.01.25]
 
 // [FWGS, 01.07.25] do not waste precious CPU cycles on mobiles or low memory devices
-/*if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY*/
 #if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY && !XASH_EMSCRIPTEN
 	#define XASH_COLORIZE_CONSOLE 1
 #else
@@ -259,7 +258,6 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 		Sys_WriteEscapeSequenceForColorcode (fd, 7);
 	}
 
-// [FWGS, 22.01.25]
 static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char *msg)
 	{
 #if XASH_MOBILE_PLATFORM
@@ -268,9 +266,10 @@ static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char
 	// strip color codes
 	COM_StripColors (msg, buf);
 
-	// platform-specific output
+	// [FWGS, 01.09.25] platform-specific output
 #if XASH_ANDROID && !XASH_DEDICATED
-	__android_log_write (ANDROID_LOG_DEBUG, "Xash", buf);
+	/*__android_log_write (ANDROID_LOG_DEBUG, "Xash", buf);*/
+	__android_log_write (ANDROID_LOG_INFO, "Xash", buf);
 #endif
 
 #if TARGET_OS_IOS

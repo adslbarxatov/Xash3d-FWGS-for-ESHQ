@@ -40,17 +40,22 @@ void R_GetSpriteParms (int *frameWidth, int *frameHeight, int *numFrames, int cu
 	{
 	mspriteframe_t *pFrame;
 
-	if (!pSprite || pSprite->type != mod_sprite) return; // bad model ?
+	if (!pSprite || (pSprite->type != mod_sprite))
+		return; // bad model ?
+
 	pFrame = R_GetSpriteFrame (pSprite, currentFrame, 0.0f);
 
-	if (frameWidth) *frameWidth = pFrame->width;
-	if (frameHeight) *frameHeight = pFrame->height;
-	if (numFrames) *numFrames = pSprite->numframes;
+	if (frameWidth)
+		*frameWidth = pFrame->width;
+	if (frameHeight)
+		*frameHeight = pFrame->height;
+	if (numFrames)
+		*numFrames = pSprite->numframes;
 	}
 
 int R_GetSpriteTexture (const model_t *m_pSpriteModel, int frame)
 	{
-	if (!m_pSpriteModel || m_pSpriteModel->type != mod_sprite || !m_pSpriteModel->cache.data)
+	if (!m_pSpriteModel || (m_pSpriteModel->type != mod_sprite) || !m_pSpriteModel->cache.data)
 		return 0;
 
 	return R_GetSpriteFrame (m_pSpriteModel, frame, 0.0f)->gl_texturenum;
@@ -81,38 +86,6 @@ void R_DrawStretchPic (float x, float y, float w, float h, float s1, float t1, f
 	}
 
 // [FWGS, 01.12.24] removed R_DrawTileClear
-/*
-=============
-Draw_TileClear
-
-This repeats a 64*64 tile graphic to fill the screen around a sized down
-refresh window.
-=============
-/
-void R_DrawTileClear (int texnum, int x, int y, int w, int h)
-	{
-	float		tw, th;
-	gl_texture_t *glt;
-
-	GL_SetRenderMode (kRenderNormal);
-	pglColor4f (1.0f, 1.0f, 1.0f, 1.0f);
-	GL_Bind (XASH_TEXTURE0, texnum);
-
-	glt = R_GetTexture (texnum);
-	tw = glt->srcWidth;
-	th = glt->srcHeight;
-
-	pglBegin (GL_QUADS);
-	pglTexCoord2f (x / tw, y / th);
-	pglVertex2f (x, y);
-	pglTexCoord2f ((x + w) / tw, y / th);
-	pglVertex2f (x + w, y);
-	pglTexCoord2f ((x + w) / tw, (y + h) / th);
-	pglVertex2f (x + w, y + h);
-	pglTexCoord2f (x / tw, (y + h) / th);
-	pglVertex2f (x, y + h);
-	pglEnd ();
-	}*/
 
 /***
 =============
@@ -132,7 +105,7 @@ void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, c
 		width = NearestPOW (cols, true);
 		height = NearestPOW (rows, false);
 
-		if (cols != width || rows != height)
+		if ((cols != width) || (rows != height))
 			{
 			raw = GL_ResampleTexture (data, cols, rows, width, height, false);
 			cols = width;
@@ -157,7 +130,7 @@ void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, c
 	tex = R_GetTexture (tr.cinTexture);
 	GL_Bind (XASH_TEXTURE0, tr.cinTexture);
 
-	if (cols == tex->width && rows == tex->height)
+	if ((cols == tex->width) && (rows == tex->height))
 		{
 		if (dirty)
 			{
@@ -209,7 +182,7 @@ void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height,
 		height = bound (128, height, glConfig.max_2d_texture_size);
 		}
 
-	if (cols != width || rows != height)
+	if ((cols != width) || (rows != height))
 		{
 		raw = GL_ResampleTexture (data, cols, rows, width, height, false);
 		cols = width;
@@ -262,6 +235,10 @@ void R_Set2DMode (qboolean enable)
 		pglEnable (GL_ALPHA_TEST);
 		pglColor4f (1.0f, 1.0f, 1.0f, 1.0f);
 
+		// [FWGS, 01.09.25]
+		if ((glConfig.max_multisamples > 1) && gl_msaa.value)
+			pglDisable (GL_MULTISAMPLE_ARB);
+
 		glState.in2DMode = true;
 		RI.currententity = NULL;
 		RI.currentmodel = NULL;
@@ -277,6 +254,15 @@ void R_Set2DMode (qboolean enable)
 
 		pglMatrixMode (GL_MODELVIEW);
 		GL_LoadMatrix (RI.worldviewMatrix);
+
+		// [FWGS, 01.09.25]
+		if (glConfig.max_multisamples > 1)
+			{
+			if (gl_msaa.value)
+				pglEnable (GL_MULTISAMPLE_ARB);
+			else
+				pglDisable (GL_MULTISAMPLE_ARB);
+			}
 
 		GL_Cull (GL_FRONT);
 		}

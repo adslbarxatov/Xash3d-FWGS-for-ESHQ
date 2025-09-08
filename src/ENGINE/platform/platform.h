@@ -17,6 +17,7 @@ GNU General Public License for more details
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#include <errno.h>		// [FWGS, 01.09.25]
 #include "common.h"
 #include "system.h"
 #include "defaults.h"
@@ -179,7 +180,6 @@ static inline void Platform_SetupSigtermHandling (void)
 #endif
 	}
 
-// [FWGS, 01.06.25]
 static inline qboolean Platform_NanoSleep (int nsec)
 	{
 #if XASH_SDL == 3
@@ -187,14 +187,19 @@ static inline qboolean Platform_NanoSleep (int nsec)
 	return true;
 
 	// SDL2 doesn't have nanosleep, so use low-level functions here
-	/*// When this code will be ported to SDL3, use SDL_DelayNS
-	if XASH_POSIX*/
 #elif XASH_POSIX
 	struct timespec ts = {
 		.tv_sec = 0,
 		.tv_nsec = nsec, // just don't put large numbers here
 		};
-	return nanosleep (&ts, NULL) == 0;
+
+	// [FWGS, 01.09.25]
+	/*return nanosleep (&ts, NULL) == 0;*/
+	int ret = nanosleep (&ts, NULL);
+	if (ret < 0)
+		return errno == EINTR; // ignore EINTR error, it just means sleep was interrupted
+
+	return true;
 
 #elif XASH_WIN32
 	return Win32_NanoSleep (nsec);
@@ -235,13 +240,6 @@ INPUT
 ==============================================================================
 ***/
 
-/*// [FWGS, 01.03.25] Gamepad support
-if XASH_SDL
-
-int Platform_JoyInit (void); // returns number of connected gamepads, negative if error
-void Platform_JoyShutdown (void);
-void Platform_CalibrateGamepadGyro (void);*/
-
 // [FWGS, 01.06.25] only SDL based backends implements these functions
 #if XASH_SDL
 
@@ -256,7 +254,6 @@ void Platform_SetClipboardText (const char *buffer);
 
 #else
 
-/*static inline int Platform_JoyInit (void)*/
 static inline void Platform_PreCreateMove (void) {}
 static inline void GAME_EXPORT Platform_SetMousePos (int x, int y) {}
 static inline void Platform_SetMouseGrab (qboolean enable) {}
@@ -267,15 +264,12 @@ static inline qboolean Platform_GetMouseGrab (void) { return false; }
 
 static inline void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 	{
-	/*return 0;*/
 	if (x)
 		*x = 0;
 	if (y)
 		*y = 0;
 	}
 
-/*static inline void Platform_JoyShutdown (void) { }
-static inline void Platform_CalibrateGamepadGyro (void) { }*/
 #endif
 
 // [FWGS, 01.06.25]
@@ -293,38 +287,14 @@ static inline void Platform_MouseMove (float *x, float *y)
 	}
 #endif
 
-/*// Text input*/
-
 // [FWGS, 01.06.25]
 #if XASH_SDL >= 2 || XASH_PSVITA || XASH_DOS || XASH_USE_EVDEV
 void Platform_EnableTextInput (qboolean enable);
-/*key_modifier_t Platform_GetKeyModifiers (void);
-
-// System events
-void Platform_RunEvents (void);
-
-// Mouse
-void Platform_GetMousePos (int *x, int *y);
-void Platform_SetMousePos (int x, int y);
-void Platform_PreCreateMove (void);
-void Platform_MouseMove (float *x, float *y);
-void Platform_SetCursorType (VGUI_DefaultCursor type);
-
-// Clipboard
-int Platform_GetClipboardText (char *buffer, size_t size);
-void Platform_SetClipboardText (const char *buffer);
-
-if XASH_SDL == 12
-define SDL_SetWindowGrab( wnd, state ) SDL_WM_GrabInput( (state) )
-define SDL_MinimizeWindow( wnd ) SDL_WM_IconifyWindow()
-define SDL_IsTextInputActive() host.textmode*/
 #else
 static inline void Platform_EnableTextInput (qboolean enable) {}
 #endif
 
 // [FWGS, 01.06.25]
-/*if !XASH_SDL
-define SDL_VERSION_ATLEAST( x, y, z ) 0*/
 #if XASH_SDL >= 2
 int Platform_JoyInit (void); // returns number of connected gamepads, negative if error
 void Platform_JoyShutdown (void);
@@ -412,6 +382,7 @@ void IN_EvdevFrame (void);
 AUDIO INPUT/OUTPUT
 ==============================================================================
 ***/
+
 // initializes cycling through a DMA buffer and returns information on it
 qboolean SNDDMA_Init (void);
 void SNDDMA_Shutdown (void);

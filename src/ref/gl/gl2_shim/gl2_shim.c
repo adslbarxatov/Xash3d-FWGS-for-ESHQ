@@ -193,7 +193,6 @@ static void APIENTRY GL2_BindTexture (GLenum tex, GLuint obj)
 static char *GL_PrintInfoLog (GLhandleARB object, qboolean program)
 	{
 	static char	msg[8192];
-	/*int		maxLength = 0;*/
 	GLuint		maxLength = 0;
 
 	if (program && pglGetProgramiv)
@@ -282,8 +281,6 @@ static GLuint GL2_GenerateShader (gl2wrap_prog_t *prog, GLenum type)
 // [FWGS, 01.03.25]
 static gl2wrap_prog_t *GL2_GetProg (const GLuint flags)
 	{
-	/*int		i, loc, status;
-	GLuint	vp, fp, glprog;*/
 	int		i, loc;
 	GLuint	status = 0, vp, fp, glprog;
 	gl2wrap_prog_t	*prog;
@@ -1060,9 +1057,7 @@ static void APIENTRY GL2_TexParameteri (GLenum target, GLenum pname, GLint param
 		{
 		return; // not supported by opengl es
 		}
-	if ((pname == GL_TEXTURE_WRAP_S ||
-		pname == GL_TEXTURE_WRAP_T) &&
-		param == GL_CLAMP)
+	if (((pname == GL_TEXTURE_WRAP_S) || (pname == GL_TEXTURE_WRAP_T)) && (param == GL_CLAMP))
 		{
 		param = GL_CLAMP_TO_EDGE;
 		}
@@ -1098,7 +1093,7 @@ static void APIENTRY GL2_Vertex3f (GLfloat x, GLfloat y, GLfloat z)
 
 	if (gl2wrap.prim == GL_QUADS)
 		{
-		if (!((gl2wrap.end - gl2wrap.begin) % 4) && gl2wrap.end > (GL2_MAX_VERTS - 4))
+		if (!((gl2wrap.end - gl2wrap.begin) % 4) && (gl2wrap.end > (GL2_MAX_VERTS - 4)))
 			{
 			GL2_FlushPrims ();
 			GL2_Begin (GL_QUADS);
@@ -1352,7 +1347,6 @@ static void APIENTRY GL2_LoadMatrixf (const GLfloat *m)
 	}
 
 // [FWGS, 01.12.24]
-/*ifdef XASH_GLES*/
 #if XASH_GLES
 static void (APIENTRY *_pglDepthRangef)(GLfloat zFar, GLfloat zNear);
 static void APIENTRY GL2_DepthRange (GLdouble zFar, GLdouble zNear)
@@ -1727,69 +1721,95 @@ static void APIENTRY GL2_ClientActiveTextureARB (GLenum tex)
 	pgl ## name = GL2_ ## name; \
 	}
 
-static void APIENTRY stub (void)
+// [FWGS, 01.09.25]
+/*static void APIENTRY stub (void)*/
+static void APIENTRY GL2_Normal3fv (const GLfloat *v)
 	{
-	;
+	/*;*/
 	}
 
-#define GL2_STUB( name ) \
+// [FWGS, 01.09.25]
+/*define GL2_STUB( name ) \
 	{ \
 	*((void **)&pgl ## name) = (void *)stub; \
 	}
 
 // [FWGS, 01.07.25]
-#if XASH_EMSCRIPTEN
+if XASH_EMSCRIPTEN
 
 static void GL2_PolygonMode (GLenum face, GLenum mode)
 	{
 	}
 
+static void GL2_PolygonOffset (GLfloat factor, GLfloat units)*/
+static void APIENTRY GL2_Hint (GLenum target, GLenum mode)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_ShadeModel (GLenum mode)*/
+static void APIENTRY GL2_Scalef (GLfloat x, GLfloat y, GLfloat z)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_PointSize (GLfloat size)*/
+static void APIENTRY GL2_Translatef (GLfloat x, GLfloat y, GLfloat z)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_Normal3fv (const GLfloat *v)*/
+static void APIENTRY GL2_TexEnvi (GLenum target, GLenum pname, GLint param)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_Hint (GLenum target, GLenum mode)*/
+static void APIENTRY GL2_TexEnvf (GLenum target, GLenum pname, GLfloat param)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_Scalef (GLfloat x, GLfloat y, GLfloat z)*/
+static void APIENTRY GL2_Fogi (GLenum pname, GLint param)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_Translatef (GLfloat x, GLfloat y, GLfloat z)*/
+static void APIENTRY GL2_ShadeModel (GLenum mode)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_TexEnvi (GLenum target, GLenum pname, GLint param)*/
+static void APIENTRY GL2_PolygonMode (GLenum face, GLenum mode)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_TexEnvf (GLenum target, GLenum pname, GLfloat param)*/
+static void APIENTRY GL2_PointSize (GLfloat size)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_Fogi (GLenum pname, GLint param)*/
+static void APIENTRY GL2_DrawBuffer (GLenum mode)
+	{
+	}
+
+// [FWGS, 01.09.25]
+/*static void GL2_DrawBuffer (GLenum mode)*/
+#if XASH_EMSCRIPTEN
 static void GL2_PolygonOffset (GLfloat factor, GLfloat units)
-	{
-	}
-
-static void GL2_ShadeModel (GLenum mode)
-	{
-	}
-
-static void GL2_PointSize (GLfloat size)
-	{
-	}
-
-static void GL2_Normal3fv (const GLfloat *v)
-	{
-	}
-
-static void GL2_Hint (GLenum target, GLenum mode)
-	{
-	}
-
-static void GL2_Scalef (GLfloat x, GLfloat y, GLfloat z)
-	{
-	}
-
-static void GL2_Translatef (GLfloat x, GLfloat y, GLfloat z)
-	{
-	}
-
-static void GL2_TexEnvi (GLenum target, GLenum pname, GLint param)
-	{
-	}
-
-static void GL2_TexEnvf (GLenum target, GLenum pname, GLfloat param)
-	{
-	}
-
-static void GL2_Fogi (GLenum pname, GLint param)
-	{
-	}
-
-static void GL2_DrawBuffer (GLenum mode)
 	{
 	}
 
 #endif
 
+// [FWGS, 01.09.25]
 void GL2_ShimInstall (void)
 	{
 	GL2_OVERRIDE_PTR (Vertex2f)
@@ -1799,13 +1819,15 @@ void GL2_ShimInstall (void)
 	GL2_OVERRIDE_PTR (Color4f)
 	GL2_OVERRIDE_PTR (Color4ub)
 	GL2_OVERRIDE_PTR (Color4ubv)
-	GL2_STUB (Normal3fv)
+	/*GL2_STUB (Normal3fv)*/
+	GL2_OVERRIDE_PTR (Normal3fv)
 	GL2_OVERRIDE_PTR (TexCoord2f)
 	GL2_OVERRIDE_PTR (MultiTexCoord2f)
 	GL2_OVERRIDE_PTR (AlphaFunc)
 	GL2_OVERRIDE_PTR (Fogf)
 	GL2_OVERRIDE_PTR (Fogfv)
-	GL2_STUB (Hint) // fog
+	/*GL2_STUB (Hint) // fog*/
+	GL2_OVERRIDE_PTR (Hint) // fog
 	GL2_OVERRIDE_PTR (Begin)
 	GL2_OVERRIDE_PTR (End)
 	GL2_OVERRIDE_PTR_B (Enable)
@@ -1814,20 +1836,29 @@ void GL2_ShimInstall (void)
 	GL2_OVERRIDE_PTR (LoadIdentity)
 	GL2_OVERRIDE_PTR (Ortho)
 	GL2_OVERRIDE_PTR (LoadMatrixf)
-	GL2_STUB (Scalef)
+	/*GL2_STUB (Scalef)
 	GL2_STUB (Translatef)
 	GL2_STUB (TexEnvi)
-	GL2_STUB (TexEnvf)
+	GL2_STUB (TexEnvf)*/
+	GL2_OVERRIDE_PTR (Scalef)
+	GL2_OVERRIDE_PTR (Translatef)
+	GL2_OVERRIDE_PTR (TexEnvi)
+	GL2_OVERRIDE_PTR (TexEnvf)
 	GL2_OVERRIDE_PTR (ClientActiveTextureARB)
-	GL2_STUB (Fogi)
-	GL2_STUB (ShadeModel)
+	/*GL2_STUB (Fogi)
+	GL2_STUB (ShadeModel)*/
+	GL2_OVERRIDE_PTR (Fogi)
+	GL2_OVERRIDE_PTR (ShadeModel)
 
 #ifdef XASH_GLES
 	_pglDepthRangef = gEngfuncs.GL_GetProcAddress ("glDepthRangef");
-	GL2_STUB (PolygonMode)
-	GL2_STUB (PointSize)
+	/*GL2_STUB (PolygonMode)
+	GL2_STUB (PointSize)*/
+	GL2_OVERRIDE_PTR (PolygonMode)
+	GL2_OVERRIDE_PTR (PointSize)
 	GL2_OVERRIDE_PTR (DepthRange)
-	GL2_STUB (DrawBuffer)
+	/*GL2_STUB (DrawBuffer)*/
+	GL2_OVERRIDE_PTR (DrawBuffer)
 #endif
 
 	if (glConfig.context != CONTEXT_TYPE_GL)
@@ -1836,9 +1867,9 @@ void GL2_ShimInstall (void)
 			GL2_OVERRIDE_PTR_B (TexParameteri)
 		}
 	
-	// [FWGS, 01.07.25]
+	// [FWGS, 01.09.25]
 #if XASH_EMSCRIPTEN
-	GL2_OVERRIDE_PTR (Normal3fv)
+	/*GL2_OVERRIDE_PTR (Normal3fv)
 	GL2_OVERRIDE_PTR (Hint)
 	GL2_OVERRIDE_PTR (Scalef)
 	GL2_OVERRIDE_PTR (Translatef)
@@ -1847,9 +1878,9 @@ void GL2_ShimInstall (void)
 	GL2_OVERRIDE_PTR (Fogi)
 	GL2_OVERRIDE_PTR (ShadeModel)
 	GL2_OVERRIDE_PTR (PolygonMode)
-	GL2_OVERRIDE_PTR (PointSize)
+	GL2_OVERRIDE_PTR (PointSize)*/
 	GL2_OVERRIDE_PTR (PolygonOffset)
-	GL2_OVERRIDE_PTR (DrawBuffer)
+	/*GL2_OVERRIDE_PTR (DrawBuffer)*/
 #endif
 
 	GL2_OVERRIDE_PTR_B (IsEnabled)

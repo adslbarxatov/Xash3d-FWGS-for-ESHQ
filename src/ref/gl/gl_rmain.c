@@ -44,7 +44,6 @@ void R_AllowFog (qboolean allowed)
 	{
 	if (allowed)
 		{
-		/*if (glState.isFogEnabled)*/
 		if (glState.isFogEnabled && gl_fog.value)
 			pglEnable (GL_FOG);
 		}
@@ -663,21 +662,17 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 
 	// this is a regular node
 	// traverse children
-	/*if (node->children[0] && (node->children[0] != ignore))*/
 	node_children (children, node, WORLDMODEL);
 
 	if (children[0] && (children[0] != ignore))
 		{
-		/*tex = R_RecursiveFindWaterTexture (node->children[0], node, true);*/
 		tex = R_RecursiveFindWaterTexture (children[0], node, true);
 		if (tex)
 			return tex;
 		}
 
-	/*if (node->children[1] && (node->children[1] != ignore))*/
 	if (children[1] && (children[1] != ignore))
 		{
-		/*tex = R_RecursiveFindWaterTexture (node->children[1], node, true);*/
 		tex = R_RecursiveFindWaterTexture (children[1], node, true);
 		if (tex)
 			return tex;
@@ -775,7 +770,7 @@ static void R_CheckFog (void)
 
 	RI.cached_waterlevel = ENGINE_GET_PARM (PARM_WATER_LEVEL);
 
-	// ESHQ: отменено дефектное исправление, выводящее подводный туман из строя
+	// ESHQ: отменено исправление, выводящее подводный туман из строя
 	tex = NULL;
 
 	// check for water texture
@@ -839,7 +834,6 @@ R_DrawFog
 void R_DrawFog (void)
 	{
 	// [FWGS, 01.12.24]
-	/*if (!RI.fogEnabled)*/
 	if (!RI.fogEnabled || !gl_fog.value)
 		return;
 
@@ -1062,23 +1056,18 @@ void R_GammaChanged (qboolean do_reset_gamma)
 	}
 
 // [FWGS, 01.12.24]
-/*static void R_CheckGamma (void)*/
 static void R_CheckCvars (void)
 	{
 	qboolean rebuild = false;
 
 	if (FBitSet (gl_overbright.flags, FCVAR_CHANGED))
 		{
-		/*rebuild = true;*/
 		ClearBits (gl_overbright.flags, FCVAR_CHANGED);
 		rebuild = true;
 		}
 
-	/*if (gl_overbright.value && (FBitSet (r_vbo.flags, FCVAR_CHANGED) ||
-		FBitSet (r_vbo_overbrightmode.flags, FCVAR_CHANGED)))*/
 	if (FBitSet (r_vbo.flags, FCVAR_CHANGED))
 		{
-		/*rebuild = true;*/
 		ClearBits (r_vbo.flags, FCVAR_CHANGED);
 
 		R_EnableVBO (r_vbo.value ? true : false);
@@ -1115,14 +1104,13 @@ void R_BeginFrame (qboolean clearScene)
 		}
 
 	// [FWGS, 01.12.24]
-	/*R_CheckGamma ();*/
 	R_CheckCvars ();
 	R_Set2DMode (true);
 
 	// draw buffer stuff
 	pglDrawBuffer (GL_BACK);
 
-	// [FWGS, 01.07.23] update texture parameters
+	// update texture parameters
 	if (FBitSet (gl_texture_nearest.flags | gl_lightmap_nearest.flags | gl_texture_anisotropy.flags |
 		gl_texture_lodbias.flags, FCVAR_CHANGED))
 		R_SetTextureParameters ();
@@ -1146,7 +1134,8 @@ void R_SetupRefParams (const ref_viewpass_t *rvp)
 
 	if (!FBitSet (rvp->flags, RF_DRAW_CUBEMAP))
 		RI.drawOrtho = FBitSet (rvp->flags, RF_DRAW_OVERVIEW);
-	else RI.drawOrtho = false;
+	else
+		RI.drawOrtho = false;
 
 	// setup viewport
 	RI.viewport[0] = rvp->viewport[0];
@@ -1165,7 +1154,7 @@ void R_SetupRefParams (const ref_viewpass_t *rvp)
 
 /***
 ===============
-R_RenderFrame [FWGS, 01.07.23]
+R_RenderFrame [FWGS, 01.09.25]
 ===============
 ***/
 void R_RenderFrame (const ref_viewpass_t *rvp)
@@ -1179,14 +1168,14 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 	if (gl_finish.value && RI.drawWorld)
 		pglFinish ();
 
-	if ((glConfig.max_multisamples > 1) && FBitSet (gl_msaa.flags, FCVAR_CHANGED))
+	/*if ((glConfig.max_multisamples > 1) && FBitSet (gl_msaa.flags, FCVAR_CHANGED))
 		{
 		if (gl_msaa.value)
 			pglEnable (GL_MULTISAMPLE_ARB);
 		else
 			pglDisable (GL_MULTISAMPLE_ARB);
 		ClearBits (gl_msaa.flags, FCVAR_CHANGED);
-		}
+		}*/
 
 	// completely override rendering
 	if (gEngfuncs.drawFuncs->GL_RenderFrame != NULL)
@@ -1214,7 +1203,7 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 
 /***
 ===============
-R_EndFrame [FWGS, 01.11.23]
+R_EndFrame
 ===============
 ***/
 void R_EndFrame (void)

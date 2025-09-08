@@ -21,22 +21,10 @@ GNU General Public License for more details
 
 // [FWGS, 01.12.24]
 #ifndef APIENTRY_LINKAGE
-	/*define APIENTRY_LINKAGE extern*/
 	#define APIENTRY_LINKAGE extern
 #endif
 
 // [FWGS, 01.12.24]
-/*if defined XASH_NANOGL || defined XASH_WES || defined XASH_REGAL
-	define XASH_GLES
-	define XASH_GL_STATIC
-	define REF_GL_KEEP_MANGLED_FUNCTIONS
-elif defined XASH_GLES3COMPAT
-	ifdef SOFTFP_LINK
-		undef APIENTRY
-		define APIENTRY __attribute__((pcs("aapcs")))
-	endif
-	define XASH_GLES
-endif*/
 #if XASH_NANOGL || XASH_WES || XASH_REGAL
 	#define XASH_GLES 1
 	#define XASH_GL_STATIC 1
@@ -830,7 +818,7 @@ typedef float GLmatrix[16];
 #define GL_DEBUG_SEVERITY_MEDIUM_ARB		0x9147
 #define GL_DEBUG_SEVERITY_LOW_ARB		0x9148
 
-// [FWGS, 01.11.23] GL Core additions
+// GL Core additions
 #define GL_NUM_EXTENSIONS				0x821D
 #define GL_MAP_WRITE_BIT				0x0002
 #define GL_MAP_COHERENT_BIT				0x0080
@@ -911,26 +899,21 @@ typedef float GLmatrix[16];
 
 // [FWGS, 01.12.24]
 #ifdef __GNUC__
-	/*pragma GCC diagnostic push
-	pragma GCC diagnostic ignored "-Wunused-variable"*/
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 
-/*if defined( XASH_GL_STATIC ) && !defined( REF_GL_KEEP_MANGLED_FUNCTIONS )
-define GL_FUNCTION( name ) name
-elif defined( XASH_GL_STATIC ) && defined( REF_GL_KEEP_MANGLED_FUNCTIONS )
-define GL_FUNCTION( name ) APIENTRY p##name*/
+// [FWGS, 01.09.25]
 #if XASH_GL_STATIC && !REF_GL_KEEP_MANGLED_FUNCTIONS
-	#define GL_FUNCTION( name ) name
+	/*define GL_FUNCTION( name ) name*/
+	#define GL_FUNCTION( name ) APIENTRY name
 #elif XASH_GL_STATIC && REF_GL_KEEP_MANGLED_FUNCTIONS
 	#define GL_FUNCTION( name ) APIENTRY p##name
 #else
-	/*define GL_FUNCTION( name ) (APIENTRY *p##name)*/
 	#define GL_FUNCTION( name ) (APIENTRY *p##name)
 #endif
 
-// [FWGS, 01.11.23] helper opengl functions
+// helper opengl functions
 APIENTRY_LINKAGE GLenum GL_FUNCTION (glGetError)(void);
 APIENTRY_LINKAGE const GLubyte *GL_FUNCTION (glGetString)(GLenum name);
 APIENTRY_LINKAGE const GLubyte *GL_FUNCTION (glGetStringi)(GLenum name, GLint i);
@@ -1401,7 +1384,6 @@ APIENTRY_LINKAGE void GL_FUNCTION (glGenVertexArrays)(GLsizei n, const GLuint *a
 APIENTRY_LINKAGE GLboolean GL_FUNCTION (glIsVertexArray)(GLuint array);
 APIENTRY_LINKAGE void GL_FUNCTION (glSwapInterval) (int interval);
 
-// [FWGS, 01.11.23]
 // arb shaders change in core
 APIENTRY_LINKAGE void GL_FUNCTION (glDeleteProgram)(GLuint program);
 APIENTRY_LINKAGE void GL_FUNCTION (glGetProgramiv)(GLuint program, GLenum e, GLuint * v);
@@ -1414,13 +1396,11 @@ APIENTRY_LINKAGE void *GL_FUNCTION (glMapBufferRange)(GLenum target, GLsizei off
 APIENTRY_LINKAGE void GL_FUNCTION (glDrawRangeElementsBaseVertex)(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indices, GLuint vertex);
 
 // [FWGS, 01.12.24]
-/*if !defined(XASH_GL_STATIC) || (!defined(XASH_GLES) && !defined(XASH_GL4ES))*/
 #if !XASH_GL_STATIC || ( !XASH_GLES && !XASH_GL4ES )
 APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
 #endif
 
 // [FWGS, 01.12.24]
-/*if defined( XASH_GL_STATIC ) && !defined( REF_GL_KEEP_MANGLED_FUNCTIONS )*/
 #if XASH_GL_STATIC && !REF_GL_KEEP_MANGLED_FUNCTIONS
 #define pglGetError glGetError
 #define pglGetString glGetString
@@ -1892,7 +1872,6 @@ APIENTRY_LINKAGE void GL_FUNCTION (glTexImage2DMultisample)(GLenum target, GLsiz
 
 // [FWGS, 01.12.24]
 #ifdef __GNUC__
-	/*pragma GCC diagnostic pop*/
 	#pragma GCC diagnostic pop
 #endif
 

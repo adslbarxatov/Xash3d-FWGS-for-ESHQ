@@ -133,7 +133,7 @@ static int WAI_PREFIX (getModulePath_)(HMODULE module, char *out, int capacity, 
 		if (length__ == 0)
 			break;
 
-		if (length__ <= capacity && dirname_length)
+		if ((length__ <= capacity) && dirname_length)
 			{
 			int i;
 
@@ -187,7 +187,9 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	return length;
 	}
 
-#elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun) || defined(__serenity__) || defined(WAI_USE_PROC_SELF_EXE)
+// [FWGS, 01.09.25]
+/*elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun) || defined(__serenity__) || defined(WAI_USE_PROC_SELF_EXE)*/
+#elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun) || defined(__serenity__) || defined(__gnu_hurd__) || defined(WAI_USE_PROC_SELF_EXE)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -205,6 +207,11 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 
 #include <inttypes.h>
 #include <stdbool.h>
+
+// [FWGS, 01.09.25]
+#if defined(__gnu_hurd__) && !defined(PATH_MAX)
+	#define PATH_MAX 4096
+#endif
 
 #if !defined(WAI_PROC_SELF_EXE)
 	#if defined(__sun)
@@ -857,7 +864,6 @@ int WAI_PREFIX (getModulePath)(char *out, int capacity, int *dirname_length)
 	}
 
 // [FWGS, 01.07.25]
-/*elif defined(__SWITCH__) || defined(__vita__)*/
 #elif defined(__SWITCH__) || defined(__vita__) || defined(__EMSCRIPTEN__)
 
 // Not possible on this platform

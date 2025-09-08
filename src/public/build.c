@@ -18,11 +18,13 @@ GNU General Public License for more details
 #include "crtlib.h"
 #include "buildenums.h"
 
-static const char *const mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+// [FWGS, 01.09.25]
+/*static const char *const mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };*/
 static const char mond[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-// [FWGS, 01.03.25]
-int Q_buildnum_date (const char *date)
+// [FWGS, 01.09.25] removed Q_buildnum_date
+
+/*int Q_buildnum_date (const char *date)
 	{
 	int b;
 	int m = 0;
@@ -45,7 +47,7 @@ int Q_buildnum_date (const char *date)
 	b -= 41728; // Apr 1 2015
 
 	return b;
-	}
+	}*/
 
 // [FWGS, 01.03.25]
 int Q_buildnum_iso (const char *date)
@@ -74,7 +76,7 @@ int Q_buildnum_iso (const char *date)
 
 /***
 ===============
-Q_buildnum [FWGS, 01.03.25]
+Q_buildnum [FWGS, 01.09.25]
 
 returns days since Apr 1 2015
 ===============
@@ -86,11 +88,12 @@ int Q_buildnum (void)
 	if (b)
 		return b;
 
-	if (COM_CheckString (g_buildcommit_date))
+	/*if (COM_CheckString (g_buildcommit_date))
 		b = Q_buildnum_iso (g_buildcommit_date);
 
 	if (b <= 0)
-		b = Q_buildnum_date (g_build_date);
+		b = Q_buildnum_date (g_build_date);*/
+	b = Q_buildnum_iso (g_buildcommit_date);
 
 	return b;
 	}
@@ -155,6 +158,10 @@ const char *Q_PlatformStringByID (const int platform)
 			return "wasi";
 		case PLATFORM_SUNOS:
 			return "sunos";
+
+		// [FWGS, 01.09.25]
+		case PLATFORM_HURD:
+			return "hurd";
 		}
 
 	assert (0);
@@ -163,7 +170,7 @@ const char *Q_PlatformStringByID (const int platform)
 
 /***
 ============
-Q_buildos [FWGS, 01.04.23]
+Q_buildos
 
 Shortcut for Q_buildos_
 ============
@@ -177,7 +184,7 @@ const char *Q_buildos (void)
 ============
 Q_ArchitectureStringByID
 
-Returns name of the architecture by it's ID. Without any spaces.
+Returns name of the architecture by it's ID. Without any spaces
 ============
 ***/
 const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int endianness, const qboolean is64)

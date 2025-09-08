@@ -47,13 +47,14 @@ infotable	dlumpinfo_t[dwadinfo_t->numlumps]
 ========================================================================
 ***/
 
-#define WAD3_NAMELEN		16
+// [FWGS, 01.09.25]
+/*define WAD3_NAMELEN		16*/
 #define HINT_NAMELEN		5		// e.g. _mask, _norm
 #define MAX_FILES_IN_WAD	65535	// real limit as above <2Gb size not a lumpcount
 
 #include "const.h"
 
-typedef struct
+/*typedef struct
 	{
 	int		ident;			// should be WAD3
 	int		numlumps;		// num files
@@ -70,7 +71,7 @@ typedef struct
 	signed char	pad0;
 	signed char	pad1;
 	char		name[WAD3_NAMELEN];	// must be null terminated
-	} dlumpinfo_t;
+	} dlumpinfo_t;*/
 
 struct wfile_s
 	{
@@ -94,23 +95,13 @@ struct wfile_s
 // [FWGS, 01.02.25]
 typedef struct wadtype_s
 	{
-	/*const char	*ext;
-	signed char	type;*/
 	char		ext[4];
 	signed char	type;
 	} wadtype_t;
 
 // [FWGS, 01.02.25] associate extension with wad type
-/*static const wadtype_t wad_types[7] =*/
 static const wadtype_t wad_types[] =
 	{
-	/*{ "pal", TYP_PALETTE	}, // palette
-	{ "dds", TYP_DDSTEX 	}, // DDS image
-	{ "lmp", TYP_GFXPIC		}, // quake1, hl pic
-	{ "fnt", TYP_QFONT		}, // hl qfonts
-	{ "mip", TYP_MIPTEX		}, // hl/q1 mip
-	{ "txt", TYP_SCRIPT		}, // scripts
-	{ NULL,  TYP_NONE		}*/
 	{ "pal",	TYP_PALETTE },	// palette
 	{ "dds",	TYP_DDSTEX },	// DDS image
 	{ "lmp",	TYP_GFXPIC },	// quake1, hl pic
@@ -128,8 +119,6 @@ Extracts file type from extension
 ***/
 static signed char W_TypeFromExt (const char *lumpname)
 	{
-	/*const char *ext = COM_FileExtension (lumpname);
-	const wadtype_t *type;*/
 	const char	*ext = COM_FileExtension (lumpname);
 	int		i;
 
@@ -137,11 +126,8 @@ static signed char W_TypeFromExt (const char *lumpname)
 	if (!Q_strcmp (ext, "*") || !COM_CheckStringEmpty (ext))
 		return TYP_ANY;
 
-	/*for (type = wad_types; type->ext; type++)*/
 	for (i = 0; i < sizeof (wad_types) / sizeof (wad_types[0]); i++)
 		{
-		/*if (!Q_stricmp (ext, type->ext))
-			return type->type;*/
 		if (!Q_stricmp (ext, wad_types[i].ext))
 			return wad_types[i].type;
 		}
@@ -158,18 +144,14 @@ Convert type to extension
 ***/
 static const char *W_ExtFromType (signed char lumptype)
 	{
-	/*const wadtype_t *type;*/
 	int i;
 
 	// we not known aboyt filetype, so match only by filename
 	if ((lumptype == TYP_NONE) || (lumptype == TYP_ANY))
 		return "";
 
-	/*for (type = wad_types; type->ext; type++)*/
 	for (i = 0; i < sizeof (wad_types) / sizeof (wad_types[0]); i++)
 		{
-		/*if (lumptype == type->type)
-			return type->ext;*/
 		if (lumptype == wad_types[i].type)
 			return wad_types[i].ext;
 		}
@@ -480,7 +462,6 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 	dlumpinfo_t	*lump;
 	signed char	type = W_TypeFromExt (path);
 	qboolean	anywadname = true;
-	/*string			wadname, wadfolder;*/
 	string		wadname;
 	string		shortname;
 
@@ -489,14 +470,12 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 		return -1;
 
 	COM_ExtractFilePath (path, wadname);
-	/*wadfolder[0] = '\0';*/
 
 	if (COM_CheckStringEmpty (wadname))
 		{
 		string wadbasename;
 		COM_FileBase (wadname, wadbasename, sizeof (wadbasename));
 
-		/*Q_strncpy (wadfolder, wadbasename, sizeof (wadfolder));*/
 		Q_snprintf (wadname, sizeof (wadname), "%s.wad", wadbasename);
 
 		anywadname = false;
@@ -545,10 +524,9 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 		return;
 
 	COM_ExtractFilePath (pattern, wadname);
-	COM_FileBase (pattern, wadpattern, sizeof (wadpattern));	// [FWGS, 01.05.23]
+	COM_FileBase (pattern, wadpattern, sizeof (wadpattern));
 	wadfolder[0] = '\0';
 
-	// [FWGS, 01.05.23]
 	if (COM_CheckStringEmpty (wadname))
 		{
 		string wadbasename;
@@ -559,7 +537,7 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 		anywadname = false;
 		}
 
-	// [FWGS, 01.05.23] make wadname from wad fullpath
+	// make wadname from wad fullpath
 	COM_FileBase (search->filename, temp2, sizeof (temp2));
 	COM_DefaultExtension (temp2, ".wad", sizeof (temp2));
 
@@ -569,7 +547,7 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 
 	for (i = 0; i < search->wad->numlumps; i++)
 		{
-		// if type not matching, we already have no chance ...
+		// if type not matching, we already have no chance...
 		if ((type != TYP_ANY) && (search->wad->lumps[i].type != type))
 			continue;
 
@@ -591,7 +569,7 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 					// build path: wadname/lumpname.ext
 					Q_snprintf (temp2, sizeof (temp2), "%s/%s", wadfolder, temp);
 					Q_snprintf (buf, sizeof (buf), ".%s", W_ExtFromType (search->wad->lumps[i].type));
-					COM_DefaultExtension (temp2, buf, sizeof (temp2));	// [FWGS, 01.05.23]
+					COM_DefaultExtension (temp2, buf, sizeof (temp2));
 					stringlistappend (list, temp2);
 					}
 				}
@@ -612,8 +590,6 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 			}
 		}
 	}
-
-// [FWGS, 01.07.23] removed FS_AddWad_Fullpath
 
 /***
 ===========

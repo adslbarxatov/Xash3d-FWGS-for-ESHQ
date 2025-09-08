@@ -52,11 +52,11 @@ enum
 #endif
 
 //
-// build.c
+// build.c [FWGS, 01.09.25]
 //
 int Q_buildnum (void);
-int Q_buildnum_date (const char *date);
-int Q_buildnum_iso (const char *date);	// [FWGS, 01.03.25]
+/*int Q_buildnum_date (const char *date);*/
+int Q_buildnum_iso (const char *date);
 int Q_buildnum_compat (void);
 const char *Q_PlatformStringByID (const int platform);
 const char *Q_buildos (void);
@@ -156,13 +156,10 @@ static inline char Q_tolower (const char in)
 	}
 
 // [FWGS, 01.03.25]
-/*static inline qboolean Q_isdigit (const char *str)*/
 static inline qboolean Q_istype (const char *str, int (*istype)(int c))
 	{
 	if (likely (str && *str))
 		{
-		/*while (isdigit (*str))
-			str++;*/
 		while (istype (*str))
 			str++;
 
@@ -188,16 +185,6 @@ static inline qboolean Q_isalpha (const char *str)
 // [FWGS, 01.03.25]
 static inline qboolean Q_isspace (const char *str)
 	{
-	/*if (likely (str && *str))
-		{
-		while (isspace (*str))
-			str++;
-
-		if (!*str)
-			return true;
-		}
-
-	return false;*/
 	return Q_istype (str, isspace);
 	}
 
@@ -241,7 +228,6 @@ static inline size_t Q_strnlen (const char *str, size_t size)
 // [FWGS, 25.12.24]
 static inline size_t Q_strncpy (char *dst, const char *src, size_t size)
 	{
-	/*if HAVE_STRLCPY*/
 	if (unlikely (!dst || !src || !size))
 		return 0;
 
@@ -251,23 +237,7 @@ static inline size_t Q_strncpy (char *dst, const char *src, size_t size)
 
 #else
 
-	/*size_t len;
-
-	if (unlikely (!dst || !src || !size))
-		return 0;
-
-	len = strlen (src);
-
-	// check if truncate
-	if (len + 1 > size)*/
 	{
-	/*memcpy (dst, src, size - 1);
-	dst[size - 1] = 0;
-	}
-	else
-	{
-	memcpy (dst, src, len + 1);
-	}*/
 	size_t len = strlen (src);
 
 	if (len >= size) // check if truncate
@@ -280,8 +250,6 @@ static inline size_t Q_strncpy (char *dst, const char *src, size_t size)
 		memcpy (dst, src, len + 1);
 		}
 
-	/*// count does not include NULL
-	return len;*/
 	return len;		// count does not include NULL
 	}
 
@@ -291,8 +259,6 @@ static inline size_t Q_strncpy (char *dst, const char *src, size_t size)
 // [FWGS, 25.12.24]
 static inline size_t Q_strncat (char *dst, const char *src, size_t size)
 	{
-	/*if HAVE_STRLCAT*/
-
 	if (unlikely (!dst || !src || !size))
 		return 0;
 
@@ -302,47 +268,21 @@ static inline size_t Q_strncat (char *dst, const char *src, size_t size)
 
 #else
 
-	/*char		*d = dst;
-	const char	*s = src;
-	size_t		n = size;
-	size_t		dlen;
-
-	if (unlikely (!dst || !src || !size))
-		return 0;*/
 	{
 	size_t slen = strlen (src);
 	size_t dlen = Q_strnlen (dst, size);
 
-	/*// find the end of dst and adjust bytes left but don't go past end
-	while ((n-- != 0) && (*d != '\0'))
-		d++;
-	dlen = d - dst;
-	n = size - dlen;*/
 	if (dlen != size)
 		{
 		size_t copy = size - dlen - 1;
 
-		/*if (n == 0)
-		return(dlen + Q_strlen (s));*/
 		if (copy > slen)
 			copy = slen;
 
-		/*while (*s != '\0')
-		{
-		if (n != 1)
-			{
-			*d++ = *s;
-			n--;*/
 		memcpy (&dst[dlen], src, copy);
 		dst[dlen + copy] = 0;
 		}
 
-	/*s++;
-	}*/
-
-	/*// count does not include NULL
-	*d = '\0';
-	return(dlen + (s - src));*/
 	return dlen + slen;
 	}
 
@@ -417,15 +357,12 @@ static inline char *Q_stristr (const char *s1, const char *s2)
 
 #else
 
-/*static inline const char *Q_strchrnul (const char *s, int c)*/
 static inline char *Q_strchrnul (const char *s, int c)
 	{
-	/*const char *p = Q_strchr (s, c);*/
 	char *p = (char *)Q_strchr (s, c);
 	if (p)
 		return p;
 
-	/*return s + Q_strlen (s);*/
 	return (char *)s + Q_strlen (s);
 	}
 

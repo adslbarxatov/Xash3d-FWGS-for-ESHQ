@@ -34,9 +34,7 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 	}
 
 // [FWGS, 01.05.24] removed Q_isdigit, Q_isspace
-
 // [FWGS, 01.02.25] removed Q_colorstr
-
 // [FWGS, 01.05.24] removed Q_toupper, Q_tolower, Q_strncat
 
 // [FWGS, 01.12.24]
@@ -457,37 +455,19 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 	if (value > onemb)
 		{
 		value /= onemb;
-		/*suffix = " Mb";*/
 		suffix = "Mb";
 		}
 	else if (value > onekb)
 		{
 		value /= onekb;
-		/*suffix = " Kb";*/
 		suffix = "Kb";
 		}
 	else
 		{
-		/*suffix = " bytes";*/
 		suffix = "bytes";
 		}
 
-	/*// clamp to >= 0
-	digitsafterdecimal = Q_max (digitsafterdecimal, 0);*/
-
 	// if it's basically integral, don't do any decimals
-	/*if (fabs (value - (int)value) < 0.00001f)
-		{
-		Q_snprintf (val, sizeof (val), "%i%s", (int)value, suffix);
-		}
-	else
-		{
-		char fmt[32];
-
-		// otherwise, create a format string for the decimals
-		Q_snprintf (fmt, sizeof (fmt), "%%.%if%s", digitsafterdecimal, suffix);
-		Q_snprintf (val, sizeof (val), fmt, (double)value);
-		}*/
 	if ((fabs (value - (int)value) < 0.00001f) || (digitsafterdecimal <= 0))
 		Q_snprintf (val, sizeof (val), "%i %s", (int)Q_rint (value), suffix);
 	else if (digitsafterdecimal >= 1)

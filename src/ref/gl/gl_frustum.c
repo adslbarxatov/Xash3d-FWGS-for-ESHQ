@@ -17,7 +17,6 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 
 // [FWGS, 01.02.25]
-/*void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist)*/
 static void GL_FrustumSetPlane (gl_frustum_t *out, int side, const vec3_t vecNormal, float flDist)
 	{
 	Assert ((side >= 0) && (side < FRUSTUM_PLANES));
@@ -100,9 +99,10 @@ void GL_FrustumInitOrtho (gl_frustum_t *out, float xLeft, float xRight, float yT
 	}
 
 // ==============================
-// Cull methods
+// Cull methods [FWGS, 01.09.25]
 // ==============================
-qboolean GL_FrustumCullBox (gl_frustum_t *out, const vec3_t mins, const vec3_t maxs, int userClipFlags)
+/*qboolean GL_FrustumCullBox (gl_frustum_t *out, const vec3_t mins, const vec3_t maxs, int userClipFlags)*/
+qboolean GL_FrustumCullBox (const gl_frustum_t *out, const vec3_t mins, const vec3_t maxs, int userClipFlags)
 	{
 	int	iClipFlags;
 	int	i, bit;
@@ -164,7 +164,9 @@ qboolean GL_FrustumCullBox (gl_frustum_t *out, const vec3_t mins, const vec3_t m
 	return false;
 	}
 
-qboolean GL_FrustumCullSphere (gl_frustum_t *out, const vec3_t center, float radius, int userClipFlags)
+// [FWGS, 01.09.25]
+/*qboolean GL_FrustumCullSphere (gl_frustum_t *out, const vec3_t center, float radius, int userClipFlags)*/
+qboolean GL_FrustumCullSphere (const gl_frustum_t *out, const vec3_t center, float radius, int userClipFlags)
 	{
 	int	iClipFlags;
 	int	i, bit;
