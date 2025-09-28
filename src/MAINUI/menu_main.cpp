@@ -370,9 +370,12 @@ static void UI_Main_Init (void)
 	else 
 		bTrainMap = false;
 
+	// ESHQ: принудительно отключено в меню, но сохранено в командах консоли
+#if ENABLE_CHANGE_GAME
 	if (CVAR_GET_FLOAT ("host_allow_changegame"))
 		bCustomGame = true;
-	else 
+	else
+#endif
 		bCustomGame = false;
 
 	// precache .avi file and get logo width and height
@@ -504,7 +507,7 @@ static void UI_Main_Init (void)
 	uiMain.previews.generic.y = (bCustomGame) ? (bTrainMap ? 580 : 530) : (bTrainMap ? 530 : 480);
 	uiMain.previews.generic.callback = UI_Main_Callback;
 
-	if (CL_IsActive ())
+	if (CL_IsActive () || !strlen (gMenu.m_gameinfo.creditsmap))
 		uiMain.previews.generic.flags |= QMF_GRAYED;
 
 	UI_UtilSetupPicButton (&uiMain.previews, PC_CREDITS);
