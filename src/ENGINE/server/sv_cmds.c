@@ -237,6 +237,8 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "LO ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_neon"))
 		Q_strncat (cmdLine, "NL ", MAX_QPATH);
+	else if (strstr (Cmd_Argv (0), "esrm_ceiling_holes"))
+		Q_strncat (cmdLine, "CH ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_crates"))
 		Q_strncat (cmdLine, "CD ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_gravity"))
@@ -254,8 +256,6 @@ void SV_ESRM_Command (void)
 		Q_strncat (cmdLine, "BT ", MAX_QPATH);
 	else if (strstr (Cmd_Argv (0), "esrm_fog"))
 		Q_strncat (cmdLine, "FC ", MAX_QPATH);
-	/*else if (strstr (Cmd_Argv (0), "esrm_items_on_2nd_floor"))
-		Q_strncat (cmdLine, "SF ", MAX_QPATH);*/
 	else if (strstr (Cmd_Argv (0), "esrm_water"))
 		Q_strncat (cmdLine, "WL ", MAX_QPATH);
 
@@ -1174,6 +1174,8 @@ void SV_InitHostCommands (void)
 				"Affects outdoor brightness and the type of sky (coeff, 1 - 6)");
 			Cmd_AddRestrictedCommand ("esrm_neon", SV_ESRM_Command,
 				"Disables / enables neon lamps in dark areas for the next map (flag, 0 / 1)");
+			Cmd_AddRestrictedCommand ("esrm_ceiling_holes", SV_ESRM_Command,
+				"Disables / enables ceiling holes for the next map (flag, 0 / 1)");
 			Cmd_AddRestrictedCommand ("esrm_crates", SV_ESRM_Command,
 				"Sets the crates density for the next map (coeff, 0 - 5)");
 			Cmd_AddRestrictedCommand ("esrm_gravity", SV_ESRM_Command,
@@ -1193,8 +1195,6 @@ void SV_InitHostCommands (void)
 				"Sets the fog density multiplier (x * 10%) for the next map (coeff, 0[0%] - 10[100%])");
 			Cmd_AddRestrictedCommand ("esrm_water", SV_ESRM_Command,
 				"Sets the water level multiplier (x * 5%) for the next map (coeff, 0[0%] - 5[25%])");
-			/*Cmd_AddRestrictedCommand ("esrm_items_on_2nd_floor", SV_ESRM_Command,
-				"Disables / enables generation of items on balconies for the next map (flag, 0 / 1)");*/
 
 			Cmd_AddRestrictedCommand ("esrm_enemies_list", SV_ESRM_Command,
 				"Enumerates the allowed enemies (the line of probabilities (0 - 5) for assassins, bullchickens, "
