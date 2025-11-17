@@ -28,7 +28,6 @@ typedef struct did3v2_header_s
 	} did3v2_header_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (did3v2_header_t) == 10, "invalid did3v2_header_t size");*/
 STATIC_CHECK_SIZEOF (did3v2_header_t, 10, 10);
 
 typedef struct did3v2_extended_header_s
@@ -39,7 +38,6 @@ typedef struct did3v2_extended_header_s
 	} did3v2_extended_header_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (did3v2_extended_header_t) == 6, "invalid did3v2_extended_header_t size");*/
 STATIC_CHECK_SIZEOF (did3v2_extended_header_t, 6, 6);
 
 typedef struct did3v2_frame_s
@@ -50,12 +48,10 @@ typedef struct did3v2_frame_s
 	} did3v2_frame_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (did3v2_frame_t) == 10, "invalid did3v2_frame_t size");*/
 STATIC_CHECK_SIZEOF (did3v2_frame_t, 10, 10);
 
 #pragma pack(pop)
 
-// [FWGS, 01.05.23]
 typedef enum did3v2_header_flags_e
 	{
 	ID3V2_HEADER_UNSYHCHRONIZATION = BIT (7U),
@@ -67,7 +63,6 @@ typedef enum did3v2_header_flags_e
 #define CHECK_IDENT(ident, b0, b1, b2)        (((ident)[0]) == (b0) && ((ident)[1]) == (b1) && ((ident)[2]) == (b2))
 #define CHECK_FRAME_ID(ident, b0, b1, b2, b3) (CHECK_IDENT (ident, b0, b1, b2) && ((ident)[3]) == (b3))
 
-// [FWGS, 01.05.23]
 static uint32_t Sound_ParseSynchInteger (uint32_t v)
 	{
 	uint32_t res = 0;
@@ -103,8 +98,9 @@ static qboolean Sound_ParseID3Frame (const did3v2_frame_t *frame, const byte *bu
 			key_len = Q_strncpy (key, &buffer[1], sizeof (key));
 			value_len = frame_length - (1 + key_len + 1);
 
-			// [FWGS, 01.07.24]
-			if ((value_len <= 0) || (value_len >= sizeof (value)))
+			// [FWGS, 01.11.25]
+			/*if ((value_len <= 0) || (value_len >= sizeof (value)))*/
+			if ((value_len <= 0) || (value_len >= sizeof (value) - 1))
 				{
 				Con_Printf (S_ERROR "%s: invalid TXXX description, possibly broken file.\n", __func__);
 				return false;

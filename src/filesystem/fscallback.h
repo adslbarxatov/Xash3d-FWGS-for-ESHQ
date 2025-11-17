@@ -43,8 +43,9 @@ extern fs_globals_t *FI;
 #define FS_SetCurrentDirectory (*g_fsapi.SetCurrentDirectory)
 #define FS_Path_f (*g_fsapi.Path_f)
 
-// gameinfo utils
-#define FS_LoadGameInfo (*g_fsapi.LoadGameInfo)
+// [FWGS, 01.11.25]
+/*// gameinfo utils
+define FS_LoadGameInfo (*g_fsapi.LoadGameInfo)*/
 
 // [FWGS, 01.12.24] file ops
 #ifndef FSCALLBACK_OVERRIDE_MALLOC_LIKE
@@ -58,7 +59,6 @@ extern fs_globals_t *FI;
 #define FS_Tell (*g_fsapi.Tell)
 #define FS_Eof (*g_fsapi.Eof)
 #define FS_Flush (*g_fsapi.Flush)
-/*define FS_Close (*g_fsapi.Close)*/
 #define FS_Gets (*g_fsapi.Gets)
 #define FS_UnGetc (*g_fsapi.UnGetc)
 #define FS_Getc (*g_fsapi.Getc)

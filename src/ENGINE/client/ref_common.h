@@ -22,27 +22,25 @@ GNU General Public License for more details
 // [FWGS, 09.05.24]
 #define RP_LOCALCLIENT( e ) ((e) != NULL && (e)->index == ( cl.playernum + 1 ) && e->player )
 
-// [FWGS, 01.04.25]
 struct ref_state_s
 	{
 	HINSTANCE	hInstance;
 	qboolean	initialized;
-	/*int			numRenderers;*/
 	int			num_renderers;
 	ref_interface_t	dllFuncs;
 
 	// depends on build configuration
-	/*const char	**shortNames;
-	const char	**readableNames;*/
 	const char	**short_names;
 	const char	**long_names;
+
+	// [FWGS, 01.11.25]
+	ref_screen_rotation_t	rotation;
 	};
 
 extern struct ref_state_s ref;
 extern ref_globals_t refState;
 
 // [FWGS, 01.12.24] handy API wrappers
-/*void R_GetTextureParms (int *w, int *h, int texnum);*/
 #define REF_GET_PARM( parm, arg ) ref.dllFuncs.RefGetParm( (parm), (arg) )
 #define GL_LoadTextureInternal( name, pic, flags ) ref.dllFuncs.GL_LoadTextureFromBuffer( (name), (pic), (flags), false )
 #define GL_UpdateTextureInternal( name, pic, flags ) ref.dllFuncs.GL_LoadTextureFromBuffer( (name), (pic), (flags), true )

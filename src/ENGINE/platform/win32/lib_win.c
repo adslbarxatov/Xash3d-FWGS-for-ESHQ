@@ -17,6 +17,7 @@ GNU General Public License for more details
 
 #if XASH_LIB == LIB_WIN32
 #include "lib_win.h"
+#include "utflib.h"	// [FWGS, 01.11.25]
 
 // [FWGS, 01.04.25]
 static const wchar_t *FS_PathToWideChar (const char *path)
@@ -50,12 +51,13 @@ Name for function stuff
 ***/
 static void FsGetString (file_t *f, char *str)
 	{
-	char	ch;
+	char ch;
 
 	while ((ch = FS_Getc (f)) != EOF)
 		{
 		*str++ = ch;
-		if (!ch) break;
+		if (!ch)
+			break;
 		}
 	}
 
@@ -209,7 +211,8 @@ qboolean LibraryLoadSymbols (dll_user_t *hInst)
 		goto table_error;
 		}
 
-	hInst->num_ordinals = export_directory.NumberOfNames;	// also number of ordinals
+	// also number of ordinals
+	hInst->num_ordinals = export_directory.NumberOfNames;
 
 	if (hInst->num_ordinals > MAX_LIBRARY_EXPORTS)
 		{
@@ -297,7 +300,8 @@ qboolean LibraryLoadSymbols (dll_user_t *hInst)
 
 	for (i = 0; i < hInst->num_ordinals; i++)
 		{
-		if (!Q_strcmp ("GiveFnptrsToDll", hInst->names[i]))	// main entry point for user dlls
+		// main entry point for user dlls
+		if (!Q_strcmp ("GiveFnptrsToDll", hInst->names[i]))
 			{
 			void *fn_offset;
 
@@ -411,7 +415,6 @@ static void ListMissingModules (dll_user_t *hInst)
 		HMODULE hMod;
 		const char *importName = (const char *)CALCULATE_ADDRESS (data, GetOffsetByRVA (importDesc->Name, peHeader));
 
-		/*hMod = LoadLibraryEx (importName, NULL, LOAD_LIBRARY_AS_DATAFILE);*/
 		hMod = LoadLibraryExW (FS_PathToWideChar (importName), NULL, LOAD_LIBRARY_AS_DATAFILE);
 		if (!hMod)
 			{
@@ -430,11 +433,11 @@ static void ListMissingModules (dll_user_t *hInst)
 
 qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname, qboolean directpath)
 	{
-	PIMAGE_NT_HEADERS peHeader;
-	PIMAGE_IMPORT_DESCRIPTOR importDesc;
-	byte *data;
-	dll_user_t *hInst;
-	qboolean ret = FALSE;
+	PIMAGE_NT_HEADERS			peHeader;
+	PIMAGE_IMPORT_DESCRIPTOR	importDesc;
+	byte		*data;
+	dll_user_t	*hInst;
+	qboolean	ret = FALSE;
 
 	hInst = FS_FindLibrary (name, directpath);
 	if (!hInst) 
@@ -510,7 +513,6 @@ void *COM_LoadLibrary (const char *dllname, int build_ordinals_table, qboolean d
 
 	else
 #endif
-		/*hInst->hInstance = LoadLibrary (hInst->fullPath);*/
 		hInst->hInstance = LoadLibraryW (FS_PathToWideChar (hInst->fullPath));
 
 	if (!hInst->hInstance)

@@ -297,20 +297,12 @@ void UI_ConnectionProgress_ParseServerInfo (const char *server)
 // [FWGS, 01.07.25]
 static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, float width, float height)
 	{
-	/*static float	cin_time;
-	static int		last_frame = -1;
-	byte			*cin_data = NULL;*/
 	movie_state_t	*cin_state;
-	/*int				cin_frame;
-	qboolean		redraw = false;*/
 
-	/*if (!gameui.drawLogo)
-		return;*/
 	if (!gameui.drawLogo)
 		return;
 
 	cin_state = AVI_GetState (CIN_LOGO);
-
 	if (!AVI_IsActive (cin_state))
 		{
 		string		path;
@@ -336,39 +328,16 @@ static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, flo
 			gameui.drawLogo = false;
 			return;
 			}
-
-		/*cin_time = 0.0f;
-		last_frame = -1;*/
 		}
 
 	// precache call, don't draw
 	if ((width <= 0) || (height <= 0))
-		/*{
-		cin_time = 0.0f;
-		last_frame = -1;*/
 		return;
-		/*}*/
 
-	/*// advances cinematic time (ignores maxfps and host_framerate settings)
-	cin_time += host.realframetime;
-
-	// restarts the cinematic
-	if (cin_time > gameui.logo_length)
-		cin_time = 0.0f;*/
 	AVI_SetParm (cin_state, AVI_RENDER_TEXNUM, 0, AVI_RENDER_X, (int)x, AVI_RENDER_Y, (int)y,
 		AVI_RENDER_W, (int)width, AVI_RENDER_H, (int)height, AVI_PARM_LAST);
 
 	// read the next frame
-	/*cin_frame = AVI_GetVideoFrameNumber (cin_state, cin_time);
-
-	if (cin_frame != last_frame)
-		{
-		cin_data = AVI_GetVideoFrame (cin_state, cin_frame);
-		last_frame = cin_frame;
-		redraw = true;
-		}
-
-	ref.dllFuncs.R_DrawStretchRaw (x, y, width, height, gameui.logo_xres, gameui.logo_yres, cin_data, redraw);*/
 	if (!AVI_Think (cin_state))
 		AVI_SetParm (cin_state, AVI_REWIND, AVI_PARM_LAST);
 	}
@@ -497,7 +466,7 @@ static void PIC_DrawGeneric (float x, float y, float width, float height, const 
 
 	if (prc)
 		{
-		// calc user-defined rectangle [FWGS, 01.04.23]
+		// calc user-defined rectangle
 		s1 = prc->left / (float)w;
 		t1 = prc->top / (float)h;
 		s2 = prc->right / (float)w;
@@ -521,7 +490,7 @@ static void PIC_DrawGeneric (float x, float y, float width, float height, const 
 		height = h;
 		}
 
-	// pass scissor test if supposed [FWGS, 01.04.23]
+	// pass scissor test if supposed
 	if (!CL_Scissor (&gameui.ds.scissor, &x, &y, &width, &height, &s1, &t1, &s2, &t2))
 		return;
 
@@ -534,6 +503,7 @@ static void PIC_DrawGeneric (float x, float y, float width, float height, const 
 MainUI Builtin Functions
 ===============================================================================
 ***/
+
 /***
 =========
 pfnPIC_Load
@@ -648,7 +618,7 @@ static void GAME_EXPORT pfnPIC_DrawAdditive (int x, int y, int width, int height
 
 /***
 =========
-pfnPIC_EnableScissor [FWGS, 01.04.23]
+pfnPIC_EnableScissor
 =========
 ***/
 static void GAME_EXPORT pfnPIC_EnableScissor (int x, int y, int width, int height)
@@ -664,7 +634,7 @@ static void GAME_EXPORT pfnPIC_EnableScissor (int x, int y, int width, int heigh
 
 /***
 =========
-pfnPIC_DisableScissor [FWGS, 01.04.23]
+pfnPIC_DisableScissor
 =========
 ***/
 static void GAME_EXPORT pfnPIC_DisableScissor (void)
@@ -684,16 +654,12 @@ static void GAME_EXPORT pfnFillRGBA (int x, int y, int width, int height, int r,
 	b = bound (0, b, 255);
 	a = bound (0, a, 255);
 
-	/*ref.dllFuncs.Color4ub (r, g, b, a);
-	ref.dllFuncs.GL_SetRenderMode (kRenderTransTexture);
-	ref.dllFuncs.R_DrawStretchPic (x, y, width, height, 0, 0, 1, 1, R_GetBuiltinTexture (REF_WHITE_TEXTURE));
-	ref.dllFuncs.Color4ub (255, 255, 255, 255);*/
 	ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, width, height, r, g, b, a);
 	}
 
 /***
 =============
-pfnCvar_RegisterVariable [FWGS, 01.07.23]
+pfnCvar_RegisterVariable
 =============
 ***/
 static cvar_t *GAME_EXPORT pfnCvar_RegisterGameUIVariable (const char *szName, const char *szValue, int flags)
@@ -722,7 +688,8 @@ static void GAME_EXPORT pfnClientCmd (int exec_now, const char *szCmdString)
 	Cbuf_AddText ("\n");
 
 	// client command executes immediately
-	if (exec_now) Cbuf_Execute ();
+	if (exec_now)
+		Cbuf_Execute ();
 	}
 
 /***
@@ -776,7 +743,7 @@ static void GAME_EXPORT pfnDrawCharacter (int ix, int iy, int iwidth, int iheigh
 	s2 = s1 + size;
 	t2 = t1 + size;
 
-	// pass scissor test if supposed [FWGS, 01.04.23]
+	// pass scissor test if supposed
 	if (!CL_Scissor (&gameui.ds.scissor, &x, &y, &width, &height, &s1, &t1, &s2, &t2))
 		return;
 
@@ -796,12 +763,15 @@ static int GAME_EXPORT UI_DrawConsoleString (int x, int y, const char *string)
 	{
 	int	drawLen;
 
+	// silent ignore
 	if (!string || !*string)
-		return 0; // silent ignore
+		return 0;
+
 	drawLen = Con_DrawString (x, y, string, gameui.ds.textColor);
 	MakeRGBA (gameui.ds.textColor, 255, 255, 255, 255);
 
-	return (x + drawLen); // exclude color prexfixes
+	// exclude color prexfixes
+	return (x + drawLen);
 	}
 
 /***
@@ -901,7 +871,7 @@ static int GAME_EXPORT pfnAddEntity (int entityType, cl_entity_t *ent)
 
 /***
 ====================
-pfnClientJoin [FWGS, 01.04.23]
+pfnClientJoin
 
 send client connect
 ====================
@@ -1002,14 +972,11 @@ static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
 			UI_GetModsInfo ();
 
 		// first allocate array of pointers
-		/*gameui.oldModsInfo = Mem_Calloc (gameui.mempool, sizeof (void *) * FI->numgames);*/
 		gameui.oldModsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.oldModsInfo) * FI->numgames);
 
 		for (i = 0; i < FI->numgames; i++)
 			{
-			/*gameui.oldModsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (GAMEINFO));*/
 			gameui.oldModsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (*gameui.oldModsInfo[i]));
-
 			UI_ToOldGameInfo (gameui.oldModsInfo[i], &gameui.modsInfo[i]);
 			}
 		}
@@ -1118,16 +1085,17 @@ static void GAME_EXPORT GL_ProcessTexture (int texnum, float gamma, int topColor
 
 /***
 =================
-UI_ShellExecute
+UI_ShellExecute [FWGS, 01.11.25]
 =================
 ***/
 static void GAME_EXPORT UI_ShellExecute (const char *path, const char *parms, int shouldExit)
 	{
+	if (!Q_strcmp (path, GENERIC_UPDATE_PAGE) || !Q_strcmp (path, PLATFORM_UPDATE_PAGE))
+		path = DEFAULT_UPDATE_PAGE;
+
 	Platform_ShellExecute (path, parms);
 
-	// [FWGS, 22.01.25]
 	if (shouldExit)
-		/*Sys_Quit ();*/
 		Sys_Quit (__func__);
 	}
 
@@ -1279,7 +1247,6 @@ static const ui_enginefuncs_t gEngfuncs =
 	pfnSetCursor,		// [FWGS, 01.07.24]
 	pfnIsMapValid,
 	GL_ProcessTexture,
-	/*COM_CompareFileTime,*/
 	pfnCompareFileTime,	// [FWGS, 01.12.24]
 	VID_GetModeString,
 	(void *)COM_SaveFile,
@@ -1292,20 +1259,14 @@ static void pfnEnableTextInput (int enable)
 	}
 
 // [FWGS, 01.04.25]
-/*static int pfnGetRenderers (unsigned int num, char *shortName, size_t size1, char *readableName, size_t size2)*/
 static int pfnGetRenderers (unsigned int num, char *short_name, size_t size1, char *long_name, size_t size2)
 	{
-	/*if (num >= ref.numRenderers)*/
 	if (num >= ref.num_renderers)
 		return 0;
 
-	/*if (shortName && size1)
-		Q_strncpy (shortName, ref.shortNames[num], size1);*/
 	if (short_name && size1)
 		Q_strncpy (short_name, ref.short_names[num], size1);
 
-	/*if (readableName && size2)
-		Q_strncpy (readableName, ref.readableNames[num], size2);*/
 	if (long_name && size2)
 		Q_strncpy (long_name, ref.long_names[num], size2);
 
@@ -1498,11 +1459,6 @@ qboolean UI_LoadProgs (void)
 	Cmd_AddRestrictedCommand ("ui_allowconsole", UI_ToggleAllowConsole_f, "unlocks developer console");
 
 	// [FWGS, 01.12.24]
-	/*// setup gameinfo
-	gameui.modsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.modsInfo) * FI->numgames);
-	for (i = 0; i < FI->numgames; i++)
-		UI_ConvertGameInfo (&gameui.modsInfo[i], FI->games[i]);*/
-
 	UI_ConvertGameInfo (&gameui.gameInfo, FI->GameInfo); // current gameinfo
 
 	// setup globals
@@ -1513,4 +1469,3 @@ qboolean UI_LoadProgs (void)
 
 	return true;
 	}
-

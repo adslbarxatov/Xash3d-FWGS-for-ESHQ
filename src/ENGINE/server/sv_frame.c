@@ -58,9 +58,12 @@ SV_AddEntitiesToPacket
 static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_frame_t *frame,
 	sv_ents_t *ents, qboolean from_client)
 	{
+	// [FWGS, 01.11.25]
 	edict_t		*ent;
-	byte		*clientpvs;
-	byte		*clientphs;
+	/*byte		*clientpvs;
+	byte		*clientphs;*/
+	byte		*clientpvs = NULL;
+	byte		*clientphs = NULL;
 	qboolean	fullvis = false;
 	sv_client_t	*cl = NULL;
 	qboolean	player;
@@ -717,8 +720,6 @@ static void SV_SendClientDatagram (sv_client_t *cl)
 			{
 			MSG_WriteBits (&msg, MSG_GetData (&cl->datagram), MSG_GetNumBitsWritten (&cl->datagram));
 			}
-			/*else
-			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow on msg\n", cl->name);*/
 		else if (host.realtime > cl->overflow_warn_time)
 			{
 			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow on msg\n", cl->name);
@@ -910,7 +911,6 @@ void SV_SendClientMessages (void)
 			// [FWGS, 01.06.25] now that we were able to send, reset timer to point to next possible send time.
 			// check here also because sv_max/minupdaterate could been changed in runtime
 			updaterate_time = bound (1.0 / sv_maxupdaterate.value, cl->cl_updaterate, 1.0 / sv_minupdaterate.value);
-			/*cl->next_messagetime = host.realtime + sv.frametime + updaterate_time;*/
 			cl->next_messagetime = host.realtime + sv.frametime + updaterate_time;
 			ClearBits (cl->flags, FCL_SEND_NET_MESSAGE);
 
@@ -983,7 +983,6 @@ void SV_InactivateClients (void)
 		// [FWGS, 01.06.25]
 		if (cl->state > cs_connected)
 			{
-			/*cl->state = cs_connected;*/
 			// bump connect timeout
 			cl->connection_started = host.realtime;
 			}

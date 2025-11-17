@@ -26,10 +26,6 @@ GNU General Public License for more details
 	#include <emscripten.h>
 #endif
 
-/*// [FWGS, 01.01.24]
-#include "build.h"
-#include "common.h"*/
-
 // [FWGS, 01.08.24]
 #ifndef XASH_GAMEDIR
 	#define XASH_GAMEDIR "valve" // ! Replace with your default (base) game directory !
@@ -56,15 +52,6 @@ static int Sys_Start (void)
 	Q_strncpy (szGameDir, XASH_GAMEDIR, sizeof (szGameDir));
 
 #if XASH_EMSCRIPTEN
-	/*ifdef EMSCRIPTEN_LIB_FS
-	// For some unknown reason emscripten refusing to load libraries later
-	COM_LoadLibrary ("menu", 0);
-	COM_LoadLibrary ("server", 0);
-	COM_LoadLibrary ("client", 0);
-	endif
-
-	if XASH_DEDICATED
-	// NodeJS support for debug*/
 #if !XASH_DEDICATED
 
 	EM_ASM (try
@@ -80,19 +67,16 @@ static int Sys_Start (void)
 		{
 		FS.mkdir ('/xash');
 		FS.mount (NODEFS, { root: '.' }, '/xash');
-		/*FS.chdir ('/xash');*/
 		}
 	catch (e) {};);
 
-/*endif
-
-elif XASH_IOS*/
+#endif
 #endif
 
-#endif
-
+	// [FWGS, 01.11.25]
 #if XASH_IOS
 	IOS_LaunchDialog ();
+	szArgc = IOS_GetArgs (&szArgv);
 #endif
 
 	return Host_Main (szArgc, szArgv, szGameDir, 0, Sys_ChangeGame);

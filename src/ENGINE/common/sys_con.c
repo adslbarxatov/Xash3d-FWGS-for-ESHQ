@@ -22,11 +22,16 @@ GNU General Public License for more details
 
 #include <string.h>
 #include <errno.h>
-
+// [FWGS, 01.11.25]
 #if XASH_IRIX
 	#include <sys/time.h>
 #endif
 #include "xash3d_mathlib.h"	// [FWGS, 22.01.25]
+
+// [FWGS, 01.11.25]
+#if XASH_WIN32
+	#include <io.h>
+#endif
 
 // [FWGS, 01.07.25] do not waste precious CPU cycles on mobiles or low memory devices
 #if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY && !XASH_EMSCRIPTEN
@@ -268,7 +273,6 @@ static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char
 
 	// [FWGS, 01.09.25] platform-specific output
 #if XASH_ANDROID && !XASH_DEDICATED
-	/*__android_log_write (ANDROID_LOG_DEBUG, "Xash", buf);*/
 	__android_log_write (ANDROID_LOG_INFO, "Xash", buf);
 #endif
 

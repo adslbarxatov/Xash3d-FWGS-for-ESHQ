@@ -9,14 +9,14 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
 #include "library.h"
 #include <winnt.h>
 #include <psapi.h>
-#include <stdint.h>	// [FWGS, 01.11.23]
+#include <stdint.h>	// [ESHQ: переопределение]
 
 #define CALCULATE_ADDRESS( base, offset ) ((uint8_t *)( base ) + (uintptr_t)( offset ))
 

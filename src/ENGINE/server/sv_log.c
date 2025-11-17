@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -94,7 +94,7 @@ void Log_Close (void)
 ==================
 Log_Printf
 
-Prints a frag log message to the server's frag log file, console, and possible a UDP port.
+Prints a frag log message to the server's frag log file, console, and possible a UDP port
 ==================
 ***/
 void Log_Printf (const char *fmt, ...)
@@ -106,7 +106,9 @@ void Log_Printf (const char *fmt, ...)
 	struct tm	*today;
 	int			len;
 
-	if (!svs.log.active)
+	// [FWGS, 01.11.25]
+	/*if (!svs.log.active)*/
+	if (!svs.log.net_log && !svs.log.active)
 		return;
 
 	time (&ltime);
@@ -158,7 +160,7 @@ void Log_PrintServerVars (void)
 
 /***
 ====================
-SV_SetLogAddress_f [FWGS, 01.07.23]
+SV_SetLogAddress_f
 ====================
 ***/
 void SV_SetLogAddress_f (void)
@@ -221,7 +223,6 @@ void SV_ServerLog_f (void)
 	{
 	if (Cmd_Argc () != 2)
 		{
-		// [FWGS, 01.04.23]
 		Con_Printf (S_USAGE "log < on|off >\n");
 
 		if (svs.log.active)
@@ -236,7 +237,7 @@ void SV_ServerLog_f (void)
 		if (svs.log.active)
 			{
 			Log_Close ();
-			svs.log.active = false;	// [FWGS, 01.07.23]
+			svs.log.active = false;
 			}
 		}
 	else if (!Q_stricmp (Cmd_Argv (1), "on"))

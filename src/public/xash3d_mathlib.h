@@ -123,9 +123,7 @@ CONSTANTS AND HELPER MACROS
 #define VectorNormalize2( v, dest ) {float ilength = (float)sqrt(DotProduct(v,v));if (ilength) ilength = 1.0f / ilength;dest[0] = v[0] * ilength;dest[1] = v[1] * ilength;dest[2] = v[2] * ilength; }
 
 // [FWGS, 01.09.25]
-/*define VectorNormalizeFast( v ) {float	ilength = (float)rsqrt(DotProduct(v,v)); v[0] *= ilength; v[1] *= ilength; v[2] *= ilength; }*/
 #define VectorNormalizeFast( v ) {float ilength = (float)Q_rsqrt(DotProduct(v,v)); v[0] *= ilength; v[1] *= ilength; v[2] *= ilength; }
-
 #define VectorNormalizeLength( v ) VectorNormalizeLength2((v), (v))
 #define VectorNegate(x, y) ((y)[0] = -(x)[0], (y)[1] = -(x)[1], (y)[2] = -(x)[2])
 #define VectorM(scale1, b1, c) ((c)[0] = (scale1) * (b1)[0],(c)[1] = (scale1) * (b1)[1],(c)[2] = (scale1) * (b1)[2])
@@ -140,13 +138,15 @@ CONSTANTS AND HELPER MACROS
 
 /***
 ===========================
-CONSTANTS GLOBALS [FWGS, 01.12.24]
+CONSTANTS GLOBALS
 ===========================
 ***/
-// a1ba: we never return pointers to these globals
-// so help compiler optimize constants away
 
-#define vec3_origin ((vec3_t){ 0.0f, 0.0f, 0.0f })
+// [FWGS, 01.11.25] a1ba: we never return pointers to these globals
+// so help compiler optimize constants away
+#ifndef __cplusplus
+	#define vec3_origin ((vec3_t){ 0.0f, 0.0f, 0.0f })
+#endif
 
 // [FWGS, 25.12.24]
 extern const int boxpnt[6][4];
@@ -162,7 +162,6 @@ typedef struct mstudiobone_s mstudiobone_t;
 typedef struct mstudioanim_s mstudioanim_t;
 
 // [FWGS, 01.09.25]
-/*float rsqrt (float number);*/
 float Q_rsqrt (float number);
 uint16_t FloatToHalf (float v);
 float HalfToFloat (uint16_t h);
@@ -263,7 +262,15 @@ static inline float UintAsFloat (uint32_t u)
 	bits.u = u;
 	return bits.fl;
 	}
-#endif
+
+// [FWGS, 01.11.25]
+/*#endif*/
+static inline float SwapFloat (float bf)
+	{
+	uint32_t bi = FloatAsUint (bf);
+	uint32_t li = Swap32 (bi);
+	return UintAsFloat (li);
+	}
 
 // [FWGS, 01.12.24] isnan implementation is broken on IRIX as reported in https://github.com/FWGS/xash3d-fwgs/pull/1211
 #if defined( XASH_IRIX ) || !defined( isnan )
@@ -274,6 +281,8 @@ static inline int IS_NAN (float x)
 	}
 #else
 #define IS_NAN isnan
+#endif
+
 #endif
 
 // [FWGS, 01.12.24]
@@ -491,11 +500,14 @@ static inline void Matrix3x4_OriginFromMatrix (const matrix3x4 in, float *out)
 	out[2] = in[2][3];
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.11.25]
 static inline void QuaternionAngle (const vec4_t q, vec3_t angles)
 	{
+	/*matrix3x4 mat;
+	Matrix3x4_FromOriginQuat (mat, q, vec3_origin);*/
 	matrix3x4 mat;
-	Matrix3x4_FromOriginQuat (mat, q, vec3_origin);
+	vec3_t origin = { 0, 0, 0 };
+	Matrix3x4_FromOriginQuat (mat, q, origin);
 	Matrix3x4_AnglesFromMatrix (mat, angles);
 	}
 

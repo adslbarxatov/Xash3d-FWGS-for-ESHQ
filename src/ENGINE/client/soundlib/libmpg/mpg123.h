@@ -31,8 +31,11 @@ typedef struct mpg123_handle_s	mpg123_handle_t;
 #include <string.h>
 #include <stdlib.h>
 #include "fmt123.h"
-#define STDINT_H	<stdint.h>	// [FWGS, 01.04.23]
-#include STDINT_H
+
+// [FWGS, 01.11.25]
+/*define STDINT_H	<stdint.h>	// [FWGS, 01.04.23]
+include STDINT_H*/
+#include <stdint.h>
 #include "xash3d_types.h"		// [FWGS, 01.07.24]
 
 #ifndef FALSE
@@ -167,17 +170,17 @@ enum mpg123_errors
 enum mpg123_parms
 	{
 	MPG123_VERBOSE = 0,		// < set verbosity value for enabling messages to stderr, >= 0 makes sense (integer)
-	MPG123_FLAGS,		// < set all flags, p.ex val = MPG123_GAPLESS|MPG123_MONO_MIX (integer)
+	MPG123_FLAGS,			// < set all flags, p.ex val = MPG123_GAPLESS|MPG123_MONO_MIX (integer)
 	MPG123_ADD_FLAGS,		// < add some flags (integer)
 	MPG123_FORCE_RATE,		// < when value > 0, force output rate to that value (integer)
 	MPG123_DOWN_SAMPLE,		// < 0=native rate, 1=half rate, 2=quarter rate (integer)
-	MPG123_RVA,		// < one of the RVA choices above (integer)
+	MPG123_RVA,				// < one of the RVA choices above (integer)
 	MPG123_DOWNSPEED,		// < play a frame N times (integer)
-	MPG123_UPSPEED,		// < play every Nth frame (integer)
+	MPG123_UPSPEED,			// < play every Nth frame (integer)
 	MPG123_START_FRAME,		// < start with this frame (skip frames before that, integer)
 	MPG123_DECODE_FRAMES,	// < decode only this number of frames (integer)
 	MPG123_OUTSCALE,		// < the scale for output samples (amplitude - integer according to mpg123 output format)
-	MPG123_TIMEOUT,		// < timeout for reading from a stream (not supported on win32, integer)
+	MPG123_TIMEOUT,			// < timeout for reading from a stream (not supported on win32, integer)
 	MPG123_REMOVE_FLAGS,	// < remove some flags (inverse of MPG123_ADD_FLAGS, integer)
 	MPG123_RESYNC_LIMIT,	// < Try resync on frame parsing for that many bytes or until end of stream (<0 ... integer). This can enlarge the limit for skipping junk on beginning, too (but not reduce it). 
 	MPG123_INDEX_SIZE,		// < Set the frame index size (if supported). Values <0 mean that the index is allowed to grow dynamically in these steps (in positive direction, of course) -- Use this when you really want a full index with every individual frame.
@@ -189,26 +192,26 @@ enum mpg123_parms
 // flag bits for MPG123_FLAGS, use the usual binary or to combine.
 enum mpg123_param_flags
 	{
-	MPG123_FORCE_MONO = 0x7,		// <     0111 Force some mono mode: This is a test bitmask for seeing if any mono forcing is active.
+	MPG123_FORCE_MONO = 0x7,	// <     0111 Force some mono mode: This is a test bitmask for seeing if any mono forcing is active.
 	MPG123_MONO_LEFT = 0x1,		// <     0001 Force playback of left channel only. 
-	MPG123_MONO_RIGHT = 0x2,		// <     0010 Force playback of right channel only.
+	MPG123_MONO_RIGHT = 0x2,	// <     0010 Force playback of right channel only.
 	MPG123_MONO_MIX = 0x4,		// <     0100 Force playback of mixed mono.        
-	MPG123_FORCE_STEREO = 0x8,		// <     1000 Force stereo output.                 
+	MPG123_FORCE_STEREO = 0x8,	// <     1000 Force stereo output.                 
 	MPG123_QUIET = 0x20,		// < 00100000 Suppress any printouts (overrules verbose).                   
 	MPG123_GAPLESS = 0x40,		// < 01000000 Enable gapless decoding (default on if libmpg123 has support).
-	MPG123_NO_RESYNC = 0x80,		// < 10000000 Disable resync stream after error.                            
-	MPG123_SEEKBUFFER = 0x100,		// < 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync).
+	MPG123_NO_RESYNC = 0x80,	// < 10000000 Disable resync stream after error.                            
+	MPG123_SEEKBUFFER = 0x100,	// < 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync).
 	MPG123_FUZZY = 0x200,		// < 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC)
 	MPG123_IGNORE_STREAMLENGTH = 0x1000,	// < 1000000000000 Ignore any stream length information contained in the stream, which can be contained in a 'TLEN' frame of an ID3v2 tag or a Xing tag
-	MPG123_IGNORE_INFOFRAME = 0x4000,	// < 100 0000 0000 0000 Do not parse the LAME/Xing info frame, treat it as normal MPEG data.
-	MPG123_AUTO_RESAMPLE = 0x8000,	// < 1000 0000 0000 0000 Allow automatic internal resampling of any kind (default on if supported). Especially when going lowlevel with replacing output buffer, you might want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE will override this.
+	MPG123_IGNORE_INFOFRAME = 0x4000,		// < 100 0000 0000 0000 Do not parse the LAME/Xing info frame, treat it as normal MPEG data.
+	MPG123_AUTO_RESAMPLE = 0x8000,			// < 1000 0000 0000 0000 Allow automatic internal resampling of any kind (default on if supported). Especially when going lowlevel with replacing output buffer, you might want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE will override this.
 	};
 
 // choices for MPG123_RVA
 enum mpg123_param_rva
 	{
-	MPG123_RVA_OFF = 0,		// < RVA disabled (default).  
-	MPG123_RVA_MIX = 1,		// < Use mix/track/radio gain.
+	MPG123_RVA_OFF = 0,			// < RVA disabled (default).  
+	MPG123_RVA_MIX = 1,			// < Use mix/track/radio gain.
 	MPG123_RVA_ALBUM = 2,		// < Use album/audiophile gain
 	MPG123_RVA_MAX = MPG123_RVA_ALBUM,	// < The maximum RVA code, may increase in future.
 	};
@@ -216,14 +219,14 @@ enum mpg123_param_rva
 enum frame_state_flags
 	{
 	FRAME_ACCURATE = 0x1,		// <     0001 Positions are considered accurate.
-	FRAME_FRANKENSTEIN = 0x2,		// <     0010 This stream is concatenated.
-	FRAME_FRESH_DECODER = 0x4,		// <     0100 Decoder is fleshly initialized.
+	FRAME_FRANKENSTEIN = 0x2,	// <     0010 This stream is concatenated.
+	FRAME_FRESH_DECODER = 0x4,	// <     0100 Decoder is fleshly initialized.
 	};
 
 // enumeration of the mode types of Variable Bitrate
 enum mpg123_vbr
 	{
-	MPG123_CBR = 0,			// < Constant Bitrate Mode (default)
+	MPG123_CBR = 0,		// < Constant Bitrate Mode (default)
 	MPG123_VBR,			// < Variable Bitrate Mode
 	MPG123_ABR			// < Average Bitrate Mode
 	};
@@ -231,16 +234,16 @@ enum mpg123_vbr
 // Data structure for ID3v1 tags (the last 128 bytes of a file).
 // Don't take anything for granted (like string termination)!
 // Also note the change ID3v1.1 did: comment[28] = 0; comment[29] = track_number
-// It is your task to support ID3v1 only or ID3v1.1 ...
+// It is your task to support ID3v1 only or ID3v1.1...
 typedef struct
 	{
-	char	tag[3];			// < Always the string "TAG", the classic intro.
-	char	title[30];		// < Title string. 
-	char	artist[30];		// < Artist string.
-	char	album[30];		// < Album string.
-	char	year[4];			// < Year string.
-	char	comment[30];		// < Comment string.
-	byte	genre;			// < Genre index.
+	char	tag[3];			// < Always the string "TAG", the classic intro
+	char	title[30];		// < Title string 
+	char	artist[30];		// < Artist string
+	char	album[30];		// < Album string
+	char	year[4];		// < Year string
+	char	comment[30];	// < Comment string
+	byte	genre;			// < Genre index
 	} mpg123_id3v1;
 
 #define MPG123_ID3		0x3		// < 0011 There is some ID3 info. Also matches 0010 or NEW_ID3.
@@ -250,41 +253,41 @@ struct mpg123_handle_s
 	{
 	int		fresh;		// to be moved into flags
 	int		new_format;
-	float		hybrid_block[2][2][SBLIMIT * SSLIMIT];
+	float	hybrid_block[2][2][SBLIMIT * SSLIMIT];
 	int		hybrid_blc[2];
 
 	// the scratch vars for the decoders, sometimes float, sometimes short... sometimes int/long
-	short *short_buffs[2][2];
-	float *float_buffs[2][2];
-	byte *rawbuffs;
+	short	*short_buffs[2][2];
+	float	*float_buffs[2][2];
+	byte	*rawbuffs;
 	int		rawbuffss;
-	int		bo;		// just have it always here.
-	byte *rawdecwin;	// the block with all decwins
+	int		bo;			// just have it always here.
+	byte	*rawdecwin;	// the block with all decwins
 
 	int		rawdecwins;	// size of rawdecwin memory
-	float *decwin;		// _the_ decode table
+	float	*decwin;	// _the_ decode table
 
 	// for halfspeed mode
-	byte		ssave[34];
+	byte	ssave[34];
 	int		halfphase;
 
 	// layer3
 	int		longLimit[9][23];
 	int		shortLimit[9][14];
-	float		gainpow2[256 + 118 + 4];// not floatly dynamic, just different for mmx
+	float	gainpow2[256 + 118 + 4];// not floatly dynamic, just different for mmx
 
-	synth_t		synths;
+	synth_t	synths;
 	int		verbose;		// 0: nothing, 1: just print chosen decoder, 2: be verbose
 
-	const al_table_t *alloc;
+	const al_table_t	*alloc;
 
 	// the runtime-chosen decoding, based on input and output format
-	func_synth	synth;
+	func_synth			synth;
 	func_synth_stereo	synth_stereo;
-	func_synth_mono	synth_mono;
+	func_synth_mono		synth_mono;
 
 	// yes, this function is runtime-switched, too.
-	void (*make_decode_tables)(mpg123_handle_t *fr); // that is the volume control.
+	void	(*make_decode_tables)(mpg123_handle_t *fr); // that is the volume control.
 
 	int		stereo;		// I _think_ 1 for mono and 2 for stereo
 	int		jsbound;
@@ -299,9 +302,9 @@ struct mpg123_handle_s
 	int		down_sample;
 	int		header_change;
 	int		lay;
-	long		spf;		// cached count of samples per frame
+	long	spf;		// cached count of samples per frame
 
-	int (*do_layer)(mpg123_handle_t *);
+	int		(*do_layer)(mpg123_handle_t *);
 
 	int		error_protection;
 	int		bitrate_index;
@@ -313,98 +316,98 @@ struct mpg123_handle_s
 	int		copyright;
 	int		original;
 	int		emphasis;
-	int		framesize;	// computed framesize
+	int		framesize;		// computed framesize
 	int		freesize;		// free format frame size
-	int		vbr;		// 1 if variable bitrate was detected
-	mpg_off_t		num;		// frame offset ...
-	mpg_off_t		input_offset;	// byte offset of this frame in input stream
-	mpg_off_t		playnum;		// playback offset... includes repetitions, reset at seeks
-	mpg_off_t		audio_start;	// The byte offset in the file where audio data begins.
+	int		vbr;			// 1 if variable bitrate was detected
+	mpg_off_t	num;		// frame offset ...
+	mpg_off_t	input_offset;	// byte offset of this frame in input stream
+	mpg_off_t	playnum;		// playback offset... includes repetitions, reset at seeks
+	mpg_off_t	audio_start;	// The byte offset in the file where audio data begins.
 	int		state_flags;
-	char		silent_resync;	// Do not complain for the next n resyncs.
-	byte *xing_toc;	// The seek TOC from Xing header.
+	char	silent_resync;	// Do not complain for the next n resyncs.
+	byte	*xing_toc;		// The seek TOC from Xing header.
 	int		freeformat;
-	long		freeformat_framesize;
+	long	freeformat_framesize;
 
 	// bitstream info; bsi
 	int		bitindex;
-	byte *wordpointer;
+	byte	*wordpointer;
 
 	// temporary storage for getbits stuff
-	ulong		ultmp;
-	byte		uctmp;
+	ulong	ultmp;
+	byte	uctmp;
 
 	// rva data
-	double		maxoutburst;	// the maximum amplitude in current sample represenation.
-	double		lastscale;
+	double	maxoutburst;	// the maximum amplitude in current sample represenation.
+	double	lastscale;
 
 	struct
 		{
-		int	level[2];
+		int		level[2];
 		float	gain[2];
 		float	peak[2];
 		} rva;
 
 	// input data
-	mpg_off_t		track_frames;
-	mpg_off_t		track_samples;
+	mpg_off_t	track_frames;
+	mpg_off_t	track_samples;
 	double		mean_framesize;
-	mpg_off_t		mean_frames;
-	int		fsizeold;
-	int		ssize;
+	mpg_off_t	mean_frames;
+	int			fsizeold;
+	int			ssize;
 
 	uint		bitreservoir;
 	byte		bsspace[2][MAXFRAMESIZE + 512];
-	byte *bsbuf;
-	byte *bsbufold;
-	int		bsnum;
+	byte		*bsbuf;
+	byte		*bsbufold;
+	int			bsnum;
 
 	// that is the header matching the last read frame body.
 	ulong		oldhead;
 
 	// that is the header that is supposedly the first of the stream.
 	ulong		firsthead;
-	int		abr_rate;
+	int			abr_rate;
 
 	frame_index_t	index;
 
 	// output data
-	outbuffer_t	buffer;
+	outbuffer_t		buffer;
 	audioformat_t	af;
 
-	int		own_buffer;
+	int			own_buffer;
 	size_t		outblock;		// number of bytes that this frame produces (upper bound)
-	int		to_decode;	// this frame holds data to be decoded
-	int		to_ignore;	// the same, somehow
-	mpg_off_t		firstframe;	// start decoding from here
-	mpg_off_t		lastframe;	// last frame to decode (for gapless or num_frames limit)
-	mpg_off_t		ignoreframe;	// frames to decode but discard before firstframe
+	int			to_decode;		// this frame holds data to be decoded
+	int			to_ignore;		// the same, somehow
+	mpg_off_t	firstframe;		// start decoding from here
+	mpg_off_t	lastframe;		// last frame to decode (for gapless or num_frames limit)
+	mpg_off_t	ignoreframe;	// frames to decode but discard before firstframe
 
-	mpg_off_t		gapless_frames;	// frame count for the gapless part
-	mpg_off_t		firstoff;		// number of samples to ignore from firstframe
-	mpg_off_t		lastoff;		// number of samples to use from lastframe
-	mpg_off_t		begin_s;		// overall begin offset in samples
-	mpg_off_t		begin_os;
-	mpg_off_t		end_s;		// overall end offset in samples
-	mpg_off_t		end_os;
-	mpg_off_t		fullend_os;	// gapless_frames translated to output samples
+	mpg_off_t	gapless_frames;	// frame count for the gapless part
+	mpg_off_t	firstoff;		// number of samples to ignore from firstframe
+	mpg_off_t	lastoff;		// number of samples to use from lastframe
+	mpg_off_t	begin_s;		// overall begin offset in samples
+	mpg_off_t	begin_os;
+	mpg_off_t	end_s;			// overall end offset in samples
+	mpg_off_t	end_os;
+	mpg_off_t	fullend_os;		// gapless_frames translated to output samples
 
-	uint		crc;		// well, I need a safe 16bit type, actually. But wider doesn't hurt.
+	uint		crc;			// well, I need a safe 16bit type, actually. But wider doesn't hurt.
 
-	reader_t *rd;		// pointer to the reading functions
+	reader_t		*rd;		// pointer to the reading functions
 	reader_data_t	rdat;		// reader data and state info
 	mpg123_parm_t	p;
 
-	int		err;
-	int		decoder_change;
-	int		delayed_change;
+	int			err;
+	int			decoder_change;
+	int			delayed_change;
 	long		clip;
 
 	// the meta crap
-	int		metaflags;
+	int			metaflags;
 	byte		id3buf[128];
 
-	float *layerscratch;
+	float		*layerscratch;
 
 	// these are significant chunks of memory already...
 	struct

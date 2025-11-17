@@ -88,6 +88,7 @@ Then you can use another oneliner to query all variables:
 #undef XASH_WIN32
 #undef XASH_X86
 #undef XASH_NSWITCH
+#undef XASH_PSP		// [FWGS, 01.11.25]
 #undef XASH_PSVITA
 #undef XASH_WASI
 #undef XASH_WASM
@@ -102,16 +103,17 @@ Then you can use another oneliner to query all variables:
 #if defined _WIN32
 	#define XASH_WIN32 1
 
-// [FWGS, 01.07.25]
+// [FWGS, 01.11.25]
 #elif defined __WATCOMC__ && defined __DOS__
 	#define XASH_DOS4GW 1
+#elif defined __psp__
+	#define XASH_PSP 1
 #else
 	#define XASH_POSIX 1
 	#if defined __linux__
 		#if defined __ANDROID__
 			#define XASH_ANDROID 1
 
-			// [FWGS, 01.06.25]
 			#if defined __TERMUX__
 				#define XASH_TERMUX 1
 			#endif
@@ -149,15 +151,10 @@ Then you can use another oneliner to query all variables:
 		#define XASH_WASI 1
 	#elif defined __sun__
 		#define XASH_SUNOS 1
-
-	// [FWGS, 01.07.25]
 	#elif defined __EMSCRIPTEN__
 		#define XASH_EMSCRIPTEN 1
-
-	// [FWGS, 01.09.25]
 	#elif defined __gnu_hurd__
 		#define XASH_HURD 1
-
 	#else
 		#error
 	#endif
@@ -220,7 +217,10 @@ Then you can use another oneliner to query all variables:
 #elif defined __e2k__
 	#define XASH_64BIT 1
 	#define XASH_E2K 1
-#elif defined __PPC__ || defined __powerpc__
+
+// [FWGS, 01.11.25]
+/*elif defined __PPC__ || defined __powerpc__*/
+#elif defined __PPC__ || defined __powerpc__ || defined __ppc__
 	#define XASH_PPC 1
 	#if defined __PPC64__ || defined __powerpc64__
 		#define XASH_64BIT 1

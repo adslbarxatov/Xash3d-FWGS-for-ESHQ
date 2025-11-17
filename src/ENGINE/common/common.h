@@ -152,13 +152,13 @@ typedef enum instance_e
 
 #define GameState		(&host.game)
 
-#define FORCE_DRAW_VERSION_TIME 5.0		// [FWGS, 01.07.23] draw version for 5 seconds
+#define FORCE_DRAW_VERSION_TIME 5.0		// draw version for 5 seconds
 
 #ifdef _DEBUG
 	void DBG_AssertFunction (qboolean fExpr, const char *szExpr, const char *szFile, int szLine, const char *szMessage);
-#define Assert( f )		DBG_AssertFunction( f, #f, __FILE__, __LINE__, NULL )
+	#define Assert( f )		DBG_AssertFunction( f, #f, __FILE__, __LINE__, NULL )
 #else
-#define Assert( f )
+	#define Assert( f )
 #endif
 
 // [FWGS, 01.12.24]
@@ -177,12 +177,12 @@ extern convar_t	rcon_password;
 extern convar_t hpk_custom_file;
 extern convar_t con_gamemaps;
 
-// [FWGS, 01.03.25]
+/*// [FWGS, 01.03.25]
 extern convar_t fs_mount_lv;
 extern convar_t fs_mount_hd;
 extern convar_t fs_mount_addon;
 extern convar_t fs_mount_l10n;
-extern convar_t ui_language; // historically used for UI, but now controls mounted localization directory
+extern convar_t ui_language; // historically used for UI, but now controls mounted localization directory*/
 
 // [FWGS, 01.07.24]
 #define Mod_AllowMaterials() ((host_allow_materials.value != 0.0f) && !FBitSet(host.features, ENGINE_DISABLE_HDTEXTURES))
@@ -361,10 +361,10 @@ typedef struct host_parm_s
 	qboolean	apply_opengl_config;	// when true apply only to opengl cvars and ignore all other commands
 	qboolean	config_executed;	// a bit who indicated was config.cfg already executed e.g. from valve.rc
 
-	// [FWGS, 01.05.25]
-#if XASH_DLL_LOADER
+	/*// [FWGS, 01.05.25]
+	if XASH_DLL_LOADER
 	qboolean	enabledll;
-#endif
+	endif*/
 	qboolean	textmode;
 
 	// some settings were changed and needs to global update
@@ -437,9 +437,11 @@ MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 byte *FS_LoadDirectFile (const char *path, fs_offset_t *filesizeptr)
 MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.11.25]
 void FS_Rescan_f (void);
-void FS_CheckConfig (void);
+/*void FS_CheckConfig (void);*/
+void FS_LoadGameInfo (void);
+void FS_SaveVFSConfig (void);
 
 // ESHQ: поддержка скриптов достижений
 #define ACHI_SCRIPT_С		"achi0.sc"
@@ -625,12 +627,13 @@ void Host_WriteOpenGLConfig (void);
 void Host_WriteVideoConfig (void);
 void Host_WriteConfig (void);
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.11.25]
 void Host_Error (const char *error, ...) FORMAT_CHECK (1);
 void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features);
 void Host_Frame (double time);
 void Host_Credits (void);
-void Host_ExitInMain (void);
+/*void Host_ExitInMain (void);*/
+void Host_ExitInMain (void) NORETURN;
 
 //
 // host_state.c [FWGS, 01.07.24]
@@ -728,11 +731,13 @@ MISC COMMON FUNCTIONS
 #define Z_Free( ptr )		if( ptr != NULL ) Mem_Free( ptr )
 
 //
-// con_utils.c [FWGS, 01.02.24]
+// con_utils.c [FWGS, 01.11.25]
 //
 void Con_CompleteCommand (field_t *field);
 void Cmd_AutoComplete (char *complete_string);
 void Cmd_AutoCompleteClear (void);
+void Host_InitializeConfig (file_t *f, const char *config, const char *description);
+void Host_FinalizeConfig (file_t *f, const char *config);
 
 //
 // custom.c
@@ -860,8 +865,6 @@ void SCR_BeginLoadingPlaque (qboolean is_background);
 void SCR_CheckStartupVids (void);
 
 // [FWGS, 01.07.25]
-/*int SCR_GetAudioChunk (char *rawdata, int length);
-wavdata_t *SCR_GetMovieInfo (void);*/
 void SCR_Shutdown (void);
 void Con_Print (const char *txt);
 
@@ -964,16 +967,18 @@ void V_CheckGammaEnd (void);
 intptr_t V_GetGammaPtr (int parm);
 
 //
-// masterlist.c
+// [FWGS, 01.11.25] masterlist.c
 //
 void NET_InitMasters (void);
 void NET_SaveMasters (void);
-qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data);
-qboolean NET_IsMasterAdr (netadr_t adr);
+/*qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data);
+qboolean NET_IsMasterAdr (netadr_t adr);*/
+qboolean NET_IsMasterAdr (netadr_t adr, connprotocol_t *proto);
 void NET_MasterHeartbeat (void);
 void NET_MasterClear (void);
 void NET_MasterShutdown (void);
 qboolean NET_GetMaster (netadr_t from, uint * challenge, double *last_heartbeat);
+qboolean NET_MasterQuery (uint32_t key, qboolean net, const char *filter);
 
 //
 // munge.c [FWGS, 01.12.24]

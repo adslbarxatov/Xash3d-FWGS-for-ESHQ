@@ -25,11 +25,6 @@ GNU General Public License for more details
 #include "client.h"
 #include "vgui_draw.h"
 #include "cursor_type.h"	// [FWGS, 01.07.24]
-
-/*if XASH_SDL
-include <SDL.h>
-endif*/
-
 #include "platform/platform.h"
 
 void		*in_mousecursor;
@@ -65,6 +60,10 @@ static CVAR_DEFINE_AUTO (cl_sidespeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | 
 // [FWGS, 01.12.24]
 static CVAR_DEFINE_AUTO (m_grab_debug, "0", FCVAR_PRIVILEGED,
 	"show debug messages on mouse state change");
+
+// [FWGS, 01.11.25]
+CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"enable touch controls");
 
 /***
 ================
@@ -134,6 +133,7 @@ static void IN_StartupMouse (void)
 	Cvar_RegisterVariable (&look_filter);
 	Cvar_RegisterVariable (&m_rawinput);
 	Cvar_RegisterVariable (&m_grab_debug);	// [FWGS, 01.12.24]
+	Cvar_RegisterVariable (&touch_enable);	// [FWGS, 01.11.25]
 
 	// You can use -nomouse argument to prevent using mouse from client
 	// -noenginemouse will disable all mouse input
@@ -227,13 +227,11 @@ void IN_SetRelativeMouseMode (qboolean set)
 
 	if (set && !s_bRawInput)
 		{
-/*if XASH_SDL == 2*/
 #if XASH_SDL >= 2
 		SDL_GetRelativeMouseState (NULL, NULL);
 
 #if XASH_SDL == 2
 		SDL_SetRelativeMouseMode (SDL_TRUE);
-/*endif*/
 #else
 		SDL_SetWindowRelativeMouseMode (host.hWnd, true);
 #endif
@@ -248,13 +246,11 @@ void IN_SetRelativeMouseMode (qboolean set)
 	// [FWGS, 01.06.25]
 	else if (!set && s_bRawInput)
 		{
-/*if XASH_SDL == 2*/
 #if XASH_SDL >= 2
 		SDL_GetRelativeMouseState (NULL, NULL);
 
 #if XASH_SDL == 2
 		SDL_SetRelativeMouseMode (SDL_FALSE);
-/*endif*/
 #else
 		SDL_SetWindowRelativeMouseMode (host.hWnd, false);
 #endif
@@ -275,9 +271,6 @@ void IN_SetMouseGrab (qboolean set)
 
 	if (set && !s_bMouseGrab)
 		{
-/*if XASH_SDL
-		SDL_SetWindowGrab (host.hWnd, SDL_TRUE);
-endif*/
 		Platform_SetMouseGrab (true);
 
 		s_bMouseGrab = true;
@@ -287,9 +280,6 @@ endif*/
 
 	else if (!set && s_bMouseGrab)
 		{
-/*if XASH_SDL
-		SDL_SetWindowGrab (host.hWnd, SDL_FALSE);
-endif*/
 		Platform_SetMouseGrab (false);
 
 		s_bMouseGrab = false;

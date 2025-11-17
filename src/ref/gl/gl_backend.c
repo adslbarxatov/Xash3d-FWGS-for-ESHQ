@@ -16,7 +16,10 @@ GNU General Public License for more details
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
 
-char			r_speeds_msg[MAX_SYSPATH];
+// [FWGS, 01.11.25]
+/*char			r_speeds_msg[MAX_SYSPATH];
+ref_speeds_t	r_stats;	// r_speeds counters*/
+static char		r_speeds_msg[MAX_SYSPATH];
 ref_speeds_t	r_stats;	// r_speeds counters
 
 /***
@@ -43,13 +46,15 @@ qboolean R_SpeedsMessage (char *out, size_t size)
 	return true;
 	}
 
-/***
+// [FWGS, 01.11.25] removed R_Speeds_Printf
+
+/*
 ==============
 R_Speeds_Printf [FWGS, 01.02.24]
 
 helper to print into r_speeds message
 ==============
-***/
+/
 static void R_Speeds_Printf (const char *msg, ...)
 	{
 	va_list	argptr;
@@ -60,7 +65,7 @@ static void R_Speeds_Printf (const char *msg, ...)
 	va_end (argptr);
 
 	Q_strncat (r_speeds_msg, text, sizeof (r_speeds_msg));
-	}
+	}*/
 
 /***
 ==============
@@ -89,7 +94,8 @@ void GL_BackendEndFrame (void)
 	else
 		curleaf = RI.viewleaf;
 
-	R_Speeds_Printf ("Renderer: ^1Engine^7\n\n");
+	// [FWGS, 01.11.25]
+	/*R_Speeds_Printf ("Renderer: ^1Engine^7\n\n");*/
 
 	switch ((int)r_speeds->value)
 		{
@@ -99,11 +105,17 @@ void GL_BackendEndFrame (void)
 				r_stats.c_world_polys, r_stats.c_alias_polys, r_stats.c_studio_polys, r_stats.c_sprite_polys);
 			break;
 
+		// [FWGS, 01.11.25]
 		case 2:
-			R_Speeds_Printf ("visible leafs:\n%3i leafs\ncurrent leaf %3i\n", r_stats.c_world_leafs,
+			/*R_Speeds_Printf ("visible leafs:\n%3i leafs\ncurrent leaf %3i\n", r_stats.c_world_leafs,
 				curleaf - WORLDMODEL->leafs);
 			R_Speeds_Printf ("ReciusiveWorldNode: %3lf secs\nDrawTextureChains %lf\n", r_stats.t_world_node,
-				r_stats.t_world_draw);
+				r_stats.t_world_draw);*/
+			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg),
+				"Renderer: ^1Engine^7\n\n"
+				"visible leafs:\n%3i leafs\ncurrent leaf %3i\n"
+				"ReciusiveWorldNode: %3lf secs\nDrawTextureChains %lf",
+				r_stats.c_world_leafs, (int)(curleaf - WORLDMODEL->leafs), r_stats.t_world_node, r_stats.t_world_draw);
 			break;
 
 		case 3:
@@ -172,19 +184,21 @@ void GL_LoadIdentityTexMatrix (void)
 
 /***
 =================
-GL_SelectTexture
+GL_SelectTexture [FWGS, 01.11.25]
 =================
 ***/
-void GL_SelectTexture (GLint tmu)
+/*void GL_SelectTexture (GLint tmu)*/
+void GL_SelectTexture (int tmu)
 	{
 	if (!GL_Support (GL_ARB_MULTITEXTURE))
 		return;
 
 	// don't allow negative texture units
+	/*if (tmu < 0)
+		return;*/
 	if (tmu < 0)
 		return;
 
-	// [FWGS, 01.07.24]
 	if (tmu >= GL_MaxTextureUnits ())
 		{
 		gEngfuncs.Con_Reportf (S_ERROR "%s: bad tmu state %i\n", __func__, tmu);
@@ -203,6 +217,50 @@ void GL_SelectTexture (GLint tmu)
 		if (tmu < glConfig.max_texture_coords)
 			pglClientActiveTextureARB (tmu + GL_TEXTURE0_ARB);
 		}
+	}
+
+/***
+=================
+GL_Bind [FWGS, 01.11.25]
+=================
+***/
+void GL_Bind (int tmu, unsigned int texnum)
+	{
+	const gl_texture_t *texture;
+	GLuint glTarget;
+
+	// missed or invalid texture?
+	if ((texnum <= 0) || (texnum >= MAX_TEXTURES))
+		{
+		if (texnum != 0)
+			gEngfuncs.Con_DPrintf (S_ERROR "%s: invalid texturenum %d\n", __func__, texnum);
+		texnum = tr.defaultTexture;
+		}
+
+	if (tmu != GL_KEEP_UNIT)
+		GL_SelectTexture (tmu);
+	else
+		tmu = glState.activeTMU;
+
+	texture = R_GetTexture (texnum);
+	glTarget = texture->target;
+
+	if (glTarget == GL_TEXTURE_2D_ARRAY_EXT)
+		glTarget = GL_TEXTURE_2D;
+
+	if (glState.currentTextureTargets[tmu] != glTarget)
+		{
+		GL_EnableTextureUnit (tmu, false);
+		glState.currentTextureTargets[tmu] = glTarget;
+		GL_EnableTextureUnit (tmu, true);
+		}
+
+	if (glState.currentTextures[tmu] == texture->texnum)
+		return;
+
+	pglBindTexture (texture->target, texture->texnum);
+	glState.currentTextures[tmu] = texture->texnum;
+	glState.currentTexturesIndex[tmu] = texnum;
 	}
 
 /***
@@ -235,7 +293,7 @@ void GL_CleanUpTextureUnits (int last)
 			pglDisable (glState.currentTextureTargets[i]);
 			glState.currentTextureTargets[i] = GL_NONE;
 			glState.currentTextures[i] = -1; // unbind texture
-			glState.currentTexturesIndex[i] = 0;	// [FWGS, 01.07.23]
+			glState.currentTexturesIndex[i] = 0;
 			}
 
 		GL_SetTexCoordArrayMode (GL_NONE);
@@ -252,7 +310,9 @@ GL_CleanupAllTextureUnits
 ***/
 void GL_CleanupAllTextureUnits (void)
 	{
-	if (!glw_state.initialized) return;
+	if (!glw_state.initialized)
+		return;
+
 	// force to cleanup all the units
 	GL_SelectTexture (GL_MaxTextureUnits () - 1);
 	GL_CleanUpTextureUnits (0);
@@ -260,10 +320,11 @@ void GL_CleanupAllTextureUnits (void)
 
 /***
 =================
-GL_MultiTexCoord2f
+GL_MultiTexCoord2f [FWGS, 01.11.25]
 =================
 ***/
-void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t)
+/*void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t)*/
+void GL_MultiTexCoord2f (int tmu, GLfloat s, GLfloat t)
 	{
 	if (!GL_Support (GL_ARB_MULTITEXTURE))
 		return;
@@ -271,12 +332,13 @@ void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t)
 #ifndef XASH_GL_STATIC
 	if (pglMultiTexCoord2f != NULL)
 #endif
-		pglMultiTexCoord2f (texture + GL_TEXTURE0_ARB, s, t);
+		/*pglMultiTexCoord2f (texture + GL_TEXTURE0_ARB, s, t);*/
+		pglMultiTexCoord2f (tmu + GL_TEXTURE0_ARB, s, t);
 	}
 
 /***
 ====================
-GL_EnableTextureUnit [FWGS, 01.11.23]
+GL_EnableTextureUnit
 ====================
 ***/
 void GL_EnableTextureUnit (int tmu, qboolean enable)
@@ -285,13 +347,9 @@ void GL_EnableTextureUnit (int tmu, qboolean enable)
 	if (tmu < glConfig.max_texture_units)
 		{
 		if (enable)
-			{
 			pglEnable (glState.currentTextureTargets[tmu]);
-			}
 		else if (glState.currentTextureTargets[tmu] != GL_NONE)
-			{
 			pglDisable (glState.currentTextureTargets[tmu]);
-			}
 		}
 	}
 
@@ -335,36 +393,47 @@ void GL_TexGen (GLenum coord, GLenum mode)
 			bit = 1;
 			gen = GL_TEXTURE_GEN_S;
 			break;
+
 		case GL_T:
 			bit = 2;
 			gen = GL_TEXTURE_GEN_T;
 			break;
+
 		case GL_R:
 			bit = 4;
 			gen = GL_TEXTURE_GEN_R;
 			break;
+
 		case GL_Q:
 			bit = 8;
 			gen = GL_TEXTURE_GEN_Q;
 			break;
-		default: return;
+
+		default:
+			return;
 		}
 
+	// [FWGS, 01.11.25]
 	if (mode)
 		{
-		if (!(glState.genSTEnabled[tmu] & bit))
+		/*if (!(glState.genSTEnabled[tmu] & bit))*/
+		if (!FBitSet (glState.genSTEnabled[tmu], bit))
 			{
 			pglEnable (gen);
-			glState.genSTEnabled[tmu] |= bit;
+			/*glState.genSTEnabled[tmu] |= bit;*/
+			SetBits (glState.genSTEnabled[tmu], bit);
 			}
+
 		pglTexGeni (coord, GL_TEXTURE_GEN_MODE, mode);
 		}
 	else
 		{
-		if (glState.genSTEnabled[tmu] & bit)
+		/*if (glState.genSTEnabled[tmu] & bit)*/
+		if (FBitSet (glState.genSTEnabled[tmu], bit))
 			{
 			pglDisable (gen);
-			glState.genSTEnabled[tmu] &= ~bit;
+			/*glState.genSTEnabled[tmu] &= ~bit;*/
+			ClearBits (glState.genSTEnabled[tmu], bit);
 			}
 		}
 	}
@@ -379,19 +448,35 @@ void GL_SetTexCoordArrayMode (GLenum mode)
 	int	tmu = Q_min (glConfig.max_texture_coords, glState.activeTMU);
 	int	bit, cmode = glState.texCoordArrayMode[tmu];
 
+	// [FWGS, 01.11.25]
 	if (mode == GL_TEXTURE_COORD_ARRAY)
 		bit = 1;
 	else if (mode == GL_TEXTURE_CUBE_MAP_ARB)
 		bit = 2;
-	else bit = 0;
+	/*else
+		bit = 0;*/
+	else
+		bit = 0;
 
 	if (cmode != bit)
 		{
-		if (cmode == 1) pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
-		else if (cmode == 2) pglDisable (GL_TEXTURE_CUBE_MAP_ARB);
+		/*if (cmode == 1)
+			pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
+		else if (cmode == 2)
+			pglDisable (GL_TEXTURE_CUBE_MAP_ARB);*/
+		if (cmode == 1)
+			pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
+		else if (cmode == 2)
+			pglDisable (GL_TEXTURE_CUBE_MAP_ARB);
 
-		if (bit == 1) pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
-		else if (bit == 2) pglEnable (GL_TEXTURE_CUBE_MAP_ARB);
+		/*if (bit == 1)
+			pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
+		else if (bit == 2)
+			pglEnable (GL_TEXTURE_CUBE_MAP_ARB);*/
+		if (bit == 1)
+			pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
+		else if (bit == 2)
+			pglEnable (GL_TEXTURE_CUBE_MAP_ARB);
 
 		glState.texCoordArrayMode[tmu] = bit;
 		}
@@ -427,16 +512,19 @@ void GL_SetRenderMode (int mode)
 			pglDisable (GL_BLEND);
 			pglDisable (GL_ALPHA_TEST);
 			break;
+
 		case kRenderTransColor:
 		case kRenderTransTexture:
 			pglEnable (GL_BLEND);
 			pglDisable (GL_ALPHA_TEST);
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
+
 		case kRenderTransAlpha:
 			pglDisable (GL_BLEND);
 			pglEnable (GL_ALPHA_TEST);
 			break;
+
 		case kRenderGlow:
 		case kRenderTransAdd:
 			pglEnable (GL_BLEND);
@@ -444,11 +532,11 @@ void GL_SetRenderMode (int mode)
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
 			break;
 
-		// [FWGS, 01.04.23]
 		case kRenderScreenFadeModulate:
 			pglEnable (GL_BLEND);
 			pglDisable (GL_ALPHA_TEST);
 			pglBlendFunc (GL_ZERO, GL_SRC_COLOR);
+			break;	// [ESHQ]: защита от компилятора
 		}
 	}
 
@@ -464,7 +552,9 @@ typedef struct envmap_s
 	int	flags;
 	} envmap_t;
 
-const envmap_t r_skyBoxInfo[6] =
+// [FWGS, 01.11.25]
+/*const envmap_t r_skyBoxInfo[6] =*/
+static const envmap_t r_skyBoxInfo[6] =
 	{
 	{{   0, 270, 180}, IMAGE_FLIP_X },
 	{{   0,  90, 180}, IMAGE_FLIP_X },
@@ -474,7 +564,8 @@ const envmap_t r_skyBoxInfo[6] =
 	{{   0, 180, 180}, IMAGE_FLIP_X },
 	};
 
-const envmap_t r_envMapInfo[6] =
+/*const envmap_t r_envMapInfo[6] =*/
+static const envmap_t r_envMapInfo[6] =
 	{
 	{{  0,   0,  90}, 0 },
 	{{  0, 180, -90}, 0 },
@@ -514,22 +605,8 @@ qboolean VID_ScreenShot (const char *filename, int shot_type)
 			break;
 
 		case VID_LEVELSHOT:
-			/*flags |= IMAGE_RESAMPLE;
-			if (gpGlobals->wideScreen)
-				{
-				height = 480;
-				width = 800;
-				}
-			else
-				{
-				height = 480;
-				width = 640;
-				}
-			break;*/
 		case VID_MINISHOT:
 			flags |= IMAGE_RESAMPLE;
-			/*height = 200;
-			width = 320;*/
 			height = (shot_type == VID_MINISHOT) ? 200 : 480;
 			width = Q_rint (height * ((double)r_shot->width / r_shot->height));
 			break;
@@ -623,7 +700,7 @@ qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qbo
 	r_shot->palette = NULL;
 	r_shot->buffer = buffer;
 
-	// [FWGS, 01.05.23] make sure what we have right extension
+	// make sure what we have right extension
 	Q_strncpy (basename, base, sizeof (basename));
 	COM_ReplaceExtension (basename, ".tga", sizeof (basename));
 
@@ -647,19 +724,12 @@ was there.  This is used to test for texture thrashing.
 ***/
 void R_ShowTextures (void)
 	{
-	/*gl_texture_t	*image;
-	float			x, y, w, h;
-	int				total, start, end;
-	int				i, j, k, base_w, base_h;
-	rgba_t			color = { 192, 192, 192, 255 };
-	int				charHeight, numTries = 0;*/
 	float			w, h;
 	int				start, k;
 	int				base_w, base_h;
 	rgba_t			color = { 255, 255, 255, 255 };
 	int				charHeight;
 	static qboolean	showHelp = true;
-	/*string			shortname;*/
 	float			time; //nc add
 	float			time_cubemap; //nc add
 	float			cbm_cos, cbm_sin; //nc add
@@ -676,26 +746,11 @@ void R_ShowTextures (void)
 		showHelp = false;
 		}
 
-	/*GL_SetRenderMode (kRenderNormal);*/
 	pglClear (GL_COLOR_BUFFER_BIT);
-	/*pglFinish ();*/
 
-	/*base_w = 8;	// textures view by horizontal
-	base_h = 6;	// textures view by vertical*/
 	w = 200;
 	h = 200;
 
-	/*rebuild_page:
-	total = base_w * base_h;
-	
-	// [FWGS, 01.07.23]
-	start = total * (r_showtextures->value - 1);
-	end = total * r_showtextures->value;
-
-	if (end > MAX_TEXTURES) end = MAX_TEXTURES;
-
-	w = gpGlobals->width / base_w;
-	h = gpGlobals->height / base_h;*/
 	time = gp_cl->time * 0.5f;
 	time -= floor (time);
 	time_cubemap = gp_cl->time * 0.25f;
@@ -705,7 +760,6 @@ void R_ShowTextures (void)
 
 	gEngfuncs.Con_DrawStringLen (NULL, NULL, &charHeight);
 
-	/*for (i = j = 0; i < MAX_TEXTURES; i++)*/
 	base_w = gpGlobals->width / w;
 	base_h = gpGlobals->height / (h + charHeight * 2);
 	per_page = base_w * base_h;
@@ -718,9 +772,6 @@ void R_ShowTextures (void)
 
 	while (empty_page)
 		{
-		/*image = R_GetTexture (i);
-		if (j == start) break; // found start
-		if (pglIsTexture (image->texnum)) j++;*/
 		for (k = 0; k < per_page; k++)
 			{
 			const gl_texture_t *image;
@@ -748,23 +799,15 @@ void R_ShowTextures (void)
 			}
 		}
 
-	/*// [FWGS, 01.07.23]
-	if ((i == MAX_TEXTURES) && (r_showtextures->value != 1))*/
 	if (skipped_empty_pages > 0)
 		{
-		/*// bad case, rewind to one and try again
-		gEngfuncs.Cvar_SetValue ("r_showtextures", Q_max (1, r_showtextures->value - 1));
-		if (++numTries < 2) goto rebuild_page;	// to prevent infinite loop*/
 		char text[MAX_VA_STRING];
 		Q_snprintf (text, sizeof (text), "%s: skipped %d empty texture pages", __func__, skipped_empty_pages);
 		gEngfuncs.CL_CenterPrint (text, 0.25f);
 		}
 
-	/*for (k = 0; i < MAX_TEXTURES; i++)*/
 	for (k = 0; k < per_page; k++)
 		{
-		/*if (j == end)
-			break; // page is full*/
 		const gl_texture_t	*image;
 		int		textlen, i;
 		char	text[MAX_VA_STRING];
@@ -779,24 +822,20 @@ void R_ShowTextures (void)
 		if (!pglIsTexture (image->texnum))
 			continue;
 
-		/*x = k % base_w * w;
-		y = k / base_w * h;*/
 		x = k % base_w * gpGlobals->width / base_w;
 		y = k / base_w * gpGlobals->height / base_h;
 
 		pglColor4f (1.0f, 1.0f, 1.0f, 1.0f);
 
-		/*GL_Bind (XASH_TEXTURE0, i); // NOTE: don't use image->texnum here, because skybox has a 'wrong' indexes*/
-		GL_Bind (XASH_TEXTURE0, image->texnum);
+		// [FWGS, 01.11.25]
+		/*GL_Bind (XASH_TEXTURE0, image->texnum);*/
+		GL_Bind (XASH_TEXTURE0, i);
 
 		if (FBitSet (image->flags, TF_DEPTHMAP) && !FBitSet (image->flags, TF_NOCOMPARE))
 			pglTexParameteri (image->target, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
 
 		pglBegin (GL_QUADS);
 		
-		/*pglTexCoord2f (0, 0);
-		pglVertex2f (x, y);
-		if (image->target == GL_TEXTURE_RECTANGLE_EXT)*/
 #if XASH_NANOGL
 	#undef pglTexCoord3f
 	#define pglTexCoord3f( s, t, u ) pglTexCoord2f( s, t ) // not really correct but it requires nanogl rework
@@ -818,22 +857,10 @@ void R_ShowTextures (void)
 			pglTexCoord2f (0, 0);
 			pglVertex2f (x, y);
 			pglTexCoord2f (image->width, 0);
-
-			/*else
-			pglTexCoord2f (1, 0);
-		pglVertex2f (x + w, y);
-		if (image->target == GL_TEXTURE_RECTANGLE_EXT)*/
 			pglVertex2f (x + w, y);
-
 			pglTexCoord2f (image->width, image->height);
-			/*else pglTexCoord2f (1, 1);
-		pglVertex2f (x + w, y + h);
-		if (image->target == GL_TEXTURE_RECTANGLE_EXT)*/
 			pglVertex2f (x + w, y + h);
-
 			pglTexCoord2f (0, image->height);
-			/*else pglTexCoord2f (0, 1);
-		pglVertex2f (x, y + h);*/
 			pglVertex2f (x, y + h);
 			}
 		else
@@ -854,7 +881,6 @@ void R_ShowTextures (void)
 			pglTexParameteri (image->target, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
 
 		COM_FileBase (image->name, shortname, sizeof (shortname));
-		/*if (Q_strlen (shortname) > 18)*/
 		gEngfuncs.Con_DrawStringLen (shortname, &textlen, NULL);
 
 		if (textlen > w)
@@ -865,8 +891,6 @@ void R_ShowTextures (void)
 			shortname[18] = '\0';
 			}
 
-		/*gEngfuncs.Con_DrawString (x + 1, y + h - charHeight, shortname, color);
-		j++, k++;*/
 		gEngfuncs.Con_DrawString (x + 1, y + h, shortname, color);
 		if (image->target == GL_TEXTURE_3D || image->target == GL_TEXTURE_2D_ARRAY_EXT)
 			Q_snprintf (text, sizeof (text), "%ix%ix%i %s", image->width, image->height, image->depth,

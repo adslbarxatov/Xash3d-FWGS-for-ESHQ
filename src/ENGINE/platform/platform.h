@@ -38,8 +38,9 @@ void Platform_MessageBox (const char *title, const char *message, qboolean paren
 void Platform_SetStatus (const char *status);
 qboolean Platform_DebuggerPresent (void);
 
-// [FWGS, 01.01.24] legacy iOS port functions
+// [FWGS, 01.11.25] legacy iOS port functions
 #if TARGET_OS_IOS
+	int IOS_GetArgs (char ***argv);
 	const char *IOS_GetDocsDir (void);
 	void IOS_LaunchDialog (void);
 #endif
@@ -194,7 +195,6 @@ static inline qboolean Platform_NanoSleep (int nsec)
 		};
 
 	// [FWGS, 01.09.25]
-	/*return nanosleep (&ts, NULL) == 0;*/
 	int ret = nanosleep (&ts, NULL);
 	if (ret < 0)
 		return errno == EINTR; // ignore EINTR error, it just means sleep was interrupted

@@ -79,12 +79,13 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 	return COM_FunctionFromName (hInstance, pName);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.11.25]
 const char *COM_OffsetNameForFunction (void *function)
 	{
 	static string sname;
 
-	Q_snprintf (sname, MAX_STRING, "ofs:%zu", ((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
+	/*Q_snprintf (sname, MAX_STRING, "ofs:%zu", ((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));*/
+	Q_snprintf (sname, MAX_STRING, "ofs:%zu", (size_t)((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
 	Con_Reportf ("%s: %s\n", __func__, sname);
 	return sname;
 	}
@@ -186,7 +187,6 @@ COM_GenerateServerLibraryPath [FWGS, 01.09.25]
 Generates platform-unique and compatible name for server library
 ==============
 ***/
-/*static void COM_GenerateServerLibraryPath (char *out, size_t size)*/
 static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, size_t size)
 	{
 #ifdef XASH_INTERNAL_GAMELIBS // assuming library loader knows where to get libraries
@@ -206,25 +206,16 @@ static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, s
 	COM_DefaultExtension (out, "." OS_LIB_EXT, size);
 
 #else
-	/*string dllpath;
-	const char *ext;*/
 	string temp, dir, dllpath, ext;
 	const char *dllname;
 
 #if XASH_WIN32
-	/*Q_strncpy (dllpath, GI->game_dll, sizeof (dllpath));*/
 	Q_strncpy (temp, GI->game_dll, sizeof (temp));
 #elif XASH_APPLE
-	/*Q_strncpy (dllpath, GI->game_dll_osx, sizeof (dllpath));*/
 	Q_strncpy (temp, GI->game_dll_osx, sizeof (temp));
 #else
-	/*Q_strncpy (dllpath, GI->game_dll_linux, sizeof (dllpath));*/
 	Q_strncpy (temp, GI->game_dll_linux, sizeof (temp));
 #endif
-
-	/*ext = COM_FileExtension (dllpath);
-	COM_StripExtension (dllpath);
-	COM_StripIntelSuffix (dllpath);*/
 
 	// path to the dll directory
 	COM_ExtractFilePath (temp, dir);
@@ -276,9 +267,6 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 				else
 					Q_strncpy (out, host.menulib, size);
 				}
-			/*Q_strncpy (out, host.menulib, size);
-			else
-			COM_GenerateClientLibraryPath ("menu", out, size);*/
 			else
 				{
 				COM_GenerateClientLibraryPath ("menu", out, size);
@@ -295,9 +283,6 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 				else
 					Q_strncpy (out, host.clientlib, size);
 				}
-			/*Q_strncpy (out, host.clientlib, size);
-			else
-			COM_GenerateClientLibraryPath ("client", out, size);*/
 			else
 				{
 				COM_GenerateClientLibraryPath ("client", out, size);
@@ -314,9 +299,6 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 				else
 					Q_strncpy (out, host.gamedll, size);
 				}
-			/*Q_strncpy (out, host.gamedll, size);
-			else
-			COM_GenerateServerLibraryPath (out, size);*/
 			else
 				{
 				COM_GenerateServerLibraryPath (NULL, out, size);

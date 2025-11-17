@@ -30,7 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #define PORT_ANY -1
 
 // [FWGS, 01.03.25]
-/*typedef enum { NA_LOOPBACK = 1, NA_BROADCAST, NA_IP, NA_IPX, NA_BROADCAST_IPX, NA_IP6, NA_MULTICAST_IP6 } netadrtype_t;*/
 typedef enum netadrtype_e
 	{
 	NA_UNDEFINED = 0,
@@ -68,24 +67,14 @@ typedef struct netadr_s
 
 		struct
 			{
-			/*uint16_t	type6;
-			uint8_t		ip6[16];
-			};
-
-		struct
-			{
-			uint32_t	type; // must be netadrtype_t but will break with short enums*/
 			union
 				{
-				/*uint8_t	ip[4];
-				uint32_t	ip4; // for easier conversions*/
 				uint8_t		ip[4];
 				uint32_t	ip4;	// for easier conversions
 				};
 			uint8_t		ipx[10];
 			};
 		};
-	/*uint16_t	port;*/
 	uint16_t	port;
 	} netadr_t;
 

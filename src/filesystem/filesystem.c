@@ -25,14 +25,15 @@ GNU General Public License for more details
 #include <time.h>
 #include <errno.h>		// [FWGS, 01.12.24]
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.11.25]
 #if XASH_WIN32
-#include <direct.h>
-#include <io.h>
+	#include <direct.h>
+	#include <io.h>
+	#include "utflib.h"
 #elif XASH_DOS4GW
-#include <direct.h>
+	#include <direct.h>
 #else
-#include <dirent.h>
+	#include <dirent.h>
 #endif
 
 #include <stdio.h>
@@ -56,6 +57,19 @@ GNU General Public License for more details
 
 #define FILE_COPY_SIZE		(1024 * 1024)
 #define SAVE_AGED_COUNT		2	// [FWGS, 01.02.25] the default count of quick and auto saves
+
+// [FWGS, 01.11.25]
+#if !defined( O_BINARY )
+	#define O_BINARY 0
+#endif
+
+#if !defined( O_TEXT )
+	#define O_TEXT 0
+#endif
+
+#if !XASH_PSVITA && !XASH_NSWITCH
+	#define HAVE_DUP
+#endif
 
 // [FWGS, 01.06.25]
 fs_globals_t	FI;
@@ -376,7 +390,15 @@ void FS_CreatePath (char *path)
 			// create the directory
 			save = *ofs;
 			*ofs = 0;
+			
+			/*_mkdir (path);*/
+#if XASH_WIN32
+			 // use _wmkdir maybe?
 			_mkdir (path);
+#else
+			mkdir (path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+#endif
+
 			*ofs = save;
 			}
 		}
@@ -594,12 +616,13 @@ static int FS_CheckNastyPath (const char *path)
 
 /***
 ================
-FS_WriteGameInfo [FWGS, 01.02.25]
+FS_WriteGameInfo [FWGS, 01.11.25]
 
 assume GameInfo is valid
 ================
 ***/
-static qboolean FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
+/*static qboolean FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)*/
+static qboolean FS_WriteGameInfo (const char *filepath, const gameinfo_t *GameInfo)
 	{
 	file_t	*f = FS_Open (filepath, "w", false); // we in binary-mode
 	int		i, write_ambients = false;
@@ -637,7 +660,6 @@ static qboolean FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 	if (GameInfo->version != 0.0f)
 		FS_Printf (f, "version\t\t%g\n", GameInfo->version);
 
-	// [FWGS, 01.07.24]
 	if (GameInfo->size != 0)
 		FS_Printf (f, "size\t\t%zu\n", GameInfo->size);
 
@@ -717,7 +739,6 @@ static qboolean FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 	if (GameInfo->noskills)
 		FS_Printf (f, "noskills\t\t\"%i\"\n", GameInfo->noskills);
 
-	// [FWGS, 01.02.25]
 	if (GameInfo->quicksave_aged_count != SAVE_AGED_COUNT)
 		FS_Printf (f, "quicksave_aged_count\t\t%d\n", GameInfo->quicksave_aged_count);
 
@@ -732,10 +753,11 @@ static qboolean FS_WriteGameInfo (const char *filepath, gameinfo_t *GameInfo)
 		FS_Printf (f, "hd_background\t\t%i\n", GameInfo->hd_background);
 
 	// always expose our extensions
-	FS_Printf (f, "internal_vgui_support\t\t%s\n", GameInfo->internal_vgui_support ? "1" : "0");
-	FS_Printf (f, "render_picbutton_text\t\t%s\n", GameInfo->render_picbutton_text ? "1" : "0");
+	/*FS_Printf (f, "internal_vgui_support\t\t%s\n", GameInfo->internal_vgui_support ? "1" : "0");
+	FS_Printf (f, "render_picbutton_text\t\t%s\n", GameInfo->render_picbutton_text ? "1" : "0");*/
+	FS_Printf (f, "internal_vgui_support\t\t%i\n", GameInfo->internal_vgui_support);
+	FS_Printf (f, "render_picbutton_text\t\t%i\n", GameInfo->render_picbutton_text);
 
-	// [FWGS, 01.09.24]
 	if (COM_CheckStringEmpty (GameInfo->demomap))
 		FS_Printf (f, "demomap\t\t\"%s\"\n", GameInfo->demomap);
 
@@ -1419,7 +1441,7 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 
 /***
 ================
-FS_Rescan [FWGS, 01.03.25]
+FS_Rescan
 ================
 ***/
 void FS_Rescan (uint32_t flags, const char *language)
@@ -1450,28 +1472,46 @@ void FS_Rescan (uint32_t flags, const char *language)
 	if (Q_stricmp (GI->basedir, GI->falldir) && Q_stricmp (GI->gamefolder, GI->falldir))
 		FS_AddGameHierarchy (GI->falldir, flags);
 
-	GI->added = true;
+	// [FWGS, 01.11.25] getting rid of const here, as this modifier only for the engine
+	/*GI->added = true;*/
+	((gameinfo_t *)GI)->added = true;
 	FS_AddGameHierarchy (GI->gamefolder, FS_GAMEDIR_PATH | flags);
 	}
 
 /***
+===============
+FS_Gamedir [FWGS, 01.11.25]
+
+Allows engine to know game directory before gameinfo is initialized
+===============
+***/
+static const char *FS_Gamedir (void)
+	{
+	if (GI)
+		return GI->gamefolder;
+
+	return fs_gamedir;
+	}
+
+/***
 ================
-FS_LoadGameInfo
+FS_LoadGameInfo [FWGS, 01.11.25]
 
 can be passed null arg
 ================
 ***/
-void FS_LoadGameInfo (const char *rootfolder)
+/*void FS_LoadGameInfo (const char *rootfolder)*/
+static void FS_LoadGameInfo (uint32_t flags, const char *language)
 	{
 	int	i;
 
-	// [FWGS, 01.07.24] lock uplevel of gamedir for read\write
+	// lock uplevel of gamedir for read\write
 	FS_AllowDirectPaths (false);
 
-	// [FWGS, 01.02.25]
-	if (rootfolder)
+	/*if (rootfolder)
 		Q_strncpy (fs_gamedir, rootfolder, sizeof (fs_gamedir));
-	Con_Reportf ("%s( %s )\n", __func__, fs_gamedir);	// [FWGS, 01.07.24]
+	Con_Reportf ("%s( %s )\n", __func__, fs_gamedir);*/
+	Con_Reportf ("%s( %s, 0x%x, %s )\n", __func__, fs_gamedir, flags, language);
 
 	// clear any old paths
 	FS_ClearSearchPath ();
@@ -1486,7 +1526,6 @@ void FS_LoadGameInfo (const char *rootfolder)
 	if (i == FI.numgames)
 		Sys_Error ("Couldn't find game directory '%s'\n", fs_gamedir);
 
-	// [FWGS, 01.02.25]
 	FI.GameInfo = FI.games[i];
 	if (FI.GameInfo->rodir)
 		{
@@ -1496,8 +1535,10 @@ void FS_LoadGameInfo (const char *rootfolder)
 		FS_CreatePath (buf);
 		}
 
-	// [FWGS, 01.03.25] create new filesystem
-	FS_Rescan (0, NULL);
+	/*// create new filesystem
+	FS_Rescan (0, NULL);*/
+	// create new filesystem
+	FS_Rescan (flags, language);
 	}
 
 /***
@@ -1524,7 +1565,9 @@ static qboolean FS_CheckForCrypt (const char *dllname)
 	FS_Read (f, &key, sizeof (key));
 	FS_Close (f);
 
-	return (key == 0x12345678) ? true : false;
+	// [FWGS, 01.11.25]
+	/*return (key == 0x12345678) ? true : false;*/
+	return (key == LittleLong (0x12345678)) ? true : false;
 	}
 
 // [FWGS, 01.01.24]
@@ -1817,7 +1860,6 @@ qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const c
 		// [FWGS, 01.07.25]
 		for (i = 0; i < dirs.numstrings; i++)
 			{
-			/*if (!FS_SysFolderExists (dirs.strings[i]))**/
 			Q_snprintf (buf, sizeof (buf), "%s/%s", fs_rodir, dirs.strings[i]);
 			if (!FS_SysFolderExists (buf))
 				continue;
@@ -2036,10 +2078,11 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 #endif
 		fd = memfd_create (filepath, MFD_CLOEXEC | MFD_NOEXEC_SEAL);
 
-		// through fcntl() and MFD_ALLOW_SEALING we could enforce
+		// [FWGS, 01.11.25] through fcntl() and MFD_ALLOW_SEALING we could enforce
 		// read-write flags but we don't really care about them yet
 		if (fd < 0)
-			Con_Printf (S_ERROR "%s: can't create anonymous file %s: %s", __func__, filepath, strerror (errno));
+			/*Con_Printf (S_ERROR "%s: can't create anonymous file %s: %s", __func__, filepath, strerror (errno));*/
+			Con_Printf (S_WARN "%s: can't create anonymous file %s: %s\n", __func__, filepath, strerror (errno));
 		else
 			memfile = true;
 #endif
@@ -3641,7 +3684,8 @@ const fs_api_t g_api =
 	FS_FindLibrary,
 	FS_Path_f,
 
-	// gameinfo utils
+	// [FWGS, 01.11.25] gameinfo utils
+	FS_Gamedir,
 	FS_LoadGameInfo,
 
 	// file ops

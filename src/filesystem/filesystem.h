@@ -29,9 +29,12 @@ extern "C"
 	{
 #endif
 
-#define FS_API_VERSION					3					// [FWGS, 01.05.24] not stable yet!
-#define FS_API_CREATEINTERFACE_TAG		"XashFileSystem002" // [FWGS, 01.11.23] follow FS_API_VERSION!!!
-#define FILESYSTEM_INTERFACE_VERSION	"VFileSystem009"	// [FWGS, 01.11.23] never change this!
+// [FWGS, 01.11.25]
+/*define FS_API_VERSION					3					// [FWGS, 01.05.24] not stable yet!
+define FS_API_CREATEINTERFACE_TAG		"XashFileSystem002" // [FWGS, 01.11.23] follow FS_API_VERSION!!!*/
+#define FS_API_VERSION					4					// not stable yet!
+#define FS_API_CREATEINTERFACE_TAG		"XashFileSystem004"	// follow FS_API_VERSION!!!
+#define FILESYSTEM_INTERFACE_VERSION	"VFileSystem009"	// never change this!
 
 // search path flags
 enum
@@ -102,7 +105,7 @@ typedef struct gameinfo_s
 	qboolean	nomodels;		// don't let player to choose model (use player.mdl always)
 	qboolean	noskills;		// disable skill menu selection
 	qboolean	render_picbutton_text; // use font renderer to render WON buttons
-	qboolean	internal_vgui_support; // [FWGS, 01.04.23] skip loading VGUI, pass ingame UI support API to client
+	qboolean	internal_vgui_support; // skip loading VGUI, pass ingame UI support API to client
 
 	char		sp_entity[32];	// e.g. info_player_start
 	char		mp_entity[32];	// e.g. info_player_deathmatch
@@ -141,9 +144,11 @@ typedef struct fs_dllinfo_t
 	qboolean	custom_loader;	// do we need memory DLL loader?
 	} fs_dllinfo_t;
 
+// [FWGS, 01.11.25]
 typedef struct fs_globals_t
 	{
-	gameinfo_t	*GameInfo;	// current GameInfo
+	/*gameinfo_t	*GameInfo;	// current GameInfo*/
+	const gameinfo_t	*GameInfo;	// current GameInfo
 	gameinfo_t	*games[MAX_MODS];	// environment games (founded at each engine start)
 	int			numgames;
 	} fs_globals_t;
@@ -158,7 +163,6 @@ typedef struct fs_api_t
 	void (*ShutdownStdio)(void);
 
 	// [FWGS, 01.03.25] search path utils
-	/*void (*Rescan)(void);*/
 	void (*Rescan)(uint32_t flags, const char *language);
 	void (*ClearSearchPath)(void);
 	void (*AllowDirectPaths)(qboolean enable);
@@ -169,8 +173,10 @@ typedef struct fs_api_t
 	qboolean (*FindLibrary)(const char *dllname, qboolean directpath, fs_dllinfo_t *dllinfo);
 	void (*Path_f)(void);
 
-	// gameinfo utils
-	void (*LoadGameInfo)(const char *rootfolder);
+	// [FWGS, 01.11.25] gameinfo utils
+	/*void (*LoadGameInfo)(const char *rootfolder);*/
+	const char *(*Gamedir)(void);
+	void (*LoadGameInfo)(uint32_t flags, const char *language);
 
 	// file ops
 	file_t *(*Open)(const char *filepath, const char *mode, qboolean gamedironly);
@@ -185,7 +191,6 @@ typedef struct fs_api_t
 	int (*UnGetc)(file_t *file, char c);
 	int (*Getc)(file_t *file);
 	int (*VPrintf)(file_t *file, const char *format, va_list ap);
-	/*int (*Printf)(file_t *file, const char *format, ...) _format (2);*/
 	int (*Printf)(file_t *file, const char *format, ...) FORMAT_CHECK (2);	// [FWGS, 01.12.24]
 	int (*Print)(file_t *file, const char *msg);
 	fs_offset_t (*FileLength)(file_t *f);
@@ -206,7 +211,7 @@ typedef struct fs_api_t
 	fs_offset_t (*FileSize)(const char *filename, qboolean gamedironly);
 	qboolean (*Rename)(const char *oldname, const char *newname);
 	qboolean (*Delete)(const char *path);
-	qboolean (*SysFileExists)(const char *path);	// [FWGS, 01.04.23]
+	qboolean (*SysFileExists)(const char *path);
 	const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
 	
 	// [FWGS, 01.07.24]
@@ -265,7 +270,7 @@ typedef struct fs_interface_t
 
 	void  (*_Mem_Free)(void *data, const char *filename, int fileline);
 
-	// [FWGS, 01.11.23] platform
+	// platform
 	void *(*_Sys_GetNativeObject)(const char *object);
 	} fs_interface_t;
 

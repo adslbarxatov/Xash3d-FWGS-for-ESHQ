@@ -68,9 +68,8 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 //  bytes will be stripped by the networking channel layer
 #define NET_MAX_MESSAGE		PAD_NUMBER(( NET_MAX_PAYLOAD + HEADER_BYTES ), 16 )
 
-// [FWGS, 01.03.25]
-/*define MASTERSERVER_ADR		"mentality.rip:27010"*/
-#define MS_SCAN_REQUEST			"1\xFF" "0.0.0.0:0\0"
+/*// [FWGS, 01.03.25]
+define MS_SCAN_REQUEST			"1\xFF" "0.0.0.0:0\0"*/
 
 #define PORT_MASTER		27010
 #define PORT_CLIENT		27005
@@ -292,8 +291,6 @@ typedef struct netchan_s
 
 // [FWGS, 01.04.25]
 extern netadr_t		net_from;
-/*extern netadr_t		net_local;
-extern netadr_t		net6_local;	// [FWGS, 01.04.23]*/
 extern sizebuf_t	net_message;
 extern byte			net_message_buffer[NET_MAX_MESSAGE];
 extern convar_t		sv_lan;

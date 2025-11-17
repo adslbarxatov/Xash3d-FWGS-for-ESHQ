@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -19,6 +19,7 @@ GNU General Public License for more details
 #include <WS2tcpip.h>
 typedef int WSAsize_t;
 
-#define HAVE_GETADDRINFO
+// [FWGS, 01.11.25]
+/*define HAVE_GETADDRINFO*/
 
 #endif

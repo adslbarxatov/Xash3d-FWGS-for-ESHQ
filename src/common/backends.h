@@ -17,42 +17,51 @@ GNU General Public License for more details
 #define BACKENDS_H
 
 // video backends (XASH_VIDEO)
-#define VIDEO_NULL    0
-#define VIDEO_SDL     1
-#define VIDEO_FBDEV   3
-#define VIDEO_DOS     4
+#define VIDEO_NULL		0
+#define VIDEO_SDL		1
+#define VIDEO_PSP		2	// [FWGS, 01.11.25]
+#define VIDEO_FBDEV		3
+#define VIDEO_DOS		4
 
 // audio backends (XASH_SOUND)
-#define SOUND_NULL     0
-#define SOUND_SDL      1
-#define SOUND_ALSA     3
+#define SOUND_NULL		0
+#define SOUND_SDL		1
+#define SOUND_PSP		2	// [FWGS, 01.11.25]
+#define SOUND_ALSA		3
 
 // input (XASH_INPUT)
-#define INPUT_NULL    0
-#define INPUT_SDL     1
-#define INPUT_EVDEV   3
+#define INPUT_NULL		0
+#define INPUT_SDL		1
+#define INPUT_PSP		2	// [FWGS, 01.11.25]
+#define INPUT_EVDEV		3
 
 // timer (XASH_TIMER)
-#define TIMER_NULL  0 // not used
-#define TIMER_SDL   1
-#define TIMER_POSIX 2
-#define TIMER_WIN32 3
-#define TIMER_DOS   4
+#define TIMER_NULL		0	// not used
+#define TIMER_SDL		1
+#define TIMER_POSIX		2
+#define TIMER_WIN32		3
+#define TIMER_DOS		4
+#define TIMER_PSP		5	// [FWGS, 01.11.25]
 
 // messageboxes (XASH_MESSAGEBOX)
 #define MSGBOX_STDERR	0
 #define MSGBOX_SDL		1
+#define MSGBOX_PSP		2	// [FWGS, 01.11.25]
 #define MSGBOX_WIN32	3
 #define MSGBOX_NSWITCH	4
 
-// library loading (XASH_LIB)
-#define LIB_NULL 0
-#define LIB_POSIX 1
-#define LIB_WIN32 2
-#define LIB_STATIC 3
+// [FWGS, 01.11.25] library loading (XASH_LIB)
+/*define LIB_NULL		0
+define LIB_POSIX		1
+define LIB_WIN32		2*/
+#define LIB_NULL		0
+#define LIB_POSIX		1
+#define LIB_WIN32		2
+#define LIB_STATIC		3
+#define LIB_PSP			4
 
 // [FWGS, 01.07.25] movies (XASH_AVI)
-#define AVI_NULL 0
-#define AVI_FFMPEG 1
+#define AVI_NULL		0
+#define AVI_FFMPEG		1
 
 #endif

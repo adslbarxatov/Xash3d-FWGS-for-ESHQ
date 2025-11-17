@@ -47,8 +47,10 @@ void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active);	// 
 void IN_SetRelativeMouseMode (qboolean set);
 void IN_SetMouseGrab (qboolean set);
 
+// [FWGS, 01.11.25]
 extern convar_t m_yaw;
 extern convar_t m_pitch;
+extern convar_t touch_enable;
 
 //
 // in_touch.c
@@ -60,7 +62,27 @@ typedef enum
 	event_motion
 	} touchEventType;
 
-extern convar_t touch_enable;
+// [FWGS, 01.11.25]
+/*extern convar_t touch_enable;*/
+#if XASH_NO_TOUCH
+
+static inline void Touch_Draw (void) {}
+static inline void Touch_SetClientOnly (byte state) {}
+static inline void Touch_RemoveButton (const char *name, qboolean privileged) {}
+static inline void Touch_HideButtons (const char *name, unsigned char hide, qboolean privileged) {}
+static inline void Touch_AddClientButton (const char *name, const char *texture, const char *command, float x1, float y1, float x2, float y2, byte *color, int round, float aspect, int flags) {}
+static inline void Touch_AddDefaultButton (const char *name, const char *texturefile, const char *command, float x1, float y1, float x2, float y2, byte *color, int round, float aspect, int flags) {}
+static inline void Touch_WriteConfig (void) {}
+static inline void Touch_Init (void) {}
+static inline void Touch_Shutdown (void) {}
+static inline void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch) {}
+static inline void Touch_ResetDefaultButtons (void) {}
+static inline int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy) { return 0; }
+static inline void Touch_KeyEvent (int key, int down) {}
+static inline qboolean Touch_WantVisibleCursor (void) { return false; }
+static inline void Touch_NotifyResize (void) {}
+
+#else
 
 // [FWGS, 01.03.25]
 void Touch_Draw (void);
@@ -79,8 +101,9 @@ void Touch_ResetDefaultButtons (void);
 int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy);
 void Touch_KeyEvent (int key, int down);
 qboolean Touch_WantVisibleCursor (void);
-/*qboolean Touch_Emulated (void);		// [FWGS, 01.09.24]*/
 void Touch_NotifyResize (void);
+
+#endif
 
 //
 // in_joy.c
@@ -121,13 +144,6 @@ typedef enum joy_calibration_state_s
 qboolean Joy_IsActive (void);
 
 // [FWGS, 01.03.25]
-/*void Joy_HatMotionEvent (byte hat, byte value);
-void Joy_AxisMotionEvent (byte axis, short value);
-void Joy_KnownAxisMotionEvent (engineAxis_t engineAxis, short value);
-void Joy_BallMotionEvent (byte ball, short xrel, short yrel);
-void Joy_ButtonEvent (byte button, byte down);
-void Joy_AddEvent (void);
-void Joy_RemoveEvent (void);*/
 void Joy_SetCapabilities (qboolean have_gyro);
 void Joy_SetCalibrationState (joy_calibration_state_t state);
 void Joy_AxisMotionEvent (engineAxis_t engineAxis, short value);
@@ -135,6 +151,5 @@ void Joy_GyroEvent (vec3_t data);
 void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw);
 void Joy_Init (void);
 void Joy_Shutdown (void);
-/*void Joy_EnableTextInput (qboolean enable, qboolean force);*/
 
 #endif

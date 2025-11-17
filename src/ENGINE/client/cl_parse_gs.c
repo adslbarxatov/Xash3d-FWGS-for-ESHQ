@@ -23,6 +23,7 @@ GNU General Public License for more details
 #include "input.h"
 #include "server.h"
 
+// [FWGS, 01.11.25]
 static void CL_ParseExtraInfo (sizebuf_t *msg)
 	{
 	string clientfallback;
@@ -31,7 +32,7 @@ static void CL_ParseExtraInfo (sizebuf_t *msg)
 	if (COM_CheckStringEmpty (clientfallback))
 		Con_Reportf (S_ERROR "%s: TODO: add fallback directory %s!\n", __func__, clientfallback);
 
-	if (MSG_ReadByte (msg))
+	/*if (MSG_ReadByte (msg))
 		{
 		Cvar_FullSet ("sv_cheats", "1", FCVAR_READ_ONLY | FCVAR_SERVER);
 		}
@@ -39,7 +40,9 @@ static void CL_ParseExtraInfo (sizebuf_t *msg)
 		{
 		Cvar_SetCheatState ();
 		Cvar_FullSet ("sv_cheats", "0", FCVAR_READ_ONLY | FCVAR_SERVER);
-		}
+		}*/
+	cls.allow_cheats = MSG_ReadByte (msg) ? true : false;
+	CL_SetCheatState (cl.maxclients > 1, cls.allow_cheats);
 	}
 
 static void CL_ParseNewMovevars (sizebuf_t *msg)
@@ -84,7 +87,6 @@ static void CL_ParseNewMovevars (sizebuf_t *msg)
 
 	clgame.oldmovevars = clgame.movevars;
 	
-	/*clgame.entities->curstate.scale = clgame.movevars.waveHeight;*/
 	// [FWGS, 01.03.25] FIXME: set world wave height when entities will be allocated
 	if (clgame.entities)
 		clgame.entities->curstate.scale = clgame.movevars.waveHeight;
@@ -96,11 +98,6 @@ static void CL_ParseNewMovevars (sizebuf_t *msg)
 // [FWGS, 01.03.25]
 typedef struct delta_header_t
 	{
-	/*qboolean remove : 1;
-	qboolean custom : 1;
-	qboolean instanced : 1;
-	uint instanced_baseline_index : 6;
-	uint offset : 6;*/
 	qboolean remove;
 	qboolean custom;
 	qboolean instanced;
@@ -182,7 +179,6 @@ static int CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)
 	// read it all but ignore it
 	while (1)
 		{
-		/*int num = 0;*/
 		int		newnum, bufstart;
 		entity_state_t	from = { 0 }, to;
 		delta_header_t	hdr;
@@ -191,7 +187,6 @@ static int CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)
 		if (MSG_ReadWord (msg) != 0)
 			{
 			MSG_SeekToBit (msg, -16, SEEK_CUR);
-			/*num = CL_ParseDeltaHeader (msg, false, num, &hdr);*/
 			numbase = newnum = CL_ParseDeltaHeader (msg, true, numbase, &hdr);
 			}
 		else
@@ -208,7 +203,6 @@ static int CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)
 		if (hdr.remove)
 			continue;
 
-		/*Delta_ReadGSFields (msg, CL_GetEntityDelta (&hdr, num), &from, &to, cl.mtime[0]);*/
 		Delta_ReadGSFields (msg, CL_GetEntityDelta (&hdr, newnum), &from, &to, cl.mtime[0]);
 
 		if (player)
@@ -237,7 +231,6 @@ static void CL_DeltaEntityGS (const delta_header_t *hdr, sizebuf_t *msg, frame_t
 	if ((newnum < 0) || (newnum >= clgame.maxEntities))
 		{
 		Con_DPrintf (S_ERROR "CL_DeltaEntity: invalid newnum: %d\n", newnum);
-		/*Host_Error ("%s: bad delta entity number: %i", __func__, newnum);*/
 		Host_Error ("%s: bad delta entity number: %i\n", __func__, newnum);
 		return;
 		}
@@ -304,7 +297,6 @@ static void CL_CopyPacketEntity (frame_t *frame, int num, const entity_state_t *
 static int CL_ParsePacketEntitiesGS (sizebuf_t *msg, qboolean delta)
 	{
 	frame_t	*frame, *oldframe;
-	/*int oldindex, newnum, oldnum, numbase = 0;*/
 	int		oldindex, oldnum, numbase = 0;
 	entity_state_t	*oldent;
 	int		count;
@@ -352,7 +344,6 @@ static int CL_ParsePacketEntitiesGS (sizebuf_t *msg, qboolean delta)
 	// read it all but ignore it
 	while (1)
 		{
-		/*int bufstart;*/
 		int bufstart, newnum;
 		qboolean player;
 		delta_header_t hdr;
@@ -584,7 +575,6 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 		{
 		if (MSG_CheckOverflow (msg))
 			{
-			/*Host_Error ("CL_ParseServerMessage: overflow!\n");*/
 			Host_Error ("%s: overflow!\n", __func__);
 			return;
 			}
@@ -678,7 +668,6 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 25.12.24]
-			/*case svc_goldsrc_serverinfo:*/
 			case svc_serverdata:
 				Cbuf_Execute (); // make sure any stuffed commands are done
 				CL_ParseServerData (msg, PROTO_GOLDSRC);
@@ -693,7 +682,6 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 25.12.24]
-			/*case svc_goldsrc_deltadescription:*/
 			case svc_deltatable:
 				Delta_ParseTableField_GS (msg);
 				break;
@@ -773,7 +761,6 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 25.12.24]
-			/*case svc_goldsrc_newusermsg:*/
 			case svc_usermessage:
 				CL_RegisterUserMessage (msg, PROTO_GOLDSRC);
 				break;
@@ -802,7 +789,6 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 25.12.24]
-			/*case svc_goldsrc_newmovevars:*/
 			case svc_deltamovevars:
 				CL_ParseNewMovevars (msg);
 				break;
@@ -856,13 +842,11 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 25.12.24]
-			/*case svc_goldsrc_sendcvarvalue:*/
 			case svc_querycvarvalue:
 				CL_ParseCvarValue (msg, false, PROTO_GOLDSRC);
 				break;
 
 			// [FWGS, 25.12.24]
-			/*case svc_goldsrc_sendcvarvalue2:*/
 			case svc_querycvarvalue2:
 				CL_ParseCvarValue (msg, true, PROTO_GOLDSRC);
 				break;

@@ -49,7 +49,6 @@ void Platform_Sleep (int msec)
 // [FWGS, 01.04.25]
 void Win32_Init (qboolean con_showalways)
 	{
-	/*HMODULE hModule = LoadLibrary ("kernel32.dll");*/
 	HMODULE hModule = LoadLibraryW (L"kernel32.dll");
 	if (hModule)
 		{
@@ -116,13 +115,12 @@ qboolean Platform_DebuggerPresent (void)
 	return IsDebuggerPresent ();
 	}
 
-// [FWGS, 01.04.25]
+// [FWGS, 01.11.25]
 void Platform_ShellExecute (const char *path, const char *parms)
 	{
-	if (!Q_strcmp (path, GENERIC_UPDATE_PAGE) || !Q_strcmp (path, PLATFORM_UPDATE_PAGE))
-		path = DEFAULT_UPDATE_PAGE;
+	/*if (!Q_strcmp (path, GENERIC_UPDATE_PAGE) || !Q_strcmp (path, PLATFORM_UPDATE_PAGE))
+		path = DEFAULT_UPDATE_PAGE;*/
 
-	/*ShellExecute (NULL, "open", path, parms, NULL, SW_SHOW);*/
 	ShellExecuteA (NULL, "open", path, parms, NULL, SW_SHOW);
 	}
 
@@ -130,7 +128,6 @@ void Platform_ShellExecute (const char *path, const char *parms)
 #if XASH_MESSAGEBOX == MSGBOX_WIN32
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow)
 	{
-	/*MessageBox (parentMainWindow ? host.hWnd : NULL, message, title, MB_OK | MB_SETFOREGROUND | MB_ICONSTOP);*/
 	MessageBoxA (parentMainWindow ? host.hWnd : NULL, message, title, MB_OK | MB_SETFOREGROUND | MB_ICONSTOP);
 	}
 #endif

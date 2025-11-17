@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -19,7 +19,7 @@ GNU General Public License for more details
 
 /***
 =============
-Image_LoadBMP [FWGS, 01.07.24]
+Image_LoadBMP
 =============
 ***/
 qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -99,6 +99,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		load_qfont = true;
 		}
 
+	// [FWGS, 01.11.25]
 	if (bhdr.bitsPerPixel <= 8)
 		{
 		// figure out how many entries are actually in the table
@@ -107,8 +108,19 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			bhdr.colors = 256;
 			cbPalBytes = (1 << bhdr.bitsPerPixel) * sizeof (rgba_t);
 			}
+		/*else
+			{
+			cbPalBytes = bhdr.colors * sizeof (rgba_t);
+			}*/
 		else
 			{
+			if (bhdr.colors > 256)
+				{
+				Con_DPrintf (S_WARN "%s: %s palette have too many colors (%u), clamping to 256\n",
+					__func__, name, bhdr.colors);
+				bhdr.colors = 256;
+				}
+
 			cbPalBytes = bhdr.colors * sizeof (rgba_t);
 			}
 		}

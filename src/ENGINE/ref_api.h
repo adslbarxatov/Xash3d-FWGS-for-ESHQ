@@ -58,9 +58,10 @@ GNU General Public License for more details
 // - CL_RunLightStyles now accepts lightstyles array
 // - Removed R_DrawTileClear and Mod_LoadMapSprite, as they're implemented on engine side
 // - Removed FillRGBABlend. Now FillRGBA accepts rendermode parameter
-/*define REF_API_VERSION 9*/
 // 10. [FWGS, 01.06.25] Added R_GetWindowHandle to retrieve platform-specific window object.
-#define REF_API_VERSION 10
+/*define REF_API_VERSION 10*/
+// 11. Added size argument to Mod_ProcessRenderData
+#define REF_API_VERSION 11
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP|TF_ALLOW_NEAREST)
@@ -573,8 +574,9 @@ typedef struct ref_interface_s
 	int			(*R_GetSpriteTexture)(const model_t *m_pSpriteModel, int frame);
 
 	// model management
-	// flags ignored for everything except spritemodels
-	qboolean	(*Mod_ProcessRenderData)(model_t *mod, qboolean create, const byte *buffer);
+	// [FWGS, 01.11.25] flags ignored for everything except spritemodels
+	/*qboolean	(*Mod_ProcessRenderData)(model_t *mod, qboolean create, const byte *buffer);*/
+	qboolean	(*Mod_ProcessRenderData)(model_t *mod, qboolean create, const byte *buffer, size_t buffersize);
 	void		(*Mod_StudioLoadTextures)(model_t *mod, void *data);
 
 	// efx implementation
@@ -687,11 +689,11 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 #define ENGINE_SHARED_CVAR( f, x ) ENGINE_SHARED_CVAR_NAME( f, x, x )
 
 // cvars that's logic is shared between renderer and engine
-// actually, they are just created on engine side for convinience
+// actually, they are just created on engine side for convenience
 // and must be retrieved by renderer side
 // sometimes it's done to standartize cvars to make it easier for users
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.11.25]
 #define ENGINE_SHARED_CVAR_LIST( f ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_gamma, gamma ) \
 	ENGINE_SHARED_CVAR_NAME( f, vid_brightness, brightness ) \
@@ -719,6 +721,7 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 	ENGINE_SHARED_CVAR( f, r_drawviewmodel ) \
 	ENGINE_SHARED_CVAR( f, r_glowshellfreq ) \
 	ENGINE_SHARED_CVAR( f, host_allow_materials ) \
+	ENGINE_SHARED_CVAR( f, r_pvs_radius ) \
 
 #define DECLARE_ENGINE_SHARED_CVAR_LIST() \
 	ENGINE_SHARED_CVAR_LIST( DECLARE_ENGINE_SHARED_CVAR )

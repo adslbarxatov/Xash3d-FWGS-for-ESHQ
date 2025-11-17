@@ -23,11 +23,6 @@ AVI PLAYING
 ***/
 
 // [FWGS, 01.07.25]
-/*static int		xres, yres;
-static float	video_duration;
-static float	cin_time;
-static int		cin_frame;
-static wavdata_t	cin_audio;*/
 static movie_state_t	*cin_state;
 
 /***
@@ -89,8 +84,6 @@ void SCR_CheckStartupVids (void)
 	char	*pfile;
 	string	token;
 
-	/*if (Sys_CheckParm ("-nointro") || host_developer.value || (cls.demonum != -1) ||
-		(GameState->nextstate != STATE_RUNFRAME))*/
 #if 0
 	if (host_developer.value)
 		{
@@ -160,28 +153,14 @@ void SCR_RunCinematic (void)
 		Key_SetKeyDest (key_menu);
 		S_StopStreaming ();
 		cls.movienum = -1;
-		/*cin_time = 0.0f;*/
 		cls.signon = 0;
 		return;
 		}
-
-	/*// advances cinematic time (ignores maxfps and host_framerate settings)
-	cin_time += host.realframetime;
-
-	// stop the video after it finishes
-	if (cin_time > video_duration + 0.1f)
-		{
-		SCR_NextMovie ();
-		return;
-		}
-
-	// read the next frame
-	cin_frame = AVI_GetVideoFrameNumber (cin_state, cin_time);*/
 	}
 
 /***
 ==================
-SCR_DrawCinematic [FWGS, 01.07.25]
+SCR_DrawCinematic [FWGS, 01.11.25]
 
 Returns true if a cinematic is active, meaning the view rendering
 should be skipped
@@ -189,22 +168,12 @@ should be skipped
 ***/
 qboolean SCR_DrawCinematic (void)
 	{
-	/*static int	last_frame = -1;
-	qboolean		redraw = false;
-	byte *frame = NULL;
-
-	if (!ref.initialized || (cin_time <= 0.0f))*/
 	if (!ref.initialized)
 		return false;
 
-	/*if (cin_frame != last_frame)
-		{
-		frame = AVI_GetVideoFrame (cin_state, cin_frame);
-		last_frame = cin_frame;
-		redraw = true;
-		}
+	ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
+	ref.dllFuncs.R_DrawStretchPic (0, 0, refState.width, refState.height, 0, 0, 1, 1, R_GetBuiltinTexture (REF_BLACK_TEXTURE));
 
-	ref.dllFuncs.R_DrawStretchRaw (0, 0, refState.width, refState.height, xres, yres, frame, redraw);*/
 	if (!AVI_Think (cin_state))
 		return SCR_NextMovie ();
 
@@ -231,14 +200,12 @@ qboolean SCR_PlayCinematic (const char *arg)
 		}
 
 	AVI_OpenVideo (cin_state, fullpath, true, false);
-	/*if (!AVI_IsActive (cin_state))*/
 	if (!AVI_IsActive (cin_state) || !AVI_GetVideoInfo (cin_state, &w, &h, NULL))
 		{
 		AVI_CloseVideo (cin_state);
 		return false;
 		}
 
-	/*if (!(AVI_GetVideoInfo (cin_state, &xres, &yres, &video_duration))) // couldn't open this at all.*/
 	video_ratio = (double)w / (double)h;
 	screen_ratio = (double)refState.width / (double)refState.height;
 
@@ -252,8 +219,6 @@ qboolean SCR_PlayCinematic (const char *arg)
 
 	if (video_ratio < screen_ratio)
 		{
-		/*AVI_CloseVideo (cin_state);
-		return false;*/
 		x = (refState.width - w) / 2.0;
 		y = 0;
 		}
@@ -263,7 +228,6 @@ qboolean SCR_PlayCinematic (const char *arg)
 		y = (refState.height - h) / 2.0;
 		}
 
-	/*if (AVI_GetAudioInfo (cin_state, &cin_audio))*/
 	if (AVI_HaveAudioTrack (cin_state))
 		{
 		// begin streaming
@@ -276,30 +240,12 @@ qboolean SCR_PlayCinematic (const char *arg)
 	UI_SetActiveMenu (false);
 	cls.state = ca_cinematic;
 	Con_FastClose ();
-	/*cin_time = 0.0f;*/
 	cls.signon = 0;
 
 	return true;
 	}
 
 // [FWGS, 01.07.25] removed SCR_GetAudioChunk, SCR_GetMovieInfo
-
-/*int SCR_GetAudioChunk (char *rawdata, int length)
-	{
-	int	r;
-
-	r = AVI_GetAudioChunk (cin_state, rawdata, cin_audio.loopStart, length);
-	cin_audio.loopStart += r; // advance play position
-
-	return r;
-	}
-
-wavdata_t *SCR_GetMovieInfo (void)
-	{
-	if (AVI_IsActive (cin_state))
-		return &cin_audio;
-	return NULL;
-	}*/
 
 /***
 ==================
@@ -313,7 +259,6 @@ void SCR_StopCinematic (void)
 
 	AVI_CloseVideo (cin_state);
 	S_StopStreaming ();
-	/*cin_time = 0.0f;*/
 
 	cls.state = ca_disconnected;
 	cls.signon = 0;

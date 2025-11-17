@@ -15,7 +15,7 @@ without written permission from Valve LLC
 #define SPRITE_H
 
 #include "build.h"
-#include <stdint.h>		// [FWGS, 01.12.24]
+#include <stdint.h>		// [ESHQ: переопределение]
 #include "synctype.h"
 
 /***
@@ -62,7 +62,7 @@ typedef enum
 	SPR_CULL_NONE,			// oriented sprite will be draw back face too
 	} facetype_t;
 
-// [FWGS, 01.04.23] generic helper
+// generic helper
 typedef struct
 	{
 	int32_t		ident;		// LittleLong 'ISPR'
@@ -70,10 +70,8 @@ typedef struct
 	} dsprite_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (dsprite_t) == 8, "invalid dsprite_t size");*/
 STATIC_CHECK_SIZEOF (dsprite_t, 8, 8);
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		ident;			// LittleLong 'ISPR'
@@ -87,10 +85,8 @@ typedef struct
 	} dsprite_q1_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (dsprite_q1_t) == 36, "invalid dsprite_q1_t size");*/
 STATIC_CHECK_SIZEOF (dsprite_q1_t, 36, 36);
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		ident;			// LittleLong 'ISPR'
@@ -105,10 +101,8 @@ typedef struct
 	} dsprite_hl_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (dsprite_hl_t) == 40, "invalid dsprite_hl_t size");*/
 STATIC_CHECK_SIZEOF (dsprite_hl_t, 40, 40);
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		origin[2];
@@ -117,37 +111,30 @@ typedef struct
 	} dspriteframe_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (dspriteframe_t) == 16, "invalid dspriteframe_t size");*/
 STATIC_CHECK_SIZEOF (dspriteframe_t, 16, 16);
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	int32_t		numframes;
 	} dspritegroup_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (dspritegroup_t) == 4, "invalid dspritegroup_t size");*/
 STATIC_CHECK_SIZEOF (dspritegroup_t, 4, 4);
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	float		interval;
 	} dspriteinterval_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (dspriteinterval_t) == 4, "invalid dspriteinterval_t size");*/
 STATIC_CHECK_SIZEOF (dspriteinterval_t, 4, 4);
 
-// [FWGS, 01.04.23]
 typedef struct
 	{
 	uint32_t	type;
 	} dframetype_t;
 
 // [FWGS, 01.12.24]
-/*STATIC_ASSERT (sizeof (dframetype_t) == 4, "invalid dframetype_t size");*/
 STATIC_CHECK_SIZEOF (dframetype_t, 4, 4);
 
 #endif

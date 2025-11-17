@@ -80,7 +80,7 @@ typedef struct voice_autogain_s
 	float	gain_multiplier;
 	} voice_autogain_t;
 
-// [FWGS, 01.09.25]
+// [FWGS, 01.11.25]
 typedef struct voice_state_s
 	{
 	string		codec;
@@ -93,8 +93,7 @@ typedef struct voice_state_s
 	double		start_time;
 
 	voice_status_t	local;
-	/*voice_status_t	players_status[MAX_CLIENTS];*/
-	voice_status_t	players_status[MAX_CLIENTS]; // do not access this directly, use Voice_GetPlayerStatus instead
+	/*voice_status_t	players_status[MAX_CLIENTS]; // do not access this directly, use Voice_GetPlayerStatus instead*/
 
 	// opus stuff
 	OpusCustomMode		*custom_mode;
@@ -122,7 +121,9 @@ typedef struct voice_state_s
 	voice_autogain_t	autogain;
 	} voice_state_t;
 
+// [FWGS, 01.11.25]
 extern voice_state_t voice;
+extern convar_t voice_loopback;
 
 void CL_AddVoiceToDatagram (void);
 void Voice_RegisterCvars (void);
@@ -133,9 +134,13 @@ void Voice_RecordStop (void);
 void Voice_RecordStart (void);
 void Voice_Disconnect (void);
 void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames);
-void Voice_StatusAck (voice_status_t *status, int playerIndex);
+
+// [FWGS, 01.11.25]
+/*void Voice_StatusAck (voice_status_t *status, int playerIndex);
 
 // [FWGS, 01.07.25]
-void Voice_StartChannel (uint samples, byte *data, int entnum);
+void Voice_StartChannel (uint samples, byte *data, int entnum);*/
+void Voice_StopChannel (int entnum);
+void Voice_LoopbackAck (void); // sends VOICE_LOOPBACK_INDEX to client, gets disabled on timeout
 
 #endif

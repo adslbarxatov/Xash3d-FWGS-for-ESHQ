@@ -266,7 +266,7 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	Q_strncpy (gameui.globals->maptitle, clgame.maptitle, sizeof (gameui.globals->maptitle));
 
 	if (!cls.changelevel && !cls.changedemo)
-		CL_InitEdicts (cl.maxclients);	// [FWGS, 01.07.23] re-arrange edicts
+		CL_InitEdicts (cl.maxclients);	// re-arrange edicts
 
 	// Quake just have a large packet of initialization data
 	for (i = 1; i < MAX_MODELS; i++)
@@ -362,11 +362,11 @@ static void CL_ParseQuakeClientData (sizebuf_t *msg)
 	// this is the frame update that this message corresponds to
 	i = cls.netchan.incoming_sequence;
 
-	cl.parsecount = i;					// ack'd incoming messages.
-	cl.parsecountmod = cl.parsecount & CL_UPDATE_MASK;	// index into window.
-	frame = &cl.frames[cl.parsecountmod];			// frame at index.
+	cl.parsecount = i;					// ack'd incoming messages
+	cl.parsecountmod = cl.parsecount & CL_UPDATE_MASK;	// index into window
+	frame = &cl.frames[cl.parsecountmod];			// frame at index
 	frame->time = cl.mtime[0];				// mark network received time
-	frame->receivedtime = host.realtime;			// time now that we are parsing.
+	frame->receivedtime = host.realtime;			// time now that we are parsing
 	memset (&frame->graphdata, 0, sizeof (netbandwidthgraph_t));
 	memset (frame->flags, 0, sizeof (frame->flags));
 	frame->first_entity = cls.next_client_entities;
@@ -447,7 +447,6 @@ static void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 		cls.signon = SIGNONS;
 
 		// Clear loading plaque
-		/*CL_SignonReply ();*/
 		CL_SignonReply (PROTO_QUAKE);
 		}
 
@@ -656,15 +655,12 @@ static void CL_ParseQuakeDamage (sizebuf_t *msg)
 CL_ParseStaticEntity [FWGS, 25.12.24]
 ===================
 ***/
-/*static void CL_ParseStaticEntity (sizebuf_t *msg)*/
 static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	{
-	/*entity_state_t	state;*/
 	entity_state_t	state = { 0 };
 	cl_entity_t		*ent;
 	int				i;
 
-	/*memset (&state, 0, sizeof (state));*/
 	if (!clgame.static_entities)
 		clgame.static_entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * MAX_STATIC_ENTITIES);
 
@@ -1014,9 +1010,6 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 
 			// [FWGS, 22.01.25]
 			case svc_lightstyle:
-				/*param1 = MSG_ReadByte (msg);
-				str = MSG_ReadString (msg);
-				CL_SetLightstyle (param1, str, cl.mtime[0]);*/
 				CL_ParseLightStyle (msg, PROTO_QUAKE);
 				break;
 
@@ -1084,9 +1077,11 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				CL_ParseQuakeSignon (msg);
 				break;
 
+			// [FWGS, 01.11.25]
 			case svc_centerprint:
 				str = MSG_ReadString (msg);
-				CL_DispatchUserMessage ("HudText", Q_strlen (str), (void *)str);
+				/*CL_DispatchUserMessage ("HudText", Q_strlen (str), (void *)str);*/
+				CL_DispatchUserMessage ("HudText", Q_strlen (str) + 1, (void *)str);
 				break;
 
 			case svc_killedmonster:

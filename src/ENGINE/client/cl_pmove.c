@@ -1001,7 +1001,6 @@ void CL_MoveSpectatorCamera (void)
 	// [FWGS, 01.06.25]
 	CL_SetUpPlayerPrediction (false, true);
 	CL_SetSolidPlayers (cl.playernum);
-	/*CL_RunUsercmd (&cls.spectator_state, &cls.spectator_state, cl.cmd, true, &time, (uint)(time * 100.0));*/
 	CL_RunUsercmd (&cls.spectator_state, &cls.spectator_state, &cl.cmd, true, &time, (uint)(time * 100.0));
 
 	VectorCopy (cls.spectator_state.client.velocity, cl.simvel);
@@ -1129,9 +1128,10 @@ void CL_PredictMovement (qboolean repredicting)
 		return;
 		}
 
-	// now interpolate some fraction of the final frame
+	// [FWGS, 01.11.25] now interpolate some fraction of the final frame
 	if (to_cmd->senttime != from_cmd->senttime)
-		f = bound (0.0, (host.realtime - from_cmd->senttime) / (to_cmd->senttime - from_cmd->senttime) * 0.1, 1.0);
+		/*f = bound (0.0, (host.realtime - from_cmd->senttime) / (to_cmd->senttime - from_cmd->senttime) * 0.1, 1.0);*/
+		f = bound (0.0, (host.realtime - from_cmd->senttime) / (to_cmd->senttime - from_cmd->senttime), 1.0);
 	else 
 		f = 0.0;
 

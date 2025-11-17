@@ -116,8 +116,6 @@ static void Mod_BrushUnloadTextures (model_t *mod)
 		if (tx->gl_texturenum != tr.defaultTexture)
 			GL_FreeTexture (tx->gl_texturenum); // main texture
 
-		/*GL_FreeTexture (tx->fb_texturenum); // luma texture
-		GL_FreeTexture (tx->dt_texturenum); // detail texture*/
 		if (!Mod_LooksLikeWaterTexture (tx->name))
 			{
 			GL_FreeTexture (tx->fb_texturenum); // luma texture
@@ -148,14 +146,17 @@ static void Mod_UnloadTextures (model_t *mod)
 			Mod_SpriteUnloadTextures (mod->cache.data);
 			break;
 
+		// [FWGS, 01.11.25]
 		default:
-			ASSERT (0);
+			/*ASSERT (0);*/
+			Assert (0);
 			break;
 		}
 	}
 
-// [FWGS, 01.02.25]
-static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)
+// [FWGS, 01.11.25]
+/*static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)*/
+static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf, size_t buffersize)
 	{
 	qboolean loaded = false;
 
@@ -245,7 +246,6 @@ static int GL_RefGetParm (int parm, int arg)
 			arg = bound (0, arg, MAX_LIGHTMAPS - 1);
 			return tr.lightmapTextures[arg];
 
-		// [FWGS, 01.11.23]
 		case PARM_TEX_TARGET:
 			glt = R_GetTexture (arg);
 			return glt->target;
@@ -275,7 +275,6 @@ static int GL_RefGetParm (int parm, int arg)
 			return glConfig.softwareGammaUpdate;
 
 		// [FWGS, 01.07.24]
-
 		case PARM_GL_CONTEXT_TYPE:
 			return glConfig.context;
 
@@ -420,12 +419,14 @@ static void GAME_EXPORT R_SetupSky (int *skyboxTextures)
 static qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_x, int offset_y,
 	float scale_x, float scale_y)
 	{
+	// [FWGS, 01.11.25]
 	qboolean ret = true;
-	if (rotate > 0)
+	/*if (rotate > 0)
 		{
 		gEngfuncs.Con_Printf ("rotation transform not supported\n");
 		ret = false;
-		}
+		}*/
+	tr.rotation = rotate;
 
 	if (offset_x || offset_y)
 		{
@@ -478,7 +479,6 @@ static void GAME_EXPORT R_OverrideTextureSourceSize (unsigned int texnum, uint s
 // [FWGS, 01.12.24]
 static void *GAME_EXPORT R_GetProcAddress (const char *name)
 	{
-/*ifdef XASH_GL4ES*/
 #if XASH_GL4ES
 	return gl4es_GetProcAddress (name);
 #else
@@ -524,9 +524,7 @@ static const ref_interface_t gReffuncs =
 	R_Set2DMode,
 	R_DrawStretchRaw,
 	R_DrawStretchPic,
-	/*R_DrawTileClear,*/
 	CL_FillRGBA,
-	/*CL_FillRGBABlend,*/
 	R_WorldToScreen,
 	VID_ScreenShot,
 	VID_CubemapShot,
@@ -543,7 +541,6 @@ static const ref_interface_t gReffuncs =
 	CL_RunLightStyles,
 	R_GetSpriteParms,
 	R_GetSpriteTexture,
-	/*Mod_LoadMapSprite,*/
 	Mod_ProcessRenderData,
 	Mod_StudioLoadTextures,
 	CL_DrawParticles,

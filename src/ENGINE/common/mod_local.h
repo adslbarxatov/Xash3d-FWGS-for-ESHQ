@@ -30,7 +30,7 @@ GNU General Public License for more details
 #define SETVISBIT( vis, b )( void )	((b) >= 0 ? (byte)((vis)[(b) >> 3] |= (1 << ((b) & 7))) : (byte)false )
 #define CLEARVISBIT( vis, b )( void )	((b) >= 0 ? (byte)((vis)[(b) >> 3] &= ~(1 << ((b) & 7))) : (byte)false )
 
-#define REFPVS_RADIUS		2.0f	// radius for rendering
+/*define REFPVS_RADIUS		2.0f	// radius for rendering*/
 #define FATPVS_RADIUS		8.0f	// FatPVS use radius smaller than the FatPHS
 
 // [FWGS, 01.07.24] see SV_AddToFatPAS in GoldSrc
@@ -177,7 +177,6 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded);
 //
 void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);
-/*int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis, qboolean false);*/
 int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis, qboolean phs);
 qboolean Mod_BoxVisible (const vec3_t mins, const vec3_t maxs, const byte *visbits);
 int Mod_CheckLump (const char *filename, const int lump, int *lumpsize);
@@ -216,9 +215,11 @@ int Mod_HitgroupForStudioHull (int index);
 void Mod_ClearStudioCache (void);
 
 //
-// mod_sprite.c [FWGS, 01.08.24]
+// mod_sprite.c [FWGS, 01.11.25]
 //
-void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded);
+/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded);*/
+void Mod_LoadSpriteModel (model_t *mod, const void *buffer, size_t buffersize, qboolean *loaded);
+
 #endif
 
 #endif

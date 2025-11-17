@@ -124,76 +124,76 @@ typedef struct
 
 typedef struct server_s
 	{
-	sv_state_t	state;		// precache commands are only valid during load
+	sv_state_t	state;			// precache commands are only valid during load
 
-	qboolean		background;	// this is background map
-	qboolean		loadgame;		// client begins should reuse existing entity
-	double		time;		// sv.time += sv.frametime
+	qboolean	background;		// this is background map
+	qboolean	loadgame;		// client begins should reuse existing entity
+	double		time;			// sv.time += sv.frametime
 	double		time_residual;	// unclamped
-	float		frametime;	// 1.0 / sv_fps->value
-	int		framecount;	// count physic frames
-	struct sv_client_s *current_client;	// current client who network message sending on
+	float		frametime;		// 1.0 / sv_fps->value
+	int			framecount;		// count physic frames
+	struct sv_client_s	*current_client;	// current client who network message sending on
 
-	int		hostflags;	// misc server flags: predicting etc
+	int			hostflags;		// misc server flags: predicting etc
 	CRC32_t		worldmapCRC;	// check crc for catch cheater maps
-	int		progsCRC;		// this is used with feature ENGINE_QUAKE_COMPATIBLE
+	int			progsCRC;		// this is used with feature ENGINE_QUAKE_COMPATIBLE
 
 	char		name[MAX_QPATH];	// map name
 	char		startspot[MAX_QPATH];
 
 	double		lastchecktime;
-	int		lastcheck;	// number of last checked client
+	int			lastcheck;		// number of last checked client
 
 	char		model_precache[MAX_MODELS][MAX_QPATH];
 	char		sound_precache[MAX_SOUNDS][MAX_QPATH];
 	char		files_precache[MAX_CUSTOM][MAX_QPATH];
 	char		event_precache[MAX_EVENTS][MAX_QPATH];
 	byte		model_precache_flags[MAX_MODELS];
-	model_t *models[MAX_MODELS];
-	int		num_static_entities;
+	model_t		*models[MAX_MODELS];
+	int			num_static_entities;
 
 	// run local lightstyles to let SV_LightPoint grab the actual information
 	lightstyle_t	lightstyles[MAX_LIGHTSTYLES];
 
 	consistency_t	consistency_list[MAX_MODELS];
-	resource_t	resources[MAX_RESOURCES];
-	int		num_consistency;	// typically check model bounds on this
-	int		num_resources;
+	resource_t		resources[MAX_RESOURCES];
+	int			num_consistency;	// typically check model bounds on this
+	int			num_resources;
 
 	sv_baseline_t	instanced[MAX_CUSTOM_BASELINES];	// instanced baselines
 
 	// all the entities with number more than that was created in-game and doesn't have the baseline
-	int		last_valid_baseline;
-	int		num_instanced;
+	int			last_valid_baseline;
+	int			num_instanced;
 
 	// unreliable data to send to clients.
-	sizebuf_t		datagram;
+	sizebuf_t	datagram;
 	byte		datagram_buf[MAX_DATAGRAM];
 
 	// reliable data to send to clients
-	sizebuf_t		reliable_datagram;	// copied to all clients at end of frame
+	sizebuf_t	reliable_datagram;	// copied to all clients at end of frame
 	byte		reliable_datagram_buf[MAX_DATAGRAM];
 
 	// the multicast buffer is used to send a message to a set of clients
-	sizebuf_t		multicast;
+	sizebuf_t	multicast;
 	byte		multicast_buf[MAX_MULTICAST];
 
-	sizebuf_t		signon;
+	sizebuf_t	signon;
 	byte		signon_buf[MAX_INIT_MSG];	// need a get to maximum size
 
-	sizebuf_t		spec_datagram;
+	sizebuf_t	spec_datagram;
 	byte		spectator_buf[MAX_MULTICAST];
 
-	model_t *worldmodel;	// pointer to world
+	model_t		*worldmodel;	// pointer to world
 
-	qboolean		playersonly;
-	qboolean		simulating;	// physics is running
-	qboolean		paused;
+	qboolean	playersonly;
+	qboolean	simulating;	// physics is running
+	qboolean	paused;
 
 	// statistics
-	int		ignored_static_ents;
-	int		ignored_world_decals;
-	int		static_ents_overflow;
+	int			ignored_static_ents;
+	int			ignored_world_decals;
+	int			static_ents_overflow;
 	} server_t;
 
 typedef struct
@@ -208,7 +208,7 @@ typedef struct
 	int  		first_entity;		// into the circular sv_packet_entities[]
 	} client_frame_t;
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.11.25]
 typedef struct sv_client_s
 	{
 	cl_state_t	state;
@@ -221,7 +221,7 @@ typedef struct sv_client_s
 	char		physinfo[MAX_INFO_STRING];	// set on server (transmit to client)
 	char		useragent[MAX_INFO_STRING];
 	byte		ignorecmdtime_warned;	// did we warn our server operator in the log for this batch of commands?
-	byte		m_bLoopback;			// does this client want to hear his own voice?
+	/*byte		m_bLoopback;			// does this client want to hear his own voice?*/
 	uint		listeners;				// which other clients does this guy's voice stream go to?
 
 	int			ignorecmdtime_warns;	// how many times client time was faster than server during this session
@@ -508,7 +508,6 @@ get model by handle
 ***/
 static inline model_t *GAME_EXPORT SV_ModelHandle (int modelindex)
 	{
-	/*if ((modelindex < 0) || (modelindex >= MAX_MODELS))*/
 	if (unlikely ((modelindex < 0) || (modelindex >= MAX_MODELS)))
 		return NULL;
 

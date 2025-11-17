@@ -96,10 +96,10 @@ static const dllfunc_t cdll_new_exports[] = // allowed only in SDK 2.3 and highe
 	{ "HUD_VoiceStatus", (void **)&clgame.dllFuncs.pfnVoiceStatus },
 	{ "HUD_ChatInputPosition", (void **)&clgame.dllFuncs.pfnChatInputPosition },
 	{ "HUD_GetRenderInterface", (void **)&clgame.dllFuncs.pfnGetRenderInterface },	// Xash3D ext
-	{ "HUD_ClipMoveToEntity", (void **)&clgame.dllFuncs.pfnClipMoveToEntity },	// Xash3D ext
-	{ "IN_ClientTouchEvent", (void **)&clgame.dllFuncs.pfnTouchEvent}, // Xash3D FWGS ext
-	{ "IN_ClientMoveEvent", (void **)&clgame.dllFuncs.pfnMoveEvent}, // Xash3D FWGS ext
-	{ "IN_ClientLookEvent", (void **)&clgame.dllFuncs.pfnLookEvent}, // Xash3D FWGS ext
+	{ "HUD_ClipMoveToEntity", (void **)&clgame.dllFuncs.pfnClipMoveToEntity },		// Xash3D ext
+	{ "IN_ClientTouchEvent", (void **)&clgame.dllFuncs.pfnTouchEvent},				// Xash3D FWGS ext
+	{ "IN_ClientMoveEvent", (void **)&clgame.dllFuncs.pfnMoveEvent},				// Xash3D FWGS ext
+	{ "IN_ClientLookEvent", (void **)&clgame.dllFuncs.pfnLookEvent},				// Xash3D FWGS ext
 	};
 
 static void pfnSPR_DrawHoles (int frame, int x, int y, const wrect_t *prc);
@@ -452,11 +452,6 @@ void CL_DrawCenterPrint (void)
 		// [FWGS, 01.09.25]
 		while (*pText && (*pText != '\n') && (lineLength < MAX_LINELENGTH))
 			{
-			/*byte c = *pText;
-			line[lineLength] = c;
-
-			CL_DrawCharacterLen (font, c, &charWidth, NULL);*/
-
 			int number = Con_UtfProcessChar ((byte)*pText);
 			pText++;
 			if (number == 0)
@@ -467,7 +462,6 @@ void CL_DrawCenterPrint (void)
 
 			width += charWidth;
 			lineLength++;
-			/*pText++;*/
 			}
 
 		if (lineLength == MAX_LINELENGTH)
@@ -482,8 +476,6 @@ void CL_DrawCenterPrint (void)
 		for (j = 0; j < lineLength; j++)
 			{
 			if ((x >= 0) && (y >= 0) && (x <= refState.width))
-				/*x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_UTF8 |
-					FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);*/
 				x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);
 			}
 
@@ -607,7 +599,7 @@ static void CL_InitTitles (const char *filename)
 
 /***
 ====================
-CL_HudMessage
+CL_HudMessage [FWGS, 01.11.25]
 
 Template to show hud messages
 ====================
@@ -616,7 +608,9 @@ void CL_HudMessage (const char *pMessage)
 	{
 	if (!COM_CheckString (pMessage))
 		return;
-	CL_DispatchUserMessage ("HudText", Q_strlen (pMessage), (void *)pMessage);
+
+	/*CL_DispatchUserMessage ("HudText", Q_strlen (pMessage), (void *)pMessage);*/
+	CL_DispatchUserMessage ("HudText", Q_strlen (pMessage) + 1, (void *)pMessage);
 	}
 
 /***
@@ -908,9 +902,9 @@ static void CL_DrawCrosshair (void)
 	// if we're not using autoaim, just draw in the middle of the screen
 	if (!VectorIsNull (cl.crosshairangle))
 		{
-		vec3_t	angles;
-		vec3_t	forward;
-		vec3_t	point, screen;
+		vec3_t angles;
+		vec3_t forward;
+		vec3_t point, screen;
 
 		VectorAdd (refState.viewangles, cl.crosshairangle, angles);
 		AngleVectors (angles, forward, NULL, NULL);
@@ -1336,9 +1330,11 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 		}
 	else
 		{
-		// [FWGS, 01.08.24]
-		Mod_LoadSpriteModel (m_pSprite, buf, &loaded);
-		ref.dllFuncs.Mod_ProcessRenderData (m_pSprite, true, buf);
+		// [FWGS, 01.11.25]
+		/*Mod_LoadSpriteModel (m_pSprite, buf, &loaded);
+		ref.dllFuncs.Mod_ProcessRenderData (m_pSprite, true, buf);*/
+		Mod_LoadSpriteModel (m_pSprite, buf, size, &loaded);
+		ref.dllFuncs.Mod_ProcessRenderData (m_pSprite, true, buf, size);
 		}
 
 	Mem_Free (buf);
@@ -1451,7 +1447,7 @@ HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags)
 =========
 pfnSPR_Load [FWGS, 01.02.24]
 
- function exported for support GoldSrc Monitor utility
+function exported for support GoldSrc Monitor utility
 =========
 ***/
 HLSPRITE HLEXPORT pfnSPR_Load (const char *szPicName);
@@ -1503,7 +1499,7 @@ static const model_t *CL_GetSpritePointer (HLSPRITE hSprite)
 =========
 pfnSPR_Frames [FWGS, 01.02.24]
 
- function exported for support GoldSrc Monitor utility
+function exported for support GoldSrc Monitor utility
 =========
 ***/
 int HLEXPORT pfnSPR_Frames (HLSPRITE hPic);
@@ -2127,7 +2123,6 @@ static int GAME_EXPORT pfnGetWindowCenterX (void)
 #endif
 
 	// [FWGS, 01.06.25]
-/*if XASH_SDL == 2*/
 #if XASH_SDL >= 2
 	SDL_GetWindowPosition (host.hWnd, &x, NULL);
 #endif
@@ -2153,7 +2148,6 @@ static int GAME_EXPORT pfnGetWindowCenterY (void)
 #endif
 
 	// [FWGS, 01.06.25]
-/*if XASH_SDL == 2*/
 #if XASH_SDL >= 2
 	SDL_GetWindowPosition (host.hWnd, NULL, &y);
 #endif
@@ -2667,7 +2661,6 @@ struct msurface_s *pfnTraceSurface (int ground, float *vstart, float *vend)
 pfnGetMovevars [FWGS, 01.12.24]
 =============
 ***/
-/*movevars_t *pfnGetMoveVars (void)*/
 static movevars_t *pfnGetMoveVars (void)
 	{
 	return &clgame.movevars;
@@ -3940,13 +3933,14 @@ void CL_UnloadProgs (void)
 	memset (&clgame, 0, sizeof (clgame));
 	}
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.11.25]
 qboolean CL_LoadProgs (const char *name)
 	{
 	static playermove_t	gpMove;
 	CL_EXPORT_FUNCS		GetClientAPI;	// single export
 	qboolean	valid_single_export = false;
 	qboolean	missed_exports = false;
+	qboolean	try_internal_vgui_support = GI->internal_vgui_support;
 	int			i;
 
 	if (clgame.hInstance)
@@ -3971,19 +3965,22 @@ qboolean CL_LoadProgs (const char *name)
 	// NOTE: important stuff!
 	// vgui must startup BEFORE loading client.dll to avoid get error
 	// ERROR_NOACESS during LoadLibrary
-	if (!GI->internal_vgui_support && VGui_LoadProgs (NULL))
+	/*if (!GI->internal_vgui_support && VGui_LoadProgs (NULL))*/
+	if (!try_internal_vgui_support && VGui_LoadProgs (NULL))
 		VGui_Startup (refState.width, refState.height);
 
 	// we failed to load vgui_support, but let's probe client.dll for support anyway
 	else
-		GI->internal_vgui_support = true;
+		/*GI->internal_vgui_support = true;*/
+		try_internal_vgui_support = true;
 
 	clgame.hInstance = COM_LoadLibrary (name, false, false);
 	if (!clgame.hInstance)
 		return false;
 
 	// delayed vgui initialization for internal support
-	if (GI->internal_vgui_support && VGui_LoadProgs (clgame.hInstance))
+	/*if (GI->internal_vgui_support && VGui_LoadProgs (clgame.hInstance))*/
+	if (try_internal_vgui_support && VGui_LoadProgs (clgame.hInstance))
 		VGui_Startup (refState.width, refState.height);
 
 	// clear exports

@@ -73,7 +73,6 @@ GNU General Public License for more details
 #define svc_director		51	// <variable sized>
 #define svc_voiceinit		52	// <see code>
 #define svc_voicedata		53	// [byte][short][...]
-/*#define svc_deltapacketbones	54	// [short][byte][...]*/
 // reserved
 // reserved
 #define svc_resourcelocation	56	// [string]
@@ -94,7 +93,6 @@ GNU General Public License for more details
 #define clc_voicedata		8
 #define clc_requestcvarvalue	9
 #define clc_requestcvarvalue2	10
-/*#define clc_lastmsg			10	// end client messages*/
 #define clc_lastmsg			11	// [FWGS, 01.12.24] end client messages (11 is GoldSrc message)
 
 #define MAX_VISIBLE_PACKET_BITS	11	// 2048 visible entities per frame (hl1 has 256)
@@ -169,8 +167,6 @@ GNU General Public License for more details
 #define GAME_TEAMPLAY		4
 
 // [FWGS, 01.12.24] Max number of history commands to send (2 by default) in case of dropped packets
-/*#define NUM_BACKUP_COMMAND_BITS	4
-#define MAX_BACKUP_COMMANDS		(1 << NUM_BACKUP_COMMAND_BITS)*/
 #define NUM_BACKUP_COMMAND_BITS		4
 #define MAX_BACKUP_COMMANDS			BIT( NUM_BACKUP_COMMAND_BITS )
 #define MAX_TOTAL_CMDS				32
@@ -281,17 +277,12 @@ GNU General Public License for more details
 #define SU_ARMOR		(1<<13)
 #define SU_WEAPON		(1<<14)
 
-// [FWGS, 01.12.24]
-/*extern const char *svc_strings[svc_lastmsg + 1];
-extern const char *svc_legacy_strings[svc_lastmsg + 1];
-extern const char *svc_quake_strings[svc_lastmsg + 1];
-extern const char *svc_goldsrc_strings[svc_lastmsg + 1];
-extern const char *clc_strings[clc_lastmsg + 1];*/
+// [FWGS, 01.11.25]
 extern const char *const svc_strings[svc_lastmsg + 1];
 extern const char *const svc_legacy_strings[svc_lastmsg + 1];
 extern const char *const svc_quake_strings[svc_lastmsg + 1];
 extern const char *const svc_goldsrc_strings[svc_lastmsg + 1];
-extern const char *const clc_strings[clc_lastmsg + 1];
+/*extern const char *const clc_strings[clc_lastmsg + 1];*/
 
 // FWGS extensions
 #define NET_EXT_SPLITSIZE (1U<<0) // set splitsize by cl_dlmax
@@ -326,50 +317,32 @@ extern const char *const clc_strings[clc_lastmsg + 1];
 	| ENGINE_COMPENSATE_QUAKE_BUG \
 	| ENGINE_COMPUTE_STUDIO_LERP )	
 
-// Master Server protocol
-#define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter
+// [FWGS, 01.11.25]
+/*// Master Server protocol
+define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter*/
 
 // [FWGS, 25.12.24] GoldSrc protocol definitions
 #define PROTOCOL_GOLDSRC_VERSION	48
-/*#define PROTOCOL_GOLDSRC_VERSION_REAL 48
-
- // should be 48, only to differentiate it from PROTOCOL_LEGACY_VERSION
-#define PROTOCOL_GOLDSRC_VERSION (PROTOCOL_GOLDSRC_VERSION_REAL | (BIT( 7 )))*/
 
 #define svc_goldsrc_version			svc_changing
-/*define svc_goldsrc_serverinfo		svc_serverdata
-define svc_goldsrc_deltadescription	svc_deltatable*/
 #define svc_goldsrc_stopsound		svc_resource
 #define svc_goldsrc_damage			svc_restoresound
 #define svc_goldsrc_killedmonster	27
 #define svc_goldsrc_foundsecret		28
 #define svc_goldsrc_spawnstaticsound	29
 #define svc_goldsrc_decalname		svc_bspdecal
-/*define svc_goldsrc_newusermsg		svc_usermessage
-define svc_goldsrc_newmovevars		svc_deltamovevars*/
 #define svc_goldsrc_sendextrainfo	54
 #define svc_goldsrc_timescale		55
-/*define svc_goldsrc_sendcvarvalue	svc_querycvarvalue
-define svc_goldsrc_sendcvarvalue2	svc_querycvarvalue2*/
-
 #define clc_goldsrc_hltv			clc_requestcvarvalue // 9
 #define clc_goldsrc_requestcvarvalue	clc_requestcvarvalue2 // 10
 #define clc_goldsrc_requestcvarvalue2	11
 
 // [FWGS, 01.12.24]
-/*#define clc_goldsrc_lastmsg			12
-
-#define S2C_REJECT_BADPASSWORD '8'
-#define S2C_REJECT '9'
-#define S2C_CHALLENGE "A00000000"
-#define S2C_CONNECTION "B"*/
 #define clc_goldsrc_lastmsg			11
-
 #define MAX_GOLDSRC_BACKUP_CMDS		8
 #define MAX_GOLDSRC_TOTAL_CMDS		16
 #define MAX_GOLDSRC_EXTENDED_TOTAL_CMDS	62
 #define MAX_GOLDSRC_MODEL_BITS		10
-
 #define MAX_GOLDSRC_RESOURCE_BITS	12
 #define MAX_GOLDSRC_ENTITY_BITS		11
 #define MAX_GOLDSRC_EDICTS			( BIT( MAX_ENTITY_BITS ) + ( MAX_CLIENTS * 15 ))
@@ -397,8 +370,10 @@ define svc_goldsrc_sendcvarvalue2	svc_querycvarvalue2*/
 #define M2S_CHALLENGE		"s"
 #define M2S_NAT_CONNECT		"c"
 
-// [FWGS, 01.12.24] from server to master
+// [FWGS, 01.11.25] from server to master
+#define S2M_HEARTBEAT		"q\xff"
 #define S2M_INFO			"0\n"
+#define S2M_SHUTDOWN		"\x62\x0a"
 
 // [FWGS, 01.12.24] from client to server
 #define C2S_BANDWIDTHTEST	"bandwidth"
@@ -421,7 +396,10 @@ define svc_goldsrc_sendcvarvalue2	svc_querycvarvalue2*/
 #define A2C_PRINT			"print"
 #define A2C_GOLDSRC_PRINT	'l'
 
-// [FWGS, 01.12.24] from master to client
+// [FWGS, 01.11.25] from any to master
+#define A2M_SCAN_REQUEST	"1\xFF" "0.0.0.0:0\0" // TODO: implement IP filter
+
+// [FWGS, 01.11.25] from master to any
 #define M2A_SERVERSLIST		"f"
 
 #endif

@@ -1410,10 +1410,14 @@ static unsigned int GL2_GetArrIdx (GLenum array)
 		{
 		case GL_VERTEX_ARRAY:
 			return GL2_ATTR_POS;
+
 		case GL_COLOR_ARRAY:
 			return GL2_ATTR_COLOR;
+
+		// [FWGS, 01.11.25]
 		case GL_TEXTURE_COORD_ARRAY:
-			ASSERT (gl2wrap_state.tmu < 2);
+			/*ASSERT (gl2wrap_state.tmu < 2);*/
+			Assert (gl2wrap_state.tmu < 2);
 			return GL2_ATTR_TEXCOORD0 + gl2wrap_state.tmu;
 		}
 	return 0;
@@ -1722,86 +1726,61 @@ static void APIENTRY GL2_ClientActiveTextureARB (GLenum tex)
 	}
 
 // [FWGS, 01.09.25]
-/*static void APIENTRY stub (void)*/
 static void APIENTRY GL2_Normal3fv (const GLfloat *v)
 	{
-	/*;*/
 	}
 
 // [FWGS, 01.09.25]
-/*define GL2_STUB( name ) \
-	{ \
-	*((void **)&pgl ## name) = (void *)stub; \
-	}
-
-// [FWGS, 01.07.25]
-if XASH_EMSCRIPTEN
-
-static void GL2_PolygonMode (GLenum face, GLenum mode)
-	{
-	}
-
-static void GL2_PolygonOffset (GLfloat factor, GLfloat units)*/
 static void APIENTRY GL2_Hint (GLenum target, GLenum mode)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_ShadeModel (GLenum mode)*/
 static void APIENTRY GL2_Scalef (GLfloat x, GLfloat y, GLfloat z)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_PointSize (GLfloat size)*/
 static void APIENTRY GL2_Translatef (GLfloat x, GLfloat y, GLfloat z)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_Normal3fv (const GLfloat *v)*/
 static void APIENTRY GL2_TexEnvi (GLenum target, GLenum pname, GLint param)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_Hint (GLenum target, GLenum mode)*/
 static void APIENTRY GL2_TexEnvf (GLenum target, GLenum pname, GLfloat param)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_Scalef (GLfloat x, GLfloat y, GLfloat z)*/
 static void APIENTRY GL2_Fogi (GLenum pname, GLint param)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_Translatef (GLfloat x, GLfloat y, GLfloat z)*/
 static void APIENTRY GL2_ShadeModel (GLenum mode)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_TexEnvi (GLenum target, GLenum pname, GLint param)*/
 static void APIENTRY GL2_PolygonMode (GLenum face, GLenum mode)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_TexEnvf (GLenum target, GLenum pname, GLfloat param)*/
 static void APIENTRY GL2_PointSize (GLfloat size)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_Fogi (GLenum pname, GLint param)*/
 static void APIENTRY GL2_DrawBuffer (GLenum mode)
 	{
 	}
 
 // [FWGS, 01.09.25]
-/*static void GL2_DrawBuffer (GLenum mode)*/
 #if XASH_EMSCRIPTEN
 static void GL2_PolygonOffset (GLfloat factor, GLfloat units)
 	{
@@ -1819,14 +1798,12 @@ void GL2_ShimInstall (void)
 	GL2_OVERRIDE_PTR (Color4f)
 	GL2_OVERRIDE_PTR (Color4ub)
 	GL2_OVERRIDE_PTR (Color4ubv)
-	/*GL2_STUB (Normal3fv)*/
 	GL2_OVERRIDE_PTR (Normal3fv)
 	GL2_OVERRIDE_PTR (TexCoord2f)
 	GL2_OVERRIDE_PTR (MultiTexCoord2f)
 	GL2_OVERRIDE_PTR (AlphaFunc)
 	GL2_OVERRIDE_PTR (Fogf)
 	GL2_OVERRIDE_PTR (Fogfv)
-	/*GL2_STUB (Hint) // fog*/
 	GL2_OVERRIDE_PTR (Hint) // fog
 	GL2_OVERRIDE_PTR (Begin)
 	GL2_OVERRIDE_PTR (End)
@@ -1836,28 +1813,19 @@ void GL2_ShimInstall (void)
 	GL2_OVERRIDE_PTR (LoadIdentity)
 	GL2_OVERRIDE_PTR (Ortho)
 	GL2_OVERRIDE_PTR (LoadMatrixf)
-	/*GL2_STUB (Scalef)
-	GL2_STUB (Translatef)
-	GL2_STUB (TexEnvi)
-	GL2_STUB (TexEnvf)*/
 	GL2_OVERRIDE_PTR (Scalef)
 	GL2_OVERRIDE_PTR (Translatef)
 	GL2_OVERRIDE_PTR (TexEnvi)
 	GL2_OVERRIDE_PTR (TexEnvf)
 	GL2_OVERRIDE_PTR (ClientActiveTextureARB)
-	/*GL2_STUB (Fogi)
-	GL2_STUB (ShadeModel)*/
 	GL2_OVERRIDE_PTR (Fogi)
 	GL2_OVERRIDE_PTR (ShadeModel)
 
 #ifdef XASH_GLES
 	_pglDepthRangef = gEngfuncs.GL_GetProcAddress ("glDepthRangef");
-	/*GL2_STUB (PolygonMode)
-	GL2_STUB (PointSize)*/
 	GL2_OVERRIDE_PTR (PolygonMode)
 	GL2_OVERRIDE_PTR (PointSize)
 	GL2_OVERRIDE_PTR (DepthRange)
-	/*GL2_STUB (DrawBuffer)*/
 	GL2_OVERRIDE_PTR (DrawBuffer)
 #endif
 
@@ -1869,18 +1837,7 @@ void GL2_ShimInstall (void)
 	
 	// [FWGS, 01.09.25]
 #if XASH_EMSCRIPTEN
-	/*GL2_OVERRIDE_PTR (Normal3fv)
-	GL2_OVERRIDE_PTR (Hint)
-	GL2_OVERRIDE_PTR (Scalef)
-	GL2_OVERRIDE_PTR (Translatef)
-	GL2_OVERRIDE_PTR (TexEnvi)
-	GL2_OVERRIDE_PTR (TexEnvf)
-	GL2_OVERRIDE_PTR (Fogi)
-	GL2_OVERRIDE_PTR (ShadeModel)
-	GL2_OVERRIDE_PTR (PolygonMode)
-	GL2_OVERRIDE_PTR (PointSize)*/
 	GL2_OVERRIDE_PTR (PolygonOffset)
-	/*GL2_OVERRIDE_PTR (DrawBuffer)*/
 #endif
 
 	GL2_OVERRIDE_PTR_B (IsEnabled)

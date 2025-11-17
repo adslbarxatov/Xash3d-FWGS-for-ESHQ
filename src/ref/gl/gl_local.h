@@ -31,7 +31,6 @@ GNU General Public License for more details
 #include "enginefeatures.h"
 #include "com_strings.h"
 #include "pm_movevars.h"
-/*#include "cvardef.h"			// [FWGS, 01.12.24]*/
 #include "gl_export.h"
 #include "wadfile.h"
 #include "common/mod_local.h"	// [FWGS, 01.01.24]
@@ -54,7 +53,8 @@ GNU General Public License for more details
 #endif
 #endif
 
-#define ASSERT(x) if(!( x )) gEngfuncs.Host_Error( "assert failed at %s:%i\n", __FILE__, __LINE__ )
+// [FWGS, 01.11.25]
+/*define ASSERT(x) if(!( x )) gEngfuncs.Host_Error( "assert failed at %s:%i\n", __FILE__, __LINE__ )*/
 #define Assert(x) if(!( x )) gEngfuncs.Host_Error( "assert failed at %s:%i\n", __FILE__, __LINE__ )
 
 #include <stdio.h>
@@ -277,6 +277,9 @@ typedef struct
 	uint		*screengammatable;
 
 	uint		max_entities;
+
+	// [FWGS, 01.11.25]
+	ref_screen_rotation_t rotation;
 	} gl_globals_t;
 
 typedef struct
@@ -311,18 +314,21 @@ extern float		gldepthmin, gldepthmax;
 #define Mod_AllowMaterials() (host_allow_materials->value && !FBitSet( gp_host->features, ENGINE_DISABLE_HDTEXTURES ))
 
 //
-// gl_backend.c
+// [FWGS, 01.11.25] gl_backend.c
 //
 void GL_BackendStartFrame (void);
 void GL_BackendEndFrame (void);
 void GL_CleanUpTextureUnits (int last);
-void GL_Bind (GLint tmu, GLenum texnum);
-void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t);
+/*void GL_Bind (GLint tmu, GLenum texnum);
+void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t);*/
+void GL_Bind (int tmu, unsigned int texnum);
+void GL_MultiTexCoord2f (int tmu, GLfloat s, GLfloat t);
 void GL_SetTexCoordArrayMode (GLenum mode);
 void GL_LoadTexMatrixExt (const float *glmatrix);
 void GL_LoadMatrix (const matrix4x4 source);
 void GL_TexGen (GLenum coord, GLenum mode);
-void GL_SelectTexture (GLint texture);
+/*void GL_SelectTexture (GLint texture);*/
+void GL_SelectTexture (int tmu);
 void GL_CleanupAllTextureUnits (void);
 void GL_LoadIdentityTexMatrix (void);
 void GL_DisableAllTexGens (void);
@@ -370,10 +376,11 @@ void R_DrawWorldHull (void);
 void R_DrawModelHull (void);
 
 //
-// gl_image.c [FWGS, 01.12.24]
+// gl_image.c [FWGS, 01.11.25]
 //
 void R_SetTextureParameters (void);
-gl_texture_t *R_GetTexture (GLenum texnum);
+/*gl_texture_t *R_GetTexture (GLenum texnum);*/
+gl_texture_t *R_GetTexture (unsigned int texnum);
 const char *GL_TargetToString (GLenum target);
 #define GL_LoadTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, false )
 #define GL_UpdateTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, true )
@@ -385,18 +392,17 @@ int GL_CreateTexture (const char *name, int width, int height, const void *buffe
 int GL_CreateTextureArray (const char *name, int width, int height, int depth, const void *buffer, texFlags_t flags);
 void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor);
 void GL_UpdateTexSize (int texnum, int width, int height, int depth);
-qboolean GL_TextureFilteringEnabled (const gl_texture_t *tex);	// [FWGS, 01.02.24]
+qboolean GL_TextureFilteringEnabled (const gl_texture_t *tex);
 void GL_ApplyTextureParams (gl_texture_t *tex);
 int GL_FindTexture (const char *name);
-void GL_FreeTexture (GLenum texnum);
-const char *GL_Target (GLenum target);
+/*void GL_FreeTexture (GLenum texnum);
+const char *GL_Target (GLenum target);*/
+void GL_FreeTexture (unsigned int texnum);
 void R_InitDlightTexture (void);
 void R_TextureList_f (void);
 void R_InitImages (void);
 void R_ShutdownImages (void);
 int GL_TexMemory (void);
-
-// [FWGS, 01.12.24]
 qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...) FORMAT_CHECK (4);
 void R_TextureReplacementReport (const char *modelname, int gl_texturenum, const char *foundpath);
 
@@ -406,7 +412,6 @@ void R_TextureReplacementReport (const char *modelname, int gl_texturenum, const
 void CL_RunLightStyles (lightstyle_t *ls);
 void R_PushDlights (void);
 void R_GetLightSpot (vec3_t lightspot);
-/*void R_MarkLights (dlight_t *light, int bit, mnode_t *node);*/
 void R_MarkLights (const dlight_t *light, int bit, const mnode_t *node);
 colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lightspot, vec3_t lightvec);
 colorVec R_LightPoint (const vec3_t p0);
@@ -455,7 +460,6 @@ void R_DrawWorld (void);
 void R_DrawWaterSurfaces (void);
 void R_DrawBrushModel (cl_entity_t *e);
 void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
-/*void GL_BuildPolygonFromSurface (model_t *mod, msurface_t *fa);*/
 void GL_SetupFogColorForSurfaces (void);
 void R_DrawAlphaTextureChains (void);
 void GL_RebuildLightmaps (void);
@@ -495,7 +499,7 @@ int R_GetEntityRenderMode (cl_entity_t *ent);
 void R_DrawStudioModel (cl_entity_t *e);
 player_info_t *pfnPlayerInfo (int index);
 void R_GatherPlayerLight (void);
-float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc, double time);	// [FWGS, 01.05.23]
+float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc, double time);
 void R_StudioLerpMovement (cl_entity_t *e, double time, vec3_t origin, vec3_t angles);
 void R_StudioResetPlayerModels (void);
 void CL_InitStudioAPI (void);
@@ -518,10 +522,8 @@ void R_DrawSkyBox (void);
 void R_DrawClouds (void);
 void R_UnloadSkybox (void);
 void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples);
-/*void R_InitRipples (void);*/
 void R_ResetRipples (void);
 void R_AnimateRipples (void);
-/*qboolean R_UploadRipples (const texture_t *image);*/
 qboolean R_UploadRipples (texture_t *image);
 
 //
@@ -551,7 +553,6 @@ qboolean R_CullBox (const vec3_t mins, const vec3_t maxs);
 int R_WorldToScreen (const vec3_t point, vec3_t screen);
 void R_ScreenToWorld (const vec3_t screen, vec3_t point);
 qboolean R_AddEntity (struct cl_entity_s *pRefEntity, int entityType);
-/*void Mod_LoadMapSprite (struct model_s *mod, const void *buffer, size_t size, qboolean *loaded);*/
 void Mod_SpriteUnloadTextures (void *data);
 void Mod_UnloadAliasModel (struct model_s *mod);
 void Mod_AliasUnloadTextures (void *data);
@@ -576,8 +577,6 @@ void CL_AddCustomBeam (cl_entity_t *pEnvBeam);
 #define GL_CheckForErrors() GL_CheckForErrors_( __FILE__, __LINE__ )
 void GL_CheckForErrors_ (const char *filename, const int fileline);
 const char *GL_ErrorString (int err);
-/*qboolean GL_Support (int r_ext);
-int GL_MaxTextureUnits (void);*/
 
 //
 // gl_triapi.c
@@ -630,8 +629,6 @@ enum
 	GL_DRAW_RANGEELEMENTS_EXT,
 	GL_TEXTURE_MULTISAMPLE,
 	GL_ARB_TEXTURE_COMPRESSION_BPTC,
-
-	// [FWGS, 01.11.23]
 	GL_SHADER_OBJECTS_EXT,
 	GL_ARB_VERTEX_ARRAY_OBJECT_EXT,
 	GL_BUFFER_STORAGE_EXT,
@@ -651,9 +648,9 @@ typedef enum
 
 typedef struct
 	{
-	const char *renderer_string;		// ptrs to OpenGL32.dll, use with caution
-	const char *vendor_string;
-	const char *version_string;
+	const char	*renderer_string;		// ptrs to OpenGL32.dll, use with caution
+	const char	*vendor_string;
+	const char	*version_string;
 
 	glHWType_t	hardware_type;
 
@@ -684,7 +681,6 @@ typedef struct
 	int		stencil_bits;
 	int		msaasamples;
 
-	// [FWGS, 01.11.23]
 	int version_major;
 	int version_minor;
 
@@ -700,13 +696,12 @@ typedef struct
 // [FWGS, 01.12.24]
 typedef struct
 	{
-	/*int			width, height;*/
 	int			activeTMU;
 	GLint		currentTextures[MAX_TEXTURE_UNITS];
 	GLint		currentTexturesIndex[MAX_TEXTURE_UNITS];
 	GLuint		currentTextureTargets[MAX_TEXTURE_UNITS];
 	GLboolean	texIdentityMatrix[MAX_TEXTURE_UNITS];
-	GLint		genSTEnabled[MAX_TEXTURE_UNITS];	// 0 - disabled, OR 1 - S, OR 2 - T, OR 4 - R
+	GLint		genSTEnabled[MAX_TEXTURE_UNITS];		// 0 - disabled, OR 1 - S, OR 2 - T, OR 4 - R
 	GLint		texCoordArrayMode[MAX_TEXTURE_UNITS];	// 0 - disabled, 1 - enabled, 2 - cubemap
 	GLint		isFogEnabled;
 
@@ -797,13 +792,14 @@ static inline qboolean GL_Support (int r_ext)
 	return false;
 	}
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.11.25]
 static inline int GL_MaxTextureUnits (void)
 	{
 	if (GL_Support (GL_SHADER_GLSL100_EXT))
 		return Q_min (Q_max (glConfig.max_texture_coords, glConfig.max_teximage_units), MAX_TEXTURE_UNITS);
 
-	return glConfig.max_texture_units;
+	/*return glConfig.max_texture_units;*/
+	return Q_min (glConfig.max_texture_units, MAX_TEXTURE_UNITS);
 	}
 
 // [FWGS, 01.01.24]
@@ -860,20 +856,14 @@ DECLARE_ENGINE_SHARED_CVAR_LIST ();
 #include "crtlib.h"
 
 // [FWGS, 01.12.24]
-/*define Mem_Malloc( pool, size ) gEngfuncs._Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
-define Mem_Calloc( pool, size ) gEngfuncs._Mem_Alloc( pool, size, true, __FILE__, __LINE__ )*/
 void _Mem_Free (void *data, const char *filename, int fileline);
 void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
 	ALLOC_CHECK (2) MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 
 #define Mem_Malloc( pool, size ) _Mem_Alloc( pool, size, false, __FILE__, __LINE__ )
 #define Mem_Calloc( pool, size ) _Mem_Alloc( pool, size, true, __FILE__, __LINE__ )
-
 #define Mem_Realloc( pool, ptr, size ) gEngfuncs._Mem_Realloc( pool, ptr, size, true, __FILE__, __LINE__ )
-
-/*define Mem_Free( mem ) gEngfuncs._Mem_Free( mem, __FILE__, __LINE__ )*/
 #define Mem_Free( mem ) _Mem_Free( mem, __FILE__, __LINE__ )
-
 #define Mem_AllocPool( name ) gEngfuncs._Mem_AllocPool( name, __FILE__, __LINE__ )
 #define Mem_FreePool( pool ) gEngfuncs._Mem_FreePool( pool, __FILE__, __LINE__ )
 #define Mem_EmptyPool( pool ) gEngfuncs._Mem_EmptyPool( pool, __FILE__, __LINE__ )

@@ -24,76 +24,110 @@ GNU General Public License for more details
 SETUP BACKENDS DEFINITIONS
 ===================================================================
 ***/
-#if !XASH_DEDICATED
-	#if XASH_SDL
+
+// [FWGS, 01.11.25]
+/*if !XASH_DEDICATED
+	if XASH_SDL
 		// we are building using libSDL
-		#ifndef XASH_VIDEO
-			#define XASH_VIDEO VIDEO_SDL
-		#endif
+		ifndef XASH_VIDEO
+			define XASH_VIDEO VIDEO_SDL
+		endif
 
-		#ifndef XASH_INPUT
-			#define XASH_INPUT INPUT_SDL
-		#endif
+		ifndef XASH_INPUT
+			define XASH_INPUT INPUT_SDL
+		endif
 
-		#ifndef XASH_SOUND
-			#define XASH_SOUND SOUND_SDL
-		#endif
+		ifndef XASH_SOUND
+			define XASH_SOUND SOUND_SDL
+		endif
 
-		#if XASH_SDL == 2
-			#ifndef XASH_TIMER
-				#define XASH_TIMER TIMER_SDL
-			#endif
+		if XASH_SDL == 2
+			ifndef XASH_TIMER
+				define XASH_TIMER TIMER_SDL
+			endif
 
-			#ifndef XASH_MESSAGEBOX
+			ifndef XASH_MESSAGEBOX
 				// SDL2 messageboxes not available
-				#if !XASH_NSWITCH
-					#define XASH_MESSAGEBOX MSGBOX_SDL
-				#endif			
-			#endif
-		#endif
+				if !XASH_NSWITCH
+					define XASH_MESSAGEBOX MSGBOX_SDL
+				endif			
+			endif
+		endif
 
-	#elif XASH_LINUX
+	elif XASH_LINUX
 
 		// we are building for Linux without SDL2, can draw only to framebuffer yet
-		#ifndef XASH_VIDEO
-			#define XASH_VIDEO VIDEO_FBDEV
-		#endif
+		ifndef XASH_VIDEO
+			define XASH_VIDEO VIDEO_FBDEV
+		endif
 
-		#ifndef XASH_INPUT
-			#define XASH_INPUT INPUT_EVDEV
-		#endif
+		ifndef XASH_INPUT
+			define XASH_INPUT INPUT_EVDEV
+		endif
 
-		#ifndef XASH_SOUND
-			#define XASH_SOUND SOUND_ALSA
-		#endif
+		ifndef XASH_SOUND
+			define XASH_SOUND SOUND_ALSA
+		endif*/
+//
+// when compiling client, we need to pick video, audio and input implementations
+//
+#if !XASH_DEDICATED
+	// when compiling client, we need to pick video, audio and input implementations
+	#if XASH_SDL
+		// we are building with SDL
+		#define XASH_VIDEO VIDEO_SDL
+		#define XASH_INPUT INPUT_SDL
+		#define XASH_SOUND SOUND_SDL
+	#elif XASH_LINUX
+		// we are building for Linux without SDL, only framebuffer is supported for now
+		#define XASH_VIDEO VIDEO_FBDEV
+		#define XASH_INPUT INPUT_EVDEV
+		#define XASH_SOUND SOUND_ALSA
 
 		#define XASH_USE_EVDEV	1
 
 	#elif XASH_DOS4GW
 
-		#ifndef XASH_VIDEO
-			#define XASH_VIDEO VIDEO_DOS
-		#endif
-		#ifndef XASH_TIMER
-			#define XASH_TIMER TIMER_DOS
-		#endif
+		/*ifndef XASH_VIDEO
+			define XASH_VIDEO VIDEO_DOS
+		endif
+		ifndef XASH_TIMER
+			define XASH_TIMER TIMER_DOS
+		endif
 
 		// usually only 10-20 fds availiable
-		#define XASH_REDUCE_FD
+		define XASH_REDUCE_FD*/
+
+		#define XASH_VIDEO VIDEO_DOS
+		#define XASH_REDUCE_FD 1	// usually only 10-20 fds available
+
+	#elif XASH_PSP
+
+		#define XASH_VIDEO VIDEO_PSP
+		#define XASH_INPUT INPUT_PSP
+		#define XASH_SOUND SOUND_PSP
+		#define XASH_REDUCE_FD 1
+		#define XASH_NO_TOUCH 1
+		#define XASH_NO_ZIP 1
 
 	#endif
 
 #endif
 
 //
-// select messagebox implementation
+// [FWGS, 01.11.25] select messagebox implementation
 //
-#ifndef XASH_MESSAGEBOX
 
-	#if XASH_WIN32
+#ifndef XASH_MESSAGEBOX
+	/*if XASH_WIN32*/
+	#if XASH_SDL == 2 && !XASH_NSWITCH	// SDL2 messageboxes are not available on NSW
+		#define XASH_MESSAGEBOX MSGBOX_SDL
+	#elif XASH_WIN32
 		#define XASH_MESSAGEBOX MSGBOX_WIN32
 	#elif XASH_NSWITCH
 		#define XASH_MESSAGEBOX MSGBOX_NSWITCH
+	#elif XASH_PSP
+		#define XASH_MESSAGEBOX MSGBOX_PSP
 	#else
 		#define XASH_MESSAGEBOX MSGBOX_STDERR
 	#endif
@@ -101,11 +135,18 @@ SETUP BACKENDS DEFINITIONS
 #endif
 
 //
-// no timer - no xash
+// [FWGS, 01.11.25] no timer - no xash
 //
 #ifndef XASH_TIMER
-	#if XASH_WIN32
+	/*if XASH_WIN32*/
+	#if XASH_SDL == 2
+		#define XASH_TIMER TIMER_SDL
+	#elif XASH_WIN32
 		#define XASH_TIMER TIMER_WIN32
+	#elif XASH_DOS4GW
+		#define XASH_TIMER TIMER_DOS
+	#elif XASH_PSP
+		#define XASH_TIMER TIMER_PSP
 	#else
 		#define XASH_TIMER TIMER_POSIX
 	#endif
@@ -122,13 +163,22 @@ SETUP BACKENDS DEFINITIONS
 	#endif
 #endif
 
-#ifdef XASH_STATIC_LIBS
+// [FWGS, 01.11.25]
+/*ifdef XASH_STATIC_LIBS
+	define XASH_LIB LIB_STATIC
+	define XASH_INTERNAL_GAMELIBS
+	define XASH_ALLOW_SAVERESTORE_OFFSETS*/
+#if XASH_PSP
+	#define XASH_PSP LIB_PSP
+#elif defined( XASH_STATIC_LIBS )
 	#define XASH_LIB LIB_STATIC
 	#define XASH_INTERNAL_GAMELIBS
 	#define XASH_ALLOW_SAVERESTORE_OFFSETS
 #elif XASH_WIN32
+	/*define XASH_LIB LIB_WIN32*/
 	#define XASH_LIB LIB_WIN32
 #elif XASH_POSIX
+	/*define XASH_LIB LIB_POSIX*/
 	#define XASH_LIB LIB_POSIX
 #endif
 
@@ -174,13 +224,12 @@ Default build-depended cvar and constant values
 	#define DEFAULT_M_IGNORE		"1"
 #endif
 
-// [FWGS, 01.09.25]
-/*if (XASH_ANDROID && !XASH_TERMUX) || XASH_IOS*/
-#if XASH_IOS
-#define XASH_INTERNAL_GAMELIBS
+// [FWGS, 01.11.25]
+/*if XASH_IOS
+define XASH_INTERNAL_GAMELIBS
 // this means that libraries are provided with engine, but not in game data
 // You need add library loading code to library.c when adding new platform
-#endif
+endif*/
 
 // Defaults
 #ifndef DEFAULT_TOUCH_ENABLE
@@ -209,6 +258,24 @@ Default build-depended cvar and constant values
 
 #ifndef DEFAULT_MAX_EDICTS
 	#define DEFAULT_MAX_EDICTS 1200 // was 900 before HL25
+#endif
+
+// [FWGS, 01.11.25]
+#ifndef DEFAULT_ACCELERATED_RENDERER
+	#if XASH_PSP
+		#define DEFAULT_ACCELERATED_RENDERER "gu"
+	#elif XASH_MOBILE_PLATFORM
+		#define DEFAULT_ACCELERATED_RENDERER "gles1"
+	#elif XASH_IOS
+		#define DEFAULT_ACCELERATED_RENDERER "gles2"
+	#else
+		#define DEFAULT_ACCELERATED_RENDERER "gl"
+	#endif
+#endif
+
+// [FWGS, 01.11.25]
+#ifndef DEFAULT_SOFTWARE_RENDERER
+	#define DEFAULT_SOFTWARE_RENDERER "soft" // mittorn's ref_soft
 #endif
 
 #endif

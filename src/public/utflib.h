@@ -9,21 +9,22 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 #ifndef UTFLIB_H
 #define UTFLIB_H
 
-#define STDINT_H <stdint.h>
-#include STDINT_H
+/*define STDINT_H <stdint.h>
+include STDINT_H*/
+#include <stdint.h>		// [ESHQ: переопределение]
 #include <stddef.h>
 
 typedef struct utfstate_s
 	{
-	uint32_t uc;
-	uint8_t len;
-	uint8_t k;
+	uint32_t	uc;
+	uint8_t		len;
+	uint8_t		k;
 	} utfstate_t;
 
 // feed utf8 characters one by one

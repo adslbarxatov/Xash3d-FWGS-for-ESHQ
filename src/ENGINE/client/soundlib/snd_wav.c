@@ -24,7 +24,6 @@ static const byte *iff_lastChunk;
 static int iff_chunkLen;
 
 // [FWGS, 01.12.24]
-/*static int IsFourCC (const byte *ptr, const byte *fourcc)*/
 static int IsFourCC (const void *ptr, const void *fourcc)
 	{
 	return (0 == memcmp (ptr, fourcc, 4));
@@ -93,7 +92,7 @@ static void FindNextChunk (const char *filename, const char *name)
 
 		if (iff_chunkLen > remaining)
 			{
-			// [FWGS, 01.07.24] Only print this warning if selected chunk is truncated.
+			// [FWGS, 01.11.25] Only print this warning if selected chunk is truncated.
 			//
 			// Otherwise this warning becomes misleading because some idiot programs like
 			// CoolEdit (i.e. Adobe Audition) don't always respect pad byte. The file isn't
@@ -104,7 +103,8 @@ static void FindNextChunk (const char *filename, const char *name)
 				|| IsFourCC (iff_lastChunk, "LIST")
 				|| IsFourCC (iff_lastChunk, "data"))
 				{
-				Con_DPrintf ("%s: '%s' truncated by %zi bytes\n", __func__, filename, iff_chunkLen - remaining);
+				/*Con_DPrintf ("%s: '%s' truncated by %zi bytes\n", __func__, filename, iff_chunkLen - remaining);*/
+				Con_DPrintf ("%s: '%s' truncated by %td bytes\n", __func__, filename, iff_chunkLen - remaining);
 				}
 
 			iff_chunkLen = remaining;
@@ -124,7 +124,7 @@ static void FindNextChunk (const char *filename, const char *name)
 
 /***
 =================
-FindChunk [FWGS, 01.11.23]
+FindChunk
 =================
 ***/
 static void FindChunk (const char *filename, const char *name)
