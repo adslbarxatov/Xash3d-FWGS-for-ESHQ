@@ -42,7 +42,9 @@ GNU General Public License for more details
 
 #define LIST_HEAD_INIT( name ) { &(name), &(name) }
 
-_inline void list_add__ (hullnode_t *new, hullnode_t *prev, hullnode_t *next)
+// [FWGS, 01.11.25]
+/*_inline void list_add__ (hullnode_t *new, hullnode_t *prev, hullnode_t *next)*/
+static inline void list_add__ (hullnode_t * new, hullnode_t * prev, hullnode_t * next)
 	{
 	next->prev = new;
 	new->next = next;
@@ -50,19 +52,23 @@ _inline void list_add__ (hullnode_t *new, hullnode_t *prev, hullnode_t *next)
 	prev->next = new;
 	}
 
-// add the new entry after the give list entry
-_inline void list_add (hullnode_t *newobj, hullnode_t *head)
+// [FWGS, 01.11.25] add the new entry after the give list entry
+/*_inline void list_add (hullnode_t *newobj, hullnode_t *head)*/
+static inline void list_add (hullnode_t *newobj, hullnode_t *head)
 	{
 	list_add__ (newobj, head, head->next);
 	}
 
-// add the new entry before the given list entry (list is circular)
-_inline void list_add_tail (hullnode_t *newobj, hullnode_t *head)
+// [FWGS, 01.11.25] add the new entry before the given list entry (list is circular)
+/*_inline void list_add_tail (hullnode_t *newobj, hullnode_t *head)*/
+static inline void list_add_tail (hullnode_t *newobj, hullnode_t *head)
 	{
 	list_add__ (newobj, head->prev, head);
 	}
 
-_inline void list_del (hullnode_t *entry)
+// [FWGS, 01.11.25]
+/*_inline void list_del (hullnode_t *entry)*/
+static inline void list_del (hullnode_t *entry)
 	{
 	entry->next->prev = entry->prev;
 	entry->prev->next = entry->next;
@@ -473,19 +479,16 @@ This is a stack of the clipnodes we have traversed
 ***/
 
 // [FWGS, 01.02.25]
-/*static mclipnode_t *node_stack[MAX_CLIPNODE_DEPTH];*/
 static int	node_stack[MAX_CLIPNODE_DEPTH];
 static int	side_stack[MAX_CLIPNODE_DEPTH];
 static uint	node_stack_depth;
 
 // [FWGS, 01.02.25]
-/*static void push_node (mclipnode_t *node, int side)*/
 static void push_node (int nodenum, int side)
 	{
 	if (node_stack_depth == MAX_CLIPNODE_DEPTH)
 		Host_Error ("node stack overflow\n");
 
-	/*node_stack[node_stack_depth] = node;*/
 	node_stack[node_stack_depth] = nodenum;
 	side_stack[node_stack_depth] = side;
 	node_stack_depth++;
@@ -510,17 +513,14 @@ static void free_hull_polys (hullnode_t *hull_polys)
 	}
 
 // [FWGS, 01.02.25]
-/*static void hull_windings_r (hull_t *hull, mclipnode_t *node, hullnode_t *polys, hull_model_t *model);*/
 static void hull_windings_r (hull_t *hull, int nodenum, hullnode_t *polys, hull_model_t *model);
 
 // [FWGS, 01.02.25]
-/*static void do_hull_recursion (hull_t *hull, mclipnode_t *node, int side, hullnode_t *polys, hull_model_t *model)*/
 static void do_hull_recursion (hull_t *hull, int nodenum, int side, hullnode_t *polys, hull_model_t *model)
 	{
 	winding_t	*w, *next;
 	int			childnum;
 
-	/*if (node->children[side] >= 0)*/
 	if (world.version == QBSP2_VERSION)
 		childnum = hull->clipnodes32[nodenum].children[side];
 	else
@@ -528,16 +528,12 @@ static void do_hull_recursion (hull_t *hull, int nodenum, int side, hullnode_t *
 
 	if (childnum >= 0)
 		{
-		/*mclipnode_t *child = hull->clipnodes + node->children[side];
-		push_node (node, side);
-		hull_windings_r (hull, child, polys, model);*/
 		push_node (nodenum, side);
 		hull_windings_r (hull, childnum, polys, model);
 		pop_node ();
 		}
 	else
 		{
-		/*switch (node->children[side])*/
 		switch (childnum)
 			{
 			case CONTENTS_EMPTY:
@@ -565,7 +561,6 @@ static void do_hull_recursion (hull_t *hull, int nodenum, int side, hullnode_t *
 				break;
 
 			default:
-				/*Host_Error ("bad contents: %i\n", node->children[side]);*/
 				Host_Error ("bad contents: %i\n", childnum);
 				break;
 			}
@@ -573,10 +568,8 @@ static void do_hull_recursion (hull_t *hull, int nodenum, int side, hullnode_t *
 	}
 
 // [FWGS, 01.02.25]
-/*static void hull_windings_r (hull_t *hull, mclipnode_t *node, hullnode_t *polys, hull_model_t *model)*/
 static void hull_windings_r (hull_t *hull, int nodenum, hullnode_t *polys, hull_model_t *model)
 	{
-	/*mplane_t	*plane = hull->planes + node->planenum;*/
 	mplane_t	*plane;
 	hullnode_t	frontlist = LIST_HEAD_INIT (frontlist);
 	hullnode_t	backlist = LIST_HEAD_INIT (backlist);
@@ -635,7 +628,6 @@ static void hull_windings_r (hull_t *hull, int nodenum, hullnode_t *polys, hull_
 
 	for (i = 0; w && (i < node_stack_depth); i++)
 		{
-		/*mplane_t *p = hull->planes + node_stack[i]->planenum;*/
 		mplane_t *p;
 
 		if (world.version == QBSP2_VERSION)
@@ -666,8 +658,6 @@ static void hull_windings_r (hull_t *hull, int nodenum, hullnode_t *polys, hull_
 		Con_Printf (S_WARN "new winding was clipped away!\n");
 		}
 
-	/*do_hull_recursion (hull, node, 0, &frontlist, model);
-	do_hull_recursion (hull, node, 1, &backlist, model);*/
 	do_hull_recursion (hull, nodenum, 0, &frontlist, model);
 	do_hull_recursion (hull, nodenum, 1, &backlist, model);
 	}
@@ -699,7 +689,6 @@ static void make_hull_windings (hull_t *hull, hull_model_t *model)
 	// [FWGS, 01.02.25]
 	if (hull->planes != NULL)
 		{
-		/*hull_windings_r (hull, hull->clipnodes + hull->firstclipnode, &head, model);*/
 		hull_windings_r (hull, hull->firstclipnode, &head, model);
 		remove_paired_polys (model);
 		}
@@ -725,7 +714,6 @@ static void Mod_InitDebugHulls (model_t *loadmodel)
 	}
 
 // [FWGS, 01.12.24]
-/*void Mod_CreatePolygonsForHull (int hullnum)*/
 static void Mod_CreatePolygonsForHull (int hullnum)
 	{
 	model_t	*mod = cl.worldmodel;
@@ -733,7 +721,6 @@ static void Mod_CreatePolygonsForHull (int hullnum)
 	char	name[8];
 	int		i;
 
-	/*if ((hullnum < 1) || (hullnum > 3))*/
 	if ((hullnum < 0) || (hullnum >= MAX_MAP_HULLS))
 		return;
 

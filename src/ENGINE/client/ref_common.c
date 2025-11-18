@@ -31,6 +31,10 @@ static CVAR_DEFINE_AUTO (r_refdll, "", FCVAR_RENDERINFO,
 static CVAR_DEFINE_AUTO (r_refdll_loaded, "", FCVAR_READ_ONLY,
 	"currently loaded renderer");
 
+// [FWGS, 01.11.25]
+static CVAR_DEFINE_AUTO (r_pvs_radius, "0.1", FCVAR_ARCHIVE,
+	"increase amount of potentially visible leaves by this radius");
+
 // [FWGS, 01.01.24] there is no need to expose whole host and cl structs into the renderer.
 // But we still need to update timings accurately as possible this looks horrible. But the
 // only other option would be passing four time pointers and then it's looks even worse
@@ -314,8 +318,7 @@ static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s 
 	struct engine_studio_api_s *pstudio)
 	{
 	return clgame.dllFuncs.pfnGetStudioModelInterface ?
-		clgame.dllFuncs.pfnGetStudioModelInterface (version, ppinterface, pstudio) :
-		0;
+		clgame.dllFuncs.pfnGetStudioModelInterface (version, ppinterface, pstudio) : 0;
 	}
 
 // [FWGS, 01.01.24] removed pfnImage_GetPool
@@ -346,7 +349,9 @@ static qboolean R_Init_Video_ (const int type)
 	{
 	host.apply_opengl_config = true;
 
-	Cbuf_AddTextf ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ());
+	// [FWGS, 01.11.25]
+	/*Cbuf_AddTextf ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ());*/
+	Cbuf_AddTextf ("exec %s.cfg\n", ref.dllFuncs.R_GetConfigName ());
 
 	Cbuf_Execute ();
 	host.apply_opengl_config = false;
@@ -737,7 +742,6 @@ static void R_CollectRendererNames (void)
 	ref.long_names = long_names;
 	}
 
-// [FWGS, 01.04.25]
 qboolean R_Init (void)
 	{
 	qboolean	success = false;
@@ -753,6 +757,9 @@ qboolean R_Init (void)
 	Cvar_RegisterVariable (&r_showtree);
 	Cvar_RegisterVariable (&r_refdll);
 	Cvar_RegisterVariable (&r_refdll_loaded);
+
+	// [FWGS, 01.11.25]
+	Cvar_RegisterVariable (&r_pvs_radius);
 
 	// cvars that are expected to exist
 	Cvar_Get ("r_speeds", "0", FCVAR_ARCHIVE,
@@ -786,8 +793,9 @@ qboolean R_Init (void)
 	Cvar_Get ("r_drawentities", "1", FCVAR_CHEAT, "render entities");
 	Cvar_Get ("cl_himodels", "1", FCVAR_ARCHIVE, "draw high-resolution player models in multiplayer");
 
-	// cvars are created, execute video config
-	Cbuf_AddText ("exec video.cfg");
+	// [FWGS, 01.11.25] cvars are created, execute video config
+	/*Cbuf_AddText ("exec video.cfg");*/
+	Cbuf_AddText ("exec video.cfg\n");
 	Cbuf_Execute ();
 
 	// Set screen resolution and fullscreen mode if passed in on command line.

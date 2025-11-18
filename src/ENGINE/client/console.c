@@ -107,8 +107,6 @@ typedef struct history_line_s
 // [FWGS, 01.07.25]
 typedef struct con_history_s
 	{
-	/*field_t lines[CON_HISTORY];
-	field_t backup;*/
 	history_line_t	lines[CON_HISTORY];
 	history_line_t	backup;
 	int     line; // the line being displayed from history buffer will be <= nextHistoryLine
@@ -120,29 +118,29 @@ typedef struct
 	qboolean		initialized;
 
 	// conbuffer
-	char *buffer;		// common buffer for all console lines
+	char *buffer;			// common buffer for all console lines
 	int		bufsize;		// CON_TEXSIZE
 	con_lineinfo_t *lines;		// console lines
 	int		maxlines;		// CON_MAXLINES
 
 	int		lines_first;	// cyclic buffer
 	int		lines_count;
-	int		num_times;	// overlay lines count
+	int		num_times;		// overlay lines count
 
 	// console scroll
-	int		backscroll;	// lines up from bottom to display
+	int		backscroll;		// lines up from bottom to display
 	int 		linewidth;	// characters across screen
 
 	// console animation
 	float		showlines;	// how many lines we should display
-	float		vislines;		// in scanlines
+	float		vislines;	// in scanlines
 
 	// console images
-	int		background;	// console background
+	int		background;		// console background
 
 	// console fonts
-	cl_font_t		chars[CON_NUMFONTS];// fonts.wad/font1.fnt
-	cl_font_t *curFont;
+	cl_font_t	chars[CON_NUMFONTS];	// fonts.wad/font1.fnt
+	cl_font_t	*curFont;
 
 	// console input
 	field_t		input;
@@ -158,8 +156,9 @@ typedef struct
 	notify_t		notify[MAX_DBG_NOTIFY]; // for Con_NXPrintf
 	qboolean		draw_notify;	// true if we have NXPrint message
 
-	// console update
-	double		lastupdate;
+	// [FWGS, 01.11.25]
+	/*// console update
+	double		lastupdate;*/
 	} console_t;
 
 static console_t	con;
@@ -497,9 +496,6 @@ static void Con_CheckResize (void)
 
 	// [FWGS, 01.07.25]
 	con.input.widthInChars = con.linewidth;
-
-	/*for (i = 0; i < CON_HISTORY; i++)
-		con.history.lines[i].widthInChars = con.linewidth;*/
 	}
 
 /***
@@ -672,6 +668,7 @@ int GAME_EXPORT Con_UtfProcessChar (int in)
 	// otherwise, decode it and convert to selected codepage
 	return Con_UtfProcessCharForce (in);
 	}
+
 /***
 =================
 Con_UtfMoveLeft [FWGS, 01.07.24]
@@ -746,7 +743,6 @@ static void Con_DrawCharToConback (int num, const byte *conchars, byte *dest)
 		source += 128;
 		dest += 320;
 		}
-
 	}
 
 /***
@@ -865,7 +861,7 @@ void Con_Shutdown (void)
 
 /***
 ================
-Con_Print [FWGS, 01.03.25]
+Con_Print
 
 Handles cursor positioning, line wrapping, etc.
 All console printing must go through this in order to be displayed
@@ -977,12 +973,13 @@ void Con_Print (const char *txt)
 			charpos = 0;
 			}
 
-		// pump messages to avoid window hanging
+		// [FWGS, 01.11.25]
+		/*// pump messages to avoid window hanging
 		if (con.lastupdate < Sys_DoubleTime ())
 			{
 			con.lastupdate = Sys_DoubleTime () + 1.0;
 			Host_InputFrame ();
-			}
+			}*/
 		}
 	}
 
@@ -1194,7 +1191,8 @@ static void Field_KeyDownEvent (field_t *edit, int key)
 
 	if ((key == K_RIGHTARROW) || (key == K_DPAD_RIGHT))
 		{
-		if (edit->cursor < len) edit->cursor = Con_UtfMoveRight (edit->buffer, edit->cursor, edit->widthInChars);
+		if (edit->cursor < len)
+			edit->cursor = Con_UtfMoveRight (edit->buffer, edit->cursor, edit->widthInChars);
 		if (edit->cursor >= edit->scroll + edit->widthInChars && edit->cursor <= len)
 			edit->scroll++;
 		return;
@@ -1202,8 +1200,10 @@ static void Field_KeyDownEvent (field_t *edit, int key)
 
 	if ((key == K_LEFTARROW) || (key == K_DPAD_LEFT))
 		{
-		if (edit->cursor > 0) edit->cursor = Con_UtfMoveLeft (edit->buffer, edit->cursor);
-		if (edit->cursor < edit->scroll) edit->scroll--;
+		if (edit->cursor > 0)
+			edit->cursor = Con_UtfMoveLeft (edit->buffer, edit->cursor);
+		if (edit->cursor < edit->scroll)
+			edit->scroll--;
 		return;
 		}
 
@@ -1361,7 +1361,6 @@ Con_HistoryUp [FWGS, 01.07.25]
 static void Con_HistoryUp (con_history_t *self, field_t *in)
 	{
 	if (self->line == self->next)
-		/*self->backup = *in;*/
 		Con_HistoryFromField (&self->backup, in);
 	else
 		Con_HistoryFromField (&self->lines[self->line % CON_HISTORY], in);
@@ -1369,7 +1368,6 @@ static void Con_HistoryUp (con_history_t *self, field_t *in)
 	if ((self->next - self->line) < CON_HISTORY)
 		self->line = Q_max (0, self->line - 1);
 
-	/**in = self->lines[self->line % CON_HISTORY];*/
 	Con_HistoryToField (in, &self->lines[self->line % CON_HISTORY]);
 	}
 
@@ -1384,9 +1382,6 @@ static void Con_HistoryDown (con_history_t *self, field_t *in)
 
 	self->line = Q_min (self->next, self->line + 1);
 	if (self->line == self->next)
-		/**in = self->backup;
-	else
-		*in = self->lines[self->line % CON_HISTORY];*/
 		Con_HistoryToField (in, &self->backup);
 	else
 		Con_HistoryToField (in, &self->lines[self->line % CON_HISTORY]);
@@ -1397,7 +1392,6 @@ static void Con_HistoryDown (con_history_t *self, field_t *in)
 Con_HistoryAppend [FWGS, 01.07.25]
 ===================
 ***/
-/*static void Con_HistoryAppend (con_history_t *self, field_t *from)*/
 static void Con_HistoryAppend (con_history_t *self, const field_t *from)
 	{
 	int prevLine = Q_max (0, self->line - 1);
@@ -1419,7 +1413,6 @@ static void Con_HistoryAppend (con_history_t *self, const field_t *from)
 	if (!Q_strcmp (from->buffer, self->lines[prevLine % CON_HISTORY].buffer))
 		return;
 
-	/*self->lines[self->next % CON_HISTORY] = *from;*/
 	Con_HistoryFromField (&self->lines[self->next % CON_HISTORY], from);
 	self->line = ++self->next;
 	}
@@ -1427,7 +1420,6 @@ static void Con_HistoryAppend (con_history_t *self, const field_t *from)
 // [FWGS, 01.07.25]
 static void Con_LoadHistory (con_history_t *self)
 	{
-	/*field_t	*f;*/
 	file_t	*fd;
 	int		i;
 
@@ -1437,10 +1429,6 @@ static void Con_LoadHistory (con_history_t *self)
 
 	while (!FS_Eof (fd))
 		{
-		/*f = &self->lines[self->next % CON_HISTORY];
-		Con_ClearField (f);
-
-		f->widthInChars = con.linewidth;*/
 		history_line_t *f = &self->lines[self->next % CON_HISTORY];
 		
 		FS_Gets (fd, f->buffer, sizeof (f->buffer));
@@ -1454,8 +1442,6 @@ static void Con_LoadHistory (con_history_t *self)
 		// skip repeating lines
 		if (self->next > 0)
 			{
-			/*field_t *prev;
-			prev = &self->lines[(self->next - 1) % CON_HISTORY];*/
 			const history_line_t *prev = &self->lines[(self->next - 1) % CON_HISTORY];
 
 			if (!Q_stricmp (prev->buffer, f->buffer))
@@ -1469,11 +1455,7 @@ static void Con_LoadHistory (con_history_t *self)
 
 	for (i = self->next; i < CON_HISTORY; i++)
 		{
-		/*f = &self->lines[i];*/
 		history_line_t *f = &self->lines[i];
-
-		/*Con_ClearField (f);
-		f->widthInChars = con.linewidth;*/
 		memset (f, 0, sizeof (*f));
 		}
 
@@ -1513,6 +1495,7 @@ static void Con_SaveHistory (con_history_t *self)
 CONSOLE LINE EDITING
 =============================================================================
 ***/
+
 /***
 ====================
 Key_Console [FWGS, 01.03.25]
@@ -1927,10 +1910,13 @@ static void Con_DrawSolidConsole (int lines)
 	if (lines <= 0)
 		return;
 
-	// draw the background
+	// [FWGS, 01.11.25] draw the background
 	ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
 	ref.dllFuncs.Color4ub (255, 255, 255, 255); // to prevent grab color from screenfade
-	if (refState.width * 3 / 4 < refState.height && lines >= refState.height)
+	if ((refState.width * 3 / 4 < refState.height) && (lines >= refState.height))
+		/*ref.dllFuncs.R_DrawStretchPic (0, lines - refState.height, refState.width,
+			refState.height - refState.width * 3 / 4, 0, 0, 1, 1,
+			R_GetBuiltinTexture (REF_BLACK_TEXTURE));*/
 		ref.dllFuncs.R_DrawStretchPic (0, lines - refState.height, refState.width,
 			refState.height - refState.width * 3 / 4, 0, 0, 1, 1,
 			R_GetBuiltinTexture (REF_BLACK_TEXTURE));
@@ -2197,6 +2183,7 @@ void Con_RunConsole (void)
 CONSOLE INTERFACE
 ==============================================================================
 ***/
+
 /***
 ================
 Con_CharEvent

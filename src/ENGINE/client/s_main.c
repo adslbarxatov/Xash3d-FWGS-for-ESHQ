@@ -42,8 +42,13 @@ static CVAR_DEFINE (s_mixahead, "_snd_mixahead", "0.12", FCVAR_FILTERABLE,
 	"how much sound to mix ahead of time");
 static CVAR_DEFINE_AUTO (s_show, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
 	"show playing sounds");
-CVAR_DEFINE_AUTO (s_lerping, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
-	"apply interpolation to sound output");
+
+// [FWGS, 01.11.25]
+/*CVAR_DEFINE_AUTO (s_lerping, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"apply interpolation to sound output");*/
+CVAR_DEFINE_AUTO (s_lerping, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"apply interpolation to sound output (deprecated)");
+
 static CVAR_DEFINE (s_ambient_level, "ambient_level", "0.3", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
 	"volume of environment noises (water and wind)");
 static CVAR_DEFINE (s_ambient_fade, "ambient_fade", "1000", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
@@ -195,7 +200,7 @@ SND_FStreamIsPlaying
 
 Select a channel from the dynamic channel allocation area.  For the given entity,
 override any other sound playing on the same channel (see code comments below for
-exceptions).
+exceptions)
 =================
 ***/
 static qboolean SND_FStreamIsPlaying (sfx_t *sfx)
@@ -1246,22 +1251,6 @@ void S_RawEntSamples (int entnum, uint samples, uint rate, word width, word chan
 	}
 
 // [FWGS, 01.07.25] removed S_RawSamples
-
-/*
-===================
-S_RawSamples
-===================
-/
-void S_RawSamples (uint samples, uint rate, word width, word channels, const byte *data, int entnum)
-	{
-	int	snd_vol = 128;
-
-	if (entnum < 0)
-		snd_vol = 256; // bg track or movie track
-
-	S_RawEntSamples (entnum, samples, rate, width, channels, data, snd_vol);
-	}*/
-
 // [FWGS, 01.02.25] removed S_StreamAviSamples
 
 /***
@@ -1285,8 +1274,14 @@ static void S_FreeIdleRawChannels (void)
 		if (ch->s_rawend >= paintedtime)
 			continue;
 
+		// [FWGS, 01.11.25]
+		/*if (ch->entnum > 0)*/
 		if (ch->entnum > 0)
+			{
 			SND_ForceCloseMouth (ch->entnum);
+			if (ch->entnum <= MAX_CLIENTS)
+				Voice_StopChannel (ch->entnum);
+			}
 
 		if ((paintedtime - ch->s_rawend) / SOUND_DMA_SPEED >= S_RAW_SOUND_IDLE_SEC)
 			{
@@ -1309,7 +1304,8 @@ static void S_ClearRawChannels (void)
 		{
 		rawchan_t *ch = raw_channels[i];
 
-		if (!ch) continue;
+		if (!ch)
+			continue;
 		ch->s_rawend = 0;
 		ch->oldtime = -1;
 		}
@@ -1400,7 +1396,8 @@ static void S_ClearBuffer (void)
 	S_ClearRawChannels ();
 
 	SNDDMA_BeginPainting ();
-	if (dma.buffer) memset (dma.buffer, 0, dma.samples * 2);
+	if (dma.buffer)
+		memset (dma.buffer, 0, dma.samples * 2);
 	SNDDMA_Submit ();
 
 	MIX_ClearAllPaintBuffers (PAINTBUFFER_SIZE, true);
@@ -1417,7 +1414,9 @@ void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
 	{
 	sfx_t *sfx;
 
-	if (!dma.initialized) return;
+	if (!dma.initialized)
+		return;
+
 	sfx = S_FindName (soundname, NULL);
 	S_AlterChannel (entnum, channel, sfx, 0, 0, SND_STOP);
 	}
@@ -1448,7 +1447,8 @@ void S_StopAllSounds (qboolean ambient)
 	memset (channels, 0, sizeof (channels));
 
 	// restart the ambient sounds
-	if (ambient) S_InitAmbientChannels ();
+	if (ambient)
+		S_InitAmbientChannels ();
 
 	S_ClearBuffer ();
 
@@ -1526,7 +1526,6 @@ static void S_UpdateChannels (void)
 		}
 
 	MIX_PaintChannels (endtime);
-
 	SNDDMA_Submit ();
 	}
 
@@ -1678,7 +1677,6 @@ void SND_UpdateSound (void)
 
 	// [FWGS, 01.07.25]
 	S_StreamBackgroundTrack ();
-	/*S_StreamSoundTrack ();*/
 
 	// mix some sound
 	S_UpdateChannels ();
@@ -1792,7 +1790,6 @@ static void S_Music_f (void)
 
 		for (i = 0; i < 2; i++)
 			{
-			// [FWGS, 01.04.23]
 			char intro_path[MAX_VA_STRING];
 			char main_path[MAX_VA_STRING];
 			char track_path[MAX_VA_STRING];
@@ -1807,7 +1804,6 @@ static void S_Music_f (void)
 				break;
 				}
 
-			// [FWGS, 01.04.23]
 			Q_snprintf (track_path, sizeof (track_path), "media/%s.%s", track, ext[i]);
 			if (FS_FileExists (track_path, false))
 				{
@@ -1816,7 +1812,6 @@ static void S_Music_f (void)
 				break;
 				}
 			}
-
 		}
 	else if (c == 3)
 		{
@@ -1884,7 +1879,6 @@ S_VoiceRecordStart_f [FWGS, 01.12.24]
 ***/
 static void S_VoiceRecordStart_f (void)
 	{
-	/*if ((cls.state != ca_active) || cls.legacymode)*/
 	if (cls.state != ca_active)
 		return;
 
@@ -1953,7 +1947,6 @@ qboolean S_Init (void)
 	dma.backendName = "None";
 
 	// [FWGS, 01.02.25]
-	/*if (!SNDDMA_Init ())*/
 	if (!SNDDMA_Init ())
 		{
 		Con_Printf ("Audio: sound system can't be initialized\n");
@@ -1961,7 +1954,6 @@ qboolean S_Init (void)
 		return false;
 		}
 
-	/*sndpool = Mem_AllocPool ("Sound Zone");*/
 	soundtime = 0;
 	paintedtime = 0;
 
@@ -1990,7 +1982,6 @@ void S_Shutdown (void)
 	Cmd_RemoveCommand ("stopsound");
 
 	// [FWGS, 22.01.25]
-	/*Cmd_RemoveCommand ("music");*/
 	if (Cmd_Exists ("music"))
 		Cmd_RemoveCommand ("music");
 

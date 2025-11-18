@@ -346,6 +346,7 @@ void GL_EnableTextureUnit (int tmu, qboolean enable)
 	// only enable fixed-function pipeline units
 	if (tmu < glConfig.max_texture_units)
 		{
+		// [ESHQ: brackets]
 		if (enable)
 			pglEnable (glState.currentTextureTargets[tmu]);
 		else if (glState.currentTextureTargets[tmu] != GL_NONE)

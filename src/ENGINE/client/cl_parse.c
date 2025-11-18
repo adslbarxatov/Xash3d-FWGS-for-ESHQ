@@ -1026,6 +1026,10 @@ void CL_ParseServerData (sizebuf_t *msg, connprotocol_t proto)
 		Cvar_DirectSet (&r_decals, NULL);
 		}
 
+	// [FWGS, 01.11.25] for GoldSrc, it's handled by svc_goldsrc_sendextrainfo
+	if (proto != PROTO_GOLDSRC)
+		CL_SetCheatState (cl.maxclients > 1, cls.allow_cheats);
+	
 	// set the background state
 	if (cls.demoplayback && (cls.demonum != -1))
 		cl.background = true;
@@ -1076,16 +1080,11 @@ void CL_ParseServerData (sizebuf_t *msg, connprotocol_t proto)
 		COM_ClearCustomizationList (&cl.players[i].customdata, true);
 	CL_CreateCustomizationList ();
 
-	/*if (!legacy)*/
-	// request resources from server
+	// [ESHQ: brackets] request resources from server
 	if (proto == PROTO_GOLDSRC)
-		{
 		CL_ServerCommand (true, "sendres");
-		}
 	else if (proto != PROTO_LEGACY)
-		{
 		CL_ServerCommand (true, "sendres %i\n", cl.servercount);
-		}
 
 	memset (&clgame.movevars, 0, sizeof (clgame.movevars));
 	memset (&clgame.oldmovevars, 0, sizeof (clgame.oldmovevars));
@@ -2068,13 +2067,11 @@ void CL_ParseVoiceInit (sizebuf_t *msg)
 
 /***
 ==================
-CL_ParseVoiceData [FWGS, 01.07.25]
+CL_ParseVoiceData [FWGS, 01.11.25]
 ==================
 ***/
 void CL_ParseVoiceData (sizebuf_t *msg, connprotocol_t proto)
 	{
-	/*int		size, idx, frames;
-	byte	received[8192];*/
 	int		size, idx, frames = 0;
 	byte	received[VOICE_MAX_DATA_SIZE];
 
@@ -2082,20 +2079,14 @@ void CL_ParseVoiceData (sizebuf_t *msg, connprotocol_t proto)
 	if ((idx <= 0) || (idx > cl.maxclients))
 		return;
 
+	// must notify client.dll about server ack'ing our local client voice data
+	if (idx == cl.playernum + 1)
+		Voice_LoopbackAck ();
+
 	if (proto == PROTO_GOLDSRC)
 		{
 		size = MSG_ReadShort (msg);
-		/*MSG_SeekToBit (msg, size << 3, SEEK_CUR); // skip the entire buf, not supported yet
-
-		// shall we notify client.dll if nothing can be heard?
-		if 0
-		// must notify through as both local player and normal client
-		if (idx == cl.playernum + 1)
-			Voice_StatusAck (&voice.local, VOICE_LOOPBACK_INDEX);
-
-		Voice_StatusAck (&voice.players_status[idx], idx);
-		endif
-		return;*/
+		/*if (size > VOICE_MAX_GS_DATA_SIZE)*/
 		if (size > VOICE_MAX_GS_DATA_SIZE)
 			{
 			Con_Printf (S_ERROR "Voice data size is too large: %d bytes (max: %d)\n", size, VOICE_MAX_GS_DATA_SIZE);
@@ -2106,6 +2097,7 @@ void CL_ParseVoiceData (sizebuf_t *msg, connprotocol_t proto)
 		{
 		frames = MSG_ReadByte (msg);
 		size = MSG_ReadShort (msg);
+		/*if (size > VOICE_MAX_DATA_SIZE)*/
 		if (size > VOICE_MAX_DATA_SIZE)
 			{
 			Con_Printf (S_ERROR "Voice data size is too large: %d bytes (max: %d)\n", size, VOICE_MAX_DATA_SIZE);
@@ -2113,22 +2105,7 @@ void CL_ParseVoiceData (sizebuf_t *msg, connprotocol_t proto)
 			}
 		}
 
-	/*frames = MSG_ReadByte (msg);
-
-	size = MSG_ReadShort (msg);*/
 	size = Q_min (size, sizeof (received));
-
-	/*MSG_ReadBytes (msg, received, size);
-
-	if ((idx <= 0) || (idx > cl.maxclients))
-		return;
-
-	// must notify through as both local player and normal client
-	if (idx == cl.playernum + 1)
-		Voice_StatusAck (&voice.local, VOICE_LOOPBACK_INDEX);
-
-	Voice_StatusAck (&voice.players_status[idx], idx);*/
-
 	if (!size)
 		return;
 
@@ -2685,6 +2662,9 @@ void CL_ParseServerMessage (sizebuf_t *msg)
 
 					cl.background = old_background;
 					cls.connect_time = MAX_HEARTBEAT;
+
+					// [FWGS, 01.11.25]
+					memset (&cls.bandwidth_test, 0, sizeof (cls.bandwidth_test));
 					cls.connect_retry = 0;
 					}
 				break;

@@ -20,6 +20,9 @@ GNU General Public License for more details
 #include "vgui_draw.h"
 #include "mobility_int.h"
 
+// [FWGS, 01.11.25]
+#if !XASH_NO_TOUCH
+
 typedef enum
 	{
 	touch_command, // just tap a button
@@ -183,10 +186,12 @@ static CVAR_DEFINE_AUTO (touch_move_indicator, "0.0", FCVAR_FILTERABLE,
 	"indicate move events (0 to disable)");
 static CVAR_DEFINE_AUTO (touch_joy_texture, "touch_default/joy", FCVAR_FILTERABLE,
 	"texture for move indicator");
+
+// [FWGS, 01.11.25]
 static CVAR_DEFINE (touch_emulate, "_touch_emulate", "0", FCVAR_PRIVILEGED,
 	"emulate touch with mouse");
-CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-	"enable touch controls");
+/*CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"enable touch controls");*/
 
 // code looks smaller with it
 #define TO_SCRN_Y(x) (refState.width * (x) * Touch_AspectRatio())
@@ -260,7 +265,10 @@ static void Touch_ExportButtonToConfig (file_t *f, const touch_button_t *button,
 		float aspect = (button->y2 - button->y1) / ((button->x2 - button->x1) / Touch_AspectRatio ());
 		FS_Printf (f, " %g\n", aspect);
 		}
-	else FS_Printf (f, "\n");
+	else
+		{
+		FS_Printf (f, "\n");
+		}
 	}
 
 /***
@@ -396,7 +404,10 @@ static void Touch_ExportConfig_f (void)
 		COM_FileBase (name, profilebase, sizeof (profilebase));
 		Q_snprintf (profilename, sizeof (profilebase), "touch_profiles/%s (copy).cfg", profilebase);
 		}
-	else Q_strncpy (profilename, name, sizeof (profilename));
+	else
+		{
+		Q_strncpy (profilename, name, sizeof (profilename));
+		}
 
 	Con_Reportf ("Exporting config to \"%s\", profile name \"%s\"\n", name, profilename);
 	Touch_DumpConfig (name, profilename);
@@ -547,10 +558,27 @@ static touch_button_t *Touch_FindNext (touch_button_t *buttons, const char *name
 	return NULL;
 	}
 
-
 static touch_button_t *Touch_FindFirst (touchbuttonlist_t *list, const char *name, qboolean privileged)
 	{
 	return Touch_FindNext (list->first, name, privileged);
+	}
+
+// [FWGS, 01.11.25]
+static void Touch_DisableEdit_f (void)
+	{
+	touch.state = state_none;
+	if (touch.edit)
+		touch.edit->finger = -1;
+	if (touch.selection)
+		touch.selection->finger = -1;
+
+	touch.edit = touch.selection = NULL;
+	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
+
+	if (touch_in_menu.value)
+		Cvar_DirectSet (&touch_in_menu, "0");
+	else if (cls.key_dest == key_game)
+		Touch_WriteConfig ();
 	}
 
 void Touch_SetClientOnly (byte state)
@@ -558,6 +586,10 @@ void Touch_SetClientOnly (byte state)
 	// [FWGS, 01.09.25] TODO: fix clash with vgui cursors
 	if (touch.clientonly == state)
 		return;
+
+	// [FWGS, 01.11.25] a1ba: the way client only touch buttons are used, they might come from
+	// client.dll, locking user in edit state, so disable it first
+	Touch_DisableEdit_f ();
 
 	touch.clientonly = state;
 	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
@@ -759,14 +791,20 @@ static void Touch_SetColor_f (void)
 		rgba_t color = { Q_atoi (Cmd_Argv (2)), Q_atoi (Cmd_Argv (3)), Q_atoi (Cmd_Argv (4)), Q_atoi (Cmd_Argv (5)) };
 		Touch_SetColor (&touch.list_user, Cmd_Argv (1), color, Cmd_CurrentCommandIsPrivileged ());
 		}
-	else Con_Printf (S_USAGE "touch_setcolor <pattern> <r> <g> <b> <a>\n");
+	else
+		{
+		Con_Printf (S_USAGE "touch_setcolor <pattern> <r> <g> <b> <a>\n");
+		}
 	}
 
 static void Touch_SetTexture_f (void)
 	{
 	if (Cmd_Argc () == 3)
 		Touch_SetTexture (&touch.list_user, Cmd_Argv (1), Cmd_Argv (2), Cmd_CurrentCommandIsPrivileged ());
-	else Con_Printf (S_USAGE "touch_settexture <name> <file>\n");
+	else
+		{
+		Con_Printf (S_USAGE "touch_settexture <name> <file>\n");
+		}
 	}
 
 static void Touch_SetFlags_f (void)
@@ -795,7 +833,6 @@ static void Touch_SetCommand_f (void)
 			Cmd_CurrentCommandIsPrivileged ());
 
 		// [FWGS, 01.04.25]
-		/*if (!button)*/
 		if (button)
 			Touch_SetCommand (button, Cmd_Argv (2));
 		else
@@ -917,6 +954,7 @@ static void Touch_LoadDefaults_f (void)
 		SetBits (button->flags, g_DefaultButtons[i].flags);
 		button->aspect = g_DefaultButtons[i].aspect;
 		}
+
 	touch.configchanged = true;
 	}
 
@@ -1064,7 +1102,9 @@ static void Touch_EnableEdit_f (void)
 		}
 	}
 
-static void Touch_DisableEdit_f (void)
+// [FWGS, 01.11.25] Touch_DisableEdit_f moved to line 500
+
+/*static void Touch_DisableEdit_f (void)
 	{
 	touch.state = state_none;
 	if (touch.edit)
@@ -1078,7 +1118,7 @@ static void Touch_DisableEdit_f (void)
 		Cvar_DirectSet (&touch_in_menu, "0");
 	else if (cls.key_dest == key_game)
 		Touch_WriteConfig ();
-	}
+	}*/
 
 static void Touch_DeleteProfile_f (void)
 	{
@@ -1243,8 +1283,8 @@ void Touch_Init (void)
 	Cvar_RegisterVariable (&touch_move_indicator);
 	Cvar_RegisterVariable (&touch_joy_texture);
 
-	// input devices cvar
-	Cvar_RegisterVariable (&touch_enable);
+	// [FWGS, 01.11.25] input devices cvar
+	/*Cvar_RegisterVariable (&touch_enable);*/
 	Cvar_RegisterVariable (&touch_emulate);
 
 	touch.initialized = true;
@@ -1426,7 +1466,7 @@ static float Touch_DrawText (float x1, float y1, float x2, float y2, const char 
 		if (y1 >= maxy)
 			break;
 
-		if (*s == '\n' || *s == ';')
+		if ((*s == '\n') || (*s == ';'))
 			s++;
 		x1 = x;
 		}
@@ -1875,7 +1915,8 @@ static qboolean Touch_ButtonPress (touchbuttonlist_t *list, touchEventType type,
 					{
 					if (FBitSet (button->flags, TOUCH_FL_UNPRIVILEGED))
 						Cbuf_AddFilteredText (command);
-					else Cbuf_AddText (command);
+					else
+						Cbuf_AddText (command);
 					touch.wheel_count++;
 					}
 
@@ -1885,8 +1926,9 @@ static qboolean Touch_ButtonPress (touchbuttonlist_t *list, touchEventType type,
 
 				result = true;
 				}
+
 			// initialize motion when player touched motion zone
-			else if (button->type == touch_move || button->type == touch_joy || button->type == touch_dpad)
+			else if ((button->type == touch_move) || (button->type == touch_joy) || (button->type == touch_dpad))
 				{
 				if (touch.move_finger != -1)
 					{
@@ -2091,6 +2133,7 @@ static qboolean Touch_ButtonEdit (touchEventType type, int fingerID, float x, fl
 					button->next = NULL;
 					touch.list_user.last = button;
 					}
+
 				touch.state = state_edit_move;
 				return true;
 				}
@@ -2131,8 +2174,27 @@ static int Touch_ControlsEvent (touchEventType type, int fingerID, float x, floa
 
 int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy)
 	{
+	// [FWGS, 01.11.25]
+	if (ref.rotation & 1)
+		{
+		// swap x and y and invert y
+		float temp = x;
+		x = y;
+		if (ref.rotation == REF_ROTATE_CW)
+			y = 1.0f - temp;
+		else
+			y = temp;
+
+		temp = dx;
+		dx = dy;
+		if (ref.rotation == REF_ROTATE_CW)
+			dy = -temp;
+		else
+			dy = temp;
+		}
+
 	// simulate menu mouse click
-	if (cls.key_dest != key_game && !touch_in_menu.value)
+	if ((cls.key_dest != key_game) && !touch_in_menu.value)
 		{
 		touch.move_finger = touch.resize_finger = touch.look_finger = touch.wheel_finger = -1;
 		// Hack for keyboard, hope it help
@@ -2198,7 +2260,6 @@ int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx
 
 		return 0;
 		}
-
 
 	if (VGui_IsActive ())
 		{
@@ -2291,6 +2352,7 @@ void Touch_Shutdown (void)
 	{
 	if (!touch.initialized)
 		return;
+
 	Touch_RemoveAll_f ();
 	Cmd_RemoveCommand ("touch_addbutton");
 	Cmd_RemoveCommand ("touch_removebutton");
@@ -2316,3 +2378,6 @@ void Touch_Shutdown (void)
 	touch.initialized = false;
 	Mem_FreePool (&touch.mempool);
 	}
+
+// [FWGS, 01.11.25]
+#endif
