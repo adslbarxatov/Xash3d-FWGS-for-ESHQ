@@ -99,7 +99,6 @@ void Sys_DebugBreak (void)
 	INLINE_NANOSLEEP1 ();
 #endif
 
-	/*if XASH_SDL*/
 	if (was_grabbed)
 		Platform_SetMouseGrab (true);
 	}
@@ -481,44 +480,33 @@ void Sys_Error (const char *error, ...)
 	Sys_Quit ("caught an error");
 	}
 
-// [FWGS, 01.07.25]
-#if XASH_EMSCRIPTEN
-/*// strange glitchy bug on emscripten
-// _exit->_Exit->asm._exit->_exit
-// As we do not need atexit(), just throw hidden exception
+// [FWGS, 01.11.25] removed my_exit
+/*if XASH_EMSCRIPTEN
 
-// Hey, you, making an Emscripten port!
-// What if we're not supposed to use exit() on Emscripten and instead we should
-// exit from the main() function? Would this fix this bug? Test this case, pls.
-error "Read the comment above"*/
+include <emscripten.h>
+define exit my_exit
 
-#include <emscripten.h>
-#define exit my_exit
-
-/*void my_exit (int ret)*/
 void my_exit (int ret)
 	{
 	emscripten_cancel_main_loop ();
-	/*printf ("exit(%d)\n", ret);
-	EM_ASM (if (showElement)showElement ('reload', true); throw 'SimulateInfiniteLoop');*/
 	emscripten_force_exit (ret);
 	}
-#endif
+endif*/
 
 /***
 ================
-Sys_Quit [FWGS, 01.02.25]
+Sys_Quit [FWGS, 01.11.25]
 ================
 ***/
 void Sys_Quit (const char *reason)
 	{
 	Host_ShutdownWithReason (reason);
 
-#if XASH_ANDROID
+	/*if XASH_ANDROID*/
 	Host_ExitInMain ();
-#else
-	exit (error_on_exit);
-#endif
+	/*else
+		exit (error_on_exit);
+	endif*/
 	}
 
 /***

@@ -120,7 +120,7 @@ else
 	define HAVE_DUP
 	endif*/
 	#define OS_LIB_EXT	"dll"
-	#define VGUI_S_DLL	"vguis." OS_LIB_EXT	// [ESHQ: переопределение]
+	#define VGUI_S_LIB	"vguis." OS_LIB_EXT	// [ESHQ: переопределение]
 	#define OPEN_COMMAND	"open"
 #elif XASH_PSP
 	#define OS_LIB_EXT	"prx"

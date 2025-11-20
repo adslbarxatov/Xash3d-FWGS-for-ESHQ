@@ -13,7 +13,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.04.23]
 #include <string.h>
 #include "common.h"
 #include "client.h"
@@ -43,7 +42,6 @@ typedef struct vgui_static_s
 
 	vguiapi_t dllFuncs;
 
-	/*int textures[VGUI_MAX_TEXTURES];*/
 	vgui_reusable_texture_t *textures;
 
 	int texture_id;
@@ -69,7 +67,6 @@ static CVAR_DEFINE_AUTO (vgui_utf8, "0", FCVAR_ARCHIVE,
 // [FWGS, 22.01.25]
 static void GAME_EXPORT VGUI_DrawInit (void)
 	{
-	/*memset (vgui.textures, 0, sizeof (vgui.textures));*/
 	if (vgui.mempool)
 		Mem_EmptyPool (vgui.mempool);
 	else
@@ -78,7 +75,6 @@ static void GAME_EXPORT VGUI_DrawInit (void)
 
 	memset (vgui.color, 0, sizeof (vgui.color));
 
-	/*vgui.texture_id = vgui.bound_texture = 0;*/
 	vgui.texture_id = 0;
 	vgui.bound_texture = 0;
 	vgui.max_textures = 0;
@@ -92,7 +88,6 @@ static void GAME_EXPORT VGUI_DrawShutdown (void)
 	int i;
 
 	for (i = 1; i < vgui.texture_id; i++)
-		/*ref.dllFuncs.GL_FreeTexture (vgui.textures[i]);*/
 		ref.dllFuncs.GL_FreeTexture (vgui.textures[i].gl_texturenum);
 
 	Mem_FreePool (&vgui.mempool);
@@ -107,8 +102,6 @@ static void GAME_EXPORT VGUI_DrawShutdown (void)
 // [FWGS, 22.01.25]
 static int GAME_EXPORT VGUI_GenerateTexture (void)
 	{
-	/*if (++vgui.texture_id >= VGUI_MAX_TEXTURES)
-		Host_Error ("%s: VGUI_MAX_TEXTURES limit exceeded\n", __func__);*/
 	// allocate new
 	if (vgui.texture_id + 1 >= vgui.max_textures)
 		{
@@ -120,7 +113,6 @@ static int GAME_EXPORT VGUI_GenerateTexture (void)
 			return vgui.texture_id;
 			}
 
-	/*return vgui.texture_id;*/
 		vgui.max_textures += VGUI_MAX_TEXTURES;
 
 		// this potentially might leak memory if VGUI is used incorrectly!
@@ -143,7 +135,6 @@ static void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int widt
 	MD5Context_t	ctx;
 	byte	hash[16];
 
-	/*if ((id <= 0) || (id >= VGUI_MAX_TEXTURES))*/
 	if ((id <= 0) || (id >= vgui.max_textures) || (width <= 0) || (height <= 0))
 		{
 		Con_DPrintf (S_ERROR "%s: bad texture %i. Ignored\n", __func__, id);
@@ -181,7 +172,6 @@ static void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int widt
 	r_image.flags = IMAGE_HAS_COLOR | IMAGE_HAS_ALPHA;
 	r_image.buffer = (byte *)buffer;
 
-	/*vgui.textures[id] = GL_LoadTextureInternal (texName, &r_image, TF_IMAGE);*/
 	vgui.textures[id].gl_texturenum = GL_LoadTextureInternal (texName, &r_image, TF_IMAGE);
 	memcpy (vgui.textures[id].hash, hash, sizeof (hash));
 	}
@@ -189,44 +179,14 @@ static void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int widt
 // [FWGS, 22.01.25]
 static void GAME_EXPORT VGUI_CreateTexture (int id, int width, int height)
 	{
-	/*rgbdata_t r_image = { 0 };
-	char texName[32];
-
-	if (id <= 0 || id >= VGUI_MAX_TEXTURES)
-		{
-		Con_DPrintf (S_ERROR "%s: bad texture %i. Ignored\n", __func__, id);
-		return;
-		}
-
-	Q_snprintf (texName, sizeof (texName), "*vgui%i", id);
-
-	r_image.width = width;
-	r_image.height = height;
-	r_image.type = PF_RGBA_32;
-	r_image.size = width * height * 4;
-	r_image.flags = IMAGE_HAS_COLOR | IMAGE_HAS_ALPHA;
-	r_image.buffer = NULL;*/
-
 	// nothing uses it, it can be removed
 	Host_Error ("%s: deprecated\n", __func__);
-
-	/*vgui.textures[id] = GL_LoadTextureInternal (texName, &r_image, TF_IMAGE);
-	vgui.bound_texture = id;*/
 	}
 
 // [FWGS, 22.01.25]
 static void GAME_EXPORT VGUI_UploadTextureBlock (int id, int drawX, int drawY, const byte *rgba,
 	int blockWidth, int blockHeight)
 	{
-	/*if ((id <= 0) || (id >= VGUI_MAX_TEXTURES) || vgui.textures[id] == 0)
-		{
-		Con_DPrintf (S_ERROR "%s: bad texture %i. Ignored\n", __func__, id);
-		return;
-		}
-
-	ref.dllFuncs.VGUI_UploadTextureBlock (drawX, drawY, rgba, blockWidth, blockHeight);
-	vgui.bound_texture = id;*/
-
 	// nothing uses it, it can be removed
 	Host_Error ("%s: deprecated\n", __func__);
 	}
@@ -235,11 +195,9 @@ static void GAME_EXPORT VGUI_UploadTextureBlock (int id, int drawX, int drawY, c
 static void GAME_EXPORT VGUI_BindTexture (int id)
 	{
 	// NOTE: same as bogus index 2700 in GoldSrc
-	/*if ((id <= 0) || (id >= VGUI_MAX_TEXTURES) || !vgui.textures[id])*/
 	if ((id <= 0) || (id >= vgui.max_textures) || !vgui.textures[id].gl_texturenum)
 		id = 1;
 
-	/*ref.dllFuncs.GL_Bind (XASH_TEXTURE0, vgui.textures[id]);*/
 	ref.dllFuncs.GL_Bind (XASH_TEXTURE0, vgui.textures[id].gl_texturenum);
 	vgui.bound_texture = id;
 	}
@@ -250,9 +208,7 @@ static void GAME_EXPORT VGUI_GetTextureSizes (int *w, int *h)
 	int texnum;
 
 	if (vgui.bound_texture)
-		/*texnum = vgui.textures[vgui.bound_texture];*/
 		texnum = vgui.textures[vgui.bound_texture].gl_texturenum;
-
 	else
 		texnum = R_GetBuiltinTexture (REF_DEFAULT_TEXTURE);
 
@@ -298,12 +254,10 @@ static void GAME_EXPORT VGUI_DrawQuad (const vpoint_t *ul, const vpoint_t *lr)
 		t2 = lr->coord[1];
 
 		ref.dllFuncs.Color4ub (vgui.color[0], vgui.color[1], vgui.color[2], vgui.color[3]);
-		/*ref.dllFuncs.R_DrawStretchPic (x, y, w, h, s1, t1, s2, t2, vgui.textures[vgui.bound_texture]);*/
 		ref.dllFuncs.R_DrawStretchPic (x, y, w, h, s1, t1, s2, t2, vgui.textures[vgui.bound_texture].gl_texturenum);
 		}
 	else
 		{
-		/*ref.dllFuncs.FillRGBABlend (x, y, w, h, vgui.color[0], vgui.color[1], vgui.color[2], vgui.color[3]);*/
 		ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, w, h, vgui.color[0], vgui.color[1],
 			vgui.color[2], vgui.color[3]);
 		}
@@ -416,19 +370,24 @@ qboolean VGui_LoadProgs (HINSTANCE hInstance)
 				COM_GetLibraryError ());
 			}
 
+		// [FWGS, 01.11.25] [ESHQ: переопределение]
 		if (!Sys_GetParmFromCmdLine ("-vguiloader", vguiloader))
 			{
-			Q_strncpy (vguiloader, VGUI_SUPPORT_DLL, sizeof (vguiloader));
+			/*Q_strncpy (vguiloader, VGUI_SUPPORT_DLL, sizeof (vguiloader));
+			Q_strncpy (vguiloader, OS_LIB_PREFIX "vgui_support." OS_LIB_EXT, sizeof (vguiloader));*/
+			Q_strncpy (vguiloader, OS_LIB_PREFIX VGUI_S_LIB, sizeof (vguiloader));
 			}
 
 		hInstance = vgui.hInstance = COM_LoadLibrary (vguiloader, false, false);
 
+		// [FWGS, 01.11.25]
 		if (!vgui.hInstance)
 			{
-			if (FS_FileExists (vguiloader, false))
+			/*if (FS_FileExists (vguiloader, false))
 				Con_Reportf (S_ERROR "Failed to load vgui_support library: %s\n", COM_GetLibraryError ());
 			else
-				Con_Reportf ("%s: not found\n", __func__);
+				Con_Reportf ("%s: not found\n", __func__);*/
+			Con_Reportf (S_ERROR "Failed to load vgui_support library: %s\n", COM_GetLibraryError ());
 
 			return false;
 			}

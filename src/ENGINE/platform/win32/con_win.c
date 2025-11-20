@@ -48,10 +48,6 @@ typedef struct
 	qboolean	inputEnabled;
 	qboolean	consoleVisible;
 	qboolean	attached;
-
-	/*// log stuff
-	qboolean	log_active;
-	char		log_path[MAX_SYSPATH];*/
 	} WinConData;
 
 static WinConData	s_wcd;
@@ -132,7 +128,7 @@ static void Wcon_PrintInternal (const char *msg, int length)
 
 void Wcon_ShowConsole (qboolean show)
 	{
-	if (!s_wcd.hWnd || (show == s_wcd.consoleVisible) || s_wcd.attached)	// [FWGS, 01.05.23]
+	if (!s_wcd.hWnd || (show == s_wcd.consoleVisible) || s_wcd.attached)
 		return;
 
 	s_wcd.consoleVisible = show;
@@ -145,7 +141,6 @@ void Wcon_ShowConsole (qboolean show)
 // [FWGS, 01.03.25]
 void Wcon_DisableInput (void)
 	{
-	/*if (host.type != HOST_DEDICATED)*/
 	if ((host.type != HOST_DEDICATED) || !s_wcd.hWnd)
 		return;
 
@@ -177,10 +172,9 @@ static void Wcon_Clear_f (void)
 	if (host.type != HOST_DEDICATED)
 		return;
 
+	// [ESHQ: brackets]
 	if (!GetConsoleScreenBufferInfo (s_wcd.hOutput, &csbi))
-		{
 		return;
-		}
 
 	scrollRect.Left = 0;
 	scrollRect.Top = 0;
@@ -494,35 +488,26 @@ create win32 console
 ***/
 void Wcon_CreateConsole (qboolean con_showalways)
 	{
-	/*if (Sys_CheckParm ("-log"))
-		s_wcd.log_active = true;*/
-
 	if (host.type == HOST_NORMAL)
 		{
 		Q_strncpy (s_wcd.title, XASH_ENGINE_NAME " " XASH_VERSION, sizeof (s_wcd.title));
-		/*Q_strncpy (s_wcd.log_path, "engine.log", sizeof (s_wcd.log_path));*/
 		}
 
 	// dedicated console
 	else
 		{
 		Q_strncpy (s_wcd.title, XASH_DEDICATED_SERVER_NAME " " XASH_VERSION, sizeof (s_wcd.title));
-		/*Q_strncpy (s_wcd.log_path, "dedicated.log", sizeof (s_wcd.log_path));
-		s_wcd.log_active = true;	// always make log*/
 		}
 
+	// [FWGS, 01.11.25]
 	s_wcd.attached = (AttachConsole (ATTACH_PARENT_PROCESS) != 0);
-	/*if (s_wcd.attached)
-		{*/
 	if (s_wcd.attached)
 		{
-		GetConsoleTitle (&s_wcd.previousTitle, sizeof (s_wcd.previousTitle));
+		/*GetConsoleTitle (&s_wcd.previousTitle, sizeof (s_wcd.previousTitle));*/
+		GetConsoleTitle (s_wcd.previousTitle, sizeof (s_wcd.previousTitle));
 		s_wcd.previousCodePage = GetConsoleCP ();
 		s_wcd.previousOutputCodePage = GetConsoleOutputCP ();
 		}
-	/*else
-		{
-		AllocConsole ();*/
 	else
 		{
 		if ((host.type != HOST_DEDICATED) && (host_developer.value == DEV_NONE))
@@ -577,7 +562,6 @@ register console commands (dedicated only)
 ***/
 void Wcon_InitConsoleCommands (void)
 	{
-	/*if (host.type != HOST_DEDICATED)*/
 	if ((host.type != HOST_DEDICATED) || !s_wcd.hWnd)
 		return;
 
@@ -596,9 +580,6 @@ void Wcon_DestroyConsole (void)
 	// last text message into console or log
 	Con_Reportf ("%s: Unloading xash.dll\n", __func__);
 
-	/*// [FWGS, 01.02.25]
-	Sys_CloseLog (NULL);*/
-
 	if (!s_wcd.attached)
 		{
 		if (s_wcd.hWnd)
@@ -609,10 +590,11 @@ void Wcon_DestroyConsole (void)
 		}
 	else
 		{
-		// reverts title & code page for console window that was before starting Xash3D
+		// [FWGS, 01.11.25] reverts title & code page for console window that was before starting Xash3D
 		SetConsoleCP (s_wcd.previousCodePage);
 		SetConsoleOutputCP (s_wcd.previousOutputCodePage);
-		SetConsoleTitle (&s_wcd.previousTitle);
+		/*SetConsoleTitle (&s_wcd.previousTitle);*/
+		SetConsoleTitle (s_wcd.previousTitle);
 		Con_Printf ("Press Enter to continue...\n");
 		}
 
@@ -632,7 +614,6 @@ char *Wcon_Input (void)
 	DWORD eventsCount;
 	static INPUT_RECORD events[1024];
 
-	/*if (!s_wcd.inputEnabled)*/
 	if (!s_wcd.inputEnabled || !s_wcd.hWnd)
 		return NULL;
 
@@ -673,7 +654,6 @@ set server status string in console
 ***/
 void Platform_SetStatus (const char *pStatus)
 	{
-	/*if (s_wcd.attached)*/
 	if (s_wcd.attached || !s_wcd.hWnd)
 		return;
 

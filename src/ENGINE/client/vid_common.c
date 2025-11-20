@@ -62,7 +62,7 @@ void VID_InitDefaultResolution (void)
 
 /***
 =================
-R_SaveVideoMode [FWGS, 01.11.23]
+R_SaveVideoMode
 =================
 ***/
 void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximized)
@@ -106,7 +106,6 @@ VID_GetModeString [FWGS, 01.12.24]
 const char *VID_GetModeString (int vid_mode)
 	{
 	vidmode_t *vidmode;
-	/*if ((vid_mode < 0) || (vid_mode > R_MaxVideoModes ()))*/
 	if ((vid_mode < 0) || (vid_mode >= R_MaxVideoModes ()))
 		return NULL;
 
@@ -144,7 +143,7 @@ void VID_CheckChanges (void)
 
 /***
 ===============
-VID_SetDisplayTransform [FWGS, 01.07.23]
+VID_SetDisplayTransform
 
 notify ref dll about screen transformations
 ===============
@@ -152,6 +151,10 @@ notify ref dll about screen transformations
 void VID_SetDisplayTransform (int *render_w, int *render_h)
 	{
 	uint rotate = vid_rotate.value;
+
+	// [FWGS, 01.11.25]
+	if ((rotate < REF_ROTATE_NONE) || (rotate > REF_ROTATE_CCW))
+		rotate = REF_ROTATE_NONE;
 
 	if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, vid_scale.value, vid_scale.value))
 		{
@@ -163,12 +166,16 @@ void VID_SetDisplayTransform (int *render_w, int *render_h)
 			*render_h = swap;
 			}
 
+		// [FWGS, 01.11.25]
 		*render_h /= vid_scale.value;
 		*render_w /= vid_scale.value;
+		ref.rotation = rotate;
 		}
 	else
 		{
+		// [FWGS, 01.11.25]
 		Con_Printf (S_WARN "failed to setup screen transform\n");
+		ref.rotation = REF_ROTATE_NONE;
 		}
 	}
 
@@ -206,7 +213,6 @@ static void VID_Mode_f (void)
 			return;
 		}
 
-	// [FWGS, 01.11.23]
 	R_ChangeDisplaySettings (w, h, bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1));
 	}
 

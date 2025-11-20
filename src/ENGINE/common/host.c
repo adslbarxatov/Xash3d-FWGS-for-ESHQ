@@ -14,7 +14,6 @@ GNU General Public License for more details
 ***/
 
 #include "build.h"
-
 #include <stdarg.h>	// va_args
 
 // [FWGS, 01.07.24]
@@ -43,11 +42,14 @@ GNU General Public License for more details
 #include "render_api.h"	// decallist_t
 #include "tests.h"
 
-// [FWGS, 01.12.24]
-static pfnChangeGame pChangeGame = NULL;
+// [FWGS, 01.11.25]
+/*static pfnChangeGame pChangeGame = NULL;
 host_parm_t		host;	// host parms
 
-#if XASH_ANDROID
+if XASH_ANDROID*/
+host_parm_t				host;	// host parms
+static pfnChangeGame	pChangeGame = NULL;
+
 static jmp_buf return_from_main_buf;
 
 /***
@@ -67,7 +69,7 @@ void Host_ExitInMain (void)
 	longjmp (return_from_main_buf, 1);
 	}
 
-#endif
+/*endif*/
 
 #ifdef XASH_ENGINE_TESTS
 struct tests_stats_s tests_stats;
@@ -163,7 +165,7 @@ static void Sys_PrintUsage (const char *exename)
 
 #define O( x, y ) "  "x"  "y"\n"
 
-	// [FWGS, 01.05.25]
+	// [FWGS, 01.11.25]
 	usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
 		"\nCommon options:\n"
 		O ("-dev [level]       ", "set log verbosity 0-2")
@@ -178,6 +180,7 @@ static void Sys_PrintUsage (const char *exename)
 		O ("-bugcomp [opts]    ", "enable precise bug compatibility")
 		O ("                   ", "will break games that don't require it")
 		O ("                   ", "refer to engine documentation for more info")
+		O ("-language <lang>   ", "mount localization game directory")
 		O ("-disablehelp       ", "disable this message")
 
 #if !XASH_DEDICATED
@@ -218,10 +221,10 @@ static void Sys_PrintUsage (const char *exename)
 		O ("-ref <name>        ", "use selected renderer dll")
 		O ("-gldebug           ", "enable OpenGL debug log")
 
-#if XASH_WIN32
+/*if XASH_WIN32*/
 		O ("-noavi             ", "disable AVI support")
 		O ("-nointro           ", "disable intro video")
-#endif
+/*endif*/
 
 		O ("-noenginejoy       ", "disable engine builtin joystick support")
 		O ("-noenginemouse     ", "disable engine builtin mouse support")
@@ -238,11 +241,12 @@ static void Sys_PrintUsage (const char *exename)
 		O ("-sdl_renderer <n>  ", "use alternative SDL_Renderer for software")
 #endif
 
-#if XASH_ANDROID && !XASH_SDL
+/*if XASH_ANDROID && !XASH_SDL
 		O ("-nativeegl         ", "use native egl implementation. Use if screen does not update or black")
-#endif
+endif
 
-#if XASH_DOS
+if XASH_DOS*/
+#if XASH_VIDEO == VIDEO_DOS
 		O ("-novesa            ", "disable vesa")
 #endif
 
@@ -1134,13 +1138,13 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 			Sys_PrintBugcompUsage (exename);
 		}
 
-	// [FWGS, 01.03.25]
-	if (!Sys_CheckParm ("-noch"))
+	// [FWGS, 01.11.25]
+	/*if (!Sys_CheckParm ("-noch"))
 		Sys_SetupCrashHandler (argv[0]);
 
-#if XASH_DLL_LOADER
+	if XASH_DLL_LOADER
 	host.enabledll = !Sys_CheckParm ("-nodll");
-#endif
+	endif*/
 
 	host.change_game = bChangeGame || Sys_CheckParm ("-changegame");
 	host.config_executed = false;
@@ -1156,7 +1160,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	// [FWGS, 01.07.25]
 	host.mempool = Mem_AllocPool ("Zone Engine");
-	/*host.allow_console = DEFAULT_ALLOWCONSOLE;*/
 	host.allow_console = DEFAULT_ALLOWCONSOLE || (DEFAULT_DEV > 0);
 
 	if (Sys_CheckParm ("-dev"))
@@ -1211,8 +1214,12 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		Cvar_SetValue ("sys_ticrate", fps);
 		}
 
-	// early console running to catch all the messages
+	// [FWGS, 01.11.25] early console running to catch all the messages
+	Sys_InitLog ();
 	Con_Init ();
+
+	if (!Sys_CheckParm ("-noch"))
+		Sys_SetupCrashHandler (argv[0]);
 
 #if XASH_ENGINE_TESTS
 	if (Sys_CheckParm ("-runtests"))
@@ -1223,10 +1230,10 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	Platform_SetupSigtermHandling ();
 #endif
 
-	// [FWGS, 01.02.25]
+	// [FWGS, 01.11.25]
 	Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED), basedir);
 	FS_Init (basedir);
-	Sys_InitLog ();
+	/*Sys_InitLog ();*/
 
 	// print current developer level to simplify processing users feedback
 	if (developer > 0)
@@ -1263,7 +1270,9 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		Host_RunTests (1);
 #endif
 
-	FS_LoadGameInfo (NULL);
+	// [FWGS, 01.11.25]
+	/*FS_LoadGameInfo (NULL);*/
+	FS_LoadGameInfo ();
 	Cvar_PostFSInit ();
 
 	Image_CheckPaletteQ1 ();
@@ -1295,14 +1304,15 @@ static void Sys_Quit_f (void)
 	Sys_Quit ("command");
 	}
 
-// [FWGS, 01.07.25]
-static void Host_MainLoop (void *userdata)
+// [FWGS, 01.07.25] removed Host_MainLoop
+
+/*static void Host_MainLoop (void *userdata)
 	{
 	double *poldtime = (double *)userdata;
 	double newtime = Sys_DoubleTime ();
 	COM_Frame (newtime - *poldtime);
 	*poldtime = newtime;
-	}
+	}*/
 
 /***
 =================
@@ -1312,10 +1322,13 @@ Host_Main
 int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)
 	{
 	// [FWGS, 01.07.25]
-	/*static double	oldtime, newtime;*/
 	static double	oldtime;
 	string			demoname, exename;
-	qboolean		achiExecuted = false;
+	qboolean		achiExecuted = false;	// ESHQ: поддержка достижений
+
+	// [FWGS, 01.11.25]
+	if (setjmp (return_from_main_buf))
+		return error_on_exit;
 
 	host.starttime = Sys_DoubleTime ();
 	pChangeGame = func;		// may be NULL
@@ -1421,13 +1434,19 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 #ifdef _WIN32
 			Wcon_ShowConsole (false); // hide console
 #endif
-			// execute startup config and cmdline
+			// [FWGS, 01.11.25] execute startup config and cmdline
 			if (FS_FileExists (va ("%s.rc", progname), false)) // e.g. valve.rc
-				Cbuf_AddTextf ("exec %s.rc", progname);
+				/*Cbuf_AddTextf ("exec %s.rc", progname);*/
+				Cbuf_AddTextf ("exec %s.rc\n", progname);
+
 			else if (FS_FileExists (va ("%s.rc", exename), false)) // e.g. quake.rc
-				Cbuf_AddTextf ("exec %s.rc", exename);
+				/*Cbuf_AddTextf ("exec %s.rc", exename);*/
+				Cbuf_AddTextf ("exec %s.rc\n", exename);
+
 			else if (FS_FileExists (va ("%s.rc", GI->gamefolder), false)) // e.g. game.rc (ran from default launcher)
-				Cbuf_AddTextf ("exec %s.rc", GI->gamefolder);
+				/*Cbuf_AddTextf ("exec %s.rc", GI->gamefolder);*/
+				Cbuf_AddTextf ("exec %s.rc\n", GI->gamefolder);
+
 			Cbuf_Execute ();
 
 			if (!host.config_executed)
@@ -1472,8 +1491,8 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 
 	SCR_CheckStartupVids ();	// must be last
 
-	// [FWGS, 01.03.25]
-	FS_CheckConfig ();
+	/*// [FWGS, 01.03.25]
+	FS_CheckConfig ();*/
 
 	if (Sys_GetParmFromCmdLine ("-timedemo", demoname))
 		Cbuf_AddTextf ("timedemo %s\n", demoname);
@@ -1503,25 +1522,26 @@ int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChange
 	// check after all configs were executed
 	HPAK_CheckIntegrity (hpk_custom_file.string);
 
-	// [FWGS, 01.02.25]
-#if XASH_ANDROID
+	// [FWGS, 01.11.25]
+	/*if XASH_ANDROID
 	if (setjmp (return_from_main_buf))
 		return error_on_exit;
-#endif
+	endif
 
 	// [FWGS, 01.07.25]
-#if !XASH_EMSCRIPTEN
+	if !XASH_EMSCRIPTEN*/
+
 	// main window message loop
 	while (host.status != HOST_CRASHED)
-		/*{
-		newtime = Sys_DoubleTime ();
+		/*Host_MainLoop (&oldtime);
+		else
+		emscripten_set_main_loop_arg (Host_MainLoop, &oldtime, 0, false);
+		endif*/
+		{
+		double newtime = Sys_DoubleTime ();
 		COM_Frame (newtime - oldtime);
 		oldtime = newtime;
-		}*/
-		Host_MainLoop (&oldtime);
-#else
-		emscripten_set_main_loop_arg (Host_MainLoop, &oldtime, 0, false);
-#endif
+		}
 
 	return 0;
 	}

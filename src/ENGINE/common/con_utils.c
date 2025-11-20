@@ -530,7 +530,6 @@ static qboolean Cmd_GetSoundList (const char *s, char *completedname, int length
 	return true;
 	}
 
-/*if !XASH_DEDICATED*/
 /***
 =====================================
 Cmd_GetItemsList [FWGS, 01.03.25]
@@ -557,7 +556,6 @@ static qboolean Cmd_GetItemsList (const char *s, char *completedname, int length
 	if (t->numfilenames == 1)
 		return true;
 
-	/*for (i = 0, numitems = 0; i < t->numfilenames; i++)*/
 	for (i = 0, numitems = 0; i < t->numfilenames; i++)
 		{
 		if (Q_stricmp (COM_FileExtension (t->filenames[i]), "txt"))
@@ -644,14 +642,11 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 	return false;
 	}
 
-/*endif*/
-
 /***
 ===============
 Con_AddCommandToList [FWGS, 01.03.25]
 ===============
 ***/
-/*static void Con_AddCommandToList (const char *s, const char *unused1, const char *unused2, void *_autocompleteList)*/
 static void Con_AddCommandToList (const char *s, const char *value, const void *ptoggle, void *_autocompleteList)
 	{
 	con_autocomplete_t *list = (con_autocomplete_t *)_autocompleteList;
@@ -691,15 +686,11 @@ Cmd_GetCommandsList [FWGS, 01.03.25]
 Autocomplete for bind command
 =====================================
 ***/
-/*static qboolean Cmd_GetCommandsList (const char *s, char *completedname, int length)*/
 static qboolean Cmd_GetCommandsAndCvarsList (const char *s, char *completedname, int length, qboolean cmds,
 	qboolean cvars, qboolean toggle)
 	{
 	size_t	i;
 	string	matchbuf;
-	/*con_autocomplete_t	list; // local autocomplete list
-
-	memset (&list, 0, sizeof (list));*/
 	con_autocomplete_t	list = { 0 }; // local autocomplete list
 
 	list.completionString = s;
@@ -712,8 +703,6 @@ static qboolean Cmd_GetCommandsAndCvarsList (const char *s, char *completedname,
 		return false;
 
 	// find matching commands and variables
-	/*Cmd_LookupCmds (NULL, &list, (setpair_t)Con_AddCommandToList);
-	Cvar_LookupVars (0, NULL, &list, (setpair_t)Con_AddCommandToList);*/
 	if (cvars)
 		{
 		Cvar_LookupVars (0, &toggle, &list, (setpair_t)Con_AddCommandToList);
@@ -742,7 +731,6 @@ static qboolean Cmd_GetCommandsAndCvarsList (const char *s, char *completedname,
 		Con_Printf ("%16s\n", matchbuf);
 		}
 
-	/*Con_Printf ("\n^3 %i commands found.\n", list.matchCount);*/
 	Con_Printf ("\n^3 %i %s found.\n", list.matchCount, cmds ? "commands" : "variables");
 
 	if (completedname && length)
@@ -1112,6 +1100,7 @@ static qboolean Cmd_CheckMapsList_R (qboolean fRefresh, qboolean onlyingamedir)
 			Mem_Free (buffer);
 		return true;
 		}
+
 	return false;
 	}
 
@@ -1123,50 +1112,25 @@ int GAME_EXPORT Cmd_CheckMapsList (int fRefresh)
 // [FWGS, 01.03.25] keep this sorted
 static const autocomplete_list_t cmd_list[] =
 	{
-	/*{ "map_background", 1, Cmd_GetMapList },*/
 	{ "bind", 1, Cmd_GetKeysList },
 	{ "bind", 2, Cmd_GetCommandsList },
 	{ "cd", 1, Cmd_GetCDList },
-
 	{ "changelevel2", 1, Cmd_GetMapList },
 	{ "changelevel", 1, Cmd_GetMapList },
-	/*{ "playdemo", 1, Cmd_GetDemoList, },
-	{ "timedemo", 1, Cmd_GetDemoList, },
-	{ "listdemo", 1, Cmd_GetDemoList, },
-	{ "playvol", 1, Cmd_GetSoundList },
-	{ "hpkval", 1, Cmd_GetCustomList },
-	{ "hpklist", 1, Cmd_GetCustomList },
-	{ "hpkextract", 1, Cmd_GetCustomList },*/
 	{ "drop", 1, Cmd_GetItemsList },
-
 	{ "entpatch", 1, Cmd_GetMapList },
-	/*{ "music", 1, Cmd_GetMusicList, },
-	{ "movie", 1, Cmd_GetMovieList },*/
 	{ "exec", 1, Cmd_GetConfigList },
-	/*if !XASH_DEDICATED
-	{ "give", 1, Cmd_GetItemsList },
-	{ "drop", 1, Cmd_GetItemsList },
-	{ "bind", 1, Cmd_GetKeysList },
-	{ "unbind", 1, Cmd_GetKeysList },
-	{ "bind", 2, Cmd_GetCommandsList },
-	endif*/
 	{ "game", 1, Cmd_GetGamesList },
-
-	/*{ "save", 1, Cmd_GetSavesList },*/
 	{ "give", 1, Cmd_GetItemsList },
 	{ "hpkextract", 1, Cmd_GetCustomList },
 	{ "hpklist", 1, Cmd_GetCustomList },
 	{ "hpkval", 1, Cmd_GetCustomList },
 	{ "listdemo", 1, Cmd_GetDemoList, },
-
 	{ "load", 1, Cmd_GetSavesList },
-	/*{ "play", 1, Cmd_GetSoundList },*/
 	{ "map", 1, Cmd_GetMapList },
-	/*{ "cd", 1, Cmd_GetCDList },*/
 	{ "map_background", 1, Cmd_GetMapList },
 	{ "movie", 1, Cmd_GetMovieList },
 	{ "mp3", 1, Cmd_GetCDList },
-
 	{ "music", 1, Cmd_GetMusicList, },
 	{ "play", 1, Cmd_GetSoundList },
 	{ "playdemo", 1, Cmd_GetDemoList, },
@@ -1337,8 +1301,6 @@ void Con_CompleteCommand (field_t *field)
 	con.shortestMatch[0] = 0;
 
 	// [FWGS, 01.03.25] find matching commands and variables
-	/*Cmd_LookupCmds (NULL, &con, (setpair_t)Con_AddCommandToList);
-	Cvar_LookupVars (0, NULL, &con, (setpair_t)Con_AddCommandToList);*/
 	Cmd_LookupCmds (&toggle, &con, (setpair_t)Con_AddCommandToList);
 	Cvar_LookupVars (0, &toggle, &con, (setpair_t)Con_AddCommandToList);
 
@@ -1453,7 +1415,6 @@ void Cmd_AutoComplete (char *complete_string)
 /***
 ============
 Cmd_AutoCompleteClear
-
 ============
 ***/
 void Cmd_AutoCompleteClear (void)
@@ -1515,8 +1476,19 @@ static void Cmd_WriteOpenGLVariables (file_t *f)
 	Cvar_LookupVars (FCVAR_GLCONFIG, NULL, f, (setpair_t)Cmd_WriteOpenGLCvar);
 	}
 
-#if !XASH_DEDICATED
-static void Host_FinalizeConfig (file_t *f, const char *config)
+// [FWGS, 01.11.25]
+/*#if !XASH_DEDICATED
+static void Host_FinalizeConfig (file_t *f, const char *config)*/
+void Host_InitializeConfig (file_t *f, const char *config, const char *description)
+	{
+	FS_Printf (f, "//=======================================================================\n");
+	FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (), g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
+	FS_Printf (f, "//\t\t%s - %s\n", config, description);
+	FS_Printf (f, "//=======================================================================\n");
+	}
+
+// [FWGS, 01.11.25]
+void Host_FinalizeConfig (file_t *f, const char *config)
 	{
 	string backup, newcfg;
 
@@ -1529,6 +1501,9 @@ static void Host_FinalizeConfig (file_t *f, const char *config)
 	FS_Rename (config, backup);
 	FS_Rename (newcfg, config);
 	}
+
+// [FWGS, 01.11.25]
+#if !XASH_DEDICATED
 
 /***
 ===============
@@ -1545,16 +1520,18 @@ void Host_WriteConfig (void)
 
 	if (!clgame.hInstance || Sys_CheckParm ("-nowriteconfig")) return;
 
-	// [FWGS, 01.02.25]
+	// [FWGS, 01.11.25]
 	f = FS_Open ("config.cfg.new", "w", false);
 	if (f)
 		{
 		Con_Reportf ("%s()\n", __func__);
-		FS_Printf (f, "//=======================================================================\n");
+		/*FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "//\tGenerated by " XASH_ENGINE_NAME " (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
 		FS_Printf (f, "//\t\tconfig.cfg - archive of cvars\n");
-		FS_Printf (f, "//=======================================================================\n");
+		FS_Printf (f, "//=======================================================================\n");*/
+		Host_InitializeConfig (f, "config.cfg", "archive of cvars");
+
 		Key_WriteBindings (f);
 		Cvar_WriteVariables (f, FCVAR_ARCHIVE);
 		Info_WriteVars (f);
@@ -1583,7 +1560,9 @@ void Host_WriteConfig (void)
 		Con_DPrintf (S_ERROR "Couldn't write config.cfg.\n");
 		}
 
+	// [FWGS, 01.11.25]
 	NET_SaveMasters ();
+	FS_SaveVFSConfig ();
 	}
 
 /***
@@ -1603,14 +1582,15 @@ void GAME_EXPORT Host_WriteServerConfig (const char *name)
 	// FIXME: move this out until menu parser is done
 	CSCR_LoadDefaultCVars ("settings.scr");
 
-	// [FWGS, 01.02.25]
+	// [FWGS, 01.11.25]
 	if ((f = FS_Open (newconfigfile, "w", false)) != NULL)
 		{
-		FS_Printf (f, "//=======================================================================\n");
+		/*FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
 		FS_Printf (f, "//\t\tgame.cfg - multiplayer server temporare config\n");
-		FS_Printf (f, "//=======================================================================\n");
+		FS_Printf (f, "//=======================================================================\n");*/
+		Host_InitializeConfig (f, "game.cfg", "multiplayer server temporary config");
 
 		Cvar_WriteVariables (f, FCVAR_SERVER);
 		CSCR_WriteGameCVars (f, "settings.scr");
@@ -1640,17 +1620,19 @@ void Host_WriteOpenGLConfig (void)
 
 	Q_snprintf (name, sizeof (name), "%s.cfg", ref.dllFuncs.R_GetConfigName ());
 
-	// [FWGS, 01.02.25]
+	// [FWGS, 01.11.25]
 	f = FS_Open (va ("%s.new", name), "w", false);
 	if (f)
 		{
 		Con_Reportf ("%s()\n", __func__);
-		FS_Printf (f, "//=======================================================================\n");
+		/*FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
 		FS_Printf (f, "//\t\t%s - archive of renderer implementation cvars\n", name);
-		FS_Printf (f, "//=======================================================================\n");
-		FS_Printf (f, "\n");
+		FS_Printf (f, "//=======================================================================\n");*/
+		Host_InitializeConfig (f, name, "archive of renderer implementation cvars");
+
+		/*FS_Printf (f, "\n");*/
 		Cmd_WriteOpenGLVariables (f);
 
 		Host_FinalizeConfig (f, name);
@@ -1675,16 +1657,18 @@ void Host_WriteVideoConfig (void)
 	if (Sys_CheckParm ("-nowriteconfig"))
 		return;
 
-	// [FWGS, 01.02.25]
+	// [FWGS, 01.11.25]
 	f = FS_Open ("video.cfg.new", "w", false);
 	if (f)
 		{
 		Con_Reportf ("%s()\n", __func__);
-		FS_Printf (f, "//=======================================================================\n");
+		/*FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
 		FS_Printf (f, "//\t\tvideo.cfg - archive of renderer variables\n");
-		FS_Printf (f, "//=======================================================================\n");
+		FS_Printf (f, "//=======================================================================\n");*/
+		Host_InitializeConfig (f, "video.cfg", "archive of renderer variables");
+
 		Cvar_WriteVariables (f, FCVAR_RENDERINFO);
 		Host_FinalizeConfig (f, "video.cfg");
 		}
@@ -1707,15 +1691,17 @@ void Key_EnumCmds_f (void)
 		return;
 		}
 
-	// [FWGS, 01.02.25]
+	// [FWGS, 01.11.25]
 	f = FS_Open ("../help.txt", "w", false);
 	if (f)
 		{
-		FS_Printf (f, "//=======================================================================\n");
+		/*FS_Printf (f, "//=======================================================================\n");
 		FS_Printf (f, "//\tGenerated by "XASH_ENGINE_NAME" (%i, %s, %s, %s-%s)\n", Q_buildnum (),
 			g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
 		FS_Printf (f, "//\t\thelp.txt - xash commands and console variables\n");
-		FS_Printf (f, "//=======================================================================\n");
+		FS_Printf (f, "//=======================================================================\n");*/
+		Host_InitializeConfig (f, "help.txt", "xash commands and console variables");
+
 		FS_Printf (f, "\n\n\t\t\tconsole variables\n\n");
 		Cvar_LookupVars (0, NULL, f, (setpair_t)Cmd_WriteHelp);
 		FS_Printf (f, "\n\n\t\t\tconsole commands\n\n");
