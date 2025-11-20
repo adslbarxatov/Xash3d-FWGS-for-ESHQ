@@ -30,7 +30,6 @@ static model_t	mod_known[MAX_MODELS];
 static int	mod_numknown = 0;
 poolhandle_t      com_studiocache;		// cache for submodels
 
-// [FWGS, 01.07.23]
 CVAR_DEFINE (mod_studiocache, "r_studiocache", "1", FCVAR_ARCHIVE,
 	"enables studio cache for speedup tracing hitboxes");
 CVAR_DEFINE_AUTO (r_wadtextures, "0", 0,
@@ -43,6 +42,7 @@ CVAR_DEFINE_AUTO (r_showhull, "0", 0,
 MOD COMMON UTILS
 ===============================================================================
 ***/
+
 /***
 ================
 Mod_Modellist_f
@@ -77,7 +77,7 @@ Mod_FreeUserData
 static void Mod_FreeUserData (model_t *mod)
 	{
 	// ignore submodels and freed models
-	if (!COM_CheckStringEmpty (mod->name) || mod->name[0] == '*')
+	if (!COM_CheckStringEmpty (mod->name) || (mod->name[0] == '*'))
 		return;
 
 	if (Host_IsDedicated ())
@@ -88,10 +88,13 @@ static void Mod_FreeUserData (model_t *mod)
 			svgame.physFuncs.Mod_ProcessUserData (mod, false, NULL);
 			}
 		}
+
+	// [FWGS, 01.11.25]
 #if !XASH_DEDICATED
 	else
 		{
-		ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL);
+		/*ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL);*/
+		ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL, 0);
 		}
 #endif
 	}
@@ -134,6 +137,7 @@ void Mod_FreeModel (model_t *mod)
 MODEL INITIALIZE / SHUTDOWN
 ===============================================================================
 ***/
+
 /***
 ================
 Mod_Init
@@ -143,7 +147,6 @@ void Mod_Init (void)
 	{
 	com_studiocache = Mem_AllocPool ("Studio Cache");
 	
-	// [FWGS, 01.07.23]
 	Cvar_RegisterVariable (&mod_studiocache);
 	Cvar_RegisterVariable (&r_wadtextures);
 	Cvar_RegisterVariable (&r_showhull);
@@ -201,6 +204,7 @@ void Mod_Shutdown (void)
 MODELS MANAGEMENT
 ===============================================================================
 ***/
+
 /***
 ==================
 Mod_FindName
@@ -243,8 +247,11 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 
 	// copy name, so model loader can find model file
 	Q_strncpy (mod->name, modname, sizeof (mod->name));
-	if (trackCRC) mod_crcinfo[i].flags = FCRC_SHOULD_CHECKSUM;
-	else mod_crcinfo[i].flags = 0;
+	if (trackCRC)
+		mod_crcinfo[i].flags = FCRC_SHOULD_CHECKSUM;
+	else
+		mod_crcinfo[i].flags = 0;
+
 	mod->needload = NL_NEEDS_LOADED;
 	mod_crcinfo[i].initialCRC = 0;
 
@@ -253,7 +260,7 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 
 /***
 ==================
-Mod_LoadModel [FWGS, 01.03.25]
+Mod_LoadModel
 
 Loads a model into the cache
 ==================
@@ -282,7 +289,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	COM_FixSlashes (tempname);
 
 	buf = FS_LoadFile (tempname, &length, false);
-	/*if (!buf)*/
 	if (!buf || (length < sizeof (uint)))
 		{
 		memset (mod, 0, sizeof (model_t));
@@ -299,24 +305,31 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	mod->needload = NL_PRESENT;
 	mod->type = mod_bad;
 
-	// call the apropriate loader
+	// [FWGS, 01.11.25] call the apropriate loader
 	switch (*(uint *)buf)
 		{
-		case IDSTUDIOHEADER:
+		/*case IDSTUDIOHEADER:*/
+		case LittleLong (IDSTUDIOHEADER):
 			Mod_LoadStudioModel (mod, buf, &loaded);
 			break;
 
-		case IDSPRITEHEADER:
-			Mod_LoadSpriteModel (mod, buf, &loaded);
+		/*case IDSPRITEHEADER:
+			Mod_LoadSpriteModel (mod, buf, &loaded);*/
+		case LittleLong (IDSPRITEHEADER):
+			Mod_LoadSpriteModel (mod, buf, length, &loaded);
 			break;
 
-		case IDALIASHEADER:
+		/*case IDALIASHEADER:*/
+		case LittleLong (IDALIASHEADER):
 			Mod_LoadAliasModel (mod, buf, &loaded);
 			break;
 
-		case Q1BSP_VERSION:
+		/*case Q1BSP_VERSION:
 		case HLBSP_VERSION:
-		case QBSP2_VERSION:
+		case QBSP2_VERSION:*/
+		case LittleLong (Q1BSP_VERSION):
+		case LittleLong (HLBSP_VERSION):
+		case LittleLong (QBSP2_VERSION):
 			Mod_LoadBrushModel (mod, buf, &loaded);
 			break;
 
@@ -340,15 +353,17 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 				{
 				// let the server.dll load custom data
 				svgame.physFuncs.Mod_ProcessUserData (mod, true, buf);
-				/*loaded2 = true;*/
 				}
 
 			loaded2 = true;
 			}
+
+		// [FWGS, 01.11.25]
 #if !XASH_DEDICATED
 		else
 			{
-			loaded2 = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf);
+			/*loaded2 = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf);*/
+			loaded2 = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf, length);
 			}
 #endif
 		}
@@ -362,7 +377,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 			hdr->pposeverts = NULL;
 		}
 
-	/*if (!loaded)*/
 	if (!loaded || !loaded2)
 		{
 		Mod_FreeModel (mod);
@@ -437,6 +451,7 @@ static void Mod_PurgeStudioCache (void)
 #if !XASH_DEDICATED
 	Mod_ReleaseHullPolygons ();
 #endif
+
 	// release previois map
 	Mod_FreeModel (mod_known);	// world is stuck on slot #0 always
 
@@ -476,7 +491,9 @@ model_t *Mod_LoadWorld (const char *name, qboolean preload)
 	// load the newmap
 	world.loading = true;
 	pworld = Mod_FindName (name, false);
-	if (preload) Mod_LoadModel (pworld, true);
+	if (preload)
+		Mod_LoadModel (pworld, true);
+
 	world.loading = false;
 
 	ASSERT (pworld == mod_known);
@@ -493,8 +510,8 @@ Purge all unused models
 ***/
 void Mod_FreeUnused (void)
 	{
-	model_t *mod;
-	int	i;
+	model_t	*mod;
+	int		i;
 
 	// never tries to release worldmodel
 	for (i = 1, mod = &mod_known[1]; i < mod_numknown; i++, mod++)
@@ -518,7 +535,9 @@ void *Mod_Calloc (int number, size_t size)
 	{
 	cache_user_t *cu;
 
-	if (number <= 0 || size <= 0) return NULL;
+	if ((number <= 0) || (size <= 0))
+		return NULL;
+
 	cu = (cache_user_t *)Mem_Calloc (com_studiocache, sizeof (cache_user_t) + number * size);
 	cu->data = (void *)cu; // make sure what cu->data is not NULL
 
@@ -555,7 +574,9 @@ void Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	COM_FixSlashes (modname);
 
 	buf = FS_LoadFile (modname, &size, false);
-	if (!buf || !size) Host_Error ("LoadCacheFile: ^1can't load %s^7\n", filename);
+	if (!buf || !size)
+		Host_Error ("LoadCacheFile: ^1can't load %s^7\n", filename);
+
 	cu->data = Mem_Malloc (com_studiocache, size);
 	memcpy (cu->data, buf, size);
 	Mem_Free (buf);
@@ -581,8 +602,9 @@ Mod_StudioExtradata
 ***/
 void *Mod_StudioExtradata (model_t *mod)
 	{
-	if (mod && mod->type == mod_studio)
+	if (mod && (mod->type == mod_studio))
 		return mod->cache.data;
+
 	return NULL;
 	}
 

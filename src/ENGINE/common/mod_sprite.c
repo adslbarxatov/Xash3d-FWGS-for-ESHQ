@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -27,14 +27,15 @@ GNU General Public License for more details
 
 /***
 ====================
-Mod_LoadSpriteModel [FWGS, 01.08.24]
+Mod_LoadSpriteModel [FWGS, 01.11.25]
 
 load sprite model
 ====================
 ***/
-void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded)
+/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded)*/
+void Mod_LoadSpriteModel (model_t *mod, const void *buffer, size_t buffersize, qboolean *loaded)
 	{
-	dsprite_q1_t	*pinq1;
+	/*dsprite_q1_t	*pinq1;
 	dsprite_hl_t	*pinhl;
 	dsprite_t		*pin;
 	msprite_t		*psprite;
@@ -45,52 +46,117 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded)
 		*loaded = false;
 	pin = (dsprite_t *)buffer;
 	mod->type = mod_sprite;
-	i = pin->version;
+	i = pin->version;*/
+	const dsprite_t	*pin = buffer;
+	msprite_t		*psprite;
+	char			poolname[MAX_VA_STRING];
+
+	if (loaded)
+		*loaded = false;
+
+	if (buffersize < sizeof (dsprite_t))
+		{
+		Con_DPrintf (S_ERROR "%s: %s have incorrect file size %zu should be greater than %zu (%s)\n",
+			__func__, mod->name, buffersize, sizeof (dsprite_t), "basic header");
+		return;
+		}
 
 	if (pin->ident != IDSPRITEHEADER)
 		{
-		Con_DPrintf (S_ERROR "%s has wrong id (%x should be %x)\n", mod->name, pin->ident, IDSPRITEHEADER);
+		/*Con_DPrintf (S_ERROR "%s has wrong id (%x should be %x)\n", mod->name, pin->ident, IDSPRITEHEADER);*/
+		Con_DPrintf (S_ERROR "%s: %s has wrong id (0x%x should be 0x%x)\n", __func__, mod->name,
+			pin->ident, IDSPRITEHEADER);
 		return;
 		}
 
-	if ((i != SPRITE_VERSION_Q1) && (i != SPRITE_VERSION_HL) && (i != SPRITE_VERSION_32))
+	/*if ((i != SPRITE_VERSION_Q1) && (i != SPRITE_VERSION_HL) && (i != SPRITE_VERSION_32))*/
+	switch (pin->version)
 		{
-		Con_DPrintf (S_ERROR "%s has wrong version number (%i should be %i or %i)\n", mod->name, i,
-			SPRITE_VERSION_Q1, SPRITE_VERSION_HL);
+		/*Con_DPrintf (S_ERROR "%s has wrong version number (%i should be %i or %i)\n", mod->name, i,
+			SPRITE_VERSION_Q1, SPRITE_VERSION_HL);*/
+		case SPRITE_VERSION_Q1:
+		case SPRITE_VERSION_32:
+			if (buffersize < sizeof (dsprite_q1_t))
+				{
+
+				Con_DPrintf (S_ERROR "%s: %s have incorrect file size %zu should be greater than %zu (%s)\n",
+					__func__, mod->name, buffersize, sizeof (dsprite_q1_t), "q1 header");
+				return;
+				}
+			break;
+
+		case SPRITE_VERSION_HL:
+			if (buffersize < sizeof (dsprite_hl_t))
+				{
+				Con_DPrintf (S_ERROR "%s: %s have incorrect file size %zu should be greater than %zu (%s)\n",
+					__func__, mod->name, buffersize, sizeof (dsprite_hl_t), "hl header");
+				return;
+				}
+			break;
+
+		default:
+			Con_DPrintf (S_ERROR "%s: %s has wrong version number (%i should be %i, %i or %i)\n",
+				__func__, mod->name, pin->version, SPRITE_VERSION_Q1, SPRITE_VERSION_32, SPRITE_VERSION_HL);
 		return;
 		}
 
-	// [FWGS, 01.04.23]
+	mod->type = mod_sprite;
+
 	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
 	mod->mempool = Mem_AllocPool (poolname);
 
-	if ((i == SPRITE_VERSION_Q1) || (i == SPRITE_VERSION_32))
+	/*if ((i == SPRITE_VERSION_Q1) || (i == SPRITE_VERSION_32))*/
+	if ((pin->version == SPRITE_VERSION_Q1) || (pin->version == SPRITE_VERSION_32))
 		{
-		pinq1 = (dsprite_q1_t *)buffer;
+		/*pinq1 = (dsprite_q1_t *)buffer;*/
+		const dsprite_q1_t *pinq1 = buffer;
+		size_t size;
+
+		if (pinq1->numframes == 0)
+			{
+			Con_DPrintf (S_ERROR "%s: %s has no frames\n", __func__, mod->name);
+			return;
+			}
+
 		size = sizeof (msprite_t) + (pinq1->numframes - 1) * sizeof (psprite->frames);
 		psprite = Mem_Calloc (mod->mempool, size);
 		mod->cache.data = psprite;	// make link to extradata
 
 		psprite->type = pinq1->type;
+		/*psprite->texFormat = SPR_ADDITIVE;*/
 		psprite->texFormat = SPR_ADDITIVE;
+
 		psprite->numframes = mod->numframes = pinq1->numframes;
 		psprite->facecull = SPR_CULL_FRONT;
 		psprite->radius = pinq1->boundingradius;
 		psprite->synctype = pinq1->synctype;
 
-		// LordHavoc: hack to allow sprites to be non-fullbright
+		/*// LordHavoc: hack to allow sprites to be non-fullbright
 		for (i = 0; i < MAX_QPATH && mod->name[i]; i++)
 			if (mod->name[i] == '!')
-				psprite->texFormat = SPR_ALPHTEST;
+				psprite->texFormat = SPR_ALPHTEST;*/
+		// LadyHavoc: hack to allow sprites to be non-fullbright
+		if (Q_strchr (mod->name, '!'))
+			psprite->texFormat = SPR_ALPHTEST;
 
 		mod->mins[0] = mod->mins[1] = -pinq1->bounds[0] * 0.5f;
 		mod->maxs[0] = mod->maxs[1] = pinq1->bounds[0] * 0.5f;
 		mod->mins[2] = -pinq1->bounds[1] * 0.5f;
 		mod->maxs[2] = pinq1->bounds[1] * 0.5f;
 		}
-	else // if( i == SPRITE_VERSION_HL )
+	/*else // if( i == SPRITE_VERSION_HL )*/
+	else	// if (pin->version == SPRITE_VERSION_HL)
 		{
-		pinhl = (dsprite_hl_t *)buffer;
+		/*pinhl = (dsprite_hl_t *)buffer;*/
+		const dsprite_hl_t *pinhl = buffer;
+		size_t size;
+
+		if (pinhl->numframes == 0)
+			{
+			Con_DPrintf (S_WARN "%s: %s has no frames\n", __func__, mod->name);
+			return;
+			}
+
 		size = sizeof (msprite_t) + (pinhl->numframes - 1) * sizeof (psprite->frames);
 		psprite = Mem_Calloc (mod->mempool, size);
 		mod->cache.data = psprite;	// make link to extradata
@@ -107,7 +173,11 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded)
 		mod->mins[2] = -pinhl->bounds[1] * 0.5f;
 		mod->maxs[2] = pinhl->bounds[1] * 0.5f;
 		}
-	if (loaded) *loaded = true;	// done
+
+	/*if (loaded) *loaded = true;	// done*/
+	// done
+	if (loaded)
+		*loaded = true;
 
 	if (Host_IsDedicated ())
 		{

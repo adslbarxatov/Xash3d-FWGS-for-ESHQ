@@ -62,9 +62,15 @@ CVAR_DEFINE_AUTO (sv_clienttrace, "1", FCVAR_SERVER,
 static CVAR_DEFINE_AUTO (sv_timeout, "65", 0,
 	"after this many seconds without a message from a client, the client is dropped");
 
-// [FWGS, 01.05.25]
-static CVAR_DEFINE_AUTO (sv_connect_timeout, "15", 0,
+// [FWGS, 01.11.25]
+/*static CVAR_DEFINE_AUTO (sv_connect_timeout, "15", 0,
+	"after this many seconds without a message from a client, the client is dropped");*/
+static CVAR_DEFINE_AUTO (sv_connect_timeout, "60", 0,
 	"after this many seconds without a message from a client, the client is dropped");
+static CVAR_DEFINE_AUTO (sv_connect_timeout_ban, "1", 0,
+	"whether automatically ban suspicious players stuck in connect loop");
+static CVAR_DEFINE_AUTO (sv_connect_timeout_ban_time, "2", 0,
+	"if suspicious player time out, for how long ban them");
 
 CVAR_DEFINE_AUTO (sv_failuretime, "0.5", 0,
 	"after this long without a packet from client, don't send any more until client starts sending again");
@@ -158,22 +164,14 @@ static CVAR_DEFINE_AUTO (sv_waterfriction, "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"how fast you slow down in water");
 static CVAR_DEFINE_AUTO (sv_bounce, "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"bounce factor for entities with MOVETYPE_BOUNCE");
-
-// [FWGS, 25.12.24]
 CVAR_DEFINE_AUTO (sv_stepsize, "18", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"how high you and NPC's can step up");
-
 CVAR_DEFINE_AUTO (sv_maxvelocity, "2000", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"max velocity for all things in the world");
-
-// [FWGS, 01.12.24]
 static CVAR_DEFINE_AUTO (sv_zmax, "4096", FCVAR_MOVEVARS | FCVAR_SPONLY,
 	"maximum viewable distance");
-
 CVAR_DEFINE_AUTO (sv_wateramp, "0", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"world waveheight factor");
-
-// [FWGS, 01.12.24]
 static CVAR_DEFINE (sv_footsteps, "mp_footsteps", "1", FCVAR_SERVER | FCVAR_MOVEVARS,
 	"play foot steps for players");
 CVAR_DEFINE_AUTO (sv_skyname, "desert", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
@@ -208,8 +206,12 @@ static CVAR_DEFINE_AUTO (sv_version, "", FCVAR_READ_ONLY,
 	"engine version string");
 CVAR_DEFINE_AUTO (hostname, "", FCVAR_PRINTABLEONLY,
 	"name of current host");
+
+// [FWGS, 01.11.25]
+/*static CVAR_DEFINE_AUTO (sv_fps, "0.0", 0,
+	"server framerate");*/
 static CVAR_DEFINE_AUTO (sv_fps, "0.0", 0,
-	"server framerate");
+	"set this cvar to decouple server framerate from client framerate");
 
 // [FWGS, 01.07.24] gore-related cvars
 static CVAR_DEFINE_AUTO (violence_hblood, "1", 0,
@@ -266,8 +268,6 @@ CVAR_DEFINE_AUTO (sv_fullupdate_penalty_time, "1", FCVAR_ARCHIVE,
 	"allow fullupdate command only once in this timewindow (set 0 to disable)");
 CVAR_DEFINE_AUTO (sv_log_outofband, "0", FCVAR_ARCHIVE,
 	"log out of band messages, can be useful for server admins and for engine debugging");
-
-// [FWGS, 01.07.24]
 CVAR_DEFINE_AUTO (sv_allow_testpacket, "1", FCVAR_ARCHIVE,
 	"allow generating and sending a big blob of data to test maximum packet size");
 CVAR_DEFINE_AUTO (sv_expose_player_list, "1", FCVAR_ARCHIVE,
@@ -588,22 +588,23 @@ static void SV_ReadPackets (void)
 	sv.current_client = NULL;
 	}
 
-// [FWGS, 01.05.25]
 static void SV_DropTimedOutClient (sv_client_t *cl, qboolean ban)
 	{
 	SV_BroadcastPrintf (NULL, "%s timed out\n", cl->name);
 	SV_DropClient (cl, false);
 	cl->state = cs_free; // don't bother with zombie state
 
+	// [ESHQ: brackets]
+	// [FWGS, 01.11.25]
 	if (ban)
-		{
-		Cbuf_AddTextf ("addip 30 %s\n", NET_BaseAdrToString (cl->netchan.remote_address));
-		}
+		/*Cbuf_AddTextf ("addip 30 %s\n", NET_BaseAdrToString (cl->netchan.remote_address));*/
+		Cbuf_AddTextf ("addip %g %s\n", sv_connect_timeout_ban_time.value,
+			NET_BaseAdrToString (cl->netchan.remote_address));
 	}
 
 /***
 ==================
-SV_CheckTimeouts [FWGS, 01.05.25]
+SV_CheckTimeouts
 
 If a packet has not been received from a client for sv_timeout.value
 seconds, drop the conneciton.  Server frames are used instead of
@@ -641,13 +642,14 @@ static void SV_CheckTimeouts (void)
 				cl->state = cs_free; // can now be reused
 				break;
 
-			// [FWGS, 01.06.25]
+			// [FWGS, 01.11.25]
 			case cs_connected:
 			case cs_spawning:
 				if (!NET_IsLocalAddress (cl->netchan.remote_address))
 					{
 					if (cl->connection_started < connected_droppoint)
-						SV_DropTimedOutClient (cl, true);
+						/*SV_DropTimedOutClient (cl, true);*/
+						SV_DropTimedOutClient (cl, sv_connect_timeout_ban.value > 0.0f);
 					}
 				break;
 
@@ -851,13 +853,12 @@ void Host_ServerFrame (void)
 	// clear edict flags for next frame
 	SV_PrepWorldFrame ();
 
-	// [FWGS, 01.05.23] send a heartbeat to the master if needed
+	// send a heartbeat to the master if needed
 	NET_MasterHeartbeat ();
 	}
 
 // [FWGS, 01.02.24] removed Host_SetServerState
 
-// [FWGS, 01.06.25]
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	{
 	uint	challenge, challenge2, heartbeat_challenge;
@@ -868,14 +869,6 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 
 	if (!NET_GetMaster (from, &heartbeat_challenge, &last_heartbeat))
 		{
-		/*Con_Printf (S_WARN "unexpected master server info query packet from %s\n", NET_AdrToString (from));
-		return;
-		}
-
-	if (last_heartbeat + sv_master_response_timeout.value < host.realtime)
-		{
-		Con_Printf (S_WARN "unexpected master server info query packet (too late? try increasing "
-			"sv_master_response_timeout value)\n");*/
 		Con_Reportf (S_WARN "unexpected master server info query packet from %s\n", NET_AdrToString (from));
 		return;
 		}
@@ -885,7 +878,6 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 
 	if (challenge2 != heartbeat_challenge)
 		{
-		/*Con_Printf (S_WARN "unexpected master server info query packet (wrong challenge!)\n");*/
 		Con_Reportf (S_WARN "unexpected master server info query packet (wrong challenge!)\n");
 		return;
 		}
@@ -907,7 +899,11 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	Info_SetValueForKey (s, "gamedir", GI->gamefolder, len); // gamedir
 	Info_SetValueForKey (s, "map", sv.name, len); // current map
 	Info_SetValueForKey (s, "type", (Host_IsDedicated ()) ? "d" : "l", len); // dedicated or local
-	Info_SetValueForKey (s, "password", "0", len); // is password set
+
+	// [FWGS, 01.11.25]
+	/*Info_SetValueForKey (s, "password", "0", len); // is password set*/
+	Info_SetValueForKey (s, "password", SV_HavePassword () ? "0" : "1", len); // is password set
+
 	Info_SetValueForKey (s, "os", "w", len); // Windows
 	Info_SetValueForKey (s, "secure", "0", len); // server anti-cheat
 	Info_SetValueForKey (s, "lan", "0", len); // LAN servers doesn't send info to master
@@ -1048,7 +1044,12 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_maxrate);
 	Cvar_RegisterVariable (&sv_cheats);
 	Cvar_RegisterVariable (&sv_airmove);
+
+	// [FWGS, 01.11.25]
+#if !XASH_DEDICATED
 	Cvar_RegisterVariable (&sv_fps);
+#endif
+
 	Cvar_RegisterVariable (&showtriggers);
 	Cvar_RegisterVariable (&sv_aim);
 	Cvar_RegisterVariable (&sv_allow_autoaim);
@@ -1065,8 +1066,10 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&hostname);
 	Cvar_RegisterVariable (&sv_timeout);
 
-	// [FWGS, 01.05.25]
+	// [FWGS, 01.11.25]
 	Cvar_RegisterVariable (&sv_connect_timeout);
+	Cvar_RegisterVariable (&sv_connect_timeout_ban);
+	Cvar_RegisterVariable (&sv_connect_timeout_ban_time);
 
 	Cvar_RegisterVariable (&sv_pausable);
 	Cvar_RegisterVariable (&sv_validate_changelevel);

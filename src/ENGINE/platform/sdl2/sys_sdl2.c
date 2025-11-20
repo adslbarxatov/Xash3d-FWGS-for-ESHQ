@@ -15,8 +15,6 @@ GNU General Public License for more details
 
 // [FWGS, 01.06.25]
 #include <SDL.h>
-/*include "platform/platform.h"
-include "platform_sdl2.h"*/
 #include "platform.h"
 #include "platform_sdl2.h"
 
@@ -83,31 +81,37 @@ static const char *SDLash_CategoryToString (int category)
 		}
 	}
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.11.25]
 static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_LogPriority priority, const char *message)
 	{
+	const char *str = "";
+
 	switch (priority)
 		{
 		case SDL_LOG_PRIORITY_CRITICAL:
 		case SDL_LOG_PRIORITY_ERROR:
-			Con_Printf (S_ERROR S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
+			/*Con_Printf (S_ERROR S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);*/
+			str = S_ERROR;
 			break;
 
 		case SDL_LOG_PRIORITY_WARN:
-			Con_DPrintf (S_WARN S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
+			/*Con_DPrintf (S_WARN S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);*/
+			str = S_WARN;
 			break;
 
 		case SDL_LOG_PRIORITY_INFO:
-			Con_Reportf (S_NOTE S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
+			/*Con_Reportf (S_NOTE S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
 			break;
 
 		default:
-			Con_Reportf (S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);
+			Con_Reportf (S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", SDLash_CategoryToString (category), message);*/
+			str = S_NOTE;
 			break;
 		}
+
+	Con_Reportf ("%s" S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", str, SDLash_CategoryToString (category), message);
 	}
 
-// [FWGS, 01.03.25]
 void SDLash_Init (const char *basedir)
 	{
 #if XASH_APPLE

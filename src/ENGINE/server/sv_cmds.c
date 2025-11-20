@@ -506,12 +506,13 @@ static void SV_Load_f (void)
 
 /***
 ==============
-SV_QuickLoad_f
+SV_QuickLoad_f [FWGS, 01.11.25]
 ==============
 ***/
 static void SV_QuickLoad_f (void)
 	{
-	Cbuf_AddText ("echo Quick Loading...; wait; load quick");
+	/*Cbuf_AddText ("echo Quick Loading...; wait; load quick");*/
+	Cbuf_AddText ("echo Quick Loading...; wait; load quick\n");
 	}
 
 /***
@@ -544,12 +545,13 @@ static void SV_Save_f (void)
 
 /***
 ==============
-SV_QuickSave_f
+SV_QuickSave_f [FWGS, 01.11.25]
 ==============
 ***/
 static void SV_QuickSave_f (void)
 	{
-	Cbuf_AddText ("echo Quick Saving...; wait; save quick");
+	/*Cbuf_AddText ("echo Quick Saving...; wait; save quick");*/
+	Cbuf_AddText ("echo Quick Saving...; wait; save quick\n");
 	}
 
 /***
@@ -774,21 +776,17 @@ static void SV_Status_f (void)
 
 		// [FWGS, 01.06.25]
 		if (cl->state == cs_connected)
-			/*s = "Cnct";*/
 			s = "Connect ";
 		else if (cl->state == cs_spawning)
 			s = "Spawning";
 
 		else if (cl->state == cs_zombie)
-			/*s = "Zmbi";*/
 			s = "Zombie ";
 
 		else if (FBitSet (cl->flags, FCL_FAKECLIENT))
-			/*s = "Bot ";*/
 			s = "Bot ";
 
 		else
-			/*s = va ("%i", SV_CalcPing (cl));*/
 			s = va ("%8i", SV_CalcPing (cl));
 
 		input_devices = Q_atoi (Info_ValueForKey (cl->useragent, "d"));

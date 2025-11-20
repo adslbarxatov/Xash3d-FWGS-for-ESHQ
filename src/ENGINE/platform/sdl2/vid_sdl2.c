@@ -24,6 +24,11 @@ GNU General Public License for more details
 // include it after because it breaks definitions in net_api.h wtf
 #include <SDL_syswm.h>
 
+// [FWGS, 01.11.25]
+#if XASH_PSVITA
+#include <vrtld.h>
+#endif
+
 static vidmode_t *vidmodes = NULL;
 static int num_vidmodes = 0;
 static void GL_SetupAttributes (void);
@@ -409,14 +414,14 @@ static qboolean WIN_SetWindowIcon (HICON ico)
 
 /***
 =================
-GL_GetProcAddress
+GL_GetProcAddress [FWGS, 01.11.25]
 =================
 ***/
 void *GL_GetProcAddress (const char *name)
 	{
 	void *func = SDL_GL_GetProcAddress (name);
 
-#if !SDL_VERSION_ATLEAST( 2, 0, 6 ) && XASH_POSIX
+	/*if !SDL_VERSION_ATLEAST( 2, 0, 6 ) && XASH_POSIX
 	if (!func && Sys_CheckParm ("-egl"))
 		{
 		// SDL2 has broken SDL_GL_GetProcAddress until this commit if using egl:
@@ -432,15 +437,15 @@ void *GL_GetProcAddress (const char *name)
 		if (peglGetProcAddress)
 			func = peglGetProcAddress (name);
 		}
-#endif
+	endif*/
 
 #if XASH_PSVITA
 	// try to find in main module
 	if (!func)
-		func = dlsym (NULL, name);
+		/*func = dlsym (NULL, name);*/
+		func = vrtld_dlsym (NULL, name);
 #endif
 
-	// [FWGS, 01.07.24]
 	if (!func)
 		Con_Reportf (S_ERROR "%s failed for %s\n", __func__, name);
 
@@ -828,6 +833,8 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		int sdl_renderer = -2;
 		char cmd[64];
 
+		// [FWGS, 01.11.25]
+		/*if (Sys_GetParmFromCmdLine ("-sdl_renderer", cmd))*/
 		if (Sys_GetParmFromCmdLine ("-sdl_renderer", cmd))
 			sdl_renderer = Q_atoi (cmd);
 
@@ -848,15 +855,21 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		}
 	else
 		{
-		if (!glw_state.initialized)
+		// [FWGS, 01.11.25]
+		/*if (!glw_state.initialized)*/
+		while (!GL_CreateContext ())
 			{
-			while (!GL_CreateContext ())
+			/*while (!GL_CreateContext ())
 				{
 				glw_state.safe++;
 				if (glw_state.safe > SAFE_DONTCARE)
 					return false;
 				GL_SetupAttributes (); // re-choose attributes
-				}
+				}*/
+			glw_state.safe++;
+			if (glw_state.safe > SAFE_DONTCARE)
+				return false;
+			GL_SetupAttributes (); // re-choose attributes
 			}
 
 		if (!GL_UpdateContext ())
@@ -1017,7 +1030,6 @@ qboolean R_Init_Video (const int type)
 	int displayIndex = SDL_GetPointDisplayIndex (&point);
 #else
 	int displayIndex = 0;
-	/*SDL_GetCurrentDisplayMode (displayIndex, &displayMode);*/
 #endif
 	SDL_GetCurrentDisplayMode (displayIndex, &displayMode);
 
@@ -1031,9 +1043,6 @@ qboolean R_Init_Video (const int type)
 	SDL_SetHint (SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION, "landscape");
 #endif
 
-/*if !XASH_WIN32
-	SDL_SetHint ("SDL_VIDEO_X11_XRANDR", "1");
-	SDL_SetHint ("SDL_VIDEO_X11_XVIDMODE", "1");*/
 	if (Sys_CheckParm ("-egl"))
 #if XASH_WIN32
 		SDL_SetHint ("SDL_OPENGL_ES_DRIVER", "1");
@@ -1243,8 +1252,13 @@ ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 
 	SDL_VERSION (&wmInfo.version);
 
-	if (SDL_GetWindowWMInfo (host.hWnd, &wmInfo))
+	// [FWGS, 01.11.25]
+	/*if (SDL_GetWindowWMInfo (host.hWnd, &wmInfo))*/
+	if (!SDL_GetWindowWMInfo (host.hWnd, &wmInfo))
+		{
+		Con_Reportf (S_ERROR "%s: SDL_GetWindowWMInfo: %s\n", __func__, SDL_GetError ());
 		return REF_WINDOW_TYPE_NULL;
+		}
 
 	switch (wmInfo.subsystem)
 		{

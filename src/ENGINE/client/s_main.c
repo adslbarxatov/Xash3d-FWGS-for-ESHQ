@@ -44,10 +44,13 @@ static CVAR_DEFINE_AUTO (s_show, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"show playing sounds");
 
 // [FWGS, 01.11.25]
-/*CVAR_DEFINE_AUTO (s_lerping, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
-	"apply interpolation to sound output");*/
+#ifndef DISABLE_UPSAMPLING
+CVAR_DEFINE_AUTO (s_lerping, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
+	"apply interpolation to sound output");
+#else
 CVAR_DEFINE_AUTO (s_lerping, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"apply interpolation to sound output (deprecated)");
+#endif
 
 static CVAR_DEFINE (s_ambient_level, "ambient_level", "0.3", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
 	"volume of environment noises (water and wind)");

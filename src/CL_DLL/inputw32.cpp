@@ -15,11 +15,12 @@
 #include "cvardef.h"
 #include "usercmd.h"
 #include "const.h"
-#include "camera.h"
+/*include "camera.h"*/		// ESHQ: задвоение
 #include "in_defs.h"
 #include "../engine/keydefs.h"
 #include "view.h"
 #include "windows.h"
+#include "joystickapi.h"	// ESHQ: после одного из обновлений потребовалось включение этого заголовка
 
 #define MOUSE_BUTTON_COUNT 5
 
@@ -98,12 +99,12 @@ enum _ControlList
 
 DWORD dwAxisFlags[JOY_MAX_AXES] =
 	{
-		JOY_RETURNX,
-		JOY_RETURNY,
-		JOY_RETURNZ,
-		JOY_RETURNR,
-		JOY_RETURNU,
-		JOY_RETURNV
+	JOY_RETURNX,
+	JOY_RETURNY,
+	JOY_RETURNZ,
+	JOY_RETURNR,
+	JOY_RETURNU,
+	JOY_RETURNV
 	};
 
 DWORD	dwAxisMap[JOY_MAX_AXES];

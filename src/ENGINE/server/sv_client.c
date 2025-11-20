@@ -19,8 +19,8 @@ GNU General Public License for more details
 #include "net_encode.h"
 #include "net_api.h"
 
-// [FWGS, 01.12.24]
-const char *const clc_strings[clc_lastmsg + 1] =
+// [FWGS, 01.11.25]
+/*const char *const clc_strings[clc_lastmsg + 1] =
 	{
 	"clc_bad",
 	"clc_nop",
@@ -34,7 +34,7 @@ const char *const clc_strings[clc_lastmsg + 1] =
 	"clc_cvarvalue/clc_goldsrc_hltv",
 	"clc_cvarvalue2/clc_goldsrc_requestcvarvalue",
 	"clc_goldsrc_requestcvarvalue2",
-	};
+	};*/
 
 typedef struct ucmd_s
 	{
@@ -128,8 +128,9 @@ static int SV_GetChallenge (netadr_t from, qboolean *error)
 	return digest[0] | (digest[1] << 8) | (digest[2] << 16) | (digest[3] << 24);
 	}
 
-// [FWGS, 01.03.25]
-static void SV_SendChallenge (netadr_t from)
+// [FWGS, 01.11.25]
+/*static void SV_SendChallenge (netadr_t from)*/
+static void SV_SendChallenge (netadr_t from, qboolean skip_bandwidth_test)
 	{
 	qboolean error = false;
 	int challenge = SV_GetChallenge (from, &error);
@@ -138,7 +139,8 @@ static void SV_SendChallenge (netadr_t from)
 		return;
 
 	// send it back
-	Netchan_OutOfBandPrint (NS_SERVER, from, S2C_CHALLENGE" %i", challenge);
+	/*Netchan_OutOfBandPrint (NS_SERVER, from, S2C_CHALLENGE" %i", challenge);*/
+	Netchan_OutOfBandPrint (NS_SERVER, from, S2C_CHALLENGE" %i %i", challenge, skip_bandwidth_test ? 0 : 1);
 	}
 
 static int SV_GetFragmentSize (void *pcl, fragsize_t mode)
@@ -315,7 +317,6 @@ static void SV_ConnectClient (netadr_t from)
 	{
 	char		userinfo[MAX_INFO_STRING];
 	char		protinfo[MAX_INFO_STRING];
-	/*char		physinfo[MAX_INFO_STRING];*/
 	client_frame_t	*frames;
 	sv_client_t	*newcl = NULL;
 	int			qport, version;
@@ -425,9 +426,6 @@ static void SV_ConnectClient (netadr_t from)
 	memset (frames, 0, sizeof (client_frame_t) * SV_UPDATE_BACKUP);
 	SV_ClearResourceLists (newcl);
 
-	/*memcpy (physinfo, newcl->physinfo, sizeof (physinfo));
-	memset (newcl, 0, sizeof (*newcl));*/
-
 	// a1ba: preserve physinfo and viewent as it's set by game logic before client connect!
 	{
 	char physinfo[MAX_INFO_STRING];
@@ -440,9 +438,6 @@ static void SV_ConnectClient (netadr_t from)
 	memcpy (newcl->physinfo, physinfo, sizeof (newcl->physinfo));
 	newcl->pViewEntity = viewent;
 	}
-
-	/*// a1ba: preserve physinfo as it's set by game logic, before client connect!
-	memcpy (newcl->physinfo, physinfo, sizeof (newcl->physinfo));*/
 
 	newcl->edict = EDICT_NUM ((newcl - svs.clients) + 1);
 	newcl->frames = frames;
@@ -468,9 +463,10 @@ static void SV_ConnectClient (netadr_t from)
 	Q_strncpy (newcl->hashedcdkey, Info_ValueForKey (protinfo, "uuid"), 32);
 	newcl->hashedcdkey[32] = '\0';
 
-	// build protinfo answer
+	// [FWGS, 01.11.25] build protinfo answer
 	protinfo[0] = '\0';
 	Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", newcl->extensions);
+	Info_SetValueForKey (protinfo, "cheats", sv_cheats.value ? "1" : "0", sizeof (protinfo));
 
 	// send the connect packet to the client
 	Netchan_OutOfBandPrint (NS_SERVER, from, S2C_CONNECTION " %s", protinfo);
@@ -837,20 +833,36 @@ static void SV_TestBandWidth (netadr_t from)
 		return;
 		}
 
-	// [FWGS, 01.03.25] quickly reject invalid packets
-	if (!sv_allow_testpacket.value || !svs.testpacket_buf ||
-		(packetsize <= FRAGMENT_MIN_SIZE) || (packetsize > FRAGMENT_MAX_SIZE))
+	// [FWGS, 01.11.25] third argument is the challenge, if it's empty, it means this is an
+	// old client that do not have challenge and testbandwidth swapped
+	if (!Q_strlen (Cmd_Argv (3)))
 		{
-		// skip the test and just get challenge
-		SV_SendChallenge (from);
+		SV_SendChallenge (from, true);
+		return;
+		}
+
+	// require challenge for testpacket
+	if (!SV_CheckChallenge (from, Q_atoi (Cmd_Argv (3))))
+		return;
+
+	// [FWGS, 01.11.25] quickly reject invalid packets
+	/*if (!sv_allow_testpacket.value || !svs.testpacket_buf ||
+		(packetsize <= FRAGMENT_MIN_SIZE) || (packetsize > FRAGMENT_MAX_SIZE))*/
+	if (!sv_allow_testpacket.value || !svs.testpacket_buf || (packetsize <= FRAGMENT_MIN_SIZE) ||
+		(packetsize > 1400))
+		{
+		/*// skip the test and just get challenge
+		SV_SendChallenge (from);*/
+		SV_SendChallenge (from, true);
 		return;
 		}
 	
-	// [FWGS, 01.03.25] don't go out of bounds
+	// [FWGS, 01.11.25] don't go out of bounds
 	ofs = packetsize - svs.testpacket_filepos - 1;
 	if ((ofs < 0) || (ofs > svs.testpacket_filelen))
 		{
-		SV_SendChallenge (from);
+		/*SV_SendChallenge (from);*/
+		SV_SendChallenge (from, true);
 		return;
 		}
 
@@ -928,12 +940,13 @@ static void SV_Info (netadr_t from, int protocolVersion)
 	Netchan_OutOfBandPrint (NS_SERVER, from, A2A_INFO "\n%s", s);
 	}
 
-// [FWGS, 01.12.24]
 static void SV_ConnectNatClient (netadr_t from)
 	{
 	netadr_t to;
 
-	if (!sv_nat.value || !NET_IsMasterAdr (from))
+	// [FWGS, 01.11.25]
+	/*if (!sv_nat.value || !NET_IsMasterAdr (from))*/
+	if (!sv_nat.value || !NET_IsMasterAdr (from, NULL))
 		return;
 
 	if (!NET_StringToAdr (Cmd_Argv (1), &to))
@@ -3290,17 +3303,15 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		return;
 		}
 
-	// [FWGS, 01.06.25]
-	if (NET_IsMasterAdr (from))
+	// [ESHQ: brackets]
+	// [FWGS, 01.11.25]
+	/*if (NET_IsMasterAdr (from))*/
+	if (NET_IsMasterAdr (from, NULL))
 		{
 		if (!Q_strcmp (pcmd, M2S_CHALLENGE))
-			{
 			SV_AddToMaster (from, msg);
-			}
 		else if (!Q_strcmp (pcmd, M2S_NAT_CONNECT))
-			{
 			SV_ConnectNatClient (from);
-			}
 
 		return;
 		}
@@ -3322,10 +3333,12 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		{
 		SV_TestBandWidth (from);
 		}
-	// [FWGS, 01.03.25]
+
+	// [FWGS, 01.11.25]
 	else if (!Q_strcmp (pcmd, C2S_GETCHALLENGE))
 		{
-		SV_SendChallenge (from);
+		/*SV_SendChallenge (from);*/
+		SV_SendChallenge (from, !sv_allow_testpacket.value || !svs.testpacket_buf);
 		}
 	else if (!Q_strcmp (pcmd, C2S_CONNECT))
 		{
@@ -3645,23 +3658,28 @@ static void SV_ParseCvarValue2 (sv_client_t *cl, sizebuf_t *msg)
 
 /***
 ===================
-SV_ParseVoiceData
+SV_ParseVoiceData [FWGS, 01.11.25]
 ===================
 ***/
 static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 	{
-	char		received[4096];
-	sv_client_t	*cur;
+	char	received[4096];
+	/*sv_client_t	*cur;
 	int			i, client;
 	uint		length, size, frames;
 
 	cl->m_bLoopback = MSG_ReadByte (msg);
 
-	frames = MSG_ReadByte (msg);
-	size = MSG_ReadShort (msg);
-	client = cl - svs.clients;
+	frames = MSG_ReadByte (msg);*/
+	int		i;
 
-	// [FWGS, 01.07.24]
+	/*size = MSG_ReadShort (msg);
+	client = cl - svs.clients;*/
+	const qboolean	loopback = !!MSG_ReadByte (msg);
+	const uint		frames = MSG_ReadByte (msg);
+	const uint		size = MSG_ReadShort (msg);
+	const int		client = cl - svs.clients;
+
 	if (size > sizeof (received))
 		{
 		Con_DPrintf ("%s: invalid incoming packet.\n", __func__);
@@ -3671,27 +3689,35 @@ static void SV_ParseVoiceData (sv_client_t *cl, sizebuf_t *msg)
 
 	MSG_ReadBytes (msg, received, size);
 
-	// [FWGS, 01.06.25]
 	if (!sv_voiceenable.value || (svs.maxclients <= 1) || (cl->state != cs_spawned))
 		return;
 
-	for (i = 0, cur = svs.clients; i < svs.maxclients; i++, cur++)
+	/*for (i = 0, cur = svs.clients; i < svs.maxclients; i++, cur++)*/
+	for (i = 0; i < svs.maxclients; i++)
 		{
-		if (cl != cur)
+		/*if (cl != cur)*/
+		sv_client_t		*cur = &svs.clients[i];
+		const qboolean	local = cl == cur;
+		uint			length = size;
+
+		if (!local)
 			{
 			if (cur->state < cs_connected)
 				continue;
-			if (!FBitSet (cur->listeners, BIT (client)))
+
+			/*if (!FBitSet (cur->listeners, BIT (client)))*/
+			if (!FBitSet (cl->listeners, BIT (i)))
 				continue;
 			}
 
-		length = size;
+		/*length = size;*/
 
 		// 6 is a number of bytes for other parts of message
 		if (MSG_GetNumBytesLeft (&cur->datagram) < length + 6)
 			continue;
 
-		if ((cl == cur) && !cur->m_bLoopback)
+		/*if ((cl == cur) && !cur->m_bLoopback)*/
+		if ((cl == cur) && !loopback)
 			length = 0;
 
 		MSG_BeginServerCmd (&cur->datagram, svc_voicedata);

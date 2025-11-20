@@ -18,9 +18,8 @@ GNU General Public License for more details
 #include "netchan.h"
 #include "xash3d_mathlib.h"
 #include "ipv6text.h"
-
-// [FWGS, 01.12.24]
-#include "net_ws_private.h"
+#include "net_ws_private.h"	// [FWGS, 01.12.24]
+#include "server.h"			// [FWGS, 01.11.25] sv_cheats
 
 #if XASH_SDL == 2
 	#include <SDL_thread.h>
@@ -142,7 +141,6 @@ CVAR_DEFINE (net_clockwindow, "clockwindow", "0.5", FCVAR_PRIVILEGED,
 
 // [FWGS, 01.04.25]
 netadr_t	net_local;
-/*netadr_t	net6_local;*/
 static netadr_t net6_local;
 
 // cvars equivalents for IPv6
@@ -183,7 +181,6 @@ static inline qboolean NET_IsSocketValid (int socket)
 // [FWGS, 01.03.25]
 void NET_NetadrToIP6Bytes (uint8_t *ip6, const netadr_t *adr)
 	{
-	/*memcpy (ip6, adr->ip6, sizeof (adr->ip6));*/
 	memcpy (&ip6[0], adr->ip6_0, 2);
 	memcpy (&ip6[2], adr->ip6_1, 14);
 	}
@@ -191,7 +188,6 @@ void NET_NetadrToIP6Bytes (uint8_t *ip6, const netadr_t *adr)
 // [FWGS, 01.03.25]
 void NET_IP6BytesToNetadr (netadr_t *adr, const uint8_t *ip6)
 	{
-	/*memcpy (adr->ip6, ip6, sizeof (adr->ip6));*/
 	memcpy (adr->ip6_0, &ip6[0], 2);
 	memcpy (adr->ip6_1, &ip6[2], 14);
 	}
@@ -199,7 +195,6 @@ void NET_IP6BytesToNetadr (netadr_t *adr, const uint8_t *ip6)
 // [FWGS, 01.03.25]
 static int NET_NetadrIP6Compare (const netadr_t *a, const netadr_t *b)
 	{
-	/*return memcmp (a->ip6, b->ip6, sizeof (a->ip6));*/
 	uint8_t ip6_a[16], ip6_b[16];
 
 	NET_NetadrToIP6Bytes (ip6_a, a);
@@ -218,28 +213,24 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 	netadrtype_t type = NET_NetadrType (a);
 	memset (s, 0, sizeof (*s));
 
-	/*if (a->type == NA_BROADCAST)*/
 	if (type == NA_BROADCAST)
 		{
 		s->ss_family = AF_INET;
 		((struct sockaddr_in *)s)->sin_port = a->port;
 		((struct sockaddr_in *)s)->sin_addr.s_addr = INADDR_BROADCAST;
 		}
-	/*else if (a->type == NA_IP)*/
 	else if (type == NA_IP)
 		{
 		s->ss_family = AF_INET;
 		((struct sockaddr_in *)s)->sin_port = a->port;
 		((struct sockaddr_in *)s)->sin_addr.s_addr = a->ip4;
 		}
-	/*else if (a->type6 == NA_IP6)*/
 	else if (type == NA_IP6)
 		{
 		s->ss_family = AF_INET6;
 		((struct sockaddr_in6 *)s)->sin6_port = a->port;
 		NET_NetadrToIP6Bytes (((struct sockaddr_in6 *)s)->sin6_addr.s6_addr, a);
 		}
-	/*else if (a->type6 == NA_MULTICAST_IP6)*/
 	else if (type == NA_MULTICAST_IP6)
 		{
 		s->ss_family = AF_INET6;
@@ -257,14 +248,12 @@ static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 	{
 	if (s->ss_family == AF_INET)
 		{
-		/*a->type = NA_IP;*/
 		NET_NetadrSetType (a, NA_IP);
 		a->ip4 = ((struct sockaddr_in *)s)->sin_addr.s_addr;
 		a->port = ((struct sockaddr_in *)s)->sin_port;
 		}
 	else if (s->ss_family == AF_INET6)
 		{
-		/*a->type6 = NA_IP6;*/
 		NET_NetadrSetType (a, NA_IP6);
 		NET_IP6BytesToNetadr (a, ((struct sockaddr_in6 *)s)->sin6_addr.s6_addr);
 		a->port = ((struct sockaddr_in6 *)s)->sin6_port;
@@ -273,15 +262,15 @@ static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 
 /***
 ============
-NET_GetHostByName [FWGS, 01.12.24]
+NET_GetHostByName [FWGS, 01.11.25]
 ============
 ***/
 static qboolean NET_GetHostByName (const char *hostname, int family, struct sockaddr_storage *addr)
 	{
-#if defined HAVE_GETADDRINFO
-	struct addrinfo *ai = NULL, *cur;
-	struct addrinfo hints;
-	qboolean ret = false;
+	/*if defined HAVE_GETADDRINFO*/
+	struct addrinfo	*ai = NULL, *cur;
+	struct addrinfo	hints;
+	qboolean		ret = false;
 
 #if XASH_NO_IPV6_RESOLVE
 	if (family == AF_INET6)
@@ -309,14 +298,14 @@ static qboolean NET_GetHostByName (const char *hostname, int family, struct sock
 
 	return ret;
 
-#else
+	/*else
 
 	struct hostent *h;
 
-#if XASH_NO_IPV6_RESOLVE
+	if XASH_NO_IPV6_RESOLVE
 	if (family == AF_INET6)
 		return false;
-#endif
+	endif
 
 	if (!(h = gethostbyname (hostname)))
 		return false;
@@ -325,14 +314,15 @@ static qboolean NET_GetHostByName (const char *hostname, int family, struct sock
 	((struct sockaddr_in *)addr)->sin_addr = *(struct in_addr *)h->h_addr_list[0];
 
 	return true;
-#endif
+	endif*/
 	}
 
-#if !XASH_EMSCRIPTEN && !XASH_DOS4GW && !defined XASH_NO_ASYNC_NS_RESOLVE
-#define CAN_ASYNC_NS_RESOLVE
-#endif
+// [FWGS, 01.11.25]
+/*if !XASH_EMSCRIPTEN && !XASH_DOS4GW && !defined XASH_NO_ASYNC_NS_RESOLVE
+define CAN_ASYNC_NS_RESOLVE
+endif
 
-#ifdef CAN_ASYNC_NS_RESOLVE
+ifdef CAN_ASYNC_NS_RESOLVE*/
 static void NET_ResolveThread (void);
 
 // [FWGS, 01.12.24]
@@ -431,7 +421,7 @@ static void NET_DeleteCriticalSections (void)
 	memset (&nsthread, 0, sizeof (nsthread));
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.11.25]
 static void NET_ResolveThread (void)
 	{
 	struct sockaddr_storage addr;
@@ -439,11 +429,11 @@ static void NET_ResolveThread (void)
 
 	RESOLVE_DBG ("[resolve thread] starting resolve for ");
 	RESOLVE_DBG (nsthread.hostname);
-#ifdef HAVE_GETADDRINFO
+	/*ifdef HAVE_GETADDRINFO*/
 	RESOLVE_DBG (" with getaddrinfo\n");
-#else
+	/*else
 	RESOLVE_DBG (" with gethostbyname\n");
-#endif
+	endif*/
 
 	if ((res = NET_GetHostByName (nsthread.hostname, nsthread.family, &addr)))
 		RESOLVE_DBG ("[resolve thread] success\n");
@@ -460,11 +450,11 @@ static void NET_ResolveThread (void)
 	mutex_unlock (nsthread.mutexres);
 	RESOLVE_DBG ("[resolve thread] exiting thread\n");
 	}
-#endif 
+/*endif*/
 
 /***
 =============
-NET_StringToAdr [FWGS, 01.12.24]
+NET_StringToAdr
 
 localhost
 idnewt
@@ -514,11 +504,13 @@ net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sa
 		((struct sockaddr_in *)sadr)->sin_family = AF_INET;
 		((struct sockaddr_in *)sadr)->sin_addr.s_addr = inet_addr (copy);
 		}
+
+	// [FWGS, 01.11.25]
 	else
 		{
 		qboolean asyncfailed = true;
 
-#ifdef CAN_ASYNC_NS_RESOLVE
+		/*ifdef CAN_ASYNC_NS_RESOLVE*/
 		if (net.threads_initialized && nonblocking)
 			{
 			mutex_lock (nsthread.mutexres);
@@ -561,7 +553,7 @@ net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sa
 
 			mutex_unlock (nsthread.mutexres);
 			}
-#endif
+		/*endif*/
 
 		if (asyncfailed)
 			ret = NET_GetHostByName (copy, family, &temp);
@@ -626,7 +618,6 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 		{
 		NET_NetadrSetType (adr, NA_IP6);
 		NET_IP6BytesToNetadr (adr, ip6);
-		/*adr->type6 = NA_IP6;*/
 
 		if (!hasCIDR)
 			*prefixlen = 128;
@@ -697,7 +688,6 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 			}
 
 		// [FWGS, 01.03.25]
-		/*adr->type = NA_IP;*/
 		NET_NetadrSetType (adr, NA_IP);
 		}
 
@@ -714,11 +704,9 @@ const char *NET_AdrToString (const netadr_t a)
 	static char s[64];
 	netadrtype_t type = NET_NetadrType (&a);
 
-	/*if (a.type == NA_LOOPBACK)*/
 	if (type == NA_LOOPBACK)
 		return "loopback";
 
-	/*if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))*/
 	if ((type == NA_IP6) || (type == NA_MULTICAST_IP6))
 		{
 		uint8_t ip6[16];
@@ -745,11 +733,9 @@ const char *NET_BaseAdrToString (const netadr_t a)
 	static char s[64];
 	netadrtype_t type = NET_NetadrType (&a);
 
-	/*if (a.type == NA_LOOPBACK)*/
 	if (type == NA_LOOPBACK)
 		return "loopback";
 
-	/*if ((a.type6 == NA_IP6) || (a.type6 == NA_MULTICAST_IP6))*/
 	if ((type == NA_IP6) || (type == NA_MULTICAST_IP6))
 		{
 		uint8_t ip6[16];
@@ -775,22 +761,18 @@ Compares without the port
 ***/
 qboolean NET_CompareBaseAdr (const netadr_t a, const netadr_t b)
 	{
-	/*if (a.type6 != b.type6)*/
 	netadrtype_t type_a = NET_NetadrType (&a);
 	netadrtype_t type_b = NET_NetadrType (&b);
 
 	if (type_a != type_b)
 		return false;
 
-	/*if (a.type == NA_LOOPBACK)*/
 	if (type_a == NA_LOOPBACK)
 		return true;
 
-	/*if (a.type == NA_IP)*/
 	if (type_a == NA_IP)
 		return a.ip4 == b.ip4;
 
-	/*if (a.type6 == NA_IP6)*/
 	if (type_a == NA_IP)
 		{
 		if (!NET_NetadrIP6Compare (&a, &b))
@@ -801,35 +783,6 @@ qboolean NET_CompareBaseAdr (const netadr_t a, const netadr_t b)
 	}
 
 // [FWGS, 01.03.25] removed NET_CompareClassBAdr
-/*
-====================
-NET_CompareClassBAdr
-
-Compare local masks
-====================
-/
-qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b)
-	{
-	if (a.type6 != b.type6)
-		return false;
-
-	if (a.type == NA_LOOPBACK)
-		return true;
-
-	if (a.type == NA_IP)
-		{
-		if (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1])
-			return true;
-		}
-
-	// NOTE: we don't check for IPv6 here
-	// this check is very dumb and only used for LAN restriction
-	// Actual check is in IsReservedAdr
-
-	// for real mask compare use NET_CompareAdrByMask
-
-	return false;
-	}*/
 
 /***
 ====================
@@ -840,14 +793,12 @@ Checks if adr is a part of subnet
 ***/
 qboolean NET_CompareAdrByMask (const netadr_t a, const netadr_t b, uint prefixlen)
 	{
-	/*if ((a.type6 != b.type6) || (a.type == NA_LOOPBACK))*/
 	netadrtype_t type_a = NET_NetadrType (&a);
 	netadrtype_t type_b = NET_NetadrType (&b);
 
 	if ((type_a != type_b) || (type_a == NA_LOOPBACK))
 		return false;
 
-	/*if (a.type == NA_IP)*/
 	if (type_a == NA_IP)
 		{
 		uint32_t	ipa = htonl (a.ip4);
@@ -856,7 +807,6 @@ qboolean NET_CompareAdrByMask (const netadr_t a, const netadr_t b, uint prefixle
 		if ((ipa & ((0xFFFFFFFFU) << (32 - prefixlen))) == ipb)
 			return true;
 		}
-	/*else if (a.type6 == NA_IP6)*/
 	else if (type_a == NA_IP6)
 		{
 		uint16_t	a_[8], b_[8];
@@ -900,14 +850,12 @@ Check for reserved ip's
 ***/
 qboolean NET_IsReservedAdr (netadr_t a)
 	{
-	/*if (a.type == NA_LOOPBACK)*/
 	netadrtype_t type_a = NET_NetadrType (&a);
 
 	if (type_a == NA_LOOPBACK)
 		return true;
 
 	// Following checks was imported from GameNetworkingSockets library
-	/*if (a.type == NA_IP)*/
 	if (type_a == NA_IP)
 		{
 		if ((a.ip[0] == 10) || // 10.x.x.x is reserved
@@ -920,7 +868,6 @@ qboolean NET_IsReservedAdr (netadr_t a)
 			}
 		}
 
-	/*if (a.type6 == NA_IP6)*/
 	if (type_a == NA_IP6)
 		{
 		uint8_t ip6[16];
@@ -950,18 +897,15 @@ Compare full address
 ***/
 qboolean NET_CompareAdr (const netadr_t a, const netadr_t b)
 	{
-	/*if (a.type6 != b.type6)*/
 	netadrtype_t type_a = NET_NetadrType (&a);
 	netadrtype_t type_b = NET_NetadrType (&b);
 
 	if (type_a != type_b)
 		return false;
 
-	/*if (a.type == NA_LOOPBACK)*/
 	if (type_a == NA_LOOPBACK)
 		return true;
 
-	/*if (a.type == NA_IP)*/
 	if (type_a == NA_IP)
 		{
 		if ((a.ip4 == b.ip4) && (a.port == b.port))
@@ -970,7 +914,6 @@ qboolean NET_CompareAdr (const netadr_t a, const netadr_t b)
 		return false;
 		}
 
-	/*if (a.type6 == NA_IP6)*/
 	if (type_a == NA_IP6)
 		{
 		if ((a.port == b.port) && !NET_NetadrIP6Compare (&a, &b))
@@ -1000,8 +943,6 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 	type_a = NET_NetadrType (a);
 	type_b = NET_NetadrType (b);
 
-	/*if (a->type6 != b->type6)
-		return bound (-1, (int)a->type6 - (int)b->type6, 1);*/
 	if (type_a != type_b)
 		return bound (-1, (int)type_a - (int)type_b, 1);
 
@@ -1015,7 +956,6 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 	else
 		portdiff = 0;
 
-	/*switch (a->type6)*/
 	switch (type_a)
 		{
 		case NA_IP6:
@@ -1026,14 +966,6 @@ int NET_CompareAdrSort (const void *_a, const void *_b)
 		case NA_MULTICAST_IP6:
 			return portdiff;
 
-		/*}
-
-	// don't check for full type earlier, as it's value depends on v6 address
-	if (a->type != b->type)
-		return bound (-1, (int)a->type - (int)b->type, 1);
-
-	switch (a->type)
-		{*/
 		case NA_IP:
 			if ((addrdiff = memcmp (a->ip, b->ip, sizeof (a->ipx))))
 				return addrdiff;
@@ -1073,7 +1005,6 @@ static qboolean NET_StringToAdrEx (const char *string, netadr_t *adr, int family
 	// [FWGS, 01.03.25]
 	if (!Q_stricmp (string, "localhost") || !Q_stricmp (string, "loopback"))
 		{
-		/*adr->type = NA_LOOPBACK;*/
 		NET_NetadrSetType (adr, NA_LOOPBACK);
 		return true;
 		}
@@ -1100,7 +1031,6 @@ net_gai_state_t NET_StringToAdrNB (const char *string, netadr_t *adr, qboolean v
 
 	if (!Q_stricmp (string, "localhost") || !Q_stricmp (string, "loopback"))
 		{
-		/*adr->type = NA_LOOPBACK;*/
 		NET_NetadrSetType (adr, NA_LOOPBACK);
 		return NET_EAI_OK;
 		}
@@ -1146,7 +1076,6 @@ static qboolean NET_GetLoopPacket (netsrc_t sock, netadr_t *from, byte *data, si
 
 	// [FWGS, 01.03.25]
 	memset (from, 0, sizeof (*from));
-	/*from->type = NA_LOOPBACK;*/
 	NET_NetadrSetType (from, NA_LOOPBACK);
 
 	return true;
@@ -1282,7 +1211,9 @@ static void NET_AdjustLag (void)
 	dt = bound (0.0, dt, 0.1);
 	lasttime = host.realtime;
 
-	if (host_developer.value || !net_fakelag.value)
+	// [FWGS, 01.11.25]
+	/*if (host_developer.value || !net_fakelag.value)*/
+	if ((host_developer.value && sv_cheats.value) || !net_fakelag.value)
 		{
 		if (net_fakelag.value != net.fakelag)
 			{
@@ -1393,7 +1324,6 @@ NET_GetLong [FWGS, 01.12.24]
 receive long packet from network
 ==================
 ***/
-/*static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize)*/
 static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsize, connprotocol_t proto)
 	{
 	int		i, sequence_number, offset;
@@ -1670,7 +1600,6 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 			// [FWGS, 01.03.25]
 			len -= size;
 			packet_number++;
-			/*Platform_Sleep (1);*/
 			Platform_NanoSleep (100 * 1000);
 			}
 
@@ -1696,20 +1625,17 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 	SOCKET	net_socket = 0;
 	netadrtype_t type = NET_NetadrType (&to);
 
-	/*if (!net.initialized || (to.type == NA_LOOPBACK))*/
 	if (!net.initialized || (type == NA_LOOPBACK))
 		{
 		NET_SendLoopPacket (sock, length, data, to);
 		return;
 		}
-	/*else if ((to.type == NA_BROADCAST) || (to.type == NA_IP))*/
 	else if ((type == NA_BROADCAST) || (type == NA_IP))
 		{
 		net_socket = net.ip_sockets[sock];
 		if (!NET_IsSocketValid (net_socket))
 			return;
 		}
-	/*else if ((to.type6 == NA_MULTICAST_IP6) || (to.type6 == NA_IP6))*/
 	else if ((type == NA_MULTICAST_IP6) || (type == NA_IP6))
 		{
 		net_socket = net.ip6_sockets[sock];
@@ -1718,8 +1644,6 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 		}
 	else
 		{
-		/*// [FWGS, 01.07.24]
-		Host_Error ("%s: bad address type %i (%i)\n", __func__, to.type, to.type6);*/
 		Host_Error ("%s: bad address type %i (%i, %i)\n", __func__, to.type, to.ip6_0[0], to.ip6_0[1]);
 		}
 
@@ -1735,7 +1659,6 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 			return;
 
 		// some PPP links don't allow broadcasts
-		/*if (err == WSAEADDRNOTAVAIL && ((to.type == NA_BROADCAST) || (to.type6 == NA_MULTICAST_IP6)))*/
 		if ((err == WSAEADDRNOTAVAIL) && ((type == NA_BROADCAST) || (type == NA_MULTICAST_IP6)))
 			return;
 
@@ -1978,7 +1901,6 @@ NET_DetermineLocalAddress [FWGS, 01.04.25]
 Returns the servers' ip address as a string
 ================
 ***/
-/*static void NET_GetLocalAddress (void)*/
 static void NET_DetermineLocalAddress (void)
 	{
 	char		hostname[512];
@@ -2109,7 +2031,6 @@ void NET_Config (qboolean multiplayer, qboolean changeport)
 		// [FWGS, 01.04.25] get our local address, if possible
 		if (bFirst)
 			{
-			/*NET_GetLocalAddress ();*/
 			NET_DetermineLocalAddress ();
 			bFirst = false;
 			}
@@ -2278,7 +2199,6 @@ void NET_Init (void)
 
 #if XASH_WIN32
 	// [FWGS, 01.12.24]
-	/*if (WSAStartup (MAKEWORD (1, 1), &net.winsockdata))*/
 	if (WSAStartup (MAKEWORD (2, 0), &net.winsockdata))
 		{
 		Con_DPrintf (S_ERROR "network initialization failed.\n");
@@ -2286,9 +2206,10 @@ void NET_Init (void)
 		}
 #endif
 
-#ifdef CAN_ASYNC_NS_RESOLVE
+	// [FWGS, 01.11.25]
+	/*ifdef CAN_ASYNC_NS_RESOLVE*/
 	NET_InitializeCriticalSections ();
-#endif
+	/*endif*/
 
 	net.allow_ip = !Sys_CheckParm ("-noip");
 	net.allow_ip6 = !Sys_CheckParm ("-noip6");
@@ -2296,11 +2217,9 @@ void NET_Init (void)
 	// [FWGS, 01.12.24] specify custom host port
 	if (Sys_GetParmFromCmdLine ("-port", cmd) && Q_isdigit (cmd))
 		Cvar_FullSet (net_hostport.name, cmd, net_hostport.flags);
-	/*Cvar_FullSet ("hostport", cmd, FCVAR_READ_ONLY);*/
 
 	// [FWGS, 01.12.24] specify custom IPv6 host port
 	if (Sys_GetParmFromCmdLine ("-port6", cmd) && Q_isdigit (cmd))
-		/*Cvar_FullSet ("ip6_hostport", cmd, FCVAR_READ_ONLY);*/
 		Cvar_FullSet (net_ip6hostport.name, cmd, net_ip6hostport.flags);
 
 	// [FWGS, 01.12.24] specify custom client port
@@ -2314,17 +2233,14 @@ void NET_Init (void)
 	// [FWGS, 01.12.24] specify custom ip
 	if (Sys_GetParmFromCmdLine ("-ip", cmd))
 		Cvar_DirectSet (&net_ipname, cmd);
-	/*Cvar_FullSet ("ip", cmd, net_ipname.flags);*/
 
 	// [FWGS, 01.12.24] specify custom ip6
 	if (Sys_GetParmFromCmdLine ("-ip6", cmd))
 		Cvar_DirectSet (&net_ip6name, cmd);
-	/*Cvar_FullSet ("ip6", cmd, net_ip6name.flags);*/
 
 	// [FWGS, 01.12.24] adjust clockwindow
 	if (Sys_GetParmFromCmdLine ("-clockwindow", cmd))
 		Cvar_DirectSetValue (&net_clockwindow, Q_atof (cmd));
-	/*Cvar_SetValue ("clockwindow", Q_atof (cmd));*/
 
 	net.sequence_number = 1;
 	net.initialized = true;
@@ -2333,7 +2249,7 @@ void NET_Init (void)
 
 /***
 ====================
-NET_Shutdown [FWGS, 01.12.24]
+NET_Shutdown
 ====================
 ***/
 void NET_Shutdown (void)
@@ -2344,9 +2260,10 @@ void NET_Shutdown (void)
 	NET_ClearLagData (true, true);
 	NET_Config (false, false);
 
-#ifdef CAN_ASYNC_NS_RESOLVE
+	// [FWGS, 01.11.25]
+	/*ifdef CAN_ASYNC_NS_RESOLVE*/
 	NET_DeleteCriticalSections ();
-#endif
+	/*endif*/
 
 #if XASH_WIN32
 	WSACleanup ();
@@ -2354,906 +2271,20 @@ void NET_Shutdown (void)
 	net.initialized = false;
 	}
 
-// [FWGS, 01.12.24] moved to net_http
-/*
-=================================================
-HTTP downloader [FWGS, 01.12.23]
-=================================================
-/
-#define MAX_HTTP_BUFFER_SIZE	(BIT(13))*/
-
-// [FWGS, 01.12.24] moved to net_http
-/*typedef struct httpserver_s
-	{
-	char host[256];
-	int port;
-	char path[MAX_SYSPATH];
-	qboolean needfree;
-	struct httpserver_s *next;
-
-	} httpserver_t;
-
-enum connectionstate
-	{
-	HTTP_QUEUE = 0,
-	HTTP_OPENED,
-	HTTP_SOCKET,
-	HTTP_NS_RESOLVED,
-	HTTP_CONNECTED,
-	HTTP_REQUEST,
-	HTTP_REQUEST_SENT,
-	HTTP_RESPONSE_RECEIVED,
-	HTTP_FREE
-	};
-
-typedef struct httpfile_s
-	{
-	struct httpfile_s *next;
-	httpserver_t *server;
-	char path[MAX_SYSPATH];
-	file_t *file;
-	int socket;
-	int size;
-	int downloaded;
-	int lastchecksize;
-	float checktime;
-	float blocktime;
-	int id;
-	enum connectionstate state;
-	qboolean process;
-
-	// [FWGS, 01.12.23] query or response
-	char buf[MAX_HTTP_BUFFER_SIZE + 1];
-	int header_size;
-	int query_length;
-	int bytes_sent;
-	} httpfile_t;
-
-static struct http_static_s
-	{
-	// file and server lists
-	httpfile_t		*first_file;
-	httpfile_t		*last_file;
-	httpserver_t	*first_server;
-	httpserver_t	*last_server;
-	} http;
-
-// [FWGS, 01.07.23]
-static CVAR_DEFINE_AUTO (http_useragent, "", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-	"User-Agent string");
-static CVAR_DEFINE_AUTO (http_autoremove, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-	"remove broken files");
-static CVAR_DEFINE_AUTO (http_timeout, "45", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-	"timeout for http downloader");
-static CVAR_DEFINE_AUTO (http_maxconnections, "4", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
-	"maximum http connection number");*/
-
 // [FWGS, 01.12.24] HTTP_ClearCustomServers moved to net_http
-/*
-========================
-HTTP_ClearCustomServers
-========================
-/
-void HTTP_ClearCustomServers (void)
-	{
-	if (http.first_file)
-		return; // may be referenced
-
-	while (http.first_server && http.first_server->needfree)
-		{
-		httpserver_t *tmp = http.first_server;
-
-		http.first_server = http.first_server->next;
-		Mem_Free (tmp);
-		}
-	}*/
-
 // [FWGS, 01.12.24] HTTP_FreeFile moved to net_http
-/*
-==============
-HTTP_FreeFile
-
-Skip to next server/file
-==============
-/
-static void HTTP_FreeFile (httpfile_t *file, qboolean error)
-	{
-	char incname[256];
-
-	// Allways close file and socket
-	if (file->file)
-		FS_Close (file->file);
-
-	file->file = NULL;
-
-	if (file->socket != -1)
-		closesocket (file->socket);
-
-	file->socket = -1;
-
-	// [FWGS, 01.09.24]
-	Q_snprintf (incname, sizeof (incname), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", file->path);
-
-	if (error)
-		{
-		// Switch to next fastdl server if present
-		if (file->server && (file->state > HTTP_QUEUE) && (file->state != HTTP_FREE))
-			{
-			file->server = file->server->next;
-			file->state = HTTP_QUEUE; // Reset download state, HTTP_Run() will open file again
-			return;
-			}
-
-		// Called because there was no servers to download, free file now
-		if (http_autoremove.value == 1) // remove broken file
-			FS_Delete (incname);
-
-		// autoremove disabled, keep file
-		else
-			Con_Printf ("cannot download %s from any server. "
-				"You may remove %s now\n", file->path, incname); // Warn about trash file
-
-		if (file->process)
-			CL_ProcessFile (false, file->path); // Process file, increase counter
-		}
-	else
-		{
-		// Success, rename and process file
-		char name[256];
-
-		// [FWGS, 01.09.24]
-		Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s", file->path);
-
-		FS_Rename (incname, name);
-
-		if (file->process)
-			CL_ProcessFile (true, name);
-		else
-			Con_Printf ("successfully downloaded %s, processing disabled!\n", name);
-		}
-
-	file->state = HTTP_FREE;
-	}*/
-
 // [FWGS, 01.12.24] HTTP_AutoClean moved to net_http
-/*
-===================
-HTTP_AutoClean
-
-remove files with HTTP_FREE state from list
-===================
-/
-static void HTTP_AutoClean (void)
-	{
-	httpfile_t *curfile, *prevfile = 0;
-
-	// clean all files marked to free
-	for (curfile = http.first_file; curfile; curfile = curfile->next)
-		{
-		if (curfile->state != HTTP_FREE)
-			{
-			prevfile = curfile;
-			continue;
-			}
-
-		if (curfile == http.first_file)
-			{
-			http.first_file = http.first_file->next;
-			Mem_Free (curfile);
-			curfile = http.first_file;
-			if (!curfile)
-				break;
-			continue;
-			}
-
-		if (prevfile)
-			prevfile->next = curfile->next;
-		Mem_Free (curfile);
-		curfile = prevfile;
-		if (!curfile)
-			break;
-		}
-	http.last_file = prevfile;
-	}*/
-
 // [FWGS, 01.12.24] HTTP_ProcessStream moved to net_http
-/*
-===================
-HTTP_ProcessStream [FWGS, 01.07.24]
-
-process incoming data
-===================
-/
-static qboolean HTTP_ProcessStream (httpfile_t *curfile)
-	{
-	char	buf[sizeof (curfile->buf)];
-	char	*begin = 0;
-	int		res;
-
-	if (curfile->header_size >= sizeof (buf))
-		{
-		Con_Reportf (S_ERROR "Header too big, the size is %d\n", curfile->header_size);
-		HTTP_FreeFile (curfile, true);
-		return false;
-		}
-
-	// if we got there, we are receiving data
-	while ((res = recv (curfile->socket, buf, sizeof (buf) - curfile->header_size, 0)) > 0)
-		{
-		curfile->blocktime = 0;
-
-		if (curfile->state < HTTP_RESPONSE_RECEIVED) // Response still not received
-			{
-			memcpy (curfile->buf + curfile->header_size, buf, res);
-			curfile->buf[curfile->header_size + res] = 0;
-			begin = Q_strstr (curfile->buf, "\r\n\r\n");
-
-			if (begin) // Got full header
-				{
-				int cutheadersize = begin - curfile->buf + 4; // after that begin of data
-				char *content_length_line;
-
-				if (!Q_strstr (curfile->buf, "200 OK"))
-					{
-					*begin = 0; // cut string to print out response
-					begin = Q_strchr (curfile->buf, '\r');
-
-					if (!begin)
-						begin = Q_strchr (curfile->buf, '\n');
-					if (begin)
-						*begin = 0;
-
-					Con_Printf (S_ERROR "%s: bad response: %s\n", curfile->path, curfile->buf);
-					HTTP_FreeFile (curfile, true);
-					return false;
-					}
-
-				// print size
-				content_length_line = Q_stristr (curfile->buf, "Content-Length: ");
-				if (content_length_line)
-					{
-					int size;
-					
-					content_length_line += sizeof ("Content-Length: ") - 1;
-					size = Q_atoi (content_length_line);
-
-					Con_Reportf ("HTTP: Got 200 OK! File size is %d\n", size);
-
-					if ((curfile->size != -1) && (curfile->size != size)) // check size if specified, not used
-						Con_Reportf (S_WARN "Server reports wrong file size for %s!\n", curfile->path);
-
-					curfile->size = size;
-					curfile->header_size = 0;
-					}
-
-				if (curfile->size == -1)
-					{
-					// Usually fastdl's reports file size if link is correct
-					Con_Printf (S_ERROR "file size is unknown, refusing download!\n");
-					HTTP_FreeFile (curfile, true);
-					return false;
-					}
-
-				curfile->state = HTTP_RESPONSE_RECEIVED; // got response, let's start download
-				begin += 4;
-
-				// Write remaining message part
-				if (res - cutheadersize - curfile->header_size > 0)
-					{
-					int ret = FS_Write (curfile->file, begin, res - cutheadersize - curfile->header_size);
-
-					if (ret != res - cutheadersize - curfile->header_size) // could not write file
-						{
-						// close it and go to next
-						Con_Printf (S_ERROR "write failed for %s!\n", curfile->path);
-						HTTP_FreeFile (curfile, true);
-						return false;
-						}
-					curfile->downloaded += ret;
-					}
-				}
-			else
-				{
-				curfile->header_size += res;
-				}
-			}
-		else if (res > 0)
-			{
-			// data download
-			int ret = FS_Write (curfile->file, buf, res);
-
-			if (ret != res)
-				{
-				// close it and go to next
-				Con_Printf (S_ERROR "write failed for %s!\n", curfile->path);
-				curfile->state = HTTP_FREE;
-				HTTP_FreeFile (curfile, true);
-				return false;
-				}
-
-			curfile->downloaded += ret;
-			curfile->lastchecksize += ret;
-
-			// as after it will run in same frame
-			if (curfile->checktime > 5)
-				{
-				float speed = (float)curfile->lastchecksize / (5.0f * 1024);
-
-				curfile->checktime = 0;
-				Con_Reportf ("download speed %f KB/s\n", speed);
-				curfile->lastchecksize = 0;
-				}
-			}
-		}
-	curfile->checktime += host.frametime;
-
-	return true;
-	}*/
-
 // [FWGS, 01.12.24] HTTP_Run moved to net_http
-/*
-==============
-HTTP_Run
-
-Download next file block of each active file
-Call every frame
-==============
-/
-void HTTP_Run (void)
-	{
-	httpfile_t	*curfile;
-	int		iActiveCount = 0;
-	int		iProgressCount = 0;
-	float	flProgress = 0;
-	qboolean	fResolving = false;
-
-	for (curfile = http.first_file; curfile; curfile = curfile->next)
-		{
-		struct sockaddr_storage addr;
-
-		if (curfile->state == HTTP_FREE)
-			continue;
-
-		if (curfile->state == HTTP_QUEUE)
-			{
-			char name[MAX_SYSPATH];
-
-			if (iActiveCount > http_maxconnections.value)
-				continue;
-
-			if (!curfile->server)
-				{
-				Con_Printf (S_ERROR "no servers to download %s!\n", curfile->path);
-				HTTP_FreeFile (curfile, true);
-				break;
-				}
-
-			Con_Reportf ("HTTP: Starting download %s from %s\n", curfile->path, curfile->server->host);
-
-			// [FWGS, 01.09.24]
-			Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", curfile->path);
-
-			curfile->file = FS_Open (name, "wb", true);
-			if (!curfile->file)
-				{
-				// [FWGS, 01.07.24]
-				Con_Printf (S_ERROR "HTTP: cannot open %s!\n", name);
-				HTTP_FreeFile (curfile, true);
-				break;
-				}
-
-			curfile->state = HTTP_OPENED;
-			curfile->blocktime = 0;
-			curfile->downloaded = 0;
-			curfile->lastchecksize = 0;
-			curfile->checktime = 0;
-			}
-
-		iActiveCount++;
-		if (curfile->state < HTTP_SOCKET) // Socket is not created
-			{
-			dword mode;
-
-			curfile->socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-			// Now set non-blocking mode
-			// You may skip this if not supported by system,
-			// but download will lock engine, maybe you will need to add manual returns
-			mode = 1;
-			ioctlsocket (curfile->socket, FIONBIO, (void *)&mode);
-if XASH_LINUX
-			// SOCK_NONBLOCK is not portable, so use fcntl
-			fcntl (curfile->socket, F_SETFL, fcntl (curfile->socket, F_GETFL, 0) | O_NONBLOCK);
-endif
-			curfile->state = HTTP_SOCKET;
-			}
-
-		if (curfile->state < HTTP_NS_RESOLVED)
-			{
-			net_gai_state_t res;	// [FWGS, 01.05.23]
-			char hostport[MAX_VA_STRING];
-
-			if (fResolving)
-				continue;
-
-			Q_snprintf (hostport, sizeof (hostport), "%s:%d", curfile->server->host, curfile->server->port);
-
-			res = NET_StringToSockaddr (hostport, &addr, true, AF_INET);
-			if (res == NET_EAI_AGAIN)	// [FWGS, 01.05.23]
-				{
-				fResolving = true;
-				continue;
-				}
-
-			if (res == NET_EAI_NONAME)	// [FWGS, 01.05.23]
-				{
-				Con_Printf (S_ERROR "failed to resolve server address for %s!\n", curfile->server->host);
-				HTTP_FreeFile (curfile, true); // Cannot connect
-				break;
-				}
-			curfile->state = HTTP_NS_RESOLVED;
-			}
-
-		if (curfile->state < HTTP_CONNECTED) // Connection not enstabilished
-			{
-			int res = connect (curfile->socket, (struct sockaddr *)&addr, NET_SockAddrLen (&addr));
-			if (res)
-				{
-				// Should give EWOOLDBLOCK if try recv too soon
-				if ((WSAGetLastError () == WSAEINPROGRESS) || (WSAGetLastError () == WSAEWOULDBLOCK))
-					{
-					curfile->state = HTTP_CONNECTED;
-					}
-				else
-					{
-					Con_Printf (S_ERROR "cannot connect to server: %s\n", NET_ErrorString ());
-					HTTP_FreeFile (curfile, true); // Cannot connect
-					break;
-					}
-				continue; // skip to next file
-				}
-			curfile->state = HTTP_CONNECTED;
-			}
-
-		if (curfile->state < HTTP_REQUEST) // Request not formatted
-			{
-			// [FWGS, 01.05.23]
-			string useragent;
-			if (!COM_CheckStringEmpty (http_useragent.string) || !Q_strcmp (http_useragent.string, "xash3d"))
-				{
-				Q_snprintf (useragent, sizeof (useragent), "%s/%s (%s-%s; build %d; %s)",
-					XASH_ENGINE_NAME, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum (), Q_buildcommit ());
-				}
-			else
-				{
-				Q_strncpy (useragent, http_useragent.string, sizeof (useragent));
-				}
-
-			curfile->query_length = Q_snprintf (curfile->buf, sizeof (curfile->buf),
-				"GET %s%s HTTP/1.0\r\n"
-				"Host: %s\r\n"
-				"User-Agent: %s\r\n\r\n", curfile->server->path,
-				curfile->path, curfile->server->host, useragent);	// [FWGS, 01.05.23]
-			curfile->header_size = 0;
-			curfile->bytes_sent = 0;
-			curfile->state = HTTP_REQUEST;
-			}
-
-		if (curfile->state < HTTP_REQUEST_SENT) // Request not sent
-			{
-			qboolean wait = false;
-
-			while (curfile->bytes_sent < curfile->query_length)
-				{
-				int res = send (curfile->socket, curfile->buf + curfile->bytes_sent,
-					curfile->query_length - curfile->bytes_sent, 0);
-
-				if (res < 0)
-					{
-					if ((WSAGetLastError () != WSAEWOULDBLOCK) && (WSAGetLastError () != WSAENOTCONN))
-						{
-						Con_Printf (S_ERROR "failed to send request: %s\n", NET_ErrorString ());
-						HTTP_FreeFile (curfile, true);
-						wait = true;
-						break;
-						}
-
-					// blocking while waiting connection
-					// increase counter when blocking
-					curfile->blocktime += host.frametime;
-					wait = true;
-
-					if (curfile->blocktime > http_timeout.value)
-						{
-						Con_Printf (S_ERROR "timeout on request send:\n%s\n", curfile->buf);
-						HTTP_FreeFile (curfile, true);
-						break;
-						}
-					break;
-					}
-				else
-					{
-					curfile->bytes_sent += res;
-					curfile->blocktime = 0;
-					}
-				}
-
-			if (wait)
-				continue;
-
-			Con_Reportf ("HTTP: Request sent!\n");
-			memset (curfile->buf, 0, sizeof (curfile->buf));
-			curfile->state = HTTP_REQUEST_SENT;
-			}
-
-		if (!HTTP_ProcessStream (curfile))
-			break;
-
-		if (curfile->size > 0)
-			{
-			flProgress += (float)curfile->downloaded / curfile->size;
-			iProgressCount++;
-			}
-
-		if (curfile->size > 0 && curfile->downloaded >= curfile->size)
-			{
-			HTTP_FreeFile (curfile, false); // success
-			break;
-			}
-		else if ((WSAGetLastError () != WSAEWOULDBLOCK) && (WSAGetLastError () != WSAEINPROGRESS))
-			{
-			Con_Reportf ("problem downloading %s:\n%s\n", curfile->path, NET_ErrorString ());
-			}
-		else
-			{
-			curfile->blocktime += host.frametime;
-			}
-
-		if (curfile->blocktime > http_timeout.value)
-			{
-			Con_Printf (S_ERROR "timeout on receiving data!\n");
-			HTTP_FreeFile (curfile, true);
-			break;
-			}
-		}
-
-	// update progress
-	if (!Host_IsDedicated () && iProgressCount != 0)
-		Cvar_SetValue ("scr_download", flProgress / iProgressCount * 100);
-
-	HTTP_AutoClean ();
-	}*/
-
 // [FWGS, 01.12.24] HTTP_AddDownload moved to net_http
-/*
-===================
-HTTP_AddDownload
-
-Add new download to end of queue
-===================
-/
-void HTTP_AddDownload (const char *path, int size, qboolean process)
-	{
-	httpfile_t *httpfile = Z_Calloc (sizeof (httpfile_t));
-
-	Con_Reportf ("File %s queued to download\n", path);
-
-	httpfile->size = size;
-	httpfile->downloaded = 0;
-	httpfile->socket = -1;
-	Q_strncpy (httpfile->path, path, sizeof (httpfile->path));
-
-	if (http.last_file)
-		{
-		// Add next to last download
-		httpfile->id = http.last_file->id + 1;
-		http.last_file->next = httpfile;
-		http.last_file = httpfile;
-		}
-	else
-		{
-		// It will be the only download
-		httpfile->id = 0;
-		http.last_file = http.first_file = httpfile;
-		}
-
-	httpfile->file = NULL;
-	httpfile->next = NULL;
-	httpfile->state = HTTP_QUEUE;
-	httpfile->server = http.first_server;
-	httpfile->process = process;
-	}*/
-
 // [FWGS, 01.12.24] HTTP_Download_f moved to net_http
-/*
-===============
-HTTP_Download_f
-
-Console wrapper
-===============
-/
-static void HTTP_Download_f (void)
-	{
-	if (Cmd_Argc () < 2)
-		{
-		Con_Printf (S_USAGE "download <gamedir_path>\n");
-		return;
-		}
-
-	HTTP_AddDownload (Cmd_Argv (1), -1, false);
-	}*/
-
 // [FWGS, 01.12.24] HTTP_ParseURL moved to net_http
-/*
-==============
-HTTP_ParseURL
-==============
-/
-static httpserver_t *HTTP_ParseURL (const char *url)
-	{
-	httpserver_t *server;
-	int i;
-
-	url = Q_strstr (url, "http://");
-
-	if (!url)
-		return NULL;
-
-	url += 7;
-	server = Z_Calloc (sizeof (httpserver_t));
-	i = 0;
-
-	while (*url && (*url != ':') && (*url != '/') && (*url != '\r') && (*url != '\n'))
-		{
-		if (i > sizeof (server->host))
-			return NULL;
-
-		server->host[i++] = *url++;
-		}
-
-	server->host[i] = 0;
-
-	if (*url == ':')
-		{
-		server->port = Q_atoi (++url);
-
-		while (*url && (*url != '/') && (*url != '\r') && (*url != '\n'))
-			url++;
-		}
-	else
-		{
-		server->port = 80;
-		}
-
-	i = 0;
-
-	while (*url && (*url != '\r') && (*url != '\n'))
-		{
-		if (i > sizeof (server->path))
-			return NULL;
-
-		server->path[i++] = *url++;
-		}
-
-	server->path[i] = 0;
-	server->next = NULL;
-	server->needfree = false;
-
-	return server;
-	}*/
-
 // [FWGS, 01.12.24] HTTP_AddCustomServer moved to net_http
-/*
-=======================
-HTTP_AddCustomServer
-=======================
-/
-void HTTP_AddCustomServer (const char *url)
-	{
-	httpserver_t *server = HTTP_ParseURL (url);
-
-	if (!server)
-		{
-		Con_Printf (S_ERROR "\"%s\" is not valid url!\n", url);
-		return;
-		}
-
-	server->needfree = true;
-	server->next = http.first_server;
-	http.first_server = server;
-	}*/
-
 // [FWGS, 01.12.24] HTTP_AddCustomServer_f moved to net_http
-/*
-=======================
-HTTP_AddCustomServer_f [FWGS, 01.12.23]
-=======================
-/
-static void HTTP_AddCustomServer_f (void)
-	{
-	if (Cmd_Argc () == 2)
-		{
-		HTTP_AddCustomServer (Cmd_Argv (1));
-		}
-	else
-		{
-		Con_Printf (S_USAGE "http_addcustomserver <url>\n");
-		}
-	}*/
-
 // [FWGS, 01.12.24] HTTP_Clear_f moved to net_http
-/*
-============
-HTTP_Clear_f
-
-Clear all queue
-============
-/
-static void HTTP_Clear_f (void)
-	{
-	http.last_file = NULL;
-
-	while (http.first_file)
-		{
-		httpfile_t *file = http.first_file;
-
-		http.first_file = http.first_file->next;
-
-		if (file->file)
-			FS_Close (file->file);
-
-		if (file->socket != -1)
-			closesocket (file->socket);
-
-		Mem_Free (file);
-		}
-	}*/
-
 // [FWGS, 01.12.24] HTTP_Cancel_f moved to net_http
-/*
-==============
-HTTP_Cancel_f
-
-Stop current download, skip to next file
-==============
-/
-static void HTTP_Cancel_f (void)
-	{
-	if (!http.first_file)
-		return;
-
-	http.first_file->state = HTTP_FREE;
-	HTTP_FreeFile (http.first_file, true);
-	}*/
-
 // [FWGS, 01.12.24] HTTP_Skip_f moved to net_http
-/*
-=============
-HTTP_Skip_f
-
-Stop current download, skip to next server
-=============
-/
-static void HTTP_Skip_f (void)
-	{
-	if (http.first_file)
-		HTTP_FreeFile (http.first_file, true);
-	}*/
-
 // [FWGS, 01.12.24] HTTP_List_f moved to net_http
-/*
-=============
-HTTP_List_f
-
-Print all pending downloads to console
-=============
-/
-static void HTTP_List_f (void)
-	{
-	httpfile_t *file = http.first_file;
-
-	while (file)
-		{
-		if (file->server)
-			Con_Printf ("\t%d %d http://%s:%d/%s%s %d\n", file->id, file->state,
-				file->server->host, file->server->port, file->server->path,
-				file->path, file->downloaded);
-		else
-			Con_Printf ("\t%d %d (no server) %s\n", file->id, file->state, file->path);
-
-		file = file->next;
-		}
-	}*/
-
 // [FWGS, 01.12.24] HTTP_ResetProcessState moved to net_http
-/*
-================
-HTTP_ResetProcessState
-
-When connected to new server, all old files should not increase counter
-================
-/
-void HTTP_ResetProcessState (void)
-	{
-	httpfile_t *file = http.first_file;
-
-	while (file)
-		{
-		file->process = false;
-		file = file->next;
-		}
-	}*/
-
 // [FWGS, 01.12.24] HTTP_Init moved to net_http
-/*
-=============
-HTTP_Init
-=============
-/
-void HTTP_Init (void)
-	{
-	char *serverfile, *line, token[1024];
-
-	http.last_server = NULL;
-
-	http.first_file = http.last_file = NULL;
-
-	// [FWGS, 01.05.23]
-	Cmd_AddRestrictedCommand ("http_download", HTTP_Download_f, "add file to download queue");
-	Cmd_AddRestrictedCommand ("http_skip", HTTP_Skip_f, "skip current download server");
-	Cmd_AddRestrictedCommand ("http_cancel", HTTP_Cancel_f, "cancel current download");
-	Cmd_AddRestrictedCommand ("http_clear", HTTP_Clear_f, "cancel all downloads");
-	Cmd_AddRestrictedCommand ("http_list", HTTP_List_f, "list all queued downloads");
-	Cmd_AddCommand ("http_addcustomserver", HTTP_AddCustomServer_f, "add custom fastdl server");
-
-	// [FWGS, 01.07.23]
-	Cvar_RegisterVariable (&http_useragent);
-	Cvar_RegisterVariable (&http_autoremove);
-	Cvar_RegisterVariable (&http_timeout);
-	Cvar_RegisterVariable (&http_maxconnections);
-
-	// Read servers from fastdl.txt
-	line = serverfile = (char *)FS_LoadFile ("fastdl.txt", 0, false);
-
-	if (serverfile)
-		{
-		while ((line = COM_ParseFile (line, token, sizeof (token))))
-			{
-			httpserver_t *server = HTTP_ParseURL (token);
-
-			if (!server)
-				continue;
-
-			if (!http.last_server)
-				http.last_server = http.first_server = server;
-			else
-				{
-				http.last_server->next = server;
-				http.last_server = server;
-				}
-			}
-
-		Mem_Free (serverfile);
-		}
-	}*/
-
 // [FWGS, 01.12.24] HTTP_Shutdown moved to net_http
-/*
-====================
-HTTP_Shutdown
-====================
-/
-void HTTP_Shutdown (void)
-	{
-	HTTP_Clear_f ();
-
-	while (http.first_server)
-		{
-		httpserver_t *tmp = http.first_server;
-
-		http.first_server = http.first_server->next;
-		Mem_Free (tmp);
-		}
-
-	http.last_server = NULL;
-	}*/
