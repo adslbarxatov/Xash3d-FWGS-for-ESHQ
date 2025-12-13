@@ -1,23 +1,20 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
-/***
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
+/***
 ===== weapons.cpp ========================================================
 
-  functions governing the selection/use of weapons for players
-
+functions governing the selection/use of weapons for players
 ***/
 
 #include "extdll.h"
@@ -57,8 +54,8 @@ MULTIDAMAGE gMultiDamage;
 
 // =========================================================
 // MaxAmmoCarry - pass in a name and this function will tell
-// you the maximum amount of that type of ammunition that a 
-// player can carry.
+// you the maximum amount of that type of ammunition that a
+// player can carry
 // =========================================================
 int MaxAmmoCarry (int iszName)
 	{
@@ -92,7 +89,6 @@ void ClearMultiDamage (void)
 // ApplyMultiDamage - inflicts contents of global multi damage register on gMultiDamage.pEntity
 // GLOBALS USED:
 // gMultiDamage
-
 void ApplyMultiDamage (entvars_t* pevInflictor, entvars_t* pevAttacker)
 	{
 	Vector		vecSpot1;	// where blood comes from
@@ -524,6 +520,7 @@ void CBasePlayerItem::CheckRespawn (void)
 		case GR_WEAPON_RESPAWN_YES:
 			Respawn ();
 			break;
+
 		case GR_WEAPON_RESPAWN_NO:
 			return;
 			break;
@@ -532,7 +529,7 @@ void CBasePlayerItem::CheckRespawn (void)
 
 // =========================================================
 // Respawn- this item is already in the world, but it is
-// invisible and intangible. Make it visible and tangible.
+// invisible and intangible. Make it visible and tangible
 // =========================================================
 CBaseEntity* CBasePlayerItem::Respawn (void)
 	{
@@ -608,7 +605,7 @@ BOOL CanAttack (float attack_time, float curtime, BOOL isPredicted)
 // ESHQ: совместимость с клиентской частью
 float CBasePlayerWeapon::GetNextAttackDelay (float delay)
 	{
-	if (m_flLastFireTime == 0 || m_flNextPrimaryAttack == -1)
+	if ((m_flLastFireTime == 0) || (m_flNextPrimaryAttack == -1))
 		{
 		// At this point, we are assuming that the client has stopped firing
 		// and we are going to reset our book keeping variables.
@@ -743,6 +740,7 @@ void CBasePlayerItem::Holster (int skiplocal)
 	{
 	m_pPlayer->pev->viewmodel = 0;
 	m_pPlayer->pev->weaponmodel = 0;
+	/*m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;*/
 	}
 
 void CBasePlayerItem::AttachToPlayer (CBasePlayer* pPlayer)
@@ -750,8 +748,8 @@ void CBasePlayerItem::AttachToPlayer (CBasePlayer* pPlayer)
 	pev->movetype = MOVETYPE_FOLLOW;
 	pev->solid = SOLID_NOT;
 	pev->aiment = pPlayer->edict ();
-	pev->effects = EF_NODRAW; // ??
-	pev->modelindex = 0;// server won't send down to clients if modelindex == 0
+	pev->effects = EF_NODRAW;	// ??
+	pev->modelindex = 0;	// server won't send down to clients if modelindex == 0
 	pev->model = iStringNull;
 	pev->owner = pPlayer->edict ();
 	pev->nextthink = gpGlobals->time + .1;
@@ -881,7 +879,7 @@ BOOL CBasePlayerWeapon::AddPrimaryAmmo (int iCount, char* szName, int iMaxClip, 
 		if (m_pPlayer->HasPlayerItem (this))
 			{
 			// play the "got ammo" sound only if we gave some ammo to a player that already had this gun.
-			// if the player is just getting this gun for the first time, DefaultTouch will play the "picked up gun" sound for us.
+			// if the player is just getting this gun for the first time, DefaultTouch will play the "picked up gun" sound for us
 			EMIT_SOUND (ENT (pev), CHAN_ITEM, "items/9mmclip1.wav", 1, ATTN_MEDIUM);
 			}
 		}
@@ -992,6 +990,7 @@ BOOL CBasePlayerWeapon::PlayEmptySound (void)
 		m_iPlayEmptySound = 0;
 		return 0;
 		}
+
 	return 0;
 	}
 
@@ -1223,7 +1222,7 @@ void CWeaponBox::Kill (void)
 
 // =========================================================
 // CWeaponBox - Touch: try to add my contents to the toucher
-// if the toucher is a player.
+// if the toucher is a player
 // =========================================================
 void CWeaponBox::Touch (CBaseEntity* pOther)
 	{
@@ -1364,7 +1363,7 @@ int CWeaponBox::GiveAmmo (int iCount, char* szName, int iMax, int* pIndex)
 	{
 	int i;
 
-	for (i = 1; i < MAX_AMMO_SLOTS && !FStringNull (m_rgiszAmmo[i]); i++)
+	for (i = 1; (i < MAX_AMMO_SLOTS) && !FStringNull (m_rgiszAmmo[i]); i++)
 		{
 		if (stricmp (szName, STRING (m_rgiszAmmo[i])) == 0)
 			{
@@ -1381,6 +1380,7 @@ int CWeaponBox::GiveAmmo (int iCount, char* szName, int iMax, int* pIndex)
 			return -1;
 			}
 		}
+
 	if (i < MAX_AMMO_SLOTS)
 		{
 		if (pIndex)
@@ -1391,6 +1391,7 @@ int CWeaponBox::GiveAmmo (int iCount, char* szName, int iMax, int* pIndex)
 
 		return i;
 		}
+
 	ALERT (at_console, "out of named ammo slots\n");
 	return i;
 	}
@@ -1406,9 +1407,8 @@ BOOL CWeaponBox::HasWeapon (CBasePlayerItem* pCheckItem)
 	while (pItem)
 		{
 		if (FClassnameIs (pItem->pev, STRING (pCheckItem->pev->classname)))
-			{
 			return TRUE;
-			}
+			
 		pItem = pItem->m_pNext;
 		}
 
@@ -1425,18 +1425,14 @@ BOOL CWeaponBox::IsEmpty (void)
 	for (i = 0; i < MAX_ITEM_TYPES; i++)
 		{
 		if (m_rgpPlayerItems[i])
-			{
 			return FALSE;
-			}
 		}
 
 	for (i = 0; i < MAX_AMMO_SLOTS; i++)
 		{
+		// still have a bit of this type of ammo
 		if (!FStringNull (m_rgiszAmmo[i]))
-			{
-			// still have a bit of this type of ammo
 			return FALSE;
-			}
 		}
 
 	return TRUE;

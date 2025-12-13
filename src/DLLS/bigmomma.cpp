@@ -1013,7 +1013,9 @@ void CBigMomma::RunTask (Task_t* pTask)
 			float distance;
 
 			if (m_hTargetEnt == NULL)
+				{
 				TaskFail ();
+				}
 			else
 				{
 				distance = (m_vecMoveGoal - pev->origin).Length2D ();

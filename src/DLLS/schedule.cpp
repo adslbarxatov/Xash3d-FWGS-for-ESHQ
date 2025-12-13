@@ -1,20 +1,19 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   This source code contains proprietary and confidential information of
-*   Valve LLC and its suppliers.  Access to this code is restricted to
-*   persons who have executed a written SDK license with Valve.  Any access,
-*   use or distribution of this code by or to any unlicensed person is illegal.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+This source code contains proprietary and confidential information of
+Valve LLC and its suppliers.  Access to this code is restricted to
+persons who have executed a written SDK license with Valve.  Any access,
+use or distribution of this code by or to any unlicensed person is illegal
+***/
+
 // =========================================================
-// schedule.cpp - functions and data pertaining to the 
-// monsters' AI scheduling system.
+// schedule.cpp - functions and data pertaining to the
+// monsters' AI scheduling system
 // =========================================================
 #include "extdll.h"
 #include "util.h"
@@ -30,21 +29,19 @@ extern CGraph WorldGraph;
 
 // =========================================================
 // FHaveSchedule - Returns TRUE if monster's m_pSchedule
-// is anything other than NULL.
+// is anything other than NULL
 // =========================================================
 BOOL CBaseMonster::FHaveSchedule (void)
 	{
 	if (m_pSchedule == NULL)
-		{
 		return FALSE;
-		}
 
 	return TRUE;
 	}
 
 // =========================================================
 // ClearSchedule - blanks out the caller's schedule pointer
-// and index.
+// and index
 // =========================================================
 void CBaseMonster::ClearSchedule (void)
 	{
@@ -62,9 +59,7 @@ BOOL CBaseMonster::FScheduleDone (void)
 	ASSERT (m_pSchedule != NULL);
 
 	if (m_iScheduleIndex == m_pSchedule->cTasks)
-		{
 		return TRUE;
-		}
 
 	return FALSE;
 	}
@@ -119,7 +114,7 @@ void CBaseMonster::NextScheduledTask (void)
 // =========================================================
 // IScheduleFlags - returns an integer with all Conditions
 // bits that are currently set and also set in the current
-// schedule's Interrupt mask.
+// schedule's Interrupt mask
 // =========================================================
 int CBaseMonster::IScheduleFlags (void)
 	{
@@ -322,7 +317,7 @@ void CBaseMonster::RunTask (Task_t *pTask)
 			break;
 
 		case TASK_WAIT_INDEFINITE:
-			// don't do anything.
+			// don't do anything
 			break;
 
 		case TASK_WAIT:
@@ -349,7 +344,8 @@ void CBaseMonster::RunTask (Task_t *pTask)
 			else
 				{
 				distance = (m_vecMoveGoal - pev->origin).Length2D ();
-				// Re-evaluate when you think your finished, or the target has moved too far
+
+				// Re-evaluate when you think you finished, or the target has moved too far
 				if ((distance < pTask->flData) || (m_vecMoveGoal - m_hTargetEnt->pev->origin).Length () >
 					pTask->flData * 0.5)
 					{
@@ -365,11 +361,11 @@ void CBaseMonster::RunTask (Task_t *pTask)
 					TaskComplete ();
 					RouteClear ();		// Stop moving
 					}
-				else if (distance < 190 && m_movementActivity != ACT_WALK)
+				else if ((distance < 190) && (m_movementActivity != ACT_WALK))
 					{
 					m_movementActivity = ACT_WALK;
 					}
-				else if (distance >= 270 && m_movementActivity != ACT_RUN)
+				else if ((distance >= 270) && (m_movementActivity != ACT_RUN))
 					{
 					m_movementActivity = ACT_RUN;
 					}

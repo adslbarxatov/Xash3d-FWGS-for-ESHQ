@@ -1,23 +1,20 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   This source code contains proprietary and confidential information of
-*   Valve LLC and its suppliers.  Access to this code is restricted to
-*   persons who have executed a written SDK license with Valve.  Any access,
-*   use or distribution of this code by or to any unlicensed person is illegal.
-*
-****/
-/***
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+This source code contains proprietary and confidential information of
+Valve LLC and its suppliers.  Access to this code is restricted to
+persons who have executed a written SDK license with Valve.  Any access,
+use or distribution of this code by or to any unlicensed person is illegal
+***/
+
+/***
 ===== monsters.cpp ========================================================
 
-  Monster-related utility code
-
+Monster-related utility code
 ***/
 
 #include "extdll.h"
@@ -49,7 +46,7 @@ extern CGraph WorldGraph;	// the world node graph
 // UNDONE: Save schedule data?  Can this be done?  We may
 // lose our enemy pointer or other data (goal ent, target, etc)
 // that make the current schedule invalid, perhaps it's best
-// to just pick a new one when we start up again.
+// to just pick a new one when we start up again
 TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	{
 		DEFINE_FIELD (CBaseMonster, m_hEnemy, FIELD_EHANDLE),
@@ -449,11 +446,11 @@ CSound* CBaseMonster::PBestScent (void)
 	{
 	int iThisScent;
 	int	iBestScent = -1;
-	float flBestDist = 8192;// so first nearby smell will become best so far.
+	float flBestDist = 8192;	// so first nearby smell will become best so far
 	float flDist;
 	CSound* pSound;
 
-	iThisScent = m_iAudibleList;// smells are in the sound list.
+	iThisScent = m_iAudibleList;	// smells are in the sound list
 
 	if (iThisScent == SOUNDLIST_EMPTY)
 		{
@@ -494,22 +491,21 @@ CSound* CBaseMonster::PBestScent (void)
 	}
 
 
-
 // =========================================================
 // Monster Think - calls out to core AI functions and handles this
 // monster's specific animation events
 // =========================================================
 void CBaseMonster::MonsterThink (void)
 	{
-	pev->nextthink = gpGlobals->time + 0.1;// keep monster thinking.
-
+	pev->nextthink = gpGlobals->time + 0.1;	// keep monster thinking
 
 	RunAI ();
 
 	float flInterval = StudioFrameAdvance (); // animate
-// start or end a fidget
-// This needs a better home -- switching animations over time should be encapsulated on a per-activity basis
-// perhaps MaintainActivity() or a ShiftAnimationOverTime() or something.
+
+	// start or end a fidget
+	// This needs a better home -- switching animations over time should be encapsulated on a per-activity basis
+	// perhaps MaintainActivity() or a ShiftAnimationOverTime() or something
 	if (m_MonsterState != MONSTERSTATE_SCRIPT && m_MonsterState != MONSTERSTATE_DEAD && m_Activity == ACT_IDLE && m_fSequenceFinished)
 		{
 		int iSequence;
@@ -517,7 +513,7 @@ void CBaseMonster::MonsterThink (void)
 		if (m_fSequenceLoops)
 			{
 			// animation does loop, which means we're playing subtle idle. Might need to 
-			// fidget.
+			// fidget
 			iSequence = LookupActivity (m_Activity);
 			}
 		else
@@ -548,7 +544,7 @@ void CBaseMonster::MonsterThink (void)
 		{
 		Move (flInterval);
 		}
-#if _DEBUG	
+#if _DEBUG
 	else
 		{
 		if (!TaskIsRunning () && !TaskIsComplete ())
@@ -559,7 +555,7 @@ void CBaseMonster::MonsterThink (void)
 
 // =========================================================
 // CBaseMonster - USE - will make a monster angry at whomever
-// activated it.
+// activated it
 // =========================================================
 void CBaseMonster::MonsterUse (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
@@ -614,7 +610,7 @@ void CBaseMonster::RouteNew (void)
 // =========================================================
 BOOL CBaseMonster::FRouteClear (void)
 	{
-	if (m_Route[m_iRouteIndex].iType == 0 || m_movementGoal == MOVEGOAL_NONE)
+	if ((m_Route[m_iRouteIndex].iType == 0) || (m_movementGoal == MOVEGOAL_NONE))
 		return TRUE;
 
 	return FALSE;
@@ -1482,8 +1478,9 @@ BOOL CBaseMonster::BuildRoute (const Vector& vecGoal, int iMoveFlag, CBaseEntity
 		// monster can walk straight there!
 		return TRUE;
 		}
-	// try to triangulate around any obstacles.
-	else if (iLocalMove != LOCALMOVE_INVALID_DONT_TRIANGULATE && FTriangulate (pev->origin, vecGoal, flDist, pTarget, &vecApex))
+
+	// try to triangulate around any obstacles
+	else if ((iLocalMove != LOCALMOVE_INVALID_DONT_TRIANGULATE) && FTriangulate (pev->origin, vecGoal, flDist, pTarget, &vecApex))
 		{
 		// there is a slightly more complicated path that allows the monster to reach vecGoal
 		m_Route[0].vecLocation = vecApex;
@@ -1529,7 +1526,6 @@ BOOL CBaseMonster::BuildRoute (const Vector& vecGoal, int iMoveFlag, CBaseEntity
 void CBaseMonster::InsertWaypoint (Vector vecLocation, int afMoveFlags)
 	{
 	int i, type;
-
 
 	// we have to save some Index and Type information from the real
 	// path_corner or node waypoint that the monster was trying to reach. This makes sure that data necessary 
@@ -1720,12 +1716,13 @@ void CBaseMonster::Move (float flInterval)
 
 		// Can't move, stop
 		Stop ();
+
 		// Blocking entity is in global trace_ent
 		pBlocker = CBaseEntity::Instance (gpGlobals->trace_ent);
 		if (pBlocker)
 			DispatchBlocked (edict (), pBlocker->edict ());
 
-		if (pBlocker && m_moveWaitTime > 0 && pBlocker->IsMoving () && !pBlocker->IsPlayer () && (gpGlobals->time - m_flMoveWaitFinished) > 3.0)
+		if (pBlocker && (m_moveWaitTime > 0) && pBlocker->IsMoving () && !pBlocker->IsPlayer () && ((gpGlobals->time - m_flMoveWaitFinished) > 3.0))
 			{
 			// Can we still move toward our target?
 			if (flDist < m_flGroundSpeed)
@@ -1738,7 +1735,7 @@ void CBaseMonster::Move (float flInterval)
 			}
 		else
 			{
-			// try to triangulate around whatever is in the way.
+			// try to triangulate around whatever is in the way
 			if (FTriangulate (pev->origin, m_Route[m_iRouteIndex].vecLocation, flDist, pTargetEnt, &vecApex))
 				{
 				InsertWaypoint (vecApex, bits_MF_TO_DETOUR);
@@ -1749,7 +1746,7 @@ void CBaseMonster::Move (float flInterval)
 				Stop ();
 
 				// Only do this once until your route is cleared
-				if (m_moveWaitTime > 0 && !(m_afMemory & bits_MEMORY_MOVE_FAILED))
+				if ((m_moveWaitTime > 0) && !(m_afMemory & bits_MEMORY_MOVE_FAILED))
 					{
 					FRefreshRoute ();
 					if (FRouteClear ())
@@ -1776,7 +1773,7 @@ void CBaseMonster::Move (float flInterval)
 		}
 
 	// close enough to the target, now advance to the next target. This is done before actually reaching
-	// the target so that we get a nice natural turn while moving.
+	// the target so that we get a nice natural turn while moving
 	if (ShouldAdvanceRoute (flWaypointDist))
 		AdvanceRoute (flWaypointDist);
 
@@ -1787,7 +1784,7 @@ void CBaseMonster::Move (float flInterval)
 		return;
 		}
 
-	// UNDONE: this is a hack to quit moving farther than it has looked ahead.
+	// UNDONE: this is a hack to quit moving farther than it has looked ahead
 	if (flCheckDist < m_flGroundSpeed * flInterval)
 		flInterval = flCheckDist / m_flGroundSpeed;
 
@@ -1996,8 +1993,8 @@ void CBaseMonster::MovementComplete (void)
 
 int CBaseMonster::TaskIsRunning (void)
 	{
-	if (m_iTaskStatus != TASKSTATUS_COMPLETE &&
-		m_iTaskStatus != TASKSTATUS_RUNNING_MOVEMENT)
+	if ((m_iTaskStatus != TASKSTATUS_COMPLETE) &&
+		(m_iTaskStatus != TASKSTATUS_RUNNING_MOVEMENT))
 		return 1;
 
 	return 0;

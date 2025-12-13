@@ -1,17 +1,15 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
@@ -97,7 +95,6 @@ void CPython::Precache (void)
 
 BOOL CPython::Deploy ()
 	{
-	// ESHQ: включение зума
 	pev->body = 0;
 	return DefaultDeploy ("models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python",
 		UseDecrement (), pev->body);
@@ -107,8 +104,11 @@ void CPython::Holster (int skiplocal)
 	{
 	m_fInReload = FALSE;	// cancel any reload in progress
 
-	if (m_fInZoom)
-		SecondaryAttack ();
+	// ESHQ: принудительно, независимо от состояния
+	/*if (m_fInZoom)
+		SecondaryAttack ();*/
+	m_fInZoom = FALSE;
+	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + 1.0;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + UTIL_SharedRandomFloat (m_pPlayer->random_seed, 10, 15);
@@ -117,13 +117,14 @@ void CPython::Holster (int skiplocal)
 
 void CPython::SecondaryAttack (void)
 	{
-	// ESHQ: включение зума
+	// ESHQ: выключение зума
 	if (m_pPlayer->pev->fov != 0)
 		{
 		m_fInZoom = FALSE;
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
 		}
-	else if (m_pPlayer->pev->fov != 40)
+	// Включение при любом обратном состоянии
+	else /*if (m_pPlayer->pev->fov != 40)*/
 		{
 		m_fInZoom = TRUE;
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 40;
@@ -200,7 +201,8 @@ void CPython::Reload (void)
 	if (m_pPlayer->ammo_357 <= 0)
 		return;
 
-	if (m_pPlayer->pev->fov != 0)
+	// ESHQ: принудительно независимо от состояния
+	/*if (m_pPlayer->pev->fov != 0)*/
 		{
 		m_fInZoom = FALSE;
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov

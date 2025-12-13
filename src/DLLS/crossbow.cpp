@@ -312,8 +312,11 @@ void CCrossbow::Holster (int skiplocal)	// == 0
 	m_fInReload = FALSE;
 	// cancel any reload in progress
 
-	if (m_fInZoom)
-		SecondaryAttack ();
+	// ESHQ: принудительно, независимо от состояния
+	/*if (m_fInZoom)
+		SecondaryAttack ();*/
+	m_fInZoom = FALSE;
+	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + 0.5;
 	if (m_iClip)
@@ -453,12 +456,14 @@ void CCrossbow::FireBolt ()
 
 void CCrossbow::SecondaryAttack ()
 	{
+	// ESHQ: выключение зума
 	if (m_pPlayer->pev->fov != 0)
 		{
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0; // 0 means reset to default fov
 		m_fInZoom = 0;
 		}
-	else if (m_pPlayer->pev->fov != 20)
+	// Включение при любом обратном состоянии
+	else /*if (m_pPlayer->pev->fov != 20)*/
 		{
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 20;
 		m_fInZoom = 1;
@@ -473,8 +478,11 @@ void CCrossbow::Reload (void)
 	if (m_pPlayer->ammo_bolts <= 0)
 		return;
 
-	if (m_pPlayer->pev->fov != 0)
-		SecondaryAttack ();
+	// ESHQ: принудительно, независимо от состояния
+	/*if (m_pPlayer->pev->fov != 0)
+		SecondaryAttack ();*/
+	m_fInZoom = FALSE;
+	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
 
 	if (DefaultReload (5, CROSSBOW_RELOAD, 3.7))
 		{

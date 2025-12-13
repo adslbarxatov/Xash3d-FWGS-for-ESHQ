@@ -1079,7 +1079,7 @@ void RadiusDamage (Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacke
 
 			UTIL_TraceLine (vecSrc, vecSpot, dont_ignore_monsters, ENT (pevInflictor), &tr);
 
-			if (tr.flFraction == 1.0 || tr.pHit == pEntity->edict ())
+			if ((tr.flFraction == 1.0) || (tr.pHit == pEntity->edict ()))
 				{// the explosion can 'see' this entity, so hurt them!
 				if (tr.fStartSolid)
 					{
@@ -1088,7 +1088,7 @@ void RadiusDamage (Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacke
 					tr.flFraction = 0.0;
 					}
 
-				// decrease damage for an ent that's farther from the bomb.
+				// decrease damage for an ent that's farther from the bomb
 				flAdjustedDamage = (vecSrc - tr.vecEndPos).Length () * falloff;
 				flAdjustedDamage = flDamage - flAdjustedDamage;
 
@@ -1097,7 +1097,6 @@ void RadiusDamage (Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacke
 					flAdjustedDamage = 0;
 					}
 
-				// ALERT( at_console, "hit %s\n", STRING( pEntity->pev->classname ) );
 				if (tr.flFraction != 1.0)
 					{
 					ClearMultiDamage ();
@@ -1154,9 +1153,7 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack (float flDist, int iDamage, int 
 		CBaseEntity* pEntity = CBaseEntity::Instance (tr.pHit);
 
 		if (iDamage > 0)
-			{
 			pEntity->TakeDamage (pev, pev, iDamage, iDmgType);
-			}
 
 		return pEntity;
 		}
@@ -1168,7 +1165,7 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack (float flDist, int iDamage, int 
 // =========================================================
 // FInViewCone - returns true is the passed ent is in
 // the caller's forward view cone. The dot product is performed
-// in 2d, making the view cone infinitely tall. 
+// in 2d, making the view cone infinitely tall
 // =========================================================
 BOOL CBaseMonster::FInViewCone (CBaseEntity* pEntity)
 	{
@@ -1193,9 +1190,9 @@ BOOL CBaseMonster::FInViewCone (CBaseEntity* pEntity)
 	}
 
 // =========================================================
-// FInViewCone - returns true is the passed vector is in
+// FInViewCone - returns true if the passed vector is in
 // the caller's forward view cone. The dot product is performed
-// in 2d, making the view cone infinitely tall. 
+// in 2d, making the view cone infinitely tall
 // =========================================================
 BOOL CBaseMonster::FInViewCone (Vector* pOrigin)
 	{
@@ -1210,13 +1207,9 @@ BOOL CBaseMonster::FInViewCone (Vector* pOrigin)
 	flDot = DotProduct (vec2LOS, gpGlobals->v_forward.Make2D ());
 
 	if (flDot > m_flFieldOfView)
-		{
 		return TRUE;
-		}
-	else
-		{
-		return FALSE;
-		}
+		
+	return FALSE;
 	}
 
 // =========================================================
@@ -1233,8 +1226,8 @@ BOOL CBaseEntity::FVisible (CBaseEntity* pEntity)
 		return FALSE;
 
 	// don't look through water
-	if ((pev->waterlevel != 3 && pEntity->pev->waterlevel == 3)
-		|| (pev->waterlevel == 3 && pEntity->pev->waterlevel == 0))
+	if (((pev->waterlevel != 3) && (pEntity->pev->waterlevel == 3)) ||
+		((pev->waterlevel == 3) && (pEntity->pev->waterlevel == 0)))
 		return FALSE;
 
 	vecLookerOrigin = pev->origin + pev->view_ofs;	// look through the caller's 'eyes'
@@ -1247,8 +1240,7 @@ BOOL CBaseEntity::FVisible (CBaseEntity* pEntity)
 		return FALSE;
 
 	// Line of sight is valid
-	else
-		return TRUE;
+	return TRUE;
 	}
 
 // =========================================================
@@ -1269,8 +1261,7 @@ BOOL CBaseEntity::FVisible (const Vector& vecOrigin)
 		return FALSE;
 
 	// Line of sight is valid
-	else
-		return TRUE;
+	return TRUE;
 	}
 
 /***

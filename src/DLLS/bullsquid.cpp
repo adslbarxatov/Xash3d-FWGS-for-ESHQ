@@ -1,19 +1,18 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   This source code contains proprietary and confidential information of
-*   Valve LLC and its suppliers.  Access to this code is restricted to
-*   persons who have executed a written SDK license with Valve.  Any access,
-*   use or distribution of this code by or to any unlicensed person is illegal.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+This source code contains proprietary and confidential information of
+Valve LLC and its suppliers.  Access to this code is restricted to
+persons who have executed a written SDK license with Valve.  Any access,
+use or distribution of this code by or to any unlicensed person is illegal
+***/
+
 // =========================================================
-// bullsquid - big, spotty tentacle-mouthed meanie.
+// bullsquid - big, spotty tentacle-mouthed meanie
 // =========================================================
 
 #include	"extdll.h"
@@ -27,7 +26,8 @@
 #include	"soundent.h"
 #include	"game.h"
 
-#define		SQUID_SPRINT_DIST	256 // how close the squid has to get before starting to sprint and refusing to swerve
+ // how close the squid has to get before starting to sprint and refusing to swerve
+#define		SQUID_SPRINT_DIST	256
 
 int			iSquidSpitSprite;
 
@@ -75,7 +75,7 @@ LINK_ENTITY_TO_CLASS (squidspit, CSquidSpit);
 
 TYPEDESCRIPTION	CSquidSpit::m_SaveData[] =
 	{
-		DEFINE_FIELD (CSquidSpit, m_maxFrame, FIELD_INTEGER),
+	DEFINE_FIELD (CSquidSpit, m_maxFrame, FIELD_INTEGER),
 	};
 
 IMPLEMENT_SAVERESTORE (CSquidSpit, CBaseEntity);
@@ -232,9 +232,9 @@ LINK_ENTITY_TO_CLASS (monster_bullchicken, CBullsquid);
 
 TYPEDESCRIPTION	CBullsquid::m_SaveData[] =
 	{
-		DEFINE_FIELD (CBullsquid, m_fCanThreatDisplay, FIELD_BOOLEAN),
-		DEFINE_FIELD (CBullsquid, m_flLastHurtTime, FIELD_TIME),
-		DEFINE_FIELD (CBullsquid, m_flNextSpitTime, FIELD_TIME),
+	DEFINE_FIELD (CBullsquid, m_fCanThreatDisplay, FIELD_BOOLEAN),
+	DEFINE_FIELD (CBullsquid, m_flLastHurtTime, FIELD_TIME),
+	DEFINE_FIELD (CBullsquid, m_flNextSpitTime, FIELD_TIME),
 	};
 
 IMPLEMENT_SAVERESTORE (CBullsquid, CBaseMonster);
@@ -262,7 +262,7 @@ int CBullsquid::IgnoreConditions (void)
 
 // =========================================================
 // IRelationship - overridden for bullsquid so that it can
-// be made to ignore its love of headcrabs for a while.
+// be made to ignore its love of headcrabs for a while
 // =========================================================
 int CBullsquid::IRelationship (CBaseEntity* pTarget)
 	{
@@ -291,7 +291,7 @@ int CBullsquid::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 
 		if (flDist > SQUID_SPRINT_DIST)
 			{
-			flDist = (pev->origin - m_Route[m_iRouteIndex].vecLocation).Length2D ();// reusing flDist. 
+			flDist = (pev->origin - m_Route[m_iRouteIndex].vecLocation).Length2D ();	// reusing flDist
 
 			if (FTriangulate (pev->origin, m_Route[m_iRouteIndex].vecLocation, flDist * 0.5, m_hEnemy, &vecApex))
 				InsertWaypoint (vecApex, bits_MF_TO_DETOUR | bits_MF_DONT_SIMPLIFY);
@@ -357,7 +357,7 @@ BOOL CBullsquid::CheckMeleeAttack1 (float flDot, float flDist)
 // CheckMeleeAttack2 - bullsquid is a big guy, so has a longer
 // melee range than most monsters. This is the bite attack.
 // this attack will not be performed if the tailwhip attack
-// is valid.
+// is valid
 // =========================================================
 BOOL CBullsquid::CheckMeleeAttack2 (float flDot, float flDist)
 	{
@@ -394,7 +394,7 @@ BOOL CBullsquid::FValidateHintType (short sHint)
 // =========================================================
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards. In the base class implementation,
-// monsters care about all sounds, but no scents.
+// monsters care about all sounds, but no scents
 // =========================================================
 int CBullsquid::ISoundMask (void)
 	{
@@ -408,7 +408,7 @@ int CBullsquid::ISoundMask (void)
 
 // =========================================================
 // Classify - indicates this monster's place in the 
-// relationship table.
+// relationship table
 // =========================================================
 int	CBullsquid::Classify (void)
 	{
@@ -493,7 +493,7 @@ void CBullsquid::AlertSound (void)
 
 // =========================================================
 // SetYawSpeed - allows each sequence to have a different
-// turn rate associated with it.
+// turn rate associated with it
 // =========================================================
 void CBullsquid::SetYawSpeed (void)
 	{
@@ -528,7 +528,7 @@ void CBullsquid::SetYawSpeed (void)
 
 // =========================================================
 // HandleAnimEvent - catches the monster-specific messages
-// that occur when tagged animation frames are played.
+// that occur when tagged animation frames are played
 // =========================================================
 void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
@@ -550,13 +550,9 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 			// Это, в частности, случилось тогда, когда зомби был разломан на потроха до того, как плевок буллсквида
 			// долетел до него
 			if (m_hEnemy)
-				{
 				vecSpitDir = ((m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs) - vecSpitOffset).Normalize ();
-				}
 			else
-				{
 				break;
-				}
 
 			vecSpitDir.x += RANDOM_FLOAT (-0.05, 0.05);
 			vecSpitDir.y += RANDOM_FLOAT (-0.05, 0.05);
@@ -632,7 +628,7 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 			{
 			int iPitch;
 
-			// squid throws its prey IF the prey is a client. 
+			// squid throws its prey IF the prey is a client
 			CBaseEntity* pHurt = CheckTraceHullAttack (70, 0, 0);
 
 			if (pHurt)
@@ -669,6 +665,7 @@ void CBullsquid::HandleAnimEvent (MonsterEvent_t* pEvent)
 
 		default:
 			CBaseMonster::HandleAnimEvent (pEvent);
+			break;
 		}
 	}
 
@@ -788,7 +785,7 @@ void CBullsquid::AttackSound (void)
 
 // ========================================================
 // RunAI - overridden for bullsquid because there are things
-// that need to be checked every think.
+// that need to be checked every think
 // ========================================================
 void CBullsquid::RunAI (void)
 	{
@@ -841,7 +838,7 @@ Schedule_t	slSquidRangeAttack1[] =
 // Chase enemy schedule
 Task_t tlSquidChaseEnemy1[] =
 	{
-		{ TASK_SET_FAIL_SCHEDULE,	(float)SCHED_RANGE_ATTACK1	},// !!!OEM - this will stop nasty squid oscillation.
+		{ TASK_SET_FAIL_SCHEDULE,	(float)SCHED_RANGE_ATTACK1	},	// !!!OEM - this will stop nasty squid oscillation
 		{ TASK_GET_PATH_TO_ENEMY,	(float)0					},
 		{ TASK_RUN_PATH,			(float)0					},
 		{ TASK_WAIT_FOR_MOVEMENT,	(float)0					},
@@ -872,7 +869,7 @@ Task_t tlSquidHurtHop[] =
 		{ TASK_STOP_MOVING,			(float)0		},
 		{ TASK_SOUND_WAKE,			(float)0		},
 		{ TASK_SQUID_HOPTURN,		(float)0		},
-		{ TASK_FACE_ENEMY,			(float)0		},// in case squid didn't turn all the way in the air.
+		{ TASK_FACE_ENEMY,			(float)0		},	// in case squid didn't turn all the way in the air
 	};
 
 Schedule_t slSquidHurtHop[] =
@@ -928,27 +925,28 @@ Task_t tlSquidEat[] =
 Schedule_t slSquidEat[] =
 	{
 		{
-			tlSquidEat,
-			HLARRAYSIZE (tlSquidEat),
-			bits_COND_LIGHT_DAMAGE |
-			bits_COND_HEAVY_DAMAGE |
-			bits_COND_NEW_ENEMY	,
+		tlSquidEat,
+		HLARRAYSIZE (tlSquidEat),
+		bits_COND_LIGHT_DAMAGE |
+		bits_COND_HEAVY_DAMAGE |
+		bits_COND_NEW_ENEMY	,
 
-	// even though HEAR_SOUND/SMELL FOOD doesn't break this schedule, we need this mask
-	// here or the monster won't detect these sounds at ALL while running this schedule.
-	bits_SOUND_MEAT |
-	bits_SOUND_CARCASS,
-	"SquidEat"
-}
+		// even though HEAR_SOUND/SMELL FOOD doesn't break this schedule, we need this mask
+		// here or the monster won't detect these sounds at ALL while running this schedule
+		bits_SOUND_MEAT |
+		bits_SOUND_CARCASS,
+		"SquidEat"
+		}
 	};
 
 // this is a bit different than just Eat. We use this schedule when the food is far away, occluded, or behind
-// the squid. This schedule plays a sniff animation before going to the source of food.
+// the squid. This schedule plays a sniff animation before going to the source of food
 Task_t tlSquidSniffAndEat[] =
 	{
 		{ TASK_STOP_MOVING,				(float)0				},
-		{ TASK_EAT,						(float)10				},// this is in case the squid can't get to the food
-		{ TASK_PLAY_SEQUENCE,			(float)ACT_DETECT_SCENT },
+		{ TASK_EAT,						(float)10				},	// this is in case the squid can't get to the food
+		// ESHQ: удалено фризящее монстра задание "нюхать" (ACT_DETECT_SCENT)
+		/*{ TASK_PLAY_SEQUENCE,			(float)ACT_DETECT_SCENT },*/
 		{ TASK_STORE_LASTPOSITION,		(float)0				},
 		{ TASK_GET_PATH_TO_BESTSCENT,	(float)0				},
 		{ TASK_WALK_PATH,				(float)0				},
@@ -966,31 +964,31 @@ Task_t tlSquidSniffAndEat[] =
 Schedule_t slSquidSniffAndEat[] =
 	{
 		{
-			tlSquidSniffAndEat,
-			HLARRAYSIZE (tlSquidSniffAndEat),
-			bits_COND_LIGHT_DAMAGE |
-			bits_COND_HEAVY_DAMAGE |
-			bits_COND_NEW_ENEMY	,
+		tlSquidSniffAndEat,
+		HLARRAYSIZE (tlSquidSniffAndEat),
+		bits_COND_LIGHT_DAMAGE |
+		bits_COND_HEAVY_DAMAGE |
+		bits_COND_NEW_ENEMY	,
 
-	// even though HEAR_SOUND/SMELL FOOD doesn't break this schedule, we need this mask
-	// here or the monster won't detect these sounds at ALL while running this schedule.
-	bits_SOUND_MEAT |
-	bits_SOUND_CARCASS,
-	"SquidSniffAndEat"
-}
+		// even though HEAR_SOUND/SMELL FOOD doesn't break this schedule, we need this mask
+		// here or the monster won't detect these sounds at ALL while running this schedule
+		bits_SOUND_MEAT |
+		bits_SOUND_CARCASS,
+		"SquidSniffAndEat"
+		}
 	};
 
 // squid does this to stinky things. 
 Task_t tlSquidWallow[] =
 	{
 		{ TASK_STOP_MOVING,				(float)0				},
-		{ TASK_EAT,						(float)10				},// this is in case the squid can't get to the stinkiness
+		{ TASK_EAT,						(float)10				},	// this is in case the squid can't get to the stinkiness
 		{ TASK_STORE_LASTPOSITION,		(float)0				},
 		{ TASK_GET_PATH_TO_BESTSCENT,	(float)0				},
 		{ TASK_WALK_PATH,				(float)0				},
 		{ TASK_WAIT_FOR_MOVEMENT,		(float)0				},
 		{ TASK_PLAY_SEQUENCE,			(float)ACT_INSPECT_FLOOR},
-		{ TASK_EAT,						(float)50				},// keeps squid from eating or sniffing anything else for a while.
+		{ TASK_EAT,						(float)50				},	// keeps squid from eating or sniffing anything else for a while
 		{ TASK_GET_PATH_TO_LASTPOSITION,(float)0				},
 		{ TASK_WALK_PATH,				(float)0				},
 		{ TASK_WAIT_FOR_MOVEMENT,		(float)0				},
@@ -1000,29 +998,28 @@ Task_t tlSquidWallow[] =
 Schedule_t slSquidWallow[] =
 	{
 		{
-			tlSquidWallow,
-			HLARRAYSIZE (tlSquidWallow),
-			bits_COND_LIGHT_DAMAGE |
-			bits_COND_HEAVY_DAMAGE |
-			bits_COND_NEW_ENEMY	,
+		tlSquidWallow,
+		HLARRAYSIZE (tlSquidWallow),
+		bits_COND_LIGHT_DAMAGE |
+		bits_COND_HEAVY_DAMAGE |
+		bits_COND_NEW_ENEMY	,
 
-	// even though HEAR_SOUND/SMELL FOOD doesn't break this schedule, we need this mask
-	// here or the monster won't detect these sounds at ALL while running this schedule.
-	bits_SOUND_GARBAGE,
-
-	"SquidWallow"
-}
+		// even though HEAR_SOUND/SMELL FOOD doesn't break this schedule, we need this mask
+		// here or the monster won't detect these sounds at ALL while running this schedule
+		bits_SOUND_GARBAGE,
+		"SquidWallow"
+		}
 	};
 
 DEFINE_CUSTOM_SCHEDULES (CBullsquid)
 	{
 	slSquidRangeAttack1,
-		slSquidChaseEnemy,
-		slSquidHurtHop,
-		slSquidSeeCrab,
-		slSquidEat,
-		slSquidSniffAndEat,
-		slSquidWallow
+	slSquidChaseEnemy,
+	slSquidHurtHop,
+	slSquidSeeCrab,
+	slSquidEat,
+	slSquidSniffAndEat,
+	slSquidWallow
 	};
 
 IMPLEMENT_CUSTOM_SCHEDULES (CBullsquid, CBaseMonster);
@@ -1160,7 +1157,7 @@ Schedule_t* CBullsquid::GetScheduleOfType (int Type)
 // any necessary calculations to start the next task on the
 // schedule.  OVERRIDDEN for bullsquid because it needs to
 // know explicitly when the last attempt to chase the enemy
-// failed, since that impacts its attack choices.
+// failed, since that impacts its attack choices
 // =========================================================
 void CBullsquid::StartTask (Task_t* pTask)
 	{
@@ -1231,9 +1228,8 @@ void CBullsquid::RunTask (Task_t* pTask)
 			ChangeYaw (pev->yaw_speed);
 
 			if (m_fSequenceFinished)
-				{
 				m_iTaskStatus = TASKSTATUS_COMPLETE;
-				}
+				
 			break;
 			}
 
@@ -1247,8 +1243,8 @@ void CBullsquid::RunTask (Task_t* pTask)
 
 // =========================================================
 // GetIdealState - Overridden for Bullsquid to deal with
-// the feature that makes it lose interest in headcrabs for 
-// a while if something injures it. 
+// the feature that makes it lose interest in headcrabs for
+// a while if something injures it
 // =========================================================
 MONSTERSTATE CBullsquid::GetIdealState (void)
 	{
@@ -1269,6 +1265,7 @@ MONSTERSTATE CBullsquid::GetIdealState (void)
 				m_hEnemy = NULL;
 				m_IdealMonsterState = MONSTERSTATE_ALERT;
 				}
+
 			break;
 			}
 		}
