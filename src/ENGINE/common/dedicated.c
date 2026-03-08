@@ -56,51 +56,6 @@ const char *CL_MsgInfo (int cmd)
 // [FWGS, 01.08.24] removed CL_IsInMenu
 // [FWGS, 01.02.25] removed CL_Active, CL_Initialized, CL_IsInGame, CL_IsInConsole,
 // CL_IsIntermission, CL_IsPlaybackDemo, CL_IsRecordDemo, CL_DisableVisibility, CL_Init
-/*int GAME_EXPORT CL_Active (void)
-	{
-	return false;
-	}
-
-qboolean CL_Initialized (void)
-	{
-	return false;
-	}
-
-qboolean CL_IsInGame (void)
-	{
-	return true;	// always active for dedicated servers
-	}
-
-qboolean CL_IsInConsole (void)
-	{
-	return false;
-	}
-
-qboolean CL_IsIntermission (void)
-	{
-	return false;
-	}
-
-qboolean CL_IsPlaybackDemo (void)
-	{
-	return false;
-	}
-
-qboolean CL_IsRecordDemo (void)
-	{
-	return false;
-	}
-
-qboolean CL_DisableVisibility (void)
-	{
-	return false;
-	}
-
-// [FWGS, 01.05.23] удалены CL_IsBackgroundDemo, CL_IsBackgroundMap
-
-void CL_Init (void)
-	{
-	}*/
 
 void Key_Init (void)
 	{
@@ -131,22 +86,15 @@ void CL_WriteMessageHistory (void)
 	}
 
 // [FWGS, 01.02.25] removed Host_ClientBegin, Host_ClientFrame
-/*void Host_ClientBegin (void)
-	{
-	Cbuf_Execute ();
-	}
-
-void Host_ClientFrame (void)
-	{
-	}*/
 
 void Host_InputFrame (void)
 	{
 	}
 
-void VID_InitDefaultResolution (void)
+// [FWGS, 01.03.26] removed VID_InitDefaultResolution
+/*void VID_InitDefaultResolution (void)
 	{
-	}
+	}*/
 
 void Con_Init (void)
 	{
@@ -160,10 +108,6 @@ void GAME_EXPORT S_StopSound (int entnum, int channel, const char *soundname)
 
 // [FWGS, 01.02.24] removed S_GetCurrentStaticSounds
 // [FWGS, 01.02.25] removed CL_GetMaxClients
-/*int GAME_EXPORT CL_GetMaxClients (void)
-	{
-	return 0;
-	}*/
 
 void IN_TouchInitConfig (void)
 	{
@@ -174,23 +118,17 @@ void CL_Disconnect (void)
 	}
 
 // [FWGS, 01.02.25] removed CL_Shutdown
-/*void CL_Shutdown (void)
+
+// [FWGS, 01.03.26] removed R_ClearStaticEntities
+/*void R_ClearStaticEntities (void)
 	{
 	}*/
-
-void R_ClearStaticEntities (void)
-	{
-	}
 
 void Host_Credits (void)
 	{
 	}
 
 // [FWGS, 01.02.25] removed UI_CreditsActive
-/*qboolean UI_CreditsActive (void)
-	{
-	return false;
-	}*/
 
 void S_StopBackgroundTrack (void)
 	{
@@ -201,10 +139,6 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	}
 
 // [FWGS, 01.02.25] removed S_GetCurrentDynamicSounds
-/*int S_GetCurrentDynamicSounds (soundlist_t *pout, int size)
-	{
-	return 0;
-	}*/
 
 void S_StopAllSounds (qboolean ambient)
 	{
@@ -240,7 +174,6 @@ void CL_Crashed (void)
 	{
 	}
 
-// [FWGS, 01.04.23]
 void CL_HudMessage (const char *pMessage)
 	{
 	}

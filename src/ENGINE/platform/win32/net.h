@@ -16,10 +16,9 @@ GNU General Public License for more details
 #ifndef NET_H
 #define NET_H
 
-#include <WS2tcpip.h>
+// [FWGS, 01.03.26]
+/*include <WS2tcpip.h>*/
+#include <ws2tcpip.h>
 typedef int WSAsize_t;
-
-// [FWGS, 01.11.25]
-/*define HAVE_GETADDRINFO*/
 
 #endif

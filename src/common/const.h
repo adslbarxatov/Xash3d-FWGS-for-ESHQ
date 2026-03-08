@@ -1,20 +1,19 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 #ifndef CONST_H
 #define CONST_H
-//
+
 // Constants shared by the engine and dlls
 // This header file included by engine files and DLL files.
 // Most came from server.h
@@ -29,7 +28,7 @@
 #define FL_GODMODE		(1U<<6)
 #define FL_NOTARGET		(1U<<7)
 #define FL_SKIPLOCALHOST	(1U<<8)	// Don't send entity to local host, it's predicting this entity itself
-#define FL_ONGROUND		(1U<<9)	// At rest / on the ground
+#define FL_ONGROUND		(1U<<9)		// At rest / on the ground
 #define FL_PARTIALGROUND	(1U<<10)	// not all corners are valid
 #define FL_WATERJUMP	(1U<<11)	// player jumping out of water
 #define FL_FROZEN		(1U<<12)	// Player is frozen for 3rd person camera
@@ -67,8 +66,8 @@
 
 // edict->movetype values
 #define MOVETYPE_NONE		0	// never moves
-//#define	MOVETYPE_ANGLENOCLIP	1
-//#define	MOVETYPE_ANGLECLIP		2
+//define	MOVETYPE_ANGLENOCLIP	1
+//define	MOVETYPE_ANGLECLIP		2
 #define MOVETYPE_WALK		3	// Player only - moving on the ground
 #define MOVETYPE_STEP		4	// gravity, special edge handling -- monsters use this
 #define MOVETYPE_FLY		5	// No gravity, but still collides with stuff
@@ -128,6 +127,7 @@
 //
 // temp entity events
 //
+
 #define	TE_BEAMPOINTS		0	// beam effect between two points
 // coord coord coord (start position) 
 // coord coord coord (end position) 
@@ -610,7 +610,7 @@
 
 #define CONTENT_FLYFIELD		-17
 #define CONTENT_GRAVITY_FLYFIELD	-18
-#define CONTENT_FOG			-19
+#define CONTENT_FOG				-19
 
 // channels
 #define CHAN_AUTO			0
@@ -741,17 +741,14 @@ enum
 	kRenderFxEdge				// ESHQ: специальное значение, определяющее границу перечисления; должно быть в конце
 	};
 
+// [FWGS, 01.03.26]
 typedef int		func_t;
 typedef int		string_t;
-typedef unsigned short	word;
+/*typedef unsigned short	word;*/
 
 #include "xash3d_types.h"
 
 // [FWGS, 01.05.24]
-/*#if !(XASH_DL || XASH_FS)
-	#define Q_isspace(ch)	(ch < 32 || ch > 255)
-#endif*/
-
 typedef struct
 	{
 	byte	r, g, b;
@@ -762,10 +759,11 @@ typedef struct
 	unsigned	r, g, b, a;
 	} colorVec;
 
-typedef struct link_s
+// [FWGS, 01.03.26]
+/*typedef struct link_s
 	{
-	struct link_s *prev, *next;
-	} link_t;
+	struct link_s	*prev, *next;
+	} link_t;*/
 
 typedef struct edict_s edict_t;
 

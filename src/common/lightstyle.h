@@ -1,4 +1,4 @@
-/*
+/***
 lightstyle.h - lighstyle description
 Copyright (C) 2011 Uncle Mike
 
@@ -9,12 +9,15 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-*/
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
+***/
 
 #ifndef LIGHTSTYLE_H
 #define LIGHTSTYLE_H
+
+// [FWGS, 01.03.26]
+#include "xash3d_types.h"
 
 typedef struct
 	{
@@ -26,4 +29,4 @@ typedef struct
 	float		time;		// local time is guarantee that new style begins from the start, not mid or end of the sequence
 	} lightstyle_t;
 
-#endif//LIGHTSTYLE_H
+#endif

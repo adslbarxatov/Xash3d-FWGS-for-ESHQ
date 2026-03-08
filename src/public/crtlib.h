@@ -20,7 +20,7 @@ GNU General Public License for more details
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>	// [FWGS, 01.05.24]
-#include "build.h"
+#include "..\library_suffix\build.h"
 #include "xash3d_types.h"
 
 #ifdef __cplusplus
@@ -37,14 +37,36 @@ enum
 	TIME_FILENAME,
 	};
 
-// a1ba: not using BIT macro, so flags can be copypasted into
+// [FWGS, 01.03.26] a1ba: not using BIT macro, so flags can be copypasted into
 // exported APIs headers and will not get warning in case of changing values
-#define PFILE_IGNOREBRACKET			(1<<0)
-#define PFILE_HANDLECOLON			(1<<1)
-#define PFILE_IGNOREHASHCMT			(1<<2)	// [FWGS, 01.12.24]
+/*define PFILE_IGNOREBRACKET			(1<<0)
+define PFILE_HANDLECOLON			(1<<1)
+define PFILE_IGNOREHASHCMT			(1<<2)	// [FWGS, 01.12.24]
 
-#define PFILE_TOKEN_MAX_LENGTH		1024
-#define PFILE_FS_TOKEN_MAX_LENGTH	512
+define PFILE_TOKEN_MAX_LENGTH		1024
+define PFILE_FS_TOKEN_MAX_LENGTH	512*/
+// do NOT interpret brackets as separate token
+// e.g. (a b) will be parsed as "(a", "b)"
+#define PFILE_NO_BRACKETS_AS_TOKEN ( 1U << 0 )
+
+// interpret ':' as separate token
+// e.g. a:b will be parsed as "a", ":", "b"
+#define PFILE_COLON_AS_TOKEN ( 1U << 1 )
+
+// ignore the whole line starting with '#' interpreting it as comment
+#define PFILE_HASH_AS_COMMENT ( 1U << 2 )
+
+// when encountering double quotes, do not interpret what's inside as single token
+#define PFILE_NO_QUOTED_TOKENS ( 1U << 3 )
+
+// do NOT interpret ''' as separate token
+#define PFILE_NO_SINGLE_QUOTE_AS_TOKEN ( 1U << 4 )
+
+// do NOT interpret comma as token
+#define PFILE_NO_COMMA_AS_TOKEN ( 1U << 5 )
+
+// interpret '\n' as separate token
+#define PFILE_NEWLINE_AS_TOKEN ( 1U << 6 )
 
 // [FWGS, 01.07.24]
 #ifdef __cplusplus
@@ -52,25 +74,38 @@ enum
 #endif
 
 //
-// build.c [FWGS, 01.09.25]
+// build.c [FWGS, 01.03.26]
 //
-int Q_buildnum (void);
-/*int Q_buildnum_date (const char *date);*/
+/*int Q_buildnum (void);*/
 int Q_buildnum_iso (const char *date);
-int Q_buildnum_compat (void);
+/*int Q_buildnum_compat (void);
 const char *Q_PlatformStringByID (const int platform);
 const char *Q_buildos (void);
 
 // [FWGS, 01.03.25]
 const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int endianness, const qboolean is64);
-const char *Q_buildarch (void);
+const char *Q_buildarch (void);*/
+
+// to use build information, add "build_vcs" to dependencies
+int Q_buildnum (void);
+
+// [FWGS, 01.03.26]
 extern const char *g_buildcommit;
 extern const char *g_buildbranch;
-extern const char *g_build_date;
+/*extern const char *g_build_date;*/
 extern const char *g_buildcommit_date;
 
+// [FWGS, 01.03.26]
+static inline int Q_buildnum_compat (void)
+	{
+	// this magical number below is Xash3D base build number
+	// as Xash3D isn't in development anymore,
+	// it's probably gonna stay at this number forever
+	return 4529;
+	}
+
 //
-// crtlib.c [FWGS, 01.02.25]
+// crtlib.c
 //
 void Q_strnlwr (const char *in, char *out, size_t size_out);
 #define Q_strlen( str ) (( str ) ? strlen(( str )) : 0 )
@@ -78,6 +113,9 @@ int Q_atoi_hex (int sign, const char *str);
 int Q_atoi (const char *str);
 float Q_atof (const char *str);
 void Q_atov (float *vec, const char *str, size_t siz);
+
+// [FWGS, 01.03.26]
+char *Q_memfgets (byte *data, int data_len, int *data_offset, char *dst, int dst_size);
 #define Q_strchr  strchr
 #define Q_strrchr strrchr
 qboolean Q_stricmpext (const char *pattern, const char *text);
@@ -104,9 +142,16 @@ void COM_StripExtension (char *path);
 void COM_RemoveLineFeed (char *str, size_t bufsize);
 void COM_PathSlashFix (char *path);
 
-// return 0 on empty or null string, 1 otherwise
-#define COM_CheckString( string ) ( ( !string || !*string ) ? 0 : 1 )
-#define COM_CheckStringEmpty( string ) ( ( !*string ) ? 0 : 1 )
+// [FWGS, 01.03.26]
+/* return 0 on empty or null string, 1 otherwise
+define COM_CheckString( string ) ( ( !string || !*string ) ? 0 : 1 )
+define COM_CheckStringEmpty( string ) ( ( !*string ) ? 0 : 1 )*/
+void COM_TrimSpace (char *dst, const char *src, size_t size);
+
+// [FWGS, 01.03.26] returns true on empty or NULL string, false otherwise
+#define COM_StringEmpty( string ) (( string )[0] ? false : true )
+#define COM_StringEmptyOrNULL( string ) (( string ) && ( string )[0] ? false : true )
+
 char *COM_ParseFileSafe (char *data, char *token, const int size, unsigned int flags, int *len, qboolean *quoted);
 
 #if XASH_DL || XASH_FS
@@ -350,8 +395,9 @@ static inline char *Q_stristr (const char *s1, const char *s2)
 
 #endif
 
-// [FWGS, 01.12.24]
-#if HAVE_STRCHRNUL
+// [FWGS, 01.03.26]
+/*if HAVE_STRCHRNUL*/
+#if HAVE_STRCHRNUL && !XASH_IOS
 
 	#define Q_strchrnul strchrnul
 
@@ -368,14 +414,14 @@ static inline char *Q_strchrnul (const char *s, int c)
 
 #endif
 
-/*
+/***
 ===========
 Q_splitstr [FWGS, 01.12.24]
 
 splits strings by a character if handler returns nonzero
 value, exists with that value
 ===========
-*/
+***/
 static inline int Q_splitstr (char *str, int delim, void *userdata,
 	int (*handler)(char *prev, char *next, void *userdata))
 	{
@@ -388,7 +434,7 @@ static inline int Q_splitstr (char *str, int delim, void *userdata,
 		int ch = *next; // save next value if it's modified by handler
 
 		ret = handler (prev, next, userdata);
-		if (!ch || ret != 0)
+		if (!ch || (ret != 0))
 			break;
 		}
 
@@ -397,15 +443,29 @@ static inline int Q_splitstr (char *str, int delim, void *userdata,
 
 /***
 ============
-COM_FixSlashes [FWGS, 22.01.25]
+COM_FixSlashes [FWGS, 01.03.26]
 
-Changes all '\' characters into '/' characters, in place.
+Changes all '\' characters into '/' characters and removes duplicate slashes, in place
 ============
 ***/
 static inline void COM_FixSlashes (char *pname)
 	{
-	while ((pname = Q_strchr (pname, '\\')))
-		*pname = '/';
+	/*while ((pname = Q_strchr (pname, '\\')))
+		*pname = '/';*/
+	char *s = pname;
+	int i, j;
+
+	while ((s = Q_strchr (s, '\\')))
+		*s = '/';
+
+	for (i = 0, j = 0; pname[i]; i++)
+		{
+		if (pname[i] == '/' && pname[i + 1] == '/')
+			continue;
+		pname[j++] = pname[i];
+		}
+
+	pname[j] = 0;
 	}
 
 #ifdef __cplusplus

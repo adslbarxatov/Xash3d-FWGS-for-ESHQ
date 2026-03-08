@@ -13,10 +13,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.03.26]
 #include <stdio.h>
 #include "crtlib.h"
-#include "buildenums.h"
+/*include "buildenums.h"*/
 
 // [FWGS, 01.09.25]
 static const char mond[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
@@ -66,7 +66,12 @@ int Q_buildnum (void)
 	return b;
 	}
 
-/***
+// [FWGS, 01.03.26] removed Q_buildnum_compat, Q_PlatformStringByID, Q_buildos,
+// Q_ArchitectureStringByID, Q_buildarch
+
+/*
+
+/
 =============
 Q_buildnum_compat
 
@@ -74,20 +79,20 @@ Returns a Xash3D build number. This is left for compability with original Xash3D
 IMPORTANT: this value must be changed ONLY after updating to newer Xash3D base
 IMPORTANT: this value must be acquired through "build" cvar
 =============
-***/
+/
 int Q_buildnum_compat (void)
 	{
 	// do not touch this! Only author of Xash3D can increase buildnumbers!
 	return 4529;
 	}
 
-/***
+/
 ============
 Q_GetPlatformStringByID
 
 Returns name of operating system by ID. Without any spaces
 ============
-***/
+/
 const char *Q_PlatformStringByID (const int platform)
 	{
 	switch (platform)
@@ -140,25 +145,25 @@ const char *Q_PlatformStringByID (const int platform)
 	return "unknown";
 	}
 
-/***
+/
 ============
 Q_buildos
 
 Shortcut for Q_buildos_
 ============
-***/
+/
 const char *Q_buildos (void)
 	{
 	return Q_PlatformStringByID (XASH_PLATFORM);
 	}
 
-/***
+/
 ============
 Q_ArchitectureStringByID
 
 Returns name of the architecture by it's ID. Without any spaces
 ============
-***/
+/
 const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int endianness, const qboolean is64)
 	{
 	// I don't want to change this function prototype
@@ -235,13 +240,13 @@ const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int 
 		(endianness == ENDIANNESS_LITTLE ? "unknown64be" : "unknownbe");
 	}
 
-/***
+/
 ============
 Q_buildarch
 
 Returns current name of the architecture. Without any spaces.
 ============
-***/
+/
 const char *Q_buildarch (void)
 	{
 	return Q_ArchitectureStringByID (
@@ -249,12 +254,12 @@ const char *Q_buildarch (void)
 		XASH_ARCHITECTURE_ABI,
 		XASH_ENDIANNESS,
 
-#if XASH_64BIT
+if XASH_64BIT
 		true
-#else
+else
 		false
-#endif
+endif
 	);
-	}
+	}*/
 
 // [FWGS, 01.02.25] removed Q_buildcommit, Q_buildbranch

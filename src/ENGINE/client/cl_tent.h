@@ -77,10 +77,13 @@ void R_MultiGunshot (const vec3_t org, const vec3_t dir, const vec3_t noise, int
 void R_FireField (float *org, int radius, int modelIndex, int count, int flags, float life);
 void R_PlayerSprites (int client, int modelIndex, int count, int size);
 void R_Sprite_WallPuff (struct tempent_s *pTemp, float scale);
-/*void R_DebugParticle (const vec3_t pos, byte r, byte g, byte b);*/
 void R_RicochetSound (const vec3_t pos);
-struct dlight_s *CL_AllocDlight (int key);
-struct dlight_s *CL_AllocElight (int key);
+
+// [FWGS, 01.03.26]
+dlight_t *CL_AllocDlight (int key);
+dlight_t *CL_AllocElight (int key);
+/*struct dlight_s *CL_AllocDlight (int key);
+struct dlight_s *CL_AllocElight (int key);*/
 
 // [FWGS, 01.01.24]
 void CL_AddEntityEffects (cl_entity_t *ent);

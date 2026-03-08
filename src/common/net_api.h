@@ -1,17 +1,15 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 
 #ifndef NET_API_H
 #define NET_API_H
@@ -24,12 +22,13 @@
 #define NETAPI_REQUEST_PLAYERS			( 3 )
 #define NETAPI_REQUEST_DETAILS			( 4 )
 
-// Set this flag for things like broadcast requests, etc. where the engine should not
+// [FWGS, 01.03.26] Set this flag for things like broadcast requests, etc. where the engine should not
 // kill the request hook after receiving the first response
 #define FNETAPI_MULTIPLE_RESPONSE		( 1<<0 )
-#define FNETAPI_LEGACY_PROTOCOL			( 1<<1 )	// [FWGS, 01.07.24] xash3d-fwgs extension
+/*define FNETAPI_LEGACY_PROTOCOL			( 1<<1 )	// [FWGS, 01.07.24] xash3d-fwgs extension*/
+// 1<<1 is reserved for deprecated xash3d-fwgs extension
 
-struct net_response_s;	// FWGS
+struct net_response_s;
 typedef void (*net_api_response_func_t) (struct net_response_s *response);
 
 #define NET_SUCCESS					( 0 )
@@ -53,26 +52,26 @@ typedef struct net_response_s
 	// Type
 	int		type;
 	// Server that is responding to the request
-	netadr_t		remote_address;
+	netadr_t	remote_address;
 	// Response RTT ping time
 	double		ping;
 	// Key/Value pair string ( separated by backlash \ characters )
 	// WARNING:  You must copy this buffer in the callback function, because it is freed
 	// by the engine right after the call!!!!
 	// ALSO: For NETAPI_REQUEST_SERVERLIST requests, this will be a pointer to a linked list of net_adrlist_t's
-	void *response;
+	void	*response;
 	} net_response_t;
 
 typedef struct net_status_s
 	{
 	// Connected to remote server?  1 == yes, 0 otherwise
-	int		connected;
+	int			connected;
 	// Client's IP address
-	netadr_t		local_address;
+	netadr_t	local_address;
 	// Address of remote server
-	netadr_t		remote_address;
+	netadr_t	remote_address;
 	// Packet Loss ( as a percentage )
-	int		packet_loss;
+	int			packet_loss;
 	// Latency, in seconds ( multiply by 1000.0 to get milliseconds )
 	double		latency;
 	// Connection time, in seconds
@@ -89,7 +88,7 @@ typedef struct net_api_s
 	void	(*SendRequest)(int context, int request, int flags, double timeout, struct netadr_s *remote_address, net_api_response_func_t response);
 	void	(*CancelRequest)(int context);
 	void	(*CancelAllRequests)(void);
-	const char *(*AdrToString)(struct netadr_s *a);	// FWGS
+	const char *(*AdrToString)(struct netadr_s *a);
 	int		(*CompareAdr)(struct netadr_s *a, struct netadr_s *b);
 	int		(*StringToAdr)(char *s, struct netadr_s *a);
 	const char *(*ValueForKey)(const char *s, const char *key);

@@ -30,12 +30,13 @@ GNU General Public License for more details
 #include "filesystem.h"
 #include "common/protocol.h"
 #include "cvardef.h"	// [FWGS, 01.12.24]
+#include "q_client.h"	// [FWGS, 01.03.26]
 
 // RefAPI changelog:
 // 1. Initial release
 // 2. FS functions are removed, instead we have full fs_api_t
-// 3. [FWGS, 01.04.23] SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
-// 4. [FWGS, 01.05.23] R_StudioEstimateFrame now has time argument
+// 3. SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
+// 4. R_StudioEstimateFrame now has time argument
 // 5. [FWGS, 01.01.24] Removed GetSomethingByIndex calls, renderers are supposed to cache pointer values
 // - Removed previously unused calls
 // - Simplified remapping calls
@@ -59,9 +60,11 @@ GNU General Public License for more details
 // - Removed R_DrawTileClear and Mod_LoadMapSprite, as they're implemented on engine side
 // - Removed FillRGBABlend. Now FillRGBA accepts rendermode parameter
 // 10. [FWGS, 01.06.25] Added R_GetWindowHandle to retrieve platform-specific window object.
-/*define REF_API_VERSION 10*/
 // 11. Added size argument to Mod_ProcessRenderData
-#define REF_API_VERSION 11
+/*define REF_API_VERSION 11*/
+// 12. [FWGS, 01.03.26] Added Image_CalcImageSize
+// 13. [FWGS, 01.03.26] Removed ignore_flags argument from GetCvarPointer
+#define REF_API_VERSION 13
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP|TF_ALLOW_NEAREST)
@@ -107,7 +110,16 @@ typedef enum
 	DEMO_QUAKE1
 	} demo_mode;
 
-// [FWGS, 01.06.25]
+// [FWGS, 01.03.26]
+typedef enum window_mode_e
+	{
+	WINDOW_MODE_WINDOWED = 0,
+	WINDOW_MODE_FULLSCREEN,
+	WINDOW_MODE_BORDERLESS,
+	WINDOW_MODE_COUNT,
+	} window_mode_t;
+
+// [FWGS, 01.03.26]
 typedef enum ref_window_type_e
 	{
 	REF_WINDOW_TYPE_NULL = 0,
@@ -115,7 +127,9 @@ typedef enum ref_window_type_e
 	REF_WINDOW_TYPE_X11,		// Display*
 	REF_WINDOW_TYPE_WAYLAND,	// wl_display*
 	REF_WINDOW_TYPE_MACOS,		// NSWindow*
-	REF_WINDOW_TYPE_SDL,		// SDL_Window*
+	/*REF_WINDOW_TYPE_SDL,		// SDL_Window**/
+	REF_WINDOW_TYPE_SDL2,		// SDL2 SDL_Window*
+	REF_WINDOW_TYPE_SDL3,		// SDL3 SDL_Window*
 	} ref_window_type_t;
 
 typedef struct
@@ -124,16 +138,17 @@ typedef struct
 	int		cull;
 	} sortedface_t;
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.26]
 typedef struct ref_globals_s
 	{
 	qboolean developer;
 
-	// viewport width and height
+	// viewport width and height (physical window size)
 	int      width;
 	int      height;
 
-	qboolean	fullScreen;
+	/*qboolean	fullScreen;*/
+	window_mode_t	window_mode;
 	qboolean	wideScreen;
 
 	vec3_t	vieworg;
@@ -145,6 +160,10 @@ typedef struct ref_globals_s
 	size_t			visbytes;		// cluster size
 
 	int		desktopBitsPixel;
+
+	// scaling factor of physical window size compared to logical
+	float	scale_x;
+	float	scale_y;
 	} ref_globals_t;
 
 // [FWGS, 01.01.24]
@@ -207,14 +226,16 @@ enum ref_defaultsprite_e
 	REF_CHROME_SPRITE	// cl_sprite_shell
 	};
 
-// the order of first three is important!
+// [FWGS, 01.03.26] the order of first three is important!
 // so you can use this value in IEngineStudio.StudioIsHardware
-enum ref_graphic_apis_e
+/*enum ref_graphic_apis_e*/
+typedef enum ref_graphic_apis_e
 	{
 	REF_SOFTWARE,	// hypothetical: just make a surface to draw on, in software
 	REF_GL,			// create GL context
 	REF_D3D,		// Direct3D
-	};
+	/*};*/
+	} ref_graphic_apis_t;
 
 typedef enum
 	{
@@ -327,14 +348,14 @@ typedef enum
 	PARM_TEX_FILTERING = -0x10000,
 	} ref_parm_e;
 
-// [FWGS, 01.12.24]
 typedef struct ref_api_s
 	{
 	intptr_t (*EngineGetParm)(int parm, int arg);	// generic
 
-	// cvar handlers
+	// [FWGS, 01.03.26] cvar handlers
 	cvar_t		*(*Cvar_Get)(const char *szName, const char *szValue, int flags, const char *description);
-	cvar_t		*(*pfnGetCvarPointer)(const char *name, int ignore_flags);
+	/*cvar_t		*(*pfnGetCvarPointer)(const char *name, int ignore_flags);*/
+	cvar_t		*(*pfnGetCvarPointer)(const char *name);
 	float		(*pfnGetCvarFloat)(const char *szName);
 	const char	*(*pfnGetCvarString)(const char *szName) PFN_RETURNS_NONNULL;
 	void        (*Cvar_SetValue)(const char *name, float value);
@@ -364,7 +385,7 @@ typedef struct ref_api_s
 	void		(*Con_NXPrintf)(struct con_nprint_s *info, const char *fmt, ...) FORMAT_CHECK (2);
 	void		(*CL_CenterPrint)(const char *s, float y);
 	void		(*Con_DrawStringLen)(const char *pText, int *length, int *height);
-	int			(*Con_DrawString)(int x, int y, const char *string, const rgba_t setColor);	// [FWGS, 01.03.25]
+	int			(*Con_DrawString)(int x, int y, const char *string, const rgba_t setColor);
 	void		(*CL_DrawCenterPrint)(void);
 
 	// entity management
@@ -383,12 +404,13 @@ typedef struct ref_api_s
 	void		*(*R_StudioGetAnim)(studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc);
 	void		(*pfnStudioEvent)(const struct mstudioevent_s *event, const cl_entity_t *entity);
 
-	// efx
+	// [FWGS, 01.03.26] efx
 	void		(*CL_DrawEFX)(float time, qboolean fTrans);
 	void		(*CL_ThinkParticle)(double frametime, particle_t *p);
 	void		(*R_FreeDeadParticles)(particle_t **ppparticles);
 	particle_t	*(*CL_AllocParticleFast)(void); // unconditionally give new particle pointer from cl_free_particles
-	struct dlight_s	*(*CL_AllocElight)(int key);
+	/*struct dlight_s	*(*CL_AllocElight)(int key);*/
+	dlight_t	*(*CL_AllocElight)(int key);
 	struct model_s	*(*GetDefaultSprite)(enum ref_defaultsprite_e spr);
 	void		(*R_StoreEfrags)(struct efrag_s **ppefrag, int framecount);// store efrags for static entities
 
@@ -438,8 +460,10 @@ typedef struct ref_api_s
 
 	// video init
 	// try to create window
-	// will call GL_SetupAttributes in case of REF_GL
-	qboolean	(*R_Init_Video)(int type); // will also load and execute renderer config(see R_GetConfigName)
+	// 
+	// [FWGS, 01.03.26] will call GL_SetupAttributes in case of REF_GL
+	/*qboolean	(*R_Init_Video)(int type); // will also load and execute renderer config(see R_GetConfigName)*/
+	qboolean	(*R_Init_Video)(ref_graphic_apis_t type); // will also load and execute renderer config(see R_GetConfigName)
 	void		(*R_Free_Video)(void);
 
 	// GL
@@ -465,7 +489,7 @@ typedef struct ref_api_s
 	struct pmtrace_s	*(*EV_VisTraceLine)(float *start, float *end, int flags);
 	struct pmtrace_s	(*CL_TraceLine)(vec3_t start, vec3_t end, int flags);
 
-	// imagelib
+	// [FWGS, 01.03.26] imagelib
 	void		(*Image_AddCmdFlags)(uint flags); // used to check if hardware dxt is supported
 	void		(*Image_SetForceFlags)(uint flags);
 	void		(*Image_ClearForceFlags)(void);
@@ -473,10 +497,12 @@ typedef struct ref_api_s
 	qboolean	(*Image_Process)(rgbdata_t **pix, int width, int height, uint flags, float reserved);
 	rgbdata_t	*(*FS_LoadImage)(const char *filename, const byte *buffer, size_t size);
 	qboolean	(*FS_SaveImage)(const char *filename, rgbdata_t *pix);
-	rgbdata_t	*(*FS_CopyImage)(rgbdata_t *in);
+	/*rgbdata_t	*(*FS_CopyImage)(rgbdata_t *in);*/
+	rgbdata_t	*(*FS_CopyImage)(const rgbdata_t *in);
 	void		(*FS_FreeImage)(rgbdata_t *pack);
 	void		(*Image_SetMDLPointer)(byte *p);
 	const struct bpc_desc_s	*(*Image_GetPFDesc)(int idx);
+	size_t		(*Image_CalcImageSize)(int type, int width, int height, int depth);
 
 	// client exports
 	void		(*pfnDrawNormalTriangles)(void);
@@ -575,7 +601,6 @@ typedef struct ref_interface_s
 
 	// model management
 	// [FWGS, 01.11.25] flags ignored for everything except spritemodels
-	/*qboolean	(*Mod_ProcessRenderData)(model_t *mod, qboolean create, const byte *buffer);*/
 	qboolean	(*Mod_ProcessRenderData)(model_t *mod, qboolean create, const byte *buffer, size_t buffersize);
 	void		(*Mod_StudioLoadTextures)(model_t *mod, void *data);
 
@@ -682,8 +707,11 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 #ifdef REF_DLL
 #define DEFINE_ENGINE_SHARED_CVAR( x, y ) cvar_t *x = NULL;
 #define DECLARE_ENGINE_SHARED_CVAR( x, y ) extern cvar_t *x;
+
+// [FWGS, 01.03.26]
 #define RETRIEVE_ENGINE_SHARED_CVAR( x, y ) \
-	if(!( x = gEngfuncs.pfnGetCvarPointer( #y, 0 ) )) \
+	/*if(!( x = gEngfuncs.pfnGetCvarPointer( #y, 0 ) )) \*/
+	if (!(x = gEngfuncs.pfnGetCvarPointer (#y))) \
 		gEngfuncs.Host_Error( S_ERROR "engine betrayed us and didn't gave us %s cvar pointer\n", #y );
 #define ENGINE_SHARED_CVAR_NAME( f, x, y ) f( x, y )
 #define ENGINE_SHARED_CVAR( f, x ) ENGINE_SHARED_CVAR_NAME( f, x, x )

@@ -16,8 +16,9 @@ GNU General Public License for more details
 #ifndef MOD_LOCAL_H
 #define MOD_LOCAL_H
 
+// [FWGS, 01.03.26]
 #include "edict.h"
-#include "eiface.h"
+/*include "eiface.h"*/
 #include "ref_api.h"
 #include "studio.h"
 
@@ -30,7 +31,6 @@ GNU General Public License for more details
 #define SETVISBIT( vis, b )( void )	((b) >= 0 ? (byte)((vis)[(b) >> 3] |= (1 << ((b) & 7))) : (byte)false )
 #define CLEARVISBIT( vis, b )( void )	((b) >= 0 ? (byte)((vis)[(b) >> 3] &= ~(1 << ((b) & 7))) : (byte)false )
 
-/*define REFPVS_RADIUS		2.0f	// radius for rendering*/
 #define FATPVS_RADIUS		8.0f	// FatPVS use radius smaller than the FatPHS
 
 // [FWGS, 01.07.24] see SV_AddToFatPAS in GoldSrc
@@ -53,16 +53,22 @@ typedef struct consistency_s
 #define FCRC_SHOULD_CHECKSUM	BIT( 0 )
 #define FCRC_CHECKSUM_DONE		BIT( 1 )
 
+// [FWGS, 01.03.26]
 typedef struct
 	{
 	int			flags;
-	CRC32_t		initialCRC;
+	/*CRC32_t		initialCRC;*/
+	uint32_t	initialCRC;
 	} model_info_t;
 
-// values for model_t's needload
-#define NL_UNREFERENCED	0		// this model can be freed after sequence precaching is done
-#define NL_NEEDS_LOADED	1
-#define NL_PRESENT		2
+// [FWGS, 01.03.26] values for model_t's needload
+/*define NL_UNREFERENCED		0	// this model can be freed after sequence precaching is done
+define NL_NEEDS_LOADED		1
+define NL_PRESENT			2*/
+#define NL_UNREFERENCED		0
+#define NL_NEEDS_LOADED		1
+#define NL_PRESENT			2
+#define NL_FREE_UNUSED		3	// this model can be freed after sequence precaching is done
 
 typedef struct hullnode_s
 	{
@@ -136,13 +142,22 @@ typedef struct world_static_s
 	} world_static_t;
 
 #ifndef REF_DLL
-extern world_static_t	world;
+
+// [FWGS, 01.03.26]
+/*extern world_static_t	world;
 extern poolhandle_t     com_studiocache;
 
 // [FWGS, 01.02.25]
 extern convar_t			mod_studiocache;
 extern convar_t			r_wadtextures;
+extern convar_t			r_showhull;*/
+extern world_static_t	world;
+extern poolhandle_t		com_studiocache;
+extern convar_t			mod_studiocache;
+extern convar_t			r_wadtextures;
 extern convar_t			r_showhull;
+extern convar_t			r_allow_wad3_luma;
+
 extern const mclipnode16_t	box_clipnodes16[6];
 extern const mclipnode32_t	box_clipnodes32[6];
 
@@ -163,7 +178,10 @@ void *Mod_StudioExtradata (model_t *mod);
 model_t *Mod_FindName (const char *name, qboolean trackCRC);
 model_t *Mod_LoadModel (model_t *mod, qboolean crash);
 model_t *Mod_ForName (const char *name, qboolean crash, qboolean trackCRC);
-qboolean Mod_ValidateCRC (const char *name, CRC32_t crc);
+
+// [FWGS, 01.03.26]
+/*qboolean Mod_ValidateCRC (const char *name, CRC32_t crc);*/
+qboolean Mod_ValidateCRC (const char *name, uint32_t crc);
 void Mod_NeedCRC (const char *name, qboolean needCRC);
 void Mod_FreeUnused (void);
 
@@ -173,10 +191,12 @@ void Mod_FreeUnused (void);
 void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded);
 
 //
-// mod_bmodel.c [FWGS, 01.06.25]
+// mod_bmodel.c [FWGS, 01.03.26]
 //
-void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
-qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);
+/*void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
+qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);*/
+void Mod_LoadBrushModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded);
+qboolean Mod_TestBmodelLumps (file_t *f, const char *name, byte *mod_base, size_t buffersize, qboolean silent, dlump_t *entities);
 int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis, qboolean phs);
 qboolean Mod_BoxVisible (const vec3_t mins, const vec3_t maxs, const byte *visbits);
 int Mod_CheckLump (const char *filename, const int lump, int *lumpsize);
@@ -185,21 +205,22 @@ int Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lump
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node, model_t *mod);
 int Mod_SampleSizeForFace (const msurface_t *surf);
 byte *Mod_GetPVSForPoint (const vec3_t p);
-void Mod_UnloadBrushModel (model_t *mod);
+/*void Mod_UnloadBrushModel (model_t *mod);*/
 void Mod_PrintWorldStats_f (void);
 
-//
+// [FWGS, 01.03.26]
+/*//
 // mod_dbghulls.c [FWGS, 01.12.24]
 //
 void R_DrawWorldHull (void);
 void R_DrawModelHull (model_t *mod);
-void Mod_ReleaseHullPolygons (void);
+void Mod_ReleaseHullPolygons (void);*/
 
 //
-// mod_studio.c
+// mod_studio.c [FWGS, 01.03.26]
 //
 void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded);
-void Mod_UnloadStudioModel (model_t *mod);
+/*void Mod_UnloadStudioModel (model_t *mod);*/
 void Mod_InitStudioAPI (void);
 void Mod_InitStudioHull (void);
 void Mod_ResetStudioAPI (void);
@@ -210,14 +231,13 @@ void Mod_GetBonePosition (const edict_t *e, int iBone, float *org, float *ang);
 hull_t *Mod_HullForStudio (model_t *m, float frame, int seq, vec3_t ang, vec3_t org, vec3_t size, 
 	byte *pcnt, byte *pbl, int *hitboxes, edict_t *ed);
 void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc);
-void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences);
+/*void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences);*/
 int Mod_HitgroupForStudioHull (int index);
 void Mod_ClearStudioCache (void);
 
 //
 // mod_sprite.c [FWGS, 01.11.25]
 //
-/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded);*/
 void Mod_LoadSpriteModel (model_t *mod, const void *buffer, size_t buffersize, qboolean *loaded);
 
 #endif

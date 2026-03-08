@@ -152,12 +152,13 @@ static inline void Mem_InitAlloc (memheader_t *mem, size_t size, const char *fil
 	*((byte *)mem + sizeof (memheader_t) + mem->size) = MEMHEADER_SENTINEL2;
 	}
 
-// [FWGS, 01.03.24]
 static const char *Mem_CheckFilename (const char *filename)
 	{
 	static const char *dummy = "<corrupted>\0";
 
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		return dummy;
 
 	if (memchr (filename, '\0', MAX_OSPATH) != NULL)
@@ -257,10 +258,7 @@ static void Mem_FreeBlock (memheader_t *mem, const char *filename, int fileline)
 void _Mem_Free (void *data, const char *filename, int fileline)
 	{
 	if (data == NULL)
-		/*{
-		Sys_Error ("%s: data == NULL (called at %s:%i)\n", __func__, filename, fileline);*/
 		return;
-		/*}*/
 
 	Mem_FreeBlock ((memheader_t *)((byte *)data - sizeof (memheader_t)), filename, fileline);
 	}
@@ -557,11 +555,16 @@ void Mem_PrintList (size_t minallocationsize)
 
 /***
 ========================
-Memory_Init [FWGS, 01.02.25]
+Memory_Init [FWGS, 01.03.26]
 ========================
 ***/
 void Memory_Init (void)
 	{
+	if (poolchain)
+		{
+		Q_free (poolchain);
+		}
+
 	poolchain = NULL; // init mem chain
 	poolcount = 0;
 	}

@@ -25,23 +25,13 @@ GNU General Public License for more details
 #include "input.h"
 
 // [FWGS, 01.12.24] removed CL_IsPlayerIndex
-/*
-==================
-CL_IsPlayerIndex
-
-detect player entity
-==================
-/
-qboolean CL_IsPlayerIndex (int idx)
-	{
-	return ((idx >= 1) && (idx <= cl.maxclients));
-	}*/
 
 /***
 =========================================================================
 FRAME INTERPOLATION
 =========================================================================
 ***/
+
 /***
 ==================
 CL_UpdatePositions [FWGS, 01.01.24]

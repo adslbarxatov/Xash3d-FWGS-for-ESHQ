@@ -1,24 +1,25 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 
 #ifndef PARTICLEDEF_H
 #define PARTICLEDEF_H
 
+// [FWGS, 01.03.26]
+#include "xash3d_types.h"
+
 typedef enum
-{
-	pt_static, 
+	{
+	pt_static,
 	pt_grav,
 	pt_slowgrav,
 	pt_fire,
@@ -29,10 +30,10 @@ typedef enum
 	pt_vox_slowgrav,
 	pt_vox_grav,
 	pt_clientcustom	// Must have callback function specified
-} ptype_t;
+	} ptype_t;
 
 typedef struct particle_s
-{
+	{
 	vec3_t		org;
 	short		color;
 	short		packedColor;
@@ -41,13 +42,13 @@ typedef struct particle_s
 	float		ramp;
 	float		die;
 	ptype_t		type;
-	void		(*deathfunc)( struct particle_s *particle );
+	void		(*deathfunc)(struct particle_s *particle);
 
 	// for pt_clientcusttom, we'll call this function each frame
-	void		(*callback)( struct particle_s *particle, float frametime );
-	
+	void		(*callback)(struct particle_s *particle, float frametime);
+
 	// For deathfunc, etc.
 	unsigned char	context;
-} particle_t;
+	} particle_t;
 
-#endif//PARTICLEDEF_H
+#endif

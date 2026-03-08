@@ -9,14 +9,16 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
 #ifndef PHYSINT_H
 #define PHYSINT_H
 
-#include "eiface.h"	// FWGS: offsetof
+// [FWGS, 01.03.26]
+/*include "eiface.h"	// FWGS: offsetof*/
+#include "xash3d_types.h"	// offsetof
 
 #define SV_PHYSICS_INTERFACE_VERSION	6
 
@@ -73,28 +75,28 @@ typedef struct server_physics_api_s
 	void		(*pfnLinkEdict) (edict_t *ent, qboolean touch_triggers);
 	double		(*pfnGetServerTime)(void); // unclamped
 	double		(*pfnGetFrameTime)(void);	// unclamped
-	void *(*pfnGetModel)(int modelindex);
-	areanode_t *(*pfnGetHeadnode)(void); // AABB tree for all physic entities
-	int		(*pfnServerState)(void);
+	void		*(*pfnGetModel)(int modelindex);
+	areanode_t	*(*pfnGetHeadnode)(void); // AABB tree for all physic entities
+	int			(*pfnServerState)(void);
 	void		(*pfnHost_Error)(const char *error, ...);	// cause Host Error
 
 	// ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT. INTERFACE VERSION IS FROZEN AT 6
-	struct triangleapi_s *pTriAPI;	// draw coliisions etc. Only for local system
+	struct triangleapi_s	*pTriAPI;	// draw coliisions etc. Only for local system
 
 	// draw debug messages (must be called from DrawOrthoTriangles). Only for local system
-	int		(*pfnDrawConsoleString)(int x, int y, char *string);
+	int			(*pfnDrawConsoleString)(int x, int y, char *string);
 	void		(*pfnDrawSetTextColor)(float r, float g, float b);
 	void		(*pfnDrawConsoleStringLen)(const char *string, int *length, int *height);
 	void		(*Con_NPrintf)(int pos, const char *fmt, ...);
 	void		(*Con_NXPrintf)(struct con_nprint_s *info, const char *fmt, ...);
-	const char *(*pfnGetLightStyle)(int style); // read custom appreance for selected lightstyle
-	unsigned int	(*pfnUpdateFogSettings)(unsigned int packed_fog);
-	char **(*pfnGetFilesList)(const char *pattern, int *numFiles, int gamedironly);
-	struct msurface_s *(*pfnTraceSurface)(edict_t *pTextureEntity, const float *v1, const float *v2);
-	const byte *(*pfnGetTextureData)(unsigned int texnum);
+	const char	*(*pfnGetLightStyle)(int style); // read custom appreance for selected lightstyle
+	unsigned int		(*pfnUpdateFogSettings)(unsigned int packed_fog);
+	char		**(*pfnGetFilesList)(const char *pattern, int *numFiles, int gamedironly);
+	struct msurface_s	*(*pfnTraceSurface)(edict_t *pTextureEntity, const float *v1, const float *v2);
+	const byte	*(*pfnGetTextureData)(unsigned int texnum);
 
 	// [FWGS, 01.01.24] static allocations
-	void *(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
+	void		*(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void		(*pfnMemFree)(void *mem, const char *filename, const int fileline);
 
 	// trace & contents

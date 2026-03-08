@@ -16,13 +16,15 @@ GNU General Public License for more details
 #ifndef SERVER_H
 #define SERVER_H
 
+// [FWGS, 01.03.26]
 #include "xash3d_mathlib.h"
 #include "edict.h"
 #include "eiface.h"
 #include "physint.h"	// physics interface
 #include "mod_local.h"
+#include "pmove.h"
 #include "pm_defs.h"
-#include "pm_movevars.h"
+/*include "pm_movevars.h"*/
 #include "entity_state.h"
 #include "protocol.h"
 #include "netchan.h"
@@ -134,8 +136,10 @@ typedef struct server_s
 	int			framecount;		// count physic frames
 	struct sv_client_s	*current_client;	// current client who network message sending on
 
+	// [FWGS, 01.03.26]
 	int			hostflags;		// misc server flags: predicting etc
-	CRC32_t		worldmapCRC;	// check crc for catch cheater maps
+	/*CRC32_t		worldmapCRC;	// check crc for catch cheater maps*/
+	uint32_t	worldmapCRC; // check crc for catch cheater maps
 	int			progsCRC;		// this is used with feature ENGINE_QUAKE_COMPATIBLE
 
 	char		name[MAX_QPATH];	// map name
@@ -208,7 +212,6 @@ typedef struct
 	int  		first_entity;		// into the circular sv_packet_entities[]
 	} client_frame_t;
 
-// [FWGS, 01.11.25]
 typedef struct sv_client_s
 	{
 	cl_state_t	state;
@@ -221,7 +224,6 @@ typedef struct sv_client_s
 	char		physinfo[MAX_INFO_STRING];	// set on server (transmit to client)
 	char		useragent[MAX_INFO_STRING];
 	byte		ignorecmdtime_warned;	// did we warn our server operator in the log for this batch of commands?
-	/*byte		m_bLoopback;			// does this client want to hear his own voice?*/
 	uint		listeners;				// which other clients does this guy's voice stream go to?
 
 	int			ignorecmdtime_warns;	// how many times client time was faster than server during this session
@@ -234,10 +236,12 @@ typedef struct sv_client_s
 	int			chokecount;				// number of messages rate supressed
 	int			delta_sequence;			// -1 = no compression
 
+	// [FWGS, 01.03.26]
 	double		next_messagetime;		// time when we should send next world state update
 	double		next_checkpingtime;		// time to send all players pings to client
 	double		next_sendinfotime;		// time to send info about all players
-	double		cl_updaterate;			// client requested updaterate
+	/*double		cl_updaterate;			// client requested updaterate*/
+	double		next_messageinterval; // update rate, clamped
 	double		timebase;				// client timebase
 	double		connection_started;
 
@@ -564,10 +568,11 @@ void SV_EndRedirect (host_redirect_t *rd);
 void SV_RejectConnection (netadr_t from, const char *fmt, ...) FORMAT_CHECK (2);
 void SV_GetPlayerCount (int *clients, int *bots);
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.26]
 static inline qboolean SV_HavePassword (void)
 	{
-	if (COM_CheckStringEmpty (sv_password.string) && Q_stricmp (sv_password.string, "none"))
+	/*if (COM_CheckStringEmpty (sv_password.string) && Q_stricmp (sv_password.string, "none"))*/
+	if (!COM_StringEmpty (sv_password.string) && Q_stricmp (sv_password.string, "none"))
 		return true;
 
 	return false;

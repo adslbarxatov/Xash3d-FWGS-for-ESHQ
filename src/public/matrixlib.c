@@ -13,19 +13,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "port.h"
 #include "xash3d_types.h"
-#include "const.h"
+/*include "const.h"*/
 #include "com_model.h"
 #include "xash3d_mathlib.h"
-
-// [FWGS, 01.12.24]
-/*const matrix3x4 m_matrix3x4_identity =
-	{
-	{ 1, 0, 0, 0 },	// PITCH	[forward], org[0]
-	{ 0, 1, 0, 0 },	// YAW	[right]  , org[1]
-	{ 0, 0, 1, 0 },	// ROLL	[up]     , org[2]
-	};*/
 
 /***
 ========================================================================
@@ -81,8 +74,6 @@ void Matrix3x4_ConcatTransforms (matrix3x4 out, const matrix3x4 in1, const matri
 	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2] * in2[2][2];
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
-
-// [FWGS, 01.07.23] removed Matrix3x4_SetOrigin, Matrix3x4_OriginFromMatrix
 
 void Matrix3x4_AnglesFromMatrix (const matrix3x4 in, vec3_t out)
 	{
@@ -204,8 +195,6 @@ void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_
 		}
 	}
 
-// [FWGS, 01.05.23] удалены Matrix3x4_TransformPositivePlane, Matrix3x4_Invert_Simple, Matrix3x4_Transpose
-
 /***
 ==================
 Matrix3x4_TransformAABB
@@ -222,9 +211,6 @@ void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const ve
 
 	// [FWGS, 01.12.24]
 	Matrix3x4_VectorTransform (world, localCenter, worldCenter);
-	/*worldExtents[0] = DotProductAbs (localExtents, world[0]);	// auto-transposed!
-	worldExtents[1] = DotProductAbs (localExtents, world[1]);
-	worldExtents[2] = DotProductAbs (localExtents, world[2]);*/
 	worldExtents[0] = DotProductFabs (localExtents, world[0]); // auto-transposed!
 	worldExtents[1] = DotProductFabs (localExtents, world[1]);
 	worldExtents[2] = DotProductFabs (localExtents, world[2]);
@@ -232,15 +218,6 @@ void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const ve
 	VectorSubtract (worldCenter, worldExtents, absmin);
 	VectorAdd (worldCenter, worldExtents, absmax);
 	}
-
-// [FWGS, 01.12.24]
-/*const matrix4x4 m_matrix4x4_identity =
-	{
-	{ 1, 0, 0, 0 },	// PITCH
-	{ 0, 1, 0, 0 },	// YAW
-	{ 0, 0, 1, 0 },	// ROLL
-	{ 0, 0, 0, 1 },	// ORIGIN
-	};*/
 
 /***
 ========================================================================
@@ -296,8 +273,6 @@ void Matrix4x4_ConcatTransforms (matrix4x4 out, const matrix4x4 in1, const matri
 	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2] * in2[2][2];
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
-
-// [FWGS, 01.05.23] удалены Matrix4x4_SetOrigin, Matrix4x4_OriginFromMatrix, Matrix4x4_FromOriginQuat
 
 void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_t origin, float scale)
 	{
@@ -430,8 +405,6 @@ void Matrix4x4_TransformPositivePlane (const matrix4x4 in, const vec3_t normal, 
 	*dist = d * scale + (out[0] * in[0][3] + out[1] * in[1][3] + out[2] * in[2][3]);
 	}
 
-// [FWGS, 01.05.23] удалена Matrix4x4_TransformStandardPlane
-
 void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	{
 	// we only support uniform scaling, so assume the first row is enough
@@ -463,8 +436,6 @@ void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	out[3][2] = 0.0f;
 	out[3][3] = 1.0f;
 	}
-
-// [FWGS, 01.05.23] удалена Matrix4x4_Transpose
 
 qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 	{

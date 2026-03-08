@@ -15,6 +15,8 @@ GNU General Public License for more details
 
 #ifndef GL_LOCAL_H
 #define GL_LOCAL_H
+
+// [FWGS, 01.03.26]
 #include "port.h"
 #include "xash3d_types.h"
 #include "cvardef.h"
@@ -23,17 +25,18 @@ GNU General Public License for more details
 #include "cl_entity.h"
 #include "render_api.h"
 #include "protocol.h"
-#include "dlight.h"
+/*include "dlight.h"*/
 #include "gl_frustum.h"
 #include "ref_api.h"
 #include "xash3d_mathlib.h"
 #include "ref_params.h"
 #include "enginefeatures.h"
 #include "com_strings.h"
-#include "pm_movevars.h"
+/*include "pm_movevars.h"*/
 #include "gl_export.h"
 #include "wadfile.h"
-#include "common/mod_local.h"	// [FWGS, 01.01.24]
+#include "common/mod_local.h"
+#include "pmove.h"
 
 #if XASH_PSVITA
 	int VGL_ShimInit (void);
@@ -54,7 +57,6 @@ GNU General Public License for more details
 #endif
 
 // [FWGS, 01.11.25]
-/*define ASSERT(x) if(!( x )) gEngfuncs.Host_Error( "assert failed at %s:%i\n", __FILE__, __LINE__ )*/
 #define Assert(x) if(!( x )) gEngfuncs.Host_Error( "assert failed at %s:%i\n", __FILE__, __LINE__ )
 
 #include <stdio.h>
@@ -319,15 +321,12 @@ extern float		gldepthmin, gldepthmax;
 void GL_BackendStartFrame (void);
 void GL_BackendEndFrame (void);
 void GL_CleanUpTextureUnits (int last);
-/*void GL_Bind (GLint tmu, GLenum texnum);
-void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t);*/
 void GL_Bind (int tmu, unsigned int texnum);
 void GL_MultiTexCoord2f (int tmu, GLfloat s, GLfloat t);
 void GL_SetTexCoordArrayMode (GLenum mode);
 void GL_LoadTexMatrixExt (const float *glmatrix);
 void GL_LoadMatrix (const matrix4x4 source);
 void GL_TexGen (GLenum coord, GLenum mode);
-/*void GL_SelectTexture (GLint texture);*/
 void GL_SelectTexture (int tmu);
 void GL_CleanupAllTextureUnits (void);
 void GL_LoadIdentityTexMatrix (void);
@@ -347,9 +346,10 @@ void CL_DrawBeams (int fTrans, BEAM *active_beams);
 qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly);
 
 //
-// gl_cull.c
+// gl_cull.c [FWGS, 01.03.26]
 //
-int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);
+/*int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);*/
+qboolean R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);
 qboolean R_CullBox (const vec3_t mins, const vec3_t maxs);
 int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags);
 
@@ -369,17 +369,17 @@ void R_ClearDecals (void);
 void R_Set2DMode (qboolean enable);
 void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height, const byte *data);
 
-//
+// [FWGS, 01.03.26]
+/*//
 // gl_drawhulls.c
 //
 void R_DrawWorldHull (void);
-void R_DrawModelHull (void);
+void R_DrawModelHull (void);*/
 
 //
 // gl_image.c [FWGS, 01.11.25]
 //
 void R_SetTextureParameters (void);
-/*gl_texture_t *R_GetTexture (GLenum texnum);*/
 gl_texture_t *R_GetTexture (unsigned int texnum);
 const char *GL_TargetToString (GLenum target);
 #define GL_LoadTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, false )
@@ -395,8 +395,6 @@ void GL_UpdateTexSize (int texnum, int width, int height, int depth);
 qboolean GL_TextureFilteringEnabled (const gl_texture_t *tex);
 void GL_ApplyTextureParams (gl_texture_t *tex);
 int GL_FindTexture (const char *name);
-/*void GL_FreeTexture (GLenum texnum);
-const char *GL_Target (GLenum target);*/
 void GL_FreeTexture (unsigned int texnum);
 void R_InitDlightTexture (void);
 void R_TextureList_f (void);
@@ -428,7 +426,7 @@ void R_TranslateForEntity (cl_entity_t *e);
 void R_RotateForEntity (cl_entity_t *e);
 void R_SetupGL (qboolean set_gl_state);
 void R_AllowFog (qboolean allowed);
-qboolean R_OpaqueEntity (cl_entity_t *ent);	// [FWGS, 01.01.24]
+qboolean R_OpaqueEntity (cl_entity_t *ent);
 void R_SetupFrustum (void);
 void R_FindViewLeaf (void);
 void R_PushScene (void);
@@ -448,9 +446,10 @@ void Matrix4x4_CreateOrtho (matrix4x4 m, float xLeft, float xRight, float yBotto
 void Matrix4x4_CreateModelview (matrix4x4 out);
 
 //
-// gl_rmisc.c
+// gl_rmisc.c [FWGS, 01.03.26]
 //
-void R_ClearStaticEntities (void);
+/*void R_ClearStaticEntities (void);*/
+void R_NewMap (void);
 
 //
 // gl_rsurf.c [FWGS, 01.03.25]
@@ -527,7 +526,7 @@ void R_AnimateRipples (void);
 qboolean R_UploadRipples (texture_t *image);
 
 //
-// renderer exports [FWGS, 01.12.24]
+// renderer exports [FWGS, 01.03.26]
 //
 qboolean R_Init (void);
 void R_Shutdown (void);
@@ -536,7 +535,7 @@ void GL_OnContextCreated (void);
 void GL_InitExtensions (void);
 void GL_ClearExtensions (void);
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
-void GL_FreeImage (const char *name);
+/*void GL_FreeImage (const char *name);*/
 qboolean VID_ScreenShot (const char *filename, int shot_type);
 qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qboolean skyshot);
 void R_GammaChanged (qboolean do_reset_gamma);
@@ -562,13 +561,13 @@ void R_DrawViewModel (void);
 int R_GetSpriteTexture (const struct model_s *m_pSpriteModel, int frame);
 void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale);
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.03.26]
 void R_DecalRemoveAll (int texture);
 int R_CreateDecalList (decallist_t *pList);
 void R_ClearAllDecals (void);
 byte *Mod_GetCurrentVis (void);
 void Mod_SetOrthoBounds (const float *mins, const float *maxs);
-void R_NewMap (void);
+/*void R_NewMap (void);*/
 void CL_AddCustomBeam (cl_entity_t *pEnvBeam);
 
 //
@@ -798,7 +797,6 @@ static inline int GL_MaxTextureUnits (void)
 	if (GL_Support (GL_SHADER_GLSL100_EXT))
 		return Q_min (Q_max (glConfig.max_texture_coords, glConfig.max_teximage_units), MAX_TEXTURE_UNITS);
 
-	/*return glConfig.max_texture_units;*/
 	return Q_min (glConfig.max_texture_units, MAX_TEXTURE_UNITS);
 	}
 

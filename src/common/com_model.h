@@ -16,7 +16,10 @@ GNU General Public License for more details
 #ifndef COM_MODEL_H
 #define COM_MODEL_H
 
-#include "xash3d_types.h"
+// [FWGS, 01.03.26]
+/*include "xash3d_types.h"*/
+#include "const.h"
+
 #include "bspfile.h"	// we need some declarations from it
 
 /***
@@ -32,7 +35,6 @@ ENGINE MODEL FORMAT
 #define MIPLEVELS		4
 #define VERTEXSIZE		7
 
-// FWGS
 #define MAXLIGHTMAPS	4	// max light styles per face
 #define MAXDYNLIGHTS	8	// maximum dynamic lights per one pixel
 
@@ -63,16 +65,8 @@ typedef struct
 	} mvertex_t;
 
 // [FWGS, 01.02.25]
-/*typedef struct*/
 typedef struct mclipnode32_s
 	{
-	/*int		planenum;
-ifdef SUPPORT_BSP2_FORMAT
-	int		children[2];	// negative numbers are contents
-else
-	short		children[2];	// negative numbers are contents
-endif
-	} mclipnode_t;*/
 	int	planenum;
 	int	children[2];		// negative numbers are contents
 	} mclipnode32_t;
@@ -85,12 +79,9 @@ typedef struct mclipnode16_s
 	} mclipnode16_t;
 
 // [FWGS, 01.02.25] size is matched but representation is not
-/*typedef struct*/
 typedef struct medge32_s
 	{
-/*ifdef SUPPORT_BSP2_FORMAT*/
 	unsigned int	v[2];
-/*else*/
 	} medge32_t;
 
 // [FWGS, 01.02.25]
@@ -98,8 +89,6 @@ typedef struct medge16_s
 	{
 	unsigned short	v[2];
 	unsigned int	cachededgeoffset;
-/*endif
-	} medge_t;*/
 	} medge16_t;
 
 typedef struct texture_s
@@ -108,13 +97,13 @@ typedef struct texture_s
 	unsigned int	width, height;
 	int				gl_texturenum;
 	struct msurface_s	*texturechain;	// for gl_texsort drawing
-	int		anim_total;	// total tenths in sequence ( 0 = no)
-	int		anim_min, anim_max;	// time for this frame min <=time< max
-	struct texture_s	*anim_next;	// in the animation sequence
+	int				anim_total;			// total tenths in sequence ( 0 = no)
+	int				anim_min, anim_max;	// time for this frame min <=time< max
+	struct texture_s	*anim_next;		// in the animation sequence
 	struct texture_s	*alternate_anims;	// bmodels in frame 1 use these
-	unsigned short	fb_texturenum;	// auto-luma texturenum
-	unsigned short	dt_texturenum;	// detail-texture binding
-	unsigned int	unused[3];	// reserved 
+	unsigned short	fb_texturenum;		// auto-luma texturenum
+	unsigned short	dt_texturenum;		// detail-texture binding
+	unsigned int	unused[3];			// reserved 
 	} texture_t;
 
 typedef struct
@@ -129,7 +118,6 @@ typedef struct
 	intptr_t		reserved[32];	// just for future expansions or mod-makers
 	} mfaceinfo_t;
 
-// 4529
 typedef struct
 	{
 	mplane_t	*edges;
@@ -184,10 +172,6 @@ typedef struct mnode_s
 
 	// [FWGS, 01.02.25] node specific
 	mplane_t	*plane;
-	/*struct mnode_s	*children[2];
-ifdef SUPPORT_BSP2_FORMAT
-	int		firstsurface;
-	int		numsurfaces;*/
 #if !XASH_64BIT
 
 	union
@@ -209,8 +193,6 @@ ifdef SUPPORT_BSP2_FORMAT
 
 #else
 
-	/*unsigned short	firstsurface;
-	unsigned short	numsurfaces;*/
 	// in 64-bit ABI this struct has 4 more bytes of padding, let's use it!
 	struct mnode_s	*children_[2];
 	unsigned short	firstsurface_0;
@@ -295,7 +277,7 @@ typedef struct mextrasurf_s
 	unsigned short	numverts;		// world->vertexes[]
 	int				firstvertex;	// fisrt look up in tr.tbn_vectors[], then acess to world->vertexes[]
 
-	intptr_t		reserved[32];	// [FWGS, 01.04.23] just for future expansions or mod-makers
+	intptr_t		reserved[32];	// just for future expansions or mod-makers
 	} mextrasurf_t;
 
 // [FWGS, 01.12.24] additional struct at the end of msurface_t for HL25 compatibility
@@ -353,12 +335,12 @@ struct msurface_s
 // [FWGS, 01.02.25]
 typedef struct hull_s
 	{
-	/*mclipnode_t	*clipnodes;*/
 	union
 		{
 		mclipnode16_t	*clipnodes16;
 		mclipnode32_t	*clipnodes32;
 		};
+
 	mplane_t	*planes;
 	int			firstclipnode;
 	int			lastclipnode;
@@ -409,7 +391,6 @@ typedef struct model_s
 
 	// [FWGS, 01.02.25]
 	int			numedges;
-	/*medge_t		*edges;*/
 	union
 		{
 		medge16_t *edges16;
@@ -430,7 +411,6 @@ typedef struct model_s
 
 	// [FWGS, 01.02.25]
 	int			numclipnodes;
-	/*mclipnode_t	*clipnodes;*/
 	union
 		{
 		mclipnode16_t *clipnodes16;
@@ -548,6 +528,7 @@ ALIAS MODELS
 Alias models are position independent, so the cache manager can move them.
 ==============================================================================
 ***/
+
 #define MAXALIASVERTS	2048
 #define MAXALIASFRAMES	256
 #define MAXALIASTRIS	4096
@@ -595,8 +576,8 @@ typedef struct
 
 	int		numposes;
 	int		poseverts;
-	trivertex_t *posedata;	// numposes * poseverts trivert_t
-	int *commands;	// gl command list with embedded s/t
+	trivertex_t	*posedata;	// numposes * poseverts trivert_t
+	int		*commands;	// gl command list with embedded s/t
 	unsigned short	gl_texturenum[MAX_SKINS][4];
 	unsigned short	fb_texturenum[MAX_SKINS][4];
 	unsigned short	gl_reserved0[MAX_SKINS][4];	// detail tex
@@ -605,8 +586,6 @@ typedef struct
 
 	maliasframedesc_t	frames[1];	// variable sized
 	} aliashdr_t;
-
-// FWGS: new constants
 
 // remapping info
 #define SUIT_HUE_START		192

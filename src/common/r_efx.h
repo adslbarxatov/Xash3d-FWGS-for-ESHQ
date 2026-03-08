@@ -14,24 +14,28 @@ without written permission from Valve LLC
 #ifndef R_EFX_H
 #define R_EFX_H
 
-// particle_t
-#if !defined( PARTICLEDEFH )
-#include "particledef.h"
+// [FWGS, 01.03.26] particle_t
+/*if !defined( PARTICLEDEFH )*/
+#if !defined( PARTICLEDEF_H )
+	#include "particledef.h"
 #endif
 
-// BEAM
-#if !defined( BEAMDEFH )
-#include "beamdef.h"
+// [FWGS, 01.03.26] BEAM
+/*if !defined( BEAMDEFH )*/
+#if !defined( BEAMDEF_H )
+	#include "beamdef.h"
 #endif
 
-// dlight_t
-#if !defined ( DLIGHTH )
-#include "dlight.h"
-#endif
+// [FWGS, 01.03.26]
+/*// dlight_t
+if !defined ( DLIGHTH )
+include "dlight.h"
+endif*/
 
-// cl_entity_t
-#if !defined( CL_ENTITYH )
-#include "cl_entity.h"
+// [FWGS, 01.03.26] cl_entity_t
+/*if !defined( CL_ENTITYH )*/
+#if !defined( CL_ENTITY_H )
+	#include "cl_entity.h"
 #endif
 
 // [FWGS, 01.12.24]
@@ -65,7 +69,7 @@ without written permission from Valve LLC
 #define FTENT_CLIENTCUSTOM	0x00080000 // Must specify callback.  Callback function is responsible for killing tempent and updating fields ( unless other flags specify how to do things )
 #define FTENT_SCALE			0x00100000 // An experiment
 
-struct pmtrace_s;	// FWGS: was: typedef struct tempent_s TEMPENTITY;
+struct pmtrace_s;	// Was: typedef struct tempent_s TEMPENTITY;
 typedef struct tempent_s
 	{
 	int		flags;
@@ -79,13 +83,13 @@ typedef struct tempent_s
 	int		hitSound;
 	void		(*hitcallback)(struct tempent_s *ent, struct pmtrace_s *ptr);
 	void		(*callback)(struct tempent_s *ent, float frametime, float currenttime);
-	struct tempent_s *next;	// FWGS: was: TEMPENTITY *next;
+	struct tempent_s *next;	// Was: TEMPENTITY *next;
 	int		priority;
 	short		clientIndex;	// if attached, this is the index of the client to stick to
 	// if COLLIDEALL, this is the index of the client to ignore
 	// TENTS with FTENT_PLYRATTACHMENT MUST set the clientindex! 
 
-	vec3_t		tentOffset;	// if attached, client origin + tentOffset = tent origin.
+	vec3_t		tentOffset;	// if attached, client origin + tentOffset = tent origin
 	cl_entity_t	entity;
 
 	// baseline.origin		- velocity
@@ -94,6 +98,9 @@ typedef struct tempent_s
 	} TEMPENTITY;
 
 typedef struct efx_api_s efx_api_t;
+
+// [FWGS, 01.03.26]
+struct dlight_s;
 
 struct efx_api_s
 	{
@@ -161,16 +168,21 @@ struct efx_api_s
 	BEAM *(*R_BeamLightning)(float *start, float *end, int modelIndex, float life, float width, float amplitude, float brightness, float speed);
 	BEAM *(*R_BeamPoints)(float *start, float *end, int modelIndex, float life, float width, float amplitude, float brightness, float speed, int startFrame, float framerate, float r, float g, float b);
 	BEAM *(*R_BeamRing)(int startEnt, int endEnt, int modelIndex, float life, float width, float amplitude, float brightness, float speed, int startFrame, float framerate, float r, float g, float b);
-	dlight_t *(*CL_AllocDlight)(int key);
-	dlight_t *(*CL_AllocElight)(int key);
+
+	// [FWGS, 01.03.26]
+	/*dlight_t *(*CL_AllocDlight)(int key);
+	dlight_t *(*CL_AllocElight)(int key);*/
+	struct dlight_s *(*CL_AllocDlight)(int key);
+	struct dlight_s *(*CL_AllocElight)(int key);
+
 	TEMPENTITY *(*CL_TempEntAlloc)(const float *org, struct model_s *model);
 	TEMPENTITY *(*CL_TempEntAllocNoModel)(const float *org);
 	TEMPENTITY *(*CL_TempEntAllocHigh)(const float *org, struct model_s *model);
 	TEMPENTITY *(*CL_TentEntAllocCustom)(const float *origin, struct model_s *model, int high, void (*callback)(struct tempent_s *ent, float frametime, float currenttime));
 	void		(*R_GetPackedColor)(short *packed, short color);
 	short		(*R_LookupColor)(unsigned char r, unsigned char g, unsigned char b);
-	void		(*R_DecalRemoveAll)(int textureIndex); // textureIndex points to the decal index in the array, not the actual texture index.
+	void		(*R_DecalRemoveAll)(int textureIndex); // textureIndex points to the decal index in the array, not the actual texture index
 	void		(*R_FireCustomDecal)(int textureIndex, int entity, int modelIndex, float *position, int flags, float scale);
 	};
 
-#endif//R_EFX_H
+#endif

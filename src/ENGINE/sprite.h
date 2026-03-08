@@ -14,9 +14,10 @@ without written permission from Valve LLC
 #ifndef SPRITE_H
 #define SPRITE_H
 
-#include "build.h"
-#include <stdint.h>		// [ESHQ: переопределение]
+#include "..\library_suffix\build.h"
+#include <stdint.h>			// [ESHQ: переопределение]
 #include "synctype.h"
+#include "xash3d_types.h"	// [FWGS, 01.03.26]
 
 /***
 ==============================================================================

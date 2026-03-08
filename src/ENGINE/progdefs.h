@@ -14,6 +14,9 @@ without written permission from Valve LLC
 #ifndef PROGDEFS_H
 #define PROGDEFS_H
 
+// [FWGS, 01.03.26]
+#include "const.h"
+
 typedef struct
 	{
 	float		time;

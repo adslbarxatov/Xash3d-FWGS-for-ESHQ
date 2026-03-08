@@ -17,7 +17,7 @@ GNU General Public License for more details
 #define DEFAULTS_H
 
 #include "backends.h"
-#include "build.h"
+#include "..\library_suffix\build.h"
 
 /***
 ===================================================================
@@ -26,48 +26,6 @@ SETUP BACKENDS DEFINITIONS
 ***/
 
 // [FWGS, 01.11.25]
-/*if !XASH_DEDICATED
-	if XASH_SDL
-		// we are building using libSDL
-		ifndef XASH_VIDEO
-			define XASH_VIDEO VIDEO_SDL
-		endif
-
-		ifndef XASH_INPUT
-			define XASH_INPUT INPUT_SDL
-		endif
-
-		ifndef XASH_SOUND
-			define XASH_SOUND SOUND_SDL
-		endif
-
-		if XASH_SDL == 2
-			ifndef XASH_TIMER
-				define XASH_TIMER TIMER_SDL
-			endif
-
-			ifndef XASH_MESSAGEBOX
-				// SDL2 messageboxes not available
-				if !XASH_NSWITCH
-					define XASH_MESSAGEBOX MSGBOX_SDL
-				endif			
-			endif
-		endif
-
-	elif XASH_LINUX
-
-		// we are building for Linux without SDL2, can draw only to framebuffer yet
-		ifndef XASH_VIDEO
-			define XASH_VIDEO VIDEO_FBDEV
-		endif
-
-		ifndef XASH_INPUT
-			define XASH_INPUT INPUT_EVDEV
-		endif
-
-		ifndef XASH_SOUND
-			define XASH_SOUND SOUND_ALSA
-		endif*/
 //
 // when compiling client, we need to pick video, audio and input implementations
 //
@@ -88,16 +46,6 @@ SETUP BACKENDS DEFINITIONS
 
 	#elif XASH_DOS4GW
 
-		/*ifndef XASH_VIDEO
-			define XASH_VIDEO VIDEO_DOS
-		endif
-		ifndef XASH_TIMER
-			define XASH_TIMER TIMER_DOS
-		endif
-
-		// usually only 10-20 fds availiable
-		define XASH_REDUCE_FD*/
-
 		#define XASH_VIDEO VIDEO_DOS
 		#define XASH_REDUCE_FD 1	// usually only 10-20 fds available
 
@@ -114,13 +62,10 @@ SETUP BACKENDS DEFINITIONS
 
 #endif
 
-//
-// [FWGS, 01.11.25] select messagebox implementation
-//
-
+// [FWGS, 01.03.26] select messagebox implementation
 #ifndef XASH_MESSAGEBOX
-	/*if XASH_WIN32*/
-	#if XASH_SDL == 2 && !XASH_NSWITCH	// SDL2 messageboxes are not available on NSW
+	/*if XASH_SDL == 2 && !XASH_NSWITCH	// SDL2 messageboxes are not available on NSW*/
+	#if XASH_SDL >= 2 && !XASH_NSWITCH	// SDL2 messageboxes are not available on NSW
 		#define XASH_MESSAGEBOX MSGBOX_SDL
 	#elif XASH_WIN32
 		#define XASH_MESSAGEBOX MSGBOX_WIN32
@@ -134,12 +79,10 @@ SETUP BACKENDS DEFINITIONS
 
 #endif
 
-//
-// [FWGS, 01.11.25] no timer - no xash
-//
+// [FWGS, 01.03.26] no timer - no xash
 #ifndef XASH_TIMER
-	/*if XASH_WIN32*/
-	#if XASH_SDL == 2
+	/*if XASH_SDL == 2*/
+	#if XASH_SDL >= 2
 		#define XASH_TIMER TIMER_SDL
 	#elif XASH_WIN32
 		#define XASH_TIMER TIMER_WIN32
@@ -152,9 +95,7 @@ SETUP BACKENDS DEFINITIONS
 	#endif
 #endif
 
-//
 // [FWGS, 01.07.25] determine movie playback backend
-//
 #ifndef XASH_AVI
 	#if HAVE_FFMPEG
 		#define XASH_AVI AVI_FFMPEG
@@ -164,10 +105,6 @@ SETUP BACKENDS DEFINITIONS
 #endif
 
 // [FWGS, 01.11.25]
-/*ifdef XASH_STATIC_LIBS
-	define XASH_LIB LIB_STATIC
-	define XASH_INTERNAL_GAMELIBS
-	define XASH_ALLOW_SAVERESTORE_OFFSETS*/
 #if XASH_PSP
 	#define XASH_PSP LIB_PSP
 #elif defined( XASH_STATIC_LIBS )
@@ -175,16 +112,12 @@ SETUP BACKENDS DEFINITIONS
 	#define XASH_INTERNAL_GAMELIBS
 	#define XASH_ALLOW_SAVERESTORE_OFFSETS
 #elif XASH_WIN32
-	/*define XASH_LIB LIB_WIN32*/
 	#define XASH_LIB LIB_WIN32
 #elif XASH_POSIX
-	/*define XASH_LIB LIB_POSIX*/
 	#define XASH_LIB LIB_POSIX
 #endif
 
-//
 // fallback to NULL
-//
 #ifndef XASH_VIDEO
 	#define XASH_VIDEO VIDEO_NULL
 #endif
@@ -203,8 +136,13 @@ Default build-depended cvar and constant values
 =========================================================================
 ***/
 
-// [FWGS, 01.06.25] Platform overrides
-#if XASH_NSWITCH
+// [FWGS, 01.03.26] Platform overrides
+/*if XASH_NSWITCH*/
+#if XASH_WIN32
+	// set up windowed by default on Windows to avoid problems with
+	// Xbox Game Bar
+	#define DEFAULT_FULLSCREEN		"0"
+#elif XASH_NSWITCH
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 
@@ -218,20 +156,13 @@ Default build-depended cvar and constant values
 	#define DEFAULT_MODE_HEIGHT		544
 	#define DEFAULT_ALLOWCONSOLE	1
 #elif XASH_ANDROID
-	#define DEFAULT_TOUCH_ENABLE "1"
+	#define DEFAULT_TOUCH_ENABLE	"1"
 #elif XASH_MOBILE_PLATFORM
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 #endif
 
-// [FWGS, 01.11.25]
-/*if XASH_IOS
-define XASH_INTERNAL_GAMELIBS
-// this means that libraries are provided with engine, but not in game data
-// You need add library loading code to library.c when adding new platform
-endif*/
-
-// Defaults
+// [FWGS, 01.11.25] Defaults
 #ifndef DEFAULT_TOUCH_ENABLE
 	#define DEFAULT_TOUCH_ENABLE	"0"
 #endif
@@ -241,19 +172,21 @@ endif*/
 #endif
 
 #ifndef DEFAULT_JOY_DEADZONE
-	#define DEFAULT_JOY_DEADZONE "4096"
+	#define DEFAULT_JOY_DEADZONE	"4096"
 #endif
 
 #ifndef DEFAULT_DEV
-	#define DEFAULT_DEV 0
+	#define DEFAULT_DEV		0
 #endif
 
 #ifndef DEFAULT_ALLOWCONSOLE
 	#define DEFAULT_ALLOWCONSOLE	0
 #endif
 
+// [FWGS, 01.03.26]
 #ifndef DEFAULT_FULLSCREEN
-	#define DEFAULT_FULLSCREEN "1"	// must be a string
+	/*define DEFAULT_FULLSCREEN		"1"	// must be a string*/
+	#define DEFAULT_FULLSCREEN		"2"	// must be a string
 #endif
 
 #ifndef DEFAULT_MAX_EDICTS
@@ -275,7 +208,7 @@ endif*/
 
 // [FWGS, 01.11.25]
 #ifndef DEFAULT_SOFTWARE_RENDERER
-	#define DEFAULT_SOFTWARE_RENDERER "soft" // mittorn's ref_soft
+	#define DEFAULT_SOFTWARE_RENDERER	"soft"	// mittorn's ref_soft
 #endif
 
 #endif

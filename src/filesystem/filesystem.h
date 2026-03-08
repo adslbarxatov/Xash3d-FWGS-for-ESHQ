@@ -16,13 +16,14 @@ GNU General Public License for more details
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
 
+// [FWGS, 01.03.26]
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
 #include "xash3d_types.h"
-#include "const.h"
+/*include "const.h"*/
 #include "com_model.h"
-#include "gameinfo.h"	// [FWGS, 01.09.24]
+#include "gameinfo.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -30,8 +31,6 @@ extern "C"
 #endif
 
 // [FWGS, 01.11.25]
-/*define FS_API_VERSION					3					// [FWGS, 01.05.24] not stable yet!
-define FS_API_CREATEINTERFACE_TAG		"XashFileSystem002" // [FWGS, 01.11.23] follow FS_API_VERSION!!!*/
 #define FS_API_VERSION					4					// not stable yet!
 #define FS_API_CREATEINTERFACE_TAG		"XashFileSystem004"	// follow FS_API_VERSION!!!
 #define FILESYSTEM_INTERFACE_VERSION	"VFileSystem009"	// never change this!
@@ -147,7 +146,6 @@ typedef struct fs_dllinfo_t
 // [FWGS, 01.11.25]
 typedef struct fs_globals_t
 	{
-	/*gameinfo_t	*GameInfo;	// current GameInfo*/
 	const gameinfo_t	*GameInfo;	// current GameInfo
 	gameinfo_t	*games[MAX_MODS];	// environment games (founded at each engine start)
 	int			numgames;
@@ -174,7 +172,6 @@ typedef struct fs_api_t
 	void (*Path_f)(void);
 
 	// [FWGS, 01.11.25] gameinfo utils
-	/*void (*LoadGameInfo)(const char *rootfolder);*/
 	const char *(*Gamedir)(void);
 	void (*LoadGameInfo)(uint32_t flags, const char *language);
 

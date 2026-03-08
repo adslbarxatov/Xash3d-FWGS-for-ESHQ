@@ -128,7 +128,7 @@ GNU General Public License for more details
 #define MAX_USER_MESSAGES	197		// another 58 messages reserved for engine routines
 #define MAX_DLIGHTS			32		// dynamic lights (rendered per one frame)
 #define MAX_ELIGHTS			128		// [FWGS, 01.03.24] a1ba: increased from 64 to 128, entity only point lights
-#define MAX_LIGHTSTYLES		256		// [FWGS, 01.05.23] a1ba: increased from 64 to 256, protocol limit
+#define MAX_LIGHTSTYLES		256		// a1ba: increased from 64 to 256, protocol limit
 #define MAX_RENDER_DECALS	4096	// max rendering decals per a level
 
 // sound proto
@@ -277,17 +277,17 @@ GNU General Public License for more details
 #define SU_ARMOR		(1<<13)
 #define SU_WEAPON		(1<<14)
 
-// [FWGS, 01.11.25]
+// [FWGS, 01.03.26]
 extern const char *const svc_strings[svc_lastmsg + 1];
-extern const char *const svc_legacy_strings[svc_lastmsg + 1];
+/*extern const char *const svc_legacy_strings[svc_lastmsg + 1];*/
 extern const char *const svc_quake_strings[svc_lastmsg + 1];
 extern const char *const svc_goldsrc_strings[svc_lastmsg + 1];
-/*extern const char *const clc_strings[clc_lastmsg + 1];*/
 
 // FWGS extensions
 #define NET_EXT_SPLITSIZE (1U<<0) // set splitsize by cl_dlmax
 
-// legacy protocol definitons
+// [FWGS, 01.03.26]
+/*// legacy protocol definitons
 #define PROTOCOL_LEGACY_VERSION		48
 #define svc_legacy_modelindex		31	// [index][modelpath]
 #define svc_legacy_soundindex		28	// [index][soundpath]
@@ -315,11 +315,7 @@ extern const char *const svc_goldsrc_strings[svc_lastmsg + 1];
 	| ENGINE_LOAD_DELUXEDATA \
 	| ENGINE_LARGE_LIGHTMAPS \
 	| ENGINE_COMPENSATE_QUAKE_BUG \
-	| ENGINE_COMPUTE_STUDIO_LERP )	
-
-// [FWGS, 01.11.25]
-/*// Master Server protocol
-define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter*/
+	| ENGINE_COMPUTE_STUDIO_LERP )*/
 
 // [FWGS, 25.12.24] GoldSrc protocol definitions
 #define PROTOCOL_GOLDSRC_VERSION	48
@@ -337,8 +333,9 @@ define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter*/
 #define clc_goldsrc_requestcvarvalue	clc_requestcvarvalue2 // 10
 #define clc_goldsrc_requestcvarvalue2	11
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.26]
 #define clc_goldsrc_lastmsg			11
+#define SND_GOLDSRC_LARGE_INDEX		(1<<2)
 #define MAX_GOLDSRC_BACKUP_CMDS		8
 #define MAX_GOLDSRC_TOTAL_CMDS		16
 #define MAX_GOLDSRC_EXTENDED_TOTAL_CMDS	62
@@ -347,6 +344,8 @@ define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter*/
 #define MAX_GOLDSRC_ENTITY_BITS		11
 #define MAX_GOLDSRC_EDICTS			( BIT( MAX_ENTITY_BITS ) + ( MAX_CLIENTS * 15 ))
 #define LAST_GOLDSRC_EDICT			( BIT( MAX_ENTITY_BITS ) - 1 )
+
+// Master Server protocol
 
 // [FWGS, 01.12.24] from any to any (must be handled on both server and client)
 #define A2A_PING			"ping"		// reply with A2A_ACK
@@ -401,5 +400,13 @@ define MS_SCAN_REQUEST "1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter*/
 
 // [FWGS, 01.11.25] from master to any
 #define M2A_SERVERSLIST		"f"
+
+// HLTV messages [FWGS, 01.03.26]
+enum
+	{
+	HLTV_ACTIVE = 0,
+	HLTV_STATUS,
+	HLTV_LISTEN,
+	};
 
 #endif

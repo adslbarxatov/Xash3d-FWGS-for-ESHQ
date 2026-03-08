@@ -16,9 +16,9 @@ GNU General Public License for more details
 #ifndef NET_ENCODE_H
 #define NET_ENCODE_H
 
-#include "eiface.h"
+// [FWGS, 01.03.26]
+/*include "eiface.h"*/
 
-// [FWGS, 01.05.23]
 enum
 	{
 	CUSTOM_NONE = 0,
@@ -48,7 +48,6 @@ enum
 #if XASH_ENGINE_TESTS
 	DT_DELTA_TEST_STRUCT_T,
 #endif
-	/*DT_STRUCT_COUNT*/
 	};
 
 // struct info (filled by engine)
@@ -83,6 +82,9 @@ typedef struct goldsrc_delta_s
 	float	premultiply;
 	float	postmultiply;
 	} goldsrc_delta_t;
+
+// [FWGS, 01.03.26]
+typedef struct delta_s delta_t;
 
 typedef void (*pfnDeltaEncode)(struct delta_s *pFields, const byte *from, const byte *to);
 
@@ -126,22 +128,6 @@ struct event_args_s;
 struct movevars_s;
 struct clientdata_s;
 struct weapon_data_s;
-/*void MSG_WriteDeltaUsercmd (sizebuf_t *msg, struct usercmd_s *from, struct usercmd_s *to);
-void MSG_ReadDeltaUsercmd (sizebuf_t *msg, struct usercmd_s *from, struct usercmd_s *to);
-void MSG_WriteDeltaEvent (sizebuf_t *msg, struct event_args_s *from, struct event_args_s *to);
-void MSG_ReadDeltaEvent (sizebuf_t *msg, struct event_args_s *from, struct event_args_s *to);
-qboolean MSG_WriteDeltaMovevars (sizebuf_t *msg, struct movevars_s *from, struct movevars_s *to);
-void MSG_ReadDeltaMovevars (sizebuf_t *msg, struct movevars_s *from, struct movevars_s *to);
-void MSG_WriteClientData (sizebuf_t *msg, struct clientdata_s *from, struct clientdata_s *to, double timebase);
-void MSG_ReadClientData (sizebuf_t *msg, struct clientdata_s *from, struct clientdata_s *to, double timebase);
-void MSG_WriteWeaponData (sizebuf_t *msg, struct weapon_data_s *from, struct weapon_data_s *to,
-	double timebase, int index);
-void MSG_ReadWeaponData (sizebuf_t *msg, struct weapon_data_s *from, struct weapon_data_s *to, double timebase);
-void MSG_WriteDeltaEntity (struct entity_state_s *from, struct entity_state_s *to, sizebuf_t *msg,
-	qboolean force, int type, double timebase, int ofs);
-qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, struct entity_state_s *from, struct entity_state_s *to,
-	int num, int type, double timebase);
-int Delta_TestBaseline (struct entity_state_s *from, struct entity_state_s *to, qboolean player, double timebase);*/
 void MSG_WriteDeltaUsercmd (sizebuf_t *msg, const struct usercmd_s *from, const struct usercmd_s *to);
 void MSG_ReadDeltaUsercmd (sizebuf_t *msg, const struct usercmd_s *from, struct usercmd_s *to);
 void MSG_WriteDeltaEvent (sizebuf_t *msg, const struct event_args_s *from, const struct event_args_s *to);

@@ -15,15 +15,11 @@ without written permission from Valve LLC
 #define EDICT_H
 
 // [FWGS, 01.02.25]
-/*ifdef SUPPORT_BSP2_FORMAT
-define MAX_ENT_LEAFS	24		// Orignally was 16
-else
-define MAX_ENT_LEAFS	48
-endif*/
 #define MAX_ENT_LEAFS_32	24 // Orignally was 16
 #define MAX_ENT_LEAFS_16	48
 
 #include "progdefs.h"
+#include "const.h"		// [FWGS, 01.03.26]
 
 struct edict_s
 	{
@@ -36,11 +32,6 @@ struct edict_s
 	int		num_leafs;
 
 	// [FWGS, 01.02.25]
-	/*ifdef SUPPORT_BSP2_FORMAT
-	int		leafnums[MAX_ENT_LEAFS];
-	else
-	short		leafnums[MAX_ENT_LEAFS];
-	endif*/
 	union
 		{
 		int		leafnums32[MAX_ENT_LEAFS_32];

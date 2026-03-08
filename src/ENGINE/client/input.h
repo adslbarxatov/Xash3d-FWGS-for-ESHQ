@@ -22,13 +22,14 @@ INPUT
 ==============================================================
 ***/
 
+// [FWGS, 01.03.26]
 #include "keydefs.h"
-#include "usercmd.h"	// [FWGS, 01.12.24]
+/*include "usercmd.h"	// [FWGS, 01.12.24]*/
 
 //
 // input.c
 //
-extern qboolean	in_mouseinitialized;
+/*extern qboolean	in_mouseinitialized;*/
 void IN_Init (void);
 void Host_InputFrame (void);
 void IN_Shutdown (void);
@@ -63,7 +64,6 @@ typedef enum
 	} touchEventType;
 
 // [FWGS, 01.11.25]
-/*extern convar_t touch_enable;*/
 #if XASH_NO_TOUCH
 
 static inline void Touch_Draw (void) {}

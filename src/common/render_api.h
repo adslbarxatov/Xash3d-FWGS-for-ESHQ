@@ -16,8 +16,10 @@ GNU General Public License for more details
 #ifndef RENDER_API_H
 #define RENDER_API_H
 
+// [FWGS, 01.03.26]
+#include <stdint.h>
 #include "lightstyle.h"
-#include "dlight.h"
+/*include "dlight.h"*/
 
 #define CL_RENDER_INTERFACE_VERSION	37	// Xash3D 1.0
 #define MAX_STUDIO_DECALS			4096	// + unused space of BSP decals
@@ -77,58 +79,58 @@ enum
 
 typedef enum
 	{
-	TF_COLORMAP = 0,		// just for tabulate source
-	TF_NEAREST = (1 << 0),		// disable texfilter
-	TF_KEEP_SOURCE = (1 << 1),		// some images keep source
-	TF_NOFLIP_TGA = (1 << 2),		// Steam background completely ignore tga attribute 0x20
-	TF_EXPAND_SOURCE = (1 << 3),		// Don't keep source as 8-bit expand to RGBA
-	// FWGS: reserved, was: TF_ALLOW_EMBOSS = (1 << 4), // Allow emboss-mapping for this image
-	TF_RECTANGLE = (1 << 5),		// this is GL_TEXTURE_RECTANGLE
-	TF_CUBEMAP = (1 << 6),		// it's cubemap texture
-	TF_DEPTHMAP = (1 << 7),		// custom texture filter used
-	TF_QUAKEPAL = (1 << 8),		// image has an quake1 palette
-	TF_LUMINANCE = (1 << 9),		// force image to grayscale
-	TF_SKYSIDE = (1 << 10),	// this is a part of skybox
-	TF_CLAMP = (1 << 11),	// clamp texcoords to [0..1] range
-	TF_NOMIPMAP = (1 << 12),	// don't build mips for this image
-	TF_HAS_LUMA = (1 << 13),	// sets by GL_UploadTexture
-	TF_MAKELUMA = (1 << 14),	// create luma from quake texture (only q1 textures contain luma-pixels)
-	TF_NORMALMAP = (1 << 15),	// is a normalmap
-	TF_HAS_ALPHA = (1 << 16),	// image has alpha (used only for GL_CreateTexture)
-	TF_FORCE_COLOR = (1 << 17),	// force upload monochrome textures as RGB (detail textures)
-	TF_UPDATE = (1 << 18),	// allow to update already loaded texture
-	TF_BORDER = (1 << 19),	// zero clamp for projected textures
-	TF_TEXTURE_3D = (1 << 20),	// this is GL_TEXTURE_3D
-	TF_ATLAS_PAGE = (1 << 21),	// bit who indicate lightmap page or deluxemap page
-	TF_ALPHACONTRAST = (1 << 22),	// special texture mode for A2C
+	TF_COLORMAP =		0,			// just for tabulate source
+	TF_NEAREST =		(1 << 0),	// disable texfilter
+	TF_KEEP_SOURCE =	(1 << 1),	// some images keep source
+	TF_NOFLIP_TGA =		(1 << 2),	// Steam background completely ignore tga attribute 0x20
+	TF_EXPAND_SOURCE =	(1 << 3),	// Don't keep source as 8-bit expand to RGBA
+	// Reserved, was: TF_ALLOW_EMBOSS = (1 << 4), // Allow emboss-mapping for this image
+	TF_RECTANGLE =		(1 << 5),	// this is GL_TEXTURE_RECTANGLE
+	TF_CUBEMAP =		(1 << 6),	// it's cubemap texture
+	TF_DEPTHMAP =		(1 << 7),	// custom texture filter used
+	TF_QUAKEPAL =		(1 << 8),	// image has an quake1 palette
+	TF_LUMINANCE =		(1 << 9),	// force image to grayscale
+	TF_SKYSIDE =		(1 << 10),	// this is a part of skybox
+	TF_CLAMP =			(1 << 11),	// clamp texcoords to [0..1] range
+	TF_NOMIPMAP =		(1 << 12),	// don't build mips for this image
+	TF_HAS_LUMA =		(1 << 13),	// sets by GL_UploadTexture
+	TF_MAKELUMA =		(1 << 14),	// create luma from quake texture (only q1 textures contain luma-pixels)
+	TF_NORMALMAP =		(1 << 15),	// is a normalmap
+	TF_HAS_ALPHA =		(1 << 16),	// image has alpha (used only for GL_CreateTexture)
+	TF_FORCE_COLOR =	(1 << 17),	// force upload monochrome textures as RGB (detail textures)
+	TF_UPDATE =			(1 << 18),	// allow to update already loaded texture
+	TF_BORDER =			(1 << 19),	// zero clamp for projected textures
+	TF_TEXTURE_3D =		(1 << 20),	// this is GL_TEXTURE_3D
+	TF_ATLAS_PAGE =		(1 << 21),	// bit who indicate lightmap page or deluxemap page
+	TF_ALPHACONTRAST =	(1 << 22),	// special texture mode for A2C
 	// reserved
 	// reserved
 
 	// this is set for first time when called glTexImage, otherwise it will be call glTexSubImage
-	TF_IMG_UPLOADED = (1 << 25),
-	TF_ARB_FLOAT = (1 << 26),	// float textures
-	TF_NOCOMPARE = (1 << 27),	// disable comparing for depth textures
-	TF_ARB_16BIT = (1 << 28),	// keep image as 16-bit (not 24)
+	TF_IMG_UPLOADED =	(1 << 25),
+	TF_ARB_FLOAT =		(1 << 26),	// float textures
+	TF_NOCOMPARE =		(1 << 27),	// disable comparing for depth textures
+	TF_ARB_16BIT =		(1 << 28),	// keep image as 16-bit (not 24)
 
 	// [FWGS, 01.02.24]
-	TF_MULTISAMPLE = (1 << 29), // multisampling texture
-	TF_ALLOW_NEAREST = (1 << 30), // allows toggling nearest filtering for TF_NOMIPMAP textures
+	TF_MULTISAMPLE =	(1 << 29),	// multisampling texture
+	TF_ALLOW_NEAREST =	(1 << 30),	// allows toggling nearest filtering for TF_NOMIPMAP textures
 	} texFlags_t;
 
 typedef enum
 	{
-	CONTEXT_TYPE_GL = 0,	// FWGS: compatibility profile
+	CONTEXT_TYPE_GL = 0,	// Compatibility profile
 	CONTEXT_TYPE_GLES_1_X,
 	CONTEXT_TYPE_GLES_2_X,
-	CONTEXT_TYPE_GL_CORE	// FWGS
+	CONTEXT_TYPE_GL_CORE
 	} gl_context_type_t;
 
 typedef enum
 	{
 	GLES_WRAPPER_NONE = 0,		// native GL
 	GLES_WRAPPER_NANOGL,		// used on GLES platforms
-	GLES_WRAPPER_WES,			// FWGS: used on GLES platforms
-	GLES_WRAPPER_GL4ES,			// FWGS: used on GLES platforms
+	GLES_WRAPPER_WES,			// Used on GLES platforms
+	GLES_WRAPPER_GL4ES,			// Used on GLES platforms
 	} gles_wrapper_t;
 
 // 30 bytes here
@@ -178,8 +180,10 @@ enum movie_parms_e
 	AVI_RESUME,			// no argument, resumes playback
 	};
 
+// [FWGS, 01.03.26]
 struct movie_state_s;
 struct ref_viewpass_s;
+struct dlight_s;
 
 typedef struct render_api_s
 	{
@@ -188,8 +192,10 @@ typedef struct render_api_s
 	void		(*GetDetailScaleForTexture)(int texture, float* xScale, float* yScale);
 	void		(*GetExtraParmsForTexture)(int texture, byte* red, byte* green, byte* blue, byte* alpha);
 	lightstyle_t	*(*GetLightStyle)(int number);
-	dlight_t	*(*GetDynamicLight)(int number);
-	dlight_t	*(*GetEntityLight)(int number);
+	/*dlight_t	*(*GetDynamicLight)(int number);
+	dlight_t	*(*GetEntityLight)(int number);*/
+	struct dlight_s		*(*GetDynamicLight)(int number);
+	struct dlight_s		*(*GetEntityLight)(int number);
 	byte		(*LightToTexGamma)(byte color);	// software gamma support
 	float		(*GetFrameTime)(void);
 
@@ -215,10 +221,6 @@ typedef struct render_api_s
 	void	(*R_EntityRemoveDecals)(struct model_s* mod); // remove all the decals from specified entity (BSP only)
 
 	// [FWGS, 01.07.25] AVIkit support
-	/*void* (*AVI_LoadVideo)(const char* filename, qboolean load_audio);
-	int		(*AVI_GetVideoInfo)(void* Avi, int* xres, int* yres, float* duration);
-	int		(*AVI_GetVideoFrameNumber)(void* Avi, float time);
-	byte* (*AVI_GetVideoFrame)(void* Avi, int frame);*/
 	struct movie_state_s	*(*AVI_LoadVideo)(const char *filename, qboolean load_audio);
 	// a1ba: changed longs to int
 	qboolean	(*AVI_GetVideoInfo)(struct movie_state_s *Avi, int *xres, int *yres, float *duration);
@@ -227,11 +229,6 @@ typedef struct render_api_s
 
 	void		(*AVI_UploadRawFrame)(int texture, int cols, int rows, int width, int height, const byte* data);
 	
-	/*void		(*AVI_FreeVideo)(void* Avi);
-	int			(*AVI_IsActive)(void* Avi);
-	void		(*AVI_StreamSound)(void* Avi, int entnum, float fvol, float attn, float synctime);
-	void		(*AVI_Reserved0)(void);	// for potential interface expansion without broken compatibility
-	void		(*AVI_Reserved1)(void);*/
 	void		(*AVI_FreeVideo)(struct movie_state_s *Avi);
 	qboolean	(*AVI_IsActive)(struct movie_state_s *Avi);
 	void		(*AVI_StreamSound)(struct movie_state_s *Avi, int entnum, float fvol, float attn, float synctime);
@@ -310,7 +307,7 @@ typedef struct render_interface_s
 	void	(*R_NewMap)(void);
 	// clear the render entities before each frame
 	void	(*R_ClearScene)(void);
-	// 4529: shuffle previous & next states for lerping
+	// shuffle previous & next states for lerping
 	void	(*CL_UpdateLatchedVars)(struct cl_entity_s *e, qboolean reset);
 	} render_interface_t;
 

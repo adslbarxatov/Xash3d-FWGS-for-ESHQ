@@ -23,6 +23,10 @@ GNU General Public License for more details
 #include <SDL3/SDL.h>
 #include "platform/platform.h"
 
+// [FWGS, 01.03.26]
+#define Con_PrintSDLError( func ) \
+	Con_Printf( S_ERROR "%s: %s: %s\n", __func__, func, SDL_GetError( ));
+
 //
 // in_sdl3.c
 //

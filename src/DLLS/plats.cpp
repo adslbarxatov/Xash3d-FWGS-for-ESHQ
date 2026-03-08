@@ -1,20 +1,19 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 /***
 ===== plats.cpp ========================================================
-  spawn, think, and touch functions for trains, etc
+spawn, think, and touch functions for trains, etc.
 ***/
 
 #include "extdll.h"
@@ -382,6 +381,7 @@ void CPlatTrigger::SpawnInsideTrigger (CFuncPlat* pPlatform)
 		vecTMin.y = (m_pPlatform->pev->mins.y + m_pPlatform->pev->maxs.y) / 2;
 		vecTMax.y = vecTMin.y + 1;
 		}
+
 	UTIL_SetSize (pev, vecTMin, vecTMax);
 	}
 
@@ -546,10 +546,9 @@ void CFuncPlatRot::SetupRotation (void)
 		m_start = g_vecZero;
 		m_end = g_vecZero;
 		}
+
 	if (!FStringNull (pev->targetname))	// Start at top
-		{
 		pev->angles = m_end;
-		}
 	}
 
 void CFuncPlatRot::Spawn (void)
@@ -764,9 +763,10 @@ void CFuncTrain::Next (void)
 		ALERT (at_aiconsole, "Train %s speed to %4.2f\n", STRING (pev->targetname), pev->speed);
 		}
 
-	mute = FBitSet (m_pevCurrentTarget->spawnflags, SF_CORNER_MUTE);	// ESHQ: поддержка тихих участков пути
-	m_pevCurrentTarget = pTarg->pev;	// keep track of this since path corners change our target for us
+	if (m_pevCurrentTarget)
+		mute = FBitSet (m_pevCurrentTarget->spawnflags, SF_CORNER_MUTE);	// ESHQ: поддержка тихих участков пути
 
+	m_pevCurrentTarget = pTarg->pev;	// keep track of this since path corners change our target for us
 	pev->enemy = pTarg->edict ();		// hack
 
 	if (FBitSet (m_pevCurrentTarget->spawnflags, SF_CORNER_TELEPORT))
@@ -1038,11 +1038,13 @@ void CFuncTrackTrain::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TY
 			delta = 1;
 		else if (delta < -1)
 			delta = -1;
+
 		if (pev->spawnflags & SF_TRACKTRAIN_FORWARDONLY)
 			{
 			if (delta < 0)
 				delta = 0;
 			}
+
 		pev->speed = m_speed * delta;
 		Next ();
 		ALERT (at_aiconsole, "TRAIN(%s), speed to %.2f\n", STRING (pev->targetname), pev->speed);
@@ -1171,11 +1173,11 @@ void CFuncTrackTrain::Next (void)
 	// The train actually points west
 	angles.y += 180;
 
-	// !!!  All of this crap has to be done to make the angles not wrap around, revisit this.
+	// !!!  All of this crap has to be done to make the angles not wrap around, revisit this
 	FixupAngles (angles);
 	FixupAngles (pev->angles);
 
-	if (!pnext || (delta.x == 0 && delta.y == 0))
+	if (!pnext || ((delta.x == 0) && (delta.y == 0)))
 		angles = pev->angles;
 
 	float vy, vx;
@@ -1330,8 +1332,8 @@ BOOL CFuncTrackTrain::OnControls (entvars_t* pevTest)
 	local.y = -DotProduct (offset, gpGlobals->v_right);
 	local.z = DotProduct (offset, gpGlobals->v_up);
 
-	if (local.x >= m_controlMins.x && local.y >= m_controlMins.y && local.z >= m_controlMins.z &&
-		local.x <= m_controlMaxs.x && local.y <= m_controlMaxs.y && local.z <= m_controlMaxs.z)
+	if ((local.x >= m_controlMins.x) && (local.y >= m_controlMins.y) && (local.z >= m_controlMins.z) &&
+		(local.x <= m_controlMaxs.x) && (local.y <= m_controlMaxs.y) && (local.z <= m_controlMaxs.z))
 		return TRUE;
 
 	return FALSE;
@@ -1361,6 +1363,7 @@ void CFuncTrackTrain::Find (void)
 	look.z += m_height;
 
 	pev->angles = UTIL_VecToAngles (look - nextPos);
+
 	// The train actually points west
 	pev->angles.y += 180;
 
@@ -1684,7 +1687,7 @@ void CFuncTrackChange::Precache (void)
 	}
 
 
-// UNDONE: Filter touches before re-evaluating the train.
+// UNDONE: Filter touches before re-evaluating the train
 void CFuncTrackChange::Touch (CBaseEntity* pOther)
 	{
 	}
@@ -1708,7 +1711,7 @@ void CFuncTrackChange::KeyValue (KeyValueData* pkvd)
 		}
 	else
 		{
-		CFuncPlatRot::KeyValue (pkvd);		// Pass up to base class
+		CFuncPlatRot::KeyValue (pkvd);	// Pass up to base class
 		}
 	}
 
@@ -1741,6 +1744,7 @@ void CFuncTrackChange::Find (void)
 					ALERT (at_error, "Can't find train for track change! %s\n", STRING (m_trainName));
 					return;
 					}
+
 				Vector center = (pev->absmin + pev->absmax) * 0.5;
 				m_trackBottom = m_trackBottom->Nearest (center);
 				m_trackTop = m_trackTop->Nearest (center);
@@ -1762,15 +1766,14 @@ void CFuncTrackChange::Find (void)
 	}
 
 
-
 TRAIN_CODE CFuncTrackChange::EvaluateTrain (CPathTrack* pcurrent)
 	{
 	// Go ahead and work, we don't have anything to switch, so just be an elevator
 	if (!pcurrent || !m_train)
 		return TRAIN_SAFE;
 
-	if (m_train->m_ppath == pcurrent || (pcurrent->m_pprevious && m_train->m_ppath == pcurrent->m_pprevious) ||
-		(pcurrent->m_pnext && m_train->m_ppath == pcurrent->m_pnext))
+	if ((m_train->m_ppath == pcurrent) || (pcurrent->m_pprevious && (m_train->m_ppath == pcurrent->m_pprevious)) ||
+		(pcurrent->m_pnext && (m_train->m_ppath == pcurrent->m_pnext)))
 		{
 		if (m_train->pev->speed != 0)
 			return TRAIN_BLOCKING;
@@ -1900,7 +1903,7 @@ void CFuncTrackChange::UpdateAutoTargets (int toggleState)
 
 void CFuncTrackChange::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
-	if (m_toggle_state != TS_AT_TOP && m_toggle_state != TS_AT_BOTTOM)
+	if ((m_toggle_state != TS_AT_TOP) && (m_toggle_state != TS_AT_BOTTOM))
 		return;
 
 	// If train is in "safe" area, but not on the elevator, play alarm sound
@@ -1987,7 +1990,7 @@ void CFuncTrackAuto::UpdateAutoTargets (int toggleState)
 	if (pTarget)
 		{
 		ClearBits (pTarget->pev->spawnflags, SF_PATH_DISABLED);
-		if (m_code == TRAIN_FOLLOWING && m_train && m_train->pev->speed == 0)
+		if ((m_code == TRAIN_FOLLOWING) && m_train && (m_train->pev->speed == 0))
 			m_train->Use (this, this, USE_ON, 0);
 		}
 
@@ -2014,7 +2017,7 @@ void CFuncTrackAuto::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 		{
 		m_code = EvaluateTrain (pTarget);
 		// Safe to fire?
-		if (m_code == TRAIN_FOLLOWING && m_toggle_state != m_targetState)
+		if ((m_code == TRAIN_FOLLOWING) && (m_toggle_state != m_targetState))
 			{
 			DisableUse ();
 			if (m_toggle_state == TS_AT_TOP)
@@ -2027,7 +2030,7 @@ void CFuncTrackAuto::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 		{
 		if (pTarget)
 			pTarget = pTarget->GetNext ();
-		if (pTarget && m_train->m_ppath != pTarget && ShouldToggle (useType, m_targetState))
+		if (pTarget && (m_train->m_ppath != pTarget) && ShouldToggle (useType, m_targetState))
 			{
 			if (m_targetState == TS_AT_TOP)
 				m_targetState = TS_AT_BOTTOM;
@@ -2139,6 +2142,7 @@ void CGunTarget::Next (void)
 		Stop ();
 		return;
 		}
+
 	SetMoveDone (&CGunTarget::Wait);
 	LinearMove (pTarget->pev->origin - (pev->mins + pev->maxs) * 0.5, pev->speed);
 	}
@@ -2196,6 +2200,7 @@ int	CGunTarget::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 				FireTargets (STRING (pev->message), this, this, USE_TOGGLE, 0);
 			}
 		}
+
 	return 0;
 	}
 

@@ -68,23 +68,21 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 //  bytes will be stripped by the networking channel layer
 #define NET_MAX_MESSAGE		PAD_NUMBER(( NET_MAX_PAYLOAD + HEADER_BYTES ), 16 )
 
-/*// [FWGS, 01.03.25]
-define MS_SCAN_REQUEST			"1\xFF" "0.0.0.0:0\0"*/
-
 #define PORT_MASTER		27010
 #define PORT_CLIENT		27005
 #define PORT_SERVER		27015
 
+// [FWGS, 01.03.26]
 #define MULTIPLAYER_BACKUP		64	// how many data slots to use when in multiplayer (must be power of 2)
 #define SINGLEPLAYER_BACKUP		16	// same for single player
 #define CMD_BACKUP				64	// allow a lot of command backups for very fast systems
 #define CMD_MASK				(CMD_BACKUP - 1)
 #define NUM_PACKET_ENTITIES		256	// 170 Mb for multiplayer with 32 players
 #define MAX_CUSTOM_BASELINES	64
-#define NET_LEGACY_EXT_SPLIT	(1U<<1)
-#define NETSPLIT_BACKUP			8
-#define NETSPLIT_BACKUP_MASK	(NETSPLIT_BACKUP - 1)
-#define NETSPLIT_HEADER_SIZE	18
+/*define NET_LEGACY_EXT_SPLIT	(1U<<1)
+define NETSPLIT_BACKUP			8
+define NETSPLIT_BACKUP_MASK	(NETSPLIT_BACKUP - 1)
+define NETSPLIT_HEADER_SIZE	18*/
 
 #if XASH_LOW_MEMORY == 2
 #undef MULTIPLAYER_BACKUP
@@ -108,7 +106,10 @@ define MS_SCAN_REQUEST			"1\xFF" "0.0.0.0:0\0"*/
 #define NET_MAX_FRAGMENT		32768
 #endif
 
-typedef struct netsplit_chain_packet_s
+// [FWGS, 01.03.26] removed netsplit_chain_packet_s, netsplit_packet_s,
+// netsplit_s, NetSplit_GetLong
+
+/*typedef struct netsplit_chain_packet_s
 	{
 	// bool vector
 	uint32_t recieved_v[8];
@@ -141,8 +142,7 @@ typedef struct netsplit_s
 	} netsplit_t;
 
 // packet splitting
-qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *length);
-
+qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *length);*/
 
 /***
 ==============================================================
@@ -163,7 +163,7 @@ NET
 typedef struct
 	{
 	int		size;		// size of message sent/received
-	double		time;		// time that message was sent/received
+	double	time;		// time that message was sent/received
 	} flowstats_t;
 
 typedef struct
@@ -194,9 +194,9 @@ typedef struct fragbuf_s
 // Waiting list of fragbuf chains
 typedef struct fbufqueue_s
 	{
-	struct fbufqueue_s *next;	// next chain in waiting list
-	int		fragbufcount;		// number of buffers in this chain
-	fragbuf_t *fragbufs;		// the actual buffers
+	struct fbufqueue_s	*next;			// next chain in waiting list
+	int					fragbufcount;	// number of buffers in this chain
+	fragbuf_t			*fragbufs;		// the actual buffers
 	} fragbufwaiting_t;
 
 typedef enum fragsize_e
@@ -206,14 +206,18 @@ typedef enum fragsize_e
 	FRAGSIZE_UNRELIABLE
 	} fragsize_t;
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.03.26]
 typedef enum netchan_flags_e
 	{
-	NETCHAN_USE_LEGACY_SPLIT = BIT (0),
-	NETCHAN_USE_MUNGE = BIT (1),
-	NETCHAN_USE_BZIP2 = BIT (2),
-	NETCHAN_GOLDSRC = BIT (3),
-	NETCHAN_USE_LZSS = BIT (4), // mutually exclusive with bzip2
+	/*NETCHAN_USE_LEGACY_SPLIT =	BIT (0),
+	NETCHAN_USE_MUNGE =			BIT (1),
+	NETCHAN_USE_BZIP2 =			BIT (2),
+	NETCHAN_GOLDSRC =			BIT (3),
+	NETCHAN_USE_LZSS =			BIT (4),	// mutually exclusive with bzip2*/
+	NETCHAN_USE_MUNGE =		BIT (0),
+	NETCHAN_USE_BZIP2 =		BIT (1),
+	NETCHAN_GOLDSRC =		BIT (2),
+	NETCHAN_USE_LZSS =		BIT (3),	// mutually exclusive with bzip2
 	} netchan_flags_t;
 
 // Network Connection Channel
@@ -275,17 +279,19 @@ typedef struct netchan_s
 	// incoming and outgoing flow metrics
 	flow_t		flow[MAX_FLOWS];
 
-	// added for net_speeds
+	// [FWGS, 01.03.26] added for net_speeds
 	size_t		total_sended;
 	size_t		total_received;
-	unsigned int	maxpacket;
+	/*unsigned int	maxpacket;
 	unsigned int	splitid;
 
 	netsplit_t	netsplit;
-	qboolean	split;
+	qboolean	split;*/
 	qboolean	use_munge;
 	qboolean	use_bz2;
-	qboolean	use_lzss;		// [FWGS, 01.02.25]
+
+	// [FWGS, 01.02.25]
+	qboolean	use_lzss;
 	qboolean	gs_netchan;
 	} netchan_t;
 

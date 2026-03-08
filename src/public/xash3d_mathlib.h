@@ -21,10 +21,8 @@ GNU General Public License for more details
 #include <tgmath.h>
 #endif
 
-#include <string.h>		// [FWGS, 25.12.24]
-
-// [FWGS, 01.12.24]
-#include "build.h"
+#include <string.h>
+#include "..\library_suffix\build.h"
 #include "xash3d_types.h"
 
 /***
@@ -264,7 +262,6 @@ static inline float UintAsFloat (uint32_t u)
 	}
 
 // [FWGS, 01.11.25]
-/*#endif*/
 static inline float SwapFloat (float bf)
 	{
 	uint32_t bi = FloatAsUint (bf);
@@ -272,12 +269,13 @@ static inline float SwapFloat (float bf)
 	return UintAsFloat (li);
 	}
 
-// [FWGS, 01.12.24] isnan implementation is broken on IRIX as reported in https://github.com/FWGS/xash3d-fwgs/pull/1211
+// [FWGS, 01.03.26] isnan implementation is broken on IRIX as reported in https://github.com/FWGS/xash3d-fwgs/pull/1211
 #if defined( XASH_IRIX ) || !defined( isnan )
 static inline int IS_NAN (float x)
 	{
 	int32_t i = FloatAsInt (x); // only C
-	return i & (255 << 23) == (255 << 23);
+	/*return i & (255 << 23) == (255 << 23);*/
+	return (i & (255 << 23)) == (255 << 23);
 	}
 #else
 #define IS_NAN isnan
@@ -503,8 +501,6 @@ static inline void Matrix3x4_OriginFromMatrix (const matrix3x4 in, float *out)
 // [FWGS, 01.11.25]
 static inline void QuaternionAngle (const vec4_t q, vec3_t angles)
 	{
-	/*matrix3x4 mat;
-	Matrix3x4_FromOriginQuat (mat, q, vec3_origin);*/
 	matrix3x4 mat;
 	vec3_t origin = { 0, 0, 0 };
 	Matrix3x4_FromOriginQuat (mat, q, origin);

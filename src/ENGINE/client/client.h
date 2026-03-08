@@ -22,8 +22,9 @@ GNU General Public License for more details
 #include "menu_int.h"
 #include "cl_entity.h"
 #include "mod_local.h"
+#include "pmove.h"		// [FWGS, 01.03.26]
 #include "pm_defs.h"
-#include "pm_movevars.h"
+/*include "pm_movevars.h"*/
 #include "ref_params.h"
 #include "render_api.h"
 #include "cdll_exp.h"
@@ -34,6 +35,7 @@ GNU General Public License for more details
 #include "world.h"
 #include "ref_common.h"
 #include "voice.h"
+#include "q_client.h"	// [FWGS, 01.03.26]
 
 // client sprite types
 #define SPR_CLIENT		0	// client sprite for temp-entities or user-textures
@@ -276,7 +278,7 @@ typedef struct
 
 	model_t		*worldmodel;	// pointer to world
 
-	int			lostpackets;		// count lost packets and show dialog in menu
+	int			lostpackets;	// count lost packets and show dialog in menu
 	double		frametime_remainder;
 	uint		worldmapCRC;
 	} client_t;
@@ -321,7 +323,7 @@ typedef void (*pfnEventHook)(event_args_t *args);
 typedef struct
 	{
 	char		name[MAX_QPATH];
-	word		index;	// event index
+	word		index;		// event index
 	pfnEventHook	func;	// user-defined function
 	} cl_user_event_t;
 
@@ -627,14 +629,10 @@ typedef struct
 
 	file_t			*demofile;
 	file_t			*demoheader;			// contain demo startup info in case we record a demo on this level
-	/*qboolean		internetservers_wait;	// internetservers is waiting for dns request*/
 	qboolean		internetservers_wait;	// [FWGS, 01.11.25] internetservers is waiting for dns request
 	
 	// [FWGS, 01.11.25]
 	qboolean		internetservers_pending;	// if true, clean master server pings
-	/*uint32_t		internetservers_key;		// compare key to validate master server reply
-	char			internetservers_query[512];	// cached query
-	uint32_t		internetservers_query_len;*/
 	qboolean		internetservers_nat;
 	string			internetservers_customfilter;
 	uint32_t		internetservers_key;		// compare key to validate master server reply
@@ -654,9 +652,17 @@ typedef struct
 	// [FWGS, 01.07.25]
 	uint8_t			steamid[8];
 
+	// [FWGS, 01.03.26]
+	uint64_t		server_steamid;
+
 	// [FWGS, 01.11.25] whether server allows cheats or not
 	// set differently depending on protocol and extensions
 	qboolean		allow_cheats;
+
+	// [FWGS, 01.03.26] if server declares steam auth method, we can use our broker software to get the ticket
+	qboolean		steam_auth;
+	qboolean		broker_wait;
+	qboolean		vac2_secure;
 	} client_static_t;
 
 #ifdef __cplusplus
@@ -767,7 +773,7 @@ void CL_ResetFrame (frame_t *frame);
 void CL_Particle (const vec3_t org, int color, float life, int zpos, int zvel);
 
 //
-// cl_main.c [FWGS, 01.11.25]
+// cl_main.c
 //
 void CL_Init (void);
 void CL_Disconnect_f (void);
@@ -781,6 +787,9 @@ int CL_IsDevOverviewMode (void);
 void CL_SignonReply (connprotocol_t proto);
 void CL_ClearState (void);
 void CL_SetCheatState (qboolean multiplayer, qboolean allow_cheats);
+
+// [FWGS, 01.03.26]
+void CL_SendGoldSrcConnectPacket (netadr_t adr, int challenge, const void *ticket, size_t ticketlen);
 
 //
 // cl_demo.c
@@ -836,7 +845,7 @@ void CL_DrawStringLen (cl_font_t *font, const char *s, int *width, int *height, 
 int CL_DrawStringf (cl_font_t *font, float x, float y, const rgba_t color, int flags, const char *fmt, ...) FORMAT_CHECK (6);
 
 //
-// cl_game.c [FWGS, 01.12.24]
+// cl_game.c
 //
 void CL_UnloadProgs (void);
 qboolean CL_LoadProgs (const char *name);
@@ -848,7 +857,11 @@ void CL_ClearWorld (void);
 void CL_DrawCenterPrint (void);
 void CL_ClearSpriteTextures (void);
 void CL_CenterPrint (const char *text, float y);
-void CL_TextMessageParse (byte *pMemFile, int fileSize);
+
+// [FWGS, 01.03.26]
+/*void CL_TextMessageParse (byte *pMemFile, int fileSize);*/
+client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile, int fileSize, int *numTitles);
+
 client_textmessage_t *CL_TextMessageGet (const char *pName);
 void NetAPI_CancelAllRequests (void);
 model_t *CL_LoadClientSprite (const char *filename);
@@ -871,14 +884,12 @@ qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *
 // [FWGS, 01.11.25]
 static inline cl_entity_t *CL_EDICT_NUM (int index)
 	{
-	/*if (!clgame.entities) // not in game yet*/
 	if (unlikely (!clgame.entities)) // not in game yet
 		{
 		Host_Error ("%s: clgame.entities is NULL\n", __func__);
 		return NULL;
 		}
 
-	/*if ((index < 0) || (index >= clgame.maxEntities))*/
 	if (unlikely ((index < 0) || (index >= clgame.maxEntities)))
 		{
 		Host_Error ("%s: bad number %i\n", __func__, index);
@@ -891,11 +902,9 @@ static inline cl_entity_t *CL_EDICT_NUM (int index)
 // [FWGS, 01.11.25]
 static inline cl_entity_t *CL_GetEntityByIndex (int index)
 	{
-	/*if (!clgame.entities) // not in game yet*/
 	if (unlikely (!clgame.entities)) // not in game yet
 		return NULL;
 
-	/*if ((index < 0) || (index >= clgame.maxEntities))*/
 	if (unlikely ((index < 0) || (index >= clgame.maxEntities)))
 		return NULL;
 
@@ -905,7 +914,6 @@ static inline cl_entity_t *CL_GetEntityByIndex (int index)
 // [FWGS, 01.11.25]
 static inline model_t *CL_ModelHandle (int modelindex)
 	{
-	/*return (modelindex >= 0) && (modelindex < MAX_MODELS) ? cl.models[modelindex] : NULL;*/
 	return likely ((modelindex >= 0) && (modelindex < MAX_MODELS)) ? cl.models[modelindex] : NULL;
 	}
 
@@ -929,7 +937,7 @@ static inline cl_entity_t *CL_GetLocalPlayer (void)
 	}
 
 //
-// cl_parse.c
+// cl_parse.c [FWGS, 01.03.26]
 //
 void CL_ParseSetAngle (sizebuf_t *msg);
 void CL_ParseServerData (sizebuf_t *msg, connprotocol_t proto);
@@ -939,17 +947,14 @@ void CL_ParseResource (sizebuf_t * msg);
 void CL_ParseClientData (sizebuf_t *msg, connprotocol_t proto);
 void CL_UpdateUserPings (sizebuf_t * msg);
 void CL_ParseParticles (sizebuf_t *msg, connprotocol_t proto);
-
-void CL_ParseRestoreSoundPacket (sizebuf_t * msg);
+/*void CL_ParseRestoreSoundPacket (sizebuf_t * msg);*/
 void CL_ParseBaseline (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseSignon (sizebuf_t *msg, connprotocol_t proto);
-
 void CL_ParseRestore (sizebuf_t * msg);
 void CL_ParseStaticDecal (sizebuf_t * msg);
 void CL_ParseAddAngle (sizebuf_t * msg);
 void CL_RegisterUserMessage (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseResourceList (sizebuf_t *msg, connprotocol_t proto);
-
 void CL_ParseMovevars (sizebuf_t * msg);
 void CL_ParseResourceRequest (sizebuf_t * msg);
 void CL_ParseCustomization (sizebuf_t * msg);
@@ -958,36 +963,31 @@ void CL_ParseSoundFade (sizebuf_t * msg);
 void CL_ParseFileTransferFailed (sizebuf_t * msg);
 void CL_ParseHLTV (sizebuf_t * msg);
 void CL_ParseDirector (sizebuf_t * msg);
-
 void CL_ParseVoiceInit (sizebuf_t *msg);
 void CL_ParseVoiceData (sizebuf_t *msg, connprotocol_t proto);
-
 void CL_ParseResLocation (sizebuf_t * msg);
 void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext, const connprotocol_t proto);
 void CL_ParseServerMessage (sizebuf_t *msg);
-
 qboolean CL_ParseCommonDLLMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);
 void CL_ParseTempEntity (sizebuf_t *msg, connprotocol_t proto);
 qboolean CL_DispatchUserMessage (const char *pszName, int iSize, void *pbuf);
 qboolean CL_RequestMissingResources (void);
 void CL_RegisterResources (sizebuf_t *msg, connprotocol_t proto);
-
 void CL_ParseViewEntity (sizebuf_t *msg);
 void CL_ParseServerTime (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseUserMessage (sizebuf_t *msg, int svc_num, connprotocol_t proto);
-
 void CL_ParseFinaleCutscene (sizebuf_t *msg, int level);
 void CL_ParseTextMessage (sizebuf_t *msg);
 void CL_ParseExec (sizebuf_t *msg);
-
 void CL_BatchResourceRequest (qboolean initialize);
 int CL_EstimateNeededResources (void);
 
-//
+// [FWGS, 01.03.26]
+/*//
 // cl_parse_48.c [FWGS, 01.07.24]
 //
 void CL_ParseLegacyServerMessage (sizebuf_t *msg);
-void CL_LegacyPrecache_f (void);
+void CL_LegacyPrecache_f (void);*/
 
 //
 // cl_parse_gs.c [FWGS, 01.12.24]
@@ -1002,7 +1002,6 @@ void SCR_TileClear (void);
 void SCR_DirtyScreen (void);
 void SCR_EndLoadingPlaque (void);
 int SCR_LoadPauseIcon (void);
-
 void SCR_RegisterTextures (void);
 void SCR_LoadCreditsFont (void);
 void SCR_MakeScreenShot (void);
@@ -1168,9 +1167,16 @@ void Con_PageDown (int lines);
 void Con_PageUp (int lines);
 
 //
+// mod_dbghulls.c [FWGS, 01.03.26]
+//
+void R_DrawWorldHull (void);
+void R_DrawModelHull (model_t *mod);
+void Mod_ReleaseHullPolygons (void);
+
+//
 // s_main.c
 //
-typedef int sound_t;	// [FWGS, 01.02.25]
+typedef int sound_t;
 void S_StartBackgroundTrack (const char *intro, const char *loop, int position, qboolean fullpath);
 void S_StopBackgroundTrack (void);
 void S_StreamSetPause (int pause);
@@ -1183,14 +1189,18 @@ void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float 
 	int pitch, int flags, double sample, double end, int wordIndex);
 void S_StartSound (const vec3_t pos, int ent, int chan, sound_t sfx, float vol, float attn, int pitch, int flags);
 void S_AmbientSound (const vec3_t pos, int ent, sound_t handle, float fvol, float attn, int pitch, int flags);
-void S_FadeClientVolume (float fadePercent, float fadeOutSeconds, float holdTime, float fadeInSeconds);
-void S_FadeMusicVolume (float fadePercent);
+
+// [FWGS, 01.03.26]
+/*void S_FadeClientVolume (float fadePercent, float fadeOutSeconds, float holdTime, float fadeInSeconds);
+void S_FadeMusicVolume (float fadePercent);*/
+void S_SoundFade (int fade_percent, int hold_time, int fade_out_seconds, int fade_in_seconds);
+
 void S_StartLocalSound (const char *name, float volume, qboolean reliable);
 void SND_UpdateSound (void);
 void S_ExtraUpdate (void);
 
 //
-// cl_gameui.c [FWGS, 01.07.24]
+// cl_gameui.c
 //
 void UI_UnloadProgs (void);
 qboolean UI_LoadProgs (void);
@@ -1220,6 +1230,9 @@ void UI_ConnectionProgress_Connect (const char *server);
 void UI_ConnectionProgress_ChangeLevel (void);
 void UI_ConnectionProgress_ParseServerInfo (const char *server);
 
+// [FWGS, 01.03.26] used by both UI and Render APIs
+char **GAME_EXPORT CL_GetFilesList (const char *pattern, int *numFiles, int gamedironly);
+
 //
 // cl_mobile.c
 //
@@ -1230,6 +1243,15 @@ void Mobile_Shutdown (void);
 // cl_securedstub.c
 //
 void CL_GetSecuredClientAPI (CL_EXPORT_FUNCS F);
+
+//
+// cl_steam.c [FWGS, 01.03.26]
+//
+void SteamBroker_Init (void);
+void SteamBroker_Shutdown (void);
+void SteamBroker_HandlePacket (netadr_t from, sizebuf_t *msg);
+int SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge);
+void SteamBroker_TerminateGameConnection (void);
 
 //
 // cl_video.c
@@ -1262,10 +1284,11 @@ int Key_ToUpper (int key);
 void OSK_Draw (void);
 
 //
-// identification.c [FWGS, 01.03.25]
+// identification.c [FWGS, 01.03.26]
 //
 void ID_Init (void);
-const char *ID_GetMD5 (void);
+/*const char *ID_GetMD5 (void);*/
+void ID_GetMD5ForAddress (char *key, netadr_t adr, size_t size);
 
 // [FWGS, 01.07.24]
 extern rgba_t g_color_table[8];

@@ -13,11 +13,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#include "buildenums.h"	// ESHQ: const fix
+#include "..\library_suffix\buildenums.h"	// ESHQ: const fix
 
 const char *g_buildcommit = XASH_BUILD_COMMIT;
 const char *g_buildbranch = XASH_BUILD_BRANCH;
 
-// [FWGS, 01.09.25]
-const char *g_buildcommit_date = "01.09.2025";
-/*const char *g_build_date = __DATE__;*/
+// [FWGS, 01.03.26]
+const char *g_buildcommit_date = "2026-03-01";

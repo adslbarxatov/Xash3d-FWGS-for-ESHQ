@@ -16,22 +16,17 @@ GNU General Public License for more details
 #ifndef PM_LOCAL_H
 #define PM_LOCAL_H
 
+// [FWGS, 01.03.26]
+#include "pmove.h"
+
 #include "pm_defs.h"
 
 typedef int (*pfnIgnore)(physent_t *pe);	// custom trace filter
-
-// [FWGS, 01.12.24]
-/*//
-// pm_debug.c
-//
-void PM_ParticleLine (const vec3_t start, const vec3_t end, int pcolor, float life, float zvel);
-void PM_DrawBBox (const vec3_t mins, const vec3_t maxs, const vec3_t origin, int pcolor, float life);*/
 
 //
 // pm_trace.c [FWGS, 01.12.24]
 //
 void Pmove_Init (void);
-/*void PM_ClearPhysEnts (playermove_t *pmove);	// [FWGS, 01.04.23]*/
 void PM_InitBoxHull (void);
 hull_t *PM_HullForBsp (physent_t *pe, playermove_t *pmove, float *offset);
 qboolean PM_RecursiveHullCheck (hull_t *hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, pmtrace_t *trace);
@@ -48,8 +43,6 @@ struct msurface_s *PM_TraceSurfacePmove (playermove_t *pmove, int ground, float 
 const char *PM_TraceTexture (playermove_t *pmove, int ground, float *vstart, float *vend);
 int PM_PointContentsPmove (playermove_t *pmove, const float *p, int *truecontents);
 void PM_StuckTouch (playermove_t *pmove, int hitent, pmtrace_t *tr);
-
-/*void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent);*/
 
 // [FWGS, 01.12.24]
 static inline void PM_ConvertTrace (trace_t *out, pmtrace_t *in, edict_t *ent)

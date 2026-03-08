@@ -27,9 +27,6 @@ typedef struct
 	uint	in[16];
 	} MD5Context_t;
 
-// [FWGS, 01.07.23]
-/*void CRC32_Init (uint32_t *pulCRC);*/
-
 // [FWGS, 01.12.24]
 #define CRC32_INIT_VALUE 0xFFFFFFFFUL
 #define CRC32_XOR_VALUE 0xFFFFFFFFUL
@@ -49,10 +46,6 @@ static inline uint32_t CRC32_Final (uint32_t pulCRC)
 byte CRC32_BlockSequence (byte *base, int length, int sequence);
 void CRC32_ProcessBuffer (uint32_t *pulCRC, const void *pBuffer, int nBuffer);
 void CRC32_ProcessByte (uint32_t *pulCRC, byte ch);
-
-/*uint32_t CRC32_Final (uint32_t pulCRC);
-
-void MD5Init (MD5Context_t *ctx);*/
 
 /***
 ==================

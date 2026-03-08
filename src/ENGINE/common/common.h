@@ -51,6 +51,9 @@ XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 #include <sys/types.h>	// off_t
 #endif
 
+// [FWGS, 01.03.26]
+#include "..\library_suffix\library_suffix.h"
+
 // configuration
 //
 // check if selected backend not allowed
@@ -177,12 +180,9 @@ extern convar_t	rcon_password;
 extern convar_t hpk_custom_file;
 extern convar_t con_gamemaps;
 
-/*// [FWGS, 01.03.25]
-extern convar_t fs_mount_lv;
-extern convar_t fs_mount_hd;
-extern convar_t fs_mount_addon;
-extern convar_t fs_mount_l10n;
-extern convar_t ui_language; // historically used for UI, but now controls mounted localization directory*/
+// [FWGS, 01.03.26]
+extern convar_t sv_background;
+extern convar_t cl_background;
 
 // [FWGS, 01.07.24]
 #define Mod_AllowMaterials() ((host_allow_materials.value != 0.0f) && !FBitSet(host.features, ENGINE_DISABLE_HDTEXTURES))
@@ -306,7 +306,6 @@ typedef enum bugcomp_e
 	BUGCOMP_GET_GAME_DIR_FULL_PATH = BIT (3),
 	} bugcomp_t;
 
-// [FWGS, 01.03.25]
 typedef struct host_parm_s
 	{
 	// ==== shared through RefAPI's ref_host_t
@@ -328,8 +327,9 @@ typedef struct host_parm_s
 	host_redirect_t	rd;		// remote console
 	void			*hWnd;	// main window
 
-	// command line parms
-	char		**argv;
+	// [FWGS, 01.03.26] command line parms
+	/*char		**argv;*/
+	const char	**argv;
 	int			argc;
 
 	uint		framecount;		// global framecount
@@ -360,11 +360,6 @@ typedef struct host_parm_s
 	qboolean	apply_game_config;	// when true apply only to game cvars and ignore all other commands
 	qboolean	apply_opengl_config;	// when true apply only to opengl cvars and ignore all other commands
 	qboolean	config_executed;	// a bit who indicated was config.cfg already executed e.g. from valve.rc
-
-	/*// [FWGS, 01.05.25]
-	if XASH_DLL_LOADER
-	qboolean	enabledll;
-	endif*/
 	qboolean	textmode;
 
 	// some settings were changed and needs to global update
@@ -377,8 +372,6 @@ typedef struct host_parm_s
 	int			window_center_y;
 	string		gamedll;
 	string		clientlib;
-
-	// [FWGS, 01.05.25]
 	string		menulib;
 	} host_parm_t;
 
@@ -439,7 +432,6 @@ MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
 
 // [FWGS, 01.11.25]
 void FS_Rescan_f (void);
-/*void FS_CheckConfig (void);*/
 void FS_LoadGameInfo (void);
 void FS_SaveVFSConfig (void);
 
@@ -517,18 +509,19 @@ static inline int Cmd_AddCommandWithFlags (const char *cmd_name, xcommand_t func
 	return Cmd_AddCommandEx (cmd_name, function, cmd_desc, flags, __func__);
 	}
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.03.26]
 void Cmd_RemoveCommand (const char *cmd_name);
 cmd_t *Cmd_Exists (const char *cmd_name);
 void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback);
-int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len);
+/*int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len);*/
+int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len, qboolean silent);
 void Cmd_TokenizeString (const char *text);
 void Cmd_ExecuteString (const char *text);
 void Cmd_ForwardToServer (void);
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len);
 
 //
-// imagelib [FWGS, 01.12.24]
+// imagelib
 //
 #include "com_image.h"
 
@@ -540,9 +533,13 @@ void Image_AddCmdFlags (uint flags);
 void FS_FreeImage (rgbdata_t *pack);
 rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
 qboolean FS_SaveImage (const char *filename, rgbdata_t *pix);
-rgbdata_t *FS_CopyImage (rgbdata_t *in) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
 
-extern const bpc_desc_t PFDesc[];	// image get pixelformat
+// [FWGS, 01.03.26]
+/*rgbdata_t *FS_CopyImage (rgbdata_t *in) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
+
+extern const bpc_desc_t PFDesc[];	// image get pixelformat*/
+rgbdata_t *FS_CopyImage (const rgbdata_t *in) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
+
 qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, float reserved);
 void Image_PaletteHueReplace (byte *palSrc, int newHue, int start, int end, int pal_size);
 void Image_SetForceFlags (uint flags);	// set image force flags on loading
@@ -550,6 +547,9 @@ qboolean Image_CustomPalette (void);
 void Image_ClearForceFlags (void);
 void Image_SetMDLPointer (byte *p);
 void Image_CheckPaletteQ1 (void);
+
+// [FWGS, 01.03.26] image get pixelformat
+extern const bpc_desc_t PFDesc[PF_TOTALCOUNT];
 
 /***
 ========================================================================
@@ -581,11 +581,12 @@ typedef enum sndFlags_e
 	SOUND_RESAMPLE =	BIT (12),	// resample sound to specified rate
 	} sndFlags_t;
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.03.26]
 typedef struct wavdata_s
 	{
 	size_t	size;		// for bounds checking
-	uint	loopStart;	// offset at this point sound will be looping while playing more than only once
+	/*uint	loopStart;	// offset at this point sound will be looping while playing more than only once*/
+	uint	loop_start;	// offset at this point sound will be looping while playing more than only once
 	uint	samples;	// total samplecount in wav
 	uint	type;		// compression type
 	uint	flags;		// misc sound flags
@@ -632,7 +633,6 @@ void Host_Error (const char *error, ...) FORMAT_CHECK (1);
 void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features);
 void Host_Frame (double time);
 void Host_Credits (void);
-/*void Host_ExitInMain (void);*/
 void Host_ExitInMain (void) NORETURN;
 
 //
@@ -677,7 +677,9 @@ qboolean SV_Active (void);
 SHARED ENGFUNCS
 ==============================================================
 ***/
-char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize);
+
+// [FWGS, 01.03.26]
+/*char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize);*/
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput);
 
 // [FWGS, 22.01.25]
@@ -690,8 +692,11 @@ cvar_t *pfnCVarGetPointer (const char *szVarName);
 int pfnDrawConsoleString (int x, int y, char *string);
 void pfnDrawSetTextColor (float r, float g, float b);
 void pfnDrawConsoleStringLen (const char *pText, int *length, int *height);
-void *Cache_Check (poolhandle_t mempool, struct cache_user_s *c);
-void COM_TrimSpace (const char *source, char *dest);
+
+// [FWGS, 01.03.26]
+/*void *Cache_Check (poolhandle_t mempool, struct cache_user_s *c);
+void COM_TrimSpace (const char *source, char *dest);*/
+
 void pfnGetModelBounds (model_t *mod, float *mins, float *maxs);
 int COM_CheckParm (char *parm, char **ppnext);
 
@@ -701,11 +706,12 @@ void Con_Reportf (const char *szFmt, ...) FORMAT_CHECK (1);
 void Con_DPrintf (const char *fmt, ...) FORMAT_CHECK (1);
 void Con_Printf (const char *szFmt, ...) FORMAT_CHECK (1);
 
+// [FWGS, 01.03.26]
 int pfnNumberOfEntities (void);
 int pfnIsInGame (void);
-float pfnTime (void);
+/*float pfnTime (void);*/
 #define copystring( s ) _copystring( host.mempool, s, __FILE__, __LINE__ )
-#define copystringpool( pool, s ) _copystring( pool, s, __FILE__, __LINE__ )	// [FWGS, 01.02.25]
+#define copystringpool( pool, s ) _copystring( pool, s, __FILE__, __LINE__ )
 #define SV_CopyString( s ) _copystring( svgame.stringspool, s, __FILE__, __LINE__ )
 #define freestring( s ) if( s != NULL ) { Mem_Free( s ); s = NULL; }
 char *_copystring (poolhandle_t mempool, const char *s, const char *filename, int fileline);
@@ -731,9 +737,10 @@ MISC COMMON FUNCTIONS
 #define Z_Free( ptr )		if( ptr != NULL ) Mem_Free( ptr )
 
 //
-// con_utils.c [FWGS, 01.11.25]
+// con_utils.c [FWGS, 01.03.26]
 //
-void Con_CompleteCommand (field_t *field);
+/*void Con_CompleteCommand (field_t *field);*/
+void Con_CompleteCommand (field_t *field, qboolean print_suggestions);
 void Cmd_AutoComplete (char *complete_string);
 void Cmd_AutoCompleteClear (void);
 void Host_InitializeConfig (file_t *f, const char *config, const char *description);
@@ -748,10 +755,10 @@ qboolean COM_CreateCustomization (customization_t *pHead, resource_t *pRes, int 
 int COM_SizeofResourceList (resource_t *pList, resourceinfo_t *ri);
 
 //
-// cfgscript.c
+// cfgscript.c [FWGS, 01.03.26]
 //
 int CSCR_LoadDefaultCVars (const char *scriptfilename);
-int CSCR_WriteGameCVars (file_t *cfg, const char *scriptfilename);
+/*int CSCR_WriteGameCVars (file_t *cfg, const char *scriptfilename);*/
 
 //
 // hpak.c
@@ -776,12 +783,14 @@ void HPAK_FlushHostQueue (void);
 #define INPUT_DEVICE_JOYSTICK	(1<<2)
 #define INPUT_DEVICE_VR			(1<<3)
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.26]
 typedef enum connprotocol_e
 	{
 	PROTO_CURRENT = 0,	// Xash3D 49
-	PROTO_LEGACY,		// Xash3D 48
-	PROTO_QUAKE,		// Quake 15
+	/*PROTO_LEGACY,		// Xash3D 48
+	PROTO_QUAKE,		// Quake 15*/
+	// RIP Xash3D 48
+	PROTO_QUAKE = 2,	// Quake 15
 	PROTO_GOLDSRC,		// GoldSrc 48
 	} connprotocol_t;
 
@@ -893,10 +902,10 @@ qboolean LZSS_IsCompressed (const byte *source, size_t input_len);
 uint LZSS_GetActualSize (const byte *source, size_t input_len);
 byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize);
 uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_t output_len);
-
-// [FWGS, 01.12.24]
 void GL_FreeImage (const char *name);
-void VID_InitDefaultResolution (void);
+
+// [FWGS, 01.03.26]
+/*void VID_InitDefaultResolution (void);*/
 void VID_Init (void);
 void UI_SetActiveMenu (qboolean fActive);
 void UI_ShowConnectionWarning (void);
@@ -971,8 +980,6 @@ intptr_t V_GetGammaPtr (int parm);
 //
 void NET_InitMasters (void);
 void NET_SaveMasters (void);
-/*qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data);
-qboolean NET_IsMasterAdr (netadr_t adr);*/
 qboolean NET_IsMasterAdr (netadr_t adr, connprotocol_t *proto);
 void NET_MasterHeartbeat (void);
 void NET_MasterClear (void);

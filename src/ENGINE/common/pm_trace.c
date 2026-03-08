@@ -13,11 +13,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "xash3d_mathlib.h"
 #include "mod_local.h"
 #include "pm_local.h"
-#include "pm_movevars.h"
+/*include "pm_movevars.h"*/
 #include "enginefeatures.h"
 #include "studio.h"
 #include "world.h"
@@ -26,8 +27,6 @@ GNU General Public License for more details
 
 // [FWGS, 01.02.25]
 static mplane_t	pm_boxplanes[6];
-/*static mclipnode_t	pm_boxclipnodes[6];
-static hull_t	pm_boxhull;*/
 static hull_t	pm_boxhull;
 
 // default hullmins
@@ -57,8 +56,6 @@ void Pmove_Init (void)
 	memcpy (host.player_maxs, pm_hullmaxs, sizeof (pm_hullmaxs));
 	}
 
-// [FWGS, 01.12.23] removed PM_ClearPhysEnts
-
 /***
 ===================
 PM_InitBoxHull [FWGS, 01.02.25]
@@ -69,10 +66,8 @@ can just be stored out and get a proper hull_t structure.
 ***/
 void PM_InitBoxHull (void)
 	{
-	/*int	i, side;*/
 	int i;
 
-	/*pm_boxhull.clipnodes = pm_boxclipnodes;*/
 	pm_boxhull.clipnodes16 = (mclipnode16_t *)box_clipnodes16;
 	pm_boxhull.planes = pm_boxplanes;
 	pm_boxhull.firstclipnode = 0;
@@ -80,16 +75,6 @@ void PM_InitBoxHull (void)
 
 	for (i = 0; i < 6; i++)
 		{
-		/*pm_boxclipnodes[i].planenum = i;
-
-		side = i & 1;
-
-		pm_boxclipnodes[i].children[side] = CONTENTS_EMPTY;
-		if (i != 5)
-			pm_boxclipnodes[i].children[side ^ 1] = i + 1;
-		else
-			pm_boxclipnodes[i].children[side ^ 1] = CONTENTS_SOLID;*/
-
 		pm_boxplanes[i].type = i >> 1;
 		pm_boxplanes[i].normal[i >> 1] = 1.0f;
 		pm_boxplanes[i].signbits = 0;
@@ -138,7 +123,6 @@ int GAME_EXPORT PM_HullPointContents (hull_t *hull, int num, const vec3_t p)
 		return CONTENTS_NONE;
 
 	// [FWGS, 01.02.25]
-	/*while (num >= 0)*/
 	if (world.version == QBSP2_VERSION)
 		{
 		while (num >= 0)
@@ -149,8 +133,6 @@ int GAME_EXPORT PM_HullPointContents (hull_t *hull, int num, const vec3_t p)
 		}
 	else
 		{
-		/*plane = &hull->planes[hull->clipnodes[num].planenum];
-		num = hull->clipnodes[num].children[PlaneDiff (p, plane) < 0];*/
 		while (num >= 0)
 			{
 			plane = &hull->planes[hull->clipnodes16[num].planenum];
@@ -228,7 +210,6 @@ PM_RecursiveHullCheck [FWGS, 01.02.25]
 ***/
 qboolean PM_RecursiveHullCheck (hull_t *hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, pmtrace_t *trace)
 	{
-	/*mclipnode_t	*node;*/
 	int			children[2];
 	mplane_t	*plane;
 	float		t1, t2;
@@ -267,8 +248,6 @@ loc0:
 		Host_Error ("%s: bad node number %i\n", __func__, num);
 
 	// find the point distances
-	/*node = hull->clipnodes + num;
-	plane = hull->planes + node->planenum;*/
 	if (world.version == QBSP2_VERSION)
 		{
 		children[0] = hull->clipnodes32[num].children[0];
@@ -287,14 +266,12 @@ loc0:
 
 	if ((t1 >= 0.0f) && (t2 >= 0.0f))
 		{
-		/*num = node->children[0];*/
 		num = children[0];
 		goto loc0;
 		}
 
 	if ((t1 < 0.0f) && (t2 < 0.0f))
 		{
-		/*num = node->children[1];*/
 		num = children[1];
 		goto loc0;
 		}
@@ -315,16 +292,13 @@ loc0:
 	VectorLerp (p1, frac, p2, mid);
 
 	// move up to the node
-	/*if (!PM_RecursiveHullCheck (hull, node->children[side], p1f, midf, p1, mid, trace))*/
 	if (!PM_RecursiveHullCheck (hull, children[side], p1f, midf, p1, mid, trace))
 		return false;
 
 	// this recursion can not be optimized because mid would need to be duplicated on a stack
-	/*if (PM_HullPointContents (hull, node->children[side ^ 1], mid) != CONTENTS_SOLID)*/
 	if (PM_HullPointContents (hull, children[side ^ 1], mid) != CONTENTS_SOLID)
 		{
 		// go past the node
-		/*return PM_RecursiveHullCheck (hull, node->children[side ^ 1], midf, p2f, mid, p2, trace);*/
 		return PM_RecursiveHullCheck (hull, children[side ^ 1], midf, p2f, mid, p2, trace);
 		}
 
@@ -809,7 +783,7 @@ int PM_PointContents (playermove_t *pmove, const vec3_t p)
 
 /***
 =============
-PM_TraceModel [FWGS, 01.04.23]
+PM_TraceModel
 =============
 ***/
 float PM_TraceModel (playermove_t *pmove, physent_t *pe, float *start, float *end, trace_t *trace)
@@ -861,7 +835,6 @@ float PM_TraceModel (playermove_t *pmove, physent_t *pe, float *start, float *en
 	return trace->fraction;
 	}
 
-// [FWGS, 01.04.23]
 pmtrace_t *PM_TraceLine (playermove_t *pmove, float *start, float *end, int flags, int usehull, int ignore_pe)
 	{
 	static pmtrace_t	tr;
@@ -885,7 +858,6 @@ pmtrace_t *PM_TraceLine (playermove_t *pmove, float *start, float *end, int flag
 	return &tr;
 	}
 
-// [FWGS, 01.04.23]
 pmtrace_t *PM_TraceLineEx (playermove_t *pmove, float *start, float *end, int flags, int usehull, pfnIgnore pmFilter)
 	{
 	static pmtrace_t	tr;
@@ -909,7 +881,6 @@ pmtrace_t *PM_TraceLineEx (playermove_t *pmove, float *start, float *end, int fl
 	return &tr;
 	}
 
-// [FWGS, 01.04.23]
 struct msurface_s *PM_TraceSurfacePmove (playermove_t *pmove, int ground, float *vstart, float *vend)
 	{
 	if ((ground < 0) || (ground >= pmove->numphysent))
@@ -918,7 +889,6 @@ struct msurface_s *PM_TraceSurfacePmove (playermove_t *pmove, int ground, float 
 	return PM_TraceSurface (&pmove->physents[ground], vstart, vend);
 	}
 
-// [FWGS, 01.04.23]
 const char *PM_TraceTexture (playermove_t *pmove, int ground, float *vstart, float *vend)
 	{
 	msurface_t *surf;
@@ -934,7 +904,6 @@ const char *PM_TraceTexture (playermove_t *pmove, int ground, float *vstart, flo
 	return surf->texinfo->texture->name;
 	}
 
-// [FWGS, 01.04.23]
 int PM_PointContentsPmove (playermove_t *pmove, const float *p, int *truecontents)
 	{
 	int	cont, truecont;
@@ -948,7 +917,6 @@ int PM_PointContentsPmove (playermove_t *pmove, const float *p, int *truecontent
 	return cont;
 	}
 
-// [FWGS, 01.04.23]
 void PM_StuckTouch (playermove_t *pmove, int hitent, pmtrace_t *tr)
 	{
 	int	i;
