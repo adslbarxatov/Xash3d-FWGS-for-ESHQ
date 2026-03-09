@@ -28,9 +28,10 @@ static struct
 TRIAPI IMPLEMENTATION
 ===============================================================
 ***/
+
 /***
 =============
-TriRenderMode [FWGS, 01.03.25]
+TriRenderMode
 
 set rendermode
 =============
@@ -43,28 +44,33 @@ void TriRenderMode (int mode)
 
 	switch (mode)
 		{
+		// [FWGS, 01.03.26]
 		case kRenderNormal:
-			/*pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);*/
+			R_AllowFog (true);
 			pglDisable (GL_BLEND);
 			pglDepthMask (GL_TRUE);
 			break;
 
+		// [FWGS, 01.03.26]
 		case kRenderTransAlpha:
+			R_AllowFog (true);
 			pglEnable (GL_BLEND);
-			/*pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);*/
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			pglDepthMask (GL_FALSE);
 			break;
 
+		// [FWGS, 01.03.26]
 		case kRenderTransColor:
 		case kRenderTransTexture:
+			R_AllowFog (true);
 			pglEnable (GL_BLEND);
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
 
+		// [FWGS, 01.03.26]
 		case kRenderGlow:
 		case kRenderTransAdd:
-			/*pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);*/
+			R_AllowFog (false);
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
 			pglEnable (GL_BLEND);
 			pglDepthMask (GL_FALSE);
@@ -250,7 +256,6 @@ int TriSpriteTexture (model_t *pSpriteModel, int frame)
 		return 0;
 
 	// [FWGS, 01.12.24]
-	/*if ((gl_texturenum <= 0) || (gl_texturenum > MAX_TEXTURES))*/
 	if ((gl_texturenum <= 0) || (gl_texturenum >= MAX_TEXTURES))
 		gl_texturenum = tr.defaultTexture;
 
@@ -269,7 +274,6 @@ enables global fog on the level
 void TriFog (float flFogColor[3], float flStart, float flEnd, int bOn)
 	{
 	// [FWGS, 01.12.24] overrided by internal fog
-	/*if (RI.fogEnabled) return;*/
 	if (RI.fogEnabled || !gl_fog.value)
 		return;
 
@@ -288,7 +292,7 @@ void TriFog (float flFogColor[3], float flStart, float flEnd, int bOn)
 	else
 		pglDisable (GL_FOG);
 
-	// [FWGS, 01.07.23] copy fog params
+	// copy fog params
 	RI.fogColor[0] = flFogColor[0] / 255.0f;
 	RI.fogColor[1] = flFogColor[1] / 255.0f;
 	RI.fogColor[2] = flFogColor[2] / 255.0f;

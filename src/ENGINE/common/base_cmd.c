@@ -107,13 +107,11 @@ BaseCmd_Find [FWGS, 01.06.25]
 Find every type of base command and write into arguments
 ============
 ***/
-/*void BaseCmd_FindAll (const char *name, base_command_t **cmd, base_command_t **alias, base_command_t **cvar)*/
 void BaseCmd_FindAll (const char *name, cmd_t **cmd, cmdalias_t **alias, convar_t **cvar)
 	{
 	base_command_hashmap_t *base = BaseCmd_GetBucket (name);
 	base_command_hashmap_t *i = base;
 
-	/**cmd = *alias = *cvar = NULL;*/
 	*cmd = NULL;
 	*alias = NULL;
 	*cvar = NULL;
@@ -131,17 +129,14 @@ void BaseCmd_FindAll (const char *name, cmd_t **cmd, cmdalias_t **alias, convar_
 		switch (i->type)
 			{
 			case HM_CMD:
-				/**cmd = i->basecmd;*/
 				*cmd = (cmd_t *)i->basecmd;
 				break;
 
 			case HM_CMDALIAS:
-				/**alias = i->basecmd;*/
 				*alias = (cmdalias_t *)i->basecmd;
 				break;
 
 			case HM_CVAR:
-				/**cvar = i->basecmd;*/
 				*cvar = (convar_t *)i->basecmd;
 				break;
 
@@ -314,7 +309,9 @@ void BaseCmd_Test_f (void)
 	stats.valid = true;
 	stats.lookups = 0;
 
-	start = Sys_DoubleTime () * 1000;
+	// [FWGS, 01.03.26]
+	/*start = Sys_DoubleTime () * 1000;*/
+	start = Platform_DoubleTime () * 1000;
 
 	for (i = 0; i < 1000; i++)
 		{
@@ -344,7 +341,9 @@ void BaseCmd_Test_f (void)
 		Cvar_LookupVars (0, NULL, &stats.valid, (setpair_t)BaseCmd_CheckCvars);
 		}
 
-	end = Sys_DoubleTime () * 1000;
+	// [FWGS, 01.03.26]
+	/*end = Sys_DoubleTime () * 1000;*/
+	end = Platform_DoubleTime () * 1000;
 	dt = end - start;
 
 	if (!stats.valid)

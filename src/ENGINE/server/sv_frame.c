@@ -60,8 +60,6 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 	{
 	// [FWGS, 01.11.25]
 	edict_t		*ent;
-	/*byte		*clientpvs;
-	byte		*clientphs;*/
 	byte		*clientpvs = NULL;
 	byte		*clientphs = NULL;
 	qboolean	fullvis = false;
@@ -832,14 +830,14 @@ static void SV_UpdateToReliableMessages (void)
 
 /***
 =======================
-SV_SendClientMessages
+SV_SendClientMessages [FWGS, 01.03.26]
 =======================
 ***/
 void SV_SendClientMessages (void)
 	{
 	sv_client_t *cl;
 	int          i;
-	double       updaterate_time;
+	/*double       updaterate_time;*/
 	double       time_until_next_message;
 
 	if (sv.state == ss_dead)
@@ -908,10 +906,11 @@ void SV_SendClientMessages (void)
 				continue;
 				}
 
-			// [FWGS, 01.06.25] now that we were able to send, reset timer to point to next possible send time.
+			// now that we were able to send, reset timer to point to next possible send time.
 			// check here also because sv_max/minupdaterate could been changed in runtime
-			updaterate_time = bound (1.0 / sv_maxupdaterate.value, cl->cl_updaterate, 1.0 / sv_minupdaterate.value);
-			cl->next_messagetime = host.realtime + sv.frametime + updaterate_time;
+			/*updaterate_time = bound (1.0 / sv_maxupdaterate.value, cl->cl_updaterate, 1.0 / sv_minupdaterate.value);
+			cl->next_messagetime = host.realtime + sv.frametime + updaterate_time;*/
+			cl->next_messagetime = host.realtime + sv.frametime + cl->next_messageinterval;
 			ClearBits (cl->flags, FCL_SEND_NET_MESSAGE);
 
 			// NOTE: we should send frame even if server is not simulated to prevent overflow
@@ -987,8 +986,10 @@ void SV_InactivateClients (void)
 			cl->connection_started = host.realtime;
 			}
 
+		// [FWGS, 01.03.26]
 		COM_ClearCustomizationList (&cl->customdata, false);
-		memset (cl->physinfo, 0, MAX_PHYSINFO_STRING);
+		/*memset (cl->physinfo, 0, MAX_PHYSINFO_STRING);*/
+		memset (cl->physinfo, 0, sizeof (cl->physinfo));
 
 		// NOTE: many mods sending messages that must be applied on a next level
 		// e.g. CryOfFear sending HideHud and PlayMp3 that affected after map change

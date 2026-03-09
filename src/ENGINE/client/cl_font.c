@@ -182,7 +182,6 @@ static int CL_CalcTabStop (const cl_font_t *font, int x)
 	}
 
 // [FWGS, 01.03.25]
-/*int CL_DrawCharacter (float x, float y, int number, rgba_t color, cl_font_t *font, int flags)*/
 int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_t *font, int flags)
 	{
 	wrect_t *rc;
@@ -244,7 +243,6 @@ int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_
 	}
 
 // [FWGS, 01.03.25]
-/*int CL_DrawString (float x, float y, const char *s, rgba_t color, cl_font_t *font, int flags)*/
 int CL_DrawString (float x, float y, const char *s, const rgba_t color, cl_font_t *font, int flags)
 	{
 	rgba_t current_color;
@@ -302,7 +300,6 @@ int CL_DrawString (float x, float y, const char *s, const rgba_t color, cl_font_
 	}
 
 // [FWGS, 01.03.25]
-/*int CL_DrawStringf (cl_font_t *font, float x, float y, rgba_t color, int flags, const char *fmt, ...)*/
 int CL_DrawStringf (cl_font_t *font, float x, float y, const rgba_t color, int flags, const char *fmt, ...)
 	{
 	va_list va;
@@ -345,7 +342,9 @@ void CL_DrawStringLen (cl_font_t *font, const char *s, int *width, int *height, 
 	if (width)
 		*width = 0;
 
-	if (!COM_CheckString (s))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (s))*/
+	if (COM_StringEmptyOrNULL (s))
 		return;
 
 	if (FBitSet (flags, FONT_DRAW_UTF8))
@@ -391,8 +390,6 @@ void CL_DrawStringLen (cl_font_t *font, const char *s, int *width, int *height, 
 			{
 			draw_len += font->charWidths[number];
 
-			/*if (draw_len > *width)
-				*width = draw_len;*/
 			if (width)
 				{
 				if (draw_len > *width)

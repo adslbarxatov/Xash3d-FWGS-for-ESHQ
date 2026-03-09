@@ -23,7 +23,6 @@ enum soundlst_type_e
 	};
 
 // [FWGS, 01.12.24]
-/*static const char *soundlst_groups[SoundList_Groups] =*/
 static const char *const soundlst_groups[SoundList_Groups] =
 	{
 	"BouncePlayerShell",
@@ -50,7 +49,6 @@ typedef struct soundlst_s
 	} soundlst_t;
 
 // [FWGS, 01.12.24]
-/*soundlst_t soundlst[SoundList_Groups];*/
 static soundlst_t soundlst[SoundList_Groups];
 
 static void SoundList_Print_f (void);
@@ -133,7 +131,10 @@ static qboolean SoundList_ParseGroup (soundlst_t *lst, char **file)
 			Con_Printf ("%s: expected '}' but got '{' during group list parse\n", __func__);
 			return false;
 			}
-		else if (!COM_CheckStringEmpty (token))
+
+		// [FWGS, 01.03.26]
+		/*else if (!COM_CheckStringEmpty (token))*/
+		else if (COM_StringEmpty (token))
 			{
 			Con_Printf ("%s: expected '}' but got EOF during group list parse\n", __func__);
 			return false;

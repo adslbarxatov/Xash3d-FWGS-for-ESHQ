@@ -28,10 +28,11 @@ static void CL_AdjustSprayDimensions (int *width, int *height)
 	{
 	float aspect = (float)(*width) / (float)(*height);
 	int   h, w;
+
 	for (h = ((*height) / 16) * 16; h >= 16; h -= 16)
 		{
 		w = ((int)(h * aspect) / 16) * 16;
-		if (w < 16 || w > *width)
+		if ((w < 16) || (w > *width))
 			continue;
 
 		if (w * h < SPRAY_MAX_SURFACE)
@@ -129,12 +130,15 @@ qboolean CL_ConvertImageToWAD3 (const char *filename)
 
 		indexed = image->buffer;
 		}
+
+	// [FWGS, 01.03.26]
 	else
 		{
-		quant = Mem_Malloc (host.imagepool, sizeof (*quant));
+		/*quant = Mem_Malloc (host.imagepool, sizeof (*quant));
 		*quant = *image;
 		quant->buffer = Mem_Malloc (host.imagepool, quant->size);
-		memcpy (quant->buffer, image->buffer, quant->size);
+		memcpy (quant->buffer, image->buffer, quant->size);*/
+		quant = FS_CopyImage (image);
 		Image_Quantize (quant); // it's so weird, it writes result to same structure as used for input data
 
 		if (!quant || !quant->buffer || !quant->palette)

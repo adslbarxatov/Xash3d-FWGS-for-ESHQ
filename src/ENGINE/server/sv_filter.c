@@ -56,8 +56,6 @@ static void SV_RemoveID (const char *id)
 		}
 	}
 
-// [FWGS, 01.04.23] удалена SV_RemoveIP
-
 qboolean SV_CheckID (const char *id)
 	{
 	qboolean ret = false;
@@ -86,8 +84,6 @@ qboolean SV_CheckID (const char *id)
 
 	return ret;
 	}
-
-// [FWGS, 01.04.23] удалена SV_CheckIP
 
 static void SV_BanID_f (void)
 	{
@@ -201,7 +197,6 @@ static void SV_RemoveID_f (void)
 
 	if (!id[0])
 		{
-		// [FWGS, 01.04.23]
 		Con_Reportf( S_USAGE "removeid <#slotnumber or uniqueid>\n");
 		return;
 		}
@@ -232,7 +227,6 @@ static void SV_WriteID_f (void)
 	FS_Close (f);
 	}
 
-// [FWGS, 01.04.23]
 static void SV_InitIDFilter (void)
 	{
 	Cmd_AddRestrictedCommand ("banid", SV_BanID_f, "ban player by ID");
@@ -241,7 +235,6 @@ static void SV_InitIDFilter (void)
 	Cmd_AddRestrictedCommand ("writeid", SV_WriteID_f, "write banned.cfg");
 	}
 
-// [FWGS, 01.04.23]
 static void SV_ShutdownIDFilter (void)
 	{
 	cidfilter_t *cidList, *cidNext;
@@ -276,24 +269,26 @@ typedef struct ipfilter_s
 	} ipfilter_t;
 static ipfilter_t *ipfilter = NULL;
 
-// [FWGS, 01.02.24] удалена SV_CleanExpiredIPFilters
+// [FWGS, 01.02.24] removed SV_CleanExpiredIPFilters
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.03.26]
 static int SV_FilterToString (char *dest, size_t size, qboolean config, ipfilter_t *f)
 	{
 	if (config)
-		return Q_snprintf (dest, size, "addip 0 %s/%d\n", NET_AdrToString (f->adr), f->prefixlen);
+		return Q_snprintf (dest, size, "addip 0 %s/%d\n", NET_BaseAdrToString (f->adr), f->prefixlen);
+		/*return Q_snprintf (dest, size, "addip 0 %s/%d\n", NET_AdrToString (f->adr), f->prefixlen);*/
 
 	else if (f->endTime)
-		return Q_snprintf (dest, size, "%s/%d (%f minutes)", NET_AdrToString (f->adr), f->prefixlen, f->endTime);
+		return Q_snprintf (dest, size, "%s/%d (%f minutes)", NET_BaseAdrToString (f->adr), f->prefixlen, f->endTime);
+		/*return Q_snprintf (dest, size, "%s/%d (%f minutes)", NET_AdrToString (f->adr), f->prefixlen, f->endTime);*/
 
-	return Q_snprintf (dest, size, "%s/%d (permanent)", NET_AdrToString (f->adr), f->prefixlen);
+	/*return Q_snprintf (dest, size, "%s/%d (permanent)", NET_AdrToString (f->adr), f->prefixlen);*/
+	return Q_snprintf (dest, size, "%s/%d (permanent)", NET_BaseAdrToString (f->adr), f->prefixlen);
 	}
 
 static qboolean SV_IPFilterIncludesIPFilter (ipfilter_t *a, ipfilter_t *b)
 	{
 	// [FWGS, 01.03.25]
-	/*if (a->adr.type6 != b->adr.type6)*/
 	if (NET_NetadrType (&a->adr) != NET_NetadrType (&b->adr))
 		return false;
 
@@ -352,7 +347,6 @@ qboolean SV_CheckIP (netadr_t *adr)
 			continue;	// expired
 
 		// [FWGS, 01.03.25]
-		/*switch (entry->adr.type6)*/
 		switch (NET_NetadrType (&entry->adr))
 			{
 			case NA_IP:

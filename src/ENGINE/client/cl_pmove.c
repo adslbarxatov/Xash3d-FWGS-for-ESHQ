@@ -791,7 +791,10 @@ void CL_InitClientMove (void)
 	clgame.pmove->COM_FileSize = COM_FileSize;
 	clgame.pmove->COM_LoadFile = COM_LoadFile;
 	clgame.pmove->COM_FreeFile = COM_FreeFile;
-	clgame.pmove->memfgets = COM_MemFgets;
+	
+	// [FWGS, 01.03.26]
+	/*clgame.pmove->memfgets = COM_MemFgets;*/
+	clgame.pmove->memfgets = Q_memfgets;
 	clgame.pmove->PM_PlaySound = pfnPlaySound;
 	clgame.pmove->PM_TraceTexture = PM_CL_TraceTexture;
 	clgame.pmove->PM_PlaybackEventFull = pfnPlaybackEventFull;
@@ -846,8 +849,8 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 
 	VectorCopy (cd->punchangle, pmove->punchangle);
 
-	// not used by PM_ code
-	pmove->flNextPrimaryAttack = 0.0f;
+	// [FWGS, 01.03.26] not used by PM_ code
+	/*pmove->flNextPrimaryAttack = 0.0f;*/
 	pmove->effects = ps->effects;
 	pmove->flags = cd->flags;
 	pmove->gravity = ps->gravity;
@@ -1038,6 +1041,11 @@ void CL_PredictMovement (qboolean repredicting)
 	if ((cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged) >= CL_UPDATE_MASK)
 		return;
 
+	// [FWGS, 01.03.26] goldsrc checks for intermission here, so it technically allows sending commands
+	// during intermission but completely disables any client updates, predicted or not
+	if (cl.intermission)
+		return;
+
 	// this is the last frame received from the server
 	frame = &cl.frames[cl.parsecountmod];
 
@@ -1130,7 +1138,6 @@ void CL_PredictMovement (qboolean repredicting)
 
 	// [FWGS, 01.11.25] now interpolate some fraction of the final frame
 	if (to_cmd->senttime != from_cmd->senttime)
-		/*f = bound (0.0, (host.realtime - from_cmd->senttime) / (to_cmd->senttime - from_cmd->senttime) * 0.1, 1.0);*/
 		f = bound (0.0, (host.realtime - from_cmd->senttime) / (to_cmd->senttime - from_cmd->senttime), 1.0);
 	else 
 		f = 0.0;

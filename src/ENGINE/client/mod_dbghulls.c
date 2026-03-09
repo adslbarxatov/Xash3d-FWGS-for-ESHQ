@@ -15,12 +15,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
 #include "mod_local.h"
 #include "xash3d_mathlib.h"
 #include "world.h"
-#include "eiface.h" // offsetof
+/*include "eiface.h" // offsetof*/
 
 #define MAX_CLIPNODE_DEPTH		256	// should never exceeds
 
@@ -43,7 +44,6 @@ GNU General Public License for more details
 #define LIST_HEAD_INIT( name ) { &(name), &(name) }
 
 // [FWGS, 01.11.25]
-/*_inline void list_add__ (hullnode_t *new, hullnode_t *prev, hullnode_t *next)*/
 static inline void list_add__ (hullnode_t * new, hullnode_t * prev, hullnode_t * next)
 	{
 	next->prev = new;
@@ -53,21 +53,18 @@ static inline void list_add__ (hullnode_t * new, hullnode_t * prev, hullnode_t *
 	}
 
 // [FWGS, 01.11.25] add the new entry after the give list entry
-/*_inline void list_add (hullnode_t *newobj, hullnode_t *head)*/
 static inline void list_add (hullnode_t *newobj, hullnode_t *head)
 	{
 	list_add__ (newobj, head, head->next);
 	}
 
 // [FWGS, 01.11.25] add the new entry before the given list entry (list is circular)
-/*_inline void list_add_tail (hullnode_t *newobj, hullnode_t *head)*/
 static inline void list_add_tail (hullnode_t *newobj, hullnode_t *head)
 	{
 	list_add__ (newobj, head->prev, head);
 	}
 
 // [FWGS, 01.11.25]
-/*_inline void list_del (hullnode_t *entry)*/
 static inline void list_del (hullnode_t *entry)
 	{
 	entry->next->prev = entry->prev;
@@ -114,10 +111,12 @@ static void winding_reverse (winding_t *w)
 	}
 
 /***
+===============
 winding_shrink
 
 Takes an over-allocated winding and allocates a new winding with just the
 required number of points. The input winding is freed
+===============
 ***/
 static winding_t *winding_shrink (winding_t *w)
 	{
@@ -474,8 +473,10 @@ out_free:
 	}
 
 /***
+==============
 This is a stack of the clipnodes we have traversed
 "sides" indicates which side we went down each time
+==============
 ***/
 
 // [FWGS, 01.02.25]
@@ -713,7 +714,6 @@ static void Mod_InitDebugHulls (model_t *loadmodel)
 		}
 	}
 
-// [FWGS, 01.12.24]
 static void Mod_CreatePolygonsForHull (int hullnum)
 	{
 	model_t	*mod = cl.worldmodel;
@@ -728,9 +728,10 @@ static void Mod_CreatePolygonsForHull (int hullnum)
 		Mod_InitDebugHulls (mod); // FIXME: build hulls for separate bmodels (shells, medkits etc)
 
 	Con_Printf ("generating polygons for hull %u...\n", hullnum);
-	start = Sys_DoubleTime ();
+	/*start = Sys_DoubleTime ();*/
+	start = Platform_DoubleTime ();
 
-	// rebuild hulls list
+	// [FWGS, 01.03.26] rebuild hulls list
 	for (i = 0; i < world.num_hull_models; i++)
 		{
 		hull_model_t *model = &world.hull_models[i];
@@ -740,7 +741,9 @@ static void Mod_CreatePolygonsForHull (int hullnum)
 		mod = Mod_FindName (name, false);
 		}
 
-	end = Sys_DoubleTime ();
+	// [FWGS, 01.03.26]
+	/*end = Sys_DoubleTime ();*/
+	end = Platform_DoubleTime ();
 	Con_Printf ("build time %.3f secs\n", end - start);
 	}
 

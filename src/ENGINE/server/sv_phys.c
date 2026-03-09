@@ -74,18 +74,21 @@ static void SV_CheckAllEnts (void)
 	if (!sv_check_errors.value || (sv.state != ss_active))
 		return;
 
-	if ((nextcheck - Sys_DoubleTime ()) > 0.0)
+	// [FWGS, 01.03.26]
+	/*if ((nextcheck - Sys_DoubleTime ()) > 0.0)*/
+	if ((nextcheck - Platform_DoubleTime ()) > 0.0)
 		return;
 
-	// don't check entities every frame (but every 5 secs)
-	nextcheck = Sys_DoubleTime () + 5.0;
+	// [FWGS, 01.03.26] don't check entities every frame (but every 5 secs)
+	/*nextcheck = Sys_DoubleTime () + 5.0;*/
+	nextcheck = Platform_DoubleTime () + 5.0;
 
 	// check edicts errors
 	for (i = svs.maxclients + 1; i < svgame.numEntities; i++)
 		{
 		e = EDICT_NUM (i);
 
-		if (e->free && e->pvPrivateData != NULL)
+		if (e->free && (e->pvPrivateData != NULL))
 			{
 			Con_Printf (S_ERROR "Freed entity %s (%i) has private data.\n", SV_ClassName (e), i);
 			continue;
@@ -758,13 +761,12 @@ static void SV_AddGravity (edict_t *ent)
 	SV_CheckVelocity (ent);
 	}
 
-// [FWGS, 01.05.23] удалена SV_AddHalfGravity
-
 /***
 ===============================================================================
 PUSHMOVE
 ===============================================================================
 ***/
+
 /***
 ============
 SV_AllowPushRotate
@@ -1368,6 +1370,7 @@ static void SV_Physics_Noclip (edict_t *ent)
 TOSS / BOUNCE
 ==============================================================================
 ***/
+
 /***
 =============
 SV_CheckWaterTransition [FWGS, 01.03.24]
@@ -1590,6 +1593,7 @@ static void SV_Physics_Toss (edict_t *ent)
 STEPPING MOVEMENT
 ===============================================================================
 ***/
+
 /***
 =============
 SV_Physics_Step
@@ -1816,14 +1820,9 @@ static void SV_Physics_Entity (edict_t *ent)
 // [FWGS, 25.12.24]
 static void SV_RunLightStyles (void)
 	{
-	/*int				i, ofs;
-	lightstyle_t	*ls;
-	float			scale;
-	scale = 1.0f;*/
 	int i;
 
 	// run lightstyles animation
-	/*for (i = 0, ls = sv.lightstyles; i < MAX_LIGHTSTYLES; i++, ls++)*/
 	for (i = 0; i < MAX_LIGHTSTYLES; i++)
 		{
 		lightstyle_t *ls = &sv.lightstyles[i];
@@ -1832,12 +1831,6 @@ static void SV_RunLightStyles (void)
 		ls->time += sv.frametime;
 		ofs = (ls->time * 10);
 
-		/*if (ls->length == 0)
-			ls->value = scale;	// disable this light
-		else if (ls->length == 1)
-			ls->value = (ls->map[0] / 12.0f) * scale;
-		else
-			ls->value = (ls->map[ofs % ls->length] / 12.0f) * scale;*/
 		if (ls->length == 0)
 			ls->value = 1.0f; // disable this light
 		else if (ls->length == 1)
@@ -1989,8 +1982,6 @@ void SV_DrawOrthoTriangles (void)
 		}
 	}
 
-// [FWGS, 01.07.23] removed void SV_UpdateFogSettings
-
 /***
 ==================
 SV_GetLightStyle [FWGS, 01.07.24]
@@ -2076,9 +2067,6 @@ static int GAME_EXPORT pfnPointContents (const float *pos, int groupmask)
 	return cont;
 	}
 
-// [FWGS, 01.07.23] removed pfnLoadImagePixels
-
-// [FWGS, 01.07.23]
 static trace_t GAME_EXPORT SV_MoveNormal (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
 	int type, edict_t *e)
 	{
@@ -2100,7 +2088,6 @@ static void GAME_EXPORT pfnWriteBytes (const byte *bytes, int count)
 	svgame.msg_realsize += count;
 	}
 
-// [FWGS, 01.07.23]
 static const byte *GAME_EXPORT pfnLoadImagePixels (const char *filename, int *width, int *height)
 	{
 	rgbdata_t *pic = FS_LoadImage (filename, NULL, 0);
@@ -2201,7 +2188,6 @@ qboolean SV_InitPhysicsAPI (void)
 
 			// grab common engine features (it will be shared across the network)
 			if (svgame.physFuncs.SV_CheckFeatures != NULL)
-				/*Host_ValidateEngineFeatures (svgame.physFuncs.SV_CheckFeatures ());*/
 				Host_ValidateEngineFeatures (ENGINE_FEATURES_MASK, svgame.physFuncs.SV_CheckFeatures ());
 
 			return true;
@@ -2209,7 +2195,6 @@ qboolean SV_InitPhysicsAPI (void)
 
 		// make sure what physic functions is cleared
 		memset (&svgame.physFuncs, 0, sizeof (svgame.physFuncs));
-		/*Host_ValidateEngineFeatures (0);*/
 		Host_ValidateEngineFeatures (ENGINE_FEATURES_MASK, 0);
 
 		// just tell user about problems
@@ -2217,7 +2202,6 @@ qboolean SV_InitPhysicsAPI (void)
 		}
 
 	// physic interface is missed
-	/*Host_ValidateEngineFeatures (0);*/
 	Host_ValidateEngineFeatures (ENGINE_FEATURES_MASK, 0);
 	return true;
 	}

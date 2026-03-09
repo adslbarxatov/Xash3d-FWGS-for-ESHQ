@@ -27,20 +27,15 @@ static void Sound_Reset (void)
 	sound.size = 0;
 	}
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.03.26]
 static MALLOC_LIKE (FS_FreeSound, 1) wavdata_t *SoundPack (void)
 	{
-	/*wavdata_t *pack = Mem_Calloc (host.soundpool, sizeof (wavdata_t));*/
 	wavdata_t *pack = Mem_Malloc (host.soundpool, sizeof (*pack) + sound.size);
 
-	/*pack->buffer = sound.wav;
-	pack->width = sound.width;
-	pack->rate = sound.rate;
-	pack->type = sound.type;*/
 	pack->size = sound.size;
-	pack->loopStart = sound.loopstart;
+	/*pack->loopStart = sound.loopstart;*/
+	pack->loop_start = sound.loopstart;
 	pack->samples = sound.samples;
-	/*pack->channels = sound.channels;*/
 	pack->type = sound.type;
 	pack->flags = sound.flags;
 	pack->rate = sound.rate;
@@ -56,19 +51,13 @@ static MALLOC_LIKE (FS_FreeSound, 1) wavdata_t *SoundPack (void)
 
 /***
 ================
-FS_LoadSound [FWGS, 01.04.25]
+FS_LoadSound
 
 loading and unpack to wav any known sound
 ================
 ***/
 wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 	{
-	/*const char	*ext = COM_FileExtension (filename);
-	string		path, loadname;
-	qboolean	anyformat = true;
-	fs_offset_t	filesize = 0;
-	const loadwavfmt_t	*format;
-	byte		*f;*/
 	const char	*ext = COM_FileExtension (filename);
 	string		loadname;
 	qboolean	anyformat = true;
@@ -77,11 +66,12 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 	Sound_Reset (); // clear old sounddata
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	if (COM_CheckStringEmpty (ext))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckStringEmpty (ext))*/
+	if (!COM_StringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
 		// and be sure what is real extension, not a filename with dot
-		/*for (format = sound.loadformats; format && format->formatstring; format++)*/
 		for (format = sound.loadformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (format->ext, ext))
@@ -98,13 +88,10 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 		goto load_internal;
 
 	// now try all the formats in the selected list
-	/*for (format = sound.loadformats; format && format->formatstring; format++)*/
 	for (format = sound.loadformats; format && format->ext; format++)
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
-			/*Q_snprintf (path, sizeof (path),
-				format->formatstring, loadname, "", format->ext);*/
 			qboolean	success = false;
 			fs_offset_t	filesize = 0;
 			byte *f;
@@ -115,15 +102,6 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 			f = FS_LoadFile (path, &filesize, false);
 			if (f && (filesize > 0))
 				{
-				/*if (format->loadfunc (path, f, filesize))
-					{
-					Mem_Free (f); // release buffer
-					return SoundPack (); // loaded
-					}
-				else
-					{
-					Mem_Free (f); // release buffer
-					}*/
 				success = format->loadfunc (path, f, filesize);
 				Mem_Free (f); // release buffer
 				}
@@ -145,7 +123,6 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 		}
 
 load_internal:
-	/*for (format = sound.loadformats; format && format->formatstring; format++)*/
 	for (format = sound.loadformats; format && format->ext; format++)
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
@@ -175,14 +152,13 @@ void FS_FreeSound (wavdata_t *pack)
 	{
 	if (!pack)
 		return;
-	/*if (pack->buffer) 
-		Mem_Free (pack->buffer);*/
+
 	Mem_Free (pack);
 	}
 
 /***
 ================
-FS_OpenStream [FWGS, 01.04.25]
+FS_OpenStream
 
 open and reading basic info from sound stream
 ================
@@ -190,7 +166,6 @@ open and reading basic info from sound stream
 stream_t *FS_OpenStream (const char *filename)
 	{
 	const char	*ext = COM_FileExtension (filename);
-	/*string		path, loadname;*/
 	string		loadname;
 	qboolean	anyformat = true;
 	const streamfmt_t	*format;
@@ -200,11 +175,12 @@ stream_t *FS_OpenStream (const char *filename)
 	Sound_Reset ();
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	if (COM_CheckStringEmpty (ext))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckStringEmpty (ext))*/
+	if (!COM_StringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
 		// and be sure what is real extension, not a filename with dot
-		/*for (format = sound.streamformat; format && format->formatstring; format++)*/
 		for (format = sound.streamformat; format && format->ext; format++)
 			{
 			if (!Q_stricmp (format->ext, ext))
@@ -217,13 +193,10 @@ stream_t *FS_OpenStream (const char *filename)
 		}
 
 	// now try all the formats in the selected list
-	/*for (format = sound.streamformat; format && format->formatstring; format++)*/
 	for (format = sound.streamformat; format && format->ext; format++)
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
-			/*Q_snprintf (path, sizeof (path),
-				format->formatstring, loadname, "", format->ext);*/
 			string path;
 
 			Q_snprintf (path, sizeof (path), "%s.%s", loadname, format->ext);
@@ -250,35 +223,6 @@ stream_t *FS_OpenStream (const char *filename)
 	}
 
 // [FWGS, 01.02.25] removed FS_StreamInfo
-/*
-================
-FS_StreamInfo [FWGS, 09.05.24]
-
-get basic stream info
-================
-/
-wavdata_t *FS_StreamInfo (stream_t *stream)
-	{
-	static wavdata_t	info;
-
-	if (!stream)
-		return NULL;
-
-	// fill structure
-	info.loopStart = 0;
-	info.rate = stream->rate;
-	info.width = stream->width;
-	info.channels = stream->channels;
-	info.flags = SOUND_STREAM;
-	info.size = stream->size;
-	info.buffer = NULL;
-
-	// not actual for streams
-	info.samples = 0;
-	info.type = stream->type;
-
-	return &info;
-	}*/
 
 /***
 ================

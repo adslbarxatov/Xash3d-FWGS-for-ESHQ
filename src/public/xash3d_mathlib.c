@@ -13,19 +13,29 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "port.h"
 #include "xash3d_types.h"
-#include "const.h"
+/*include "const.h"*/
 #include "com_model.h"
 #include "xash3d_mathlib.h"
-#include "eiface.h"
-#include "studio.h"		// [FWGS, 01.12.24]
+/*include "eiface.h"*/
+#include "studio.h"
 
-#define NUM_HULL_ROUNDS	ARRAYSIZE( hull_table )
+// [FWGS, 01.03.26]
+/*define NUM_HULL_ROUNDS	ARRAYSIZE( hull_table )*/
 #define HULL_PRECISION	4
 
-// [FWGS, 01.12.24]
-static const word hull_table[] = {
+// [FWGS, 01.03.26]
+/*static const word hull_table[] = {
+	2,		4,		6,		8,
+	12,		16,		18,		24,
+	28,		32,		36,		40,
+	48,		54,		56,		60,
+	64,		72,		80,		112,
+	120,	128,	140,	176
+	};*/
+static const uint8_t hull_table[] = {
 	2,		4,		6,		8,
 	12,		16,		18,		24,
 	28,		32,		36,		40,
@@ -125,8 +135,9 @@ void RoundUpHullSize (vec3_t size)
 		value = Q_ceil (fabs (value));
 		result = Q_ceil (size[i]);
 
-		// lookup hull table to find nearest supposed value
-		for (j = 0; j < NUM_HULL_ROUNDS; j++)
+		// [FWGS, 01.03.26] lookup hull table to find nearest supposed value
+		/*for (j = 0; j < NUM_HULL_ROUNDS; j++)*/
+		for (j = 0; j < sizeof (hull_table) / sizeof (hull_table[0]); j++)
 			{
 			if (value > hull_table[j])
 				continue;	// ceil only
@@ -155,8 +166,7 @@ void RoundUpHullSize (vec3_t size)
 		}
 	}
 
-// [FWGS, 01.12.24] removed SignbitsForPlane, PlaneTypeForNormal
-// [FWGS, 01.12.24] removed NearestPOW
+// [FWGS, 01.12.24] removed SignbitsForPlane, PlaneTypeForNormal, NearestPOW
 // [FWGS, 01.05.24] removed RemapVal, ApproachVal
 
 /***
@@ -164,7 +174,6 @@ void RoundUpHullSize (vec3_t size)
 rsqrt [FWGS, 01.09.25]
 =================
 ***/
-/*float rsqrt (float number)*/
 float Q_rsqrt (float number)
 	{
 	int	i;
@@ -317,8 +326,7 @@ void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, ve
 	VectorMA (p0, sect, p1, out);
 	}
 
-// [FWGS, 01.12.24] removed RadiusFromBounds
-// [FWGS, 01.12.24] removed AngleQuaternion, QuaternionAngle
+// [FWGS, 01.12.24] removed RadiusFromBounds, AngleQuaternion, QuaternionAngle
 
 /***
 ====================

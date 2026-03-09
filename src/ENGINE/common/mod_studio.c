@@ -54,9 +54,6 @@ static uint				cache_hull_hitgroup[MAXSTUDIOBONES];
 static mstudiocache_t	cache_studio[STUDIO_CACHESIZE];
 
 // [FWGS, 01.02.25]
-/*static mclipnode_t		studio_clipnodes[6];
-static mplane_t			studio_planes[768];
-static mplane_t			cache_planes[768];*/
 static mplane_t			studio_planes[MAXSTUDIOBONES * 6];
 static mplane_t			cache_planes[MAXSTUDIOBONES * 6];
 
@@ -72,26 +69,13 @@ Mod_InitStudioHull [FWGS, 01.02.25]
 ***/
 void Mod_InitStudioHull (void)
 	{
-	/*int	i, side;*/
 	int i;
 
 	if (studio_hull[0].planes != NULL)
 		return;	// already initailized
 
-	/*for (i = 0; i < 6; i++)
-		{
-		studio_clipnodes[i].planenum = i;
-
-		side = i & 1;
-
-		studio_clipnodes[i].children[side] = CONTENTS_EMPTY;
-		if (i != 5) studio_clipnodes[i].children[side ^ 1] = i + 1;
-		else studio_clipnodes[i].children[side ^ 1] = CONTENTS_SOLID;
-		}*/
-
 	for (i = 0; i < MAXSTUDIOBONES; i++)
 		{
-		/*studio_hull[i].clipnodes = studio_clipnodes;*/
 		studio_hull[i].clipnodes16 = (mclipnode16_t *)box_clipnodes16;
 
 		studio_hull[i].planes = &studio_planes[i * 6];
@@ -105,6 +89,20 @@ void Mod_InitStudioHull (void)
 STUDIO MODELS CACHE
 ===============================================================================
 ***/
+
+/***
+===============
+Mod_StudioExtradata [FWGS, 01.03.26]
+===============
+***/
+void *GAME_EXPORT Mod_StudioExtradata (model_t *mod)
+	{
+	if (mod && (mod->type == mod_studio))
+		return mod->cache.data;
+
+	return NULL;
+	}
+
 /***
 ====================
 ClearStudioCache
@@ -120,7 +118,7 @@ void Mod_ClearStudioCache (void)
 
 /***
 ====================
-AddToStudioCache [FWGS, 01.04.23]
+AddToStudioCache
 ====================
 ***/
 static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, 
@@ -158,7 +156,7 @@ static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3
 
 /***
 ====================
-CheckStudioCache [FWGS, 01.04.23]
+CheckStudioCache
 ====================
 ***/
 static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin,
@@ -206,9 +204,10 @@ static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int se
 STUDIO MODELS TRACING
 ===============================================================================
 ***/
+
 /***
 ====================
-SetStudioHullPlane [FWGS, 01.04.23]
+SetStudioHullPlane
 ====================
 ***/
 static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offset, const vec3_t size)
@@ -318,6 +317,7 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 STUDIO MODELS SETUP BONES
 ===============================================================================
 ***/
+
 /***
 ====================
 StudioCalcBoneAdj
@@ -409,8 +409,6 @@ static void Mod_StudioCalcRotations (int boneused[], int numbones, const byte *p
 	for (j = numbones - 1; j >= 0; j--)
 		{
 		i = boneused[j];
-		/*R_StudioCalcBoneQuaternion (frame, s, &pbone[i], &panim[i], adj, q[i]);
-		R_StudioCalcBonePosition (frame, s, &pbone[i], &panim[i], adj, pos[i]);*/
 		R_StudioCalcBones (frame, s, &pbone[i], &panim[i], adj, pos[i], q[i]);
 		}
 
@@ -668,7 +666,7 @@ int Mod_HitgroupForStudioHull (int index)
 
 /***
 ====================
-StudioBoundVertex [FWGS, 01.04.23]
+StudioBoundVertex
 ====================
 ***/
 static void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, const vec3_t vertex)
@@ -682,7 +680,7 @@ static void Mod_StudioBoundVertex (vec3_t mins, vec3_t maxs, int *numverts, cons
 
 /***
 ====================
-StudioAccumulateBoneVerts [FWGS, 01.04.23]
+StudioAccumulateBoneVerts
 ====================
 ***/
 static void Mod_StudioAccumulateBoneVerts (vec3_t mins, vec3_t maxs, int *numverts, vec3_t bone_mins, 
@@ -707,10 +705,11 @@ static void Mod_StudioAccumulateBoneVerts (vec3_t mins, vec3_t maxs, int *numver
 
 /***
 ====================
-StudioComputeBounds
+StudioComputeBounds [FWGS, 01.03.26]
 ====================
 ***/
-void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences)
+/*void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences)*/
+static void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences)
 	{
 	int				i, j, k, numseq;
 	studiohdr_t		*pstudiohdr;
@@ -771,7 +770,6 @@ void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean i
 			{
 			for (k = 0; k < pseqdesc->numframes; k++)
 				{
-				/*R_StudioCalcBonePosition (k, 0, &pbones[j], panim, NULL, pos);*/
 				R_StudioCalcBones (k, 0, &pbones[j], panim, NULL, pos, NULL);
 				Mod_StudioBoundVertex (vert_mins, vert_maxs, &bone_count, pos);
 				}
@@ -860,7 +858,7 @@ static int Mod_StudioBodyVariations (model_t *mod)
 
 /***
 =================
-R_StudioLoadHeader [FWGS, 01.04.23]
+R_StudioLoadHeader
 =================
 ***/
 static studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)
@@ -922,7 +920,6 @@ void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded)
 
 	phdr = R_StudioLoadHeader (mod, buffer);
 
-	/*if (!phdr) */
 	// [FWGS, 01.02.25] garbage value in length
 	if (!phdr || (phdr->length < sizeof (studiohdr_t)))
 		return;	// bad model

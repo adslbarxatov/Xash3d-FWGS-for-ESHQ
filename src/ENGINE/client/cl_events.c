@@ -82,7 +82,7 @@ static void CL_DescribeEvent (event_info_t *ei, int slot)
 	con_nprint_t	info;
 	string			origin_str = { 0 };
 
-	if (!cl_showevents.value)	// [FWGS, 01.07.23]
+	if (!cl_showevents.value)
 		return;
 
 	info.time_to_live = 1.0f;
@@ -151,7 +151,9 @@ word CL_EventIndex (const char *name)
 	{
 	word	i;
 
-	if (!COM_CheckString (name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (name))*/
+	if (COM_StringEmptyOrNULL (name))
 		return 0;
 
 	for (i = 1; i < MAX_EVENTS && cl.event_precache[i][0]; i++)
@@ -215,7 +217,6 @@ static qboolean CL_FireEvent (event_info_t *ei, int slot)
 
 		if (ev->index == ei->index)
 			{
-			// [FWGS, 01.07.23]
 			name = cl.event_precache[ei->index];
 			if (cl_trace_events.value)
 				{
@@ -392,7 +393,6 @@ void CL_ParseReliableEvent (sizebuf_t *msg, connprotocol_t proto)
 
 	// [FWGS, 01.04.25]
 	if ((args.entindex > 0) && (args.entindex <= cl.maxclients))
-		/*args.angles[PITCH] *= -3.0f;*/
 		{
 		args.angles[PITCH] *= 3.0f;
 		if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
@@ -423,10 +423,13 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 
 	num_events = MSG_ReadUBitLong (msg, 5);
 
+	// [FWGS, 01.03.26]
 	if (proto == PROTO_GOLDSRC)
 		entity_bits = MAX_GOLDSRC_ENTITY_BITS;
-	else if (proto == PROTO_LEGACY)
+	/*else if (proto == PROTO_LEGACY)
 		entity_bits = MAX_LEGACY_ENTITY_BITS;
+	else
+		entity_bits = MAX_ENTITY_BITS;*/
 	else
 		entity_bits = MAX_ENTITY_BITS;
 
@@ -477,7 +480,6 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 				// [FWGS, 01.04.25]
 				if ((state->number > 0) && (state->number <= cl.maxclients))
 					{
-					/*args.angles[PITCH] *= -3.0f;*/
 					args.angles[PITCH] *= 3.0f;
 					if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
 						args.angles[PITCH] = -args.angles[PITCH];
@@ -492,7 +494,6 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 					{
 					// [FWGS, 01.04.25]
 					if ((args.entindex > 0) && (args.entindex <= cl.maxclients))
-						/*args.angles[PITCH] /= -3.0f;*/
 						{
 						args.angles[PITCH] /= 3.0f;
 						if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
@@ -536,7 +537,8 @@ void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word even
 
 	SetBits (flags, FEV_CLIENT); // it's a client event
 	ClearBits (flags, FEV_NOTHOST | FEV_HOSTONLY | FEV_GLOBAL);
-	if (delay < 0.0f) delay = 0.0f; // fixup negative delays
+	if (delay < 0.0f)
+		delay = 0.0f; // fixup negative delays
 
 	memset (&args, 0, sizeof (args));
 

@@ -13,13 +13,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
 #include "particledef.h"
 #include "cl_tent.h"
 #include "shake.h"
-#include "hltv.h"
+/*include "hltv.h"*/
 #include "input.h"
 
 #define MSG_COUNT		32		// last 32 messages parsed
@@ -52,15 +53,16 @@ const char *CL_MsgInfo (int cmd)
 		// get engine message name
 		const char *svc_string = NULL;
 
+		// [FWGS, 01.03.26]
 		switch (cls.legacymode)
 			{
 			case PROTO_CURRENT:
 				svc_string = svc_strings[cmd];
 				break;
 
-			case PROTO_LEGACY:
+			/*case PROTO_LEGACY:
 				svc_string = svc_legacy_strings[cmd];
-				break;
+				break;*/
 
 			case PROTO_QUAKE:
 				svc_string = svc_quake_strings[cmd];
@@ -152,9 +154,15 @@ static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 	const char *buffer_file = "buffer.dat";
 	file_t *fp;
 
+	// [FWGS, 01.03.26]
 	fp = FS_Open (buffer_file, "wb", false);
+	/*if (!fp)
+		return;*/
 	if (!fp)
+		{
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, buffer_file);
 		return;
+		}
 
 	FS_Write (fp, &cls.starting_count, sizeof (int));
 	FS_Write (fp, &current_count, sizeof (int));

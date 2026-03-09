@@ -275,7 +275,9 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 	// keep the same semantics, when S_RAW_SOUND_SOUNDTRACK doesn't play if S_StartStreaming wasn't enabled
 	qboolean disable_stream = Avi->entnum == S_RAW_SOUND_SOUNDTRACK ? !s_listener.streaming : false;
 
-	if (!dma.initialized || disable_stream || s_listener.paused || !Avi->cached_audio)
+	// [FWGS, 01.03.26]
+	/*if (!dma.initialized || disable_stream || s_listener.paused || !Avi->cached_audio)*/
+	if (!dma.initialized || disable_stream || cl.paused || !Avi->cached_audio)
 		return;
 
 	ch = S_FindRawChannel (Avi->entnum, true);
@@ -317,7 +319,8 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 			file_samples = file_bytes / (pav_get_bytes_per_sample (Avi->s_fmt) * Avi->channels);
 			}
 
-		ch->s_rawend = S_RawSamplesStereo (ch->rawsamples, ch->s_rawend, ch->max_samples, file_samples, Avi->rate, pav_get_bytes_per_sample (Avi->s_fmt), Avi->channels, Avi->cached_audio + Avi->cached_audio_pos);
+		ch->s_rawend = S_RawSamplesStereo (ch->rawsamples, ch->s_rawend, ch->max_samples, file_samples, Avi->rate,
+			pav_get_bytes_per_sample (Avi->s_fmt), Avi->channels, Avi->cached_audio + Avi->cached_audio_pos);
 		Avi->cached_audio_pos += copy;
 		}
 	}
@@ -363,6 +366,11 @@ qboolean AVI_Think (movie_state_t *Avi)
 	qboolean decoded = false;
 	qboolean flushing = false;
 	qboolean redraw = false;
+
+	// [FWGS, 01.03.26]
+	if (!Avi->video_ctx)
+		return false;
+
 	const double timebase = (double)Avi->video_ctx->pkt_timebase.den / Avi->video_ctx->pkt_timebase.num;
 	int64_t curtime = round (Platform_DoubleTime () * timebase);
 
@@ -388,9 +396,11 @@ qboolean AVI_Think (movie_state_t *Avi)
 		if (Avi->last_time > curtime)
 			break;
 
+		// [FWGS, 01.03.26]
 		if ((res = pav_read_frame (Avi->fmt_ctx, Avi->pkt)) >= 0)
 			{
-			if (Avi->pkt->stream_index == Avi->audio_stream)
+			/*if (Avi->pkt->stream_index == Avi->audio_stream)*/
+			if ((Avi->pkt->stream_index == Avi->audio_stream) && Avi->audio_ctx)
 				{
 				res = pavcodec_send_packet (Avi->audio_ctx, Avi->pkt);
 				if (res < 0)
@@ -558,7 +568,7 @@ void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audi
 			return;
 
 		Avi->channels = Q_min (Avi->audio_ctx->ch_layout.nb_channels, 2);
-		if (Avi->audio_ctx->sample_fmt == AV_SAMPLE_FMT_U8 || Avi->audio_ctx->sample_fmt == AV_SAMPLE_FMT_U8P)
+		if ((Avi->audio_ctx->sample_fmt == AV_SAMPLE_FMT_U8) || (Avi->audio_ctx->sample_fmt == AV_SAMPLE_FMT_U8P))
 			Avi->s_fmt = AV_SAMPLE_FMT_U8;
 		else
 			Avi->s_fmt = AV_SAMPLE_FMT_S16;

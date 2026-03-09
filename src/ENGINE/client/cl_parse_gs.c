@@ -13,34 +13,27 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
 #include "particledef.h"
 #include "cl_tent.h"
 #include "shake.h"
-#include "hltv.h"
+/*include "hltv.h"*/
 #include "input.h"
 #include "server.h"
 
-// [FWGS, 01.11.25]
+// [FWGS, 01.03.26]
 static void CL_ParseExtraInfo (sizebuf_t *msg)
 	{
 	string clientfallback;
 
 	Q_strncpy (clientfallback, MSG_ReadString (msg), sizeof (clientfallback));
-	if (COM_CheckStringEmpty (clientfallback))
+	/*if (COM_CheckStringEmpty (clientfallback))*/
+	if (!COM_StringEmpty (clientfallback))
 		Con_Reportf (S_ERROR "%s: TODO: add fallback directory %s!\n", __func__, clientfallback);
 
-	/*if (MSG_ReadByte (msg))
-		{
-		Cvar_FullSet ("sv_cheats", "1", FCVAR_READ_ONLY | FCVAR_SERVER);
-		}
-	else
-		{
-		Cvar_SetCheatState ();
-		Cvar_FullSet ("sv_cheats", "0", FCVAR_READ_ONLY | FCVAR_SERVER);
-		}*/
 	cls.allow_cheats = MSG_ReadByte (msg) ? true : false;
 	CL_SetCheatState (cl.maxclients > 1, cls.allow_cheats);
 	}
@@ -68,12 +61,20 @@ static void CL_ParseNewMovevars (sizebuf_t *msg)
 	clgame.movevars.footsteps = MSG_ReadByte (msg);
 	clgame.movevars.rollangle = MSG_ReadFloat (msg);
 	clgame.movevars.rollspeed = MSG_ReadFloat (msg);
-	clgame.movevars.skycolor_r = MSG_ReadFloat (msg);
+
+	// [FWGS, 01.03.26]
+	/*clgame.movevars.skycolor_r = MSG_ReadFloat (msg);
 	clgame.movevars.skycolor_g = MSG_ReadFloat (msg);
 	clgame.movevars.skycolor_b = MSG_ReadFloat (msg);
 	clgame.movevars.skyvec_x = MSG_ReadFloat (msg);
 	clgame.movevars.skyvec_y = MSG_ReadFloat (msg);
-	clgame.movevars.skyvec_z = MSG_ReadFloat (msg);
+	clgame.movevars.skyvec_z = MSG_ReadFloat (msg);*/
+	clgame.movevars.skycolor[0] = MSG_ReadFloat (msg);
+	clgame.movevars.skycolor[1] = MSG_ReadFloat (msg);
+	clgame.movevars.skycolor[2] = MSG_ReadFloat (msg);
+	clgame.movevars.skyvec[0] = MSG_ReadFloat (msg);
+	clgame.movevars.skyvec[1] = MSG_ReadFloat (msg);
+	clgame.movevars.skyvec[2] = MSG_ReadFloat (msg);
 
 	Q_strncpy (clgame.movevars.skyName, MSG_ReadString (msg), sizeof (clgame.movevars.skyName));
 
@@ -215,19 +216,20 @@ static int CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)
 	return playerbytes;
 	}
 
+// [FWGS, 01.03.26]
 static void CL_DeltaEntityGS (const delta_header_t *hdr, sizebuf_t *msg, frame_t *frame, int newnum,
 	const entity_state_t *from)
 	{
-	cl_entity_t *ent;
-	entity_state_t *to;
-	qboolean newent = from == NULL;
-	int pack = frame->num_entities;
-	qboolean has_update = msg != NULL;
+	cl_entity_t		*ent;
+	entity_state_t	*to;
+	qboolean		newent = from == NULL;
+	int				pack = frame->num_entities;
+	qboolean		has_update = msg != NULL;
+	static entity_state_t	nullent;
 
 	// alloc next slot to store update
 	to = &cls.packet_entities[cls.next_client_entities % cls.num_client_entities];
 
-	// [FWGS, 01.03.25]
 	if ((newnum < 0) || (newnum >= clgame.maxEntities))
 		{
 		Con_DPrintf (S_ERROR "CL_DeltaEntity: invalid newnum: %d\n", newnum);
@@ -249,11 +251,30 @@ static void CL_DeltaEntityGS (const delta_header_t *hdr, sizebuf_t *msg, frame_t
 	if (newent)
 		{
 		if (hdr->instanced)
+			{
 			from = &cl.instanced_baseline[hdr->instanced_baseline_index];
+			}
 		else if (hdr->offset != 0)
-			from = &cls.packet_entities[(cls.next_client_entities - hdr->offset) % cls.num_client_entities];
+			/*from = &cls.packet_entities[(cls.next_client_entities - hdr->offset) % cls.num_client_entities];*/
+			{
+			// FIXME: the usage of `offset` is incorrect here as the entities might
+			// not be ordered in cls.packet_entities the same way as on server
+			// catch the error, print the scary message and fix it up to nullent
+			if (cls.next_client_entities - hdr->offset < 0)
+				{
+				Con_Printf (S_ERROR "%s: prevented delta-ing from invalid entity (%d - %d < 0)\n", __func__,
+					cls.next_client_entities, hdr->offset);
+				from = &nullent;
+				}
+			else
+				{
+				from = &cls.packet_entities[(cls.next_client_entities - hdr->offset) % cls.num_client_entities];
+				}
+			}
 		else
+			{
 			from = &ent->baseline;
+			}
 		}
 
 	if (has_update)
@@ -492,9 +513,11 @@ static void CL_ParseSoundPacketGS (sizebuf_t *msg)
 	else
 		attn = ATTN_EVERYWHERE;
 
+	// [FWGS, 01.03.26]
 	chan = MSG_ReadUBitLong (msg, 3);
 	entnum = MSG_ReadUBitLong (msg, MAX_GOLDSRC_ENTITY_BITS);
-	if (FBitSet (flags, SND_LEGACY_LARGE_INDEX))
+	/*if (FBitSet (flags, SND_LEGACY_LARGE_INDEX))*/
+	if (FBitSet (flags, SND_GOLDSRC_LARGE_INDEX))
 		sound = MSG_ReadWord (msg);
 	else
 		sound = MSG_ReadByte (msg);
@@ -507,7 +530,9 @@ static void CL_ParseSoundPacketGS (sizebuf_t *msg)
 
 	MSG_EndBitWriting (msg);
 
-	ClearBits (flags, SND_LEGACY_LARGE_INDEX);
+	// [FWGS, 01.03.26]
+	/*ClearBits (flags, SND_LEGACY_LARGE_INDEX);*/
+	ClearBits (flags, SND_GOLDSRC_LARGE_INDEX);
 
 	if (FBitSet (flags, SND_SENTENCE))
 		{
@@ -609,9 +634,11 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				// this does nothing
 				break;
 
+			// [FWGS, 01.03.26]
 			case svc_disconnect:
 				s = MSG_ReadString (msg);
-				if (COM_CheckStringEmpty (s))
+				/*if (COM_CheckStringEmpty (s))*/
+				if (!COM_StringEmpty (s))
 					Con_Printf ("Server issued disconnect. Reason: %s\n", s);
 				CL_Drop ();
 				Host_AbortCurrentFrame ();
@@ -855,8 +882,10 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				CL_ParseExec (msg);
 				break;
 
+			// [FWGS, 01.03.26]
 			default:
-				CL_ParseUserMessage (msg, cmd, PROTO_LEGACY);
+				/*CL_ParseUserMessage (msg, cmd, PROTO_LEGACY);*/
+				CL_ParseUserMessage (msg, cmd, PROTO_GOLDSRC);
 				cl.frames[cl.parsecountmod].graphdata.usr += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
 			}

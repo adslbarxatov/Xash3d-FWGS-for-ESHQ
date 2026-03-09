@@ -181,6 +181,9 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 	if (!TriSpriteTexture (gEngfuncs.GetDefaultSprite (REF_DOT_SPRITE), 0))
 		return;
 
+	// [FWGS, 01.03.26]
+	R_AllowFog (false);
+
 	pglEnable (GL_BLEND);
 	pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
 	pglDisable (GL_ALPHA_TEST);
@@ -231,14 +234,8 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 			VectorAdd (verts[1], delta, verts[3]);
 
 			// [FWGS, 01.12.24]
-			/*if (p->color > sizeof (gTracerColors) / sizeof (gTracerColors[0]))*/
 			if ((p->color < 0) || (p->color >= sizeof (gTracerColors) / sizeof (gTracerColors[0])))
-				{
-				/*gEngfuncs.Con_Printf (S_ERROR "UserTracer with color(%d) > %zu\n",
-					p->color, sizeof (gTracerColors) / sizeof (gTracerColors[0]));
-				p->color = 0;*/
 				p->color = TRACER_COLORINDEX_DEFAULT;
-				}
 
 			color = gTracerColors[p->color];
 			pglColor4ub (color.r, color.g, color.b, p->packedColor);
@@ -274,6 +271,9 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 
 	pglEnd ();
 	pglDepthMask (GL_TRUE);
+
+	// [FWGS, 01.03.26]
+	R_AllowFog (true);
 	}
 
 /***

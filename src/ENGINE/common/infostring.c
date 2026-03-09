@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -22,6 +22,7 @@ GNU General Public License for more details
 INFOSTRING STUFF
 =======================================================================
 ***/
+
 /***
 ===============
 Info_Print
@@ -122,10 +123,13 @@ qboolean Info_IsValid (const char *s)
 			}
 		*o = 0;
 
-		if (!COM_CheckStringEmpty (value))
+		// [FWGS, 01.03.26]
+		/*if (!COM_CheckStringEmpty (value))*/
+		if (COM_StringEmpty (value))
 			return false;
 
-		if (*s) s++;
+		if (*s)
+			s++;
 		}
 
 	return true;
@@ -278,7 +282,6 @@ qboolean GAME_EXPORT Info_RemoveKey (char *s, const char *key)
 			}
 		*o = 0;
 
-		// [FWGS, 01.05.23]
 		if (!Q_strncmp (key, pkey, cmpsize))
 			{
 			size_t size = Q_strlen (s) + 1;
@@ -445,8 +448,10 @@ qboolean Info_SetValueForStarKey (char *s, const char *key, const char *value, i
 
 	Info_RemoveKey (s, key);
 
-	if (!COM_CheckString (value))
-		return true; // just clear variable
+	// [FWGS, 01.03.26] just clear variable
+	/*if (!COM_CheckString (value))*/
+	if (COM_StringEmptyOrNULL (value))
+		return true;
 
 	Q_snprintf (new, sizeof (new), "\\%s\\%s", key, value);
 	if (Q_strlen (new) + Q_strlen (s) > maxsize)
@@ -505,7 +510,6 @@ qboolean Info_SetValueForKey (char *s, const char *key, const char *value, int m
 	return Info_SetValueForStarKey (s, key, value, maxsize);
 	}
 
-// [FWGS, 01.04.23]
 qboolean Info_SetValueForKeyf (char *s, const char *key, int maxsize, const char *format, ...)
 	{
 	char value[MAX_VA_STRING];

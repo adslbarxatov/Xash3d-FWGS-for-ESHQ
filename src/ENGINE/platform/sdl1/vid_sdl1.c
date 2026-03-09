@@ -379,10 +379,11 @@ int GL_GetAttribute (int attr, int *val)
 
 /***
 ==================
-R_Init_Video
+R_Init_Video [FWGS, 01.03.26]
 ==================
 ***/
-qboolean R_Init_Video (const int type)
+/*qboolean R_Init_Video (const int type)*/
+qboolean R_Init_Video (ref_graphic_apis_t type)
 	{
 	string safe;
 	qboolean retval;
@@ -394,6 +395,7 @@ qboolean R_Init_Video (const int type)
 		case REF_SOFTWARE:
 			glw_state.software = true;
 			break;
+
 		case REF_GL:
 			if (!glw_state.safe && Sys_GetParmFromCmdLine ("-safegl", safe))
 				glw_state.safe = bound (SAFE_NO, Q_atoi (safe), SAFE_DONTCARE);
@@ -407,6 +409,7 @@ qboolean R_Init_Video (const int type)
 				return false;
 				}
 			break;
+
 		default:
 			Host_Error ("Can't initialize unknown context type %d!\n", type);
 			break;
@@ -423,6 +426,7 @@ qboolean R_Init_Video (const int type)
 			// refdll also can check extensions
 			ref.dllFuncs.GL_InitExtensions ();
 			break;
+
 		case REF_SOFTWARE:
 		default:
 			break;
@@ -492,9 +496,11 @@ qboolean VID_SetMode (void)
 		}
 	else
 		{
+		// [FWGS, 01.03.26]
 		if (err == rserr_invalid_fullscreen)
 			{
-			Cvar_DirectSet (&vid_fullscreen, "0");
+			/*Cvar_DirectSet (&vid_fullscreen, "0");*/
+			Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_WINDOWED);
 			Con_Reportf (S_ERROR "%s: fullscreen unavailable in this mode\n", __func__);
 			Sys_Warn ("fullscreen unavailable in this mode!");
 			if ((err = R_ChangeDisplaySettings (iScreenWidth, iScreenHeight, WINDOW_MODE_WINDOWED)) == rserr_ok)

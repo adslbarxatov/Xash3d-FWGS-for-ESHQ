@@ -664,11 +664,9 @@ static void R_DecalNodeSurfaces (model_t *model, mnode_t *node, decalinfo_t *dec
 	int			i;
 	int			firstsurface, numsurfaces;
 
-	/*surf = model->surfaces + node->firstsurface;*/
 	firstsurface = node_firstsurface (node, model);
 	numsurfaces = node_numsurfaces (node, model);
 
-	/*for (i = 0; i < node->numsurfaces; i++, surf++)*/
 	surf = model->surfaces + firstsurface;
 
 	for (i = 0; i < numsurfaces; i++, surf++)
@@ -718,12 +716,10 @@ static void R_DecalNode (model_t *model, mnode_t *node, decalinfo_t *decalinfo)
 	// have a surface normal
 	if (dist > decalinfo->m_Size)
 		{
-		/*R_DecalNode (model, node->children[0], decalinfo);*/
 		R_DecalNode (model, children[0], decalinfo);
 		}
 	else if (dist < -decalinfo->m_Size)
 		{
-		/*R_DecalNode (model, node->children[1], decalinfo);*/
 		R_DecalNode (model, children[1], decalinfo);
 		}
 	else
@@ -731,8 +727,6 @@ static void R_DecalNode (model_t *model, mnode_t *node, decalinfo_t *decalinfo)
 		if ((dist < DECAL_DISTANCE) && (dist > -DECAL_DISTANCE))
 			R_DecalNodeSurfaces (model, node, decalinfo);
 
-		/*R_DecalNode (model, node->children[0], decalinfo);
-		R_DecalNode (model, node->children[1], decalinfo);*/
 		R_DecalNode (model, children[0], decalinfo);
 		R_DecalNode (model, children[1], decalinfo);
 		}
@@ -1187,7 +1181,7 @@ int R_CreateDecalList (decallist_t *pList)
 
 			R_DecalUnProject (decal, &pList[total]);
 			COM_FileBase (R_GetTexture (decal->texture)->name, pList[total].name,
-				sizeof (pList[total].name));	// [FWGS, 01.05.23]
+				sizeof (pList[total].name));
 
 			// check to see if the decal should be added
 			total = DecalListAdd (pList, total);
@@ -1224,8 +1218,9 @@ void R_DecalRemoveAll (int textureIndex)
 		{
 		pdecal = &gDecalPool[i];
 
-		// don't remove permanent decals
-		if (!textureIndex && FBitSet (pdecal->flags, FDECAL_PERMANENT))
+		// [FWGS, 01.03.26] don't remove permanent decals
+		/*if (!textureIndex && FBitSet (pdecal->flags, FDECAL_PERMANENT))*/
+		if (FBitSet (pdecal->flags, FDECAL_PERMANENT))
 			continue;
 
 		if (!textureIndex || (pdecal->texture == textureIndex))

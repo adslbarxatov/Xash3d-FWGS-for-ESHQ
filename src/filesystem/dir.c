@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#include "build.h"
+#include "..\library_suffix\build.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -311,8 +311,9 @@ qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t l
 	if (!FS_AppendToPath (dst, &i, len, dir->name, path, "init"))
 		return false;
 
-	// [FWGS, 01.07.23] nothing to fix
-	if (!COM_CheckStringEmpty (path))
+	// [FWGS, 01.03.26] nothing to fix
+	/*if (!COM_CheckStringEmpty (path))*/
+	if (COM_StringEmpty (path))
 		return true;
 
 	for (prev = path, next = Q_strchrnul (prev, '/');

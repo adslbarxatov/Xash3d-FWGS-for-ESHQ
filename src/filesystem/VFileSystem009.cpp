@@ -420,7 +420,10 @@ class CXashFS : public IFileSystem
 			qboolean qquoted;
 			char *p;
 
-			p = COM_ParseFileSafe (buf, token, PFILE_FS_TOKEN_MAX_LENGTH, 0, nullptr, &qquoted);
+			// [FWGS, 01.03.26]
+			/*p = COM_ParseFileSafe (buf, token, PFILE_FS_TOKEN_MAX_LENGTH, 0, nullptr, &qquoted);*/
+			// filesystem_stdio expects 512 byte buffers
+			p = COM_ParseFileSafe (buf, token, 512, 0, nullptr, &qquoted);
 			if (quoted)
 				*quoted = qquoted;
 
@@ -429,7 +432,9 @@ class CXashFS : public IFileSystem
 
 		bool FullPathToRelativePath (const char *path, char *out) override
 			{
-			if (!COM_CheckString (path))
+			// [FWGS, 01.03.26]
+			/*if (!COM_CheckString (path))*/
+			if (COM_StringEmptyOrNULL (path))
 				{
 				*out = 0;
 				return false;
@@ -478,19 +483,11 @@ class CXashFS : public IFileSystem
 		bool AddPackFile (const char *path, const char *id) override
 			{
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
-			/*const char *ext = COM_FileExtension (path);*/
 
 			IdToDir (dir, sizeof (dir), id);
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", dir, path);
 			COM_FixSlashes (fullpath);
 
-			/*for (const fs_archive_t *archive = g_archives; archive->ext; archive++)
-				{
-				if ((archive->type == SEARCHPATH_PAK) && !Q_stricmp (ext, archive->ext))
-					return FS_AddArchive_Fullpath (archive, fullpath, FS_CUSTOM_PATH);
-				}
-
-			return false;*/
 			return FS_MountArchive_Fullpath (fullpath, FS_CUSTOM_PATH) != NULL;
 			}
 

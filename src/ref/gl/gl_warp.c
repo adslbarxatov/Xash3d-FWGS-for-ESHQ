@@ -259,8 +259,6 @@ static void MakeSkyVec (float s, float t, int axis)
 	s = (s + 1.0f) * 0.5f;
 	t = (t + 1.0f) * 0.5f;
 
-	/*s = bound (1.0f / 512.0f, s, 511.0f / 512.0f);
-	t = bound (1.0f / 512.0f, t, 511.0f / 512.0f);*/
 	if (GL_Support (GL_CLAMPTOEDGE_EXT))
 		{
 		s = bound (0.0f, s, 1.0f);
@@ -286,7 +284,7 @@ void R_ClearSkyBox (void)
 	{
 	int	i;
 
-	for (i = 0; i < SKYBOX_MAX_SIDES; i++)	// [FWGS, 01.07.23]
+	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
 		{
 		RI.skyMins[0][i] = RI.skyMins[1][i] = 9999999.0f;
 		RI.skyMaxs[0][i] = RI.skyMaxs[1][i] = -9999999.0f;
@@ -406,6 +404,7 @@ void R_DrawSkyBox (void)
 // ==============================================================================
 // RENDER CLOUDS
 // ==============================================================================
+
 /***
 ==============
 R_CloudVertex
@@ -672,6 +671,8 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples)
 /***
 ============================================================
 HALF-LIFE SOFTWARE WATER
+
+https://web.archive.org/web/20160418004149/http://freespace.virgin.net/hugo.elias/graphics/x_water.htm
 ============================================================
 ***/
 
@@ -795,19 +796,11 @@ qboolean R_UploadRipples (texture_t *image)
 
 	// discard unuseful textures
 	glt = R_GetTexture (image->gl_texturenum);
-	/*if (!glt || !glt->original || !glt->original->buffer || !FBitSet (glt->flags, TF_EXPAND_SOURCE))*/
 	if (!glt || !glt->original || !glt->original->buffer)
 		{
 		GL_Bind (XASH_TEXTURE0, image->gl_texturenum);
 		return false;
 		}
-
-	/*// try to preserve aspect ratio
-	width = height = RIPPLES_CACHEWIDTH; // always render at maximum size
-	if (image->width > image->height)
-		height = (float)image->height / image->width * width;
-	else if (image->width < image->height)
-		width = (float)image->width / image->height * height;*/
 
 	if (!image->fb_texturenum)
 		{
@@ -836,7 +829,6 @@ qboolean R_UploadRipples (texture_t *image)
 	GL_Bind (XASH_TEXTURE0, image->fb_texturenum);
 
 	// no updates this frame
-	/*if (!g_ripple.update)*/
 	if (!update || (image->dt_texturenum == (tr.framecount & 0xFFFF)))
 		return true;
 

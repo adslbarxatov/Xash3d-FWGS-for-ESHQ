@@ -95,36 +95,47 @@ void GAME_EXPORT Platform_SetMousePos (int x, int y)
 	SDL_WarpMouseInWindow (host.hWnd, x, y);
 	}
 
+// [FWGS, 01.03.26]
 void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 	{
-	float m_x = 0.0f, m_y = 0.0f;
+	/*float m_x = 0.0f, m_y = 0.0f;*/
+	SDL_FPoint p = { 0 };
 
-	SDL_GetMouseState (&m_x, &m_y);
+	/*SDL_GetMouseState (&m_x, &m_y);*/
+	SDL_GetMouseState (&p.x, &p.y);
 
 	if (x)
-		{
+		*x = p.x;
+		/*{
 		if (window_width.value && window_width.value != refState.width)
 			{
 			float factor = refState.width / window_width.value;
 			*x = m_x * factor;
 			}
-		else *x = m_x;
-		}
+		else
+			{
+			*x = m_x;
+			}
+		}*/
 
 	if (y)
-		{
+		*y = p.y;
+		/*{
 		if (window_height.value && window_height.value != refState.height)
 			{
 			float factor = refState.height / window_height.value;
 			*y = m_y * factor;
 			}
-		else *y = m_y;
-		}
+		else
+			{
+			*y = m_y;
+			}
+		}*/
 	}
 
 void Platform_SetCursorType (VGUI_DefaultCursor type)
 	{
-	qboolean visible = type != dc_user && type != dc_none;
+	qboolean visible = (type != dc_user) && (type != dc_none);
 
 	// never disable cursor in touch emulation mode
 	if (!visible && Touch_WantVisibleCursor ())

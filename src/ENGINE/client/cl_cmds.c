@@ -43,7 +43,6 @@ void CL_PlayVideo_f (void)
 		{
 		// [FWGS, 01.07.25] simple user version
 		case 2:
-			/*Q_snprintf (path, sizeof (path), "media/%s.avi", Cmd_Argv (1));*/
 			Q_snprintf (path, sizeof (path), "media/%s", Cmd_Argv (1));
 			COM_DefaultExtension (path, ".avi", sizeof (path));
 			SCR_PlayCinematic (path);
@@ -157,13 +156,19 @@ void CL_PlayCDTrack_f (void)
 		enabled = false;
 		}
 
-	// [FWGS, 01.12.24]
+	// [FWGS, 01.03.26]
 	else if (!Q_stricmp (command, "info"))
 		{
-		int	i, maxTrack;
+		/*int	i, maxTrack;*/
+		int maxTrack = 0;
 
-		for (maxTrack = i = 0; i < MAX_CDTRACKS; i++)
-			if (COM_CheckStringEmpty (clgame.cdtracks[i])) maxTrack++;
+		/*for (maxTrack = i = 0; i < MAX_CDTRACKS; i++)
+			if (COM_CheckStringEmpty (clgame.cdtracks[i])) maxTrack++;*/
+		for (int i = 0; i < MAX_CDTRACKS; i++)
+			{
+			if (!COM_StringEmpty (clgame.cdtracks[i]))
+				maxTrack++;
+			}
 
 		Con_Printf ("%u tracks\n", maxTrack);
 		if (track)

@@ -830,6 +830,63 @@ static void R_BuildLightMap (const msurface_t *surf, byte *dest, int stride, qbo
 	}
 
 /***
+=============
+R_DrawTriangleOutlines [FWGS, 01.03.26]
+=============
+***/
+static void R_DrawTriangleOutlines (void)
+	{
+	int			i, j;
+	msurface_t	*surf;
+	glpoly2_t	*p;
+	float		*v;
+
+	if (!gl_wireframe.value)
+		return;
+
+	pglDisable (GL_TEXTURE_2D);
+	pglDisable (GL_DEPTH_TEST);
+	pglColor4f (1.0f, 1.0f, 1.0f, 1.0f);
+	pglPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+
+	// render static surfaces first
+	for (i = 0; i < MAX_LIGHTMAPS; i++)
+		{
+		for (surf = gl_lms.lightmap_surfaces[i]; surf != NULL; surf = surf->info->lightmapchain)
+			{
+			p = surf->polys;
+			for (; p != NULL; p = p->chain)
+				{
+				pglBegin (GL_POLYGON);
+				v = p->verts[0];
+				for (j = 0; j < p->numverts; j++, v += VERTEXSIZE)
+					pglVertex3fv (v);
+				pglEnd ();
+				}
+			}
+		}
+
+	// render surfaces with dynamic lightmaps
+	for (surf = gl_lms.dynamic_surfaces; surf != NULL; surf = surf->info->lightmapchain)
+		{
+		p = surf->polys;
+
+		for (; p != NULL; p = p->chain)
+			{
+			pglBegin (GL_POLYGON);
+			v = p->verts[0];
+			for (j = 0; j < p->numverts; j++, v += VERTEXSIZE)
+				pglVertex3fv (v);
+			pglEnd ();
+			}
+		}
+
+	pglPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+	pglEnable (GL_DEPTH_TEST);
+	pglEnable (GL_TEXTURE_2D);
+	}
+
+/***
 ================
 DrawGLPoly [FWGS, 01.02.25]
 ================
@@ -1686,7 +1743,7 @@ static void R_SetRenderMode (cl_entity_t *e)
 
 /***
 =================
-R_DrawBrushModel [FWGS, 01.12.24]
+R_DrawBrushModel
 =================
 ***/
 void R_DrawBrushModel (cl_entity_t *e)
@@ -1832,6 +1889,9 @@ void R_DrawBrushModel (cl_entity_t *e)
 	R_RenderFullbrights ();
 	
 	R_RenderDetails (allow_vbo ? 2 : 3);
+
+	// [FWGS, 01.03.26]
+	R_DrawTriangleOutlines ();
 
 	// restore fog here
 	if (e->curstate.rendermode == kRenderTransAdd)
@@ -2192,7 +2252,6 @@ void R_GenerateVBO (void)
 					pglBufferDataARB (GL_ARRAY_BUFFER_ARB, vbo->array_len * sizeof (vbovertex_t),
 						vbo->array, GL_STATIC_DRAW_ARB);
 
-					/*ASSERT (len == vbo->array_len);*/
 					Assert (len == vbo->array_len);
 
 					vbo = vbo->next;
@@ -2235,7 +2294,6 @@ void R_GenerateVBO (void)
 		}
 	
 	// [FWGS, 01.11.25]
-	/*ASSERT (len == vbo->array_len);*/
 	Assert (len == vbo->array_len);
 
 	// upload last array
@@ -3370,8 +3428,7 @@ void R_DrawVBO (qboolean drawlightmap, qboolean drawtextures)
 	vbos.maxtexture = 0;
 	}
 
-// [FWGS, 01.12.24] removed R_CheckLightMap
-// [FWGS, 01.12.24] removed R_AddSurfToVBO
+// [FWGS, 01.12.24] removed R_CheckLightMap, R_AddSurfToVBO
 
 // [FWGS, 01.12.24]
 qboolean R_AddSurfToVBO (msurface_t *surf, qboolean buildlightmap)
@@ -3692,11 +3749,13 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 		} while (node);
 	}
 
-/***
+// [FWGS, 01.03.26] removed R_DrawTriangleOutlines
+/*
+/
 =============
 R_DrawTriangleOutlines [FWGS, 01.09.24]
 =============
-***/
+/
 static void R_DrawTriangleOutlines (void)
 	{
 	int			i, j;
@@ -3747,11 +3806,11 @@ static void R_DrawTriangleOutlines (void)
 	pglPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 	pglEnable (GL_DEPTH_TEST);
 	pglEnable (GL_TEXTURE_2D);
-	}
+	}*/
 
 /***
 =============
-R_DrawWorld [FWGS, 01.12.24]
+R_DrawWorld
 =============
 ***/
 void R_DrawWorld (void)
@@ -3801,6 +3860,9 @@ void R_DrawWorld (void)
 		R_RenderFullbrights ();
 		R_RenderDetails (R_HasEnabledVBO () ? 2 : 3);
 
+		// [FWGS, 01.03.26]
+		R_DrawTriangleOutlines ();
+
 		if (skychain)
 			R_DrawSkyBox ();
 		}
@@ -3811,7 +3873,8 @@ void R_DrawWorld (void)
 	tr.num_draw_decals = 0;
 	skychain = NULL;
 
-	R_DrawTriangleOutlines ();
+	// [FWGS, 01.03.26]
+	/*R_DrawTriangleOutlines ();*/
 	gEngfuncs.R_DrawWorldHull ();
 	}
 
@@ -3877,9 +3940,6 @@ void R_MarkLeaves (void)
 		novis = true;
 
 	// [FWGS, 01.11.25]
-	/*gEngfuncs.R_FatPVS (RI.pvsorigin, REFPVS_RADIUS, RI.visbytes, FBitSet (RI.params, RP_OLDVIEWLEAF), novis);
-	if (force && !novis)
-		gEngfuncs.R_FatPVS (test, REFPVS_RADIUS, RI.visbytes, true, novis);*/
 	gEngfuncs.R_FatPVS (RI.pvsorigin, r_pvs_radius->value, RI.visbytes, FBitSet (RI.params, RP_OLDVIEWLEAF), novis);
 	if (force && !novis)
 		gEngfuncs.R_FatPVS (test, r_pvs_radius->value, RI.visbytes, true, novis);

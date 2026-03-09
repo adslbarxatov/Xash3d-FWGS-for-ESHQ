@@ -13,9 +13,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
-#include "kbutton.h"
+/*include "kbutton.h"*/
 
 #if XASH_LOW_MEMORY == 0
 	#define NET_TIMINGS			1024
@@ -34,7 +35,6 @@ GNU General Public License for more details
 #define NETGRAPH_NET_COLORS		5
 #define NUM_LATENCY_SAMPLES		8
 
-// [FWGS, 01.07.23]
 CVAR_DEFINE_AUTO (net_graph, "0", FCVAR_ARCHIVE,
 	"draw network usage graph");
 static CVAR_DEFINE_AUTO (net_graphpos, "1", FCVAR_ARCHIVE,
@@ -72,9 +72,6 @@ static byte netcolors[NETGRAPH_NET_COLORS + NETGRAPH_LERP_HEIGHT][4] =
 	};
 
 // [FWGS, 01.12.24]
-/*static byte sendcolor[4] = { 88, 29, 130, 255 };
-static byte holdcolor[4] = { 255, 0, 0, 200 };
-static byte extrap_base_color[4] = { 255, 255, 255, 255 };*/
 static const byte sendcolor[4] = { 88, 29, 130, 255 };
 static const byte holdcolor[4] = { 255, 0, 0, 200 };
 static const byte extrap_base_color[4] = { 255, 255, 255, 255 };
@@ -92,7 +89,6 @@ NetGraph_DrawRect [FWGS, 01.12.24]
 NetGraph_FillRGBA shortcut
 ==========
 ***/
-/*static void NetGraph_DrawRect (wrect_t *rect, byte colors[4])*/
 static void NetGraph_DrawRect (const wrect_t *rect, const byte colors[4])
 	{
 	ref.dllFuncs.Color4ub (colors[0], colors[1], colors[2], colors[3]);	// color for this quad
@@ -178,7 +174,7 @@ static void NetGraph_InitColors (void)
 
 /***
 ==========
-NetGraph_GetFrameData
+NetGraph_GetFrameData [FWGS, 01.03.26]
 
 get frame data info, like chokes, packet losses, also update graph, packet and cmdinfo
 ==========
@@ -186,9 +182,10 @@ get frame data info, like chokes, packet losses, also update graph, packet and c
 static void NetGraph_GetFrameData (float *latency, int *latency_count)
 	{
 	int		i, choke_count = 0, loss_count = 0;
-	double		newtime = Sys_DoubleTime ();
+	/*double		newtime = Sys_DoubleTime ();*/
+	double	newtime = Platform_DoubleTime ();
 	static double	nexttime = 0;
-	float		loss, choke;
+	float	loss, choke;
 
 	*latency_count = 0;
 	*latency = 0.0f;
@@ -373,7 +370,7 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 	int packet_loss, int packet_choke, int graphtype)
 	{
 	static int	lastout;
-	cl_font_t	*font = Con_GetFont (0);	// [FWGS, 01.04.23]
+	cl_font_t	*font = Con_GetFont (0);
 	rgba_t		colors = { 0.9 * 255, 0.9 * 255, 0.7 * 255, 255 };
 	int			ptx = Q_max (x + w - NETGRAPH_LERP_HEIGHT - 1, 1);
 	int			pty = Q_max (rect.top + rect.bottom - NETGRAPH_LERP_HEIGHT - 3, 1);
@@ -406,7 +403,6 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 		{
 		y -= net_graphheight.value;
 
-		// [FWGS, 01.04.23]
 		CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE, "%.1f fps", 1.0f / framerate);
 
 		if (avg > 1.0f)
@@ -420,7 +416,6 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 		else
 			lastout = out;
 
-		// [FWGS, 01.04.23]
 		CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE,
 			"in :  %i %.2f kb/s", netstat_graph[j].msgbytes, cls.netchan.flow[FLOW_INCOMING].avgkbytespersec);
 
@@ -436,12 +431,10 @@ static void NetGraph_DrawTextFields (int x, int y, int w, wrect_t rect, int coun
 			int	loss = (int)((packet_loss + PACKETLOSS_AVG_FRAC) - 0.01f);
 			int	choke = (int)((packet_choke + PACKETCHOKE_AVG_FRAC) - 0.01f);
 
-			// [FWGS, 01.04.23]
 			CL_DrawStringf (font, x, y, colors, FONT_DRAW_NORENDERMODE, "loss: %i choke: %i", loss, choke);
 			}
 		}
 
-	// [FWGS, 01.04.23]
 	if (graphtype < 3)
 		CL_DrawStringf (font, ptx, pty, colors, FONT_DRAW_NORENDERMODE, "%i/s", (int)cl_cmdrate.value);
 
@@ -679,19 +672,10 @@ void SCR_DrawNetGraph (void)
 
 	// [FWGS, 25.12.24]
 	in_graph = clgame.dllFuncs.KB_Find ("in_graph");
-	/*if (in_graph->state & 1)*/
 	if (in_graph && (in_graph->state & 1))
-		/*{*/
 		graphtype = 2;
-		/*}*/
 	else if (net_graph.value != 0.0f)
-		/*{*/
 		graphtype = (int)net_graph.value;
-		/*}
-	else
-		{
-		return;
-		}*/
 	else
 		return;
 
@@ -718,7 +702,6 @@ void SCR_DrawNetGraph (void)
 		}
 	}
 
-// [FWGS, 01.07.23]
 void CL_InitNetgraph (void)
 	{
 	Cvar_RegisterVariable (&net_graph);
@@ -731,4 +714,3 @@ void CL_InitNetgraph (void)
 	packet_loss = packet_choke = 0.0;
 	NetGraph_InitColors ();
 	}
-

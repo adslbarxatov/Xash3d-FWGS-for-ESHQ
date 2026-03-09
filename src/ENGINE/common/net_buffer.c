@@ -191,7 +191,7 @@ static const uint32_t ExtraMasks[32] =
 	0x00ffffff, 0x01ffffff, 0x03ffffff, 0x07ffffff, 0x0fffffff, 0x1fffffff, 0x3fffffff, 0x7fffffff,
 	};
 
-// [FWGS, 01.11.25]
+// [FWGS, 01.03.26]
 static const char *const clc_strings[clc_lastmsg + 1] =
 	{
 	"clc_bad",
@@ -200,7 +200,8 @@ static const char *const clc_strings[clc_lastmsg + 1] =
 	"clc_stringcmd",
 	"clc_delta",
 	"clc_resourcelist",
-	"clc_legacy_userinfo",
+	/*"clc_legacy_userinfo",*/
+	"clc_unused6",
 	"clc_fileconsistency",
 	"clc_voicedata",
 	"clc_cvarvalue/clc_goldsrc_hltv",
@@ -273,8 +274,8 @@ const char *const svc_strings[svc_lastmsg + 1] =
 	"svc_exec",
 	};
 
-// [FWGS, 01.12.24]
-const char *const svc_legacy_strings[svc_lastmsg + 1] =
+// [FWGS, 01.03.26]
+/*const char *const svc_legacy_strings[svc_lastmsg + 1] =
 	{
 	[svc_legacy_changing] = "svc_legacy_changing",
 	[svc_legacy_ambientsound] = "svc_legacy_ambientsound",
@@ -283,7 +284,7 @@ const char *const svc_legacy_strings[svc_lastmsg + 1] =
 	[svc_legacy_modelindex] = "svc_legacy_modelindex",
 	[svc_legacy_eventindex] = "svc_legacy_eventindex",
 	[svc_legacy_chokecount] = "svc_legacy_chokecount",
-	};
+	};*/
 
 // [FWGS, 25.12.24]
 const char *const svc_goldsrc_strings[svc_lastmsg + 1] =

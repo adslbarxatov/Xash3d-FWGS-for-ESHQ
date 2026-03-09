@@ -114,37 +114,35 @@ struct
 // [FWGS, 01.02.24]
 static qboolean CL_NextDemo (void);
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.26]
 static int CL_GetDemoNetProtocol (connprotocol_t proto)
 	{
 	switch (proto)
 		{
 		case PROTO_CURRENT:
 			return PROTOCOL_VERSION;
-		case PROTO_LEGACY:
-			return PROTOCOL_LEGACY_VERSION;
+		/*case PROTO_LEGACY:
+			return PROTOCOL_LEGACY_VERSION;*/
 		case PROTO_QUAKE:
 			return PROTOCOL_VERSION_QUAKE;
 		case PROTO_GOLDSRC:
 			return PROTOCOL_GOLDSRC_VERSION_DEMO;
-			/*return PROTOCOL_GOLDSRC_VERSION;*/
 		}
 
 	return PROTOCOL_VERSION;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.26]
 static connprotocol_t CL_GetProtocolFromDemo (int net_protocol)
 	{
 	switch (net_protocol)
 		{
 		case PROTOCOL_VERSION:
 			return PROTO_CURRENT;
-		case PROTOCOL_LEGACY_VERSION:
-			return PROTO_LEGACY;
+		/*case PROTOCOL_LEGACY_VERSION:
+			return PROTO_LEGACY;*/
 		case PROTOCOL_VERSION_QUAKE:
 			return PROTO_QUAKE;
-		/*case PROTOCOL_GOLDSRC_VERSION:*/
 		case PROTOCOL_GOLDSRC_VERSION_DEMO:
 			return PROTO_GOLDSRC;
 		}
@@ -164,7 +162,6 @@ void CL_StartupDemoHeader (void)
 	CL_CloseDemoHeader ();
 
 	// [FWGS, 25.12.24]
-	/*cls.demoheader = FS_Open ("demoheader.tmp", "w+b", true);*/
 	cls.demoheader = FS_Open ("demoheader.tmp", "w+bm", true);
 
 	if (!cls.demoheader)
@@ -227,7 +224,6 @@ double CL_GetDemoFramerate (void)
 	if (cls.timedemo)
 		return 0.0;
 
-	/*return bound (MIN_FPS, demo.header.host_fps, MAX_FPS);*/
 	return bound (MIN_FPS, demo.header.host_fps, MAX_FPS_HARD);
 	}
 
@@ -240,6 +236,7 @@ static void CL_DemoAborted (void)
 	{
 	if (cls.demofile)
 		FS_Close (cls.demofile);
+
 	cls.demoplayback = false;
 	cls.changedemo = false;
 	cls.timedemo = false;
@@ -262,7 +259,8 @@ static void CL_WriteDemoCmdHeader (byte cmd, file_t *file)
 	float	dt;
 
 	Assert ((cmd >= 1) && (cmd <= dem_lastcmd));
-	if (!file) return;
+	if (!file)
+		return;
 
 	// command
 	FS_Write (file, &cmd, sizeof (byte));
@@ -314,7 +312,6 @@ void CL_WriteDemoUserCmd (int cmdnumber)
 
 	// [FWGS, 01.12.24] write usercmd_t
 	MSG_Init (&buf, "UserCmd", data, sizeof (data));
-	/*CL_WriteUsercmd (&buf, -1, cmdnumber);	// always no delta*/
 	CL_WriteUsercmd (PROTO_CURRENT, &buf, -1, cmdnumber); // always no delta, always in current protocol
 
 	bytes = MSG_GetNumBytesWritten (&buf);
@@ -328,7 +325,7 @@ void CL_WriteDemoUserCmd (int cmdnumber)
 CL_WriteDemoSequence
 
 Save state of cls.netchan sequences
-so that we can play the demo correctly.
+so that we can play the demo correctly
 ====================
 ***/
 static void CL_WriteDemoSequence (file_t *file)
@@ -368,7 +365,7 @@ void CL_WriteDemoMessage (qboolean startup, int start, sizebuf_t *msg)
 	if (!startup)
 		demo.framecount++;
 
-	// demo playback should read this as an incoming message.
+	// demo playback should read this as an incoming message
 	c = (cls.state != ca_active) ? dem_norewind : dem_read;
 
 	CL_WriteDemoCmdHeader (c, file);
@@ -388,7 +385,6 @@ CL_WriteDemoUserMessage [FWGS, 01.02.25]
 Dumps the user message (demoaction)
 ====================
 ***/
-/*void CL_WriteDemoUserMessage (const byte *buffer, size_t size)*/
 void GAME_EXPORT CL_WriteDemoUserMessage (int size, byte *buffer)
 	{
 	if (!cls.demorecording || cls.demowaiting)
@@ -415,9 +411,6 @@ Write demo header
 ***/
 static void CL_WriteDemoHeader (const char *name)
 	{
-	/*int	copysize;
-	int	savepos;
-	int	curpos;*/
 	double	maxfps;
 	int		copysize;
 	int		savepos;
@@ -444,7 +437,6 @@ static void CL_WriteDemoHeader (const char *name)
 	demo.header.dem_protocol = DEMO_PROTOCOL;
 	demo.header.net_protocol = CL_GetDemoNetProtocol (cls.legacymode);
 
-	/*demo.header.host_fps = host_maxfps.value ? bound (MIN_FPS, host_maxfps.value, MAX_FPS) : MAX_FPS;*/
 	demo.header.host_fps = host_maxfps.value ? bound (MIN_FPS, host_maxfps.value, maxfps) : maxfps;
 
 	Q_strncpy (demo.header.mapname, clgame.mapname, sizeof (demo.header.mapname));
@@ -589,6 +581,7 @@ void CL_DrawDemoRecording (void)
 CLIENT SIDE DEMO PLAYBACK
 =======================================================================
 ***/
+
 /***
 =================
 CL_ReadDemoCmdHeader
@@ -667,9 +660,6 @@ static void CL_ReadDemoUserCmd (qboolean discard)
 		pcmd->sendsize = 1;
 
 		// [FWGS, 01.06.25] always delta'ing from null
-		/*cl.cmd = &pcmd->cmd;
-
-		MSG_ReadDeltaUsercmd (&buf, &nullcmd, cl.cmd);*/
 		MSG_ReadDeltaUsercmd (&buf, &nullcmd, &pcmd->cmd);
 
 		// make sure what interp info contain angles from different frames
@@ -682,7 +672,6 @@ static void CL_ReadDemoUserCmd (qboolean discard)
 
 			// [FWGS, 01.06.25] record update
 			a->starttime = demo.timestamp;
-			/*VectorCopy (cl.cmd->viewangles, a->viewangles);*/
 			VectorCopy (pcmd->cmd.viewangles, a->viewangles);
 			demo.lasttime = demo.timestamp;
 			}
@@ -778,8 +767,6 @@ static void CL_DemoStartPlayback (int mode)
 	cl.last_command_ack = -1;
 	}
 
-// [FWGS, 01.12.24] перемещено вверх
-
 /***
 =================
 CL_DemoCompleted
@@ -818,10 +805,10 @@ static qboolean CL_DemoMoveToNextSection (void)
 	// switch to next section, we got a dem_stop
 	demo.entry = &demo.directory.entries[demo.entryIndex];
 
-	// ready to continue reading, reset clock.
+	// ready to continue reading, reset clock
 	FS_Seek (cls.demofile, demo.entry->offset, SEEK_SET);
 
-	// time is now relative to this chunk's clock.
+	// time is now relative to this chunk's clock
 	demo.starttime = CL_GetDemoPlaybackClock ();
 	demo.framecount = 0;
 
@@ -1115,7 +1102,8 @@ static void CL_DemoFindInterpolatedViewAngles (float t, float *frac, demoangle_t
 		for (i = 0; i < ANGLE_BACKUP - 2; i++)
 			{
 			at = demo.cmds[imod & ANGLE_MASK].starttime;
-			if (at == 0.0f) break;
+			if (at == 0.0f)
+				break;
 
 			if (at < t)
 				{
@@ -1123,6 +1111,7 @@ static void CL_DemoFindInterpolatedViewAngles (float t, float *frac, demoangle_t
 				i1 = (imod + 0) & ANGLE_MASK;
 				break;
 				}
+
 			imod--;
 			}
 		}
@@ -1184,10 +1173,8 @@ void CL_DemoInterpolateAngles (void)
 		QuaternionSlerp (q2, q1, frac, q);
 		QuaternionAngle (q, cl.viewangles);
 		}
-	/*else if (cl.cmd != NULL)*/
 	else
 		{
-		/*VectorCopy (cl.cmd->viewangles, cl.viewangles);*/
 		VectorCopy (cl.cmd.viewangles, cl.viewangles);
 		}
 	}
@@ -1241,6 +1228,7 @@ void CL_StopPlayback (void)
 	cls.olddemonum = Q_max (-1, cls.demonum - 1);
 	if (demo.directory.entries != NULL)
 		Mem_Free (demo.directory.entries);
+
 	cls.td_lastframe = host.framecount;
 	demo.directory.numentries = 0;
 	demo.directory.entries = NULL;
@@ -1260,8 +1248,10 @@ void CL_StopPlayback (void)
 		}
 	else
 		{
-		// let game known about demo state
-		Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
+		// [FWGS, 01.03.26] let game known about demo state
+		/*Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);*/
+		Cvar_DirectFullSet (&cl_background, "0", FCVAR_READ_ONLY);
+
 		cls.state = ca_disconnected;
 		memset (&cls.serveradr, 0, sizeof (cls.serveradr));
 		cls.set_lastdemo = false;
@@ -1309,9 +1299,11 @@ int GAME_EXPORT CL_GetDemoComment (const char *demoname, char *comment)
 		return false;
 		}
 
-	if ((demohdr.net_protocol != PROTOCOL_VERSION &&
-		demohdr.net_protocol != PROTOCOL_LEGACY_VERSION) ||
-		demohdr.dem_protocol != DEMO_PROTOCOL)
+	// [FWGS, 01.03.26]
+	/*if ((demohdr.net_protocol != PROTOCOL_VERSION &&
+		demohdr.net_protocol != PROTOCOL_LEGACY_VERSION) ||*/
+	if ((demohdr.net_protocol != PROTOCOL_VERSION) ||
+		(demohdr.dem_protocol != DEMO_PROTOCOL))
 		{
 		FS_Close (demfile);
 		Q_strncpy (comment, "<invalid protocol>", MAX_STRING);
@@ -1403,7 +1395,7 @@ void CL_CheckStartupDemos (void)
 		}
 
 	// run demos loop in background mode
-	Cvar_DirectSet (&v_dark, "1");	// [FWGS, 01.07.23]
+	Cvar_DirectSet (&v_dark, "1");
 	cls.demos_pending = false;
 	cls.demonum = 0;
 	CL_NextDemo ();
@@ -1411,7 +1403,7 @@ void CL_CheckStartupDemos (void)
 
 /***
 ==================
-CL_DemoGetName [FWGS, 01.07.23]
+CL_DemoGetName
 ==================
 ***/
 static void CL_DemoGetName (int lastnum, char *filename, size_t size)
@@ -1477,7 +1469,6 @@ void CL_Record_f (void)
 		// scan for a free filename
 		for (n = 0; n < 10000; n++)
 			{
-			// [FWGS, 01.07.23]
 			CL_DemoGetName (n, demoname, sizeof (demoname));
 			Q_snprintf (demopath, sizeof (demopath), "%s.dem", demoname);
 
@@ -1497,7 +1488,7 @@ void CL_Record_f (void)
 		}
 
 	// open the demo file
-	Q_snprintf (demopath, sizeof (demopath), "%s.dem", demoname);	// [FWGS, 01.05.23]
+	Q_snprintf (demopath, sizeof (demopath), "%s.dem", demoname);
 
 	// make sure that old demo is removed
 	if (FS_FileExists (demopath, false))
@@ -1531,13 +1522,14 @@ static qboolean CL_ParseDemoHeader (const char *callee, const char *filename, fi
 		return false;
 		}
 
-	// [FWGS, 01.12.24]
-	/*if ((hdr->net_protocol != PROTOCOL_VERSION) && (hdr->net_protocol != PROTOCOL_LEGACY_VERSION))*/
-	if ((hdr->net_protocol != PROTOCOL_VERSION) && (hdr->net_protocol != PROTOCOL_LEGACY_VERSION) &&
-		(hdr->net_protocol != PROTOCOL_GOLDSRC_VERSION_DEMO))
+	// [FWGS, 01.03.26]
+	/*if ((hdr->net_protocol != PROTOCOL_VERSION) && (hdr->net_protocol != PROTOCOL_LEGACY_VERSION) &&
+		(hdr->net_protocol != PROTOCOL_GOLDSRC_VERSION_DEMO))*/
+	if ((hdr->net_protocol != PROTOCOL_VERSION) && (hdr->net_protocol != PROTOCOL_GOLDSRC_VERSION_DEMO))
 		{
 		Con_Printf (S_ERROR "%s: net protocol outdated (%i should be %i or %i)\n",
-			callee, hdr->net_protocol, PROTOCOL_VERSION, PROTOCOL_LEGACY_VERSION);
+			/*callee, hdr->net_protocol, PROTOCOL_VERSION, PROTOCOL_LEGACY_VERSION);*/
+			callee, hdr->net_protocol, PROTOCOL_VERSION, PROTOCOL_GOLDSRC_VERSION);
 		return false;
 		}
 
@@ -1619,7 +1611,7 @@ void CL_PlayDemo_f (void)
 		{
 		int	c, neg = false;
 
-		demo.header.host_fps = host_maxfps.value;	// [FWGS, 01.07.23]
+		demo.header.host_fps = host_maxfps.value;
 
 		while ((c = FS_Getc (cls.demofile)) != '\n')
 			{

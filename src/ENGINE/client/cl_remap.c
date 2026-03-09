@@ -37,7 +37,7 @@ remap_info_t *CL_GetRemapInfoForEntity (cl_entity_t *e)
 
 /***
 ====================
-CL_CmpStudioTextures [FWGS, 01.08.23]
+CL_CmpStudioTextures
 
 return true if equal
 ====================
@@ -139,7 +139,6 @@ static void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotex
 			break; // found
 		}
 
-	/*Assert (tx != NULL);*/
 	if (!tx)
 		return;
 
@@ -182,8 +181,6 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 
 	Q_snprintf (texname, sizeof (texname), "#%s/%s.mdl", mdlname, name);
 	index = ref.dllFuncs.GL_FindTexture (texname);
-	/*if (!index)
-		return; // couldn't find texture*/
 	if (!index)
 		return;		// couldn't find texture
 
@@ -195,7 +192,6 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 			break; // found
 		}
 
-	/*Assert (tx != NULL);*/
 	if (!tx)
 		return;		// couldn't find texture
 
@@ -328,7 +324,7 @@ static void CL_UpdateRemapInfo (cl_entity_t *entity, int topcolor, int bottomcol
 
 /***
 ====================
-CL_AllocRemapInfo [FWGS, 01.01.24]
+CL_AllocRemapInfo
 
 Allocate new remap info per entity
 and make copy of remap textures
@@ -354,6 +350,7 @@ static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor
 			CL_FreeRemapInfo (clgame.remap_info[i]);
 			clgame.remap_info[i] = NULL;
 			}
+
 		return; // missed or hide model, ignore it
 		}
 
@@ -366,16 +363,20 @@ static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor
 			CL_FreeRemapInfo (clgame.remap_info[i]);
 			clgame.remap_info[i] = NULL;
 			}
+
 		return;
 		}
 
+	// [FWGS, 01.03.26]
 	if (model->type == mod_studio)
 		{
-		phdr = (studiohdr_t *)Mod_StudioExtradata (model);
+		/*phdr = (studiohdr_t *)Mod_StudioExtradata (model);
 		if (!phdr)
-			return;		// bad model?
+			return;		// bad model?*/
+		phdr = (studiohdr_t *)model->cache.data;
+		if (!phdr)
+			return; // bad model?
 
-		// [FWGS, 01.08.23]
 		src = (mstudiotexture_t *)(((byte *)phdr) + phdr->textureindex);
 
 		// NOTE: we must copy all the structures 'mstudiotexture_t' for easy access when model is rendering
@@ -413,10 +414,15 @@ static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor
 				CL_DuplicateTexture (entity, model, &dst[i], topcolor, bottomcolor);
 			}
 		}
+
+	// [FWGS, 01.03.26]
 	else if (model->type == mod_alias)
 		{
-		ahdr = (aliashdr_t *)Mod_AliasExtradata (model);
-		if (!ahdr) return;	// bad model?
+		/*ahdr = (aliashdr_t *)Mod_AliasExtradata (model);
+		if (!ahdr) return;	// bad model?*/
+		ahdr = (aliashdr_t *)model->cache.data;
+		if (!ahdr)
+			return; // bad model?
 
 		// NOTE: we must copy all the structures 'mstudiotexture_t' for easy access when model is rendering
 		if (!clgame.remap_info[i] || clgame.remap_info[i]->model != model)

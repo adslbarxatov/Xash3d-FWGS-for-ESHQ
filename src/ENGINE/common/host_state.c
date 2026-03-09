@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -126,7 +126,9 @@ void COM_ChangeLevel (char const *pNewLevel, char const *pLandmarkName, qboolean
 	Q_strncpy (GameState->levelName, pNewLevel, sizeof (GameState->levelName));
 	GameState->backgroundMap = background;
 
-	if (COM_CheckString (pLandmarkName))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckString (pLandmarkName))*/
+	if (!COM_StringEmptyOrNULL (pLandmarkName))
 		{
 		Q_strncpy (GameState->landmarkName, pLandmarkName, sizeof (GameState->landmarkName));
 		GameState->loadGame = true;

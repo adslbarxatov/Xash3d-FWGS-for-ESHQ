@@ -9,10 +9,11 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
@@ -20,7 +21,7 @@ GNU General Public License for more details
 #include "pm_local.h"
 #include "cl_tent.h"
 #include "studio.h"
-#include "dlight.h"
+/*include "dlight.h"*/
 #include "sound.h"
 #include "input.h"
 
@@ -142,7 +143,7 @@ static qboolean CL_EntityIgnoreLerp (cl_entity_t *e)
 
 /***
 ==================
-CL_EntityCustomLerp
+CL_EntityCustomLerp [FWGS, 01.03.26]
 ==================
 ***/
 static qboolean CL_EntityCustomLerp (cl_entity_t *e)
@@ -156,12 +157,11 @@ static qboolean CL_EntityCustomLerp (cl_entity_t *e)
 		case MOVETYPE_COMPOUND:
 			return false;
 
-		// [FWGS, 01.12.24] ABSOLUTELY STUPID HACK TO ALLOW MONSTERS INTERPOLATION IN GRAVGUNMOD COOP
+		/*// [FWGS, 01.12.24] ABSOLUTELY STUPID HACK TO ALLOW MONSTERS INTERPOLATION IN GRAVGUNMOD COOP
 		// MUST BE REMOVED ONCE WE REMOVE 48 PROTO SUPPORT
 		case MOVETYPE_TOSS:
-			/*if (cls.legacymode && e->model && (e->model->type == mod_studio))*/
 			if ((cls.legacymode == PROTO_LEGACY) && e->model && (e->model->type == mod_studio))
-				return false;
+				return false;*/
 		}
 
 	return true;
@@ -254,7 +254,6 @@ static float CL_GetStudioEstimatedFrame (cl_entity_t *ent)
 		{
 		pstudiohdr = (studiohdr_t *)Mod_StudioExtradata (ent->model);
 
-		/*if (pstudiohdr)*/
 		if (pstudiohdr && pstudiohdr->numseq > 0)
 			{
 			sequence = bound (0, ent->curstate.sequence, pstudiohdr->numseq - 1);
@@ -282,10 +281,12 @@ void CL_ResetLatchedVars (cl_entity_t *ent, qboolean full_reset)
 		memcpy (ent->latched.prevblending, ent->curstate.blending, sizeof (ent->latched.prevblending));
 		ent->latched.sequencetime = ent->curstate.animtime;
 		memcpy (ent->latched.prevcontroller, ent->curstate.controller, sizeof (ent->latched.prevcontroller));
+
 		if (ent->model->type == mod_studio)
 			ent->latched.prevframe = CL_GetStudioEstimatedFrame (ent);
 		else if (ent->model->type == mod_alias)
 			ent->latched.prevframe = ent->curstate.frame;
+
 		ent->prevstate = ent->curstate;
 		}
 
@@ -315,6 +316,21 @@ static void CL_ProcessEntityUpdate (cl_entity_t *ent)
 
 	if (FBitSet (ent->curstate.entityType, ENTITY_NORMAL))
 		COM_NormalizeAngles (ent->curstate.angles);
+
+	// [FWGS, 01.03.26] a1ba: follow entities are sent with null origin, grab their aiment origin here
+	//
+	// null origin leads to triggered entity teleport check and subsequent reset of position history
+	// and empty position history doesn't allow entity to render correctly
+	//
+	// it's probably should be done somewhere else, as goldsrc doesn't do this here
+	// it has MoveAiments function but it's called after LinkPacketEntities :shrug:
+	if ((ent->curstate.movetype == MOVETYPE_FOLLOW) && VectorIsNull (ent->curstate.origin) && ent->curstate.aiment)
+		{
+		cl_entity_t *aiment = CL_GetEntityByIndex (ent->curstate.aiment);
+
+		if (aiment)
+			VectorCopy (aiment->origin, ent->curstate.origin);
+		}
 
 	parametric = (ent->curstate.starttime != 0.0f) && (ent->curstate.impacttime != 0.0f);
 
@@ -379,10 +395,6 @@ static qboolean CL_FindInterpolationUpdates (cl_entity_t *ent, double targettime
 		}
 
 	// [FWGS, 01.12.24]
-	/*if (ph0 != NULL)
-		*ph0 = &ent->ph[i0];
-	if (ph1 != NULL)
-		*ph1 = &ent->ph[i1];*/
 	*ph0 = &ent->ph[i0];
 	*ph1 = &ent->ph[i1];
 
@@ -404,9 +416,6 @@ static void CL_PureOrigin (cl_entity_t *ent, double t, vec3_t outorigin, vec3_t 
 
 	// NOTE: ph0 is next, ph1 is a prev
 	CL_FindInterpolationUpdates (ent, t, &ph0, &ph1);
-
-	/*if (!ph0 || !ph1)
-		return;*/
 
 	t0 = ph0->animtime;
 	t1 = ph1->animtime;
@@ -480,9 +489,6 @@ static int CL_InterpolateModel (cl_entity_t *e)
 
 	t = cl.time - cl_interp.value;
 	CL_FindInterpolationUpdates (e, t, &ph0, &ph1);
-
-	/*if ((ph0 == NULL) || (ph1 == NULL))
-		return 0;*/
 
 	t1 = ph1->animtime;
 	t2 = ph0->animtime;
@@ -659,12 +665,10 @@ FRAME PARSING
 =========================================================================
 ***/
 
-// [FWGS, 01.12.24]
-/*static qboolean CL_ParseEntityNumFromPacket (sizebuf_t *msg, int *newnum)*/
+// [FWGS, 01.03.26]
 static qboolean CL_ParseEntityNumFromPacket (sizebuf_t *msg, int *newnum, connprotocol_t proto)
 	{
-	/*if (cls.legacymode)*/
-	if (proto == PROTO_LEGACY)
+	/*if (proto == PROTO_LEGACY)
 		{
 		*newnum = MSG_ReadWord (msg);
 		if (*newnum == 0)
@@ -675,10 +679,14 @@ static qboolean CL_ParseEntityNumFromPacket (sizebuf_t *msg, int *newnum, connpr
 		*newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
 		if (*newnum == LAST_EDICT)
 			return false;
-		}
+		}*/
+	*newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
+	if (*newnum == LAST_EDICT)
+		return false;
 
 	return true;
 	}
+
 /***
 =================
 CL_FlushEntityPacket [FWGS, 01.12.24]
@@ -686,7 +694,6 @@ CL_FlushEntityPacket [FWGS, 01.12.24]
 Read and ignore whole entity packet
 =================
 ***/
-/*static void CL_FlushEntityPacket (sizebuf_t *msg)*/
 static void CL_FlushEntityPacket (sizebuf_t *msg, connprotocol_t proto)
 	{
 	int		newnum;
@@ -700,7 +707,6 @@ static void CL_FlushEntityPacket (sizebuf_t *msg, connprotocol_t proto)
 	// read it all, but ignore it
 	while (1)
 		{
-		/*if (!CL_ParseEntityNumFromPacket (msg, &newnum))	// [FWGS, 01.05.23]*/
 		if (!CL_ParseEntityNumFromPacket (msg, &newnum, proto))
 			break; // done
 
@@ -806,8 +812,6 @@ static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_s
 		SETVISBIT (frame->flags, pack);
 
 		// release beams from previous entity
-		/*CL_KillDeadBeams (ent);*/
-
 		// [FWGS, 01.12.24] a1ba: check that this entity number was never used on client
 		// as beams can be transferred before this entity was sent to client
 		// (for example, beam was sent over during beam entity spawn
@@ -823,19 +827,17 @@ static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_s
 
 /***
 ==================
-CL_ParsePacketEntities [FWGS, 01.12.24]
+CL_ParsePacketEntities
 
 An svc_packetentities has just been parsed, deal with the
 rest of the data stream
 ==================
 ***/
-/*int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta)*/
 int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto)
 	{
 	frame_t *newframe, *oldframe;
 	int		oldindex, newnum, oldnum;
 	int		playerbytes = 0;
-	/*int		oldpacket;*/
 	int		bufStart;
 	entity_state_t *oldent;
 	qboolean		player;
@@ -845,12 +847,12 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 	if (cls.changelevel && !delta && cls.demorecording)
 		CL_WriteDemoJumpTime ();
 
-	// sentinel count. save it for debug checking
-	/*if (cls.legacymode)*/
-	if (proto == PROTO_LEGACY)
+	// [FWGS, 01.03.26] Sentinel count. Save it for debug checking
+	/*if (proto == PROTO_LEGACY)
 		count = MSG_ReadWord (msg);
 	else
-		count = MSG_ReadUBitLong (msg, MAX_VISIBLE_PACKET_BITS) + 1;
+		count = MSG_ReadUBitLong (msg, MAX_VISIBLE_PACKET_BITS) + 1;*/
+	count = MSG_ReadUBitLong (msg, MAX_VISIBLE_PACKET_BITS) + 1;
 
 	newframe = &cl.frames[cl.parsecountmod];
 
@@ -862,34 +864,11 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 
 	if (delta)
 		{
-		/*int	subtracted;
-
-		oldpacket = MSG_ReadByte (msg);
-		subtracted = (cls.netchan.incoming_sequence - oldpacket) & 0xFF;
-
-		if (subtracted == 0)
-			{
-			Con_NPrintf (2, "^3Warning:^1 update too old\n^7\n");
-			CL_FlushEntityPacket (msg);
-			return playerbytes;
-			}
-
-		if (subtracted >= CL_UPDATE_MASK)
-			{
-			// we can't use this, it is too old
-			Con_NPrintf (2, "^3Warning:^1 delta frame is too old^7\n");
-			CL_FlushEntityPacket (msg);
-			return playerbytes;
-			}*/
-
 		uint oldpacket = MSG_ReadByte (msg);
 		oldframe = &cl.frames[oldpacket & CL_UPDATE_MASK];
 
-		/*if ((cls.next_client_entities - oldframe->first_entity) > (cls.num_client_entities - NUM_PACKET_ENTITIES))*/
 		if (!CL_ValidateDeltaPacket (oldpacket, oldframe))
 			{
-			/*Con_NPrintf (2, "^3Warning:^1 delta frame is too old^7\n");
-			CL_FlushEntityPacket (msg);*/
 			CL_FlushEntityPacket (msg, proto);
 			return playerbytes;
 			}
@@ -898,8 +877,6 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 		{
 		// this is a full update that we can start delta compressing from now
 		oldframe = NULL;
-		/*oldpacket = -1;		// delta too old or is initial message
-		cl.send_reply = true;	// send reply*/
 		cls.demowaiting = false;	// we can start recording now
 		}
 
@@ -908,28 +885,10 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 
 	oldent = NULL;
 	oldindex = 0;
-
-	/*if (!oldframe)
-		{
-		oldnum = MAX_ENTNUMBER;
-		}
-	else
-		{
-		if (oldindex >= oldframe->num_entities)
-			{
-			oldnum = MAX_ENTNUMBER;
-			}
-		else
-			{
-			oldent = &cls.packet_entities[(oldframe->first_entity + oldindex) % cls.num_client_entities];
-			oldnum = oldent->number;
-			}
-		}*/
 	oldnum = CL_UpdateOldEntNum (oldindex, oldframe, &oldent);
 
 	while (1)
 		{
-		/*if (!CL_ParseEntityNumFromPacket (msg, &newnum))	// [FWGS, 01.05.23]*/
 		if (!CL_ParseEntityNumFromPacket (msg, &newnum, proto))
 			break; // done
 
@@ -941,17 +900,6 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 			{
 			// one or more entities from the old packet are unchanged
 			CL_DeltaEntity (msg, newframe, oldnum, oldent, false);
-			/*oldindex++;
-
-			if (oldindex >= oldframe->num_entities)
-				{
-				oldnum = MAX_ENTNUMBER;
-				}
-			else
-				{
-				oldent = &cls.packet_entities[(oldframe->first_entity + oldindex) % cls.num_client_entities];
-				oldnum = oldent->number;
-				}*/
 			oldnum = CL_UpdateOldEntNum (++oldindex, oldframe, &oldent);
 			}
 
@@ -963,17 +911,6 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 			if (player)
 				playerbytes += MSG_GetNumBytesRead (msg) - bufStart;
 
-			/*oldindex++;
-
-			if (oldindex >= oldframe->num_entities)
-				{
-				oldnum = MAX_ENTNUMBER;
-				}
-			else
-				{
-				oldent = &cls.packet_entities[(oldframe->first_entity + oldindex) % cls.num_client_entities];
-				oldnum = oldent->number;
-				}*/
 			oldnum = CL_UpdateOldEntNum (++oldindex, oldframe, &oldent);
 			continue;
 			}
@@ -993,17 +930,6 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 		{
 		// one or more entities from the old packet are unchanged
 		CL_DeltaEntity (msg, newframe, oldnum, oldent, false);
-		/*oldindex++;
-
-		if (oldindex >= oldframe->num_entities)
-			{
-			oldnum = MAX_ENTNUMBER;
-			}
-		else
-			{
-			oldent = &cls.packet_entities[(oldframe->first_entity + oldindex) % cls.num_client_entities];
-			oldnum = oldent->number;
-			}*/
 		oldnum = CL_UpdateOldEntNum (++oldindex, oldframe, &oldent);
 		}
 
@@ -1027,7 +953,6 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 		cls.signon = SIGNONS;
 
 		// Clear loading plaque
-		/*CL_SignonReply ();*/
 		CL_SignonReply (proto);
 		}
 
@@ -1039,6 +964,7 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 INTERPOLATE BETWEEN FRAMES TO GET RENDERING PARMS
 ==========================================================================
 ***/
+
 /***
 =============
 CL_AddVisibleEntity
@@ -1048,7 +974,7 @@ all the visible entities should pass this filter
 ***/
 qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 	{
-	qboolean draw_player = true;	// [FWGS, 01.05.23]
+	qboolean draw_player = true;
 
 	if (!ent || !ent->model)
 		return false;
@@ -1058,7 +984,7 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 		{
 		cl.local.apply_effects = true;
 
-		if (!CL_IsThirdPerson () && (ent->index == cl.viewentity))	// [FWGS, 01.05.23]
+		if (!CL_IsThirdPerson () && (ent->index == cl.viewentity))
 			{
 			// we don't draw player in default renderer in firstperson mode
 			// but let the client.dll know about player entity anyway
@@ -1067,7 +993,7 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 			}
 		}
 
-	// [FWGS, 01.04.23] check for adding this entity
+	// check for adding this entity
 	if (!clgame.dllFuncs.pfnAddEntity (entityType, ent, ent->model->name))
 		{
 		// local player was reject by game code, so ignore any effects
@@ -1076,7 +1002,7 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 		return false;
 		}
 
-	if (!draw_player)	// [FWGS, 01.05.23]
+	if (!draw_player)
 		return false;
 
 	if (entityType == ET_BEAM)
@@ -1402,7 +1328,7 @@ think thirdperson
 ***/
 void CL_MoveThirdpersonCamera (void)
 	{
-	if (cls.state == ca_disconnected || cls.state == ca_cinematic)
+	if ((cls.state == ca_disconnected) || (cls.state == ca_cinematic))
 		return;
 
 	// think thirdperson camera
@@ -1422,7 +1348,7 @@ void CL_EmitEntities (void)
 	if (cl.paused) return; // don't waste time
 
 	// not in server yet, no entities to redraw
-	if (cls.state != ca_active || !cl.validsequence)
+	if ((cls.state != ca_active) || !cl.validsequence)
 		return;
 
 	// make sure we have at least one valid update
@@ -1430,7 +1356,6 @@ void CL_EmitEntities (void)
 		return;
 
 	// [FWGS, 01.12.24] animate lightestyles
-	/*ref.dllFuncs.CL_RunLightStyles ();*/
 	ref.dllFuncs.CL_RunLightStyles (CL_GetLightStyle (0));
 
 	// decay dynamic lights
@@ -1492,7 +1417,7 @@ qboolean CL_GetEntitySpatialization (channel_t *ch)
 	ent = CL_GetEntityByIndex (ch->entnum);
 
 	// entity is not present on the client but has valid origin
-	if (!ent || !ent->model || ent->curstate.messagenum != cl.parsecount)
+	if (!ent || !ent->model || (ent->curstate.messagenum != cl.parsecount))
 		return valid_origin;
 
 	// setup origin
@@ -1511,14 +1436,14 @@ qboolean CL_GetEntitySpatialization (channel_t *ch)
 
 qboolean CL_GetMovieSpatialization (rawchan_t *ch)
 	{
-	cl_entity_t *ent;
+	cl_entity_t		*ent;
 	qboolean		valid_origin;
 
 	valid_origin = VectorIsNull (ch->origin) ? false : true;
 	ent = CL_GetEntityByIndex (ch->entnum);
 
 	// entity is not present on the client but has valid origin
-	if (!ent || !ent->index || ent->curstate.messagenum == 0)
+	if (!ent || !ent->index || (ent->curstate.messagenum == 0))
 		return valid_origin;
 
 	// setup origin
@@ -1535,4 +1460,4 @@ qboolean CL_GetMovieSpatialization (rawchan_t *ch)
 	return true;
 	}
 
-// [FWGS, 01.02.24] удалена CL_ExtraUpdate
+// [FWGS, 01.02.24] removed CL_ExtraUpdate

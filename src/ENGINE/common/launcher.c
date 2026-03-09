@@ -15,23 +15,23 @@ GNU General Public License for more details
 
 // [FWGS, 01.07.25]
 #if XASH_ENABLE_MAIN
-#include "build.h"
+#include "..\library_suffix\build.h"
 #include "common.h"
 
 #if XASH_SDLMAIN
 	#include <SDL.h>
 #endif
 
-#if XASH_EMSCRIPTEN
-	#include <emscripten.h>
-#endif
+// [FWGS, 01.03.26]
+/*if XASH_EMSCRIPTEN
+	include <emscripten.h>
+endif*/
 
 // [FWGS, 01.08.24]
 #ifndef XASH_GAMEDIR
 	#define XASH_GAMEDIR "valve" // ! Replace with your default (base) game directory !
 #endif
 
-// [FWGS, 01.11.23]
 #if XASH_WIN32
 	#error "Single-binary or dedicated builds aren't supported for Windows!"
 #endif
@@ -51,8 +51,9 @@ static int Sys_Start (void)
 	{
 	Q_strncpy (szGameDir, XASH_GAMEDIR, sizeof (szGameDir));
 
-#if XASH_EMSCRIPTEN
-#if !XASH_DEDICATED
+// [FWGS, 01.03.26]
+/*if XASH_EMSCRIPTEN
+if !XASH_DEDICATED
 
 	EM_ASM (try
 		{
@@ -61,7 +62,7 @@ static int Sys_Start (void)
 		}
 	catch (e) {};);
 
-#else
+else
 
 	EM_ASM (try
 		{
@@ -70,10 +71,10 @@ static int Sys_Start (void)
 		}
 	catch (e) {};);
 
-#endif
-#endif
+endif
+endif*/
 
-	// [FWGS, 01.11.25]
+// [FWGS, 01.11.25]
 #if XASH_IOS
 	IOS_LaunchDialog ();
 	szArgc = IOS_GetArgs (&szArgv);

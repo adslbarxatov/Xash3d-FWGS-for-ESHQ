@@ -117,9 +117,15 @@ static void CL_CreatePlaylist (const char *filename)
 	{
 	file_t *f;
 
+	// [FWGS, 01.03.26]
 	f = FS_Open (filename, "w", false);
+	/*if (!f)
+		return;*/
 	if (!f)
+		{
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, filename);
 		return;
+		}
 
 	// make standard cdaudio playlist
 	FS_Print (f, "blank\n");			// #1
@@ -276,7 +282,9 @@ void CL_CenterPrint (const char *text, float y)
 	{
 	cl_font_t *font = Con_GetCurFont ();
 
-	if (!COM_CheckString (text) || !font || !font->valid)
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (text) || !font || !font->valid)*/
+	if (COM_StringEmptyOrNULL (text) || !font || !font->valid)
 		return;
 
 	clgame.centerPrint.totalWidth = 0;
@@ -593,23 +601,25 @@ static void CL_InitTitles (const char *filename)
 	if (!pMemFile)
 		return;
 
-	CL_TextMessageParse (pMemFile, fileSize);
+	// [FWGS, 01.03.26]
+	/*CL_TextMessageParse (pMemFile, fileSize);*/
+	clgame.titles = CL_TextMessageParse (clgame.mempool, pMemFile, fileSize, &clgame.numTitles);
 	Mem_Free (pMemFile);
 	}
 
 /***
 ====================
-CL_HudMessage [FWGS, 01.11.25]
+CL_HudMessage [FWGS, 01.03.26]
 
 Template to show hud messages
 ====================
 ***/
 void CL_HudMessage (const char *pMessage)
 	{
-	if (!COM_CheckString (pMessage))
+	/*if (!COM_CheckString (pMessage))*/
+	if (COM_StringEmptyOrNULL (pMessage))
 		return;
 
-	/*CL_DispatchUserMessage ("HudText", Q_strlen (pMessage), (void *)pMessage);*/
 	CL_DispatchUserMessage ("HudText", Q_strlen (pMessage) + 1, (void *)pMessage);
 	}
 
@@ -1144,8 +1154,15 @@ void CL_ClearSpriteTextures (void)
 	{
 	int	i;
 
+	// [FWGS, 01.03.26]
 	for (i = 1; i < MAX_CLIENT_SPRITES; i++)
-		clgame.sprites[i].needload = NL_UNREFERENCED;
+		{
+		if (clgame.sprites[i].needload == NL_UNREFERENCED)
+			continue;
+
+		clgame.sprites[i].needload = NL_FREE_UNUSED;
+		}
+	/*clgame.sprites[i].needload = NL_UNREFERENCED;*/
 	}
 
 // [FWGS, 01.12.24] it's a Valve default value for LoadMapSprite (probably must be power of two)
@@ -1331,8 +1348,6 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 	else
 		{
 		// [FWGS, 01.11.25]
-		/*Mod_LoadSpriteModel (m_pSprite, buf, &loaded);
-		ref.dllFuncs.Mod_ProcessRenderData (m_pSprite, true, buf);*/
 		Mod_LoadSpriteModel (m_pSprite, buf, size, &loaded);
 		ref.dllFuncs.Mod_ProcessRenderData (m_pSprite, true, buf, size);
 		}
@@ -1352,7 +1367,7 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 
 /***
 =============
-CL_LoadSpriteModel [FWGS, 01.01.24]
+CL_LoadSpriteModel
 
 some sprite models is exist only at client: HUD sprites,
 tent sprites or overview images
@@ -1364,9 +1379,11 @@ static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFla
 	model_t	*mod;
 	int		i, start;
 
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		{
-		Con_Reportf (S_ERROR "%s: bad name!\n", __func__);	// [FWGS, 01.07.24]
+		Con_Reportf (S_ERROR "%s: bad name!\n", __func__);
 		return NULL;
 		}
 
@@ -1392,9 +1409,11 @@ static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFla
 	// Use low indices only for HUD sprites for GoldSrc bug compatibility
 	start = type == SPR_HUDSPRITE ? 0 : MAX_CLIENT_SPRITES / 2;
 
+	// [FWGS, 01.03.26]
 	for (i = 0, mod = &clgame.sprites[start]; i < MAX_CLIENT_SPRITES / 2; i++, mod++)
 		{
-		if (!mod->name[0])
+		/*if (!mod->name[0])*/
+		if (mod->needload == NL_UNREFERENCED)
 			break; // this is a valid spot
 		}
 
@@ -1851,12 +1870,14 @@ static int GAME_EXPORT pfnHookUserMsg (const char *pszName, pfnUserMsgHook pfn)
 
 /***
 =============
-pfnServerCmd [FWGS, 01.05.23]
+pfnServerCmd
 =============
 ***/
 static int GAME_EXPORT pfnServerCmd (const char *szCmdString)
 	{
-	if (!COM_CheckString (szCmdString))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (szCmdString))*/
+	if (COM_StringEmptyOrNULL (szCmdString))
 		return 0;
 
 	// just like the client typed "cmd xxxxx" at the console
@@ -1873,7 +1894,9 @@ pfnClientCmd
 ***/
 static int GAME_EXPORT pfnClientCmd (const char *szCmdString)
 	{
-	if (!COM_CheckString (szCmdString))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (szCmdString))*/
+	if (COM_StringEmptyOrNULL (szCmdString))
 		return 0;
 
 	if (cls.initialized)
@@ -1898,7 +1921,9 @@ pfnFilteredClientCmd
 ***/
 static int GAME_EXPORT pfnFilteredClientCmd (const char *szCmdString)
 	{
-	if (!COM_CheckString (szCmdString))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (szCmdString))*/
+	if (COM_StringEmptyOrNULL (szCmdString))
 		return 0;
 
 	// a1ba:
@@ -2082,7 +2107,9 @@ prints directly into console (can skip notify)
 ***/
 static void GAME_EXPORT pfnConsolePrint (const char *string)
 	{
-	if (!COM_CheckString (string))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (string))*/
+	if (COM_StringEmptyOrNULL (string))
 		return;
 
 	// WON GoldSrc behavior
@@ -2448,7 +2475,9 @@ static int GAME_EXPORT CL_FindModelIndex (const char *m)
 	char	filepath[MAX_QPATH];
 	int		i;
 
-	if (!COM_CheckString (m))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (m))*/
+	if (COM_StringEmptyOrNULL (m))
 		return 0;
 
 	Q_strncpy (filepath, m, sizeof (filepath));
@@ -2734,10 +2763,11 @@ static const char *pfnGetLevelName (void)
 	{
 	static char	mapname[64];
 
-	// a1ba: don't return maps/.bsp if no map is loaded yet
+	// [FWGS, 01.03.26] a1ba: don't return maps/.bsp if no map is loaded yet
 	// in GoldSrc this is handled by cl.levelname field but we don't have it
 	// so emulate this behavior here
-	if ((cls.state >= ca_connected) && COM_CheckStringEmpty (clgame.mapname))
+	/*if ((cls.state >= ca_connected) && COM_CheckStringEmpty (clgame.mapname))*/
+	if ((cls.state >= ca_connected) && !COM_StringEmpty (clgame.mapname))
 		Q_snprintf (mapname, sizeof (mapname), "maps/%s.bsp", clgame.mapname);
 	else
 		mapname[0] = '\0'; // not in game
@@ -2795,7 +2825,7 @@ static void GAME_EXPORT COM_AddAppDirectoryToSearchPath (const char *pszBaseDir,
 
 /***
 ===========
-COM_ExpandFilename [FWGS, 01.02.24]
+COM_ExpandFilename
 
 Finds the file in the search path, copies over the name with the full path name.
 This doesn't search in the pak file
@@ -2805,7 +2835,9 @@ static int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBu
 	{
 	char result[MAX_SYSPATH];
 
-	if (!COM_CheckString (fileName) || !nameOutBuffer || nameOutBufferSize <= 0)
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (fileName) || !nameOutBuffer || nameOutBufferSize <= 0)*/
+	if (COM_StringEmptyOrNULL (fileName) || !nameOutBuffer || (nameOutBufferSize <= 0))
 		return 0;
 
 	// filename examples:
@@ -2914,7 +2946,9 @@ pfnServerCmdUnreliable
 ***/
 static int GAME_EXPORT pfnServerCmdUnreliable (char *szCmdString)
 	{
-	if (!COM_CheckString (szCmdString))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (szCmdString))*/
+	if (COM_StringEmptyOrNULL (szCmdString))
 		return 0;
 
 	MSG_BeginClientCmd (&cls.datagram, clc_stringcmd);
@@ -2925,15 +2959,21 @@ static int GAME_EXPORT pfnServerCmdUnreliable (char *szCmdString)
 
 /***
 =============
-pfnGetMousePos
+pfnGetMousePos [FWGS, 01.03.26]
 =============
 ***/
 static void GAME_EXPORT pfnGetMousePos (struct tagPOINT *ppt)
 	{
+	int x, y;
+
 	if (!ppt)
 		return;
 
-	Platform_GetMousePos (&ppt->x, &ppt->y);
+	/*Platform_GetMousePos (&ppt->x, &ppt->y);*/
+	Platform_GetMousePos (&x, &y);
+
+	ppt->x = x;
+	ppt->y = y;
 	}
 
 /***
@@ -3167,14 +3207,16 @@ static void GAME_EXPORT pfnVguiWrap2_GetMouseDelta (int *x, int *y)
 
 /***
 =============
-pfnParseFile
+pfnParseFile [FWGS, 01.03.26]
 
 handle colon separately
 =============
 ***/
 static char *pfnParseFile (char *data, char *token)
 	{
-	return COM_ParseFileSafe (data, token, PFILE_TOKEN_MAX_LENGTH, PFILE_HANDLECOLON, NULL, NULL);
+	/*return COM_ParseFileSafe (data, token, PFILE_TOKEN_MAX_LENGTH, PFILE_HANDLECOLON, NULL, NULL);*/
+	// GoldSrc uses 1024 byte tokens
+	return COM_ParseFileSafe (data, token, 1024, PFILE_HANDLECOLON, NULL, NULL);
 	}
 
 /***
@@ -3460,9 +3502,10 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	nr->resp.remote_address = *remote_address;
 	nr->flags = flags;
 	
-	// [FWGS, 01.12.24] local servers request
-	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO " %i %i %i", FBitSet (flags,
-		FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);
+	// [FWGS, 01.03.26] local servers request
+	/*Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO " %i %i %i", FBitSet (flags,
+		FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);*/
+	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO" %i %i %i", PROTOCOL_VERSION, context, request);
 	}
 
 /***
@@ -3921,7 +3964,9 @@ void CL_UnloadProgs (void)
 	if (GI->internal_vgui_support)
 		VGui_Shutdown ();
 
-	Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
+	// [FWGS, 01.03.26]
+	/*Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);*/
+	Cvar_DirectFullSet (&cl_background, "0", FCVAR_READ_ONLY);
 	Cvar_FullSet ("host_clientloaded", "0", FCVAR_READ_ONLY);
 
 	Cvar_Unlink (FCVAR_CLIENTDLL);
@@ -3933,7 +3978,6 @@ void CL_UnloadProgs (void)
 	memset (&clgame, 0, sizeof (clgame));
 	}
 
-// [FWGS, 01.11.25]
 qboolean CL_LoadProgs (const char *name)
 	{
 	static playermove_t	gpMove;
@@ -3965,13 +4009,11 @@ qboolean CL_LoadProgs (const char *name)
 	// NOTE: important stuff!
 	// vgui must startup BEFORE loading client.dll to avoid get error
 	// ERROR_NOACESS during LoadLibrary
-	/*if (!GI->internal_vgui_support && VGui_LoadProgs (NULL))*/
 	if (!try_internal_vgui_support && VGui_LoadProgs (NULL))
 		VGui_Startup (refState.width, refState.height);
 
 	// we failed to load vgui_support, but let's probe client.dll for support anyway
 	else
-		/*GI->internal_vgui_support = true;*/
 		try_internal_vgui_support = true;
 
 	clgame.hInstance = COM_LoadLibrary (name, false, false);
@@ -3979,24 +4021,25 @@ qboolean CL_LoadProgs (const char *name)
 		return false;
 
 	// delayed vgui initialization for internal support
-	/*if (GI->internal_vgui_support && VGui_LoadProgs (clgame.hInstance))*/
 	if (try_internal_vgui_support && VGui_LoadProgs (clgame.hInstance))
 		VGui_Startup (refState.width, refState.height);
 
 	// clear exports
 	ClearExports (cdll_exports, ARRAYSIZE (cdll_exports));
 
-	// trying to get single export
-	if ((GetClientAPI = (void *)COM_GetProcAddress (clgame.hInstance, "GetClientAPI")) != NULL)
+	// [FWGS, 01.03.26] trying to get single export
+	/*if ((GetClientAPI = (void *)COM_GetProcAddress (clgame.hInstance, "GetClientAPI")) != NULL)*/
+	if ((GetClientAPI = COM_GetProcAddress (clgame.hInstance, "GetClientAPI")) != NULL)
 		{
-		Con_Reportf ("%s: found single callback export\n", __func__);	// [FWGS, 01.07.24]
+		Con_Reportf ("%s: found single callback export\n", __func__);
 
 		// trying to fill interface now
 		GetClientAPI (&clgame.dllFuncs);
 		}
-	else if ((GetClientAPI = (void *)COM_GetProcAddress (clgame.hInstance, "F")) != NULL)
+	/*else if ((GetClientAPI = (void *)COM_GetProcAddress (clgame.hInstance, "F")) != NULL)*/
+	else if ((GetClientAPI = COM_GetProcAddress (clgame.hInstance, "F")) != NULL)
 		{
-		Con_Reportf ("%s: found single callback export (secured client dlls)\n", __func__);	// [FWGS, 01.07.24]
+		Con_Reportf ("%s: found single callback export (secured client dlls)\n", __func__);
 
 		// trying to fill interface now
 		CL_GetSecuredClientAPI (GetClientAPI);
@@ -4005,10 +4048,12 @@ qboolean CL_LoadProgs (const char *name)
 	if (GetClientAPI != NULL) // check critical functions again
 		valid_single_export = ValidateExports (cdll_exports, ARRAYSIZE (cdll_exports));
 
+	// [FWGS, 01.03.26]
 	for (i = 0; i < ARRAYSIZE (cdll_exports); i++)
 		{
 		if (*(cdll_exports[i].func) != NULL)
-			continue;	// already gott through 'F' or 'GetClientAPI'
+			/*continue;	// already gott through 'F' or 'GetClientAPI'*/
+			continue; // already got through 'F' or 'GetClientAPI'
 
 		// functions are cleared before all the extensions are evaluated
 		if ((*(cdll_exports[i].func) = (void *)COM_GetProcAddress (clgame.hInstance, cdll_exports[i].name)) == NULL)
@@ -4020,8 +4065,15 @@ qboolean CL_LoadProgs (const char *name)
 			}
 		}
 
+	// [FWGS, 01.03.26]
 	if (missed_exports)
 		{
+		if (clgame.dllFuncs.pfnInit && clgame.dllFuncs.pfnRedraw && clgame.dllFuncs.pfnReset &&
+			clgame.dllFuncs.pfnUpdateClientData && clgame.dllFuncs.pfnVidInit && clgame.dllFuncs.pfnInitialize)
+			COM_PushLibraryError ("missing essential exports; outdated DLL!!!");
+		else
+			COM_PushLibraryError ("missing essential exports");
+
 		COM_FreeLibrary (clgame.hInstance);
 		clgame.hInstance = NULL;
 		return false;
@@ -4042,10 +4094,13 @@ qboolean CL_LoadProgs (const char *name)
 			Con_Reportf (S_WARN "%s: failed to get address of %s proc\n", __func__, cdll_new_exports[i].name);
 		}
 
+	// [FWGS, 01.03.26]
 	if (!clgame.dllFuncs.pfnInitialize (&gEngfuncs, CLDLL_INTERFACE_VERSION))
 		{
+		COM_PushLibraryError ("can't init client API");
+
 		COM_FreeLibrary (clgame.hInstance);
-		Con_Reportf ("%s: can't init client API\n", __func__);	// [FWGS, 01.07.24]
+		Con_Reportf ("%s: can't init client API\n", __func__);
 		clgame.hInstance = NULL;
 		return false;
 		}
