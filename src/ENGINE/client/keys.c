@@ -316,12 +316,17 @@ static int Key_GetKey (const char *pBinding)
 
 /***
 =============
-Key_LookupBinding [FWGS, 22.01.25]
+Key_LookupBinding [FWGS, 01.03.26]
 =============
 ***/
 const char *Key_LookupBinding (const char *pBinding)
 	{
-	return Key_KeynumToString (Key_GetKey (pBinding));
+	/*return Key_KeynumToString (Key_GetKey (pBinding));*/
+	int key = Key_GetKey (pBinding);
+	if (key == -1)
+		return NULL;
+
+	return Key_KeynumToString (key);
 	}
 
 /***
@@ -461,13 +466,21 @@ void Key_WriteBindings (file_t *f)
 
 	FS_Printf (f, "unbindall\n");
 
+	// [FWGS, 01.03.26]
 	for (i = 0; i < 256; i++)
 		{
-		if (!COM_CheckString (keys[i].binding))
+		/*if (!COM_CheckString (keys[i].binding))*/
+		if (COM_StringEmptyOrNULL (keys[i].binding))
 			continue;
 
 		Cmd_Escape (newCommand, keys[i].binding, sizeof (newCommand));
-		FS_Printf (f, "bind %s \"%s\"\n", Key_KeynumToString (i), newCommand);
+		/*FS_Printf (f, "bind %s \"%s\"\n", Key_KeynumToString (i), newCommand);*/
+
+		// NOTE: as TheKingFireS figured out, some particular mods (like CoF) do not
+		// use LookupBinding to find key by it's binding and instead parse config.cfg
+		// to look for bind commands.
+		// CoF expects key to be enclosed in double quotes
+		FS_Printf (f, "bind \"%s\" \"%s\"\n", Key_KeynumToString (i), newCommand);
 		}
 	}
 
@@ -480,9 +493,11 @@ static void Key_Bindlist_f (void)
 	{
 	int	i;
 
+	// [FWGS, 01.03.26]
 	for (i = 0; i < 256; i++)
 		{
-		if (!COM_CheckString (keys[i].binding))
+		/*if (!COM_CheckString (keys[i].binding))*/
+		if (COM_StringEmptyOrNULL (keys[i].binding))
 			continue;
 
 		Con_Printf ("%s \"%s\"\n", Key_KeynumToString (i), keys[i].binding);
@@ -1030,7 +1045,6 @@ static qboolean OSK_KeyEvent (int key, int down)
 	// [FWGS, 01.11.25]
 	if (osk.curbutton.val == 0)
 		{
-		/*if (key == K_ENTER)*/
 		if ((key == K_ENTER) || (key == K_A_BUTTON))
 			{
 			osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];

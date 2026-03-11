@@ -88,7 +88,9 @@ void SCR_DrawFPS (int height)
 		default: return;
 		}
 
-	newtime = Sys_DoubleTime ();
+	// [FWGS, 01.03.26]
+	/*newtime = Sys_DoubleTime ();*/
+	newtime = Platform_DoubleTime ();
 	if (newtime >= nexttime)
 		{
 		framerate = framecount / (newtime - lasttime);
@@ -102,6 +104,10 @@ void SCR_DrawFPS (int height)
 
 	if (calc < 1.0f)
 		{
+		// [FWGS, 01.03.26]
+		if (calc == 0.0f)
+			return;
+
 		Q_snprintf (fpsstring, sizeof (fpsstring), "%4i spf", (int)(1.0f / calc + 0.5f));
 		MakeRGBA (color, 255, 0, 0, 255);
 		}
@@ -143,7 +149,6 @@ void SCR_DrawPos (void)
 		return;
 
 	// [FWGS, 25.12.24]
-	/*ent = CL_EDICT_NUM (cl.playernum + 1);*/
 	ent = CL_GetLocalPlayer ();
 	speed = VectorLength (cl.simvel);
 
@@ -162,11 +167,11 @@ void SCR_DrawPos (void)
 	Con_DrawString (refState.width / 2, 4, msg, color);
 	}
 
-/*
+/***
 ==============
 SCR_DrawEnts [FWGS, 01.07.24]
 ==============
-*/
+***/
 void SCR_DrawEnts (void)
 	{
 	rgba_t	color = { 255, 255, 255, 255 };
@@ -223,13 +228,13 @@ void SCR_DrawEnts (void)
 		}
 	}
 
-/*
+/***
 ==============
 SCR_DrawUserCmd [FWGS, 01.12.24]
 
 another debugging aids, shows pressed buttons
 ==============
-*/
+***/
 void SCR_DrawUserCmd (void)
 	{
 	runcmd_t *pcmd = &cl.commands[(cls.netchan.outgoing_sequence - 1) & CL_UPDATE_MASK];
@@ -347,7 +352,6 @@ void SCR_NetSpeeds (void)
 		Q_memprint (cls.netchan.total_sended)
 	);
 
-	// [FWGS, 01.04.23]
 	x = refState.width - 320 * font->scale;
 	y = 384;
 
@@ -369,7 +373,6 @@ void SCR_RSpeeds (void)
 
 	if (ref.dllFuncs.R_SpeedsMessage (msg, sizeof (msg)))
 		{
-		// [FWGS, 01.04.23]
 		int	x, y;
 		rgba_t	color;
 		cl_font_t *font = Con_GetCurFont ();
@@ -413,9 +416,15 @@ static void VID_WriteOverviewScript (void)
 
 	Q_snprintf (filename, sizeof (filename), "overviews/%s.txt", clgame.mapname);
 
+	// [FWGS, 01.03.26]
 	f = FS_Open (filename, "w", false);
+	/*if (!f)
+		return;*/
 	if (!f)
+		{
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, filename);
 		return;
+		}
 
 	FS_Printf (f, "// overview description file for %s.bsp\n\n", clgame.mapname);
 	FS_Print (f, "global\n{\n");
@@ -617,7 +626,6 @@ SCR_TileClear [FWGS, 01.12.24]
 ***/
 void SCR_TileClear (void)
 	{
-	/*int		i, top, bottom, left, right;*/
 	int		i, top, bottom, left, right, texnum;
 	dirty_t	clear;
 	float	tw, th;
@@ -677,7 +685,6 @@ void SCR_TileClear (void)
 		{
 		// clear above view screen
 		i = clear.y2 < top - 1 ? clear.y2 : top - 1;
-		/*ref.dllFuncs.R_DrawTileClear (cls.tileImage, clear.x1, clear.y1, clear.x2 - clear.x1 + 1, i - clear.y1 + 1);*/
 		R_DrawTileClear (texnum, clear.x1, clear.y1, clear.x2 - clear.x1 + 1, i - clear.y1 + 1, tw, th);
 		clear.y1 = top;
 		}
@@ -686,7 +693,6 @@ void SCR_TileClear (void)
 		{
 		// clear below view screen
 		i = clear.y1 > bottom + 1 ? clear.y1 : bottom + 1;
-		/*ref.dllFuncs.R_DrawTileClear (cls.tileImage, clear.x1, i, clear.x2 - clear.x1 + 1, clear.y2 - i + 1);*/
 		R_DrawTileClear (texnum, clear.x1, i, clear.x2 - clear.x1 + 1, clear.y2 - i + 1, tw, th);
 		clear.y2 = bottom;
 		}
@@ -695,7 +701,6 @@ void SCR_TileClear (void)
 		{
 		// clear left of view screen
 		i = clear.x2 < left - 1 ? clear.x2 : left - 1;
-		/*ref.dllFuncs.R_DrawTileClear (cls.tileImage, clear.x1, clear.y1, i - clear.x1 + 1, clear.y2 - clear.y1 + 1);*/
 		R_DrawTileClear (texnum, clear.x1, clear.y1, i - clear.x1 + 1, clear.y2 - clear.y1 + 1, tw, th);
 		clear.x1 = left;
 		}
@@ -704,7 +709,6 @@ void SCR_TileClear (void)
 		{
 		// clear left of view screen
 		i = clear.x1 > right + 1 ? clear.x1 : right + 1;
-		/*ref.dllFuncs.R_DrawTileClear (cls.tileImage, i, clear.y1, clear.x2 - i + 1, clear.y2 - clear.y1 + 1);*/
 		R_DrawTileClear (texnum, i, clear.y1, clear.x2 - i + 1, clear.y2 - clear.y1 + 1, tw, th);
 		clear.x2 = right;
 		}
@@ -758,11 +762,9 @@ void SCR_UpdateScreen (void)
 		V_PostRender ();
 	}
 
-// [FWGS, 01.04.23] удалены SCR_LoadFixedWidthFont, SCR_LoadVariableWidthFont
-
 /***
 ================
-SCR_LoadCreditsFont [FWGS, 01.04.23]
+SCR_LoadCreditsFont
 
 INTERNAL RESOURCE
 ================
@@ -867,20 +869,14 @@ int SCR_LoadPauseIcon (void)
 
 /***
 ================
-SCR_RegisterTextures [FWGS, 01.12.24]
+SCR_RegisterTextures [FWGS, 01.03.26]
 
 INTERNAL RESOURCE
 ================
 ***/
 void SCR_RegisterTextures (void)
 	{
-	// register gfx.wad images
-	/*if (FS_FileExists ("gfx/paused.lmp", false))
-		cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/paused.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
-
-	else if (FS_FileExists ("gfx/pause.lmp", false))
-		cls.pauseIcon = ref.dllFuncs.GL_LoadTexture ("gfx/pause.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);*/
-
+	/*// register gfx.wad images
 	if (FS_FileExists ("gfx/lambda.lmp", false))
 		{
 		if (cl_allow_levelshots.value)
@@ -889,16 +885,38 @@ void SCR_RegisterTextures (void)
 		else
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
 		}
-	else if (FS_FileExists ("gfx/loading.lmp", false))
+	else if (FS_FileExists ("gfx/loading.lmp", false))*/
+	const char *exts[] = { "lmp", "bmp", "png" };
+	const char *names[] = { "gfx/lambda", "gfx/loading" };
+	uint flags = TF_IMAGE | TF_ALLOW_NEAREST;
+
+	if (cl_allow_levelshots.value)
+		SetBits (flags, TF_LUMINANCE);
+
+	for (int i = 0; i < HLARRAYSIZE (names); i++)
 		{
-		if (cl_allow_levelshots.value)
+		/*if (cl_allow_levelshots.value)
 			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0,
 				TF_IMAGE | TF_LUMINANCE | TF_ALLOW_NEAREST);
 		else
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);*/
+		for (int j = 0; j < HLARRAYSIZE (exts); j++)
+			{
+			string path;
+
+			if (Q_snprintf (path, sizeof (path), "%s.%s", names[i], exts[j]) < 0)
+				continue;
+
+			if (!FS_FileExists (path, false))
+				continue;
+
+			cls.loadingBar = ref.dllFuncs.GL_LoadTexture (path, NULL, 0, flags);
+			if (cls.loadingBar)
+				return;
+			}
 		}
 
-	/*cls.tileImage = ref.dllFuncs.GL_LoadTexture ("gfx/backtile.lmp", NULL, 0, TF_NOMIPMAP);*/
+	Con_Printf (S_WARN "%s: failed to load loading image\n", __func__);
 	}
 
 /***
@@ -960,7 +978,7 @@ void SCR_VidInit (void)
 
 	// restart console size
 	Con_VidInit ();
-	Touch_NotifyResize ();	// [FWGS, 01.11.23]
+	Touch_NotifyResize ();
 	}
 
 /***
@@ -1032,7 +1050,6 @@ void SCR_Shutdown (void)
 	if (!scr_init)
 		return;
 
-	/*Cmd_RemoveCommand ("timerefresh");*/
 	Cmd_RemoveCommand ("skyname");
 	Cmd_RemoveCommand ("viewpos");
 	UI_SetActiveMenu (false);

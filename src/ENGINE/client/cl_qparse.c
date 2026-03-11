@@ -13,14 +13,16 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
 #include "particledef.h"
 #include "cl_tent.h"
 #include "shake.h"
-#include "hltv.h"
+/*include "hltv.h"*/
 #include "input.h"
+#include "base_cmd.h"
 
 // [FWGS, 01.09.24]
 enum
@@ -178,7 +180,7 @@ static void CL_ParseQuakeSound (sizebuf_t *msg)
 
 /***
 ==================
-CL_ParseQuakeServerInfo [FWGS, 01.09.24]
+CL_ParseQuakeServerInfo
 ==================
 ***/
 static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
@@ -188,8 +190,10 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	int		gametype;
 	int		i;
 
+	// [FWGS, 01.03.26]
 	Con_Reportf ("Serverdata packet received.\n");
-	cls.timestart = Sys_DoubleTime ();
+	/*cls.timestart = Sys_DoubleTime ();*/
+	cls.timestart = Platform_DoubleTime ();
 
 	// server is changed
 	cls.demowaiting = false;
@@ -244,10 +248,12 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		Cvar_DirectSet (&r_decals, NULL);
 		}
 
-	if (cl.background)	// tell the game parts about background state
+	/*if (cl.background)	// tell the game parts about background state
 		Cvar_FullSet ("cl_background", "1", FCVAR_READ_ONLY);
 	else
-		Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
+		Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);*/
+	// [FWGS, 01.03.26] tell the game parts about background state
+	Cvar_DirectFullSet (&cl_background, cl.background ? "1" : "0", FCVAR_READ_ONLY);
 
 	S_StopBackgroundTrack ();
 
@@ -268,12 +274,13 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	if (!cls.changelevel && !cls.changedemo)
 		CL_InitEdicts (cl.maxclients);	// re-arrange edicts
 
-	// Quake just have a large packet of initialization data
+	// [FWGS, 01.03.26] Quake just have a large packet of initialization data
 	for (i = 1; i < MAX_MODELS; i++)
 		{
 		pResName = MSG_ReadString (msg);
 
-		if (!COM_CheckString (pResName))
+		/*if (!COM_CheckString (pResName))*/
+		if (COM_StringEmptyOrNULL (pResName))
 			break; // end of list
 
 		pResource = Mem_Calloc (cls.mempool, sizeof (resource_t));
@@ -289,11 +296,13 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		CL_AddToResourceList (pResource, &cl.resourcesneeded);
 		}
 
+	// [FWGS, 01.03.26]
 	for (i = 1; i < MAX_SOUNDS; i++)
 		{
 		pResName = MSG_ReadString (msg);
 
-		if (!COM_CheckString (pResName))
+		/*if (!COM_CheckString (pResName))*/
+		if (COM_StringEmptyOrNULL (pResName))
 			break; // end of list
 
 		pResource = Mem_Calloc (cls.mempool, sizeof (resource_t));
@@ -867,8 +876,9 @@ static void CL_QuakeExecStuff (void)
 	char	token[256];
 	int		argc = 0;
 
-	// check if no commands this frame
-	if (!COM_CheckString (text))
+	// [FWGS, 01.03.26] check if no commands this frame
+	/*if (!COM_CheckString (text))*/
+	if (COM_StringEmptyOrNULL (text))
 		return;
 
 	while (1)
@@ -896,8 +906,15 @@ static void CL_QuakeExecStuff (void)
 
 		if (argc == 0)
 			{
-			// debug: find all missed commands and cvars to add them into QWrap
-			if (!Cvar_Exists (token) && !Cmd_Exists (token))
+			// [FWGS, 01.03.26] debug: find all missed commands and cvars to add them into QWrap
+			/*if (!Cvar_Exists (token) && !Cmd_Exists (token))*/
+			cmdalias_t	*alias;
+			cmd_t		*cmd;
+			convar_t	*cvar;
+
+			BaseCmd_FindAll (token, &cmd, &alias, &cvar);
+
+			if (!cvar && !cmd)
 				Con_Printf (S_WARN "'%s' is not exist\n", token);
 
 			// process some special commands
@@ -1080,7 +1097,6 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 			// [FWGS, 01.11.25]
 			case svc_centerprint:
 				str = MSG_ReadString (msg);
-				/*CL_DispatchUserMessage ("HudText", Q_strlen (str), (void *)str);*/
 				CL_DispatchUserMessage ("HudText", Q_strlen (str) + 1, (void *)str);
 				break;
 

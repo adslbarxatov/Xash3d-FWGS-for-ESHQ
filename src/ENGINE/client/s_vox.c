@@ -128,10 +128,11 @@ static int S_TrimEnd (const wavdata_t *wav, int end)
 	return end;
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.26]
 static void S_TrimStartEndTimes (channel_t *ch, wavdata_t *wav, int start, int end)
 	{
-	ch->pMixer.sample = start = S_TrimStart (wav, start);
+	/*ch->pMixer.sample = start = S_TrimStart (wav, start);*/
+	ch->sample = start = S_TrimStart (wav, start);
 
 	// don't overrun the buffer while trimming end
 	if (end == 0)
@@ -140,13 +141,18 @@ static void S_TrimStartEndTimes (channel_t *ch, wavdata_t *wav, int start, int e
 	if (end < start)
 		end = start;
 
-	ch->pMixer.forcedEndSample = S_TrimEnd (wav, end);
+	/*ch->pMixer.forcedEndSample = S_TrimEnd (wav, end);*/
+	ch->forced_end = S_TrimEnd (wav, end);
 	}
 
-// return number of samples mixed
-int VOX_MixDataToDevice (channel_t *pchan, int sampleCount, int outputRate, int outputOffset)
+// [FWGS, 01.03.26] removed VOX_MixDataToDevice, VOX_LoadWord
+
+// [FWGS, 01.03.26]
+/*// return number of samples mixed
+int VOX_MixDataToDevice (channel_t *pchan, int sampleCount, int outputRate, int outputOffset)*/
+void VOX_LoadWord (channel_t *ch)
 	{
-	// save this to compute total output
+	/*// save this to compute total output
 	int	startingOffset = outputOffset;
 
 	if (!pchan->currentWord)
@@ -155,9 +161,10 @@ int VOX_MixDataToDevice (channel_t *pchan, int sampleCount, int outputRate, int 
 	while (sampleCount > 0 && pchan->currentWord)
 		{
 		int	timeCompress = pchan->words[pchan->wordIndex].timecompress;
-		int	outputCount = S_MixDataToDevice (pchan, sampleCount, outputRate, outputOffset, timeCompress);
+		int	outputCount = S_MixDataToDevice (pchan, sampleCount, outputRate, outputOffset, timeCompress);*/
+	ch->sentence_finished = true;
 
-		outputOffset += outputCount;
+	/*outputOffset += outputCount;
 		sampleCount -= outputCount;
 
 		// if we finished load a next word
@@ -174,46 +181,62 @@ int VOX_MixDataToDevice (channel_t *pchan, int sampleCount, int outputRate, int 
 			}
 		}
 	return outputOffset - startingOffset;
-	}
+	}*/
+	if ((ch->word_index < 0) || (ch->word_index >= CVOXWORDMAX))
+		return;
 
-void VOX_LoadWord (channel_t *ch)
+	/*void VOX_LoadWord (channel_t *ch)
 	{
 	const voxword_t *word = &ch->words[ch->wordIndex];
 	wavdata_t *data;
-	int start, end, samples;
-
+	int start, end, samples;*/
+	const voxword_t *word = &ch->words[ch->word_index];
 	if (!word->sfx)
 		return;
 
-	data = S_LoadSound (word->sfx);
-
+	/*data = S_LoadSound (word->sfx);*/
+	wavdata_t *data = S_LoadSound (word->sfx);
 	if (!data)
 		return;
 
-	ch->currentWord = &ch->pMixer;
-	ch->currentWord->pData = data;
+	/*ch->currentWord = &ch->pMixer;
+	ch->currentWord->pData = data;*/
+	ch->sentence_finished = false;
+	ch->data = data;
 
-	samples = data->samples;
+	/*samples = data->samples;
 	start = word->start;
-	end = word->end;
-
+	end = word->end;*/
+	int start = word->start;
+	int end = word->end;
+	/*if (end <= start)
+		end = 0;*/
 	if (end <= start)
 		end = 0;
 
-	// [FWGS, 01.01.24]
-	S_TrimStartEndTimes (ch, data, start * 0.01f * samples, end * 0.01f * samples);
+	/*// [FWGS, 01.01.24]
+	S_TrimStartEndTimes (ch, data, start * 0.01f * samples, end * 0.01f * samples);*/
+	S_TrimStartEndTimes (ch, data, round (start * 0.01f * data->samples), round (end * 0.01f * data->samples));
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.26]
 void VOX_FreeWord (channel_t *ch)
 	{
-	voxword_t *word = &ch->words[ch->wordIndex];
+	/*voxword_t *word = &ch->words[ch->wordIndex];*/
+	// TODO: don't set random fields to zero lol, was memset before
+	ch->sample = ch->forced_end = 0.0;
+	ch->finished = false;
+	ch->data = NULL;
 
-	ch->currentWord = NULL;
-	memset (&ch->pMixer, 0, sizeof (ch->pMixer));
+	if ((ch->word_index < 0) || (ch->word_index >= CVOXWORDMAX))
+		return;
 
-	/*if (!word->sfx && !word->fKeepCached)*/
-	if (!word->sfx || word->fKeepCached)
+	/*ch->currentWord = NULL;
+	memset (&ch->pMixer, 0, sizeof (ch->pMixer));*/
+	voxword_t *word = &ch->words[ch->word_index];
+
+	/*if (!word->sfx || word->fKeepCached)*/
+	if (!word->sfx || word->in_cache)
 		return;
 
 	FS_FreeSound (word->sfx->cache);
@@ -221,13 +244,17 @@ void VOX_FreeWord (channel_t *ch)
 	word->sfx = NULL;
 	}
 
+// [FWGS, 01.03.26]
 void VOX_SetChanVol (channel_t *ch)
 	{
 	voxword_t *word;
-	if (!ch->currentWord)
+
+	/*if (!ch->currentWord)*/
+	if (!ch->is_sentence || ch->sentence_finished)
 		return;
 
-	word = &ch->words[ch->wordIndex];
+	/*word = &ch->words[ch->wordIndex];*/
+	word = &ch->words[ch->word_index];
 
 	if (word->volume == 100)
 		return;
@@ -236,19 +263,23 @@ void VOX_SetChanVol (channel_t *ch)
 	ch->rightvol = ch->rightvol * word->volume * 0.01f;
 	}
 
+// [FWGS, 01.03.26]
 float VOX_ModifyPitch (channel_t *ch, float pitch)
 	{
 	voxword_t *word;
-	if (!ch->currentWord)
+
+	/*if (!ch->currentWord)*/
+	if (!ch->is_sentence || ch->sentence_finished)
 		return pitch;
 
-	word = &ch->words[ch->wordIndex];
+	/*word = &ch->words[ch->wordIndex];*/
+	word = &ch->words[ch->word_index];
 
-	if (word->pitch < 0)
+	/*if (word->pitch < 0)*/
+	if (word->pitch == PITCH_NORM)
 		return pitch;
 
 	pitch += (word->pitch - PITCH_NORM) * 0.01f;
-
 	return pitch;
 	}
 
@@ -287,7 +318,6 @@ static const char *VOX_GetDirectory (char *szpath, const char *psz, int nsize)
 	return p + 1;
 	}
 
-// [FWGS, 01.11.23]
 static const char *VOX_LookupString (const char *pszin)
 	{
 	int i = -1, len;
@@ -326,7 +356,7 @@ static const char *VOX_LookupString (const char *pszin)
 	len = Q_strlen (rgpszrawsentence[i]);
 
 	c = &rgpszrawsentence[i][len + 1];
-	for (; *c == ' ' || *c == '\t'; c++);
+	for (; (*c == ' ') || (*c == '\t'); c++);
 
 	return c;
 	}
@@ -352,7 +382,7 @@ static int VOX_ParseString (char *psz, char *rgpparseword[CVOXWORDMAX])
 		// skip anything in between ( and )
 		if (*psz == '(')
 			{
-			for (; *psz && *psz != ')'; psz++);
+			for (; *psz && (*psz != ')'); psz++);
 			psz++;
 			}
 
@@ -373,7 +403,7 @@ static int VOX_ParseString (char *psz, char *rgpparseword[CVOXWORDMAX])
 			}
 
 		*psz++ = 0;
-		for (; *psz && (*psz == '.' || *psz == ' ' || *psz == ',');
+		for (; *psz && ((*psz == '.') || (*psz == ' ') || (*psz == ','));
 			psz++);
 
 		if (!*psz)
@@ -385,13 +415,28 @@ static int VOX_ParseString (char *psz, char *rgpparseword[CVOXWORDMAX])
 	return i;
 	}
 
-static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, qboolean fFirst)
+// [FWGS, 01.03.26]
+/*static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, qboolean fFirst)*/
+static void VOX_MakeDefaultWordParams (voxword_t *voxword)
+	{
+	*voxword = (voxword_t) {
+		.volume = 100,
+		.pitch = 100,
+		.start = 0,
+		.end = 100,
+		.timecompress = 0,
+		.in_cache = false,
+		};
+	}
+
+// [FWGS, 01.03.26]
+static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, voxword_t *default_voxword)
 	{
 	int len, i;
 	char sznum[8], *pszsave = psz;
-	static voxword_t voxwordDefault;
+	/*static voxword_t voxwordDefault;*/
 
-	if (fFirst)
+	/*if (fFirst)
 		{
 		voxwordDefault.fKeepCached = 0;
 		voxwordDefault.pitch = -1;
@@ -401,7 +446,8 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, qboolean fF
 		voxwordDefault.timecompress = 0;
 		}
 
-	*pvoxword = voxwordDefault;
+	*pvoxword = voxwordDefault;*/
+	*pvoxword = *default_voxword;
 
 	len = Q_strlen (psz);
 	if (len == 0)
@@ -411,7 +457,7 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, qboolean fF
 	if (psz[len - 1] != ')')
 		return true;
 
-	for (; *psz != '(' && *psz != ')'; psz++);
+	for (; (*psz != '(') && (*psz != ')'); psz++);
 
 	// invalid syntax
 	if (*psz == ')')
@@ -467,37 +513,38 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, qboolean fF
 			}
 		}
 
+	// validate some of the parameters
+	pvoxword->start = bound (0, pvoxword->start, 100);
+	pvoxword->end = bound (0, pvoxword->end, 100);
+	pvoxword->timecompress = bound (0, pvoxword->timecompress, 100);
+
 	// no actual word but new defaults
 	if (Q_strlen (pszsave) == 0)
 		{
-		voxwordDefault = *pvoxword;
+		/*voxwordDefault = *pvoxword;*/
+		*default_voxword = *pvoxword;
 		return false;
 		}
 
 	return true;
 	}
 
-// [FWGS, 25.12.24]
+// [FWGS, 01.03.26]
 void VOX_LoadSound (channel_t *ch, const char *pszin)
 	{
-	/*char buffer[512], szpath[32], pathbuffer[64];
-	char *rgpparseword[CVOXWORDMAX];*/
-	char		buffer[512] = { 0 }, szpath[32] = { 0 };
-	char		*rgpparseword[CVOXWORDMAX] = { 0 };
+	char	buffer[512] = { 0 }, szpath[32] = { 0 };
+	char	*rgpparseword[CVOXWORDMAX] = { 0 };
 	const char	*psz;
-	int			i, j;
+	int		i, j;
+	int		num_words;
+	voxword_t	default_voxword;
 
 	if (!pszin)
 		return;
 
-	/*memset (buffer, 0, sizeof (buffer));
-	memset (rgpparseword, 0, sizeof (rgpparseword));*/
-
 	psz = VOX_LookupString (pszin);
 	if (!psz)
 		{
-		/*Con_Printf ("%s: no sentence named %s\n", __func__, pszin);*/
-
 		// sometimes modders remove sentences but entities continue to use them,
 		// so it's a warning, not an error
 		Con_Printf (S_WARN "%s: no sentence named %s\n", __func__, pszin);
@@ -507,45 +554,51 @@ void VOX_LoadSound (channel_t *ch, const char *pszin)
 	psz = VOX_GetDirectory (szpath, psz, sizeof (szpath));
 	if (!psz)
 		{
-		/*Con_Printf ("%s: failed getting directory for %s\n", __func__, pszin);	// [FWGS, 01.07.24]*/
 		Con_Printf (S_ERROR "%s: failed getting directory for %s\n", __func__, pszin);
 		return;
 		}
 
 	if (Q_strlen (psz) >= sizeof (buffer))
 		{
-		/*Con_Printf ("%s: sentence is too long %s", __func__, psz);	// [FWGS, 01.07.24]*/
 		Con_Printf (S_ERROR "%s: sentence is too long %s\n", __func__, psz);
 		return;
 		}
 
 	Q_strncpy (buffer, psz, sizeof (buffer));
-	VOX_ParseString (buffer, rgpparseword);
+	/*VOX_ParseString (buffer, rgpparseword);*/
+	num_words = VOX_ParseString (buffer, rgpparseword);
 
-	/*j = 0;
-	for (i = 0; rgpparseword[i]; i++)*/
-	for (i = 0, j = 0; i < CVOXWORDMAX && rgpparseword[i]; i++)
+	VOX_MakeDefaultWordParams (&default_voxword);
+
+	/*for (i = 0, j = 0; i < CVOXWORDMAX && rgpparseword[i]; i++)*/
+	for (i = 0, j = 0; i < num_words; i++)
 		{
 		char pathbuffer[MAX_SYSPATH];
 
-		if (!VOX_ParseWordParams (rgpparseword[i], &ch->words[j], i == 0))
+		/*if (!VOX_ParseWordParams (rgpparseword[i], &ch->words[j], i == 0))*/
+		if (!VOX_ParseWordParams (rgpparseword[i], &ch->words[j], &default_voxword))
 			continue;
 
-		/*Q_snprintf (pathbuffer, sizeof (pathbuffer), "%s%s.wav", szpath, rgpparseword[i]);*/
 		if (Q_snprintf (pathbuffer, sizeof (pathbuffer), "%s%s", szpath, rgpparseword[i]) < 0)
 			{
 			Con_Printf (S_ERROR "%s: path to word in sentence %s is too long\n", __func__, pszin);
 			return;
 			}
 
-		ch->words[j].sfx = S_FindName (pathbuffer, &ch->words[j].fKeepCached);
+		/*ch->words[j].sfx = S_FindName (pathbuffer, &ch->words[j].fKeepCached);*/
+		qboolean in_cache = false;
+		ch->words[j].sfx = S_FindName (pathbuffer, &in_cache);
+		ch->words[j].in_cache = in_cache;
+
 		j++;
 		}
 
 	ch->words[j].sfx = NULL;
 	ch->sfx = ch->words[0].sfx;
-	ch->wordIndex = 0;
-	ch->isSentence = true;
+	/*ch->wordIndex = 0;
+	ch->isSentence = true;*/
+	ch->word_index = 0;
+	ch->is_sentence = true;
 
 	VOX_LoadWord (ch);
 	}
@@ -590,7 +643,6 @@ static void VOX_ReadSentenceFile_ (byte *buf, fs_offset_t size)
 			int index = cszrawsentences;
 			int size = strlen (name) + strlen (value) + 2;
 
-			/*rgpszrawsentence[index] = Mem_Malloc (host.mempool, size);*/
 			rgpszrawsentence[index] = Mem_Malloc (sndpool, size);
 			memcpy (rgpszrawsentence[index], name, size);
 			rgpszrawsentence[index][size - 1] = 0;
@@ -721,26 +773,35 @@ static void Test_VOX_ParseString (void)
 		}
 	}
 
+// [FWGS, 01.03.26]
 static void Test_VOX_ParseWordParams (void)
 	{
-	string buffer;
-	qboolean ret;
-	voxword_t word;
+	string		buffer;
+	qboolean	ret;
+	voxword_t	default_word;
+	voxword_t	word;
 
+	VOX_MakeDefaultWordParams (&default_word);
 	Q_strncpy (buffer, "heavy!(p80)", sizeof (buffer));
-	ret = VOX_ParseWordParams (buffer, &word, true);
+
+	/*ret = VOX_ParseWordParams (buffer, &word, true);*/
+	ret = VOX_ParseWordParams (buffer, &word, &default_word);
 	TASSERT_STR (buffer, "heavy!");
 	TASSERT (word.pitch == 80);
 	TASSERT (ret);
 
 	Q_strncpy (buffer, "(p105)", sizeof (buffer));
-	ret = VOX_ParseWordParams (buffer, &word, false);
+	/*ret = VOX_ParseWordParams (buffer, &word, false);*/
+	ret = VOX_ParseWordParams (buffer, &word, &default_word);
+
 	TASSERT_STR (buffer, "");
 	TASSERT (word.pitch == 105);
 	TASSERT (!ret);
 
 	Q_strncpy (buffer, "quiet(v50)", sizeof (buffer));
-	ret = VOX_ParseWordParams (buffer, &word, false);
+	/*ret = VOX_ParseWordParams (buffer, &word, false);*/
+	ret = VOX_ParseWordParams (buffer, &word, &default_word);
+
 	TASSERT_STR (buffer, "quiet");
 	TASSERT (word.pitch == 105); // defaulted
 	TASSERT (word.volume == 50);

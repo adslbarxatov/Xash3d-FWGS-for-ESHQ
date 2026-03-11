@@ -13,9 +13,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.03.26]
+#include "..\library_suffix\build.h"
 #include <inttypes.h>
-#include "common.h"
+/*include "common.h"*/
 #include <fcntl.h>
 
 // [FWGS, 01.11.25]
@@ -25,8 +26,10 @@ GNU General Public License for more details
 	#include <io.h>
 #endif
 
-// [FWGS, 01.03.25]
-static char id_md5[33];
+// [FWGS, 01.03.26]
+/*static char id_md5[33];*/
+#include "common.h"
+#include "client.h"
 
 /***
 ==========================================================
@@ -429,10 +432,8 @@ static int ID_RunWMIC (char *buffer, const wchar_t *cmdline)
 	SetHandleInformation (g_IN_Wr, HANDLE_FLAG_INHERIT, 0);
 
 	// [FWGS, 01.11.25]
-	/*STARTUPINFO	si =*/
 	STARTUPINFOW si =
 		{
-		/*.cb = sizeof (STARTUPINFO),*/
 		.cb = sizeof (STARTUPINFOW),
 		.dwFlags = STARTF_USESTDHANDLES,
 		.hStdInput = g_IN_Rd,
@@ -443,7 +444,6 @@ static int ID_RunWMIC (char *buffer, const wchar_t *cmdline)
 		};
 
 	// [FWGS, 01.11.25]
-	/*cmdline_copy = malloc (wcslen (cmdline) * sizeof (*cmdline_copy));*/
 	cmdline_copy = malloc (cmdline_size);
 	if (!cmdline_copy)
 		goto err;
@@ -473,7 +473,6 @@ err:
 	return bSuccess;
 	}
 
-// [FWGS, 01.05.25]
 static int ID_ProcessWMIC (bloomfilter_t *value, const wchar_t *cmdline)
 	{
 	char	buffer[BUFSIZE], token[BUFSIZE], *pbuf;
@@ -482,8 +481,10 @@ static int ID_ProcessWMIC (bloomfilter_t *value, const wchar_t *cmdline)
 	if (!ID_RunWMIC (buffer, cmdline))
 		return 0;
 
+	// [FWGS, 01.03.26]
 	pbuf = COM_ParseFile (buffer, token, sizeof (token)); // Header
-	while (pbuf = COM_ParseFile (pbuf, token, sizeof (token)))
+	/*while (pbuf = COM_ParseFile (pbuf, token, sizeof (token)))*/
+	while ((pbuf = COM_ParseFile (pbuf, token, sizeof (token))))
 		{
 		if (!ID_VerifyHEX (token))
 			continue;
@@ -495,7 +496,6 @@ static int ID_ProcessWMIC (bloomfilter_t *value, const wchar_t *cmdline)
 	return count;
 	}
 
-// [FWGS, 01.05.25]
 static int ID_CheckWMIC (bloomfilter_t value, const wchar_t *cmdline)
 	{
 	char	buffer[BUFSIZE], token[BUFSIZE], *pbuf;
@@ -504,8 +504,10 @@ static int ID_CheckWMIC (bloomfilter_t value, const wchar_t *cmdline)
 	if (!ID_RunWMIC (buffer, cmdline))
 		return 0;
 
+	// [FWGS, 01.03.26]
 	pbuf = COM_ParseFile (buffer, token, sizeof (token)); // Header
-	while (pbuf = COM_ParseFile (pbuf, token, sizeof (token)))
+	/*while (pbuf = COM_ParseFile (pbuf, token, sizeof (token)))*/
+	while ((pbuf = COM_ParseFile (pbuf, token, sizeof (token))))
 		{
 		bloomfilter_t filter;
 
@@ -647,20 +649,49 @@ static void ID_Check (void)
 		id = 0;
 	}
 
-// [FWGS, 01.03.25]
-const char *ID_GetMD5 (void)
+// [FWGS, 01.03.26]
+/*const char *ID_GetMD5 (void)*/
+void ID_GetMD5ForAddress (char *key, netadr_t adr, size_t size)
 	{
-	return id_md5;
+	/*return id_md5;*/
+	MD5Context_t	ctx;
+	byte			buf[32], md5[16];
+	size_t			bufsize = 0;
+	bloomfilter_t	value = id;
+
+	switch (NET_NetadrType (&adr))
+		{
+		case NA_IP:
+			memcpy (buf, adr.ip, sizeof (adr.ip));
+			bufsize = sizeof (adr.ip);
+			break;
+
+		case NA_IP6:
+			NET_NetadrToIP6Bytes (buf, &adr);
+			bufsize = 16;
+			break;
+
+		default:
+			break;
+		}
+
+	MD5Init (&ctx);
+	MD5Update (&ctx, (byte *)&id, sizeof (id));
+	if (bufsize != 0)
+		MD5Update (&ctx, buf, bufsize);
+
+	MD5Final (md5, &ctx);
+	Q_strnlwr (MD5_Print (md5), key, size);
 	}
 
 // [FWGS, 01.03.25] removed ID_SetCustomClientID
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.03.26]
 void ID_Init (void)
 	{
-	MD5Context_t	hash = { 0 };
+	/*MD5Context_t	hash = { 0 };
 	byte	md5[16];
-	int		i;
+	int		i;*/
 
 	Cmd_AddRestrictedCommand ("bloomfilter", ID_BloomFilter_f, "print bloomfilter raw value of arguments set");
 	Cmd_AddRestrictedCommand ("verifyhex", ID_VerifyHEX_f, "check if id source seems to be fake");
@@ -668,7 +699,6 @@ void ID_Init (void)
 	Cmd_AddRestrictedCommand ("testcpuinfo", ID_TestCPUInfo_f, "try read cpu serial");
 #endif
 
-// [FWGS, 01.07.24]
 #if XASH_ANDROID && !XASH_DEDICATED
 	sscanf (Android_LoadID (), "%016"PRIX64, &id);
 	if (id)
@@ -677,7 +707,6 @@ void ID_Init (void)
 		ID_Check ();
 		}
 
-	// [FWGS, 01.02.25]
 #elif XASH_WIN32
 	{
 	CHAR szBuf[MAX_PATH];
@@ -689,8 +718,10 @@ void ID_Init (void)
 	}
 #else
 	{
+	// [FWGS, 01.03.26]
 	const char *home = getenv ("HOME");
-	if (COM_CheckString (home))
+	/*if (COM_CheckString (home))*/
+	if (!COM_StringEmptyOrNULL (home))
 		{
 		FILE *cfg = fopen (va ("%s/.config/.xash_id", home), "r");
 		if (!cfg)
@@ -698,7 +729,6 @@ void ID_Init (void)
 		if (!cfg)
 			cfg = fopen (va ("%s/.xash_id", home), "r");
 
-		// [FWGS, 01.07.24]
 		if (cfg)
 			{
 			if (fscanf (cfg, "%016"PRIX64, &id) > 0)
@@ -716,7 +746,6 @@ void ID_Init (void)
 		{
 		const char *buf = (const char *)FS_LoadFile (".xash_id", NULL, false);
 
-		// [FWGS, 01.07.24]
 		if (buf)
 			{
 			sscanf (buf, "%016"PRIX64, &id);
@@ -728,14 +757,14 @@ void ID_Init (void)
 	if (!id)
 		id = ID_GenerateRawId ();
 
-	MD5Init (&hash);
+	// [FWGS, 01.03.26]
+	/*MD5Init (&hash);
 	MD5Update (&hash, (byte *)&id, sizeof (id));
 	MD5Final ((byte *)md5, &hash);
 
 	for (i = 0; i < 16; i++)
-		Q_snprintf (&id_md5[i * 2], sizeof (id_md5) - i * 2, "%02hhx", md5[i]);
+		Q_snprintf (&id_md5[i * 2], sizeof (id_md5) - i * 2, "%02hhx", md5[i]);*/
 
-// [FWGS, 01.02.25]
 #if XASH_ANDROID && !XASH_DEDICATED
 	Android_SaveID (va ("%016"PRIX64, id ^SYSTEM_XOR_MASK));
 #elif XASH_WIN32
@@ -746,8 +775,10 @@ void ID_Init (void)
 	}
 #else
 	{
+	// [FWGS, 01.03.26]
 	const char *home = getenv ("HOME");
-	if (COM_CheckString (home))
+	/*if (COM_CheckString (home))*/
+	if (!COM_StringEmptyOrNULL (home))
 		{
 		FILE *cfg = fopen (va ("%s/.config/.xash_id", home), "w");
 		if (!cfg)
@@ -755,7 +786,6 @@ void ID_Init (void)
 		if (!cfg)
 			cfg = fopen (va ("%s/.xash_id", home), "w");
 
-		// [FWGS, 01.07.24]
 		if (cfg)
 			{
 			fprintf (cfg, "%016"PRIX64, id ^SYSTEM_XOR_MASK);

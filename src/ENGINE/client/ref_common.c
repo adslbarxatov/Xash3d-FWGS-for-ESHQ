@@ -1,12 +1,36 @@
+/***
+ref_common.c - RefAPI implementation
+Copyright (C) 2025 Xash3D FWGS contributors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
+***/
+
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
 #include "library.h"
 #include "cl_tent.h"
 #include "platform/platform.h"
 #include "vid_common.h"
+#include "imagelib.h"
 
+// [FWGS, 01.03.26]
 struct ref_state_s ref;
-ref_globals_t refState;
+/*ref_globals_t refState;*/
+ref_globals_t refState =
+	{
+	// just have something valid until video subsystem is finished initializing
+	.width = 640,
+	.height = 480,
+	};
 
 // [FWGS, 01.07.24]
 static const char *r_skyBoxSuffix[SKYBOX_MAX_SIDES] = { "rt", "bk", "lf", "ft", "up", "dn" };
@@ -99,7 +123,6 @@ static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_ST
 	return false;
 	}
 
-// [FWGS, 01.07.24]
 void R_SetupSky (const char *name)
 	{
 	string	loadname;
@@ -108,7 +131,9 @@ void R_SetupSky (const char *name)
 	int		i, len;
 	qboolean	result;
 
-	if (!COM_CheckString (name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (name))*/
+	if (COM_StringEmptyOrNULL (name))
 		{
 		ref.dllFuncs.R_SetupSky (NULL); // unload skybox
 		return;
@@ -242,11 +267,13 @@ static model_t *pfnGetDefaultSprite (enum ref_defaultsprite_e spr)
 	return NULL;
 	}
 
+// [FWGS, 01.03.26]
 static void *pfnMod_Extradata (int type, model_t *m)
 	{
-	switch (type)
+	/*switch (type)*/
+	if ((type == mod_alias) || (type == mod_studio))
 		{
-		case mod_alias:
+		/*case mod_alias:
 			return Mod_AliasExtradata (m);
 
 		case mod_studio:
@@ -257,7 +284,15 @@ static void *pfnMod_Extradata (int type, model_t *m)
 			return NULL;
 
 		default:
-			Host_Error ("%s: unknown type %d\n", __func__, type);	// [FWGS, 01.07.24]
+			Host_Error ("%s: unknown type %d\n", __func__, type);*/
+		if (m && (m->type == type))
+			return m->cache.data;
+
+		return NULL;
+		}
+	else if ((type != mod_sprite) && (type != mod_brush))
+		{
+		Host_Error ("%s: unknown type %d\n", __func__, type);
 		}
 
 	return NULL;
@@ -345,16 +380,25 @@ static screenfade_t *pfnRefGetScreenFade (void)
 
 // [FWGS, 01.01.24] removed R_DoResetGamma
 
-static qboolean R_Init_Video_ (const int type)
+// [FWGS, 01.03.26]
+/*static qboolean R_Init_Video_ (const int type)*/
+static qboolean R_Init_Video_ (ref_graphic_apis_t type)
 	{
-	host.apply_opengl_config = true;
+	/*host.apply_opengl_config = true;
 
-	// [FWGS, 01.11.25]
-	/*Cbuf_AddTextf ("exec %s.cfg", ref.dllFuncs.R_GetConfigName ());*/
 	Cbuf_AddTextf ("exec %s.cfg\n", ref.dllFuncs.R_GetConfigName ());
 
 	Cbuf_Execute ();
-	host.apply_opengl_config = false;
+	host.apply_opengl_config = false;*/
+	const char *config_name = ref.dllFuncs.R_GetConfigName ? ref.dllFuncs.R_GetConfigName () : NULL;
+
+	if (config_name)
+		{
+		host.apply_opengl_config = true;
+		Cbuf_AddTextf ("exec %s.cfg\n", config_name);
+		Cbuf_Execute ();
+		host.apply_opengl_config = false;
+		}
 
 	return R_Init_Video (type);
 	}
@@ -366,12 +410,13 @@ static mleaf_t *pfnMod_PointInLeaf (const vec3_t p, mnode_t *node)
 	return Mod_PointInLeaf (p, node, cl.models[1]);
 	}
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.03.26]
 static const ref_api_t gEngfuncs =
 	{
 	pfnEngineGetParm,
 	pfnCvar_Get,
-	(void *)Cvar_FindVarExt,
+	/*(void *)Cvar_FindVarExt,*/
+	(void *)Cvar_FindVar,
 	Cvar_VariableValue,
 	Cvar_VariableString,
 	Cvar_SetValue,
@@ -480,24 +525,26 @@ static const ref_api_t gEngfuncs =
 	FS_FreeImage,
 	Image_SetMDLPointer,
 	pfnImage_GetPFDesc,
+
+	Image_ComputeSize,
+
 	pfnDrawNormalTriangles,
 	pfnDrawTransparentTriangles,
 	&clgame.drawFuncs,
-
 	&g_fsapi,
-
-	// [FWGS, 01.06.25]
 	R_GetWindowHandle,
 	};
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.03.26]
 static void R_UnloadProgs (void)
 	{
 	if (!ref.hInstance)
 		return;
 
-	// deinitialize renderer
-	ref.dllFuncs.R_Shutdown ();
+	// [FWGS, 01.03.26] deinitialize renderer
+	/*ref.dllFuncs.R_Shutdown ();*/
+	if (ref.dllFuncs.R_Shutdown)
+		ref.dllFuncs.R_Shutdown ();
 
 	Cvar_FullSet ("host_refloaded", "0", FCVAR_READ_ONLY);
 
@@ -669,7 +716,9 @@ static void SetWidthAndHeightFromCommandLine (void)
 	Sys_GetIntFromCmdLine ("-width", &width);
 	Sys_GetIntFromCmdLine ("-height", &height);
 
-	if ((width < 1) || (height < 1))
+	// [FWGS, 01.03.26]
+	/*if ((width < 1) || (height < 1))*/
+	if ((width < VID_MIN_WIDTH) || (height < VID_MIN_HEIGHT))
 		{
 		// Not specified or invalid, so don't bother
 		return;
@@ -678,14 +727,20 @@ static void SetWidthAndHeightFromCommandLine (void)
 	R_SaveVideoMode (width, height, width, height, false);
 	}
 
+// [FWGS, 01.03.26]
 static void SetFullscreenModeFromCommandLine (void)
 	{
 	if (Sys_CheckParm ("-borderless"))
-		Cvar_DirectSet (&vid_fullscreen, "2");
+		Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_BORDERLESS);
+		/*Cvar_DirectSet (&vid_fullscreen, "2");*/
+
 	else if (Sys_CheckParm ("-fullscreen"))
-		Cvar_DirectSet (&vid_fullscreen, "1");
+		Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_FULLSCREEN);
+		/*Cvar_DirectSet (&vid_fullscreen, "1");*/
+
 	else if (Sys_CheckParm ("-windowed"))
-		Cvar_DirectSet (&vid_fullscreen, "0");
+		Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_WINDOWED);
+		/*Cvar_DirectSet (&vid_fullscreen, "0");*/
 	}
 
 // [FWGS, 01.04.25]
@@ -794,7 +849,6 @@ qboolean R_Init (void)
 	Cvar_Get ("cl_himodels", "1", FCVAR_ARCHIVE, "draw high-resolution player models in multiplayer");
 
 	// [FWGS, 01.11.25] cvars are created, execute video config
-	/*Cbuf_AddText ("exec video.cfg");*/
 	Cbuf_AddText ("exec video.cfg\n");
 	Cbuf_Execute ();
 
@@ -816,7 +870,9 @@ qboolean R_Init (void)
 	if (Sys_GetParmFromCmdLine ("-ref", requested_cmdline))
 		success = R_LoadRenderer (requested_cmdline, false);
 
-	if (!success && COM_CheckString (r_refdll.string) && Q_stricmp (requested_cmdline, r_refdll.string))
+	// [FWGS, 01.03.26]
+	/*if (!success && COM_CheckString (r_refdll.string) && Q_stricmp (requested_cmdline, r_refdll.string))*/
+	if (!success && !COM_StringEmptyOrNULL (r_refdll.string) && Q_stricmp (requested_cmdline, r_refdll.string))
 		{
 		Q_strncpy (requested_cvar, r_refdll.string, sizeof (requested_cvar));
 

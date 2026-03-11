@@ -9,12 +9,14 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
+#include "tests.h"
 
 #define MAX_MESSAGES	2048
 
@@ -100,7 +102,7 @@ static int ParseFloats (const char *pText, float *pFloat, int count)
 	const char *pTemp = pText;
 	int index = 0;
 
-	while (pTemp && count > 0)
+	while (pTemp && (count > 0))
 		{
 		// skip current token / float
 		pTemp = SkipText (pTemp);
@@ -134,7 +136,7 @@ static int IsToken (const char *pText, const char *pTokenName)
 
 static int ParseDirective (const char *pText)
 	{
-	if (pText && pText[0] == '$')
+	if (pText && (pText[0] == '$'))
 		{
 		float	tempFloat[8];
 
@@ -208,17 +210,19 @@ static int ParseDirective (const char *pText)
 	return 0;
 	}
 
-void CL_TextMessageParse (byte *pMemFile, int fileSize)
+// [FWGS, 01.03.26]
+/*void CL_TextMessageParse (byte *pMemFile, int fileSize)*/
+client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile, int fileSize, int *numTitles)
 	{
 	char	buf[512], trim[512], currentName[512];
 	char	*pCurrentText = NULL, *pNameHeap;
-	char	nameHeap[32768]; // g-cont. i will scale up heap to handle all TFC messages
-	int		mode = MSGFILE_NAME; // searching for a message name
+	char	nameHeap[32768];		// g-cont. i will scale up heap to handle all TFC messages
+	int		mode = MSGFILE_NAME;	// searching for a message name
 	int		lineNumber, filePos, lastLinePos;
 	client_textmessage_t	textMessages[MAX_MESSAGES];
 	int		i, nameHeapSize, textHeapSize, messageSize, nameOffset;
 	int		messageCount, lastNamePos;
-	size_t	textHeapSizeRemaining;	// [FWGS, 01.05.23]
+	size_t	textHeapSizeRemaining;
 
 	lastNamePos = 0;
 	lineNumber = 0;
@@ -226,9 +230,11 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 	lastLinePos = 0;
 	messageCount = 0;
 
-	while (COM_MemFgets (pMemFile, fileSize, &filePos, buf, 512) != NULL)
+	/*while (COM_MemFgets (pMemFile, fileSize, &filePos, buf, 512) != NULL)*/
+	while (Q_memfgets (pMemFile, fileSize, &filePos, buf, 512) != NULL)
 		{
-		COM_TrimSpace (buf, trim);
+		/*COM_TrimSpace (buf, trim);*/
+		COM_TrimSpace (trim, buf, sizeof (trim));
 
 		switch (mode)
 			{
@@ -250,11 +256,12 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 
 				if (IsEndOfText (trim))
 					{
-					Con_Reportf ("%s: unexpected '}' found, line %d\n", __func__, lineNumber);	// [FWGS, 01.07.24]
-					return;
+					Con_Reportf ("%s: unexpected '}' found, line %d\n", __func__, lineNumber);
+					/*return;*/
+					return NULL;
 					}
 
-				Q_strncpy (currentName, trim, sizeof (currentName));	// [FWGS, 01.05.23]
+				Q_strncpy (currentName, trim, sizeof (currentName));
 				break;
 
 			case MSGFILE_TEXT:
@@ -265,11 +272,11 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 					// save name on name heap
 					if (lastNamePos + length > 32768)
 						{
-						Con_Reportf ("%s: error while parsing!\n", __func__);	// [FWGS, 01.07.24]
-						return;
+						Con_Reportf ("%s: error while parsing!\n", __func__);
+						/*return;*/
+						return NULL;
 						}
 
-					// [FWGS, 01.05.23]
 					Q_strncpy (nameHeap + lastNamePos, currentName, sizeof (nameHeap) - lastNamePos);
 
 					// terminate text in-place in the memory file
@@ -289,8 +296,9 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 					}
 				if (IsStartOfText (trim))
 					{
-					Con_Reportf ("%s: unexpected '{' found, line %d\n", __func__, lineNumber);	// [FWGS, 01.07.24]
-					return;
+					Con_Reportf ("%s: unexpected '{' found, line %d\n", __func__, lineNumber);
+					/*return;*/
+					return NULL;
 					}
 				break;
 			}
@@ -305,7 +313,7 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 			}
 		}
 
-	Con_Reportf ("%s: parsed %d text messages\n", __func__, messageCount);	// [FWGS, 01.07.24]
+	Con_Reportf ("%s: parsed %d text messages\n", __func__, messageCount);
 	nameHeapSize = lastNamePos;
 	textHeapSize = 0;
 
@@ -315,40 +323,145 @@ void CL_TextMessageParse (byte *pMemFile, int fileSize)
 
 	if ((textHeapSize + nameHeapSize + messageSize) <= 0)
 		{
-		clgame.titles = NULL;
+		/*clgame.titles = NULL;
 		clgame.numTitles = 0;
-		return;
+		return;*/
+		*numTitles = 0;
+		return NULL;
 		}
 
 	// must malloc because we need to be able to clear it after initialization
-	clgame.titles = (client_textmessage_t *)Mem_Calloc (cls.mempool, textHeapSize + nameHeapSize + messageSize);
+	/*clgame.titles = (client_textmessage_t *)Mem_Calloc (cls.mempool, textHeapSize + nameHeapSize + messageSize);*/
+	client_textmessage_t *out = Mem_Calloc (mempool, textHeapSize + nameHeapSize + messageSize);
 
 	// copy table over
-	memcpy (clgame.titles, textMessages, messageSize);
+	/*memcpy (clgame.titles, textMessages, messageSize);*/
+	memcpy (out, textMessages, messageSize);
 
 	// copy Name heap
-	pNameHeap = ((char *)clgame.titles) + messageSize;
+	/*pNameHeap = ((char *)clgame.titles) + messageSize;*/
+	pNameHeap = ((char *)out) + messageSize;
 	memcpy (pNameHeap, nameHeap, nameHeapSize);
 
-
-	// [FWGS, 01.05.23]  copy text & fixup pointers
+	// copy text & fixup pointers
 	textHeapSizeRemaining = textHeapSize;
 	pCurrentText = pNameHeap + nameHeapSize;
 
 	for (i = 0; i < messageCount; i++)
 		{
-		size_t currentTextSize = Q_strlen (clgame.titles[i].pMessage) + 1;
+		/*size_t currentTextSize = Q_strlen (clgame.titles[i].pMessage) + 1;*/
+		size_t currentTextSize = Q_strlen (out[i].pMessage) + 1;
 
-		clgame.titles[i].pName = pNameHeap;			// adjust name pointer (parallel buffer)
+		/*clgame.titles[i].pName = pNameHeap;			// adjust name pointer (parallel buffer)
 		Q_strncpy (pCurrentText, clgame.titles[i].pMessage, textHeapSizeRemaining);	// copy text over
-		clgame.titles[i].pMessage = pCurrentText;
+		clgame.titles[i].pMessage = pCurrentText;*/
+		out[i].pName = pNameHeap;	// adjust name pointer (parallel buffer)
+		Q_strncpy (pCurrentText, out[i].pMessage, textHeapSizeRemaining);	// copy text over
+		out[i].pMessage = pCurrentText;
+
 		pNameHeap += Q_strlen (pNameHeap) + 1;
 		pCurrentText += currentTextSize;
 		textHeapSizeRemaining -= currentTextSize;
 		}
 
-	if ((pCurrentText - (char *)clgame.titles) != (textHeapSize + nameHeapSize + messageSize))
-		Con_DPrintf (S_ERROR "%s: overflow text message buffer!\n", __func__);	// [FWGS, 01.07.24]
+	/*if ((pCurrentText - (char *)clgame.titles) != (textHeapSize + nameHeapSize + messageSize))*/
+	if ((pCurrentText - (char *)out) != (textHeapSize + nameHeapSize + messageSize))
+		Con_DPrintf (S_ERROR "%s: overflow text message buffer!\n", __func__);
 
 	clgame.numTitles = messageCount;
+	*numTitles = messageCount;
+
+	return out;
 	}
+
+// [FWGS, 01.03.26]
+#if XASH_ENGINE_TESTS
+
+void Test_RunTitles (void)
+	{
+	poolhandle_t mempool = Mem_AllocPool (__func__);
+	client_textmessage_t *tmessages;
+	client_textmessage_t *null;
+	int num_titles = 0, num_null_titles = 0;
+	char titles[] =
+		"// this is a comment\n"
+		"$effect 2\n"
+		"$color 1 2 3\n"
+		"$color2 4 5 6\n"
+		"$position 7 8\n"
+		"$fadein 0.1\n"
+		"$fadeout 0.5\n"
+		"$holdtime 321\n"
+		"$fxtime 123\n"
+		"TITLE\n"
+		"{\n"
+		"Hello to anybody reading test data\n"
+		"Hope you have a good time\n"
+		"}\n"
+		"\n"
+		"TITLE2\n"
+		"{\n"
+		"Still reading that nonsense huh?\n"
+		"}\n"
+		"// let's override some things\n"
+		"$cats are\n"
+		"$cute\n"
+		"$color 10 10 10\n"
+		"$position -1 -1\n"
+		"UwU\n"
+		"{\n"
+		"OwO\n"
+		"}\n"
+		"Technically titles can have spaces and // can't have comments\n"
+		"{\n"
+		"Oh yeah!\n"
+		"}\n";
+	char broken_titles[] = "}\n";
+	char broken_titles2[] = "{\n{\n";
+
+	null = CL_TextMessageParse (mempool, broken_titles, Q_strlen (broken_titles), &num_null_titles);
+	TASSERT_EQi (num_null_titles, 0);
+	TASSERT_EQp (null, NULL);
+
+	null = CL_TextMessageParse (mempool, broken_titles2, Q_strlen (broken_titles2), &num_null_titles);
+	TASSERT_EQi (num_null_titles, 0);
+	TASSERT_EQp (null, NULL);
+
+	tmessages = CL_TextMessageParse (mempool, titles, Q_strlen (titles), &num_titles);
+	TASSERT_EQi (num_titles, 4);
+	TASSERT_NEQp (tmessages, NULL);
+
+	for (int i = 0; i < 4; i++)
+		{
+		TASSERT_EQi (tmessages[i].effect, 2);
+		TASSERT_EQi (tmessages[i].r1, i >= 2 ? 10 : 1);
+		TASSERT_EQi (tmessages[i].g1, i >= 2 ? 10 : 2);
+		TASSERT_EQi (tmessages[i].b1, i >= 2 ? 10 : 3);
+		TASSERT_EQi (tmessages[i].a1, 0);
+		TASSERT_EQi (tmessages[i].r2, 4);
+		TASSERT_EQi (tmessages[i].g2, 5);
+		TASSERT_EQi (tmessages[i].b2, 6);
+		TASSERT_EQi (tmessages[i].a2, 0);
+		TASSERT_EQi (tmessages[i].x, i >= 2 ? -1 : 7);
+		TASSERT_EQi (tmessages[i].y, i >= 2 ? -1 : 8);
+		TASSERT_EQi (tmessages[i].fadein, 0.1f);
+		TASSERT_EQi (tmessages[i].fadeout, 0.5f);
+		TASSERT_EQi (tmessages[i].holdtime, 321.f);
+		TASSERT_EQi (tmessages[i].fxtime, 123.f);
+		}
+
+	TASSERT_STR (tmessages[0].pName, "TITLE");
+	TASSERT_STR (tmessages[1].pName, "TITLE2");
+	TASSERT_STR (tmessages[2].pName, "UwU");
+	TASSERT_STR (tmessages[3].pName, "Technically titles can have spaces and // can't have comments");
+
+	TASSERT_STR (tmessages[0].pMessage, "Hello to anybody reading test data\nHope you have a good time");
+	TASSERT_STR (tmessages[1].pMessage, "Still reading that nonsense huh?");
+	TASSERT_STR (tmessages[2].pMessage, "OwO");
+	TASSERT_STR (tmessages[3].pMessage, "Oh yeah!");
+
+	Mem_Free (tmessages);
+	Mem_FreePool (&mempool);
+	}
+
+#endif

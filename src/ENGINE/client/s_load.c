@@ -14,21 +14,30 @@ GNU General Public License for more details
 ***/
 
 #include "common.h"
-#include "client.h"		// [FWGS, 01.04.23]
+#include "client.h"
 #include "sound.h"
 
-// during registration it is possible to have more sounds
+// [FWGS, 01.03.26] during registration it is possible to have more sounds
 // than could actually be referenced during gameplay,
 // because we don't want to free anything until we are
-// sure we won't need it.
+// sure we won't need it
+/*define MAX_SFX			8192
+define MAX_SFX_HASH	(MAX_SFX/4)*/
 #define MAX_SFX			8192
 #define MAX_SFX_HASH	(MAX_SFX/4)
 
-static int		s_numSfx = 0;
+/*static int		s_numSfx = 0;
 static sfx_t	s_knownSfx[MAX_SFX];
 static sfx_t	*s_sfxHashList[MAX_SFX_HASH];
 static string	s_sentenceImmediateName;	// keep dummy sentence name
-qboolean		s_registering = false;
+qboolean		s_registering = false;*/
+static int		s_numSfx = 0;
+static sfx_t	s_knownSfx[MAX_SFX];
+static sfx_t	*s_sfxHashList[MAX_SFX_HASH];
+static qboolean	s_registering = false;
+
+#define SENTENCE_INDEX	-99999				// unique sentence index
+static string	s_sentenceImmediateName;	// keep dummy sentence name
 
 /***
 =================
@@ -72,7 +81,8 @@ void S_SoundList_f (void)
 	Con_Printf ("\n");
 	}
 
-// return true if char 'c' is one of 1st 2 characters in pch
+// [FWGS, 01.03.26] removed S_TestSoundChar, S_SkipSoundChar
+/*// return true if char 'c' is one of 1st 2 characters in pch
 qboolean S_TestSoundChar (const char *pch, char c)
 	{
 	char	*pcht = (char *)pch;
@@ -100,35 +110,26 @@ char *S_SkipSoundChar (const char *pch)
 	if (*pcht == '!')
 		pcht++;
 	return pcht;
-	}
+	}*/
 
 /***
 =================
-S_CreateDefaultSound [FWGS, 01.02.25]
+S_CreateDefaultSound [FWGS, 01.03.26]
 =================
 ***/
 static wavdata_t *S_CreateDefaultSound (void)
 	{
-	/*wavdata_t *sc;
-
-	sc = Mem_Calloc (sndpool, sizeof (wavdata_t));
-
-	sc->width = 2;
-	sc->channels = 1;
-	sc->loopStart = 0;*/
-	wavdata_t	*sc;
+	/*wavdata_t	*sc;*/
 	uint	samples = SOUND_DMA_SPEED;
 	uint	channels = 1;
 	uint	width = 2;
 	size_t	size = samples * width * channels;
+	/*sc = Mem_Calloc (sndpool, sizeof (wavdata_t) + size);*/
+	wavdata_t	*sc = Mem_Calloc (sndpool, sizeof (wavdata_t) + size);
 
-	sc = Mem_Calloc (sndpool, sizeof (wavdata_t) + size);
 	sc->width = width;
 	sc->channels = channels;
 	sc->rate = SOUND_DMA_SPEED;
-	/*sc->samples = SOUND_DMA_SPEED;
-	sc->size = sc->samples * sc->width * sc->channels;
-	sc->buffer = Mem_Calloc (sndpool, sc->size);*/
 	sc->samples = samples;
 	sc->size = size;
 
@@ -151,10 +152,12 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 	if (sfx->cache)
 		return sfx->cache;
 
-	if (!COM_CheckString (sfx->name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (sfx->name))*/
+	if (COM_StringEmptyOrNULL (sfx->name))
 		return NULL;
 
-	// load it from disk
+	// [FWGS, 01.03.26] load it from disk
 	if (Q_stricmp (sfx->name, "*default"))
 		{
 		// load it from disk
@@ -163,6 +166,8 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 
 		if (sfx->name[0] == '*')
 			sc = FS_LoadSound (sfx->name + 1, NULL, 0);
+		/*else
+			sc = FS_LoadSound (sfx->name, NULL, 0);*/
 		else
 			sc = FS_LoadSound (sfx->name, NULL, 0);
 		}
@@ -177,7 +182,6 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 	else if ((sc->rate > SOUND_11k) && (sc->rate < SOUND_22k))	// some bad sounds
 		Sound_Process (&sc, SOUND_22k, sc->width, sc->channels, SOUND_RESAMPLE);
 
-	/*else if ((sc->rate > SOUND_22k) && (sc->rate < SOUND_44k))	// some bad sounds*/
 	else if ((sc->rate > SOUND_22k) && (sc->rate != SOUND_44k))		// some bad sounds
 		Sound_Process (&sc, SOUND_44k, sc->width, sc->channels, SOUND_RESAMPLE);
 
@@ -185,21 +189,20 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 	return sfx->cache;
 	}
 
-// =======================================================================
-// Load a sound
-// =======================================================================
 /***
 ==================
-S_FindName [FWGS, 09.05.24]
+S_FindName [FWGS, 01.03.26]
 ==================
 ***/
-sfx_t *S_FindName (const char *pname, int *pfInCache)
+/*sfx_t *S_FindName (const char *pname, int *pfInCache)*/
+sfx_t *S_FindName (const char *pname, qboolean *pfInCache)
 	{
 	sfx_t	*sfx;
 	uint	i, hash;
 	string	name;
 
-	if (!COM_CheckString (pname) || !dma.initialized)
+	/*if (!COM_CheckString (pname) || !dma.initialized)*/
+	if (COM_StringEmptyOrNULL (pname) || !dma.initialized)
 		return NULL;
 
 	if (Q_strlen (pname) >= sizeof (sfx->name))
@@ -216,7 +219,7 @@ sfx_t *S_FindName (const char *pname, int *pfInCache)
 			{
 			if (pfInCache)
 				{
-				// indicate whether or not sound is currently in the cache.
+				// indicate whether or not sound is currently in the cache
 				*pfInCache = (sfx->cache != NULL) ? true : false;
 				}
 
@@ -331,7 +334,6 @@ void S_EndRegistration (void)
 		if (!sfx->name[0] || !Q_stricmp (sfx->name, "*default"))
 			continue; // don't release default sound
 
-		// [FWGS, 01.04.23]
 		if (sfx->servercount != cl.servercount)
 			S_FreeSound (sfx); // don't need this sound
 		}
@@ -348,14 +350,16 @@ void S_EndRegistration (void)
 
 /***
 ==================
-S_RegisterSound [FWGS, 01.04.23]
+S_RegisterSound
 ==================
 ***/
 sound_t S_RegisterSound (const char *name)
 	{
 	sfx_t *sfx;
 
-	if (!COM_CheckString (name) || !dma.initialized)
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (name) || !dma.initialized)*/
+	if (COM_StringEmptyOrNULL (name) || !dma.initialized)
 		return -1;
 
 	if (S_TestSoundChar (name, '!'))

@@ -18,8 +18,22 @@ GNU General Public License for more details
 #include "client.h"
 #include "soundlib.h"	// [FWGS, 01.02.25]
 
-static bg_track_t		s_bgTrack;
-static musicfade_t		musicfade;	// controlled by game dlls
+// [FWGS, 01.03.26]
+/*static bg_track_t		s_bgTrack;
+static musicfade_t		musicfade;	// controlled by game dlls*/
+static struct
+	{
+	string		current;	// a currently playing track
+	string		loopName;	// may be empty
+	stream_t	*stream;
+	int			source;		// may be game, menu, etc
+	} s_bgTrack;
+
+// [FWGS, 01.03.26] controlled by game dlls
+static struct
+	{
+	float	percent;
+	} musicfade;
 
 /***
 =================
@@ -40,19 +54,23 @@ void S_PrintBackgroundTrackState (void)
 		Con_Printf ("not playing\n");
 	}
 
+// [FWGS, 01.03.26] removed S_FadeMusicVolume
+
 /***
 =================
-S_FadeMusicVolume
+S_MusicFade [FWGS, 01.03.26]
 =================
 ***/
-void S_FadeMusicVolume (float fadePercent)
+/*void S_FadeMusicVolume (float fadePercent)*/
+void S_MusicFade (float fade_percent)
 	{
-	musicfade.percent = bound (0.0f, fadePercent, 100.0f);
+	/*musicfade.percent = bound (0.0f, fadePercent, 100.0f);*/
+	musicfade.percent = bound (0.0f, fade_percent, 100.0f);
 	}
 
 /***
 =================
-S_GetMusicVolume [FWGS, 01.07.24]
+S_GetMusicVolume
 =================
 ***/
 float S_GetMusicVolume (void)
@@ -63,7 +81,9 @@ float S_GetMusicVolume (void)
 	if ((host.status == HOST_NOFOCUS) && (snd_mute_losefocus.value != 0.0f))
 		return 0.0f;
 
-	if (!s_listener.inmenu && (musicfade.percent != 0))
+	// [FWGS, 01.03.26]
+	/*if (!s_listener.inmenu && (musicfade.percent != 0))*/
+	if ((cls.key_dest != key_menu) && (musicfade.percent != 0))
 		{
 		scale = bound (0.0f, musicfade.percent / 100.0f, 1.0f);
 		scale = 1.0f - scale;
@@ -81,7 +101,8 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 	{
 	S_StopBackgroundTrack ();
 
-	if (!dma.initialized) return;
+	if (!dma.initialized)
+		return;
 
 	// check for special symbols
 	if (introTrack && *introTrack == '*')
@@ -90,13 +111,19 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 	if (mainTrack && *mainTrack == '*')
 		mainTrack = NULL;
 
-	if (!COM_CheckString (introTrack) && !COM_CheckString (mainTrack))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (introTrack) && !COM_CheckString (mainTrack))*/
+	if (COM_StringEmptyOrNULL (introTrack) && COM_StringEmptyOrNULL (mainTrack))
 		return;
 
-	if (!introTrack) introTrack = mainTrack;
-	if (!*introTrack) return;
+	if (!introTrack)
+		introTrack = mainTrack;
+	if (!*introTrack)
+		return;
 
-	if (!COM_CheckString (mainTrack))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (mainTrack))*/
+	if (COM_StringEmptyOrNULL (mainTrack))
 		s_bgTrack.loopName[0] = '\0';
 	else
 		Q_strncpy (s_bgTrack.loopName, mainTrack, sizeof (s_bgTrack.loopName));
@@ -126,8 +153,10 @@ void S_StopBackgroundTrack (void)
 	if (!s_bgTrack.stream)
 		return;
 
+	// [FWGS, 01.03.26]
 	FS_FreeStream (s_bgTrack.stream);
-	memset (&s_bgTrack, 0, sizeof (bg_track_t));
+	/*memset (&s_bgTrack, 0, sizeof (bg_track_t));*/
+	memset (&s_bgTrack, 0, sizeof (s_bgTrack));
 	memset (&musicfade, 0, sizeof (musicfade));
 	}
 
@@ -192,8 +221,9 @@ void S_StreamBackgroundTrack (void)
 	if (!dma.initialized || !s_bgTrack.stream || s_listener.streaming)
 		return;
 
-	// don't bother playing anything if musicvolume is 0
-	if (!s_musicvolume.value || s_listener.paused || s_listener.stream_paused)
+	// [FWGS, 01.03.26] don't bother playing anything if musicvolume is 0
+	/*if (!s_musicvolume.value || s_listener.paused || s_listener.stream_paused)*/
+	if (!s_musicvolume.value || cl.paused || s_listener.stream_paused)
 		return;
 
 	if (!cl.background)
@@ -233,7 +263,6 @@ void S_StreamBackgroundTrack (void)
 
 		// our max buffer size
 		fileBytes = fileSamples * (info->width * info->channels);
-
 		if (fileBytes > sizeof (raw))
 			{
 			fileBytes = sizeof (raw);
@@ -242,7 +271,6 @@ void S_StreamBackgroundTrack (void)
 
 		// read
 		r = FS_ReadStream (s_bgTrack.stream, fileBytes, raw);
-
 		if (r < fileBytes)
 			{
 			fileBytes = r;
@@ -253,7 +281,6 @@ void S_StreamBackgroundTrack (void)
 		if (r > 0)
 			{
 			// add to raw buffer
-			/*S_RawSamples (fileSamples, info->rate, info->width, info->channels, raw, S_RAW_SOUND_BACKGROUNDTRACK);*/
 			int music_vol = (int)(255.0f * S_GetMusicVolume ());
 
 			S_RawEntSamples (S_RAW_SOUND_BACKGROUNDTRACK, fileSamples, info->rate, info->width, info->channels,
@@ -304,70 +331,8 @@ void S_StopStreaming (void)
 	{
 	if (!dma.initialized)
 		return;
+
 	s_listener.streaming = false;
 	}
 
 // [FWGS, 01.07.25] removed S_StreamSoundTrack
-
-/*
-=================
-S_StreamSoundTrack
-=================
-/
-void S_StreamSoundTrack (void)
-	{
-	int	bufferSamples;
-	int	fileSamples;
-	byte	raw[MAX_RAW_SAMPLES];
-	int	r, fileBytes;
-	rawchan_t *ch = NULL;
-
-	if (!dma.initialized || !s_listener.streaming || s_listener.paused)
-		return;
-
-	ch = S_FindRawChannel (S_RAW_SOUND_SOUNDTRACK, true);
-
-	Assert (ch != NULL);
-
-	// see how many samples should be copied into the raw buffer
-	if (ch->s_rawend < soundtime)
-		ch->s_rawend = soundtime;
-
-	while (ch->s_rawend < soundtime + ch->max_samples)
-		{
-		wavdata_t *info = SCR_GetMovieInfo ();
-
-		if (!info) break;	// bad soundtrack?
-
-		bufferSamples = ch->max_samples - (ch->s_rawend - soundtime);
-
-		// decide how much data needs to be read from the file
-		fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);
-		if (fileSamples <= 1) return; // no more samples need
-
-		// our max buffer size
-		fileBytes = fileSamples * (info->width * info->channels);
-
-		if (fileBytes > sizeof (raw))
-			{
-			fileBytes = sizeof (raw);
-			fileSamples = fileBytes / (info->width * info->channels);
-			}
-
-		// read audio stream
-		r = SCR_GetAudioChunk (raw, fileBytes);
-
-		if (r < fileBytes)
-			{
-			fileBytes = r;
-			fileSamples = r / (info->width * info->channels);
-			}
-
-		if (r > 0)
-			{
-			// add to raw buffer
-			S_RawSamples (fileSamples, info->rate, info->width, info->channels, raw, S_RAW_SOUND_SOUNDTRACK);
-			}
-		else break; // no more samples for this frame
-		}
-	}*/

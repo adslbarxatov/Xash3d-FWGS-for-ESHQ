@@ -48,11 +48,13 @@ static void R_Mem_Free (void *mem, const char *filename, const int fileline)
 	_Mem_Free (mem, filename, fileline);
 	}
 
-/***
+// [FWGS, 01.03.26] remove pfnGetFilesList
+/*
+/
 =========
 pfnGetFilesList
 =========
-***/
+/
 static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
 	{
 	static search_t *t = NULL;
@@ -73,7 +75,7 @@ static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamediron
 		*numFiles = t->numfilenames;
 
 	return t->filenames;
-	}
+	}*/
 
 static uint pfnFileBufferCRC32 (const void *buffer, const int length)
 	{
@@ -96,7 +98,9 @@ static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot,
 	{
 	static vec3_t viewPoint;
 
-	if (!COM_CheckString (name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (name))*/
+	if (COM_StringEmptyOrNULL (name))
 		return;
 
 	if (cls.scrshot_action != scrshot_inactive)
@@ -177,8 +181,10 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 		case PARM_SHADOWDATA:
 			return (intptr_t)world.shadowdata;
 
+		// [FWGS, 01.03.26]
 		case PARM_FULLSCREEN:
-			return refState.fullScreen;
+			return (refState.window_mode == WINDOW_MODE_BORDERLESS) || (refState.window_mode == WINDOW_MODE_FULLSCREEN);
+			/*return refState.fullScreen;*/
 
 		case PARM_WIDESCREEN:
 			return refState.wideScreen;
@@ -281,92 +287,81 @@ static intptr_t pfnRenderGetParm (int parm, int arg)
 	}
 
 // [FWGS, 01.07.25]
-/*static void pfnAVI_StreamSound (void *avi, int entnum, float fvol, float attn, float synctime)*/
 static void pfnAVI_StreamSound (movie_state_t *avi, int entnum, float fvol, float attn, float synctime)
 	{
 	return; // stub, use AVI_SetParm and AVI_Think to stream AVI sound
 	}
 
-// [FWGS, 01.07.25]
+// [FWGS, 01.03.26]
 static render_api_t gRenderAPI =
 	{
-	pfnRenderGetParm, // GL_RenderGetParm,
-	NULL, // R_GetDetailScaleForTexture,
-	NULL, // R_GetExtraParmsForTexture,
+	pfnRenderGetParm,	// GL_RenderGetParm
+	NULL,				// R_GetDetailScaleForTexture
+	NULL,				// R_GetExtraParmsForTexture
 	CL_GetLightStyle,
 	CL_GetDynamicLight,
 	CL_GetEntityLight,
 	LightToTexGamma,
-	NULL, // R_GetFrameTime,
-	NULL, // R_SetCurrentEntity,
-	NULL, // R_SetCurrentModel,
+	NULL,				// R_GetFrameTime
+	NULL,				// R_SetCurrentEntity
+	NULL,				// R_SetCurrentModel
 	R_FatPVS,
 	R_StoreEfrags,
-	NULL, // GL_FindTexture,
-	NULL, // GL_TextureName,
-	NULL, // GL_TextureData,
-	NULL, // GL_LoadTexture,
-	NULL, // GL_CreateTexture,
-	NULL, // GL_LoadTextureArray,
-	NULL, // GL_CreateTextureArray,
-	NULL, // GL_FreeTexture,
-	NULL, // DrawSingleDecal,
-	NULL, // R_DecalSetupVerts,
-	NULL, // R_EntityRemoveDecals,
-
-	/*(void *)AVI_LoadVideo,
-	(void *)AVI_GetVideoInfo,
-	(void *)AVI_GetVideoFrameNumber,
-	(void *)AVI_GetVideoFrame,*/
+	NULL,				// GL_FindTexture
+	NULL,				// GL_TextureName
+	NULL,				// GL_TextureData
+	NULL,				// GL_LoadTexture
+	NULL,				// GL_CreateTexture
+	NULL,				// GL_LoadTextureArray
+	NULL,				// GL_CreateTextureArray
+	NULL,				// GL_FreeTexture
+	NULL,				// DrawSingleDecal
+	NULL,				// R_DecalSetupVerts
+	NULL,				// R_EntityRemoveDecals
 	AVI_LoadVideo,
 	AVI_GetVideoInfo,
 	AVI_GetVideoFrameNumber,
 	AVI_GetVideoFrame,
-
-	NULL, // R_UploadStretchRaw,
-	
-	/*(void *)AVI_FreeVideo,
-	(void *)AVI_IsActive,
-	(void *)pfnAVI_StreamSound,	// [FWGS, 01.02.25]
-	NULL,
-	NULL,*/
-	AVI_FreeVideo,
+	NULL,				// R_UploadStretchRaw
+		AVI_FreeVideo,
 	AVI_IsActive,
 	pfnAVI_StreamSound,
 	AVI_Think,
 	AVI_SetParm,
-
-	NULL, // GL_Bind,
-	NULL, // GL_SelectTexture,
-	NULL, // GL_LoadTexMatrixExt,
-	NULL, // GL_LoadIdentityTexMatrix,
-	NULL, // GL_CleanUpTextureUnits,
-	NULL, // GL_TexGen,
-	NULL, // GL_TextureTarget,
-	NULL, // GL_SetTexCoordArrayMode,
-	NULL, // GL_GetProcAddress,
-	NULL, // GL_UpdateTexSize,
+	NULL,				// GL_Bind
+	NULL,				// GL_SelectTexture
+	NULL,				// GL_LoadTexMatrixExt
+	NULL,				// GL_LoadIdentityTexMatrix
+	NULL,				// GL_CleanUpTextureUnits
+	NULL,				// GL_TexGen
+	NULL,				// GL_TextureTarget
+	NULL,				// GL_SetTexCoordArrayMode
+	NULL,				// GL_GetProcAddress
+	NULL,				// GL_UpdateTexSize
 	NULL,
 	NULL,
-	NULL, // CL_DrawParticlesExternal,
+	NULL,				// CL_DrawParticlesExternal
 	R_EnvShot,
 	pfnSPR_LoadExt,
-	NULL, // R_LightVec,
-	NULL, // R_StudioGetTexture,
+	NULL,				// R_LightVec
+	NULL,				// R_StudioGetTexture
 	GL_GetOverviewParms,
 	CL_GenericHandle,
 	COM_SaveFile,
 	NULL,
 	R_Mem_Alloc,
 	R_Mem_Free,
-	pfnGetFilesList,
+	/*pfnGetFilesList,*/
+	CL_GetFilesList,
 	pfnFileBufferCRC32,
 	pfnCompareFileTime,
 	Host_Error,
 	(void *)CL_ModelHandle,
-	pfnTime,
+	/*pfnTime,*/
+	Sys_FloatTime,
 	Cvar_Set,
-	S_FadeMusicVolume,
+	/*S_FadeMusicVolume,*/
+	S_MusicFade,
 	COM_SetRandomSeed,
 	};
 

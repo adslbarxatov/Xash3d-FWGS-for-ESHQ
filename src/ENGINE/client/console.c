@@ -44,6 +44,10 @@ static CVAR_DEFINE_AUTO (scr_drawversion, "1", FCVAR_ARCHIVE,
 static CVAR_DEFINE_AUTO (con_oldfont, "0", 0,
 	"use legacy font from gfx.wad, might be missing or broken");
 
+// [FWGS, 01.03.26]
+static CVAR_DEFINE_AUTO (con_showcompletion, "1", FCVAR_ARCHIVE,
+	"perform simplified autocompletion while typing");
+
 // [FWGS, 01.07.24]
 static int g_codepage = 0;
 static qboolean g_messagemode_privileged = true;
@@ -145,6 +149,9 @@ typedef struct
 	// console input
 	field_t		input;
 
+	// [FWGS, 01.03.26]
+	field_t		input_completion;
+
 	// chatfiled
 	field_t		chat;
 	string		chat_cmd;		// can be overrieded by user
@@ -157,8 +164,6 @@ typedef struct
 	qboolean		draw_notify;	// true if we have NXPrint message
 
 	// [FWGS, 01.11.25]
-	/*// console update
-	double		lastupdate;*/
 	} console_t;
 
 static console_t	con;
@@ -170,6 +175,16 @@ static void Con_InvalidateFonts (void);
 
 static void Con_LoadHistory (con_history_t *self);
 static void Con_SaveHistory (con_history_t *self);
+
+/***
+================
+Con_BackgroundMapActive [FWGS, 01.03.26]
+================
+***/
+qboolean Con_BackgroundMapActive (void)
+	{
+	return (sv_background.value != 0.0f) || cl.background;
+	}
 
 /***
 ================
@@ -283,23 +298,39 @@ void Con_ToggleConsole_f (void)
 
 	SCR_EndLoadingPlaque ();
 
-	// show console only in game or by special call from menu
-	if ((cls.state != ca_active) || (cls.key_dest == key_menu))
+	/*// show console only in game or by special call from menu
+	if ((cls.state != ca_active) || (cls.key_dest == key_menu))*/
+	// [FWGS, 01.03.26] show console only in game, from menu, or to close console
+	if ((cls.state != ca_active) && (cls.key_dest != key_menu) && (cls.key_dest != key_console))
 		return;
 
 	Con_ClearTyping ();
 	Con_ClearNotify ();
 
+	// [FWGS, 01.03.26]
 	if (cls.key_dest == key_console)
 		{
-		if (Cvar_VariableInteger ("sv_background") || Cvar_VariableInteger ("cl_background"))
+		/*if (Cvar_VariableInteger ("sv_background") || Cvar_VariableInteger ("cl_background"))*/
+		// closing console
+		if ((cls.state != ca_active) || Con_BackgroundMapActive ())
+			{
+			// not in game or in background mode - return to menu
+			// UI_SetActiveMenu(true) reactivates menu without resetting history
 			UI_SetActiveMenu (true);
+			/*else
+			UI_SetActiveMenu (false);*/
+			}
 		else
+			{
+			// in game - return to game
 			UI_SetActiveMenu (false);
+			}
 		}
 	else
 		{
-		UI_SetActiveMenu (false);
+		/*UI_SetActiveMenu (false);*/
+		// opening console - just switch key_dest, don't call UI_SetActiveMenu
+		// which would reset menu state via on_menu_hide()
 		Key_SetKeyDest (key_console);
 		}
 	}
@@ -792,7 +823,7 @@ int Con_DrawString (int x, int y, const char *string, const rgba_t setColor)
 
 /***
 ================
-Con_Init [FWGS, 01.03.24]
+Con_Init
 ================
 ***/
 void Con_Init (void)
@@ -813,13 +844,16 @@ void Con_Init (void)
 	Cvar_RegisterVariable (&scr_drawversion);
 	Cvar_RegisterVariable (&con_oldfont);
 
+	// [FWGS, 01.03.26]
+	Cvar_RegisterVariable (&con_showcompletion);
+
 	// init the console buffer
 	con.bufsize = CON_TEXTSIZE;
 	con.buffer = (char *)Z_Calloc (con.bufsize);
 	con.maxlines = CON_MAXLINES;
 	con.lines = (con_lineinfo_t *)Z_Calloc (con.maxlines * sizeof (*con.lines));
 	con.lines_first = con.lines_count = 0;
-	con.num_times = CON_TIMES; // default as 4
+	con.num_times = CON_TIMES;	// default as 4
 
 	Con_CheckResize ();
 
@@ -974,12 +1008,6 @@ void Con_Print (const char *txt)
 			}
 
 		// [FWGS, 01.11.25]
-		/*// pump messages to avoid window hanging
-		if (con.lastupdate < Sys_DoubleTime ())
-			{
-			con.lastupdate = Sys_DoubleTime () + 1.0;
-			Host_InputFrame ();
-			}*/
 		}
 	}
 
@@ -1092,6 +1120,7 @@ void GAME_EXPORT UI_NXPrintf (con_nprint_t *info, const char *fmt, ...)
 EDIT FIELDS
 =============================================================================
 ***/
+
 /***
 ================
 Con_ClearField [FWGS, 01.05.24]
@@ -1295,32 +1324,47 @@ static void Field_CharEvent (field_t *edit, int ch)
 
 /***
 ==================
-Field_DrawInputLine [FWGS, 01.07.25]
+Field_DrawInputLine [FWGS, 01.03.26]
 ==================
 ***/
-static void Field_DrawInputLine (int x, int y, const field_t *edit)
+/*static void Field_DrawInputLine (int x, int y, const field_t *edit)*/
+static int Field_DrawInputLine (int x, int y, const field_t *edit, byte alpha, qboolean cursor)
 	{
 	int		curPos;
 	char	str[MAX_SYSPATH];
-	const byte	*colorDefault = g_color_table[ColorIndex (COLOR_DEFAULT)];
+	/*const byte	*colorDefault = g_color_table[ColorIndex (COLOR_DEFAULT)];*/
+	rgba_t		colorDefault;
 	const int	prestep = bound (0, edit->scroll, sizeof (edit->buffer) - 1);
 	const int	drawLen = bound (0, edit->widthInChars, sizeof (str));
 	const int	cursorCharPos = bound (0, edit->cursor - prestep, sizeof (str));
-	str[0] = 0;
+	/*str[0] = 0;*/
+
+	memcpy (colorDefault, g_color_table[ColorIndex (COLOR_DEFAULT)], 3 * sizeof (colorDefault[0]));
+	colorDefault[3] = alpha;
 
 	Q_strncpy (str, edit->buffer + prestep, drawLen);
+
+	// draw it
 	CL_DrawString (x, y, str, colorDefault, con.curFont, FONT_DRAW_UTF8);
 
-	if ((int)(host.realtime * 4) & 1)
-		return; // off blink
+	/*if ((int)(host.realtime * 4) & 1)
+		return; // off blink*/
 
+	// calc cursor position
 	str[cursorCharPos] = 0;
 	CL_DrawStringLen (con.curFont, str, &curPos, NULL, FONT_DRAW_UTF8);
 
-	if (host.key_overstrike)
+	/*if (host.key_overstrike)
 		CL_DrawCharacter (x + curPos, y, '|', colorDefault, con.curFont, 0);
 	else
-		CL_DrawCharacter (x + curPos, y, '_', colorDefault, con.curFont, 0);
+		CL_DrawCharacter (x + curPos, y, '_', colorDefault, con.curFont, 0);*/
+	// draw the cursor
+	if (!cursor || (int)(host.realtime * 4) & 1)
+		return curPos; // off blink
+
+	CL_DrawCharacter (x + curPos, y, host.key_overstrike ? '|' : '_', colorDefault, con.curFont, 0);
+
+	return curPos;
 	}
 
 /***
@@ -1462,7 +1506,6 @@ static void Con_LoadHistory (con_history_t *self)
 	self->line = self->next;
 	}
 
-// [FWGS, 01.07.24]
 static void Con_SaveHistory (con_history_t *self)
 	{
 	int		historyStart = self->next - CON_HISTORY, i;
@@ -1475,7 +1518,14 @@ static void Con_SaveHistory (con_history_t *self)
 	if (historyStart < 0)
 		historyStart = 0;
 
+	// [FWGS, 01.03.26]
 	f = FS_Open ("console_history.txt", "wb", true);
+	if (!f)
+		{
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, "console_history.txt");
+		return;
+		}
+
 	for (i = historyStart; i < self->next; i++)
 		{
 		const char *s = self->lines[i % CON_HISTORY].buffer;
@@ -1496,9 +1546,20 @@ CONSOLE LINE EDITING
 =============================================================================
 ***/
 
+// [FWGS, 01.03.26]
+static void Con_InputCompletion (void)
+	{
+	if (!con_showcompletion.value)
+		return;
+
+	// keep a copy of console input
+	con.input_completion = con.input;
+	Con_CompleteCommand (&con.input_completion, false);
+	}
+
 /***
 ====================
-Key_Console [FWGS, 01.03.25]
+Key_Console [FWGS, 01.03.26]
 
 Handles history and console scrollback
 ====================
@@ -1510,9 +1571,17 @@ void Key_Console (int key)
 	if ((key == K_BACK_BUTTON) || (key == K_START_BUTTON) || (key == K_ESCAPE))
 		{
 		if ((cls.state == ca_active) && !cl.background)
+			{
+			UI_SetActiveMenu (false); // we are in game, prevent menu from drawing
 			Key_SetKeyDest (key_game);
+			/*else
+			UI_SetActiveMenu (true);*/
+			}
 		else
+			{
 			UI_SetActiveMenu (true);
+			}
+
 		return;
 		}
 
@@ -1546,6 +1615,9 @@ void Key_Console (int key)
 		con.input.widthInChars = con.linewidth;
 		Con_Bottom ();
 
+		// [FWGS, 01.03.26]
+		Con_ClearField (&con.input_completion);
+
 		// force an update, because the command may take some time
 		if (cls.state == ca_disconnected)
 			SCR_UpdateScreen ();
@@ -1553,26 +1625,31 @@ void Key_Console (int key)
 		return;
 		}
 
-	// command completion
+	// [FWGS, 01.03.26] command completion
 	if ((key == K_TAB) || (key == K_L2_BUTTON))
 		{
-		Con_CompleteCommand (&con.input);
+		/*Con_CompleteCommand (&con.input);*/
+		Con_CompleteCommand (&con.input, true);
 		Con_Bottom ();
+		Con_ClearField (&con.input_completion);
 		return;
 		}
 
-	// command history (ctrl-p ctrl-n for unix style)
+	// [FWGS, 01.03.26] command history (ctrl-p ctrl-n for unix style)
 	if (((key == K_MWHEELUP) && Key_IsDown (K_SHIFT)) || (key == K_UPARROW) || ((Q_tolower (key) == 'p') &&
 		Key_IsDown (K_CTRL)))
 		{
 		Con_HistoryUp (&con.history, &con.input);
+		Con_InputCompletion ();
 		return;
 		}
 
+	// [FWGS, 01.03.26]
 	if (((key == K_MWHEELDOWN) && Key_IsDown (K_SHIFT)) || (key == K_DOWNARROW) || ((Q_tolower (key) == 'n') &&
 		Key_IsDown (K_CTRL)))
 		{
 		Con_HistoryDown (&con.history, &con.input);
+		Con_InputCompletion ();
 		return;
 		}
 
@@ -1628,8 +1705,9 @@ void Key_Console (int key)
 		return;
 		}
 
-	// pass to the normal editline routine
+	// [FWGS, 01.03.26] pass to the normal editline routine
 	Field_KeyDownEvent (&con.input, key);
+	Con_InputCompletion ();
 	}
 
 /***
@@ -1678,14 +1756,15 @@ DRAWING
 
 /***
 ================
-Con_DrawInput
+Con_DrawInput [FWGS, 01.03.26]
 
 The input line scrolls horizontally if typing goes beyond the right edge
 ================
 ***/
 static void Con_DrawInput (int lines)
 	{
-	int	y;
+	/*int	y;*/
+	int x, y;
 
 	// don't draw anything (always draw if not active)
 	if ((cls.key_dest != key_console) || !con.curFont)
@@ -1694,7 +1773,27 @@ static void Con_DrawInput (int lines)
 	y = lines - (con.curFont->charHeight * 2);
 
 	CL_DrawCharacter (con.curFont->charWidths[' '], y, ']', g_color_table[7], con.curFont, 0);
-	Field_DrawInputLine (con.curFont->charWidths[' '] * 2, y, &con.input);
+	/*Field_DrawInputLine (con.curFont->charWidths[' '] * 2, y, &con.input);*/
+	x = Field_DrawInputLine (con.curFont->charWidths[' '] * 2, y, &con.input, 255, true);
+
+	// HACKHACK: avoid rendering issues when scroll != 0
+	if (con_showcompletion.value && (con.input.scroll == 0))
+		{
+		int len = Q_strlen (con.input.buffer);
+
+		if (FBitSet (con_showcompletion.flags, FCVAR_CHANGED))
+			{
+			Con_InputCompletion ();
+			ClearBits (con_showcompletion.flags, FCVAR_CHANGED);
+			}
+
+		// Con_CompleteCommand destroys the buffer. Need to figure out how to make it append only
+		if ((Q_strlen (con.input_completion.buffer) > len) && !Q_strncmp (con.input.buffer, con.input_completion.buffer, len))
+			{
+			con.input_completion.scroll = len;
+			Field_DrawInputLine (con.curFont->charWidths[' '] * 2 + x, y, &con.input_completion, 128, false);
+			}
+		}
 	}
 
 /***
@@ -1744,7 +1843,7 @@ static int Con_DrawDebugLines (void)
 
 /***
 ================
-Con_DrawDebug [FWGS, 01.12.24]
+Con_DrawDebug
 
 Draws the debug messages (not passed to console history)
 ================
@@ -1755,11 +1854,13 @@ void Con_DrawDebug (void)
 	string			dlstring;
 	int				x, y;
 
+	// [FWGS, 01.03.26]
 	if (scr_download.value != -1.0f)
 		{
 		int length;
 		Q_snprintf (dlstring, sizeof (dlstring), "Downloading [%d remaining]: ^2%s^7 %5.1f%% time %.f secs",
-			host.downloadcount, host.downloadfile, scr_download.value, Sys_DoubleTime () - timeStart);
+			/*host.downloadcount, host.downloadfile, scr_download.value, Sys_DoubleTime () - timeStart);*/
+			host.downloadcount, host.downloadfile, scr_download.value, Platform_DoubleTime () - timeStart);
 
 		Con_DrawStringLen (dlstring, &length, NULL);
 		length = Q_max (length, 300);
@@ -1773,7 +1874,9 @@ void Con_DrawDebug (void)
 		timeStart = host.realtime;
 		}
 
-	if (!host.allow_console || Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background"))
+	// [FWGS, 01.03.26]
+	/*if (!host.allow_console || Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background"))*/
+	if (!host.allow_console || Con_BackgroundMapActive ())
 		return;
 
 	if (con.draw_notify && !Con_Visible ())
@@ -1798,10 +1901,12 @@ static void Con_DrawNotify (void)
 	if (!con.curFont)
 		return;
 
-	x = con.curFont->charWidths[' ']; // offset one space at left screen side
+	// offset one space at left screen side
+	x = con.curFont->charWidths[' '];
 
-	// [FWGS, 01.09.24]
-	if (host.allow_console && (!Cvar_VariableInteger ("cl_background") && !Cvar_VariableInteger ("sv_background")))
+	// [FWGS, 01.03.26]
+	/*if (host.allow_console && (!Cvar_VariableInteger ("cl_background") && !Cvar_VariableInteger ("sv_background")))*/
+	if (host.allow_console && !Con_BackgroundMapActive ())
 		{
 		for (i = Q_max (0, CON_LINES_COUNT - con.num_times); i < CON_LINES_COUNT; i++)
 			{
@@ -1829,7 +1934,9 @@ static void Con_DrawNotify (void)
 		Con_DrawStringLen (buf, &len, NULL);
 		Con_DrawString (x, y, buf, g_color_table[7]);
 
-		Field_DrawInputLine (x + len, y, &con.chat);
+		// [FWGS, 01.03.26]
+		/*Field_DrawInputLine (x + len, y, &con.chat);*/
+		Field_DrawInputLine (x + len, y, &con.chat, 255, true);
 		}
 
 	ref.dllFuncs.Color4ub (255, 255, 255, 255);
@@ -1841,7 +1948,7 @@ Con_DrawConsoleLine
 
 Draws a line of the console; returns its height in lines.
 If alpha is 0, the line is not drawn, but still wrapped and its height
-returned.
+returned
 ================
 ***/
 static int Con_DrawConsoleLine (int y, int lineno)
@@ -1914,9 +2021,6 @@ static void Con_DrawSolidConsole (int lines)
 	ref.dllFuncs.GL_SetRenderMode (kRenderNormal);
 	ref.dllFuncs.Color4ub (255, 255, 255, 255); // to prevent grab color from screenfade
 	if ((refState.width * 3 / 4 < refState.height) && (lines >= refState.height))
-		/*ref.dllFuncs.R_DrawStretchPic (0, lines - refState.height, refState.width,
-			refState.height - refState.width * 3 / 4, 0, 0, 1, 1,
-			R_GetBuiltinTexture (REF_BLACK_TEXTURE));*/
 		ref.dllFuncs.R_DrawStretchPic (0, lines - refState.height, refState.width,
 			refState.height - refState.width * 3 / 4, 0, 0, 1, 1,
 			R_GetBuiltinTexture (REF_BLACK_TEXTURE));
@@ -1984,7 +2088,7 @@ static void Con_DrawSolidConsole (int lines)
 
 /***
 ==================
-Con_DrawConsole [FWGS, 01.12.24]
+Con_DrawConsole
 ==================
 ***/
 void Con_DrawConsole (void)
@@ -1998,10 +2102,12 @@ void Con_DrawConsole (void)
 
 	if ((cls.state == ca_connecting) || (cls.state == ca_connected))
 		{
+		// [FWGS, 01.03.26]
 		if (!cl_allow_levelshots.value && !cls.timedemo)
 			{
-			if ((cls.key_dest != key_console) && (Cvar_VariableInteger ("cl_background") ||
-				Cvar_VariableInteger ("sv_background")))
+			/*if ((cls.key_dest != key_console) && (Cvar_VariableInteger ("cl_background") ||
+				Cvar_VariableInteger ("sv_background")))*/
+			if ((cls.key_dest != key_console) && Con_BackgroundMapActive ())
 				con.vislines = con.showlines = 0;
 			else
 				con.vislines = con.showlines = refState.height;
@@ -2033,9 +2139,11 @@ void Con_DrawConsole (void)
 			Con_DrawSolidConsole (con.vislines);
 			break;
 
+		// [FWGS, 01.03.26]
 		case ca_active:
 		case ca_cinematic:
-			if (Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background"))
+			/*if (Cvar_VariableInteger ("cl_background") || Cvar_VariableInteger ("sv_background"))*/
+			if (Con_BackgroundMapActive ())
 				{
 				if (cls.key_dest == key_console)
 					Con_DrawSolidConsole (refState.height);
@@ -2193,11 +2301,16 @@ Console input
 ***/
 void Con_CharEvent (int key)
 	{
-	// distribute the key down event to the apropriate handler
+	// [FWGS, 01.03.26] distribute the key down event to the apropriate handler
 	if (cls.key_dest == key_console)
+		{
 		Field_CharEvent (&con.input, key);
+		Con_InputCompletion ();
+		}
 	else if (cls.key_dest == key_message)
+		{
 		Field_CharEvent (&con.chat, key);
+		}
 	}
 
 // [FWGS, 01.04.25]
