@@ -29,19 +29,24 @@ typedef struct master_s
 	netadr_t	adr;	// temporary, rewritten after each send
 	uint		heartbeat_challenge;
 	double		last_heartbeat;
+
+	double		resolve_time;	// [FWGS, 01.03.26]
 	} master_t;
 
 // [FWGS, 01.11.25]
 static struct masterlist_s
 	{
-	/*master_t *list;*/
 	master_t	*head, *tail;
 	qboolean	modified;
 	} ml;
 
-static CVAR_DEFINE_AUTO (sv_verbose_heartbeats, "0", 0, "print every heartbeat to console");
+static CVAR_DEFINE_AUTO (sv_verbose_heartbeats, "0", 0,
+	"print every heartbeat to console");
 
-#define HEARTBEAT_SECONDS ((sv_nat.value > 0.0f) ? 60.0f : 300.0f)   // 1 or 5 minutes
+// [FWGS, 01.03.26]
+/*define HEARTBEAT_SECONDS ((sv_nat.value > 0.0f) ? 60.0f : 300.0f)   // 1 or 5 minutes*/
+#define HEARTBEAT_SECONDS		((sv_nat.value > 0.0f) ? 60.0f : 300.0f)	// 1 or 5 minutes
+#define RESOLVE_EXPIRE_SECONDS	(60.0f)		// 1 minute to expire
 
 // [FWGS, 01.11.25]
 static size_t NET_BuildMasterServerScanRequest (char *buf, size_t size, uint32_t key, qboolean nat,
@@ -84,14 +89,26 @@ static size_t NET_BuildMasterServerScanRequest (char *buf, size_t size, uint32_t
 
 /***
 ========================
-NET_GetMasterHostByName [FWGS, 01.12.24]
+NET_GetMasterHostByName [FWGS, 01.03.26]
 ========================
 ***/
 static net_gai_state_t NET_GetMasterHostByName (master_t * m)
 	{
-	net_gai_state_t res = NET_StringToAdrNB (m->address, &m->adr, m->v6only);
+	/*net_gai_state_t res = NET_StringToAdrNB (m->address, &m->adr, m->v6only);*/
+	net_gai_state_t res;
+
+	if (host.realtime > m->resolve_time)
+		m->adr.type = 0;
+
+	if (m->adr.type)
+		return NET_EAI_OK;
+
+	res = NET_StringToAdrNB (m->address, &m->adr, m->v6only);
 	if (res == NET_EAI_OK)
+		{
+		m->resolve_time = host.realtime + RESOLVE_EXPIRE_SECONDS;
 		return res;
+		}
 	
 	m->adr.type = 0;
 
@@ -111,27 +128,23 @@ static void NET_ClearSendState (void)
 
 /***
 ========================
-NET_SendToMasters [FWGS, 01.11.25]
+NET_SendToMasters
 
 Send request to all masterservers list
 return true if would block
 ========================
 ***/
-/*qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data)*/
 static qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data, connprotocol_t proto)
 	{
-	/*master_t	*list;*/
 	master_t	*master;
 	qboolean	wait = false;
 
-	/*for (list = ml.list; list; list = list->next)*/
+	// [FWGS, 01.03.26]
 	for (master = ml.head; master; master = master->next)
 		{
-		/*if (list->sent)*/
-		if (master->sent)
-			continue;
+		/*if (master->sent)
+			continue;*/
 
-		/*switch (NET_GetMasterHostByName (list))*/
 		if (master->gs)
 			{
 			if (proto != PROTO_GOLDSRC)
@@ -143,34 +156,26 @@ static qboolean NET_SendToMasters (netsrc_t sock, size_t len, const void *data, 
 				continue;
 			}
 
+		if (master->sent)
+			continue;
+
 		switch (NET_GetMasterHostByName (master))
 			{
 			case NET_EAI_AGAIN:
-				/*list->sent = false;*/
 				master->sent = false;
 				wait = true;
 				break;
 
 			case NET_EAI_NONAME:
-				/*list->sent = true;*/
 				master->sent = true;
 				break;
 
 			case NET_EAI_OK:
-				/*list->sent = true;
-				NET_SendPacket (sock, len, data, list->adr);*/
 				master->sent = true;
 				NET_SendPacket (sock, len, data, master->adr);
 				break;
 			}
 		}
-
-	/*if (!wait)
-		{
-		// reset sent state
-		for (list = ml.list; list; list = list->next)
-			list->sent = false;
-		}*/
 
 	return wait;
 	}
@@ -189,7 +194,6 @@ static void NET_AnnounceToMaster (master_t *m)
 
 	// [FWGS, 01.11.25]
 	MSG_Init (&msg, "Master Join", buf, sizeof (buf));
-	/*MSG_WriteBytes (&msg, "q\xFF", 2);*/
 	MSG_WriteBytes (&msg, S2M_HEARTBEAT, 2);
 	MSG_WriteDword (&msg, m->heartbeat_challenge);
 
@@ -211,14 +215,13 @@ void NET_MasterClear (void)
 	master_t *m;
 
 	// [FWGS, 01.11.25]
-	/*for (m = ml.list; m; m = m->next)*/
 	for (m = ml.head; m; m = m->next)
 		m->last_heartbeat = MAX_HEARTBEAT;
 	}
 
 /***
 =================
-NET_MasterQuery [FWGS, 01.11.25]
+NET_MasterQuery
 =================
 ***/
 qboolean NET_MasterQuery (uint32_t key, qboolean nat, const char *filter)
@@ -230,11 +233,12 @@ qboolean NET_MasterQuery (uint32_t key, qboolean nat, const char *filter)
 	len = NET_BuildMasterServerScanRequest (buf, sizeof (buf), key, nat, filter, PROTO_CURRENT);
 	wait = NET_SendToMasters (NS_CLIENT, len, buf, PROTO_CURRENT);
 
-	// goldsrc don't have nat traversal extensions
+	// [FWGS, 01.03.26] goldsrc don't have nat traversal extensions
 	if (!nat)
 		{
 		len = NET_BuildMasterServerScanRequest (buf, sizeof (buf), 0, false, filter, PROTO_GOLDSRC);
-		wait = NET_SendToMasters (NS_CLIENT, len, buf, PROTO_GOLDSRC);
+		/*wait = NET_SendToMasters (NS_CLIENT, len, buf, PROTO_GOLDSRC);*/
+		wait |= NET_SendToMasters (NS_CLIENT, len, buf, PROTO_GOLDSRC);
 		}
 
 	if (!wait)
@@ -256,7 +260,6 @@ void NET_MasterHeartbeat (void)
 		return; // only public servers send heartbeats
 
 	// [FWGS, 01.11.25]
-	/*for (m = ml.list; m; m = m->next)*/
 	for (m = ml.head; m; m = m->next)
 		{
 		if (host.realtime - m->last_heartbeat < HEARTBEAT_SECONDS)
@@ -298,7 +301,6 @@ void NET_MasterShutdown (void)
 	NET_Config (true, false); // allow remote
 
 	// [FWGS, 01.11.25]
-	/*while (NET_SendToMasters (NS_SERVER, 2, "\x62\x0A"));*/
 	while (NET_SendToMasters (NS_SERVER, 2, S2M_SHUTDOWN, PROTO_CURRENT));
 	NET_ClearSendState ();
 	}
@@ -313,7 +315,6 @@ static master_t *NET_GetMasterFromAdr (netadr_t adr)
 	master_t *master;
 
 	// [FWGS, 01.11.25]
-	/*for (master = ml.list; master; master = master->next)*/
 	for (master = ml.head; master; master = master->next)
 		{
 		if (NET_CompareAdr (adr, master->adr))
@@ -347,10 +348,8 @@ qboolean NET_GetMaster (netadr_t from, uint *challenge, double *last_heartbeat)
 NET_IsMasterAdr [FWGS, 01.11.25]
 ========================
 ***/
-/*qboolean NET_IsMasterAdr (netadr_t adr)*/
 qboolean NET_IsMasterAdr (netadr_t adr, connprotocol_t *proto)
 	{
-	/*return NET_GetMasterFromAdr (adr) != NULL;*/
 	master_t *master = NET_GetMasterFromAdr (adr);
 
 	if (!master)
@@ -369,42 +368,25 @@ NET_AddMaster [FWGS, 01.11.25]
 Add master to the list
 ========================
 ***/
-/*static void NET_AddMaster (const char *addr, qboolean save, qboolean v6only)*/
 static master_t *NET_AddMaster (const char *addr)
 	{
-	/*master_t *master, *last;*/
 	master_t *master;
 
-	/*for (last = ml.list; last && last->next; last = last->next)*/
 	for (master = ml.head; master; master = master->next)
 		{
-		/*if (!Q_strcmp (last->address, addr)) // already exists
-			return;*/
 		if (!Q_stricmp (master->address, addr)) // already exists
 			return master;
 		}
 
-	/*master = Mem_Malloc (host.mempool, sizeof (*master));*/
 	master = Mem_Calloc (host.mempool, sizeof (*master));
 
 	Q_strncpy (master->address, addr, sizeof (master->address));
-	/*master->sent = false;
-	master->save = save;
-	master->v6only = v6only;
-
-	master->next = NULL;
-	master->adr.type = 0;
-
-	// link in
-	if (last)
-		last->next = master;*/
 	if (ml.tail)
 		{
 		ml.tail->next = master;
 		ml.tail = master;
 		}
 	else
-		/*ml.list = master;*/
 		{
 		ml.head = ml.tail = master;
 		}
@@ -412,23 +394,22 @@ static master_t *NET_AddMaster (const char *addr)
 	return master;
 	}
 
-// [FWGS, 01.11.25]
 static void NET_AddMaster_f (void)
 	{
 	master_t *master;
 
 	if (Cmd_Argc () != 2)
 		{
-		/*Msg (S_USAGE "addmaster <address>\n");*/
 		Msg (S_USAGE "addmaster <address> [gs]\n");
 		return;
 		}
 
-	/*NET_AddMaster (Cmd_Argv (1), true, false); // save them into config*/
 	master = NET_AddMaster (Cmd_Argv (1));
 	master->save = true;
 
-	if (Q_stricmp (Cmd_Argv (2), "gs"))
+	// [FWGS, 01.03.26]
+	/*if (Q_stricmp (Cmd_Argv (2), "gs"))*/
+	if (!Q_stricmp (Cmd_Argv (2), "gs"))
 		master->gs = true;
 
 	ml.modified = true; // save config
@@ -443,12 +424,8 @@ Clear master list
 ***/
 static void NET_ClearMasters_f (void)
 	{
-	/*while (ml.list)*/
 	while (ml.head)
 		{
-		/*master_t *prev = ml.list;
-		ml.list = ml.list->next;
-		Mem_Free (prev);*/
 		master_t *head = ml.head;
 		ml.head = ml.head->next;
 		Mem_Free (head);
@@ -466,21 +443,13 @@ Display current master linked list
 ***/
 static void NET_ListMasters_f (void)
 	{
-	/*master_t	*list;*/
 	master_t	*master;
 	int			i;
 
 	Con_Printf ("Master servers:\n");
 
-	/*for (i = 1, list = ml.list; list; i++, list = list->next)*/
 	for (i = 1, master = ml.head; master; i++, master = master->next)
 		{
-		/*Con_Printf ("%d\t%s", i, list->address);
-		
-		if (list->adr.type != 0)
-			Con_Printf ("\t%s\n", NET_AdrToString (list->adr));
-		else
-			Con_Printf ("\n");*/
 		Con_Printf ("%d\t%s", i, master->address);
 		if (master->adr.type != 0)
 			Con_Printf ("\t%s", NET_AdrToString (master->adr));
@@ -509,7 +478,6 @@ static void NET_LoadMasters (void)
 	char token[MAX_TOKEN];
 
 	// [FWGS, 01.11.25]
-	/*afile = FS_LoadFile ("xashcomm.lst", NULL, true);*/
 	afile = FS_LoadFile ("xashcomm.lst", NULL, false);
 
 	if (!afile) // file doesn't exist yet
@@ -521,7 +489,6 @@ static void NET_LoadMasters (void)
 	pfile = (char *)afile;
 
 	// [FWGS, 01.11.25] format: master <addr>\n
-	/*while ((pfile = COM_ParseFile (pfile, token, sizeof (token))))*/
 	while ((pfile = COM_ParseFile (pfile, token, sizeof (token))))
 		{
 		master_t *master = NULL;
@@ -530,15 +497,11 @@ static void NET_LoadMasters (void)
 		// NET_ClearMasters_f();
 		if (!Q_strcmp (token, "master"))	// load addr
 			{
-			/*pfile = COM_ParseFile (pfile, token, sizeof (token));
-			NET_AddMaster (token, true, false);*/
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			master = NET_AddMaster (token);
 			}
 		else if (!Q_strcmp (token, "master6"))
 			{
-			/*pfile = COM_ParseFile (pfile, token, sizeof (token));
-			NET_AddMaster (token, true, true);*/
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			master = NET_AddMaster (token);
 			master->v6only = true;
@@ -581,11 +544,8 @@ void NET_SaveMasters (void)
 		}
 
 	// [FWGS, 01.11.25]
-	/*for (m = ml.list; m; m = m->next)*/
 	for (m = ml.head; m; m = m->next)
 		{
-		/*if (m->save)
-			FS_Printf (f, "%s %s\n", m->v6only ? "master6" : "master", m->address);*/
 		const char *key;
 
 		if (!m->save)
@@ -621,25 +581,17 @@ void NET_InitMasters (void)
 
 	// [ESHQ: brackets]
 	// [FWGS, 01.11.25] IPv4-only
-	/*NET_AddMaster ("mentality.rip:27010", false, false);
-	NET_AddMaster ("ms2.mentality.rip:27010", false, false);
-	NET_AddMaster ("ms3.mentality.rip:27010", false, false);*/
 	NET_AddMaster ("mentality.rip:27010");
 	NET_AddMaster ("ms2.mentality.rip:27010");
 	NET_AddMaster ("ms3.mentality.rip:27010");
 	
 	// [FWGS, 01.11.25] IPv6-only
-	/*NET_AddMaster ("aaaa.mentality.rip:27010", false, true);
-	NET_AddMaster ("aaaa.ms2.mentality.rip:27010", false, true);*/
 	NET_AddMaster ("aaaa.mentality.rip:27010")->v6only = true;
 	NET_AddMaster ("aaaa.ms2.mentality.rip:27010")->v6only = true;
 	
 	// [FWGS, 01.11.25] testing servers, might be offline
-	/*NET_AddMaster ("mentality.rip:27011", false, false);
-	NET_AddMaster ("aaaa.mentality.rip:27011", false, true);*/
 	NET_AddMaster ("mentality.rip:27011");
 	NET_AddMaster ("aaaa.mentality.rip:27011")->v6only = true;
 	
-	/*NET_LoadMasters ();*/
 	NET_LoadMasters ();
 	}

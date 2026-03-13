@@ -20,10 +20,7 @@ GNU General Public License for more details
 
 // [FWGS, 01.12.24]
 #define NUM_BYTES		256
-/*#define CRC32_INIT_VALUE	0xFFFFFFFFUL
-#define CRC32_XOR_VALUE		0xFFFFFFFFUL*/
 
-// [FWGS, 01.07.23]
 static const uint32_t crc32table[NUM_BYTES] =
 	{
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
@@ -93,24 +90,13 @@ static const uint32_t crc32table[NUM_BYTES] =
 	};
 
 // [FWGS, 01.12.24] removed CRC32_Init, CRC32_Final
-/*void GAME_EXPORT CRC32_Init (uint32_t *pulCRC)
-	{
-	*pulCRC = CRC32_INIT_VALUE;
-	}*/
 
-/*dword GAME_EXPORT CRC32_Final (uint32_t pulCRC)
-	{
-	return pulCRC ^ CRC32_XOR_VALUE;
-	}*/
-
-// [FWGS, 01.07.23]
 void GAME_EXPORT CRC32_ProcessByte (uint32_t *pulCRC, byte ch)
 	{
 	uint32_t	ulCrc = *pulCRC;
 	*pulCRC = crc32table[((byte)ulCrc ^ ch)] ^ (ulCrc >> 8);
 	}
 
-// [FWGS, 01.07.23]
 void GAME_EXPORT CRC32_ProcessBuffer (uint32_t *pulCRC, const void *pBuffer, int nBuffer)
 	{
 	uint32_t	ulCrc = *pulCRC, tmp;
@@ -193,23 +179,6 @@ byte CRC32_BlockSequence (byte *base, int length, int sequence)
 void MD5Transform (uint buf[4], const uint in[16]);
 
 // [FWGS, 01.12.24] removed MD5Init
-/*
-==================
-MD5Init
-
-Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious initialization constants
-==================
-/
-void MD5Init (MD5Context_t *ctx)
-	{
-	ctx->buf[0] = 0x67452301;
-	ctx->buf[1] = 0xefcdab89;
-	ctx->buf[2] = 0x98badcfe;
-	ctx->buf[3] = 0x10325476;
-
-	ctx->bits[0] = 0;
-	ctx->bits[1] = 0;
-	}*/
 
 /***
 ===================

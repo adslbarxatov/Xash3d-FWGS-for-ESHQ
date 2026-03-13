@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#define CUSTOM_MODES 1 // required to correctly link with Opus Custom
+#define CUSTOM_MODES	1	// required to correctly link with Opus Custom
 
 // [FWGS, 01.07.25]
 #ifdef OPUS
@@ -30,25 +30,12 @@ GNU General Public License for more details
 voice_state_t voice = { 0 };
 
 // [FWGS, 01.11.25]
-/*CVAR_DEFINE_AUTO (voice_enable, "1", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
-	"enable voice chat");*/
 static CVAR_DEFINE_AUTO (voice_enable, "1", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
 	"enable voice chat");
 
 CVAR_DEFINE_AUTO (voice_loopback, "0", FCVAR_PRIVILEGED,
 	"loopback voice back to the speaker");
 
-/*CVAR_DEFINE_AUTO (voice_scale, "1.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
-	"incoming voice volume scale");
-CVAR_DEFINE_AUTO (voice_transmit_scale, "1.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
-	"outcoming voice volume scale");
-CVAR_DEFINE_AUTO (voice_avggain, "0.5", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
-	"automatic voice gain control (average)");
-CVAR_DEFINE_AUTO (voice_maxgain, "5.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
-	"automatic voice gain control (maximum)");
-
-CVAR_DEFINE_AUTO (voice_inputfromfile, "0", FCVAR_PRIVILEGED,
-	"input voice from voice_input.wav");*/
 static CVAR_DEFINE_AUTO (voice_scale, "1.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
 	"incoming voice volume scale");
 static CVAR_DEFINE_AUTO (voice_transmit_scale, "1.0", FCVAR_PRIVILEGED | FCVAR_ARCHIVE,
@@ -72,19 +59,24 @@ UTILITY FUNCTIONS
 
 /***
 =========================
-Voice_IsGoldSrcMode [FWGS, 01.07.25]
+Voice_IsGoldSrcMode [FWGS, 01.03.26]
 
 Check if codec is GoldSrc mode
 =========================
 ***/
 static qboolean Voice_IsGoldSrcMode (const char *codec)
 	{
-	// check for an empty codec string
-	// if the server does not use ReVoice or VTC
-	// it will send an empty codec
-	// however, decoding is still possible
+	// Check for an empty codec string. If the server does not use ReVoice or VTC
+	// it will send an empty codec. However, decoding is still possible
 	// if the voice data contains Opus
-	return ((COM_CheckString (codec) == 0) || (Q_strstr (codec, "voice_speex") != NULL));
+	/*return ((COM_CheckString (codec) == 0) || (Q_strstr (codec, "voice_speex") != NULL));*/
+	if (COM_StringEmptyOrNULL (codec))
+		return true;
+
+	if (Q_strstr (codec, "voice_speex"))
+		return true;
+
+	return false;
 	}
 
 /***
@@ -100,24 +92,6 @@ static qboolean Voice_IsOpusCustomMode (const char *codec)
 	}
 
 // [FWGS, 01.11.25] removed Voice_GetPlayerStatus
-
-/*
-=========================
-Voice_GetPlayerStatus [FWGS, 01.09.25]
-
-Does proper entity index range checking and helps to avoid mess with off-by-one errors
-=========================
-/
-static voice_status_t *Voice_GetPlayerStatus (int playerent)
-	{
-	if ((playerent < 1) || (playerent > MAX_CLIENTS))
-		{
-		Con_Printf (S_ERROR "%s: detected out-of-range player entity index\n", __func__);
-		return NULL;
-		}
-
-	return &voice.players_status[playerent - 1];
-	}*/
 
 /***
 =========================
@@ -480,7 +454,7 @@ static void Voice_ApplyGainAdjust (int16_t *samples, int count, float scale)
 
 /***
 =========================
-Voice_GetOpusCompressedData [FWGS, 01.07.25]
+Voice_GetOpusCompressedData
 
 Get compressed voice data for Opus Custom mode
 =========================
@@ -490,10 +464,12 @@ static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
 	uint ofs = 0, size = 0;
 	uint frame_size_bytes = voice.frame_size * voice.width;
 
+	// [FWGS, 01.03.26]
 	if (voice.input_file)
 		{
 		uint	numbytes;
-		double	updateInterval, curtime = Sys_DoubleTime ();
+		/*double	updateInterval, curtime = Sys_DoubleTime ();*/
+		double	updateInterval, curtime = Platform_DoubleTime ();
 
 		updateInterval = curtime - voice.start_time;
 		voice.start_time = curtime;
@@ -557,7 +533,7 @@ static uint Voice_GetOpusCompressedData (byte *out, uint maxsize, uint *frames)
 
 /***
 =========================
-Voice_GetGSCompressedData [FWGS, 01.07.25]
+Voice_GetGSCompressedData
 
 Get compressed voice data for GoldSrc mode
 =========================
@@ -569,10 +545,12 @@ static uint Voice_GetGSCompressedData (byte *out, uint maxsize, uint *frames)
 	const uint	frame_size_bytes = GS_DEFAULT_FRAME_SIZE * voice.width;
 	static uint16_t	sequence = 0;
 
+	// [FWGS, 01.03.26]
 	if (voice.input_file)
 		{
-		uint numbytes;
-		double updateInterval, curtime = Sys_DoubleTime ();
+		uint	numbytes;
+		/*double updateInterval, curtime = Sys_DoubleTime ();*/
+		double	updateInterval, curtime = Platform_DoubleTime ();
 
 		updateInterval = curtime - voice.start_time;
 		voice.start_time = curtime;
@@ -621,7 +599,6 @@ static uint Voice_GetGSCompressedData (byte *out, uint maxsize, uint *frames)
 		if (bytes > 0)
 			{
 			*(uint16_t *)(out + size) = LittleShort (bytes);
-			/**(uint16_t *)(out + size + 2) = LittleShort (sequence++);*/
 			*(uint16_t *)(out + size + 2) = LittleShort (sequence);
 			sequence++;
 
@@ -663,8 +640,6 @@ static int Voice_ProcessGSData (int ent, const uint8_t *data, uint32_t size)
 	uint32_t	crc_in_packet;
 	uint32_t	crc;
 	size_t		offset;
-	/*int16_t		pcm[GS_MAX_DECOMPRESSED_SAMPLES];
-	size_t		output_samples;*/
 	size_t		samples;
 
 	uint16_t	sample_rate;
@@ -691,7 +666,6 @@ static int Voice_ProcessGSData (int ent, const uint8_t *data, uint32_t size)
 		}
 
 	offset = sizeof (uint64_t);
-	/*output_samples = 0;*/
 	samples = 0;
 
 	if ((offset >= size - sizeof (uint32_t)) || (data[offset] != GS_VPC_SETSAMPLERATE))
@@ -713,12 +687,6 @@ static int Voice_ProcessGSData (int ent, const uint8_t *data, uint32_t size)
 	offset += sizeof (uint16_t);
 
 	// [FWGS, 01.11.25]
-	/*if (offset + data_len > size - sizeof (uint32_t))
-		{
-		Con_Printf (S_WARN "Voice packet data_len out of bounds\n");
-		return 0;
-		}*/
-
 	if (vpc_type == GS_VPC_VDATA_OPUS_PLC)
 		{
 		decoder = voice.gs_decoders[ent - 1];
@@ -737,15 +705,12 @@ static int Voice_ProcessGSData (int ent, const uint8_t *data, uint32_t size)
 			// [FWGS, 01.11.25] if frame size is 0, it means silence
 			if (frame_size == 0)
 				{
-				/*if (output_samples + VOICE_DEFAULT_SILENCE_FRAME_SIZE > GS_MAX_DECOMPRESSED_SAMPLES)*/
 				if (samples + VOICE_DEFAULT_SILENCE_FRAME_SIZE > GS_MAX_DECOMPRESSED_SAMPLES)
 					{
 					Con_Printf (S_WARN "Voice buffer overflow\n");
 					return 0;
 					}
 
-				/*memset (pcm + output_samples, 0, VOICE_DEFAULT_SILENCE_FRAME_SIZE * sizeof (int16_t));
-				output_samples += VOICE_DEFAULT_SILENCE_FRAME_SIZE;*/
 				memset (((int16_t *)voice.decompress_buffer) + samples, 0, VOICE_DEFAULT_SILENCE_FRAME_SIZE * sizeof (int16_t));
 				samples += VOICE_DEFAULT_SILENCE_FRAME_SIZE;
 				continue;
@@ -765,7 +730,6 @@ static int Voice_ProcessGSData (int ent, const uint8_t *data, uint32_t size)
 
 			// [FWGS, 01.11.25]
 			decoded = opus_decode (decoder, data + offset + opus_offset, frame_size,
-				/*pcm + output_samples, voice.frame_size, 0);*/
 				((int16_t *)voice.decompress_buffer) + samples, voice.frame_size, 0);
 			if (decoded < 0)
 				{
@@ -773,7 +737,6 @@ static int Voice_ProcessGSData (int ent, const uint8_t *data, uint32_t size)
 				return 0;
 				}
 
-			/*output_samples += decoded;*/
 			samples += decoded;
 			opus_offset += frame_size;
 			}
@@ -789,8 +752,6 @@ static int Voice_ProcessGSData (int ent, const uint8_t *data, uint32_t size)
 			return 0;
 			}
 
-		/*memset (pcm, 0, silence_samples * sizeof (int16_t));
-		output_samples = silence_samples;*/
 		memset (voice.decompress_buffer, 0, silence_samples * sizeof (int16_t));
 		samples = silence_samples;
 		}
@@ -801,10 +762,6 @@ static int Voice_ProcessGSData (int ent, const uint8_t *data, uint32_t size)
 		return 0;
 		}
 
-	/*if (output_samples > 0)
-		Voice_StartChannel (output_samples, (byte *)pcm, ent);
-
-	return output_samples;*/
 	return samples;
 	}
 
@@ -911,7 +868,6 @@ Sends notification to user dll and
 zeroes timeouts for this client
 =========================
 ***/
-/*void Voice_StatusAck (voice_status_t *status, int playerIndex)*/
 static void Voice_StatusAck (voice_status_t *status, int playerIndex)
 	{
 	if (!status->talking_ack)
@@ -959,7 +915,7 @@ void Voice_RecordStop (void)
 
 /***
 =========================
-Voice_RecordStart [FWGS, 01.07.25]
+Voice_RecordStart
 
 Start voice recording
 =========================
@@ -971,6 +927,7 @@ void Voice_RecordStart (void)
 	if (!voice.initialized)
 		return;
 
+	// [FWGS, 01.03.26]
 	if (voice_inputfromfile.value)
 		{
 		voice.input_file = FS_LoadSound ("voice_input.wav", NULL, 0);
@@ -979,7 +936,8 @@ void Voice_RecordStart (void)
 			Sound_Process (&voice.input_file, voice.samplerate, voice.width, VOICE_PCM_CHANNELS, SOUND_RESAMPLE);
 			voice.input_file_pos = 0;
 
-			voice.start_time = Sys_DoubleTime ();
+			/*voice.start_time = Sys_DoubleTime ();*/
+			voice.start_time = Platform_DoubleTime ();
 			voice.is_recording = true;
 			}
 		else
@@ -1018,22 +976,19 @@ void Voice_Disconnect (void)
 
 	// [FWGS, 01.11.25]
 	for (i = 1; i <= MAX_CLIENTS; i++)
-		/*{
-		voice_status_t *status = Voice_GetPlayerStatus (i);
-
-		if (status->talking_ack)
-			{
-			Voice_Status (i, false);
-			status->talking_ack = false;
-			}
-		}*/
 		Voice_Status (i, false);
 
 	// [FWGS, 01.07.25]
 	VoiceCapture_Shutdown ();
 	voice.device_opened = false;
+
+	// [FWGS, 01.03.26]
 #ifdef OPUS
-	Voice_ShutdownOpusDecoder ();
+	/*Voice_ShutdownOpusDecoder ();*/
+	if (voice.goldsrc)
+		Voice_ShutdownGoldSrcMode ();
+	else
+		Voice_ShutdownOpusCustomMode ();
 #endif
 	}
 
@@ -1044,7 +999,6 @@ Voice_StartChannel [FWGS, 01.11.25]
 Feed the decoded data to engine sound subsystem
 =========================
 ***/
-/*void Voice_StartChannel (uint samples, byte *data, int entnum)*/
 static void Voice_StartChannel (uint samples, byte *data, int entnum)
 	{
 	SND_ForceInitMouth (entnum);
@@ -1086,28 +1040,17 @@ Received encoded voice data, decode it
 ***/
 void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames)
 	{
-	const int playernum = ent - 1;
-	int samples = 0;
+	const int	playernum = ent - 1;
+	int	samples = 0;
 	int ofs = 0;
-	voice_status_t *status = NULL;
+	voice_status_t	*status = NULL;
 
 	if (!voice.initialized || !voice_enable.value)
 		return;
 
 	// [FWGS, 01.11.25]
-	/*// must notify through as both local player and normal client
-	if (ent == cl.playernum)
-		Voice_StatusAck (&voice.local, VOICE_LOOPBACK_INDEX);
-
-	status = Voice_GetPlayerStatus (ent);
-	Voice_StatusAck (status, ent);*/
-
 	if (voice.goldsrc)
 		{
-		/*// Voice_ProcessGSData handles Voice_StartChannel internally
-ifdef OPUS
-		Voice_ProcessGSData (ent, (const uint8_t *)data, size);
-endif*/
 #ifdef OPUS
 		samples = Voice_ProcessGSData (ent, (const uint8_t *)data, size);
 #endif
@@ -1143,9 +1086,6 @@ endif*/
 			ofs += compressed_size;
 			samples += frame_samples;
 			}
-
-		/*if (samples > 0)
-			Voice_StartChannel (samples, voice.decompress_buffer, ent);*/
 		}
 
 	// [FWGS, 01.11.25]
@@ -1187,11 +1127,6 @@ void CL_AddVoiceToDatagram (void)
 			MSG_BeginClientCmd (&cls.datagram, clc_voicedata);
 			MSG_WriteShort (&cls.datagram, packet_size);
 			MSG_WriteBytes (&cls.datagram, voice.compress_buffer, packet_size);
-
-			/*if (voice_loopback.value && (packet_size > 0) && (frames > 0))
-				{
-				Voice_AddIncomingData (cl.playernum + 1, voice.compress_buffer, packet_size, frames);
-				}*/
 			}
 
 		return;
@@ -1236,23 +1171,23 @@ void Voice_RegisterCvars (void)
 
 /***
 =========================
-Voice_Shutdown
+Voice_Shutdown [FWGS, 01.03.26]
 
 Completely shutdown the voice subsystem
 =========================
 ***/
 static void Voice_Shutdown (void)
 	{
-	int i;
+	/*int i;
 
 	Voice_RecordStop ();
 
-#ifdef OPUS
+	ifdef OPUS
 	if (voice.goldsrc)
 		Voice_ShutdownGoldSrcMode ();
 	else
 		Voice_ShutdownOpusCustomMode ();
-#endif
+	endif
 
 	VoiceCapture_Shutdown ();
 
@@ -1261,31 +1196,24 @@ static void Voice_Shutdown (void)
 
 	// [FWGS, 01.11.25]
 	for (i = 1; i <= MAX_CLIENTS; i++)
-		/*{
-		voice_status_t *status = Voice_GetPlayerStatus (i);
-
-		if (status->talking_ack)
-			Voice_Status (i, false);
-		}*/
-		Voice_Status (i, false);
+		Voice_Status (i, false);*/
+	Voice_Disconnect ();
 
 	voice.initialized = false;
 	voice.is_recording = false;
-	voice.device_opened = false;
+	/*voice.device_opened = false;*/
 	voice.goldsrc = false;
 	voice.start_time = 0.0;
 	voice.samplerate = 0;
 	voice.frame_size = 0;
 	voice.width = 0;
-
-	// [FWGS, 01.11.25]
 	voice.input_buffer_pos = 0;
 	voice.input_file_pos = 0;
+
 	memset (voice.input_buffer, 0, sizeof (voice.input_buffer));
 	memset (voice.compress_buffer, 0, sizeof (voice.compress_buffer));
 	memset (voice.decompress_buffer, 0, sizeof (voice.decompress_buffer));
 	memset (&voice.local, 0, sizeof (voice.local));
-	/*memset (voice.players_status, 0, sizeof (voice.players_status));*/
 	memset (&voice.autogain, 0, sizeof (voice.autogain));
 	}
 
@@ -1319,11 +1247,6 @@ void Voice_Idle (double frametime)
 	Voice_StatusTimeout (&voice.local, VOICE_LOOPBACK_INDEX, frametime);
 
 	// [FWGS, 01.11.25]
-	/*for (i = 1; i <= MAX_CLIENTS; i++)
-		{
-		voice_status_t *status = Voice_GetPlayerStatus (i);
-		Voice_StatusTimeout (status, i, frametime);
-		}*/
 	}
 
 /***

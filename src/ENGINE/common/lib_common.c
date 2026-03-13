@@ -84,7 +84,6 @@ const char *COM_OffsetNameForFunction (void *function)
 	{
 	static string sname;
 
-	/*Q_snprintf (sname, MAX_STRING, "ofs:%zu", ((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));*/
 	Q_snprintf (sname, MAX_STRING, "ofs:%zu", (size_t)((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
 	Con_Reportf ("%s: %s\n", __func__, sname);
 	return sname;
@@ -128,20 +127,21 @@ LIBRARY NAMING (see Documentation/library-naming.md for more info) [FWGS, 01.06.
 =============================================================================
 ***/
 
-static void COM_GenerateCommonLibraryName (const char *name, const char *ext, char *out, size_t size)
+// [FWGS, 01.03.26] removed COM_GenerateCommonLibraryName
+/*static void COM_GenerateCommonLibraryName (const char *name, const char *ext, char *out, size_t size)
 	{
-#if ( XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE ) && XASH_X86
+	if ( XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE ) && XASH_X86
 	Q_snprintf (out, size, "%s.%s", name, ext);
-#elif XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE
+	elif XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE
 	Q_snprintf (out, size, "%s_%s.%s", name, Q_buildarch (), ext);
-#else
+	else
 	Q_snprintf (out, size, "%s_%s_%s.%s", name, Q_buildos (), Q_buildarch (), ext);
-#endif
-	}
+	endif
+	}*/
 
 /***
 ==============
-COM_GenerateClientLibraryPath
+COM_GenerateClientLibraryPath [FWGS, 01.03.26]
 
 Generates platform-unique and compatible name for client libraries
 ==============
@@ -151,38 +151,42 @@ static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t s
 #ifdef XASH_INTERNAL_GAMELIBS // assuming library loader knows where to get libraries
 	Q_strncpy (out, name, size);
 #else
-	string dllpath;
+	/*string dllpath;*/
+	string libname;
 
-	// [FWGS, 01.09.25]
-#if XASH_ANDROID
+	/*if XASH_ANDROID
 	Q_snprintf (dllpath, sizeof (dllpath), "%s/lib%s", GI->dll_path, name);
-#else
+	else
 	Q_snprintf (dllpath, sizeof (dllpath), "%s/%s", GI->dll_path, name);
-#endif
+	endif*/
+	COM_GenerateCommonLibraryName (name, libname, sizeof (libname));
 
-	COM_GenerateCommonLibraryName (dllpath, OS_LIB_EXT, out, size);
+	/*COM_GenerateCommonLibraryName (dllpath, OS_LIB_EXT, out, size);*/
+	Q_snprintf (out, size, "%s/%s", GI->dll_path, libname);
 #endif
 	}
 
-/***
+// [FWGS, 01.03.26] removed COM_StripIntelSuffix
+/*
+/
 ==============
 COM_StripIntelSuffix [FWGS, 01.02.24]
 
 Some modders use _i?86 suffix in game library name
 So strip it to follow library naming for non-Intel CPUs
 ==============
-***/
+/
 static inline void COM_StripIntelSuffix (char *out)
 	{
 	char *suffix = Q_strrchr (out, '_');
 
 	if (suffix && Q_stricmpext ("_i?86", suffix))
 		*suffix = 0;
-	}
+	}*/
 
 /***
 ==============
-COM_GenerateServerLibraryPath [FWGS, 01.09.25]
+COM_GenerateServerLibraryPath [FWGS, 01.03.26]
 
 Generates platform-unique and compatible name for server library
 ==============
@@ -206,8 +210,10 @@ static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, s
 	COM_DefaultExtension (out, "." OS_LIB_EXT, size);
 
 #else
-	string temp, dir, dllpath, ext;
-	const char *dllname;
+	/*string temp, dir, dllpath, ext;
+	const char *dllname;*/
+	string temp, dir, libname;
+	const char *base_dllname;
 
 #if XASH_WIN32
 	Q_strncpy (temp, GI->game_dll, sizeof (temp));
@@ -222,30 +228,33 @@ static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, s
 
 	if (alt_dllname)
 		{
-		dllname = alt_dllname;
-		Q_strncpy (ext, OS_LIB_EXT, sizeof (ext));
+		/*dllname = alt_dllname;
+		Q_strncpy (ext, OS_LIB_EXT, sizeof (ext));*/
+		base_dllname = alt_dllname;
 		}
 	else
 		{
 		// cleaned up dll name
-		Q_strncpy (ext, COM_FileExtension (temp), sizeof (ext));
+		/*Q_strncpy (ext, COM_FileExtension (temp), sizeof (ext));*/
 		COM_StripExtension (temp);
 		COM_StripIntelSuffix (temp);
-		dllname = COM_FileWithoutPath (temp);
+		/*dllname = COM_FileWithoutPath (temp);*/
+		base_dllname = COM_FileWithoutPath (temp);
 		}
 
-	// add `lib` prefix if required by platform
-#if XASH_ANDROID
+	/*// add `lib` prefix if required by platform
+	if XASH_ANDROID
 	Q_snprintf (dllpath, sizeof (dllpath), "%s/lib%s", dir, dllname);
-#else
+	else
 	Q_snprintf (dllpath, sizeof (dllpath), "%s/%s", dir, dllname);
-#endif
+	endif*/
+	COM_GenerateCommonLibraryName (base_dllname, libname, sizeof (libname));
 
-	// and finally add platform suffix
-	COM_GenerateCommonLibraryName (dllpath, ext, out, size);
+	/*// and finally add platform suffix
+	COM_GenerateCommonLibraryName (dllpath, ext, out, size);*/
+	Q_snprintf (out, size, "%s/%s", dir, libname);
 #endif
 	}
-
 
 /***
 ==============
@@ -258,9 +267,10 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 	{
 	switch (eLibType)
 		{
-		// [FWGS, 01.09.25]
+		// [FWGS, 01.03.26]
 		case LIBRARY_GAMEUI:
-			if (COM_CheckStringEmpty (host.menulib))
+			/*if (COM_CheckStringEmpty (host.menulib))*/
+			if (!COM_StringEmpty (host.menulib))
 				{
 				if (host.menulib[0] == '@')
 					COM_GenerateClientLibraryPath (host.menulib + 1, out, size);
@@ -274,9 +284,10 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 
 			break;
 
-		// [FWGS, 01.09.25]
+		// [FWGS, 01.03.26]
 		case LIBRARY_CLIENT:
-			if (COM_CheckStringEmpty (host.clientlib))
+			/*if (COM_CheckStringEmpty (host.clientlib))*/
+			if (!COM_StringEmpty (host.clientlib))
 				{
 				if (host.clientlib[0] == '@')
 					COM_GenerateClientLibraryPath (host.clientlib + 1, out, size);
@@ -290,9 +301,10 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 
 			break;
 
-		// [FWGS, 01.09.25]
+		// [FWGS, 01.03.26]
 		case LIBRARY_SERVER:
-			if (COM_CheckStringEmpty (host.gamedll))
+			/*if (COM_CheckStringEmpty (host.gamedll))*/
+			if (!COM_StringEmpty (host.gamedll))
 				{
 				if (host.gamedll[0] == '@')
 					COM_GenerateServerLibraryPath (host.gamedll + 1, out, size);

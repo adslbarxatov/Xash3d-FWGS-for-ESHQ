@@ -267,7 +267,6 @@ NET_GetHostByName [FWGS, 01.11.25]
 ***/
 static qboolean NET_GetHostByName (const char *hostname, int family, struct sockaddr_storage *addr)
 	{
-	/*if defined HAVE_GETADDRINFO*/
 	struct addrinfo	*ai = NULL, *cur;
 	struct addrinfo	hints;
 	qboolean		ret = false;
@@ -297,32 +296,9 @@ static qboolean NET_GetHostByName (const char *hostname, int family, struct sock
 		}
 
 	return ret;
-
-	/*else
-
-	struct hostent *h;
-
-	if XASH_NO_IPV6_RESOLVE
-	if (family == AF_INET6)
-		return false;
-	endif
-
-	if (!(h = gethostbyname (hostname)))
-		return false;
-
-	((struct sockaddr_in *)addr)->sin_family = AF_INET;
-	((struct sockaddr_in *)addr)->sin_addr = *(struct in_addr *)h->h_addr_list[0];
-
-	return true;
-	endif*/
 	}
 
 // [FWGS, 01.11.25]
-/*if !XASH_EMSCRIPTEN && !XASH_DOS4GW && !defined XASH_NO_ASYNC_NS_RESOLVE
-define CAN_ASYNC_NS_RESOLVE
-endif
-
-ifdef CAN_ASYNC_NS_RESOLVE*/
 static void NET_ResolveThread (void);
 
 // [FWGS, 01.12.24]
@@ -429,11 +405,7 @@ static void NET_ResolveThread (void)
 
 	RESOLVE_DBG ("[resolve thread] starting resolve for ");
 	RESOLVE_DBG (nsthread.hostname);
-	/*ifdef HAVE_GETADDRINFO*/
 	RESOLVE_DBG (" with getaddrinfo\n");
-	/*else
-	RESOLVE_DBG (" with gethostbyname\n");
-	endif*/
 
 	if ((res = NET_GetHostByName (nsthread.hostname, nsthread.family, &addr)))
 		RESOLVE_DBG ("[resolve thread] success\n");
@@ -450,7 +422,6 @@ static void NET_ResolveThread (void)
 	mutex_unlock (nsthread.mutexres);
 	RESOLVE_DBG ("[resolve thread] exiting thread\n");
 	}
-/*endif*/
 
 /***
 =============
@@ -510,7 +481,6 @@ net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sa
 		{
 		qboolean asyncfailed = true;
 
-		/*ifdef CAN_ASYNC_NS_RESOLVE*/
 		if (net.threads_initialized && nonblocking)
 			{
 			mutex_lock (nsthread.mutexres);
@@ -553,7 +523,6 @@ net_gai_state_t NET_StringToSockaddr (const char *s, struct sockaddr_storage *sa
 
 			mutex_unlock (nsthread.mutexres);
 			}
-		/*endif*/
 
 		if (asyncfailed)
 			ret = NET_GetHostByName (copy, family, &temp);
@@ -594,7 +563,9 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 	byte		ip6[16];
 	uint		len;
 
-	if (!COM_CheckStringEmpty (s))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckStringEmpty (s))*/
+	if (COM_StringEmpty (s))
 		return false;
 
 	memset (adr, 0, sizeof (*adr));
@@ -1212,7 +1183,6 @@ static void NET_AdjustLag (void)
 	lasttime = host.realtime;
 
 	// [FWGS, 01.11.25]
-	/*if (host_developer.value || !net_fakelag.value)*/
 	if ((host_developer.value && sv_cheats.value) || !net_fakelag.value)
 		{
 		if (net_fakelag.value != net.fakelag)
@@ -1431,7 +1401,7 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 
 /***
 ==================
-NET_QueuePacket [FWGS, 01.12.24]
+NET_QueuePacket
 
 queue normal and lagged packets
 ==================
@@ -1475,17 +1445,22 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 				memcpy (data, buf, ret);
 				*length = ret;
 
-#if !XASH_DEDICATED
+				// [FWGS, 01.03.26]
+				/*if !XASH_DEDICATED
 				{
 				connprotocol_t proto = CL_Protocol ();
 
 				if (proto == PROTO_LEGACY)
-					return NET_LagPacket (true, sock, from, length, data);
+					return NET_LagPacket (true, sock, from, length, data);*/
 
-				// check for split message
+				/*// check for split message
 				if (sock == NS_CLIENT && *(int *)data == NET_HEADER_SPLITPACKET)
 					return NET_GetLong (data, ret, length, CL_GetSplitSize (), proto);
-				}
+				}*/
+#if !XASH_DEDICATED
+				// check for split message
+				if ((sock == NS_CLIENT) && (*(int *)data == NET_HEADER_SPLITPACKET))
+					return NET_GetLong (data, ret, length, CL_GetSplitSize (), CL_Protocol ());
 #endif
 
 				// lag the packet, if needed
@@ -1753,8 +1728,9 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 					port, NET_ErrorString ());
 			}
 
-		// [FWGS, 01.12.24]
-		if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
+		// [FWGS, 01.03.26]
+		/*if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))*/
+		if (!COM_StringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
 			NET_StringToSockaddr (net_iface, &addr, false, AF_INET6);
 		else
 			((struct sockaddr_in6 *)&addr)->sin6_addr = in6addr_any;
@@ -1801,7 +1777,9 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 					port, NET_ErrorString ());
 			}
 
-		if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
+		// [FWGS, 01.03.26]
+		/*if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))*/
+		if (!COM_StringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
 			NET_StringToSockaddr (net_iface, &addr, false, AF_INET);
 		else
 			((struct sockaddr_in *)&addr)->sin_addr.s_addr = INADDR_ANY;
@@ -2207,9 +2185,7 @@ void NET_Init (void)
 #endif
 
 	// [FWGS, 01.11.25]
-	/*ifdef CAN_ASYNC_NS_RESOLVE*/
 	NET_InitializeCriticalSections ();
-	/*endif*/
 
 	net.allow_ip = !Sys_CheckParm ("-noip");
 	net.allow_ip6 = !Sys_CheckParm ("-noip6");
@@ -2261,9 +2237,7 @@ void NET_Shutdown (void)
 	NET_Config (false, false);
 
 	// [FWGS, 01.11.25]
-	/*ifdef CAN_ASYNC_NS_RESOLVE*/
 	NET_DeleteCriticalSections ();
-	/*endif*/
 
 #if XASH_WIN32
 	WSACleanup ();

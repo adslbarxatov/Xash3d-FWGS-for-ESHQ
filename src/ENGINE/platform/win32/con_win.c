@@ -199,7 +199,9 @@ static void Wcon_Clear_f (void)
 	Wcon_PrintInternal ("\n", 0);
 	}
 
-static void Wcon_EventUpArrow ()
+// [FWGS, 01.03.26]
+/*static void Wcon_EventUpArrow ()*/
+static void Wcon_EventUpArrow (void)
 	{
 	int nLastCommandInHistory = s_wcd.inputLine + 1;
 	if (nLastCommandInHistory > s_wcd.totalLines)
@@ -229,7 +231,9 @@ static void Wcon_EventUpArrow ()
 	s_wcd.cursorPosition = s_wcd.consoleTextLen;
 	}
 
-static void Wcon_EventDownArrow ()
+// [FWGS, 01.03.26]
+/*static void Wcon_EventDownArrow ()*/
+static void Wcon_EventDownArrow (void)
 	{
 	if (s_wcd.browseLine == s_wcd.inputLine)
 		return;
@@ -258,7 +262,9 @@ static void Wcon_EventDownArrow ()
 	s_wcd.cursorPosition = s_wcd.consoleTextLen;
 	}
 
-static void Wcon_EventLeftArrow ()
+// [FWGS, 01.03.26]
+/*static void Wcon_EventLeftArrow ()*/
+static void Wcon_EventLeftArrow (void)
 	{
 	if (s_wcd.cursorPosition == 0)
 		return;
@@ -267,7 +273,9 @@ static void Wcon_EventLeftArrow ()
 	s_wcd.cursorPosition--;
 	}
 
-static void Wcon_EventRightArrow ()
+// [FWGS, 01.03.26]
+/*static void Wcon_EventRightArrow ()*/
+static void Wcon_EventRightArrow (void)
 	{
 	if (s_wcd.cursorPosition == s_wcd.consoleTextLen)
 		return;
@@ -276,7 +284,9 @@ static void Wcon_EventRightArrow ()
 	s_wcd.cursorPosition++;
 	}
 
-static int Wcon_EventNewline ()
+// [FWGS, 01.03.26]
+/*static int Wcon_EventNewline ()*/
+static int Wcon_EventNewline (void)
 	{
 	int nLen;
 
@@ -301,19 +311,21 @@ static int Wcon_EventNewline ()
 			if (s_wcd.inputLine >= COMMAND_HISTORY)
 				s_wcd.inputLine = 0;
 			}
+
 		s_wcd.browseLine = s_wcd.inputLine;
 		}
+
 	return nLen;
 	}
 
-static void Wcon_EventBackspace ()
+// [FWGS, 01.03.26]
+/*static void Wcon_EventBackspace ()*/
+static void Wcon_EventBackspace (void)
 	{
 	int nCount;
 
 	if (s_wcd.cursorPosition < 1)
-		{
 		return;
-		}
 
 	s_wcd.consoleTextLen--;
 	s_wcd.cursorPosition--;
@@ -338,7 +350,9 @@ static void Wcon_EventBackspace ()
 	s_wcd.browseLine = s_wcd.inputLine;
 	}
 
-static void Wcon_EventTab ()
+// [FWGS, 01.03.26]
+/*static void Wcon_EventTab ()*/
+static void Wcon_EventTab (void)
 	{
 	s_wcd.consoleText[s_wcd.consoleTextLen] = '\0';
 	Cmd_AutoComplete (s_wcd.consoleText);
@@ -350,9 +364,7 @@ static void Wcon_EventCharacter (char c)
 	int nCount;
 
 	if (s_wcd.consoleTextLen >= (sizeof (s_wcd.consoleText) - 2))
-		{
 		return;
-		}
 
 	nCount = s_wcd.consoleTextLen;
 	while (nCount > s_wcd.cursorPosition)
@@ -376,7 +388,9 @@ static void Wcon_EventCharacter (char c)
 	s_wcd.browseLine = s_wcd.inputLine;
 	}
 
-static void Wcon_UpdateStatusLine ()
+// [FWGS, 01.03.26]
+/*static void Wcon_UpdateStatusLine ()*/
+static void Wcon_UpdateStatusLine (void)
 	{
 	COORD coord;
 	WORD wAttrib;
@@ -401,12 +415,15 @@ static char *Wcon_KeyEvent (int key, WCHAR character)
 		case VK_UP:
 			Wcon_EventUpArrow ();
 			return NULL;
+
 		case VK_DOWN:
 			Wcon_EventDownArrow ();
 			return NULL;
+
 		case VK_LEFT:
 			Wcon_EventLeftArrow ();
 			return NULL;
+
 		case VK_RIGHT:
 			Wcon_EventRightArrow ();
 			return NULL;
@@ -503,7 +520,6 @@ void Wcon_CreateConsole (qboolean con_showalways)
 	s_wcd.attached = (AttachConsole (ATTACH_PARENT_PROCESS) != 0);
 	if (s_wcd.attached)
 		{
-		/*GetConsoleTitle (&s_wcd.previousTitle, sizeof (s_wcd.previousTitle));*/
 		GetConsoleTitle (s_wcd.previousTitle, sizeof (s_wcd.previousTitle));
 		s_wcd.previousCodePage = GetConsoleCP ();
 		s_wcd.previousOutputCodePage = GetConsoleOutputCP ();
@@ -593,7 +609,6 @@ void Wcon_DestroyConsole (void)
 		// [FWGS, 01.11.25] reverts title & code page for console window that was before starting Xash3D
 		SetConsoleCP (s_wcd.previousCodePage);
 		SetConsoleOutputCP (s_wcd.previousOutputCodePage);
-		/*SetConsoleTitle (&s_wcd.previousTitle);*/
 		SetConsoleTitle (s_wcd.previousTitle);
 		Con_Printf ("Press Enter to continue...\n");
 		}

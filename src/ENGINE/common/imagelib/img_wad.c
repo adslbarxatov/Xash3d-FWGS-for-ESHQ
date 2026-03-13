@@ -384,9 +384,28 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 	return Image_AddIndexedImageToPack (fin, image.width, image.height);
 	}
 
+// [FWGS, 01.03.26]
+static int Image_FindBestBlack (const uint *pal)
+	{
+	int min_color = 32;
+	int best_black = -1;
+
+	for (int i = 0; i < 256; i++)
+		{
+		int color = pal[i] & 0xFFFFFF;
+		if (color < min_color)
+			{
+			min_color = color;
+			best_black = i;
+			}
+		}
+
+	return best_black;
+	}
+
 /***
 =============
-Image_LoadMIP [FWGS, 01.08.24]
+Image_LoadMIP
 =============
 ***/
 qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesize)
@@ -443,30 +462,44 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 
 			SetBits (image.flags, IMAGE_HAS_ALPHA);
 			}
+
+		// [FWGS, 01.03.26]
 		else
 			{
-			int	pal_type;
+			/*int	pal_type;*/
 
 			// NOTE: we can have luma-pixels if quake1 texture
 			// converted into the hl texture but palette leave unchanged
 			// this is a good reason for using fullbright pixels
-			pal_type = Image_ComparePalette (pal);
+			/*pal_type = Image_ComparePalette (pal);*/
+			const int pal_type = Image_ComparePalette (pal);
 
-			// check for luma pixels (but ignore liquid textures because they have no lightmap)
-			if ((mip.name[0] != '*') && (mip.name[0] != '!') && (pal_type == PAL_QUAKE1))
-				{
-				for (i = 0; i < image.width * image.height; i++)
-					{
-					if (fin[i] > 224)
-						{
-						image.flags |= IMAGE_HAS_LUMA;
-						break;
-						}
-					}
-				}
-
+			/*// check for luma pixels (but ignore liquid textures because they have no lightmap)
+			if ((mip.name[0] != '*') && (mip.name[0] != '!') && (pal_type == PAL_QUAKE1))*/
 			if (pal_type == PAL_QUAKE1)
 				{
+				/*for (i = 0; i < image.width * image.height; i++)*/
+				// check for luma pixels (but ignore liquid textures because they have no lightmap)
+				if ((mip.name[0] != '*') && (mip.name[0] != '!'))
+					{
+					/*if (fin[i] > 224)*/
+					for (i = 0; i < image.width * image.height; i++)
+						{
+						/*image.flags |= IMAGE_HAS_LUMA;
+						break;*/
+						if (fin[i] > 224)
+							{
+							SetBits (image.flags, IMAGE_HAS_LUMA);
+							image.black_pixel = 0;
+							break;
+							}
+						}
+					}
+
+				/*}
+
+			if (pal_type == PAL_QUAKE1)
+				{*/
 				SetBits (image.flags, IMAGE_QUAKEPAL);
 
 				// if texture was converted from quake to half-life with no palette changes
@@ -477,11 +510,30 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 				{
 				// half-life mips need texgamma applied
 				rendermode = LUMP_TEXGAMMA;
+
+				// three checks here: check if we can load luma, check the texture name and, finally,
+				// validate that palette isn't NULL
+				if (Image_CheckFlag (IL_ALLOW_WAD3_LUMA) && ((mip.name[0] == '~') || ((mip.name[0] == '+') &&
+					isdigit (mip.name[1]) && (mip.name[2] == '~'))) && (pal != NULL))
+					{
+					SetBits (image.flags, IMAGE_HAS_LUMA);
+					}
 				}
 			}
 
 		Image_GetPaletteLMP (pal, rendermode);
 		image.d_currentpal[255] &= 0xFFFFFF;
+
+		// [FWGS, 01.03.26]
+		if ((rendermode == LUMP_TEXGAMMA) && FBitSet (image.flags, IMAGE_HAS_LUMA))
+			{
+			// thanks to Unkle Mike for an idea of looking best black pixel
+			image.black_pixel = Image_FindBestBlack (image.d_currentpal);
+
+			// failed to find good pixel, refuse to load luma
+			if (image.black_pixel == -1)
+				ClearBits (image.flags, IMAGE_HAS_LUMA);
+			}
 		}
 	else if ((image.hint != IL_HINT_HL) && (filesize >= (int)sizeof (mip) + ((pixels * 85) >> 6)))
 		{
@@ -492,16 +544,20 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 
 		hl_texture = false;
 
-		// check for luma and alpha pixels
-		if (!image.custom_palette)
+		// [FWGS, 01.03.26] check for luma and alpha pixels
+		/*if (!image.custom_palette)*/
+		// don't apply luma to water surfaces because they have no lightmap
+		if (!image.custom_palette && (mip.name[0] != '*') && (mip.name[0] != '!'))
 			{
 			for (i = 0; i < image.width * image.height; i++)
 				{
 				if ((fin[i] > 224) && (fin[i] != 255))
 					{
-					// don't apply luma to water surfaces because they have no lightmap
+					/*// don't apply luma to water surfaces because they have no lightmap
 					if ((mip.name[0] != '*') && (mip.name[0] != '!'))
-						image.flags |= IMAGE_HAS_LUMA;
+						image.flags |= IMAGE_HAS_LUMA;*/
+					SetBits (image.flags, IMAGE_HAS_LUMA);
+					image.black_pixel = 0;
 					break;
 					}
 				}

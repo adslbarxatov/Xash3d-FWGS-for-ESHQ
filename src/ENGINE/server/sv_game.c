@@ -3197,10 +3197,8 @@ SV_EmptyStringPool [FWGS, 01.12.24]
 Free strings on server stop. Reset string pointer on 64 bits
 ==================
 ***/
-/*void SV_EmptyStringPool (void)*/
 void SV_EmptyStringPool (qboolean clear_stats)
 	{
-/*ifdef XASH_64BIT*/
 #if XASH_64BIT
 	if (str64.dynamic) // switch only after array fill (more space for multiplayer games)
 		{
@@ -3212,9 +3210,6 @@ void SV_EmptyStringPool (qboolean clear_stats)
 		str64.plast = str64.pstringbase + 1;
 		}
 
-	/*#else
-	Mem_EmptyPool (svgame.stringspool);
-	endif*/
 	if (clear_stats)
 		{
 		str64.maxalloc = 0;
@@ -3236,7 +3231,6 @@ this helps not to lose strings that belongs to static game part
 ***/
 void SV_SetStringArrayMode (qboolean dynamic)
 	{
-/*ifdef XASH_64BIT*/
 #if XASH_64BIT
 	Con_Reportf ("%s(%d) %d\n", __func__, dynamic, str64.dynamic);
 

@@ -1,4 +1,4 @@
-/*#pragma once*/
+/*pragma once*/
 /***
 vid_common.h - common implementation of platform-specific vid component
 Copyright (C) 2025 Xash3D FWGS contributors

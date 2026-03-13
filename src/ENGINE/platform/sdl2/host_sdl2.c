@@ -313,8 +313,6 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 			// don't console spam on known functional buttons, not used in engine
 			case SDL_SCANCODE_MUTE:
-			/*case SDL_SCANCODE_VOLUMEUP:
-			case SDL_SCANCODE_VOLUMEDOWN:*/
 			case SDL_SCANCODE_BRIGHTNESSDOWN:
 			case SDL_SCANCODE_BRIGHTNESSUP:
 			case SDL_SCANCODE_SELECT:
@@ -408,7 +406,6 @@ static void SDLash_InputEvent (SDL_TextInputEvent input)
 		}
 	}
 
-// [FWGS, 01.05.24]
 static void SDLash_ActiveEvent (int gain)
 	{
 	if (gain)
@@ -440,8 +437,10 @@ static void SDLash_ActiveEvent (int gain)
 					IN_DeactivateMouse ();
 					}
 
+				// [FWGS, 01.03.26]
 				host.force_draw_version_time = host.realtime + 2.0;
-				VID_RestoreScreenResolution ();
+				/*VID_RestoreScreenResolution ();*/
+				VID_RestoreScreenResolution ((window_mode_t)vid_fullscreen.value);
 		}
 	}
 
@@ -449,7 +448,7 @@ static void SDLash_ActiveEvent (int gain)
 
 /***
 =============
-SDLash_EventHandler [FWGS, 01.06.25]
+SDLash_EventHandler
 =============
 ***/
 static void SDLash_EventHandler (SDL_Event *event)
@@ -566,9 +565,9 @@ static void SDLash_EventHandler (SDL_Event *event)
 
 			switch (event->window.event)
 				{
-				// [FWGS, 01.03.25]
+				// [FWGS, 01.03.26]
 				case SDL_WINDOWEVENT_MOVED:
-					{
+					/*{
 					char val[32];
 
 					Q_snprintf (val, sizeof (val), "%d", event->window.data1);
@@ -577,16 +576,19 @@ static void SDLash_EventHandler (SDL_Event *event)
 					Q_snprintf (val, sizeof (val), "%d", event->window.data2);
 					Cvar_DirectSet (&window_ypos, val);
 
+					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)*/
 					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
 						Cvar_DirectSet (&vid_maximized, "0");
 
 					break;
-					}
+					/*}*/
 
+				// [FWGS, 01.03.26]
 				case SDL_WINDOWEVENT_MINIMIZED:
 					host.status = HOST_SLEEP;
 					Cvar_DirectSet (&vid_maximized, "0");
-					VID_RestoreScreenResolution ();
+					/*VID_RestoreScreenResolution ();*/
+					VID_RestoreScreenResolution ((window_mode_t)vid_fullscreen.value);
 					break;
 
 				case SDL_WINDOWEVENT_RESTORED:
@@ -606,16 +608,17 @@ static void SDLash_EventHandler (SDL_Event *event)
 					SDLash_ActiveEvent (false);
 					break;
 
-					// [FWGS, 01.03.24]
+					// [FWGS, 01.03.26]
 				case SDL_WINDOWEVENT_RESIZED:
-#if !XASH_MOBILE_PLATFORM
+					/*if !XASH_MOBILE_PLATFORM
 					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
-#endif
+					endif
 						{
 						SDL_Window *wnd = SDL_GetWindowFromID (event->window.windowID);
 						VID_SaveWindowSize (event->window.data1, event->window.data2,
 							FBitSet (SDL_GetWindowFlags (wnd), SDL_WINDOW_MAXIMIZED) != 0);
-						}
+						}*/
+					VID_SaveWindowSize (event->window.data1, event->window.data2);
 					break;
 
 				case SDL_WINDOWEVENT_MAXIMIZED:

@@ -30,16 +30,6 @@ GNU General Public License for more details
 #include "platform/platform.h"
 
 // [FWGS, 01.11.25]
-/*CVAR_DEFINE_AUTO (fs_mount_hd, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
-	"mount high definition content folder");
-CVAR_DEFINE_AUTO (fs_mount_lv, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
-	"mount low violence models content folder");
-CVAR_DEFINE_AUTO (fs_mount_addon, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
-	"mount addon content folder");
-CVAR_DEFINE_AUTO (fs_mount_l10n, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
-	"mount localization content folder");
-CVAR_DEFINE_AUTO (ui_language, "english", FCVAR_ARCHIVE | FCVAR_PRIVILEGED | FCVAR_LATCH,
-	"selected game language");*/
 #if XASH_WIN32
 #include <direct.h>
 #endif
@@ -111,7 +101,6 @@ void *FS_GetNativeObject (const char *obj)
 	}
 
 // [FWGS, 01.11.25]
-/*void FS_Rescan_f (void)*/
 static uint32_t FS_MountFlags (void)
 	{
 	uint32_t flags = 0;
@@ -126,7 +115,6 @@ static uint32_t FS_MountFlags (void)
 	if (fs_mount_l10n.value)
 		SetBits (flags, FS_MOUNT_L10N);
 
-	/*g_fsapi.Rescan (flags, ui_language.string);*/
 	return flags;
 	}
 
@@ -153,7 +141,6 @@ static void FS_LoadVFSConfig (const char *gamedir)
 		Cvar_DirectSet (&fs_mount_l10n, "1");
 		}
 
-	/*ClearBits (fs_mount_lv.flags, FCVAR_CHANGED);*/
 	ClearBits (fs_mount_hd.flags, FCVAR_CHANGED);
 	ClearBits (fs_mount_lv.flags, FCVAR_CHANGED);
 	ClearBits (fs_mount_l10n.flags, FCVAR_CHANGED);
@@ -162,12 +149,15 @@ static void FS_LoadVFSConfig (const char *gamedir)
 	ClearBits (ui_language.flags, FCVAR_CHANGED);
 	}
 
-// [FWGS, 01.11.25]
+// [FWGS, 01.03.26]
 void FS_SaveVFSConfig (void)
 	{
 	file_t *f;
+	const qboolean force_save = !FS_FileExists ("vfs.cfg", true);
 
-	if (!FBitSet (fs_mount_hd.flags | fs_mount_lv.flags | fs_mount_l10n.flags | fs_mount_addon.flags | ui_language.flags, FCVAR_CHANGED))
+	/*if (!FBitSet (fs_mount_hd.flags | fs_mount_lv.flags | fs_mount_l10n.flags | fs_mount_addon.flags | ui_language.flags, FCVAR_CHANGED))*/
+	if (!force_save && !FBitSet (fs_mount_hd.flags | fs_mount_lv.flags | fs_mount_l10n.flags | fs_mount_addon.flags |
+		ui_language.flags, FCVAR_CHANGED))
 		{
 		Con_Reportf ("%s: no need to save vfs.cfg\n", __func__);
 		return;
@@ -178,7 +168,8 @@ void FS_SaveVFSConfig (void)
 	f = FS_Open ("vfs.cfg.new", "w", true);
 	if (!f)
 		{
-		Con_Printf (S_ERROR "%s: couldn't open vfs.cfg for write\n", __func__);
+		/*Con_Printf (S_ERROR "%s: couldn't open vfs.cfg for write\n", __func__);*/
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, "vfs.cfg.new");
 		return;
 		}
 
@@ -262,7 +253,6 @@ static qboolean FS_LoadProgs (void)
 	FSAPI GetFSAPI;
 
 	fs_hInstance = COM_LoadLibrary (name, false, true);
-
 	if (!fs_hInstance)
 		{
 		Sys_Error ("%s: can't load filesystem library %s: %s\n", __func__, name, COM_GetLibraryError ());
@@ -298,32 +288,18 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 	{
 	const char *path = getenv ("XASH3D_BASEDIR");
 
-	if (COM_CheckString (path))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckString (path))*/
+	if (!COM_StringEmptyOrNULL (path))
 		{
 		Q_strncpy (out, path, size);
 		return true;
 		}
 
 	// [FWGS, 01.11.25]
-/*if XASH_EMSCRIPTEN
-	Q_strncpy (out, "/rwdir", size);
-	return true;
-
-elif TARGET_OS_IOS*/
 #if TARGET_OS_IOS
 	Q_strncpy (out, IOS_GetDocsDir (), size);
 	return true;
-
-/*elif XASH_ANDROID && XASH_SDL
-
-	path = SDL_AndroidGetExternalStoragePath ();
-	if (path != NULL)
-		{
-		Q_strncpy (out, path, size);
-		return true;
-		}
-	Sys_Error ("couldn't determine Android external storage path: %s", SDL_GetError ());
-	return false;*/
 
 #elif XASH_PSVITA
 
@@ -378,7 +354,6 @@ elif TARGET_OS_IOS*/
 #endif
 	}
 
-// [FWGS, 01.11.25]
 static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 	{
 	const char *env_rodir = getenv ("XASH3D_RODIR");
@@ -386,26 +361,18 @@ static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 	if (_Sys_GetParmFromCmdLine ("-rodir", out, size))
 		return true;
 
-	if (COM_CheckString (env_rodir))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckString (env_rodir))*/
+	if (!COM_StringEmptyOrNULL (env_rodir))
 		{
 		Q_strncpy (out, env_rodir, size);
 		return true;
 		}
 
-	/*if XASH_EMSCRIPTEN
-	Q_strncpy (out, "/rodir", size);
-	return true;
-endif*/
-
 	return false;
 	}
 
-// [FWGS, 01.11.25]
-/*void FS_CheckConfig (void)
-	{
-	if (fs_mount_lv.value || fs_mount_hd.value || fs_mount_addon.value || fs_mount_l10n.value)
-		FS_Rescan_f ();
-	}*/
+// [FWGS, 01.11.25] removed FS_CheckConfig
 
 /***
 ================
@@ -418,7 +385,9 @@ void FS_Init (const char *basedir)
 	char	rodir[MAX_OSPATH], rootdir[MAX_OSPATH];
 	rodir[0] = rootdir[0] = 0;
 
-	if (!FS_DetermineRootDirectory (rootdir, sizeof (rootdir)) || !COM_CheckStringEmpty (rootdir))
+	// [FWGS, 01.03.26]
+	/*if (!FS_DetermineRootDirectory (rootdir, sizeof (rootdir)) || !COM_CheckStringEmpty (rootdir))*/
+	if (!FS_DetermineRootDirectory (rootdir, sizeof (rootdir)) || COM_StringEmpty (rootdir))
 		{
 		Sys_Error ("couldn't determine current directory (empty string)");
 		return;
@@ -559,7 +528,7 @@ void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 			break;
 
 		case 2:
-			if (WAS_Code_Rt == roomtype & 0x3F)
+			if (WAS_Code_Rt == (roomtype & 0x3F))
 				{
 				WAS_entered = 0;
 				return;

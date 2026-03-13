@@ -13,10 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include <math.h>	// fabs...
 #include "common.h"
 #include "base_cmd.h"
-#include "eiface.h" // HLARRAYSIZE
+/*include "eiface.h" // HLARRAYSIZE*/
 
 // [FWGS, 01.02.25]
 static convar_t		*cvar_vars = NULL; // head of list
@@ -68,22 +69,23 @@ cvar_t *GAME_EXPORT Cvar_GetList (void)
 
 /***
 ============
-Cvar_FindVar [FWGS, 01.12.24]
+Cvar_FindVar [FWGS, 01.03.26]
 
 find the specified variable by name
 ============
 ***/
-convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
+/*convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)*/
+convar_t *Cvar_FindVar (const char *var_name)
 	{
 	convar_t *var;
 
 	if (!var_name)
 		return NULL;
 
-	// TODO: ignore_group
-#if defined(XASH_HASHED_VARS)
+	/*// TODO: ignore_group
+	if defined(XASH_HASHED_VARS)*/
 	var = BaseCmd_Find (HM_CVAR, var_name);
-#else
+	/*else
 	for (var = cvar_vars; var; var = var->next)
 		{
 		if (ignore_group && FBitSet (ignore_group, var->flags))
@@ -93,23 +95,25 @@ convar_t *Cvar_FindVarExt (const char *var_name, int ignore_group)
 			return var;
 		}
 
-#endif
+	endif*/
 
 	// HACKHACK: HL25 compatibility
 	if (!var && !Q_stricmp (var_name, "gl_widescreen_yfov"))
-		var = Cvar_FindVarExt ("r_adjust_fov", ignore_group);
+		/*var = Cvar_FindVarExt ("r_adjust_fov", ignore_group);*/
+		var = Cvar_FindVar ("r_adjust_fov");
 
 	return var;
 	}
 
 /***
 ============
-Cvar_BuildAutoDescription
+Cvar_BuildAutoDescription [FWGS, 01.03.26]
 
 build cvar auto description that based on the setup flags
 ============
 ***/
-const char *Cvar_BuildAutoDescription (const char *szName, int flags)
+/*const char *Cvar_BuildAutoDescription (const char *szName, int flags)*/
+const char *Cvar_BuildAutoDescription (const char *szName, uint32_t flags)
 	{
 	static char	desc[256];
 	desc[0] = '\0';
@@ -203,7 +207,7 @@ static qboolean Cvar_UpdateInfo (convar_t *var, const char *value, qboolean noti
 ============
 Cvar_ValidateString
 
-deal with userinfo etc
+deal with userinfo etc.
 ============
 ***/
 static const char *Cvar_ValidateString (convar_t *var, const char *value)
@@ -236,8 +240,10 @@ static const char *Cvar_ValidateString (convar_t *var, const char *value)
 		*szVal = '\0';
 		pszValue = szNew;
 
-		// g-cont. is this even need?
-		if (!COM_CheckStringEmpty (szNew))
+		// [FWGS, 01.03.26] g-cont. is this even need?
+		/*if (!COM_CheckStringEmpty (szNew))
+			Q_strncpy (szNew, "empty", sizeof (szNew));*/
+		if (COM_StringEmpty (szNew))
 			Q_strncpy (szNew, "empty", sizeof (szNew));
 		}
 
@@ -296,12 +302,13 @@ static void Cvar_Free (convar_t *var)
 
 /***
 ============
-Cvar_UnlinkVar [FWGS, 01.12.24]
+Cvar_UnlinkVar [FWGS, 01.03.26]
 
 unlink the variable
 ============
 ***/
-static int Cvar_UnlinkVar (const char *var_name, int group)
+/*static int Cvar_UnlinkVar (const char *var_name, int group)*/
+static int Cvar_UnlinkVar (const char *var_name, uint32_t group)
 	{
 	int			count = 0;
 	convar_t	**prev;
@@ -329,9 +336,9 @@ static int Cvar_UnlinkVar (const char *var_name, int group)
 			continue;
 			}
 
-#if defined(XASH_HASHED_VARS)
+		/*if defined(XASH_HASHED_VARS)*/
 		BaseCmd_Remove (HM_CVAR, var->name);
-#endif
+		/*endif*/
 
 		// unlink variable from list
 		*prev = var->next;
@@ -410,27 +417,32 @@ void Cvar_LookupVars (int checkbit, void *buffer, void *ptr, setpair_t callback)
 
 /***
 ============
-Cvar_Get
+Cvar_Get [FWGS, 01.03.26]
 
 If the variable already exists, the value will not be set
-The flags will be or'ed in if the variable exists.
+The flags will be or'ed in if the variable exists
 ============
 ***/
-convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *var_desc)
+/*convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *var_desc)*/
+convar_t *Cvar_Get (const char *name, const char *value, uint32_t flags, const char *var_desc)
 	{
-	convar_t *cur, *find, *var;
+	/*convar_t *cur, *find, *var;*/
+	convar_t	*cur, *find, *var;
+	cmd_t		*cmd;
+	cmdalias_t	*alias;
 
 	ASSERT (name && *name);
+	BaseCmd_FindAll (name, &cmd, &alias, &var);
 
 	// check for command coexisting
-	if (Cmd_Exists (name))
+	/*if (Cmd_Exists (name))*/
+	if (cmd)
 		{
 		Con_DPrintf (S_ERROR "can't register variable '%s', is already defined as command\n", name);
 		return NULL;
 		}
 
-	var = Cvar_FindVar (name);
-
+	/*var = Cvar_FindVar (name);*/
 	if (var)
 		{
 		// already existed?
@@ -440,9 +452,10 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			// which executed from the config file. So we don't need to
 			// change value here: we *already* have actual value from config.
 			// in other cases we need to rewrite them
-			if (COM_CheckStringEmpty (var->desc))
+			/*if (COM_CheckStringEmpty (var->desc))*/
+			if (!COM_StringEmpty (var->desc))
 				{
-				// [FWGS, 01.04.25] directly set value
+				// directly set value
 				size_t len = Q_strlen (value) + 1;
 				var->string = Mem_Realloc (cvar_pool, var->string, len);
 				Q_strncpy (var->string, value, len);
@@ -460,7 +473,6 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			Cvar_DirectSet (var, value);
 			}
 
-		// [FWGS, 01.04.25]
 		if (FBitSet (var->flags, FCVAR_ALLOCATED) && Q_strcmp (var_desc, var->desc))
 			{
 			size_t len = Q_strlen (var_desc) + 1;
@@ -468,7 +480,7 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 			if (!FBitSet (flags, FCVAR_GLCONFIG))
 				Con_Reportf ("%s change description from %s to %s\n", var->name, var->desc, var_desc);
 
-			// [FWGS, 01.02.25] update description if needs
+			// update description if needs
 			var->desc = Mem_Realloc (cvar_pool, var->desc, len);
 			Q_strncpy (var->desc, var_desc, len);
 			}
@@ -476,7 +488,7 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 		return var;
 		}
 
-	// [FWGS, 01.02.25] allocate a new cvar
+	// allocate a new cvar
 	var = Mem_Malloc (cvar_pool, sizeof (*var));
 	var->name = copystringpool (cvar_pool, name);
 	var->string = copystringpool (cvar_pool, value);
@@ -500,20 +512,21 @@ convar_t *Cvar_Get (const char *name, const char *value, int flags, const char *
 	// tell engine about changes
 	Cvar_Changed (var);
 
-#if defined(XASH_HASHED_VARS)
+	/*if defined(XASH_HASHED_VARS)*/
 	// add to map
 	BaseCmd_Insert (HM_CVAR, var, var->name);
-#endif
+	/*endif*/
 
 	return var;
 	}
 
 /***
 ============
-Cvar_Getf
+Cvar_Getf [FWGS, 01.03.26]
 ============
 ***/
-convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, const char *format, ...)
+/*convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, const char *format, ...)*/
+convar_t *Cvar_Getf (const char *var_name, uint32_t flags, const char *description, const char *format, ...)
 	{
 	char value[MAX_VA_STRING];
 	va_list args;
@@ -527,20 +540,23 @@ convar_t *Cvar_Getf (const char *var_name, int flags, const char *description, c
 
 /***
 ============
-Cvar_RegisterVariable
+Cvar_RegisterVariable [FWGS, 01.03.26]
 
 Adds a freestanding variable to the variable list
 ============
 ***/
 void Cvar_RegisterVariable (convar_t *var)
 	{
-	convar_t *cur, *find, *dup;
+	/*convar_t *cur, *find, *dup;*/
+	convar_t	*cur, *find, *dup;
+	cmd_t		*cmd;
+	cmdalias_t	*alias;
 
 	ASSERT (var != NULL);
 
 	// first check to see if it has allready been defined
-	dup = Cvar_FindVar (var->name);
-
+	/*dup = Cvar_FindVar (var->name);*/
+	BaseCmd_FindAll (var->name, &cmd, &alias, &dup);
 	if (dup)
 		{
 		if (!FBitSet (dup->flags, FCVAR_TEMPORARY))
@@ -554,7 +570,8 @@ void Cvar_RegisterVariable (convar_t *var)
 		}
 
 	// check for overlap with a command
-	if (Cmd_Exists (var->name))
+	/*if (Cmd_Exists (var->name))*/
+	if (cmd)
 		{
 		Con_DPrintf (S_ERROR "can't register variable '%s', is already defined as command\n", var->name);
 		return;
@@ -569,7 +586,6 @@ void Cvar_RegisterVariable (convar_t *var)
 	if (FBitSet (var->flags, FCVAR_EXTENDED))
 		var->def_string = var->string; // just swap pointers
 
-	// [FWGS, 01.02.25]
 	var->string = copystringpool (cvar_pool, var->string);
 	var->value = Q_atof (var->string);
 
@@ -589,10 +605,10 @@ void Cvar_RegisterVariable (convar_t *var)
 	// tell engine about changes
 	Cvar_Changed (var);
 
-#if defined(XASH_HASHED_VARS)
+	/*if defined(XASH_HASHED_VARS)*/
 	// add to map
 	BaseCmd_Insert (HM_CVAR, var, var->name);
-#endif
+	/*endif*/
 	}
 
 // [FWGS, 01.01.24]
@@ -619,7 +635,44 @@ static qboolean Cvar_CanSet (const convar_t *cv)
 
 /***
 ============
-Cvar_Set2 [FWGS, 01.04.25]
+Cvar_DirectFullSet [FWGS, 01.03.26]
+
+can set any protected cvars
+============
+***/
+void Cvar_DirectFullSet (convar_t *var, const char *value, uint32_t flags)
+	{
+	size_t len = Q_strlen (value) + 1;
+
+	var->string = Mem_Realloc (cvar_pool, var->string, len);
+	Q_strncpy (var->string, value, len);
+	var->value = Q_atof (var->string);
+	SetBits (var->flags, flags);
+
+	// tell engine about changes
+	Cvar_Changed (var);
+	}
+
+// [FWGS, 01.03.26]
+static void Cvar_SanitizeAndSet (convar_t *var, const char *value)
+	{
+	const char *fixed_string = Cvar_ValidateString (var, value);
+
+	// nothing to change
+	if (!Q_strcmp (fixed_string, var->string))
+		return;
+
+	// fill it cls.userinfo, svs.serverinfo
+	if (!Cvar_UpdateInfo (var, fixed_string, true))
+		return;
+
+	// and finally change the cvar itself
+	Cvar_DirectFullSet (var, fixed_string, var->flags);
+	}
+
+/***
+============
+Cvar_Set2 [FWGS, 01.03.26]
 ============
 ***/
 static convar_t *Cvar_Set2 (const char *var_name, const char *value)
@@ -627,8 +680,8 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	convar_t	*var;
 	qboolean	dll_variable = false;
 	qboolean	force = false;
-	const char	*fixed_string;
-	size_t		fixed_string_len;
+	/*const char	*fixed_string;
+	size_t		fixed_string_len;*/
 
 	if (!Cvar_ValidateVarName (var_name, false))
 		{
@@ -692,7 +745,7 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 			return var;
 		}
 
-	fixed_string = Cvar_ValidateString (var, value);
+	/*fixed_string = Cvar_ValidateString (var, value);
 
 	// nothing to change
 	if (!Q_strcmp (fixed_string, var->string))
@@ -709,28 +762,30 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	var->value = Q_atof (var->string);
 
 	// tell engine about changes
-	Cvar_Changed (var);
+	Cvar_Changed (var);*/
+
+	Cvar_SanitizeAndSet (var, value);
 	return var;
 	}
 
 /***
 ============
-Cvar_DirectSet [FWGS, 01.04.25]
+Cvar_DirectSet [FWGS, 01.03.26]
 
 way to change value for many cvars
 ============
 ***/
 void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	{
-	const char	*fixed_string;
-	size_t		fixed_string_len;
+	/*const char	*fixed_string;
+	size_t		fixed_string_len;*/
 
 	if (unlikely (!var))
 		return; // ?
 
 	// lookup for registration
-	if (unlikely (CVAR_CHECK_SENTINEL (var) || (var->next == NULL && !FBitSet (var->flags,
-		FCVAR_EXTENDED | FCVAR_ALLOCATED))))
+	if (unlikely (CVAR_CHECK_SENTINEL (var) || (var->next == NULL &&
+		!FBitSet (var->flags, FCVAR_EXTENDED | FCVAR_ALLOCATED))))
 		{
 		// need to registering cvar fisrt
 		Cvar_RegisterVariable (var);	// ok, register it
@@ -755,7 +810,7 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 		value = var->def_string; // reset to default value
 		}
 
-	fixed_string = Cvar_ValidateString (var, value);
+	/*fixed_string = Cvar_ValidateString (var, value);
 
 	// nothing to change
 	if (!Q_strcmp (fixed_string, var->string))
@@ -772,7 +827,8 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 	var->value = Q_atof (var->string);
 
 	// tell engine about changes
-	Cvar_Changed (var);
+	Cvar_Changed (var);*/
+	Cvar_SanitizeAndSet (var, value);
 	}
 
 /***
@@ -796,30 +852,31 @@ void Cvar_DirectSetValue (convar_t *var, float value)
 
 /***
 ============
-Cvar_FullSet [FWGS, 01.04.25]
+Cvar_FullSet [FWGS, 01.03.26]
 
 can set any protected cvars
 ============
 ***/
-void Cvar_FullSet (const char *var_name, const char *value, int flags)
+/*void Cvar_FullSet (const char *var_name, const char *value, int flags)*/
+void Cvar_FullSet (const char *var_name, const char *value, uint32_t flags)
 	{
-	convar_t	*var = Cvar_FindVar (var_name);
-	size_t		len = Q_strlen (value) + 1;
-
+	convar_t *var = Cvar_FindVar (var_name);
+	/*size_t		len = Q_strlen (value) + 1;*/
 	if (!var)
 		{
 		Cvar_Get (var_name, value, flags, "");
 		return;
 		}
 
-	var->string = Mem_Realloc (cvar_pool, var->string, len);
+	/*var->string = Mem_Realloc (cvar_pool, var->string, len);
 	Q_strncpy (var->string, value, len);
 
 	var->value = Q_atof (var->string);
 	SetBits (var->flags, flags);
 
 	// tell engine about changes
-	Cvar_Changed (var);
+	Cvar_Changed (var);*/
+	Cvar_DirectFullSet (var, value, var->flags);
 	}
 
 /***
@@ -1043,7 +1100,7 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 
 /***
 ============
-Cvar_Command [FWGS, 01.06.25]
+Cvar_Command
 
 Handles variable inspection and changing from the console
 ============
@@ -1057,12 +1114,11 @@ qboolean Cvar_CommandWithPrivilegeCheck (convar_t *v, qboolean isPrivileged)
 		return true;
 		}
 
-#if !defined( XASH_HASHED_VARS )
+	// [FWGS, 01.03.26]
+	/*if !defined( XASH_HASHED_VARS )
 	// check variables
-	/*if (!v) // already found in basecmd
-		v = Cvar_FindVar (Cmd_Argv (0));*/
 	v = Cvar_FindVar (Cmd_Argv (0));
-#endif
+	endif*/
 
 	if (!v)
 		return false;
@@ -1178,13 +1234,16 @@ static void Cvar_Set_f (void)
 	Cvar_Set2 (Cmd_Argv (1), combined);
 	}
 
-/***
+// [FWGS, 01.03.26] removed Cvar_SetGL_f
+
+/*
+/
 ============
 Cvar_SetGL_f [FWGS, 01.02.24]
 
 As Cvar_Set, but also flags it as glconfig
 ============
-***/
+/
 static void Cvar_SetGL_f (void)
 	{
 	if (Cmd_Argc () != 3)
@@ -1194,7 +1253,7 @@ static void Cvar_SetGL_f (void)
 		}
 
 	Cvar_SetGL (Cmd_Argv (1), Cmd_Argv (2));
-	}
+	}*/
 
 /***
 ============
@@ -1259,8 +1318,9 @@ static void Cvar_List_f (void)
 	Con_Printf ("\n%i cvars\n", count);
 	}
 
-// [FWGS, 01.12.24]
-static qboolean Cvar_ValidateUnlinkGroup (int group)
+// [FWGS, 01.03.26]
+/*static qboolean Cvar_ValidateUnlinkGroup (int group)*/
+static qboolean Cvar_ValidateUnlinkGroup (uint32_t group)
 	{
 	if (FBitSet (group, FCVAR_EXTDLL) && !Cvar_VariableInteger ("host_gameloaded"))
 		return false;
@@ -1276,12 +1336,13 @@ static qboolean Cvar_ValidateUnlinkGroup (int group)
 
 /***
 ============
-Cvar_Unlink [FWGS, 01.12.24]
+Cvar_Unlink [FWGS, 01.03.26]
 
 unlink all cvars with specified flag
 ============
 ***/
-void Cvar_Unlink (int group)
+/*void Cvar_Unlink (int group)*/
+void Cvar_Unlink (uint32_t group)
 	{
 	int	count;
 
@@ -1292,7 +1353,9 @@ void Cvar_Unlink (int group)
 	Con_Reportf ("unlink %i cvars\n", count);
 	}
 
-pending_cvar_t *Cvar_PrepareToUnlink (int group)
+// [FWGS, 01.03.26]
+/*pending_cvar_t *Cvar_PrepareToUnlink (int group)*/
+pending_cvar_t *Cvar_PrepareToUnlink (uint32_t group)
 	{
 	pending_cvar_t	*list = NULL;
 	pending_cvar_t	*tail = NULL;
@@ -1306,7 +1369,6 @@ pending_cvar_t *Cvar_PrepareToUnlink (int group)
 		if (!FBitSet (cv->flags, group))
 			continue;
 
-		// [FWGS, 01.02.25]
 		namelen = Q_strlen (cv->name) + 1;
 		p = Mem_Malloc (cvar_pool, sizeof (*list) + namelen);
 		p->next = NULL;
@@ -1398,8 +1460,9 @@ void Cvar_Init (void)
 	Cvar_RegisterVariable (&host_developer); // early registering for dev
 	Cvar_RegisterVariable (&cl_filterstuffcmd);
 
-	Cmd_AddRestrictedCommand ("setgl", Cvar_SetGL_f,
-		"change the value of a opengl variable");	// OBSOLETE
+	// [FWGS, 01.03.26]
+	/*Cmd_AddRestrictedCommand ("setgl", Cvar_SetGL_f,
+		"change the value of a opengl variable");	// OBSOLETE*/
 	Cmd_AddRestrictedCommand ("toggle", Cvar_Toggle_f,
 		"toggles a console variable's values (use for more info)");
 	Cmd_AddRestrictedCommand ("reset", Cvar_Reset_f,

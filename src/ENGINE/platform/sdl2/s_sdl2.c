@@ -17,7 +17,8 @@ GNU General Public License for more details
 #include "common.h"
 #include "platform.h"
 
-#if XASH_SOUND == SOUND_SDL
+// [FWGS, 01.03.26]
+/*if XASH_SOUND == SOUND_SDL*/
 
 #include "sound.h"
 #include "voice.h"
@@ -183,7 +184,7 @@ fail:
 
 /***
 ==============
-SNDDMA_BeginPainting [FWGS, 01.07.23]
+SNDDMA_BeginPainting
 
 Makes sure dma.buffer is valid
 ===============
@@ -222,16 +223,19 @@ void SNDDMA_Shutdown (void)
 		{
 		SNDDMA_Activate (false);
 
-#if !XASH_EMSCRIPTEN
+		// [FWGS, 01.03.26]
+		/*if !XASH_EMSCRIPTEN*/
 		SDL_CloseAudioDevice (sdl_dev);
-#endif
+		/*endif*/
 		}
 
-	// [FWGS, 22.01.25]
-#if !XASH_EMSCRIPTEN
+	// [FWGS, 01.03.26]
+	/*// [FWGS, 22.01.25]
+	if !XASH_EMSCRIPTEN
 	if (SDL_WasInit (SDL_INIT_AUDIO))
 		SDL_QuitSubSystem (SDL_INIT_AUDIO);
-#endif
+	endif*/
+	SDL_QuitSubSystem (SDL_INIT_AUDIO);
 
 	if (dma.buffer)
 		{
@@ -354,4 +358,5 @@ void VoiceCapture_Shutdown (void)
 	in_dev = 0;
 	}
 
-#endif
+// [FWGS, 01.03.26]
+/*endif*/

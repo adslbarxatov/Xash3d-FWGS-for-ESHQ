@@ -30,12 +30,17 @@ static model_t	mod_known[MAX_MODELS];
 static int	mod_numknown = 0;
 poolhandle_t      com_studiocache;		// cache for submodels
 
+// [FWGS, 01.03.26]
 CVAR_DEFINE (mod_studiocache, "r_studiocache", "1", FCVAR_ARCHIVE,
 	"enables studio cache for speedup tracing hitboxes");
-CVAR_DEFINE_AUTO (r_wadtextures, "0", 0,
+/*CVAR_DEFINE_AUTO (r_wadtextures, "0", 0,
+	"completely ignore textures in the bsp-file if enabled");*/
+CVAR_DEFINE_AUTO (r_wadtextures, "0", FCVAR_LATCH,
 	"completely ignore textures in the bsp-file if enabled");
 CVAR_DEFINE_AUTO (r_showhull, "0", 0,
 	"draw collision hulls 1-3");
+CVAR_DEFINE_AUTO (r_allow_wad3_luma, "0", FCVAR_LATCH | FCVAR_ARCHIVE,
+	"allow usage of luma textures in wad3 (tilde textures)");
 
 /***
 ===============================================================================
@@ -56,16 +61,46 @@ static void Mod_Modellist_f (void)
 	Con_Printf ("\n");
 	Con_Printf ("-----------------------------------\n");
 
+	// [FWGS, 01.03.26]
 	for (i = nummodels = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 		{
-		if (!COM_CheckStringEmpty (mod->name))
+		/*if (!COM_CheckStringEmpty (mod->name))*/
+		const char *color_str;
+
+		if (mod->needload == NL_UNREFERENCED)
 			continue; // free slot
-		Con_Printf ("%s\n", mod->name);
+
+		/*Con_Printf ("%s\n", mod->name);*/
+		switch (mod->type)
+			{
+			case mod_alias:
+				color_str = S_YELLOW;
+				break;
+
+			case mod_studio:
+				color_str = S_GREEN;
+				break;
+
+			case mod_sprite:
+				color_str = S_MAGENTA;
+				break;
+
+			case mod_brush:
+				color_str = mod->name[0] == '*' ? S_CYAN : S_BLUE;
+				break;
+
+			default:
+				color_str = S_RED;
+				break;
+			}
+
+		Con_Printf ("%3d:\t%s%s\n" S_DEFAULT, i, color_str, mod->name);
 		nummodels++;
 		}
 
 	Con_Printf ("-----------------------------------\n");
-	Con_Printf ("%i total models\n", nummodels);
+	/*Con_Printf ("%i total models\n", nummodels);*/
+	Con_Printf ("%i total models, %i total allocated slots\n", nummodels, mod_numknown);
 	Con_Printf ("\n");
 	}
 
@@ -76,8 +111,9 @@ Mod_FreeUserData
 ***/
 static void Mod_FreeUserData (model_t *mod)
 	{
-	// ignore submodels and freed models
-	if (!COM_CheckStringEmpty (mod->name) || (mod->name[0] == '*'))
+	// [FWGS, 01.03.26] ignore submodels and freed models
+	/*if (!COM_CheckStringEmpty (mod->name) || (mod->name[0] == '*'))*/
+	if ((mod->needload == NL_UNREFERENCED) || (mod->name[0] == '*'))
 		return;
 
 	if (Host_IsDedicated ())
@@ -93,7 +129,6 @@ static void Mod_FreeUserData (model_t *mod)
 #if !XASH_DEDICATED
 	else
 		{
-		/*ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL);*/
 		ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL, 0);
 		}
 #endif
@@ -106,8 +141,9 @@ Mod_FreeModel
 ***/
 void Mod_FreeModel (model_t *mod)
 	{
-	// already freed?
-	if (!mod || !COM_CheckStringEmpty (mod->name))
+	// [FWGS, 01.03.26] already freed?
+	/*if (!mod || !COM_CheckStringEmpty (mod->name))*/
+	if (!mod || (mod->needload == NL_UNREFERENCED))
 		return;
 
 	if ((mod->type != mod_brush) || (mod->name[0] != '*'))
@@ -150,6 +186,9 @@ void Mod_Init (void)
 	Cvar_RegisterVariable (&mod_studiocache);
 	Cvar_RegisterVariable (&r_wadtextures);
 	Cvar_RegisterVariable (&r_showhull);
+
+	// [FWGS, 01.03.26]
+	Cvar_RegisterVariable (&r_allow_wad3_luma);
 
 	Cmd_AddCommand ("mapstats", Mod_PrintWorldStats_f, "show stats for currently loaded map");
 	Cmd_AddCommand ("modellist", Mod_Modellist_f, "display loaded models list");
@@ -220,13 +259,15 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 
 	Q_strncpy (modname, filename, sizeof (modname));
 
-	// search the currently loaded models
+	// [FWGS, 01.03.26] search the currently loaded models
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 		{
 		if (!Q_stricmp (mod->name, modname))
 			{
 			if (mod->mempool || (mod->name[0] == '*'))
 				mod->needload = NL_PRESENT;
+			/*else
+				mod->needload = NL_NEEDS_LOADED;*/
 			else
 				mod->needload = NL_NEEDS_LOADED;
 
@@ -234,9 +275,13 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 			}
 		}
 
-	// find a free model slot spot
+	// [FWGS, 01.03.26] find a free model slot spot
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
-		if (!COM_CheckStringEmpty (mod->name)) break; // this is a valid spot
+		{
+		if (mod->needload == NL_UNREFERENCED)
+			break; // this is a valid spot
+		}
+	/*if (!COM_CheckStringEmpty (mod->name)) break; // this is a valid spot*/
 
 	if (i == mod_numknown)
 		{
@@ -273,7 +318,13 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	byte			*buf;
 	model_info_t	*p;
 
-	ASSERT (mod != NULL);
+	// [FWGS, 01.03.26]
+	/*ASSERT (mod != NULL);*/
+	if (!mod)
+		{
+		Host_Error ("%s: mod == NULL\n", __func__);
+		return NULL;
+		}
 
 	// check if already loaded (or inline bmodel)
 	if (mod->mempool || (mod->name[0] == '*'))
@@ -282,7 +333,13 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 		return mod;
 		}
 
-	ASSERT (mod->needload == NL_NEEDS_LOADED);
+	// [FWGS, 01.03.26]
+	/*ASSERT (mod->needload == NL_NEEDS_LOADED);*/
+	if (mod->needload != NL_NEEDS_LOADED)
+		{
+		Host_Error ("%s: trying to load model not marked for loading (%d)\n", __func__, mod->needload);
+		return NULL;
+		}
 
 	// store modelname to show error
 	Q_strncpy (tempname, mod->name, sizeof (tempname));
@@ -305,32 +362,27 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	mod->needload = NL_PRESENT;
 	mod->type = mod_bad;
 
-	// [FWGS, 01.11.25] call the apropriate loader
+	// call the apropriate loader
 	switch (*(uint *)buf)
 		{
-		/*case IDSTUDIOHEADER:*/
 		case LittleLong (IDSTUDIOHEADER):
 			Mod_LoadStudioModel (mod, buf, &loaded);
 			break;
 
-		/*case IDSPRITEHEADER:
-			Mod_LoadSpriteModel (mod, buf, &loaded);*/
 		case LittleLong (IDSPRITEHEADER):
 			Mod_LoadSpriteModel (mod, buf, length, &loaded);
 			break;
 
-		/*case IDALIASHEADER:*/
 		case LittleLong (IDALIASHEADER):
 			Mod_LoadAliasModel (mod, buf, &loaded);
 			break;
 
-		/*case Q1BSP_VERSION:
-		case HLBSP_VERSION:
-		case QBSP2_VERSION:*/
+		// [FWGS, 01.03.26]
 		case LittleLong (Q1BSP_VERSION):
 		case LittleLong (HLBSP_VERSION):
 		case LittleLong (QBSP2_VERSION):
-			Mod_LoadBrushModel (mod, buf, &loaded);
+			/*Mod_LoadBrushModel (mod, buf, &loaded);*/
+			Mod_LoadBrushModel (mod, buf, length, &loaded);
 			break;
 
 		default:
@@ -362,7 +414,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 #if !XASH_DEDICATED
 		else
 			{
-			/*loaded2 = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf);*/
 			loaded2 = ref.dllFuncs.Mod_ProcessRenderData (mod, true, buf, length);
 			}
 #endif
@@ -393,9 +444,11 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	p = &mod_crcinfo[mod - mod_known];
 	mod->needload = NL_PRESENT;
 
+	// [FWGS, 01.03.26]
 	if (FBitSet (p->flags, FCRC_SHOULD_CHECKSUM))
 		{
-		CRC32_t	currentCRC;
+		/*CRC32_t	currentCRC;*/
+		uint32_t currentCRC;
 
 		CRC32_Init (&currentCRC);
 		CRC32_ProcessBuffer (&currentCRC, buf, length);
@@ -426,9 +479,11 @@ Loads in a model for the given name
 ***/
 model_t *Mod_ForName (const char *name, qboolean crash, qboolean trackCRC)
 	{
-	model_t *mod;
+	model_t	*mod;
 
-	if (!COM_CheckString (name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (name))*/
+	if (COM_StringEmptyOrNULL (name))
 		return NULL;
 
 	mod = Mod_FindName (name, trackCRC);
@@ -459,11 +514,19 @@ static void Mod_PurgeStudioCache (void)
 	// and clear studio sequences
 	for (i = 1; i < mod_numknown; i++)
 		{
+		// [FWGS, 01.03.26]
+		if (mod_known[i].needload == NL_UNREFERENCED)
+			continue;
+
 		if (mod_known[i].type == mod_studio)
 			mod_known[i].submodels = NULL;
+
 		if (mod_known[i].name[0] == '*')
 			Mod_FreeModel (&mod_known[i]);
-		mod_known[i].needload = NL_UNREFERENCED;
+
+		/*mod_known[i].needload = NL_UNREFERENCED;*/
+		else
+			mod_known[i].needload = NL_FREE_UNUSED;
 		}
 
 	Mem_EmptyPool (com_studiocache);
@@ -513,10 +576,11 @@ void Mod_FreeUnused (void)
 	model_t	*mod;
 	int		i;
 
-	// never tries to release worldmodel
+	// [FWGS, 01.03.26] never tries to release worldmodel
 	for (i = 1, mod = &mod_known[1]; i < mod_numknown; i++, mod++)
 		{
-		if (mod->needload == NL_UNREFERENCED && COM_CheckString (mod->name))
+		/*if (mod->needload == NL_UNREFERENCED && COM_CheckString (mod->name))*/
+		if (mod->needload == NL_FREE_UNUSED)
 			Mod_FreeModel (mod);
 		}
 	}
@@ -526,40 +590,54 @@ void Mod_FreeUnused (void)
 MODEL ROUTINES
 ===============================================================================
 ***/
+
 /***
 ===============
-Mod_Calloc
+Mod_Calloc [FWGS, 01.03.26]
 ===============
 ***/
-void *Mod_Calloc (int number, size_t size)
+/*void *Mod_Calloc (int number, size_t size)*/
+void *GAME_EXPORT Mod_Calloc (int number, size_t size)
 	{
 	cache_user_t *cu;
 
+	/*if ((number <= 0) || (size <= 0))
+		return NULL;*/
 	if ((number <= 0) || (size <= 0))
 		return NULL;
 
 	cu = (cache_user_t *)Mem_Calloc (com_studiocache, sizeof (cache_user_t) + number * size);
-	cu->data = (void *)cu; // make sure what cu->data is not NULL
+	/*cu->data = (void *)cu; // make sure what cu->data is not NULL*/
+	cu->data = (void *)cu;	// make sure that cu->data is not NULL
 
 	return cu;
 	}
 
 /***
 ===============
-Mod_CacheCheck
+Mod_CacheCheck [FWGS, 01.03.26]
 ===============
 ***/
-void *Mod_CacheCheck (cache_user_t *c)
+/*void *Mod_CacheCheck (cache_user_t *c)*/
+void *GAME_EXPORT Mod_CacheCheck (cache_user_t *c)
 	{
-	return Cache_Check (com_studiocache, c);
+	/*return Cache_Check (com_studiocache, c);*/
+	if (!c->data)
+		return NULL;
+
+	if (!Mem_IsAllocatedExt (com_studiocache, c->data))
+		return NULL;
+
+	return c->data;
 	}
 
 /***
 ===============
-Mod_LoadCacheFile
+Mod_LoadCacheFile [FWGS, 01.03.26]
 ===============
 ***/
-void Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
+/*void Mod_LoadCacheFile (const char *filename, cache_user_t *cu)*/
+void GAME_EXPORT Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	{
 	char		modname[MAX_QPATH];
 	fs_offset_t	size;
@@ -567,7 +645,8 @@ void Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 
 	Assert (cu != NULL);
 
-	if (!COM_CheckString (filename))
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		return;
 
 	Q_strncpy (modname, filename, sizeof (modname));
@@ -582,11 +661,13 @@ void Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	Mem_Free (buf);
 	}
 
-/***
+// [FWGS, 01.03.26] removed Mod_AliasExtradata, Mod_StudioExtradata
+/*
+/
 ===============
 Mod_AliasExtradata
 ===============
-***/
+/
 void *Mod_AliasExtradata (model_t *mod)
 	{
 	if (mod && (mod->type == mod_alias))
@@ -595,25 +676,26 @@ void *Mod_AliasExtradata (model_t *mod)
 	return NULL;
 	}
 
-/***
+/
 ===============
 Mod_StudioExtradata
 ===============
-***/
+/
 void *Mod_StudioExtradata (model_t *mod)
 	{
 	if (mod && (mod->type == mod_studio))
 		return mod->cache.data;
 
 	return NULL;
-	}
+	}*/
 
 /***
 ==================
-Mod_ValidateCRC
+Mod_ValidateCRC [FWGS, 01.03.26]
 ==================
 ***/
-qboolean Mod_ValidateCRC (const char *name, CRC32_t crc)
+/*qboolean Mod_ValidateCRC (const char *name, CRC32_t crc)*/
+qboolean Mod_ValidateCRC (const char *name, uint32_t crc)
 	{
 	model_info_t	*p;
 	model_t			*mod;

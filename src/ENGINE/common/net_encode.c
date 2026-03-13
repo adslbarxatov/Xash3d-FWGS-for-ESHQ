@@ -13,13 +13,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "common.h"
 #include "netchan.h"
 #include "xash3d_mathlib.h"
 #include "net_encode.h"
 #include "event_api.h"
-#include "usercmd.h"
-#include "pm_movevars.h"
+/*include "usercmd.h"
+include "pm_movevars.h"*/
 #include "entity_state.h"
 #include "weaponinfo.h"
 #include "event_args.h"
@@ -40,23 +41,29 @@ GNU General Public License for more details
 #define DT_SIGNED_GS		BIT (31)	// [FWGS, 01.12.24] GoldSrc-specific sign modificator
 
 // [FWGS, 22.01.25]
-/*#define NUM_FIELDS(x) ((sizeof (x) / sizeof (x[0])) - 1)*/
 
-// [FWGS, 01.12.24] helper macroses
+// [FWGS, 01.03.26] helper macroses
+#define UCMD_DEF_( name, x ) #name, offsetof( usercmd_t, x ), sizeof( ((usercmd_t *)0)->x )
+#define PHYS_DEF_( name, x ) #name, offsetof( movevars_t, x ), sizeof( ((movevars_t *)0)->x )
+
 #define ENTS_DEF(x) #x, offsetof (entity_state_t, x), sizeof (((entity_state_t *)0)->x)
-#define UCMD_DEF(x) #x, offsetof (usercmd_t, x), sizeof (((usercmd_t *)0)->x)
+/*define UCMD_DEF(x) #x, offsetof (usercmd_t, x), sizeof (((usercmd_t *)0)->x)*/
+#define UCMD_DEF( x ) UCMD_DEF_( x, x )
+
 #define EVNT_DEF(x) #x, offsetof (event_args_t, x), sizeof (((event_args_t *)0)->x)
-#define PHYS_DEF(x) #x, offsetof (movevars_t, x), sizeof (((movevars_t *)0)->x)
+/*define PHYS_DEF(x) #x, offsetof (movevars_t, x), sizeof (((movevars_t *)0)->x)*/
+#define PHYS_DEF( x ) PHYS_DEF_( x, x )
+
 #define CLDT_DEF(x) #x, offsetof (clientdata_t, x), sizeof (((clientdata_t *)0)->x)
 #define WPDT_DEF(x) #x, offsetof (weapon_data_t, x), sizeof (((weapon_data_t *)0)->x)
 #define DESC_DEF( x ) #x, offsetof( goldsrc_delta_t, x ), sizeof( ((goldsrc_delta_t *)0)->x )
 
 static qboolean		delta_init = false;
 
-// [FWGS, 22.01.25] list of all the struct names
+// [FWGS, 01.03.26] list of all the struct names
 static const delta_field_t cmd_fields[] =
 	{
-	{ UCMD_DEF (lerp_msec)			},
+	/*{ UCMD_DEF (lerp_msec)			},
 	{ UCMD_DEF (msec)				},
 	{ UCMD_DEF (viewangles[0])		},
 	{ UCMD_DEF (viewangles[1])		},
@@ -71,45 +78,68 @@ static const delta_field_t cmd_fields[] =
 	{ UCMD_DEF (impact_index)		},
 	{ UCMD_DEF (impact_position[0])	},
 	{ UCMD_DEF (impact_position[1])	},
-	{ UCMD_DEF (impact_position[2])	},
-	/*{ NULL },*/
+	{ UCMD_DEF (impact_position[2])	},*/
+	{ UCMD_DEF (lerp_msec)							},
+	{ UCMD_DEF (msec)								},
+	{ UCMD_DEF (viewangles[0])						},
+	{ UCMD_DEF (viewangles[1])						},
+	{ UCMD_DEF (viewangles[2])						},
+	{ UCMD_DEF (forwardmove)						},
+	{ UCMD_DEF (sidemove)							},
+	{ UCMD_DEF (upmove)								},
+	{ UCMD_DEF (lightlevel)							},
+	{ UCMD_DEF (buttons)							},
+	{ UCMD_DEF (impulse)							},
+	{ UCMD_DEF (weaponselect)						},
+	{ UCMD_DEF_ (impact_index, reserved[0])			},
+	{ UCMD_DEF_ (impact_position[0], reserved[1])	},
+	{ UCMD_DEF_ (impact_position[1], reserved[2])	},
+	{ UCMD_DEF_ (impact_position[2], reserved[3])	},
 	};
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.03.26]
 static const delta_field_t pm_fields[] =
 	{
-	{ PHYS_DEF (gravity)			},
-	{ PHYS_DEF (stopspeed)			},
-	{ PHYS_DEF (maxspeed)			},
-	{ PHYS_DEF (spectatormaxspeed)	},
-	{ PHYS_DEF (accelerate)			},
-	{ PHYS_DEF (airaccelerate)		},
-	{ PHYS_DEF (wateraccelerate)	},
-	{ PHYS_DEF (friction)			},
-	{ PHYS_DEF (edgefriction)		},
-	{ PHYS_DEF (waterfriction)		},
-	{ PHYS_DEF (bounce)				},
-	{ PHYS_DEF (stepsize)			},
-	{ PHYS_DEF (maxvelocity)		},
-	{ PHYS_DEF (zmax)				},
-	{ PHYS_DEF (waveHeight)			},
-	{ PHYS_DEF (footsteps)			},
-	{ PHYS_DEF (skyName)			},
-	{ PHYS_DEF (rollangle)			},
-	{ PHYS_DEF (rollspeed)			},
-	{ PHYS_DEF (skycolor_r)			},
+	{ PHYS_DEF (gravity)					},
+	{ PHYS_DEF (stopspeed)					},
+	{ PHYS_DEF (maxspeed)					},
+	{ PHYS_DEF (spectatormaxspeed)			},
+	{ PHYS_DEF (accelerate)					},
+	{ PHYS_DEF (airaccelerate)				},
+	{ PHYS_DEF (wateraccelerate)			},
+	{ PHYS_DEF (friction)					},
+	{ PHYS_DEF (edgefriction)				},
+	{ PHYS_DEF (waterfriction)				},
+	{ PHYS_DEF (bounce)						},
+	{ PHYS_DEF (stepsize)					},
+	{ PHYS_DEF (maxvelocity)				},
+	{ PHYS_DEF (zmax)						},
+	{ PHYS_DEF (waveHeight)					},
+	{ PHYS_DEF (footsteps)					},
+	{ PHYS_DEF (skyName)					},
+	{ PHYS_DEF (rollangle)					},
+	{ PHYS_DEF (rollspeed)					},
+	/*{ PHYS_DEF (skycolor_r)			},
 	{ PHYS_DEF (skycolor_g)			},
 	{ PHYS_DEF (skycolor_b)			},
 	{ PHYS_DEF (skyvec_x)			},
 	{ PHYS_DEF (skyvec_y)			},
-	{ PHYS_DEF (skyvec_z)			},
-	{ PHYS_DEF (fog_settings)		},
-	{ PHYS_DEF (wateralpha)			},
-	{ PHYS_DEF (skydir_x)			},
+	{ PHYS_DEF (skyvec_z)			},*/
+	{ PHYS_DEF_ (skycolor_r, skycolor[0])	},
+	{ PHYS_DEF_ (skycolor_g, skycolor[1])	},
+	{ PHYS_DEF_ (skycolor_b, skycolor[2])	},
+	{ PHYS_DEF_ (skyvec_x, skyvec[0])		},
+	{ PHYS_DEF_ (skyvec_y, skyvec[1])		},
+	{ PHYS_DEF_ (skyvec_z, skyvec[2])		},
+	{ PHYS_DEF (fog_settings)				},
+	{ PHYS_DEF (wateralpha)					},
+	/*{ PHYS_DEF (skydir_x)			},
 	{ PHYS_DEF (skydir_y)			},
-	{ PHYS_DEF (skydir_z)			},
-	{ PHYS_DEF (skyangle)			},
-	/*{ NULL },*/
+	{ PHYS_DEF (skydir_z)			},*/
+	{ PHYS_DEF_ (skydir_x, skydir[0])		},
+	{ PHYS_DEF_ (skydir_y, skydir[1])		},
+	{ PHYS_DEF_ (skydir_z, skydir[2])		},
+	{ PHYS_DEF (skyangle)					},
 	};
 
 // [FWGS, 22.01.25]
@@ -133,7 +163,6 @@ static const delta_field_t ev_fields[] =
 	{ EVNT_DEF (iparam2)		},
 	{ EVNT_DEF (bparam1)		},
 	{ EVNT_DEF (bparam2)		},
-	/*{ NULL },*/
 	};
 
 // [FWGS, 22.01.25]
@@ -161,7 +190,6 @@ static const delta_field_t wd_fields[] =
 	{ WPDT_DEF (fuser2)						},
 	{ WPDT_DEF (fuser3)						},
 	{ WPDT_DEF (fuser4)						},
-	/*{ NULL },*/
 	};
 
 // [FWGS, 22.01.25]
@@ -223,7 +251,6 @@ static const delta_field_t cd_fields[] =
 	{ CLDT_DEF (vuser4[0])			},
 	{ CLDT_DEF (vuser4[1])			},
 	{ CLDT_DEF (vuser4[2])			},
-	/*{ NULL },*/
 	};
 
 // [FWGS, 22.01.25]
@@ -320,7 +347,6 @@ static const delta_field_t ent_fields[] =
 	{ ENTS_DEF (vuser4[0])		},
 	{ ENTS_DEF (vuser4[1])		},
 	{ ENTS_DEF (vuser4[2])		},
-	/*{ NULL },*/
 	};
 
 // [FWGS, 22.01.25]
@@ -333,7 +359,6 @@ static const delta_field_t meta_fields[] =
 	{ DESC_DEF (significant_bits),	},
 	{ DESC_DEF (premultiply),		},
 	{ DESC_DEF (postmultiply),		},
-	/*{ NULL },*/
 	};
 
 // [FWGS, 01.05.24]
@@ -371,21 +396,12 @@ static const delta_field_t test_fields[] =
 	{ TEST_DEF (dt_short_unsigned)		},
 	{ TEST_DEF (dt_byte_signed)			},
 	{ TEST_DEF (dt_byte_unsigned)		},
-	/*{ NULL },*/
 	};
 #endif
 
 // [FWGS, 22.01.25]
 static delta_info_t dt_info[] =
 	{
-	/*[DT_EVENT_T] = { "event_t", ev_fields, NUM_FIELDS (ev_fields) },
-	[DT_MOVEVARS_T] = { "movevars_t", pm_fields, NUM_FIELDS (pm_fields) },
-	[DT_USERCMD_T] = { "usercmd_t", cmd_fields, NUM_FIELDS (cmd_fields) },
-	[DT_CLIENTDATA_T] = { "clientdata_t", cd_fields, NUM_FIELDS (cd_fields) },
-	[DT_WEAPONDATA_T] = { "weapon_data_t", wd_fields, NUM_FIELDS (wd_fields) },
-	[DT_ENTITY_STATE_T] = { "entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },
-	[DT_ENTITY_STATE_PLAYER_T] = { "entity_state_player_t", ent_fields, NUM_FIELDS (ent_fields) },
-	[DT_CUSTOM_ENTITY_STATE_T] = { "custom_entity_state_t", ent_fields, NUM_FIELDS (ent_fields) },*/
 	[DT_EVENT_T] = { "event_t", ev_fields, HLARRAYSIZE (ev_fields) },
 	[DT_MOVEVARS_T] = { "movevars_t", pm_fields, HLARRAYSIZE (pm_fields) },
 	[DT_USERCMD_T] = { "usercmd_t", cmd_fields, HLARRAYSIZE (cmd_fields) },
@@ -395,10 +411,8 @@ static delta_info_t dt_info[] =
 	[DT_ENTITY_STATE_PLAYER_T] = { "entity_state_player_t", ent_fields, HLARRAYSIZE (ent_fields) },
 	[DT_CUSTOM_ENTITY_STATE_T] = { "custom_entity_state_t", ent_fields, HLARRAYSIZE (ent_fields) },
 #if XASH_ENGINE_TESTS
-	/*[DT_DELTA_TEST_STRUCT_T] = { "delta_test_struct_t", test_fields, NUM_FIELDS (test_fields) },*/
 	[DT_DELTA_TEST_STRUCT_T] = { "delta_test_struct_t", test_fields, HLARRAYSIZE (test_fields) },
 #endif
-	/*[DT_STRUCT_COUNT] = { NULL },*/
 	};
 
 // [FWGS, 22.01.25] meta description is special, it cannot be overriden
@@ -406,9 +420,6 @@ static const delta_info_t dt_goldsrc_meta =
 	{
 	.pName = "goldsrc_delta_t",
 	.pInfo = meta_fields,
-	/*.maxFields = NUM_FIELDS (meta_fields),
-	.numFields = NUM_FIELDS (meta_fields),
-	.pFields = (delta_t[NUM_FIELDS (meta_fields)])*/
 	.maxFields = HLARRAYSIZE (meta_fields),
 	.numFields = HLARRAYSIZE (meta_fields),
 	.pFields = (delta_t[HLARRAYSIZE (meta_fields)])
@@ -466,15 +477,15 @@ static const delta_info_t dt_goldsrc_meta =
 	.bInitialized = true
 	};
 
-// [FWGS, 22.01.25]
 static delta_info_t *Delta_FindStruct (const char *name)
 	{
 	int	i;
 
-	if (!COM_CheckString (name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (name))*/
+	if (COM_StringEmptyOrNULL (name))
 		return NULL;
 
-	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
 	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		if (!Q_stricmp (dt_info[i].pName, name))
@@ -490,25 +501,23 @@ static delta_info_t *Delta_FindStruct (const char *name)
 // [FWGS, 22.01.25]
 static int Delta_NumTables (void)
 	{
-	/*return NUM_FIELDS (dt_info);*/
 	return HLARRAYSIZE (dt_info);
 	}
 
-// [FWGS, 01.07.23]
 static delta_info_t *Delta_FindStructByIndex (int index)
 	{
 	return &dt_info[index];
 	}
 
-// [FWGS, 22.01.25]
 static delta_info_t *Delta_FindStructByEncoder (const char *encoderName)
 	{
 	int	i;
 
-	if (!COM_CheckString (encoderName))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (encoderName))*/
+	if (COM_StringEmptyOrNULL (encoderName))
 		return NULL;
 
-	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
 	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		if (!Q_stricmp (dt_info[i].funcName, encoderName))
@@ -527,7 +536,6 @@ static delta_info_t *Delta_FindStructByDelta (const delta_t *pFields)
 	if (!pFields)
 		return NULL;
 
-	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
 	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		if (dt_info[i].pFields == pFields)
@@ -538,7 +546,6 @@ static delta_info_t *Delta_FindStructByDelta (const delta_t *pFields)
 	return NULL;
 	}
 
-// [FWGS, 01.05.23]
 static void Delta_CustomEncode (delta_info_t *dt, const void *from, const void *to)
 	{
 	int	i;
@@ -554,7 +561,6 @@ static void Delta_CustomEncode (delta_info_t *dt, const void *from, const void *
 	}
 
 // [FWGS, 22.01.25]
-/*static delta_field_t *Delta_FindFieldInfo (const delta_field_t *pInfo, const char *fieldName)*/
 static const delta_field_t *Delta_FindFieldInfo (const delta_field_t *pInfo, const char *fieldName, int maxFields)
 	{
 	int i;
@@ -562,11 +568,8 @@ static const delta_field_t *Delta_FindFieldInfo (const delta_field_t *pInfo, con
 	if (!fieldName || !*fieldName)
 		return NULL;
 
-	/*for (; pInfo->name; pInfo++)*/
 	for (i = 0; i < maxFields; i++)
 		{
-		/*if (!Q_strcmp (pInfo->name, fieldName))
-			return (delta_field_t *)pInfo;*/
 		if (!Q_strcmp (pInfo[i].name, fieldName))
 			return &pInfo[i];
 		}
@@ -575,7 +578,6 @@ static const delta_field_t *Delta_FindFieldInfo (const delta_field_t *pInfo, con
 	}
 
 // [FWGS, 22.01.25]
-/*static int Delta_IndexForFieldInfo (const delta_field_t *pInfo, const char *fieldName)*/
 static int Delta_IndexForFieldInfo (const delta_field_t *pInfo, const char *fieldName, int maxFields)
 	{
 	int	i;
@@ -583,10 +585,8 @@ static int Delta_IndexForFieldInfo (const delta_field_t *pInfo, const char *fiel
 	if (!fieldName || !*fieldName)
 		return -1;
 
-	/*for (i = 0; pInfo->name; i++, pInfo++)*/
 	for (i = 0; i < maxFields; i++)
 		{
-		/*if (!Q_strcmp (pInfo->name, fieldName))*/
 		if (!Q_strcmp (pInfo[i].name, fieldName))
 			return i;
 		}
@@ -596,7 +596,6 @@ static int Delta_IndexForFieldInfo (const delta_field_t *pInfo, const char *fiel
 // [FWGS, 22.01.25]
 static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, int bits, float mul, float post_mul)
 	{
-	/*delta_field_t		*pFieldInfo;*/
 	const delta_field_t	*pFieldInfo;
 	delta_t		*pField;
 	int			i;
@@ -616,7 +615,6 @@ static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, 
 		}
 
 	// find field description
-	/*pFieldInfo = Delta_FindFieldInfo (dt->pInfo, pName);*/
 	pFieldInfo = Delta_FindFieldInfo (dt->pInfo, pName, dt->maxFields);
 	if (!pFieldInfo)
 		{
@@ -648,7 +646,6 @@ static qboolean Delta_AddField (delta_info_t *dt, const char *pName, int flags, 
 	return true;
 	}
 
-// [FWGS, 22.01.25]
 static void Delta_WriteTableField (sizebuf_t *msg, int tableIndex, const delta_t *pField)
 	{
 	int	nameIndex;
@@ -656,21 +653,22 @@ static void Delta_WriteTableField (sizebuf_t *msg, int tableIndex, const delta_t
 
 	Assert (pField != NULL);
 
-	if (!COM_CheckString (pField->name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (pField->name))*/
+	if (COM_StringEmptyOrNULL (pField->name))
 		return;	// not initialized ?
 
 	dt = Delta_FindStructByIndex (tableIndex);
 	Assert (dt && dt->bInitialized);
 
-	/*nameIndex = Delta_IndexForFieldInfo (dt->pInfo, pField->name);*/
 	nameIndex = Delta_IndexForFieldInfo (dt->pInfo, pField->name, dt->maxFields);
 	Assert (nameIndex >= 0 && nameIndex < dt->maxFields);
 
 	MSG_BeginServerCmd (msg, svc_deltatable);
-	MSG_WriteUBitLong (msg, tableIndex, 4); // assume we support 16 network tables
-	MSG_WriteUBitLong (msg, nameIndex, 8); // 255 fields by struct should be enough
-	MSG_WriteUBitLong (msg, pField->flags, 10); // flags are indicated various input types
-	MSG_WriteUBitLong (msg, pField->bits - 1, 5); // max received value is 32 (32 bit)
+	MSG_WriteUBitLong (msg, tableIndex, 4);			// assume we support 16 network tables
+	MSG_WriteUBitLong (msg, nameIndex, 8);			// 255 fields by struct should be enough
+	MSG_WriteUBitLong (msg, pField->flags, 10);		// flags are indicated various input types
+	MSG_WriteUBitLong (msg, pField->bits - 1, 5);	// max received value is 32 (32 bit)
 
 	// multipliers is null-compressed
 	if (!Q_equal (pField->multiplier, 1.0f))
@@ -738,17 +736,15 @@ void Delta_ParseTableField (sizebuf_t *msg)
 	if (delta_init)
 		Delta_Shutdown ();
 
-	// [FWGS, 01.07.23] add field to table
+	// add field to table
 	Delta_AddField (dt, pName, flags, bits, mul, post_mul);
 	}
 
 // [FWGS, 22.01.25]
-/*static qboolean Delta_ParseField (char **delta_script, const delta_field_t *pInfo, delta_t *pField, qboolean bPost)*/
 static qboolean Delta_ParseField (char **delta_script, const delta_info_t *dt, delta_t *pField, qboolean bPost)
 	{
 	const delta_field_t	*pFieldInfo;
 	string			token;
-	/*delta_field_t	*pFieldInfo;*/
 	char			*oldpos;
 
 	*delta_script = COM_ParseFile (*delta_script, token, sizeof (token));
@@ -765,7 +761,6 @@ static qboolean Delta_ParseField (char **delta_script, const delta_info_t *dt, d
 		return false;
 		}
 
-	/*pFieldInfo = Delta_FindFieldInfo (pInfo, token);*/
 	pFieldInfo = Delta_FindFieldInfo (dt->pInfo, token, dt->maxFields);
 	if (!pFieldInfo)
 		{
@@ -891,14 +886,12 @@ static void Delta_ParseTable (char **delta_script, delta_info_t *dt, const char 
 	{
 	string		token;
 	delta_t		*pField;
-	/*const delta_field_t	*pInfo;*/
 
 	// allocate the delta-structures
 	if (!dt->pFields)
 		dt->pFields = (delta_t *)Z_Calloc (dt->maxFields * sizeof (delta_t));
 
 	pField = dt->pFields;
-	/*pInfo = dt->pInfo;*/
 	dt->numFields = 0;
 
 	// assume we have handled '{'
@@ -908,13 +901,11 @@ static void Delta_ParseTable (char **delta_script, delta_info_t *dt, const char 
 
 		if (!Q_strcmp (token, "DEFINE_DELTA"))
 			{
-			/*if (Delta_ParseField (delta_script, pInfo, &pField[dt->numFields], false))*/
 			if (Delta_ParseField (delta_script, dt, &pField[dt->numFields], false))
 				dt->numFields++;
 			}
 		else if (!Q_strcmp (token, "DEFINE_DELTA_POST"))
 			{
-			/*if (Delta_ParseField (delta_script, pInfo, &pField[dt->numFields], true))*/
 			if (Delta_ParseField (delta_script, dt, &pField[dt->numFields], true))
 				dt->numFields++;
 			}
@@ -965,7 +956,7 @@ static void Delta_InitFields (void)
 		pfile = COM_ParseFile (pfile, encodeDll, sizeof (encodeDll));
 
 		if (!Q_stricmp (encodeDll, "none"))
-			Q_strncpy (encodeFunc, "null", sizeof (encodeFunc));	// [FWGS, 01.05.23]
+			Q_strncpy (encodeFunc, "null", sizeof (encodeFunc));
 		else
 			pfile = COM_ParseFile (pfile, encodeFunc, sizeof (encodeFunc));
 
@@ -983,7 +974,6 @@ static void Delta_InitFields (void)
 	Mem_Free (afile);
 	}
 
-// [FWGS, 22.01.25]
 void Delta_Init (void)
 	{
 	delta_info_t *dt;
@@ -997,8 +987,12 @@ void Delta_Init (void)
 
 	dt = Delta_FindStructByIndex (DT_MOVEVARS_T);
 
-	// "movevars_t" already specified by user
+	/*// "movevars_t" already specified by user*/
 	Assert (dt != NULL);
+	/*if (dt->bInitialized)
+		return;*/
+
+	// [FWGS, 01.03.26] "movevars_t" already specified by user
 	if (dt->bInitialized)
 		return;
 
@@ -1017,10 +1011,19 @@ void Delta_Init (void)
 	Delta_AddField (dt, "stepsize", DT_FLOAT | DT_SIGNED, 16, 16.0f, 1.0f);
 	Delta_AddField (dt, "maxvelocity", DT_FLOAT | DT_SIGNED, 16, 8.0f, 1.0f);
 
-	if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
+	/*if (FBitSet (host.features, ENGINE_WRITE_LARGE_COORD))
 		Delta_AddField (dt, "zmax", DT_FLOAT | DT_SIGNED, 18, 1.0f, 1.0f);
 	else
-		Delta_AddField (dt, "zmax", DT_FLOAT | DT_SIGNED, 16, 1.0f, 1.0f);
+		Delta_AddField (dt, "zmax", DT_FLOAT | DT_SIGNED, 16, 1.0f, 1.0f);*/
+	// [FWGS, 01.03.26] a1ba: set zmax large enough to fit 3d skybox
+	// this fixes an issue when mapper sets sv_zmax value high enough
+	// to not overflow the variable but not enough to be encoded in delta,
+	// thus being clamped at 16-bit signed integer max.
+	// by removing signed flag (zmax is always positive) and increasing it to
+	// 24 bits, we ensure that even these maps will not have problems with 3d
+	// skyboxes (that virtually have no coordinates limit)
+	// see comment in SV_UpdateMovevars for more details
+	Delta_AddField (dt, "zmax", DT_FLOAT, 24, 1.0f, 1.0f);
 
 	Delta_AddField (dt, "waveHeight", DT_FLOAT | DT_SIGNED, 16, 16.0f, 1.0f);
 	Delta_AddField (dt, "skyName", DT_STRING, 1, 1.0f, 1.0f);
@@ -1036,7 +1039,6 @@ void Delta_Init (void)
 	Delta_AddField (dt, "wateralpha", DT_FLOAT | DT_SIGNED, 16, 32.0f, 1.0f);
 	Delta_AddField (dt, "fog_settings", DT_INTEGER, 32, 1.0f, 1.0f);
 
-	/*dt->numFields = NUM_FIELDS (pm_fields) - 4;*/
 	dt->numFields = HLARRAYSIZE (pm_fields) - 4;
 
 	// now done
@@ -1052,7 +1054,6 @@ void Delta_InitClient (void)
 	if (delta_init)
 		return;
 
-	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
 	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		if (dt_info[i].numFields > 0)
@@ -1074,7 +1075,6 @@ void Delta_Shutdown (void)
 	if (!delta_init)
 		return;
 
-	/*for (i = 0; i < NUM_FIELDS (dt_info); i++)*/
 	for (i = 0; i < HLARRAYSIZE (dt_info); i++)
 		{
 		dt_info[i].numFields = 0;
@@ -1096,7 +1096,7 @@ void Delta_Shutdown (void)
 
 /***
 =====================
-Delta_ClampIntegerField [FWGS, 01.07.23]
+Delta_ClampIntegerField
 
 prevent data to out of range
 =====================
@@ -1131,7 +1131,6 @@ compare fields by offsets
 assume from and to is valid
 =====================
 ***/
-/*static qboolean Delta_CompareField (delta_t *pField, void *from, void *to, double timebase)*/
 static qboolean Delta_CompareField (delta_t *pField, const void *from, const void *to)
 	{
 	int		signbit = (pField->flags & DT_SIGNED) ? 1 : 0;
@@ -1253,7 +1252,6 @@ Delta_TestBaseline [FWGS, 01.12.24]
 compare baselines to find optimal
 =====================
 ***/
-/*int Delta_TestBaseline (entity_state_t *from, entity_state_t *to, qboolean player, double timebase)*/
 int Delta_TestBaseline (const entity_state_t *from, const entity_state_t *to, qboolean player, double timebase)
 	{
 	delta_info_t	*dt = NULL;
@@ -1291,7 +1289,6 @@ int Delta_TestBaseline (const entity_state_t *from, const entity_state_t *to, qb
 		// flag about field change (sets always)
 		countBits++;
 
-		/*if (!Delta_CompareField (pField, from, to, timebase))*/
 		if (!Delta_CompareField (pField, from, to))
 			{
 			// strings are handled differently
@@ -1314,7 +1311,6 @@ write fields by offsets
 assume from and to is valid
 =====================
 ***/
-/*static qboolean Delta_WriteField (sizebuf_t *msg, delta_t *pField, void *from, void *to, double timebase)*/
 static void Delta_WriteField_ (sizebuf_t *msg, delta_t *pField, const void *from, const void *to, double timebase)
 	{
 	int			signbit = FBitSet (pField->flags, DT_SIGNED) ? 1 : 0;
@@ -1322,14 +1318,6 @@ static void Delta_WriteField_ (sizebuf_t *msg, delta_t *pField, const void *from
 	uint		iValue;
 	int			dt;
 	const char	*pStr;
-
-	/*if (Delta_CompareField (pField, from, to, timebase))
-		{
-		MSG_WriteOneBit (msg, 0);	// unchanged
-		return false;
-		}
-
-	MSG_WriteOneBit (msg, 1);	// changed*/
 
 	if (pField->flags & DT_BYTE)
 		{
@@ -1429,7 +1417,6 @@ static qboolean Delta_WriteField (sizebuf_t *msg, delta_t *pField, const void *f
 Delta_CopyField [FWGS, 01.12.24]
 ====================
 ***/
-/*static void Delta_CopyField (delta_t *pField, void *from, void *to, double timebase)*/
 static void Delta_CopyField (delta_t *pField, const void *from, void *to, double timebase)
 	{
 	qboolean	bSigned = FBitSet (pField->flags, DT_SIGNED);
@@ -1479,7 +1466,6 @@ read fields by offsets
 assume 'from' and 'to' is valid
 =====================
 ***/
-/*static qboolean Delta_ReadField (sizebuf_t *msg, delta_t *pField, void *from, void *to, double timebase)*/
 static void Delta_ReadField_ (sizebuf_t *msg, delta_t *pField, void *to, double timebase)
 	{
 	qboolean	bSigned = (pField->flags & DT_SIGNED) ? true : false;
@@ -1487,12 +1473,6 @@ static void Delta_ReadField_ (sizebuf_t *msg, delta_t *pField, void *to, double 
 	uint		iValue;
 	const char	*pStr;
 	char		*pOut;
-
-	/*if (!MSG_ReadOneBit (msg))
-		{
-		Delta_CopyField (pField, from, to, timebase);
-		return false;
-		}*/
 
 	Assert (pField->multiplier != 0.0f);
 
@@ -1674,7 +1654,6 @@ usercmd_t communication
 MSG_WriteDeltaUsercmd [FWGS, 01.12.24]
 =====================
 ***/
-/*void MSG_WriteDeltaUsercmd (sizebuf_t *msg, usercmd_t *from, usercmd_t *to)*/
 void MSG_WriteDeltaUsercmd (sizebuf_t *msg, const usercmd_t *from, const usercmd_t *to)
 	{
 	delta_t			*pField;
@@ -1702,7 +1681,6 @@ void MSG_WriteDeltaUsercmd (sizebuf_t *msg, const usercmd_t *from, const usercmd
 MSG_ReadDeltaUsercmd [FWGS, 01.12.24]
 =====================
 ***/
-/*void MSG_ReadDeltaUsercmd (sizebuf_t *msg, usercmd_t *from, usercmd_t *to)*/
 void MSG_ReadDeltaUsercmd (sizebuf_t *msg, const usercmd_t *from, usercmd_t *to)
 	{
 	delta_t			*pField;
@@ -1737,7 +1715,6 @@ event_args_t communication
 MSG_WriteDeltaEvent [FWGS, 01.12.24]
 =====================
 ***/
-/*void MSG_WriteDeltaEvent (sizebuf_t *msg, event_args_t *from, event_args_t *to)*/
 void MSG_WriteDeltaEvent (sizebuf_t *msg, const event_args_t *from, const event_args_t *to)
 	{
 	delta_t			*pField;
@@ -1765,7 +1742,6 @@ void MSG_WriteDeltaEvent (sizebuf_t *msg, const event_args_t *from, const event_
 MSG_ReadDeltaEvent [FWGS, 01.12.24]
 =====================
 ***/
-/*void MSG_ReadDeltaEvent (sizebuf_t *msg, event_args_t *from, event_args_t *to)*/
 void MSG_ReadDeltaEvent (sizebuf_t *msg, const event_args_t *from, event_args_t *to)
 	{
 	delta_t			*pField;
@@ -1794,7 +1770,6 @@ movevars_t communication
 ***/
 
 // [FWGS, 01.12.24]
-/*qboolean MSG_WriteDeltaMovevars (sizebuf_t *msg, movevars_t *from, movevars_t *to)*/
 qboolean MSG_WriteDeltaMovevars (sizebuf_t *msg, const movevars_t *from, const movevars_t *to)
 	{
 	delta_t			*pField;
@@ -1833,7 +1808,6 @@ qboolean MSG_WriteDeltaMovevars (sizebuf_t *msg, const movevars_t *from, const m
 	}
 
 // [FWGS, 01.12.24]
-/*void MSG_ReadDeltaMovevars (sizebuf_t *msg, movevars_t *from, movevars_t *to)*/
 void MSG_ReadDeltaMovevars (sizebuf_t *msg, const movevars_t *from, movevars_t *to)
 	{
 	delta_t			*pField;
@@ -1869,7 +1843,6 @@ Writes current client data only for local client
 Other clients can grab the client state from entity_state_t
 ==================
 ***/
-/*void MSG_WriteClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, double timebase)*/
 void MSG_WriteClientData (sizebuf_t *msg, const clientdata_t *from, const clientdata_t *to, double timebase)
 	{
 	delta_t			*pField;
@@ -1906,12 +1879,11 @@ void MSG_WriteClientData (sizebuf_t *msg, const clientdata_t *from, const client
 
 /***
 ==================
-MSG_ReadClientData [FWGS, 01.12.24]
+MSG_ReadClientData
 
 Read the clientdata
 ==================
 ***/
-/*void MSG_ReadClientData (sizebuf_t *msg, clientdata_t *from, clientdata_t *to, double timebase)*/
 void MSG_ReadClientData (sizebuf_t *msg, const clientdata_t *from, clientdata_t *to, double timebase)
 	{
 #if !XASH_DEDICATED
@@ -1926,7 +1898,9 @@ void MSG_ReadClientData (sizebuf_t *msg, const clientdata_t *from, clientdata_t 
 	pField = dt->pFields;
 	Assert (pField != NULL);
 
-	noChanges = !cls.legacymode && !MSG_ReadOneBit (msg);
+	// [FWGS, 01.03.26]
+	/*noChanges = !cls.legacymode && !MSG_ReadOneBit (msg);*/
+	noChanges = !MSG_ReadOneBit (msg);
 
 	// process fields
 	for (i = 0; i < dt->numFields; i++, pField++)
@@ -1953,7 +1927,6 @@ Writes current client data only for local client
 Other clients can grab the client state from entity_state_t
 ==================
 ***/
-/*void MSG_WriteWeaponData (sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to, double timebase, int index)*/
 void MSG_WriteWeaponData (sizebuf_t *msg, const weapon_data_t *from, const weapon_data_t *to, double timebase, int index)
 	{
 	delta_t			*pField;
@@ -1994,7 +1967,6 @@ MSG_ReadWeaponData [FWGS, 01.12.24]
 Read the clientdata
 ==================
 ***/
-/*void MSG_ReadWeaponData (sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to, double timebase)*/
 void MSG_ReadWeaponData (sizebuf_t *msg, const weapon_data_t *from, weapon_data_t *to, double timebase)
 	{
 	delta_t			*pField;
@@ -2031,8 +2003,6 @@ If force is not set, then nothing at all will be generated if the entity is
 identical, under the assumption that the in-order delta code will catch it
 ==================
 ***/
-/*void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *msg, qboolean force,
-	int delta_type, double timebase, int baseline)*/
 void MSG_WriteDeltaEntity (const entity_state_t *from, const entity_state_t *to, sizebuf_t *msg, qboolean force,
 	int delta_type, double timebase, int baseline)
 	{
@@ -2131,7 +2101,7 @@ void MSG_WriteDeltaEntity (const entity_state_t *from, const entity_state_t *to,
 
 /***
 ==================
-MSG_ReadDeltaEntity [FWGS, 01.12.24]
+MSG_ReadDeltaEntity
 
 The entity number has already been read from the message, which
 is how the from state is identified.
@@ -2140,8 +2110,6 @@ If the delta removes the entity, entity_state_t->number will be set to MAX_EDICT
 Can go from either a baseline or a previous packet_entity
 ==================
 ***/
-/*qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, entity_state_t *from, entity_state_t *to, int number,
-	int delta_type, double timebase)*/
 qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, const entity_state_t *from, entity_state_t *to, int number,
 	int delta_type, double timebase)
 	{
@@ -2152,7 +2120,6 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, const entity_state_t *from, entity
 	int				baseline_offset = 0;
 
 	if ((number < 0) || (number >= clgame.maxEntities))
-		/*Host_Error ("%s: bad delta entity number: %i\n", __func__, number);*/
 		{
 		Con_Printf (S_ERROR "%s: bad delta entity number: %i\n", __func__, number);
 		return false;
@@ -2177,19 +2144,34 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, const entity_state_t *from, entity
 			return false;
 			}
 
-		/*Host_Error ("%s: unknown update type %i\n", __func__, fRemoveType);*/
 		Con_Printf (S_ERROR "%s: unknown update type %i\n", __func__, fRemoveType);
 		return false;
 		}
 
-	if (!cls.legacymode)
+	// [FWGS, 01.03.26]
+	/*if (!cls.legacymode)
 		{
 		if (MSG_ReadOneBit (msg))
-			baseline_offset = MSG_ReadSBitLong (msg, 7);
+			baseline_offset = MSG_ReadSBitLong (msg, 7);*/
+	if (MSG_ReadOneBit (msg))
+		baseline_offset = MSG_ReadSBitLong (msg, 7);
 
-		if (baseline_offset != 0)
+	/*if (baseline_offset != 0)*/
+	if (baseline_offset != 0)
+		{
+		if (delta_type == DELTA_STATIC)
 			{
-			if (delta_type == DELTA_STATIC)
+			int backup = Q_max (0, clgame.numStatics - abs (baseline_offset));
+			from = &clgame.static_entities[backup].baseline;
+			}
+		else if (baseline_offset > 0)
+			{
+			int backup = cls.next_client_entities - baseline_offset;
+			from = &cls.packet_entities[backup % cls.num_client_entities];
+			}
+		else
+			{
+			/*if (delta_type == DELTA_STATIC)
 				{
 				int backup = Q_max (0, clgame.numStatics - abs (baseline_offset));
 				from = &clgame.static_entities[backup].baseline;
@@ -2204,7 +2186,10 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, const entity_state_t *from, entity
 				baseline_offset = abs (baseline_offset + 1);
 				if (baseline_offset < cl.instanced_baseline_count)
 					from = &cl.instanced_baseline[baseline_offset];
-				}
+				}*/
+			baseline_offset = abs (baseline_offset + 1);
+			if (baseline_offset < cl.instanced_baseline_count)
+				from = &cl.instanced_baseline[baseline_offset];
 			}
 		}
 
@@ -2215,14 +2200,14 @@ qboolean MSG_ReadDeltaEntity (sizebuf_t *msg, const entity_state_t *from, entity
 		to->entityType = MSG_ReadUBitLong (msg, 2);
 	to->number = number;
 
-	if (cls.legacymode ? (to->entityType == ENTITY_BEAM) : FBitSet (to->entityType, ENTITY_BEAM))
+	/*if (cls.legacymode ? (to->entityType == ENTITY_BEAM) : FBitSet (to->entityType, ENTITY_BEAM))*/
+	if (FBitSet (to->entityType, ENTITY_BEAM))
 		dt = Delta_FindStructByIndex (DT_CUSTOM_ENTITY_STATE_T);
 	else if (delta_type == DELTA_PLAYER)
 		dt = Delta_FindStructByIndex (DT_ENTITY_STATE_PLAYER_T);
 	else
 		dt = Delta_FindStructByIndex (DT_ENTITY_STATE_T);
 
-	/*Assert (dt && dt->bInitialized);*/
 	if (!dt || !dt->bInitialized)
 		{
 		Con_Printf (S_ERROR "%s: broken delta\n", __func__);
@@ -2285,7 +2270,7 @@ void Delta_ParseTableField_GS (sizebuf_t *msg)
 
 /***
 ==================
-Delta_WriteDescriptionToClient [FWGS, 01.07.23]
+Delta_WriteDescriptionToClient
 
 send delta communication encoding
 ==================
@@ -2427,10 +2412,6 @@ void Test_RunDelta (void)
 	const double timebase = 123.123;
 
 	// [FWGS, 01.02.25]
-	/*// a1ba: netbuffer bitmasks are initialized in netchan for some reason
-	// initialize it ourselves just in case
-	MSG_InitMasks (); // initialize bit-masks*/
-
 	Delta_AddField (dt, "dt_string", DT_STRING, 1, 1.0f, 1.0f);
 	Delta_AddField (dt, "dt_timewindow_big", DT_TIMEWINDOW_BIG, 24, 1000.f, 1.0f);
 	Delta_AddField (dt, "dt_timewindow_8", DT_TIMEWINDOW_8, 8, 1.0f, 1.0f);

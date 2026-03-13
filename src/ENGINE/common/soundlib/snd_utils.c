@@ -15,9 +15,6 @@ GNU General Public License for more details
 
 // [FWGS, 01.06.25]
 #include "soundlib.h"
-/*if XASH_SDL
-include <SDL_audio.h>
-endif*/
 
 // [FWGS, 25.12.24] global sound variables
 sndlib_t sound;
@@ -417,7 +414,7 @@ static qboolean Sound_ConvertUpsample (wavdata_t *sc, int inwidth, int inchannel
 
 /***
 ================
-Sound_ResampleInternal [FWGS, 01.02.25]
+Sound_ResampleInternal
 ================
 ***/
 static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth, int outchannels)
@@ -436,7 +433,9 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	if ((inrate == outrate) && (inwidth == outwidth) && (inchannels == outchannels))
 		return false;
 
-	t1 = Sys_DoubleTime ();
+	// [FWGS, 01.03.26]
+	/*t1 = Sys_DoubleTime ();*/
+	t1 = Platform_DoubleTime ();
 
 	// this is usually 0.5, 1, or 2
 	stepscale = (double)inrate / outrate;
@@ -444,9 +443,11 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	sc->size = outcount * outwidth * outchannels;
 	sc->channels = outchannels;
 
+	// [FWGS, 01.03.26]
 	sc->samples = outcount;
 	if (FBitSet (sc->flags, SOUND_LOOPED))
-		sc->loopStart = sc->loopStart / stepscale;
+		/*sc->loopStart = sc->loopStart / stepscale;*/
+		sc->loop_start = sc->loop_start / stepscale;
 
 	sound.tempbuffer = (byte *)Mem_Realloc (host.soundpool, sound.tempbuffer, sc->size);
 
@@ -476,7 +477,9 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 		return false;
 		}
 
-	t2 = Sys_DoubleTime ();
+	// [FWGS, 01.03.26]
+	/*t2 = Sys_DoubleTime ();*/
+	t2 = Platform_DoubleTime ();
 	sc->rate = outrate;
 	sc->width = outwidth;
 
@@ -518,12 +521,13 @@ qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint
 	return result;
 	}
 
-// [FWGS, 01.04.25]
 qboolean Sound_SupportedFileFormat (const char *fileext)
 	{
 	const loadwavfmt_t *format;
 
-	if (COM_CheckStringEmpty (fileext))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckStringEmpty (fileext))*/
+	if (!COM_StringEmpty (fileext))
 		{
 		for (format = sound.loadformats; format && format->ext; format++)
 			{
@@ -531,5 +535,6 @@ qboolean Sound_SupportedFileFormat (const char *fileext)
 				return true;
 			}
 		}
+
 	return false;
 	}

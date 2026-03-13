@@ -26,15 +26,11 @@ GNU General Public License for more details
 #include "vid_common.h"
 
 // [FWGS, 01.06.25]
-/*if !SDL_VERSION_ATLEAST( 2, 0, 0 )
-define SDL_WarpMouseInWindow( win, x, y ) SDL_WarpMouse( ( x ), ( y ) )
-else*/
 static struct
 	{
 	qboolean initialized;
 	SDL_Cursor *cursors[dc_last];
 	} cursors;
-/*endif*/
 
 // [FWGS, 01.03.25]
 static struct
@@ -45,24 +41,28 @@ static struct
 
 /***
 =============
-Platform_GetMousePos [FWGS, 01.03.24]
+Platform_GetMousePos [FWGS, 01.03.26]
 =============
 ***/
 void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 	{
 	SDL_GetMouseState (x, y);
 
-	if (x && window_width.value && (window_width.value != refState.width))
+	/*if (x && window_width.value && (window_width.value != refState.width))
 		{
 		float factor = refState.width / window_width.value;
 		*x = *x * factor;
-		}
+		}*/
+	if (x)
+		*x *= refState.scale_x;
 
-	if (y && window_height.value && (window_height.value != refState.height))
+	/*if (y && window_height.value && (window_height.value != refState.height))
 		{
 		float factor = refState.height / window_height.value;
 		*y = *y * factor;
-		}
+		}*/
+	if (y)
+		*y *= refState.scale_y;
 	}
 
 /***
@@ -95,7 +95,6 @@ Platform_GetClipobardText [FWGS, 01.06.25]
 ***/
 int Platform_GetClipboardText (char *buffer, size_t size)
 	{
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	int textLength;
 	char *sdlbuffer = SDL_GetClipboardText ();
 
@@ -112,10 +111,6 @@ int Platform_GetClipboardText (char *buffer, size_t size)
 		}
 	SDL_free (sdlbuffer);
 	return textLength;
-	/*else
-	buffer[0] = 0;
-	endif
-	return 0;*/
 	}
 
 /***
@@ -125,9 +120,7 @@ Platform_SetClipobardText [FWGS, 01.06.25]
 ***/
 void Platform_SetClipboardText (const char *buffer)
 	{
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	SDL_SetClipboardText (buffer);
-	/*endif*/
 	}
 
 // [FWGS, 01.03.25] removed Platform_Vibrate
@@ -141,9 +134,7 @@ SDLash_EnableTextInput [FWGS, 01.06.25]
 ***/
 void Platform_EnableTextInput (qboolean enable)
 	{
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	enable ? SDL_StartTextInput () : SDL_StopTextInput ();
-	/*endif*/ 
 	}
 
 #endif
@@ -157,7 +148,6 @@ SDLash_InitCursors [FWGS, 01.06.25]
 ***/
 void SDLash_InitCursors (void)
 	{
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	if (cursors.initialized)
 		SDLash_FreeCursors ();
 
@@ -176,7 +166,6 @@ void SDLash_InitCursors (void)
 	cursors.cursors[dc_no] = SDL_CreateSystemCursor (SDL_SYSTEM_CURSOR_NO);
 	cursors.cursors[dc_hand] = SDL_CreateSystemCursor (SDL_SYSTEM_CURSOR_HAND);
 	cursors.initialized = true;
-	/*endif*/
 	}
 
 /***
@@ -186,7 +175,6 @@ SDLash_FreeCursors [FWGS, 01.06.25]
 ***/
 void SDLash_FreeCursors (void)
 	{
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	int i = 0;
 
 	for (; i < HLARRAYSIZE (cursors.cursors); i++)
@@ -197,7 +185,6 @@ void SDLash_FreeCursors (void)
 		}
 
 	cursors.initialized = false;
-	/*endif*/
 	}
 
 /***
@@ -229,9 +216,6 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 	host.mouse_visible = visible;
 	VGui_UpdateInternalCursorState (type);
 
-	// [FWGS, 01.06.25]
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
-
 	if (host.mouse_visible)
 		{
 		if (cursors.initialized)
@@ -239,35 +223,27 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 
 		SDL_ShowCursor (true);
 
-		// restore the last mouse position
+		// [FWGS, 01.03.26] restore the last mouse position
 		if (in_visible_cursor_pos.pushed)
 			{
-			SDL_WarpMouseInWindow (host.hWnd, in_visible_cursor_pos.x, in_visible_cursor_pos.y);
+			/*SDL_WarpMouseInWindow (host.hWnd, in_visible_cursor_pos.x, in_visible_cursor_pos.y);*/
+			Platform_SetMousePos (in_visible_cursor_pos.x, in_visible_cursor_pos.y);
 			in_visible_cursor_pos.pushed = false;
 			}
 		}
 	else
 		{
-		// save last mouse position and warp it to the center
+		// [FWGS, 01.03.26] save last mouse position and warp it to the center
 		if (!in_visible_cursor_pos.pushed)
 			{
 			SDL_GetMouseState (&in_visible_cursor_pos.x, &in_visible_cursor_pos.y);
-			SDL_WarpMouseInWindow (host.hWnd, host.window_center_x, host.window_center_y);
+			/*SDL_WarpMouseInWindow (host.hWnd, host.window_center_x, host.window_center_y);*/
+			Platform_SetMousePos (host.window_center_x, host.window_center_y);
 			in_visible_cursor_pos.pushed = true;
 			}
 
 		SDL_ShowCursor (false);
 		}
-
-	// [FWGS, 01.06.25]
-	/*else
-
-	if (host.mouse_visible)
-		SDL_ShowCursor (true);
-	else
-		SDL_ShowCursor (false);
-
-	endif*/
 	}
 
 /***
@@ -297,7 +273,6 @@ Platform_GetKeyModifiers [FWGS, 01.06.25]
 ***/
 key_modifier_t Platform_GetKeyModifiers (void)
 	{
-	/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 	SDL_Keymod modFlags;
 	key_modifier_t resultFlags;
 
@@ -325,7 +300,4 @@ key_modifier_t Platform_GetKeyModifiers (void)
 		SetBits (resultFlags, KeyModifier_LeftSuper);
 
 	return resultFlags;
-	/*else
-	return KeyModifier_None;
-	endif*/
 	}

@@ -168,7 +168,7 @@ va
 
 does a varargs printf into a temp buffer,
 so I don't need to have varargs versions
-of all text functions.
+of all text functions
 ============
 ***/
 char *va (const char *format, ...)
@@ -509,19 +509,21 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_
 	return totalBytes;
 	}
 
-/***
+// [FWGS, 01.03.26] removed COM_IsWhiteSpace
+/*
+/
 ==============
 COM_IsWhiteSpace
 
 interpret symbol as whitespace
 ==============
-***/
+/
 static int COM_IsWhiteSpace (char space)
 	{
 	if ((space == ' ') || (space == '\t') || (space == '\r') || (space == '\n'))
 		return 1;
 	return 0;
-	}
+	}*/
 
 /***
 ================
@@ -584,14 +586,16 @@ int GAME_EXPORT COM_FileSize (const char *filename)
 
 // [FWGS, 01.02.24] removed COM_AddAppDirectoryToSearchPath, COM_ExpandFilename
 
-/***
+// [FWGS, 01.03.26] removed COM_TrimSpace
+/*
+/
 =============
 COM_TrimSpace
 
 trims all whitespace from the front
 and end of a string
 =============
-***/
+/
 void COM_TrimSpace (const char *source, char *dest)
 	{
 	int	start, end, length;
@@ -616,7 +620,7 @@ void COM_TrimSpace (const char *source, char *dest)
 
 	// terminate the dest string
 	dest[length] = 0;
-	}
+	}*/
 
 /***
 ==================
@@ -660,11 +664,13 @@ void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput)
 		}
 	}
 
-/***
+// [FWGS, 01.03.26] removed COM_MemFgets, Cache_Check
+/*
+/
 =============
 COM_MemFgets
 =============
-***/
+/
 char *GAME_EXPORT COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize)
 	{
 	int	i, last, stop;
@@ -710,15 +716,16 @@ char *GAME_EXPORT COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char
 		}
 
 	return NULL;
-	}
+	}*/
 
-/***
+/*
+/
 ====================
 Cache_Check
 
 consistency check
 ====================
-***/
+/
 void *GAME_EXPORT Cache_Check (poolhandle_t mempool, cache_user_t *c)
 	{
 	if (!c->data)
@@ -728,11 +735,11 @@ void *GAME_EXPORT Cache_Check (poolhandle_t mempool, cache_user_t *c)
 		return NULL;
 
 	return c->data;
-	}
+	}*/
 
 /***
 =============
-COM_LoadFileForMe [FWGS, 01.03.24]
+COM_LoadFileForMe
 =============
 ***/
 byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
@@ -741,7 +748,9 @@ byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 	byte		*pfile;
 	fs_offset_t	iLength;
 
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		{
 		if (pLength)
 			*pLength = 0;
@@ -775,14 +784,15 @@ COM_SaveFile
 ***/
 int GAME_EXPORT COM_SaveFile (const char *filename, const void *data, int len)
 	{
-	// check for empty filename
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26] check for empty filename
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		return false;
 
 	// check for null data
-	if (!data || len <= 0)
+	if (!data || (len <= 0))
 		return false;
-
+	
 	return FS_WriteFile (filename, data, len);
 	}
 
@@ -897,38 +907,41 @@ int GAME_EXPORT COM_CheckParm (char *parm, char **ppnext)
 	return i;
 	}
 
-/***
+// [FWGS, 01.03.26] removed pfnTime
+/*
+/
 =============
 pfnTime
 =============
-***/
+/
 float GAME_EXPORT pfnTime (void)
 	{
 	return (float)Sys_DoubleTime ();
-	}
+	}*/
 
 // [FWGS, 25.12.24] removed pfnGetGameDir
 
-// [FWGS, 01.06.25]
 qboolean COM_IsSafeFileToDownload (const char *filename)
 	{
 	char		lwrfilename[4096];
-	/*const char	*first, *last;*/
 	const char	*last;
 	const char	*ext;
 	size_t		len;
 	int			i;
 
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		return false;
 
 	ext = COM_FileExtension (filename);
 	len = Q_strlen (filename);
 
-	// only allow extensionless files that start with !MD5
+	// [FWGS, 01.03.26] only allow extensionless files that start with !MD5
 	if (!Q_strncmp (filename, "!MD5", 4))
 		{
-		if (COM_CheckStringEmpty (ext))
+		/*if (COM_CheckStringEmpty (ext))*/
+		if (!COM_StringEmpty (ext))
 			return false;
 
 		len = Q_strlen (filename);
@@ -957,24 +970,17 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	Q_strnlwr (filename, lwrfilename, sizeof (lwrfilename));
 	ext = COM_FileExtension (lwrfilename);
 
-	/*if (Q_strpbrk (lwrfilename, "\\:~") || Q_strstr (lwrfilename, ".."))*/
 	if (Q_strpbrk (lwrfilename, "\\:~") || Q_strstr (lwrfilename, ".."))
 		return false;
 
 	if (lwrfilename[0] == '/')
 		return false;
 
-	/*first = Q_strchr (lwrfilename, '.');*/
 	last = Q_strrchr (lwrfilename, '.');
 
-	/*if ((first == NULL) || (last == NULL))
-		return false;
-
-	if (first != last)*/
 	if (last == NULL)
 		return false;
 
-	/*if (Q_strlen (first) != 4)*/
 	if (Q_strlen (last) != 4)
 		return false;
 

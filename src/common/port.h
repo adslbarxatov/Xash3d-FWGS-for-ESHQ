@@ -55,7 +55,7 @@ GNU General Public License for more details
 	#define open _open
 	#define read _read
 
-	/*#define alloca _alloca*/
+	/*define alloca _alloca*/
 	#ifndef alloca
 		#define alloca _alloca
 	#endif

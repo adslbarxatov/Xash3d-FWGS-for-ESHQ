@@ -159,7 +159,6 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 		else
 			{
 			// warn about trash file
-			/*Con_Printf ("no servers to download %s. You may remove %s now\n", file->path, incname);*/
 			Con_Printf (S_ERROR "no servers to download %s. You may remove %s now\n", file->path, incname);
 			}
 		}
@@ -334,8 +333,9 @@ static int HTTP_FileConnect (httpfile_t *file)
 
 	file->blocktime = 0;
 
-	// [FWGS, 01.02.25]
-	if (!COM_CheckStringEmpty (http_useragent.string) || !Q_strcmp (http_useragent.string, "xash3d"))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckStringEmpty (http_useragent.string) || !Q_strcmp (http_useragent.string, "xash3d"))*/
+	if (COM_StringEmpty (http_useragent.string) || !Q_strcmp (http_useragent.string, "xash3d"))
 		{
 		Q_snprintf (useragent, sizeof (useragent), "%s/%s (%s-%s; build %d; %s)",
 			XASH_ENGINE_NAME, XASH_VERSION, Q_buildos (), Q_buildarch (), Q_buildnum (), g_buildcommit);
@@ -645,7 +645,6 @@ static int HTTP_FileSaveReceivedData (httpfile_t *file, int pos, int length)
 					}
 				else
 					{
-					/*HTTP_FreeFile (file, false); // success*/
 					fs_offset_t filelen = FS_FileLength (file->file);
 
 					if (filelen != file->reported_size)
@@ -1026,20 +1025,33 @@ static void HTTP_Download_f (void)
 
 /***
 ==============
-HTTP_ParseURL
+HTTP_ParseURL [FWGS, 01.03.26]
 ==============
 ***/
-static httpserver_t *HTTP_ParseURL (const char *url)
+/*static httpserver_t *HTTP_ParseURL (const char *url)*/
+static httpserver_t *HTTP_ParseURL (const char *url_)
 	{
-	httpserver_t *server;
-	int i;
+	httpserver_t	*server;
+	int		i;
+	const char		*url = NULL;
 
-	url = Q_strstr (url, "http://");
+	/*url = Q_strstr (url, "http://");*/
+	url = Q_strstr (url_, "http://");
+	if (url)
+		{
+		url += 7;
+		}
+	else
+		{
+		url = Q_strstr (url_, "https://");
+		if (url)
+			url += 8;
+		}
 
 	if (!url)
 		return NULL;
 
-	url += 7;
+	/*url += 7;*/
 	server = Z_Calloc (sizeof (httpserver_t));
 	i = 0;
 

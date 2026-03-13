@@ -16,16 +16,6 @@ GNU General Public License for more details
 #include "common.h"
 #include "server.h"
 
-// [FWGS, 01.12.24]
-/*#define SOURCE_QUERY_DETAILS 'T'
-#define SOURCE_QUERY_DETAILS_RESPONSE 'I'
-
-#define SOURCE_QUERY_RULES 'V'
-#define SOURCE_QUERY_RULES_RESPONSE 'E'
-
-#define SOURCE_QUERY_PLAYERS 'U'
-#define SOURCE_QUERY_PLAYERS_RESPONSE 'D'*/
-
 /***
 ==================
 SV_SourceQuery_Details [FWGS, 01.12.24]

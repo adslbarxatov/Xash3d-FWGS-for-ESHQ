@@ -896,7 +896,7 @@ static void RVB_DoAMod (portable_samplepair_t *paint, int count)
 		}
 	}
 
-// [FWGS, 01.03.26] remove DSP_Process, DSP_ClearState, CheckNewDspPresets
+// [FWGS, 01.03.26] removed DSP_Process, DSP_ClearState, CheckNewDspPresets
 // !!! ESHQ: в удалённой функции было исправление, отключающее подмену значения room_type. Применено ниже
 
 /*

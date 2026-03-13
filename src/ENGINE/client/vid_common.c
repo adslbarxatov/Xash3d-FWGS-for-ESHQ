@@ -26,8 +26,10 @@ static CVAR_DEFINE_AUTO (vid_rotate, "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen rotation (0-3)");
 static CVAR_DEFINE_AUTO (vid_scale, "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"pixel scale");
-CVAR_DEFINE_AUTO (vid_highdpi, "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-	"enable High-DPI mode");
+
+// [FWGS, 01.03.26]
+/*CVAR_DEFINE_AUTO (vid_highdpi, "1", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"enable High-DPI mode");*/
 CVAR_DEFINE_AUTO (vid_maximized, "0", FCVAR_RENDERINFO,
 	"window maximized state, read-only");
 
@@ -38,35 +40,45 @@ CVAR_DEFINE (window_width, "width", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen width");
 CVAR_DEFINE (window_height, "height", "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen height");
-CVAR_DEFINE (window_xpos, "_window_xpos", "-1", FCVAR_RENDERINFO,
+
+// [FWGS, 01.03.26]
+/*CVAR_DEFINE (window_xpos, "_window_xpos", "-1", FCVAR_RENDERINFO,
 	"window position by horizontal");
 CVAR_DEFINE (window_ypos, "_window_ypos", "-1", FCVAR_RENDERINFO,
-	"window position by vertical");
+	"window position by vertical");*/
+CVAR_DEFINE (vid_width, "vid_width", "0", FCVAR_READ_ONLY,
+	"actual window viewport size");
+CVAR_DEFINE (vid_height, "vid_height", "0", FCVAR_READ_ONLY,
+	"actual window viewport size");
 
 glwstate_t	glw_state;
 
 // [FWGS, 01.05.24] removed VID_StartupGamma
 
-/***
+// [FWGS, 01.03.26] removed VID_InitDefaultResolution
+/*
+/
 =================
 VID_InitDefaultResolution
 =================
-***/
+/
 void VID_InitDefaultResolution (void)
 	{
 	// we need to have something valid here
 	// until video subsystem initialized
 	refState.width = 640;
 	refState.height = 480;
-	}
+	}*/
 
 /***
 =================
-R_SaveVideoMode
+R_SaveVideoMode [FWGS, 01.03.26]
 =================
 ***/
 void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximized)
 	{
+	string temp;
+
 	if (!w || !h || !render_w || !render_h)
 		{
 		host.renderinfo_changed = false;
@@ -76,12 +88,27 @@ void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximiz
 	host.window_center_x = w / 2;
 	host.window_center_y = h / 2;
 
-	Cvar_SetValue ("width", w);
-	Cvar_SetValue ("height", h);
+	/*Cvar_SetValue ("width", w);
+	Cvar_SetValue ("height", h);*/
+	Q_snprintf (temp, sizeof (temp), "%d", w);
+	Cvar_DirectSet (&window_width, temp);
+
+	Q_snprintf (temp, sizeof (temp), "%d", h);
+	Cvar_DirectSet (&window_height, temp);
+
+	Q_snprintf (temp, sizeof (temp), "%d", render_w);
+	Cvar_FullSet ("vid_width", temp, vid_width.flags);
+
+	Q_snprintf (temp, sizeof (temp), "%d", render_h);
+	Cvar_FullSet ("vid_height", temp, vid_width.flags);
+
 	Cvar_DirectSet (&vid_maximized, maximized ? "1" : "0");
 
 	// immediately drop changed state or we may trigger video subsystem to reapply settings
 	host.renderinfo_changed = false;
+
+	refState.scale_x = (float)render_w / w;
+	refState.scale_y = (float)render_h / h;
 
 	if ((refState.width == render_w) && (refState.height == render_h))
 		return;
@@ -90,12 +117,14 @@ void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximiz
 	refState.height = render_h;
 
 	// check for 4:3 or 5:4
-	if ((render_w * 3 != render_h * 4) && (render_w * 4 != render_h * 5))
+	/*if ((render_w * 3 != render_h * 4) && (render_w * 4 != render_h * 5))
 		refState.wideScreen = true;
 	else 
-		refState.wideScreen = false;
+		refState.wideScreen = false;*/
+	refState.wideScreen = (render_w * 3 != render_h * 4) && (render_w * 4 != render_h * 5);
 
-	SCR_VidInit (); // tell client.dll that vid_mode has changed
+	// tell client.dll that vid_mode has changed
+	SCR_VidInit ();
 	}
 
 /***
@@ -188,11 +217,13 @@ static void VID_Mode_f (void)
 		case 2:
 			{
 			vidmode_t *vidmode;
-
 			vidmode = R_GetVideoMode (Q_atoi (Cmd_Argv (1)));
+
+			// [FWGS, 01.03.26]
 			if (!vidmode)
 				{
-				Con_Printf (S_ERROR "unable to set mode, backend returned null");	// [FWGS, 01.07.24]
+				/*Con_Printf (S_ERROR "unable to set mode, backend returned null");	// [FWGS, 01.07.24]*/
+				Con_Printf (S_ERROR "unable to set mode, backend returned null\n");
 				return;
 				}
 
@@ -216,23 +247,30 @@ static void VID_Mode_f (void)
 	R_ChangeDisplaySettings (w, h, bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1));
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.03.26]
 void VID_Init (void)
 	{
 	Cvar_RegisterVariable (&window_width);
 	Cvar_RegisterVariable (&window_height);
 	Cvar_RegisterVariable (&vid_mode);
-	Cvar_RegisterVariable (&vid_highdpi);
+	/*Cvar_RegisterVariable (&vid_highdpi);*/
 	Cvar_RegisterVariable (&vid_rotate);
 	Cvar_RegisterVariable (&vid_scale);
 	Cvar_RegisterVariable (&vid_fullscreen);
 	Cvar_RegisterVariable (&vid_maximized);
-	Cvar_RegisterVariable (&window_xpos);
-	Cvar_RegisterVariable (&window_ypos);
+	/*Cvar_RegisterVariable (&window_xpos);
+	Cvar_RegisterVariable (&window_ypos);*/
+	Cvar_RegisterVariable (&vid_width);
+	Cvar_RegisterVariable (&vid_height);
+	Cvar_Get ("_window_xpos", "-1", FCVAR_RENDERINFO, "deprecated cvar");
+	Cvar_Get ("_window_ypos", "-1", FCVAR_RENDERINFO, "deprecated cvar");
 
 	// a1ba: planned to be named vid_mode for compability
 	// but supported mode list is filled by backends, so numbers are not portable any more
-	Cmd_AddRestrictedCommand ("vid_setmode", VID_Mode_f, "display video mode");
+	Cmd_AddRestrictedCommand ("vid_setmode", VID_Mode_f,
+		"display video mode");
+	Cmd_AddCommand ("vid_info", VID_Info_f,
+		"show vid component info");
 
 	V_Init ();	// init gamma
 	R_Init ();	// init renderer

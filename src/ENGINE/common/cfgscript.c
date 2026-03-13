@@ -26,7 +26,6 @@ typedef enum
 	} cvartype_t;
 
 // [FWGS, 01.12.24]
-/*const char *cvartypes[] = { NULL, "BOOL", "NUMBER", "LIST", "STRING" };*/
 static const char *const cvartypes[] = { NULL, "BOOL", "NUMBER", "LIST", "STRING" };
 
 typedef struct parserstate_s
@@ -274,7 +273,9 @@ finish:
 	return count;
 	}
 
-static void CSCR_WriteVariableToFile (scrvardef_t *var, void *file)
+// [FWGS, 01.03.26] removed CSCR_WriteVariableToFile, CSCR_WriteGameCVars
+
+/*static void CSCR_WriteVariableToFile (scrvardef_t *var, void *file)
 	{
 	file_t		*cfg = (file_t *)file;
 	convar_t	*cvar = Cvar_FindVar (var->name);
@@ -289,17 +290,17 @@ static void CSCR_WriteVariableToFile (scrvardef_t *var, void *file)
 		}
 	}
 
-/***
+/
 ======================
 CSCR_WriteGameCVars
 
 Print all cvars declared in script to game.cfg file
 ======================
-***/
+/
 int CSCR_WriteGameCVars (file_t *cfg, const char *scriptfilename)
 	{
 	return CSCR_ParseFile (scriptfilename, CSCR_WriteVariableToFile, cfg);
-	}
+	}*/
 
 static void CSCR_RegisterVariable (scrvardef_t *var, void *unused)
 	{

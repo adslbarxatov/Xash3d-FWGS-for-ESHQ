@@ -48,7 +48,7 @@ static void R_Mem_Free (void *mem, const char *filename, const int fileline)
 	_Mem_Free (mem, filename, fileline);
 	}
 
-// [FWGS, 01.03.26] remove pfnGetFilesList
+// [FWGS, 01.03.26] removed pfnGetFilesList
 /*
 /
 =========
