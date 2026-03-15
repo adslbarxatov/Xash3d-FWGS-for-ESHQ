@@ -25,7 +25,7 @@ class WeaponsResource
 		WEAPON		rgWeapons[MAX_WEAPONS];	// Weapons Array
 
 		// counts of weapons * ammo
-		WEAPON* rgSlots[MAX_WEAPON_SLOTS + 1][MAX_WEAPON_POSITIONS + 1];	
+		WEAPON *rgSlots[MAX_WEAPON_SLOTS + 1][MAX_WEAPON_POSITIONS + 1];
 		// The slots currently in use by weapons.  The value is a pointer to the weapon;  if it's NULL, no weapon is there
 		int			riAmmo[MAX_AMMO_TYPES];							// count of each ammo type
 
@@ -46,19 +46,19 @@ class WeaponsResource
 		// WEAPON
 		int			iOldWeaponBits;
 
-		WEAPON* GetWeapon (int iId) { return &rgWeapons[iId]; }
-		void AddWeapon (WEAPON* wp)
+		WEAPON *GetWeapon (int iId) { return &rgWeapons[iId]; }
+		void AddWeapon (WEAPON *wp)
 			{
 			rgWeapons[wp->iId] = *wp;
 			LoadWeaponSprites (&rgWeapons[wp->iId]);
 			}
 
-		void PickupWeapon (WEAPON* wp)
+		void PickupWeapon (WEAPON *wp)
 			{
 			rgSlots[wp->iSlot][wp->iSlotPos] = wp;
 			}
 
-		void DropWeapon (WEAPON* wp)
+		void DropWeapon (WEAPON *wp)
 			{
 			rgSlots[wp->iSlot][wp->iSlotPos] = NULL;
 			}
@@ -72,15 +72,15 @@ class WeaponsResource
 				}
 			}
 
-		WEAPON* GetWeaponSlot (int slot, int pos) { return rgSlots[slot][pos]; }
+		WEAPON *GetWeaponSlot (int slot, int pos) { return rgSlots[slot][pos]; }
 
-		void LoadWeaponSprites (WEAPON* wp);
+		void LoadWeaponSprites (WEAPON *wp);
 		void LoadAllWeaponSprites (void);
-		WEAPON* GetFirstPos (int iSlot);
+		WEAPON *GetFirstPos (int iSlot);
 		void SelectSlot (int iSlot, int fAdvance, int iDirection);
-		WEAPON* GetNextActivePos (int iSlot, int iSlotPos);
+		WEAPON *GetNextActivePos (int iSlot, int iSlotPos);
 
-		int HasAmmo (WEAPON* p);
+		int HasAmmo (WEAPON *p);
 
 		// AMMO
 		AMMO GetAmmo (int iId) { return iId; }
@@ -89,13 +89,14 @@ class WeaponsResource
 
 		int CountAmmo (int iId);
 
-		HLSPRITE* GetAmmoPicFromWeapon (int iAmmoId, wrect_t& rect);
+		HLSPRITE *GetAmmoPicFromWeapon (int iAmmoId, wrect_t &rect);
 	};
 
 extern WeaponsResource gWR;
 
 #define MAX_HISTORY 12
-enum {
+enum
+	{
 	HISTSLOT_EMPTY,
 	HISTSLOT_AMMO,
 	HISTSLOT_WEAP,
@@ -105,7 +106,8 @@ enum {
 class HistoryResource
 	{
 	private:
-		struct HIST_ITEM {
+		struct HIST_ITEM
+			{
 			int type;
 			float DisplayTime;  // the time at which this item should be removed from the history
 			int iCount;
@@ -130,7 +132,7 @@ class HistoryResource
 		int iCurrentHistorySlot;
 
 		void AddToHistory (int iType, int iId, int iCount = 0);
-		void AddToHistory (int iType, const char* szName, int iCount = 0);
+		void AddToHistory (int iType, const char *szName, int iCount = 0);
 
 		void CheckClearHistory (void);
 		int DrawAmmoHistory (float flTime);

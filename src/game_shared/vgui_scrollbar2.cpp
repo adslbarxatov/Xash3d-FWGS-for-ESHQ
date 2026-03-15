@@ -10,10 +10,10 @@
 #include "VGUI_Slider2.h"
 #include "vgui_loadtga.h"
 
-#include<VGUI_IntChangeSignal.h>
-#include<VGUI_Button.h>
-#include<VGUI_ActionSignal.h>
-#include<VGUI_LineBorder.h>
+#include <VGUI_IntChangeSignal.h>
+#include <VGUI_Button.h>
+#include <VGUI_ActionSignal.h>
+#include <VGUI_LineBorder.h>
 
 using namespace vgui;
 
@@ -51,7 +51,6 @@ namespace
 				_scrollBar->doButtonPressed (_buttonIndex);
 				}
 		};
-
 	}
 
 // -----------------------------------------------------------------------------
@@ -162,8 +161,7 @@ void ScrollBar2::setSize (int wide, int tall)
 	}
 
 void ScrollBar2::performLayout ()
-	{
-	}
+	{}
 
 void ScrollBar2::setValue (int value)
 	{

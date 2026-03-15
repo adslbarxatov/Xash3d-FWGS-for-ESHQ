@@ -1,31 +1,32 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
+// [FWGS, 01.03.26]
 #include <assert.h>
-#include "mathlib.h"
+#include "..\cl_dll\cl_mathlib.h"
 #include "const.h"
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "pm_defs.h"
 #include "pm_shared.h"
-#include "pm_movevars.h"
+/*include "pm_movevars.h"*/
 #include "pm_debug.h"
 #include <stdio.h>  // NULL
 #include <math.h>   // sqrt
 #include <string.h> // strcpy
 #include <stdlib.h> // atoi
 #include <ctype.h>  // isspace
+#include "pmove.h"
+#include "q_client.h"
 
 #ifdef CLIENT_DLL
 // Spectator Mode

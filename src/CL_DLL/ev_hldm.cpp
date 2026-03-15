@@ -1,4 +1,4 @@
-/*
+/***
 Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
 This product contains software technology licensed from Id
@@ -9,28 +9,25 @@ Use, distribution, and modification of this source code and/or resulting
 object code is restricted to non-commercial enhancements to products from
 Valve LLC.  All other use, distribution, or modification is prohibited
 without written permission from Valve LLC
-*/
+***/
 
+// [FWGS, 01.03.26]
 #include "hud.h"
 #include "cl_util.h"
 #include "const.h"
 #include "entity_state.h"
 #include "cl_entity.h"
 #include "entity_types.h"
-#include "usercmd.h"
+/*include "..\cl_dll\cl_usercmd.h"*/
 #include "pm_defs.h"
 #include "pm_materials.h"
-
 #include "eventscripts.h"
 #include "ev_hldm.h"
-
 #include "r_efx.h"
 #include "event_api.h"
 #include "event_args.h"
 #include "in_defs.h"
-
 #include <string.h>
-
 #include "r_studioint.h"
 #include "com_model.h"
 
@@ -38,39 +35,39 @@ extern engine_studio_api_t IEngineStudio;
 
 static int tracerCount[32];
 
-extern "C" char PM_FindTextureType (char* name);
+extern "C" char PM_FindTextureType (char *name);
 
 void V_PunchAxis (int axis, float punch);
-void VectorAngles (const float* forward, float* angles);
+void VectorAngles (const float *forward, float *angles);
 
-extern cvar_t* cl_lw;
+extern cvar_t *cl_lw;
 
 extern "C"
 	{
 
 	// HLDM
-	void EV_FireGlock1 (struct event_args_s* args);
-	void EV_FireGlock2 (struct event_args_s* args);
-	void EV_FireShotGunSingle (struct event_args_s* args);
-	void EV_FireShotGunDouble (struct event_args_s* args);
-	void EV_FireMP5 (struct event_args_s* args);
-	void EV_FireMP52 (struct event_args_s* args);
-	void EV_FirePython (struct event_args_s* args);
-	void EV_FireGauss (struct event_args_s* args);
-	void EV_SpinGauss (struct event_args_s* args);
-	void EV_Crowbar (struct event_args_s* args);
+	void EV_FireGlock1 (struct event_args_s *args);
+	void EV_FireGlock2 (struct event_args_s *args);
+	void EV_FireShotGunSingle (struct event_args_s *args);
+	void EV_FireShotGunDouble (struct event_args_s *args);
+	void EV_FireMP5 (struct event_args_s *args);
+	void EV_FireMP52 (struct event_args_s *args);
+	void EV_FirePython (struct event_args_s *args);
+	void EV_FireGauss (struct event_args_s *args);
+	void EV_SpinGauss (struct event_args_s *args);
+	void EV_Crowbar (struct event_args_s *args);
 	void EV_Axe (struct event_args_s *args);	// ESHQ: топор
-	void EV_FireCrossbow (struct event_args_s* args);
-	void EV_FireCrossbow2 (struct event_args_s* args);
-	void EV_FireRpg (struct event_args_s* args);
-	void EV_EgonFire (struct event_args_s* args);
-	void EV_EgonStop (struct event_args_s* args);
-	void EV_HornetGunFire (struct event_args_s* args);
-	void EV_TripmineFire (struct event_args_s* args);
-	void EV_SnarkFire (struct event_args_s* args);
+	void EV_FireCrossbow (struct event_args_s *args);
+	void EV_FireCrossbow2 (struct event_args_s *args);
+	void EV_FireRpg (struct event_args_s *args);
+	void EV_EgonFire (struct event_args_s *args);
+	void EV_EgonStop (struct event_args_s *args);
+	void EV_HornetGunFire (struct event_args_s *args);
+	void EV_TripmineFire (struct event_args_s *args);
+	void EV_SnarkFire (struct event_args_s *args);
 
 
-	void EV_TrainPitchAdjust (struct event_args_s* args);
+	void EV_TrainPitchAdjust (struct event_args_s *args);
 	}
 
 #define VECTOR_CONE_1DEGREES Vector( 0.00873, 0.00873, 0.00873 )
@@ -89,18 +86,18 @@ extern "C"
 // play a strike sound based on the texture that was hit by the attack traceline.  VecSrc/VecEnd are the
 // original traceline endpoints used by the attacker, iBulletType is the type of bullet that hit the texture.
 // returns volume of strike instrument (crowbar) to play
-float EV_HLDM_PlayTextureSound (int idx, pmtrace_t* ptr, float* vecSrc, float* vecEnd, int iBulletType)
+float EV_HLDM_PlayTextureSound (int idx, pmtrace_t *ptr, float *vecSrc, float *vecEnd, int iBulletType)
 	{
 	// hit the world, try to play sound based on texture material type
 	char chTextureType = CHAR_TEX_CONCRETE;
 	float fvol;
 	float fvolbar;
-	char* rgsz[4];
+	char *rgsz[4];
 	int cnt;
 	// ESHQ: новая звуковая схема
 	float fattn = ATTN_MEDIUM;
 	int entity;
-	char* pTextureName;
+	char *pTextureName;
 	char texname[64];
 	char szbuffer[64];
 
@@ -120,7 +117,7 @@ float EV_HLDM_PlayTextureSound (int idx, pmtrace_t* ptr, float* vecSrc, float* v
 	else if (entity == 0)
 		{
 		// get texture from entity or world (world is ent(0))
-		pTextureName = (char*)gEngfuncs.pEventAPI->EV_TraceTexture (ptr->ent, vecSrc, vecEnd);
+		pTextureName = (char *)gEngfuncs.pEventAPI->EV_TraceTexture (ptr->ent, vecSrc, vecEnd);
 
 		if (pTextureName)
 			{
@@ -238,7 +235,7 @@ float EV_HLDM_PlayTextureSound (int idx, pmtrace_t* ptr, float* vecSrc, float* v
 	return fvolbar;
 	}
 
-char* EV_HLDM_DamageDecal (physent_t* pe)
+char *EV_HLDM_DamageDecal (physent_t *pe)
 	{
 	static char decalname[32];
 	int idx;
@@ -260,10 +257,10 @@ char* EV_HLDM_DamageDecal (physent_t* pe)
 	return decalname;
 	}
 
-void EV_HLDM_GunshotDecalTrace (pmtrace_t* pTrace, char* decalName)
+void EV_HLDM_GunshotDecalTrace (pmtrace_t *pTrace, char *decalName)
 	{
 	int iRand;
-	physent_t* pe;
+	physent_t *pe;
 
 	gEngfuncs.pEfxAPI->R_BulletImpactParticles (pTrace->endpos);
 
@@ -304,9 +301,9 @@ void EV_HLDM_GunshotDecalTrace (pmtrace_t* pTrace, char* decalName)
 		}
 	}
 
-void EV_HLDM_DecalGunshot (pmtrace_t* pTrace, int iBulletType)
+void EV_HLDM_DecalGunshot (pmtrace_t *pTrace, int iBulletType)
 	{
-	physent_t* pe;
+	physent_t *pe;
 
 	pe = gEngfuncs.pEventAPI->EV_GetPhysent (pTrace->ent);
 
@@ -328,7 +325,7 @@ void EV_HLDM_DecalGunshot (pmtrace_t* pTrace, int iBulletType)
 		}
 	}
 
-int EV_HLDM_CheckTracer (int idx, float* vecSrc, float* end, float* forward, float* right, int iBulletType, int iTracerFreq, int* tracerCount)
+int EV_HLDM_CheckTracer (int idx, float *vecSrc, float *end, float *forward, float *right, int iBulletType, int iTracerFreq, int *tracerCount)
 	{
 	int tracer = 0;
 	int i;
@@ -378,8 +375,8 @@ FireBullets
 Go to the trouble of combining multiple pellets into a single damage call
 ================
 */
-void EV_HLDM_FireBullets (int idx, float* forward, float* right, float* up, int cShots, float* vecSrc,
-	float* vecDirShooting, float flDistance, int iBulletType, int iTracerFreq, int* tracerCount,
+void EV_HLDM_FireBullets (int idx, float *forward, float *right, float *up, int cShots, float *vecSrc,
+	float *vecDirShooting, float flDistance, int iBulletType, int iTracerFreq, int *tracerCount,
 	float flSpreadX, float flSpreadY)
 	{
 	int i;
@@ -395,18 +392,19 @@ void EV_HLDM_FireBullets (int idx, float* forward, float* right, float* up, int 
 		// We randomize for the Shotgun
 		if (iBulletType == BULLET_PLAYER_BUCKSHOT)
 			{
-			do {
+			do
+				{
 				x = gEngfuncs.pfnRandomFloat (-0.5, 0.5) + gEngfuncs.pfnRandomFloat (-0.5, 0.5);
 				y = gEngfuncs.pfnRandomFloat (-0.5, 0.5) + gEngfuncs.pfnRandomFloat (-0.5, 0.5);
 				z = x * x + y * y;
 				} while (z > 1);
 
-				for (i = 0; i < 3; i++)
-					{
-					vecDir[i] = vecDirShooting[i] + x * flSpreadX * right[i] + y * flSpreadY * up[i];
-					vecEnd[i] = vecSrc[i] + flDistance * vecDir[i];
-					}
-				// But other guns already have their spread randomized in the synched spread
+			for (i = 0; i < 3; i++)
+				{
+				vecDir[i] = vecDirShooting[i] + x * flSpreadX * right[i] + y * flSpreadY * up[i];
+				vecEnd[i] = vecSrc[i] + flDistance * vecDir[i];
+				}
+			// But other guns already have their spread randomized in the synched spread
 			}
 		else
 			{
@@ -472,7 +470,7 @@ void EV_HLDM_FireBullets (int idx, float* forward, float* right, float* up, int 
 // ======================
 // GLOCK START
 // ======================
-void EV_FireGlock1 (event_args_t* args)
+void EV_FireGlock1 (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -518,7 +516,7 @@ void EV_FireGlock1 (event_args_t* args)
 	EV_HLDM_FireBullets (idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, 0, args->fparam1, args->fparam2);
 	}
 
-void EV_FireGlock2 (event_args_t* args)
+void EV_FireGlock2 (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -572,7 +570,7 @@ void EV_FireGlock2 (event_args_t* args)
 // ======================
 // SHOTGUN START
 // ======================
-void EV_FireShotGunDouble (event_args_t* args)
+void EV_FireShotGunDouble (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -628,7 +626,7 @@ void EV_FireShotGunDouble (event_args_t* args)
 		}
 	}
 
-void EV_FireShotGunSingle (event_args_t* args)
+void EV_FireShotGunSingle (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -687,7 +685,7 @@ void EV_FireShotGunSingle (event_args_t* args)
 // ======================
 // MP5 START
 // ======================
-void EV_FireMP5 (event_args_t* args)
+void EV_FireMP5 (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -752,7 +750,7 @@ void EV_FireMP5 (event_args_t* args)
 
 // We only predict the animation and sound
 // The grenade is still launched from the server.
-void EV_FireMP52 (event_args_t* args)
+void EV_FireMP52 (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -786,7 +784,7 @@ void EV_FireMP52 (event_args_t* args)
 // PHYTON START 
 // ( .357 )
 // ======================
-void EV_FirePython (event_args_t* args)
+void EV_FirePython (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -845,7 +843,7 @@ void EV_FirePython (event_args_t* args)
 // ======================
 #define SND_CHANGE_PITCH	(1<<7)		// duplicated in protocol.h change sound pitch
 
-void EV_SpinGauss (event_args_t* args)
+void EV_SpinGauss (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -882,7 +880,7 @@ void EV_StopPreviousGauss (int idx)
 
 extern float g_flApplyVel;
 
-void EV_FireGauss (event_args_t* args)
+void EV_FireGauss (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -895,14 +893,14 @@ void EV_FireGauss (event_args_t* args)
 	int m_iWeaponVolume = GAUSS_PRIMARY_FIRE_VOLUME;
 	vec3_t vecSrc;
 	vec3_t vecDest;
-	edict_t* pentIgnore;
+	edict_t *pentIgnore;
 	pmtrace_t tr, beam_tr;
 	float flMaxFrac = 1.0;
 	int	nTotal = 0;
 	int fHasPunched = 0;
 	int fFirstBeam = 1;
 	int	nMaxHits = 10;
-	physent_t* pEntity;
+	physent_t *pEntity;
 	int m_iBeam, m_iGlow, m_iBalls;
 	vec3_t up, right, forward;
 
@@ -1167,22 +1165,22 @@ enum axe_e
 	};
 
 void EV_Axe (event_args_t *args)
-		{
-		int idx;
-		vec3_t origin;
-		vec3_t angles;
-		vec3_t velocity;
+	{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
 
-		idx = args->entindex;
-		VectorCopy (args->origin, origin);
+	idx = args->entindex;
+	VectorCopy (args->origin, origin);
 
-		// Play Swing sound
-		gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/axe_swing.wav", 1, ATTN_MEDIUM,
-			0, PITCH_NORM);
+	// Play Swing sound
+	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/axe_swing.wav", 1, ATTN_MEDIUM,
+		0, PITCH_NORM);
 
-		if (EV_IsLocal (idx))
-			gEngfuncs.pEventAPI->EV_WeaponAnimation (AXE_ATTACK, 0);
-		}
+	if (EV_IsLocal (idx))
+		gEngfuncs.pEventAPI->EV_WeaponAnimation (AXE_ATTACK, 0);
+	}
 
 // ======================
 // AXE END 
@@ -1192,7 +1190,8 @@ void EV_Axe (event_args_t *args)
 // CROWBAR START
 // ======================
 
-enum crowbar_e {
+enum crowbar_e
+	{
 	CROWBAR_IDLE = 0,
 	CROWBAR_DRAW,
 	CROWBAR_HOLSTER,
@@ -1208,7 +1207,7 @@ int g_iSwing;
 
 // Only predict the miss sounds, hit sounds are still played 
 // server side, so players don't get the wrong idea.
-void EV_Crowbar (event_args_t* args)
+void EV_Crowbar (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -1219,7 +1218,7 @@ void EV_Crowbar (event_args_t* args)
 	VectorCopy (args->origin, origin);
 
 	// Play Swing sound
-	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/cbar_miss1.wav", 1, ATTN_MEDIUM, 
+	gEngfuncs.pEventAPI->EV_PlaySound (idx, origin, CHAN_WEAPON, "weapons/cbar_miss1.wav", 1, ATTN_MEDIUM,
 		0, PITCH_NORM);
 
 	if (EV_IsLocal (idx))
@@ -1244,7 +1243,8 @@ void EV_Crowbar (event_args_t* args)
 // ======================
 // CROSSBOW START
 // ======================
-enum crossbow_e {
+enum crossbow_e
+	{
 	CROSSBOW_IDLE1 = 0,	// full
 	CROSSBOW_IDLE2,		// empty
 	CROSSBOW_FIDGET1,	// full
@@ -1264,13 +1264,13 @@ enum crossbow_e {
 // This function is used to correct the origin and angles 
 // of the bolt, so it looks like it's stuck on the wall
 // =====================
-void EV_BoltCallback (struct tempent_s* ent, float frametime, float currenttime)
+void EV_BoltCallback (struct tempent_s *ent, float frametime, float currenttime)
 	{
 	ent->entity.origin = ent->entity.baseline.vuser1;
 	ent->entity.angles = ent->entity.baseline.vuser2;
 	}
 
-void EV_FireCrossbow2 (event_args_t* args)
+void EV_FireCrossbow2 (event_args_t *args)
 	{
 	vec3_t vecSrc, vecEnd;
 	vec3_t up, right, forward;
@@ -1317,7 +1317,7 @@ void EV_FireCrossbow2 (event_args_t* args)
 	// We hit something
 	if (tr.fraction < 1.0)
 		{
-		physent_t* pe = gEngfuncs.pEventAPI->EV_GetPhysent (tr.ent);
+		physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent (tr.ent);
 
 		// Not the world, let's assume we hit something organic (dog, cat, uncle joe, etc)
 		if (pe->solid != SOLID_BSP)
@@ -1348,7 +1348,7 @@ void EV_FireCrossbow2 (event_args_t* args)
 
 			VectorAngles (forward, vBoltAngles);
 
-			TEMPENTITY* bolt = gEngfuncs.pEfxAPI->R_TempModel (tr.endpos - forward * 10, Vector (0, 0, 0), vBoltAngles, 5, iModelIndex, TE_BOUNCE_NULL);
+			TEMPENTITY *bolt = gEngfuncs.pEfxAPI->R_TempModel (tr.endpos - forward * 10, Vector (0, 0, 0), vBoltAngles, 5, iModelIndex, TE_BOUNCE_NULL);
 
 			if (bolt)
 				{
@@ -1364,7 +1364,7 @@ void EV_FireCrossbow2 (event_args_t* args)
 	}
 
 // TODO: Fully predict the fliying bolt
-void EV_FireCrossbow (event_args_t* args)
+void EV_FireCrossbow (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -1395,7 +1395,8 @@ void EV_FireCrossbow (event_args_t* args)
 // ======================
 // RPG START 
 // ======================
-enum rpg_e {
+enum rpg_e
+	{
 	RPG_IDLE = 0,
 	RPG_FIDGET,
 	RPG_RELOAD,		// to reload
@@ -1408,7 +1409,7 @@ enum rpg_e {
 	RPG_FIDGET_UL,	// unloaded fidget
 	};
 
-void EV_FireRpg (event_args_t* args)
+void EV_FireRpg (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -1434,7 +1435,8 @@ void EV_FireRpg (event_args_t* args)
 // ======================
 // EGON END 
 // ======================
-enum egon_e {
+enum egon_e
+	{
 	EGON_IDLE1 = 0,
 	EGON_FIDGET1,
 	EGON_ALTFIREON,
@@ -1448,8 +1450,8 @@ enum egon_e {
 	EGON_HOLSTER
 	};
 
-int g_fireAnims1[] = {EGON_FIRE1, EGON_FIRE2, EGON_FIRE3, EGON_FIRE4};
-int g_fireAnims2[] = {EGON_ALTFIRECYCLE};
+int g_fireAnims1[] = { EGON_FIRE1, EGON_FIRE2, EGON_FIRE3, EGON_FIRE4 };
+int g_fireAnims2[] = { EGON_ALTFIRECYCLE };
 
 enum EGON_FIRESTATE { FIRE_OFF, FIRE_CHARGE };
 enum EGON_FIREMODE { FIRE_NARROW, FIRE_WIDE };
@@ -1464,10 +1466,10 @@ enum EGON_FIREMODE { FIRE_NARROW, FIRE_WIDE };
 /*// ESHQ: не нужен
 #define HLARRAYSIZE(p)			(sizeof(p)/sizeof(p[0]))*/
 
-BEAM* pBeam;
-BEAM* pBeam2;
+BEAM *pBeam;
+BEAM *pBeam2;
 
-void EV_EgonFire (event_args_t* args)
+void EV_EgonFire (event_args_t *args)
 	{
 	int idx, iFireState, iFireMode;
 	vec3_t origin;
@@ -1504,7 +1506,7 @@ void EV_EgonFire (event_args_t* args)
 		vec3_t vecSrc, vecEnd, origin, angles, forward, right, up;
 		pmtrace_t tr;
 
-		cl_entity_t* pl = gEngfuncs.GetEntityByIndex (idx);
+		cl_entity_t *pl = gEngfuncs.GetEntityByIndex (idx);
 
 		if (pl)
 			{
@@ -1552,7 +1554,7 @@ void EV_EgonFire (event_args_t* args)
 		}
 	}
 
-void EV_EgonStop (event_args_t* args)
+void EV_EgonStop (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;
@@ -1587,7 +1589,8 @@ void EV_EgonStop (event_args_t* args)
 // ======================
 // HORNET START
 // ======================
-enum hgun_e {
+enum hgun_e
+	{
 	HGUN_IDLE1 = 0,
 	HGUN_FIDGETSWAY,
 	HGUN_FIDGETSHAKE,
@@ -1596,7 +1599,7 @@ enum hgun_e {
 	HGUN_SHOOT
 	};
 
-void EV_HornetGunFire (event_args_t* args)
+void EV_HornetGunFire (event_args_t *args)
 	{
 	int idx, iFireMode;
 	vec3_t origin, angles, vecSrc, forward, right, up;
@@ -1633,7 +1636,8 @@ void EV_HornetGunFire (event_args_t* args)
 // ======================
 // TRIPMINE START
 // ======================
-enum tripmine_e {
+enum tripmine_e
+	{
 	TRIPMINE_IDLE1 = 0,
 	TRIPMINE_IDLE2,
 	TRIPMINE_ARM1,
@@ -1647,7 +1651,7 @@ enum tripmine_e {
 
 // We only check if it's possible to put a trip mine
 // and if it is, then we play the animation. Server still places it
-void EV_TripmineFire (event_args_t* args)
+void EV_TripmineFire (event_args_t *args)
 	{
 	int idx;
 	vec3_t vecSrc, angles, view_ofs, forward;
@@ -1688,7 +1692,8 @@ void EV_TripmineFire (event_args_t* args)
 // ======================
 // SQUEAK START
 // ======================
-enum squeak_e {
+enum squeak_e
+	{
 	SQUEAK_IDLE1 = 0,
 	SQUEAK_FIDGETFIT,
 	SQUEAK_FIDGETNIP,
@@ -1700,7 +1705,7 @@ enum squeak_e {
 #define VEC_HULL_MIN		Vector(-16, -16, -36)
 #define VEC_DUCK_HULL_MIN	Vector(-16, -16, -18 )
 
-void EV_SnarkFire (event_args_t* args)
+void EV_SnarkFire (event_args_t *args)
 	{
 	int idx;
 	vec3_t vecSrc, angles, view_ofs, forward;
@@ -1736,7 +1741,7 @@ void EV_SnarkFire (event_args_t* args)
 // ======================
 // SQUEAK END
 // ======================
-void EV_TrainPitchAdjust (event_args_t* args)
+void EV_TrainPitchAdjust (event_args_t *args)
 	{
 	int idx;
 	vec3_t origin;

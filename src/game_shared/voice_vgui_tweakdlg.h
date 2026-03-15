@@ -14,9 +14,9 @@
 class CMenuPanel;
 
 // Returns true if the tweak dialog is currently up
-bool IsTweakDlgOpen();
+bool IsTweakDlgOpen ();
 
 // Returns a global instance of the tweak dialog
-CMenuPanel* GetVoiceTweakDlg();
+CMenuPanel *GetVoiceTweakDlg ();
 
 #endif

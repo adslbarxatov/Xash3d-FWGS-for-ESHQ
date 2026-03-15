@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
 #include "extdll.h"
@@ -25,7 +24,8 @@
 #include "gamerules.h"
 
 
-enum hgun_e {
+enum hgun_e
+	{
 	HGUN_IDLE1 = 0,
 	HGUN_FIDGETSWAY,
 	HGUN_FIDGETSHAKE,
@@ -72,7 +72,7 @@ void CHgun::Precache (void)
 	UTIL_PrecacheOther ("hornet");
 	}
 
-int CHgun::AddToPlayer (CBasePlayer* pPlayer)
+int CHgun::AddToPlayer (CBasePlayer *pPlayer)
 	{
 	if (CBasePlayerWeapon::AddToPlayer (pPlayer))
 		{
@@ -94,7 +94,7 @@ int CHgun::AddToPlayer (CBasePlayer* pPlayer)
 	return FALSE;
 	}
 
-int CHgun::GetItemInfo (ItemInfo* p)
+int CHgun::GetItemInfo (ItemInfo *p)
 	{
 	p->pszName = STRING (pev->classname);
 	p->pszAmmo1 = "Hornets";
@@ -136,7 +136,7 @@ void CHgun::PrimaryAttack ()
 #ifndef CLIENT_DLL
 	UTIL_MakeVectors (m_pPlayer->pev->v_angle);
 
-	CBaseEntity* pHornet = CBaseEntity::Create ("hornet", m_pPlayer->GetGunPosition () + gpGlobals->v_forward * 16 + 
+	CBaseEntity *pHornet = CBaseEntity::Create ("hornet", m_pPlayer->GetGunPosition () + gpGlobals->v_forward * 16 +
 		gpGlobals->v_right * 8 + gpGlobals->v_up * -12, m_pPlayer->pev->v_angle, m_pPlayer->edict ());
 	pHornet->pev->velocity = gpGlobals->v_forward * 300;
 
@@ -155,7 +155,7 @@ void CHgun::PrimaryAttack ()
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usHornetFire, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, 
+	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usHornetFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero,
 		0.0, 0.0, FIREMODE_TRACK, 0, 0, 0);
 
 	// player "shoot" animation
@@ -177,7 +177,7 @@ void CHgun::SecondaryAttack (void)
 
 	// Wouldn't be a bad idea to completely predict these, since they fly so fast...
 #ifndef CLIENT_DLL
-	CBaseEntity* pHornet;
+	CBaseEntity *pHornet;
 	Vector vecSrc;
 
 	UTIL_MakeVectors (m_pPlayer->pev->v_angle);
@@ -241,7 +241,7 @@ void CHgun::SecondaryAttack (void)
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usHornetFire, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, 
+	PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usHornetFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero,
 		0.0, 0.0, FIREMODE_FAST, 0, 0, 0);
 
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;

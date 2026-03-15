@@ -18,23 +18,24 @@ without written permission from Valve LLC
 #define MAX_MOVEENTS	64
 #define MAX_CLIP_PLANES	5
 
-#define PM_NORMAL		0x00000000
+#define PM_NORMAL			0x00000000
 #define PM_STUDIO_IGNORE	0x00000001	// Skip studio models
-#define PM_STUDIO_BOX	0x00000002	// Use boxes for non-complex studio models (even in traceline)
-#define PM_GLASS_IGNORE	0x00000004	// Ignore entities with non-normal rendermode
-#define PM_WORLD_ONLY	0x00000008	// Only trace against the world
+#define PM_STUDIO_BOX		0x00000002	// Use boxes for non-complex studio models (even in traceline)
+#define PM_GLASS_IGNORE		0x00000004	// Ignore entities with non-normal rendermode
+#define PM_WORLD_ONLY		0x00000008	// Only trace against the world
 #define PM_CUSTOM_IGNORE	0x00000010	// Ignore entities with SOLID_CUSTOM mode
 
 // Values for flags parameter of PM_TraceLine
 #define PM_TRACELINE_PHYSENTSONLY	0
 #define PM_TRACELINE_ANYVISIBLE	1
 
-#include "pm_info.h"
-
 // [FWGS, 01.03.26]
+#include "pm_info.h"
 /*// PM_PlayerTrace results
-include "pmtrace.h"
+include "pmove.h"
 include "usercmd.h"*/
+#include "pmove.h"
+#include "q_client.h"
 
 // physent_t
 typedef struct physent_s
@@ -167,10 +168,10 @@ typedef struct playermove_s
 	int		numvisent;
 	physent_t		visents[MAX_PHYSENTS];
 
-	// input to run through physics.
+	// input to run through physics
 	usercmd_t		cmd;
 
-	// Trace results for objects we collided with.
+	// Trace results for objects we collided with
 	int		numtouch;
 	pmtrace_t		touchindex[MAX_PHYSENTS];
 

@@ -35,7 +35,10 @@ GNU General Public License for more details
 #include "world.h"
 #include "ref_common.h"
 #include "voice.h"
+
+#ifndef CLIENT_DLL
 #include "q_client.h"	// [FWGS, 01.03.26]
+#endif
 
 // client sprite types
 #define SPR_CLIENT		0	// client sprite for temp-entities or user-textures

@@ -17,7 +17,6 @@ without written permission from Valve LLC
 #include "hud.h"
 #include "cl_util.h"
 #include "com_weapons.h"
-
 #include "const.h"
 #include "entity_state.h"
 #include "r_efx.h"
@@ -32,13 +31,13 @@ int	g_runfuncs = 0;
 //  reset it to NULL as appropriate
 struct local_state_s* g_finalstate = NULL;
 
-/*
+/***
 ====================
 COM_Log
 
 Log debug messages to file ( appends )
 ====================
-*/
+***/
 void COM_Log (char* pszFile, char* fmt, ...)
 	{
 	va_list		argptr;
@@ -71,13 +70,13 @@ void COM_Log (char* pszFile, char* fmt, ...)
 //  server.
 static int g_currentanim;
 
-/*
+/***
 =====================
 HUD_SendWeaponAnim
 
 Change weapon model animation
 =====================
-*/
+***/
 void HUD_SendWeaponAnim (int iAnim, int body, int force)
 	{
 	// Don't actually change it
@@ -90,25 +89,25 @@ void HUD_SendWeaponAnim (int iAnim, int body, int force)
 	gEngfuncs.pfnWeaponAnim (iAnim, body);
 	}
 
-/*
+/***
 =====================
 HUD_GetWeaponAnim
 
 Retrieve current predicted weapon animation
 =====================
-*/
+***/
 int HUD_GetWeaponAnim (void)
 	{
 	return g_currentanim;
 	}
 
-/*
+/***
 =====================
 HUD_PlaySound
 
 Play a sound, if we are seeing this command for the first time
 =====================
-*/
+***/
 void HUD_PlaySound (char* sound, float volume)
 	{
 	if (!g_runfuncs || !g_finalstate)
@@ -117,13 +116,13 @@ void HUD_PlaySound (char* sound, float volume)
 	gEngfuncs.pfnPlaySoundByNameAtLocation (sound, volume, (float*)&g_finalstate->playerstate.origin);
 	}
 
-/*
+/***
 =====================
 HUD_PlaybackEvent
 
 Directly queue up an event on the client
 =====================
-*/
+***/
 void HUD_PlaybackEvent (int flags, const edict_t* pInvoker, unsigned short eventindex, float delay,
 	float* origin, float* angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2)
 	{
@@ -140,23 +139,23 @@ void HUD_PlaybackEvent (int flags, const edict_t* pInvoker, unsigned short event
 		fparam2, iparam1, iparam2, bparam1, bparam2);
 	}
 
-/*
+/***
 =====================
 HUD_SetMaxSpeed
 =====================
-*/
+***/
 void HUD_SetMaxSpeed (const edict_t* ed, float speed)
 	{
 	}
 
-/*
+/***
 =====================
 UTIL_WeaponTimeBase
 
 Always 0.0 on client, even if not predicting weapons (won't get called
 in that case )
 =====================
-*/
+***/
 float UTIL_WeaponTimeBase (void)
 	{
 	return 0.0;
@@ -197,11 +196,11 @@ void U_Srand (unsigned int seed)
 	glSeed = seed_table[seed & 0xff];
 	}
 
-/*
+/***
 =====================
 UTIL_SharedRandomLong
 =====================
-*/
+***/
 int UTIL_SharedRandomLong (unsigned int seed, int low, int high)
 	{
 	unsigned int range;
@@ -226,11 +225,11 @@ int UTIL_SharedRandomLong (unsigned int seed, int low, int high)
 		}
 	}
 
-/*
+/***
 =====================
 UTIL_SharedRandomFloat
 =====================
-*/
+***/
 float UTIL_SharedRandomFloat (unsigned int seed, float low, float high)
 	{
 	//
@@ -259,14 +258,14 @@ float UTIL_SharedRandomFloat (unsigned int seed, float low, float high)
 		}
 	}
 
-/*
+/***
 ======================
 stub_*
 
 stub functions for such things as precaching.  So we don't have to modify weapons code that
  is compiled into both game and client .dlls.
 ======================
-*/
+***/
 int				stub_PrecacheModel (const char* s) { return 0; }
 int				stub_PrecacheSound (const char* s) { return 0; }
 unsigned short	stub_PrecacheEvent (int type, const char* s) { return 0; }

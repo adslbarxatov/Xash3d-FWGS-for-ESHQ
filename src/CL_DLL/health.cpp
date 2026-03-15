@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 //
 // Health.cpp
 //
@@ -21,7 +20,6 @@
 #include "STDIO.H"
 #include "STDLIB.H"
 #include "MATH.H"
-
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
@@ -95,7 +93,7 @@ int CHudHealth::VidInit (void)
 	return 1;
 	}
 
-int CHudHealth::MsgFunc_Health (const char* pszName, int iSize, void* pbuf)
+int CHudHealth::MsgFunc_Health (const char *pszName, int iSize, void *pbuf)
 	{
 	// TODO: update local health data
 	BEGIN_READ (pbuf, iSize);
@@ -113,7 +111,7 @@ int CHudHealth::MsgFunc_Health (const char* pszName, int iSize, void* pbuf)
 	return 1;
 	}
 
-int CHudHealth::MsgFunc_Damage (const char* pszName, int iSize, void* pbuf)
+int CHudHealth::MsgFunc_Damage (const char *pszName, int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 
@@ -137,7 +135,7 @@ int CHudHealth::MsgFunc_Damage (const char* pszName, int iSize, void* pbuf)
 
 // Returns back a color from the
 // Green <-> Yellow <-> Red ramp
-void CHudHealth::GetPainColor (int& r, int& g, int& b)
+void CHudHealth::GetPainColor (int &r, int &g, int &b)
 	{
 	int iHealth = m_iHealth;
 
@@ -370,7 +368,7 @@ int CHudHealth::DrawPain (float flTime)
 int CHudHealth::DrawDamage (float flTime)
 	{
 	int r, g, b, a, i;
-	DAMAGE_IMAGE* pdmg;
+	DAMAGE_IMAGE *pdmg;
 
 	if (!m_bitsDamage)
 		return 1;
@@ -395,7 +393,7 @@ int CHudHealth::DrawDamage (float flTime)
 	// check for bits that should be expired
 	for (i = 0; i < NUM_DMG_TYPES; i++)
 		{
-		DAMAGE_IMAGE* pdmg = &m_dmg[i];
+		DAMAGE_IMAGE *pdmg = &m_dmg[i];
 
 		if (m_bitsDamage & giDmgFlags[i])
 			{
@@ -427,7 +425,7 @@ int CHudHealth::DrawDamage (float flTime)
 
 void CHudHealth::UpdateTiles (float flTime, long bitsDamage)
 	{
-	DAMAGE_IMAGE* pdmg;
+	DAMAGE_IMAGE *pdmg;
 
 	// Which types are new?
 	long bitsOn = ~m_bitsDamage & bitsDamage;

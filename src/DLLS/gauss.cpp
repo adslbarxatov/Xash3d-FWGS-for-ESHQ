@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
 #include "extdll.h"
@@ -28,7 +27,8 @@
 #define	GAUSS_PRIMARY_CHARGE_VOLUME	256	// how loud gauss is while charging
 #define GAUSS_PRIMARY_FIRE_VOLUME	450	// how loud gauss is when discharged
 
-enum gauss_e {
+enum gauss_e
+	{
 	GAUSS_IDLE = 0,
 	GAUSS_IDLE2,
 	GAUSS_FIDGET,
@@ -93,7 +93,7 @@ void CGauss::Precache (void)
 	m_usGaussSpin = PRECACHE_EVENT (1, "events/gaussspin.sc");
 	}
 
-int CGauss::AddToPlayer (CBasePlayer* pPlayer)
+int CGauss::AddToPlayer (CBasePlayer *pPlayer)
 	{
 	if (CBasePlayerWeapon::AddToPlayer (pPlayer))
 		{
@@ -105,7 +105,7 @@ int CGauss::AddToPlayer (CBasePlayer* pPlayer)
 	return FALSE;
 	}
 
-int CGauss::GetItemInfo (ItemInfo* p)
+int CGauss::GetItemInfo (ItemInfo *p)
 	{
 	p->pszName = STRING (pev->classname);
 	p->pszAmmo1 = "uranium";
@@ -130,8 +130,8 @@ BOOL CGauss::Deploy ()
 
 void CGauss::Holster (int skiplocal)	// == 0
 	{
-	PLAYBACK_EVENT_FULL (FEV_RELIABLE | FEV_GLOBAL, m_pPlayer->edict (), m_usGaussFire, 0.01, 
-		(float*)&m_pPlayer->pev->origin, (float*)&m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1);
+	PLAYBACK_EVENT_FULL (FEV_RELIABLE | FEV_GLOBAL, m_pPlayer->edict (), m_usGaussFire, 0.01,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1);
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase () + 0.5;
 
@@ -174,7 +174,7 @@ void CGauss::SecondaryAttack ()
 		{
 		if (m_fInAttack != 0)
 			{
-			EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro4.wav", 1.0, 
+			EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro4.wav", 1.0,
 				ATTN_MEDIUM, 0, 80 + RANDOM_LONG (0, 0x3f));
 			SendWeaponAnim (GAUSS_IDLE);
 			m_fInAttack = 0;
@@ -211,8 +211,8 @@ void CGauss::SecondaryAttack ()
 		m_pPlayer->m_flStartCharge = gpGlobals->time;
 		m_pPlayer->m_flAmmoStartCharge = UTIL_WeaponTimeBase () + GetFullChargeTime ();
 
-		PLAYBACK_EVENT_FULL (FEV_NOTHOST, m_pPlayer->edict (), m_usGaussSpin, 0.0, (float*)&g_vecZero, 
-			(float*)&g_vecZero, 0.0, 0.0, 110, 0, 0, 0);
+		PLAYBACK_EVENT_FULL (FEV_NOTHOST, m_pPlayer->edict (), m_usGaussSpin, 0.0, (float *)&g_vecZero,
+			(float *)&g_vecZero, 0.0, 0.0, 110, 0, 0, 0);
 
 		m_iSoundState = SND_CHANGE_PITCH;
 		}
@@ -270,8 +270,8 @@ void CGauss::SecondaryAttack ()
 		if (m_iSoundState == 0)
 			ALERT (at_console, "sound state %d\n", m_iSoundState);
 
-		PLAYBACK_EVENT_FULL (FEV_NOTHOST, m_pPlayer->edict (), m_usGaussSpin, 0.0, (float*)&g_vecZero, 
-			(float*)&g_vecZero, 0.0, 0.0, pitch, 0, (m_iSoundState == SND_CHANGE_PITCH) ? 1 : 0, 0);
+		PLAYBACK_EVENT_FULL (FEV_NOTHOST, m_pPlayer->edict (), m_usGaussSpin, 0.0, (float *)&g_vecZero,
+			(float *)&g_vecZero, 0.0, 0.0, pitch, 0, (m_iSoundState == SND_CHANGE_PITCH) ? 1 : 0, 0);
 
 		m_iSoundState = SND_CHANGE_PITCH; // hack for going through level transitions
 
@@ -281,9 +281,9 @@ void CGauss::SecondaryAttack ()
 		if (m_pPlayer->m_flStartCharge < gpGlobals->time - 10)
 			{
 			// Player charged up too long. Zap him
-			EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro4.wav", 1.0, 
+			EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro4.wav", 1.0,
 				ATTN_MEDIUM, 0, 80 + RANDOM_LONG (0, 0x3f));
-			EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_ITEM, "weapons/electro6.wav", 1.0, 
+			EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_ITEM, "weapons/electro6.wav", 1.0,
 				ATTN_MEDIUM, 0, 75 + RANDOM_LONG (0, 0x3f));
 
 			m_fInAttack = 0;
@@ -441,16 +441,16 @@ void CGauss::WeaponIdle (void)
 		{
 		switch (RANDOM_LONG (0, 3))
 			{
-			case 0:	
-				EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro4.wav", RANDOM_FLOAT (0.7, 0.8), ATTN_MEDIUM); 
+			case 0:
+				EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro4.wav", RANDOM_FLOAT (0.7, 0.8), ATTN_MEDIUM);
 				break;
-			case 1:	
-				EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro5.wav", RANDOM_FLOAT (0.7, 0.8), ATTN_MEDIUM); 
+			case 1:
+				EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro5.wav", RANDOM_FLOAT (0.7, 0.8), ATTN_MEDIUM);
 				break;
-			case 2:	
-				EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro6.wav", RANDOM_FLOAT (0.7, 0.8), ATTN_MEDIUM); 
+			case 2:
+				EMIT_SOUND (ENT (m_pPlayer->pev), CHAN_WEAPON, "weapons/electro6.wav", RANDOM_FLOAT (0.7, 0.8), ATTN_MEDIUM);
 				break;
-			case 3:	
+			case 3:
 				break; // no sound
 			}
 		m_pPlayer->m_flPlayAftershock = 0.0;
@@ -489,7 +489,7 @@ void CGauss::WeaponIdle (void)
 		}
 	}
 
-class CGaussAmmo: public CBasePlayerAmmo
+class CGaussAmmo : public CBasePlayerAmmo
 	{
 	void Spawn (void)
 		{
@@ -502,7 +502,7 @@ class CGaussAmmo: public CBasePlayerAmmo
 		PRECACHE_MODEL ("models/w_gaussammo.mdl");
 		PRECACHE_SOUND ("items/9mmclip1.wav");
 		}
-	BOOL AddAmmo (CBaseEntity* pOther)
+	BOOL AddAmmo (CBaseEntity *pOther)
 		{
 		if (pOther->GiveAmmo (AMMO_URANIUMBOX_GIVE, "uranium", URANIUM_MAX_CARRY) != -1)
 			{

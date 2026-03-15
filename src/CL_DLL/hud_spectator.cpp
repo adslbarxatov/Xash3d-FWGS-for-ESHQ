@@ -5,19 +5,20 @@
 // $NoKeywords: $
 // =============================================================================
 
+// [FWGS, 01.03.26]
 #include "hud.h"
 #include "cl_util.h"
 #include "cl_entity.h"
 #include "triangleapi.h"
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_SpectatorPanel.h"
-#include "hltv.h"
-
+/*include "hltv.h"*/
 #include "pm_shared.h"
 #include "pm_defs.h"
-#include "pmtrace.h"
+/*include "pmtrace.h"*/
 #include "parsemsg.h"
 #include "entity_types.h"
+#include "pmove.h"
 
 // these are included for the math functions
 #include "com_model.h"
@@ -26,6 +27,21 @@
 #include "studio_util.h"
 #include "screenfade.h"
 
+// sub commands of svc_director
+#define DRC_CMD_NONE		0	// NULL director command
+#define DRC_CMD_START		1	// start director mode
+#define DRC_CMD_EVENT		2	// informs about director command
+#define DRC_CMD_MODE		3	// switches camera modes
+#define DRC_CMD_CAMERA		4	// sets camera registers
+#define DRC_CMD_TIMESCALE	5	// sets time scale
+#define DRC_CMD_MESSAGE		6	// send HUD centerprint
+#define DRC_CMD_SOUND		7	// plays a particular sound
+#define DRC_CMD_STATUS		8	// status info about broadcast
+#define DRC_CMD_BANNER		9	// banner file name for HLTV gui
+#define DRC_CMD_FADE		10	// send screen fade command
+#define DRC_CMD_SHAKE		11	// send screen shake command
+#define DRC_CMD_STUFFTEXT	12	// like the normal svc_stufftext but as director command
+
 #pragma warning(disable: 4244)
 
 extern "C" int		iJumpSpectator;
@@ -33,12 +49,12 @@ extern "C" float	vJumpOrigin[3];
 extern "C" float	vJumpAngles[3];
 
 
-extern void V_GetInEyePos (int entity, float* origin, float* angles);
+extern void V_GetInEyePos (int entity, float *origin, float *angles);
 extern void V_ResetChaseCam ();
-extern void V_GetChasePos (int target, float* cl_angles, float* origin, float* angles);
-extern void VectorAngles (const float* forward, float* angles);
-extern "C" void NormalizeAngles (float* angles);
-extern float* GetClientColor (int clientIndex);
+extern void V_GetChasePos (int target, float *cl_angles, float *origin, float *angles);
+extern void VectorAngles (const float *forward, float *angles);
+extern "C" void NormalizeAngles (float *angles);
+extern float *GetClientColor (int clientIndex);
 
 extern vec3_t v_origin;		// last view origin
 extern vec3_t v_angles;		// last view angle
@@ -71,7 +87,7 @@ void SpectatorSpray (void)
 	AngleVectors (v_angles, forward, NULL, NULL);
 	VectorScale (forward, 128, forward);
 	VectorAdd (forward, v_origin, forward);
-	pmtrace_t* trace = gEngfuncs.PM_TraceLine (v_origin, forward, PM_TRACELINE_PHYSENTSONLY, 2, -1);
+	pmtrace_t *trace = gEngfuncs.PM_TraceLine (v_origin, forward, PM_TRACELINE_PHYSENTSONLY, 2, -1);
 	if (trace->fraction != 1.0)
 		{
 		sprintf (string, "drc_spray %.2f %.2f %.2f %i",
@@ -88,7 +104,7 @@ void SpectatorHelp (void)
 		}
 	else
 		{
-		char* text = CHudTextMessage::BufferedLocaliseTextString ("#Spec_Help_Text");
+		char *text = CHudTextMessage::BufferedLocaliseTextString ("#Spec_Help_Text");
 
 		if (text)
 			{
@@ -171,9 +187,9 @@ int CHudSpectator::Init ()
 // -----------------------------------------------------------------------------
 // UTIL_StringToVector originally from ..\dlls\util.cpp, slightly changed
 // -----------------------------------------------------------------------------
-void UTIL_StringToVector (float* pVector, const char* pString)
+void UTIL_StringToVector (float *pVector, const char *pString)
 	{
-	char* pstr, * pfront, tempString[128];
+	char *pstr, *pfront, tempString[128];
 	int	j;
 
 	strcpy (tempString, pString);
@@ -198,19 +214,19 @@ void UTIL_StringToVector (float* pVector, const char* pString)
 		}
 	}
 
-int UTIL_FindEntityInMap (char* name, float* origin, float* angle)
+int UTIL_FindEntityInMap (char *name, float *origin, float *angle)
 	{
 	int				n, found = 0;
 	char			keyname[256];
 	char			token[2048];
 
-	cl_entity_t* pEnt = gEngfuncs.GetEntityByIndex (0);	// get world model
+	cl_entity_t *pEnt = gEngfuncs.GetEntityByIndex (0);	// get world model
 
 	if (!pEnt) return 0;
 
 	if (!pEnt->model)	return 0;
 
-	char* data = pEnt->model->entities;
+	char *data = pEnt->model->entities;
 
 	while (data)
 		{
@@ -381,7 +397,7 @@ int CHudSpectator::Draw (float flTime)
 	int lx;
 
 	char string[256];
-	float* color;
+	float *color;
 
 	// draw only in spectator mode
 	if (!g_iUser1)
@@ -452,10 +468,10 @@ int CHudSpectator::Draw (float flTime)
 	return 1;
 	}
 
-void CHudSpectator::DirectorMessage (int iSize, void* pbuf)
+void CHudSpectator::DirectorMessage (int iSize, void *pbuf)
 	{
 	float	value;
-	char* string;
+	char *string;
 
 	BEGIN_READ (pbuf, iSize);
 
@@ -517,11 +533,11 @@ void CHudSpectator::DirectorMessage (int iSize, void* pbuf)
 
 		case DRC_CMD_MESSAGE:
 			{
-			client_textmessage_t* msg = &m_HUDMessages[m_lastHudMessage];
+			client_textmessage_t *msg = &m_HUDMessages[m_lastHudMessage];
 
 			msg->effect = READ_BYTE ();		// effect
 
-			UnpackRGB ((int&)msg->r1, (int&)msg->g1, (int&)msg->b1, READ_LONG ());		// color
+			UnpackRGB ((int &)msg->r1, (int &)msg->g1, (int &)msg->b1, READ_LONG ());		// color
 			msg->r2 = msg->r1;
 			msg->g2 = msg->g1;
 			msg->b2 = msg->b1;
@@ -594,7 +610,7 @@ void CHudSpectator::FindNextPlayer (bool bReverse)
 	// MOD AUTHORS: Modify the logic of this function if you want to restrict the observer to watching
 	// only a subset of the players. e.g. Make it check the target's team
 	int		iStart;
-	cl_entity_t* pEnt = NULL;
+	cl_entity_t *pEnt = NULL;
 
 	// if we are NOT in HLTV mode, spectator targets are set on server
 	if (!gEngfuncs.IsSpectateOnly ())
@@ -642,21 +658,21 @@ void CHudSpectator::FindNextPlayer (bool bReverse)
 
 		} while (iCurrent != iStart);
 
-		// Did we find a target?
-		if (!g_iUser2)
-			{
-			gEngfuncs.Con_DPrintf ("No observer targets.\n");
-			// take save camera position 
-			VectorCopy (m_cameraOrigin, vJumpOrigin);
-			VectorCopy (m_cameraAngles, vJumpAngles);
-			}
-		else
-			{
-			// use new entity position for roaming
-			VectorCopy (pEnt->origin, vJumpOrigin);
-			VectorCopy (pEnt->angles, vJumpAngles);
-			}
-		iJumpSpectator = 1;
+	// Did we find a target?
+	if (!g_iUser2)
+		{
+		gEngfuncs.Con_DPrintf ("No observer targets.\n");
+		// take save camera position 
+		VectorCopy (m_cameraOrigin, vJumpOrigin);
+		VectorCopy (m_cameraAngles, vJumpAngles);
+		}
+	else
+		{
+		// use new entity position for roaming
+		VectorCopy (pEnt->origin, vJumpOrigin);
+		VectorCopy (pEnt->angles, vJumpAngles);
+		}
+	iJumpSpectator = 1;
 	}
 
 void CHudSpectator::HandleButtonsDown (int ButtonPressed)
@@ -868,7 +884,7 @@ void CHudSpectator::SetModes (int iNewMainMode, int iNewInsetMode)
 	gViewPort->UpdateSpectatorPanel ();
 	}
 
-bool CHudSpectator::IsActivePlayer (cl_entity_t* ent)
+bool CHudSpectator::IsActivePlayer (cl_entity_t *ent)
 	{
 	return (ent &&
 		ent->player &&
@@ -885,7 +901,7 @@ bool CHudSpectator::ParseOverviewFile ()
 	char token[1024];
 	float height;
 
-	char* pfile = NULL;
+	char *pfile = NULL;
 
 	memset (&m_OverviewData, 0, sizeof (m_OverviewData));
 
@@ -910,7 +926,7 @@ bool CHudSpectator::ParseOverviewFile ()
 
 	sprintf (filename, "overviews/%s.txt", levelname);
 
-	pfile = (char*)gEngfuncs.COM_LoadFile (filename, 5, NULL);
+	pfile = (char *)gEngfuncs.COM_LoadFile (filename, 5, NULL);
 
 	if (!pfile)
 		{
@@ -1055,7 +1071,7 @@ void CHudSpectator::DrawOverviewLayer ()
 	int ix, iy, i, xTiles, yTiles, frame;
 
 	qboolean	hasMapImage = m_MapSprite ? TRUE : FALSE;
-	model_t* dummySprite = (struct model_s*)gEngfuncs.GetSpritePointer (m_hsprUnkownMap);
+	model_t *dummySprite = (struct model_s *)gEngfuncs.GetSpritePointer (m_hsprUnkownMap);
 
 	if (hasMapImage)
 		{
@@ -1175,10 +1191,10 @@ void CHudSpectator::DrawOverviewLayer ()
 void CHudSpectator::DrawOverviewEntities ()
 	{
 	int				i, ir, ig, ib;
-	struct model_s* hSpriteModel;
+	struct model_s *hSpriteModel;
 	vec3_t			origin, angles, point, forward, right, left, up, world, screen, offset;
 	float			x, y, z, r, g, b, sizeScale = 4.0f;
-	cl_entity_t* ent;
+	cl_entity_t *ent;
 	float rmatrix[3][4];	// transformation matrix
 
 	float			zScale = (90.0f - v_angles[0]) / 90.0f;
@@ -1202,7 +1218,7 @@ void CHudSpectator::DrawOverviewEntities ()
 		if (!m_OverviewEntities[i].hSprite)
 			continue;
 
-		hSpriteModel = (struct model_s*)gEngfuncs.GetSpritePointer (m_OverviewEntities[i].hSprite);
+		hSpriteModel = (struct model_s *)gEngfuncs.GetSpritePointer (m_OverviewEntities[i].hSprite);
 		ent = m_OverviewEntities[i].entity;
 
 		gEngfuncs.pTriAPI->SpriteTexture (hSpriteModel, 0);
@@ -1253,7 +1269,7 @@ void CHudSpectator::DrawOverviewEntities ()
 
 		gEngfuncs.pTriAPI->RenderMode (kRenderTransAdd);
 
-		hSpriteModel = (struct model_s*)gEngfuncs.GetSpritePointer (m_hsprBeam);
+		hSpriteModel = (struct model_s *)gEngfuncs.GetSpritePointer (m_hsprBeam);
 		gEngfuncs.pTriAPI->SpriteTexture (hSpriteModel, 0);
 
 		gEngfuncs.pTriAPI->Color4f (r, g, b, 0.3);
@@ -1336,7 +1352,7 @@ void CHudSpectator::DrawOverviewEntities ()
 
 	angles[0] = 0; // always show horizontal camera sprite
 
-	hSpriteModel = (struct model_s*)gEngfuncs.GetSpritePointer (m_hsprCamera);
+	hSpriteModel = (struct model_s *)gEngfuncs.GetSpritePointer (m_hsprCamera);
 	gEngfuncs.pTriAPI->RenderMode (kRenderTransAdd);
 	gEngfuncs.pTriAPI->SpriteTexture (hSpriteModel, 0);
 
@@ -1400,7 +1416,7 @@ void CHudSpectator::CheckOverviewEntities ()
 		}
 	}
 
-bool CHudSpectator::AddOverviewEntity (int type, struct cl_entity_s* ent, const char* modelname)
+bool CHudSpectator::AddOverviewEntity (int type, struct cl_entity_s *ent, const char *modelname)
 	{
 	HLSPRITE	hSprite = 0;
 	double  duration = -1.0f;	// duration -1 means show it only this frame;
@@ -1436,13 +1452,13 @@ bool CHudSpectator::AddOverviewEntity (int type, struct cl_entity_s* ent, const 
 void CHudSpectator::DeathMessage (int victim)
 	{
 	// find out where the victim is
-	cl_entity_t* pl = gEngfuncs.GetEntityByIndex (victim);
+	cl_entity_t *pl = gEngfuncs.GetEntityByIndex (victim);
 
 	if (pl && pl->player)
 		AddOverviewEntityToList (m_hsprPlayerDead, pl, gEngfuncs.GetClientTime () + 2.0f);
 	}
 
-bool CHudSpectator::AddOverviewEntityToList (HLSPRITE sprite, cl_entity_t* ent, double killTime)
+bool CHudSpectator::AddOverviewEntityToList (HLSPRITE sprite, cl_entity_t *ent, double killTime)
 	{
 	for (int i = 0; i < MAX_OVERVIEW_ENTITIES; i++)
 		{

@@ -11,6 +11,7 @@ Valve LLC.  All other use, distribution, or modification is prohibited
 without written permission from Valve LLC
 ***/
 
+// [FWGS, 01.03.26]
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -18,19 +19,18 @@ without written permission from Valve LLC
 #include "weapons.h"
 #include "nodes.h"
 #include "player.h"
-
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "entity_state.h"
 #include "demo_api.h"
 #include "pm_defs.h"
 #include "event_api.h"
 #include "r_efx.h"
-
 #include "../hud_iface.h"
 #include "../com_weapons.h"
 #include "../demo.h"
+#include "q_client.h"
 
-extern globalvars_t* gpGlobals;
+extern globalvars_t *gpGlobals;
 extern int g_iUser1;
 
 // Pool of client side entities/entvars_t
@@ -43,7 +43,7 @@ static CBasePlayer	player;
 // Local version of game .dll global variables ( time, etc. )
 static globalvars_t	Globals;
 
-static CBasePlayerWeapon* g_pWpns[32];
+static CBasePlayerWeapon *g_pWpns[32];
 
 float g_flApplyVel = 0.0;
 int   g_irunninggausspred = 0;
@@ -75,7 +75,7 @@ AlertMessage
 Print debug messages to console
 ======================
 ***/
-void AlertMessage (ALERT_TYPE atype, char* szFmt, ...)
+void AlertMessage (ALERT_TYPE atype, char *szFmt, ...)
 	{
 	va_list		argptr;
 	static char	string[1024];
@@ -96,7 +96,7 @@ bool bIsMultiplayer (void)
 	}
 
 // Just loads a v_ model
-void LoadVModel (char* szViewModel, CBasePlayer* m_pPlayer)
+void LoadVModel (char *szViewModel, CBasePlayer *m_pPlayer)
 	{
 	gEngfuncs.CL_LoadModel (szViewModel, &m_pPlayer->pev->viewmodel);
 	}
@@ -109,7 +109,7 @@ Links the raw entity to an entvars_s holder.  If a player is passed in as the ow
 we set up the m_pPlayer field.
 =====================
 ***/
-void HUD_PrepEntity (CBaseEntity* pEntity, CBasePlayer* pWeaponOwner)
+void HUD_PrepEntity (CBaseEntity *pEntity, CBasePlayer *pWeaponOwner)
 	{
 	memset (&ev[num_ents], 0, sizeof (entvars_t));
 	pEntity->pev = &ev[num_ents++];
@@ -121,11 +121,11 @@ void HUD_PrepEntity (CBaseEntity* pEntity, CBasePlayer* pWeaponOwner)
 		{
 		ItemInfo info;
 
-		((CBasePlayerWeapon*)pEntity)->m_pPlayer = pWeaponOwner;
+		((CBasePlayerWeapon *)pEntity)->m_pPlayer = pWeaponOwner;
 
-		((CBasePlayerWeapon*)pEntity)->GetItemInfo (&info);
+		((CBasePlayerWeapon *)pEntity)->GetItemInfo (&info);
 
-		g_pWpns[info.iId] = (CBasePlayerWeapon*)pEntity;
+		g_pWpns[info.iId] = (CBasePlayerWeapon *)pEntity;
 		}
 	}
 
@@ -136,7 +136,7 @@ CBaseEntity :: Killed
 If weapons code "kills" an entity, just set its effects to EF_NODRAW
 =====================
 ***/
-void CBaseEntity::Killed (entvars_t* pevAttacker, int iGib)
+void CBaseEntity::Killed (entvars_t *pevAttacker, int iGib)
 	{
 	pev->effects |= EF_NODRAW;
 	}
@@ -208,7 +208,7 @@ BOOL CBasePlayerWeapon::CanDeploy (void)
 CBasePlayerWeapon :: DefaultDeploy
 =====================
 ***/
-BOOL CBasePlayerWeapon::DefaultDeploy (char* szViewModel, char* szWeaponModel, int iAnim, char* szAnimExt, 
+BOOL CBasePlayerWeapon::DefaultDeploy (char *szViewModel, char *szWeaponModel, int iAnim, char *szAnimExt,
 	int skiplocal, int	body)
 	{
 	if (!CanDeploy ())
@@ -287,7 +287,7 @@ Only produces random numbers to match the server ones.
 =====================
 ***/
 Vector CBaseEntity::FireBulletsPlayer (ULONG cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread,
-	float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t* pevAttacker, int shared_rand)
+	float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t *pevAttacker, int shared_rand)
 	{
 	float x, y, z;
 
@@ -296,7 +296,8 @@ Vector CBaseEntity::FireBulletsPlayer (ULONG cShots, Vector vecSrc, Vector vecDi
 		if (pevAttacker == NULL)
 			{
 			// get circular gaussian spread
-			do {
+			do
+				{
 				x = RANDOM_FLOAT (-0.5, 0.5) + RANDOM_FLOAT (-0.5, 0.5);
 				y = RANDOM_FLOAT (-0.5, 0.5) + RANDOM_FLOAT (-0.5, 0.5);
 				z = x * x + y * y;
@@ -384,12 +385,12 @@ CBasePlayer::SelectItem
 Switch weapons
 =====================
 ***/
-void CBasePlayer::SelectItem (const char* pstr)
+void CBasePlayer::SelectItem (const char *pstr)
 	{
 	if (!pstr)
 		return;
 
-	CBasePlayerItem* pItem = NULL;
+	CBasePlayerItem *pItem = NULL;
 
 	if (!pItem)
 		return;
@@ -430,7 +431,7 @@ void CBasePlayer::SelectLastItem (void)
 	if (m_pActiveItem)
 		m_pActiveItem->Holster ();
 
-	CBasePlayerItem* pTemp = m_pActiveItem;
+	CBasePlayerItem *pTemp = m_pActiveItem;
 	m_pActiveItem = m_pLastItem;
 	m_pLastItem = pTemp;
 	m_pActiveItem->Deploy ();
@@ -441,7 +442,7 @@ void CBasePlayer::SelectLastItem (void)
 CBasePlayer::Killed
 =====================
 ***/
-void CBasePlayer::Killed (entvars_t* pevAttacker, int iGib)
+void CBasePlayer::Killed (entvars_t *pevAttacker, int iGib)
 	{
 	// Holster weapon immediately, to allow it to cleanup
 	if (m_pActiveItem)
@@ -470,8 +471,8 @@ UTIL_TraceLine
 Don't actually trace, but act like the trace didn't hit anything
 =====================
 ***/
-void UTIL_TraceLine (const Vector& vecStart, const Vector& vecEnd, IGNORE_MONSTERS igmon, edict_t* pentIgnore,
-	TraceResult* ptr)
+void UTIL_TraceLine (const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, edict_t *pentIgnore,
+	TraceResult *ptr)
 	{
 	memset (ptr, 0, sizeof (*ptr));
 	ptr->flFraction = 1.0;
@@ -484,7 +485,7 @@ UTIL_ParticleBox
 For debugging, draw a box around a player made out of particles
 =====================
 ***/
-void UTIL_ParticleBox (CBasePlayer* player, float* mins, float* maxs, float life, unsigned char r,
+void UTIL_ParticleBox (CBasePlayer *player, float *mins, float *maxs, float life, unsigned char r,
 	unsigned char g, unsigned char b)
 	{
 	int i;
@@ -496,7 +497,7 @@ void UTIL_ParticleBox (CBasePlayer* player, float* mins, float* maxs, float life
 		mmax[i] = player->pev->origin[i] + maxs[i];
 		}
 
-	gEngfuncs.pEfxAPI->R_ParticleBox ((float*)&mmin, (float*)&mmax, 5.0, 0, 255, 0);
+	gEngfuncs.pEfxAPI->R_ParticleBox ((float *)&mmin, (float *)&mmax, 5.0, 0, 255, 0);
 	}
 
 /***
@@ -509,8 +510,8 @@ For debugging, draw boxes for other collidable players
 void UTIL_ParticleBoxes (void)
 	{
 	int idx;
-	physent_t* pe;
-	cl_entity_t* player;
+	physent_t *pe;
+	cl_entity_t *player;
 	vec3_t mins, maxs;
 
 	gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction (false, true);
@@ -533,7 +534,7 @@ void UTIL_ParticleBoxes (void)
 			mins = pe->origin + pe->mins;
 			maxs = pe->origin + pe->maxs;
 
-			gEngfuncs.pEfxAPI->R_ParticleBox ((float*)&mins, (float*)&maxs, 0, 0, 255, 2.0);
+			gEngfuncs.pEfxAPI->R_ParticleBox ((float *)&mins, (float *)&maxs, 0, 0, 255, 2.0);
 			}
 		}
 
@@ -547,7 +548,7 @@ UTIL_ParticleLine
 For debugging, draw a line made out of particles
 =====================
 ***/
-void UTIL_ParticleLine (CBasePlayer* player, float* start, float* end, float life, unsigned char r,
+void UTIL_ParticleLine (CBasePlayer *player, float *start, float *end, float life, unsigned char r,
 	unsigned char g, unsigned char b)
 	{
 	gEngfuncs.pEfxAPI->R_ParticleLine (start, end, r, g, b, life);
@@ -635,7 +636,7 @@ HUD_GetLastOrg
 Retruns the last position that we stored for egon beam endpoint
 =====================
 ***/
-void HUD_GetLastOrg (float* org)
+void HUD_GetLastOrg (float *org)
 	{
 	int i;
 
@@ -671,13 +672,13 @@ HUD_WeaponsPostThink
 Run Weapon firing code on client
 =====================
 ***/
-void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cmd, double time, unsigned int random_seed)
+void HUD_WeaponsPostThink (local_state_s *from, local_state_s *to, usercmd_t *cmd, double time, unsigned int random_seed)
 	{
 	int i;
 	int buttonsChanged;
-	CBasePlayerWeapon* pWeapon = NULL;
-	CBasePlayerWeapon* pCurrent;
-	weapon_data_t nulldata, * pfrom, * pto;
+	CBasePlayerWeapon *pWeapon = NULL;
+	CBasePlayerWeapon *pCurrent;
+	weapon_data_t nulldata, *pfrom, *pto;
 	static int lasthealth;
 
 	memset (&nulldata, 0, sizeof (nulldata));
@@ -694,7 +695,7 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 			pWeapon = &g_Crowbar;
 			break;
 
-		// ESHQ: топор
+			// ESHQ: топор
 		case WEAPON_AXE:
 			pWeapon = &g_Axe;
 			break;
@@ -832,7 +833,7 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 	player.pev->waterlevel = from->client.waterlevel;
 
 	// ESHQ: поддержка собираемых объектов
-	player.pev->collectedItems = from->client.collectedItems;		
+	player.pev->collectedItems = from->client.collectedItems;
 
 	player.pev->maxspeed = from->client.maxspeed;
 	player.pev->fov = from->client.fov;
@@ -861,8 +862,8 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 
 	if (player.m_pActiveItem->m_iId == WEAPON_RPG)
 		{
-		((CRpg*)player.m_pActiveItem)->m_fSpotActive = (int)from->client.vuser2[1];
-		((CRpg*)player.m_pActiveItem)->m_cActiveRockets = (int)from->client.vuser2[2];
+		((CRpg *)player.m_pActiveItem)->m_fSpotActive = (int)from->client.vuser2[1];
+		((CRpg *)player.m_pActiveItem)->m_cActiveRockets = (int)from->client.vuser2[2];
 		}
 
 	// Don't go firing anything if we have died.
@@ -885,7 +886,7 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 		// Switched to a different weapon?
 		if (from->weapondata[cmd->weaponselect].m_iId == cmd->weaponselect)
 			{
-			CBasePlayerWeapon* pNew = g_pWpns[cmd->weaponselect];
+			CBasePlayerWeapon *pNew = g_pWpns[cmd->weaponselect];
 			if (pNew && (pNew != pWeapon))
 				{
 				// Put away old weapon
@@ -929,8 +930,8 @@ void HUD_WeaponsPostThink (local_state_s* from, local_state_s* to, usercmd_t* cm
 
 	if (player.m_pActiveItem->m_iId == WEAPON_RPG)
 		{
-		from->client.vuser2[1] = ((CRpg*)player.m_pActiveItem)->m_fSpotActive;
-		from->client.vuser2[2] = ((CRpg*)player.m_pActiveItem)->m_cActiveRockets;
+		from->client.vuser2[1] = ((CRpg *)player.m_pActiveItem)->m_fSpotActive;
+		from->client.vuser2[2] = ((CRpg *)player.m_pActiveItem)->m_cActiveRockets;
 		}
 
 	// Make sure that weapon animation matches what the game .dll is telling us
@@ -1057,7 +1058,7 @@ runfuncs is 1 if this is the first time we've predicted this command.  If so, so
 otherwise, they should be ignored
 =====================
 ***/
-void _DLLEXPORT HUD_PostRunCmd (struct local_state_s* from, struct local_state_s* to, struct usercmd_s* cmd,
+void _DLLEXPORT HUD_PostRunCmd (struct local_state_s *from, struct local_state_s *to, struct usercmd_s *cmd,
 	int runfuncs, double time, unsigned int random_seed)
 	{
 	g_runfuncs = runfuncs;

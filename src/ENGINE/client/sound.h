@@ -16,6 +16,8 @@ GNU General Public License for more details
 #ifndef SOUND_H
 #define SOUND_H
 
+#include "xash3d_types.h"
+
 extern poolhandle_t sndpool;
 
 #include "xash3d_mathlib.h"
@@ -62,15 +64,17 @@ typedef struct
 	int right;
 	} portable_samplepair_t;
 
-// [FWGS, 09.05.24]
+// [FWGS, 01.03.26]
+#include "common.h"
+
 typedef struct sfx_s
 	{
 	char		name[MAX_QPATH];
-	wavdata_t	*cache;
+	wavdata_t *cache;
 
 	int				servercount;
 	uint			hashValue;
-	struct sfx_s	*hashNext;
+	struct sfx_s *hashNext;
 	} sfx_t;
 
 // [FWGS, 01.03.26]
@@ -115,8 +119,8 @@ typedef struct
 	int				samples;		// mono samples in buffer
 	int				samplepos;		// in mono samples
 	qboolean		initialized;	// sound engine is active
-	byte			*buffer;
-	const char		*backendName;
+	byte *buffer;
+	const char *backendName;
 	} dma_t;
 
 // [FWGS, 01.03.26]
@@ -131,7 +135,7 @@ typedef struct
 	qboolean	finished;
 	} mixer_t;*/
 
-// [FWGS, 01.02.25]
+	// [FWGS, 01.02.25]
 typedef struct rawchan_s
 	{
 	int			entnum;
@@ -196,7 +200,7 @@ typedef struct channel_s
 
 	double	sample;
 	double	forced_end;
-	wavdata_t	*data;
+	wavdata_t *data;
 	} channel_t;
 
 // [FWGS, 01.03.26]
@@ -396,7 +400,7 @@ void VOX_SetChanVol (channel_t *ch);
 void VOX_LoadSound (channel_t *pchan, const char *psz);
 float VOX_ModifyPitch (channel_t *ch, float pitch);
 /*int VOX_MixDataToDevice (channel_t *pChannel, int sampleCount, int outputRate, int outputOffset);*/
-void VOX_LoadWord (channel_t * pchan);
+void VOX_LoadWord (channel_t *pchan);
 void VOX_FreeWord (channel_t *pchan);
 
 #endif

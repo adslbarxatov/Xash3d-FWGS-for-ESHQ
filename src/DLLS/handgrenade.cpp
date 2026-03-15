@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -23,7 +22,8 @@
 
 #define	HANDGRENADE_PRIMARY_VOLUME		450
 
-enum handgrenade_e {
+enum handgrenade_e
+	{
 	HANDGRENADE_IDLE = 0,
 	HANDGRENADE_FIDGET,
 	HANDGRENADE_PINPULL,
@@ -58,7 +58,7 @@ void CHandGrenade::Precache (void)
 	PRECACHE_MODEL ("models/p_grenade.mdl");
 	}
 
-int CHandGrenade::GetItemInfo (ItemInfo* p)
+int CHandGrenade::GetItemInfo (ItemInfo *p)
 	{
 	p->pszName = STRING (pev->classname);
 	p->pszAmmo1 = "Hand Grenade";

@@ -5,38 +5,38 @@
 // $NoKeywords: $
 // =============================================================================
 
-#include"vgui_ConsolePanel.h"
-#include"hud.h"
-#include<VGUI_ActionSignal.h>
-#include<VGUI_TextGrid.h>
-#include<VGUI_TextEntry.h>
-#include<VGUI_EtchedBorder.h>
-#include<VGUI_LoweredBorder.h>
+#include "vgui_ConsolePanel.h"
+#include "hud.h"
+#include <VGUI_ActionSignal.h>
+#include <VGUI_TextGrid.h>
+#include <VGUI_TextEntry.h>
+#include <VGUI_EtchedBorder.h>
+#include <VGUI_LoweredBorder.h>
 
 using namespace vgui;
 
 namespace
 	{
-	class Handler: public ActionSignal
+	class Handler : public ActionSignal
 		{
 		private:
-			ConsolePanel* _consolePanel;
+			ConsolePanel *_consolePanel;
 
 		public:
-			Handler (ConsolePanel* consolePanel)
+			Handler (ConsolePanel *consolePanel)
 				{
 				_consolePanel = consolePanel;
 				}
 
 		public:
-			virtual void actionPerformed (Panel* panel)
+			virtual void actionPerformed (Panel *panel)
 				{
 				_consolePanel->doExecCommand ();
 				}
 		};
 	}
 
-ConsolePanel::ConsolePanel (int x, int y, int wide, int tall): Panel (x, y, wide, tall)
+ConsolePanel::ConsolePanel (int x, int y, int wide, int tall) : Panel (x, y, wide, tall)
 	{
 	setBorder (new EtchedBorder ());
 
@@ -49,17 +49,17 @@ ConsolePanel::ConsolePanel (int x, int y, int wide, int tall): Panel (x, y, wide
 	_textEntry->addActionSignal (new Handler (this));
 	}
 
-int ConsolePanel::print (const char* text)
+int ConsolePanel::print (const char *text)
 	{
 	return _textGrid->printf ("%s", text);
 	}
 
-int ConsolePanel::vprintf (const char* format, va_list argList)
+int ConsolePanel::vprintf (const char *format, va_list argList)
 	{
 	return _textGrid->vprintf (format, argList);
 	}
 
-int ConsolePanel::printf (const char* format, ...)
+int ConsolePanel::printf (const char *format, ...)
 	{
 	va_list argList;
 	va_start (argList, format);

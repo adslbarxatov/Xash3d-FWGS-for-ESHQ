@@ -1,24 +1,22 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
 
 #ifndef WEAPONINFO_H
 #define WEAPONINFO_H
 
 // Info about weapons player might have in his/her possession
 typedef struct weapon_data_s
-{
+	{
 	int		m_iId;
 	int		m_iClip;
 
@@ -45,6 +43,6 @@ typedef struct weapon_data_s
 	float		fuser2;
 	float		fuser3;
 	float		fuser4;
-} weapon_data_t;
+	} weapon_data_t;
 
-#endif//WEAPONINFO_H
+#endif

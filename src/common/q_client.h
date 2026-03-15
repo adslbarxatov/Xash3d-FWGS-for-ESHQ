@@ -14,7 +14,7 @@ See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 ***/
 
 // client.h -- primary header for client
@@ -74,12 +74,25 @@ typedef struct dlight_s
 STATIC_CHECK_SIZEOF (dlight_t, 40, 40);
 
 // cl_input
-typedef struct
+#ifdef CLIENT_DLL
+
+// ESHQ: без малейшего понятия, почему так
+struct kbutton_t
 	{
-	int			down[2];	// key nums holding it down
-	int			state;		// low bit is down state
+	int		down[2];	// key nums holding it down
+	int		state;		// low bit is down state
+	};
+
+#else
+
+typedef struct kbutton_s
+	{
+	int		down[2];	// key nums holding it down
+	int		state;		// low bit is down state
 	} kbutton_t;
 
 STATIC_CHECK_SIZEOF (kbutton_t, 12, 12);
+
+#endif
 
 #endif

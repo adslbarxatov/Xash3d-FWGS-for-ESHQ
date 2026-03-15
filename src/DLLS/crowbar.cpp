@@ -34,7 +34,7 @@ void FindHullIntersection (const Vector &vecSrc, TraceResult &tr, float *mins, f
 	{
 	int			i, j, k;
 	float		distance;
-	float		*minmaxs[2] = { mins, maxs };
+	float *minmaxs[2] = { mins, maxs };
 	TraceResult	tmpTrace;
 	Vector		vecHullEnd = tr.vecEndPos;
 	Vector		vecEnd;
@@ -114,7 +114,7 @@ void CCrowbar::Precache (void)
 	m_usCrowbar = PRECACHE_EVENT (1, "events/crowbar.sc");
 	}
 
-int CCrowbar::GetItemInfo (ItemInfo* p)
+int CCrowbar::GetItemInfo (ItemInfo *p)
 	{
 	p->pszName = STRING (pev->classname);
 	p->pszAmmo1 = NULL;
@@ -180,7 +180,7 @@ int CCrowbar::Swing (int fFirst)
 			{
 			// Calculate the point of intersection of the line (or hull) and the object we hit
 			// This is and approximation of the "best" intersection
-			CBaseEntity* pHit = CBaseEntity::Instance (tr.pHit);
+			CBaseEntity *pHit = CBaseEntity::Instance (tr.pHit);
 			if (!pHit || pHit->IsBSPModel ())
 				FindHullIntersection (vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict ());
 			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
@@ -189,7 +189,7 @@ int CCrowbar::Swing (int fFirst)
 #endif
 
 	PLAYBACK_EVENT_FULL (FEV_NOTHOST, m_pPlayer->edict (), m_usCrowbar,
-		0.0, (float*)&g_vecZero, (float*)&g_vecZero, 0, 0, 0, 0.0, 0, 0.0);
+		0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, 0, 0.0, 0, 0.0);
 
 	if (tr.flFraction >= 1.0)
 		{
@@ -207,13 +207,13 @@ int CCrowbar::Swing (int fFirst)
 		switch (((m_iSwing++) % 2) + 1)
 			{
 			case 0:
-				SendWeaponAnim (CROWBAR_ATTACK1HIT); 
+				SendWeaponAnim (CROWBAR_ATTACK1HIT);
 				break;
 			case 1:
-				SendWeaponAnim (CROWBAR_ATTACK2HIT); 
+				SendWeaponAnim (CROWBAR_ATTACK2HIT);
 				break;
 			case 2:
-				SendWeaponAnim (CROWBAR_ATTACK3HIT); 
+				SendWeaponAnim (CROWBAR_ATTACK3HIT);
 				break;
 			}
 
@@ -224,20 +224,20 @@ int CCrowbar::Swing (int fFirst)
 
 		// hit
 		fDidHit = TRUE;
-		CBaseEntity* pEntity = CBaseEntity::Instance (tr.pHit);
+		CBaseEntity *pEntity = CBaseEntity::Instance (tr.pHit);
 
 		ClearMultiDamage ();
 
 		if ((m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase ()) || g_pGameRules->IsMultiplayer ())
 			{
 			// first swing does full damage
-			pEntity->TraceAttack (m_pPlayer->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, 
+			pEntity->TraceAttack (m_pPlayer->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward,
 				&tr, DMG_CLUB);
 			}
 		else
 			{
 			// subsequent swings do half
-			pEntity->TraceAttack (m_pPlayer->pev, gSkillData.plrDmgCrowbar / 2, gpGlobals->v_forward, 
+			pEntity->TraceAttack (m_pPlayer->pev, gSkillData.plrDmgCrowbar / 2, gpGlobals->v_forward,
 				&tr, DMG_CLUB);
 			}
 		ApplyMultiDamage (m_pPlayer->pev, m_pPlayer->pev);
@@ -294,11 +294,11 @@ int CCrowbar::Swing (int fFirst)
 			switch (RANDOM_LONG (0, 1))
 				{
 				case 0:
-					EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit1.wav", fvolbar, ATTN_MEDIUM, 0, 
+					EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit1.wav", fvolbar, ATTN_MEDIUM, 0,
 						98 + RANDOM_LONG (0, 3));
 					break;
 				case 1:
-					EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit2.wav", fvolbar, ATTN_MEDIUM, 0, 
+					EMIT_SOUND_DYN (ENT (m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit2.wav", fvolbar, ATTN_MEDIUM, 0,
 						98 + RANDOM_LONG (0, 3));
 					break;
 				}
@@ -320,7 +320,7 @@ int CCrowbar::Swing (int fFirst)
 
 // ESHQ: частные для топора
 LINK_ENTITY_TO_CLASS (weapon_axe, CAxe);
-	
+
 enum axe_e
 	{
 	AXE_IDLE = 0,

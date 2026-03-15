@@ -8,6 +8,7 @@
 // studio_model.cpp
 // routines for setting up to draw 3DStudio models
 
+// [FWGS, 01.03.26]
 #include "hud.h"
 #include "cl_util.h"
 #include "const.h"
@@ -15,17 +16,14 @@
 #include "studio.h"
 #include "entity_state.h"
 #include "cl_entity.h"
-#include "dlight.h"
+/*include "dlight.h"*/
 #include "triangleapi.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <memory.h>
 #include <math.h>
-
 #include "studio_util.h"
 #include "r_studioint.h"
-
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
 

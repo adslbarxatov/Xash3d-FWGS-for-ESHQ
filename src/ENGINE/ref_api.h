@@ -30,7 +30,10 @@ GNU General Public License for more details
 #include "filesystem.h"
 #include "common/protocol.h"
 #include "cvardef.h"	// [FWGS, 01.12.24]
+
+#ifndef CLIENT_DLL
 #include "q_client.h"	// [FWGS, 01.03.26]
+#endif
 
 // RefAPI changelog:
 // 1. Initial release
@@ -709,10 +712,10 @@ typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *e
 #define DECLARE_ENGINE_SHARED_CVAR( x, y ) extern cvar_t *x;
 
 // [FWGS, 01.03.26]
+/*if(!( x = gEngfuncs.pfnGetCvarPointer( y, 0 ) )) \*/
 #define RETRIEVE_ENGINE_SHARED_CVAR( x, y ) \
-	/*if(!( x = gEngfuncs.pfnGetCvarPointer( #y, 0 ) )) \*/
-	if (!(x = gEngfuncs.pfnGetCvarPointer (#y))) \
-		gEngfuncs.Host_Error( S_ERROR "engine betrayed us and didn't gave us %s cvar pointer\n", #y );
+	if(!( x = gEngfuncs.pfnGetCvarPointer( #y ) )) \
+		gEngfuncs.Host_Error( S_ERROR "engine didn't gave us %s cvar pointer\n", #y );
 #define ENGINE_SHARED_CVAR_NAME( f, x, y ) f( x, y )
 #define ENGINE_SHARED_CVAR( f, x ) ENGINE_SHARED_CVAR_NAME( f, x, x )
 

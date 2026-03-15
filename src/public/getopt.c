@@ -29,7 +29,7 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 // SUCH DAMAGE
 
-#include "build.h"
+#include "..\library_suffix\build.h"
 #if XASH_WIN32
 #include <stdio.h>
 #include <stdlib.h>

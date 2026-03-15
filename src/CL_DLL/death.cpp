@@ -17,15 +17,14 @@ without written permission from Valve LLC
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
-
 #include <string.h>
 #include <stdio.h>
-
 #include "vgui_TeamFortressViewport.h"
 
 DECLARE_MESSAGE (m_DeathNotice, DeathMsg);
 
-struct DeathNoticeItem {
+struct DeathNoticeItem
+	{
 	char szKiller[MAX_PLAYER_NAME_LENGTH * 2];
 	char szVictim[MAX_PLAYER_NAME_LENGTH * 2];
 	int iId;	// the index number of the associated sprite
@@ -33,8 +32,8 @@ struct DeathNoticeItem {
 	int iTeamKill;
 	int iNonPlayerKill;
 	float flDisplayTime;
-	float* KillerColor;
-	float* VictimColor;
+	float *KillerColor;
+	float *VictimColor;
 	};
 
 #define MAX_DEATHNOTICES	4
@@ -44,13 +43,13 @@ static int DEATHNOTICE_DISPLAY_TIME = 6;
 
 DeathNoticeItem rgDeathNoticeList[MAX_DEATHNOTICES + 1];
 
-float g_ColorBlue[3] = {0.6, 0.8, 1.0};
-float g_ColorRed[3] = {1.0, 0.25, 0.25};
-float g_ColorGreen[3] = {0.6, 1.0, 0.6};
-float g_ColorYellow[3] = {1.0, 0.7, 0.0};
-float g_ColorGrey[3] = {0.8, 0.8, 0.8};
+float g_ColorBlue[3] = { 0.6, 0.8, 1.0 };
+float g_ColorRed[3] = { 1.0, 0.25, 0.25 };
+float g_ColorGreen[3] = { 0.6, 1.0, 0.6 };
+float g_ColorYellow[3] = { 1.0, 0.7, 0.0 };
+float g_ColorGrey[3] = { 0.8, 0.8, 0.8 };
 
-float* GetClientColor (int clientIndex)
+float *GetClientColor (int clientIndex)
 	{
 	switch (g_PlayerExtraInfo[clientIndex].teamnumber)
 		{
@@ -154,7 +153,7 @@ int CHudDeathNotice::Draw (float flTime)
 	}
 
 // This message handler may be better off elsewhere
-int CHudDeathNotice::MsgFunc_DeathMsg (const char* pszName, int iSize, void* pbuf)
+int CHudDeathNotice::MsgFunc_DeathMsg (const char *pszName, int iSize, void *pbuf)
 	{
 	int i;
 
@@ -189,7 +188,7 @@ int CHudDeathNotice::MsgFunc_DeathMsg (const char* pszName, int iSize, void* pbu
 		gViewPort->GetAllPlayersInfo ();
 
 	// Get the Killer's name
-	char* killer_name = g_PlayerInfoList[killer].name;
+	char *killer_name = g_PlayerInfoList[killer].name;
 	if (!killer_name)
 		{
 		killer_name = "";
@@ -203,7 +202,7 @@ int CHudDeathNotice::MsgFunc_DeathMsg (const char* pszName, int iSize, void* pbu
 		}
 
 	// Get the Victim's name
-	char* victim_name = NULL;
+	char *victim_name = NULL;
 	// If victim is -1, the killer killed a specific, non-player object (like a sentrygun)
 	if (((char)victim) != -1)
 		victim_name = g_PlayerInfoList[victim].name;

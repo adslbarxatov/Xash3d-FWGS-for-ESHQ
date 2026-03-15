@@ -17,8 +17,7 @@
 // =============================================================================
 
 
-#include<VGUI_LineBorder.h>
-
+#include <VGUI_LineBorder.h>
 #include "hud.h"
 #include "cl_util.h"
 #include "const.h"
@@ -35,7 +34,7 @@ extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS + 1];   // additional player 
 team_info_t			 g_TeamInfo[MAX_TEAMS + 1];
 int					 g_IsSpectator[MAX_PLAYERS + 1];
 
-int HUD_IsGame (const char* game);
+int HUD_IsGame (const char *game);
 int EV_TFC_IsAllyTeam (int iTeam1, int iTeam2);
 
 // Scoreboard dimensions
@@ -47,7 +46,7 @@ int EV_TFC_IsAllyTeam (int iTeam1, int iTeam2);
 class SBColumnInfo
 	{
 	public:
-		char* m_pTitle;		// If null, ignore, if starts with #, it's localized, otherwise use the string directly.
+		char *m_pTitle;		// If null, ignore, if starts with #, it's localized, otherwise use the string directly.
 		int					m_Width;		// Based on 640 width. Scaled to fit other resolutions.
 		Label::Alignment	m_Alignment;
 	};
@@ -56,14 +55,14 @@ class SBColumnInfo
 
 SBColumnInfo g_ColumnInfo[NUM_COLUMNS] =
 	{
-		{NULL,			24,			Label::a_east},
-		{NULL,			140,		Label::a_east},		// name
-		{NULL,			56,			Label::a_east},		// class
-		{"#SCORE",		40,			Label::a_east},
-		{"#DEATHS",		46,			Label::a_east},
-		{"#LATENCY",	46,			Label::a_east},
-		{"#VOICE",		40,			Label::a_east},
-		{NULL,			2,			Label::a_east},		// blank column to take up the slack
+		{ NULL,			24,		Label::a_east},
+		{ NULL,			140,	Label::a_east},		// name
+		{ NULL,			56,		Label::a_east},		// class
+		{ "#SCORE",		40,		Label::a_east},
+		{ "#DEATHS",	46,		Label::a_east},
+		{ "#LATENCY",	46,		Label::a_east},
+		{ "#VOICE",		40,		Label::a_east},
+		{ NULL,			2,		Label::a_east},		// blank column to take up the slack
 	};
 
 #define TEAM_NO				0
@@ -85,13 +84,13 @@ void ScorePanel::HitTestPanel::internalMousePressed (MouseCode code)
 // -----------------------------------------------------------------------------
 // Purpose: Create the ScoreBoard panel
 // -----------------------------------------------------------------------------
-ScorePanel::ScorePanel (int x, int y, int wide, int tall): Panel (x, y, wide, tall)
+ScorePanel::ScorePanel (int x, int y, int wide, int tall) : Panel (x, y, wide, tall)
 	{
-	CSchemeManager* pSchemes = gViewPort->GetSchemeManager ();
+	CSchemeManager *pSchemes = gViewPort->GetSchemeManager ();
 	SchemeHandle_t hTitleScheme = pSchemes->getSchemeHandle ("Scoreboard Title Text");
 	SchemeHandle_t hSmallScheme = pSchemes->getSchemeHandle ("Scoreboard Small Text");
-	Font* tfont = pSchemes->getFont (hTitleScheme);
-	Font* smallfont = pSchemes->getFont (hSmallScheme);
+	Font *tfont = pSchemes->getFont (hTitleScheme);
+	Font *smallfont = pSchemes->getFont (hSmallScheme);
 
 	setBgColor (0, 0, 0, 96);
 	m_pCurrentHighlightLabel = NULL;
@@ -104,7 +103,7 @@ ScorePanel::ScorePanel (int x, int y, int wide, int tall): Panel (x, y, wide, ta
 	m_TitleLabel.setFgColor (Scheme::sc_primary1);
 	m_TitleLabel.setContentAlignment (vgui::Label::a_west);
 
-	LineBorder* border = new LineBorder (Color (60, 60, 60, 128));
+	LineBorder *border = new LineBorder (Color (60, 60, 60, 128));
 	setBorder (border);
 	setPaintBorderEnabled (true);
 
@@ -184,7 +183,7 @@ ScorePanel::ScorePanel (int x, int y, int wide, int tall): Panel (x, y, wide, ta
 
 	for (int row = 0; row < NUM_ROWS; row++)
 		{
-		CGrid* pGridRow = &m_PlayerGrids[row];
+		CGrid *pGridRow = &m_PlayerGrids[row];
 
 		pGridRow->SetDimensions (NUM_COLUMNS, 1);
 
@@ -394,7 +393,7 @@ void ScorePanel::SortTeams ()
 // -----------------------------------------------------------------------------
 // Purpose: Sort a list of players
 // -----------------------------------------------------------------------------
-void ScorePanel::SortPlayers (int iTeam, char* team)
+void ScorePanel::SortPlayers (int iTeam, char *team)
 	{
 	bool bCreatedTeam = false;
 	int i;
@@ -411,11 +410,11 @@ void ScorePanel::SortPlayers (int iTeam, char* team)
 			{
 			if (m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && g_PlayerExtraInfo[i].frags >= highest_frags)
 				{
-				cl_entity_t* ent = gEngfuncs.GetEntityByIndex (i);
+				cl_entity_t *ent = gEngfuncs.GetEntityByIndex (i);
 
 				if (ent && !(team && stricmp (g_PlayerExtraInfo[i].teamname, team)))
 					{
-					extra_player_info_t* pl_info = &g_PlayerExtraInfo[i];
+					extra_player_info_t *pl_info = &g_PlayerExtraInfo[i];
 					if (pl_info->frags > highest_frags || pl_info->deaths < lowest_deaths)
 						{
 						best_player = i;
@@ -515,14 +514,14 @@ void ScorePanel::RebuildTeams ()
 void ScorePanel::FillGrid ()
 	{
 	int row, col;
-	CSchemeManager* pSchemes = gViewPort->GetSchemeManager ();
+	CSchemeManager *pSchemes = gViewPort->GetSchemeManager ();
 	SchemeHandle_t hScheme = pSchemes->getSchemeHandle ("Scoreboard Text");
 	SchemeHandle_t hTitleScheme = pSchemes->getSchemeHandle ("Scoreboard Title Text");
 	SchemeHandle_t hSmallScheme = pSchemes->getSchemeHandle ("Scoreboard Small Text");
 
-	Font* sfont = pSchemes->getFont (hScheme);
-	Font* tfont = pSchemes->getFont (hTitleScheme);
-	Font* smallfont = pSchemes->getFont (hSmallScheme);
+	Font *sfont = pSchemes->getFont (hScheme);
+	Font *tfont = pSchemes->getFont (hTitleScheme);
+	Font *smallfont = pSchemes->getFont (hSmallScheme);
 
 	// update highlight position
 	int x, y;
@@ -539,7 +538,7 @@ void ScorePanel::FillGrid ()
 
 	for (row = 0; row < NUM_ROWS; row++)
 		{
-		CGrid* pGridRow = &m_PlayerGrids[row];
+		CGrid *pGridRow = &m_PlayerGrids[row];
 		pGridRow->SetRowUnderline (0, false, 0, 0, 0, 0, 0);
 
 		if (row >= m_iRows)
@@ -559,7 +558,7 @@ void ScorePanel::FillGrid ()
 
 		for (int col = 0; col < NUM_COLUMNS; col++)
 			{
-			CLabelHeader* pLabel = &m_PlayerEntries[col][row];
+			CLabelHeader *pLabel = &m_PlayerEntries[col][row];
 
 			pLabel->setVisible (true);
 			pLabel->setText2 ("");
@@ -581,8 +580,8 @@ void ScorePanel::FillGrid ()
 			pLabel->setBgColor (0, 0, 0, 255);
 
 			char sz[128];
-			hud_player_info_t* pl_info = NULL;
-			team_info_t* team_info = NULL;
+			hud_player_info_t *pl_info = NULL;
+			team_info_t *team_info = NULL;
 
 			if (m_iIsATeam[row] == TEAM_BLANK)
 				{
@@ -799,7 +798,7 @@ void ScorePanel::FillGrid ()
 
 	for (row = 0; row < NUM_ROWS; row++)
 		{
-		CGrid* pGridRow = &m_PlayerGrids[row];
+		CGrid *pGridRow = &m_PlayerGrids[row];
 
 		pGridRow->AutoSetRowHeights ();
 		pGridRow->setSize (PanelWidth (pGridRow), pGridRow->CalcDrawHeight ());
@@ -834,7 +833,7 @@ void ScorePanel::Open (void)
 	m_HitTestPanel.setVisible (true);
 	}
 
-void ScorePanel::mousePressed (MouseCode code, Panel* panel)
+void ScorePanel::mousePressed (MouseCode code, Panel *panel)
 	{
 	if (gHUD.m_iIntermission)
 		return;
@@ -851,7 +850,7 @@ void ScorePanel::mousePressed (MouseCode code, Panel* panel)
 		if (iPlayer > 0)
 			{
 			// print text message
-			hud_player_info_t* pl_info = &g_PlayerInfoList[iPlayer];
+			hud_player_info_t *pl_info = &g_PlayerInfoList[iPlayer];
 
 			if (pl_info && pl_info->name && pl_info->name[0])
 				{
@@ -887,7 +886,7 @@ void ScorePanel::mousePressed (MouseCode code, Panel* panel)
 		}
 	}
 
-void ScorePanel::cursorMoved (int x, int y, Panel* panel)
+void ScorePanel::cursorMoved (int x, int y, Panel *panel)
 	{
 	if (GetClientVoiceMgr ()->IsInSquelchMode ())
 		{
@@ -911,7 +910,7 @@ void ScorePanel::cursorMoved (int x, int y, Panel* panel)
 // -----------------------------------------------------------------------------
 void ScorePanel::MouseOverCell (int row, int col)
 	{
-	CLabelHeader* label = &m_PlayerEntries[col][row];
+	CLabelHeader *label = &m_PlayerEntries[col][row];
 
 	// clear the previously highlighted label
 	if (m_pCurrentHighlightLabel != label)
@@ -927,7 +926,7 @@ void ScorePanel::MouseOverCell (int row, int col)
 		return;
 
 	// don't act on disconnected players or ourselves
-	hud_player_info_t* pl_info = &g_PlayerInfoList[m_iSortedRows[row]];
+	hud_player_info_t *pl_info = &g_PlayerInfoList[m_iSortedRows[row]];
 	if (!pl_info->name || !pl_info->name[0])
 		return;
 
@@ -1001,7 +1000,7 @@ void CLabelHeader::paint ()
 	setFgColor (oldFg[0], oldFg[1], oldFg[2], oldFg[3]);
 	}
 
-void CLabelHeader::calcAlignment (int iwide, int itall, int& x, int& y)
+void CLabelHeader::calcAlignment (int iwide, int itall, int &x, int &y)
 	{
 	// calculate alignment ourselves, since vgui is so broken
 	int wide, tall;

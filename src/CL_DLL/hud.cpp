@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 //
 // hud.cpp
 //
@@ -31,7 +30,7 @@
 #include "demo_api.h"
 #include "vgui_scorepanel.h"
 
-class CHLVoiceStatusHelper: public IVoiceStatusHelper
+class CHLVoiceStatusHelper : public IVoiceStatusHelper
 	{
 	public:
 		virtual void GetPlayerTextColor (int entindex, int color[3])
@@ -73,46 +72,46 @@ class CHLVoiceStatusHelper: public IVoiceStatusHelper
 	};
 static CHLVoiceStatusHelper g_VoiceStatusHelper;
 
-extern client_sprite_t* GetSpriteList (client_sprite_t* pList, const char* psz, int iRes, int iCount);
+extern client_sprite_t *GetSpriteList (client_sprite_t *pList, const char *psz, int iRes, int iCount);
 
-extern cvar_t* sensitivity;
-cvar_t* cl_lw = NULL;
+extern cvar_t *sensitivity;
+cvar_t *cl_lw = NULL;
 
 void ShutdownInput (void);
 
-int __MsgFunc_Logo (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_Logo (const char *pszName, int iSize, void *pbuf)
 	{
 	return gHUD.MsgFunc_Logo (pszName, iSize, pbuf);
 	}
 
-int __MsgFunc_ResetHUD (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_ResetHUD (const char *pszName, int iSize, void *pbuf)
 	{
 	return gHUD.MsgFunc_ResetHUD (pszName, iSize, pbuf);
 	}
 
-int __MsgFunc_InitHUD (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_InitHUD (const char *pszName, int iSize, void *pbuf)
 	{
 	gHUD.MsgFunc_InitHUD (pszName, iSize, pbuf);
 	return 1;
 	}
 
-int __MsgFunc_ViewMode (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_ViewMode (const char *pszName, int iSize, void *pbuf)
 	{
 	gHUD.MsgFunc_ViewMode (pszName, iSize, pbuf);
 	return 1;
 	}
 
-int __MsgFunc_SetFOV (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_SetFOV (const char *pszName, int iSize, void *pbuf)
 	{
 	return gHUD.MsgFunc_SetFOV (pszName, iSize, pbuf);
 	}
 
-int __MsgFunc_Concuss (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_Concuss (const char *pszName, int iSize, void *pbuf)
 	{
 	return gHUD.MsgFunc_Concuss (pszName, iSize, pbuf);
 	}
 
-int __MsgFunc_GameMode (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_GameMode (const char *pszName, int iSize, void *pbuf)
 	{
 	return gHUD.MsgFunc_GameMode (pszName, iSize, pbuf);
 	}
@@ -160,98 +159,98 @@ void __CmdFunc_ToggleServerBrowser (void)
 	}
 
 // TFFree Command Menu Message Handlers
-int __MsgFunc_ValClass (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_ValClass (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_ValClass (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_TeamNames (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_TeamNames (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_TeamNames (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_Feign (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_Feign (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_Feign (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_Detpack (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_Detpack (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_Detpack (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_VGUIMenu (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_VGUIMenu (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_VGUIMenu (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_MOTD (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_MOTD (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_MOTD (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_BuildSt (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_BuildSt (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_BuildSt (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_RandomPC (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_RandomPC (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_RandomPC (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_ServerName (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_ServerName (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_ServerName (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_ScoreInfo (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_ScoreInfo (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_ScoreInfo (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_TeamScore (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_TeamScore (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_TeamScore (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_TeamInfo (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_TeamInfo (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_TeamInfo (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_Spectator (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_Spectator (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_Spectator (pszName, iSize, pbuf);
 	return 0;
 	}
 
-int __MsgFunc_AllowSpec (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_AllowSpec (const char *pszName, int iSize, void *pbuf)
 	{
 	if (gViewPort)
 		return gViewPort->MsgFunc_AllowSpec (pszName, iSize, pbuf);
@@ -294,9 +293,9 @@ void CHud::Init (void)
 	// VGUI Menus
 	HOOK_MESSAGE (VGUIMenu);
 
-	CVAR_CREATE ("hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO);		
+	CVAR_CREATE ("hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO);
 	// controls whether or not to suicide immediately on TF class switch
-	CVAR_CREATE ("hud_takesshots", "0", FCVAR_ARCHIVE);		
+	CVAR_CREATE ("hud_takesshots", "0", FCVAR_ARCHIVE);
 	// controls whether or not to automatically take screenshots at the end of a round
 
 	m_iLogo = 0;
@@ -313,7 +312,7 @@ void CHud::Init (void)
 	// Clear any old HUD list
 	if (m_pHudList)
 		{
-		HUDLIST* pList;
+		HUDLIST *pList;
 		while (m_pHudList)
 			{
 			pList = m_pHudList;
@@ -342,7 +341,7 @@ void CHud::Init (void)
 	m_StatusIcons.Init ();
 
 #if OPUS
-	GetClientVoiceMgr ()->Init (&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
+	GetClientVoiceMgr ()->Init (&g_VoiceStatusHelper, (vgui::Panel **)&gViewPort);
 #endif
 
 	m_Menu.Init ();
@@ -362,7 +361,7 @@ CHud :: ~CHud ()
 
 	if (m_pHudList)
 		{
-		HUDLIST* pList;
+		HUDLIST *pList;
 		while (m_pHudList)
 			{
 			pList = m_pHudList;
@@ -379,7 +378,7 @@ CHud :: ~CHud ()
 // searches through the sprite list loaded from hud.txt for a name matching SpriteName
 // returns an index into the gHUD.m_rghSprites[] array
 // returns 0 if sprite not found
-int CHud::GetSpriteIndex (const char* SpriteName)
+int CHud::GetSpriteIndex (const char *SpriteName)
 	{
 	// look through the loaded sprite name list for SpriteName
 	for (int i = 0; i < m_iSpriteCount; i++)
@@ -418,7 +417,7 @@ void CHud::VidInit (void)
 			{
 			// count the number of sprites of the appropriate res
 			m_iSpriteCount = 0;
-			client_sprite_t* p = m_pSpriteList;
+			client_sprite_t *p = m_pSpriteList;
 			for (j = 0; j < m_iSpriteCountAllRes; j++)
 				{
 				if (p->iRes == m_iRes)
@@ -454,7 +453,7 @@ void CHud::VidInit (void)
 		{
 		// we have already have loaded the sprite reference from hud.txt, but
 		// we need to make sure all the sprites have been loaded (we've gone through a transition, or loaded a save game)
-		client_sprite_t* p = m_pSpriteList;
+		client_sprite_t *p = m_pSpriteList;
 
 		// count the number of sprites of the appropriate res
 		m_iSpriteCount = 0;
@@ -517,7 +516,7 @@ void CHud::VidInit (void)
 	GetClientVoiceMgr ()->VidInit ();
 	}
 
-int CHud::MsgFunc_Logo (const char* pszName, int iSize, void* pbuf)
+int CHud::MsgFunc_Logo (const char *pszName, int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 
@@ -536,7 +535,7 @@ COM_FileBase
 Extracts the base name of a file (no path, no extension, assumes '/' as path separator)
 ============
 ***/
-void COM_FileBase (const char* in, char* out)
+void COM_FileBase (const char *in, char *out)
 	{
 	int len, start, end;
 
@@ -576,9 +575,9 @@ void COM_FileBase (const char* in, char* out)
 HUD_IsGame
 =================
 ***/
-int HUD_IsGame (const char* game)
+int HUD_IsGame (const char *game)
 	{
-	const char* gamedir;
+	const char *gamedir;
 	char gd[1024];
 
 	gamedir = gEngfuncs.pfnGetGameDirectory ();
@@ -608,7 +607,7 @@ float HUD_GetFOV (void)
 		unsigned char buf[100];
 
 		// Active
-		*(float*)&buf[i] = g_lastFOV;
+		*(float *)&buf[i] = g_lastFOV;
 		i += sizeof (float);
 
 		Demo_WriteBuffer (TYPE_ZOOM, i, buf);
@@ -621,7 +620,7 @@ float HUD_GetFOV (void)
 	return g_lastFOV;
 	}
 
-int CHud::MsgFunc_SetFOV (const char* pszName, int iSize, void* pbuf)
+int CHud::MsgFunc_SetFOV (const char *pszName, int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 
@@ -660,14 +659,14 @@ int CHud::MsgFunc_SetFOV (const char* pszName, int iSize, void* pbuf)
 	return 1;
 	}
 
-void CHud::AddHudElem (CHudBase* phudelem)
+void CHud::AddHudElem (CHudBase *phudelem)
 	{
-	HUDLIST* pdl, * ptemp;
+	HUDLIST *pdl, *ptemp;
 
 	if (!phudelem)
 		return;
 
-	pdl = (HUDLIST*)malloc (sizeof (HUDLIST));
+	pdl = (HUDLIST *)malloc (sizeof (HUDLIST));
 	if (!pdl)
 		return;
 

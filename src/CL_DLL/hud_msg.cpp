@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 //
 //  hud_msg.cpp
 //
@@ -23,16 +22,16 @@
 
 #define MAX_CLIENTS 32
 
-extern BEAM* pBeam;
-extern BEAM* pBeam2;
+extern BEAM *pBeam;
+extern BEAM *pBeam2;
 
 // USER-DEFINED SERVER MESSAGE HANDLERS
-int CHud::MsgFunc_ResetHUD (const char* pszName, int iSize, void* pbuf)
+int CHud::MsgFunc_ResetHUD (const char *pszName, int iSize, void *pbuf)
 	{
 	ASSERT (iSize == 0);
 
 	// clear all hud data
-	HUDLIST* pList = m_pHudList;
+	HUDLIST *pList = m_pHudList;
 
 	while (pList)
 		{
@@ -52,15 +51,15 @@ int CHud::MsgFunc_ResetHUD (const char* pszName, int iSize, void* pbuf)
 
 void CAM_ToFirstPerson (void);
 
-void CHud::MsgFunc_ViewMode (const char* pszName, int iSize, void* pbuf)
+void CHud::MsgFunc_ViewMode (const char *pszName, int iSize, void *pbuf)
 	{
 	CAM_ToFirstPerson ();
 	}
 
-void CHud::MsgFunc_InitHUD (const char* pszName, int iSize, void* pbuf)
+void CHud::MsgFunc_InitHUD (const char *pszName, int iSize, void *pbuf)
 	{
 	// prepare all hud data
-	HUDLIST* pList = m_pHudList;
+	HUDLIST *pList = m_pHudList;
 
 	while (pList)
 		{
@@ -73,7 +72,7 @@ void CHud::MsgFunc_InitHUD (const char* pszName, int iSize, void* pbuf)
 	pBeam = pBeam2 = NULL;
 	}
 
-int CHud::MsgFunc_GameMode (const char* pszName, int iSize, void* pbuf)
+int CHud::MsgFunc_GameMode (const char *pszName, int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 	m_Teamplay = READ_BYTE ();
@@ -81,7 +80,7 @@ int CHud::MsgFunc_GameMode (const char* pszName, int iSize, void* pbuf)
 	return 1;
 	}
 
-int CHud::MsgFunc_Damage (const char* pszName, int iSize, void* pbuf)
+int CHud::MsgFunc_Damage (const char *pszName, int iSize, void *pbuf)
 	{
 	int		armor, blood;
 	Vector	from;
@@ -105,7 +104,7 @@ int CHud::MsgFunc_Damage (const char* pszName, int iSize, void* pbuf)
 	return 1;
 	}
 
-int CHud::MsgFunc_Concuss (const char* pszName, int iSize, void* pbuf)
+int CHud::MsgFunc_Concuss (const char *pszName, int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 	m_iConcussionEffect = READ_BYTE ();

@@ -9,7 +9,6 @@
 #define VOICE_STATUS_H
 #pragma once
 
-
 #include "VGUI_Label.h"
 #include "VGUI_LineBorder.h"
 #include "VGUI_ImagePanel.h"
@@ -22,9 +21,7 @@
 #include "vgui_checkbutton2.h"
 #include "vgui_defaultinputsignal.h"
 
-
 class CVoiceStatus;
-
 
 class CVoiceLabel
 	{
@@ -34,7 +31,6 @@ class CVoiceLabel
 		vgui::ImagePanel *m_pIcon;		// Voice icon next to player name.
 		int					m_clientindex;	// Client index of the speaker. -1 if this label isn't being used.
 	};
-
 
 // This is provided by each mod to access data that may not be the same across mods.
 class IVoiceStatusHelper

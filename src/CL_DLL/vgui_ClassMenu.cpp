@@ -16,20 +16,19 @@
 // $NoKeywords: $
 // =============================================================================
 
+// [FWGS, 01.03.26]
 #include "VGUI_Font.h"
 #include <VGUI_TextImage.h>
-
 #include "hud.h"
 #include "cl_util.h"
 #include "camera.h"
-#include "kbutton.h"
+/*include "kbutton. h"*/
 #include "cvardef.h"
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "const.h"
-#include "camera.h"
+/*include "camera.h"*/
 #include "in_defs.h"
 #include "parsemsg.h"
-
 #include "vgui_int.h"
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ServerBrowser.h"
@@ -53,7 +52,7 @@
 #define CLASSMENU_WINDOW_PLAYERS_Y		YRES(42)
 
 // Creation
-CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wide, int tall): CMenuPanel (iTrans, iRemoveMe, x, y, wide, tall)
+CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wide, int tall) : CMenuPanel (iTrans, iRemoveMe, x, y, wide, tall)
 	{
 	// don't show class graphics at below 640x480 resolution
 	bool bShowClassGraphic = true;
@@ -65,7 +64,7 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 	memset (m_pClassImages, 0, sizeof (m_pClassImages));
 
 	// Get the scheme used for the Titles
-	CSchemeManager* pSchemes = gViewPort->GetSchemeManager ();
+	CSchemeManager *pSchemes = gViewPort->GetSchemeManager ();
 
 	// schemes
 	SchemeHandle_t hTitleScheme = pSchemes->getSchemeHandle ("Title Font");
@@ -75,7 +74,7 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 	int r, g, b, a;
 
 	// Create the title
-	Label* pLabel = new Label ("", CLASSMENU_TITLE_X, CLASSMENU_TITLE_Y);
+	Label *pLabel = new Label ("", CLASSMENU_TITLE_X, CLASSMENU_TITLE_Y);
 	pLabel->setParent (this);
 	pLabel->setFont (pSchemes->getFont (hTitleScheme));
 	pSchemes->getFgColor (hTitleScheme, r, g, b, a);
@@ -89,7 +88,7 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 	m_pScrollPanel = new CTFScrollPanel (CLASSMENU_WINDOW_X, CLASSMENU_WINDOW_Y, CLASSMENU_WINDOW_SIZE_X,
 		CLASSMENU_WINDOW_SIZE_Y);
 	m_pScrollPanel->setParent (this);
-	
+
 	// force the scrollbars on, so after the validate clientClip will be smaller
 	m_pScrollPanel->setScrollBarAutoVisible (false, false);
 	m_pScrollPanel->setScrollBarVisible (true, true);
@@ -109,7 +108,7 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 		char sz[256];
 		int iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ((CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * i);
 
-		ActionSignal* pASignal = new CMenuHandler_StringCommandClassSelect (sTFClassSelection[i], true);
+		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect (sTFClassSelection[i], true);
 
 		// Class button
 		sprintf (sz, "%s", CHudTextMessage::BufferedLocaliseTextString (sLocalisedClasses[i]));
@@ -140,8 +139,8 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 
 		// Create the Class Name Label
 		sprintf (sz, "#Title_%s", sTFClassSelection[i]);
-		char* localName = CHudTextMessage::BufferedLocaliseTextString (sz);
-		Label* pNameLabel = new Label ("", textOffs, CLASSMENU_WINDOW_NAME_Y);
+		char *localName = CHudTextMessage::BufferedLocaliseTextString (sz);
+		Label *pNameLabel = new Label ("", textOffs, CLASSMENU_WINDOW_NAME_Y);
 		pNameLabel->setFont (pSchemes->getFont (hTitleScheme));
 		pNameLabel->setParent (m_pClassInfoPanel[i]);
 		pSchemes->getFgColor (hTitleScheme, r, g, b, a);
@@ -163,7 +162,7 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 
 				m_pClassImages[team][i] = new CImageLabel (sz, 0, 0, CLASSMENU_WINDOW_TEXT_X, CLASSMENU_WINDOW_TEXT_Y);
 
-				CImageLabel* pLabel = m_pClassImages[team][i];
+				CImageLabel *pLabel = m_pClassImages[team][i];
 				pLabel->setParent (m_pClassInfoPanel[i]);
 
 				if (team != 1)
@@ -187,13 +186,13 @@ CClassMenuPanel::CClassMenuPanel (int iTrans, int iRemoveMe, int x, int y, int w
 
 		// Open up the Class Briefing File
 		sprintf (sz, "classes/short_%s.txt", sTFClassSelection[i]);
-		char* cText = "Class Description not available.";
-		char* pfile = (char*)gEngfuncs.COM_LoadFile (sz, 5, NULL);
+		char *cText = "Class Description not available.";
+		char *pfile = (char *)gEngfuncs.COM_LoadFile (sz, 5, NULL);
 		if (pfile)
 			cText = pfile;
 
 		// Create the Text info window
-		TextPanel* pTextWindow = new TextPanel (cText, textOffs, CLASSMENU_WINDOW_TEXT_Y,
+		TextPanel *pTextWindow = new TextPanel (cText, textOffs, CLASSMENU_WINDOW_TEXT_Y,
 			(CLASSMENU_WINDOW_SIZE_X - textOffs) - 5, CLASSMENU_WINDOW_SIZE_Y - CLASSMENU_WINDOW_TEXT_Y);
 		pTextWindow->setParent (m_pClassInfoPanel[i]);
 		pTextWindow->setFont (pSchemes->getFont (hClassWindowText));

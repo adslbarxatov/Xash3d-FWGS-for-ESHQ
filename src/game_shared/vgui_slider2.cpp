@@ -7,10 +7,10 @@
 
 #include "VGUI_Slider2.h"
 
-#include<VGUI_InputSignal.h>
-#include<VGUI_App.h>
-#include<VGUI_IntChangeSignal.h>
-#include<VGUI_MouseCode.h>
+#include <VGUI_InputSignal.h>
+#include <VGUI_App.h>
+#include <VGUI_IntChangeSignal.h>
+#include <VGUI_MouseCode.h>
 
 using namespace vgui;
 

@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 #include "../hud.h"
 #include "../cl_util.h"
 #include "event_api.h"
@@ -19,27 +18,27 @@
 extern "C"
 	{
 	// HLDM
-	void EV_FireGlock1 (struct event_args_s* args);
-	void EV_FireGlock2 (struct event_args_s* args);
-	void EV_FireShotGunSingle (struct event_args_s* args);
-	void EV_FireShotGunDouble (struct event_args_s* args);
-	void EV_FireMP5 (struct event_args_s* args);
-	void EV_FireMP52 (struct event_args_s* args);
-	void EV_FirePython (struct event_args_s* args);
-	void EV_FireGauss (struct event_args_s* args);
-	void EV_SpinGauss (struct event_args_s* args);
-	void EV_Crowbar (struct event_args_s* args);
+	void EV_FireGlock1 (struct event_args_s *args);
+	void EV_FireGlock2 (struct event_args_s *args);
+	void EV_FireShotGunSingle (struct event_args_s *args);
+	void EV_FireShotGunDouble (struct event_args_s *args);
+	void EV_FireMP5 (struct event_args_s *args);
+	void EV_FireMP52 (struct event_args_s *args);
+	void EV_FirePython (struct event_args_s *args);
+	void EV_FireGauss (struct event_args_s *args);
+	void EV_SpinGauss (struct event_args_s *args);
+	void EV_Crowbar (struct event_args_s *args);
 	void EV_Axe (struct event_args_s *args);	// ESHQ: топор
-	void EV_FireCrossbow (struct event_args_s* args);
-	void EV_FireCrossbow2 (struct event_args_s* args);
-	void EV_FireRpg (struct event_args_s* args);
-	void EV_EgonFire (struct event_args_s* args);
-	void EV_EgonStop (struct event_args_s* args);
-	void EV_HornetGunFire (struct event_args_s* args);
-	void EV_TripmineFire (struct event_args_s* args);
-	void EV_SnarkFire (struct event_args_s* args);
+	void EV_FireCrossbow (struct event_args_s *args);
+	void EV_FireCrossbow2 (struct event_args_s *args);
+	void EV_FireRpg (struct event_args_s *args);
+	void EV_EgonFire (struct event_args_s *args);
+	void EV_EgonStop (struct event_args_s *args);
+	void EV_HornetGunFire (struct event_args_s *args);
+	void EV_TripmineFire (struct event_args_s *args);
+	void EV_SnarkFire (struct event_args_s *args);
 
-	void EV_TrainPitchAdjust (struct event_args_s* args);
+	void EV_TrainPitchAdjust (struct event_args_s *args);
 	}
 
 /***

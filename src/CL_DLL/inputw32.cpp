@@ -8,12 +8,13 @@
 // in_win.c -- windows 95 mouse and joystick code
 // 02/21/97 JCB Added extended DirectInput code to support external controllers.
 
+// [FWGS, 01.03.26]
 #include "hud.h"
 #include "cl_util.h"
 #include "camera.h"
-#include "kbutton.h"
+/*include "kbutton. h"*/
 #include "cvardef.h"
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "const.h"
 /*include "camera.h"*/		// ESHQ: задвоение
 #include "in_defs.h"
@@ -21,6 +22,7 @@
 #include "view.h"
 #include "windows.h"
 #include "joystickapi.h"	// ESHQ: после одного из обновлений потребовалось включение этого заголовка
+#include "q_client.h"
 
 #define MOUSE_BUTTON_COUNT 5
 
@@ -45,24 +47,24 @@ extern kbutton_t	in_mlook;
 extern kbutton_t	in_speed;
 extern kbutton_t	in_jlook;
 
-extern cvar_t* m_pitch;
-extern cvar_t* m_yaw;
-extern cvar_t* m_forward;
-extern cvar_t* m_side;
+extern cvar_t *m_pitch;
+extern cvar_t *m_yaw;
+extern cvar_t *m_forward;
+extern cvar_t *m_side;
 
-extern cvar_t* lookstrafe;
-extern cvar_t* lookspring;
-extern cvar_t* cl_pitchdown;
-extern cvar_t* cl_pitchup;
-extern cvar_t* cl_yawspeed;
-extern cvar_t* cl_sidespeed;
-extern cvar_t* cl_forwardspeed;
-extern cvar_t* cl_pitchspeed;
-extern cvar_t* cl_movespeedkey;
+extern cvar_t *lookstrafe;
+extern cvar_t *lookspring;
+extern cvar_t *cl_pitchdown;
+extern cvar_t *cl_pitchup;
+extern cvar_t *cl_yawspeed;
+extern cvar_t *cl_sidespeed;
+extern cvar_t *cl_forwardspeed;
+extern cvar_t *cl_pitchspeed;
+extern cvar_t *cl_movespeedkey;
 
 // mouse variables
-cvar_t* m_filter;
-cvar_t* sensitivity;
+cvar_t		*m_filter;
+cvar_t		*sensitivity;
 
 int			mouse_buttons;
 int			mouse_oldbuttonstate;
@@ -70,7 +72,7 @@ POINT		current_pos;
 int			mouse_x, mouse_y, old_mouse_x, old_mouse_y, mx_accum, my_accum;
 
 static int	restore_spi;
-static int	originalmouseparms[3], newmouseparms[3] = {0, 0, 1};
+static int	originalmouseparms[3], newmouseparms[3] = { 0, 0, 1 };
 static int	mouseactive;
 int			mouseinitialized;
 static int	mouseparmsvalid;
@@ -116,25 +118,25 @@ PDWORD	pdwRawValue[JOY_MAX_AXES];
 // each time.  this avoids any problems with getting back to a default usage
 // or when changing from one controller to another.  this way at least something
 // works.
-cvar_t* in_joystick;
-cvar_t* joy_name;
-cvar_t* joy_advanced;
-cvar_t* joy_advaxisx;
-cvar_t* joy_advaxisy;
-cvar_t* joy_advaxisz;
-cvar_t* joy_advaxisr;
-cvar_t* joy_advaxisu;
-cvar_t* joy_advaxisv;
-cvar_t* joy_forwardthreshold;
-cvar_t* joy_sidethreshold;
-cvar_t* joy_pitchthreshold;
-cvar_t* joy_yawthreshold;
-cvar_t* joy_forwardsensitivity;
-cvar_t* joy_sidesensitivity;
-cvar_t* joy_pitchsensitivity;
-cvar_t* joy_yawsensitivity;
-cvar_t* joy_wwhack1;
-cvar_t* joy_wwhack2;
+cvar_t *in_joystick;
+cvar_t *joy_name;
+cvar_t *joy_advanced;
+cvar_t *joy_advaxisx;
+cvar_t *joy_advaxisy;
+cvar_t *joy_advaxisz;
+cvar_t *joy_advaxisr;
+cvar_t *joy_advaxisu;
+cvar_t *joy_advaxisv;
+cvar_t *joy_forwardthreshold;
+cvar_t *joy_sidethreshold;
+cvar_t *joy_pitchthreshold;
+cvar_t *joy_yawthreshold;
+cvar_t *joy_forwardsensitivity;
+cvar_t *joy_sidesensitivity;
+cvar_t *joy_pitchsensitivity;
+cvar_t *joy_yawsensitivity;
+cvar_t *joy_wwhack1;
+cvar_t *joy_wwhack2;
 
 int			joy_avail, joy_advancedinit, joy_haspov;
 DWORD		joy_oldbuttonstate, joy_oldpovstate;
@@ -156,9 +158,9 @@ void Force_CenterView_f (void)
 
 	if (!iMouseInUse)
 		{
-		gEngfuncs.GetViewAngles ((float*)viewangles);
+		gEngfuncs.GetViewAngles ((float *)viewangles);
 		viewangles[PITCH] = 0;
-		gEngfuncs.SetViewAngles ((float*)viewangles);
+		gEngfuncs.SetViewAngles ((float *)viewangles);
 		}
 	}
 
@@ -245,7 +247,7 @@ IN_GetMousePos
 Ask for mouse position from engine
 ===========
 ***/
-void IN_GetMousePos (int* mx, int* my)
+void IN_GetMousePos (int *mx, int *my)
 	{
 	gEngfuncs.GetMousePosition (mx, my);
 	}
@@ -298,12 +300,12 @@ void DLLEXPORT IN_MouseEvent (int mstate)
 IN_MouseMove
 ===========
 ***/
-void IN_MouseMove (float frametime, usercmd_t* cmd)
+void IN_MouseMove (float frametime, usercmd_t *cmd)
 	{
 	int		mx, my;
 	vec3_t viewangles;
 
-	gEngfuncs.GetViewAngles ((float*)viewangles);
+	gEngfuncs.GetViewAngles ((float *)viewangles);
 
 	if (in_mlook.state & 1)
 		{
@@ -380,7 +382,7 @@ void IN_MouseMove (float frametime, usercmd_t* cmd)
 			}
 		}
 
-	gEngfuncs.SetViewAngles ((float*)viewangles);
+	gEngfuncs.SetViewAngles ((float *)viewangles);
 	}
 
 /***
@@ -691,14 +693,14 @@ int IN_ReadJoystick (void)
 IN_JoyMove
 ===========
 ***/
-void IN_JoyMove (float frametime, usercmd_t* cmd)
+void IN_JoyMove (float frametime, usercmd_t *cmd)
 	{
 	float	speed, aspeed;
 	float	fAxisValue, fTemp;
 	int		i;
 	vec3_t viewangles;
 
-	gEngfuncs.GetViewAngles ((float*)viewangles);
+	gEngfuncs.GetViewAngles ((float *)viewangles);
 
 
 	// complete initialization if first time in
@@ -855,7 +857,7 @@ void IN_JoyMove (float frametime, usercmd_t* cmd)
 	if (viewangles[PITCH] < -cl_pitchup->value)
 		viewangles[PITCH] = -cl_pitchup->value;
 
-	gEngfuncs.SetViewAngles ((float*)viewangles);
+	gEngfuncs.SetViewAngles ((float *)viewangles);
 	}
 
 /***
@@ -863,7 +865,7 @@ void IN_JoyMove (float frametime, usercmd_t* cmd)
 IN_Move
 ===========
 ***/
-void IN_Move (float frametime, usercmd_t* cmd)
+void IN_Move (float frametime, usercmd_t *cmd)
 	{
 	if (!iMouseInUse && mouseactive)
 		{

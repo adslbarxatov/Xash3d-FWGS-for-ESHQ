@@ -1,20 +1,20 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 // pm_math.c -- math primitives
 
-#include "mathlib.h"
+// [FWGS, 01.03.26]
+#include "..\cl_dll\cl_mathlib.h"
 #include "const.h"
 #include <math.h>
 
@@ -27,7 +27,7 @@
 
 #pragma warning(disable : 4244)
 
-vec3_t vec3_origin = {0,0,0};
+vec3_t vec3_origin = { 0,0,0 };
 int nanmask = 255 << 23;
 
 float	anglemod (float a)
@@ -167,7 +167,7 @@ void AngleIMatrix (const vec3_t angles, float matrix[3][4])
 	matrix[2][3] = 0.0;
 	}
 
-void NormalizeAngles (float* angles)
+void NormalizeAngles (float *angles)
 	{
 	int i;
 	// Normalize angles
@@ -193,7 +193,7 @@ FIXME:  Use Quaternions to avoid discontinuities
 Frac is 0.0 to 1.0 ( i.e., should probably be clamped, but doesn't have to be )
 ===================
 ***/
-void InterpolateAngles (float* start, float* end, float* output, float frac)
+void InterpolateAngles (float *start, float *end, float *output, float frac)
 	{
 	int i;
 	float ang1, ang2;

@@ -1,24 +1,23 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
-#include "mathlib.h"
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
+// [FWGS, 01.03.26]
+#include "..\cl_dll\cl_mathlib.h"
 #include "const.h"
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "pm_defs.h"
 #include "pm_shared.h"
-#include "pm_movevars.h"
+/*include "pm_movevars.h"*/
 #include "pm_debug.h"
 
 #include <string.h>
@@ -28,17 +27,17 @@
 
 extern playermove_t* pmove;
 
-// Expand debugging BBOX particle hulls by this many units.
+// Expand debugging BBOX particle hulls by this many units
 #define BOX_GAP 0.0f               
 
 static int PM_boxpnt[6][4] =
 	{
-		{ 0, 4, 6, 2 }, // +X
-		{ 0, 1, 5, 4 }, // +Y
-		{ 0, 2, 3, 1 }, // +Z
-		{ 7, 5, 1, 3 }, // -X
-		{ 7, 3, 2, 6 }, // -Y
-		{ 7, 6, 4, 5 }, // -Z
+	{ 0, 4, 6, 2 }, // +X
+	{ 0, 1, 5, 4 }, // +Y
+	{ 0, 2, 3, 1 }, // +Z
+	{ 7, 5, 1, 3 }, // -X
+	{ 7, 3, 2, 6 }, // -Y
+	{ 7, 6, 4, 5 }, // -Z
 	};
 
 void PM_ShowClipBox (void)
@@ -102,7 +101,6 @@ void PM_ParticleLine (vec3_t start, vec3_t end, int pcolor, float life, float ve
 		pmove->PM_Particle (curpos, pcolor, life, 0, vert);
 		curdist += linestep;
 		}
-
 	}
 
 /***
@@ -125,20 +123,18 @@ PM_DrawPhysEntBBox(int num)
 ***/
 void PM_DrawPhysEntBBox (int num, int pcolor, float life)
 	{
-	physent_t* pe;
-	vec3_t org;
-	int j;
-	vec3_t tmp;
-	vec3_t		p[8];
-	float gap = BOX_GAP;
-	vec3_t modelmins, modelmaxs;
+	physent_t	*pe;
+	vec3_t	org;
+	int		j;
+	vec3_t	tmp;
+	vec3_t	p[8];
+	float	gap = BOX_GAP;
+	vec3_t	modelmins, modelmaxs;
 
-	if (num >= pmove->numphysent ||
-		num <= 0)
+	if ((num >= pmove->numphysent) || (num <= 0))
 		return;
 
 	pe = &pmove->physents[num];
-
 	if (pe->model)
 		{
 		VectorCopy (pe->origin, org);
@@ -168,7 +164,7 @@ void PM_DrawPhysEntBBox (int num, int pcolor, float life)
 				}
 			}
 
-		// Offset by entity origin, if any.
+		// Offset by entity origin, if any
 		for (j = 0; j < 8; j++)
 			VectorAdd (p[j], org, p[j]);
 
@@ -231,12 +227,8 @@ void PM_DrawBBox (vec3_t mins, vec3_t maxs, vec3_t origin, int pcolor, float lif
 
 	for (j = 0; j < 6; j++)
 		{
-		PM_DrawRectangle (
-			p[PM_boxpnt[j][1]],
-			p[PM_boxpnt[j][0]],
-			p[PM_boxpnt[j][2]],
-			p[PM_boxpnt[j][3]],
-			pcolor, life);
+		PM_DrawRectangle (p[PM_boxpnt[j][1]], p[PM_boxpnt[j][0]], p[PM_boxpnt[j][2]],
+			p[PM_boxpnt[j][3]], pcolor, life);
 		}
 	}
 
@@ -255,19 +247,14 @@ Tries to shoot a ray out by about 128 units
 ***/
 void PM_ViewEntity (void)
 	{
-	vec3_t forward, right, up;
-	float raydist = 256.0f;
-	vec3_t origin;
-	vec3_t end;
-	int i;
-	pmtrace_t trace;
-	int pcolor = 77;
-	float fup;
-
-#if 0
-	if (!pm_showclip.value)
-		return;
-#endif
+	vec3_t	forward, right, up;
+	float	raydist = 256.0f;
+	vec3_t	origin;
+	vec3_t	end;
+	int		i;
+	pmtrace_t	trace;
+	int		pcolor = 77;
+	float	fup;
 
 	AngleVectors (pmove->angles, forward, right, up);  // Determine movement angles
 

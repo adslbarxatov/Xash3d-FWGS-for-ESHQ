@@ -53,7 +53,7 @@ extern int cam_thirdperson;
 #define SCOREBOARD_BLINK_FREQUENCY	0.3	// How often to blink the scoreboard icons.
 #define SQUELCHOSCILLATE_PER_SECOND	2.0f
 
-extern BitmapTGA* LoadTGA (const char* pImageName);
+extern BitmapTGA *LoadTGA (const char *pImageName);
 
 
 // ---------------------------------------------------------------------- //
@@ -61,7 +61,7 @@ extern BitmapTGA* LoadTGA (const char* pImageName);
 // ---------------------------------------------------------------------- //
 CVoiceStatus g_VoiceStatus;
 
-CVoiceStatus* GetClientVoiceMgr ()
+CVoiceStatus *GetClientVoiceMgr ()
 	{
 	return &g_VoiceStatus;
 	}
@@ -71,9 +71,9 @@ CVoiceStatus* GetClientVoiceMgr ()
 // CVoiceStatus.
 // ---------------------------------------------------------------------- //
 
-static CVoiceStatus* g_pInternalVoiceStatus = NULL;
+static CVoiceStatus *g_pInternalVoiceStatus = NULL;
 
-int __MsgFunc_VoiceMask (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_VoiceMask (const char *pszName, int iSize, void *pbuf)
 	{
 	if (g_pInternalVoiceStatus)
 		g_pInternalVoiceStatus->HandleVoiceMaskMsg (iSize, pbuf);
@@ -81,7 +81,7 @@ int __MsgFunc_VoiceMask (const char* pszName, int iSize, void* pbuf)
 	return 1;
 	}
 
-int __MsgFunc_ReqState (const char* pszName, int iSize, void* pbuf)
+int __MsgFunc_ReqState (const char *pszName, int iSize, void *pbuf)
 	{
 	if (g_pInternalVoiceStatus)
 		g_pInternalVoiceStatus->HandleReqStateMsg (iSize, pbuf);
@@ -181,7 +181,7 @@ CVoiceStatus::~CVoiceStatus ()
 	}
 
 
-int CVoiceStatus::Init (IVoiceStatusHelper* pHelper, Panel** pParentPanel)
+int CVoiceStatus::Init (IVoiceStatusHelper *pHelper, Panel **pParentPanel)
 	{
 	// Setup the voice_modenable cvar.
 	gEngfuncs.pfnRegisterVariable ("voice_modenable", "1", FCVAR_ARCHIVE);
@@ -205,7 +205,7 @@ int CVoiceStatus::Init (IVoiceStatusHelper* pHelper, Panel** pParentPanel)
 
 	for (int i = 0; i < MAX_VOICE_SPEAKERS; i++)
 		{
-		CVoiceLabel* pLabel = &m_Labels[i];
+		CVoiceLabel *pLabel = &m_Labels[i];
 
 		pLabel->m_pBackground = new Label ("");
 
@@ -239,13 +239,12 @@ int CVoiceStatus::Init (IVoiceStatusHelper* pHelper, Panel** pParentPanel)
 	HOOK_MESSAGE (ReqState);
 
 	// Cache the game directory for use when we shut down
-	const char* pchGameDirT = gEngfuncs.pfnGetGameDirectory ();
-	m_pchGameDir = (char*)malloc (strlen (pchGameDirT) + 1);
+	const char *pchGameDirT = gEngfuncs.pfnGetGameDirectory ();
+	m_pchGameDir = (char *)malloc (strlen (pchGameDirT) + 1);
 	strcpy (m_pchGameDir, pchGameDirT);
 
 	return 1;
 	}
-
 
 int CVoiceStatus::VidInit ()
 	{
@@ -262,7 +261,7 @@ int CVoiceStatus::VidInit ()
 
 	if (m_pAckBitmap = vgui_LoadTGA ("gfx/vgui/icntlk_sv.tga"))
 		{
-		m_pAckBitmap->setColor (Color (255, 255, 255, 135));	
+		m_pAckBitmap->setColor (Color (255, 255, 255, 135));
 		// Give just a tiny bit of translucency so software draws correctly
 		}
 
@@ -271,36 +270,36 @@ int CVoiceStatus::VidInit ()
 
 
 	if (m_pSpeakerLabelIcon = vgui_LoadTGANoInvertAlpha ("gfx/vgui/speaker4.tga"))
-		m_pSpeakerLabelIcon->setColor (Color (255, 255, 255, 1));		
+		m_pSpeakerLabelIcon->setColor (Color (255, 255, 255, 1));
 	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardNeverSpoken = vgui_LoadTGANoInvertAlpha ("gfx/vgui/640_speaker1.tga"))
-		m_pScoreboardNeverSpoken->setColor (Color (255, 255, 255, 1));	
+		m_pScoreboardNeverSpoken->setColor (Color (255, 255, 255, 1));
 	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardNotSpeaking = vgui_LoadTGANoInvertAlpha ("gfx/vgui/640_speaker2.tga"))
-		m_pScoreboardNotSpeaking->setColor (Color (255, 255, 255, 1));	
+		m_pScoreboardNotSpeaking->setColor (Color (255, 255, 255, 1));
 	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardSpeaking = vgui_LoadTGANoInvertAlpha ("gfx/vgui/640_speaker3.tga"))
-		m_pScoreboardSpeaking->setColor (Color (255, 255, 255, 1));	
+		m_pScoreboardSpeaking->setColor (Color (255, 255, 255, 1));
 	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardSpeaking2 = vgui_LoadTGANoInvertAlpha ("gfx/vgui/640_speaker4.tga"))
-		m_pScoreboardSpeaking2->setColor (Color (255, 255, 255, 1));	
+		m_pScoreboardSpeaking2->setColor (Color (255, 255, 255, 1));
 	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardSquelch = vgui_LoadTGA ("gfx/vgui/icntlk_squelch.tga"))
-		m_pScoreboardSquelch->setColor (Color (255, 255, 255, 1));	
+		m_pScoreboardSquelch->setColor (Color (255, 255, 255, 1));
 	// Give just a tiny bit of translucency so software draws correctly
 
 	if (m_pScoreboardBanned = vgui_LoadTGA ("gfx/vgui/640_voiceblocked.tga"))
-		m_pScoreboardBanned->setColor (Color (255, 255, 255, 1));	
+		m_pScoreboardBanned->setColor (Color (255, 255, 255, 1));
 	// Give just a tiny bit of translucency so software draws correctly
 
 	// Figure out the voice head model height
 	m_VoiceHeadModelHeight = 45;
-	char* pFile = (char*)gEngfuncs.COM_LoadFile ("scripts/voicemodel.txt", 5, NULL);
+	char *pFile = (char *)gEngfuncs.COM_LoadFile ("scripts/voicemodel.txt", 5, NULL);
 	if (pFile)
 		{
 		char token[4096];
@@ -316,7 +315,6 @@ int CVoiceStatus::VidInit ()
 	m_VoiceHeadModel = gEngfuncs.pfnSPR_Load ("sprites/voiceicon.spr");
 	return TRUE;
 	}
-
 
 void CVoiceStatus::Frame (double frametime)
 	{
@@ -353,7 +351,7 @@ void CVoiceStatus::CreateEntities ()
 	if (!m_VoiceHeadModel)
 		return;
 
-	cl_entity_t* localPlayer = gEngfuncs.GetLocalPlayer ();
+	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer ();
 
 	int iOutModel = 0;
 	for (int i = 0; i < VOICE_MAX_PLAYERS; i++)
@@ -361,7 +359,7 @@ void CVoiceStatus::CreateEntities ()
 		if (!m_VoicePlayers[i])
 			continue;
 
-		cl_entity_s* pClient = gEngfuncs.GetEntityByIndex (i + 1);
+		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex (i + 1);
 
 		// Don't show an icon if the player is not in our PVS.
 		if (!pClient || pClient->curstate.messagenum < localPlayer->curstate.messagenum)
@@ -375,7 +373,7 @@ void CVoiceStatus::CreateEntities ()
 		if (pClient == localPlayer && !cam_thirdperson)
 			continue;
 
-		cl_entity_s* pEnt = &m_VoiceHeadModels[iOutModel];
+		cl_entity_s *pEnt = &m_VoiceHeadModels[iOutModel];
 		++iOutModel;
 
 		memset (pEnt, 0, sizeof (*pEnt));
@@ -386,7 +384,7 @@ void CVoiceStatus::CreateEntities ()
 		pEnt->curstate.renderfx = kRenderFxNoDissipation;
 		pEnt->curstate.framerate = 1;
 		pEnt->curstate.frame = 0;
-		pEnt->model = (struct model_s*)gEngfuncs.GetSpritePointer (m_VoiceHeadModel);
+		pEnt->model = (struct model_s *)gEngfuncs.GetSpritePointer (m_VoiceHeadModel);
 		pEnt->angles[0] = pEnt->angles[1] = pEnt->angles[2] = 0;
 		pEnt->curstate.scale = 0.5f;
 
@@ -437,7 +435,7 @@ void CVoiceStatus::UpdateSpeakerStatus (int entindex, qboolean bTalking)
 		if (iClient < 0)
 			return;
 
-		CVoiceLabel* pLabel = FindVoiceLabel (iClient);
+		CVoiceLabel *pLabel = FindVoiceLabel (iClient);
 		if (bTalking)
 			{
 			m_VoicePlayers[iClient] = true;
@@ -497,7 +495,7 @@ void CVoiceStatus::UpdateSpeakerStatus (int entindex, qboolean bTalking)
 void CVoiceStatus::UpdateServerState (bool bForce)
 	{
 	// Can't do anything when we're not in a level.
-	char const* pLevelName = gEngfuncs.pfnGetLevelName ();
+	char const *pLevelName = gEngfuncs.pfnGetLevelName ();
 	if (pLevelName[0] == 0)
 		{
 		if (gEngfuncs.pfnGetCvarFloat ("voice_clientdebug"))
@@ -577,7 +575,7 @@ void CVoiceStatus::UpdateServerState (bool bForce)
 	m_LastUpdateServerState = gEngfuncs.GetClientTime ();
 	}
 
-void CVoiceStatus::UpdateSpeakerImage (Label* pLabel, int iPlayer)
+void CVoiceStatus::UpdateSpeakerImage (Label *pLabel, int iPlayer)
 	{
 	m_pBanButtons[iPlayer - 1] = pLabel;
 	UpdateBanButton (iPlayer - 1);
@@ -585,7 +583,7 @@ void CVoiceStatus::UpdateSpeakerImage (Label* pLabel, int iPlayer)
 
 void CVoiceStatus::UpdateBanButton (int iClient)
 	{
-	Label* pPanel = m_pBanButtons[iClient];
+	Label *pPanel = m_pBanButtons[iClient];
 
 	if (!pPanel)
 		return;
@@ -630,7 +628,7 @@ void CVoiceStatus::UpdateBanButton (int iClient)
 	}
 
 
-void CVoiceStatus::HandleVoiceMaskMsg (int iSize, void* pbuf)
+void CVoiceStatus::HandleVoiceMaskMsg (int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 
@@ -656,7 +654,7 @@ void CVoiceStatus::HandleVoiceMaskMsg (int iSize, void* pbuf)
 	m_bServerModEnable = READ_BYTE ();
 	}
 
-void CVoiceStatus::HandleReqStateMsg (int iSize, void* pbuf)
+void CVoiceStatus::HandleReqStateMsg (int iSize, void *pbuf)
 	{
 	if (gEngfuncs.pfnGetCvarFloat ("voice_clientdebug"))
 		{
@@ -688,7 +686,7 @@ bool CVoiceStatus::IsInSquelchMode ()
 	return m_bInSquelchMode;
 	}
 
-CVoiceLabel* CVoiceStatus::FindVoiceLabel (int clientindex)
+CVoiceLabel *CVoiceStatus::FindVoiceLabel (int clientindex)
 	{
 	for (int i = 0; i < MAX_VOICE_SPEAKERS; i++)
 		{
@@ -700,7 +698,7 @@ CVoiceLabel* CVoiceStatus::FindVoiceLabel (int clientindex)
 	}
 
 
-CVoiceLabel* CVoiceStatus::GetFreeVoiceLabel ()
+CVoiceLabel *CVoiceStatus::GetFreeVoiceLabel ()
 	{
 	return FindVoiceLabel (-1);
 	}
@@ -720,7 +718,7 @@ void CVoiceStatus::RepositionLabels ()
 	// Reposition active labels.
 	for (int i = 0; i < MAX_VOICE_SPEAKERS; i++)
 		{
-		CVoiceLabel* pLabel = &m_Labels[i];
+		CVoiceLabel *pLabel = &m_Labels[i];
 
 		if (pLabel->m_clientindex == -1 || !pLabel->m_pLabel)
 			{
@@ -781,7 +779,6 @@ void CVoiceStatus::RepositionLabels ()
 		m_pLocalLabel->setVisible (false);
 		}
 	}
-
 
 void CVoiceStatus::FreeBitmaps ()
 	{

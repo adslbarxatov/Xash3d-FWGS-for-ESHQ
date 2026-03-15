@@ -10,31 +10,34 @@
 // xxxxxx Move bob and pitch drifting code here and other stuff from view if needed
 
 // Quake is a trademark of Id Software, Inc., (c) 1996 Id Software, Inc. All
-// rights reserved.
+// rights reserved
+
+// [FWGS, 01.03.26]
 #include "hud.h"
 #include "cl_util.h"
 #include "camera.h"
 extern "C"
 	{
-	#include "kbutton.h"
+	/*#include "..\cl_dll\cl_kbutton.h"*/
+	#include "q_client.h"
 	}
-#include "cvardef.h"
-#include "usercmd.h"
-#include "const.h"
-#include "camera.h"
+#include "..\common\cvardef.h"
+/*include "usercmd.h"*/
+#include "..\common\const.h"
+/*include "camera.h"*/
 #include "in_defs.h"
 #include "view.h"
 #include <string.h>
 #include <ctype.h>
-
 #include "vgui_TeamFortressViewport.h"
 
 extern "C"
 	{
-	struct kbutton_s DLLEXPORT* KB_Find (const char* name);
-	void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s* cmd, int active);
+	// ESHQ: what the hell is going on here??? Why kbutton_s changed to kbutton_t???
+	struct kbutton_t DLLEXPORT *KB_Find (const char *name);
+	void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s *cmd, int active);
 	void DLLEXPORT HUD_Shutdown (void);
-	int DLLEXPORT HUD_Key_Event (int eventcode, int keynum, const char* pszCurrentBinding);
+	int DLLEXPORT HUD_Key_Event (int eventcode, int keynum, const char *pszCurrentBinding);
 	}
 
 extern int g_iAlive;
@@ -46,36 +49,37 @@ extern cl_enginefunc_t gEngfuncs;
 extern "C" float anglemod (float a);
 
 void IN_Init (void);
-void IN_Move (float frametime, usercmd_t* cmd);
+void IN_Move (float frametime, usercmd_t *cmd);
 void IN_Shutdown (void);
 void V_Init (void);
-void VectorAngles (const float* forward, float* angles);
+void VectorAngles (const float *forward, float *angles);
 int CL_ButtonBits (int);
 
 // xxx need client dll function to get and clear impuse
-extern cvar_t* in_joystick;
+extern cvar_t *in_joystick;
 
 int	in_impulse = 0;
 int	in_cancel = 0;
 
-cvar_t* m_pitch;
-cvar_t* m_yaw;
-cvar_t* m_forward;
-cvar_t* m_side;
+cvar_t *m_pitch;
+cvar_t *m_yaw;
+cvar_t *m_forward;
+cvar_t *m_side;
 
-cvar_t* lookstrafe;
-cvar_t* lookspring;
-cvar_t* cl_pitchup;
-cvar_t* cl_pitchdown;
-cvar_t* cl_upspeed;
-cvar_t* cl_forwardspeed;
-cvar_t* cl_backspeed;
-cvar_t* cl_sidespeed;
-cvar_t* cl_movespeedkey;
-cvar_t* cl_yawspeed;
-cvar_t* cl_pitchspeed;
-cvar_t* cl_anglespeedkey;
-cvar_t* cl_vsmoothing;
+cvar_t *lookstrafe;
+cvar_t *lookspring;
+cvar_t *cl_pitchup;
+cvar_t *cl_pitchdown;
+cvar_t *cl_upspeed;
+cvar_t *cl_forwardspeed;
+cvar_t *cl_backspeed;
+cvar_t *cl_sidespeed;
+cvar_t *cl_movespeedkey;
+cvar_t *cl_yawspeed;
+cvar_t *cl_pitchspeed;
+cvar_t *cl_anglespeedkey;
+cvar_t *cl_vsmoothing;
+
 /***
 ===============================================================================
 
@@ -125,30 +129,30 @@ kbutton_t	in_graph;  // Display the netgraph
 
 typedef struct kblist_s
 	{
-	struct kblist_s* next;
-	kbutton_t* pkey;
-	char name[32];
+	struct kblist_s *next;
+	struct kbutton_t *pkey;
+	char	name[32];
 	} kblist_t;
 
-kblist_t* g_kbkeys = NULL;
+kblist_t *g_kbkeys = NULL;
 
 /***
 ============
 KB_ConvertString
 
-Removes references to +use and replaces them with the keyname in the output string.  If
- a binding is unfound, then the original text is retained.
-NOTE:  Only works for text with +word in it.
+Removes references to +use and replaces them with the keyname in the output string. If
+a binding is unfound, then the original text is retained.
+NOTE:  Only works for text with +word in it
 ============
 ***/
-int KB_ConvertString (char* in, char** ppout)
+int KB_ConvertString (char *in, char **ppout)
 	{
-	char sz[4096];
-	char binding[64];
-	char* p;
-	char* pOut;
-	char* pEnd;
-	const char* pBinding;
+	char	sz[4096];
+	char	binding[64];
+	char *p;
+	char *pOut;
+	char *pEnd;
+	const char *pBinding;
 
 	if (!ppout)
 		return 0;
@@ -178,7 +182,7 @@ int KB_ConvertString (char* in, char** ppout)
 			if (pBinding)
 				{
 				*pOut++ = '[';
-				pEnd = (char*)pBinding;
+				pEnd = (char *)pBinding;
 				}
 			else
 				{
@@ -203,7 +207,7 @@ int KB_ConvertString (char* in, char** ppout)
 
 	*pOut = '\0';
 
-	pOut = (char*)malloc (strlen (sz) + 1);
+	pOut = (char *)malloc (strlen (sz) + 1);
 	strcpy (pOut, sz);
 	*ppout = pOut;
 
@@ -212,15 +216,17 @@ int KB_ConvertString (char* in, char** ppout)
 
 /***
 ============
-KB_Find
+KB_Find [FWGS, 01.03.26]
 
-Allows the engine to get a kbutton_t directly ( so it can check +mlook state, etc ) for saving out to .cfg files
+Allows the engine to get a kbutton_t directly (so it can check +mlook state, etc) for saving out to .cfg files
 ============
 ***/
-struct kbutton_s DLLEXPORT* KB_Find (const char* name)
+// ESHQ: what the hell is going on here??? Why kbutton_s changed to kbutton_t???
+struct kbutton_t DLLEXPORT *KB_Find (const char *name)
 	{
-	kblist_t* p;
+	kblist_t *p;
 	p = g_kbkeys;
+
 	while (p)
 		{
 		if (!stricmp (name, p->name))
@@ -228,6 +234,7 @@ struct kbutton_s DLLEXPORT* KB_Find (const char* name)
 
 		p = p->next;
 		}
+
 	return NULL;
 	}
 
@@ -238,17 +245,17 @@ KB_Add
 Add a kbutton_t * to the list of pointers the engine can retrieve via KB_Find
 ============
 ***/
-void KB_Add (const char* name, kbutton_t* pkb)
+void KB_Add (const char *name, kbutton_t *pkb)
 	{
-	kblist_t* p;
-	kbutton_t* kb;
+	kblist_t *p;
+	kbutton_t *kb;
 
 	kb = KB_Find (name);
 
 	if (kb)
 		return;
 
-	p = (kblist_t*)malloc (sizeof (kblist_t));
+	p = (kblist_t *)malloc (sizeof (kblist_t));
 	memset (p, 0, sizeof (*p));
 
 	strcpy (p->name, name);
@@ -283,7 +290,7 @@ Clear kblist
 ***/
 void KB_Shutdown (void)
 	{
-	kblist_t* p, * n;
+	kblist_t *p, *n;
 	p = g_kbkeys;
 	while (p)
 		{
@@ -291,6 +298,7 @@ void KB_Shutdown (void)
 		free (p);
 		p = n;
 		}
+
 	g_kbkeys = NULL;
 	}
 
@@ -299,10 +307,10 @@ void KB_Shutdown (void)
 KeyDown
 ============
 ***/
-void KeyDown (kbutton_t* b)
+void KeyDown (struct kbutton_t *b)
 	{
 	int		k;
-	const char* c = gEngfuncs.Cmd_Argv (1);	// FWGS
+	const char *c = gEngfuncs.Cmd_Argv (1);	// FWGS
 
 	if (c[0])
 		k = atoi (c);
@@ -332,7 +340,7 @@ void KeyDown (kbutton_t* b)
 KeyUp
 ============
 ***/
-void KeyUp (kbutton_t* b)
+void KeyUp (kbutton_t *b)
 	{
 	int		k;
 	const char *c = gEngfuncs.Cmd_Argv (1);	// FWGS
@@ -372,7 +380,7 @@ HUD_Key_Event
 Return 1 to allow engine to process the key, otherwise, act on it as needed
 ============
 ***/
-int DLLEXPORT HUD_Key_Event (int down, int keynum, const char* pszCurrentBinding)
+int DLLEXPORT HUD_Key_Event (int down, int keynum, const char *pszCurrentBinding)
 	{
 	if (gViewPort)
 		return gViewPort->KeyInput (down, keynum, pszCurrentBinding);
@@ -549,7 +557,7 @@ Returns 0.25 if a key was pressed and released during the frame,
 1.0 if held for the entire time
 ===============
 ***/
-float CL_KeyState (kbutton_t* key)
+float CL_KeyState (kbutton_t *key)
 	{
 	float		val = 0.0;
 	int			impulsedown, impulseup, down;
@@ -602,7 +610,7 @@ CL_AdjustAngles
 Moves the local angle positions
 ================
 ***/
-void CL_AdjustAngles (float frametime, float* viewangles)
+void CL_AdjustAngles (float frametime, float *viewangles)
 	{
 	float	speed;
 	float	up, down;
@@ -659,7 +667,7 @@ if active == 1 then we are 1) not playing back demos ( where our commands are ig
 2 ) we have finished signing on to server
 ================
 ***/
-void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s* cmd, int active)
+void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s *cmd, int active)
 	{
 	float spd;
 	vec3_t viewangles;
@@ -667,13 +675,13 @@ void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s* cmd, int active
 
 	if (active)
 		{
-		gEngfuncs.GetViewAngles ((float*)viewangles);
+		gEngfuncs.GetViewAngles ((float *)viewangles);
 
 		CL_AdjustAngles (frametime, viewangles);
 
 		memset (cmd, 0, sizeof (*cmd));
 
-		gEngfuncs.SetViewAngles ((float*)viewangles);
+		gEngfuncs.SetViewAngles ((float *)viewangles);
 
 		if (in_strafe.state & 1)
 			{
@@ -712,7 +720,7 @@ void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s* cmd, int active
 		if (spd != 0.0)
 			{
 			// scale the 3 speeds so that the total velocity is not > cl.maxspeed
-			float fmov = sqrt ((cmd->forwardmove * cmd->forwardmove) + (cmd->sidemove * cmd->sidemove) + 
+			float fmov = sqrt ((cmd->forwardmove * cmd->forwardmove) + (cmd->sidemove * cmd->sidemove) +
 				(cmd->upmove * cmd->upmove));
 
 			if (fmov > spd)
@@ -755,7 +763,7 @@ void DLLEXPORT CL_CreateMove (float frametime, struct usercmd_s* cmd, int active
 			}
 		}
 
-	gEngfuncs.GetViewAngles ((float*)viewangles);
+	gEngfuncs.GetViewAngles ((float *)viewangles);
 	// Set current view angles.
 
 	if (g_iAlive)

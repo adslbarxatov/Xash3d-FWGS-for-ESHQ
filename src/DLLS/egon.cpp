@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
 #include "extdll.h"
@@ -35,7 +34,8 @@
 #define EGON_SWITCH_NARROW_TIME			0.75			// Time it takes to switch fire modes
 #define EGON_SWITCH_WIDE_TIME			1.5
 
-enum egon_e {
+enum egon_e
+	{
 	EGON_IDLE1 = 0,
 	EGON_FIDGET1,
 	EGON_ALTFIREON,
@@ -93,7 +93,7 @@ BOOL CEgon::Deploy (void)
 	return DefaultDeploy ("models/v_egon.mdl", "models/p_egon.mdl", EGON_DRAW, "egon");
 	}
 
-int CEgon::AddToPlayer (CBasePlayer* pPlayer)
+int CEgon::AddToPlayer (CBasePlayer *pPlayer)
 	{
 	if (CBasePlayerWeapon::AddToPlayer (pPlayer))
 		{
@@ -113,7 +113,7 @@ void CEgon::Holster (int skiplocal)	// == 0
 	EndAttack ();
 	}
 
-int CEgon::GetItemInfo (ItemInfo* p)
+int CEgon::GetItemInfo (ItemInfo *p)
 	{
 	p->pszName = STRING (pev->classname);
 	p->pszAmmo1 = "uranium";
@@ -200,7 +200,7 @@ void CEgon::Attack (void)
 
 			m_flAmmoUseTime = gpGlobals->time;// start using ammo ASAP.
 
-			PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usEgonFire, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, 0.0, 0.0, m_fireState, m_fireMode, 1, 0);
+			PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usEgonFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, m_fireState, m_fireMode, 1, 0);
 
 			m_shakeTime = 0;
 
@@ -220,7 +220,7 @@ void CEgon::Attack (void)
 
 			if (pev->fuser1 <= UTIL_WeaponTimeBase ())
 				{
-				PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usEgonFire, 0, (float*)&g_vecZero, (float*)&g_vecZero, 0.0, 0.0, m_fireState, m_fireMode, 0, 0);
+				PLAYBACK_EVENT_FULL (flags, m_pPlayer->edict (), m_usEgonFire, 0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, m_fireState, m_fireMode, 0, 0);
 				pev->fuser1 = 1000;
 				}
 
@@ -242,10 +242,10 @@ void CEgon::PrimaryAttack (void)
 
 	}
 
-void CEgon::Fire (const Vector& vecOrigSrc, const Vector& vecDir)
+void CEgon::Fire (const Vector &vecOrigSrc, const Vector &vecDir)
 	{
 	Vector vecDest = vecOrigSrc + vecDir * 2048;
-	edict_t* pentIgnore;
+	edict_t *pentIgnore;
 	TraceResult tr;
 
 	pentIgnore = m_pPlayer->edict ();
@@ -259,7 +259,7 @@ void CEgon::Fire (const Vector& vecOrigSrc, const Vector& vecDir)
 		return;
 
 #ifndef CLIENT_DLL
-	CBaseEntity* pEntity = CBaseEntity::Instance (tr.pHit);
+	CBaseEntity *pEntity = CBaseEntity::Instance (tr.pHit);
 
 	if (pEntity == NULL)
 		return;
@@ -382,7 +382,7 @@ void CEgon::Fire (const Vector& vecOrigSrc, const Vector& vecDir)
 	}
 
 
-void CEgon::UpdateEffect (const Vector& startPoint, const Vector& endPoint, float timeBlend)
+void CEgon::UpdateEffect (const Vector &startPoint, const Vector &endPoint, float timeBlend)
 	{
 #ifndef CLIENT_DLL
 	if (!m_pBeam)
@@ -527,7 +527,7 @@ void CEgon::EndAttack (void)
 		bMakeNoise = true;
 
 	PLAYBACK_EVENT_FULL (FEV_GLOBAL | FEV_RELIABLE, m_pPlayer->edict (), m_usEgonStop, 0,
-		(float*)&m_pPlayer->pev->origin, (float*)&m_pPlayer->pev->angles, 0.0, 0.0, bMakeNoise, 0, 0, 0);
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles, 0.0, 0.0, bMakeNoise, 0, 0, 0);
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase () + 2.0;
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase () + 0.5;
@@ -539,7 +539,7 @@ void CEgon::EndAttack (void)
 
 
 
-class CEgonAmmo: public CBasePlayerAmmo
+class CEgonAmmo : public CBasePlayerAmmo
 	{
 	void Spawn (void)
 		{
@@ -552,7 +552,7 @@ class CEgonAmmo: public CBasePlayerAmmo
 		PRECACHE_MODEL ("models/w_chainammo.mdl");
 		PRECACHE_SOUND ("items/9mmclip1.wav");
 		}
-	BOOL AddAmmo (CBaseEntity* pOther)
+	BOOL AddAmmo (CBaseEntity *pOther)
 		{
 		if (pOther->GiveAmmo (AMMO_URANIUMBOX_GIVE, "uranium", URANIUM_MAX_CARRY) != -1)
 			{

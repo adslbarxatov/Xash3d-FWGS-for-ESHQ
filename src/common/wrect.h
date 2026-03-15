@@ -9,16 +9,16 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 */
 
 #ifndef WRECT_H
 #define WRECT_H
 
 typedef struct wrect_s
-{
+	{
 	int	left, right, top, bottom;
-} wrect_t;
+	} wrect_t;
 
-#endif//WRECT_H
+#endif

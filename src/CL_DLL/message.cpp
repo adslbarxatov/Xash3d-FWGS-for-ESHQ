@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 //
 // Message.cpp
 //
@@ -29,7 +28,7 @@ DECLARE_MESSAGE (m_Message, GameTitle)
 
 // 1 Global client_textmessage_t for custom messages that aren't in the titles.txt
 client_textmessage_t	g_pCustomMessage;
-char* g_pCustomName = "Custom";
+char *g_pCustomName = "Custom";
 char g_pCustomText[1024];
 
 int CHudMessage::Init (void)
@@ -237,12 +236,12 @@ void CHudMessage::MessageScanStart (void)
 		}
 	}
 
-void CHudMessage::MessageDrawScan (client_textmessage_t* pMessage, float time)
+void CHudMessage::MessageDrawScan (client_textmessage_t *pMessage, float time)
 	{
 	int i, j, length, width;
-	const char* pText;
+	const char *pText;
 
-	#define LINE_LENGTH	128
+#define LINE_LENGTH	128
 	unsigned char line[LINE_LENGTH];
 
 	pText = pMessage->pMessage;
@@ -285,7 +284,7 @@ void CHudMessage::MessageDrawScan (client_textmessage_t* pMessage, float time)
 		m_parms.width = 0;
 
 		// ESHQ: отсутствие последнего ограничения позволяло выходить за границы массива
-		while (*pText && (*pText != '\n') && (m_parms.lineLength < LINE_LENGTH))	
+		while (*pText && (*pText != '\n') && (m_parms.lineLength < LINE_LENGTH))
 			{
 			unsigned char c = *pText;
 			line[m_parms.lineLength] = c;
@@ -316,7 +315,7 @@ void CHudMessage::MessageDrawScan (client_textmessage_t* pMessage, float time)
 int CHudMessage::Draw (float fTime)
 	{
 	int i, drawn;
-	client_textmessage_t* pMessage;
+	client_textmessage_t *pMessage;
 	float endTime;
 
 	drawn = 0;
@@ -362,7 +361,7 @@ int CHudMessage::Draw (float fTime)
 			{
 			pMessage = m_pMessages[i];
 			if (m_startTime[i] > gHUD.m_flTime)
-				m_startTime[i] = gHUD.m_flTime + m_parms.time - m_startTime[i] + 0.2;	
+				m_startTime[i] = gHUD.m_flTime + m_parms.time - m_startTime[i] + 0.2;
 			// Server takes 0.2 seconds to spawn, adjust for this
 			}
 		}
@@ -416,10 +415,10 @@ int CHudMessage::Draw (float fTime)
 	return 1;
 	}
 
-void CHudMessage::MessageAdd (const char* pName, float time)
+void CHudMessage::MessageAdd (const char *pName, float time)
 	{
 	int i, j;
-	client_textmessage_t* tempMessage;
+	client_textmessage_t *tempMessage;
 
 	for (i = 0; i < maxHUDMessages; i++)
 		{
@@ -476,11 +475,11 @@ void CHudMessage::MessageAdd (const char* pName, float time)
 		}
 	}
 
-int CHudMessage::MsgFunc_HudText (const char* pszName, int iSize, void* pbuf)
+int CHudMessage::MsgFunc_HudText (const char *pszName, int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 
-	char* pString = READ_STRING ();
+	char *pString = READ_STRING ();
 
 	MessageAdd (pString, gHUD.m_flTime);
 	// Remember the time -- to fix up level transitions
@@ -493,7 +492,7 @@ int CHudMessage::MsgFunc_HudText (const char* pszName, int iSize, void* pbuf)
 	return 1;
 	}
 
-int CHudMessage::MsgFunc_GameTitle (const char* pszName, int iSize, void* pbuf)
+int CHudMessage::MsgFunc_GameTitle (const char *pszName, int iSize, void *pbuf)
 	{
 	m_pGameTitle = TextMessageGet ("GAMETITLE");
 	if (m_pGameTitle != NULL)
@@ -508,7 +507,7 @@ int CHudMessage::MsgFunc_GameTitle (const char* pszName, int iSize, void* pbuf)
 	return 1;
 	}
 
-void CHudMessage::MessageAdd (client_textmessage_t* newMessage)
+void CHudMessage::MessageAdd (client_textmessage_t *newMessage)
 	{
 	m_parms.time = gHUD.m_flTime;
 

@@ -21,4 +21,4 @@ void CAM_ClearStates (void);
 void CAM_StartMouseMove (void);
 void CAM_EndMouseMove (void);
 
-#endif		// _CAMERA_H_
+#endif

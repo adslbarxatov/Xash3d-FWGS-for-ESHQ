@@ -321,7 +321,7 @@ extern "C" {
 		int		(*pfnGetCurrentDuckState)(void);
 		} cl_enginefunc_t;
 
-#define CLDLL_INTERFACE_VERSION	7		// [FWGS, 01.04.23]
+#define CLDLL_INTERFACE_VERSION	7
 
 #ifdef __cplusplus
 	}

@@ -36,7 +36,7 @@
 
 using namespace vgui;
 
-class CTextImage2: public Image
+class CTextImage2 : public Image
 	{
 	public:
 		CTextImage2 ()
@@ -51,12 +51,12 @@ class CTextImage2: public Image
 			delete _image[1];
 			}
 
-		TextImage* GetImage (int image)
+		TextImage *GetImage (int image)
 			{
 			return _image[image];
 			}
 
-		void getSize (int& wide, int& tall)
+		void getSize (int &wide, int &tall)
 			{
 			int w1, w2, t1, t2;
 			_image[0]->getTextSize (w1, t1);
@@ -67,7 +67,7 @@ class CTextImage2: public Image
 			setSize (wide, tall);
 			}
 
-		void doPaint (Panel* panel)
+		void doPaint (Panel *panel)
 			{
 			_image[0]->doPaint (panel);
 			_image[1]->doPaint (panel);
@@ -96,16 +96,16 @@ class CTextImage2: public Image
 			}
 
 	private:
-		TextImage* _image[2];
+		TextImage *_image[2];
 	};
 
 // -----------------------------------------------------------------------------
 // Purpose: Custom label for cells in the Scoreboard's Table Header
 // -----------------------------------------------------------------------------
-class CLabelHeader: public Label
+class CLabelHeader : public Label
 	{
 	public:
-		CLabelHeader (): Label ("")
+		CLabelHeader () : Label ("")
 			{
 			_dualImage = new CTextImage2 ();
 			_dualImage->setColor2 (Color (255, 170, 0, 0));
@@ -130,14 +130,14 @@ class CLabelHeader: public Label
 			_useFgColorAsImageColor = state;
 			}
 
-		virtual void setText (int textBufferLen, const char* text)
+		virtual void setText (int textBufferLen, const char *text)
 			{
 			_dualImage->GetImage (0)->setText (text);
 
 			// calculate the text size
-			Font* font = _dualImage->GetImage (0)->getFont ();
+			Font *font = _dualImage->GetImage (0)->getFont ();
 			_gap = 0;
-			for (const char* ch = text; *ch != 0; ch++)
+			for (const char *ch = text; *ch != 0; ch++)
 				{
 				int a, b, c;
 				font->getCharABCwide (*ch, a, b, c);
@@ -148,7 +148,7 @@ class CLabelHeader: public Label
 			}
 
 		// [FWGS, 01.05.24]
-		virtual void setText (const char* text)
+		virtual void setText (const char *text)
 			{
 			// strip any non-alnum characters from the end
 			char buf[512];
@@ -161,12 +161,12 @@ class CLabelHeader: public Label
 			CLabelHeader::setText (0, buf);
 			}
 
-		void setText2 (const char* text)
+		void setText2 (const char *text)
 			{
 			_dualImage->GetImage (1)->setText (text);
 			}
 
-		void getTextSize (int& wide, int& tall)
+		void getTextSize (int &wide, int &tall)
 			{
 			_dualImage->getSize (wide, tall);
 			}
@@ -190,12 +190,12 @@ class CLabelHeader: public Label
 			setFgColor (r, g, b, a);
 			}
 
-		void setFont (Font* font)
+		void setFont (Font *font)
 			{
 			_dualImage->GetImage (0)->setFont (font);
 			}
 
-		void setFont2 (Font* font)
+		void setFont2 (Font *font)
 			{
 			_dualImage->GetImage (1)->setFont (font);
 			}
@@ -209,10 +209,10 @@ class CLabelHeader: public Label
 
 		void paint ();
 		void paintBackground ();
-		void calcAlignment (int iwide, int itall, int& x, int& y);
+		void calcAlignment (int iwide, int itall, int &x, int &y);
 
 	private:
-		CTextImage2* _dualImage;
+		CTextImage2 *_dualImage;
 		int _row;
 		int _gap;
 		int _offset[2];
@@ -227,11 +227,11 @@ class ScoreTablePanel;
 // -----------------------------------------------------------------------------
 // Purpose: Scoreboard back panel
 // -----------------------------------------------------------------------------
-class ScorePanel: public Panel, public vgui::CDefaultInputSignal
+class ScorePanel : public Panel, public vgui::CDefaultInputSignal
 	{
 	private:
 		// Default panel implementation doesn't forward mouse messages when there is no cursor and we need them.
-		class HitTestPanel: public Panel
+		class HitTestPanel : public Panel
 			{
 			public:
 				virtual void	internalMousePressed (MouseCode code);
@@ -250,7 +250,7 @@ class ScorePanel: public Panel, public vgui::CDefaultInputSignal
 
 		CGrid			m_HeaderGrid;
 		CLabelHeader	m_HeaderLabels[NUM_COLUMNS];			// Labels above the 
-		CLabelHeader* m_pCurrentHighlightLabel;
+		CLabelHeader *m_pCurrentHighlightLabel;
 		int				m_iHighlightRow;
 
 		vgui::CListBox	m_PlayerList;
@@ -258,8 +258,8 @@ class ScorePanel: public Panel, public vgui::CDefaultInputSignal
 		CLabelHeader	m_PlayerEntries[NUM_COLUMNS][NUM_ROWS];	// Labels for the grid entries.
 
 		ScorePanel::HitTestPanel	m_HitTestPanel;
-		CommandButton* m_pCloseButton;
-		CLabelHeader* GetPlayerEntry (int x, int y) { return &m_PlayerEntries[x][y]; }
+		CommandButton *m_pCloseButton;
+		CLabelHeader *GetPlayerEntry (int x, int y) { return &m_PlayerEntries[x][y]; }
 
 	public:
 		int				m_iNumTeams;
@@ -279,7 +279,7 @@ class ScorePanel: public Panel, public vgui::CDefaultInputSignal
 		void Update (void);
 
 		void SortTeams (void);
-		void SortPlayers (int iTeam, char* team);
+		void SortPlayers (int iTeam, char *team);
 		void RebuildTeams (void);
 
 		void FillGrid ();
@@ -292,10 +292,10 @@ class ScorePanel: public Panel, public vgui::CDefaultInputSignal
 
 		void MouseOverCell (int row, int col);
 
-	// InputSignal overrides
+		// InputSignal overrides
 	public:
-		virtual void mousePressed (MouseCode code, Panel* panel);
-		virtual void cursorMoved (int x, int y, Panel* panel);
+		virtual void mousePressed (MouseCode code, Panel *panel);
+		virtual void cursorMoved (int x, int y, Panel *panel);
 
 		friend CLabelHeader;
 	};

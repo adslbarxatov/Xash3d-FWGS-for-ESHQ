@@ -26,7 +26,7 @@ without written permission from Valve LLC
 typedef unsigned char byte;
 typedef float vec_t;
 typedef unsigned short word;
-typedef int (*pfnUserMsgHook)(const char* pszName, int iSize, void* pbuf);
+typedef int (*pfnUserMsgHook)(const char *pszName, int iSize, void *pbuf);
 
 #include "util_vector.h"
 

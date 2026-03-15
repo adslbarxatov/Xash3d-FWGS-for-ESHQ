@@ -16,35 +16,34 @@
 // $NoKeywords: $
 // =============================================================================
 
+// [FWGS, 01.03.26]
 #include "VGUI_Font.h"
-
 #include "hud.h"
 #include "cl_util.h"
 #include "camera.h"
-#include "kbutton.h"
+/*include "kbutton. h"*/
 #include "cvardef.h"
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "const.h"
-#include "camera.h"
+/*include "camera.h"*/
 #include "in_defs.h"
 #include "parsemsg.h"
-
 #include "vgui_int.h"
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ServerBrowser.h"
 #include "..\game_shared\vgui_LoadTGA.h"
 
 // Arrow filenames
-char* sArrowFilenames[] =
+char *sArrowFilenames[] =
 	{
-		"arrowup",
-		"arrowdn",
-		"arrowlt",
-		"arrowrt",
+	"arrowup",
+	"arrowdn",
+	"arrowlt",
+	"arrowrt",
 	};
 
 // Get the name of TGA file, without a gamedir
-char* GetTGANameForRes (const char* pszName)
+char *GetTGANameForRes (const char *pszName)
 	{
 	int i;
 	char sz[256];
@@ -61,9 +60,9 @@ char* GetTGANameForRes (const char* pszName)
 // -----------------------------------------------------------------------------
 // Purpose: Loads a .tga file and returns a pointer to the VGUI tga object
 // -----------------------------------------------------------------------------
-BitmapTGA* LoadTGAForRes (const char* pImageName)
+BitmapTGA *LoadTGAForRes (const char *pImageName)
 	{
-	BitmapTGA* pTGA;
+	BitmapTGA *pTGA;
 
 	char sz[256];
 	sprintf (sz, "%%d_%s", pImageName);
@@ -74,7 +73,7 @@ BitmapTGA* LoadTGAForRes (const char* pImageName)
 
 // ===========================================================
 // All TFC Hud buttons are derived from this one.
-CommandButton::CommandButton (const char* text, int x, int y, int wide, int tall, bool bNoHighlight): Button ("", x, y, wide, tall)
+CommandButton::CommandButton (const char *text, int x, int y, int wide, int tall, bool bNoHighlight) : Button ("", x, y, wide, tall)
 	{
 	m_iPlayerClass = 0;
 	m_bNoHighlight = bNoHighlight;
@@ -83,7 +82,7 @@ CommandButton::CommandButton (const char* text, int x, int y, int wide, int tall
 	setText (text);
 	}
 
-CommandButton::CommandButton (int iPlayerClass, const char* text, int x, int y, int wide, int tall, bool bFlat): Button ("", x, y, wide, tall)
+CommandButton::CommandButton (int iPlayerClass, const char *text, int x, int y, int wide, int tall, bool bFlat) : Button ("", x, y, wide, tall)
 	{
 	m_iPlayerClass = iPlayerClass;
 	m_bNoHighlight = false;
@@ -92,7 +91,7 @@ CommandButton::CommandButton (int iPlayerClass, const char* text, int x, int y, 
 	setText (text);
 	}
 
-CommandButton::CommandButton (const char* text, int x, int y, int wide, int tall, bool bNoHighlight, bool bFlat): Button ("", x, y, wide, tall)
+CommandButton::CommandButton (const char *text, int x, int y, int wide, int tall, bool bNoHighlight, bool bFlat) : Button ("", x, y, wide, tall)
 	{
 	m_iPlayerClass = 0;
 	m_bFlat = bFlat;
@@ -151,7 +150,7 @@ void CommandButton::RecalculateText (void)
 	Button::setText (szBuf);
 	}
 
-void CommandButton::setText (const char* text)
+void CommandButton::setText (const char *text)
 	{
 	strncpy (m_sMainText, text, MAX_BUTTON_SIZE);
 	m_sMainText[MAX_BUTTON_SIZE - 1] = 0;
@@ -170,7 +169,7 @@ char CommandButton::getBoundKey (void)
 	return m_cBoundKey;
 	}
 
-void CommandButton::AddSubMenu (CCommandMenu* pNewMenu)
+void CommandButton::AddSubMenu (CCommandMenu *pNewMenu)
 	{
 	m_pSubMenu = pNewMenu;
 
@@ -240,16 +239,16 @@ void CommandButton::paintBackground ()
 void CommandButton::cursorEntered (void)
 	{
 	// unarm all the other buttons in this menu
-	CCommandMenu* containingMenu = getParentMenu ();
+	CCommandMenu *containingMenu = getParentMenu ();
 	if (containingMenu)
 		{
 		containingMenu->ClearButtonsOfArmedState ();
 
 		// make all our higher buttons armed
-		CCommandMenu* pCParent = containingMenu->GetParentMenu ();
+		CCommandMenu *pCParent = containingMenu->GetParentMenu ();
 		if (pCParent)
 			{
-			CommandButton* pParentButton = pCParent->FindButtonWithSubmenu (containingMenu);
+			CommandButton *pParentButton = pCParent->FindButtonWithSubmenu (containingMenu);
 
 			pParentButton->cursorEntered ();
 			}
@@ -277,7 +276,7 @@ void CommandButton::cursorExited (void)
 // Purpose: Returns the command menu that the button is part of, if any
 // Output : CCommandMenu *
 // -----------------------------------------------------------------------------
-CCommandMenu* CommandButton::getParentMenu (void)
+CCommandMenu *CommandButton::getParentMenu (void)
 	{
 	return m_pParentMenu;
 	}
@@ -286,7 +285,7 @@ CCommandMenu* CommandButton::getParentMenu (void)
 // Purpose: Sets the menu that contains this button
 // Input  : *pParentMenu - 
 // -----------------------------------------------------------------------------
-void CommandButton::setParentMenu (CCommandMenu* pParentMenu)
+void CommandButton::setParentMenu (CCommandMenu *pParentMenu)
 	{
 	m_pParentMenu = pParentMenu;
 	}
@@ -321,14 +320,14 @@ int ClassButton::IsNotValid ()
 
 // ===========================================================
 // Button with Class image beneath it
-CImageLabel::CImageLabel (const char* pImageName, int x, int y): Label ("", x, y)
+CImageLabel::CImageLabel (const char *pImageName, int x, int y) : Label ("", x, y)
 	{
 	setContentFitted (true);
 	m_pTGA = LoadTGAForRes (pImageName);
 	setImage (m_pTGA);
 	}
 
-CImageLabel::CImageLabel (const char* pImageName, int x, int y, int wide, int tall): Label ("", x, y, wide, tall)
+CImageLabel::CImageLabel (const char *pImageName, int x, int y, int wide, int tall) : Label ("", x, y, wide, tall)
 	{
 	setContentFitted (true);
 	m_pTGA = LoadTGAForRes (pImageName);
@@ -365,7 +364,7 @@ int CImageLabel::getImageTall (void)
 		}
 	}
 
-void CImageLabel::LoadImage (const char* pImageName)
+void CImageLabel::LoadImage (const char *pImageName)
 	{
 	if (m_pTGA)
 		delete m_pTGA;
@@ -380,7 +379,7 @@ void CImageLabel::LoadImage (const char* pImageName)
 
 		char sz[256];
 		sprintf (sz, "%s/%s", gEngfuncs.pfnGetGameDirectory (), pImageName);
-		FileInputStream* fis = new FileInputStream (sz, false);
+		FileInputStream *fis = new FileInputStream (sz, false);
 		m_pTGA = new BitmapTGA (fis, true);
 		fis->close ();
 		}
@@ -413,7 +412,7 @@ void CCommandMenu::paintBackground ()
 // =================================================================================
 // CUSTOM SCROLLPANEL
 // =================================================================================
-CTFScrollButton::CTFScrollButton (int iArrow, const char* text, int x, int y, int wide, int tall): CommandButton (text, x, y, wide, tall)
+CTFScrollButton::CTFScrollButton (int iArrow, const char *text, int x, int y, int wide, int tall) : CommandButton (text, x, y, wide, tall)
 	{
 	// Set text color to orange
 	setFgColor (Scheme::sc_primary1);
@@ -423,7 +422,7 @@ CTFScrollButton::CTFScrollButton (int iArrow, const char* text, int x, int y, in
 	setImage (m_pTGA);
 
 	// Highlight signal
-	InputSignal* pISignal = new CHandler_CommandButtonHighlight (this);
+	InputSignal *pISignal = new CHandler_CommandButtonHighlight (this);
 	addInputSignal (pISignal);
 	}
 
@@ -446,8 +445,7 @@ void CTFScrollButton::paint (void)
 	}
 
 void CTFScrollButton::paintBackground (void)
-	{
-	}
+	{}
 
 void CTFSlider::paintBackground (void)
 	{
@@ -481,9 +479,9 @@ void CTFSlider::paintBackground (void)
 		}
 	}
 
-CTFScrollPanel::CTFScrollPanel (int x, int y, int wide, int tall): ScrollPanel (x, y, wide, tall)
+CTFScrollPanel::CTFScrollPanel (int x, int y, int wide, int tall) : ScrollPanel (x, y, wide, tall)
 	{
-	ScrollBar* pScrollBar = getVerticalScrollBar ();
+	ScrollBar *pScrollBar = getVerticalScrollBar ();
 	pScrollBar->setButton (new CTFScrollButton (ARROW_UP, "", 0, 0, 16, 16), 0);
 	pScrollBar->setButton (new CTFScrollButton (ARROW_DOWN, "", 0, 0, 16, 16), 1);
 	pScrollBar->setSlider (new CTFSlider (0, wide - 1, wide, (tall - (wide * 2)) + 2, true));
@@ -503,13 +501,13 @@ CTFScrollPanel::CTFScrollPanel (int x, int y, int wide, int tall): ScrollPanel (
 // =================================================================================
 // CUSTOM HANDLERS
 // =================================================================================
-void CHandler_MenuButtonOver::cursorEntered (Panel* panel)
+void CHandler_MenuButtonOver::cursorEntered (Panel *panel)
 	{
 	if (gViewPort && m_pMenuPanel)
 		m_pMenuPanel->SetActiveInfo (m_iButton);
 	}
 
-void CMenuHandler_StringCommandClassSelect::actionPerformed (Panel* panel)
+void CMenuHandler_StringCommandClassSelect::actionPerformed (Panel *panel)
 	{
 	CMenuHandler_StringCommand::actionPerformed (panel);
 

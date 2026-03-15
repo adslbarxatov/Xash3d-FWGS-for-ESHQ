@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC.
+***/
+
 // Robin, 4-22-98: Moved set_suicide_frame() here from player.cpp to allow us to 
 // have one without a hardcoded player.mdl in tf_client.cpp
 
@@ -20,6 +19,7 @@
 client/server game specific stuff
 ***/
 
+// [FWGS, 01.03.26]
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -33,9 +33,9 @@ client/server game specific stuff
 #include "customentity.h"
 #include "weapons.h"
 #include "weaponinfo.h"
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "netadr.h"
-#include "crtlib.h"	// [FWGS, 01.05.24]
+#include "crtlib.h"
 
 extern DLL_GLOBAL ULONG		g_ulModelIndexPlayer;
 extern DLL_GLOBAL BOOL		g_fGameOver;

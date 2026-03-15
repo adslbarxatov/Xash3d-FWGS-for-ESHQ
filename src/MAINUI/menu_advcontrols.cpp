@@ -17,12 +17,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 ***/
 
+// [FWGS, 01.03.26]
 #include "extdll.h"
 #include "basemenu.h"
 #include "utils.h"
-#include "../cl_dll/kbutton.h"
+/*include "kbutton.h"*/
 #include "menu_btnsbmp_table.h"
 #include "menu_strings.h"
+#include "q_client.h"
 
 #define ART_BANNER			"gfx/shell/head_advanced"
 
@@ -75,19 +77,19 @@ static void UI_AdvControls_UpdateConfig (void)
 	CVAR_SET_FLOAT ("crosshair", uiAdvControls.crosshair.enabled);
 	CVAR_SET_FLOAT ("lookspring", uiAdvControls.lookSpring.enabled);
 	CVAR_SET_FLOAT ("lookstrafe", uiAdvControls.lookStrafe.enabled);
-	
+
 	// ESHQ: замена параметра
 	if (uiAdvControls.infiniteRun.enabled)
 		{
 		CVAR_SET_FLOAT ("cl_movespeedkey", 0.95f);
 		CVAR_SET_FLOAT ("cl_anglespeedkey", 0.95f);
 		}
-	else 
+	else
 		{
 		CVAR_SET_FLOAT ("cl_movespeedkey", 0.55f);
 		CVAR_SET_FLOAT ("cl_anglespeedkey", 0.55f);
 		}
-	
+
 	CVAR_SET_FLOAT ("sv_aim", uiAdvControls.autoaim.enabled);
 	CVAR_SET_FLOAT ("sensitivity", (uiAdvControls.sensitivity.curValue * 20.0f) + 0.2f);
 
@@ -112,6 +114,7 @@ UI_AdvControls_GetConfig
 ***/
 static void UI_AdvControls_GetConfig (void)
 	{
+	// ESHQ: непонятно чем вызванное переопределение kbutton_s на kbutton_t
 	kbutton_t *mlook;
 
 	if (CVAR_GET_FLOAT ("m_pitch") < 0)
@@ -120,7 +123,8 @@ static void UI_AdvControls_GetConfig (void)
 	if (CVAR_GET_FLOAT ("crosshair"))
 		uiAdvControls.crosshair.enabled = 1;
 
-	mlook = (kbutton_s *)Key_GetState ("in_mlook");
+	// ESHQ: непонятно чем вызванное переопределение kbutton_s на kbutton_t
+	mlook = (kbutton_t *)Key_GetState ("in_mlook");
 	if (mlook && mlook->state & 1)
 		uiAdvControls.mouseLook.enabled = 1;
 
@@ -173,7 +177,7 @@ static void UI_AdvControls_Callback (void *self, int event)
 		case ID_AUTOAIM:
 			if (event == QM_PRESSED)
 				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_PRESSED;
-			else 
+			else
 				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_FOCUS;
 			break;
 		}
@@ -241,7 +245,7 @@ static void UI_AdvControls_Init (void)
 
 	uiAdvControls.crosshair.generic.id = ID_CROSSHAIR;
 	uiAdvControls.crosshair.generic.type = QMTYPE_CHECKBOX;
-	uiAdvControls.crosshair.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_NOTIFY | QMF_ACT_ONRELEASE | 
+	uiAdvControls.crosshair.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_NOTIFY | QMF_ACT_ONRELEASE |
 		QMF_MOUSEONLY | QMF_DROPSHADOW;
 	uiAdvControls.crosshair.generic.x = 72;
 	uiAdvControls.crosshair.generic.y = 230;

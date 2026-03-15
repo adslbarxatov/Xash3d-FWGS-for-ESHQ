@@ -5,25 +5,26 @@
 // $NoKeywords: $
 // =============================================================================
 
+// [FWGS, 01.03.26]
 #include "hud.h"
 #include "cl_util.h"
 #include "camera.h"
-#include "kbutton.h"
+/*include "kbutton.h"*/
 #include "cvardef.h"
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "const.h"
-#include "camera.h"
+/*include "camera.h"*/
 #include "in_defs.h"
-
 #include "windows.h"
+#include "q_client.h"
 
-float CL_KeyState (kbutton_t* key);
+float CL_KeyState (kbutton_t *key);
 
 extern "C"
 	{
 	void DLLEXPORT CAM_Think (void);
 	int DLLEXPORT CL_IsThirdPerson (void);
-	void DLLEXPORT CL_CameraOffset (float* ofs);
+	void DLLEXPORT CL_CameraOffset (float *ofs);
 	}
 
 extern cl_enginefunc_t gEngfuncs;
@@ -49,19 +50,19 @@ enum ECAM_Command
 	};
 
 // -------------------------------------------------- Global Variables
-cvar_t* cam_command;
-cvar_t* cam_snapto;
-cvar_t* cam_idealyaw;
-cvar_t* cam_idealpitch;
-cvar_t* cam_idealdist;
-cvar_t* cam_contain;
+cvar_t *cam_command;
+cvar_t *cam_snapto;
+cvar_t *cam_idealyaw;
+cvar_t *cam_idealpitch;
+cvar_t *cam_idealdist;
+cvar_t *cam_contain;
 
-cvar_t* c_maxpitch;
-cvar_t* c_minpitch;
-cvar_t* c_maxyaw;
-cvar_t* c_minyaw;
-cvar_t* c_maxdistance;
-cvar_t* c_mindistance;
+cvar_t *c_maxpitch;
+cvar_t *c_minpitch;
+cvar_t *c_maxyaw;
+cvar_t *c_minyaw;
+cvar_t *c_maxdistance;
+cvar_t *c_mindistance;
 
 // pitch, yaw, dist
 vec3_t cam_ofs;
@@ -127,16 +128,16 @@ float MoveToward (float cur, float goal, float maxspeed)
 typedef struct
 	{
 	vec3_t		boxmins, boxmaxs;// enclose the test object along entire move
-	float* mins, * maxs;	// size of the moving object
+	float *mins, *maxs;	// size of the moving object
 	vec3_t		mins2, maxs2;	// size when clipping against mosnters
-	float* start, * end;
+	float *start, *end;
 	trace_t		trace;
 	int			type;
-	edict_t* passedict;
+	edict_t *passedict;
 	qboolean	monsterclip;
 	} moveclip_t;
 
-extern trace_t SV_ClipMoveToEntity (edict_t* ent, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
+extern trace_t SV_ClipMoveToEntity (edict_t *ent, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
 
 void DLLEXPORT CAM_Think (void)
 	{
@@ -333,7 +334,7 @@ void DLLEXPORT CAM_Think (void)
 	// Move towards ideal
 	VectorCopy (cam_ofs, camAngles);
 
-	gEngfuncs.GetViewAngles ((float*)viewangles);
+	gEngfuncs.GetViewAngles ((float *)viewangles);
 
 	if (cam_snapto->value)
 		{
@@ -381,8 +382,8 @@ void DLLEXPORT CAM_Think (void)
 	cam_ofs[2] = dist;
 	}
 
-extern void KeyDown (kbutton_t* b);	// HACK
-extern void KeyUp (kbutton_t* b);	// HACK
+extern void KeyDown (kbutton_t *b);	// HACK
+extern void KeyUp (kbutton_t *b);	// HACK
 
 void CAM_PitchUpDown (void) { KeyDown (&cam_pitchup); }
 void CAM_PitchUpUp (void) { KeyUp (&cam_pitchup); }
@@ -409,7 +410,7 @@ void CAM_ToThirdPerson (void)
 		}
 #endif
 
-	gEngfuncs.GetViewAngles ((float*)viewangles);
+	gEngfuncs.GetViewAngles ((float *)viewangles);
 
 	if (!cam_thirdperson)
 		{
@@ -476,7 +477,7 @@ void CAM_ClearStates (void)
 	{
 	vec3_t viewangles;
 
-	gEngfuncs.GetViewAngles ((float*)viewangles);
+	gEngfuncs.GetViewAngles ((float *)viewangles);
 
 	cam_pitchup.state = 0;
 	cam_pitchdown.state = 0;
@@ -588,7 +589,7 @@ int DLLEXPORT CL_IsThirdPerson (void)
 	return (cam_thirdperson ? 1 : 0) || (g_iUser1 && (g_iUser2 == gEngfuncs.GetLocalPlayer ()->index));
 	}
 
-void DLLEXPORT CL_CameraOffset (float* ofs)
+void DLLEXPORT CL_CameraOffset (float *ofs)
 	{
 	VectorCopy (cam_ofs, ofs);
 	}

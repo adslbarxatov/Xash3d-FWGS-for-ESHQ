@@ -16,18 +16,16 @@
 // $NoKeywords: $
 // =============================================================================
 
+// [FWGS, 01.03.26]
 #include "VGUI_Font.h"
 #include "VGUI_ScrollPanel.h"
 #include "VGUI_TextImage.h"
-
-#include<VGUI_StackLayout.h>
-
+#include <VGUI_StackLayout.h>
 #include "hud.h"
 #include "cl_util.h"
 #include "camera.h"
-#include "kbutton.h"
+/*include "kbutton. h"*/
 #include "const.h"
-
 #include "vgui_int.h"
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ServerBrowser.h"
@@ -43,21 +41,21 @@
 // -----------------------------------------------------------------------------
 // Purpose: Displays the MOTD and basic server information
 // -----------------------------------------------------------------------------
-class CMessageWindowPanel: public CMenuPanel
+class CMessageWindowPanel : public CMenuPanel
 	{
 	public:
-		CMessageWindowPanel (const char* szMOTD, const char* szTitle, int iShadeFullScreen, int iRemoveMe,
+		CMessageWindowPanel (const char *szMOTD, const char *szTitle, int iShadeFullScreen, int iRemoveMe,
 			int x, int y, int wide, int tall);
 
 	private:
-		CTransparentPanel* m_pBackgroundPanel;
+		CTransparentPanel *m_pBackgroundPanel;
 	};
 
 // -----------------------------------------------------------------------------
 // Purpose: Creates a new CMessageWindowPanel
 // Output : CMenuPanel - interface to the panel
 // -----------------------------------------------------------------------------
-CMenuPanel* CMessageWindowPanel_Create (const char* szMOTD, const char* szTitle, int iShadeFullscreen,
+CMenuPanel *CMessageWindowPanel_Create (const char *szMOTD, const char *szTitle, int iShadeFullscreen,
 	int iRemoveMe, int x, int y, int wide, int tall)
 	{
 	return new CMessageWindowPanel (szMOTD, szTitle, iShadeFullscreen, iRemoveMe, x, y, wide, tall);
@@ -66,11 +64,11 @@ CMenuPanel* CMessageWindowPanel_Create (const char* szMOTD, const char* szTitle,
 // -----------------------------------------------------------------------------
 // Purpose: Constructs a message panel
 // -----------------------------------------------------------------------------
-CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitle, int iShadeFullscreen,
-	int iRemoveMe, int x, int y, int wide, int tall): CMenuPanel (iShadeFullscreen ? 100 : 255, iRemoveMe, x, y, wide, tall)
+CMessageWindowPanel::CMessageWindowPanel (const char *szMOTD, const char *szTitle, int iShadeFullscreen,
+	int iRemoveMe, int x, int y, int wide, int tall) : CMenuPanel (iShadeFullscreen ? 100 : 255, iRemoveMe, x, y, wide, tall)
 	{
 	// Get the scheme used for the Titles
-	CSchemeManager* pSchemes = gViewPort->GetSchemeManager ();
+	CSchemeManager *pSchemes = gViewPort->GetSchemeManager ();
 
 	// schemes
 	SchemeHandle_t hTitleScheme = pSchemes->getSchemeHandle ("Title Font");
@@ -90,7 +88,7 @@ CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitl
 	m_pBackgroundPanel->getSize (iXSize, iYSize);
 
 	// Create the title
-	Label* pLabel = new Label ("", iXPos + MOTD_TITLE_X, iYPos + MOTD_TITLE_Y);
+	Label *pLabel = new Label ("", iXPos + MOTD_TITLE_X, iYPos + MOTD_TITLE_Y);
 	pLabel->setParent (this);
 	pLabel->setFont (pSchemes->getFont (hTitleScheme));
 	pLabel->setFont (Scheme::sf_primary1);
@@ -104,7 +102,7 @@ CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitl
 	pLabel->setText (szTitle);
 
 	// Create the Scroll panel
-	ScrollPanel* pScrollPanel = new CTFScrollPanel (iXPos + XRES (16), iYPos + MOTD_TITLE_Y * 2 + YRES (16),
+	ScrollPanel *pScrollPanel = new CTFScrollPanel (iXPos + XRES (16), iYPos + MOTD_TITLE_Y * 2 + YRES (16),
 		iXSize - XRES (32), iYSize - (YRES (48) + BUTTON_SIZE_Y * 2));
 	pScrollPanel->setParent (this);
 
@@ -114,7 +112,7 @@ CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitl
 	pScrollPanel->validate ();
 
 	// Create the text panel
-	TextPanel* pText = new TextPanel ("", 0, 0, 64, 64);
+	TextPanel *pText = new TextPanel ("", 0, 0, 64, 64);
 	pText->setParent (pScrollPanel->getClient ());
 
 	// get the font and colors from the scheme
@@ -144,7 +142,7 @@ CMessageWindowPanel::CMessageWindowPanel (const char* szMOTD, const char* szTitl
 
 	pScrollPanel->validate ();
 
-	CommandButton* pButton = new CommandButton (CHudTextMessage::BufferedLocaliseTextString ("#Menu_OK"),
+	CommandButton *pButton = new CommandButton (CHudTextMessage::BufferedLocaliseTextString ("#Menu_OK"),
 		iXPos + XRES (16), iYPos + iYSize - YRES (16) - BUTTON_SIZE_Y, CMENU_SIZE_X, BUTTON_SIZE_Y);
 	pButton->addActionSignal (new CMenuHandler_TextWindow (HIDE_TEXTWINDOW));
 	pButton->setParent (this);

@@ -26,7 +26,8 @@
 // Purpose: Handles the drawing of the spectator stuff (camera & top-down map and all the things on it )
 // -----------------------------------------------------------------------------
 
-typedef struct overviewInfo_s {
+typedef struct overviewInfo_s
+	{
 	char		map[64];	// cl.levelname or empty
 	vec3_t		origin;		// center of map
 	float		zoom;		// zoom of map images
@@ -41,38 +42,39 @@ typedef struct overviewInfo_s {
 	int			insetWindowWidth;
 	} overviewInfo_t;
 
-typedef struct overviewEntity_s {
+typedef struct overviewEntity_s
+	{
 
 	HLSPRITE					hSprite;
-	struct cl_entity_s* entity;
+	struct cl_entity_s *entity;
 	double					killTime;
 	} overviewEntity_t;
 
 #define	 MAX_OVERVIEW_ENTITIES		128
 
-class CHudSpectator: public CHudBase
+class CHudSpectator : public CHudBase
 	{
 	public:
 		void Reset ();
 		int  ToggleInset (bool allowOff);
 		void CheckSettings ();
 		void InitHUDData (void);
-		bool AddOverviewEntityToList (HLSPRITE sprite, cl_entity_t* ent, double killTime);
+		bool AddOverviewEntityToList (HLSPRITE sprite, cl_entity_t *ent, double killTime);
 		void DeathMessage (int victim);
-		bool AddOverviewEntity (int type, struct cl_entity_s* ent, const char* modelname);
+		bool AddOverviewEntity (int type, struct cl_entity_s *ent, const char *modelname);
 		void CheckOverviewEntities ();
 		void DrawOverview ();
 		void DrawOverviewEntities ();
-		void GetMapPosition (float* returnvec);
+		void GetMapPosition (float *returnvec);
 		void DrawOverviewLayer ();
 		void LoadMapSprites ();
 		bool ParseOverviewFile ();
-		bool IsActivePlayer (cl_entity_t* ent);
+		bool IsActivePlayer (cl_entity_t *ent);
 		void SetModes (int iMainMode, int iInsetMode);
 		void HandleButtonsDown (int ButtonPressed);
 		void HandleButtonsUp (int ButtonPressed);
 		void FindNextPlayer (bool bReverse);
-		void DirectorMessage (int iSize, void* pbuf);
+		void DirectorMessage (int iSize, void *pbuf);
 		void SetSpectatorStartPosition ();
 		int Init ();
 		int VidInit ();
@@ -90,11 +92,11 @@ class CHudSpectator: public CHudBase
 
 		float				m_mapZoom;		// zoom the user currently uses
 		vec3_t				m_mapOrigin;	// origin where user rotates around
-		cvar_t* m_drawnames;
-		cvar_t* m_drawcone;
-		cvar_t* m_drawstatus;
-		cvar_t* m_autoDirector;
-		cvar_t* m_pip;
+		cvar_t *m_drawnames;
+		cvar_t *m_drawcone;
+		cvar_t *m_drawstatus;
+		cvar_t *m_autoDirector;
+		cvar_t *m_pip;
 
 		qboolean			m_chatEnabled;
 
@@ -115,7 +117,7 @@ class CHudSpectator: public CHudBase
 
 		wrect_t		m_crosshairRect;
 
-		struct model_s* m_MapSprite;	// each layer image is saved in one sprite, where each tile is a sprite frame
+		struct model_s *m_MapSprite;	// each layer image is saved in one sprite, where each tile is a sprite frame
 		float		m_flNextObserverInput;
 		float		m_zoomDelta;
 		float		m_moveDelta;
@@ -123,4 +125,4 @@ class CHudSpectator: public CHudBase
 		int			m_lastSecondaryObject;
 	};
 
-#endif // SPECTATOR_H
+#endif

@@ -31,13 +31,11 @@
 // Construction/Destruction
 // ================================================
 
-SpectatorPanel::SpectatorPanel (int x, int y, int wide, int tall): Panel (x, y, wide, tall)
-	{
-	}
+SpectatorPanel::SpectatorPanel (int x, int y, int wide, int tall) : Panel (x, y, wide, tall)
+	{}
 
 SpectatorPanel::~SpectatorPanel ()
-	{
-	}
+	{}
 
 void SpectatorPanel::ActionSignal (int cmd)
 	{
@@ -74,7 +72,7 @@ void SpectatorPanel::Initialize ()
 
 	getBounds (x, y, wide, tall);
 
-	CSchemeManager* pSchemes = gViewPort->GetSchemeManager ();
+	CSchemeManager *pSchemes = gViewPort->GetSchemeManager ();
 
 	SchemeHandle_t hSmallScheme = pSchemes->getSchemeHandle ("Team Info Text");
 
@@ -233,7 +231,7 @@ void SpectatorPanel::ShowMenu (bool isVisible)
 	gViewPort->UpdateCursorState ();
 	}
 
-const char* GetSpectatorLabel (int iMode)
+const char *GetSpectatorLabel (int iMode)
 	{
 	switch (iMode)
 		{

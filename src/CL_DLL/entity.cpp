@@ -9,6 +9,7 @@
 
 #include <memory.h>
 
+// [FWGS, 01.03.26]
 #include "hud.h"
 #include "cl_util.h"
 #include "const.h"
@@ -17,9 +18,12 @@
 #include "r_efx.h"
 #include "event_api.h"
 #include "pm_defs.h"
-#include "pmtrace.h"	
 #include "pm_shared.h"
 #include "com_weapons.h"
+/*include "kbutton.h"
+include "dlight.h"*/
+#include "q_client.h"
+#include "pmove.h"
 
 #define DLLEXPORT __declspec( dllexport )
 
@@ -410,8 +414,8 @@ void DLLEXPORT HUD_StudioEvent (const struct mstudioevent_s *event, const struct
 		case 5002:
 			gEngfuncs.pEfxAPI->R_SparkEffect ((float *)&entity->attachment[0], atoi (event->options), -100, 100);
 			break;
-		
-		// Client side sound
+
+			// Client side sound
 		case 5004:
 			gEngfuncs.pfnPlaySoundByNameAtLocation ((char *)event->options, 1.0, (float *)&entity->attachment[0]);
 			break;
@@ -433,14 +437,14 @@ Simulation and cleanup of temporary entities
 // List
 =================
 ***/
-void DLLEXPORT HUD_TempEntUpdate (	double frametime,	double client_time,	double cl_gravity,
-	TEMPENTITY **ppTempEntFree,	TEMPENTITY **ppTempEntActive,
+void DLLEXPORT HUD_TempEntUpdate (double frametime, double client_time, double cl_gravity,
+	TEMPENTITY **ppTempEntFree, TEMPENTITY **ppTempEntActive,
 	int		(*Callback_AddVisibleEntity)(cl_entity_t *pEntity),
 	void	(*Callback_TempEntPlaySound)(TEMPENTITY *pTemp, float damp))
 	{
 	static int	gTempEntFrame = 0;
 	int			i;
-	TEMPENTITY	*pTemp, *pnext, *pprev;
+	TEMPENTITY *pTemp, *pnext, *pprev;
 	float		freq, gravity, gravitySlow, life, fastFreq;
 
 	// Nothing to simulate

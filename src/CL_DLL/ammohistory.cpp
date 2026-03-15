@@ -52,7 +52,7 @@ void HistoryResource::AddToHistory (int iType, int iId, int iCount)
 		iCurrentHistorySlot = 0;
 		}
 
-	HIST_ITEM* freeslot = &rgAmmoHistory[iCurrentHistorySlot++];  // default to just writing to the first slot
+	HIST_ITEM *freeslot = &rgAmmoHistory[iCurrentHistorySlot++];  // default to just writing to the first slot
 	HISTORY_DRAW_TIME = CVAR_GET_FLOAT ("hud_drawhistory_time");
 
 	freeslot->type = iType;
@@ -61,7 +61,7 @@ void HistoryResource::AddToHistory (int iType, int iId, int iCount)
 	freeslot->DisplayTime = gHUD.m_flTime + HISTORY_DRAW_TIME;
 	}
 
-void HistoryResource::AddToHistory (int iType, const char* szName, int iCount)
+void HistoryResource::AddToHistory (int iType, const char *szName, int iCount)
 	{
 	if (iType != HISTSLOT_ITEM)
 		return;
@@ -72,7 +72,7 @@ void HistoryResource::AddToHistory (int iType, const char* szName, int iCount)
 		iCurrentHistorySlot = 0;
 		}
 
-	HIST_ITEM* freeslot = &rgAmmoHistory[iCurrentHistorySlot++];  // default to just writing to the first slot
+	HIST_ITEM *freeslot = &rgAmmoHistory[iCurrentHistorySlot++];  // default to just writing to the first slot
 
 	// I am really unhappy with all the code in this file
 
@@ -118,7 +118,7 @@ int HistoryResource::DrawAmmoHistory (float flTime)
 			else if (rgAmmoHistory[i].type == HISTSLOT_AMMO)
 				{
 				wrect_t rcPic;
-				HLSPRITE* spr = gWR.GetAmmoPicFromWeapon (rgAmmoHistory[i].iId, rcPic);
+				HLSPRITE *spr = gWR.GetAmmoPicFromWeapon (rgAmmoHistory[i].iId, rcPic);
 
 				int r, g, b;
 				UnpackRGB (r, g, b, RGB_MASTER);
@@ -139,7 +139,7 @@ int HistoryResource::DrawAmmoHistory (float flTime)
 				}
 			else if (rgAmmoHistory[i].type == HISTSLOT_WEAP)
 				{
-				WEAPON* weap = gWR.GetWeapon (rgAmmoHistory[i].iId);
+				WEAPON *weap = gWR.GetWeapon (rgAmmoHistory[i].iId);
 
 				if (!weap)
 					return 1;  // we don't know about the weapon yet, so don't draw anything

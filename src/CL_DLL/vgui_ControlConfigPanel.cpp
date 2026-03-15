@@ -5,29 +5,29 @@
 // $NoKeywords: $
 // =============================================================================
 
-#include<stdio.h>
-#include"vgui_ControlConfigPanel.h"
-#include<VGUI_HeaderPanel.h>
-#include<VGUI_TablePanel.h>
-#include<VGUI_Label.h>
-#include<VGUI_ScrollPanel.h>
-#include<VGUI_Scheme.h>
-#include<VGUI_DataInputStream.h>
-#include<VGUI.h>
-#include<VGUI_TextEntry.h>
+#include <stdio.h>
+#include "vgui_ControlConfigPanel.h"
+#include <VGUI_HeaderPanel.h>
+#include <VGUI_TablePanel.h>
+#include <VGUI_Label.h>
+#include <VGUI_ScrollPanel.h>
+#include <VGUI_Scheme.h>
+#include <VGUI_DataInputStream.h>
+#include <VGUI.h>
+#include <VGUI_TextEntry.h>
 
 using namespace vgui;
 
 namespace
 	{
-	class FooTablePanel: public TablePanel
+	class FooTablePanel : public TablePanel
 		{
 		private:
-			Label* _label;
-			TextEntry* _textEntry;
-			ControlConfigPanel* _controlConfigPanel;
+			Label *_label;
+			TextEntry *_textEntry;
+			ControlConfigPanel *_controlConfigPanel;
 		public:
-			FooTablePanel (ControlConfigPanel* controlConfigPanel, int x, int y, int wide, int tall, int columnCount): TablePanel (x, y, wide, tall, columnCount)
+			FooTablePanel (ControlConfigPanel *controlConfigPanel, int x, int y, int wide, int tall, int columnCount) : TablePanel (x, y, wide, tall, columnCount)
 				{
 				_controlConfigPanel = controlConfigPanel;
 				_label = new Label ("You are a dumb monkey", 0, 0, 100, 20);
@@ -46,7 +46,7 @@ namespace
 				{
 				return 12;
 				}
-			virtual Panel* getCellRenderer (int column, int row, bool columnSelected, bool rowSelected, bool cellSelected)
+			virtual Panel *getCellRenderer (int column, int row, bool columnSelected, bool rowSelected, bool cellSelected)
 				{
 				char cvar[128], desc[128], bind[128], bindAlt[128];
 				_controlConfigPanel->GetCVar (row, cvar, 128, desc, 128);
@@ -99,7 +99,7 @@ namespace
 
 				return _label;
 				}
-			virtual Panel* startCellEditing (int column, int row)
+			virtual Panel *startCellEditing (int column, int row)
 				{
 				_textEntry->setText ("Goat", strlen ("Goat"));
 				_textEntry->requestFocus ();
@@ -108,7 +108,7 @@ namespace
 		};
 	}
 
-ControlConfigPanel::ControlConfigPanel (int x, int y, int wide, int tall): Panel (x, y, wide, tall)
+ControlConfigPanel::ControlConfigPanel (int x, int y, int wide, int tall) : Panel (x, y, wide, tall)
 	{
 	setPaintBorderEnabled (false);
 	setPaintBackgroundEnabled (false);
@@ -156,7 +156,7 @@ ControlConfigPanel::ControlConfigPanel (int x, int y, int wide, int tall): Panel
 	_tablePanel->setGridSize (1, 1);
 	}
 
-void ControlConfigPanel::AddCVar (const char* cvar, const char* desc)
+void ControlConfigPanel::AddCVar (const char *cvar, const char *desc)
 	{
 	_cvarDar.addElement (vgui_strdup (cvar));
 	_descDar.addElement (vgui_strdup (desc));
@@ -167,13 +167,13 @@ int ControlConfigPanel::GetCVarCount ()
 	return _cvarDar.getCount ();
 	}
 
-void ControlConfigPanel::GetCVar (int index, char* cvar, int cvarLen, char* desc, int descLen)
+void ControlConfigPanel::GetCVar (int index, char *cvar, int cvarLen, char *desc, int descLen)
 	{
 	vgui_strcpy (cvar, cvarLen, _cvarDar[index]);
 	vgui_strcpy (desc, descLen, _descDar[index]);
 	}
 
-void ControlConfigPanel::AddCVarFromInputStream (InputStream* is)
+void ControlConfigPanel::AddCVarFromInputStream (InputStream *is)
 	{
 	if (is == null)
 		{
@@ -199,12 +199,12 @@ void ControlConfigPanel::AddCVarFromInputStream (InputStream* is)
 		}
 	}
 
-void ControlConfigPanel::GetCVarBind (const char* cvar, char* bind, int bindLen, char* bindAlt, int bindAltLen)
+void ControlConfigPanel::GetCVarBind (const char *cvar, char *bind, int bindLen, char *bindAlt, int bindAltLen)
 	{
 	sprintf (bind, "%s : Bind", cvar);
 	sprintf (bindAlt, "%s : BindAlt", cvar);
 	}
 
-void ControlConfigPanel::SetCVarBind (const char* cvar, const char* bind, const char* bindAlt)
+void ControlConfigPanel::SetCVarBind (const char *cvar, const char *bind, const char *bindAlt)
 	{
 	}

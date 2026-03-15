@@ -111,7 +111,7 @@ int CHudAmmoSecondary::Draw (float flTime)
 // Message handler for Secondary Ammo Value
 // accepts one value:
 // string:  sprite name
-int CHudAmmoSecondary::MsgFunc_SecAmmoIcon (const char* pszName, int iSize, void* pbuf)
+int CHudAmmoSecondary::MsgFunc_SecAmmoIcon (const char *pszName, int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 	m_HUD_ammoicon = gHUD.GetSpriteIndex (READ_STRING ());
@@ -124,7 +124,7 @@ int CHudAmmoSecondary::MsgFunc_SecAmmoIcon (const char* pszName, int iSize, void
 // takes two values:
 // byte:  ammo index
 // byte:  ammo value
-int CHudAmmoSecondary::MsgFunc_SecAmmoVal (const char* pszName, int iSize, void* pbuf)
+int CHudAmmoSecondary::MsgFunc_SecAmmoVal (const char *pszName, int iSize, void *pbuf)
 	{
 	BEGIN_READ (pbuf, iSize);
 

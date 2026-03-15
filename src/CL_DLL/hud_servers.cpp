@@ -28,7 +28,7 @@ static int	context_id;
 
 #define NET_API gEngfuncs.pNetAPI
 
-static CHudServers* g_pServers = NULL;
+static CHudServers *g_pServers = NULL;
 
 /***
 ===================
@@ -37,7 +37,7 @@ ListResponse
 Callback from engine
 ===================
 ***/
-void NET_CALLBACK ListResponse (struct net_response_s* response)
+void NET_CALLBACK ListResponse (struct net_response_s *response)
 	{
 	if (g_pServers)
 		{
@@ -52,7 +52,7 @@ ServerResponse
 Callback from engine
 ===================
 ***/
-void NET_CALLBACK ServerResponse (struct net_response_s* response)
+void NET_CALLBACK ServerResponse (struct net_response_s *response)
 	{
 	if (g_pServers)
 		{
@@ -67,7 +67,7 @@ PingResponse
 Callback from engine
 ===================
 ***/
-void NET_CALLBACK PingResponse (struct net_response_s* response)
+void NET_CALLBACK PingResponse (struct net_response_s *response)
 	{
 	if (g_pServers)
 		{
@@ -82,7 +82,7 @@ RulesResponse
 Callback from engine
 ===================
 ***/
-void NET_CALLBACK RulesResponse (struct net_response_s* response)
+void NET_CALLBACK RulesResponse (struct net_response_s *response)
 	{
 	if (g_pServers)
 		g_pServers->RulesResponse (response);
@@ -95,7 +95,7 @@ PlayersResponse
 Callback from engine
 ===================
 ***/
-void NET_CALLBACK PlayersResponse (struct net_response_s* response)
+void NET_CALLBACK PlayersResponse (struct net_response_s *response)
 	{
 	if (g_pServers)
 		g_pServers->PlayersResponse (response);
@@ -148,11 +148,11 @@ void CHudServers::ListResponse (struct net_response_s *response)
 ServerResponse
 ===================
 ***/
-void CHudServers::ServerResponse (struct net_response_s* response)
+void CHudServers::ServerResponse (struct net_response_s *response)
 	{
-	char* szresponse;
-	request_t* p;
-	server_t* browser;
+	char *szresponse;
+	request_t *p;
+	server_t *browser;
 	int	len;
 	char sz[32];
 
@@ -172,7 +172,7 @@ void CHudServers::ServerResponse (struct net_response_s* response)
 		case NETAPI_REQUEST_DETAILS:
 			if (response->response)
 				{
-				szresponse = (char*)response->response;
+				szresponse = (char *)response->response;
 				len = strlen (szresponse) + 100 + 1;
 				sprintf (sz, "%i", (int)(1000.0 * response->ping));
 
@@ -198,7 +198,7 @@ void CHudServers::ServerResponse (struct net_response_s* response)
 PingResponse
 ===================
 ***/
-void CHudServers::PingResponse (struct net_response_s* response)
+void CHudServers::PingResponse (struct net_response_s *response)
 	{
 	char sz[32];
 
@@ -222,9 +222,9 @@ void CHudServers::PingResponse (struct net_response_s* response)
 RulesResponse
 ===================
 ***/
-void CHudServers::RulesResponse (struct net_response_s* response)
+void CHudServers::RulesResponse (struct net_response_s *response)
 	{
-	char* szresponse;
+	char *szresponse;
 
 	if (response->error != NET_SUCCESS)
 		return;
@@ -234,7 +234,7 @@ void CHudServers::RulesResponse (struct net_response_s* response)
 		case NETAPI_REQUEST_RULES:
 			if (response->response)
 				{
-				szresponse = (char*)response->response;
+				szresponse = (char *)response->response;
 
 				gEngfuncs.Con_Printf ("rules %s\n", szresponse);
 				}
@@ -249,9 +249,9 @@ void CHudServers::RulesResponse (struct net_response_s* response)
 PlayersResponse
 ===================
 ***/
-void CHudServers::PlayersResponse (struct net_response_s* response)
+void CHudServers::PlayersResponse (struct net_response_s *response)
 	{
-	char* szresponse;
+	char *szresponse;
 
 	if (response->error != NET_SUCCESS)
 		return;
@@ -261,7 +261,7 @@ void CHudServers::PlayersResponse (struct net_response_s* response)
 		case NETAPI_REQUEST_PLAYERS:
 			if (response->response)
 				{
-				szresponse = (char*)response->response;
+				szresponse = (char *)response->response;
 
 				gEngfuncs.Con_Printf ("players %s\n", szresponse);
 				}
@@ -278,9 +278,9 @@ CompareServers
 Return 1 if p1 is "less than" p2, 0 otherwise
 ===================
 ***/
-int	CHudServers::CompareServers (server_t* p1, server_t* p2)
+int	CHudServers::CompareServers (server_t *p1, server_t *p2)
 	{
-	const char* n1, * n2;
+	const char *n1, *n2;
 
 	if (p1->ping < p2->ping)
 		return 1;
@@ -309,9 +309,9 @@ int	CHudServers::CompareServers (server_t* p1, server_t* p2)
 AddServer
 ===================
 ***/
-void CHudServers::AddServer (server_t** ppList, server_t* p)
+void CHudServers::AddServer (server_t **ppList, server_t *p)
 	{
-	server_t* list;
+	server_t *list;
 
 	if (!ppList || !p)
 		return;
@@ -390,7 +390,7 @@ QueryThink
 ***/
 void CHudServers::QueryThink (void)
 	{
-	request_t* p;
+	request_t *p;
 
 	if (!m_nRequesting || m_nDone)
 		return;
@@ -445,7 +445,7 @@ ServerListSize
 int	CHudServers::ServerListSize (void)
 	{
 	int c = 0;
-	request_t* p;
+	request_t *p;
 
 	p = m_pServerList;
 	while (p)
@@ -471,9 +471,9 @@ FindRequest
 Look up a request by context id
 ===================
 ***/
-CHudServers::request_t* CHudServers::FindRequest (int context, request_t* pList)
+CHudServers::request_t *CHudServers::FindRequest (int context, request_t *pList)
 	{
-	request_t* p;
+	request_t *p;
 	p = pList;
 	while (p)
 		{
@@ -492,10 +492,10 @@ RemoveServerFromList
 Remote, but don't delete, item from *ppList
 ===================
 ***/
-void CHudServers::RemoveServerFromList (request_t** ppList, request_t* item)
+void CHudServers::RemoveServerFromList (request_t **ppList, request_t *item)
 	{
-	request_t* p, * n;
-	request_t* newlist = NULL;
+	request_t *p, *n;
+	request_t *newlist = NULL;
 
 	if (!ppList)
 		return;
@@ -519,9 +519,9 @@ void CHudServers::RemoveServerFromList (request_t** ppList, request_t* item)
 ClearRequestList
 ===================
 ***/
-void CHudServers::ClearRequestList (request_t** ppList)
+void CHudServers::ClearRequestList (request_t **ppList)
 	{
-	request_t* p, * n;
+	request_t *p, *n;
 
 	if (!ppList)
 		return;
@@ -541,9 +541,9 @@ void CHudServers::ClearRequestList (request_t** ppList)
 ClearServerList
 ===================
 ***/
-void CHudServers::ClearServerList (server_t** ppList)
+void CHudServers::ClearServerList (server_t **ppList)
 	{
-	server_t* p, * n;
+	server_t *p, *n;
 
 	if (!ppList)
 		return;
@@ -559,9 +559,9 @@ void CHudServers::ClearServerList (server_t** ppList)
 	*ppList = NULL;
 	}
 
-int CompareField (CHudServers::server_t* p1, CHudServers::server_t* p2, const char* fieldname, int iSortOrder)
+int CompareField (CHudServers::server_t *p1, CHudServers::server_t *p2, const char *fieldname, int iSortOrder)
 	{
-	const char* sz1, * sz2;
+	const char *sz1, *sz2;
 	float fv1, fv2;
 
 	sz1 = NET_API->ValueForKey (p1->info, fieldname);
@@ -584,7 +584,7 @@ int CompareField (CHudServers::server_t* p1, CHudServers::server_t* p2, const ch
 	return stricmp (sz1, sz2);
 	}
 
-int CALLBACK ServerListCompareFunc (CHudServers::server_t* p1, CHudServers::server_t* p2, const char* fieldname)
+int CALLBACK ServerListCompareFunc (CHudServers::server_t *p1, CHudServers::server_t *p2, const char *fieldname)
 	{
 	if (!p1 || !p2)  // No meaningful comparison
 		return 0;
@@ -599,19 +599,19 @@ int CALLBACK ServerListCompareFunc (CHudServers::server_t* p1, CHudServers::serv
 	}
 
 static char g_fieldname[256];
-int __cdecl FnServerCompare (const void* elem1, const void* elem2)
+int __cdecl FnServerCompare (const void *elem1, const void *elem2)
 	{
-	CHudServers::server_t* list1, * list2;
+	CHudServers::server_t *list1, *list2;
 
-	list1 = *(CHudServers::server_t**)elem1;
-	list2 = *(CHudServers::server_t**)elem2;
+	list1 = *(CHudServers::server_t **)elem1;
+	list2 = *(CHudServers::server_t **)elem2;
 
 	return ServerListCompareFunc (list1, list2, g_fieldname);
 	}
 
-void CHudServers::SortServers (const char* fieldname)
+void CHudServers::SortServers (const char *fieldname)
 	{
-	server_t* p;
+	server_t *p;
 	// Create a list
 	if (!m_pServers)
 		return;
@@ -628,10 +628,10 @@ void CHudServers::SortServers (const char* fieldname)
 		p = p->next;
 		}
 
-	server_t** pSortArray;
+	server_t **pSortArray;
 
 	pSortArray = new server_t * [c];
-	memset (pSortArray, 0, c * sizeof (server_t*));
+	memset (pSortArray, 0, c * sizeof (server_t *));
 
 	// Now copy the list into the pSortArray:
 	p = m_pServers;
@@ -644,7 +644,7 @@ void CHudServers::SortServers (const char* fieldname)
 
 	// Now do that actual sorting.
 	size_t nCount = c;
-	size_t nSize = sizeof (server_t*);
+	size_t nSize = sizeof (server_t *);
 
 	qsort (
 		pSortArray,
@@ -672,10 +672,10 @@ GetServer
 Return particular server
 ===================
 ***/
-CHudServers::server_t* CHudServers::GetServer (int server)
+CHudServers::server_t *CHudServers::GetServer (int server)
 	{
 	int c = 0;
-	server_t* p;
+	server_t *p;
 
 	p = m_pServers;
 	while (p)
@@ -696,9 +696,9 @@ GetServerInfo
 Return info ( key/value ) string for particular server
 ===================
 ***/
-char* CHudServers::GetServerInfo (int server)
+char *CHudServers::GetServerInfo (int server)
 	{
-	server_t* p = GetServer (server);
+	server_t *p = GetServer (server);
 	if (p)
 		{
 		return p->info;
@@ -729,13 +729,13 @@ LoadMasterAddresses
 Loads the master server addresses from file and into the passed in array
 ==================
 ***/
-int CHudServers::LoadMasterAddresses (int maxservers, int* count, netadr_t* padr)
+int CHudServers::LoadMasterAddresses (int maxservers, int *count, netadr_t *padr)
 	{
 	int			i;
 	char		szMaster[256];
 	char		szMasterFile[256];
-	char		*pbuffer = NULL;
-	char		*pstart = NULL;
+	char *pbuffer = NULL;
+	char *pstart = NULL;
 	netadr_t	adr;
 	char		szAdr[64];
 	int			nPort;
@@ -755,7 +755,7 @@ int CHudServers::LoadMasterAddresses (int maxservers, int* count, netadr_t* padr
 		}
 
 	// Read them in from proper file
-	pbuffer = (char*)gEngfuncs.COM_LoadFile (szMasterFile, 5, NULL); // Use malloc
+	pbuffer = (char *)gEngfuncs.COM_LoadFile (szMasterFile, 5, NULL); // Use malloc
 	if (!pbuffer)
 		{
 		goto finish_master;
@@ -936,7 +936,7 @@ void CHudServers::RequestBroadcastList (int clearpending)
 
 void CHudServers::ServerPing (int server)
 	{
-	server_t* p;
+	server_t *p;
 
 	p = GetServer (server);
 	if (!p)
@@ -951,7 +951,7 @@ void CHudServers::ServerPing (int server)
 
 void CHudServers::ServerRules (int server)
 	{
-	server_t* p;
+	server_t *p;
 
 	p = GetServer (server);
 	if (!p)
@@ -966,7 +966,7 @@ void CHudServers::ServerRules (int server)
 
 void CHudServers::ServerPlayers (int server)
 	{
-	server_t* p;
+	server_t *p;
 
 	p = GetServer (server);
 	if (!p)
@@ -1086,7 +1086,7 @@ int	ServersIsQuerying (void)
 ServersGetInfo
 ===================
 ***/
-const char* ServersGetInfo (int server)
+const char *ServersGetInfo (int server)
 	{
 	if (g_pServers)
 		{
@@ -1096,7 +1096,7 @@ const char* ServersGetInfo (int server)
 	return NULL;
 	}
 
-void SortServers (const char* fieldname)
+void SortServers (const char *fieldname)
 	{
 	if (g_pServers)
 		{

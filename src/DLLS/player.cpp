@@ -1,28 +1,25 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
-/***
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
-===== player.cpp ========================================================
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
 
-  functions dealing with the player
-
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
 ***/
 
+/***
+===== player.cpp ========================================================
+
+functions dealing with the player
+***/
+
+// [FWGS, 01.03.26]
 #include "extdll.h"
 #include "util.h"
-
 #include "cbase.h"
 #include "player.h"
 #include "trains.h"
@@ -34,7 +31,7 @@
 #include "decals.h"
 #include "gamerules.h"
 #include "game.h"
-#include "hltv.h"
+/*include "hltv.h"*/
 
 // #define DUCKFIX
 
@@ -384,7 +381,7 @@ int CBasePlayer::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, fl
 
 	if ((bitsDamageType & DMG_BLAST) && g_pGameRules->IsMultiplayer ())
 		{
-		// blasts damage armor more.
+		// blasts damage armor more
 		flBonus *= 2;
 		}
 
@@ -439,6 +436,9 @@ int CBasePlayer::TakeDamage (entvars_t* pevInflictor, entvars_t* pevAttacker, fl
 		if (bitsDamageType & (DMG_PARALYZE << i))
 			m_rgbTimeBasedDamage[i] = 0;
 	}
+
+	// [FWGS, 01.03.26]
+	#define DRC_CMD_EVENT	2	// informs about director command
 
 	// tell director about it
 	MESSAGE_BEGIN (MSG_SPEC, SVC_DIRECTOR);

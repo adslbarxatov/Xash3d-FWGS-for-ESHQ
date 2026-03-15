@@ -1,31 +1,28 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
-// teamplay_gamerules.cpp
-#include	"extdll.h"
-#include	"util.h"
-#include	"cbase.h"
-#include	"player.h"
-#include	"weapons.h"
-#include	"gamerules.h"
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
 
-#include	"skill.h"
-#include	"game.h"
-#include	"items.h"
-#include	"voice_gamemgr.h"
-#include	"hltv.h"
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
+// [FWGS, 01.03.26] teamplay_gamerules.cpp
+#include "extdll.h"
+#include "util.h"
+#include "cbase.h"
+#include "player.h"
+#include "weapons.h"
+#include "gamerules.h"
+#include "skill.h"
+#include "game.h"
+#include "items.h"
+#include "voice_gamemgr.h"
+/*include "hltv.h"*/
 
 extern DLL_GLOBAL CGameRules* g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
@@ -671,7 +668,7 @@ void CHalfLifeMultiplay::PlayerKilled (CBasePlayer* pVictim, entvars_t* pKiller,
 	}
 
 // =========================================================
-// Deathnotice. 
+// Deathnotice
 // =========================================================
 void CHalfLifeMultiplay::DeathNotice (CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pevInflictor)
 	{
@@ -810,6 +807,10 @@ void CHalfLifeMultiplay::DeathNotice (CBasePlayer* pVictim, entvars_t* pKiller, 
 				killer_weapon_name);
 			}
 		}
+
+	// [FWGS, 01.03.26]
+	#define DRC_CMD_EVENT		2		// informs about director command
+	#define DRC_FLAG_DRAMATIC	(1<<5)	// is a dramatic scene
 
 	MESSAGE_BEGIN (MSG_SPEC, SVC_DIRECTOR);
 	WRITE_BYTE (9);	// command length in bytes

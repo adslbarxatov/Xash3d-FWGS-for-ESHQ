@@ -5,6 +5,7 @@
 // $NoKeywords: $
 // =============================================================================
 
+// [FWGS, 01.03.26]
 #include <assert.h>
 #include "hud.h"
 #include "cl_util.h"
@@ -13,17 +14,14 @@
 #include "studio.h"
 #include "entity_state.h"
 #include "cl_entity.h"
-#include "dlight.h"
+/*include "dlight.h"*/
 #include "triangleapi.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <memory.h>
 #include <math.h>
-
 #include "studio_util.h"
 #include "r_studioint.h"
-
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
 
@@ -55,7 +53,7 @@ CGameStudioModelRenderer::CGameStudioModelRenderer (void)
 R_StudioDrawPlayer
 ====================
 ***/
-int R_StudioDrawPlayer (int flags, entity_state_t* pplayer)
+int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 	{
 	return g_StudioRenderer.StudioDrawPlayer (flags, pplayer);
 	}
@@ -96,8 +94,8 @@ Export this function for the engine to use the studio renderer class to render o
 ====================
 ***/
 #define DLLEXPORT __declspec( dllexport )
-extern "C" int DLLEXPORT HUD_GetStudioModelInterface (int version, struct r_studio_interface_s** ppinterface,
-	struct engine_studio_api_s* pstudio)
+extern "C" int DLLEXPORT HUD_GetStudioModelInterface (int version, struct r_studio_interface_s **ppinterface,
+	struct engine_studio_api_s *pstudio)
 	{
 	if (version != STUDIO_INTERFACE_VERSION)
 		return 0;

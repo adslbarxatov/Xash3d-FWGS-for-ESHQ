@@ -16,40 +16,39 @@
 // $NoKeywords: $
 // =============================================================================
 
-#include<VGUI_Cursor.h>
-#include<VGUI_Frame.h>
-#include<VGUI_Label.h>
-#include<VGUI_Surface.h>
-#include<VGUI_BorderLayout.h>
-#include<VGUI_Panel.h>
-#include<VGUI_ImagePanel.h>
-#include<VGUI_Button.h>
-#include<VGUI_ActionSignal.h>
-#include<VGUI_InputSignal.h>
-#include<VGUI_MenuSeparator.h>
-#include<VGUI_TextPanel.h>
-#include<VGUI_LoweredBorder.h>
-#include<VGUI_LineBorder.h>
-#include<VGUI_Scheme.h>
-#include<VGUI_Font.h>
-#include<VGUI_App.h>
-#include<VGUI_BuildGroup.h>
-
+// [FWGS, 01.03.26]
+#include <VGUI_Cursor.h>
+#include <VGUI_Frame.h>
+#include <VGUI_Label.h>
+#include <VGUI_Surface.h>
+#include <VGUI_BorderLayout.h>
+#include <VGUI_Panel.h>
+#include <VGUI_ImagePanel.h>
+#include <VGUI_Button.h>
+#include <VGUI_ActionSignal.h>
+#include <VGUI_InputSignal.h>
+#include <VGUI_MenuSeparator.h>
+#include <VGUI_TextPanel.h>
+#include <VGUI_LoweredBorder.h>
+#include <VGUI_LineBorder.h>
+#include <VGUI_Scheme.h>
+#include <VGUI_Font.h>
+#include <VGUI_App.h>
+#include <VGUI_BuildGroup.h>
 #include "hud.h"
 #include "cl_util.h"
 #include "camera.h"
-#include "kbutton.h"
+/*include "kbutton. h"*/
 #include "cvardef.h"
-#include "usercmd.h"
+/*include "usercmd.h"*/
 #include "const.h"
-#include "camera.h"
+/*include "camera.h"*/
 #include "in_defs.h"
 #include "parsemsg.h"
 #include "pm_shared.h"
 #include "../engine/keydefs.h"
 #include "demo.h"
 #include "demo_api.h"
-
 #include "vgui_int.h"
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ServerBrowser.h"
@@ -467,8 +466,7 @@ class CViewPortInputHandler : public InputSignal
 		bool bPressed;
 
 		CViewPortInputHandler ()
-			{
-			}
+			{}
 
 		virtual void cursorMoved (int x, int y, Panel *panel) {}
 		virtual void cursorEntered (Panel *panel) {}
@@ -483,8 +481,7 @@ class CViewPortInputHandler : public InputSignal
 				}
 			}
 		virtual void mouseReleased (MouseCode code, Panel *panel)
-			{
-			}
+			{}
 
 		virtual void mouseDoublePressed (MouseCode code, Panel *panel) {}
 		virtual void mouseWheeled (int delta, Panel *panel) {}
@@ -866,20 +863,20 @@ int TeamFortressViewport::CreateCommandMenu (char *menuFile, int direction, int 
 			pfile = gEngfuncs.COM_ParseFile (pfile, token);
 			}
 		}
-	catch (CException *e)
-		{
-		e;
-		e = NULL;
-		m_iInitialized = false;
+		catch (CException *e)
+			{
+			e;
+			e = NULL;
+			m_iInitialized = false;
+			return newIndex;
+			}
+
+		SetCurrentMenu (NULL);
+		SetCurrentCommandMenu (NULL);
+		gEngfuncs.COM_FreeFile (pfile);
+
+		m_iInitialized = true;
 		return newIndex;
-		}
-
-	SetCurrentMenu (NULL);
-	SetCurrentCommandMenu (NULL);
-	gEngfuncs.COM_FreeFile (pfile);
-
-	m_iInitialized = true;
-	return newIndex;
 	}
 
 // -----------------------------------------------------------------------------

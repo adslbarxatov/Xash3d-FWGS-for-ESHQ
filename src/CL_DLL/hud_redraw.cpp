@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 //
 // hud_redraw.cpp
 //
@@ -34,13 +33,13 @@ extern int g_iVisibleMouse;
 
 float HUD_GetFOV (void);
 
-extern cvar_t* sensitivity;
+extern cvar_t *sensitivity;
 
 // Think
 void CHud::Think (void)
 	{
 	int newfov;
-	HUDLIST* pList = m_pHudList;
+	HUDLIST *pList = m_pHudList;
 
 	while (pList)
 		{
@@ -132,7 +131,7 @@ int CHud::Redraw (float flTime, int intermission)
 
 	if (m_pCvarDraw->value)
 		{
-		HUDLIST* pList = m_pHudList;
+		HUDLIST *pList = m_pHudList;
 
 		while (pList)
 			{
@@ -175,7 +174,7 @@ int CHud::Redraw (float flTime, int intermission)
 	return 1;
 	}
 
-void ScaleColors (int& r, int& g, int& b, int a)
+void ScaleColors (int &r, int &g, int &b, int a)
 	{
 	float x = (float)a / 255;
 	r = (int)(r * x);
@@ -183,7 +182,7 @@ void ScaleColors (int& r, int& g, int& b, int a)
 	b = (int)(b * x);
 	}
 
-int CHud::DrawHudString (int xpos, int ypos, int iMaxX, char* szIt, int r, int g, int b)
+int CHud::DrawHudString (int xpos, int ypos, int iMaxX, char *szIt, int r, int g, int b)
 	{
 	// draw the string until we hit the null character or a newline character
 	for (; *szIt != 0 && *szIt != '\n'; szIt++)
@@ -207,9 +206,9 @@ int CHud::DrawHudNumberString (int xpos, int ypos, int iMinX, int iNumber, int r
 	}
 
 // draws a string from right to left (right-aligned)
-int CHud::DrawHudStringReverse (int xpos, int ypos, int iMinX, char* szString, int r, int g, int b)
+int CHud::DrawHudStringReverse (int xpos, int ypos, int iMinX, char *szString, int r, int g, int b)
 	{
-	char* szIt;
+	char *szIt;
 
 	// find the end of the string
 	for (szIt = szString; *szIt != 0; szIt++)

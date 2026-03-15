@@ -181,8 +181,7 @@ void CListBox::InternalLayout ()
 	}
 
 void CListBox::paintBackground ()
-	{
-	}
+	{}
 
 void CListBox::SetScrollRange (int maxScroll)
 	{
@@ -200,5 +199,3 @@ int	CListBox::GetScrollMax ()
 
 	return m_iScrollMax;
 	}
-
-

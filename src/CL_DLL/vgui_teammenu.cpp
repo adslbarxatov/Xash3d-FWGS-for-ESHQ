@@ -20,7 +20,6 @@
 #include "VGUI_Font.h"
 #include "VGUI_ScrollPanel.h"
 #include "VGUI_TextImage.h"
-
 #include "hud.h"
 #include "cl_util.h"
 #include "vgui_TeamFortressViewport.h"
@@ -46,10 +45,10 @@
 #define TEAMMENU_WINDOW_INFO_Y			YRES(234)
 
 // Creation
-CTeamMenuPanel::CTeamMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wide, int tall): CMenuPanel (iTrans, iRemoveMe, x, y, wide, tall)
+CTeamMenuPanel::CTeamMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wide, int tall) : CMenuPanel (iTrans, iRemoveMe, x, y, wide, tall)
 	{
 	// Get the scheme used for the Titles
-	CSchemeManager* pSchemes = gViewPort->GetSchemeManager ();
+	CSchemeManager *pSchemes = gViewPort->GetSchemeManager ();
 
 	// schemes
 	SchemeHandle_t hTitleScheme = pSchemes->getSchemeHandle ("Title Font");
@@ -57,11 +56,11 @@ CTeamMenuPanel::CTeamMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wid
 	SchemeHandle_t hTeamInfoText = pSchemes->getSchemeHandle ("Team Info Text");
 
 	// get the Font used for the Titles
-	Font* pTitleFont = pSchemes->getFont (hTitleScheme);
+	Font *pTitleFont = pSchemes->getFont (hTitleScheme);
 	int r, g, b, a;
 
 	// Create the title
-	Label* pLabel = new Label ("", TEAMMENU_TITLE_X, TEAMMENU_TITLE_Y);
+	Label *pLabel = new Label ("", TEAMMENU_TITLE_X, TEAMMENU_TITLE_Y);
 	pLabel->setParent (this);
 	pLabel->setFont (pTitleFont);
 	pSchemes->getFgColor (hTitleScheme, r, g, b, a);
@@ -87,7 +86,7 @@ CTeamMenuPanel::CTeamMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wid
 	m_pMapTitle->setContentAlignment (vgui::Label::a_west);
 
 	// Create the Scroll panel
-	m_pScrollPanel = new CTFScrollPanel (TEAMMENU_WINDOW_TEXT_X, TEAMMENU_WINDOW_TEXT_Y, 
+	m_pScrollPanel = new CTFScrollPanel (TEAMMENU_WINDOW_TEXT_X, TEAMMENU_WINDOW_TEXT_Y,
 		TEAMMENU_WINDOW_SIZE_X - (TEAMMENU_WINDOW_TEXT_X * 2), TEAMMENU_WINDOW_TEXT_SIZE_Y);
 	m_pScrollPanel->setParent (m_pTeamWindow);
 	m_pScrollPanel->setScrollBarVisible (false, false);
@@ -130,7 +129,7 @@ CTeamMenuPanel::CTeamMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wid
 		m_pButtons[i]->addInputSignal (new CHandler_MenuButtonOver (this, i));
 
 		// Create the Team Info panel
-		m_pTeamInfoPanel[i] = new TextPanel ("", TEAMMENU_WINDOW_INFO_X, TEAMMENU_WINDOW_INFO_Y, 
+		m_pTeamInfoPanel[i] = new TextPanel ("", TEAMMENU_WINDOW_INFO_X, TEAMMENU_WINDOW_INFO_Y,
 			TEAMMENU_WINDOW_SIZE_X - TEAMMENU_WINDOW_INFO_X, TEAMMENU_WINDOW_SIZE_X - TEAMMENU_WINDOW_INFO_Y);
 		m_pTeamInfoPanel[i]->setParent (m_pTeamWindow);
 		m_pTeamInfoPanel[i]->setFont (pSchemes->getFont (hTeamInfoText));
@@ -142,13 +141,13 @@ CTeamMenuPanel::CTeamMenuPanel (int iTrans, int iRemoveMe, int x, int y, int wid
 		}
 
 	// Create the Cancel button
-	m_pCancelButton = new CommandButton (CHudTextMessage::BufferedLocaliseTextString ("#Menu_Cancel"), 
+	m_pCancelButton = new CommandButton (CHudTextMessage::BufferedLocaliseTextString ("#Menu_Cancel"),
 		TEAMMENU_TOPLEFT_BUTTON_X, 0, TEAMMENU_BUTTON_SIZE_X, TEAMMENU_BUTTON_SIZE_Y);
 	m_pCancelButton->setParent (this);
 	m_pCancelButton->addActionSignal (new CMenuHandler_TextWindow (HIDE_TEXTWINDOW));
 
 	// Create the Spectate button
-	m_pSpectateButton = new SpectateButton (CHudTextMessage::BufferedLocaliseTextString ("#Menu_Spectate"), 
+	m_pSpectateButton = new SpectateButton (CHudTextMessage::BufferedLocaliseTextString ("#Menu_Spectate"),
 		TEAMMENU_TOPLEFT_BUTTON_X, 0, TEAMMENU_BUTTON_SIZE_X, TEAMMENU_BUTTON_SIZE_Y, true);
 	m_pSpectateButton->setParent (this);
 	m_pSpectateButton->addActionSignal (new CMenuHandler_StringCommand ("spectate", true));
@@ -275,12 +274,12 @@ void CTeamMenuPanel::Update (void)
 	// Set the Map Title
 	if (!m_bUpdatedMapName)
 		{
-		const char* level = gEngfuncs.pfnGetLevelName ();
+		const char *level = gEngfuncs.pfnGetLevelName ();
 		if (level && level[0])
 			{
 			char sz[256];
 			char szTitle[256];
-			char* ch;
+			char *ch;
 
 			// Update the level name
 			strcpy (sz, level);
@@ -298,7 +297,7 @@ void CTeamMenuPanel::Update (void)
 			ch = strchr (sz, '.');
 			*ch = '\0';
 			strcat (sz, ".txt");
-			char* pfile = (char*)gEngfuncs.COM_LoadFile (sz, 5, NULL);
+			char *pfile = (char *)gEngfuncs.COM_LoadFile (sz, 5, NULL);
 			if (pfile)
 				{
 				m_pBriefing->setText (pfile);

@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 #include "hud.h"
 #include "cl_util.h"
 #include "demo.h"
@@ -30,7 +29,7 @@ float g_demozoom;
 
 extern "C"
 	{
-	void DLLEXPORT Demo_ReadBuffer (int size, unsigned char* buffer);
+	void DLLEXPORT Demo_ReadBuffer (int size, unsigned char *buffer);
 	}
 
 /***
@@ -40,11 +39,11 @@ Demo_WriteBuffer
 Write some data to the demo stream
 =====================
 ***/
-void Demo_WriteBuffer (int type, int size, unsigned char* buffer)
+void Demo_WriteBuffer (int type, int size, unsigned char *buffer)
 	{
 	int pos = 0;
 	unsigned char buf[32 * 1024];
-	*(int*)&buf[pos] = type;
+	*(int *)&buf[pos] = type;
 	pos += sizeof (int);
 
 	memcpy (&buf[pos], buffer, size);
@@ -60,40 +59,40 @@ Demo_ReadBuffer
 Engine wants us to parse some data from the demo stream
 =====================
 ***/
-void DLLEXPORT Demo_ReadBuffer (int size, unsigned char* buffer)
+void DLLEXPORT Demo_ReadBuffer (int size, unsigned char *buffer)
 	{
 	int type;
 	int i = 0;
 
-	type = *(int*)buffer;
+	type = *(int *)buffer;
 	i += sizeof (int);
 	switch (type)
 		{
 		case TYPE_SNIPERDOT:
-			g_demosniper = *(int*)&buffer[i];
+			g_demosniper = *(int *)&buffer[i];
 			i += sizeof (int);
 
 			if (g_demosniper)
 				{
-				g_demosniperdamage = *(int*)&buffer[i];
+				g_demosniperdamage = *(int *)&buffer[i];
 				i += sizeof (int);
 
-				g_demosniperangles[0] = *(float*)&buffer[i];
+				g_demosniperangles[0] = *(float *)&buffer[i];
 				i += sizeof (float);
-				g_demosniperangles[1] = *(float*)&buffer[i];
+				g_demosniperangles[1] = *(float *)&buffer[i];
 				i += sizeof (float);
-				g_demosniperangles[2] = *(float*)&buffer[i];
+				g_demosniperangles[2] = *(float *)&buffer[i];
 				i += sizeof (float);
-				g_demosniperorg[0] = *(float*)&buffer[i];
+				g_demosniperorg[0] = *(float *)&buffer[i];
 				i += sizeof (float);
-				g_demosniperorg[1] = *(float*)&buffer[i];
+				g_demosniperorg[1] = *(float *)&buffer[i];
 				i += sizeof (float);
-				g_demosniperorg[2] = *(float*)&buffer[i];
+				g_demosniperorg[2] = *(float *)&buffer[i];
 				i += sizeof (float);
 				}
 			break;
 		case TYPE_ZOOM:
-			g_demozoom = *(float*)&buffer[i];
+			g_demozoom = *(float *)&buffer[i];
 			i += sizeof (float);
 			break;
 		default:
