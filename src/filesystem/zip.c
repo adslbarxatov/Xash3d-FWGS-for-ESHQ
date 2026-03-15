@@ -132,7 +132,7 @@ struct zip_s
 	};
 
 // [FWGS, 01.01.24]
-// #define ENABLE_CRC_CHECK // known to be buggy because of possible libpublic crc32 bug, disabled
+// define ENABLE_CRC_CHECK // known to be buggy because of possible libpublic crc32 bug, disabled
 
 /***
 ============
@@ -213,7 +213,6 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 	c = FS_Read (zip->handle, &signature, sizeof (signature));
 
 	// [FWGS, 01.11.25]
-	/*if ((c != sizeof (signature)) || (signature == ZIP_HEADER_EOCD))*/
 	if ((c != sizeof (signature)) || (signature == LittleLong (ZIP_HEADER_EOCD)))
 		{
 		Con_Reportf (S_WARN "%s has no files. Ignored.\n", zipfile);
@@ -224,7 +223,6 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 		return NULL;
 		}
 
-	/*if (signature != ZIP_HEADER_LF)*/
 	if (signature != LittleLong (ZIP_HEADER_LF))
 		{
 		Con_Reportf (S_ERROR "%s is not a zip file. Ignored.\n", zipfile);
@@ -242,14 +240,12 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 		FS_Seek (zip->handle, filepos, SEEK_SET);
 		c = FS_Read (zip->handle, &signature, sizeof (signature));
 
-		/*if ((c == sizeof (signature)) && (signature == ZIP_HEADER_EOCD))*/
 		if ((c == sizeof (signature)) && (signature == LittleLong (ZIP_HEADER_EOCD)))
 			break;
 
 		filepos -= sizeof (char); // step back one byte
 		}
 
-	/*if (ZIP_HEADER_EOCD != signature)*/
 	if (signature != LittleLong (ZIP_HEADER_EOCD))
 		{
 		Con_Reportf (S_ERROR "cannot find EOCD in %s. Zip file corrupted.\n", zipfile);
@@ -305,7 +301,6 @@ static zip_t *FS_LoadZip (const char *zipfile, int *error)
 		{
 		c = FS_Read (zip->handle, &header_cdf, sizeof (header_cdf));
 
-		/*if ((c != sizeof (header_cdf)) || (header_cdf.signature != ZIP_HEADER_CDF))*/
 		if ((c != sizeof (header_cdf)) || (header_cdf.signature != LittleLong (ZIP_HEADER_CDF)))
 			{
 			Con_Reportf (S_ERROR "CDF signature mismatch in %s. Zip file corrupted.\n", zipfile);

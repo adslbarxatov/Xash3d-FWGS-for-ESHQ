@@ -16,7 +16,6 @@ GNU General Public License for more details
 #include "common.h"
 #include "server.h"
 
-// [FWGS, 01.05.24]
 void Log_Open (void)
 	{
 	time_t		ltime;
@@ -46,9 +45,13 @@ void Log_Open (void)
 	today = localtime (&ltime);
 	temp = Cvar_VariableString ("logsdir");
 
-	if (COM_CheckString (temp) && !Q_strchr (temp, ':') && !Q_strstr (temp, ".."))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckString (temp) && !Q_strchr (temp, ':') && !Q_strstr (temp, ".."))*/
+	if (!COM_StringEmptyOrNULL (temp) && !Q_strchr (temp, ':') && !Q_strstr (temp, ".."))
 		Q_snprintf (szFileBase, sizeof (szFileBase), "%s/L%02i%02i", temp, today->tm_mon + 1, today->tm_mday);
-	else 
+	/*else 
+		Q_snprintf (szFileBase, sizeof (szFileBase), "logs/L%02i%02i", today->tm_mon + 1, today->tm_mday);*/
+	else
 		Q_snprintf (szFileBase, sizeof (szFileBase), "logs/L%02i%02i", today->tm_mon + 1, today->tm_mday);
 
 	for (i = 0; i < 1000; i++)
@@ -107,7 +110,6 @@ void Log_Printf (const char *fmt, ...)
 	int			len;
 
 	// [FWGS, 01.11.25]
-	/*if (!svs.log.active)*/
 	if (!svs.log.net_log && !svs.log.active)
 		return;
 
@@ -196,8 +198,10 @@ void SV_SetLogAddress_f (void)
 		return;
 		}
 
+	// [FWGS, 01.03.26]
 	s = Cmd_Argv (1);
-	if (!COM_CheckString (s))
+	/*if (!COM_CheckString (s))*/
+	if (COM_StringEmptyOrNULL (s))
 		{
 		Con_Printf ("logaddress: unparseable address\n");
 		return;

@@ -49,12 +49,10 @@ void CL_RunLightStyles (lightstyle_t *ls)
 	// 'm' is normal light, 'a' is no light, 'z' is double bright
 	for (i = 0; i < MAX_LIGHTSTYLES; i++)
 		{
-		/*ls = gEngfuncs.GetLightStyle (i);*/
 		int		k, flight, clight;
 		float	l, lerpfrac, backlerp;
 
 		if (!gp_cl->paused && (frametime <= 0.1f))
-			/*ls->time += frametime; // evaluate local time*/
 			ls[i].time += frametime; // evaluate local time
 
 		if (!ls[i].length)
@@ -62,7 +60,6 @@ void CL_RunLightStyles (lightstyle_t *ls)
 			tr.lightstylevalue[i] = 256;
 			continue;
 			}
-		/*else if (ls->length == 1)*/
 		else if (ls[i].length == 1)
 			{
 			// single length style so don't bother interpolating
@@ -99,12 +96,8 @@ void CL_RunLightStyles (lightstyle_t *ls)
 R_MarkLights [FWGS, 01.03.25]
 =============
 ***/
-/*void R_MarkLights (dlight_t *light, int bit, mnode_t *node)*/
 void R_MarkLights (const dlight_t *light, int bit, const mnode_t *node)
 	{
-	/*float		dist;
-	msurface_t	*surf;
-	int			i;*/
 	const float	virtual_radius = light->radius * Q_max (1.0f, r_dlight_virtual_radius.value);
 	const float	maxdist = light->radius * light->radius;
 	float		dist;
@@ -119,38 +112,25 @@ start:
 
 	dist = PlaneDiff (light->origin, node->plane);
 	node_children (children, node, RI.currentmodel);
-	/*firstsurface = node_firstsurface (node, RI.currentmodel);
-	numsurfaces = node_numsurfaces (node, RI.currentmodel);
-
-	if (dist > light->radius)*/
 
 	if (dist > virtual_radius)
 		{
-		/*R_MarkLights (light, bit, children[0]);
-		return;*/
 		node = children[0];
 		goto start;
 		}
 
-	/*if (dist < -light->radius)*/
 	if (dist < -virtual_radius)
 		{
-		/*R_MarkLights (light, bit, children[1]);
-		return;*/
 		node = children[1];
 		goto start;
 		}
 
 	// mark the polygons
-	/*surf = RI.currentmodel->surfaces + firstsurface;*/
 	firstsurface = node_firstsurface (node, RI.currentmodel);
 	numsurfaces = node_numsurfaces (node, RI.currentmodel);
 
-	/*for (i = 0; i < numsurfaces; i++, surf++)*/
 	for (i = 0; i < numsurfaces; i++)
 		{
-		/*if (!BoundsAndSphereIntersect (surf->info->mins, surf->info->maxs, light->origin, light->radius))
-			continue;	// no intersection*/
 		vec3_t	impact;
 		float	s, t, l;
 		msurface_t	*surf = &RI.currentmodel->surfaces[firstsurface + i];
@@ -184,12 +164,9 @@ start:
 
 		if (surf->dlightframe != tr.dlightframecount)
 			{
-			/*surf->dlightbits = 0;*/
 			surf->dlightbits = bit;
 			surf->dlightframe = tr.dlightframecount;
 			}
-
-		/*surf->dlightbits |= bit;*/
 		else
 			{
 			surf->dlightbits |= bit;
@@ -221,7 +198,6 @@ void R_PushDlights (void)
 	// [FWGS, 01.12.24]
 	for (i = 0; i < MAX_DLIGHTS; i++)
 		{
-		/*dlight_t *l = gEngfuncs.GetDynamicLight (i);*/
 		dlight_t *l = &tr.dlights[i];
 
 		if ((l->die < gp_cl->time) || !l->radius)
@@ -283,7 +259,6 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 
 	side = front < 0;
 	if ((back < 0) == side)
-		/*return R_RecursiveLightPoint (model, node->children[side], p1f, p2f, cv, start, end);*/
 		return R_RecursiveLightPoint (model, children[side], p1f, p2f, cv, start, end);
 
 	frac = front / (front - back);
@@ -292,7 +267,6 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 	midf = p1f + (p2f - p1f) * frac;
 
 	// co down front side
-	/*if (R_RecursiveLightPoint (model, node->children[side], p1f, midf, cv, start, mid))*/
 	if (R_RecursiveLightPoint (model, children[side], p1f, midf, cv, start, mid))
 		return true; // hit something
 
@@ -303,11 +277,9 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 		}
 
 	// check for impact on this node
-	/*surf = model->surfaces + node->firstsurface;*/
 	surf = model->surfaces + firstsurface;
 	VectorCopy (mid, g_trace_lightspot);
 
-	/*for (i = 0; i < node->numsurfaces; i++, surf++)*/
 	for (i = 0; i < numsurfaces; i++, surf++)
 		{
 		int	smax, tmax;
@@ -394,7 +366,6 @@ static qboolean R_RecursiveLightPoint (model_t *model, mnode_t *node, float p1f,
 		}
 
 	// go down back side
-	/*return R_RecursiveLightPoint (model, node->children[!side], midf, p2f, cv, mid, end);*/
 	return R_RecursiveLightPoint (model, children[!side], midf, p2f, cv, mid, end);
 	}
 
@@ -421,7 +392,7 @@ static colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t
 		light.r = light.g = light.b = light.a = 0;
 		last_fraction = 1.0f;
 
-		// [FWGS, 01.07.23] get light from bmodels too
+		// get light from bmodels too
 		if (r_lighting_extended.value)
 			maxEnts = MAX_PHYSENTS;
 
@@ -499,7 +470,6 @@ colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t 
 	{
 	colorVec	light = R_LightVecInternal (start, end, lspot, lvec);
 
-	// [FWGS, 01.07.23]
 	if (r_lighting_extended.value && (lspot != NULL) && (lvec != NULL))
 		{
 		// trying to get light from ceiling (but ignore gradient analyze)

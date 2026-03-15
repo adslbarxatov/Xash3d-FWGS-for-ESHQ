@@ -148,14 +148,12 @@ static void Mod_UnloadTextures (model_t *mod)
 
 		// [FWGS, 01.11.25]
 		default:
-			/*ASSERT (0);*/
 			Assert (0);
 			break;
 		}
 	}
 
 // [FWGS, 01.11.25]
-/*static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf)*/
 static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf, size_t buffersize)
 	{
 	qboolean loaded = false;
@@ -421,11 +419,6 @@ static qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_
 	{
 	// [FWGS, 01.11.25]
 	qboolean ret = true;
-	/*if (rotate > 0)
-		{
-		gEngfuncs.Con_Printf ("rotation transform not supported\n");
-		ret = false;
-		}*/
 	tr.rotation = rotate;
 
 	if (offset_x || offset_y)

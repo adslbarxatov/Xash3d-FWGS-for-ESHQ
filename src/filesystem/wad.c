@@ -51,7 +51,8 @@ infotable	dlumpinfo_t[dwadinfo_t->numlumps]
 #define HINT_NAMELEN		5		// e.g. _mask, _norm
 #define MAX_FILES_IN_WAD	65535	// real limit as above <2Gb size not a lumpcount
 
-#include "const.h"
+// [FWGS, 01.03.26]
+/*include "const.h"*/
 
 struct wfile_s
 	{
@@ -92,7 +93,7 @@ static const wadtype_t wad_types[] =
 
 /***
 ===========
-W_TypeFromExt [FWGS, 01.02.25]
+W_TypeFromExt
 
 Extracts file type from extension
 ===========
@@ -102,8 +103,9 @@ static signed char W_TypeFromExt (const char *lumpname)
 	const char	*ext = COM_FileExtension (lumpname);
 	int		i;
 
-	// we not known about filetype, so match only by filename
-	if (!Q_strcmp (ext, "*") || !COM_CheckStringEmpty (ext))
+	// [FWGS, 01.03.26] we not known about filetype, so match only by filename
+	/*if (!Q_strcmp (ext, "*") || !COM_CheckStringEmpty (ext))*/
+	if (!Q_strcmp (ext, "*") || COM_StringEmpty (ext))
 		return TYP_ANY;
 
 	for (i = 0; i < sizeof (wad_types) / sizeof (wad_types[0]); i++)
@@ -320,7 +322,6 @@ static wfile_t * W_Open (const char *filename, int *error, uint flags)
 		}
 
 	// [FWGS, 01.11.25]
-	/*if ((header.ident != IDWAD2HEADER) && (header.ident != IDWAD3HEADER))*/
 	if ((header.ident != LittleLong (IDWAD2HEADER)) && (header.ident != LittleLong (IDWAD3HEADER)))
 		{
 		Con_Reportf (S_ERROR "%s: %s is not a WAD2 or WAD3 file\n", __func__, filename);
@@ -448,7 +449,7 @@ static void FS_PrintInfo_WAD (searchpath_t *search, char *dst, size_t size)
 
 /***
 ===========
-FS_FindFile_WAD [FWGS, 01.12.24]
+FS_FindFile_WAD
 ===========
 ***/
 static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedname, size_t len)
@@ -465,7 +466,9 @@ static int FS_FindFile_WAD (searchpath_t *search, const char *path, char *fixedn
 
 	COM_ExtractFilePath (path, wadname);
 
-	if (COM_CheckStringEmpty (wadname))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckStringEmpty (wadname))*/
+	if (!COM_StringEmpty (wadname))
 		{
 		string wadbasename;
 		COM_FileBase (wadname, wadbasename, sizeof (wadbasename));
@@ -521,7 +524,9 @@ static void FS_Search_WAD (searchpath_t *search, stringlist_t *list, const char 
 	COM_FileBase (pattern, wadpattern, sizeof (wadpattern));
 	wadfolder[0] = '\0';
 
-	if (COM_CheckStringEmpty (wadname))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckStringEmpty (wadname))*/
+	if (!COM_StringEmpty (wadname))
 		{
 		string wadbasename;
 		COM_FileBase (wadname, wadbasename, sizeof (wadbasename));

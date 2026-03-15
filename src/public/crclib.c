@@ -227,7 +227,7 @@ void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 		len -= 64;
 		}
 
-	// handle any remaining bytes of data.
+	// handle any remaining bytes of data
 	memcpy (ctx->in, buf, len);
 	}
 
@@ -296,7 +296,7 @@ MD5Transform
 
 The core of the MD5 algorithm, this alters an existing MD5 hash to
 reflect the addition of 16 longwords of new data.  MD5Update blocks
-the data and converts bytes into longwords for this routine.
+the data and converts bytes into longwords for this routine
 =================
 ***/
 void MD5Transform (uint buf[4], const uint in[16])

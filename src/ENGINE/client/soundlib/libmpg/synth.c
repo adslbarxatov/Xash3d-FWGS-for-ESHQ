@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -266,12 +266,12 @@ static int find_dectype (mpg123_handle_t *fr)
 int set_synth_functions (mpg123_handle_t *fr)
 	{
 	enum synth_resample	resample = r_none;
-	enum synth_format	basic_format = f_none; // default is always 16bit, or whatever.
+	enum synth_format	basic_format = f_none; // default is always 16bit, or whatever
 
 	if (fr->af.dec_enc & MPG123_ENC_16)
 		basic_format = f_16;
 
-	// make sure the chosen format is compiled into this lib.
+	// make sure the chosen format is compiled into this lib
 	if (basic_format == f_none)
 		return -1;
 
@@ -304,7 +304,7 @@ int set_synth_functions (mpg123_handle_t *fr)
 	init_layer3_stuff (fr);
 	fr->make_decode_tables = make_decode_tables;
 
-	// we allocated the table buffers just now, so (re)create the tables.
+	// we allocated the table buffers just now, so (re)create the tables
 	fr->make_decode_tables (fr);
 
 	return 0;

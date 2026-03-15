@@ -44,10 +44,8 @@ R_GetTexture [FWGS, 01.11.25]
 acess to array elem
 =================
 ***/
-/*gl_texture_t *R_GetTexture (GLenum texnum)*/
 gl_texture_t *R_GetTexture (unsigned int texnum)
 	{
-	/*ASSERT ((texnum >= 0) && (texnum < MAX_TEXTURES));*/
 	Assert (texnum < MAX_TEXTURES);
 	return &gl_textures[texnum];
 	}
@@ -81,51 +79,6 @@ const char *GL_TargetToString (GLenum target)
 	}
 
 // [FWGS, 01.11.25] removed GL_Bind
-
-/*
-=================
-GL_Bind
-=================
-/
-void GL_Bind (GLint tmu, GLenum texnum)
-	{
-	gl_texture_t	*texture;
-	GLuint			glTarget;
-
-	// [FWGS, 01.07.24] missed or invalid texture?
-	if ((texnum <= 0) || (texnum >= MAX_TEXTURES))
-		{
-		if (texnum != 0)
-			gEngfuncs.Con_DPrintf (S_ERROR "%s: invalid texturenum %d\n", __func__, texnum);
-		texnum = tr.defaultTexture;
-		}
-
-	if (tmu != GL_KEEP_UNIT)
-		GL_SelectTexture (tmu);
-	else
-		tmu = glState.activeTMU;
-
-	texture = &gl_textures[texnum];
-	glTarget = texture->target;
-
-	if (glTarget == GL_TEXTURE_2D_ARRAY_EXT)
-		glTarget = GL_TEXTURE_2D;
-
-	if (glState.currentTextureTargets[tmu] != glTarget)
-		{
-		GL_EnableTextureUnit (tmu, false);
-
-		glState.currentTextureTargets[tmu] = glTarget;
-		GL_EnableTextureUnit (tmu, true);
-		}
-
-	if (glState.currentTextures[tmu] == texture->texnum)
-		return;
-
-	pglBindTexture (texture->target, texture->texnum);
-	glState.currentTextures[tmu] = texture->texnum;
-	glState.currentTexturesIndex[tmu] = texnum;
-	}*/
 
 // [FWGS, 01.02.24]
 qboolean GL_TextureFilteringEnabled (const gl_texture_t *tex)
@@ -357,11 +310,13 @@ static int GL_CalcTextureSamples (int flags)
 	return FBitSet (flags, IMAGE_HAS_ALPHA) ? 2 : 1;
 	}
 
-/***
+// [FWGS, 01.03.26] removed GL_CalcImageSize
+/*
+/
 ==================
 GL_CalcImageSize
 ==================
-***/
+/
 static size_t GL_CalcImageSize (pixformat_t format, int width, int height, int depth)
 	{
 	size_t	size = 0;
@@ -401,7 +356,7 @@ static size_t GL_CalcImageSize (pixformat_t format, int width, int height, int d
 		}
 
 	return size;
-	}
+	}*/
 
 /***
 ==================
@@ -761,11 +716,15 @@ static void GL_SetTextureFormat (gl_texture_t *tex, pixformat_t format, int chan
 				tex->format = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
 				break;
 
-			case PF_ATI2:
+			// [FWGS, 01.03.26]
+			/*case PF_ATI2:
 				if (glConfig.hardware_type == GLHW_RADEON)
 					tex->format = GL_COMPRESSED_LUMINANCE_ALPHA_3DC_ATI;
 				else
 					tex->format = GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
+				break;*/
+			case PF_ATI2:
+				tex->format = GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
 				break;
 			}
 
@@ -1101,26 +1060,53 @@ static void GL_BuildMipMap (byte *in, int srcWidth, int srcHeight, int srcDepth,
 		}
 	}
 
-// [FWGS, 01.04.25]
+// [FWGS, 01.03.26]
 static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLint width, GLint height,
 	GLint depth, GLint type, const void *data)
 	{
-	GLuint		cubeTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB;
+	/*GLuint		cubeTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB;
 	qboolean	subImage = FBitSet (tex->flags, TF_IMG_UPLOADED) && (data != NULL);
 	GLenum		inFormat = gEngfuncs.Image_GetPFDesc (type)->glFormat;
 
 	GLint		dataType = GL_UNSIGNED_BYTE;
-	GLsizei		samplesCount = 0;
+	GLsizei		samplesCount = 0;*/
+	const GLuint		cubeTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB;
+	const qboolean		subImage = FBitSet (tex->flags, TF_IMG_UPLOADED) && data != NULL;
+	const rawformat_t	rawformat = gEngfuncs.Image_GetPFDesc (type)->rawformat;
+	GLenum	inFormat;
+	GLint	dataType;
 
 	Assert (tex != NULL);
 
 	if (FBitSet (tex->flags, TF_DEPTHMAP))
+		{
 		inFormat = GL_DEPTH_COMPONENT;
+		}
+	else switch (rawformat)
+		{
+		case RF_RGBA:
+			inFormat = GL_RGBA;
+			break;
+		case RF_BGRA:
+			inFormat = GL_BGRA;
+			break;
+		case RF_BGR:
+			inFormat = GL_BGR;
+			break;
+		case RF_LUMINANCE:
+			inFormat = GL_LUMINANCE;
+			break;
+		case RF_COMPRESSED:
+			Assert (0);
+			break;
+		}
 
 	if (FBitSet (tex->flags, TF_ARB_16BIT))
 		dataType = GL_HALF_FLOAT_ARB;
 	else if (FBitSet (tex->flags, TF_ARB_FLOAT))
 		dataType = GL_FLOAT;
+	else
+		dataType = GL_UNSIGNED_BYTE;
 
 	if (tex->target == GL_TEXTURE_1D)
 		{
@@ -1147,7 +1133,9 @@ static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLin
 		{
 
 #if !defined( XASH_GL_STATIC ) || (!defined( XASH_GLES ) && !defined( XASH_GL4ES ))
-		samplesCount = (GLsizei)gEngfuncs.pfnGetCvarFloat ("gl_msaa_samples");
+		/*samplesCount = (GLsizei)gEngfuncs.pfnGetCvarFloat ("gl_msaa_samples");
+		switch (samplesCount)*/
+		GLsizei samplesCount = (GLsizei)gEngfuncs.pfnGetCvarFloat ("gl_msaa_samples");
 		switch (samplesCount)
 			{
 			case 2:
@@ -1155,6 +1143,7 @@ static void GL_TextureImageRAW (gl_texture_t *tex, GLint side, GLint level, GLin
 			case 8:
 			case 16:
 				break;
+
 			default:
 				samplesCount = 1;
 			}
@@ -1234,19 +1223,21 @@ static void GL_CheckTexImageError (gl_texture_t *tex)
 
 /***
 ===============
-GL_UploadTexture
+GL_UploadTexture [FWGS, 01.03.26]
 
 upload texture into video memory
 ===============
 ***/
 static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 	{
-	byte		*buf, *data;
-	size_t		texsize, size;
-	uint		width, height;
-	uint		i, j, numSides;
-	uint		offset = 0;
+	byte	*buf, *data;
+	size_t	texsize, size;
+	/*uint		width, height;*/
+	uint	width, height, depth;
+	uint	i, j, numSides;
+	uint	offset = 0;
 	qboolean	normalMap;
+	qboolean	texture3d;
 	const byte	*bufend;
 
 	// dedicated server
@@ -1258,14 +1249,13 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 
 	GL_SetTextureTarget (tex, pic); // must be first
 
-	// [FWGS, 01.07.24] make sure what target is correct
+	// make sure what target is correct
 	if (tex->target == GL_NONE)
 		{
 		gEngfuncs.Con_DPrintf (S_ERROR "%s: %s is not supported by your hardware\n", __func__, tex->name);
 		return false;
 		}
 
-	// [FWGS, 01.07.24]
 	if ((pic->type == PF_BC6H_SIGNED) || (pic->type == PF_BC6H_UNSIGNED) || (pic->type == PF_BC7_UNORM) ||
 		(pic->type == PF_BC7_SRGB))
 		{
@@ -1285,7 +1275,7 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 	tex->fogParams[2] = pic->fogParams[2];
 	tex->fogParams[3] = pic->fogParams[3];
 
-	// [FWGS, 01.07.24] will be resampled, just tell me for debug targets
+	// will be resampled, just tell me for debug targets
 	if ((pic->width * pic->height) & 3)
 		{
 		gEngfuncs.Con_Reportf ("%s: %s s&3 [%d x %d]\n", __func__, tex->name, pic->width, pic->height);
@@ -1293,10 +1283,12 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 
 	buf = pic->buffer;
 	bufend = pic->buffer + pic->size; // total image size include all the layers, cube sides, mipmaps
-	offset = GL_CalcImageSize (pic->type, pic->width, pic->height, pic->depth);
+	/*offset = GL_CalcImageSize (pic->type, pic->width, pic->height, pic->depth);*/
+	offset = gEngfuncs.Image_CalcImageSize (pic->type, pic->width, pic->height, pic->depth);
 	texsize = GL_CalcTextureSize (tex->format, tex->width, tex->height, tex->depth);
 	normalMap = FBitSet (tex->flags, TF_NORMALMAP) ? true : false;
 	numSides = FBitSet (pic->flags, IMAGE_CUBEMAP) ? 6 : 1;
+	texture3d = (tex->target == GL_TEXTURE_3D);
 
 	// uploading texture into video memory, change the binding
 	glState.currentTextures[glState.activeTMU] = tex->texnum;
@@ -1305,7 +1297,7 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 
 	for (i = 0; i < numSides; i++)
 		{
-		// [FWGS, 01.07.24] track the buffer bounds
+		// track the buffer bounds
 		if ((buf != NULL) && (buf >= bufend))
 			gEngfuncs.Host_Error ("%s: %s image buffer overflow\n", __func__, tex->name);
 
@@ -1315,10 +1307,16 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 				{
 				width = Q_max (1, (tex->width >> j));
 				height = Q_max (1, (tex->height >> j));
-				texsize = GL_CalcTextureSize (tex->format, width, height, tex->depth);
+
+				/*texsize = GL_CalcTextureSize (tex->format, width, height, tex->depth);
 				size = GL_CalcImageSize (pic->type, width, height, tex->depth);
 
-				GL_TextureImageCompressed (tex, i, j, width, height, tex->depth, size, buf);
+				GL_TextureImageCompressed (tex, i, j, width, height, tex->depth, size, buf);*/
+				depth = texture3d ? Q_max (1, (tex->depth >> j)) : tex->depth;
+				texsize = GL_CalcTextureSize (tex->format, width, height, depth);
+				size = gEngfuncs.Image_CalcImageSize (pic->type, width, height, depth);
+				GL_TextureImageCompressed (tex, i, j, width, height, depth, size, buf);
+
 				tex->size += texsize;
 				buf += size; // move pointer
 				tex->numMips++;
@@ -1332,10 +1330,16 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 				{
 				width = Q_max (1, (tex->width >> j));
 				height = Q_max (1, (tex->height >> j));
-				texsize = GL_CalcTextureSize (tex->format, width, height, tex->depth);
+
+				/*texsize = GL_CalcTextureSize (tex->format, width, height, tex->depth);
 				size = GL_CalcImageSize (pic->type, width, height, tex->depth);
 
-				GL_TextureImageRAW (tex, i, j, width, height, tex->depth, pic->type, buf);
+				GL_TextureImageRAW (tex, i, j, width, height, tex->depth, pic->type, buf);*/
+				depth = texture3d ? Q_max (1, (tex->depth >> j)) : tex->depth;
+				texsize = GL_CalcTextureSize (tex->format, width, height, depth);
+				size = gEngfuncs.Image_CalcImageSize (pic->type, width, height, depth);
+				GL_TextureImageRAW (tex, i, j, width, height, depth, pic->type, buf);
+
 				tex->size += texsize;
 				buf += size; // move pointer
 				tex->numMips++;
@@ -1354,7 +1358,6 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 			else
 				data = buf;
 
-			// [FWGS, 01.11.23]
 			if (!ImageCompressed (pic->type) && !FBitSet (tex->flags, TF_NOMIPMAP) &&
 				FBitSet (pic->flags, IMAGE_ONEBIT_ALPHA))
 				data = GL_ApplyFilter (data, tex->width, tex->height);
@@ -1365,7 +1368,9 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 				width = Q_max (1, (tex->width >> j));
 				height = Q_max (1, (tex->height >> j));
 				texsize = GL_CalcTextureSize (tex->format, width, height, tex->depth);
-				size = GL_CalcImageSize (pic->type, width, height, tex->depth);
+				/*size = GL_CalcImageSize (pic->type, width, height, tex->depth);*/
+				size = gEngfuncs.Image_CalcImageSize (pic->type, width, height, tex->depth);
+
 				GL_TextureImageRAW (tex, i, j, width, height, tex->depth, pic->type, data);
 				if (mipCount > 1)
 					GL_BuildMipMap (data, width, height, tex->depth, tex->flags);
@@ -1376,8 +1381,9 @@ static qboolean GL_UploadTexture (gl_texture_t *tex, rgbdata_t *pic)
 				}
 
 			// move to next side
-			if (numSides > 1 && (buf != NULL))
-				buf += GL_CalcImageSize (pic->type, pic->width, pic->height, 1);
+			if ((numSides > 1) && (buf != NULL))
+				/*buf += GL_CalcImageSize (pic->type, pic->width, pic->height, 1);*/
+				buf += gEngfuncs.Image_CalcImageSize (pic->type, pic->width, pic->height, 1);
 			}
 		}
 
@@ -1455,7 +1461,9 @@ static qboolean GL_CheckTexName (const char *name)
 	{
 	int len;
 
-	if (!COM_CheckString (name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (name))*/
+	if (COM_StringEmptyOrNULL (name))
 		return false;
 
 	len = Q_strlen (name);
@@ -1572,7 +1580,6 @@ static void GL_DeleteTexture (gl_texture_t *tex)
 	gl_texture_t	*cur;
 
 	// [FWGS, 01.11.25]
-	/*ASSERT (tex != NULL);*/
 	Assert (tex != NULL);
 
 	// already freed?
@@ -1715,7 +1722,7 @@ int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags)
 
 /***
 ================
-GL_LoadTextureArray [FWGS, 01.01.24]
+GL_LoadTextureArray
 ================
 ***/
 int GL_LoadTextureArray (const char **names, int flags)
@@ -1832,7 +1839,9 @@ int GL_LoadTextureArray (const char **names, int flags)
 			int width = Q_max (1, (pic->width >> j));
 			int height = Q_max (1, (pic->height >> j));
 
-			mipsize = GL_CalcImageSize (pic->type, width, height, 1);
+			// [FWGS, 01.03.26]
+			/*mipsize = GL_CalcImageSize (pic->type, width, height, 1);*/
+			mipsize = gEngfuncs.Image_CalcImageSize (pic->type, width, height, 1);
 			memcpy (pic->buffer + dstsize + mipsize * i, src->buffer + srcsize, mipsize);
 			dstsize += mipsize * numLayers;
 			srcsize += mipsize;
@@ -2036,12 +2045,9 @@ int GL_FindTexture (const char *name)
 GL_FreeTexture [FWGS, 01.11.25]
 ================
 ***/
-/*void GL_FreeTexture (GLenum texnum)*/
 void GL_FreeTexture (unsigned int texnum)
 	{
 	// number 0 it's already freed
-	/*if (texnum <= 0)
-		return;*/
 	if ((texnum == 0) || (texnum >= MAX_TEXTURES))
 		return;
 
@@ -2130,6 +2136,7 @@ int GL_TexMemory (void)
 INTERNAL TEXTURES
 ==============================================================================
 ***/
+
 /***
 ==================
 GL_FakeImage

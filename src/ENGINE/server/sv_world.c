@@ -833,6 +833,7 @@ int GAME_EXPORT SV_PointContents (const vec3_t p)
 LINE TESTING IN HULLS
 ===============================================================================
 ***/
+
 /***
 ==================
 SV_ClipMoveToEntity
@@ -1346,12 +1347,8 @@ SV_Move [FWGS, 01.06.25]
 trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e,
 	qboolean monsterclip)
 	{
-	/*moveclip_t	clip;
-	vec3_t		trace_endpos;
-	float		trace_fraction;*/
 	moveclip_t	clip = { 0 };
 
-	/*memset (&clip, 0, sizeof (moveclip_t));*/
 	SV_ClipMoveToEntity (EDICT_NUM (0), start, mins, maxs, end, &clip.trace);
 
 	if (clip.trace.fraction != 0.0f)
@@ -1360,7 +1357,6 @@ trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
 		vec3_t trace_endpos;
 
 		VectorCopy (clip.trace.endpos, trace_endpos);
-		/*trace_fraction = clip.trace.fraction;*/
 		clip.trace.fraction = 1.0f;
 		clip.start = start;
 		clip.end = trace_endpos;

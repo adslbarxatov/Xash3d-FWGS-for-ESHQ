@@ -82,9 +82,12 @@ typedef struct
 	float	time;
 	} SAVE_LIGHTSTYLE;
 
-// [FWGS, 01.12.24]
-/*void (__cdecl *pfnSaveGameComment)(char *buffer, int max_length) = NULL;*/
-static void (__cdecl *pfnSaveGameComment)(char *buffer, int max_length) = NULL;
+// [FWGS, 01.03.26]
+#if XASH_WIN32
+	static void (__cdecl *pfnSaveGameComment)(char *buffer, int max_length) = NULL;
+#else
+	static void (*pfnSaveGameComment)(char *buffer, int max_length) = NULL;
+#endif
 
 static TYPEDESCRIPTION gGameHeader[] =
 	{
@@ -144,7 +147,6 @@ static TYPEDESCRIPTION gSaveClient[] =
 	DEFINE_ARRAY (SAVE_CLIENT, mainTrack, FIELD_CHARACTER, 64),
 	DEFINE_FIELD (SAVE_CLIENT, trackPosition, FIELD_INTEGER),
 
-	/*DEFINE_FIELD (SAVE_CLIENT, viewentity, FIELD_SHORT),*/
 	// [FWGS, 22.01.25] mods based on HLU SDK disallow usage of FIELD_SHORT
 	DEFINE_ARRAY (SAVE_CLIENT, viewentity, FIELD_CHARACTER, sizeof (short)),
 	
@@ -157,7 +159,6 @@ static TYPEDESCRIPTION gDecalEntry[] =
 	DEFINE_FIELD (decallist_t, position, FIELD_VECTOR),
 	DEFINE_ARRAY (decallist_t, name, FIELD_CHARACTER, 64),
 
-	/*DEFINE_FIELD (decallist_t, entityIndex, FIELD_SHORT),*/
 	// [FWGS, 22.01.25] mods based on HLU SDK disallow usage of FIELD_SHORT
 	DEFINE_ARRAY (decallist_t, entityIndex, FIELD_CHARACTER, sizeof (short)),
 
@@ -213,7 +214,6 @@ static TYPEDESCRIPTION gSoundEntry[] =
 	DEFINE_ARRAY (soundlist_t, name, FIELD_CHARACTER, 64),
 	
 	// [FWGS, 22.01.25]
-	/*DEFINE_FIELD (soundlist_t, entnum, FIELD_SHORT),*/
 	// mods based on HLU SDK disallow usage of FIELD_SHORT
 	DEFINE_ARRAY (soundlist_t, entnum, FIELD_CHARACTER, sizeof (short)),
 
@@ -235,7 +235,6 @@ static TYPEDESCRIPTION gTempEntvars[] =
 	};
 
 // [FWGS, 01.12.24]
-/*struct*/
 static const struct
 	{
 	const char *mapname;
@@ -690,12 +689,13 @@ static void DirectoryCopy (const char *pPath, file_t *pFile)
 
 /***
 =============
-DirectoryExtract
+DirectoryExtract [FWGS, 01.03.26]
 
 extract the xv1 - xv3 files from the save file
 =============
 ***/
-static void DirectoryExtract (file_t *pFile, int fileCount)
+/*static void DirectoryExtract (file_t *pFile, int fileCount)*/
+static qboolean DirectoryExtract (file_t *pFile, int fileCount)
 	{
 	char	szName[MAX_OSPATH];
 	char	fileName[MAX_OSPATH];
@@ -711,9 +711,17 @@ static void DirectoryExtract (file_t *pFile, int fileCount)
 		COM_FixSlashes (fileName);
 
 		pCopy = FS_Open (fileName, "wb", true);
+		if (!pCopy)
+			{
+			Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, fileName);
+			return false;
+			}
+
 		FS_FileCopy (pCopy, pFile, fileSize);
 		FS_Close (pCopy);
 		}
+
+	return true;
 	}
 
 /***
@@ -986,11 +994,11 @@ static void ParseSaveTables (SAVERESTOREDATA *pSaveData, SAVE_HEADER *pHeader, i
 	// Re-base the savedata since we re-ordered the entity/table / restore fields
 	InitEntityTable (pSaveData, pSaveData->tableCount);
 
-	// [FWGS, 01.12.23]
+	// [FWGS, 01.03.26]
 	for (i = 0; i < pSaveData->tableCount; i++)
 		{
 		svgame.dllFuncs.pfnSaveReadFields (pSaveData, "ETABLE", &pSaveData->pTable[i], gEntityTable,
-			ARRAYSIZE (gEntityTable));
+			HLARRAYSIZE (gEntityTable));
 		pSaveData->pTable[i].pent = NULL;
 		}
 
@@ -1005,10 +1013,10 @@ static void ParseSaveTables (SAVERESTOREDATA *pSaveData, SAVE_HEADER *pHeader, i
 	pSaveData->time = pHeader->time;
 	pSaveData->fUseLandmark = true;
 
-	// read adjacency list
+	// [FWGS, 01.03.26] read adjacency list
 	for (i = 0; i < pSaveData->connectionCount; i++)
 		svgame.dllFuncs.pfnSaveReadFields (pSaveData, "ADJACENCY", &pSaveData->levelList[i], gAdjacency, 
-			ARRAYSIZE (gAdjacency));
+			HLARRAYSIZE (gAdjacency));
 
 	if (updateGlobals)
 		memset (sv.lightstyles, 0, sizeof (sv.lightstyles));
@@ -1022,13 +1030,14 @@ static void ParseSaveTables (SAVERESTOREDATA *pSaveData, SAVE_HEADER *pHeader, i
 
 /***
 =============
-EntityPatchWrite
+EntityPatchWrite [FWGS, 01.03.26]
 
 write out the list of entities that are no longer in the save file for this level
 (they've been moved to another level)
 =============
 ***/
-static void EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
+/*static void EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)*/
+static qboolean EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 	{
 	char	name[MAX_QPATH];
 	int		i, size = 0;
@@ -1037,7 +1046,11 @@ static void EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "3", level);
 
 	if ((pFile = FS_Open (name, "wb", true)) == NULL)
-		return;
+		{
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, name);
+		return false;
+		}
+	/*return;*/
 
 	for (i = 0; i < pSaveData->tableCount; i++)
 		{
@@ -1055,6 +1068,7 @@ static void EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 		}
 
 	FS_Close (pFile);
+	return true;
 	}
 
 /***
@@ -1192,20 +1206,19 @@ static void RestoreSound (SAVERESTOREDATA *pSaveData, soundlist_t *snd)
 
 /***
 =============
-SaveClientState [FWGS, 01.12.24]
+SaveClientState [FWGS, 01.03.26]
 
 write out the list of premanent decals for this level
 =============
 ***/
-static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int changelevel)
+/*static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int changelevel)*/
+static qboolean SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int changelevel)
 	{
 	soundlist_t	soundInfo[MAX_CHANNELS];
 	sv_client_t	*cl = svs.clients;
 	char		name[MAX_QPATH];
 	int			i, id, version;
 	char		*pTokenData;
-	/*decallist_t	*decalList;
-	SAVE_CLIENT	header;*/
 	decallist_t	*decalList = NULL;
 	SAVE_CLIENT	header = { 0 };
 	file_t		*pFile;
@@ -1213,40 +1226,16 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 	// clearing the saving buffer to reuse
 	SaveClear (pSaveData);
 
-	/*memset (&header, 0, sizeof (header));
-
-	// g-cont. add space for studiodecals if present
-	decalList = (decallist_t *)Z_Calloc (sizeof (decallist_t) * MAX_RENDER_DECALS * 2);*/
 	header.entityCount = sv.num_static_entities;
 
 	// initialize client header
 #if !XASH_DEDICATED
-	/*if (!Host_IsDedicated ())*/
 	if (!Host_IsDedicated ())
 		{
 		// g-cont. add space for studiodecals if present
 		decalList = (decallist_t *)Mem_Calloc (host.mempool, sizeof (decallist_t) * MAX_RENDER_DECALS * 2);
-
 		header.decalCount = ref.dllFuncs.R_CreateDecalList (decalList);
-		/*}
-	else
-	endif
-		{
-		// we probably running a dedicated server
-		header.decalCount = 0;
-		}
-	header.entityCount = sv.num_static_entities;*/
 
-		/*if (!changelevel)
-		{
-		// sounds won't going across transition
-		header.soundCount = S_GetCurrentDynamicSounds (soundInfo, MAX_CHANNELS);
-
-	if !XASH_DEDICATED
-		// music not reqiured to save position: it's just continue playing on a next level
-		S_StreamGetCurrentState (header.introTrack, sizeof (header.introTrack), header.mainTrack,
-			sizeof (header.mainTrack), &header.trackPosition);
-	endif*/
 		if (!changelevel) // sounds won't going across transition
 			{
 			header.soundCount = S_GetCurrentDynamicSounds (soundInfo, MAX_CHANNELS);
@@ -1271,18 +1260,17 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 	svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "ClientHeader", &header, gSaveClient, HLARRAYSIZE (gSaveClient));
 
 	// store decals
-	/*for (i = 0; i < header.decalCount; i++)*/
 	for (i = 0; (decalList != NULL) && (i < header.decalCount); i++)
 		{
 		// NOTE: apply landmark offset only for brush entities without origin brushes
 		if (pSaveData->fUseLandmark && FBitSet (decalList[i].flags, FDECAL_USE_LANDMARK))
 			VectorSubtract (decalList[i].position, pSaveData->vecLandmarkOffset, decalList[i].position);
 
+		// [FWGS, 01.03.26]
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "DECALLIST", &decalList[i], gDecalEntry,
-			ARRAYSIZE (gDecalEntry));
+			HLARRAYSIZE (gDecalEntry));
 		}
 
-	/*Z_Free (decalList);*/
 	if (decalList)
 		Mem_Free (decalList);
 
@@ -1291,10 +1279,10 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "STATICENTITY", &svs.static_entities[i],
 			gStaticEntry, HLARRAYSIZE (gStaticEntry));
 
-	// write sounds
+	// [FWGS, 01.03.26] write sounds
 	for (i = 0; i < header.soundCount; i++)
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "SOUNDLIST", &soundInfo[i], gSoundEntry,
-			ARRAYSIZE (gSoundEntry));
+			HLARRAYSIZE (gSoundEntry));
 
 	// Write entity string token table
 	pTokenData = StoreHashTable (pSaveData);
@@ -1303,8 +1291,12 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 
 	// output to disk
 	if ((pFile = FS_Open (name, "wb", true)) == NULL)
-		// something bad is happens
-		return;
+		{
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, name);
+		return false;
+		}
+	/*// something bad is happens
+		return;*/
 
 	version = CLIENT_SAVEGAME_VERSION;
 	id = SAVEGAME_HEADER;
@@ -1323,6 +1315,7 @@ static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int 
 	FS_Write (pFile, &svgame.movevars.fog_settings, sizeof (int));
 
 	FS_Close (pFile);
+	return true;
 	}
 
 /***
@@ -1346,7 +1339,7 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "2", level);
 
 	if ((pFile = FS_Open (name, "rb", true)) == NULL)
-		return; // something bad is happens
+		return;	// something bad is happens
 
 	FS_Read (pFile, &id, sizeof (id));
 	if (id != SAVEGAME_HEADER)
@@ -1431,12 +1424,13 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 		// restore camera view here
 		edict_t *pent = pSaveData->pTable[bound (0, (word)header.viewentity, pSaveData->tableCount)].pent;
 
-		if (COM_CheckStringEmpty (header.introTrack))
+		// [FWGS, 01.03.26]
+		/*if (COM_CheckStringEmpty (header.introTrack))*/
+		if (!COM_StringEmpty (header.introTrack))
 			{
 			// NOTE: music is automatically goes across transition, never restore it on changelevel
 			MSG_BeginServerCmd (&sv.signon, svc_stufftext);
 
-			// [FWGS, 01.04.23]
 			MSG_WriteStringf (&sv.signon, "music \"%s\" \"%s\" %i\n", header.introTrack, header.mainTrack,
 				header.trackPosition);
 			}
@@ -1573,10 +1567,10 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 	svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "Save Header", &header, gSaveHeader, HLARRAYSIZE (gSaveHeader));
 	pSaveData->time = header.time;
 
-	// Write the adjacency list
+	// [FWGS, 01.03.26] Write the adjacency list
 	for (i = 0; i < pSaveData->connectionCount; i++)
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "ADJACENCY", &pSaveData->levelList[i], gAdjacency,
-			ARRAYSIZE (gAdjacency));
+			HLARRAYSIZE (gAdjacency));
 
 	// Write the lightstyles
 	for (i = 0; i < MAX_LIGHTSTYLES; i++)
@@ -1621,25 +1615,27 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 	// Write entity table
 	pTableData = pSaveData->pCurrentData;
 
+	// [FWGS, 01.03.26]
 	for (i = 0; i < pSaveData->tableCount; i++)
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "ETABLE", &pSaveData->pTable[i], gEntityTable,
-			ARRAYSIZE (gEntityTable));
+			HLARRAYSIZE (gEntityTable));
 
 	tableSize = pSaveData->size - dataSize;
 
 	// Write entity string token table
 	pTokenData = StoreHashTable (pSaveData);
 
-	// output to disk
+	// [FWGS, 01.03.26] output to disk
 	if ((pFile = FS_Open (name, "wb", true)) == NULL)
 		{
-		// something bad is happens
+		/*// something bad is happens*/
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, name);
 		SaveFinish (pSaveData);
 		return NULL;
 		}
 
 	// Write the header -- THIS SHOULD NEVER CHANGE STRUCTURE, USE SAVE_HEADER FOR NEW HEADER INFORMATION
-	// THIS IS ONLY HERE TO IDENTIFY THE FILE AND GET IT'S SIZE.
+	// THIS IS ONLY HERE TO IDENTIFY THE FILE AND GET IT'S SIZE
 	version = SAVEGAME_VERSION;
 	id = SAVEFILE_HEADER;
 
@@ -1657,9 +1653,20 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 	FS_Write (pFile, pSaveData->pBaseData, dataSize);	// and finally store all the other data
 	FS_Close (pFile);
 
-	EntityPatchWrite (pSaveData, sv.name);
+	// [FWGS, 01.03.26]
+	/*EntityPatchWrite (pSaveData, sv.name);*/
+	if (!EntityPatchWrite (pSaveData, sv.name))
+		{
+		SaveFinish (pSaveData);
+		return NULL;
+		}
 
-	SaveClientState (pSaveData, sv.name, changelevel);
+	/*SaveClientState (pSaveData, sv.name, changelevel);*/
+	if (!SaveClientState (pSaveData, sv.name, changelevel))
+		{
+		SaveFinish (pSaveData);
+		return NULL;
+		}
 
 	return pSaveData;
 	}
@@ -1697,8 +1704,6 @@ static int LoadGameState (char const *level, qboolean changelevel)
 
 	// [FWGS, 22.01.25]
 	Cvar_SetValue ("skill", header.skillLevel);
-	/*Q_strncpy (sv.name, header.mapName, sizeof (sv.name));
-	svgame.globals->mapname = MAKE_STRING (sv.name);*/
 	Cvar_Set ("sv_skyname", header.skyName);
 
 	// restore sky parms
@@ -1743,7 +1748,7 @@ static int LoadGameState (char const *level, qboolean changelevel)
 
 /***
 =============
-SaveGameSlot [FWGS, 01.04.23]
+SaveGameSlot
 
 do a save game
 =============
@@ -1758,7 +1763,10 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	GAME_HEADER		gameHeader;
 	file_t	*pFile;
 
+	// [FWGS, 01.03.26]
 	pSaveData = SaveGameState (false);
+	/*if (!pSaveData)
+		return false;*/
 	if (!pSaveData)
 		return false;
 
@@ -1785,21 +1793,22 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s.%s", pSaveName, DEFAULT_SAVE_EXTENSION);
 	COM_FixSlashes (name);
 
-	// [FWGS, 01.07.23] output to disk
+	// output to disk
 	if (!Q_stricmp (pSaveName, "quick"))
 		AgeSaveList (pSaveName, GI->quicksave_aged_count);
 	else if (!Q_stricmp (pSaveName, "autosave"))
 		AgeSaveList (pSaveName, GI->autosave_aged_count);
 
-	// output to disk
+	// [FWGS, 01.03.26] output to disk
 	if ((pFile = FS_Open (name, "wb", true)) == NULL)
 		{
-		// something bad is happens
+		/*// something bad is happens*/
+		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, name);
 		SaveFinish (pSaveData);
 		return false;
 		}
 
-	// [FWGS, 01.04.23] pending the preview image for savegame
+	// pending the preview image for savegame
 	Cbuf_AddTextf ("saveshot \"%s\"\n", pSaveName);
 	Con_Printf ("Saving game to %s...\n", name);
 
@@ -2009,7 +2018,8 @@ static void LoadAdjacentEnts (const char *pOldLevel, const char *pLandmarkName)
 			}
 
 		// map was already in the list
-		if (test < i) continue;
+		if (test < i)
+			continue;
 
 		pSaveData = LoadSaveData (currentLevelData.levelList[i].mapName);
 
@@ -2040,8 +2050,18 @@ static void LoadAdjacentEnts (const char *pOldLevel, const char *pLandmarkName)
 
 			if (flags) movedCount = CreateEntityTransitionList (pSaveData, flags);
 
-			// if ents were moved, rewrite entity table to save file
-			if (movedCount) EntityPatchWrite (pSaveData, currentLevelData.levelList[i].mapName);
+			// [FWGS, 01.03.26] if ents were moved, rewrite entity table to save file
+			/*if (movedCount) EntityPatchWrite (pSaveData, currentLevelData.levelList[i].mapName);*/
+			if (movedCount)
+				{
+				if (!EntityPatchWrite (pSaveData, currentLevelData.levelList[i].mapName))
+					{
+					SaveFinish (pSaveData);
+
+					Host_Error ("Level transition ERROR\nCan't write entity table for %s while transitioning to %s from %s\n",
+						currentLevelData.levelList[i].mapName, pOldLevel, sv.name);
+					}
+				}
 
 			// move the decals from another level
 			LoadClientState (pSaveData, currentLevelData.levelList[i].mapName, true, true);
@@ -2085,7 +2105,7 @@ void SV_ClearGameState (void)
 
 /***
 =============
-SV_ChangeLevel [FWGS, 01.11.23]
+SV_ChangeLevel
 =============
 ***/
 void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char *start, qboolean background)
@@ -2118,6 +2138,16 @@ void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char
 
 		// save the current level's state
 		pSaveData = SaveGameState (true);
+
+		// [FWGS, 01.03.26]
+		if (!pSaveData)
+			{
+			// make user notice the error
+			// do not use Host_Error, so the game progress won't be lost
+			Sys_Warn ("Can't write save file for performing change level; check permissions");
+			svgame.globals->changelevel = false;
+			return;
+			}
 		}
 
 	SV_InactivateClients ();
@@ -2151,7 +2181,7 @@ void SV_ChangeLevel (qboolean loadfromsavedgame, const char *mapname, const char
 
 /***
 =============
-SV_LoadGame [FWGS, 01.05.24]
+SV_LoadGame
 =============
 ***/
 qboolean SV_LoadGame (const char *pPath)
@@ -2167,7 +2197,9 @@ qboolean SV_LoadGame (const char *pPath)
 	if (UI_CreditsActive ())
 		return false;
 
-	if (!COM_CheckString (pPath))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (pPath))*/
+	if (COM_StringEmptyOrNULL (pPath))
 		return false;
 
 	// silently ignore if missed
@@ -2180,16 +2212,18 @@ qboolean SV_LoadGame (const char *pPath)
 
 	svs.initialized = true;
 	pFile = FS_Open (pPath, "rb", true);
-
 	if (pFile)
 		{
 		SV_ClearGameState ();
 
+		// [FWGS, 01.03.26]
 		if (SaveReadHeader (pFile, &gameHeader))
-			{
+			validload = DirectoryExtract (pFile, gameHeader.mapCount);
+			/*{
 			DirectoryExtract (pFile, gameHeader.mapCount);
 			validload = true;
-			}
+			}*/
+
 		FS_Close (pFile);
 
 		if (validload)
@@ -2228,7 +2262,7 @@ qboolean SV_LoadGame (const char *pPath)
 
 /***
 ==================
-SV_SaveGame [FWGS, 01.04.23]
+SV_SaveGame
 ==================
 ***/
 qboolean SV_SaveGame (const char *pName)
@@ -2236,7 +2270,9 @@ qboolean SV_SaveGame (const char *pName)
 	char	comment[80];
 	string	savename;
 
-	if (!COM_CheckString (pName))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (pName))*/
+	if (COM_StringEmptyOrNULL (pName))
 		return false;
 
 	// can we save at this point?
@@ -2273,7 +2309,7 @@ qboolean SV_SaveGame (const char *pName)
 #endif
 
 	SaveBuildComment (comment, sizeof (comment));
-	return SaveGameSlot (savename, comment);	// [FWGS, 01.04.23]
+	return SaveGameSlot (savename, comment);
 	}
 
 // [FWGS, 01.12.24]
@@ -2312,7 +2348,6 @@ const char *SV_GetLatestSave (void)
 		if (ft > 0)
 			{
 			// [FWGS, 01.12.24] should we use the matched?
-			/*if (!found || (Host_CompareFileTime (newest, ft) < 0))*/
 			if (!found || (SV_CompareFileTime (newest, ft) < 0))
 				{
 				Q_strncpy (savename, t->filenames[i], sizeof (savename));
@@ -2365,7 +2400,6 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 	// [FWGS, 01.02.25]
 	if (tag == 0x0065)
 		{
-		/*Q_strncpy (comment, "<old version Xash3D unsupported>", MAX_STRING);*/
 		Q_strncpy (comment, "<old version " XASH_ENGINE_NAME " unsupported>", MAX_STRING);
 		FS_Close (f);
 		return 0;
@@ -2477,7 +2511,7 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 			Q_strncpy (mapName, pData, size);
 			}
 
-		// move to start of next field.
+		// move to start of next field
 		pData += nFieldSize;
 		}
 
@@ -2488,8 +2522,9 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		Mem_Free (pSaveData);
 	FS_Close (f);
 
-	// at least mapname should be filled
-	if (COM_CheckStringEmpty (mapName))
+	// [FWGS, 01.03.26] at least mapname should be filled
+	/*if (COM_CheckStringEmpty (mapName))*/
+	if (!COM_StringEmpty (mapName))
 		{
 		time_t		fileTime;
 		const struct tm *file_tm;

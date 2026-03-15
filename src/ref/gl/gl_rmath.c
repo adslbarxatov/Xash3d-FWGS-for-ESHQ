@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "gl_local.h"
@@ -117,8 +117,6 @@ void Matrix4x4_ToArrayFloatGL (const matrix4x4 in, float out[16])
 	out[15] = in[3][3];
 	}
 
-// [FWGS, 01.05.23] удалена Matrix4x4_FromArrayFloatGL
-
 static void Matrix4x4_CreateTranslate (matrix4x4 out, float x, float y, float z)
 	{
 	out[0][0] = 1.0f;
@@ -172,8 +170,6 @@ static void Matrix4x4_CreateRotate (matrix4x4 out, float angle, float x, float y
 	out[3][3] = 1.0f;
 	}
 
-// [FWGS, 01.05.23] удалена Matrix4x4_CreateScale
-
 void Matrix4x4_ConcatTranslate (matrix4x4 out, float x, float y, float z)
 	{
 	matrix4x4 base, temp;
@@ -182,8 +178,6 @@ void Matrix4x4_ConcatTranslate (matrix4x4 out, float x, float y, float z)
 	Matrix4x4_CreateTranslate (temp, x, y, z);
 	Matrix4x4_Concat (out, base, temp);
 	}
-
-// [FWGS, 01.05.23] удалены Matrix4x4_ConcatScale3, Matrix4x4_ConcatScale
 
 void Matrix4x4_ConcatRotate (matrix4x4 out, float angle, float x, float y, float z)
 	{

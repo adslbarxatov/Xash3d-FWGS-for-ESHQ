@@ -47,14 +47,26 @@ CVAR_DEFINE_AUTO (sv_instancedbaseline, "1", 0,
 	"allow to use instanced baselines to saves network overhead");
 static CVAR_DEFINE_AUTO (sv_contact, "", FCVAR_ARCHIVE | FCVAR_SERVER,
 	"server technical support contact address or web-page");
-CVAR_DEFINE_AUTO (sv_minupdaterate, "25.0", FCVAR_ARCHIVE,
+
+// [FWGS, 01.03.26]
+/*CVAR_DEFINE_AUTO (sv_minupdaterate, "25.0", FCVAR_ARCHIVE,
 	"minimal value for 'cl_updaterate' window");
 CVAR_DEFINE_AUTO (sv_maxupdaterate, "60.0", FCVAR_ARCHIVE,
-	"maximal value for 'cl_updaterate' window");
+	"maximal value for 'cl_updaterate' window");*/
+CVAR_DEFINE_AUTO (sv_minupdaterate, "10.0", FCVAR_ARCHIVE,
+	"minimal value for 'cl_updaterate' window, 0 == unlimited");
+CVAR_DEFINE_AUTO (sv_maxupdaterate, "60.0", FCVAR_ARCHIVE,
+	"maximal value for 'cl_updaterate' window, 0 == unlimited");
+
 CVAR_DEFINE_AUTO (sv_minrate, "5000", FCVAR_SERVER,
 	"min bandwidth rate allowed on server, 0 == unlimited");
-CVAR_DEFINE_AUTO (sv_maxrate, "50000", FCVAR_SERVER,
+
+// [FWGS, 01.03.26]
+/*CVAR_DEFINE_AUTO (sv_maxrate, "50000", FCVAR_SERVER,
+	"max bandwidth rate allowed on server, 0 == unlimited");*/
+CVAR_DEFINE_AUTO (sv_maxrate, "0", FCVAR_SERVER,
 	"max bandwidth rate allowed on server, 0 == unlimited");
+
 CVAR_DEFINE_AUTO (sv_newunit, "0", 0,
 	"clear level-saves from previous SP game chapter to help keep .sav file size as minimum");
 CVAR_DEFINE_AUTO (sv_clienttrace, "1", FCVAR_SERVER,
@@ -63,8 +75,6 @@ static CVAR_DEFINE_AUTO (sv_timeout, "65", 0,
 	"after this many seconds without a message from a client, the client is dropped");
 
 // [FWGS, 01.11.25]
-/*static CVAR_DEFINE_AUTO (sv_connect_timeout, "15", 0,
-	"after this many seconds without a message from a client, the client is dropped");*/
 static CVAR_DEFINE_AUTO (sv_connect_timeout, "60", 0,
 	"after this many seconds without a message from a client, the client is dropped");
 static CVAR_DEFINE_AUTO (sv_connect_timeout_ban, "1", 0,
@@ -208,8 +218,6 @@ CVAR_DEFINE_AUTO (hostname, "", FCVAR_PRINTABLEONLY,
 	"name of current host");
 
 // [FWGS, 01.11.25]
-/*static CVAR_DEFINE_AUTO (sv_fps, "0.0", 0,
-	"server framerate");*/
 static CVAR_DEFINE_AUTO (sv_fps, "0.0", 0,
 	"set this cvar to decouple server framerate from client framerate");
 
@@ -274,6 +282,7 @@ CVAR_DEFINE_AUTO (sv_expose_player_list, "1", FCVAR_ARCHIVE,
 	"expose player list through packets that don't require connection");
 
 // ============================================================================
+
 /***
 ================
 SV_HasActivePlayers
@@ -342,14 +351,23 @@ void SV_UpdateMovevars (qboolean initialize)
 	svgame.movevars.footsteps = sv_footsteps.value;
 	svgame.movevars.rollangle = sv_rollangle.value;
 	svgame.movevars.rollspeed = sv_rollspeed.value;
-	svgame.movevars.skycolor_r = sv_skycolor_r.value;
+
+	// [FWGS, 01.03.26]
+	/*svgame.movevars.skycolor_r = sv_skycolor_r.value;
 	svgame.movevars.skycolor_g = sv_skycolor_g.value;
 	svgame.movevars.skycolor_b = sv_skycolor_b.value;
 	svgame.movevars.skyvec_x = sv_skyvec_x.value;
 	svgame.movevars.skyvec_y = sv_skyvec_y.value;
-	svgame.movevars.skyvec_z = sv_skyvec_z.value;
+	svgame.movevars.skyvec_z = sv_skyvec_z.value;*/
+	svgame.movevars.skycolor[0] = sv_skycolor_r.value;
+	svgame.movevars.skycolor[1] = sv_skycolor_g.value;
+	svgame.movevars.skycolor[2] = sv_skycolor_b.value;
+	svgame.movevars.skyvec[0] = sv_skyvec_x.value;
+	svgame.movevars.skyvec[1] = sv_skyvec_y.value;
+	svgame.movevars.skyvec[2] = sv_skyvec_z.value;
+
 	svgame.movevars.wateralpha = sv_wateralpha.value;
-	svgame.movevars.features = host.features; // just in case. not really need
+	svgame.movevars.features = host.features;	// just in case. not really need
 	svgame.movevars.entgravity = 1.0f;
 
 	if (initialize)
@@ -597,7 +615,6 @@ static void SV_DropTimedOutClient (sv_client_t *cl, qboolean ban)
 	// [ESHQ: brackets]
 	// [FWGS, 01.11.25]
 	if (ban)
-		/*Cbuf_AddTextf ("addip 30 %s\n", NET_BaseAdrToString (cl->netchan.remote_address));*/
 		Cbuf_AddTextf ("addip %g %s\n", sv_connect_timeout_ban_time.value,
 			NET_BaseAdrToString (cl->netchan.remote_address));
 	}
@@ -648,7 +665,6 @@ static void SV_CheckTimeouts (void)
 				if (!NET_IsLocalAddress (cl->netchan.remote_address))
 					{
 					if (cl->connection_started < connected_droppoint)
-						/*SV_DropTimedOutClient (cl, true);*/
 						SV_DropTimedOutClient (cl, sv_connect_timeout_ban.value > 0.0f);
 					}
 				break;
@@ -901,7 +917,6 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	Info_SetValueForKey (s, "type", (Host_IsDedicated ()) ? "d" : "l", len); // dedicated or local
 
 	// [FWGS, 01.11.25]
-	/*Info_SetValueForKey (s, "password", "0", len); // is password set*/
 	Info_SetValueForKey (s, "password", SV_HavePassword () ? "0" : "1", len); // is password set
 
 	Info_SetValueForKey (s, "os", "w", len); // Windows
@@ -1012,8 +1027,10 @@ void SV_Init (void)
 		"displays server protocol version", "%i", PROTOCOL_VERSION);
 	Cvar_Get ("suitvolume", "0.25", FCVAR_ARCHIVE,
 		"HEV suit volume");
-	Cvar_Get ("sv_background", "0", FCVAR_READ_ONLY,
-		"indicate what background map is running");
+
+	// [FWGS, 01.03.26]
+	/*Cvar_Get ("sv_background", "0", FCVAR_READ_ONLY,
+		"indicate what background map is running");*/
 	Cvar_Get ("gamedir", GI->gamefolder, FCVAR_READ_ONLY,
 		"game folder");
 	Cvar_Get ("sv_alltalk", "1", 0,
@@ -1193,7 +1210,9 @@ void SV_FinalMessage (const char *message, qboolean reconnect)
 
 	MSG_Init (&msg, "FinalMessage", msg_buf, sizeof (msg_buf));
 
-	if (COM_CheckString (message))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckString (message))*/
+	if (!COM_StringEmptyOrNULL (message))
 		{
 		MSG_BeginServerCmd (&msg, svc_print);
 		MSG_WriteString (&msg, message);
@@ -1274,10 +1293,12 @@ void SV_Shutdown (const char *finalmsg)
 		return;
 		}
 
-	// don't forget to reset sv_background state
-	Cvar_FullSet ("sv_background", "0", FCVAR_READ_ONLY);
+	// [FWGS, 01.03.26] don't forget to reset sv_background state
+	/*Cvar_FullSet ("sv_background", "0", FCVAR_READ_ONLY);*/
+	Cvar_DirectFullSet (&sv_background, "0", FCVAR_READ_ONLY);
 
-	if (COM_CheckString (finalmsg))
+	/*if (COM_CheckString (finalmsg))*/
+	if (!COM_StringEmptyOrNULL (finalmsg))
 		Con_Printf ("%s", finalmsg);
 
 	// rcon will be disconnected

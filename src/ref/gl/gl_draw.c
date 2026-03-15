@@ -223,7 +223,6 @@ void R_Set2DMode (qboolean enable)
 			return;
 
 		// set 2D virtual screen size
-		/*pglViewport (0, 0, gpGlobals->width, gpGlobals->height);*/
 		switch (tr.rotation)
 			{
 			case REF_ROTATE_CW:
@@ -248,12 +247,9 @@ void R_Set2DMode (qboolean enable)
 
 		pglMatrixMode (GL_PROJECTION);
 		
-		/*pglLoadIdentity ();
-		pglOrtho (0, gpGlobals->width, gpGlobals->height, 0, -99999, 99999);*/
 		GL_LoadMatrix (projection_matrix);
 
 		pglMatrixMode (GL_MODELVIEW);
-		/*pglLoadIdentity ();*/
 		Matrix4x4_LoadIdentity (worldview_matrix);
 		GL_LoadMatrix (worldview_matrix);
 

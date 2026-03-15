@@ -73,7 +73,9 @@ static void SV_SendSingleResource (const char *name, resourcetype_t type, int in
 	resource_t	*pResource = &sv.resources[sv.num_resources];
 	int			nSize = 0;
 
-	if (!COM_CheckString (name))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (name))*/
+	if (COM_StringEmptyOrNULL (name))
 		return;
 
 	switch (type)
@@ -108,7 +110,9 @@ int SV_ModelIndex (const char *filename)
 	char	name[MAX_QPATH];
 	int		i;
 
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		return 0;
 
 	if ((*filename == '\\') || (*filename == '/'))
@@ -153,7 +157,9 @@ int GAME_EXPORT SV_SoundIndex (const char *filename)
 	char	name[MAX_QPATH];
 	int		i;
 
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		return 0;
 
 	if (filename[0] == '!')
@@ -204,7 +210,9 @@ int SV_EventIndex (const char *filename)
 	char	name[MAX_QPATH];
 	int		i;
 
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		return 0;
 
 	Q_strncpy (name, filename, sizeof (name));
@@ -246,7 +254,9 @@ int GAME_EXPORT SV_GenericIndex (const char *filename)
 	char	name[MAX_QPATH];
 	int		i;
 
-	if (!COM_CheckString (filename))
+	// [FWGS, 01.03.26]
+	/*if (!COM_CheckString (filename))*/
+	if (COM_StringEmptyOrNULL (filename))
 		return 0;
 
 	Q_strncpy (name, filename, sizeof (name));
@@ -402,19 +412,25 @@ static void SV_CreateResourceList (void)
 
 	sv.num_resources = 0;
 
+	// [FWGS, 01.03.26]
 	for (i = 1; i < MAX_CUSTOM; i++)
 		{
 		s = sv.files_precache[i];
-		if (!COM_CheckString (s)) break; // end of list
+		/*if (!COM_CheckString (s)) break; // end of list*/
+		if (COM_StringEmptyOrNULL (s))
+			break;	// end of list
+
 		nSize = FS_FileSize (s, false);
 		SV_AddResource (t_generic, s, nSize, RES_FATALIFMISSING, i);
 		}
 
+	// [FWGS, 01.03.26]
 	for (i = 1; i < MAX_SOUNDS; i++)
 		{
 		s = sv.sound_precache[i];
-		if (!COM_CheckString (s))
-			break; // end of list
+		/*if (!COM_CheckString (s))*/
+		if (COM_StringEmptyOrNULL (s))
+			break;	// end of list
 
 		if (s[0] == '!')
 			{
@@ -431,10 +447,14 @@ static void SV_CreateResourceList (void)
 			}
 		}
 
+	// [FWGS, 01.03.26]
 	for (i = 1; i < MAX_MODELS; i++)
 		{
 		s = sv.model_precache[i];
-		if (!COM_CheckString (s)) break; // end of list
+		/*if (!COM_CheckString (s)) break; // end of list*/
+		if (COM_StringEmptyOrNULL (s))
+			break;	// end of list
+
 		nSize = (s[0] != '*') ? FS_FileSize (s, false) : 0;
 		SV_AddResource (t_model, s, nSize, sv.model_precache_flags[i], i);
 		}
@@ -445,10 +465,14 @@ static void SV_CreateResourceList (void)
 		SV_AddResource (t_decal, host.draw_decals[i], 0, 0, i);
 		}
 
+	// [FWGS, 01.03.26]
 	for (i = 1; i < MAX_EVENTS; i++)
 		{
 		s = sv.event_precache[i];
-		if (!COM_CheckString (s)) break; // end of list
+		/*if (!COM_CheckString (s)) break; // end of list*/
+		if (COM_StringEmptyOrNULL (s))
+			break;	// end of list
+
 		nSize = FS_FileSize (s, false);
 		SV_AddResource (t_eventscript, s, nSize, RES_FATALIFMISSING, i);
 		}
@@ -697,7 +721,9 @@ void SV_ActivateServer (int runPhysics)
 	host.movevars_changed = true;
 	Host_SetServerState (ss_active);
 
-	Con_DPrintf ("level loaded at %.2f sec\n", Sys_DoubleTime () - svs.timestart);
+	// [FWGS, 01.03.26]
+	/*Con_DPrintf ("level loaded at %.2f sec\n", Sys_DoubleTime () - svs.timestart);*/
+	Con_DPrintf ("level loaded at %.2f sec\n", Platform_DoubleTime () - svs.timestart);
 
 	if (sv.ignored_static_ents)
 		Con_Printf (S_WARN "%i static entities was rejected due buffer overflow\n", sv.ignored_static_ents);
@@ -718,14 +744,20 @@ void SV_DeactivateServer (void)
 	int	i;
 	const char *cycle = Cvar_VariableString ("disconcfgfile");
 
-	if (COM_CheckString (cycle))
+	// [FWGS, 01.03.26]
+	/*if (COM_CheckString (cycle))*/
+	if (!COM_StringEmptyOrNULL (cycle))
 		Cbuf_AddTextf ("exec %s\n", cycle);
 
-	if (COM_CheckStringEmpty (sv.name))
+	/*if (COM_CheckStringEmpty (sv.name))*/
+	if (!COM_StringEmpty (sv.name))
 		Cbuf_AddTextf ("exec maps/%s_unload.cfg\n", sv.name);
 
 	if (!svs.initialized || (sv.state == ss_dead))
 		return;
+
+	// [FWGS, 01.03.26]
+	SV_InactivateClients ();
 
 	svgame.globals->time = sv.time;
 	svgame.dllFuncs.pfnServerDeactivate ();
@@ -748,7 +780,7 @@ void SV_DeactivateServer (void)
 
 	svgame.globals->maxEntities = GI->max_edicts;
 	svgame.globals->maxClients = svs.maxclients;
-	svgame.numEntities = svs.maxclients + 1; // clients + world
+	svgame.numEntities = svs.maxclients + 1;	// clients + world
 	svgame.globals->startspot = 0;
 	svgame.globals->mapname = 0;
 	}
@@ -771,10 +803,12 @@ qboolean SV_InitGame (void)
 	COM_ResetLibraryError ();
 	COM_GetCommonLibraryPath (LIBRARY_SERVER, dllpath, sizeof (dllpath));
 
+	// [FWGS, 01.03.26]
 	if (!SV_LoadProgs (dllpath))
 		{
-		Con_Printf (S_ERROR "can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());
-		return false; // failed to loading server.dll
+		/*Con_Printf (S_ERROR "can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());*/
+		Sys_Warn ("can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());
+		return false; // failed to load server.dll
 		}
 
 	// client frames will be allocated in SV_ClientConnect
@@ -1065,21 +1099,26 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	Log_Printf ("Loading map \"%s\"\n", mapname);
 	Log_PrintServerVars ();
 
-	svs.timestart = Sys_DoubleTime ();
-	svs.spawncount++; // any partially connected client will be restarted
+	// [FWGS, 01.03.26]
+	/*svs.timestart = Sys_DoubleTime ();*/
+	svs.timestart = Platform_DoubleTime ();
+	svs.spawncount++;	// any partially connected client will be restarted
 
 	// [FWGS, 01.03.25]
 	for (i = 0; i < HLARRAYSIZE (svs.challenge_salt); i++)
 		svs.challenge_salt[i] = COM_RandomLong (0, 0x7FFFFFFE);
 
+	// [FWGS, 01.03.26]
 	cycle = Cvar_VariableString ("mapchangecfgfile");
-	if (COM_CheckString (cycle))
+	/*if (COM_CheckString (cycle))*/
+	if (!COM_StringEmptyOrNULL (cycle))
 		Cbuf_AddTextf ("exec %s\n", cycle);
 
 	Cbuf_AddTextf ("exec maps/%s_load.cfg\n", mapname);
 
-	// let's not have any servers with no name
-	if (!COM_CheckString (hostname.string))
+	// [FWGS, 01.03.26] let's not have any servers with no name
+	/*if (!COM_CheckString (hostname.string))*/
+	if (COM_StringEmptyOrNULL (hostname.string))
 		Cvar_Set ("hostname", svgame.dllFuncs.pfnGetGameDescription ? svgame.dllFuncs.pfnGetGameDescription () : 
 			FS_Title ());
 
@@ -1118,12 +1157,13 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	if (svs.maxclients == 1)
 		Cvar_SetValue ("sv_clienttrace", 1);
 
-	// copy gamemode into svgame.globals
+	// [FWGS, 01.03.26] copy gamemode into svgame.globals
 	svgame.globals->deathmatch = deathmatch.value;
 	svgame.globals->coop = coop.value;
 	svgame.globals->maxClients = svs.maxclients;
 
-	if (sv.background)
+	// tell the game parts about background state
+	/*if (sv.background)
 		{
 		// tell the game parts about background state
 		Cvar_FullSet ("sv_background", "1", FCVAR_READ_ONLY);
@@ -1133,7 +1173,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 		{
 		Cvar_FullSet ("sv_background", "0", FCVAR_READ_ONLY);
 		Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);
-		}
+		}*/
+	Cvar_DirectFullSet (&sv_background, sv.background ? "1" : "0", FCVAR_READ_ONLY);
+	Cvar_DirectFullSet (&cl_background, sv.background ? "1" : "0", FCVAR_READ_ONLY);
 
 	// force normal player collisions for single player
 	if (svs.maxclients == 1) 

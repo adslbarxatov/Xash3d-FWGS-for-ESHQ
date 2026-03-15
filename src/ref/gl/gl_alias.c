@@ -13,6 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.03.26]
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
 #include "const.h"
@@ -20,11 +21,9 @@ GNU General Public License for more details
 #include "triangleapi.h"
 #include "alias.h"
 #include "pm_local.h"
-#include "pmtrace.h"
+/*include "pmtrace.h"*/
 
 // [FWGS, 01.12.24]
-/*extern cvar_t r_shadows;*/
-
 typedef struct
 	{
 	double		time;
@@ -288,7 +287,7 @@ static void BuildTris (void)
 			s = (s + 0.5f) / m_pAliasHeader->skinwidth;
 			t = (t + 0.5f) / m_pAliasHeader->skinheight;
 
-			// [FWGS, 01.04.23] Carmack use floats and Valve use shorts here...
+			// Carmack use floats and Valve use shorts here...
 			g_commands[g_numcommands++] = FloatAsInt (s);
 			g_commands[g_numcommands++] = FloatAsInt (t);
 			}
@@ -324,7 +323,6 @@ static void GL_MakeAliasModelDisplayLists (model_t *m)
 		{
 		for (j = 0; j < g_numorder; j++)
 			*verts++ = m_pAliasHeader->pposeverts[i][g_vertexorder[j]];
-			/**verts++ = g_poseverts[i][g_vertexorder[j]];*/
 		}
 	}
 
@@ -335,78 +333,6 @@ ALIAS MODELS
 ***/
 
 // [FWGS, 01.08.24] removed Mod_LoadAliasFrame, Mod_LoadAliasGroup
-/*
-=================
-Mod_LoadAliasFrame
-=================
-/
-static void *Mod_LoadAliasFrame (void *pin, maliasframedesc_t *frame)
-	{
-	daliasframe_t	*pdaliasframe;
-	trivertex_t		*pinframe;
-	int				i;
-
-	pdaliasframe = (daliasframe_t *)pin;
-
-	Q_strncpy (frame->name, pdaliasframe->name, sizeof (frame->name));
-	frame->firstpose = g_posenum;
-	frame->numposes = 1;
-
-	for (i = 0; i < 3; i++)
-		{
-		frame->bboxmin.v[i] = pdaliasframe->bboxmin.v[i];
-		frame->bboxmax.v[i] = pdaliasframe->bboxmax.v[i];
-		}
-
-	pinframe = (trivertex_t *)(pdaliasframe + 1);
-
-	g_poseverts[g_posenum] = (trivertex_t *)pinframe;
-	pinframe += m_pAliasHeader->numverts;
-	g_posenum++;
-
-	return (void *)pinframe;
-	}*/
-
-/*
-=================
-Mod_LoadAliasGroup
-=================
-/
-static void *Mod_LoadAliasGroup (void *pin, maliasframedesc_t *frame)
-	{
-	daliasgroup_t	*pingroup;
-	int				i, numframes;
-	daliasinterval_t	*pin_intervals;
-	void			*ptemp;
-
-	pingroup = (daliasgroup_t *)pin;
-	numframes = pingroup->numframes;
-
-	frame->firstpose = g_posenum;
-	frame->numposes = numframes;
-
-	for (i = 0; i < 3; i++)
-		{
-		frame->bboxmin.v[i] = pingroup->bboxmin.v[i];
-		frame->bboxmax.v[i] = pingroup->bboxmax.v[i];
-		}
-
-	pin_intervals = (daliasinterval_t *)(pingroup + 1);
-
-	// all the intervals are always equal 0.1 so we don't care about them
-	frame->interval = pin_intervals->interval;
-	pin_intervals += numframes;
-	ptemp = (void *)pin_intervals;
-
-	for (i = 0; i < numframes; i++)
-		{
-		g_poseverts[g_posenum] = (trivertex_t *)((daliasframe_t *)ptemp + 1);
-		ptemp = (trivertex_t *)((daliasframe_t *)ptemp + 1) + m_pAliasHeader->numverts;
-		g_posenum++;
-		}
-
-	return ptemp;
-	}*/
 
 /***
 ===============
@@ -654,7 +580,7 @@ ALIAS MODELS
 
 /***
 ===============
-R_AliasDynamicLight [FWGS, 01.12.24]
+R_AliasDynamicLight
 
 similar to R_StudioDynamicLight
 ===============
@@ -667,7 +593,6 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	float		add, radius, total;
 	colorVec	light;
 	uint		lnum;
-	/*dlight_t	*dl;*/
 
 	if (!plight || !ent)
 		return;
@@ -693,23 +618,30 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	VectorSet (vecSrc, origin[0], origin[1], origin[2] - lightDir[2] * 8.0f);
 	light.r = light.g = light.b = light.a = 0;
 
-	if ((mv->skycolor_r + mv->skycolor_g + mv->skycolor_b) != 0)
+	// [FWGS, 01.03.26]
+	/*if ((mv->skycolor_r + mv->skycolor_g + mv->skycolor_b) != 0)*/
+	if ((mv->skycolor[0] + mv->skycolor[1] + mv->skycolor[2]) != 0)
 		{
 		msurface_t	*psurf = NULL;
 		pmtrace_t	trace;
+		vec3_t		skyvec;
 
 		if (FBitSet (gp_host->features, ENGINE_WRITE_LARGE_COORD))
-			{
+			/*{
 			vecEnd[0] = origin[0] - mv->skyvec_x * 65536.0f;
 			vecEnd[1] = origin[1] - mv->skyvec_y * 65536.0f;
 			vecEnd[2] = origin[2] - mv->skyvec_z * 65536.0f;
-			}
+			}*/
+			VectorScale (mv->skyvec, 65536.0f, skyvec);
 		else
-			{
+			/*{
 			vecEnd[0] = origin[0] - mv->skyvec_x * 8192.0f;
 			vecEnd[1] = origin[1] - mv->skyvec_y * 8192.0f;
 			vecEnd[2] = origin[2] - mv->skyvec_z * 8192.0f;
-			}
+			}*/
+			VectorScale (mv->skyvec, 8192.0f, skyvec);
+
+		VectorSubtract (origin, skyvec, vecEnd);
 
 		trace = gEngfuncs.CL_TraceLine (vecSrc, vecEnd, PM_STUDIO_IGNORE);
 		if (trace.ent > 0)
@@ -719,11 +651,15 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 
 		if (psurf && FBitSet (psurf->flags, SURF_DRAWSKY))
 			{
-			VectorSet (lightDir, mv->skyvec_x, mv->skyvec_y, mv->skyvec_z);
+			/*VectorSet (lightDir, mv->skyvec_x, mv->skyvec_y, mv->skyvec_z);*/
+			VectorCopy (mv->skyvec, lightDir);
 
-			light.r = mv->skycolor_r;
+			/*light.r = mv->skycolor_r;
 			light.g = mv->skycolor_g;
-			light.b = mv->skycolor_b;
+			light.b = mv->skycolor_b;*/
+			light.r = mv->skycolor[0];
+			light.g = mv->skycolor[1];
+			light.b = mv->skycolor[2];
 			}
 		}
 
@@ -787,7 +723,6 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 
 	for (lnum = 0; lnum < MAX_DLIGHTS; lnum++)
 		{
-		/*dl = gEngfuncs.GetDynamicLight (lnum);*/
 		const dlight_t *dl = &tr.dlights[lnum];
 
 		if ((dl->die < g_alias.time) || !r_dynamic->value)
@@ -896,7 +831,6 @@ static void R_AliasLighting (float *lv, const vec3_t normal)
 		}
 
 	illum = bound (0.0f, illum, 255.0f);
-	/**lv = gEngfuncs.LightToTexGammaEx (illum * 4) / 1023.0f;*/
 	*lv = LightToTexGamma (illum * 4) / 1023.0f;
 	}
 

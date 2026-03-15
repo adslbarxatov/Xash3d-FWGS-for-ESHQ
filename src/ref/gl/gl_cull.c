@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -21,6 +21,7 @@ GNU General Public License for more details
 FRUSTUM AND PVS CULLING
 =============================================================
 ***/
+
 /***
 =================
 R_CullBox
@@ -35,26 +36,31 @@ qboolean R_CullBox (const vec3_t mins, const vec3_t maxs)
 
 /***
 =============
-R_CullModel [FWGS, 01.01.24]
+R_CullModel [FWGS, 01.03.26]
 =============
 ***/
-int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
+/*int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)*/
+qboolean R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 	{
 	if (e == tr.viewent)
 		{
 		if (ENGINE_GET_PARM (PARM_DEV_OVERVIEW))
-			return 1;
+			/*return 1;*/
+			return true;
 
 		if (RP_NORMALPASS () && !ENGINE_GET_PARM (PARM_THIRDPERSON) && CL_IsViewEntityLocalPlayer ())
-			return 0;
+			/*return 0;*/
+			return false;
 
-		return 1;
+		/*return 1;*/
+		return true;
 		}
 
-	if (R_CullBox (absmin, absmax))
+	/*if (R_CullBox (absmin, absmax))
 		return 1;
 
-	return 0;
+	return 0;*/
+	return R_CullBox (absmin, absmax);
 	}
 
 /***

@@ -116,14 +116,10 @@ uint32_t Q_DecodeUTF16 (utfstate_t *s, uint32_t in)
 	}
 
 // [FWGS, 01.03.25]
-/*size_t Q_EncodeUTF8 (char dst[4], uint32_t ch)*/
 static size_t Q_CodepointLength (uint32_t ch)
 	{
 	if (ch <= 0x7fu)
-		/*{
-		dst[0] = ch;*/
 		return 1;
-		/*}*/
 	else if (ch <= 0x7ffu)
 		return 2;
 	else if (ch <= 0xffffu)
@@ -146,9 +142,6 @@ size_t Q_EncodeUTF8 (char dst[4], uint32_t ch)
 			dst[1] = 0x80u | ((ch) & 0x3fu);
 			return 2;
 
-		/*}
-		else if (ch <= 0xffffu)
-		{*/
 		case 3:
 			dst[0] = 0xe0u | ((ch >> 12) & 0x0fu);
 			dst[1] = 0x80u | ((ch >> 6) & 0x3fu);
@@ -183,18 +176,6 @@ size_t Q_UTF8Length (const char *s)
 
 	return len;
 	}
-
-/*static size_t Q_CodepointLength (uint32_t ch)
-	{
-	if (ch <= 0x7fu)
-		return 1;
-	else if (ch <= 0x7ffu)
-		return 2;
-	else if (ch <= 0xffffu)
-		return 3;
-
-	return 4;
-	}*/
 
 size_t Q_UTF16ToUTF8 (char *dst, size_t dstsize, const uint16_t *src, size_t srcsize)
 	{

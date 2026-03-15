@@ -746,10 +746,11 @@ static void GL_SetDefaults (void)
 
 /***
 =================
-R_RenderInfo_f [FWGS, 01.02.24]
+R_RenderInfo_f [FWGS, 01.03.26]
 =================
 ***/
-static void R_RenderInfo_f (void)
+/*static void R_RenderInfo_f (void)*/
+static void R_RenderInfo (qboolean startup)
 	{
 	gEngfuncs.Con_Printf ("\n");
 	gEngfuncs.Con_Printf ("GL_VENDOR: %s\n", glConfig.vendor_string);
@@ -800,12 +801,21 @@ static void R_RenderInfo_f (void)
 	gEngfuncs.Con_Printf ("\n");
 	gEngfuncs.Con_Printf ("MODE: %ix%i\n", gpGlobals->width, gpGlobals->height);
 	gEngfuncs.Con_Printf ("\n");
-	gEngfuncs.Con_Printf ("VERTICAL SYNC: %s\n", gl_vsync->value ? "enabled" : "disabled");
+
+	/*gEngfuncs.Con_Printf ("VERTICAL SYNC: %s\n", gl_vsync->value ? "enabled" : "disabled");*/
+	if (!startup)
+		gEngfuncs.Con_Printf ("VERTICAL SYNC: %s\n", gl_vsync->value ? "enabled" : "disabled");
+
 	gEngfuncs.Con_Printf ("Color %d bits, Alpha %d bits, Depth %d bits, Stencil %d bits\n", glConfig.color_bits,
 		glConfig.alpha_bits, glConfig.depth_bits, glConfig.stencil_bits);
 	}
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.03.26]
+static void R_RenderInfo_f (void)
+	{
+	R_RenderInfo (false);
+	}
+
 #if XASH_GLES
 static void GL_InitExtensionsGLES (void)
 	{
@@ -879,8 +889,15 @@ static void GL_InitExtensionsGLES (void)
 					pglGetFloatv (GL_MAX_TEXTURE_LOD_BIAS_EXT, &glConfig.max_texture_lod_bias);
 				break;
 
+			// [FWGS, 01.03.26]
 			case GL_ARB_TEXTURE_NPOT_EXT:
-				GL_CheckExtension ("GL_OES_texture_npot", NULL, 0, "gl_texture_npot", extid, 0);
+				/*GL_CheckExtension ("GL_OES_texture_npot", NULL, 0, "gl_texture_npot", extid, 0);*/
+					// according to spec, GLES3.0 made NPOT required
+				// thanks lewa_j for advice
+				if (glConfig.version_major >= 3)
+					GL_SetExtension (extid, true);
+				else
+					GL_CheckExtension ("GL_OES_texture_npot", NULL, 0, "gl_texture_npot", extid, 0);
 				break;
 
 #if !XASH_GL_STATIC
@@ -1238,7 +1255,9 @@ void GL_InitExtensions (void)
 		gEngfuncs.Cvar_SetValue ("gl_finish", 1);
 #endif
 
-	R_RenderInfo_f ();
+	// [FWGS, 01.03.26]
+	/*R_RenderInfo_f ();*/
+	R_RenderInfo (true);
 
 	tr.framecount = tr.visframecount = 1;
 	glw_state.initialized = true;
@@ -1643,7 +1662,6 @@ int nanoGL_Init (void);
 
 // [FWGS, 01.09.25]
 #if XASH_GL4ES
-/*static void GL4ES_GetMainFBSize (int *width, int *height)*/
 static void APIENTRY GL4ES_GetMainFBSize (int *width, int *height)
 	{
 	*width = gpGlobals->width;
@@ -1651,7 +1669,6 @@ static void APIENTRY GL4ES_GetMainFBSize (int *width, int *height)
 	}
 
 // [FWGS, 01.09.25]
-/*static void *GL4ES_GetProcAddress (const char *name)*/
 static void *APIENTRY GL4ES_GetProcAddress (const char *name)
 	{
 	// combined gles/gles2/gl implementation exports this, but it is invalid

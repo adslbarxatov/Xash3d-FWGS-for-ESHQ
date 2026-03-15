@@ -17,8 +17,6 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 
 // [FWGS, 01.11.25]
-/*char			r_speeds_msg[MAX_SYSPATH];
-ref_speeds_t	r_stats;	// r_speeds counters*/
 static char		r_speeds_msg[MAX_SYSPATH];
 ref_speeds_t	r_stats;	// r_speeds counters
 
@@ -48,25 +46,6 @@ qboolean R_SpeedsMessage (char *out, size_t size)
 
 // [FWGS, 01.11.25] removed R_Speeds_Printf
 
-/*
-==============
-R_Speeds_Printf [FWGS, 01.02.24]
-
-helper to print into r_speeds message
-==============
-/
-static void R_Speeds_Printf (const char *msg, ...)
-	{
-	va_list	argptr;
-	char	text[2048];
-
-	va_start (argptr, msg);
-	Q_vsnprintf (text, sizeof (text), msg, argptr);
-	va_end (argptr);
-
-	Q_strncat (r_speeds_msg, text, sizeof (r_speeds_msg));
-	}*/
-
 /***
 ==============
 GL_BackendStartFrame
@@ -95,22 +74,14 @@ void GL_BackendEndFrame (void)
 		curleaf = RI.viewleaf;
 
 	// [FWGS, 01.11.25]
-	/*R_Speeds_Printf ("Renderer: ^1Engine^7\n\n");*/
-
 	switch ((int)r_speeds->value)
 		{
 		case 1:
-			// [FWGS, 01.07.24]
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i wpoly, %3i apoly\n%3i epoly, %3i spoly",
 				r_stats.c_world_polys, r_stats.c_alias_polys, r_stats.c_studio_polys, r_stats.c_sprite_polys);
 			break;
 
-		// [FWGS, 01.11.25]
 		case 2:
-			/*R_Speeds_Printf ("visible leafs:\n%3i leafs\ncurrent leaf %3i\n", r_stats.c_world_leafs,
-				curleaf - WORLDMODEL->leafs);
-			R_Speeds_Printf ("ReciusiveWorldNode: %3lf secs\nDrawTextureChains %lf\n", r_stats.t_world_node,
-				r_stats.t_world_draw);*/
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg),
 				"Renderer: ^1Engine^7\n\n"
 				"visible leafs:\n%3i leafs\ncurrent leaf %3i\n"
@@ -119,20 +90,17 @@ void GL_BackendEndFrame (void)
 			break;
 
 		case 3:
-			// [FWGS, 01.07.24]
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg),
 				"%3i alias models drawn\n%3i studio models drawn\n%3i sprites drawn",
 				r_stats.c_alias_models_drawn, r_stats.c_studio_models_drawn, r_stats.c_sprite_models_drawn);
 			break;
 
 		case 4:
-			// [FWGS, 01.07.24]
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i static entities\n%3i normal entities\n%3i server entities",
 				r_numStatics, r_numEntities - r_numStatics, (int)ENGINE_GET_PARM (PARM_NUMENTITIES));
 			break;
 
 		case 5:
-			// [FWGS, 01.07.24]
 			Q_snprintf (r_speeds_msg, sizeof (r_speeds_msg), "%3i tempents\n%3i viewbeams\n%3i particles",
 				r_stats.c_active_tents_count, r_stats.c_view_beams_count, r_stats.c_particle_count);
 			break;
@@ -187,15 +155,12 @@ void GL_LoadIdentityTexMatrix (void)
 GL_SelectTexture [FWGS, 01.11.25]
 =================
 ***/
-/*void GL_SelectTexture (GLint tmu)*/
 void GL_SelectTexture (int tmu)
 	{
 	if (!GL_Support (GL_ARB_MULTITEXTURE))
 		return;
 
 	// don't allow negative texture units
-	/*if (tmu < 0)
-		return;*/
 	if (tmu < 0)
 		return;
 
@@ -323,7 +288,6 @@ void GL_CleanupAllTextureUnits (void)
 GL_MultiTexCoord2f [FWGS, 01.11.25]
 =================
 ***/
-/*void GL_MultiTexCoord2f (GLenum texture, GLfloat s, GLfloat t)*/
 void GL_MultiTexCoord2f (int tmu, GLfloat s, GLfloat t)
 	{
 	if (!GL_Support (GL_ARB_MULTITEXTURE))
@@ -332,7 +296,6 @@ void GL_MultiTexCoord2f (int tmu, GLfloat s, GLfloat t)
 #ifndef XASH_GL_STATIC
 	if (pglMultiTexCoord2f != NULL)
 #endif
-		/*pglMultiTexCoord2f (texture + GL_TEXTURE0_ARB, s, t);*/
 		pglMultiTexCoord2f (tmu + GL_TEXTURE0_ARB, s, t);
 	}
 
@@ -417,11 +380,9 @@ void GL_TexGen (GLenum coord, GLenum mode)
 	// [FWGS, 01.11.25]
 	if (mode)
 		{
-		/*if (!(glState.genSTEnabled[tmu] & bit))*/
 		if (!FBitSet (glState.genSTEnabled[tmu], bit))
 			{
 			pglEnable (gen);
-			/*glState.genSTEnabled[tmu] |= bit;*/
 			SetBits (glState.genSTEnabled[tmu], bit);
 			}
 
@@ -429,11 +390,9 @@ void GL_TexGen (GLenum coord, GLenum mode)
 		}
 	else
 		{
-		/*if (glState.genSTEnabled[tmu] & bit)*/
 		if (FBitSet (glState.genSTEnabled[tmu], bit))
 			{
 			pglDisable (gen);
-			/*glState.genSTEnabled[tmu] &= ~bit;*/
 			ClearBits (glState.genSTEnabled[tmu], bit);
 			}
 		}
@@ -454,26 +413,16 @@ void GL_SetTexCoordArrayMode (GLenum mode)
 		bit = 1;
 	else if (mode == GL_TEXTURE_CUBE_MAP_ARB)
 		bit = 2;
-	/*else
-		bit = 0;*/
 	else
 		bit = 0;
 
 	if (cmode != bit)
 		{
-		/*if (cmode == 1)
-			pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
-		else if (cmode == 2)
-			pglDisable (GL_TEXTURE_CUBE_MAP_ARB);*/
 		if (cmode == 1)
 			pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
 		else if (cmode == 2)
 			pglDisable (GL_TEXTURE_CUBE_MAP_ARB);
 
-		/*if (bit == 1)
-			pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
-		else if (bit == 2)
-			pglEnable (GL_TEXTURE_CUBE_MAP_ARB);*/
 		if (bit == 1)
 			pglEnableClientState (GL_TEXTURE_COORD_ARRAY);
 		else if (bit == 2)
@@ -508,32 +457,42 @@ void GL_SetRenderMode (int mode)
 
 	switch (mode)
 		{
+		// [FWGS, 01.03.26]
 		case kRenderNormal:
 		default:
+			R_AllowFog (true);
 			pglDisable (GL_BLEND);
 			pglDisable (GL_ALPHA_TEST);
 			break;
 
+		// [FWGS, 01.03.26]
 		case kRenderTransColor:
 		case kRenderTransTexture:
+			R_AllowFog (true);
 			pglEnable (GL_BLEND);
 			pglDisable (GL_ALPHA_TEST);
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
 
+		// [FWGS, 01.03.26]
 		case kRenderTransAlpha:
+			R_AllowFog (true);
 			pglDisable (GL_BLEND);
 			pglEnable (GL_ALPHA_TEST);
 			break;
 
+		// [FWGS, 01.03.26]
 		case kRenderGlow:
 		case kRenderTransAdd:
+			R_AllowFog (false);
 			pglEnable (GL_BLEND);
 			pglDisable (GL_ALPHA_TEST);
 			pglBlendFunc (GL_SRC_ALPHA, GL_ONE);
 			break;
 
+		// [FWGS, 01.03.26]
 		case kRenderScreenFadeModulate:
+			R_AllowFog (true);
 			pglEnable (GL_BLEND);
 			pglDisable (GL_ALPHA_TEST);
 			pglBlendFunc (GL_ZERO, GL_SRC_COLOR);
@@ -554,7 +513,6 @@ typedef struct envmap_s
 	} envmap_t;
 
 // [FWGS, 01.11.25]
-/*const envmap_t r_skyBoxInfo[6] =*/
 static const envmap_t r_skyBoxInfo[6] =
 	{
 	{{   0, 270, 180}, IMAGE_FLIP_X },
@@ -565,7 +523,6 @@ static const envmap_t r_skyBoxInfo[6] =
 	{{   0, 180, 180}, IMAGE_FLIP_X },
 	};
 
-/*const envmap_t r_envMapInfo[6] =*/
 static const envmap_t r_envMapInfo[6] =
 	{
 	{{  0,   0,  90}, 0 },
@@ -717,7 +674,7 @@ qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qbo
 
 /***
 ===============
-R_ShowTextures [FWGS, 01.12.24]
+R_ShowTextures
 
 Draw all the images to the screen, on top of whatever
 was there.  This is used to test for texture thrashing.
@@ -752,11 +709,13 @@ void R_ShowTextures (void)
 	w = 200;
 	h = 200;
 
+	// [FWGS, 01.03.26]
 	time = gp_cl->time * 0.5f;
 	time -= floor (time);
 	time_cubemap = gp_cl->time * 0.25f;
 	time_cubemap -= floor (time_cubemap);
-	time_cubemap *= 6.2831853f;
+	/*time_cubemap *= 6.2831853f;*/
+	time_cubemap *= M_PI2_F;
 	SinCos (time_cubemap, &cbm_sin, &cbm_cos);
 
 	gEngfuncs.Con_DrawStringLen (NULL, NULL, &charHeight);
@@ -829,7 +788,6 @@ void R_ShowTextures (void)
 		pglColor4f (1.0f, 1.0f, 1.0f, 1.0f);
 
 		// [FWGS, 01.11.25]
-		/*GL_Bind (XASH_TEXTURE0, image->texnum);*/
 		GL_Bind (XASH_TEXTURE0, i);
 
 		if (FBitSet (image->flags, TF_DEPTHMAP) && !FBitSet (image->flags, TF_NOCOMPARE))

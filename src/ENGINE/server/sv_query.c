@@ -32,7 +32,6 @@ static void SV_SourceQuery_Details (netadr_t from)
 
 	MSG_Init (&buf, "TSourceEngineQuery", answer, sizeof (answer));
 
-	/*MSG_WriteByte (&buf, SOURCE_QUERY_DETAILS_RESPONSE);*/
 	MSG_WriteDword (&buf, 0xFFFFFFFFU);
 	MSG_WriteByte (&buf, S2A_GOLDSRC_INFO);
 	MSG_WriteByte (&buf, PROTOCOL_VERSION);
@@ -64,13 +63,12 @@ static void SV_SourceQuery_Details (netadr_t from)
 	MSG_WriteByte (&buf, GI->secure);
 	MSG_WriteString (&buf, XASH_VERSION);
 
-	/*Netchan_OutOfBand (NS_SERVER, from, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf));*/
 	NET_SendPacket (NS_SERVER, MSG_GetNumBytesWritten (&buf), MSG_GetData (&buf), from);
 	}
 
 /***
 ==================
-SV_SourceQuery_Rules [FWGS, 01.12.24]
+SV_SourceQuery_Rules
 ==================
 ***/
 static void SV_SourceQuery_Rules (netadr_t from)
@@ -83,7 +81,6 @@ static void SV_SourceQuery_Rules (netadr_t from)
 
 	MSG_Init (&buf, "TSourceEngineQueryRules", answer, sizeof (answer));
 
-	/*MSG_WriteByte (&buf, SOURCE_QUERY_RULES_RESPONSE);*/
 	MSG_WriteDword (&buf, 0xFFFFFFFFU);
 	MSG_WriteByte (&buf, S2A_GOLDSRC_RULES);
 	pos = MSG_GetNumBitsWritten (&buf);
@@ -96,9 +93,11 @@ static void SV_SourceQuery_Rules (netadr_t from)
 
 		MSG_WriteString (&buf, cvar->name);
 
+		// [FWGS, 01.03.26]
 		if (FBitSet (cvar->flags, FCVAR_PROTECTED))
 			{
-			if (COM_CheckStringEmpty (cvar->string) && Q_stricmp (cvar->string, "none"))
+			/*if (COM_CheckStringEmpty (cvar->string) && Q_stricmp (cvar->string, "none"))*/
+			if (!COM_StringEmpty (cvar->string) && Q_stricmp (cvar->string, "none"))
 				MSG_WriteString (&buf, "1");
 			else
 				MSG_WriteString (&buf, "0");
@@ -118,7 +117,6 @@ static void SV_SourceQuery_Rules (netadr_t from)
 		MSG_SeekToBit (&buf, pos, SEEK_SET);
 		MSG_WriteShort (&buf, cvar_count);
 
-		/*Netchan_OutOfBand (NS_SERVER, from, total, MSG_GetData (&buf));*/
 		NET_SendPacket (NS_SERVER, total, MSG_GetData (&buf), from);
 		}
 	}
@@ -141,7 +139,6 @@ static void SV_SourceQuery_Players (netadr_t from)
 
 	MSG_Init (&buf, "TSourceEngineQueryPlayers", answer, sizeof (answer));
 
-	/*MSG_WriteByte (&buf, SOURCE_QUERY_PLAYERS_RESPONSE);*/
 	MSG_WriteDword (&buf, 0xFFFFFFFFU);
 	MSG_WriteByte (&buf, S2A_GOLDSRC_PLAYERS);
 	pos = MSG_GetNumBitsWritten (&buf);
@@ -171,7 +168,6 @@ static void SV_SourceQuery_Players (netadr_t from)
 		MSG_SeekToBit (&buf, pos, SEEK_SET);
 		MSG_WriteByte (&buf, count);
 
-		/*Netchan_OutOfBand (NS_SERVER, from, total, MSG_GetData (&buf));*/
 		NET_SendPacket (NS_SERVER, total, MSG_GetData (&buf), from);
 		}
 	}
@@ -181,34 +177,20 @@ static void SV_SourceQuery_Players (netadr_t from)
 SV_SourceQuery_HandleConnnectionlessPacket [FWGS, 01.12.24]
 ==================
 ***/
-/*qboolean SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from)*/
 void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from)
 	{
-	/*switch (c[0])*/
 	if (!Q_strcmp (c, A2S_GOLDSRC_INFO))
 		{
-		/*case SOURCE_QUERY_DETAILS:*/
 		SV_SourceQuery_Details (from);
-		/*return true;
-
-		case SOURCE_QUERY_RULES:*/
 		}
 	else switch (c[0])
 		{
 		case A2S_GOLDSRC_RULES:
 			SV_SourceQuery_Rules (from);
-			/*return true;
-
-			case SOURCE_QUERY_PLAYERS:*/
 			break;
 
 		case A2S_GOLDSRC_PLAYERS:
 			SV_SourceQuery_Players (from);
-			/*return true;
-
-			default:
-			return false;*/
 			break;
 		}
-	/*return false;*/
 	}

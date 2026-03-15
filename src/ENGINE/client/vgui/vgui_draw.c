@@ -373,8 +373,6 @@ qboolean VGui_LoadProgs (HINSTANCE hInstance)
 		// [FWGS, 01.11.25] [ESHQ: переопределение]
 		if (!Sys_GetParmFromCmdLine ("-vguiloader", vguiloader))
 			{
-			/*Q_strncpy (vguiloader, VGUI_SUPPORT_DLL, sizeof (vguiloader));
-			Q_strncpy (vguiloader, OS_LIB_PREFIX "vgui_support." OS_LIB_EXT, sizeof (vguiloader));*/
 			Q_strncpy (vguiloader, OS_LIB_PREFIX VGUI_S_LIB, sizeof (vguiloader));
 			}
 
@@ -383,10 +381,6 @@ qboolean VGui_LoadProgs (HINSTANCE hInstance)
 		// [FWGS, 01.11.25]
 		if (!vgui.hInstance)
 			{
-			/*if (FS_FileExists (vguiloader, false))
-				Con_Reportf (S_ERROR "Failed to load vgui_support library: %s\n", COM_GetLibraryError ());
-			else
-				Con_Reportf ("%s: not found\n", __func__);*/
 			Con_Reportf (S_ERROR "Failed to load vgui_support library: %s\n", COM_GetLibraryError ());
 
 			return false;

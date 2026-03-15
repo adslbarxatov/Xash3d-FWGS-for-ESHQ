@@ -329,7 +329,9 @@ static void SV_Maps_f (void)
 		return;
 		}
 
-	nummaps = Cmd_ListMaps (mapList, NULL, 0);
+	// [FWGS, 01.03.26]
+	/*nummaps = Cmd_ListMaps (mapList, NULL, 0);*/
+	nummaps = Cmd_ListMaps (mapList, NULL, 0, false);
 	Mem_Free (mapList);
 
 	Msg ("%s\nDirectory: \"%s/maps\" - Maps listed: %d\n", separator, GI->gamefolder, nummaps);
@@ -344,7 +346,14 @@ Set background map (enable physics in menu)
 ***/
 static void SV_MapBackground_f (void)
 	{
-	char	mapname[MAX_QPATH];
+	char mapname[MAX_QPATH];
+
+	// [FWGS, 01.03.26]
+	if (Host_IsDedicated ())
+		{
+		Con_Printf (S_ERROR "no background maps are allowed in dedicated mode");
+		return;
+		}
 
 	if (Cmd_Argc () != 2)
 		{
@@ -511,7 +520,6 @@ SV_QuickLoad_f [FWGS, 01.11.25]
 ***/
 static void SV_QuickLoad_f (void)
 	{
-	/*Cbuf_AddText ("echo Quick Loading...; wait; load quick");*/
 	Cbuf_AddText ("echo Quick Loading...; wait; load quick\n");
 	}
 
@@ -550,7 +558,6 @@ SV_QuickSave_f [FWGS, 01.11.25]
 ***/
 static void SV_QuickSave_f (void)
 	{
-	/*Cbuf_AddText ("echo Quick Saving...; wait; save quick");*/
 	Cbuf_AddText ("echo Quick Saving...; wait; save quick\n");
 	}
 
@@ -813,11 +820,15 @@ static void SV_Status_f (void)
 		Q_strncpy (arch, Info_ValueForKey (cl->useragent, "a"), sizeof (arch));
 		buildnum = Q_atoi (Info_ValueForKey (cl->useragent, "b"));
 
-		if (!COM_CheckStringEmpty (version))
+		// [FWGS, 01.03.26]
+		/*if (!COM_CheckStringEmpty (version))*/
+		if (COM_StringEmpty (version))
 			Q_strncpy (version, "n/a", sizeof (version));
-		if (!COM_CheckStringEmpty (os))
+		/*if (!COM_CheckStringEmpty (os))*/
+		if (COM_StringEmpty (os))
 			Q_strncpy (os, "n/a", sizeof (os));
-		if (!COM_CheckStringEmpty (arch))
+		/*if (!COM_CheckStringEmpty (arch))*/
+		if (COM_StringEmpty (arch))
 			Q_strncpy (arch, "n/a", sizeof (arch));
 
 		Con_Printf ("%2i %5i %4s %4s %.5f %5i %s (%s-%s %i)\t%8s\t%8s\n",
@@ -1111,7 +1122,6 @@ static void Rcon_Redirect_f (void)
 	Msg ("Redirection enabled for next %d lines\n", lines);
 	}
 
-// [FWGS, 25.12.24]
 static void SV_ListMessages_f (void)
 	{
 	int i;
@@ -1119,7 +1129,9 @@ static void SV_ListMessages_f (void)
 	Con_Printf ("num size name\n");
 	for (i = 1; i < MAX_USER_MESSAGES; i++)
 		{
-		if (!COM_CheckStringEmpty (svgame.msg[i].name))
+		// [FWGS, 01.03.26]
+		/*if (!COM_CheckStringEmpty (svgame.msg[i].name))*/
+		if (COM_StringEmpty (svgame.msg[i].name))
 			break;
 
 		Con_Printf ("%3d\t%3d\t%s\n", svgame.msg[i].number, svgame.msg[i].size, svgame.msg[i].name);

@@ -500,7 +500,10 @@ void SV_InitClientMove (void)
 	svgame.pmove->COM_FileSize = COM_FileSize;
 	svgame.pmove->COM_LoadFile = COM_LoadFile;
 	svgame.pmove->COM_FreeFile = COM_FreeFile;
-	svgame.pmove->memfgets = COM_MemFgets;
+	
+	// [FWGS, 01.03.26]
+	/*svgame.pmove->memfgets = COM_MemFgets;*/
+	svgame.pmove->memfgets = Q_memfgets;
 	svgame.pmove->PM_PlaySound = pfnPlaySound;
 	svgame.pmove->PM_TraceTexture = pfnTraceTexture;
 	svgame.pmove->PM_PlaybackEventFull = pfnPlaybackEventFull;
@@ -560,7 +563,9 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	pmove->flFallVelocity = clent->v.flFallVelocity;
 	pmove->flSwimTime = clent->v.flSwimTime;
 	VectorCopy (clent->v.punchangle, pmove->punchangle);
-	pmove->flNextPrimaryAttack = 0.0f; // not used by PM_ code
+
+	// [FWGS, 01.03.26]
+	/*pmove->flNextPrimaryAttack = 0.0f; // not used by PM_ code*/
 	pmove->effects = clent->v.effects;
 	pmove->flags = clent->v.flags;
 	pmove->gravity = clent->v.gravity;
@@ -755,18 +760,30 @@ static void SV_SetupMoveInterpolant (sv_client_t *cl)
 
 	latency = Q_min (cl->latency, 1.5f);
 
+	// [FWGS, 01.03.26]
 	if (sv_maxunlag.value != 0.0f)
 		{
+		/*if (sv_maxunlag.value < 0.0f)
+			Cvar_SetValue ("sv_maxunlag", 0.0f);*/
 		if (sv_maxunlag.value < 0.0f)
-			Cvar_SetValue ("sv_maxunlag", 0.0f);
+			Cvar_DirectSetValue (&sv_maxunlag, 0.0f);
+
 		latency = Q_min (latency, sv_maxunlag.value);
 		}
 
+	// [FWGS, 01.03.26]
 	lerp_msec = cl->lastcmd.lerp_msec * 0.001f;
-	if (lerp_msec > 0.1f) lerp_msec = 0.1f;
+	/*if (lerp_msec > 0.1f) lerp_msec = 0.1f;*/
+	if (lerp_msec > 0.1f)
+		lerp_msec = 0.1f;
 
-	if (lerp_msec < cl->cl_updaterate)
-		lerp_msec = cl->cl_updaterate;
+	/*if (lerp_msec < cl->cl_updaterate)
+		lerp_msec = cl->cl_updaterate;*/
+	if (lerp_msec > 0.1f)
+		lerp_msec = 0.1f;
+
+	if (lerp_msec < cl->next_messageinterval)
+		lerp_msec = cl->next_messageinterval;
 
 	finalpush = (host.realtime - latency - lerp_msec) + sv_unlagpush.value;
 	if (finalpush > host.realtime) finalpush = host.realtime; // pushed too much ?
@@ -986,12 +1003,6 @@ void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 	clent->v.light_level = ucmd->lightlevel;
 	if (ucmd->impulse)
 		clent->v.impulse = ucmd->impulse;
-
-	/*if (ucmd->impulse == 204)
-		{
-		// force client.dll update
-		SV_RefreshUserinfo ();
-		}*/
 
 	svgame.globals->time = cl->timebase;
 	svgame.dllFuncs.pfnPlayerPreThink (clent);
