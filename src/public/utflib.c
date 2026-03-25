@@ -84,7 +84,7 @@ uint32_t Q_DecodeUTF16 (utfstate_t *s, uint32_t in)
 		s->uc = 0;
 
 		// expect simple case, after all decoding UTF-16 must be easy
-		if (likely (in < 0xd800u || in > 0xdfffu))
+		if (likely ((in < 0xd800u) || (in > 0xdfffu)))
 			return in;
 
 		s->uc = ((in - 0xd800u) << 10) + 0x10000u;
@@ -95,7 +95,7 @@ uint32_t Q_DecodeUTF16 (utfstate_t *s, uint32_t in)
 		}
 
 	// invalid sequence, reset
-	if (unlikely (in < 0xdc00u || in > 0xdfffu))
+	if (unlikely ((in < 0xdc00u) || (in > 0xdfffu)))
 		{
 		s->len = 0;
 		return 0;
@@ -185,7 +185,7 @@ size_t Q_UTF16ToUTF8 (char *dst, size_t dstsize, const uint16_t *src, size_t src
 	if (!dst || !src || !dstsize || !srcsize)
 		return 0;
 
-	for (srci = 0; srci < srcsize && src[srci]; srci++)
+	for (srci = 0; (srci < srcsize) && src[srci]; srci++)
 		{
 		uint32_t ch;
 		size_t len;
@@ -208,7 +208,9 @@ size_t Q_UTF16ToUTF8 (char *dst, size_t dstsize, const uint16_t *src, size_t src
 	return dsti;
 	}
 
-static uint16_t table_cp1251[64] = {
+// [FWGS, 01.04.26]
+/*static uint16_t table_cp1251[64] = {*/
+static const uint16_t table_cp1251[64] = {
 	0x0402, 0x0403, 0x201A, 0x0453, 0x201E, 0x2026, 0x2020, 0x2021,
 	0x20AC, 0x2030, 0x0409, 0x2039, 0x040A, 0x040C, 0x040B, 0x040F,
 	0x0452, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,

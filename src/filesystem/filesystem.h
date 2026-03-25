@@ -180,8 +180,13 @@ typedef struct fs_api_t
 	fs_offset_t (*Write)(file_t *file, const void *data, size_t datasize);
 	fs_offset_t (*Read)(file_t *file, void *buffer, size_t buffersize);
 	int (*Seek)(file_t *file, fs_offset_t offset, int whence);
-	fs_offset_t (*Tell)(file_t *file);
-	qboolean (*Eof)(file_t *file);
+	
+	// [FWGS, 01.04.26]
+	/*fs_offset_t (*Tell)(file_t *file);
+	qboolean (*Eof)(file_t *file);*/
+	fs_offset_t (*Tell)(const file_t *file);
+	qboolean (*Eof)(const file_t *file);
+
 	int (*Flush)(file_t *file);
 	int (*Close)(file_t *file);
 	int (*Gets)(file_t *file, char *string, size_t bufsize);
@@ -190,7 +195,11 @@ typedef struct fs_api_t
 	int (*VPrintf)(file_t *file, const char *format, va_list ap);
 	int (*Printf)(file_t *file, const char *format, ...) FORMAT_CHECK (2);	// [FWGS, 01.12.24]
 	int (*Print)(file_t *file, const char *msg);
-	fs_offset_t (*FileLength)(file_t *f);
+
+	// [FWGS, 01.04.26]
+	/*fs_offset_t (*FileLength)(file_t *f);*/
+	fs_offset_t (*FileLength)(const file_t *f);
+
 	qboolean (*FileCopy)(file_t *pOutput, file_t *pInput, int fileSize);
 
 	// file buffer ops

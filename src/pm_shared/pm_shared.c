@@ -289,16 +289,15 @@ char PM_FindTextureType (char *name)
 
 void PM_PlayStepSound (int step, float fvol)
 	{
-	static int iSkipStep = 0;
-	int irand;
-	vec3_t hvel;
+	static int	iSkipStep = 0;
+	int			irand;
+	vec3_t		hvel;
+	int			sPitch;
 
 	pmove->iStepLeft = !pmove->iStepLeft;
 
 	if (!pmove->runfuncs)
-		{
 		return;
-		}
 
 	irand = pmove->RandomLong (0, 1) + (pmove->iStepLeft * 2);
 
@@ -316,135 +315,243 @@ void PM_PlayStepSound (int step, float fvol)
 	// used to alternate left and right foot
 	// FIXME, move to player state
 
+	// ESHQ: pitch тоже должен быть рандомным
 	switch (step)
 		{
 		default:
 		case STEP_CONCRETE:
+			sPitch = pmove->RandomLong (90, 115);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_step1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_step3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_step2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_step4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_step1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_step3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_step2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_step4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_METAL:
+			sPitch = pmove->RandomLong (PITCH_NORM, 103);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_metal1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_metal3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_metal2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_metal4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_metal1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_metal3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_metal2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_metal4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_DIRT:
+			sPitch = pmove->RandomLong (90, 110);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_dirt1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_dirt3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_dirt2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_dirt4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_dirt1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_dirt3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_dirt2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_dirt4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_VENT:
+			sPitch = pmove->RandomLong (97, 103);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_duct1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_duct3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_duct2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_duct4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_duct1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_duct3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_duct2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_duct4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_GRATE:
+			sPitch = pmove->RandomLong (97, 105);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_grate1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_grate3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_grate2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_grate4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_grate1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_grate3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_grate2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_grate4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_TILE:
-			if (!pmove->RandomLong (0, 4))
+			sPitch = pmove->RandomLong (PITCH_NORM, 103);
+			if (pmove->RandomLong (0, 4) == 0)
+				{
 				irand = 4;
+				sPitch = PITCH_NORM;
+				}
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 4: pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile5.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 4:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_tile5.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_SLOSH:
+			sPitch = pmove->RandomLong (90, 120);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_slosh1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_slosh3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_slosh2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_slosh4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_slosh1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_slosh3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_slosh2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_slosh4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		// Добавлено дерево и стекло
 		case STEP_WOOD:
+			sPitch = pmove->RandomLong (96, 107);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_wood1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_wood3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_wood2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_wood4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_wood1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_wood3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_wood2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_wood4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_GLASS:
+			sPitch = pmove->RandomLong (PITCH_NORM, 103);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_glass1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_glass3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_glass2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_glass4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_glass1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_glass3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_glass2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_glass4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
-		// Добавлен снег
+		// ESHQ: добавлен снег
 		case STEP_SNOW:
+			sPitch = pmove->RandomLong (97, 120);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_snow1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_snow3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_snow2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_snow4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_snow1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_snow3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				// left foot
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_snow2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_snow4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_WADE:
+			sPitch = pmove->RandomLong (95, 105);
+
 			if (iSkipStep == 0)
 				{
 				iSkipStep++;
@@ -452,30 +559,46 @@ void PM_PlayStepSound (int step, float fvol)
 				}
 
 			if (iSkipStep++ == 3)
-				{
 				iSkipStep = 0;
-				}
 
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_wade1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_wade2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_wade1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_wade2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_wade3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_wade4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_wade3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_wade4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 
 		case STEP_LADDER:
+			sPitch = pmove->RandomLong (95, 105);
+
 			switch (irand)
 				{
 				// right foot
-				case 0:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_ladder1.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 1:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_ladder3.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 0:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_ladder1.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 1:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_ladder3.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 					// left foot
-				case 2:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_ladder2.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
-				case 3:	pmove->PM_PlaySound (CHAN_BODY, "player/pl_ladder4.wav", fvol, ATTN_MEDIUM, 0, PITCH_NORM);	break;
+				case 2:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_ladder2.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
+				case 3:
+					pmove->PM_PlaySound (CHAN_BODY, "player/pl_ladder4.wav", fvol, ATTN_MEDIUM, 0, sPitch);
+					break;
 				}
 			break;
 		}
@@ -625,8 +748,9 @@ void PM_UpdateStepSound (void)
 			}
 		else if (pmove->PM_PointContents (feet, NULL) == CONTENTS_WATER)
 			{
+			// ESHQ: чуть громче
 			step = STEP_SLOSH;
-			fvol = fWalking ? 0.2 : 0.5;
+			fvol = fWalking ? 0.3 : 0.6;
 			pmove->flTimeStepSound = fWalking ? 400 : 300;
 			}
 		else

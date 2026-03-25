@@ -242,7 +242,7 @@ typedef int sound_t;
 
 // [FWGS, 01.07.25]
 #define MAX_DYNAMIC_CHANNELS	(60 + NUM_AMBIENTS)
-#define MAX_CHANNELS		512	// ESHQ: принудительное увеличение
+#define MAX_CHANNELS		512		// ESHQ: принудительное увеличение
 #define MAX_RAW_CHANNELS	48
 #define MAX_RAW_SAMPLES		16384
 #define SND_CLIP_DISTANCE	1000.0f

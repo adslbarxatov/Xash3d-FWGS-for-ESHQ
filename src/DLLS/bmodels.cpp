@@ -1,23 +1,20 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
+***/
+
 /***
 
 ===== bmodels.cpp ========================================================
-
-  spawn, think, and use functions for entities that use brush models
-
+spawn, think, and use functions for entities that use brush models
 ***/
 
 #include "extdll.h"
@@ -342,7 +339,7 @@ check either the X_AXIS or Y_AXIS box to change that.
 "speed" determines how fast it moves; default value is 100.
 "dmg"	damage to inflict when blocked (2 default)
 
-REVERSE will cause the it to rotate in the opposite direction.
+REVERSE will cause the it to rotate in the opposite direction
 ***/
 
 void CFuncRotating::Spawn ()
@@ -356,7 +353,7 @@ void CFuncRotating::Spawn ()
 	if (m_flVolume == 0.0)
 		m_flVolume = 1.0;
 
-	// if the designer didn't set a sound attenuation, default to one.
+	// if the designer didn't set a sound attenuation, default to one
 	m_flAttenuation = ATTN_SMALL;
 
 	if (FBitSet (pev->spawnflags, SF_BRUSH_ROTATE_SMALLRADIUS))

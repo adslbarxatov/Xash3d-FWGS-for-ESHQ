@@ -107,7 +107,6 @@ class CBreakable: public CBaseDelay
 		static	TYPEDESCRIPTION m_SaveData[];
 
 		Materials2	m_Material;
-		/*Explosions	m_Explosion;*/
 		int			m_idShard;
 		float		m_angle;
 		int			m_iszGibModel;

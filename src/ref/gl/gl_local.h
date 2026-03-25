@@ -316,7 +316,7 @@ extern float		gldepthmin, gldepthmax;
 #define Mod_AllowMaterials() (host_allow_materials->value && !FBitSet( gp_host->features, ENGINE_DISABLE_HDTEXTURES ))
 
 //
-// [FWGS, 01.11.25] gl_backend.c
+// gl_backend.c
 //
 void GL_BackendStartFrame (void);
 void GL_BackendEndFrame (void);
@@ -335,7 +335,9 @@ void GL_SetRenderMode (int mode);
 void GL_EnableTextureUnit (int tmu, qboolean enable);
 void GL_TextureTarget (uint target);
 void GL_Cull (GLenum cull);
-void R_ShowTextures (void);
+
+// [FWGS, 01.04.26]
+/*void R_ShowTextures (void);*/
 void SCR_TimeRefresh_f (void);
 
 // 
@@ -377,11 +379,11 @@ void R_DrawWorldHull (void);
 void R_DrawModelHull (void);*/
 
 //
-// gl_image.c [FWGS, 01.11.25]
+// gl_image.c [FWGS, 01.04.26]
 //
 void R_SetTextureParameters (void);
 gl_texture_t *R_GetTexture (unsigned int texnum);
-const char *GL_TargetToString (GLenum target);
+/*const char *GL_TargetToString (GLenum target);*/
 #define GL_LoadTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, false )
 #define GL_UpdateTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, true )
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
@@ -403,6 +405,7 @@ void R_ShutdownImages (void);
 int GL_TexMemory (void);
 qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *modelname, const char *fmt, ...) FORMAT_CHECK (4);
 void R_TextureReplacementReport (const char *modelname, int gl_texturenum, const char *foundpath);
+void R_ShowTextures (void);
 
 //
 // gl_rlight.c [FWGS, 01.03.25]
@@ -571,11 +574,12 @@ void Mod_SetOrthoBounds (const float *mins, const float *maxs);
 void CL_AddCustomBeam (cl_entity_t *pEnvBeam);
 
 //
-// gl_opengl.c [FWGS, 01.03.25]
+// gl_opengl.c [FWGS, 01.04.26]
 //
 #define GL_CheckForErrors() GL_CheckForErrors_( __FILE__, __LINE__ )
 void GL_CheckForErrors_ (const char *filename, const int fileline);
-const char *GL_ErrorString (int err);
+/*const char *GL_ErrorString (int err);*/
+const char *GL_ErrorString (int err) RETURNS_NONNULL;
 
 //
 // gl_triapi.c

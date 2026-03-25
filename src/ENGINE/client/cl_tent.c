@@ -286,6 +286,7 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 			soundname = SoundList_GetRandom (BounceFlesh);
 			break;
 
+		// ESHQ: исправление после модификации функционала lerping
 		case BOUNCE_WOOD:
 			soundname = SoundList_GetRandom (BounceWood);
 			break;
@@ -321,7 +322,6 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 	// only play one out of every n
 	if (isshellcasing)
 		{
-		// play first bounce, then 1 out of 3
 		if ((zvel < 200) && COM_RandomLong (0, 3))
 			return;
 		}
@@ -340,6 +340,10 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 			fvol *= Q_min (1.0f, ((float)zvel) / 350.0f);
 		else
 			fvol *= Q_min (1.0f, ((float)zvel) / 450.0f);
+
+		// ESHQ: иначе какой смысл?
+		if (fvol < 0.15f)
+			fvol = 0.15f;
 
 		if (!COM_RandomLong (0, 3) && !isshellcasing)
 			pitch = COM_RandomLong (95, 105);
@@ -1076,7 +1080,7 @@ void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t
 		pTemp->entity.baseline.origin[0] = dir[0] + COM_RandomFloat (-random, random);
 		pTemp->entity.baseline.origin[1] = dir[1] + COM_RandomFloat (-random, random);
 		pTemp->entity.baseline.origin[2] = dir[2] + COM_RandomFloat (0, random);
-		pTemp->die = cl.time + life + COM_RandomFloat (0.0f, 1.0f); // Add an extra 0-1 secs of life
+		pTemp->die = cl.time + life + COM_RandomFloat (0.0f, 2.0f); // ESHQ: можно чуть подольше
 		}
 	}
 

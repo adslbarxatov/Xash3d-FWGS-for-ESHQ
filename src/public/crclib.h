@@ -28,8 +28,8 @@ typedef struct
 	} MD5Context_t;
 
 // [FWGS, 01.12.24]
-#define CRC32_INIT_VALUE 0xFFFFFFFFUL
-#define CRC32_XOR_VALUE 0xFFFFFFFFUL
+#define CRC32_INIT_VALUE	0xFFFFFFFFUL
+#define CRC32_XOR_VALUE		0xFFFFFFFFUL
 
 // [FWGS, 01.12.24]
 static inline void CRC32_Init (uint32_t *pulCRC)
@@ -65,9 +65,11 @@ static inline void MD5Init (MD5Context_t *ctx)
 	ctx->bits[1] = 0;
 	}
 
+// [FWGS, 01.04.26]
 void MD5Update (MD5Context_t *ctx, const byte *buf, uint len);
 void MD5Final (byte digest[16], MD5Context_t *ctx);
 uint COM_HashKey (const char *string, uint hashSize);
-char *MD5_Print (byte hash[16]);
+/*char *MD5_Print (byte hash[16]);*/
+char *MD5_Print (byte hash[16]) RETURNS_NONNULL;
 
 #endif

@@ -3662,9 +3662,13 @@ static int GAME_EXPORT pfnRegUserMsg (const char *pszName, int iSize)
 	int	i;
 
 	// [FWGS, 01.03.26]
+	// ESHQ: добавлен вывод в консоль
 	/*if (!COM_CheckString (pszName))*/
 	if (COM_StringEmptyOrNULL (pszName))
+		{
+		Con_Printf (S_ERROR "%s: received an empty name\n", __func__);
 		return svc_bad;
+		}
 
 	// [FWGS, 01.07.24]
 	if (Q_strlen (pszName) >= sizeof (svgame.msg[0].name))
@@ -3684,7 +3688,7 @@ static int GAME_EXPORT pfnRegUserMsg (const char *pszName, int iSize)
 	iSize = bound (-1, iSize, MAX_USERMSG_LENGTH);
 
 	// [FWGS, 25.12.24] message 0 is reserved for svc_bad
-	for (i = 1; i < MAX_USER_MESSAGES && svgame.msg[i].name[0]; i++)
+	for (i = 1; (i < MAX_USER_MESSAGES) && svgame.msg[i].name[0]; i++)
 		{
 		// see if already registered
 		if (!Q_strcmp (svgame.msg[i].name, pszName))

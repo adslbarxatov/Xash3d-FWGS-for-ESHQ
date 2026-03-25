@@ -14,11 +14,13 @@ without written permission from Valve LLC
 #ifndef R_EFX_H
 #define R_EFX_H
 
+// [FWGS, 01.04.26]
+/*
 // [FWGS, 01.03.26] particle_t
-/*if !defined( PARTICLEDEFH )*/
-#if !defined( PARTICLEDEF_H )
-	#include "particledef.h"
-#endif
+if !defined( PARTICLEDEFH )
+if !defined( PARTICLEDEF_H )
+	include "particledef.h"
+endif*/
 
 // [FWGS, 01.03.26] BEAM
 /*if !defined( BEAMDEFH )*/
@@ -66,7 +68,7 @@ endif*/
 #define FTENT_SPRANIMATELOOP	0x00010000 // animating sprite doesn't die when last frame is displayed
 #define FTENT_SPARKSHOWER	0x00020000
 #define FTENT_NOMODEL		0x00040000 // Doesn't have a model, never try to draw ( it just triggers other things )
-#define FTENT_CLIENTCUSTOM	0x00080000 // Must specify callback.  Callback function is responsible for killing tempent and updating fields ( unless other flags specify how to do things )
+#define FTENT_CLIENTCUSTOM	0x00080000 // Must specify callback.  Callback function is responsible for killing tempent and updating fields (unless other flags specify how to do things)
 #define FTENT_SCALE			0x00100000 // An experiment
 
 struct pmtrace_s;	// Was: typedef struct tempent_s TEMPENTITY;
@@ -96,6 +98,9 @@ typedef struct tempent_s
 	// baseline.renderamt	- starting fadeout intensity
 	// baseline.angles		- angle velocity
 	} TEMPENTITY;
+
+// [FWGS, 01.04.26]
+typedef struct particle_s particle_t;
 
 typedef struct efx_api_s efx_api_t;
 

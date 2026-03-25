@@ -207,27 +207,39 @@ typedef int qboolean;
 	#define PFN_RETURNS_NONNULL
 #endif
 
+// [FWGS, 01.04.26]
 #if !defined( NORETURN )
+	/*define NORETURN*/
 	#define NORETURN
 #endif
 
+// [FWGS, 01.04.26]
 #if !defined( NONNULL )
+	/*define NONNULL*/
 	#define NONNULL
 #endif
 
+// [FWGS, 01.04.26]
 #if !defined( FORMAT_CHECK )
+	/*define FORMAT_CHECK( x )*/
 	#define FORMAT_CHECK( x )
 #endif
 
+// [FWGS, 01.04.26]
 #if !defined( ALLOC_CHECK )
+	/*define ALLOC_CHECK( x )*/
 	#define ALLOC_CHECK( x )
 #endif
 
+// [FWGS, 01.04.26]
 #if !defined( WARN_UNUSED_RESULT )
+	/*define WARN_UNUSED_RESULT*/
 	#define WARN_UNUSED_RESULT
 #endif
 
+// [FWGS, 01.04.26]
 #if !defined( RENAME_SYMBOL )
+	/*define RENAME_SYMBOL( x )*/
 	#define RENAME_SYMBOL( x )
 #endif
 

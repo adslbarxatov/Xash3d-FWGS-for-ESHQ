@@ -602,7 +602,7 @@ void Sys_Print (const char *pMsg)
 
 /***
 ==================
-Sys_CanRestart [FWGS, 01.03.26]
+Sys_CanRestart [FWGS, 01.04.26]
 
 Returns true if execv-like syscall is available
 ==================
@@ -611,6 +611,8 @@ qboolean Sys_CanRestart (void)
 	{
 #if XASH_NSWITCH || XASH_PSVITA
 	return true;
+#elif XASH_IOS
+	return false;
 #else
 	int exelen = wai_getExecutablePath (NULL, 0, NULL);
 

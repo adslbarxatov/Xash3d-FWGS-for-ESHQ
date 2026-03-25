@@ -13,11 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.04.26]
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
-#include "particledef.h"
+/*include "particledef.h"*/
 #include "cl_tent.h"
 #include "shake.h"
 /*include "hltv.h"*/
@@ -42,7 +42,6 @@ typedef struct
 
 static msg_debug_t	cls_message_debug;
 
-// [FWGS, 01.07.24]
 const char *CL_MsgInfo (int cmd)
 	{
 	static string	sz;

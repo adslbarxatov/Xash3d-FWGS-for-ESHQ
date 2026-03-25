@@ -126,18 +126,19 @@ const char *Q_timestamp (int format) RETURNS_NONNULL;
 int Q_vsnprintf (char *buffer, size_t buffersize, const char *format, va_list args);
 int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) FORMAT_CHECK (3);
 
+// [FWGS, 01.04.26]
 #define Q_strpbrk strpbrk
 void COM_StripColors (const char *in, char *out);
 #define Q_memprint( val ) Q_pretifymem( val, 2 )
-char *Q_pretifymem (float value, int digitsafterdecimal);
+/*char *Q_pretifymem (float value, int digitsafterdecimal);*/
+char *Q_pretifymem (float value, int digitsafterdecimal) RETURNS_NONNULL;
 void COM_FileBase (const char *in, char *out, size_t size);
 const char *COM_FileExtension (const char *in) RETURNS_NONNULL;
-
-// [FWGS, 22.01.25]
 void COM_DefaultExtension (char *path, const char *extension, size_t size);
 void COM_ReplaceExtension (char *path, const char *extension, size_t size);
 void COM_ExtractFilePath (const char *path, char *dest);
-const char *COM_FileWithoutPath (const char *in);
+/*const char *COM_FileWithoutPath (const char *in);*/
+const char *COM_FileWithoutPath (const char *in) RETURNS_NONNULL;
 void COM_StripExtension (char *path);
 void COM_RemoveLineFeed (char *str, size_t bufsize);
 void COM_PathSlashFix (char *path);

@@ -4,7 +4,7 @@
 #include "r_efx.h"
 #include "cl_tent.h"
 #include "pm_local.h"
-#define PART_SIZE	Q_max(0.5f, cl_draw_particles.value)	// [FWGS, 01.07.23]
+#define PART_SIZE	Q_max(0.5f, cl_draw_particles.value)
 
 /***
 ==============================================================
@@ -18,16 +18,11 @@ static int ramp2[8] = { 0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66 };
 static int ramp3[6] = { 0x6d, 0x6b, 6, 5, 4, 3 };
 static int gSparkRamp[9] = { 0xfe, 0xfd, 0xfc, 0x6f, 0x6e, 0x6d, 0x6c, 0x67, 0x60 };
 
-// [FWGS, 01.07.23]
 static CVAR_DEFINE_AUTO (tracerspeed, "6000", 0, "tracer speed");
 static CVAR_DEFINE_AUTO (tracerlength, "0.8", 0, "tracer length factor");
 static CVAR_DEFINE_AUTO (traceroffset, "30", 0, "tracer starting offset");
 
 // [FWGS, 01.12.24]
-/*particle_t *cl_active_particles;
-particle_t *cl_active_tracers;
-particle_t *cl_free_particles;
-particle_t *cl_particles = NULL;	// particle pool*/
 static particle_t *cl_active_particles;
 static particle_t *cl_active_tracers;
 static particle_t *cl_free_particles;
@@ -107,7 +102,6 @@ void CL_InitParticles (void)
 		cl_avelocities[i][2] = COM_RandomFloat (0.0f, 2.55f);
 		}
 
-	// [FWGS, 01.07.23]
 	Cvar_RegisterVariable (&tracerspeed);
 	Cvar_RegisterVariable (&tracerlength);
 	Cvar_RegisterVariable (&traceroffset);
@@ -147,8 +141,6 @@ void CL_FreeParticles (void)
 	cl_particles = NULL;
 	}
 
-// [FWGS, 01.05.23] удалена CL_FreeParticle
-
 /***
 ================
 CL_AllocParticleFast
@@ -180,7 +172,7 @@ particle_t *GAME_EXPORT R_AllocParticle (void (*callback)(particle_t *, float))
 	{
 	particle_t *p;
 
-	if (!cl_draw_particles.value)	// [FWGS, 01.07.23]
+	if (!cl_draw_particles.value)
 		return NULL;
 
 	// [FWGS, 01.01.24] never alloc particles when we not in game
@@ -203,19 +195,23 @@ particle_t *GAME_EXPORT R_AllocParticle (void (*callback)(particle_t *, float))
 	p->next = cl_active_particles;
 	cl_active_particles = p;
 
-	// clear old particle
+	// [FWGS, 01.04.26] clear old particle
 	p->type = pt_static;
 	VectorClear (p->vel);
 	VectorClear (p->org);
-	p->packedColor = 0;
+	/*p->packedColor = 0;*/
+	p->unused = 0;
 	p->die = cl.time;
 	p->color = 0;
 	p->ramp = 0;
 
+	// [FWGS, 01.04.26]
 	if (callback)
 		{
-		p->type = pt_clientcustom;
-		p->callback = callback;
+		/*p->type = pt_clientcustom;
+		p->callback = callback;*/
+		p->type = pt_custom;
+		p->think = callback;
 		}
 
 	return p;
@@ -232,7 +228,7 @@ static particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life
 	{
 	particle_t *p;
 
-	if (!cl_draw_tracers.value)	// [FWGS, 01.07.23]
+	if (!cl_draw_tracers.value)
 		return NULL;
 
 	// [FWGS, 01.01.24] never alloc particles when we not in game
@@ -255,15 +251,15 @@ static particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life
 	p->next = cl_active_tracers;
 	cl_active_tracers = p;
 
-	// clear old particle
+	// [FWGS, 01.04.26] clear old particle
 	p->type = pt_static;
 	VectorCopy (org, p->org);
 	VectorCopy (vel, p->vel);
 	p->die = cl.time + life;
-	p->ramp = tracerlength.value;	// [FWGS, 01.07.23]
-	/*p->color = 4; // select custom color*/
-	p->color = TRACER_COLORINDEX_DEFAULT; // [FWGS, 01.12.24] select custom color
-	p->packedColor = 255; // alpha
+	p->ramp = tracerlength.value;
+	p->color = TRACER_COLORINDEX_DEFAULT; // select custom color
+	/*p->packedColor = 255; // alpha*/
+	p->unused = 255; // alpha
 
 	return p;
 	}
@@ -273,9 +269,6 @@ static particle_t *R_AllocTracer (const vec3_t org, const vec3_t vel, float life
 VIEWBEAMS MANAGEMENT [FWGS, 01.12.24]
 ==============================================================
 ***/
-/*BEAM *cl_active_beams;
-BEAM *cl_free_beams;
-BEAM *cl_viewbeams = NULL;		// beams pool*/
 static BEAM *cl_active_beams;
 static BEAM *cl_free_beams;
 static BEAM *cl_viewbeams = NULL; // beams pool
@@ -699,6 +692,7 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 				end[1] = MSG_ReadCoord (msg);
 				end[2] = MSG_ReadCoord (msg);
 				}
+
 			modelIndex = MSG_ReadShort (msg);
 			startFrame = MSG_ReadByte (msg);
 			frameRate = (float)MSG_ReadByte (msg) * 0.1f;
@@ -710,6 +704,7 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 			b = (float)MSG_ReadByte (msg) / 255.0f;
 			a = (float)MSG_ReadByte (msg) / 255.0f;
 			speed = (float)MSG_ReadByte (msg) * 0.1f;
+
 			if (beamType == TE_BEAMENTS)
 				R_BeamEnts (startEnt, endEnt, modelIndex, life, width, noise, a, speed, startFrame, frameRate, r, g, b);
 			else if (beamType == TE_BEAMENTPOINT)
@@ -820,9 +815,9 @@ Create beam between two ents
 BEAM *GAME_EXPORT R_BeamEnts (int startEnt, int endEnt, int modelIndex, float life, float width,
 	float amplitude, float brightness, float speed, int startFrame, float framerate, float r, float g, float b)
 	{
-	cl_entity_t *start, *end;
-	BEAM *pbeam;
-	model_t *mod;
+	cl_entity_t	*start, *end;
+	BEAM		*pbeam;
+	model_t		*mod;
 
 	mod = CL_ModelHandle (modelIndex);
 
@@ -871,7 +866,8 @@ BEAM *GAME_EXPORT R_BeamPoints (vec3_t start, vec3_t end, int modelIndex, float 
 		return NULL;
 
 	pbeam = R_BeamAlloc ();
-	if (!pbeam) return NULL;
+	if (!pbeam)
+		return NULL;
 
 	pbeam->die = cl.time;
 
@@ -898,9 +894,13 @@ BEAM *GAME_EXPORT R_BeamCirclePoints (int type, vec3_t start, vec3_t end, int mo
 	{
 	BEAM *pbeam = R_BeamLightning (start, end, modelIndex, life, width, amplitude, brightness, speed);
 
-	if (!pbeam) return NULL;
+	if (!pbeam)
+		return NULL;
+
 	pbeam->type = type;
-	if (life == 0) SetBits (pbeam->flags, FBEAM_FOREVER);
+	if (life == 0)
+		SetBits (pbeam->flags, FBEAM_FOREVER);
+
 	R_BeamSetAttributes (pbeam, r, g, b, framerate, startFrame);
 
 	return pbeam;
@@ -921,13 +921,15 @@ BEAM *GAME_EXPORT R_BeamEntPoint (int startEnt, vec3_t end, int modelIndex, floa
 
 	start = R_BeamGetEntity (startEnt);
 
-	if (!start) return NULL;
+	if (!start)
+		return NULL;
 
-	if (life == 0 && !start->model)
+	if ((life == 0) && !start->model)
 		return NULL;
 
 	pbeam = R_BeamAlloc ();
-	if (!pbeam) return NULL;
+	if (!pbeam)
+		return NULL;
 
 	pbeam->die = cl.time;
 	if (modelIndex < 0)
@@ -937,7 +939,9 @@ BEAM *GAME_EXPORT R_BeamEntPoint (int startEnt, vec3_t end, int modelIndex, floa
 
 	pbeam->type = TE_BEAMPOINTS;
 	SetBits (pbeam->flags, FBEAM_STARTENTITY);
-	if (life == 0) SetBits (pbeam->flags, FBEAM_FOREVER);
+	if (life == 0)
+		SetBits (pbeam->flags, FBEAM_FOREVER);
+
 	pbeam->startEntity = startEnt;
 	pbeam->endEntity = 0;
 
@@ -965,7 +969,7 @@ BEAM *GAME_EXPORT R_BeamRing (int startEnt, int endEnt, int modelIndex, float li
 	if (!start || !end)
 		return NULL;
 
-	if (life != 0 && (!start->model || !end->model))
+	if ((life != 0) && (!start->model || !end->model))
 		return NULL;
 
 	pbeam = R_BeamLightning (vec3_origin, vec3_origin, modelIndex, life, width, amplitude, brightness, speed);
@@ -1088,7 +1092,8 @@ void GAME_EXPORT R_ParticleExplosion (const vec3_t org)
 	for (i = 0; i < 1024; i++)
 		{
 		p = R_AllocParticle (NULL);
-		if (!p) return;
+		if (!p)
+			return;
 
 		p->die = cl.time + 5.0f;
 		p->ramp = COM_RandomLong (0, 3);
@@ -1100,14 +1105,16 @@ void GAME_EXPORT R_ParticleExplosion (const vec3_t org)
 			p->vel[j] = COM_RandomFloat (-256.0f, 256.0f);
 			}
 
-		if (i & 1) p->type = pt_explode;
-		else p->type = pt_explode2;
+		if (i & 1)
+			p->type = pt_explode;
+		else
+			p->type = pt_explode2;
 		}
 	}
 
 /***
 ===============
-R_ParticleExplosion2 [FWGS, 01.08.24]
+R_ParticleExplosion2
 ===============
 ***/
 void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int colorLength)
@@ -1121,11 +1128,14 @@ void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int col
 	for (i = 0; i < 512; i++)
 		{
 		p = R_AllocParticle (NULL);
-		if (!p) return;
+		if (!p)
+			return;
 
+		// [FWGS, 01.04.26]
 		p->die = cl.time + 0.3f;
 		p->color = colorStart + (colorMod % colorLength);
-		p->packedColor = packedColor;
+		/*p->packedColor = packedColor;*/
+		p->unused = packedColor;
 		colorMod++;
 
 		p->type = pt_blob;
@@ -1140,7 +1150,7 @@ void GAME_EXPORT R_ParticleExplosion2 (const vec3_t org, int colorStart, int col
 
 /***
 ===============
-R_BlobExplosion [FWGS, 01.08.24]
+R_BlobExplosion
 ===============
 ***/
 void GAME_EXPORT R_BlobExplosion (const vec3_t org)
@@ -1153,10 +1163,13 @@ void GAME_EXPORT R_BlobExplosion (const vec3_t org)
 	for (i = 0; i < 1024; i++)
 		{
 		p = R_AllocParticle (NULL);
-		if (!p) return;
+		if (!p)
+			return;
 
+		// [FWGS, 01.04.26]
 		p->die = cl.time + COM_RandomFloat (1.0f, 1.4f);
-		p->packedColor = packedColor;
+		/*p->packedColor = packedColor;*/
+		p->unused = packedColor;
 
 		if (i & 1)
 			{
@@ -1219,10 +1232,10 @@ particle spray
 ***/
 void GAME_EXPORT R_Blood (const vec3_t org, const vec3_t ndir, int pcolor, int speed)
 	{
-	vec3_t		pos, dir, vec;
-	float		pspeed = speed * 3.0f;
+	vec3_t	pos, dir, vec;
+	float	pspeed = speed * 3.0f;
 	int		i, j;
-	particle_t *p;
+	particle_t	*p;
 
 	VectorNormalize2 (ndir, dir);
 
@@ -1234,11 +1247,14 @@ void GAME_EXPORT R_Blood (const vec3_t org, const vec3_t ndir, int pcolor, int s
 		for (j = 0; j < 7; j++)
 			{
 			p = R_AllocParticle (NULL);
-			if (!p) return;
+			if (!p)
+				return;
 
+			// [FWGS, 01.04.26]
 			p->die = cl.time + 1.5f;
 			p->color = pcolor + COM_RandomLong (0, 9);
-			p->type = pt_vox_grav;
+			/*p->type = pt_vox_grav;*/
+			p->type = pr_4x_slowgrav;
 
 			VectorAddScalar (pos, COM_RandomFloat (-1.0f, 1.0f), p->org);
 			VectorScale (vec, pspeed, p->vel);
@@ -1248,7 +1264,7 @@ void GAME_EXPORT R_Blood (const vec3_t org, const vec3_t ndir, int pcolor, int s
 
 /***
 ===============
-R_BloodStream [FWGS, 01.11.23]
+R_BloodStream
 
 particle spray 2
 ===============
@@ -1269,8 +1285,10 @@ void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t ndir, int pcolor,
 		if (!p)
 			return;
 
+		// [FWGS, 01.04.26]
 		p->die = cl.time + 2.0f;
-		p->type = pt_vox_grav;
+		/*p->type = pt_vox_grav;*/
+		p->type = pt_8x_slowgrav;
 		p->color = pcolor + COM_RandomLong (0, 9);
 
 		VectorCopy (org, p->org);
@@ -1287,11 +1305,14 @@ void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t ndir, int pcolor,
 		float	num;
 
 		p = R_AllocParticle (NULL);
-		if (!p) return;
+		if (!p)
+			return;
 
+		// [FWGS, 01.04.26]
 		p->die = cl.time + 3.0f;
 		p->color = pcolor + COM_RandomLong (0, 9);
-		p->type = pt_vox_slowgrav;
+		/*p->type = pt_vox_slowgrav;*/
+		p->type = pr_4x_slowgrav;
 
 		VectorCopy (org, p->org);
 		VectorCopy (dir, p->vel);
@@ -1309,11 +1330,14 @@ void GAME_EXPORT R_BloodStream (const vec3_t org, const vec3_t ndir, int pcolor,
 		for (j = 0; j < 2; j++)
 			{
 			p = R_AllocParticle (NULL);
-			if (!p) return;
+			if (!p)
+				return;
 
+			// [FWGS, 01.04.26]
 			p->die = cl.time + 3.0f;
 			p->color = pcolor + COM_RandomLong (0, 9);
-			p->type = pt_vox_slowgrav;
+			/*p->type = pt_vox_slowgrav;*/
+			p->type = pr_4x_slowgrav;
 
 			p->org[0] = org[0] + COM_RandomFloat (-1.0f, 1.0f);
 			p->org[1] = org[1] + COM_RandomFloat (-1.0f, 1.0f);
@@ -1347,7 +1371,8 @@ void GAME_EXPORT R_LavaSplash (const vec3_t org)
 			for (k = 0; k < 1; k++)
 				{
 				p = R_AllocParticle (NULL);
-				if (!p) return;
+				if (!p)
+					return;
 
 				p->die = cl.time + COM_RandomFloat (2.0f, 2.62f);
 				p->color = COM_RandomLong (224, 231);
@@ -1496,8 +1521,6 @@ R_RocketTrail [FWGS, 01.12.24]
 void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 	{
 	vec3_t		vec, right, up;
-	/*static int	tracercount;
-	float		s, c, x, y;*/
 	float		len, dec;
 	particle_t	*p;
 
@@ -1509,7 +1532,6 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 		dec = 1.0f;
 		VectorVectors (vec, right, up);
 		}
-	/*if (type < 128)*/
 	else if (type < 128)
 		{
 		dec = 3.0f;
@@ -1526,10 +1548,7 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 
 	while (len > 0)
 		{
-		/*len -= dec;*/
-
 		p = R_AllocParticle (NULL);
-		/*if (!p) return;*/
 		if (!p)
 			return;
 
@@ -1538,8 +1557,6 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 
 		switch (type)
 			{
-			/*case 0:	// rocket trail
-				p->ramp = COM_RandomLong (0, 3);*/
 			case 0:
 			case 1:
 				p->ramp = COM_RandomLong (0 + type * 2, 3 + type * 2);
@@ -1548,14 +1565,6 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 				VectorAddScalar (start, COM_RandomFloat (-3.0f, 3.0f), p->org);
 				break;
 
-			/*case 1:	// smoke smoke
-				p->ramp = COM_RandomLong (2, 5);
-				p->color = ramp3[(int)p->ramp];
-				p->type = pt_fire;
-				VectorAddScalar (start, COM_RandomFloat (-3.0f, 3.0f), p->org);
-				break;
-			case 2:	// blood
-				p->type = pt_grav;*/
 			case 2:
 				p->color = COM_RandomLong (67, 74);
 				p->type = pt_grav;
@@ -1563,15 +1572,12 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 				break;
 
 			case 3:
-			/*case 5:	// tracer*/
 			case 5:
 				{
 				static int tracercount;
 				p->die = cl.time + 0.5f;
 				p->color = (tracercount & 4) * 2;
 
-				/*if (type == 3) p->color = 52 + ((tracercount & 4) << 1);
-				else p->color = 230 + ((tracercount & 4) << 1);*/
 				if (type == 3)
 					p->color += 52;
 				else
@@ -1580,22 +1586,10 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 				VectorCopy (start, p->org);
 				tracercount++;
 
-				/*if (FBitSet (tracercount, 1))
-					{
-					p->vel[0] = 30.0f * vec[1];
-					p->vel[1] = 30.0f * -vec[0];
-					}
-				else
-					{
-					p->vel[0] = 30.0f * -vec[1];
-					p->vel[1] = 30.0f * vec[0];
-					}*/
 				p->vel[0] = 30.0f * vec[1];
 				p->vel[1] = 30.0f * vec[0];
 				p->vel[tracercount & 1] = -p->vel[tracercount & 1];
 				break;
-				/*case 4:	// slight blood
-				p->type = pt_grav;*/
 				}
 
 			case 4:
@@ -1605,10 +1599,6 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 				len -= 3.0f;
 				break;
 
-			/*case 6:	// voor trail
-				p->color = COM_RandomLong (152, 155);
-				p->die += 0.3f;
-				VectorAddScalar (start, COM_RandomFloat (-8.0f, 8.0f), p->org);*/
 			case 6:
 				p->type = pt_fire;
 				p->ramp = COM_RandomLong (0, 3);
@@ -1616,9 +1606,6 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 				VectorCopy (start, p->org);
 				break;
 
-			/*case 7:	// explosion tracer
-				x = COM_RandomLong (0, 65535);
-				y = COM_RandomLong (8, 16);*/
 			case 7:
 				{
 				float x = COM_RandomLong (0, 65535);
@@ -1633,7 +1620,6 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 				VectorSubtract (start, p->org, p->vel);
 				VectorScale (p->vel, 2.0f, p->vel);
 
-				/*VectorMA (p->vel, COM_RandomFloat (96.0f, 111.0f), vec, p->vel);*/
 				x = COM_RandomFloat (96.0f, 111.0f);
 				VectorMA (p->vel, x, vec, p->vel);
 
@@ -1652,13 +1638,13 @@ void GAME_EXPORT R_RocketTrail (vec3_t start, vec3_t end, int type)
 		}
 	}
 
-/*
+/***
 ===============
 PM_ParticleLine [FWGS, 01.12.24]
 
 draw line from particles
 ================
-*/
+***/
 static void PM_ParticleLine (const vec3_t start, const vec3_t end, int pcolor, float life, float zvel)
 	{
 	float len, curdist;
@@ -1677,11 +1663,11 @@ static void PM_ParticleLine (const vec3_t start, const vec3_t end, int pcolor, f
 		}
 	}
 
-/*
+/***
 ================
 PM_DrawRectangle [FWGS, 01.12.24]
 ================
-*/
+***/
 static void PM_DrawRectangle (const vec3_t tl, const vec3_t bl, const vec3_t tr, const vec3_t br, int pcolor, float life)
 	{
 	PM_ParticleLine (tl, bl, pcolor, life, 0);
@@ -1690,11 +1676,11 @@ static void PM_DrawRectangle (const vec3_t tl, const vec3_t bl, const vec3_t tr,
 	PM_ParticleLine (tr, tl, pcolor, life, 0);
 	}
 
-/*
+/***
 ================
 PM_DrawBBox [FWGS, 01.12.24]
 ================
-*/
+***/
 static void PM_DrawBBox (const vec3_t mins, const vec3_t maxs, const vec3_t origin, int pcolor, float life)
 	{
 	vec3_t p[8], tmp;
@@ -1879,24 +1865,6 @@ void GAME_EXPORT R_StreakSplash (const vec3_t pos, const vec3_t dir, int color, 
 	}
 
 // [FWGS, 01.12.24]: removed R_DebugParticle
-/*
-===============
-R_DebugParticle
-
-just for debug purposes
-===============
-/
-void R_DebugParticle (const vec3_t pos, byte r, byte g, byte b)
-	{
-	particle_t *p;
-
-	p = R_AllocParticle (NULL);
-	if (!p) return;
-
-	VectorCopy (pos, p->org);
-	p->color = R_LookupColor (r, g, b);
-	p->die = cl.time + 0.01f;
-	}*/
 
 /***
 ===============
@@ -1931,13 +1899,13 @@ void GAME_EXPORT R_TracerEffect (const vec3_t start, const vec3_t end)
 	float	len, speed;
 	float	offset;
 
-	speed = Q_max (tracerspeed.value, 3.0f);	// [FWGS, 01.07.23]
+	speed = Q_max (tracerspeed.value, 3.0f);
 	VectorSubtract (end, start, dir);
 	len = VectorLength (dir);
 	if (len == 0.0f) return;
 
 	VectorScale (dir, 1.0f / len, dir); // normalize
-	offset = COM_RandomFloat (-10.0f, 9.0f) + traceroffset.value;	// [FWGS, 01.07.23]
+	offset = COM_RandomFloat (-10.0f, 9.0f) + traceroffset.value;
 	VectorScale (dir, offset, vel);
 	VectorAdd (start, vel, pos);
 	VectorScale (dir, speed, vel);
@@ -1958,10 +1926,13 @@ void GAME_EXPORT R_UserTracerParticle (float *org, float *vel, float life, int c
 	if (colorIndex < 0)
 		return;
 
+	// [FWGS, 01.04.26]
 	if ((p = R_AllocTracer (org, vel, life)) != NULL)
 		{
-		p->context = deathcontext;
-		p->deathfunc = deathfunc;
+		/*p->context = deathcontext;
+		p->deathfunc = deathfunc;*/
+		p->userdata = deathcontext;
+		p->on_die = deathfunc;
 		p->color = colorIndex;
 		p->ramp = length;
 		}
@@ -2055,11 +2026,17 @@ void R_FreeDeadParticles (particle_t **ppparticles)
 	while (1)
 		{
 		kill = *ppparticles;
+
+		// [FWGS, 01.04.26]
 		if (kill && kill->die < cl.time)
 			{
-			if (kill->deathfunc)
+			/*if (kill->deathfunc)
 				kill->deathfunc (kill);
-			kill->deathfunc = NULL;
+			kill->deathfunc = NULL;*/
+			if (kill->on_die)
+				kill->on_die (kill);
+			kill->on_die = NULL;
+
 			*ppparticles = kill->next;
 			kill->next = cl_free_particles;
 			cl_free_particles = kill;
@@ -2074,11 +2051,17 @@ void R_FreeDeadParticles (particle_t **ppparticles)
 		while (1)
 			{
 			kill = p->next;
+
+			// [FWGS, 01.04.26]
 			if (kill && kill->die < cl.time)
 				{
-				if (kill->deathfunc)
+				/*if (kill->deathfunc)
 					kill->deathfunc (kill);
-				kill->deathfunc = NULL;
+				kill->deathfunc = NULL;*/
+				if (kill->on_die)
+					kill->on_die (kill);
+				kill->on_die = NULL;
+
 				p->next = kill->next;
 				kill->next = cl_free_particles;
 				cl_free_particles = kill;
@@ -2193,7 +2176,6 @@ static void CL_FreeDeadBeams (void)
 		}
 	}
 
-// [FWGS, 01.07.23]
 void CL_DrawEFX (float time, qboolean fTrans)
 	{
 	CL_FreeDeadBeams ();
@@ -2220,8 +2202,9 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 	float	dvel = 4.0f * frametime;
 	float	grav = frametime * clgame.movevars.gravity * 0.05f;
 
-
-	if (p->type != pt_clientcustom)
+	// [FWGS, 01.04.26]
+	/*if (p->type != pt_clientcustom)*/
+	if (p->type != pt_custom)
 		{
 		// update position.
 		VectorMA (p->org, frametime, p->vel, p->org);
@@ -2254,9 +2237,11 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 			VectorMA (p->vel, -frametime, p->vel, p->vel);
 			p->vel[2] -= grav;
 			break;
-
+			
+		// [FWGS, 01.04.26]
 		case pt_blob:
-			if (p->packedColor == 255)
+			/*if (p->packedColor == 255)*/
+			if (p->unused == 255)
 				{
 				// normal blob explosion
 				VectorMA (p->vel, dvel, p->vel, p->vel);
@@ -2264,9 +2249,10 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 				break;
 				}
 
-		// intentionally fallthrough
+		// [FWGS, 01.04.26] intentionally fallthrough
 		case pt_blob2:
-			if (p->packedColor == 255)
+			/*if (p->packedColor == 255)*/
+			if (p->unused == 255)
 				{
 				// normal blob explosion
 				p->vel[0] -= p->vel[0] * dvel;
@@ -2276,7 +2262,9 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 			else
 				{
 				p->ramp += time2;
-				if (p->ramp >= 9.0f) p->ramp = 0.0f;
+				if (p->ramp >= 9.0f)
+					p->ramp = 0.0f;
+
 				p->color = gSparkRamp[(int)p->ramp];
 				VectorMA (p->vel, -frametime * 0.5f, p->vel, p->vel);
 				p->type = COM_RandomLong (0, 3) ? pt_blob : pt_blob2;
@@ -2292,18 +2280,24 @@ void CL_ThinkParticle (double frametime, particle_t *p)
 			p->vel[2] -= grav;
 			break;
 
-		case pt_vox_grav:
+		// [FWGS, 01.04.26]
+		/*case pt_vox_grav:*/
+		case pt_8x_slowgrav:
 			p->vel[2] -= grav * 8.0f;
 			break;
 
-		case pt_vox_slowgrav:
+		/*case pt_vox_slowgrav:*/
+		case pr_4x_slowgrav:
 			p->vel[2] -= grav * 4.0f;
 			break;
 
-		case pt_clientcustom:
+		// [FWGS, 01.04.26]
+		/*case pt_clientcustom:
 			if (p->callback)
-				p->callback (p, frametime);
+				p->callback (p, frametime);*/
+		case pt_custom:
+			if (p->think)
+				p->think (p, frametime);
 			break;
 		}
 	}
-

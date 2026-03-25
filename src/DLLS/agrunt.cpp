@@ -7,7 +7,7 @@ All Rights Reserved.
 
 This source code contains proprietary and confidential information of
 Valve LLC and its suppliers.  Access to this code is restricted to
-persons who have executed a written SDK license with Valve.  Any access,
+persons who have executed a written SDK license with Valve. Any access,
 use or distribution of this code by or to any unlicensed person is illegal
 ***/
 
@@ -122,64 +122,64 @@ LINK_ENTITY_TO_CLASS (monster_alien_grunt, CAGrunt);
 
 TYPEDESCRIPTION	CAGrunt::m_SaveData[] =
 	{
-		DEFINE_FIELD (CAGrunt, m_fCanHornetAttack, FIELD_BOOLEAN),
-		DEFINE_FIELD (CAGrunt, m_flNextHornetAttackCheck, FIELD_TIME),
-		DEFINE_FIELD (CAGrunt, m_flNextPainTime, FIELD_TIME),
-		DEFINE_FIELD (CAGrunt, m_flNextSpeakTime, FIELD_TIME),
-		DEFINE_FIELD (CAGrunt, m_flNextWordTime, FIELD_TIME),
-		DEFINE_FIELD (CAGrunt, m_iLastWord, FIELD_INTEGER),
+	DEFINE_FIELD (CAGrunt, m_fCanHornetAttack, FIELD_BOOLEAN),
+	DEFINE_FIELD (CAGrunt, m_flNextHornetAttackCheck, FIELD_TIME),
+	DEFINE_FIELD (CAGrunt, m_flNextPainTime, FIELD_TIME),
+	DEFINE_FIELD (CAGrunt, m_flNextSpeakTime, FIELD_TIME),
+	DEFINE_FIELD (CAGrunt, m_flNextWordTime, FIELD_TIME),
+	DEFINE_FIELD (CAGrunt, m_iLastWord, FIELD_INTEGER),
 	};
 
 IMPLEMENT_SAVERESTORE (CAGrunt, CSquadMonster);
 
 const char *CAGrunt::pAttackHitSounds[] =
 	{
-		"zombie/claw_strike1.wav",
-		"zombie/claw_strike2.wav",
-		"zombie/claw_strike3.wav",
+	"zombie/claw_strike1.wav",
+	"zombie/claw_strike2.wav",
+	"zombie/claw_strike3.wav",
 	};
 
 const char *CAGrunt::pAttackMissSounds[] =
 	{
-		"zombie/claw_miss1.wav",
-		"zombie/claw_miss2.wav",
+	"zombie/claw_miss1.wav",
+	"zombie/claw_miss2.wav",
 	};
 
 const char *CAGrunt::pAttackSounds[] =
 	{
-		"agrunt/ag_attack1.wav",
-		"agrunt/ag_attack2.wav",
-		"agrunt/ag_attack3.wav",
+	"agrunt/ag_attack1.wav",
+	"agrunt/ag_attack2.wav",
+	"agrunt/ag_attack3.wav",
 	};
 
 const char *CAGrunt::pDieSounds[] =
 	{
-		"agrunt/ag_die1.wav",
-		"agrunt/ag_die2.wav",
-		"agrunt/ag_die3.wav",
+	"agrunt/ag_die1.wav",
+	"agrunt/ag_die2.wav",
+	"agrunt/ag_die3.wav",
 	};
 
 const char *CAGrunt::pPainSounds[] =
 	{
-		"agrunt/ag_pain1.wav",
-		"agrunt/ag_pain2.wav",
-		"agrunt/ag_pain3.wav",
+	"agrunt/ag_pain1.wav",
+	"agrunt/ag_pain2.wav",
+	"agrunt/ag_pain3.wav",
 	};
 
 const char *CAGrunt::pIdleSounds[] =
 	{
-		"agrunt/ag_idle1.wav",
-		"agrunt/ag_idle2.wav",
-		"agrunt/ag_idle3.wav",
-		"agrunt/ag_idle4.wav",
+	"agrunt/ag_idle1.wav",
+	"agrunt/ag_idle2.wav",
+	"agrunt/ag_idle3.wav",
+	"agrunt/ag_idle4.wav",
 	};
 
 const char *CAGrunt::pAlertSounds[] =
 	{
-		"agrunt/ag_alert1.wav",
-		"agrunt/ag_alert2.wav",
-		"agrunt/ag_alert3.wav",
-		"agrunt/ag_alert4.wav",
+	"agrunt/ag_alert1.wav",
+	"agrunt/ag_alert2.wav",
+	"agrunt/ag_alert3.wav",
+	"agrunt/ag_alert4.wav",
 	};
 
 // =========================================================
@@ -243,7 +243,7 @@ void CAGrunt::TraceAttack (entvars_t *pevAttacker, float flDamage, Vector vecDir
 
 		flDamage -= 20;
 		if (flDamage <= 0)
-			flDamage = 0.1;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
+			flDamage = 0.1;	// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
 		}
 	else
 		{
@@ -311,12 +311,13 @@ void CAGrunt::PrescheduleThink (void)
 				// is this word our last?
 				if (RANDOM_LONG (1, 10) <= 1)
 					{
-					// stop talking.
+					// stop talking
 					StopTalking ();
 					}
 				else
 					{
-					m_flNextWordTime = gpGlobals->time + RANDOM_FLOAT (0.5, 1);
+					// ESHQ: исправлена слишком частая генерация звуков
+					m_flNextWordTime = gpGlobals->time + RANDOM_FLOAT (0.5, 3.0);
 					}
 			}
 		}

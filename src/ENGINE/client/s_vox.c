@@ -102,7 +102,7 @@ static int S_TrimEnd (const wavdata_t *wav, int end)
 		{
 		const int8_t *data = (const int8_t *)&wav->buffer[channels * width * (end - 1)];
 
-		for (i = 0; i < TRIM_SCAN_MAX && end > 0; i++)
+		for (i = 0; (i < TRIM_SCAN_MAX) && (end > 0); i++)
 			{
 			if (!S_ShouldTrimSample8 (data, wav->channels))
 				break;
@@ -115,7 +115,7 @@ static int S_TrimEnd (const wavdata_t *wav, int end)
 		{
 		const int16_t *data = (const int16_t *)&wav->buffer[channels * width * (end - 1)];
 
-		for (i = 0; i < TRIM_SCAN_MAX && end > 0; i++)
+		for (i = 0; (i < TRIM_SCAN_MAX) && (end > 0); i++)
 			{
 			if (!S_ShouldTrimSample16 (data, wav->channels))
 				break;
@@ -374,10 +374,10 @@ static int VOX_ParseString (char *psz, char *rgpparseword[CVOXWORDMAX])
 		{
 		// skip to next word
 		for (; *psz &&
-			*psz != ' ' &&
-			*psz != '.' &&
-			*psz != ',' &&
-			*psz != '('; psz++);
+			(*psz != ' ') &&
+			(*psz != '.') &&
+			(*psz != ',') &&
+			(*psz != '('); psz++);
 
 		// skip anything in between ( and )
 		if (*psz == '(')

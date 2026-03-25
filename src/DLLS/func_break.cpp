@@ -510,15 +510,9 @@ void CBreakable::DamageSound (void)
 
 void CBreakable::MakeDamageSound (Materials2 material, float volume, int pitch, edict_t *entity, qboolean breakable)
 	{
-	/*int pitch;
-	float fvol;*/
 	char* rgpsz[6];
 	int i, j;
 	int mt = material;
-
-	/*// ESHQ: громкость и высота теперь зависят от размера объекта
-	fvol = GetVolume ();
-	pitch = GetPitch ();*/
 
 	if ((mt == matComputer) && RANDOM_LONG (0, 1))
 		mt = matMetal;
@@ -529,21 +523,12 @@ void CBreakable::MakeDamageSound (Materials2 material, float volume, int pitch, 
 		case matComputer:
 		case matGlass:
 		case matUnbreakableGlass:
-			/*rgpsz[0] = "debris/glass1.wav";
-			rgpsz[1] = "debris/glass2.wav";
-			rgpsz[2] = "debris/glass3.wav";
-			i = 3;*/
 			i = HLARRAYSIZE (pSoundsGlass);
 			for (int j = 0; j < i; j++)
 				rgpsz[j] = (char *)pSoundsGlass[j];
 			break;
 
 		case matWood:
-			/*rgpsz[0] = "debris/wood5.wav";
-			rgpsz[1] = "debris/wood6.wav";
-			rgpsz[2] = "debris/wood7.wav";
-			i = 3;*/
-
 			// ESHQ: ручное разделение звуков падения на пол и удара по поверхности
 			i = 3;
 			for (int j = 0; j < i; j++)
@@ -552,9 +537,6 @@ void CBreakable::MakeDamageSound (Materials2 material, float volume, int pitch, 
 
 		default:
 		case matMetal:
-			/*rgpsz[0] = "debris/metal1.wav";
-			rgpsz[1] = "debris/metal3.wav";*/
-
 			if (breakable)
 				{
 				rgpsz[0] = (char *)pSoundsMetal[0];
@@ -572,13 +554,6 @@ void CBreakable::MakeDamageSound (Materials2 material, float volume, int pitch, 
 			break;
 
 		case matFlesh:
-			/*rgpsz[0] = "debris/flesh2.wav";
-			rgpsz[1] = "debris/flesh3.wav";
-			rgpsz[2] = "debris/flesh4.wav";
-			rgpsz[3] = "debris/flesh5.wav";
-			rgpsz[4] = "debris/flesh6.wav";
-			rgpsz[5] = "debris/flesh7.wav";
-			i = 6;*/
 			i = HLARRAYSIZE (pSoundsFlesh);
 			for (int j = 0; j < i; j++)
 				rgpsz[j] = (char *)pSoundsFlesh[j];
@@ -586,10 +561,6 @@ void CBreakable::MakeDamageSound (Materials2 material, float volume, int pitch, 
 
 		case matRocks:
 		case matCinderBlock:
-			/*rgpsz[0] = "debris/concrete1.wav";
-			rgpsz[1] = "debris/concrete2.wav";
-			rgpsz[2] = "debris/concrete3.wav";
-			i = 3;*/
 			i = HLARRAYSIZE (pSoundsConcrete);
 			for (int j = 0; j < i; j++)
 				rgpsz[j] = (char *)pSoundsConcrete[j];
@@ -685,16 +656,6 @@ void CBreakable::TraceAttack (entvars_t* pevAttacker, float flDamage, Vector vec
 				UTIL_Sparks (ptr->vecEndPos);
 
 				flVolume = RANDOM_FLOAT (0.7, 1.0);
-				/*switch (RANDOM_LONG (0, 1))
-					{
-					case 0: 
-						EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/ spark5.wav", flVolume, ATTN_MEDIUM);	
-						break;
-
-					case 1: 
-						EMIT_SOUND (ENT (pev), CHAN_VOICE, "buttons/spark6.wav", flVolume, ATTN_MEDIUM);	
-						break;
-					}*/
 				i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsSparks) - 1);
 				EMIT_SOUND (ENT (pev), CHAN_VOICE, pSoundsSparks[i], flVolume, ATTN_MEDIUM);
 				}
@@ -774,36 +735,12 @@ unsigned char CBreakable::MakeBustSound (Materials2 material, float volume, int 
 	switch (material)
 		{
 		case matGlass:
-			/*switch (RANDOM_LONG (0, 2))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/ bustglass1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/ bustglass2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 2:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/ bustglass3.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}*/
 			i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsBustGlass) - 1);
 			EMIT_SOUND_DYN (entity, CHAN_VOICE, pSoundsBustGlass[i], volume, ATTN_MEDIUM, 0, pitch);
 			cFlag = BREAK_GLASS;
 			break;
 
 		case matWood:
-			/*switch (RANDOM_LONG (0, 2))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/ bustcrate1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustcrate2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 2:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustcrate3.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}*/
 			i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsBustWood) - 1);
 			EMIT_SOUND_DYN (entity, CHAN_VOICE, pSoundsBustWood[i], volume, ATTN_MEDIUM, 0, pitch);
 			cFlag = BREAK_WOOD;
@@ -812,30 +749,12 @@ unsigned char CBreakable::MakeBustSound (Materials2 material, float volume, int 
 		default:
 		case matComputer:
 		case matMetal:
-			/*switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/ bustmetal1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustmetal2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}*/
 			i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsBustMetal) - 1);
 			EMIT_SOUND_DYN (entity, CHAN_VOICE, pSoundsBustMetal[i], volume, ATTN_MEDIUM, 0, pitch);
 			cFlag = BREAK_METAL;
 			break;
 
 		case matFlesh:
-			/*switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/ bustflesh1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustflesh2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}*/
 			i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsBustFlesh) - 1);
 			EMIT_SOUND_DYN (entity, CHAN_VOICE, pSoundsBustFlesh[i], volume, ATTN_MEDIUM, 0, pitch);
 			cFlag = BREAK_FLESH;
@@ -843,55 +762,20 @@ unsigned char CBreakable::MakeBustSound (Materials2 material, float volume, int 
 
 		case matRocks:
 		case matCinderBlock:
-			/*switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris /bustconcrete1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustconcrete2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}*/
 			i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsBustConcrete) - 1);
 			EMIT_SOUND_DYN (entity, CHAN_VOICE, pSoundsBustConcrete[i], volume, ATTN_MEDIUM, 0, pitch);
 			cFlag = BREAK_CONCRETE;
 			break;
 
 		case matCeilingTile:
-			/*switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/ bustceiling1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustceiling2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}*/
 			i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsBustCeiling) - 1);
 			EMIT_SOUND_DYN (entity, CHAN_VOICE, pSoundsBustCeiling[i], volume, ATTN_MEDIUM, 0, pitch);
-			/*cFlag = BREAK_CONCRETE;*/
 			cFlag = 0;
 			break;
 
 		case matFabric:
-			/*switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "player/ pl_dirt1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "player/pl_dirt2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 2:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "player/pl_dirt3.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 3:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "player/pl_dirt4.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}*/
 			i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsBustFabric) - 1);
 			EMIT_SOUND_DYN (entity, CHAN_VOICE, pSoundsBustFabric[i], volume, ATTN_MEDIUM, 0, pitch);
-			/*cFlag = BREAK_FLESH;*/
 			cFlag = 0;
 			break;
 		}
@@ -905,32 +789,17 @@ void CBreakable::Die (void)
 	Vector vecVelocity;	// shard velocity
 	CBaseEntity* pEntity = NULL;
 	char cFlag = 0;
-	/*int pitch, i;
-	float fvol;*/
 	CBaseEntity *pOnBreak;
 	float ampl, freq, duration;
 
-	/*// ESHQ: громкость и высота теперь зависят от размера объекта
-	fvol = GetVolume ();
-	pitch = GetPitch ();*/
-
 	cFlag = MakeBustSound (m_Material, GetVolume (), GetPitch (), ENT (pev));
 
-	/*if (m_Explosion == expDirected)
-		{*/
 	// Разброс обломков (armortype не равен нулю только при ударах по объекту оружием)
 	ampl = pev->armortype * 15.0f;
 	if (ampl > 400.0f)
 		ampl = 400.0f;
 
 	vecVelocity = g_vecAttackDir * -ampl;
-	/*}
-	else
-		{
-		vecVelocity.x = 0;
-		vecVelocity.y = 0;
-		vecVelocity.z = 0;
-		}*/
 
 	vecSpot = pev->origin + (pev->mins + pev->maxs) * 0.5;
 	MESSAGE_BEGIN (MSG_PVS, SVC_TEMPENTITY, vecSpot);

@@ -326,7 +326,8 @@ void Q_memor (byte *XASH_RESTRICT dst, const byte *XASH_RESTRICT src, size_t len
 		dst[i] |= src[i];
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.04.26]
+/*const char *Q_timestamp (int format)*/
 const char *Q_timestamp (int format)
 	{
 	static string	timestamp;

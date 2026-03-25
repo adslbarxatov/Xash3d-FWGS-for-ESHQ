@@ -333,12 +333,14 @@ typedef struct
 #define FONT_FIXED		0
 #define FONT_VARIABLE	1
 
-#define FONT_DRAW_HUD				BIT( 0 ) // pass to drawing function to apply hud_scale
-#define FONT_DRAW_UTF8				BIT( 1 ) // call UtfProcessChar
-#define FONT_DRAW_FORCECOL			BIT( 2 ) // ignore colorcodes
-#define FONT_DRAW_NORENDERMODE		BIT( 3 ) // ignore font's default rendermode
-#define FONT_DRAW_NOLF				BIT( 4 ) // ignore \n
-#define FONT_DRAW_RESETCOLORONLF	BIT( 5 ) // yet another flag to simulate consecutive Con_DrawString calls...
+// [FWGS, 01.04.26]
+#define FONT_DRAW_HUD				BIT( 0 )	// pass to drawing function to apply hud_scale
+#define FONT_DRAW_UTF8				BIT( 1 )	// call UtfProcessChar
+#define FONT_DRAW_FORCECOL			BIT( 2 )	// ignore colorcodes
+#define FONT_DRAW_NORENDERMODE		BIT( 3 )	// ignore font's default rendermode
+#define FONT_DRAW_NOLF				BIT( 4 )	// ignore \n
+#define FONT_DRAW_RESETCOLORONLF	BIT( 5 )	// yet another flag to simulate consecutive Con_DrawString calls...
+#define FONT_DRAW_NOCOLOR			BIT( 6 )	// do not set color to draw this character
 
 // [FWGS, 01.03.24]
 typedef struct
@@ -716,7 +718,7 @@ extern convar_t r_showtextures;
 extern convar_t cl_bmodelinterp;
 extern convar_t cl_lw;	// local weapons
 extern convar_t cl_charset;
-extern convar_t cl_trace_consistency;	// [FWGS, 01.02.25]
+extern convar_t cl_trace_consistency;
 extern convar_t cl_trace_stufftext;
 extern convar_t cl_trace_messages;
 extern convar_t cl_trace_events;
@@ -728,6 +730,9 @@ extern convar_t scr_loading;
 extern convar_t v_dark; // start from dark
 extern convar_t net_graph;
 extern convar_t rate;
+
+// [FWGS, 01.04.26]
+extern convar_t cl_ticket_generator;
 extern convar_t m_ignore;
 extern convar_t r_showtree;
 extern convar_t ui_renderworld;
@@ -839,6 +844,9 @@ qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float sc
 qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode, uint texFlags);
 void CL_FreeFont (cl_font_t *font);
 void CL_SetFontRendermode (cl_font_t *font);
+
+// [FWGS, 01.04.26]
+void CL_SetFontColor (cl_font_t *font, const rgba_t color);
 
 // [FWGS, 01.03.25]
 int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_t *font, int flags);
@@ -1248,10 +1256,11 @@ void Mobile_Shutdown (void);
 void CL_GetSecuredClientAPI (CL_EXPORT_FUNCS F);
 
 //
-// cl_steam.c [FWGS, 01.03.26]
+// cl_steam.c [FWGS, 01.04.26]
 //
 void SteamBroker_Init (void);
 void SteamBroker_Shutdown (void);
+void SteamBroker_Frame (void);
 void SteamBroker_HandlePacket (netadr_t from, sizebuf_t *msg);
 int SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge);
 void SteamBroker_TerminateGameConnection (void);
@@ -1269,7 +1278,7 @@ void SCR_StopCinematic (void);
 void CL_PlayVideo_f (void);
 
 //
-// keys.c [FWGS, 22.01.25]
+// keys.c [FWGS, 01.04.26]
 //
 int Key_IsDown (int keynum);
 void Key_Event (int key, int down);
@@ -1285,6 +1294,7 @@ void Key_SetKeyDest (int key_dest);
 void Key_EnableTextInput (qboolean enable, qboolean force);
 int Key_ToUpper (int key);
 void OSK_Draw (void);
+qboolean Cmd_GetKeysList (const char *s, char *completedname, int length, qboolean print_suggestions);
 
 //
 // identification.c [FWGS, 01.03.26]

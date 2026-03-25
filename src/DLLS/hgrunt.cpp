@@ -9,7 +9,8 @@ This source code contains proprietary and confidential information of
 Valve LLC and its suppliers.  Access to this code is restricted to
 persons who have executed a written SDK license with Valve.  Any access,
 use or distribution of this code by or to any unlicensed person is illegal
-****/
+***/
+
 // =========================================================
 // hgrunt
 // =========================================================
@@ -17,6 +18,7 @@ use or distribution of this code by or to any unlicensed person is illegal
 // =========================================================
 // Hit groups!	
 // =========================================================
+
 /***
   1 - Head
   2 - Stomach
@@ -78,7 +80,7 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define		HGRUNT_AE_BURST3		( 6 ) 
 #define		HGRUNT_AE_GREN_TOSS		( 7 )
 #define		HGRUNT_AE_GREN_LAUNCH	( 8 )
-/*#define		HGRUNT_AE_GREN_DROP		( 9 )*/	// ESHQ: удалено событие "уронить гранату"
+/*define		HGRUNT_AE_GREN_DROP		( 9 )*/	// ESHQ: удалено событие "уронить гранату"
 #define		HGRUNT_AE_CAUGHT_ENEMY	( 10)	// grunt established sight with an enemy (player only) that had previously eluded the squad
 #define		HGRUNT_AE_DROP_GUN		( 11)	// grunt (probably dead) is dropping his mp5
 
@@ -173,7 +175,7 @@ class CHGrunt: public CSquadMonster
 		BOOL	m_fFirstEncounter;// only put on the handsign show in the squad's first encounter.
 		int		m_cClipSize;
 
-		int m_voicePitch;
+		int		m_voicePitch;
 
 		int		m_iBrassShell;
 		int		m_iShotgunShell;
@@ -187,28 +189,28 @@ LINK_ENTITY_TO_CLASS (monster_human_grunt, CHGrunt);
 
 TYPEDESCRIPTION	CHGrunt::m_SaveData[] =
 	{
-		DEFINE_FIELD (CHGrunt, m_flNextGrenadeCheck, FIELD_TIME),
-		DEFINE_FIELD (CHGrunt, m_flNextPainTime, FIELD_TIME),
-		DEFINE_FIELD (CHGrunt, m_vecTossVelocity, FIELD_VECTOR),
-		DEFINE_FIELD (CHGrunt, m_fThrowGrenade, FIELD_BOOLEAN),
-		DEFINE_FIELD (CHGrunt, m_fStanding, FIELD_BOOLEAN),
-		DEFINE_FIELD (CHGrunt, m_fFirstEncounter, FIELD_BOOLEAN),
-		DEFINE_FIELD (CHGrunt, m_cClipSize, FIELD_INTEGER),
-		DEFINE_FIELD (CHGrunt, m_voicePitch, FIELD_INTEGER),
-		DEFINE_FIELD (CHGrunt, m_iSentence, FIELD_INTEGER),
+	DEFINE_FIELD (CHGrunt, m_flNextGrenadeCheck, FIELD_TIME),
+	DEFINE_FIELD (CHGrunt, m_flNextPainTime, FIELD_TIME),
+	DEFINE_FIELD (CHGrunt, m_vecTossVelocity, FIELD_VECTOR),
+	DEFINE_FIELD (CHGrunt, m_fThrowGrenade, FIELD_BOOLEAN),
+	DEFINE_FIELD (CHGrunt, m_fStanding, FIELD_BOOLEAN),
+	DEFINE_FIELD (CHGrunt, m_fFirstEncounter, FIELD_BOOLEAN),
+	DEFINE_FIELD (CHGrunt, m_cClipSize, FIELD_INTEGER),
+	DEFINE_FIELD (CHGrunt, m_voicePitch, FIELD_INTEGER),
+	DEFINE_FIELD (CHGrunt, m_iSentence, FIELD_INTEGER),
 	};
 
 IMPLEMENT_SAVERESTORE (CHGrunt, CSquadMonster);
 
 const char* CHGrunt::pGruntSentences[] =
 	{
-		"HG_GREN",		// grenade scared grunt
-		"HG_ALERT",		// sees player
-		"HG_MONSTER",	// sees monster
-		"HG_COVER",		// running to cover
-		"HG_THROW",		// about to throw grenade
-		"HG_CHARGE",	// running out to get the enemy
-		"HG_TAUNT",		// say rude things
+	"HG_GREN",		// grenade scared grunt
+	"HG_ALERT",		// sees player
+	"HG_MONSTER",	// sees monster
+	"HG_COVER",		// running to cover
+	"HG_THROW",		// about to throw grenade
+	"HG_CHARGE",	// running out to get the enemy
+	"HG_TAUNT",		// say rude things
 	};
 
 enum
@@ -1030,10 +1032,10 @@ void CHGrunt::Precache ()
 
 	PRECACHE_SOUND ("zombie/claw_miss2.wav");	// because we use the basemonster SWIPE animation event
 
-	// ESHQ: изменение тембра
-	m_voicePitch = 95 + RANDOM_LONG (0, 11);
+	// ESHQ: изменение тембра отключено из-за ухудшения качества на новом движке
+	m_voicePitch = PITCH_NORM + RANDOM_LONG (0, 5); //95 + RANDOM_LONG (0, 11);
 
-	m_iBrassShell = PRECACHE_MODEL ("models/shell.mdl");// brass shell
+	m_iBrassShell = PRECACHE_MODEL ("models/shell.mdl");	// brass shell
 	m_iShotgunShell = PRECACHE_MODEL ("models/shotgunshell.mdl");
 	}
 
@@ -2154,10 +2156,7 @@ Schedule_t* CHGrunt::GetScheduleOfType (int Type)
 			else
 				{
 				// ESHQ: удалена обработка события DropGrenade
-				/*if (RANDOM_LONG (0, 1))*/
-				return &slGruntTakeCover[0];
-					
-				/*return &slGruntGrenadeCover[0];*/
+				return &slGruntTakeCover[0];					
 				}
 			}
 
