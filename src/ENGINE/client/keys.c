@@ -19,28 +19,45 @@ GNU General Public License for more details
 #include "vgui_draw.h"
 #include "platform/platform.h"
 
+// [FWGS, 01.04.26]
 typedef struct
 	{
-	qboolean	down;
+	/*qboolean	down;
 	qboolean	gamedown;
 	int			repeats;	// if > 1, it is autorepeating
+	const char	*binding;*/
 	const char	*binding;
+	uint	down : 1;
+	uint	gamedown : 1;
+	uint	repeats : 30;	// if > 1, it is autorepeating
 	} enginekey_t;
 
+// [FWGS, 01.04.26]
 typedef struct keyname_s
 	{
-	const char	*name;		// key name
+	/*const char	*name;		// key name
 	int			keynum;		// key number
+	const char	*binding;	// default bind*/
+	const char	*name;		// key name
+	int		keynum;			// key number
 	const char	*binding;	// default bind
 	} keyname_t;
 
-// [FWGS, 22.01.25]
-static enginekey_t keys[256];
+/*// [FWGS, 22.01.25]
+static enginekey_t keys[256];*/
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.04.26] 512 is the maximum amount of scancodes supported by SDL2
+// but we don't use that much, only about 255 like Quake/HL, add 9 additional
+// keys for international keyboards, that gives us 264 keys total
+//
+// as no limit is imposed by client.dll API, this can be safely extended
+// if needed
+static enginekey_t keys[265];
+
+// [FWGS, 01.04.26]
 static const keyname_t keynames[] =
 	{
-	{"TAB",			K_TAB,			""},
+	/*{"TAB",			K_TAB,			""},
 	{"ENTER",		K_ENTER,		""},
 	{"ESCAPE",		K_ESCAPE,		"cancelselect" }, // hardcoded
 	{"SPACE",		K_SPACE,		"+jump"},
@@ -71,19 +88,58 @@ static const keyname_t keynames[] =
 	{"PGDN",		K_PGDN,			"+lookup"},
 	{"PGUP",		K_PGUP,			""},
 	{"HOME",		K_HOME,			""},
-	{"END",			K_END,			"centerview"},
+	{"END",			K_END,			"centerview"},*/
+	{ "TAB",		K_TAB,			"" },
+	{ "ENTER",		K_ENTER,		"" },
+	{ "ESCAPE",		K_ESCAPE,		"cancelselect" }, // hardcoded
+	{ "SPACE",		K_SPACE,		"+jump" },
+	{ "BACKSPACE",	K_BACKSPACE,	"" },
+	{ "UPARROW",	K_UPARROW,		"+forward" },
+	{ "DOWNARROW",	K_DOWNARROW,	"+back" },
+	{ "LEFTARROW",	K_LEFTARROW,	"+left" },
+	{ "RIGHTARROW",	K_RIGHTARROW,	"+right" },
+	{ "ALT",		K_ALT,			"+strafe" },
+	{ "CTRL",		K_CTRL,			"+attack" },
+	{ "SHIFT",		K_SHIFT,		"+speed" },
+	{ "CAPSLOCK",	K_CAPSLOCK,		"" },
+	{ "SCROLLOCK",	K_SCROLLLOCK,	"" },
+	{ "F1",			K_F1,			"cmd help" },
+	{ "F2",			K_F2,			"menu_savegame" },
+	{ "F3",			K_F3,			"menu_loadgame" },
+	{ "F4",			K_F4,			"menu_controls" },
+	{ "F5",			K_F5,			"menu_creategame" },
+	{ "F6",			K_F6,			"savequick" },
+	{ "F7",			K_F7,			"loadquick" },
+	{ "F8",			K_F8,			"stop" },
+	{ "F9",			K_F9,			"" },
+	{ "F10",		K_F10,			"menu_main" },
+	{ "F11",		K_F11,			"" },
+	{ "F12",		K_F12,			"snapshot" },
+	{ "INS",		K_INS,			"" },
+	{ "DEL",		K_DEL,			"+lookdown" },
+	{ "PGDN",		K_PGDN,			"+lookup" },
+	{ "PGUP",		K_PGUP,			"" },
+	{ "HOME",		K_HOME,			"" },
+	{ "END",		K_END,			"centerview" },
 
 	// mouse buttouns
-	{"MOUSE1",		K_MOUSE1,		"+attack"},
+	/*{"MOUSE1",		K_MOUSE1,		"+attack"},
 	{"MOUSE2",		K_MOUSE2,		"+attack2"},
 	{"MOUSE3",		K_MOUSE3,		""},
 	{"MOUSE4",		K_MOUSE4,		""},
 	{"MOUSE5",		K_MOUSE5,		""},
 	{"MWHEELUP",	K_MWHEELUP,		""},
-	{"MWHEELDOWN",	K_MWHEELDOWN,	""},
+	{"MWHEELDOWN",	K_MWHEELDOWN,	""},*/
+	{ "MOUSE1",		K_MOUSE1,		"+attack" },
+	{ "MOUSE2",		K_MOUSE2,		"+attack2" },
+	{ "MOUSE3",		K_MOUSE3,		"" },
+	{ "MOUSE4",		K_MOUSE4,		"" },
+	{ "MOUSE5",		K_MOUSE5,		"" },
+	{ "MWHEELUP",	K_MWHEELUP,		"" },
+	{ "MWHEELDOWN",	K_MWHEELDOWN,	"" },
 
 	// digital keyboard
-	{"KP_HOME",		K_KP_HOME,		""	},
+	/*{"KP_HOME",		K_KP_HOME,		""	},
 	{"KP_UPARROW",	K_KP_UPARROW,	"+forward"},
 	{"KP_PGUP",		K_KP_PGUP,		""},
 	{"KP_LEFTARROW",	K_KP_LEFTARROW,	"+left"},
@@ -98,11 +154,27 @@ static const keyname_t keynames[] =
 	{"KP_SLASH",	K_KP_SLASH,		""},
 	{"KP_MINUS",	K_KP_MINUS,		""},
 	{"KP_PLUS",		K_KP_PLUS,		""},
-	{"PAUSE",		K_PAUSE,		"pause"},
+	{"PAUSE",		K_PAUSE,		"pause"},*/
+	{ "KP_HOME",	K_KP_HOME,		"" },
+	{ "KP_UPARROW",	K_KP_UPARROW,	"+forward" },
+	{ "KP_PGUP",	K_KP_PGUP,		"" },
+	{ "KP_LEFTARROW",	K_KP_LEFTARROW,		"+left" },
+	{ "KP_5",		K_KP_5,			"" },
+	{ "KP_RIGHTARROW",	K_KP_RIGHTARROW,	"+right" },
+	{ "KP_END",		K_KP_END,		"centerview" },
+	{ "KP_DOWNARROW",	K_KP_DOWNARROW,		"+back" },
+	{ "KP_PGDN",	K_KP_PGDN,		"+lookup" },
+	{ "KP_ENTER",	K_KP_ENTER,		"" },
+	{ "KP_INS",		K_KP_INS,		"" },
+	{ "KP_DEL",		K_KP_DEL,		"+lookdown" },
+	{ "KP_SLASH",	K_KP_SLASH,		"" },
+	{ "KP_MINUS",	K_KP_MINUS,		"" },
+	{ "KP_PLUS",	K_KP_PLUS,		"" },
+	{ "PAUSE",		K_PAUSE,		"pause" },
 
 	// Gamepad
 	// A/B X/Y names match the Xbox controller layout
-	{"A_BUTTON",	K_A_BUTTON,		"+jump"},
+	/*{"A_BUTTON",	K_A_BUTTON,		"+jump"},
 	{"B_BUTTON",	K_B_BUTTON,		"+use"},
 	{"X_BUTTON",	K_X_BUTTON,		"+reload"},
 	{"Y_BUTTON",	K_Y_BUTTON,		"impulse 100"},	// Flashlight
@@ -137,10 +209,58 @@ static const keyname_t keynames[] =
 	{"AUX29",		K_AUX29,		""},
 	{"AUX30",		K_AUX30,		""},
 	{"AUX31",		K_AUX31,		""},
-	{"AUX32",		K_AUX32,		""},
+	{"AUX32",		K_AUX32,		""},*/
+	{ "A_BUTTON",	K_A_BUTTON,		"+jump" },
+	{ "B_BUTTON",	K_B_BUTTON,		"+use" },
+	{ "X_BUTTON",	K_X_BUTTON,		"+reload" },
+	{ "Y_BUTTON",	K_Y_BUTTON,		"impulse 100" },	// Flashlight
+	{ "BACK",		K_BACK_BUTTON,	"pause" },			// Menu
+	{ "MODE",		K_MODE_BUTTON,	"" },
+	{ "START",		K_START_BUTTON,	"cancelselect" },
+	{ "STICK1",		K_LSTICK,		"+speed" },
+	{ "STICK2",		K_RSTICK,		"+duck" },
+	{ "L1_BUTTON",	K_L1_BUTTON,	"+duck" },
+	{ "R1_BUTTON",	K_R1_BUTTON,	"+attack" },
+	{ "DPAD_UP",	K_DPAD_UP,		"impulse 201" },	// Spray
+	{ "DPAD_DOWN",	K_DPAD_DOWN,	"lastinv" },
+	{ "DPAD_LEFT",	K_DPAD_LEFT,	"invprev" },
+	{ "DPAD_RIGHT",	K_DPAD_RIGHT,	"invnext" },
+	{ "L2_BUTTON",	K_L2_BUTTON,	"+speed" },
+	{ "R2_BUTTON",	K_R2_BUTTON,	"+attack2" },
+	{ "LTRIGGER",	K_JOY1,			"+speed" },		// L2 in SDL2
+	{ "RTRIGGER",	K_JOY2,			"+attack2" },	// R2 in SDL2
+	{ "JOY3",		K_JOY3,			"" },
+	{ "JOY4",		K_JOY4,			"" },
+	{ "C_BUTTON",	K_C_BUTTON,		"" },
+	{ "Z_BUTTON",	K_Z_BUTTON,		"" },
+	{ "MISC_BUTTON",	K_MISC_BUTTON,	"" },
+	{ "PADDLE1",	K_PADDLE1_BUTTON,	"" },
+	{ "PADDLE2",	K_PADDLE2_BUTTON,	"" },
+	{ "PADDLE3",	K_PADDLE3_BUTTON,	"" },
+	{ "PADDLE4",	K_PADDLE4_BUTTON,	"" },
+	{ "TOUCHPAD",	K_TOUCHPAD,		"" },
+	{ "AUX26",		K_AUX26,		"" },	// generic
+	{ "AUX27",		K_AUX27,		"" },
+	{ "AUX28",		K_AUX28,		"" },
+	{ "AUX29",		K_AUX29,		"" },
+	{ "AUX30",		K_AUX30,		"" },
+	{ "AUX31",		K_AUX31,		"" },
+	{ "AUX32",		K_AUX32,		"" },
 
 	// raw semicolon seperates commands
-	{"SEMICOLON",	';',			""},
+	/*{"SEMICOLON",	';',			""},*/
+	{ "SEMICOLON",	';',			"" },
+
+	// extended keys set
+	{ "INTERNATIONAL1",	K_INTERNATIONAL,		"" },
+	{ "INTERNATIONAL2",	K_INTERNATIONAL + 1,	"" },
+	{ "INTERNATIONAL3",	K_INTERNATIONAL + 2,	"" },
+	{ "INTERNATIONAL4",	K_INTERNATIONAL + 3,	"" },
+	{ "INTERNATIONAL5",	K_INTERNATIONAL + 4,	"" },
+	{ "INTERNATIONAL6",	K_INTERNATIONAL + 5,	"" },
+	{ "INTERNATIONAL7",	K_INTERNATIONAL + 6,	"" },
+	{ "INTERNATIONAL8",	K_INTERNATIONAL + 7,	"" },
+	{ "INTERNATIONAL9",	K_INTERNATIONAL + 8,	"" },
 	};
 
 static void OSK_EnableTextInput (qboolean enable, qboolean force);
@@ -166,7 +286,7 @@ int GAME_EXPORT Key_IsDown (int keynum)
 
 /***
 ===================
-Key_StringToKeynum [FWGS, 22.01.25]
+Key_StringToKeynum
 
 Returns a key number to be used to index keys[] by looking at
 the given string.  Single ascii characters return themselves, while
@@ -187,9 +307,11 @@ static int Key_StringToKeynum (const char *str)
 	if (!str[1])
 		return str[0];
 
-	// check for hex code
-	if ((str[0] == '0') && (str[1] == 'x') && (Q_strlen (str) == 4))
-		return COM_Nibble (str[2]) << 4 | COM_Nibble (str[3]);
+	// [FWGS, 01.04.26] check for hex code
+	/*if ((str[0] == '0') && (str[1] == 'x') && (Q_strlen (str) == 4))
+		return COM_Nibble (str[2]) << 4 | COM_Nibble (str[3]);*/
+	if ((str[0] == '0') && (str[1] == 'x'))
+		return Q_atoi (str);
 
 	// scan for a text match
 	for (i = 0; i < HLARRAYSIZE (keynames); i++)
@@ -203,7 +325,7 @@ static int Key_StringToKeynum (const char *str)
 
 /***
 ===================
-Key_KeynumToString [FWGS, 01.02.25]
+Key_KeynumToString [FWGS, 01.04.26]
 
 Returns a string (either a single ascii char, a K_* name,
 or a 0x11 hex string) for the given keynum
@@ -211,13 +333,15 @@ or a 0x11 hex string) for the given keynum
 ***/
 const char *Key_KeynumToString (int keynum)
 	{
-	static char	tinystr[5];
-	int		i, j;
+	/*static char	tinystr[5];
+	int		i, j;*/
+	static char tinystr[16];
 
 	if (keynum == -1)
 		return "<KEY NOT FOUND>";
 
-	if ((keynum < 0) || (keynum > 255))
+	/*if ((keynum < 0) || (keynum > 255))*/
+	if ((keynum < 0) || (keynum >= HLARRAYSIZE (keys)))
 		return "<OUT OF RANGE>";
 
 	// check for printable ascii (don't use quote)
@@ -229,13 +353,14 @@ const char *Key_KeynumToString (int keynum)
 		}
 
 	// check for a key string
-	for (i = 0; i < HLARRAYSIZE (keynames); i++)
+	/*for (i = 0; i < HLARRAYSIZE (keynames); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keynames); i++)
 		{
 		if (keynum == keynames[i].keynum)
 			return keynames[i].name;
 		}
 
-	// make a hex string
+	/*// make a hex string
 	i = keynum >> 4;
 	j = keynum & 15;
 
@@ -243,7 +368,8 @@ const char *Key_KeynumToString (int keynum)
 	tinystr[1] = 'x';
 	tinystr[2] = i > 9 ? i - 10 + 'a' : i + '0';
 	tinystr[3] = j > 9 ? j - 10 + 'a' : j + '0';
-	tinystr[4] = 0;
+	tinystr[4] = 0;*/
+	Q_snprintf (tinystr, sizeof (tinystr), "0x%x", keynum);
 
 	return tinystr;
 	}
@@ -272,19 +398,22 @@ void GAME_EXPORT Key_SetBinding (int keynum, const char *binding)
 
 /***
 ===================
-Key_GetBinding
+Key_GetBinding [FWGS, 01.04.26]
 ===================
 ***/
 const char *Key_GetBinding (int keynum)
 	{
+	/*if (keynum == -1)
+		return NULL;*/
 	if (keynum == -1)
 		return NULL;
+
 	return keys[keynum].binding;
 	}
 
 /***
 ===================
-Key_GetKey [FWGS, 22.01.25]
+Key_GetKey
 ===================
 ***/
 static int Key_GetKey (const char *pBinding)
@@ -297,7 +426,9 @@ static int Key_GetKey (const char *pBinding)
 
 	len = Q_strlen (pBinding);
 
-	for (i = 0; i < 256; i++)
+	// [FWGS, 01.04.26]
+	/*for (i = 0; i < 256; i++)*/
+	for (i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (!keys[i].binding)
 			continue;
@@ -466,8 +597,9 @@ void Key_WriteBindings (file_t *f)
 
 	FS_Printf (f, "unbindall\n");
 
-	// [FWGS, 01.03.26]
-	for (i = 0; i < 256; i++)
+	// [FWGS, 01.04.26]
+	/*for (i = 0; i < 256; i++)*/
+	for (i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		/*if (!COM_CheckString (keys[i].binding))*/
 		if (COM_StringEmptyOrNULL (keys[i].binding))
@@ -493,8 +625,9 @@ static void Key_Bindlist_f (void)
 	{
 	int	i;
 
-	// [FWGS, 01.03.26]
-	for (i = 0; i < 256; i++)
+	// [FWGS, 01.04.26]
+	/*for (i = 0; i < 256; i++)*/
+	for (i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		/*if (!COM_CheckString (keys[i].binding))*/
 		if (COM_StringEmptyOrNULL (keys[i].binding))
@@ -502,6 +635,63 @@ static void Key_Bindlist_f (void)
 
 		Con_Printf ("%s \"%s\"\n", Key_KeynumToString (i), keys[i].binding);
 		}
+	}
+
+/***
+=====================================
+Cmd_GetKeysList [FWGS, 01.04.26]
+
+Autocomplete for bind command
+=====================================
+***/
+qboolean Cmd_GetKeysList (const char *s, char *completedname, int length, qboolean print_suggestions)
+	{
+	size_t	i, numkeys;
+	string	keys_strings[HLARRAYSIZE (keys)];
+	string	matchbuf;
+	int		len;
+
+	// compare keys list with current keyword
+	len = Q_strlen (s);
+
+	for (i = 0, numkeys = 0; i < HLARRAYSIZE (keys); i++)
+		{
+		const char *keyname = Key_KeynumToString (i);
+
+		if ((*s == '*') || !Q_strnicmp (keyname, s, len))
+			Q_strncpy (keys_strings[numkeys++], keyname, sizeof (keys[0]));
+		}
+
+	if (!numkeys)
+		return false;
+
+	Q_strncpy (matchbuf, keys_strings[0], sizeof (matchbuf));
+	if (completedname && length)
+		Q_strncpy (completedname, matchbuf, length);
+
+	if (numkeys == 1)
+		return true;
+
+	for (i = 0; i < numkeys; i++)
+		{
+		Q_strncpy (matchbuf, keys_strings[i], sizeof (matchbuf));
+		if (print_suggestions)
+			Con_Printf ("%16s\n", matchbuf);
+		}
+
+	if (print_suggestions)
+		Con_Printf ("\n^3 %zu keys found.\n", numkeys);
+
+	if (completedname && length)
+		{
+		for (i = 0; matchbuf[i]; i++)
+			{
+			if (Q_tolower (completedname[i]) != Q_tolower (matchbuf[i]))
+				completedname[i] = 0;
+			}
+		}
+
+	return true;
 	}
 
 /***
@@ -678,11 +868,13 @@ void GAME_EXPORT Key_Event (int key, int down)
 	if (!keys[key].down && !down)
 		return;
 
+	// [FWGS, 01.04.26]
 	kb = keys[key].binding;
-	keys[key].down = down;
+	/*keys[key].down = down;*/
+	keys[key].down = down ? true : false;
 
 #ifdef HACKS_RELATED_HLMODS
-	if ((cls.key_dest == key_game) && (cls.state == ca_cinematic) && (key != K_ESCAPE || !down))
+	if ((cls.key_dest == key_game) && (cls.state == ca_cinematic) && ((key != K_ESCAPE) || !down))
 		{
 		// only escape passed when cinematic is playing
 		// HLFX 0.6 bug: crash in vgui3.dll while press +attack during movie playback
@@ -892,8 +1084,9 @@ void GAME_EXPORT Key_ClearStates (void)
 	if (cls.changelevel)
 		return;
 
-	// [FWGS, 01.03.25]
-	for (i = 0; i < 256; i++)
+	// [FWGS, 01.04.26]
+	/*for (i = 0; i < 256; i++)*/
+	for (i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if ((i >= K_MOUSE1) && (i <= K_MOUSE5))
 			IN_MouseEvent (i - K_MOUSE1, false);

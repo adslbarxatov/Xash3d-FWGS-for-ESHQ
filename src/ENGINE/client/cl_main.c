@@ -26,8 +26,8 @@ GNU General Public License for more details
 #include "pm_local.h"
 //include "multi_emulator.h"	// ESHQ: исключён
 
-// [FWGS, 01.11.25]
-#define MAX_CMD_BUFFER			8000
+// [FWGS, 01.04.26]
+/*define MAX_CMD_BUFFER			8000*/
 #define CL_CONNECTION_TIMEOUT	15.0f
 #define CL_CONNECTION_RETRIES	5
 #define CL_TEST_RETRIES			5
@@ -162,8 +162,10 @@ static CVAR_DEFINE_AUTO (bottomcolor, "0", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVA
 CVAR_DEFINE_AUTO (rate, "25000", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"player network rate");
 
-// [FWGS, 01.12.24]
-static CVAR_DEFINE_AUTO (cl_ticket_generator, "revemu2013", FCVAR_ARCHIVE,
+// [FWGS, 01.04.26]
+/*static CVAR_DEFINE_AUTO (cl_ticket_generator, "revemu2013", FCVAR_ARCHIVE,
+	"you wouldn't steal a car");*/
+CVAR_DEFINE_AUTO (cl_ticket_generator, "revemu2013", FCVAR_ARCHIVE,
 	"you wouldn't steal a car");
 
 // [FWGS, 01.07.25] ESHQ: отклонено значение true по умолчанию
@@ -870,7 +872,7 @@ void CL_WriteUsercmd (connprotocol_t proto, sizebuf_t *msg, int from, int to)
 
 /***
 ===================
-CL_WritePacket [FWGS, 01.02.25]
+CL_WritePacket
 
 Create and send the command packet to the server
 Including both the reliable commands and the usercmds
@@ -878,6 +880,9 @@ Including both the reliable commands and the usercmds
 ***/
 static void CL_WritePacket (void)
 	{
+	// [FWGS, 01.04.26]
+	enum { MAX_CMD_BUFFER = 8000 };
+
 	sizebuf_t	buf;
 	byte		data[MAX_CMD_BUFFER] = { 0 };
 	runcmd_t	*pcmd;
@@ -4051,6 +4056,9 @@ void Host_ClientBegin (void)
 	// if running the server locally, make intentions now
 	if (SV_Active ())
 		CL_SendCommand ();
+
+	// [FWGS, 01.04.26]
+	SteamBroker_Frame ();
 	}
 
 /***

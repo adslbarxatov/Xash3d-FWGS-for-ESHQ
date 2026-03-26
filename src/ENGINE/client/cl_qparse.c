@@ -13,11 +13,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.04.26]
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
-#include "particledef.h"
+/*include "particledef.h"*/
 #include "cl_tent.h"
 #include "shake.h"
 /*include "hltv.h"*/
@@ -113,7 +113,8 @@ static int CL_UpdateQuakeStats (sizebuf_t *msg, int statnum, qboolean has_update
 		{
 		if (statnum == STAT_HEALTH)
 			value = MSG_ReadShort (msg);
-		else value = MSG_ReadByte (msg);
+		else
+			value = MSG_ReadByte (msg);
 		}
 
 	MSG_WriteLong (&msg_demo, value);

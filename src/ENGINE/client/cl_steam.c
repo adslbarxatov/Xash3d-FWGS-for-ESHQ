@@ -38,19 +38,31 @@ static struct
 	netadr_t	adr;
 	int			challenge;
 	netadr_t	serveradr;
+
+	// [FWGS, 01.04.26]
+	qboolean	announced;
+	qboolean	addr_initialized;
 	} broker;
 
-qboolean SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge)
+// [FWGS, 01.04.26]
+/*qboolean SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge)*/
+static qboolean SteamBroker_UpdateBrokerAddress (void)
 	{
 	if (NET_NetadrType (&broker.adr) == NA_UNDEFINED)
 		{
 		if (!NET_StringToAdr (cl_steam_broker_addr.string, &broker.adr))
-			{
-			Con_Printf ("%s: NET_StringToAdr( %s ) failed\n", __func__, cl_steam_broker_addr.string);
+			/*{
+			Con_Printf ("%s: NET_StringToAdr( %s ) failed\n", __func__, cl_steam_broker_addr.string);*/
 			return false;
-			}
+		/*}*/
 		}
 
+	return true;
+	}
+
+// [FWGS, 01.04.26]
+qboolean SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge)
+	{
 	// only ipv4 supported
 	if (NET_NetadrType (&serveradr) != NA_IP)
 		return false;
@@ -68,32 +80,105 @@ qboolean SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge)
 	return true;
 	}
 
+// [FWGS, 01.04.26]
 void SteamBroker_TerminateGameConnection (void)
 	{
-	if (NET_NetadrType (&broker.adr) == NA_UNDEFINED)
-		return;
-
+	/*if (NET_NetadrType (&broker.adr) == NA_UNDEFINED)*/
 	if (NET_NetadrType (&cls.serveradr) != NA_IP)
 		return;
 
-	if (cls.legacymode != PROTO_GOLDSRC)
+	/*if (NET_NetadrType (&cls.serveradr) != NA_IP)*/
+	if (Q_stricmp (cl_ticket_generator.string, "steam") != 0)
 		return;
 
-	// sb_terminate <ip:port> <challenge>
-	char buf[512];
-	int len = Q_snprintf (buf, sizeof (buf), "sb_terminate %s %d", NET_AdrToString (cls.serveradr), broker.challenge);
+	/*if (cls.legacymode != PROTO_GOLDSRC)*/
+	// sb_disconnect <ip:port> <challenge>
+	char	buf[512];
+	int		len = Q_snprintf (buf, sizeof (buf), "sb_disconnect %s %d", NET_AdrToString (cls.serveradr), broker.challenge);
 
 	NET_SendPacket (NS_CLIENT, len, buf, broker.adr);
-	NET_NetadrSetType (&broker.adr, NA_UNDEFINED);
+	}
+
+// [FWGS, 01.04.26]
+void SteamBroker_AnnounceGameStart (const char *gamedir)
+	{
+	if (Q_stricmp (cl_ticket_generator.string, "steam") != 0)
+		return;
+
+	/*// sb_terminate <ip:port> <challenge>*/
+	NET_Config (true, true);	// initialize sockets to be able to send packets to broker
+	char buf[512];
+
+	/*int len = Q_snprintf (buf, sizeof (buf), "sb_terminate %s %d", NET_AdrToString (cls.serveradr), broker.challenge);*/
+	int len = Q_snprintf (buf, sizeof (buf), "sb_gamedir %s", gamedir);
+
+	NET_SendPacket (NS_CLIENT, len, buf, broker.adr);
+	/*NET_NetadrSetType (&broker.adr, NA_UNDEFINED);*/
+	}
+
+// [FWGS, 01.04.26]
+void SteamBroker_AnnounceGameShutdown (netadr_t broker_addr)
+	{
+	NET_SendPacket (NS_CLIENT, sizeof ("sb_terminate") - 1, "sb_terminate", broker_addr);
+	}
+
+// [FWGS, 01.04.26]
+void SteamBroker_Frame (void)
+	{
+	if (Q_stricmp (cl_ticket_generator.string, "steam") != 0)
+		return;
+
+	qboolean restart = FBitSet (cl_steam_broker_addr.flags | cl_ticket_generator.flags, FCVAR_CHANGED);
+
+	if (!broker.addr_initialized)
+		{
+		if (!SteamBroker_UpdateBrokerAddress ())
+			{
+			Con_Printf ("%s: failed to resolve broker address \"%s\"\n", __func__, cl_steam_broker_addr.string);
+			return;
+			}
+		else
+			{
+			broker.addr_initialized = true;
+			}
+		}
+
+	if (restart)
+		{
+		broker.announced = false;
+		ClearBits (cl_ticket_generator.flags, FCVAR_CHANGED);
+		ClearBits (cl_steam_broker_addr.flags, FCVAR_CHANGED);
+		}
+
+	if (!broker.announced)
+		{
+		netadr_t previous_addr = broker.adr;
+		if (!SteamBroker_UpdateBrokerAddress ())
+			{
+			Con_Printf ("%s: failed to resolve broker address \"%s\"\n", __func__, cl_steam_broker_addr.string);
+			}
+		else
+			{
+			if (restart)
+				{
+				// terminate old steam broker if instance address has changed
+				SteamBroker_AnnounceGameShutdown (previous_addr);
+				}
+
+			SteamBroker_AnnounceGameStart (GI->gamefolder);
+			}
+
+		broker.announced = true;
+		}
 	}
 
 void SteamBroker_HandlePacket (netadr_t from, sizebuf_t *msg)
 	{
 	// message format
 	// sb_connect\n<4 byte challenge><8 byte steamid><unsigned 4 byte len><len bytes ticket>
-	int challenge;
-	uint32_t len;
-	uint8_t ticket[2048]; // 2048 bytes according to SDK docs
+	int			challenge;
+	uint32_t	len;
+	uint8_t		ticket[2048];	// 2048 bytes according to SDK docs
 
 	if (!NET_CompareAdr (from, broker.adr))
 		return;
@@ -118,12 +203,21 @@ void SteamBroker_HandlePacket (netadr_t from, sizebuf_t *msg)
 	cls.broker_wait = false;
 	}
 
+// [FWGS, 01.04.26]
 void SteamBroker_Init (void)
 	{
+	broker.announced = false;
+	broker.addr_initialized = false;
+
 	Cvar_RegisterVariable (&cl_steam_broker_addr);
 	NET_NetadrSetType (&broker.adr, NA_UNDEFINED);
 	}
 
+// [FWGS, 01.04.26]
 void SteamBroker_Shutdown (void)
 	{
+	if (Q_stricmp (cl_ticket_generator.string, "steam") != 0)
+		return;
+
+	SteamBroker_AnnounceGameShutdown (broker.adr);
 	}

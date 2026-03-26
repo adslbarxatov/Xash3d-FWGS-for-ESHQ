@@ -452,6 +452,9 @@ void CL_DrawCenterPrint (void)
 	CL_DrawCharacterLen (font, 0, NULL, &charHeight);
 	CL_SetFontRendermode (font);
 
+	// [FWGS, 01.04.26]
+	CL_SetFontColor (font, colorDefault);
+
 	for (i = 0; i < clgame.centerPrint.lines; i++)
 		{
 		lineLength = 0;
@@ -480,11 +483,12 @@ void CL_DrawCenterPrint (void)
 
 		x = CL_AdjustXPos (-1, width, clgame.centerPrint.totalWidth);
 
-		// [FWGS, 01.09.25]
+		// [FWGS, 01.04.26]
 		for (j = 0; j < lineLength; j++)
 			{
 			if ((x >= 0) && (y >= 0) && (x <= refState.width))
-				x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);
+				/*x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);*/
+				x += CL_DrawCharacter (x, y, line[j], NULL, font, FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE | FONT_DRAW_NOCOLOR);
 			}
 
 		y += charHeight;
