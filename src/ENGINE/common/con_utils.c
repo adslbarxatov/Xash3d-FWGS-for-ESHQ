@@ -658,17 +658,20 @@ static qboolean Cmd_GetItemsList (const char *s, char *completedname, int length
 	return false;
 	}
 
-/***
+// [FWGS, 01.04.26] removed Cmd_GetKeysList
+
+/*
+/
 =====================================
 Cmd_GetKeysList [FWGS, 01.03.26]
 
 Autocomplete for bind command
 =====================================
-***/
-/*static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)*/
+/
+static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length)
 static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length, qboolean print_suggestions)
 	{
-#if !XASH_DEDICATED
+if !XASH_DEDICATED
 	size_t	i, numkeys;
 	string	keys[256];
 	string	matchbuf;
@@ -696,12 +699,12 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length,
 	for (i = 0; i < numkeys; i++)
 		{
 		Q_strncpy (matchbuf, keys[i], sizeof (matchbuf));
-		/*Con_Printf ("%16s\n", matchbuf);*/
+		Con_Printf ("%16s\n", matchbuf);
 		if (print_suggestions)
 			Con_Printf ("%16s\n", matchbuf);
 		}
 
-	/*Con_Printf ("\n^3 %zu keys found.\n", numkeys);*/
+	Con_Printf ("\n^3 %zu keys found.\n", numkeys);
 	if (print_suggestions)
 		Con_Printf ("\n^3 %zu keys found.\n", numkeys);
 
@@ -715,10 +718,10 @@ static qboolean Cmd_GetKeysList (const char *s, char *completedname, int length,
 		}
 
 	return true;
-#endif
+endif
 
 	return false;
-	}
+	}*/
 
 /***
 ===============
@@ -1222,25 +1225,34 @@ int GAME_EXPORT Cmd_CheckMapsList (int fRefresh)
 	return Cmd_CheckMapsList_R (fRefresh, true);
 	}
 
-// [FWGS, 01.03.25] keep this sorted
+// [FWGS, 01.04.26] keep this sorted
 static const autocomplete_list_t cmd_list[] =
 	{
+#if !XASH_DEDICATED
 	{ "bind", 1, Cmd_GetKeysList },
 	{ "bind", 2, Cmd_GetCommandsList },
 	{ "cd", 1, Cmd_GetCDList },
+#endif
 	{ "changelevel2", 1, Cmd_GetMapList },
 	{ "changelevel", 1, Cmd_GetMapList },
+#if !XASH_DEDICATED
 	{ "drop", 1, Cmd_GetItemsList },
+#endif
 	{ "entpatch", 1, Cmd_GetMapList },
 	{ "exec", 1, Cmd_GetConfigList },
 	{ "game", 1, Cmd_GetGamesList },
+#if !XASH_DEDICATED
 	{ "give", 1, Cmd_GetItemsList },
+#endif
 	{ "hpkextract", 1, Cmd_GetCustomList },
 	{ "hpklist", 1, Cmd_GetCustomList },
 	{ "hpkval", 1, Cmd_GetCustomList },
+#if !XASH_DEDICATED
 	{ "listdemo", 1, Cmd_GetDemoList, },
+#endif
 	{ "load", 1, Cmd_GetSavesList },
 	{ "map", 1, Cmd_GetMapList },
+#if !XASH_DEDICATED
 	{ "map_background", 1, Cmd_GetMapList },
 	{ "movie", 1, Cmd_GetMovieList },
 	{ "mp3", 1, Cmd_GetCDList },
@@ -1248,12 +1260,17 @@ static const autocomplete_list_t cmd_list[] =
 	{ "play", 1, Cmd_GetSoundList },
 	{ "playdemo", 1, Cmd_GetDemoList, },
 	{ "playvol", 1, Cmd_GetSoundList },
+#endif
 	{ "reset", 1, Cmd_GetCvarsList },
 	{ "save", 1, Cmd_GetSavesList },
 	{ "set", 1, Cmd_GetCvarsList },
+#if !XASH_DEDICATED
 	{ "timedemo", 1, Cmd_GetDemoList },
+#endif
 	{ "toggle", 1, Cmd_GetCvarsList },
+#if !XASH_DEDICATED
 	{ "unbind", 1, Cmd_GetKeysList },
+#endif
 	};
 
 /***

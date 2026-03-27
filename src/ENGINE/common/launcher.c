@@ -36,9 +36,12 @@ endif*/
 	#error "Single-binary or dedicated builds aren't supported for Windows!"
 #endif
 
-static char		szGameDir[128]; // safe place to keep gamedir
+// [FWGS, 01.04.26]
+/*static char		szGameDir[128]; // safe place to keep gamedir
 static int		szArgc;
-static char		**szArgv;
+static char		**szArgv;*/
+static int	szArgc;
+static char	**szArgv;
 
 // [FWGS, 22.01.25]
 static void Sys_ChangeGame (const char *progname)
@@ -46,42 +49,23 @@ static void Sys_ChangeGame (const char *progname)
 	// stub
 	}
 
-// [FWGS, 01.07.25]
+// [FWGS, 01.04.26] removed Sys_Start
+
+/*// [FWGS, 01.07.25]
 static int Sys_Start (void)
 	{
 	Q_strncpy (szGameDir, XASH_GAMEDIR, sizeof (szGameDir));
 
 // [FWGS, 01.03.26]
-/*if XASH_EMSCRIPTEN
-if !XASH_DEDICATED
-
-	EM_ASM (try
-		{
-		FS.mkdir ('/rwdir');
-		FS.mount (IDBFS, { root: '.' }, '/rwdir');
-		}
-	catch (e) {};);
-
-else
-
-	EM_ASM (try
-		{
-		FS.mkdir ('/xash');
-		FS.mount (NODEFS, { root: '.' }, '/xash');
-		}
-	catch (e) {};);
-
-endif
-endif*/
 
 // [FWGS, 01.11.25]
-#if XASH_IOS
+if XASH_IOS
 	IOS_LaunchDialog ();
 	szArgc = IOS_GetArgs (&szArgv);
-#endif
+endif
 
 	return Host_Main (szArgc, szArgv, szGameDir, 0, Sys_ChangeGame);
-	}
+	}*/
 
 int main (int argc, char **argv)
 	{
@@ -90,6 +74,12 @@ int main (int argc, char **argv)
 	// inject -dev -console into args if required
 	szArgc = PSVita_GetArgv (argc, argv, &szArgv);
 
+	// [FWGS, 01.04.26]
+#elif XASH_IOS
+
+	IOS_LaunchDialog ();
+	szArgc = IOS_GetArgs (&szArgv);
+
 #else
 
 	szArgc = argc;
@@ -97,7 +87,9 @@ int main (int argc, char **argv)
 
 #endif
 
-	return Sys_Start ();
+	// [FWGS, 01.04.26]
+	/*return Sys_Start ();*/
+	return Host_Main (szArgc, szArgv, XASH_GAMEDIR, 0, Sys_ChangeGame);
 	}
 
 #endif

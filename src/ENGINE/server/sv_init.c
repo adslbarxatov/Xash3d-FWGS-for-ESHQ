@@ -371,7 +371,7 @@ static void SV_ReadResourceList (const char *filename)
 
 /***
 ================
-SV_CreateGenericResources [FWGS, 01.12.24]
+SV_CreateGenericResources
 
 loads external resource list
 ================
@@ -388,12 +388,16 @@ static void SV_CreateGenericResources (void)
 	SV_ReadResourceList (filename);
 	SV_ReadResourceList ("reslist.txt");
 
-	for (i = 0; i < world.wadlist.count; i++)
+	/*for (i = 0; i < world.wadlist.count; i++)*/
+	// [FWGS, 01.04.26] precache wads so client can knows this map needs some extra wad files
+	for (i = 0; i < world.wadcount; i++)
 		{
-		if (world.wadlist.wadusage[i] > 0)
+		/*if (world.wadlist.wadusage[i] > 0)
 			{
 			SV_GenericIndex (world.wadlist.wadnames[i]);
-			}
+			}*/
+		if (world.wadlist[i].usage > 0)
+			SV_GenericIndex (world.wadlist[i].name);
 		}
 	}
 

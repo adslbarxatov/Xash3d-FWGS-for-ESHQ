@@ -3048,12 +3048,13 @@ int FS_Seek (file_t *file, fs_offset_t offset, int whence)
 
 /***
 ====================
-FS_Tell
+FS_Tell [FWGS, 01.04.26]
 
 Give the current position in a file
 ====================
 ***/
-fs_offset_t FS_Tell (file_t *file)
+/*fs_offset_t FS_Tell (file_t *file)*/
+fs_offset_t FS_Tell (const file_t *file)
 	{
 	if (!file)
 		return 0;
@@ -3063,12 +3064,13 @@ fs_offset_t FS_Tell (file_t *file)
 
 /***
 ====================
-FS_Eof
+FS_Eof [FWGS, 01.04.26]
 
 indicates at reached end of file
 ====================
 ***/
-qboolean FS_Eof (file_t *file)
+/*qboolean FS_Eof (file_t *file)*/
+qboolean FS_Eof (const file_t *file)
 	{
 	if (!file)
 		return true;
@@ -3385,12 +3387,13 @@ fs_offset_t FS_FileSize (const char *filename, qboolean gamedironly)
 
 /***
 ==================
-FS_FileLength
+FS_FileLength [FWGS, 01.04.26]
 
 return size of file in bytes
 ==================
 ***/
-fs_offset_t FS_FileLength (file_t *f)
+/*fs_offset_t FS_FileLength (file_t *f)*/
+fs_offset_t FS_FileLength (const file_t *f)
 	{
 	if (!f)
 		return 0;

@@ -672,14 +672,17 @@ qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qbo
 
 // =======================================================
 
-/***
+// [FWGS, 01.04.26] removed R_ShowTextures
+
+/*
+/
 ===============
 R_ShowTextures
 
 Draw all the images to the screen, on top of whatever
 was there.  This is used to test for texture thrashing.
 ===============
-***/
+/
 void R_ShowTextures (void)
 	{
 	float			w, h;
@@ -714,7 +717,7 @@ void R_ShowTextures (void)
 	time -= floor (time);
 	time_cubemap = gp_cl->time * 0.25f;
 	time_cubemap -= floor (time_cubemap);
-	/*time_cubemap *= 6.2831853f;*/
+	time_cubemap *= 6.2831853f;
 	time_cubemap *= M_PI2_F;
 	SinCos (time_cubemap, &cbm_sin, &cbm_cos);
 
@@ -795,10 +798,10 @@ void R_ShowTextures (void)
 
 		pglBegin (GL_QUADS);
 		
-#if XASH_NANOGL
+if XASH_NANOGL
 	#undef pglTexCoord3f
 	#define pglTexCoord3f( s, t, u ) pglTexCoord2f( s, t ) // not really correct but it requires nanogl rework
-#endif
+endif
 
 		if (image->target == GL_TEXTURE_CUBE_MAP_ARB)
 			{
@@ -865,7 +868,7 @@ void R_ShowTextures (void)
 
 	gEngfuncs.CL_DrawCenterPrint ();
 	pglFinish ();
-	}
+	}*/
 
 /***
 ================

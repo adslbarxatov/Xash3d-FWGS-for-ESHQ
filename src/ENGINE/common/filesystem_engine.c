@@ -296,8 +296,10 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 		return true;
 		}
 
-	// [FWGS, 01.11.25]
-#if TARGET_OS_IOS
+	// [FWGS, 01.04.26]
+/*if TARGET_OS_IOS*/
+#if XASH_IOS
+
 	Q_strncpy (out, IOS_GetDocsDir (), size);
 	return true;
 

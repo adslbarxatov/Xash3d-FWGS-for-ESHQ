@@ -13,11 +13,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.04.26]
 #include "gl_local.h"
 #include "xash3d_mathlib.h"
 #include "library.h"
 #include "beamdef.h"
-#include "particledef.h"
+/*include "particledef.h"*/
 #include "entity_types.h"
 
 #define IsLiquidContents( cnt )	( cnt == CONTENTS_WATER || cnt == CONTENTS_SLIME || cnt == CONTENTS_LAVA )
@@ -341,6 +342,7 @@ static void R_Clear (int bitMask)
 	}
 
 // =============================================================================
+
 /***
 ===============
 R_GetFarClip [FWGS, 01.01.24]
@@ -418,7 +420,6 @@ static void R_SetupProjectionMatrix (matrix4x4 m)
 	xMin = -xMax;
 
 	// [FWGS, 01.11.25]
-	/*Matrix4x4_CreateProjection (m, xMax, xMin, yMax, yMin, zNear, zFar);*/
 	if (tr.rotation & 1)
 		Matrix4x4_CreateProjection (m, yMax, yMin, xMax, xMin, zNear, zFar);
 	else
@@ -434,9 +435,6 @@ static void R_SetupModelviewMatrix (matrix4x4 m)
 	{
 	Matrix4x4_CreateModelview (m);
 
-	/*Matrix4x4_ConcatRotate (m, -RI.viewangles[2], 1, 0, 0);
-	Matrix4x4_ConcatRotate (m, -RI.viewangles[0], 0, 1, 0);
-	Matrix4x4_ConcatRotate (m, -RI.viewangles[1], 0, 0, 1);*/
 	if (tr.rotation & 1)
 		{
 		Matrix4x4_ConcatRotate (m, anglemod (-RI.viewangles[2] + 90), 1, 0, 0);
@@ -579,7 +577,6 @@ void R_SetupGL (qboolean set_gl_state)
 	// [FWGS, 01.11.25]
 	if (RP_NORMALPASS ())
 		{
-		/*int	x, x2, y, y2;*/
 		int x, x2, y, y2;
 
 		// set up viewport (main, playersetup)
@@ -588,7 +585,6 @@ void R_SetupGL (qboolean set_gl_state)
 		y = floor (gpGlobals->height - RI.viewport[1] * gpGlobals->height / gpGlobals->height);
 		y2 = ceil (gpGlobals->height - (RI.viewport[1] + RI.viewport[3]) * gpGlobals->height / gpGlobals->height);
 
-		/*pglViewport (x, y2, x2 - x, y - y2);*/
 		if (tr.rotation & 1)
 			pglViewport (y2, x, y - y2, x2 - x);
 		else
@@ -900,12 +896,15 @@ static void R_DrawEntitiesOnList (void)
 			case mod_brush:
 				R_DrawBrushModel (RI.currententity);
 				break;
+
 			case mod_alias:
 				R_DrawAliasModel (RI.currententity);
 				break;
+
 			case mod_studio:
 				R_DrawStudioModel (RI.currententity);
 				break;
+
 			default:
 				break;
 			}

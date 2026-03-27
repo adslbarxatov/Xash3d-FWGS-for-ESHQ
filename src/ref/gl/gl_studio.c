@@ -30,7 +30,7 @@ typedef struct
 	{
 	char		name[MAX_OSPATH];
 	char		modelname[MAX_OSPATH];
-	model_t *model;
+	model_t		*model;
 	} player_model_t;
 
 // [FWGS, 01.12.24] never gonna change, just shut up const warning
@@ -134,15 +134,23 @@ static cvar_t *cl_righthand = NULL;
 static r_studio_interface_t *pStudioDraw;
 static studio_draw_state_t	g_studio;		// global studio state
 
-// global variables
-static qboolean		m_fDoRemap;
+// [FWGS, 01.04.26] global variables
+/*static qboolean		m_fDoRemap;
 mstudiomodel_t		*m_pSubModel;
 mstudiobodyparts_t	*m_pBodyPart;
 player_info_t		*m_pPlayerInfo;
 studiohdr_t			*m_pStudioHeader;
 float				m_flGaitMovement;
 int					g_nTopColor, g_nBottomColor;	// remap colors
-int					g_nFaceFlags, g_nForceFaceFlags;
+int					g_nFaceFlags, g_nForceFaceFlags;*/
+static qboolean				m_fDoRemap;
+static mstudiomodel_t		*m_pSubModel;
+static mstudiobodyparts_t	*m_pBodyPart;
+static player_info_t		*m_pPlayerInfo;
+static studiohdr_t			*m_pStudioHeader;
+static float	m_flGaitMovement;
+static int		g_nTopColor, g_nBottomColor; // remap colors
+static int		g_nFaceFlags, g_nForceFaceFlags;
 
 /***
 ====================

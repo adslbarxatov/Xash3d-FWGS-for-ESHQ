@@ -30,7 +30,7 @@ GNU General Public License for more details
 
 /***
 =============
-SDLash_KeyEvent [FWGS, 01.06.25]
+SDLash_KeyEvent
 =============
 ***/
 static void SDLash_KeyEvent (SDL_KeyboardEvent key)
@@ -78,6 +78,12 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	else if (keynum >= (SDL_SCANCODE_F1) && keynum <= (SDL_SCANCODE_F12))
 		{
 		keynum = keynum - SDL_SCANCODE_F1 + K_F1;
+		}
+	// [FWGS, 01.04.26]
+	else if (keynum >= (SDL_SCANCODE_INTERNATIONAL1) && keynum <= (SDL_SCANCODE_INTERNATIONAL9))
+		{
+		/*DECLARE_KEY_RANGE (SDL_SCANCODE_INTERNATIONAL1, SDL_SCANCODE_INTERNATIONAL9, K_INTERNATIONAL)*/
+		keynum = keynum - SDL_SCANCODE_INTERNATIONAL1 + K_INTERNATIONAL;
 		}
 	else
 		{

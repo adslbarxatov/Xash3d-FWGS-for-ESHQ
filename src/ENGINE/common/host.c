@@ -505,11 +505,14 @@ static void Host_ChangeGame_f (void)
 		}
 	}
 
-/***
+// [FWGS, 01.04.26] removed Host_Exec_f, Host_MemStats_f
+
+/*
+/
 ===============
 Host_Exec_f [FWGS, 22.01.25]
 ===============
-***/
+/
 static void Host_Exec_f (void)
 	{
 	string		cfgpath;
@@ -525,7 +528,7 @@ static void Host_Exec_f (void)
 	Q_strncpy (cfgpath, Cmd_Argv (1), sizeof (cfgpath));
 	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath)); // append as default
 
-#ifndef XASH_DEDICATED
+ifndef XASH_DEDICATED
 	if (!Cmd_CurrentCommandIsPrivileged ())
 		{
 		const char *unprivilegedWhitelist[] =
@@ -557,7 +560,7 @@ static void Host_Exec_f (void)
 			return;
 			}
 		}
-#endif
+endif
 
 	// don't execute game.cfg in singleplayer
 	if ((SV_GetMaxClients () == 1) && !Q_stricmp ("game.cfg", cfgpath))
@@ -596,13 +599,14 @@ static void Host_Exec_f (void)
 		}
 
 	Mem_Free (f);
-	}
+	}*/
 
-/***
+/*
+/
 ===============
 Host_MemStats_f
 ===============
-***/
+/
 static void Host_MemStats_f (void)
 	{
 	switch (Cmd_Argc ())
@@ -621,7 +625,7 @@ static void Host_MemStats_f (void)
 			Con_Printf (S_USAGE "memlist <all>\n");
 			break;
 		}
-	}
+	}*/
 
 // [FWGS, 01.06.25] removed Host_Minimize_f
 // [FWGS, 01.07.24] removed Host_IsLocalGame, Host_IsLocalClient
@@ -1030,11 +1034,14 @@ static void Host_Crash_f (void)
 	*(volatile int *)0 = 0xffffffff;
 	}
 
-/***
+// [FWGS, 01.04.26] removed Host_Userconfigd_f
+
+/*
+/
 =================
 Host_Userconfigd_f
 =================
-***/
+/
 static void Host_Userconfigd_f (void)
 	{
 	search_t	*t;
@@ -1048,7 +1055,7 @@ static void Host_Userconfigd_f (void)
 		Cbuf_AddTextf ("exec %s\n", t->filenames[i]);
 
 	Mem_Free (t);
-	}
+	}*/
 
 #if XASH_ENGINE_TESTS
 
@@ -1150,7 +1157,7 @@ static void Host_DetermineExecutableName (char *out, size_t size)
 
 /***
 =================
-Host_InitCommon [FWGS, 01.03.26]
+Host_InitCommon [FWGS, 01.04.26]
 =================
 ***/
 static void Host_InitCommon (int argc, char **argv, const char *progname, qboolean bChangeGame,
@@ -1285,12 +1292,14 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	host.bugcomp = Host_CheckBugcomp ();
 
-	Cmd_AddCommand ("exec", Host_Exec_f,
+	/*Cmd_AddCommand ("exec", Host_Exec_f,
 		"execute a script file");
 	Cmd_AddCommand ("memlist", Host_MemStats_f,
 		"prints memory pool information");
 	Cmd_AddRestrictedCommand ("userconfigd", Host_Userconfigd_f,
-		"execute all scripts from userconfig.d");
+		"execute all scripts from userconfig.d");*/
+	Cmd_AddCommand ("memlist", Mem_Stats_f,
+		"prints memory pool information");
 
 #if !XASH_DEDICATED
 	Cmd_AddRestrictedCommand ("host_writeconfig", Host_WriteConfig, "save current configuration");
@@ -1487,7 +1496,9 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 				}
 
 			// exec all files from userconfig.d
-			Host_Userconfigd_f ();
+			/*Host_Userconfigd_f ();*/
+			Cbuf_AddText ("userconfigd\n");
+			Cbuf_Execute ();
 			break;
 
 		case HOST_DEDICATED:

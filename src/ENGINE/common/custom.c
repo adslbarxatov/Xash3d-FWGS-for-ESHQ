@@ -22,11 +22,13 @@ static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
 	{
 	const char *testname;
 
-	// [FWGS, 01.09.25] this way we limit file types
+	// [FWGS, 01.04.26] this way we limit file types
 	if (!Q_stricmp (COM_FileExtension (path), "png"))
 		testname = "#logo.png";
 	else if (!Q_stricmp (COM_FileExtension (path), "wad"))
 		testname = "#logo.wad";
+	/*else
+		testname = "#logo.bmp";*/
 	else
 		testname = "#logo.bmp";
 
@@ -72,6 +74,7 @@ void COM_ClearCustomizationList (customization_t *pHead, qboolean bCleanDecals)
 
 			FS_FreeImage (pCurrent->pInfo);
 			}
+
 		Mem_Free (pCurrent);
 		}
 

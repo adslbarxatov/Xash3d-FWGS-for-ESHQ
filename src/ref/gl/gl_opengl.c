@@ -1497,17 +1497,20 @@ const char *GL_ErrorString (int err)
 
 /***
 =================
-GL_CheckForErrors
+GL_CheckForErrors [FWGS, 01.04.26]
 =================
 ***/
 void GL_CheckForErrors_ (const char *filename, const int fileline)
 	{
-	int	err;
+	/*int	err;
 
-	if (!gl_check_errors.value)
+	if (!gl_check_errors.value)*/
+	if (!gl_check_errors.value || !gpGlobals->developer)
 		return;
 
-	if ((err = pglGetError ()) == GL_NO_ERROR)
+	/*if ((err = pglGetError ()) == GL_NO_ERROR)*/
+	int err = pglGetError ();
+	if (err == GL_NO_ERROR)
 		return;
 
 	gEngfuncs.Con_Printf (S_OPENGL_ERROR "%s (at %s:%i)\n", GL_ErrorString (err), filename, fileline);

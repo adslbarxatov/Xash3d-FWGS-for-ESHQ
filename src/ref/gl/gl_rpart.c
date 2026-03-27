@@ -40,7 +40,7 @@ static color24 gTracerColors[] =
 
 /***
 ================
-CL_DrawParticles [FWGS, 01.01.24]
+CL_DrawParticles
 
 update particle color, position, free expired and draw it
 ================
@@ -68,7 +68,9 @@ void CL_DrawParticles (double frametime, particle_t *cl_active_particles, float 
 
 	for (p = cl_active_particles; p; p = p->next)
 		{
-		if ((p->type != pt_blob) || (p->packedColor == 255))
+		// [FWGS, 01.04.26]
+		/*if ((p->type != pt_blob) || (p->packedColor == 255))*/
+		if ((p->type != pt_blob) || (p->unused == 255))
 			{
 			size = partsize; // get initial size of particle
 
@@ -237,8 +239,10 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 			if ((p->color < 0) || (p->color >= sizeof (gTracerColors) / sizeof (gTracerColors[0])))
 				p->color = TRACER_COLORINDEX_DEFAULT;
 
+			// [FWGS, 01.04.26]
 			color = gTracerColors[p->color];
-			pglColor4ub (color.r, color.g, color.b, p->packedColor);
+			/*pglColor4ub (color.r, color.g, color.b, p->packedColor);*/
+			pglColor4ub (color.r, color.g, color.b, p->unused);
 
 			pglTexCoord2f (0.0f, 0.8f);
 			pglVertex3fv (verts[2]);
@@ -259,9 +263,13 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 			p->vel[1] *= scale;
 			p->vel[2] -= gravity;
 
-			p->packedColor = 255 * (p->die - gp_cl->time) * 2;
+			// [FWGS, 01.04.26]
+			/*p->packedColor = 255 * (p->die - gp_cl->time) * 2;
 			if (p->packedColor > 255)
-				p->packedColor = 255;
+				p->packedColor = 255;*/
+			p->unused = 255 * (p->die - gp_cl->time) * 2;
+			if (p->unused > 255)
+				p->unused = 255;
 			}
 		else if (p->type == pt_slowgrav)
 			{

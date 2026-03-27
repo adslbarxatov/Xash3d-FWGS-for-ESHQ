@@ -22,11 +22,17 @@ GNU General Public License for more details
 // [FWGS, 01.12.24] it's a Valve default value for LoadMapSprite (probably must be power of two)
 #define GLARE_FALLOFF	19000.0f
 
-char		sprite_name[MAX_QPATH];
+// [FWGS, 01.04.26]
+/*char		sprite_name[MAX_QPATH];
 char		group_suffix[8];
 static uint	r_texFlags = 0;
 static int	sprite_version;
-float		sprite_radius;
+float		sprite_radius;*/
+static char		sprite_name[MAX_QPATH];
+static char		group_suffix[8];
+static uint		r_texFlags = 0;
+static int		sprite_version;
+static float	sprite_radius;
 
 /***
 ====================
@@ -348,6 +354,7 @@ mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 			if (pintervals[i] > targettime)
 				break;
 			}
+
 		pspriteframe = pspritegroup->frames[i];
 		}
 	else if (psprite->frames[frame].type == FRAME_ANGLED)
@@ -874,6 +881,7 @@ void R_DrawSpriteModel (cl_entity_t *e)
 			dot = RI.vforward[2];
 			if ((dot > 0.999848f) || (dot < -0.999848f))	// cos(1 degree) = 0.999848
 				return; // invisible
+
 			VectorSet (v_up, 0.0f, 0.0f, 1.0f);
 			VectorSet (v_right, RI.vforward[1], -RI.vforward[0], 0.0f);
 			VectorNormalize (v_right);
