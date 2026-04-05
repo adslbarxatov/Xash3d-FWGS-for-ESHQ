@@ -863,7 +863,14 @@ static int S_MixNormalChannels (portable_samplepair_t *dst, int end, int rate)
 			/*if (!pSource)
 				{*/
 			if (!FBitSet (sc->flags, SOUND_LOOPED) || !ch->use_loop)
-				S_FreeChannel (ch);
+				/*S_FreeChannel (ch);*/
+				{
+				// [FWGS, 05.04.26] fix for random skipping of map startup sounds
+				if (ch->inauduble_free_time == 0.0f)
+					ch->inauduble_free_time = host.realtime + MAX_CHANNEL_INAUDIBLE_TIME;
+				else if (ch->inauduble_free_time > host.realtime)
+					S_FreeChannel (ch);
+				}
 				/*continue;
 				}
 				}
@@ -872,6 +879,8 @@ static int S_MixNormalChannels (portable_samplepair_t *dst, int end, int rate)
 
 			continue;
 			}
+
+		ch->inauduble_free_time = 0.0f;
 
 		/*// multipass mixing - only mix samples of specified sample rate
 		switch (rate)*/

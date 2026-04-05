@@ -24,57 +24,58 @@ static poolhandle_t avi_mempool;
 
 #if XASH_AVI == AVI_FFMPEG
 
-#define XASH_FFMPEG_DLOPEN 1
+// [FWGS, 05.04.26]
+/*define XASH_FFMPEG_DLOPEN 1*/
 #include "avi_ffmpeg.h"
 
 struct movie_state_s
 	{
 	// ffmpeg contexts
-	AVFormatContext *fmt_ctx;
-	AVCodecContext *video_ctx;
-	AVCodecContext *audio_ctx;
-	struct SwsContext *sws_ctx;
-	struct SwrContext *swr_ctx;
+	AVFormatContext		*fmt_ctx;
+	AVCodecContext		*video_ctx;
+	AVCodecContext		*audio_ctx;
+	struct SwsContext	*sws_ctx;
+	struct SwrContext	*swr_ctx;
 
-	AVPacket *pkt;
-	AVFrame *aframe;
-	AVFrame *vframe;
-	AVFrame *vframe_copy;
+	AVPacket	*pkt;
+	AVFrame		*aframe;
+	AVFrame		*vframe;
+	AVFrame		*vframe_copy;
 
-	int64_t first_time;
-	int64_t last_time;
+	int64_t		first_time;
+	int64_t		last_time;
 
 	// video stream
-	byte *dst;
-	double duration;
-	int video_stream;
-	int xres;
-	int yres;
-	int dst_linesize;
-	enum AVPixelFormat pix_fmt;
+	byte	*dst;
+	double	duration;
+	int		video_stream;
+	int		xres;
+	int		yres;
+	int		dst_linesize;
+	enum AVPixelFormat	pix_fmt;
 
 	// rendering video parameters
-	int x, y, w, h; // passed to R_DrawStretchRaw
-	int texture; // passed to R_UploadStretchRaw
+	int		x, y, w, h;	// passed to R_DrawStretchRaw
+	int		texture;	// passed to R_UploadStretchRaw
 
 	// audio stream
-	int audio_stream;
-	int channels;
-	int rate;
-	enum AVSampleFormat s_fmt;
+	int		audio_stream;
+	int		channels;
+	int		rate;
+	enum AVSampleFormat		s_fmt;
 
-	byte *cached_audio;
-	size_t cached_audio_buf_len; // absolute size of cached_audio array
-	size_t cached_audio_len; // how many data in bytes we have in cached_audio array
-	size_t cached_audio_pos; // how far we've read into cached_audio array
+	byte	*cached_audio;
+	size_t	cached_audio_buf_len;	// absolute size of cached_audio array
+	size_t	cached_audio_len;		// how many data in bytes we have in cached_audio array
+	size_t	cached_audio_pos;		// how far we've read into cached_audio array
 
 	// rendering audio parameters
-	float attn;
-	int16_t entnum; // MAX_ENTITY_BITS is 13
-	byte volume;
-	byte active : 1;
-	byte quiet : 1;
-	byte paused : 1;
+	float	attn;
+	int16_t	entnum;	// MAX_ENTITY_BITS is 13
+	byte	volume;
+	byte	active : 1;
+	byte	quiet : 1;
+	byte	paused : 1;
 	};
 
 qboolean AVI_SetParm (movie_state_t *Avi, enum movie_parms_e parm, ...)
@@ -234,10 +235,11 @@ int AVI_GetVideoFrameNumber (movie_state_t *Avi, float time)
 	return 0;
 	}
 
-int AVI_TimeToSoundPosition (movie_state_t *Avi, int time)
+// [FWGS, 05.04.26] removed AVI_TimeToSoundPosition
+/*int AVI_TimeToSoundPosition (movie_state_t *Avi, int time)
 	{
 	return 0;
-	}
+	}*/
 
 qboolean AVI_GetVideoInfo (movie_state_t *Avi, int *xres, int *yres, float *duration)
 	{
@@ -863,10 +865,11 @@ void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audi
 	;
 	}
 
-int AVI_TimeToSoundPosition (movie_state_t *Avi, int time)
+// [FWGS, 05.04.26] removed AVI_TimeToSoundPosition
+/*int AVI_TimeToSoundPosition (movie_state_t *Avi, int time)
 	{
 	return 0;
-	}
+	}*/
 
 void AVI_CloseVideo (movie_state_t *Avi)
 	{

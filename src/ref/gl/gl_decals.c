@@ -898,7 +898,8 @@ void DrawSurfaceDecals (msurface_t *fa, qboolean single, qboolean reverse)
 	decal_t		*p;
 	cl_entity_t	*e;
 
-	if (!fa->pdecals) return;
+	if (!fa->pdecals)
+		return;
 
 	e = RI.currententity;
 	Assert (e != NULL);
@@ -920,11 +921,13 @@ void DrawSurfaceDecals (msurface_t *fa, qboolean single, qboolean reverse)
 		if ((e->curstate.rendermode == kRenderTransTexture) || (e->curstate.rendermode == kRenderTransAdd))
 			GL_Cull (GL_NONE);
 
+		// [FWGS, 05.04.26]
 		if (gl_polyoffset.value)
-			{
+			/*{
 			pglEnable (GL_POLYGON_OFFSET_FILL);
 			pglPolygonOffset (-1.0f, -gl_polyoffset.value);
-			}
+			}*/
+			GL_PushPolygonOffset (-1.0f, -gl_polyoffset.value);
 		}
 
 	if (FBitSet (fa->flags, SURF_TRANSPARENT) && glState.stencilEnabled)
@@ -1013,8 +1016,10 @@ void DrawSurfaceDecals (msurface_t *fa, qboolean single, qboolean reverse)
 				pglEnable (GL_ALPHA_TEST);
 			}
 
+		// [FWGS, 05.04.26]
 		if (gl_polyoffset.value)
-			pglDisable (GL_POLYGON_OFFSET_FILL);
+			/*pglDisable (GL_POLYGON_OFFSET_FILL);*/
+			GL_PopPolygonOffset ();
 
 		if ((e->curstate.rendermode == kRenderTransTexture) || (e->curstate.rendermode == kRenderTransAdd))
 			GL_Cull (GL_FRONT);
@@ -1032,6 +1037,9 @@ void DrawSurfaceDecals (msurface_t *fa, qboolean single, qboolean reverse)
 
 void DrawDecalsBatch (void)
 	{
+	// [FWGS, 05.04.26]
+	/*cl_entity_t	*e;
+	int			i;*/
 	cl_entity_t	*e;
 	int			i;
 
@@ -1051,11 +1059,13 @@ void DrawDecalsBatch (void)
 	if ((e->curstate.rendermode == kRenderTransTexture) || (e->curstate.rendermode == kRenderTransAdd))
 		GL_Cull (GL_NONE);
 
+	// [FWGS, 05.04.26]
 	if (gl_polyoffset.value)
-		{
+		/*{
 		pglEnable (GL_POLYGON_OFFSET_FILL);
 		pglPolygonOffset (-1.0f, -gl_polyoffset.value);
-		}
+		}*/
+		GL_PushPolygonOffset (-1.0f, -gl_polyoffset.value);
 
 	for (i = 0; i < tr.num_draw_decals; i++)
 		{
@@ -1069,8 +1079,10 @@ void DrawDecalsBatch (void)
 		pglDisable (GL_ALPHA_TEST);
 		}
 
+	// [FWGS, 05.04.26]
 	if (gl_polyoffset.value)
-		pglDisable (GL_POLYGON_OFFSET_FILL);
+		/*pglDisable (GL_POLYGON_OFFSET_FILL);*/
+		GL_PopPolygonOffset ();
 
 	if ((e->curstate.rendermode == kRenderTransTexture) || (e->curstate.rendermode == kRenderTransAdd))
 		GL_Cull (GL_FRONT);

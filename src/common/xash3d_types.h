@@ -31,14 +31,10 @@ typedef uint8_t	byte;
 typedef float	vec_t;
 typedef vec_t	vec2_t[2];
 
-/*// ESHQ: защита от переопределения
-if XASH_DL || XASH_FS*/
-
 // [FWGS, 01.03.25]
 #ifndef vec3_t
 typedef vec_t	vec3_t[3];
 #endif
-/*endif*/
 
 // [FWGS, 01.11.25]
 typedef vec_t	vec4_t[4] MAYBE_ALIGNED (16);
@@ -148,6 +144,11 @@ typedef int qboolean;
 
 #elif defined( _MSC_VER )
 	#define HLEXPORT __declspec( dllexport )
+#endif
+
+// [FWGS, 05.04.26]
+#ifdef ARRAYSIZE
+#undef ARRAYSIZE
 #endif
 
 // [FWGS, 01.03.26]

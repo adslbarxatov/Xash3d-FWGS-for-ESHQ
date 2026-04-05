@@ -58,11 +58,13 @@ static inline void list_add (hullnode_t *newobj, hullnode_t *head)
 	list_add__ (newobj, head, head->next);
 	}
 
-// [FWGS, 01.11.25] add the new entry before the given list entry (list is circular)
+// [FWGS, 05.04.26] removed list_add_tail
+
+/*// [FWGS, 01.11.25] add the new entry before the given list entry (list is circular)
 static inline void list_add_tail (hullnode_t *newobj, hullnode_t *head)
 	{
 	list_add__ (newobj, head->prev, head);
-	}
+	}*/
 
 // [FWGS, 01.11.25]
 static inline void list_del (hullnode_t *entry)

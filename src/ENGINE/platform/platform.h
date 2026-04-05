@@ -17,7 +17,12 @@ GNU General Public License for more details
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#include <errno.h>		// [FWGS, 01.09.25]
+#include <errno.h>
+
+// [FWGS, 05.04.26]
+#define FSCALLBACK_OVERRIDE_MALLOC_LIKE
+#include "fscallback.h"
+
 #include "common.h"
 #include "system.h"
 #include "defaults.h"
@@ -38,11 +43,13 @@ void Platform_MessageBox (const char *title, const char *message, qboolean paren
 void Platform_SetStatus (const char *status);
 qboolean Platform_DebuggerPresent (void);
 
-// [FWGS, 01.11.25] legacy iOS port functions
+// [FWGS, 05.04.26] legacy iOS port functions
 #if TARGET_OS_IOS
 	int IOS_GetArgs (char ***argv);
 	const char *IOS_GetDocsDir (void);
 	void IOS_LaunchDialog (void);
+
+#include "platform/ios/lib_ios.h"
 #endif
 
 #if XASH_WIN32 || XASH_LINUX
@@ -58,9 +65,11 @@ qboolean Platform_DebuggerPresent (void);
 	char *Posix_Input (void);
 #endif
 
-// [FWGS, 01.06.25]
+// [FWGS, 05.04.26]
 #if XASH_SDL
-	void SDLash_Init (const char *basedir);
+	/*void SDLash_Init (const char *basedir);*/
+	void SDLash_Init (void);
+
 	void SDLash_Shutdown (void);
 	void SDLash_NanoSleep (int nsec);
 #endif
@@ -116,8 +125,9 @@ qboolean Platform_DebuggerPresent (void);
 	int Linux_GetProcessID (void);
 #endif
 
-// [FWGS, 01.03.25]
-static inline void Platform_Init (qboolean con_showalways, const char *basedir)
+// [FWGS, 05.04.26]
+/*static inline void Platform_Init (qboolean con_showalways, const char *basedir)*/
+static inline void Platform_Init (qboolean con_showalways)
 	{
 #if XASH_POSIX
 	// daemonize as early as possible, because we need to close our file descriptors
@@ -125,7 +135,8 @@ static inline void Platform_Init (qboolean con_showalways, const char *basedir)
 #endif
 
 #if XASH_SDL
-	SDLash_Init (basedir);
+	/*SDLash_Init (basedir);*/
+	SDLash_Init ();
 #endif
 
 #if XASH_ANDROID
@@ -218,6 +229,19 @@ void Sys_RestoreCrashHandler (void);
 static inline void Sys_SetupCrashHandler (const char *argv0) { }
 static inline void Sys_RestoreCrashHandler (void) { }
 #endif
+
+// [FWGS, 05.04.26]
+static inline qboolean Platform_LibraryExists (const char *name, qboolean gamedironly)
+	{
+#if XASH_IOS
+	return IOS_LibraryExists (name);
+#elif XASH_ANDROID
+	// sorry, unimplemented
+	return false;
+#else
+	return g_fsapi.FileExists (name, gamedironly);
+#endif
+	}
 
 /***
 ==============================================================================
@@ -415,38 +439,44 @@ qboolean VoiceCapture_Lock (qboolean lock);
 // [FWGS, 01.12.24]
 #elif XASH_LINUX && XASH_ARM && !XASH_64BIT
 
-	#include <sys/syscall.h>
-	#include <sys/types.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
 
-	#define INLINE_RAISE(x) do \
+// [FWGS, 05.04.26]
+#define INLINE_RAISE(x) do \
 	{ \
 	int raise_pid = getpid(); \
 	pid_t raise_tid = Linux_GetProcessID(); \
 	int raise_sig = (x); \
 	__asm__ volatile ( \
+	"push {r7}\n\t" \
 	"mov r7,#268\n\t" \
 	"mov r0,%0\n\t" \
 	"mov r1,%1\n\t" \
 	"mov r2,%2\n\t" \
 	"svc 0\n\t" \
+	"pop {r7}\n\t" \
 	: \
 	: "r"(raise_pid), "r"(raise_tid), "r"(raise_sig) \
-	: "r0", "r1", "r2", "r7", "memory" \
+	: "r0", "r1", "r2", "memory" \
 	); \
 	} while( 0 )
 
+// [FWGS, 05.04.26]
 #define INLINE_NANOSLEEP1() do \
 	{ \
 	struct timespec ns_t1 = {1, 0}; \
 	struct timespec ns_t2 = {0, 0}; \
 	__asm__ volatile ( \
+	"push {r7}\n\t" \
 	"mov r7,#162\n\t" \
 	"mov r0,%0\n\t" \
 	"mov r1,%1\n\t" \
 	"svc 0\n\t" \
+	"pop {r7}\n\t" \
 	: \
 	: "r"(&ns_t1), "r"(&ns_t2) \
-	: "r0", "r1", "r7", "memory" \
+	: "r0", "r1", "memory" \
 	); \
 	} while( 0 )
 

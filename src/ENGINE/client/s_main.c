@@ -645,11 +645,12 @@ static int S_AlterChannel (int entnum, int channel, const sfx_t *sfx, int vol, i
 
 /***
 =================
-S_SpatializeChannel [FWGS, 01.03.26]
+S_SpatializeChannel [FWGS, 05.04.26]
 =================
 ***/
-/*static void S_SpatializeChannel (int *left_vol, int *right_vol, int master_vol, float gain, float dot, float dist)*/
-static void S_SpatializeChannel (int *left_vol, int *right_vol, int master_vol, float dot, float dist)
+/*static void S_SpatializeChannel (int *left_vol, int *right_vol, int master_vol, float gain, float dot, float dist)
+static void S_SpatializeChannel (int *left_vol, int *right_vol, int master_vol, float dot, float dist)*/
+static void S_SpatializeChannel (short *left_vol, short *right_vol, int master_vol, float dot, float dist)
 	{
 	/*float	lscale, rscale, scale;
 

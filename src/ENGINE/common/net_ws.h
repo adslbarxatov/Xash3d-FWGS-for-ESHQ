@@ -56,18 +56,18 @@ extern convar_t net_clockwindow;
 extern convar_t net_send_debug;
 extern convar_t net_recv_debug;
 
+// [FWGS, 05.04.26]
 void NET_Init (void);
 void NET_Shutdown (void);
-void NET_Sleep (int msec);
+/*void NET_Sleep (int msec);*/
 qboolean NET_IsActive (void);
-qboolean NET_IsConfigured (void);
+/*qboolean NET_IsConfigured (void);*/
 void NET_Config (qboolean net_enable, qboolean changeport);
 
 // [FWGS, 01.03.25]
 const char *NET_AdrToString (const netadr_t a) RETURNS_NONNULL;
 const char *NET_BaseAdrToString (const netadr_t a) RETURNS_NONNULL;
 qboolean NET_IsReservedAdr (netadr_t a);
-/*qboolean NET_CompareClassBAdr (const netadr_t a, const netadr_t b);*/
 qboolean NET_StringToAdr (const char *string, netadr_t *adr);
 qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen);
 
@@ -86,7 +86,6 @@ void NET_NetadrToIP6Bytes (uint8_t *ip6, const netadr_t *adr);
 // [FWGS, 01.03.25]
 static inline qboolean NET_IsLocalAddress (netadr_t adr)
 	{
-	/*return adr.type == NA_LOOPBACK ? true : false;*/
 	return NET_NetadrType (&adr) == NA_LOOPBACK;
 	}
 

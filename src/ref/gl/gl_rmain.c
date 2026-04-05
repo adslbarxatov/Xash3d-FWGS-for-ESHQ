@@ -365,8 +365,9 @@ void R_SetupFrustum (void)
 	{
 	const ref_overview_t *ov = gEngfuncs.GetOverviewParms ();
 
-	// [FWGS, 01.01.24]
-	if (RP_NORMALPASS () && (ENGINE_GET_PARM (PARM_WATER_LEVEL) >= 3) && ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
+	// [FWGS, 05.04.26]
+	/*if (RP_NORMALPASS () && (ENGINE_GET_PARM (PARM_WATER_LEVEL) >= 3) && ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))*/
+	if (RP_NORMALPASS () && FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) && (ENGINE_GET_PARM (PARM_WATER_LEVEL) >= 3))
 		{
 		RI.fov_x = atan (tan (DEG2RAD (RI.fov_x) / 2) * (0.97f + sin (gp_cl->time * 1.5f) * 0.03f)) *
 			2 / (M_PI_F / 180.0f);
@@ -714,7 +715,7 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 
 /***
 =============
-R_CheckFog [FWGS, 01.01.24]
+R_CheckFog
 
 check for underwater fog
 Using backward recursion to find waterline leaf
@@ -727,9 +728,11 @@ static void R_CheckFog (void)
 	gl_texture_t	*tex;
 	int				i, cnt, count;
 
-	// quake global fog
+	// [FWGS, 05.04.26] quake global fog
+	/*if ((ENGINE_GET_PARM (PARM_WATER_LEVEL) < 3) &&
+		(ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) || tr.movevars->fog_settings))*/
 	if ((ENGINE_GET_PARM (PARM_WATER_LEVEL) < 3) &&
-		(ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) || tr.movevars->fog_settings))
+		(FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) || tr.movevars->fog_settings))
 		{
 		// ESHQ: поддержка тумана
 		if ((unsigned int)tr.movevars->fog_settings <= 1)
@@ -859,11 +862,13 @@ void R_DrawFog (void)
 	if (!RI.fogEnabled || !gl_fog.value)
 		return;
 
+	// [FWGS, 05.04.26]
 	pglEnable (GL_FOG);
-	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
+	/*if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
 		pglFogi (GL_FOG_MODE, GL_EXP2);
 	else
-		pglFogi (GL_FOG_MODE, GL_EXP);
+		pglFogi (GL_FOG_MODE, GL_EXP);*/
+	pglFogi (GL_FOG_MODE, FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) ? GL_EXP2 : GL_EXP);
 
 	pglFogf (GL_FOG_DENSITY, RI.fogDensity);
 	pglFogfv (GL_FOG_COLOR, RI.fogColor);

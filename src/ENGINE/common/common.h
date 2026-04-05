@@ -16,11 +16,12 @@ GNU General Public License for more details
 #ifndef COMMON_H
 #define COMMON_H
 
-#ifdef __cplusplus
+// [FWGS, 05.04.26]
+/*ifdef __cplusplus
 extern "C" {
-#endif
+endif
 
-/***
+/
 =======================================================================================================================
 Legend:
 
@@ -34,16 +35,18 @@ TESTTEST			- this code may be unstable and needs to be more tested
 g-cont:				- notes from engine author
 XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 =======================================================================================================================
-***/
+/
 
-#include "port.h"
-
-#include "backends.h"
-#include "defaults.h"
+include "port.h"
+include "backends.h"
+include "defaults.h"*/
 
 #include <stdio.h>
 #include <stdlib.h> // rand, adbs
 #include <stdarg.h> // va
+
+// [FWGS, 05.04.26]
+#include "..\library_suffix\build.h"
 
 #if !XASH_WIN32
 #include <stddef.h>		// size_t
@@ -51,8 +54,41 @@ XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 #include <sys/types.h>	// off_t
 #endif
 
+// [FWGS, 05.04.26]
+#include "port.h"
+#include "backends.h"
+#include "defaults.h"
+
 // [FWGS, 01.03.26]
 #include "..\library_suffix\library_suffix.h"
+
+// [FWGS, 05.04.26]
+#include "enginefeatures.h"
+#include "system.h"
+#include "com_model.h"
+#include "com_strings.h"
+#include "crtlib.h"
+#include "cvar.h"
+#include "con_nprint.h"
+#include "crclib.h"
+#include "ref_api.h"
+#include "com_image.h"
+
+/***
+===================================================================================================================================
+Legend:
+
+INTERNAL RESOURCE	- function contain hardcoded path to resource that engine required (optional in most cases)
+OBSOLETE, UNUSED	- this function no longer used and leaved here for keep binary compatibility
+TODO				- some functionality not impemented but planned
+FIXME				- code doesn't working properly in some rare cases
+HACKHACK			- unexpected behavior on some input params (or something like)
+BUGBUG				- code doesn't working properly in most cases!
+TESTTEST			- this code may be unstable and needs to be more tested
+g-cont:				- notes from engine author
+XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
+===================================================================================================================================
+***/
 
 // configuration
 //
@@ -70,8 +106,14 @@ XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 
 #ifndef XASH_SDL
 
+// [FWGS, 05.04.26]
+/*if XASH_TIMER == TIMER_SDL || XASH_VIDEO == VIDEO_SDL || XASH_SOUND == SOUND_SDL || XASH_INPUT == INPUT_SDL
+error "SDL backends without XASH_SDL not allowed"
+endif
+
+endif*/
 #if XASH_TIMER == TIMER_SDL || XASH_VIDEO == VIDEO_SDL || XASH_SOUND == SOUND_SDL || XASH_INPUT == INPUT_SDL
-#error "SDL backends without XASH_SDL not allowed"
+	#error "SDL backends without XASH_SDL not allowed"
 #endif
 
 #endif
@@ -100,23 +142,24 @@ typedef enum instance_e
 #define Host_IsDedicated() ( host.type == HOST_DEDICATED )
 #endif
 
-// [FWGS, 01.02.25]
-#include "system.h"
-#include "com_model.h"
-#include "com_strings.h"
-#include "crtlib.h"
+// [FWGS, 05.04.26]
+/*// [FWGS, 01.02.25]
+include "system.h"
+include "com_model.h"
+include "com_strings.h"
+include "crtlib.h"
 
 // [FWGS, 01.12.24]
-#define FSCALLBACK_OVERRIDE_OPEN
-#define FSCALLBACK_OVERRIDE_LOADFILE
-#define FSCALLBACK_OVERRIDE_MALLOC_LIKE
+define FSCALLBACK_OVERRIDE_OPEN
+define FSCALLBACK_OVERRIDE_LOADFILE
+define FSCALLBACK_OVERRIDE_MALLOC_LIKE
 
 // [FWGS, 01.02.25]
-#include "fscallback.h"
-#include "cvar.h"
-#include "con_nprint.h"
-#include "crclib.h"
-#include "ref_api.h"
+include "fscallback.h"
+include "cvar.h"
+include "con_nprint.h"
+include "crclib.h"
+include "ref_api.h"*/
 
 // [FWGS, 01.12.24] PERFORMANCE INFO
 #define MIN_FPS			20.0f		// host minimum fps value for maxfps.
@@ -390,6 +433,9 @@ typedef struct host_parm_s
 	string		gamedll;
 	string		clientlib;
 	string		menulib;
+
+	// [FWGS, 05.04.26] default game directory, passed to us from game launcher
+	string		default_gamedir;
 	} host_parm_t;
 
 // [FWGS, 01.07.24]
@@ -433,9 +479,12 @@ void Mem_Stats_f (void);
 #define Mem_Check() _Mem_Check( __FILE__, __LINE__ )
 
 //
-// filesystem_engine.c [FWGS, 01.12.24]
+// filesystem_engine.c
 //
-void FS_Init (const char *basedir);
+// [FWGS, 05.04.26]
+/*void FS_Init (const char *basedir);*/
+void FS_Init (void);
+
 void FS_Shutdown (void);
 void *FS_GetNativeObject (const char *obj);
 int FS_Close (file_t *file);
@@ -538,10 +587,9 @@ void Cmd_ForwardToServer (void);
 void Cmd_Escape (char *newCommand, const char *oldCommand, int len);
 
 //
-// imagelib
+// imagelib [FWGS, 05.04.26]
 //
-#include "com_image.h"
-
+/*include "com_image.h"*/
 void Image_Setup (void);
 void Image_Init (void);
 void Image_Shutdown (void);
@@ -635,7 +683,13 @@ qboolean Sound_SupportedFileFormat (const char *fileext);
 //
 typedef void(*pfnChangeGame)(const char *progname);
 
-qboolean Host_IsQuakeCompatible (void);
+// [FWGS, 05.04.26]
+/*qboolean Host_IsQuakeCompatible (void);*/
+static inline qboolean Host_IsQuakeCompatible (void)
+	{
+	return FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE) ? true : false;
+	}
+
 void Host_ShutdownWithReason (const char *reason);
 int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func);
 void Host_EndGame (qboolean abort, const char *message, ...) FORMAT_CHECK (2);
@@ -1005,13 +1059,13 @@ qboolean NET_GetMaster (netadr_t from, uint * challenge, double *last_heartbeat)
 qboolean NET_MasterQuery (uint32_t key, qboolean net, const char *filter);
 
 //
-// munge.c [FWGS, 01.12.24]
+// munge.c [FWGS, 05.04.26]
 //
 void COM_Munge (byte *data, size_t len, int seq);
 void COM_UnMunge (byte *data, size_t len, int seq);
 void COM_Munge2 (byte *data, size_t len, int seq);
 void COM_UnMunge2 (byte *data, size_t len, int seq);
-void COM_Munge3 (byte *data, size_t len, int seq);
+/*void COM_Munge3 (byte *data, size_t len, int seq);*/
 void COM_UnMunge3 (byte *data, size_t len, int seq);
 
 //
@@ -1046,8 +1100,9 @@ void SoundList_Shutdown (void);
 	#error "common.h in ref_dll"
 #endif
 
-#ifdef __cplusplus
+// [FWGS, 05.04.26]
+/*ifdef __cplusplus
 	}
-#endif
+endif*/
 
 #endif

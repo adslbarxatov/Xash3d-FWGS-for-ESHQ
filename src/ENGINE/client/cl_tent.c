@@ -327,7 +327,8 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 		}
 	else
 		{
-		if (COM_RandomLong (0, 5))
+		// ESHQ: чуть больше, чем каждый шестой
+		if (COM_RandomLong (0, 4))
 			return;
 		}
 
@@ -341,9 +342,9 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 		else
 			fvol *= Q_min (1.0f, ((float)zvel) / 450.0f);
 
-		// ESHQ: иначе какой смысл?
+		/*// ESHQ: иначе какой смысл?
 		if (fvol < 0.15f)
-			fvol = 0.15f;
+			fvol = 0.15f;*/
 
 		if (!COM_RandomLong (0, 3) && !isshellcasing)
 			pitch = COM_RandomLong (95, 105);

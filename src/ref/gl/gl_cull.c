@@ -36,11 +36,12 @@ qboolean R_CullBox (const vec3_t mins, const vec3_t maxs)
 
 /***
 =============
-R_CullModel [FWGS, 01.03.26]
+R_CullModel [FWGS, 05.04.26]
 =============
 ***/
-/*int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)*/
-qboolean R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
+/*int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
+qboolean R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)*/
+qboolean R_CullModel (const cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 	{
 	if (e == tr.viewent)
 		{
@@ -65,23 +66,26 @@ qboolean R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax)
 
 /***
 =================
-R_CullSurface
+R_CullSurface [FWGS, 05.04.26]
 
 cull invisible surfaces
 =================
 ***/
-int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
+/*int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)*/
+int R_CullSurface (const msurface_t *surf, const gl_frustum_t *frustum, uint clipflags)
 	{
 	cl_entity_t *e = RI.currententity;
 
-	if (!surf || !surf->texinfo || !surf->texinfo->texture)
+	/*if (!surf || !surf->texinfo || !surf->texinfo->texture)*/
+	if (!e || !surf || !surf->texinfo || !surf->texinfo->texture)
 		return CULL_OTHER;
 
 	if (r_nocull.value)
 		return CULL_VISIBLE;
 
-	// [FWGS, 01.01.24] world surfaces can be culled by vis frame too
-	if ((RI.currententity == CL_GetEntityByIndex (0)) && (surf->visframe != tr.framecount))
+	// world surfaces can be culled by vis frame too
+	/*if ((RI.currententity == CL_GetEntityByIndex (0)) && (surf->visframe != tr.framecount))*/
+	if ((e == CL_GetEntityByIndex (0)) && (surf->visframe != tr.framecount))
 		return CULL_VISFRAME;
 
 	// only static ents can be culled by frustum
@@ -92,7 +96,7 @@ int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags)
 		{
 		float	dist;
 
-		// [FWGS, 01.01.24] can use normal.z for world (optimisation)
+		// can use normal.z for world (optimisation)
 		if (RI.drawOrtho)
 			{
 			vec3_t	orthonormal;

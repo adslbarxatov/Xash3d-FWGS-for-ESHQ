@@ -315,26 +315,26 @@ static void SoundList_Print_f (void)
 
 // I wish we had #embed already
 static const char default_sounds_lst[] =
-"BouncePlayerShell \"player/pl_shell%d.wav\" 1 3\n"
-"BounceWeaponShell \"weapons/sshell%d.wav\" 1 3\n"
-"BounceConcrete \"debris/concrete%d.wav\" 1 3\n"
-"BounceGlass \"debris/glass%d.wav\" 1 3\n"
-"BounceMetal \"debris/metal%d.wav\" 1 6\n"
-"BounceFlesh \"debris/flesh%d.wav\" 2 7\n"
-"BounceWood \"debris/wood%d.wav\" 1 3\n"
-"Ricochet \"weapons/ric%d.wav\" 1 5\n"
-"Explode \"weapons/explode%d.wav\" 3 5\n"
-"EntityWaterEnter \"player/pl_wade%d.wav\" 1 4\n"
-"EntityWaterExit \"player/pl_wade%d.wav\" 1 4\n"
-"PlayerWaterEnter\n"
-"{\n"
-"	\"player/pl_wade1.wav\"\n"
-"}\n"
-"\n"
-"PlayerWaterExit\n"
-"{\n"
-"	\"player/pl_wade2.wav\"\n"
-"}\n";
+	"BouncePlayerShell \"player/pl_shell%d.wav\" 1 3\n"
+	"BounceWeaponShell \"weapons/sshell%d.wav\" 1 3\n"
+	"BounceConcrete \"debris/concrete%d.wav\" 1 3\n"
+	"BounceGlass \"debris/glass%d.wav\" 1 3\n"
+	"BounceMetal \"debris/metal%d.wav\" 1 6\n"
+	"BounceFlesh \"debris/flesh%d.wav\" 2 7\n"
+	"BounceWood \"debris/wood%d.wav\" 1 3\n"
+	"Ricochet \"weapons/ric%d.wav\" 1 5\n"
+	"Explode \"weapons/explode%d.wav\" 3 5\n"
+	"EntityWaterEnter \"player/pl_wade%d.wav\" 1 4\n"
+	"EntityWaterExit \"player/pl_wade%d.wav\" 1 4\n"
+	"PlayerWaterEnter\n"
+	"{\n"
+	"	\"player/pl_wade1.wav\"\n"
+	"}\n"
+	"\n"
+	"PlayerWaterExit\n"
+	"{\n"
+	"	\"player/pl_wade2.wav\"\n"
+	"}\n";
 
 static void SoundList_Reload_f (void)
 	{

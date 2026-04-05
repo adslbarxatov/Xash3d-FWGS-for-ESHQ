@@ -830,7 +830,9 @@ static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir, qboolean
 
 	if (quake)
 		{
+		// [FWGS, 05.04.26]
 		Q_strncpy (GameInfo->basedir, "id1", sizeof (GameInfo->basedir));
+		Q_strncpy (GameInfo->falldir, "qwrap", sizeof (GameInfo->falldir));
 		Q_strncpy (GameInfo->title, gamedir, sizeof (GameInfo->title));
 		Q_strncpy (GameInfo->startmap, "start", sizeof (GameInfo->startmap));
 		Q_strncpy (GameInfo->dll_path, "bin", sizeof (GameInfo->dll_path));
@@ -1246,7 +1248,7 @@ static qboolean FS_ReadGameInfo (const char *filename, const char *gamedir, game
 
 /***
 ================
-FS_CheckForQuakeGameDir [FWGS, 01.02.25]
+FS_CheckForQuakeGameDir
 
 Checks if game directory resembles Quake Engine game directory
 (some of checks may as well work with Xash gamedirs, it's not a bug)
@@ -1254,13 +1256,15 @@ Checks if game directory resembles Quake Engine game directory
 ***/
 static qboolean FS_CheckForQuakeGameDir (const char *gamedir)
 	{
-	// if directory contain quake.rc or progs.dat it's 100% quake gamedir
+	// [FWGS, 05.04.26] if directory contain quake.rc or progs.dat it's 100% quake gamedir
 	// quake mods probably always archived, so check pak0.pak too
-	const char	*files[] = { "progs.dat", "quake.rc" };
+	/*const char	*files[] = { "progs.dat", "quake.rc" };*/
+	const char	*files[] = { "pak0.pak", "PAK0.PAK", "progs.dat", "quake.rc" };
 	char	buf[MAX_SYSPATH];
 	int		i;
 
-	// try to read pak0.pak first, most quake mods are archived
+	// [FWGS, 05.04.26]
+	/*// try to read pak0.pak first, most quake mods are archived
 	if (Q_snprintf (buf, sizeof (buf), "%s/pak0.pak", gamedir) > 0)
 		{
 		if (FS_SysFileExists (buf))
@@ -1268,15 +1272,28 @@ static qboolean FS_CheckForQuakeGameDir (const char *gamedir)
 			if (FS_CheckForQuakePak (buf, files, sizeof (files) / sizeof (files[0])))
 				return true;
 			}
-		}
+		}*/
 
-	// search it in the filesystem
+	// [FWGS, 05.04.26] search it in the filesystem
 	for (i = 0; i < sizeof (files) / sizeof (files[0]); i++)
 		{
+		char buf[MAX_SYSPATH];
+
 		if (Q_snprintf (buf, sizeof (buf), "%s/%s", gamedir, files[i]) > 0)
 			{
-			if (FS_SysFileExists (buf))
+			/*if (FS_SysFileExists (buf))*/
+			if (!FS_SysFileExists (buf))
+				continue;
+
+			if (!Q_stricmp (COM_FileExtension (buf), "pak"))
+				{
+				if (FS_CheckForQuakePak (buf, &files[2], sizeof (files) / sizeof (files[0]) - 2))
+					return true;
+				}
+			else
+				{
 				return true;
+				}
 			}
 		}
 

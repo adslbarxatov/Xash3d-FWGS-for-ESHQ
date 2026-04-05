@@ -18,8 +18,15 @@ CVAR_DEFINE_AUTO (gl_keeptjunctions, "1", FCVAR_GLCONFIG,
 	"removing tjuncs causes blinking pixels");
 CVAR_DEFINE_AUTO (gl_check_errors, "1", FCVAR_GLCONFIG,
 	"ignore video engine errors");
-CVAR_DEFINE_AUTO (gl_polyoffset, "2.0", FCVAR_GLCONFIG,
+
+// [FWGS, 05.04.26]
+/*CVAR_DEFINE_AUTO (gl_polyoffset, "2.0", FCVAR_GLCONFIG,
+	"polygon offset for decals");*/
+CVAR_DEFINE_AUTO (gl_polyoffset, "2", FCVAR_GLCONFIG,
 	"polygon offset for decals");
+CVAR_DEFINE_AUTO (gl_polyoffset_bmodels, "2", FCVAR_GLCONFIG,
+	"polygon offset for brush models");
+
 CVAR_DEFINE_AUTO (gl_wireframe, "0", FCVAR_GLCONFIG | FCVAR_SPONLY,
 	"show wireframe overlay");
 CVAR_DEFINE_AUTO (gl_finish, "0", FCVAR_GLCONFIG,
@@ -1330,8 +1337,10 @@ static void GL_InitCommands (void)
 	// [FWGS, 01.12.24]
 	gEngfuncs.Cvar_RegisterVariable (&gl_fog);
 
-	// these cvar not used by engine but some mods requires this
+	// [FWGS, 05.04.26]
+	/*// these cvar not used by engine but some mods requires this*/
 	gEngfuncs.Cvar_RegisterVariable (&gl_polyoffset);
+	gEngfuncs.Cvar_RegisterVariable (&gl_polyoffset_bmodels);
 
 	// make sure gl_vsync is checked after vid_restart
 	SetBits (gl_vsync->flags, FCVAR_CHANGED);

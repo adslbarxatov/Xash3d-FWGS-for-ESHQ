@@ -1,24 +1,21 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
-/***
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
 
-===== explode.cpp ========================================================
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
 
-  Explosion-related code
-
+Use, distribution, and modification of this source code and/or resulting
+object code is restricted to non-commercial enhancements to products from
+Valve LLC.  All other use, distribution, or modification is prohibited
+without written permission from Valve LLC
 ***/
+
+/***
+===== explode.cpp ========================================================
+Explosion-related code
+***/
+
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -92,8 +89,8 @@ class CEnvExplosion: public CBaseMonster
 		virtual int		Restore (CRestore& restore);
 		static	TYPEDESCRIPTION m_SaveData[];
 
-		int m_iMagnitude;// how large is the fireball? how much damage?
-		int m_spriteScale; // what's the exact fireball sprite scale? 
+		int m_iMagnitude;	// how large is the fireball? how much damage?
+		int m_spriteScale;	// what's the exact fireball sprite scale? 
 	};
 
 TYPEDESCRIPTION	CEnvExplosion::m_SaveData[] =

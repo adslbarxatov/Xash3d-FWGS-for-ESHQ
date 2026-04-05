@@ -40,10 +40,11 @@ GNU General Public License for more details
 #include "q_client.h"	// [FWGS, 01.03.26]
 #endif
 
-// client sprite types
-#define SPR_CLIENT		0	// client sprite for temp-entities or user-textures
-#define SPR_HUDSPRITE	1	// hud sprite
-#define SPR_MAPSPRITE	2	// contain overview.bmp that diced into frames 128x128
+// [FWGS, 05.04.26]
+/*// client sprite types
+define SPR_CLIENT		0	// client sprite for temp-entities or user-textures
+define SPR_HUDSPRITE	1	// hud sprite
+define SPR_MAPSPRITE	2	// contain overview.bmp that diced into frames 128x128*/
 
 // =============================================================================
 typedef struct netbandwithgraph_s
@@ -113,6 +114,9 @@ extern int CL_UPDATE_BACKUP;
 #define MIN_UPDATERATE	10.0f
 #define MAX_UPDATERATE	102.0f
 #define MAX_EX_INTERP	0.1f
+
+// [FWGS, 05.04.26]
+#define MAX_TEXTCHANNELS	8		// must be power of two (GoldSrc uses 4 channels)
 
 #define CL_MIN_RESEND_TIME	1.5f		// mininum time gap (in seconds) before a subsequent connection request is sent
 #define CL_MAX_RESEND_TIME	20.0f		// max time.  The cvar cl_resend is bounded by these
@@ -312,6 +316,14 @@ typedef enum
 	CL_PAUSED,		// pause when active
 	CL_CHANGELEVEL,	// draw 'loading' during changelevel
 	} scrstate_t;
+
+// [FWGS, 05.04.26] client sprite types
+enum
+	{
+	SPR_CLIENT = 0,		// client sprite for temp-entities or user-textures
+	SPR_HUDSPRITE,		// hud sprite
+	SPR_MAPSPRITE,		// contain overview.bmp that diced into frames 128x128
+	};
 
 typedef struct
 	{
@@ -740,10 +752,12 @@ extern convar_t cl_fixmodelinterpolationartifacts;
 
 // =============================================================================
 
-void CL_SetLightstyle (int style, const char *s, float f);
+// [FWGS, 05.04.26]
+/*void CL_SetLightstyle (int style, const char *s, float f);
 void CL_DecayLights (void);
 dlight_t *CL_GetDynamicLight (int number);
-dlight_t *CL_GetEntityLight (int number);
+dlight_t *CL_GetEntityLight (int number);*/
+extern client_textmessage_t cl_textmessage[MAX_TEXTCHANNELS];
 
 // =================================================
 
@@ -867,11 +881,12 @@ void CL_FreeEdicts (void);
 void CL_ClearWorld (void);
 void CL_DrawCenterPrint (void);
 void CL_ClearSpriteTextures (void);
-void CL_CenterPrint (const char *text, float y);
 
-// [FWGS, 01.03.26]
-/*void CL_TextMessageParse (byte *pMemFile, int fileSize);*/
-client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile, int fileSize, int *numTitles);
+// [FWGS, 05.04.26]
+void CL_HudMessage (const char *pMessage);
+void CL_CenterPrint (const char *text, float y);
+/*// [FWGS, 01.03.26]
+client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile, int fileSize, int *numTitles);*/
 
 client_textmessage_t *CL_TextMessageGet (const char *pName);
 void NetAPI_CancelAllRequests (void);
@@ -948,26 +963,26 @@ static inline cl_entity_t *CL_GetLocalPlayer (void)
 	}
 
 //
-// cl_parse.c [FWGS, 01.03.26]
+// cl_parse.c [FWGS, 05.04.26]
 //
-void CL_ParseSetAngle (sizebuf_t *msg);
+/*void CL_ParseSetAngle (sizebuf_t *msg);
 void CL_ParseServerData (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseLightStyle (sizebuf_t *msg, connprotocol_t proto);
-void CL_UpdateUserinfo (sizebuf_t *msg, connprotocol_t proto);
+void CL_UpdateUserinfo (sizebuf_t *msg, connprotocol_t proto);*/
 void CL_ParseResource (sizebuf_t * msg);
 void CL_ParseClientData (sizebuf_t *msg, connprotocol_t proto);
 void CL_UpdateUserPings (sizebuf_t * msg);
-void CL_ParseParticles (sizebuf_t *msg, connprotocol_t proto);
-/*void CL_ParseRestoreSoundPacket (sizebuf_t * msg);*/
+/*void CL_ParseParticles (sizebuf_t *msg, connprotocol_t proto);
+void CL_ParseRestoreSoundPacket (sizebuf_t * msg);*/
 void CL_ParseBaseline (sizebuf_t *msg, connprotocol_t proto);
-void CL_ParseSignon (sizebuf_t *msg, connprotocol_t proto);
-void CL_ParseRestore (sizebuf_t * msg);
+/*void CL_ParseSignon (sizebuf_t *msg, connprotocol_t proto);
+void CL_ParseRestore (sizebuf_t * msg);*/
 void CL_ParseStaticDecal (sizebuf_t * msg);
-void CL_ParseAddAngle (sizebuf_t * msg);
-void CL_RegisterUserMessage (sizebuf_t *msg, connprotocol_t proto);
+/*void CL_ParseAddAngle (sizebuf_t * msg);
+void CL_RegisterUserMessage (sizebuf_t *msg, connprotocol_t proto);*/
 void CL_ParseResourceList (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseMovevars (sizebuf_t * msg);
-void CL_ParseResourceRequest (sizebuf_t * msg);
+/*void CL_ParseResourceRequest (sizebuf_t * msg);
 void CL_ParseCustomization (sizebuf_t * msg);
 void CL_ParseCrosshairAngle (sizebuf_t * msg);
 void CL_ParseSoundFade (sizebuf_t * msg);
@@ -977,19 +992,22 @@ void CL_ParseDirector (sizebuf_t * msg);
 void CL_ParseVoiceInit (sizebuf_t *msg);
 void CL_ParseVoiceData (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseResLocation (sizebuf_t * msg);
-void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext, const connprotocol_t proto);
+void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext, const connprotocol_t proto);*/
 void CL_ParseServerMessage (sizebuf_t *msg);
-qboolean CL_ParseCommonDLLMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);
+/*qboolean CL_ParseCommonDLLMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);*/
+qboolean CL_ParseCommonMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);
+qboolean CL_ParseCommonHLMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);
+
 void CL_ParseTempEntity (sizebuf_t *msg, connprotocol_t proto);
 qboolean CL_DispatchUserMessage (const char *pszName, int iSize, void *pbuf);
 qboolean CL_RequestMissingResources (void);
 void CL_RegisterResources (sizebuf_t *msg, connprotocol_t proto);
-void CL_ParseViewEntity (sizebuf_t *msg);
+/*void CL_ParseViewEntity (sizebuf_t *msg);*/
 void CL_ParseServerTime (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseUserMessage (sizebuf_t *msg, int svc_num, connprotocol_t proto);
-void CL_ParseFinaleCutscene (sizebuf_t *msg, int level);
+/*void CL_ParseFinaleCutscene (sizebuf_t *msg, int level);*/
 void CL_ParseTextMessage (sizebuf_t *msg);
-void CL_ParseExec (sizebuf_t *msg);
+/*void CL_ParseExec (sizebuf_t *msg);*/
 void CL_BatchResourceRequest (qboolean initialize);
 int CL_EstimateNeededResources (void);
 
@@ -1116,9 +1134,16 @@ void R_StoreEfrags (efrag_t **ppefrag, int framecount);
 void R_AddEfrags (cl_entity_t *ent);
 
 //
-// cl_tent.c [FWGS, 01.12.24]
+// cl_tent.c
 //
 struct particle_s;
+
+// [FWGS, 05.04.26]
+void CL_SetLightstyle (int style, const char *s, float f);
+void CL_DecayLights (void);
+dlight_t *CL_GetDynamicLight (int number);
+dlight_t *CL_GetEntityLight (int number);
+
 void CL_WeaponAnim (int iAnim, int body);
 void CL_ClearEffects (void);
 void CL_ClearEfrags (void);
@@ -1228,7 +1253,9 @@ void UI_CharEvent (int key);
 qboolean UI_MouseInRect (void);
 qboolean UI_IsVisible (void);
 void UI_ResetPing (void);
-void UI_ShowUpdateDialog (qboolean preferStore);
+
+// [FWGS, 05.04.26]
+/*void UI_ShowUpdateDialog (qboolean preferStore);*/
 qboolean UI_ShowMessageBox (const char *text);
 void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command, unsigned char *color,
 	int flags);
@@ -1303,7 +1330,11 @@ void ID_Init (void);
 /*const char *ID_GetMD5 (void);*/
 void ID_GetMD5ForAddress (char *key, netadr_t adr, size_t size);
 
-// [FWGS, 01.07.24]
+//
+// titles.c [FWGS, 05.04.26]
+//
+client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, char *pMemFile, int fileSize, int *numTitles);
+
 extern rgba_t g_color_table[8];
 extern triangleapi_t gTriApi;
 extern net_api_t gNetApi;

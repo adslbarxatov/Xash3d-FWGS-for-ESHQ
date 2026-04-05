@@ -309,14 +309,17 @@ qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared
 	return true;
 	}
 
-/***
+// [FWGS, 05.04.26] removed PlaneIntersect
+
+/*
+/
 =================
 PlaneIntersect
 
 find point where ray
 was intersect with plane
 =================
-***/
+/
 void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, vec3_t out)
 	{
 	float distToPlane = PlaneDiff (p0, plane);
@@ -324,7 +327,7 @@ void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, ve
 	float sect = -(distToPlane) / planeDotRay;
 
 	VectorMA (p0, sect, p1, out);
-	}
+	}*/
 
 // [FWGS, 01.12.24] removed RadiusFromBounds, AngleQuaternion, QuaternionAngle
 
@@ -432,51 +435,77 @@ void QuaternionSlerp (const vec4_t p, const vec4_t q, float t, vec4_t qt)
 
 /***
 ==================
-BoxOnPlaneSide
+BoxOnPlaneSide [FWGS, 05.04.26]
 
 Returns 1, 2, or 1 + 2
 ==================
 ***/
 int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p)
 	{
+	/*float	dist1, dist2;
+	int	sides = 0;*/
 	float	dist1, dist2;
-	int	sides = 0;
+	int		sides = 0;
 
 	// general case
 	switch (p->signbits)
 		{
 		case 0:
+			/*dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];*/
 			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
 			dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
 			break;
+
 		case 1:
+			/*dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];*/
 			dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
 			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
 			break;
+
 		case 2:
+			/*dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];*/
 			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
 			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
 			break;
+
 		case 3:
+			/*dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];*/
 			dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
 			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
 			break;
+
 		case 4:
+			/*dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];*/
 			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
 			dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
 			break;
+
 		case 5:
+			/*dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];*/
 			dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
 			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
 			break;
+
 		case 6:
+			/*dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];*/
 			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
 			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
 			break;
+
 		case 7:
+			/*dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];*/
 			dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
 			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
 			break;
+
 		default:
 			// shut up compiler
 			dist1 = dist2 = 0;

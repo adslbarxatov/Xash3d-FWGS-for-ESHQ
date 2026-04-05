@@ -336,6 +336,10 @@ void GL_EnableTextureUnit (int tmu, qboolean enable);
 void GL_TextureTarget (uint target);
 void GL_Cull (GLenum cull);
 
+// [FWGS, 05.04.26]
+void GL_PushPolygonOffset (float factor, float units);
+void GL_PopPolygonOffset (void);
+
 // [FWGS, 01.04.26]
 /*void R_ShowTextures (void);*/
 void SCR_TimeRefresh_f (void);
@@ -348,12 +352,13 @@ void CL_DrawBeams (int fTrans, BEAM *active_beams);
 qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly);
 
 //
-// gl_cull.c [FWGS, 01.03.26]
+// gl_cull.c [FWGS, 05.04.26]
 //
-/*int R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);*/
-qboolean R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);
+/*qboolean R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);*/
+qboolean R_CullModel (const cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);
 qboolean R_CullBox (const vec3_t mins, const vec3_t maxs);
-int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags);
+/*int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags);*/
+int R_CullSurface (const msurface_t *surf, const gl_frustum_t *frustum, uint clipflags);
 
 //
 // gl_decals.c
@@ -696,7 +701,13 @@ typedef struct
 	int		prev_height;
 	} glconfig_t;
 
-// [FWGS, 01.12.24]
+// [FWGS, 05.04.26]
+typedef struct polyoffset_state_s
+	{
+	float	factor;
+	float	units;
+	} polyoffset_state_t;
+
 typedef struct
 	{
 	int			activeTMU;
@@ -712,6 +723,10 @@ typedef struct
 
 	qboolean	stencilEnabled;
 	qboolean	in2DMode;
+
+	// [FWGS, 05.04.26]
+	polyoffset_state_t	polyoffset_state[2];
+	int			num_polyoffsets;
 	} glstate_t;
 
 typedef struct
@@ -818,13 +833,14 @@ extern convar_t gl_keeptjunctions;
 extern convar_t gl_round_down;
 extern convar_t gl_wireframe;
 extern convar_t gl_polyoffset;
+extern convar_t gl_polyoffset_bmodels;	// [FWGS, 05.04.26]
 extern convar_t gl_finish;
 extern convar_t gl_nosort;
 extern convar_t gl_test;	// cvar to testify new effects
 extern convar_t gl_msaa;
 extern convar_t gl_stencilbits;
-extern convar_t gl_overbright;	// [FWGS, 01.01.24]
-extern convar_t gl_fog;			// [FWGS, 01.12.24]
+extern convar_t gl_overbright;
+extern convar_t gl_fog;
 extern convar_t r_lighting_extended;
 extern convar_t r_lighting_ambient;
 extern convar_t r_studio_lambert;
@@ -836,11 +852,11 @@ extern convar_t r_lockfrustum;
 extern convar_t r_traceglow;
 extern convar_t r_vbo;
 extern convar_t r_vbo_dlightmode;
-extern convar_t r_vbo_detail;	// [FWGS, 01.01.24]
-extern convar_t r_vbo_overbrightmode;	// [FWGS, 01.03.24]
+extern convar_t r_vbo_detail;
+extern convar_t r_vbo_overbrightmode;
 extern convar_t r_studio_sort_textures;
 extern convar_t r_studio_drawelements;
-extern convar_t r_shadows;		// [FWGS, 01.12.24]
+extern convar_t r_shadows;
 extern convar_t r_ripple;
 extern convar_t r_ripple_updatetime;
 extern convar_t r_ripple_spawntime;

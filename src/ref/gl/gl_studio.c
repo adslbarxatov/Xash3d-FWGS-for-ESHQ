@@ -2409,16 +2409,33 @@ static void R_StudioDrawPoints (void)
 	// NOTE: rewind normals at start
 	pstudionorms = (vec3_t *)((byte *)m_pStudioHeader + m_pSubModel->normindex);
 
-	// backface culling for left-handed weapons
-	if (R_AllowFlipViewModel (RI.currententity))
+	/*if (R_AllowFlipViewModel (RI.currententity))*/
+
+	// [FWGS, 05.04.26] backface culling for left-handed weapons
+	// there is a bug in GoldSrc that sets backface culling to GL_FRONT
+	// but doesn't enable OpenGL GL_CULL_FACE. This allows mod developers to disable
+	// backface culling through TriAPI call
+	//
+	// see https://github.com/FWGS/xash3d-fwgs/issues/2517
+	if (glState.faceCull != GL_NONE)
 		{
-		tr.fFlipViewModel = true;
+		/*tr.fFlipViewModel = true;
 		GL_Cull (GL_NONE);
 		}
 	else
 		{
 		tr.fFlipViewModel = false;
-		GL_Cull (GL_FRONT);
+		GL_Cull (GL_FRONT);*/
+		if (R_AllowFlipViewModel (RI.currententity))
+			{
+			tr.fFlipViewModel = true;
+			GL_Cull (GL_NONE);
+			}
+		else
+			{
+			tr.fFlipViewModel = false;
+			GL_Cull (GL_FRONT);
+			}
 		}
 
 	for (j = 0; j < m_pSubModel->nummesh; j++)

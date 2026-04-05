@@ -40,8 +40,8 @@ static CVAR_DEFINE (v_gamma, "gamma", "1.5", FCVAR_ARCHIVE,
 
 static void BuildGammaTable (const float gamma, const float brightness, const float texgamma, const float lightgamma)
 	{
-	float g1, g2, g3;
-	int i;
+	float	g1, g2, g3;
+	int		i;
 
 	if (gamma != 0.0)
 		g1 = 1.0 / gamma;
@@ -56,18 +56,23 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 	else
 		g3 = 0.05;
 
+	// [FWGS, 05.04.26]
 	for (i = 0; i < 256; i++)
 		{
-		double d = pow (i / 255.0, (double)g2);
-		int inf = d * 255.0;
+		/*double d = pow (i / 255.0, (double)g2);
+		int inf = d * 255.0;*/
+		// keep it float or texgamma test will fail with -ffast-math
+		float	d = pow (i / 255.0, (double)g2);
+		int		inf = d * 255.0f;
+
 		texgammatable[i] = bound (0, inf, 255);
 		}
 
 	for (i = 0; i < 1024; i++)
 		{
-		double d;
-		float f = pow (i / 1023.0, (double)lightgamma);
-		int inf;
+		double	d;
+		float	f = pow (i / 1023.0, (double)lightgamma);
+		int		inf;
 
 		if (brightness > 1.0)
 			f *= brightness;
@@ -87,7 +92,6 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 		}
 	}
 
-// [FWGS, 01.03.24]
 static void V_ValidateGammaCvars (void)
 	{
 	// ESHQ: изменены значения в соответствии с оными по умолчанию
@@ -201,16 +205,6 @@ byte LightToTexGamma (byte b)
 	}
 
 // [FWGS, 01.12.24] removed LightToTexGammaEx
-/*uint LightToTexGammaEx (uint b)
-	{
-	if (FBitSet (host.features, ENGINE_LINEAR_GAMMA_SPACE))
-		return b;
-
-	if (unlikely (b > ARRAY SIZE (lightgammatable)))
-		return 0;
-
-	return lightgammatable[b];
-	}*/
 
 uint ScreenGammaTable (uint b)
 	{
@@ -218,7 +212,6 @@ uint ScreenGammaTable (uint b)
 		return b;
 
 	// [FWGS, 01.12.24]
-	/*if (unlikely (b > ARRAY SIZE (screengammatable)))*/
 	if (unlikely (b >= HLARRAYSIZE (screengammatable)))
 		return 0;
 
@@ -231,7 +224,6 @@ uint LinearGammaTable (uint b)
 		return b;
 
 	// [FWGS, 01.12.24]
-	/*if (unlikely (b > ARRAY SIZE (lineargammatable)))*/
 	if (unlikely (b >= HLARRAYSIZE (lineargammatable)))
 		return 0;
 	return lineargammatable[b];

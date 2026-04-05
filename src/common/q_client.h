@@ -95,14 +95,16 @@ STATIC_CHECK_SIZEOF (kbutton_t, 12, 12);
 
 #endif
 
+// [FWGS, 05.04.26]
 typedef enum
 	{
 	// Quake defined types
 	pt_static, pt_grav, pt_slowgrav, pt_fire, pt_explode, pt_explode2, pt_blob, pt_blob2,
 
 	// added in HL
-	pr_4x_slowgrav, // 4 times faster than pt_slowgrav
-	pt_8x_slowgrav, // 8 times faster than pt_slowgrav
+	/*pr_4x_slowgrav, // 4 times faster than pt_slowgrav*/
+	pt_4x_slowgrav,	// 4 times faster than pt_slowgrav
+	pt_8x_slowgrav,	// 8 times faster than pt_slowgrav
 	pt_custom, // will call think function from particle
 	} ptype_t;
 

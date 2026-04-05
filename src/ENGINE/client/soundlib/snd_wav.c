@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#include <stddef.h>	// [FWGS, 01.11.23]
+#include <stddef.h>
 #include "soundlib.h"
 
 static const byte *iff_data;
@@ -47,19 +47,24 @@ static short GetLittleShort (void)
 
 /***
 =================
-GetLittleLong
+GetLittleLong [FWGS, 05.04.26]
 =================
 ***/
 static int GetLittleLong (void)
 	{
-	int	val = 0;
+	/*int	val = 0;*/
+	uint	val = 0;
 
-	val += (*(iff_dataPtr + 0) << 0);
+	/*val += (*(iff_dataPtr + 0) << 0);
 	val += (*(iff_dataPtr + 1) << 8);
 	val += (*(iff_dataPtr + 2) << 16);
-	val += (*(iff_dataPtr + 3) << 24);
-	iff_dataPtr += 4;
+	val += (*(iff_dataPtr + 3) << 24);*/
+	val += ((uint) * (iff_dataPtr + 0) << 0);
+	val += ((uint) * (iff_dataPtr + 1) << 8);
+	val += ((uint) * (iff_dataPtr + 2) << 16);
+	val += ((uint) * (iff_dataPtr + 3) << 24);
 
+	iff_dataPtr += 4;
 	return val;
 	}
 
@@ -103,7 +108,6 @@ static void FindNextChunk (const char *filename, const char *name)
 				|| IsFourCC (iff_lastChunk, "LIST")
 				|| IsFourCC (iff_lastChunk, "data"))
 				{
-				/*Con_DPrintf ("%s: '%s' truncated by %zi bytes\n", __func__, filename, iff_chunkLen - remaining);*/
 				Con_DPrintf ("%s: '%s' truncated by %td bytes\n", __func__, filename, iff_chunkLen - remaining);
 				}
 

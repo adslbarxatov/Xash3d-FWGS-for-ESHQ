@@ -16,11 +16,10 @@ GNU General Public License for more details
 #ifndef COM_MODEL_H
 #define COM_MODEL_H
 
-// [FWGS, 01.03.26]
-/*include "xash3d_types.h"*/
+// [FWGS, 05.04.26]
 #include "const.h"
-
-#include "bspfile.h"	// we need some declarations from it
+#include "bspfile.h"			// we need some declarations from it
+#include "xash3d_mathlib.h"		// mplane_t
 
 /***
 ==============================================================================
@@ -50,14 +49,15 @@ typedef enum
 	mod_studio
 	} modtype_t;
 
-typedef struct mplane_s
+// [FWGS, 05.04.26]
+/*typedef struct mplane_s
 	{
 	vec3_t		normal;
 	float		dist;
 	byte		type;			// for fast side tests
 	byte		signbits;		// signx + (signy<<1) + (signz<<1)
 	byte		pad[2];
-	} mplane_t;
+	} mplane_t;*/
 
 typedef struct
 	{

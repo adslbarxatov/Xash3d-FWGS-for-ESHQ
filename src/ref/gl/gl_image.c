@@ -39,14 +39,20 @@ static byte dottexture[8][8] =
 
 /***
 =================
-R_GetTexture [FWGS, 01.11.25]
+R_GetTexture [FWGS, 05.04.26]
 
 acess to array elem
 =================
 ***/
 gl_texture_t *R_GetTexture (unsigned int texnum)
 	{
-	Assert (texnum < MAX_TEXTURES);
+	/*Assert (texnum < MAX_TEXTURES);*/
+	if (texnum >= MAX_TEXTURES)
+		{
+		gEngfuncs.Host_Error ("%s: texnum (%d) >= MAX_TEXTURES (%d)", __func__, texnum, MAX_TEXTURES);
+		texnum = 0;
+		}
+
 	return &gl_textures[texnum];
 	}
 
@@ -957,10 +963,12 @@ static byte *GL_ApplyFilter (const byte *source, int width, int height)
 	byte	*out = (byte *)source;
 	int		i;
 
-	if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) || glConfig.max_multisamples > 1)
+	// [FWGS, 05.04.26]
+	/*if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) || glConfig.max_multisamples > 1)*/
+	if (FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) || (glConfig.max_multisamples > 1))
 		return in;
 
-	for (i = 0; source && i < width * height; i++, in += 4)
+	for (i = 0; source && (i < width * height); i++, in += 4)
 		{
 		if ((in[0] == 0) && (in[1] == 0) && (in[2] == 0) && (in[3] == 0))
 			GL_BoxFilter3x3 (in, source, width, height, i % width, i / width);
